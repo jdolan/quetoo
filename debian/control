@@ -1,0 +1,20 @@
+Source: quake2world
+Section: contrib/games
+Priority: optional
+Maintainer: Stanley Pinchak <stanley.pinchak@gmail.com>
+Build-Depends: debhelper (>= 5), autotools-dev, build-essential, automake1.9, libtool, libsdl1.2-dev, libsdl-image1.2-dev, libcurl3-dev
+Standards-Version: 3.7.2
+
+Package: quake2world
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: quake2world-data (>= 0.1.0-pre1)
+Description: an unsupported, unofficial, multiplayer-only iteration of Quake II
+ Quake2World is a 3D action game in the First Person Shooter genre.
+ It aims to blend the very best aspects of the entire Quake series to deliver
+ an enjoyable FPS experience in a free to download, stand-alone game.
+ .
+ This package conatins no data files you will need to install
+ ``quake2world-data''
+ package (pending) or download the data files and install them by hand
+ following the instructions at http://quake2world.net/installation

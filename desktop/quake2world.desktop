@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+X-Enlightenment-IconClass=Quake2world
+Type=Games
+Exec=quake2world
+StartupWMClass=Quake2world
+GenericName=quake2world
+Name=quake2world
+Comment=quake2world
+Icon=quake2world.png
+

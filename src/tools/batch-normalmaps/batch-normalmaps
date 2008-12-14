@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# Usage: batch-normalmaps 
+#
+
+log=/tmp/batch-normalmaps.log
+
+for i in $@; do
+
+	test -f $i || {
+		echo "  Coudn't find $i, skipping."
+		continue
+	}
+
+	echo $i | grep "_nm." >/dev/null && {
+		echo "  Skipping normalmap $i."
+		continue
+	}
+
+	echo "Converting $i.."
+
+	gimp -i -b "(save-normal-map \"$i\")" -b "(gimp-quit 0)" >$log 2>&1
+done
+

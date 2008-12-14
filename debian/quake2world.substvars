@@ -1,0 +1,1 @@
+shlibs:Depends=libc6 (>= 2.3.6-6), libcomerr2 (>= 1.33-3), libcurl3 (>= 7.15.5-1), libidn11 (>= 0.5.18), libkrb53 (>= 1.4.2), libsdl1.2debian (>= 1.2.10-1), libssl0.9.8 (>= 0.9.8c-1), zlib1g (>= 1:1.2.1)

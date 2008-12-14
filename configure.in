@@ -1,0 +1,409 @@
+AC_PREREQ(2.56)
+
+AC_INIT(quake2world, 0.1.0, quake2@jdolan.dyndns.org)
+
+AC_CONFIG_AUX_DIR(.)
+AC_CONFIG_SRCDIR(src/main.c)
+AM_CONFIG_HEADER(config.h)
+
+AC_CANONICAL_SYSTEM
+AC_DEFINE_UNQUOTED(BUILDHOST,
+	"${target_cpu}-${target_os}",
+	[Set to the canonical name of the target machine]
+)
+
+AC_SUBST(PROGRAM)
+AC_SUBST(VERSION)
+
+AM_INIT_AUTOMAKE([foreign dist-bzip2 dist-zip])
+
+AM_MAINTAINER_MODE
+
+dnl ---------------
+dnl Check for tools
+dnl ---------------
+
+AC_PROG_CC
+AC_PROG_LIBTOOL
+
+dnl ---------------
+dnl Check host type
+dnl ---------------
+
+AC_MSG_CHECKING([host type])
+case "$host" in
+	*-*-mingw*)
+		ICON="quake2world-icon.o"
+		HOST_LIBS="-lws2_32 -lole32"
+		HOST_OPENGL_LIBS="-lopengl32"
+		HOST_WARN_CFLAGS="-Wall -Werror -Wdeclaration-after-statement -Wmissing-prototypes -Wmissing-declarations"
+		SO_CFLAGS=""
+		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
+		if test "x$WINDRES" = "x"; then
+			AC_MSG_ERROR([windres could not be found within your path.])
+		fi
+		AC_SUBST(WINDRES)
+		AC_MSG_RESULT(win32)
+		;;
+	*bsd*)
+		ICON=""
+		HOST_LIBS=""
+		HOST_OPENGL_LIBS="-lGL"
+		HOST_WARN_CFLAGS="-Wall -Werror -Wmissing-prototypes -Wmissing-declarations"
+		SO_CFLAGS="-fPIC -DPIC"
+		AC_MSG_RESULT(bsd)
+		;;
+	*)
+		ICON=""
+		HOST_LIBS="-ldl"
+		HOST_OPENGL_LIBS="-lGL"
+		HOST_WARN_CFLAGS="-Wall -Werror -Wdeclaration-after-statement -Wmissing-prototypes -Wmissing-declarations"
+		SO_CFLAGS="-fPIC -DPIC"
+		AC_MSG_RESULT(generic unix)
+		;;
+esac
+AC_SUBST(ICON)
+AC_SUBST(HOST_LIBS)
+AC_SUBST(HOST_OPENGL_LIBS)
+AC_SUBST(SO_CFLAGS)
+
+dnl -----------------------------
+dnl Check whether to build client
+dnl -----------------------------
+
+BUILD_CLIENT=no
+
+AC_ARG_WITH(client,
+	AC_HELP_STRING([--without-client], [build a dedicated server])
+)
+
+AC_MSG_CHECKING(whether to build client)
+
+if test "x${with_client}" = xno; then
+    AC_MSG_RESULT(no)
+else
+	AC_MSG_RESULT(yes)
+	BUILD_CLIENT=yes
+
+	AC_DEFINE(BUILD_CLIENT, 1, [Define this to build a client])
+
+	dnl -------------------------------
+	dnl Check for OpenGL and extensions
+	dnl -------------------------------
+
+	AC_CHECK_HEADER(GL/gl.h,,
+		[AC_MSG_ERROR([Couldn't find GL/gl.h, please install OpenGL])]
+	)
+
+	AC_CHECK_HEADER(GL/glext.h,,
+		[AC_MSG_ERROR([Couldn't find GL/glext.h, please install OpenGL])],
+		[#include <GL/gl.h>]
+	)
+
+	dnl --------------
+	dnl Check for cURL
+	dnl --------------
+
+	AC_PATH_PROG(CURL_CONFIG, curl-config)
+
+	if test "x${CURL_CONFIG}" != x; then
+		CURL_CFLAGS=`$CURL_CONFIG --cflags`
+		CURL_LIBS=`$CURL_CONFIG --libs`
+	else
+		AC_MSG_ERROR([Couldn't find curl-config, please install cURL])
+	fi
+	AC_SUBST(CURL_CFLAGS)
+	AC_SUBST(CURL_LIBS)
+fi
+
+dnl -------------
+dnl Check for SDL
+dnl -------------
+
+AC_PATH_PROG(SDL_CONFIG, sdl-config)
+
+if test "x${SDL_CONFIG}" != x; then
+	SDL_CFLAGS=`$SDL_CONFIG --cflags`
+	SDL_LIBS=`$SDL_CONFIG --libs`
+
+	if test "x${BUILD_CLIENT}" != "xno"; then
+
+		dnl -------------------
+		dnl Check for SDL_image
+		dnl -------------------
+
+		save_CPPFLAGS="$CPPFLAGS"
+		CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+
+		AC_CHECK_HEADER(SDL/SDL_image.h,
+			SDL_LIBS="$SDL_LIBS -lSDL_image",
+			[AC_MSG_ERROR([Couldn't find SDL_image.h, please install sdl-image])]
+		)
+
+		CPPFLAGS="$save_CPPFLAGS"
+	fi
+else
+	AC_MSG_ERROR([Couldn't find sdl-config, please install libsdl])
+fi
+AC_SUBST(SDL_CFLAGS)
+AC_SUBST(SDL_LIBS)
+
+dnl --------------
+dnl Check for Zlib
+dnl --------------
+
+AC_CHECK_HEADER(zlib.h,,
+	[AC_MSG_ERROR([Couldn't find zlib.h, please install zlib])]
+)
+
+dnl ----------------------------
+dnl Check for curses (optional)
+dnl ----------------------------
+
+HAVE_CURSES=no
+
+AC_ARG_WITH(curses,
+	AC_HELP_STRING([--with-curses(=DIR)],
+		[use curses (optionally, found in DIR)]
+	)
+)
+
+if test "x${with_curses}" != "xno"; then
+	if test "x${with_curses}" != xyes ; then
+		CURSES_CFLAGS="$CURSES_CFLAGS -I${with_curses}/include"
+		CURSES_LIBS="$CURSES_LIBS -L${with_curses}/lib"
+	fi
+	save_CPPFLAGS="$CPPFLAGS"
+	save_LDFLAGS="$LDFLAGS"
+
+	CPPFLAGS="$CPPFLAGS $CURSES_CFLAGS"
+	LDFLAGS="$LDFLAGS $CURSES_LIBS"
+
+	dnl check for curses header
+
+	AC_CHECK_HEADER(curses.h,
+		HAVE_CURSES=maybe,
+		HAVE_CURSES=no
+	)
+
+	dnl check for ncurses
+
+	if test "${HAVE_CURSES}" = "maybe" ; then
+		AC_CHECK_LIB(ncurses, initscr,
+			HAVE_CURSES=ncurses
+			AC_DEFINE(HAVE_CURSES, ncurses, [Define this if you have a curses compatible library])
+			CURSES_LIBS="$CURSES_LIBS -lncurses",
+			HAVE_CURSES=maybe
+		)
+	fi
+
+	dnl check for pdcurses
+
+	if test "${HAVE_CURSES}" = "maybe" ; then
+		AC_CHECK_LIB(pdcurses, initscr,
+			HAVE_CURSES=pdcurses
+			AC_DEFINE(HAVE_CURSES, pdcurses, [Define this if you have a curses compatible library])
+			CURSES_LIBS="$CURSES_LIBS -lpdcurses",
+			HAVE_CURSES=maybe
+		)
+	fi
+
+	dnl check for generic curses
+
+	if test "${HAVE_CURSES}" = "maybe" ; then
+		AC_CHECK_LIB(curses, initscr,
+			HAVE_CURSES=curses
+			AC_DEFINE(HAVE_CURSES, curses, [Define this if you have a curses compatible library])
+			CURSES_LIBS="$CURSES_LIBS -lcurses",
+			HAVE_CURSES=no
+		)
+	fi
+
+	CPPFLAGS="$save_CPPFLAGS"
+	LDFLAGS="$save_LDFLAGS"
+fi
+
+AC_SUBST(CURSES_CFLAGS)
+AC_SUBST(CURSES_LIBS)
+
+dnl --------------------------
+dnl Check for MySQL (optional)
+dnl --------------------------
+
+HAVE_MYSQL=no
+
+AC_ARG_WITH(mysql,
+	AC_HELP_STRING([--with-mysql],
+		[use mysql (relies on mysql_config)]
+	)
+)
+
+AC_PATH_PROG(MYSQL_CONFIG, mysql_config)
+
+if test "x${with_mysql}" != xno -a "x${MYSQL_CONFIG}" != x; then
+	MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
+	save_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$CPPFLAGS $MYSQL_CFLAGS"
+
+	AC_CHECK_HEADER(mysql.h,
+		HAVE_MYSQL=yes
+		AC_DEFINE(HAVE_MYSQL, 1, [Define this if you have MySQL])
+		MYSQL_LIBS=`$MYSQL_CONFIG --libs`,
+		HAVE_MYSQL=no
+	)
+
+	CPPFLAGS="$save_CPPFLAGS"
+fi
+AC_SUBST(MYSQL_CFLAGS)
+AC_SUBST(MYSQL_LIBS)
+
+dnl ---------------------------------
+dnl Check which game modules to build
+dnl ---------------------------------
+
+AC_MSG_CHECKING(which game modules to build)
+
+GAME_MODULES="default"
+AC_ARG_WITH(games,
+    AC_HELP_STRING([--with-games='default'],
+		[build specified game modules]
+	)
+)
+
+if test "x${with_games}" != x; then
+    GAME_MODULES="${with_games}"
+fi
+AC_SUBST(GAME_MODULES)
+AC_MSG_RESULT($GAME_MODULES)
+
+dnl --------------------------
+dnl Check which tools to build
+dnl --------------------------
+
+AC_MSG_CHECKING(which tools to build)
+
+TOOLS=""
+AC_ARG_WITH(tools,
+    AC_HELP_STRING([--with-tools='pak q2wmap'],
+		[build specified tools]
+	)
+)
+
+if test "x${with_tools}" != x; then
+    TOOLS="${with_tools}"
+fi
+AC_SUBST(TOOLS)
+AC_MSG_RESULT($TOOLS)
+
+dnl ------------------------------------
+dnl Check whether to build master server
+dnl ------------------------------------
+
+BUILD_MASTER=no
+MASTER_SERVER=
+
+AC_ARG_WITH(master,
+	AC_HELP_STRING([--with-master],
+		[build a master server]
+	)
+)
+
+AC_MSG_CHECKING(whether to build master server)
+
+if test "x${with_master}" = xyes; then
+	BUILD_MASTER=yes
+	MASTER_SERVER=master
+fi
+AC_MSG_RESULT($BUILD_MASTER)
+AC_SUBST(MASTER_SERVER)
+
+
+dnl -----------------
+dnl Compiler warnings
+dnl -----------------
+
+AC_MSG_CHECKING(whether to abort on compiler warnings)
+
+WARN_CFLAGS=""
+
+AC_ARG_ENABLE(warn,
+	AC_HELP_STRING(
+		[--disable-warn], [don't abort on compiler warnings]
+	),
+	AC_MSG_RESULT(no),
+	AC_MSG_RESULT(yes)
+	WARN_CFLAGS="$WARN_CFLAGS $HOST_WARN_CFLAGS"
+
+)
+AC_SUBST(WARN_CFLAGS)
+
+dnl ----------------------
+dnl Fill in path variables
+dnl ----------------------
+
+test "$prefix" = "NONE" && prefix=/usr/local
+test "$exec_prefix" = "NONE" && exec_prefix=$prefix
+
+eval PKGLIBDIR="$libdir/$PACKAGE"
+AC_DEFINE_UNQUOTED(PKGLIBDIR, "$PKGLIBDIR",
+	[Define this to the path containing the shared modules.]
+)
+
+datarootdir=$prefix/share
+test "$datadir" = "NONE" && datadir=$datarootdir
+
+eval PKGDATADIR="$datadir/$PACKAGE"
+AC_DEFINE_UNQUOTED(PKGDATADIR, "$PKGDATADIR",
+	[Define this to the path containing the game data.]
+)
+AC_SUBST(PKGDATADIR)
+
+eval BINDIR="$bindir"
+
+AM_CONDITIONAL(BUILD_CLIENT, test "x$BUILD_CLIENT" = xyes)
+
+dnl -----------------------------------------------------------
+dnl Configuraton tests complete -- provide a summary of results
+dnl -----------------------------------------------------------
+
+AC_CONFIG_FILES([
+	Makefile
+	src/Makefile
+	src/game/Makefile
+	src/game/default/Makefile
+	src/tools/Makefile
+	src/tools/pak/Makefile
+	src/tools/q2wmap/Makefile
+	src/master/Makefile
+])
+
+AC_OUTPUT
+
+AC_MSG_RESULT([
+Quake2World $VERSION: Automatic configuration OK.
+
+  Configuration summary:
+    Platform: .......... $host
+    Compiler: .......... $CC
+    Libraries: ......... $HOST_LIBS
+
+    Build client: ...... $BUILD_CLIENT
+
+    Options:
+      curses: .......... $HAVE_CURSES
+      MySQL: ........... $HAVE_MYSQL
+
+    Game modules: ...... $GAME_MODULES
+
+    Tools: ............. ${TOOLS:-None}
+
+    Build master: ...... $BUILD_MASTER
+
+  Installation directories:
+
+    Program: ........... $BINDIR
+    Libraries: ......... $PKGLIBDIR
+    Data: .............. $PKGDATADIR
+
+Type 'make' to build Quake2World.  Type 'make install' to install it.
+])

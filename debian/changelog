@@ -1,0 +1,13 @@
+quake2world (0.1.0-pre1.1) unstable; urgency=low
+
+  * Updated control file for build dependencies chaged with svn revision >= 711
+
+ -- Stanley Pinchak <stanley.pinchak@gmail.com>  Mon, 24 Sep 2007 20:00:30 -0400
+	
+quake2world (0.1.0-pre1) unstable; urgency=low
+
+  * Initial release
+  * Initial debian package produced by Stanley Pinchak
+
+ -- Stanley Pinchak <stanley.pinchak@gmail.com>  Sat, 21 Apr 2007 18:30:43 -0400
+

@@ -1,0 +1,16 @@
+This is a GIMP plugins script and accompanying Bash shell script for
+batch-processing texture images to produce normalmaps.
+
+Requirements
+
+GIMP 2.4: http://gimp.org
+GIMP Normalmap plugin: http://nifelheim.dyndns.org/~cocidius/normalmap
+
+Installation
+
+In this directory, simply run:
+make install
+
+Usage
+
+batch-normalmaps ~/.quake2world/textures/mine/*.tga

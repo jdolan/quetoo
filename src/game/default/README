@@ -1,0 +1,90 @@
+SUMMARY
+
+QMass Deathmatch Mod
+
+This is a deathmatch modification for Quake2.  It aims to bring the
+functionality of several mods into one, and gives the players the ability
+to pick and choose features in realtime.
+
+INSTALL
+
+This mod ships with Quake2World, but it should run within any Quake2
+compatible engine.  Still, unless you feel like creating a Makefile for it,
+your best bet is to download and build Quake2World, and enable the mod at the
+configure stage:
+
+./configure --with-games='qmass' [--with-mysql[=path]]
+make install
+
+RUNNING
+
+There are several new cvars and cmds, as well as a couple small features
+that may be of interest to you:.
+
+log_mysql "0" Setting this to "1" will enable logging of frags and chat
+messages to a MySQL database.  To specify the host and database parameters,
+use mysql_host, mysql_user, mysql_db, and mysql_password.  See the Stats 
+wiki page at http://jdolan.dyndns.org/trac/wiki/Stats.
+
+log_fraglog "0" Setting this to "1" will enable logging of frags to 
+fraglog.log.  Likewise, setting log_chatlog to "1" will log chat messages
+to chatlog.log.
+
+sv_maplist "maps.list"  This is no longer a string of map names, but 
+the name of a text file containing the levels you wish to rotate on your
+server.  The default "maps.lst" which ships with Quake2 is a good place
+to start.  Copy it to your qmass game directory and edit it to your
+liking.  File should be in Unix format (\n).  Map titles in quotes are 
+perfectly acceptable, just as the default file contains.
+
+sv_rmap "0"  Setting this to "1" enables random selection of the maps
+listed in the sv_maplist file.
+
+gameplay "0"  The default value yields normal deathmatch play, ala baseq2.
+A value of "1" turns on "Instagib" (Railgun-only) play, and "2" enables
+"Arena" play.  All weapons, items, and powerups are stripped from the level
+in modes "1" and "2".  Self-damage is also disabled.
+
+teams "0"  Setting this to "1" enables teamplay.  Two teams exist.  Players
+must elect to join a team with the team command.  The teamname and teamskin
+commands allow players to modify their teams.  Team scores can be reset by 
+voting for the "reset" command.
+
+hook "0"  Setting this to "1" enables the (in)famous Lithium II style
+offhand grappling hook.  Players should bind a key to "+hook".
+
+sv_allow_vote "1"  Allow things like map, gameplay, and teams to be
+voted upon by players.  Players should use the vote command.  A vote must
+reach a majority in order to pass.  Only maps present in sv_maplist can be 
+voted for.
+
+sv_inter_sound "qmass.wav" This specifies sound file used for intermission
+music.  We find a snippet of Miami Sound Machine quite fitting :)
+
+You may also notice that players are asigned a random male skin on connect.
+We find that this has several nice effects: 1.  No annoying, skinny, hard-to-
+see ladies running around.  2.  People get to see some of the really well 
+made but seldom used male skins.  3.  Everyone triggers pain sounds from the 
+QMass Sound Pak, see http://jaydolan.com/quake.html.
+
+And lastly, there are some truly tasteless obituary messages.  Enjoy.
+
+NOTES
+
+This mod performs some file IO.  Quake2 provides no facilities for resolving 
+the mod directory.  Therefore, the environment variable QUAKE2_HOME is 
+expected to contain the Quake2 data installation path upon loading this mod.
+Quake2World exports QUAKE2_HOME as ~/.quake2 upon startup to simplify this.  If 
+you are running this mod with a different engine (e.g. R1Q2), you must set 
+this explicitly
+
+CREDITS
+
+Jay Dolan, http://jaydolan.com/quake.html
+The QuakeForge Project, http://quakeforge.net
+id Software, http://idsoftware.com
+
+LICENSE
+
+The QMass Deathmatch Mod is released under the GNU General Public License 
+(GPL) v2.0.

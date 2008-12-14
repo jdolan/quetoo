@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<project version="2.0">
+  <build name="BSP">
+    <command>q2wmap -bsp "[MapFile]"</command>
+  </build>
+
+  <build name="BSP + VIS">
+    <command>q2wmap -bsp -vis "[MapFile]"</command>
+  </build>
+
+  <build name="BSP + VIS + RAD">
+    <command>q2wmap -bsp -vis -rad "[MapFile]"</command>
+  </build>
+
+  <build name="BSP + VIS + RAD (extra)">
+    <command>q2wmap -bsp -vis -rad -extra "[MapFile]"</command>
+  </build>
+
+  <build name="BSP (entities only)">
+    <command>q2wmap -bsp -onlyents "[MapFile]"</command>
+  </build>
+</project>
+
+
