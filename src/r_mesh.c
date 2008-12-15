@@ -190,6 +190,7 @@ R_SetMeshColor_default
 static void R_SetMeshColor_default(const entity_t *e){
 	vec4_t color;
 	float f;
+	int i;
 
 	VectorCopy(e->lighting->color, color);
 
@@ -198,12 +199,21 @@ static void R_SetMeshColor_default(const entity_t *e){
 	else
 		color[3] = 1.0;
 
-	if(e->flags & EF_PULSE)
+	if(e->flags & EF_PULSE){
 		f = (1.0 + sin((r_view.time + e->model->vertexcount) * 6.0)) * 0.33;
-	else
-		f = 0.15;
+		VectorScale(color, 1.0 + f, color);
+	}
 
-	VectorScale(color, 1.0 + f, color);
+	f = 0.0;
+	for(i = 0; i < 3; i++){  // find brightest component
+
+		if(color[i] > f)  // keep it
+			f = color[i];
+	}
+
+	if(f > 1.0)  // scale it back to 1.0
+		VectorScale(color, 1.0 / f, color);
+
 	glColor4fv(color);
 }
 

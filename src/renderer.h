@@ -147,6 +147,8 @@ typedef struct renderer_view_s {
 	int weather;  // weather effects
 	vec4_t fog_color;
 
+	vec3_t ambient_light;  // from static lighting
+
 	int num_entities;
 	entity_t entities[MAX_ENTITIES];
 

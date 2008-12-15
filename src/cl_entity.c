@@ -674,8 +674,11 @@ void Cl_AddEntities(frame_t *frame){
 		// setup the write-through lighting cache
 		ent.lighting = &cent->lighting;
 
-		if(!VectorCompare(cent->current.origin, cent->prev.origin))
+		if(ent.skin)  // always re-light players
 			ent.lighting->dirty = true;
+
+		if(!VectorCompare(cent->current.origin, cent->prev.origin))
+			ent.lighting->dirty = true;  // or anything that moves
 
 		// add to view list
 		R_AddEntity(&ent);

@@ -151,6 +151,7 @@ extern vec3_t vec3_origin;
 #define VectorClear(a)			(a[0]=a[1]=a[2]=0)
 #define VectorNegate(a,b)		(b[0]=-a[0],b[1]=-a[1],b[2]=-a[2])
 #define VectorSet(v, x, y, z)	(v[0]=(x), v[1]=(y), v[2]=(z))
+#define VectorSum(a)			(a[0] + a[1] + a[2])
 
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
@@ -165,7 +166,7 @@ void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t ve
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
 void VectorScaleWithBounds(vec3_t in, vec_t scale, vec_t bounds, vec3_t out);
 vec_t VectorRoundUp(vec_t v);
-vec_t ColorNormalize(vec3_t in, vec3_t out);
+vec_t ColorNormalize(const vec3_t in, vec3_t out);
 
 void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]);
 

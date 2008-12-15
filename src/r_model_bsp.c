@@ -28,6 +28,7 @@ static const byte *mod_base;
 R_LoadLighting
 */
 static void R_LoadLighting(const lump_t *l){
+	const vec3_t soften = {0.5, 0.5, 0.5};
 	const char *s, *c;
 
 	if(!l->filelen){
@@ -41,7 +42,8 @@ static void R_LoadLighting(const lump_t *l){
 
 	r_loadmodel->lightmap_scale = -1;
 
-	if((s = strstr(Cm_EntityString(), "\"lightmap_scale\""))){  // resolve lightmap scale
+	// resolve lightmap scale
+	if((s = strstr(Cm_EntityString(), "\"lightmap_scale\""))){  
 
 		c = Com_Parse(&s);  // parse the string itself
 		c = Com_Parse(&s);  // and then the value
@@ -53,6 +55,37 @@ static void R_LoadLighting(const lump_t *l){
 
 	if(r_loadmodel->lightmap_scale == -1)  // ensure safe default
 		r_loadmodel->lightmap_scale = 16;
+
+	// resolve ambient light
+	if((s = strstr(Cm_EntityString(), "\"ambient_light\""))){
+		int i;
+
+		c = Com_Parse(&s);  // parse the string itself
+
+		for(i = 0; i < 3; i++){
+
+			c = Com_Parse(&s);
+			r_view.ambient_light[i] = atof(c);
+
+			if(r_view.ambient_light[i] < 0.1)  // clamp it
+				r_view.ambient_light[i] = 0.1;
+
+			if(r_view.ambient_light[i] > 0.2)
+				r_view.ambient_light[i] = 0.2;
+		}
+
+		Com_Dprintf("Resolved ambient_light: %1.2f %1.2f %1.2f\n",
+				r_view.ambient_light[0], r_view.ambient_light[1], r_view.ambient_light[2]);
+
+	}
+	else  // ensure sane default
+		VectorSet(r_view.ambient_light, 0.15, 0.15, 0.15);
+
+	// scale it by modulate
+	VectorScale(r_view.ambient_light, r_modulate->value, r_view.ambient_light);
+
+	// pale it out some
+	VectorMix(r_view.ambient_light, soften, 0.5, r_view.ambient_light);
 }
 
 

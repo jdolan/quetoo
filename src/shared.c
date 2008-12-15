@@ -24,7 +24,7 @@
 
 #define DEG2RAD(a)(a * M_PI) / 180.0F
 
-vec3_t vec3_origin = {0, 0, 0};
+vec3_t vec3_origin = {0.0, 0.0, 0.0};
 
 
 /*
@@ -43,7 +43,7 @@ crand
 Returns a float between -1.0 and 1.0.
 */
 float crand(void){
-	return(rand() & 32767) * (2.0 / 32767) - 1;
+	return(rand() & 32767) * (2.0 / 32767) - 1.0;
 }
 
 
@@ -503,21 +503,24 @@ void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out){
 /*
 ColorNormalize
 */
-vec_t ColorNormalize(vec3_t in, vec3_t out){
-	float max, scale;
+vec_t ColorNormalize(const vec3_t in, vec3_t out){
+	vec_t max;
 
+	VectorClear(out);
+
+	// find the brightest component
 	max = in[0];
+
 	if(in[1] > max)
 		max = in[1];
+
 	if(in[2] > max)
 		max = in[2];
 
-	if(max == 0)
-		return 0;
+	if(max == 0.0)  // avoid FPE
+		return 0.0;
 
-	scale = 1.0 / max;
-
-	VectorScale(in, scale, out);
+	VectorScale(in, 1.0 / max, out);
 
 	return max;
 }

@@ -78,12 +78,12 @@ R_AllocLightmapBlock
 */
 static qboolean R_AllocLightmapBlock(int w, int h, int *x, int *y){
 	int i, j;
-	int best, best2;
+	int best;
 
 	best = r_lightmaps.size;
 
 	for(i = 0; i < r_lightmaps.size - w; i++){
-		best2 = 0;
+		int best2 = 0;
 
 		for(j = 0; j < w; j++){
 			if(r_lightmaps.allocated[i + j] >= best)
@@ -402,7 +402,11 @@ R_LightPointLerp
 static void R_LightPointLerp(static_lighting_t *lighting){
 	float lerp;
 
-	if(VectorCompare(lighting->colors[1], vec3_origin)){  // only one sample
+	// enforce the level's ambient light as a minimum value
+	if(VectorSum(lighting->colors[0]) < VectorSum(r_view.ambient_light))
+		VectorCopy(r_view.ambient_light, lighting->colors[0]);
+
+	if(VectorCompare(lighting->colors[1], vec3_origin)){  // only one sample available
 		VectorCopy(lighting->colors[0], lighting->color);
 		return;
 	}
@@ -419,24 +423,12 @@ static void R_LightPointLerp(static_lighting_t *lighting){
 R_LightPoint
 */
 void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
-	static_lighting_t l;
 	vec3_t start, end;
-	mleaf_t *leaf;
-	mnode_t *node;
 	float delta;
 
-	l = *lighting;  // save some things for lerping
+	lighting->dirty = false;  // mark it clean
 
-	// clear it
-	memset(lighting, 0, sizeof(*lighting));
-
-	// restore colors and time for lerping
-	VectorCopy(l.colors[0], lighting->colors[0]);
-	VectorCopy(l.colors[1], lighting->colors[1]);
-
-	lighting->time = l.time;
-
-	if(lighting->time > r_view.time)  // new level wrap
+	if(lighting->time > r_view.time)  // new level check
 		lighting->time = 0.0;
 
 	// do the trace
@@ -446,26 +438,23 @@ void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 
 	R_Trace(start, end, 0.0, MASK_SOLID);
 
-	if(!r_view.trace.leafnum){  // didn't hit anything
+	// resolve the shadow origin and direction
 
-		if(lighting->time)
-			VectorCopy(l.color, lighting->color);
-		else
-			VectorSet(lighting->color, 0.5, 0.5, 0.5);
-
-		lighting->dirty = true;
-		return;
+	if(r_view.trace.leafnum){  // hit something
+		VectorCopy(r_view.trace.endpos, lighting->point);
+		VectorCopy(r_view.trace.plane.normal, lighting->normal);
+	}
+	else {  // clear it
+		VectorClear(lighting->point);
+		VectorClear(lighting->normal);
 	}
 
-	VectorCopy(r_view.trace.endpos, lighting->point);
-	VectorCopy(r_view.trace.plane.normal, lighting->normal);
-
-	// resolve the lighting sample, using linear interpolation
+	// resolve the lighting sample using linear interpolation
 
 	delta = r_view.time - lighting->time;
 
-	if(lighting->time && delta < STATIC_LIGHTING_INTERVAL){  // just lerp
-		R_LightPointLerp(lighting);
+	if(lighting->time && delta < STATIC_LIGHTING_INTERVAL){
+		R_LightPointLerp(lighting);  // still valid, just lerp
 		return;
 	}
 
@@ -475,32 +464,38 @@ void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 	// shuffle the samples
 	VectorCopy(lighting->colors[0], lighting->colors[1]);
 
-	VectorSet(lighting->colors[0], 1.0, 1.0, 1.0);
+	if(r_view.trace.leafnum){  // hit something
 
-	if(r_worldmodel->lightdata){  // resolve the lighting sample
+		VectorSet(lighting->colors[0], 1.0, 1.0, 1.0);
 
-		if(r_view.trace_ent){  // clip to all surfaces of the bsp entity
+		if(r_worldmodel->lightdata){  // resolve the lighting sample
 
-			VectorSubtract(r_view.trace.endpos,
-					r_view.trace_ent->origin, r_view.trace.endpos);
+			if(r_view.trace_ent){  // clip to all surfaces of the bsp entity
 
-			R_LightPoint_(r_view.trace_ent->model->firstmodelsurface,
-					r_view.trace_ent->model->nummodelsurfaces,
-					r_view.trace.endpos, lighting->colors[0]);
-		}
-		else {  // general case is to recurse up the nodes
-			leaf = &r_worldmodel->leafs[r_view.trace.leafnum];
-			node = leaf->parent;
+				VectorSubtract(r_view.trace.endpos,
+						r_view.trace_ent->origin, r_view.trace.endpos);
 
-			while(node){
+				R_LightPoint_(r_view.trace_ent->model->firstmodelsurface,
+						r_view.trace_ent->model->nummodelsurfaces,
+						r_view.trace.endpos, lighting->colors[0]);
+			}
+			else {  // general case is to recurse up the nodes
+				mleaf_t *leaf = &r_worldmodel->leafs[r_view.trace.leafnum];
+				mnode_t *node = leaf->parent;
 
-				if(R_LightPoint_(node->firstsurface, node->numsurfaces,
-							r_view.trace.endpos, lighting->colors[0]))
-					break;
+				while(node){
 
-				node = node->parent;
+					if(R_LightPoint_(node->firstsurface, node->numsurfaces,
+								r_view.trace.endpos, lighting->colors[0]))
+						break;
+
+					node = node->parent;
+				}
 			}
 		}
+	}
+	else {  // use the level's ambient lighting
+		VectorCopy(r_view.ambient_light, lighting->colors[0]);
 	}
 
 	// interpolate the lighting samples
