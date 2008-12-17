@@ -220,12 +220,6 @@ void R_DrawFrame(void){
 
 	R_DrawMaterialSurfaces(r_worldmodel->material_surfaces);
 
-	R_DrawBlendSurfaces(r_worldmodel->blend_surfaces);
-
-	R_DrawBlendWarpSurfaces(r_worldmodel->blend_warp_surfaces);
-
-	R_DrawFlareSurfaces(r_worldmodel->flare_surfaces);
-
 	R_EnableBlend(false);
 
 	R_DrawBspNormals();
@@ -241,6 +235,12 @@ void R_DrawFrame(void){
 	R_EnableFog(false);
 
 	R_DrawCoronas();
+
+	R_DrawBlendSurfaces(r_worldmodel->blend_surfaces);
+
+	R_DrawBlendWarpSurfaces(r_worldmodel->blend_warp_surfaces);
+
+	R_DrawFlareSurfaces(r_worldmodel->flare_surfaces);
 
 	R_EnableBlend(false);
 }

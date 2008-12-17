@@ -251,13 +251,13 @@ R_DrawEntities
 */
 void R_DrawEntities(void){
 
-	R_DrawBspEntities(r_bsp_entities);
-
 	R_DrawOpaqueMeshEntities(r_opaque_mesh_entities);
 
 	R_DrawAlphaTestMeshEntities(r_alpha_test_mesh_entities);
 
 	R_DrawBlendMeshEntities(r_blend_mesh_entities);
+
+	R_DrawBspEntities(r_bsp_entities);
 
 	glColor4ubv(color_white);
 
