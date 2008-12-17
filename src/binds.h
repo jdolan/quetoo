@@ -94,5 +94,5 @@ static const char *DEFAULT_BINDS =
 	"bind F10 SCREENSHOTS"
 	"\"\n"
 
-"bind F10 2D_OFF\n";
+"bind F10 SCREENSHOTS\n";
 
