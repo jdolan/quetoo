@@ -24,7 +24,7 @@ UL=2
 START=`pwd`
 
 CHECKOUT(){
-	rev=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 3`
+	rev=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 4`
 	echo checked out $rev
 }
 
