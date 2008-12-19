@@ -133,6 +133,7 @@ static bspbrush_t *ClipBrushToBox(bspbrush_t * brush, vec3_t clipmins, vec3_t cl
 	for(j = 0; j < 2; j++){
 		if(brush->maxs[j] > clipmaxs[j]){
 			SplitBrush(brush, maxplanenums[j], &front, &back);
+			FreeBrush(brush);
 			if(front)
 				FreeBrush(front);
 			brush = back;
@@ -141,6 +142,7 @@ static bspbrush_t *ClipBrushToBox(bspbrush_t * brush, vec3_t clipmins, vec3_t cl
 		}
 		if(brush->mins[j] < clipmins[j]){
 			SplitBrush(brush, minplanenums[j], &front, &back);
+			FreeBrush(brush);
 			if(back)
 				FreeBrush(back);
 			brush = front;
@@ -169,7 +171,6 @@ MakeBspBrushList
 */
 bspbrush_t *MakeBspBrushList(int startbrush, int endbrush,
                              vec3_t clipmins, vec3_t clipmaxs){
-	mapbrush_t *mb;
 	bspbrush_t *brushlist, *newbrush;
 	int i, j;
 	int c_faces;
@@ -193,7 +194,7 @@ bspbrush_t *MakeBspBrushList(int startbrush, int endbrush,
 	c_brushes = 0;
 
 	for(i = startbrush; i < endbrush; i++){
-		mb = &mapbrushes[i];
+		mapbrush_t *mb = &mapbrushes[i];
 
 		numsides = mb->numsides;
 		if(!numsides)
