@@ -69,8 +69,8 @@ UPLOAD(){
 		scp -r dist/quake2world/default satgnu.net@81.169.143.159:/var/www/satgnu.net/rsync/quake2world-win32/default	
 	fi
 	
-	scp quake2world_rev"$rev"zip satgnu.net@81.169.143.159:/var/www/satgnu.net/public_html/maci/files
-	ssh satgnu.net@satgnu.net ln -sf /var/www/satgnu.net/public_html/maci/files/quake2world_rev"$rev"zip  /var/www/satgnu.net/public_html/maci/files/quake2world-win32-snapshot.zip
+	scp quake2world_rev"$rev"zip satgnu.net@81.169.143.159:/var/www/satgnu.net/public_html/files
+	ssh satgnu.net@satgnu.net ln -sf /var/www/satgnu.net/public_html/files/quake2world_rev"$rev"zip  /var/www/satgnu.net/public_html/files/quake2world-win32-snapshot.zip
 }
 
 CHECKOUT
