@@ -545,14 +545,12 @@ static void Cl_DrawLayout(void){
 
 
 int frames_this_second = 0, packets_this_second = 0, bytes_this_second = 0;
-static vec3_t horizontal_velocity;
-
 
 /*
 Cl_DrawCounters
 */
 static void Cl_DrawCounters(void){
-	player_state_t *ps;
+	static vec3_t velocity;
 	static char bps[8], pps[8], fps[8], spd[8];
 	static int millis;
 
@@ -568,16 +566,17 @@ static void Cl_DrawCounters(void){
 	frames_this_second++;
 
 	if(curtime - millis >= 1000){
-		ps = &cl.frame.playerstate;  // calculate horizontal velocity
-		VectorSet(horizontal_velocity, ps->pmove.velocity[0] * 0.125,
-				ps->pmove.velocity[1] * 0.125, 0);
 
-		snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(horizontal_velocity));
+		VectorCopy(r_view.velocity, velocity);
+		velocity[2] = 0.0;
+
+		snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
 		snprintf(fps, sizeof(fps), "%4dfps", frames_this_second);
 		snprintf(pps, sizeof(pps), "%4dpps", packets_this_second);
 		snprintf(bps, sizeof(bps), "%4dbps", bytes_this_second);
 
 		millis = curtime;
+
 		frames_this_second = 0;
 		packets_this_second = 0;
 		bytes_this_second = 0;

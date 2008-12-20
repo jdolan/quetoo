@@ -137,8 +137,9 @@ typedef struct renderer_view_s {
 	int x, y, width, height;  // in virtual screen coordinates
 	float fov_x, fov_y;
 
-	vec3_t origin;  // client's view origin and angles
+	vec3_t origin;  // client's view origin, angles, and velocity
 	vec3_t angles;
+	vec3_t velocity;
 
 	float time;
 

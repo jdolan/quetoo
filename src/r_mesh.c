@@ -125,7 +125,7 @@ R_ApplyMeshModelConfig
 void R_ApplyMeshModelConfig(entity_t *e){
 	mesh_config_t *c;
 	vec3_t forward, right, up;
-	vec3_t translate;
+	vec3_t translate, velocity;
 	float f;
 	int i;
 
@@ -139,8 +139,15 @@ void R_ApplyMeshModelConfig(entity_t *e){
 		AngleVectors(e->angles, forward, right, up);
 
 		VectorMA(e->origin, c->translate[0] + f, forward, e->origin);
-		VectorMA(e->origin, c->translate[1], right, e->origin);
-		VectorMA(e->origin, c->translate[2], up, e->origin);
+
+		// adjust up and right according to time and velocity
+		VectorCopy(r_view.velocity, velocity);
+		velocity[2] = 0.0;
+
+		f = sin(r_view.time * 5.0) * (0.25 + VectorLength(velocity) / 400.0);
+
+		VectorMA(e->origin, c->translate[1] + f, right, e->origin);
+		VectorMA(e->origin, c->translate[2] + f, up, e->origin);
 	}
 	else {  // versus world entities
 		c = e->model->world_config;

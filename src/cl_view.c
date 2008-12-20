@@ -186,11 +186,28 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops){
 		VectorCopy(cl.predicted_angles, r_view.angles);
 
 		if(cl.frame.playerstate.pmove.pm_type == PM_DEAD)  // look only on x axis
-			r_view.angles[0] = r_view.angles[2] = 0;
+			r_view.angles[0] = r_view.angles[2] = 0.0;
 	}
 	else {  // for demos and chasecams, lerp between states without prediction
 		AngleLerp(ops->angles, ps->angles, cl.lerp, r_view.angles);
 	}
+}
+
+
+/*
+Cl_UpdateVelocity
+*/
+static void Cl_UpdateVelocity(player_state_t *ps, player_state_t *ops){
+	vec3_t oldvel, newvel;
+
+	VectorCopy(ops->pmove.velocity, oldvel);
+	VectorCopy(ps->pmove.velocity, newvel);
+
+	// lerp it
+	VectorMix(oldvel, newvel, cl.lerp, r_view.velocity);
+
+	// convert back to float
+	VectorScale(r_view.velocity, 0.125, r_view.velocity);
 }
 
 
@@ -260,6 +277,8 @@ void Cl_UpdateView(void){
 	Cl_UpdateOrigin(ps, ops);
 
 	Cl_UpdateAngles(ps, ops);
+
+	Cl_UpdateVelocity(ps, ops);
 
 	Cl_UpdateThirdperson(ps);
 
