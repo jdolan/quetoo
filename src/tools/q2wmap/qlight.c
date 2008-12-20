@@ -36,7 +36,7 @@ qboolean extrasamples;
 
 vec3_t ambient;
 
-float light_scale = 1.0;
+float brightness = 1.0;
 float saturation = 1.0;
 float contrast = 1.0;
 

@@ -59,7 +59,7 @@ extern int testlevel;
 
 /** LIGHT */
 extern qboolean extrasamples;
-extern float light_scale;
+extern float brightness;
 extern float saturation;
 extern float contrast;
 extern float surface_scale;
@@ -435,9 +435,9 @@ static int Check_LIGHT_Options(int argc, char **argv){
 		if(!strcmp(argv[i], "-extra")){
 			extrasamples = true;
 			Verbose("extrasamples = true\n");
-		} else if(!strcmp(argv[i], "-scale")){
-			light_scale = atof(argv[i + 1]);
-			Verbose("light scale at %f\n", light_scale);
+		} else if(!strcmp(argv[i], "-brightness")){
+			brightness = atof(argv[i + 1]);
+			Verbose("brightness at %f\n", brightness);
 			i++;
 		} else if(!strcmp(argv[i], "-saturation")){
 			saturation = atof(argv[i + 1]);
@@ -509,7 +509,7 @@ static void PrintHelpMessage(void){
 	Print(" -contrast <float>\n");
 	Print(" -entity <float>\n");
 	Print(" -extra\n");
-	Print(" -scale <float>\n");
+	Print(" -brightness <float>\n");
 	Print(" -saturation <float>\n");
 	Print(" -surface <float>\n");
 	Print("\n");

@@ -460,10 +460,10 @@ void BuildLights(void){
 			Verbose("Ambient lighting defined with color %0.2f %0.2f %0.2f\n",
 					ambient[0], ambient[1], ambient[2]);
 
-		// optionally pull light_scale from worldspawn
-		f = FloatForKey(e, "light_scale");
+		// optionally pull brightness from worldspawn
+		f = FloatForKey(e, "brightness");
 		if(f > 0.0)
-			light_scale = f;
+			brightness = f;
 
 		// saturation as well
 		f = FloatForKey(e, "saturation");
@@ -945,7 +945,7 @@ void FinalLightFace(int facenum){
 		VectorAdd(temp, ambient, temp);
 
 		// apply global scale factor
-		VectorScale(temp, light_scale, temp);
+		VectorScale(temp, brightness, temp);
 
 		max = 0.0;
 

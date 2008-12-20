@@ -45,7 +45,7 @@ typedef struct patch_s {
 extern patch_t *face_patches[MAX_BSP_FACES];
 extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
 
-extern float light_scale;
+extern float brightness;
 extern float saturation;
 extern float contrast;
 
