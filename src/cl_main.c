@@ -922,7 +922,7 @@ static void Cl_InitLocal(void){
 			"Activates or deactivated third person mode");
 	cl_timeout = Cvar_Get("cl_timeout", "15", 0, NULL);
 	cl_viewsize = Cvar_Get("cl_viewsize", "100", CVAR_ARCHIVE, NULL);
-	cl_weapon = Cvar_Get("cl_weapon", "0", CVAR_ARCHIVE, NULL);
+	cl_weapon = Cvar_Get("cl_weapon", "1", CVAR_ARCHIVE, NULL);
 	cl_weather = Cvar_Get("cl_weather", "1", CVAR_ARCHIVE, NULL);
 
 	rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
