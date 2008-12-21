@@ -1,3 +1,80 @@
 author: doki_pen <doki_pen@doki-pen.org>
+
 Gentoo related installation files.
 
+= Overlay Installation =
+
+''An overlay is how you override or add packages to the Gentoo package manager, Portage.  Quake2World has a custom overlay designed to allow Portage to manage your quake2world installation.  The following instructions describe two ways of installing the overlay.'' 
+
+== Layman Overlay ==
+''Layman is a software package that allows for easy overlay installations and upgrades.  It is the recommended way to install the quake2world overlay.''
+
+ * Install `layman` if it isn't installed already.
+{{{
+#!sh
+$ emerge layman -av
+}}}
+ * Add the quake2world overlay source to `/etc/layman/layman.cfg`.
+{{{
+# layman.cfg
+...
+# add the overlay source to the list of overlays
+overlays = http://www.gentoo.org/proj/en/overlays/layman-global.txt
+           http://jdolan.dyndns.org/svn/quake2world/trunk/gentoo/quake2world-layman-list.xml
+...
+# allow 3rd party overlays to be listed
+nocheck  : yes
+}}}
+ * Add the quake2world overlay.
+{{{
+#!sh
+$ layman -a quake2world
+}}}
+''Any time you want to update the overlay, simply run `layman -S`.''
+
+== Traditional Overlay ==
+
+ * Pick a place for your overlay.  Usually `/usr/portage/local`.
+ * Check out the overlay to this directory.
+{{{
+#!sh
+$ cd /usr/portage/local
+$ svn co svn://jdolan.dyndns.org/quake2world/trunk/gentoo/quake2world-overlay
+}}}
+ * Add the overlay to your `make.conf`.
+{{{
+#!sh
+$ echo 'PORTDIR_OVERLAY="${PORTDIR_OVERLAY} /usr/portage/local/quake2world-overlay"' >> /etc/make.conf
+}}}
+ * Anytime you want to update the overlay, update the svn source.
+{{{
+#!sh
+$ svn up /usr/portage/local/quake2world-overlay
+}}}
+
+= Installing Quake2world =
+
+== Emerging Quake2world ==
+
+''After the overlay is installed, you can install or upgrade `quake2world` with portage.  There is no official release, so the ebuild is marked as version 9999 (indicating trunk) and masked as testing(~x86).''
+
+ * Unmask `quake2world`.
+{{{
+#!sh
+$ echo games-fps/quake2world >> /etc/portage/package.keywords
+}}}
+ * Emerge quake2world.
+{{{
+#!sh
+$ emerge quake2world -av
+}}}
+
+== Installation Notes ==
+
+There is a `nodata` use flag if you would like to skip downloading the game data during install.
+{{{
+#!sh
+$ echo games-fps/quake2world nodata >> /etc/portage/package.keywords
+}}}
+
+There is a script to update game data, `quake2world-update-data`.  This should probably only be run when the software is updated.  So unless you know what you are doing, use `emerge quake2world -av` to get updates and don't enable the nodata USE flag.
