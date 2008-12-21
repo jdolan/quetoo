@@ -1,0 +1,7 @@
+#!/bin/sh
+
+SRC_URI="rsync://jdolan.dyndns.org/quake2world"
+DATA_DIR="/usr/share/games/quake2world"
+
+mkdir -p "${DATA_DIR}"
+rsync -rvz "${SRC_URI}" "${DATA_DIR}"

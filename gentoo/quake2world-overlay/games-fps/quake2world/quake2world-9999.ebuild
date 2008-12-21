@@ -16,19 +16,20 @@ ESVN_REPO_URI="svn://jdolan.dyndns.org/quake2world/trunk/"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~x86 ~amd64"
-IUSE=""
+IUSE="nodata"
 
 DEPEND="${DEPEND}
 	>=media-libs/libsdl-1.2
 	media-libs/sdl-image
 	net-misc/curl
+	net-misc/rsync
 "
 RDEPEND="${DEPEND}"
 
 src_compile() {
 	MAKEOPTS="${MAKEOPTS} -j1"
 	autoreconf -if 
-	econf || die "configure failed"
+	egamesconf --without-svgalib || die "configure failed"
 	emake || die "make failed"
 }
 
@@ -38,11 +39,19 @@ src_install() {
 	doins "desktop/quake2world.desktop"
 	insinto "/usr/share/pixmaps"
 	doins "desktop/quake2world.png"
+	insinto "/usr/game/bin"
+	dogamesbin "${FILESDIR}/quake2world-update-data"
+	prepgamesdirs
 }
 
 pkg_postinst() {
 	games_pkg_postinst
-	einfo "This install is just the engine, you still need"
-	einfo "data. Please install quake2world-data."
+	if use nodata ; then
+		einfo "Only the game engine was  installed.  You still need to"
+		einfo "install data. Please run quake2world-update-data as root."
+	else
+		einfo "Installing data, this could take a while..."
+		/usr/games/bin/quake2world-update-data
+	fi
 }
 
