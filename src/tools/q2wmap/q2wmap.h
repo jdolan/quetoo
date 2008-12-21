@@ -27,6 +27,7 @@
 int BSP_Main(void);
 int VIS_Main(void);
 int LIGHT_Main(void);
+int MAT_Main(void);
 int PAK_Main(void);
 
 void Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));

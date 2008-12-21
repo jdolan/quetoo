@@ -77,6 +77,10 @@ static char title[64];							//window bar title (updates to show status)
 #ifdef HAVE_CURSES
 #include <ncurses.h>
 
+
+/*
+PDCursesInit
+*/
 static void PDCursesInit(void){
 	stdscr = initscr();		// initialize the ncurses window
 	resize_term(HORIZONTAL, VERTICAL);	// resize the console
@@ -103,6 +107,9 @@ static void PDCursesInit(void){
 #endif
 
 
+/*
+OpenWin32Console
+*/
 static void OpenWin32Console(void){
 	AllocConsole();
 	Console = CreateConsoleScreenBuffer(GENERIC_READ|GENERIC_WRITE, 0,0,CONSOLE_TEXTMODE_BUFFER,0);
@@ -125,11 +132,16 @@ static void OpenWin32Console(void){
 #endif
 }
 
-static void Close32WinConsole(void){
-	Fs_CloseFile(output_file);		//close the open file stream
+
+/*
+CloseWin32Console
+*/
+static void CloseWin32Console(void){
+	Fs_CloseFile(output_file);  // close the open file stream
 	CloseHandle(Console);
 	FreeConsole();
 }
+
 
 /*
 Debug
@@ -149,6 +161,7 @@ void Debug(const char *fmt, ...){
 
 	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
 }
+
 
 /*
 Verbose
@@ -194,7 +207,7 @@ void Error(const char *fmt, ...){
 
 	endwin();					// shutdown pdcurses
 #endif
-	Close32WinConsole();		// close the console
+	CloseWin32Console();		// close the console
 
 	Z_FreeTags(0);
 	exit(1);
@@ -256,8 +269,8 @@ void Print(const char *fmt, ...){
 	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
 #endif
 }
-
 #else // _WIN32
+
 
 /*
 Debug
@@ -272,6 +285,7 @@ void Debug(const char *fmt, ...){
 	vprintf(fmt, argptr);
 	va_end(argptr);
 }
+
 
 /*
 Verbose
@@ -315,8 +329,8 @@ void Print(const char *fmt, ...){
 	vprintf(fmt, argptr);
 	va_end(argptr);
 }
-
 #endif // _WIN32
+
 
 /*
 Check_BSP_Options
@@ -470,6 +484,18 @@ static int Check_PAK_Options(int argc, char **argv){
 	return 0;
 }
 
+
+/*
+Check_MAT_Options
+*/
+static int Check_MAT_Options(int argc, char **argv){
+	return 0;
+}
+
+
+/*
+PrintHelpMessage
+*/
 static void PrintHelpMessage(void){
 	Print("General options\n");
 	Print("-v -verbose\n");
@@ -521,6 +547,7 @@ static void PrintHelpMessage(void){
 	Print("\n");
 }
 
+
 /*
 main
 */
@@ -534,6 +561,7 @@ int main(int argc, char **argv){
 	qboolean do_bsp = false;
 	qboolean do_vis = false;
 	qboolean do_light = false;
+	qboolean do_mat = false;
 	qboolean do_pak = false;
 
 #ifdef _WIN32
@@ -548,8 +576,10 @@ int main(int argc, char **argv){
 	// init thread state
 	memset(&threadstate, 0, sizeof(threadstate));
 
-	if(argc < 2)
+	if(argc < 2){  // print help and exit
 		PrintHelpMessage();
+		return 0;
+	}
 
 	// general options
 	for(i = 1; i < argc; i++){
@@ -602,6 +632,13 @@ int main(int argc, char **argv){
 			Check_LIGHT_Options(alt_argc, alt_argv);
 		}
 
+		if(!strcmp(argv[i], "-mat")){
+			do_mat = true;
+			alt_argc = argc - i;
+			alt_argv = (char **)(argv + i);
+			Check_MAT_Options(alt_argc, alt_argv);
+		}
+
 		if(!strcmp(argv[i], "-pak")){
 			do_pak = true;
 			alt_argc = argc - i;
@@ -610,9 +647,10 @@ int main(int argc, char **argv){
 		}
 	}
 
-	if(!do_bsp && !do_vis && !do_light && !do_pak)
+	if(!do_bsp && !do_vis && !do_light && !do_mat && !do_pak){
 		Error("No action specified.\n"
-				"Please specify at least one of -bsp -vis -light.\n");
+				"Please specify at least one of -bsp -vis -light -mat -pak.\n");
+	}
 
 	// ugly little hack to localize global paths to game paths
 	// for e.g. GtkRadiant
@@ -638,6 +676,8 @@ int main(int argc, char **argv){
 		VIS_Main();
 	if(do_light)
 		LIGHT_Main();
+	if(do_mat)
+		MAT_Main();
 	if(do_pak)
 		PAK_Main();
 
@@ -661,13 +701,13 @@ int main(int argc, char **argv){
 	Print("-----------------------------------------------------------------");
 
 #ifdef HAVE_CURSES
-	do {	//Don't quit, leave compile statistics on screen until a key is pressed
-	} while (getch() == ERR);
+	do { // don't quit, leave output on screen until a key is pressed
+	} while(getch() == ERR);
 
-	endwin();					// shutdown pdcurses
+	endwin();  // shutdown pdcurses
 #endif
 
-	Close32WinConsole();		// close the console
+	CloseWin32Console();  // close the console
 #endif
 
 	// exit with error code

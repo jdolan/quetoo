@@ -22,8 +22,6 @@
 #include "qbsp.h"
 #include "scriplib.h"
 
-extern qboolean onlyents;
-
 int nummapbrushes;
 mapbrush_t mapbrushes[MAX_BSP_BRUSHES];
 
