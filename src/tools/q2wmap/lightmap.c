@@ -354,7 +354,8 @@ void BuildLights(void){
 		const entity_t *e = &entities[i];
 
 		const char *name = ValueForKey(e, "classname");
-		if(strncmp(name, "light", 5))
+
+		if(strncmp(name, "light", 5))  // not a light or 
 			continue;
 
 		numlights++;
@@ -372,14 +373,15 @@ void BuildLights(void){
 		if(!intensity)
 			intensity = FloatForKey(e, "_light");
 		if(!intensity)
-			intensity = 300;
+			intensity = 300.0;
 
 		color = ValueForKey(e, "_color");
 		if(color && color[0]){
 			sscanf(color, "%f %f %f", &l->color[0], &l->color[1], &l->color[2]);
 			ColorNormalize(l->color, l->color);
-		} else
-			l->color[0] = l->color[1] = l->color[2] = 1.0;
+		} else {
+			VectorSet(l->color, 1.0, 1.0, 1.0);
+		}
 
 		l->intensity = intensity * entity_scale;
 		l->type = emit_point;

@@ -506,7 +506,6 @@ ColorNormalize
 vec_t ColorNormalize(const vec3_t in, vec3_t out){
 	vec_t max;
 
-	VectorClear(out);
 
 	// find the brightest component
 	max = in[0];
@@ -517,8 +516,10 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out){
 	if(in[2] > max)
 		max = in[2];
 
-	if(max == 0.0)  // avoid FPE
+	if(max == 0.0){  // avoid FPE
+		VectorClear(out);
 		return 0.0;
+	}
 
 	VectorScale(in, 1.0 / max, out);
 
