@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<layman>
+    <overlay
+        type = "svn"
+        src = "svn://jdolan.dyndns.org/quake2world/trunk/gentoo/quake2world-overlay/"
+        name = "quake2world"
+        contact = "doki_pen@doki-pen.org">
+
+        <description>Quake2World is a Free, standalone first person shooter video game. Our goal is to bring the fun and excitement of straightforward old-school death-match gaming to a more contemporary platform, and perhaps to a new generation of gamers.</description>
+
+        <link>http://quake2world.net/</link>
+    </overlay>
+</layman>
+
