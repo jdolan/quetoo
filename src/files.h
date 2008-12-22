@@ -298,6 +298,9 @@ typedef struct {
 #define PLANE_ANYZ		5
 #define PLANE_NONE		6
 
+// lightmap information is 1/n texture resolution
+#define DEFAULT_LIGHTMAP_SCALE 16
+
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
 
 typedef struct {

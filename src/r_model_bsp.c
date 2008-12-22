@@ -24,16 +24,18 @@
 static const byte *mod_base;
 
 
+#define MIN_AMBIENT_COMPONENT 0.05
+#define MIN_AMBIENT_SUM 1.25
+
 /*
 R_LoadLighting
 */
 static void R_LoadLighting(const lump_t *l){
-	const vec3_t soften = {0.5, 0.5, 0.5};
 	const char *s, *c;
 
 	if(!l->filelen){
 		r_loadmodel->lightdata = NULL;
-		r_loadmodel->lightmap_scale = 16;
+		r_loadmodel->lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
 		return;
 	}
 
@@ -43,7 +45,7 @@ static void R_LoadLighting(const lump_t *l){
 	r_loadmodel->lightmap_scale = -1;
 
 	// resolve lightmap scale
-	if((s = strstr(Cm_EntityString(), "\"lightmap_scale\""))){  
+	if((s = strstr(Cm_EntityString(), "\"lightmap_scale\""))){
 
 		c = Com_Parse(&s);  // parse the string itself
 		c = Com_Parse(&s);  // and then the value
@@ -54,38 +56,34 @@ static void R_LoadLighting(const lump_t *l){
 	}
 
 	if(r_loadmodel->lightmap_scale == -1)  // ensure safe default
-		r_loadmodel->lightmap_scale = 16;
+		r_loadmodel->lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
 
 	// resolve ambient light
 	if((s = strstr(Cm_EntityString(), "\"ambient_light\""))){
 		int i;
 
 		c = Com_Parse(&s);  // parse the string itself
+		c = Com_Parse(&s);  // and the vector
 
-		for(i = 0; i < 3; i++){
+		sscanf(c, "%f %f %f", &r_view.ambient_light[0],
+				&r_view.ambient_light[1], &r_view.ambient_light[2]);
 
-			c = Com_Parse(&s);
-			r_view.ambient_light[i] = atof(c);
-
-			if(r_view.ambient_light[i] < 0.1)  // clamp it
-				r_view.ambient_light[i] = 0.1;
-
-			if(r_view.ambient_light[i] > 0.2)
-				r_view.ambient_light[i] = 0.2;
+		for(i = 0; i < 3; i++){  // clamp it
+			if(r_view.ambient_light[i] < MIN_AMBIENT_COMPONENT)
+				r_view.ambient_light[i] = MIN_AMBIENT_COMPONENT;
 		}
 
 		Com_Dprintf("Resolved ambient_light: %1.2f %1.2f %1.2f\n",
 				r_view.ambient_light[0], r_view.ambient_light[1], r_view.ambient_light[2]);
-
 	}
-	else  // ensure sane default
-		VectorSet(r_view.ambient_light, 0.15, 0.15, 0.15);
+	else {  // ensure sane default
+		VectorSet(r_view.ambient_light,
+			MIN_AMBIENT_COMPONENT, MIN_AMBIENT_COMPONENT, MIN_AMBIENT_COMPONENT);
+	}
 
-	// scale it by modulate
-	VectorScale(r_view.ambient_light, r_modulate->value, r_view.ambient_light);
-
-	// pale it out some
-	VectorMix(r_view.ambient_light, soften, 0.5, r_view.ambient_light);
+	// scale it into a reasonable range, the clamp above ensures this will work
+	while(VectorSum(r_view.ambient_light) < MIN_AMBIENT_SUM)
+		VectorScale(r_view.ambient_light, 1.25, r_view.ambient_light);
 }
 
 

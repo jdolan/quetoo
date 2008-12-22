@@ -355,7 +355,7 @@ void BuildLights(void){
 
 		const char *name = ValueForKey(e, "classname");
 
-		if(strncmp(name, "light", 5))  // not a light or 
+		if(strncmp(name, "light", 5))  // not a light
 			continue;
 
 		numlights++;
@@ -479,7 +479,7 @@ void BuildLights(void){
 		// lightmap resolution downscale (e.g. 8 = 1 / 8)
 		lightmap_scale = (int)FloatForKey(e, "lightmap_scale");
 		if(!lightmap_scale)
-			lightmap_scale = 16;
+			lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
 	}
 }
 
