@@ -47,8 +47,9 @@ image_t *r_warptexture;  // fragment program warping
 image_t r_images[MAX_GL_TEXTURES];
 int r_numimages;
 
-int r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
-int r_filter_max = GL_LINEAR;
+GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
+GLint r_filter_max = GL_LINEAR;
+GLfloat r_filter_aniso = 1.0;
 
 typedef struct {
 	const char *name;
@@ -72,7 +73,6 @@ R_TextureMode
 */
 void R_TextureMode(const char *mode){
 	image_t *image;
-	float aniso;
 	int i;
 
 	for(i = 0; i < NUM_GL_TEXTUREMODES; i++){
@@ -89,9 +89,9 @@ void R_TextureMode(const char *mode){
 	r_filter_max = r_texturemodes[i].maximize;
 
 	if(r_anisotropy->value)
-		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_filter_aniso);
 	else
-		aniso = 1.0;
+		r_filter_aniso = 1.0;
 
 	// change all the existing mipmap texture objects
 	for(i = 0, image = r_images; i < r_numimages; i++, image++){
@@ -107,7 +107,7 @@ void R_TextureMode(const char *mode){
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_max);
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_filter_aniso);
 	}
 }
 
@@ -452,6 +452,7 @@ static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color,
 	if(mipmap){  // and mipmapped
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_max);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_filter_aniso);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 	}
 	else {
