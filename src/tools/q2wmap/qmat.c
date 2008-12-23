@@ -29,7 +29,7 @@ static int nummaterials;
 /*
 AddMaterial
 */
-static void AddMaterial(char *name){
+static void AddMaterial(const char *name){
 	int i;
 
 	if(!name || !strcmp(name, "NULL"))
