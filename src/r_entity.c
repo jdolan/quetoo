@@ -257,6 +257,8 @@ void R_DrawEntities(void){
 
 	R_DrawBlendMeshEntities(r_blend_mesh_entities);
 
+	glColor4ubv(color_white);
+
 	R_DrawBspEntities(r_bsp_entities);
 
 	glColor4ubv(color_white);
