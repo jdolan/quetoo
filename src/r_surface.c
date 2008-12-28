@@ -23,113 +23,6 @@
 
 
 /*
-R_SetVertexArrayState_default
-*/
-static void R_SetVertexArrayState_default(const model_t *mod){
-
-	R_BindArray(GL_VERTEX_ARRAY, GL_FLOAT, mod->verts);
-
-	if(r_state.color_array_enabled)  // colors for r_showpolys
-		R_BindArray(GL_COLOR_ARRAY, GL_FLOAT, mod->colors);
-
-	if(r_state.lighting_enabled){  // normal vectors for lighting
-		R_BindArray(GL_NORMAL_ARRAY, GL_FLOAT, mod->normals);
-
-		if(r_bumpmap->value && mod->tangents)  // tangent vectors for bump mapping
-			R_BindArray(GL_TANGENT_ARRAY, GL_FLOAT, mod->tangents);
-	}
-
-	if(texunit_diffuse.enabled)  // diffuse texcoords
-		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->texcoords);
-
-	if(texunit_lightmap.enabled){  // lightmap texcoords
-		R_SelectTexture(&texunit_lightmap);
-
-		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->lmtexcoords);
-
-		R_SelectTexture(&texunit_diffuse);
-	}
-}
-
-
-/*
-R_SetVertexBufferState_default
-*/
-static void R_SetVertexBufferState_default(const model_t *mod){
-
-	R_BindBuffer(GL_VERTEX_ARRAY, GL_FLOAT, mod->vertex_buffer);
-
-	if(r_state.color_array_enabled)  // colors for r_showpolys
-		R_BindBuffer(GL_COLOR_ARRAY, GL_FLOAT, mod->color_buffer);
-
-	if(r_state.lighting_enabled){  // normal vectors for lighting
-		R_BindBuffer(GL_NORMAL_ARRAY, GL_FLOAT, mod->normal_buffer);
-
-		if(r_bumpmap->value && mod->tangent_buffer)  // tangent vectors for bump mapping
-			R_BindBuffer(GL_TANGENT_ARRAY, GL_FLOAT, mod->tangent_buffer);
-	}
-
-	if(texunit_diffuse.enabled)  // diffuse texcoords
-		R_BindBuffer(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->texcoord_buffer);
-
-	if(texunit_lightmap.enabled){  // lightmap texcoords
-		R_SelectTexture(&texunit_lightmap);
-
-		R_BindBuffer(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->lmtexcoord_buffer);
-
-		R_SelectTexture(&texunit_diffuse);
-	}
-}
-
-
-/*
-R_SetArrayState_default
-*/
-void R_SetArrayState_default(const model_t *mod){
-	int vbo;
-
-	vbo = mod->type == mod_bsp ? 1 : 2;
-
-	if((int)r_vertexbuffers->value & vbo)
-		R_SetVertexBufferState_default(mod);
-	else
-		R_SetVertexArrayState_default(mod);
-}
-
-
-/*
-R_ResetArrayState
-*/
-void R_ResetArrayState_default(void){
-
-	R_BindBuffer(0, 0, 0);
-
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-
-	if(r_state.color_array_enabled)
-		R_BindDefaultArray(GL_COLOR_ARRAY);
-
-	if(r_state.lighting_enabled){
-		R_BindDefaultArray(GL_NORMAL_ARRAY);
-
-		if(r_bumpmap->value)
-			R_BindDefaultArray(GL_TANGENT_ARRAY);
-	}
-
-	if(texunit_diffuse.enabled)
-		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
-
-	if(texunit_lightmap.enabled){
-		R_SelectTexture(&texunit_lightmap);
-
-		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
-
-		R_SelectTexture(&texunit_diffuse);
-	}
-}
-
-
-/*
 R_SetSurfaceState_default
 */
 static void R_SetSurfaceState_default(msurface_t *surf){
@@ -199,7 +92,7 @@ R_DrawSurfaces_default
 static void R_DrawSurfaces_default(msurfaces_t *surfs){
 	int i;
 
-	R_SetArrayState_default(r_worldmodel);
+	R_SetArrayState(r_worldmodel);
 
 	// draw the surfaces
 	for(i = 0; i < surfs->count; i++){
@@ -221,8 +114,6 @@ static void R_DrawSurfaces_default(msurfaces_t *surfs){
 		R_EnableLights(0);
 	}
 
-	R_ResetArrayState_default();
-
 	glColor4ubv(color_white);
 }
 
@@ -239,7 +130,7 @@ static void R_DrawSurfacesLines_default(msurfaces_t *surfs){
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	R_SetArrayState_default(r_worldmodel);
+	R_SetArrayState(r_worldmodel);
 	
 	for(i = 0; i < surfs->count; i++){
 
@@ -248,8 +139,6 @@ static void R_DrawSurfacesLines_default(msurfaces_t *surfs){
 
 		R_DrawSurface_default(surfs->surfaces[i]);
 	}
-
-	R_ResetArrayState_default();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 

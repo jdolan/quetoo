@@ -23,68 +23,6 @@
 
 
 /*
-R_SetVertexArrayState_pro
-*/
-static void R_SetVertexArrayState_pro(const model_t *mod){
-
-	R_BindArray(GL_VERTEX_ARRAY, GL_FLOAT, mod->verts);
-
-	if(r_state.color_array_enabled)
-		R_BindArray(GL_COLOR_ARRAY, GL_FLOAT, mod->colors);
-
-	if(r_state.lighting_enabled)  // normal vectors for lighting
-		R_BindArray(GL_NORMAL_ARRAY, GL_FLOAT, mod->normals);
-}
-
-
-/*
-R_SetVertexBufferState_pro
-*/
-static void R_SetVertexBufferState_pro(const model_t *mod){
-
-	R_BindBuffer(GL_VERTEX_ARRAY, GL_FLOAT, mod->vertex_buffer);
-
-	if(r_state.color_array_enabled)
-		R_BindBuffer(GL_COLOR_ARRAY, GL_FLOAT, mod->color_buffer);
-
-	if(r_state.lighting_enabled)  // normal vectors for lighting
-		R_BindBuffer(GL_NORMAL_ARRAY, GL_FLOAT, mod->normal_buffer);
-}
-
-
-/*
-R_SetArrayState_pro
-*/
-static void R_SetArrayState_pro(const model_t *mod){
-	int vbo;
-
-	vbo = mod->type == mod_bsp ? 1 : 2;
-
-	if((int)r_vertexbuffers->value & vbo)
-		R_SetVertexBufferState_pro(mod);
-	else
-		R_SetVertexArrayState_pro(mod);
-}
-
-
-/*
-R_ResetArrayState_pro
-*/
-static void R_ResetArrayState_pro(void){
-
-	R_BindBuffer(0, 0, 0);
-
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-
-	if(r_state.color_array_enabled)
-		R_BindDefaultArray(GL_COLOR_ARRAY);
-
-	if(r_state.lighting_enabled)
-		R_BindDefaultArray(GL_NORMAL_ARRAY);
-}
-
-
-/*
 R_SetSurfaceState_pro
 */
 static void R_SetSurfaceState_pro(msurface_t *surf){
@@ -116,7 +54,7 @@ R_DrawSurfaces_pro
 static void R_DrawSurfaces_pro(const msurfaces_t *surfs){
 	int i;
 
-	R_SetArrayState_pro(r_worldmodel);
+	R_SetArrayState(r_worldmodel);
 
 	// draw the surfaces
 	for(i = 0; i < surfs->count; i++){
@@ -128,8 +66,6 @@ static void R_DrawSurfaces_pro(const msurfaces_t *surfs){
 
 		R_DrawSurface_pro(surfs->surfaces[i]);
 	}
-
-	R_ResetArrayState_pro();
 }
 
 
@@ -213,7 +149,7 @@ void R_DrawBackSurfaces_pro(msurfaces_t *surfs){
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	R_SetArrayState_pro(r_worldmodel);
+	R_SetArrayState(r_worldmodel);
 
 	glPolygonMode(GL_FRONT, GL_LINE);
 
@@ -246,8 +182,6 @@ void R_DrawBackSurfaces_pro(msurfaces_t *surfs){
 	glDisable(GL_POLYGON_OFFSET_LINE);
 
 	glPolygonMode(GL_FRONT, GL_FILL);
-
-	R_ResetArrayState_pro();
 
 	R_EnableTexture(&texunit_diffuse, true);
 }

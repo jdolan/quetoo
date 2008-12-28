@@ -183,6 +183,7 @@ void R_UpdateFrustum(void){
 
 
 #include <unistd.h>
+
 /*
 R_DrawFrame
 */
@@ -243,6 +244,8 @@ void R_DrawFrame(void){
 	R_DrawFlareSurfaces(r_worldmodel->flare_surfaces);
 
 	R_EnableBlend(false);
+
+	R_ResetArrayState();
 }
 
 

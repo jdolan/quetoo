@@ -221,6 +221,8 @@ typedef struct renderer_locals_s {
 	vec3_t forward;
 	vec3_t right;
 
+	model_t *model;
+
 	cplane_t frustum[4];  // for box culling
 
 	float world_matrix[16];
@@ -290,6 +292,10 @@ void (*R_DrawBlendSurfaces)(msurfaces_t *surfs);
 void (*R_DrawBlendWarpSurfaces)(msurfaces_t *surfs);
 void (*R_DrawBackSurfaces)(msurfaces_t *surfs);
 void (*R_DrawMeshModel)(entity_t *e);
+
+// r_array.c
+void R_SetArrayState(const model_t *mod);
+void R_ResetArrayState(void);
 
 // r_bsp.c
 qboolean R_CullBox(const vec3_t mins, const vec3_t maxs);
@@ -394,8 +400,6 @@ void R_DrawSkyBox(void);
 void R_SetSky(char *name);
 
 // r_surface.c
-void R_SetArrayState_default(const model_t *mod);
-void R_ResetArrayState_default(void);
 void R_DrawOpaqueSurfaces_default(msurfaces_t *surfs);
 void R_DrawOpaqueWarpSurfaces_default(msurfaces_t *surfs);
 void R_DrawAlphaTestSurfaces_default(msurfaces_t *surfs);
@@ -404,6 +408,8 @@ void R_DrawBlendWarpSurfaces_default(msurfaces_t *surfs);
 void R_DrawBackSurfaces_default(msurfaces_t *surfs);
 
 // r_surface_pro.c
+void R_SetArrayState_pro(const model_t *mod);
+void R_ResetArrayState_pro(void);
 void R_DrawOpaqueSurfaces_pro(msurfaces_t *surfs);
 void R_DrawAlphaTestSurfaces_pro(msurfaces_t *surfs);
 void R_DrawBlendSurfaces_pro(msurfaces_t *surfs);

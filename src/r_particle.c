@@ -53,6 +53,8 @@ void R_DrawParticles(void){
 
 	R_EnableColorArray(true);
 
+	R_ResetArrayState();
+
 	image = r_particletexture;
 	R_BindTexture(image->texnum);
 

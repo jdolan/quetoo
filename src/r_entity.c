@@ -121,9 +121,6 @@ R_DrawBspEntities
 static void R_DrawBspEntities(const entity_t *ents){
 	const entity_t *e;
 
-	if(!ents)
-		return;
-
 	e = ents;
 
 	while(e){
@@ -206,10 +203,11 @@ R_DrawNullModel
 static void R_DrawNullModel(const entity_t *e){
 	int i;
 
+	R_EnableTexture(&texunit_diffuse, false);
+
 	glPushMatrix();
 	R_RotateForEntity(e, true);
 
-	glDisable(GL_TEXTURE_2D);
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0, 0, -16);
@@ -224,7 +222,8 @@ static void R_DrawNullModel(const entity_t *e){
 	glEnd();
 
 	glPopMatrix();
-	glEnable(GL_TEXTURE_2D);
+
+	R_EnableTexture(&texunit_diffuse, true);
 }
 
 
@@ -260,8 +259,6 @@ void R_DrawEntities(void){
 	glColor4ubv(color_white);
 
 	R_DrawBspEntities(r_bsp_entities);
-
-	glColor4ubv(color_white);
 
 	R_DrawNullEntities(r_null_entities);
 

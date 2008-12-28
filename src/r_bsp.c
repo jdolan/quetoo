@@ -146,9 +146,9 @@ static void R_DrawBspModelSurfaces(const entity_t *e){
 
 	R_DrawMaterialSurfaces(e->model->material_surfaces);
 
-	R_DrawFlareSurfaces(e->model->flare_surfaces);
-
 	R_DrawBackSurfaces(e->model->back_surfaces);
+
+	R_DrawFlareSurfaces(e->model->flare_surfaces);
 
 	R_EnableBlend(false);
 
@@ -200,6 +200,8 @@ void R_DrawBspNormals(void){
 
 	if(!r_shownormals->value)
 		return;
+
+	R_ResetArrayState();  // default arrays
 
 	R_EnableTexture(&texunit_diffuse, false);
 

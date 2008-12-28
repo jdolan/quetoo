@@ -91,6 +91,8 @@ void R_DrawFlareSurfaces(msurfaces_t *surfs){
 
 	R_EnableColorArray(true);
 
+	R_ResetArrayState();
+
 	glDisable(GL_DEPTH_TEST);
 
 	image = r_flaretextures[0];

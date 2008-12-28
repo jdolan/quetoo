@@ -31,7 +31,7 @@ typedef struct shadow_s {
 } shadow_t;
 
 static shadow_t shadows[MAX_EDICTS];
-static int shadow_index;
+static int num_shadows;
 
 
 /*
@@ -44,7 +44,7 @@ static void R_AddMeshShadow(const entity_t *e){
 	if(!r_shadows->value)
 		return;
 
-	if(shadow_index == MAX_EDICTS)
+	if(num_shadows == MAX_EDICTS)
 		return;
 
 	if(e->flags & EF_WEAPON)  // no shadow for the weapon
@@ -59,7 +59,7 @@ static void R_AddMeshShadow(const entity_t *e){
 	if((h = e->origin[2] - e->lighting->point[2]) > 128)
 		return;
 
-	sh = &shadows[shadow_index++];
+	sh = &shadows[num_shadows++];
 
 	VectorCopy(e->lighting->point, sh->org);
 	sh->org[2] += 0.1;
@@ -83,15 +83,17 @@ void R_DrawMeshShadows(void){
 	if(!r_shadows->value)
 		return;
 
-	if(!shadow_index)
+	if(!num_shadows)
 		return;
+
+	R_ResetArrayState();
 
 	glColor4f(1.0, 1.0, 1.0, r_shadows->value);
 
 	R_BindTexture(r_shadowtexture->texnum);
 
 	j = k = l = 0;
-	for(i = 0; i < shadow_index; i++){
+	for(i = 0; i < num_shadows; i++){
 
 		const shadow_t *sh = &shadows[i];
 		AngleVectors(sh->dir, NULL, right, up);
@@ -111,7 +113,7 @@ void R_DrawMeshShadows(void){
 		l += 8;
 	}
 
-	shadow_index = 0;
+	num_shadows = 0;
 
 	glDrawArrays(GL_QUADS, 0, i * 4);
 
@@ -272,6 +274,8 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 	int i, j, count, mode, index_xyz;
 	const int *order;
 
+	R_ResetArrayState();
+
 	md2 = (const dmd2_t *)e->model->extradata;
 
 	frame = (const dmd2frame_t *)((byte *)md2 + md2->ofs_frames + e->frame * md2->framesize);
@@ -359,6 +363,8 @@ static void R_DrawMd3ModelLerped_default(const entity_t *e){
 	int i, j, k, vertind, coordind;
 	unsigned *tri;
 
+	R_ResetArrayState();
+
 	md3 = (mmd3_t *)e->model->extradata;
 
 	frame = &md3->frames[e->frame];
@@ -423,11 +429,9 @@ R_DrawMeshModelArrays_default
 */
 static void R_DrawMeshModelArrays_default(const entity_t *e){
 
-	R_SetArrayState_default(e->model);
+	R_SetArrayState(e->model);
 
 	glDrawArrays(GL_TRIANGLES, 0, e->model->vertexcount);
-
-	R_ResetArrayState_default();
 
 	r_view.mesh_polys += e->model->vertexcount / 3;
 }

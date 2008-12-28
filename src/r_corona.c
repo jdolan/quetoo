@@ -59,6 +59,8 @@ void R_DrawCoronas(void){
 
 	R_EnableColorArray(true);
 
+	R_ResetArrayState();
+
 	R_BlendFunc(GL_ONE, GL_ONE);
 
 	for(k = 0; k < r_view.num_coronas; k++){
@@ -91,6 +93,7 @@ void R_DrawCoronas(void){
 			memcpy(&r_state.vertex_array_3d[vertind], v, sizeof(vec3_t));
 			vertind += 3;
 		}
+
 		glDrawArrays(GL_TRIANGLE_FAN, 0, vertind / 3);
 	}
 

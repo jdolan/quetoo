@@ -250,7 +250,7 @@ static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
 
 		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
 
-		if(stage->flags & STAGE_TERRAIN)
+		if(r_state.color_array_enabled)
 			R_StageColor(stage, v, &r_state.color_array[i * 4]);
 
 		if(texunit_lightmap.enabled){
@@ -278,6 +278,8 @@ void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 
 	if(!surfs->count)
 		return;
+
+	R_ResetArrayState();
 
 	glEnable(GL_POLYGON_OFFSET_FILL);  // all stages use depth offset
 
