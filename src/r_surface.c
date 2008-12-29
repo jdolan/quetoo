@@ -128,10 +128,10 @@ static void R_DrawSurfacesLines_default(msurfaces_t *surfs){
 
 	R_EnableColorArray(true);
 
+	R_SetArrayState(r_worldmodel);
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	R_SetArrayState(r_worldmodel);
-	
 	for(i = 0; i < surfs->count; i++){
 
 		if(surfs->surfaces[i]->frame != r_locals.frame)

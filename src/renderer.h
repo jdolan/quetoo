@@ -408,11 +408,11 @@ void R_DrawBlendWarpSurfaces_default(msurfaces_t *surfs);
 void R_DrawBackSurfaces_default(msurfaces_t *surfs);
 
 // r_surface_pro.c
-void R_SetArrayState_pro(const model_t *mod);
-void R_ResetArrayState_pro(void);
 void R_DrawOpaqueSurfaces_pro(msurfaces_t *surfs);
+void R_DrawOpaqueWarpSurfaces_pro(msurfaces_t *surfs);
 void R_DrawAlphaTestSurfaces_pro(msurfaces_t *surfs);
 void R_DrawBlendSurfaces_pro(msurfaces_t *surfs);
+void R_DrawBlendWarpSurfaces_pro(msurfaces_t *surfs);
 void R_DrawBackSurfaces_pro(msurfaces_t *surfs);
 
 // r_thread.c

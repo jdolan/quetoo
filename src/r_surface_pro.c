@@ -94,6 +94,20 @@ void R_DrawOpaqueSurfaces_pro(msurfaces_t *surfs){
 
 
 /*
+R_DrawOpaqueWarpSurfaces_pro
+*/
+void R_DrawOpaqueWarpSurfaces_pro(msurfaces_t *surfs){
+
+	if(!surfs->count)
+		return;
+
+	r_locals.model = NULL;
+
+	R_DrawOpaqueWarpSurfaces_default(surfs);
+}
+
+
+/*
 R_DrawAlphaTestSurfaces_pro
 */
 void R_DrawAlphaTestSurfaces_pro(msurfaces_t *surfs){
@@ -135,6 +149,20 @@ void R_DrawBlendSurfaces_pro(msurfaces_t *surfs){
 	R_EnableColorArray(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
+}
+
+
+/*
+R_DrawBlendWarpSurfaces_pro
+*/
+void R_DrawBlendWarpSurfaces_pro(msurfaces_t *surfs){
+
+	if(!surfs->count)
+		return;
+
+	r_locals.model = NULL;
+
+	R_DrawBlendWarpSurfaces_default(surfs);
 }
 
 

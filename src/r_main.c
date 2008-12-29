@@ -273,8 +273,10 @@ static void R_RenderMode(const char *mode){
 		r_state.rendermode = rendermode_pro;
 
 		R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_pro;
+		R_DrawOpaqueWarpSurfaces = R_DrawOpaqueWarpSurfaces_pro;
 		R_DrawAlphaTestSurfaces = R_DrawAlphaTestSurfaces_pro;
 		R_DrawBlendSurfaces = R_DrawBlendSurfaces_pro;
+		R_DrawBlendWarpSurfaces = R_DrawBlendWarpSurfaces_pro;
 		R_DrawBackSurfaces = R_DrawBackSurfaces_pro;
 	}
 }
