@@ -108,7 +108,7 @@ void R_EnableAlphaTest(qboolean enable);
 void R_EnableTexture(r_texunit_t *texunit, qboolean enable);
 void R_EnableColorArray(qboolean enable);
 void R_EnableLighting(r_program_t *program, qboolean enable);
-void R_EnableBumpmap(qboolean enable, material_t *material);
+void R_EnableBumpmap(material_t *material, qboolean enable);
 void R_EnableWarp(r_program_t *program, qboolean enable);
 void R_EnableFog(qboolean enable);
 void R_Setup3D(void);

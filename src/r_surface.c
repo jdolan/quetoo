@@ -61,10 +61,10 @@ static void R_SetSurfaceState_default(msurface_t *surf){
 				R_BindDeluxemapTexture(surf->deluxemap_texnum);
 				R_BindNormalmapTexture(image->normalmap->texnum);
 
-				R_EnableBumpmap(true, &image->material);
+				R_EnableBumpmap(&image->material, true);
 			}
 			else
-				R_EnableBumpmap(false, NULL);
+				R_EnableBumpmap(NULL, false);
 		}
 
 		if(surf->lightframe == r_locals.lightframe)  // dynamic light sources
@@ -109,7 +109,7 @@ static void R_DrawSurfaces_default(msurfaces_t *surfs){
 	if(r_state.lighting_enabled){
 
 		if(r_state.bumpmap_enabled)
-			R_EnableBumpmap(false, NULL);
+			R_EnableBumpmap(NULL, false);
 
 		R_EnableLights(0);
 	}

@@ -357,7 +357,7 @@ static inline void R_UseMaterial(material_t *material){
 /*
 R_EnableBumpmap
 */
-inline void R_EnableBumpmap(qboolean enable, material_t *material){
+inline void R_EnableBumpmap(material_t *material, qboolean enable){
 
 	if(!r_state.lighting_enabled)
 		return;
