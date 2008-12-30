@@ -318,7 +318,7 @@ void R_DrawCoronas(void);
 void R_InitDraw(void);
 void R_FreePics(void);
 image_t *R_LoadPic(const char *name);
-void R_GetPicSize(int *w, int *h, const char *name);
+void R_DrawScaledPic(int x, int y, float scale, const char *name);
 void R_DrawPic(int x, int y, const char *name);
 void R_DrawChar(int x, int y, char c, int color);
 int R_DrawString(int x, int y, const char *s, int color);

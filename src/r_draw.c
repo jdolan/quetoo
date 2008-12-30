@@ -252,30 +252,14 @@ image_t *R_LoadPic(const char *name){
 
 
 /*
-R_GetPicSize
+R_DrawScaledPic
 */
-void R_GetPicSize(int *w, int *h, const char *name){
+void R_DrawScaledPic(int x, int y, float scale, const char *name){
 	image_t *pic;
 
 	pic = R_LoadPic(name);
 	if(!pic){
-		*w = *h = -1;
-		return;
-	}
-	*w = pic->width;
-	*h = pic->height;
-}
-
-
-/*
-R_DrawPic
-*/
-void R_DrawPic(int x, int y, const char *name){
-	image_t *pic;
-
-	pic = R_LoadPic(name);
-	if(!pic){
-		Com_Warn("R_DrawPic: Can't find %s.\n", name);
+		Com_Warn("R_DrawScaledPic: Can't find %s.\n", name);
 		return;
 	}
 
@@ -286,16 +270,24 @@ void R_DrawPic(int x, int y, const char *name){
 	r_state.vertex_array_2d[0] = x;
 	r_state.vertex_array_2d[1] = y;
 
-	r_state.vertex_array_2d[2] = x + pic->width;
+	r_state.vertex_array_2d[2] = x + pic->width * scale;
 	r_state.vertex_array_2d[3] = y;
 
-	r_state.vertex_array_2d[4] = x + pic->width;
-	r_state.vertex_array_2d[5] = y + pic->height;
+	r_state.vertex_array_2d[4] = x + pic->width * scale;
+	r_state.vertex_array_2d[5] = y + pic->height * scale;
 
 	r_state.vertex_array_2d[6] = x;
-	r_state.vertex_array_2d[7] = y + pic->height;
+	r_state.vertex_array_2d[7] = y + pic->height * scale;
 
 	glDrawArrays(GL_QUADS, 0, 7);
+}
+
+
+/*
+R_DrawPic
+*/
+void R_DrawPic(int x, int y, const char *name){
+	R_DrawScaledPic(x, y, 1.0, name);
 }
 
 

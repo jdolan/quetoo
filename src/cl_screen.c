@@ -28,10 +28,6 @@
 #define COLOR_HUD_COUNTER      CON_COLOR_DEFAULT
 #define COLOR_SCORES_HEADER    CON_COLOR_ALT
 
-char crosshair_pic[MAX_QPATH];
-int crosshair_width, crosshair_height;
-byte crosshair_color[4];
-
 #define NETGRAPH_HEIGHT 64
 #define NETGRAPH_WIDTH 128
 #define NETGRAPH_Y 128
@@ -463,11 +459,19 @@ static void Cl_ExecuteLayoutString(const char *s){
 }
 
 
+typedef struct crosshair_s {
+	image_t *image;
+	byte color[4];
+} crosshair_t;
+
+static crosshair_t crosshair;
+
 /*
 Cl_DrawCrosshair
 */
 static void Cl_DrawCrosshair(void){
-	int offset;
+	char path[MAX_QPATH];
+	int offset, w, h;
 
 	if(!cl_crosshair->value)
 		return;
@@ -484,36 +488,39 @@ static void Cl_DrawCrosshair(void){
 	if(cl.frame.playerstate.stats[STAT_CHASE])
 		return;  // chasecam
 
-	if(cl_crosshair->modified){
+	if(cl_crosshair->modified){  // crosshair image
 		cl_crosshair->modified = false;
 
 		if(cl_crosshair->value < 0)
 			cl_crosshair->value = 1;
 
-		snprintf(crosshair_pic, sizeof(crosshair_pic), "ch%i", (int)(cl_crosshair->value));
-		R_GetPicSize(&crosshair_width, &crosshair_height, crosshair_pic);
+		snprintf(path, sizeof(path), "ch%d", (int)cl_crosshair->value);
+		crosshair.image = R_LoadPic(path);
 
-		if(crosshair_width < 1)  // dont bother
-			crosshair_pic[0] = 0;
+		if(crosshair.image == r_notexture)
+			Com_Printf("Couldn't load pics/ch%d.\n", (int)cl_crosshair->value);
 	}
 
-	if(!crosshair_pic[0])
+	if(crosshair.image == r_notexture)  // not found
 		return;
 
-	if(cl_crosshaircolor->modified){
+	if(cl_crosshaircolor->modified){  // crosshair color
 		cl_crosshaircolor->modified = false;
 
-		*(int *)crosshair_color = palette[
-			ColorByName(cl_crosshaircolor->string, 14)];
+		*(int *)crosshair.color = palette[ColorByName(cl_crosshaircolor->string, 14)];
 	}
 
-	glColor4ubv(crosshair_color);
+	glColor4ubv(crosshair.color);
 
 	// adjust the crosshair for 3rd person perspective
 	offset = cl_thirdperson->value ? 0.01 * r_view.height : 0;
 
-	R_DrawPic(r_view.x + ((r_view.width - crosshair_width) >> 1),
-			r_view.y + ((r_view.height - crosshair_height) >> 1) + offset, crosshair_pic);
+	// calculate width and height based on crosshair image and scale
+	w = (r_view.width - crosshair.image->width * cl_crosshairscale->value) / 2;
+	h = (r_view.height - crosshair.image->height * cl_crosshairscale->value) / 2;
+
+	R_DrawScaledPic(r_view.x + w, r_view.y + h + offset,
+			cl_crosshairscale->value, crosshair.image->name + 4);
 
 	glColor4ubv(color_white);
 }

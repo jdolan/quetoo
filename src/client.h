@@ -216,6 +216,7 @@ extern cvar_t *cl_chatsound;
 extern cvar_t *cl_counters;
 extern cvar_t *cl_crosshair;
 extern cvar_t *cl_crosshaircolor;
+extern cvar_t *cl_crosshairscale;
 extern cvar_t *cl_emits;
 extern cvar_t *cl_footsteps;
 extern cvar_t *cl_fov;
