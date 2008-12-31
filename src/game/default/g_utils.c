@@ -638,3 +638,4 @@ qboolean G_IsStationary(edict_t *ent){
 
 	return VectorCompare(vec3_origin, ent->velocity);
 }
+

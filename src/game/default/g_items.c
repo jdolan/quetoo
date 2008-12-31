@@ -27,6 +27,7 @@ static void G_DropToFloor(edict_t *ent);
 int grenade_index, grenade_hit_index;
 int rocket_index, rocket_fly_index;
 int lightning_fly_index;
+int quad_damage_index;
 
 
 /*
@@ -145,6 +146,28 @@ static qboolean PickupAdrenaline(edict_t *ent, edict_t *other){
 
 
 /*
+PickupQuadDamage
+*/
+static qboolean PickupQuadDamage(edict_t *ent, edict_t *other){
+
+	if(other->client->locals.inventory[quad_damage_index])
+		return false;  // already have it
+
+	other->client->locals.inventory[quad_damage_index] = 1;
+
+	if(ent->spawnflags & SF_ITEM_DROPPED){  // receive only the time left
+		other->client->quad_damage_time = ent->nextthink;
+	}
+	else {
+		other->client->quad_damage_time = level.time + 30.0;
+		G_SetRespawn(ent, ent->item->quantity);
+	}
+
+	return true;
+}
+
+
+/*
 G_AddAmmo
 */
 qboolean G_AddAmmo(edict_t *ent, gitem_t *item, int count){
@@ -212,6 +235,7 @@ static void DropAmmo(edict_t *ent, gitem_t *item){
 
 	index = ITEM_INDEX(item);
 	dropped = G_DropItem(ent, item);
+
 	if(ent->client->locals.inventory[index] >= item->quantity)
 		dropped->count = item->quantity;
 	else
@@ -447,15 +471,20 @@ void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 
 
 /*
-G_DropItem
+G_DropItemUntouchable
 */
 static void G_DropItemUntouchable(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
+
 	if(other == ent->owner)  // prevent the dropper from picking it right back up
 		return;
 
 	G_TouchItem(ent, other, plane, surf);
 }
 
+
+/*
+G_DropItemThink
+*/
 static void G_DropItemThink(edict_t *ent){
 
 	if(!ent->groundentity){
@@ -469,15 +498,22 @@ static void G_DropItemThink(edict_t *ent){
 	// allow anyone to pick it up
 	ent->touch = G_TouchItem;
 
-	// free it in 30 seconds
-	ent->nextthink = level.time + 30.0;
+	// setup the think
+	if(ent->item->flags & IT_POWERUP)
+		ent->nextthink = ent->timestamp;
+	else  // general case
+		ent->nextthink = level.time + 30.0;
 
-	if(ent->item->flags & IT_FLAG)
+	if(ent->item->flags & IT_FLAG)  // flags go back to base
 		ent->think = ResetFlag;
-	else
+	else  // everything else just gets freed
 		ent->think = G_FreeEdict;
 }
 
+
+/*
+G_DropItem
+*/
 edict_t *G_DropItem(edict_t *ent, gitem_t *item){
 	edict_t *dropped;
 	vec3_t forward, right;
@@ -1275,6 +1311,27 @@ gitem_t itemlist[] = {
 		"ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},
 
+	/*QUAKED item_quad(.3 .3 1)(-16 -16 -16)(16 16 16)
+	*/
+	{
+		"item_quad",
+		PickupQuadDamage,
+		NULL,
+		NULL,
+		NULL,
+		"quad/pickup.wav",
+		"models/items/quad/tris.md3",
+		EF_BOB | EF_ROTATE,
+		"i_quad",
+		"Quad Damage",
+		60,
+		NULL,
+		IT_POWERUP,
+		0,
+		0,
+		"quad/attack.wav quad/expire.wav"
+	},
+
 	// end of list marker
 	{NULL}
 };
@@ -1283,8 +1340,7 @@ gitem_t itemlist[] = {
 // override quake2 items for legacy maps
 override_t overrides[] = {
 	{"weapon_chaingun", "weapon_machinegun"},
-	{"item_quad", "item_armor_body"},
-	{"item_invulnerability", "item_adrenaline"},
+	{"item_invulnerability", "item_health_mega"},
 	{"item_power_shield", "item_armor_combat"},
 	{"item_power_screen", "item_armor_jacket"},
 	{NULL}
@@ -1331,4 +1387,6 @@ void G_SetItemNames(void){
 	rocket_fly_index = gi.SoundIndex("objects/rocket/fly.wav");
 
 	lightning_fly_index = gi.SoundIndex("weapons/lightning/fly.wav");
+
+	quad_damage_index = ITEM_INDEX(G_FindItemByClassname("item_quad"));
 }

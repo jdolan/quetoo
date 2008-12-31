@@ -93,17 +93,22 @@ static void G_Give_f(edict_t *ent){
 			return;
 	}
 
-	if(give_all){
-		for(i = 0; i < game.num_items; i++){
-			it = itemlist + i;
-			if(!it->pickup)
-				continue;
-			if(it->flags & (IT_ARMOR | IT_WEAPON | IT_AMMO | IT_HEALTH))
-				continue;
-			ent->client->locals.inventory[i] = 1;
-		}
-		return;
+	if(give_all || strcasecmp(name, "quad damage") == 0){
+
+		it = G_FindItem("quad damage");
+
+		it_ent = G_Spawn();
+		it_ent->classname = it->classname;
+
+		G_SpawnItem(it_ent, it);
+		G_TouchItem(it_ent, ent, NULL, NULL);
+
+		if(!give_all)
+			return;
 	}
+
+	if(give_all)  // we've given full inventory
+		return;
 
 	it = G_FindItem(name);
 	if(!it){
@@ -120,18 +125,21 @@ static void G_Give_f(edict_t *ent){
 		return;
 	}
 
-	index = ITEM_INDEX(it);
+	if(it->flags & IT_AMMO){  // give the requested ammo quantity
+		index = ITEM_INDEX(it);
 
-	if(it->flags & IT_AMMO){
 		if(gi.Argc() == 3)
 			ent->client->locals.inventory[index] = atoi(gi.Argv(2));
 		else
 			ent->client->locals.inventory[index] += it->quantity;
-	} else {
+	}
+	else {  // or spawn and touch whatever they asked for
 		it_ent = G_Spawn();
 		it_ent->classname = it->classname;
+
 		G_SpawnItem(it_ent, it);
 		G_TouchItem(it_ent, ent, NULL, NULL);
+
 		if(it_ent->inuse)
 			G_FreeEdict(it_ent);
 	}

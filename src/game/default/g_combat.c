@@ -99,6 +99,7 @@ qboolean G_CanDamage(edict_t *targ, edict_t *inflictor){
 G_Killed
 */
 static void G_Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
+
 	if(targ->health < -999)
 		targ->health = -999;
 
@@ -117,6 +118,7 @@ static void G_Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker, int d
 G_SpawnDamage
 */
 static void G_SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage){
+
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(type);
 	gi.WritePosition(origin);
@@ -161,6 +163,8 @@ static int G_CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage, i
 }
 
 
+#define QUAD_DAMAGE_FACTOR 2.0
+
 /*
 G_Damage
 
@@ -201,6 +205,13 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	if(!attacker)  // use world
 		attacker = &g_edicts[0];
 
+	// quad damage affects both damage and knockback
+	if(attacker->client &&
+			attacker->client->locals.inventory[quad_damage_index]){
+		damage = (int)(damage * QUAD_DAMAGE_FACTOR);
+		knockback = (int)( knockback * QUAD_DAMAGE_FACTOR);
+	}
+
 	// friendly fire avoidance
 	if(targ != attacker && (level.teams || level.ctf)){
 		if(G_OnSameTeam(targ, attacker)){  // targ and attacker are teammates
@@ -211,7 +222,8 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 		}
 	}
 
-	if(targ == attacker && level.gameplay)  // no self damage in instagib or arena
+	// there is no self damage in instagib or arena, but there is knockback
+	if(targ == attacker && level.gameplay)
 		damage = 0;
 
 	meansOfDeath = mod;

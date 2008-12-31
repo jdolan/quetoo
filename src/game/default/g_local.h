@@ -89,11 +89,11 @@ typedef enum {
 #define ARMOR_SHARD			4
 
 // health types
-#define HEALTH_NONE			0
+#define HEALTH_NONE				0
 #define HEALTH_SMALL			1
 #define HEALTH_MEDIUM			2
 #define HEALTH_LARGE			3
-#define HEALTH_MEGA			4
+#define HEALTH_MEGA				4
 
 // edict->movetype values
 typedef enum {
@@ -120,17 +120,18 @@ typedef enum {
 #define IT_ARMOR		4
 #define IT_FLAG			8
 #define IT_HEALTH		16
+#define IT_POWERUP		32
 
 // gitem_t->weapmodel for weapons indicates model index
 #define WEAP_SHOTGUN			0
 #define WEAP_SUPERSHOTGUN		1
 #define WEAP_MACHINEGUN			2
-#define WEAP_GRENADELAUNCHER		3
+#define WEAP_GRENADELAUNCHER	3
 #define WEAP_ROCKETLAUNCHER		4
 #define WEAP_HYPERBLASTER		5
 #define WEAP_LIGHTNING			6
 #define WEAP_RAILGUN			7
-#define WEAP_BFG			8
+#define WEAP_BFG				8
 
 typedef struct gitem_s {
 	char *classname;  // spawning name
@@ -288,6 +289,7 @@ extern spawn_temp_t st;
 extern int grenade_index, grenade_hit_index;
 extern int rocket_index, rocket_fly_index;
 extern int lightning_fly_index;
+extern int quad_damage_index;
 
 // means of death
 #define MOD_UNKNOWN			0
@@ -719,6 +721,9 @@ struct gclient_s {
 	qboolean muted;
 
 	float respawn_time;  // can respawn when time > this
+
+	float quad_damage_time;  // has quad when time < this
+	float quad_attack_time;  // play attack sound when time > this
 
 	edict_t *chase_target;  // player we are chasing
 };

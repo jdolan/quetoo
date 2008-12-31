@@ -277,6 +277,16 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 		}
 	}
 
+	if(ent->client->locals.inventory[quad_damage_index]){  // quad sound
+
+		if(ent->client->quad_attack_time < level.time){
+			gi.Sound(ent, CHAN_AUTO, gi.SoundIndex("quad/attack.wav"),
+					1.0, ATTN_NORM, 0.0);
+
+			ent->client->quad_attack_time = level.time + 0.5;
+		}
+	}
+
 	fire(ent);  // fire the weapon
 }
 

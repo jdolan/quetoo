@@ -242,10 +242,32 @@ static void TossWeapon(edict_t *self){
 		return;
 
 	item = self->client->locals.weapon;
+
 	if(!self->client->locals.inventory[self->client->ammo_index])
-		return;
+		return;  // don't drop when out of ammo
 
 	G_DropItem(self, item);
+}
+
+
+/*
+TossQuadDamage
+*/
+static void TossQuadDamage(edict_t *self){
+	edict_t *quad;
+
+	// don't drop quad when falling into void
+	if(meansOfDeath == MOD_TRIGGER_HURT)
+		return;
+
+	if(!self->client->locals.inventory[quad_damage_index])
+		return;
+
+	quad = G_DropItem(self, G_FindItemByClassname("item_quad"));
+	quad->timestamp = self->client->quad_damage_time;
+
+	self->client->quad_damage_time = 0.0;
+	self->client->locals.inventory[quad_damage_index] = 0;
 }
 
 
@@ -264,6 +286,7 @@ static void TossFlag(edict_t *self){
 		return;
 
 	index = ITEM_INDEX(of->item);
+
 	if(!self->client->locals.inventory[index])
 		return;
 
@@ -273,7 +296,8 @@ static void TossFlag(edict_t *self){
 	// don't drop flag when falling into void
 	if(meansOfDeath == MOD_TRIGGER_HURT){
 
-		gi.Sound(self, CHAN_AUTO, gi.SoundIndex("misc/return.wav"), 1, ATTN_NONE, 0);
+		gi.Sound(self, CHAN_AUTO, gi.SoundIndex("misc/return.wav"),
+				1.0, ATTN_NONE, 0.0);
 
 		of->svflags &= ~SVF_NOCLIENT;
 		of->s.event = EV_ITEM_RESPAWN;
@@ -291,7 +315,8 @@ P_Pain
 void P_Pain(edict_t *self, edict_t *other, int damage, int knockback){
 
 	if(other && other->client && other != self){  // play a hit sound
-		gi.Sound(other, CHAN_VOICE, gi.SoundIndex("misc/hit.wav"), 1, ATTN_STATIC, 0);
+		gi.Sound(other, CHAN_VOICE, gi.SoundIndex("misc/hit.wav"),
+				1.0, ATTN_STATIC, 0.0);
 	}
 }
 
@@ -301,18 +326,22 @@ P_Die
 */
 void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
 
-	gi.Sound(self, CHAN_VOICE, gi.SoundIndex("*death_1.wav"), 1, ATTN_NORM, 0);
+	gi.Sound(self, CHAN_VOICE, gi.SoundIndex("*death_1.wav"),
+			1.0, ATTN_NORM, 0.0);
 
 	self->client->respawn_time = level.time + 1.0;
 	self->client->ps.pmove.pm_type = PM_DEAD;
 
 	P_ClientObituary(self, inflictor, attacker);
 
-	if(!level.gameplay && !level.warmup)  // drop weapon in dm
+	if(!level.gameplay && !level.warmup)  // drop weapon
 		TossWeapon(self);
 
 	self->client->newweapon = NULL;  // reset weapon state
 	P_ChangeWeapon(self);
+
+	if(!level.gameplay && !level.warmup)  // drop quad
+		TossQuadDamage(self);
 
 	if(level.ctf && !level.warmup)  // drop flag in ctf
 		TossFlag(self);
@@ -1061,6 +1090,27 @@ static trace_t P_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
 
 
 /*
+P_InventoryThink
+*/
+static void P_InventoryThink(edict_t *ent){
+
+	if(ent->client->locals.inventory[quad_damage_index]){  // if they have quad
+
+		if(ent->client->quad_damage_time < level.time){  // expire it
+
+			ent->client->quad_damage_time = 0.0;
+			ent->client->locals.inventory[quad_damage_index] = 0;
+
+			gi.Sound(ent, CHAN_AUTO, gi.SoundIndex("quad/expire.wav"),
+					1.0, ATTN_NORM, 0.0);
+		}
+	}
+
+	// other runes and things can be timed out here as well
+}
+
+
+/*
 P_Think
 
 This will be called once for each client frame, which will
@@ -1080,25 +1130,25 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 		return;
 	}
 
-	pm_passent = ent;
+	pm_passent = ent;  // ignore ourselves on traces
 
-	if(ent->client->chase_target){  // ensure chase is valid
+	if(client->chase_target){  // ensure chase is valid
 
-		if(!ent->client->chase_target->inuse ||
-				ent->client->chase_target->client->locals.spectator){
+		if(!client->chase_target->inuse ||
+				client->chase_target->client->locals.spectator){
 
-			other = ent->client->chase_target;
+			other = client->chase_target;
 
 			P_ChaseNext(ent);
 
-			if(ent->client->chase_target == other){  // no one to chase
-				ent->client->chase_target = NULL;
-				ent->client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+			if(client->chase_target == other){  // no one to chase
+				client->chase_target = NULL;
+				client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 			}
 		}
 	}
 
-	if(!ent->client->chase_target){  // set up for pmove
+	if(!client->chase_target){  // set up for pmove
 		memset(&pm, 0, sizeof(pm));
 
 		if(ent->movetype == MOVETYPE_NOCLIP)
@@ -1149,9 +1199,11 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 		if(ent->groundentity && !pm.groundentity && 
 				(pm.cmd.upmove >= 10) && (pm.waterlevel == 0)){
 			if(crandom() > 0)
-				gi.Sound(ent, CHAN_VOICE, gi.SoundIndex("*jump_1.wav"), 1, ATTN_NORM, 0);
+				gi.Sound(ent, CHAN_VOICE, gi.SoundIndex("*jump_1.wav"),
+						1.0, ATTN_NORM, 0.0);
 			else
-				gi.Sound(ent, CHAN_VOICE, gi.SoundIndex("*jump_2.wav"), 1, ATTN_NORM, 0);
+				gi.Sound(ent, CHAN_VOICE, gi.SoundIndex("*jump_2.wav"),
+						1.0, ATTN_NORM, 0.0);
 		}
 
 		ent->viewheight = pm.viewheight;
@@ -1217,6 +1269,8 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 		if(other->inuse && other->client->chase_target == ent)
 			P_UpdateChaseCam(other);
 	}
+
+	P_InventoryThink(ent);
 }
 
 
