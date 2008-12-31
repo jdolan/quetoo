@@ -93,21 +93,7 @@ static void G_Give_f(edict_t *ent){
 			return;
 	}
 
-	if(give_all || strcasecmp(name, "quad damage") == 0){
-
-		it = G_FindItem("quad damage");
-
-		it_ent = G_Spawn();
-		it_ent->classname = it->classname;
-
-		G_SpawnItem(it_ent, it);
-		G_TouchItem(it_ent, ent, NULL, NULL);
-
-		if(!give_all)
-			return;
-	}
-
-	if(give_all)  // we've given full inventory
+	if(give_all)  // we've given full health and inventory
 		return;
 
 	it = G_FindItem(name);

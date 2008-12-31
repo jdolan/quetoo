@@ -163,7 +163,8 @@ static int G_CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage, i
 }
 
 
-#define QUAD_DAMAGE_FACTOR 2.0
+#define QUAD_DAMAGE_FACTOR 2.5
+#define QUAD_KNOCKBACK_FACTOR 2.0
 
 /*
 G_Damage
@@ -209,7 +210,7 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	if(attacker->client &&
 			attacker->client->locals.inventory[quad_damage_index]){
 		damage = (int)(damage * QUAD_DAMAGE_FACTOR);
-		knockback = (int)( knockback * QUAD_DAMAGE_FACTOR);
+		knockback = (int)( knockback * QUAD_KNOCKBACK_FACTOR);
 	}
 
 	// friendly fire avoidance
