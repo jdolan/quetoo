@@ -541,3 +541,8 @@ model="models/ctf/flag1/tris.md3"
 /*QUAKED item_flag_team2 (1 0.2 0.2) (-16 -16 -24) (16 16 32)
 model="models/ctf/flag2/tris.md3"
 */
+
+/*QUAKED item_quad (0.4 0.4 1.0) (-16 -16 -16) (16 16 16)
+model="models/items/quad/tris.md3"
+*/
+
