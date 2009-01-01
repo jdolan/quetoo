@@ -1,45 +1,45 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "g_local.h"
 
 /*
-pushmove objects do not obey gravity, and do not interact with
-each other or trigger fields, but block normal movement and push
-normal objects when they move.
-
-onground is set for toss objects when they come to a complete
-rest.  it is set for steping or walking objects
-
-doors, plats, etc are SOLID_BSP, and MOVETYPE_PUSH
-bonus items are SOLID_TRIGGER touch, and MOVETYPE_TOSS
-crates are SOLID_BBOX and MOVETYPE_TOSS
-
-solid_edge items only clip against bsp models.
-*/
+ * pushmove objects do not obey gravity, and do not interact with
+ * each other or trigger fields, but block normal movement and push
+ * normal objects when they move.
+ * 
+ * onground is set for toss objects when they come to a complete
+ * rest.  it is set for steping or walking objects
+ * 
+ * doors, plats, etc are SOLID_BSP, and MOVETYPE_PUSH
+ * bonus items are SOLID_TRIGGER touch, and MOVETYPE_TOSS
+ * crates are SOLID_BBOX and MOVETYPE_TOSS
+ * 
+ * solid_edge items only clip against bsp models.
+ */
 
 
 /*
-G_TestEntityPosition
-*/
+ * G_TestEntityPosition
+ */
 static edict_t *G_TestEntityPosition(edict_t *ent){
 	trace_t trace;
 	int mask;
@@ -60,8 +60,8 @@ static edict_t *G_TestEntityPosition(edict_t *ent){
 #define MAX_VELOCITY 2000
 
 /*
-G_CheckVelocity
-*/
+ * G_CheckVelocity
+ */
 static void G_CheckVelocity(edict_t *ent){
 	int i;
 
@@ -75,10 +75,10 @@ static void G_CheckVelocity(edict_t *ent){
 }
 
 /*
-G_RunThink
-
-Runs thinking code for this frame if necessary
-*/
+ * G_RunThink
+ * 
+ * Runs thinking code for this frame if necessary
+ */
 static qboolean G_RunThink(edict_t *ent){
 	float thinktime;
 
@@ -100,10 +100,10 @@ static qboolean G_RunThink(edict_t *ent){
 }
 
 /*
-G_Impact
-
-Two entities have touched, so run their touch functions
-*/
+ * G_Impact
+ * 
+ * Two entities have touched, so run their touch functions
+ */
 static void G_Impact(edict_t *e1, trace_t *trace){
 	edict_t *e2;
 	//	cplane_t backplane;
@@ -119,11 +119,11 @@ static void G_Impact(edict_t *e1, trace_t *trace){
 
 
 /*
-ClipVelocity
-
-Slide off of the impacting object
-returns the blocked flags (1 = floor, 2 = step / wall)
-*/
+ * ClipVelocity
+ * 
+ * Slide off of the impacting object
+ * returns the blocked flags (1 = floor, 2 = step / wall)
+ */
 #define STOP_EPSILON	0.1
 
 static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
@@ -151,14 +151,14 @@ static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
 
 
 /*
-G_FlyMove
-
-The basic solid body movement clip that slides along multiple planes
-Returns the clipflags if the velocity was modified(hit something solid)
-1 = floor
-2 = wall / step
-4 = dead stop
-*/
+ * G_FlyMove
+ * 
+ * The basic solid body movement clip that slides along multiple planes
+ * Returns the clipflags if the velocity was modified(hit something solid)
+ * 1 = floor
+ * 2 = wall / step
+ * 4 = dead stop
+ */
 #define MAX_CLIP_PLANES	5
 static int G_FlyMove(edict_t *ent, float time, int mask){
 	edict_t *hit;
@@ -272,25 +272,25 @@ static int G_FlyMove(edict_t *ent, float time, int mask){
 
 
 /*
-G_AddGravity
-*/
+ * G_AddGravity
+ */
 static void G_AddGravity(edict_t *ent){
 	ent->velocity[2] -= ent->gravity * level.gravity * gi.serverframe;
 }
 
 
 /*
-
-PUSHMOVE
-
-*/
+ * 
+ * PUSHMOVE
+ * 
+ */
 
 
 /*
-G_PushEntity
-
-Does not change the entity's velocity at all
-*/
+ * G_PushEntity
+ * 
+ * Does not change the entity's velocity at all
+ */
 trace_t G_PushEntity(edict_t *ent, vec3_t push){
 	trace_t trace;
 	vec3_t start;
@@ -342,11 +342,11 @@ pushed_t pushed[MAX_EDICTS], *pushed_p;
 edict_t *obstacle;
 
 /*
-G_Push
-
-Objects need to be moved back on a failed push,
-otherwise riders would continue to slide.
-*/
+ * G_Push
+ * 
+ * Objects need to be moved back on a failed push,
+ * otherwise riders would continue to slide.
+ */
 static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 	int i, e;
 	edict_t *check, *block;
@@ -495,10 +495,10 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 }
 
 /*
-G_Physics_Pusher
-
-Bmodel objects don't interact with each other, but push all box objects
-*/
+ * G_Physics_Pusher
+ * 
+ * Bmodel objects don't interact with each other, but push all box objects
+ */
 static void G_Physics_Pusher(edict_t *ent){
 	vec3_t move, amove;
 	edict_t *part, *mv;
@@ -548,10 +548,10 @@ static void G_Physics_Pusher(edict_t *ent){
 
 
 /*
-G_Physics_None
-
-Non moving objects can only think
-*/
+ * G_Physics_None
+ * 
+ * Non moving objects can only think
+ */
 static void G_Physics_None(edict_t *ent){
 	// regular thinking
 	G_RunThink(ent);
@@ -559,10 +559,10 @@ static void G_Physics_None(edict_t *ent){
 
 
 /*
-G_Physics_Noclip
-
-A moving object that doesn't obey physics
-*/
+ * G_Physics_Noclip
+ * 
+ * A moving object that doesn't obey physics
+ */
 static void G_Physics_Noclip(edict_t *ent){
 
 	if(!G_RunThink(ent))
@@ -576,10 +576,10 @@ static void G_Physics_Noclip(edict_t *ent){
 
 
 /*
-G_Physics_Toss
-
-Toss, bounce, and fly movement.  When onground, do nothing.
-*/
+ * G_Physics_Toss
+ * 
+ * Toss, bounce, and fly movement.  When onground, do nothing.
+ */
 static void G_Physics_Toss(edict_t *ent){
 	trace_t trace;
 	vec3_t move;
@@ -706,14 +706,14 @@ static void G_Physics_Toss(edict_t *ent){
 
 
 /*
-G_Physics_Step
-
-Monsters freefall when they don't have a ground entity, otherwise
-all movement is done with discrete steps.
-
-This is also used for objects that have become still on the ground, but
-will fall if the floor is pulled out from under them.
-*/
+ * G_Physics_Step
+ * 
+ * Monsters freefall when they don't have a ground entity, otherwise
+ * all movement is done with discrete steps.
+ * 
+ * This is also used for objects that have become still on the ground, but
+ * will fall if the floor is pulled out from under them.
+ */
 
 #define sv_stopspeed		100
 #define sv_friction			6
@@ -798,8 +798,8 @@ static void G_Physics_Step(edict_t *ent){
 
 
 /*
-G_RunEntity
-*/
+ * G_RunEntity
+ */
 void G_RunEntity(edict_t *ent){
 	if(ent->prethink)
 		ent->prethink(ent);

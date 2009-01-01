@@ -1,44 +1,44 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qvis.h"
 
 /*
-
-  each portal will have a list of all possible to see from first portal
-
-  if(!thread->portalmightsee[portalnum])
-
-  portal mightsee
-
-  for p2 = all other portals in leaf
-	get sperating planes
-	for all portals that might be seen by p2
-		mark as unseen if not present in seperating plane
-	flood fill a new mightsee
-	save as passagemightsee
-
-
-  void CalcMightSee (leaf_t *leaf,
-*/
+ * 
+ *   each portal will have a list of all possible to see from first portal
+ * 
+ *   if(!thread->portalmightsee[portalnum])
+ * 
+ *   portal mightsee
+ * 
+ *   for p2 = all other portals in leaf
+ * 	get sperating planes
+ * 	for all portals that might be seen by p2
+ * 		mark as unseen if not present in seperating plane
+ * 	flood fill a new mightsee
+ * 	save as passagemightsee
+ * 
+ * 
+ *   void CalcMightSee (leaf_t *leaf,
+ */
 
 int CountBits(const byte * bits, int numbits){
 	int i;
@@ -80,8 +80,8 @@ static void FreeStackWinding(const winding_t * w, pstack_t * stack){
 }
 
 /*
-Vis_ChopWinding
-*/
+ * Vis_ChopWinding
+ */
 static winding_t *Vis_ChopWinding(winding_t * in, pstack_t * stack, plane_t * split){
 	vec_t dists[128];
 	int sides[128];
@@ -175,21 +175,21 @@ static winding_t *Vis_ChopWinding(winding_t * in, pstack_t * stack, plane_t * sp
 
 
 /*
-==============
-ClipToSeperators
-
-Source, pass, and target are an ordering of portals.
-
-Generates seperating planes canidates by taking two points from source and one
-point from pass, and clips target by them.
-
-If target is totally clipped away, that portal can not be seen through.
-
-Normal clip keeps target on the same side as pass, which is correct if the
-order goes source, pass, target.  If the order goes pass, source, target then
-flipclip should be set.
-==============
-*/
+ * ==============
+ * ClipToSeperators
+ * 
+ * Source, pass, and target are an ordering of portals.
+ * 
+ * Generates seperating planes canidates by taking two points from source and one
+ * point from pass, and clips target by them.
+ * 
+ * If target is totally clipped away, that portal can not be seen through.
+ * 
+ * Normal clip keeps target on the same side as pass, which is correct if the
+ * order goes source, pass, target.  If the order goes pass, source, target then
+ * flipclip should be set.
+ * ==============
+ */
 static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
                             winding_t * target, qboolean flipclip,
                             pstack_t * stack){
@@ -319,13 +319,13 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 
 
 /*
-==================
-RecursiveLeafFlow
-
-Flood fill through the leafs
-If src_portal is NULL, this is the originating leaf
-==================
-*/
+ * ==================
+ * RecursiveLeafFlow
+ * 
+ * Flood fill through the leafs
+ * If src_portal is NULL, this is the originating leaf
+ * ==================
+ */
 static void RecursiveLeafFlow(int leafnum, threaddata_t * thread, pstack_t * prevstack){
 	pstack_t stack;
 	portal_t *p;
@@ -448,10 +448,10 @@ static void RecursiveLeafFlow(int leafnum, threaddata_t * thread, pstack_t * pre
 
 
 /*
-PortalFlow
-
-generates the portalvis bit vector
-*/
+ * PortalFlow
+ * 
+ * generates the portalvis bit vector
+ */
 void PortalFlow(int portalnum){
 	threaddata_t data;
 	int i;
@@ -483,8 +483,8 @@ void PortalFlow(int portalnum){
 
 
 /*
-SimpleFlood
-*/
+ * SimpleFlood
+ */
 static void SimpleFlood(portal_t * srcportal, int leafnum){
 	int i;
 	leaf_t *leaf;
@@ -510,8 +510,8 @@ static void SimpleFlood(portal_t * srcportal, int leafnum){
 
 
 /*
-BasePortalVis
-*/
+ * BasePortalVis
+ */
 void BasePortalVis(int portalnum){
 	int j, k;
 	portal_t *tp, *p;

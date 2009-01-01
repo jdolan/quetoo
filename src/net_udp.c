@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "common.h"
 
@@ -64,8 +64,8 @@ static cvar_t *net_port;
 
 
 /*
-Net_ErrorString
-*/
+ * Net_ErrorString
+ */
 static const char *Net_ErrorString(void){
 	const int code = Net_GetError();
 	return strerror(code);
@@ -73,8 +73,8 @@ static const char *Net_ErrorString(void){
 
 
 /*
-NetadrToSockadr
-*/
+ * NetadrToSockadr
+ */
 static void NetadrToSockadr(const netadr_t *a, struct sockaddr_in *s){
 	memset(s, 0, sizeof(*s));
 
@@ -93,8 +93,8 @@ static void NetadrToSockadr(const netadr_t *a, struct sockaddr_in *s){
 
 
 /*
-SockadrToNetadr
-*/
+ * SockadrToNetadr
+ */
 static void SockadrToNetadr(const struct sockaddr_in *s, netadr_t *a){
 	*(int *)&a->ip = *(int *)&s->sin_addr;
 	a->port = s->sin_port;
@@ -103,8 +103,8 @@ static void SockadrToNetadr(const struct sockaddr_in *s, netadr_t *a){
 
 
 /*
-Net_CompareAdr
-*/
+ * Net_CompareAdr
+ */
 qboolean Net_CompareAdr(netadr_t a, netadr_t b){
 	if(a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2]
 			&& a.ip[3] == b.ip[3] && a.port == b.port)
@@ -114,8 +114,8 @@ qboolean Net_CompareAdr(netadr_t a, netadr_t b){
 
 
 /*
-Net_CompareBaseAdr
-*/
+ * Net_CompareBaseAdr
+ */
 qboolean Net_CompareBaseAdr(netadr_t a, netadr_t b){
 
 	if(a.type != b.type)
@@ -133,8 +133,8 @@ qboolean Net_CompareBaseAdr(netadr_t a, netadr_t b){
 
 
 /*
-Net_AdrToString
-*/
+ * Net_AdrToString
+ */
 char *Net_AdrToString(netadr_t a){
 	static char s[64];
 
@@ -144,14 +144,14 @@ char *Net_AdrToString(netadr_t a){
 }
 
 /*
-Net_StringToSockaddr
-
-localhost
-idnewt
-idnewt:28000
-192.246.40.70
-192.246.40.70:28000
-*/
+ * Net_StringToSockaddr
+ * 
+ * localhost
+ * idnewt
+ * idnewt:28000
+ * 192.246.40.70
+ * 192.246.40.70:28000
+ */
 static qboolean Net_StringToSockaddr(const char *s, struct sockaddr *sadr){
 	struct hostent *h;
 	char *colon;
@@ -184,14 +184,14 @@ static qboolean Net_StringToSockaddr(const char *s, struct sockaddr *sadr){
 
 
 /*
-Net_StringToAdr
-
-localhost
-idnewt
-idnewt:28000
-192.246.40.70
-192.246.40.70:28000
-*/
+ * Net_StringToAdr
+ * 
+ * localhost
+ * idnewt
+ * idnewt:28000
+ * 192.246.40.70
+ * 192.246.40.70:28000
+ */
 qboolean Net_StringToAdr(const char *s, netadr_t *a){
 	struct sockaddr_in sadr;
 
@@ -211,16 +211,16 @@ qboolean Net_StringToAdr(const char *s, netadr_t *a){
 
 
 /*
-Net_IsLocalAddress
-*/
+ * Net_IsLocalAddress
+ */
 qboolean Net_IsLocalAddress(netadr_t adr){
 	return Net_CompareAdr(adr, net_local_adr);
 }
 
 
 /*
-Net_GetLoopPacket
-*/
+ * Net_GetLoopPacket
+ */
 static qboolean Net_GetLoopPacket(netsrc_t source, netadr_t *from, sizebuf_t *message){
 	int i;
 	loopback_t *loop;
@@ -245,8 +245,8 @@ static qboolean Net_GetLoopPacket(netsrc_t source, netadr_t *from, sizebuf_t *me
 
 
 /*
-Net_SendLoopPacket
-*/
+ * Net_SendLoopPacket
+ */
 static void Net_SendLoopPacket(netsrc_t source, size_t length, void *data, netadr_t to){
 	int i;
 	loopback_t *loop;
@@ -262,8 +262,8 @@ static void Net_SendLoopPacket(netsrc_t source, size_t length, void *data, netad
 
 
 /*
-Net_GetPacket
-*/
+ * Net_GetPacket
+ */
 qboolean Net_GetPacket(netsrc_t source, netadr_t *from, sizebuf_t *message){
 	int ret, err;
 	struct sockaddr_in from_addr;
@@ -305,8 +305,8 @@ qboolean Net_GetPacket(netsrc_t source, netadr_t *from, sizebuf_t *message){
 
 
 /*
-Net_SendPacket
-*/
+ * Net_SendPacket
+ */
 void Net_SendPacket(netsrc_t source, size_t length, void *data, netadr_t to){
 	struct sockaddr_in to_addr;
 	int sock, ret;
@@ -339,10 +339,10 @@ void Net_SendPacket(netsrc_t source, size_t length, void *data, netadr_t to){
 
 
 /*
-Net_Sleep
-
-Sleeps for msec or until server socket is ready.
-*/
+ * Net_Sleep
+ * 
+ * Sleeps for msec or until server socket is ready.
+ */
 void Net_Sleep(int msec){
 	struct timeval timeout;
 	fd_set fdset;
@@ -359,8 +359,8 @@ void Net_Sleep(int msec){
 
 
 /*
-Net_Socket
-*/
+ * Net_Socket
+ */
 static int Net_Socket(const char *net_interface, int port){
 	int sock;
 	struct sockaddr_in addr;
@@ -407,8 +407,8 @@ static int Net_Socket(const char *net_interface, int port){
 
 
 /*
-Net_Config
-*/
+ * Net_Config
+ */
 void Net_Config(netsrc_t source, qboolean up){
 	int p;
 
@@ -429,8 +429,8 @@ void Net_Config(netsrc_t source, qboolean up){
 
 
 /*
-Net_Init
-*/
+ * Net_Init
+ */
 void Net_Init(void){
 
 #ifdef _WIN32
@@ -447,8 +447,8 @@ void Net_Init(void){
 
 
 /*
-Net_Shutdown
-*/
+ * Net_Shutdown
+ */
 void Net_Shutdown(void){
 
 	Net_Config(NS_CLIENT, false);  // close client socket

@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
@@ -43,8 +43,8 @@ static int num_graphsamps;
 
 
 /*
-Cl_Netgraph
-*/
+ * Cl_Netgraph
+ */
 static void Cl_Netgraph(float value, int color){
 
 	graphsamps[num_graphsamps].value = value;
@@ -61,8 +61,8 @@ static void Cl_Netgraph(float value, int color){
 
 
 /*
-Cl_AddNetgraph
-*/
+ * Cl_AddNetgraph
+ */
 void Cl_AddNetgraph(void){
 	int i;
 	int in;
@@ -87,8 +87,8 @@ void Cl_AddNetgraph(void){
 
 
 /*
-Cl_DrawNetgraph
-*/
+ * Cl_DrawNetgraph
+ */
 static void Cl_DrawNetgraph(void){
 	int i, j, h;
 
@@ -112,8 +112,8 @@ static void Cl_DrawNetgraph(void){
 
 
 /*
-Cl_DrawTeamBanner
-*/
+ * Cl_DrawTeamBanner
+ */
 static void Cl_DrawTeamBanner(void){
 	int color;
 	const int team = cl.frame.playerstate.stats[STAT_TEAMNAME];
@@ -139,8 +139,8 @@ float centertime;
 int centerlines;
 
 /*
-Cl_CenterPrint
-*/
+ * Cl_CenterPrint
+ */
 void Cl_CenterPrint(char *str){
 	char *s;
 
@@ -164,8 +164,8 @@ void Cl_CenterPrint(char *str){
 
 
 /*
-Cl_DrawCenterString
-*/
+ * Cl_DrawCenterString
+ */
 static void Cl_DrawCenterString(void){
 	const char *s;
 	int x, y, size, len;
@@ -215,8 +215,8 @@ static void Cl_DrawCenterString(void){
 
 
 /*
-Cl_CheckDrawCenterString
-*/
+ * Cl_CheckDrawCenterString
+ */
 static void Cl_CheckDrawCenterString(void){
 
 	if(centertime <= cl.time)
@@ -227,8 +227,8 @@ static void Cl_CheckDrawCenterString(void){
 
 
 /*
-Cl_DrawConsoleOrNotify
-*/
+ * Cl_DrawConsoleOrNotify
+ */
 static void Cl_DrawConsoleOrNotify(void){
 
 	if(cls.state == ca_disconnected || cls.state == ca_connecting){
@@ -261,8 +261,8 @@ static void Cl_DrawConsoleOrNotify(void){
 
 
 /*
-Cl_DrawHUDString
-*/
+ * Cl_DrawHUDString
+ */
 static void Cl_DrawHUDString(const char *string, int x, int y, int centerwidth, int color){
 	int margin;
 	char line[MAX_STRING_CHARS];
@@ -296,8 +296,8 @@ static void Cl_DrawHUDString(const char *string, int x, int y, int centerwidth, 
 
 
 /*
-Cl_ExecuteLayoutString
-*/
+ * Cl_ExecuteLayoutString
+ */
 static void Cl_ExecuteLayoutString(const char *s){
 	int x, y;
 	int value, value2;
@@ -467,8 +467,8 @@ typedef struct crosshair_s {
 static crosshair_t crosshair;
 
 /*
-Cl_DrawCrosshair
-*/
+ * Cl_DrawCrosshair
+ */
 static void Cl_DrawCrosshair(void){
 	char path[MAX_QPATH];
 	int offset, w, h;
@@ -527,18 +527,18 @@ static void Cl_DrawCrosshair(void){
 
 
 /*
-Cl_DrawStats
-
-The status bar is a small layout program based on the stats array
-*/
+ * Cl_DrawStats
+ * 
+ * The status bar is a small layout program based on the stats array
+ */
 static void Cl_DrawStats(void){
 	Cl_ExecuteLayoutString(cl.configstrings[CS_STATUSBAR]);
 }
 
 
 /*
-Cl_DrawLayout
-*/
+ * Cl_DrawLayout
+ */
 static void Cl_DrawLayout(void){
 
 	if(!cl.frame.playerstate.stats[STAT_LAYOUTS])
@@ -554,8 +554,8 @@ static void Cl_DrawLayout(void){
 int frames_this_second = 0, packets_this_second = 0, bytes_this_second = 0;
 
 /*
-Cl_DrawCounters
-*/
+ * Cl_DrawCounters
+ */
 static void Cl_DrawCounters(void){
 	static vec3_t velocity;
 	static char bps[8], pps[8], fps[8], spd[8];
@@ -597,8 +597,8 @@ static void Cl_DrawCounters(void){
 
 
 /*
-Cl_DrawBlend
-*/
+ * Cl_DrawBlend
+ */
 static void Cl_DrawBlend(void){
 	static int h, a, p;
 	static int last_blend_time;
@@ -659,11 +659,11 @@ static void Cl_DrawBlend(void){
 
 
 /*
-Cl_UpdateScreen
-
-This is called every frame, and can also be called explicitly to flush
-text to the screen.
-*/
+ * Cl_UpdateScreen
+ * 
+ * This is called every frame, and can also be called explicitly to flush
+ * text to the screen.
+ */
 void Cl_UpdateScreen(void){
 
 	R_BeginFrame();

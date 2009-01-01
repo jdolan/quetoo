@@ -1,31 +1,31 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "server.h"
 
 /*
-
-Com_Printf redirection
-
-*/
+ * 
+ * Com_Printf redirection
+ * 
+ */
 
 char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
@@ -41,17 +41,17 @@ void Sv_FlushRedirect(int sv_redirected, char *outputbuf){
 
 
 /*
-
-EVENT MESSAGES
-
-*/
+ * 
+ * EVENT MESSAGES
+ * 
+ */
 
 
 /*
-Sv_ClientPrintf
-
-Sends text across to be displayed if the level passes
-*/
+ * Sv_ClientPrintf
+ * 
+ * Sends text across to be displayed if the level passes
+ */
 void Sv_ClientPrintf(client_t *cl, int level, const char *fmt, ...){
 	va_list	argptr;
 	char string[MAX_STRING_CHARS];
@@ -70,10 +70,10 @@ void Sv_ClientPrintf(client_t *cl, int level, const char *fmt, ...){
 
 
 /*
-Sv_Bprintf
-
-Sends text to all active clients
-*/
+ * Sv_Bprintf
+ * 
+ * Sends text to all active clients
+ */
 void Sv_Bprintf(int level, const char *fmt, ...){
 	va_list	argptr;
 	char string[MAX_STRING_CHARS];
@@ -109,10 +109,10 @@ void Sv_Bprintf(int level, const char *fmt, ...){
 
 
 /*
-Sv_BroadcastCommand
-
-Sends text to all active clients
-*/
+ * Sv_BroadcastCommand
+ * 
+ * Sends text to all active clients
+ */
 void Sv_BroadcastCommand(const char *fmt, ...){
 	va_list	argptr;
 	char string[MAX_STRING_CHARS];
@@ -130,15 +130,15 @@ void Sv_BroadcastCommand(const char *fmt, ...){
 
 
 /*
-Sv_Multicast
-
-Sends the contents of sv.multicast to a subset of the clients,
-then clears sv.multicast.
-
-MULTICAST_ALL	same as broadcast (origin can be NULL)
-MULTICAST_PVS	send to clients potentially visible from org
-MULTICAST_PHS	send to clients potentially hearable from org
-*/
+ * Sv_Multicast
+ * 
+ * Sends the contents of sv.multicast to a subset of the clients,
+ * then clears sv.multicast.
+ * 
+ * MULTICAST_ALL	same as broadcast (origin can be NULL)
+ * MULTICAST_PVS	send to clients potentially visible from org
+ * MULTICAST_PHS	send to clients potentially hearable from org
+ */
 void Sv_Multicast(vec3_t origin, multicast_t to){
 	client_t *client;
 	byte *mask;
@@ -216,29 +216,29 @@ void Sv_Multicast(vec3_t origin, multicast_t to){
 
 
 /*
-Sv_StartSound
-
-Each entity can have eight independent sound sources, like voice,
-weapon, feet, etc.
-
-If cahnnel & 8, the sound will be sent to everyone, not just
-things in the PHS.
-
-FIXME: if entity isn't in PHS, they must be forced to be sent or
-have the origin explicitly sent.
-
-Channel 0 is an auto-allocate channel, the others override anything
-already running on that entity/channel pair.
-
-An attenuation of 0 will play full volume everywhere in the level.
-Larger attenuations will drop off. (max 4 attenuation)
-
-Timeofs can range from 0.0 to 0.1 to cause sounds to be started
-later in the frame than they normally would.
-
-If origin is NULL, the origin is determined from the entity origin
-or the midpoint of the entity box for bmodels.
-*/
+ * Sv_StartSound
+ * 
+ * Each entity can have eight independent sound sources, like voice,
+ * weapon, feet, etc.
+ * 
+ * If cahnnel & 8, the sound will be sent to everyone, not just
+ * things in the PHS.
+ * 
+ * FIXME: if entity isn't in PHS, they must be forced to be sent or
+ * have the origin explicitly sent.
+ * 
+ * Channel 0 is an auto-allocate channel, the others override anything
+ * already running on that entity/channel pair.
+ * 
+ * An attenuation of 0 will play full volume everywhere in the level.
+ * Larger attenuations will drop off. (max 4 attenuation)
+ * 
+ * Timeofs can range from 0.0 to 0.1 to cause sounds to be started
+ * later in the frame than they normally would.
+ * 
+ * If origin is NULL, the origin is determined from the entity origin
+ * or the midpoint of the entity box for bmodels.
+ */
 void Sv_StartSound(vec3_t origin, edict_t *entity, int channel,
 		int soundindex, float volume, float attenuation, float timeofs){
 	int sendchan;
@@ -338,10 +338,10 @@ void Sv_StartSound(vec3_t origin, edict_t *entity, int channel,
 
 
 /*
-
-FRAME UPDATES
-
-*/
+ * 
+ * FRAME UPDATES
+ * 
+ */
 
 int zlib_accum = 0;  // count of bytes saved via zlib
 
@@ -350,11 +350,11 @@ static z_stream z;
 static byte zbuf[MAX_MSGLEN];
 
 /*
-Sv_ZlibClientDatagrab
-
-Deflates msg for clients supporting svc_zlib, and rewrites it if
-the compression resulted in a smaller packet.
-*/
+ * Sv_ZlibClientDatagrab
+ * 
+ * Deflates msg for clients supporting svc_zlib, and rewrites it if
+ * the compression resulted in a smaller packet.
+ */
 static void Sv_ZlibClientDatagram(client_t *client, sizebuf_t *msg){
 	int len;
 
@@ -398,8 +398,8 @@ static void Sv_ZlibClientDatagram(client_t *client, sizebuf_t *msg){
 
 
 /*
-Sv_SendClientDatagram
-*/
+ * Sv_SendClientDatagram
+ */
 static qboolean Sv_SendClientDatagram(client_t *client){
 	byte msg_buf[MAX_MSGLEN];
 	sizebuf_t msg;
@@ -441,8 +441,8 @@ static qboolean Sv_SendClientDatagram(client_t *client){
 
 
 /*
-Sv_DemoCompleted
-*/
+ * Sv_DemoCompleted
+ */
 static void Sv_DemoCompleted(void){
 	if(sv.demofile){
 		Fs_CloseFile(sv.demofile);
@@ -453,11 +453,11 @@ static void Sv_DemoCompleted(void){
 
 
 /*
-Sv_RateDrop
-
-Returns true if the client is over its current
-bandwidth estimation and should not be sent another packet
-*/
+ * Sv_RateDrop
+ * 
+ * Returns true if the client is over its current
+ * bandwidth estimation and should not be sent another packet
+ */
 static qboolean Sv_RateDrop(client_t *c){
 	int total;
 	int i;
@@ -483,8 +483,8 @@ static qboolean Sv_RateDrop(client_t *c){
 
 
 /*
-Sv_SendClientMessages
-*/
+ * Sv_SendClientMessages
+ */
 void Sv_SendClientMessages(void){
 	int i;
 	client_t *c;

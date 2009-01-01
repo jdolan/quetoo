@@ -1,30 +1,30 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
 
 /*
-R_UseProgram
-*/
+ * R_UseProgram
+ */
 void R_UseProgram(r_program_t *prog){
 
 	if(!qglUseProgram || r_state.active_program == prog)
@@ -45,8 +45,8 @@ void R_UseProgram(r_program_t *prog){
 
 
 /*
-R_ProgramVariable
-*/
+ * R_ProgramVariable
+ */
 static r_progvar_t *R_ProgramVariable(GLint type, const char *name){
 	r_progvar_t *v;
 	int i;
@@ -87,8 +87,8 @@ static r_progvar_t *R_ProgramVariable(GLint type, const char *name){
 
 
 /*
-R_ProgramParameter1i
-*/
+ * R_ProgramParameter1i
+ */
 void R_ProgramParameter1i(const char *name, GLint value){
 	r_progvar_t *v;
 
@@ -100,8 +100,8 @@ void R_ProgramParameter1i(const char *name, GLint value){
 
 
 /*
-R_ProgramParameter1f
-*/
+ * R_ProgramParameter1f
+ */
 void R_ProgramParameter1f(const char *name, GLfloat value){
 	r_progvar_t *v;
 
@@ -114,8 +114,8 @@ void R_ProgramParameter1f(const char *name, GLfloat value){
 
 #if 0
 /*
-R_ProgramParameter3fv
-*/
+ * R_ProgramParameter3fv
+ */
 void R_ProgramParameter3fv(const char *name, GLfloat *value){
 	r_progvar_t *v;
 
@@ -128,8 +128,8 @@ void R_ProgramParameter3fv(const char *name, GLfloat *value){
 
 
 /*
-R_ProgramParameter4fv
-*/
+ * R_ProgramParameter4fv
+ */
 void R_ProgramParameter4fv(const char *name, GLfloat *value){
 	r_progvar_t *v;
 
@@ -141,8 +141,8 @@ void R_ProgramParameter4fv(const char *name, GLfloat *value){
 
 
 /*
-R_AttributePointer
-*/
+ * R_AttributePointer
+ */
 void R_AttributePointer(const char *name, GLuint size, GLvoid *array){
 	r_progvar_t *v;
 
@@ -154,8 +154,8 @@ void R_AttributePointer(const char *name, GLuint size, GLvoid *array){
 
 
 /*
-R_EnableAttribute
-*/
+ * R_EnableAttribute
+ */
 void R_EnableAttribute(const char *name){
 	r_progvar_t *v;
 
@@ -167,8 +167,8 @@ void R_EnableAttribute(const char *name){
 
 
 /*
-R_DisableAttribute
-*/
+ * R_DisableAttribute
+ */
 void R_DisableAttribute(const char *name){
 	r_progvar_t *v;
 
@@ -180,8 +180,8 @@ void R_DisableAttribute(const char *name){
 
 
 /*
-R_ShutdownShader
-*/
+ * R_ShutdownShader
+ */
 static void R_ShutdownShader(r_shader_t *sh){
 
 	qglDeleteShader(sh->id);
@@ -190,8 +190,8 @@ static void R_ShutdownShader(r_shader_t *sh){
 
 
 /*
-R_ShutdownProgram
-*/
+ * R_ShutdownProgram
+ */
 static void R_ShutdownProgram(r_program_t *prog){
 
 	if(prog->v)
@@ -206,8 +206,8 @@ static void R_ShutdownProgram(r_program_t *prog){
 
 
 /*
-R_ShutdownPrograms
-*/
+ * R_ShutdownPrograms
+ */
 void R_ShutdownPrograms(void){
 	int i;
 
@@ -225,8 +225,8 @@ void R_ShutdownPrograms(void){
 
 
 /*
-R_ShaderIncludes
-*/
+ * R_ShaderIncludes
+ */
 static size_t R_ShaderIncludes(const char *name, const char *in, char *out, size_t len){
 	char path[MAX_QPATH];
 	void *buf;
@@ -262,8 +262,8 @@ static size_t R_ShaderIncludes(const char *name, const char *in, char *out, size
 
 #define SHADER_BUF_SIZE 16384
 /*
-R_LoadShader
-*/
+ * R_LoadShader
+ */
 static r_shader_t *R_LoadShader(GLenum type, const char *name){
 	r_shader_t *sh;
 	char path[MAX_QPATH], *src[1], log[MAX_STRING_CHARS];
@@ -330,8 +330,8 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name){
 
 
 /*
-R_LoadProgram
-*/
+ * R_LoadProgram
+ */
 static r_program_t *R_LoadProgram(const char *name, void *init, void *use){
 
 	r_program_t *prog;
@@ -391,8 +391,8 @@ static r_program_t *R_LoadProgram(const char *name, void *init, void *use){
 
 
 /*
-R_InitDefaultProgram
-*/
+ * R_InitDefaultProgram
+ */
 static void R_InitDefaultProgram(void){
 	R_ProgramParameter1i("SAMPLER0", 0);
 	R_ProgramParameter1i("SAMPLER1", 1);
@@ -411,8 +411,8 @@ static void R_InitDefaultProgram(void){
 
 
 /*
-R_UseDefaultProgram
-*/
+ * R_UseDefaultProgram
+ */
 static void R_UseDefaultProgram(void){
 
 	if(texunit_lightmap.enabled)
@@ -428,8 +428,8 @@ static void R_UseDefaultProgram(void){
 
 
 /*
-R_InitWarpProgram
-*/
+ * R_InitWarpProgram
+ */
 static void R_InitWarpProgram(void){
 	R_ProgramParameter1i("SAMPLER0", 0);
 	R_ProgramParameter1i("SAMPLER1", 1);
@@ -439,8 +439,8 @@ static void R_InitWarpProgram(void){
 
 
 /*
-R_UseWarpProgram
-*/
+ * R_UseWarpProgram
+ */
 static void R_UseWarpProgram(void){
 	static vec4_t offset;
 
@@ -455,8 +455,8 @@ static void R_UseWarpProgram(void){
 
 
 /*
-R_InitProProgram
-*/
+ * R_InitProProgram
+ */
 static void R_InitProProgram(void){
 	R_ProgramParameter1i("SAMPLER0", 0);
 
@@ -467,8 +467,8 @@ static void R_InitProProgram(void){
 
 
 /*
-R_UseProProgram
-*/
+ * R_UseProProgram
+ */
 static void R_UseProProgram(void){
 
 	if(texunit_diffuse.enabled)
@@ -484,8 +484,8 @@ static void R_UseProProgram(void){
 
 
 /*
-R_InitPrograms
-*/
+ * R_InitPrograms
+ */
 void R_InitPrograms(void){
 
 	if(!qglCreateProgram){

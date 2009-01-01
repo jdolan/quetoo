@@ -1,31 +1,31 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "g_local.h"
 #include "m_player.h"
 
 
 /*
-P_PickupWeapon
-*/
+ * P_PickupWeapon
+ */
 qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
 	int index, ammoindex;
 	gitem_t *ammo;
@@ -71,10 +71,10 @@ qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
 
 
 /*
-P_ChangeWeapon
-
-The old weapon has been put away, so make the new one current
-*/
+ * P_ChangeWeapon
+ * 
+ * The old weapon has been put away, so make the new one current
+ */
 void P_ChangeWeapon(edict_t *ent){
 	int i;
 
@@ -118,8 +118,8 @@ void P_ChangeWeapon(edict_t *ent){
 
 
 /*
-P_NoAmmoWeaponChange
-*/
+ * P_NoAmmoWeaponChange
+ */
 void P_NoAmmoWeaponChange(gclient_t *client){
 
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("cells"))] > 24
@@ -165,8 +165,8 @@ void P_NoAmmoWeaponChange(gclient_t *client){
 
 
 /*
-NoAmmoWeaponChange
-*/
+ * NoAmmoWeaponChange
+ */
 static void NoAmmoWeaponChange(edict_t *ent){
 
 	if(level.time >= ent->pain_time){  // play a click sound
@@ -179,8 +179,8 @@ static void NoAmmoWeaponChange(edict_t *ent){
 
 
 /*
-P_UseWeapon
-*/
+ * P_UseWeapon
+ */
 void P_UseWeapon(edict_t *ent, gitem_t *item){
 
 	// see if we're already using it
@@ -193,8 +193,8 @@ void P_UseWeapon(edict_t *ent, gitem_t *item){
 
 
 /*
-P_DropWeapon
-*/
+ * P_DropWeapon
+ */
 void P_DropWeapon(edict_t *ent, gitem_t *item){
 	int index;
 
@@ -216,8 +216,8 @@ void P_DropWeapon(edict_t *ent, gitem_t *item){
 
 
 /*
-P_FireWeapon
-*/
+ * P_FireWeapon
+ */
 static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent)){
 	int n, m;
 	int buttons;
@@ -292,8 +292,8 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 
 
 /*
-P_WeaponThink
-*/
+ * P_WeaponThink
+ */
 void P_WeaponThink(edict_t *ent){
 
 	if(ent->health < 1)
@@ -311,8 +311,8 @@ void P_WeaponThink(edict_t *ent){
 
 
 /*
-P_FireShotgun
-*/
+ * P_FireShotgun
+ */
 static void P_FireShotgun_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
@@ -339,8 +339,8 @@ void P_FireShotgun(edict_t *ent){
 
 
 /*
-P_FireSuperShotgun
-*/
+ * P_FireSuperShotgun
+ */
 static void P_FireSuperShotgun_(edict_t *ent){
 	vec3_t start;
 	vec3_t forward, right;
@@ -380,8 +380,8 @@ void P_FireSuperShotgun(edict_t *ent){
 
 
 /*
-P_FireMachinegun
-*/
+ * P_FireMachinegun
+ */
 static void P_FireMachinegun_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
@@ -409,8 +409,8 @@ void P_FireMachinegun(edict_t *ent){
 
 
 /*
-P_FireGrenadeLauncher
-*/
+ * P_FireGrenadeLauncher
+ */
 static void P_FireGrenadeLauncher_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
@@ -435,8 +435,8 @@ void P_FireGrenadeLauncher(edict_t *ent){
 
 
 /*
-P_FireRocketLauncher
-*/
+ * P_FireRocketLauncher
+ */
 static void P_FireRocketLauncher_(edict_t *ent){
 	vec3_t offset, start;
 	vec3_t forward, right;
@@ -462,8 +462,8 @@ void P_FireRocketLauncher(edict_t *ent){
 
 
 /*
-P_FireHyperblaster
-*/
+ * P_FireHyperblaster
+ */
 static void P_FireHyperblaster_(edict_t *ent){
 	vec3_t forward, right;
 	vec3_t offset, start;
@@ -489,8 +489,8 @@ void P_FireHyperblaster(edict_t *ent){
 
 
 /*
-P_FireLightning
-*/
+ * P_FireLightning
+ */
 static void P_FireLightning_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
@@ -515,8 +515,8 @@ void P_FireLightning(edict_t *ent){
 
 
 /*
-P_FireRailgun
-*/
+ * P_FireRailgun
+ */
 static void P_FireRailgun_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
@@ -542,8 +542,8 @@ void P_FireRailgun(edict_t *ent){
 
 
 /*
-P_FireBFG
-*/
+ * P_FireBFG
+ */
 static void P_FireBFG_(edict_t *ent){
 	vec3_t offset, start;
 	vec3_t forward, right;

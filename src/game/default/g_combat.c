@@ -1,31 +1,31 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "g_local.h"
 
 /*
-G_OnSameTeam
-
-Returns true if ent1 and ent2 are on the same qmass mod team.
-*/
+ * G_OnSameTeam
+ * 
+ * Returns true if ent1 and ent2 are on the same qmass mod team.
+ */
 qboolean G_OnSameTeam(edict_t *ent1, edict_t *ent2){
 
 	if(!level.teams && !level.ctf)
@@ -38,11 +38,11 @@ qboolean G_OnSameTeam(edict_t *ent1, edict_t *ent2){
 }
 
 /*
-G_CanDamage
-
-Returns true if the inflictor can directly damage the target.  Used for
-explosions and melee attacks.
-*/
+ * G_CanDamage
+ * 
+ * Returns true if the inflictor can directly damage the target.  Used for
+ * explosions and melee attacks.
+ */
 qboolean G_CanDamage(edict_t *targ, edict_t *inflictor){
 	vec3_t dest;
 	trace_t trace;
@@ -96,8 +96,8 @@ qboolean G_CanDamage(edict_t *targ, edict_t *inflictor){
 
 
 /*
-G_Killed
-*/
+ * G_Killed
+ */
 static void G_Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
 
 	if(targ->health < -999)
@@ -115,8 +115,8 @@ static void G_Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker, int d
 
 
 /*
-G_SpawnDamage
-*/
+ * G_SpawnDamage
+ */
 static void G_SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage){
 
 	gi.WriteByte(svc_temp_entity);
@@ -128,8 +128,8 @@ static void G_SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage){
 
 
 /*
-G_CheckArmor
-*/
+ * G_CheckArmor
+ */
 static int G_CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage, int dflags){
 	gclient_t *client;
 	int saved;
@@ -167,26 +167,26 @@ static int G_CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage, i
 #define QUAD_KNOCKBACK_FACTOR 2.0
 
 /*
-G_Damage
-
-targ		entity that is being damaged
-inflictor	entity that is causing the damage
-attacker	entity that caused the inflictor to damage targ
-	example: targ=player2, inflictor=rocket, attacker=player1
-
-dir			direction of the attack
-point       point at which the damage is being inflicted
-normal		normal vector from that point
-damage		amount of damage being inflicted
-knockback	force to be applied against targ as a result of the damage
-
-dflags		these flags are used to control how G_Damage works
-	DAMAGE_RADIUS			damage was indirect (from a nearby explosion)
-	DAMAGE_NO_ARMOR			armor does not protect from this damage
-	DAMAGE_ENERGY			damage is from an energy based weapon
-	DAMAGE_BULLET			damage is from a bullet (used for ricochets)
-	DAMAGE_NO_PROTECTION	kills godmode, armor, everything
-*/
+ * G_Damage
+ * 
+ * targ		entity that is being damaged
+ * inflictor	entity that is causing the damage
+ * attacker	entity that caused the inflictor to damage targ
+ * 	example: targ=player2, inflictor=rocket, attacker=player1
+ * 
+ * dir			direction of the attack
+ * point       point at which the damage is being inflicted
+ * normal		normal vector from that point
+ * damage		amount of damage being inflicted
+ * knockback	force to be applied against targ as a result of the damage
+ * 
+ * dflags		these flags are used to control how G_Damage works
+ * 	DAMAGE_RADIUS			damage was indirect (from a nearby explosion)
+ * 	DAMAGE_NO_ARMOR			armor does not protect from this damage
+ * 	DAMAGE_ENERGY			damage is from an energy based weapon
+ * 	DAMAGE_BULLET			damage is from a bullet (used for ricochets)
+ * 	DAMAGE_NO_PROTECTION	kills godmode, armor, everything
+ */
 void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 		vec3_t point, vec3_t normal, int damage, int knockback, int dflags, int mod){
 
@@ -319,8 +319,8 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 
 
 /*
-G_RadiusDamage
-*/
+ * G_RadiusDamage
+ */
 void G_RadiusDamage(edict_t *inflictor, edict_t *attacker, edict_t *ignore,
 		int damage, int knockback, float radius, int mod){
 	edict_t *ent;

@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qlight.h"
 
@@ -54,12 +54,12 @@ static extents_t face_extents[MAX_BSP_FACES];
 
 
 /*
-BuildFaceExtents
-
-Populates face_extents for all dsurface_t, prior to light creation.
-This is done so that sample positions may be nudged outward along
-the face normal and towards the face center to help with traces.
-*/
+ * BuildFaceExtents
+ * 
+ * Populates face_extents for all dsurface_t, prior to light creation.
+ * This is done so that sample positions may be nudged outward along
+ * the face normal and towards the face center to help with traces.
+ */
 static void BuildFaceExtents(void){
 	const dbspvertex_t *v;
 	int i, j, k;
@@ -113,10 +113,10 @@ static void BuildFaceExtents(void){
 
 
 /*
-CalcLightinfoExtents
-
-Fills in l->texmins[] and l->texsize[], l->exactmins[] and l->exactmaxs[]
-*/
+ * CalcLightinfoExtents
+ * 
+ * Fills in l->texmins[] and l->texsize[], l->exactmins[] and l->exactmaxs[]
+ */
 static void CalcLightinfoExtents(lightinfo_t *l){
 	const dface_t *s;
 	float *mins, *maxs;
@@ -149,10 +149,10 @@ static void CalcLightinfoExtents(lightinfo_t *l){
 
 
 /*
-CalcLightinfoVectors
-
-Fills in texorg, worldtotex. and textoworld
-*/
+ * CalcLightinfoVectors
+ * 
+ * Fills in texorg, worldtotex. and textoworld
+ */
 static void CalcLightinfoVectors(lightinfo_t *l){
 	const dtexinfo_t *tex;
 	int i;
@@ -218,11 +218,11 @@ static void CalcLightinfoVectors(lightinfo_t *l){
 
 
 /*
-CalcPoints
-
-For each texture aligned grid point, back project onto the plane
-to get the world xyz value of the sample point
-*/
+ * CalcPoints
+ * 
+ * For each texture aligned grid point, back project onto the plane
+ * to get the world xyz value of the sample point
+ */
 static void CalcPoints(lightinfo_t *l, float sofs, float tofs){
 	int s, t, j;
 	int w, h, step;
@@ -287,8 +287,8 @@ static sun_t sun;
 
 
 /*
-FindTargetEntity
-*/
+ * FindTargetEntity
+ */
 static entity_t *FindTargetEntity(const char *target){
 	int i;
 
@@ -306,8 +306,8 @@ static entity_t *FindTargetEntity(const char *target){
 #define ANGLE_DOWN	-2.0
 
 /*
-BuildLights
-*/
+ * BuildLights
+ */
 void BuildLights(void){
 	int i;
 	light_t *l;
@@ -485,11 +485,11 @@ void BuildLights(void){
 
 
 /*
-GatherSampleSunlight
-
-A follow-up to GatherSampleLight, simply trace along the sun normal, adding
-sunlight when a sky surface is struck.
-*/
+ * GatherSampleSunlight
+ * 
+ * A follow-up to GatherSampleLight, simply trace along the sun normal, adding
+ * sunlight when a sky surface is struck.
+ */
 static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
 		float *sample, float *direction, float scale){
 
@@ -528,11 +528,11 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
 
 
 /*
-GatherSampleLight
-
-Iterate over all light sources for the sample position's PVS, accumulating
-light and directional information to the specified pointers.
-*/
+ * GatherSampleLight
+ * 
+ * Iterate over all light sources for the sample position's PVS, accumulating
+ * light and directional information to the specified pointers.
+ */
 static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 		float *sample, float *direction, float scale){
 
@@ -608,12 +608,12 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 #define SAMPLE_NUDGE 0.25
 
 /*
-NudgeSamplePosition
-
-Move the incoming sample position towards the surface center and along the
-surface normal to reduce false-positive traces.  Test the PVS at the new
-position, returning true if the new point is valid, false otherwise.
-*/
+ * NudgeSamplePosition
+ * 
+ * Move the incoming sample position towards the surface center and along the
+ * surface normal to reduce false-positive traces.  Test the PVS at the new
+ * position, returning true if the new point is valid, false otherwise.
+ */
 static qboolean NudgeSamplePosition(const vec3_t in, const vec3_t normal, const vec3_t center,
 		vec3_t out, byte *pvs){
 
@@ -635,11 +635,11 @@ static qboolean NudgeSamplePosition(const vec3_t in, const vec3_t normal, const 
 #define MAX_VERT_FACES 256
 
 /*
-FacesWithEdge
-
-Populate faces with indexes of all dface_t's referencing the specified edge.
-The number of dface_t's referencing edge is returned in nfaces.
-*/
+ * FacesWithEdge
+ * 
+ * Populate faces with indexes of all dface_t's referencing the specified edge.
+ * The number of dface_t's referencing edge is returned in nfaces.
+ */
 static void FacesWithVert(int vert, int *faces, int *nfaces){
 	int i, j, k;
 
@@ -668,12 +668,12 @@ static void FacesWithVert(int vert, int *faces, int *nfaces){
 
 
 /*
-BuildVertexNormals
-
-Calculate per-vertex (instead of per-plane) normal vectors.  This is done by
-finding all of the faces which share a given vertex, and calculating a weighted
-average of their normals.
-*/
+ * BuildVertexNormals
+ * 
+ * Calculate per-vertex (instead of per-plane) normal vectors.  This is done by
+ * finding all of the faces which share a given vertex, and calculating a weighted
+ * average of their normals.
+ */
 void BuildVertexNormals(void){
 	int vert_faces[MAX_VERT_FACES];
 	int num_vert_faces;
@@ -716,11 +716,11 @@ void BuildVertexNormals(void){
 
 
 /*
-SampleNormal
-
-For Phong-shaded samples, interpolate the vertex normals for the surface in
-question, weighing them according to their proximity to the sample position.
-*/
+ * SampleNormal
+ * 
+ * For Phong-shaded samples, interpolate the vertex normals for the surface in
+ * question, weighing them according to their proximity to the sample position.
+ */
 static void SampleNormal(const lightinfo_t *l, const vec3_t pos, vec3_t normal){
 	vec3_t temp;
 	float dist[MAX_VERT_FACES];
@@ -758,8 +758,8 @@ static const float sampleofs[MAX_SAMPLES][2] = {
 };
 
 /*
-BuildFacelights
-*/
+ * BuildFacelights
+ */
 void BuildFacelights(int facenum){
 	dface_t *face;
 	dplane_t *plane;
@@ -896,11 +896,11 @@ void BuildFacelights(int facenum){
 static const vec3_t luminosity = {0.2125, 0.7154, 0.0721};
 
 /*
-FinalLightFace
-
-Add the indirect lighting on top of the direct lighting and save into
-final map format.
-*/
+ * FinalLightFace
+ * 
+ * Add the indirect lighting on top of the direct lighting and save into
+ * final map format.
+ */
 void FinalLightFace(int facenum){
 	dface_t *f;
 	int j, k;

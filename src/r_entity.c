@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -31,8 +31,8 @@ static entity_t *r_null_entities;
 
 
 /*
-R_AddEntity
-*/
+ * R_AddEntity
+ */
 void R_AddEntity(const entity_t *ent){
 	entity_t *e, *in, **chain;
 
@@ -97,8 +97,8 @@ void R_AddEntity(const entity_t *ent){
 
 
 /*
-R_RotateForEntity
-*/
+ * R_RotateForEntity
+ */
 void R_RotateForEntity(const entity_t *e, qboolean full){
 
 	glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
@@ -116,8 +116,8 @@ void R_RotateForEntity(const entity_t *e, qboolean full){
 
 
 /*
-R_DrawBspEntities
-*/
+ * R_DrawBspEntities
+ */
 static void R_DrawBspEntities(const entity_t *ents){
 	const entity_t *e;
 
@@ -131,8 +131,8 @@ static void R_DrawBspEntities(const entity_t *ents){
 
 
 /*
-R_DrawMeshEntities
-*/
+ * R_DrawMeshEntities
+ */
 static void R_DrawMeshEntities(entity_t *ents){
 	entity_t *e;
 
@@ -146,8 +146,8 @@ static void R_DrawMeshEntities(entity_t *ents){
 
 
 /*
-R_DrawOpaqueMeshEntities
-*/
+ * R_DrawOpaqueMeshEntities
+ */
 static void R_DrawOpaqueMeshEntities(entity_t *ents){
 
 	if(!ents)
@@ -162,8 +162,8 @@ static void R_DrawOpaqueMeshEntities(entity_t *ents){
 
 
 /*
-R_DrawAlphaTestMeshEntities
-*/
+ * R_DrawAlphaTestMeshEntities
+ */
 static void R_DrawAlphaTestMeshEntities(entity_t *ents){
 
 	if(!ents)
@@ -182,8 +182,8 @@ static void R_DrawAlphaTestMeshEntities(entity_t *ents){
 
 
 /*
-R_DrawBlendMeshEntities
-*/
+ * R_DrawBlendMeshEntities
+ */
 static void R_DrawBlendMeshEntities(entity_t *ents){
 
 	if(!ents)
@@ -198,8 +198,8 @@ static void R_DrawBlendMeshEntities(entity_t *ents){
 
 
 /*
-R_DrawNullModel
-*/
+ * R_DrawNullModel
+ */
 static void R_DrawNullModel(const entity_t *e){
 	int i;
 
@@ -228,8 +228,8 @@ static void R_DrawNullModel(const entity_t *e){
 
 
 /*
-R_DrawNullEntities
-*/
+ * R_DrawNullEntities
+ */
 static void R_DrawNullEntities(const entity_t *ents){
 	const entity_t *e;
 
@@ -246,8 +246,8 @@ static void R_DrawNullEntities(const entity_t *ents){
 
 
 /*
-R_DrawEntities
-*/
+ * R_DrawEntities
+ */
 void R_DrawEntities(void){
 
 	R_DrawOpaqueMeshEntities(r_opaque_mesh_entities);

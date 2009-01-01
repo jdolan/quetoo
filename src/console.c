@@ -1,29 +1,29 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 /*
-console.c
-Common structures and functions for the client console and
-the server curses console.
-*/
+ * console.c
+ * Common structures and functions for the client console and
+ * the server curses console.
+ */
 
 #include "shared.h"
 
@@ -48,10 +48,10 @@ cvar_t *ansi;
 
 
 /*
-Con_Update
-
-Update a console index struct, start parsing at pos
-*/
+ * Con_Update
+ * 
+ * Update a console index struct, start parsing at pos
+ */
 static void Con_Update(console_t *con, char *pos){
 	char *wordstart;
 	int linelen;
@@ -141,10 +141,10 @@ static void Con_Update(console_t *con, char *pos){
 
 
 /*
-Con_Resize
-
-Change the width of an index, parse the console data structure if needed
-*/
+ * Con_Resize
+ * 
+ * Change the width of an index, parse the console data structure if needed
+ */
 void Con_Resize(console_t *con, int width, int height){
 	if (!condata.insert)
 		return;
@@ -173,10 +173,10 @@ void Con_Resize(console_t *con, int width, int height){
 
 
 /*
-Con_Clear_f
-
-Clear the console data buffer
-*/
+ * Con_Clear_f
+ * 
+ * Clear the console data buffer
+ */
 static void Con_Clear_f(void){
 	memset(condata.text, 0, sizeof(condata.text));
 	condata.insert = condata.text;
@@ -199,10 +199,10 @@ static void Con_Clear_f(void){
 
 
 /*
-Con_Dump_f
-
-Save the console contents to a file
-*/
+ * Con_Dump_f
+ * 
+ * Save the console contents to a file
+ */
 static void Con_Dump_f(void){
 	FILE *f;
 	char name[MAX_OSPATH];
@@ -236,10 +236,10 @@ static void Con_Dump_f(void){
 
 
 /*
-Con_PrintStdOut
-
-Print a color-coded string to stdout, remove color codes if requested
-*/
+ * Con_PrintStdOut
+ * 
+ * Print a color-coded string to stdout, remove color codes if requested
+ */
 static void Con_PrintStdOut(const char *text){
 	char buf[MAX_PRINT_MSG];
 	int bold, color;
@@ -323,10 +323,10 @@ static void Con_PrintStdOut(const char *text){
 
 
 /*
-Con_Print
-
-Print a message to the console data buffer
-*/
+ * Con_Print
+ * 
+ * Print a message to the console data buffer
+ */
 void Con_Print(const char *text){
 #ifdef BUILD_CLIENT
 	int lastline;
@@ -397,12 +397,12 @@ void Con_Print(const char *text){
 static const char *complete[MAX_COMPLETE_MATCHES];
 
 /*
-*  Tab completion.  Query the command and cvar subsystems for potential
-*  matches, and append an appropriate string to the input buffer.  If no
-*  matches are found, do nothing.  If only one match is found, simply
-*  append it.  If multiple matches are found, append the longest possible
-*  common prefix they all share.
-*/
+ *  Tab completion.  Query the command and cvar subsystems for potential
+ *  matches, and append an appropriate string to the input buffer.  If no
+ *  matches are found, do nothing.  If only one match is found, simply
+ *  append it.  If multiple matches are found, append the longest possible
+ *  common prefix they all share.
+ */
 int Con_CompleteCommand(char *input_text, int *input_position){
 	const char *match, *partial;
 	int matches;
@@ -446,10 +446,10 @@ int Con_CompleteCommand(char *input_text, int *input_position){
 
 
 /*
-Con_Init
-
-Initialize the console subsystem
-*/
+ * Con_Init
+ * 
+ * Initialize the console subsystem
+ */
 void Con_Init(void){
 #ifdef _WIN32
 	ansi = Cvar_Get("ansi", "0", CVAR_ARCHIVE, NULL);
@@ -472,10 +472,10 @@ void Con_Init(void){
 
 
 /*
-Con_Shutdown
-
-Shutdown the console subsystem
-*/
+ * Con_Shutdown
+ * 
+ * Shutdown the console subsystem
+ */
 void Con_Shutdown(void){
 #ifdef HAVE_CURSES
 	Curses_Shutdown();

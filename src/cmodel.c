@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "common.h"
 
@@ -114,16 +114,16 @@ int c_traces, c_brush_traces;
 
 
 /*
-
-MAP LOADING
-
-*/
+ * 
+ * MAP LOADING
+ * 
+ */
 
 static const byte *cmod_base;
 
 /*
-Cm_LoadSubmodels
-*/
+ * Cm_LoadSubmodels
+ */
 static void Cm_LoadSubmodels(const lump_t *l){
 	const dbspmodel_t *in;
 	int i, j, count;
@@ -157,8 +157,8 @@ static void Cm_LoadSubmodels(const lump_t *l){
 
 
 /*
-Cm_LoadSurfaces
-*/
+ * Cm_LoadSurfaces
+ */
 static void Cm_LoadSurfaces(const lump_t *l){
 	const dtexinfo_t *in;
 	csurface_t *out;
@@ -188,8 +188,8 @@ static void Cm_LoadSurfaces(const lump_t *l){
 
 
 /*
-Cm_LoadNodes
-*/
+ * Cm_LoadNodes
+ */
 static void Cm_LoadNodes(const lump_t *l){
 	const dnode_t *in;
 	int child;
@@ -224,8 +224,8 @@ static void Cm_LoadNodes(const lump_t *l){
 
 
 /*
-Cm_LoadBrushes
-*/
+ * Cm_LoadBrushes
+ */
 static void Cm_LoadBrushes(const lump_t *l){
 	const dbrush_t *in;
 	cbrush_t *out;
@@ -254,8 +254,8 @@ static void Cm_LoadBrushes(const lump_t *l){
 
 
 /*
-Cm_LoadLeafs
-*/
+ * Cm_LoadLeafs
+ */
 static void Cm_LoadLeafs(const lump_t *l){
 	int i;
 	cleaf_t *out;
@@ -308,8 +308,8 @@ static void Cm_LoadLeafs(const lump_t *l){
 
 
 /*
-Cm_LoadPlanes
-*/
+ * Cm_LoadPlanes
+ */
 static void Cm_LoadPlanes(const lump_t *l){
 	int i, j;
 	cplane_t *out;
@@ -349,8 +349,8 @@ static void Cm_LoadPlanes(const lump_t *l){
 
 
 /*
-Cm_LoadLeafBrushes
-*/
+ * Cm_LoadLeafBrushes
+ */
 static void Cm_LoadLeafBrushes(const lump_t *l){
 	int i;
 	unsigned short *out;
@@ -380,8 +380,8 @@ static void Cm_LoadLeafBrushes(const lump_t *l){
 
 
 /*
-Cm_LoadBrushSides
-*/
+ * Cm_LoadBrushSides
+ */
 static void Cm_LoadBrushSides(const lump_t *l){
 	int i;
 	cbrushside_t *out;
@@ -416,8 +416,8 @@ static void Cm_LoadBrushSides(const lump_t *l){
 
 
 /*
-Cm_LoadAreas
-*/
+ * Cm_LoadAreas
+ */
 static void Cm_LoadAreas(const lump_t *l){
 	int i;
 	carea_t *out;
@@ -447,8 +447,8 @@ static void Cm_LoadAreas(const lump_t *l){
 
 
 /*
-Cm_LoadAreaPortals
-*/
+ * Cm_LoadAreaPortals
+ */
 static void Cm_LoadAreaPortals(const lump_t *l){
 	int i;
 	dareaportal_t *out;
@@ -476,8 +476,8 @@ static void Cm_LoadAreaPortals(const lump_t *l){
 
 
 /*
-Cm_LoadVisibility
-*/
+ * Cm_LoadVisibility
+ */
 static void Cm_LoadVisibility(const lump_t *l){
 	int i;
 
@@ -497,8 +497,8 @@ static void Cm_LoadVisibility(const lump_t *l){
 
 
 /*
-Cm_LoadEntityString
-*/
+ * Cm_LoadEntityString
+ */
 static void Cm_LoadEntityString(const lump_t *l){
 	numentitychars = l->filelen;
 	if(l->filelen > MAX_BSP_ENTSTRING){
@@ -510,10 +510,10 @@ static void Cm_LoadEntityString(const lump_t *l){
 
 
 /*
-Cm_LoadMap
-
-Loads in the map and all submodels
-*/
+ * Cm_LoadMap
+ * 
+ * Loads in the map and all submodels
+ */
 cmodel_t *Cm_LoadMap(const char *name, int *mapsize){
 	void *buf;
 	int i;
@@ -584,8 +584,8 @@ cmodel_t *Cm_LoadMap(const char *name, int *mapsize){
 
 
 /*
-Cm_InlineModel
-*/
+ * Cm_InlineModel
+ */
 cmodel_t *Cm_InlineModel(const char *name){
 	int num;
 
@@ -640,11 +640,11 @@ static cbrush_t *box_brush;
 static cleaf_t *box_leaf;
 
 /*
-Cm_InitBoxHull
-
-Set up the planes and nodes so that the six floats of a bounding box
-can just be stored out and get a proper clipping hull structure.
-*/
+ * Cm_InitBoxHull
+ * 
+ * Set up the planes and nodes so that the six floats of a bounding box
+ * can just be stored out and get a proper clipping hull structure.
+ */
 static void Cm_InitBoxHull(void){
 	int i;
 
@@ -707,11 +707,11 @@ static void Cm_InitBoxHull(void){
 
 
 /*
-Cm_HeadnodeForBox
-
-To keep everything totally uniform, bounding boxes are turned into small
-BSP trees instead of being compared directly.
-*/
+ * Cm_HeadnodeForBox
+ * 
+ * To keep everything totally uniform, bounding boxes are turned into small
+ * BSP trees instead of being compared directly.
+ */
 int Cm_HeadnodeForBox(const vec3_t mins, const vec3_t maxs){
 	box_planes[0].dist = maxs[0];
 	box_planes[1].dist = -maxs[0];
@@ -731,8 +731,8 @@ int Cm_HeadnodeForBox(const vec3_t mins, const vec3_t maxs){
 
 
 /*
-Cm_PointLeafnum
-*/
+ * Cm_PointLeafnum
+ */
 static int Cm_PointLeafnum_r(const vec3_t p, int num){
 
 	while(num >= 0){
@@ -764,10 +764,10 @@ int Cm_PointLeafnum(const vec3_t p){
 
 
 /*
-Cm_BoxLeafnums
-
-Fills in a list of all the leafs touched
-*/
+ * Cm_BoxLeafnums
+ * 
+ * Fills in a list of all the leafs touched
+ */
 static int leaf_count, leaf_maxcount;
 static int *leaf_list;
 static const float *leaf_mins, *leaf_maxs;
@@ -826,8 +826,8 @@ int Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int *list, int listsize
 
 
 /*
-Cm_PointContents
-*/
+ * Cm_PointContents
+ */
 int Cm_PointContents(const vec3_t p, int headnode){
 	int l;
 
@@ -841,11 +841,11 @@ int Cm_PointContents(const vec3_t p, int headnode){
 
 
 /*
-Cm_TransformedPointContents
-
-Handles offseting and rotation of the end points for moving and
-rotating entities
-*/
+ * Cm_TransformedPointContents
+ * 
+ * Handles offseting and rotation of the end points for moving and
+ * rotating entities
+ */
 int Cm_TransformedPointContents(const vec3_t p, int headnode, const vec3_t origin, const vec3_t angles){
 	vec3_t p_l;
 	vec3_t temp;
@@ -873,10 +873,10 @@ int Cm_TransformedPointContents(const vec3_t p, int headnode, const vec3_t origi
 
 
 /*
-
-BOX TRACING
-
-*/
+ * 
+ * BOX TRACING
+ * 
+ */
 
 // 1/32 epsilon to keep floating point happy
 #define DIST_EPSILON	(0.03125)
@@ -891,11 +891,11 @@ static qboolean trace_ispoint;  // optimized case
 
 
 /*
-Cm_ClipBoxToBrush
-
-Clips the bounded box to all brush sides for the given brush.  Returns
-true if the box was clipped, false otherwise.
-*/
+ * Cm_ClipBoxToBrush
+ * 
+ * Clips the bounded box to all brush sides for the given brush.  Returns
+ * true if the box was clipped, false otherwise.
+ */
 static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
 			trace_t *trace, cleaf_t *leaf, cbrush_t *brush){
 	int i, j;
@@ -994,8 +994,8 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
 
 
 /*
-Cm_TestBoxInBrush
-*/
+ * Cm_TestBoxInBrush
+ */
 static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, trace_t *trace, cbrush_t *brush){
 	int i, j;
 	cplane_t *plane;
@@ -1042,8 +1042,8 @@ static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, trace_t *trac
 
 
 /*
-Cm_TraceToLeaf
-*/
+ * Cm_TraceToLeaf
+ */
 static void Cm_TraceToLeaf(int leafnum){
 	int k;
 	cleaf_t *leaf;
@@ -1076,8 +1076,8 @@ static void Cm_TraceToLeaf(int leafnum){
 
 
 /*
-Cm_TestInLeaf
-*/
+ * Cm_TestInLeaf
+ */
 static void Cm_TestInLeaf(int leafnum){
 	int k;
 	cleaf_t *leaf;
@@ -1104,8 +1104,8 @@ static void Cm_TestInLeaf(int leafnum){
 
 
 /*
-Cm_RecursiveHullCheck
-*/
+ * Cm_RecursiveHullCheck
+ */
 static void Cm_RecursiveHullCheck(int num, float p1f, float p2f, const vec3_t p1, const vec3_t p2){
 	const cnode_t *node;
 	const cplane_t *plane;
@@ -1201,8 +1201,8 @@ static void Cm_RecursiveHullCheck(int num, float p1f, float p2f, const vec3_t p1
 static int pointleafs[1024];
 
 /*
-Cm_BoxTrace
-*/
+ * Cm_BoxTrace
+ */
 trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
 			const vec3_t mins, const vec3_t maxs, int headnode, int brushmask){
 	int i;
@@ -1275,11 +1275,11 @@ trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
 
 
 /*
-Cm_TransformedBoxTrace
-
-Handles offseting and rotation of the end points for moving and
-rotating entities
-*/
+ * Cm_TransformedBoxTrace
+ * 
+ * Handles offseting and rotation of the end points for moving and
+ * rotating entities
+ */
 trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 		const vec3_t mins, const vec3_t maxs, int headnode, int brushmask,
 		const vec3_t origin, const vec3_t angles){
@@ -1339,15 +1339,15 @@ trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 
 
 /*
-
-PVS / PHS
-
-*/
+ * 
+ * PVS / PHS
+ * 
+ */
 
 
 /*
-Cm_DecompressVis
-*/
+ * Cm_DecompressVis
+ */
 static void Cm_DecompressVis(const byte *in, byte *out){
 	int c;
 	byte *out_p;
@@ -1404,10 +1404,10 @@ byte *Cm_ClusterPHS(int cluster){
 
 
 /*
-
-AREAPORTALS
-
-*/
+ * 
+ * AREAPORTALS
+ * 
+ */
 
 static void Cm_FloodArea(carea_t *area, int floodnum){
 	int i;
@@ -1430,8 +1430,8 @@ static void Cm_FloodArea(carea_t *area, int floodnum){
 
 
 /*
-Cm_FloodAreaConnections
-*/
+ * Cm_FloodAreaConnections
+ */
 static void Cm_FloodAreaConnections(void){
 	int i;
 	int floodnum;
@@ -1474,13 +1474,13 @@ qboolean Cm_AreasConnected(int area1, int area2){
 
 
 /*
-Cm_WriteAreaBits
-
-Writes a length byte followed by a bit vector of all the areas
-that are in the same flood as the area parameter
-
-This is used by the client view to cull visibility
-*/
+ * Cm_WriteAreaBits
+ * 
+ * Writes a length byte followed by a bit vector of all the areas
+ * that are in the same flood as the area parameter
+ * 
+ * This is used by the client view to cull visibility
+ */
 int Cm_WriteAreaBits(byte *buffer, int area){
 	int i;
 	const int bytes = (numareas + 7) >> 3;
@@ -1502,11 +1502,11 @@ int Cm_WriteAreaBits(byte *buffer, int area){
 
 
 /*
-Cm_HeadnodeVisible
-
-Returns true if any leaf under headnode has a cluster that
-is potentially visible
-*/
+ * Cm_HeadnodeVisible
+ * 
+ * Returns true if any leaf under headnode has a cluster that
+ * is potentially visible
+ */
 qboolean Cm_HeadnodeVisible(int nodenum, byte *visbits){
 	const cnode_t *node;
 

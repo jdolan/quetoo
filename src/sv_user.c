@@ -1,42 +1,42 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "server.h"
 
 edict_t *sv_player;
 
 /*
-
-USER STRINGCMD EXECUTION
-
-sv_client and sv_player will be valid.
-*/
+ * 
+ * USER STRINGCMD EXECUTION
+ * 
+ * sv_client and sv_player will be valid.
+ */
 
 
 /*
-Sv_BeginDemoServer
-
-Begin a demo server.  It is expected that the demo protocol has already
-been resolved by Sv_CheckDemo.  Therefore we simply open it.
-*/
+ * Sv_BeginDemoServer
+ * 
+ * Begin a demo server.  It is expected that the demo protocol has already
+ * been resolved by Sv_CheckDemo.  Therefore we simply open it.
+ */
 static void Sv_BeginDemoServer(void){
 	char demo[MAX_OSPATH];
 
@@ -51,11 +51,11 @@ static void Sv_BeginDemoServer(void){
 
 
 /*
-Sv_New_f
-
-Sends the first message from the server to a connected client.
-This will be sent on the initial connection and upon each server load.
-*/
+ * Sv_New_f
+ * 
+ * Sends the first message from the server to a connected client.
+ * This will be sent on the initial connection and upon each server load.
+ */
 static void Sv_New_f(void){
 	char *gamedir;
 	int playernum;
@@ -104,8 +104,8 @@ static void Sv_New_f(void){
 
 
 /*
-Sv_Configstrings_f
-*/
+ * Sv_Configstrings_f
+ */
 static void Sv_Configstrings_f(void){
 	int start;
 
@@ -153,8 +153,8 @@ static void Sv_Configstrings_f(void){
 }
 
 /*
-Sv_Baselines_f
-*/
+ * Sv_Baselines_f
+ */
 static void Sv_Baselines_f(void){
 	int start;
 	entity_state_t nullstate;
@@ -207,8 +207,8 @@ static void Sv_Baselines_f(void){
 
 
 /*
-Sv_Begin_f
-*/
+ * Sv_Begin_f
+ */
 static void Sv_Begin_f(void){
 	Com_Dprintf("Begin() from %s\n", sv_client->name);
 
@@ -237,8 +237,8 @@ static void Sv_Begin_f(void){
 }
 
 /*
-Sv_NextDownload_f
-*/
+ * Sv_NextDownload_f
+ */
 static void Sv_NextDownload_f(void){
 	int r, size, percent;
 	byte buf[MAX_MSGLEN];
@@ -282,8 +282,8 @@ static const char *downloadable[] = {
 };
 
 /*
-Sv_Download_f
-*/
+ * Sv_Download_f
+ */
 static void Sv_Download_f(void){
 	extern cvar_t *sv_udpdownload;
 	const char *name;
@@ -345,20 +345,20 @@ static void Sv_Download_f(void){
 
 
 /*
-Sv_Disconnect_f
-
-The client is going to disconnect, so remove the connection immediately
-*/
+ * Sv_Disconnect_f
+ * 
+ * The client is going to disconnect, so remove the connection immediately
+ */
 static void Sv_Disconnect_f(void){
 	Sv_DropClient(sv_client);
 }
 
 
 /*
-Sv_Serverinfo_f
-
-Dumps the serverinfo info string
-*/
+ * Sv_Serverinfo_f
+ * 
+ * Dumps the serverinfo info string
+ */
 static void Sv_Info_f(void){
 	const cvar_t *cvar;
 	char line[MAX_STRING_CHARS];
@@ -397,8 +397,8 @@ ucmd_t ucmds[] = {
 };
 
 /*
-Sv_ExecuteUserCommand
-*/
+ * Sv_ExecuteUserCommand
+ */
 static void Sv_ExecuteUserCommand(const char *s){
 	ucmd_t *u;
 
@@ -423,17 +423,17 @@ static void Sv_ExecuteUserCommand(const char *s){
 }
 
 /*
-
-USER CMD EXECUTION
-
-*/
+ * 
+ * USER CMD EXECUTION
+ * 
+ */
 
 
 /*
-Sv_ClientThink
-
-Account for command timeslice and pass command to game dll.
-*/
+ * Sv_ClientThink
+ * 
+ * Account for command timeslice and pass command to game dll.
+ */
 static void Sv_ClientThink(client_t *cl, usercmd_t *cmd){
 	cl->cmd_msec -= cmd->msec;
 	ge->ClientThink(cl->edict, cmd);
@@ -442,10 +442,10 @@ static void Sv_ClientThink(client_t *cl, usercmd_t *cmd){
 
 #define MAX_STRINGCMDS 8
 /*
-Sv_ExecuteClientMessage
-
-The current net_message is parsed for the given client
-*/
+ * Sv_ExecuteClientMessage
+ * 
+ * The current net_message is parsed for the given client
+ */
 void Sv_ExecuteClientMessage(client_t *cl){
 	usercmd_t nullcmd, oldest, oldcmd, newcmd;
 	int net_drop;

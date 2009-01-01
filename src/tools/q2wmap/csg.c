@@ -1,66 +1,66 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qbsp.h"
 
 /*
-
-tag all brushes with original contents
-brushes may contain multiple contents
-there will be no brush overlap after csg phase
-
-
-
-
-each side has a count of the other sides it splits
-
-the best split will be the one that minimizes the total split counts
-of all remaining sides
-
-precalc side on plane table
-
-evaluate split side
-{
-cost = 0
-for all sides
-	for all sides
-		get
-		if side splits side and splitside is on same child
-			cost++;
-}
-
-
-*/
+ * 
+ * tag all brushes with original contents
+ * brushes may contain multiple contents
+ * there will be no brush overlap after csg phase
+ * 
+ * 
+ * 
+ * 
+ * each side has a count of the other sides it splits
+ * 
+ * the best split will be the one that minimizes the total split counts
+ * of all remaining sides
+ * 
+ * precalc side on plane table
+ * 
+ * evaluate split side
+ * {
+ * cost = 0
+ * for all sides
+ * 	for all sides
+ * 		get
+ * 		if side splits side and splitside is on same child
+ * 			cost++;
+ * }
+ * 
+ * 
+ */
 
 
 /*
-===============
-SubtractBrush
-
-Returns a list of brushes that remain after B is subtracted from A.
-May by empty if A is contained inside B.
-
-The originals are undisturbed.
-===============
-*/
+ * ===============
+ * SubtractBrush
+ * 
+ * Returns a list of brushes that remain after B is subtracted from A.
+ * May by empty if A is contained inside B.
+ * 
+ * The originals are undisturbed.
+ * ===============
+ */
 static bspbrush_t *SubtractBrush(bspbrush_t * a, bspbrush_t * b){										 // a - b = out (list)
 	int i;
 	bspbrush_t *front, *back;
@@ -88,13 +88,13 @@ static bspbrush_t *SubtractBrush(bspbrush_t * a, bspbrush_t * b){										 // a
 }
 
 /*
-===============
-BrushesDisjoint
-
-Returns true if the two brushes definately do not intersect.
-There will be false negatives for some non-axial combinations.
-===============
-*/
+ * ===============
+ * BrushesDisjoint
+ * 
+ * Returns true if the two brushes definately do not intersect.
+ * There will be false negatives for some non-axial combinations.
+ * ===============
+ */
 static qboolean BrushesDisjoint(const bspbrush_t * a, const bspbrush_t * b){
 	int i, j;
 
@@ -119,12 +119,12 @@ static int minplanenums[3];
 static int maxplanenums[3];
 
 /*
-===============
-ClipBrushToBox
-
-Any planes shared with the box edge will be set to no texinfo
-===============
-*/
+ * ===============
+ * ClipBrushToBox
+ * 
+ * Any planes shared with the box edge will be set to no texinfo
+ * ===============
+ */
 static bspbrush_t *ClipBrushToBox(bspbrush_t * brush, vec3_t clipmins, vec3_t clipmaxs){
 	int i, j;
 	bspbrush_t *front, *back;
@@ -165,10 +165,10 @@ static bspbrush_t *ClipBrushToBox(bspbrush_t * brush, vec3_t clipmins, vec3_t cl
 }
 
 /*
-===============
-MakeBspBrushList
-===============
-*/
+ * ===============
+ * MakeBspBrushList
+ * ===============
+ */
 bspbrush_t *MakeBspBrushList(int startbrush, int endbrush,
                              vec3_t clipmins, vec3_t clipmaxs){
 	bspbrush_t *brushlist, *newbrush;
@@ -251,10 +251,10 @@ bspbrush_t *MakeBspBrushList(int startbrush, int endbrush,
 }
 
 /*
-===============
-AddBspBrushListToTail
-===============
-*/
+ * ===============
+ * AddBspBrushListToTail
+ * ===============
+ */
 static bspbrush_t *AddBrushListToTail(bspbrush_t * list, bspbrush_t * tail){
 	bspbrush_t *walk, *next;
 
@@ -269,12 +269,12 @@ static bspbrush_t *AddBrushListToTail(bspbrush_t * list, bspbrush_t * tail){
 }
 
 /*
-===========
-CullList
-
-Builds a new list that doesn't hold the given brush
-===========
-*/
+ * ===========
+ * CullList
+ * 
+ * Builds a new list that doesn't hold the given brush
+ * ===========
+ */
 static bspbrush_t *CullList(bspbrush_t * list, const bspbrush_t * skip1){
 	bspbrush_t *newlist;
 	bspbrush_t *next;
@@ -295,10 +295,10 @@ static bspbrush_t *CullList(bspbrush_t * list, const bspbrush_t * skip1){
 
 
 /*
-BrushGE
-
-Returns true if b1 is allowed to bite b2
-*/
+ * BrushGE
+ * 
+ * Returns true if b1 is allowed to bite b2
+ */
 static inline qboolean BrushGE(const bspbrush_t * b1, const bspbrush_t * b2){
 	// detail brushes never bite structural brushes
 	if((b1->original->contents & CONTENTS_DETAIL)
@@ -310,11 +310,11 @@ static inline qboolean BrushGE(const bspbrush_t * b1, const bspbrush_t * b2){
 }
 
 /*
-ChopBrushes
-
-Carves any intersecting solid brushes into the minimum number
-of non-intersecting brushes.
-*/
+ * ChopBrushes
+ * 
+ * Carves any intersecting solid brushes into the minimum number
+ * of non-intersecting brushes.
+ */
 bspbrush_t *ChopBrushes(bspbrush_t * head){
 	bspbrush_t *b1, *b2, *next;
 	bspbrush_t *tail;

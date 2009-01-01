@@ -1,36 +1,36 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 /*
-* world query functions
-*/
+ * world query functions
+ */
 
 #include "server.h"
 
 /*
-
-ENTITY AREA CHECKING
-
-FIXME: this use of "area" is different from the bsp file use
-*/
+ * 
+ * ENTITY AREA CHECKING
+ * 
+ * FIXME: this use of "area" is different from the bsp file use
+ */
 
 // (type *)STRUCT_FROM_LINK(link_t *link, type, member)
 // ent = STRUCT_FROM_LINK(link,entity_t,order)
@@ -78,10 +78,10 @@ static void InsertLinkBefore(link_t *l, link_t *before){
 }
 
 /*
-Sv_CreateAreaNode
-
-Builds a uniformly subdivided tree for the given world size
-*/
+ * Sv_CreateAreaNode
+ * 
+ * Builds a uniformly subdivided tree for the given world size
+ */
 static areanode_t *Sv_CreateAreaNode(int depth, vec3_t mins, vec3_t maxs){
 	areanode_t *anode;
 	vec3_t size;
@@ -121,9 +121,9 @@ static areanode_t *Sv_CreateAreaNode(int depth, vec3_t mins, vec3_t maxs){
 
 
 /*
-Sv_ClearWorld
-
-*/
+ * Sv_ClearWorld
+ * 
+ */
 void Sv_ClearWorld(void){
 	memset(sv_areanodes, 0, sizeof(sv_areanodes));
 	sv_numareanodes = 0;
@@ -132,9 +132,9 @@ void Sv_ClearWorld(void){
 
 
 /*
-Sv_UnlinkEdict
-
-*/
+ * Sv_UnlinkEdict
+ * 
+ */
 void Sv_UnlinkEdict(edict_t *ent){
 	if(!ent->area.prev)
 		return;  // not linked in anywhere
@@ -144,8 +144,8 @@ void Sv_UnlinkEdict(edict_t *ent){
 
 
 /*
-Sv_LinkEdict
-*/
+ * Sv_LinkEdict
+ */
 #define MAX_TOTAL_ENT_LEAFS		128
 void Sv_LinkEdict(edict_t *ent){
 	areanode_t *node;
@@ -308,8 +308,8 @@ void Sv_LinkEdict(edict_t *ent){
 
 
 /*
-Sv_AreaEdicts_r
-*/
+ * Sv_AreaEdicts_r
+ */
 static void Sv_AreaEdicts_r(areanode_t *node){
 	link_t *l, *next, *start;
 	edict_t *check;
@@ -358,8 +358,8 @@ static void Sv_AreaEdicts_r(areanode_t *node){
 
 
 /*
-Sv_AreaEdicts
-*/
+ * Sv_AreaEdicts
+ */
 int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, edict_t **list,
 				   int maxcount, int areatype){
 	area_mins = mins;
@@ -376,8 +376,8 @@ int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, edict_t **list,
 
 
 /*
-Sv_PointContents
-*/
+ * Sv_PointContents
+ */
 int Sv_PointContents(vec3_t p){
 	edict_t *touch[MAX_EDICTS], *hit;
 	int i, num;
@@ -422,13 +422,13 @@ moveclip_t;
 
 
 /*
-Sv_HullForEntity
-
-Returns a headnode that can be used for testing or clipping an
-object of mins/maxs size.
-Offset is filled in to contain the adjustment that must be added to the
-testing object's origin to get a point to use with the returned hull.
-*/
+ * Sv_HullForEntity
+ * 
+ * Returns a headnode that can be used for testing or clipping an
+ * object of mins/maxs size.
+ * Offset is filled in to contain the adjustment that must be added to the
+ * testing object's origin to get a point to use with the returned hull.
+ */
 int Sv_HullForEntity(edict_t *ent){
 	cmodel_t *model;
 
@@ -449,8 +449,8 @@ int Sv_HullForEntity(edict_t *ent){
 
 
 /*
-Sv_ClipMoveToEntities
-*/
+ * Sv_ClipMoveToEntities
+ */
 static void Sv_ClipMoveToEntities(moveclip_t *clip){
 	int i, num;
 	edict_t *touchlist[MAX_EDICTS], *touch;
@@ -501,8 +501,8 @@ static void Sv_ClipMoveToEntities(moveclip_t *clip){
 
 
 /*
-Sv_TraceBounds
-*/
+ * Sv_TraceBounds
+ */
 static void Sv_TraceBounds(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, vec3_t boxmins, vec3_t boxmaxs){
 
 	int i;
@@ -520,13 +520,13 @@ static void Sv_TraceBounds(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, v
 
 
 /*
-Sv_Trace
-
-Moves the given mins/maxs volume through the world from start to end.
-
-Passedict and edicts owned by passedict are explicitly not checked.
-
-*/
+ * Sv_Trace
+ * 
+ * Moves the given mins/maxs volume through the world from start to end.
+ * 
+ * Passedict and edicts owned by passedict are explicitly not checked.
+ * 
+ */
 trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, edict_t *passedict, int contentmask){
 	moveclip_t clip;
 

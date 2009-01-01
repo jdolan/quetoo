@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "q2wmap.h"
 #include "qbsp.h"
@@ -47,8 +47,8 @@ static node_t *block_nodes[10][10];
 
 
 /*
-BlockTree
-*/
+ * BlockTree
+ */
 static node_t *BlockTree(int xl, int yl, int xh, int yh){
 	node_t *node;
 	vec3_t normal;
@@ -93,8 +93,8 @@ static node_t *BlockTree(int xl, int yl, int xh, int yh){
 
 
 /*
-ProcessBlock_Thread
-*/
+ * ProcessBlock_Thread
+ */
 static int brush_start, brush_end;
 static void ProcessBlock_Thread(int blocknum){
 	int xblock, yblock;
@@ -141,8 +141,8 @@ static void ProcessBlock_Thread(int blocknum){
 
 
 /*
-ProcessWorldModel
-*/
+ * ProcessWorldModel
+ */
 static void ProcessWorldModel(void){
 	entity_t *e;
 	tree_t *tree;
@@ -238,8 +238,8 @@ static void ProcessWorldModel(void){
 
 
 /*
-ProcessSubModel
-*/
+ * ProcessSubModel
+ */
 static void ProcessSubModel(void){
 	entity_t *e;
 	int start, end;
@@ -268,8 +268,8 @@ static void ProcessSubModel(void){
 
 
 /*
-ProcessModels
-*/
+ * ProcessModels
+ */
 static void ProcessModels(void){
 	BeginBSPFile();
 
@@ -292,8 +292,8 @@ static void ProcessModels(void){
 
 
 /*
-BSP_Main
-*/
+ * BSP_Main
+ */
 int BSP_Main(void){
 	time_t start, end;
 	char base[MAX_OSPATH];

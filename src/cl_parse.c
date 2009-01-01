@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
@@ -53,11 +53,11 @@ char *svc_strings[256] = {
 
 
 /*
-Cl_CheckOrDownloadFile
-
-Returns true if the file exists, otherwise it attempts
-to start a download from the server.
-*/
+ * Cl_CheckOrDownloadFile
+ * 
+ * Returns true if the file exists, otherwise it attempts
+ * to start a download from the server.
+ */
 qboolean Cl_CheckOrDownloadFile(const char *filename){
 	FILE *fp;
 	char name[MAX_OSPATH];
@@ -131,10 +131,10 @@ qboolean Cl_CheckOrDownloadFile(const char *filename){
 
 
 /*
-Cl_Download_f
-
-Manually request a download from the server.
-*/
+ * Cl_Download_f
+ * 
+ * Manually request a download from the server.
+ */
 void Cl_Download_f(void){
 
 	if(Cmd_Argc() != 2){
@@ -147,10 +147,10 @@ void Cl_Download_f(void){
 
 
 /*
-Cl_ParseDownload
-
-A download message has been received from the server
-*/
+ * Cl_ParseDownload
+ * 
+ * A download message has been received from the server
+ */
 static void Cl_ParseDownload(void){
 	int size, percent;
 	char name[MAX_OSPATH];
@@ -219,14 +219,14 @@ static void Cl_ParseDownload(void){
 
 
 /*
-
-  SERVER CONNECTING MESSAGES
-
-*/
+ * 
+ *   SERVER CONNECTING MESSAGES
+ * 
+ */
 
 /*
-Cl_ParseServerData
-*/
+ * Cl_ParseServerData
+ */
 static qboolean Cl_ParseServerData(void){
 	extern cvar_t *fs_gamedirvar;
 	char *str;
@@ -281,8 +281,8 @@ static qboolean Cl_ParseServerData(void){
 }
 
 /*
-Cl_ParseBaseline
-*/
+ * Cl_ParseBaseline
+ */
 static void Cl_ParseBaseline(void){
 	entity_state_t *es;
 	unsigned int bits;
@@ -298,9 +298,9 @@ static void Cl_ParseBaseline(void){
 
 
 /*
-Cl_LoadClientinfo
-
-*/
+ * Cl_LoadClientinfo
+ * 
+ */
 void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
 	int i;
 	const char *t;
@@ -384,10 +384,10 @@ void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
 
 
 /*
-Cl_ParseClientinfo
-
-Load the model and skin for a client
-*/
+ * Cl_ParseClientinfo
+ * 
+ * Load the model and skin for a client
+ */
 void Cl_ParseClientinfo(int player){
 	const char *s;
 	clientinfo_t *ci;
@@ -401,8 +401,8 @@ void Cl_ParseClientinfo(int player){
 
 
 /*
-Cl_ParseGravity
-*/
+ * Cl_ParseGravity
+ */
 static void Cl_ParseGravity(const char *gravity){
 	int g;
 
@@ -412,8 +412,8 @@ static void Cl_ParseGravity(const char *gravity){
 
 
 /*
-Cl_ParseConfigstring
-*/
+ * Cl_ParseConfigstring
+ */
 void Cl_ParseConfigstring(void){
 	int i;
 	char *s;
@@ -454,14 +454,14 @@ void Cl_ParseConfigstring(void){
 
 
 /*
-
-ACTION MESSAGES
-
-*/
+ * 
+ * ACTION MESSAGES
+ * 
+ */
 
 /*
-Cl_ParseSound
-*/
+ * Cl_ParseSound
+ */
 static void Cl_ParseSound(void){
 	vec3_t pos_v;
 	float *pos;
@@ -519,8 +519,8 @@ static void Cl_ParseSound(void){
 
 
 /*
-Cl_IgnoreChatMessage
-*/
+ * Cl_IgnoreChatMessage
+ */
 static qboolean Cl_IgnoreChatMessage(const char *msg){
 
 	const char *s = strtok(cl_ignore->string, " ");
@@ -538,8 +538,8 @@ static qboolean Cl_IgnoreChatMessage(const char *msg){
 
 
 /*
-Cl_ShowNet
-*/
+ * Cl_ShowNet
+ */
 static void Cl_ShowNet(const char *s){
 	if(cl_shownet->value >= 2)
 		Com_Printf("%3zd: %s\n", net_message.readcount - 1, s);
@@ -547,11 +547,11 @@ static void Cl_ShowNet(const char *s){
 
 
 /*
-Cl_ZlibServerMessage
-
-Called for svc_zlib, this function inflates the remainder of the
-current net_message and adjusts its length accordingly.
-*/
+ * Cl_ZlibServerMessage
+ * 
+ * Called for svc_zlib, this function inflates the remainder of the
+ * current net_message and adjusts its length accordingly.
+ */
 static void Cl_ZlibServerMessage(void){
 	int len;
 
@@ -586,8 +586,8 @@ static void Cl_ZlibServerMessage(void){
 
 
 /*
-Cl_ParseServerMessage
-*/
+ * Cl_ParseServerMessage
+ */
 void Cl_ParseServerMessage(void){
 	extern int bytes_this_second;
 	int cmd, oldcmd;

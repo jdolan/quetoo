@@ -1,30 +1,30 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
 /*
-Emits are client-sided entities for emitting lights, particles, coronas,
-ambient sounds, etc.  They are run once per frame.
-*/
+ * Emits are client-sided entities for emitting lights, particles, coronas,
+ * ambient sounds, etc.  They are run once per frame.
+ */
 
 #define EMIT_LIGHT		0x1
 #define EMIT_SPARKS		0x2
@@ -59,11 +59,11 @@ static int num_emits = 0;
 
 
 /*
-Cl_LoadEmits
-
-Parse misc_emits from the bsp after it has been loaded.  This must
-be called after Cm_LoadMap, once per pre-cache routine.
-*/
+ * Cl_LoadEmits
+ * 
+ * Parse misc_emits from the bsp after it has been loaded.  This must
+ * be called after Cm_LoadMap, once per pre-cache routine.
+ */
 void Cl_LoadEmits(void){
 	const char *c, *ents;
 	char class[128];
@@ -258,8 +258,8 @@ void Cl_LoadEmits(void){
 
 
 /*
-Cl_AddEmits
-*/
+ * Cl_AddEmits
+ */
 void Cl_AddEmits(void){
 	int i;
 	entity_t ent;

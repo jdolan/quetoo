@@ -1,34 +1,34 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qbsp.h"
 
 /*
-
-  some faces will be removed before saving, but still form nodes:
-
-  the insides of sky volumes
-  meeting planes of different water current volumes
-
-*/
+ * 
+ *   some faces will be removed before saving, but still form nodes:
+ * 
+ *   the insides of sky volumes
+ *   meeting planes of different water current volumes
+ * 
+ */
 
 #define EQUAL_EPSILON		0.001
 #define	INTEGRAL_EPSILON	0.01
@@ -85,10 +85,10 @@ static unsigned HashVec(const vec3_t vec){
 
 
 /*
-GetVertex
-
-Uses hashing
-*/
+ * GetVertex
+ * 
+ * Uses hashing
+ */
 static int GetVertexnum(const vec3_t in){
 	int h;
 	int i;
@@ -137,8 +137,8 @@ static int GetVertexnum(const vec3_t in){
 static int c_faces;
 
 /*
-AllocFace
-*/
+ * AllocFace
+ */
 static face_t *AllocFace(void){
 	face_t *f;
 
@@ -151,8 +151,8 @@ static face_t *AllocFace(void){
 
 
 /*
-NewFaceFromFace
-*/
+ * NewFaceFromFace
+ */
 static face_t *NewFaceFromFace(const face_t *f){
 	face_t *newf;
 
@@ -166,8 +166,8 @@ static face_t *NewFaceFromFace(const face_t *f){
 
 
 /*
-FreeFace
-*/
+ * FreeFace
+ */
 void FreeFace(face_t *f){
 	if(f->w)
 		FreeWinding(f->w);
@@ -177,18 +177,18 @@ void FreeFace(face_t *f){
 
 
 /*
-FaceFromSuperverts
-
-The faces vertexes have beeb added to the superverts[] array,
-and there may be more there than can be held in a face (MAXEDGES).
-
-If less, the faces vertexnums[] will be filled in, otherwise
-face will reference a tree of split[] faces until all of the
-vertexnums can be added.
-
-superverts[base] will become face->vertexnums[0], and the others
-will be circularly filled in.
-*/
+ * FaceFromSuperverts
+ * 
+ * The faces vertexes have beeb added to the superverts[] array,
+ * and there may be more there than can be held in a face (MAXEDGES).
+ * 
+ * If less, the faces vertexnums[] will be filled in, otherwise
+ * face will reference a tree of split[] faces until all of the
+ * vertexnums can be added.
+ * 
+ * superverts[base] will become face->vertexnums[0], and the others
+ * will be circularly filled in.
+ */
 static void FaceFromSuperverts(node_t *node, face_t *f, int base){
 	face_t *newf;
 	int remaining;
@@ -224,8 +224,8 @@ static void FaceFromSuperverts(node_t *node, face_t *f, int base){
 
 
 /*
-EmitFaceVertexes
-*/
+ * EmitFaceVertexes
+ */
 static void EmitFaceVertexes(node_t *node, face_t *f){
 	winding_t *w;
 	int i;
@@ -254,8 +254,8 @@ static void EmitFaceVertexes(node_t *node, face_t *f){
 
 
 /*
-EmitVertexes_r
-*/
+ * EmitVertexes_r
+ */
 static void EmitVertexes_r(node_t *node){
 	int i;
 	face_t *f;
@@ -273,10 +273,10 @@ static void EmitVertexes_r(node_t *node){
 
 
 /*
-FindEdgeVerts
-
-Forced a dumb check of everything
-*/
+ * FindEdgeVerts
+ * 
+ * Forced a dumb check of everything
+ */
 static void FindEdgeVerts(vec3_t v1, vec3_t v2){
 	int i;
 
@@ -287,10 +287,10 @@ static void FindEdgeVerts(vec3_t v1, vec3_t v2){
 
 
 /*
-TestEdge
-
-Can be recursively reentered
-*/
+ * TestEdge
+ * 
+ * Can be recursively reentered
+ */
 static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert){
 	int k;
 	vec_t dist;
@@ -340,8 +340,8 @@ static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert){
 
 
 /*
-FixFaceEdges
-*/
+ * FixFaceEdges
+ */
 static void FixFaceEdges(node_t *node, face_t *f){
 	int i;
 	vec3_t e2;
@@ -396,8 +396,8 @@ static void FixFaceEdges(node_t *node, face_t *f){
 }
 
 /*
-FixEdges_r
-*/
+ * FixEdges_r
+ */
 static void FixEdges_r(node_t *node){
 	int i;
 	face_t *f;
@@ -413,8 +413,8 @@ static void FixEdges_r(node_t *node){
 }
 
 /*
-FixTjuncs
-*/
+ * FixTjuncs
+ */
 void FixTjuncs(node_t *headnode){
 	// snap and merge all vertexes
 	Verbose("---- snap verts ----\n");
@@ -441,11 +441,11 @@ void FixTjuncs(node_t *headnode){
 }
 
 /*
-GetEdge
-
-Called by writebsp.
-Don't allow four way edges
-*/
+ * GetEdge
+ * 
+ * Called by writebsp.
+ * Don't allow four way edges
+ */
 int GetEdge2(int v1, int v2, face_t * f){
 	dedge_t *edge;
 	int i;
@@ -477,22 +477,22 @@ int GetEdge2(int v1, int v2, face_t * f){
 }
 
 /*
-
-FACE MERGING
-
-*/
+ * 
+ * FACE MERGING
+ * 
+ */
 
 #define	CONTINUOUS_EPSILON	0.001
 
 /*
-TryMergeWinding
-
-If two polygons share a common edge and the edges that meet at the
-common points are both inside the other polygons, merge them
-
-Returns NULL if the faces couldn't be merged, or the new face.
-The originals will NOT be freed.
-*/
+ * TryMergeWinding
+ * 
+ * If two polygons share a common edge and the edges that meet at the
+ * common points are both inside the other polygons, merge them
+ * 
+ * Returns NULL if the faces couldn't be merged, or the new face.
+ * The originals will NOT be freed.
+ */
 static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2, const vec3_t planenormal){
 	vec_t *p1, *p2, *back;
 	winding_t *newf;
@@ -577,14 +577,14 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2, const vec3_t p
 }
 
 /*
-TryMerge
-
-If two polygons share a common edge and the edges that meet at the
-common points are both inside the other polygons, merge them
-
-Returns NULL if the faces couldn't be merged, or the new face.
-The originals will NOT be freed.
-*/
+ * TryMerge
+ * 
+ * If two polygons share a common edge and the edges that meet at the
+ * common points are both inside the other polygons, merge them
+ * 
+ * Returns NULL if the faces couldn't be merged, or the new face.
+ * The originals will NOT be freed.
+ */
 static face_t *TryMerge(face_t * f1, face_t * f2, const vec3_t planenormal){
 	face_t *newf;
 	winding_t *nw;
@@ -614,8 +614,8 @@ static face_t *TryMerge(face_t * f1, face_t * f2, const vec3_t planenormal){
 }
 
 /*
-MergeNodeFaces
-*/
+ * MergeNodeFaces
+ */
 static void MergeNodeFaces(node_t * node){
 	face_t *f1, *f2, *end;
 	face_t *merged;
@@ -646,10 +646,10 @@ static void MergeNodeFaces(node_t * node){
 
 
 /*
-SubdivideFace
-
-Chop up faces that are larger than we want in the surface cache
-*/
+ * SubdivideFace
+ * 
+ * Chop up faces that are larger than we want in the surface cache
+ */
 static void SubdivideFace(node_t * node, face_t * f){
 	float mins, maxs;
 	vec_t v;
@@ -727,8 +727,8 @@ static int c_nodefaces;
 
 
 /*
-FaceFromPortal
-*/
+ * FaceFromPortal
+ */
 static face_t *FaceFromPortal(portal_t * p, int pside){
 	face_t *f;
 	side_t *side;
@@ -763,15 +763,15 @@ static face_t *FaceFromPortal(portal_t * p, int pside){
 
 
 /*
-MakeFaces_r
-
-If a portal will make a visible face, mark the side that originally created it.
-
-  solid / empty : solid
-  solid / water : solid
-  water / empty : water
-  water / water : none
-*/
+ * MakeFaces_r
+ * 
+ * If a portal will make a visible face, mark the side that originally created it.
+ * 
+ *   solid / empty : solid
+ *   solid / water : solid
+ *   water / empty : water
+ *   water / water : none
+ */
 static void MakeFaces_r(node_t * node){
 	portal_t *p;
 	int s;
@@ -808,8 +808,8 @@ static void MakeFaces_r(node_t * node){
 
 
 /*
-MakeFaces
-*/
+ * MakeFaces
+ */
 void MakeFaces(node_t * node){
 	Verbose("--- MakeFaces ---\n");
 	c_merge = 0;

@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <SDL_image.h>
 #include <png.h>
@@ -78,13 +78,13 @@ static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream
 }
 
 /*
-Img_LoadImage
-
-Loads the specified image from the game filesystem and populates
-the provided SDL_Surface.
-
-Image formats are tried in the order they appear in TYPES.
-*/
+ * Img_LoadImage
+ * 
+ * Loads the specified image from the game filesystem and populates
+ * the provided SDL_Surface.
+ * 
+ * Image formats are tried in the order they appear in TYPES.
+ */
 qboolean Img_LoadImage(char *name, SDL_Surface **surf){
 	int i;
 
@@ -99,11 +99,11 @@ qboolean Img_LoadImage(char *name, SDL_Surface **surf){
 
 
 /*
-Img_LoadWal
-
-A helper which mangles a .wal file into an SDL_Surface suitable for
-OpenGL uploads and other basic manipulations.
-*/
+ * Img_LoadWal
+ * 
+ * A helper which mangles a .wal file into an SDL_Surface suitable for
+ * OpenGL uploads and other basic manipulations.
+ */
 static qboolean Img_LoadWal(char *path, SDL_Surface **surf){
 	void *buf;
 	miptex_t *mt;
@@ -153,11 +153,11 @@ static qboolean Img_LoadWal(char *path, SDL_Surface **surf){
 
 
 /*
-Img_LoadTypedImage
-
-Loads the specified image from the game filesystem and populates
-the provided SDL_Surface.
-*/
+ * Img_LoadTypedImage
+ * 
+ * Loads the specified image from the game filesystem and populates
+ * the provided SDL_Surface.
+ */
 qboolean Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf){
 	char path[MAX_QPATH];
 	void *buf;
@@ -203,10 +203,10 @@ qboolean Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf){
 
 
 /*
-Img_InitPalette
-
-Initializes the 8bit color palette required for .wal texture loading.
-*/
+ * Img_InitPalette
+ * 
+ * Initializes the 8bit color palette required for .wal texture loading.
+ */
 void Img_InitPalette(void){
 	SDL_Surface *surf;
 	byte r, g, b;
@@ -234,10 +234,10 @@ void Img_InitPalette(void){
 
 
 /*
-Img_ColorFromPalette
-
-Returns RGB components of the specified color in the specified result array.
-*/
+ * Img_ColorFromPalette
+ * 
+ * Returns RGB components of the specified color in the specified result array.
+ */
 void Img_ColorFromPalette(byte c, float *res){
 	unsigned color;
 
@@ -253,10 +253,10 @@ void Img_ColorFromPalette(byte c, float *res){
 
 
 /*
-Img_WriteTGARLE
-
-Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
-*/
+ * Img_WriteTGARLE
+ * 
+ * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
+ */
 void Img_WriteTGARLE(char *path, void *data, int width, int height){
 	FILE *tga_file;
 	const unsigned int channels = 3;		// 24-bit RGB

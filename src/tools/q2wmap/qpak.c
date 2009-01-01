@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <unistd.h>
 
@@ -30,11 +30,11 @@ static int num_paths;
 
 
 /*
-AddPath
-
-Adds the specified path to the resouce list, after ensuring
-that it is unique.
-*/
+ * AddPath
+ * 
+ * Adds the specified path to the resouce list, after ensuring
+ * that it is unique.
+ */
 static void AddPath(char *path){
 	int i;
 
@@ -53,10 +53,10 @@ static void AddPath(char *path){
 
 
 /*
-AddSound
-
-Attempts the add the specified sound.
-*/
+ * AddSound
+ * 
+ * Attempts the add the specified sound.
+ */
 static void AddSound(char *sound){
 	char path[MAX_QPATH];
 
@@ -74,10 +74,10 @@ static void AddSound(char *sound){
 static const char *image_formats[NUM_IMAGE_FORMATS] = {"tga", "png", "jpg", "pcx", "wal"};
 
 /*
-AddImage
-
-Attempts to add the specified image in any available format.
-*/
+ * AddImage
+ * 
+ * Attempts to add the specified image in any available format.
+ */
 static void AddImage(const char *image){
 	char path[MAX_QPATH];
 	FILE *f;
@@ -102,10 +102,10 @@ static void AddImage(const char *image){
 static char *model_formats[NUM_MODEL_FORMATS] = {"md3", "md2"};
 
 /*
-AddModel
-
-Attempts to add the specified mesh model.
-*/
+ * AddModel
+ * 
+ * Attempts to add the specified mesh model.
+ */
 static void AddModel(char *model){
 	char path[MAX_QPATH];
 	FILE *f;
@@ -139,8 +139,8 @@ static char *suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 static qboolean added_sky = false;
 
 /*
-AddSky
-*/
+ * AddSky
+ */
 static void AddSky(char *sky){
 	int i;
 
@@ -152,8 +152,8 @@ static void AddSky(char *sky){
 
 
 /*
-AddAnimation
-*/
+ * AddAnimation
+ */
 static void AddAnimation(char *name, int count){
 	int i, j, k;
 
@@ -174,11 +174,11 @@ static void AddAnimation(char *name, int count){
 
 
 /*
-AddMaterials
-
-Adds all resources specified by the materials file, and the materials
-file itself.  See src/r_material.c for materials reference.
-*/
+ * AddMaterials
+ * 
+ * Adds all resources specified by the materials file, and the materials
+ * file itself.  See src/r_material.c for materials reference.
+ */
 static void AddMaterials(void){
 	char path[MAX_QPATH];
 	char *buffer;
@@ -264,8 +264,8 @@ static void AddMaterials(void){
 
 
 /*
-AddLocation
-*/
+ * AddLocation
+ */
 static void AddLocation(void){
 	char base[MAX_QPATH];
 
@@ -275,8 +275,8 @@ static void AddLocation(void){
 
 
 /*
-AddDocumentation
-*/
+ * AddDocumentation
+ */
 static void AddDocumentation(void){
 	char base[MAX_OSPATH];
 	char *c;
@@ -291,12 +291,12 @@ static void AddDocumentation(void){
 
 
 /*
-GetPakfile
-
-Returns a suitable pakfile name for the current bsp name, e.g.
-
-maps/my.bsp -> map-my.pak.
-*/
+ * GetPakfile
+ * 
+ * Returns a suitable pakfile name for the current bsp name, e.g.
+ * 
+ * maps/my.bsp -> map-my.pak.
+ */
 static pak_t *GetPakfile(void){
 	char base[MAX_OSPATH];
 	char pakfile[MAX_OSPATH];
@@ -318,12 +318,12 @@ static pak_t *GetPakfile(void){
 
 
 /*
-PAK_Main
-
-Loads the specified BSP file, resolves all resources referenced by it,
-and generates a new pak archive for the project.  This is a very inefficient
-but straightforward implementation.
-*/
+ * PAK_Main
+ * 
+ * Loads the specified BSP file, resolves all resources referenced by it,
+ * and generates a new pak archive for the project.  This is a very inefficient
+ * but straightforward implementation.
+ */
 int PAK_Main(void){
 	time_t start, end;
 	int total_pak_time;

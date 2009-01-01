@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <SDL/SDL.h>
 #include "q2wmap.h"
@@ -79,8 +79,8 @@ static char title[64];							//window bar title (updates to show status)
 
 
 /*
-PDCursesInit
-*/
+ * PDCursesInit
+ */
 static void PDCursesInit(void){
 	stdscr = initscr();		// initialize the ncurses window
 	resize_term(HORIZONTAL, VERTICAL);	// resize the console
@@ -108,8 +108,8 @@ static void PDCursesInit(void){
 
 
 /*
-OpenWin32Console
-*/
+ * OpenWin32Console
+ */
 static void OpenWin32Console(void){
 	AllocConsole();
 	Console = CreateConsoleScreenBuffer(GENERIC_READ|GENERIC_WRITE, 0,0,CONSOLE_TEXTMODE_BUFFER,0);
@@ -134,8 +134,8 @@ static void OpenWin32Console(void){
 
 
 /*
-CloseWin32Console
-*/
+ * CloseWin32Console
+ */
 static void CloseWin32Console(void){
 	Fs_CloseFile(output_file);  // close the open file stream
 	CloseHandle(Console);
@@ -144,8 +144,8 @@ static void CloseWin32Console(void){
 
 
 /*
-Debug
-*/
+ * Debug
+ */
 void Debug(const char *fmt, ...){
 	va_list argptr;
 	char msg[MAX_PRINT_MSG];
@@ -164,8 +164,8 @@ void Debug(const char *fmt, ...){
 
 
 /*
-Verbose
-*/
+ * Verbose
+ */
 void Verbose(const char *fmt, ...){
 	va_list argptr;
 	char msg[MAX_PRINT_MSG];
@@ -184,8 +184,8 @@ void Verbose(const char *fmt, ...){
 
 
 /*
-Error
-*/
+ * Error
+ */
 void Error(const char *fmt, ...){
 	va_list argptr;
 	char msg[MAX_PRINT_MSG];
@@ -214,8 +214,8 @@ void Error(const char *fmt, ...){
 }
 
 /*
-Print
-*/
+ * Print
+ */
 void Print(const char *fmt, ...){
 	va_list argptr;
 
@@ -273,8 +273,8 @@ void Print(const char *fmt, ...){
 
 
 /*
-Debug
-*/
+ * Debug
+ */
 void Debug(const char *fmt, ...){
 	va_list argptr;
 
@@ -288,8 +288,8 @@ void Debug(const char *fmt, ...){
 
 
 /*
-Verbose
-*/
+ * Verbose
+ */
 void Verbose(const char *fmt, ...){
 	va_list argptr;
 
@@ -303,8 +303,8 @@ void Verbose(const char *fmt, ...){
 
 
 /*
-Error
-*/
+ * Error
+ */
 void Error(const char *fmt, ...){
 	va_list argptr;
 
@@ -320,8 +320,8 @@ void Error(const char *fmt, ...){
 
 
 /*
-Print
-*/
+ * Print
+ */
 void Print(const char *fmt, ...){
 	va_list argptr;
 
@@ -333,8 +333,8 @@ void Print(const char *fmt, ...){
 
 
 /*
-Check_BSP_Options
-*/
+ * Check_BSP_Options
+ */
 static int Check_BSP_Options(int argc, char **argv){
 	int i;
 
@@ -415,8 +415,8 @@ static int Check_BSP_Options(int argc, char **argv){
 
 
 /*
-Check_VIS_Options
-*/
+ * Check_VIS_Options
+ */
 static int Check_VIS_Options(int argc, char **argv){
 	int i;
 
@@ -440,8 +440,8 @@ static int Check_VIS_Options(int argc, char **argv){
 
 
 /*
-Check_LIGHT_Options
-*/
+ * Check_LIGHT_Options
+ */
 static int Check_LIGHT_Options(int argc, char **argv){
 	int i;
 
@@ -478,24 +478,24 @@ static int Check_LIGHT_Options(int argc, char **argv){
 
 
 /*
-Check_PAK_Options
-*/
+ * Check_PAK_Options
+ */
 static int Check_PAK_Options(int argc, char **argv){
 	return 0;
 }
 
 
 /*
-Check_MAT_Options
-*/
+ * Check_MAT_Options
+ */
 static int Check_MAT_Options(int argc, char **argv){
 	return 0;
 }
 
 
 /*
-PrintHelpMessage
-*/
+ * PrintHelpMessage
+ */
 static void PrintHelpMessage(void){
 	Print("General options\n");
 	Print("-v -verbose\n");
@@ -549,8 +549,8 @@ static void PrintHelpMessage(void){
 
 
 /*
-main
-*/
+ * main
+ */
 int main(int argc, char **argv){
 	int i;
 	int r = 0;

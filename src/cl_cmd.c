@@ -1,33 +1,33 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 
 #include "client.h"
 
 
 /*
-Cl_UpdateCmd
-
-Accumulate all movement for the current packet frame in a command.
-*/
+ * Cl_UpdateCmd
+ * 
+ * Accumulate all movement for the current packet frame in a command.
+ */
 void Cl_UpdateCmd(void){
 	usercmd_t *cmd;
 
@@ -43,11 +43,11 @@ void Cl_UpdateCmd(void){
 
 
 /*
-Cl_InitCmd
-
-Initializes the next outgoing command so that it may accumulate movement
-over the next packet frame.
-*/
+ * Cl_InitCmd
+ * 
+ * Initializes the next outgoing command so that it may accumulate movement
+ * over the next packet frame.
+ */
 static void Cl_InitCmd(void){
 	usercmd_t *cmd;
 
@@ -59,10 +59,10 @@ static void Cl_InitCmd(void){
 
 
 /*
-Cl_FinalizeCmd
-
-Calculate the true command duration and clamp it so that it may be sent.
-*/
+ * Cl_FinalizeCmd
+ * 
+ * Calculate the true command duration and clamp it so that it may be sent.
+ */
 static void Cl_FinalizeCmd(void){
 	usercmd_t *cmd;
 
@@ -76,11 +76,11 @@ static void Cl_FinalizeCmd(void){
 
 
 /*
-Cl_SendCmd
-
-Pumps the command cycle, sending the most recently gathered movement
-to the server.
-*/
+ * Cl_SendCmd
+ * 
+ * Pumps the command cycle, sending the most recently gathered movement
+ * to the server.
+ */
 void Cl_SendCmd(void){
 	extern int packets_this_second;
 	sizebuf_t buf;

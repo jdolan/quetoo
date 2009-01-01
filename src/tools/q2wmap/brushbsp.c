@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qbsp.h"
 
@@ -27,10 +27,10 @@ int c_nonvis;
 int c_active_brushes;
 
 /*
-BoundBrush
-
-Sets the mins/maxs based on the windings
-*/
+ * BoundBrush
+ * 
+ * Sets the mins/maxs based on the windings
+ */
 static void BoundBrush(bspbrush_t * brush){
 	int i, j;
 	winding_t *w;
@@ -47,8 +47,8 @@ static void BoundBrush(bspbrush_t * brush){
 
 
 /*
-CreateBrushWindings
-*/
+ * CreateBrushWindings
+ */
 static void CreateBrushWindings(bspbrush_t * brush){
 	int i, j;
 	winding_t *w;
@@ -76,10 +76,10 @@ static void CreateBrushWindings(bspbrush_t * brush){
 
 
 /*
-BrushFromBounds
-
-Creates a new axial brush
-*/
+ * BrushFromBounds
+ * 
+ * Creates a new axial brush
+ */
 static bspbrush_t *BrushFromBounds(vec3_t mins, vec3_t maxs){
 	bspbrush_t *b;
 	int i;
@@ -106,8 +106,8 @@ static bspbrush_t *BrushFromBounds(vec3_t mins, vec3_t maxs){
 
 
 /*
-BrushVolume
-*/
+ * BrushVolume
+ */
 static vec_t BrushVolume(bspbrush_t * brush){
 	int i;
 	winding_t *w;
@@ -149,8 +149,8 @@ static vec_t BrushVolume(bspbrush_t * brush){
 
 
 /*
-CountBrushList
-*/
+ * CountBrushList
+ */
 int CountBrushList(bspbrush_t * brushes){
 	int c;
 
@@ -162,8 +162,8 @@ int CountBrushList(bspbrush_t * brushes){
 
 
 /*
-AllocTree
-*/
+ * AllocTree
+ */
 tree_t *AllocTree(void){
 	tree_t *tree;
 
@@ -176,8 +176,8 @@ tree_t *AllocTree(void){
 
 
 /*
-AllocNode
-*/
+ * AllocNode
+ */
 node_t *AllocNode(void){
 	node_t *node;
 
@@ -189,8 +189,8 @@ node_t *AllocNode(void){
 
 
 /*
-AllocBrush
-*/
+ * AllocBrush
+ */
 bspbrush_t *AllocBrush(int numsides){
 	bspbrush_t *bb;
 	size_t c;
@@ -205,8 +205,8 @@ bspbrush_t *AllocBrush(int numsides){
 
 
 /*
-FreeBrush
-*/
+ * FreeBrush
+ */
 void FreeBrush(bspbrush_t * brushes){
 	int i;
 
@@ -220,8 +220,8 @@ void FreeBrush(bspbrush_t * brushes){
 
 
 /*
-FreeBrushList
-*/
+ * FreeBrushList
+ */
 void FreeBrushList(bspbrush_t * brushes){
 	bspbrush_t *next;
 
@@ -233,10 +233,10 @@ void FreeBrushList(bspbrush_t * brushes){
 }
 
 /*
-CopyBrush
-
-Duplicates the brush, the sides, and the windings
-*/
+ * CopyBrush
+ * 
+ * Duplicates the brush, the sides, and the windings
+ */
 bspbrush_t *CopyBrush(bspbrush_t * brush){
 	bspbrush_t *newbrush;
 	size_t size;
@@ -256,10 +256,10 @@ bspbrush_t *CopyBrush(bspbrush_t * brush){
 }
 
 /*
-Map_BoxOnPlaneSide
-
-Returns PSIDE_FRONT, PSIDE_BACK, or PSIDE_BOTH
-*/
+ * Map_BoxOnPlaneSide
+ * 
+ * Returns PSIDE_FRONT, PSIDE_BACK, or PSIDE_BOTH
+ */
 static int Map_BoxOnPlaneSide(vec3_t mins, vec3_t maxs, plane_t * plane){
 	int side;
 	int i;
@@ -299,8 +299,8 @@ static int Map_BoxOnPlaneSide(vec3_t mins, vec3_t maxs, plane_t * plane){
 }
 
 /*
-TestBrushToPlanenum
-*/
+ * TestBrushToPlanenum
+ */
 static int TestBrushToPlanenum(bspbrush_t * brush, int planenum,
                         int *numsplits, qboolean * hintsplit, int *epsilonbrush){
 	int i, j, num;
@@ -374,11 +374,11 @@ static int TestBrushToPlanenum(bspbrush_t * brush, int planenum,
 
 
 /*
-WindingIsTiny
-
-Returns true if the winding would be crunched out of
-existance by the vertex snapping.
-*/
+ * WindingIsTiny
+ * 
+ * Returns true if the winding would be crunched out of
+ * existance by the vertex snapping.
+ */
 #define	EDGE_LENGTH	0.2
 qboolean WindingIsTiny(const winding_t * w){
 	int i, j;
@@ -401,11 +401,11 @@ qboolean WindingIsTiny(const winding_t * w){
 
 
 /*
-WindingIsHuge
-
-Returns true if the winding still has one of the points
-from basewinding for plane
-*/
+ * WindingIsHuge
+ * 
+ * Returns true if the winding still has one of the points
+ * from basewinding for plane
+ */
 static qboolean WindingIsHuge(winding_t * w){
 	int i, j;
 
@@ -419,8 +419,8 @@ static qboolean WindingIsHuge(winding_t * w){
 
 
 /*
-Leafnode
-*/
+ * Leafnode
+ */
 static void LeafNode(node_t * node, bspbrush_t * brushes){
 	bspbrush_t *b;
 	int i;
@@ -472,12 +472,12 @@ static qboolean CheckPlaneAgainstVolume(int pnum, node_t * node){
 }
 
 /*
-SelectSplitSide
-
-Using a hueristic, choses one of the sides out of the brushlist
-to partition the brushes with.
-Returns NULL if there are no valid planes to split with..
-*/
+ * SelectSplitSide
+ * 
+ * Using a hueristic, choses one of the sides out of the brushlist
+ * to partition the brushes with.
+ * Returns NULL if there are no valid planes to split with..
+ */
 static side_t *SelectSplitSide(bspbrush_t * brushes, node_t * node){
 	int value, bestvalue;
 	bspbrush_t *brush, *test;
@@ -611,8 +611,8 @@ static side_t *SelectSplitSide(bspbrush_t * brushes, node_t * node){
 
 
 /*
-BrushMostlyOnSide
-*/
+ * BrushMostlyOnSide
+ */
 static int BrushMostlyOnSide(bspbrush_t * brush, plane_t * plane){
 	int i, j;
 	winding_t *w;
@@ -641,10 +641,10 @@ static int BrushMostlyOnSide(bspbrush_t * brush, plane_t * plane){
 }
 
 /*
-SplitBrush
-
-Generates two new brushes, leaving the original unchanged
-*/
+ * SplitBrush
+ * 
+ * Generates two new brushes, leaving the original unchanged
+ */
 void SplitBrush(bspbrush_t * brush, int planenum,
                 bspbrush_t ** front, bspbrush_t ** back){
 	bspbrush_t *b[2];
@@ -801,8 +801,8 @@ void SplitBrush(bspbrush_t * brush, int planenum,
 }
 
 /*
-SplitBrushList
-*/
+ * SplitBrushList
+ */
 static void SplitBrushList(bspbrush_t * brushes,
                     node_t * node, bspbrush_t ** front, bspbrush_t ** back){
 	bspbrush_t *brush, *newbrush, *newbrush2;
@@ -856,10 +856,10 @@ static void SplitBrushList(bspbrush_t * brushes,
 
 
 /*
-================
-BuildTree_r
-================
-*/
+ * ================
+ * BuildTree_r
+ * ================
+ */
 static node_t *BuildTree_r(node_t * node, bspbrush_t * brushes){
 	node_t *newnode;
 	side_t *bestside;
@@ -906,12 +906,12 @@ static node_t *BuildTree_r(node_t * node, bspbrush_t * brushes){
 //===========================================================
 
 /*
-=================
-BrushBSP
-
-The incoming list will be freed before exiting
-=================
-*/
+ * =================
+ * BrushBSP
+ * 
+ * The incoming list will be freed before exiting
+ * =================
+ */
 tree_t *BrushBSP(bspbrush_t * brushlist, vec3_t mins, vec3_t maxs){
 	node_t *node;
 	bspbrush_t *b;

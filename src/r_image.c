@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -69,8 +69,8 @@ r_texturemode_t r_texturemodes[] = {
 
 
 /*
-R_TextureMode
-*/
+ * R_TextureMode
+ */
 void R_TextureMode(const char *mode){
 	image_t *image;
 	int i;
@@ -113,8 +113,8 @@ void R_TextureMode(const char *mode){
 
 
 /*
-R_ListImages_f
-*/
+ * R_ListImages_f
+ */
 void R_ListImages_f(void){
 	int i;
 	image_t *image;
@@ -166,8 +166,8 @@ void R_ListImages_f(void){
 
 
 /*
-R_Screenshot_f
-*/
+ * R_Screenshot_f
+ */
 void R_Screenshot_f(void){
 	byte *buffer;
 	char picname[MAX_QPATH];
@@ -212,8 +212,8 @@ void R_Screenshot_f(void){
 
 
 /*
-R_SoftenTexture
-*/
+ * R_SoftenTexture
+ */
 void R_SoftenTexture(byte *in, int width, int height){
 	byte *out;
 	int i, j, k;
@@ -248,8 +248,8 @@ void R_SoftenTexture(byte *in, int width, int height){
 
 
 /*
-R_ScaleTexture
-*/
+ * R_ScaleTexture
+ */
 static void R_ScaleTexture(const unsigned *in, int inwidth, int inheight, unsigned *out, int outwidth, int outheight){
 	int i, j;
 	unsigned frac, fracstep;
@@ -287,12 +287,12 @@ static void R_ScaleTexture(const unsigned *in, int inwidth, int inheight, unsign
 
 
 /*
-R_FilterTexture
-
-Applies brightness and contrast to the specified image while optionally computing
-the image's average color.  Also handles image inversion and monochrome.  This is
-all munged into one function to reduce loops on level load.
-*/
+ * R_FilterTexture
+ * 
+ * Applies brightness and contrast to the specified image while optionally computing
+ * the image's average color.  Also handles image inversion and monochrome.  This is
+ * all munged into one function to reduce loops on level load.
+ */
 void R_FilterTexture(unsigned *in, int width, int height, vec3_t color, imagetype_t type){
 	vec3_t intensity, luminosity, temp;
 	int i, j, c, mask;
@@ -405,8 +405,8 @@ void R_FilterTexture(unsigned *in, int width, int height, vec3_t color, imagetyp
 static int upload_width, upload_height;  // after power-of-two scale
 
 /*
-R_UploadImage32
-*/
+ * R_UploadImage32
+ */
 static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color, imagetype_t type){
 	unsigned *scaled;
 	qboolean mipmap;
@@ -467,10 +467,10 @@ static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color,
 
 
 /*
-R_UploadImage
-
-This is also used as an entry point for the generated r_notexture.
-*/
+ * R_UploadImage
+ * 
+ * This is also used as an entry point for the generated r_notexture.
+ */
 image_t *R_UploadImage(const char *name, void *data, int width, int height, imagetype_t type){
 	image_t *image;
 	int i;
@@ -511,8 +511,8 @@ static const char *nm_suffix[] = {  // normalmap texture suffixes
 };
 
 /*
-R_LoadImage
-*/
+ * R_LoadImage
+ */
 image_t *R_LoadImage(const char *name, imagetype_t type){
 	image_t *image;
 	char n[MAX_QPATH];
@@ -562,8 +562,8 @@ image_t *R_LoadImage(const char *name, imagetype_t type){
 
 
 /*
-R_InitParticleTextures
-*/
+ * R_InitParticleTextures
+ */
 static void R_InitParticleTextures(void){
 	int i;
 
@@ -588,8 +588,8 @@ static void R_InitParticleTextures(void){
 
 
 /*
-R_InitEnvmapTextures
-*/
+ * R_InitEnvmapTextures
+ */
 static void R_InitEnvmapTextures(void){
 	int i;
 
@@ -599,8 +599,8 @@ static void R_InitEnvmapTextures(void){
 
 
 /*
-R_InitFlareTextures
-*/
+ * R_InitFlareTextures
+ */
 static void R_InitFlareTextures(void){
 	int i;
 
@@ -612,8 +612,8 @@ static void R_InitFlareTextures(void){
 #define WARP_SIZE 16
 
 /*
-R_InitWarpTexture
-*/
+ * R_InitWarpTexture
+ */
 static void R_InitWarpTexture(void){
 	byte warp[WARP_SIZE][WARP_SIZE][4];
 	int i, j;
@@ -632,8 +632,8 @@ static void R_InitWarpTexture(void){
 
 
 /*
-R_InitImages
-*/
+ * R_InitImages
+ */
 void R_InitImages(void){
 	unsigned data[256];
 
@@ -654,8 +654,8 @@ void R_InitImages(void){
 
 
 /*
-R_FreeImage
-*/
+ * R_FreeImage
+ */
 void R_FreeImage(image_t *image){
 
 	if(!image || !image->texnum)
@@ -667,8 +667,8 @@ void R_FreeImage(image_t *image){
 
 
 /*
-R_FreeImages
-*/
+ * R_FreeImages
+ */
 void R_FreeImages(void){
 	int i;
 	image_t *image;
@@ -687,8 +687,8 @@ void R_FreeImages(void){
 
 
 /*
-R_ShutdownImages
-*/
+ * R_ShutdownImages
+ */
 void R_ShutdownImages(void){
 	int i;
 	image_t *image;

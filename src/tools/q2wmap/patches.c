@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qlight.h"
 #include "images.h"
@@ -26,8 +26,8 @@ static vec3_t texture_reflectivity[MAX_BSP_TEXINFO];
 
 
 /*
-CalcTextureReflectivity
-*/
+ * CalcTextureReflectivity
+ */
 void CalcTextureReflectivity(void){
 	char path[MAX_OSPATH];
 	int i, j,texels;
@@ -83,8 +83,8 @@ void CalcTextureReflectivity(void){
 
 
 /*
-WindingFromFace
-*/
+ * WindingFromFace
+ */
 static winding_t *WindingFromFace(const dface_t * f){
 	int i;
 	dbspvertex_t *dv;
@@ -112,8 +112,8 @@ static winding_t *WindingFromFace(const dface_t * f){
 
 
 /*
-HasLight
-*/
+ * HasLight
+ */
 static inline qboolean HasLight(const dface_t *f){
 	const dtexinfo_t *tex;
 
@@ -123,8 +123,8 @@ static inline qboolean HasLight(const dface_t *f){
 
 
 /*
-IsSky
-*/
+ * IsSky
+ */
 static inline qboolean IsSky(const dface_t * f){
 	const dtexinfo_t *tex;
 
@@ -134,8 +134,8 @@ static inline qboolean IsSky(const dface_t * f){
 
 
 /*
-EmissiveLight
-*/
+ * EmissiveLight
+ */
 static inline void EmissiveLight(patch_t *patch){
 	if(HasLight(patch->face)){
 
@@ -148,8 +148,8 @@ static inline void EmissiveLight(patch_t *patch){
 
 
 /*
-BuildPatch
-*/
+ * BuildPatch
+ */
 static void BuildPatch(int fn, winding_t *w){
 	patch_t *patch;
 	dplane_t *plane;
@@ -184,8 +184,8 @@ static void BuildPatch(int fn, winding_t *w){
 
 
 /*
-EntityForModel
-*/
+ * EntityForModel
+ */
 static entity_t *EntityForModel(int modnum){
 	int i;
 	char name[16];
@@ -206,11 +206,11 @@ static entity_t *EntityForModel(int modnum){
 
 
 /*
-BuildPatches
-
-Create surface fragments for light-emitting surfaces so that light sources
-may be computed along them.  This function is responsible for one
-*/
+ * BuildPatches
+ * 
+ * Create surface fragments for light-emitting surfaces so that light sources
+ * may be computed along them.  This function is responsible for one
+ */
 void BuildPatches(void){
 	int i, j, k;
 	winding_t *w;
@@ -250,8 +250,8 @@ void BuildPatches(void){
 #define PATCH_SUBDIVIDE 64
 
 /*
-FinishSubdividePatch
-*/
+ * FinishSubdividePatch
+ */
 static void FinishSubdividePatch(patch_t *patch, patch_t *newp){
 
 	VectorCopy(patch->normal, newp->normal);
@@ -281,8 +281,8 @@ static void FinishSubdividePatch(patch_t *patch, patch_t *newp){
 
 
 /*
-SubdividePatch
-*/
+ * SubdividePatch
+ */
 static void SubdividePatch(patch_t *patch){
 	winding_t *w, *o1, *o2;
 	vec3_t mins, maxs;
@@ -327,10 +327,10 @@ static void SubdividePatch(patch_t *patch){
 
 
 /*
-SubdividePatches
-
-Iterate all of the head face patches, subdividing them as necessary.
-*/
+ * SubdividePatches
+ * 
+ * Iterate all of the head face patches, subdividing them as necessary.
+ */
 void SubdividePatches(void){
 	int i;
 
@@ -347,10 +347,10 @@ void SubdividePatches(void){
 
 
 /*
-FreePatches
-
-After light sources have been created, patches may be freed.
-*/
+ * FreePatches
+ * 
+ * After light sources have been created, patches may be freed.
+ */
 void FreePatches(void){
 	int i;
 

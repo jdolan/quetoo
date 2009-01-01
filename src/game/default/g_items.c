@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "g_local.h"
 
@@ -31,8 +31,8 @@ int quad_damage_index;
 
 
 /*
-G_ItemByIndex
-*/
+ * G_ItemByIndex
+ */
 gitem_t *G_ItemByIndex(int index){
 	if(index == 0 || index >= game.num_items)
 		return NULL;
@@ -42,9 +42,9 @@ gitem_t *G_ItemByIndex(int index){
 
 
 /*
-G_FindItemByClassname
-
-*/
+ * G_FindItemByClassname
+ * 
+ */
 gitem_t *G_FindItemByClassname(const char *classname){
 	int i;
 	gitem_t *it;
@@ -62,8 +62,8 @@ gitem_t *G_FindItemByClassname(const char *classname){
 
 
 /*
-G_FindItem
-*/
+ * G_FindItem
+ */
 gitem_t *G_FindItem(const char *pickup_name){
 	int i;
 	gitem_t *it;
@@ -81,8 +81,8 @@ gitem_t *G_FindItem(const char *pickup_name){
 
 
 /*
-G_DoRespawn
-*/
+ * G_DoRespawn
+ */
 static void G_DoRespawn(edict_t *ent){
 	edict_t *master;
 	int count, choice;
@@ -118,8 +118,8 @@ static void G_DoRespawn(edict_t *ent){
 
 
 /*
-G_SetRespawn
-*/
+ * G_SetRespawn
+ */
 void G_SetRespawn(edict_t *ent, float delay){
 	ent->flags |= FL_RESPAWN;
 	ent->svflags |= SVF_NOCLIENT;
@@ -131,8 +131,8 @@ void G_SetRespawn(edict_t *ent, float delay){
 
 
 /*
-PickupAdrenaline
-*/
+ * PickupAdrenaline
+ */
 static qboolean PickupAdrenaline(edict_t *ent, edict_t *other){
 
 	if(other->health < other->max_health)
@@ -146,8 +146,8 @@ static qboolean PickupAdrenaline(edict_t *ent, edict_t *other){
 
 
 /*
-PickupQuadDamage
-*/
+ * PickupQuadDamage
+ */
 static qboolean PickupQuadDamage(edict_t *ent, edict_t *other){
 
 	if(other->client->locals.inventory[quad_damage_index])
@@ -168,8 +168,8 @@ static qboolean PickupQuadDamage(edict_t *ent, edict_t *other){
 
 
 /*
-G_AddAmmo
-*/
+ * G_AddAmmo
+ */
 qboolean G_AddAmmo(edict_t *ent, gitem_t *item, int count){
 	int index;
 	int max;
@@ -207,8 +207,8 @@ qboolean G_AddAmmo(edict_t *ent, gitem_t *item, int count){
 
 
 /*
-PickupAmmo
-*/
+ * PickupAmmo
+ */
 static qboolean PickupAmmo(edict_t *ent, edict_t *other){
 	int count;
 
@@ -227,8 +227,8 @@ static qboolean PickupAmmo(edict_t *ent, edict_t *other){
 
 
 /*
-DropAmmo
-*/
+ * DropAmmo
+ */
 static void DropAmmo(edict_t *ent, gitem_t *item){
 	edict_t *dropped;
 	int index;
@@ -246,8 +246,8 @@ static void DropAmmo(edict_t *ent, gitem_t *item){
 
 
 /*
-PickupHealth
-*/
+ * PickupHealth
+ */
 static qboolean PickupHealth(edict_t *ent, edict_t *other){
 	int h, max;
 	qboolean always_add, always_pickup;
@@ -287,8 +287,8 @@ static qboolean PickupHealth(edict_t *ent, edict_t *other){
 
 
 /*
-PickupArmor
-*/
+ * PickupArmor
+ */
 static qboolean PickupArmor(edict_t *ent, edict_t *other){
 	qboolean taken = true;
 
@@ -315,10 +315,10 @@ static qboolean PickupArmor(edict_t *ent, edict_t *other){
 
 
 /*
-ResetFlag
-
-A dropped flag has been idle for 30 seconds, return it.
-*/
+ * ResetFlag
+ * 
+ * A dropped flag has been idle for 30 seconds, return it.
+ */
 static void ResetFlag(edict_t *ent){
 	team_t *t;
 	edict_t *f;
@@ -341,11 +341,11 @@ static void ResetFlag(edict_t *ent){
 
 
 /*
-PickupFlag
-
-Return own flag, or capture on it if enemy's flag is in inventory.
-Take the enemy's flag.
-*/
+ * PickupFlag
+ * 
+ * Return own flag, or capture on it if enemy's flag is in inventory.
+ * Take the enemy's flag.
+ */
 static qboolean PickupFlag(edict_t *ent, edict_t *other){
 	team_t *t, *ot;
 	edict_t *f, *of;
@@ -424,8 +424,8 @@ static qboolean PickupFlag(edict_t *ent, edict_t *other){
 
 
 /*
-G_TouchItem
-*/
+ * G_TouchItem
+ */
 void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
 	qboolean taken;
 
@@ -471,8 +471,8 @@ void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 
 
 /*
-G_DropItemUntouchable
-*/
+ * G_DropItemUntouchable
+ */
 static void G_DropItemUntouchable(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
 
 	if(other == ent->owner)  // prevent the dropper from picking it right back up
@@ -483,8 +483,8 @@ static void G_DropItemUntouchable(edict_t *ent, edict_t *other, cplane_t *plane,
 
 
 /*
-G_DropItemThink
-*/
+ * G_DropItemThink
+ */
 static void G_DropItemThink(edict_t *ent){
 
 	if(!ent->groundentity){
@@ -512,8 +512,8 @@ static void G_DropItemThink(edict_t *ent){
 
 
 /*
-G_DropItem
-*/
+ * G_DropItem
+ */
 edict_t *G_DropItem(edict_t *ent, gitem_t *item){
 	edict_t *dropped;
 	vec3_t forward, right;
@@ -567,8 +567,8 @@ edict_t *G_DropItem(edict_t *ent, gitem_t *item){
 
 
 /*
-G_UseItem
-*/
+ * G_UseItem
+ */
 static void G_UseItem(edict_t *ent, edict_t *other, edict_t *activator){
 	ent->svflags &= ~SVF_NOCLIENT;
 	ent->use = NULL;
@@ -586,8 +586,8 @@ static void G_UseItem(edict_t *ent, edict_t *other, edict_t *activator){
 
 
 /*
-G_DropToFloor
-*/
+ * G_DropToFloor
+ */
 static void G_DropToFloor(edict_t *ent){
 	trace_t tr;
 	vec3_t dest;
@@ -618,12 +618,12 @@ static void G_DropToFloor(edict_t *ent){
 
 
 /*
-G_PrecacheItem
-
-Precaches all data needed for a given item.
-This will be called for each item spawned in a level,
-and for each item in each client's inventory.
-*/
+ * G_PrecacheItem
+ * 
+ * Precaches all data needed for a given item.
+ * This will be called for each item spawned in a level,
+ * and for each item in each client's inventory.
+ */
 void G_PrecacheItem(gitem_t *it){
 	char *s, *start;
 	char data[MAX_QPATH];
@@ -678,13 +678,13 @@ void G_PrecacheItem(gitem_t *it){
 
 
 /*
-G_SpawnItem
-
-Sets the clipping size and plants the object on the floor.
-
-Items can't be immediately dropped to floor, because they might
-be on an entity that hasn't spawned yet.
-*/
+ * G_SpawnItem
+ * 
+ * Sets the clipping size and plants the object on the floor.
+ * 
+ * Items can't be immediately dropped to floor, because they might
+ * be on an entity that hasn't spawned yet.
+ */
 void G_SpawnItem(edict_t *ent, gitem_t *item){
 
 	G_PrecacheItem(item);
@@ -1348,8 +1348,8 @@ override_t overrides[] = {
 
 
 /*
-G_InitItems
-*/
+ * G_InitItems
+ */
 void G_InitItems(void){
 	game.num_items = sizeof(itemlist) / sizeof(itemlist[0]) - 1;
 	game.num_overrides = sizeof(overrides) / sizeof(overrides[0]) - 1;
@@ -1357,10 +1357,10 @@ void G_InitItems(void){
 
 
 /*
-G_SetItemNames
-
-Called by worldspawn
-*/
+ * G_SetItemNames
+ * 
+ * Called by worldspawn
+ */
 void G_SetItemNames(void){
 	int i, j;
 	gitem_t *it;

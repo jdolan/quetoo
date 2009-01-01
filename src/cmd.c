@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "common.h"
 #include "hash.h"
@@ -39,22 +39,22 @@ static int alias_count;  // for detecting runaway loops
 
 
 /*
-Cmd_Wait_f
-
-Causes execution of the remainder of the command buffer to be delayed until
-next frame.  This allows commands like:
-bind g "+attack; wait; -attack;"
-*/
+ * Cmd_Wait_f
+ * 
+ * Causes execution of the remainder of the command buffer to be delayed until
+ * next frame.  This allows commands like:
+ * bind g "+attack; wait; -attack;"
+ */
 static void Cmd_Wait_f(void){
 	cmd_wait = true;
 }
 
 
 /*
-
-COMMAND BUFFER
-
-*/
+ * 
+ * COMMAND BUFFER
+ * 
+ */
 
 static sizebuf_t cmd_text;
 static byte cmd_text_buf[8192];
@@ -63,18 +63,18 @@ static char defer_text_buf[8192];
 
 
 /*
-Cbuf_Init
-*/
+ * Cbuf_Init
+ */
 void Cbuf_Init(void){
 	Sb_Init(&cmd_text, cmd_text_buf, sizeof(cmd_text_buf));
 }
 
 
 /*
-Cbuf_AddText
-
-Adds command text at the end of the buffer
-*/
+ * Cbuf_AddText
+ * 
+ * Adds command text at the end of the buffer
+ */
 void Cbuf_AddText(const char *text){
 	int l;
 
@@ -89,12 +89,12 @@ void Cbuf_AddText(const char *text){
 
 
 /*
-Cbuf_InsertText
-
-Adds command text immediately after the current command
-Adds a \n to the text
-FIXME: actually change the command buffer to do less copying
-*/
+ * Cbuf_InsertText
+ * 
+ * Adds command text immediately after the current command
+ * Adds a \n to the text
+ * FIXME: actually change the command buffer to do less copying
+ */
 void Cbuf_InsertText(const char *text){
 	char *temp;
 	int templen;
@@ -120,8 +120,8 @@ void Cbuf_InsertText(const char *text){
 
 
 /*
-Cbuf_CopyToDefer
-*/
+ * Cbuf_CopyToDefer
+ */
 void Cbuf_CopyToDefer(void){
 	memcpy(defer_text_buf, cmd_text_buf, cmd_text.cursize);
 	defer_text_buf[cmd_text.cursize] = 0;
@@ -130,8 +130,8 @@ void Cbuf_CopyToDefer(void){
 
 
 /*
-Cbuf_InsertFromDefer
-*/
+ * Cbuf_InsertFromDefer
+ */
 void Cbuf_InsertFromDefer(void){
 	Cbuf_InsertText(defer_text_buf);
 	defer_text_buf[0] = 0;
@@ -139,8 +139,8 @@ void Cbuf_InsertFromDefer(void){
 
 
 /*
-Cbuf_Execute
-*/
+ * Cbuf_Execute
+ */
 void Cbuf_Execute(void){
 	int i;
 	char *text;
@@ -197,16 +197,16 @@ void Cbuf_Execute(void){
 
 
 /*
-Cbuf_AddEarlyCommands
-
-Adds command line parameters as script statements
-Commands lead with a +, and continue until another +.
-
-Set commands are added early, so they are guaranteed to be set before
-the client and server initialize for the first time.
-
-Other commands are added late, after all initialization is complete.
-*/
+ * Cbuf_AddEarlyCommands
+ * 
+ * Adds command line parameters as script statements
+ * Commands lead with a +, and continue until another +.
+ * 
+ * Set commands are added early, so they are guaranteed to be set before
+ * the client and server initialize for the first time.
+ * 
+ * Other commands are added late, after all initialization is complete.
+ */
 void Cbuf_AddEarlyCommands(qboolean clear){
 	int i;
 	char *s;
@@ -228,11 +228,11 @@ void Cbuf_AddEarlyCommands(qboolean clear){
 
 
 /*
-Cbuf_AddLateCommands
-
-Adds remaining command line parameters as script statements
-Commands lead with a + and continue until another +.
-*/
+ * Cbuf_AddLateCommands
+ * 
+ * Adds remaining command line parameters as script statements
+ * Commands lead with a + and continue until another +.
+ */
 void Cbuf_AddLateCommands(void){
 	int i, j, k;
 	char *c, text[MAX_STRING_CHARS];
@@ -265,15 +265,15 @@ void Cbuf_AddLateCommands(void){
 
 
 /*
-
-						SCRIPT COMMANDS
-
-*/
+ * 
+ * 						SCRIPT COMMANDS
+ * 
+ */
 
 
 /*
-Cmd_Exec_f
-*/
+ * Cmd_Exec_f
+ */
 static void Cmd_Exec_f(void){
 	void *buf;
 	int len;
@@ -294,10 +294,10 @@ static void Cmd_Exec_f(void){
 
 
 /*
-Cmd_Echo_f
-
-Just prints the rest of the line to the console
-*/
+ * Cmd_Echo_f
+ * 
+ * Just prints the rest of the line to the console
+ */
 static void Cmd_Echo_f(void){
 	int i;
 
@@ -308,10 +308,10 @@ static void Cmd_Echo_f(void){
 
 
 /*
-Cmd_Alias_f
-
-Creates a new command that executes a command string (possibly ; seperated)
-*/
+ * Cmd_Alias_f
+ * 
+ * Creates a new command that executes a command string (possibly ; seperated)
+ */
 static void Cmd_Alias_f(void){
 	cmdalias_t *a;
 	char cmd[MAX_STRING_CHARS];
@@ -360,10 +360,10 @@ static void Cmd_Alias_f(void){
 }
 
 /*
-
-COMMAND EXECUTION
-
-*/
+ * 
+ * COMMAND EXECUTION
+ * 
+ */
 
 typedef struct cmd_function_s {
 	struct cmd_function_s *next;
@@ -384,16 +384,16 @@ static hashtable_t cmd_hashtable;  // hashed for fast lookups
 
 
 /*
-Cmd_Argc
-*/
+ * Cmd_Argc
+ */
 int Cmd_Argc(void){
 	return cmd_argc;
 }
 
 
 /*
-Cmd_Argv
-*/
+ * Cmd_Argv
+ */
 char *Cmd_Argv(int arg){
 	if((unsigned)arg >= cmd_argc)
 		return cmd_null_string;
@@ -402,20 +402,20 @@ char *Cmd_Argv(int arg){
 
 
 /*
-Cmd_Args
-
-Returns a single string containing argv(1) to argv(argc()-1)
-*/
+ * Cmd_Args
+ * 
+ * Returns a single string containing argv(1) to argv(argc()-1)
+ */
 char *Cmd_Args(void){
 	return cmd_args;
 }
 
 
 /*
-Cmd_TokenizeString
-
-Parses the given string into command line tokens.
-*/
+ * Cmd_TokenizeString
+ * 
+ * Parses the given string into command line tokens.
+ */
 void Cmd_TokenizeString(const char *text){
 	int i, l, cmd_pointer;
 	char *com_token;
@@ -481,8 +481,8 @@ void Cmd_TokenizeString(const char *text){
 
 
 /*
-Cmd_AddCommand
-*/
+ * Cmd_AddCommand
+ */
 void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *description){
 	cmd_function_t *c, *cmd;
 
@@ -529,8 +529,8 @@ void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *descr
 
 
 /*
-Cmd_RemoveCommand
-*/
+ * Cmd_RemoveCommand
+ */
 void Cmd_RemoveCommand(const char *cmd_name){
 	cmd_function_t *cmd, **back;
 
@@ -554,8 +554,8 @@ void Cmd_RemoveCommand(const char *cmd_name){
 
 
 /*
-Cmd_CompleteCommand
-*/
+ * Cmd_CompleteCommand
+ */
 int Cmd_CompleteCommand(const char *partial, const char *matches[]){
 	cmd_function_t *cmd;
 	cmdalias_t *a;
@@ -590,10 +590,10 @@ int Cmd_CompleteCommand(const char *partial, const char *matches[]){
 
 
 /*
-Cmd_ExecuteString
-
-A complete command line has been parsed, so try to execute it
-*/
+ * Cmd_ExecuteString
+ * 
+ * A complete command line has been parsed, so try to execute it
+ */
 void Cmd_ExecuteString(const char *text){
 	cmd_function_t *cmd;
 	cmdalias_t *a;
@@ -635,8 +635,8 @@ void Cmd_ExecuteString(const char *text){
 
 
 /*
-Cmd_List_f
-*/
+ * Cmd_List_f
+ */
 static void Cmd_List_f(void){
 	cmd_function_t *cmd;
 	int i;
@@ -652,8 +652,8 @@ static void Cmd_List_f(void){
 
 
 /*
-Cmd_Init
-*/
+ * Cmd_Init
+ */
 void Cmd_Init(void){
 
 	Com_HashInit(&cmd_hashtable);

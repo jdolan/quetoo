@@ -1,31 +1,31 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qlight.h"
 
 /*
-
-every surface must be divided into at least two patches each axis
-
-*/
+ * 
+ * every surface must be divided into at least two patches each axis
+ * 
+ */
 
 patch_t *face_patches[MAX_BSP_FACES];
 int num_patches;
@@ -45,8 +45,8 @@ float entity_scale = 1.0;
 
 
 /*
-Light_PointInLeafnum
-*/
+ * Light_PointInLeafnum
+ */
 static int Light_PointInLeafnum(const vec3_t point){
 	int nodenum;
 
@@ -66,8 +66,8 @@ static int Light_PointInLeafnum(const vec3_t point){
 
 
 /*
-Light_PointInLeaf
-*/
+ * Light_PointInLeaf
+ */
 dleaf_t *Light_PointInLeaf(const vec3_t point){
 	const int num = Light_PointInLeafnum(point);
 	return &dleafs[num];
@@ -75,8 +75,8 @@ dleaf_t *Light_PointInLeaf(const vec3_t point){
 
 
 /*
-PvsForOrigin
-*/
+ * PvsForOrigin
+ */
 qboolean PvsForOrigin(const vec3_t org, byte *pvs){
 	dleaf_t *leaf;
 
@@ -99,8 +99,8 @@ extern cmodel_t map_cmodels[MAX_BSP_MODELS];
 trace_t rad_trace;
 
 /*
-Light_Trace
-*/
+ * Light_Trace
+ */
 void Light_Trace(const vec3_t start, const vec3_t end, int mask){
 	float frac;
 	int i;
@@ -121,8 +121,8 @@ void Light_Trace(const vec3_t start, const vec3_t end, int mask){
 
 
 /*
-LightWorld
-*/
+ * LightWorld
+ */
 static void LightWorld(void){
 	int i;
 
@@ -157,8 +157,8 @@ static void LightWorld(void){
 
 
 /*
-LIGHT_Main
-*/
+ * LIGHT_Main
+ */
 int LIGHT_Main(void){
 	time_t start, end;
 	int total_rad_time;

@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "g_local.h"
 #include "m_player.h"
@@ -52,10 +52,10 @@ void G_info_player_team2(edict_t *self){}
 
 
 /*
-P_ClientObituary
-
-Make a tasteless death announcement.
-*/
+ * P_ClientObituary
+ * 
+ * Make a tasteless death announcement.
+ */
 static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
 	int ff, mod;
 	char *message, *message2;
@@ -232,8 +232,8 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 
 
 /*
-TossWeapon
-*/
+ * TossWeapon
+ */
 static void TossWeapon(edict_t *self){
 	gitem_t *item;
 
@@ -251,8 +251,8 @@ static void TossWeapon(edict_t *self){
 
 
 /*
-TossQuadDamage
-*/
+ * TossQuadDamage
+ */
 static void TossQuadDamage(edict_t *self){
 	edict_t *quad;
 
@@ -272,8 +272,8 @@ static void TossQuadDamage(edict_t *self){
 
 
 /*
-TossFlag
-*/
+ * TossFlag
+ */
 static void TossFlag(edict_t *self){
 	team_t *ot;
 	edict_t *of;
@@ -310,8 +310,8 @@ static void TossFlag(edict_t *self){
 
 
 /*
-P_Pain
-*/
+ * P_Pain
+ */
 void P_Pain(edict_t *self, edict_t *other, int damage, int knockback){
 
 	if(other && other->client && other != self){  // play a hit sound
@@ -322,8 +322,8 @@ void P_Pain(edict_t *self, edict_t *other, int damage, int knockback){
 
 
 /*
-P_Die
-*/
+ * P_Die
+ */
 void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
 
 	gi.Sound(self, CHAN_VOICE, gi.SoundIndex("*death_1.wav"),
@@ -373,10 +373,10 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 
 
 /*
-*  Stocks client's inventory with specified item.  Weapons receive
-*  specified quantity of ammo, while health and armor are set to
-*  the specified quantity.
-*/
+ *  Stocks client's inventory with specified item.  Weapons receive
+ *  specified quantity of ammo, while health and armor are set to
+ *  the specified quantity.
+ */
 static void P_Give(gclient_t *client, char *it, int quantity){
 	gitem_t *item;
 	int index;
@@ -419,8 +419,8 @@ static void P_Give(gclient_t *client, char *it, int quantity){
 
 
 /*
-P_GiveLevelLocals
-*/
+ * P_GiveLevelLocals
+ */
 static qboolean P_GiveLevelLocals(gclient_t *client){
 	char buf[512], *it, *q;
 	int quantity;
@@ -456,8 +456,8 @@ static qboolean P_GiveLevelLocals(gclient_t *client){
 }
 
 /*
-P_InitClientLocals
-*/
+ * P_InitClientLocals
+ */
 static void P_InitClientLocals(gclient_t *client){
 	gitem_t *item;
 	int i;
@@ -521,10 +521,10 @@ static void P_InitClientLocals(gclient_t *client){
 
 
 /*
-P_EnemyRangeFromSpot
-
-Returns the distance to the nearest enemy from the given spot
-*/
+ * P_EnemyRangeFromSpot
+ * 
+ * Returns the distance to the nearest enemy from the given spot
+ */
 static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 	edict_t *player;
 	float bestplayerdistance;
@@ -566,8 +566,8 @@ static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 
 
 /*
-P_SelectRandomDeathmatchSpawnPoint
-*/
+ * P_SelectRandomDeathmatchSpawnPoint
+ */
 static edict_t *P_SelectRandomSpawnPoint(edict_t *ent, const char *classname){
 	edict_t *spot;
 	int count = 0;
@@ -590,8 +590,8 @@ static edict_t *P_SelectRandomSpawnPoint(edict_t *ent, const char *classname){
 
 
 /*
-P_SelectFarthestDeathmatchSpawnPoint
-*/
+ * P_SelectFarthestDeathmatchSpawnPoint
+ */
 static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *classname){
 	edict_t *bestspot;
 	float bestdistance, bestenemydistance;
@@ -621,8 +621,8 @@ static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *classname){
 
 
 /*
-P_SelectDeathmatchSpawnPoint
-*/
+ * P_SelectDeathmatchSpawnPoint
+ */
 static edict_t *P_SelectDeathmatchSpawnPoint(edict_t *ent){
 	if((int)(g_dmflags->value) & DF_SPAWN_RANDOM)
 		return P_SelectRandomSpawnPoint(ent, "info_player_deathmatch");
@@ -631,8 +631,8 @@ static edict_t *P_SelectDeathmatchSpawnPoint(edict_t *ent){
 
 
 /*
-P_SelectCaptureSpawnPoint
-*/
+ * P_SelectCaptureSpawnPoint
+ */
 static edict_t *P_SelectCaptureSpawnPoint(edict_t *ent){
 	char *c;
 
@@ -649,10 +649,10 @@ static edict_t *P_SelectCaptureSpawnPoint(edict_t *ent){
 
 
 /*
-P_SelectSpawnPoint
-
-Chooses a player start, deathmatch start, etc
-*/
+ * P_SelectSpawnPoint
+ * 
+ * Chooses a player start, deathmatch start, etc
+ */
 static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
 	edict_t *spot = NULL;
 
@@ -682,10 +682,10 @@ static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
 
 
 /*
-P_PutClientInServer
-
-The grunt work of putting the client into the server on [re]spawn.
-*/
+ * P_PutClientInServer
+ * 
+ * The grunt work of putting the client into the server on [re]spawn.
+ */
 static void P_PutClientInServer(edict_t *ent){
 	vec3_t mins = { -16, -16, -24};
 	vec3_t maxs = {16, 16, 32};
@@ -804,11 +804,11 @@ static void P_PutClientInServer(edict_t *ent){
 
 
 /*
-P_Respawn
-
-In this case, voluntary means that the client has explicitly requested
-a respawn by changing their spectator status.
-*/
+ * P_Respawn
+ * 
+ * In this case, voluntary means that the client has explicitly requested
+ * a respawn by changing their spectator status.
+ */
 void P_Respawn(edict_t *ent, qboolean voluntary){
 
 	P_PutClientInServer(ent);
@@ -835,11 +835,11 @@ void P_Respawn(edict_t *ent, qboolean voluntary){
 
 
 /*
-P_Begin
-
-Called when a client has finished connecting, and is ready
-to be placed into the game.  This will happen every level load.
-*/
+ * P_Begin
+ * 
+ * Called when a client has finished connecting, and is ready
+ * to be placed into the game.  This will happen every level load.
+ */
 void P_Begin(edict_t *ent){
 	char welcome[256];
 
@@ -896,8 +896,8 @@ void P_Begin(edict_t *ent){
 
 
 /*
-P_UserinfoChanged
-*/
+ * P_UserinfoChanged
+ */
 void P_UserinfoChanged(edict_t *ent, const char *userinfo){
 	const char *s;
 	char *c;
@@ -1005,14 +1005,14 @@ void P_UserinfoChanged(edict_t *ent, const char *userinfo){
 
 
 /*
-P_Connect
-
-Called when a player begins connecting to the server.
-The game can refuse entrance to a client by returning false.
-If the client is allowed, the connection process will continue
-and eventually get to P_Begin()
-Changing levels will NOT cause this to be called again.
-*/
+ * P_Connect
+ * 
+ * Called when a player begins connecting to the server.
+ * The game can refuse entrance to a client by returning false.
+ * If the client is allowed, the connection process will continue
+ * and eventually get to P_Begin()
+ * Changing levels will NOT cause this to be called again.
+ */
 qboolean P_Connect(edict_t *ent, char *userinfo){
 
 	// check password
@@ -1045,11 +1045,11 @@ qboolean P_Connect(edict_t *ent, char *userinfo){
 
 
 /*
-P_Disconnect
-
-Called when a player drops from the server.
-Will not be called between levels.
-*/
+ * P_Disconnect
+ * 
+ * Called when a player drops from the server.
+ * Will not be called between levels.
+ */
 void P_Disconnect(edict_t *ent){
 	int playernum;
 
@@ -1090,8 +1090,8 @@ static trace_t P_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
 
 
 /*
-P_InventoryThink
-*/
+ * P_InventoryThink
+ */
 static void P_InventoryThink(edict_t *ent){
 
 	if(ent->client->locals.inventory[quad_damage_index]){  // if they have quad
@@ -1111,11 +1111,11 @@ static void P_InventoryThink(edict_t *ent){
 
 
 /*
-P_Think
-
-This will be called once for each client frame, which will
-usually be a couple times for each server frame.
-*/
+ * P_Think
+ * 
+ * This will be called once for each client frame, which will
+ * usually be a couple times for each server frame.
+ */
 void P_Think(edict_t *ent, usercmd_t *ucmd){
 	gclient_t *client;
 	edict_t *other;
@@ -1275,11 +1275,11 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 
 /*
-P_BeginServerFrame
-
-This will be called once for each server frame, before running
-any other entities in the world.
-*/
+ * P_BeginServerFrame
+ * 
+ * This will be called once for each server frame, before running
+ * any other entities in the world.
+ */
 void P_BeginServerFrame(edict_t *ent){
 	gclient_t *client;
 

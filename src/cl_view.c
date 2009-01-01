@@ -1,30 +1,30 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
 
 /*
-Cl_ClearScene
-*/
+ * Cl_ClearScene
+ */
 static void Cl_ClearScene(void){
 
 	// reset entity and particle counts
@@ -39,8 +39,8 @@ static void Cl_ClearScene(void){
 
 
 /*
-Cl_UpdateFov
-*/
+ * Cl_UpdateFov
+ */
 static void Cl_UpdateFov(void){
 	float a, x;
 
@@ -58,8 +58,8 @@ static void Cl_UpdateFov(void){
 
 
 /*
-Cl_UpdateViewsize
-*/
+ * Cl_UpdateViewsize
+ */
 static void Cl_UpdateViewsize(void){
 	int size;
 
@@ -79,8 +79,8 @@ static void Cl_UpdateViewsize(void){
 
 
 /*
-Cl_UpdateLerp
-*/
+ * Cl_UpdateLerp
+ */
 static void Cl_UpdateLerp(frame_t *from){
 
 	if(timedemo->value){
@@ -104,8 +104,8 @@ static void Cl_UpdateLerp(frame_t *from){
 
 
 /*
-Cl_UpdateDucking
-*/
+ * Cl_UpdateDucking
+ */
 static void Cl_UpdateDucking(void){
 	static int ducktime, standtime;
 
@@ -136,11 +136,11 @@ static void Cl_UpdateDucking(void){
 
 
 /*
-Cl_UpdateOrigin
-
-The origin is typically calculated using client sided prediction, provided
-the client is not viewing a demo, playing in 3rd person mode, or chasecamming.
-*/
+ * Cl_UpdateOrigin
+ * 
+ * The origin is typically calculated using client sided prediction, provided
+ * the client is not viewing a demo, playing in 3rd person mode, or chasecamming.
+ */
 static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops){
 	int i, ms;
 
@@ -174,11 +174,11 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops){
 
 
 /*
-Cl_UpdateAngles
-
-The angles are typically fetched directly from input, unless the client is
-watching a demo or chasecamming someone.
-*/
+ * Cl_UpdateAngles
+ * 
+ * The angles are typically fetched directly from input, unless the client is
+ * watching a demo or chasecamming someone.
+ */
 static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops){
 
 	// if not running a demo or chasecamming, add the local angle movement
@@ -195,8 +195,8 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops){
 
 
 /*
-Cl_UpdateVelocity
-*/
+ * Cl_UpdateVelocity
+ */
 static void Cl_UpdateVelocity(player_state_t *ps, player_state_t *ops){
 	vec3_t oldvel, newvel;
 
@@ -212,8 +212,8 @@ static void Cl_UpdateVelocity(player_state_t *ps, player_state_t *ops){
 
 
 /*
-Cl_UpdateThirdperson
-*/
+ * Cl_UpdateThirdperson
+ */
 static void Cl_UpdateThirdperson(player_state_t *ps){
 	vec3_t forward, dest;
 
@@ -243,12 +243,12 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 
 
 /*
-Cl_UpdateView
-
-Updates the view_t for the renderer.  Origin, angles, etc are calculated.
-Entities, particles, etc are then lerped and added and pulled through to
-the renderer.
-*/
+ * Cl_UpdateView
+ * 
+ * Updates the view_t for the renderer.  Origin, angles, etc are calculated.
+ * Entities, particles, etc are then lerped and added and pulled through to
+ * the renderer.
+ */
 void Cl_UpdateView(void){
 	frame_t *prev;
 	player_state_t *ps, *ops;
@@ -317,24 +317,24 @@ void Cl_UpdateView(void){
 
 
 /*
-Cl_ViewsizeUp_f
-*/
+ * Cl_ViewsizeUp_f
+ */
 static void Cl_ViewsizeUp_f(void){
 	Cvar_SetValue("cl_viewsize", cl_viewsize->value + 10);
 }
 
 
 /*
-Cl_ViewsizeDown_f
-*/
+ * Cl_ViewsizeDown_f
+ */
 static void Cl_ViewsizeDown_f(void){
 	Cvar_SetValue("cl_viewsize", cl_viewsize->value - 10);
 }
 
 
 /*
-Cl_InitView
-*/
+ * Cl_InitView
+ */
 void Cl_InitView(void){
 	Cmd_AddCommand("viewsize_up", Cl_ViewsizeUp_f, NULL);
 	Cmd_AddCommand("viewsize_down", Cl_ViewsizeDown_f, NULL);

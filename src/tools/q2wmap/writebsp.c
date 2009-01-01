@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qbsp.h"
 
@@ -26,15 +26,15 @@ int c_facenodes;
 
 
 /*
-ONLY SAVE OUT PLANES THAT ARE ACTUALLY USED AS NODES
-*/
+ * ONLY SAVE OUT PLANES THAT ARE ACTUALLY USED AS NODES
+ */
 
 /*
-EmitPlanes
-
-There is no oportunity to discard planes, because all of the original
-brushes will be saved in the map.
-*/
+ * EmitPlanes
+ * 
+ * There is no oportunity to discard planes, because all of the original
+ * brushes will be saved in the map.
+ */
 static void EmitPlanes(void){
 	int i;
 	dplane_t *dp;
@@ -52,8 +52,8 @@ static void EmitPlanes(void){
 
 
 /*
-EmitMarkFace
-*/
+ * EmitMarkFace
+ */
 static void EmitMarkFace(dleaf_t *leaf_p, face_t *f){
 	int i;
 	int facenum;
@@ -87,8 +87,8 @@ static void EmitMarkFace(dleaf_t *leaf_p, face_t *f){
 
 
 /*
-EmitLeaf
-*/
+ * EmitLeaf
+ */
 static void EmitLeaf(node_t *node){
 	dleaf_t *leaf_p;
 	portal_t *p;
@@ -150,8 +150,8 @@ static void EmitLeaf(node_t *node){
 
 
 /*
-EmitFace
-*/
+ * EmitFace
+ */
 static void EmitFace(face_t *f){
 	dface_t *df;
 	int i;
@@ -192,8 +192,8 @@ static void EmitFace(face_t *f){
 
 
 /*
-EmitDrawingNode_r
-*/
+ * EmitDrawingNode_r
+ */
 static int EmitDrawNode_r(node_t * node){
 	dnode_t *n;
 	face_t *f;
@@ -244,8 +244,8 @@ static int EmitDrawNode_r(node_t * node){
 
 
 /*
-WriteBSP
-*/
+ * WriteBSP
+ */
 void WriteBSP(node_t * headnode){
 	int oldfaces;
 
@@ -265,8 +265,8 @@ void WriteBSP(node_t * headnode){
 
 
 /*
-SetModelNumbers
-*/
+ * SetModelNumbers
+ */
 void SetModelNumbers(void){
 	int i;
 	int models;
@@ -285,8 +285,8 @@ void SetModelNumbers(void){
 
 
 /*
-EmitBrushes
-*/
+ * EmitBrushes
+ */
 static void EmitBrushes(void){
 	int i, j, bnum, s, x;
 	dbrush_t *db;
@@ -346,8 +346,8 @@ static void EmitBrushes(void){
 
 
 /*
-BeginBSPFile
-*/
+ * BeginBSPFile
+ */
 void BeginBSPFile(void){
 	// these values may actually be initialized
 	// if the file existed when loaded, so clear them explicitly
@@ -375,8 +375,8 @@ void BeginBSPFile(void){
 
 
 /*
-EndBSPFile
-*/
+ * EndBSPFile
+ */
 void EndBSPFile(void){
 
 	EmitBrushes();
@@ -394,8 +394,8 @@ void EndBSPFile(void){
 
 
 /*
-BeginModel
-*/
+ * BeginModel
+ */
 extern int firstmodeledge;
 void BeginModel(void){
 	dbspmodel_t *mod;
@@ -434,8 +434,8 @@ void BeginModel(void){
 
 
 /*
-EndModel
-*/
+ * EndModel
+ */
 void EndModel(void){
 	dbspmodel_t *mod;
 

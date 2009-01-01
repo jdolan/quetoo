@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <unistd.h>
 
@@ -78,11 +78,11 @@ char demoname[MAX_OSPATH];
 
 
 /*
-Cl_WriteDemoHeader
-
-Writes serverdata, configstrings, and baselines once a non-delta
-compressed frame arrives from the server.
-*/
+ * Cl_WriteDemoHeader
+ * 
+ * Writes serverdata, configstrings, and baselines once a non-delta
+ * compressed frame arrives from the server.
+ */
 static void Cl_WriteDemoHeader(void){
 	byte buf_data[MAX_MSGLEN];
 	sizebuf_t buf;
@@ -153,10 +153,10 @@ static void Cl_WriteDemoHeader(void){
 
 
 /*
-Cl_WriteDemoMessage
-
-Dumps the current net message, prefixed by the length.
-*/
+ * Cl_WriteDemoMessage
+ * 
+ * Dumps the current net message, prefixed by the length.
+ */
 void Cl_WriteDemoMessage(void){
 	int len;
 
@@ -179,10 +179,10 @@ void Cl_WriteDemoMessage(void){
 
 
 /*
-Cl_Stop_f
-
-Stop recording a demo
-*/
+ * Cl_Stop_f
+ * 
+ * Stop recording a demo
+ */
 static void Cl_Stop_f(void){
 	int len;
 
@@ -205,12 +205,12 @@ static void Cl_Stop_f(void){
 
 
 /*
-Cl_Record_f
-
-record <demoname>
-
-Begins recording a demo from the current position
-*/
+ * Cl_Record_f
+ * 
+ * record <demoname>
+ * 
+ * Begins recording a demo from the current position
+ */
 static void Cl_Record_f(void){
 	if(Cmd_Argc() != 2){
 		Com_Printf("Usage: %s <demoname>\n", Cmd_Argv(0));
@@ -251,10 +251,10 @@ static void Cl_Record_f(void){
 static char last_dropped_item[MAX_TOKEN_CHARS];
 
 /*
-Cl_VariableString
-
-This is the client-specific sibling to Cvar_VariableString.
-*/
+ * Cl_VariableString
+ * 
+ * This is the client-specific sibling to Cvar_VariableString.
+ */
 static const char *Cl_ExpandVariable(char v){
 	int i;
 
@@ -290,8 +290,8 @@ static const char *Cl_ExpandVariable(char v){
 static char expanded[MAX_STRING_CHARS];
 
 /*
-Cl_ExpandVariables
-*/
+ * Cl_ExpandVariables
+ */
 static char *Cl_ExpandVariables(const char *text){
 	int i, j, len;
 
@@ -317,12 +317,12 @@ static char *Cl_ExpandVariables(const char *text){
 
 
 /*
-Cmd_ForwardToServer
-
-Adds the current command line as a clc_stringcmd to the client message.
-things like godmode, noclip, etc, are commands directed to the server,
-so when they are typed in at the console, they will need to be forwarded.
-*/
+ * Cmd_ForwardToServer
+ * 
+ * Adds the current command line as a clc_stringcmd to the client message.
+ * things like godmode, noclip, etc, are commands directed to the server,
+ * so when they are typed in at the console, they will need to be forwarded.
+ */
 void Cmd_ForwardToServer(void){
 	const char *cmd, *args;
 
@@ -356,8 +356,8 @@ void Cmd_ForwardToServer(void){
 
 
 /*
-Cl_Quit_f
-*/
+ * Cl_Quit_f
+ */
 static void Cl_Quit_f(void){
 	Cl_Disconnect();
 	Com_Quit();
@@ -365,10 +365,10 @@ static void Cl_Quit_f(void){
 
 
 /*
-Cl_Drop
-
-Called after an ERR_DROP or ERR_NONE was thrown
-*/
+ * Cl_Drop
+ * 
+ * Called after an ERR_DROP or ERR_NONE was thrown
+ */
 void Cl_Drop(void){
 	cls.download.disk = false;
 
@@ -383,10 +383,10 @@ void Cl_Drop(void){
 
 
 /*
-Cl_SendConnect
-
-We have gotten a challenge from the server, so try and connect.
-*/
+ * Cl_SendConnect
+ * 
+ * We have gotten a challenge from the server, so try and connect.
+ */
 static void Cl_SendConnect(void){
 	netadr_t adr;
 	int qport;
@@ -413,10 +413,10 @@ static void Cl_SendConnect(void){
 extern cvar_t *sv_maxclients;
 
 /*
-Cl_CheckForResend
-
-Resend a connect message if the last one has timed out
-*/
+ * Cl_CheckForResend
+ * 
+ * Resend a connect message if the last one has timed out
+ */
 static void Cl_CheckForResend(void){
 	netadr_t adr;
 
@@ -464,8 +464,8 @@ static void Cl_CheckForResend(void){
 
 
 /*
-Cl_Connect_f
-*/
+ * Cl_Connect_f
+ */
 static void Cl_Connect_f(void){
 	const char *s;
 	int i;
@@ -504,10 +504,10 @@ static void Cl_Connect_f(void){
 
 
 /*
-Cl_Rcon_f
-
-Send the rest of the command line over as an unconnected command.
-*/
+ * Cl_Rcon_f
+ * 
+ * Send the rest of the command line over as an unconnected command.
+ */
 static void Cl_Rcon_f(void){
 	char message[1024];
 	int i;
@@ -552,8 +552,8 @@ static void Cl_Rcon_f(void){
 
 
 /*
-Cl_ClearState
-*/
+ * Cl_ClearState
+ */
 void Cl_ClearState(void){
 
 	Cl_ClearEffects();
@@ -572,13 +572,13 @@ void Cl_ClearState(void){
 
 
 /*
-Cl_SendDisconnect
-
-Sends the disconnect command to the server (several times).  This is used
-when the client actually wishes to disconnect or quit, or when an Http
-download has begun.  This way, the client does not waste a server slot
-(or just timeout) while downloading a level.
-*/
+ * Cl_SendDisconnect
+ * 
+ * Sends the disconnect command to the server (several times).  This is used
+ * when the client actually wishes to disconnect or quit, or when an Http
+ * download has begun.  This way, the client does not waste a server slot
+ * (or just timeout) while downloading a level.
+ */
 void Cl_SendDisconnect(void){
 	byte final[16];
 
@@ -600,11 +600,11 @@ void Cl_SendDisconnect(void){
 
 
 /*
-Cl_Disconnect
-
-Sends a disconnect message to the current server, stops any pending
-demo recording, and updates cls.state so that we drop to console
-*/
+ * Cl_Disconnect
+ * 
+ * Sends a disconnect message to the current server, stops any pending
+ * demo recording, and updates cls.state so that we drop to console
+ */
 void Cl_Disconnect(void){
 	if(cls.state == ca_disconnected)
 		return;
@@ -634,16 +634,16 @@ void Cl_Disconnect(void){
 
 
 /*
-Cl_Disconnect_f
-*/
+ * Cl_Disconnect_f
+ */
 static void Cl_Disconnect_f(void){
 	Com_Error(ERR_NONE, "Disconnected from server.\n");
 }
 
 
 /*
-Cl_Reconnect_f
-*/
+ * Cl_Reconnect_f
+ */
 void Cl_Reconnect_f(void){
 
 	if(cls.download.file)  // dont disrupt downloads
@@ -662,10 +662,10 @@ void Cl_Reconnect_f(void){
 
 
 /*
-Cl_ConnectionlessPacket
-
-Responses to broadcasts, etc
-*/
+ * Cl_ConnectionlessPacket
+ * 
+ * Responses to broadcasts, etc
+ */
 static void Cl_ConnectionlessPacket(void){
 	char *s;
 	char *c;
@@ -743,8 +743,8 @@ static void Cl_ConnectionlessPacket(void){
 
 
 /*
-Cl_ReadPackets
-*/
+ * Cl_ReadPackets
+ */
 static void Cl_ReadPackets(void){
 
 	memset(&net_from, 0, sizeof(net_from));
@@ -787,8 +787,8 @@ static void Cl_ReadPackets(void){
 
 
 /*
-Cl_LoadProgress
-*/
+ * Cl_LoadProgress
+ */
 void Cl_LoadProgress(int percent){
 
 	cls.download.percent = percent;
@@ -798,8 +798,8 @@ void Cl_LoadProgress(int percent){
 
 
 /*
-Cl_LoadMedia
-*/
+ * Cl_LoadMedia
+ */
 static void Cl_LoadMedia(void){
 
 	cls.download.percent = 0;
@@ -821,11 +821,11 @@ int precache_check; // for autodownload of precache items
 int precache_spawncount;
 
 /*
-Cl_RequestNextDownload
-
-Entry point for file downloads, or "precache" from server.  Attempt to
-download .pak and .bsp from server.  Pak is preferred.
-*/
+ * Cl_RequestNextDownload
+ * 
+ * Entry point for file downloads, or "precache" from server.  Attempt to
+ * download .pak and .bsp from server.  Pak is preferred.
+ */
 void Cl_RequestNextDownload(void){
 
 	if(cls.state < ca_connected)
@@ -860,10 +860,10 @@ void Cl_RequestNextDownload(void){
 
 
 /*
-Cl_Precache_f
-
-The server sends this command once serverdata has been parsed.
-*/
+ * Cl_Precache_f
+ * 
+ * The server sends this command once serverdata has been parsed.
+ */
 static void Cl_Precache_f(void){
 
 	precache_spawncount = atoi(Cmd_Argv(1));
@@ -873,8 +873,8 @@ static void Cl_Precache_f(void){
 }
 
 /*
-Cl_GetUserName
-*/
+ * Cl_GetUserName
+ */
 static const char *Cl_GetUserName(void){
 
 	const char *username = Sys_GetCurrentUser();
@@ -886,8 +886,8 @@ static const char *Cl_GetUserName(void){
 }
 
 /*
-Cl_InitLocal
-*/
+ * Cl_InitLocal
+ */
 static void Cl_InitLocal(void){
 	int bits;
 
@@ -985,10 +985,10 @@ static void Cl_InitLocal(void){
 
 
 /*
-Cl_WriteConfiguration
-
-Writes key bindings and archived cvars to quake2world.cfg
-*/
+ * Cl_WriteConfiguration
+ * 
+ * Writes key bindings and archived cvars to quake2world.cfg
+ */
 static void Cl_WriteConfiguration(void){
 	FILE *f;
 	char path[MAX_OSPATH];
@@ -1012,8 +1012,8 @@ static void Cl_WriteConfiguration(void){
 
 
 /*
-Cl_Frame
-*/
+ * Cl_Frame
+ */
 void Cl_Frame(int msec){
 	qboolean packet_frame = true, render_frame = true;
 
@@ -1096,8 +1096,8 @@ void Cl_Frame(int msec){
 #include "binds.h"
 
 /*
-Cl_Init
-*/
+ * Cl_Init
+ */
 void Cl_Init(void){
 
 	if(dedicated->value)
@@ -1136,8 +1136,8 @@ void Cl_Init(void){
 
 
 /*
-Cl_Shutdown
-*/
+ * Cl_Shutdown
+ */
 void Cl_Shutdown(void){
 	static qboolean isdown = false;
 

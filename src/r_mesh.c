@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -35,8 +35,8 @@ static int num_shadows;
 
 
 /*
-R_AddMeshShadow
-*/
+ * R_AddMeshShadow
+ */
 static void R_AddMeshShadow(const entity_t *e){
 	shadow_t *sh;
 	float h;
@@ -73,8 +73,8 @@ static void R_AddMeshShadow(const entity_t *e){
 
 
 /*
-R_DrawMeshShadows
-*/
+ * R_DrawMeshShadows
+ */
 void R_DrawMeshShadows(void){
 	vec3_t right, up, verts[4];
 	int i, j, k, l;
@@ -122,8 +122,8 @@ void R_DrawMeshShadows(void){
 
 
 /*
-R_ApplyMeshModelConfig
-*/
+ * R_ApplyMeshModelConfig
+ */
 void R_ApplyMeshModelConfig(entity_t *e){
 	mesh_config_t *c;
 	vec3_t forward, right, up;
@@ -171,8 +171,8 @@ void R_ApplyMeshModelConfig(entity_t *e){
 
 
 /*
-R_CullMeshModel
-*/
+ * R_CullMeshModel
+ */
 qboolean R_CullMeshModel(const entity_t *e){
 	vec3_t mins, maxs;
 	int i;
@@ -194,8 +194,8 @@ qboolean R_CullMeshModel(const entity_t *e){
 
 
 /*
-R_SetMeshColor_default
-*/
+ * R_SetMeshColor_default
+ */
 static void R_SetMeshColor_default(const entity_t *e){
 	vec4_t color;
 	float f;
@@ -228,8 +228,8 @@ static void R_SetMeshColor_default(const entity_t *e){
 
 
 /*
-R_SetMeshState_default
-*/
+ * R_SetMeshState_default
+ */
 static void R_SetMeshState_default(const entity_t *e){
 
 	if(e->skin)  // resolve texture
@@ -252,8 +252,8 @@ static void R_SetMeshState_default(const entity_t *e){
 
 
 /*
-R_ResetMeshState_default
-*/
+ * R_ResetMeshState_default
+ */
 static void R_ResetMeshState_default(const entity_t *e){
 
 	if(e->flags & EF_WEAPON)
@@ -264,8 +264,8 @@ static void R_ResetMeshState_default(const entity_t *e){
 
 
 /*
-R_DrawMd2ModelLerped_default
-*/
+ * R_DrawMd2ModelLerped_default
+ */
 static void R_DrawMd2ModelLerped_default(const entity_t *e){
 	const dmd2_t *md2;
 	const dmd2frame_t *frame, *oldframe;
@@ -352,8 +352,8 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 
 
 /*
-R_DrawMd3ModelLerped_default
-*/
+ * R_DrawMd3ModelLerped_default
+ */
 static void R_DrawMd3ModelLerped_default(const entity_t *e){
 	mmd3_t *md3;
 	dmd3frame_t *frame, *oldframe;
@@ -425,8 +425,8 @@ static void R_DrawMd3ModelLerped_default(const entity_t *e){
 
 
 /*
-R_DrawMeshModelArrays_default
-*/
+ * R_DrawMeshModelArrays_default
+ */
 static void R_DrawMeshModelArrays_default(const entity_t *e){
 
 	R_SetArrayState(e->model);
@@ -438,8 +438,8 @@ static void R_DrawMeshModelArrays_default(const entity_t *e){
 
 
 /*
-R_DrawMeshModel_default
-*/
+ * R_DrawMeshModel_default
+ */
 void R_DrawMeshModel_default(entity_t *e){
 
 	if(e->frame >= e->model->num_frames || e->frame < 0){

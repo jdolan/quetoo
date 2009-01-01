@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "bspfile.h"
 #include "scriplib.h"
@@ -87,8 +87,8 @@ byte dpop[256];
 
 
 /*
-CompressVis
-*/
+ * CompressVis
+ */
 int CompressVis(byte *vis, byte *dest){
 	int j;
 	int rep;
@@ -118,8 +118,8 @@ int CompressVis(byte *vis, byte *dest){
 
 
 /*
-DecompressVis
-*/
+ * DecompressVis
+ */
 void DecompressVis(byte *in, byte *decompressed){
 	int c;
 	byte *out;
@@ -147,10 +147,10 @@ void DecompressVis(byte *in, byte *decompressed){
 
 
 /*
-SwapBSPFile
-
-Byte swaps all data in a bsp file.
-*/
+ * SwapBSPFile
+ * 
+ * Byte swaps all data in a bsp file.
+ */
 static void SwapBSPFile(qboolean todisk){
 	int i, j;
 
@@ -305,8 +305,8 @@ static int CopyLump(int lump, void *dest, int size){
 
 
 /*
-LoadBSPFile
-*/
+ * LoadBSPFile
+ */
 void LoadBSPFile(char *filename){
 	int i;
 
@@ -361,10 +361,10 @@ void LoadBSPFile(char *filename){
 
 
 /*
-LoadBSPFileTexinfo
-
-Only loads the texinfo lump, so we can scan for textures.
-*/
+ * LoadBSPFileTexinfo
+ * 
+ * Only loads the texinfo lump, so we can scan for textures.
+ */
 void LoadBSPFileTexinfo(char *filename){
 	int i;
 	FILE *f;
@@ -407,8 +407,8 @@ dbspheader_t outheader;
 
 
 /*
-AddLump
-*/
+ * AddLump
+ */
 static void AddLump(int lumpnum, void *data, int len){
 	lump_t *lump;
 
@@ -422,10 +422,10 @@ static void AddLump(int lumpnum, void *data, int len){
 
 
 /*
-WriteBSPFile
-
-Swaps the bsp file in place, so it should not be referenced again
-*/
+ * WriteBSPFile
+ * 
+ * Swaps the bsp file in place, so it should not be referenced again
+ */
 void WriteBSPFile(char *filename){
 	header = &outheader;
 	memset(header, 0, sizeof(dbspheader_t));
@@ -476,10 +476,10 @@ void WriteBSPFile(char *filename){
 
 
 /*
-PrintBSPFileSizes
-
-Dumps info about current file
-*/
+ * PrintBSPFileSizes
+ * 
+ * Dumps info about current file
+ */
 void PrintBSPFileSizes(void){
 
 	if(!num_entities)
@@ -527,8 +527,8 @@ entity_t entities[MAX_BSP_ENTITIES];
 
 
 /*
-StripTrailing
-*/
+ * StripTrailing
+ */
 static void StripTrailing(char *e){
 	char *s;
 
@@ -541,8 +541,8 @@ static void StripTrailing(char *e){
 
 
 /*
-ParseEpair
-*/
+ * ParseEpair
+ */
 epair_t *ParseEpair(void){
 	epair_t	*e;
 
@@ -566,8 +566,8 @@ epair_t *ParseEpair(void){
 
 
 /*
-ParseEntity
-*/
+ * ParseEntity
+ */
 static qboolean ParseEntity(void){
 	epair_t *e;
 	entity_t *mapent;
@@ -599,10 +599,10 @@ static qboolean ParseEntity(void){
 
 
 /*
-ParseEntities
-
-Parses the dentdata string into entities
-*/
+ * ParseEntities
+ * 
+ * Parses the dentdata string into entities
+ */
 void ParseEntities(void){
 	int subdivide;
 
@@ -621,10 +621,10 @@ void ParseEntities(void){
 
 
 /*
-UnparseEntities
-
-Generates the entdata string from all the entities
-*/
+ * UnparseEntities
+ * 
+ * Generates the entdata string from all the entities
+ */
 void UnparseEntities(void){
 	char *buf, *end;
 	epair_t	*ep;

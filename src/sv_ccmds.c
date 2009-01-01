@@ -1,36 +1,36 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "server.h"
 
 /*
-
-OPERATOR CONSOLE ONLY COMMANDS
-
-These commands can only be entered from stdin or by a remote operator datagram
-*/
+ * 
+ * OPERATOR CONSOLE ONLY COMMANDS
+ * 
+ * These commands can only be entered from stdin or by a remote operator datagram
+ */
 
 /*
-Sv_SetMaster_f
-*/
+ * Sv_SetMaster_f
+ */
 static void Sv_SetMaster_f(void){
 	int i, slot;
 
@@ -69,18 +69,18 @@ static void Sv_SetMaster_f(void){
 
 
 /*
-Sv_Heartbeat_f
-*/
+ * Sv_Heartbeat_f
+ */
 static void Sv_Heartbeat_f(void){
 	svs.last_heartbeat = -9999999;
 }
 
 
 /*
-Sv_SetPlayer
-
-Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
-*/
+ * Sv_SetPlayer
+ * 
+ * Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
+ */
 static qboolean Sv_SetPlayer(void){
 	client_t *cl;
 	int i;
@@ -126,10 +126,10 @@ static qboolean Sv_SetPlayer(void){
 
 
 /*
-Sv_Demo_f
-
-Starts playback of the specified demo file.
-*/
+ * Sv_Demo_f
+ * 
+ * Starts playback of the specified demo file.
+ */
 static void Sv_Demo_f(void){
 	char demo[MAX_QPATH];
 
@@ -145,8 +145,8 @@ static void Sv_Demo_f(void){
 
 
 /*
-Sv_Map_f
-*/
+ * Sv_Map_f
+ */
 static void Sv_Map_f(void){
 
 	if(Cmd_Argc() != 2){
@@ -160,10 +160,10 @@ static void Sv_Map_f(void){
 
 
 /*
-Sv_Kick_f
-
-Kick a user off of the server
-*/
+ * Sv_Kick_f
+ * 
+ * Kick a user off of the server
+ */
 static void Sv_Kick_f(void){
 
 	if(!svs.initialized){
@@ -184,8 +184,8 @@ static void Sv_Kick_f(void){
 
 
 /*
-Sv_Status_f
-*/
+ * Sv_Status_f
+ */
 static void Sv_Status_f(void){
 	int i, j, l;
 	extern int zlib_accum;
@@ -237,8 +237,8 @@ static void Sv_Status_f(void){
 
 
 /*
-Sv_Say_f
-*/
+ * Sv_Say_f
+ */
 static void Sv_Say_f(void){
 	client_t *client;
 	int j;
@@ -269,8 +269,8 @@ static void Sv_Say_f(void){
 
 
 /*
-Sv_Serverinfo_f
-*/
+ * Sv_Serverinfo_f
+ */
 static void Sv_Serverinfo_f(void){
 
 	if(!svs.initialized){
@@ -284,8 +284,8 @@ static void Sv_Serverinfo_f(void){
 
 
 /*
-Sv_Userinfo_f
-*/
+ * Sv_Userinfo_f
+ */
 static void Sv_Userinfo_f(void){
 
 	if(!svs.initialized){
@@ -306,8 +306,8 @@ static void Sv_Userinfo_f(void){
 
 
 /*
-Sv_InitOperatorCommands
-*/
+ * Sv_InitOperatorCommands
+ */
 void Sv_InitOperatorCommands(void){
 	Cmd_AddCommand("kick", Sv_Kick_f, "Kick a specific user");
 	Cmd_AddCommand("status", Sv_Status_f, "Print some server status information");

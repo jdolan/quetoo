@@ -1,22 +1,22 @@
 /*
-* Copyright(c) 2002 r1ch.net.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 2002 r1ch.net.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 
 #include <stdio.h>
@@ -49,8 +49,8 @@ int sock;
 
 
 /*
-Ms_Printf
-*/
+ * Ms_Printf
+ */
 static void Ms_Printf(const char *msg, ...){
 	va_list argptr;
 	char text[1024];
@@ -65,8 +65,8 @@ static void Ms_Printf(const char *msg, ...){
 
 
 /*
-Ms_Shutdown
-*/
+ * Ms_Shutdown
+ */
 static void Ms_Shutdown(void){
 	server_t *server = &servers;
 	server_t *old = NULL;
@@ -86,8 +86,8 @@ static void Ms_Shutdown(void){
 
 
 /*
-Ms_GetServer
-*/
+ * Ms_GetServer
+ */
 static server_t *Ms_GetServer(struct sockaddr_in *from){
 	server_t *server = &servers;
 
@@ -102,8 +102,8 @@ static server_t *Ms_GetServer(struct sockaddr_in *from){
 
 
 /*
-Ms_DropServer
-*/
+ * Ms_DropServer
+ */
 static void Ms_DropServer(server_t *server){
 
 	if(server->next)
@@ -117,8 +117,8 @@ static void Ms_DropServer(server_t *server){
 
 
 /*
-Ms_AddServer
-*/
+ * Ms_AddServer
+ */
 static void Ms_AddServer(struct sockaddr_in *from){
 	struct sockaddr_in addr;
 	server_t *server = &servers;
@@ -156,8 +156,8 @@ static void Ms_AddServer(struct sockaddr_in *from){
 
 
 /*
-Ms_RemoveServer
-*/
+ * Ms_RemoveServer
+ */
 static void Ms_RemoveServer(struct sockaddr_in *from, server_t *server){
 
 	if(!server)  // resolve from address
@@ -173,8 +173,8 @@ static void Ms_RemoveServer(struct sockaddr_in *from, server_t *server){
 
 
 /*
-Ms_RunFrame
-*/
+ * Ms_RunFrame
+ */
 static void Ms_RunFrame(void){
 	server_t *server = &servers;
 	unsigned int curtime = time(0);
@@ -210,8 +210,8 @@ static void Ms_RunFrame(void){
 
 
 /*
-Ms_SendServersList
-*/
+ * Ms_SendServersList
+ */
 static void Ms_SendServersList(struct sockaddr_in *from){
 	int buflen;
 	char buff[0xFFFF];
@@ -241,8 +241,8 @@ static void Ms_SendServersList(struct sockaddr_in *from){
 
 
 /*
-Ms_Ack
-*/
+ * Ms_Ack
+ */
 static void Ms_Ack(struct sockaddr_in *from){
 	server_t *server;
 
@@ -258,8 +258,8 @@ static void Ms_Ack(struct sockaddr_in *from){
 
 
 /*
-Ms_Heartbeat
-*/
+ * Ms_Heartbeat
+ */
 static void Ms_Heartbeat(struct sockaddr_in *from, char *data){
 	server_t *server;
 	struct sockaddr_in addr;
@@ -282,8 +282,8 @@ static void Ms_Heartbeat(struct sockaddr_in *from, char *data){
 
 
 /*
-Ms_ParseMessage
-*/
+ * Ms_ParseMessage
+ */
 static void Ms_ParseMessage(struct sockaddr_in *from, char *data){
 	char *cmd = data;
 	char *line = data;
@@ -311,8 +311,8 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data){
 
 
 /*
-Ms_HandleSignal
-*/
+ * Ms_HandleSignal
+ */
 static void Ms_HandleSignal(int sig){
 
 	Ms_Printf("Received signal %d, exiting..\n", sig);
@@ -324,8 +324,8 @@ static void Ms_HandleSignal(int sig){
 
 
 /*
-main
-*/
+ * main
+ */
 int main(int argc, char **argv){
 	struct sockaddr_in address, from;
 	struct timeval delay;

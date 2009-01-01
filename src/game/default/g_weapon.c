@@ -1,30 +1,30 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "g_local.h"
 
 
 /*
-G_PlayerProjectile
-*/
+ * G_PlayerProjectile
+ */
 static void G_PlayerProjectile(edict_t *ent, vec3_t scale){
 	vec3_t tmp;
 	int i;
@@ -40,8 +40,8 @@ static void G_PlayerProjectile(edict_t *ent, vec3_t scale){
 
 
 /*
-G_ImmediateWall
-*/
+ * G_ImmediateWall
+ */
 static qboolean G_ImmediateWall(edict_t *ent, vec3_t dir){
 	trace_t tr;
 	vec3_t end;
@@ -54,8 +54,8 @@ static qboolean G_ImmediateWall(edict_t *ent, vec3_t dir){
 
 
 /*
-G_IsStructural
-*/
+ * G_IsStructural
+ */
 static qboolean G_IsStructural(edict_t *ent, csurface_t *surf){
 
 	if(!ent || ent->client || ent->takedamage)
@@ -70,10 +70,10 @@ static qboolean G_IsStructural(edict_t *ent, csurface_t *surf){
 
 
 /*
-G_BubbleTrail
-
-Used to add generic bubble trails to shots.
-*/
+ * G_BubbleTrail
+ * 
+ * Used to add generic bubble trails to shots.
+ */
 static void G_BubbleTrail(vec3_t start, trace_t *tr){
 	vec3_t dir, pos;
 
@@ -101,10 +101,10 @@ static void G_BubbleTrail(vec3_t start, trace_t *tr){
 
 
 /*
-G_Tracer
-
-Used to add trails to bullet shots.
-*/
+ * G_Tracer
+ * 
+ * Used to add trails to bullet shots.
+ */
 static void G_Tracer(vec3_t start, vec3_t end){
 	vec3_t dir, mid;
 	float len;
@@ -126,8 +126,8 @@ static void G_Tracer(vec3_t start, vec3_t end){
 
 
 /*
-G_BulletMark
-*/
+ * G_BulletMark
+ */
 static void G_BulletMark(vec3_t org, cplane_t *plane, csurface_t *surf){
 
 	gi.WriteByte(svc_temp_entity);
@@ -140,10 +140,10 @@ static void G_BulletMark(vec3_t org, cplane_t *plane, csurface_t *surf){
 
 
 /*
-G_BurnMark
-
-Used to add burn marks on surfaces hit by projectiles.
-*/
+ * G_BurnMark
+ * 
+ * Used to add burn marks on surfaces hit by projectiles.
+ */
 static void G_BurnMark(vec3_t org, cplane_t *plane, csurface_t *surf, byte scale){
 
 	gi.WriteByte(svc_temp_entity);
@@ -157,10 +157,10 @@ static void G_BurnMark(vec3_t org, cplane_t *plane, csurface_t *surf, byte scale
 
 
 /*
-G_FireBullet
-
-Used by bullet and pellet weapons.
-*/
+ * G_FireBullet
+ * 
+ * Used by bullet and pellet weapons.
+ */
 void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
 		int damage, int knockback, int hspread, int vspread, int mod){
 	trace_t tr;
@@ -238,10 +238,10 @@ void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
 
 
 /*
-G_FireShotgun
-
-Fires shotgun pellets.  Used by shotgun and super shotgun.
-*/
+ * G_FireShotgun
+ * 
+ * Fires shotgun pellets.  Used by shotgun and super shotgun.
+ */
 void G_FireShotgun(edict_t *self, vec3_t start, vec3_t aimdir,
 		int damage, int knockback, int hspread, int vspread, int count, int mod){
 	int i;
@@ -252,8 +252,8 @@ void G_FireShotgun(edict_t *self, vec3_t start, vec3_t aimdir,
 
 
 /*
-G_FireGrenadeLauncher
-*/
+ * G_FireGrenadeLauncher
+ */
 static void G_GrenadeExplode(edict_t *ent){
 	vec3_t origin;
 
@@ -373,8 +373,8 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 
 
 /*
-G_FireRocketLauncher
-*/
+ * G_FireRocketLauncher
+ */
 static void G_RocketTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
 	vec3_t origin;
 
@@ -489,8 +489,8 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 
 
 /*
-G_FireHyperblaster
-*/
+ * G_FireHyperblaster
+ */
 static void G_HyperblasterTouch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
 	vec3_t origin;
 	vec3_t v;
@@ -568,8 +568,8 @@ void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
 
 
 /*
-G_FireLightning
-*/
+ * G_FireLightning
+ */
 static void G_LightningDischarge(edict_t *self){
 	edict_t *ent;
 	int i;
@@ -707,8 +707,8 @@ void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int
 
 
 /*
-G_FireRailgun
-*/
+ * G_FireRailgun
+ */
 void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int knockback){
 	vec3_t from;
 	vec3_t end;
@@ -793,8 +793,8 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 
 
 /*
-G_FireBFG
-*/
+ * G_FireBFG
+ */
 static void G_BFGTouch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
 	vec3_t origin;
 

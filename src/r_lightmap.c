@@ -1,36 +1,36 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
 /*
-In video memory, lightmaps are chunked into NxN RGBA blocks.  In the bsp,
-they are just RGB, and we retrieve them using floating point for precision.
-*/
+ * In video memory, lightmaps are chunked into NxN RGBA blocks.  In the bsp,
+ * they are just RGB, and we retrieve them using floating point for precision.
+ */
 
 lightmaps_t r_lightmaps;
 
 /*
-R_UploadLightmapBlock
-*/
+ * R_UploadLightmapBlock
+ */
 static void R_UploadLightmapBlock(){
 
 	if(r_lightmaps.lightmap_texnum == MAX_GL_LIGHTMAPS){
@@ -74,8 +74,8 @@ static void R_UploadLightmapBlock(){
 
 
 /*
-R_AllocLightmapBlock
-*/
+ * R_AllocLightmapBlock
+ */
 static qboolean R_AllocLightmapBlock(int w, int h, int *x, int *y){
 	int i, j;
 	int best;
@@ -108,8 +108,8 @@ static qboolean R_AllocLightmapBlock(int w, int h, int *x, int *y){
 
 
 /*
-R_BuildDefaultLightmap
-*/
+ * R_BuildDefaultLightmap
+ */
 static void R_BuildDefaultLightmap(msurface_t *surf, byte *sout, byte *dout, int stride){
 	int i, j;
 
@@ -145,11 +145,11 @@ static void R_BuildDefaultLightmap(msurface_t *surf, byte *sout, byte *dout, int
 
 
 /*
-R_BuildLightmap
-
-Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
-writing processed lightmap and deluxemap RGBA to the specified destinations.
-*/
+ * R_BuildLightmap
+ * 
+ * Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
+ * writing processed lightmap and deluxemap RGBA to the specified destinations.
+ */
 static void R_BuildLightmap(msurface_t *surf, byte *sout, byte *dout, int stride){
 	int i, j;
 	byte *lightmap, *lm, *l, *deluxemap, *dm;
@@ -256,8 +256,8 @@ static void R_BuildLightmap(msurface_t *surf, byte *sout, byte *dout, int stride
 
 
 /*
-R_CreateSurfaceLightmap
-*/
+ * R_CreateSurfaceLightmap
+ */
 void R_CreateSurfaceLightmap(msurface_t *surf){
 	int smax, tmax, stride;
 	byte *samples, *directions;
@@ -297,8 +297,8 @@ void R_CreateSurfaceLightmap(msurface_t *surf){
 
 
 /*
-R_BeginBuildingLightmaps
-*/
+ * R_BeginBuildingLightmaps
+ */
 void R_BeginBuildingLightmaps(void){
 	int max;
 
@@ -327,8 +327,8 @@ void R_BeginBuildingLightmaps(void){
 
 
 /*
-R_EndBuildingLightmaps
-*/
+ * R_EndBuildingLightmaps
+ */
 void R_EndBuildingLightmaps(void){
 
 	// upload the pending lightmap block
@@ -337,11 +337,11 @@ void R_EndBuildingLightmaps(void){
 
 
 /*
-R_LightPoint_
-
-Clip to all surfaces within the specified range, accumulating static lighting
-color to the specified vector in the event of an intersection.
-*/
+ * R_LightPoint_
+ * 
+ * Clip to all surfaces within the specified range, accumulating static lighting
+ * color to the specified vector in the event of an intersection.
+ */
 static qboolean R_LightPoint_(const int firstsurface, const int numsurfaces,
 		const vec3_t point, vec3_t color){
 	msurface_t *surf;
@@ -397,8 +397,8 @@ static qboolean R_LightPoint_(const int firstsurface, const int numsurfaces,
 
 
 /*
-R_LightPointLerp
-*/
+ * R_LightPointLerp
+ */
 static void R_LightPointLerp(static_lighting_t *lighting){
 	float lerp;
 
@@ -416,8 +416,8 @@ static void R_LightPointLerp(static_lighting_t *lighting){
 
 
 /*
-R_LightPoint
-*/
+ * R_LightPoint
+ */
 void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 	vec3_t start, end;
 	float delta;

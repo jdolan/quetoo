@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
@@ -39,8 +39,8 @@ static short *snd_out;
 
 
 /*
-S_WriteLinearBlastStereo16
-*/
+ * S_WriteLinearBlastStereo16
+ */
 static void S_WriteLinearBlastStereo16(void){
 	int i;
 	int val;
@@ -66,8 +66,8 @@ static void S_WriteLinearBlastStereo16(void){
 
 
 /*
-S_TransferStereo16
-*/
+ * S_TransferStereo16
+ */
 static void S_TransferStereo16(unsigned long *pbuf, int endtime){
 	int paintedtime;
 
@@ -96,8 +96,8 @@ static void S_TransferStereo16(unsigned long *pbuf, int endtime){
 
 
 /*
-S_TransferPaintBuffer
-*/
+ * S_TransferPaintBuffer
+ */
 static void S_TransferPaintBuffer(int endtime){
 	int out_idx, out_mask;
 	int i, count;
@@ -157,8 +157,8 @@ void S_PaintChannelFrom8(channel_t *ch, sfxcache_t *sc, int endtime, int offset)
 void S_PaintChannelFrom16(channel_t *ch, sfxcache_t *sc, int endtime, int offset);
 
 /*
-S_PaintChannels
-*/
+ * S_PaintChannels
+ */
 void S_PaintChannels(int endtime){
 	int i;
 	int end;
@@ -262,8 +262,8 @@ void S_PaintChannels(int endtime){
 
 
 /*
-S_InitScaletable
-*/
+ * S_InitScaletable
+ */
 void S_InitScaletable(void){
 	int i, j;
 	int scale;
@@ -283,8 +283,8 @@ void S_InitScaletable(void){
 
 
 /*
-S_PaintChannelFrom8
-*/
+ * S_PaintChannelFrom8
+ */
 void S_PaintChannelFrom8(channel_t *ch, sfxcache_t *sc, int count, int offset){
 	int data;
 	int *lscale, *rscale;
@@ -314,8 +314,8 @@ void S_PaintChannelFrom8(channel_t *ch, sfxcache_t *sc, int count, int offset){
 
 
 /*
-S_PaintChannelFrom16
-*/
+ * S_PaintChannelFrom16
+ */
 void S_PaintChannelFrom16(channel_t *ch, sfxcache_t *sc, int count, int offset){
 	int data;
 	int left, right;

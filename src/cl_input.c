@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <SDL.h>
 
@@ -61,21 +61,21 @@ static float old_mouse_x, old_mouse_y;
 
 
 /*
-KEY BUTTONS
-
-Continuous button event tracking is complicated by the fact that two different
-input sources (say, mouse button 1 and the control key) can both press the
-same button, but the button should only be released when both of the
-pressing key have been released.
-
-When a key event issues a button command (+forward, +attack, etc), it appends
-its key number as a parameter to the command so it can be matched up with
-the release.
-
-state bit 0 is the current state of the key
-state bit 1 is edge triggered on the up to down transition
-state bit 2 is edge triggered on the down to up transition
-*/
+ * KEY BUTTONS
+ * 
+ * Continuous button event tracking is complicated by the fact that two different
+ * input sources (say, mouse button 1 and the control key) can both press the
+ * same button, but the button should only be released when both of the
+ * pressing key have been released.
+ * 
+ * When a key event issues a button command (+forward, +attack, etc), it appends
+ * its key number as a parameter to the command so it can be matched up with
+ * the release.
+ * 
+ * state bit 0 is the current state of the key
+ * state bit 1 is edge triggered on the up to down transition
+ * state bit 2 is edge triggered on the down to up transition
+ */
 
 typedef struct {
 	int down[2];  // key nums holding it down
@@ -92,8 +92,8 @@ static kbutton_t in_up, in_down;
 
 
 /*
-Cl_KeyDown
-*/
+ * Cl_KeyDown
+ */
 static void Cl_KeyDown(kbutton_t *b){
 	int k;
 	char *c;
@@ -130,8 +130,8 @@ static void Cl_KeyDown(kbutton_t *b){
 
 
 /*
-Cl_KeyUp
-*/
+ * Cl_KeyUp
+ */
 static void Cl_KeyUp(kbutton_t *b){
 	int k;
 	char *c;
@@ -248,10 +248,10 @@ static void Cl_CenterView_f(void){
 
 
 /*
-Cl_KeyState
-
-Returns the fraction of the command interval for which the key was down.
-*/
+ * Cl_KeyState
+ * 
+ * Returns the fraction of the command interval for which the key was down.
+ */
 static float Cl_KeyState(kbutton_t *key, int cmd_msec){
 	int msec;
 	float v;
@@ -276,8 +276,8 @@ static float Cl_KeyState(kbutton_t *key, int cmd_msec){
 
 
 /*
-Cl_KeyMap
-*/
+ * Cl_KeyMap
+ */
 static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *unicode){
 	int key = 0;
 	const unsigned int keysym = event->key.keysym.sym;
@@ -480,8 +480,8 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *uni
 
 
 /*
-Cl_HandleEvent
-*/
+ * Cl_HandleEvent
+ */
 static void Cl_HandleEvent(SDL_Event *event){
 	unsigned int key;
 	unsigned short unicode;
@@ -531,8 +531,8 @@ static void Cl_HandleEvent(SDL_Event *event){
 
 
 /*
-Cl_MouseMove
-*/
+ * Cl_MouseMove
+ */
 static void Cl_MouseMove(int mx, int my){
 
 	if(m_interpolate->value){
@@ -561,8 +561,8 @@ static void Cl_MouseMove(int mx, int my){
 
 
 /*
-Cl_HandleEvents
-*/
+ * Cl_HandleEvents
+ */
 void Cl_HandleEvents(void){
 
 	SDL_Event event;
@@ -617,8 +617,8 @@ void Cl_HandleEvents(void){
 
 
 /*
-Cl_ClampPitch
-*/
+ * Cl_ClampPitch
+ */
 static void Cl_ClampPitch(void){
 	float pitch;
 
@@ -642,8 +642,8 @@ static void Cl_ClampPitch(void){
 
 
 /*
-Cl_Move
-*/
+ * Cl_Move
+ */
 void Cl_Move(usercmd_t *cmd){
 	float mod;
 	int i;
@@ -698,8 +698,8 @@ void Cl_Move(usercmd_t *cmd){
 
 
 /*
-Cl_InitInput
-*/
+ * Cl_InitInput
+ */
 void Cl_InitInput(void){
 	Cmd_AddCommand("centerview", Cl_CenterView_f, NULL);
 	Cmd_AddCommand("+moveup", Cl_UpDown_f, NULL);

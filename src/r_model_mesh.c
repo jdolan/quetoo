@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -28,11 +28,11 @@ static const char *weaps[] = {
 
 
 /*
-R_LoadMeshSkin
-
-Resolves the skin for the specified model.  For most models, skin.tga is tried
-within the model's directory.  Player-weapon models are a special case.
-*/
+ * R_LoadMeshSkin
+ * 
+ * Resolves the skin for the specified model.  For most models, skin.tga is tried
+ * within the model's directory.  Player-weapon models are a special case.
+ */
 static void R_LoadMeshSkin(model_t *mod){
 	char skin[MAX_QPATH];
 	qboolean weap;
@@ -68,8 +68,8 @@ static void R_LoadMeshSkin(model_t *mod){
 
 
 /*
-R_LoadMeshConfig
-*/
+ * R_LoadMeshConfig
+ */
 static void R_LoadMeshConfig(mesh_config_t *config, const char *path){
 	const char *buffer, *c;
 	void *buf;
@@ -114,8 +114,8 @@ static void R_LoadMeshConfig(mesh_config_t *config, const char *path){
 
 
 /*
-R_LoadMeshConfigs
-*/
+ * R_LoadMeshConfigs
+ */
 static void R_LoadMeshConfigs(model_t *mod){
 	char path[MAX_QPATH];
 	int i;
@@ -145,8 +145,8 @@ static void R_LoadMeshConfigs(model_t *mod){
 
 
 /*
-R_LoadMd2VertexArrays
-*/
+ * R_LoadMd2VertexArrays
+ */
 static void R_LoadMd2VertexArrays(model_t *mod){
 	dmd2_t *md2;
 	dmd2frame_t *frame;
@@ -203,8 +203,8 @@ static void R_LoadMd2VertexArrays(model_t *mod){
 
 
 /*
-R_LoadMd2Model
-*/
+ * R_LoadMd2Model
+ */
 void R_LoadMd2Model(model_t *mod, void *buffer){
 	int i, j, version;
 	dmd2_t *pinmodel, *poutmodel;
@@ -315,8 +315,8 @@ void R_LoadMd2Model(model_t *mod, void *buffer){
 
 
 /*
-R_LoadMd3VertexArrays
-*/
+ * R_LoadMd3VertexArrays
+ */
 static void R_LoadMd3VertexArrays(model_t *mod){
 	mmd3_t *md3;
 	dmd3frame_t *frame;
@@ -371,8 +371,8 @@ static void R_LoadMd3VertexArrays(model_t *mod){
 
 
 /*
-R_LoadMd3Model
-*/
+ * R_LoadMd3Model
+ */
 void R_LoadMd3Model(model_t *mod, void *buffer){
 	int version, i, j, l;
 	dmd3_t *pinmodel;

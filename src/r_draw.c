@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 #include "hash.h"
@@ -52,8 +52,8 @@ hashtable_t pics_hashtable;
 image_t *draw_chars;
 
 /*
-R_InitDraw
-*/
+ * R_InitDraw
+ */
 void R_InitDraw(void){
 
 	draw_chars = R_LoadImage("pics/conchars", it_chars);
@@ -73,8 +73,8 @@ void R_InitDraw(void){
 
 
 /*
-R_DrawChar
-*/
+ * R_DrawChar
+ */
 void R_DrawChar(int x, int y, char c, int color){
 	int row, col;
 	float frow, fcol;
@@ -129,8 +129,8 @@ void R_DrawChar(int x, int y, char c, int color){
 
 
 /*
-R_DrawChars
-*/
+ * R_DrawChars
+ */
 void R_DrawChars(void){
 
 	R_BindTexture(draw_chars->texnum);
@@ -159,27 +159,27 @@ void R_DrawChars(void){
 
 
 /*
-R_DrawString
-*/
+ * R_DrawString
+ */
 int R_DrawString(int x, int y, const char *s, int color){
 	return R_DrawSizedString(x, y, s, 999, 999, color);
 }
 
 
 /*
-R_DrawBytes
-*/
+ * R_DrawBytes
+ */
 int R_DrawBytes(int x, int y, const char *s, int size, int color){
 	return R_DrawSizedString(x, y, s, size, size, color);
 }
 
 
 /*
-R_DrawSizedString
-
-Draws at most len chars or size bytes of the specified string.  Color escape
-sequences are not visible chars.  Returns the number of chars drawn.
-*/
+ * R_DrawSizedString
+ * 
+ * Draws at most len chars or size bytes of the specified string.  Color escape
+ * sequences are not visible chars.  Returns the number of chars drawn.
+ */
 int R_DrawSizedString(int x, int y, const char *s, int len, int size, int color){
 	int i, j;
 
@@ -213,8 +213,8 @@ int R_DrawSizedString(int x, int y, const char *s, int len, int size, int color)
 
 
 /*
-R_FreePics
-*/
+ * R_FreePics
+ */
 void R_FreePics(void){
 	Com_HashFree(&pics_hashtable);
 	Com_HashInit(&pics_hashtable);
@@ -222,8 +222,8 @@ void R_FreePics(void){
 
 
 /*
-R_LoadPic
-*/
+ * R_LoadPic
+ */
 image_t *R_LoadPic(const char *name){
 	int i;
 	image_t *image;
@@ -252,8 +252,8 @@ image_t *R_LoadPic(const char *name){
 
 
 /*
-R_DrawScaledPic
-*/
+ * R_DrawScaledPic
+ */
 void R_DrawScaledPic(int x, int y, float scale, const char *name){
 	image_t *pic;
 
@@ -284,16 +284,16 @@ void R_DrawScaledPic(int x, int y, float scale, const char *name){
 
 
 /*
-R_DrawPic
-*/
+ * R_DrawPic
+ */
 void R_DrawPic(int x, int y, const char *name){
 	R_DrawScaledPic(x, y, 1.0, name);
 }
 
 
 /*
-R_DrawFillAlpha
-*/
+ * R_DrawFillAlpha
+ */
 void R_DrawFillAlpha(int x, int y, int w, int h, int c, float a){
 	byte color[4];
 
@@ -334,18 +334,18 @@ void R_DrawFillAlpha(int x, int y, int w, int h, int c, float a){
 
 
 /*
-R_DrawFill
-
-Fills a box of pixels with a single color
-*/
+ * R_DrawFill
+ * 
+ * Fills a box of pixels with a single color
+ */
 void R_DrawFill(int x, int y, int w, int h, int c){
 	R_DrawFillAlpha(x, y, w, h, c, 1.0);
 }
 
 
 /*
-R_DrawFillAlphas
-*/
+ * R_DrawFillAlphas
+ */
 void R_DrawFillAlphas(void){
 
 	R_EnableTexture(&texunit_diffuse, false);

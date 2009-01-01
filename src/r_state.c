@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -27,8 +27,8 @@ float default_texcoords[] = {  // useful for particles, pics, etc..
 
 
 /*
-R_SelectTexture
-*/
+ * R_SelectTexture
+ */
 inline void R_SelectTexture(r_texunit_t *texunit){
 
 	if(texunit == r_state.active_texunit)
@@ -42,8 +42,8 @@ inline void R_SelectTexture(r_texunit_t *texunit){
 
 
 /*
-R_BindTexture
-*/
+ * R_BindTexture
+ */
 inline void R_BindTexture(GLuint texnum){
 
 	if(texnum == r_state.active_texunit->texnum)
@@ -56,8 +56,8 @@ inline void R_BindTexture(GLuint texnum){
 
 
 /*
-R_BindLightmapTexture
-*/
+ * R_BindLightmapTexture
+ */
 inline void R_BindLightmapTexture(GLuint texnum){
 
 	if(texnum == texunit_lightmap.texnum)
@@ -72,8 +72,8 @@ inline void R_BindLightmapTexture(GLuint texnum){
 
 
 /*
-R_BindDeluxemapTexture
-*/
+ * R_BindDeluxemapTexture
+ */
 inline void R_BindDeluxemapTexture(GLuint texnum){
 
 	if(texnum == texunit_deluxemap.texnum)
@@ -88,8 +88,8 @@ inline void R_BindDeluxemapTexture(GLuint texnum){
 
 
 /*
-R_BindNormalmapTexture
-*/
+ * R_BindNormalmapTexture
+ */
 inline void R_BindNormalmapTexture(GLuint texnum){
 
 	if(texnum == texunit_normalmap.texnum)
@@ -104,8 +104,8 @@ inline void R_BindNormalmapTexture(GLuint texnum){
 
 
 /*
-R_BindArray
-*/
+ * R_BindArray
+ */
 inline void R_BindArray(GLenum target, GLenum type, GLvoid *array){
 
 	switch(target){
@@ -134,8 +134,8 @@ inline void R_BindArray(GLenum target, GLenum type, GLvoid *array){
 
 
 /*
-R_BindDefaultArray
-*/
+ * R_BindDefaultArray
+ */
 inline void R_BindDefaultArray(GLenum target){
 
 	switch(target){
@@ -164,8 +164,8 @@ inline void R_BindDefaultArray(GLenum target){
 
 
 /*
-R_BindBuffer
-*/
+ * R_BindBuffer
+ */
 inline void R_BindBuffer(GLenum target, GLenum type, GLuint id){
 
 	if(!qglBindBuffer)
@@ -185,8 +185,8 @@ inline void R_BindBuffer(GLenum target, GLenum type, GLuint id){
 
 
 /*
-R_BlendFunc
-*/
+ * R_BlendFunc
+ */
 inline void R_BlendFunc(GLenum src, GLenum dest){
 
 	if(r_state.blend_src == src && r_state.blend_dest == dest)
@@ -200,8 +200,8 @@ inline void R_BlendFunc(GLenum src, GLenum dest){
 
 
 /*
-R_EnableBlend
-*/
+ * R_EnableBlend
+ */
 inline void R_EnableBlend(qboolean enable){
 
 	if(r_state.blend_enabled == enable)
@@ -221,8 +221,8 @@ inline void R_EnableBlend(qboolean enable){
 
 
 /*
-R_EnableAlphaTest
-*/
+ * R_EnableAlphaTest
+ */
 inline void R_EnableAlphaTest(qboolean enable){
 
 	if(r_state.alpha_test_enabled == enable)
@@ -238,8 +238,8 @@ inline void R_EnableAlphaTest(qboolean enable){
 
 
 /*
-R_EnableTexture
-*/
+ * R_EnableTexture
+ */
 inline void R_EnableTexture(r_texunit_t *texunit, qboolean enable){
 
 	if(enable == texunit->enabled)
@@ -276,8 +276,8 @@ inline void R_EnableTexture(r_texunit_t *texunit, qboolean enable){
 
 
 /*
-R_EnableColorArray
-*/
+ * R_EnableColorArray
+ */
 inline void R_EnableColorArray(qboolean enable){
 
 	if(r_state.color_array_enabled == enable)
@@ -293,8 +293,8 @@ inline void R_EnableColorArray(qboolean enable){
 
 
 /*
-R_EnableLighting
-*/
+ * R_EnableLighting
+ */
 inline void R_EnableLighting(r_program_t *program, qboolean enable){
 
 	if(!r_programs->value || (enable && !program))
@@ -319,8 +319,8 @@ inline void R_EnableLighting(r_program_t *program, qboolean enable){
 
 
 /*
-R_UseMaterial
-*/
+ * R_UseMaterial
+ */
 static inline void R_UseMaterial(material_t *material){
 	static float b, last_b, p, last_p, h, last_h, s, last_s;
 
@@ -355,8 +355,8 @@ static inline void R_UseMaterial(material_t *material){
 
 
 /*
-R_EnableBumpmap
-*/
+ * R_EnableBumpmap
+ */
 inline void R_EnableBumpmap(material_t *material, qboolean enable){
 
 	if(!r_state.lighting_enabled)
@@ -386,8 +386,8 @@ inline void R_EnableBumpmap(material_t *material, qboolean enable){
 
 
 /*
-R_EnableWarp
-*/
+ * R_EnableWarp
+ */
 inline void R_EnableWarp(r_program_t *program, qboolean enable){
 
 	if(!r_programs->value || (enable && !program))
@@ -418,8 +418,8 @@ inline void R_EnableWarp(r_program_t *program, qboolean enable){
 
 
 /*
-R_EnableFog
-*/
+ * R_EnableFog
+ */
 inline void R_EnableFog(qboolean enable){
 
 	if(!r_fog->value || r_state.fog_enabled == enable)
@@ -447,8 +447,8 @@ inline void R_EnableFog(qboolean enable){
 
 
 /*
-R_Setup3D
-*/
+ * R_Setup3D
+ */
 void R_Setup3D(void){
 	float xmin, xmax, ymin, ymax;
 	float aspect;
@@ -499,8 +499,8 @@ void R_Setup3D(void){
 
 
 /*
-R_Setup2D
-*/
+ * R_Setup2D
+ */
 void R_Setup2D(void){
 
 	glViewport(0, 0, r_state.width, r_state.height);
@@ -528,10 +528,10 @@ void R_Setup2D(void){
 
 
 /*
-R_SetDefaultState
-
-Set OpenGL state parameters we never change.
-*/
+ * R_SetDefaultState
+ * 
+ * Set OpenGL state parameters we never change.
+ */
 void R_SetDefaultState(void){
 	int i;
 	r_texunit_t *tex;

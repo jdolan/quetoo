@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -25,8 +25,8 @@
 
 
 /*
-R_UpdateMaterial
-*/
+ * R_UpdateMaterial
+ */
 static void R_UpdateMaterial(material_t *m){
 	stage_t *s;
 
@@ -65,8 +65,8 @@ static void R_UpdateMaterial(material_t *m){
 
 
 /*
-R_StageTextureMatrix
-*/
+ * R_StageTextureMatrix
+ */
 static inline void R_StageTextureMatrix(msurface_t *surf, stage_t *stage){
 	static qboolean identity = true;
 	float s, t;
@@ -114,8 +114,8 @@ static inline void R_StageTextureMatrix(msurface_t *surf, stage_t *stage){
 
 
 /*
-R_StageTexCoord
-*/
+ * R_StageTexCoord
+ */
 static inline void R_StageTexCoord(stage_t *stage, vec3_t v, vec2_t in, vec2_t out){
 	vec3_t tmp;
 
@@ -135,8 +135,8 @@ static inline void R_StageTexCoord(stage_t *stage, vec3_t v, vec2_t in, vec2_t o
 
 
 /*
-R_StageVertex
-*/
+ * R_StageVertex
+ */
 static inline void R_StageVertex(msurface_t *surf, stage_t *stage, vec3_t in, vec3_t out){
 
 	// TODO: vertex deforms
@@ -145,8 +145,8 @@ static inline void R_StageVertex(msurface_t *surf, stage_t *stage, vec3_t in, ve
 
 
 /*
-R_StageColor
-*/
+ * R_StageColor
+ */
 static inline void R_StageColor(stage_t *stage, vec3_t v, vec4_t color){
 	float a;
 
@@ -174,8 +174,8 @@ static inline void R_StageColor(stage_t *stage, vec3_t v, vec4_t color){
 
 
 /*
-R_SetSurfaceStageState
-*/
+ * R_SetSurfaceStageState
+ */
 static void R_SetSurfaceStageState(msurface_t *surf, stage_t *stage){
 	vec4_t color;
 
@@ -235,8 +235,8 @@ static void R_SetSurfaceStageState(msurface_t *surf, stage_t *stage){
 
 
 /*
-R_DrawSurfaceStage
-*/
+ * R_DrawSurfaceStage
+ */
 static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
 	float *v, *st;
 	int i;
@@ -265,8 +265,8 @@ static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
 
 
 /*
-R_DrawMaterialSurfaces
-*/
+ * R_DrawMaterialSurfaces
+ */
 void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 	msurface_t *surf;
 	material_t *m;
@@ -329,8 +329,8 @@ void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 
 
 /*
-R_ClearMaterials
-*/
+ * R_ClearMaterials
+ */
 static void R_ClearMaterials(void){
 	material_t *m;
 	stage_t *s, *ss;
@@ -359,8 +359,8 @@ static void R_ClearMaterials(void){
 
 
 /*
-R_ConstByName
-*/
+ * R_ConstByName
+ */
 static inline GLenum R_ConstByName(const char *c){
 
 	if(!strcmp(c, "GL_ONE"))
@@ -380,8 +380,8 @@ static inline GLenum R_ConstByName(const char *c){
 
 
 /*
-R_LoadAnimImages
-*/
+ * R_LoadAnimImages
+ */
 static int R_LoadAnimImages(stage_t *s){
 	char *c, name[MAX_QPATH];
 	int i, j, k;
@@ -422,8 +422,8 @@ static int R_LoadAnimImages(stage_t *s){
 
 
 /*
-R_ParseStage
-*/
+ * R_ParseStage
+ */
 static int R_ParseStage(stage_t *s, const char **buffer){
 	const char *c;
 	int i;
@@ -709,8 +709,8 @@ static int R_ParseStage(stage_t *s, const char **buffer){
 
 
 /*
-R_LoadMaterials
-*/
+ * R_LoadMaterials
+ */
 void R_LoadMaterials(const char *map){
 	char path[MAX_QPATH];
 	void *buf;

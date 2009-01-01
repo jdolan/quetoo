@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -25,8 +25,8 @@
 #define LIGHT_RADIUS_FACTOR 100.0
 
 /*
-R_AddLight
-*/
+ * R_AddLight
+ */
 void R_AddLight(const vec3_t org, float radius, const vec3_t color){
 	light_t *l;
 
@@ -45,8 +45,8 @@ void R_AddLight(const vec3_t org, float radius, const vec3_t color){
 
 
 /*
-R_AddSustainedLight
-*/
+ * R_AddSustainedLight
+ */
 void R_AddSustainedLight(const vec3_t org, float radius, const vec3_t color, float sustain){
 	sustain_t *s;
 	int i;
@@ -73,8 +73,8 @@ void R_AddSustainedLight(const vec3_t org, float radius, const vec3_t color, flo
 
 
 /*
-R_AddSustainedLights
-*/
+ * R_AddSustainedLights
+ */
 static void R_AddSustainedLights(void){
 	vec3_t color;
 	float intensity;
@@ -98,8 +98,8 @@ static void R_AddSustainedLights(void){
 
 
 /*
-R_MarkLights_
-*/
+ * R_MarkLights_
+ */
 static void R_MarkLights_(light_t *light, vec3_t trans, int bit, mnode_t *node){
 	msurface_t *surf;
 	vec3_t origin;
@@ -150,8 +150,8 @@ static void R_MarkLights_(light_t *light, vec3_t trans, int bit, mnode_t *node){
 
 
 /*
-R_MarkLights
-*/
+ * R_MarkLights
+ */
 void R_MarkLights(void){
 	int i, j;
 
@@ -188,8 +188,8 @@ void R_MarkLights(void){
 
 
 /*
-R_EnableLights
-*/
+ * R_EnableLights
+ */
 void R_EnableLights(int mask){
 	static int last_mask;
 	static int last_count;
@@ -237,8 +237,8 @@ void R_EnableLights(int mask){
 
 
 /*
-R_EnableLightsByRadius
-*/
+ * R_EnableLightsByRadius
+ */
 void R_EnableLightsByRadius(const vec3_t p){
 	const light_t *l;
 	vec3_t delta;

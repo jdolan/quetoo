@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
@@ -48,20 +48,20 @@ qboolean gzip, success;
 
 
 /*
-Cl_HttpDownloadRecv
-*/
+ * Cl_HttpDownloadRecv
+ */
 static size_t Cl_HttpDownloadRecv(void *buffer, size_t size, size_t nmemb, void *p){
 	return Fs_Write(buffer, size, nmemb, cls.download.file);
 }
 
 
 /*
-Cl_HttpDownload
-
-Queue up an http download.  The url is resolved from cls.downloadurl and
-the current gamedir.  We use cURL's multi interface, even tho we only ever
-perform one download at a time, because it is non-blocking.
-*/
+ * Cl_HttpDownload
+ * 
+ * Queue up an http download.  The url is resolved from cls.downloadurl and
+ * the current gamedir.  We use cURL's multi interface, even tho we only ever
+ * perform one download at a time, because it is non-blocking.
+ */
 qboolean Cl_HttpDownload(void){
 	char game[64];
 
@@ -117,8 +117,8 @@ qboolean Cl_HttpDownload(void){
 
 
 /*
-Cl_HttpResponseCode
-*/
+ * Cl_HttpResponseCode
+ */
 static char *Cl_HttpResponseCode(long code){
 	int i = 0;
 	while(responses[i].code){
@@ -131,11 +131,11 @@ static char *Cl_HttpResponseCode(long code){
 
 
 /*
-Cl_HttpDownloadCleanup
-
-If a download is currently taking place, clean it up.  This is called
-both to finalize completed downloads as well as abort incomplete ones.
-*/
+ * Cl_HttpDownloadCleanup
+ * 
+ * If a download is currently taking place, clean it up.  This is called
+ * both to finalize completed downloads as well as abort incomplete ones.
+ */
 void Cl_HttpDownloadCleanup(){
 	char *c;
 	char f[MAX_OSPATH];
@@ -203,14 +203,14 @@ void Cl_HttpDownloadCleanup(){
 
 
 /*
-Cl_HttpDownloadThink
-
-Process the pending download by giving cURL some time to think.
-Poll it for feedback on the transfer to determine what action to take.
-If a transfer fails, stuff a stringcmd to download it via UDP.  Since
-we leave cls.download.tempname in tact during our cleanup, when the
-download is parsed back in the client, it will fopen and begin.
-*/
+ * Cl_HttpDownloadThink
+ * 
+ * Process the pending download by giving cURL some time to think.
+ * Poll it for feedback on the transfer to determine what action to take.
+ * If a transfer fails, stuff a stringcmd to download it via UDP.  Since
+ * we leave cls.download.tempname in tact during our cleanup, when the
+ * download is parsed back in the client, it will fopen and begin.
+ */
 void Cl_HttpDownloadThink(void){
 	CURLMsg *msg;
 	int i;
@@ -254,8 +254,8 @@ void Cl_HttpDownloadThink(void){
 
 
 /*
-Cl_InitHttpDownload
-*/
+ * Cl_InitHttpDownload
+ */
 void Cl_InitHttpDownload(void){
 
 	if(!(curlm = curl_multi_init()))
@@ -269,8 +269,8 @@ void Cl_InitHttpDownload(void){
 
 
 /*
-Cl_ShutdownHttpDownload
-*/
+ * Cl_ShutdownHttpDownload
+ */
 void Cl_ShutdownHttpDownload(void){
 
 	Cl_HttpDownloadCleanup();

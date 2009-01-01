@@ -1,30 +1,30 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
 
 /*
-R_SetSurfaceState_default
-*/
+ * R_SetSurfaceState_default
+ */
 static void R_SetSurfaceState_default(msurface_t *surf){
 	image_t *image;
 	float a;
@@ -76,8 +76,8 @@ static void R_SetSurfaceState_default(msurface_t *surf){
 
 
 /*
-R_DrawSurface_default
-*/
+ * R_DrawSurface_default
+ */
 static void R_DrawSurface_default(msurface_t *surf){
 
 	glDrawArrays(GL_POLYGON, surf->index, surf->numedges);
@@ -87,8 +87,8 @@ static void R_DrawSurface_default(msurface_t *surf){
 
 
 /*
-R_DrawSurfaces_default
-*/
+ * R_DrawSurfaces_default
+ */
 static void R_DrawSurfaces_default(msurfaces_t *surfs){
 	int i;
 
@@ -119,8 +119,8 @@ static void R_DrawSurfaces_default(msurfaces_t *surfs){
 
 
 /*
-R_DrawSurfacesLines_default
-*/
+ * R_DrawSurfacesLines_default
+ */
 static void R_DrawSurfacesLines_default(msurfaces_t *surfs){
 	int i;
 
@@ -149,8 +149,8 @@ static void R_DrawSurfacesLines_default(msurfaces_t *surfs){
 
 
 /*
-R_DrawOpaqueSurfaces_default
-*/
+ * R_DrawOpaqueSurfaces_default
+ */
 void R_DrawOpaqueSurfaces_default(msurfaces_t *surfs){
 
 	if(!surfs->count)
@@ -174,8 +174,8 @@ void R_DrawOpaqueSurfaces_default(msurfaces_t *surfs){
 
 
 /*
-R_DrawOpaqueWarpSurfaces_default
-*/
+ * R_DrawOpaqueWarpSurfaces_default
+ */
 void R_DrawOpaqueWarpSurfaces_default(msurfaces_t *surfs){
 
 	if(!surfs->count)
@@ -195,8 +195,8 @@ void R_DrawOpaqueWarpSurfaces_default(msurfaces_t *surfs){
 
 
 /*
-R_DrawAlphaTestSurfaces_default
-*/
+ * R_DrawAlphaTestSurfaces_default
+ */
 void R_DrawAlphaTestSurfaces_default(msurfaces_t *surfs){
 
 	if(!surfs->count)
@@ -220,8 +220,8 @@ void R_DrawAlphaTestSurfaces_default(msurfaces_t *surfs){
 
 
 /*
-R_DrawBlendSurfaces_default
-*/
+ * R_DrawBlendSurfaces_default
+ */
 void R_DrawBlendSurfaces_default(msurfaces_t *surfs){
 
 	if(!surfs->count)
@@ -242,8 +242,8 @@ void R_DrawBlendSurfaces_default(msurfaces_t *surfs){
 
 
 /*
-R_DrawBlendWarpSurfaces_default
-*/
+ * R_DrawBlendWarpSurfaces_default
+ */
 void R_DrawBlendWarpSurfaces_default(msurfaces_t *surfs){
 
 	if(!surfs->count)
@@ -263,6 +263,6 @@ void R_DrawBlendWarpSurfaces_default(msurfaces_t *surfs){
 
 
 /*
-R_DrawBackSurfaces_default
-*/
+ * R_DrawBackSurfaces_default
+ */
 void R_DrawBackSurfaces_default(msurfaces_t *surfs){}

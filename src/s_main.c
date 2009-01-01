@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
@@ -56,8 +56,8 @@ int s_rawend;
 
 
 /*
-S_FindName
-*/
+ * S_FindName
+ */
 static sfx_t *S_FindName(const char *name, qboolean create){
 	int i;
 	sfx_t *sfx;
@@ -102,8 +102,8 @@ static sfx_t *S_FindName(const char *name, qboolean create){
 
 
 /*
-S_AliasName
-*/
+ * S_AliasName
+ */
 static sfx_t *S_AliasName(const char *aliasname, const char *truename){
 	sfx_t *sfx;
 	char *s;
@@ -135,8 +135,8 @@ static sfx_t *S_AliasName(const char *aliasname, const char *truename){
 
 
 /*
-S_LoadSound
-*/
+ * S_LoadSound
+ */
 sfx_t *S_LoadSound(const char *name){
 	sfx_t *sfx;
 
@@ -154,8 +154,8 @@ sfx_t *S_LoadSound(const char *name){
 
 
 /*
-S_FreeAll
-*/
+ * S_FreeAll
+ */
 static void S_FreeAll(void){
 	int i;
 
@@ -172,8 +172,8 @@ static void S_FreeAll(void){
 
 
 /*
-S_LoadSounds
-*/
+ * S_LoadSounds
+ */
 void S_LoadSounds(void){
 	int i;
 
@@ -196,8 +196,8 @@ void S_LoadSounds(void){
 
 
 /*
-S_PickChannel
-*/
+ * S_PickChannel
+ */
 static channel_t *S_PickChannel(int entnum, int entchannel){
 	int ch_idx;
 	int first_to_die;
@@ -237,10 +237,10 @@ static channel_t *S_PickChannel(int entnum, int entchannel){
 
 
 /*
-S_SpatializeOrigin
-
-Used for spatializing channels and autosounds
-*/
+ * S_SpatializeOrigin
+ * 
+ * Used for spatializing channels and autosounds
+ */
 static void S_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult, int *left_vol, int *right_vol){
 	vec_t dot;
 	vec_t dist;
@@ -285,8 +285,8 @@ static void S_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult,
 
 
 /*
-S_Spatialize
-*/
+ * S_Spatialize
+ */
 static void S_Spatialize(channel_t *ch){
 	vec3_t origin;
 
@@ -307,8 +307,8 @@ static void S_Spatialize(channel_t *ch){
 
 
 /*
-S_AllocPlaysound
-*/
+ * S_AllocPlaysound
+ */
 static playsound_t *S_AllocPlaysound(void){
 	playsound_t *ps;
 
@@ -325,8 +325,8 @@ static playsound_t *S_AllocPlaysound(void){
 
 
 /*
-S_FreePlaysound
-*/
+ * S_FreePlaysound
+ */
 static void S_FreePlaysound(playsound_t *ps){
 	// unlink from channel
 	ps->prev->next = ps->next;
@@ -341,8 +341,8 @@ static void S_FreePlaysound(playsound_t *ps){
 
 
 /*
-S_IssuePlaysound
-*/
+ * S_IssuePlaysound
+ */
 void S_IssuePlaysound(playsound_t *ps){
 	channel_t *ch;
 	sfxcache_t *sc;
@@ -381,8 +381,8 @@ void S_IssuePlaysound(playsound_t *ps){
 
 
 /*
-S_LoadModelSound
-*/
+ * S_LoadModelSound
+ */
 static sfx_t *S_LoadModelSound(entity_state_t *ent, const char *base){
 	int n;
 	char *p;
@@ -435,12 +435,12 @@ static sfx_t *S_LoadModelSound(entity_state_t *ent, const char *base){
 
 
 /*
-S_StartSound
-
-Validates the parms and ques the sound up if pos is NULL, the sound
-will be dynamically sourced from the entity.  Entchannel 0 will never
-override a playing sound
-*/
+ * S_StartSound
+ * 
+ * Validates the parms and ques the sound up if pos is NULL, the sound
+ * will be dynamically sourced from the entity.  Entchannel 0 will never
+ * override a playing sound
+ */
 void S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 		float fvol, float attenuation, float timeofs){
 
@@ -514,8 +514,8 @@ void S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 
 /*
-S_StartLocalSound
-*/
+ * S_StartLocalSound
+ */
 void S_StartLocalSound(char *sound){
 	sfx_t *sfx;
 
@@ -533,9 +533,9 @@ void S_StartLocalSound(char *sound){
 
 
 /*
-Entities with a sound associated to them will generate looped ambient sounds
-that are automatically spatialized and mixed to a channel.
-*/
+ * Entities with a sound associated to them will generate looped ambient sounds
+ * that are automatically spatialized and mixed to a channel.
+ */
 
 typedef struct loop_sound_s {
 	sfx_t *sfx;
@@ -547,8 +547,8 @@ int num_loop_sounds = 0;
 
 
 /*
-S_AddLoopSound
-*/
+ * S_AddLoopSound
+ */
 void S_AddLoopSound(vec3_t org, sfx_t *sfx){
 	loop_sound_t *ls;
 	int i, l, r;
@@ -586,8 +586,8 @@ void S_AddLoopSound(vec3_t org, sfx_t *sfx){
 
 
 /*
-S_AddLoopSounds
-*/
+ * S_AddLoopSounds
+ */
 static void S_AddLoopSounds(void){
 	int i, num;
 	entity_state_t *ent;
@@ -668,8 +668,8 @@ static void S_AddLoopSounds(void){
 
 
 /*
-S_Stop
-*/
+ * S_Stop
+ */
 static void S_Stop(void){
 	int i;
 
@@ -697,8 +697,8 @@ static void S_Stop(void){
 
 
 /*
-S_GetSoundTime
-*/
+ * S_GetSoundTime
+ */
 static void S_GetSoundTime(void){
 	static int buffers;
 	static int oldoffset;
@@ -722,8 +722,8 @@ static void S_GetSoundTime(void){
 
 
 /*
-S_Update
-*/
+ * S_Update
+ */
 static void S_Update_(void){
 	unsigned endtime;
 	int samps;
@@ -751,8 +751,8 @@ static void S_Update_(void){
 
 
 /*
-S_Update
-*/
+ * S_Update
+ */
 void S_Update(void){
 	int i;
 	int total;
@@ -811,8 +811,8 @@ void S_Update(void){
 
 
 /*
-S_Info_f
-*/
+ * S_Info_f
+ */
 static void S_Info_f(void){
 
 	if(!s_initialized){
@@ -831,8 +831,8 @@ static void S_Info_f(void){
 
 
 /*
-S_Play_f
-*/
+ * S_Play_f
+ */
 static void S_Play_f(void){
 	int i;
 	char name[MAX_QPATH];
@@ -851,16 +851,16 @@ static void S_Play_f(void){
 
 
 /*
-S_Stop_f
-*/
+ * S_Stop_f
+ */
 static void S_Stop_f(void){
 	S_Stop();
 }
 
 
 /*
-S_List_f
-*/
+ * S_List_f
+ */
 static void S_List_f(void){
 	int i;
 	sfx_t *sfx;
@@ -893,16 +893,16 @@ static void S_List_f(void){
 
 
 /*
-S_Reload_f
-*/
+ * S_Reload_f
+ */
 static void S_Reload_f(void){
 	S_LoadSounds();
 }
 
 
 /*
-S_Restart_f
-*/
+ * S_Restart_f
+ */
 static void S_Restart_f(void){
 	S_Shutdown();
 	S_Init();
@@ -912,8 +912,8 @@ static void S_Restart_f(void){
 
 
 /*
-S_Init
-*/
+ * S_Init
+ */
 void S_Init(void){
 
 	if(Cvar_VariableValue("s_disable")){
@@ -956,8 +956,8 @@ void S_Init(void){
 
 
 /*
-S_Shutdown
-*/
+ * S_Shutdown
+ */
 void S_Shutdown(void){
 
 	if(!s_initialized)

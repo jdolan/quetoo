@@ -1,30 +1,30 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
 
 /*
-R_CreateSurfaceFlare
-*/
+ * R_CreateSurfaceFlare
+ */
 void R_CreateSurfaceFlare(msurface_t *surf){
 	material_t *m;
 	const stage_t *s;
@@ -67,14 +67,14 @@ void R_CreateSurfaceFlare(msurface_t *surf){
 
 
 /*
-R_DrawFlareSurfaces
-
-Flares are batched by their texture.  Usually, this means one draw operation
-for all flares in view.  Flare visibility is calculated every few millis, and
-flare alpha is ramped up or down depending on the results of the visibility
-trace.  Flares are also faded according to the angle of their surface to the
-view origin.
-*/
+ * R_DrawFlareSurfaces
+ * 
+ * Flares are batched by their texture.  Usually, this means one draw operation
+ * for all flares in view.  Flare visibility is calculated every few millis, and
+ * flare alpha is ramped up or down depending on the results of the visibility
+ * trace.  Flares are also faded according to the angle of their surface to the
+ * view origin.
+ */
 void R_DrawFlareSurfaces(msurfaces_t *surfs){
 	const image_t *image;
 	int i, j, k, l, m;

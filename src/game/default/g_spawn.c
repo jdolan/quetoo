@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "g_local.h"
 
@@ -76,10 +76,10 @@ spawn_t spawns[] = {
 
 
 /*
-G_CallSpawn
-
-Finds the spawn function for the entity and calls it
-*/
+ * G_CallSpawn
+ * 
+ * Finds the spawn function for the entity and calls it
+ */
 static void G_CallSpawn(edict_t *ent){
 	spawn_t *s;
 	gitem_t *item;
@@ -123,8 +123,8 @@ static void G_CallSpawn(edict_t *ent){
 
 
 /*
-G_NewString
-*/
+ * G_NewString
+ */
 static char *G_NewString(const char *string){
 	char *newb, *new_p;
 	int i, l;
@@ -253,11 +253,11 @@ static const field_t fields[] = {
 
 
 /*
-G_ParseField
-
-Takes a key/value pair and sets the binary values
-in an edict
-*/
+ * G_ParseField
+ * 
+ * Takes a key/value pair and sets the binary values
+ * in an edict
+ */
 static void G_ParseField(const char *key, const char *value, edict_t *ent){
 	const field_t *f;
 	byte *b;
@@ -306,11 +306,11 @@ static void G_ParseField(const char *key, const char *value, edict_t *ent){
 
 
 /*
-G_ParseEdict
-
-Parses an edict out of the given string, returning the new position
-ed should be a properly initialized empty edict.
-*/
+ * G_ParseEdict
+ * 
+ * Parses an edict out of the given string, returning the new position
+ * ed should be a properly initialized empty edict.
+ */
 static const char *G_ParseEdict(const char *data, edict_t *ent){
 	qboolean init;
 	char keyname[256];
@@ -356,13 +356,13 @@ static const char *G_ParseEdict(const char *data, edict_t *ent){
 
 
 /*
-G_FindEdictTeams
-
-Chain together all entities with a matching team field.
-
-All but the first will have the FL_TEAMSLAVE flag set.
-All but the last will have the teamchain field set to the next one
-*/
+ * G_FindEdictTeams
+ * 
+ * Chain together all entities with a matching team field.
+ * 
+ * All but the first will have the FL_TEAMSLAVE flag set.
+ * All but the last will have the teamchain field set to the next one
+ */
 static void G_FindEdictTeams(void){
 	edict_t *e, *e2, *chain;
 	int i, j;
@@ -403,11 +403,11 @@ static void G_FindEdictTeams(void){
 
 
 /*
-G_SpawnEntities
-
-Creates a server's entity / program execution context by
-parsing textual entity definitions out of an ent file.
-*/
+ * G_SpawnEntities
+ * 
+ * Creates a server's entity / program execution context by
+ * parsing textual entity definitions out of an ent file.
+ */
 void G_SpawnEntities(const char *name, const char *entities){
 	edict_t *ent;
 	int inhibit;
@@ -499,27 +499,27 @@ void G_SpawnEntities(const char *name, const char *entities){
 
 
 /*
-// cursor positioning
-xl <value>
-xr <value>
-yb <value>
-yt <value>
-xv <value>
-yv <value>
-
-// drawing
-statpic <name>
-pic <stat>
-num <fieldwidth> <stat>
-string <stat>
-
-// control
-if <stat>
-ifeq <stat> <value>
-ifbit <stat> <value>
-endif
-
-*/
+ * // cursor positioning
+ * xl <value>
+ * xr <value>
+ * yb <value>
+ * yt <value>
+ * xv <value>
+ * yv <value>
+ * 
+ * // drawing
+ * statpic <name>
+ * pic <stat>
+ * num <fieldwidth> <stat>
+ * string <stat>
+ * 
+ * // control
+ * if <stat>
+ * ifeq <stat> <value>
+ * ifbit <stat> <value>
+ * endif
+ * 
+ */
 
 char *dm_statusbar =
 	// health

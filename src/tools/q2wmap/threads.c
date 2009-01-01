@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <SDL/SDL_thread.h>
 
@@ -29,10 +29,10 @@ threadstate_t threadstate;
 
 
 /*
-GetThreadWork
-
-Return an iteration of work, updating progress when appropriate.
-*/
+ * GetThreadWork
+ * 
+ * Return an iteration of work, updating progress when appropriate.
+ */
 static int GetThreadWork(void){
 	int	r;
 	int	f;
@@ -69,11 +69,11 @@ static void(*WorkFunction)(int);
 
 
 /*
-ThreadWork
-
-Shared work entry point by all threads.  Retrieve and perform
-chunks of work iteratively until work is finished.
-*/
+ * ThreadWork
+ * 
+ * Shared work entry point by all threads.  Retrieve and perform
+ * chunks of work iteratively until work is finished.
+ */
 static int ThreadWork(void *p){
 	int work;
 
@@ -91,8 +91,8 @@ static int ThreadWork(void *p){
 SDL_mutex *lock = NULL;
 
 /*
-ThreadLock
-*/
+ * ThreadLock
+ */
 void ThreadLock(void){
 
 	if(!lock)
@@ -103,8 +103,8 @@ void ThreadLock(void){
 
 
 /*
-ThreadUnlock
-*/
+ * ThreadUnlock
+ */
 void ThreadUnlock(void){
 
 	if(!lock)
@@ -115,8 +115,8 @@ void ThreadUnlock(void){
 
 
 /*
-RunThreads
-*/
+ * RunThreads
+ */
 static void RunThreads(void){
 	SDL_Thread *threads[MAX_THREADS];
 	int i;
@@ -140,10 +140,10 @@ static void RunThreads(void){
 
 
 /*
-RunThreadsOn
-
-Entry point for all thread work requests.
-*/
+ * RunThreadsOn
+ * 
+ * Entry point for all thread work requests.
+ */
 void RunThreadsOn(int workcount, qboolean progress, void(*func)(int)){
 	time_t start, end;
 

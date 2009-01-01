@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <SDL/SDL.h>
 #include <dirent.h>
@@ -51,8 +51,8 @@
 
 
 /*
-Sys_Milliseconds
-*/
+ * Sys_Milliseconds
+ */
 int curtime;
 
 int Sys_Milliseconds(void){
@@ -97,10 +97,10 @@ const char *Sys_GetCurrentUser(void){
 }
 
 /*
-Sys_Mkdir
-
-Create the specified directory path.
-*/
+ * Sys_Mkdir
+ * 
+ * Create the specified directory path.
+ */
 void Sys_Mkdir(char *path){
 #ifdef _WIN32
 	mkdir(path);
@@ -116,11 +116,11 @@ static char findpattern[MAX_OSPATH];
 static DIR *fdir;
 
 /*
-Sys_FindFirst
-
-Returns the first full path name matched by the specified search path in
-the Quake file system.  Wildcards are partially supported.
-*/
+ * Sys_FindFirst
+ * 
+ * Returns the first full path name matched by the specified search path in
+ * the Quake file system.  Wildcards are partially supported.
+ */
 const char *Sys_FindFirst(const char *path){
 	struct dirent *d;
 	char *p;
@@ -155,8 +155,8 @@ const char *Sys_FindFirst(const char *path){
 
 
 /*
-Sys_FindNext
-*/
+ * Sys_FindNext
+ */
 const char *Sys_FindNext(void){
 	struct dirent *d;
 
@@ -174,8 +174,8 @@ const char *Sys_FindNext(void){
 
 
 /*
-Sys_FindClose
-*/
+ * Sys_FindClose
+ */
 void Sys_FindClose(void){
 	if(fdir != NULL)
 		closedir(fdir);
@@ -184,10 +184,10 @@ void Sys_FindClose(void){
 
 
 /*
-Sys_CloseLibrary
-
-Closes an open game module.
-*/
+ * Sys_CloseLibrary
+ * 
+ * Closes an open game module.
+ */
 void Sys_CloseLibrary(void **handle){
 	if(*handle)
 		dlclose(*handle);
@@ -196,8 +196,8 @@ void Sys_CloseLibrary(void **handle){
 
 
 /*
-Sys_OpenLibrary
-*/
+ * Sys_OpenLibrary
+ */
 void Sys_OpenLibrary(const char *name, void **handle){
 	const char *path;
 
@@ -226,10 +226,10 @@ typedef game_export_t *loadgame_t(game_import_t *);
 static void *game_handle;
 
 /*
-Sys_LoadGame
-
-Attempts to open and load the game module.
-*/
+ * Sys_LoadGame
+ * 
+ * Attempts to open and load the game module.
+ */
 void *Sys_LoadGame(void *parms){
 	loadgame_t *LoadGame;
 
@@ -252,18 +252,18 @@ void *Sys_LoadGame(void *parms){
 
 
 /*
-Sys_UnloadGame
-*/
+ * Sys_UnloadGame
+ */
 void Sys_UnloadGame(void){
 	Sys_CloseLibrary(&game_handle);
 }
 
 
 /*
-Sys_Quit
-
-The final exit point of the program under normal exit conditions.
-*/
+ * Sys_Quit
+ * 
+ * The final exit point of the program under normal exit conditions.
+ */
 void Sys_Quit(void){
 
 	Sv_Shutdown(NULL, false);
@@ -276,8 +276,8 @@ void Sys_Quit(void){
 
 
 /*
-The final exit point of the program under abnormal exit conditions.
-*/
+ * The final exit point of the program under abnormal exit conditions.
+ */
 void Sys_Error(const char *error, ...){
 	va_list argptr;
 	char string[MAX_STRING_CHARS];
@@ -303,10 +303,10 @@ void Sys_Error(const char *error, ...){
 #include "con_curses.h"
 
 /*
-Sys_Signal
-
-Catch kernel interrupts and dispatch the appropriate exit routine.
-*/
+ * Sys_Signal
+ * 
+ * Catch kernel interrupts and dispatch the appropriate exit routine.
+ */
 static void Sys_Signal(int s){
 
 	switch(s){
@@ -331,14 +331,14 @@ static void Sys_Signal(int s){
 
 
 /*
-main
-
-The entry point of the program.  This source file is actually also built
-as libsys.la, so that other programs (e.g. q2wmap, pak) may link into
-the platform abstracted functionality provided here.  The main function,
-however, is the entry point of Quake2World execution -- omitted from the
-libtool library for obvious reasons.
-*/
+ * main
+ * 
+ * The entry point of the program.  This source file is actually also built
+ * as libsys.la, so that other programs (e.g. q2wmap, pak) may link into
+ * the platform abstracted functionality provided here.  The main function,
+ * however, is the entry point of Quake2World execution -- omitted from the
+ * libtool library for obvious reasons.
+ */
 int main(int argc, char **argv){
 	int oldtime, msec;
 

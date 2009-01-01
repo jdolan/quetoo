@@ -1,30 +1,30 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
 
 /*
-Cl_AddServer
-*/
+ * Cl_AddServer
+ */
 static server_info_t *Cl_AddServer(const netadr_t *adr){
 	server_info_t *s;
 
@@ -41,8 +41,8 @@ static server_info_t *Cl_AddServer(const netadr_t *adr){
 
 
 /*
-Cl_ServerForAdr
-*/
+ * Cl_ServerForAdr
+ */
 static server_info_t *Cl_ServerForAdr(const netadr_t *adr){
 	server_info_t *s;
 
@@ -61,8 +61,8 @@ static server_info_t *Cl_ServerForAdr(const netadr_t *adr){
 
 
 /*
-Cl_ServerForNum
-*/
+ * Cl_ServerForNum
+ */
 server_info_t *Cl_ServerForNum(int num){
 	server_info_t *s;
 
@@ -81,8 +81,8 @@ server_info_t *Cl_ServerForNum(int num){
 
 
 /*
-Cl_FreeServers
-*/
+ * Cl_FreeServers
+ */
 void Cl_FreeServers(void){
 	server_info_t *s, *next;
 
@@ -98,8 +98,8 @@ void Cl_FreeServers(void){
 
 
 /*
-Cl_ServerSourceName
-*/
+ * Cl_ServerSourceName
+ */
 static inline char *Cl_ServerSourceName(server_source_t source){
 
 	switch(source){
@@ -116,8 +116,8 @@ static inline char *Cl_ServerSourceName(server_source_t source){
 
 
 /*
-Cl_ParseStatusMessage
-*/
+ * Cl_ParseStatusMessage
+ */
 void Cl_ParseStatusMessage(void){
 	server_info_t *server;
 	char *c;
@@ -149,8 +149,8 @@ void Cl_ParseStatusMessage(void){
 
 
 /*
-Cl_Ping_f
-*/
+ * Cl_Ping_f
+ */
 void Cl_Ping_f(void){
 	netadr_t adr;
 	server_info_t *server;
@@ -201,8 +201,8 @@ void Cl_Ping_f(void){
 
 
 /*
-Cl_SendBroadcast
-*/
+ * Cl_SendBroadcast
+ */
 static void Cl_SendBroadcast(void){
 	server_info_t *server;
 	netadr_t adr;
@@ -226,8 +226,8 @@ static void Cl_SendBroadcast(void){
 
 
 /*
-Cl_Servers_f
-*/
+ * Cl_Servers_f
+ */
 void Cl_Servers_f(void){
 	netadr_t adr;
 
@@ -249,8 +249,8 @@ void Cl_Servers_f(void){
 
 
 /*
-Cl_ParseServersList
-*/
+ * Cl_ParseServersList
+ */
 void Cl_ParseServersList(void){
 	byte *buffptr;
 	byte *buffend;

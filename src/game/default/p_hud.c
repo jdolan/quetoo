@@ -1,30 +1,30 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "g_local.h"
 
 
 /*
-P_MoveToIntermission
-*/
+ * P_MoveToIntermission
+ */
 void P_MoveToIntermission(edict_t *ent){
 	VectorCopy(level.intermission_origin, ent->s.origin);
 	ent->client->ps.pmove.origin[0] = level.intermission_origin[0] * 8;
@@ -63,11 +63,11 @@ void P_MoveToIntermission(edict_t *ent){
 
 
 /*
-P_ColoredName
-
-Copies src to dest, padding it to the specified maximum length.
-Color escape sequences do not contribute to length.
-*/
+ * P_ColoredName
+ * 
+ * Copies src to dest, padding it to the specified maximum length.
+ * Color escape sequences do not contribute to length.
+ */
 static void P_ColoredName(char *dst, const char *src, int maxlen, int maxsize){
 	int c, l;
 	const char *s;
@@ -102,8 +102,8 @@ static void P_ColoredName(char *dst, const char *src, int maxlen, int maxsize){
 
 
 /*
-P_TeamsScoreboard
-*/
+ * P_TeamsScoreboard
+ */
 void P_TeamsScoreboard(edict_t *ent){
 	char entry[512];
 	char string[1300];
@@ -265,8 +265,8 @@ void P_TeamsScoreboard(edict_t *ent){
 
 
 /*
-P_Scoreboard
-*/
+ * P_Scoreboard
+ */
 void P_Scoreboard(edict_t *ent){
 	char entry[512];
 	char string[1300];
@@ -358,8 +358,8 @@ void P_Scoreboard(edict_t *ent){
 
 
 /*
-P_SetStats
-*/
+ * P_SetStats
+ */
 void P_SetStats(edict_t *ent){
 	gitem_t *item;
 
@@ -447,8 +447,8 @@ void P_SetStats(edict_t *ent){
 
 
 /*
-P_CheckChaseStats
-*/
+ * P_CheckChaseStats
+ */
 void P_CheckChaseStats(edict_t *ent){
 	int i;
 	gclient_t *cl;
@@ -467,8 +467,8 @@ void P_CheckChaseStats(edict_t *ent){
 
 
 /*
-P_SetSpectatorStats
-*/
+ * P_SetSpectatorStats
+ */
 void P_SetSpectatorStats(edict_t *ent){
 	gclient_t *cl = ent->client;
 

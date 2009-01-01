@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "server.h"
 
@@ -25,9 +25,9 @@ server_static_t svs;  // persistent server info
 server_t sv;  // local server
 
 /*
-Sv_FindIndex
-
-*/
+ * Sv_FindIndex
+ * 
+ */
 static int Sv_FindIndex(const char *name, int start, int max, qboolean create){
 	int i;
 
@@ -73,12 +73,12 @@ int Sv_ImageIndex(const char *name){
 
 
 /*
-Sv_CreateBaseline
-
-Entity baselines are used to compress the update messages
-to the clients -- only the fields that differ from the
-baseline will be transmitted
-*/
+ * Sv_CreateBaseline
+ * 
+ * Entity baselines are used to compress the update messages
+ * to the clients -- only the fields that differ from the
+ * baseline will be transmitted
+ */
 static void Sv_CreateBaseline(void){
 	edict_t *svent;
 	int entnum;
@@ -99,11 +99,11 @@ static void Sv_CreateBaseline(void){
 
 
 /*
-Sv_CheckMap
-
-Ensures that map exists before attempting to spawn a server to it.
-Returns true if the map exists, false otherwise.
-*/
+ * Sv_CheckMap
+ * 
+ * Ensures that map exists before attempting to spawn a server to it.
+ * Returns true if the map exists, false otherwise.
+ */
 static qboolean Sv_CheckMap(const char *name){
 	char map[MAX_OSPATH];
 	FILE *f;
@@ -122,12 +122,12 @@ static qboolean Sv_CheckMap(const char *name){
 
 
 /*
-Sv_CheckDemo
-
-Attempts to open and peek into the specified demo file.  Returns
-true if the file exists and appears to be a valid demo, false otherwise.
-File is closed.
-*/
+ * Sv_CheckDemo
+ * 
+ * Attempts to open and peek into the specified demo file.  Returns
+ * true if the file exists and appears to be a valid demo, false otherwise.
+ * File is closed.
+ */
 static qboolean Sv_CheckDemo(const char *name){
 	char demo[MAX_OSPATH];
 	byte buff[MAX_MSGLEN];
@@ -166,10 +166,10 @@ static qboolean Sv_CheckDemo(const char *name){
 
 
 /*
-Sv_InitGame
-
-A brand new game has been started
-*/
+ * Sv_InitGame
+ * 
+ * A brand new game has been started
+ */
 static void Sv_InitGame(void){
 	int i;
 	edict_t *ent;
@@ -200,11 +200,11 @@ static void Sv_InitGame(void){
 
 
 /*
-Sv_SpawnServer
-
-Change the server to a new map, taking all connected clients along with it.
-The serverstate parameter must either be ss_game or ss_demo.  See Sv_Map.
-*/
+ * Sv_SpawnServer
+ * 
+ * Change the server to a new map, taking all connected clients along with it.
+ * The serverstate parameter must either be ss_game or ss_demo.  See Sv_Map.
+ */
 static void Sv_SpawnServer(const char *server, server_state_t serverstate){
 	int i;
 	int mapsize;
@@ -325,10 +325,10 @@ static void Sv_SpawnServer(const char *server, server_state_t serverstate){
 
 
 /*
-Sv_Map
-
-Entry point for spawning a server on a .bsp or .dem.
-*/
+ * Sv_Map
+ * 
+ * Entry point for spawning a server on a .bsp or .dem.
+ */
 void Sv_Map(const char *level){
 	server_state_t state;
 	qboolean exists;

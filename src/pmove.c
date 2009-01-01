@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "common.h"
 
@@ -65,11 +65,11 @@ float pm_specfriction = 3.0;
 
 
 /*
-Pm_ClipVelocity
-
-Slide off of the impacting object
-returns the blocked flags (1 = floor, 2 = step / wall)
-*/
+ * Pm_ClipVelocity
+ * 
+ * Slide off of the impacting object
+ * returns the blocked flags (1 = floor, 2 = step / wall)
+ */
 static void Pm_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
 	float backoff;
 	float change;
@@ -90,14 +90,14 @@ static void Pm_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overboun
 
 
 /*
-Pm_StepSlideMove
-
-Each intersection will try to step over the obstruction instead of
-sliding along it.
-
-Returns a new origin, velocity, and contact entity
-Does not modify any world state?
-*/
+ * Pm_StepSlideMove
+ * 
+ * Each intersection will try to step over the obstruction instead of
+ * sliding along it.
+ * 
+ * Returns a new origin, velocity, and contact entity
+ * Does not modify any world state?
+ */
 #define MIN_STEP_NORMAL	0.7  // can't step up onto very steep slopes
 #define MAX_CLIP_PLANES	5
 static void Pm_StepSlideMove_(void){
@@ -193,8 +193,8 @@ static void Pm_StepSlideMove_(void){
 
 
 /*
-Pm_StepSlideMove
-*/
+ * Pm_StepSlideMove
+ */
 static void Pm_StepSlideMove(void){
 	vec3_t start_o, start_v;
 	vec3_t down_o, down_v;
@@ -251,10 +251,10 @@ static void Pm_StepSlideMove(void){
 
 
 /*
-Pm_Friction
-
-Handles both ground friction and water friction
-*/
+ * Pm_Friction
+ * 
+ * Handles both ground friction and water friction
+ */
 static void Pm_Friction(void){
 	float *vel;
 	float speed, newspeed, control;
@@ -298,10 +298,10 @@ static void Pm_Friction(void){
 
 
 /*
-Pm_Accelerate
-
-Handles user intended acceleration
-*/
+ * Pm_Accelerate
+ * 
+ * Handles user intended acceleration
+ */
 static void Pm_Accelerate(vec3_t wishdir, float wishspeed, float accel){
 	int i;
 	float addspeed, accelspeed, currentspeed;
@@ -323,8 +323,8 @@ static void Pm_Accelerate(vec3_t wishdir, float wishspeed, float accel){
 
 
 /*
-Pm_AddCurrents
-*/
+ * Pm_AddCurrents
+ */
 static void Pm_AddCurrents(vec3_t wishvel){
 	vec3_t v;
 	float s;
@@ -401,8 +401,8 @@ static void Pm_AddCurrents(vec3_t wishvel){
 
 
 /*
-Pm_WaterMove
-*/
+ * Pm_WaterMove
+ */
 static void Pm_WaterMove(void){
 	int i;
 	vec3_t wishvel;
@@ -435,8 +435,8 @@ static void Pm_WaterMove(void){
 
 
 /*
-Pm_AirMove
-*/
+ * Pm_AirMove
+ */
 static void Pm_AirMove(void){
 	int i;
 	vec3_t wishvel;
@@ -507,8 +507,8 @@ static void Pm_AirMove(void){
 
 
 /*
-Pm_CategorizePosition
-*/
+ * Pm_CategorizePosition
+ */
 static void Pm_CategorizePosition(void){
 	vec3_t point;
 	int cont;
@@ -591,8 +591,8 @@ static void Pm_CategorizePosition(void){
 
 
 /*
-Pm_CheckJump
-*/
+ * Pm_CheckJump
+ */
 static void Pm_CheckJump(void){
 	if(pm->s.pm_flags & PMF_TIME_LAND){  // hasn't been long enough since landing to jump again
 		return;
@@ -639,8 +639,8 @@ static void Pm_CheckJump(void){
 
 
 /*
-Pm_CheckSpecialMovement
-*/
+ * Pm_CheckSpecialMovement
+ */
 static void Pm_CheckSpecialMovement(void){
 	vec3_t spot;
 	int cont;
@@ -688,10 +688,10 @@ static void Pm_CheckSpecialMovement(void){
 
 
 /*
-Pm_CheckDuck
-
-Sets mins, maxs, and pm->viewheight
-*/
+ * Pm_CheckDuck
+ * 
+ * Sets mins, maxs, and pm->viewheight
+ */
 static void Pm_CheckDuck(void){
 	trace_t trace;
 
@@ -728,8 +728,8 @@ static void Pm_CheckDuck(void){
 
 
 /*
-Pm_GoodPosition
-*/
+ * Pm_GoodPosition
+ */
 static qboolean Pm_GoodPosition(void){
 	trace_t trace;
 	vec3_t origin, end;
@@ -748,11 +748,11 @@ static qboolean Pm_GoodPosition(void){
 
 
 /*
-Pm_SnapPosition
- 
-On exit, the origin will have a value that is pre-quantized to the 0.125
-precision of the network channel and in a valid position.
-*/
+ * Pm_SnapPosition
+ *  
+ * On exit, the origin will have a value that is pre-quantized to the 0.125
+ * precision of the network channel and in a valid position.
+ */
 static void Pm_SnapPosition(void){
 	int sign[3];
 	int i, j, bits;
@@ -793,8 +793,8 @@ static void Pm_SnapPosition(void){
 
 
 /*
-Pm_InitialSnapPosition
-*/
+ * Pm_InitialSnapPosition
+ */
 static void Pm_InitialSnapPosition(void){
 	int x, y, z;
 	short base[3];
@@ -823,8 +823,8 @@ static void Pm_InitialSnapPosition(void){
 
 
 /*
-Pm_ClampAngles
-*/
+ * Pm_ClampAngles
+ */
 static void Pm_ClampAngles(void){
 	short	temp;
 	int i;
@@ -851,8 +851,8 @@ static void Pm_ClampAngles(void){
 
 
 /*
-Pm_SpectatorMove
-*/
+ * Pm_SpectatorMove
+ */
 static void Pm_SpectatorMove(){
 	vec3_t wishvel, wishdir;
 	float fmove, smove, wishspeed;
@@ -891,10 +891,10 @@ static void Pm_SpectatorMove(){
 
 
 /*
-Pmove
-
-Can be called by either the server or the client to update prediction.
-*/
+ * Pmove
+ * 
+ * Can be called by either the server or the client to update prediction.
+ */
 void Pmove(pmove_t *pmove){
 	pm = pmove;
 

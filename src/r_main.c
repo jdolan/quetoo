@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <ctype.h>
 
@@ -90,11 +90,11 @@ cvar_t *r_width;
 
 
 /*
-R_Trace
-
-Traces to world and BSP models.  If a BSP entity is hit, it is saved as
-r_view.trace_ent.
-*/
+ * R_Trace
+ * 
+ * Traces to world and BSP models.  If a BSP entity is hit, it is saved as
+ * r_view.trace_ent.
+ */
 void R_Trace(vec3_t start, vec3_t end, float size, int mask){
 	vec3_t mins, maxs;
 	trace_t tr;
@@ -138,8 +138,8 @@ void R_Trace(vec3_t start, vec3_t end, float size, int mask){
 
 
 /*
-SignbisForPlane
-*/
+ * SignbisForPlane
+ */
 static inline int SignbitsForPlane(const cplane_t *plane){
 	int bits, j;
 
@@ -154,8 +154,8 @@ static inline int SignbitsForPlane(const cplane_t *plane){
 
 
 /*
-R_UpdateFrustum
-*/
+ * R_UpdateFrustum
+ */
 void R_UpdateFrustum(void){
 	int i;
 
@@ -185,8 +185,8 @@ void R_UpdateFrustum(void){
 #include <unistd.h>
 
 /*
-R_DrawFrame
-*/
+ * R_DrawFrame
+ */
 void R_DrawFrame(void){
 
 	if(r_threads->value){
@@ -250,8 +250,8 @@ void R_DrawFrame(void){
 
 
 /*
-R_RenderMode
-*/
+ * R_RenderMode
+ */
 static void R_RenderMode(const char *mode){
 
 	r_state.rendermode = rendermode_default;
@@ -283,8 +283,8 @@ static void R_RenderMode(const char *mode){
 
 
 /*
-R_BeginFrame
-*/
+ * R_BeginFrame
+ */
 void R_BeginFrame(void){
 
 	// gamma control
@@ -341,8 +341,8 @@ void R_BeginFrame(void){
 
 
 /*
-R_EndFrame
-*/
+ * R_EndFrame
+ */
 void R_EndFrame(void){
 
 	SDL_GL_SwapBuffers();  // swap buffers
@@ -350,10 +350,10 @@ void R_EndFrame(void){
 
 
 /*
-R_ResolveWeather
-
-Parses the weather configstring for weather and fog definitions, e.g. "rain fog 0.8 0.75 0.65".
-*/
+ * R_ResolveWeather
+ * 
+ * Parses the weather configstring for weather and fog definitions, e.g. "rain fog 0.8 0.75 0.65".
+ */
 static void R_ResolveWeather(void){
 	char *weather, *c;
 	int err;
@@ -389,8 +389,8 @@ static void R_ResolveWeather(void){
 }
 
 /*
-R_LoadMedia
-*/
+ * R_LoadMedia
+ */
 void R_LoadMedia(void){
 	char name[MAX_QPATH];
 	int i;
@@ -464,8 +464,8 @@ void R_LoadMedia(void){
 
 
 /*
-R_Sky_f
-*/
+ * R_Sky_f
+ */
 static void R_Sky_f(void){
 
 	if(Cmd_Argc() != 2){
@@ -478,8 +478,8 @@ static void R_Sky_f(void){
 
 
 /*
-R_Reload_f
-*/
+ * R_Reload_f
+ */
 static void R_Reload_f(void){
 
 	r_view.ready = false;
@@ -504,8 +504,8 @@ static void R_Reload_f(void){
 
 
 /*
-R_Restart_f
-*/
+ * R_Restart_f
+ */
 void R_Restart_f(void){
 #ifdef _WIN32
 	// on win32, we must always recreate the entire context
@@ -541,8 +541,8 @@ void R_Restart_f(void){
 
 
 /*
-R_InitLocal
-*/
+ * R_InitLocal
+ */
 static void R_InitLocal(void){
 
 	// development tools
@@ -615,8 +615,8 @@ static void R_InitLocal(void){
 
 
 /*
-R_SetMode
-*/
+ * R_SetMode
+ */
 qboolean R_SetMode(void){
 
 	r_state.prev_width = r_state.width;
@@ -638,8 +638,8 @@ qboolean R_SetMode(void){
 }
 
 /*
-R_InitExtensions
-*/
+ * R_InitExtensions
+ */
 static qboolean R_InitExtensions(void){
 
 	// multitexture
@@ -694,8 +694,8 @@ static qboolean R_InitExtensions(void){
 
 
 /*
-R_EnforceVersion
-*/
+ * R_EnforceVersion
+ */
 static void R_EnforceVersion(void){
 	int maj, min, rel;
 
@@ -725,8 +725,8 @@ static void R_EnforceVersion(void){
 
 
 /*
-R_Init
-*/
+ * R_Init
+ */
 void R_Init(void){
 	int err;
 
@@ -776,8 +776,8 @@ void R_Init(void){
 
 
 /*
-R_Shutdown
-*/
+ * R_Shutdown
+ */
 void R_Shutdown(void){
 
 	Cmd_RemoveCommand("r_listmodels");

@@ -1,30 +1,30 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 #include "game/game.h"
 
 /*
-Cl_CheckPredictionError
-*/
+ * Cl_CheckPredictionError
+ */
 void Cl_CheckPredictionError(void){
 	int frame;
 	short delta[3];
@@ -56,8 +56,8 @@ void Cl_CheckPredictionError(void){
 
 
 /*
-Cl_ClipMoveToEntities
-*/
+ * Cl_ClipMoveToEntities
+ */
 static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, trace_t *tr){
 	int i;
 	trace_t trace;
@@ -108,8 +108,8 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 
 
 /*
-Cl_Trace
-*/
+ * Cl_Trace
+ */
 static trace_t Cl_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
 	trace_t t;
 
@@ -126,8 +126,8 @@ static trace_t Cl_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
 
 
 /*
-Cl_Pointcontents
-*/
+ * Cl_Pointcontents
+ */
 static int Cl_Pointcontents(vec3_t point){
 	int i;
 	cmodel_t *cmodel;
@@ -156,11 +156,11 @@ static int Cl_Pointcontents(vec3_t point){
 int cl_gravity;
 
 /*
-Cl_PredictMovement
-
-Run the latest movement command through the player movement code locally,
-using the resulting origin and angles to reduce perceived latency.
-*/
+ * Cl_PredictMovement
+ * 
+ * Run the latest movement command through the player movement code locally,
+ * using the resulting origin and angles to reduce perceived latency.
+ */
 void Cl_PredictMovement(void){
 	int i, ack, current;
 	pmove_t pm;

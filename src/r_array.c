@@ -1,35 +1,35 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
 
 /*
-Arrays are "lazily" managed to reduce glArrayPointer calls.  Drawing routines
-should call R_SetArrayState or R_ResetArrayState somewhat early-on.
-*/
+ * Arrays are "lazily" managed to reduce glArrayPointer calls.  Drawing routines
+ * should call R_SetArrayState or R_ResetArrayState somewhat early-on.
+ */
 
 /*
-R_SetVertexArrayState
-*/
+ * R_SetVertexArrayState
+ */
 static void R_SetVertexArrayState(const model_t *mod){
 
 	// vertex array
@@ -63,8 +63,8 @@ static void R_SetVertexArrayState(const model_t *mod){
 
 
 /*
-R_SetVertexBufferState
-*/
+ * R_SetVertexBufferState
+ */
 static void R_SetVertexBufferState(const model_t *mod){
 
 	// vertex array
@@ -98,8 +98,8 @@ static void R_SetVertexBufferState(const model_t *mod){
 
 
 /*
-R_SetArrayState
-*/
+ * R_SetArrayState
+ */
 void R_SetArrayState(const model_t *mod){
 	int mask;
 
@@ -127,8 +127,8 @@ void R_SetArrayState(const model_t *mod){
 
 
 /*
-R_ResetArrayState
-*/
+ * R_ResetArrayState
+ */
 void R_ResetArrayState(void){
 
 	r_locals.model = NULL;

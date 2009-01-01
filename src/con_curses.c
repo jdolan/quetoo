@@ -17,10 +17,10 @@
 */
 
 /*
-curses.c
-
-Functions for the curses console
-*/
+ * curses.c
+ * 
+ * Functions for the curses console
+ */
 
 #include "config.h"
 
@@ -54,10 +54,10 @@ static int curses_lastupdate;		// number of msecs since last redraw
 
 
 /*
-Curses_SetColor
-
-Set the curses drawing color
-*/
+ * Curses_SetColor
+ * 
+ * Set the curses drawing color
+ */
 static void Curses_SetColor(int color){
 	if (!has_colors())
 		return;
@@ -71,10 +71,10 @@ static void Curses_SetColor(int color){
 
 
 /*
-Curses_DrawBackground
-
-Clear and draw background objects
-*/
+ * Curses_DrawBackground
+ * 
+ * Clear and draw background objects
+ */
 static void Curses_DrawBackground(void){
 	Curses_SetColor(CON_COLOR_DEFAULT);
 	bkgdset(' ');
@@ -90,10 +90,10 @@ static void Curses_DrawBackground(void){
 
 
 /*
-Curses_DrawInput
-
-Draw the inputbox
-*/
+ * Curses_DrawInput
+ * 
+ * Draw the inputbox
+ */
 static void Curses_DrawInput(void){
 	int x;
 	const int xPos = COLS - 5 < CURSES_LINESIZE ? COLS - 5 : CURSES_LINESIZE - 1;
@@ -110,12 +110,12 @@ static void Curses_DrawInput(void){
 
 
 /*
-Curses_DrawConsole
-
-Draw the content of the console,
-parse color codes and line breaks.
-
-*/
+ * Curses_DrawConsole
+ * 
+ * Draw the content of the console,
+ * parse color codes and line breaks.
+ * 
+ */
 static void Curses_DrawConsole(void){
 	int w,h;
 	int x, y;
@@ -176,19 +176,19 @@ static void Curses_DrawConsole(void){
 
 
 /*
-Curses_Refresh
-
-Mark the buffer for redraw
-*/
+ * Curses_Refresh
+ * 
+ * Mark the buffer for redraw
+ */
 void Curses_Refresh(void){
 	curses_redraw |= 2;
 }
 
 /*
-Curses_Draw
-
-Draw everything
-*/
+ * Curses_Draw
+ * 
+ * Draw everything
+ */
 static void Curses_Draw(void){
 	int timeout;
 
@@ -220,10 +220,10 @@ static void Curses_Draw(void){
 
 
 /*
-Curses_Resize
-
-Window resize signal handler
-*/
+ * Curses_Resize
+ * 
+ * Window resize signal handler
+ */
 void Curses_Resize(void){
 	if(!sv_con.initialized)
 		return;
@@ -238,10 +238,10 @@ void Curses_Resize(void){
 
 
 /*
-Curses_Frame
-
-Handle ncurses input and redraw if necessary
-*/
+ * Curses_Frame
+ * 
+ * Handle ncurses input and redraw if necessary
+ */
 void Curses_Frame(int msec){
 	int key;
 	char buf[CURSES_LINESIZE];
@@ -362,10 +362,10 @@ void Curses_Frame(int msec){
 
 
 /*
-Curses_Init
-
-Initialize the curses console
-*/
+ * Curses_Init
+ * 
+ * Initialize the curses console
+ */
 void Curses_Init(void){
 	sv_con.initialized = false;
 
@@ -415,10 +415,10 @@ void Curses_Init(void){
 
 
 /*
-Curses_Shutdown
-
-Shutdown the curses console
-*/
+ * Curses_Shutdown
+ * 
+ * Shutdown the curses console
+ */
 void Curses_Shutdown(void){
 	// shutdown ncurses
 	endwin();

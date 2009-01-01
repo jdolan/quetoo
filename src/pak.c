@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <dirent.h>
 #include <sys/stat.h>
@@ -27,11 +27,11 @@
 
 
 /*
-Pak_ReadPakfile
-
-Return a populated Pakfile from the specified path, with entries
-hashed by name for fast finds.
-*/
+ * Pak_ReadPakfile
+ * 
+ * Return a populated Pakfile from the specified path, with entries
+ * hashed by name for fast finds.
+ */
 pak_t *Pak_ReadPakfile(const char *pakfile){
 	pakheader_t header;
 	int i;
@@ -87,10 +87,10 @@ pak_t *Pak_ReadPakfile(const char *pakfile){
 
 
 /*
-Pak_FreePakfile
-
-Frees and closes any resources allocated to read the specified Pakfile.
-*/
+ * Pak_FreePakfile
+ * 
+ * Frees and closes any resources allocated to read the specified Pakfile.
+ */
 void Pak_FreePakfile(pak_t *pak){
 
 	if(!pak)
@@ -109,20 +109,20 @@ void Pak_FreePakfile(pak_t *pak){
 
 
 /*
-The game only needs Pak_ReadPakfile and Pak_FreePakfile.  Below, we have
-the remainder of the functionality for the pak command line utility and
-map compiler.
-*/
+ * The game only needs Pak_ReadPakfile and Pak_FreePakfile.  Below, we have
+ * the remainder of the functionality for the pak command line utility and
+ * map compiler.
+ */
 
 int err;
 
 
 /*
-Pak_MakePath
-
-This is basically a combination of Fs_CreatePath and Sys_Mkdir,
-but we encapsulate it here to make linking the `pak` program simple.
-*/
+ * Pak_MakePath
+ * 
+ * This is basically a combination of Fs_CreatePath and Sys_Mkdir,
+ * but we encapsulate it here to make linking the `pak` program simple.
+ */
 static void Pak_MakePath(char *path){
 	char *ofs;
 
@@ -141,10 +141,10 @@ static void Pak_MakePath(char *path){
 
 
 /*
-Pak_ExtractPakfile
-
-A convenience function for deserializing a Pakfile to the filesystem.
-*/
+ * Pak_ExtractPakfile
+ * 
+ * A convenience function for deserializing a Pakfile to the filesystem.
+ */
 void Pak_ExtractPakfile(const char *pakfile, char *dir, qboolean test){
 	pak_t *pak;
 	FILE *f;
@@ -198,10 +198,10 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, qboolean test){
 
 
 /*
-Pak_CreatePakstream
-
-Allocate a new Pakfile for creating a new archive from arbitrary resources.
-*/
+ * Pak_CreatePakstream
+ * 
+ * Allocate a new Pakfile for creating a new archive from arbitrary resources.
+ */
 pak_t *Pak_CreatePakstream(char *pakfile){
 	FILE *f;
 	pak_t *pak;
@@ -231,10 +231,10 @@ pak_t *Pak_CreatePakstream(char *pakfile){
 
 
 /*
-Pak_ClosePakstream
-
-Finalizes and frees a newly created Pakfile archive.
-*/
+ * Pak_ClosePakstream
+ * 
+ * Finalizes and frees a newly created Pakfile archive.
+ */
 void Pak_ClosePakstream(pak_t *pak){
 	pakheader_t header;
 	int i;
@@ -256,10 +256,10 @@ void Pak_ClosePakstream(pak_t *pak){
 
 
 /*
-Pak_AddEntry
-
-Add an entry to the specified Pakfile stream.
-*/
+ * Pak_AddEntry
+ * 
+ * Add an entry to the specified Pakfile stream.
+ */
 void Pak_AddEntry(pak_t *pak, char *name, int len, void *p){
 	char *c;
 
@@ -287,8 +287,8 @@ void Pak_AddEntry(pak_t *pak, char *name, int len, void *p){
 
 
 /*
-Pak_RecursiveAdd
-*/
+ * Pak_RecursiveAdd
+ */
 static void Pak_RecursiveAdd(pak_t *pak, const char *dir){
 	char s[MAX_OSPATH];
 	struct dirent *e;
@@ -344,10 +344,10 @@ static void Pak_RecursiveAdd(pak_t *pak, const char *dir){
 
 
 /*
-Pak_CreatePakfile
-
-A convenience function for creating Pakfile archives from the filesystem tree.
-*/
+ * Pak_CreatePakfile
+ * 
+ * A convenience function for creating Pakfile archives from the filesystem tree.
+ */
 void Pak_CreatePakfile(char *pakfile, int numdirs, char **dirs){
 	pak_t *pak;
 	int i;

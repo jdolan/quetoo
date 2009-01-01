@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qbsp.h"
 
@@ -26,10 +26,10 @@ static int c_active_portals;
 static int c_peak_portals;
 
 /*
-===========
-AllocPortal
-===========
-*/
+ * ===========
+ * AllocPortal
+ * ===========
+ */
 static portal_t *AllocPortal(void){
 	portal_t *p;
 
@@ -55,13 +55,13 @@ void FreePortal(portal_t * p){
 //==============================================================
 
 /*
-==============
-VisibleContents
-
-Returns the single content bit of the
-strongest visible content present
-==============
-*/
+ * ==============
+ * VisibleContents
+ * 
+ * Returns the single content bit of the
+ * strongest visible content present
+ * ==============
+ */
 int VisibleContents(int contents){
 	int i;
 
@@ -74,10 +74,10 @@ int VisibleContents(int contents){
 
 
 /*
-===============
-ClusterContents
-===============
-*/
+ * ===============
+ * ClusterContents
+ * ===============
+ */
 static int ClusterContents(const node_t * node){
 	int c1, c2, c;
 
@@ -96,15 +96,15 @@ static int ClusterContents(const node_t * node){
 }
 
 /*
-=============
-Portal_VisFlood
-
-Returns true if the portal is empty or translucent, allowing
-the PVS calculation to see through it.
-The nodes on either side of the portal may actually be clusters,
-not leafs, so all contents should be ored together
-=============
-*/
+ * =============
+ * Portal_VisFlood
+ * 
+ * Returns true if the portal is empty or translucent, allowing
+ * the PVS calculation to see through it.
+ * The nodes on either side of the portal may actually be clusters,
+ * not leafs, so all contents should be ored together
+ * =============
+ */
 qboolean Portal_VisFlood(const portal_t * p){
 	int c1, c2;
 
@@ -135,14 +135,14 @@ qboolean Portal_VisFlood(const portal_t * p){
 
 
 /*
-===============
-Portal_EntityFlood
-
-The entity flood determines which areas are
-"outside" on the map, which are then filled in.
-Flowing from side s to side !s
-===============
-*/
+ * ===============
+ * Portal_EntityFlood
+ * 
+ * The entity flood determines which areas are
+ * "outside" on the map, which are then filled in.
+ * Flowing from side s to side !s
+ * ===============
+ */
 static qboolean Portal_EntityFlood(const portal_t * p, int s){
 	if(p->nodes[0]->planenum != PLANENUM_LEAF
 	        || p->nodes[1]->planenum != PLANENUM_LEAF)
@@ -163,10 +163,10 @@ static qboolean Portal_EntityFlood(const portal_t * p, int s){
 static int c_tinyportals;
 
 /*
-=============
-AddPortalToNodes
-=============
-*/
+ * =============
+ * AddPortalToNodes
+ * =============
+ */
 static void AddPortalToNodes(portal_t * p, node_t * front, node_t * back){
 	if(p->nodes[0] || p->nodes[1])
 		Error("AddPortalToNode: already included\n");
@@ -182,10 +182,10 @@ static void AddPortalToNodes(portal_t * p, node_t * front, node_t * back){
 
 
 /*
-=============
-RemovePortalFromNode
-=============
-*/
+ * =============
+ * RemovePortalFromNode
+ * =============
+ */
 void RemovePortalFromNode(portal_t * portal, node_t * l){
 	portal_t **pp, *t;
 
@@ -217,10 +217,10 @@ void RemovePortalFromNode(portal_t * portal, node_t * l){
 }
 
 /*
-MakeHeadnodePortals
-
-The created portals will face the global outside_node
-*/
+ * MakeHeadnodePortals
+ * 
+ * The created portals will face the global outside_node
+ */
 #define	SIDESPACE	8
 void MakeHeadnodePortals(tree_t * tree){
 	vec3_t bounds[2];
@@ -278,10 +278,10 @@ void MakeHeadnodePortals(tree_t * tree){
 
 
 /*
-================
-BaseWindingForNode
-================
-*/
+ * ================
+ * BaseWindingForNode
+ * ================
+ */
 #define	BASE_WINDING_EPSILON	0.001
 #define	SPLIT_WINDING_EPSILON	0.001
 
@@ -316,11 +316,11 @@ static winding_t *BaseWindingForNode(const node_t * node){
 
 
 /*
-MakeNodePortal
-
-create the new portal by taking the full plane winding for the cutting plane
-and clipping it by all of parents of this node
-*/
+ * MakeNodePortal
+ * 
+ * create the new portal by taking the full plane winding for the cutting plane
+ * and clipping it by all of parents of this node
+ */
 void MakeNodePortal(node_t * node){
 	portal_t *new_portal, *p;
 	winding_t *w;
@@ -369,13 +369,13 @@ void MakeNodePortal(node_t * node){
 
 
 /*
-==============
-SplitNodePortals
-
-Move or split the portals that bound node so that the node's
-children have portals instead of node.
-==============
-*/
+ * ==============
+ * SplitNodePortals
+ * 
+ * Move or split the portals that bound node so that the node's
+ * children have portals instead of node.
+ * ==============
+ */
 void SplitNodePortals(node_t * node){
 	portal_t *p, *next_portal, *new_portal;
 	node_t *f, *b, *other_node;
@@ -461,10 +461,10 @@ void SplitNodePortals(node_t * node){
 
 
 /*
-================
-CalcNodeBounds
-================
-*/
+ * ================
+ * CalcNodeBounds
+ * ================
+ */
 static void CalcNodeBounds(node_t * node){
 	portal_t *p;
 	int i, s;
@@ -480,8 +480,8 @@ static void CalcNodeBounds(node_t * node){
 
 
 /*
-MakeTreePortals_r
-*/
+ * MakeTreePortals_r
+ */
 static void MakeTreePortals_r(node_t * node){
 	int i;
 
@@ -508,22 +508,22 @@ static void MakeTreePortals_r(node_t * node){
 
 
 /*
-MakeTreePortals
-*/
+ * MakeTreePortals
+ */
 void MakeTreePortals(tree_t * tree){
 	MakeHeadnodePortals(tree);
 	MakeTreePortals_r(tree->headnode);
 }
 
 /*
-
-FLOOD ENTITIES
-
-*/
+ * 
+ * FLOOD ENTITIES
+ * 
+ */
 
 /*
-FloodPortals_r
-*/
+ * FloodPortals_r
+ */
 static void FloodPortals_r(node_t * node, int dist){
 	portal_t *p;
 	int s;
@@ -545,8 +545,8 @@ static void FloodPortals_r(node_t * node, int dist){
 
 
 /*
-PlaceOccupant
-*/
+ * PlaceOccupant
+ */
 static qboolean PlaceOccupant(node_t * headnode, vec3_t origin, entity_t * occupant){
 	node_t *node;
 
@@ -572,10 +572,10 @@ static qboolean PlaceOccupant(node_t * headnode, vec3_t origin, entity_t * occup
 
 
 /*
-FloodEntities
-
-Marks all nodes that can be reached by entites
-*/
+ * FloodEntities
+ * 
+ * Marks all nodes that can be reached by entites
+ */
 qboolean FloodEntities(tree_t *tree){
 	int i;
 	vec3_t origin;
@@ -633,15 +633,15 @@ gotit:
 
 
 /*
-FLOOD AREAS
-*/
+ * FLOOD AREAS
+ */
 
 
 static int c_areas;
 
 /*
-FloodAreas_r
-*/
+ * FloodAreas_r
+ */
 static void FloodAreas_r(node_t * node){
 	portal_t *p;
 	int s;
@@ -688,13 +688,13 @@ static void FloodAreas_r(node_t * node){
 }
 
 /*
-=============
-FindAreas_r
-
-Just decend the tree, and for each node that hasn't had an
-area set, flood fill out from there
-=============
-*/
+ * =============
+ * FindAreas_r
+ * 
+ * Just decend the tree, and for each node that hasn't had an
+ * area set, flood fill out from there
+ * =============
+ */
 static void FindAreas_r(node_t * node){
 	if(node->planenum != PLANENUM_LEAF){
 		FindAreas_r(node->children[0]);
@@ -721,13 +721,13 @@ static void FindAreas_r(node_t * node){
 }
 
 /*
-=============
-SetAreaPortalAreas_r
-
-Just decend the tree, and for each node that hasn't had an
-area set, flood fill out from there
-=============
-*/
+ * =============
+ * SetAreaPortalAreas_r
+ * 
+ * Just decend the tree, and for each node that hasn't had an
+ * area set, flood fill out from there
+ * =============
+ */
 static void SetAreaPortalAreas_r(node_t * node){
 	bspbrush_t *b;
 	entity_t *e;
@@ -755,8 +755,8 @@ static void SetAreaPortalAreas_r(node_t * node){
 
 
 /*
-EmitAreaPortals
-*/
+ * EmitAreaPortals
+ */
 void EmitAreaPortals(node_t * headnode){
 	int i, j;
 	dareaportal_t *dp;
@@ -792,10 +792,10 @@ void EmitAreaPortals(node_t * headnode){
 
 
 /*
-FloodAreas
-
-Mark each leaf with an area, bounded by CONTENTS_AREAPORTAL
-*/
+ * FloodAreas
+ * 
+ * Mark each leaf with an area, bounded by CONTENTS_AREAPORTAL
+ */
 void FloodAreas(tree_t * tree){
 	Verbose("--- FloodAreas ---\n");
 	FindAreas_r(tree->headnode);
@@ -828,12 +828,12 @@ static void FillOutside_r(node_t * node){
 }
 
 /*
-=============
-FillOutside
-
-Fill all nodes that can't be reached by entities
-=============
-*/
+ * =============
+ * FillOutside
+ * 
+ * Fill all nodes that can't be reached by entities
+ * =============
+ */
 void FillOutside(node_t * headnode){
 	c_outside = 0;
 	c_inside = 0;
@@ -849,12 +849,12 @@ void FillOutside(node_t * headnode){
 //==============================================================
 
 /*
-============
-FindPortalSide
-
-Finds a brush side to use for texturing the given portal
-============
-*/
+ * ============
+ * FindPortalSide
+ * 
+ * Finds a brush side to use for texturing the given portal
+ * ============
+ */
 static void FindPortalSide(portal_t * p){
 	int viscontents;
 	bspbrush_t *bb;
@@ -912,11 +912,11 @@ gotit:
 
 
 /*
-===============
-MarkVisibleSides_r
-
-===============
-*/
+ * ===============
+ * MarkVisibleSides_r
+ * 
+ * ===============
+ */
 static void MarkVisibleSides_r(const node_t * node){
 	portal_t *p;
 	int s;
@@ -944,11 +944,11 @@ static void MarkVisibleSides_r(const node_t * node){
 }
 
 /*
-=============
-MarkVisibleSides
-
-=============
-*/
+ * =============
+ * MarkVisibleSides
+ * 
+ * =============
+ */
 void MarkVisibleSides(tree_t * tree, int startbrush, int endbrush){
 	int i, j;
 

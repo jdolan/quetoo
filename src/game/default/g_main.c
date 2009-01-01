@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <dirent.h>
 
@@ -75,8 +75,8 @@ FILE *fraglog, *chatlog, *f;
 
 
 /*
-G_ResetTeams
-*/
+ * G_ResetTeams
+ */
 void G_ResetTeams(void){
 
 	memset(&good, 0, sizeof(good));
@@ -94,8 +94,8 @@ void G_ResetTeams(void){
 
 
 /*
-G_ResetVote
-*/
+ * G_ResetVote
+ */
 void G_ResetVote(void){
 	int i;
 
@@ -115,12 +115,12 @@ void G_ResetVote(void){
 
 
 /*
-G_RestartGame
-
-For normal games, this just means reset scores and respawn.
-For match games, this means cancel the match and force everyone
-to ready again.  Teams are only reset when teamz is true.
-*/
+ * G_RestartGame
+ * 
+ * For normal games, this just means reset scores and respawn.
+ * For match games, this means cancel the match and force everyone
+ * to ready again.  Teams are only reset when teamz is true.
+ */
 static void G_RestartGame(qboolean teamz){
 	int i;
 	gclient_t *cl;
@@ -168,8 +168,8 @@ static void G_RestartGame(qboolean teamz){
 
 
 /*
-G_MuteClient
-*/
+ * G_MuteClient
+ */
 static void G_MuteClient(char *name, qboolean mute){
 	gclient_t *cl;
 
@@ -181,8 +181,8 @@ static void G_MuteClient(char *name, qboolean mute){
 
 
 /*
-G_BeginIntermission
-*/
+ * G_BeginIntermission
+ */
 static void G_BeginIntermission(const char *map){
 	int i;
 	edict_t *ent, *client;
@@ -226,8 +226,8 @@ static void G_BeginIntermission(const char *map){
 
 
 /*
-G_CheckVote
-*/
+ * G_CheckVote
+ */
 static void G_CheckVote(void){
 	int i, count = 0;
 
@@ -277,10 +277,10 @@ static void G_CheckVote(void){
 
 
 /*
-G_EndLevel
-
-The timelimit, fraglimit, etc.. has been exceeded.
-*/
+ * G_EndLevel
+ * 
+ * The timelimit, fraglimit, etc.. has been exceeded.
+ */
 static void G_EndLevel(void){
 	int i;
 
@@ -317,8 +317,8 @@ static void G_EndLevel(void){
 
 
 /*
-G_CheckRoundStart
-*/
+ * G_CheckRoundStart
+ */
 static void G_CheckRoundStart(void){
 	int i, g, e, clients;
 	gclient_t *cl;
@@ -366,8 +366,8 @@ static void G_CheckRoundStart(void){
 
 
 /*
-G_CheckRoundLimit
-*/
+ * G_CheckRoundLimit
+ */
 static void G_CheckRoundLimit(){
 	int i;
 	edict_t *ent;
@@ -405,8 +405,8 @@ static void G_CheckRoundLimit(){
 
 
 /*
-G_CheckRoundEnd
-*/
+ * G_CheckRoundEnd
+ */
 static void G_CheckRoundEnd(void){
 	int i, g, e, clients;
 	edict_t *winner;
@@ -483,8 +483,8 @@ static void G_CheckRoundEnd(void){
 
 
 /*
-G_CheckMatchEnd
-*/
+ * G_CheckMatchEnd
+ */
 static void G_CheckMatchEnd(void){
 	int i, g, e, clients;
 	gclient_t *cl;
@@ -526,8 +526,8 @@ static void G_CheckMatchEnd(void){
 
 
 /*
-G_FormatTime
-*/
+ * G_FormatTime
+ */
 static char formatted_time[16];
 static int last_secs = 999999;
 static char *G_FormatTime(int secs){
@@ -550,8 +550,8 @@ static char *G_FormatTime(int secs){
 
 
 /*
-G_CheckRules
-*/
+ * G_CheckRules
+ */
 static void G_CheckRules(void){
 	int i, seconds;
 	gclient_t *cl;
@@ -782,8 +782,8 @@ static void G_CheckRules(void){
 
 
 /*
-G_ExitLevel
-*/
+ * G_ExitLevel
+ */
 static void G_ExitLevel(void){
 
 	gi.AddCommandString(va("map %s\n", level.changemap));
@@ -795,10 +795,10 @@ static void G_ExitLevel(void){
 }
 
 /*
-G_RunFrame
-
-Advances the world by 0.1 seconds
-*/
+ * G_RunFrame
+ * 
+ * Advances the world by 0.1 seconds
+ */
 static void G_RunFrame(void){
 	int i;
 	edict_t *ent;
@@ -859,8 +859,8 @@ static void G_RunFrame(void){
 
 
 /*
-G_InitMaplist
-*/
+ * G_InitMaplist
+ */
 static void G_InitMaplist(void){
 	int i;
 
@@ -878,10 +878,10 @@ static void G_InitMaplist(void){
 
 
 /*
-G_ParseMaplist
-
-Populates a maplist_t from a text file.  See default/maps.lst
-*/
+ * G_ParseMaplist
+ * 
+ * Populates a maplist_t from a text file.  See default/maps.lst
+ */
 static void G_ParseMaplist(const char *filename){
 	void *buf;
 	const char *buffer;
@@ -1055,10 +1055,10 @@ static void G_ParseMaplist(const char *filename){
 
 
 /*
-G_Init
-
-This will be called when the game module is first loaded.
-*/
+ * G_Init
+ * 
+ * This will be called when the game module is first loaded.
+ */
 void G_Init(void){
 	gi.Printf("  Game initialization..\n");
 
@@ -1140,9 +1140,9 @@ void G_Init(void){
 
 
 /*
-*  Frees tags and closes fraglog.  This is called when the
-*  game is unloaded (complements G_Init).
-*/
+ *  Frees tags and closes fraglog.  This is called when the
+ *  game is unloaded (complements G_Init).
+ */
 void G_Shutdown(void){
 	gi.Printf("Game shutdown..\n");
 
@@ -1163,11 +1163,11 @@ void G_Shutdown(void){
 
 
 /*
-LoadGame
-
-Returns a pointer to the structure with all entry points
-and global variables
-*/
+ * LoadGame
+ * 
+ * Returns a pointer to the structure with all entry points
+ * and global variables
+ */
 game_export_t *LoadGame(game_import_t *import){
 	gi = *import;
 
@@ -1191,10 +1191,10 @@ game_export_t *LoadGame(game_import_t *import){
 }
 
 /*
-Com_Printf
-
-Redefined here so functions in shared.c can link.
-*/
+ * Com_Printf
+ * 
+ * Redefined here so functions in shared.c can link.
+ */
 void Com_Printf(const char *msg, ...){
 	va_list	argptr;
 	char text[1024];

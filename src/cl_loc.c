@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
@@ -32,19 +32,19 @@ loc_t locations[MAX_LOCATIONS];
 int numlocations;
 
 /*
-Cl_ClearLocations
-
-Effectively clears all locations for the current level.
-*/
+ * Cl_ClearLocations
+ * 
+ * Effectively clears all locations for the current level.
+ */
 static void Cl_ClearLocations(void){
 	numlocations = 0;
 }
 
 /*
-Cl_LoadLocations
-
-Parse a .loc file for the current level.
-*/
+ * Cl_LoadLocations
+ * 
+ * Parse a .loc file for the current level.
+ */
 void Cl_LoadLocations(void){
 	const char *c;
 	char filename[MAX_QPATH];
@@ -83,10 +83,10 @@ void Cl_LoadLocations(void){
 
 
 /*
-Cl_SaveLocations_f
-
-Write locations for current level to file.
-*/
+ * Cl_SaveLocations_f
+ * 
+ * Write locations for current level to file.
+ */
 static void Cl_SaveLocations_f(void){
 	char filename[MAX_QPATH];
 	FILE *f;
@@ -113,10 +113,10 @@ static void Cl_SaveLocations_f(void){
 
 
 /*
-Cl_Location
-
-Returns the description of the location nearest nearto.
-*/
+ * Cl_Location
+ * 
+ * Returns the description of the location nearest nearto.
+ */
 static const char *Cl_Location(const vec3_t nearto){
 	vec_t dist, mindist;
 	vec3_t v;
@@ -141,20 +141,20 @@ static const char *Cl_Location(const vec3_t nearto){
 
 
 /*
-Cl_LocationHere
-
-Returns the description of the location nearest the client.
-*/
+ * Cl_LocationHere
+ * 
+ * Returns the description of the location nearest the client.
+ */
 const char *Cl_LocationHere(void){
 	return Cl_Location(r_view.origin);
 }
 
 
 /*
-Cl_LocationThere
-
-Returns the description of the location nearest the client's crosshair.
-*/
+ * Cl_LocationThere
+ * 
+ * Returns the description of the location nearest the client's crosshair.
+ */
 const char *Cl_LocationThere(void){
 	vec3_t forward, end;
 
@@ -170,10 +170,10 @@ const char *Cl_LocationThere(void){
 
 
 /*
-Cl_AddLocation
-
-Add a new location described by desc at nearto.
-*/
+ * Cl_AddLocation
+ * 
+ * Add a new location described by desc at nearto.
+ */
 static void Cl_AddLocation(const vec3_t nearto, const char *desc){
 
 	if(numlocations >= MAX_LOCATIONS)
@@ -187,10 +187,10 @@ static void Cl_AddLocation(const vec3_t nearto, const char *desc){
 
 
 /*
-Cl_AddLocation_f
-
-Command callback for adding locations in game.
-*/
+ * Cl_AddLocation_f
+ * 
+ * Command callback for adding locations in game.
+ */
 static void Cl_AddLocation_f(void){
 
 	if(Cmd_Argc() < 2){
@@ -203,8 +203,8 @@ static void Cl_AddLocation_f(void){
 
 
 /*
-Cl_InitLocations
-*/
+ * Cl_InitLocations
+ */
 void Cl_InitLocations(void){
 	Cmd_AddCommand("addloc", Cl_AddLocation_f, NULL);
 	Cmd_AddCommand("savelocs", Cl_SaveLocations_f, NULL);
@@ -212,8 +212,8 @@ void Cl_InitLocations(void){
 
 
 /*
-Cl_ShutdownLocations
-*/
+ * Cl_ShutdownLocations
+ */
 void Cl_ShutdownLocations(void){
 	Cmd_RemoveCommand("addloc");
 	Cmd_RemoveCommand("savelocs");

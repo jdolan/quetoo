@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <setjmp.h>
 #include <SDL/SDL_thread.h>
@@ -44,10 +44,10 @@ void Con_Print(const char *text);
 
 
 /*
-
-CLIENT / SERVER interactions
-
-*/
+ * 
+ * CLIENT / SERVER interactions
+ * 
+ */
 
 static int rd_target;
 static char *rd_buffer;
@@ -56,8 +56,8 @@ static void	(*rd_flush)(int target, char *buffer);
 
 
 /*
-Com_BeginRedirect
-*/
+ * Com_BeginRedirect
+ */
 void Com_BeginRedirect(int target, char *buffer, int buffersize, void(*flush)(int, char*)){
 	if(!target || !buffer || !buffersize || !flush)
 		return;
@@ -71,8 +71,8 @@ void Com_BeginRedirect(int target, char *buffer, int buffersize, void(*flush)(in
 
 
 /*
-Com_EndRedirect
-*/
+ * Com_EndRedirect
+ */
 void Com_EndRedirect(void){
 	rd_flush(rd_target, rd_buffer);
 
@@ -84,10 +84,10 @@ void Com_EndRedirect(void){
 
 
 /*
-Com_Printf
-
-Both client and server can use this, and it will output to the apropriate place.
-*/
+ * Com_Printf
+ * 
+ * Both client and server can use this, and it will output to the apropriate place.
+ */
 void Com_Printf(const char *fmt, ...){
 	va_list	argptr;
 	char msg[MAX_PRINT_MSG];
@@ -111,10 +111,10 @@ void Com_Printf(const char *fmt, ...){
 
 
 /*
-Com_Dprintf
-
-A Com_Printf that only shows up if the "developer" cvar is set
-*/
+ * Com_Dprintf
+ * 
+ * A Com_Printf that only shows up if the "developer" cvar is set
+ */
 void Com_Dprintf(const char *fmt, ...){
 	va_list	argptr;
 	char msg[MAX_PRINT_MSG];
@@ -132,10 +132,10 @@ void Com_Dprintf(const char *fmt, ...){
 
 
 /*
-Com_Error
-
-Both client and server can use this, and it will do the apropriate things.
-*/
+ * Com_Error
+ * 
+ * Both client and server can use this, and it will do the apropriate things.
+ */
 void Com_Error(int code, const char *fmt, ...){
 	va_list	argptr;
 	static char msg[MAX_PRINT_MSG];
@@ -163,8 +163,8 @@ void Com_Error(int code, const char *fmt, ...){
 
 
 /*
-Com_Warn
-*/
+ * Com_Warn
+ */
 void Com_Warn(const char *fmt, ...){
 	va_list	argptr;
 	static char msg[MAX_PRINT_MSG];
@@ -178,10 +178,10 @@ void Com_Warn(const char *fmt, ...){
 
 
 /*
-Com_Quit
-
-Both client and server can use this, and it will do the apropriate things.
-*/
+ * Com_Quit
+ * 
+ * Both client and server can use this, and it will do the apropriate things.
+ */
 void Com_Quit(void){
 
 	Sv_Shutdown("Server quit.\n", false);
@@ -192,27 +192,27 @@ void Com_Quit(void){
 
 
 /*
-Com_ServerState
-*/
+ * Com_ServerState
+ */
 int Com_ServerState(void){
 	return server_state;
 }
 
 
 /*
-Com_SetServerState
-*/
+ * Com_SetServerState
+ */
 void Com_SetServerState(int state){
 	server_state = state;
 }
 
 
 /*
-
-MESSAGE IO FUNCTIONS
-
-Handles byte ordering and avoids alignment errors
-*/
+ * 
+ * MESSAGE IO FUNCTIONS
+ * 
+ * Handles byte ordering and avoids alignment errors
+ */
 
 
 const vec3_t bytedirs[NUMVERTEXNORMALS] = {
@@ -369,11 +369,11 @@ void Msg_ReadDir(sizebuf_t *sb, vec3_t dir){
 
 
 /*
-Msg_WriteDeltaEntity
-
-Writes part of a packetentities message.
-Can delta from either a baseline or a previous packet_entity
-*/
+ * Msg_WriteDeltaEntity
+ * 
+ * Writes part of a packetentities message.
+ * Can delta from either a baseline or a previous packet_entity
+ */
 void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, sizebuf_t *msg, qboolean force, qboolean newentity){
 	int bits;
 
@@ -702,10 +702,10 @@ void Msg_ReadData(sizebuf_t *msg_read, void *data, size_t len){
 }
 
 /*
-
-   Memory chunk management
-
-*/
+ * 
+ *    Memory chunk management
+ * 
+ */
 
 void Sb_Init(sizebuf_t *buf, byte *data, size_t length){
 	memset(buf, 0, sizeof(*buf));
@@ -839,10 +839,10 @@ void Info_Print(const char *s){
 
 
 /*
-
-   ZONE MEMORY ALLOCATION
-
-*/
+ * 
+ *    ZONE MEMORY ALLOCATION
+ * 
+ */
 
 #define Z_MAGIC 0x1d1d
 
@@ -860,8 +860,8 @@ static SDL_mutex *z_lock;
 
 
 /*
-Z_Init
-*/
+ * Z_Init
+ */
 void Z_Init(void){
 
 	z_chain.next = z_chain.prev = &z_chain;
@@ -876,8 +876,8 @@ void Z_Shutdown(void){
 
 
 /*
-Z_Free
-*/
+ * Z_Free
+ */
 void Z_Free(void *ptr){
 	zhead_t *z;
 
@@ -901,16 +901,16 @@ void Z_Free(void *ptr){
 
 
 /*
-Z_Stats_f
-*/
+ * Z_Stats_f
+ */
 static void Z_Stats_f(void){
 	Com_Printf("%zd bytes in "Q2W_SIZE_T" blocks\n", z_bytes, z_count);
 }
 
 
 /*
-Z_FreeTags
-*/
+ * Z_FreeTags
+ */
 void Z_FreeTags(int tag){
 	zhead_t *z, *next;
 
@@ -923,8 +923,8 @@ void Z_FreeTags(int tag){
 
 
 /*
-Z_TagMalloc
-*/
+ * Z_TagMalloc
+ */
 void *Z_TagMalloc(size_t size, int tag){
 	zhead_t *z;
 
@@ -956,16 +956,16 @@ void *Z_TagMalloc(size_t size, int tag){
 
 
 /*
-Z_Malloc
-*/
+ * Z_Malloc
+ */
 void *Z_Malloc(size_t size){
 	return Z_TagMalloc(size, 0);
 }
 
 
 /*
-Com_Init
-*/
+ * Com_Init
+ */
 void Com_Init(int argc, char **argv){
 	char *s;
 
@@ -1038,8 +1038,8 @@ void Com_Init(int argc, char **argv){
 
 
 /*
-Com_Frame
-*/
+ * Com_Frame
+ */
 void Com_Frame(int msec){
 	extern int c_traces, c_brush_traces;
 	extern int c_pointcontents;
@@ -1064,8 +1064,8 @@ void Com_Frame(int msec){
 
 
 /*
-Com_Shutdown
-*/
+ * Com_Shutdown
+ */
 void Com_Shutdown(void){
 	// shutdown the console subsystem
 	Con_Shutdown();

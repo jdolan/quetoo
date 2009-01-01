@@ -1,31 +1,31 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qbsp.h"
 
 extern int c_nodes;
 
 /*
-FreeTreePortals_r
-*/
+ * FreeTreePortals_r
+ */
 void FreeTreePortals_r(node_t * node){
 	portal_t *p, *nextp;
 	int s;
@@ -48,8 +48,8 @@ void FreeTreePortals_r(node_t * node){
 
 
 /*
-FreeTree_r
-*/
+ * FreeTree_r
+ */
 void FreeTree_r(node_t * node){
 	face_t *f, *nextf;
 
@@ -78,8 +78,8 @@ void FreeTree_r(node_t * node){
 
 
 /*
-FreeTree
-*/
+ * FreeTree
+ */
 void FreeTree(tree_t * tree){
 	FreeTreePortals_r(tree->headnode);
 	FreeTree_r(tree->headnode);
@@ -87,16 +87,16 @@ void FreeTree(tree_t * tree){
 }
 
 /*
-
-NODES THAT DON'T SEPERATE DIFFERENT CONTENTS CAN BE PRUNED
-
-*/
+ * 
+ * NODES THAT DON'T SEPERATE DIFFERENT CONTENTS CAN BE PRUNED
+ * 
+ */
 
 int c_pruned;
 
 /*
-PruneNodes_r
-*/
+ * PruneNodes_r
+ */
 void PruneNodes_r(node_t * node){
 	bspbrush_t *b, *next;
 

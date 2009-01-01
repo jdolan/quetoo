@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qvis.h"
 
@@ -61,8 +61,8 @@ static void PlaneFromWinding(const winding_t * w, plane_t * plane){
 
 
 /*
-NewWinding
-*/
+ * NewWinding
+ */
 static winding_t *NewWinding(int points){
 	winding_t *w;
 	size_t size;
@@ -78,11 +78,11 @@ static winding_t *NewWinding(int points){
 }
 
 /*
-SortPortals
-
-Sorts the portals from the least complex, so the later ones can reuse
-the earlier information.
-*/
+ * SortPortals
+ * 
+ * Sorts the portals from the least complex, so the later ones can reuse
+ * the earlier information.
+ */
 static int PComp(const void *a, const void *b){
 	if((*(portal_t **) a)->nummightsee == (*(portal_t **) b)->nummightsee)
 		return 0;
@@ -103,8 +103,8 @@ static void SortPortals(void){
 
 
 /*
-LeafVectorFromPortalVector
-*/
+ * LeafVectorFromPortalVector
+ */
 static int LeafVectorFromPortalVector(byte * portalbits, byte * leafbits){
 	int i;
 	int c_leafs;
@@ -125,10 +125,10 @@ static int LeafVectorFromPortalVector(byte * portalbits, byte * leafbits){
 
 
 /*
-ClusterMerge
-
-Merges the portal visibility for a leaf
-*/
+ * ClusterMerge
+ * 
+ * Merges the portal visibility for a leaf
+ */
 static void ClusterMerge(int leafnum){
 	leaf_t *leaf;
 	byte portalvector[MAX_PORTALS / 8];
@@ -185,8 +185,8 @@ static void ClusterMerge(int leafnum){
 
 
 /*
-CalcPortalVis
-*/
+ * CalcPortalVis
+ */
 static void CalcPortalVis(void){
 	int i;
 
@@ -204,8 +204,8 @@ static void CalcPortalVis(void){
 
 
 /*
-CalcVis
-*/
+ * CalcVis
+ */
 static void CalcVis(void){
 	int i;
 
@@ -224,8 +224,8 @@ static void CalcVis(void){
 
 
 /*
-SetPortalSphere
-*/
+ * SetPortalSphere
+ */
 static void SetPortalSphere(portal_t * p){
 	int i;
 	vec3_t total, dist;
@@ -254,8 +254,8 @@ static void SetPortalSphere(portal_t * p){
 
 
 /*
-LoadPortals
-*/
+ * LoadPortals
+ */
 static void LoadPortals(const char *name){
 	int i, j;
 	portal_t *p;
@@ -368,11 +368,11 @@ static void LoadPortals(const char *name){
 
 
 /*
-CalcPHS
-
-Calculate the PHS (Potentially Hearable Set)
-by ORing together all the PVS visible from a leaf
-*/
+ * CalcPHS
+ * 
+ * Calculate the PHS (Potentially Hearable Set)
+ * by ORing together all the PVS visible from a leaf
+ */
 static void CalcPHS(void){
 	int i, j, k, l, index;
 	int bitbyte;
@@ -427,8 +427,8 @@ static void CalcPHS(void){
 }
 
 /*
-VIS_Main
-*/
+ * VIS_Main
+ */
 int VIS_Main(void){
 	char portalfile[MAX_OSPATH];
 	double start, end;

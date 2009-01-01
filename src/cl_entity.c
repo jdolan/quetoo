@@ -1,32 +1,32 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
 
 /*
-Cl_ParseEntityBits
-
-Returns the entity number and the header bits
-*/
+ * Cl_ParseEntityBits
+ * 
+ * Returns the entity number and the header bits
+ */
 unsigned int Cl_ParseEntityBits(unsigned int *bits){
 	unsigned int b, total;
 	unsigned int number;
@@ -57,10 +57,10 @@ unsigned int Cl_ParseEntityBits(unsigned int *bits){
 
 
 /*
-Cl_ParseDelta
-
-Can go from either a baseline or a previous packet_entity
-*/
+ * Cl_ParseDelta
+ * 
+ * Can go from either a baseline or a previous packet_entity
+ */
 void Cl_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bits){
 
 	// set everything to the state we are delta'ing from
@@ -124,11 +124,11 @@ void Cl_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, i
 
 
 /*
-Cl_DeltaEntity
-
-Parses deltas from the given base and adds the resulting entity
-to the current frame
-*/
+ * Cl_DeltaEntity
+ * 
+ * Parses deltas from the given base and adds the resulting entity
+ * to the current frame
+ */
 static void Cl_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int bits){
 	centity_t *ent;
 	entity_state_t *state;
@@ -176,10 +176,10 @@ static void Cl_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int 
 
 
 /*
-Cl_ParseEntities
-
-An svc_packetentities has just been parsed, deal with the rest of the data stream.
-*/
+ * Cl_ParseEntities
+ * 
+ * An svc_packetentities has just been parsed, deal with the rest of the data stream.
+ */
 static void Cl_ParseEntities(const frame_t *oldframe, frame_t *newframe){
 	unsigned int bits;
 	entity_state_t *oldstate = NULL;
@@ -303,8 +303,8 @@ static void Cl_ParseEntities(const frame_t *oldframe, frame_t *newframe){
 
 
 /*
-Cl_ParsePlayerstate
-*/
+ * Cl_ParsePlayerstate
+ */
 static void Cl_ParsePlayerstate(const frame_t *oldframe, frame_t *newframe){
 	player_state_t *state;
 	byte flags;
@@ -368,8 +368,8 @@ static void Cl_ParsePlayerstate(const frame_t *oldframe, frame_t *newframe){
 
 
 /*
-Cl_FireEntityEvents
-*/
+ * Cl_FireEntityEvents
+ */
 static void Cl_EntityEvents(frame_t *frame){
 	int pnum;
 
@@ -381,8 +381,8 @@ static void Cl_EntityEvents(frame_t *frame){
 
 
 /*
-Cl_ParseFrame
-*/
+ * Cl_ParseFrame
+ */
 void Cl_ParseFrame(void){
 	size_t len;
 	frame_t *old;
@@ -448,8 +448,8 @@ void Cl_ParseFrame(void){
 
 
 /*
-Cl_AddWeapon
-*/
+ * Cl_AddWeapon
+ */
 static void Cl_AddWeapon(void){
 	static entity_t ent;
 	static static_lighting_t lighting;
@@ -519,8 +519,8 @@ static const vec3_t bfg_light = {
 };
 
 /*
-Cl_AddEntities
-*/
+ * Cl_AddEntities
+ */
 void Cl_AddEntities(frame_t *frame){
 	entity_t ent;
 	vec3_t start, end, forward;

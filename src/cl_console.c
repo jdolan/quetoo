@@ -1,28 +1,28 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 /*
-cl_console.c
-Drawing functions for the client console
-*/
+ * cl_console.c
+ * Drawing functions for the client console
+ */
 
 #include "client.h"
 
@@ -32,8 +32,8 @@ static cvar_t *con_alpha;
 extern int key_linepos;
 
 /*
-Con_ToggleConsole_f
-*/
+ * Con_ToggleConsole_f
+ */
 void Con_ToggleConsole_f(void){
 
 	Cl_ClearTyping();
@@ -47,10 +47,10 @@ void Con_ToggleConsole_f(void){
 
 
 /*
-Con_UpdateNotify
-
-Update client message notification times
-*/
+ * Con_UpdateNotify
+ * 
+ * Update client message notification times
+ */
 void Con_UpdateNotify(int lastline){
 	int i;
 
@@ -60,10 +60,10 @@ void Con_UpdateNotify(int lastline){
 
 
 /*
-Con_ClearNotify
-
-Clear client message notification times
-*/
+ * Con_ClearNotify
+ * 
+ * Clear client message notification times
+ */
 void Con_ClearNotify(void){
 	int i;
 
@@ -73,8 +73,8 @@ void Con_ClearNotify(void){
 
 
 /*
-Con_MessageMode_f
-*/
+ * Con_MessageMode_f
+ */
 static void Con_MessageMode_f(void){
 	chat_team = false;
 	cls.key_dest = key_message;
@@ -82,8 +82,8 @@ static void Con_MessageMode_f(void){
 
 
 /*
-Con_MessageMode2_f
-*/
+ * Con_MessageMode2_f
+ */
 static void Con_MessageMode2_f(void){
 	chat_team = true;
 	cls.key_dest = key_message;
@@ -91,8 +91,8 @@ static void Con_MessageMode2_f(void){
 
 
 /*
-Con_InitClientConsole
-*/
+ * Con_InitClientConsole
+ */
 void Con_InitClientConsole(void){
 	cl_con.width = -1;
 	// the last line of the console is reserved for input
@@ -111,10 +111,10 @@ void Con_InitClientConsole(void){
 
 
 /*
-Con_DrawInput
-
-The input line scrolls horizontally if typing goes beyond the right edge
-*/
+ * Con_DrawInput
+ * 
+ * The input line scrolls horizontally if typing goes beyond the right edge
+ */
 static void Con_DrawInput(void){
 	int i, y;
 	char editlinecopy[KEY_LINESIZE], *text;
@@ -142,10 +142,10 @@ static void Con_DrawInput(void){
 }
 
 /*
-Con_DrawNotify
-
-Draws the last few lines of output transparently over the game top
-*/
+ * Con_DrawNotify
+ * 
+ * Draws the last few lines of output transparently over the game top
+ */
 void Con_DrawNotify(void){
 	int i, y;
 	char *s;
@@ -191,8 +191,8 @@ void Con_DrawNotify(void){
 
 
 /*
-Con_DrawConsole
-*/
+ * Con_DrawConsole
+ */
 void Con_DrawConsole(float frac){
 	int line;
 	int lines;

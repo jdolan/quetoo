@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "server.h"
 
@@ -40,12 +40,12 @@ cvar_t *sv_udpdownload;
 
 
 /*
-Sv_DropClient
-
-Called when the player is totally leaving the server, either willingly
-or unwillingly.  This is NOT called if the entire server is quiting
-or crashing.
-*/
+ * Sv_DropClient
+ * 
+ * Called when the player is totally leaving the server, either willingly
+ * or unwillingly.  This is NOT called if the entire server is quiting
+ * or crashing.
+ */
 void Sv_DropClient(client_t *cl){
 	// add the disconnect
 	Msg_WriteByte(&cl->netchan.message, svc_disconnect);
@@ -69,17 +69,17 @@ void Sv_DropClient(client_t *cl){
 
 
 /*
-
-CONNECTIONLESS COMMANDS
-
-*/
+ * 
+ * CONNECTIONLESS COMMANDS
+ * 
+ */
 
 
 /*
-Sv_StatusString
-
-Builds the string that is sent as heartbeats and status replies
-*/
+ * Sv_StatusString
+ * 
+ * Builds the string that is sent as heartbeats and status replies
+ */
 static const char *Sv_StatusString(void){
 	char player[1024];
 	static char status[MAX_MSGLEN - 16];
@@ -110,28 +110,28 @@ static const char *Sv_StatusString(void){
 
 
 /*
-Svc_Status
-
-Responds with all the info that qplug or qspy can see
-*/
+ * Svc_Status
+ * 
+ * Responds with all the info that qplug or qspy can see
+ */
 static void Svc_Status(void){
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "print\n%s", Sv_StatusString());
 }
 
 
 /*
-Svc_Ack
-*/
+ * Svc_Ack
+ */
 static void Svc_Ack(void){
 	Com_Printf("Ping acknowledge from %s\n", Net_AdrToString(net_from));
 }
 
 
 /*
-Svc_Info
-
-Responds with short info for broadcast scans
-*/
+ * Svc_Info
+ * 
+ * Responds with short info for broadcast scans
+ */
 static void Svc_Info(void){
 	char string[256];
 	char hostname[256];
@@ -164,24 +164,24 @@ static void Svc_Info(void){
 
 
 /*
-Svc_Ping
-
-Just responds with an acknowledgement
-*/
+ * Svc_Ping
+ * 
+ * Just responds with an acknowledgement
+ */
 static void Svc_Ping(void){
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "ack");
 }
 
 
 /*
-Svc_GetChallenge
-
-Returns a challenge number that can be used
-in a subsequent client_connect command.
-We do this to prevent denial of service attacks that
-flood the server with invalid connection IPs.  With a
-challenge, they must give a valid IP address.
-*/
+ * Svc_GetChallenge
+ * 
+ * Returns a challenge number that can be used
+ * in a subsequent client_connect command.
+ * We do this to prevent denial of service attacks that
+ * flood the server with invalid connection IPs.  With a
+ * challenge, they must give a valid IP address.
+ */
 static void Svc_GetChallenge(void){
 	int i;
 	int oldest;
@@ -214,10 +214,10 @@ static void Svc_GetChallenge(void){
 
 
 /*
-Svc_Connect
-
-A connection request that did not come from the master
-*/
+ * Svc_Connect
+ * 
+ * A connection request that did not come from the master
+ */
 static void Svc_Connect(void){
 	char userinfo[MAX_INFO_STRING];
 	netadr_t adr;
@@ -347,8 +347,8 @@ static void Svc_Connect(void){
 
 
 /*
-Sv_RconValidate
-*/
+ * Sv_RconValidate
+ */
 static int Sv_RconValidate(void){
 
 	// a password must be set for rcon to be available
@@ -364,11 +364,11 @@ static int Sv_RconValidate(void){
 
 
 /*
-Svc_RemoteCommand
-
-A client issued an rcon command.  Shift down the remaining args and
-redirect all output to the invoking client.
-*/
+ * Svc_RemoteCommand
+ * 
+ * A client issued an rcon command.  Shift down the remaining args and
+ * redirect all output to the invoking client.
+ */
 static void Svc_RemoteCommand(void){
 	int i;
 	char remaining[MAX_STRING_CHARS];
@@ -400,12 +400,12 @@ static void Svc_RemoteCommand(void){
 
 
 /*
-Sv_ConnectionlessPacket
-
-A connectionless packet has four leading 0xff bytes to distinguish it from
-a game channel.  Clients that are in the game can still send these, and they
-will be handled here.
-*/
+ * Sv_ConnectionlessPacket
+ * 
+ * A connectionless packet has four leading 0xff bytes to distinguish it from
+ * a game channel.  Clients that are in the game can still send these, and they
+ * will be handled here.
+ */
 static void Sv_ConnectionlessPacket(void){
 	char *s;
 	char *c;
@@ -441,10 +441,10 @@ static void Sv_ConnectionlessPacket(void){
 
 
 /*
-Sv_CalcPings
-
-Updates the cl->ping variables
-*/
+ * Sv_CalcPings
+ * 
+ * Updates the cl->ping variables
+ */
 static void Sv_CalcPings(void){
 	int i, j;
 	client_t *cl;
@@ -477,11 +477,11 @@ static void Sv_CalcPings(void){
 
 
 /*
-Sv_GiveMsec
-
-Every few frames, gives all clients an allotment of milliseconds
-for their command moves.  If they exceed it, assume cheating.
-*/
+ * Sv_GiveMsec
+ * 
+ * Every few frames, gives all clients an allotment of milliseconds
+ * for their command moves.  If they exceed it, assume cheating.
+ */
 static void Sv_GiveMsec(void){
 	int i;
 	client_t *cl;
@@ -518,8 +518,8 @@ static void Sv_GiveMsec(void){
 
 
 /*
-Sv_ReadPackets
-*/
+ * Sv_ReadPackets
+ */
 static void Sv_ReadPackets(void){
 	int i;
 	client_t *cl;
@@ -567,8 +567,8 @@ static void Sv_ReadPackets(void){
 
 
 /*
-Sv_CheckTimeouts
-*/
+ * Sv_CheckTimeouts
+ */
 static void Sv_CheckTimeouts(void){
 	int i;
 	client_t *cl;
@@ -595,11 +595,11 @@ static void Sv_CheckTimeouts(void){
 
 
 /*
-Sv_PrepWorldFrame
-
-This has to be done before the world logic, because
-player processing happens outside RunWorldFrame
-*/
+ * Sv_PrepWorldFrame
+ * 
+ * This has to be done before the world logic, because
+ * player processing happens outside RunWorldFrame
+ */
 static void Sv_PrepWorldFrame(void){
 	edict_t *ent;
 	int i;
@@ -613,8 +613,8 @@ static void Sv_PrepWorldFrame(void){
 
 
 /*
-Sv_RunGameFrame
-*/
+ * Sv_RunGameFrame
+ */
 static void Sv_RunGameFrame(void){
 
 	// we always need to bump framenum, even if we don't run the world,
@@ -635,8 +635,8 @@ static void Sv_RunGameFrame(void){
 
 
 /*
-Sv_Frame
-*/
+ * Sv_Frame
+ */
 void Sv_Frame(int msec){
 	int frame_millis;
 
@@ -693,10 +693,10 @@ void Sv_Frame(int msec){
 
 
 /*
-Sv_HeartbeatMasters
-
-Sends heartbeat messages to master servers every 300s.
-*/
+ * Sv_HeartbeatMasters
+ * 
+ * Sends heartbeat messages to master servers every 300s.
+ */
 #define HEARTBEAT_SECONDS 300
 void Sv_HeartbeatMasters(void){
 	const char *string;
@@ -730,10 +730,10 @@ void Sv_HeartbeatMasters(void){
 
 
 /*
-Sv_ShutdownMasters
-
-Informs master servers that this server is halting.
-*/
+ * Sv_ShutdownMasters
+ * 
+ * Informs master servers that this server is halting.
+ */
 static void Sv_ShutdownMasters(void){
 	int i;
 
@@ -754,8 +754,8 @@ static void Sv_ShutdownMasters(void){
 
 
 /*
-Sv_KickClient
-*/
+ * Sv_KickClient
+ */
 void Sv_KickClient(client_t *cl, const char *msg){
 	char c[1024];
 
@@ -781,8 +781,8 @@ void Sv_KickClient(client_t *cl, const char *msg){
 
 
 /*
-Sv_ClientAdrToString
-*/
+ * Sv_ClientAdrToString
+ */
 char *Sv_ClientAdrToString(client_t *cl){
 	return Net_AdrToString(cl->netchan.remote_address);
 }
@@ -792,10 +792,10 @@ char *Sv_ClientAdrToString(client_t *cl){
 #define DEFAULT_RATE 10000
 
 /*
-Sv_UserinfoChanged
-
-Enforces safe userinfo data before passing onto game module.
-*/
+ * Sv_UserinfoChanged
+ * 
+ * Enforces safe userinfo data before passing onto game module.
+ */
 void Sv_UserinfoChanged(client_t *cl){
 	char *val;
 	int i;
@@ -862,10 +862,10 @@ void Sv_UserinfoChanged(client_t *cl){
 
 
 /*
-Sv_Init
-
-Only called at Quake2World startup, not for each game
-*/
+ * Sv_Init
+ * 
+ * Only called at Quake2World startup, not for each game
+ */
 void Sv_Init(void){
 	int bits;
 
@@ -905,13 +905,13 @@ void Sv_Init(void){
 
 
 /*
-Sv_FinalMessage
-
-Used by Sv_Shutdown to send a final message to all connected clients
-before the server goes down.  The messages are sent immediately, not
-just stuck on the outgoing message list, because the server could
-completely exit after returning from this function.
-*/
+ * Sv_FinalMessage
+ * 
+ * Used by Sv_Shutdown to send a final message to all connected clients
+ * before the server goes down.  The messages are sent immediately, not
+ * just stuck on the outgoing message list, because the server could
+ * completely exit after returning from this function.
+ */
 static void Sv_FinalMessage(const char *message, qboolean reconnect){
 	int i;
 	client_t *cl;
@@ -936,10 +936,10 @@ static void Sv_FinalMessage(const char *message, qboolean reconnect){
 
 
 /*
-Sv_Shutdown
-
-Called when server is shutting down, or doing a full restart.
-*/
+ * Sv_Shutdown
+ * 
+ * Called when server is shutting down, or doing a full restart.
+ */
 void Sv_Shutdown(const char *finalmsg, qboolean reconnect){
 
 	if(svs.clients)  // send final message

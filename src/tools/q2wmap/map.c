@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qbsp.h"
 #include "scriplib.h"
@@ -46,10 +46,10 @@ static int c_clipbrushes;
 
 
 /*
-PlaneTypeForNormal
-
-Set the type of the plane according to it's normal vector
-*/
+ * PlaneTypeForNormal
+ * 
+ * Set the type of the plane according to it's normal vector
+ */
 static int PlaneTypeForNormal(const vec3_t normal){
 	vec_t ax, ay, az;
 
@@ -74,8 +74,8 @@ static int PlaneTypeForNormal(const vec3_t normal){
 
 
 /*
-PlaneEqual
-*/
+ * PlaneEqual
+ */
 #define	NORMAL_EPSILON	0.00001
 #define	DIST_EPSILON	0.01
 static inline qboolean PlaneEqual(const plane_t * p, const vec3_t normal, const vec_t dist){
@@ -89,8 +89,8 @@ static inline qboolean PlaneEqual(const plane_t * p, const vec3_t normal, const 
 
 
 /*
-AddPlaneToHash
-*/
+ * AddPlaneToHash
+ */
 static inline void AddPlaneToHash(plane_t * p){
 	int hash;
 
@@ -103,8 +103,8 @@ static inline void AddPlaneToHash(plane_t * p){
 
 
 /*
-CreateNewFloatPlane
-*/
+ * CreateNewFloatPlane
+ */
 static int CreateNewFloatPlane(vec3_t normal, vec_t dist){
 	plane_t *p, temp;
 
@@ -145,8 +145,8 @@ static int CreateNewFloatPlane(vec3_t normal, vec_t dist){
 
 
 /*
-SnapVector
-*/
+ * SnapVector
+ */
 static void SnapVector(vec3_t normal){
 	int i;
 
@@ -166,8 +166,8 @@ static void SnapVector(vec3_t normal){
 
 
 /*
-SnapPlane
-*/
+ * SnapPlane
+ */
 static inline void SnapPlane(vec3_t normal, vec_t * dist){
 	SnapVector(normal);
 
@@ -177,8 +177,8 @@ static inline void SnapPlane(vec3_t normal, vec_t * dist){
 
 
 /*
-FindFloatPlane
-*/
+ * FindFloatPlane
+ */
 int FindFloatPlane(vec3_t normal, vec_t dist){
 	int i;
 	const plane_t *p;
@@ -202,8 +202,8 @@ int FindFloatPlane(vec3_t normal, vec_t dist){
 
 
 /*
-PlaneFromPoints
-*/
+ * PlaneFromPoints
+ */
 static int PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2){
 	vec3_t t1, t2, normal;
 	vec_t dist;
@@ -220,8 +220,8 @@ static int PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2){
 
 
 /*
-BrushContents
-*/
+ * BrushContents
+ */
 static int BrushContents(const mapbrush_t * b){
 	int contents;
 	const side_t *s;
@@ -254,11 +254,11 @@ static int BrushContents(const mapbrush_t * b){
 
 
 /*
-AddBrushBevels
-
-Adds any additional planes necessary to allow the brush to be expanded
-against axial bounding boxes
-*/
+ * AddBrushBevels
+ * 
+ * Adds any additional planes necessary to allow the brush to be expanded
+ * against axial bounding boxes
+ */
 static void AddBrushBevels(mapbrush_t * b){
 	int axis, dir;
 	int i, j, k, l, order;
@@ -396,10 +396,10 @@ static void AddBrushBevels(mapbrush_t * b){
 
 
 /*
-MakeBrushWindings
-
-Makes basewindigs for sides and mins / maxs for the brush
-*/
+ * MakeBrushWindings
+ * 
+ * Makes basewindigs for sides and mins / maxs for the brush
+ */
 static qboolean MakeBrushWindings(mapbrush_t * ob){
 	int i, j;
 	side_t *side;
@@ -444,8 +444,8 @@ static qboolean MakeBrushWindings(mapbrush_t * ob){
 
 
 /*
-SetImpliedFlags
-*/
+ * SetImpliedFlags
+ */
 static void SetImpliedFlags(side_t *side, const char *tex){
 
 	if(!strcmp(tex, "common/caulk"))
@@ -479,8 +479,8 @@ static void SetImpliedFlags(side_t *side, const char *tex){
 
 
 /*
-ParseBrush
-*/
+ * ParseBrush
+ */
 static void ParseBrush(entity_t *mapent){
 	mapbrush_t *b;
 	int i, j, k;
@@ -675,13 +675,13 @@ static void ParseBrush(entity_t *mapent){
 }
 
 /*
-MoveBrushesToWorld
-
-Takes all of the brushes from the current entity and
-adds them to the world's brush list.
-
-Used by func_group and func_areaportal
-*/
+ * MoveBrushesToWorld
+ * 
+ * Takes all of the brushes from the current entity and
+ * adds them to the world's brush list.
+ * 
+ * Used by func_group and func_areaportal
+ */
 static void MoveBrushesToWorld(entity_t * mapent){
 	int newbrushes;
 	int worldbrushes;
@@ -717,8 +717,8 @@ static void MoveBrushesToWorld(entity_t * mapent){
 
 
 /*
-ParseMapEntity
-*/
+ * ParseMapEntity
+ */
 static qboolean ParseMapEntity(void){
 	entity_t *mapent;
 	epair_t *e;
@@ -814,8 +814,8 @@ static qboolean ParseMapEntity(void){
 
 
 /*
-LoadMapFile
-*/
+ * LoadMapFile
+ */
 void LoadMapFile(const char *filename){
 	int subdivide;
 	int i;

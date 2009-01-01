@@ -1,33 +1,33 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "g_local.h"
 #include "m_player.h"
 
 
 /*
-G_Give_f
-
-Give items to a client
-*/
+ * G_Give_f
+ * 
+ * Give items to a client
+ */
 static void G_Give_f(edict_t *ent){
 	char *name;
 	gitem_t *it;
@@ -133,8 +133,8 @@ static void G_Give_f(edict_t *ent){
 
 
 /*
-G_God_f
-*/
+ * G_God_f
+ */
 static void G_God_f(edict_t *ent){
 	char *msg;
 
@@ -154,8 +154,8 @@ static void G_God_f(edict_t *ent){
 
 
 /*
-G_Noclip_f
-*/
+ * G_Noclip_f
+ */
 static void G_Noclip_f(edict_t *ent){
 	char *msg;
 
@@ -177,8 +177,8 @@ static void G_Noclip_f(edict_t *ent){
 
 
 /*
-G_Use_f
-*/
+ * G_Use_f
+ */
 static void G_Use_f(edict_t *ent){
 	int index;
 	gitem_t *it;
@@ -205,8 +205,8 @@ static void G_Use_f(edict_t *ent){
 
 
 /*
-G_Drop_f
-*/
+ * G_Drop_f
+ */
 static void G_Drop_f(edict_t *ent){
 	int index;
 	gitem_t *it;
@@ -237,8 +237,8 @@ static void G_Drop_f(edict_t *ent){
 
 
 /*
-G_WeapPrev_f
-*/
+ * G_WeapPrev_f
+ */
 static void G_WeapPrev_f(edict_t *ent){
 	gclient_t *cl;
 	int i, index;
@@ -277,8 +277,8 @@ static void G_WeapPrev_f(edict_t *ent){
 }
 
 /*
-G_WeapNext_f
-*/
+ * G_WeapNext_f
+ */
 static void G_WeapNext_f(edict_t *ent){
 	gclient_t *cl;
 	int i, index;
@@ -318,8 +318,8 @@ static void G_WeapNext_f(edict_t *ent){
 
 
 /*
-G_WeapLast_f
-*/
+ * G_WeapLast_f
+ */
 static void G_WeapLast_f(edict_t *ent){
 	gclient_t *cl;
 	int index;
@@ -343,8 +343,8 @@ static void G_WeapLast_f(edict_t *ent){
 
 
 /*
-G_Kill_f
-*/
+ * G_Kill_f
+ */
 static void G_Kill_f(edict_t *ent){
 
 	if((level.time - ent->client->respawn_time) < 1)
@@ -366,8 +366,8 @@ static void G_Kill_f(edict_t *ent){
 
 
 /*
-G_Wave_f
-*/
+ * G_Wave_f
+ */
 static void G_Wave_f(edict_t *ent){
 	int i;
 
@@ -414,8 +414,8 @@ static void G_Wave_f(edict_t *ent){
 
 
 /*
-G_Say_f
-*/
+ * G_Say_f
+ */
 static void G_Say_f(edict_t *ent){
 	int i;
 	size_t len;
@@ -522,8 +522,8 @@ static void G_Say_f(edict_t *ent){
 
 
 /*
-G_PlayerList_f
-*/
+ * G_PlayerList_f
+ */
 static void G_PlayerList_f(edict_t *ent){
 	int i;
 	char st[80];
@@ -562,12 +562,12 @@ static const char *vote_cmds[] = {
 
 
 /*
-Vote_Help
-
-Inspects the vote command and issues help if applicable.  Returns
-true if the command received help and may therefore be ignored, false
-otherwise.
-*/
+ * Vote_Help
+ * 
+ * Inspects the vote command and issues help if applicable.  Returns
+ * true if the command received help and may therefore be ignored, false
+ * otherwise.
+ */
 static qboolean Vote_Help(edict_t *ent){
 	int i, j, len;
 	char msg[1024];
@@ -660,8 +660,8 @@ static qboolean Vote_Help(edict_t *ent){
 
 
 /*
-G_Vote_f
-*/
+ * G_Vote_f
+ */
 static void G_Vote_f(edict_t *ent){
 	char *c, vote[64];
 	int i;
@@ -731,10 +731,10 @@ static void G_Vote_f(edict_t *ent){
 
 
 /*
-G_AddClientToTeam
-
-Returns true if the client's team was changed, false otherwise.
-*/
+ * G_AddClientToTeam
+ * 
+ * Returns true if the client's team was changed, false otherwise.
+ */
 qboolean G_AddClientToTeam(edict_t *ent, char *teamname){
 	team_t *team;
 
@@ -758,8 +758,8 @@ qboolean G_AddClientToTeam(edict_t *ent, char *teamname){
 
 
 /*
-G_AddClientToRound
-*/
+ * G_AddClientToRound
+ */
 static void G_AddClientToRound(edict_t *ent){
 	int score;  // keep score across rounds
 
@@ -786,8 +786,8 @@ static void G_AddClientToRound(edict_t *ent){
 
 
 /*
-G_Team_f
-*/
+ * G_Team_f
+ */
 static void G_Team_f(edict_t *ent){
 
 	if((level.teams || level.ctf) && gi.Argc() != 2){
@@ -814,8 +814,8 @@ static void G_Team_f(edict_t *ent){
 
 
 /*
-G_Teamname_f
-*/
+ * G_Teamname_f
+ */
 static void G_Teamname_f(edict_t *ent){
 	int cs;
 	char *s;
@@ -856,8 +856,8 @@ static void G_Teamname_f(edict_t *ent){
 
 
 /*
-G_Teamskin_f
-*/
+ * G_Teamskin_f
+ */
 static void G_Teamskin_f(edict_t *ent){
 	int i;
 	gclient_t *cl;
@@ -918,10 +918,10 @@ static void G_Teamskin_f(edict_t *ent){
 
 
 /*
-G_Ready_f
-
-If match is enabled, all clients must issue ready for game to start.
-*/
+ * G_Ready_f
+ * 
+ * If match is enabled, all clients must issue ready for game to start.
+ */
 static void G_Ready_f(edict_t *ent){
 	int i, g, e, clients;
 	gclient_t *cl;
@@ -984,8 +984,8 @@ static void G_Ready_f(edict_t *ent){
 }
 
 /*
-G_Unready_f
-*/
+ * G_Unready_f
+ */
 static void G_Unready_f(edict_t *ent){
 
 	if(!level.match){
@@ -1014,8 +1014,8 @@ static void G_Unready_f(edict_t *ent){
 
 
 /*
-G_Spectate_f
-*/
+ * G_Spectate_f
+ */
 static void G_Spectate_f(edict_t *ent){
 	qboolean spectator;
 
@@ -1055,8 +1055,8 @@ static void G_Spectate_f(edict_t *ent){
 
 
 /*
-G_Score_f
-*/
+ * G_Score_f
+ */
 void G_Score_f(edict_t *ent){
 
 	if(ent->client->showscores){
@@ -1075,8 +1075,8 @@ void G_Score_f(edict_t *ent){
 
 
 /*
-P_Command
-*/
+ * P_Command
+ */
 void P_Command(edict_t *ent){
 	char *cmd;
 

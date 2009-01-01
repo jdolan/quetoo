@@ -1,37 +1,37 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "server.h"
 
 /*
-
-Encode a client frame onto the network channel
-
-*/
+ * 
+ * Encode a client frame onto the network channel
+ * 
+ */
 
 /*
-Sv_EmitEntities
-
-Writes a delta update of an entity_state_t list to the message.
-*/
+ * Sv_EmitEntities
+ * 
+ * Writes a delta update of an entity_state_t list to the message.
+ */
 static void Sv_EmitEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg){
 	entity_state_t *oldent = NULL, *newent = NULL;
 	int oldindex, newindex;
@@ -98,8 +98,8 @@ static void Sv_EmitEntities(client_frame_t *from, client_frame_t *to, sizebuf_t 
 
 
 /*
-Sv_WritePlayerstateToClient
-*/
+ * Sv_WritePlayerstateToClient
+ */
 static void Sv_WritePlayerstateToClient(client_t *client, client_frame_t *from, client_frame_t *to, sizebuf_t *msg){
 	int i;
 	int pflags;
@@ -200,8 +200,8 @@ static void Sv_WritePlayerstateToClient(client_t *client, client_frame_t *from, 
 
 
 /*
-Sv_WriteFrameToClient
-*/
+ * Sv_WriteFrameToClient
+ */
 void Sv_WriteFrameToClient(client_t *client, sizebuf_t *msg){
 	client_frame_t *frame, *oldframe;
 	int lastframe;
@@ -242,18 +242,18 @@ void Sv_WriteFrameToClient(client_t *client, sizebuf_t *msg){
 
 
 /*
-
-Build a client frame structure
-
-*/
+ * 
+ * Build a client frame structure
+ * 
+ */
 
 byte fatpvs[65536 / 8];  // 32767 is MAX_BSP_LEAFS
 
 /*
-Sv_FatPVS
-
-The client will interpolate the view position, so we can't use a single PVS point.
-*/
+ * Sv_FatPVS
+ * 
+ * The client will interpolate the view position, so we can't use a single PVS point.
+ */
 static void Sv_FatPVS(const vec3_t org){
 	int leafs[64];
 	int i, j, count;
@@ -293,11 +293,11 @@ static void Sv_FatPVS(const vec3_t org){
 
 
 /*
-Sv_BuildClientFrame
-
-Decides which entities are going to be visible to the client, and
-copies off the playerstat and areabits.
-*/
+ * Sv_BuildClientFrame
+ * 
+ * Decides which entities are going to be visible to the client, and
+ * copies off the playerstat and areabits.
+ */
 void Sv_BuildClientFrame(client_t *client){
 	int e, i;
 	vec3_t org;

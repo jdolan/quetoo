@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "bspfile.h"
 #include "polylib.h"
@@ -32,8 +32,8 @@ int	c_winding_points;
 #define	BOGUS_RANGE	8192
 
 /*
-AllocWinding
-*/
+ * AllocWinding
+ */
 winding_t *AllocWinding(int points){
 	winding_t *w;
 	int s;
@@ -53,8 +53,8 @@ winding_t *AllocWinding(int points){
 
 
 /*
-FreeWinding
-*/
+ * FreeWinding
+ */
 void FreeWinding(winding_t *w){
 	if(*(unsigned *)w == 0xdeaddead)
 		Error("FreeWinding: freed a freed winding\n");
@@ -67,8 +67,8 @@ void FreeWinding(winding_t *w){
 
 
 /*
-RemoveColinearPoints
-*/
+ * RemoveColinearPoints
+ */
 int	c_removed;
 
 void RemoveColinearPoints(winding_t *w){
@@ -102,8 +102,8 @@ void RemoveColinearPoints(winding_t *w){
 
 
 /*
-WindingPlane
-*/
+ * WindingPlane
+ */
 void WindingPlane(const winding_t *w, vec3_t normal, vec_t *dist){
 	vec3_t	v1, v2;
 
@@ -116,8 +116,8 @@ void WindingPlane(const winding_t *w, vec3_t normal, vec_t *dist){
 
 
 /*
-WindingArea
-*/
+ * WindingArea
+ */
 vec_t WindingArea(const winding_t *w){
 	int i;
 	vec3_t d1, d2, cross;
@@ -135,8 +135,8 @@ vec_t WindingArea(const winding_t *w){
 
 
 /*
-WindingBounds
-*/
+ * WindingBounds
+ */
 void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs){
 	int i, j;
 
@@ -156,8 +156,8 @@ void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs){
 
 
 /*
-WindingCenter
-*/
+ * WindingCenter
+ */
 void WindingCenter(const winding_t *w, vec3_t center){
 	int i;
 	float scale;
@@ -172,8 +172,8 @@ void WindingCenter(const winding_t *w, vec3_t center){
 
 
 /*
-BaseWindingForPlane
-*/
+ * BaseWindingForPlane
+ */
 winding_t *BaseWindingForPlane(const vec3_t normal, const vec_t dist){
 	int i, x;
 	vec_t max, v;
@@ -237,8 +237,8 @@ winding_t *BaseWindingForPlane(const vec3_t normal, const vec_t dist){
 
 
 /*
-CopyWinding
-*/
+ * CopyWinding
+ */
 winding_t *CopyWinding(const winding_t *w){
 	size_t size;
 	winding_t *c;
@@ -251,8 +251,8 @@ winding_t *CopyWinding(const winding_t *w){
 
 
 /*
-ReverseWinding
-*/
+ * ReverseWinding
+ */
 winding_t *ReverseWinding(winding_t *w){
 	int i;
 	winding_t *c;
@@ -267,8 +267,8 @@ winding_t *ReverseWinding(winding_t *w){
 
 
 /*
-ClipWindingEpsilon
-*/
+ * ClipWindingEpsilon
+ */
 void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
                         vec_t epsilon, winding_t **front, winding_t **back){
 	vec_t dists[MAX_POINTS_ON_WINDING+4];
@@ -367,8 +367,8 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 
 
 /*
-ChopWindingInPlace
-*/
+ * ChopWindingInPlace
+ */
 void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist, const vec_t epsilon){
 	winding_t *in;
 	vec_t dists[MAX_POINTS_ON_WINDING+4];
@@ -459,11 +459,11 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 
 
 /*
-ChopWinding
-
-Returns the fragment of in that is on the front side
-of the cliping plane.  The original is freed.
-*/
+ * ChopWinding
+ * 
+ * Returns the fragment of in that is on the front side
+ * of the cliping plane.  The original is freed.
+ */
 winding_t *ChopWinding(winding_t *in, vec3_t normal, vec_t dist){
 	winding_t *f, *b;
 

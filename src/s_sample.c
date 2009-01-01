@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
@@ -29,8 +29,8 @@ static int iff_chunk_len;
 
 
 /*
-S_GetLittleShort
-*/
+ * S_GetLittleShort
+ */
 static short S_GetLittleShort(void){
 	short val = 0;
 	val = *data_p;
@@ -41,8 +41,8 @@ static short S_GetLittleShort(void){
 
 
 /*
-S_GetLittleLong
-*/
+ * S_GetLittleLong
+ */
 static int S_GetLittleLong(void){
 	int val = 0;
 	val = *data_p;
@@ -55,8 +55,8 @@ static int S_GetLittleLong(void){
 
 
 /*
-S_FindNextChunk
-*/
+ * S_FindNextChunk
+ */
 static void S_FindNextChunk(char *name){
 	while(true){
 		data_p = last_chunk;
@@ -82,8 +82,8 @@ static void S_FindNextChunk(char *name){
 
 
 /*
-S_FindChunk
-*/
+ * S_FindChunk
+ */
 static void S_FindChunk(char *name){
 	last_chunk = iff_data;
 	S_FindNextChunk(name);
@@ -91,8 +91,8 @@ static void S_FindChunk(char *name){
 
 
 /*
-S_GetWavinfo
-*/
+ * S_GetWavinfo
+ */
 static wavinfo_t S_GetWavinfo(const char *name, byte *wav, int wavlength){
 	wavinfo_t info;
 	int i;
@@ -177,8 +177,8 @@ static wavinfo_t S_GetWavinfo(const char *name, byte *wav, int wavlength){
 
 
 /*
-S_ResampleSfx
-*/
+ * S_ResampleSfx
+ */
 static void S_ResampleSfx(sfx_t *sfx, int inrate, int inwidth, byte *data){
 	int outcount;
 	int srcsample;
@@ -230,8 +230,8 @@ static void S_ResampleSfx(sfx_t *sfx, int inrate, int inwidth, byte *data){
 
 
 /*
-S_LoadSfx
-*/
+ * S_LoadSfx
+ */
 sfxcache_t *S_LoadSfx(sfx_t *s){
 	char *c, name[MAX_QPATH];
 	void *buf;

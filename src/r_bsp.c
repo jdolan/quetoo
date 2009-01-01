@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -26,8 +26,8 @@ vec3_t modelorg;  // relative to viewpoint
 
 
 /*
-R_CullBox
-*/
+ * R_CullBox
+ */
 qboolean R_CullBox(const vec3_t mins, const vec3_t maxs){
 	int i;
 
@@ -43,8 +43,8 @@ qboolean R_CullBox(const vec3_t mins, const vec3_t maxs){
 
 
 /*
-R_CullBspModel
-*/
+ * R_CullBspModel
+ */
 qboolean R_CullBspModel(const entity_t *e){
 	vec3_t mins, maxs;
 	int i;
@@ -67,8 +67,8 @@ qboolean R_CullBspModel(const entity_t *e){
 
 
 /*
-R_ShiftLights
-*/
+ * R_ShiftLights
+ */
 static void R_ShiftLights(const entity_t *e, qboolean shift){
 	light_t *light;
 	int i;
@@ -94,8 +94,8 @@ static void R_ShiftLights(const entity_t *e, qboolean shift){
 
 
 /*
-R_DrawBspModelSurfaces
-*/
+ * R_DrawBspModelSurfaces
+ */
 static void R_DrawBspModelSurfaces(const entity_t *e){
 	cplane_t *plane;
 	msurface_t *surf;
@@ -157,8 +157,8 @@ static void R_DrawBspModelSurfaces(const entity_t *e){
 
 
 /*
-R_DrawBspModel
-*/
+ * R_DrawBspModel
+ */
 void R_DrawBspModel(const entity_t *e){
 	vec3_t forward, right, up;
 	vec3_t temp;
@@ -190,8 +190,8 @@ void R_DrawBspModel(const entity_t *e){
 
 
 /*
-R_DrawBspNormals
-*/
+ * R_DrawBspNormals
+ */
 void R_DrawBspNormals(void){
 	msurface_t *surf;
 	GLfloat *vertex, *normal;
@@ -246,8 +246,8 @@ void R_DrawBspNormals(void){
 
 
 /*
-R_MarkSurfaces_
-*/
+ * R_MarkSurfaces_
+ */
 static void R_MarkSurfaces_(mnode_t *node){
 	int i, side, sidebit;
 	msurface_t *surf, **lsurf;
@@ -325,8 +325,8 @@ static void R_MarkSurfaces_(mnode_t *node){
 
 
 /*
-R_MarkSurfaces
-*/
+ * R_MarkSurfaces
+ */
 void R_MarkSurfaces(void){
 	static vec3_t oldorigin, oldangles;
 	static int oldvisframe;
@@ -362,8 +362,8 @@ void R_MarkSurfaces(void){
 
 
 /*
-R_LeafForPoint
-*/
+ * R_LeafForPoint
+ */
 const mleaf_t *R_LeafForPoint(const vec3_t p, const model_t *model){
 	const mnode_t *node;
 	const cplane_t *plane;
@@ -397,8 +397,8 @@ const mleaf_t *R_LeafForPoint(const vec3_t p, const model_t *model){
 
 
 /*
-R_DecompressVis
-*/
+ * R_DecompressVis
+ */
 static byte *R_DecompressVis(const byte *in){
 	static byte decompressed[MAX_BSP_LEAFS / 8];
 	int c;
@@ -435,8 +435,8 @@ static byte *R_DecompressVis(const byte *in){
 
 
 /*
-R_LeafInVis
-*/
+ * R_LeafInVis
+ */
 static inline qboolean R_LeafInVis(const mleaf_t *leaf, const byte *vis){
 	int c;
 
@@ -451,11 +451,11 @@ static inline qboolean R_LeafInVis(const mleaf_t *leaf, const byte *vis){
 
 
 /*
-R_MarkLeafs
-
-Mark the leafs that are in the PVS for the current cluster, creating the
-recursion path for R_MarkSurfaces.
-*/
+ * R_MarkLeafs
+ * 
+ * Mark the leafs that are in the PVS for the current cluster, creating the
+ * recursion path for R_MarkSurfaces.
+ */
 void R_MarkLeafs(void){
 	byte *vis;
 	mleaf_t *leaf;

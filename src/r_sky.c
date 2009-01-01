@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -73,8 +73,8 @@ static sky_t sky;
 
 
 /*
-R_DrawSkySurface
-*/
+ * R_DrawSkySurface
+ */
 static void R_DrawSkySurface(int nump, vec3_t vecs){
 	int i, j;
 	vec3_t v, av;
@@ -153,8 +153,8 @@ static void R_DrawSkySurface(int nump, vec3_t vecs){
 
 
 /*
-R_ClipSkySurface
-*/
+ * R_ClipSkySurface
+ */
 static void R_ClipSkySurface(int nump, vec3_t vecs, int stage){
 	const float *norm;
 	float *v;
@@ -238,8 +238,8 @@ static void R_ClipSkySurface(int nump, vec3_t vecs, int stage){
 
 
 /*
-R_AddSkySurface
-*/
+ * R_AddSkySurface
+ */
 static void R_AddSkySurface(const msurface_t *surf){
 	int i, index;
 	vec3_t verts[MAX_CLIP_VERTS];
@@ -262,8 +262,8 @@ static void R_AddSkySurface(const msurface_t *surf){
 
 
 /*
-R_ClearSkyBox
-*/
+ * R_ClearSkyBox
+ */
 void R_ClearSkyBox(void){
 	int i;
 
@@ -275,8 +275,8 @@ void R_ClearSkyBox(void){
 
 
 /*
-R_MakeSkyVec
-*/
+ * R_MakeSkyVec
+ */
 static void R_MakeSkyVec(float s, float t, int axis){
 	vec3_t v, b;
 	int j;
@@ -319,8 +319,8 @@ static void R_MakeSkyVec(float s, float t, int axis){
 int skytexorder[6] = {0, 2, 1, 3, 4, 5};
 
 /*
-R_DrawSkyBox
-*/
+ * R_DrawSkyBox
+ */
 void R_DrawSkyBox(void){
 	msurfaces_t *surfs;
 	int i, j;
@@ -376,8 +376,8 @@ void R_DrawSkyBox(void){
 char *suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
 /*
-R_SetSky
-*/
+ * R_SetSky
+ */
 void R_SetSky(char *name){
 	int i;
 	char pathname[MAX_QPATH];

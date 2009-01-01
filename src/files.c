@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #ifdef _WIN32
 #include <windows.h>
@@ -35,8 +35,8 @@
 #include "pak.h"
 
 /*
-Fs_Write
-*/
+ * Fs_Write
+ */
 size_t Fs_Write(void *ptr, size_t size, size_t nmemb, FILE *stream){
 	size_t len;
 
@@ -52,8 +52,8 @@ size_t Fs_Write(void *ptr, size_t size, size_t nmemb, FILE *stream){
 }
 
 /*
-Fs_Read
-*/
+ * Fs_Read
+ */
 size_t Fs_Read(void *ptr, size_t size, size_t nmemb, FILE *stream){
 	size_t len;
 
@@ -69,8 +69,8 @@ size_t Fs_Read(void *ptr, size_t size, size_t nmemb, FILE *stream){
 }
 
 /*
-Fs_CloseFile
-*/
+ * Fs_CloseFile
+ */
 void Fs_CloseFile(FILE *f){
 	fclose(f);
 }
@@ -93,8 +93,8 @@ static searchpath_t *fs_base_searchpaths;  // without gamedirs
 static hashtable_t fs_hashtable;  // pakfiles are pushed into a hash
 
 /*
-Fs_FileLength
-*/
+ * Fs_FileLength
+ */
 static int Fs_FileLength(FILE *f){
 	int pos;
 	int end;
@@ -109,10 +109,10 @@ static int Fs_FileLength(FILE *f){
 
 
 /*
-Fs_CreatePath
-
-Creates any directories needed to store the given path.
-*/
+ * Fs_CreatePath
+ * 
+ * Creates any directories needed to store the given path.
+ */
 void Fs_CreatePath(const char *path){
 	char pathCopy[MAX_OSPATH];
 	char *ofs;
@@ -129,12 +129,12 @@ void Fs_CreatePath(const char *path){
 }
 
 /*
-Fs_OpenFile
-
-Attempts to open the specified file on the search path.  Returns filesize
-and an open FILE pointer.  This generalizes opening files from paks vs
-opening filesystem resources directly.
-*/
+ * Fs_OpenFile
+ * 
+ * Attempts to open the specified file on the search path.  Returns filesize
+ * and an open FILE pointer.  This generalizes opening files from paks vs
+ * opening filesystem resources directly.
+ */
 char *last_pak;  // the server uses this to determine CS_PAK
 int Fs_OpenFile(const char *filename, FILE **file, filemode_t mode){
 	searchpath_t *search;
@@ -204,10 +204,10 @@ int Fs_OpenFile(const char *filename, FILE **file, filemode_t mode){
 
 
 /*
-Fs_ReadFile
-
-Properly handles partial reads
-*/
+ * Fs_ReadFile
+ * 
+ * Properly handles partial reads
+ */
 void Fs_ReadFile(void *buffer, int len, FILE *f){
 	int read;
 
@@ -219,11 +219,11 @@ void Fs_ReadFile(void *buffer, int len, FILE *f){
 
 
 /*
-Fs_LoadFile
-
-Filename are reletive to the quake search path
-A NULL buffer will just return the file length without loading.
-*/
+ * Fs_LoadFile
+ * 
+ * Filename are reletive to the quake search path
+ * A NULL buffer will just return the file length without loading.
+ */
 int Fs_LoadFile(const char *filename, void **buffer){
 	FILE *h;
 	byte *buf;
@@ -259,16 +259,16 @@ int Fs_LoadFile(const char *filename, void **buffer){
 
 
 /*
-Fs_FreeFile
-*/
+ * Fs_FreeFile
+ */
 void Fs_FreeFile(void *buffer){
 	Z_Free(buffer);
 }
 
 
 /*
-Fs_AddPakfile
-*/
+ * Fs_AddPakfile
+ */
 void Fs_AddPakfile(const char *pakfile){
 	pak_t *pak;
 	int i;
@@ -284,10 +284,10 @@ void Fs_AddPakfile(const char *pakfile){
 
 
 /*
-Fs_AddGameDirectory
-
-Adds the directory to the head of the path, and loads all paks within it.
-*/
+ * Fs_AddGameDirectory
+ * 
+ * Adds the directory to the head of the path, and loads all paks within it.
+ */
 static void Fs_AddGameDirectory(const char *dir){
 	searchpath_t *search;
 	const char *p;
@@ -321,8 +321,8 @@ static void Fs_AddGameDirectory(const char *dir){
 static char homedir[MAX_OSPATH];
 
 /*
-Fs_Homedir
-*/
+ * Fs_Homedir
+ */
 static char *Fs_Homedir(void){
 #ifdef _WIN32
 	void *handle;
@@ -351,8 +351,8 @@ static char *Fs_Homedir(void){
 
 
 /*
-Fs_AddHomeAsGameDirectory
-*/
+ * Fs_AddHomeAsGameDirectory
+ */
 static void Fs_AddHomeAsGameDirectory(const char *dir){
 	char gdir[MAX_OSPATH];
 
@@ -371,18 +371,18 @@ static void Fs_AddHomeAsGameDirectory(const char *dir){
 
 
 /*
-Fs_Gamedir
-
-Called to find where to write a file (demos, screenshots, etc)
-*/
+ * Fs_Gamedir
+ * 
+ * Called to find where to write a file (demos, screenshots, etc)
+ */
 const char *Fs_Gamedir(void){
 	return fs_gamedir;
 }
 
 
 /*
-Fs_FindFirst
-*/
+ * Fs_FindFirst
+ */
 const char *Fs_FindFirst(const char *path, qboolean fullpath){
 	const char *n;
 	char name[MAX_OSPATH];
@@ -405,12 +405,12 @@ const char *Fs_FindFirst(const char *path, qboolean fullpath){
 
 
 /*
-Fs_ExecAutoexec
-
-Execs the local autoexec.cfg for the current gamedir.  This is
-a function call rather than simply stuffing "exec autoexec.cfg"
-because we do not wish to use default/autoexec.cfg for all mods.
-*/
+ * Fs_ExecAutoexec
+ * 
+ * Execs the local autoexec.cfg for the current gamedir.  This is
+ * a function call rather than simply stuffing "exec autoexec.cfg"
+ * because we do not wish to use default/autoexec.cfg for all mods.
+ */
 void Fs_ExecAutoexec(void){
 	char name[MAX_QPATH];
 	searchpath_t *s, *end;
@@ -440,10 +440,10 @@ void Fs_ExecAutoexec(void){
 
 
 /*
-Fs_SetGamedir
-
-Sets the gamedir and path to a different directory.
-*/
+ * Fs_SetGamedir
+ * 
+ * Sets the gamedir and path to a different directory.
+ */
 void Fs_SetGamedir(const char *dir){
 	searchpath_t *s;
 	hashentry_t *e;
@@ -491,10 +491,10 @@ void Fs_SetGamedir(const char *dir){
 
 
 /*
-Fs_NextPath
-
-Allows enumerating all of the directories in the search path
-*/
+ * Fs_NextPath
+ * 
+ * Allows enumerating all of the directories in the search path
+ */
 const char *Fs_NextPath(const char *prevpath){
 	searchpath_t *s;
 	char *prev;
@@ -515,11 +515,11 @@ const char *Fs_NextPath(const char *prevpath){
 #define GZIP_BUFFER (64 * 1024)
 
 /*
-Fs_GunzipFile
-
-Deflates the specified file in place, removing the .gz suffix from the path.
-The original deflated file is removed upon successful decompression.
-*/
+ * Fs_GunzipFile
+ * 
+ * Deflates the specified file in place, removing the .gz suffix from the path.
+ * The original deflated file is removed upon successful decompression.
+ */
 void Fs_GunzipFile(const char *path){
 	gzFile gz;
 	FILE *f;
@@ -583,8 +583,8 @@ void Fs_GunzipFile(const char *path){
 
 
 /*
-Fs_InitFilesystem
-*/
+ * Fs_InitFilesystem
+ */
 void Fs_InitFilesystem(void){
 	char bd[MAX_OSPATH];
 

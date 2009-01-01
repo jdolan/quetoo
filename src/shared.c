@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "shared.h"
 #include "files.h"
@@ -28,28 +28,28 @@ vec3_t vec3_origin = {0.0, 0.0, 0.0};
 
 
 /*
-frand
-
-Returns a float between 0.0 and 1.0.
-*/
+ * frand
+ * 
+ * Returns a float between 0.0 and 1.0.
+ */
 float frand(void){
 	return(rand() & 32767) * (1.0 / 32767);
 }
 
 
 /*
-crand
-
-Returns a float between -1.0 and 1.0.
-*/
+ * crand
+ * 
+ * Returns a float between -1.0 and 1.0.
+ */
 float crand(void){
 	return(rand() & 32767) * (2.0 / 32767) - 1.0;
 }
 
 
 /*
-RotatePointAroundVector
-*/
+ * RotatePointAroundVector
+ */
 void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees){
 	float m[3][3];
 	float im[3][3];
@@ -105,8 +105,8 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
 
 
 /*
-VectorAngles
-*/
+ * VectorAngles
+ */
 void VectorAngles(const vec3_t vector, vec3_t angles){
 	const float forward = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
 	float pitch = atan2(vector[2], forward) * 180.0 / M_PI;
@@ -122,8 +122,8 @@ void VectorAngles(const vec3_t vector, vec3_t angles){
 
 
 /*
-AngleVectors
-*/
+ * AngleVectors
+ */
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up){
 	float angle;
 	float sr, sp, sy, cr, cp, cy;
@@ -157,8 +157,8 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up){
 
 
 /*
-ProjectPointOnPlane
-*/
+ * ProjectPointOnPlane
+ */
 void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal){
 	float d;
 	vec3_t n;
@@ -179,10 +179,10 @@ void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal){
 
 
 /*
-PerpendicularVector
-
-Assumes src vector is normalized.
-*/
+ * PerpendicularVector
+ * 
+ * Assumes src vector is normalized.
+ */
 void PerpendicularVector(vec3_t dst, const vec3_t src){
 	int pos;
 	int i;
@@ -208,11 +208,11 @@ void PerpendicularVector(vec3_t dst, const vec3_t src){
 
 
 /*
-TangentVector
-
-Projects the normalized directional vectors on to the normal's plane.
-The fourth component of the resulting tangent vector represents sidedness.
-*/
+ * TangentVector
+ * 
+ * Projects the normalized directional vectors on to the normal's plane.
+ * The fourth component of the resulting tangent vector represents sidedness.
+ */
 void TangentVectors(vec3_t normal, vec3_t sdir, vec3_t tdir,
 		vec4_t tangent, vec3_t binormal){
 
@@ -242,8 +242,8 @@ void TangentVectors(vec3_t normal, vec3_t sdir, vec3_t tdir,
 
 
 /*
-ConcatRotations
-*/
+ * ConcatRotations
+ */
 void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]){
 	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] +
 				in1[0][2] * in2[2][0];
@@ -267,8 +267,8 @@ void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]){
 
 
 /*
-VectorLerp
-*/
+ * VectorLerp
+ */
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out){
 	int i;
 
@@ -278,8 +278,8 @@ void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out
 
 
 /*
-AngleLerp
-*/
+ * AngleLerp
+ */
 void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out){
 	vec3_t _from, _to;
 	int i;
@@ -302,10 +302,10 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 
 
 /*
-BoxOnPlaneSide
-
-Returns 1, 2, or 1 + 2
-*/
+ * BoxOnPlaneSide
+ * 
+ * Returns 1, 2, or 1 + 2
+ */
 int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct cplane_s *p){
 	float dist1, dist2;
 	int sides;
@@ -369,8 +369,8 @@ int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct cplane_s
 
 
 /*
-ClearBounds
-*/
+ * ClearBounds
+ */
 void ClearBounds(vec3_t mins, vec3_t maxs){
 	mins[0] = mins[1] = mins[2] = 99999;
 	maxs[0] = maxs[1] = maxs[2] = -99999;
@@ -378,8 +378,8 @@ void ClearBounds(vec3_t mins, vec3_t maxs){
 
 
 /*
-AddPointToBounds
-*/
+ * AddPointToBounds
+ */
 void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs){
 	int i;
 
@@ -393,8 +393,8 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs){
 
 
 /*
-VectorCompare
-*/
+ * VectorCompare
+ */
 qboolean VectorCompare(const vec3_t v1, const vec3_t v2){
 
 	if(v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
@@ -405,8 +405,8 @@ qboolean VectorCompare(const vec3_t v1, const vec3_t v2){
 
 
 /*
-VectorNearer
-*/
+ * VectorNearer
+ */
 qboolean VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t comp){
 	vec3_t d1, d2;
 
@@ -418,8 +418,8 @@ qboolean VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t comp){
 
 
 /*
-VectorNormalize
-*/
+ * VectorNormalize
+ */
 vec_t VectorNormalize(vec3_t v){
 	float length, ilength;
 
@@ -437,10 +437,10 @@ vec_t VectorNormalize(vec3_t v){
 
 
 /*
-VectorMA
-
-Scales vecb and adds it to veca to produce vecc.  Useful for projection.
-*/
+ * VectorMA
+ * 
+ * Scales vecb and adds it to veca to produce vecc.  Useful for projection.
+ */
 void VectorMA(const vec3_t veca, const float scale, const vec3_t vecb, vec3_t vecc){
 	vecc[0] = veca[0] + scale * vecb[0];
 	vecc[1] = veca[1] + scale * vecb[1];
@@ -449,8 +449,8 @@ void VectorMA(const vec3_t veca, const float scale, const vec3_t vecb, vec3_t ve
 
 
 /*
-CrossProduct
-*/
+ * CrossProduct
+ */
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross){
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
 	cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
@@ -459,16 +459,16 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross){
 
 
 /*
-VectorLength
-*/
+ * VectorLength
+ */
 vec_t VectorLength(const vec3_t v){
 	return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 }
 
 
 /*
-VectorScaleWithBounds
-*/
+ * VectorScaleWithBounds
+ */
 void VectorScaleWithBounds(vec3_t in, vec_t scale, vec_t bounds, vec3_t out){
 	int i;
 	float s;
@@ -482,16 +482,16 @@ void VectorScaleWithBounds(vec3_t in, vec_t scale, vec_t bounds, vec3_t out){
 
 
 /*
-VectorRoundUp
-*/
+ * VectorRoundUp
+ */
 vec_t VectorRoundUp(vec_t v){
 	return floor(v + 0.5);
 }
 
 
 /*
-VectorMix
-*/
+ * VectorMix
+ */
 void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out){
 	int i;
 
@@ -501,8 +501,8 @@ void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out){
 
 
 /*
-ColorNormalize
-*/
+ * ColorNormalize
+ */
 vec_t ColorNormalize(const vec3_t in, vec3_t out){
 	vec_t max;
 
@@ -528,8 +528,8 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out){
 
 
 /*
-Com_Mixedcase
-*/
+ * Com_Mixedcase
+ */
 qboolean Com_Mixedcase(const char *s){
 	const char *c = s;
 	while(*c){
@@ -542,8 +542,8 @@ qboolean Com_Mixedcase(const char *s){
 
 
 /*
-Com_Lowercase
-*/
+ * Com_Lowercase
+ */
 char *Com_Lowercase(char *s){
 	char *c = s;
 	while(*c){
@@ -557,8 +557,8 @@ char *Com_Lowercase(char *s){
 static char common_prefix[MAX_TOKEN_CHARS];
 
 /*
-Com_CommonPrefix
-*/
+ * Com_CommonPrefix
+ */
 char *Com_CommonPrefix(const char *words[], int nwords){
 	const char *w;
 	char c;
@@ -594,8 +594,8 @@ char *Com_CommonPrefix(const char *words[], int nwords){
 
 
 /*
-Like glob_match, but match pattern against any final segment of text.
-*/
+ * Like glob_match, but match pattern against any final segment of text.
+ */
 int Com_GlobMatchStar(const char *pattern, const char *text){
 	const char *p = pattern, *t = text;
 	register char c, c1;
@@ -726,8 +726,8 @@ match:
 
 
 /*
-Com_Basename
-*/
+ * Com_Basename
+ */
 const char *Com_Basename(const char *path){
 	const char *last;
 
@@ -742,8 +742,8 @@ const char *Com_Basename(const char *path){
 
 
 /*
-Com_Dirname
-*/
+ * Com_Dirname
+ */
 void Com_Dirname(const char *in, char *out){
 	char *c;
 
@@ -758,8 +758,8 @@ void Com_Dirname(const char *in, char *out){
 
 
 /*
-Com_StripExtension
-*/
+ * Com_StripExtension
+ */
 void Com_StripExtension(const char *in, char *out){
 	while(*in && *in != '.')
 		*out++ = *in++;
@@ -768,8 +768,8 @@ void Com_StripExtension(const char *in, char *out){
 
 
 /*
-Com_StripColor
-*/
+ * Com_StripColor
+ */
 void Com_StripColor(const char *in, char *out){
 
 	while(*in){
@@ -791,8 +791,8 @@ void Com_StripColor(const char *in, char *out){
 
 
 /*
-Com_TrimString
-*/
+ * Com_TrimString
+ */
 char *Com_TrimString(char *in){
 	char *c;
 
@@ -811,8 +811,8 @@ char *Com_TrimString(char *in){
 
 
 /*
-BYTE ORDER FUNCTIONS
-*/
+ * BYTE ORDER FUNCTIONS
+ */
 
 static qboolean bigendien;
 
@@ -892,8 +892,8 @@ static float FloatNoSwap(float f){
 
 
 /*
-Swap_Init
-*/
+ * Swap_Init
+ */
 void Swap_Init(void){
 	byte swaptest[2] = {1, 0};
 
@@ -919,10 +919,10 @@ void Swap_Init(void){
 
 
 /*
-va
-
-A shorthand sprintf into a temp buffer.
-*/
+ * va
+ * 
+ * A shorthand sprintf into a temp buffer.
+ */
 char *va(const char *format, ...){
 	va_list	argptr;
 	static char string[MAX_STRING_CHARS];
@@ -940,10 +940,10 @@ char *va(const char *format, ...){
 char com_token[MAX_TOKEN_CHARS];
 
 /*
-Com_Parse
-
-Parse a token out of a string
-*/
+ * Com_Parse
+ * 
+ * Parse a token out of a string
+ */
 char *Com_Parse(const char **data_p){
 	int c;
 	int len;
@@ -1013,15 +1013,15 @@ skipwhite:
 
 
 /*
-INFO STRINGS
-*/
+ * INFO STRINGS
+ */
 
 /*
-Info_ValueForKey
-
-Searches the string for the given
-key and returns the associated value, or an empty string.
-*/
+ * Info_ValueForKey
+ * 
+ * Searches the string for the given
+ * key and returns the associated value, or an empty string.
+ */
 char *Info_ValueForKey(const char *s, const char *key){
 	char pkey[512];
 	static char value[2][512];  // use two buffers so compares
@@ -1062,8 +1062,8 @@ char *Info_ValueForKey(const char *s, const char *key){
 
 
 /*
-Info_RemoveKey
-*/
+ * Info_RemoveKey
+ */
 void Info_RemoveKey(char *s, const char *key){
 	char *start;
 	char pkey[512];
@@ -1107,11 +1107,11 @@ void Info_RemoveKey(char *s, const char *key){
 
 
 /*
-Info_Validate
-
-Some characters are illegal in info strings because they
-can mess up the server's parsing
-*/
+ * Info_Validate
+ * 
+ * Some characters are illegal in info strings because they
+ * can mess up the server's parsing
+ */
 qboolean Info_Validate(const char *s){
 	if(strstr(s, "\""))
 		return false;
@@ -1122,8 +1122,8 @@ qboolean Info_Validate(const char *s){
 
 
 /*
-Info_SetValueForKey
-*/
+ * Info_SetValueForKey
+ */
 void Info_SetValueForKey(char *s, const char *key, const char *value){
 	char newi[MAX_INFO_STRING], *v;
 	int c;
@@ -1173,8 +1173,8 @@ void Info_SetValueForKey(char *s, const char *key, const char *value){
 
 
 /*
-ColorByName
-*/
+ * ColorByName
+ */
 int ColorByName(const char *s, int def){
 	int i;
 

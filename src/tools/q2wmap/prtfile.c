@@ -1,32 +1,32 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "qbsp.h"
 
 /*
-
-PORTAL FILE GENERATION
-
-Save out name.prt for qvis to read
-*/
+ * 
+ * PORTAL FILE GENERATION
+ * 
+ * Save out name.prt for qvis to read
+ */
 
 
 #define	PORTALFILE	"PRT1"
@@ -43,8 +43,8 @@ static void WriteFloat(FILE *f, vec_t v){
 }
 
 /*
-WritePortalFile_r
-*/
+ * WritePortalFile_r
+ */
 static void WritePortalFile_r(node_t *node){
 	int i, s;
 	portal_t *p;
@@ -95,12 +95,12 @@ static void WritePortalFile_r(node_t *node){
 }
 
 /*
-================
-FillLeafNumbers_r
-
-All of the leafs under node will have the same cluster
-================
-*/
+ * ================
+ * FillLeafNumbers_r
+ * 
+ * All of the leafs under node will have the same cluster
+ * ================
+ */
 static void FillLeafNumbers_r(node_t * node, int num){
 	if(node->planenum == PLANENUM_LEAF){
 		if(node->contents & CONTENTS_SOLID)
@@ -115,10 +115,10 @@ static void FillLeafNumbers_r(node_t * node, int num){
 }
 
 /*
-================
-NumberLeafs_r
-================
-*/
+ * ================
+ * NumberLeafs_r
+ * ================
+ */
 static void NumberLeafs_r(node_t * node){
 	portal_t *p;
 
@@ -153,10 +153,10 @@ static void NumberLeafs_r(node_t * node){
 
 
 /*
-================
-CreateVisPortals_r
-================
-*/
+ * ================
+ * CreateVisPortals_r
+ * ================
+ */
 static void CreateVisPortals_r(node_t * node){
 	// stop as soon as we get to a detail_seperator, which
 	// means that everything below is in a single cluster
@@ -181,8 +181,8 @@ static void SaveClusters_r(node_t * node){
 }
 
 /*
-WritePortalFile
-*/
+ * WritePortalFile
+ */
 void WritePortalFile(tree_t *tree){
 	char filename[MAX_OSPATH];
 	node_t *headnode;

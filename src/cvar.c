@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "common.h"
 
@@ -25,8 +25,8 @@ cvar_t *cvar_vars;
 
 
 /*
-Cvar_InfoValidate
-*/
+ * Cvar_InfoValidate
+ */
 static qboolean Cvar_InfoValidate(const char *s){
 	if(strstr(s, "\\"))
 		return false;
@@ -39,8 +39,8 @@ static qboolean Cvar_InfoValidate(const char *s){
 
 
 /*
-Cvar_FindVar
-*/
+ * Cvar_FindVar
+ */
 static cvar_t *Cvar_FindVar(const char *var_name){
 	cvar_t *var;
 
@@ -53,8 +53,8 @@ static cvar_t *Cvar_FindVar(const char *var_name){
 
 
 /*
-Cvar_VariableValue
-*/
+ * Cvar_VariableValue
+ */
 float Cvar_VariableValue(const char *var_name){
 	cvar_t *var;
 
@@ -66,8 +66,8 @@ float Cvar_VariableValue(const char *var_name){
 
 
 /*
-Cvar_VariableString
-*/
+ * Cvar_VariableString
+ */
 char *Cvar_VariableString(const char *var_name){
 	cvar_t *var;
 
@@ -79,8 +79,8 @@ char *Cvar_VariableString(const char *var_name){
 
 
 /*
-Cvar_CompleteVariable
-*/
+ * Cvar_CompleteVariable
+ */
 int Cvar_CompleteVariable(const char *partial, const char *matches[]){
 	cvar_t *cvar;
 	int len;
@@ -105,11 +105,11 @@ int Cvar_CompleteVariable(const char *partial, const char *matches[]){
 
 
 /*
-Cvar_Get
-
-If the variable already exists, the value will not be set
-The flags will be or'ed in if the variable exists.
-*/
+ * Cvar_Get
+ * 
+ * If the variable already exists, the value will not be set
+ * The flags will be or'ed in if the variable exists.
+ */
 cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const char *description){
 	cvar_t *v, *var;
 
@@ -166,8 +166,8 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const c
 
 
 /*
-Cvar_Set2
-*/
+ * Cvar_Set2
+ */
 static cvar_t *Cvar_Set2(const char *var_name, const char *value, qboolean force){
 	cvar_t *var;
 
@@ -237,24 +237,24 @@ static cvar_t *Cvar_Set2(const char *var_name, const char *value, qboolean force
 
 
 /*
-Cvar_ForceSet
-*/
+ * Cvar_ForceSet
+ */
 cvar_t *Cvar_ForceSet(const char *var_name, const char *value){
 	return Cvar_Set2(var_name, value, true);
 }
 
 
 /*
-Cvar_Set
-*/
+ * Cvar_Set
+ */
 cvar_t *Cvar_Set(const char *var_name, const char *value){
 	return Cvar_Set2(var_name, value, false);
 }
 
 
 /*
-Cvar_FullSet
-*/
+ * Cvar_FullSet
+ */
 cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags){
 	cvar_t *var;
 
@@ -279,8 +279,8 @@ cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags){
 
 
 /*
-Cvar_SetValue
-*/
+ * Cvar_SetValue
+ */
 void Cvar_SetValue(const char *var_name, float value){
 	char val[32];
 
@@ -293,8 +293,8 @@ void Cvar_SetValue(const char *var_name, float value){
 
 
 /*
-Cvar_PendingLatchedVars
-*/
+ * Cvar_PendingLatchedVars
+ */
 qboolean Cvar_PendingLatchedVars(void){
 	cvar_t *var;
 
@@ -308,10 +308,10 @@ qboolean Cvar_PendingLatchedVars(void){
 
 
 /*
-Cvar_UpdateLatchedVars
-
-Apply any pending latched changes.
-*/
+ * Cvar_UpdateLatchedVars
+ * 
+ * Apply any pending latched changes.
+ */
 void Cvar_UpdateLatchedVars(void){
 	cvar_t *var;
 
@@ -335,8 +335,8 @@ void Cvar_UpdateLatchedVars(void){
 
 
 /*
-Cvar_PendingVars
-*/
+ * Cvar_PendingVars
+ */
 qboolean Cvar_PendingVars(int flags){
 	cvar_t *var;
 
@@ -350,8 +350,8 @@ qboolean Cvar_PendingVars(int flags){
 
 
 /*
-Cvar_ClearVars
-*/
+ * Cvar_ClearVars
+ */
 void Cvar_ClearVars(int flags){
 	cvar_t *var;
 
@@ -363,10 +363,10 @@ void Cvar_ClearVars(int flags){
 
 
 /*
-Cvar_Command
-
-Handles variable inspection and changing from the console
-*/
+ * Cvar_Command
+ * 
+ * Handles variable inspection and changing from the console
+ */
 qboolean Cvar_Command(void){
 	cvar_t *v;
 
@@ -387,10 +387,10 @@ qboolean Cvar_Command(void){
 
 
 /*
-Cvar_Set_f
-
-Allows setting and defining of arbitrary cvars from console
-*/
+ * Cvar_Set_f
+ * 
+ * Allows setting and defining of arbitrary cvars from console
+ */
 static void Cvar_Set_f(void){
 	int flags;
 	const int c = Cmd_Argc();
@@ -416,11 +416,11 @@ static void Cvar_Set_f(void){
 
 
 /*
-Cvar_WriteVariables
-
-Appends lines containing "set variable value" for all variables
-with the archive flag set to true.
-*/
+ * Cvar_WriteVariables
+ * 
+ * Appends lines containing "set variable value" for all variables
+ * with the archive flag set to true.
+ */
 void Cvar_WriteVariables(const char *path){
 	cvar_t *var;
 	char buffer[1024];
@@ -438,8 +438,8 @@ void Cvar_WriteVariables(const char *path){
 
 
 /*
-Cvar_List_f
-*/
+ * Cvar_List_f
+ */
 static void Cvar_List_f(void){
 	const cvar_t *var;
 	int i;
@@ -485,8 +485,8 @@ static const cheatvar_t cheatvars[] = {
 };
 
 /*
-Cvar_LockCheatVars
-*/
+ * Cvar_LockCheatVars
+ */
 void Cvar_LockCheatVars(qboolean lock){
 	const cheatvar_t *c;
 
@@ -507,8 +507,8 @@ void Cvar_LockCheatVars(qboolean lock){
 qboolean userinfo_modified;
 
 /*
-Cvar_BitInfo
-*/
+ * Cvar_BitInfo
+ */
 static char *Cvar_BitInfo(int bit){
 	static char info[MAX_INFO_STRING];
 	const cvar_t *var;
@@ -533,10 +533,10 @@ char *Cvar_Serverinfo(void){
 }
 
 /*
-Cvar_Init
-
-Reads in all archived cvars
-*/
+ * Cvar_Init
+ * 
+ * Reads in all archived cvars
+ */
 void Cvar_Init(void){
 	Cmd_AddCommand("set", Cvar_Set_f, NULL);
 	Cmd_AddCommand("cvar_list", Cvar_List_f, NULL);

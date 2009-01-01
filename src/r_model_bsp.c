@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -28,8 +28,8 @@ static const byte *mod_base;
 #define MIN_AMBIENT_SUM 1.25
 
 /*
-R_LoadLighting
-*/
+ * R_LoadLighting
+ */
 static void R_LoadLighting(const lump_t *l){
 	const char *s, *c;
 
@@ -88,8 +88,8 @@ static void R_LoadLighting(const lump_t *l){
 
 
 /*
-R_LoadVisibility
-*/
+ * R_LoadVisibility
+ */
 static void R_LoadVisibility(const lump_t *l){
 	int i;
 
@@ -110,8 +110,8 @@ static void R_LoadVisibility(const lump_t *l){
 
 
 /*
-R_LoadVertexes
-*/
+ * R_LoadVertexes
+ */
 static void R_LoadVertexes(const lump_t *l){
 	const dbspvertex_t *in;
 	mvertex_t *out;
@@ -136,8 +136,8 @@ static void R_LoadVertexes(const lump_t *l){
 
 
 /*
-R_LoadNormals
-*/
+ * R_LoadNormals
+ */
 static void R_LoadNormals(const lump_t *l){
 	const dbspnormal_t *in;
 	mvertex_t *out;
@@ -165,8 +165,8 @@ static void R_LoadNormals(const lump_t *l){
 
 
 /*
-R_RadiusFromBounds
-*/
+ * R_RadiusFromBounds
+ */
 static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs){
 	int i;
 	vec3_t corner;
@@ -180,8 +180,8 @@ static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs){
 
 
 /*
-R_LoadSubmodels
-*/
+ * R_LoadSubmodels
+ */
 static void R_LoadSubmodels(const lump_t *l){
 	const dbspmodel_t *in;
 	msubmodel_t *out;
@@ -215,8 +215,8 @@ static void R_LoadSubmodels(const lump_t *l){
 
 
 /*
-R_LoadEdges
-*/
+ * R_LoadEdges
+ */
 static void R_LoadEdges(const lump_t *l){
 	const dedge_t *in;
 	medge_t *out;
@@ -241,8 +241,8 @@ static void R_LoadEdges(const lump_t *l){
 
 
 /*
-R_LoadTexinfo
-*/
+ * R_LoadTexinfo
+ */
 static void R_LoadTexinfo(const lump_t *l){
 	const dtexinfo_t *in;
 	mtexinfo_t *out;
@@ -273,10 +273,10 @@ static void R_LoadTexinfo(const lump_t *l){
 
 
 /*
-R_SetSurfaceExtents
-
-Sets in s->mins, s->maxs, s->stmins, s->stmaxs, ..
-*/
+ * R_SetSurfaceExtents
+ * 
+ * Sets in s->mins, s->maxs, s->stmins, s->stmaxs, ..
+ */
 static void R_SetSurfaceExtents(msurface_t *surf){
 	vec3_t mins, maxs;
 	vec2_t stmins, stmaxs;
@@ -335,8 +335,8 @@ static void R_SetSurfaceExtents(msurface_t *surf){
 
 
 /*
-R_LoadSurfaces
-*/
+ * R_LoadSurfaces
+ */
 static void R_LoadSurfaces(const lump_t *l){
 	const dface_t *in;
 	msurface_t *out;
@@ -408,8 +408,8 @@ static void R_LoadSurfaces(const lump_t *l){
 
 
 /*
-R_SetParent
-*/
+ * R_SetParent
+ */
 static void R_SetParent(mnode_t *node, mnode_t *parent){
 
 	node->parent = parent;
@@ -423,8 +423,8 @@ static void R_SetParent(mnode_t *node, mnode_t *parent){
 
 
 /*
-R_LoadNodes
-*/
+ * R_LoadNodes
+ */
 static void R_LoadNodes(const lump_t *l){
 	int i, j, count, p;
 	const dnode_t *in;
@@ -469,8 +469,8 @@ static void R_LoadNodes(const lump_t *l){
 
 
 /*
-R_LoadLeafs
-*/
+ * R_LoadLeafs
+ */
 static void R_LoadLeafs(const lump_t *l){
 	const dleaf_t *in;
 	mleaf_t *out;
@@ -508,8 +508,8 @@ static void R_LoadLeafs(const lump_t *l){
 
 
 /*
-R_LoadLeafsurfaces
-*/
+ * R_LoadLeafsurfaces
+ */
 static void R_LoadLeafsurfaces(const lump_t *l){
 	int i, count;
 	const short *in;
@@ -540,8 +540,8 @@ static void R_LoadLeafsurfaces(const lump_t *l){
 
 
 /*
-R_LoadSurfedges
-*/
+ * R_LoadSurfedges
+ */
 static void R_LoadSurfedges(const lump_t *l){
 	int i, count;
 	const int *in;
@@ -569,8 +569,8 @@ static void R_LoadSurfedges(const lump_t *l){
 
 
 /*
-R_LoadPlanes
-*/
+ * R_LoadPlanes
+ */
 static void R_LoadPlanes(const lump_t *l){
 	int i, j;
 	cplane_t *out;
@@ -604,8 +604,8 @@ static void R_LoadPlanes(const lump_t *l){
 
 
 /*
-R_AddBspVertexColor
-*/
+ * R_AddBspVertexColor
+ */
 static void R_AddBspVertexColor(mvertex_t *vert, const msurface_t *surf){
 	int i;
 
@@ -622,8 +622,8 @@ static void R_AddBspVertexColor(mvertex_t *vert, const msurface_t *surf){
 
 
 /*
-R_LoadBspVertexArrays
-*/
+ * R_LoadBspVertexArrays
+ */
 static void R_LoadBspVertexArrays(void){
 	int i, j;
 	int vertind, coordind, tangind, colorind;
@@ -752,8 +752,8 @@ static void R_LoadBspVertexArrays(void){
 static msurfaces_t *r_sorted_surfaces[MAX_GL_TEXTURES];
 
 /*
-R_SortSurfacesArrays_
-*/
+ * R_SortSurfacesArrays_
+ */
 static void R_SortSurfacesArrays_(msurfaces_t *surfs){
 	int i, j;
 
@@ -782,11 +782,11 @@ static void R_SortSurfacesArrays_(msurfaces_t *surfs){
 
 
 /*
-R_SortSurfacesArrays
-
-Reorders all surfaces arrays for the specified model, grouping the surface
-pointers by texture.  This dramatically reduces glBindTexture calls.
-*/
+ * R_SortSurfacesArrays
+ * 
+ * Reorders all surfaces arrays for the specified model, grouping the surface
+ * pointers by texture.  This dramatically reduces glBindTexture calls.
+ */
 static void R_SortSurfacesArrays(model_t *mod){
 	msurface_t *surf, *s;
 	int i, ns;
@@ -849,8 +849,8 @@ static void R_SortSurfacesArrays(model_t *mod){
 
 
 /*
-R_LoadSurfacesArrays_
-*/
+ * R_LoadSurfacesArrays_
+ */
 static void R_LoadSurfacesArrays_(model_t *mod){
 	msurface_t *surf, *s;
 	int i, ns;
@@ -952,8 +952,8 @@ static void R_LoadSurfacesArrays_(model_t *mod){
 
 
 /*
-R_LoadSurfacesArrays
-*/
+ * R_LoadSurfacesArrays
+ */
 static void R_LoadSurfacesArrays(void){
 	int i;
 
@@ -966,8 +966,8 @@ static void R_LoadSurfacesArrays(void){
 
 
 /*
-R_SetModel
-*/
+ * R_SetModel
+ */
 static void R_SetModel(mnode_t *node, model_t *model){
 
 	node->model = model;
@@ -981,11 +981,11 @@ static void R_SetModel(mnode_t *node, model_t *model){
 
 
 /*
-R_SetupSubmodels
-
-The submodels have been loaded into memory, but are not yet
-represented as mmodel_t.  Convert them.
-*/
+ * R_SetupSubmodels
+ * 
+ * The submodels have been loaded into memory, but are not yet
+ * represented as mmodel_t.  Convert them.
+ */
 static void R_SetupSubmodels(void){
 	int i;
 
@@ -1016,8 +1016,8 @@ static void R_SetupSubmodels(void){
 
 
 /*
-R_LoadBspModel
-*/
+ * R_LoadBspModel
+ */
 void R_LoadBspModel(model_t *mod, void *buffer){
 	extern void Cl_LoadProgress(int percent);
 	dbspheader_t *header;

@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "renderer.h"
 
@@ -32,24 +32,24 @@ static ptrdiff_t hunkofs;
 
 
 /*
-R_HunkBegin
-*/
+ * R_HunkBegin
+ */
 static void *R_HunkBegin(){
 	return hunk + hunkofs;
 }
 
 
 /*
-R_HunkEnd
-*/
+ * R_HunkEnd
+ */
 static int R_HunkEnd(void *buf){
 	return hunk + hunkofs - (byte *)buf;
 }
 
 
 /*
-R_HunkAlloc
-*/
+ * R_HunkAlloc
+ */
 void *R_HunkAlloc(size_t size){
 	byte *b;
 
@@ -64,8 +64,8 @@ void *R_HunkAlloc(size_t size){
 
 
 /*
-R_AllocVertexArrays
-*/
+ * R_AllocVertexArrays
+ */
 void R_AllocVertexArrays(model_t *mod){
 	msurface_t *surf;
 	dmd2_t *md2;
@@ -124,8 +124,8 @@ void R_AllocVertexArrays(model_t *mod){
 
 
 /*
-R_LoadVertexBuffers
-*/
+ * R_LoadVertexBuffers
+ */
 static void R_LoadVertexBuffers(model_t *mod){
 	int v, st, t, c;
 
@@ -173,8 +173,8 @@ static void R_LoadVertexBuffers(model_t *mod){
 
 
 /*
-R_LoadModel
-*/
+ * R_LoadModel
+ */
 model_t *R_LoadModel(const char *name){
 	model_t *mod;
 	void *buf;
@@ -260,8 +260,8 @@ model_t *R_LoadModel(const char *name){
 
 
 /*
-R_ListModels_f
-*/
+ * R_ListModels_f
+ */
 void R_ListModels_f(void){
 	int i;
 	model_t *mod;
@@ -280,8 +280,8 @@ void R_ListModels_f(void){
 
 
 /*
-R_HunkStats_f
-*/
+ * R_HunkStats_f
+ */
 void R_HunkStats_f(void){
 	Com_Printf("Hunk usage: %.2f / %.2f MB\n",
 			hunkofs / 1024.0 / 1024.0, r_hunkmegs->value);
@@ -289,8 +289,8 @@ void R_HunkStats_f(void){
 
 
 /*
-R_FreeModels
-*/
+ * R_FreeModels
+ */
 static void R_FreeModels(void){
 	int i;
 
@@ -323,10 +323,10 @@ static void R_FreeModels(void){
 
 
 /*
-R_BeginLoading
-
-Loads the specified map after resetting all model data.
-*/
+ * R_BeginLoading
+ * 
+ * Loads the specified map after resetting all model data.
+ */
 void R_BeginLoading(const char *map, int mapsize){
 	int ms;
 
@@ -349,8 +349,8 @@ void R_BeginLoading(const char *map, int mapsize){
 
 
 /*
-R_InitModels
-*/
+ * R_InitModels
+ */
 void R_InitModels(void){
 
 	// allocate the hunk
@@ -365,8 +365,8 @@ void R_InitModels(void){
 
 
 /*
-R_Shutdown
-*/
+ * R_Shutdown
+ */
 void R_ShutdownModels(void){
 
 	R_FreeModels();

@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include <ctype.h>
 
@@ -129,10 +129,10 @@ keyname_t keynames[] = {
 
 
 /*
-Cl_KeyConsole
-
-Interactive line editing and console scrollback.
-*/
+ * Cl_KeyConsole
+ * 
+ * Interactive line editing and console scrollback.
+ */
 static void Cl_KeyConsole(int key){
 	int i;
 
@@ -317,8 +317,8 @@ char chat_buffer[KEY_LINESIZE];
 int chat_bufferlen = 0;
 
 /*
-Cl_KeyMessage
-*/
+ * Cl_KeyMessage
+ */
 static void Cl_KeyMessage(int key){
 	if(key == K_ENTER || key == K_KP_ENTER){
 		if(*chat_buffer){
@@ -363,12 +363,12 @@ static void Cl_KeyMessage(int key){
 
 
 /*
-Cl_StringToKeynum
-
-Returns a key number to be used to index key_bindings[] by looking at
-the given string.  Single ascii characters return themselves, while
-the K_* names are matched up.
-*/
+ * Cl_StringToKeynum
+ * 
+ * Returns a key number to be used to index key_bindings[] by looking at
+ * the given string.  Single ascii characters return themselves, while
+ * the K_* names are matched up.
+ */
 static int Cl_StringToKeynum(const char *str){
 	keyname_t *kn;
 
@@ -386,12 +386,12 @@ static int Cl_StringToKeynum(const char *str){
 
 
 /*
-Cl_KeynumToString
-
-Returns a string (either a single ascii char, or a K_* name) for the
-given keynum.
-FIXME: handle quote special (general escape sequence?)
-*/
+ * Cl_KeynumToString
+ * 
+ * Returns a string (either a single ascii char, or a K_* name) for the
+ * given keynum.
+ * FIXME: handle quote special (general escape sequence?)
+ */
 static const char *Cl_KeynumToString(int keynum){
 	keyname_t *kn;
 	static char s[2];
@@ -413,8 +413,8 @@ static const char *Cl_KeynumToString(int keynum){
 
 
 /*
-Cl_Bind
-*/
+ * Cl_Bind
+ */
 static void Cl_Bind(int keynum, char *binding){
 
 	if(keynum == -1)
@@ -433,8 +433,8 @@ static void Cl_Bind(int keynum, char *binding){
 
 
 /*
-Cl_Unbind_f
-*/
+ * Cl_Unbind_f
+ */
 static void Cl_Unbind_f(void){
 	int b;
 
@@ -454,8 +454,8 @@ static void Cl_Unbind_f(void){
 
 
 /*
-Cl_UnbindAll_f
-*/
+ * Cl_UnbindAll_f
+ */
 static void Cl_UnbindAll_f(void){
 	int i;
 
@@ -466,8 +466,8 @@ static void Cl_UnbindAll_f(void){
 
 
 /*
-Cl_Bind_f
-*/
+ * Cl_Bind_f
+ */
 static void Cl_Bind_f(void){
 	int i, c, b;
 	char cmd[1024];
@@ -505,10 +505,10 @@ static void Cl_Bind_f(void){
 
 
 /*
-Cl_WriteBindings
-
-Writes lines containing "bind key value"
-*/
+ * Cl_WriteBindings
+ * 
+ * Writes lines containing "bind key value"
+ */
 void Cl_WriteBindings(FILE *f){
 	int i;
 
@@ -519,8 +519,8 @@ void Cl_WriteBindings(FILE *f){
 
 
 /*
-Cl_Bindlist_f
-*/
+ * Cl_Bindlist_f
+ */
 static void Cl_Bindlist_f(void){
 	int i;
 
@@ -531,8 +531,8 @@ static void Cl_Bindlist_f(void){
 
 
 /*
-Cl_WriteHistory
-*/
+ * Cl_WriteHistory
+ */
 static void Cl_WriteHistory(void){
 	FILE *f;
 	char path[MAX_OSPATH];
@@ -556,8 +556,8 @@ static void Cl_WriteHistory(void){
 
 
 /*
-Cl_ReadHistory
-*/
+ * Cl_ReadHistory
+ */
 static void Cl_ReadHistory(void){
 	char path[MAX_OSPATH];
 	FILE *f;
@@ -583,8 +583,8 @@ static void Cl_ReadHistory(void){
 
 
 /*
-Cl_InitKeys
-*/
+ * Cl_InitKeys
+ */
 void Cl_InitKeys(void){
 	int i;
 
@@ -621,8 +621,8 @@ void Cl_InitKeys(void){
 
 
 /*
-Cl_ShutdownKeys
-*/
+ * Cl_ShutdownKeys
+ */
 void Cl_ShutdownKeys(void){
 
 	Cl_WriteHistory();
@@ -635,8 +635,8 @@ void Cl_ShutdownKeys(void){
 
 
 /*
-Cl_KeyEvent
-*/
+ * Cl_KeyEvent
+ */
 void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned time){
 	char *kb;
 	char cmd[MAX_STRING_CHARS];
@@ -748,10 +748,10 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 
 
 /*
-Cl_ClearTyping
-
-Clears the current input line.
-*/
+ * Cl_ClearTyping
+ * 
+ * Clears the current input line.
+ */
 void Cl_ClearTyping(void) {
 	key_lines[edit_line][1] = 0;
 	key_linepos = 1;
@@ -759,10 +759,10 @@ void Cl_ClearTyping(void) {
 
 
 /*
-Cl_EditLine
-
-Returns the current input line.
-*/
+ * Cl_EditLine
+ * 
+ * Returns the current input line.
+ */
 char *Cl_EditLine(void) {
 	return key_lines[edit_line];
 }

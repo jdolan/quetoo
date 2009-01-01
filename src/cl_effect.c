@@ -1,23 +1,23 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "client.h"
 
@@ -40,8 +40,8 @@ static sfx_t *cl_sfx_machinegun_fire[4];
 
 
 /*
-Cl_LoadEffectSounds
-*/
+ * Cl_LoadEffectSounds
+ */
 void Cl_LoadEffectSounds(void){
 	int i;
 	char name[MAX_QPATH];
@@ -67,8 +67,8 @@ void Cl_LoadEffectSounds(void){
 
 
 /*
-Cl_ParseMuzzleFlash
-*/
+ * Cl_ParseMuzzleFlash
+ */
 void Cl_ParseMuzzleFlash(void){
 	int i, weapon;
 	centity_t *cent;
@@ -128,10 +128,10 @@ void Cl_ParseMuzzleFlash(void){
 
 
 /*
-
-PARTICLE MANAGEMENT
-
-*/
+ * 
+ * PARTICLE MANAGEMENT
+ * 
+ */
 
 static particle_t *active_particles, *free_particles;
 particle_t particles[MAX_PARTICLES];
@@ -140,8 +140,8 @@ particle_t particles[MAX_PARTICLES];
 static int weather_particles;
 
 /*
-Cl_ClearParticle
-*/
+ * Cl_ClearParticle
+ */
 static void Cl_ClearParticle(particle_t *p){
 
 	if(p->type == PARTICLE_WEATHER)
@@ -158,8 +158,8 @@ static void Cl_ClearParticle(particle_t *p){
 }
 
 /*
-Cl_ClearParticles
-*/
+ * Cl_ClearParticles
+ */
 static void Cl_ClearParticles(void){
 	int i;
 
@@ -175,8 +175,8 @@ static void Cl_ClearParticles(void){
 
 
 /*
-Cl_BulletTrail
-*/
+ * Cl_BulletTrail
+ */
 void Cl_BulletTrail(const vec3_t start, const vec3_t end){
 	particle_t *p;
 	float v;
@@ -210,8 +210,8 @@ static const vec3_t bullet_light = {
 };
 
 /*
-Cl_BulletEffect
-*/
+ * Cl_BulletEffect
+ */
 void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 	particle_t *p;
 	vec3_t v;
@@ -241,8 +241,8 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 
 
 /*
-Cl_BurnEffect
-*/
+ * Cl_BurnEffect
+ */
 void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale){
 	particle_t *p;
 	vec3_t v;
@@ -266,8 +266,8 @@ void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale){
 
 
 /*
-Cl_BloodEffect
-*/
+ * Cl_BloodEffect
+ */
 void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
 	int i, j;
 	particle_t *p;
@@ -298,8 +298,8 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
 
 
 /*
-Cl_SparksEffect
-*/
+ * Cl_SparksEffect
+ */
 void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 	int i, j;
 	particle_t *p;
@@ -328,8 +328,8 @@ void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 
 
 /*
-Cl_TeleporterTrail
-*/
+ * Cl_TeleporterTrail
+ */
 void Cl_TeleporterTrail(const vec3_t org, centity_t *cent){
 	int i;
 	particle_t *p;
@@ -364,8 +364,8 @@ void Cl_TeleporterTrail(const vec3_t org, centity_t *cent){
 
 
 /*
-Cl_LogoutEffect
-*/
+ * Cl_LogoutEffect
+ */
 void Cl_LogoutEffect(const vec3_t org){
 	vec3_t v;
 	int i;
@@ -384,8 +384,8 @@ static const vec3_t item_light = {
 };
 
 /*
-Cl_ItemRespawnEffect
-*/
+ * Cl_ItemRespawnEffect
+ */
 void Cl_ItemRespawnEffect(const vec3_t org){
 	int i, j;
 	particle_t *p;
@@ -416,8 +416,8 @@ void Cl_ItemRespawnEffect(const vec3_t org){
 
 
 /*
-Cl_ExplosionEffect
-*/
+ * Cl_ExplosionEffect
+ */
 void Cl_ExplosionEffect(const vec3_t org){
 	int i, j;
 	particle_t *p;
@@ -470,8 +470,8 @@ void Cl_ExplosionEffect(const vec3_t org){
 
 
 /*
-Cl_SmokeTrail
-*/
+ * Cl_SmokeTrail
+ */
 void Cl_SmokeTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 	particle_t *p;
 	qboolean stationary;
@@ -537,8 +537,8 @@ static const vec3_t shot_light = {
 };
 
 /*
-Cl_SmokeFlash
-*/
+ * Cl_SmokeFlash
+ */
 void Cl_SmokeFlash(entity_state_t *ent){
 	particle_t *p;
 	vec3_t forward, org, org2;
@@ -600,8 +600,8 @@ void Cl_SmokeFlash(entity_state_t *ent){
 
 
 /*
-Cl_FlameTrail
-*/
+ * Cl_FlameTrail
+ */
 void Cl_FlameTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 	particle_t *p;
 	vec3_t vel;
@@ -652,8 +652,8 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 
 
 /*
-Cl_LightningEffect
-*/
+ * Cl_LightningEffect
+ */
 void Cl_LightningEffect(const vec3_t org){
 	vec3_t tmp;
 	int i, j;
@@ -671,8 +671,8 @@ void Cl_LightningEffect(const vec3_t org){
 
 
 /*
-Cl_LightningTrail
-*/
+ * Cl_LightningTrail
+ */
 void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 	particle_t *p;
 
@@ -694,8 +694,8 @@ void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 }
 
 /*
-Cl_RailTrail
-*/
+ * Cl_RailTrail
+ */
 void Cl_RailTrail(const vec3_t start, const vec3_t end, int color){
 	vec3_t vec, move;
 	float len;
@@ -754,8 +754,8 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int color){
 
 
 /*
-Cl_BubbleTrail
-*/
+ * Cl_BubbleTrail
+ */
 void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
 	vec3_t move;
 	vec3_t vec;
@@ -793,8 +793,8 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
 
 
 /*
-Cl_EnergyTrail
-*/
+ * Cl_EnergyTrail
+ */
 void Cl_EnergyTrail(centity_t *ent, float radius){
 	int i, c;
 	particle_t *p;
@@ -869,8 +869,8 @@ void Cl_EnergyTrail(centity_t *ent, float radius){
 
 
 /*
-Cl_BFGEffect
-*/
+ * Cl_BFGEffect
+ */
 void Cl_BFGEffect(const vec3_t org){
 	particle_t *p;
 	int i;
@@ -896,15 +896,15 @@ void Cl_BFGEffect(const vec3_t org){
 
 
 /*
-Cl_TeleporterEffect
-*/
+ * Cl_TeleporterEffect
+ */
 static void Cl_TeleporterEffect(const vec3_t org){
 	Cl_TeleporterTrail(org, NULL);
 }
 
 /*
-Cl_WeatherEffects
-*/
+ * Cl_WeatherEffects
+ */
 static void Cl_WeatherEffects(void){
 	int j, k, max;
 	vec3_t start, end;
@@ -1005,8 +1005,8 @@ static void Cl_WeatherEffects(void){
 
 
 /*
-Cl_AddParticles
-*/
+ * Cl_AddParticles
+ */
 void Cl_AddParticles(void){
 	particle_t *p, *next;
 	particle_t *active, *tail;
@@ -1066,8 +1066,8 @@ void Cl_AddParticles(void){
 extern struct sfx_s	*cl_sfx_footsteps[4];
 
 /*
-Cl_EntityEvent
-*/
+ * Cl_EntityEvent
+ */
 void Cl_EntityEvent(entity_state_t *ent){
 	switch(ent->event){
 		case EV_ITEM_RESPAWN:
@@ -1097,8 +1097,8 @@ void Cl_EntityEvent(entity_state_t *ent){
 }
 
 /*
-Cl_AllocParticle
-*/
+ * Cl_AllocParticle
+ */
 particle_t *Cl_AllocParticle(void){
 	particle_t *p;
 
@@ -1116,8 +1116,8 @@ particle_t *Cl_AllocParticle(void){
 
 
 /*
-Cl_ClearEffects
-*/
+ * Cl_ClearEffects
+ */
 void Cl_ClearEffects(void){
 	Cl_ClearParticles();
 }

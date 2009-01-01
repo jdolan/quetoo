@@ -1,30 +1,30 @@
 /*
-* Copyright(c) 1997-2001 Id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quake2World.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or(at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ * *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or(at your option) any later version.
+ * *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * *
+ * See the GNU General Public License for more details.
+ * *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 #include "g_local.h"
 
 
 /*
-G_ProjectSource
-*/
+ * G_ProjectSource
+ */
 void G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result){
 	result[0] = point[0] + forward[0] * distance[0] + right[0] * distance[1];
 	result[1] = point[1] + forward[1] * distance[0] + right[1] * distance[1];
@@ -33,15 +33,15 @@ void G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward, vec3_t right
 
 
 /*
-G_Find
-
-Searches all active entities for the next one that holds
-the matching string at fieldofs(use the FOFS() macro) in the structure.
-
-Searches beginning at the edict after from, or the beginning if NULL
-NULL will be returned if the end of the list is reached.
-
-*/
+ * G_Find
+ * 
+ * Searches all active entities for the next one that holds
+ * the matching string at fieldofs(use the FOFS() macro) in the structure.
+ * 
+ * Searches beginning at the edict after from, or the beginning if NULL
+ * NULL will be returned if the end of the list is reached.
+ * 
+ */
 edict_t *G_Find(edict_t *from, int fieldofs, const char *match){
 	char *s;
 
@@ -65,12 +65,12 @@ edict_t *G_Find(edict_t *from, int fieldofs, const char *match){
 
 
 /*
-G_FindRadius
-
-Returns entities that have origins within a spherical area
-
-G_FindRadius(origin, radius)
-*/
+ * G_FindRadius
+ * 
+ * Returns entities that have origins within a spherical area
+ * 
+ * G_FindRadius(origin, radius)
+ */
 edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad){
 	vec3_t eorg;
 	int j;
@@ -96,15 +96,15 @@ edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad){
 
 
 /*
-G_PickTarget
-
-Searches all active entities for the next one that holds
-the matching string at fieldofs(use the FOFS() macro) in the structure.
-
-Searches beginning at the edict after from, or the beginning if NULL
-NULL will be returned if the end of the list is reached.
-
-*/
+ * G_PickTarget
+ * 
+ * Searches all active entities for the next one that holds
+ * the matching string at fieldofs(use the FOFS() macro) in the structure.
+ * 
+ * Searches beginning at the edict after from, or the beginning if NULL
+ * NULL will be returned if the end of the list is reached.
+ * 
+ */
 #define MAXCHOICES	8
 
 edict_t *G_PickTarget(char *targetname){
@@ -143,19 +143,19 @@ static void Think_Delay(edict_t *ent){
 
 
 /*
-G_UseTargets
-
-the global "activator" should be set to the entity that initiated the firing.
-
-If self.delay is set, a DelayedUse entity will be created that will actually
-do the SUB_UseTargets after that many seconds have passed.
-
-Centerprints any self.message to the activator.
-
-Search for(string)targetname in all entities that
-match(string)self.target and call their .use function
-
-*/
+ * G_UseTargets
+ * 
+ * the global "activator" should be set to the entity that initiated the firing.
+ * 
+ * If self.delay is set, a DelayedUse entity will be created that will actually
+ * do the SUB_UseTargets after that many seconds have passed.
+ * 
+ * Centerprints any self.message to the activator.
+ * 
+ * Search for(string)targetname in all entities that
+ * match(string)self.target and call their .use function
+ * 
+ */
 void G_UseTargets(edict_t *ent, edict_t *activator){
 	edict_t *t;
 
@@ -221,11 +221,11 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 
 
 /*
-tv
-
-This is just a convenience function
-for making temporary vectors for function calls
-*/
+ * tv
+ * 
+ * This is just a convenience function
+ * for making temporary vectors for function calls
+ */
 float *tv(float x, float y, float z){
 	static int index;
 	static vec3_t vecs[8];
@@ -245,10 +245,10 @@ float *tv(float x, float y, float z){
 
 
 /*
-vtos
-
-A convenience function for printing vectors.
-*/
+ * vtos
+ * 
+ * A convenience function for printing vectors.
+ */
 char *vtos(vec3_t v){
 	static int index;
 	static char str[8][32];
@@ -301,14 +301,14 @@ void G_InitEdict(edict_t *e){
 
 
 /*
-G_Spawn
-
-Either finds a free edict, or allocates a new one.
-Try to avoid reusing an entity that was recently freed, because it
-can cause the client to think the entity morphed into something else
-instead of being removed and recreated, which can cause interpolated
-angles and bad trails.
-*/
+ * G_Spawn
+ * 
+ * Either finds a free edict, or allocates a new one.
+ * Try to avoid reusing an entity that was recently freed, because it
+ * can cause the client to think the entity morphed into something else
+ * instead of being removed and recreated, which can cause interpolated
+ * angles and bad trails.
+ */
 edict_t *G_Spawn(void){
 	int i;
 	edict_t *e;
@@ -333,10 +333,10 @@ edict_t *G_Spawn(void){
 
 
 /*
-G_FreeEdict
-
-Marks the edict as free
-*/
+ * G_FreeEdict
+ * 
+ * Marks the edict as free
+ */
 void G_FreeEdict(edict_t *ed){
 	gi.UnlinkEntity(ed);  // unlink from world
 
@@ -351,8 +351,8 @@ void G_FreeEdict(edict_t *ed){
 
 
 /*
-G_TouchTriggers
-*/
+ * G_TouchTriggers
+ */
 void G_TouchTriggers(edict_t *ent){
 	int i, num;
 	edict_t *touch[MAX_EDICTS], *hit;
@@ -376,11 +376,11 @@ void G_TouchTriggers(edict_t *ent){
 
 
 /*
-G_TouchSolids
-
-Call after linking a new trigger in during gameplay
-to force all entities it covers to immediately touch it
-*/
+ * G_TouchSolids
+ * 
+ * Call after linking a new trigger in during gameplay
+ * to force all entities it covers to immediately touch it
+ */
 void G_TouchSolids(edict_t *ent){
 	int i, num;
 	edict_t *touch[MAX_EDICTS], *hit;
@@ -402,11 +402,11 @@ void G_TouchSolids(edict_t *ent){
 
 
 /*
-G_KillBox
-
-Kills all entities that would touch the proposed new positioning
-of ent.  Ent should be unlinked before calling this!
-*/
+ * G_KillBox
+ * 
+ * Kills all entities that would touch the proposed new positioning
+ * of ent.  Ent should be unlinked before calling this!
+ */
 qboolean G_KillBox(edict_t *ent){
 	trace_t tr;
 
@@ -429,8 +429,8 @@ qboolean G_KillBox(edict_t *ent){
 
 
 /*
-G_GameplayName
-*/
+ * G_GameplayName
+ */
 char *G_GameplayName(int g){
 	switch(g){
 		case INSTAGIB:
@@ -444,8 +444,8 @@ char *G_GameplayName(int g){
 
 
 /*
-G_GameplayByName
-*/
+ * G_GameplayByName
+ */
 int G_GameplayByName(char *c){
 
 	if(!c || !strlen(c))
@@ -471,8 +471,8 @@ int G_GameplayByName(char *c){
 
 
 /*
-G_TeamByName
-*/
+ * G_TeamByName
+ */
 team_t *G_TeamByName(char *c){
 
 	if(!c || !*c)
@@ -488,8 +488,8 @@ team_t *G_TeamByName(char *c){
 
 
 /*
-G_TeamForFlag
-*/
+ * G_TeamForFlag
+ */
 team_t *G_TeamForFlag(edict_t *ent){
 
 	if(!level.ctf)
@@ -509,8 +509,8 @@ team_t *G_TeamForFlag(edict_t *ent){
 
 
 /*
-G_FlagForTeam
-*/
+ * G_FlagForTeam
+ */
 edict_t *G_FlagForTeam(team_t *t){
 	edict_t *ent;
 	char class[32];
@@ -546,8 +546,8 @@ edict_t *G_FlagForTeam(team_t *t){
 
 
 /*
-G_EffectForTeam
-*/
+ * G_EffectForTeam
+ */
 int G_EffectForTeam(team_t *t){
 
 	if(!t)
@@ -558,8 +558,8 @@ int G_EffectForTeam(team_t *t){
 
 
 /*
-G_OtherTeam
-*/
+ * G_OtherTeam
+ */
 team_t *G_OtherTeam(team_t *t){
 
 	if(!t)
@@ -576,8 +576,8 @@ team_t *G_OtherTeam(team_t *t){
 
 
 /*
-G_SmallestTeam
-*/
+ * G_SmallestTeam
+ */
 team_t *G_SmallestTeam(void){
 	int i, g, e;
 	gclient_t *cl;
@@ -601,8 +601,8 @@ team_t *G_SmallestTeam(void){
 
 
 /*
-G_ClientByName
-*/
+ * G_ClientByName
+ */
 gclient_t *G_ClientByName(char *name){
 	int i, j, min;
 	gclient_t *cl, *ret;
@@ -629,8 +629,8 @@ gclient_t *G_ClientByName(char *name){
 
 
 /*
-G_IsStationary
-*/
+ * G_IsStationary
+ */
 qboolean G_IsStationary(edict_t *ent){
 
 	if(!ent)
