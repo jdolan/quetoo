@@ -207,7 +207,7 @@ static entity_t *EntityForModel(int modnum){
 
 /*
  * BuildPatches
- * 
+ *
  * Create surface fragments for light-emitting surfaces so that light sources
  * may be computed along them.  This function is responsible for one
  */
@@ -328,7 +328,7 @@ static void SubdividePatch(patch_t *patch){
 
 /*
  * SubdividePatches
- * 
+ *
  * Iterate all of the head face patches, subdividing them as necessary.
  */
 void SubdividePatches(void){
@@ -348,7 +348,7 @@ void SubdividePatches(void){
 
 /*
  * FreePatches
- * 
+ *
  * After light sources have been created, patches may be freed.
  */
 void FreePatches(void){

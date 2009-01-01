@@ -128,9 +128,9 @@ void Cl_ParseMuzzleFlash(void){
 
 
 /*
- * 
+ *
  * PARTICLE MANAGEMENT
- * 
+ *
  */
 
 static particle_t *active_particles, *free_particles;

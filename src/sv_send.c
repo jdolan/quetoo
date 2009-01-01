@@ -22,9 +22,9 @@
 #include "server.h"
 
 /*
- * 
+ *
  * Com_Printf redirection
- * 
+ *
  */
 
 char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
@@ -41,15 +41,15 @@ void Sv_FlushRedirect(int sv_redirected, char *outputbuf){
 
 
 /*
- * 
+ *
  * EVENT MESSAGES
- * 
+ *
  */
 
 
 /*
  * Sv_ClientPrintf
- * 
+ *
  * Sends text across to be displayed if the level passes
  */
 void Sv_ClientPrintf(client_t *cl, int level, const char *fmt, ...){
@@ -71,7 +71,7 @@ void Sv_ClientPrintf(client_t *cl, int level, const char *fmt, ...){
 
 /*
  * Sv_Bprintf
- * 
+ *
  * Sends text to all active clients
  */
 void Sv_Bprintf(int level, const char *fmt, ...){
@@ -110,7 +110,7 @@ void Sv_Bprintf(int level, const char *fmt, ...){
 
 /*
  * Sv_BroadcastCommand
- * 
+ *
  * Sends text to all active clients
  */
 void Sv_BroadcastCommand(const char *fmt, ...){
@@ -131,10 +131,10 @@ void Sv_BroadcastCommand(const char *fmt, ...){
 
 /*
  * Sv_Multicast
- * 
+ *
  * Sends the contents of sv.multicast to a subset of the clients,
  * then clears sv.multicast.
- * 
+ *
  * MULTICAST_ALL	same as broadcast (origin can be NULL)
  * MULTICAST_PVS	send to clients potentially visible from org
  * MULTICAST_PHS	send to clients potentially hearable from org
@@ -217,25 +217,25 @@ void Sv_Multicast(vec3_t origin, multicast_t to){
 
 /*
  * Sv_StartSound
- * 
+ *
  * Each entity can have eight independent sound sources, like voice,
  * weapon, feet, etc.
- * 
+ *
  * If cahnnel & 8, the sound will be sent to everyone, not just
  * things in the PHS.
- * 
+ *
  * FIXME: if entity isn't in PHS, they must be forced to be sent or
  * have the origin explicitly sent.
- * 
+ *
  * Channel 0 is an auto-allocate channel, the others override anything
  * already running on that entity/channel pair.
- * 
+ *
  * An attenuation of 0 will play full volume everywhere in the level.
  * Larger attenuations will drop off. (max 4 attenuation)
- * 
+ *
  * Timeofs can range from 0.0 to 0.1 to cause sounds to be started
  * later in the frame than they normally would.
- * 
+ *
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for bmodels.
  */
@@ -338,9 +338,9 @@ void Sv_StartSound(vec3_t origin, edict_t *entity, int channel,
 
 
 /*
- * 
+ *
  * FRAME UPDATES
- * 
+ *
  */
 
 int zlib_accum = 0;  // count of bytes saved via zlib
@@ -351,7 +351,7 @@ static byte zbuf[MAX_MSGLEN];
 
 /*
  * Sv_ZlibClientDatagrab
- * 
+ *
  * Deflates msg for clients supporting svc_zlib, and rewrites it if
  * the compression resulted in a smaller packet.
  */
@@ -454,7 +454,7 @@ static void Sv_DemoCompleted(void){
 
 /*
  * Sv_RateDrop
- * 
+ *
  * Returns true if the client is over its current
  * bandwidth estimation and should not be sent another packet
  */

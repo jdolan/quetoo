@@ -49,7 +49,7 @@ cvar_t *ansi;
 
 /*
  * Con_Update
- * 
+ *
  * Update a console index struct, start parsing at pos
  */
 static void Con_Update(console_t *con, char *pos){
@@ -142,7 +142,7 @@ static void Con_Update(console_t *con, char *pos){
 
 /*
  * Con_Resize
- * 
+ *
  * Change the width of an index, parse the console data structure if needed
  */
 void Con_Resize(console_t *con, int width, int height){
@@ -174,7 +174,7 @@ void Con_Resize(console_t *con, int width, int height){
 
 /*
  * Con_Clear_f
- * 
+ *
  * Clear the console data buffer
  */
 static void Con_Clear_f(void){
@@ -200,7 +200,7 @@ static void Con_Clear_f(void){
 
 /*
  * Con_Dump_f
- * 
+ *
  * Save the console contents to a file
  */
 static void Con_Dump_f(void){
@@ -237,7 +237,7 @@ static void Con_Dump_f(void){
 
 /*
  * Con_PrintStdOut
- * 
+ *
  * Print a color-coded string to stdout, remove color codes if requested
  */
 static void Con_PrintStdOut(const char *text){
@@ -324,7 +324,7 @@ static void Con_PrintStdOut(const char *text){
 
 /*
  * Con_Print
- * 
+ *
  * Print a message to the console data buffer
  */
 void Con_Print(const char *text){
@@ -447,7 +447,7 @@ int Con_CompleteCommand(char *input_text, int *input_position){
 
 /*
  * Con_Init
- * 
+ *
  * Initialize the console subsystem
  */
 void Con_Init(void){
@@ -473,7 +473,7 @@ void Con_Init(void){
 
 /*
  * Con_Shutdown
- * 
+ *
  * Shutdown the console subsystem
  */
 void Con_Shutdown(void){

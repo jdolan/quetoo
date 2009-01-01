@@ -47,7 +47,7 @@ static int c_clipbrushes;
 
 /*
  * PlaneTypeForNormal
- * 
+ *
  * Set the type of the plane according to it's normal vector
  */
 static int PlaneTypeForNormal(const vec3_t normal){
@@ -255,7 +255,7 @@ static int BrushContents(const mapbrush_t * b){
 
 /*
  * AddBrushBevels
- * 
+ *
  * Adds any additional planes necessary to allow the brush to be expanded
  * against axial bounding boxes
  */
@@ -397,7 +397,7 @@ static void AddBrushBevels(mapbrush_t * b){
 
 /*
  * MakeBrushWindings
- * 
+ *
  * Makes basewindigs for sides and mins / maxs for the brush
  */
 static qboolean MakeBrushWindings(mapbrush_t * ob){
@@ -676,10 +676,10 @@ static void ParseBrush(entity_t *mapent){
 
 /*
  * MoveBrushesToWorld
- * 
+ *
  * Takes all of the brushes from the current entity and
  * adds them to the world's brush list.
- * 
+ *
  * Used by func_group and func_areaportal
  */
 static void MoveBrushesToWorld(entity_t * mapent){

@@ -157,7 +157,7 @@ int cl_gravity;
 
 /*
  * Cl_PredictMovement
- * 
+ *
  * Run the latest movement command through the player movement code locally,
  * using the resulting origin and angles to reduce perceived latency.
  */

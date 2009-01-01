@@ -41,7 +41,7 @@ cvar_t *sv_udpdownload;
 
 /*
  * Sv_DropClient
- * 
+ *
  * Called when the player is totally leaving the server, either willingly
  * or unwillingly.  This is NOT called if the entire server is quiting
  * or crashing.
@@ -69,15 +69,15 @@ void Sv_DropClient(client_t *cl){
 
 
 /*
- * 
+ *
  * CONNECTIONLESS COMMANDS
- * 
+ *
  */
 
 
 /*
  * Sv_StatusString
- * 
+ *
  * Builds the string that is sent as heartbeats and status replies
  */
 static const char *Sv_StatusString(void){
@@ -111,7 +111,7 @@ static const char *Sv_StatusString(void){
 
 /*
  * Svc_Status
- * 
+ *
  * Responds with all the info that qplug or qspy can see
  */
 static void Svc_Status(void){
@@ -129,7 +129,7 @@ static void Svc_Ack(void){
 
 /*
  * Svc_Info
- * 
+ *
  * Responds with short info for broadcast scans
  */
 static void Svc_Info(void){
@@ -165,7 +165,7 @@ static void Svc_Info(void){
 
 /*
  * Svc_Ping
- * 
+ *
  * Just responds with an acknowledgement
  */
 static void Svc_Ping(void){
@@ -175,7 +175,7 @@ static void Svc_Ping(void){
 
 /*
  * Svc_GetChallenge
- * 
+ *
  * Returns a challenge number that can be used
  * in a subsequent client_connect command.
  * We do this to prevent denial of service attacks that
@@ -215,7 +215,7 @@ static void Svc_GetChallenge(void){
 
 /*
  * Svc_Connect
- * 
+ *
  * A connection request that did not come from the master
  */
 static void Svc_Connect(void){
@@ -365,7 +365,7 @@ static int Sv_RconValidate(void){
 
 /*
  * Svc_RemoteCommand
- * 
+ *
  * A client issued an rcon command.  Shift down the remaining args and
  * redirect all output to the invoking client.
  */
@@ -401,7 +401,7 @@ static void Svc_RemoteCommand(void){
 
 /*
  * Sv_ConnectionlessPacket
- * 
+ *
  * A connectionless packet has four leading 0xff bytes to distinguish it from
  * a game channel.  Clients that are in the game can still send these, and they
  * will be handled here.
@@ -442,7 +442,7 @@ static void Sv_ConnectionlessPacket(void){
 
 /*
  * Sv_CalcPings
- * 
+ *
  * Updates the cl->ping variables
  */
 static void Sv_CalcPings(void){
@@ -478,7 +478,7 @@ static void Sv_CalcPings(void){
 
 /*
  * Sv_GiveMsec
- * 
+ *
  * Every few frames, gives all clients an allotment of milliseconds
  * for their command moves.  If they exceed it, assume cheating.
  */
@@ -596,7 +596,7 @@ static void Sv_CheckTimeouts(void){
 
 /*
  * Sv_PrepWorldFrame
- * 
+ *
  * This has to be done before the world logic, because
  * player processing happens outside RunWorldFrame
  */
@@ -694,7 +694,7 @@ void Sv_Frame(int msec){
 
 /*
  * Sv_HeartbeatMasters
- * 
+ *
  * Sends heartbeat messages to master servers every 300s.
  */
 #define HEARTBEAT_SECONDS 300
@@ -731,7 +731,7 @@ void Sv_HeartbeatMasters(void){
 
 /*
  * Sv_ShutdownMasters
- * 
+ *
  * Informs master servers that this server is halting.
  */
 static void Sv_ShutdownMasters(void){
@@ -793,7 +793,7 @@ char *Sv_ClientAdrToString(client_t *cl){
 
 /*
  * Sv_UserinfoChanged
- * 
+ *
  * Enforces safe userinfo data before passing onto game module.
  */
 void Sv_UserinfoChanged(client_t *cl){
@@ -863,7 +863,7 @@ void Sv_UserinfoChanged(client_t *cl){
 
 /*
  * Sv_Init
- * 
+ *
  * Only called at Quake2World startup, not for each game
  */
 void Sv_Init(void){
@@ -906,7 +906,7 @@ void Sv_Init(void){
 
 /*
  * Sv_FinalMessage
- * 
+ *
  * Used by Sv_Shutdown to send a final message to all connected clients
  * before the server goes down.  The messages are sent immediately, not
  * just stuck on the outgoing message list, because the server could
@@ -937,7 +937,7 @@ static void Sv_FinalMessage(const char *message, qboolean reconnect){
 
 /*
  * Sv_Shutdown
- * 
+ *
  * Called when server is shutting down, or doing a full restart.
  */
 void Sv_Shutdown(const char *finalmsg, qboolean reconnect){

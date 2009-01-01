@@ -145,7 +145,7 @@ char *Net_AdrToString(netadr_t a){
 
 /*
  * Net_StringToSockaddr
- * 
+ *
  * localhost
  * idnewt
  * idnewt:28000
@@ -185,7 +185,7 @@ static qboolean Net_StringToSockaddr(const char *s, struct sockaddr *sadr){
 
 /*
  * Net_StringToAdr
- * 
+ *
  * localhost
  * idnewt
  * idnewt:28000
@@ -340,7 +340,7 @@ void Net_SendPacket(netsrc_t source, size_t length, void *data, netadr_t to){
 
 /*
  * Net_Sleep
- * 
+ *
  * Sleeps for msec or until server socket is ready.
  */
 void Net_Sleep(int msec){

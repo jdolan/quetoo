@@ -40,7 +40,7 @@ static int alias_count;  // for detecting runaway loops
 
 /*
  * Cmd_Wait_f
- * 
+ *
  * Causes execution of the remainder of the command buffer to be delayed until
  * next frame.  This allows commands like:
  * bind g "+attack; wait; -attack;"
@@ -51,9 +51,9 @@ static void Cmd_Wait_f(void){
 
 
 /*
- * 
+ *
  * COMMAND BUFFER
- * 
+ *
  */
 
 static sizebuf_t cmd_text;
@@ -72,7 +72,7 @@ void Cbuf_Init(void){
 
 /*
  * Cbuf_AddText
- * 
+ *
  * Adds command text at the end of the buffer
  */
 void Cbuf_AddText(const char *text){
@@ -90,7 +90,7 @@ void Cbuf_AddText(const char *text){
 
 /*
  * Cbuf_InsertText
- * 
+ *
  * Adds command text immediately after the current command
  * Adds a \n to the text
  * FIXME: actually change the command buffer to do less copying
@@ -198,13 +198,13 @@ void Cbuf_Execute(void){
 
 /*
  * Cbuf_AddEarlyCommands
- * 
+ *
  * Adds command line parameters as script statements
  * Commands lead with a +, and continue until another +.
- * 
+ *
  * Set commands are added early, so they are guaranteed to be set before
  * the client and server initialize for the first time.
- * 
+ *
  * Other commands are added late, after all initialization is complete.
  */
 void Cbuf_AddEarlyCommands(qboolean clear){
@@ -229,7 +229,7 @@ void Cbuf_AddEarlyCommands(qboolean clear){
 
 /*
  * Cbuf_AddLateCommands
- * 
+ *
  * Adds remaining command line parameters as script statements
  * Commands lead with a + and continue until another +.
  */
@@ -265,9 +265,9 @@ void Cbuf_AddLateCommands(void){
 
 
 /*
- * 
+ *
  * 						SCRIPT COMMANDS
- * 
+ *
  */
 
 
@@ -295,7 +295,7 @@ static void Cmd_Exec_f(void){
 
 /*
  * Cmd_Echo_f
- * 
+ *
  * Just prints the rest of the line to the console
  */
 static void Cmd_Echo_f(void){
@@ -309,7 +309,7 @@ static void Cmd_Echo_f(void){
 
 /*
  * Cmd_Alias_f
- * 
+ *
  * Creates a new command that executes a command string (possibly ; seperated)
  */
 static void Cmd_Alias_f(void){
@@ -360,9 +360,9 @@ static void Cmd_Alias_f(void){
 }
 
 /*
- * 
+ *
  * COMMAND EXECUTION
- * 
+ *
  */
 
 typedef struct cmd_function_s {
@@ -403,7 +403,7 @@ char *Cmd_Argv(int arg){
 
 /*
  * Cmd_Args
- * 
+ *
  * Returns a single string containing argv(1) to argv(argc()-1)
  */
 char *Cmd_Args(void){
@@ -413,7 +413,7 @@ char *Cmd_Args(void){
 
 /*
  * Cmd_TokenizeString
- * 
+ *
  * Parses the given string into command line tokens.
  */
 void Cmd_TokenizeString(const char *text){
@@ -591,7 +591,7 @@ int Cmd_CompleteCommand(const char *partial, const char *matches[]){
 
 /*
  * Cmd_ExecuteString
- * 
+ *
  * A complete command line has been parsed, so try to execute it
  */
 void Cmd_ExecuteString(const char *text){

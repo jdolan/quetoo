@@ -34,13 +34,13 @@ void G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward, vec3_t right
 
 /*
  * G_Find
- * 
+ *
  * Searches all active entities for the next one that holds
  * the matching string at fieldofs(use the FOFS() macro) in the structure.
- * 
+ *
  * Searches beginning at the edict after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.
- * 
+ *
  */
 edict_t *G_Find(edict_t *from, int fieldofs, const char *match){
 	char *s;
@@ -66,9 +66,9 @@ edict_t *G_Find(edict_t *from, int fieldofs, const char *match){
 
 /*
  * G_FindRadius
- * 
+ *
  * Returns entities that have origins within a spherical area
- * 
+ *
  * G_FindRadius(origin, radius)
  */
 edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad){
@@ -97,13 +97,13 @@ edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad){
 
 /*
  * G_PickTarget
- * 
+ *
  * Searches all active entities for the next one that holds
  * the matching string at fieldofs(use the FOFS() macro) in the structure.
- * 
+ *
  * Searches beginning at the edict after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.
- * 
+ *
  */
 #define MAXCHOICES	8
 
@@ -144,17 +144,17 @@ static void Think_Delay(edict_t *ent){
 
 /*
  * G_UseTargets
- * 
+ *
  * the global "activator" should be set to the entity that initiated the firing.
- * 
+ *
  * If self.delay is set, a DelayedUse entity will be created that will actually
  * do the SUB_UseTargets after that many seconds have passed.
- * 
+ *
  * Centerprints any self.message to the activator.
- * 
+ *
  * Search for(string)targetname in all entities that
  * match(string)self.target and call their .use function
- * 
+ *
  */
 void G_UseTargets(edict_t *ent, edict_t *activator){
 	edict_t *t;
@@ -222,7 +222,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 
 /*
  * tv
- * 
+ *
  * This is just a convenience function
  * for making temporary vectors for function calls
  */
@@ -246,7 +246,7 @@ float *tv(float x, float y, float z){
 
 /*
  * vtos
- * 
+ *
  * A convenience function for printing vectors.
  */
 char *vtos(vec3_t v){
@@ -302,7 +302,7 @@ void G_InitEdict(edict_t *e){
 
 /*
  * G_Spawn
- * 
+ *
  * Either finds a free edict, or allocates a new one.
  * Try to avoid reusing an entity that was recently freed, because it
  * can cause the client to think the entity morphed into something else
@@ -334,7 +334,7 @@ edict_t *G_Spawn(void){
 
 /*
  * G_FreeEdict
- * 
+ *
  * Marks the edict as free
  */
 void G_FreeEdict(edict_t *ed){
@@ -377,7 +377,7 @@ void G_TouchTriggers(edict_t *ent){
 
 /*
  * G_TouchSolids
- * 
+ *
  * Call after linking a new trigger in during gameplay
  * to force all entities it covers to immediately touch it
  */
@@ -403,7 +403,7 @@ void G_TouchSolids(edict_t *ent){
 
 /*
  * G_KillBox
- * 
+ *
  * Kills all entities that would touch the proposed new positioning
  * of ent.  Ent should be unlinked before calling this!
  */

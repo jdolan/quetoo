@@ -22,9 +22,9 @@
 #include "qbsp.h"
 
 /*
- * 
+ *
  * PORTAL FILE GENERATION
- * 
+ *
  * Save out name.prt for qvis to read
  */
 
@@ -97,7 +97,7 @@ static void WritePortalFile_r(node_t *node){
 /*
  * ================
  * FillLeafNumbers_r
- * 
+ *
  * All of the leafs under node will have the same cluster
  * ================
  */

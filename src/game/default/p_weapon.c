@@ -72,7 +72,7 @@ qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
 
 /*
  * P_ChangeWeapon
- * 
+ *
  * The old weapon has been put away, so make the new one current
  */
 void P_ChangeWeapon(edict_t *ent){

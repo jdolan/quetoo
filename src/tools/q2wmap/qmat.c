@@ -47,7 +47,7 @@ static void AddMaterial(const char *name){
 
 /*
  * CompareStrings
- * 
+ *
  * A simple wrapper around strcmp so that it may act as a comparator.
  */
 static int CompareStrings(const void *p1, const void *p2){
@@ -57,7 +57,7 @@ static int CompareStrings(const void *p1, const void *p2){
 
 /*
  * MAT_Main
- * 
+ *
  * Loads the specified BSP file, resolves all materials referenced by it,
  * and generates a "stub" materials file.
  */

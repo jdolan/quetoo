@@ -28,7 +28,7 @@ extern dma_t dma;
 
 /*
  * S_PaintAudio
- * 
+ *
  * Callback function given to SDL.
  */
 static void S_PaintAudio(void *unused, Uint8 *stream, int len){

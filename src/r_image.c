@@ -288,7 +288,7 @@ static void R_ScaleTexture(const unsigned *in, int inwidth, int inheight, unsign
 
 /*
  * R_FilterTexture
- * 
+ *
  * Applies brightness and contrast to the specified image while optionally computing
  * the image's average color.  Also handles image inversion and monochrome.  This is
  * all munged into one function to reduce loops on level load.
@@ -468,7 +468,7 @@ static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color,
 
 /*
  * R_UploadImage
- * 
+ *
  * This is also used as an entry point for the generated r_notexture.
  */
 image_t *R_UploadImage(const char *name, void *data, int width, int height, imagetype_t type){

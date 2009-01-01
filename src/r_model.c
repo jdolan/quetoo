@@ -324,7 +324,7 @@ static void R_FreeModels(void){
 
 /*
  * R_BeginLoading
- * 
+ *
  * Loads the specified map after resetting all model data.
  */
 void R_BeginLoading(const char *map, int mapsize){

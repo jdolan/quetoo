@@ -452,7 +452,7 @@ static inline qboolean R_LeafInVis(const mleaf_t *leaf, const byte *vis){
 
 /*
  * R_MarkLeafs
- * 
+ *
  * Mark the leafs that are in the PVS for the current cluster, creating the
  * recursion path for R_MarkSurfaces.
  */

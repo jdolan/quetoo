@@ -23,13 +23,13 @@
 
 /*
  * PLATS
- * 
+ *
  * movement options:
- * 
+ *
  * linear
  * smooth start, hard stop
  * smooth start, smooth stop
- * 
+ *
  * start
  * end
  * acceleration
@@ -39,7 +39,7 @@
  * end sound
  * target fired when reaching end
  * wait at end
- * 
+ *
  * object characteristics that use move segments
  * ---------------------------------------------
  * movetype_push, or movetype_stop
@@ -197,7 +197,7 @@ static void AngleMove_Calc(edict_t *ent, void(*func)(edict_t*)){
 
 /*
  * Think_AccelMove
- * 
+ *
  * The team has completed a frame of movement, so change the speed for the next frame
  */
 #define AccelerationDistance(target, rate) (target * ((target / rate) + 1) / 2)
@@ -593,9 +593,9 @@ void G_func_rotating(edict_t *ent){
 }
 
 /*
- * 
+ *
  * BUTTONS
- * 
+ *
  */
 
 /*QUAKED func_button(0 .5 .8) ?
@@ -729,12 +729,12 @@ void G_func_button(edict_t *ent){
 }
 
 /*
- * 
+ *
  * DOORS
- * 
+ *
  * spawn a trigger surrounding the entire team unless it is
  * already targeted by another
- * 
+ *
  */
 
 /*QUAKED func_door(0 .5 .8) ? START_OPEN x CRUSHER ANIMATED TOGGLE ANIMATED_FAST

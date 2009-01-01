@@ -28,7 +28,7 @@
 
 /*
  * Pak_ReadPakfile
- * 
+ *
  * Return a populated Pakfile from the specified path, with entries
  * hashed by name for fast finds.
  */
@@ -88,7 +88,7 @@ pak_t *Pak_ReadPakfile(const char *pakfile){
 
 /*
  * Pak_FreePakfile
- * 
+ *
  * Frees and closes any resources allocated to read the specified Pakfile.
  */
 void Pak_FreePakfile(pak_t *pak){
@@ -119,7 +119,7 @@ int err;
 
 /*
  * Pak_MakePath
- * 
+ *
  * This is basically a combination of Fs_CreatePath and Sys_Mkdir,
  * but we encapsulate it here to make linking the `pak` program simple.
  */
@@ -142,7 +142,7 @@ static void Pak_MakePath(char *path){
 
 /*
  * Pak_ExtractPakfile
- * 
+ *
  * A convenience function for deserializing a Pakfile to the filesystem.
  */
 void Pak_ExtractPakfile(const char *pakfile, char *dir, qboolean test){
@@ -199,7 +199,7 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, qboolean test){
 
 /*
  * Pak_CreatePakstream
- * 
+ *
  * Allocate a new Pakfile for creating a new archive from arbitrary resources.
  */
 pak_t *Pak_CreatePakstream(char *pakfile){
@@ -232,7 +232,7 @@ pak_t *Pak_CreatePakstream(char *pakfile){
 
 /*
  * Pak_ClosePakstream
- * 
+ *
  * Finalizes and frees a newly created Pakfile archive.
  */
 void Pak_ClosePakstream(pak_t *pak){
@@ -257,7 +257,7 @@ void Pak_ClosePakstream(pak_t *pak){
 
 /*
  * Pak_AddEntry
- * 
+ *
  * Add an entry to the specified Pakfile stream.
  */
 void Pak_AddEntry(pak_t *pak, char *name, int len, void *p){
@@ -345,7 +345,7 @@ static void Pak_RecursiveAdd(pak_t *pak, const char *dir){
 
 /*
  * Pak_CreatePakfile
- * 
+ *
  * A convenience function for creating Pakfile archives from the filesystem tree.
  */
 void Pak_CreatePakfile(char *pakfile, int numdirs, char **dirs){

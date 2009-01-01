@@ -26,9 +26,9 @@
 #include "server.h"
 
 /*
- * 
+ *
  * ENTITY AREA CHECKING
- * 
+ *
  * FIXME: this use of "area" is different from the bsp file use
  */
 
@@ -79,7 +79,7 @@ static void InsertLinkBefore(link_t *l, link_t *before){
 
 /*
  * Sv_CreateAreaNode
- * 
+ *
  * Builds a uniformly subdivided tree for the given world size
  */
 static areanode_t *Sv_CreateAreaNode(int depth, vec3_t mins, vec3_t maxs){
@@ -122,7 +122,7 @@ static areanode_t *Sv_CreateAreaNode(int depth, vec3_t mins, vec3_t maxs){
 
 /*
  * Sv_ClearWorld
- * 
+ *
  */
 void Sv_ClearWorld(void){
 	memset(sv_areanodes, 0, sizeof(sv_areanodes));
@@ -133,7 +133,7 @@ void Sv_ClearWorld(void){
 
 /*
  * Sv_UnlinkEdict
- * 
+ *
  */
 void Sv_UnlinkEdict(edict_t *ent){
 	if(!ent->area.prev)
@@ -423,7 +423,7 @@ moveclip_t;
 
 /*
  * Sv_HullForEntity
- * 
+ *
  * Returns a headnode that can be used for testing or clipping an
  * object of mins/maxs size.
  * Offset is filled in to contain the adjustment that must be added to the
@@ -521,11 +521,11 @@ static void Sv_TraceBounds(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, v
 
 /*
  * Sv_Trace
- * 
+ *
  * Moves the given mins/maxs volume through the world from start to end.
- * 
+ *
  * Passedict and edicts owned by passedict are explicitly not checked.
- * 
+ *
  */
 trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, edict_t *passedict, int contentmask){
 	moveclip_t clip;

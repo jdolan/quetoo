@@ -30,7 +30,7 @@ threadstate_t threadstate;
 
 /*
  * GetThreadWork
- * 
+ *
  * Return an iteration of work, updating progress when appropriate.
  */
 static int GetThreadWork(void){
@@ -70,7 +70,7 @@ static void(*WorkFunction)(int);
 
 /*
  * ThreadWork
- * 
+ *
  * Shared work entry point by all threads.  Retrieve and perform
  * chunks of work iteratively until work is finished.
  */
@@ -141,7 +141,7 @@ static void RunThreads(void){
 
 /*
  * RunThreadsOn
- * 
+ *
  * Entry point for all thread work requests.
  */
 void RunThreadsOn(int workcount, qboolean progress, void(*func)(int)){

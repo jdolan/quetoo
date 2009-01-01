@@ -25,7 +25,7 @@
 
 /*
  * Com_HashInit
- * 
+ *
  * Initializes the specified hashtable.
  */
 void Com_HashInit(hashtable_t *hashtable){
@@ -39,7 +39,7 @@ void Com_HashInit(hashtable_t *hashtable){
 
 /*
  * Com_HashCode
- * 
+ *
  * Generate a bin number (not a unique code) for the specified key.
  */
 unsigned Com_HashCode(const char *key){
@@ -62,7 +62,7 @@ unsigned Com_HashCode(const char *key){
 
 /*
  * Com_HashInsert
- * 
+ *
  * Insert the specified key-value pair to hashtable.
  */
 unsigned Com_HashInsert(hashtable_t *hashtable, const char *key, void *value){
@@ -94,7 +94,7 @@ unsigned Com_HashInsert(hashtable_t *hashtable, const char *key, void *value){
 
 /*
  * Com_HashEntry
- * 
+ *
  * Returns the first entry associated to the specified key.
  */
 hashentry_t *Com_HashEntry(hashtable_t *hashtable, const char *key){
@@ -119,7 +119,7 @@ hashentry_t *Com_HashEntry(hashtable_t *hashtable, const char *key){
 
 /*
  * Com_HashValue
- * 
+ *
  * Return the first value hashed at key from hashtable.
  */
 void *Com_HashValue(hashtable_t *hashtable, const char *key){
@@ -134,7 +134,7 @@ void *Com_HashValue(hashtable_t *hashtable, const char *key){
 
 /*
  * Com_HashRemoveEntry
- * 
+ *
  * Removes the specified entry from the hash and frees it, returning its
  * value so that it may also be freed if desired.
  */
@@ -163,7 +163,7 @@ void *Com_HashRemoveEntry(hashtable_t *hashtable, hashentry_t *entry){
 
 /*
  * Com_HashRemove
- * 
+ *
  * Removes the first entry associated to key from the specified hash.
  */
 void *Com_HashRemove(hashtable_t *hashtable, const char *key){
@@ -177,7 +177,7 @@ void *Com_HashRemove(hashtable_t *hashtable, const char *key){
 
 /*
  * Com_HashRemoveAll
- * 
+ *
  * Removes all entries associated to key from the specified hash.
  */
 void Com_HashRemoveAll(hashtable_t *hashtable, const char *key){
@@ -190,7 +190,7 @@ void Com_HashRemoveAll(hashtable_t *hashtable, const char *key){
 
 /*
  * Com_HashFree
- * 
+ *
  * Free all hashentries associated with hashtable.  Does not free any of the
  * values referenced by the entries.
  */

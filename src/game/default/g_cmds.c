@@ -25,7 +25,7 @@
 
 /*
  * G_Give_f
- * 
+ *
  * Give items to a client
  */
 static void G_Give_f(edict_t *ent){
@@ -563,7 +563,7 @@ static const char *vote_cmds[] = {
 
 /*
  * Vote_Help
- * 
+ *
  * Inspects the vote command and issues help if applicable.  Returns
  * true if the command received help and may therefore be ignored, false
  * otherwise.
@@ -732,7 +732,7 @@ static void G_Vote_f(edict_t *ent){
 
 /*
  * G_AddClientToTeam
- * 
+ *
  * Returns true if the client's team was changed, false otherwise.
  */
 qboolean G_AddClientToTeam(edict_t *ent, char *teamname){
@@ -919,7 +919,7 @@ static void G_Teamskin_f(edict_t *ent){
 
 /*
  * G_Ready_f
- * 
+ *
  * If match is enabled, all clients must issue ready for game to start.
  */
 static void G_Ready_f(edict_t *ent){

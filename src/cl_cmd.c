@@ -25,7 +25,7 @@
 
 /*
  * Cl_UpdateCmd
- * 
+ *
  * Accumulate all movement for the current packet frame in a command.
  */
 void Cl_UpdateCmd(void){
@@ -44,7 +44,7 @@ void Cl_UpdateCmd(void){
 
 /*
  * Cl_InitCmd
- * 
+ *
  * Initializes the next outgoing command so that it may accumulate movement
  * over the next packet frame.
  */
@@ -60,7 +60,7 @@ static void Cl_InitCmd(void){
 
 /*
  * Cl_FinalizeCmd
- * 
+ *
  * Calculate the true command duration and clamp it so that it may be sent.
  */
 static void Cl_FinalizeCmd(void){
@@ -77,7 +77,7 @@ static void Cl_FinalizeCmd(void){
 
 /*
  * Cl_SendCmd
- * 
+ *
  * Pumps the command cycle, sending the most recently gathered movement
  * to the server.
  */

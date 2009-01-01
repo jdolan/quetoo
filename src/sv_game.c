@@ -29,7 +29,7 @@ game_export_t *ge;
 
 /*
  * Sv_Unicast
- * 
+ *
  * Sends the contents of the mutlicast buffer to a single client
  */
 static void Sv_Unicast(edict_t *ent, qboolean reliable){
@@ -88,7 +88,7 @@ static void Sv_Dprintf(const char *fmt, ...){
 
 /*
  * Sv_Cprintf
- * 
+ *
  * Print to a single client
  */
 static void Sv_Cprintf(edict_t *ent, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
@@ -118,7 +118,7 @@ static void Sv_Cprintf(edict_t *ent, int level, const char *fmt, ...){
 
 /*
  * Sv_Cnprintf
- * 
+ *
  * centerprint to a single client
  */
 static void Sv_Cnprintf(edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
@@ -145,7 +145,7 @@ static void Sv_Cnprintf(edict_t *ent, const char *fmt, ...){
 
 /*
  * Sv_Error
- * 
+ *
  * Abort the server with a game error
  */
 static void Sv_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
@@ -163,7 +163,7 @@ static void Sv_Error(const char *fmt, ...){
 
 /*
  * Sv_SetModel
- * 
+ *
  * Also sets mins and maxs for inline bmodels
  */
 static void Sv_SetModel(edict_t *ent, const char *name){
@@ -192,7 +192,7 @@ static void Sv_SetModel(edict_t *ent, const char *name){
 
 /*
  * Sv_Configstring
- * 
+ *
  */
 static void Sv_Configstring(int index, const char *val){
 	if(index < 0 || index >= MAX_CONFIGSTRINGS){
@@ -248,7 +248,7 @@ static void Sv_WriteAngle(float f){
 
 /*
  * Sv_inPVS
- * 
+ *
  * Also checks portalareas so that doors block sight
  */
 static qboolean Sv_inPVS(const vec3_t p1, const vec3_t p2){
@@ -275,7 +275,7 @@ static qboolean Sv_inPVS(const vec3_t p1, const vec3_t p2){
 
 /*
  * Sv_inPHS
- * 
+ *
  * Also checks portalareas so that doors block sound
  */
 static qboolean Sv_inPHS(const vec3_t p1, const vec3_t p2){
@@ -315,7 +315,7 @@ static void Sv_StartSound_(edict_t *entity, int channel, int sound_num, float vo
 
 /*
  * Sv_ShutdownGameProgs
- * 
+ *
  * Called when either the entire server is being killed, or
  * it is changing to a different game directory.
  */
@@ -333,7 +333,7 @@ void Sv_ShutdownGameProgs(void){
 
 /*
  * Sv_InitGameProgs
- * 
+ *
  * Init the game subsystem for a new map
  */
 void Sv_InitGameProgs(void){

@@ -528,7 +528,7 @@ static void Cl_DrawCrosshair(void){
 
 /*
  * Cl_DrawStats
- * 
+ *
  * The status bar is a small layout program based on the stats array
  */
 static void Cl_DrawStats(void){
@@ -660,7 +660,7 @@ static void Cl_DrawBlend(void){
 
 /*
  * Cl_UpdateScreen
- * 
+ *
  * This is called every frame, and can also be called explicitly to flush
  * text to the screen.
  */

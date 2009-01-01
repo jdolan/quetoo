@@ -79,7 +79,7 @@ static winding_t *NewWinding(int points){
 
 /*
  * SortPortals
- * 
+ *
  * Sorts the portals from the least complex, so the later ones can reuse
  * the earlier information.
  */
@@ -126,7 +126,7 @@ static int LeafVectorFromPortalVector(byte * portalbits, byte * leafbits){
 
 /*
  * ClusterMerge
- * 
+ *
  * Merges the portal visibility for a leaf
  */
 static void ClusterMerge(int leafnum){
@@ -369,7 +369,7 @@ static void LoadPortals(const char *name){
 
 /*
  * CalcPHS
- * 
+ *
  * Calculate the PHS (Potentially Hearable Set)
  * by ORing together all the PVS visible from a leaf
  */

@@ -22,9 +22,9 @@
 #include "server.h"
 
 /*
- * 
+ *
  * OPERATOR CONSOLE ONLY COMMANDS
- * 
+ *
  * These commands can only be entered from stdin or by a remote operator datagram
  */
 
@@ -78,7 +78,7 @@ static void Sv_Heartbeat_f(void){
 
 /*
  * Sv_SetPlayer
- * 
+ *
  * Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
  */
 static qboolean Sv_SetPlayer(void){
@@ -127,7 +127,7 @@ static qboolean Sv_SetPlayer(void){
 
 /*
  * Sv_Demo_f
- * 
+ *
  * Starts playback of the specified demo file.
  */
 static void Sv_Demo_f(void){
@@ -161,7 +161,7 @@ static void Sv_Map_f(void){
 
 /*
  * Sv_Kick_f
- * 
+ *
  * Kick a user off of the server
  */
 static void Sv_Kick_f(void){

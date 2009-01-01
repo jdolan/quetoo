@@ -79,10 +79,10 @@ static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream
 
 /*
  * Img_LoadImage
- * 
+ *
  * Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
- * 
+ *
  * Image formats are tried in the order they appear in TYPES.
  */
 qboolean Img_LoadImage(char *name, SDL_Surface **surf){
@@ -100,7 +100,7 @@ qboolean Img_LoadImage(char *name, SDL_Surface **surf){
 
 /*
  * Img_LoadWal
- * 
+ *
  * A helper which mangles a .wal file into an SDL_Surface suitable for
  * OpenGL uploads and other basic manipulations.
  */
@@ -154,7 +154,7 @@ static qboolean Img_LoadWal(char *path, SDL_Surface **surf){
 
 /*
  * Img_LoadTypedImage
- * 
+ *
  * Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
  */
@@ -204,7 +204,7 @@ qboolean Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf){
 
 /*
  * Img_InitPalette
- * 
+ *
  * Initializes the 8bit color palette required for .wal texture loading.
  */
 void Img_InitPalette(void){
@@ -235,7 +235,7 @@ void Img_InitPalette(void){
 
 /*
  * Img_ColorFromPalette
- * 
+ *
  * Returns RGB components of the specified color in the specified result array.
  */
 void Img_ColorFromPalette(byte c, float *res){
@@ -254,7 +254,7 @@ void Img_ColorFromPalette(byte c, float *res){
 
 /*
  * Img_WriteTGARLE
- * 
+ *
  * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
 void Img_WriteTGARLE(char *path, void *data, int width, int height){

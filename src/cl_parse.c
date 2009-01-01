@@ -54,7 +54,7 @@ char *svc_strings[256] = {
 
 /*
  * Cl_CheckOrDownloadFile
- * 
+ *
  * Returns true if the file exists, otherwise it attempts
  * to start a download from the server.
  */
@@ -132,7 +132,7 @@ qboolean Cl_CheckOrDownloadFile(const char *filename){
 
 /*
  * Cl_Download_f
- * 
+ *
  * Manually request a download from the server.
  */
 void Cl_Download_f(void){
@@ -148,7 +148,7 @@ void Cl_Download_f(void){
 
 /*
  * Cl_ParseDownload
- * 
+ *
  * A download message has been received from the server
  */
 static void Cl_ParseDownload(void){
@@ -219,9 +219,9 @@ static void Cl_ParseDownload(void){
 
 
 /*
- * 
+ *
  *   SERVER CONNECTING MESSAGES
- * 
+ *
  */
 
 /*
@@ -299,7 +299,7 @@ static void Cl_ParseBaseline(void){
 
 /*
  * Cl_LoadClientinfo
- * 
+ *
  */
 void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
 	int i;
@@ -385,7 +385,7 @@ void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
 
 /*
  * Cl_ParseClientinfo
- * 
+ *
  * Load the model and skin for a client
  */
 void Cl_ParseClientinfo(int player){
@@ -454,9 +454,9 @@ void Cl_ParseConfigstring(void){
 
 
 /*
- * 
+ *
  * ACTION MESSAGES
- * 
+ *
  */
 
 /*
@@ -548,7 +548,7 @@ static void Cl_ShowNet(const char *s){
 
 /*
  * Cl_ZlibServerMessage
- * 
+ *
  * Called for svc_zlib, this function inflates the remainder of the
  * current net_message and adjusts its length accordingly.
  */

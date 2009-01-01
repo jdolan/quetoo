@@ -71,7 +71,7 @@ static qboolean G_IsStructural(edict_t *ent, csurface_t *surf){
 
 /*
  * G_BubbleTrail
- * 
+ *
  * Used to add generic bubble trails to shots.
  */
 static void G_BubbleTrail(vec3_t start, trace_t *tr){
@@ -102,7 +102,7 @@ static void G_BubbleTrail(vec3_t start, trace_t *tr){
 
 /*
  * G_Tracer
- * 
+ *
  * Used to add trails to bullet shots.
  */
 static void G_Tracer(vec3_t start, vec3_t end){
@@ -141,7 +141,7 @@ static void G_BulletMark(vec3_t org, cplane_t *plane, csurface_t *surf){
 
 /*
  * G_BurnMark
- * 
+ *
  * Used to add burn marks on surfaces hit by projectiles.
  */
 static void G_BurnMark(vec3_t org, cplane_t *plane, csurface_t *surf, byte scale){
@@ -158,7 +158,7 @@ static void G_BurnMark(vec3_t org, cplane_t *plane, csurface_t *surf, byte scale
 
 /*
  * G_FireBullet
- * 
+ *
  * Used by bullet and pellet weapons.
  */
 void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
@@ -239,7 +239,7 @@ void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
 
 /*
  * G_FireShotgun
- * 
+ *
  * Fires shotgun pellets.  Used by shotgun and super shotgun.
  */
 void G_FireShotgun(edict_t *self, vec3_t start, vec3_t aimdir,

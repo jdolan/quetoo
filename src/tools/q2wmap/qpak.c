@@ -31,7 +31,7 @@ static int num_paths;
 
 /*
  * AddPath
- * 
+ *
  * Adds the specified path to the resouce list, after ensuring
  * that it is unique.
  */
@@ -54,7 +54,7 @@ static void AddPath(char *path){
 
 /*
  * AddSound
- * 
+ *
  * Attempts the add the specified sound.
  */
 static void AddSound(char *sound){
@@ -75,7 +75,7 @@ static const char *image_formats[NUM_IMAGE_FORMATS] = {"tga", "png", "jpg", "pcx
 
 /*
  * AddImage
- * 
+ *
  * Attempts to add the specified image in any available format.
  */
 static void AddImage(const char *image){
@@ -103,7 +103,7 @@ static char *model_formats[NUM_MODEL_FORMATS] = {"md3", "md2"};
 
 /*
  * AddModel
- * 
+ *
  * Attempts to add the specified mesh model.
  */
 static void AddModel(char *model){
@@ -175,7 +175,7 @@ static void AddAnimation(char *name, int count){
 
 /*
  * AddMaterials
- * 
+ *
  * Adds all resources specified by the materials file, and the materials
  * file itself.  See src/r_material.c for materials reference.
  */
@@ -292,9 +292,9 @@ static void AddDocumentation(void){
 
 /*
  * GetPakfile
- * 
+ *
  * Returns a suitable pakfile name for the current bsp name, e.g.
- * 
+ *
  * maps/my.bsp -> map-my.pak.
  */
 static pak_t *GetPakfile(void){
@@ -319,7 +319,7 @@ static pak_t *GetPakfile(void){
 
 /*
  * PAK_Main
- * 
+ *
  * Loads the specified BSP file, resolves all resources referenced by it,
  * and generates a new pak archive for the project.  This is a very inefficient
  * but straightforward implementation.

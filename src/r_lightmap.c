@@ -146,7 +146,7 @@ static void R_BuildDefaultLightmap(msurface_t *surf, byte *sout, byte *dout, int
 
 /*
  * R_BuildLightmap
- * 
+ *
  * Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
  * writing processed lightmap and deluxemap RGBA to the specified destinations.
  */
@@ -338,7 +338,7 @@ void R_EndBuildingLightmaps(void){
 
 /*
  * R_LightPoint_
- * 
+ *
  * Clip to all surfaces within the specified range, accumulating static lighting
  * color to the specified vector in the event of an intersection.
  */

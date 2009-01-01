@@ -66,7 +66,7 @@ float pm_specfriction = 3.0;
 
 /*
  * Pm_ClipVelocity
- * 
+ *
  * Slide off of the impacting object
  * returns the blocked flags (1 = floor, 2 = step / wall)
  */
@@ -91,10 +91,10 @@ static void Pm_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overboun
 
 /*
  * Pm_StepSlideMove
- * 
+ *
  * Each intersection will try to step over the obstruction instead of
  * sliding along it.
- * 
+ *
  * Returns a new origin, velocity, and contact entity
  * Does not modify any world state?
  */
@@ -252,7 +252,7 @@ static void Pm_StepSlideMove(void){
 
 /*
  * Pm_Friction
- * 
+ *
  * Handles both ground friction and water friction
  */
 static void Pm_Friction(void){
@@ -299,7 +299,7 @@ static void Pm_Friction(void){
 
 /*
  * Pm_Accelerate
- * 
+ *
  * Handles user intended acceleration
  */
 static void Pm_Accelerate(vec3_t wishdir, float wishspeed, float accel){
@@ -689,7 +689,7 @@ static void Pm_CheckSpecialMovement(void){
 
 /*
  * Pm_CheckDuck
- * 
+ *
  * Sets mins, maxs, and pm->viewheight
  */
 static void Pm_CheckDuck(void){
@@ -892,7 +892,7 @@ static void Pm_SpectatorMove(){
 
 /*
  * Pmove
- * 
+ *
  * Can be called by either the server or the client to update prediction.
  */
 void Pmove(pmove_t *pmove){

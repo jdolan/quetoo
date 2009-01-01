@@ -31,7 +31,7 @@ int c_facenodes;
 
 /*
  * EmitPlanes
- * 
+ *
  * There is no oportunity to discard planes, because all of the original
  * brushes will be saved in the map.
  */

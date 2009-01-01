@@ -26,7 +26,7 @@ server_t sv;  // local server
 
 /*
  * Sv_FindIndex
- * 
+ *
  */
 static int Sv_FindIndex(const char *name, int start, int max, qboolean create){
 	int i;
@@ -74,7 +74,7 @@ int Sv_ImageIndex(const char *name){
 
 /*
  * Sv_CreateBaseline
- * 
+ *
  * Entity baselines are used to compress the update messages
  * to the clients -- only the fields that differ from the
  * baseline will be transmitted
@@ -100,7 +100,7 @@ static void Sv_CreateBaseline(void){
 
 /*
  * Sv_CheckMap
- * 
+ *
  * Ensures that map exists before attempting to spawn a server to it.
  * Returns true if the map exists, false otherwise.
  */
@@ -123,7 +123,7 @@ static qboolean Sv_CheckMap(const char *name){
 
 /*
  * Sv_CheckDemo
- * 
+ *
  * Attempts to open and peek into the specified demo file.  Returns
  * true if the file exists and appears to be a valid demo, false otherwise.
  * File is closed.
@@ -167,7 +167,7 @@ static qboolean Sv_CheckDemo(const char *name){
 
 /*
  * Sv_InitGame
- * 
+ *
  * A brand new game has been started
  */
 static void Sv_InitGame(void){
@@ -201,7 +201,7 @@ static void Sv_InitGame(void){
 
 /*
  * Sv_SpawnServer
- * 
+ *
  * Change the server to a new map, taking all connected clients along with it.
  * The serverstate parameter must either be ss_game or ss_demo.  See Sv_Map.
  */
@@ -326,7 +326,7 @@ static void Sv_SpawnServer(const char *server, server_state_t serverstate){
 
 /*
  * Sv_Map
- * 
+ *
  * Entry point for spawning a server on a .bsp or .dem.
  */
 void Sv_Map(const char *level){

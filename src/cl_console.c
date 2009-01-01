@@ -48,7 +48,7 @@ void Con_ToggleConsole_f(void){
 
 /*
  * Con_UpdateNotify
- * 
+ *
  * Update client message notification times
  */
 void Con_UpdateNotify(int lastline){
@@ -61,7 +61,7 @@ void Con_UpdateNotify(int lastline){
 
 /*
  * Con_ClearNotify
- * 
+ *
  * Clear client message notification times
  */
 void Con_ClearNotify(void){
@@ -112,7 +112,7 @@ void Con_InitClientConsole(void){
 
 /*
  * Con_DrawInput
- * 
+ *
  * The input line scrolls horizontally if typing goes beyond the right edge
  */
 static void Con_DrawInput(void){
@@ -143,7 +143,7 @@ static void Con_DrawInput(void){
 
 /*
  * Con_DrawNotify
- * 
+ *
  * Draws the last few lines of output transparently over the game top
  */
 void Con_DrawNotify(void){

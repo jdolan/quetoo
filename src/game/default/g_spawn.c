@@ -77,7 +77,7 @@ spawn_t spawns[] = {
 
 /*
  * G_CallSpawn
- * 
+ *
  * Finds the spawn function for the entity and calls it
  */
 static void G_CallSpawn(edict_t *ent){
@@ -254,7 +254,7 @@ static const field_t fields[] = {
 
 /*
  * G_ParseField
- * 
+ *
  * Takes a key/value pair and sets the binary values
  * in an edict
  */
@@ -307,7 +307,7 @@ static void G_ParseField(const char *key, const char *value, edict_t *ent){
 
 /*
  * G_ParseEdict
- * 
+ *
  * Parses an edict out of the given string, returning the new position
  * ed should be a properly initialized empty edict.
  */
@@ -357,9 +357,9 @@ static const char *G_ParseEdict(const char *data, edict_t *ent){
 
 /*
  * G_FindEdictTeams
- * 
+ *
  * Chain together all entities with a matching team field.
- * 
+ *
  * All but the first will have the FL_TEAMSLAVE flag set.
  * All but the last will have the teamchain field set to the next one
  */
@@ -404,7 +404,7 @@ static void G_FindEdictTeams(void){
 
 /*
  * G_SpawnEntities
- * 
+ *
  * Creates a server's entity / program execution context by
  * parsing textual entity definitions out of an ent file.
  */
@@ -506,19 +506,19 @@ void G_SpawnEntities(const char *name, const char *entities){
  * yt <value>
  * xv <value>
  * yv <value>
- * 
+ *
  * // drawing
  * statpic <name>
  * pic <stat>
  * num <fieldwidth> <stat>
  * string <stat>
- * 
+ *
  * // control
  * if <stat>
  * ifeq <stat> <value>
  * ifbit <stat> <value>
  * endif
- * 
+ *
  */
 
 char *dm_statusbar =

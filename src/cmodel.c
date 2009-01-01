@@ -114,9 +114,9 @@ int c_traces, c_brush_traces;
 
 
 /*
- * 
+ *
  * MAP LOADING
- * 
+ *
  */
 
 static const byte *cmod_base;
@@ -511,7 +511,7 @@ static void Cm_LoadEntityString(const lump_t *l){
 
 /*
  * Cm_LoadMap
- * 
+ *
  * Loads in the map and all submodels
  */
 cmodel_t *Cm_LoadMap(const char *name, int *mapsize){
@@ -641,7 +641,7 @@ static cleaf_t *box_leaf;
 
 /*
  * Cm_InitBoxHull
- * 
+ *
  * Set up the planes and nodes so that the six floats of a bounding box
  * can just be stored out and get a proper clipping hull structure.
  */
@@ -708,7 +708,7 @@ static void Cm_InitBoxHull(void){
 
 /*
  * Cm_HeadnodeForBox
- * 
+ *
  * To keep everything totally uniform, bounding boxes are turned into small
  * BSP trees instead of being compared directly.
  */
@@ -765,7 +765,7 @@ int Cm_PointLeafnum(const vec3_t p){
 
 /*
  * Cm_BoxLeafnums
- * 
+ *
  * Fills in a list of all the leafs touched
  */
 static int leaf_count, leaf_maxcount;
@@ -842,7 +842,7 @@ int Cm_PointContents(const vec3_t p, int headnode){
 
 /*
  * Cm_TransformedPointContents
- * 
+ *
  * Handles offseting and rotation of the end points for moving and
  * rotating entities
  */
@@ -873,9 +873,9 @@ int Cm_TransformedPointContents(const vec3_t p, int headnode, const vec3_t origi
 
 
 /*
- * 
+ *
  * BOX TRACING
- * 
+ *
  */
 
 // 1/32 epsilon to keep floating point happy
@@ -892,7 +892,7 @@ static qboolean trace_ispoint;  // optimized case
 
 /*
  * Cm_ClipBoxToBrush
- * 
+ *
  * Clips the bounded box to all brush sides for the given brush.  Returns
  * true if the box was clipped, false otherwise.
  */
@@ -1276,7 +1276,7 @@ trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
 
 /*
  * Cm_TransformedBoxTrace
- * 
+ *
  * Handles offseting and rotation of the end points for moving and
  * rotating entities
  */
@@ -1339,9 +1339,9 @@ trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 
 
 /*
- * 
+ *
  * PVS / PHS
- * 
+ *
  */
 
 
@@ -1404,9 +1404,9 @@ byte *Cm_ClusterPHS(int cluster){
 
 
 /*
- * 
+ *
  * AREAPORTALS
- * 
+ *
  */
 
 static void Cm_FloodArea(carea_t *area, int floodnum){
@@ -1475,10 +1475,10 @@ qboolean Cm_AreasConnected(int area1, int area2){
 
 /*
  * Cm_WriteAreaBits
- * 
+ *
  * Writes a length byte followed by a bit vector of all the areas
  * that are in the same flood as the area parameter
- * 
+ *
  * This is used by the client view to cull visibility
  */
 int Cm_WriteAreaBits(byte *buffer, int area){
@@ -1503,7 +1503,7 @@ int Cm_WriteAreaBits(byte *buffer, int area){
 
 /*
  * Cm_HeadnodeVisible
- * 
+ *
  * Returns true if any leaf under headnode has a cluster that
  * is potentially visible
  */

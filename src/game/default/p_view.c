@@ -28,7 +28,7 @@ static gclient_t *current_client;
 
 /*
  * P_DamageFeedback
- * 
+ *
  * Assign pain animations and sounds.
  */
 static void P_DamageFeedback(edict_t *player){
@@ -318,7 +318,7 @@ newanim:
 
 /*
  * P_EndServerFrame
- * 
+ *
  * Called for each player at the end of the server frame and right after spawning
  */
 void P_EndServerFrame(edict_t *ent){

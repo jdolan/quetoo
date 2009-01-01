@@ -23,7 +23,7 @@
 
 /*
  * G_OnSameTeam
- * 
+ *
  * Returns true if ent1 and ent2 are on the same qmass mod team.
  */
 qboolean G_OnSameTeam(edict_t *ent1, edict_t *ent2){
@@ -39,7 +39,7 @@ qboolean G_OnSameTeam(edict_t *ent1, edict_t *ent2){
 
 /*
  * G_CanDamage
- * 
+ *
  * Returns true if the inflictor can directly damage the target.  Used for
  * explosions and melee attacks.
  */
@@ -168,18 +168,18 @@ static int G_CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage, i
 
 /*
  * G_Damage
- * 
+ *
  * targ		entity that is being damaged
  * inflictor	entity that is causing the damage
  * attacker	entity that caused the inflictor to damage targ
  * 	example: targ=player2, inflictor=rocket, attacker=player1
- * 
+ *
  * dir			direction of the attack
  * point       point at which the damage is being inflicted
  * normal		normal vector from that point
  * damage		amount of damage being inflicted
  * knockback	force to be applied against targ as a result of the damage
- * 
+ *
  * dflags		these flags are used to control how G_Damage works
  * 	DAMAGE_RADIUS			damage was indirect (from a nearby explosion)
  * 	DAMAGE_NO_ARMOR			armor does not protect from this damage

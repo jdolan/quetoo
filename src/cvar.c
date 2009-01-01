@@ -106,7 +106,7 @@ int Cvar_CompleteVariable(const char *partial, const char *matches[]){
 
 /*
  * Cvar_Get
- * 
+ *
  * If the variable already exists, the value will not be set
  * The flags will be or'ed in if the variable exists.
  */
@@ -309,7 +309,7 @@ qboolean Cvar_PendingLatchedVars(void){
 
 /*
  * Cvar_UpdateLatchedVars
- * 
+ *
  * Apply any pending latched changes.
  */
 void Cvar_UpdateLatchedVars(void){
@@ -364,7 +364,7 @@ void Cvar_ClearVars(int flags){
 
 /*
  * Cvar_Command
- * 
+ *
  * Handles variable inspection and changing from the console
  */
 qboolean Cvar_Command(void){
@@ -388,7 +388,7 @@ qboolean Cvar_Command(void){
 
 /*
  * Cvar_Set_f
- * 
+ *
  * Allows setting and defining of arbitrary cvars from console
  */
 static void Cvar_Set_f(void){
@@ -417,7 +417,7 @@ static void Cvar_Set_f(void){
 
 /*
  * Cvar_WriteVariables
- * 
+ *
  * Appends lines containing "set variable value" for all variables
  * with the archive flag set to true.
  */
@@ -534,7 +534,7 @@ char *Cvar_Serverinfo(void){
 
 /*
  * Cvar_Init
- * 
+ *
  * Reads in all archived cvars
  */
 void Cvar_Init(void){

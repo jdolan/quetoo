@@ -24,7 +24,7 @@
 
 /*
  * LeakFile
- * 
+ *
  * Finds the shortest possible chain of portals that leads from the 
  * outside leaf to a specifically occupied leaf.
  */

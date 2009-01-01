@@ -87,9 +87,9 @@ void FreeTree(tree_t * tree){
 }
 
 /*
- * 
+ *
  * NODES THAT DON'T SEPERATE DIFFERENT CONTENTS CAN BE PRUNED
- * 
+ *
  */
 
 int c_pruned;

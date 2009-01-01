@@ -24,16 +24,16 @@
 edict_t *sv_player;
 
 /*
- * 
+ *
  * USER STRINGCMD EXECUTION
- * 
+ *
  * sv_client and sv_player will be valid.
  */
 
 
 /*
  * Sv_BeginDemoServer
- * 
+ *
  * Begin a demo server.  It is expected that the demo protocol has already
  * been resolved by Sv_CheckDemo.  Therefore we simply open it.
  */
@@ -52,7 +52,7 @@ static void Sv_BeginDemoServer(void){
 
 /*
  * Sv_New_f
- * 
+ *
  * Sends the first message from the server to a connected client.
  * This will be sent on the initial connection and upon each server load.
  */
@@ -346,7 +346,7 @@ static void Sv_Download_f(void){
 
 /*
  * Sv_Disconnect_f
- * 
+ *
  * The client is going to disconnect, so remove the connection immediately
  */
 static void Sv_Disconnect_f(void){
@@ -356,7 +356,7 @@ static void Sv_Disconnect_f(void){
 
 /*
  * Sv_Serverinfo_f
- * 
+ *
  * Dumps the serverinfo info string
  */
 static void Sv_Info_f(void){
@@ -423,15 +423,15 @@ static void Sv_ExecuteUserCommand(const char *s){
 }
 
 /*
- * 
+ *
  * USER CMD EXECUTION
- * 
+ *
  */
 
 
 /*
  * Sv_ClientThink
- * 
+ *
  * Account for command timeslice and pass command to game dll.
  */
 static void Sv_ClientThink(client_t *cl, usercmd_t *cmd){
@@ -443,7 +443,7 @@ static void Sv_ClientThink(client_t *cl, usercmd_t *cmd){
 #define MAX_STRINGCMDS 8
 /*
  * Sv_ExecuteClientMessage
- * 
+ *
  * The current net_message is parsed for the given client
  */
 void Sv_ExecuteClientMessage(client_t *cl){

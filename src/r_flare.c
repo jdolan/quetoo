@@ -68,7 +68,7 @@ void R_CreateSurfaceFlare(msurface_t *surf){
 
 /*
  * R_DrawFlareSurfaces
- * 
+ *
  * Flares are batched by their texture.  Usually, this means one draw operation
  * for all flares in view.  Flare visibility is calculated every few millis, and
  * flare alpha is ramped up or down depending on the results of the visibility

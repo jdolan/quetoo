@@ -91,7 +91,7 @@ cvar_t *r_width;
 
 /*
  * R_Trace
- * 
+ *
  * Traces to world and BSP models.  If a BSP entity is hit, it is saved as
  * r_view.trace_ent.
  */
@@ -351,7 +351,7 @@ void R_EndFrame(void){
 
 /*
  * R_ResolveWeather
- * 
+ *
  * Parses the weather configstring for weather and fog definitions, e.g. "rain fog 0.8 0.75 0.65".
  */
 static void R_ResolveWeather(void){

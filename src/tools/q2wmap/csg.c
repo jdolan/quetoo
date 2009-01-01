@@ -22,21 +22,21 @@
 #include "qbsp.h"
 
 /*
- * 
+ *
  * tag all brushes with original contents
  * brushes may contain multiple contents
  * there will be no brush overlap after csg phase
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
  * each side has a count of the other sides it splits
- * 
+ *
  * the best split will be the one that minimizes the total split counts
  * of all remaining sides
- * 
+ *
  * precalc side on plane table
- * 
+ *
  * evaluate split side
  * {
  * cost = 0
@@ -46,18 +46,18 @@
  * 		if side splits side and splitside is on same child
  * 			cost++;
  * }
- * 
- * 
+ *
+ *
  */
 
 
 /*
  * ===============
  * SubtractBrush
- * 
+ *
  * Returns a list of brushes that remain after B is subtracted from A.
  * May by empty if A is contained inside B.
- * 
+ *
  * The originals are undisturbed.
  * ===============
  */
@@ -90,7 +90,7 @@ static bspbrush_t *SubtractBrush(bspbrush_t * a, bspbrush_t * b){										 // a
 /*
  * ===============
  * BrushesDisjoint
- * 
+ *
  * Returns true if the two brushes definately do not intersect.
  * There will be false negatives for some non-axial combinations.
  * ===============
@@ -121,7 +121,7 @@ static int maxplanenums[3];
 /*
  * ===============
  * ClipBrushToBox
- * 
+ *
  * Any planes shared with the box edge will be set to no texinfo
  * ===============
  */
@@ -271,7 +271,7 @@ static bspbrush_t *AddBrushListToTail(bspbrush_t * list, bspbrush_t * tail){
 /*
  * ===========
  * CullList
- * 
+ *
  * Builds a new list that doesn't hold the given brush
  * ===========
  */
@@ -296,7 +296,7 @@ static bspbrush_t *CullList(bspbrush_t * list, const bspbrush_t * skip1){
 
 /*
  * BrushGE
- * 
+ *
  * Returns true if b1 is allowed to bite b2
  */
 static inline qboolean BrushGE(const bspbrush_t * b1, const bspbrush_t * b2){
@@ -311,7 +311,7 @@ static inline qboolean BrushGE(const bspbrush_t * b1, const bspbrush_t * b2){
 
 /*
  * ChopBrushes
- * 
+ *
  * Carves any intersecting solid brushes into the minimum number
  * of non-intersecting brushes.
  */

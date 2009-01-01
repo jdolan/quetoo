@@ -18,7 +18,7 @@
 
 /*
  * curses.c
- * 
+ *
  * Functions for the curses console
  */
 
@@ -55,7 +55,7 @@ static int curses_lastupdate;		// number of msecs since last redraw
 
 /*
  * Curses_SetColor
- * 
+ *
  * Set the curses drawing color
  */
 static void Curses_SetColor(int color){
@@ -72,7 +72,7 @@ static void Curses_SetColor(int color){
 
 /*
  * Curses_DrawBackground
- * 
+ *
  * Clear and draw background objects
  */
 static void Curses_DrawBackground(void){
@@ -91,7 +91,7 @@ static void Curses_DrawBackground(void){
 
 /*
  * Curses_DrawInput
- * 
+ *
  * Draw the inputbox
  */
 static void Curses_DrawInput(void){
@@ -111,10 +111,10 @@ static void Curses_DrawInput(void){
 
 /*
  * Curses_DrawConsole
- * 
+ *
  * Draw the content of the console,
  * parse color codes and line breaks.
- * 
+ *
  */
 static void Curses_DrawConsole(void){
 	int w,h;
@@ -177,7 +177,7 @@ static void Curses_DrawConsole(void){
 
 /*
  * Curses_Refresh
- * 
+ *
  * Mark the buffer for redraw
  */
 void Curses_Refresh(void){
@@ -186,7 +186,7 @@ void Curses_Refresh(void){
 
 /*
  * Curses_Draw
- * 
+ *
  * Draw everything
  */
 static void Curses_Draw(void){
@@ -221,7 +221,7 @@ static void Curses_Draw(void){
 
 /*
  * Curses_Resize
- * 
+ *
  * Window resize signal handler
  */
 void Curses_Resize(void){
@@ -239,7 +239,7 @@ void Curses_Resize(void){
 
 /*
  * Curses_Frame
- * 
+ *
  * Handle ncurses input and redraw if necessary
  */
 void Curses_Frame(int msec){
@@ -363,7 +363,7 @@ void Curses_Frame(int msec){
 
 /*
  * Curses_Init
- * 
+ *
  * Initialize the curses console
  */
 void Curses_Init(void){
@@ -416,7 +416,7 @@ void Curses_Init(void){
 
 /*
  * Curses_Shutdown
- * 
+ *
  * Shutdown the curses console
  */
 void Curses_Shutdown(void){

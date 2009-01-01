@@ -22,14 +22,14 @@
 #include "server.h"
 
 /*
- * 
+ *
  * Encode a client frame onto the network channel
- * 
+ *
  */
 
 /*
  * Sv_EmitEntities
- * 
+ *
  * Writes a delta update of an entity_state_t list to the message.
  */
 static void Sv_EmitEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg){
@@ -242,16 +242,16 @@ void Sv_WriteFrameToClient(client_t *client, sizebuf_t *msg){
 
 
 /*
- * 
+ *
  * Build a client frame structure
- * 
+ *
  */
 
 byte fatpvs[65536 / 8];  // 32767 is MAX_BSP_LEAFS
 
 /*
  * Sv_FatPVS
- * 
+ *
  * The client will interpolate the view position, so we can't use a single PVS point.
  */
 static void Sv_FatPVS(const vec3_t org){
@@ -294,7 +294,7 @@ static void Sv_FatPVS(const vec3_t org){
 
 /*
  * Sv_BuildClientFrame
- * 
+ *
  * Decides which entities are going to be visible to the client, and
  * copies off the playerstat and areabits.
  */

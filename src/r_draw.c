@@ -176,7 +176,7 @@ int R_DrawBytes(int x, int y, const char *s, int size, int color){
 
 /*
  * R_DrawSizedString
- * 
+ *
  * Draws at most len chars or size bytes of the specified string.  Color escape
  * sequences are not visible chars.  Returns the number of chars drawn.
  */
@@ -335,7 +335,7 @@ void R_DrawFillAlpha(int x, int y, int w, int h, int c, float a){
 
 /*
  * R_DrawFill
- * 
+ *
  * Fills a box of pixels with a single color
  */
 void R_DrawFill(int x, int y, int w, int h, int c){

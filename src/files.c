@@ -110,7 +110,7 @@ static int Fs_FileLength(FILE *f){
 
 /*
  * Fs_CreatePath
- * 
+ *
  * Creates any directories needed to store the given path.
  */
 void Fs_CreatePath(const char *path){
@@ -130,7 +130,7 @@ void Fs_CreatePath(const char *path){
 
 /*
  * Fs_OpenFile
- * 
+ *
  * Attempts to open the specified file on the search path.  Returns filesize
  * and an open FILE pointer.  This generalizes opening files from paks vs
  * opening filesystem resources directly.
@@ -205,7 +205,7 @@ int Fs_OpenFile(const char *filename, FILE **file, filemode_t mode){
 
 /*
  * Fs_ReadFile
- * 
+ *
  * Properly handles partial reads
  */
 void Fs_ReadFile(void *buffer, int len, FILE *f){
@@ -220,7 +220,7 @@ void Fs_ReadFile(void *buffer, int len, FILE *f){
 
 /*
  * Fs_LoadFile
- * 
+ *
  * Filename are reletive to the quake search path
  * A NULL buffer will just return the file length without loading.
  */
@@ -285,7 +285,7 @@ void Fs_AddPakfile(const char *pakfile){
 
 /*
  * Fs_AddGameDirectory
- * 
+ *
  * Adds the directory to the head of the path, and loads all paks within it.
  */
 static void Fs_AddGameDirectory(const char *dir){
@@ -372,7 +372,7 @@ static void Fs_AddHomeAsGameDirectory(const char *dir){
 
 /*
  * Fs_Gamedir
- * 
+ *
  * Called to find where to write a file (demos, screenshots, etc)
  */
 const char *Fs_Gamedir(void){
@@ -406,7 +406,7 @@ const char *Fs_FindFirst(const char *path, qboolean fullpath){
 
 /*
  * Fs_ExecAutoexec
- * 
+ *
  * Execs the local autoexec.cfg for the current gamedir.  This is
  * a function call rather than simply stuffing "exec autoexec.cfg"
  * because we do not wish to use default/autoexec.cfg for all mods.
@@ -441,7 +441,7 @@ void Fs_ExecAutoexec(void){
 
 /*
  * Fs_SetGamedir
- * 
+ *
  * Sets the gamedir and path to a different directory.
  */
 void Fs_SetGamedir(const char *dir){
@@ -492,7 +492,7 @@ void Fs_SetGamedir(const char *dir){
 
 /*
  * Fs_NextPath
- * 
+ *
  * Allows enumerating all of the directories in the search path
  */
 const char *Fs_NextPath(const char *prevpath){
@@ -516,7 +516,7 @@ const char *Fs_NextPath(const char *prevpath){
 
 /*
  * Fs_GunzipFile
- * 
+ *
  * Deflates the specified file in place, removing the .gz suffix from the path.
  * The original deflated file is removed upon successful decompression.
  */

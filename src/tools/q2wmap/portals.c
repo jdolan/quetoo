@@ -57,7 +57,7 @@ void FreePortal(portal_t * p){
 /*
  * ==============
  * VisibleContents
- * 
+ *
  * Returns the single content bit of the
  * strongest visible content present
  * ==============
@@ -98,7 +98,7 @@ static int ClusterContents(const node_t * node){
 /*
  * =============
  * Portal_VisFlood
- * 
+ *
  * Returns true if the portal is empty or translucent, allowing
  * the PVS calculation to see through it.
  * The nodes on either side of the portal may actually be clusters,
@@ -137,7 +137,7 @@ qboolean Portal_VisFlood(const portal_t * p){
 /*
  * ===============
  * Portal_EntityFlood
- * 
+ *
  * The entity flood determines which areas are
  * "outside" on the map, which are then filled in.
  * Flowing from side s to side !s
@@ -218,7 +218,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l){
 
 /*
  * MakeHeadnodePortals
- * 
+ *
  * The created portals will face the global outside_node
  */
 #define	SIDESPACE	8
@@ -317,7 +317,7 @@ static winding_t *BaseWindingForNode(const node_t * node){
 
 /*
  * MakeNodePortal
- * 
+ *
  * create the new portal by taking the full plane winding for the cutting plane
  * and clipping it by all of parents of this node
  */
@@ -371,7 +371,7 @@ void MakeNodePortal(node_t * node){
 /*
  * ==============
  * SplitNodePortals
- * 
+ *
  * Move or split the portals that bound node so that the node's
  * children have portals instead of node.
  * ==============
@@ -516,9 +516,9 @@ void MakeTreePortals(tree_t * tree){
 }
 
 /*
- * 
+ *
  * FLOOD ENTITIES
- * 
+ *
  */
 
 /*
@@ -573,7 +573,7 @@ static qboolean PlaceOccupant(node_t * headnode, vec3_t origin, entity_t * occup
 
 /*
  * FloodEntities
- * 
+ *
  * Marks all nodes that can be reached by entites
  */
 qboolean FloodEntities(tree_t *tree){
@@ -690,7 +690,7 @@ static void FloodAreas_r(node_t * node){
 /*
  * =============
  * FindAreas_r
- * 
+ *
  * Just decend the tree, and for each node that hasn't had an
  * area set, flood fill out from there
  * =============
@@ -723,7 +723,7 @@ static void FindAreas_r(node_t * node){
 /*
  * =============
  * SetAreaPortalAreas_r
- * 
+ *
  * Just decend the tree, and for each node that hasn't had an
  * area set, flood fill out from there
  * =============
@@ -793,7 +793,7 @@ void EmitAreaPortals(node_t * headnode){
 
 /*
  * FloodAreas
- * 
+ *
  * Mark each leaf with an area, bounded by CONTENTS_AREAPORTAL
  */
 void FloodAreas(tree_t * tree){
@@ -830,7 +830,7 @@ static void FillOutside_r(node_t * node){
 /*
  * =============
  * FillOutside
- * 
+ *
  * Fill all nodes that can't be reached by entities
  * =============
  */
@@ -851,7 +851,7 @@ void FillOutside(node_t * headnode){
 /*
  * ============
  * FindPortalSide
- * 
+ *
  * Finds a brush side to use for texturing the given portal
  * ============
  */
@@ -914,7 +914,7 @@ gotit:
 /*
  * ===============
  * MarkVisibleSides_r
- * 
+ *
  * ===============
  */
 static void MarkVisibleSides_r(const node_t * node){
@@ -946,7 +946,7 @@ static void MarkVisibleSides_r(const node_t * node){
 /*
  * =============
  * MarkVisibleSides
- * 
+ *
  * =============
  */
 void MarkVisibleSides(tree_t * tree, int startbrush, int endbrush){

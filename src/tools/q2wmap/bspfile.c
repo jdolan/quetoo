@@ -148,7 +148,7 @@ void DecompressVis(byte *in, byte *decompressed){
 
 /*
  * SwapBSPFile
- * 
+ *
  * Byte swaps all data in a bsp file.
  */
 static void SwapBSPFile(qboolean todisk){
@@ -362,7 +362,7 @@ void LoadBSPFile(char *filename){
 
 /*
  * LoadBSPFileTexinfo
- * 
+ *
  * Only loads the texinfo lump, so we can scan for textures.
  */
 void LoadBSPFileTexinfo(char *filename){
@@ -423,7 +423,7 @@ static void AddLump(int lumpnum, void *data, int len){
 
 /*
  * WriteBSPFile
- * 
+ *
  * Swaps the bsp file in place, so it should not be referenced again
  */
 void WriteBSPFile(char *filename){
@@ -477,7 +477,7 @@ void WriteBSPFile(char *filename){
 
 /*
  * PrintBSPFileSizes
- * 
+ *
  * Dumps info about current file
  */
 void PrintBSPFileSizes(void){
@@ -600,7 +600,7 @@ static qboolean ParseEntity(void){
 
 /*
  * ParseEntities
- * 
+ *
  * Parses the dentdata string into entities
  */
 void ParseEntities(void){
@@ -622,7 +622,7 @@ void ParseEntities(void){
 
 /*
  * UnparseEntities
- * 
+ *
  * Generates the entdata string from all the entities
  */
 void UnparseEntities(void){

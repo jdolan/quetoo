@@ -116,7 +116,7 @@ void G_ResetVote(void){
 
 /*
  * G_RestartGame
- * 
+ *
  * For normal games, this just means reset scores and respawn.
  * For match games, this means cancel the match and force everyone
  * to ready again.  Teams are only reset when teamz is true.
@@ -278,7 +278,7 @@ static void G_CheckVote(void){
 
 /*
  * G_EndLevel
- * 
+ *
  * The timelimit, fraglimit, etc.. has been exceeded.
  */
 static void G_EndLevel(void){
@@ -796,7 +796,7 @@ static void G_ExitLevel(void){
 
 /*
  * G_RunFrame
- * 
+ *
  * Advances the world by 0.1 seconds
  */
 static void G_RunFrame(void){
@@ -879,7 +879,7 @@ static void G_InitMaplist(void){
 
 /*
  * G_ParseMaplist
- * 
+ *
  * Populates a maplist_t from a text file.  See default/maps.lst
  */
 static void G_ParseMaplist(const char *filename){
@@ -1056,7 +1056,7 @@ static void G_ParseMaplist(const char *filename){
 
 /*
  * G_Init
- * 
+ *
  * This will be called when the game module is first loaded.
  */
 void G_Init(void){
@@ -1164,7 +1164,7 @@ void G_Shutdown(void){
 
 /*
  * LoadGame
- * 
+ *
  * Returns a pointer to the structure with all entry points
  * and global variables
  */
@@ -1192,7 +1192,7 @@ game_export_t *LoadGame(game_import_t *import){
 
 /*
  * Com_Printf
- * 
+ *
  * Redefined here so functions in shared.c can link.
  */
 void Com_Printf(const char *msg, ...){

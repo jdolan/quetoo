@@ -130,7 +130,7 @@ keyname_t keynames[] = {
 
 /*
  * Cl_KeyConsole
- * 
+ *
  * Interactive line editing and console scrollback.
  */
 static void Cl_KeyConsole(int key){
@@ -364,7 +364,7 @@ static void Cl_KeyMessage(int key){
 
 /*
  * Cl_StringToKeynum
- * 
+ *
  * Returns a key number to be used to index key_bindings[] by looking at
  * the given string.  Single ascii characters return themselves, while
  * the K_* names are matched up.
@@ -387,7 +387,7 @@ static int Cl_StringToKeynum(const char *str){
 
 /*
  * Cl_KeynumToString
- * 
+ *
  * Returns a string (either a single ascii char, or a K_* name) for the
  * given keynum.
  * FIXME: handle quote special (general escape sequence?)
@@ -506,7 +506,7 @@ static void Cl_Bind_f(void){
 
 /*
  * Cl_WriteBindings
- * 
+ *
  * Writes lines containing "bind key value"
  */
 void Cl_WriteBindings(FILE *f){
@@ -749,7 +749,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 
 /*
  * Cl_ClearTyping
- * 
+ *
  * Clears the current input line.
  */
 void Cl_ClearTyping(void) {
@@ -760,7 +760,7 @@ void Cl_ClearTyping(void) {
 
 /*
  * Cl_EditLine
- * 
+ *
  * Returns the current input line.
  */
 char *Cl_EditLine(void) {

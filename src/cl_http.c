@@ -57,7 +57,7 @@ static size_t Cl_HttpDownloadRecv(void *buffer, size_t size, size_t nmemb, void 
 
 /*
  * Cl_HttpDownload
- * 
+ *
  * Queue up an http download.  The url is resolved from cls.downloadurl and
  * the current gamedir.  We use cURL's multi interface, even tho we only ever
  * perform one download at a time, because it is non-blocking.
@@ -132,7 +132,7 @@ static char *Cl_HttpResponseCode(long code){
 
 /*
  * Cl_HttpDownloadCleanup
- * 
+ *
  * If a download is currently taking place, clean it up.  This is called
  * both to finalize completed downloads as well as abort incomplete ones.
  */
@@ -204,7 +204,7 @@ void Cl_HttpDownloadCleanup(){
 
 /*
  * Cl_HttpDownloadThink
- * 
+ *
  * Process the pending download by giving cURL some time to think.
  * Poll it for feedback on the transfer to determine what action to take.
  * If a transfer fails, stuff a stringcmd to download it via UDP.  Since

@@ -33,7 +33,7 @@ int numlocations;
 
 /*
  * Cl_ClearLocations
- * 
+ *
  * Effectively clears all locations for the current level.
  */
 static void Cl_ClearLocations(void){
@@ -42,7 +42,7 @@ static void Cl_ClearLocations(void){
 
 /*
  * Cl_LoadLocations
- * 
+ *
  * Parse a .loc file for the current level.
  */
 void Cl_LoadLocations(void){
@@ -84,7 +84,7 @@ void Cl_LoadLocations(void){
 
 /*
  * Cl_SaveLocations_f
- * 
+ *
  * Write locations for current level to file.
  */
 static void Cl_SaveLocations_f(void){
@@ -114,7 +114,7 @@ static void Cl_SaveLocations_f(void){
 
 /*
  * Cl_Location
- * 
+ *
  * Returns the description of the location nearest nearto.
  */
 static const char *Cl_Location(const vec3_t nearto){
@@ -142,7 +142,7 @@ static const char *Cl_Location(const vec3_t nearto){
 
 /*
  * Cl_LocationHere
- * 
+ *
  * Returns the description of the location nearest the client.
  */
 const char *Cl_LocationHere(void){
@@ -152,7 +152,7 @@ const char *Cl_LocationHere(void){
 
 /*
  * Cl_LocationThere
- * 
+ *
  * Returns the description of the location nearest the client's crosshair.
  */
 const char *Cl_LocationThere(void){
@@ -171,7 +171,7 @@ const char *Cl_LocationThere(void){
 
 /*
  * Cl_AddLocation
- * 
+ *
  * Add a new location described by desc at nearto.
  */
 static void Cl_AddLocation(const vec3_t nearto, const char *desc){
@@ -188,7 +188,7 @@ static void Cl_AddLocation(const vec3_t nearto, const char *desc){
 
 /*
  * Cl_AddLocation_f
- * 
+ *
  * Command callback for adding locations in game.
  */
 static void Cl_AddLocation_f(void){

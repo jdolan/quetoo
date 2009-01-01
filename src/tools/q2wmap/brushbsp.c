@@ -28,7 +28,7 @@ int c_active_brushes;
 
 /*
  * BoundBrush
- * 
+ *
  * Sets the mins/maxs based on the windings
  */
 static void BoundBrush(bspbrush_t * brush){
@@ -77,7 +77,7 @@ static void CreateBrushWindings(bspbrush_t * brush){
 
 /*
  * BrushFromBounds
- * 
+ *
  * Creates a new axial brush
  */
 static bspbrush_t *BrushFromBounds(vec3_t mins, vec3_t maxs){
@@ -234,7 +234,7 @@ void FreeBrushList(bspbrush_t * brushes){
 
 /*
  * CopyBrush
- * 
+ *
  * Duplicates the brush, the sides, and the windings
  */
 bspbrush_t *CopyBrush(bspbrush_t * brush){
@@ -257,7 +257,7 @@ bspbrush_t *CopyBrush(bspbrush_t * brush){
 
 /*
  * Map_BoxOnPlaneSide
- * 
+ *
  * Returns PSIDE_FRONT, PSIDE_BACK, or PSIDE_BOTH
  */
 static int Map_BoxOnPlaneSide(vec3_t mins, vec3_t maxs, plane_t * plane){
@@ -375,7 +375,7 @@ static int TestBrushToPlanenum(bspbrush_t * brush, int planenum,
 
 /*
  * WindingIsTiny
- * 
+ *
  * Returns true if the winding would be crunched out of
  * existance by the vertex snapping.
  */
@@ -402,7 +402,7 @@ qboolean WindingIsTiny(const winding_t * w){
 
 /*
  * WindingIsHuge
- * 
+ *
  * Returns true if the winding still has one of the points
  * from basewinding for plane
  */
@@ -473,7 +473,7 @@ static qboolean CheckPlaneAgainstVolume(int pnum, node_t * node){
 
 /*
  * SelectSplitSide
- * 
+ *
  * Using a hueristic, choses one of the sides out of the brushlist
  * to partition the brushes with.
  * Returns NULL if there are no valid planes to split with..
@@ -642,7 +642,7 @@ static int BrushMostlyOnSide(bspbrush_t * brush, plane_t * plane){
 
 /*
  * SplitBrush
- * 
+ *
  * Generates two new brushes, leaving the original unchanged
  */
 void SplitBrush(bspbrush_t * brush, int planenum,
@@ -908,7 +908,7 @@ static node_t *BuildTree_r(node_t * node, bspbrush_t * brushes){
 /*
  * =================
  * BrushBSP
- * 
+ *
  * The incoming list will be freed before exiting
  * =================
  */

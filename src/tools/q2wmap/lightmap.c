@@ -55,7 +55,7 @@ static extents_t face_extents[MAX_BSP_FACES];
 
 /*
  * BuildFaceExtents
- * 
+ *
  * Populates face_extents for all dsurface_t, prior to light creation.
  * This is done so that sample positions may be nudged outward along
  * the face normal and towards the face center to help with traces.
@@ -114,7 +114,7 @@ static void BuildFaceExtents(void){
 
 /*
  * CalcLightinfoExtents
- * 
+ *
  * Fills in l->texmins[] and l->texsize[], l->exactmins[] and l->exactmaxs[]
  */
 static void CalcLightinfoExtents(lightinfo_t *l){
@@ -150,7 +150,7 @@ static void CalcLightinfoExtents(lightinfo_t *l){
 
 /*
  * CalcLightinfoVectors
- * 
+ *
  * Fills in texorg, worldtotex. and textoworld
  */
 static void CalcLightinfoVectors(lightinfo_t *l){
@@ -219,7 +219,7 @@ static void CalcLightinfoVectors(lightinfo_t *l){
 
 /*
  * CalcPoints
- * 
+ *
  * For each texture aligned grid point, back project onto the plane
  * to get the world xyz value of the sample point
  */
@@ -486,7 +486,7 @@ void BuildLights(void){
 
 /*
  * GatherSampleSunlight
- * 
+ *
  * A follow-up to GatherSampleLight, simply trace along the sun normal, adding
  * sunlight when a sky surface is struck.
  */
@@ -529,7 +529,7 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
 
 /*
  * GatherSampleLight
- * 
+ *
  * Iterate over all light sources for the sample position's PVS, accumulating
  * light and directional information to the specified pointers.
  */
@@ -609,7 +609,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 
 /*
  * NudgeSamplePosition
- * 
+ *
  * Move the incoming sample position towards the surface center and along the
  * surface normal to reduce false-positive traces.  Test the PVS at the new
  * position, returning true if the new point is valid, false otherwise.
@@ -636,7 +636,7 @@ static qboolean NudgeSamplePosition(const vec3_t in, const vec3_t normal, const 
 
 /*
  * FacesWithEdge
- * 
+ *
  * Populate faces with indexes of all dface_t's referencing the specified edge.
  * The number of dface_t's referencing edge is returned in nfaces.
  */
@@ -669,7 +669,7 @@ static void FacesWithVert(int vert, int *faces, int *nfaces){
 
 /*
  * BuildVertexNormals
- * 
+ *
  * Calculate per-vertex (instead of per-plane) normal vectors.  This is done by
  * finding all of the faces which share a given vertex, and calculating a weighted
  * average of their normals.
@@ -717,7 +717,7 @@ void BuildVertexNormals(void){
 
 /*
  * SampleNormal
- * 
+ *
  * For Phong-shaded samples, interpolate the vertex normals for the surface in
  * question, weighing them according to their proximity to the sample position.
  */
@@ -897,7 +897,7 @@ static const vec3_t luminosity = {0.2125, 0.7154, 0.0721};
 
 /*
  * FinalLightFace
- * 
+ *
  * Add the indirect lighting on top of the direct lighting and save into
  * final map format.
  */

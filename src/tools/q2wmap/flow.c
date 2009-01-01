@@ -22,21 +22,21 @@
 #include "qvis.h"
 
 /*
- * 
+ *
  *   each portal will have a list of all possible to see from first portal
- * 
+ *
  *   if(!thread->portalmightsee[portalnum])
- * 
+ *
  *   portal mightsee
- * 
+ *
  *   for p2 = all other portals in leaf
  * 	get sperating planes
  * 	for all portals that might be seen by p2
  * 		mark as unseen if not present in seperating plane
  * 	flood fill a new mightsee
  * 	save as passagemightsee
- * 
- * 
+ *
+ *
  *   void CalcMightSee (leaf_t *leaf,
  */
 
@@ -177,14 +177,14 @@ static winding_t *Vis_ChopWinding(winding_t * in, pstack_t * stack, plane_t * sp
 /*
  * ==============
  * ClipToSeperators
- * 
+ *
  * Source, pass, and target are an ordering of portals.
- * 
+ *
  * Generates seperating planes canidates by taking two points from source and one
  * point from pass, and clips target by them.
- * 
+ *
  * If target is totally clipped away, that portal can not be seen through.
- * 
+ *
  * Normal clip keeps target on the same side as pass, which is correct if the
  * order goes source, pass, target.  If the order goes pass, source, target then
  * flipclip should be set.
@@ -321,7 +321,7 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 /*
  * ==================
  * RecursiveLeafFlow
- * 
+ *
  * Flood fill through the leafs
  * If src_portal is NULL, this is the originating leaf
  * ==================
@@ -449,7 +449,7 @@ static void RecursiveLeafFlow(int leafnum, threaddata_t * thread, pstack_t * pre
 
 /*
  * PortalFlow
- * 
+ *
  * generates the portalvis bit vector
  */
 void PortalFlow(int portalnum){

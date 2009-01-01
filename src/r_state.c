@@ -529,7 +529,7 @@ void R_Setup2D(void){
 
 /*
  * R_SetDefaultState
- * 
+ *
  * Set OpenGL state parameters we never change.
  */
 void R_SetDefaultState(void){

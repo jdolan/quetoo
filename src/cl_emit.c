@@ -60,7 +60,7 @@ static int num_emits = 0;
 
 /*
  * Cl_LoadEmits
- * 
+ *
  * Parse misc_emits from the bsp after it has been loaded.  This must
  * be called after Cm_LoadMap, once per pre-cache routine.
  */

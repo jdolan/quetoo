@@ -137,7 +137,7 @@ static void Cl_UpdateDucking(void){
 
 /*
  * Cl_UpdateOrigin
- * 
+ *
  * The origin is typically calculated using client sided prediction, provided
  * the client is not viewing a demo, playing in 3rd person mode, or chasecamming.
  */
@@ -175,7 +175,7 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops){
 
 /*
  * Cl_UpdateAngles
- * 
+ *
  * The angles are typically fetched directly from input, unless the client is
  * watching a demo or chasecamming someone.
  */
@@ -244,7 +244,7 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 
 /*
  * Cl_UpdateView
- * 
+ *
  * Updates the view_t for the renderer.  Origin, angles, etc are calculated.
  * Entities, particles, etc are then lerped and added and pulled through to
  * the renderer.

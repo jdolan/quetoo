@@ -274,7 +274,7 @@ static void R_LoadTexinfo(const lump_t *l){
 
 /*
  * R_SetSurfaceExtents
- * 
+ *
  * Sets in s->mins, s->maxs, s->stmins, s->stmaxs, ..
  */
 static void R_SetSurfaceExtents(msurface_t *surf){
@@ -783,7 +783,7 @@ static void R_SortSurfacesArrays_(msurfaces_t *surfs){
 
 /*
  * R_SortSurfacesArrays
- * 
+ *
  * Reorders all surfaces arrays for the specified model, grouping the surface
  * pointers by texture.  This dramatically reduces glBindTexture calls.
  */
@@ -982,7 +982,7 @@ static void R_SetModel(mnode_t *node, model_t *model){
 
 /*
  * R_SetupSubmodels
- * 
+ *
  * The submodels have been loaded into memory, but are not yet
  * represented as mmodel_t.  Convert them.
  */

@@ -79,7 +79,7 @@ char demoname[MAX_OSPATH];
 
 /*
  * Cl_WriteDemoHeader
- * 
+ *
  * Writes serverdata, configstrings, and baselines once a non-delta
  * compressed frame arrives from the server.
  */
@@ -154,7 +154,7 @@ static void Cl_WriteDemoHeader(void){
 
 /*
  * Cl_WriteDemoMessage
- * 
+ *
  * Dumps the current net message, prefixed by the length.
  */
 void Cl_WriteDemoMessage(void){
@@ -180,7 +180,7 @@ void Cl_WriteDemoMessage(void){
 
 /*
  * Cl_Stop_f
- * 
+ *
  * Stop recording a demo
  */
 static void Cl_Stop_f(void){
@@ -206,9 +206,9 @@ static void Cl_Stop_f(void){
 
 /*
  * Cl_Record_f
- * 
+ *
  * record <demoname>
- * 
+ *
  * Begins recording a demo from the current position
  */
 static void Cl_Record_f(void){
@@ -252,7 +252,7 @@ static char last_dropped_item[MAX_TOKEN_CHARS];
 
 /*
  * Cl_VariableString
- * 
+ *
  * This is the client-specific sibling to Cvar_VariableString.
  */
 static const char *Cl_ExpandVariable(char v){
@@ -318,7 +318,7 @@ static char *Cl_ExpandVariables(const char *text){
 
 /*
  * Cmd_ForwardToServer
- * 
+ *
  * Adds the current command line as a clc_stringcmd to the client message.
  * things like godmode, noclip, etc, are commands directed to the server,
  * so when they are typed in at the console, they will need to be forwarded.
@@ -366,7 +366,7 @@ static void Cl_Quit_f(void){
 
 /*
  * Cl_Drop
- * 
+ *
  * Called after an ERR_DROP or ERR_NONE was thrown
  */
 void Cl_Drop(void){
@@ -384,7 +384,7 @@ void Cl_Drop(void){
 
 /*
  * Cl_SendConnect
- * 
+ *
  * We have gotten a challenge from the server, so try and connect.
  */
 static void Cl_SendConnect(void){
@@ -414,7 +414,7 @@ extern cvar_t *sv_maxclients;
 
 /*
  * Cl_CheckForResend
- * 
+ *
  * Resend a connect message if the last one has timed out
  */
 static void Cl_CheckForResend(void){
@@ -505,7 +505,7 @@ static void Cl_Connect_f(void){
 
 /*
  * Cl_Rcon_f
- * 
+ *
  * Send the rest of the command line over as an unconnected command.
  */
 static void Cl_Rcon_f(void){
@@ -573,7 +573,7 @@ void Cl_ClearState(void){
 
 /*
  * Cl_SendDisconnect
- * 
+ *
  * Sends the disconnect command to the server (several times).  This is used
  * when the client actually wishes to disconnect or quit, or when an Http
  * download has begun.  This way, the client does not waste a server slot
@@ -601,7 +601,7 @@ void Cl_SendDisconnect(void){
 
 /*
  * Cl_Disconnect
- * 
+ *
  * Sends a disconnect message to the current server, stops any pending
  * demo recording, and updates cls.state so that we drop to console
  */
@@ -663,7 +663,7 @@ void Cl_Reconnect_f(void){
 
 /*
  * Cl_ConnectionlessPacket
- * 
+ *
  * Responses to broadcasts, etc
  */
 static void Cl_ConnectionlessPacket(void){
@@ -822,7 +822,7 @@ int precache_spawncount;
 
 /*
  * Cl_RequestNextDownload
- * 
+ *
  * Entry point for file downloads, or "precache" from server.  Attempt to
  * download .pak and .bsp from server.  Pak is preferred.
  */
@@ -861,7 +861,7 @@ void Cl_RequestNextDownload(void){
 
 /*
  * Cl_Precache_f
- * 
+ *
  * The server sends this command once serverdata has been parsed.
  */
 static void Cl_Precache_f(void){
@@ -986,7 +986,7 @@ static void Cl_InitLocal(void){
 
 /*
  * Cl_WriteConfiguration
- * 
+ *
  * Writes key bindings and archived cvars to quake2world.cfg
  */
 static void Cl_WriteConfiguration(void){

@@ -29,7 +29,7 @@ static const char *weaps[] = {
 
 /*
  * R_LoadMeshSkin
- * 
+ *
  * Resolves the skin for the specified model.  For most models, skin.tga is tried
  * within the model's directory.  Player-weapon models are a special case.
  */

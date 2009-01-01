@@ -64,7 +64,7 @@ void P_MoveToIntermission(edict_t *ent){
 
 /*
  * P_ColoredName
- * 
+ *
  * Copies src to dest, padding it to the specified maximum length.
  * Color escape sequences do not contribute to length.
  */

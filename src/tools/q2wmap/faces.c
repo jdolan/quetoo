@@ -22,12 +22,12 @@
 #include "qbsp.h"
 
 /*
- * 
+ *
  *   some faces will be removed before saving, but still form nodes:
- * 
+ *
  *   the insides of sky volumes
  *   meeting planes of different water current volumes
- * 
+ *
  */
 
 #define EQUAL_EPSILON		0.001
@@ -86,7 +86,7 @@ static unsigned HashVec(const vec3_t vec){
 
 /*
  * GetVertex
- * 
+ *
  * Uses hashing
  */
 static int GetVertexnum(const vec3_t in){
@@ -178,14 +178,14 @@ void FreeFace(face_t *f){
 
 /*
  * FaceFromSuperverts
- * 
+ *
  * The faces vertexes have beeb added to the superverts[] array,
  * and there may be more there than can be held in a face (MAXEDGES).
- * 
+ *
  * If less, the faces vertexnums[] will be filled in, otherwise
  * face will reference a tree of split[] faces until all of the
  * vertexnums can be added.
- * 
+ *
  * superverts[base] will become face->vertexnums[0], and the others
  * will be circularly filled in.
  */
@@ -274,7 +274,7 @@ static void EmitVertexes_r(node_t *node){
 
 /*
  * FindEdgeVerts
- * 
+ *
  * Forced a dumb check of everything
  */
 static void FindEdgeVerts(vec3_t v1, vec3_t v2){
@@ -288,7 +288,7 @@ static void FindEdgeVerts(vec3_t v1, vec3_t v2){
 
 /*
  * TestEdge
- * 
+ *
  * Can be recursively reentered
  */
 static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert){
@@ -442,7 +442,7 @@ void FixTjuncs(node_t *headnode){
 
 /*
  * GetEdge
- * 
+ *
  * Called by writebsp.
  * Don't allow four way edges
  */
@@ -477,19 +477,19 @@ int GetEdge2(int v1, int v2, face_t * f){
 }
 
 /*
- * 
+ *
  * FACE MERGING
- * 
+ *
  */
 
 #define	CONTINUOUS_EPSILON	0.001
 
 /*
  * TryMergeWinding
- * 
+ *
  * If two polygons share a common edge and the edges that meet at the
  * common points are both inside the other polygons, merge them
- * 
+ *
  * Returns NULL if the faces couldn't be merged, or the new face.
  * The originals will NOT be freed.
  */
@@ -578,10 +578,10 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2, const vec3_t p
 
 /*
  * TryMerge
- * 
+ *
  * If two polygons share a common edge and the edges that meet at the
  * common points are both inside the other polygons, merge them
- * 
+ *
  * Returns NULL if the faces couldn't be merged, or the new face.
  * The originals will NOT be freed.
  */
@@ -647,7 +647,7 @@ static void MergeNodeFaces(node_t * node){
 
 /*
  * SubdivideFace
- * 
+ *
  * Chop up faces that are larger than we want in the surface cache
  */
 static void SubdivideFace(node_t * node, face_t * f){
@@ -764,9 +764,9 @@ static face_t *FaceFromPortal(portal_t * p, int pside){
 
 /*
  * MakeFaces_r
- * 
+ *
  * If a portal will make a visible face, mark the side that originally created it.
- * 
+ *
  *   solid / empty : solid
  *   solid / water : solid
  *   water / empty : water

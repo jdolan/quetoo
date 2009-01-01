@@ -24,7 +24,7 @@
 
 /*
  * Cl_ParseEntityBits
- * 
+ *
  * Returns the entity number and the header bits
  */
 unsigned int Cl_ParseEntityBits(unsigned int *bits){
@@ -58,7 +58,7 @@ unsigned int Cl_ParseEntityBits(unsigned int *bits){
 
 /*
  * Cl_ParseDelta
- * 
+ *
  * Can go from either a baseline or a previous packet_entity
  */
 void Cl_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bits){
@@ -125,7 +125,7 @@ void Cl_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, i
 
 /*
  * Cl_DeltaEntity
- * 
+ *
  * Parses deltas from the given base and adds the resulting entity
  * to the current frame
  */
@@ -177,7 +177,7 @@ static void Cl_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int 
 
 /*
  * Cl_ParseEntities
- * 
+ *
  * An svc_packetentities has just been parsed, deal with the rest of the data stream.
  */
 static void Cl_ParseEntities(const frame_t *oldframe, frame_t *newframe){

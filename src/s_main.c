@@ -238,7 +238,7 @@ static channel_t *S_PickChannel(int entnum, int entchannel){
 
 /*
  * S_SpatializeOrigin
- * 
+ *
  * Used for spatializing channels and autosounds
  */
 static void S_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult, int *left_vol, int *right_vol){
@@ -436,7 +436,7 @@ static sfx_t *S_LoadModelSound(entity_state_t *ent, const char *base){
 
 /*
  * S_StartSound
- * 
+ *
  * Validates the parms and ques the sound up if pos is NULL, the sound
  * will be dynamically sourced from the entity.  Entchannel 0 will never
  * override a playing sound

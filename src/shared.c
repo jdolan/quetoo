@@ -29,7 +29,7 @@ vec3_t vec3_origin = {0.0, 0.0, 0.0};
 
 /*
  * frand
- * 
+ *
  * Returns a float between 0.0 and 1.0.
  */
 float frand(void){
@@ -39,7 +39,7 @@ float frand(void){
 
 /*
  * crand
- * 
+ *
  * Returns a float between -1.0 and 1.0.
  */
 float crand(void){
@@ -180,7 +180,7 @@ void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal){
 
 /*
  * PerpendicularVector
- * 
+ *
  * Assumes src vector is normalized.
  */
 void PerpendicularVector(vec3_t dst, const vec3_t src){
@@ -209,7 +209,7 @@ void PerpendicularVector(vec3_t dst, const vec3_t src){
 
 /*
  * TangentVector
- * 
+ *
  * Projects the normalized directional vectors on to the normal's plane.
  * The fourth component of the resulting tangent vector represents sidedness.
  */
@@ -303,7 +303,7 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 
 /*
  * BoxOnPlaneSide
- * 
+ *
  * Returns 1, 2, or 1 + 2
  */
 int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct cplane_s *p){
@@ -438,7 +438,7 @@ vec_t VectorNormalize(vec3_t v){
 
 /*
  * VectorMA
- * 
+ *
  * Scales vecb and adds it to veca to produce vecc.  Useful for projection.
  */
 void VectorMA(const vec3_t veca, const float scale, const vec3_t vecb, vec3_t vecc){
@@ -920,7 +920,7 @@ void Swap_Init(void){
 
 /*
  * va
- * 
+ *
  * A shorthand sprintf into a temp buffer.
  */
 char *va(const char *format, ...){
@@ -941,7 +941,7 @@ char com_token[MAX_TOKEN_CHARS];
 
 /*
  * Com_Parse
- * 
+ *
  * Parse a token out of a string
  */
 char *Com_Parse(const char **data_p){
@@ -1018,7 +1018,7 @@ skipwhite:
 
 /*
  * Info_ValueForKey
- * 
+ *
  * Searches the string for the given
  * key and returns the associated value, or an empty string.
  */
@@ -1108,7 +1108,7 @@ void Info_RemoveKey(char *s, const char *key){
 
 /*
  * Info_Validate
- * 
+ *
  * Some characters are illegal in info strings because they
  * can mess up the server's parsing
  */

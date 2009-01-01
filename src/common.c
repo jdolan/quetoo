@@ -44,9 +44,9 @@ void Con_Print(const char *text);
 
 
 /*
- * 
+ *
  * CLIENT / SERVER interactions
- * 
+ *
  */
 
 static int rd_target;
@@ -85,7 +85,7 @@ void Com_EndRedirect(void){
 
 /*
  * Com_Printf
- * 
+ *
  * Both client and server can use this, and it will output to the apropriate place.
  */
 void Com_Printf(const char *fmt, ...){
@@ -112,7 +112,7 @@ void Com_Printf(const char *fmt, ...){
 
 /*
  * Com_Dprintf
- * 
+ *
  * A Com_Printf that only shows up if the "developer" cvar is set
  */
 void Com_Dprintf(const char *fmt, ...){
@@ -133,7 +133,7 @@ void Com_Dprintf(const char *fmt, ...){
 
 /*
  * Com_Error
- * 
+ *
  * Both client and server can use this, and it will do the apropriate things.
  */
 void Com_Error(int code, const char *fmt, ...){
@@ -179,7 +179,7 @@ void Com_Warn(const char *fmt, ...){
 
 /*
  * Com_Quit
- * 
+ *
  * Both client and server can use this, and it will do the apropriate things.
  */
 void Com_Quit(void){
@@ -208,9 +208,9 @@ void Com_SetServerState(int state){
 
 
 /*
- * 
+ *
  * MESSAGE IO FUNCTIONS
- * 
+ *
  * Handles byte ordering and avoids alignment errors
  */
 
@@ -370,7 +370,7 @@ void Msg_ReadDir(sizebuf_t *sb, vec3_t dir){
 
 /*
  * Msg_WriteDeltaEntity
- * 
+ *
  * Writes part of a packetentities message.
  * Can delta from either a baseline or a previous packet_entity
  */
@@ -702,9 +702,9 @@ void Msg_ReadData(sizebuf_t *msg_read, void *data, size_t len){
 }
 
 /*
- * 
+ *
  *    Memory chunk management
- * 
+ *
  */
 
 void Sb_Init(sizebuf_t *buf, byte *data, size_t length){
@@ -839,9 +839,9 @@ void Info_Print(const char *s){
 
 
 /*
- * 
+ *
  *    ZONE MEMORY ALLOCATION
- * 
+ *
  */
 
 #define Z_MAGIC 0x1d1d

@@ -53,7 +53,7 @@ void G_info_player_team2(edict_t *self){}
 
 /*
  * P_ClientObituary
- * 
+ *
  * Make a tasteless death announcement.
  */
 static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
@@ -522,7 +522,7 @@ static void P_InitClientLocals(gclient_t *client){
 
 /*
  * P_EnemyRangeFromSpot
- * 
+ *
  * Returns the distance to the nearest enemy from the given spot
  */
 static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
@@ -650,7 +650,7 @@ static edict_t *P_SelectCaptureSpawnPoint(edict_t *ent){
 
 /*
  * P_SelectSpawnPoint
- * 
+ *
  * Chooses a player start, deathmatch start, etc
  */
 static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
@@ -683,7 +683,7 @@ static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
 
 /*
  * P_PutClientInServer
- * 
+ *
  * The grunt work of putting the client into the server on [re]spawn.
  */
 static void P_PutClientInServer(edict_t *ent){
@@ -805,7 +805,7 @@ static void P_PutClientInServer(edict_t *ent){
 
 /*
  * P_Respawn
- * 
+ *
  * In this case, voluntary means that the client has explicitly requested
  * a respawn by changing their spectator status.
  */
@@ -836,7 +836,7 @@ void P_Respawn(edict_t *ent, qboolean voluntary){
 
 /*
  * P_Begin
- * 
+ *
  * Called when a client has finished connecting, and is ready
  * to be placed into the game.  This will happen every level load.
  */
@@ -1006,7 +1006,7 @@ void P_UserinfoChanged(edict_t *ent, const char *userinfo){
 
 /*
  * P_Connect
- * 
+ *
  * Called when a player begins connecting to the server.
  * The game can refuse entrance to a client by returning false.
  * If the client is allowed, the connection process will continue
@@ -1046,7 +1046,7 @@ qboolean P_Connect(edict_t *ent, char *userinfo){
 
 /*
  * P_Disconnect
- * 
+ *
  * Called when a player drops from the server.
  * Will not be called between levels.
  */
@@ -1112,7 +1112,7 @@ static void P_InventoryThink(edict_t *ent){
 
 /*
  * P_Think
- * 
+ *
  * This will be called once for each client frame, which will
  * usually be a couple times for each server frame.
  */
@@ -1276,7 +1276,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 /*
  * P_BeginServerFrame
- * 
+ *
  * This will be called once for each server frame, before running
  * any other entities in the world.
  */

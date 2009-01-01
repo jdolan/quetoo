@@ -22,9 +22,9 @@
 #include "qlight.h"
 
 /*
- * 
+ *
  * every surface must be divided into at least two patches each axis
- * 
+ *
  */
 
 patch_t *face_patches[MAX_BSP_FACES];

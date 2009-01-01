@@ -98,7 +98,7 @@ const char *Sys_GetCurrentUser(void){
 
 /*
  * Sys_Mkdir
- * 
+ *
  * Create the specified directory path.
  */
 void Sys_Mkdir(char *path){
@@ -117,7 +117,7 @@ static DIR *fdir;
 
 /*
  * Sys_FindFirst
- * 
+ *
  * Returns the first full path name matched by the specified search path in
  * the Quake file system.  Wildcards are partially supported.
  */
@@ -185,7 +185,7 @@ void Sys_FindClose(void){
 
 /*
  * Sys_CloseLibrary
- * 
+ *
  * Closes an open game module.
  */
 void Sys_CloseLibrary(void **handle){
@@ -227,7 +227,7 @@ static void *game_handle;
 
 /*
  * Sys_LoadGame
- * 
+ *
  * Attempts to open and load the game module.
  */
 void *Sys_LoadGame(void *parms){
@@ -261,7 +261,7 @@ void Sys_UnloadGame(void){
 
 /*
  * Sys_Quit
- * 
+ *
  * The final exit point of the program under normal exit conditions.
  */
 void Sys_Quit(void){
@@ -304,7 +304,7 @@ void Sys_Error(const char *error, ...){
 
 /*
  * Sys_Signal
- * 
+ *
  * Catch kernel interrupts and dispatch the appropriate exit routine.
  */
 static void Sys_Signal(int s){
@@ -332,7 +332,7 @@ static void Sys_Signal(int s){
 
 /*
  * main
- * 
+ *
  * The entry point of the program.  This source file is actually also built
  * as libsys.la, so that other programs (e.g. q2wmap, pak) may link into
  * the platform abstracted functionality provided here.  The main function,

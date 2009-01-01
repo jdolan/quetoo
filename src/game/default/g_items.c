@@ -43,7 +43,7 @@ gitem_t *G_ItemByIndex(int index){
 
 /*
  * G_FindItemByClassname
- * 
+ *
  */
 gitem_t *G_FindItemByClassname(const char *classname){
 	int i;
@@ -316,7 +316,7 @@ static qboolean PickupArmor(edict_t *ent, edict_t *other){
 
 /*
  * ResetFlag
- * 
+ *
  * A dropped flag has been idle for 30 seconds, return it.
  */
 static void ResetFlag(edict_t *ent){
@@ -342,7 +342,7 @@ static void ResetFlag(edict_t *ent){
 
 /*
  * PickupFlag
- * 
+ *
  * Return own flag, or capture on it if enemy's flag is in inventory.
  * Take the enemy's flag.
  */
@@ -619,7 +619,7 @@ static void G_DropToFloor(edict_t *ent){
 
 /*
  * G_PrecacheItem
- * 
+ *
  * Precaches all data needed for a given item.
  * This will be called for each item spawned in a level,
  * and for each item in each client's inventory.
@@ -679,9 +679,9 @@ void G_PrecacheItem(gitem_t *it){
 
 /*
  * G_SpawnItem
- * 
+ *
  * Sets the clipping size and plants the object on the floor.
- * 
+ *
  * Items can't be immediately dropped to floor, because they might
  * be on an entity that hasn't spawned yet.
  */
@@ -1358,7 +1358,7 @@ void G_InitItems(void){
 
 /*
  * G_SetItemNames
- * 
+ *
  * Called by worldspawn
  */
 void G_SetItemNames(void){
