@@ -470,7 +470,7 @@ static crosshair_t crosshair;
  * Cl_DrawCrosshair
  */
 static void Cl_DrawCrosshair(void){
-	char path[MAX_QPATH];
+	static char path[MAX_QPATH];
 	int offset, w, h;
 
 	if(!cl_crosshair->value)
@@ -520,7 +520,7 @@ static void Cl_DrawCrosshair(void){
 	h = (r_view.height - crosshair.image->height * cl_crosshairscale->value) / 2;
 
 	R_DrawScaledPic(r_view.x + w, r_view.y + h + offset,
-			cl_crosshairscale->value, crosshair.image->name + 4);
+			cl_crosshairscale->value, path);
 
 	glColor4ubv(color_white);
 }
