@@ -242,7 +242,7 @@ static void R_SetMeshState_default(const entity_t *e){
 	if(e->flags & EF_WEAPON)  // prevent weapon from poking into walls
 		glDepthRange(0.0, 0.3);
 
-	if(r_state.lighting_enabled)  // hardware lighting
+	if(r_state.lighting_enabled && !(e->flags & EF_NO_LIGHTING))  // hardware lighting
 		R_EnableLightsByRadius(e->origin);
 
 	glPushMatrix();  // now rotate and translate to the ent's origin

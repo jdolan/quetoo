@@ -463,6 +463,9 @@ typedef struct {
 #define EF_PULSE			(1 << 12)  // pulsate lighting color
 #define EF_BEAM				(1 << 13)  // overload old_origin for 2nd endpoint
 
+// small or fullbright entities can skip static and dynamic lighting
+#define EF_NO_LIGHTING		(EF_GRENADE | EF_ROCKET)
+
 // the 16 high bits are never transmitted, they're for the renderer only
 #define EF_ALPHATEST		(1 << 29)  // alpha test
 #define EF_BLEND			(1 << 30)  // blend

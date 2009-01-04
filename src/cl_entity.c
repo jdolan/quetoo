@@ -680,6 +680,13 @@ void Cl_AddEntities(frame_t *frame){
 		if(!VectorCompare(cent->current.origin, cent->prev.origin))
 			ent.lighting->dirty = true;  // or anything that moves
 
+		if(ent.flags & EF_NO_LIGHTING){  // except projectiles
+			ent.lighting->dirty = false;
+
+			VectorClear(ent.lighting->point);
+			VectorSet(ent.lighting->color, 1.0, 1.0, 1.0);
+		}
+
 		// add to view list
 		R_AddEntity(&ent);
 
