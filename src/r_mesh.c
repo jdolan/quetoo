@@ -270,11 +270,13 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 	const dmd2_t *md2;
 	const dmd2frame_t *frame, *oldframe;
 	const dmd2vertex_t *v, *ov, *verts;
+	const dmd2triangle_t *tri;
 	vec3_t trans, scale, oldscale;
-	int i, j, count, mode, index_xyz;
-	const int *order;
+	int i, vertind;
 
 	R_ResetArrayState();
+
+	R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
 
 	md2 = (const dmd2_t *)e->model->extradata;
 
@@ -283,8 +285,6 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 
 	oldframe = (const dmd2frame_t *)((byte *)md2 + md2->ofs_frames + e->oldframe * md2->framesize);
 	ov = oldframe->verts;
-
-	order = (const int *)((const byte *)md2 + md2->ofs_glcmds);
 
 	// trans should be the delta back to the previous frame * backlerp
 
@@ -310,42 +310,25 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 		}
 	}
 
-	i = j = 0;
-	while(true){
-		// get the vertex count and primitive type
-		count = *order++;
+	tri = (dmd2triangle_t *)((byte *)md2 + md2->ofs_tris);
+	vertind = 0;
 
-		if(!count)
-			break;  // done
+	for(i = 0; i < md2->num_tris; i++, tri++){  // draw the tris
+		
+		VectorCopy(r_mesh_verts[tri->index_xyz[0]], (&r_state.vertex_array_3d[vertind + 0]));
+		VectorCopy(r_mesh_verts[tri->index_xyz[1]], (&r_state.vertex_array_3d[vertind + 3]));
+		VectorCopy(r_mesh_verts[tri->index_xyz[2]], (&r_state.vertex_array_3d[vertind + 6]));
 
-		if(count < 0){
-			count = -count;
-			mode = GL_TRIANGLE_FAN;
+		if(r_state.lighting_enabled){  // normal vectors for lighting
+			VectorCopy(r_mesh_norms[tri->index_xyz[0]], (&r_state.normal_array[vertind + 0]));
+			VectorCopy(r_mesh_norms[tri->index_xyz[1]], (&r_state.normal_array[vertind + 3]));
+			VectorCopy(r_mesh_norms[tri->index_xyz[2]], (&r_state.normal_array[vertind + 6]));
 		}
-		else
-			mode = GL_TRIANGLE_STRIP;
 
-		do {
-			// texture coordinates come from the glcmds
-			memcpy(&texunit_diffuse.texcoord_array[j], order, sizeof(vec2_t));
-			j += 2;
-
-			// as does the index of the vertex
-			index_xyz = order[2];
-			order += 3;
-
-			// vertex
-			memcpy(&r_state.vertex_array_3d[i], r_mesh_verts[index_xyz], sizeof(vec3_t));
-
-			if(r_state.lighting_enabled)  // normal vector for lights
-				memcpy(&r_state.normal_array[i], r_mesh_norms[index_xyz], sizeof(vec3_t));
-
-			i += 3;
-		} while(--count);
-
-		glDrawArrays(mode, 0, i / 3);
-		i = j = 0;
+		vertind += 9;
 	}
+
+	glDrawArrays(GL_TRIANGLES, 0, md2->num_tris * 3);
 
 	r_view.mesh_polys += md2->num_tris;
 }
@@ -355,15 +338,16 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
  * R_DrawMd3ModelLerped_default
  */
 static void R_DrawMd3ModelLerped_default(const entity_t *e){
-	mmd3_t *md3;
-	dmd3frame_t *frame, *oldframe;
-	mmd3mesh_t *mesh;
-	dmd3coord_t *texcoords;
+	const mmd3_t *md3;
+	const dmd3frame_t *frame, *oldframe;
+	const mmd3mesh_t *mesh;
 	vec3_t trans;
-	int i, j, k, vertind, coordind;
+	int i, j, k, vertind;
 	unsigned *tri;
 
 	R_ResetArrayState();
+
+	R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
 
 	md3 = (mmd3_t *)e->model->extradata;
 
@@ -393,27 +377,20 @@ static void R_DrawMd3ModelLerped_default(const entity_t *e){
 		}
 
 		tri = mesh->tris;
-		texcoords = mesh->coords;
-
-		vertind = coordind = 0;
+		vertind = 0;
 
 		for(j = 0; j < mesh->num_tris; j++, tri += 3){  // draw the tris
-			memcpy(&texunit_diffuse.texcoord_array[coordind + 0], &texcoords[tri[0]], sizeof(vec2_t));
-			memcpy(&r_state.vertex_array_3d[vertind + 0], &r_mesh_verts[tri[0]], sizeof(vec3_t));
 
-			memcpy(&texunit_diffuse.texcoord_array[coordind + 2], &texcoords[tri[1]], sizeof(vec2_t));
-			memcpy(&r_state.vertex_array_3d[vertind + 3], &r_mesh_verts[tri[1]], sizeof(vec3_t));
-
-			memcpy(&texunit_diffuse.texcoord_array[coordind + 4], &texcoords[tri[2]], sizeof(vec2_t));
-			memcpy(&r_state.vertex_array_3d[vertind + 6], &r_mesh_verts[tri[2]], sizeof(vec3_t));
+			VectorCopy(r_mesh_verts[tri[0]], (&r_state.vertex_array_3d[vertind + 0]));
+			VectorCopy(r_mesh_verts[tri[1]], (&r_state.vertex_array_3d[vertind + 3]));
+			VectorCopy(r_mesh_verts[tri[2]], (&r_state.vertex_array_3d[vertind + 6]));
 
 			if(r_state.lighting_enabled){  // normal vectors for lighting
-				memcpy(&r_state.normal_array[vertind + 0], &r_mesh_norms[tri[0]], sizeof(vec3_t));
-				memcpy(&r_state.normal_array[vertind + 3], &r_mesh_norms[tri[1]], sizeof(vec3_t));
-				memcpy(&r_state.normal_array[vertind + 6], &r_mesh_norms[tri[2]], sizeof(vec3_t));
+				VectorCopy(r_mesh_norms[tri[0]], (&r_state.normal_array[vertind + 0]));
+				VectorCopy(r_mesh_norms[tri[1]], (&r_state.normal_array[vertind + 3]));
+				VectorCopy(r_mesh_norms[tri[2]], (&r_state.normal_array[vertind + 6]));
 			}
 
-			coordind += 6;
 			vertind += 9;
 		}
 
@@ -457,7 +434,7 @@ void R_DrawMeshModel_default(entity_t *e){
 
 	R_SetMeshState_default(e);
 
-	if(e->model->vertexcount)  // draw static arrays
+	if(e->model->num_frames == 1)  // draw static arrays
 		R_DrawMeshModelArrays_default(e);
 
 	else if(e->model->type == mod_md2)  // or an interpolated md2

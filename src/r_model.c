@@ -86,37 +86,35 @@ void R_AllocVertexArrays(model_t *mod){
 	}
 	else if(mod->type == mod_md2){
 
-		if(mod->num_frames == 1){
-			md2 = (dmd2_t *)mod->extradata;
-			mod->vertexcount = md2->num_tris * 3;
-		}
+		md2 = (dmd2_t *)mod->extradata;
+		mod->vertexcount = md2->num_tris * 3;
 	}
 	else if(mod->type == mod_md3){
 
-		if(mod->num_frames == 1){
-			md3 = (mmd3_t *)mod->extradata;
+		md3 = (mmd3_t *)mod->extradata;
 
-			for(i = 0, mesh = md3->meshes; i < md3->num_meshes; i++, mesh++)
-				mod->vertexcount += mesh->num_tris * 3;
-		}
+		for(i = 0, mesh = md3->meshes; i < md3->num_meshes; i++, mesh++)
+			mod->vertexcount += mesh->num_tris * 3;
 	}
-
-	if(!mod->vertexcount)  // animated models don't use VA
-		return;
 
 	v = mod->vertexcount * 3 * sizeof(GLfloat);
 	st = mod->vertexcount * 2 * sizeof(GLfloat);
 	t = mod->vertexcount * 4 * sizeof(GLfloat);
 	c = mod->vertexcount * 4 * sizeof(GLfloat);
 
-	// allocate the arrays
-	mod->verts = (GLfloat *)R_HunkAlloc(v);
+	// allocate the arrays, static models get verts and normals
+	if(mod->num_frames < 2){
+		mod->verts = (GLfloat *)R_HunkAlloc(v);
+		mod->normals = (GLfloat *)R_HunkAlloc(v);
+	}
+
+	// all models get texcoords
 	mod->texcoords = (GLfloat *)R_HunkAlloc(st);
-	mod->normals = (GLfloat *)R_HunkAlloc(v);
 
 	if(mod->type != mod_bsp)
 		return;
 
+	// and bsp models get lightmap texcoords, tangents, and colors
 	mod->lmtexcoords = (GLfloat *)R_HunkAlloc(st);
 	mod->tangents = (GLfloat *)R_HunkAlloc(t);
 	mod->colors = (GLfloat *)R_HunkAlloc(c);
@@ -129,7 +127,7 @@ void R_AllocVertexArrays(model_t *mod){
 static void R_LoadVertexBuffers(model_t *mod){
 	int v, st, t, c;
 
-	if(!mod->vertexcount)  // animated models don't use VBO
+	if(mod->num_frames > 1)  // animated models don't use VBO
 		return;
 
 	v = mod->vertexcount * 3 * sizeof(GLfloat);

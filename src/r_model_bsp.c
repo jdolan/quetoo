@@ -637,9 +637,6 @@ static void R_LoadBspVertexArrays(void){
 
 	R_AllocVertexArrays(r_loadmodel);  // allocate the arrays
 
-	if(!r_loadmodel->vertexcount)
-		return;
-
 	vertind = coordind = tangind = 0;
 	surf = r_loadmodel->surfaces;
 
