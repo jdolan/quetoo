@@ -388,6 +388,7 @@ static void R_ResolveWeather(void){
 	}
 }
 
+
 /*
  * R_LoadMedia
  */

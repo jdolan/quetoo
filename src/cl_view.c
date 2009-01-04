@@ -292,8 +292,6 @@ void Cl_UpdateView(void){
 		cl_viewsize->modified = false;
 	}
 
-	r_view.update = false;
-
 	// set time in seconds
 	r_view.time = cl.time * 0.001;
 
@@ -313,6 +311,9 @@ void Cl_UpdateView(void){
 
 	// and client sided ents
 	Cl_AddEmits();
+
+	// we're done
+	r_view.update = false;
 }
 
 

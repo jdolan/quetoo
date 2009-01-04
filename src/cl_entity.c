@@ -674,6 +674,11 @@ void Cl_AddEntities(frame_t *frame){
 		// setup the write-through lighting cache
 		ent.lighting = &cent->lighting;
 
+		if(r_view.update){  // new lighting information is available
+			memset(ent.lighting, 0, sizeof(*(ent.lighting)));
+			ent.lighting->dirty = true;
+		}
+
 		if(ent.skin)  // always re-light players
 			ent.lighting->dirty = true;
 
