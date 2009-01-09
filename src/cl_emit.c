@@ -44,16 +44,18 @@ typedef struct emit_s {
 	float radius;  // flame and corona radius
 	vec3_t scale;  // mesh model scale
 	int count;  // particle counts
+	char sound[MAX_QPATH];
 	sfx_t *sfx;
 	int attenuation;  // sound attenuation
 	qboolean loop;  // loop sound versus timed
+	char model[MAX_QPATH];
 	model_t *mod;
 	const mleaf_t *leaf;  // for pvs culling
 	static_lighting_t lighting;  // cached static lighting info
 	int time;  // when to fire next
 } emit_t;
 
-#define MAX_EMITS 512
+#define MAX_EMITS 256
 static emit_t emits[MAX_EMITS];
 static int num_emits = 0;
 
@@ -238,7 +240,8 @@ void Cl_LoadEmits(void){
 		}
 
 		if(!strcmp(c, "sound")){
-			e->sfx = S_LoadSound(Com_Parse(&ents));
+			snprintf(e->sound, sizeof(e->sound), "%s", Com_Parse(&ents));
+			e->sfx = S_LoadSound(e->sound);
 			if(e->sfx)
 				e->sfx->cache = S_LoadSfx(e->sfx);
 			continue;
@@ -250,10 +253,34 @@ void Cl_LoadEmits(void){
 		}
 
 		if(!strcmp(c, "model")){
-			e->mod = R_LoadModel(va("models/%s/tris.md3", Com_Parse(&ents)));
+			snprintf(e->model, sizeof(e->model), "models/%s/tris.md3", Com_Parse(&ents));
+			e->mod = R_LoadModel(e->model);
 			continue;
 		}
 	}
+}
+
+
+/*
+ * Cl_UpdateEmits
+ *
+ * Ensures emits hold references to valid media.
+ */
+static void Cl_UpdateEmits(void){
+	int i;
+
+	if(r_view.update){  // reload models
+
+		for(i = 0; i < num_emits; i++){
+
+			emit_t *e = &emits[i];
+
+			if(r_view.update && (e->flags & EMIT_MODEL))
+				e->mod = R_LoadModel(e->model);
+		}
+	}
+
+	// TODO: sounds
 }
 
 
@@ -264,10 +291,9 @@ void Cl_AddEmits(void){
 	int i;
 	entity_t ent;
 
-	if(!cl_emits->value)
-		return;
+	Cl_UpdateEmits();
 
-	if(!num_emits)
+	if(!cl_emits->value)
 		return;
 
 	memset(&ent, 0, sizeof(ent));
