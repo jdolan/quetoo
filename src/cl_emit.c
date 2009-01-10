@@ -44,12 +44,12 @@ typedef struct emit_s {
 	float radius;  // flame and corona radius
 	vec3_t scale;  // mesh model scale
 	int count;  // particle counts
-	char sound[MAX_QPATH];
-	sfx_t *sfx;
+	char sound[MAX_QPATH];  // sound name
+	s_sample_t *sample;  // sound sample
 	int attenuation;  // sound attenuation
 	qboolean loop;  // loop sound versus timed
-	char model[MAX_QPATH];
-	model_t *mod;
+	char model[MAX_QPATH];  // model name
+	model_t *mod;  // model
 	const mleaf_t *leaf;  // for pvs culling
 	static_lighting_t lighting;  // cached static lighting info
 	int time;  // when to fire next
@@ -105,14 +105,14 @@ void Cl_LoadEmits(void){
 				e->leaf = R_LeafForPoint(e->org, r_worldmodel);
 
 				// add default sounds and models
-				if(!e->sfx){
+				if(!e->sample){
 
 					if(e->flags & EMIT_FLAME)  // fire crackling
-						e->sfx = S_LoadSound("world/fire.wav");
+						e->sample = S_LoadSample("world/fire.wav");
 				}
 
 				// crutch up flags as a convenience
-				if(e->sfx)
+				if(e->sample)
 					e->flags |= EMIT_SOUND;
 
 				if(e->mod)
@@ -241,9 +241,7 @@ void Cl_LoadEmits(void){
 
 		if(!strcmp(c, "sound")){
 			snprintf(e->sound, sizeof(e->sound), "%s", Com_Parse(&ents));
-			e->sfx = S_LoadSound(e->sound);
-			if(e->sfx)
-				e->sfx->cache = S_LoadSfx(e->sfx);
+			e->sample = S_LoadSample(e->sound);
 			continue;
 		}
 
@@ -275,12 +273,21 @@ static void Cl_UpdateEmits(void){
 
 			emit_t *e = &emits[i];
 
-			if(r_view.update && (e->flags & EMIT_MODEL))
+			if(e->flags & EMIT_MODEL)
 				e->mod = R_LoadModel(e->model);
 		}
 	}
 
-	// TODO: sounds
+	if(s_env.update){  // reload sounds
+
+		for(i = 0; i < num_emits; i++){
+
+			emit_t *e = &emits[i];
+
+			if(e->flags & EMIT_SOUND)
+				e->sample = S_LoadSample(e->sound);
+		}
+	}
 }
 
 
@@ -306,7 +313,7 @@ void Cl_AddEmits(void){
 			continue;  // culled
 
 		if((e->flags & EMIT_SOUND) && e->loop)  // add an ambient sound
-			S_AddLoopSound(e->org, e->sfx);
+			S_AddLoopSample(e->org, e->sample);
 
 		if(e->flags & EMIT_MODEL){
 			// fake a packet entity and add it to the view
@@ -345,7 +352,7 @@ void Cl_AddEmits(void){
 			R_AddCorona(e->org, e->radius, e->color);
 
 		if((e->flags & EMIT_SOUND) && !e->loop)
-			S_StartSound(e->org, 0, 0, e->sfx, 1, e->attenuation, 0);
+			S_StartSample(e->org, 0, 0, e->sample, 1, e->attenuation, 0);
 
 		e->time = cl.time + (1000.0 / e->hz + (e->drift * frand()));
 	}

@@ -119,11 +119,11 @@ typedef struct client_state_s {
 	char configstrings[MAX_CONFIGSTRINGS][MAX_STRING_CHARS];
 
 	// locally derived information from server state
-	struct model_s *model_draw[MAX_MODELS];
-	struct cmodel_s *model_clip[MAX_MODELS];
+	model_t *model_draw[MAX_MODELS];
+	cmodel_t *model_clip[MAX_MODELS];
 
-	struct sfx_s *sound_precache[MAX_SOUNDS];
-	struct image_s *image_precache[MAX_IMAGES];
+	s_sample_t *sound_precache[MAX_SOUNDS];
+	image_t *image_precache[MAX_IMAGES];
 
 	clientinfo_t clientinfo[MAX_CLIENTS];
 	clientinfo_t baseclientinfo;
@@ -264,7 +264,7 @@ void Cl_ParseFrame(void);
 void Cl_AddEntities(frame_t *frame);
 
 // cl_tentity.c
-void Cl_LoadTempEntitySounds(void);
+void Cl_LoadTempEntitySamples(void);
 void Cl_ParseTempEntity(void);
 
 // cl_main.c
@@ -346,7 +346,7 @@ void Cl_ExplosionEffect(const vec3_t org);
 void Cl_ItemRespawnEffect(const vec3_t org);
 void Cl_TeleporterTrail(const vec3_t org, centity_t *ent);
 void Cl_LogoutEffect(const vec3_t org);
-void Cl_LoadEffectSounds(void);
+void Cl_LoadEffectSamples(void);
 void Cl_AddParticles(void);
 particle_t *Cl_AllocParticle(void);
 void Cl_ClearEffects(void);

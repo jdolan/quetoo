@@ -442,7 +442,7 @@ void Cl_ParseConfigstring(void){
 		}
 	} else if(i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS){
 		if(r_view.ready)
-			cl.sound_precache[i - CS_SOUNDS] = S_LoadSound(cl.configstrings[i]);
+			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(cl.configstrings[i]);
 	} else if(i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES){
 		if(r_view.ready)
 			cl.image_precache[i - CS_IMAGES] = R_LoadPic(cl.configstrings[i]);
@@ -452,12 +452,6 @@ void Cl_ParseConfigstring(void){
 	}
 }
 
-
-/*
- *
- * ACTION MESSAGES
- *
- */
 
 /*
  * Cl_ParseSound
@@ -513,7 +507,7 @@ static void Cl_ParseSound(void){
 	if(!cl.sound_precache[sound_num])
 		return;
 
-	S_StartSound(pos, ent, channel, cl.sound_precache[sound_num],
+	S_StartSample(pos, ent, channel, cl.sound_precache[sound_num],
 			volume, attenuation, ofs);
 }
 
@@ -648,12 +642,12 @@ void Cl_ParseServerMessage(void){
 					if(Cl_IgnoreChatMessage(s))  // filter /ignore'd chatters
 						break;
 					if(*cl_chatsound->string)  // trigger chat sound
-						S_StartLocalSound(cl_chatsound->string);
+						S_StartLocalSample(cl_chatsound->string);
 				} else if(i == PRINT_TEAMCHAT){
 					if(Cl_IgnoreChatMessage(s))  // filter /ignore'd chatters
 						break;
 					if(*cl_teamchatsound->string)  // trigger chat sound
-						S_StartLocalSound(cl_teamchatsound->string);
+						S_StartLocalSample(cl_teamchatsound->string);
 				}
 				Com_Printf("%s", s);
 				break;

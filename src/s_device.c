@@ -23,8 +23,6 @@
 
 #include "client.h"
 
-extern dma_t dma;
-
 
 /*
  * S_PaintAudio
@@ -33,10 +31,10 @@ extern dma_t dma;
  */
 static void S_PaintAudio(void *unused, Uint8 *stream, int len){
 
-	dma.buffer = stream;
-	dma.offset += len / (dma.bits / 4);
+	s_env.device.buffer = stream;
+	s_env.device.offset += len / (s_env.device.bits / 4);
 
-	S_PaintChannels(dma.offset);
+	S_PaintChannels(s_env.device.offset);
 }
 
 
@@ -45,6 +43,8 @@ static void S_PaintAudio(void *unused, Uint8 *stream, int len){
  */
 qboolean S_InitDevice(void){
 	SDL_AudioSpec desired, obtained;
+
+	memset(&s_env.device, 0, sizeof(s_env.device));
 
 	if(SDL_WasInit(SDL_INIT_AUDIO | SDL_INIT_VIDEO) == 0){
 		if(SDL_Init(SDL_INIT_AUDIO) < 0){
@@ -98,14 +98,14 @@ qboolean S_InitDevice(void){
 	}
 	SDL_PauseAudio(0);
 
-	// copy obtained to dma struct
-	dma.bits = (obtained.format & 0xFF);
-	dma.rate = obtained.freq;
-	dma.channels = obtained.channels;
-	dma.samples = obtained.samples * dma.channels;
-	dma.offset = 0;
-	dma.chunk = 1;
-	dma.buffer = NULL;
+	// copy obtained to s_env.device struct
+	s_env.device.bits = (obtained.format & 0xFF);
+	s_env.device.rate = obtained.freq;
+	s_env.device.channels = obtained.channels;
+	s_env.device.samples = obtained.samples * s_env.device.channels;
+	s_env.device.offset = 0;
+	s_env.device.chunk = 1;
+	s_env.device.buffer = NULL;
 
 	return true;
 }

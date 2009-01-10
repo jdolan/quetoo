@@ -807,7 +807,7 @@ static void Cl_LoadMedia(void){
 
 	R_LoadMedia();
 
-	S_LoadSounds();
+	S_LoadSamples();
 
 	Cl_LoadEmits();
 

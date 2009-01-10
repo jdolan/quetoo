@@ -21,6 +21,16 @@
 
 #include "client.h"
 
+// .wav file loading
+typedef struct {
+	int rate;
+	int width;
+	int channels;
+	int loopstart;
+	int samples;
+	int dataofs;  // chunk starts this many bytes from file start
+} s_wavinfo_t;
+
 static byte *data_p;
 static byte *iff_end;
 static byte *last_chunk;
@@ -93,8 +103,8 @@ static void S_FindChunk(char *name){
 /*
  * S_GetWavinfo
  */
-static wavinfo_t S_GetWavinfo(const char *name, byte *wav, int wavlength){
-	wavinfo_t info;
+static s_wavinfo_t S_GetWavinfo(const char *name, byte *wav, int wavlength){
+	s_wavinfo_t info;
 	int i;
 	int format;
 	int samples;
@@ -177,28 +187,28 @@ static wavinfo_t S_GetWavinfo(const char *name, byte *wav, int wavlength){
 
 
 /*
- * S_ResampleSfx
+ * S_Resample
  */
-static void S_ResampleSfx(sfx_t *sfx, int inrate, int inwidth, byte *data){
+static void S_Resample(s_sample_t *sample, int inrate, int inwidth, byte *data){
 	int outcount;
 	int srcsample;
 	float stepscale;
 	int i;
-	int sample, samplefrac, fracstep;
-	sfxcache_t *sc;
+	int samp, samplefrac, fracstep;
+	s_samplecache_t *sc;
 
-	sc = sfx->cache;
+	sc = sample->cache;
 	if(!sc)
 		return;
 
-	stepscale = (float)inrate / dma.rate;  // this is usually 0.5, 1, or 2
+	stepscale = (float)inrate / s_env.device.rate;  // this is usually 0.5, 1, or 2
 
 	outcount = sc->length / stepscale;
 	sc->length = outcount;
 	if(sc->loopstart != -1)
 		sc->loopstart = sc->loopstart / stepscale;
 
-	sc->rate = dma.rate;
+	sc->rate = s_env.device.rate;
 	sc->width = inwidth;
 	sc->stereo = 0;
 
@@ -217,29 +227,29 @@ static void S_ResampleSfx(sfx_t *sfx, int inrate, int inwidth, byte *data){
 			srcsample = samplefrac >> 8;
 			samplefrac += fracstep;
 			if(inwidth == 2)
-				sample = LittleShort(((short *)data)[srcsample]);
+				samp = LittleShort(((short *)data)[srcsample]);
 			else
-				sample =(int)((unsigned char)(data[srcsample]) - 128) << 8;
+				samp =(int)((unsigned char)(data[srcsample]) - 128) << 8;
 			if(sc->width == 2)
-				((short *)sc->data)[i] = sample;
+				((short *)sc->data)[i] = samp;
 			else
-				((signed char *)sc->data)[i] = sample >> 8;
+				((signed char *)sc->data)[i] = samp >> 8;
 		}
 	}
 }
 
 
 /*
- * S_LoadSfx
+ * S_LoadSamplecache
  */
-sfxcache_t *S_LoadSfx(sfx_t *s){
+s_samplecache_t *S_LoadSamplecache(s_sample_t *s){
 	char *c, name[MAX_QPATH];
 	void *buf;
 	byte *data;
-	wavinfo_t info;
+	s_wavinfo_t info;
 	int len;
 	float stepscale;
-	sfxcache_t *sc;
+	s_samplecache_t *sc;
 	int size;
 
 	if(!s || s->name[0] == '*')
@@ -267,7 +277,7 @@ sfxcache_t *S_LoadSfx(sfx_t *s){
 		strcat(name, ".wav");
 
 	if((size = Fs_LoadFile(name, &buf)) == -1){
-		//Com_Warn("S_LoadSfx: Couldn't load %s.\n", name);
+		//Com_Warn("S_LoadSamplecache: Couldn't load %s.\n", name);
 		return NULL;
 	}
 
@@ -286,7 +296,7 @@ sfxcache_t *S_LoadSfx(sfx_t *s){
 		return NULL;
 	}
 
-	stepscale = (float)info.rate / dma.rate;
+	stepscale = (float)info.rate / s_env.device.rate;
 	len = info.samples / stepscale;
 
 	len = len * info.width * info.channels;
@@ -303,7 +313,7 @@ sfxcache_t *S_LoadSfx(sfx_t *s){
 	sc->width = info.width;
 	sc->stereo = info.channels;
 
-	S_ResampleSfx(s, sc->rate, sc->width, data + info.dataofs);
+	S_Resample(s, sc->rate, sc->width, data + info.dataofs);
 
 	Fs_FreeFile(buf);
 	return sc;

@@ -21,39 +21,33 @@
 
 #include "client.h"
 
-sfx_t *cl_sfx_bfg_hit;
-sfx_t *cl_sfx_hyperblaster_hit;
-sfx_t *cl_sfx_lightning_discharge;
-sfx_t *cl_sfx_explosion;
-sfx_t *cl_sfx_machinegun_hit[3];
-sfx_t *cl_sfx_spark[3];
-sfx_t *cl_sfx_footsteps[4];
+s_sample_t *cl_sample_bfg_hit;
+s_sample_t *cl_sample_hyperblaster_hit;
+s_sample_t *cl_sample_lightning_discharge;
+s_sample_t *cl_sample_explosion;
+s_sample_t *cl_sample_machinegun_hit[3];
+s_sample_t *cl_sample_spark[3];
 
 /*
- * Cl_LoadTempEntitySounds
+ * Cl_LoadTempEntitySamples
  */
-void Cl_LoadTempEntitySounds(void){
+void Cl_LoadTempEntitySamples(void){
 	int i;
 	char name[MAX_QPATH];
 
-	cl_sfx_bfg_hit = S_LoadSound("weapons/bfg/hit.wav");
-	cl_sfx_hyperblaster_hit = S_LoadSound("weapons/hyperblaster/hit.wav");
-	cl_sfx_lightning_discharge = S_LoadSound("weapons/lightning/discharge.wav");
-	cl_sfx_explosion = S_LoadSound("weapons/common/explosion.wav");
+	cl_sample_bfg_hit = S_LoadSample("weapons/bfg/hit.wav");
+	cl_sample_hyperblaster_hit = S_LoadSample("weapons/hyperblaster/hit.wav");
+	cl_sample_lightning_discharge = S_LoadSample("weapons/lightning/discharge.wav");
+	cl_sample_explosion = S_LoadSample("weapons/common/explosion.wav");
 
 	for(i = 0; i < 3; i++){
 		snprintf(name, sizeof(name), "weapons/machinegun/hit_%i.wav", i + 1);
-		cl_sfx_machinegun_hit[i] = S_LoadSound(name);
+		cl_sample_machinegun_hit[i] = S_LoadSample(name);
 	}
 
 	for(i = 0; i < 3; i++){
 		snprintf(name, sizeof(name), "world/spark_%i.wav", i + 1);
-		cl_sfx_spark[i] = S_LoadSound(name);
-	}
-
-	for(i = 0; i < 4; i++){
-		snprintf(name, sizeof(name), "#players/common/step_%i.wav", i + 1);
-		cl_sfx_footsteps[i] = S_LoadSound(name);
+		cl_sample_spark[i] = S_LoadSample(name);
 	}
 }
 
@@ -97,7 +91,7 @@ void Cl_ParseTempEntity(void){
 			Msg_ReadDir(&net_message, dir);
 			Cl_BulletEffect(pos, dir);
 			if(cl.time - last_ric_time > 300){
-				S_StartSound(pos, 0, 0, cl_sfx_machinegun_hit[rand() % 3], 1, ATTN_NORM, 0);
+				S_StartSample(pos, 0, 0, cl_sample_machinegun_hit[rand() % 3], 1, ATTN_NORM, 0);
 				last_ric_time = cl.time;
 			}
 			break;
@@ -119,20 +113,20 @@ void Cl_ParseTempEntity(void){
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadDir(&net_message, dir);
 			Cl_SparksEffect(pos, dir, 12);
-			S_StartSound(pos, 0, 0, cl_sfx_spark[rand() % 3], 1, ATTN_STATIC, 0);
+			S_StartSample(pos, 0, 0, cl_sample_spark[rand() % 3], 1, ATTN_STATIC, 0);
 			R_AddSustainedLight(pos, 1.0, sparks_light, 0.65);
 			break;
 
 		case TE_HYPERBLASTER:  // hyperblaster hitting wall
 			Msg_ReadPos(&net_message, pos);
-			S_StartSound(pos, 0, 0, cl_sfx_hyperblaster_hit, 1, ATTN_NORM, 0);
+			S_StartSample(pos, 0, 0, cl_sample_hyperblaster_hit, 1, ATTN_NORM, 0);
 			R_AddSustainedLight(pos, 1.0, burn_light, 0.25);
 			break;
 
 		case TE_LIGHTNING:  // lightning detonation in water
 			Msg_ReadPos(&net_message, pos);
 			Cl_LightningEffect(pos);
-			S_StartSound(pos, 0, 0, cl_sfx_lightning_discharge, 1, ATTN_NORM, 0);
+			S_StartSample(pos, 0, 0, cl_sample_lightning_discharge, 1, ATTN_NORM, 0);
 			R_AddSustainedLight(pos, 1.25, lightning_det_light, 0.75);
 			break;
 
@@ -152,14 +146,14 @@ void Cl_ParseTempEntity(void){
 		case TE_EXPLOSION:  // rocket and grenade explosions
 			Msg_ReadPos(&net_message, pos);
 			Cl_ExplosionEffect(pos);
-			S_StartSound(pos, 0, 0, cl_sfx_explosion, 1, ATTN_NORM, 0);
+			S_StartSample(pos, 0, 0, cl_sample_explosion, 1, ATTN_NORM, 0);
 			R_AddSustainedLight(pos, 2.5, explosion_light, 1.0);
 			break;
 
 		case TE_BFG:  // bfg explosion
 			Msg_ReadPos(&net_message, pos);
 			Cl_BFGEffect(pos);
-			S_StartSound(pos, 0, 0, cl_sfx_bfg_hit, 0.5, ATTN_NORM, 0);
+			S_StartSample(pos, 0, 0, cl_sample_bfg_hit, 0.5, ATTN_NORM, 0);
 			R_AddSustainedLight(pos, 2.5, burn_light, 1.0);
 			break;
 

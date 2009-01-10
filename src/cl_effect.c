@@ -24,44 +24,50 @@
 
 static vec3_t avelocities[NUMVERTEXNORMALS];
 
-static sfx_t *cl_sfx_shotgun_fire;
-static sfx_t *cl_sfx_supershotgun_fire;
-static sfx_t *cl_sfx_grenadelauncher_fire;
-static sfx_t *cl_sfx_rocketlauncher_fire;
-static sfx_t *cl_sfx_hyperblaster_fire;
-static sfx_t *cl_sfx_lightning_fire;
-static sfx_t *cl_sfx_railgun_fire;
-static sfx_t *cl_sfx_bfg_fire;
-static sfx_t *cl_sfx_teleport;
-static sfx_t *cl_sfx_respawn;
-static sfx_t *cl_sfx_rain;
-static sfx_t *cl_sfx_snow;
-static sfx_t *cl_sfx_machinegun_fire[4];
+static s_sample_t *cl_sample_shotgun_fire;
+static s_sample_t *cl_sample_supershotgun_fire;
+static s_sample_t *cl_sample_grenadelauncher_fire;
+static s_sample_t *cl_sample_rocketlauncher_fire;
+static s_sample_t *cl_sample_hyperblaster_fire;
+static s_sample_t *cl_sample_lightning_fire;
+static s_sample_t *cl_sample_railgun_fire;
+static s_sample_t *cl_sample_bfg_fire;
+static s_sample_t *cl_sample_teleport;
+static s_sample_t *cl_sample_respawn;
+static s_sample_t *cl_sample_footsteps[4];
+static s_sample_t *cl_sample_rain;
+static s_sample_t *cl_sample_snow;
+static s_sample_t *cl_sample_machinegun_fire[4];
 
 
 /*
- * Cl_LoadEffectSounds
+ * Cl_LoadEffectSamples
  */
-void Cl_LoadEffectSounds(void){
+void Cl_LoadEffectSamples(void){
 	int i;
 	char name[MAX_QPATH];
 
-	cl_sfx_shotgun_fire = S_LoadSound("weapons/shotgun/fire.wav");
-	cl_sfx_supershotgun_fire = S_LoadSound("weapons/supershotgun/fire.wav");
-	cl_sfx_grenadelauncher_fire = S_LoadSound("weapons/grenadelauncher/fire.wav");
-	cl_sfx_rocketlauncher_fire = S_LoadSound("weapons/rocketlauncher/fire.wav");
-	cl_sfx_hyperblaster_fire = S_LoadSound("weapons/hyperblaster/fire.wav");
-	cl_sfx_lightning_fire = S_LoadSound("weapons/lightning/fire.wav");
-	cl_sfx_railgun_fire = S_LoadSound("weapons/railgun/fire.wav");
-	cl_sfx_bfg_fire = S_LoadSound("weapons/bfg/fire.wav");
-	cl_sfx_teleport = S_LoadSound("world/teleport.wav");
-	cl_sfx_respawn = S_LoadSound("world/respawn.wav");
-	cl_sfx_rain = S_LoadSound("world/rain.wav");
-	cl_sfx_snow = S_LoadSound("world/snow.wav");
+	cl_sample_shotgun_fire = S_LoadSample("weapons/shotgun/fire.wav");
+	cl_sample_supershotgun_fire = S_LoadSample("weapons/supershotgun/fire.wav");
+	cl_sample_grenadelauncher_fire = S_LoadSample("weapons/grenadelauncher/fire.wav");
+	cl_sample_rocketlauncher_fire = S_LoadSample("weapons/rocketlauncher/fire.wav");
+	cl_sample_hyperblaster_fire = S_LoadSample("weapons/hyperblaster/fire.wav");
+	cl_sample_lightning_fire = S_LoadSample("weapons/lightning/fire.wav");
+	cl_sample_railgun_fire = S_LoadSample("weapons/railgun/fire.wav");
+	cl_sample_bfg_fire = S_LoadSample("weapons/bfg/fire.wav");
+	cl_sample_teleport = S_LoadSample("world/teleport.wav");
+	cl_sample_respawn = S_LoadSample("world/respawn.wav");
+	cl_sample_rain = S_LoadSample("world/rain.wav");
+	cl_sample_snow = S_LoadSample("world/snow.wav");
+
+	for(i = 0; i < 4; i++){
+		snprintf(name, sizeof(name), "#players/common/step_%i.wav", i + 1);
+		cl_sample_footsteps[i] = S_LoadSample(name);
+	}
 
 	for(i = 0; i < 4; i++){
 		snprintf(name, sizeof(name), "weapons/machinegun/fire_%i.wav", i + 1);
-		cl_sfx_machinegun_fire[i] = S_LoadSound(name);
+		cl_sample_machinegun_fire[i] = S_LoadSample(name);
 	}
 }
 
@@ -85,40 +91,40 @@ void Cl_ParseMuzzleFlash(void){
 
 	switch(weapon){
 		case MZ_SHOTGUN:
-			S_StartSound(NULL, i, CHAN_WEAPON, cl_sfx_shotgun_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_shotgun_fire, 1, ATTN_NORM, 0);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_SSHOTGUN:
-			S_StartSound(NULL, i, CHAN_WEAPON, cl_sfx_supershotgun_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_supershotgun_fire, 1, ATTN_NORM, 0);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_MACHINEGUN:
-			S_StartSound(NULL, i, CHAN_WEAPON, cl_sfx_machinegun_fire[rand() % 4], 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_machinegun_fire[rand() % 4], 1, ATTN_NORM, 0);
 			if(rand() & 1)
 				Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_ROCKET:
-			S_StartSound(NULL, i, CHAN_WEAPON, cl_sfx_rocketlauncher_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_rocketlauncher_fire, 1, ATTN_NORM, 0);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_GRENADE:
-			S_StartSound(NULL, i, CHAN_WEAPON, cl_sfx_grenadelauncher_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_grenadelauncher_fire, 1, ATTN_NORM, 0);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_HYPERBLASTER:
-			S_StartSound(NULL, i, CHAN_WEAPON, cl_sfx_hyperblaster_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_hyperblaster_fire, 1, ATTN_NORM, 0);
 			break;
 		case MZ_LIGHTNING:
-			S_StartSound(NULL, i, CHAN_WEAPON, cl_sfx_lightning_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_lightning_fire, 1, ATTN_NORM, 0);
 			break;
 		case MZ_RAILGUN:
-			S_StartSound(NULL, i, CHAN_WEAPON, cl_sfx_railgun_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_railgun_fire, 1, ATTN_NORM, 0);
 			break;
 		case MZ_BFG:
-			S_StartSound(NULL, i, CHAN_WEAPON, cl_sfx_bfg_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_bfg_fire, 1, ATTN_NORM, 0);
 			break;
 		case MZ_LOGOUT:
-			S_StartSound(NULL, i, CHAN_AUTO, cl_sfx_teleport, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, CHAN_AUTO, cl_sample_teleport, 1, ATTN_NORM, 0);
 			Cl_LogoutEffect(cent->current.origin);
 			break;
 		default:
@@ -339,7 +345,7 @@ void Cl_TeleporterTrail(const vec3_t org, centity_t *cent){
 		if(cent->time > cl.time)
 			return;
 
-		S_StartSound(NULL, cent->current.number, CHAN_WEAPON, cl_sfx_respawn, 1, ATTN_IDLE, 0);
+		S_StartSample(NULL, cent->current.number, CHAN_WEAPON, cl_sample_respawn, 1, ATTN_IDLE, 0);
 
 		cent->time = cl.time + 1000 + (2000 * frand());
 	}
@@ -911,7 +917,7 @@ static void Cl_WeatherEffects(void){
 	trace_t tr;
 	float ceiling;
 	particle_t *p;
-	sfx_t *s;
+	s_sample_t *s;
 
 	if(!cl_weather->value)
 		return;
@@ -991,16 +997,16 @@ static void Cl_WeatherEffects(void){
 
 	// add an appropriate looping sound
 	if(r_view.weather & WEATHER_RAIN)
-		s = cl_sfx_rain;
+		s = cl_sample_rain;
 	else if(r_view.weather & WEATHER_SNOW)
-		s = cl_sfx_snow;
+		s = cl_sample_snow;
 	else
 		s = NULL;
 
 	if(!s || !s->cache)
 		return;
 
-	S_AddLoopSound(r_view.origin, s);
+	S_AddLoopSample(r_view.origin, s);
 }
 
 
@@ -1063,33 +1069,31 @@ void Cl_AddParticles(void){
 }
 
 
-extern struct sfx_s	*cl_sfx_footsteps[4];
-
 /*
  * Cl_EntityEvent
  */
 void Cl_EntityEvent(entity_state_t *ent){
 	switch(ent->event){
 		case EV_ITEM_RESPAWN:
-			S_StartSound(NULL, ent->number, CHAN_WEAPON, cl_sfx_respawn, 1, ATTN_IDLE, 0);
+			S_StartSample(NULL, ent->number, CHAN_WEAPON, cl_sample_respawn, 1, ATTN_IDLE, 0);
 			Cl_ItemRespawnEffect(ent->origin);
 			break;
 		case EV_TELEPORT:
-			S_StartSound(NULL, ent->number, CHAN_AUTO, cl_sfx_teleport, 1, ATTN_IDLE, 0);
+			S_StartSample(NULL, ent->number, CHAN_AUTO, cl_sample_teleport, 1, ATTN_IDLE, 0);
 			Cl_TeleporterEffect(ent->origin);
 			break;
 		case EV_FOOTSTEP:
 			if(cl_footsteps->value)
-				S_StartSound(NULL, ent->number, CHAN_BODY, cl_sfx_footsteps[rand() & 3], 1, ATTN_NORM, 0);
+				S_StartSample(NULL, ent->number, CHAN_BODY, cl_sample_footsteps[rand() & 3], 1, ATTN_NORM, 0);
 			break;
 		case EV_FALLSHORT:
-			S_StartSound(NULL, ent->number, CHAN_AUTO, S_LoadSound("*land_1.wav"), 1, ATTN_NORM, 0);
+			S_StartSample(NULL, ent->number, CHAN_AUTO, S_LoadSample("*land_1.wav"), 1, ATTN_NORM, 0);
 			break;
 		case EV_FALL:
-			S_StartSound(NULL, ent->number, CHAN_AUTO, S_LoadSound("*fall_2.wav"), 1, ATTN_NORM, 0);
+			S_StartSample(NULL, ent->number, CHAN_AUTO, S_LoadSample("*fall_2.wav"), 1, ATTN_NORM, 0);
 			break;
 		case EV_FALLFAR:
-			S_StartSound(NULL, ent->number, CHAN_AUTO, S_LoadSound("*fall_1.wav"), 1, ATTN_NORM, 0);
+			S_StartSample(NULL, ent->number, CHAN_AUTO, S_LoadSample("*fall_1.wav"), 1, ATTN_NORM, 0);
 			break;
 		default:
 			break;
