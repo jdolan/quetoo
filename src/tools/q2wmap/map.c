@@ -524,9 +524,15 @@ static void ParseBrush(entity_t *mapent){
 				Error("Parsing brush\n");
 		}
 
+		memset(&td, 0, sizeof(td));
+
 		// read the texturedef
 		GetToken(false);
-		strcpy(td.name, token);
+
+		if(strlen(token) > sizeof(td.name) - 1)
+			Error("Texture name \"%s\" is too long.\n", token);
+
+		strncpy(td.name, token, sizeof(td.name) - 1);
 
 		GetToken(false);
 		td.shift[0] = atoi(token);
