@@ -460,7 +460,8 @@ static void Cl_ExecuteLayoutString(const char *s){
 
 
 typedef struct crosshair_s {
-	image_t *image;
+	char name[16];
+	int width, height;
 	byte color[4];
 } crosshair_t;
 
@@ -470,7 +471,7 @@ static crosshair_t crosshair;
  * Cl_DrawCrosshair
  */
 static void Cl_DrawCrosshair(void){
-	static char path[MAX_QPATH];
+	image_t *image;
 	int offset, w, h;
 
 	if(!cl_crosshair->value)
@@ -491,17 +492,28 @@ static void Cl_DrawCrosshair(void){
 	if(cl_crosshair->modified){  // crosshair image
 		cl_crosshair->modified = false;
 
+		crosshair.width = 0;
+
 		if(cl_crosshair->value < 0)
 			cl_crosshair->value = 1;
 
-		snprintf(path, sizeof(path), "ch%d", (int)cl_crosshair->value);
-		crosshair.image = R_LoadPic(path);
+		if(cl_crosshair->value > 100)
+			cl_crosshair->value = 100;
 
-		if(crosshair.image == r_notexture)
+		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", (int)cl_crosshair->value);
+
+		image = R_LoadPic(crosshair.name);
+
+		if(image == r_notexture){
 			Com_Printf("Couldn't load pics/ch%d.\n", (int)cl_crosshair->value);
+			return;
+		}
+
+		crosshair.width = image->width;
+		crosshair.height = image->height;
 	}
 
-	if(crosshair.image == r_notexture)  // not found
+	if(!crosshair.width)  // not found
 		return;
 
 	if(cl_crosshaircolor->modified){  // crosshair color
@@ -516,11 +528,11 @@ static void Cl_DrawCrosshair(void){
 	offset = cl_thirdperson->value ? 0.01 * r_view.height : 0;
 
 	// calculate width and height based on crosshair image and scale
-	w = (r_view.width - crosshair.image->width * cl_crosshairscale->value) / 2;
-	h = (r_view.height - crosshair.image->height * cl_crosshairscale->value) / 2;
+	w = (r_view.width - crosshair.width * cl_crosshairscale->value) / 2;
+	h = (r_view.height - crosshair.height * cl_crosshairscale->value) / 2;
 
 	R_DrawScaledPic(r_view.x + w, r_view.y + h + offset,
-			cl_crosshairscale->value, path);
+			cl_crosshairscale->value, crosshair.name);
 
 	glColor4ubv(color_white);
 }
