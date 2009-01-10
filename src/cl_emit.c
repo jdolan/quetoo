@@ -107,8 +107,20 @@ void Cl_LoadEmits(void){
 				// add default sounds and models
 				if(!e->sample){
 
-					if(e->flags & EMIT_FLAME)  // fire crackling
-						e->sample = S_LoadSample("world/fire.wav");
+					if(e->flags & EMIT_SPARKS){
+						strcpy(e->sound, "world/spark.wav");
+						e->sample = S_LoadSample(e->sound);
+					}
+
+					else if(e->flags & EMIT_STEAM){  // steam hissing
+						strcpy(e->sound, "world/steam.wav");
+						e->sample = S_LoadSample(e->sound);
+					}
+
+					else if(e->flags & EMIT_FLAME){  // fire crackling
+						strcpy(e->sound, "world/fire.wav");
+						e->sample = S_LoadSample(e->sound);
+					}
 				}
 
 				// crutch up flags as a convenience
@@ -146,6 +158,8 @@ void Cl_LoadEmits(void){
 
 					if(e->flags & EMIT_FLAME)
 						e->hz = 5.0;
+					else if(e->flags & EMIT_STEAM)
+						e->hz = 20.0;
 					else if(e->flags & EMIT_SOUND)
 						e->hz = 0.0;  // ambient
 					else
@@ -163,7 +177,8 @@ void Cl_LoadEmits(void){
 					else if(e->attenuation == 0)  // default
 						e->attenuation = ATTN_NORM;
 
-					if(e->flags & EMIT_FLAME)  // flame sounds are always loop
+					// flame and steam sounds are always looped
+					if(e->flags & (EMIT_FLAME | EMIT_STEAM))
 						e->loop = true;
 					else  // the default is to honor the hz parameter
 						e->loop = e->hz == 0.0;
@@ -356,6 +371,6 @@ void Cl_AddEmits(void){
 		if((e->flags & EMIT_SOUND) && !e->loop)
 			S_StartSample(e->org, 0, 0, e->sample, 1, e->attenuation, 0);
 
-		e->time = cl.time + (1000.0 / e->hz + (e->drift * frand()));
+		e->time = cl.time + (1000.0 / e->hz + (e->drift * frand() * 1000.0));
 	}
 }
