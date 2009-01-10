@@ -476,7 +476,7 @@ static void Cl_AddWeapon(void){
 
 	memset(&ent, 0, sizeof(ent));
 
-	ent.flags = EF_WEAPON;
+	ent.flags = EF_WEAPON | EF_NO_SHADOW;
 
 	VectorCopy(r_view.origin, ent.origin);
 	VectorCopy(r_view.angles, ent.angles);

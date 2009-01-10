@@ -47,7 +47,7 @@ static void R_AddMeshShadow(const entity_t *e){
 	if(num_shadows == MAX_EDICTS)
 		return;
 
-	if(e->flags & EF_WEAPON)  // no shadow for the weapon
+	if(e->flags & EF_NO_SHADOW)  // no shadow for the weapon
 		return;
 
 	if(VectorCompare(e->lighting->point, vec3_origin))

@@ -467,8 +467,9 @@ typedef struct {
 #define EF_NO_LIGHTING		(EF_GRENADE | EF_ROCKET)
 
 // the 16 high bits are never transmitted, they're for the renderer only
-#define EF_ALPHATEST		(1 << 29)  // alpha test
-#define EF_BLEND			(1 << 30)  // blend
+#define EF_ALPHATEST		(1 << 28)  // alpha test
+#define EF_BLEND			(1 << 29)  // blend
+#define EF_NO_SHADOW		(1 << 30)  // no shadow (map models)
 #define EF_WEAPON			(1 << 31)  // view weapon
 
 // muzzle flashes / player effects
