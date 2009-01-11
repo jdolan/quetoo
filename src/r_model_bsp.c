@@ -25,7 +25,6 @@ static const byte *mod_base;
 
 
 #define MIN_AMBIENT_COMPONENT 0.05
-#define MIN_AMBIENT_SUM 1.25
 
 /*
  * R_LoadLighting
@@ -36,11 +35,11 @@ static void R_LoadLighting(const lump_t *l){
 	if(!l->filelen){
 		r_loadmodel->lightdata = NULL;
 		r_loadmodel->lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
-		return;
 	}
-
-	r_loadmodel->lightdata = R_HunkAlloc(l->filelen);
-	memcpy(r_loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
+	else {
+		r_loadmodel->lightdata = R_HunkAlloc(l->filelen);
+		memcpy(r_loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
+	}
 
 	r_loadmodel->lightmap_scale = -1;
 
@@ -80,10 +79,6 @@ static void R_LoadLighting(const lump_t *l){
 		VectorSet(r_view.ambient_light,
 			MIN_AMBIENT_COMPONENT, MIN_AMBIENT_COMPONENT, MIN_AMBIENT_COMPONENT);
 	}
-
-	// scale it into a reasonable range, the clamp above ensures this will work
-	while(VectorSum(r_view.ambient_light) < MIN_AMBIENT_SUM)
-		VectorScale(r_view.ambient_light, 1.25, r_view.ambient_light);
 }
 
 

@@ -209,8 +209,8 @@ static void R_SetMeshColor_default(const entity_t *e){
 		color[3] = 1.0;
 
 	if(e->flags & EF_PULSE){
-		f = (1.0 + sin((r_view.time + e->model->vertexcount) * 6.0)) * 0.33;
-		VectorScale(color, 1.0 + f, color);
+		f = (1.0 + sin((r_view.time + e->model->vertexcount) * 6.0)) * 0.5;
+		VectorScale(color, 0.75 + f, color);
 	}
 
 	f = 0.0;
@@ -429,8 +429,12 @@ void R_DrawMeshModel_default(entity_t *e){
 		e->oldframe = 0;
 	}
 
-	if(e->lighting->dirty)  // update static lighting info
-		R_LightPoint(e->origin, e->lighting);
+	if(e->lighting->dirty){  // update static lighting info
+		if(e->flags & EF_WEAPON)
+			R_LightPoint(r_view.origin, e->lighting);
+		else
+			R_LightPoint(e->origin, e->lighting);
+	}
 
 	R_SetMeshState_default(e);
 

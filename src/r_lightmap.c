@@ -395,6 +395,42 @@ static qboolean R_LightPoint_(const int firstsurface, const int numsurfaces,
 
 #define STATIC_LIGHTING_INTERVAL 0.25
 
+#define STATIC_LIGHTING_MIN_COMPONENT 0.05
+#define STATIC_LIGHTING_MIN_SUM 0.75
+
+/*
+ * R_LightPointClamp
+ */
+static void R_LightPointClamp(static_lighting_t *lighting){
+	qboolean clamped;
+	float f;
+	int i;
+
+	clamped = false;
+
+	for(i = 0; i < 3; i++){  // clamp it
+		if(lighting->colors[0][i] < STATIC_LIGHTING_MIN_COMPONENT){
+			lighting->colors[0][i] = STATIC_LIGHTING_MIN_COMPONENT;
+			clamped = true;
+		}
+	}
+
+	// scale it into acceptable range
+	while(VectorSum(lighting->colors[0]) < STATIC_LIGHTING_MIN_SUM){
+		VectorScale(lighting->colors[0], 1.25, lighting->colors[0]);
+		clamped = true;
+	}
+
+	if(!clamped)  // the color was fine, leave it be
+		return;
+
+	// pale it out some to minimize scaling artifacts
+	f = VectorSum(lighting->colors[0]) / 3.0;
+
+	for(i = 0; i < 3; i++)
+		lighting->colors[0][i] = (lighting->colors[0][i] + f) / 2.0;
+}
+
 
 /*
  * R_LightPointLerp
@@ -493,6 +529,9 @@ void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 	else {  // use the level's ambient lighting
 		VectorCopy(r_view.ambient_light, lighting->colors[0]);
 	}
+
+	// clamp the new lighting sample
+	R_LightPointClamp(lighting);
 
 	// interpolate the lighting samples
 	R_LightPointLerp(lighting);
