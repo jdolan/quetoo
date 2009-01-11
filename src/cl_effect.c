@@ -481,7 +481,6 @@ void Cl_ExplosionEffect(const vec3_t org){
 void Cl_SmokeTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 	particle_t *p;
 	qboolean stationary;
-	vec3_t vel;
 	int j, c;
 
 	if(r_state.rendermode == rendermode_pro)
@@ -495,9 +494,9 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 			return;
 
 		// trails diminish for stationary entities (grenades)
-		VectorSubtract(ent->current.origin, ent->current.old_origin, vel);
+		stationary = VectorCompare(ent->current.origin, ent->current.old_origin);
 
-		if((stationary = VectorCompare(vel, vec3_origin)))
+		if(stationary)
 			ent->time = cl.time + 128;
 		else
 			ent->time = cl.time + 32;
@@ -610,7 +609,6 @@ void Cl_SmokeFlash(entity_state_t *ent){
  */
 void Cl_FlameTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 	particle_t *p;
-	vec3_t vel;
 	int j, c;
 
 	if(ent){  // trails should be framerate independent
@@ -640,6 +638,7 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 	p->alpha = 0.75;
 	p->alphavel = -1.0 / (2 + frand() * 0.3);
 	p->color = 220 + (rand() & 7);
+
 	for(j = 0; j < 3; j++){
 		p->org[j] = end[j];
 		p->vel[j] = crand() * 1.5;
@@ -647,14 +646,62 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 
 	// make static flames rise
 	if(ent){
-		VectorSubtract(ent->current.origin, ent->current.old_origin, vel);
-
-		if(VectorCompare(vel, vec3_origin)){
+		if(VectorCompare(ent->current.origin, ent->current.old_origin)){
 			p->alphavel *= 0.65;
 			p->accel[2] = 20.0;
 		}
 	}
 }
+
+
+/*
+ * Cl_SteamTrail
+ */
+void Cl_SteamTrail(const vec3_t org, const vec3_t vel, centity_t *ent){
+	particle_t *p;
+	vec3_t end;
+	int j, c;
+
+	VectorAdd(org, vel, end);
+
+	if(ent){  // trails should be framerate independent
+
+		if(ent->time > cl.time)
+			return;
+
+		ent->time = cl.time + 8;
+	}
+
+	c = CONTENTS_SLIME | CONTENTS_WATER;
+
+	if(Cm_PointContents(org, r_worldmodel->firstnode) & c){
+		Cl_BubbleTrail(org, end, 10.0);
+		return;
+	}
+
+	if(!(p = Cl_AllocParticle()))
+		return;
+
+	p->image = r_smoketexture;
+	p->type = PARTICLE_SMOKE;
+
+	p->scale = 8.0;
+	p->scalevel = 20.0;
+
+	p->alpha = 0.75;
+	p->alphavel = -1.0 / (1 + frand() * 0.6);
+	p->color = 6 + (rand() & 7);
+
+	VectorCopy(org, p->org);
+	VectorCopy(vel, p->vel);
+
+	for(j = 0; j < 3; j++){
+		p->vel[j] += 2.0 * crand();
+	}
+
+	p->roll = crand() * 100.0;  // rotation
+}
+
 
 
 /*

@@ -342,6 +342,7 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int color);
 void Cl_SmokeTrail(const vec3_t start, const vec3_t end, centity_t *ent);
 void Cl_SmokeFlash(entity_state_t *ent);
 void Cl_FlameTrail(const vec3_t start, const vec3_t end, centity_t *ent);
+void Cl_SteamTrail(const vec3_t org, const vec3_t vel, centity_t *ent);
 void Cl_ExplosionEffect(const vec3_t org);
 void Cl_ItemRespawnEffect(const vec3_t org);
 void Cl_TeleporterTrail(const vec3_t org, centity_t *ent);

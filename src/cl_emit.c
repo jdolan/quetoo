@@ -39,6 +39,7 @@ typedef struct emit_s {
 	vec3_t org;
 	vec3_t angles;  // for model orientation
 	vec3_t dir;  // for particle direction
+	vec3_t vel;  // for particle velocity
 	vec3_t color;
 	float hz, drift;  // how frequently and randomly we fire
 	float radius;  // flame and corona radius
@@ -146,6 +147,12 @@ void Cl_LoadEmits(void){
 						e->radius = 1.0;
 				}
 
+				if(VectorCompare(e->vel, vec3_origin)){  // default velocity
+
+					if(e->flags & EMIT_STEAM)
+						VectorSet(e->vel, 0.0, 0.0, 40.0);
+				}
+
 				if(VectorCompare(e->scale, vec3_origin)){  // default mesh model scale
 
 					if(e->flags & EMIT_MODEL)
@@ -225,7 +232,8 @@ void Cl_LoadEmits(void){
 		}
 
 		if(!strcmp(c, "color")){  // resolve color as floats
-			sscanf(Com_Parse(&ents), "%f %f %f", &e->color[0], &e->color[1], &e->color[2]);
+			sscanf(Com_Parse(&ents), "%f %f %f",
+					&e->color[0], &e->color[1], &e->color[2]);
 			continue;
 		}
 
@@ -245,7 +253,8 @@ void Cl_LoadEmits(void){
 		}
 
 		if(!strcmp(c, "scale")){
-			sscanf(Com_Parse(&ents), "%f %f %f", &e->scale[0], &e->scale[1], &e->scale[2]);
+			sscanf(Com_Parse(&ents), "%f %f %f",
+					&e->scale[0], &e->scale[1], &e->scale[2]);
 			continue;
 		}
 
@@ -266,8 +275,15 @@ void Cl_LoadEmits(void){
 		}
 
 		if(!strcmp(c, "model")){
-			snprintf(e->model, sizeof(e->model), "models/%s/tris.md3", Com_Parse(&ents));
+			snprintf(e->model, sizeof(e->model),
+					"models/%s/tris.md3", Com_Parse(&ents));
 			e->mod = R_LoadModel(e->model);
+			continue;
+		}
+
+		if(!strcmp(c, "velocity")){
+			sscanf(Com_Parse(&ents), "%f %f %f",
+					&e->vel[0], &e->vel[1], &e->vel[2]);
 			continue;
 		}
 	}
@@ -360,7 +376,7 @@ void Cl_AddEmits(void){
 			Cl_SparksEffect(e->org, e->dir, e->count);
 
 		if(e->flags & EMIT_STEAM)
-			Cl_SmokeTrail(e->org, e->org, NULL);
+			Cl_SteamTrail(e->org, e->vel, NULL);
 
 		if(e->flags & EMIT_FLAME)
 			Cl_FlameTrail(e->org, e->org, NULL);

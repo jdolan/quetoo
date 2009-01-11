@@ -371,6 +371,10 @@ static inline GLenum R_ConstByName(const char *c){
 		return GL_SRC_ALPHA;
 	if(!strcmp(c, "GL_ONE_MINUS_SRC_ALPHA"))
 		return GL_ONE_MINUS_SRC_ALPHA;
+	if(!strcmp(c, "GL_SRC_COLOR"))
+		return GL_SRC_COLOR;
+	if(!strcmp(c, "GL_ONE_MINUS_SRC_COLOR"))
+		return GL_ONE_MINUS_SRC_COLOR;
 
 	// ...
 
