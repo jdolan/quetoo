@@ -181,8 +181,14 @@ void Cl_LoadEmits(void){
 
 					if(e->attenuation == -1)  // explicit -1 for global
 						e->attenuation = ATTN_NONE;
-					else if(e->attenuation == 0)  // default
-						e->attenuation = ATTN_NORM;
+					else {
+						if(e->attenuation == 0){  // default
+							if(e->flags & EMIT_SPARKS)
+								e->attenuation = ATTN_STATIC;
+							else
+								e->attenuation = ATTN_NORM;
+						}
+					}
 
 					// flame and steam sounds are always looped
 					if(e->flags & (EMIT_FLAME | EMIT_STEAM))
