@@ -109,7 +109,7 @@ void Cl_LoadEmits(void){
 				if(!e->sample){
 
 					if(e->flags & EMIT_SPARKS){
-						strcpy(e->sound, "world/spark.wav");
+						strcpy(e->sound, "world/sparks.wav");
 						e->sample = S_LoadSample(e->sound);
 					}
 

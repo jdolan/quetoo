@@ -25,8 +25,8 @@ s_sample_t *cl_sample_bfg_hit;
 s_sample_t *cl_sample_hyperblaster_hit;
 s_sample_t *cl_sample_lightning_discharge;
 s_sample_t *cl_sample_explosion;
+s_sample_t *cl_sample_sparks;
 s_sample_t *cl_sample_machinegun_hit[3];
-s_sample_t *cl_sample_spark[3];
 
 /*
  * Cl_LoadTempEntitySamples
@@ -39,15 +39,11 @@ void Cl_LoadTempEntitySamples(void){
 	cl_sample_hyperblaster_hit = S_LoadSample("weapons/hyperblaster/hit.wav");
 	cl_sample_lightning_discharge = S_LoadSample("weapons/lightning/discharge.wav");
 	cl_sample_explosion = S_LoadSample("weapons/common/explosion.wav");
+	cl_sample_sparks = S_LoadSample("world/sparks.wav");
 
 	for(i = 0; i < 3; i++){
 		snprintf(name, sizeof(name), "weapons/machinegun/hit_%i.wav", i + 1);
 		cl_sample_machinegun_hit[i] = S_LoadSample(name);
-	}
-
-	for(i = 0; i < 3; i++){
-		snprintf(name, sizeof(name), "world/spark_%i.wav", i + 1);
-		cl_sample_spark[i] = S_LoadSample(name);
 	}
 }
 
@@ -113,7 +109,7 @@ void Cl_ParseTempEntity(void){
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadDir(&net_message, dir);
 			Cl_SparksEffect(pos, dir, 12);
-			S_StartSample(pos, 0, 0, cl_sample_spark[rand() % 3], 1, ATTN_STATIC, 0);
+			S_StartSample(pos, 0, 0, cl_sample_sparks, 1, ATTN_STATIC, 0);
 			R_AddSustainedLight(pos, 1.0, sparks_light, 0.65);
 			break;
 
