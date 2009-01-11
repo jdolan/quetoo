@@ -70,8 +70,7 @@ void BuildLights(void);
 
 dleaf_t *Light_PointInLeaf(const vec3_t point);
 
-extern trace_t rad_trace;
-void Light_Trace(const vec3_t start, const vec3_t end, int mask);
+void Light_Trace(trace_t *trace, const vec3_t start, const vec3_t end, int mask);
 
 // patches.c
 void CalcTextureReflectivity(void);

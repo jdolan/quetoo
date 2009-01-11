@@ -495,6 +495,7 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
 
 	vec3_t delta;
 	float dot, light;
+	trace_t trace;
 
 	if(!sun.intensity)
 		return;
@@ -506,15 +507,10 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
 
 	VectorMA(pos, 2 * MAX_WORLD_WIDTH, sun.normal, delta);
 
-	ThreadLock();
+	Light_Trace(&trace, pos, delta, MASK_SOLID);
 
-	Light_Trace(pos, delta, MASK_SOLID);
-	if(rad_trace.fraction < 1.0 && !(rad_trace.surface->flags & SURF_SKY)){
-		ThreadUnlock();
+	if(trace.fraction < 1.0 && !(trace.surface->flags & SURF_SKY))
 		return;  // occluded
-	}
-
-	ThreadUnlock();
 
 	light = sun.intensity * dot * scale;
 
@@ -540,6 +536,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 	vec3_t delta;
 	float dot, dot2;
 	float dist;
+	trace_t trace;
 	int i;
 
 	// iterate over lights, which are in buckets by cluster
@@ -582,15 +579,10 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 			if(light <= 0.0)  // no light
 				continue;
 
-			ThreadLock();
+			Light_Trace(&trace, l->origin, pos, MASK_SOLID);
 
-			Light_Trace(l->origin, pos, MASK_SOLID);
-			if(rad_trace.fraction < 1.0){
-				ThreadUnlock();
+			if(trace.fraction < 1.0)
 				continue;  // occluded
-			}
-
-			ThreadUnlock();
 
 			// add some light to it
 			VectorMA(sample, light * scale, l->color, sample);

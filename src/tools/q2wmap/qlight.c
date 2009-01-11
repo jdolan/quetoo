@@ -96,12 +96,11 @@ qboolean PvsForOrigin(const vec3_t org, byte *pvs){
 
 extern int numcmodels;
 extern cmodel_t map_cmodels[MAX_BSP_MODELS];
-trace_t rad_trace;
 
 /*
  * Light_Trace
  */
-void Light_Trace(const vec3_t start, const vec3_t end, int mask){
+void Light_Trace(trace_t *trace, const vec3_t start, const vec3_t end, int mask){
 	float frac;
 	int i;
 
@@ -114,7 +113,7 @@ void Light_Trace(const vec3_t start, const vec3_t end, int mask){
 
 		if(tr.fraction < frac){
 			frac = tr.fraction;
-			rad_trace = tr;
+			*trace = tr;
 		}
 	}
 }
