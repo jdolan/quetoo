@@ -527,13 +527,20 @@ void R_Restart_f(void){
 	else {
 		R_SetMode();
 
+		// re-upload the shaders if certain cvars have changed
+		if(Cvar_PendingVars(CVAR_PROGRAMS)){
+			R_ShutdownPrograms();
+
+			R_InitPrograms();
+		}
+
 		// we also let people call r_restart when they mean r_reload
 		if(Cvar_PendingVars(CVAR_IMAGES))
 			R_Reload_f();
 	}
 #endif
 
-	Cvar_ClearVars(CVAR_IMAGES | CVAR_CONTEXT);
+	Cvar_ClearVars(CVAR_IMAGES | CVAR_CONTEXT | CVAR_PROGRAMS);
 
 	r_rendermode->modified = true;
 
@@ -573,7 +580,7 @@ static void R_InitLocal(void){
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_IMAGES, NULL);
 	r_lightmapsize = Cvar_Get("r_lightmapsize", "1024", CVAR_ARCHIVE | CVAR_IMAGES, NULL);
 	r_lighting = Cvar_Get("r_lighting", "1", CVAR_ARCHIVE, "Activate or deactivate lighting effects");
-	r_lights = Cvar_Get("r_lights", "1", CVAR_ARCHIVE, NULL);
+	r_lights = Cvar_Get("r_lights", "1", CVAR_ARCHIVE | CVAR_PROGRAMS, NULL);
 	r_lines = Cvar_Get("r_lines", "0.5", CVAR_ARCHIVE, NULL);
 	r_linewidth = Cvar_Get("r_linewidth", "1.0", CVAR_ARCHIVE, NULL);
 	r_materials = Cvar_Get("r_materials", "1", CVAR_ARCHIVE, NULL);
@@ -596,7 +603,7 @@ static void R_InitLocal(void){
 	r_width = Cvar_Get("r_width", "1024", CVAR_ARCHIVE, NULL);
 
 	// prevent unecessary reloading for initial values
-	Cvar_ClearVars(CVAR_IMAGES | CVAR_CONTEXT);
+	Cvar_ClearVars(CVAR_IMAGES | CVAR_CONTEXT | CVAR_PROGRAMS);
 
 	Cmd_AddCommand("r_listmodels", R_ListModels_f, "Print information about all the loaded models to the game console");
 	Cmd_AddCommand("r_hunkstats", R_HunkStats_f, "Renderer memory usage information");

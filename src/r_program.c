@@ -225,37 +225,76 @@ void R_ShutdownPrograms(void){
 
 
 /*
- * R_ShaderIncludes
+ * R_PreprocessShader
  */
-static size_t R_ShaderIncludes(const char *name, const char *in, char *out, size_t len){
+static size_t R_PreprocessShader(const char *name, const char *in, char *out, size_t len){
+	size_t plen;
 	char path[MAX_QPATH];
 	void *buf;
+	float f;
 	int i;
 
 	i = 0;
 	while(*in){
 
-		if(!strncmp(in, "#include", 8)){
-			size_t inc_len;
+		if(!strncmp(in, "#include", 8)){  // includes
 			in += 8;
+
 			snprintf(path, sizeof(path), "shaders/%s", Com_Parse(&in));
 
 			if(Fs_LoadFile(path, &buf) == -1){
-				Com_Warn("Failed to resolve #include: %s.\n", path);
-				continue;
+				Com_Error(ERR_DROP, "R_PreprocessShader: "
+						"Failed to resolve #include: %s.\n", path);
 			}
 
-			inc_len = R_ShaderIncludes(name, (const char *)buf, out, len);
-			len -= inc_len;
-			out += inc_len;
+			plen = R_PreprocessShader(name, (const char *)buf, out, len);
+			len -= plen;
+			out += plen;
+
 			Fs_FreeFile(buf);
 		}
+
+		if(!strncmp(in, "#if", 3)){  // conditionals
+			in += 3;
+
+			f = Cvar_VariableValue(Com_Parse(&in));
+
+			while(*in){
+
+				if(!strncmp(in, "#endif", 6)){
+					in += 6;
+					break;
+				}
+
+				len--;
+				if(len < 0){
+					Com_Error(ERR_DROP, "R_PreprocessShader: "
+							"Overflow: %s", name);
+				}
+
+				if(f){
+					*out++ = *in++;
+					i++;
+				}
+				else
+					in++;
+			}
+
+			if(!*in){
+				Com_Error(ERR_DROP, "R_PreprocessShader: "
+						"Unterminated conditional: %s", name);
+			}
+		}
+
+		// general case is to copy so long as the buffer has room
 		len--;
 		if(len < 0)
-			Sys_Error("overflow in shader loading '%s'", name);
+			Com_Error(ERR_DROP, "R_PreprocessShader: Overflow: %s", name);
+
 		*out++ = *in++;
 		i++;
 	}
+
 	return i;
 }
 
@@ -281,7 +320,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name){
 
 	source = Z_Malloc(SHADER_BUF_SIZE);
 
-	R_ShaderIncludes(name, (const char *)buf, source, SHADER_BUF_SIZE);
+	R_PreprocessShader(name, (const char *)buf, source, SHADER_BUF_SIZE);
 	Fs_FreeFile(buf);
 
 	src[0] = source;
