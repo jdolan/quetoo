@@ -498,7 +498,7 @@ static void R_Reload_f(void){
 
 	R_LoadMedia();
 
-	Cvar_ClearVars(CVAR_IMAGES);
+	Cvar_ClearVars(CVAR_R_IMAGES);
 
 	cls.download.disk = false;
 }
@@ -517,7 +517,7 @@ void R_Restart_f(void){
 	R_Reload_f();
 #else
 	// while on linux, we can avoid it for the general case
-	if(Cvar_PendingVars(CVAR_CONTEXT)){
+	if(Cvar_PendingVars(CVAR_R_CONTEXT)){
 		R_Shutdown();
 
 		R_Init();
@@ -525,22 +525,24 @@ void R_Restart_f(void){
 		R_Reload_f();
 	}
 	else {
-		R_SetMode();
+		// reset the video mode
+		if(Cvar_PendingVars(CVAR_R_MODE))
+			R_SetMode();
 
-		// re-upload the shaders if certain cvars have changed
-		if(Cvar_PendingVars(CVAR_PROGRAMS)){
+		// reload the shaders
+		if(Cvar_PendingVars(CVAR_R_PROGRAMS)){
 			R_ShutdownPrograms();
 
 			R_InitPrograms();
 		}
 
-		// we also let people call r_restart when they mean r_reload
-		if(Cvar_PendingVars(CVAR_IMAGES))
+		// reload all renderer media
+		if(Cvar_PendingVars(CVAR_R_IMAGES))
 			R_Reload_f();
 	}
 #endif
 
-	Cvar_ClearVars(CVAR_IMAGES | CVAR_CONTEXT | CVAR_PROGRAMS);
+	Cvar_ClearVars(CVAR_R_IMAGES | CVAR_R_CONTEXT | CVAR_R_PROGRAMS | CVAR_R_MODE);
 
 	r_rendermode->modified = true;
 
@@ -564,46 +566,46 @@ static void R_InitLocal(void){
 	r_usevis = Cvar_Get("r_usevis", "1", 0, NULL);
 
 	// settings and preferences
-	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE | CVAR_IMAGES, NULL);
-	r_brightness = Cvar_Get("r_brightness", "1.5", CVAR_ARCHIVE | CVAR_IMAGES, NULL);
+	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
+	r_brightness = Cvar_Get("r_brightness", "1.5", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE, NULL);
-	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_IMAGES, NULL);
+	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_coronas = Cvar_Get("r_coronas", "1", CVAR_ARCHIVE, "Activate or deactivate coronas");
 	r_drawbuffer = Cvar_Get("r_drawbuffer", "GL_BACK", CVAR_ARCHIVE, NULL);
 	r_flares = Cvar_Get("r_flares", "1", CVAR_ARCHIVE, "Activate or deactivate flares");
-	r_fog = Cvar_Get("r_fog", "1", CVAR_ARCHIVE, "Activate or deactivate fog");
-	r_fullscreen = Cvar_Get("r_fullscreen", "1", CVAR_ARCHIVE, "Activate or deactivate fullscreen mode");
+	r_fog = Cvar_Get("r_fog", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS, "Activate or deactivate fog");
+	r_fullscreen = Cvar_Get("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_MODE, "Activate or deactivate fullscreen mode");
 	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE, NULL);
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE, NULL);
-	r_height = Cvar_Get("r_height", "768", CVAR_ARCHIVE, NULL);
+	r_height = Cvar_Get("r_height", "768", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 	r_hunkmegs = Cvar_Get("r_hunkmegs", "64", CVAR_NOSET, "Memory size for the renderer hunk in megabytes");
-	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_IMAGES, NULL);
-	r_lightmapsize = Cvar_Get("r_lightmapsize", "1024", CVAR_ARCHIVE | CVAR_IMAGES, NULL);
+	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
+	r_lightmapsize = Cvar_Get("r_lightmapsize", "1024", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_lighting = Cvar_Get("r_lighting", "1", CVAR_ARCHIVE, "Activate or deactivate lighting effects");
-	r_lights = Cvar_Get("r_lights", "1", CVAR_ARCHIVE | CVAR_PROGRAMS, NULL);
+	r_lights = Cvar_Get("r_lights", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS, NULL);
 	r_lines = Cvar_Get("r_lines", "0.5", CVAR_ARCHIVE, NULL);
 	r_linewidth = Cvar_Get("r_linewidth", "1.0", CVAR_ARCHIVE, NULL);
 	r_materials = Cvar_Get("r_materials", "1", CVAR_ARCHIVE, NULL);
-	r_modulate = Cvar_Get("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_IMAGES, "Controlls the brightness of the lightmap");
-	r_monochrome = Cvar_Get("r_monochrome", "0", CVAR_ARCHIVE | CVAR_IMAGES, NULL);
-	r_multisample = Cvar_Get("r_multisample", "0", CVAR_ARCHIVE | CVAR_CONTEXT, NULL);
+	r_modulate = Cvar_Get("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_IMAGES, "Controlls the brightness of the lightmap");
+	r_monochrome = Cvar_Get("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
+	r_multisample = Cvar_Get("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_optimize = Cvar_Get("r_optimize", "1", CVAR_ARCHIVE, NULL);
 	r_parallax = Cvar_Get("r_parallax", "1.0", CVAR_ARCHIVE, NULL);
 	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE, "Activate or deactivate GLSL shaders");
 	r_rendermode = Cvar_Get("r_rendermode", "default", CVAR_ARCHIVE, NULL);
 	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE, NULL);
 	r_shadows = Cvar_Get("r_shadows", "1", CVAR_ARCHIVE, NULL);
-	r_soften = Cvar_Get("r_soften", "4", CVAR_ARCHIVE | CVAR_IMAGES, NULL);
+	r_soften = Cvar_Get("r_soften", "4", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_specular = Cvar_Get("r_specular", "1.0", CVAR_ARCHIVE, NULL);
-	r_swapinterval = Cvar_Get("r_swapinterval", "0", CVAR_ARCHIVE | CVAR_CONTEXT, NULL);
+	r_swapinterval = Cvar_Get("r_swapinterval", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_texturemode = Cvar_Get("r_texturemode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE, NULL);
 	r_threads = Cvar_Get("r_threads", "0", CVAR_ARCHIVE, "Activate or deactivate the threaded renderer");
 	r_vertexbuffers = Cvar_Get("r_vertexbuffers", "3", CVAR_ARCHIVE, NULL);
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE, "Activate or deactivate warping surfaces");
-	r_width = Cvar_Get("r_width", "1024", CVAR_ARCHIVE, NULL);
+	r_width = Cvar_Get("r_width", "1024", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 
 	// prevent unecessary reloading for initial values
-	Cvar_ClearVars(CVAR_IMAGES | CVAR_CONTEXT | CVAR_PROGRAMS);
+	Cvar_ClearVars(CVAR_R_IMAGES | CVAR_R_CONTEXT | CVAR_R_PROGRAMS | CVAR_R_MODE);
 
 	Cmd_AddCommand("r_listmodels", R_ListModels_f, "Print information about all the loaded models to the game console");
 	Cmd_AddCommand("r_hunkstats", R_HunkStats_f, "Renderer memory usage information");

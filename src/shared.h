@@ -242,13 +242,14 @@ CVARS (console variables)
 */
 
 #define CVAR_ARCHIVE	1  // set to cause it to be saved to vars.rc
-#define CVAR_USERINFO	2  // added to userinfo  when changed
+#define CVAR_USERINFO	2  // added to userinfo when changed
 #define CVAR_SERVERINFO	4  // added to serverinfo when changed
 #define CVAR_NOSET		8  // don't allow change from console at all
 #define CVAR_LATCH		16  // save changes until server restart
-#define CVAR_IMAGES		32  // effects image filtering
-#define CVAR_CONTEXT	64  // effects gl context
-#define CVAR_PROGRAMS	128  // effects glsl programs
+#define CVAR_R_IMAGES	32  // effects image filtering
+#define CVAR_R_CONTEXT	64  // effects OpenGL context
+#define CVAR_R_PROGRAMS	128  // effects GLSL programs
+#define CVAR_R_MODE		256  // effects screen resolution
 
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s {
