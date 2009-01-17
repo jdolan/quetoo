@@ -568,7 +568,7 @@ static void R_InitLocal(void){
 	// settings and preferences
 	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_brightness = Cvar_Get("r_brightness", "1.5", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
-	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE, NULL);
+	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_PROGRAMS, NULL);
 	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_coronas = Cvar_Get("r_coronas", "1", CVAR_ARCHIVE, "Activate or deactivate coronas");
 	r_drawbuffer = Cvar_Get("r_drawbuffer", "GL_BACK", CVAR_ARCHIVE, NULL);
