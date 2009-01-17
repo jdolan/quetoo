@@ -40,7 +40,7 @@ MAKE(){
 
 PACKAGE(){
 	cd $START
-	rm quake2world_rev*
+	rm -Rf quake2world_rev* dist
 	mkdir -p dist/quake2world/default
 	cp deps/* dist/quake2world
 	cp $START/quake2world/src/tools/pak/pak.exe $START/dist/quake2world
@@ -48,8 +48,6 @@ PACKAGE(){
 	cp quake2world/src/game/default/game.dll dist/quake2world/default
 	cp quake2world/src/quake2world.exe dist/quake2world
 	cd $START/dist/quake2world
-	strip *.exe
-	strip default/game.dll
 	cd ..
 	$START/7za a -tzip -mx=9 ../quake2world_rev"$rev"zip quake2world
 }
