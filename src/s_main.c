@@ -912,8 +912,8 @@ void S_Init(void){
 
 	s_volume = Cvar_Get("s_volume", "0.7", CVAR_ARCHIVE, NULL);
 	s_mixahead = Cvar_Get("s_mixahead", "0.05", CVAR_ARCHIVE, NULL);
-	s_rate = Cvar_Get("s_rate", "", CVAR_ARCHIVE, NULL);
-	s_channels = Cvar_Get("s_channels", "2", CVAR_ARCHIVE, "Set the desired sound channels");
+	s_rate = Cvar_Get("s_rate", "", CVAR_ARCHIVE | CVAR_S_DEVICE, NULL);
+	s_channels = Cvar_Get("s_channels", "2", CVAR_ARCHIVE | CVAR_S_DEVICE, "Set the desired sound channels");
 
 	s_ambient = Cvar_Get("s_ambient", "1", CVAR_ARCHIVE, "Activate or deactivate ambient loop sounds");
 

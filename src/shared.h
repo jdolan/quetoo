@@ -241,18 +241,21 @@ CVARS (console variables)
 
 */
 
-#define CVAR_ARCHIVE	1  // set to cause it to be saved to vars.rc
-#define CVAR_USERINFO	2  // added to userinfo when changed
-#define CVAR_SERVERINFO	4  // added to serverinfo when changed
-#define CVAR_NOSET		8  // don't allow change from console at all
-#define CVAR_LATCH		16  // save changes until server restart
-#define CVAR_R_IMAGES	32  // effects image filtering
-#define CVAR_R_CONTEXT	64  // effects OpenGL context
-#define CVAR_R_PROGRAMS	128  // effects GLSL programs
-#define CVAR_R_MODE		256  // effects screen resolution
+#define CVAR_ARCHIVE	0x1  // set to cause it to be saved to vars.rc
+#define CVAR_USERINFO	0x2  // added to userinfo when changed
+#define CVAR_SERVERINFO	0x4  // added to serverinfo when changed
+#define CVAR_NOSET		0x8  // don't allow change from console at all
+#define CVAR_LATCH		0x10  // save changes until server restart
+#define CVAR_R_IMAGES	0x20  // effects image filtering
+#define CVAR_R_CONTEXT	0x40  // effects OpenGL context
+#define CVAR_R_PROGRAMS	0x80  // effects GLSL programs
+#define CVAR_R_MODE		0x100  // effects screen resolution
+#define CVAR_S_DEVICE	0x200  // effects sound device parameters
 
 #define CVAR_R_MASK		(CVAR_R_IMAGES | CVAR_R_CONTEXT | \
 		CVAR_R_PROGRAMS | CVAR_R_MODE)
+
+#define CVAR_S_MASK 	(CVAR_S_DEVICE)
 
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s {
@@ -273,14 +276,15 @@ COLLISION DETECTION
 */
 
 // lower bits are stronger, and will eat weaker brushes completely
-#define CONTENTS_SOLID			1  // an eye is never valid in a solid
-#define CONTENTS_WINDOW			2  // translucent, but not watery
-#define CONTENTS_AUX			4
-#define CONTENTS_LAVA			8
-#define CONTENTS_SLIME			16
-#define CONTENTS_WATER			32
-#define CONTENTS_MIST			64
-#define LAST_VISIBLE_CONTENTS	64
+#define CONTENTS_SOLID			0x1  // an eye is never valid in a solid
+#define CONTENTS_WINDOW			0x2  // translucent, but not watery
+#define CONTENTS_AUX			0x4
+#define CONTENTS_LAVA			0x8
+#define CONTENTS_SLIME			0x10
+#define CONTENTS_WATER			0x20
+#define CONTENTS_MIST			0x40
+
+#define LAST_VISIBLE_CONTENTS	0x40
 
 // remaining contents are non-visible, and don't eat brushes
 #define CONTENTS_AREAPORTAL		0x8000
@@ -331,7 +335,7 @@ COLLISION DETECTION
 #define MASK_OPAQUE			(CONTENTS_SOLID|CONTENTS_SLIME|CONTENTS_LAVA)
 #define MASK_SHOT			(CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_WINDOW|CONTENTS_DEADMONSTER)
 #define MASK_CURRENT		(CONTENTS_CURRENT_0|CONTENTS_CURRENT_90|CONTENTS_CURRENT_180|\
-							CONTENTS_CURRENT_270|CONTENTS_CURRENT_UP|CONTENTS_CURRENT_DOWN)
+							 CONTENTS_CURRENT_270|CONTENTS_CURRENT_UP|CONTENTS_CURRENT_DOWN)
 
 #define MASK_VISIBLE		(MASK_SOLID|MASK_WATER|MASK_OPAQUE|CONTENTS_MIST)
 
