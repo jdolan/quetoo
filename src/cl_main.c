@@ -1016,6 +1016,7 @@ static void Cl_WriteConfiguration(void){
  */
 void Cl_Frame(int msec){
 	qboolean packet_frame = true, render_frame = true;
+	static qboolean help_issued = false;
 
 	if(dedicated->value)
 		return;
@@ -1048,8 +1049,18 @@ void Cl_Frame(int msec){
 	if(cls.state == ca_connected && cls.packet_delta < 50)
 		render_frame = packet_frame = false;  // dont spam the server while downloading
 
-	if(cls.state <= ca_disconnected && !Com_ServerState())
+	if(cls.state <= ca_disconnected && !Com_ServerState()){
 		usleep(1000);  // idle at console
+
+		if(!help_issued){
+			Com_Printf("Type ^3servers^7 to find a game.\n");
+			help_issued = true;
+		}
+	}
+	else {  // reset help boolean
+		if(cls.state > ca_disconnected)
+			help_issued = false;
+	}
 
 	cl.time += msec;  // update time references
 	cls.realtime = curtime;
