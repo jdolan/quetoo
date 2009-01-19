@@ -64,6 +64,8 @@ float pm_specaccelerate = 3.5;
 float pm_specfriction = 3.0;
 
 
+#define STOP_EPSILON 0.1
+
 /*
  * Pm_ClipVelocity
  *
@@ -83,11 +85,18 @@ static void Pm_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overboun
 		backoff /= overbounce;
 
 	for(i = 0; i < 3; i++){
+
 		change = normal[i] * backoff;
 		out[i] = in[i] - change;
+
+		if(out[i] < STOP_EPSILON && out[i] > -STOP_EPSILON)
+			out[i] = 0.0;
 	}
 }
 
+
+#define MIN_STEP_NORMAL	0.7  // can't step up onto very steep slopes
+#define MAX_CLIP_PLANES	5
 
 /*
  * Pm_StepSlideMove
@@ -95,74 +104,78 @@ static void Pm_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overboun
  * Each intersection will try to step over the obstruction instead of
  * sliding along it.
  *
- * Returns a new origin, velocity, and contact entity
- * Does not modify any world state?
+ * Calculates a new origin, velocity, and contact entities based on the
+ * movement command and world state.
  */
-#define MIN_STEP_NORMAL	0.7  // can't step up onto very steep slopes
-#define MAX_CLIP_PLANES	5
 static void Pm_StepSlideMove_(void){
 	int bumpcount, numbumps;
 	vec3_t dir;
 	float d;
-	int numplanes;
+	int i, j, numplanes;
 	vec3_t planes[MAX_CLIP_PLANES];
 	vec3_t primal_velocity;
-	int i, j;
 	trace_t trace;
 	vec3_t end;
-	float time_left;
+	float time;
 
 	numbumps = 4;
 
 	VectorCopy(pml.velocity, primal_velocity);
 	numplanes = 0;
 
-	time_left = pml.frametime;
+	time = pml.frametime;
 
 	for(bumpcount = 0; bumpcount < numbumps; bumpcount++){
-		for(i = 0; i < 3; i++)
-			end[i] = pml.origin[i] + time_left * pml.velocity[i];
 
+		// project desired destination
+		VectorMA(pml.origin, time, pml.velocity, end);
+
+		// trace to it
 		trace = pm->trace(pml.origin, pm->mins, pm->maxs, end);
 
-		if(trace.allsolid){  // entity is trapped in another solid
-			pml.velocity[2] = 0;  // don't build up falling damage
-			return;
+		if(trace.allsolid){  // player is trapped in a solid
+			VectorClear(pml.velocity);
+			break;
 		}
 
-		if(trace.fraction > 0){  // actually covered some distance
+		if(trace.fraction > 0.0){  // update the origin, reset the clip planes
 			VectorCopy(trace.endpos, pml.origin);
 			numplanes = 0;
 		}
 
-		if(trace.fraction == 1)
-			break;  // moved the entire distance
+		if(trace.fraction == 1.0)  // moved the entire distance
+			break;
 
-		// save entity for contact
+		// store a reference to the entities touched for firing game events
 		if(pm->numtouch < MAXTOUCH && trace.ent){
 			pm->touchents[pm->numtouch] = trace.ent;
 			pm->numtouch++;
 		}
 
-		time_left -= time_left * trace.fraction;
+		// update the movement time remaining
+		time -= time * trace.fraction;
 
-		// slide along this plane
-		if(numplanes >= MAX_CLIP_PLANES){  // this shouldn't really happen
-			VectorCopy(vec3_origin, pml.velocity);
+		if(numplanes == MAX_CLIP_PLANES){  // this shouldn't really happen
+			VectorClear(pml.velocity);
 			break;
 		}
 
+		// now slide along the plane
 		VectorCopy(trace.plane.normal, planes[numplanes]);
 		numplanes++;
 
-		// modify original_velocity so it parallels all of the clip planes
+		// clip the velocity to all impacted planes
 		for(i = 0; i < numplanes; i++){
+
 			Pm_ClipVelocity(pml.velocity, planes[i], pml.velocity, 1.001);
-			for(j = 0; j < numplanes; j++)
+
+			for(j = 0; j < numplanes; j++){
 				if(j != i){
-					if(DotProduct(pml.velocity, planes[j]) < 0)
+					if(DotProduct(pml.velocity, planes[j]) < 0.0)
 						break;  // not ok
 				}
+			}
+
 			if(j == numplanes)
 				break;
 		}
@@ -178,10 +191,10 @@ static void Pm_StepSlideMove_(void){
 			VectorScale(dir, d, pml.velocity);
 		}
 
-		// if velocity is against the original velocity, stop dead
+		// if new velocity is against the original velocity, stop dead
 		// to avoid tiny occilations in sloping corners
-		if(DotProduct(pml.velocity, primal_velocity) <= 0){
-			VectorCopy(vec3_origin, pml.velocity);
+		if(DotProduct(pml.velocity, primal_velocity) <= 0.0){
+			VectorClear(pml.velocity);
 			break;
 		}
 	}
