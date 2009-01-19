@@ -144,7 +144,8 @@ void Cl_ParseStatusMessage(void){
 	if(server->ping > 1000)  // clamp the ping
 		server->ping = 999;
 
-	Com_Printf("^3%02d^7. %8s %s  %3dms\n", server->num + 1, source, server->info, server->ping);
+	Com_Printf("^3%02d^7. %8s %s  %3dms\n", server->num + 1, source,
+			server->info, server->ping);
 }
 
 
@@ -193,7 +194,7 @@ void Cl_Ping_f(void){
 	server->pingtime = cls.realtime;
 
 	Com_Printf("Pinging %s\n", Net_AdrToString(server->adr));
-	Com_Printf("#   Source   Hostname                 Map          Clients Ping\n");
+	Com_Printf("^3#^7   Source   Hostname                 Map          Clients Ping\n");
 	Com_Printf("----------------------------------------------------------------\n");
 
 	Netchan_OutOfBandPrint(NS_CLIENT, server->adr, "info %i", PROTOCOL);
