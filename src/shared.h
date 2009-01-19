@@ -251,6 +251,9 @@ CVARS (console variables)
 #define CVAR_R_PROGRAMS	128  // effects GLSL programs
 #define CVAR_R_MODE		256  // effects screen resolution
 
+#define CVAR_R_MASK		(CVAR_R_IMAGES | CVAR_R_CONTEXT | \
+		CVAR_R_PROGRAMS | CVAR_R_MODE)
+
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s {
 	const char *name;

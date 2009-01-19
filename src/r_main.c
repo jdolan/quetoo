@@ -542,7 +542,7 @@ void R_Restart_f(void){
 	}
 #endif
 
-	Cvar_ClearVars(CVAR_R_IMAGES | CVAR_R_CONTEXT | CVAR_R_PROGRAMS | CVAR_R_MODE);
+	Cvar_ClearVars(CVAR_R_MASK);
 
 	r_rendermode->modified = true;
 
@@ -605,7 +605,7 @@ static void R_InitLocal(void){
 	r_width = Cvar_Get("r_width", "1024", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 
 	// prevent unecessary reloading for initial values
-	Cvar_ClearVars(CVAR_R_IMAGES | CVAR_R_CONTEXT | CVAR_R_PROGRAMS | CVAR_R_MODE);
+	Cvar_ClearVars(CVAR_R_MASK);
 
 	Cmd_AddCommand("r_listmodels", R_ListModels_f, "Print information about all the loaded models to the game console");
 	Cmd_AddCommand("r_hunkstats", R_HunkStats_f, "Renderer memory usage information");

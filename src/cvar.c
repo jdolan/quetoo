@@ -219,6 +219,9 @@ static cvar_t *Cvar_Set2(const char *var_name, const char *value, qboolean force
 		}
 	}
 
+	if(var->flags & CVAR_R_MASK)
+		Com_Printf("%s will be changed on 'r_restart'.\n", var_name);
+
 	if(!strcmp(value, var->string))
 		return var;  // not changed
 
