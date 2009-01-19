@@ -144,7 +144,7 @@ void Cl_ParseStatusMessage(void){
 	if(server->ping > 1000)  // clamp the ping
 		server->ping = 999;
 
-	Com_Printf("%02d. %8s %s  %3dms\n", server->num + 1, source, server->info, server->ping);
+	Com_Printf("^3%02d^7. %8s %s  %3dms\n", server->num + 1, source, server->info, server->ping);
 }
 
 
@@ -236,8 +236,8 @@ void Cl_Servers_f(void){
 		return;
 	}
 
-	Com_Printf("Refreshing servers..\n");
-	Com_Printf("#   Source   Hostname                 Map          Clients Ping\n");
+	Com_Printf("Refreshing servers.  Type ^3connect #^7 to join a game.\n");
+	Com_Printf("^3#^7   Source   Hostname                 Map          Clients Ping\n");
 	Com_Printf("----------------------------------------------------------------\n");
 
 	adr.type = NA_IP;
