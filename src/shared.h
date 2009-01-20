@@ -377,7 +377,7 @@ typedef struct {
 	struct edict_s *ent;  // not set by CM_*() functions
 } trace_t;
 
-#define PM_STAIR_HEIGHT		18  // maximum stair height player can walk up
+#define PM_STAIR_HEIGHT		16  // maximum stair height player can walk up
 
 // pmove_state_t is the information necessary for client side movement prediction
 typedef enum {

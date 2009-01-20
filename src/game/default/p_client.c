@@ -1287,7 +1287,9 @@ void P_BeginServerFrame(edict_t *ent){
 		return;
 
 	client = ent->client;
-	client->ps.pmove.pm_flags &= ~PMF_PUSHED;
+
+	if(ent->groundentity)  // let this be reset each frame as needed
+		client->ps.pmove.pm_flags &= ~PMF_PUSHED;
 
 	// run weaponthink if it hasn't been done by a ucmd_t
 	if(!client->weapon_thunk && !client->locals.spectator)

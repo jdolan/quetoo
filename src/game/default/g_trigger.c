@@ -170,7 +170,10 @@ static void trigger_push_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 		VectorScale(self->movedir, self->speed * 10, other->velocity);
 
 		if(other->client){  // don't take falling damage immediately from this
+
 			VectorCopy(other->velocity, other->client->oldvelocity);
+			other->client->ps.pmove.pm_flags |= PMF_PUSHED;
+
 			if(other->push_time < level.time){
 				other->push_time = level.time + 1.5;
 				gi.Sound(other, CHAN_AUTO, gi.SoundIndex("world/jumppad.wav"), 1, ATTN_NORM, 0);
