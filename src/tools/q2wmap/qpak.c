@@ -223,7 +223,7 @@ static void AddMaterials(void){
 			c = Com_Parse(&buf);
 			i = atoi(c);
 
-			if(i == -1){  // custom, add it
+			if(i == 0 && strcmp(c, "0")){  // custom, add it
 				snprintf(texture, sizeof(texture), "envmaps/%s", c);
 				AddImage(texture);
 			}
@@ -236,7 +236,7 @@ static void AddMaterials(void){
 			c = Com_Parse(&buf);
 			i = atoi(c);
 
-			if(i == -1){  // custom, add it
+			if(i == 0 && strcmp(c, "0")){  // custom, add it
 				snprintf(texture, sizeof(texture), "flares/%s", c);
 				AddImage(texture);
 			}
