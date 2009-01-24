@@ -167,12 +167,13 @@ static void trigger_push_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 
 	if(strcmp(other->classname, "grenade") == 0 || other->health > 0){
 
-		VectorScale(self->movedir, self->speed * 10, other->velocity);
+		VectorScale(self->movedir, self->speed * 10.0, other->velocity);
 
 		if(other->client){  // don't take falling damage immediately from this
 
 			VectorCopy(other->velocity, other->client->oldvelocity);
-			other->client->ps.pmove.pm_flags |= PMF_PUSHED;
+			other->client->ps.pmove.pm_flags |= (PMF_PUSHED | PMF_TIME_LAND);
+			other->client->ps.pmove.pm_time = 10;
 
 			if(other->push_time < level.time){
 				other->push_time = level.time + 1.5;

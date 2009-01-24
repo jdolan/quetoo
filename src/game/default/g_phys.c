@@ -118,14 +118,14 @@ static void G_Impact(edict_t *e1, trace_t *trace){
 }
 
 
+#define STOP_EPSILON	0.1
+
 /*
  * ClipVelocity
  *
  * Slide off of the impacting object
  * returns the blocked flags (1 = floor, 2 = step / wall)
  */
-#define STOP_EPSILON	0.1
-
 static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
 	float backoff;
 	float change;
@@ -150,6 +150,8 @@ static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
 }
 
 
+#define MAX_CLIP_PLANES	5
+
 /*
  * G_FlyMove
  *
@@ -159,7 +161,6 @@ static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
  * 2 = wall / step
  * 4 = dead stop
  */
-#define MAX_CLIP_PLANES	5
 static int G_FlyMove(edict_t *ent, float time, int mask){
 	edict_t *hit;
 	int bumpcount, numbumps;
@@ -435,9 +436,9 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 
 			// try moving the contacted entity
 			VectorAdd(check->s.origin, move, check->s.origin);
-			if(check->client){
+			if(check->client){  // disable stair prediction
+				check->client->ps.pmove.pm_flags |= PMF_PUSHED;
 				check->client->ps.pmove.delta_angles[YAW] += amove[YAW];
-				check->client->ps.pmove.pm_flags |= PMF_PUSHED;  // disable stair prediction
 			}
 
 			// figure movement due to the pusher's amove
@@ -494,6 +495,7 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 	return true;
 }
 
+
 /*
  * G_Physics_Pusher
  *
@@ -523,6 +525,7 @@ static void G_Physics_Pusher(edict_t *ent){
 				break;  // move was blocked
 		}
 	}
+
 	if(pushed_p > &pushed[MAX_EDICTS])
 		gi.Error("G_Physics_Pusher: MAX_EDICTS exceeded.");
 

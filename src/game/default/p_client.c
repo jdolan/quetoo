@@ -1134,6 +1134,8 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 	if(client->chase_target){  // ensure chase is valid
 
+		client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
+
 		if(!client->chase_target->inuse ||
 				client->chase_target->client->locals.spectator){
 
@@ -1143,13 +1145,13 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 			if(client->chase_target == other){  // no one to chase
 				client->chase_target = NULL;
-				client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 			}
 		}
 	}
 
 	if(!client->chase_target){  // set up for pmove
-		memset(&pm, 0, sizeof(pm));
+
+		client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 
 		if(ent->movetype == MOVETYPE_NOCLIP)
 			client->ps.pmove.pm_type = PM_SPECTATOR;
@@ -1160,11 +1162,12 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
         client->ps.pmove.gravity = level.gravity;
 
+		memset(&pm, 0, sizeof(pm));
 		pm.s = client->ps.pmove;
 
 		for(i = 0; i < 3; i++){
-			pm.s.origin[i] = ent->s.origin[i] * 8;
-			pm.s.velocity[i] = ent->velocity[i] * 8;
+			pm.s.origin[i] = ent->s.origin[i] * 8.0;
+			pm.s.velocity[i] = ent->velocity[i] * 8.0;
 		}
 
 		if(memcmp(&client->old_pmove, &pm.s, sizeof(pm.s))){

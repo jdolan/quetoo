@@ -215,7 +215,7 @@ void Cl_PredictMovement(void){
 	// are we on the ground and not being pushed by a plat?
 	stairs = (pm.s.pm_flags & PMF_ON_GROUND) && !(pm.s.pm_flags & PMF_PUSHED);
 
-	if((step > 7 && step < PM_STAIR_HEIGHT) && stairs){
+	if((step > 7.0 && step <= PM_STAIR_HEIGHT) && stairs){
 		cl.predicted_step_time = cls.realtime;
 		cl.predicted_step = step;
 	}

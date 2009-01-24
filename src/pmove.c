@@ -45,7 +45,7 @@ pml_t pml;
 
 
 // movement parameters
-float pm_maxspeed = 500.0;
+float pm_maxspeed = 450.0;
 float pm_runspeed = 300.0;
 float pm_duckspeed = 150.0;
 float pm_jumpspeed = 300.0;
@@ -135,24 +135,15 @@ static void Pm_ClampVelocity(void){
  * movement command and world state.  Returns the number of planes intersected.
  */
 static int Pm_StepSlideMove_(void){
-	int bumpcount, numbumps;
-	vec3_t dir;
-	float d;
-	int i, j, numplanes;
-	vec3_t planes[MAX_CLIP_PLANES];
-	vec3_t primal_velocity;
+	vec3_t dir, end, planes[MAX_CLIP_PLANES];
 	trace_t trace;
-	vec3_t end;
-	float time;
+	int i, j, k, numplanes;
+	float d, time;
 
-	numbumps = 4;
-
-	VectorCopy(pml.velocity, primal_velocity);
 	numplanes = 0;
-
 	time = pml.frametime;
 
-	for(bumpcount = 0; bumpcount < numbumps; bumpcount++){
+	for(k = 0; k < 4; k++){
 
 		// project desired destination
 		VectorMA(pml.origin, time, pml.velocity, end);
@@ -203,7 +194,7 @@ static int Pm_StepSlideMove_(void){
 		if(i != numplanes){  // go along this plane
 		} else {  // go along the crease
 			if(numplanes != 2){
-				VectorCopy(vec3_origin, pml.velocity);
+				VectorClear(pml.velocity);
 				break;
 			}
 			CrossProduct(planes[0], planes[1], dir);
@@ -224,6 +215,7 @@ static void Pm_StepSlideMove(void){
 	vec3_t neworg, newvel;
 	vec3_t up, down;
 	trace_t trace;
+	int i;
 
 	VectorCopy(pml.origin, org);
 	VectorCopy(pml.velocity, vel);
@@ -231,28 +223,32 @@ static void Pm_StepSlideMove(void){
 	if(!Pm_StepSlideMove_())  // nothing blocked us, we're done
 		return;
 
-	// something blocked us, so let's try to step over it
+	// something blocked us, try to step over it with a few discrete steps
 
-	// save the first move in case the step fails
+	// save the first move in case stepping fails
 	VectorCopy(pml.origin, neworg);
 	VectorCopy(pml.velocity, newvel);
 
-	// see if the upward position is available
-	VectorCopy(org, up);
-	up[2] += PM_STAIR_HEIGHT;
+	for(i = 0; i < 3; i++){
 
-	if(pm->trace(up, pm->mins, pm->maxs, up).allsolid)
-		return;  // it's not
+		// see if the upward position is available
+		VectorCopy(org, up);
+		up[2] += PM_STAIR_HEIGHT;
 
-	// the upward position is available, try to step from there
-	VectorCopy(up, pml.origin);
-	VectorCopy(vel, pml.velocity);
+		if(pm->trace(up, pm->mins, pm->maxs, up).allsolid)
+			break;  // it's not
 
-	Pm_StepSlideMove_();
+		// the upward position is available, try to step from there
+		VectorCopy(up, pml.origin);
+		VectorCopy(vel, pml.velocity);
+
+		if(!Pm_StepSlideMove_())  // nothing blocked us, we're done
+			break;
+	}
 
 	// settle back down atop the step
 	VectorCopy(pml.origin, down);
-	down[2] -= PM_STAIR_HEIGHT;
+	down[2] = org[2];
 
 	trace = pm->trace(pml.origin, pm->mins, pm->maxs, down);
 	VectorCopy(trace.endpos, pml.origin);
@@ -279,16 +275,23 @@ static void Pm_Friction(void){
 	vel = pml.velocity;
 
 	speed = VectorLength(vel);
+
 	if(speed < 2.0){
 		VectorClear(vel);
 		return;
 	}
 
-	drop = 0;
+	drop = 0.0;
 
 	// apply ground friction
-	if((pm->groundentity && pml.groundsurface && !(pml.groundsurface->flags & SURF_SLICK)) || (pml.ladder)){
-		friction = pm_friction;
+	if((pm->groundentity && pml.groundsurface && 
+			!(pml.groundsurface->flags & SURF_SLICK)) || (pml.ladder)){
+
+		if(pm->s.pm_type == PM_DEAD)
+			friction = pm_specfriction;
+		else
+			friction = pm_friction;
+
 		control = speed < pm_stopspeed ? pm_stopspeed : speed;
 		drop += control * friction * pml.frametime;
 	}
@@ -302,12 +305,14 @@ static void Pm_Friction(void){
 
 	// scale the velocity
 	newspeed = speed - drop;
-	if(newspeed < 2.0)
+
+	if(newspeed < 2.0){
 		VectorClear(vel);
-	else {
-		newspeed /= speed;
-		VectorScale(vel, newspeed, vel);
+		return;
 	}
+
+	newspeed /= speed;
+	VectorScale(vel, newspeed, vel);
 }
 
 
@@ -483,7 +488,7 @@ static void Pm_AirMove(void){
 		wishspeed = maxspeed;
 	}
 
-	if(pml.ladder){  // climb up or down
+	if(pml.ladder){  // climb up or down the ladder
 
 		Pm_Accelerate(wishdir, wishspeed, pm_accelerate);
 
@@ -512,7 +517,7 @@ static void Pm_AirMove(void){
 		if(!pml.velocity[0] && !pml.velocity[1])  // optimization
 			return;
 	}
-	else {  // not on ground
+	else {  // jumping, falling, etc..
 
 		Pm_Accelerate(wishdir, wishspeed, pm_airaccelerate);
 
@@ -534,68 +539,74 @@ static void Pm_CategorizePosition(void){
 	int sample1;
 	int sample2;
 
-	// if the player hull point one unit down is solid, the player
-	// is on ground
+	// see if we're standing on something solid
+	VectorCopy(pml.origin, point);
+	point[2] -= 1.0;
 
-	// see if standing on something solid
-	point[0] = pml.origin[0];
-	point[1] = pml.origin[1];
-	point[2] = pml.origin[2] - 0.15;
+	trace = pm->trace(pml.origin, pm->mins, pm->maxs, point);
 
-	if(pml.velocity[2] > 220.0){  // cant jump
+	pml.groundplane = trace.plane;
+	pml.groundsurface = trace.surface;
+	pml.groundcontents = trace.contents;
+
+	// if we did not hit anything, or we hit an upward pusher, or we hit a
+	// world surface that is too steep to stand on, then we have no ground
+	if(!trace.ent || ((pm->s.pm_flags & PMF_PUSHED) && pml.velocity[2] > 0.0) ||
+			trace.plane.normal[2] < MIN_STEP_NORMAL){
+
 		pm->s.pm_flags &= ~PMF_ON_GROUND;
 		pm->groundentity = NULL;
 	} else {
-		trace = pm->trace(pml.origin, pm->mins, pm->maxs, point);
-		pml.groundplane = trace.plane;
-		pml.groundsurface = trace.surface;
-		pml.groundcontents = trace.contents;
+		pm->s.pm_flags |= PMF_ON_GROUND;
+		pm->groundentity = trace.ent;
 
-		if(!trace.ent || (trace.plane.normal[2] < MIN_STEP_NORMAL && !trace.startsolid)){
-			pm->groundentity = NULL;
-			pm->s.pm_flags &= ~PMF_ON_GROUND;
-		} else {
-			pm->groundentity = trace.ent;
-			pm->s.pm_flags |= PMF_ON_GROUND;
+		// hitting the ground will reset timers
+		pm->s.pm_flags &= ~(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT);
+		pm->s.pm_time = 0;
 
-			// falling a significant distance disables jumping for a moment
-			if(pml.velocity[2] < -600.0){
-				pm->s.pm_flags |= PMF_TIME_LAND;
-				pm->s.pm_time = 50;
-			}
-
-			// hitting solid ground will end a waterjump
-			if(pm->s.pm_flags & PMF_TIME_WATERJUMP){
-				pm->s.pm_flags &= ~(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT);
-				pm->s.pm_time = 0;
-			}
+		// but falling a significant distance disables jumping for a moment
+		if(pml.velocity[2] < -600.0){
+			pm->s.pm_flags |= PMF_TIME_LAND;
+			pm->s.pm_time = 100;
 		}
 
-		if(pm->numtouch < MAXTOUCH && trace.ent){
-			pm->touchents[pm->numtouch] = trace.ent;
-			pm->numtouch++;
-		}
+		// hitting the world means we're done being pushed
+		if((int)trace.ent == 1)
+			pm->s.pm_flags &= ~PMF_PUSHED;
+	}
+
+	// save a reference to the entity touched for game events
+	if(pm->numtouch < MAXTOUCH && trace.ent){
+		pm->touchents[pm->numtouch] = trace.ent;
+		pm->numtouch++;
 	}
 
 	// get waterlevel, accounting for ducking
-	pm->waterlevel = 0;
-	pm->watertype = 0;
+	pm->waterlevel = pm->watertype = 0;
 
 	sample2 = pm->viewheight - pm->mins[2];
 	sample1 = sample2 / 2;
 
-	point[2] = pml.origin[2] + pm->mins[2] + 1;
+	point[2] = pml.origin[2] + pm->mins[2] + 1.0;
 	cont = pm->pointcontents(point);
 
 	if(cont & MASK_WATER){
+
 		pm->watertype = cont;
 		pm->waterlevel = 1;
+
 		point[2] = pml.origin[2] + pm->mins[2] + sample1;
+
 		cont = pm->pointcontents(point);
+
 		if(cont & MASK_WATER){
+
 			pm->waterlevel = 2;
+
 			point[2] = pml.origin[2] + pm->mins[2] + sample2;
+
 			cont = pm->pointcontents(point);
+
 			if(cont & MASK_WATER)
 				pm->waterlevel = 3;
 		}
@@ -608,19 +619,20 @@ static void Pm_CategorizePosition(void){
  */
 static void Pm_CheckJump(void){
 
-	if(pm->s.pm_flags & PMF_TIME_LAND)
-		return;  // can't jump yet
+	if(pm->s.pm_type == PM_DEAD)
+		return;
 
-	if(pm->cmd.upmove < 10){  // not holding jump
+	// can't jump yet
+	if(pm->s.pm_flags & PMF_TIME_LAND)
+		return;
+
+	if(pm->cmd.upmove < 10){  // jump key released
 		pm->s.pm_flags &= ~PMF_JUMP_HELD;
 		return;
 	}
 
-	// must wait for jump to be released
+	// must wait for jump key to be released
 	if(pm->s.pm_flags & PMF_JUMP_HELD)
-		return;
-
-	if(pm->s.pm_type == PM_DEAD)
 		return;
 
 	if(pm->waterlevel >= 2){  // swimming, not jumping
@@ -641,9 +653,18 @@ static void Pm_CheckJump(void){
 	if(pm->groundentity == NULL)
 		return;  // in air, so no effect
 
+	// indicate that jump is currently held
 	pm->s.pm_flags |= PMF_JUMP_HELD;
+
+	// disable jumping very briefly
+	pm->s.pm_flags |= PMF_TIME_LAND;
+	pm->s.pm_time = 1;
+
+	// clear the ground indicators
+	pm->s.pm_flags &= ~PMF_ON_GROUND;
 	pm->groundentity = NULL;
 
+	// and do the jump
 	pml.velocity[2] += pm_jumpspeed;
 
 	if(pml.velocity[2] < pm_jumpspeed)
@@ -721,7 +742,7 @@ static void Pm_CheckDuck(void){
 
 	if(pm->s.pm_type == PM_DEAD){
 		pm->s.pm_flags |= PMF_DUCKED;
-	} else if(pm->cmd.upmove < 0 &&(pm->s.pm_flags & PMF_ON_GROUND)){  // duck
+	} else if(pm->cmd.upmove < 0 && (pm->s.pm_flags & PMF_ON_GROUND)){  // duck
 		pm->s.pm_flags |= PMF_DUCKED;
 	} else {  // stand up if possible
 		if(pm->s.pm_flags & PMF_DUCKED){
@@ -988,7 +1009,7 @@ void Pmove(pmove_t *pmove){
 		// waterjump has no control, but falls
 		pml.velocity[2] -= pm->s.gravity * pml.frametime;
 
-		if(pml.velocity[2] < 0){  // cancel as soon as we are falling down again
+		if(pml.velocity[2] < 0.0){  // cancel as soon as we are falling down again
 			pm->s.pm_flags &= ~(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT);
 			pm->s.pm_time = 0;
 		}

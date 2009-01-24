@@ -377,7 +377,7 @@ typedef struct {
 	struct edict_s *ent;  // not set by CM_*() functions
 } trace_t;
 
-#define PM_STAIR_HEIGHT		16  // maximum stair height player can walk up
+#define PM_STAIR_HEIGHT		16.0  // maximum stair height player can walk up
 
 // pmove_state_t is the information necessary for client side movement prediction
 typedef enum {
@@ -397,7 +397,7 @@ typedef enum {
 #define PMF_TIME_LAND		16  // pm_time is time before rejump
 #define PMF_TIME_TELEPORT	32  // pm_time is non-moving time
 #define PMF_NO_PREDICTION	64  // temporarily disables prediction
-#define PMF_PUSHED			128  // disables stair checking
+#define PMF_PUSHED			128  // disables stair checking and velocity clamp
 
 // this structure needs to be communicated bit-accurate
 // from the server to the client to guarantee that
