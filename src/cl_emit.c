@@ -163,10 +163,12 @@ void Cl_LoadEmits(void){
 
 				if(!e->hz){  // default hz and drift
 
-					if(e->flags & EMIT_FLAME)
-						e->hz = 5.0;
+					if(e->flags & (EMIT_LIGHT | EMIT_SPARKS))
+						e->hz = 0.5;
 					else if(e->flags & EMIT_STEAM)
 						e->hz = 20.0;
+					else if(e->flags & EMIT_FLAME)
+						e->hz = 5.0;
 					else if(e->flags & EMIT_SOUND)
 						e->hz = 0.0;  // ambient
 					else
@@ -174,7 +176,11 @@ void Cl_LoadEmits(void){
 				}
 
 				if(!e->drift){
-					e->drift = 0.01;
+
+					if(e->flags & (EMIT_LIGHT | EMIT_SPARKS))
+						e->drift = 3.0;
+					else
+						e->drift = 0.01;
 				}
 
 				if(e->flags & EMIT_SOUND){  // resolve attenuation and looping
