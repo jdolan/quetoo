@@ -86,12 +86,14 @@ byte net_message_buffer[MAX_MSGLEN];
  *
  */
 void Netchan_Init(void){
+	byte p;
 
 	net_showpackets = Cvar_Get("net_showpackets", "0", 0, NULL);
 	net_showdrop = Cvar_Get("net_showdrop", "0", 0, NULL);
 
 	// assign a small random number for the qport
-	net_qport = Cvar_Get("net_qport", va("%i", rand() & 255), CVAR_NOSET, NULL);
+	p = ((int)time(NULL)) & 255;
+	net_qport = Cvar_Get("net_qport", va("%d", p), CVAR_NOSET, NULL);
 }
 
 /*
