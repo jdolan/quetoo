@@ -81,6 +81,7 @@ netadr_t net_from;
 sizebuf_t net_message;
 byte net_message_buffer[MAX_MSGLEN];
 
+
 /*
  * Netchan_Init
  *
@@ -95,6 +96,7 @@ void Netchan_Init(void){
 	p = ((int)time(NULL)) & 255;
 	net_qport = Cvar_Get("net_qport", va("%d", p), CVAR_NOSET, NULL);
 }
+
 
 /*
  * Netchan_OutOfBand
@@ -114,6 +116,7 @@ void Netchan_OutOfBand(int net_socket, netadr_t adr, int length, byte *data){
 	// send the datagram
 	Net_SendPacket(net_socket, send.cursize, send.data, adr);
 }
+
 
 /*
  * Netchan_OutOfBandPrint
@@ -183,6 +186,7 @@ qboolean Netchan_NeedReliable(netchan_t *chan){
 
 	return send_reliable;
 }
+
 
 /*
  * Netchan_Transmit
@@ -262,6 +266,7 @@ void Netchan_Transmit(netchan_t *chan, int length, byte *data){
 						, chan->incoming_reliable_sequence);
 	}
 }
+
 
 /*
  * Netchan_Process
