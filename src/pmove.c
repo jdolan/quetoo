@@ -283,11 +283,20 @@ static void Pm_Friction(void){
 
 	drop = 0.0;
 
-	// apply ground friction
-	if((pm->groundentity && pml.groundsurface && 
-			!(pml.groundsurface->flags & SURF_SLICK)) || (pml.ladder)){
+	// spectator friction
+	if(pm->s.pm_type == PM_SPECTATOR){
+		drop = speed * pm_specfriction * pml.frametime;
+	}
+	// water friction
+	else if(pm->waterlevel && !pml.ladder){
+		drop = speed * pm_waterfriction * pm->waterlevel * pml.frametime;
+	}
+	// ground friction
+	else if(pm->groundentity || pml.ladder){
 
-		if(pm->s.pm_type == PM_DEAD)
+		if(pml.groundsurface && (pml.groundsurface->flags & SURF_SLICK))
+			friction = pm_friction * 0.25;
+		else if(pm->s.pm_type == PM_DEAD)
 			friction = pm_specfriction;
 		else
 			friction = pm_friction;
@@ -295,13 +304,6 @@ static void Pm_Friction(void){
 		control = speed < pm_stopspeed ? pm_stopspeed : speed;
 		drop += control * friction * pml.frametime;
 	}
-
-	// apply water friction
-	if(pm->waterlevel && !pml.ladder)
-		drop += speed * pm_waterfriction * pm->waterlevel * pml.frametime;
-
-	if(pm->s.pm_type == PM_SPECTATOR)
-		drop += speed * pm_specfriction * pml.frametime;
 
 	// scale the velocity
 	newspeed = speed - drop;
