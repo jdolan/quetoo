@@ -622,6 +622,9 @@ static void Cl_DrawBlend(void){
 	if(!cl_blend->value)
 		return;
 
+	if(last_blend_time > cl.time)
+		last_blend_time = 0;
+
 	// determine if we've taken damage or picked up an item
 	dh = cl.frame.playerstate.stats[STAT_HEALTH];
 	da = cl.frame.playerstate.stats[STAT_ARMOR];
