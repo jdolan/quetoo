@@ -176,11 +176,11 @@ static void Svc_Ping(void){
 /*
  * Svc_GetChallenge
  *
- * Returns a challenge number that can be used
- * in a subsequent client_connect command.
- * We do this to prevent denial of service attacks that
- * flood the server with invalid connection IPs.  With a
- * challenge, they must give a valid IP address.
+ * Returns a challenge number that can be used in a subsequent client_connect
+ * command.
+ *
+ * We do this to prevent denial of service attacks that flood the server with
+ * invalid connection IPs.  With a challenge, they must give a valid address.
  */
 static void Svc_GetChallenge(void){
 	int i;
@@ -192,8 +192,10 @@ static void Svc_GetChallenge(void){
 
 	// see if we already have a challenge for this ip
 	for(i = 0; i < MAX_CHALLENGES; i++){
+
 		if(Net_CompareBaseAdr(net_from, svs.challenges[i].adr))
 			break;
+
 		if(svs.challenges[i].time < oldestTime){
 			oldestTime = svs.challenges[i].time;
 			oldest = i;
@@ -277,7 +279,7 @@ static void Svc_Connect(void){
 	// force the ip so the game can filter on it
 	Info_SetValueForKey(userinfo, "ip", Net_AdrToString(adr));
 
-	// see if the challenge is valid
+	// enforce a valid challenge on remote clients to avoid dos attack
 	if(!Net_IsLocalAddress(adr)){
 		for(i = 0; i < MAX_CHALLENGES; i++){
 			if(Net_CompareBaseAdr(adr, svs.challenges[i].adr)){
@@ -295,14 +297,36 @@ static void Svc_Connect(void){
 		}
 	}
 
-	// find a client slot
+	// resolve the client slot
 	newcl = NULL;
+
+	// first check for an ungraceful reconnect (client crashed, perhaps)
 	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
-		if(cl->state == cs_free){
+
+		const netchan_t *ch = &cl->netchan;
+
+		if(cl->state == cs_free)  // not in use, not interested
+			continue;
+
+		// the base address and either the qport or real port must match
+		if(Net_CompareBaseAdr(adr, ch->remote_address) &&
+				(qport == ch->qport || ch->remote_address.port == adr.port)){
 			newcl = cl;
 			break;
 		}
 	}
+
+	// otherwise, treat as a fresh connect to a new slot
+	if(!newcl){
+		for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
+			if(cl->state == cs_free){  // we have a free one
+				newcl = cl;
+				break;
+			}
+		}
+	}
+
+	// no soup for you, next!!
 	if(!newcl){
 		Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nServer is full.\n");
 		Com_Dprintf("Rejected a connection.\n");
@@ -339,8 +363,7 @@ static void Svc_Connect(void){
 	Sb_Init(&newcl->datagram, newcl->datagram_buf, sizeof(newcl->datagram_buf));
 	newcl->datagram.allowoverflow = true;
 
-	newcl->lastmessage = svs.realtime;  // don't timeout
-	newcl->lastconnect = svs.realtime;
+	newcl->lastmessage = newcl->lastconnect = svs.realtime;  // don't timeout
 
 	newcl->state = cs_connected;
 }
