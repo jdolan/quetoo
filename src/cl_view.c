@@ -44,16 +44,21 @@ static void Cl_ClearScene(void){
 static void Cl_UpdateFov(void){
 	float a, x;
 
-	if(cl_fov->value < 10 || cl_fov->value > 179)
-		cl_fov->value = 100.0;
+	if(!cl_fov->modified && !r_view.update)
+		return;
 
-	x = r_state.width / tan(cl_fov->value / 360 * M_PI);
+	if(cl_fov->value < 10.0 || cl_fov->value > 179.0)
+		Cvar_Set("cl_fov", "100.0");
+
+	x = r_state.width / tan(cl_fov->value / 360.0 * M_PI);
 
 	a = atan(r_state.height / x);
 
 	r_view.fov_x = cl_fov->value;
 
-	r_view.fov_y = a * 360 / M_PI;
+	r_view.fov_y = a * 360.0 / M_PI;
+
+	cl_fov->modified = false;
 }
 
 
@@ -63,18 +68,23 @@ static void Cl_UpdateFov(void){
 static void Cl_UpdateViewsize(void){
 	int size;
 
-	if(cl_viewsize->value < 40)
-		Cvar_Set("cl_viewsize", "40");
-	if(cl_viewsize->value > 100)
-		Cvar_Set("cl_viewsize", "100");
+	if(!cl_viewsize->modified && !r_view.update)
+		return;
+
+	if(cl_viewsize->value < 40.0)
+		Cvar_Set("cl_viewsize", "40.0");
+	if(cl_viewsize->value > 100.0)
+		Cvar_Set("cl_viewsize", "100.0");
 
 	size = cl_viewsize->value;
 
-	r_view.width = r_state.width * size / 100;
-	r_view.height = r_state.height * size / 100;
+	r_view.width = r_state.width * size / 100.0;
+	r_view.height = r_state.height * size / 100.0;
 
-	r_view.x = (r_state.width - r_view.width) / 2;
-	r_view.y = (r_state.height - r_view.height) / 2;
+	r_view.x = (r_state.width - r_view.width) / 2.0;
+	r_view.y = (r_state.height - r_view.height) / 2.0;
+
+	cl_viewsize->modified = false;
 }
 
 
@@ -95,7 +105,7 @@ static void Cl_UpdateLerp(frame_t *from){
 	} else if(cl.time < from->servertime){
 		Com_Dprintf("Cl_UpdateViewValues: Low clamp.\n");
 		cl.time = from->servertime;
-		cl.lerp = 0;
+		cl.lerp = 0.0;
 	} else {
 		cl.lerp = (float)(cl.time - from->servertime) /
 				(float)(cl.frame.servertime - from->servertime);
@@ -282,15 +292,9 @@ void Cl_UpdateView(void){
 
 	Cl_UpdateThirdperson(ps);
 
-	if(cl_fov->modified || r_view.update){
-		Cl_UpdateFov();
-		cl_fov->modified = false;
-	}
+	Cl_UpdateFov();
 
-	if(cl_viewsize->modified || r_view.update){
-		Cl_UpdateViewsize();
-		cl_viewsize->modified = false;
-	}
+	Cl_UpdateViewsize();
 
 	// set time in seconds
 	r_view.time = cl.time * 0.001;

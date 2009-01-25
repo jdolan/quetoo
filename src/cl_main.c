@@ -910,8 +910,8 @@ static void Cl_InitLocal(void){
 	cl_crosshairscale = Cvar_Get("cl_crosshairscale", "1.0", CVAR_ARCHIVE, NULL);
 	cl_emits = Cvar_Get("cl_emits", "1", CVAR_ARCHIVE, NULL);
 	cl_footsteps = Cvar_Get("cl_footsteps", "1", CVAR_ARCHIVE, NULL);
-	cl_fov = Cvar_Get("cl_fov", "100", CVAR_ARCHIVE, NULL);
-	cl_fovzoom = Cvar_Get("cl_fovzoom", "40", CVAR_ARCHIVE, NULL);
+	cl_fov = Cvar_Get("cl_fov", "100.0", CVAR_ARCHIVE, NULL);
+	cl_fovzoom = Cvar_Get("cl_fovzoom", "40.0", CVAR_ARCHIVE, NULL);
 	cl_hud = Cvar_Get("cl_hud", "1", CVAR_ARCHIVE, NULL);
 	cl_ignore = Cvar_Get("cl_ignore", "", 0, NULL);
 	cl_maxfps = Cvar_Get("cl_maxfps", "0", CVAR_ARCHIVE, NULL);
@@ -922,8 +922,8 @@ static void Cl_InitLocal(void){
 	cl_shownet = Cvar_Get("cl_shownet", "0", 0, NULL);
 	cl_thirdperson = Cvar_Get("cl_thirdperson", "0", CVAR_ARCHIVE,
 			"Toggles the third person camera.");
-	cl_timeout = Cvar_Get("cl_timeout", "15", 0, NULL);
-	cl_viewsize = Cvar_Get("cl_viewsize", "100", CVAR_ARCHIVE, NULL);
+	cl_timeout = Cvar_Get("cl_timeout", "15.0", 0, NULL);
+	cl_viewsize = Cvar_Get("cl_viewsize", "100.0", CVAR_ARCHIVE, NULL);
 	cl_weapon = Cvar_Get("cl_weapon", "1", CVAR_ARCHIVE, NULL);
 	cl_weather = Cvar_Get("cl_weather", "1", CVAR_ARCHIVE, NULL);
 
