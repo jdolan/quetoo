@@ -229,6 +229,11 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 
 	if(!ps->stats[STAT_CHASE]){  // chasecam uses client side 3rd person
 
+		// if we're spectating, don't translate the origin because we have
+		// no visible player model to begin with
+		if(ps->pmove.pm_type == PM_SPECTATOR)
+			return;
+
 		if(!cl_thirdperson->value)
 			return;
 	}
