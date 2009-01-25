@@ -10,7 +10,7 @@
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 *
 * See the GNU General Public License for more details.
 *
@@ -22,7 +22,7 @@
 #ifndef __R_MATERIAL_H__
 #define __R_MATERIAL_H__
 
-// flags will persist on the stage structures but may also bubble 
+// flags will persist on the stage structures but may also bubble
 // up to the material flags to determine render eligibility
 #define STAGE_TEXTURE			(1 << 0)
 #define STAGE_ENVMAP			(1 << 1)
@@ -38,7 +38,8 @@
 #define STAGE_TERRAIN			(1 << 11)
 #define STAGE_ANIM				(1 << 12)
 #define STAGE_LIGHTMAP			(1 << 13)
-#define STAGE_FLARE				(1 << 14)
+#define STAGE_DIRTMAP			(1 << 14)
+#define STAGE_FLARE				(1 << 15)
 
 // set on stages with valid render passes
 #define STAGE_RENDER 			(1 << 31)
