@@ -248,7 +248,7 @@ static void G_teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 
 	VectorCopy(dest->s.origin, other->s.origin);
 	VectorCopy(dest->s.origin, other->s.old_origin);
-	other->s.origin[2] += 10;
+	other->s.origin[2] += 10.0;
 
 	// clear the velocity and hold them in place briefly
 	other->velocity[2] = 0.0;
@@ -270,7 +270,7 @@ static void G_teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 
 	AngleVectors(dest->s.angles, forward, NULL, NULL);
 	VectorScale(forward, speed, other->velocity);
-	other->velocity[2] += 100;
+	other->velocity[2] += 100.0;
 
 	VectorClear(other->s.angles);
 	VectorClear(other->client->ps.angles);
@@ -295,8 +295,8 @@ void G_misc_teleporter(edict_t *ent){
 		return;
 	}
 
-	VectorSet(ent->mins, -32, -32, -24);
-	VectorSet(ent->maxs, 32, 32, -16);
+	VectorSet(ent->mins, -32.0, -32.0, -24.0);
+	VectorSet(ent->maxs,  32.0,  32.0, -16.0);
 
 	ent->touch = G_teleporter_touch;
 	ent->solid = SOLID_TRIGGER;
