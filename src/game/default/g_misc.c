@@ -251,6 +251,7 @@ static void G_teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 	other->s.origin[2] += 10;
 
 	// clear the velocity and hold them in place briefly
+	other->velocity[2] = 0.0;
 	speed = VectorLength(other->velocity);
 	VectorClear(other->velocity);
 
