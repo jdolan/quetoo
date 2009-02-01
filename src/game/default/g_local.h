@@ -801,6 +801,7 @@ struct edict_s {
 	float push_time;  // trigger_push sound
 	float jump_time;  // jump sound
 	float pain_time;  // pain sound
+	float gasp_time;  // gasp sound
 	float drown_time;  // drown sound and damage
 
 	int health;

@@ -179,8 +179,12 @@ static void P_WorldEffects(void){
 		gi.Sound(current_player, CHAN_AUTO, gi.SoundIndex("world/water_out.wav"), 1, ATTN_NORM, 0);
 
 	// head just coming out of water
-	if(old_waterlevel == 3 && waterlevel != 3)
+	if(old_waterlevel == 3 && waterlevel != 3 &&
+			level.time - current_player->gasp_time > 2.0){
+
 		gi.Sound(current_player, CHAN_AUTO, gi.SoundIndex("*gasp_1.wav"), 1, ATTN_NORM, 0);
+		current_player->gasp_time = level.time;
+	}
 
 	// check for drowning
 	if(waterlevel != 3)

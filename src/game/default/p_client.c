@@ -721,6 +721,7 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->solid = SOLID_BBOX;
 	ent->dead = false;
 	ent->jump_time = 0.0;
+	ent->gasp_time = 0.0;
 	ent->drown_time = level.time + 12.0;
 	ent->clipmask = MASK_PLAYERSOLID;
 	ent->model = "players/ichabod/tris.md2";
