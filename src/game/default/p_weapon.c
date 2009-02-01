@@ -419,7 +419,7 @@ static void P_FireGrenadeLauncher_(edict_t *ent){
 	AngleVectors(ent->client->angles, forward, right, NULL);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireGrenadeLauncher(ent, start, forward, 800, 120, 120, 185.0, 3.0);
+	G_FireGrenadeLauncher(ent, start, forward, 900, 120, 120, 185.0, 3.0);
 
 	gi.WriteByte(svc_muzzleflash);
 	gi.WriteShort(ent - g_edicts);

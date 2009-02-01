@@ -49,7 +49,7 @@ pml_t pml;
 #define PM_ACCEL_SPECTATOR		4.5
 #define PM_ACCEL_WATER			4.0
 
-#define PM_FRICT_GROUND			8.0
+#define PM_FRICT_GROUND			10.0
 #define PM_FRICT_GROUND_SLICK	2.0
 #define PM_FRICT_LADDER			12.0
 #define PM_FRICT_NO_GROUND		0.1
@@ -497,12 +497,10 @@ static void Pm_WaterMove(void){
  * Pm_AirMove
  */
 static void Pm_AirMove(void){
-	int i;
-	vec3_t vel;
+	float speed, maxspeed, accel;
 	float fmove, smove;
-	vec3_t dir;
-	float speed;
-	float maxspeed;
+	vec3_t vel, dir;
+	int i;
 
 	fmove = pm->cmd.forwardmove;
 	smove = pm->cmd.sidemove;
@@ -553,7 +551,12 @@ static void Pm_AirMove(void){
 	}
 	else {  // jumping, falling, etc..
 
-		Pm_Accelerate(dir, speed, PM_ACCEL_NO_GROUND);
+		if(speed < PM_SPEED_RUN)
+			accel = PM_ACCEL_NO_GROUND * (PM_SPEED_RUN / speed);
+		else
+			accel = PM_ACCEL_NO_GROUND;
+
+		Pm_Accelerate(dir, speed, accel);
 
 		// add gravity
 		pml.velocity[2] -= pm->s.gravity * pml.frametime;
