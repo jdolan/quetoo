@@ -799,6 +799,7 @@ struct edict_s {
 
 	float touch_time;  // func_door activation
 	float push_time;  // trigger_push sound
+	float jump_time;  // jump sound
 	float pain_time;  // pain sound
 	float drown_time;  // drown sound and damage
 

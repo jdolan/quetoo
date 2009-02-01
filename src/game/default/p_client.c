@@ -720,6 +720,7 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->mass = 200.0;
 	ent->solid = SOLID_BBOX;
 	ent->dead = false;
+	ent->jump_time = 0.0;
 	ent->drown_time = level.time + 12.0;
 	ent->clipmask = MASK_PLAYERSOLID;
 	ent->model = "players/ichabod/tris.md2";
@@ -1200,13 +1201,17 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 		// check for jump, play randomized sound
 		if(ent->groundentity && !pm.groundentity && 
-				(pm.cmd.upmove >= 10) && (pm.waterlevel == 0)){
+				(pm.cmd.upmove >= 10) && (pm.waterlevel == 0) &&
+				ent->jump_time < level.time - 0.2){
+
 			if(crandom() > 0)
 				gi.Sound(ent, CHAN_VOICE, gi.SoundIndex("*jump_1.wav"),
 						1.0, ATTN_NORM, 0.0);
 			else
 				gi.Sound(ent, CHAN_VOICE, gi.SoundIndex("*jump_2.wav"),
 						1.0, ATTN_NORM, 0.0);
+
+			ent->jump_time = level.time;
 		}
 
 		ent->viewheight = pm.viewheight;
