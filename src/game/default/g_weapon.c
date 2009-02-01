@@ -601,7 +601,7 @@ static void G_LightningDischarge(edict_t *self){
 			continue;
 
 		if(gi.inPVS(self->s.origin, ent->s.origin)){
-			G_Damage(ent, self, self, vec3_origin, ent->s.origin, vec3_origin,
+			G_Damage(ent, self, self->owner, vec3_origin, ent->s.origin, vec3_origin,
 					999, 100, 0, MOD_L_DISCHARGE);
 		}
 	}
