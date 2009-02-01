@@ -783,8 +783,8 @@ struct edict_s {
 
 	vec3_t velocity;
 	vec3_t avelocity;
-	int mass;
-	float air_finished;
+
+	float mass;
 	float gravity;  // per entity gravity multiplier (1.0 is normal)
 	// use for lowgrav artifact, flares
 
@@ -798,8 +798,9 @@ struct edict_s {
 	void (*die)(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
 
 	float touch_time;  // func_door activation
-	float pain_time;  // pain sound
 	float push_time;  // trigger_push sound
+	float pain_time;  // pain sound
+	float drown_time;  // drown sound and damage
 
 	int health;
 	int max_health;

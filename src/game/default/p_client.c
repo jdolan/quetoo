@@ -68,7 +68,7 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 
 	killer = attacker->client ? attacker->client : self->client;
 
-	if(!level.warmup && fraglog != NULL){  //write fraglog
+	if(!level.warmup && fraglog != NULL){  // write fraglog
 
 		fprintf(fraglog, "\\%s\\%s\\\n", killer->locals.netname, self->client->locals.netname);
 
@@ -76,7 +76,7 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 	}
 
 #ifdef HAVE_MYSQL
-	if(!level.warmup && mysql != NULL){  //insert to db
+	if(!level.warmup && mysql != NULL){  // insert to db
 
 		snprintf(sql, sizeof(sql), "insert into frag values(null, now(), '%s', '%s', '%s', %d)",
 				 level.name, killer->locals.sqlname, self->client->locals.sqlname, mod
@@ -717,10 +717,10 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->viewheight = 22;
 	ent->inuse = true;
 	ent->classname = "player";
-	ent->mass = 200;
+	ent->mass = 200.0;
 	ent->solid = SOLID_BBOX;
 	ent->dead = false;
-	ent->air_finished = level.time + 12;
+	ent->drown_time = level.time + 12.0;
 	ent->clipmask = MASK_PLAYERSOLID;
 	ent->model = "players/ichabod/tris.md2";
 	ent->pain = P_Pain;

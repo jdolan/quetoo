@@ -280,7 +280,7 @@ static void G_GrenadeExplode(edict_t *ent){
 			ent->dmg_radius, MOD_G_SPLASH);
 
 	if(G_IsStationary(ent->groundentity))
-		VectorMA(ent->s.origin, 16, ent->plane.normal, origin);
+		VectorMA(ent->s.origin, 16.0, ent->plane.normal, origin);
 	else
 		VectorCopy(ent->s.origin, origin);
 
@@ -296,7 +296,8 @@ static void G_GrenadeExplode(edict_t *ent){
 }
 
 static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
-	float vel, vol;
+	float vel, dot, vol;
+	vec3_t dir;
 
 	if(other == ent->owner)
 		return;
@@ -306,14 +307,27 @@ static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 		return;
 	}
 
-	if(!other->takedamage){  // bounce off walls and return
+	if(!other->takedamage){  // bounce or detonate, based on time
 
-		if((vel = VectorLength(ent->velocity)) < 250.0)
+		VectorCopy(ent->velocity, dir);
+
+		if((vel = VectorNormalize(dir)) < 250.0)
 			return;
 
+		dot = 0.0;
+
 		if(plane && surf){
+
 			ent->plane = *plane;
 			ent->surf = *surf;
+
+			dot = DotProduct(plane->normal, dir);
+		}
+
+		// we're live after a brief safety period for the owner
+		if(dot < -0.25 && level.time - ent->touch_time > 0.25){
+			ent->enemy = other;
+			G_GrenadeExplode(ent);
 		}
 
 		vol = (vel  * vel) / 160000.0;
@@ -359,6 +373,7 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	grenade->s.modelindex = grenade_index;
 	grenade->owner = self;
 	grenade->touch = G_GrenadeTouch;
+	grenade->touch_time = level.time;
 	grenade->nextthink = level.time + timer;
 	grenade->think = G_GrenadeExplode;
 	grenade->dmg = damage;

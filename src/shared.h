@@ -378,6 +378,7 @@ typedef struct {
 } trace_t;
 
 #define PM_STAIR_HEIGHT		16.0  // maximum stair height player can walk up
+#define PM_STAIR_NORMAL		0.7  // can't step up onto very steep slopes
 
 // pmove_state_t is the information necessary for client side movement prediction
 typedef enum {

@@ -254,7 +254,7 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 			if(mod == MOD_BFG_BLAST)
 				scale = 300.0;
 			else if(mod == MOD_R_SPLASH)
-				scale = 1600.0;
+				scale = 1400.0;
 			else if(mod == MOD_GRENADE)
 				scale = 1200.0;
 		}

@@ -162,7 +162,7 @@ static void P_WorldEffects(void){
 	int waterlevel, old_waterlevel;
 
 	if(current_player->movetype == MOVETYPE_NOCLIP){
-		current_player->air_finished = level.time + 12;  // don't need air
+		current_player->drown_time = level.time + 12;  // don't need air
 		return;
 	}
 
@@ -184,8 +184,8 @@ static void P_WorldEffects(void){
 
 	// check for drowning
 	if(waterlevel != 3)
-		current_player->air_finished = level.time + 12;
-	else if(current_player->air_finished < level.time){  // drown
+		current_player->drown_time = level.time + 12;
+	else if(current_player->drown_time < level.time){  // drown
 		if(current_client->drown_time < level.time && current_player->health > 0){
 			current_client->drown_time = level.time + 1;
 
