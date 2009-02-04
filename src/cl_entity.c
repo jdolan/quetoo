@@ -500,7 +500,7 @@ static const vec3_t rocket_light = {
 	1.0, 0.4, 0.4
 };
 static const vec3_t grenade_light = {
-	0.3, 0.2, 0.07
+	0.6, 0.4, 0.1
 };
 static const vec3_t ctf_blue_light = {
 	0.3, 1.0, 3.0
@@ -622,7 +622,7 @@ void Cl_AddEntities(frame_t *frame){
 
 		if(state->effects & EF_GRENADE){
 			R_AddCorona(ent.origin, 10.0, grenade_light);
-			R_AddLight(ent.origin, 1.0, grenade_light);
+			R_AddLight(ent.origin, 1.25, grenade_light);
 		}
 
 		if(state->effects & EF_HYPERBLASTER){

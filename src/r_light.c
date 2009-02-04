@@ -23,7 +23,6 @@
 
 
 #define LIGHT_RADIUS_FACTOR 100.0  // light radius multiplier for shader
-#define LIGHT_RADIUS_FACTOR_ 50.0  // safely reduced multiplyer forsurface marking
 
 /*
  * R_AddLight
@@ -118,12 +117,12 @@ static void R_MarkLights_(light_t *light, vec3_t trans, int bit, mnode_t *node){
 
 	dist = DotProduct(origin, node->plane->normal) - node->plane->dist;
 
-	if(dist > light->radius * LIGHT_RADIUS_FACTOR_){  // front only
+	if(dist > light->radius * LIGHT_RADIUS_FACTOR){  // front only
 		R_MarkLights_(light, trans, bit, node->children[0]);
 		return;
 	}
 
-	if(dist < light->radius * -LIGHT_RADIUS_FACTOR_){  // back only
+	if(dist < light->radius * -LIGHT_RADIUS_FACTOR){  // back only
 		R_MarkLights_(light, trans, bit, node->children[1]);
 		return;
 	}
