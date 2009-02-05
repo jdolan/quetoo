@@ -363,11 +363,9 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 
 	gi.LinkEntity(self);
 
-	// we send a logout effect, but the death sound is also heard
-	// so players know what happened
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(self - g_edicts);
-	gi.WriteByte(MZ_LOGOUT);
+	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(TE_GIB);
+	gi.WritePosition(self->s.origin);
 	gi.Multicast(self->s.origin, MULTICAST_PVS);
 }
 

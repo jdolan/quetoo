@@ -122,7 +122,6 @@ static areanode_t *Sv_CreateAreaNode(int depth, vec3_t mins, vec3_t maxs){
 
 /*
  * Sv_ClearWorld
- *
  */
 void Sv_ClearWorld(void){
 	memset(sv_areanodes, 0, sizeof(sv_areanodes));
@@ -133,20 +132,22 @@ void Sv_ClearWorld(void){
 
 /*
  * Sv_UnlinkEdict
- *
  */
 void Sv_UnlinkEdict(edict_t *ent){
+
 	if(!ent->area.prev)
 		return;  // not linked in anywhere
+
 	RemoveLink(&ent->area);
 	ent->area.prev = ent->area.next = NULL;
 }
 
 
+#define MAX_TOTAL_ENT_LEAFS 128
+
 /*
  * Sv_LinkEdict
  */
-#define MAX_TOTAL_ENT_LEAFS		128
 void Sv_LinkEdict(edict_t *ent){
 	areanode_t *node;
 	int leafs[MAX_TOTAL_ENT_LEAFS];

@@ -337,6 +337,7 @@ void Cl_BulletTrail(const vec3_t start, const vec3_t end);
 void Cl_BulletEffect(const vec3_t org, const vec3_t dir);
 void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale);
 void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count);
+void Cl_GibEffect(const vec3_t org, int count);
 void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count);
 void Cl_RailTrail(const vec3_t start, const vec3_t end, int color);
 void Cl_SmokeTrail(const vec3_t start, const vec3_t end, centity_t *ent);

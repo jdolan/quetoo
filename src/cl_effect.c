@@ -290,15 +290,70 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
 
 		d = rand() & 31;
 		for(j = 0; j < 3; j++){
-			p->org[j] = org[j] + ((rand() & 7) - 4) + d * dir[j];
-			p->vel[j] = crand() * 20;
+			p->org[j] = org[j] + ((rand() & 7) - 4.0) + d * dir[j];
+			p->vel[j] = crand() * 20.0;
 		}
 
-		p->accel[0] = p->accel[1] = 0;
+		p->accel[0] = p->accel[1] = 0.0;
 		p->accel[2] = PARTICLE_GRAVITY / 4.0;
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.5 + frand() * 0.3);
+	}
+}
+
+
+#define GIB_STREAM_DIST 180.0
+#define GIB_STREAM_COUNT 25
+
+/*
+ * Cl_GibEffect
+ */
+void Cl_GibEffect(const vec3_t org, int count){
+	particle_t *p;
+	vec3_t o, v, tmp;
+	trace_t tr;
+	float dist;
+	int i, j;
+
+	for(i = 0; i < count; i++){
+
+		// set the origin and velocity for each gib stream
+		VectorSet(o, crand() * 8.0, crand() * 8.0, 8.0 + crand() * 12.0);
+		VectorAdd(o, org, o);
+
+		VectorSet(v, crand(), crand(), 0.2 + frand());
+
+		dist = GIB_STREAM_DIST;
+		VectorMA(o, dist, v, tmp);
+
+		tr = Cm_BoxTrace(o, tmp, vec3_origin, vec3_origin, 0, MASK_SHOT);
+		dist = GIB_STREAM_DIST * tr.fraction;
+
+		for(j = 1; j < GIB_STREAM_COUNT; j++){
+
+			if(!(p = Cl_AllocParticle()))
+				return;
+
+			p->color = 232 + (rand() & 7);
+			p->image = r_bloodtexture;
+
+			VectorCopy(o, p->org);
+
+			VectorScale(v, dist * ((float)j / GIB_STREAM_COUNT), p->vel);
+			p->vel[0] += crand() * 2.0;
+			p->vel[1] += crand() * 2.0;
+			p->vel[2] += 100.0;
+
+			p->accel[0] = p->accel[1] = 0.0;
+			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
+
+			p->scale = 6.0 + frand();
+			p->scalevel = -6.0 + crand();
+
+			p->alpha = 1.0;
+			p->alphavel = -1.0 / (2.0 + frand() * 0.3);
+		}
 	}
 }
 
@@ -373,15 +428,7 @@ void Cl_TeleporterTrail(const vec3_t org, centity_t *cent){
  * Cl_LogoutEffect
  */
 void Cl_LogoutEffect(const vec3_t org){
-	vec3_t v;
-	int i;
-
-	VectorCopy(org, v);
-
-	for(i = 0; i < 10; i++){
-		v[2] = org[2] - (i * 2);
-		Cl_BloodEffect(v, vec3_origin, 12);
-	}
+	Cl_GibEffect(org, 12);
 }
 
 

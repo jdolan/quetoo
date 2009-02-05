@@ -105,6 +105,11 @@ void Cl_ParseTempEntity(void){
 			Cl_BloodEffect(pos, dir, 12);
 			break;
 
+		case TE_GIB:  // player death
+			Msg_ReadPos(&net_message, pos);
+			Cl_GibEffect(pos, 12);
+			break;
+
 		case TE_SPARKS:  // colored sparks
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadDir(&net_message, dir);

@@ -511,7 +511,8 @@ typedef enum {
 	TE_RAILTRAIL,
 	TE_EXPLOSION,
 	TE_BUBBLETRAIL,
-	TE_BFG
+	TE_BFG,
+	TE_GIB
 } temp_event_t;
 
 // sound channels
