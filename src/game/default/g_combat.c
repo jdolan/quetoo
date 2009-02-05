@@ -37,6 +37,7 @@ qboolean G_OnSameTeam(edict_t *ent1, edict_t *ent2){
 	return ent1->client->locals.team == ent2->client->locals.team;
 }
 
+
 /*
  * G_CanDamage
  *
@@ -200,7 +201,7 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	if(!targ->takedamage)
 		return;
 
-	if(!inflictor) // use world
+	if(!inflictor)  // use world
 		inflictor = &g_edicts[0];
 
 	if(!attacker)  // use world
@@ -356,7 +357,7 @@ void G_RadiusDamage(edict_t *inflictor, edict_t *attacker, edict_t *ignore,
 		if(!G_CanDamage(ent, inflictor))
 			continue;
 
-		G_Damage(ent, inflictor, attacker, dir, inflictor->s.origin,
+		G_Damage(ent, inflictor, attacker, dir, ent->s.origin,
 				vec3_origin, (int)d, (int)k, DAMAGE_RADIUS, mod);
 	}
 }
