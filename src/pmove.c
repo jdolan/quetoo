@@ -60,7 +60,7 @@ pml_t pml;
 #define PM_SPEED_DUCKED			150.0
 #define PM_SPEED_FALL			600.0
 #define PM_SPEED_JUMP			275.0
-#define PM_SPEED_JUMP_WATER		350.0
+#define PM_SPEED_JUMP_WATER		400.0
 #define PM_SPEED_MAX			450.0
 #define PM_SPEED_RUN			300.0
 #define PM_SPEED_SPECTATOR		350.0
@@ -274,8 +274,12 @@ static void Pm_StepSlideMove(void){
 		VectorCopy(neworg, pml.origin);
 		VectorCopy(newvel, pml.velocity);
 	}
-	else {
-		if(pml.velocity[2] < 0.0)
+	else {  // the step was successful
+
+		if(pml.origin[2] - neworg[2] > 4.0)  // we are in fact on stairs
+			pm->s.pm_flags |= PMF_ON_STAIRS;
+
+		if(pml.velocity[2] < 0.0)  // clamp to positive velocity
 			pml.velocity[2] = 0.0;
 	}
 }
@@ -691,7 +695,7 @@ static void Pm_CheckJump(void){
 
 	// disable jumping very briefly
 	pm->s.pm_flags |= PMF_TIME_LAND;
-	pm->s.pm_time = 10;
+	pm->s.pm_time = 4;
 
 	// clear the ground indicators
 	pm->s.pm_flags &= ~PMF_ON_GROUND;
@@ -757,7 +761,7 @@ static void Pm_CheckSpecialMovement(void){
 	pml.velocity[2] = PM_SPEED_JUMP_WATER;
 
 	pm->s.pm_flags |= PMF_TIME_WATERJUMP;
-	pm->s.pm_time = 100;
+	pm->s.pm_time = 255;
 }
 
 
@@ -768,8 +772,8 @@ static void Pm_WaterJumpMove(void){
 
 	pml.velocity[2] -= pm->s.gravity * pml.frametime;
 
-	if(pml.velocity[2] < PM_SPEED_STAIRS){  // clear our timer
-		pm->s.pm_flags &= ~(PMF_TIME_LAND | PMF_TIME_WATERJUMP | PMF_TIME_TELEPORT);
+	if(pml.velocity[2] < PM_SPEED_STAIRS){  // clear the timer
+		pm->s.pm_flags &= ~PMF_TIME_MASK;
 		pm->s.pm_time = 0;
 	}
 
@@ -994,6 +998,9 @@ void Pmove(pmove_t *pmove){
 	pm->watertype = 0;
 	pm->waterlevel = 0;
 
+	// clear the stair climbing flag each time
+	pm->s.pm_flags &= ~PMF_ON_STAIRS;
+
 	// clear all pmove local vars
 	memset(&pml, 0, sizeof(pml));
 
@@ -1044,7 +1051,7 @@ void Pmove(pmove_t *pmove){
 			msec = 1;
 
 		if(msec >= pm->s.pm_time){  // clear it
-			pm->s.pm_flags &= ~(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT);
+			pm->s.pm_flags &= ~PMF_TIME_MASK;
 			pm->s.pm_time = 0;
 		} else {  // or just drop it
 			pm->s.pm_time -= msec;

@@ -391,14 +391,17 @@ typedef enum {
 } pmtype_t;
 
 // pmove->pm_flags
-#define PMF_DUCKED			1
-#define PMF_JUMP_HELD		2
-#define PMF_ON_GROUND		4
-#define PMF_TIME_WATERJUMP	8  // pm_time is waterjump
-#define PMF_TIME_LAND		16  // pm_time is time before rejump
-#define PMF_TIME_TELEPORT	32  // pm_time is non-moving time
-#define PMF_NO_PREDICTION	64  // temporarily disables prediction
-#define PMF_PUSHED			128  // disables stair checking and velocity clamp
+#define PMF_DUCKED			0x1
+#define PMF_JUMP_HELD		0x2
+#define PMF_ON_GROUND		0x4
+#define PMF_ON_STAIRS		0x8
+#define PMF_TIME_WATERJUMP	0x10   // pm_time is time before control
+#define PMF_TIME_LAND		0x20   // pm_time is time before rejump
+#define PMF_TIME_TELEPORT	0x40   // pm_time is non-moving time
+#define PMF_NO_PREDICTION	0x80   // temporarily disables prediction
+#define PMF_PUSHED			0x100  // disables stair checking and velocity clamp
+
+#define PMF_TIME_MASK		(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT)
 
 // this structure needs to be communicated bit-accurate
 // from the server to the client to guarantee that
@@ -410,7 +413,7 @@ typedef struct {
 
 	short origin[3];  // 12.3
 	short velocity[3];  // 12.3
-	byte pm_flags;  // ducked, jump_held, etc
+	short pm_flags;  // ducked, jump_held, etc
 	byte pm_time;  // each unit = 8 ms
 	short gravity;
 	short delta_angles[3];  // add to command angles to get view direction

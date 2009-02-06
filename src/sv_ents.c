@@ -173,7 +173,7 @@ static void Sv_WritePlayerstateToClient(client_t *client, client_frame_t *from, 
 		Msg_WriteByte(msg, ps->pmove.pm_time);
 
 	if(pflags & PS_M_FLAGS)
-		Msg_WriteByte(msg, ps->pmove.pm_flags);
+		Msg_WriteShort(msg, ps->pmove.pm_flags);
 
 	if(pflags & PS_M_DELTA_ANGLES){
 		Msg_WriteShort(msg, ps->pmove.delta_angles[0]);

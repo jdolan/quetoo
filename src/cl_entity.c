@@ -345,7 +345,7 @@ static void Cl_ParsePlayerstate(const frame_t *oldframe, frame_t *newframe){
 		state->pmove.pm_time = Msg_ReadByte(&net_message);
 
 	if(flags & PS_M_FLAGS)
-		state->pmove.pm_flags = Msg_ReadByte(&net_message);
+		state->pmove.pm_flags = Msg_ReadShort(&net_message);
 
 	if(flags & PS_M_DELTA_ANGLES){
 		state->pmove.delta_angles[0] = Msg_ReadShort(&net_message);

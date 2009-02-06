@@ -42,7 +42,7 @@ void Cl_CheckPredictionError(void){
 
 	VectorScale(delta, 0.125, fdelta);  // denormalize back to floats
 
-	if(VectorLength(fdelta) > 256){  // assume a teleport or something
+	if(VectorLength(fdelta) > 256.0){  // assume a teleport or something
 		VectorClear(cl.prediction_error);
 	} else {  // save the prediction error for interpolation
 		if(cl_showmiss->value && (delta[0] || delta[1] || delta[2]))
@@ -82,7 +82,7 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 			headnode = cmodel->headnode;
 			angles = ent->angles;
 		} else {  // encoded bbox
-			const int x = 8 * (ent->solid & 31);
+			const int x  = 8 * (ent->solid & 31);
 			const int zd = 8 * ((ent->solid >> 5) & 31);
 			const int zu = 8 * ((ent->solid >> 10) & 63) - 32;
 
@@ -164,8 +164,7 @@ int cl_gravity;
 void Cl_PredictMovement(void){
 	int i, ack, current;
 	pmove_t pm;
-	vec_t step;
-	qboolean stairs;
+	float step;
 
 	if(cls.state != ca_active)
 		return;
@@ -209,13 +208,9 @@ void Cl_PredictMovement(void){
 		VectorCopy(pm.s.origin, cl.predicted_origins[frame]);
 	}
 
-	// get immediate results of this prediction versus last one
 	step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
 
-	// are we on the ground and not being pushed by a plat?
-	stairs = (pm.s.pm_flags & PMF_ON_GROUND) && !(pm.s.pm_flags & PMF_PUSHED);
-
-	if((step > 7.0 && step <= PM_STAIR_HEIGHT) && stairs){
+	if(pm.s.pm_flags & PMF_ON_STAIRS && step > 4.0){  // save for stair lerping
 		cl.predicted_step_time = cls.realtime;
 		cl.predicted_step = step;
 	}
