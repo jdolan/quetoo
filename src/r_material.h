@@ -84,6 +84,10 @@ typedef struct terrain_s {
 	float height;
 } terrain_t;
 
+typedef struct dirt_s {
+	float intensity;
+} dirt_t;
+
 typedef struct anim_s {
 	int num_frames;
 	struct image_s *images[MAX_ANIM_FRAMES];
@@ -103,6 +107,7 @@ typedef struct stage_s {
 	scroll_t scroll;
 	scale_t scale;
 	terrain_t terrain;
+	dirt_t dirt;
 	anim_t anim;
 	struct stage_s *next;
 } stage_t;

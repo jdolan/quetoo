@@ -143,9 +143,11 @@ static inline void R_StageVertex(msurface_t *surf, stage_t *stage, vec3_t in, ve
 	VectorCopy(in, out);
 }
 
-#define MAX_DIRTMAP_ENTRIES 16
-static const float alphaValues[MAX_DIRTMAP_ENTRIES] = {
-		0.6, 0.5, 0.3, 0.4, 0.7, 0.3, 0.0, 0.4, 0.5, 0.2, 0.8, 0.5, 0.3, 0.2, 0.5, 0.3
+
+#define NUM_DIRTMAP_ENTRIES 16
+static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
+	0.6, 0.5, 0.3, 0.4, 0.7, 0.3, 0.0, 0.4,
+	0.5, 0.2, 0.8, 0.5, 0.3, 0.2, 0.5, 0.3
 };
 
 /*
@@ -153,17 +155,9 @@ static const float alphaValues[MAX_DIRTMAP_ENTRIES] = {
  */
 static inline void R_StageColor(stage_t *stage, vec3_t v, vec4_t color){
 	float a;
+	int i;
 
-	if(stage->flags & STAGE_DIRTMAP){
-
-		const int index = (int)VectorLength(v) % MAX_DIRTMAP_ENTRIES;
-
-		if(stage->flags & STAGE_COLOR)  // honor stage color
-			VectorCopy(stage->color, color);
-		else  // or use white
-			VectorSet(color, 1.0, 1.0, 1.0);
-		color[3] = alphaValues[index];
-	} else if(stage->flags & STAGE_TERRAIN){
+	if(stage->flags & STAGE_TERRAIN){
 
 		if(stage->flags & STAGE_COLOR)  // honor stage color
 			VectorCopy(stage->color, color);
@@ -179,6 +173,17 @@ static inline void R_StageColor(stage_t *stage, vec3_t v, vec4_t color){
 			a = (v[2] - stage->terrain.floor) / stage->terrain.height;
 
 		color[3] = a;
+	}
+	else if(stage->flags & STAGE_DIRTMAP){
+
+		if(stage->flags & STAGE_COLOR)  // honor stage color
+			VectorCopy(stage->color, color);
+		else  // or use white
+			VectorSet(color, 1.0, 1.0, 1.0);
+
+		// resolve dirtmap based on vertex position
+		i = (int)(v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
+		color[3] = dirtmap[i] * stage->dirt.intensity;
 	}
 	else {  // simply use white
 		color[0] = color[1] = color[2] = color[3] = 1.0;
@@ -619,8 +624,8 @@ static int R_ParseStage(stage_t *s, const char **buffer){
 			s->terrain.ceil = atof(c);
 
 			if(s->terrain.ceil < s->terrain.floor){
-				Com_Warn("R_ParseStage: Inverted ceiling / floor values for %s\n",
-						(s->image ? s->image->name : "NULL"));
+				Com_Warn("R_ParseStage: Inverted terrain ceiling and floor "
+						"values for %s\n", (s->image ? s->image->name : "NULL"));
 				return -1;
 			}
 
@@ -637,6 +642,16 @@ static int R_ParseStage(stage_t *s, const char **buffer){
 		}
 
 		if(!strcmp(c, "dirtmap")){
+
+			c = Com_Parse(buffer);
+			s->dirt.intensity = atof(c);
+
+			if(s->dirt.intensity <= 0.0){
+				Com_Warn("R_ParseStage: Invalid dirtmap intensity for %s\n",
+						(s->image ? s->image->name : "NULL"));
+				return -1;
+			}
+
 			s->flags |= STAGE_DIRTMAP;
 			continue;
 		}
