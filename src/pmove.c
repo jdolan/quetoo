@@ -917,17 +917,16 @@ static void Pm_InitialSnapPosition(void){
  * Pm_ClampAngles
  */
 static void Pm_ClampAngles(void){
-	short temp;
+	vec3_t angles;
 	int i;
 
 	if(pm->s.pm_flags & PMF_TIME_TELEPORT){
 		pm->angles[YAW] = SHORT2ANGLE(pm->cmd.angles[YAW] + pm->s.delta_angles[YAW]);
-		pm->angles[PITCH] = 0.0;
-		pm->angles[ROLL] = 0.0;
+		pm->angles[PITCH] = pm->angles[ROLL] = 0.0;
 	} else {
 		// circularly clamp the angles with deltas
 		for(i = 0; i < 3; i++){
-			temp = pm->cmd.angles[i] + pm->s.delta_angles[i];
+			short temp = pm->cmd.angles[i] + pm->s.delta_angles[i];
 			pm->angles[i] = SHORT2ANGLE(temp);
 		}
 
@@ -938,7 +937,14 @@ static void Pm_ClampAngles(void){
 			pm->angles[PITCH] = 271.0;
 	}
 
-	AngleVectors(pm->angles, pml.forward, pml.right, pml.up);
+	// update the local angles responsible for velocity calculations
+	VectorCopy(pm->angles, angles);
+
+	// for ground movement, reduce pitch to keep the player moveing forward
+	if(pm->s.pm_flags & PMF_ON_GROUND)
+		angles[PITCH] /= 3.0;
+
+	AngleVectors(angles, pml.forward, pml.right, pml.up);
 }
 
 
