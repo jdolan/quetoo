@@ -899,8 +899,8 @@ void Cl_EnergyTrail(centity_t *ent, float radius){
 	int i, c;
 	particle_t *p;
 	float angle;
-	float sr, sp, sy, cr, cp, cy;
-	vec3_t forward, vel;
+	float sp, sy, cp, cy;
+	vec3_t forward;
 	float dist;
 	vec3_t v;
 	float ltime;
@@ -909,9 +909,6 @@ void Cl_EnergyTrail(centity_t *ent, float radius){
 		for(i = 0; i < NUMVERTEXNORMALS * 3; i++)
 			avelocities[0][i] = (rand() & 255) * 0.01;
 	}
-
-	VectorSubtract(ent->prev.origin, ent->current.origin, vel);
-	VectorScale(vel, 4.0, vel);
 
 	ltime = (float)cl.time / 1000.0;
 
@@ -925,10 +922,6 @@ void Cl_EnergyTrail(centity_t *ent, float radius){
 		sp = sin(angle);
 		cp = cos(angle);
 
-		angle = ltime * avelocities[i][2];
-		sr = sin(angle);
-		cr = cos(angle);
-
 		forward[0] = cp * cy;
 		forward[1] = cp * sy;
 		forward[2] = -sp;
@@ -936,23 +929,21 @@ void Cl_EnergyTrail(centity_t *ent, float radius){
 		if(!(p = Cl_AllocParticle()))
 			return;
 
-		p->scale = radius * 0.05;
+		p->scale = 1.0 + radius * 0.05;
 
 		dist = sin(ltime + i) * radius;
-		p->org[0] = ent->current.origin[0] + bytedirs[i][0] * dist + forward[0] * 16;
-		p->org[1] = ent->current.origin[1] + bytedirs[i][1] * dist + forward[1] * 16;
-		p->org[2] = ent->current.origin[2] + bytedirs[i][2] * dist + forward[2] * 16;
-
-		VectorCopy(vel, p->vel);
+		p->org[0] = ent->current.origin[0] + bytedirs[i][0] * dist + forward[0] * 16.0;
+		p->org[1] = ent->current.origin[1] + bytedirs[i][1] * dist + forward[1] * 16.0;
+		p->org[2] = ent->current.origin[2] + bytedirs[i][2] * dist + forward[2] * 16.0;
 
 		VectorSubtract(p->org, ent->current.origin, v);
-		dist = VectorLength(v) / (2.0 * radius);
+		dist = VectorLength(v) / (3.0 * radius);
 		p->color = 107 + dist * 7;
 
 		p->alpha = 1.0 - dist;
-		p->alphavel = -8.0;
+		p->alphavel = -100.0;
 
-		p->vel[0] = p->vel[1] = p->vel[2] = 2 * crand();
+		p->vel[0] = p->vel[1] = p->vel[2] = 2.0 * crand();
 	}
 
 	// add a bubble trail if appropriate
