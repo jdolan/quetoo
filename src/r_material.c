@@ -116,7 +116,7 @@ static inline void R_StageTextureMatrix(msurface_t *surf, stage_t *stage){
 /*
  * R_StageTexCoord
  */
-static inline void R_StageTexCoord(stage_t *stage, vec3_t v, vec2_t in, vec2_t out){
+static inline void R_StageTexCoord(const stage_t *stage, const vec3_t v, const vec2_t in, vec2_t out){
 	vec3_t tmp;
 
 	if(stage->flags & STAGE_ENVMAP){  // generate texcoords
@@ -137,7 +137,7 @@ static inline void R_StageTexCoord(stage_t *stage, vec3_t v, vec2_t in, vec2_t o
 /*
  * R_StageVertex
  */
-static inline void R_StageVertex(msurface_t *surf, stage_t *stage, vec3_t in, vec3_t out){
+static inline void R_StageVertex(const msurface_t *surf, const stage_t *stage, const vec3_t in, vec3_t out){
 
 	// TODO: vertex deforms
 	VectorCopy(in, out);
@@ -153,7 +153,7 @@ static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
 /*
  * R_StageColor
  */
-static inline void R_StageColor(stage_t *stage, vec3_t v, vec4_t color){
+static inline void R_StageColor(const stage_t *stage, const vec3_t v, vec4_t color){
 	float a;
 	int i;
 
@@ -256,13 +256,12 @@ static void R_SetSurfaceStageState(msurface_t *surf, stage_t *stage){
  * R_DrawSurfaceStage
  */
 static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
-	float *v, *st;
 	int i;
 
 	for(i = 0; i < surf->numedges; i++){
 
-		v = &r_worldmodel->verts[surf->index * 3 + i * 3];
-		st = &r_worldmodel->texcoords[surf->index * 2 + i * 2];
+		const float *v = &r_worldmodel->verts[surf->index * 3 + i * 3];
+		const float *st = &r_worldmodel->texcoords[surf->index * 2 + i * 2];
 
 		R_StageVertex(surf, stage, v, &r_state.vertex_array_3d[i * 3]);
 
@@ -286,7 +285,6 @@ static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
  * R_DrawMaterialSurfaces
  */
 void R_DrawMaterialSurfaces(msurfaces_t *surfs){
-	msurface_t *surf;
 	material_t *m;
 	stage_t *s;
 	int i, j;
@@ -305,7 +303,7 @@ void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 
 	for(i = 0; i < surfs->count; i++){
 
-		surf = surfs->surfaces[i];
+		msurface_t *surf = surfs->surfaces[i];
 
 		if(surf->frame != r_locals.frame)
 			continue;
@@ -350,23 +348,21 @@ void R_DrawMaterialSurfaces(msurfaces_t *surfs){
  * R_ClearMaterials
  */
 static void R_ClearMaterials(void){
-	material_t *m;
-	stage_t *s, *ss;
 	int i;
 
 	// clear previously loaded materials
 	for(i = 0; i < MAX_GL_TEXTURES; i++){
 
-		m = &r_images[i].material;
-		s = m->stages;
+		material_t *m = &r_images[i].material;
+		stage_t *s = m->stages;
 
 		while(s){  // free the stages chain
-			ss = s->next;
+			stage_t *ss = s->next;
 			Z_Free(s);
 			s = ss;
 		}
 
-		memset(m, 0, sizeof(material_t));
+		memset(m, 0, sizeof(*m));
 
 		m->bump = DEFAULT_BUMP;
 		m->parallax = DEFAULT_PARALLAX;
@@ -391,6 +387,8 @@ static inline GLenum R_ConstByName(const char *c){
 		return GL_ONE_MINUS_SRC_ALPHA;
 	if(!strcmp(c, "GL_SRC_COLOR"))
 		return GL_SRC_COLOR;
+	if(!strcmp(c, "GL_DST_COLOR"))
+		return GL_DST_COLOR;
 	if(!strcmp(c, "GL_ONE_MINUS_SRC_COLOR"))
 		return GL_ONE_MINUS_SRC_COLOR;
 
@@ -405,7 +403,7 @@ static inline GLenum R_ConstByName(const char *c){
  * R_LoadAnimImages
  */
 static int R_LoadAnimImages(stage_t *s){
-	char *c, name[MAX_QPATH];
+	char name[MAX_QPATH];
 	int i, j, k;
 
 	if(!s->image){
@@ -430,7 +428,7 @@ static int R_LoadAnimImages(stage_t *s){
 	// now load the rest
 	for(k = 1, i = i + 1; k < s->anim.num_frames; k++, i++){
 
-		c = va("%s%d", name, i);
+		const char *c = va("%s%d", name, i);
 		s->anim.images[k] = R_LoadImage(c, it_material);
 
 		if(s->anim.images[k] == r_notexture){
@@ -447,12 +445,11 @@ static int R_LoadAnimImages(stage_t *s){
  * R_ParseStage
  */
 static int R_ParseStage(stage_t *s, const char **buffer){
-	const char *c;
 	int i;
 
 	while(true){
 
-		c = Com_Parse(buffer);
+		const char *c = Com_Parse(buffer);
 
 		if(!strlen(c))
 			break;
@@ -646,7 +643,7 @@ static int R_ParseStage(stage_t *s, const char **buffer){
 			c = Com_Parse(buffer);
 			s->dirt.intensity = atof(c);
 
-			if(s->dirt.intensity <= 0.0){
+			if(s->dirt.intensity <= 0.0 || s->dirt.intensity > 1.0){
 				Com_Warn("R_ParseStage: Invalid dirtmap intensity for %s\n",
 						(s->image ? s->image->name : "NULL"));
 				return -1;
