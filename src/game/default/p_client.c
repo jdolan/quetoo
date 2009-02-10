@@ -790,7 +790,7 @@ static void P_PutClientInServer(edict_t *ent){
 
 	// hold in place briefly
 	client->ps.pmove.pm_flags = PMF_TIME_TELEPORT;
-	client->ps.pmove.pm_time = 14;
+	client->ps.pmove.pm_time = 20;
 
 	client->locals.matchnum = level.matchnum;
 	client->locals.roundnum = level.roundnum;
