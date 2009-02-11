@@ -592,7 +592,7 @@ static void Pm_CategorizePosition(void){
 
 	// if we did not hit anything, or we hit an upward pusher, or we hit a
 	// world surface that is too steep to stand on, then we have no ground
-	if(!trace.ent || ((pm->s.pm_flags & PMF_PUSHED) && pml.velocity[2] > 0.0) ||
+	if(!trace.ent || ((pm->s.pm_flags & PMF_PUSHED) && pm->s.pm_time) ||
 			trace.plane.normal[2] < PM_STAIR_NORMAL){
 
 		pm->s.pm_flags &= ~PMF_ON_GROUND;
@@ -825,16 +825,14 @@ static void Pm_CheckDuck(void){
  */
 static qboolean Pm_GoodPosition(void){
 	trace_t trace;
-	vec3_t origin, end;
-	int i;
+	vec3_t pos;
 
 	if(pm->s.pm_type == PM_SPECTATOR)
 		return true;
 
-	for(i = 0; i < 3; i++)
-		origin[i] = end[i] = pm->s.origin[i] * 0.125;
+	VectorScale(pm->s.origin, 0.125, pos);
 
-	trace = pm->trace(origin, pm->mins, pm->maxs, end);
+	trace = pm->trace(pos, pm->mins, pm->maxs, pos);
 
 	return !trace.allsolid;
 }
@@ -847,40 +845,48 @@ static qboolean Pm_GoodPosition(void){
  * precision of the network channel and in a valid position.
  */
 static void Pm_SnapPosition(void){
-	int sign[3];
-	int i, j, bits;
-	short base[3];
-	// try all single bits first
 	static int jitterbits[8] = {0, 4, 1, 2, 3, 5, 6, 7};
+	int i, j, bits, sign[3];
+	short base[3];
 
 	// snap velocity to eigths
 	for(i = 0; i < 3; i++)
 		pm->s.velocity[i] = (int)(pml.velocity[i] * 8.0);
 
-	for(i = 0; i < 3; i++){
+	for(i = 0; i < 3; i++){  // resolve signedness
+
 		if(pml.origin[i] >= 0)
 			sign[i] = 1;
 		else
 			sign[i] = -1;
+
 		pm->s.origin[i] = (int)(pml.origin[i] * 8.0);
+
 		if(pm->s.origin[i] * 0.125 == pml.origin[i])
 			sign[i] = 0;
 	}
+
 	VectorCopy(pm->s.origin, base);
 
 	// try all combinations
 	for(j = 0; j < 8; j++){
+
 		bits = jitterbits[j];
+
 		VectorCopy(base, pm->s.origin);
-		for(i = 0; i < 3; i++)
+
+		for(i = 0; i < 3; i++){  // shift the origin
+
 			if(bits & (1 << i))
 				pm->s.origin[i] += sign[i];
+		}
 
 		if(Pm_GoodPosition())
 			return;
 	}
 
 	// go back to the last position
+	Com_Dprintf("Pm_SnapPosition: Failed to snap to good position.\n");
 	VectorCopy(pml.previous_origin, pm->s.origin);
 }
 
@@ -897,10 +903,13 @@ static void Pm_InitialSnapPosition(void){
 
 	for(z = 0; z < 3; z++){
 		pm->s.origin[2] = base[2] + offset[ z ];
+
 		for(y = 0; y < 3; y++){
 			pm->s.origin[1] = base[1] + offset[ y ];
+
 			for(x = 0; x < 3; x++){
 				pm->s.origin[0] = base[0] + offset[ x ];
+
 				if(Pm_GoodPosition()){
 					VectorScale(pml.origin, 0.125, pm->s.origin);
 					VectorCopy(pm->s.origin, pml.previous_origin);
@@ -909,7 +918,8 @@ static void Pm_InitialSnapPosition(void){
 			}
 		}
 	}
-	Com_Dprintf("Bad InitialSnapPosition\n");
+
+	Com_Dprintf("Pm_InitialSnapPosition: Bad position.\n");
 }
 
 
@@ -926,13 +936,13 @@ static void Pm_ClampAngles(void){
 	} else {
 		// circularly clamp the angles with deltas
 		for(i = 0; i < 3; i++){
-			short temp = pm->cmd.angles[i] + pm->s.delta_angles[i];
-			pm->angles[i] = SHORT2ANGLE(temp);
+			pm->angles[i] = SHORT2ANGLE(pm->cmd.angles[i] + pm->s.delta_angles[i]);
 		}
 
 		// don't let the player look up or down more than 90 degrees
 		if(pm->angles[PITCH] > 89.0 && pm->angles[PITCH] < 180.0)
 			pm->angles[PITCH] = 89.0;
+
 		else if(pm->angles[PITCH] < 271.0 && pm->angles[PITCH] >= 180.0)
 			pm->angles[PITCH] = 271.0;
 	}
@@ -940,7 +950,7 @@ static void Pm_ClampAngles(void){
 	// update the local angles responsible for velocity calculations
 	VectorCopy(pm->angles, angles);
 
-	// for ground movement, reduce pitch to keep the player moveing forward
+	// for ground movement, reduce pitch to keep the player moving forward
 	if(pm->s.pm_flags & PMF_ON_GROUND)
 		angles[PITCH] /= 3.0;
 
@@ -989,6 +999,61 @@ static void Pm_SpectatorMove(){
 
 
 /*
+ * Pm_Init
+ */
+static void Pm_Init(void){
+
+	VectorClear(pm->angles);
+
+	pm->viewheight = 0.0;
+
+	pm->numtouch = 0;
+	pm->groundentity = NULL;
+	pm->watertype = pm->waterlevel = 0;
+
+	// reset stair climbing flag on every move
+	pm->s.pm_flags &= ~PMF_ON_STAIRS;
+	
+	// decrement the movement timer
+	if(pm->s.pm_time){
+		int msec;
+
+		// each pm_time is worth 8ms
+		msec = pm->cmd.msec >> 3;
+
+		if(!msec)
+			msec = 1;
+
+		if(msec >= pm->s.pm_time){  // clear the timer and timed flags
+			pm->s.pm_flags &= ~PMF_TIME_MASK;
+			pm->s.pm_time = 0;
+		} else {  // or just decrement the timer
+			pm->s.pm_time -= msec;
+		}
+	}
+}
+
+
+/*
+ * Pm_InitLocal
+ */
+static void Pm_InitLocal(void){
+
+	// clear all pmove local vars
+	memset(&pml, 0, sizeof(pml));
+
+	// save previous origin in case move fails entirely
+	VectorCopy(pm->s.origin, pml.previous_origin);
+
+	// convert origin and velocity to float values
+	VectorScale(pm->s.origin, 0.125, pml.origin);
+	VectorScale(pm->s.velocity, 0.125, pml.velocity);
+
+	pml.frametime = pm->cmd.msec * 0.001;
+}
+
+
+/*
  * Pmove
  *
  * Can be called by either the server or the client to update prediction.
@@ -996,45 +1061,26 @@ static void Pm_SpectatorMove(){
 void Pmove(pmove_t *pmove){
 	pm = pmove;
 
-	// clear results
-	pm->numtouch = 0;
-	VectorClear(pm->angles);
-	pm->viewheight = 0.0;
-	pm->groundentity = 0;
-	pm->watertype = 0;
-	pm->waterlevel = 0;
+	Pm_Init();
 
-	// clear the stair climbing flag each time
-	pm->s.pm_flags &= ~PMF_ON_STAIRS;
-
-	// clear all pmove local vars
-	memset(&pml, 0, sizeof(pml));
-
-	// convert origin and velocity to float values
-	VectorScale(pm->s.origin, 0.125, pml.origin);
-	VectorScale(pm->s.velocity, 0.125, pml.velocity);
-
-	// save old org in case we get stuck
-	VectorCopy(pm->s.origin, pml.previous_origin);
-
-	pml.frametime = pm->cmd.msec * 0.001;
+	Pm_InitLocal();
 
 	Pm_ClampAngles();
 
-	if(pm->s.pm_type == PM_SPECTATOR){
+	if(pm->s.pm_type == PM_SPECTATOR){  // fly around
+
 		Pm_SpectatorMove();
+
 		Pm_SnapPosition();
 		return;
 	}
 
-	if(pm->s.pm_type >= PM_DEAD){
-		pm->cmd.forwardmove = 0;
-		pm->cmd.sidemove = 0;
-		pm->cmd.upmove = 0;
-	}
+	if(pm->s.pm_type == PM_DEAD || pm->s.pm_type == PM_FREEZE){  // no control
+		pm->cmd.forwardmove = pm->cmd.sidemove = pm->cmd.upmove = 0;
 
-	if(pm->s.pm_type == PM_FREEZE)
-		return;  // no movement at all
+		if(pm->s.pm_type == PM_FREEZE)  // no movement
+			return;
+	}
 
 	// set mins, maxs, and viewheight
 	Pm_CheckDuck();
@@ -1045,24 +1091,8 @@ void Pmove(pmove_t *pmove){
 	// set groundentity, watertype, and waterlevel
 	Pm_CategorizePosition();
 
+	// attach to a ladder or jump out of the water
 	Pm_CheckSpecialMovement();
-
-	// drop timing counter
-	if(pm->s.pm_time){
-		int msec;
-
-		msec = pm->cmd.msec >> 3;
-
-		if(!msec)
-			msec = 1;
-
-		if(msec >= pm->s.pm_time){  // clear it
-			pm->s.pm_flags &= ~PMF_TIME_MASK;
-			pm->s.pm_time = 0;
-		} else {  // or just drop it
-			pm->s.pm_time -= msec;
-		}
-	}
 
 	if(pm->s.pm_flags & PMF_TIME_TELEPORT){
 		// teleport pause stays in place
@@ -1089,6 +1119,7 @@ void Pmove(pmove_t *pmove){
 	// set groundentity, watertype, and waterlevel for final spot
 	Pm_CategorizePosition();
 
+	// ensure we're at a good point
 	Pm_SnapPosition();
 }
 

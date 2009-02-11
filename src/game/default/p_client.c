@@ -736,6 +736,7 @@ static void P_PutClientInServer(edict_t *ent){
 	VectorCopy(mins, ent->mins);
 	VectorCopy(maxs, ent->maxs);
 	VectorClear(ent->velocity);
+	ent->velocity[2] = 100.0;
 
 	// clear playerstate values
 	memset(&ent->client->ps, 0, sizeof(client->ps));
