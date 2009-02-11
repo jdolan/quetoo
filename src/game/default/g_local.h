@@ -679,7 +679,6 @@ struct gclient_s {
 
 	// private to game
 	client_locals_t locals;
-	pmove_state_t old_pmove;  // for detecting out-of-pmove changes
 
 	qboolean showscores;  // set layout stat
 

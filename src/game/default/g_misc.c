@@ -239,7 +239,7 @@ static void G_teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 	dest = G_Find(NULL, FOFS(targetname), self->target);
 
 	if(!dest){
-		gi.Dprintf("Couldn't find destination\n");
+		gi.Dprintf("G_teleporter_touch: Couldn't find destination.\n");
 		return;
 	}
 
@@ -270,7 +270,7 @@ static void G_teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 
 	AngleVectors(dest->s.angles, forward, NULL, NULL);
 	VectorScale(forward, speed, other->velocity);
-	other->velocity[2] += 100.0;
+	other->velocity[2] = 150.0;
 
 	VectorClear(other->client->cmd_angles);
 	VectorClear(other->s.angles);
@@ -293,7 +293,7 @@ void G_misc_teleporter(edict_t *ent){
 	vec3_t v;
 
 	if(!ent->target){
-		gi.Dprintf("teleporter without a target.\n");
+		gi.Dprintf("G_misc_teleporter: No target specified.\n");
 		G_FreeEdict(ent);
 		return;
 	}

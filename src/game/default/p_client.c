@@ -736,7 +736,7 @@ static void P_PutClientInServer(edict_t *ent){
 	VectorCopy(mins, ent->mins);
 	VectorCopy(maxs, ent->maxs);
 	VectorClear(ent->velocity);
-	ent->velocity[2] = 100.0;
+	ent->velocity[2] = 150.0;
 
 	// clear playerstate values
 	memset(&ent->client->ps, 0, sizeof(client->ps));
@@ -1171,10 +1171,6 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 			pm.s.velocity[i] = ent->velocity[i] * 8.0;
 		}
 
-		if(memcmp(&client->old_pmove, &pm.s, sizeof(pm.s))){
-			pm.snapinitial = true;
-		}
-
 		pm.cmd = *ucmd;
 
 		pm.trace = P_Trace;  // adds default params
@@ -1185,7 +1181,6 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 		// save results of pmove
 		client->ps.pmove = pm.s;
-		client->old_pmove = pm.s;
 
 		for(i = 0; i < 3; i++){
 			ent->s.origin[i] = pm.s.origin[i] * 0.125;

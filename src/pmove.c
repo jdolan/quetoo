@@ -892,38 +892,6 @@ static void Pm_SnapPosition(void){
 
 
 /*
- * Pm_InitialSnapPosition
- */
-static void Pm_InitialSnapPosition(void){
-	int x, y, z;
-	short base[3];
-	static int offset[3] = { 0, -1,  1 };
-
-	VectorCopy(pm->s.origin, base);
-
-	for(z = 0; z < 3; z++){
-		pm->s.origin[2] = base[2] + offset[ z ];
-
-		for(y = 0; y < 3; y++){
-			pm->s.origin[1] = base[1] + offset[ y ];
-
-			for(x = 0; x < 3; x++){
-				pm->s.origin[0] = base[0] + offset[ x ];
-
-				if(Pm_GoodPosition()){
-					VectorScale(pml.origin, 0.125, pm->s.origin);
-					VectorCopy(pm->s.origin, pml.previous_origin);
-					return;
-				}
-			}
-		}
-	}
-
-	Com_Dprintf("Pm_InitialSnapPosition: Bad position.\n");
-}
-
-
-/*
  * Pm_ClampAngles
  */
 static void Pm_ClampAngles(void){
@@ -1084,9 +1052,6 @@ void Pmove(pmove_t *pmove){
 
 	// set mins, maxs, and viewheight
 	Pm_CheckDuck();
-
-	if(pm->snapinitial)
-		Pm_InitialSnapPosition();
 
 	// set groundentity, watertype, and waterlevel
 	Pm_CategorizePosition();

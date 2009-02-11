@@ -438,7 +438,6 @@ typedef struct {
 	pmove_state_t s;  // state (in / out)
 
 	usercmd_t cmd;  // command (in)
-	qboolean snapinitial;  // if s has been changed outside pmove
 
 	int numtouch;  // results (out)
 	struct edict_s *touchents[MAXTOUCH];
