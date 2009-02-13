@@ -57,10 +57,12 @@ pml_t pml;
 #define PM_FRICT_SPEED_CLAMP	0.5
 #define PM_FRICT_WATER			2.5
 
+#define PM_SPEED_CURRENT		100.0
 #define PM_SPEED_DUCKED			150.0
 #define PM_SPEED_FALL			600.0
 #define PM_SPEED_JUMP			275.0
 #define PM_SPEED_JUMP_WATER		400.0
+#define PM_SPEED_LADDER			240.0
 #define PM_SPEED_MAX			450.0
 #define PM_SPEED_RUN			300.0
 #define PM_SPEED_SPECTATOR		350.0
@@ -379,28 +381,30 @@ static void Pm_AddCurrents(vec3_t vel){
 	float s;
 
 	// account for ladders
-	if(pml.ladder && fabsf(pml.velocity[2]) <= 200.0){
+	if(pml.ladder && fabsf(pml.velocity[2]) <= PM_SPEED_LADDER){
 		if((pm->angles[PITCH] <= -15) && (pm->cmd.forwardmove > 0))
-			vel[2] = 200.0;
+			vel[2] = PM_SPEED_LADDER;
 		else if((pm->angles[PITCH] >= 15) && (pm->cmd.forwardmove > 0))
-			vel[2] = -200.0;
+			vel[2] = -PM_SPEED_LADDER;
 		else if(pm->cmd.upmove > 0)
-			vel[2] = 200.0;
+			vel[2] = PM_SPEED_LADDER;
 		else if(pm->cmd.upmove < 0)
-			vel[2] = -200.0;
+			vel[2] = -PM_SPEED_LADDER;
 		else
 			vel[2] = 0.0;
 
-		// limit horizontal speed when on a ladder
-		if(vel[0] < -25.0)
-			vel[0] = -25.0;
-		else if(vel[0] > 25.0)
-			vel[0] = 25.0;
+		s = PM_SPEED_LADDER / 8.0;
 
-		if(vel[1] < -25.0)
-			vel[1] = -25.0;
-		else if(vel[1] > 25.0)
-			vel[1] = 25.0;
+		// limit horizontal speed when on a ladder
+		if(vel[0] < -s)
+			vel[0] = -s;
+		else if(vel[0] > s)
+			vel[0] = s;
+
+		if(vel[1] < -s)
+			vel[1] = -s;
+		else if(vel[1] > s)
+			vel[1] = s;
 	}
 
 	// add water currents
@@ -444,7 +448,7 @@ static void Pm_AddCurrents(vec3_t vel){
 		if(pml.groundcontents & CONTENTS_CURRENT_DOWN)
 			v[2] -= 1.0;
 
-		VectorMA(vel, 100.0, v, vel);
+		VectorMA(vel, PM_SPEED_CURRENT, v, vel);
 	}
 }
 
@@ -724,8 +728,7 @@ static void Pm_CheckSpecialMovement(void){
 	pml.ladder = false;
 
 	// check for ladder
-	flatforward[0] = pml.forward[0];
-	flatforward[1] = pml.forward[1];
+	VectorCopy(pml.forward, flatforward);
 	flatforward[2] = 0.0;
 
 	VectorNormalize(flatforward);
