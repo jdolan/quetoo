@@ -611,7 +611,7 @@ static void R_InitLocal(void){
 	r_speeds = Cvar_Get("r_speeds", "0", 0, NULL);
 
 	// settings and preferences
-	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
+	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE, NULL);
 	r_brightness = Cvar_Get("r_brightness", "1.5", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_PROGRAMS, NULL);
 	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
@@ -636,7 +636,7 @@ static void R_InitLocal(void){
 	r_multisample = Cvar_Get("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_optimize = Cvar_Get("r_optimize", "1", CVAR_ARCHIVE, NULL);
 	r_parallax = Cvar_Get("r_parallax", "1.0", CVAR_ARCHIVE, NULL);
-	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE, "Activate or deactivate GLSL shaders");
+	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS, "Activate or deactivate GLSL shaders");
 	r_rendermode = Cvar_Get("r_rendermode", "default", CVAR_ARCHIVE, NULL);
 	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE, NULL);
 	r_shadows = Cvar_Get("r_shadows", "1", CVAR_ARCHIVE, NULL);

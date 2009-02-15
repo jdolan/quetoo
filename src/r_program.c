@@ -80,7 +80,8 @@ static r_progvar_t *R_ProgramVariable(GLint type, const char *name){
 		v->location = qglGetAttribLocation(r_state.active_program->id, name);
 
 	if(v->location == -1){
-		Com_Warn("R_ProgramVariable: Could not find %s in shader\n", name);
+		Com_Warn("R_ProgramVariable: Could not find %s in program %s.\n",
+				name, r_state.active_program->name);
 		return NULL;
 	}
 
@@ -532,19 +533,15 @@ static void R_UseProProgram(void){
  */
 void R_InitPrograms(void){
 
-	if(!qglCreateProgram){
-		Com_Warn("R_InitPrograms: glCreateProgram not found\n");
-		return;
-	}
-
-	// shaders are deactivated - don't try to load them - some cards
-	// even have problems with this
-	if(!r_programs->value)
+	if(!qglCreateProgram)
 		return;
 
 	memset(r_state.shaders, 0, sizeof(r_state.shaders));
 
 	memset(r_state.programs, 0, sizeof(r_state.programs));
+	
+	if(!r_programs->value)
+		return;
 
 	r_state.default_program = R_LoadProgram(
 			"default", R_InitDefaultProgram, R_UseDefaultProgram);

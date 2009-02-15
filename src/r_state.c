@@ -300,7 +300,10 @@ inline void R_EnableColorArray(qboolean enable){
  */
 inline void R_EnableLighting(r_program_t *program, qboolean enable){
 
-	if(!r_programs->value || (enable && !program))
+	if(!r_programs->value)
+		return;
+
+	if(enable && (!program || !program->id))
 		return;
 
 	if(!r_lighting->value || r_state.lighting_enabled == enable)
@@ -397,7 +400,10 @@ inline void R_EnableBumpmap(material_t *material, qboolean enable){
  */
 inline void R_EnableWarp(r_program_t *program, qboolean enable){
 
-	if(!r_programs->value || (enable && !program))
+	if(!r_programs->value)
+		return;
+
+	if(enable && (!program || !program->id))
 		return;
 
 	if(!r_warp->value || r_state.warp_enabled == enable)
