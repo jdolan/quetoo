@@ -79,6 +79,11 @@ static r_progvar_t *R_ProgramVariable(GLint type, const char *name){
 	else
 		v->location = qglGetAttribLocation(r_state.active_program->id, name);
 
+	if(v->location == -1){
+		Com_Warn("R_ProgramVariable: Could not find %s in shader\n", name);
+		return NULL;
+	}
+
 	v->type = type;
 	strncpy(v->name, name, sizeof(v->name));
 
@@ -357,7 +362,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name){
 		Com_Warn("R_LoadShader: %s: %s\n", sh->name, log);
 
 		qglDeleteShader(sh->id);
-		memset(sh, 0, sizeof(r_shader_t));
+		memset(sh, 0, sizeof(*sh));
 
 		Z_Free(source);
 		return NULL;
@@ -531,6 +536,11 @@ void R_InitPrograms(void){
 		Com_Warn("R_InitPrograms: glCreateProgram not found\n");
 		return;
 	}
+
+	// shaders are deactivated - don't try to load them - some cards
+	// even have problems with this
+	if(!r_programs->value)
+		return;
 
 	memset(r_state.shaders, 0, sizeof(r_state.shaders));
 

@@ -35,7 +35,7 @@
 #define R_ARRAY_TEX_LIGHTMAP	0x20
 
 typedef struct r_array_state_s {
-	model_t *model;
+	const model_t *model;
 	int arrays;
 } r_array_state_t;
 
@@ -201,7 +201,7 @@ void R_SetArrayState(const model_t *mod){
 	else  // or arrays
 		R_SetVertexArrayState(mod, mask);
 
-	r_array_state.model = (model_t *)mod;
+	r_array_state.model = mod;
 	r_array_state.arrays = arrays;
 }
 

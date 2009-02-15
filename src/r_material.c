@@ -222,7 +222,6 @@ static inline void R_StageColor(const stage_t *stage, const vec3_t v,
 		vec4_t color){
 
 	float a;
-	int i;
 
 	if(stage->flags & STAGE_TERRAIN){
 
@@ -243,14 +242,14 @@ static inline void R_StageColor(const stage_t *stage, const vec3_t v,
 	}
 	else if(stage->flags & STAGE_DIRTMAP){
 
+		// resolve dirtmap based on vertex position
+		const int index = (int)(v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
 		if(stage->flags & STAGE_COLOR)  // honor stage color
 			VectorCopy(stage->color, color);
 		else  // or use white
 			VectorSet(color, 1.0, 1.0, 1.0);
 
-		// resolve dirtmap based on vertex position
-		i = (int)(v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
-		color[3] = dirtmap[i] * stage->dirt.intensity;
+		color[3] = dirtmap[index] * stage->dirt.intensity;
 	}
 	else {  // simply use white
 		color[0] = color[1] = color[2] = color[3] = 1.0;

@@ -10,7 +10,7 @@
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 *
 * See the GNU General Public License for more details.
 *
@@ -26,7 +26,7 @@
 
 // vertex arrays are used for many things
 #define MAX_GL_ARRAY_LENGTH 16384
-extern float default_texcoords[];
+extern const float default_texcoords[];
 
 // texunits maintain multitexture state
 typedef struct r_texunit_s {

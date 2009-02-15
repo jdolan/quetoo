@@ -191,7 +191,7 @@ static void R_GetError(void){
 	char *s;
 
 	while(true){
-		
+
 		if((err = glGetError()) == GL_NO_ERROR)
 			return;
 

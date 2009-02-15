@@ -21,7 +21,7 @@
 
 #include "renderer.h"
 
-float default_texcoords[] = {  // useful for particles, pics, etc..
+const float default_texcoords[] = {  // useful for particles, pics, etc..
 	0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0
 };
 
@@ -325,7 +325,8 @@ inline void R_EnableLighting(r_program_t *program, qboolean enable){
  * R_UseMaterial
  */
 static inline void R_UseMaterial(material_t *material){
-	static float b, last_b, p, last_p, h, last_h, s, last_s;
+	static float last_b, last_p, last_s, last_h;
+	float b, p, s, h;
 
 	if(r_state.active_material == material)
 		return;
@@ -509,6 +510,7 @@ void R_Setup3D(void){
  */
 void R_Setup2D(void){
 
+	// set 2D virtual screen size
 	glViewport(0, 0, r_state.width, r_state.height);
 
 	glMatrixMode(GL_PROJECTION);
