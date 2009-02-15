@@ -346,8 +346,8 @@ static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
 			VectorCopy(n, (&r_state.normal_array[i * 3]));
 
 			if(r_state.bumpmap_enabled){
-				const float *t = &r_worldmodel->tangents[surf->index * 3 + i * 3];
-				VectorCopy(t, (&r_state.tangent_array[i * 3]));
+				const float *t = &r_worldmodel->tangents[surf->index * 4 + i * 4];
+				VectorCopy(t, (&r_state.tangent_array[i * 4]));
 			}
 		}
 	}
