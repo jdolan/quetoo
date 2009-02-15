@@ -302,12 +302,18 @@ void Sys_Error(const char *error, ...){
 #include "console.h"
 #include "con_curses.h"
 
+#include <execinfo.h>
+#define MAX_BACKTRACE_SYMBOLS 50
+
+
 /*
  * Sys_Signal
  *
  * Catch kernel interrupts and dispatch the appropriate exit routine.
  */
 static void Sys_Signal(int s){
+	void *symbols[MAX_BACKTRACE_SYMBOLS];
+	int i;
 
 	switch(s){
 		case SIGHUP:
@@ -325,6 +331,9 @@ static void Sys_Signal(int s){
 #endif
 #endif
 		default:
+			i = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
+			backtrace_symbols_fd(symbols, i, STDERR_FILENO);
+
 			Sys_Error("Received signal %d.\n", s);
 	}
 }

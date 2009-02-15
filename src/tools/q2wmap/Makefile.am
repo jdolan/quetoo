@@ -8,9 +8,9 @@ q2wmap_SOURCES = brushbsp.c bspfile.c csg.c dummy.c faces.c flow.c \
 	prtfile.c qbsp.c qmat.c qpak.c qlight.c qvis.c scriplib.c textures.c \
 	threads.c tree.c writebsp.c
 
-q2wmap_CFLAGS = -pipe -I../../ @WARN_CFLAGS@ @SDL_CFLAGS@
+q2wmap_CFLAGS = -pipe -I../../ @WARN_CFLAGS@ @DEBUG_CFLAGS@ @SDL_CFLAGS@
 
 q2wmap_LDADD = ../../libcmodel.la ../../libcommon.la ../../libfiles.la \
 	../../libimages.la ../../libpak.la ../../libshared.la ../../libsys.la \
-	@SDL_LIBS@ @CURSES_LIBS@ -lm -lz
+	@SDL_LIBS@ @CURSES_LIBS@ @DEBUG_LIBS@ -lm -lz
 

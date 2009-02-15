@@ -49,12 +49,12 @@ EXTRA_quake2world_SOURCES = quake2world-icon.rc
 
 quake2world_DEPENDENCIES = ${ICON}
 
-quake2world_CFLAGS = -pipe @WARN_CFLAGS@ @SDL_CFLAGS@ @CURL_CFLAGS@ \
-	@CURSES_CFLAGS@
+quake2world_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@ @SDL_CFLAGS@ \
+	@CURL_CFLAGS@ @CURSES_CFLAGS@
 
 quake2world_LDADD = @ICON@ libcmodel.la libcommon.la libfiles.la libhash.la \
 	libimages.la libpak.la libshared.la @SDL_LIBS@ @CURL_LIBS@ @CURSES_LIBS@ \
-	@HOST_LIBS@ @HOST_OPENGL_LIBS@ -lm -lz
+	@HOST_LIBS@ @HOST_OPENGL_LIBS@ @DEBUG_LIBS@ -lm -lz
 
 else
 
@@ -69,35 +69,35 @@ EXTRA_quake2world_SOURCES = quake2world-icon.rc
 
 quake2world_DEPENDENCIES = ${ICON}
 
-quake2world_CFLAGS = -pipe @WARN_CFLAGS@ @CURSES_CFLAGS@
+quake2world_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@ @CURSES_CFLAGS@
 
 quake2world_LDADD = @ICON@ libcmodel.la libcommon.la libfiles.la libhash.la \
-	libpak.la libshared.la @CURSES_LIBS@ @HOST_LIBS@ -lm -lz
+	libpak.la libshared.la @CURSES_LIBS@ @HOST_LIBS@ @DEBUG_LIBS@ -lm -lz
 
 endif
 
 libcmodel_la_SOURCES = cmodel.c
-libcmodel_la_CFLAGS = -pipe @WARN_CFLAGS@
+libcmodel_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@
 
 libcommon_la_SOURCES = common.c
-libcommon_la_CFLAGS = -pipe @WARN_CFLAGS@ @SDL_CFLAGS@
+libcommon_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@ @SDL_CFLAGS@
 libcommon_la_LIBADD = @SDL_LIBS@
 
 libfiles_la_SOURCES = files.c
-libfiles_la_CFLAGS = -pipe @WARN_CFLAGS@
+libfiles_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@
 
 libimages_la_SOURCES = images.c
-libimages_la_CFLAGS = -pipe @WARN_CFLAGS@ @SDL_CFLAGS@
+libimages_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@ @SDL_CFLAGS@
 
 libhash_la_SOURCES = hash.c
-libhash_la_CFLAGS = -pipe @WARN_CFLAGS@
+libhash_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@
 
 libpak_la_SOURCES = pak.c files.c
-libpak_la_CFLAGS = -pipe -D__LIBPAK_LA__ @WARN_CFLAGS@
+libpak_la_CFLAGS = -pipe -D__LIBPAK_LA__ @WARN_CFLAGS@ @DEBUG_CFLAGS@
 libpak_la_LIBADD = libhash.la
 
 libshared_la_SOURCES = shared.c
-libshared_la_CFLAGS = -pipe @WARN_CFLAGS@
+libshared_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@
 
 libsys_la_SOURCES = main.c
-libsys_la_CFLAGS = -pipe -D__LIBSYS_LA__ @WARN_CFLAGS@
+libsys_la_CFLAGS = -pipe -D__LIBSYS_LA__ @WARN_CFLAGS@ @DEBUG_CFLAGS@

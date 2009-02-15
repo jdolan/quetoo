@@ -36,7 +36,9 @@ case "$host" in
 		ICON="quake2world-icon.o"
 		HOST_LIBS="-lws2_32 -lole32"
 		HOST_OPENGL_LIBS="-lopengl32"
-		HOST_WARN_CFLAGS="-Wall -Werror -Wdeclaration-after-statement -Wmissing-prototypes -Wmissing-declarations"
+		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
+		HOST_DEBUG_CFLAGS=""
+		HOST_DEBUG_LIBS=""
 		SO_CFLAGS=""
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
@@ -49,7 +51,9 @@ case "$host" in
 		ICON=""
 		HOST_LIBS=""
 		HOST_OPENGL_LIBS="-lGL"
-		HOST_WARN_CFLAGS="-Wall -Werror -Wmissing-prototypes -Wmissing-declarations"
+		HOST_WARN_CFLAGS=""
+		HOST_DEBUG_CFLAGS=""
+		HOST_DEBUG_LIBS=""
 		SO_CFLAGS="-fPIC -DPIC"
 		AC_MSG_RESULT(bsd)
 		;;
@@ -57,7 +61,9 @@ case "$host" in
 		ICON=""
 		HOST_LIBS="-ldl"
 		HOST_OPENGL_LIBS="-lGL"
-		HOST_WARN_CFLAGS="-Wall -Werror -Wdeclaration-after-statement -Wmissing-prototypes -Wmissing-declarations"
+		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
+		HOST_DEBUG_CFLAGS=""
+		HOST_DEBUG_LIBS="-rdynamic"
 		SO_CFLAGS="-fPIC -DPIC"
 		AC_MSG_RESULT(generic unix)
 		;;
@@ -65,6 +71,9 @@ esac
 AC_SUBST(ICON)
 AC_SUBST(HOST_LIBS)
 AC_SUBST(HOST_OPENGL_LIBS)
+AC_SUBST(HOST_WARN_CFLAGS)
+AC_SUBST(HOST_DEBUG_CFLAGS)
+AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(SO_CFLAGS)
 
 dnl -----------------------------
@@ -324,7 +333,7 @@ dnl -----------------
 
 AC_MSG_CHECKING(whether to abort on compiler warnings)
 
-WARN_CFLAGS=""
+WARN_CFLAGS="-Wall -Werror -Wmissing-prototypes -Wmissing-declarations"
 
 AC_ARG_ENABLE(warn,
 	AC_HELP_STRING(
@@ -333,9 +342,31 @@ AC_ARG_ENABLE(warn,
 	AC_MSG_RESULT(no),
 	AC_MSG_RESULT(yes)
 	WARN_CFLAGS="$WARN_CFLAGS $HOST_WARN_CFLAGS"
-
 )
 AC_SUBST(WARN_CFLAGS)
+
+
+dnl ---------------------
+dnl Debugging information
+dnl ---------------------
+
+AC_MSG_CHECKING(whether to include debugging information)
+
+DEBUG_CFLAGS="-g"
+DEBUG_LIBS=""
+
+AC_ARG_ENABLE(debug,
+	AC_HELP_STRING(
+		[--disable-debug], [don't include debugging information]
+	),
+	AC_MSG_RESULT(no),
+	AC_MSG_RESULT(yes)
+	DEBUG_CFLAGS="$DEBUG_CFLAGS $HOST_DEBUG_CFLAGS"
+	DEBUG_LIBS="$DEBUG_LIBS $HOST_DEBUG_LIBS"
+)
+AC_SUBST(DEBUG_CFLAGS)
+AC_SUBST(DEBUG_LIBS)
+
 
 dnl ----------------------
 dnl Fill in path variables
