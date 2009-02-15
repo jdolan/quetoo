@@ -127,6 +127,9 @@ void R_AllocVertexArrays(model_t *mod){
 static void R_LoadVertexBuffers(model_t *mod){
 	int v, st, t, c;
 
+	if(!qglGenBuffers)
+		return;
+
 	if(mod->num_frames > 1)  // animated models don't use VBO
 		return;
 

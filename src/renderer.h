@@ -182,6 +182,10 @@ typedef struct renderer_config_s {
 	const char *vendor_string;
 	const char *version_string;
 	const char *extensions_string;
+
+	qboolean vbo;
+	qboolean shaders;
+
 	int max_texunits;
 } renderer_config_t;
 
@@ -221,8 +225,6 @@ typedef struct renderer_locals_s {
 	vec3_t forward;
 	vec3_t right;
 
-	model_t *model;
-
 	cplane_t frustum[4];  // for box culling
 
 	float world_matrix[16];
@@ -234,12 +236,18 @@ extern renderer_locals_t r_locals;
 extern byte color_white[4];
 extern byte color_black[4];
 
+// development tools
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;
+extern cvar_t *r_deluxemap;
+extern cvar_t *r_lightmap;
 extern cvar_t *r_lockvis;
+extern cvar_t *r_novis;
+extern cvar_t *r_shownormals;
+extern cvar_t *r_showpolys;
 extern cvar_t *r_speeds;
-extern cvar_t *r_usevis;
 
+// settings and preferences
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
 extern cvar_t *r_bumpmap;
@@ -254,7 +262,6 @@ extern cvar_t *r_hardness;
 extern cvar_t *r_height;
 extern cvar_t *r_hunkmegs;
 extern cvar_t *r_invert;
-extern cvar_t *r_lightmap;
 extern cvar_t *r_lightmapsize;
 extern cvar_t *r_lighting;
 extern cvar_t *r_lights;
@@ -270,8 +277,6 @@ extern cvar_t *r_programs;
 extern cvar_t *r_rendermode;
 extern cvar_t *r_saturation;
 extern cvar_t *r_shadows;
-extern cvar_t *r_shownormals;
-extern cvar_t *r_showpolys;
 extern cvar_t *r_soften;
 extern cvar_t *r_specular;
 extern cvar_t *r_swapinterval;
@@ -409,10 +414,8 @@ void R_DrawBackSurfaces_default(msurfaces_t *surfs);
 
 // r_surface_pro.c
 void R_DrawOpaqueSurfaces_pro(msurfaces_t *surfs);
-void R_DrawOpaqueWarpSurfaces_pro(msurfaces_t *surfs);
 void R_DrawAlphaTestSurfaces_pro(msurfaces_t *surfs);
 void R_DrawBlendSurfaces_pro(msurfaces_t *surfs);
-void R_DrawBlendWarpSurfaces_pro(msurfaces_t *surfs);
 void R_DrawBackSurfaces_pro(msurfaces_t *surfs);
 
 // r_thread.c

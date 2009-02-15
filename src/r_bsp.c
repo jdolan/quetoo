@@ -27,6 +27,9 @@ vec3_t modelorg;  // relative to viewpoint
 
 /*
  * R_CullBox
+ *
+ * Returns true if the specified bounding box is completely culled by the
+ * view frustum, false otherwise.
  */
 qboolean R_CullBox(const vec3_t mins, const vec3_t maxs){
 	int i;
@@ -44,6 +47,9 @@ qboolean R_CullBox(const vec3_t mins, const vec3_t maxs){
 
 /*
  * R_CullBspModel
+ *
+ * Returns true if the specified entity is completely culled by the view
+ * frustum, false otherwise.
  */
 qboolean R_CullBspModel(const entity_t *e){
 	vec3_t mins, maxs;
@@ -68,6 +74,9 @@ qboolean R_CullBspModel(const entity_t *e){
 
 /*
  * R_ShiftLights
+ *
+ * Temporarily shifts eligible light source origins to account for entity 
+ * translation.
  */
 static void R_ShiftLights(const entity_t *e, qboolean shift){
 	light_t *light;
@@ -75,9 +84,6 @@ static void R_ShiftLights(const entity_t *e, qboolean shift){
 
 	if(VectorCompare(e->origin, vec3_origin))
 		return;
-
-	// temporarily shift the eligible light source origins to counter
-	// the bsp model's offset
 
 	for(i = 0; i < r_view.num_lights; i++){
 
@@ -140,15 +146,19 @@ static void R_DrawBspModelSurfaces(const entity_t *e){
 
 	R_EnableBlend(true);
 
+	R_DrawBackSurfaces(e->model->back_surfaces);
+
+	R_DrawMaterialSurfaces(e->model->material_surfaces);
+
+	R_EnableFog(false);
+
 	R_DrawBlendSurfaces(e->model->blend_surfaces);
 
 	R_DrawBlendWarpSurfaces(e->model->blend_warp_surfaces);
 
-	R_DrawMaterialSurfaces(e->model->material_surfaces);
-
-	R_DrawBackSurfaces(e->model->back_surfaces);
-
 	R_DrawFlareSurfaces(e->model->flare_surfaces);
+
+	R_EnableFog(true);
 
 	R_EnableBlend(false);
 
@@ -191,6 +201,9 @@ void R_DrawBspModel(const entity_t *e){
 
 /*
  * R_DrawBspNormals
+ *
+ * Developer tool for viewing BSP vertex normals.  Only Phong interpolated
+ * surfaces show their normals when r_shownormals > 1.0.
  */
 void R_DrawBspNormals(void){
 	msurface_t *surf;
@@ -201,9 +214,9 @@ void R_DrawBspNormals(void){
 	if(!r_shownormals->value)
 		return;
 
-	R_ResetArrayState();  // default arrays
-
 	R_EnableTexture(&texunit_diffuse, false);
+
+	R_ResetArrayState();  // default arrays
 
 	glColor3f(1.0, 0.0, 0.0);
 
@@ -247,6 +260,14 @@ void R_DrawBspNormals(void){
 
 /*
  * R_MarkSurfaces_
+ *
+ * Top-down BSP node recursion.  Nodes identified as within the PVS by
+ * R_MarkLeafs are first frustum-culled; those which fail immediately
+ * return.
+ *
+ * For the rest, the front-side child node is recursed.  Any surfaces marked
+ * in that recursion must then pass a dot-product test to resolve sidedness.
+ * Finally, the back-side child node is recursed.
  */
 static void R_MarkSurfaces_(mnode_t *node){
 	int i, side, sidebit;
@@ -326,6 +347,9 @@ static void R_MarkSurfaces_(mnode_t *node){
 
 /*
  * R_MarkSurfaces
+ *
+ * Entry point for BSP recursion and surface-level visibility test.  This
+ * is also where the infamous r_optimize strategy is implemented.
  */
 void R_MarkSurfaces(void){
 	static vec3_t oldorigin, oldangles;
@@ -392,6 +416,7 @@ const mleaf_t *R_LeafForPoint(const vec3_t p, const model_t *model){
 			node = node->children[1];
 	}
 
+	Com_Error(ERR_DROP, "R_LeafForPoint: NULL");
 	return NULL;  // never reached
 }
 
@@ -454,7 +479,9 @@ static inline qboolean R_LeafInVis(const mleaf_t *leaf, const byte *vis){
  * R_MarkLeafs
  *
  * Mark the leafs that are in the PVS for the current cluster, creating the
- * recursion path for R_MarkSurfaces.
+ * recursion path for R_MarkSurfaces.  Leafs marked for the current cluster
+ * will still be frustum-culled, and surfaces therein must still pass a
+ * dot-product test in order to be marked as visible for the current frame.
  */
 void R_MarkLeafs(void){
 	byte *vis;
@@ -468,7 +495,7 @@ void R_MarkLeafs(void){
 	// resolve current cluster
 	r_locals.cluster = R_LeafForPoint(r_view.origin, r_worldmodel)->cluster;
 
-	if(r_usevis->value && (r_locals.oldcluster == r_locals.cluster))
+	if(!r_novis->value && (r_locals.oldcluster == r_locals.cluster))
 		return;
 
 	r_locals.oldcluster = r_locals.cluster;
@@ -478,7 +505,7 @@ void R_MarkLeafs(void){
 	if(r_locals.visframe > 0xffff)  // avoid overflows, negatives are reserved
 		r_locals.visframe = 0;
 
-	if(!r_usevis->value || !r_worldmodel->vis){  // mark everything
+	if(r_novis->value || !r_worldmodel->vis){  // mark everything
 		for(i = 0; i < r_worldmodel->numleafs; i++)
 			r_worldmodel->leafs[i].visframe = r_locals.visframe;
 		for(i = 0; i < r_worldmodel->numnodes; i++)

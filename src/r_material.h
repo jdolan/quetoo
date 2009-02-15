@@ -41,6 +41,9 @@
 #define STAGE_DIRTMAP			(1 << 14)
 #define STAGE_FLARE				(1 << 15)
 
+// set on stages eligible for static, dynamic, and per-pixel lighting
+#define STAGE_LIGHTING			(1 << 30)
+
 // set on stages with valid render passes
 #define STAGE_RENDER 			(1 << 31)
 

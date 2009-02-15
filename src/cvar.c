@@ -484,7 +484,15 @@ typedef struct {
 } cheatvar_t;
 
 static const cheatvar_t cheatvars[] = {
+	{"r_clear", "0"},
+	{"r_cull", "1"},
+	{"r_deluxemap", "0"},
+	{"r_lightmap", "0"},
+	{"r_lockvis", "0"},
+	{"r_novis", "0"},
+	{"r_shownormals", "0"},
 	{"r_showpolys", "0"},
+	{"r_speeds", "0"},
 	{"timedemo", "0"},
 	{"timescale", "1"},
 	{NULL, NULL}

@@ -32,6 +32,10 @@ static entity_t *r_null_entities;
 
 /*
  * R_AddEntity
+ *
+ * Adds a copy of the specified entity to the correct draw list.  Entities
+ * are grouped by model to allow instancing wherever possible (e.g. armor 
+ * shards, ammo boxes, trees, etc..).
  */
 void R_AddEntity(const entity_t *ent){
 	entity_t *e, *in, **chain;
@@ -98,6 +102,8 @@ void R_AddEntity(const entity_t *ent){
 
 /*
  * R_RotateForEntity
+ *
+ * Applies translation, rotation, and scale for the specified entity.
  */
 void R_RotateForEntity(const entity_t *e, qboolean full){
 
@@ -199,6 +205,8 @@ static void R_DrawBlendMeshEntities(entity_t *ents){
 
 /*
  * R_DrawNullModel
+ *
+ * Draws a placeholder "white diamond" prism for the specified entity.
  */
 static void R_DrawNullModel(const entity_t *e){
 	int i;
@@ -207,7 +215,6 @@ static void R_DrawNullModel(const entity_t *e){
 
 	glPushMatrix();
 	R_RotateForEntity(e, true);
-
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0, 0, -16);
@@ -247,6 +254,8 @@ static void R_DrawNullEntities(const entity_t *ents){
 
 /*
  * R_DrawEntities
+ *
+ * Primary entry point for drawing all entities.
  */
 void R_DrawEntities(void){
 

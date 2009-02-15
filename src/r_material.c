@@ -26,6 +26,8 @@
 
 /*
  * R_UpdateMaterial
+ *
+ * Materials "think" every few milliseconds to advance animations.
  */
 static void R_UpdateMaterial(material_t *m){
 	stage_t *s;
@@ -65,7 +67,74 @@ static void R_UpdateMaterial(material_t *m){
 
 
 /*
+ * R_StageLighting
+ *
+ * Manages state for stages supporting static, dynamic, and per-pixel lighting.
+ */
+static void R_StageLighting(msurface_t *surf, stage_t *stage){
+
+	// if the surface has a lightmap, and the stage specifies lighting..
+
+	if(surf->flags & MSURF_LIGHTMAP && 
+			(stage->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING))){
+		
+		R_EnableTexture(&texunit_lightmap, true);
+		R_BindLightmapTexture(surf->lightmap_texnum);
+		
+		if(stage->flags & STAGE_LIGHTING){  // hardware lighting
+
+			R_EnableLighting(r_state.default_program, true);
+
+			if(r_state.lighting_enabled){
+
+				if(r_bumpmap->value && stage->image->normalmap){
+
+					R_BindDeluxemapTexture(surf->deluxemap_texnum);
+					R_BindNormalmapTexture(stage->image->normalmap->texnum);
+
+					R_EnableBumpmap(&stage->image->material, true);
+				}
+				else {
+					if(r_state.bumpmap_enabled)
+						R_EnableBumpmap(NULL, false);
+				}
+
+				if(surf->lightframe == r_locals.lightframe)  // dynamic light sources
+					R_EnableLights(surf->lights);
+				else
+					R_EnableLights(0);
+			}
+		}
+		else {
+			R_EnableLighting(NULL, false);
+		}
+	}
+	else {
+		R_EnableLighting(NULL, false);
+
+		R_EnableTexture(&texunit_lightmap, false);
+	}
+}
+
+
+/*
+ * R_StageVertex
+ *
+ * Generates a single vertex for the specified stage.
+ */
+static inline void R_StageVertex(const msurface_t *surf, const stage_t *stage,
+		const vec3_t in, vec3_t out){
+
+	// TODO: vertex deforms
+	VectorCopy(in, out);
+}
+
+
+/*
  * R_StageTextureMatrix
+ *
+ * Manages texture matrix manipulations for stages supporting rotations,
+ * scrolls, and stretches (rotate, translate, scale).
  */
 static inline void R_StageTextureMatrix(msurface_t *surf, stage_t *stage){
 	static qboolean identity = true;
@@ -115,8 +184,12 @@ static inline void R_StageTextureMatrix(msurface_t *surf, stage_t *stage){
 
 /*
  * R_StageTexCoord
+ *
+ * Generates a single texture coordinate for the specified stage and vertex.
  */
-static inline void R_StageTexCoord(const stage_t *stage, const vec3_t v, const vec2_t in, vec2_t out){
+static inline void R_StageTexCoord(const stage_t *stage, const vec3_t v,
+		const vec2_t in, vec2_t out){
+
 	vec3_t tmp;
 
 	if(stage->flags & STAGE_ENVMAP){  // generate texcoords
@@ -134,16 +207,6 @@ static inline void R_StageTexCoord(const stage_t *stage, const vec3_t v, const v
 }
 
 
-/*
- * R_StageVertex
- */
-static inline void R_StageVertex(const msurface_t *surf, const stage_t *stage, const vec3_t in, vec3_t out){
-
-	// TODO: vertex deforms
-	VectorCopy(in, out);
-}
-
-
 #define NUM_DIRTMAP_ENTRIES 16
 static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
 	0.6, 0.5, 0.3, 0.4, 0.7, 0.3, 0.0, 0.4,
@@ -152,8 +215,12 @@ static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
 
 /*
  * R_StageColor
+ *
+ * Generates a single color for the specified stage and vertex.
  */
-static inline void R_StageColor(const stage_t *stage, const vec3_t v, vec4_t color){
+static inline void R_StageColor(const stage_t *stage, const vec3_t v,
+		vec4_t color){
+
 	float a;
 	int i;
 
@@ -193,6 +260,8 @@ static inline void R_StageColor(const stage_t *stage, const vec3_t v, vec4_t col
 
 /*
  * R_SetSurfaceStageState
+ *
+ * Manages all state for the specified surface and stage.
  */
 static void R_SetSurfaceStageState(msurface_t *surf, stage_t *stage){
 	vec4_t color;
@@ -200,20 +269,13 @@ static void R_SetSurfaceStageState(msurface_t *surf, stage_t *stage){
 	// bind the texture
 	R_BindTexture(stage->image->texnum);
 
-	// and optionally the lightmap
-	if(r_state.rendermode == rendermode_default){
-		if(stage->flags & STAGE_LIGHTMAP){
-			R_EnableTexture(&texunit_lightmap, true);
-			R_BindLightmapTexture(surf->lightmap_texnum);
-		}
-		else
-			R_EnableTexture(&texunit_lightmap, false);
-	}
+	// resolve all static, dynamic, and per-pixel lighting
+	R_StageLighting(surf, stage);
 
 	// load the texture matrix for rotations, stretches, etc..
 	R_StageTextureMatrix(surf, stage);
 
-	// set the blend function, ensuring a good default
+	// set the blend function, ensuring a sane default
 	if(stage->flags & STAGE_BLEND)
 		R_BlendFunc(stage->blend.src, stage->blend.dest);
 	else
@@ -222,16 +284,15 @@ static void R_SetSurfaceStageState(msurface_t *surf, stage_t *stage){
 	// for terrain, enable the color array
 	if(stage->flags & (STAGE_TERRAIN | STAGE_DIRTMAP))
 		R_EnableColorArray(true);
-	else
+	else {
 		R_EnableColorArray(false);
 
-	// when not using the color array, resolve the shade color
-	if(!r_state.color_array_enabled){
+		// resolve the shade color
 
 		if(stage->flags & STAGE_COLOR)  // explicit
 			VectorCopy(stage->color, color);
 
-		else if(stage->flags & STAGE_ENVMAP)  // implied
+		else if(stage->flags & STAGE_ENVMAP)  // implicit
 			VectorCopy(surf->color, color);
 
 		else  // default
@@ -254,6 +315,9 @@ static void R_SetSurfaceStageState(msurface_t *surf, stage_t *stage){
 
 /*
  * R_DrawSurfaceStage
+ *
+ * Render the specified stage for the surface.  Resolve vertex attributes via
+ * helper functions, outputting to the default vertex arrays.
  */
 static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
 	int i;
@@ -267,13 +331,22 @@ static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
 
 		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
 
-		if(r_state.color_array_enabled)
-			R_StageColor(stage, v, &r_state.color_array[i * 4]);
-
-		if(texunit_lightmap.enabled){
+		if(texunit_lightmap.enabled){  // lightmap texcoords
 			st = &r_worldmodel->lmtexcoords[surf->index * 2 + i * 2];
 			texunit_lightmap.texcoord_array[i * 2 + 0] = st[0];
 			texunit_lightmap.texcoord_array[i * 2 + 1] = st[1];
+		}
+
+		if(r_state.color_array_enabled)  // colors
+			R_StageColor(stage, v, &r_state.color_array[i * 4]);
+
+		if(r_state.lighting_enabled){  // normals and tangents
+
+			const float *n = &r_worldmodel->normals[surf->index * 3 + i * 3];
+			const float *t = &r_worldmodel->tangents[surf->index * 3 + i * 3];
+
+			VectorCopy(n, (&r_state.normal_array[i * 3]));
+			VectorCopy(t, (&r_state.tangent_array[i * 3]));
 		}
 	}
 
@@ -283,6 +356,11 @@ static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
 
 /*
  * R_DrawMaterialSurfaces
+ *
+ * Iterates the specified surfaces list, updating materials as they are
+ * encountered, and rendering all visible stages.  State is lazily managed
+ * throughout the iteration, so there is a concerted effort to restore the
+ * state after all surface stages have been rendered.
  */
 void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 	material_t *m;
@@ -295,7 +373,19 @@ void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
+	R_EnableTexture(&texunit_lightmap, true);
+
+	R_EnableLighting(r_state.default_program, true);
+
+	R_EnableColorArray(true);
+
 	R_ResetArrayState();
+
+	R_EnableColorArray(false);
+
+	R_EnableLighting(NULL, false);
+
+	R_EnableTexture(&texunit_lightmap, false);
 
 	glEnable(GL_POLYGON_OFFSET_FILL);  // all stages use depth offset
 
@@ -318,6 +408,12 @@ void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 			if(!(s->flags & STAGE_RENDER))
 				continue;
 
+			if(r_state.rendermode == rendermode_pro){
+				// skip lighted stages in pro renderer
+				if(s->flags & STAGE_LIGHTING)
+					continue;
+			}
+
 			glPolygonOffset(j, 1.0);  // increase depth offset for each stage
 
 			R_SetSurfaceStageState(surf, s);
@@ -334,11 +430,17 @@ void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	R_EnableTexture(&texunit_lightmap, false);
-
 	R_EnableFog(true);
 
 	R_EnableColorArray(false);
+
+	R_EnableTexture(&texunit_lightmap, false);
+
+	R_EnableLights(0);
+
+	R_EnableBumpmap(NULL, false);
+
+	R_EnableLighting(NULL, false);
 
 	glColor4ubv(color_white);
 }
@@ -732,6 +834,9 @@ static int R_ParseStage(stage_t *s, const char **buffer){
 			// a texture, or envmap means render it
 			if(s->flags & (STAGE_TEXTURE | STAGE_ENVMAP))
 				s->flags |= STAGE_RENDER;
+
+			if(s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP))
+				s->flags |= STAGE_LIGHTING;
 
 			return 0;
 		}

@@ -43,10 +43,13 @@ byte color_black[4] = {0, 0, 0, 128};
 
 cvar_t *r_clear;
 cvar_t *r_cull;
+cvar_t *r_deluxemap;
 cvar_t *r_lightmap;
 cvar_t *r_lockvis;
+cvar_t *r_novis;
+cvar_t *r_shownormals;
+cvar_t *r_showpolys;
 cvar_t *r_speeds;
-cvar_t *r_usevis;
 
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
@@ -77,8 +80,6 @@ cvar_t *r_programs;
 cvar_t *r_rendermode;
 cvar_t *r_saturation;
 cvar_t *r_shadows;
-cvar_t *r_shownormals;
-cvar_t *r_showpolys;
 cvar_t *r_soften;
 cvar_t *r_specular;
 cvar_t *r_swapinterval;
@@ -182,12 +183,52 @@ void R_UpdateFrustum(void){
 }
 
 
+/*
+ * R_GetError
+ */
+static void R_GetError(void){
+	GLenum err;
+	char *s;
+
+	while(true){
+		
+		if((err = glGetError()) == GL_NO_ERROR)
+			return;
+
+		switch(err){
+			case GL_INVALID_ENUM:
+				s = "GL_INVALID_ENUM";
+				break;
+			case GL_INVALID_VALUE:
+				s = "GL_INVALID_VALUE";
+				break;
+			case GL_INVALID_OPERATION:
+				s = "GL_INVALID_OPERATION";
+				break;
+			case GL_STACK_OVERFLOW:
+				s = "GL_STACK_OVERFLOW";
+				break;
+			case GL_OUT_OF_MEMORY:
+				s = "GL_OUT_OF_MEMORY";
+				break;
+			default:
+				s = "Unkown error";
+				break;
+		}
+
+		Com_Warn("R_GetError: %s.\n", s);
+	}
+}
+
+
 #include <unistd.h>
 
 /*
  * R_DrawFrame
  */
 void R_DrawFrame(void){
+
+	R_GetError();
 
 	if(r_threads->value){
 		while(r_threadstate.state != THREAD_RENDERER)
@@ -273,10 +314,8 @@ static void R_RenderMode(const char *mode){
 		r_state.rendermode = rendermode_pro;
 
 		R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_pro;
-		R_DrawOpaqueWarpSurfaces = R_DrawOpaqueWarpSurfaces_pro;
 		R_DrawAlphaTestSurfaces = R_DrawAlphaTestSurfaces_pro;
 		R_DrawBlendSurfaces = R_DrawBlendSurfaces_pro;
-		R_DrawBlendWarpSurfaces = R_DrawBlendWarpSurfaces_pro;
 		R_DrawBackSurfaces = R_DrawBackSurfaces_pro;
 	}
 }
@@ -394,7 +433,7 @@ static void R_ResolveWeather(void){
  */
 void R_LoadMedia(void){
 	char name[MAX_QPATH];
-	int i;
+	int i, j;
 
 	if(!cl.configstrings[CS_MODELS + 1][0])
 		return;  // no map loaded
@@ -412,7 +451,7 @@ void R_LoadMedia(void){
 	R_BeginLoading(cl.configstrings[CS_MODELS + 1], atoi(cl.configstrings[CS_MAPSIZE]));
 	Cl_LoadProgress(50);
 
-	num_cl_weaponmodels = 0;
+	num_cl_weaponmodels = j = 0;
 
 	// models, including bsp submodels and client weapon models
 	for(i = 1; i < MAX_MODELS && cl.configstrings[CS_MODELS + i][0]; i++){
@@ -433,6 +472,11 @@ void R_LoadMedia(void){
 			cl.model_clip[i] = Cm_InlineModel(cl.configstrings[CS_MODELS + i]);
 		else
 			cl.model_clip[i] = NULL;
+
+		if(++j == 20)  // nudge loading progress
+			j = 20;
+
+		Cl_LoadProgress(50 + j);
 	}
 	Cl_LoadProgress(70);
 
@@ -558,12 +602,13 @@ static void R_InitLocal(void){
 	// development tools
 	r_clear = Cvar_Get("r_clear", "0", 0, NULL);
 	r_cull = Cvar_Get("r_cull", "1", 0, NULL);
-	r_lightmap = Cvar_Get("r_lightmap", "0", 0, "Activate or deactivate the rendering of the lightmap (developer tool)");
+	r_deluxemap = Cvar_Get("r_deluxemap", "0", CVAR_R_PROGRAMS, "Activate or deactivate the rendering of deluxemap textures (developer tool)");
+	r_lightmap = Cvar_Get("r_lightmap", "0", CVAR_R_PROGRAMS, "Activate or deactivate the rendering of lightmap textures (developer tool)");
 	r_lockvis = Cvar_Get("r_lockvis", "0", 0, NULL);
+	r_novis = Cvar_Get("r_novis", "0", 0, NULL);
 	r_shownormals = Cvar_Get("r_shownormals", "0", 0, "Activate or deactivate the rendering of surface normals (developer tool)");
 	r_showpolys = Cvar_Get("r_showpolys", "0", 0, NULL);
 	r_speeds = Cvar_Get("r_speeds", "0", 0, NULL);
-	r_usevis = Cvar_Get("r_usevis", "1", 0, NULL);
 
 	// settings and preferences
 	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
@@ -600,7 +645,7 @@ static void R_InitLocal(void){
 	r_swapinterval = Cvar_Get("r_swapinterval", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_texturemode = Cvar_Get("r_texturemode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE, NULL);
 	r_threads = Cvar_Get("r_threads", "0", CVAR_ARCHIVE, "Activate or deactivate the threaded renderer");
-	r_vertexbuffers = Cvar_Get("r_vertexbuffers", "3", CVAR_ARCHIVE, NULL);
+	r_vertexbuffers = Cvar_Get("r_vertexbuffers", "1", CVAR_ARCHIVE, NULL);
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE, "Activate or deactivate warping surfaces");
 	r_width = Cvar_Get("r_width", "1024", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 
@@ -647,6 +692,7 @@ qboolean R_SetMode(void){
 	return R_InitContext(r_state.prev_width, r_state.prev_height, r_state.prev_fullscreen);
 }
 
+
 /*
  * R_InitExtensions
  */
@@ -657,6 +703,8 @@ static qboolean R_InitExtensions(void){
 		qglActiveTexture = SDL_GL_GetProcAddress("glActiveTexture");
 		qglClientActiveTexture = SDL_GL_GetProcAddress("glClientActiveTexture");
 	}
+	else
+		Com_Warn("R_InitExtensions: GL_ARB_multitexture not found.\n");
 
 	// vertex buffer objects
 	if(strstr(r_config.extensions_string, "GL_ARB_vertex_buffer_object")){
@@ -665,6 +713,8 @@ static qboolean R_InitExtensions(void){
 		qglBindBuffer = SDL_GL_GetProcAddress("glBindBuffer");
 		qglBufferData = SDL_GL_GetProcAddress("glBufferData");
 	}
+	else
+		Com_Warn("R_InitExtensions: GL_ARB_vertex_buffer_object not found.\n");
 
 	// glsl vertex and fragment shaders and programs
 	if(strstr(r_config.extensions_string, "GL_ARB_fragment_shader")){
@@ -694,6 +744,8 @@ static qboolean R_InitExtensions(void){
 		qglDisableVertexAttribArray = SDL_GL_GetProcAddress("glDisableVertexAttribArray");
 		qglVertexAttribPointer = SDL_GL_GetProcAddress("glVertexAttribPointer");
 	}
+	else
+		Com_Warn("R_InitExtensions: GL_ARB_fragment_shader not found.\n");
 
 	// multitexture is the only one we absolutely need
 	if(!qglActiveTexture || !qglClientActiveTexture)
@@ -738,7 +790,6 @@ static void R_EnforceVersion(void){
  * R_Init
  */
 void R_Init(void){
-	int err;
 
 	Com_Printf("Video initialization..\n");
 
@@ -775,9 +826,6 @@ void R_Init(void){
 	R_InitDraw();
 
 	R_InitModels();
-
-	if((err = glGetError()) != GL_NO_ERROR)
-		Com_Warn("glGetError() = 0x%x\n", err);
 
 	Com_Printf("Video initialized %dx%dx%dbpp %s.\n", r_state.width, r_state.height,
 			(r_state.redbits + r_state.greenbits + r_state.bluebits + r_state.alphabits),

@@ -458,6 +458,9 @@ static void Cl_AddWeapon(void){
 	if(!cl_weapon->value)
 		return;
 
+	if(!((int)cl_addentities->value & 2))
+		return;
+
 	if(cl_thirdperson->value)
 		return;
 
@@ -520,11 +523,18 @@ static const vec3_t bfg_light = {
 
 /*
  * Cl_AddEntities
+ *
+ * Iterate all entities in the current frame, adding models, particles,
+ * coronas, and anything else associated with them.  Client-side animations
+ * like bobbing and rotating are also resolved here.
+ *
+ * Entities with models are conditionally added to the view based on the
+ * cl_addentities bitmask.
  */
 void Cl_AddEntities(frame_t *frame){
 	entity_t ent;
 	vec3_t start, end, forward;
-	int pnum;
+	int pnum, mask;
 
 	if(!cl_addentities->value)
 		return;
@@ -534,7 +544,7 @@ void Cl_AddEntities(frame_t *frame){
 
 	AngleVectors(r_view.angles, forward, NULL, NULL);
 
-	// resolve any animations, lerps, rotations, bobbing, etc..
+	// resolve any models, animations, lerps, rotations, bobbing, etc..
 	for(pnum = 0; pnum < frame->num_entities; pnum++){
 
 		entity_state_t *state = &cl_parse_entities[(frame->parse_entities + pnum) & (MAX_PARSE_ENTITIES - 1)];
@@ -596,7 +606,7 @@ void Cl_AddEntities(frame_t *frame){
 
 		VectorSet(ent.scale, 1.0, 1.0, 1.0);  // scale
 
-		// set skin
+		// resolve model and skin
 		if(state->modelindex == 255){  // use custom player skin
 			const clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
 			ent.skinnum = 0;
@@ -659,8 +669,14 @@ void Cl_AddEntities(frame_t *frame){
 		if(state->effects & EF_TELEPORTER)
 			Cl_TeleporterTrail(ent.origin, cent);
 
-		// if set to invisible, skip
+		// if there's no model assicated with the entity, we're done
 		if(!state->modelindex)
+			continue;
+
+		// filter by model type
+		mask = ent.model->type == mod_bsp_submodel ? 1 : 2;
+
+		if(!((int)cl_addentities->value & mask))
 			continue;
 
 		// don't draw ourselves unless third person is set

@@ -898,7 +898,7 @@ static void Cl_InitLocal(void){
 	Cl_ClearState();
 
 	// register our variables
-	cl_addentities = Cvar_Get("cl_addentities", "1", 0, NULL);
+	cl_addentities = Cvar_Get("cl_addentities", "3", 0, NULL);
 	cl_addparticles = Cvar_Get("cl_addparticles", "1", 0, NULL);
 	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE, NULL);
 	cl_blend = Cvar_Get("cl_blend", "1", CVAR_ARCHIVE, NULL);

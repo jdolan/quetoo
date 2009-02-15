@@ -135,6 +135,8 @@ inline void R_BindArray(GLenum target, GLenum type, GLvoid *array){
 
 /*
  * R_BindDefaultArray
+ *
+ * Binds the appropriate shared vertex array to the specified target.
  */
 inline void R_BindDefaultArray(GLenum target){
 
@@ -179,9 +181,6 @@ inline void R_BindBuffer(GLenum target, GLenum type, GLuint id){
 	if(type && id)  // assign the array pointer as well
 		R_BindArray(target, type, NULL);
 }
-
-
-
 
 
 /*
@@ -253,6 +252,8 @@ inline void R_EnableTexture(r_texunit_t *texunit, qboolean enable){
 
 		glEnable(GL_TEXTURE_2D);
 
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
 		if(texunit == &texunit_lightmap && r_lightmap->modified){
 
 			r_lightmap->modified = false;
@@ -262,8 +263,6 @@ inline void R_EnableTexture(r_texunit_t *texunit, qboolean enable){
 			else
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		}
-
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 	else {  // or deactivate it
 		glDisable(GL_TEXTURE_2D);
@@ -294,6 +293,10 @@ inline void R_EnableColorArray(qboolean enable){
 
 /*
  * R_EnableLighting
+ *
+ * Enables hardware-accelerated lighting with the specified program.  This
+ * should be called after any texture units which will be active for lighting
+ * have been enabled.
  */
 inline void R_EnableLighting(r_program_t *program, qboolean enable){
 
@@ -356,6 +359,9 @@ static inline void R_UseMaterial(material_t *material){
 
 /*
  * R_EnableBumpmap
+ *
+ * Enables bumpmapping while updating program parameters to reflect the
+ * specified material.
  */
 inline void R_EnableBumpmap(material_t *material, qboolean enable){
 

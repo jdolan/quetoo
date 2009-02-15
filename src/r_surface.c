@@ -209,11 +209,15 @@ void R_DrawAlphaTestSurfaces_default(msurfaces_t *surfs){
 
 	R_EnableAlphaTest(true);
 
+	R_EnableTexture(&texunit_lightmap, true);
+
 	R_EnableLighting(r_state.default_program, true);
 
 	R_DrawSurfaces_default(surfs);
 
 	R_EnableLighting(NULL, false);
+
+	R_EnableTexture(&texunit_lightmap, false);
 
 	R_EnableAlphaTest(false);
 }
@@ -232,9 +236,10 @@ void R_DrawBlendSurfaces_default(msurfaces_t *surfs){
 		return;
 	}
 
+	// blend is already enabled when this is called
+
 	R_EnableTexture(&texunit_lightmap, true);
 
-	// blend is already enabled when this is called
 	R_DrawSurfaces_default(surfs);
 
 	R_EnableTexture(&texunit_lightmap, false);
