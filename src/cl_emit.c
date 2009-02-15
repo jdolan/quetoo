@@ -134,10 +134,10 @@ void Cl_LoadEmits(void){
 				if(VectorCompare(e->color, vec3_origin))  // default color
 					VectorSet(e->color, 1.0, 1.0, 1.0);
 
-				if(!e->count)  // default particle count
+				if(e->count <= 0)  // default particle count
 					e->count = 12;
 
-				if(!e->radius){  // default flame and corona radius
+				if(e->radius <= 0.0){  // default flame and corona radius
 
 					if(e->flags & EMIT_CORONA)
 						e->radius = 12.0;
@@ -161,7 +161,7 @@ void Cl_LoadEmits(void){
 						VectorSet(e->scale, 1.0, 1.0, 1.0);
 				}
 
-				if(!e->hz){  // default hz and drift
+				if(e->hz <= 0.0){  // default hz and drift
 
 					if(e->flags & (EMIT_LIGHT | EMIT_SPARKS))
 						e->hz = 0.5;
@@ -175,7 +175,7 @@ void Cl_LoadEmits(void){
 						e->hz = 1.0;
 				}
 
-				if(!e->drift){
+				if(e->drift <= 0.0){
 
 					if(e->flags & (EMIT_LIGHT | EMIT_SPARKS))
 						e->drift = 3.0;
