@@ -343,10 +343,12 @@ static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
 		if(r_state.lighting_enabled){  // normals and tangents
 
 			const float *n = &r_worldmodel->normals[surf->index * 3 + i * 3];
-			const float *t = &r_worldmodel->tangents[surf->index * 3 + i * 3];
-
 			VectorCopy(n, (&r_state.normal_array[i * 3]));
-			VectorCopy(t, (&r_state.tangent_array[i * 3]));
+
+			if(r_state.bumpmap_enabled){
+				const float *t = &r_worldmodel->tangents[surf->index * 3 + i * 3];
+				VectorCopy(t, (&r_state.tangent_array[i * 3]));
+			}
 		}
 	}
 
