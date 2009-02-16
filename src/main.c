@@ -28,6 +28,10 @@
 #endif
 
 #ifndef __LIBSYS_LA__
+
+#include "console.h"
+#include "con_curses.h"
+
 #ifdef _WIN32
 
 #include <stdio.h>
@@ -49,16 +53,22 @@
 #include "game/game.h"
 #include "keys.h"
 
+#ifdef HAVE_EXECINFO
+#include <execinfo.h>
+#define MAX_BACKTRACE_SYMBOLS 50
+#endif
+
+
+
+int curtime;
 
 /*
  * Sys_Milliseconds
  */
-int curtime;
-
 int Sys_Milliseconds(void){
 	static int base;
-#ifdef _WIN32
 
+#ifdef _WIN32
 	if(!base)
 		base = timeGetTime() & 0xffff0000;
 
@@ -73,9 +83,14 @@ int Sys_Milliseconds(void){
 
 	curtime = (tp.tv_sec - base) * 1000 + tp.tv_usec / 1000;
 #endif
+
 	return curtime;
 }
 
+
+/*
+ * Sys_GetCurrentUser
+ */
 const char *Sys_GetCurrentUser(void){
 	static char s_userName[64];
 #ifdef _WIN32
@@ -95,6 +110,7 @@ const char *Sys_GetCurrentUser(void){
 #endif
 	return s_userName;
 }
+
 
 /*
  * Sys_Mkdir
@@ -276,6 +292,22 @@ void Sys_Quit(void){
 
 
 /*
+ * Sys_Backtrace
+ *
+ * On platforms supporting it, print a backtrace.
+ */
+void Sys_Backtrace(void){
+#ifdef HAVE_EXECINFO
+	void *symbols[MAX_BACKTRACE_SYMBOLS];
+	int i;
+
+	i = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
+	backtrace_symbols_fd(symbols, i, STDERR_FILENO);
+#endif
+}
+
+
+/*
  * The final exit point of the program under abnormal exit conditions.
  */
 void Sys_Error(const char *error, ...){
@@ -299,12 +331,6 @@ void Sys_Error(const char *error, ...){
 
 #ifndef __LIBSYS_LA__
 
-#include "console.h"
-#include "con_curses.h"
-
-#include <execinfo.h>
-#define MAX_BACKTRACE_SYMBOLS 50
-
 
 /*
  * Sys_Signal
@@ -312,8 +338,6 @@ void Sys_Error(const char *error, ...){
  * Catch kernel interrupts and dispatch the appropriate exit routine.
  */
 static void Sys_Signal(int s){
-	void *symbols[MAX_BACKTRACE_SYMBOLS];
-	int i;
 
 	switch(s){
 		case SIGHUP:
@@ -331,9 +355,7 @@ static void Sys_Signal(int s){
 #endif
 #endif
 		default:
-			i = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
-			backtrace_symbols_fd(symbols, i, STDERR_FILENO);
-
+			Sys_Backtrace();
 			Sys_Error("Received signal %d.\n", s);
 	}
 }
@@ -359,9 +381,9 @@ int main(int argc, char **argv){
 	AllocConsole();
 
 	hCrt = _open_osfhandle((long)GetStdHandle(STD_OUTPUT_HANDLE),_O_TEXT);
-	hf = _fdopen( hCrt, "w" );
+	hf = _fdopen( hCrt, "w");
 	*stdout = *hf;
-	setvbuf( stdout, NULL, _IONBF, 0 );
+	setvbuf(stdout, NULL, _IONBF, 0);
 #endif
 
 	printf("Quake2World %s\n", VERSION);

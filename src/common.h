@@ -625,6 +625,7 @@ void Sys_OpenLibrary(const char *name, void **handle);
 void Sys_CloseLibrary(void **handle);
 void *Sys_LoadGame(void *parms);
 void Sys_UnloadGame(void);
+void Sys_Backtrace(void);
 void Sys_Error(const char *error, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void Sys_Quit(void);
 

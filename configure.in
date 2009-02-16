@@ -135,7 +135,7 @@ if test "x${SDL_CONFIG}" != x; then
 	SDL_CFLAGS=`$SDL_CONFIG --cflags`
 	SDL_LIBS=`$SDL_CONFIG --libs`
 
-	if test "x${BUILD_CLIENT}" != "xno"; then
+	if test "x${BUILD_CLIENT}" != xno; then
 
 		dnl -------------------
 		dnl Check for SDL_image
@@ -165,6 +165,15 @@ AC_CHECK_HEADER(zlib.h,,
 	[AC_MSG_ERROR([Couldn't find zlib.h, please install zlib])]
 )
 
+dnl -------------------------------
+dnl Check for execinfo.h (optional)
+dnl -------------------------------
+
+AC_CHECK_HEADER(execinfo.h,
+		AC_DEFINE(HAVE_EXECINFO, 1,
+			[Define this if you have the <execinfo.h> header file.]),
+)
+
 dnl ----------------------------
 dnl Check for curses (optional)
 dnl ----------------------------
@@ -177,8 +186,8 @@ AC_ARG_WITH(curses,
 	)
 )
 
-if test "x${with_curses}" != "xno"; then
-	if test "x${with_curses}" != xyes ; then
+if test "x${with_curses}" != xno; then
+	if test "x${with_curses}" != xyes; then
 		CURSES_CFLAGS="$CURSES_CFLAGS -I${with_curses}/include"
 		CURSES_LIBS="$CURSES_LIBS -L${with_curses}/lib"
 	fi
@@ -197,7 +206,7 @@ if test "x${with_curses}" != "xno"; then
 
 	dnl check for ncurses
 
-	if test "${HAVE_CURSES}" = "maybe" ; then
+	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(ncurses, initscr,
 			HAVE_CURSES=ncurses
 			AC_DEFINE(HAVE_CURSES, ncurses, [Define this if you have a curses compatible library])
@@ -208,7 +217,7 @@ if test "x${with_curses}" != "xno"; then
 
 	dnl check for pdcurses
 
-	if test "${HAVE_CURSES}" = "maybe" ; then
+	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(pdcurses, initscr,
 			HAVE_CURSES=pdcurses
 			AC_DEFINE(HAVE_CURSES, pdcurses, [Define this if you have a curses compatible library])
@@ -219,7 +228,7 @@ if test "x${with_curses}" != "xno"; then
 
 	dnl check for generic curses
 
-	if test "${HAVE_CURSES}" = "maybe" ; then
+	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(curses, initscr,
 			HAVE_CURSES=curses
 			AC_DEFINE(HAVE_CURSES, curses, [Define this if you have a curses compatible library])
