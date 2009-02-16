@@ -210,39 +210,64 @@ void R_SetArrayState(const model_t *mod){
  * R_ResetArrayState
  */
 void R_ResetArrayState(void){
+	int arrays, mask;
 
-	r_array_state.model = NULL;
-	r_array_state.arrays = 0;
+	mask = 0xFFFF, arrays = R_ArraysMask();  // resolve the desired arrays mask
 
-	// vbo
-	R_BindBuffer(0, 0, 0);
+	if(r_array_state.model == NULL){
+		const int xor = r_array_state.arrays ^ arrays;
+		
+		if(!xor)  // no changes, we're done
+			return;
+
+		// resolve what's left to turn on
+		mask = arrays & xor;
+	}
+	else  // vbo
+		R_BindBuffer(0, 0, 0);
 
 	// vertex array
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
+	if(mask & R_ARRAY_VERTEX)
+		R_BindDefaultArray(GL_VERTEX_ARRAY);
 
 	// color array
-	if(r_state.color_array_enabled)
-		R_BindDefaultArray(GL_COLOR_ARRAY);
+	if(r_state.color_array_enabled){
+		if(mask & R_ARRAY_COLOR)
+			R_BindDefaultArray(GL_COLOR_ARRAY);
+	}
 
 	// normals and tangents
 	if(r_state.lighting_enabled){
-		R_BindDefaultArray(GL_NORMAL_ARRAY);
 
-		if(r_bumpmap->value)
-			R_BindDefaultArray(GL_TANGENT_ARRAY);
+		if(mask & R_ARRAY_NORMAL)
+			R_BindDefaultArray(GL_NORMAL_ARRAY);
+
+		if(r_bumpmap->value && r_state.rendermode == rendermode_default){
+
+			if(mask & R_ARRAY_TANGENT)
+				R_BindDefaultArray(GL_TANGENT_ARRAY);
+		}
 	}
 
 	// diffuse texcoords
-	if(texunit_diffuse.enabled)
-		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+	if(texunit_diffuse.enabled){
+		if(mask & R_ARRAY_TEX_DIFFUSE)
+			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+	}
 
 	// lightmap texcoords
 	if(texunit_lightmap.enabled){
-		R_SelectTexture(&texunit_lightmap);
 
-		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+		if(mask & R_ARRAY_TEX_LIGHTMAP){
+			R_SelectTexture(&texunit_lightmap);
 
-		R_SelectTexture(&texunit_diffuse);
+			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+
+			R_SelectTexture(&texunit_diffuse);
+		}
 	}
+
+	r_array_state.model = NULL;
+	r_array_state.arrays = arrays;
 }
 
