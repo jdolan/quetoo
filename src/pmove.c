@@ -901,28 +901,23 @@ static void Pm_ClampAngles(void){
 	vec3_t angles;
 	int i;
 
-	if(pm->s.pm_flags & PMF_TIME_TELEPORT){
-		pm->angles[YAW] = SHORT2ANGLE(pm->cmd.angles[YAW] + pm->s.delta_angles[YAW]);
-		pm->angles[PITCH] = pm->angles[ROLL] = 0;
-	} else {
-		// circularly clamp the angles with deltas
-		for(i = 0; i < 3; i++){
-			pm->angles[i] = SHORT2ANGLE(pm->cmd.angles[i] + pm->s.delta_angles[i]);
-		}
+	// circularly clamp the angles with deltas
+	for(i = 0; i < 3; i++){
+		pm->angles[i] = SHORT2ANGLE(pm->cmd.angles[i] + pm->s.delta_angles[i]);
 
-		// don't let the player look up or down more than 90 degrees
-		if(pm->angles[PITCH] > 89 && pm->angles[PITCH] < 180)
-			pm->angles[PITCH] = 89;
+		if(pm->angles[i] > 360.0)
+			pm->angles[i] -= 360.0;
 
-		else if(pm->angles[PITCH] < 271 && pm->angles[PITCH] >= 180)
-			pm->angles[PITCH] = 271;
+		if(pm->angles[i] < 0)
+			pm->angles[i] += 360.0;
 	}
+
+	// make sure that looking up allows you to walk in the right direction
+	if(pm->angles[PITCH] > 271.0)
+		pm->angles[PITCH] -= 360.0;
 
 	// update the local angles responsible for velocity calculations
 	VectorCopy(pm->angles, angles);
-
-	if(angles[PITCH] > 180.0)  // circular clamp
-		angles[PITCH] -= 360.0;
 
 	// for ground movement, reduce pitch to keep the player moving forward
 	if(pm->s.pm_flags & PMF_ON_GROUND)

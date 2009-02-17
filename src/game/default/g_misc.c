@@ -273,11 +273,8 @@ static void G_teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 	other->velocity[2] = 150.0;
 
 	VectorClear(other->client->cmd_angles);
+	VectorClear(other->client->angles);
 	VectorClear(other->s.angles);
-	other->s.angles[YAW] = dest->s.angles[YAW];
-
-	VectorCopy(other->s.angles, other->client->ps.angles);
-	VectorCopy(other->s.angles, other->client->angles);
 
 	// kill anything at the destination
 	G_KillBox(other);

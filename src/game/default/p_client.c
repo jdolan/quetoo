@@ -763,11 +763,9 @@ static void P_PutClientInServer(edict_t *ent){
 			ANGLE2SHORT(spawn_angles[i] - old_angles[i]);
 	}
 
-	ent->s.angles[PITCH] = 0;
-	ent->s.angles[YAW] = spawn_angles[YAW];
-	ent->s.angles[ROLL] = 0;
-	VectorCopy(ent->s.angles, client->ps.angles);
-	VectorCopy(ent->s.angles, client->angles);
+	VectorClear(client->cmd_angles);
+	VectorClear(client->angles);
+	VectorClear(ent->s.angles);
 
 	// spawn a spectator
 	if(client->locals.spectator){
