@@ -648,6 +648,9 @@ void Cl_Move(usercmd_t *cmd){
 	float mod;
 	int i;
 
+	if(cmd->msec < 1)
+		cmd->msec = 1;
+
 	mod = 500.0;
 
 	// keyboard move forward / back

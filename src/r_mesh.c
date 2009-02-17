@@ -331,6 +331,8 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 	glDrawArrays(GL_TRIANGLES, 0, md2->num_tris * 3);
 
 	r_view.mesh_polys += md2->num_tris;
+
+	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 }
 
 
@@ -398,6 +400,8 @@ static void R_DrawMd3ModelLerped_default(const entity_t *e){
 
 		r_view.mesh_polys += mesh->num_tris;
 	}
+
+	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 }
 
 

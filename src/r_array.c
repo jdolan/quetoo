@@ -216,7 +216,7 @@ void R_ResetArrayState(void){
 
 	if(r_array_state.model == NULL){
 		const int xor = r_array_state.arrays ^ arrays;
-		
+
 		if(!xor)  // no changes, we're done
 			return;
 
