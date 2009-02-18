@@ -587,7 +587,7 @@ void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
  */
 static void G_LightningDischarge(edict_t *self){
 	edict_t *ent;
-	int i;
+	int i, d;
 
 	// find all clients in the same water area and kill them
 	for(i = 0; i < sv_maxclients->value; i++){
@@ -601,8 +601,16 @@ static void G_LightningDischarge(edict_t *self){
 			continue;
 
 		if(gi.inPVS(self->s.origin, ent->s.origin)){
-			G_Damage(ent, self, self->owner, vec3_origin, ent->s.origin, vec3_origin,
-					999, 100, 0, MOD_L_DISCHARGE);
+
+			if(ent->waterlevel){
+
+				// we always kill ourselves, we inflict a lot of damage but
+				// we don't necessarily kill everyone else
+				d = ent == self ? 999 : 50 * ent->waterlevel;
+
+				G_Damage(ent, self, self->owner, vec3_origin, ent->s.origin, vec3_origin,
+						d, 100, DAMAGE_NO_ARMOR, MOD_L_DISCHARGE);
+			}
 		}
 	}
 

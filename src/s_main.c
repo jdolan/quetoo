@@ -904,11 +904,11 @@ void S_Init(void){
 	memset(&s_env, 0, sizeof(s_env));
 
 	if(Cvar_VariableValue("s_disable")){
-		Com_Printf("Sample disabled.\n");
+		Com_Warn("Sound disabled.\n");
 		return;
 	}
 
-	Com_Printf("Sample initialization..\n");
+	Com_Printf("Sound initialization..\n");
 
 	s_volume = Cvar_Get("s_volume", "0.7", CVAR_ARCHIVE, NULL);
 	s_mixahead = Cvar_Get("s_mixahead", "0.05", CVAR_ARCHIVE, NULL);
@@ -937,7 +937,7 @@ void S_Init(void){
 
 	s_env.initialized = S_InitDevice();
 
-	Com_Printf("Sample initialized %dbit %dKHz %dch.\n", s_env.device.bits,
+	Com_Printf("Sound initialized %dbit %dKHz %dch.\n", s_env.device.bits,
 			(s_env.device.rate / 1000), s_env.device.channels);
 }
 
