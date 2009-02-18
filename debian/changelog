@@ -1,3 +1,24 @@
+quake2world (0.1.0-pre1.2) unstable; urgency=low
+
+  * debian/copyright
+    - updated FSF mailing address
+  * debian/control
+    - added quake2world-data package
+    - fixed build dependencies
+    - added Homepage and Vcs-Svn fields
+    - changed quake2world Architecture to upstream supported platforms
+  * debian/rules
+    - added binary-indep rules to create quake2world-data placeholder package
+    - adjusted binary-arch rules to allow a symbolic link from the data docs 
+      to the main quake2world docs
+    - s/-$(MAKE) distclean/[ ! -f Makefile ] || $(MAKE) distclean/
+  * debian/quake2world-data.postinst
+    - added rsync command to fetch data
+  * debian/quake2world-data.postrm
+    - added command to remove quake2world data
+
+ -- Stanley Pinchak <stanley.pinchak@gmail.com>  Sun, 15 Feb 2009 21:58:30 -0500
+
 quake2world (0.1.0-pre1.1) unstable; urgency=low
 
   * Updated control file for build dependencies chaged with svn revision >= 711

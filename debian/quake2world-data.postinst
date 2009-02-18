@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+configure)
+	# update rsync repository
+	rsync -rvz --delete rsync://jdolan.dyndns.org/quake2world /usr/local/share/quake2world
+	;;
+esac
+
+#DEBHELPER#
+

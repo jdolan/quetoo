@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+remove)
+        #Remove quake2world data
+	if [ -d /usr/local/share/quake2world ]; then
+                rm -rf /usr/local/share/quake2world
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
