@@ -24,9 +24,9 @@ License:
    MA 02110-1301, USA.
 
 On Debian GNU/Linux systems, the complete text of the GNU General
-Public License can be found in `/usr/share/common-licenses/GPL'.
+Public License can be found in `/usr/share/common-licenses/GPL-2'.
 
 
-The Debian packaging is (C) 2007, Stanley <stanley@barton.pinchak.dyndns.org> and
-is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
+The Debian packaging is (C) 2007, Stanley Pinchak <stanleyi.pinchak@gmail.com> and
+is licensed under the GPL-2, see `/usr/share/common-licenses/GPL-2'.
 

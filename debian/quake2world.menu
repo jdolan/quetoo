@@ -1,0 +1,3 @@
+?package(quake2world):needs="X11" section="Games/Action"\
+         title="quake2world" command="/usr/local/bin/quake2world"\
+         icon="/usr/share/pixmaps/quake2world.xpm"

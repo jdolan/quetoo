@@ -1,4 +1,30 @@
-quake2world (0.1.0-pre1.2) unstable; urgency=low
+quake2world (0.1.0-3) unstable; urgency=low
+
+  * Change debian version numbering to be lintian compliant
+  * debian/quake2world-data.dirs
+    - add /usr/local/share/quake2world for game data
+  * debian/quake2world.dirs
+    - add /usr/share/pixmaps applications and icons for menu and desktop files
+  * debian/quake2world.menu
+    - add menu entry for quake2world
+  * debian/quake2world.xpm
+    - create quake2world.xpm via imagemagick mogrify
+      from desktop/quake2world.png
+  * debian/rules
+    - add rules to copy menu files to their appropriate location
+  * debian/README.Debian
+    - add information about Debian policy violation
+  * debian/control
+    - update standards version 3.8.0
+    - remove pre-required build dependency on build-essentials
+    - fix long Description line for URL
+  * debian/copyright
+    - clarify license file location to GPL-2
+    - update Debian packaging email address attribution
+
+ -- Stanley Pinchak <stanley.pinchak@gmail.com>  Wed, 18 Feb 2009 22:10:54 -0500
+
+quake2world (0.1.0-2) unstable; urgency=low
 
   * debian/copyright
     - updated FSF mailing address
@@ -19,13 +45,13 @@ quake2world (0.1.0-pre1.2) unstable; urgency=low
 
  -- Stanley Pinchak <stanley.pinchak@gmail.com>  Sun, 15 Feb 2009 21:58:30 -0500
 
-quake2world (0.1.0-pre1.1) unstable; urgency=low
+quake2world (0.1.0-1) unstable; urgency=low
 
   * Updated control file for build dependencies chaged with svn revision >= 711
 
  -- Stanley Pinchak <stanley.pinchak@gmail.com>  Mon, 24 Sep 2007 20:00:30 -0400
 	
-quake2world (0.1.0-pre1) unstable; urgency=low
+quake2world (0.1.0-0) unstable; urgency=low
 
   * Initial release
   * Initial debian package produced by Stanley Pinchak

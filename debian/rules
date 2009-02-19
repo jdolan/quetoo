@@ -93,7 +93,10 @@ binary-arch: build install
 	dh_installdocs -pquake2world
 	dh_installexamples
 #	dh_install
-#	dh_installmenu
+	cp desktop/quake2world.desktop debian/quake2world/usr/share/applications/
+	cp desktop/quake2world.png debian/quake2world/usr/share/icons/
+	cp debian/quake2world.xpm debian/quake2world/usr/share/pixmaps/
+	dh_installmenu
 #	dh_installdebconf	
 #	dh_installlogrotate
 #	dh_installemacsen
