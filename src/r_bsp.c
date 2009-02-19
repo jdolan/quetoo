@@ -189,7 +189,7 @@ void R_DrawBspModel(const entity_t *e){
 
 	glPushMatrix();
 
-	R_RotateForEntity(e, true);
+	R_RotateForEntity(e);
 
 	R_DrawBspModelSurfaces(e);
 

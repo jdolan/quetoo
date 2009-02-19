@@ -105,19 +105,15 @@ void R_AddEntity(const entity_t *ent){
  *
  * Applies translation, rotation, and scale for the specified entity.
  */
-void R_RotateForEntity(const entity_t *e, qboolean full){
+void R_RotateForEntity(const entity_t *e){
 
 	glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
 
-	glScalef(e->scale[0], e->scale[1], e->scale[2]);
-
 	glRotatef(e->angles[YAW], 0.0, 0.0, 1.0);
-
-	if(!full)
-		return;
-
 	glRotatef(e->angles[PITCH], 0.0, 1.0, 0.0);
 	glRotatef(e->angles[ROLL], 1.0, 0.0, 0.0);
+
+	glScalef(e->scale[0], e->scale[1], e->scale[2]);
 }
 
 
@@ -214,7 +210,7 @@ static void R_DrawNullModel(const entity_t *e){
 	R_EnableTexture(&texunit_diffuse, false);
 
 	glPushMatrix();
-	R_RotateForEntity(e, true);
+	R_RotateForEntity(e);
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0, 0, -16);

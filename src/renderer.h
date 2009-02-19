@@ -337,7 +337,7 @@ void R_DrawFillAlphas(void);
 
 // r_entity.c
 void R_AddEntity(const entity_t *e);
-void R_RotateForEntity(const entity_t *e, qboolean full);
+void R_RotateForEntity(const entity_t *e);
 void R_DrawEntities(void);
 
 // r_flare.c

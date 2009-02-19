@@ -247,7 +247,7 @@ static void R_SetMeshState_default(const entity_t *e){
 
 	glPushMatrix();  // now rotate and translate to the ent's origin
 
-	R_RotateForEntity(e, true);
+	R_RotateForEntity(e);
 }
 
 
