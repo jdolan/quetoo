@@ -182,8 +182,8 @@ void R_MarkLights(void){
 		}
 	}
 
-	// disable first light to reset state
-	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 0.0);
+	// reset state
+	R_EnableLights(0);
 }
 
 
