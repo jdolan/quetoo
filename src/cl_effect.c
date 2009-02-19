@@ -993,6 +993,7 @@ static void Cl_TeleporterEffect(const vec3_t org){
 	Cl_TeleporterTrail(org, NULL);
 }
 
+
 /*
  * Cl_WeatherEffects
  */

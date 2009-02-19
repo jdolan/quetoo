@@ -66,7 +66,8 @@ typedef struct entity_s {
 	int skinnum;  // for masking players and vweaps
 	struct image_s *skin;  // NULL for inline skin
 
-	int flags;
+	int flags;  // e.g. EF_ROCKET, EF_WEAPON, ..
+	vec3_t shell;  // shell color
 
 	static_lighting_t *lighting;
 

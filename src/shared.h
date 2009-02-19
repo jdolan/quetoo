@@ -460,20 +460,21 @@ typedef struct {
 // handled on the client side (particles, frame animations, ..)
 // an entity that has effects will be sent to the client
 // even if it has a zero index model.
-#define EF_ROTATE			(1 << 0)  // rotate (bonus items)
-#define EF_BOB				(1 << 1)  // bob (weapons)
-#define EF_ANIMATE			(1 << 2)  // automatically cycle through all frames at 2hz
-#define EF_ANIMATE_FAST		(1 << 3)  // automatically cycle through all frames at 10hz
-#define EF_GRENADE			(1 << 4)  // smoke trail above water, bubble trail in water
-#define EF_ROCKET			(1 << 5)  // smoke trail above water, bubble trail in water
-#define EF_HYPERBLASTER		(1 << 6)  // bubble trail in water
-#define EF_LIGHTNING		(1 << 7)  // lightning bolt
-#define EF_BFG				(1 << 8)  // big particle snotball
-#define EF_TELEPORTER		(1 << 9)  // particle fountain
-#define EF_CTF_BLUE			(1 << 10)  // blue flag carrier
-#define EF_CTF_RED			(1 << 11)  // red flag carrier
-#define EF_PULSE			(1 << 12)  // pulsate lighting color
-#define EF_BEAM				(1 << 13)  // overload old_origin for 2nd endpoint
+#define EF_ROTATE			(1 << 0)  // rotate on z
+#define EF_BOB				(1 << 1)  // bob on z
+#define EF_PULSE			(1 << 2)  // pulsate lighting color
+#define EF_ANIMATE			(1 << 3)  // automatically cycle through all frames at 2hz
+#define EF_ANIMATE_FAST		(1 << 4)  // automatically cycle through all frames at 10hz
+#define EF_GRENADE			(1 << 5)  // smoke trail above water, bubble trail in water
+#define EF_ROCKET			(1 << 6)  // smoke trail above water, bubble trail in water
+#define EF_HYPERBLASTER		(1 << 7)  // bubble trail in water
+#define EF_LIGHTNING		(1 << 8)  // lightning bolt
+#define EF_BFG				(1 << 9)  // big particle snotball
+#define EF_TELEPORTER		(1 << 10)  // particle fountain
+#define EF_QUAD				(1 << 11)  // quad damage
+#define EF_CTF_BLUE			(1 << 12)  // blue flag carrier
+#define EF_CTF_RED			(1 << 13)  // red flag carrier
+#define EF_BEAM				(1 << 14)  // overload old_origin for 2nd endpoint
 
 // small or fullbright entities can skip static and dynamic lighting
 #define EF_NO_LIGHTING		(EF_GRENADE | EF_ROCKET)

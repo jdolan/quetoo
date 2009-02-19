@@ -79,7 +79,7 @@ extern image_t *r_flametexture;
 #define NUM_BULLETTEXTURES 3
 extern image_t *r_bullettextures[NUM_BULLETTEXTURES];
 
-#define NUM_ENVMAPTEXTURES 2
+#define NUM_ENVMAPTEXTURES 3
 extern image_t *r_envmaptextures[NUM_ENVMAPTEXTURES];
 
 #define NUM_FLARETEXTURES 3

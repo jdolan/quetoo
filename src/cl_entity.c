@@ -506,10 +506,13 @@ static const vec3_t grenade_light = {
 	0.6, 0.4, 0.1
 };
 static const vec3_t ctf_blue_light = {
-	0.3, 1.0, 3.0
+	0.3, 0.3, 1.0
 };
 static const vec3_t ctf_red_light = {
 	1.0, 0.3, 0.3
+};
+static const vec3_t quad_light = {
+	0.3, 0.7, 0.7
 };
 static const vec3_t hyperblaster_light = {
 	0.4, 0.7, 0.9
@@ -660,11 +663,22 @@ void Cl_AddEntities(frame_t *frame){
 			Cl_EnergyTrail(cent, 20.0);
 		}
 
-		if(state->effects & EF_CTF_BLUE)
-			R_AddLight(ent.origin, 1.5, ctf_blue_light);
+		VectorClear(ent.shell);
 
-		if(state->effects & EF_CTF_RED)
-			R_AddLight(ent.origin, 1.5, ctf_red_light);
+		if(state->effects & EF_CTF_BLUE){
+			R_AddLight(ent.origin, 1.0, ctf_blue_light);
+			VectorCopy(ctf_blue_light, ent.shell);
+		}
+
+		if(state->effects & EF_CTF_RED){
+			R_AddLight(ent.origin, 1.0, ctf_red_light);
+			VectorCopy(ctf_red_light, ent.shell);
+		}
+
+		if(state->effects & EF_QUAD){
+			R_AddLight(ent.origin, 1.0, quad_light);
+			VectorCopy(quad_light, ent.shell);
+		}
 
 		if(state->effects & EF_TELEPORTER)
 			Cl_TeleporterTrail(ent.origin, cent);
@@ -722,6 +736,7 @@ void Cl_AddEntities(frame_t *frame){
 				if(i > MAX_CLIENTWEAPONMODELS - 1)
 					i = 0;
 				ent.model = ci->weaponmodel[i];
+				ent.flags = state->effects;
 			} else
 				ent.model = cl.model_draw[state->modelindex2];
 

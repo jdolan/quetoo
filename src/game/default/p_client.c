@@ -1102,6 +1102,8 @@ static void P_InventoryThink(edict_t *ent){
 
 			gi.Sound(ent, CHAN_AUTO, gi.SoundIndex("quad/expire.wav"),
 					1.0, ATTN_NORM, 0.0);
+
+			ent->s.effects &= ~EF_QUAD;
 		}
 	}
 

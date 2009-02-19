@@ -163,6 +163,7 @@ static qboolean PickupQuadDamage(edict_t *ent, edict_t *other){
 		G_SetRespawn(ent, ent->item->quantity);
 	}
 
+	other->s.effects |= EF_QUAD;
 	return true;
 }
 

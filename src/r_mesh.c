@@ -264,6 +264,53 @@ static void R_ResetMeshState_default(const entity_t *e){
 
 
 /*
+ * R_DrawMeshModelShell_default
+ *
+ * Draws an animated, colored shell for the specified entity.  Rather than
+ * re-lerping or re-scaling the entity, the currently bound vertex arrays
+ * are simply re-drawn using a small depth offset.
+ */
+static void R_DrawMeshModelShell_default(const entity_t *e){
+	float f;
+	int i;
+
+	if(VectorCompare(e->shell, vec3_origin))
+		return;
+
+	glColor3fv(e->shell);
+
+	R_BindTexture(r_envmaptextures[2]->texnum);
+
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(-1.0, 1.0);
+
+	R_EnableBlend(true);
+	R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+	// copy the models texcoords in and augment them
+	memcpy(&texunit_diffuse.texcoord_array, e->model->texcoords,
+			sizeof(vec2_t) * e->model->vertexcount);
+
+	f = r_view.time / 3.0;
+
+	for(i = 0; i < e->model->vertexcount; i++){
+		texunit_diffuse.texcoord_array[2 * i + 0] += f;
+		texunit_diffuse.texcoord_array[2 * i + 1] += f;
+	}
+
+	glDrawArrays(GL_TRIANGLES, 0, e->model->vertexcount);
+
+	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	R_EnableBlend(false);
+
+	glPolygonOffset(0.0, 0.0);
+	glDisable(GL_POLYGON_OFFSET_FILL);
+
+	glColor4ubv(color_white);
+}
+
+
+/*
  * R_DrawMd2ModelLerped_default
  */
 static void R_DrawMd2ModelLerped_default(const entity_t *e){
@@ -450,6 +497,8 @@ void R_DrawMeshModel_default(entity_t *e){
 
 	else if(e->model->type == mod_md3)  // or an interpolated md3
 		R_DrawMd3ModelLerped_default(e);
+
+	R_DrawMeshModelShell_default(e);  // lastly draw any shells
 
 	R_ResetMeshState_default(e);
 
