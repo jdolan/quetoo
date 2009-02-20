@@ -527,6 +527,8 @@ void P_BeginServerFrame(edict_t *ent);
 void P_Think(edict_t *ent, usercmd_t *ucmd);
 void P_Pain(edict_t *self, edict_t *other, int damage, int knockback);
 void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
+void P_TossQuadDamage(edict_t *self);
+void P_TossFlag(edict_t *self);
 void P_NoAmmoWeaponChange(gclient_t *client);
 
 // p_view.c

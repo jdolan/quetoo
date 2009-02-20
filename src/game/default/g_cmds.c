@@ -1048,6 +1048,10 @@ static void G_Spectate_f(edict_t *ent){
 			}
 		}
 	}
+	else {  // they wish to spectate
+		P_TossQuadDamage(ent);
+		P_TossFlag(ent);
+	}
 
 	ent->client->locals.spectator = !spectator;
 	P_Respawn(ent, true);

@@ -232,9 +232,9 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 
 
 /*
- * TossWeapon
+ * P_TossWeapon
  */
-static void TossWeapon(edict_t *self){
+static void P_TossWeapon(edict_t *self){
 	gitem_t *item;
 
 	// don't drop weapon when falling into void
@@ -251,9 +251,9 @@ static void TossWeapon(edict_t *self){
 
 
 /*
- * TossQuadDamage
+ * P_TossQuadDamage
  */
-static void TossQuadDamage(edict_t *self){
+void P_TossQuadDamage(edict_t *self){
 	edict_t *quad;
 
 	// don't drop quad when falling into void
@@ -272,9 +272,9 @@ static void TossQuadDamage(edict_t *self){
 
 
 /*
- * TossFlag
+ * P_TossFlag
  */
-static void TossFlag(edict_t *self){
+void P_TossFlag(edict_t *self){
 	team_t *ot;
 	edict_t *of;
 	int index;
@@ -296,7 +296,7 @@ static void TossFlag(edict_t *self){
 	// don't drop flag when falling into void
 	if(meansOfDeath == MOD_TRIGGER_HURT){
 
-		gi.Sound(self, CHAN_AUTO, gi.SoundIndex("misc/return.wav"),
+		gi.Sound(self, CHAN_AUTO, gi.SoundIndex("ctf/return.wav"),
 				1.0, ATTN_NONE, 0.0);
 
 		of->svflags &= ~SVF_NOCLIENT;
@@ -335,16 +335,16 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 	P_ClientObituary(self, inflictor, attacker);
 
 	if(!level.gameplay && !level.warmup)  // drop weapon
-		TossWeapon(self);
+		P_TossWeapon(self);
 
 	self->client->newweapon = NULL;  // reset weapon state
 	P_ChangeWeapon(self);
 
 	if(!level.gameplay && !level.warmup)  // drop quad
-		TossQuadDamage(self);
+		P_TossQuadDamage(self);
 
 	if(level.ctf && !level.warmup)  // drop flag in ctf
-		TossFlag(self);
+		P_TossFlag(self);
 
 	G_Score_f(self);  // show scores
 
