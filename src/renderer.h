@@ -348,6 +348,7 @@ void R_DrawFlareSurfaces(msurfaces_t *surfs);
 void R_AddLight(const vec3_t org, float radius, const vec3_t color);
 void R_AddSustainedLight(const vec3_t org, float radius, const vec3_t color, float sustain);
 void R_MarkLights(void);
+void R_ShiftLights(const vec3_t offset);
 void R_EnableLights(int mask);
 void R_EnableLightsByRadius(const vec3_t p);
 

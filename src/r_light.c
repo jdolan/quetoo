@@ -187,6 +187,18 @@ void R_MarkLights(void){
 }
 
 
+static vec3_t lights_offset;
+
+/*
+ * R_ShiftLights
+ *
+ * Light sources must be translated for bsp submodel entities.
+ */
+void R_ShiftLights(const vec3_t offset){
+	VectorCopy(offset, lights_offset);
+}
+
+
 /*
  * R_EnableLights
  */
@@ -214,7 +226,7 @@ void R_EnableLights(int mask){
 
 			if(mask & (1 << i)){
 
-				VectorCopy(l->org, position);
+				VectorSubtract(l->org, lights_offset, position);
 				glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
 
 				VectorCopy(l->color, diffuse);

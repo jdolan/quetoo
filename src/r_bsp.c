@@ -73,33 +73,6 @@ qboolean R_CullBspModel(const entity_t *e){
 
 
 /*
- * R_ShiftLights
- *
- * Temporarily shifts eligible light source origins to account for entity 
- * translation.
- */
-static void R_ShiftLights(const entity_t *e, qboolean shift){
-	light_t *light;
-	int i;
-
-	if(VectorCompare(e->origin, vec3_origin))
-		return;
-
-	for(i = 0; i < r_view.num_lights; i++){
-
-		light = &r_view.lights[i];
-
-		if(e->model->lights & (1 << i)){
-			if(shift)
-				VectorSubtract(light->org, e->origin, light->org);
-			else
-				VectorAdd(light->org, e->origin, light->org);
-		}
-	}
-}
-
-
-/*
  * R_DrawBspModelSurfaces
  */
 static void R_DrawBspModelSurfaces(const entity_t *e){
@@ -185,7 +158,7 @@ void R_DrawBspModel(const entity_t *e){
 		modelorg[2] = DotProduct(temp, up);
 	}
 
-	R_ShiftLights(e, true);
+	R_ShiftLights(e->origin);
 
 	glPushMatrix();
 
@@ -195,7 +168,7 @@ void R_DrawBspModel(const entity_t *e){
 
 	glPopMatrix();
 
-	R_ShiftLights(e, false);
+	R_ShiftLights(vec3_origin);
 }
 
 
