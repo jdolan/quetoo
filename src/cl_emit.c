@@ -375,6 +375,9 @@ void Cl_AddEmits(void){
 			R_AddEntity(&ent);
 		}
 
+		if(e->flags & EMIT_CORONA)
+			R_AddCorona(e->org, e->radius, e->color);
+
 		// most emits are timed events, so simply continue if it's
 		// not time to fire our event yet
 
@@ -392,9 +395,6 @@ void Cl_AddEmits(void){
 
 		if(e->flags & EMIT_FLAME)
 			Cl_FlameTrail(e->org, e->org, NULL);
-
-		if(e->flags & EMIT_CORONA)
-			R_AddCorona(e->org, e->radius, e->color);
 
 		if((e->flags & EMIT_SOUND) && !e->loop)
 			S_StartSample(e->org, 0, 0, e->sample, 1, e->attenuation, 0);
