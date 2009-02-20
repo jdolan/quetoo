@@ -133,10 +133,10 @@ keyname_t keynames[] = {
  *
  * Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(int key){
+static void Cl_KeyConsole(int key, int unicode){
 	int i;
 
-	// submit buffer on enter key with valid input
+	// submit buffer on enter unicode with valid input
 	if((key == K_ENTER || key == K_KP_ENTER) && strlen(key_lines[edit_line]) > 1){
 		if(key_lines[edit_line][1] == '\\' || key_lines[edit_line][1] == '/')
 			Cbuf_AddText(key_lines[edit_line] + 2);  // skip the /
@@ -286,7 +286,7 @@ static void Cl_KeyConsole(int key){
 		return;
 	}
 
-	if(key < 32 || key > 127)
+	if(unicode < 32 || unicode > 127)
 		return;  // non printable
 
 	if(key_linepos < KEY_LINESIZE - 1){
@@ -303,7 +303,7 @@ static void Cl_KeyConsole(int key){
 		}
 
 		i = key_lines[edit_line][key_linepos];
-		key_lines[edit_line][key_linepos] = key;
+		key_lines[edit_line][key_linepos] = unicode;
 		key_linepos++;
 
 		if(!i)  // only null terminate if at the end
@@ -319,7 +319,7 @@ int chat_bufferlen = 0;
 /*
  * Cl_KeyMessage
  */
-static void Cl_KeyMessage(int key){
+static void Cl_KeyMessage(int key, int unicode){
 	if(key == K_ENTER || key == K_KP_ENTER){
 		if(*chat_buffer){
 			if(chat_team)
@@ -351,13 +351,13 @@ static void Cl_KeyMessage(int key){
 		return;
 	}
 
-	if(key < 32 || key > 127)
+	if(unicode < 32 || unicode > 127)
 		return;  // non printable
 
 	if(chat_bufferlen == sizeof(chat_buffer) - 1)
 		return; // all full
 
-	chat_buffer[chat_bufferlen++] = key;
+	chat_buffer[chat_bufferlen++] = unicode;
 	chat_buffer[chat_bufferlen] = 0;
 }
 
@@ -657,7 +657,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 	if(key == K_ESCAPE && down){  // escape can cancel messagemode or score
 
 		if(cls.key_dest == key_message){
-			Cl_KeyMessage(unicode);
+			Cl_KeyMessage(key, unicode);
 			return;
 		}
 
@@ -731,14 +731,14 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 
 	if(!down)
 		return;  // other systems only care about key down events
-
+	
 	switch(cls.key_dest){
 		case key_message:
-			Cl_KeyMessage(unicode);
+			Cl_KeyMessage(key, unicode);
 			break;
 		case key_game:
 		case key_console:
-			Cl_KeyConsole(unicode);
+			Cl_KeyConsole(key, unicode);
 			break;
 		default:
 			Com_Warn("Cl_KeyEvent: Bad cls.key_dest.\n");
