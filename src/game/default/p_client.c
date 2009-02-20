@@ -1046,14 +1046,16 @@ qboolean P_Connect(edict_t *ent, char *userinfo){
 /*
  * P_Disconnect
  *
- * Called when a player drops from the server.
- * Will not be called between levels.
+ * Called when a player drops from the server.  Not be called between levels.
  */
 void P_Disconnect(edict_t *ent){
 	int playernum;
 
 	if(!ent->client)
 		return;
+
+	P_TossQuadDamage(ent);
+	P_TossFlag(ent);
 
 	gi.Bprintf(PRINT_HIGH, "%s bitched out\n", ent->client->locals.netname);
 
