@@ -82,6 +82,7 @@ static r_progvar_t *R_ProgramVariable(GLint type, const char *name){
 	if(v->location == -1){
 		Com_Warn("R_ProgramVariable: Could not find %s in program %s.\n",
 				name, r_state.active_program->name);
+		v->location = 0;
 		return NULL;
 	}
 

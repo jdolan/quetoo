@@ -638,7 +638,7 @@ static void R_InitLocal(void){
 	r_parallax = Cvar_Get("r_parallax", "1.0", CVAR_ARCHIVE, NULL);
 	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS, "Activate or deactivate GLSL shaders");
 	r_rendermode = Cvar_Get("r_rendermode", "default", CVAR_ARCHIVE, NULL);
-	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE, NULL);
+	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_shadows = Cvar_Get("r_shadows", "1", CVAR_ARCHIVE, NULL);
 	r_soften = Cvar_Get("r_soften", "4", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_specular = Cvar_Get("r_specular", "1.0", CVAR_ARCHIVE, NULL);
