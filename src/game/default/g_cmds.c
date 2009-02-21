@@ -209,6 +209,7 @@ static void G_Use_f(edict_t *ent){
  */
 static void G_Drop_f(edict_t *ent){
 	int index;
+	edict_t *f;
 	gitem_t *it;
 	char *s;
 
@@ -217,16 +218,29 @@ static void G_Drop_f(edict_t *ent){
 		return;
 
 	s = gi.Args();
-	it = G_FindItem(s);
+	it = NULL;
+
+	if(!strcmp(s, "flag")){  // find the correct flag
+
+		f = G_FlagForTeam(G_OtherTeam(ent->client->locals.team));
+		if(f)
+			it = f->item;
+	}
+	else  // or just look up the item
+		it = G_FindItem(s);
+
 	if(!it){
 		gi.Cprintf(ent, PRINT_HIGH, "Unknown item: %s\n", s);
 		return;
 	}
+
 	if(!it->drop){
 		gi.Cprintf(ent, PRINT_HIGH, "Item is not dropable.\n");
 		return;
 	}
+
 	index = ITEM_INDEX(it);
+
 	if(!ent->client->locals.inventory[index]){
 		gi.Cprintf(ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
@@ -746,6 +760,14 @@ qboolean G_AddClientToTeam(edict_t *ent, char *teamname){
 	if(!(team = G_TeamByName(teamname))){  // resolve team
 		gi.Cprintf(ent, PRINT_HIGH, "Team \"%s\" doesn't exist\n", teamname);
 		return false;
+	}
+
+	if(ent->client->locals.team == team)
+		return false;
+
+	if(!ent->client->locals.spectator){  // changing teams
+		P_TossQuadDamage(ent);
+		P_TossFlag(ent);
 	}
 
 	ent->client->locals.team = team;

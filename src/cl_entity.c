@@ -725,12 +725,17 @@ void Cl_AddEntities(frame_t *frame){
 		// add to view list
 		R_AddEntity(&ent);
 
-		// now check for linked models
+		/*
+		 * Check for linked models; these start with the origin and angles
+		 * of the owning entity.  There are a few special cases here to
+		 * accommodate visual weapons, CTF flags, etc..
+		 */
 		ent.skin = NULL;
 		ent.flags = 0;
 
 		if(state->modelindex2){
 			if(state->modelindex2 == 255){  // custom weapon
+				// the weapon is masked on the skinnum
 				const clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
 				int i = (state->skinnum >> 8);  // 0 is default weapon model
 				if(i > MAX_CLIENTWEAPONMODELS - 1)
@@ -742,8 +747,27 @@ void Cl_AddEntities(frame_t *frame){
 
 			R_AddEntity(&ent);
 		}
-		if(state->modelindex3){
+		if(state->modelindex3){  // ctf flags
+			vec3_t fwd, rgt;
+			float f;
+
+			// project back and to the right
+			AngleVectors(ent.angles, fwd, rgt, NULL);
+			VectorMA(ent.origin, -8.0, fwd, ent.origin);
+			VectorMA(ent.origin, 3.0, rgt, ent.origin);
+
+			f = sin(cl.time * 0.004) * 0.5;
+			ent.origin[0] += f;
+			ent.origin[1] += f;
+			ent.origin[2] += 2.0;
+
+			ent.angles[2] += 15.0;
+
+			ent.frame = ent.oldframe = 0;
 			ent.model = cl.model_draw[state->modelindex3];
+
+			VectorSet(ent.scale, 0.6, 0.6, 0.6);
+
 			R_AddEntity(&ent);
 		}
 		if(state->modelindex4){

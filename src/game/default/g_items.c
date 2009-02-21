@@ -316,6 +316,16 @@ static qboolean PickupArmor(edict_t *ent, edict_t *other){
 
 
 /*
+ * DropFlag
+ */
+static void DropFlag(edict_t *ent, gitem_t *item){
+
+	// this routine already exists for player deaths
+	P_TossFlag(ent);
+}
+
+
+/*
  * ResetFlag
  *
  * A dropped flag has been idle for 30 seconds, return it.
@@ -387,6 +397,7 @@ static qboolean PickupFlag(edict_t *ent, edict_t *other){
 
 			other->client->locals.inventory[index] = 0;
 			other->s.effects &= ~G_EffectForTeam(ot);
+			other->s.modelindex3 = 0;
 
 			of->svflags &= ~SVF_NOCLIENT;  // reset the other flag
 			of->s.event = EV_ITEM_RESPAWN;
@@ -413,6 +424,9 @@ static qboolean PickupFlag(edict_t *ent, edict_t *other){
 	// take it
 	index = ITEM_INDEX(f->item);
 	other->client->locals.inventory[index] = 1;
+
+	// link the flag model to the player
+	other->s.modelindex3 = gi.ModelIndex(f->item->model);
 
 	gi.Sound(other, CHAN_AUTO, gi.SoundIndex("ctf/steal.wav"), 1, ATTN_NONE, 0);
 
@@ -487,9 +501,21 @@ static void G_DropItemUntouchable(edict_t *ent, edict_t *other, cplane_t *plane,
  * G_DropItemThink
  */
 static void G_DropItemThink(edict_t *ent){
+	int contents;
+	float f;
 
-	if(!ent->groundentity){
+	if(!ent->groundentity){  // keep falling in valid space
 		ent->nextthink = level.time + gi.serverframe;
+		return;
+	}
+
+	if(ent->groundentity->dmg > 25){  // fell into a trigger_hurt
+
+		if(ent->item->flags & IT_FLAG)
+			ResetFlag(ent);
+		else
+			G_FreeEdict(ent);
+
 		return;
 	}
 
@@ -499,21 +525,34 @@ static void G_DropItemThink(edict_t *ent){
 	// allow anyone to pick it up
 	ent->touch = G_TouchItem;
 
-	// setup the think
-	if(ent->item->flags & IT_POWERUP)
-		ent->nextthink = ent->timestamp;
-	else  // general case
-		ent->nextthink = level.time + 30.0;
+	// setup the next think function and time
 
 	if(ent->item->flags & IT_FLAG)  // flags go back to base
 		ent->think = ResetFlag;
 	else  // everything else just gets freed
 		ent->think = G_FreeEdict;
+
+	if(ent->item->flags & IT_POWERUP)  // expire from last touch
+		f = ent->timestamp - level.time;
+	else  // general case
+		f = 30.0;
+
+	contents = gi.PointContents(ent->s.origin);
+
+	if(contents & CONTENTS_LAVA)  // expire more quickly in lava
+		f *= 0.3;
+	if(contents & CONTENTS_SLIME)  // and slime
+		f *= 0.5;
+
+	ent->nextthink = level.time + f;
 }
 
 
 /*
  * G_DropItem
+ *
+ * Handles the mechanics of dropping items, but does not adjust the client's
+ * inventory.  That is left to the caller.
  */
 edict_t *G_DropItem(edict_t *ent, gitem_t *item){
 	edict_t *dropped;
@@ -537,26 +576,40 @@ edict_t *G_DropItem(edict_t *ent, gitem_t *item){
 	dropped->owner = ent;
 
 	if(ent->client){
-		VectorCopy(ent->client->angles, v);
-		v[1] += crand() * 45;  // randomize the direction we toss in
-		v[0] = 0;
+		v[0] = v[2] = 0.0;  // randomize the direction we toss in
+		v[1] = ent->client->angles[1] + crand() * 45.0;
 
 		AngleVectors(v, forward, right, NULL);
 
-		VectorSet(offset, 24, 0, -16);
+		VectorSet(offset, 24.0, 0.0, -16.0);
 		G_ProjectSource(ent->s.origin, offset, forward, right, dropped->s.origin);
 
 		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs,
-						 dropped->s.origin, ent, CONTENTS_SOLID);
+				dropped->s.origin, ent, CONTENTS_SOLID);
 
 		VectorCopy(trace.endpos, dropped->s.origin);
 	} else {
 		AngleVectors(ent->s.angles, forward, right, NULL);
+
+		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs,
+				ent->s.origin, ent, CONTENTS_SOLID);
+
 		VectorCopy(ent->s.origin, dropped->s.origin);
 	}
 
-	VectorScale(forward, 100, dropped->velocity);
-	dropped->velocity[2] = 200 + (frand() * 150);
+	// we're in a bad spot, forget it
+	if(trace.startsolid){
+
+		if(item->flags & IT_FLAG)
+			ResetFlag(dropped);
+		else
+			G_FreeEdict(dropped);
+
+		return NULL;
+	}
+
+	VectorScale(forward, 100.0, dropped->velocity);
+	dropped->velocity[2] = 200.0 + (frand() * 150.0);
 
 	dropped->think = G_DropItemThink;
 	dropped->nextthink = level.time + gi.serverframe;
@@ -605,7 +658,8 @@ static void G_DropToFloor(edict_t *ent){
 
 		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
 		if(tr.startsolid){
-			gi.Dprintf("G_DropToFloor: %s startsolid at %s\n", ent->classname, vtos(ent->s.origin));
+			gi.Dprintf("G_DropToFloor: %s startsolid at %s\n", ent->classname,
+					vtos(ent->s.origin));
 			G_FreeEdict(ent);
 			return;
 		}
@@ -1276,7 +1330,7 @@ gitem_t itemlist[] = {
 		"item_flag_team1",
 		PickupFlag,
 		NULL,
-		NULL,
+		DropFlag,
 		NULL,
 		NULL,
 		"models/ctf/flag1/tris.md3",
@@ -1297,7 +1351,7 @@ gitem_t itemlist[] = {
 		"item_flag_team2",
 		PickupFlag,
 		NULL,
-		NULL,
+		DropFlag,
 		NULL,
 		NULL,
 		"models/ctf/flag2/tris.md3",

@@ -256,15 +256,13 @@ static void P_TossWeapon(edict_t *self){
 void P_TossQuadDamage(edict_t *self){
 	edict_t *quad;
 
-	// don't drop quad when falling into void
-	if(meansOfDeath == MOD_TRIGGER_HURT)
-		return;
-
 	if(!self->client->locals.inventory[quad_damage_index])
 		return;
 
 	quad = G_DropItem(self, G_FindItemByClassname("item_quad"));
-	quad->timestamp = self->client->quad_damage_time;
+
+	if(quad)
+		quad->timestamp = self->client->quad_damage_time;
 
 	self->client->quad_damage_time = 0.0;
 	self->client->locals.inventory[quad_damage_index] = 0;
@@ -290,20 +288,13 @@ void P_TossFlag(edict_t *self){
 	if(!self->client->locals.inventory[index])
 		return;
 
+	self->client->locals.inventory[index] = 0;
+
+	self->s.modelindex3 = 0;
+	self->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
+
 	gi.Bprintf(PRINT_HIGH, "%s dropped the %s flag\n",
 			self->client->locals.netname, ot->name);
-
-	// don't drop flag when falling into void
-	if(meansOfDeath == MOD_TRIGGER_HURT){
-
-		gi.Sound(self, CHAN_AUTO, gi.SoundIndex("ctf/return.wav"),
-				1.0, ATTN_NONE, 0.0);
-
-		of->svflags &= ~SVF_NOCLIENT;
-		of->s.event = EV_ITEM_RESPAWN;
-
-		return;
-	}
 
 	G_DropItem(self, of->item);
 }
@@ -355,8 +346,11 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 
 	self->s.modelindex = 0;
 	self->s.modelindex2 = 0;
+	self->s.modelindex3 = 0;
+	self->s.modelindex4 = 0;
 	self->s.sound = 0;
 	self->s.event = 0;
+	self->s.effects = 0;
 
 	self->solid = SOLID_NOT;
 	self->takedamage = false;
@@ -752,6 +746,8 @@ static void P_PutClientInServer(edict_t *ent){
 	// skinnum is player num and weapon number
 	// weapon number will be added in changeweapon
 	ent->s.skinnum = ent - g_edicts - 1;
+	ent->s.modelindex3 = 0;
+	ent->s.modelindex4 = 0;
 
 	ent->s.frame = 0;
 	VectorCopy(spawn_origin, ent->s.origin);
@@ -1072,6 +1068,9 @@ void P_Disconnect(edict_t *ent){
 	ent->inuse = false;
 	ent->solid = SOLID_NOT;
 	ent->s.modelindex = 0;
+	ent->s.modelindex2 = 0;
+	ent->s.modelindex3 = 0;
+	ent->s.modelindex4 = 0;
 	ent->classname = "disconnected";
 
 	playernum = ent - g_edicts - 1;
