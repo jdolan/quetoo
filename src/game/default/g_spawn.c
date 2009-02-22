@@ -56,6 +56,7 @@ spawn_t spawns[] = {
 	{"trigger_relay", G_trigger_relay},
 	{"trigger_push", G_trigger_push},
 	{"trigger_hurt", G_trigger_hurt},
+	{"trigger_teleporter", G_misc_teleporter},
 
 	{"target_speaker", G_target_speaker},
 	{"target_explosion", G_target_explosion},
@@ -483,7 +484,7 @@ void G_SpawnEntities(const char *name, const char *entities){
 		if(level.gameplay && ent->item){  // now that we've spawned them, hide them
 			ent->svflags |= SVF_NOCLIENT;
 			ent->solid = SOLID_NOT;
-			ent->nextthink = 0;
+			ent->nextthink = 0.0;
 		}
 	}
 

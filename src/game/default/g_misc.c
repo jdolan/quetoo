@@ -295,19 +295,25 @@ void G_misc_teleporter(edict_t *ent){
 		return;
 	}
 
-	VectorSet(ent->mins, -32.0, -32.0, -24.0);
-	VectorSet(ent->maxs,  32.0,  32.0, -16.0);
-
 	ent->touch = G_teleporter_touch;
 	ent->solid = SOLID_TRIGGER;
 
-	VectorCopy(ent->s.origin, v);
-	v[2] -= 16;
+	if(ent->model){  // model form
+		gi.SetModel(ent, ent->model);
+		ent->svflags = SVF_NOCLIENT;
+	}
+	else {  // or model-less form
+		VectorSet(ent->mins, -32.0, -32.0, -24.0);
+		VectorSet(ent->maxs,  32.0,  32.0, -16.0);
 
-	// add effect if ent is not burried and effect is not inhibited
-	if(!gi.PointContents(v) && !(ent->spawnflags & 4)){
-		ent->s.effects = EF_TELEPORTER;
-		ent->s.sound = gi.SoundIndex("world/teleport_hum.wav");
+		VectorCopy(ent->s.origin, v);
+		v[2] -= 16.0;
+
+		// add effect if ent is not burried and effect is not inhibited
+		if(!gi.PointContents(v) && !(ent->spawnflags & 4)){
+			ent->s.effects = EF_TELEPORTER;
+			ent->s.sound = gi.SoundIndex("world/teleport_hum.wav");
+		}
 	}
 
 	gi.LinkEntity(ent);

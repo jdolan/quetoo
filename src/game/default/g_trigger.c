@@ -187,7 +187,7 @@ static void trigger_push_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 }
 
 
-/*QUAKED trigger_push(.5 .5 .5) ? PUSH_ONCE
+/*QUAKED trigger_push(.5 .5 .5) ? PUSH_ONCE PUSH_EFFECT
 Pushes the player (jump pads)
 "speed"		defaults to 100
 */
