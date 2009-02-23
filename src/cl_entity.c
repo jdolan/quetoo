@@ -450,7 +450,7 @@ void Cl_ParseFrame(void){
 /*
  * Cl_AddWeapon
  */
-static void Cl_AddWeapon(void){
+static void Cl_AddWeapon(const vec3_t shell){
 	static entity_t ent;
 	static static_lighting_t lighting;
 	int w;
@@ -483,6 +483,8 @@ static void Cl_AddWeapon(void){
 
 	VectorCopy(r_view.origin, ent.origin);
 	VectorCopy(r_view.angles, ent.angles);
+
+	VectorCopy(shell, ent.shell);
 
 	ent.model = cl.model_draw[w];
 
@@ -537,6 +539,7 @@ static const vec3_t bfg_light = {
 void Cl_AddEntities(frame_t *frame){
 	entity_t ent;
 	vec3_t start, end, forward;
+	vec3_t wshell;
 	int pnum, mask;
 
 	if(!cl_addentities->value)
@@ -546,6 +549,8 @@ void Cl_AddEntities(frame_t *frame){
 	VectorClear(end);
 
 	AngleVectors(r_view.angles, forward, NULL, NULL);
+
+	VectorClear(wshell);
 
 	// resolve any models, animations, lerps, rotations, bobbing, etc..
 	for(pnum = 0; pnum < frame->num_entities; pnum++){
@@ -562,8 +567,8 @@ void Cl_AddEntities(frame_t *frame){
 				// we own this beam (lightning, grapple, etc..)
 				// project start position infront of view origin
 				VectorCopy(r_view.origin, start);
-				start[2] -= 6;
-				VectorMA(start, 16, forward, start);
+				start[2] -= 6.0;
+				VectorMA(start, 16.0, forward, start);
 			}
 			else  // or simply lerp the start position
 				VectorLerp(cent->prev.origin, cent->current.origin, cl.lerp, start);
@@ -576,13 +581,13 @@ void Cl_AddEntities(frame_t *frame){
 
 		// bob items, shift them to randomize the effect in crowded scenes
 		if(state->effects & EF_BOB)
-			ent.origin[2] += 4 * sin((cl.time * 0.005) + ent.origin[0] + ent.origin[1]);
+			ent.origin[2] += 4.0 * sin((cl.time * 0.005) + ent.origin[0] + ent.origin[1]);
 
 		// calculate angles
 		if(state->effects & EF_ROTATE){  // some bonus items rotate
-			ent.angles[0] = 0;
+			ent.angles[0] = 0.0;
 			ent.angles[1] = cl.time / 4.0;
-			ent.angles[2] = 0;
+			ent.angles[2] = 0.0;
 		}
 		else {  // lerp angles
 			AngleLerp(cent->prev.angles, cent->current.angles, cl.lerp, ent.angles);
@@ -695,6 +700,10 @@ void Cl_AddEntities(frame_t *frame){
 
 		// don't draw ourselves unless third person is set
 		if(state->number == cl.playernum + 1){
+
+			// retain our shell effect for view model
+			VectorCopy(ent.shell, wshell);
+
 			if(!cl_thirdperson->value)
 				continue;
 		}
@@ -777,5 +786,5 @@ void Cl_AddEntities(frame_t *frame){
 	}
 
 	// lastly, add the view weapon
-	Cl_AddWeapon();
+	Cl_AddWeapon(wshell);
 }
