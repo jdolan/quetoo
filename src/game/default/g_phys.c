@@ -106,7 +106,6 @@ static qboolean G_RunThink(edict_t *ent){
  */
 static void G_Impact(edict_t *e1, trace_t *trace){
 	edict_t *e2;
-	//	cplane_t backplane;
 
 	e2 = trace->ent;
 
@@ -156,7 +155,7 @@ static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
  * G_FlyMove
  *
  * The basic solid body movement clip that slides along multiple planes
- * Returns the clipflags if the velocity was modified(hit something solid)
+ * Returns the clipflags if the velocity was modified (hit something solid)
  * 1 = floor
  * 2 = wall / step
  * 4 = dead stop
@@ -324,7 +323,7 @@ retry:
 		}
 	}
 
-	if(ent->inuse)
+	if(ent->inuse && ent->client && ent->health > 0)
 		G_TouchTriggers(ent);
 
 	return trace;
@@ -489,8 +488,10 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 
 	//FIXME: is there a better way to handle this?
 	// see if anything we moved has touched a trigger
-	for(p = pushed_p - 1; p >= pushed; p--)
-		G_TouchTriggers(p->ent);
+	for(p = pushed_p - 1; p >= pushed; p--){
+		if(p->ent->inuse && p->ent->client && p->ent->health > 0)
+			G_TouchTriggers(p->ent);
+	}
 
 	return true;
 }
@@ -609,10 +610,9 @@ static void G_Physics_Toss(edict_t *ent){
 		else return;
 	}
 
-	// if on ground, return without moving
-	if(ent->groundentity){
+	// if on ground, or intentionally floating, return without moving
+	if(ent->groundentity || (ent->item && (ent->spawnflags & 4)))
 		return;
-	}
 
 	VectorCopy(ent->s.origin, old_origin);
 

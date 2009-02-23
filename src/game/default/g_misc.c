@@ -295,14 +295,14 @@ void G_misc_teleporter(edict_t *ent){
 		return;
 	}
 
-	ent->touch = G_teleporter_touch;
 	ent->solid = SOLID_TRIGGER;
+	ent->movetype = MOVETYPE_NONE;
 
-	if(ent->model){  // model form
+	if(ent->model){  // model form, trigger_teleporter
 		gi.SetModel(ent, ent->model);
 		ent->svflags = SVF_NOCLIENT;
 	}
-	else {  // or model-less form
+	else {  // or model-less form, misc_teleporter
 		VectorSet(ent->mins, -32.0, -32.0, -24.0);
 		VectorSet(ent->maxs,  32.0,  32.0, -16.0);
 
@@ -315,6 +315,8 @@ void G_misc_teleporter(edict_t *ent){
 			ent->s.sound = gi.SoundIndex("world/teleport_hum.wav");
 		}
 	}
+
+	ent->touch = G_teleporter_touch;
 
 	gi.LinkEntity(ent);
 }

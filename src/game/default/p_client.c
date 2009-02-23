@@ -1223,7 +1223,8 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 		gi.LinkEntity(ent);
 
-		if(ent->movetype != MOVETYPE_NOCLIP)
+		// touch jump pads, hurt brushes, etc..
+		if(ent->movetype != MOVETYPE_NOCLIP && ent->health > 0)
 			G_TouchTriggers(ent);
 
 		// touch other objects

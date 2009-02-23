@@ -445,6 +445,7 @@ gitem_t *G_FindItemByClassname(const char *classname);
 edict_t *G_DropItem(edict_t *ent, gitem_t *item);
 void G_SetRespawn(edict_t *ent, float delay);
 void G_SpawnItem(edict_t *ent, gitem_t *item);
+void G_ResetFlag(edict_t *ent);
 gitem_t *G_ItemByIndex(int index);
 qboolean G_AddAmmo(edict_t *ent, gitem_t *item, int count);
 void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf);

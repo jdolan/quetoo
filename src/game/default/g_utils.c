@@ -357,19 +357,20 @@ void G_TouchTriggers(edict_t *ent){
 	int i, num;
 	edict_t *touch[MAX_EDICTS], *hit;
 
-	if(!ent->client || ent->health <= 0)
-		return;
-
 	num = gi.BoxEdicts(ent->absmin, ent->absmax, touch, MAX_EDICTS, AREA_TRIGGERS);
 
 	// be careful, it is possible to have an entity in this
-	// list removed before we get to it(killtriggered)
+	// list removed before we get to it (killtriggered)
 	for(i = 0; i < num; i++){
+
 		hit = touch[i];
+
 		if(!hit->inuse)
 			continue;
+
 		if(!hit->touch)
 			continue;
+
 		hit->touch(hit, ent, NULL, NULL);
 	}
 }

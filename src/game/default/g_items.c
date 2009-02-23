@@ -131,9 +131,9 @@ void G_SetRespawn(edict_t *ent, float delay){
 
 
 /*
- * PickupAdrenaline
+ * G_PickupAdrenaline
  */
-static qboolean PickupAdrenaline(edict_t *ent, edict_t *other){
+static qboolean G_PickupAdrenaline(edict_t *ent, edict_t *other){
 
 	if(other->health < other->max_health)
 		other->health = other->max_health;
@@ -146,9 +146,9 @@ static qboolean PickupAdrenaline(edict_t *ent, edict_t *other){
 
 
 /*
- * PickupQuadDamage
+ * G_PickupQuadDamage
  */
-static qboolean PickupQuadDamage(edict_t *ent, edict_t *other){
+static qboolean G_PickupQuadDamage(edict_t *ent, edict_t *other){
 
 	if(other->client->locals.inventory[quad_damage_index])
 		return false;  // already have it
@@ -208,9 +208,9 @@ qboolean G_AddAmmo(edict_t *ent, gitem_t *item, int count){
 
 
 /*
- * PickupAmmo
+ * G_PickupAmmo
  */
-static qboolean PickupAmmo(edict_t *ent, edict_t *other){
+static qboolean G_PickupAmmo(edict_t *ent, edict_t *other){
 	int count;
 
 	if(ent->count)
@@ -228,9 +228,9 @@ static qboolean PickupAmmo(edict_t *ent, edict_t *other){
 
 
 /*
- * DropAmmo
+ * G_DropAmmo
  */
-static void DropAmmo(edict_t *ent, gitem_t *item){
+static void G_DropAmmo(edict_t *ent, gitem_t *item){
 	edict_t *dropped;
 	int index;
 
@@ -247,9 +247,9 @@ static void DropAmmo(edict_t *ent, gitem_t *item){
 
 
 /*
- * PickupHealth
+ * G_PickupHealth
  */
-static qboolean PickupHealth(edict_t *ent, edict_t *other){
+static qboolean G_PickupHealth(edict_t *ent, edict_t *other){
 	int h, max;
 	qboolean always_add, always_pickup;
 
@@ -288,9 +288,9 @@ static qboolean PickupHealth(edict_t *ent, edict_t *other){
 
 
 /*
- * PickupArmor
+ * G_PickupArmor
  */
-static qboolean PickupArmor(edict_t *ent, edict_t *other){
+static qboolean G_PickupArmor(edict_t *ent, edict_t *other){
 	qboolean taken = true;
 
 	if(ent->item->tag == ARMOR_SHARD){  // take it, ignoring cap
@@ -316,9 +316,9 @@ static qboolean PickupArmor(edict_t *ent, edict_t *other){
 
 
 /*
- * DropFlag
+ * G_DropFlag
  */
-static void DropFlag(edict_t *ent, gitem_t *item){
+static void G_DropFlag(edict_t *ent, gitem_t *item){
 
 	// this routine already exists for player deaths
 	P_TossFlag(ent);
@@ -326,11 +326,11 @@ static void DropFlag(edict_t *ent, gitem_t *item){
 
 
 /*
- * ResetFlag
+ * G_ResetFlag
  *
  * A dropped flag has been idle for 30 seconds, return it.
  */
-static void ResetFlag(edict_t *ent){
+void G_ResetFlag(edict_t *ent){
 	team_t *t;
 	edict_t *f;
 
@@ -352,12 +352,12 @@ static void ResetFlag(edict_t *ent){
 
 
 /*
- * PickupFlag
+ * G_PickupFlag
  *
  * Return own flag, or capture on it if enemy's flag is in inventory.
  * Take the enemy's flag.
  */
-static qboolean PickupFlag(edict_t *ent, edict_t *other){
+static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 	team_t *t, *ot;
 	edict_t *f, *of;
 	int index;
@@ -509,15 +509,11 @@ static void G_DropItemThink(edict_t *ent){
 		return;
 	}
 
-	if(ent->groundentity->dmg > 25){  // fell into a trigger_hurt
+	// see if we've landed on a trigger_hurt
+	G_TouchTriggers(ent);
 
-		if(ent->item->flags & IT_FLAG)
-			ResetFlag(ent);
-		else
-			G_FreeEdict(ent);
-
+	if(!ent->inuse)  // we have
 		return;
-	}
 
 	// restore full entity effects (e.g. EF_BOB)
 	ent->s.effects = ent->item->effects;
@@ -528,7 +524,7 @@ static void G_DropItemThink(edict_t *ent){
 	// setup the next think function and time
 
 	if(ent->item->flags & IT_FLAG)  // flags go back to base
-		ent->think = ResetFlag;
+		ent->think = G_ResetFlag;
 	else  // everything else just gets freed
 		ent->think = G_FreeEdict;
 
@@ -601,7 +597,7 @@ edict_t *G_DropItem(edict_t *ent, gitem_t *item){
 	if(trace.startsolid){
 
 		if(item->flags & IT_FLAG)
-			ResetFlag(dropped);
+			G_ResetFlag(dropped);
 		else
 			G_FreeEdict(dropped);
 
@@ -812,7 +808,7 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_armor_body",
-		PickupArmor,
+		G_PickupArmor,
 		NULL,
 		NULL,
 		NULL,
@@ -833,7 +829,7 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_armor_combat",
-		PickupArmor,
+		G_PickupArmor,
 		NULL,
 		NULL,
 		NULL,
@@ -854,7 +850,7 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_armor_jacket",
-		PickupArmor,
+		G_PickupArmor,
 		NULL,
 		NULL,
 		NULL,
@@ -875,7 +871,7 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_armor_shard",
-		PickupArmor,
+		G_PickupArmor,
 		NULL,
 		NULL,
 		NULL,
@@ -1096,9 +1092,9 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"ammo_shells",
-		PickupAmmo,
+		G_PickupAmmo,
 		NULL,
-		DropAmmo,
+		G_DropAmmo,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/shells/tris.md3",
@@ -1117,9 +1113,9 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"ammo_bullets",
-		PickupAmmo,
+		G_PickupAmmo,
 		NULL,
-		DropAmmo,
+		G_DropAmmo,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/bullets/tris.md3",
@@ -1138,9 +1134,9 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"ammo_grenades",
-		PickupAmmo,
+		G_PickupAmmo,
 		NULL,
-		DropAmmo,
+		G_DropAmmo,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/grenades/tris.md3",
@@ -1159,9 +1155,9 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"ammo_cells",
-		PickupAmmo,
+		G_PickupAmmo,
 		NULL,
-		DropAmmo,
+		G_DropAmmo,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/cells/tris.md3",
@@ -1180,9 +1176,9 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"ammo_rockets",
-		PickupAmmo,
+		G_PickupAmmo,
 		NULL,
-		DropAmmo,
+		G_DropAmmo,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/rockets/tris.md3",
@@ -1201,9 +1197,9 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"ammo_slugs",
-		PickupAmmo,
+		G_PickupAmmo,
 		NULL,
-		DropAmmo,
+		G_DropAmmo,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/slugs/tris.md3",
@@ -1223,7 +1219,7 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_adrenaline",
-		PickupAdrenaline,
+		G_PickupAdrenaline,
 		NULL,
 		NULL,
 		NULL,
@@ -1244,7 +1240,7 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_health_small",
-		PickupHealth,
+		G_PickupHealth,
 		NULL,
 		NULL,
 		NULL,
@@ -1265,7 +1261,7 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_health",
-		PickupHealth,
+		G_PickupHealth,
 		NULL,
 		NULL,
 		NULL,
@@ -1286,7 +1282,7 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_health_large",
-		PickupHealth,
+		G_PickupHealth,
 		NULL,
 		NULL,
 		NULL,
@@ -1307,7 +1303,7 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_health_mega",
-		PickupHealth,
+		G_PickupHealth,
 		NULL,
 		NULL,
 		NULL,
@@ -1328,9 +1324,9 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_flag_team1",
-		PickupFlag,
+		G_PickupFlag,
 		NULL,
-		DropFlag,
+		G_DropFlag,
 		NULL,
 		NULL,
 		"models/ctf/flag1/tris.md3",
@@ -1349,9 +1345,9 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_flag_team2",
-		PickupFlag,
+		G_PickupFlag,
 		NULL,
-		DropFlag,
+		G_DropFlag,
 		NULL,
 		NULL,
 		"models/ctf/flag2/tris.md3",
@@ -1370,7 +1366,7 @@ gitem_t itemlist[] = {
 	*/
 	{
 		"item_quad",
-		PickupQuadDamage,
+		G_PickupQuadDamage,
 		NULL,
 		NULL,
 		NULL,
@@ -1395,7 +1391,7 @@ gitem_t itemlist[] = {
 // override quake2 items for legacy maps
 override_t overrides[] = {
 	{"weapon_chaingun", "weapon_machinegun"},
-	{"item_invulnerability", "item_health_mega"},
+	{"item_invulnerability", "item_quad"},
 	{"item_power_shield", "item_armor_combat"},
 	{"item_power_screen", "item_armor_jacket"},
 	{NULL}

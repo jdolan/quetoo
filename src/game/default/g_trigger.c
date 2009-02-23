@@ -165,7 +165,7 @@ void G_trigger_always(edict_t *ent){
 
 static void trigger_push_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
 
-	if(strcmp(other->classname, "grenade") == 0 || other->health > 0){
+	if(!strcmp(other->classname, "grenade") || other->health > 0){
 
 		VectorScale(self->movedir, self->speed * 10.0, other->velocity);
 
@@ -247,9 +247,20 @@ static void hurt_use(edict_t *self, edict_t *other, edict_t *activator){
 
 static void hurt_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
 	int dflags;
+			printf("%s\n", other->classname);
 
-	if(!other->takedamage)
+	if(!other->takedamage){
+
+		if(other->item){
+
+			if(other->item->flags & IT_FLAG)
+				G_ResetFlag(other);
+			else
+				G_FreeEdict(other);
+		}
+
 		return;
+	}
 
 	if(self->timestamp > level.time)
 		return;
