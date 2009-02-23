@@ -247,18 +247,17 @@ static void hurt_use(edict_t *self, edict_t *other, edict_t *activator){
 
 static void hurt_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
 	int dflags;
-			printf("%s\n", other->classname);
 
-	if(!other->takedamage){
+	if(!other->takedamage){  // deal with items that land on us
 
 		if(other->item){
-
 			if(other->item->flags & IT_FLAG)
 				G_ResetFlag(other);
 			else
 				G_FreeEdict(other);
 		}
 
+		gi.Dprintf("hurt_touch: %s\n", other->classname);
 		return;
 	}
 
