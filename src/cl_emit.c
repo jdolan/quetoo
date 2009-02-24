@@ -310,14 +310,18 @@ void Cl_LoadEmits(void){
 static void Cl_UpdateEmits(void){
 	int i;
 
-	if(r_view.update){  // reload models
+	if(r_view.update){  // resolve leafs, reload models
 
 		for(i = 0; i < num_emits; i++){
 
 			emit_t *e = &emits[i];
 
-			if(e->flags & EMIT_MODEL)
+			e->leaf = R_LeafForPoint(e->org, r_worldmodel);
+
+			if(e->flags & EMIT_MODEL){
 				e->mod = R_LoadModel(e->model);
+				e->lighting.dirty = true;
+			}
 		}
 	}
 

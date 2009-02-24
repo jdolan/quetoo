@@ -149,12 +149,10 @@ typedef enum {
 } keydest_t;
 
 typedef struct {
-	qboolean disk;
 	qboolean http;
 	FILE *file;
 	char tempname[MAX_OSPATH];
 	char name[MAX_OSPATH];
-	int percent;
 } download_t;
 
 typedef enum {
@@ -191,6 +189,8 @@ typedef struct {
 	netchan_t netchan;  // network channel
 
 	int challenge;  // from the server to use for connecting
+
+	int loading;  // loading percentage indicator
 
 	char downloadurl[MAX_OSPATH];  // for http downloads
 	download_t download;  // current download (udp or http)

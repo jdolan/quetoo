@@ -191,7 +191,6 @@ void Cl_HttpDownloadCleanup(){
 		unlink(file);  // delete partial or empty file
 	}
 
-	cls.download.percent = 0;
 	cls.download.http = false;
 
 	status = length = 0;

@@ -489,11 +489,20 @@ void R_LoadMedia(void){
 
 	Cl_LoadClientinfo(&cl.baseclientinfo, "newbie\\ichabod/ichabod");
 
-	// clients
+	j = 0;
+
+	// client models and skins
 	for(i = 0; i < MAX_CLIENTS; i++){
+
 		if(!cl.configstrings[CS_PLAYERSKINS + i][0])
 			continue;
+
 		Cl_ParseClientinfo(i);
+
+		if(++j == 10)
+			j = 10;
+
+		Cl_LoadProgress(75 + j);
 	}
 	Cl_LoadProgress(85);
 
@@ -529,8 +538,7 @@ static void R_Reload_f(void){
 
 	r_view.ready = false;
 
-	cls.download.percent = 0;
-	cls.download.disk = true;
+	cls.loading = 1;
 
 	R_DrawFill(0, 0, r_view.width, r_view.height, 0);
 
@@ -544,7 +552,7 @@ static void R_Reload_f(void){
 
 	Cvar_ClearVars(CVAR_R_IMAGES);
 
-	cls.download.disk = false;
+	cls.loading = 0;
 }
 
 

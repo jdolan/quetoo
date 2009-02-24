@@ -188,9 +188,6 @@ static void Cl_ParseDownload(void){
 	net_message.readcount += size;
 
 	if(percent != 100){
-
-		cls.download.percent = percent;
-
 		Msg_WriteByte(&cls.netchan.message, clc_stringcmd);
 		Sb_Print(&cls.netchan.message, "nextdl");
 	} else {
@@ -207,7 +204,6 @@ static void Cl_ParseDownload(void){
 			Com_Warn("Failed to rename %s to %s.\n", oldn, newn);
 
 		cls.download.file = NULL;
-		cls.download.percent = 0;
 
 		if(strstr(newn, ".pak"))  // append paks to searchpaths
 			Fs_AddPakfile(newn);

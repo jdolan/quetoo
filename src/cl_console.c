@@ -201,7 +201,8 @@ void Con_DrawConsole(float frac){
 	int y;
 	char dl[MAX_STRING_CHARS];
 
-	height = (r_state.height * frac);
+	height = (int)((float)r_state.height * frac);
+
 	if(height <= 0)  // nothing to do
 		return;
 
@@ -216,26 +217,30 @@ void Con_DrawConsole(float frac){
 	// draw the text
 	lines = cl_con.height;
 	y = 0;
-	for (line = cl_con.lastline - cl_con.scroll - lines; line < cl_con.lastline - cl_con.scroll; line++) {
-		if (line >= 0 && cl_con.linestart[line][0] != '\0') {
-			R_DrawBytes(0, y, cl_con.linestart[line], cl_con.linestart[line + 1] - cl_con.linestart[line], cl_con.linecolor[line]);
+	for(line = cl_con.lastline - cl_con.scroll - lines;
+			line < cl_con.lastline - cl_con.scroll; line++){
+
+		if(line >= 0 && cl_con.linestart[line][0] != '\0'){
+			R_DrawBytes(0, y, cl_con.linestart[line],
+					cl_con.linestart[line + 1] - cl_con.linestart[line], cl_con.linecolor[line]);
 		}
 		y += 32;
 	}
 
-	// draw loading progress
-	if(cls.download.disk){
-		snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.download.percent);
+	if(cls.loading){  // draw loading progress
+		snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
 		R_DrawString(0, cl_con.height << 5, dl, CON_COLOR_INFO);
-	} else
-	// draw download progress
-	if(cls.download.file && (kb = (int)ftell(cls.download.file) / 1024)){
+	}
+	else if(cls.download.file){  // draw download progress
+
+		kb = (int)ftell(cls.download.file) / 1024;
 
 		snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
 				(cls.download.http ? "HTTP" : "UDP"), kb);
 
 		R_DrawString(0, cl_con.height << 5, dl, CON_COLOR_INFO);
-	} else
-		// draw the input prompt, user text, and cursor if desired
+	}
+	else {  // draw the input prompt, user text, and cursor if desired
 		Con_DrawInput();
+	}
 }

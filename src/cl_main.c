@@ -370,7 +370,8 @@ static void Cl_Quit_f(void){
  * Called after an ERR_DROP or ERR_NONE was thrown
  */
 void Cl_Drop(void){
-	cls.download.disk = false;
+
+	cls.loading = 0;
 
 	if(cls.state == ca_uninitialized)
 		return;
@@ -791,7 +792,7 @@ static void Cl_ReadPackets(void){
  */
 void Cl_LoadProgress(int percent){
 
-	cls.download.percent = percent;
+	cls.loading = percent;
 
 	Cl_UpdateScreen();
 }
@@ -802,8 +803,7 @@ void Cl_LoadProgress(int percent){
  */
 static void Cl_LoadMedia(void){
 
-	cls.download.percent = 0;
-	cls.download.disk = true;
+	cls.loading = 1;
 
 	R_LoadMedia();
 
@@ -813,7 +813,7 @@ static void Cl_LoadMedia(void){
 
 	Cl_LoadLocations();
 
-	cls.download.disk = false;
+	cls.loading = 0;
 }
 
 
@@ -872,18 +872,19 @@ static void Cl_Precache_f(void){
 	Cl_RequestNextDownload();
 }
 
+
 /*
  * Cl_GetUserName
  */
 static const char *Cl_GetUserName(void){
-
 	const char *username = Sys_GetCurrentUser();
-	if (username[0] == '\0')
+
+	if(username[0] == '\0')
 		username = "newbie";
 
-	Com_Printf("Username: %s\n", username);
 	return username;
 }
+
 
 /*
  * Cl_InitLocal
@@ -891,9 +892,10 @@ static const char *Cl_GetUserName(void){
 static void Cl_InitLocal(void){
 	int bits;
 
+	memset(&cls, 0, sizeof(cls));
+
 	cls.state = ca_disconnected;
 	cls.realtime = curtime;
-	cls.download.disk = false;
 
 	Cl_ClearState();
 
