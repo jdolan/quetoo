@@ -322,18 +322,33 @@ void S_PaintChannelFrom16(s_channel_t *ch, s_samplecache_t *sc, int count, int o
 	int left, right;
 	int leftvol, rightvol;
 	signed short *sample;
-	int i;
+	int i, j;
 	portable_samplepair_t *samp;
 
 	leftvol = ch->leftvol * snd_vol;
 	rightvol = ch->rightvol * snd_vol;
+
 	sample = (signed short *)sc->data + ch->pos;
+	j = ch->pos;
 
 	samp = &s_paintbuffer[offset];
+
 	for(i = 0; i < count; i++, samp++){
-		data = sample[i];
-		left = (data * leftvol) >> 8;
-		right = (data * rightvol) >> 8;
+
+		left = right = 0;
+
+		if(j < sc->length){  // mix as long as we have sample data
+			data = sample[i];
+
+			left = (data * leftvol) >> 8;
+			right = (data * rightvol) >> 8;
+
+			j++;
+		}
+		else {
+			Com_Warn("S_PaintChannelFrom16: Underrun.\n");
+		}
+
 		samp->left += left;
 		samp->right += right;
 	}
