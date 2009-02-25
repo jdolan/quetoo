@@ -721,7 +721,7 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->model = "players/ichabod/tris.md2";
 	ent->pain = P_Pain;
 	ent->die = P_Die;
-	ent->waterlevel = 0;
+	ent->waterlevel = ent->client->old_waterlevel = 0;
 	ent->watertype = 0;
 	ent->svflags = 0;
 
