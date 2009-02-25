@@ -108,9 +108,11 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 			SDL_DEFAULT_REPEAT_INTERVAL);
 
 	SDL_WM_SetCaption("Quake2World", "Quake2World");
-	SDL_ShowCursor(0);
 
 	SDL_EnableUNICODE(1);
+
+	if(fullscreen)
+		SDL_ShowCursor(false);
 
 	R_SetIcon();
 

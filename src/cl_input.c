@@ -577,11 +577,16 @@ void Cl_HandleEvents(void){
 	if(!r_view.ready || cls.key_dest == key_console){
 		if(mouse_active){  // yield cursor to os
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
+
+			if(!r_state.fullscreen)
+				SDL_ShowCursor(true);
+
 			mouse_active = false;
 		}
 	} else {
 		if(!mouse_active){  // or take it back
 			SDL_WM_GrabInput(SDL_GRAB_ON);
+			SDL_ShowCursor(false);
 			mouse_active = true;
 		}
 	}
