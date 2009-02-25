@@ -519,12 +519,11 @@ static void P_InitClientLocals(gclient_t *client){
  */
 static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 	edict_t *player;
-	float bestplayerdistance;
+	float dist, bestdist;
 	vec3_t v;
 	int n;
-	float playerdistance;
 
-	bestplayerdistance = 9999999;
+	bestdist = 9999999.0;
 
 	for(n = 1; n <= sv_maxclients->value; n++){
 		player = &g_edicts[n];
@@ -539,21 +538,21 @@ static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 			continue;
 
 		VectorSubtract(spot->s.origin, player->s.origin, v);
-		playerdistance = VectorLength(v);
+		dist = VectorLength(v);
 
-		// ignore teammates, so long as they're away from the spawnpoint
-		if(playerdistance > 20 && (level.teams || level.ctf) && ent->client->locals.team){
-			if(!player->client->locals.team)
-				continue;
-			if(ent->client->locals.team == player->client->locals.team)
-				continue;
+		if(level.teams || level.ctf){  // avoid collision with team mates
+
+			if(player->client->locals.team == ent->client->locals.team){
+				if(dist > 64.0)  // if they're far away, ignore them
+					continue;
+			}
 		}
 
-		if(playerdistance < bestplayerdistance)
-			bestplayerdistance = playerdistance;
+		if(dist < bestdist)
+			bestdist = dist;
 	}
 
-	return bestplayerdistance;
+	return bestdist;
 }
 
 
@@ -585,19 +584,19 @@ static edict_t *P_SelectRandomSpawnPoint(edict_t *ent, const char *classname){
  * P_SelectFarthestDeathmatchSpawnPoint
  */
 static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *classname){
-	edict_t *bestspot;
-	float bestdistance, bestenemydistance;
-	edict_t *spot;
+	edict_t *spot, *bestspot;
+	float dist, bestdist;
 
-	spot = NULL;
-	bestspot = NULL;
-	bestdistance = 0;
+	spot = bestspot = NULL;
+	bestdist = 0.0;
+
 	while((spot = G_Find(spot, FOFS(classname), classname)) != NULL){
-		bestenemydistance = P_EnemyRangeFromSpot(ent, spot);
 
-		if(bestenemydistance > bestdistance){
+		dist = P_EnemyRangeFromSpot(ent, spot);
+
+		if(dist > bestdist){
 			bestspot = spot;
-			bestdistance = bestenemydistance;
+			bestdist = dist;
 		}
 	}
 
@@ -616,8 +615,10 @@ static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *classname){
  * P_SelectDeathmatchSpawnPoint
  */
 static edict_t *P_SelectDeathmatchSpawnPoint(edict_t *ent){
-	if((int)(g_dmflags->value) & DF_SPAWN_RANDOM)
+
+	if(((int)g_dmflags->value) & DF_SPAWN_RANDOM)
 		return P_SelectRandomSpawnPoint(ent, "info_player_deathmatch");
+
 	return P_SelectFarthestSpawnPoint(ent, "info_player_deathmatch");
 }
 
@@ -634,8 +635,9 @@ static edict_t *P_SelectCaptureSpawnPoint(edict_t *ent){
 	c = ent->client->locals.team == &good ?
 		"info_player_team1" : "info_player_team2";
 
-	if((int)(g_dmflags->value) & DF_SPAWN_RANDOM)
+	if(((int)g_dmflags->value) & DF_SPAWN_RANDOM)
 		return P_SelectRandomSpawnPoint(ent, c);
+
 	return P_SelectFarthestSpawnPoint(ent, c);
 }
 
@@ -648,7 +650,7 @@ static edict_t *P_SelectCaptureSpawnPoint(edict_t *ent){
 static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
 	edict_t *spot = NULL;
 
-	if(level.ctf)  // try ctf spawns first if applicable
+	if(level.teams || level.ctf)  // try teams/ctf spawns first if applicable
 		spot = P_SelectCaptureSpawnPoint(ent);
 
 	if(!spot)  // fall back on dm spawns (e.g ctf games on dm maps)
@@ -789,6 +791,10 @@ static void P_PutClientInServer(edict_t *ent){
 
 	client->locals.matchnum = level.matchnum;
 	client->locals.roundnum = level.roundnum;
+
+	gi.UnlinkEntity(ent);
+
+	G_KillBox(ent);  // telefrag anyone in our spot
 
 	gi.LinkEntity(ent);
 

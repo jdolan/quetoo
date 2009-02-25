@@ -1727,7 +1727,7 @@ void G_func_door_secret(edict_t *ent){
 }
 
 /*QUAKED func_killbox(1 0 0) ?
-Kills everything inside when fired, i.locals.ctive of protection.
+Kills everything inside when fired, regardless of protection.
 */
 static void use_killbox(edict_t *self, edict_t *other, edict_t *activator){
 	G_KillBox(self);

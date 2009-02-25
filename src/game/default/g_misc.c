@@ -276,8 +276,7 @@ static void G_teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 	VectorClear(other->client->angles);
 	VectorClear(other->s.angles);
 
-	// kill anything at the destination
-	G_KillBox(other);
+	G_KillBox(other);  // telefrag anyone in our spot
 
 	gi.LinkEntity(other);
 }

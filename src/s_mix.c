@@ -176,7 +176,9 @@ void S_PaintChannels(int endtime){
 		i = 0;
 		// start any s_env.sampleplays
 		while(true){
+
 			ps = s_env.pendingplays.next;
+
 			if(ps == &s_env.pendingplays)
 				break;  // no more pending sounds
 
