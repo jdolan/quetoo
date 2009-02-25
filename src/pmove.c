@@ -608,7 +608,7 @@ static void Pm_CategorizePosition(void){
 		// falling a significant distance disables jumping for a moment
 		if(pml.velocity[2] < -PM_SPEED_FALL){
 			pm->s.pm_flags |= PMF_TIME_LAND;
-			pm->s.pm_time = 50;
+			pm->s.pm_time = 10;
 		}
 
 		// hitting the world means we're done being pushed
@@ -690,7 +690,7 @@ static void Pm_CheckJump(void){
 		else if(pm->watertype == CONTENTS_SLIME)
 			pml.velocity[2] = PM_SPEED_JUMP / 4.0;
 		else
-			pml.velocity[2] = PM_SPEED_JUMP / 6.0;
+			pml.velocity[2] = PM_SPEED_JUMP / 5.0;
 		return;
 	}
 
