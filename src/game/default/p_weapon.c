@@ -321,7 +321,7 @@ static void P_FireShotgun_(edict_t *ent){
 	VectorSet(offset, 20, 0, ent->viewheight - 6);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireShotgun(ent, start, forward, 6, 6, DEFAULT_SHOTGUN_HSPREAD,
+	G_FireShotgun(ent, start, forward, 6, 4, DEFAULT_SHOTGUN_HSPREAD,
 			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SHOTGUN_COUNT, MOD_SHOTGUN);
 
 	// send muzzle flash
@@ -356,13 +356,13 @@ static void P_FireSuperShotgun_(edict_t *ent){
 	v[ROLL] = ent->client->angles[ROLL];
 	AngleVectors(v, forward, NULL, NULL);
 
-	G_FireShotgun(ent, start, forward, 6, 6, DEFAULT_SHOTGUN_HSPREAD,
+	G_FireShotgun(ent, start, forward, 6, 4, DEFAULT_SHOTGUN_HSPREAD,
 			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 
 	v[YAW] = ent->client->angles[YAW] + 5;
 	AngleVectors(v, forward, NULL, NULL);
 
-	G_FireShotgun(ent, start, forward, 6, 6, DEFAULT_SHOTGUN_HSPREAD,
+	G_FireShotgun(ent, start, forward, 6, 4, DEFAULT_SHOTGUN_HSPREAD,
 			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 
 	// send muzzle flash
@@ -391,7 +391,7 @@ static void P_FireMachinegun_(edict_t *ent){
 	VectorSet(offset, 20, 0, ent->viewheight - 6);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireBullet(ent, start, forward, 8, 8, DEFAULT_BULLET_HSPREAD,
+	G_FireBullet(ent, start, forward, 8, 4, DEFAULT_BULLET_HSPREAD,
 			DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
 
 	// send muzzle flash
@@ -525,7 +525,7 @@ static void P_FireRailgun_(edict_t *ent){
 	VectorSet(offset, 20, 0, ent->viewheight - 6);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireRailgun(ent, start, forward, 110, 120);
+	G_FireRailgun(ent, start, forward, 110, 80);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzleflash);
