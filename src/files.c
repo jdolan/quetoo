@@ -337,7 +337,7 @@ static char *Fs_Homedir(void){
 	}
 
 	if(strlen(homedir))  // append our directory name
-		strcat(homedir, "\\My Games\\Quake2World");
+		strcat(homedir, "/My Games/Quake2World");
 	else  // or simply use ./
 		strcat(homedir, PKGDATADIR);
 #else
