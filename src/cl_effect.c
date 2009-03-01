@@ -1059,7 +1059,7 @@ static void Cl_WeatherEffects(void){
 		if(r_view.weather & WEATHER_RAIN){
 			p->image = r_raintexture;
 			p->vel[2] = -800;
-			p->alpha = 0.25;
+			p->alpha = 0.4;
 			p->color = 8;
 			p->scale = 6;
 		}

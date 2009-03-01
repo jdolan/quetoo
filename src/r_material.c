@@ -77,10 +77,10 @@ static void R_StageLighting(msurface_t *surf, stage_t *stage){
 
 	if(surf->flags & MSURF_LIGHTMAP && 
 			(stage->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING))){
-		
+
 		R_EnableTexture(&texunit_lightmap, true);
 		R_BindLightmapTexture(surf->lightmap_texnum);
-		
+
 		if(stage->flags & STAGE_LIGHTING){  // hardware lighting
 
 			R_EnableLighting(r_state.default_program, true);

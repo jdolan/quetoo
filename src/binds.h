@@ -40,6 +40,9 @@ static const char *DEFAULT_BINDS =
 "bind d +moveright\n"
 "bind SPACE +moveup\n"
 "bind c +movedown\n"
+"bind LEFTARROW +left\n"
+"bind RIGHTARROW +right\n"
+"bind HOME centerview\n"
 "bind SHIFT +speed\n"
 "bind CTRL +attack\n"
 
