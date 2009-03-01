@@ -449,6 +449,8 @@ static void R_InitDefaultProgram(void){
 	R_ProgramParameter1i("BUMPMAP", 0);
 	R_ProgramParameter1i("FOG", 0);
 
+	R_ProgramParameter1f("OFFSET", 0.0);
+
 	R_ProgramParameter1f("BUMP", 1.0);
 	R_ProgramParameter1f("PARALLAX", 1.0);
 	R_ProgramParameter1f("HARDNESS", 1.0);
@@ -477,10 +479,14 @@ static void R_UseDefaultProgram(void){
  * R_InitWarpProgram
  */
 static void R_InitWarpProgram(void){
+	static vec4_t offset;
+
 	R_ProgramParameter1i("SAMPLER0", 0);
 	R_ProgramParameter1i("SAMPLER1", 1);
 
 	R_ProgramParameter1i("FOG", 0);
+
+	R_ProgramParameter4fv("OFFSET", offset);
 }
 
 
@@ -509,6 +515,8 @@ static void R_InitProProgram(void){
 	R_ProgramParameter1i("DIFFUSE", 0);
 
 	R_ProgramParameter1i("FOG", 0);
+
+	R_ProgramParameter1f("OFFSET", 0.0);
 }
 
 

@@ -41,7 +41,7 @@ typedef struct r_progvar_s {
 	GLint location;
 } r_progvar_t;
 
-#define MAX_PROGRAM_VARS 12
+#define MAX_PROGRAM_VARS 14
 
 // and glsl programs
 typedef struct r_program_s {

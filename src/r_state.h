@@ -81,6 +81,7 @@ typedef struct renderer_state_s {
 	qboolean lighting_enabled;
 	qboolean bumpmap_enabled;
 	qboolean warp_enabled;
+	qboolean shell_enabled;
 	qboolean fog_enabled;
 
 	r_rendermode_t rendermode;
@@ -110,6 +111,7 @@ void R_EnableColorArray(qboolean enable);
 void R_EnableLighting(r_program_t *program, qboolean enable);
 void R_EnableBumpmap(material_t *material, qboolean enable);
 void R_EnableWarp(r_program_t *program, qboolean enable);
+void R_EnableShell(qboolean enable);
 void R_EnableFog(qboolean enable);
 void R_Setup3D(void);
 void R_Setup2D(void);

@@ -429,6 +429,41 @@ inline void R_EnableWarp(r_program_t *program, qboolean enable){
 
 
 /*
+ * R_EnableColorShell
+ */
+inline void R_EnableShell(qboolean enable){
+
+	if(enable == r_state.shell_enabled)
+		return;
+
+	r_state.shell_enabled = enable;
+
+	if(enable){
+		R_BindTexture(r_envmaptextures[2]->texnum);
+
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(-1.0, 4.0);
+
+		R_EnableBlend(true);
+		R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+		if(r_state.lighting_enabled)
+			R_ProgramParameter1f("OFFSET", r_view.time / 3.0);
+	}
+	else {
+		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		R_EnableBlend(false);
+
+		glPolygonOffset(0.0, 0.0);
+		glDisable(GL_POLYGON_OFFSET_FILL);
+
+		if(r_state.lighting_enabled)
+			R_ProgramParameter1f("OFFSET", 0.0);
+	}
+}
+
+
+/*
  * R_EnableFog
  */
 inline void R_EnableFog(qboolean enable){

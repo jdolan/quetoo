@@ -232,6 +232,15 @@ static void R_SetMeshColor_default(const entity_t *e){
  */
 static void R_SetMeshState_default(const entity_t *e){
 
+	if(e->model->num_frames == 1){  // draw static arrays
+		R_SetArrayState(e->model);
+	}
+	else {  // or use the default arrays
+		R_ResetArrayState();
+
+		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
+	}
+
 	if(e->skin)  // resolve texture
 		R_BindTexture(e->skin->texnum);
 	else
@@ -256,6 +265,9 @@ static void R_SetMeshState_default(const entity_t *e){
  */
 static void R_ResetMeshState_default(const entity_t *e){
 
+	if(e->model->num_frames > 1)
+		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+
 	if(e->flags & EF_WEAPON)
 		glDepthRange(0.0, 1.0);
 
@@ -268,43 +280,20 @@ static void R_ResetMeshState_default(const entity_t *e){
  *
  * Draws an animated, colored shell for the specified entity.  Rather than
  * re-lerping or re-scaling the entity, the currently bound vertex arrays
- * are simply re-drawn using a small depth offset.
+ * are simply re-drawn using a small depth offset and varying texcoord delta.
  */
 static void R_DrawMeshModelShell_default(const entity_t *e){
-	float f;
-	int i;
 
 	if(VectorCompare(e->shell, vec3_origin))
 		return;
 
 	glColor3fv(e->shell);
 
-	R_BindTexture(r_envmaptextures[2]->texnum);
-
-	glEnable(GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset(-1.0, 1.0);
-
-	R_EnableBlend(true);
-	R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-	// copy the models texcoords in and augment them
-	memcpy(&texunit_diffuse.texcoord_array, e->model->texcoords,
-			sizeof(vec2_t) * e->model->vertexcount);
-
-	f = r_view.time / 3.0;
-
-	for(i = 0; i < e->model->vertexcount; i++){
-		texunit_diffuse.texcoord_array[2 * i + 0] += f;
-		texunit_diffuse.texcoord_array[2 * i + 1] += f;
-	}
+	R_EnableShell(true);
 
 	glDrawArrays(GL_TRIANGLES, 0, e->model->vertexcount);
 
-	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	R_EnableBlend(false);
-
-	glPolygonOffset(0.0, 0.0);
-	glDisable(GL_POLYGON_OFFSET_FILL);
+	R_EnableShell(false);
 
 	glColor4ubv(color_white);
 }
@@ -320,10 +309,6 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 	const dmd2triangle_t *tri;
 	vec3_t trans, scale, oldscale;
 	int i, vertind;
-
-	R_ResetArrayState();
-
-	R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
 
 	md2 = (const dmd2_t *)e->model->extradata;
 
@@ -378,8 +363,6 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 	glDrawArrays(GL_TRIANGLES, 0, md2->num_tris * 3);
 
 	r_view.mesh_polys += md2->num_tris;
-
-	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 }
 
 
@@ -393,10 +376,6 @@ static void R_DrawMd3ModelLerped_default(const entity_t *e){
 	vec3_t trans;
 	int i, j, k, vertind;
 	unsigned *tri;
-
-	R_ResetArrayState();
-
-	R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
 
 	md3 = (mmd3_t *)e->model->extradata;
 
@@ -447,8 +426,6 @@ static void R_DrawMd3ModelLerped_default(const entity_t *e){
 
 		r_view.mesh_polys += mesh->num_tris;
 	}
-
-	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 }
 
 
@@ -456,8 +433,6 @@ static void R_DrawMd3ModelLerped_default(const entity_t *e){
  * R_DrawMeshModelArrays_default
  */
 static void R_DrawMeshModelArrays_default(const entity_t *e){
-
-	R_SetArrayState(e->model);
 
 	glDrawArrays(GL_TRIANGLES, 0, e->model->vertexcount);
 
