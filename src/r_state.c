@@ -439,10 +439,8 @@ inline void R_EnableShell(qboolean enable){
 	r_state.shell_enabled = enable;
 
 	if(enable){
-		R_BindTexture(r_envmaptextures[2]->texnum);
-
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(-1.0, 4.0);
+		glPolygonOffset(-1.0, 1.0);
 
 		R_EnableBlend(true);
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE);

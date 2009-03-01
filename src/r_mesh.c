@@ -289,6 +289,8 @@ static void R_DrawMeshModelShell_default(const entity_t *e){
 
 	glColor3fv(e->shell);
 
+	R_BindTexture(r_envmaptextures[2]->texnum);
+
 	R_EnableShell(true);
 
 	glDrawArrays(GL_TRIANGLES, 0, e->model->vertexcount);
