@@ -659,9 +659,9 @@ static void Cl_DrawBlend(void){
 		al = 0;
 
 	if(al < 0.3 && cl.underwater){  // underwater view
-		if(al < 0.15)
+		if(al < 0.15 * cl_blend->value)
 			color = 114;
-		al = 0.3;
+		al = 0.3 * cl_blend->value;
 	}
 
 	if(al > 0.0)
