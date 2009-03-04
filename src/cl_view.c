@@ -228,7 +228,7 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 
 		// if we're spectating, don't translate the origin because we have
 		// no visible player model to begin with
-		if(ps->pmove.pm_type == PM_SPECTATOR)
+		if(ps->pmove.pm_type == PM_SPECTATOR && !ps->stats[STAT_HEALTH])
 			return;
 
 		if(!cl_thirdperson->value)

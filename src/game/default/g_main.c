@@ -88,7 +88,7 @@ void G_ResetTeams(void){
 	strcpy(evil.name, "Evil");
 	gi.Configstring(CS_TEAMEVIL, va("%15s", evil.name));
 
-	strcpy(good.skin, "ogro/ogro");
+	strcpy(good.skin, "ogro/freedom");
 	strcpy(evil.skin, "ichabod/ichabod");
 }
 
