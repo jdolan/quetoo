@@ -184,7 +184,7 @@ static void R_LoadMd2VertexArrays(model_t *mod){
 			VectorCopy(r_mesh_verts[tri->index_xyz[0]], (&mod->verts[vertind + 0]));
 			VectorCopy(r_mesh_verts[tri->index_xyz[1]], (&mod->verts[vertind + 3]));
 			VectorCopy(r_mesh_verts[tri->index_xyz[2]], (&mod->verts[vertind + 6]));
-			
+
 			VectorCopy(r_mesh_norms[tri->index_xyz[0]], (&mod->normals[vertind + 0]));
 			VectorCopy(r_mesh_norms[tri->index_xyz[1]], (&mod->normals[vertind + 3]));
 			VectorCopy(r_mesh_norms[tri->index_xyz[2]], (&mod->normals[vertind + 6]));
@@ -538,9 +538,8 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
  * R_LoadObjModelVertexArrays
  */
 static void R_LoadObjModelVertexArrays(model_t *mod){
-	mobj_t *obj;
-	mobjtri_t *t;
-	mobjvert_t *v;
+	const mobj_t *obj;
+	const mobjtri_t *t;
 	int i, j, vertind, coordind;
 
 	R_AllocVertexArrays(mod);
@@ -553,7 +552,7 @@ static void R_LoadObjModelVertexArrays(model_t *mod){
 
 	for(i = 0; i < obj->num_tris; i++, t++){  // build the arrays
 
-		v = t->verts;
+		const mobjvert_t *v = t->verts;
 
 		for(j = 0; j < 3; j++, v++){  // each vert
 
@@ -584,20 +583,18 @@ static void R_LoadObjModelVertexArrays(model_t *mod){
  * from the specified array of verts.  All tris will share the first vert.
  */
 static void R_LoadObjModelTris(mobj_t *obj, mobjvert_t *verts, int count){
-	mobjtri_t *t;
-	int i, v0, v1, v2;
+	int i;
 
 	if(!obj->tris)
 		return;
 
-	v0 = 0;
-
 	for(i = 0; i < count; i++){  // walk around the polygon
 
-		v1 = 1 + i;
-		v2 = 2 + i;
+		const int v0 = 0;
+		const int v1 = 1 + i;
+		const int v2 = 2 + i;
 
-		t = &obj->tris[obj->num_tris_parsed + i];
+		mobjtri_t *t = &obj->tris[obj->num_tris_parsed + i];
 
 		t->verts[0] = verts[v0];
 		t->verts[1] = verts[v1];
@@ -622,7 +619,8 @@ static void R_LoadObjModelTris(mobj_t *obj, mobjvert_t *verts, int count){
  */
 static int R_LoadObjModelFace(model_t *mod, mobj_t *obj, const char *line){
 	mobjvert_t *v, verts[MAX_OBJ_FACE_VERTS];
-	char *c, *d, *e, tok[32];
+	const char *d;
+	char *e, tok[32];
 	int i, tris;
 
 	memset(verts, 0, sizeof(verts));
@@ -630,7 +628,7 @@ static int R_LoadObjModelFace(model_t *mod, mobj_t *obj, const char *line){
 
 	while(true){
 
-		c = Com_Parse(&line);
+		const char *c = Com_Parse(&line);
 
 		if(!strlen(c))  // done
 			break;
@@ -703,7 +701,6 @@ static int R_LoadObjModelFace(model_t *mod, mobj_t *obj, const char *line){
  * populate them.  Otherwise simply accumulate counts.
  */
 static void R_LoadObjModelLine(model_t *mod, mobj_t *obj, char *line){
-	float *f;
 
 	if(!line || !line[0])  // don't bother
 		return;
@@ -711,7 +708,7 @@ static void R_LoadObjModelLine(model_t *mod, mobj_t *obj, char *line){
 	if(!strncmp(line, "v ", 2)){  // vertex
 
 		if(obj->verts){  // parse it
-			f = obj->verts + obj->num_verts_parsed * 3;
+			float *f = obj->verts + obj->num_verts_parsed * 3;
 
 			if(sscanf(line + 2, "%f %f %f", &f[0], &f[2], &f[1]) != 3)
 				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed vertex for %s: %s.",
@@ -725,7 +722,7 @@ static void R_LoadObjModelLine(model_t *mod, mobj_t *obj, char *line){
 	else if(!strncmp(line, "vn ", 3)){  // normal
 
 		if(obj->normals){  // parse it
-			f = obj->normals + obj->num_normals_parsed * 3;
+			float *f = obj->normals + obj->num_normals_parsed * 3;
 
 			if(sscanf(line + 3, "%f %f %f", &f[0], &f[2], &f[1]) != 3)
 				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed normal for %s: %s.",
@@ -740,7 +737,7 @@ static void R_LoadObjModelLine(model_t *mod, mobj_t *obj, char *line){
 	else if(!strncmp(line, "vt ", 3)){  // texcoord
 
 		if(obj->texcoords){  // parse it
-			f = obj->texcoords + obj->num_texcoords_parsed * 2;
+			float *f = obj->texcoords + obj->num_texcoords_parsed * 2;
 
 			if(sscanf(line + 3, "%f %f", &f[0], &f[1]) != 2)
 				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed texcoord for %s: %s.",
@@ -773,7 +770,7 @@ static void R_LoadObjModelLine(model_t *mod, mobj_t *obj, char *line){
  */
 static void R_LoadObjModel_(model_t *mod, mobj_t *obj, void *buffer){
 	char line[MAX_STRING_CHARS];
-	char *c;
+	const char *c;
 	qboolean comment;
 	int i;
 
