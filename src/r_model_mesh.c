@@ -208,16 +208,16 @@ static void R_LoadMd2VertexArrays(model_t *mod){
  */
 void R_LoadMd2Model(model_t *mod, void *buffer){
 	int i, j, version;
-	dmd2_t *pinmodel, *poutmodel;
-	dmd2texcoord_t *pincoord, *poutcoord;
-	dmd2triangle_t *pintri, *pouttri;
-	dmd2frame_t *pinframe, *poutframe;
-	int *pincmd, *poutcmd;
+	dmd2_t *inmodel, *outmodel;
+	dmd2texcoord_t *incoord, *outcoord;
+	dmd2triangle_t *intri, *outtri;
+	dmd2frame_t *inframe, *outframe;
+	int *incmd, *outcmd;
 	vec3_t mins, maxs;
 
-	pinmodel = (dmd2_t *)buffer;
+	inmodel = (dmd2_t *)buffer;
 
-	version = LittleLong(pinmodel->version);
+	version = LittleLong(inmodel->version);
 	if(version != MD2_VERSION){
 		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has wrong version number "
 				"(%i should be %i).", mod->name, version, MD2_VERSION);
@@ -226,84 +226,84 @@ void R_LoadMd2Model(model_t *mod, void *buffer){
 	mod->type = mod_md2;
 	mod->version = version;
 
-	poutmodel = R_HunkAlloc(LittleLong(pinmodel->ofs_end));
+	outmodel = (dmd2_t *)R_HunkAlloc(LittleLong(inmodel->ofs_end));
 
 	// byte swap the header fields and sanity check
 	for(i = 0; i < sizeof(dmd2_t) / 4; i++)
-		((int *)poutmodel)[i] = LittleLong(((int *)buffer)[i]);
+		((int *)outmodel)[i] = LittleLong(((int *)buffer)[i]);
 
-	mod->num_frames = poutmodel->num_frames;
+	mod->num_frames = outmodel->num_frames;
 
-	if(poutmodel->num_xyz <= 0){
+	if(outmodel->num_xyz <= 0){
 		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has no vertices.", mod->name);
 	}
 
-	if(poutmodel->num_xyz > MD2_MAX_VERTS){
+	if(outmodel->num_xyz > MD2_MAX_VERTS){
 		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has too many vertices.", mod->name);
 	}
 
-	if(poutmodel->num_st <= 0){
+	if(outmodel->num_st <= 0){
 		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has no st vertices.", mod->name);
 	}
 
-	if(poutmodel->num_tris <= 0){
+	if(outmodel->num_tris <= 0){
 		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has no triangles.", mod->name);
 	}
 
-	if(poutmodel->num_frames <= 0){
+	if(outmodel->num_frames <= 0){
 		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has no frames.", mod->name);
 	}
 
 	// load the texcoords
-	pincoord = (dmd2texcoord_t *)((byte *)pinmodel + poutmodel->ofs_st);
-	poutcoord = (dmd2texcoord_t *)((byte *)poutmodel + poutmodel->ofs_st);
+	incoord = (dmd2texcoord_t *)((byte *)inmodel + outmodel->ofs_st);
+	outcoord = (dmd2texcoord_t *)((byte *)outmodel + outmodel->ofs_st);
 
-	for(i = 0; i < poutmodel->num_st; i++){
-		poutcoord[i].s = LittleShort(pincoord[i].s);
-		poutcoord[i].t = LittleShort(pincoord[i].t);
+	for(i = 0; i < outmodel->num_st; i++){
+		outcoord[i].s = LittleShort(incoord[i].s);
+		outcoord[i].t = LittleShort(incoord[i].t);
 	}
 
 	// load triangle lists
-	pintri = (dmd2triangle_t *)((byte *)pinmodel + poutmodel->ofs_tris);
-	pouttri = (dmd2triangle_t *)((byte *)poutmodel + poutmodel->ofs_tris);
+	intri = (dmd2triangle_t *)((byte *)inmodel + outmodel->ofs_tris);
+	outtri = (dmd2triangle_t *)((byte *)outmodel + outmodel->ofs_tris);
 
-	for(i = 0; i < poutmodel->num_tris; i++){
+	for(i = 0; i < outmodel->num_tris; i++){
 		for(j = 0; j < 3; j++){
-			pouttri[i].index_xyz[j] = LittleShort(pintri[i].index_xyz[j]);
-			pouttri[i].index_st[j] = LittleShort(pintri[i].index_st[j]);
+			outtri[i].index_xyz[j] = LittleShort(intri[i].index_xyz[j]);
+			outtri[i].index_st[j] = LittleShort(intri[i].index_st[j]);
 		}
 	}
 
 	// load the frames
-	for(i = 0; i < poutmodel->num_frames; i++){
-		pinframe = (dmd2frame_t *)((byte *)pinmodel
-				+ poutmodel->ofs_frames + i * poutmodel->framesize);
-		poutframe = (dmd2frame_t *)((byte *)poutmodel
-				+ poutmodel->ofs_frames + i * poutmodel->framesize);
+	for(i = 0; i < outmodel->num_frames; i++){
+		inframe = (dmd2frame_t *)((byte *)inmodel
+				+ outmodel->ofs_frames + i * outmodel->framesize);
+		outframe = (dmd2frame_t *)((byte *)outmodel
+				+ outmodel->ofs_frames + i * outmodel->framesize);
 
-		memcpy(poutframe->name, pinframe->name, sizeof(poutframe->name));
+		memcpy(outframe->name, inframe->name, sizeof(outframe->name));
 
 		for(j = 0; j < 3; j++){
-			poutframe->scale[j] = LittleFloat(pinframe->scale[j]);
-			poutframe->translate[j] = LittleFloat(pinframe->translate[j]);
+			outframe->scale[j] = LittleFloat(inframe->scale[j]);
+			outframe->translate[j] = LittleFloat(inframe->translate[j]);
 		}
 
-		VectorCopy(poutframe->translate, mins);
-		VectorMA(mins, 255.0, poutframe->scale, maxs);
+		VectorCopy(outframe->translate, mins);
+		VectorMA(mins, 255.0, outframe->scale, maxs);
 
 		AddPointToBounds(mins, mod->mins, mod->maxs);
 		AddPointToBounds(maxs, mod->mins, mod->maxs);
 
-		// verts are all 8 bit, so no swapping needed
-		memcpy(poutframe->verts, pinframe->verts, poutmodel->num_xyz * sizeof(dmd2vertex_t));
+		// verts are all 8 bit, so no swaping needed
+		memcpy(outframe->verts, inframe->verts, outmodel->num_xyz * sizeof(dmd2vertex_t));
 	}
 
 	// load the glcmds
-	pincmd = (int *)((byte *)pinmodel + poutmodel->ofs_glcmds);
-	poutcmd = (int *)((byte *)poutmodel + poutmodel->ofs_glcmds);
+	incmd = (int *)((byte *)inmodel + outmodel->ofs_glcmds);
+	outcmd = (int *)((byte *)outmodel + outmodel->ofs_glcmds);
 
-	for(i = 0; i < poutmodel->num_glcmds; i++)
-		poutcmd[i] = LittleLong(pincmd[i]);
+	for(i = 0; i < outmodel->num_glcmds; i++)
+		outcmd[i] = LittleLong(incmd[i]);
 
 	// load the skin
 	R_LoadMeshSkin(mod);
@@ -378,21 +378,21 @@ static void R_LoadMd3VertexArrays(model_t *mod){
  */
 void R_LoadMd3Model(model_t *mod, void *buffer){
 	int version, i, j, l;
-	dmd3_t *pinmodel;
-	mmd3_t *poutmodel;
-	dmd3frame_t *pinframe, *poutframe;
-	dmd3tag_t *pintag, *pouttag;
-	dmd3mesh_t *pinmesh;
-	mmd3mesh_t *poutmesh;
-	dmd3coord_t *pincoord, *poutcoord;
-	dmd3vertex_t *pinvert;
-	mmd3vertex_t *poutvert;
-	unsigned int *pinindex, *poutindex;
+	dmd3_t *inmodel;
+	mmd3_t *outmodel;
+	dmd3frame_t *inframe, *outframe;
+	dmd3tag_t *intag, *outtag;
+	dmd3mesh_t *inmesh;
+	mmd3mesh_t *outmesh;
+	dmd3coord_t *incoord, *outcoord;
+	dmd3vertex_t *invert;
+	mmd3vertex_t *outvert;
+	unsigned int *inindex, *outindex;
 	float lat, lng;
 
-	pinmodel = (dmd3_t *)buffer;
+	inmodel = (dmd3_t *)buffer;
 
-	version = LittleLong(pinmodel->version);
+	version = LittleLong(inmodel->version);
 	if(version != MD3_VERSION){
 		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has wrong version number "
 				"(%i should be %i)", mod->name, version, MD3_VERSION);
@@ -401,126 +401,126 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
 	mod->type = mod_md3;
 	mod->version = version;
 
-	poutmodel = R_HunkAlloc(sizeof(mmd3_t));
+	outmodel = (mmd3_t *)R_HunkAlloc(sizeof(mmd3_t));
 
 	// byte swap the header fields and sanity check
-	pinmodel->ofs_frames = LittleLong(pinmodel->ofs_frames);
-	pinmodel->ofs_tags = LittleLong(pinmodel->ofs_tags);
-	pinmodel->ofs_meshes = LittleLong(pinmodel->ofs_meshes);
+	inmodel->ofs_frames = LittleLong(inmodel->ofs_frames);
+	inmodel->ofs_tags = LittleLong(inmodel->ofs_tags);
+	inmodel->ofs_meshes = LittleLong(inmodel->ofs_meshes);
 
-	mod->num_frames = poutmodel->num_frames = LittleLong(pinmodel->num_frames);
-	poutmodel->num_tags = LittleLong(pinmodel->num_tags);
-	poutmodel->num_meshes = LittleLong(pinmodel->num_meshes);
+	mod->num_frames = outmodel->num_frames = LittleLong(inmodel->num_frames);
+	outmodel->num_tags = LittleLong(inmodel->num_tags);
+	outmodel->num_meshes = LittleLong(inmodel->num_meshes);
 
-	if(poutmodel->num_frames < 1){
+	if(outmodel->num_frames < 1){
 		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has no frames.", mod->name);
 	}
 
-	if(poutmodel->num_tags > MD3_MAX_TAGS){
+	if(outmodel->num_tags > MD3_MAX_TAGS){
 		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many tags.", mod->name);
 	}
 
-	if(poutmodel->num_meshes > MD3_MAX_MESHES){
+	if(outmodel->num_meshes > MD3_MAX_MESHES){
 		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many meshes.", mod->name);
 	}
 
 	// load the frames
-	pinframe = (dmd3frame_t *)((byte *)pinmodel + pinmodel->ofs_frames);
-	poutmodel->frames = poutframe = (dmd3frame_t *)R_HunkAlloc(
-			poutmodel->num_frames * sizeof(dmd3frame_t));
+	inframe = (dmd3frame_t *)((byte *)inmodel + inmodel->ofs_frames);
+	outmodel->frames = outframe = (dmd3frame_t *)R_HunkAlloc(
+			outmodel->num_frames * sizeof(dmd3frame_t));
 
-	for(i = 0; i < poutmodel->num_frames; i++, pinframe++, poutframe++){
+	for(i = 0; i < outmodel->num_frames; i++, inframe++, outframe++){
 		for(j = 0; j < 3; j++){
-			poutframe->mins[j] = LittleFloat(pinframe->mins[j]);
-			poutframe->maxs[j] = LittleFloat(pinframe->maxs[j]);
-			poutframe->translate[j] = LittleFloat(pinframe->translate[j]);
+			outframe->mins[j] = LittleFloat(inframe->mins[j]);
+			outframe->maxs[j] = LittleFloat(inframe->maxs[j]);
+			outframe->translate[j] = LittleFloat(inframe->translate[j]);
 		}
 
-		AddPointToBounds(poutframe->mins, mod->mins, mod->maxs);
-		AddPointToBounds(poutframe->maxs, mod->mins, mod->maxs);
+		AddPointToBounds(outframe->mins, mod->mins, mod->maxs);
+		AddPointToBounds(outframe->maxs, mod->mins, mod->maxs);
 	}
 
 	// load the tags
-	if(poutmodel->num_tags){
+	if(outmodel->num_tags){
 
-		pintag = (dmd3tag_t *)((byte *)pinmodel + pinmodel->ofs_tags);
-		poutmodel->tags = pouttag = (dmd3tag_t *)R_HunkAlloc(
-				poutmodel->num_tags * sizeof(dmd3tag_t));
+		intag = (dmd3tag_t *)((byte *)inmodel + inmodel->ofs_tags);
+		outmodel->tags = outtag = (dmd3tag_t *)R_HunkAlloc(
+				outmodel->num_tags * sizeof(dmd3tag_t));
 
-		for(i = 0; i < poutmodel->num_frames; i++){
-			for(l = 0; l < poutmodel->num_tags; l++, pintag++, pouttag++){
-				memcpy(pouttag->name, pintag->name, MD3_MAX_PATH);
+		for(i = 0; i < outmodel->num_frames; i++){
+			for(l = 0; l < outmodel->num_tags; l++, intag++, outtag++){
+				memcpy(outtag->name, intag->name, MD3_MAX_PATH);
 				for(j = 0; j < 3; j++){
-					pouttag->orient.origin[j] = LittleFloat(pintag->orient.origin[j]);
-					pouttag->orient.axis[0][j] = LittleFloat(pintag->orient.axis[0][j]);
-					pouttag->orient.axis[1][j] = LittleFloat(pintag->orient.axis[1][j]);
-					pouttag->orient.axis[2][j] = LittleFloat(pintag->orient.axis[2][j]);
+					outtag->orient.origin[j] = LittleFloat(intag->orient.origin[j]);
+					outtag->orient.axis[0][j] = LittleFloat(intag->orient.axis[0][j]);
+					outtag->orient.axis[1][j] = LittleFloat(intag->orient.axis[1][j]);
+					outtag->orient.axis[2][j] = LittleFloat(intag->orient.axis[2][j]);
 				}
 			}
 		}
 	}
 
 	// load the meshes
-	pinmesh = (dmd3mesh_t *)((byte *)pinmodel + pinmodel->ofs_meshes);
-	poutmodel->meshes = poutmesh = (mmd3mesh_t *)R_HunkAlloc(
-			poutmodel->num_meshes * sizeof(mmd3mesh_t));
+	inmesh = (dmd3mesh_t *)((byte *)inmodel + inmodel->ofs_meshes);
+	outmodel->meshes = outmesh = (mmd3mesh_t *)R_HunkAlloc(
+			outmodel->num_meshes * sizeof(mmd3mesh_t));
 
-	for(i = 0; i < poutmodel->num_meshes; i++, poutmesh++){
-		memcpy(poutmesh->name, pinmesh->name, MD3_MAX_PATH);
+	for(i = 0; i < outmodel->num_meshes; i++, outmesh++){
+		memcpy(outmesh->name, inmesh->name, MD3_MAX_PATH);
 
-		pinmesh->ofs_tris = LittleLong(pinmesh->ofs_tris);
-		pinmesh->ofs_tcs = LittleLong(pinmesh->ofs_tcs);
-		pinmesh->ofs_verts = LittleLong(pinmesh->ofs_verts);
-		pinmesh->meshsize = LittleLong(pinmesh->meshsize);
+		inmesh->ofs_tris = LittleLong(inmesh->ofs_tris);
+		inmesh->ofs_tcs = LittleLong(inmesh->ofs_tcs);
+		inmesh->ofs_verts = LittleLong(inmesh->ofs_verts);
+		inmesh->meshsize = LittleLong(inmesh->meshsize);
 
-		poutmesh->num_tris = LittleLong(pinmesh->num_tris);
-		poutmesh->num_verts = LittleLong(pinmesh->num_verts);
+		outmesh->num_tris = LittleLong(inmesh->num_tris);
+		outmesh->num_verts = LittleLong(inmesh->num_verts);
 
 		// load the triangle indexes
-		pinindex = (unsigned *)((byte *)pinmesh + pinmesh->ofs_tris);
-		poutmesh->tris = poutindex = (unsigned *)R_HunkAlloc(
-				poutmesh->num_tris * sizeof(unsigned) * 3);
+		inindex = (unsigned *)((byte *)inmesh + inmesh->ofs_tris);
+		outmesh->tris = outindex = (unsigned *)R_HunkAlloc(
+				outmesh->num_tris * sizeof(unsigned) * 3);
 
-		for(j = 0; j < poutmesh->num_tris; j++, pinindex += 3, poutindex += 3){
-			poutindex[0] = (unsigned)LittleLong(pinindex[0]);
-			poutindex[1] = (unsigned)LittleLong(pinindex[1]);
-			poutindex[2] = (unsigned)LittleLong(pinindex[2]);
+		for(j = 0; j < outmesh->num_tris; j++, inindex += 3, outindex += 3){
+			outindex[0] = (unsigned)LittleLong(inindex[0]);
+			outindex[1] = (unsigned)LittleLong(inindex[1]);
+			outindex[2] = (unsigned)LittleLong(inindex[2]);
 		}
 
 		// load the texcoords
-		pincoord = (dmd3coord_t *)((byte *)pinmesh + pinmesh->ofs_tcs);
-		poutmesh->coords = poutcoord = (dmd3coord_t *)R_HunkAlloc(
-				poutmesh->num_verts * sizeof(dmd3coord_t));
+		incoord = (dmd3coord_t *)((byte *)inmesh + inmesh->ofs_tcs);
+		outmesh->coords = outcoord = (dmd3coord_t *)R_HunkAlloc(
+				outmesh->num_verts * sizeof(dmd3coord_t));
 
-		for(j = 0; j < poutmesh->num_verts; j++, pincoord++, poutcoord++){
-			poutcoord->st[0] = LittleFloat(pincoord->st[0]);
-			poutcoord->st[1] = LittleFloat(pincoord->st[1]);
+		for(j = 0; j < outmesh->num_verts; j++, incoord++, outcoord++){
+			outcoord->st[0] = LittleFloat(incoord->st[0]);
+			outcoord->st[1] = LittleFloat(incoord->st[1]);
 		}
 
 		// load the verts and norms
-		pinvert = (dmd3vertex_t *)((byte *)pinmesh + pinmesh->ofs_verts);
-		poutmesh->verts = poutvert = (mmd3vertex_t *)R_HunkAlloc(
-				poutmodel->num_frames * poutmesh->num_verts * sizeof(mmd3vertex_t));
+		invert = (dmd3vertex_t *)((byte *)inmesh + inmesh->ofs_verts);
+		outmesh->verts = outvert = (mmd3vertex_t *)R_HunkAlloc(
+				outmodel->num_frames * outmesh->num_verts * sizeof(mmd3vertex_t));
 
-		for(l = 0; l < poutmodel->num_frames; l++){
-			for(j = 0; j < poutmesh->num_verts; j++, pinvert++, poutvert++){
-				poutvert->point[0] = LittleShort(pinvert->point[0]) * MD3_XYZ_SCALE;
-				poutvert->point[1] = LittleShort(pinvert->point[1]) * MD3_XYZ_SCALE;
-				poutvert->point[2] = LittleShort(pinvert->point[2]) * MD3_XYZ_SCALE;
+		for(l = 0; l < outmodel->num_frames; l++){
+			for(j = 0; j < outmesh->num_verts; j++, invert++, outvert++){
+				outvert->point[0] = LittleShort(invert->point[0]) * MD3_XYZ_SCALE;
+				outvert->point[1] = LittleShort(invert->point[1]) * MD3_XYZ_SCALE;
+				outvert->point[2] = LittleShort(invert->point[2]) * MD3_XYZ_SCALE;
 
-				lat = (pinvert->norm >> 8) & 0xff;
-				lng = (pinvert->norm & 0xff);
+				lat = (invert->norm >> 8) & 0xff;
+				lng = (invert->norm & 0xff);
 
 				lat *= M_PI / 128.0;
 				lng *= M_PI / 128.0;
 
-				poutvert->normal[0] = cos(lat) * sin(lng);
-				poutvert->normal[1] = sin(lat) * sin(lng);
-				poutvert->normal[2] = cos(lng);
+				outvert->normal[0] = cos(lat) * sin(lng);
+				outvert->normal[1] = sin(lat) * sin(lng);
+				outvert->normal[2] = cos(lng);
 			}
 		}
 
-		pinmesh = (dmd3mesh_t *)((byte *)pinmesh + pinmesh->meshsize);
+		inmesh = (dmd3mesh_t *)((byte *)inmesh + inmesh->meshsize);
 	}
 
 	// load the skin
@@ -529,5 +529,330 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
 	// and configs
 	R_LoadMeshConfigs(mod);
 
+	// and finally the arrays
 	R_LoadMd3VertexArrays(mod);
 }
+
+
+/*
+ * R_LoadObjModelVertexArrays
+ */
+static void R_LoadObjModelVertexArrays(model_t *mod){
+	mobj_t *obj;
+	mobjtri_t *t;
+	mobjvert_t *v;
+	int i, j, vertind, coordind;
+
+	R_AllocVertexArrays(mod);
+
+	obj = (mobj_t *)mod->extradata;
+
+	vertind = coordind = 0;
+
+	t = obj->tris;
+
+	for(i = 0; i < obj->num_tris; i++, t++){  // build the arrays
+
+		v = t->verts;
+
+		for(j = 0; j < 3; j++, v++){  // each vert
+
+			VectorCopy((&obj->verts[(v->vert - 1) * 3]),
+					(&mod->verts[vertind + j * 3]));
+
+			if(v->normal){
+				VectorCopy((&obj->normals[(v->normal  - 1) * 3]),
+						(&mod->normals[vertind + j * 3]));
+			}
+
+			if(v->texcoord){
+				VectorCopy((&obj->texcoords[(v->texcoord - 1) * 2]),
+						(&mod->texcoords[coordind + j * 2]));
+			}
+		}
+
+		coordind += 6;
+		vertind += 9;
+	}
+}
+
+
+/*
+ * R_LoadObjModelTris
+ *
+ * Triangulation of arbitrary polygons.  Assembles count tris on the model
+ * from the specified array of verts.  All tris will share the first vert.
+ */
+static void R_LoadObjModelTris(mobj_t *obj, mobjvert_t *verts, int count){
+	mobjtri_t *t;
+	int i, v0, v1, v2;
+
+	if(!obj->tris)
+		return;
+
+	v0 = 0;
+
+	for(i = 0; i < count; i++){  // walk around the polygon
+
+		v1 = 1 + i;
+		v2 = 2 + i;
+
+		t = &obj->tris[obj->num_tris_parsed + i];
+
+		t->verts[0] = verts[v0];
+		t->verts[1] = verts[v1];
+		t->verts[2] = verts[v2];
+	}
+}
+
+
+#define MAX_OBJ_FACE_VERTS 128
+
+/*
+ * R_LoadObjModelFace
+ *
+ * Each line consists of 3 or more vertex definitions, e.g.
+ *
+ *   57/13/31 58/14/32 59/15/33 21/15/19
+ *
+ * Tokenize the line with Com_Parse, and parse each vertex definition.
+ * Faces with more than 3 vertices must be broken down into triangles.
+ *
+ * Returns the number of triangles produced for the specified line.
+ */
+static int R_LoadObjModelFace(model_t *mod, mobj_t *obj, const char *line){
+	mobjvert_t *v, verts[MAX_OBJ_FACE_VERTS];
+	char *c, *d, *e, tok[32];
+	int i, tris;
+
+	memset(verts, 0, sizeof(verts));
+	i = 0;
+
+	while(true){
+
+		c = Com_Parse(&line);
+
+		if(!strlen(c))  // done
+			break;
+
+		if(i == MAX_OBJ_FACE_VERTS){
+			Com_Error(ERR_DROP, "R_LoadObjModelFace: too many vertexes: %s.", mod->name);
+		}
+
+		if(!obj->tris){  // simply count verts
+			i++;
+			continue;
+		}
+
+		d = c;
+		v = &verts[i++];
+
+		memset(tok, 0, sizeof(tok));
+		e = tok;
+
+		while(*d){  // parse the vertex definition
+
+			if(*d == '/'){  // index delimiter, parse the token
+
+				if(!v->vert)
+					v->vert = atoi(tok);
+
+				else if(!v->texcoord)
+					v->texcoord = atoi(tok);
+
+				else if(!v->normal)
+					v->normal = atoi(tok);
+
+				memset(tok, 0, sizeof(tok));
+				e = tok;
+
+				d++;
+				continue;
+			}
+
+			*e++ = *d++;
+		}
+
+		// parse whatever is left in the token
+
+		if(!v->vert)
+			v->vert = atoi(tok);
+
+		else if(!v->texcoord)
+			v->texcoord = atoi(tok);
+
+		else if(!v->normal)
+			v->normal = atoi(tok);
+	}
+
+	tris = i - 2;  // number of triangles from parsed verts
+
+	if(tris < 1)
+		Com_Error(ERR_DROP, "R_LoadObjModelFace: too few vertexes: %s.", mod->name);
+
+	R_LoadObjModelTris(obj, verts, tris);  // break verts up into tris
+
+	return tris;
+}
+
+
+/*
+ * R_LoadObjModelLine
+ *
+ * Parse the object file line.  If the structures have been allocated,
+ * populate them.  Otherwise simply accumulate counts.
+ */
+static void R_LoadObjModelLine(model_t *mod, mobj_t *obj, char *line){
+	float *f;
+
+	if(!line || !line[0])  // don't bother
+		return;
+
+	if(!strncmp(line, "v ", 2)){  // vertex
+
+		if(obj->verts){  // parse it
+			f = obj->verts + obj->num_verts_parsed * 3;
+
+			if(sscanf(line + 2, "%f %f %f", &f[0], &f[2], &f[1]) != 3)
+				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed vertex for %s: %s.",
+						mod->name, line);
+
+			obj->num_verts_parsed++;
+		}
+		else  // or just count it
+			obj->num_verts++;
+	}
+	else if(!strncmp(line, "vn ", 3)){  // normal
+
+		if(obj->normals){  // parse it
+			f = obj->normals + obj->num_normals_parsed * 3;
+
+			if(sscanf(line + 3, "%f %f %f", &f[0], &f[2], &f[1]) != 3)
+				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed normal for %s: %s.",
+						mod->name, line);
+
+			obj->num_normals_parsed++;
+		}
+		else  // or just count it
+			obj->num_normals++;
+
+	}
+	else if(!strncmp(line, "vt ", 3)){  // texcoord
+
+		if(obj->texcoords){  // parse it
+			f = obj->texcoords + obj->num_texcoords_parsed * 2;
+
+			if(sscanf(line + 3, "%f %f", &f[0], &f[1]) != 2)
+				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed texcoord for %s: %s.",
+						mod->name, line);
+
+			obj->num_texcoords_parsed++;
+		}
+		else  // or just count it
+			obj->num_texcoords++;
+	}
+	else if(!strncmp(line, "f ", 2)){  // face
+
+		if(obj->tris)  // parse it
+			obj->num_tris_parsed += R_LoadObjModelFace(mod, obj, line + 2);
+		else  // or just count it
+			obj->num_tris += R_LoadObjModelFace(mod, obj, line + 2);
+	}
+	else {
+		Com_Dprintf("R_LoadObjModelLine: Unsupported line for %s: %s.",
+				mod->name, line);
+	}
+}
+
+
+/*
+ * R_LoadObjModel_
+ *
+ * Drives the actual parsing of the object file.  The file is read twice:
+ * once to acquire primitive counts, and a second time to load them.
+ */
+static void R_LoadObjModel_(model_t *mod, mobj_t *obj, void *buffer){
+	char line[MAX_STRING_CHARS];
+	char *c;
+	qboolean comment;
+	int i;
+
+	c = buffer;
+	comment = false;
+	i = 0;
+
+	while(*c){
+
+		if(*c == '#'){
+			comment = true;
+			c++;
+			continue;
+		}
+
+		if(*c == '\r'){
+			c++;
+			continue;
+		}
+
+		if(*c == '\n'){
+
+			line[i++] = 0;
+			i = 0;
+
+			if(!comment)
+				R_LoadObjModelLine(mod, obj, line);
+
+			comment = false;
+			c++;
+			continue;
+		}
+
+		line[i++] = *c++;
+	}
+}
+
+
+/*
+ * R_LoadObjModel
+ */
+void R_LoadObjModel(model_t *mod, void *buffer){
+	mobj_t *obj;
+	float *v;
+	int i;
+
+	mod->type = mod_obj;
+
+	mod->num_frames = 1;
+
+	obj = (mobj_t *)R_HunkAlloc(sizeof(mobj_t));
+
+	R_LoadObjModel_(mod, obj, buffer);  // resolve counts
+
+	if(!obj->num_verts){
+		Com_Error(ERR_DROP, "R_LoadObjModel: Failed to resolve vertex data: %s\n",
+				mod->name);
+	}
+
+	// allocate the arrays
+	obj->verts = (float *)R_HunkAlloc(obj->num_verts * sizeof(float) * 3);
+	obj->normals = (float *)R_HunkAlloc(obj->num_normals * sizeof(float) * 3);
+	obj->texcoords = (float *)R_HunkAlloc(obj->num_texcoords * sizeof(float) * 2);
+	obj->tris = (mobjtri_t *)R_HunkAlloc(obj->num_tris * sizeof(mobjtri_t));
+
+	R_LoadObjModel_(mod, obj, buffer);  // load it
+
+	v = obj->verts;
+	for(i = 0; i < obj->num_verts; i++, v+= 3){  // resolve mins/maxs
+		AddPointToBounds(v, mod->mins, mod->maxs);
+	}
+
+	// load the skin
+	R_LoadMeshSkin(mod);
+
+	// and configs
+	R_LoadMeshConfigs(mod);
+
+	// and finally the arrays
+	R_LoadObjModelVertexArrays(mod);
+}
+

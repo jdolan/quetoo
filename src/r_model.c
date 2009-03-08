@@ -67,10 +67,6 @@ void *R_HunkAlloc(size_t size){
  * R_AllocVertexArrays
  */
 void R_AllocVertexArrays(model_t *mod){
-	msurface_t *surf;
-	dmd2_t *md2;
-	mmd3_t *md3;
-	mmd3mesh_t *mesh;
 	int i, j;
 	int v, st, t, c;
 
@@ -78,6 +74,7 @@ void R_AllocVertexArrays(model_t *mod){
 
 	// first resolve the vertex count
 	if(mod->type == mod_bsp){
+		msurface_t *surf;
 
 		for(i = 0, surf = mod->surfaces; i < mod->numsurfaces; i++, surf++){
 			for(j = 0; j < surf->numedges; j++)
@@ -86,15 +83,21 @@ void R_AllocVertexArrays(model_t *mod){
 	}
 	else if(mod->type == mod_md2){
 
-		md2 = (dmd2_t *)mod->extradata;
+		dmd2_t *md2 = (dmd2_t *)mod->extradata;
 		mod->vertexcount = md2->num_tris * 3;
 	}
 	else if(mod->type == mod_md3){
 
-		md3 = (mmd3_t *)mod->extradata;
+		mmd3_t *md3 = (mmd3_t *)mod->extradata;
+		mmd3mesh_t *mesh = md3->meshes;
 
-		for(i = 0, mesh = md3->meshes; i < md3->num_meshes; i++, mesh++)
+		for(i = 0; i < md3->num_meshes; i++, mesh++)
 			mod->vertexcount += mesh->num_tris * 3;
+	}
+	else if(mod->type == mod_obj){
+
+		mobj_t *obj = (mobj_t *)mod->extradata;
+		mod->vertexcount = obj->num_tris * 3;
 	}
 
 	v = mod->vertexcount * 3 * sizeof(GLfloat);
@@ -245,6 +248,12 @@ model_t *R_LoadModel(const char *name){
 			break;
 
 		default:
+
+			if(strcasestr(mod->name, ".obj")){
+				R_LoadObjModel(mod, buf);
+				break;
+			}
+
 			Fs_FreeFile(buf);
 			Com_Error(ERR_DROP, "R_LoadModel: Unknown type for %s.", mod->name);
 	}

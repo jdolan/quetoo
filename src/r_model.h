@@ -207,9 +207,39 @@ typedef struct mmd3_s {
 } mmd3_t;
 
 
+// object model memory representation
+typedef struct mobjvert_s {
+	int vert;
+	int normal;
+	int texcoord;
+} mobjvert_t;
+
+typedef struct mobjtri_s {
+	mobjvert_t verts[3];
+} mobjtri_t;
+
+typedef struct mobj_s {
+	int num_verts;
+	int num_verts_parsed;
+	float *verts;
+
+	int num_normals;
+	int num_normals_parsed;
+	float *normals;
+
+	int num_texcoords;
+	int num_texcoords_parsed;
+	float *texcoords;
+
+	int num_tris;
+	int num_tris_parsed;
+	mobjtri_t *tris;
+} mobj_t;
+
+
 // shared struct for all model types
 typedef enum {
-	mod_bad, mod_bsp, mod_bsp_submodel, mod_md2, mod_md3
+	mod_bad, mod_bsp, mod_bsp_submodel, mod_md2, mod_md3, mod_obj
 } modtype_t;
 
 // shared mesh configuration
@@ -320,5 +350,6 @@ void R_LoadBspModel(model_t *mod, void *buffer);
 // r_model_mesh.c
 void R_LoadMd2Model(model_t *mod, void *buffer);
 void R_LoadMd3Model(model_t *mod, void *buffer);
+void R_LoadObjModel(model_t *mod, void *buffer);
 
 #endif /* __R_MODEL_H__ */
