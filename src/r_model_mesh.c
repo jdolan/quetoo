@@ -814,7 +814,7 @@ static void R_LoadObjModel_(model_t *mod, mobj_t *obj, const void *buffer){
  */
 void R_LoadObjModel(model_t *mod, void *buffer){
 	mobj_t *obj;
-	float *v;
+	const float *v;
 	int i;
 
 	mod->type = mod_obj;

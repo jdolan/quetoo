@@ -125,18 +125,18 @@ void R_DrawMeshShadows(void){
  * R_ApplyMeshModelConfig
  */
 void R_ApplyMeshModelConfig(entity_t *e){
-	mesh_config_t *c;
+	const mesh_config_t *c;
 	vec3_t forward, right, up;
 	vec3_t translate, velocity;
-	float f;
 	int i;
 
 	// translation is applied differently for view weapons
 	if(e->flags & EF_WEAPON){
-		c = e->model->view_config;
 
 		// adjust forward/back offset according to fov
-		f = (r_view.fov_x - 100.0) / -4.0;
+		float f = (r_view.fov_x - 100.0) / -4.0;
+
+		c = e->model->view_config;
 
 		AngleVectors(e->angles, forward, right, up);
 
@@ -348,7 +348,7 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 	vertind = 0;
 
 	for(i = 0; i < md2->num_tris; i++, tri++){  // draw the tris
-		
+
 		VectorCopy(r_mesh_verts[tri->index_xyz[0]], (&r_state.vertex_array_3d[vertind + 0]));
 		VectorCopy(r_mesh_verts[tri->index_xyz[1]], (&r_state.vertex_array_3d[vertind + 3]));
 		VectorCopy(r_mesh_verts[tri->index_xyz[2]], (&r_state.vertex_array_3d[vertind + 6]));
