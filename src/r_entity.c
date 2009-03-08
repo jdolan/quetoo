@@ -255,11 +255,25 @@ static void R_DrawNullEntities(const entity_t *ents){
  */
 void R_DrawEntities(void){
 
+	if(r_showpolys->value){
+		R_BindTexture(r_notexture->texnum);
+
+		R_EnableTexture(&texunit_diffuse, false);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+
 	R_DrawOpaqueMeshEntities(r_opaque_mesh_entities);
 
 	R_DrawAlphaTestMeshEntities(r_alpha_test_mesh_entities);
 
 	R_DrawBlendMeshEntities(r_blend_mesh_entities);
+
+	if(r_showpolys->value){
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		R_EnableTexture(&texunit_diffuse, true);
+	}
 
 	glColor4ubv(color_white);
 

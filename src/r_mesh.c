@@ -241,12 +241,14 @@ static void R_SetMeshState_default(const entity_t *e){
 		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
 	}
 
-	if(e->skin)  // resolve texture
-		R_BindTexture(e->skin->texnum);
-	else
-		R_BindTexture(e->model->skin->texnum);
+	if(!r_showpolys->value){
+		if(e->skin)  // resolve texture
+			R_BindTexture(e->skin->texnum);
+		else
+			R_BindTexture(e->model->skin->texnum);
 
-	R_SetMeshColor_default(e);  // and color
+		R_SetMeshColor_default(e);  // and color
+	}
 
 	if(e->flags & EF_WEAPON)  // prevent weapon from poking into walls
 		glDepthRange(0.0, 0.3);
