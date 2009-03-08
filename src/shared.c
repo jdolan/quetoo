@@ -554,6 +554,26 @@ char *Com_Lowercase(char *s){
 }
 
 
+/*
+ * Com_Trim
+ */
+char *Com_Trim(char *s){
+	char *left, *right;
+
+	left = s;
+
+	while(isspace(*left))
+		left++;
+
+	right = left + strlen(left) - 1;
+
+	while(isspace(*right))
+		*right-- = 0;
+
+	return left;
+}
+
+
 static char common_prefix[MAX_TOKEN_CHARS];
 
 /*

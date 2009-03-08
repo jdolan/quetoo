@@ -206,6 +206,7 @@ int Com_GlobMatch(const char *pattern, const char *text);
 qboolean Com_Mixedcase(const char *s);
 char *Com_CommonPrefix(const char *words[], int nwords);
 char *Com_Lowercase(char *s);
+char *Com_Trim(char *s);
 const char *Com_Basename(const char *path);
 void Com_Dirname(const char *in, char *out);
 void Com_StripExtension(const char *in, char *out);

@@ -797,7 +797,7 @@ static void R_LoadObjModel_(model_t *mod, mobj_t *obj, const void *buffer){
 			i = 0;
 
 			if(!comment)
-				R_LoadObjModelLine(mod, obj, line);
+				R_LoadObjModelLine(mod, obj, Com_Trim(line));
 
 			comment = false;
 			c++;
