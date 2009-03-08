@@ -68,7 +68,7 @@ static int num_emits = 0;
  * be called after Cm_LoadMap, once per pre-cache routine.
  */
 void Cl_LoadEmits(void){
-	const char *c, *ents;
+	const char *ents;
 	char class[128];
 	emit_t *e;
 	qboolean entity, emit;
@@ -84,7 +84,8 @@ void Cl_LoadEmits(void){
 	e = NULL;
 
 	while(true){
-		c = Com_Parse(&ents);
+
+		const char *c = Com_Parse(&ents);
 
 		if(!strlen(c))
 			break;
