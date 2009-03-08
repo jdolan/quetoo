@@ -582,7 +582,7 @@ static void R_LoadObjModelVertexArrays(model_t *mod){
  * Triangulation of arbitrary polygons.  Assembles count tris on the model
  * from the specified array of verts.  All tris will share the first vert.
  */
-static void R_LoadObjModelTris(mobj_t *obj, mobjvert_t *verts, int count){
+static void R_LoadObjModelTris(mobj_t *obj, const mobjvert_t *verts, int count){
 	int i;
 
 	if(!obj->tris)
@@ -617,7 +617,7 @@ static void R_LoadObjModelTris(mobj_t *obj, mobjvert_t *verts, int count){
  *
  * Returns the number of triangles produced for the specified line.
  */
-static int R_LoadObjModelFace(model_t *mod, mobj_t *obj, const char *line){
+static int R_LoadObjModelFace(const model_t *mod, mobj_t *obj, const char *line){
 	mobjvert_t *v, verts[MAX_OBJ_FACE_VERTS];
 	const char *d;
 	char *e, tok[32];
@@ -700,7 +700,7 @@ static int R_LoadObjModelFace(model_t *mod, mobj_t *obj, const char *line){
  * Parse the object file line.  If the structures have been allocated,
  * populate them.  Otherwise simply accumulate counts.
  */
-static void R_LoadObjModelLine(model_t *mod, mobj_t *obj, char *line){
+static void R_LoadObjModelLine(const model_t *mod, mobj_t *obj, const char *line){
 
 	if(!line || !line[0])  // don't bother
 		return;
@@ -768,7 +768,7 @@ static void R_LoadObjModelLine(model_t *mod, mobj_t *obj, char *line){
  * Drives the actual parsing of the object file.  The file is read twice:
  * once to acquire primitive counts, and a second time to load them.
  */
-static void R_LoadObjModel_(model_t *mod, mobj_t *obj, void *buffer){
+static void R_LoadObjModel_(model_t *mod, mobj_t *obj, const void *buffer){
 	char line[MAX_STRING_CHARS];
 	const char *c;
 	qboolean comment;
