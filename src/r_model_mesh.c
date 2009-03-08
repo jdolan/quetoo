@@ -786,12 +786,7 @@ static void R_LoadObjModel_(model_t *mod, mobj_t *obj, const void *buffer){
 			continue;
 		}
 
-		if(*c == '\r'){
-			c++;
-			continue;
-		}
-
-		if(*c == '\n'){
+		if(*c == '\r' || *c == '\n'){
 
 			line[i++] = 0;
 			i = 0;
