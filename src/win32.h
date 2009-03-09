@@ -65,5 +65,9 @@ void dlclose(void *handle);
 
 int ioctl(int sockfd, int flags, void *null);
 
+#ifndef HAVE_STRCASESTR
+char *strcasestr (char *haystack, char *needle);
+#endif
+
 #endif /* __WIN32_H__ */
 #endif /* _WIN32 */
