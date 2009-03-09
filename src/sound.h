@@ -128,10 +128,10 @@ void S_ShutdownDevice(void);
 // s_main.c
 void S_Init(void);
 void S_Shutdown(void);
-void S_StartSample(vec3_t origin, int entnum, int entchannel, s_sample_t *sample,
-		float volume, float attenuation, float timeofs);
-void S_StartLocalSample(char *name);
-void S_AddLoopSample(vec3_t org, s_sample_t *sample);
+void S_StartSample(const vec3_t org, int entnum, int entchannel,
+		s_sample_t *sample, float volume, float attenuation, float timeofs);
+void S_StartLocalSample(const char *name);
+void S_AddLoopSample(const vec3_t org, s_sample_t *sample);
 void S_Update(void);
 s_sample_t *S_LoadSample(const char *name);
 void S_LoadSamples(void);

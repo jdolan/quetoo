@@ -501,10 +501,18 @@ static void P_FireLightning_(edict_t *ent){
 
 	G_FireLightning(ent, start, forward, 10, 12);
 
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(ent - g_edicts);
-	gi.WriteByte(MZ_LIGHTNING);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	// if the client has just begun to attack, send the muzzle flash
+	if(ent->s.frame == FRAME_attack1 || ent->s.frame == FRAME_crattak1){
+
+		if(ent->client->muzzleflash_time < level.time){
+			gi.WriteByte(svc_muzzleflash);
+			gi.WriteShort(ent - g_edicts);
+			gi.WriteByte(MZ_LIGHTNING);
+			gi.Multicast(ent->s.origin, MULTICAST_PVS);
+
+			ent->client->muzzleflash_time = level.time + 0.25;
+		}
+	}
 
 	ent->client->locals.inventory[ent->client->ammo_index]--;
 }

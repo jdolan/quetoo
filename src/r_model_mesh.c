@@ -294,7 +294,7 @@ void R_LoadMd2Model(model_t *mod, void *buffer){
 		AddPointToBounds(mins, mod->mins, mod->maxs);
 		AddPointToBounds(maxs, mod->mins, mod->maxs);
 
-		// verts are all 8 bit, so no swaping needed
+		// verts are all 8 bit, so no swapping needed
 		memcpy(outframe->verts, inframe->verts, outmodel->num_xyz * sizeof(dmd2vertex_t));
 	}
 

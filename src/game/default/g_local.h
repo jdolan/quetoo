@@ -693,6 +693,7 @@ struct gclient_s {
 
 	qboolean weapon_thunk;
 	float weapon_fire_time;  // can fire when time > this
+	float muzzleflash_time;  // should send muzzle flash when time > this
 	gitem_t *newweapon;
 
 	int damage_armor;  // damage absorbed by armor

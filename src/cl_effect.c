@@ -30,6 +30,7 @@ static s_sample_t *cl_sample_grenadelauncher_fire;
 static s_sample_t *cl_sample_rocketlauncher_fire;
 static s_sample_t *cl_sample_hyperblaster_fire;
 static s_sample_t *cl_sample_lightning_fire;
+static s_sample_t *cl_sample_lightning_fly;
 static s_sample_t *cl_sample_railgun_fire;
 static s_sample_t *cl_sample_bfg_fire;
 static s_sample_t *cl_sample_teleport;
@@ -53,6 +54,7 @@ void Cl_LoadEffectSamples(void){
 	cl_sample_rocketlauncher_fire = S_LoadSample("weapons/rocketlauncher/fire.wav");
 	cl_sample_hyperblaster_fire = S_LoadSample("weapons/hyperblaster/fire.wav");
 	cl_sample_lightning_fire = S_LoadSample("weapons/lightning/fire.wav");
+	cl_sample_lightning_fly = S_LoadSample("weapons/lightning/fly.wav");
 	cl_sample_railgun_fire = S_LoadSample("weapons/railgun/fire.wav");
 	cl_sample_bfg_fire = S_LoadSample("weapons/bfg/fire.wav");
 	cl_sample_teleport = S_LoadSample("world/teleport.wav");
@@ -776,6 +778,9 @@ void Cl_LightningEffect(const vec3_t org){
 void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 	particle_t *p;
 
+	S_AddLoopSample(start, cl_sample_lightning_fly);
+	S_AddLoopSample(end, cl_sample_lightning_fly);
+
 	if(!(p = Cl_AllocParticle()))
 		return;
 
@@ -1185,6 +1190,7 @@ void Cl_EntityEvent(entity_state_t *ent){
 			break;
 	}
 }
+
 
 /*
  * Cl_AllocParticle

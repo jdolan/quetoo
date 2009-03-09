@@ -230,7 +230,7 @@ static s_channel_t *S_PickChannel(int entnum, int entchannel){
  *
  * Used for spatializing channels and autosounds
  */
-static void S_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult, int *left_vol, int *right_vol){
+static void S_SpatializeOrigin(const vec3_t origin, float master_vol, float dist_mult, int *left_vol, int *right_vol){
 	vec_t dot;
 	vec_t dist;
 	vec_t lscale, rscale, scale;
@@ -431,7 +431,7 @@ static s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *base){
  * will be dynamically sourced from the entity.  Entchannel 0 will never
  * override a playing sound
  */
-void S_StartSample(vec3_t origin, int entnum, int entchannel, s_sample_t *sample,
+void S_StartSample(const vec3_t org, int entnum, int entchannel, s_sample_t *sample,
 		float fvol, float attenuation, float timeofs){
 
 	s_samplecache_t *sc;
@@ -460,8 +460,8 @@ void S_StartSample(vec3_t origin, int entnum, int entchannel, s_sample_t *sample
 	if(!ps)
 		return;
 
-	if(origin){
-		VectorCopy(origin, ps->origin);
+	if(org){
+		VectorCopy(org, ps->origin);
 		ps->fixed_origin = true;
 	} else
 		ps->fixed_origin = false;
@@ -492,8 +492,9 @@ void S_StartSample(vec3_t origin, int entnum, int entchannel, s_sample_t *sample
 	// sort into the pending sound list
 	for(sort = s_env.pendingplays.next;
 			sort != &s_env.pendingplays && sort->begin < ps->begin;
-			sort = sort->next)
-		;
+			sort = sort->next){
+		// simply find the insertion slot
+	}
 
 	ps->next = sort;
 	ps->prev = sort->prev;
@@ -506,7 +507,7 @@ void S_StartSample(vec3_t origin, int entnum, int entchannel, s_sample_t *sample
 /*
  * S_StartLocalSample
  */
-void S_StartLocalSample(char *name){
+void S_StartLocalSample(const char *name){
 	s_sample_t *sample;
 
 	if(!s_env.initialized)
@@ -526,7 +527,7 @@ void S_StartLocalSample(char *name){
 /*
  * S_AddLoopSample
  */
-void S_AddLoopSample(vec3_t org, s_sample_t *sample){
+void S_AddLoopSample(const vec3_t org, s_sample_t *sample){
 	s_loopsample_t *ls;
 	int i, l, r;
 
@@ -715,7 +716,7 @@ static void S_Update_(void){
 
 	// check to make sure that we haven't overshot
 	if(s_env.paintedtime < s_env.soundtime){
-		Com_Dprintf("S_Update_ : overflow\n");
+		Com_Dprintf("S_Update_: Overflow\n");
 		s_env.paintedtime = s_env.soundtime;
 	}
 
@@ -723,9 +724,10 @@ static void S_Update_(void){
 	endtime = s_env.soundtime + s_mixahead->value * s_env.device.rate;
 
 	// mix to an even submission block size
-	endtime = (endtime + s_env.device.chunk - 1)
-			  & ~(s_env.device.chunk - 1);
+	endtime = (endtime + s_env.device.chunk - 1) & ~(s_env.device.chunk - 1);
+
 	samps = s_env.device.samples >> (s_env.device.channels - 1);
+
 	if(endtime - s_env.soundtime > samps)
 		endtime = s_env.soundtime + samps;
 
@@ -761,13 +763,17 @@ void S_Update(void){
 	// update spatialization for dynamic sounds
 	ch = s_env.channels;
 	for(i = 0; i < MAX_CHANNELS; i++, ch++){
+
 		if(!ch->sample)
 			continue;
+
 		if(ch->autosound){  // autosounds are regenerated fresh each frame
 			memset(ch, 0, sizeof(*ch));
 			continue;
 		}
+
 		S_Spatialize(ch);  // respatialize channel
+
 		if(!ch->leftvol && !ch->rightvol){
 			memset(ch, 0, sizeof(*ch));
 			continue;

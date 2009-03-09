@@ -187,27 +187,30 @@ static void P_WorldEffects(void){
 	}
 
 	// check for drowning
-	if(waterlevel != 3)
-		current_player->drown_time = level.time + 12;
-	else if(current_player->drown_time < level.time){  // drown
-		if(current_client->drown_time < level.time && current_player->health > 0){
-			current_client->drown_time = level.time + 1;
+	if(waterlevel != 3){  // take some air, push out drown time
+		current_player->drown_time = level.time + 12.0;
+	}
+	else {  // we're underwater
+		if(current_player->drown_time < level.time){  // drown
+			if(current_client->drown_time < level.time && current_player->health > 0){
+				current_client->drown_time = level.time + 1.0;
 
-			// take more damage the longer underwater
-			current_player->dmg += 2;
-			if(current_player->dmg > 15)
-				current_player->dmg = 15;
+				// take more damage the longer underwater
+				current_player->dmg += 2;
+				if(current_player->dmg > 15)
+					current_player->dmg = 15;
 
-			// play a gurp sound instead of a normal pain sound
-			if(current_player->health <= current_player->dmg)
-				gi.Sound(current_player, CHAN_VOICE, gi.SoundIndex("*drown_1.wav"), 1, ATTN_NORM, 0);
-			else
-				gi.Sound(current_player, CHAN_VOICE, gi.SoundIndex("*gurp_1.wav"), 1, ATTN_NORM, 0);
+				// play a gurp sound instead of a normal pain sound
+				if(current_player->health <= current_player->dmg)
+					gi.Sound(current_player, CHAN_VOICE, gi.SoundIndex("*drown_1.wav"), 1, ATTN_NORM, 0);
+				else
+					gi.Sound(current_player, CHAN_VOICE, gi.SoundIndex("*gurp_1.wav"), 1, ATTN_NORM, 0);
 
-			current_player->pain_time = level.time;
+				current_player->pain_time = level.time;
 
-			G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
-					vec3_origin, current_player->dmg, 0, DAMAGE_NO_ARMOR, MOD_WATER);
+				G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
+						vec3_origin, current_player->dmg, 0, DAMAGE_NO_ARMOR, MOD_WATER);
+			}
 		}
 	}
 
@@ -219,7 +222,7 @@ static void P_WorldEffects(void){
 
 			if(current_player->watertype & CONTENTS_LAVA){
 				G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
-						vec3_origin, 3 * waterlevel, 0, 0, MOD_LAVA);
+						vec3_origin, 2 * waterlevel, 0, 0, MOD_LAVA);
 			}
 
 			if(current_player->watertype & CONTENTS_SLIME){

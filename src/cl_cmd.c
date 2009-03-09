@@ -114,7 +114,7 @@ void Cl_SendCmd(void){
 	// write it out
 	Msg_WriteByte(&buf, clc_move);
 
-	// let the server know what the last frame we got was, so the next 
+	// let the server know what the last frame we got was, so the next
 	// message can be delta compressed
 	if(!cl.frame.valid || cls.demowaiting)
 		Msg_WriteLong(&buf, -1);  // no compression

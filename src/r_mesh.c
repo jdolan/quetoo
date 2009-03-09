@@ -386,7 +386,7 @@ static void R_DrawMd3ModelLerped_default(const entity_t *e){
 	frame = &md3->frames[e->frame];
 	oldframe = &md3->frames[e->oldframe];
 
-	for(i = 0; i < 3; i++)  // calculate the trans
+	for(i = 0; i < 3; i++)  // calculate the translation
 		trans[i] = e->backlerp * oldframe->translate[i] + e->lerp * frame->translate[i];
 
 	for(k = 0, mesh = md3->meshes; k < md3->num_meshes; k++, mesh++){  // draw the meshes

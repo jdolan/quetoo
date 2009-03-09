@@ -368,7 +368,7 @@ static void Cl_ParsePlayerstate(const frame_t *oldframe, frame_t *newframe){
 
 
 /*
- * Cl_FireEntityEvents
+ * Cl_EntityEvents
  */
 static void Cl_EntityEvents(frame_t *frame){
 	int pnum;
