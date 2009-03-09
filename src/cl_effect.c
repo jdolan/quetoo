@@ -318,6 +318,14 @@ void Cl_GibEffect(const vec3_t org, int count){
 	float dist;
 	int i, j;
 
+	// if a player has died underwater, emit some bubbles
+	if(Cm_PointContents(org, r_worldmodel->firstnode) & MASK_WATER){
+		VectorCopy(org, tmp);
+		tmp[2] += 64.0;
+
+		Cl_BubbleTrail(org, tmp, 16.0);
+	}
+
 	for(i = 0; i < count; i++){
 
 		// set the origin and velocity for each gib stream

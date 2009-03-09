@@ -1202,7 +1202,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 		client->cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
 
 		// check for jump, play randomized sound
-		if(ent->groundentity && !pm.groundentity && 
+		if(ent->groundentity && !pm.groundentity &&
 				(pm.cmd.upmove >= 10) && (pm.waterlevel == 0) &&
 				ent->jump_time < level.time - 0.2){
 
