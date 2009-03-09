@@ -33,7 +33,8 @@ static portable_samplepair_t s_paintbuffer[PAINTBUFFER_SIZE];
 static portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];
 
 static int snd_scaletable[32][256];
-static int *snd_p, snd_linear_count, snd_vol;
+static const int *snd_p;
+static int snd_linear_count, snd_vol;
 
 static short *snd_out;
 
@@ -71,7 +72,7 @@ static void S_WriteLinearBlastStereo16(void){
 static void S_TransferStereo16(unsigned long *pbuf, int endtime){
 	int paintedtime;
 
-	snd_p = (int *)s_paintbuffer;
+	snd_p = (const int *)s_paintbuffer;
 	paintedtime = s_env.paintedtime;
 
 	while(paintedtime < endtime){
@@ -102,7 +103,7 @@ static void S_TransferPaintBuffer(int endtime){
 	int out_idx, out_mask;
 	int i, count;
 	int *p;
-	int step, val;
+	int step;
 	unsigned long *pbuf;
 
 	pbuf = (unsigned long *)s_env.device.buffer;
@@ -128,7 +129,7 @@ static void S_TransferPaintBuffer(int endtime){
 	if(s_env.device.bits == 16){
 		short *out = (short *)pbuf;
 		while(count--){
-			val = *p >> 8;
+			int val = *p >> 8;
 			p += step;
 			if(val > 0x7fff)
 				val = 0x7fff;
@@ -140,7 +141,7 @@ static void S_TransferPaintBuffer(int endtime){
 	} else if(s_env.device.bits == 8){
 		unsigned char *out = (unsigned char *)pbuf;
 		while(count--){
-			val = *p >> 8;
+			int val = *p >> 8;
 			p += step;
 			if(val > 0x7fff)
 				val = 0x7fff;
