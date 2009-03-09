@@ -565,8 +565,8 @@ static void R_LoadObjModelVertexArrays(model_t *mod){
 			}
 
 			if(v->texcoord){
-				VectorCopy((&obj->texcoords[(v->texcoord - 1) * 2]),
-						(&mod->texcoords[coordind + j * 2]));
+				memcpy(&mod->texcoords[coordind + j * 2],
+						&obj->texcoords[(v->texcoord - 1) * 2], sizeof(vec2_t));
 			}
 		}
 
