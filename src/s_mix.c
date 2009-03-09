@@ -153,8 +153,69 @@ static void S_TransferPaintBuffer(int endtime){
 }
 
 
-void S_PaintChannelFrom8(s_channel_t *ch, s_samplecache_t *sc, int endtime, int offset);
-void S_PaintChannelFrom16(s_channel_t *ch, s_samplecache_t *sc, int endtime, int offset);
+/*
+ * S_PaintChannelFrom8
+ */
+static void S_PaintChannelFrom8(s_channel_t *ch, const s_samplecache_t *sc, int count, int offset){
+	const int *lscale, *rscale;
+	const byte *sample;
+	int i;
+	portable_samplepair_t *samp;
+
+	if(ch->leftvol > 255)
+		ch->leftvol = 255;
+	if(ch->rightvol > 255)
+		ch->rightvol = 255;
+
+	lscale = snd_scaletable[ch->leftvol >> 3];
+	rscale = snd_scaletable[ch->rightvol >> 3];
+	sample = (byte *)sc->data + ch->pos;
+
+	samp = &s_paintbuffer[offset];
+
+	for(i = 0; i < count; i++, samp++){
+		const int data = sample[i];
+		samp->left += lscale[data];
+		samp->right += rscale[data];
+	}
+
+	ch->pos += count;
+}
+
+
+/*
+ * S_PaintChannelFrom16
+ */
+static void S_PaintChannelFrom16(s_channel_t *ch, const s_samplecache_t *sc, int count, int offset){
+	int i, j;
+	portable_samplepair_t *samp;
+	const int leftvol = ch->leftvol * snd_vol;
+	const int rightvol = ch->rightvol * snd_vol;
+	const signed short *sample = (signed short *)sc->data + ch->pos;
+
+	j = ch->pos;
+
+	samp = &s_paintbuffer[offset];
+
+	for(i = 0; i < count; i++, samp++){
+
+		if(j < sc->length){  // mix as long as we have sample data
+			const int data = sample[i];
+			const int left = (data * leftvol) >> 8;
+			const int right = (data * rightvol) >> 8;
+
+			samp->left += left;;
+			samp->right += right;
+
+			j++;
+		}
+		else {
+			Com_Warn("S_PaintChannelFrom16: Underrun.\n");
+		}
+	}
+
+	ch->pos += count;
+}
 
 /*
  * S_PaintChannels
@@ -269,91 +330,16 @@ void S_PaintChannels(int endtime){
  */
 void S_InitScaletable(void){
 	int i, j;
-	int scale;
 
 	if(s_volume->value > 1)  //cap volume
 		s_volume->value = 1;
 
 	for(i = 0; i < 32; i++){
-		scale = i * 8 * 256 * s_volume->value;
+		const int scale = i * 8 * 256 * s_volume->value;
 		for(j = 0; j < 256; j++)
 			snd_scaletable[i][j] = (signed char)j * scale;
 	}
 
 	snd_vol = s_volume->value * 256;
 	s_volume->modified = false;
-}
-
-
-/*
- * S_PaintChannelFrom8
- */
-void S_PaintChannelFrom8(s_channel_t *ch, s_samplecache_t *sc, int count, int offset){
-	int data;
-	int *lscale, *rscale;
-	byte *sample;
-	int i;
-	portable_samplepair_t *samp;
-
-	if(ch->leftvol > 255)
-		ch->leftvol = 255;
-	if(ch->rightvol > 255)
-		ch->rightvol = 255;
-
-	lscale = snd_scaletable[ ch->leftvol >> 3];
-	rscale = snd_scaletable[ ch->rightvol >> 3];
-	sample = (byte *)sc->data + ch->pos;
-
-	samp = &s_paintbuffer[offset];
-
-	for(i = 0; i < count; i++, samp++){
-		data = sample[i];
-		samp->left += lscale[data];
-		samp->right += rscale[data];
-	}
-
-	ch->pos += count;
-}
-
-
-/*
- * S_PaintChannelFrom16
- */
-void S_PaintChannelFrom16(s_channel_t *ch, s_samplecache_t *sc, int count, int offset){
-	int data;
-	int left, right;
-	int leftvol, rightvol;
-	signed short *sample;
-	int i, j;
-	portable_samplepair_t *samp;
-
-	leftvol = ch->leftvol * snd_vol;
-	rightvol = ch->rightvol * snd_vol;
-
-	sample = (signed short *)sc->data + ch->pos;
-	j = ch->pos;
-
-	samp = &s_paintbuffer[offset];
-
-	for(i = 0; i < count; i++, samp++){
-
-		left = right = 0;
-
-		if(j < sc->length){  // mix as long as we have sample data
-			data = sample[i];
-
-			left = (data * leftvol) >> 8;
-			right = (data * rightvol) >> 8;
-
-			j++;
-		}
-		else {
-			Com_Warn("S_PaintChannelFrom16: Underrun.\n");
-		}
-
-		samp->left += left;
-		samp->right += right;
-	}
-
-	ch->pos += count;
 }
