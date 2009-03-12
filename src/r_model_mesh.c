@@ -724,7 +724,7 @@ static void R_LoadObjModelLine(const model_t *mod, mobj_t *obj, const char *line
 		if(obj->normals){  // parse it
 			float *f = obj->normals + obj->num_normals_parsed * 3;
 
-			if(sscanf(line + 3, "%f %f %f", &f[0], &f[2], &f[1]) != 3)
+			if(sscanf(line + 3, "%f %f %f", &f[0], &f[1], &f[2]) != 3)
 				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed normal for %s: %s.",
 						mod->name, line);
 
