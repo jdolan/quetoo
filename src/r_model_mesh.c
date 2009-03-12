@@ -743,6 +743,7 @@ static void R_LoadObjModelLine(const model_t *mod, mobj_t *obj, const char *line
 				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed texcoord for %s: %s.",
 						mod->name, line);
 
+			f[1] = -f[1];
 			obj->num_texcoords_parsed++;
 		}
 		else  // or just count it
