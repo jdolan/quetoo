@@ -304,12 +304,12 @@ static qboolean Sv_inPHS(const vec3_t p1, const vec3_t p2){
 /*
  * Sv_StartSound_
  */
-static void Sv_StartSound_(edict_t *entity, int channel, int sound_num, float volume,
-					float attenuation, float timeofs){
+static void Sv_Sound(edict_t *entity, int soundindex, int atten){
+
 	if(!entity)
 		return;
 
-	Sv_StartSound(NULL, entity, channel, sound_num, volume, attenuation, timeofs);
+	Sv_PositionedSound(NULL, entity, soundindex, atten);
 }
 
 
@@ -360,8 +360,8 @@ void Sv_InitGameProgs(void){
 	import.ImageIndex = Sv_ImageIndex;
 
 	import.SetModel = Sv_SetModel;
-	import.Sound = Sv_StartSound_;
-	import.PositionedSound = Sv_StartSound;
+	import.Sound = Sv_Sound;
+	import.PositionedSound = Sv_PositionedSound;
 
 	import.Trace = Sv_Trace;
 	import.PointContents = Sv_PointContents;

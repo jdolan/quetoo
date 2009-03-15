@@ -218,86 +218,45 @@ void Sv_Multicast(vec3_t origin, multicast_t to){
 /*
  * Sv_StartSound
  *
- * Each entity can have eight independent sound sources, like voice,
- * weapon, feet, etc.
- *
- * If cahnnel & 8, the sound will be sent to everyone, not just
- * things in the PHS.
- *
  * FIXME: if entity isn't in PHS, they must be forced to be sent or
  * have the origin explicitly sent.
  *
- * Channel 0 is an auto-allocate channel, the others override anything
- * already running on that entity/channel pair.
- *
  * An attenuation of 0 will play full volume everywhere in the level.
- * Larger attenuations will drop off. (max 4 attenuation)
- *
- * Timeofs can range from 0.0 to 0.1 to cause sounds to be started
- * later in the frame than they normally would.
+ * Larger attenuation will drop off. (max 4 attenuation)
  *
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for bmodels.
  */
-void Sv_StartSound(vec3_t origin, edict_t *entity, int channel,
-		int soundindex, float volume, float attenuation, float timeofs){
-	int sendchan;
+void Sv_PositionedSound(vec3_t origin, edict_t *entity, int soundindex, int atten){
 	int flags;
 	int i;
-	int ent;
-	vec3_t origin_v;
-	qboolean use_phs;
+	vec3_t org;
 
-	if(volume < 0 || volume > 1.0){
-		Com_Warn("Sv_StartSound: volume = %f.\n", volume);
-		volume = 1.0;
+	if(atten < ATTN_NONE || atten > ATTN_STATIC){
+		Com_Warn("Sv_StartSound: attenuation %d.\n", atten);
+		atten = DEFAULT_SOUND_ATTENUATION;
 	}
-
-	if(attenuation < 0 || attenuation > 4){
-		Com_Warn("Sv_StartSound: attenuation = %f.\n", attenuation);
-		attenuation = 1;
-	}
-
-	if(timeofs < 0 || timeofs > 0.255){
-		Com_Warn("Sv_StartSound: timeofs = %f.\n", timeofs);
-		timeofs = 0;
-	}
-
-	ent = NUM_FOR_EDICT(entity);
-
-	if(channel & 8){  // no PHS flag
-		use_phs = false;
-		channel &= 7;
-	} else
-		use_phs = true;
-
-	sendchan = (ent << 3) | (channel & 7);
 
 	flags = 0;
-	if(volume != DEFAULT_SOUND_VOLUME)
-		flags |= SND_VOLUME;
-	if(attenuation != DEFAULT_SOUND_ATTENUATION)
-		flags |= SND_ATTENUATION;
+	if(atten != DEFAULT_SOUND_ATTENUATION)
+		flags |= S_ATTEN;
 
-	// the client doesn't know that bmodels have weird origins
+	// the client doesn't know that bsp models have weird origins
 	// the origin can also be explicitly set
 	if((entity->svflags & SVF_NOCLIENT) || (entity->solid == SOLID_BSP) || origin)
-		flags |= SND_POS;
+		flags |= S_ORIGIN;
+	else
+		flags |= S_ENTNUM;
 
-	// always send the entity number for channel overrides
-	flags |= SND_ENT;
-
-	if(timeofs)
-		flags |= SND_OFFSET;
-
-	// use the entity origin unless it is a bmodel or explicitly specified
-	if(!origin){
-		origin = origin_v;
+	// use the entity origin unless it is a bsp model or explicitly specified
+	if(origin)
+		VectorCopy(origin, org);
+	else {
 		if(entity->solid == SOLID_BSP){
 			for(i = 0; i < 3; i++)
-				origin_v[i] = entity->s.origin[i] + 0.5 * (entity->mins[i] + entity->maxs[i]);
+				org[i] = entity->s.origin[i] + 0.5 * (entity->mins[i] + entity->maxs[i]);
 		} else {
-			VectorCopy(entity->s.origin, origin_v);
+			VectorCopy(entity->s.origin, org);
 		}
 	}
 
@@ -305,35 +264,19 @@ void Sv_StartSound(vec3_t origin, edict_t *entity, int channel,
 	Msg_WriteByte(&sv.multicast, flags);
 	Msg_WriteByte(&sv.multicast, soundindex);
 
-	if(flags & SND_VOLUME)
-		Msg_WriteByte(&sv.multicast, volume * 255);
-	if(flags & SND_ATTENUATION)
-		Msg_WriteByte(&sv.multicast, attenuation * 64);
-	if(flags & SND_OFFSET)
-		Msg_WriteByte(&sv.multicast, timeofs * 1000);
+	if(flags & S_ATTEN)
+		Msg_WriteByte(&sv.multicast, atten);
 
-	if(flags & SND_ENT)
-		Msg_WriteShort(&sv.multicast, sendchan);
+	if(flags & S_ENTNUM)
+		Msg_WriteShort(&sv.multicast, NUM_FOR_EDICT(entity));
 
-	if(flags & SND_POS)
-		Msg_WritePos(&sv.multicast, origin);
+	if(flags & S_ORIGIN)
+		Msg_WritePos(&sv.multicast, org);
 
-	// if the sound doesn't attenuate,send it to everyone
-	// (global radio chatter, voiceovers, etc)
-	if(attenuation == ATTN_NONE)
-		use_phs = false;
-
-	if(channel & CHAN_RELIABLE){
-		if(use_phs)
-			Sv_Multicast(origin, MULTICAST_PHS_R);
-		else
-			Sv_Multicast(origin, MULTICAST_ALL_R);
-	} else {
-		if(use_phs)
-			Sv_Multicast(origin, MULTICAST_PHS);
-		else
-			Sv_Multicast(origin, MULTICAST_ALL);
-	}
+	if(atten != ATTN_NONE)
+		Sv_Multicast(org, MULTICAST_PHS);
+	else
+		Sv_Multicast(org, MULTICAST_ALL);
 }
 
 

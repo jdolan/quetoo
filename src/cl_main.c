@@ -34,7 +34,6 @@ cvar_t *cl_crosshair;
 cvar_t *cl_crosshaircolor;
 cvar_t *cl_crosshairscale;
 cvar_t *cl_emits;
-cvar_t *cl_footsteps;
 cvar_t *cl_fov;
 cvar_t *cl_fovzoom;
 cvar_t *cl_hud;
@@ -904,14 +903,13 @@ static void Cl_InitLocal(void){
 	cl_addparticles = Cvar_Get("cl_addparticles", "1", 0, NULL);
 	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE, NULL);
 	cl_blend = Cvar_Get("cl_blend", "1", CVAR_ARCHIVE, NULL);
-	cl_chatsound = Cvar_Get("cl_chatsound", "misc/chat.wav", 0, NULL);
-	cl_teamchatsound = Cvar_Get("cl_teamchatsound", "misc/teamchat.wav", 0, NULL);
+	cl_chatsound = Cvar_Get("cl_chatsound", "misc/chat", 0, NULL);
+	cl_teamchatsound = Cvar_Get("cl_teamchatsound", "misc/teamchat", 0, NULL);
 	cl_counters = Cvar_Get("cl_counters", "1", CVAR_ARCHIVE, NULL);
 	cl_crosshair = Cvar_Get("cl_crosshair", "1", CVAR_ARCHIVE, NULL);
 	cl_crosshaircolor = Cvar_Get("cl_crosshaircolor", "default", CVAR_ARCHIVE, NULL);
 	cl_crosshairscale = Cvar_Get("cl_crosshairscale", "1.0", CVAR_ARCHIVE, NULL);
 	cl_emits = Cvar_Get("cl_emits", "1", CVAR_ARCHIVE, NULL);
-	cl_footsteps = Cvar_Get("cl_footsteps", "1", CVAR_ARCHIVE, NULL);
 	cl_fov = Cvar_Get("cl_fov", "100.0", CVAR_ARCHIVE, NULL);
 	cl_fovzoom = Cvar_Get("cl_fovzoom", "40.0", CVAR_ARCHIVE, NULL);
 	cl_hud = Cvar_Get("cl_hud", "1", CVAR_ARCHIVE, NULL);
@@ -1087,7 +1085,7 @@ void Cl_Frame(int msec){
 		Cl_UpdateScreen();
 
 		// update audio
-		S_Update();
+		S_Frame();
 
 		cls.render_delta = 0;
 	}

@@ -21,301 +21,250 @@
 
 #include "client.h"
 
-// .wav file loading
-typedef struct {
-	int rate;
-	int width;
-	int channels;
-	int loopstart;
-	int samples;
-	int dataofs;  // chunk starts this many bytes from file start
-} s_wavinfo_t;
 
-static byte *data_p;
-static byte *iff_end;
-static byte *last_chunk;
-static byte *iff_data;
-static int iff_chunk_len;
-
-
-/*
- * S_GetLittleShort
+/**
+ * S_AllocSample
  */
-static short S_GetLittleShort(void){
-	short val = 0;
-	val = *data_p;
-	val = val +(*(data_p + 1) << 8);
-	data_p += 2;
-	return val;
-}
-
-
-/*
- * S_GetLittleLong
- */
-static int S_GetLittleLong(void){
-	int val = 0;
-	val = *data_p;
-	val = val +(*(data_p + 1) << 8);
-	val = val +(*(data_p + 2) << 16);
-	val = val +(*(data_p + 3) << 24);
-	data_p += 4;
-	return val;
-}
-
-
-/*
- * S_FindNextChunk
- */
-static void S_FindNextChunk(char *name){
-	while(true){
-		data_p = last_chunk;
-
-		if(data_p >= iff_end){  // didn't find the chunk
-			data_p = NULL;
-			return;
-		}
-
-		data_p += 4;
-		iff_chunk_len = S_GetLittleLong();
-		if(iff_chunk_len < 0){
-			data_p = NULL;
-			return;
-		}
-
-		data_p -= 8;
-		last_chunk = data_p + 8 +((iff_chunk_len + 1) & ~1);
-		if(!strncmp((char *)data_p, name, 4))
-			return;
-	}
-}
-
-
-/*
- * S_FindChunk
- */
-static void S_FindChunk(char *name){
-	last_chunk = iff_data;
-	S_FindNextChunk(name);
-}
-
-
-/*
- * S_GetWavinfo
- */
-static s_wavinfo_t S_GetWavinfo(const char *name, byte *wav, int wavlength){
-	s_wavinfo_t info;
+static s_sample_t *S_AllocSample(void){
 	int i;
-	int format;
-	int samples;
 
-	memset(&info, 0, sizeof(info));
-
-	if(!wav)
-		return info;
-
-	iff_data = wav;
-	iff_end = wav + wavlength;
-
-	// find "RIFF" chunk
-	S_FindChunk("RIFF");
-	if(!(data_p && !strncmp((char *)data_p + 8, "WAVE", 4))){
-		Com_Warn("S_GetWavinfo: Missing RIFF/WAVE chunks.\n");
-		return info;
+	// find a free sample
+	for(i = 0; i < s_env.num_samples; i++){
+		if(!s_env.samples[i].name[0])
+			break;
 	}
 
-	// get "fmt " chunk
-	iff_data = data_p + 12;
-
-	S_FindChunk("fmt ");
-	if(!data_p){
-		Com_Warn("S_GetWavinfo: Missing fmt chunk.\n");
-		return info;
-	}
-	data_p += 8;
-	format = S_GetLittleShort();
-	if(format != 1){
-		Com_Warn("S_GetWavinfo: Not PCM format.\n");
-		return info;
-	}
-
-	info.channels = S_GetLittleShort();
-	info.rate = S_GetLittleLong();
-	data_p += 4 + 2;
-	info.width = S_GetLittleShort() / 8;
-
-	// get cue chunk
-	S_FindChunk("cue ");
-	if(data_p){
-		data_p += 32;
-		info.loopstart = S_GetLittleLong();
-
-		// if the next chunk is a LIST chunk, look for a cue length marker
-		S_FindNextChunk("LIST");
-		if(data_p){
-			if(!strncmp((char *)data_p + 28, "mark", 4)){  // this is not a proper parse, but it works with cooledit...
-				data_p += 24;
-				i = S_GetLittleLong();  // samples in loop
-				info.samples = info.loopstart + i;
-			}
+	if(i == s_env.num_samples){
+		if(s_env.num_samples == MAX_SAMPLES){
+			Com_Warn("S_AllocSample: MAX_SAMPLES reached.\n");
+			return NULL;
 		}
-	} else
-		info.loopstart = -1;
-
-	// find data chunk
-	S_FindChunk("data");
-	if(!data_p){
-		Com_Warn("S_GetWavinfo: %s is missing data chunk.\n", name);
-		return info;
+		s_env.num_samples++;
 	}
 
-	data_p += 4;
-	samples = S_GetLittleLong() / info.width;
-
-	if(info.samples){
-		if(samples < info.samples){
-			Com_Warn("S_GetWavinfo: %s has a bad loop length.\n", name);
-			info.samples = 0;
-		}
-	} else
-		info.samples = samples;
-
-	info.dataofs = data_p - wav;
-
-	return info;
+	memset(&s_env.samples[i], 0, sizeof(s_env.samples[0]));
+	return &s_env.samples[i];
 }
 
 
 /*
- * S_Resample
+ * S_FindName
  */
-static void S_Resample(s_sample_t *sample, int inrate, int inwidth, byte *data){
-	int outcount;
-	int srcsample;
-	float stepscale;
+static s_sample_t *S_FindName(const char *name){
+	char basename[MAX_QPATH];
 	int i;
-	int samp, samplefrac, fracstep;
-	s_samplecache_t *sc;
 
-	sc = sample->cache;
-	if(!sc)
+	memset(basename, 0, sizeof(basename));
+	Com_StripExtension(name, basename);
+
+	// see if it's already loaded
+	for(i = 0; i < s_env.num_samples; i++){
+		if(!strcmp(s_env.samples[i].name, basename))
+			return &s_env.samples[i];
+	}
+
+	return NULL;
+}
+
+
+/*
+ * S_AliasSample
+ */
+static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias){
+	s_sample_t *s;
+
+	if(!(s = S_AllocSample()))
+		return NULL;
+
+	strncpy(s->name, alias, sizeof(s->name));
+	s->chunk = sample->chunk;
+	s->alias = true;
+
+	return s;
+}
+
+
+const char *SAMPLE_TYPES[] = {
+	".ogg", ".wav", NULL
+};
+
+/*
+ * S_LoadSampleChunk
+ */
+static void S_LoadSampleChunk(s_sample_t *sample){
+	char path[MAX_QPATH];
+	void *buf;
+	int i, len;
+	SDL_RWops *rw;
+
+	if(sample->name[0] == '*')  // place holder
 		return;
 
-	stepscale = (float)inrate / s_env.device.rate;  // this is usually 0.5, 1, or 2
+	memset(path, 0, sizeof(path));
 
-	outcount = sc->length / stepscale;
-	sc->length = outcount;
-	if(sc->loopstart != -1)
-		sc->loopstart = sc->loopstart / stepscale;
+	if(sample->name[0] == '#')  // global path
+		strncpy(path, (sample->name + 1), sizeof(path) - 1);
+	else  // or relative
+		snprintf(path, sizeof(path), "sounds/%s", sample->name);
 
-	sc->rate = s_env.device.rate;
-	sc->width = inwidth;
-	sc->stereo = 0;
+	buf = NULL;
+	rw = NULL;
 
-	// resample / decimate to the current source rate
+	i = 0;
+	while(SAMPLE_TYPES[i]){
 
-	if(stepscale == 1 && inwidth == 1 && sc->width == 1){
-		// fast special case
-		for(i = 0; i < outcount; i++)
-			((signed char *)sc->data)[i]
-			= (int)((unsigned char)(data[i]) - 128);
-	} else {
-		// general case
-		samplefrac = 0;
-		fracstep = stepscale * 256;
-		for(i = 0; i < outcount; i++){
-			srcsample = samplefrac >> 8;
-			samplefrac += fracstep;
-			if(inwidth == 2)
-				samp = LittleShort(((short *)data)[srcsample]);
-			else
-				samp =(int)((unsigned char)(data[srcsample]) - 128) << 8;
-			if(sc->width == 2)
-				((short *)sc->data)[i] = samp;
-			else
-				((signed char *)sc->data)[i] = samp >> 8;
+		Com_StripExtension(path, path);
+		strcat(path, SAMPLE_TYPES[i++]);
+
+		if((len = Fs_LoadFile(path, &buf)) == -1)
+			continue;
+
+		if(!(rw = SDL_RWFromMem(buf, len))){
+			Fs_FreeFile(buf);
+			continue;
 		}
+
+		if(!(sample->chunk = Mix_LoadWAV_RW(rw, false)))
+			Com_Warn("S_LoadSoundChunk: %s.\n", Mix_GetError());
+
+		Fs_FreeFile(buf);
+
+		SDL_FreeRW(rw);
+
+		if(sample->chunk)  // success
+			break;
 	}
+
+	if(sample->chunk)
+		Mix_VolumeChunk(sample->chunk, s_volume->value * MIX_MAX_VOLUME);
+	else
+		Com_Warn("S_LoadSoundChunk: Failed to load %s.\n", sample->name);
 }
 
 
 /*
- * S_LoadSamplecache
+ * S_LoadSample
  */
-s_samplecache_t *S_LoadSamplecache(s_sample_t *s){
-	char *c, name[MAX_QPATH];
-	void *buf;
-	byte *data;
-	s_wavinfo_t info;
-	int len;
-	float stepscale;
-	s_samplecache_t *sc;
-	int size;
+s_sample_t *S_LoadSample(const char *name){
+	s_sample_t *sample;
 
-	if(!s || s->name[0] == '*')
+	if(!s_env.initialized)
 		return NULL;
 
-	// see if still in memory
-	sc = s->cache;
-	if(sc)
-		return sc;
-
-	// load it in
-	if(s->truename)
-		c = s->truename;
-	else
-		c = s->name;
-
-	memset(name, 0, sizeof(name));
-
-	if(*c == '#')
-		strncpy(name, (c + 1), sizeof(name) - 1);
-	else
-		snprintf(name, sizeof(name), "sounds/%s", c);
-
-	if(!strstr(name, ".wav"))  // append suffix
-		strcat(name, ".wav");
-
-	if((size = Fs_LoadFile(name, &buf)) == -1){
-		//Com_Warn("S_LoadSamplecache: Couldn't load %s.\n", name);
+	if(!name || !name[0]){
+		Com_Warn("S_LoadSample: NULL or empty name.\n");
 		return NULL;
 	}
 
-	data = (byte *)buf;
+	if((sample = S_FindName(name)))  // found it
+		return sample;
 
-	info = S_GetWavinfo(name, data, size);
-	if(info.rate == 0 || info.samples == 0 || info.channels == 0){
-		Com_Warn("%s is not a valid wav file.\n", name);
-		Fs_FreeFile(buf);
+	if(!(sample = S_AllocSample()))
 		return NULL;
-	}
 
-	if(info.channels != 1){
-		Com_Warn("%s is a stereo sample.\n", name);
-		Fs_FreeFile(buf);
-		return NULL;
-	}
+	strncpy(sample->name, name, sizeof(sample->name) - 1);
 
-	stepscale = (float)info.rate / s_env.device.rate;
-	len = info.samples / stepscale;
+	S_LoadSampleChunk(sample);
 
-	len = len * info.width * info.channels;
-
-	sc = s->cache = Z_Malloc(len + sizeof(*sc));
-	if(!sc){
-		Fs_FreeFile(buf);
-		return NULL;
-	}
-
-	sc->length = info.samples;
-	sc->loopstart = info.loopstart;
-	sc->rate = info.rate;
-	sc->width = info.width;
-	sc->stereo = info.channels;
-
-	S_Resample(s, sc->rate, sc->width, data + info.dataofs);
-
-	Fs_FreeFile(buf);
-	return sc;
+	return sample;
 }
 
+
+/*
+ * S_LoadModelSample
+ */
+s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name){
+	int n;
+	char *p;
+	s_sample_t *sample;
+	char model[MAX_QPATH];
+	char alias[MAX_QPATH];
+	char path[MAX_QPATH];
+	FILE *f;
+
+	if(!s_env.initialized)
+		return NULL;
+
+	// determine what model the client is using
+	model[0] = 0;
+	n = CS_PLAYERSKINS + ent->number - 1;
+	if(cl.configstrings[n][0]){
+		p = strchr(cl.configstrings[n], '\\');
+		if(p){
+			p += 1;
+			strcpy(model, p);
+			p = strchr(model, '/');
+			if(p)
+				*p = 0;
+		}
+	}
+
+	// if we cant figure it out, use common
+	if(!model[0])
+		strcpy(model, "common");
+
+	// see if we already know of the model specific sound
+	snprintf(alias, sizeof(alias), "#players/%s/%s", model, name + 1);
+	sample = S_FindName(alias);
+
+	if(sample)  // we do, use it
+		return sample;
+
+	// we don't, try it
+	if(Fs_OpenFile(alias + 1, &f, FILE_READ) > 0){
+		Fs_CloseFile(f);
+		return S_LoadSample(alias);
+	}
+
+	// that didn't work, so load the common one and alias it
+	snprintf(path, sizeof(path), "#players/common/%s", name + 1);
+	sample = S_LoadSample(path);
+
+	if(sample)
+		return S_AliasSample(sample, alias);
+
+	Com_Warn("S_LoadModelSample: Failed to load %s.\n", alias);
+	return NULL;
+}
+
+
+/*
+ * S_FreeSamples
+ */
+void S_FreeSamples(void){
+	int i;
+
+	for(i = 0; i < MAX_SAMPLES; i++){
+		if(s_env.samples[i].chunk && !s_env.samples[i].alias)
+			Mix_FreeChunk(s_env.samples[i].chunk);
+	}
+
+	memset(s_env.samples, 0, sizeof(s_env.samples));
+	s_env.num_samples = 0;
+}
+
+
+/*
+ * S_LoadSamples
+ */
+void S_LoadSamples(void){
+	int i;
+
+	S_FreeSamples();
+
+	Cl_LoadEffectSamples();
+
+	Cl_LoadTempEntitySamples();
+
+	Cl_LoadProgress(95);
+
+	for(i = 1; i < MAX_SOUNDS; i++){
+		if(!cl.configstrings[CS_SOUNDS + i][0])
+			break;
+		cl.sound_precache[i] = S_LoadSample(cl.configstrings[CS_SOUNDS + i]);
+	}
+
+	Cl_LoadProgress(100);
+
+	s_env.update = true;
+}

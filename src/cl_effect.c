@@ -48,27 +48,27 @@ void Cl_LoadEffectSamples(void){
 	int i;
 	char name[MAX_QPATH];
 
-	cl_sample_shotgun_fire = S_LoadSample("weapons/shotgun/fire.wav");
-	cl_sample_supershotgun_fire = S_LoadSample("weapons/supershotgun/fire.wav");
-	cl_sample_grenadelauncher_fire = S_LoadSample("weapons/grenadelauncher/fire.wav");
-	cl_sample_rocketlauncher_fire = S_LoadSample("weapons/rocketlauncher/fire.wav");
-	cl_sample_hyperblaster_fire = S_LoadSample("weapons/hyperblaster/fire.wav");
-	cl_sample_lightning_fire = S_LoadSample("weapons/lightning/fire.wav");
-	cl_sample_lightning_fly = S_LoadSample("weapons/lightning/fly.wav");
-	cl_sample_railgun_fire = S_LoadSample("weapons/railgun/fire.wav");
-	cl_sample_bfg_fire = S_LoadSample("weapons/bfg/fire.wav");
-	cl_sample_teleport = S_LoadSample("world/teleport.wav");
-	cl_sample_respawn = S_LoadSample("world/respawn.wav");
-	cl_sample_rain = S_LoadSample("world/rain.wav");
-	cl_sample_snow = S_LoadSample("world/snow.wav");
+	cl_sample_shotgun_fire = S_LoadSample("weapons/shotgun/fire");
+	cl_sample_supershotgun_fire = S_LoadSample("weapons/supershotgun/fire");
+	cl_sample_grenadelauncher_fire = S_LoadSample("weapons/grenadelauncher/fire");
+	cl_sample_rocketlauncher_fire = S_LoadSample("weapons/rocketlauncher/fire");
+	cl_sample_hyperblaster_fire = S_LoadSample("weapons/hyperblaster/fire");
+	cl_sample_lightning_fire = S_LoadSample("weapons/lightning/fire");
+	cl_sample_lightning_fly = S_LoadSample("weapons/lightning/fly");
+	cl_sample_railgun_fire = S_LoadSample("weapons/railgun/fire");
+	cl_sample_bfg_fire = S_LoadSample("weapons/bfg/fire");
+	cl_sample_teleport = S_LoadSample("world/teleport");
+	cl_sample_respawn = S_LoadSample("world/respawn");
+	cl_sample_rain = S_LoadSample("world/rain");
+	cl_sample_snow = S_LoadSample("world/snow");
 
 	for(i = 0; i < 4; i++){
-		snprintf(name, sizeof(name), "#players/common/step_%i.wav", i + 1);
+		snprintf(name, sizeof(name), "#players/common/step_%i", i + 1);
 		cl_sample_footsteps[i] = S_LoadSample(name);
 	}
 
 	for(i = 0; i < 4; i++){
-		snprintf(name, sizeof(name), "weapons/machinegun/fire_%i.wav", i + 1);
+		snprintf(name, sizeof(name), "weapons/machinegun/fire_%i", i + 1);
 		cl_sample_machinegun_fire[i] = S_LoadSample(name);
 	}
 }
@@ -93,40 +93,40 @@ void Cl_ParseMuzzleFlash(void){
 
 	switch(weapon){
 		case MZ_SHOTGUN:
-			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_shotgun_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, cl_sample_shotgun_fire, ATTN_NORM);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_SSHOTGUN:
-			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_supershotgun_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, cl_sample_supershotgun_fire, ATTN_NORM);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_MACHINEGUN:
-			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_machinegun_fire[rand() % 4], 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, cl_sample_machinegun_fire[rand() % 4], ATTN_NORM);
 			if(rand() & 1)
 				Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_ROCKET:
-			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_rocketlauncher_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, cl_sample_rocketlauncher_fire, ATTN_NORM);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_GRENADE:
-			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_grenadelauncher_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, cl_sample_grenadelauncher_fire, ATTN_NORM);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_HYPERBLASTER:
-			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_hyperblaster_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, cl_sample_hyperblaster_fire, ATTN_NORM);
 			break;
 		case MZ_LIGHTNING:
-			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_lightning_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, cl_sample_lightning_fire, ATTN_NORM);
 			break;
 		case MZ_RAILGUN:
-			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_railgun_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, cl_sample_railgun_fire, ATTN_NORM);
 			break;
 		case MZ_BFG:
-			S_StartSample(NULL, i, CHAN_WEAPON, cl_sample_bfg_fire, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, cl_sample_bfg_fire, ATTN_NORM);
 			break;
 		case MZ_LOGOUT:
-			S_StartSample(NULL, i, CHAN_AUTO, cl_sample_teleport, 1, ATTN_NORM, 0);
+			S_StartSample(NULL, i, cl_sample_teleport, ATTN_NORM);
 			Cl_LogoutEffect(cent->current.origin);
 			break;
 		default:
@@ -410,7 +410,7 @@ void Cl_TeleporterTrail(const vec3_t org, centity_t *cent){
 		if(cent->time > cl.time)
 			return;
 
-		S_StartSample(NULL, cent->current.number, CHAN_WEAPON, cl_sample_respawn, 1, ATTN_IDLE, 0);
+		S_StartSample(NULL, cent->current.number, cl_sample_respawn, ATTN_IDLE);
 
 		cent->time = cl.time + 1000 + (2000 * frand());
 	}
@@ -786,8 +786,8 @@ void Cl_LightningEffect(const vec3_t org){
 void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 	particle_t *p;
 
-	S_AddLoopSample(start, cl_sample_lightning_fly);
-	S_AddLoopSample(end, cl_sample_lightning_fly);
+	S_StartLoopSample(start, cl_sample_lightning_fly);
+	S_StartLoopSample(end, cl_sample_lightning_fly);
 
 	if(!(p = Cl_AllocParticle()))
 		return;
@@ -1102,10 +1102,10 @@ static void Cl_WeatherEffects(void){
 	else
 		s = NULL;
 
-	if(!s || !s->cache)
+	if(!s)
 		return;
 
-	S_AddLoopSample(r_view.origin, s);
+	S_StartLoopSample(r_view.origin, s);
 }
 
 
@@ -1174,25 +1174,24 @@ void Cl_AddParticles(void){
 void Cl_EntityEvent(entity_state_t *ent){
 	switch(ent->event){
 		case EV_ITEM_RESPAWN:
-			S_StartSample(NULL, ent->number, CHAN_WEAPON, cl_sample_respawn, 1, ATTN_IDLE, 0);
+			S_StartSample(NULL, ent->number, cl_sample_respawn, ATTN_IDLE);
 			Cl_ItemRespawnEffect(ent->origin);
 			break;
 		case EV_TELEPORT:
-			S_StartSample(NULL, ent->number, CHAN_AUTO, cl_sample_teleport, 1, ATTN_IDLE, 0);
+			S_StartSample(NULL, ent->number, cl_sample_teleport, ATTN_IDLE);
 			Cl_TeleporterEffect(ent->origin);
 			break;
 		case EV_FOOTSTEP:
-			if(cl_footsteps->value)
-				S_StartSample(NULL, ent->number, CHAN_BODY, cl_sample_footsteps[rand() & 3], 1, ATTN_NORM, 0);
+			S_StartSample(NULL, ent->number, cl_sample_footsteps[rand() & 3], ATTN_NORM);
 			break;
 		case EV_FALLSHORT:
-			S_StartSample(NULL, ent->number, CHAN_AUTO, S_LoadSample("*land_1.wav"), 1, ATTN_NORM, 0);
+			S_StartSample(NULL, ent->number, S_LoadSample("*land_1"), ATTN_NORM);
 			break;
 		case EV_FALL:
-			S_StartSample(NULL, ent->number, CHAN_AUTO, S_LoadSample("*fall_2.wav"), 1, ATTN_NORM, 0);
+			S_StartSample(NULL, ent->number, S_LoadSample("*fall_2"), ATTN_NORM);
 			break;
 		case EV_FALLFAR:
-			S_StartSample(NULL, ent->number, CHAN_AUTO, S_LoadSample("*fall_1.wav"), 1, ATTN_NORM, 0);
+			S_StartSample(NULL, ent->number, S_LoadSample("*fall_1"), ATTN_NORM);
 			break;
 		default:
 			break;

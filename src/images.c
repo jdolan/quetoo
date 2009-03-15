@@ -68,14 +68,10 @@ SDL_PixelFormat format = {
 
 
 // image formats, tried in this order
-char *TYPES[] = {
+char *IMAGE_TYPES[] = {
 	"tga", "png", "jpg", "wal", "pcx", NULL
 };
 
-static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream){
-	if (fwrite(ptr, size, nmemb, stream) <= 0)
-	    Com_Printf( "Failed to write\n");
-}
 
 /*
  * Img_LoadImage
@@ -89,8 +85,8 @@ qboolean Img_LoadImage(char *name, SDL_Surface **surf){
 	int i;
 
 	i = 0;
-	while(TYPES[i]){
-		if(Img_LoadTypedImage(name, TYPES[i++], surf))
+	while(IMAGE_TYPES[i]){
+		if(Img_LoadTypedImage(name, IMAGE_TYPES[i++], surf))
 			return true;
 	}
 
@@ -249,6 +245,18 @@ void Img_ColorFromPalette(byte c, float *res){
 	res[0] = (color >>  0 & 255) / 255.0;
 	res[1] = (color >>  8 & 255) / 255.0;
 	res[2] = (color >> 16 & 255) / 255.0;
+}
+
+
+/**
+ * Img_fwrite
+ *
+ * Wraps fwrite, reading the return value to silence gcc.
+ */
+static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream){
+
+	if(fwrite(ptr, size, nmemb, stream) <= 0)
+	    Com_Printf( "Failed to write\n");
 }
 
 

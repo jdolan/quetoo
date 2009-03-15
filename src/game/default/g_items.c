@@ -343,7 +343,7 @@ void G_ResetFlag(edict_t *ent){
 	f->svflags &= ~SVF_NOCLIENT;
 	f->s.event = EV_ITEM_RESPAWN;
 
-	gi.Sound(ent, CHAN_AUTO, gi.SoundIndex("ctf/return.wav"), 1, ATTN_NONE, 0);
+	gi.Sound(ent, gi.SoundIndex("ctf/return"), ATTN_NONE);
 
 	gi.Bprintf(PRINT_HIGH, "The %s flag has been returned\n", t->name);
 
@@ -384,7 +384,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 			f->svflags &= ~SVF_NOCLIENT;  // and toggle the static one
 			f->s.event = EV_ITEM_RESPAWN;
 
-			gi.Sound(other, CHAN_AUTO, gi.SoundIndex("ctf/return.wav"), 1, ATTN_NONE, 0);
+			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTN_NONE);
 
 			gi.Bprintf(PRINT_HIGH, "%s returned the %s flag\n",
 					other->client->locals.netname, t->name);
@@ -402,7 +402,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 			of->svflags &= ~SVF_NOCLIENT;  // reset the other flag
 			of->s.event = EV_ITEM_RESPAWN;
 
-			gi.Sound(other, CHAN_AUTO, gi.SoundIndex("ctf/capture.wav"), 1, ATTN_NONE, 0);
+			gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTN_NONE);
 
 			gi.Bprintf(PRINT_HIGH, "%s captured the %s flag\n",
 					other->client->locals.netname, ot->name);
@@ -428,7 +428,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 	// link the flag model to the player
 	other->s.modelindex3 = gi.ModelIndex(f->item->model);
 
-	gi.Sound(other, CHAN_AUTO, gi.SoundIndex("ctf/steal.wav"), 1, ATTN_NONE, 0);
+	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTN_NONE);
 
 	gi.Bprintf(PRINT_HIGH, "%s stole the %s flag\n",
 			other->client->locals.netname, t->name);
@@ -463,7 +463,7 @@ void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 		other->client->pickup_msg_time = level.time + 3.0;
 
 		if(ent->item->pickup_sound)  // play pickup sound
-			gi.Sound(other, CHAN_ITEM, gi.SoundIndex(ent->item->pickup_sound), 1, ATTN_NORM, 0);
+			gi.Sound(other, gi.SoundIndex(ent->item->pickup_sound), ATTN_NORM);
 	}
 
 	if(!(ent->spawnflags & SF_ITEM_TARGETS_USED)){
@@ -987,8 +987,8 @@ gitem_t itemlist[] = {
 		P_DropWeapon,
 		P_FireRocketLauncher,
 		"weapons/common/pickup.wav",
-		"models/weapons/rocketlauncher/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
+		"models/weapons/rocketlauncher/tris.obj",
+		0,
 		"w_rlauncher",
 		"Rocket Launcher",
 		1,
@@ -1018,7 +1018,7 @@ gitem_t itemlist[] = {
 		IT_WEAPON,
 		WEAP_HYPERBLASTER,
 		0,
-		"weapons/hyperblaster/fire.wav"
+		"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav"
 	},
 
 	/*QUAKED weapon_lightning(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1432,12 +1432,12 @@ void G_SetItemNames(void){
 	}
 
 	grenade_index = gi.ModelIndex("models/objects/grenade/tris.md3");
-	grenade_hit_index = gi.SoundIndex("objects/grenade/hit.wav");
+	grenade_hit_index = gi.SoundIndex("objects/grenade/hit");
 
 	rocket_index = gi.ModelIndex("models/objects/rocket/tris.md3");
-	rocket_fly_index = gi.SoundIndex("objects/rocket/fly.wav");
+	rocket_fly_index = gi.SoundIndex("objects/rocket/fly");
 
-	lightning_fly_index = gi.SoundIndex("weapons/lightning/fly.wav");
+	lightning_fly_index = gi.SoundIndex("weapons/lightning/fly");
 
 	quad_damage_index = ITEM_INDEX(G_FindItemByClassname("item_quad"));
 }

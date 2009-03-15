@@ -311,7 +311,7 @@ void G_misc_teleporter(edict_t *ent){
 		// add effect if ent is not burried and effect is not inhibited
 		if(!gi.PointContents(v) && !(ent->spawnflags & 4)){
 			ent->s.effects = EF_TELEPORTER;
-			ent->s.sound = gi.SoundIndex("world/teleport_hum.wav");
+			ent->s.sound = gi.SoundIndex("world/teleport_hum");
 		}
 	}
 

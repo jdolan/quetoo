@@ -107,8 +107,8 @@ typedef struct {
 	int (*ImageIndex)(const char *name);
 
 	void (*SetModel)(edict_t *ent, const char *name);
-	void (*Sound)(edict_t *ent, int channel, int soundindex, float volume, float attenuation, float timeofs);
-	void (*PositionedSound)(vec3_t origin, edict_t *ent, int channel, int soundinedex, float volume, float attenuation, float timeofs);
+	void (*Sound)(edict_t *ent, int soundindex, int atten);
+	void (*PositionedSound)(vec3_t origin, edict_t *ent, int soundindex, int atten);
 
 	// collision detection
 	trace_t (*Trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, edict_t *passent, int contentmask);

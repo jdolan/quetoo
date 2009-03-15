@@ -207,8 +207,7 @@ extern char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 void Sv_FlushRedirect(int sv_redirected, char *outputbuf);
 void Sv_SendClientMessages(void);
 void Sv_Multicast(vec3_t origin, multicast_t to);
-void Sv_StartSound(vec3_t origin, edict_t *entity, int channel,
-		int soundindex, float volume, float attenuation, float timeofs);
+void Sv_PositionedSound(vec3_t origin, edict_t *entity, int soundindex, int atten);
 void Sv_ClientPrintf(client_t *cl, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Sv_Bprintf(int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Sv_BroadcastCommand(const char *fmt, ...) __attribute__((format(printf, 1, 2)));

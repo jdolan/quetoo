@@ -696,9 +696,9 @@ static void G_Physics_Toss(edict_t *ent){
 		ent->waterlevel = 0;
 
 	if(!wasinwater && isinwater)
-		gi.PositionedSound(old_origin, g_edicts, CHAN_AUTO, gi.SoundIndex("world/water_in.wav"), 1, 1, 0);
+		gi.PositionedSound(old_origin, g_edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
 	else if(wasinwater && !isinwater)
-		gi.PositionedSound(ent->s.origin, g_edicts, CHAN_AUTO, gi.SoundIndex("world/water_out.wav"), 1, 1, 0);
+		gi.PositionedSound(ent->s.origin, g_edicts, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
 	// move teamslaves
 	for(slave = ent->teamchain; slave; slave = slave->teamchain){

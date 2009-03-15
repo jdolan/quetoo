@@ -829,8 +829,7 @@ struct edict_s {
 	edict_t *lightning;
 
 	int noise_index;
-	float volume;
-	float attenuation;
+	int attenuation;
 
 	// timing variables
 	float wait;

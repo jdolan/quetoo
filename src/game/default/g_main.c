@@ -163,7 +163,7 @@ static void G_RestartGame(qboolean teamz){
 	good.captures = evil.captures = 0;
 
 	gi.Bprintf(PRINT_HIGH, "Game restarted\n");
-	gi.Sound(&g_edicts[0], CHAN_AUTO, gi.SoundIndex("world/teleport.wav"), 1, ATTN_NONE, 0);
+	gi.Sound(&g_edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
 }
 
 
@@ -575,7 +575,7 @@ static void G_CheckRules(void){
 			P_Respawn(&g_edicts[i + 1], false);
 		}
 
-		gi.Sound(&g_edicts[0], CHAN_AUTO, gi.SoundIndex("world/teleport.wav"), 1, ATTN_NONE, 0);
+		gi.Sound(&g_edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
 		gi.Bprintf(PRINT_HIGH, "Match has started\n");
 	}
 
@@ -589,7 +589,7 @@ static void G_CheckRules(void){
 			P_Respawn(&g_edicts[i + 1], false);
 		}
 
-		gi.Sound(&g_edicts[0], CHAN_AUTO, gi.SoundIndex("world/teleport.wav"), 1, ATTN_NONE, 0);
+		gi.Sound(&g_edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
 		gi.Bprintf(PRINT_HIGH, "Round has started\n");
 	}
 

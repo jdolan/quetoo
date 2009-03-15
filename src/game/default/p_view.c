@@ -78,7 +78,7 @@ static void P_DamageFeedback(edict_t *player){
 			l = 75;
 		else
 			l = 100;
-		gi.Sound(player, CHAN_VOICE, gi.SoundIndex(va("*pain%i_1.wav", l)), 1, ATTN_NORM, 0);
+		gi.Sound(player, gi.SoundIndex(va("*pain%i_1", l)), ATTN_NORM);
 	}
 
 	// clear totals
@@ -172,17 +172,17 @@ static void P_WorldEffects(void){
 
 	// if just entered a water volume, play a sound
 	if(!old_waterlevel && waterlevel)
-		gi.Sound(current_player, CHAN_AUTO, gi.SoundIndex("world/water_in.wav"), 1, ATTN_NORM, 0);
+		gi.Sound(current_player, gi.SoundIndex("world/water_in"), ATTN_NORM);
 
 	// completely exited the water
 	if(old_waterlevel && !waterlevel)
-		gi.Sound(current_player, CHAN_AUTO, gi.SoundIndex("world/water_out.wav"), 1, ATTN_NORM, 0);
+		gi.Sound(current_player, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
 	// head just coming out of water
 	if(old_waterlevel == 3 && waterlevel != 3 &&
 			level.time - current_player->gasp_time > 2.0){
 
-		gi.Sound(current_player, CHAN_AUTO, gi.SoundIndex("*gasp_1.wav"), 1, ATTN_NORM, 0);
+		gi.Sound(current_player, gi.SoundIndex("*gasp_1"), ATTN_NORM);
 		current_player->gasp_time = level.time;
 	}
 
@@ -202,9 +202,9 @@ static void P_WorldEffects(void){
 
 				// play a gurp sound instead of a normal pain sound
 				if(current_player->health <= current_player->dmg)
-					gi.Sound(current_player, CHAN_VOICE, gi.SoundIndex("*drown_1.wav"), 1, ATTN_NORM, 0);
+					gi.Sound(current_player, gi.SoundIndex("*drown_1"), ATTN_NORM);
 				else
-					gi.Sound(current_player, CHAN_VOICE, gi.SoundIndex("*gurp_1.wav"), 1, ATTN_NORM, 0);
+					gi.Sound(current_player, gi.SoundIndex("*gurp_1"), ATTN_NORM);
 
 				current_player->pain_time = level.time;
 

@@ -29,7 +29,6 @@
 1 = normal fighting sounds
 2 = idle sound level
 3 = ambient sound level
-"volume"	0.0 to 1.0
 
 Normal sounds play each time the target is used.  The reliable flag can be set for crucial voiceovers.
 
@@ -37,7 +36,6 @@ Looped sounds are always atten 3 / vol 1, and the use function toggles it on/off
 Multiple identical looping sounds will just increase volume without any speed cost.
 */
 static void Use_Target_Speaker(edict_t *ent, edict_t *other, edict_t *activator){
-	int chan;
 
 	if(ent->spawnflags & 3){  // looping sound toggles
 		if(ent->s.sound)
@@ -45,13 +43,9 @@ static void Use_Target_Speaker(edict_t *ent, edict_t *other, edict_t *activator)
 		else
 			ent->s.sound = ent->noise_index;  // start it
 	} else {  // normal sound
-		if(ent->spawnflags & 4)
-			chan = CHAN_VOICE | CHAN_RELIABLE;
-		else
-			chan = CHAN_VOICE;
 		// use a positioned_sound, because this entity won't normally be
 		// sent to any clients because it is invisible
-		gi.PositionedSound(ent->s.origin, ent, chan, ent->noise_index, ent->volume, ent->attenuation, 0);
+		gi.PositionedSound(ent->s.origin, ent, ent->noise_index, ent->attenuation);
 	}
 }
 
@@ -62,21 +56,18 @@ void G_target_speaker(edict_t *ent){
 		gi.Dprintf("target_speaker with no noise set at %s\n", vtos(ent->s.origin));
 		return;
 	}
-	if(!strstr(st.noise, ".wav"))
-		snprintf(buffer, sizeof(buffer), "%s.wav", st.noise);
+	if(!strstr(st.noise, ""))
+		snprintf(buffer, sizeof(buffer), "%s", st.noise);
 	else
 		strncpy(buffer, st.noise, sizeof(buffer));
 	ent->noise_index = gi.SoundIndex(buffer);
 
-	if(!ent->volume)
-		ent->volume = 1.0;
-
 	if(!ent->attenuation)
-		ent->attenuation = 1.0;
+		ent->attenuation = ATTN_NORM;
 	else if(ent->attenuation == -1)  // use -1 so 0 defaults to 1
-		ent->attenuation = 0;
+		ent->attenuation = ATTN_NONE;
 
-	// check for prestarted looping sound
+	// check for looping sound
 	if(ent->spawnflags & 1)
 		ent->s.sound = ent->noise_index;
 

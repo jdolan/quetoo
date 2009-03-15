@@ -179,14 +179,11 @@ enum clc_ops_e {
 
 
 // a sound without an ent or pos will be a local only sound
-#define SND_VOLUME		(1<<0)  // a byte
-#define SND_ATTENUATION	(1<<1)  // a byte
-#define SND_POS			(1<<2)  // three coordinates
-#define SND_ENT			(1<<3)  // a short 0-2: channel, 3-12: entity
-#define SND_OFFSET		(1<<4)  // a byte, msec offset from frame start
+#define S_ATTEN		(1<<0)  // a byte
+#define S_ORIGIN	(1<<1)  // three coordinates
+#define S_ENTNUM	(1<<2)  // entity number
 
-#define DEFAULT_SOUND_VOLUME		1.0
-#define DEFAULT_SOUND_ATTENUATION	1.0
+#define DEFAULT_SOUND_ATTENUATION	ATTN_NORM
 
 
 // entity_state_t communication

@@ -179,9 +179,9 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 	if((ent->message) && activator->client){
 		gi.Cnprintf(activator, "%s", ent->message);
 		if(ent->noise_index)
-			gi.Sound(activator, CHAN_AUTO, ent->noise_index, 1, ATTN_NORM, 0);
+			gi.Sound(activator, ent->noise_index, ATTN_NORM);
 		else
-			gi.Sound(activator, CHAN_AUTO, gi.SoundIndex("misc/chat.wav"), 1, ATTN_NORM, 0);
+			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTN_NORM);
 	}
 
 	// kill killtargets

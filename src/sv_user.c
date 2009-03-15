@@ -277,7 +277,7 @@ static void Sv_NextDownload_f(void){
 
 // only these prefixes are valid downloads, all else are denied
 static const char *downloadable[] = {
-	"*.pak", "maps/*.bsp", "sounds/*.wav", "env/*.tga",
+	"*.pak", "maps/*.bsp", "sounds/*", "env/*.tga",
 	"textures/*.wal", "textures/*.tga", NULL
 };
 

@@ -113,7 +113,7 @@ void P_ChangeWeapon(edict_t *ent){
 	}
 
 	// play a sound
-	gi.Sound(ent, CHAN_VOICE, gi.SoundIndex("weapons/common/switch.wav"), 1, ATTN_NORM, 0);
+	gi.Sound(ent, gi.SoundIndex("weapons/common/switch"), ATTN_NORM);
 }
 
 
@@ -170,7 +170,7 @@ void P_NoAmmoWeaponChange(gclient_t *client){
 static void NoAmmoWeaponChange(edict_t *ent){
 
 	if(level.time >= ent->pain_time){  // play a click sound
-		gi.Sound(ent, CHAN_VOICE, gi.SoundIndex("weapons/common/no_ammo.wav"), 1, ATTN_NORM, 0);
+		gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTN_NORM);
 		ent->pain_time = level.time + 1;
 	}
 
@@ -280,8 +280,7 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 	if(ent->client->locals.inventory[quad_damage_index]){  // quad sound
 
 		if(ent->client->quad_attack_time < level.time){
-			gi.Sound(ent, CHAN_AUTO, gi.SoundIndex("quad/attack.wav"),
-					1.0, ATTN_NORM, 0.0);
+			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTN_NORM);
 
 			ent->client->quad_attack_time = level.time + 0.5;
 		}

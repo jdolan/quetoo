@@ -97,7 +97,7 @@ static void trigger_enable(edict_t *self, edict_t *other, edict_t *activator){
 
 void G_trigger_multiple(edict_t *ent){
 
-	ent->noise_index = gi.SoundIndex("misc/chat.wav");
+	ent->noise_index = gi.SoundIndex("misc/chat");
 
 	if(!ent->wait)
 		ent->wait = 0.2;
@@ -177,7 +177,7 @@ static void trigger_push_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 
 			if(other->push_time < level.time){
 				other->push_time = level.time + 1.5;
-				gi.Sound(other, CHAN_AUTO, gi.SoundIndex("world/jumppad.wav"), 1, ATTN_NORM, 0);
+				gi.Sound(other, gi.SoundIndex("world/jumppad"), ATTN_NORM);
 			}
 		}
 	}

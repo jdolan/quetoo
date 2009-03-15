@@ -199,8 +199,7 @@ static const field_t fields[] = {
 	{"sounds", FOFS(sounds), F_INT},
 	{"dmg", FOFS(dmg), F_INT},
 	{"mass", FOFS(mass), F_INT},
-	{"volume", FOFS(volume), F_FLOAT},
-	{"attenuation", FOFS(attenuation), F_FLOAT},
+	{"attenuation", FOFS(attenuation), F_INT},
 	{"origin", FOFS(s.origin), F_VECTOR},
 	{"angles", FOFS(s.angles), F_VECTOR},
 	{"angle", FOFS(s.angles), F_ANGLEHACK},
@@ -814,12 +813,12 @@ static void G_worldspawn(edict_t *ent){
 	gi.ModelIndex("#w_railgun.md2");
 	gi.ModelIndex("#w_bfg.md2");
 
-	gi.SoundIndex("world/water_in.wav");
-	gi.SoundIndex("world/water_out.wav");
+	gi.SoundIndex("world/water_in");
+	gi.SoundIndex("world/water_out");
 
-	gi.SoundIndex("weapons/common/no_ammo.wav");
-	gi.SoundIndex("weapons/common/pickup.wav");
-	gi.SoundIndex("weapons/common/switch.wav");
+	gi.SoundIndex("weapons/common/no_ammo");
+	gi.SoundIndex("weapons/common/pickup");
+	gi.SoundIndex("weapons/common/switch");
 
 	gi.Configstring(CS_VOTE, "");
 	gi.Configstring(CS_TEAMGOOD, va("%15s", good.name));

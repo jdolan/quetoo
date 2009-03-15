@@ -148,6 +148,11 @@ if test "x${SDL_CONFIG}" != x; then
 			SDL_LIBS="$SDL_LIBS -lSDL_image",
 			[AC_MSG_ERROR([Couldn't find SDL_image.h, please install sdl-image])]
 		)
+		
+		AC_CHECK_HEADER(SDL/SDL_mixer.h,
+			SDL_LIBS="$SDL_LIBS -lSDL_mixer",
+			[AC_MSG_ERROR([Couldn't find SDL_mixer.h, please install sdl-mixer])]
+		)
 
 		CPPFLAGS="$save_CPPFLAGS"
 	fi

@@ -21,326 +21,185 @@
 
 #include "client.h"
 
-typedef struct {
-	int left;
-	int right;
-} portable_samplepair_t;
-
-#define PAINTBUFFER_SIZE 2048
-static portable_samplepair_t s_paintbuffer[PAINTBUFFER_SIZE];
-
-#define MAX_RAW_SAMPLES	8192
-static portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];
-
-static int snd_scaletable[32][256];
-static const int *snd_p;
-static int snd_linear_count, snd_vol;
-
-static short *snd_out;
-
 
 /*
- * S_WriteLinearBlastStereo16
+ * S_AllocChannel
  */
-static void S_WriteLinearBlastStereo16(void){
+static int S_AllocChannel(void){
 	int i;
-	int val;
 
-	for(i = 0; i < snd_linear_count; i += 2){
-		val = snd_p[i] >> 8;
-		if(val > 0x7ddd)
-			snd_out[i] = 0x7ddd;
-		else if(val < (short)0x8000)
-			snd_out[i] = (short)0x8000;
-		else
-			snd_out[i] = val;
-
-		val = snd_p[i + 1] >> 8;
-		if(val > 0x7ddd)
-			snd_out[i + 1] = 0x7ddd;
-		else if(val < (short)0x8000)
-			snd_out[i + 1] = (short)0x8000;
-		else
-			snd_out[i + 1] = val;
+	for(i = 0; i < MAX_CHANNELS; i++){
+		if(!s_env.channels[i].sample)
+			return i;
 	}
+
+	return -1;
 }
 
 
 /*
- * S_TransferStereo16
+ * S_FreeChannel
  */
-static void S_TransferStereo16(unsigned long *pbuf, int endtime){
-	int paintedtime;
+void S_FreeChannel(int c){
 
-	snd_p = (const int *)s_paintbuffer;
-	paintedtime = s_env.paintedtime;
+	memset(&s_env.channels[c], 0, sizeof(s_env.channels[0]));
+}
 
-	while(paintedtime < endtime){
-		// handle recirculating buffer issues
-		const int lpos = paintedtime &((s_env.device.samples >> 1) - 1);
 
-		snd_out = (short *)pbuf + (lpos << 1);
+#define DISTANCE_SCALE 0.15
 
-		snd_linear_count = (s_env.device.samples >> 1) - lpos;
-		if(paintedtime + snd_linear_count > endtime)
-			snd_linear_count = endtime - paintedtime;
+/*
+ * S_SpatializeChannel
+ *
+ * Set distance and stereo panning for the specified channel.
+ */
+void S_SpatializeChannel(s_channel_t *ch){
+	entity_state_t *ent;
+	vec3_t origin, delta;
+	int c;
+	float dist, dot, angle;
 
-		snd_linear_count <<= 1;
+	c = (int)((ptrdiff_t)(ch - s_env.channels));
 
-		// write a linear blast of samples
-		S_WriteLinearBlastStereo16();
-
-		snd_p += snd_linear_count;
-		paintedtime +=(snd_linear_count >> 1);
+	if(ch->entnum != -1){  // update the channel origin
+		ent = &cl_entities[ch->entnum].current;
+		VectorCopy(ent->origin, ch->org);
 	}
+
+	VectorCopy(ch->org, origin);
+	origin[2] = r_view.origin[2];
+
+	VectorSubtract(origin, r_view.origin, delta);
+	dist = VectorNormalize(delta) * DISTANCE_SCALE * ch->atten * ch->atten;
+
+	if(dist > 255.0)  // clamp to max
+		dist = 255.0;
+
+	if(dist > 10.0){  // resolve stereo panning
+		dot = DotProduct(s_env.right, delta);
+		angle = acos(dot) * 180.0 / M_PI - 90.0;
+
+		angle = (int)(360.0 - angle) % 360;
+	}
+	else
+		angle = 0;
+
+	Mix_SetPosition(c, (int)angle, (int)dist);
 }
 
 
 /*
- * S_TransferPaintBuffer
+ * S_StartSample
  */
-static void S_TransferPaintBuffer(int endtime){
-	int out_idx, out_mask;
-	int i, count;
-	int *p;
-	int step;
-	unsigned long *pbuf;
+void S_StartSample(const vec3_t org, int entnum, s_sample_t *sample, int atten){
+	s_channel_t *ch;
+	int i;
 
-	pbuf = (unsigned long *)s_env.device.buffer;
+	if(!s_env.initialized)
+		return;
 
-	if(s_testsound->value){  // write a fixed sine wave
-		count = (endtime - s_env.paintedtime);
-		for(i = 0; i < count; i++)
-			s_paintbuffer[i].left = s_paintbuffer[i].right =
-				sin((s_env.paintedtime + i) * 0.1) * 20000 * 256;
+	if(!sample)
+		return;
+
+	if(sample->name[0] == '*')
+		sample = S_LoadModelSample(&cl_entities[entnum].current, sample->name);
+
+	if(!sample->chunk)
+		return;
+
+	if((i = S_AllocChannel()) == -1)
+		return;
+
+	ch = &s_env.channels[i];
+
+	if(org){  // positioned sound
+		VectorCopy(org, ch->org);
+		ch->entnum = -1;
+	}
+	else  // entity sound
+		ch->entnum = entnum;
+
+	ch->atten = atten;
+	ch->sample = sample;
+
+	S_SpatializeChannel(ch);
+
+	Mix_PlayChannel(i, ch->sample->chunk, 0);
+}
+
+
+/*
+ * S_StartLoopSample
+ */
+void S_StartLoopSample(const vec3_t org, s_sample_t *sample){
+	s_channel_t *ch;
+	int i;
+
+	if(!sample || !sample->chunk)
+		return;
+
+	ch = NULL;
+
+	for(i = 0; i < MAX_CHANNELS; i++){  // find existing loop sound
+
+		if(s_env.channels[i].entnum != -1)
+			continue;
+
+		if(s_env.channels[i].sample == sample){
+			ch = &s_env.channels[i];
+			break;
+		}
 	}
 
-	if(s_env.device.bits == 16 && s_env.device.channels == 2){  // optimized case
-		S_TransferStereo16(pbuf, endtime);
+	if(ch){  // update existing loop sample
+		vec3_t delta;
+		float dist1, dist2;
+
+		VectorSubtract(org, r_view.origin, delta);
+		dist1 = VectorLength(delta);
+
+		VectorSubtract(ch->org, r_view.origin, delta);
+		dist2 = VectorLength(delta);
+
+		if(dist1 < dist2)
+			VectorCopy(org, ch->org);
+		else
+			return;
+	}
+	else {  // or allocate a new one
+
+		if((i = S_AllocChannel()) == -1)
+			return;
+
+		ch = &s_env.channels[i];
+
+		VectorCopy(org, ch->org);
+		ch->entnum = -1;
+		ch->atten = ATTN_IDLE;
+		ch->sample = sample;
+
+		Mix_PlayChannel(i, ch->sample->chunk, 0);
+	}
+
+	S_SpatializeChannel(ch);
+}
+
+
+/*
+ * S_StartLocalSample
+ */
+void S_StartLocalSample(const char *name){
+	s_sample_t *sample;
+
+	if(!s_env.initialized)
+		return;
+
+	sample = S_LoadSample(name);
+
+	if(!sample){
+		Com_Warn("S_StartLocalSample: Failed to load %s.\n", name);
 		return;
 	}
 
-	p = (int *)s_paintbuffer;  // general case
-	count = (endtime - s_env.paintedtime) * s_env.device.channels;
-	out_mask = s_env.device.samples - 1;
-	out_idx = s_env.paintedtime * s_env.device.channels & out_mask;
-	step = 3 - s_env.device.channels;
-
-	if(s_env.device.bits == 16){
-		short *out = (short *)pbuf;
-		while(count--){
-			int val = *p >> 8;
-			p += step;
-			if(val > 0x7fff)
-				val = 0x7fff;
-			else if(val < (short)0x8000)
-				val = (short)0x8000;
-			out[out_idx] = val;
-			out_idx = (out_idx + 1) & out_mask;
-		}
-	} else if(s_env.device.bits == 8){
-		unsigned char *out = (unsigned char *)pbuf;
-		while(count--){
-			int val = *p >> 8;
-			p += step;
-			if(val > 0x7fff)
-				val = 0x7fff;
-			else if(val < (short)0x8000)
-				val = (short)0x8000;
-			out[out_idx] = (val >> 8) + 128;
-			out_idx = (out_idx + 1) & out_mask;
-		}
-	}
-}
-
-
-/*
- * S_PaintChannelFrom8
- */
-static void S_PaintChannelFrom8(s_channel_t *ch, const s_samplecache_t *sc, int count, int offset){
-	const int *lscale, *rscale;
-	const byte *sample;
-	int i;
-	portable_samplepair_t *samp;
-
-	if(ch->leftvol > 255)
-		ch->leftvol = 255;
-	if(ch->rightvol > 255)
-		ch->rightvol = 255;
-
-	lscale = snd_scaletable[ch->leftvol >> 3];
-	rscale = snd_scaletable[ch->rightvol >> 3];
-	sample = (byte *)sc->data + ch->pos;
-
-	samp = &s_paintbuffer[offset];
-
-	for(i = 0; i < count; i++, samp++){
-		const int data = sample[i];
-		samp->left += lscale[data];
-		samp->right += rscale[data];
-	}
-
-	ch->pos += count;
-}
-
-
-/*
- * S_PaintChannelFrom16
- */
-static void S_PaintChannelFrom16(s_channel_t *ch, const s_samplecache_t *sc, int count, int offset){
-	int i, j;
-	portable_samplepair_t *samp;
-	const int leftvol = ch->leftvol * snd_vol;
-	const int rightvol = ch->rightvol * snd_vol;
-	const signed short *sample = (signed short *)sc->data + ch->pos;
-
-	j = ch->pos;
-
-	samp = &s_paintbuffer[offset];
-
-	for(i = 0; i < count; i++, samp++){
-
-		if(j < sc->length){  // mix as long as we have sample data
-			const int data = sample[i];
-			const int left = (data * leftvol) >> 8;
-			const int right = (data * rightvol) >> 8;
-
-			samp->left += left;;
-			samp->right += right;
-
-			j++;
-		}
-		else {
-			Com_Warn("S_PaintChannelFrom16: Underrun.\n");
-		}
-	}
-
-	ch->pos += count;
-}
-
-/*
- * S_PaintChannels
- */
-void S_PaintChannels(int endtime){
-	int i;
-	int end;
-	s_channel_t *ch;
-	s_samplecache_t *sc;
-	int ltime, count;
-	s_sampleplay_t *ps;
-
-	while(s_env.paintedtime < endtime){
-		// if s_paintbuffer is smaller than DMA buffer
-		end = endtime;
-		if(endtime - s_env.paintedtime > PAINTBUFFER_SIZE)
-			end = s_env.paintedtime + PAINTBUFFER_SIZE;
-
-		i = 0;
-		// start any s_env.sampleplays
-		while(true){
-
-			ps = s_env.pendingplays.next;
-
-			if(ps == &s_env.pendingplays)
-				break;  // no more pending sounds
-
-			if(ps->begin <= s_env.paintedtime){
-				S_IssueSampleplay(ps);
-				continue;
-			}
-
-			if(ps->begin < end)
-				end = ps->begin;  // stop here
-			break;
-		}
-
-		// clear the paint buffer
-		if(s_env.rawend < s_env.paintedtime){
-			memset(s_paintbuffer, 0, (end - s_env.paintedtime) * sizeof(portable_samplepair_t));
-		} else {  // copy from the streaming sound source
-			int s;
-			int stop;
-
-			stop = (end < s_env.rawend) ? end : s_env.rawend;
-
-			for(i = s_env.paintedtime; i < stop; i++){
-				s = i & (MAX_RAW_SAMPLES - 1);
-				s_paintbuffer[i - s_env.paintedtime] = s_rawsamples[s];
-			}
-
-			for(; i < end; i++){
-				s_paintbuffer[i - s_env.paintedtime].left =
-					s_paintbuffer[i - s_env.paintedtime].right = 0;
-			}
-		}
-
-		// paint in the channels.
-		ch = s_env.channels;
-		for(i = 0; i < MAX_CHANNELS; i++, ch++){
-			ltime = s_env.paintedtime;
-
-			while(ltime < end){
-
-				if(!ch->sample || (!ch->leftvol && !ch->rightvol))
-					break;
-
-				// max painting is to the end of the buffer
-				count = end - ltime;
-
-				// might be stopped by running out of data
-				if(ch->end - ltime < count)
-					count = ch->end - ltime;
-
-				sc = S_LoadSamplecache(ch->sample);
-				if(!sc)
-					break;
-
-				if(count > 0 && ch->sample){
-					if(sc->width == 1)
-						S_PaintChannelFrom8(ch, sc, count, ltime - s_env.paintedtime);
-					else
-						S_PaintChannelFrom16(ch, sc, count, ltime - s_env.paintedtime);
-
-					ltime += count;
-				}
-
-				// if at end of loop, restart
-				if(ltime >= ch->end){
-					if(ch->autosound){  // autolooping sounds always go back to start
-						ch->pos = 0;
-						ch->end = ltime + sc->length;
-					} else if(sc->loopstart >= 0){
-						ch->pos = sc->loopstart;
-						ch->end = ltime + sc->length - ch->pos;
-					} else {  // channel just stopped
-						ch->sample = NULL;
-					}
-				}
-			}
-		}
-
-		// transfer out according to DMA format
-		S_TransferPaintBuffer(end);
-		s_env.paintedtime = end;
-	}
-}
-
-
-/*
- * S_InitScaletable
- */
-void S_InitScaletable(void){
-	int i, j;
-
-	if(s_volume->value > 1)  //cap volume
-		s_volume->value = 1;
-
-	for(i = 0; i < 32; i++){
-		const int scale = i * 8 * 256 * s_volume->value;
-		for(j = 0; j < 256; j++)
-			snd_scaletable[i][j] = (signed char)j * scale;
-	}
-
-	snd_vol = s_volume->value * 256;
-	s_volume->modified = false;
+	S_StartSample(NULL, cl.playernum + 1, sample, ATTN_NONE);
 }

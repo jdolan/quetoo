@@ -252,11 +252,12 @@ CVARS (console variables)
 #define CVAR_R_PROGRAMS	0x80  // effects GLSL programs
 #define CVAR_R_MODE		0x100  // effects screen resolution
 #define CVAR_S_DEVICE	0x200  // effects sound device parameters
+#define CVAR_S_SAMPLES	0x400  // effects sound samples
 
 #define CVAR_R_MASK		(CVAR_R_IMAGES | CVAR_R_CONTEXT | \
 		CVAR_R_PROGRAMS | CVAR_R_MODE)
 
-#define CVAR_S_MASK 	(CVAR_S_DEVICE)
+#define CVAR_S_MASK 	(CVAR_S_DEVICE | CVAR_S_SAMPLES)
 
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s {
@@ -518,17 +519,6 @@ typedef enum {
 	TE_BFG,
 	TE_GIB
 } temp_event_t;
-
-// sound channels
-// channel 0 never willingly overrides
-// other channels (1-7) allways override a playing sound on that channel
-#define CHAN_AUTO			0
-#define CHAN_WEAPON			1
-#define CHAN_VOICE			2
-#define CHAN_ITEM			3
-#define CHAN_BODY			4
-#define CHAN_NO_PHS_ADD		8  // send to all clients, not just ones in PHS (ATTN 0 will also do this)
-#define CHAN_RELIABLE  		16  // send by reliable message, not datagram
 
 // sound attenuation values
 #define ATTN_NONE  			0  // full volume the entire level

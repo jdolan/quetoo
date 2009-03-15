@@ -296,7 +296,7 @@ static void G_GrenadeExplode(edict_t *ent){
 }
 
 static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
-	float vel, dot, vol;
+	float vel, dot;
 	vec3_t dir;
 
 	if(other == ent->owner)
@@ -330,12 +330,7 @@ static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 			G_GrenadeExplode(ent);
 		}
 
-		vol = (vel  * vel) / 160000.0;
-
-		if(vol > 1.0)
-			vol = 1.0;
-
-		gi.Sound(ent, CHAN_VOICE, grenade_hit_index, vol, ATTN_NORM, 0);
+		gi.Sound(ent, grenade_hit_index, ATTN_NORM);
 		return;
 	}
 
@@ -665,8 +660,8 @@ static void G_LightningThink(edict_t *self){
 		VectorCopy(tr.endpos, water_start);
 
 		if(!self->waterlevel){
-			gi.PositionedSound(water_start, g_edicts, CHAN_AUTO,
-					gi.SoundIndex("world/water_in.wav"), 1, 1, 0);
+			gi.PositionedSound(water_start, g_edicts,
+					gi.SoundIndex("world/water_in"), ATTN_NORM);
 			self->waterlevel = 1;
 		}
 
@@ -675,8 +670,8 @@ static void G_LightningThink(edict_t *self){
 	}
 	else {
 		if(self->waterlevel){  // exited water, play sound, no trail
-			gi.PositionedSound(water_start, g_edicts, CHAN_AUTO,
-					gi.SoundIndex("world/water_out.wav"), 1, 1, 0);
+			gi.PositionedSound(water_start, g_edicts,
+					gi.SoundIndex("world/water_out"), ATTN_NORM);
 			self->waterlevel = 0;
 		}
 	}
@@ -766,8 +761,8 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 
 			VectorCopy(tr.endpos, water_start);
 
-			gi.PositionedSound(water_start, g_edicts, CHAN_AUTO,
-					gi.SoundIndex("world/water_in.wav"), 1, 1, 0);
+			gi.PositionedSound(water_start, g_edicts,
+					gi.SoundIndex("world/water_in"), ATTN_NORM);
 
 			ignore = self;
 			continue;
@@ -781,7 +776,8 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 		if((tr.ent != self) && (tr.ent->takedamage)){
 			if(tr.ent->client && ((int)level.gameplay == INSTAGIB))
 				damage = 9999;  // be sure to cause a kill
-			G_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, knockback, 0, MOD_RAILGUN);
+			G_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal,
+					damage, knockback, 0, MOD_RAILGUN);
 		}
 
 		VectorCopy(tr.endpos, from);

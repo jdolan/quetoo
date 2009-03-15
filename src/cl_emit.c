@@ -47,7 +47,7 @@ typedef struct emit_s {
 	int count;  // particle counts
 	char sound[MAX_QPATH];  // sound name
 	s_sample_t *sample;  // sound sample
-	int attenuation;  // sound attenuation
+	int atten;  // sound attenuation
 	qboolean loop;  // loop sound versus timed
 	char model[MAX_QPATH];  // model name
 	model_t *mod;  // model
@@ -110,17 +110,17 @@ void Cl_LoadEmits(void){
 				if(!e->sample){
 
 					if(e->flags & EMIT_SPARKS){
-						strcpy(e->sound, "world/sparks.wav");
+						strcpy(e->sound, "world/sparks");
 						e->sample = S_LoadSample(e->sound);
 					}
 
 					else if(e->flags & EMIT_STEAM){  // steam hissing
-						strcpy(e->sound, "world/steam.wav");
+						strcpy(e->sound, "world/steam");
 						e->sample = S_LoadSample(e->sound);
 					}
 
 					else if(e->flags & EMIT_FLAME){  // fire crackling
-						strcpy(e->sound, "world/fire.wav");
+						strcpy(e->sound, "world/fire");
 						e->sample = S_LoadSample(e->sound);
 					}
 				}
@@ -186,14 +186,11 @@ void Cl_LoadEmits(void){
 
 				if(e->flags & EMIT_SOUND){  // resolve attenuation and looping
 
-					if(e->attenuation == -1)  // explicit -1 for global
-						e->attenuation = ATTN_NONE;
+					if(e->atten == -1)  // explicit -1 for global
+						e->atten = ATTN_NONE;
 					else {
-						if(e->attenuation == 0){  // default
-							if(e->flags & EMIT_SPARKS)
-								e->attenuation = ATTN_STATIC;
-							else
-								e->attenuation = ATTN_NORM;
+						if(e->atten == 0){  // default
+							e->atten = ATTN_IDLE;
 						}
 					}
 
@@ -283,7 +280,7 @@ void Cl_LoadEmits(void){
 		}
 
 		if(!strcmp(c, "attenuation")){
-			e->attenuation = atoi(Com_Parse(&ents));
+			e->atten = atoi(Com_Parse(&ents));
 			continue;
 		}
 
@@ -361,7 +358,7 @@ void Cl_AddEmits(void){
 			continue;  // culled
 
 		if((e->flags & EMIT_SOUND) && e->loop)  // add an ambient sound
-			S_AddLoopSample(e->org, e->sample);
+			S_StartLoopSample(e->org, e->sample);
 
 		if(e->flags & EMIT_MODEL){
 			// fake a packet entity and add it to the view
@@ -402,7 +399,7 @@ void Cl_AddEmits(void){
 			Cl_FlameTrail(e->org, e->org, NULL);
 
 		if((e->flags & EMIT_SOUND) && !e->loop)
-			S_StartSample(e->org, 0, 0, e->sample, 1, e->attenuation, 0);
+			S_StartSample(e->org, -1, e->sample, e->atten);
 
 		e->time = cl.time + (1000.0 / e->hz + (e->drift * frand() * 1000.0));
 	}

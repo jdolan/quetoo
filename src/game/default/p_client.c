@@ -306,8 +306,7 @@ void P_TossFlag(edict_t *self){
 void P_Pain(edict_t *self, edict_t *other, int damage, int knockback){
 
 	if(other && other->client && other != self){  // play a hit sound
-		gi.Sound(other, CHAN_VOICE, gi.SoundIndex("misc/hit.wav"),
-				1.0, ATTN_STATIC, 0.0);
+		gi.Sound(other, gi.SoundIndex("misc/hit"), ATTN_STATIC);
 	}
 }
 
@@ -317,8 +316,7 @@ void P_Pain(edict_t *self, edict_t *other, int damage, int knockback){
  */
 void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
 
-	gi.Sound(self, CHAN_VOICE, gi.SoundIndex("*death_1.wav"),
-			1.0, ATTN_NORM, 0.0);
+	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
 
 	self->client->respawn_time = level.time + 1.0;
 	self->client->ps.pmove.pm_type = PM_DEAD;
@@ -1107,8 +1105,7 @@ static void P_InventoryThink(edict_t *ent){
 			ent->client->quad_damage_time = 0.0;
 			ent->client->locals.inventory[quad_damage_index] = 0;
 
-			gi.Sound(ent, CHAN_AUTO, gi.SoundIndex("quad/expire.wav"),
-					1.0, ATTN_NORM, 0.0);
+			gi.Sound(ent, gi.SoundIndex("quad/expire"), ATTN_NORM);
 
 			ent->s.effects &= ~EF_QUAD;
 		}
@@ -1207,11 +1204,9 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 				ent->jump_time < level.time - 0.2){
 
 			if(crandom() > 0)
-				gi.Sound(ent, CHAN_VOICE, gi.SoundIndex("*jump_1.wav"),
-						1.0, ATTN_NORM, 0.0);
+				gi.Sound(ent, gi.SoundIndex("*jump_1"), ATTN_NORM);
 			else
-				gi.Sound(ent, CHAN_VOICE, gi.SoundIndex("*jump_2.wav"),
-						1.0, ATTN_NORM, 0.0);
+				gi.Sound(ent, gi.SoundIndex("*jump_2"), ATTN_NORM);
 
 			ent->jump_time = level.time;
 		}

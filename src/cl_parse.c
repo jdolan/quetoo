@@ -453,58 +453,42 @@ void Cl_ParseConfigstring(void){
  * Cl_ParseSound
  */
 static void Cl_ParseSound(void){
-	vec3_t pos_v;
-	float *pos;
-	int channel, ent;
-	int sound_num;
-	float volume;
-	float attenuation;
+	vec3_t origin;
+	float *org;
+	int soundindex;
+	int entnum;
+	int atten;
 	int flags;
-	float ofs;
 
 	flags = Msg_ReadByte(&net_message);
-	sound_num = Msg_ReadByte(&net_message);
 
-	if(flags & SND_VOLUME)
-		volume = Msg_ReadByte(&net_message) / 255.0;
+	soundindex = Msg_ReadByte(&net_message);
+
+	if(flags & S_ATTEN)
+		atten = Msg_ReadByte(&net_message);
 	else
-		volume = DEFAULT_SOUND_VOLUME;
+		atten = DEFAULT_SOUND_ATTENUATION;
 
-	if(flags & SND_ATTENUATION)
-		attenuation = Msg_ReadByte(&net_message) / 64.0;
-	else
-		attenuation = DEFAULT_SOUND_ATTENUATION;
+	if(flags & S_ENTNUM){  // entity relative
+		entnum = Msg_ReadShort(&net_message);
 
-	if(flags & SND_OFFSET)
-		ofs = Msg_ReadByte(&net_message) / 1000.0;
-	else
-		ofs = 0;
-
-	if(flags & SND_ENT){  // entity relative
-		channel = Msg_ReadShort(&net_message);
-		ent = channel >> 3;
-		if(ent > MAX_EDICTS){
-			Com_Error(ERR_DROP, "Cl_ParseSound: ent = %d.", ent);
-		}
-
-		channel &= 7;
+		if(entnum > MAX_EDICTS)
+			Com_Error(ERR_DROP, "Cl_ParseSound: entnum = %d.", entnum);
 	} else {
-		ent = 0;
-		channel = 0;
+		entnum = -1;
 	}
 
-	if(flags & SND_POS){  // positioned in space
-		Msg_ReadPos(&net_message, pos_v);
+	if(flags & S_ORIGIN){  // positioned in space
+		Msg_ReadPos(&net_message, origin);
 
-		pos = pos_v;
-	} else  // use entity number
-		pos = NULL;
+		org = origin;
+	} else  // use entnum
+		org = NULL;
 
-	if(!cl.sound_precache[sound_num])
+	if(!cl.sound_precache[soundindex])
 		return;
 
-	S_StartSample(pos, ent, channel, cl.sound_precache[sound_num],
-			volume, attenuation, ofs);
+	S_StartSample(org, entnum, cl.sound_precache[soundindex], atten);
 }
 
 
