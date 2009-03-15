@@ -189,9 +189,8 @@ void Cl_LoadEmits(void){
 					if(e->atten == -1)  // explicit -1 for global
 						e->atten = ATTN_NONE;
 					else {
-						if(e->atten == 0){  // default
+						if(e->atten == 0)  // default
 							e->atten = ATTN_IDLE;
-						}
 					}
 
 					// flame and steam sounds are always looped
