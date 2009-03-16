@@ -163,6 +163,7 @@ s_sample_t *S_LoadSample(const char *name){
 		return NULL;
 
 	strncpy(sample->name, name, sizeof(sample->name) - 1);
+	Com_StripExtension(sample->name, sample->name);
 
 	S_LoadSampleChunk(sample);
 

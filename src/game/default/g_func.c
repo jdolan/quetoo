@@ -684,7 +684,7 @@ void G_func_button(edict_t *ent){
 	gi.SetModel(ent, ent->model);
 
 	if(ent->sounds != 1)
-		  ent->moveinfo.sound_start = gi.SoundIndex("misc/switch");
+		  ent->moveinfo.sound_start = gi.SoundIndex("world/switch");
 
 	if(!ent->speed)
 		  ent->speed = 40;
