@@ -46,6 +46,8 @@ cd $TMP
 ../wget -c http://curl.de-mirror.de/download/libcurl-7.16.4-win32-nossl.zip
 ../wget -c http://www.libsdl.org/release/SDL-devel-1.2.13-mingw32.tar.gz
 ../wget -c http://www.libsdl.org/projects/SDL_image/release/SDL_image-devel-1.2.6-VC8.zip
+../wget -c http://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-devel-1.2.8-VC8.zip
+
 
 echo "extract base"
 for n in *.tar.gz;do
@@ -83,3 +85,6 @@ cp /mingw/SDL_image-1.2.6/include/* /mingw/include/SDL
 cp /mingw/SDL_image-1.2.6/lib/SDL* /mingw/lib
 rm -rf /mingw/SDL_image-1.2.6
 
+cp /mingw/SDL_mixer-1.2.8/include/* /mingw/include/SDL
+cp /mingw/SDL_mixer-1.2.8/lib/* /mingw/lib
+rm -rf /mingw/SDL_mixer-1.2.8
