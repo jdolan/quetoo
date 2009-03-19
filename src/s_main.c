@@ -24,7 +24,7 @@
 // the sound environment
 s_env_t s_env;
 
-cvar_t *s_invert;
+cvar_t *s_reverse;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
@@ -56,9 +56,9 @@ void S_Frame(void){
 		return;
 	}
 
-	if(s_invert->modified){  // update reverse stereo
-		Mix_SetReverseStereo(MIX_CHANNEL_POST, (int)s_invert->value);
-		s_invert->modified = false;
+	if(s_reverse->modified){  // update reverse stereo
+		Mix_SetReverseStereo(MIX_CHANNEL_POST, (int)s_reverse->value);
+		s_reverse->modified = false;
 	}
 
 	// update right angle for stereo panning
@@ -181,9 +181,9 @@ void S_Init(void){
 
 	Com_Printf("Sound initialization..\n");
 
-	s_invert = Cvar_Get("s_invert", "0", CVAR_ARCHIVE, "Invert left and right channels.");
-	s_volume = Cvar_Get("s_volume", "0.7", CVAR_ARCHIVE, "Global sound volume level.");
 	s_rate = Cvar_Get("s_rate", "", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sampling rate in Hz.");
+	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
+	s_volume = Cvar_Get("s_volume", "0.7", CVAR_ARCHIVE, "Global sound volume level.");
 
 	Cmd_AddCommand("s_restart", S_Restart_f, "Restart the sound subsystem");
 	Cmd_AddCommand("s_reload", S_Reload_f, "Reload all loaded sounds");

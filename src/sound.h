@@ -57,8 +57,8 @@ typedef struct s_env_s {
 
 extern s_env_t s_env;
 
-extern cvar_t *s_invert;
 extern cvar_t *s_rate;
+extern cvar_t *s_reverse;
 extern cvar_t *s_volume;
 
 // s_main.c
