@@ -22,7 +22,7 @@
 #include "client.h"
 
 
-/**
+/*
  * S_AllocSample
  */
 static s_sample_t *S_AllocSample(void){

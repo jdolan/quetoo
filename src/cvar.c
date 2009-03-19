@@ -290,7 +290,7 @@ cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags){
 void Cvar_SetValue(const char *var_name, float value){
 	char val[32];
 
-	if(value ==(int)value)
+	if(value == (int)value)
 		snprintf(val, sizeof(val), "%i",(int)value);
 	else
 		snprintf(val, sizeof(val), "%f", value);

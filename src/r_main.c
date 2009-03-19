@@ -630,7 +630,7 @@ static void R_InitLocal(void){
 	r_fullscreen = Cvar_Get("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_MODE, "Activate or deactivate fullscreen mode");
 	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE, NULL);
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE, NULL);
-	r_height = Cvar_Get("r_height", "768", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
+	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 	r_hunkmegs = Cvar_Get("r_hunkmegs", "64", CVAR_NOSET, "Memory size for the renderer hunk in megabytes");
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_lightmapsize = Cvar_Get("r_lightmapsize", "1024", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
@@ -655,7 +655,7 @@ static void R_InitLocal(void){
 	r_threads = Cvar_Get("r_threads", "0", CVAR_ARCHIVE, "Activate or deactivate the threaded renderer");
 	r_vertexbuffers = Cvar_Get("r_vertexbuffers", "1", CVAR_ARCHIVE, NULL);
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE, "Activate or deactivate warping surfaces");
-	r_width = Cvar_Get("r_width", "1024", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
+	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 
 	// prevent unecessary reloading for initial values
 	Cvar_ClearVars(CVAR_R_MASK);
@@ -670,10 +670,6 @@ static void R_InitLocal(void){
 	Cmd_AddCommand("r_reload", R_Reload_f, NULL);
 
 	Cmd_AddCommand("r_restart", R_Restart_f, "Restart the rendering subsystem");
-
-	r_state.width = 1024;  // set these here
-	r_state.height = 768;
-	r_state.fullscreen = true;
 }
 
 
