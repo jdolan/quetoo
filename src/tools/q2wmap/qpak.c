@@ -52,21 +52,35 @@ static void AddPath(char *path){
 }
 
 
+#define NUM_SAMPLE_FORMATS 2
+static const char *sample_formats[NUM_SAMPLE_FORMATS] = {"ogg", "wav"};
+
 /*
  * AddSound
  *
- * Attempts the add the specified sound.
+ * Attempts to add the specified sound in any available format.
  */
-static void AddSound(char *sound){
+static void AddSound(const char *sound){
 	char path[MAX_QPATH];
+	FILE *f;
+	int i;
 
 	memset(path, 0, sizeof(path));
-	snprintf(path, sizeof(path), "sounds/%s", sound);
 
-	if(!strstr(path, ".wav"))
-		strcat(path, ".wav");
+	for(i = 0; i < NUM_SAMPLE_FORMATS; i++){
 
-	AddPath(path);
+		snprintf(path, sizeof(path) - 5, "sounds/%s", sound);
+		Com_StripExtension(path, path);
+
+		strcat(path, ".");
+		strcat(path, sample_formats[i]);
+
+		if(Fs_OpenFile(path, &f, FILE_READ) > 0){
+			AddPath(path);
+			Fs_CloseFile(f);
+			break;
+		}
+	}
 }
 
 
