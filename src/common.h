@@ -351,13 +351,16 @@ cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags);
 void Cvar_SetValue(const char *var_name, float value);
 // expands value to a string and calls Cvar_Set
 
-float Cvar_VariableValue(const char *var_name);
+void Cvar_Toggle(const char *var_name);
+// toggles value between 0 and 1
+
+float Cvar_GetValue(const char *var_name);
 // returns 0 if not defined or non numeric
 
-char *Cvar_VariableString(const char *var_name);
+char *Cvar_GetString(const char *var_name);
 // returns an empty string if not defined
 
-int Cvar_CompleteVariable(const char *partial, const char *matches[]);
+int Cvar_CompleteVar(const char *partial, const char *matches[]);
 // attempts to match a partial variable name for command line completion
 
 qboolean Cvar_PendingLatchedVars(void);
@@ -377,7 +380,7 @@ qboolean Cvar_Command(void);
 // command.  Returns true if the command was a variable reference that
 // was handled.(print or change)
 
-void Cvar_WriteVariables(const char *path);
+void Cvar_WriteVars(const char *path);
 // appends lines containing "set variable value" for all variables
 // with the archive flag set to true.
 

@@ -402,7 +402,7 @@ static void Cl_SendConnect(void){
 	if(adr.port == 0)  // use default port
 		adr.port = BigShort(PORT_SERVER);
 
-	qport = (int)Cvar_VariableValue("net_qport");  // has been set by netchan
+	qport = (int)Cvar_GetValue("net_qport");  // has been set by netchan
 
 	Netchan_OutOfBandPrint(NS_CLIENT, adr, "connect %i %i %i \"%s\"\n",
 			PROTOCOL, qport, cls.challenge, Cvar_Userinfo());
@@ -690,7 +690,7 @@ static void Cl_ConnectionlessPacket(void){
 			return;
 		}
 
-		qport = (int)Cvar_VariableValue("net_qport");
+		qport = (int)Cvar_GetValue("net_qport");
 		Netchan_Setup(NS_CLIENT, &cls.netchan, net_from, qport);
 		Msg_WriteChar(&cls.netchan.message, clc_stringcmd);
 		Msg_WriteString(&cls.netchan.message, "new");
@@ -1007,7 +1007,7 @@ static void Cl_WriteConfiguration(void){
 	Cl_WriteBindings(f);
 	Fs_CloseFile(f);
 
-	Cvar_WriteVariables(path);
+	Cvar_WriteVars(path);
 }
 
 

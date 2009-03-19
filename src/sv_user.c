@@ -75,7 +75,7 @@ static void Sv_New_f(void){
 	}
 
 	// serverdata required to make sure the protocol is right, and to set the gamedir
-	gamedir = Cvar_VariableString("gamedir");
+	gamedir = Cvar_GetString("gamedir");
 
 	// send the serverdata
 	Msg_WriteByte(&sv_client->netchan.message, svc_serverdata);

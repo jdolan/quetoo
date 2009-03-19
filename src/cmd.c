@@ -466,7 +466,7 @@ void Cmd_TokenizeString(const char *text){
 			return;
 
 		if(*com_token == '$' && strcmp(cmd_argv[0], "alias"))  // expand cvar values
-			com_token = Cvar_VariableString(com_token + 1);
+			com_token = Cvar_GetString(com_token + 1);
 
 		if(cmd_argc < MAX_STRING_TOKENS){
 			if((l = strlen(com_token)) == MAX_STRING_CHARS)
@@ -487,7 +487,7 @@ void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *descr
 	cmd_function_t *c, *cmd;
 
 	// fail if the command is a variable name
-	if(Cvar_VariableString(cmd_name)[0]){
+	if(Cvar_GetString(cmd_name)[0]){
 		Com_Dprintf("Cmd_AddCommand: %s already defined as a var\n", cmd_name);
 		return;
 	}

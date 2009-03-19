@@ -286,6 +286,8 @@ extern cvar_t *r_threads;
 extern cvar_t *r_vertexbuffers;
 extern cvar_t *r_warp;
 extern cvar_t *r_width;
+extern cvar_t *r_windowedheight;
+extern cvar_t *r_windowedwidth;
 
 extern model_t *r_worldmodel;
 extern model_t *r_loadmodel;

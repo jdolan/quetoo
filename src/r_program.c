@@ -264,7 +264,7 @@ static size_t R_PreprocessShader(const char *name, const char *in, char *out, si
 		if(!strncmp(in, "#if", 3)){  // conditionals
 			in += 3;
 
-			f = Cvar_VariableValue(Com_Parse(&in));
+			f = Cvar_GetValue(Com_Parse(&in));
 
 			while(*in){
 

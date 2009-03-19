@@ -419,7 +419,7 @@ int Con_CompleteCommand(char *input_text, int *input_position){
 	space = false;
 
 	matches = Cmd_CompleteCommand(partial, &complete[0]);
-	matches += Cvar_CompleteVariable(partial, &complete[matches]);
+	matches += Cvar_CompleteVar(partial, &complete[matches]);
 
 	if(matches == 1){
 		match = complete[0];

@@ -55,7 +55,7 @@ static cvar_t *Cvar_FindVar(const char *var_name){
 /*
  * Cvar_VariableValue
  */
-float Cvar_VariableValue(const char *var_name){
+float Cvar_GetValue(const char *var_name){
 	cvar_t *var;
 
 	var = Cvar_FindVar(var_name);
@@ -68,7 +68,7 @@ float Cvar_VariableValue(const char *var_name){
 /*
  * Cvar_VariableString
  */
-char *Cvar_VariableString(const char *var_name){
+char *Cvar_GetString(const char *var_name){
 	cvar_t *var;
 
 	var = Cvar_FindVar(var_name);
@@ -81,7 +81,7 @@ char *Cvar_VariableString(const char *var_name){
 /*
  * Cvar_CompleteVariable
  */
-int Cvar_CompleteVariable(const char *partial, const char *matches[]){
+int Cvar_CompleteVar(const char *partial, const char *matches[]){
 	cvar_t *cvar;
 	int len;
 	int m;
@@ -166,9 +166,9 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const c
 
 
 /*
- * Cvar_Set2
+ * Cvar_Set_
  */
-static cvar_t *Cvar_Set2(const char *var_name, const char *value, qboolean force){
+static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force){
 	cvar_t *var;
 
 	var = Cvar_FindVar(var_name);
@@ -246,7 +246,7 @@ static cvar_t *Cvar_Set2(const char *var_name, const char *value, qboolean force
  * Cvar_ForceSet
  */
 cvar_t *Cvar_ForceSet(const char *var_name, const char *value){
-	return Cvar_Set2(var_name, value, true);
+	return Cvar_Set_(var_name, value, true);
 }
 
 
@@ -254,7 +254,7 @@ cvar_t *Cvar_ForceSet(const char *var_name, const char *value){
  * Cvar_Set
  */
 cvar_t *Cvar_Set(const char *var_name, const char *value){
-	return Cvar_Set2(var_name, value, false);
+	return Cvar_Set_(var_name, value, false);
 }
 
 
@@ -295,6 +295,25 @@ void Cvar_SetValue(const char *var_name, float value){
 	else
 		snprintf(val, sizeof(val), "%f", value);
 	Cvar_Set(var_name, val);
+}
+
+/*
+ * Cvar_Toggle
+ */
+void Cvar_Toggle(const char *var_name){
+	cvar_t *var;
+
+	var = Cvar_FindVar(var_name);
+
+	if(!var){
+		Com_Printf("%s is not yet set.", var_name);
+		return;
+	}
+
+	if(var->value)
+		Cvar_SetValue(var_name, 0.0);
+	else
+		Cvar_SetValue(var_name, 1.0);
 }
 
 
@@ -427,7 +446,7 @@ static void Cvar_Set_f(void){
  * Appends lines containing "set variable value" for all variables
  * with the archive flag set to true.
  */
-void Cvar_WriteVariables(const char *path){
+void Cvar_WriteVars(const char *path){
 	cvar_t *var;
 	char buffer[1024];
 	FILE *f;

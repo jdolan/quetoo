@@ -88,6 +88,8 @@ cvar_t *r_threads;
 cvar_t *r_vertexbuffers;
 cvar_t *r_warp;
 cvar_t *r_width;
+cvar_t *r_windowedheight;
+cvar_t *r_windowedwidth;
 
 
 /*
@@ -656,6 +658,8 @@ static void R_InitLocal(void){
 	r_vertexbuffers = Cvar_Get("r_vertexbuffers", "1", CVAR_ARCHIVE, NULL);
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE, "Activate or deactivate warping surfaces");
 	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
+	r_windowedheight = Cvar_Get("r_windowedheight", "600", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
+	r_windowedwidth = Cvar_Get("r_windowedwidth", "800", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 
 	// prevent unecessary reloading for initial values
 	Cvar_ClearVars(CVAR_R_MASK);
@@ -677,23 +681,18 @@ static void R_InitLocal(void){
  * R_SetMode
  */
 qboolean R_SetMode(void){
+	int w, h;
 
-	r_state.prev_width = r_state.width;
-	r_state.prev_height = r_state.height;
-	r_state.prev_fullscreen = r_state.fullscreen;
+	if(r_fullscreen->value){
+		w = r_width->value;
+		h = r_height->value;
+	}
+	else {
+		w = r_windowedwidth->value;
+		h = r_windowedheight->value;
+	}
 
-	if(R_InitContext(r_width->value, r_height->value, r_fullscreen->value))
-		return true;
-
-	Com_Printf("Failed to set video mode %dx%d %s.\n",
-			(int)r_width->value, (int)r_height->value,
-			(r_fullscreen->value ? "fullscreen" : "windowed"));
-
-	Cvar_SetValue("r_width", r_state.prev_width);  // failed, revert
-	Cvar_SetValue("r_height", r_state.prev_height);
-	Cvar_SetValue("r_fullscreen", r_state.prev_fullscreen);
-
-	return R_InitContext(r_state.prev_width, r_state.prev_height, r_state.prev_fullscreen);
+	return R_InitContext(w, h, r_fullscreen->value);
 }
 
 
@@ -803,7 +802,7 @@ void R_Init(void){
 
 	// create the window and set up the context
 	if(!R_SetMode())
-		Com_Error(ERR_FATAL, "Failed to set default video mode.");
+		Com_Error(ERR_FATAL, "Failed to set video mode.");
 
 	r_config.renderer_string = (char *)glGetString(GL_RENDERER);
 	r_config.vendor_string = (char *)glGetString(GL_VENDOR);

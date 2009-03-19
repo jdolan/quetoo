@@ -390,19 +390,10 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *uni
 
 		case SDLK_F11:
 			if(event->type == SDL_KEYDOWN){
-				if(r_fullscreen->value){  // toggle fullscreen
-					Cvar_SetValue("r_fullscreen", 0);
-					Cvar_SetValue("r_width", r_width->value / 2);
-					Cvar_SetValue("r_height", r_height->value / 2);
-				}
-				else {
-					Cvar_SetValue("r_fullscreen", 1);
-					Cvar_SetValue("r_width", r_width->value * 2);
-					Cvar_SetValue("r_height", r_height->value * 2);
-				}
+				Cvar_Toggle("r_fullscreen");
+				R_Restart_f();
 			}
 
-			R_Restart_f();
 			break;
 
 		case SDLK_F12:
@@ -517,7 +508,7 @@ static void Cl_HandleEvent(SDL_Event *event){
 			}
 			EVENT_ENQUEUE(key, key, (event->type == SDL_MOUSEBUTTONDOWN))
 			break;
-        
+
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
 			Cl_KeyMap(event, &key, &unicode);

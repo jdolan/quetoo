@@ -87,7 +87,7 @@ qboolean Cl_HttpDownload(void){
 	cls.download.http = true;
 
 	memset(game, 0, sizeof(game));  // resolve gamedir
-	strncpy(game, Cvar_VariableString("game"), sizeof(game) - 1);
+	strncpy(game, Cvar_GetString("game"), sizeof(game) - 1);
 
 	if(!strlen(game))  // use default if not set
 		strcpy(game, "default");

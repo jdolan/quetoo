@@ -174,7 +174,7 @@ void S_Init(void){
 
 	memset(&s_env, 0, sizeof(s_env));
 
-	if(Cvar_VariableValue("s_disable")){
+	if(Cvar_GetValue("s_disable")){
 		Com_Warn("Sound disabled.\n");
 		return;
 	}

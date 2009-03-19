@@ -46,9 +46,8 @@ typedef enum rendermode_s {
 
 // opengl state management
 typedef struct renderer_state_s {
-	int width, height, prev_width, prev_height;
-
-	qboolean fullscreen, prev_fullscreen;
+	int width, height;
+	qboolean fullscreen;
 
 	int redbits, greenbits, bluebits, alphabits;
 	int depthbits, doublebits;
