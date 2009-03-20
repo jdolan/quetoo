@@ -313,6 +313,8 @@ void Sys_Error(const char *error, ...){
 	va_list argptr;
 	char string[MAX_STRING_CHARS];
 
+	Sys_Backtrace();
+
 	Sv_Shutdown(error, false);
 	Cl_Shutdown();
 
