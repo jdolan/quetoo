@@ -745,13 +745,6 @@ void G_SpawnItem(edict_t *ent, gitem_t *item){
 				vtos(ent->s.origin), ent->spawnflags);
 	}
 
-	// don't spawn flags unless ctf is enabled
-	if(!level.ctf && (!strcmp(ent->classname, "item_flag_team1") ||
-				!strcmp(ent->classname, "item_flag_team2"))){
-		G_FreeEdict(ent);
-		return;
-	}
-
 	VectorSet(ent->mins, -15, -15, -15);
 	VectorSet(ent->maxs, 15, 15, 15);
 
@@ -780,6 +773,14 @@ void G_SpawnItem(edict_t *ent, gitem_t *item){
 			ent->nextthink = level.time + gi.serverframe;
 			ent->think = G_DoRespawn;
 		}
+	}
+
+	// hide flags unless ctf is enabled
+	if(!level.ctf && (!strcmp(ent->classname, "item_flag_team1") ||
+				!strcmp(ent->classname, "item_flag_team2"))){
+
+		ent->svflags |= SVF_NOCLIENT;
+		ent->solid = SOLID_NOT;
 	}
 
 	if(ent->spawnflags & SF_ITEM_NO_TOUCH){

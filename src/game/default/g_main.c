@@ -113,6 +113,59 @@ void G_ResetVote(void){
 	level.votetime = 0;
 }
 
+/*
+ * G_ResetItems
+ *
+ * Reset all items in the level based on gameplay, ctf, etc.
+ */
+static void G_ResetItems(void){
+	edict_t *ent;
+	int i;
+
+	for(i = 1; i < globals.num_edicts; i++){  // reset items
+
+		ent = &g_edicts[i];
+
+		if(!ent->inuse)
+			continue;
+
+		if(!ent->item)
+			continue;
+
+		if(ent->spawnflags & SF_ITEM_DROPPED){  // free dropped ones
+			G_FreeEdict(ent);
+			continue;
+		}
+
+		if(ent->item->flags & IT_FLAG){  // flags only appear for ctf
+
+			if(level.ctf){
+				ent->svflags &= ~SVF_NOCLIENT;
+				ent->solid = SOLID_TRIGGER;
+				ent->nextthink = level.time + 0.2;
+			}
+			else {
+				ent->svflags |= SVF_NOCLIENT;
+				ent->solid = SOLID_NOT;
+				ent->nextthink = 0;
+			}
+		}
+		else {  // everything else honors gameplay
+
+			if(level.gameplay){  // hide items
+				ent->svflags |= SVF_NOCLIENT;
+				ent->solid = SOLID_NOT;
+				ent->nextthink = 0.0;
+			}
+			else {  // or unhide them
+				ent->svflags &= ~SVF_NOCLIENT;
+				ent->solid = SOLID_TRIGGER;
+				ent->nextthink = level.time + 2.0 * gi.serverframe;
+			}
+		}
+	}
+}
+
 
 /*
  * G_RestartGame
@@ -131,7 +184,7 @@ static void G_RestartGame(qboolean teamz){
 	if(level.roundtime)
 		level.roundnum++;
 
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_maxclients->value; i++){  // reset clients
 		if(!g_edicts[i + 1].inuse)
 			continue;
 
@@ -157,6 +210,8 @@ static void G_RestartGame(qboolean teamz){
 
 		P_Respawn(&g_edicts[i + 1], false);
 	}
+
+	G_ResetItems();
 
 	level.matchtime = level.roundtime = 0;
 	good.score = evil.score = 0;
@@ -668,27 +723,6 @@ static void G_CheckRules(void){
 	if(g_gameplay->modified){  // change gameplay, fix items, respaw clients
 		g_gameplay->modified = false;
 		level.gameplay = G_GameplayByName(g_gameplay->string);
-
-		for(i = 1; i < globals.num_edicts; i++){  // toggle items
-			if(!g_edicts[i].inuse)
-				continue;
-			if(!g_edicts[i].item)
-				continue;
-
-			if(level.gameplay){  // remove dropped, hide regular items
-				if(g_edicts[i].spawnflags & SF_ITEM_DROPPED){
-					G_FreeEdict(&g_edicts[i]);
-					continue;
-				}
-				g_edicts[i].svflags |= SVF_NOCLIENT;
-				g_edicts[i].solid = SOLID_NOT;
-				g_edicts[i].nextthink = 0;
-			} else {  // unhide regular items
-				g_edicts[i].svflags &= ~SVF_NOCLIENT;
-				g_edicts[i].solid = SOLID_TRIGGER;
-				g_edicts[i].nextthink = level.time + 0.2;
-			}
-		}
 
 		G_RestartGame(false);  // reset all clients
 
