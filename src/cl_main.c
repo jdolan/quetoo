@@ -325,7 +325,7 @@ static char *Cl_ExpandVariables(const char *text){
 void Cmd_ForwardToServer(void){
 	const char *cmd, *args;
 
-	if(cls.state == ca_disconnected){
+	if(cls.state <= ca_disconnected){
 		Com_Printf("Not connected.\n");
 		return;
 	}
@@ -987,7 +987,7 @@ static void Cl_InitLocal(void){
 /*
  * Cl_WriteConfiguration
  *
- * Writes key bindings and archived cvars to quake2world.cfg
+ * Writes key bindings and archived cvars to quake2world.cfg.
  */
 static void Cl_WriteConfiguration(void){
 	FILE *f;
