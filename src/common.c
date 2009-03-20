@@ -211,7 +211,7 @@ void Com_SetServerState(int state){
  *
  * MESSAGE IO FUNCTIONS
  *
- * Handles byte ordering and avoids alignment errors
+ * Handles byte ordering and avoids alignment errors.
  */
 
 
@@ -220,8 +220,9 @@ const vec3_t bytedirs[NUMVERTEXNORMALS] = {
 };
 
 
-// writing functions
-
+/*
+ * Msg_WriteChar
+ */
 void Msg_WriteChar(sizebuf_t *sb, int c){
 	byte *buf;
 
@@ -229,6 +230,10 @@ void Msg_WriteChar(sizebuf_t *sb, int c){
 	buf[0] = c;
 }
 
+
+/*
+ * Msg_WriteByte
+ */
 void Msg_WriteByte(sizebuf_t *sb, int c){
 	byte *buf;
 
@@ -236,6 +241,10 @@ void Msg_WriteByte(sizebuf_t *sb, int c){
 	buf[0] = c;
 }
 
+
+/*
+ * Msg_WriteShort
+ */
 void Msg_WriteShort(sizebuf_t *sb, int c){
 	byte *buf;
 
@@ -244,6 +253,10 @@ void Msg_WriteShort(sizebuf_t *sb, int c){
 	buf[1] = c >> 8;
 }
 
+
+/*
+ * Msg_WriteLong
+ */
 void Msg_WriteLong(sizebuf_t *sb, int c){
 	byte *buf;
 
@@ -254,6 +267,10 @@ void Msg_WriteLong(sizebuf_t *sb, int c){
 	buf[3] = c >> 24;
 }
 
+
+/*
+ * Msg_WriteFloat
+ */
 void Msg_WriteFloat(sizebuf_t *sb, float f){
 	union {
 		float f;
@@ -266,6 +283,10 @@ void Msg_WriteFloat(sizebuf_t *sb, float f){
 	Sb_Write(sb, &dat.l, 4);
 }
 
+
+/*
+ * Msg_WriteString
+ */
 void Msg_WriteString(sizebuf_t *sb, const char *s){
 	if(!s)
 		Sb_Write(sb, "", 1);
@@ -273,25 +294,44 @@ void Msg_WriteString(sizebuf_t *sb, const char *s){
 		Sb_Write(sb, s, strlen(s) + 1);
 }
 
+
+/*
+ * Msg_WriteCoord
+ */
 void Msg_WriteCoord(sizebuf_t *sb, float f){
 	Msg_WriteShort(sb, (int)(f * 8));
 }
 
+
+/*
+ * Msg_WritePos
+ */
 void Msg_WritePos(sizebuf_t *sb, vec3_t pos){
 	Msg_WriteShort(sb, (int)(pos[0] * 8));
 	Msg_WriteShort(sb, (int)(pos[1] * 8));
 	Msg_WriteShort(sb, (int)(pos[2] * 8));
 }
 
+
+/*
+ * Msg_WriteAngle
+ */
 void Msg_WriteAngle(sizebuf_t *sb, float f){
 	Msg_WriteByte(sb, (int)(f * 256 / 360) & 255);
 }
 
+
+/*
+ * Msg_WriteAngle16
+ */
 void Msg_WriteAngle16(sizebuf_t *sb, float f){
 	Msg_WriteShort(sb, ANGLE2SHORT(f));
 }
 
 
+/*
+ * Msg_WriteDeltaUsercmd
+ */
 void Msg_WriteDeltaUsercmd(sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd){
 	int bits;
 
@@ -335,6 +375,9 @@ void Msg_WriteDeltaUsercmd(sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd){
 }
 
 
+/*
+ * Msg_WriteDir
+ */
 void Msg_WriteDir(sizebuf_t *sb, vec3_t dir){
 	int i, best;
 	float d, bestd;
@@ -357,6 +400,9 @@ void Msg_WriteDir(sizebuf_t *sb, vec3_t dir){
 }
 
 
+/*
+ * Msg_ReadDir
+ */
 void Msg_ReadDir(sizebuf_t *sb, vec3_t dir){
 	int b;
 
@@ -524,14 +570,19 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, sizebuf_t *m
 }
 
 
-
-// reading functions
-
+/*
+ * Msg_BeginReading
+ */
 void Msg_BeginReading(sizebuf_t *msg){
 	msg->readcount = 0;
 }
 
-// returns -1 if no more characters are available
+
+/*
+ * Msg_ReadChar
+ *
+ * Returns -1 if no more characters are available.
+ */
 int Msg_ReadChar(sizebuf_t *msg_read){
 	int c;
 
@@ -544,6 +595,10 @@ int Msg_ReadChar(sizebuf_t *msg_read){
 	return c;
 }
 
+
+/*
+ * Msg_ReadByte
+ */
 int Msg_ReadByte(sizebuf_t *msg_read){
 	int c;
 
@@ -556,6 +611,10 @@ int Msg_ReadByte(sizebuf_t *msg_read){
 	return c;
 }
 
+
+/*
+ * Msg_ReadShort
+ */
 int Msg_ReadShort(sizebuf_t *msg_read){
 	int c;
 
@@ -570,6 +629,10 @@ int Msg_ReadShort(sizebuf_t *msg_read){
 	return c;
 }
 
+
+/*
+ * Msg_ReadLong
+ */
 int Msg_ReadLong(sizebuf_t *msg_read){
 	int c;
 
@@ -586,6 +649,10 @@ int Msg_ReadLong(sizebuf_t *msg_read){
 	return c;
 }
 
+
+/*
+ * Msg_ReadFloat
+ */
 float Msg_ReadFloat(sizebuf_t *msg_read){
 	union {
 		byte b[4];
@@ -608,6 +675,10 @@ float Msg_ReadFloat(sizebuf_t *msg_read){
 	return dat.f;
 }
 
+
+/*
+ * Msg_ReadString
+ */
 char *Msg_ReadString(sizebuf_t *msg_read){
 	static char string[2048];
 	int l, c;
@@ -626,6 +697,10 @@ char *Msg_ReadString(sizebuf_t *msg_read){
 	return string;
 }
 
+
+/*
+ * Msg_ReadStringLine
+ */
 char *Msg_ReadStringLine(sizebuf_t *msg_read){
 	static char string[2048];
 	int l, c;
@@ -644,24 +719,44 @@ char *Msg_ReadStringLine(sizebuf_t *msg_read){
 	return string;
 }
 
+
+/*
+ * Msg_ReadCoord
+ */
 float Msg_ReadCoord(sizebuf_t *msg_read){
 	return Msg_ReadShort(msg_read) * (1.0 / 8);
 }
 
+
+/*
+ * Msg_ReadPos
+ */
 void Msg_ReadPos(sizebuf_t *msg_read, vec3_t pos){
 	pos[0] = Msg_ReadShort(msg_read) * (1.0 / 8);
 	pos[1] = Msg_ReadShort(msg_read) * (1.0 / 8);
 	pos[2] = Msg_ReadShort(msg_read) * (1.0 / 8);
 }
 
+
+/*
+ * Msg_ReadAngle
+ */
 float Msg_ReadAngle(sizebuf_t *msg_read){
 	return Msg_ReadChar(msg_read) * (360.0 / 256);
 }
 
+
+/*
+ * Msg_ReadAngle16
+ */
 float Msg_ReadAngle16(sizebuf_t *msg_read){
 	return SHORT2ANGLE(Msg_ReadShort(msg_read));
 }
 
+
+/*
+ * Msg_ReadDeltaUsercmd
+ */
 void Msg_ReadDeltaUsercmd(sizebuf_t *msg_read, usercmd_t *from, usercmd_t *move){
 	int bits;
 
@@ -694,6 +789,9 @@ void Msg_ReadDeltaUsercmd(sizebuf_t *msg_read, usercmd_t *from, usercmd_t *move)
 }
 
 
+/*
+ * Msg_ReadData
+ */
 void Msg_ReadData(sizebuf_t *msg_read, void *data, size_t len){
 	int i;
 
@@ -701,23 +799,29 @@ void Msg_ReadData(sizebuf_t *msg_read, void *data, size_t len){
 		((byte *)data)[i] = Msg_ReadByte(msg_read);
 }
 
-/*
- *
- *    Memory chunk management
- *
- */
 
+/*
+ * Sb_Init
+ */
 void Sb_Init(sizebuf_t *buf, byte *data, size_t length){
 	memset(buf, 0, sizeof(*buf));
 	buf->data = data;
 	buf->maxsize = length;
 }
 
+
+/*
+ * Sb_Clear
+ */
 void Sb_Clear(sizebuf_t *buf){
 	buf->cursize = 0;
 	buf->overflowed = false;
 }
 
+
+/*
+ * Sb_GetSpace
+ */
 void *Sb_GetSpace(sizebuf_t *buf, size_t length){
 	void *data;
 
@@ -741,10 +845,18 @@ void *Sb_GetSpace(sizebuf_t *buf, size_t length){
 	return data;
 }
 
+
+/*
+ * Sb_Write
+ */
 void Sb_Write(sizebuf_t *buf, const void *data, size_t length){
 	memcpy(Sb_GetSpace(buf, length), data, length);
 }
 
+
+/*
+ * Sb_Print
+ */
 void Sb_Print(sizebuf_t *buf, const char *data){
 	size_t len;
 
@@ -759,22 +871,38 @@ void Sb_Print(sizebuf_t *buf, const char *data){
 		memcpy((byte *)Sb_GetSpace(buf, len), data, len);
 }
 
+
+/*
+ * Com_Argc
+ */
 int Com_Argc(void){
 	return com_argc;
 }
 
+
+/*
+ * Com_Argv
+ */
 char *Com_Argv(int arg){
 	if(arg < 0 || arg >= com_argc || !com_argv[arg])
 		return "";
 	return com_argv[arg];
 }
 
+
+/*
+ * Com_ClearArgv
+ */
 void Com_ClearArgv(int arg){
 	if(arg < 0 || arg >= com_argc || !com_argv[arg])
 		return;
 	com_argv[arg] = "";
 }
 
+
+/*
+ * Com_InitArgv
+ */
 void Com_InitArgv(int argc, char **argv){
 	int i;
 
@@ -790,6 +918,9 @@ void Com_InitArgv(int argc, char **argv){
 }
 
 
+/*
+ * CopyString
+ */
 char *CopyString(const char *in){
 	char *out;
 
@@ -799,6 +930,9 @@ char *CopyString(const char *in){
 }
 
 
+/*
+ * Info_Print
+ */
 void Info_Print(const char *s){
 	char key[512];
 	char value[512];

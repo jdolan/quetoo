@@ -356,9 +356,9 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	grenade = G_Spawn();
 	VectorCopy(start, grenade->s.origin);
 	VectorScale(aimdir, speed, grenade->velocity);
-	VectorMA(grenade->velocity, 200 + crandom() * 10.0, up, grenade->velocity);
+	VectorMA(grenade->velocity, 200.0 + crandom() * 10.0, up, grenade->velocity);
 	VectorMA(grenade->velocity, crandom() * 10.0, right, grenade->velocity);
-	VectorSet(grenade->avelocity, 300, 300, 300);
+	VectorSet(grenade->avelocity, 300.0, 300.0, 300.0);
 	grenade->movetype = MOVETYPE_BOUNCE;
 	grenade->clipmask = MASK_SHOT;
 	grenade->solid = SOLID_MISSILE;
