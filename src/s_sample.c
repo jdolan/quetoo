@@ -84,7 +84,7 @@ static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias){
 }
 
 
-const char *SAMPLE_TYPES[] = {
+static const char *SAMPLE_TYPES[] = {
 	".ogg", ".wav", NULL
 };
 

@@ -176,11 +176,27 @@ static void R_LoadVertexBuffers(model_t *mod){
 }
 
 
+typedef struct r_model_format_s {
+	const char *name;
+	void (*load)(model_t *mod, void *buffer);
+} r_model_format_t;
+
+static r_model_format_t r_model_formats[] = {
+		{".obj", R_LoadObjModel},
+		{".md3", R_LoadMd3Model},
+		{".md2", R_LoadMd2Model},
+		{".bsp", R_LoadBspModel}
+};
+
+#define NUM_MODEL_FORMATS (sizeof(r_model_formats) / sizeof(r_model_format_t))
+
 /*
  * R_LoadModel
  */
 model_t *R_LoadModel(const char *name){
+	r_model_format_t *format;
 	model_t *mod;
+	char n[MAX_QPATH];
 	void *buf;
 	int i;
 
@@ -197,16 +213,16 @@ model_t *R_LoadModel(const char *name){
 		return &r_inlinemodels[i];
 	}
 
+	Com_StripExtension(name, n);
+
 	// search the currently loaded models
 	for(i = 0 , mod = r_models; i < r_nummodels; i++, mod++){
-		if(!mod->name[0])
-			continue;
-		if(!strcmp(mod->name, name))
+		if(!strcmp(n, mod->name))
 			return mod;
 	}
 
 	// find a free model slot spot
-	for(i = 0 , mod = r_models; i < r_nummodels; i++, mod++){
+	for(i = 0, mod = r_models; i < r_nummodels; i++, mod++){
 		if(!mod->name[0])
 			break;  // free spot
 	}
@@ -219,44 +235,25 @@ model_t *R_LoadModel(const char *name){
 	}
 
 	// load the file
+	format = r_model_formats;
+	for(i = 0; i < NUM_MODEL_FORMATS; i++, format++){
 
-	if((Fs_LoadFile(name, &buf)) == -1){
-		if(!r_worldmodel)  // failed to load the world (.bsp)
-			Com_Error(ERR_DROP, "R_LoadModel: %s not found.", name);
-		return NULL;
+		Com_StripExtension(name, n);
+		strcat(n, format->name);
+
+		if(Fs_LoadFile(n, &buf) != -1)
+			break;
 	}
 
-	strcpy(mod->name, name);
+	if(i == NUM_MODEL_FORMATS)  // not found
+		return NULL;
+
+	Com_StripExtension(n, mod->name);
 
 	r_loadmodel = mod;
-
-	// fill it in
 	r_loadmodel->extradata = R_HunkBegin();
 
-	// call the apropriate loader
-	switch(LittleLong(*(unsigned *)buf)){
-		case MD2_HEADER:
-			R_LoadMd2Model(mod, buf);
-			break;
-
-		case MD3_HEADER:
-			R_LoadMd3Model(mod, buf);
-			break;
-
-		case BSP_HEADER:
-			R_LoadBspModel(mod, buf);
-			break;
-
-		default:
-
-			if(strcasestr(mod->name, ".obj")){
-				R_LoadObjModel(mod, buf);
-				break;
-			}
-
-			Fs_FreeFile(buf);
-			Com_Error(ERR_DROP, "R_LoadModel: Unknown type for %s.", mod->name);
-	}
+	format->load(mod, buf);
 
 	r_loadmodel->extradatasize = R_HunkEnd(r_loadmodel->extradata);
 
@@ -353,7 +350,6 @@ void R_BeginLoading(const char *map, int mapsize){
 	// then load materials
 	R_LoadMaterials(map);
 
-	// finally load it for rendering
 	r_worldmodel = R_LoadModel(map);
 }
 
