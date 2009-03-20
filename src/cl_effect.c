@@ -511,7 +511,9 @@ void Cl_ExplosionEffect(const vec3_t org){
 	p->accel[2] = 20;
 
 	p->image = r_smoketexture;
-	p->type = PARTICLE_SMOKE;
+
+	p->type = PARTICLE_ROLL;
+	p->roll = crand() * 100.0;
 
 	p->scale = 12.0;
 	p->scalevel = 40.0;
@@ -527,8 +529,6 @@ void Cl_ExplosionEffect(const vec3_t org){
 	for(j = 0; j < 3; j++){
 		p->vel[j] = crand();
 	}
-
-	p->roll = crand() * 100.0;  // rotation
 }
 
 
@@ -572,7 +572,7 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 	p->accel[2] = 5.0;
 
 	p->image = r_smoketexture;
-	p->type = PARTICLE_SMOKE;
+	p->type = PARTICLE_ROLL;
 
 	p->scale = 2.0;
 	p->scalevel = 20.0;
@@ -641,7 +641,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
 	p->accel[2] = 5.0;
 
 	p->image = r_smoketexture;
-	p->type = PARTICLE_SMOKE;
+	p->type = PARTICLE_ROLL;
 
 	p->scale = 6.0;
 	p->scalevel = 12.0;
@@ -740,7 +740,7 @@ void Cl_SteamTrail(const vec3_t org, const vec3_t vel, centity_t *ent){
 		return;
 
 	p->image = r_smoketexture;
-	p->type = PARTICLE_SMOKE;
+	p->type = PARTICLE_ROLL;
 
 	p->scale = 8.0;
 	p->scalevel = 20.0;
@@ -843,7 +843,12 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int color){
 		if(!(p = Cl_AllocParticle()))
 			return;
 
+		p->type = PARTICLE_ROLL;
+		p->roll = crand() * 300.0;
+
 		VectorMA(start, i, vec, p->org);
+
+		VectorSet(p->vel, 0.0, 0.0, 2.0);
 
 		p->image = r_railtrailtexture;
 

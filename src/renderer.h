@@ -100,7 +100,7 @@ typedef struct particle_s {
 #define PARTICLE_GRAVITY	120
 
 #define PARTICLE_NORMAL		0
-#define PARTICLE_SMOKE		1
+#define PARTICLE_ROLL		1
 #define PARTICLE_DECAL		2
 #define PARTICLE_BUBBLE		3
 #define PARTICLE_BEAM		4

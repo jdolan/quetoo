@@ -135,7 +135,7 @@ void R_DrawParticles(void){
 					VectorScale(splash_up_, scale, up);
 				}
 			}
-			else if(p->type == PARTICLE_SMOKE){  // roll it
+			else if(p->type == PARTICLE_ROLL){  // roll it
 				VectorCopy(r_view.angles, p->dir);
 				p->dir[2] = p->roll * r_view.time;
 
