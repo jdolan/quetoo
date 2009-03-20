@@ -75,7 +75,7 @@ static void R_StageLighting(msurface_t *surf, stage_t *stage){
 
 	// if the surface has a lightmap, and the stage specifies lighting..
 
-	if(surf->flags & MSURF_LIGHTMAP && 
+	if(surf->flags & MSURF_LIGHTMAP &&
 			(stage->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING))){
 
 		R_EnableTexture(&texunit_lightmap, true);
@@ -908,6 +908,16 @@ void R_LoadMaterials(const char *map){
 			continue;
 
 		m = &image->material;
+
+		if(!strcmp(c, "normalmap")){
+			c = Com_Parse(&buffer);
+			image->normalmap = R_LoadImage(va("textures/%s", c), it_normalmap);
+
+			if(image->normalmap == r_notexture){
+				Com_Warn("R_LoadMaterials: Failed to resolve normalmap: %s\n", c);
+				image->normalmap = NULL;
+			}
+		}
 
 		if(!strcmp(c, "bump")){
 
