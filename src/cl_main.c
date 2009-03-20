@@ -891,13 +891,6 @@ static const char *Cl_GetUserName(void){
 static void Cl_InitLocal(void){
 	int bits;
 
-	memset(&cls, 0, sizeof(cls));
-
-	cls.state = ca_disconnected;
-	cls.realtime = curtime;
-
-	Cl_ClearState();
-
 	// register our variables
 	cl_addentities = Cvar_Get("cl_addentities", "3", 0, NULL);
 	cl_addparticles = Cvar_Get("cl_addparticles", "1", 0, NULL);
@@ -1114,14 +1107,17 @@ void Cl_Init(void){
 	if(dedicated->value)
 		return;  // nothing running on the client
 
+	memset(&cls, 0, sizeof(cls));
+
+	cls.state = ca_disconnected;
+	cls.realtime = curtime;
+
 	Cl_InitKeys();
 
 	Cbuf_AddText(DEFAULT_BINDS);
 	Cbuf_Execute();
 	Cbuf_AddText("exec quake2world.cfg\n");
 	Cbuf_Execute();
-
-	Con_InitClientConsole();
 
 	Net_Config(NS_CLIENT, true);
 
@@ -1134,6 +1130,8 @@ void Cl_Init(void){
 
 	Cl_InitLocal();
 
+	Con_InitClientConsole();
+
 	Cl_InitView();
 
 	Cl_InitInput();
@@ -1143,6 +1141,8 @@ void Cl_Init(void){
 	Cl_InitLocations();
 
 	Fs_ExecAutoexec();
+
+	Cl_ClearState();
 }
 
 

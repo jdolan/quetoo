@@ -181,7 +181,7 @@ void S_Init(void){
 
 	Com_Printf("Sound initialization..\n");
 
-	s_rate = Cvar_Get("s_rate", "", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sampling rate in Hz.");
+	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sampling rate in Hz.");
 	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
 	s_volume = Cvar_Get("s_volume", "0.7", CVAR_ARCHIVE, "Global sound volume level.");
 
