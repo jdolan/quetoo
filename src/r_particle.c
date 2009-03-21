@@ -55,6 +55,8 @@ void R_DrawParticles(void){
 
 	R_ResetArrayState();
 
+	R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
+
 	image = r_particletexture;
 	R_BindTexture(image->texnum);
 
@@ -179,6 +181,8 @@ void R_DrawParticles(void){
 	}
 
 	glDrawArrays(GL_QUADS, 0, l / 3);
+
+	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_EnableColorArray(false);
 
