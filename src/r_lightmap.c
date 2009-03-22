@@ -43,8 +43,8 @@ static void R_UploadLightmapBlock(){
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r_lightmaps.size, r_lightmaps.size,
-				0, GL_RGBA, GL_UNSIGNED_BYTE, r_lightmaps.sample_buffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, r_lightmaps.size, r_lightmaps.size,
+				0, GL_RGB, GL_UNSIGNED_BYTE, r_lightmaps.sample_buffer);
 
 	r_lightmaps.lightmap_texnum++;
 
@@ -60,16 +60,16 @@ static void R_UploadLightmapBlock(){
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r_lightmaps.size, r_lightmaps.size,
-				0, GL_RGBA, GL_UNSIGNED_BYTE, r_lightmaps.direction_buffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, r_lightmaps.size, r_lightmaps.size,
+				0, GL_RGB, GL_UNSIGNED_BYTE, r_lightmaps.direction_buffer);
 
 		r_lightmaps.deluxemap_texnum++;
 	}
 
 	// clear the allocation block and buffers
-	memset(r_lightmaps.allocated, 0, r_lightmaps.size * sizeof(unsigned));
-	memset(r_lightmaps.sample_buffer, 0, r_lightmaps.size * r_lightmaps.size * sizeof(unsigned));
-	memset(r_lightmaps.direction_buffer, 0, r_lightmaps.size * r_lightmaps.size * sizeof(unsigned));
+	memset(r_lightmaps.allocated, 0, r_lightmaps.size * 3);
+	memset(r_lightmaps.sample_buffer, 0, r_lightmaps.size * r_lightmaps.size * 3);
+	memset(r_lightmaps.direction_buffer, 0, r_lightmaps.size * r_lightmaps.size * 3);
 }
 
 
@@ -116,7 +116,7 @@ static void R_BuildDefaultLightmap(msurface_t *surf, byte *sout, byte *dout, int
 	const int smax = (surf->stextents[0] / r_loadmodel->lightmap_scale) + 1;
 	const int tmax = (surf->stextents[1] / r_loadmodel->lightmap_scale) + 1;
 
-	stride -= (smax * 4);
+	stride -= (smax * 3);
 
 	for(i = 0; i < tmax; i++, sout += stride, dout += stride){
 		for(j = 0; j < smax; j++){
@@ -124,17 +124,15 @@ static void R_BuildDefaultLightmap(msurface_t *surf, byte *sout, byte *dout, int
 			sout[0] = 255;
 			sout[1] = 255;
 			sout[2] = 255;
-			sout[3] = 255;
 
-			sout += 4;
+			sout += 3;
 
 			if(r_loadmodel->version == BSP_VERSION_){
 				dout[0] = 127;
 				dout[1] = 127;
 				dout[2] = 255;
-				dout[3] = 255;
 
-				dout += 4;
+				dout += 3;
 			}
 		}
 	}
@@ -158,36 +156,34 @@ static void R_BuildLightmap(msurface_t *surf, byte *sout, byte *dout, int stride
 	const int tmax = (surf->stextents[1] / r_loadmodel->lightmap_scale) + 1;
 
 	const int size = smax * tmax;
-	stride -= (smax * 4);
+	stride -= (smax * 3);
 
-	lightmap = (byte *)Z_Malloc(size * 4);
+	lightmap = (byte *)Z_Malloc(size * 3);
 	lm = lightmap;
 
 	deluxemap = dm = NULL;
 
 	if(r_loadmodel->version == BSP_VERSION_){
-		deluxemap = (byte *)Z_Malloc(size * 4);
+		deluxemap = (byte *)Z_Malloc(size * 3);
 		dm = deluxemap;
 	}
 
 	// convert the raw lightmap samples to RGBA for softening
-	for(i = j = 0; i < size; i++, lm += 4, dm += 4){
+	for(i = j = 0; i < size; i++, lm += 3, dm += 3){
 		lm[0] = surf->samples[j++];
 		lm[1] = surf->samples[j++];
 		lm[2] = surf->samples[j++];
-		lm[3] = 255;  // pad alpha
 
 		// read in directional samples for deluxe mapping as well
 		if(r_loadmodel->version == BSP_VERSION_){
 			dm[0] = surf->samples[j++];
 			dm[1] = surf->samples[j++];
 			dm[2] = surf->samples[j++];
-			dm[3] = 255;  // pad alpha
 		}
 	}
 
 	// apply modulate, contrast, resolve average surface color, etc..
-	R_FilterTexture((unsigned *)lightmap, smax, tmax, surf->color, it_lightmap);
+	R_FilterTexture(lightmap, smax, tmax, surf->color, it_lightmap);
 
 	if(surf->texinfo->flags & (SURF_BLEND33 | SURF_ALPHATEST))
 		surf->color[3] = 0.25;
@@ -199,10 +195,10 @@ static void R_BuildLightmap(msurface_t *surf, byte *sout, byte *dout, int stride
 	// soften it if it's sufficiently large
 	if(r_soften->value && size > 128){
 		for(i = 0; i < r_soften->value; i++){
-			R_SoftenTexture(lightmap, smax, tmax);
+			R_SoftenTexture(lightmap, smax, tmax, it_lightmap);
 
 			if(r_loadmodel->version == BSP_VERSION_)
-				R_SoftenTexture(deluxemap, smax, tmax);
+				R_SoftenTexture(deluxemap, smax, tmax, it_deluxemap);
 		}
 	}
 
@@ -224,8 +220,7 @@ static void R_BuildLightmap(msurface_t *surf, byte *sout, byte *dout, int stride
 			sout[0] = lm[0];
 			sout[1] = lm[1];
 			sout[2] = lm[2];
-			sout[3] = lm[3];
-			sout += 4;
+			sout += 3;
 
 			// and to the surface, discarding alpha
 			l[0] = lm[0];
@@ -233,17 +228,16 @@ static void R_BuildLightmap(msurface_t *surf, byte *sout, byte *dout, int stride
 			l[2] = lm[2];
 			l += 3;
 
-			lm += 4;
+			lm += 3;
 
 			// lastly copy the deluxemap to the strided block
 			if(r_loadmodel->version == BSP_VERSION_){
 				dout[0] = dm[0];
 				dout[1] = dm[1];
 				dout[2] = dm[2];
-				dout[3] = dm[3];
-				dout += 4;
+				dout += 3;
 
-				dm += 4;
+				dm += 3;
 			}
 		}
 	}
@@ -282,12 +276,12 @@ void R_CreateSurfaceLightmap(msurface_t *surf){
 	surf->deluxemap_texnum = r_lightmaps.deluxemap_texnum;
 
 	samples = r_lightmaps.sample_buffer;
-	samples += (surf->light_t * r_lightmaps.size + surf->light_s) * 4;
+	samples += (surf->light_t * r_lightmaps.size + surf->light_s) * 3;
 
 	directions = r_lightmaps.direction_buffer;
-	directions += (surf->light_t * r_lightmaps.size + surf->light_s) * 4;
+	directions += (surf->light_t * r_lightmaps.size + surf->light_s) * 3;
 
-	stride = r_lightmaps.size * 4;
+	stride = r_lightmaps.size * 3;
 
 	if(surf->samples)
 		R_BuildLightmap(surf, samples, directions, stride);

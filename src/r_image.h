@@ -88,8 +88,8 @@ extern image_t *r_flaretextures[NUM_FLARETEXTURES];
 extern image_t *r_warptexture;
 
 // r_image.c
-void R_SoftenTexture(byte *in, int width, int height);
-void R_FilterTexture(unsigned *in, int width, int height, vec3_t color, imagetype_t type);
+void R_SoftenTexture(byte *in, int width, int height, imagetype_t type);
+void R_FilterTexture(byte *in, int width, int height, vec3_t color, imagetype_t type);
 image_t *R_UploadImage(const char *name, void *data, int width, int height, imagetype_t type);
 image_t *R_LoadImage(const char *name, imagetype_t type);
 void R_TextureMode(const char *mode);

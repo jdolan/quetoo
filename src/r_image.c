@@ -214,35 +214,40 @@ void R_Screenshot_f(void){
 /*
  * R_SoftenTexture
  */
-void R_SoftenTexture(byte *in, int width, int height){
+void R_SoftenTexture(byte *in, int width, int height, imagetype_t type){
 	byte *out;
-	int i, j, k;
+	int i, j, k, bpp;
 	byte *src, *dest;
 	byte *u, *d, *l, *r;
 
+	if(type == it_lightmap || type == it_deluxemap)
+		bpp = 3;
+	else
+		bpp = 4;
+
 	// soften into a copy of the original image, as in-place would be incorrect
-	out = (byte *)Z_Malloc(width * height * 4);
-	memcpy(out, in, width * height * 4);
+	out = (byte *)Z_Malloc(width * height * bpp);
+	memcpy(out, in, width * height * bpp);
 
 	for(i = 1; i < height - 1; i++){
 		for(j = 1; j < width - 1; j++){
 
-			src = in + ((i * width) + j) * 4;  // current input pixel
+			src = in + ((i * width) + j) * bpp;  // current input pixel
 
-			u = (src - (width * 4));  // and it's neighbors
-			d = (src + (width * 4));
-			l = (src - (1 * 4));
-			r = (src + (1 * 4));
+			u = (src - (width * bpp));  // and it's neighbors
+			d = (src + (width * bpp));
+			l = (src - (1 * bpp));
+			r = (src + (1 * bpp));
 
-			dest = out + ((i * width) + j) * 4;  // current output pixel
+			dest = out + ((i * width) + j) * bpp;  // current output pixel
 
-			for(k = 0; k < 4; k++)
+			for(k = 0; k < bpp; k++)
 				dest[k] = (u[k] + d[k] + l[k] + r[k]) / 4;
 		}
 	}
 
 	// copy the softened image over the input image, and free it
-	memcpy(in, out, width * height * 4);
+	memcpy(in, out, width * height * bpp);
 	Z_Free(out);
 }
 
@@ -293,29 +298,33 @@ static void R_ScaleTexture(const unsigned *in, int inwidth, int inheight, unsign
  * the image's average color.  Also handles image inversion and monochrome.  This is
  * all munged into one function to reduce loops on level load.
  */
-void R_FilterTexture(unsigned *in, int width, int height, vec3_t color, imagetype_t type){
+void R_FilterTexture(byte *in, int width, int height, vec3_t color, imagetype_t type){
 	vec3_t intensity, luminosity, temp;
-	int i, j, c, mask;
+	int i, j, c, bpp, mask;
 	unsigned col[3];
 	byte *p;
 	float max, d;
 
-	p = (byte *)in;
+	p = in;
 	c = width * height;
 
-	mask = 0;  // monochrome/invert
+	bpp = mask = 0;  // monochrome / invert
 
-	if(type == it_world || type == it_effect || type == it_material)
+	if(type == it_world || type == it_effect || type == it_material){
+		bpp = 4;
 		mask = 1;
-	else if(type == it_lightmap)
+	}
+	else if(type == it_lightmap){
+		bpp = 3;
 		mask = 2;
+	}
 
 	if(color)  // compute average color
 		VectorClear(col);
 
 	VectorSet(luminosity, 0.2125, 0.7154, 0.0721);
 
-	for(i = 0; i < c; i++, p+= 4){
+	for(i = 0; i < c; i++, p+= bpp){
 
 		VectorScale(p, 1.0 / 255.0, temp);  // convert to float
 
@@ -447,7 +456,7 @@ static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color,
 	}
 
 	if(type == it_effect || type == it_world || type == it_material || type == it_skin)  // and filtered
-		R_FilterTexture(scaled, upload_width, upload_height, color, type);
+		R_FilterTexture((byte *)scaled, upload_width, upload_height, color, type);
 
 	if(mipmap){  // and mipmapped
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
