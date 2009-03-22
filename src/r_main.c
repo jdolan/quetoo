@@ -79,6 +79,8 @@ cvar_t *r_parallax;
 cvar_t *r_programs;
 cvar_t *r_rendermode;
 cvar_t *r_saturation;
+cvar_t *r_screenshot_type;
+cvar_t *r_screenshot_quality;
 cvar_t *r_shadows;
 cvar_t *r_soften;
 cvar_t *r_specular;
@@ -641,7 +643,7 @@ static void R_InitLocal(void){
 	r_lines = Cvar_Get("r_lines", "0.5", CVAR_ARCHIVE, NULL);
 	r_linewidth = Cvar_Get("r_linewidth", "1.0", CVAR_ARCHIVE, NULL);
 	r_materials = Cvar_Get("r_materials", "1", CVAR_ARCHIVE, NULL);
-	r_modulate = Cvar_Get("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_IMAGES, "Controlls the brightness of the lightmap");
+	r_modulate = Cvar_Get("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_IMAGES, "Controls the brightness of the lightmap");
 	r_monochrome = Cvar_Get("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_multisample = Cvar_Get("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_optimize = Cvar_Get("r_optimize", "1", CVAR_ARCHIVE, NULL);
@@ -649,6 +651,16 @@ static void R_InitLocal(void){
 	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS, "Activate or deactivate GLSL shaders");
 	r_rendermode = Cvar_Get("r_rendermode", "default", CVAR_ARCHIVE, NULL);
 	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
+
+	r_screenshot_type = Cvar_Get("r_screenshot_type",
+#ifdef HAVE_JPEG
+	"jpeg",
+#else
+	"tga",
+#endif
+	CVAR_ARCHIVE, "Screenshot image format (jpeg or tga)");
+	
+	r_screenshot_quality = Cvar_Get("r_screenshot_quality", "0.9", CVAR_ARCHIVE, "Screenshot image quality (jpeg only)");
 	r_shadows = Cvar_Get("r_shadows", "1", CVAR_ARCHIVE, NULL);
 	r_soften = Cvar_Get("r_soften", "4", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_specular = Cvar_Get("r_specular", "1.0", CVAR_ARCHIVE, NULL);

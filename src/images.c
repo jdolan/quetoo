@@ -20,9 +20,11 @@
  */
 
 #include <SDL_image.h>
-#include <png.h>
-
 #include "images.h"
+
+#ifdef HAVE_JPEG
+#include <jpeglib.h>
+#endif
 
 // 8bit palette for wal images and particles
 #define PALETTE "pics/colormap"
@@ -260,12 +262,65 @@ static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream
 }
 
 
+#ifdef HAVE_JPEG
+/*
+ * Img_WriteJPEG
+ *
+ * Write pixel data to a JPEG file.
+ */
+void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quality)
+{
+	struct jpeg_compress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+	FILE *outfile;	/* target file */
+	JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
+	int row_stride;	/* physical row width in image buffer */
+
+	if(!(outfile = fopen(path, "wb"))){  // failed to open
+		Com_Printf( "Failed to open to %s\n", path);
+		return;
+	}
+
+	cinfo.err = jpeg_std_error(&jerr);
+
+	jpeg_create_compress(&cinfo);
+
+	jpeg_stdio_dest(&cinfo, outfile);
+
+	cinfo.image_width = width;		/* image width and height, in pixels */
+	cinfo.image_height = height;
+	cinfo.input_components = 3;		/* # of color components per pixel */
+	cinfo.in_color_space = JCS_RGB;	/* colorspace of input image */
+
+	jpeg_set_defaults(&cinfo);
+
+	jpeg_set_quality(&cinfo, quality, TRUE);
+
+	jpeg_start_compress(&cinfo, TRUE);
+
+	row_stride = width * 3;	/* JSAMPLEs per row in img_data */
+
+	while (cinfo.next_scanline < cinfo.image_height) {
+		row_pointer[0] = & img_data[
+			(cinfo.image_height-cinfo.next_scanline-1) * row_stride];
+		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+	}
+
+	jpeg_finish_compress(&cinfo);
+
+	jpeg_destroy_compress(&cinfo);
+
+	fclose(outfile);
+}
+#endif // HAVE_JPEG
+
+
 /*
  * Img_WriteTGARLE
  *
  * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
-void Img_WriteTGARLE(char *path, void *data, int width, int height){
+void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unused){
 	FILE *tga_file;
 	const unsigned int channels = 3;		// 24-bit RGB
 	unsigned char header[18];
@@ -274,7 +329,6 @@ void Img_WriteTGARLE(char *path, void *data, int width, int height){
 	unsigned char pixel_data[channels];
 	unsigned char block_data[channels*128];
 	unsigned char rle_packet;
-	unsigned char *img_data = (unsigned char*)data;
 	int compress = 0;
 	size_t block_length = 0;
 	char footer[26];

@@ -10,7 +10,7 @@
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 *
 * See the GNU General Public License for more details.
 *
@@ -61,11 +61,20 @@ Returns RGB components of the specified color in the specified result array.
 */
 void Img_ColorFromPalette(byte c, float *res);
 
+#ifdef HAVE_JPEG
+/*
+Img_WriteJPEG
+
+Write pixel data to a JPEG file.
+*/
+void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quality);
+#endif // HAVE_JPEG
+
 /*
 Img_WriteTGARLE
 
 Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
 */
-void Img_WriteTGARLE(char *filename, void *data, int width, int height);
+void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unused);
 
 #endif /*__IMAGES_H__*/

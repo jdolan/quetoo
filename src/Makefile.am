@@ -54,7 +54,7 @@ quake2world_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@ @SDL_CFLAGS@ \
 
 quake2world_LDADD = @ICON@ libcmodel.la libcommon.la libfiles.la libhash.la \
 	libimages.la libpak.la libshared.la @SDL_LIBS@ @CURL_LIBS@ @CURSES_LIBS@ \
-	@HOST_LIBS@ @HOST_OPENGL_LIBS@ @DEBUG_LIBS@ -lm -lz
+	@JPEG_LIBS@ @HOST_LIBS@ @HOST_OPENGL_LIBS@ @DEBUG_LIBS@ -lm -lz
 
 else
 

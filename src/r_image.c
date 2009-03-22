@@ -173,15 +173,41 @@ void R_Screenshot_f(void){
 	char picname[MAX_QPATH];
 	char checkname[MAX_OSPATH];
 	int i, c;
+	int quality = 0;
 	FILE *f;
 	static int last_shot;  // small optimization, don't fopen so many times
+	void (*Img_Write)(char *path, byte *img_data, int width, int height, int quality);
 
-	// create the scrnshots directory if it doesn't exist
+	// use format specified in type cvar
+	// JPEG
+	if(!strcmp(r_screenshot_type->string, "jpeg")
+	|| !strcmp(r_screenshot_type->string, "jpg")){
+#ifdef HAVE_JPEG
+		Img_Write = &Img_WriteJPEG;
+		quality = r_screenshot_quality->value * 100;
+		if(quality < 0) quality = 0;
+		if(quality > 100) quality = 100;
+#else
+		Com_Printf("Client executable was compiled without JPEG support\n");
+		return;
+#endif
+	}
+	// TGA
+	else if(!strcmp(r_screenshot_type->string, "tga")){
+		Img_Write = &Img_WriteTGARLE;
+	}
+	// unknown
+	else{
+		Com_Printf("Screenshot image type \"%s\" is not supported\n", r_screenshot_type->string);
+		return;
+	}
+
+	// create the screenshots directory if it doesn't exist
 	snprintf(checkname, sizeof(checkname), "%s/screenshots/", Fs_Gamedir());
 	Fs_CreatePath(checkname);
 
 	// find a file name to save it to
-	strcpy(picname, "quake2world--.tga");
+	snprintf(picname, sizeof(picname), "quake2world--.%s", r_screenshot_type->string);
 
 	for(i = last_shot; i <= 99; i++){
 		picname[11] = i / 10 + '0';
@@ -204,10 +230,10 @@ void R_Screenshot_f(void){
 
 	glReadPixels(0, 0, r_state.width, r_state.height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
-	Img_WriteTGARLE(checkname, (void *)buffer, r_state.width, r_state.height);
+	(*Img_Write)(checkname, buffer, r_state.width, r_state.height, quality);
 
 	Z_Free(buffer);
-	Com_Printf("Wrote %s\n", picname);
+	Com_Printf("Saved %s\n", picname);
 }
 
 
