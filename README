@@ -18,6 +18,7 @@ versions:
   automake     1.9.6
   autoconf     2.59
   libsdl       1.2
+  libsdl-mixer 1.2
   libsdl-image 1.2
   libcurl      7.15.1
   zlib         1.2.3
