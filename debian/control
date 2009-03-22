@@ -2,7 +2,7 @@ Source: quake2world
 Section: contrib/games
 Priority: optional
 Maintainer: Stanley Pinchak <stanley.pinchak@gmail.com>
-Build-Depends: debhelper (>= 5), autotools-dev, automake1.9, libtool, libsdl1.2-dev, libsdl-mixer1.2, libsdl-image1.2-dev, libcurl4-openssl-dev, libncurses5-dev
+Build-Depends: debhelper (>= 5), autotools-dev, automake1.9, libtool, libsdl1.2-dev, libsdl-mixer1.2-dev, libsdl-image1.2-dev, libcurl4-openssl-dev, libncurses5-dev
 Standards-Version: 3.8.0
 Homepage: http://quake2world.net
 Vcs-Svn: svn://jdolan.dyndns.org/quake2world/trunk/quake2world
