@@ -472,4 +472,5 @@ Quake2World $VERSION: Automatic configuration OK.
     Data: .............. $PKGDATADIR
 
 Type 'make' to build Quake2World.  Type 'make install' to install it.
+Type 'make rsync-data' to install or update the game data.
 ])
