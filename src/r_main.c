@@ -95,12 +95,34 @@ cvar_t *r_windowedwidth;
 
 
 /*
+ * R_ModelViewTransform
+ *
+ * Transforms the specified input by the world model view matrix.
+ *
+ * [ a b c d ]   [ x ]   [ ax + by + cz + d ]
+ * [ e f g h ] * [ y ] = [ ex + fy + gz + h ]
+ * [ i j k l ]   [ z ]   [ ix + jy + kz + l ]
+ * [ m n o p ]   [ 1 ]   [ m  + n  + o  + p ]
+ */
+void R_ModelViewTransform(const vec3_t in, vec3_t out){
+	const float *v = in;
+	float m[16];
+
+	glGetFloatv(GL_MODELVIEW_MATRIX, m);
+
+	out[0] = m[0] * v[0] + m[4] * v[1] + m[8]  * v[2] + m[12];
+	out[1] = m[1] * v[0] + m[5] * v[1] + m[9]  * v[2] + m[13];
+	out[2] = m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14];
+}
+
+
+/*
  * R_Trace
  *
  * Traces to world and BSP models.  If a BSP entity is hit, it is saved as
  * r_view.trace_ent.
  */
-void R_Trace(vec3_t start, vec3_t end, float size, int mask){
+void R_Trace(const vec3_t start, const vec3_t end, float size, int mask){
 	vec3_t mins, maxs;
 	trace_t tr;
 	float frac;
@@ -659,7 +681,7 @@ static void R_InitLocal(void){
 	"tga",
 #endif
 	CVAR_ARCHIVE, "Screenshot image format (jpeg or tga)");
-	
+
 	r_screenshot_quality = Cvar_Get("r_screenshot_quality", "0.9", CVAR_ARCHIVE, "Screenshot image quality (jpeg only)");
 	r_shadows = Cvar_Get("r_shadows", "1", CVAR_ARCHIVE, NULL);
 	r_soften = Cvar_Get("r_soften", "4", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);

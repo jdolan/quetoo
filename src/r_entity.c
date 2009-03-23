@@ -34,7 +34,7 @@ static entity_t *r_null_entities;
  * R_AddEntity
  *
  * Adds a copy of the specified entity to the correct draw list.  Entities
- * are grouped by model to allow instancing wherever possible (e.g. armor 
+ * are grouped by model to allow instancing wherever possible (e.g. armor
  * shards, ammo boxes, trees, etc..).
  */
 void R_AddEntity(const entity_t *ent){
@@ -174,7 +174,7 @@ static void R_DrawAlphaTestMeshEntities(entity_t *ents){
 	R_EnableAlphaTest(true);
 
 	R_EnableLighting(r_state.default_program, true);
-	
+
 	R_DrawMeshEntities(ents);
 
 	R_EnableLighting(NULL, false);
@@ -282,6 +282,6 @@ void R_DrawEntities(void){
 	R_DrawNullEntities(r_null_entities);
 
 	// clear chains for next frame
-	r_bsp_entities = r_opaque_mesh_entities = r_alpha_test_mesh_entities = 
+	r_bsp_entities = r_opaque_mesh_entities = r_alpha_test_mesh_entities =
 		r_blend_mesh_entities = r_null_entities = NULL;
 }

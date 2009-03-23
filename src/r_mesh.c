@@ -231,6 +231,7 @@ static void R_SetMeshColor_default(const entity_t *e){
  * R_SetMeshState_default
  */
 static void R_SetMeshState_default(const entity_t *e){
+	vec3_t lightpos;
 
 	if(e->model->num_frames == 1){  // draw static arrays
 		R_SetArrayState(e->model);
@@ -253,8 +254,15 @@ static void R_SetMeshState_default(const entity_t *e){
 	if(e->flags & EF_WEAPON)  // prevent weapon from poking into walls
 		glDepthRange(0.0, 0.3);
 
-	if(r_state.lighting_enabled && !(e->flags & EF_NO_LIGHTING))  // hardware lighting
+	// enable hardware light sources, transform the static light source vector
+	if(r_state.lighting_enabled && !(e->flags & EF_NO_LIGHTING)){
+
 		R_EnableLightsByRadius(e->origin);
+
+		R_ModelViewTransform(e->lighting->position, lightpos);
+
+		R_ProgramParameter3fv("LIGHTPOS", lightpos);
+	}
 
 	glPushMatrix();  // now rotate and translate to the ent's origin
 

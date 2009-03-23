@@ -10,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU General Public License for more details.
  *
@@ -527,9 +527,6 @@ void R_Setup3D(void){
 	glRotatef(-r_view.angles[1], 0.0, 0.0, 1.0);
 
 	glTranslatef(-r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
-
-	// retrieve the resulting matrix for other manipulations
-	glGetFloatv(GL_MODELVIEW_MATRIX, r_locals.world_matrix);
 
 	r_state.ortho = false;
 

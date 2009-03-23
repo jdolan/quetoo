@@ -688,7 +688,7 @@ void Cl_AddEntities(frame_t *frame){
 		if(state->effects & EF_TELEPORTER)
 			Cl_TeleporterTrail(ent.origin, cent);
 
-		// if there's no model assicated with the entity, we're done
+		// if there's no model associated with the entity, we're done
 		if(!state->modelindex)
 			continue;
 

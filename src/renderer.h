@@ -46,8 +46,10 @@ typedef struct static_lighting_s {
 	vec3_t point;  // impact point, shadow origin
 	vec3_t normal;  // shadow direction
 	vec3_t color;  // light color
+	vec3_t position;  // and position
 	float time;  // lerping interval
 	vec3_t colors[2];  // lerping color
+	vec3_t positions[2];  // and positions
 	qboolean dirty;  // cache invalidation
 } static_lighting_t;
 
@@ -227,9 +229,6 @@ typedef struct renderer_locals_s {
 	vec3_t right;
 
 	cplane_t frustum[4];  // for box culling
-
-	float world_matrix[16];
-	float base_world_matrix[16];
 } renderer_locals_t;
 
 extern renderer_locals_t r_locals;
@@ -378,7 +377,8 @@ void R_EndBuildingLightmaps(void);
 void R_LightPoint(const vec3_t point, static_lighting_t *lighting);
 
 // r_main.c
-void R_Trace(vec3_t start, vec3_t end, float size, int mask);
+void R_ModelViewTransform(const vec3_t in, vec3_t out);
+void R_Trace(const vec3_t start, const vec3_t end, float size, int mask);
 void R_Init(void);
 void R_Shutdown(void);
 void R_BeginFrame(void);

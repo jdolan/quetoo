@@ -427,6 +427,42 @@ static void R_LightPointClamp(static_lighting_t *lighting){
 
 
 /*
+ * R_LightPointPosition
+ */
+static void R_LightPointPosition(const vec3_t point, static_lighting_t *lighting){
+	mbsplight_t *l;
+	float dist, best;
+	vec3_t delta;
+	int i;
+
+	// shuffle the samples
+	VectorCopy(lighting->positions[0], lighting->positions[1]);
+
+	best = 99999.0;
+
+	l = r_worldmodel->bsplights;
+	for(i = 0; i < r_worldmodel->numbsplights; i++, l++){
+
+		if(l->leaf->visframe != r_locals.visframe)
+			continue;
+
+		VectorSubtract(l->org, point, delta);
+		dist = VectorLength(delta);
+
+		if(dist < best){  // it's close, but is it in sight
+
+			R_Trace(l->org, point, 0.0, CONTENTS_SOLID);
+			if(r_view.trace.fraction < 1.0)
+				continue;
+
+			best = dist;
+			VectorCopy(l->org, lighting->positions[0]);
+		}
+	}
+}
+
+
+/*
  * R_LightPointLerp
  */
 static void R_LightPointLerp(static_lighting_t *lighting){
@@ -434,6 +470,7 @@ static void R_LightPointLerp(static_lighting_t *lighting){
 
 	if(VectorCompare(lighting->colors[1], vec3_origin)){  // only one sample available
 		VectorCopy(lighting->colors[0], lighting->color);
+		VectorCopy(lighting->positions[0], lighting->position);
 		return;
 	}
 
@@ -442,6 +479,7 @@ static void R_LightPointLerp(static_lighting_t *lighting){
 
 	// and lerp the samples
 	VectorMix(lighting->colors[1], lighting->colors[0], lerp, lighting->color);
+	VectorMix(lighting->positions[1], lighting->positions[0], lerp, lighting->position);
 }
 
 
@@ -527,6 +565,9 @@ void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 	// clamp the new lighting sample
 	R_LightPointClamp(lighting);
 
-	// interpolate the lighting samples
+	// update the static light source position
+	R_LightPointPosition(point, lighting);
+
+	// interpolate the static lighting information
 	R_LightPointLerp(lighting);
 }

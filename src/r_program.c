@@ -119,7 +119,6 @@ void R_ProgramParameter1f(const char *name, GLfloat value){
 }
 
 
-#if 0
 /*
  * R_ProgramParameter3fv
  */
@@ -131,7 +130,6 @@ void R_ProgramParameter3fv(const char *name, GLfloat *value){
 
 	qglUniform3fv(v->location, 1, value);
 }
-#endif
 
 
 /*
@@ -449,6 +447,8 @@ static void R_InitDefaultProgram(void){
 	R_ProgramParameter1i("BUMPMAP", 0);
 	R_ProgramParameter1i("FOG", 0);
 
+	R_ProgramParameter3fv("LIGHTPOS", vec3_origin);
+
 	R_ProgramParameter1f("OFFSET", 0.0);
 
 	R_ProgramParameter1f("BUMP", 1.0);
@@ -548,7 +548,7 @@ void R_InitPrograms(void){
 	memset(r_state.shaders, 0, sizeof(r_state.shaders));
 
 	memset(r_state.programs, 0, sizeof(r_state.programs));
-	
+
 	if(!r_programs->value)
 		return;
 

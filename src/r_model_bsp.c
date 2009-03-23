@@ -973,6 +973,101 @@ static void R_SetModel(mnode_t *node, model_t *model){
 
 
 /*
+ * R_LoadBspLights
+ *
+ * Parse the entity string and resolve all static light sources.  Also
+ * iterate the world surfaces, allocating static light sources for those
+ * which emit light.
+ */
+static void R_LoadBspLights(void){
+	const char *ents;
+	char class[128];
+	mbsplight_t *l;
+	vec3_t org;
+	qboolean entity, light;
+	msurface_t *surf;
+	int i;
+
+	// parse the entity string for point lights
+	ents = Cm_EntityString();
+
+	memset(class, 0, sizeof(class));
+	entity = light = false;
+
+	l = NULL;
+
+	while(true){
+
+		const char *c = Com_Parse(&ents);
+
+		if(!strlen(c))
+			break;
+
+		if(*c == '{')
+			entity = true;
+
+		if(!entity)  // skip any whitespace between ents
+			continue;
+
+		if(*c == '}'){
+			entity = false;
+
+			Com_Dprintf("Closed entity %s\n", class);
+
+			if(light){
+
+				l = (mbsplight_t *)R_HunkAlloc(sizeof(mbsplight_t));
+
+				if(!r_loadmodel->bsplights)  // first one
+					r_loadmodel->bsplights = l;
+
+				VectorCopy(org, l->org);
+				l->leaf = R_LeafForPoint(l->org, r_loadmodel);
+
+				r_loadmodel->numbsplights++;
+				light = false;
+			}
+		}
+
+		if(!strcmp(c, "classname")){
+
+			c = Com_Parse(&ents);
+			strncpy(class, c, sizeof(class) - 1);
+
+			if(!strncmp(c, "light", 5))  // light, light_spot, etc..
+				light = true;
+		}
+
+		if(!strcmp(c, "origin")){
+			sscanf(Com_Parse(&ents), "%f %f %f", &org[0], &org[1], &org[2]);
+			continue;
+		}
+	}
+
+	// iterate the world surfaces for surface lights
+
+	surf = r_loadmodel->surfaces;
+	for(i = 0; i < r_loadmodel->numsurfaces; i++, surf++){
+
+		if((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value){
+
+			l = (mbsplight_t *)R_HunkAlloc(sizeof(mbsplight_t));
+
+			if(!r_loadmodel->bsplights)  // first one
+				r_loadmodel->bsplights = l;
+
+			VectorMA(surf->center, 1.0, surf->normal, l->org);
+			l->leaf = R_LeafForPoint(l->org, r_loadmodel);
+
+			r_loadmodel->numbsplights++;
+		}
+	}
+
+	Com_Dprintf("Loaded %d bsp lights\n", r_loadmodel->numbsplights);
+}
+
+
+/*
  * R_SetupSubmodels
  *
  * The submodels have been loaded into memory, but are not yet
@@ -1075,6 +1170,8 @@ void R_LoadBspModel(model_t *mod, void *buffer){
 
 	R_LoadSubmodels(&header->lumps[LUMP_MODELS]);
 	Cl_LoadProgress(48);
+
+	R_LoadBspLights();
 
 	R_SetupSubmodels();
 

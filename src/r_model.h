@@ -165,6 +165,13 @@ typedef struct mleaf_s {
 	int numleafsurfaces;
 } mleaf_t;
 
+// static light sources from the entities string
+typedef struct mbsplight_s {
+	vec3_t org;
+	const mleaf_t *leaf;
+} mbsplight_t;
+
+
 // md3 model memory representation
 typedef struct mmd3vertex_s {
 	vec3_t point;
@@ -298,6 +305,9 @@ typedef struct model_s {
 
 	int lightmap_scale;
 	byte *lightdata;
+
+	int numbsplights;
+	mbsplight_t *bsplights;
 
 	// sorted surfaces arrays
 	msurfaces_t *sorted_surfaces[NUM_SURFACES_ARRAYS];

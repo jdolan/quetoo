@@ -59,6 +59,7 @@ typedef struct r_program_s {
 void R_UseProgram(r_program_t *prog);
 void R_ProgramParameter1i(const char *name, GLint value);
 void R_ProgramParameter1f(const char *name, GLfloat value);
+void R_ProgramParameter3fv(const char *name, GLfloat *value);
 void R_ProgramParameter4fv(const char *name, GLfloat *value);
 void R_AttributePointer(const char *name, GLuint size, GLvoid *array);
 void R_EnableAttribute(const char *name);
