@@ -23,6 +23,8 @@ quake2world (0.1.0-3) unstable; urgency=low
     - clarify license file location to GPL-2
     - update Debian packaging email address attribution
 
+ -- Stanley Pinchak <stanley.pinchak@gmail.com>  Sun, 22 Mar 2009 16:05:28 -0400
+
 quake2world (0.1.0-2) unstable; urgency=low
 
   * debian/copyright

@@ -1,0 +1,113 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH QUAKE2WORLD 6 "February 20, 2009" quake2world.net quake2world manual
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+quake2world \- a free, standalone first person shooter video game
+.br
+quake2world \- dedicated server
+.SH SYNOPSIS
+.B quake2world
+[options] ...
+.RI
+.br
+.B quake2world \+set dedicated 1 \+exec server.cfg
+[options]  ...
+.RI
+.SH DESCRIPTION
+.B quake2world
+is designed to bring the fun and excitement of straightforward old-school
+death-match gaming to a more contemporary platform.
+.PP
+.B quake2world dedicated server
+is a hardened and streamlined reincarnation of its predecessor.
+A dedicated server is an instance of quake2world which only hosts a game
+for other players; no one is sitting in front of the machine and playing.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+.SH OPTIONS
+These programs follow the quake game series command line syntax.
+A brief list of options is included below.
+.PP
+.B quake2world client options
+.PP
+.B quake2world dedicated server options
+.TP
+.B \+set dedicated 1
+Required to start a dedicated server, no graphical client will be launched.
+Clients may connect to this server for multiplayer games.
+.TP
+.B \+exec \fIserver.cfg\fP
+\fIserver.cfg\fP should contain commands to set server variables:
+.sp 1
+.\".in +1i
+.ft B
+.nf
+set g_gameplay instagib
+set g_teams 1
+.fi
+.ft P
+.\".in -1i
+.PP
+For a complete list of options and their descriptions, see
+.UR
+"http://quake2world.net/books/documentation/client-configuration"
+.UE
+\.
+.UR
+"http://quake2world.net/books/documentation/server-configuration"
+.UE
+\.
+.TP
+.SH EXAMPLE
+.PP
+.B Typical Client Usage
+.nf
+quake2world
+.fi
+.
+.PP
+.B Typical Dedicaed Server Usage
+.nf
+quake2world \+set dedicated 1 \+exec server.cfg
+.fi
+.
+.PP
+.B Dedicated Server running under GNU screen
+.nf
+screen -S q2w quake2world \+set dedicated 1 \+exec server.cfg
+.fi
+.
+.SH SEE ALSO
+.BR screen (1),
+.br
+.\" The programs are documented fully by
+.\" .IR "The Rise and Fall of a Fooish Bar" ,
+.\" available via the Info system.
+.SH AUTHOR
+quake2world was written by Jay Dolan and the quake2world dev team.
+.UR
+http://quake2world.net/pages/team
+.UE
+.PP
+
+This manual page was written by Stanley Pinchak
+.nh
+<stanley.pinchak@gmail.com>,
+.hy
+for the Debian project (but may be used by others).

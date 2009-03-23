@@ -431,6 +431,7 @@ AC_CONFIG_FILES([
 	src/tools/pak/Makefile
 	src/tools/q2wmap/Makefile
 	src/master/Makefile
+	doc/Makefile
 ])
 
 AC_OUTPUT
