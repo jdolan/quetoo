@@ -22,9 +22,7 @@
 #include <SDL_image.h>
 #include "images.h"
 
-#ifdef HAVE_JPEG
 #include <jpeglib.h>
-#endif
 
 // 8bit palette for wal images and particles
 #define PALETTE "pics/colormap"
@@ -262,14 +260,12 @@ static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream
 }
 
 
-#ifdef HAVE_JPEG
 /*
  * Img_WriteJPEG
  *
  * Write pixel data to a JPEG file.
  */
-void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quality)
-{
+void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quality){
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	FILE *outfile;	/* target file */
@@ -302,7 +298,7 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
 
 	while (cinfo.next_scanline < cinfo.image_height) {
 		row_pointer[0] = & img_data[
-			(cinfo.image_height-cinfo.next_scanline-1) * row_stride];
+			(cinfo.image_height-cinfo.next_scanline - 1) * row_stride];
 		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
 	}
 
@@ -312,7 +308,6 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
 
 	fclose(outfile);
 }
-#endif // HAVE_JPEG
 
 
 /*
@@ -322,7 +317,7 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
  */
 void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unused){
 	FILE *tga_file;
-	const unsigned int channels = 3;		// 24-bit RGB
+	const unsigned int channels = 3;  // 24-bit RGB
 	unsigned char header[18];
 	// write image data
 	// TGA has the R and B channels switched

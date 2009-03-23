@@ -108,6 +108,45 @@ else
 		[AC_MSG_ERROR([Couldn't find GL/glext.h, please install OpenGL])],
 		[#include <GL/gl.h>]
 	)
+	
+	dnl -------------
+	dnl Check for SDL
+	dnl -------------
+
+	AC_PATH_PROG(SDL_CONFIG, sdl-config)
+
+	if test "x${SDL_CONFIG}" != x; then
+		SDL_CFLAGS=`$SDL_CONFIG --cflags`
+		SDL_LIBS=`$SDL_CONFIG --libs`
+
+		if test "x${BUILD_CLIENT}" != xno; then
+
+			dnl -------------------
+			dnl Check for SDL_image
+			dnl -------------------
+
+			save_CPPFLAGS="$CPPFLAGS"
+			CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+
+			AC_CHECK_HEADER(SDL/SDL_image.h,
+				SDL_LIBS="$SDL_LIBS -lSDL_image",
+				[AC_MSG_ERROR([Couldn't find SDL_image.h, please install sdl-image])]
+			)
+
+			AC_CHECK_HEADER(SDL/SDL_mixer.h,
+				SDL_LIBS="$SDL_LIBS -lSDL_mixer",
+				[AC_MSG_ERROR([Couldn't find SDL_mixer.h, please install sdl-mixer])]
+			)
+
+			CPPFLAGS="$save_CPPFLAGS"
+		fi
+	else
+		AC_MSG_ERROR([Couldn't find sdl-config, please install libsdl])
+	fi
+	AC_SUBST(SDL_CFLAGS)
+	AC_SUBST(SDL_LIBS)
+
+	AC_DEFINE(HAVE_SDL, 1, [Define this if you have libSDL])
 
 	dnl --------------
 	dnl Check for cURL
@@ -124,54 +163,35 @@ else
 	AC_SUBST(CURL_CFLAGS)
 	AC_SUBST(CURL_LIBS)
 
-	dnl -------------------------
-	dnl Check for JPEG (optional)
-	dnl -------------------------
+	dnl --------------
+	dnl Check for JPEG
+	dnl --------------
 
 	AC_CHECK_HEADER(jpeglib.h,
-		AC_DEFINE(HAVE_JPEG, 1, [Define this to support JPEG screenshots])
 		JPEG_LIBS="-ljpeg",
-		AC_MSG_NOTICE([Couldn't find JPEG header])
+		[AC_MSG_ERROR([Couldn't find jpeglib.h, please install libjpeg])]
 	)
 	AC_SUBST(JPEG_LIBS)
-fi
 
-dnl -------------
-dnl Check for SDL
-dnl -------------
+	dnl --------------------------
+	dnl Check which tools to build
+	dnl --------------------------
 
-AC_PATH_PROG(SDL_CONFIG, sdl-config)
+	AC_MSG_CHECKING(which tools to build)
 
-if test "x${SDL_CONFIG}" != x; then
-	SDL_CFLAGS=`$SDL_CONFIG --cflags`
-	SDL_LIBS=`$SDL_CONFIG --libs`
-
-	if test "x${BUILD_CLIENT}" != xno; then
-
-		dnl -------------------
-		dnl Check for SDL_image
-		dnl -------------------
-
-		save_CPPFLAGS="$CPPFLAGS"
-		CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-
-		AC_CHECK_HEADER(SDL/SDL_image.h,
-			SDL_LIBS="$SDL_LIBS -lSDL_image",
-			[AC_MSG_ERROR([Couldn't find SDL_image.h, please install sdl-image])]
+	TOOLS="pak q2wmap"
+	AC_ARG_WITH(tools,
+		AC_HELP_STRING([--with-tools='pak q2wmap ...'],
+			[build specified tools]
 		)
+	)
 
-		AC_CHECK_HEADER(SDL/SDL_mixer.h,
-			SDL_LIBS="$SDL_LIBS -lSDL_mixer",
-			[AC_MSG_ERROR([Couldn't find SDL_mixer.h, please install sdl-mixer])]
-		)
-
-		CPPFLAGS="$save_CPPFLAGS"
+	if test "x${with_tools}" != x; then
+		TOOLS="${with_tools}"
 	fi
-else
-	AC_MSG_ERROR([Couldn't find sdl-config, please install libsdl])
+	AC_SUBST(TOOLS)
+	AC_MSG_RESULT($TOOLS)
 fi
-AC_SUBST(SDL_CFLAGS)
-AC_SUBST(SDL_LIBS)
 
 dnl --------------
 dnl Check for Zlib
@@ -190,9 +210,9 @@ AC_CHECK_HEADER(execinfo.h,
 			[Define this if you have the <execinfo.h> header file.]),
 )
 
-dnl ----------------------------
+dnl ---------------------------
 dnl Check for curses (optional)
-dnl ----------------------------
+dnl ---------------------------
 
 HAVE_CURSES=no
 
@@ -213,14 +233,18 @@ if test "x${with_curses}" != xno; then
 	CPPFLAGS="$CPPFLAGS $CURSES_CFLAGS"
 	LDFLAGS="$LDFLAGS $CURSES_LIBS"
 
-	dnl check for curses header
+	dnl -----------------------
+	dnl Check for curses header
+	dnl -----------------------
 
 	AC_CHECK_HEADER(curses.h,
 		HAVE_CURSES=maybe,
 		HAVE_CURSES=no
 	)
 
-	dnl check for ncurses
+	dnl -----------------
+	dnl Ccheck for ncurses
+	dnl -----------------
 
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(ncurses, initscr,
@@ -231,7 +255,9 @@ if test "x${with_curses}" != xno; then
 		)
 	fi
 
+	dnl ------------------
 	dnl check for pdcurses
+	dnl ------------------
 
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(pdcurses, initscr,
@@ -242,7 +268,9 @@ if test "x${with_curses}" != xno; then
 		)
 	fi
 
+	dnl ------------------------
 	dnl check for generic curses
+	dnl ------------------------
 
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(curses, initscr,
@@ -309,25 +337,6 @@ if test "x${with_games}" != x; then
 fi
 AC_SUBST(GAME_MODULES)
 AC_MSG_RESULT($GAME_MODULES)
-
-dnl --------------------------
-dnl Check which tools to build
-dnl --------------------------
-
-AC_MSG_CHECKING(which tools to build)
-
-TOOLS=""
-AC_ARG_WITH(tools,
-    AC_HELP_STRING([--with-tools='pak q2wmap'],
-		[build specified tools]
-	)
-)
-
-if test "x${with_tools}" != x; then
-    TOOLS="${with_tools}"
-fi
-AC_SUBST(TOOLS)
-AC_MSG_RESULT($TOOLS)
 
 dnl ------------------------------------
 dnl Check whether to build master server

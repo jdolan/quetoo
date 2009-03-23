@@ -889,7 +889,6 @@ static const char *Cl_GetUserName(void){
  * Cl_InitLocal
  */
 static void Cl_InitLocal(void){
-	int bits;
 
 	// register our variables
 	cl_addentities = Cvar_Get("cl_addentities", "3", 0, NULL);
@@ -930,9 +929,6 @@ static void Cl_InitLocal(void){
 	password = Cvar_Get("password", "", CVAR_USERINFO, NULL);
 	rate = Cvar_Get("rate", "10000", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
 	skin = Cvar_Get("skin", "ichabod/ichabod", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
-
-	bits = QUAKE2WORLD_ZLIB;
-
 	recording = Cvar_Get("recording", "0", CVAR_USERINFO | CVAR_NOSET, NULL);
 
 	// register our commands

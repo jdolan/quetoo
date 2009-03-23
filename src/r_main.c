@@ -673,15 +673,7 @@ static void R_InitLocal(void){
 	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS, "Activate or deactivate GLSL shaders");
 	r_rendermode = Cvar_Get("r_rendermode", "default", CVAR_ARCHIVE, NULL);
 	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
-
-	r_screenshot_type = Cvar_Get("r_screenshot_type",
-#ifdef HAVE_JPEG
-	"jpeg",
-#else
-	"tga",
-#endif
-	CVAR_ARCHIVE, "Screenshot image format (jpeg or tga)");
-
+	r_screenshot_type = Cvar_Get("r_screenshot_type", "jpeg", CVAR_ARCHIVE, "Screenshot image format (jpeg or tga)");
 	r_screenshot_quality = Cvar_Get("r_screenshot_quality", "0.9", CVAR_ARCHIVE, "Screenshot image quality (jpeg only)");
 	r_shadows = Cvar_Get("r_shadows", "1", CVAR_ARCHIVE, NULL);
 	r_soften = Cvar_Get("r_soften", "4", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);

@@ -20,9 +20,13 @@
  */
 
 #include <setjmp.h>
-#include <SDL/SDL_thread.h>
 
 #include "common.h"
+
+#ifdef HAVE_SDL
+#include <SDL/SDL_thread.h>
+#endif
+
 
 int com_argc;
 char *com_argv[MAX_NUM_ARGVS + 1];
@@ -990,8 +994,9 @@ typedef struct zhead_s {
 static zhead_t z_chain;
 static size_t z_count, z_bytes;
 
+#ifdef HAVE_SDL
 static SDL_mutex *z_lock;
-
+#endif
 
 /*
  * Z_Init
@@ -1000,12 +1005,15 @@ void Z_Init(void){
 
 	z_chain.next = z_chain.prev = &z_chain;
 
+#ifdef HAVE_SDL
 	z_lock = SDL_CreateMutex();
+#endif
 }
 
 void Z_Shutdown(void){
-
+#ifdef HAVE_SDL
 	SDL_DestroyMutex(z_lock);
+#endif
 }
 
 
@@ -1021,12 +1029,16 @@ void Z_Free(void *ptr){
 		Com_Error(ERR_FATAL, "Z_Free: Bad magic for %p.", ptr);
 	}
 
+#ifdef HAVE_SDL
 	SDL_mutexP(z_lock);
+#endif
 
 	z->prev->next = z->next;
 	z->next->prev = z->prev;
 
+#ifdef HAVE_SDL
 	SDL_mutexV(z_lock);
+#endif
 
 	z_count--;
 	z_bytes -= z->size;
@@ -1076,14 +1088,18 @@ void *Z_TagMalloc(size_t size, int tag){
 	z->tag = tag;
 	z->size = size;
 
+#ifdef HAVE_SDL
 	SDL_mutexP(z_lock);
+#endif
 
 	z->next = z_chain.next;
 	z->prev = &z_chain;
 	z_chain.next->prev = z;
 	z_chain.next = z;
 
+#ifdef HAVE_SDL
 	SDL_mutexV(z_lock);
+#endif
 
 	return (void *)(z + 1);
 }

@@ -61,14 +61,12 @@ Returns RGB components of the specified color in the specified result array.
 */
 void Img_ColorFromPalette(byte c, float *res);
 
-#ifdef HAVE_JPEG
 /*
 Img_WriteJPEG
 
 Write pixel data to a JPEG file.
 */
 void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quality);
-#endif // HAVE_JPEG
 
 /*
 Img_WriteTGARLE

@@ -173,32 +173,22 @@ void R_Screenshot_f(void){
 	char picname[MAX_QPATH];
 	char checkname[MAX_OSPATH];
 	int i, c;
-	int quality = 0;
+	int quality;
 	FILE *f;
 	static int last_shot;  // small optimization, don't fopen so many times
 	void (*Img_Write)(char *path, byte *img_data, int width, int height, int quality);
 
 	// use format specified in type cvar
-	// JPEG
 	if(!strcmp(r_screenshot_type->string, "jpeg")
-	|| !strcmp(r_screenshot_type->string, "jpg")){
-#ifdef HAVE_JPEG
+			|| !strcmp(r_screenshot_type->string, "jpg")){
 		Img_Write = &Img_WriteJPEG;
-		quality = r_screenshot_quality->value * 100;
-		if(quality < 0) quality = 0;
-		if(quality > 100) quality = 100;
-#else
-		Com_Printf("Client executable was compiled without JPEG support\n");
-		return;
-#endif
 	}
-	// TGA
 	else if(!strcmp(r_screenshot_type->string, "tga")){
 		Img_Write = &Img_WriteTGARLE;
 	}
-	// unknown
-	else{
-		Com_Printf("Screenshot image type \"%s\" is not supported\n", r_screenshot_type->string);
+	else {
+		Com_Warn("R_Screenshot_f: Type \"%s\" not supported.\n",
+				r_screenshot_type->string);
 		return;
 	}
 
@@ -229,6 +219,14 @@ void R_Screenshot_f(void){
 	buffer = Z_Malloc(c);
 
 	glReadPixels(0, 0, r_state.width, r_state.height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+
+	quality = r_screenshot_quality->value * 100;
+
+	if(quality < 0)  // clamp it
+		quality = 0;
+
+	if(quality > 100)
+		quality = 100;
 
 	(*Img_Write)(checkname, buffer, r_state.width, r_state.height, quality);
 
