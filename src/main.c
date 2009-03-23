@@ -19,7 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL/SDL.h>
 #include <dirent.h>
 
 #ifndef _WIN32
@@ -56,6 +55,10 @@
 #ifdef HAVE_EXECINFO
 #include <execinfo.h>
 #define MAX_BACKTRACE_SYMBOLS 50
+#endif
+
+#ifdef HAVE_SDL
+#include <SDL/SDL.h>
 #endif
 
 
