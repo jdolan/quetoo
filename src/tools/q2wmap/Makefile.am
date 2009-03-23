@@ -12,5 +12,5 @@ q2wmap_CFLAGS = -pipe -I../../ @WARN_CFLAGS@ @DEBUG_CFLAGS@ @SDL_CFLAGS@
 
 q2wmap_LDADD = ../../libcmodel.la ../../libcommon.la ../../libfiles.la \
 	../../libimages.la ../../libpak.la ../../libshared.la ../../libsys.la \
-	@SDL_LIBS@ @CURSES_LIBS@ @DEBUG_LIBS@ -lm -lz
+	@SDL_LIBS@ @CURSES_LIBS@ @JPEG_LIBS@ @DEBUG_LIBS@ -lm -lz
 
