@@ -107,9 +107,7 @@ void R_AddEntity(const entity_t *ent){
  */
 void R_RotateForEntity(const entity_t *e){
 
-	//glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
-	glTranslatef(e->lighting->position[0],
-			e->lighting->position[1], e->lighting->position[2]);
+	glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
 
 	glRotatef(e->angles[YAW], 0.0, 0.0, 1.0);
 	glRotatef(e->angles[PITCH], 0.0, 1.0, 0.0);
