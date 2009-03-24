@@ -973,6 +973,45 @@ static void R_SetModel(mnode_t *node, model_t *model){
 
 
 /*
+ * R_AddBspLight
+ *
+ * Adds the specified static light source to the world model, after first
+ * ensuring that it can not be merged with any known sources.
+ */
+static void R_AddBspLight(vec3_t org, float radius){
+	mbsplight_t *l;
+	vec3_t delta;
+	int i;
+
+	l = r_loadmodel->bsplights;
+	for(i = 0; i < r_loadmodel->numbsplights; i++, l++){
+
+		VectorSubtract(org, l->org, delta);
+
+		if(VectorLength(delta) <= 48.0)  // merge them
+			break;
+	}
+
+	if(i == r_loadmodel->numbsplights){
+		l = (mbsplight_t *)R_HunkAlloc(sizeof(mbsplight_t));
+
+		VectorCopy(org, l->org);
+		l->leaf = R_LeafForPoint(l->org, r_loadmodel);
+
+		if(!r_loadmodel->bsplights)  // first source
+			r_loadmodel->bsplights = l;
+
+		r_loadmodel->numbsplights++;
+	}
+
+	l->radius += radius;
+
+	if(l->radius > 250.0)  // clamp
+		l->radius = 250.0;
+}
+
+
+/*
  * R_LoadBspLights
  *
  * Parse the entity string and resolve all static light sources.  Also
@@ -982,8 +1021,8 @@ static void R_SetModel(mnode_t *node, model_t *model){
 static void R_LoadBspLights(void){
 	const char *ents;
 	char class[128];
-	mbsplight_t *l;
-	vec3_t org;
+	vec3_t org, tmp;
+	float radius;
 	qboolean entity, light;
 	msurface_t *surf;
 	int i;
@@ -991,10 +1030,11 @@ static void R_LoadBspLights(void){
 	// parse the entity string for point lights
 	ents = Cm_EntityString();
 
+	VectorClear(org);
+	radius = 0.0;
+
 	memset(class, 0, sizeof(class));
 	entity = light = false;
-
-	l = NULL;
 
 	while(true){
 
@@ -1014,17 +1054,8 @@ static void R_LoadBspLights(void){
 
 			Com_Dprintf("Closed entity %s\n", class);
 
-			if(light){
-
-				l = (mbsplight_t *)R_HunkAlloc(sizeof(mbsplight_t));
-
-				if(!r_loadmodel->bsplights)  // first one
-					r_loadmodel->bsplights = l;
-
-				VectorCopy(org, l->org);
-				l->leaf = R_LeafForPoint(l->org, r_loadmodel);
-
-				r_loadmodel->numbsplights++;
+			if(light){  // add it
+				R_AddBspLight(org, radius);
 				light = false;
 			}
 		}
@@ -1036,10 +1067,17 @@ static void R_LoadBspLights(void){
 
 			if(!strncmp(c, "light", 5))  // light, light_spot, etc..
 				light = true;
+
+			continue;
 		}
 
 		if(!strcmp(c, "origin")){
 			sscanf(Com_Parse(&ents), "%f %f %f", &org[0], &org[1], &org[2]);
+			continue;
+		}
+
+		if(!strcmp(c, "light")){
+			radius = atof(Com_Parse(&ents));
 			continue;
 		}
 	}
@@ -1050,16 +1088,10 @@ static void R_LoadBspLights(void){
 	for(i = 0; i < r_loadmodel->numsurfaces; i++, surf++){
 
 		if((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value){
+			VectorMA(surf->center, 1.0, surf->normal, org);
 
-			l = (mbsplight_t *)R_HunkAlloc(sizeof(mbsplight_t));
-
-			if(!r_loadmodel->bsplights)  // first one
-				r_loadmodel->bsplights = l;
-
-			VectorMA(surf->center, 1.0, surf->normal, l->org);
-			l->leaf = R_LeafForPoint(l->org, r_loadmodel);
-
-			r_loadmodel->numbsplights++;
+			VectorSubtract(surf->maxs, surf->mins, tmp);
+			R_AddBspLight(org, VectorLength(tmp));
 		}
 	}
 

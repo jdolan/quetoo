@@ -331,12 +331,12 @@ void R_EndBuildingLightmaps(void){
 
 
 /*
- * R_LightPoint_
+ * R_LightPointColor_
  *
  * Clip to all surfaces within the specified range, accumulating static lighting
  * color to the specified vector in the event of an intersection.
  */
-static qboolean R_LightPoint_(const int firstsurface, const int numsurfaces,
+static qboolean R_LightPointColor_(const int firstsurface, const int numsurfaces,
 		const vec3_t point, vec3_t color){
 	msurface_t *surf;
 	mtexinfo_t *tex;
@@ -387,13 +387,13 @@ static qboolean R_LightPoint_(const int firstsurface, const int numsurfaces,
 }
 
 
-#define STATIC_LIGHTING_INTERVAL 0.25
-
 #define STATIC_LIGHTING_MIN_COMPONENT 0.05
 #define STATIC_LIGHTING_MIN_SUM 0.75
 
 /*
  * R_LightPointClamp
+ *
+ * Clamps and scales the newly resolved sample color into an acceptable range.
  */
 static void R_LightPointClamp(static_lighting_t *lighting){
 	qboolean clamped;
@@ -427,18 +427,73 @@ static void R_LightPointClamp(static_lighting_t *lighting){
 
 
 /*
- * R_LightPointPosition
+ * R_LightPointColor
+ *
+ * Resolve the lighting color at the point of impact from the downward trace.
+ * If the trace did not intersect a surface, use the level's ambient color.
  */
-static void R_LightPointPosition(const vec3_t point, static_lighting_t *lighting){
+static void R_LightPointColor(static_lighting_t *lighting){
+
+	// shuffle the samples
+	VectorCopy(lighting->colors[0], lighting->colors[1]);
+
+	if(r_view.trace.leafnum){  // hit something
+
+		VectorSet(lighting->colors[0], 1.0, 1.0, 1.0);
+
+		if(r_worldmodel->lightdata){  // resolve the lighting sample
+
+			if(r_view.trace_ent){  // clip to all surfaces of the bsp entity
+
+				VectorSubtract(r_view.trace.endpos,
+						r_view.trace_ent->origin, r_view.trace.endpos);
+
+				R_LightPointColor_(r_view.trace_ent->model->firstmodelsurface,
+						r_view.trace_ent->model->nummodelsurfaces,
+						r_view.trace.endpos, lighting->colors[0]);
+			}
+			else {  // general case is to recurse up the nodes
+				mleaf_t *leaf = &r_worldmodel->leafs[r_view.trace.leafnum];
+				mnode_t *node = leaf->parent;
+
+				while(node){
+
+					if(R_LightPointColor_(node->firstsurface, node->numsurfaces,
+								r_view.trace.endpos, lighting->colors[0]))
+						break;
+
+					node = node->parent;
+				}
+			}
+		}
+	}
+	else {  // use the level's ambient lighting
+		VectorCopy(r_view.ambient_light, lighting->colors[0]);
+	}
+
+	R_LightPointClamp(lighting);
+}
+
+
+/*
+ * R_LightPointPosition
+ *
+ * Resolves the closest static light source, populating the lighting's position
+ * element.  This facilitates directional shading in the fragment program.
+ */
+static void R_LightPointPosition(static_lighting_t *lighting){
 	mbsplight_t *l;
-	float dist, best;
+	float light, best;
 	vec3_t delta;
 	int i;
+
+	if(!r_state.lighting_enabled)  // don't bother
+		return;
 
 	// shuffle the samples
 	VectorCopy(lighting->positions[0], lighting->positions[1]);
 
-	best = 99999.0;
+	best = -99999.0;
 
 	l = r_worldmodel->bsplights;
 	for(i = 0; i < r_worldmodel->numbsplights; i++, l++){
@@ -446,24 +501,28 @@ static void R_LightPointPosition(const vec3_t point, static_lighting_t *lighting
 		if(l->leaf->visframe != r_locals.visframe)
 			continue;
 
-		VectorSubtract(l->org, point, delta);
-		dist = VectorLength(delta);
+		VectorSubtract(l->org, lighting->origin, delta);
+		light = l->radius - VectorLength(delta);
 
-		if(dist < best){  // it's close, but is it in sight
+		if(light > best){  // it's close, but is it in sight
 
-			R_Trace(l->org, point, 0.0, CONTENTS_SOLID);
+			R_Trace(l->org, lighting->origin, 0.0, CONTENTS_SOLID);
 			if(r_view.trace.fraction < 1.0)
 				continue;
 
-			best = dist;
+			best = light;
 			VectorCopy(l->org, lighting->positions[0]);
 		}
 	}
 }
 
 
+#define STATIC_LIGHTING_INTERVAL 0.2
+
 /*
  * R_LightPointLerp
+ *
+ * Interpolate color and position information.
  */
 static void R_LightPointLerp(static_lighting_t *lighting){
 	float lerp;
@@ -477,14 +536,20 @@ static void R_LightPointLerp(static_lighting_t *lighting){
 	// calculate the lerp fraction
 	lerp = (r_view.time - lighting->time) / STATIC_LIGHTING_INTERVAL;
 
-	// and lerp the samples
+	// and lerp the colors
 	VectorMix(lighting->colors[1], lighting->colors[0], lerp, lighting->color);
+
+	// and the positions
 	VectorMix(lighting->positions[1], lighting->positions[0], lerp, lighting->position);
 }
 
 
 /*
  * R_LightPoint
+ *
+ * Resolve static lighting information for the specified point.  Linear
+ * interpolation is used to blend the previous lighting information, provided
+ * it is recent.
  */
 void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 	vec3_t start, end;
@@ -495,9 +560,12 @@ void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 	if(lighting->time > r_view.time)  // new level check
 		lighting->time = 0.0;
 
+	// copy the origin
+	VectorCopy(point, lighting->origin);
+
 	// do the trace
-	VectorCopy(point, start);
-	VectorCopy(point, end);
+	VectorCopy(lighting->origin, start);
+	VectorCopy(lighting->origin, end);
 	end[2] -= 256.0;
 
 	R_Trace(start, end, 0.0, MASK_SOLID);
@@ -525,48 +593,11 @@ void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 	// bump the time
 	lighting->time = r_view.time;
 
-	// shuffle the samples
-	VectorCopy(lighting->colors[0], lighting->colors[1]);
+	// resolve the lighting color
+	R_LightPointColor(lighting);
 
-	if(r_view.trace.leafnum){  // hit something
-
-		VectorSet(lighting->colors[0], 1.0, 1.0, 1.0);
-
-		if(r_worldmodel->lightdata){  // resolve the lighting sample
-
-			if(r_view.trace_ent){  // clip to all surfaces of the bsp entity
-
-				VectorSubtract(r_view.trace.endpos,
-						r_view.trace_ent->origin, r_view.trace.endpos);
-
-				R_LightPoint_(r_view.trace_ent->model->firstmodelsurface,
-						r_view.trace_ent->model->nummodelsurfaces,
-						r_view.trace.endpos, lighting->colors[0]);
-			}
-			else {  // general case is to recurse up the nodes
-				mleaf_t *leaf = &r_worldmodel->leafs[r_view.trace.leafnum];
-				mnode_t *node = leaf->parent;
-
-				while(node){
-
-					if(R_LightPoint_(node->firstsurface, node->numsurfaces,
-								r_view.trace.endpos, lighting->colors[0]))
-						break;
-
-					node = node->parent;
-				}
-			}
-		}
-	}
-	else {  // use the level's ambient lighting
-		VectorCopy(r_view.ambient_light, lighting->colors[0]);
-	}
-
-	// clamp the new lighting sample
-	R_LightPointClamp(lighting);
-
-	// update the static light source position
-	R_LightPointPosition(point, lighting);
+	// resolve the static light source position
+	R_LightPointPosition(lighting);
 
 	// interpolate the static lighting information
 	R_LightPointLerp(lighting);

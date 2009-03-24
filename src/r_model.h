@@ -168,6 +168,7 @@ typedef struct mleaf_s {
 // static light sources from the entities string
 typedef struct mbsplight_s {
 	vec3_t org;
+	float radius;
 	const mleaf_t *leaf;
 } mbsplight_t;
 

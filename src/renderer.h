@@ -43,6 +43,7 @@
 #define FOG_END		2500.0
 
 typedef struct static_lighting_s {
+	vec3_t origin;  // starting point, entity origin
 	vec3_t point;  // impact point, shadow origin
 	vec3_t normal;  // shadow direction
 	vec3_t color;  // light color
