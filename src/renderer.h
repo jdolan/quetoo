@@ -229,6 +229,8 @@ typedef struct renderer_locals_s {
 	vec3_t forward;
 	vec3_t right;
 
+	GLfloat modelview[16];  // world matrix
+
 	cplane_t frustum[4];  // for box culling
 } renderer_locals_t;
 

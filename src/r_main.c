@@ -106,9 +106,7 @@ cvar_t *r_windowedwidth;
  */
 void R_ModelViewTransform(const vec3_t in, vec3_t out){
 	const float *v = in;
-	float m[16];
-
-	glGetFloatv(GL_MODELVIEW_MATRIX, m);
+	const float *m = r_locals.modelview;
 
 	out[0] = m[0] * v[0] + m[4] * v[1] + m[8]  * v[2] + m[12];
 	out[1] = m[1] * v[0] + m[5] * v[1] + m[9]  * v[2] + m[13];
