@@ -231,6 +231,13 @@ static void AddMaterials(void){
 			continue;
 		}
 
+		// as should normalmaps
+		if(!strcmp(c, "normalmap")){
+			snprintf(texture, sizeof(texture), "textures/%s", Com_Parse(&buf));
+			AddImage(texture);
+			continue;
+		}
+
 		// and custom envmaps
 		if(!strcmp(c, "envmap")){
 
