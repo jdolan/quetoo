@@ -1091,7 +1091,9 @@ static void R_LoadBspLights(void){
 			VectorMA(surf->center, 1.0, surf->normal, org);
 
 			VectorSubtract(surf->maxs, surf->mins, tmp);
-			R_AddBspLight(org, VectorLength(tmp));
+			radius = VectorLength(tmp);
+
+			R_AddBspLight(org, radius > 100.0 ? radius : 100.0);
 		}
 	}
 
