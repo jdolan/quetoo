@@ -483,7 +483,7 @@ static void Cl_Connect_f(void){
 	i = atoi(s);
 	if(i > 0 && !strchr(Cmd_Argv(1), '.')){  // resolve by server number
 
-		const server_info_t *server = Cl_ServerForNum(i - 1);
+		const server_info_t *server = Cl_ServerForNum(i);
 
 		if(!server){
 			Com_Printf("Invalid server number\n");

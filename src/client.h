@@ -164,7 +164,8 @@ typedef enum {
 typedef struct server_info_s {
 	netadr_t adr;
 	server_source_t source;
-	int num;
+	int id;  // constant unique identifier
+	int num;  // ordering in servers list for last ping
 	int pingtime;
 	int ping;
 	char info[MAX_MSGLEN];
@@ -200,7 +201,8 @@ typedef struct {
 	FILE *demofile;
 
 	server_info_t *servers;  // list of servers from all sources
-	int num_servers;  // a simple counter
+	int server_id;  // provides server unique identifiers
+	int server_num;  // provides simple ordering
 
 	int bcasttime;  // time when last broadcast ping was sent
 } client_static_t;

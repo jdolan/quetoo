@@ -34,7 +34,7 @@ static server_info_t *Cl_AddServer(const netadr_t *adr){
 	cls.servers = s;
 
 	s->adr = *adr;
-	s->num = cls.num_servers++;
+	s->id = cls.server_id++;
 
 	return s;
 }
@@ -94,6 +94,8 @@ void Cl_FreeServers(void){
 		Z_Free(s);
 		s = next;
 	}
+
+	cls.server_id = 0;
 }
 
 
@@ -132,6 +134,8 @@ void Cl_ParseStatusMessage(void){
 		server->pingtime = cls.bcasttime;
 	}
 
+	server->num = cls.server_num++;
+
 	source = Cl_ServerSourceName(server->source);
 
 	strncpy(server->info, Msg_ReadString(&net_message), sizeof(server->info) - 1);
@@ -144,7 +148,7 @@ void Cl_ParseStatusMessage(void){
 	if(server->ping > 1000)  // clamp the ping
 		server->ping = 999;
 
-	Com_Printf("^3%02d^7. %8s %s  %3dms\n", server->num + 1, source,
+	Com_Printf("^3%02d^7. %8s %s  %3dms\n", server->num, source,
 			server->info, server->ping);
 }
 
@@ -167,7 +171,7 @@ void Cl_Ping_f(void){
 	i = atoi(Cmd_Argv(1));
 	if(i > 0 && !strchr(Cmd_Argv(1), '.')){  // try numeric reference
 
-		server = Cl_ServerForNum(i - 1);
+		server = Cl_ServerForNum(i);
 
 		if(!server){
 			Com_Printf("Invalid server number\n");
@@ -190,6 +194,8 @@ void Cl_Ping_f(void){
 			server->source = SERVER_SOURCE_USER;
 		}
 	}
+
+	cls.server_num = 1;
 
 	server->pingtime = cls.realtime;
 
@@ -236,6 +242,8 @@ void Cl_Servers_f(void){
 		Com_Printf("Failed to resolve %s\n", IP_MASTER);
 		return;
 	}
+
+	cls.server_num = 1;
 
 	Com_Printf("Refreshing servers.  Type ^3connect #^7 to join a game.\n");
 	Com_Printf("^3#^7   Source   Hostname                 Map          Clients Ping\n");
