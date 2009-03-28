@@ -238,7 +238,7 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 	AngleVectors(r_view.angles, forward, NULL, NULL);
 
 	// project the view origin back and up for 3rd person
-	VectorMA(r_view.origin, -80, forward, dest);
+	VectorMA(r_view.origin, -80.0 * cl_thirdperson->value, forward, dest);
 	dest[2] += 20;
 
 	// clip it to the world

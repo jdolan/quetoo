@@ -514,6 +514,11 @@ static void R_LightPointPosition(static_lighting_t *lighting){
 			VectorCopy(l->org, lighting->positions[0]);
 		}
 	}
+
+	// if we've changed light sources, force a long lerp
+	if(!VectorCompare(lighting->positions[0], lighting->positions[1])){
+		VectorMix(lighting->positions[0], lighting->positions[1], 0.5, lighting->positions[0]);
+	}
 }
 
 

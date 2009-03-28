@@ -525,7 +525,7 @@ static void Cl_DrawCrosshair(void){
 	glColor4ubv(crosshair.color);
 
 	// adjust the crosshair for 3rd person perspective
-	offset = cl_thirdperson->value ? 0.01 * r_view.height : 0;
+	offset = cl_thirdperson->value * 0.008 * r_view.height;
 
 	// calculate width and height based on crosshair image and scale
 	w = (r_view.width - crosshair.width * cl_crosshairscale->value) / 2;
