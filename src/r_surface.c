@@ -163,7 +163,7 @@ void R_DrawOpaqueSurfaces_default(msurfaces_t *surfs){
 
 	R_EnableTexture(&texunit_lightmap, true);
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(r_state.world_program, true);
 
 	R_DrawSurfaces_default(surfs);
 
@@ -211,7 +211,7 @@ void R_DrawAlphaTestSurfaces_default(msurfaces_t *surfs){
 
 	R_EnableTexture(&texunit_lightmap, true);
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(r_state.world_program, true);
 
 	R_DrawSurfaces_default(surfs);
 
@@ -230,7 +230,7 @@ void R_DrawBlendSurfaces_default(msurfaces_t *surfs){
 
 	if(!surfs->count)
 		return;
-	
+
 	if(r_showpolys->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;

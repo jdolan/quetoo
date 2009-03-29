@@ -155,7 +155,7 @@ static void R_DrawOpaqueMeshEntities(entity_t *ents){
 	if(!ents)
 		return;
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(r_state.mesh_program, true);
 
 	R_DrawMeshEntities(ents);
 
@@ -173,7 +173,7 @@ static void R_DrawAlphaTestMeshEntities(entity_t *ents){
 
 	R_EnableAlphaTest(true);
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(r_state.mesh_program, true);
 
 	R_DrawMeshEntities(ents);
 

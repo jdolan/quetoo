@@ -83,7 +83,7 @@ static void R_StageLighting(msurface_t *surf, stage_t *stage){
 
 		if(stage->flags & STAGE_LIGHTING){  // hardware lighting
 
-			R_EnableLighting(r_state.default_program, true);
+			R_EnableLighting(r_state.world_program, true);
 
 			if(r_state.lighting_enabled){
 
@@ -376,7 +376,7 @@ void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 
 	R_EnableTexture(&texunit_lightmap, true);
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(r_state.world_program, true);
 
 	R_EnableColorArray(true);
 

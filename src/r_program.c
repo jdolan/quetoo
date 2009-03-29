@@ -351,6 +351,8 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name){
 	sh->id = qglCreateShader(sh->type);
 	if(!sh->id)
 		return NULL;
+
+	// upload the shader source
 	qglShaderSource(sh->id, 1, src, length);
 
 	// compile it and check for errors
@@ -435,21 +437,15 @@ static r_program_t *R_LoadProgram(const char *name, void *init, void *use){
 
 
 /*
- * R_InitDefaultProgram
+ * R_InitWorldProgram
  */
-static void R_InitDefaultProgram(void){
+static void R_InitWorldProgram(void){
 	R_ProgramParameter1i("SAMPLER0", 0);
 	R_ProgramParameter1i("SAMPLER1", 1);
 	R_ProgramParameter1i("SAMPLER2", 2);
 	R_ProgramParameter1i("SAMPLER3", 3);
 
-	R_ProgramParameter1i("LIGHTMAP", 0);
 	R_ProgramParameter1i("BUMPMAP", 0);
-	R_ProgramParameter1i("FOG", 0);
-
-	R_ProgramParameter3fv("LIGHTPOS", vec3_origin);
-
-	R_ProgramParameter1f("OFFSET", 0.0);
 
 	R_ProgramParameter1f("BUMP", 1.0);
 	R_ProgramParameter1f("PARALLAX", 1.0);
@@ -459,19 +455,14 @@ static void R_InitDefaultProgram(void){
 
 
 /*
- * R_UseDefaultProgram
+ * R_InitMeshProgram
  */
-static void R_UseDefaultProgram(void){
+static void R_InitMeshProgram(void){
+	R_ProgramParameter1i("SAMPLER0", 0);
 
-	if(texunit_lightmap.enabled)
-		R_ProgramParameter1i("LIGHTMAP", 1);
-	else
-		R_ProgramParameter1i("LIGHTMAP", 0);
+	R_ProgramParameter3fv("LIGHTPOS", vec3_origin);
 
-	if(r_state.fog_enabled)
-		R_ProgramParameter1i("FOG", 1);
-	else
-		R_ProgramParameter1i("FOG", 0);
+	R_ProgramParameter1f("OFFSET", 0.0);
 }
 
 
@@ -483,8 +474,6 @@ static void R_InitWarpProgram(void){
 
 	R_ProgramParameter1i("SAMPLER0", 0);
 	R_ProgramParameter1i("SAMPLER1", 1);
-
-	R_ProgramParameter1i("FOG", 0);
 
 	R_ProgramParameter4fv("OFFSET", offset);
 }
@@ -498,11 +487,6 @@ static void R_UseWarpProgram(void){
 
 	offset[0] = offset[1] = r_view.time / 8.0;
 	R_ProgramParameter4fv("OFFSET", offset);
-
-	if(r_state.fog_enabled)
-		R_ProgramParameter1i("FOG", 1);
-	else
-		R_ProgramParameter1i("FOG", 0);
 }
 
 
@@ -513,10 +497,6 @@ static void R_InitProProgram(void){
 	R_ProgramParameter1i("SAMPLER0", 0);
 
 	R_ProgramParameter1i("DIFFUSE", 0);
-
-	R_ProgramParameter1i("FOG", 0);
-
-	R_ProgramParameter1f("OFFSET", 0.0);
 }
 
 
@@ -529,11 +509,6 @@ static void R_UseProProgram(void){
 		R_ProgramParameter1i("DIFFUSE", 1);
 	else
 		R_ProgramParameter1i("DIFFUSE", 0);
-
-	if(r_state.fog_enabled)
-		R_ProgramParameter1i("FOG", 1);
-	else
-		R_ProgramParameter1i("FOG", 0);
 }
 
 
@@ -552,8 +527,11 @@ void R_InitPrograms(void){
 	if(!r_programs->value)
 		return;
 
-	r_state.default_program = R_LoadProgram(
-			"default", R_InitDefaultProgram, R_UseDefaultProgram);
+	r_state.world_program = R_LoadProgram(
+			"world", R_InitWorldProgram, NULL);
+
+	r_state.mesh_program = R_LoadProgram(
+				"mesh", R_InitMeshProgram, NULL);
 
 	r_state.warp_program = R_LoadProgram(
 			"warp", R_InitWarpProgram, R_UseWarpProgram);

@@ -477,10 +477,13 @@ inline void R_EnableFog(qboolean enable){
 			r_state.fog_enabled = true;
 
 			glFogfv(GL_FOG_COLOR, r_view.fog_color);
+
+			glFogf(GL_FOG_DENSITY, 1.0);
 			glEnable(GL_FOG);
 		}
 	}
 	else {
+		glFogf(GL_FOG_DENSITY, 0.0);
 		glDisable(GL_FOG);
 	}
 }

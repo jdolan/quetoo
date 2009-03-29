@@ -93,8 +93,8 @@ static void R_SetVertexArrayState(const model_t *mod, int mask){
 		if(mask & R_ARRAY_NORMAL)
 			R_BindArray(GL_NORMAL_ARRAY, GL_FLOAT, mod->normals);
 
-		if(r_bumpmap->value && mod->tangents &&
-				r_state.rendermode == rendermode_default){
+		if(r_bumpmap->value &&
+				r_state.active_program == r_state.world_program){
 
 			if(mask & R_ARRAY_TANGENT)
 				R_BindArray(GL_TANGENT_ARRAY, GL_FLOAT, mod->tangents);
@@ -188,7 +188,7 @@ void R_SetArrayState(const model_t *mod){
 	if(r_array_state.model == mod){  // try to save some binds
 
 		const int xor = r_array_state.arrays ^ arrays;
-		
+
 		if(!xor)  // no changes, we're done
 			return;
 
@@ -242,7 +242,8 @@ void R_ResetArrayState(void){
 		if(mask & R_ARRAY_NORMAL)
 			R_BindDefaultArray(GL_NORMAL_ARRAY);
 
-		if(r_bumpmap->value && r_state.rendermode == rendermode_default){
+		if(r_bumpmap->value &&
+				r_state.active_program == r_state.world_program){
 
 			if(mask & R_ARRAY_TANGENT)
 				R_BindDefaultArray(GL_TANGENT_ARRAY);
