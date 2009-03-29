@@ -123,15 +123,11 @@ static void R_DrawBspModelSurfaces(const entity_t *e){
 
 	R_DrawMaterialSurfaces(e->model->material_surfaces);
 
-	R_EnableFog(false);
+	R_DrawFlareSurfaces(e->model->flare_surfaces);
 
 	R_DrawBlendSurfaces(e->model->blend_surfaces);
 
 	R_DrawBlendWarpSurfaces(e->model->blend_warp_surfaces);
-
-	R_DrawFlareSurfaces(e->model->flare_surfaces);
-
-	R_EnableFog(true);
 
 	R_EnableBlend(false);
 

@@ -55,8 +55,6 @@ void R_DrawParticles(void){
 
 	R_ResetArrayState();
 
-	R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
-
 	image = r_particletexture;
 	R_BindTexture(image->texnum);
 
@@ -108,6 +106,8 @@ void R_DrawParticles(void){
 			VectorAdd(p->end, right, verts[1]);
 			VectorSubtract(p->end, right, verts[2]);
 			VectorSubtract(p->curorg, right, verts[3]);
+
+			R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
 		}
 		else if(p->type == PARTICLE_DECAL){  // decals are aligned with surfaces
 			AngleVectors(p->dir, NULL, right, up);
@@ -121,6 +121,8 @@ void R_DrawParticles(void){
 			VectorMA(p->curorg, scale, verts[1], verts[1]);
 			VectorMA(p->curorg, scale, verts[2], verts[2]);
 			VectorMA(p->curorg, scale, verts[3], verts[3]);
+
+			R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 		else {  // all other particles are aligned with the client's view
 			if(p->type == PARTICLE_WEATHER){  // keep it vertical
@@ -158,6 +160,8 @@ void R_DrawParticles(void){
 			VectorAdd(p->curorg, upright, verts[1]);
 			VectorAdd(p->curorg, downright, verts[2]);
 			VectorSubtract(p->curorg, upright, verts[3]);
+
+			R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
 		}
 
 		*(int *)color = palette[p->color];
