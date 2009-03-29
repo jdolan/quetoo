@@ -491,28 +491,6 @@ static void R_UseWarpProgram(void){
 
 
 /*
- * R_InitProProgram
- */
-static void R_InitProProgram(void){
-	R_ProgramParameter1i("SAMPLER0", 0);
-
-	R_ProgramParameter1i("DIFFUSE", 0);
-}
-
-
-/*
- * R_UseProProgram
- */
-static void R_UseProProgram(void){
-
-	if(texunit_diffuse.enabled)
-		R_ProgramParameter1i("DIFFUSE", 1);
-	else
-		R_ProgramParameter1i("DIFFUSE", 0);
-}
-
-
-/*
  * R_InitPrograms
  */
 void R_InitPrograms(void){
@@ -537,6 +515,6 @@ void R_InitPrograms(void){
 			"warp", R_InitWarpProgram, R_UseWarpProgram);
 
 	r_state.pro_program = R_LoadProgram(
-			"pro", R_InitProProgram, R_UseProProgram);
+			"pro", NULL, NULL);
 }
 
