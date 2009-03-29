@@ -1310,7 +1310,7 @@ gitem_t itemlist[] = {
 		NULL,
 		"health/mega/pickup.wav",
 		"models/health/mega/tris.md2",
-		EF_PULSE,
+		EF_ROTATE | EF_BOB | EF_PULSE,
 		"i_health",
 		"Mega Health",
 		75,
