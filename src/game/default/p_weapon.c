@@ -355,13 +355,13 @@ static void P_FireSuperShotgun_(edict_t *ent){
 	v[ROLL] = ent->client->angles[ROLL];
 	AngleVectors(v, forward, NULL, NULL);
 
-	G_FireShotgun(ent, start, forward, 6, 4, DEFAULT_SHOTGUN_HSPREAD,
+	G_FireShotgun(ent, start, forward, 4, 4, DEFAULT_SHOTGUN_HSPREAD,
 			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 
 	v[YAW] = ent->client->angles[YAW] + 5;
 	AngleVectors(v, forward, NULL, NULL);
 
-	G_FireShotgun(ent, start, forward, 6, 4, DEFAULT_SHOTGUN_HSPREAD,
+	G_FireShotgun(ent, start, forward, 4, 4, DEFAULT_SHOTGUN_HSPREAD,
 			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 
 	// send muzzle flash
@@ -544,7 +544,7 @@ static void P_FireRailgun_(edict_t *ent){
 }
 
 void P_FireRailgun(edict_t *ent){
-	P_FireWeapon(ent, 1.0, P_FireRailgun_);
+	P_FireWeapon(ent, 1.4, P_FireRailgun_);
 }
 
 

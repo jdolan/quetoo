@@ -42,9 +42,15 @@
 // these must be kept in sync with the declarations in common.h
 #define svc_muzzleflash		2
 #define svc_temp_entity		3
-#define svc_layout		4
-#define svc_sound		7
+#define svc_layout			4
+#define svc_sound			7
 #define svc_stufftext		9
+
+// dmflags->value flags
+#define DF_WEAPONS_STAY			1
+#define DF_SPAWN_FARTHEST		2
+#define DF_NO_FALLING			4
+#define DF_NO_FRIENDLY_FIRE		8
 
 // edict->spawnflags
 #define SF_ITEM_TRIGGER			0x00000001

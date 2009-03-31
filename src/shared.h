@@ -549,12 +549,6 @@ typedef enum {
 #define STAT_GENERAL		STAT_AMMO_LOW  // for mods to extend
 #define MAX_STATS			32
 
-// dmflags->value flags
-#define DF_WEAPONS_STAY			1
-#define DF_SPAWN_RANDOM			2
-#define DF_NO_FALLING			4
-#define DF_NO_FRIENDLY_FIRE		8
-
 #define ANGLE2SHORT(x)	((int)((x)*65536/360) & 65535)
 #define SHORT2ANGLE(x)	((x)*(360.0/65536))
 
