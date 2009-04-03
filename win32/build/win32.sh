@@ -28,7 +28,7 @@ CHECKOUT(){
 CONFIGURATION(){
 	cd $START/quake2world
 	autoreconf -i --force
-	./configure --with-tools='q2wmap pak'
+	./configure
 }
 
 MAKE(){
