@@ -57,7 +57,7 @@ UPLOAD(){
 	scp -r dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32
 	
 	scp quake2world_rev"$rev"zip satgnu.net@satgnu.net:/var/www/htdocs/vhosts/satgnu.net/files
-	ssh satgnu.net@satgnu.net ln -f /var/www/htdocs/vhosts/satgnu.net/files/quake2world_rev"$rev"zip  /var/www/htdocs/vhosts/satgnu.net/files/quake2world-win32-snapshot.zip
+	ssh satgnu.net@satgnu.net ln -f /var/www/htdocs/vhosts/satgnu.net/files/quake2world_rev"$rev"zip  /var/www/satgnu.net/files/quake2world-win32-snapshot.zip
 }
 
 CHECKOUT
