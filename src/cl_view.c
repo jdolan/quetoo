@@ -294,6 +294,9 @@ void Cl_UpdateView(void){
 
 	Cl_UpdateThirdperson(ps);
 
+	// inform the renderer if the client is on the ground
+	r_view.ground = ps->pmove.pm_flags & PMF_ON_GROUND;
+
 	Cl_UpdateFov();
 
 	Cl_UpdateViewsize();

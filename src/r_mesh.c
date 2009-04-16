@@ -126,14 +126,16 @@ void R_DrawMeshShadows(void){
  */
 void R_ApplyMeshModelConfig(entity_t *e){
 	const mesh_config_t *c;
-	vec3_t forward, right, up;
-	vec3_t translate, velocity;
+	vec3_t translate;
 	int i;
 
 	// translation is applied differently for view weapons
 	if(e->flags & EF_WEAPON){
+		vec3_t forward, right, up, velocity;
+		static float time, vtime;
+		float ftime, speed;
 
-		// adjust forward/back offset according to fov
+		// adjust forward/back offset according to field of view
 		float f = (r_view.fov_x - 100.0) / -4.0;
 
 		c = e->model->view_config;
@@ -142,11 +144,25 @@ void R_ApplyMeshModelConfig(entity_t *e){
 
 		VectorMA(e->origin, c->translate[0] + f, forward, e->origin);
 
-		// adjust up and right according to time and velocity
+		// adjust up and right (bob) according to time and speed
 		VectorCopy(r_view.velocity, velocity);
 		velocity[2] = 0.0;
 
-		f = sin(r_view.time * 5.0) * (0.25 + VectorLength(velocity) / 400.0);
+		speed = VectorLength(velocity);
+
+		// calculate the frame time
+		ftime = r_view.time - vtime;
+
+		if(ftime < 0.0)  // clamp it for level changes
+			ftime = 0.0;
+
+		if(!r_view.ground)  // bob less when not on ground
+			ftime *= 0.5;
+
+		time += ftime;
+		vtime = r_view.time;
+
+		f = sin(8.0 * time) * (0.25 + speed / 450.0);
 
 		VectorMA(e->origin, c->translate[1] + f, right, e->origin);
 		VectorMA(e->origin, c->translate[2] + f, up, e->origin);

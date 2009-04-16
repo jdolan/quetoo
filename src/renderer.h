@@ -145,6 +145,8 @@ typedef struct renderer_view_s {
 	vec3_t angles;
 	vec3_t velocity;
 
+	qboolean ground;  // client is on ground
+
 	float time;
 
 	byte *areabits;  // if not NULL, only areas with set bits will be drawn
