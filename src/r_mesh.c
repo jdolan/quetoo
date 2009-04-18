@@ -144,25 +144,35 @@ void R_ApplyMeshModelConfig(entity_t *e){
 
 		VectorMA(e->origin, c->translate[0] + f, forward, e->origin);
 
-		// adjust up and right (bob) according to time and speed
+		/*
+		 * Calculate the weapon bob.  This is done using a running time
+		 * counter and a simple sin function.  The player's speed, as well
+		 * as whether or not they are on the ground, determine the bob
+		 * frequency and amplitude.
+		 */
+
 		VectorCopy(r_view.velocity, velocity);
 		velocity[2] = 0.0;
 
-		speed = VectorLength(velocity);
+		speed = VectorLength(velocity) / 450.0;
 
-		// calculate the frame time
+		if(speed > 1.0)
+			speed = 1.0;
+
 		ftime = r_view.time - vtime;
 
-		if(ftime < 0.0)  // clamp it for level changes
+		if(ftime < 0.0)  // clamp for level changes
 			ftime = 0.0;
 
-		if(!r_view.ground)  // bob less when not on ground
+		ftime *= 1.0 + (2.0 * speed);
+
+		if(!r_view.ground)
 			ftime *= 0.5;
 
 		time += ftime;
 		vtime = r_view.time;
 
-		f = sin(8.0 * time) * (0.25 + speed / 450.0);
+		f = sin(4.0 * time) * (0.25 + speed);
 
 		VectorMA(e->origin, c->translate[1] + f, right, e->origin);
 		VectorMA(e->origin, c->translate[2] + f, up, e->origin);

@@ -488,7 +488,7 @@ static void Cl_ParseSound(void){
 	if(!cl.sound_precache[soundindex])
 		return;
 
-	S_StartSample(org, entnum, cl.sound_precache[soundindex], atten);
+	S_PlaySample(org, entnum, cl.sound_precache[soundindex], atten);
 }
 
 

@@ -87,7 +87,7 @@ void Cl_ParseTempEntity(void){
 			Msg_ReadDir(&net_message, dir);
 			Cl_BulletEffect(pos, dir);
 			if(cl.time - last_ric_time > 300){
-				S_StartSample(pos, -1, cl_sample_machinegun_hit[rand() % 3], ATTN_NORM);
+				S_PlaySample(pos, -1, cl_sample_machinegun_hit[rand() % 3], ATTN_NORM);
 				last_ric_time = cl.time;
 			}
 			break;
@@ -114,20 +114,20 @@ void Cl_ParseTempEntity(void){
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadDir(&net_message, dir);
 			Cl_SparksEffect(pos, dir, 12);
-			S_StartSample(pos, -1, cl_sample_sparks, ATTN_STATIC);
+			S_PlaySample(pos, -1, cl_sample_sparks, ATTN_STATIC);
 			R_AddSustainedLight(pos, 1.0, sparks_light, 0.65);
 			break;
 
 		case TE_HYPERBLASTER:  // hyperblaster hitting wall
 			Msg_ReadPos(&net_message, pos);
-			S_StartSample(pos, -1, cl_sample_hyperblaster_hit, ATTN_NORM);
+			S_PlaySample(pos, -1, cl_sample_hyperblaster_hit, ATTN_NORM);
 			R_AddSustainedLight(pos, 1.0, burn_light, 0.25);
 			break;
 
 		case TE_LIGHTNING:  // lightning detonation in water
 			Msg_ReadPos(&net_message, pos);
 			Cl_LightningEffect(pos);
-			S_StartSample(pos, -1, cl_sample_lightning_discharge, ATTN_NORM);
+			S_PlaySample(pos, -1, cl_sample_lightning_discharge, ATTN_NORM);
 			R_AddSustainedLight(pos, 1.25, lightning_det_light, 0.75);
 			break;
 
@@ -147,14 +147,14 @@ void Cl_ParseTempEntity(void){
 		case TE_EXPLOSION:  // rocket and grenade explosions
 			Msg_ReadPos(&net_message, pos);
 			Cl_ExplosionEffect(pos);
-			S_StartSample(pos, -1, cl_sample_explosion, ATTN_NORM);
+			S_PlaySample(pos, -1, cl_sample_explosion, ATTN_NORM);
 			R_AddSustainedLight(pos, 2.5, explosion_light, 1.0);
 			break;
 
 		case TE_BFG:  // bfg explosion
 			Msg_ReadPos(&net_message, pos);
 			Cl_BFGEffect(pos);
-			S_StartSample(pos, -1, cl_sample_bfg_hit, ATTN_NORM);
+			S_PlaySample(pos, -1, cl_sample_bfg_hit, ATTN_NORM);
 			R_AddSustainedLight(pos, 2.5, burn_light, 1.0);
 			break;
 

@@ -357,7 +357,7 @@ void Cl_AddEmits(void){
 			continue;  // culled
 
 		if((e->flags & EMIT_SOUND) && e->loop)  // add an ambient sound
-			S_StartLoopSample(e->org, e->sample);
+			S_LoopSample(e->org, e->sample);
 
 		if(e->flags & EMIT_MODEL){
 			// fake a packet entity and add it to the view
@@ -398,7 +398,7 @@ void Cl_AddEmits(void){
 			Cl_FlameTrail(e->org, e->org, NULL);
 
 		if((e->flags & EMIT_SOUND) && !e->loop)
-			S_StartSample(e->org, -1, e->sample, e->atten);
+			S_PlaySample(e->org, -1, e->sample, e->atten);
 
 		e->time = cl.time + (1000.0 / e->hz + (e->drift * frand() * 1000.0));
 	}

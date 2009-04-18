@@ -34,6 +34,7 @@ typedef struct s_sample_s {
 typedef struct s_channel_s {
 	vec3_t org;  // for temporary entities and other positioned sounds
 	int entnum;  // for entities and dynamic sounds
+	int count;  // for looped sounds
 	int atten;
 	s_sample_t *sample;
 } s_channel_t;
@@ -69,8 +70,8 @@ void S_Shutdown(void);
 // s_mix.c
 void S_FreeChannel(int c);
 void S_SpatializeChannel(s_channel_t *channel);
-void S_StartSample(const vec3_t org, int entnum, s_sample_t *sample, int atten);
-void S_StartLoopSample(const vec3_t org, s_sample_t *sample);
+void S_PlaySample(const vec3_t org, int entnum, s_sample_t *sample, int atten);
+void S_LoopSample(const vec3_t org, s_sample_t *sample);
 void S_StartLocalSample(const char *name);
 
 // s_sample.c

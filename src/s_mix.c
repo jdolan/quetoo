@@ -89,9 +89,9 @@ void S_SpatializeChannel(s_channel_t *ch){
 
 
 /*
- * S_StartSample
+ * S_PlaySample
  */
-void S_StartSample(const vec3_t org, int entnum, s_sample_t *sample, int atten){
+void S_PlaySample(const vec3_t org, int entnum, s_sample_t *sample, int atten){
 	s_channel_t *ch;
 	int i;
 
@@ -129,9 +129,9 @@ void S_StartSample(const vec3_t org, int entnum, s_sample_t *sample, int atten){
 
 
 /*
- * S_StartLoopSample
+ * S_LoopSample
  */
-void S_StartLoopSample(const vec3_t org, s_sample_t *sample){
+void S_LoopSample(const vec3_t org, s_sample_t *sample){
 	s_channel_t *ch;
 	int i;
 
@@ -152,19 +152,9 @@ void S_StartLoopSample(const vec3_t org, s_sample_t *sample){
 	}
 
 	if(ch){  // update existing loop sample
-		vec3_t delta;
-		float dist1, dist2;
+		ch->count++;
 
-		VectorSubtract(org, r_view.origin, delta);
-		dist1 = VectorLength(delta);
-
-		VectorSubtract(ch->org, r_view.origin, delta);
-		dist2 = VectorLength(delta);
-
-		if(dist1 < dist2)
-			VectorCopy(org, ch->org);
-		else
-			return;
+		VectorMix(ch->org, org, 1.0 / ch->count, ch->org);
 	}
 	else {  // or allocate a new one
 
@@ -175,6 +165,7 @@ void S_StartLoopSample(const vec3_t org, s_sample_t *sample){
 
 		VectorCopy(org, ch->org);
 		ch->entnum = -1;
+		ch->count = 1;
 		ch->atten = ATTN_IDLE;
 		ch->sample = sample;
 
@@ -201,5 +192,5 @@ void S_StartLocalSample(const char *name){
 		return;
 	}
 
-	S_StartSample(NULL, cl.playernum + 1, sample, ATTN_NONE);
+	S_PlaySample(NULL, cl.playernum + 1, sample, ATTN_NONE);
 }

@@ -72,6 +72,9 @@ void S_Frame(void){
 		if(!ch->sample)
 			continue;
 
+		// reset channel's count for loop samples
+		ch->count = 0;
+
 		S_SpatializeChannel(ch);
 	}
 
@@ -90,11 +93,11 @@ void S_Frame(void){
 		}
 
 		if(j == MAX_CHANNELS)
-			S_StartSample(NULL, ent->number, cl.sound_precache[ent->sound], ATTN_NORM);
+			S_PlaySample(NULL, ent->number, cl.sound_precache[ent->sound], ATTN_NORM);
 	}
 
 	if(cl.underwater)  // add under water sample if appropriate
-		S_StartLoopSample(r_view.origin, S_LoadSample("world/under_water"));
+		S_LoopSample(r_view.origin, S_LoadSample("world/under_water"));
 }
 
 

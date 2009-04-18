@@ -93,40 +93,40 @@ void Cl_ParseMuzzleFlash(void){
 
 	switch(weapon){
 		case MZ_SHOTGUN:
-			S_StartSample(NULL, i, cl_sample_shotgun_fire, ATTN_NORM);
+			S_PlaySample(NULL, i, cl_sample_shotgun_fire, ATTN_NORM);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_SSHOTGUN:
-			S_StartSample(NULL, i, cl_sample_supershotgun_fire, ATTN_NORM);
+			S_PlaySample(NULL, i, cl_sample_supershotgun_fire, ATTN_NORM);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_MACHINEGUN:
-			S_StartSample(NULL, i, cl_sample_machinegun_fire[rand() % 4], ATTN_NORM);
+			S_PlaySample(NULL, i, cl_sample_machinegun_fire[rand() % 4], ATTN_NORM);
 			if(rand() & 1)
 				Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_ROCKET:
-			S_StartSample(NULL, i, cl_sample_rocketlauncher_fire, ATTN_NORM);
+			S_PlaySample(NULL, i, cl_sample_rocketlauncher_fire, ATTN_NORM);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_GRENADE:
-			S_StartSample(NULL, i, cl_sample_grenadelauncher_fire, ATTN_NORM);
+			S_PlaySample(NULL, i, cl_sample_grenadelauncher_fire, ATTN_NORM);
 			Cl_SmokeFlash(&cent->current);
 			break;
 		case MZ_HYPERBLASTER:
-			S_StartSample(NULL, i, cl_sample_hyperblaster_fire, ATTN_NORM);
+			S_PlaySample(NULL, i, cl_sample_hyperblaster_fire, ATTN_NORM);
 			break;
 		case MZ_LIGHTNING:
-			S_StartSample(NULL, i, cl_sample_lightning_fire, ATTN_NORM);
+			S_PlaySample(NULL, i, cl_sample_lightning_fire, ATTN_NORM);
 			break;
 		case MZ_RAILGUN:
-			S_StartSample(NULL, i, cl_sample_railgun_fire, ATTN_NORM);
+			S_PlaySample(NULL, i, cl_sample_railgun_fire, ATTN_NORM);
 			break;
 		case MZ_BFG:
-			S_StartSample(NULL, i, cl_sample_bfg_fire, ATTN_NORM);
+			S_PlaySample(NULL, i, cl_sample_bfg_fire, ATTN_NORM);
 			break;
 		case MZ_LOGOUT:
-			S_StartSample(NULL, i, cl_sample_teleport, ATTN_NORM);
+			S_PlaySample(NULL, i, cl_sample_teleport, ATTN_NORM);
 			Cl_LogoutEffect(cent->current.origin);
 			break;
 		default:
@@ -410,7 +410,7 @@ void Cl_TeleporterTrail(const vec3_t org, centity_t *cent){
 		if(cent->time > cl.time)
 			return;
 
-		S_StartSample(NULL, cent->current.number, cl_sample_respawn, ATTN_IDLE);
+		S_PlaySample(NULL, cent->current.number, cl_sample_respawn, ATTN_IDLE);
 
 		cent->time = cl.time + 1000 + (2000 * frand());
 	}
@@ -786,8 +786,8 @@ void Cl_LightningEffect(const vec3_t org){
 void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 	particle_t *p;
 
-	S_StartLoopSample(start, cl_sample_lightning_fly);
-	S_StartLoopSample(end, cl_sample_lightning_fly);
+	S_LoopSample(start, cl_sample_lightning_fly);
+	S_LoopSample(end, cl_sample_lightning_fly);
 
 	if(!(p = Cl_AllocParticle()))
 		return;
@@ -1110,7 +1110,7 @@ static void Cl_WeatherEffects(void){
 	if(!s)
 		return;
 
-	S_StartLoopSample(r_view.origin, s);
+	S_LoopSample(r_view.origin, s);
 }
 
 
@@ -1179,24 +1179,24 @@ void Cl_AddParticles(void){
 void Cl_EntityEvent(entity_state_t *ent){
 	switch(ent->event){
 		case EV_ITEM_RESPAWN:
-			S_StartSample(NULL, ent->number, cl_sample_respawn, ATTN_IDLE);
+			S_PlaySample(NULL, ent->number, cl_sample_respawn, ATTN_IDLE);
 			Cl_ItemRespawnEffect(ent->origin);
 			break;
 		case EV_TELEPORT:
-			S_StartSample(NULL, ent->number, cl_sample_teleport, ATTN_IDLE);
+			S_PlaySample(NULL, ent->number, cl_sample_teleport, ATTN_IDLE);
 			Cl_TeleporterEffect(ent->origin);
 			break;
 		case EV_FOOTSTEP:
-			S_StartSample(NULL, ent->number, cl_sample_footsteps[rand() & 3], ATTN_NORM);
+			S_PlaySample(NULL, ent->number, cl_sample_footsteps[rand() & 3], ATTN_NORM);
 			break;
 		case EV_FALLSHORT:
-			S_StartSample(NULL, ent->number, S_LoadSample("*land_1"), ATTN_NORM);
+			S_PlaySample(NULL, ent->number, S_LoadSample("*land_1"), ATTN_NORM);
 			break;
 		case EV_FALL:
-			S_StartSample(NULL, ent->number, S_LoadSample("*fall_2"), ATTN_NORM);
+			S_PlaySample(NULL, ent->number, S_LoadSample("*fall_2"), ATTN_NORM);
 			break;
 		case EV_FALLFAR:
-			S_StartSample(NULL, ent->number, S_LoadSample("*fall_1"), ATTN_NORM);
+			S_PlaySample(NULL, ent->number, S_LoadSample("*fall_1"), ATTN_NORM);
 			break;
 		default:
 			break;
