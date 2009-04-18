@@ -216,11 +216,17 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 
 	// friendly fire avoidance
 	if(targ != attacker && (level.teams || level.ctf)){
-		if(G_OnSameTeam(targ, attacker)){  // targ and attacker are teammates
-			if((int)(g_dmflags->value) & DF_NO_FRIENDLY_FIRE && mod != MOD_TELEFRAG)
-				damage = 0;  // no ff is on, and it's not a telefrag
-			else
+		if(G_OnSameTeam(targ, attacker)){  // target and attacker are on same team
+
+			if(mod == MOD_TELEFRAG){  // telefrags can not be avoided
 				mod |= MOD_FRIENDLY_FIRE;
+			}
+			else {  // while everything else can
+				if(g_friendlyfire->value)
+					mod |= MOD_FRIENDLY_FIRE;
+				else
+					damage = 0;
+			}
 		}
 	}
 

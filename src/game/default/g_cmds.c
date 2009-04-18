@@ -569,9 +569,23 @@ static void G_PlayerList_f(edict_t *ent){
 }
 
 static const char *vote_cmds[] = {
-	"map", "g_fraglimit", "g_roundlimit", "g_capturelimit", "g_timelimit",
-	"g_gameplay", "kick", "mute", "unmute", "g_teams", "g_ctf", "g_match",
-	"g_rounds", "restart", NULL
+	"g_capturelimit",
+	"g_ctf",
+	"g_fraglimit",
+	"g_friendlyfire",
+	"g_gameplay",
+	"g_match",
+	"g_roundlimit",
+	"g_rounds",
+	"g_spawnfarthest",
+	"g_teams",
+	"g_timelimit",
+	"kick",
+	"map",
+	"mute",
+	"restart",
+	"unmute",
+	NULL
 };
 
 

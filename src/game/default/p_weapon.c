@@ -32,12 +32,6 @@ qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
 
 	index = ITEM_INDEX(ent->item);
 
-	// if weapons stay is on, and we already have it
-	if(((int)(g_dmflags->value) & DF_WEAPONS_STAY) && other->client->locals.inventory[index]){
-		if(!(ent->spawnflags & SF_ITEM_DROPPED))  // and it's not a dropped item
-			return false;  // leave the weapon for others to pickup
-	}
-
 	// add ammo
 	ammo = G_FindItem(ent->item->ammo);
 	ammoindex = ITEM_INDEX(ammo);
@@ -52,11 +46,8 @@ qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
 		G_AddAmmo(other, ammo, ammo->quantity);
 
 	// setup respawn if it's not a dropped item
-	if(!(ent->spawnflags & SF_ITEM_DROPPED)){
-		if((int)(g_dmflags->value) & DF_WEAPONS_STAY)
-			ent->flags |= FL_RESPAWN;
-		else G_SetRespawn(ent, 5);
-	}
+	if(!(ent->spawnflags & SF_ITEM_DROPPED))
+		G_SetRespawn(ent, 5);
 
 	// add the weapon to inventory
 	other->client->locals.inventory[index]++;
@@ -197,9 +188,6 @@ void P_UseWeapon(edict_t *ent, gitem_t *item){
  */
 void P_DropWeapon(edict_t *ent, gitem_t *item){
 	int index;
-
-	if((int)g_dmflags->value & DF_WEAPONS_STAY)
-		return;
 
 	index = ITEM_INDEX(item);
 

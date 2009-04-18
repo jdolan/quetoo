@@ -46,12 +46,6 @@
 #define svc_sound			7
 #define svc_stufftext		9
 
-// dmflags->value flags
-#define DF_WEAPONS_STAY			1
-#define DF_SPAWN_FARTHEST		2
-#define DF_NO_FALLING			4
-#define DF_NO_FRIENDLY_FIRE		8
-
 // edict->spawnflags
 #define SF_ITEM_TRIGGER			0x00000001
 #define SF_ITEM_NO_TOUCH		0x00000002
@@ -340,9 +334,9 @@ extern cvar_t *g_capturelimit;
 extern cvar_t *g_chatlog;
 extern cvar_t *g_cheats;
 extern cvar_t *g_ctf;
-extern cvar_t *g_dmflags;
 extern cvar_t *g_fraglimit;
 extern cvar_t *g_fraglog;
+extern cvar_t *g_friendlyfire;
 extern cvar_t *g_gameplay;
 extern cvar_t *g_match;
 extern cvar_t *g_maxentities;
@@ -355,6 +349,7 @@ extern cvar_t *g_playerprojectile;
 extern cvar_t *g_randommap;
 extern cvar_t *g_roundlimit;
 extern cvar_t *g_rounds;
+extern cvar_t *g_spawnfarthest;
 extern cvar_t *g_teams;
 extern cvar_t *g_timelimit;
 extern cvar_t *g_voting;

@@ -614,7 +614,7 @@ static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *classname){
  */
 static edict_t *P_SelectDeathmatchSpawnPoint(edict_t *ent){
 
-	if(((int)g_dmflags->value) & DF_SPAWN_FARTHEST)
+	if(g_spawnfarthest->value)
 		return P_SelectFarthestSpawnPoint(ent, "info_player_deathmatch");
 
 	return P_SelectRandomSpawnPoint(ent, "info_player_deathmatch");
@@ -633,7 +633,7 @@ static edict_t *P_SelectCaptureSpawnPoint(edict_t *ent){
 	c = ent->client->locals.team == &good ?
 		"info_player_team1" : "info_player_team2";
 
-	if(((int)g_dmflags->value) & DF_SPAWN_FARTHEST)
+	if(g_spawnfarthest->value)
 		return P_SelectFarthestSpawnPoint(ent, c);
 
 	return P_SelectRandomSpawnPoint(ent, c);

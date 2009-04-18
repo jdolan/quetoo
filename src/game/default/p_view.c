@@ -139,11 +139,10 @@ static void P_FallingDamage(edict_t *ent){
 		if(damage < 1)
 			damage = 1;
 
-		VectorSet(dir, 0, 0, 1);
+		VectorSet(dir, 0.0, 0.0, 1.0);
 
-		if(!((int)g_dmflags->value & DF_NO_FALLING))
-			G_Damage(ent, NULL, NULL, dir, ent->s.origin,
-					vec3_origin, damage, 0, 0, MOD_FALLING);
+		G_Damage(ent, NULL, NULL, dir, ent->s.origin,
+				vec3_origin, damage, 0, 0, MOD_FALLING);
 	}
 	else if(delta > 5)
 		event = EV_FALLSHORT;
