@@ -1036,7 +1036,7 @@ void Cl_Frame(int msec){
 		packet_frame = false;  // enforce a soft cap of 100pps
 
 	if(cls.state == ca_connected && cls.packet_delta < 50)
-		render_frame = packet_frame = false;  // dont spam the server while downloading
+		packet_frame = false;  // dont spam the server while downloading
 
 	if(cls.state <= ca_disconnected && !Com_ServerState()){
 		usleep(1000);  // idle at console
