@@ -245,19 +245,19 @@ static void G_BeginIntermission(const char *map){
 	if(level.intermissiontime)
 		return;  // already activated
 
+	level.intermissiontime = level.time;
+
 	// respawn any dead clients
 	for(i = 0; i < sv_maxclients->value; i++){
+
 		client = g_edicts + 1 + i;
+
 		if(!client->inuse)
 			continue;
+
 		if(client->health <= 0)
 			P_Respawn(client, false);
 	}
-
-	level.intermissiontime = level.time;
-
-	// stay on same level if not provided
-	level.changemap = map && *map ? map : level.name;
 
 	// find an intermission spot
 	ent = G_Find(NULL, FOFS(classname), "info_player_intermission");
@@ -272,11 +272,21 @@ static void G_BeginIntermission(const char *map){
 
 	// move all clients to the intermission point
 	for(i = 0; i < sv_maxclients->value; i++){
+
 		client = g_edicts + 1 + i;
+
 		if(!client->inuse)
 			continue;
+
 		P_MoveToIntermission(client);
 	}
+
+	// play a dramatic sound effect
+	gi.PositionedSound(level.intermission_origin, g_edicts,
+			gi.SoundIndex("weapons/bfg/hit"), ATTN_NORM);
+
+	// stay on same level if not provided
+	level.changemap = map && *map ? map : level.name;
 }
 
 

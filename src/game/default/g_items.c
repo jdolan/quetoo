@@ -1040,7 +1040,8 @@ gitem_t itemlist[] = {
 		IT_WEAPON,
 		WEAP_LIGHTNING,
 		0,
-		"weapons/lightning/fire.wav weapons/lightning/fly.wav"
+		"weapons/lightning/fire.wav weapons/lightning/fly.wav "
+		"weapons/lightning/discharge.wav"
 	},
 
 	/*QUAKED weapon_railgun(.3 .3 1)(-16 -16 -16)(16 16 16)
