@@ -616,6 +616,7 @@ void R_SetDefaultState(void){
 
 	// fog parameters
 	glFogi(GL_FOG_MODE, GL_LINEAR);
+	glFogf(GL_FOG_DENSITY, 0.0);
 	glFogf(GL_FOG_START, FOG_START);
 	glFogf(GL_FOG_END, FOG_END);
 
