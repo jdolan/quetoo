@@ -279,7 +279,7 @@ void R_DrawScaledPic(int x, int y, float scale, const char *name){
 	r_state.vertex_array_2d[6] = x;
 	r_state.vertex_array_2d[7] = y + pic->height * scale;
 
-	glDrawArrays(GL_QUADS, 0, 7);
+	glDrawArrays(GL_QUADS, 0, 4);
 }
 
 
