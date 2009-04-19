@@ -221,7 +221,7 @@ typedef struct {
 #define MAX_BSP_SURFEDGES	256000
 #define MAX_BSP_LIGHTING	0x2000000  // increased from 0x200000
 #define MAX_BSP_LIGHTMAP	(512 * 512)
-#define MAX_BSP_VISIBILITY	0x100000
+#define MAX_BSP_VISIBILITY	0x400000 // increased from 0x100000
 
 // key / value pair sizes
 
