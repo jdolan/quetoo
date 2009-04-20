@@ -113,7 +113,7 @@ void P_ChangeWeapon(edict_t *ent){
  */
 void P_NoAmmoWeaponChange(gclient_t *client){
 
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("cells"))] > 24
+	if(client->locals.inventory[ITEM_INDEX(G_FindItem("nukes"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("bfg10k"))]){
 		client->newweapon = G_FindItem("bfg10k");
 		return;
@@ -123,7 +123,7 @@ void P_NoAmmoWeaponChange(gclient_t *client){
 		client->newweapon = G_FindItem("railgun");
 		return;
 	}
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("cells"))]
+	if(client->locals.inventory[ITEM_INDEX(G_FindItem("bolts"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("lightning"))]){
 		client->newweapon = G_FindItem("lightning");
 		return;
@@ -275,6 +275,9 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 	}
 
 	fire(ent);  // fire the weapon
+
+	// and decrease their inventory
+	ent->client->locals.inventory[ent->client->ammo_index] -= m;
 }
 
 
@@ -316,8 +319,6 @@ static void P_FireShotgun_(edict_t *ent){
 	gi.WriteShort(ent - g_edicts);
 	gi.WriteByte(MZ_SHOTGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
-
-	ent->client->locals.inventory[ent->client->ammo_index]--;
 }
 
 void P_FireShotgun(edict_t *ent){
@@ -357,8 +358,6 @@ static void P_FireSuperShotgun_(edict_t *ent){
 	gi.WriteShort(ent - g_edicts);
 	gi.WriteByte(MZ_SSHOTGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
-
-	ent->client->locals.inventory[ent->client->ammo_index] -= 2;
 }
 
 void P_FireSuperShotgun(edict_t *ent){
@@ -386,8 +385,6 @@ static void P_FireMachinegun_(edict_t *ent){
 	gi.WriteShort(ent - g_edicts);
 	gi.WriteByte(MZ_MACHINEGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
-
-	ent->client->locals.inventory[ent->client->ammo_index]--;
 }
 
 void P_FireMachinegun(edict_t *ent){
@@ -412,8 +409,6 @@ static void P_FireGrenadeLauncher_(edict_t *ent){
 	gi.WriteShort(ent - g_edicts);
 	gi.WriteByte(MZ_GRENADE);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
-
-	ent->client->locals.inventory[ent->client->ammo_index]--;
 }
 
 void P_FireGrenadeLauncher(edict_t *ent){
@@ -439,8 +434,6 @@ static void P_FireRocketLauncher_(edict_t *ent){
 	gi.WriteShort(ent - g_edicts);
 	gi.WriteByte(MZ_ROCKET);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
-
-	ent->client->locals.inventory[ent->client->ammo_index]--;
 }
 
 void P_FireRocketLauncher(edict_t *ent){
@@ -466,8 +459,6 @@ static void P_FireHyperblaster_(edict_t *ent){
 	gi.WriteShort(ent - g_edicts);
 	gi.WriteByte(MZ_HYPERBLASTER);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
-
-	ent->client->locals.inventory[ent->client->ammo_index]--;
 }
 
 void P_FireHyperblaster(edict_t *ent){
@@ -500,8 +491,6 @@ static void P_FireLightning_(edict_t *ent){
 			ent->client->muzzleflash_time = level.time + 0.25;
 		}
 	}
-
-	ent->client->locals.inventory[ent->client->ammo_index]--;
 }
 
 void P_FireLightning(edict_t *ent){
@@ -527,8 +516,6 @@ static void P_FireRailgun_(edict_t *ent){
 	gi.WriteShort(ent - g_edicts);
 	gi.WriteByte(MZ_RAILGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
-
-	ent->client->locals.inventory[ent->client->ammo_index]--;
 }
 
 void P_FireRailgun(edict_t *ent){
@@ -554,8 +541,6 @@ static void P_FireBFG_(edict_t *ent){
 	gi.WriteShort(ent - g_edicts);
 	gi.WriteByte(MZ_BFG);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
-
-	ent->client->locals.inventory[ent->client->ammo_index] -= 25;
 }
 
 void P_FireBFG(edict_t *ent){

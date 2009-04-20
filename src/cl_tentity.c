@@ -48,20 +48,20 @@ void Cl_LoadTempEntitySamples(void){
 }
 
 
-vec3_t burn_light = {
-	0.4, 0.7, 1.0
-};
-vec3_t sparks_light = {
+static const vec3_t sparks_light = {
 	0.7, 0.5, 0.5
 };
-vec3_t lightning_det_light = {
+static const vec3_t explosion_light = {
+	1.0, 0.5, 0.3
+};
+static const vec3_t hyperblaster_hit_light = {
+	0.4, 0.7, 1.0
+};
+static const vec3_t lightning_det_light = {
 	0.6, 0.6, 1.0
 };
-vec3_t rail_light = {
-	0.0, 0.0, 0.0
-};
-vec3_t explosion_light = {
-	1.0, 0.5, 0.3
+static const vec3_t bfg_hit_light = {
+	0.5, 1.0, 0.5
 };
 
 /*
@@ -70,7 +70,7 @@ vec3_t explosion_light = {
 void Cl_ParseTempEntity(void){
 	static int last_ric_time;
 	int i, type;
-	vec3_t pos, pos2, dir;
+	vec3_t pos, pos2, dir, light;
 
 	type = Msg_ReadByte(&net_message);
 
@@ -121,7 +121,7 @@ void Cl_ParseTempEntity(void){
 		case TE_HYPERBLASTER:  // hyperblaster hitting wall
 			Msg_ReadPos(&net_message, pos);
 			S_PlaySample(pos, -1, cl_sample_hyperblaster_hit, ATTN_NORM);
-			R_AddSustainedLight(pos, 1.0, burn_light, 0.25);
+			R_AddSustainedLight(pos, 1.0, hyperblaster_hit_light, 0.25);
 			break;
 
 		case TE_LIGHTNING:  // lightning detonation in water
@@ -136,12 +136,12 @@ void Cl_ParseTempEntity(void){
 			Msg_ReadPos(&net_message, pos2);
 			i = Msg_ReadByte(&net_message);
 			Cl_RailTrail(pos, pos2, i);
-			Img_ColorFromPalette(i, rail_light);
-			R_AddSustainedLight(pos, 1.25, rail_light, 0.75);
+			Img_ColorFromPalette(i, light);
+			R_AddSustainedLight(pos, 1.25, light, 0.75);
 			VectorSubtract(pos2, pos, dir);
 			VectorNormalize(dir);
 			VectorMA(pos2, -12.0, dir, pos2);
-			R_AddSustainedLight(pos2, 1.0, rail_light, 0.75);
+			R_AddSustainedLight(pos2, 1.0, light, 0.75);
 			break;
 
 		case TE_EXPLOSION:  // rocket and grenade explosions
@@ -155,7 +155,7 @@ void Cl_ParseTempEntity(void){
 			Msg_ReadPos(&net_message, pos);
 			Cl_BFGEffect(pos);
 			S_PlaySample(pos, -1, cl_sample_bfg_hit, ATTN_NORM);
-			R_AddSustainedLight(pos, 2.5, burn_light, 1.0);
+			R_AddSustainedLight(pos, 2.5, bfg_hit_light, 1.0);
 			break;
 
 		case TE_BUBBLETRAIL:  // bubbles chasing projectiles in water

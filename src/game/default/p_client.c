@@ -463,12 +463,14 @@ static void P_InitClientLocals(gclient_t *client){
 	client->locals.armor = 0;
 	client->locals.max_armor = 200;
 
-	client->locals.max_bullets = 200;
 	client->locals.max_shells = 80;
-	client->locals.max_rockets = 50;
+	client->locals.max_bullets = 200;
 	client->locals.max_grenades = 50;
+	client->locals.max_rockets = 50;
 	client->locals.max_cells = 200;
+	client->locals.max_bolts = 100;
 	client->locals.max_slugs = 50;
+	client->locals.max_nukes = 10;
 
 	// instagib gets railgun and slugs, both in normal mode and warmup
 	if(level.gameplay == INSTAGIB){

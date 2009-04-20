@@ -523,7 +523,7 @@ static const vec3_t lightning_light = {
 	0.6, 0.6, 1.0
 };
 static const vec3_t bfg_light = {
-	0.6, 0.8, 1.0
+	0.4, 1.0, 0.4
 };
 
 /*
@@ -647,7 +647,7 @@ void Cl_AddEntities(frame_t *frame){
 			R_AddCorona(ent.origin, 12.0, hyperblaster_light);
 			R_AddLight(ent.origin, 1.25, hyperblaster_light);
 
-			Cl_EnergyTrail(cent, 10.0);
+			Cl_EnergyTrail(cent, 10.0, 107);
 		}
 
 		if(state->effects & EF_LIGHTNING){
@@ -665,7 +665,7 @@ void Cl_AddEntities(frame_t *frame){
 			R_AddCorona(ent.origin, 24.0, bfg_light);
 			R_AddLight(ent.origin, 1.5, bfg_light);
 
-			Cl_EnergyTrail(cent, 20.0);
+			Cl_EnergyTrail(cent, 20.0, 206);
 		}
 
 		VectorClear(ent.shell);
@@ -693,7 +693,7 @@ void Cl_AddEntities(frame_t *frame){
 			continue;
 
 		// filter by model type
-		mask = ent.model->type == mod_bsp_submodel ? 1 : 2;
+		mask = ent.model && ent.model->type == mod_bsp_submodel ? 1 : 2;
 
 		if(!((int)cl_addentities->value & mask))
 			continue;

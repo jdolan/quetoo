@@ -330,7 +330,7 @@ void Cl_CheckPredictionError(void);
 // cl_effect.c
 void Cl_LightningEffect(const vec3_t org);
 void Cl_LightningTrail(const vec3_t start, const vec3_t end);
-void Cl_EnergyTrail(centity_t *ent, float radius);
+void Cl_EnergyTrail(centity_t *ent, float radius, int color);
 void Cl_BFGEffect(const vec3_t org);
 void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density);
 void Cl_EntityEvent(entity_state_t *ent);

@@ -73,27 +73,29 @@
 #define TAG_LEVEL	766  // clear when loading a new level
 
 typedef enum {
-	AMMO_BULLETS,
 	AMMO_SHELLS,
-	AMMO_ROCKETS,
+	AMMO_BULLETS,
 	AMMO_GRENADES,
+	AMMO_ROCKETS,
 	AMMO_CELLS,
-	AMMO_SLUGS
+	AMMO_BOLTS,
+	AMMO_SLUGS,
+	AMMO_NUKES
 } ammo_t;
 
 // armor types
 #define ARMOR_NONE			0
-#define ARMOR_JACKET			1
-#define ARMOR_COMBAT			2
+#define ARMOR_JACKET		1
+#define ARMOR_COMBAT		2
 #define ARMOR_BODY			3
 #define ARMOR_SHARD			4
 
 // health types
-#define HEALTH_NONE				0
-#define HEALTH_SMALL			1
-#define HEALTH_MEDIUM			2
-#define HEALTH_LARGE			3
-#define HEALTH_MEGA				4
+#define HEALTH_NONE			0
+#define HEALTH_SMALL		1
+#define HEALTH_MEDIUM		2
+#define HEALTH_LARGE		3
+#define HEALTH_MEGA			4
 
 // edict->movetype values
 typedef enum {
@@ -652,12 +654,14 @@ typedef struct {
 	int inventory[MAX_ITEMS];
 
 	// ammo capacities
-	int max_bullets;
 	int max_shells;
-	int max_rockets;
+	int max_bullets;
 	int max_grenades;
+	int max_rockets;
 	int max_cells;
+	int max_bolts;
 	int max_slugs;
+	int max_nukes;
 
 	gitem_t *weapon;
 	gitem_t *lastweapon;

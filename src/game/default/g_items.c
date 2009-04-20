@@ -178,18 +178,22 @@ qboolean G_AddAmmo(edict_t *ent, gitem_t *item, int count){
 	if(!ent->client)
 		return false;
 
-	if(item->tag == AMMO_BULLETS)
-		max = ent->client->locals.max_bullets;
-	else if(item->tag == AMMO_SHELLS)
+	if(item->tag == AMMO_SHELLS)
 		max = ent->client->locals.max_shells;
-	else if(item->tag == AMMO_ROCKETS)
-		max = ent->client->locals.max_rockets;
+	else if(item->tag == AMMO_BULLETS)
+		max = ent->client->locals.max_bullets;
 	else if(item->tag == AMMO_GRENADES)
 		max = ent->client->locals.max_grenades;
+	else if(item->tag == AMMO_ROCKETS)
+		max = ent->client->locals.max_rockets;
 	else if(item->tag == AMMO_CELLS)
 		max = ent->client->locals.max_cells;
+	else if(item->tag == AMMO_BOLTS)
+		max = ent->client->locals.max_bolts;
 	else if(item->tag == AMMO_SLUGS)
 		max = ent->client->locals.max_slugs;
+	else if(item->tag == AMMO_NUKES)
+		max = ent->client->locals.max_nukes;
 	else
 		return false;
 
@@ -1036,7 +1040,7 @@ gitem_t itemlist[] = {
 		"w_lightning",
 		"Lightning",
 		1,
-		"Cells",
+		"Bolts",
 		IT_WEAPON,
 		WEAP_LIGHTNING,
 		0,
@@ -1078,8 +1082,8 @@ gitem_t itemlist[] = {
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"w_bfg",
 		"BFG10K",
-		25,
-		"Cells",
+		1,
+		"Nukes",
 		IT_WEAPON,
 		WEAP_BFG,
 		0,
@@ -1153,27 +1157,6 @@ gitem_t itemlist[] = {
 		""
 	},
 
-	/*QUAKED ammo_cells(.3 .3 1)(-16 -16 -16)(16 16 16)
-	*/
-	{
-		"ammo_cells",
-		G_PickupAmmo,
-		NULL,
-		G_DropAmmo,
-		NULL,
-		"ammo/common/pickup.wav",
-		"models/ammo/cells/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"a_cells",
-		"Cells",
-		50,
-		NULL,
-		IT_AMMO,
-		0,
-		AMMO_CELLS,
-		""
-	},
-
 	/*QUAKED ammo_rockets(.3 .3 1)(-16 -16 -16)(16 16 16)
 	*/
 	{
@@ -1195,6 +1178,48 @@ gitem_t itemlist[] = {
 		""
 	},
 
+	/*QUAKED ammo_cells(.3 .3 1)(-16 -16 -16)(16 16 16)
+	*/
+	{
+		"ammo_cells",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/cells/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_cells",
+		"Cells",
+		50,
+		NULL,
+		IT_AMMO,
+		0,
+		AMMO_CELLS,
+		""
+	},
+
+	/*QUAKED ammo_bolts(.3 .3 1)(-16 -16 -16)(16 16 16)
+	*/
+	{
+		"ammo_bolts",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/bolts/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_bolts",
+		"Bolts",
+		25,
+		NULL,
+		IT_AMMO,
+		0,
+		AMMO_BOLTS,
+		""
+	},
+
 	/*QUAKED ammo_slugs(.3 .3 1)(-16 -16 -16)(16 16 16)
 	*/
 	{
@@ -1213,6 +1238,27 @@ gitem_t itemlist[] = {
 		IT_AMMO,
 		0,
 		AMMO_SLUGS,
+		""
+	},
+
+	/*QUAKED ammo_nukes(.3 .3 1)(-16 -16 -16)(16 16 16)
+	*/
+	{
+		"ammo_nukes",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/nukes/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_nukes",
+		"Nukes",
+		2,
+		NULL,
+		IT_AMMO,
+		0,
+		AMMO_NUKES,
 		""
 	},
 

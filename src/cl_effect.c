@@ -913,7 +913,7 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
 /*
  * Cl_EnergyTrail
  */
-void Cl_EnergyTrail(centity_t *ent, float radius){
+void Cl_EnergyTrail(centity_t *ent, float radius, int color){
 	int i, c;
 	particle_t *p;
 	float angle;
@@ -956,7 +956,7 @@ void Cl_EnergyTrail(centity_t *ent, float radius){
 
 		VectorSubtract(p->org, ent->current.origin, v);
 		dist = VectorLength(v) / (3.0 * radius);
-		p->color = 107 + dist * 7;
+		p->color = color + dist * 7;
 
 		p->alpha = 1.0 - dist;
 		p->alphavel = -100.0;
@@ -997,7 +997,7 @@ void Cl_BFGEffect(const vec3_t org){
 		p->alpha = 1.0;
 		p->alphavel = -3.0;
 
-		p->color = 112;
+		p->color = 201;
 
 		VectorCopy(org, p->org);
 	}

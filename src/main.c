@@ -299,7 +299,7 @@ void Sys_Quit(void){
  * On platforms supporting it, print a backtrace.
  */
 void Sys_Backtrace(void){
-#ifdef HAVE_EXECINFO
+#ifdef HAVE_EXECINFO___
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
 	int i;
 
