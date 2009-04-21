@@ -698,9 +698,9 @@ static void G_CheckRules(void){
 	if(level.framenum % gi.serverrate == 0)  // send time updates once per second
 		gi.Configstring(CS_TIME, (level.warmup ? "Warmup" : G_FormatTime(seconds)));
 
-	if(level.fraglimit){  // check fraglimit
+	if(!level.ctf && level.fraglimit){  // check fraglimit
 
-		if(level.teams || level.ctf){  // check team scores
+		if(level.teams){  // check team scores
  			if(good.score >= level.fraglimit || evil.score >= level.fraglimit){
 				gi.Bprintf(PRINT_HIGH, "Fraglimit hit\n");
 				G_EndLevel();
@@ -1115,7 +1115,7 @@ void G_Init(void){
 	g_chatlog = gi.Cvar("g_chatlog", "0", 0, NULL);
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVERINFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVERINFO, NULL);
-	g_fraglimit = gi.Cvar("g_fraglimit", "20", CVAR_SERVERINFO, NULL);
+	g_fraglimit = gi.Cvar("g_fraglimit", "30", CVAR_SERVERINFO, NULL);
 	g_fraglog = gi.Cvar("g_fraglog", "0", 0, NULL);
 	g_friendlyfire = gi.Cvar("g_friendlyfire", "1", CVAR_SERVERINFO, NULL);
 	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVERINFO, NULL);
@@ -1128,7 +1128,7 @@ void G_Init(void){
 	g_mysqluser = gi.Cvar("g_mysqluser", "quake2world", 0, NULL);
 	g_playerprojectile = gi.Cvar("g_playerprojectile", "1", CVAR_SERVERINFO, NULL);
 	g_randommap = gi.Cvar("g_randommap", "0", 0, NULL);
-	g_roundlimit = gi.Cvar("g_roundlimit", "20", CVAR_SERVERINFO, NULL);
+	g_roundlimit = gi.Cvar("g_roundlimit", "30", CVAR_SERVERINFO, NULL);
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVERINFO, NULL);
 	g_spawnfarthest = gi.Cvar("g_spawnfarthest", "0", CVAR_SERVERINFO, NULL);
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVERINFO, NULL);
