@@ -195,7 +195,7 @@ model="models/armor/shard/tris.md3"
 
 /*QUAKED weapon_shotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons/shotgun/tris.md2"
+model="models/weapons/shotgun/tris.obj"
 */
 
 
@@ -207,7 +207,7 @@ model="models/weapons/supershotgun/tris.md3"
 
 /*QUAKED weapon_machinegun (.3 .3 1) (-16 -16 -16) (16 16 16)
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons/machinegun/tris.md2"
+model="models/weapons/machinegun/tris.obj"
 */
 
 
@@ -219,7 +219,7 @@ model="models/weapons/lightning/tris.md3"
 
 /*QUAKED weapon_grenadelauncher (.3 .3 1) (-16 -16 -16) (16 16 16)
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons/grenadelauncher/tris.md2"
+model="models/weapons/grenadelauncher/tris.obj"
 */
 
 
@@ -235,9 +235,15 @@ model="models/weapons/hyperblaster/tris.md3"
 */
 
 
+/*QUAKED weapon_lightning (.3 .3 1) (-16 -16 -16) (16 16 16)
+-------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+model="models/weapons/lightning/tris.md3"
+*/
+
+
 /*QUAKED weapon_railgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons/railgun/tris.md2"
+model="models/weapons/railgun/tris.obj"
 */
 
 
@@ -256,11 +262,6 @@ model="models/ammo/bullets/tris.md3"
 */
 
 
-/*QUAKED ammo_cells (.3 .3 1) (-16 -16 -16) (16 16 16)
-model="models/ammo/cells/tris.md3"
-*/
-
-
 /*QUAKED ammo_grenades (.3 .3 1) (-16 -16 -16) (16 16 16)
 model="models/ammo/grenades/tris.md3"
 */
@@ -271,8 +272,23 @@ model="models/ammo/rockets/tris.md3"
 */
 
 
+/*QUAKED ammo_cells (.3 .3 1) (-16 -16 -16) (16 16 16)
+model="models/ammo/cells/tris.md3"
+*/
+
+
+/*QUAKED ammo_bolts (.3 .3 1) (-16 -16 -16) (16 16 16)
+model="models/ammo/bolts/tris.md3"
+*/
+
+
 /*QUAKED ammo_slugs (.3 .3 1) (-16 -16 -16) (16 16 16)
 model="models/ammo/slugs/tris.md3"
+*/
+
+
+/*QUAKED ammo_nukes (.3 .3 1) (-16 -16 -16) (16 16 16)
+model="models/ammo/nukes/tris.md3"
 */
 
 
@@ -379,12 +395,14 @@ model="models/objects/dmspot/tris.md2"
 /*QUAKED misc_emit (.8 .8 0) (-8 -8 -8) (8 8 8) ? 1
 Client sided source of particles, ambient sounds, light flashes, and static models.
 "angles"		The angles of orientation for particles emissions and static models.
+"velocity"		The directional vector for steam emissions.
 "color"		The color for particles, light flashes, and coronas.
-"hz"		The emission rate, in events-per-second.
+"hz"			The emission rate, in events-per-second.
 "drift"		The factor of randomized drift applied to the emission rate.
-"radius"	The radius for coronas and light flashes.
+"radius"		The radius for coronas and light flashes.
 "count"		The number of particles to emit per event.
 "sound"		The sound sample to accompany events.
+"attenuation"	The sound attenuation, -1 for global.
 "flags"		Determines emit type.
 "model"		The static model name, e.g. trees/mytree.
 1 =			Emit a dynamic light flash.
@@ -403,6 +421,12 @@ Only used for the world.
 "message"		map title
 "sky"   			environment map name, unit1_
 "ambient_light" 	ambient light, r g b values 0-1
+"sun_light"		sun light, single scalar value 0-255
+"sun_color"		sun light color, r g b values 0-1
+"sun_angles"	sun light angles, x y z
+"brightness"	light scale, single positive scalar value
+"saturation"	light saturation, single positive scalar value
+"contrast"		light contrast, single positive scalar value
 "weather"		none, rain, snow, fog
 "gravity"  		800 default gravity
 "gameplay"		deathmatch, instagib, arena
