@@ -298,22 +298,22 @@ model="models/items/adrenal/tris.md2"
 
 
 /*QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
-model="models/health/medium/tris.md3"
+model="models/health/medium/tris.obj"
 */
 
 
 /*QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
-model="models/health/small/tris.md3"
+model="models/health/small/tris.obj"
 */
 
 
 /*QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
-model="models/health/large/tris.md3"
+model="models/health/large/tris.obj"
 */
 
 
 /*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
-model="models/health/mega/tris.md2"
+model="models/health/mega/tris.obj"
 */
 
 

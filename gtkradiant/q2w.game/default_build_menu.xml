@@ -8,12 +8,12 @@
     <command>q2wmap -bsp -vis "[MapFile]"</command>
   </build>
 
-  <build name="BSP + VIS + RAD">
-    <command>q2wmap -bsp -vis -rad "[MapFile]"</command>
+  <build name="BSP + VIS + LIGHT">
+    <command>q2wmap -bsp -vis -light "[MapFile]"</command>
   </build>
 
-  <build name="BSP + VIS + RAD (extra)">
-    <command>q2wmap -bsp -vis -rad -extra "[MapFile]"</command>
+  <build name="BSP + VIS + LIGHT (extra)">
+    <command>q2wmap -bsp -vis -light -extra "[MapFile]"</command>
   </build>
 
   <build name="BSP (entities only)">
