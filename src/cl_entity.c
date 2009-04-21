@@ -634,7 +634,7 @@ void Cl_AddEntities(frame_t *frame){
 			Cl_SmokeTrail(cent->prev.origin, ent.origin, cent);
 
 		if(state->effects & EF_ROCKET){
-			R_AddCorona(ent.origin, 10.0, rocket_light);
+			R_AddCorona(ent.origin, 6.0, rocket_light);
 			R_AddLight(ent.origin, 1.5, rocket_light);
 		}
 
