@@ -576,12 +576,6 @@ static void Cl_DrawCounters(void){
 	if(!cl_counters->value)
 		return;
 
-	if(timedemo->value){  // account for timedemo frames
-		if(!cl.timedemo_start)
-			cl.timedemo_start = cls.realtime;
-		cl.timedemo_frames++;
-	}
-
 	frames_this_second++;
 
 	if(curtime - millis >= 1000){

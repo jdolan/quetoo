@@ -606,28 +606,33 @@ void Cl_SendDisconnect(void){
  * demo recording, and updates cls.state so that we drop to console
  */
 void Cl_Disconnect(void){
+
 	if(cls.state == ca_disconnected)
 		return;
-
-	Cl_SendDisconnect();  // tell the server to disconnect
 
 	if(timedemo->value){  // summarize timedemo results
 
 		const float s = (cls.realtime - cl.timedemo_start) / 1000.0;
-		if(time > 0)
-			Com_Printf("%i frames, %3.2f seconds: %4.2f fps\n",
-					cl.timedemo_frames, s, cl.timedemo_frames / s);
+
+		Com_Printf("%i frames, %3.2f seconds: %4.2ffps\n",
+				cl.timedemo_frames, s, cl.timedemo_frames / s);
+
+		cl.timedemo_frames = cl.timedemo_start = 0;
 	}
+
+	Cl_SendDisconnect();  // tell the server to disconnect
 
 	if(cls.demofile)  // stop demo recording
 		Cl_Stop_f();
 
 	// stop download
 	if(cls.download.file){
+
 		if(cls.download.http)  // clean up http downloads
 			Cl_HttpDownloadCleanup();
 		else  // or just stop legacy ones
 			Fs_CloseFile(cls.download.file);
+
 		cls.download.file = NULL;
 	}
 }
@@ -645,15 +650,23 @@ static void Cl_Disconnect_f(void){
  * Cl_Reconnect_f
  */
 void Cl_Reconnect_f(void){
+	qboolean reconnect;
 
-	if(cls.download.file)  // dont disrupt downloads
+	if(cls.download.file)  // don't disrupt downloads
 		return;
 
 	if(cls.servername[0] != '\0'){
+
+		reconnect = !cl.demoserver;  // don't reconnect to demos
+
 		if(cls.state >= ca_connecting){
 			Com_Printf("Disconnecting...\n");
 			Cl_Disconnect();
 		}
+
+		if(!reconnect)
+			return;
+
 		cls.connect_time = -99999;  // fire immediately
 		cls.state = ca_connecting;
 	}
@@ -1022,7 +1035,14 @@ void Cl_Frame(int msec){
 		cl_maxfps->modified = cl_maxpps->modified = false;
 	}
 
-	if(!timedemo->value){  // check framerate cap conditions
+	if(timedemo->value){  // accumulate timedemo statistics
+
+		if(!cl.timedemo_start)
+			cl.timedemo_start = cls.realtime;
+
+		cl.timedemo_frames++;
+	}
+	else {  // check framerate cap conditions
 
 		if(cl_maxpps->value > 0.0 && cls.packet_delta < 1000.0 / cl_maxpps->value)
 			packet_frame = false;  // cap net framerate

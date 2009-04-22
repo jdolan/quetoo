@@ -387,10 +387,12 @@ static qboolean Sv_SendClientDatagram(client_t *client){
  * Sv_DemoCompleted
  */
 static void Sv_DemoCompleted(void){
+
 	if(sv.demofile){
 		Fs_CloseFile(sv.demofile);
 		sv.demofile = NULL;
 	}
+
 	Sv_Shutdown("Demo complete.\n", false);
 }
 

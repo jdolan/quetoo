@@ -141,17 +141,19 @@ static qboolean Sv_CheckDemo(const char *name){
 		return false;
 	}
 
-	if (fread(&msglen, 4, 1, f) != 4)
-		Com_Warn("Failed to read demo\n");
+	if(fread(&msglen, 4, 1, f) != 1)
+		Com_Warn("Sv_CheckDemo: Failed to read demo.\n");
+
 	msglen = LittleLong(msglen);
 
 	if(msglen == -1 || msglen > MAX_MSGLEN){
-		Com_Printf("%s is not a demo\n", demo);
+		Com_Printf("Sv_CheckDemo: %s is not a demo.\n", demo);
 		return false;
 	}
 
-	if (fread(buff, msglen, 1, f) != msglen)
-		Com_Warn("Failed to read demo\n");
+	if(fread(buff, msglen, 1, f) != 1)
+		Com_Warn("Sv_CheckDemo: Failed to read demo.\n");
+
 	memcpy(&protocol, buff + 1, 4);
 
 	Fs_CloseFile(f);
