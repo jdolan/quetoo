@@ -870,6 +870,7 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 	edict_t *bfg;
 	vec3_t angles, right, up, r, u;
 	int i;
+	float s;
 	vec3_t scale = {0.15, 0.15, 0.05};
 
 	if(G_ImmediateWall(self, dir))
@@ -896,7 +897,9 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 
 		// finalize the direction and resolve angles, velocity, ..
 		VectorAngles(bfg->movedir, bfg->s.angles);
-		VectorScale(bfg->movedir, speed, bfg->velocity);
+
+		s = speed + (0.2 * speed * crand());
+		VectorScale(bfg->movedir, s, bfg->velocity);
 
 		bfg->movetype = MOVETYPE_FLYMISSILE;
 		bfg->clipmask = MASK_SHOT;
