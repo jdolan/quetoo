@@ -532,14 +532,14 @@ char *dm_statusbar =
 	"pic 0 "
 	"endif "
 
-	// ammo
+	// ammo and weapon
 	"if 2 "
 	"xv	256 "
 	"yb -40 "
 	"ammo "
 	"yb -64 "
 	"xv	320 "
-	"pic 2 "
+	"pic 8 "
 	"endif "
 
 	// armor
@@ -560,13 +560,6 @@ char *dm_statusbar =
 	"xr -256 "
 	"yt 18 "
 	"stat_string 7 "
-	"endif "
-
-	// weapon
-	"if 8 "
-	"xv 256 "
-	"yb	-96 "
-	"pic 8 "
 	"endif "
 
 	// spectator

@@ -928,7 +928,7 @@ void Cl_EnergyTrail(centity_t *ent, float radius, int color){
 			avelocities[0][i] = (rand() & 255) * 0.01;
 	}
 
-	ltime = (float)cl.time / 1000.0;
+	ltime = (float)cl.time / 300.0;
 
 	for(i = 0; i < NUMVERTEXNORMALS; i+= 4){
 

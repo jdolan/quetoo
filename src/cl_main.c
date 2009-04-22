@@ -1023,8 +1023,10 @@ void Cl_Frame(int msec){
 	}
 
 	if(!timedemo->value){  // check framerate cap conditions
+
 		if(cl_maxpps->value > 0.0 && cls.packet_delta < 1000.0 / cl_maxpps->value)
 			packet_frame = false;  // cap net framerate
+
 		if(cl_maxfps->value > 0.0 && cls.render_delta < 1000.0 / cl_maxfps->value)
 			render_frame = false;  // and render framerate
 	}
