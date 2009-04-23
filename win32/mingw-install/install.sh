@@ -18,6 +18,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #############################################################################
+#TODO: build sdl addons from source, build latest libcurl from source without ssl
+
 
 START=`pwd`
 TMP=$START/tmp
@@ -30,23 +32,25 @@ mkdir -p $TMP
 cp $START/7za.exe $TMP
 
 cd $TMP
-../wget -c http://downloads.sourceforge.net/mingw/binutils-2.18.50-20080109-2.tar.gz
-../wget -c http://downloads.sourceforge.net/mingw/mingwrt-3.15.1-mingw32-dev.tar.gz
-../wget -c http://downloads.sourceforge.net/mingw/w32api-3.12-mingw32-dev.tar.gz
+../wget -c http://downloads.sourceforge.net/mingw/binutils-2.19.1-mingw32-bin.tar.gz
+../wget -c http://downloads.sourceforge.net/mingw/mingwrt-3.15.2-mingw32-dev.tar.gz
+../wget -c http://downloads.sourceforge.net/mingw/w32api-3.13-mingw32-dev.tar.gz
 ../wget -c http://downloads.sourceforge.net/mingw/mingw32-make-3.81-20080326-3.tar.gz
 ../wget -c http://downloads.sourceforge.net/mingw/gdb-6.8-mingw-3.tar.bz2
 
-../wget -c http://downloads.sourceforge.net/tdm-gcc/gcc-4.3.2-tdm-1-core.tar.gz
-../wget -c http://downloads.sourceforge.net/tdm-gcc/gcc-4.3.2-tdm-1-g++.tar.gz
+../wget -c http://downloads.sourceforge.net/tdm-gcc/gcc-4.3.3-tdm-1-core.tar.gz
+../wget -c http://downloads.sourceforge.net/tdm-gcc/gcc-4.3.3-tdm-1-g++.tar.gz
 
 
 ../wget -c http://downloads.sourceforge.net/sourceforge/gnuwin32/zlib-1.2.3-lib.zip
 ../wget -c http://downloads.sourceforge.net/sourceforge/gnuwin32/jpeg-6b-4-lib.zip
-../wget -c http://downloads.sourceforge.net/sourceforge/gnuwin32/libpng-1.2.33-lib.zip
-../wget -c http://curl.de-mirror.de/download/libcurl-7.16.4-win32-nossl.zip
+../wget -c http://downloads.sourceforge.net/sourceforge/gnuwin32/libpng-1.2.35-lib.zip
+
 ../wget -c http://www.libsdl.org/release/SDL-devel-1.2.13-mingw32.tar.gz
-../wget -c http://www.libsdl.org/projects/SDL_image/release/SDL_image-devel-1.2.6-VC8.zip
+../wget -c http://www.libsdl.org/projects/SDL_image/release/SDL_image-devel-1.2.7-VC9.zip
 ../wget -c http://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-devel-1.2.8-VC8.zip
+
+../wget -c http://curl.de-mirror.de/download/libcurl-7.16.4-win32-nossl.zip
 
 
 echo "extract base"
@@ -81,9 +85,9 @@ rm -Rf SDL-1.2.13
 cp /mingw/libcurl-7.16.4/* -R /mingw
 rm -Rf /mingw/libcurl-7.16.4
 
-cp /mingw/SDL_image-1.2.6/include/* /mingw/include/SDL
-cp /mingw/SDL_image-1.2.6/lib/SDL* /mingw/lib
-rm -rf /mingw/SDL_image-1.2.6
+cp /mingw/SDL_image-1.2.7/include/* /mingw/include/SDL
+cp /mingw/SDL_image-1.2.7/lib/SDL* /mingw/lib
+rm -rf /mingw/SDL_image-1.2.7
 
 cp /mingw/SDL_mixer-1.2.8/include/* /mingw/include/SDL
 cp /mingw/SDL_mixer-1.2.8/lib/* /mingw/lib
