@@ -599,6 +599,7 @@ void Com_SetServerState(int state);
 
 extern cvar_t *dedicated;
 extern cvar_t *timedemo;
+extern cvar_t *timescale;
 
 void Z_Init(void);
 void Z_Shutdown(void);

@@ -97,7 +97,7 @@ typedef struct client_state_s {
 
 	int surpress_count;  // number of messages rate supressed
 
-	int time;  // this is the server time value that the client
+	int servertime;  // this is the server time value that the client
 	// is rendering at.  always <= cls.realtime due to latency
 
 	float lerp;  // linear interpolation between frames

@@ -1150,7 +1150,7 @@ void Com_Init(int argc, char **argv){
 
 	developer = Cvar_Get("developer", "0", 0, NULL);
 	timedemo = Cvar_Get("timedemo", "0", 0, NULL);
-	timescale = Cvar_Get("timescale", "1", 0, NULL);
+	timescale = Cvar_Get("timescale", "1.0", 0, NULL);
 	showtrace = Cvar_Get("showtrace", "0", 0, NULL);
 
 #ifndef BUILD_CLIENT
@@ -1196,9 +1196,6 @@ void Com_Frame(int msec){
 
 	if(setjmp(env))
 		return;  // an ERR_DROP or ERR_NONE was thrown
-
-	if(timescale->value)
-		msec = (int)((float)msec * timescale->value);
 
 	if(showtrace->value){
 		Com_Printf("%4i traces  %4i points\n", c_traces, c_pointcontents);

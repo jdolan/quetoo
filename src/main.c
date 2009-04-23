@@ -382,6 +382,7 @@ int main(int argc, char **argv){
 	int hCrt;
 	FILE *hf;
 
+
 	AllocConsole();
 
 	hCrt = _open_osfhandle((long)GetStdHandle(STD_OUTPUT_HANDLE),_O_TEXT);
@@ -391,6 +392,7 @@ int main(int argc, char **argv){
 #endif
 
 	printf("Quake2World %s\n", VERSION);
+
 	Com_Init(argc, argv);
 
 #ifndef _WIN32
@@ -413,9 +415,16 @@ int main(int argc, char **argv){
 
 		Sys_Milliseconds();
 
-		msec = curtime - oldtime;
+		if(timescale->modified){
+			if(timescale->value < 0.1)
+				timescale->value = 0.1;
+			else if(timescale->value > 3.0)
+				timescale->value = 3.0;
+		}
 
-		if(msec < 1)
+		msec = (curtime - oldtime) * timescale->value;
+
+		if(msec < 1)  // 0ms frames are not okay
 			continue;
 
 		Com_Frame(msec);

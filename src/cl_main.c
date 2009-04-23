@@ -1019,6 +1019,7 @@ static void Cl_WriteConfiguration(void){
 void Cl_Frame(int msec){
 	qboolean packet_frame = true, render_frame = true;
 	static qboolean help_issued = false;
+	int ms;
 
 	if(dedicated->value)
 		return;
@@ -1026,13 +1027,20 @@ void Cl_Frame(int msec){
 	cls.packet_delta += msec;
 	cls.render_delta += msec;
 
-	if(cl_maxfps->modified || cl_maxpps->modified){  // ensure frame caps are sane
-		if(cl_maxfps->value > 0.0 && cl_maxfps->value < 10.0)
-			cl_maxfps->value = 10.0;
-		if(cl_maxpps->value > 0.0 && cl_maxpps->value < 10.0)
-			cl_maxpps->value = 10.0;
+	if(cl_maxfps->modified){  // ensure frame caps are sane
 
-		cl_maxfps->modified = cl_maxpps->modified = false;
+		if(cl_maxfps->value > 0.0 && cl_maxfps->value < 30.0)
+			cl_maxfps->value = 30.0;
+
+		cl_maxfps->modified = false;
+	}
+
+	if(cl_maxpps->modified){
+
+		if(cl_maxpps->value > 0.0 && cl_maxpps->value < 20.0)
+			cl_maxpps->value = 20.0;
+
+		cl_maxpps->modified = false;
 	}
 
 	if(timedemo->value){  // accumulate timedemo statistics
@@ -1044,11 +1052,19 @@ void Cl_Frame(int msec){
 	}
 	else {  // check framerate cap conditions
 
-		if(cl_maxpps->value > 0.0 && cls.packet_delta < 1000.0 / cl_maxpps->value)
-			packet_frame = false;  // cap net framerate
+		if(cl_maxfps->value > 0.0){  // cap render framerate
+			ms = 1000.0 * timescale->value / cl_maxfps->value;
 
-		if(cl_maxfps->value > 0.0 && cls.render_delta < 1000.0 / cl_maxfps->value)
-			render_frame = false;  // and render framerate
+			if(cls.render_delta < ms)
+				render_frame = false;
+		}
+
+		if(cl_maxpps->value > 0.0){  // cap net framerate
+			ms = 1000.0 * timescale->value / cl_maxpps->value;
+
+			if(cls.packet_delta < ms)
+				packet_frame = false;
+		}
 	}
 
 	if(!cl_async->value)  // run synchronous
@@ -1073,7 +1089,7 @@ void Cl_Frame(int msec){
 			help_issued = false;
 	}
 
-	cl.time += msec;  // update time references
+	cl.servertime += msec;  // update time references
 	cls.realtime = curtime;
 
 	if(render_frame){

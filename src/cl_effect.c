@@ -407,12 +407,12 @@ void Cl_TeleporterTrail(const vec3_t org, centity_t *cent){
 
 	if(cent){  // honor a slightly randomized time interval
 
-		if(cent->time > cl.time)
+		if(cent->time > cl.servertime)
 			return;
 
 		S_PlaySample(NULL, cent->current.number, cl_sample_respawn, ATTN_IDLE);
 
-		cent->time = cl.time + 1000 + (2000 * frand());
+		cent->time = cl.servertime + 1000 + (2000 * frand());
 	}
 
 	for(i = 0; i < 4; i++){
@@ -547,16 +547,16 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 
 	if(ent){  // trails should be framerate independent
 
-		if(ent->time > cl.time)
+		if(ent->time > cl.servertime)
 			return;
 
 		// trails diminish for stationary entities (grenades)
 		stationary = VectorCompare(ent->current.origin, ent->current.old_origin);
 
 		if(stationary)
-			ent->time = cl.time + 128;
+			ent->time = cl.servertime + 128;
 		else
-			ent->time = cl.time + 32;
+			ent->time = cl.servertime + 32;
 	}
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
@@ -670,10 +670,10 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 
 	if(ent){  // trails should be framerate independent
 
-		if(ent->time > cl.time)
+		if(ent->time > cl.servertime)
 			return;
 
-		ent->time = cl.time + 8;
+		ent->time = cl.servertime + 8;
 	}
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
@@ -723,10 +723,10 @@ void Cl_SteamTrail(const vec3_t org, const vec3_t vel, centity_t *ent){
 
 	if(ent){  // trails should be framerate independent
 
-		if(ent->time > cl.time)
+		if(ent->time > cl.servertime)
 			return;
 
-		ent->time = cl.time + 8;
+		ent->time = cl.servertime + 8;
 	}
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
@@ -928,7 +928,7 @@ void Cl_EnergyTrail(centity_t *ent, float radius, int color){
 			avelocities[0][i] = (rand() & 255) * 0.01;
 	}
 
-	ltime = (float)cl.time / 300.0;
+	ltime = (float)cl.servertime / 300.0;
 
 	for(i = 0; i < NUMVERTEXNORMALS; i+= 4){
 
@@ -965,10 +965,10 @@ void Cl_EnergyTrail(centity_t *ent, float radius, int color){
 	}
 
 	// add a bubble trail if appropriate
-	if(ent->time > cl.time)
+	if(ent->time > cl.servertime)
 		return;
 
-	ent->time = cl.time + 8;
+	ent->time = cl.servertime + 8;
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
@@ -1135,7 +1135,7 @@ void Cl_AddParticles(void){
 	for(p = active_particles; p; p = next){
 		next = p->next;
 
-		time = (cl.time - p->time) * 0.001;
+		time = (cl.servertime - p->time) * 0.001;
 
 		p->curalpha = p->alpha + time * p->alphavel;
 		p->curscale = p->scale + time * p->scalevel;
@@ -1218,7 +1218,7 @@ particle_t *Cl_AllocParticle(void){
 	p->next = active_particles;
 	active_particles = p;
 
-	p->time = cl.time;
+	p->time = cl.servertime;
 	return p;
 }
 

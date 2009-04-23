@@ -86,9 +86,9 @@ void Cl_ParseTempEntity(void){
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadDir(&net_message, dir);
 			Cl_BulletEffect(pos, dir);
-			if(cl.time - last_ric_time > 300){
+			if(cl.servertime - last_ric_time > 300){
 				S_PlaySample(pos, -1, cl_sample_machinegun_hit[rand() % 3], ATTN_NORM);
-				last_ric_time = cl.time;
+				last_ric_time = cl.servertime;
 			}
 			break;
 
