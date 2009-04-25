@@ -36,7 +36,7 @@ case "$host" in
 		ICON="quake2world-icon.o"
 		HOST_LIBS="-lws2_32 -lole32"
 		HOST_OPENGL_LIBS="-lopengl32"
-		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
+		HOST_WARN_CFLAGS="-Wall -Wmissing-prototypes -Wmissing-declarations -Wdeclaration-after-statement"
 		HOST_DEBUG_CFLAGS=""
 		HOST_DEBUG_LIBS=""
 		SO_CFLAGS=""
@@ -51,7 +51,7 @@ case "$host" in
 		ICON=""
 		HOST_LIBS=""
 		HOST_OPENGL_LIBS="-lGL"
-		HOST_WARN_CFLAGS=""
+		HOST_WARN_CFLAGS="-Wall -Werror -Wmissing-prototypes -Wmissing-declarations"
 		HOST_DEBUG_CFLAGS=""
 		HOST_DEBUG_LIBS=""
 		SO_CFLAGS="-fPIC -DPIC"
@@ -61,7 +61,7 @@ case "$host" in
 		ICON=""
 		HOST_LIBS="-ldl"
 		HOST_OPENGL_LIBS="-lGL"
-		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
+		HOST_WARN_CFLAGS="-Wall -Werror -Wmissing-prototypes -Wmissing-declarations -Wdeclaration-after-statement"
 		HOST_DEBUG_CFLAGS=""
 		HOST_DEBUG_LIBS="-rdynamic"
 		SO_CFLAGS="-fPIC -DPIC"
@@ -375,7 +375,7 @@ AC_ARG_ENABLE(warn,
 	),
 	AC_MSG_RESULT(no),
 	AC_MSG_RESULT(yes)
-	WARN_CFLAGS="$WARN_CFLAGS $HOST_WARN_CFLAGS"
+	WARN_CFLAGS="$HOST_WARN_CFLAGS"
 )
 AC_SUBST(WARN_CFLAGS)
 
