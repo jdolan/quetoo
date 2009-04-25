@@ -60,7 +60,7 @@ make IMPLIB='libz.dll.a' -fMakefile.gcc || return 1
 cp -fp *.a /mingw/lib
 cp -fp zlib.h /mingw/include
 cp -fp zconf.h /mingw/include
-cp -fp zlib.dll /mingw/bin
+cp -fp zlib1.dll /mingw/bin
 
 #compile libsdl
 cd $TMP/deps
