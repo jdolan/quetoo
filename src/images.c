@@ -22,7 +22,32 @@
 #include <SDL_image.h>
 #include "images.h"
 
-#include <jpeglib.h>
+/* Work-around for a conflict between windows.h and jpeglib.h.
+If ADDRESS_TAG_BIT is defined then BaseTsd.h has been included and
+INT32 has been defined with a typedef, so we must define XMD_H to
+prevent the jpeg header from defining it again.  */
+
+/* And another one... jmorecfg.h defines the 'boolean' type as int,
+   which conflicts with the standard Windows 'boolean' definition as
+   unsigned char. Ref: http://www.asmail.be/msg0054688232.html */
+
+#if defined(_WIN32)
+/* typedef "boolean" as unsigned char to match rpcndr.h */
+typedef unsigned char boolean;
+#define HAVE_BOOLEAN    /* prevent jmorecfg.h from typedef-ing it as int */
+#endif
+
+# if defined(__WIN32__) && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
+#  define XMD_H
+#  define VTK_JPEG_XMD_H
+# endif
+# include <jpeglib.h> 	 # include <jpeglib.h>
+# if defined(VTK_JPEG_XMD_H)
+#  undef VTK_JPEG_XMD_H
+#  undef XMD_H
+# endif
+
+
 
 // 8bit palette for wal images and particles
 #define PALETTE "pics/colormap"
