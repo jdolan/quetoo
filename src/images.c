@@ -41,7 +41,7 @@ typedef unsigned char boolean;
 #  define XMD_H
 #  define VTK_JPEG_XMD_H
 # endif
-# include <jpeglib.h> 	 # include <jpeglib.h>
+# include <jpeglib.h>
 # if defined(VTK_JPEG_XMD_H)
 #  undef VTK_JPEG_XMD_H
 #  undef XMD_H
