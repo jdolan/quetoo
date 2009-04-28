@@ -993,7 +993,7 @@ static void R_AddBspLight(vec3_t org, float radius){
 	}
 
 	if(i == r_loadmodel->numbsplights){
-		l = (mbsplight_t *)R_HunkAlloc(sizeof(mbsplight_t));
+		l = (mbsplight_t *)R_HunkAlloc(sizeof(*l));
 
 		VectorCopy(org, l->org);
 		l->leaf = R_LeafForPoint(l->org, r_loadmodel);
