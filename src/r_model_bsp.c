@@ -993,6 +993,9 @@ static void R_AddBspLight(vec3_t org, float radius){
 	}
 
 	if(i == r_loadmodel->numbsplights){
+		// we can assume that all the bsplight memory is
+		// next to each other because of the hunk allocation
+		// implementation.
 		l = (mbsplight_t *)R_HunkAlloc(sizeof(*l));
 
 		VectorCopy(org, l->org);
