@@ -63,13 +63,12 @@ static s_music_t *S_LoadMusic(const char *name){
 		if(!(music.music = Mix_LoadMUS_RW(rw))){
 			Com_Warn("S_LoadMusic: %s.\n", Mix_GetError());
 
-			Fs_FreeFile(buf);
-
 			SDL_FreeRW(rw);
+
+			Fs_FreeFile(buf);
 			continue;
 		}
 
-		music.rw = rw;
 		music.buffer = buf;
 
 		return &music;
@@ -90,9 +89,6 @@ static void S_FreeMusic(s_music_t *music){
 
 	if(music->music)
 		Mix_FreeMusic(music->music);
-
-	if(music->rw)
-		SDL_FreeRW(music->rw);
 
 	if(music->buffer)
 		Fs_FreeFile(music->buffer);

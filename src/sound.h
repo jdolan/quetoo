@@ -44,8 +44,7 @@ typedef struct s_channel_s {
 typedef struct s_music_s {
 	char name[MAX_QPATH];
 	Mix_Music *music;
-	SDL_RWops *rw;  // this stays resident while the music is active
-	void *buffer;  // as does this
+	void *buffer;  // remains resident while the music is active
 } s_music_t;
 
 // the sound environment
