@@ -84,29 +84,28 @@ extern float LittleFloat(float l);
 #define SIDE_CROSS			-2
 
 #define MAX_STRING_CHARS	1024  // max length of a string passed to Cmd_TokenizeString
-#define MAX_STRING_TOKENS	128  // max tokens resulting from Cmd_TokenizeString
-#define MAX_TOKEN_CHARS		256  // max length of an individual token
+#define MAX_STRING_TOKENS	128   // max tokens resulting from Cmd_TokenizeString
+#define MAX_TOKEN_CHARS		256   // max length of an individual token
 
-#define MAX_QPATH			64  // max length of a quake game pathname
-#define MAX_OSPATH			128  // max length of a filesystem pathname
+#define MAX_QPATH			64    // max length of a quake game pathname
+#define MAX_OSPATH			128   // max length of a filesystem pathname
 
 // per-level limits
-#define MAX_CLIENTS			256  // absolute limit
+#define MAX_CLIENTS			256   // absolute limit
 #define MAX_EDICTS			1024  // must change protocol to increase more
-#define MAX_MODELS			256  // these are sent over the net as bytes
-#define MAX_SOUNDS			256  // so they cannot be blindly increased
+#define MAX_MODELS			256   // these are sent over the net as bytes
+#define MAX_SOUNDS			256   // so they cannot be blindly increased
+#define MAX_MUSIC			8     // per level
 #define MAX_IMAGES			256
 #define MAX_ITEMS			256
-#define MAX_GENERAL			(MAX_CLIENTS*2)  // general config strings
+#define MAX_GENERAL			(MAX_CLIENTS * 2)  // general config strings
 
 // game print flags
 #define PRINT_LOW			0  // pickup messages
 #define PRINT_MEDIUM		1  // death messages
 #define PRINT_HIGH			2  // critical messages
 #define PRINT_CHAT			3  // chat messages
-#define PRINT_TEAMCHAT			4 // teamchat messages
-#define PRINT_ALL			0
-#define PRINT_DEVELOPER		1  // only print when "developer 1"
+#define PRINT_TEAMCHAT		4  // teamchat messages
 
 // file opening modes
 typedef enum {
@@ -569,18 +568,20 @@ typedef enum {
 #define CS_MAPSIZE			31  // for catching cheater maps
 
 #define CS_MODELS			32
-#define CS_SOUNDS			(CS_MODELS+MAX_MODELS)
-#define CS_IMAGES			(CS_SOUNDS+MAX_SOUNDS)
-#define CS_ITEMS			(CS_IMAGES+MAX_IMAGES)
-#define CS_PLAYERSKINS		(CS_ITEMS+MAX_ITEMS)
-#define CS_GENERAL			(CS_PLAYERSKINS+MAX_CLIENTS)
+#define CS_SOUNDS			(CS_MODELS + MAX_MODELS)
+#define CS_MUSICS			(CS_SOUNDS + MAX_SOUNDS)
+#define CS_IMAGES			(CS_MUSICS + MAX_MUSIC)
+#define CS_ITEMS			(CS_IMAGES + MAX_IMAGES)
+#define CS_PLAYERSKINS		(CS_ITEMS + MAX_ITEMS)
+#define CS_GENERAL			(CS_PLAYERSKINS + MAX_CLIENTS)
 
 #define CS_VOTE				(CS_GENERAL + 1)  // current vote
 #define CS_TEAMGOOD			(CS_GENERAL + 2)  // team names
 #define CS_TEAMEVIL			(CS_GENERAL + 3)
 #define CS_TIME				(CS_GENERAL + 4)  // level/match timer
+#define CS_MUSIC			(CS_GENERAL + 5)  // current music
 
-#define MAX_CONFIGSTRINGS	(CS_GENERAL+MAX_GENERAL)
+#define MAX_CONFIGSTRINGS	(CS_GENERAL + MAX_GENERAL)
 
 
 // entity_state_t->event values

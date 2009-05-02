@@ -712,6 +712,10 @@ void Sv_Frame(int msec){
 
 	// clear teleport flags, etc for next frame
 	Sv_PrepWorldFrame();
+
+#ifdef HAVE_CURSES
+	Curses_Frame(msec);
+#endif
 }
 
 

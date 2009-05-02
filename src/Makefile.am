@@ -23,7 +23,7 @@ RENDERER = r_array.c r_bsp.c r_context.c r_corona.c r_draw.c r_entity.c \
 
 SOUND_H = sound.h
 
-SOUND = s_main.c s_mix.c s_sample.c
+SOUND = s_main.c s_mix.c s_music.c s_sample.c
 
 SERVER_H = server.h
 

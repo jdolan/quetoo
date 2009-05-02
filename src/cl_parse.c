@@ -276,6 +276,7 @@ static qboolean Cl_ParseServerData(void){
 	return true;
 }
 
+
 /*
  * Cl_ParseBaseline
  */

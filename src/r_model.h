@@ -302,9 +302,11 @@ typedef struct model_s {
 	int numleafsurfaces;
 	msurface_t **leafsurfaces;
 
+	int vissize;
 	dvis_t *vis;
 
 	int lightmap_scale;
+	int lightdatasize;
 	byte *lightdata;
 
 	int numbsplights;

@@ -257,15 +257,11 @@ void S_LoadSamples(void){
 
 	Cl_LoadTempEntitySamples();
 
-	Cl_LoadProgress(95);
-
 	for(i = 1; i < MAX_SOUNDS; i++){
+
 		if(!cl.configstrings[CS_SOUNDS + i][0])
 			break;
+
 		cl.sound_precache[i] = S_LoadSample(cl.configstrings[CS_SOUNDS + i]);
 	}
-
-	Cl_LoadProgress(100);
-
-	s_env.update = true;
 }

@@ -21,6 +21,7 @@
 
 #include "common.h"
 #include "game/game.h"
+#include "con_curses.h"
 
 typedef enum {
 	ss_dead,   // no level loaded

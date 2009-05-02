@@ -27,6 +27,7 @@
 #ifdef HAVE_CURSES
 
 #include <curses.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -49,8 +50,8 @@ console_t sv_con;
 
 static char versionstring[32];
 
-static int curses_redraw;		// indactes what part needs to be drawn
-static int curses_lastupdate;		// number of msecs since last redraw
+static int curses_redraw;		// indicates what part needs to be drawn
+static int curses_lastupdate;		// number of milliseconds since last redraw
 
 
 /*
@@ -198,7 +199,7 @@ static void Curses_Draw(void){
 	if(con_timeout && con_timeout->value)
 		timeout = con_timeout->value;
 	else
-		timeout = 250;
+		timeout = 20;
 
 	if(curses_lastupdate > timeout && curses_redraw){
 		if((curses_redraw & 2) == 2){
@@ -224,7 +225,8 @@ static void Curses_Draw(void){
  *
  * Window resize signal handler
  */
-void Curses_Resize(void){
+static void Curses_Resize(int sig){
+
 	if(!sv_con.initialized)
 		return;
 
@@ -233,6 +235,7 @@ void Curses_Resize(void){
 
 	curses_redraw = 2;
 	curses_lastupdate = con_timeout->value * 2;
+
 	Curses_Draw();
 }
 
@@ -250,6 +253,7 @@ void Curses_Frame(int msec){
 		return;
 
 	key = wgetch(stdwin);
+
 	while(key != ERR) {
 		if(key == KEY_BACKSPACE || key == 8 || key == 127){
 			if(input[historyline][0] != '\0' && inputpos > 0){
@@ -403,6 +407,10 @@ void Curses_Init(void){
 	inputline = 0;
 	historyline = 0;
 	memset(input, 0, sizeof(input));
+
+#ifndef _WIN32
+	signal(SIGWINCH, Curses_Resize);
+#endif
 
 	refresh();
 

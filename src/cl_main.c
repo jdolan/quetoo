@@ -819,7 +819,7 @@ static void Cl_LoadMedia(void){
 
 	R_LoadMedia();
 
-	S_LoadSamples();
+	S_LoadMedia();
 
 	Cl_LoadEmits();
 

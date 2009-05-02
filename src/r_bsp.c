@@ -271,7 +271,7 @@ static void R_MarkSurfaces_(mnode_t *node){
 		return;
 	}
 
-	// otherwise, traverse down the apropriate sides of the node
+	// otherwise, traverse down the appropriate sides of the node
 
 	plane = node->plane;
 

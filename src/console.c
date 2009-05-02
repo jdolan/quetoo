@@ -451,18 +451,20 @@ int Con_CompleteCommand(char *input_text, int *input_position){
  * Initialize the console subsystem
  */
 void Con_Init(void){
+
 #ifdef _WIN32
 	ansi = Cvar_Get("ansi", "0", CVAR_ARCHIVE, NULL);
 #else
 	ansi = Cvar_Get("ansi", "1", CVAR_ARCHIVE, NULL);
 #endif
+
 #ifdef HAVE_CURSES
 	if (dedicated && dedicated->value) {
 		con_curses = Cvar_Get("con_curses", "1", CVAR_NOSET, NULL);
 	} else {
 		con_curses = Cvar_Get("con_curses", "0", CVAR_NOSET, NULL);
 	}
-	con_timeout = Cvar_Get("con_timeout", "250", CVAR_ARCHIVE, NULL);
+	con_timeout = Cvar_Get("con_timeout", "20", CVAR_ARCHIVE, NULL);
 	Curses_Init();
 #endif
 

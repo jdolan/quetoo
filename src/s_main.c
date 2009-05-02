@@ -50,6 +50,8 @@ void S_Frame(void){
 	if(!s_env.initialized)
 		return;
 
+	S_FrameMusic();
+
 	if(cls.state != ca_active){
 		if(Mix_Playing(-1) > 0)
 			S_Stop();
@@ -102,6 +104,23 @@ void S_Frame(void){
 
 
 /*
+ * S_LoadMedia
+ */
+void S_LoadMedia(void){
+
+	S_LoadSamples();
+
+	Cl_LoadProgress(95);
+
+	S_LoadMusics();
+
+	Cl_LoadProgress(100);
+
+	s_env.update = true;
+}
+
+
+/*
  * S_Play_f
  */
 static void S_Play_f(void){
@@ -142,20 +161,6 @@ static void S_List_f(void){
 
 
 /*
- * S_Reload_f
- */
-static void S_Reload_f(void){
-
-	S_Stop();
-
-	S_LoadSamples();
-
-	Com_Printf("\n");
-	Con_ClearNotify();  // TODO inadequate
-}
-
-
-/*
  * S_Restart_f
  */
 static void S_Restart_f(void){
@@ -164,7 +169,7 @@ static void S_Restart_f(void){
 
 	S_Init();
 
-	S_Reload_f();
+	S_LoadMedia();
 }
 
 
@@ -186,10 +191,9 @@ void S_Init(void){
 
 	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sampling rate in Hz.");
 	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
-	s_volume = Cvar_Get("s_volume", "0.7", CVAR_ARCHIVE, "Global sound volume level.");
+	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
 
 	Cmd_AddCommand("s_restart", S_Restart_f, "Restart the sound subsystem");
-	Cmd_AddCommand("s_reload", S_Reload_f, "Reload all loaded sounds");
 	Cmd_AddCommand("s_play", S_Play_f, NULL);
 	Cmd_AddCommand("s_stop", S_Stop_f, NULL);
 	Cmd_AddCommand("s_list", S_List_f, NULL);
@@ -226,6 +230,8 @@ void S_Init(void){
 	Com_Printf("Sound initialized %dKHz %d channels.\n", freq, channels);
 
 	s_env.initialized = true;
+
+	S_InitMusic();
 }
 
 
@@ -233,6 +239,8 @@ void S_Init(void){
  * S_Shutdown
  */
 void S_Shutdown(void){
+
+	S_ShutdownMusic();
 
 	S_Stop();
 
@@ -251,7 +259,6 @@ void S_Shutdown(void){
 	Cmd_RemoveCommand("s_stop");
 	Cmd_RemoveCommand("s_list");
 	Cmd_RemoveCommand("s_restart");
-	Cmd_RemoveCommand("s_reload");
 
 	s_env.initialized = false;
 }

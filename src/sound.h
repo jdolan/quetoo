@@ -41,6 +41,13 @@ typedef struct s_channel_s {
 
 #define MAX_CHANNELS 64
 
+typedef struct s_music_s {
+	char name[MAX_QPATH];
+	Mix_Music *music;
+	SDL_RWops *rw;  // this stays resident while the music is active
+	void *buffer;  // as does this
+} s_music_t;
+
 // the sound environment
 typedef struct s_env_s {
 	s_sample_t samples[MAX_SAMPLES];
@@ -48,7 +55,8 @@ typedef struct s_env_s {
 
 	s_channel_t channels[MAX_CHANNELS];
 
-	float volume;
+	s_music_t music[MAX_MUSIC];
+	s_music_t *active_music;
 
 	vec3_t right;  // for stereo panning
 
@@ -58,12 +66,14 @@ typedef struct s_env_s {
 
 extern s_env_t s_env;
 
+extern cvar_t *s_musicvolume;
 extern cvar_t *s_rate;
 extern cvar_t *s_reverse;
 extern cvar_t *s_volume;
 
 // s_main.c
 void S_Frame(void);
+void S_LoadMedia(void);
 void S_Init(void);
 void S_Shutdown(void);
 
@@ -73,6 +83,12 @@ void S_SpatializeChannel(s_channel_t *channel);
 void S_PlaySample(const vec3_t org, int entnum, s_sample_t *sample, int atten);
 void S_LoopSample(const vec3_t org, s_sample_t *sample);
 void S_StartLocalSample(const char *name);
+
+// s_music.c
+void S_LoadMusics(void);
+void S_FrameMusic(void);
+void S_InitMusic(void);
+void S_ShutdownMusic(void);
 
 // s_sample.c
 s_sample_t *S_LoadSample(const char *name);

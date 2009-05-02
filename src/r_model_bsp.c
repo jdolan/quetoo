@@ -37,7 +37,9 @@ static void R_LoadLighting(const lump_t *l){
 		r_loadmodel->lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
 	}
 	else {
+		r_loadmodel->lightdatasize = l->filelen;
 		r_loadmodel->lightdata = R_HunkAlloc(l->filelen);
+
 		memcpy(r_loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
 	}
 
@@ -93,10 +95,12 @@ static void R_LoadVisibility(const lump_t *l){
 		return;
 	}
 
+	r_loadmodel->vissize = l->filelen;
 	r_loadmodel->vis = R_HunkAlloc(l->filelen);
 	memcpy(r_loadmodel->vis, mod_base + l->fileofs, l->filelen);
 
 	r_loadmodel->vis->numclusters = LittleLong(r_loadmodel->vis->numclusters);
+
 	for(i = 0; i < r_loadmodel->vis->numclusters; i++){
 		r_loadmodel->vis->bitofs[i][0] = LittleLong(r_loadmodel->vis->bitofs[i][0]);
 		r_loadmodel->vis->bitofs[i][1] = LittleLong(r_loadmodel->vis->bitofs[i][1]);
@@ -1207,6 +1211,24 @@ void R_LoadBspModel(model_t *mod, void *buffer){
 
 	R_LoadSubmodels(&header->lumps[LUMP_MODELS]);
 	Cl_LoadProgress(48);
+
+	Com_Dprintf("================================\n");
+	Com_Dprintf("R_LoadBspModel: %s\n", r_loadmodel->name);
+	Com_Dprintf("  Verts:      %d\n", r_loadmodel->numvertexes);
+	Com_Dprintf("  Edges:      %d\n", r_loadmodel->numedges);
+	Com_Dprintf("  Surfedges:  %d\n", r_loadmodel->numsurfedges);
+	Com_Dprintf("  Faces:      %d\n", r_loadmodel->numsurfaces);
+	Com_Dprintf("  Nodes:      %d\n", r_loadmodel->numnodes);
+	Com_Dprintf("  Leafs:      %d\n", r_loadmodel->numleafs);
+	Com_Dprintf("  Leaf faces: %d\n", r_loadmodel->numleafsurfaces);
+	Com_Dprintf("  Models:     %d\n", r_loadmodel->numsubmodels);
+	Com_Dprintf("  Lightdata:  %d\n", r_loadmodel->lightdatasize);
+	Com_Dprintf("  Vis:        %d\n", r_loadmodel->vissize);
+
+	if(r_loadmodel->vis)
+		Com_Dprintf("  Clusters:   %d\n", r_loadmodel->vis->numclusters);
+
+	Com_Dprintf("================================\n");
 
 	R_LoadBspLights();
 

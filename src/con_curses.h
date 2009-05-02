@@ -26,7 +26,6 @@
 
 void Curses_Init(void);
 void Curses_Shutdown(void);
-void Curses_Resize(void);
 void Curses_Frame(int msec);
 void Curses_Refresh(void);
 

@@ -28,9 +28,6 @@
 
 #ifndef __LIBSYS_LA__
 
-#include "console.h"
-#include "con_curses.h"
-
 #ifdef _WIN32
 
 #include <stdio.h>
@@ -299,7 +296,7 @@ void Sys_Quit(void){
  * On platforms supporting it, print a backtrace.
  */
 void Sys_Backtrace(void){
-#ifdef HAVE_EXECINFO
+#ifdef HAVE_EXECINFO______
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
 	int i;
 
@@ -351,13 +348,6 @@ static void Sys_Signal(int s){
 			Com_Printf("Received signal %d, quitting..\n", s);
 			Sys_Quit();
 			break;
-#ifndef _WIN32
-#ifdef HAVE_CURSES
-		case SIGWINCH:
-			Curses_Resize();
-			break;
-#endif
-#endif
 		default:
 			Sys_Backtrace();
 			Sys_Error("Received signal %d.\n", s);
@@ -382,7 +372,6 @@ int main(int argc, char **argv){
 	int hCrt;
 	FILE *hf;
 
-
 	AllocConsole();
 
 	hCrt = _open_osfhandle((long)GetStdHandle(STD_OUTPUT_HANDLE),_O_TEXT);
@@ -395,11 +384,6 @@ int main(int argc, char **argv){
 
 	Com_Init(argc, argv);
 
-#ifndef _WIN32
-#ifdef HAVE_CURSES
-	signal(SIGWINCH, Sys_Signal);
-#endif
-#endif
 	signal(SIGHUP, Sys_Signal);
 	signal(SIGINT, Sys_Signal);
 	signal(SIGQUIT, Sys_Signal);
@@ -429,9 +413,6 @@ int main(int argc, char **argv){
 
 		Com_Frame(msec);
 
-#ifdef HAVE_CURSES
-		Curses_Frame(msec);
-#endif
 		oldtime = curtime;
 	}
 }

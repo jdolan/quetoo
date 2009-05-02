@@ -415,7 +415,8 @@ void R_EndFrame(void){
 /*
  * R_ResolveWeather
  *
- * Parses the weather configstring for weather and fog definitions, e.g. "rain fog 0.8 0.75 0.65".
+ * Parses the weather configstring for weather and fog definitions,
+ * e.g. "rain fog 0.8 0.75 0.65".
  */
 static void R_ResolveWeather(void){
 	char *weather, *c;
@@ -442,7 +443,7 @@ static void R_ResolveWeather(void){
 		r_view.weather |= WEATHER_FOG;
 		err = -1;
 
-		if(strlen(c) > 3)  // try to parse fogcolor
+		if(strlen(c) > 3)  // try to parse fog color
 			err = sscanf(c + 4, "%f %f %f", &r_view.fog_color[0],
 					&r_view.fog_color[1], &r_view.fog_color[2]);
 
@@ -535,6 +536,7 @@ void R_LoadMedia(void){
 
 	// weather and fog effects
 	R_ResolveWeather();
+
 	Con_ClearNotify();
 
 	r_view.ready = r_view.update = true;
@@ -655,7 +657,7 @@ static void R_InitLocal(void){
 	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE, NULL);
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE, NULL);
 	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
-	r_hunkmegs = Cvar_Get("r_hunkmegs", "64", CVAR_NOSET, "Memory size for the renderer hunk in megabytes");
+	r_hunkmegs = Cvar_Get("r_hunkmegs", "64", CVAR_R_CONTEXT, "Memory size for the renderer hunk in megabytes");
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_lightmapsize = Cvar_Get("r_lightmapsize", "1024", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_lighting = Cvar_Get("r_lighting", "1", CVAR_ARCHIVE, "Activate or deactivate lighting effects");
