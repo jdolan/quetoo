@@ -33,6 +33,7 @@ wget -c http://downloads.sourceforge.net/mingw/binutils-2.19.1-mingw32-bin.tar.g
 wget -c http://downloads.sourceforge.net/mingw/mingwrt-3.15.2-mingw32-dev.tar.gz
 wget -c http://downloads.sourceforge.net/mingw/w32api-3.13-mingw32-dev.tar.gz
 wget -c http://downloads.sourceforge.net/mingw/gdb-6.8-mingw-3.tar.bz2
+wget -c http://www.libsdl.org/extras/win32/common/directx-devel.tar.gz
 
 wget -c http://downloads.sourceforge.net/tdm-gcc/gcc-4.3.3-tdm-1-core.tar.gz
 wget -c http://downloads.sourceforge.net/tdm-gcc/gcc-4.3.3-tdm-1-g++.tar.gz
@@ -61,6 +62,15 @@ cp -fp *.a /mingw/lib
 cp -fp zlib.h /mingw/include
 cp -fp zconf.h /mingw/include
 cp -fp zlib1.dll /mingw/bin
+
+#compile nasm
+cd $TMP/deps
+wget -c http://downloads.sourceforge.net/sourceforge/nasm/nasm-2.06rc10.tar.gz
+tar xzf nasm-2.06rc10.tar.gz
+cd nasm-2.06rc10
+./configure --prefix=/mingw
+make || return 1
+make install || return 1
 
 #compile libsdl
 cd $TMP/deps

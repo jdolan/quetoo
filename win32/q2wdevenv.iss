@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=Quake2World Development Environment
-AppVerName=Quake2World Development Environment 1.0.0
+AppVerName=Quake2World Development Environment 1.0.1
 AppPublisher=Marcel Wysocki
 AppPublisherURL=http://www.quake2world.net
 AppSupportURL=http://www.quake2world.net
