@@ -377,7 +377,7 @@ static void R_LoadSurfaces(const lump_t *l){
 		// then texinfo
 		ti = LittleShort(in->texinfo);
 		if(ti < 0 || ti >= r_loadmodel->numtexinfo){
-			Com_Error(ERR_DROP, "R_LoadSurfaces: Bad texinfo number.");
+			Com_Error(ERR_DROP, "R_LoadSurfaces: Bad texinfo number: %d.", ti);
 		}
 		out->texinfo = r_loadmodel->texinfo + ti;
 
@@ -511,7 +511,7 @@ static void R_LoadLeafs(const lump_t *l){
  */
 static void R_LoadLeafsurfaces(const lump_t *l){
 	int i, count;
-	const short *in;
+	const unsigned short *in;
 	msurface_t **out;
 
 	in = (const void *)(mod_base + l->fileofs);
@@ -527,10 +527,10 @@ static void R_LoadLeafsurfaces(const lump_t *l){
 
 	for(i = 0; i < count; i++){
 
-		const int j = LittleShort(in[i]);
+		const unsigned short j = (unsigned short)LittleShort(in[i]);
 
 		if(j < 0 || j >= r_loadmodel->numsurfaces){
-			Com_Error(ERR_DROP, "R_LoadLeafsurfaces: Bad surface number.");
+			Com_Error(ERR_DROP, "R_LoadLeafsurfaces: Bad surface number: %d.", j);
 		}
 
 		out[i] = r_loadmodel->surfaces + j;
@@ -553,8 +553,7 @@ static void R_LoadSurfedges(const lump_t *l){
 
 	count = l->filelen / sizeof(*in);
 	if(count < 1 || count >= MAX_BSP_SURFEDGES){
-		Com_Error(ERR_DROP, "R_LoadSurfedges: Bad surfedges count in %s: %i.",
-				  r_loadmodel->name, count);
+		Com_Error(ERR_DROP, "R_LoadSurfedges: Bad surfedges count: %i.", count);
 	}
 
 	out = R_HunkAlloc(count * sizeof(*out));

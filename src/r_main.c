@@ -657,7 +657,7 @@ static void R_InitLocal(void){
 	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE, NULL);
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE, NULL);
 	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
-	r_hunkmegs = Cvar_Get("r_hunkmegs", "64", CVAR_R_CONTEXT, "Memory size for the renderer hunk in megabytes");
+	r_hunkmegs = Cvar_Get("r_hunkmegs", "96", CVAR_R_CONTEXT, "Memory size for the renderer hunk in megabytes");
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_lightmapsize = Cvar_Get("r_lightmapsize", "1024", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_lighting = Cvar_Get("r_lighting", "1", CVAR_ARCHIVE, "Activate or deactivate lighting effects");
