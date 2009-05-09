@@ -169,7 +169,7 @@ static void Cl_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int 
 
 	// bump animation time for frame interpolation
 	if(ent->current.frame != ent->prev.frame){
-		ent->anim_time = cl.servertime;
+		ent->anim_time = cl.time;
 		ent->anim_frame = ent->prev.frame;
 	}
 }
@@ -581,12 +581,12 @@ void Cl_AddEntities(frame_t *frame){
 
 		// bob items, shift them to randomize the effect in crowded scenes
 		if(state->effects & EF_BOB)
-			ent.origin[2] += 4.0 * sin((cl.servertime * 0.005) + ent.origin[0] + ent.origin[1]);
+			ent.origin[2] += 4.0 * sin((cl.time * 0.005) + ent.origin[0] + ent.origin[1]);
 
 		// calculate angles
 		if(state->effects & EF_ROTATE){  // some bonus items rotate
 			ent.angles[0] = 0.0;
-			ent.angles[1] = cl.servertime / 4.0;
+			ent.angles[1] = cl.time / 4.0;
 			ent.angles[2] = 0.0;
 		}
 		else {  // lerp angles
@@ -595,15 +595,15 @@ void Cl_AddEntities(frame_t *frame){
 
 		// lerp frames
 		if(state->effects & EF_ANIMATE)
-			ent.frame = cl.servertime / 500;
+			ent.frame = cl.time / 500;
 		else if(state->effects & EF_ANIMATE_FAST)
-			ent.frame = cl.servertime / 100;
+			ent.frame = cl.time / 100;
 		else
 			ent.frame = state->frame;
 
 		ent.oldframe = cent->anim_frame;
 
-		ent.lerp = (cl.servertime - cent->anim_time) / 100.0;
+		ent.lerp = (cl.time - cent->anim_time) / 100.0;
 
 		if(ent.lerp < 0.0)  // clamp
 			ent.lerp = 0.0;
@@ -765,7 +765,7 @@ void Cl_AddEntities(frame_t *frame){
 			VectorMA(ent.origin, -8.0, fwd, ent.origin);
 			VectorMA(ent.origin, 3.0, rgt, ent.origin);
 
-			f = sin(cl.servertime * 0.004) * 0.5;
+			f = sin(cl.time * 0.004) * 0.5;
 			ent.origin[0] += f;
 			ent.origin[1] += f;
 			ent.origin[2] += 2.0;

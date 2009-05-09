@@ -146,7 +146,7 @@ void Cl_CenterPrint(char *str){
 
 	strncpy(centerstring, str, sizeof(centerstring) - 1);
 
-	centertime = cl.servertime + 5.0;
+	centertime = cl.time + 5.0;
 
 	// count the number of lines for centering
 	centerlines = 1;
@@ -219,7 +219,7 @@ static void Cl_DrawCenterString(void){
  */
 static void Cl_CheckDrawCenterString(void){
 
-	if(centertime <= cl.servertime)
+	if(centertime <= cl.time)
 		return;
 
 	Cl_DrawCenterString();
@@ -316,7 +316,7 @@ static void Cl_ExecuteLayoutString(const char *s){
 	x = 0;
 	y = 0;
 
-	flash = (cl.servertime / 100) & 1;  // for flashing fields
+	flash = (cl.time / 100) & 1;  // for flashing fields
 
 	while(s){
 		token = Com_Parse(&s);
@@ -616,7 +616,7 @@ static void Cl_DrawBlend(void){
 	if(!cl_blend->value)
 		return;
 
-	if(last_blend_time > cl.servertime)
+	if(last_blend_time > cl.time)
 		last_blend_time = 0;
 
 	// determine if we've taken damage or picked up an item
@@ -627,26 +627,26 @@ static void Cl_DrawBlend(void){
 	if(cl.frame.playerstate.pmove.pm_type == PM_NORMAL){
 
 		if(dp && (dp != p)){  // picked up an item
-			last_blend_time = cl.servertime;
+			last_blend_time = cl.time;
 			color = 215;
 			alpha = 0.3;
 		}
 
 		if(da < a){  // took damage
-			last_blend_time = cl.servertime;
+			last_blend_time = cl.time;
 			color = 240;
 			alpha = 0.3;
 		}
 
 		if(dh < h){  // took damage
-			last_blend_time = cl.servertime;
+			last_blend_time = cl.time;
 			color = 240;
 			alpha = 0.3;
 		}
 	}
 
 	al = 0;
-	t = (float)(cl.servertime - last_blend_time) / 500.0;
+	t = (float)(cl.time - last_blend_time) / 500.0;
 	al = cl_blend->value * (alpha - (t * alpha));
 
 	if(al < 0 || al > 1.0)

@@ -382,7 +382,7 @@ void Cl_AddEmits(void){
 		// most emits are timed events, so simply continue if it's
 		// not time to fire our event yet
 
-		if(e->time && (e->time > cl.servertime))
+		if(e->time && (e->time > cl.time))
 			continue;
 
 		if(e->flags & EMIT_LIGHT)
@@ -400,6 +400,6 @@ void Cl_AddEmits(void){
 		if((e->flags & EMIT_SOUND) && !e->loop)
 			S_PlaySample(e->org, -1, e->sample, e->atten);
 
-		e->time = cl.servertime + (1000.0 / e->hz + (e->drift * frand() * 1000.0));
+		e->time = cl.time + (1000.0 / e->hz + (e->drift * frand() * 1000.0));
 	}
 }

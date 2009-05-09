@@ -98,16 +98,16 @@ static void Cl_UpdateLerp(frame_t *from){
 		return;
 	}
 
-	if(cl.servertime > cl.frame.servertime){
+	if(cl.time > cl.frame.servertime){
 		Com_Dprintf("Cl_UpdateViewValues: High clamp.\n");
-		cl.servertime = cl.frame.servertime;
+		cl.time = cl.frame.servertime;
 		cl.lerp = 1.0;
-	} else if(cl.servertime < from->servertime){
+	} else if(cl.time < from->servertime){
 		Com_Dprintf("Cl_UpdateViewValues: Low clamp.\n");
-		cl.servertime = from->servertime;
+		cl.time = from->servertime;
 		cl.lerp = 0.0;
 	} else {
-		cl.lerp = (float)(cl.servertime - from->servertime) /
+		cl.lerp = (float)(cl.time - from->servertime) /
 				(float)(cl.frame.servertime - from->servertime);
 	}
 }
@@ -299,7 +299,7 @@ void Cl_UpdateView(void){
 	Cl_UpdateViewsize();
 
 	// set time in seconds
-	r_view.time = cl.servertime * 0.001;
+	r_view.time = cl.time * 0.001;
 
 	// inform the renderer if the client is on the ground
 	r_view.ground = ps->pmove.pm_flags & PMF_ON_GROUND;

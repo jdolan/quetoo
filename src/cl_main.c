@@ -1089,7 +1089,7 @@ void Cl_Frame(int msec){
 			help_issued = false;
 	}
 
-	cl.servertime += msec;  // update time references
+	cl.time += msec;  // update time references
 	cls.realtime = curtime;
 
 	if(render_frame){
