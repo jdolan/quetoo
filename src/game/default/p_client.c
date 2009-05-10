@@ -429,16 +429,20 @@ static qboolean P_GiveLevelLocals(gclient_t *client){
 
 		it = Com_TrimString(it);
 
-		if((q = strrchr(it, ' '))){
-			quantity = atoi(q + 1);
+		if(strlen(it)){
 
-			if(quantity > -1)  // valid quantity
-				*q = 0;
+			if((q = strrchr(it, ' '))){
+				quantity = atoi(q + 1);
+
+				if(quantity > -1)  // valid quantity
+					*q = 0;
+			}
+			else
+				quantity = -1;
+
+			P_Give(client, it, quantity);
 		}
-		else
-			quantity = -1;
 
-		P_Give(client, it, quantity);
 		it = strtok(NULL, ",");
 	}
 

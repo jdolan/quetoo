@@ -100,10 +100,13 @@ static void S_FreeMusic(s_music_t *music){
 static void S_FreeMusics(void){
 	int i;
 
-	for(i = 0; i < MAX_MUSIC; i++)
-		S_FreeMusic(&s_env.music[i]);
+	for(i = 0; i < MAX_MUSICS; i++)
+		S_FreeMusic(&s_env.musics[i]);
 
-	memset(s_env.music, 0, sizeof(s_env.music));
+	memset(s_env.musics, 0, sizeof(s_env.musics));
+	s_env.num_musics = 0;
+
+	s_env.active_music = NULL;
 }
 
 
@@ -116,16 +119,17 @@ void S_LoadMusics(void){
 
 	S_FreeMusics();
 
-	for(i = 1; i < MAX_MUSIC; i++){
+	for(i = 1; i < MAX_MUSICS; i++){
 
 		if(!cl.configstrings[CS_MUSICS + i][0])
 			break;
 
-		if(!(music = S_LoadMusic(cl.configstrings[CS_MUSICS] + i)))
+		if(!(music = S_LoadMusic(cl.configstrings[CS_MUSICS + i])))
 			continue;
 
-		memcpy(&s_env.music[i - 1], music, sizeof(s_music_t));
+		memcpy(&s_env.musics[s_env.num_musics++], music, sizeof(s_music_t));
 	}
+	Com_Printf("Loaded %d tracks\n", s_env.num_musics);
 }
 
 
@@ -134,11 +138,48 @@ void S_LoadMusics(void){
  */
 static void S_StopMusic(void){
 
-	if(s_env.active_music){
-		Mix_HaltMusic();
+	Mix_HaltMusic();
 
-		s_env.active_music = NULL;
+	s_env.active_music = NULL;
+}
+
+
+/**
+ * S_PlayMusic
+ */
+static void S_PlayMusic(s_music_t *music){
+
+	Mix_PlayMusic(music->music, 1);
+
+	s_env.active_music = music;
+}
+
+
+/**
+ * S_NextMusic
+ */
+static s_music_t *S_NextMusic(void){
+	s_music_t *music;
+
+	music = &default_music;
+
+	if(s_env.num_musics){  // select a new track
+		int i;
+
+		for(i = 0; i < MAX_MUSICS; i++){
+			if(s_env.active_music == &s_env.musics[i])
+				break;
+		}
+
+		if(i < MAX_MUSICS)
+			i++;
+		else
+			i = 0;
+
+		music = &s_env.musics[i % s_env.num_musics];
 	}
+
+	return music;
 }
 
 
@@ -165,37 +206,33 @@ void S_FrameMusic(void){
 	if(!s_musicvolume->value)
 		return;
 
-	music = NULL;
+	music = &default_music;
 
-	if(cls.state == ca_active){  // play the level-specific music
+	if(cls.state == ca_active){  // try level-specific music
 
-		if(cl.configstrings[CS_MUSIC][0]){
+		if(!Mix_PlayingMusic() || (s_env.active_music == &default_music)){
 
-			const int i = atoi(cl.configstrings[CS_MUSIC]);
-
-			if(i < 0 || i >= MAX_MUSIC){
-				Com_Warn("S_FrameMusic: Invalid music index: %d.\n", i);
-				return;
-			}
-
-			if(s_env.music[i].music)
-				music = &s_env.music[i];
+			if((music = S_NextMusic()) != s_env.active_music)
+				S_StopMusic();
 		}
 	}
-	else {  // or play the game theme
+	else {  // select the default music
 
-		music = &default_music;
+		if(s_env.active_music != &default_music)
+			S_StopMusic();
 	}
 
-	if(music && (music != s_env.active_music)){  // play the new music
+	if(!Mix_PlayingMusic())  // play it
+		S_PlayMusic(music);
+}
 
-		if(s_env.active_music)
-			Mix_HaltMusic();
 
-		Mix_PlayMusic(music->music, -1);
+/**
+ * S_NextTrack_f
+ */
+static void S_NextTrack_f(void){
 
-		s_env.active_music = music;
-	}
+	S_PlayMusic(S_NextMusic());
 }
 
 
@@ -206,6 +243,8 @@ void S_InitMusic(void){
 	s_music_t *music;
 
 	s_musicvolume = Cvar_Get("s_musicvolume", "0.25", CVAR_ARCHIVE, "Music volume level.");
+
+	Cmd_AddCommand("s_nexttrack", S_NextTrack_f, "Play the next music track.");
 
 	S_FreeMusics();
 

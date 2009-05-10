@@ -1042,6 +1042,11 @@ static void G_ParseMaplist(const char *filename){
 			continue;
 		}
 
+		if(!strcmp(c, "music")){
+			strncpy(map->music, Com_Parse(&buffer), 1023);
+			continue;
+		}
+
 		if(!strcmp(c, "weight")){
 			map->weight = atof(Com_Parse(&buffer));
 			continue;
@@ -1065,10 +1070,12 @@ static void G_ParseMaplist(const char *filename){
 					"capturelimit: %d\n"
 					"timelimit: %f\n"
 					"give: %s\n"
+					"music: %s\n"
 					"weight: %f\n",
 					map->name, map->title, map->sky, map->weather, map->gravity,
-					map->gameplay, map->teams, map->ctf, map->match, map->rounds, map->fraglimit,
-					map->roundlimit, map->capturelimit, map->timelimit, map->give, map->weight);*/
+					map->gameplay, map->teams, map->ctf, map->match, map->rounds,
+					map->fraglimit, map->roundlimit, map->capturelimit,
+					map->timelimit, map->give, map->music, map->weight);*/
 
 			// accumulate total weight
 			maplist.total_weight += map->weight;
@@ -1083,7 +1090,7 @@ static void G_ParseMaplist(const char *filename){
 
 	gi.TagFree(buf);
 
-	// tho shalt not divide by zero
+	// thou shalt not divide by zero
 	if(!maplist.total_weight)
 		maplist.total_weight = 1.0;
 

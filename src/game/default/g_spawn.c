@@ -610,6 +610,37 @@ char *dm_statusbar =
 	;
 
 
+/**
+ * G_WorldspawnMusic
+ */
+static void G_WorldspawnMusic(void){
+	char *t, buf[MAX_STRING_CHARS];
+	int i;
+
+	if(!strlen(level.music))
+		return;
+
+	strncpy(buf, level.music, sizeof(buf));
+
+	i = 1;
+	t = strtok(buf, ",");
+
+	while(true){
+
+		if(!t)
+			break;
+
+		if(i == MAX_MUSICS)
+			break;
+
+		if(strlen(t))
+			gi.Configstring(CS_MUSICS + i++, Com_TrimString(t));
+
+		t = strtok(NULL, ",");
+	}
+}
+
+
 /*QUAKED worldspawn(0 0 0) ?
 
 Only used for the world.
@@ -627,6 +658,7 @@ Only used for the world.
 "capturelimit" 	8 captures
 "timelimit"		20 minutes
 "give"			comma-delimited items list
+"music"			comma-delimited track list
 */
 static void G_worldspawn(edict_t *ent){
 	int i;
@@ -777,6 +809,17 @@ static void G_worldspawn(edict_t *ent){
 		else  // or clean it
 			level.give[0] = 0;
 	}
+
+	if(map && *map->music)  // prefer maps.lst music
+		strncpy(level.music, map->music, sizeof(level.music));
+	else {  // or fall back on worldspawn
+		if(st.music && *st.music)
+			strncpy(level.music, st.music, sizeof(level.music));
+		else
+			level.music[0] = 0;
+	}
+
+	G_WorldspawnMusic();
 
 	// send sv_maxclients to clients
 	gi.Configstring(CS_MAXCLIENTS, va("%i", (int)(sv_maxclients->value)));

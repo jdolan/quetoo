@@ -199,6 +199,7 @@ typedef struct {
 	int capturelimit;
 	float timelimit;
 	char give[MAX_STRING_CHARS];
+	char music[MAX_STRING_CHARS];
 
 	// intermission state
 	float intermissiontime;  // time intermission started
@@ -242,6 +243,7 @@ typedef struct {
 	char *capturelimit;
 	char *timelimit;
 	char *give;
+	char *music;
 
 	int lip;
 	int distance;
@@ -378,6 +380,7 @@ typedef struct maplistelt_s {
 	int capturelimit;
 	float timelimit;
 	char give[MAX_STRING_CHARS];
+	char music[MAX_STRING_CHARS];
 	float weight;
 } maplistelt_t;
 
@@ -435,7 +438,6 @@ void G_Score_f(edict_t *ent);
 qboolean G_AddClientToTeam(edict_t *ent, char *teamname);
 
 // g_items.c
-
 extern gitem_t itemlist[];
 
 #define ITEM_INDEX(x) ((x) - itemlist)

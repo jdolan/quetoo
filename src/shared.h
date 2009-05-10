@@ -95,7 +95,7 @@ extern float LittleFloat(float l);
 #define MAX_EDICTS			1024  // must change protocol to increase more
 #define MAX_MODELS			256   // these are sent over the net as bytes
 #define MAX_SOUNDS			256   // so they cannot be blindly increased
-#define MAX_MUSIC			8     // per level
+#define MAX_MUSICS			8     // per level
 #define MAX_IMAGES			256
 #define MAX_ITEMS			256
 #define MAX_GENERAL			(MAX_CLIENTS * 2)  // general config strings
@@ -570,7 +570,7 @@ typedef enum {
 #define CS_MODELS			32
 #define CS_SOUNDS			(CS_MODELS + MAX_MODELS)
 #define CS_MUSICS			(CS_SOUNDS + MAX_SOUNDS)
-#define CS_IMAGES			(CS_MUSICS + MAX_MUSIC)
+#define CS_IMAGES			(CS_MUSICS + MAX_MUSICS)
 #define CS_ITEMS			(CS_IMAGES + MAX_IMAGES)
 #define CS_PLAYERSKINS		(CS_ITEMS + MAX_ITEMS)
 #define CS_GENERAL			(CS_PLAYERSKINS + MAX_CLIENTS)
@@ -579,7 +579,6 @@ typedef enum {
 #define CS_TEAMGOOD			(CS_GENERAL + 2)  // team names
 #define CS_TEAMEVIL			(CS_GENERAL + 3)
 #define CS_TIME				(CS_GENERAL + 4)  // level/match timer
-#define CS_MUSIC			(CS_GENERAL + 5)  // current music
 
 #define MAX_CONFIGSTRINGS	(CS_GENERAL + MAX_GENERAL)
 

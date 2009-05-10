@@ -54,7 +54,9 @@ typedef struct s_env_s {
 
 	s_channel_t channels[MAX_CHANNELS];
 
-	s_music_t music[MAX_MUSIC];
+	s_music_t musics[MAX_MUSICS];
+	int num_musics;
+
 	s_music_t *active_music;
 
 	vec3_t right;  // for stereo panning
