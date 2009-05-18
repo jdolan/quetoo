@@ -529,7 +529,7 @@ static void R_LoadLeafsurfaces(const lump_t *l){
 
 		const unsigned short j = (unsigned short)LittleShort(in[i]);
 
-		if(j < 0 || j >= r_loadmodel->numsurfaces){
+		if(j >= r_loadmodel->numsurfaces){
 			Com_Error(ERR_DROP, "R_LoadLeafsurfaces: Bad surface number: %d.", j);
 		}
 
