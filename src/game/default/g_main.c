@@ -177,6 +177,7 @@ static void G_ResetItems(void){
  */
 static void G_RestartGame(qboolean teamz){
 	int i;
+	edict_t *ent;
 	gclient_t *cl;
 
 	if(level.matchtime)
@@ -186,10 +187,12 @@ static void G_RestartGame(qboolean teamz){
 		level.roundnum++;
 
 	for(i = 0; i < sv_maxclients->value; i++){  // reset clients
+
 		if(!g_edicts[i + 1].inuse)
 			continue;
 
-		cl = g_edicts[i + 1].client;
+		ent = &g_edicts[i + 1];
+		cl = ent->client;
 
 		cl->locals.ready = false;  // back to warmup
 		cl->locals.score = 0;
@@ -198,18 +201,33 @@ static void G_RestartGame(qboolean teamz){
 		if(teamz)  // reset teams
 			cl->locals.team = NULL;
 
-		// respawn players from the last match or round
-		if(cl->locals.matchnum == level.matchnum)
-			cl->locals.spectator = false;
+		// determine spectator or team affiliations
 
-		if(cl->locals.roundnum == level.roundnum)
-			cl->locals.spectator = false;
+		if(level.match){
+			if(cl->locals.matchnum == level.matchnum)
+				cl->locals.spectator = false;
+			else
+				cl->locals.spectator = true;
+		}
 
-		// as long as they have a team
-		if((level.teams || level.ctf) && !cl->locals.team)
-			cl->locals.spectator = true;
+		else if(level.rounds){
+			if(cl->locals.roundnum == level.roundnum)
+				cl->locals.spectator = false;
+			else
+				cl->locals.spectator = true;
+		}
 
-		P_Respawn(&g_edicts[i + 1], false);
+		if(level.teams || level.ctf){
+			
+			if(!cl->locals.team){
+				if(g_autojoin->value)
+					G_AddClientToTeam(ent, G_SmallestTeam()->name);
+				else
+					cl->locals.spectator = true;
+			}
+		}
+
+		P_Respawn(ent, false);
 	}
 
 	G_ResetItems();
