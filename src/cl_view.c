@@ -118,6 +118,14 @@ static void Cl_UpdateLerp(frame_t *from){
  */
 static void Cl_UpdateDucking(void){
 	static int ducktime, standtime;
+	vec3_t mins, maxs;
+	float height, viewheight;
+
+	VectorScale(PM_MINS, PM_SCALE, mins);
+	VectorScale(PM_MAXS, PM_SCALE, maxs);
+
+	height = maxs[2] - mins[2];
+	viewheight = mins[2] + (height * 0.75);
 
 	if(cl.frame.playerstate.pmove.pm_flags & PMF_DUCKED){
 
@@ -127,7 +135,7 @@ static void Cl_UpdateDucking(void){
 			ducktime = cls.realtime + 200;
 
 		if(ducktime > cls.realtime)
-			r_view.origin[2] += (ducktime - cls.realtime) * 22 / 200;
+			r_view.origin[2] += (ducktime - cls.realtime) * viewheight / 200;
 
 		return;
 	}
@@ -136,11 +144,11 @@ static void Cl_UpdateDucking(void){
 		standtime = cls.realtime;
 
 	if(cls.realtime - standtime <= 200){  // rise
-		r_view.origin[2] += (cls.realtime - standtime) * 22 / 200;
+		r_view.origin[2] += (cls.realtime - standtime) * viewheight / 200;
 	}
 	else {  // cancel ducking, add normal height
 		ducktime = standtime = 0;
-		r_view.origin[2] += 22;
+		r_view.origin[2] += viewheight;
 	}
 }
 

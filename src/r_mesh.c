@@ -69,6 +69,9 @@ static void R_AddMeshShadow(const entity_t *e){
 
 	sh->scale = 5.0 / (0.5 * h + 1);
 	sh->scale = sh->scale > 1.0 ? 1.0 : sh->scale;
+
+	if(e->skin)  // scale up player shadows
+		sh->scale *= 2.0;
 }
 
 

@@ -10,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU General Public License for more details.
  *
@@ -71,9 +71,11 @@ pml_t pml;
 #define PM_SPEED_WATER			200.0
 #define PM_SPEED_WATER_DOWN		20.0
 
-
 #define CLIP_BACKOFF 1.001
 #define STOP_EPSILON 0.1
+
+vec3_t PM_MINS = { -16.0, -16.0, -24.0};
+vec3_t PM_MAXS = {  16.0,  16.0,  42.0};
 
 /*
  * Pm_ClipVelocity
@@ -173,7 +175,7 @@ static int Pm_StepSlideMove_(void){
 
 		// update the origin
 		VectorCopy(trace.endpos, pml.origin);
-		
+
 		if(trace.fraction == 1.0)  // moved the entire distance
 			break;
 
@@ -525,7 +527,7 @@ static void Pm_AirMove(void){
 
 	// clamp to server defined max speed
 	maxspeed = (pm->s.pm_flags & PMF_DUCKED) ? PM_SPEED_DUCKED : PM_SPEED_RUN;
-	
+
 	// account for speed modulus
 	maxspeed = (pm->cmd.buttons & BUTTON_WALK ? maxspeed * 0.66 : maxspeed);
 
@@ -790,15 +792,14 @@ static void Pm_WaterJumpMove(void){
  * Sets mins, maxs, and pm->viewheight
  */
 static void Pm_CheckDuck(void){
+	float height;
 	trace_t trace;
 
-	pm->mins[0] = -16.0;
-	pm->mins[1] = -16.0;
+	VectorScale(PM_MINS, PM_SCALE, pm->mins);
+	VectorScale(PM_MAXS, PM_SCALE, pm->maxs);
 
-	pm->maxs[0] = 16.0;
-	pm->maxs[1] = 16.0;
-
-	pm->mins[2] = -24.0;
+	height = pm->maxs[2] - pm->mins[2];
+	pm->viewheight = pm->mins[2] + (height * 0.75);
 
 	if(pm->s.pm_type == PM_DEAD){
 		pm->s.pm_flags |= PMF_DUCKED;
@@ -806,19 +807,15 @@ static void Pm_CheckDuck(void){
 		pm->s.pm_flags |= PMF_DUCKED;
 	} else {  // stand up if possible
 		if(pm->s.pm_flags & PMF_DUCKED){  // try to stand up
-			pm->maxs[2] = 32.0;
 			trace = pm->trace(pml.origin, pm->mins, pm->maxs, pml.origin);
 			if(!trace.allsolid)
 				pm->s.pm_flags &= ~PMF_DUCKED;
 		}
 	}
 
-	if(pm->s.pm_flags & PMF_DUCKED){
-		pm->maxs[2] = 4.0;
-		pm->viewheight = -2.0;
-	} else {
-		pm->maxs[2] = 32.0;
-		pm->viewheight = 22.0;
+	if(pm->s.pm_flags & PMF_DUCKED){  // ducked, reduce height
+		pm->viewheight = pm->mins[2] + (height * 0.5);
+		pm->maxs[2] = pm->maxs[2] + pm->mins[2] / 2.0;
 	}
 }
 
@@ -843,7 +840,7 @@ static qboolean Pm_GoodPosition(void){
 
 /*
  * Pm_SnapPosition
- *  
+ *
  * On exit, the origin will have a value that is pre-quantized to the 0.125
  * precision of the network channel and in a valid position.
  */
@@ -982,7 +979,7 @@ static void Pm_Init(void){
 
 	// reset stair climbing flag on every move
 	pm->s.pm_flags &= ~PMF_ON_STAIRS;
-	
+
 	// decrement the movement timer
 	if(pm->s.pm_time){
 		int msec;

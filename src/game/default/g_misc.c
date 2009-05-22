@@ -324,5 +324,7 @@ void G_misc_teleporter(edict_t *ent){
 /*QUAKED misc_teleporter_dest(1 0 0)(-32 -32 -24)(32 32 -16)
 Point teleporters at these.
 */
-void G_misc_teleporter_dest(edict_t *ent){}
+void G_misc_teleporter_dest(edict_t *ent){
+	ent->s.origin[2] += (PLAYER_MINS[2] - PLAYER_MINS[2] * PM_SCALE);
+}
 

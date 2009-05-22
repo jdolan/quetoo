@@ -26,29 +26,39 @@
 /*QUAKED info_player_start(1 0 0)(-16 -16 -24)(16 16 32)
 The normal starting point for a level.
 */
-void G_info_player_start(edict_t *self){}
+void G_info_player_start(edict_t *self){
+	self->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+}
 
 /*QUAKED info_player_intermission(1 0 1)(-16 -16 -24)(16 16 32)
 Level intermission point will be at one of these
 Use 'angles' instead of 'angle', so you can set pitch or roll as well as yaw.
 'pitch yaw roll'
 */
-void G_info_player_intermission(edict_t *self){}
+void G_info_player_intermission(edict_t *self){
+	self->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+}
 
 /*QUAKED info_player_deathmatch(1 0 1)(-16 -16 -24)(16 16 32)
 potential spawning position for deathmatch games
 */
-void G_info_player_deathmatch(edict_t *self){}
+void G_info_player_deathmatch(edict_t *self){
+	self->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+}
 
 /*QUAKED info_player_team1(1 0 1)(-16 -16 -24)(16 16 32)
 potential spawning position for team games
 */
-void G_info_player_team1(edict_t *self){}
+void G_info_player_team1(edict_t *self){
+	self->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+}
 
 /*QUAKED info_player_team2(1 0 1)(-16 -16 -24)(16 16 32)
 potential spawning position for team games
 */
-void G_info_player_team2(edict_t *self){}
+void G_info_player_team2(edict_t *self){
+	self->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+}
 
 
 /*
@@ -685,9 +695,8 @@ static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
  * The grunt work of putting the client into the server on [re]spawn.
  */
 static void P_PutClientInServer(edict_t *ent){
-	vec3_t mins = { -16, -16, -24};
-	vec3_t maxs = {16, 16, 32};
 	vec3_t spawn_origin, spawn_angles, old_angles;
+	float height;
 	gclient_t *client;
 	client_locals_t locals;
 	int i;
@@ -709,10 +718,14 @@ static void P_PutClientInServer(edict_t *ent){
 	client->locals = locals;
 
 	// clear entity values
+	VectorScale(PM_MINS, PM_SCALE, ent->mins);
+	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
+	height = ent->maxs[2] - ent->mins[2];
+
 	ent->groundentity = NULL;
 	ent->takedamage = true;
 	ent->movetype = MOVETYPE_WALK;
-	ent->viewheight = 22;
+	ent->viewheight = ent->mins[2] + (height * 0.75);
 	ent->inuse = true;
 	ent->classname = "player";
 	ent->mass = 200.0;
@@ -733,8 +746,6 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->health = ent->client->locals.health;
 	ent->max_health = ent->client->locals.max_health;
 
-	VectorCopy(mins, ent->mins);
-	VectorCopy(maxs, ent->maxs);
 	VectorClear(ent->velocity);
 	ent->velocity[2] = 150.0;
 

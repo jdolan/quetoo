@@ -624,6 +624,7 @@ void Cl_AddEntities(frame_t *frame){
 				ent.skin = cl.baseclientinfo.skin;
 				ent.model = cl.baseclientinfo.model;
 			}
+			VectorSet(ent.scale, PM_SCALE, PM_SCALE, PM_SCALE);
 		} else {
 			ent.skinnum = state->skinnum;
 			ent.skin = NULL;
@@ -762,8 +763,8 @@ void Cl_AddEntities(frame_t *frame){
 
 			// project back and to the right
 			AngleVectors(ent.angles, fwd, rgt, NULL);
-			VectorMA(ent.origin, -8.0, fwd, ent.origin);
-			VectorMA(ent.origin, 3.0, rgt, ent.origin);
+			VectorMA(ent.origin, -8.0 * PM_SCALE, fwd, ent.origin);
+			VectorMA(ent.origin, 3.0 * PM_SCALE, rgt, ent.origin);
 
 			f = sin(cl.time * 0.004) * 0.5;
 			ent.origin[0] += f;
@@ -776,6 +777,7 @@ void Cl_AddEntities(frame_t *frame){
 			ent.model = cl.model_draw[state->modelindex3];
 
 			VectorSet(ent.scale, 0.6, 0.6, 0.6);
+			VectorScale(ent.scale, PM_SCALE, ent.scale);
 
 			R_AddEntity(&ent);
 		}

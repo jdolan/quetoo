@@ -378,6 +378,12 @@ typedef struct {
 	struct edict_s *ent;  // not set by CM_*() functions
 } trace_t;
 
+// player bbox and viewheight scaling
+extern vec3_t PM_MINS;
+extern vec3_t PM_MAXS;
+
+#define PM_SCALE			1.2  // global player scale factor
+
 #define PM_STAIR_HEIGHT		16.0  // maximum stair height player can walk up
 #define PM_STAIR_NORMAL		0.7  // can't step up onto very steep slopes
 
