@@ -281,8 +281,10 @@ static void G_GrenadeExplode(edict_t *ent){
 
 	if(G_IsStationary(ent->groundentity))
 		VectorMA(ent->s.origin, 16.0, ent->plane.normal, origin);
-	else
+	else {
 		VectorCopy(ent->s.origin, origin);
+		origin[2] += 4.0;
+	}
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_EXPLOSION);

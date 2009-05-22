@@ -502,7 +502,7 @@ static void Cl_AddWeapon(const vec3_t shell){
 
 
 static const vec3_t rocket_light = {
-	1.0, 0.4, 0.4
+	1.0, 0.5, 0.3
 };
 static const vec3_t grenade_light = {
 	0.6, 0.4, 0.1

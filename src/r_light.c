@@ -22,7 +22,7 @@
 #include "renderer.h"
 
 
-#define LIGHT_RADIUS_FACTOR 100.0  // light radius multiplier for shader
+#define LIGHT_RADIUS_FACTOR 80.0  // light radius multiplier for shader
 
 /*
  * R_AddLight
