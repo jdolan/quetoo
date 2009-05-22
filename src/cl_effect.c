@@ -295,6 +295,7 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
 			p->org[j] = org[j] + ((rand() & 7) - 4.0) + d * dir[j];
 			p->vel[j] = crand() * 20.0;
 		}
+		p->org[2] += 16.0 * PM_SCALE;
 
 		p->accel[0] = p->accel[1] = 0.0;
 		p->accel[2] = PARTICLE_GRAVITY / 4.0;

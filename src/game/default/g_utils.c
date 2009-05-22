@@ -21,6 +21,23 @@
 
 #include "g_local.h"
 
+/*
+ * G_ProjectSpawn
+ */
+void G_ProjectSpawn(edict_t *ent){
+	vec3_t forward;
+	float dist;
+
+	// up
+	ent->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+
+	dist = PM_MAXS[0] * PM_SCALE - PM_MAXS[0];
+
+	// forward
+	AngleVectors(ent->s.angles, forward, NULL, NULL);
+	VectorMA(ent->s.origin, dist, forward, ent->s.origin);
+}
+
 
 /*
  * G_ProjectSource

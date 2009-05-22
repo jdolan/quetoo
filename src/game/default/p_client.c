@@ -27,7 +27,7 @@
 The normal starting point for a level.
 */
 void G_info_player_start(edict_t *self){
-	self->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_intermission(1 0 1)(-16 -16 -24)(16 16 32)
@@ -36,28 +36,28 @@ Use 'angles' instead of 'angle', so you can set pitch or roll as well as yaw.
 'pitch yaw roll'
 */
 void G_info_player_intermission(edict_t *self){
-	self->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_deathmatch(1 0 1)(-16 -16 -24)(16 16 32)
 potential spawning position for deathmatch games
 */
 void G_info_player_deathmatch(edict_t *self){
-	self->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_team1(1 0 1)(-16 -16 -24)(16 16 32)
 potential spawning position for team games
 */
 void G_info_player_team1(edict_t *self){
-	self->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_team2(1 0 1)(-16 -16 -24)(16 16 32)
 potential spawning position for team games
 */
 void G_info_player_team2(edict_t *self){
-	self->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+	G_ProjectSpawn(self);
 }
 
 
