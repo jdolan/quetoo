@@ -325,6 +325,6 @@ void G_misc_teleporter(edict_t *ent){
 Point teleporters at these.
 */
 void G_misc_teleporter_dest(edict_t *ent){
-	ent->s.origin[2] += (PLAYER_MINS[2] - PLAYER_MINS[2] * PM_SCALE);
+	ent->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
 }
 
