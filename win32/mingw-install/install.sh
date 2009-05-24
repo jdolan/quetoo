@@ -35,8 +35,8 @@ wget -c http://downloads.sourceforge.net/mingw/w32api-3.13-mingw32-dev.tar.gz
 wget -c http://downloads.sourceforge.net/mingw/gdb-6.8-mingw-3.tar.bz2
 wget -c http://www.libsdl.org/extras/win32/common/directx-devel.tar.gz
 
-wget -c http://downloads.sourceforge.net/tdm-gcc/gcc-4.3.3-tdm-1-core.tar.gz
-wget -c http://downloads.sourceforge.net/tdm-gcc/gcc-4.3.3-tdm-1-g++.tar.gz
+wget -c http://downloads.sourceforge.net/tdm-gcc/gcc-4.4.0-tdm-1-core-2.tar.gz
+wget -c http://downloads.sourceforge.net/tdm-gcc/gcc-4.4.0-tdm-1-g%2B%2B-2.tar.gz
 
 
 echo "extract core"
