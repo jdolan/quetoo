@@ -168,11 +168,13 @@ static void SnapVector(vec3_t normal){
 /*
  * SnapPlane
  */
-static inline void SnapPlane(vec3_t normal, vec_t * dist){
+static inline void SnapPlane(vec3_t normal, vec_t *dist){
+	const float f = floor(*dist + 0.5);
+
 	SnapVector(normal);
 
-	if(fabs(*dist - VectorRoundUp(*dist)) < DIST_EPSILON)
-		*dist = VectorRoundUp(*dist);
+	if(fabs(*dist - f) < DIST_EPSILON)
+		*dist = f;
 }
 
 

@@ -163,9 +163,9 @@ vec_t VectorLength(const vec3_t v);
 void VectorMix(const vec3_t v1, const vec3_t v2, const float mix, vec3_t out);
 void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t vecc);
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
-void VectorScaleWithBounds(vec3_t in, vec_t scale, vec_t bounds, vec3_t out);
-vec_t VectorRoundUp(vec_t v);
 vec_t ColorNormalize(const vec3_t in, vec3_t out);
+
+#define DEG2RAD(a)				(a * M_PI) / 180.0F
 
 void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]);
 

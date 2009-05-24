@@ -99,8 +99,10 @@ static int GetVertexnum(const vec3_t in){
 	c_totalverts++;
 
 	for(i = 0; i < 3; i++){
-		if(fabs(in[i] - VectorRoundUp(in[i])) < INTEGRAL_EPSILON)
-			vert[i] = VectorRoundUp(in[i]);
+		const float f = floor(in[i] + 0.5);
+
+		if(fabs(in[i] - f) < INTEGRAL_EPSILON)
+			vert[i] = f;
 		else
 			vert[i] = in[i];
 	}

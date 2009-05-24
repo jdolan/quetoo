@@ -22,9 +22,10 @@
 #include "shared.h"
 #include "files.h"
 
-#define DEG2RAD(a)(a * M_PI) / 180.0F
-
 vec3_t vec3_origin = {0.0, 0.0, 0.0};
+
+vec3_t PM_MINS = { -16.0, -16.0, -24.0};
+vec3_t PM_MAXS = {  16.0,  16.0,  42.0};
 
 
 /*
@@ -463,29 +464,6 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross){
  */
 vec_t VectorLength(const vec3_t v){
 	return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-}
-
-
-/*
- * VectorScaleWithBounds
- */
-void VectorScaleWithBounds(vec3_t in, vec_t scale, vec_t bounds, vec3_t out){
-	int i;
-	float s;
-
-	i = in[0] > in[1] ? 0 : 1;
-	i = in[i] > in[2] ? i : 2;
-
-	s = in[i] * scale > bounds ? bounds / in[i] : scale;
-	VectorScale(in, s, out);
-}
-
-
-/*
- * VectorRoundUp
- */
-vec_t VectorRoundUp(vec_t v){
-	return floor(v + 0.5);
 }
 
 

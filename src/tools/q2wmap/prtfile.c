@@ -35,12 +35,19 @@ static FILE *pf;
 int num_visclusters; /* clusters the player can be in */
 int num_visportals;
 
+
+/*
+ * WriteFloat
+ */
 static void WriteFloat(FILE *f, vec_t v){
-	if(fabs(v - VectorRoundUp(v)) < 0.001)
-		fprintf(f, "%i ", (int)VectorRoundUp(v));
+	const float r = floor(v + 0.5);
+
+	if(fabs(v - r) < 0.001)
+		fprintf(f, "%i ", (int)r);
 	else
 		fprintf(f, "%f ", v);
 }
+
 
 /*
  * WritePortalFile_r
@@ -94,12 +101,11 @@ static void WritePortalFile_r(node_t *node){
 
 }
 
+
 /*
- * ================
  * FillLeafNumbers_r
  *
  * All of the leafs under node will have the same cluster
- * ================
  */
 static void FillLeafNumbers_r(node_t * node, int num){
 	if(node->planenum == PLANENUM_LEAF){
@@ -115,9 +121,7 @@ static void FillLeafNumbers_r(node_t * node, int num){
 }
 
 /*
- * ================
  * NumberLeafs_r
- * ================
  */
 static void NumberLeafs_r(node_t * node){
 	portal_t *p;
@@ -153,9 +157,7 @@ static void NumberLeafs_r(node_t * node){
 
 
 /*
- * ================
  * CreateVisPortals_r
- * ================
  */
 static void CreateVisPortals_r(node_t * node){
 	// stop as soon as we get to a detail_seperator, which

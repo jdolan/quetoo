@@ -74,8 +74,6 @@ pml_t pml;
 #define CLIP_BACKOFF 1.001
 #define STOP_EPSILON 0.1
 
-vec3_t PM_MINS = { -16.0, -16.0, -24.0};
-vec3_t PM_MAXS = {  16.0,  16.0,  42.0};
 
 /*
  * Pm_ClipVelocity
