@@ -347,11 +347,18 @@ Used as a positional target for lightning.
 */
 
 
-/*QUAKED light (0 1 0) (-8 -8 -8) (8 8 8) START_OFF
+/*QUAKED light (0 1 0) (-8 -8 -8) (8 8 8)
 Non-displayed light.
-Default light value is 300.
-If targeted, will toggle between on and off.
-Default _cone value is 10 (used to set size of light for spotlights)
+"light"		Light radius, default is 300.
+"_color"	Light color , default is 1.0 1.0 1.0.
+*/
+
+/*QUAKED light_spot (0 1 0) (-8 -8 -8) (8 8 8)
+Non-displayed directional light.
+"light"		Light radius, default is 300.
+"_color"	Light color , default is 1.0 1.0 1.0.
+"_cone"		Spotlight cone size, default is 10.
+"_angle"	Spotlight direction, use -1 for up, -2 for down, or positive value for yaw.
 */
 
 
