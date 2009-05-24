@@ -25,7 +25,7 @@
 vec3_t vec3_origin = {0.0, 0.0, 0.0};
 
 vec3_t PM_MINS = { -16.0, -16.0, -24.0};
-vec3_t PM_MAXS = {  16.0,  16.0,  42.0};
+vec3_t PM_MAXS = {  16.0,  16.0,  40.0};
 
 
 /*
@@ -889,14 +889,21 @@ static float FloatNoSwap(float f){
 }
 
 
+union {
+	byte b[2];
+	unsigned short s;
+} swaptest;
+
 /*
  * Swap_Init
  */
 void Swap_Init(void){
-	byte swaptest[2] = {1, 0};
+
+	swaptest.b[0] = 0;
+	swaptest.b[1] = 1;
 
 	// set the byte swapping variables in a portable manner
-	if(*(short *)swaptest == 1){
+	if(swaptest.s == 1){
 		bigendien = false;
 		_BigShort = ShortSwap;
 		_LittleShort = ShortNoSwap;
