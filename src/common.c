@@ -1050,7 +1050,7 @@ void Z_Free(void *ptr){
  * Z_Stats_f
  */
 static void Z_Stats_f(void){
-	Com_Printf("%zd bytes in "Q2W_SIZE_T" blocks\n", z_bytes, z_count);
+	Com_Printf(Q2W_SIZE_T" bytes in "Q2W_SIZE_T" blocks\n", z_bytes, z_count);
 }
 
 
