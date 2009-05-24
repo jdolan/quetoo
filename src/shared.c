@@ -888,19 +888,18 @@ static float FloatNoSwap(float f){
 	return f;
 }
 
-
-union {
-	byte b[2];
-	unsigned short s;
-} swaptest;
-
 /*
  * Swap_Init
  */
 void Swap_Init(void){
 
-	swaptest.b[0] = 0;
-	swaptest.b[1] = 1;
+	static union {
+		byte b[2];
+		unsigned short s;
+	} swaptest;
+
+	swaptest.b[0] = 1;
+	swaptest.b[1] = 0;
 
 	// set the byte swapping variables in a portable manner
 	if(swaptest.s == 1){
