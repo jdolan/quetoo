@@ -281,10 +281,8 @@ static void G_GrenadeExplode(edict_t *ent){
 
 	if(G_IsStationary(ent->groundentity))
 		VectorMA(ent->s.origin, 16.0, ent->plane.normal, origin);
-	else {
+	else
 		VectorCopy(ent->s.origin, origin);
-		origin[2] += 4.0;
-	}
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_EXPLOSION);
@@ -328,11 +326,12 @@ static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 
 		// we're live after a brief safety period for the owner
 		if(dot < -0.25 && level.time - ent->touch_time > 0.25){
-			ent->enemy = other;
+			ent->groundentity = other;
 			G_GrenadeExplode(ent);
 		}
+		else
+			gi.Sound(ent, grenade_hit_index, ATTN_NORM);
 
-		gi.Sound(ent, grenade_hit_index, ATTN_NORM);
 		return;
 	}
 
