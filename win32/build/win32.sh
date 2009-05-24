@@ -27,15 +27,15 @@ CHECKOUT(){
 
 CONFIGURATION(){
 	cd $START/quake2world
-	autoreconf -i --force
-	./configure
+	autoreconf -i --force || return 1
+	./configure || return 1
 }
 
 MAKE(){
 	cd $START/quake2world
-	make
+	make || return 1
 	cd src/game/default
-	gcc -shared -o game.dll *.o ../../.libs/libshared.a
+	gcc -shared -o game.dll *.o ../../.libs/libshared.a || return 1
 }
 
 PACKAGE(){
