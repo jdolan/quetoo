@@ -133,6 +133,7 @@ void S_PlaySample(const vec3_t org, int entnum, s_sample_t *sample, int atten){
  */
 void S_LoopSample(const vec3_t org, s_sample_t *sample){
 	s_channel_t *ch;
+	vec3_t delta;
 	int i;
 
 	if(!sample || !sample->chunk)
@@ -146,8 +147,13 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample){
 			continue;
 
 		if(s_env.channels[i].sample == sample){
-			ch = &s_env.channels[i];
-			break;
+
+			VectorSubtract(s_env.channels[i].org, org, delta);
+
+			if(VectorLength(delta) < 255.0){
+				ch = &s_env.channels[i];
+				break;
+			}
 		}
 	}
 
