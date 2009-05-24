@@ -36,7 +36,7 @@ case "$host" in
 		ICON="quake2world-icon.o"
 		HOST_LIBS="-lws2_32 -lole32"
 		HOST_OPENGL_LIBS="-lopengl32"
-		HOST_WARN_CFLAGS="-Werror -Wdeclaration-after-statement"
+		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
 		HOST_DEBUG_CFLAGS=""
 		HOST_DEBUG_LIBS=""
 		SO_CFLAGS=""
