@@ -252,14 +252,14 @@ void Netchan_Transmit(netchan_t *chan, int length, byte *data){
 
 	if(net_showpackets->value){
 		if(send_reliable)
-			Com_Printf("send %4zd : s=%i reliable=%i ack=%i rack=%i\n"
+			Com_Printf("send "Q2W_SIZE_T" : s=%i reliable=%i ack=%i rack=%i\n"
 						, send.cursize
 						, chan->outgoing_sequence - 1
 						, chan->reliable_sequence
 						, chan->incoming_sequence
 						, chan->incoming_reliable_sequence);
 		else
-			Com_Printf("send %4zd : s=%i ack=%i rack=%i\n"
+			Com_Printf("send "Q2W_SIZE_T" : s=%i ack=%i rack=%i\n"
 						, send.cursize
 						, chan->outgoing_sequence - 1
 						, chan->incoming_sequence
@@ -297,14 +297,14 @@ qboolean Netchan_Process(netchan_t *chan, sizebuf_t *msg){
 
 	if(net_showpackets->value){
 		if(reliable_message)
-			Com_Printf("recv %4zd : s=%i reliable=%i ack=%i rack=%i\n"
+			Com_Printf("recv "Q2W_SIZE_T" : s=%i reliable=%i ack=%i rack=%i\n"
 						, msg->cursize
 						, sequence
 						, chan->incoming_reliable_sequence ^ 1
 						, sequence_ack
 						, reliable_ack);
 		else
-			Com_Printf("recv %4zd : s=%i ack=%i rack=%i\n"
+			Com_Printf("recv "Q2W_SIZE_T" : s=%i ack=%i rack=%i\n"
 						, msg->cursize
 						, sequence
 						, sequence_ack
