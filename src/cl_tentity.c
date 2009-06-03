@@ -141,7 +141,7 @@ void Cl_ParseTempEntity(void){
 			VectorSubtract(pos2, pos, dir);
 			VectorNormalize(dir);
 			VectorMA(pos2, -12.0, dir, pos2);
-			R_AddSustainedLight(pos2, 1.0, light, 0.75);
+			R_AddSustainedLight(pos2, 1.5, light, 1.25);
 			break;
 
 		case TE_EXPLOSION:  // rocket and grenade explosions

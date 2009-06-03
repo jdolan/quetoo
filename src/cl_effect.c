@@ -243,6 +243,26 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 	p->alpha = 2.0;
 	p->alphavel = -1.0 / (2.0 + frand() * 0.3);
 
+	if(!(p = Cl_AllocParticle()))
+		return;
+
+	VectorCopy(org, p->org);
+
+	VectorScale(dir, 200.0, p->vel);
+
+	if(p->vel[2] < 100.0)  // deflect up a bit
+		p->vel[2] = 100.0;
+
+	p->accel[2] -= 4.0 * PARTICLE_GRAVITY;
+
+	p->color = 221 + (rand() & 7);
+
+	p->scale = 1.5;
+	p->scalevel = -4.0;
+
+	p->alpha = 1.0;
+	p->alphavel = -1.0 / (0.7 + crand() * 0.1);
+
 	VectorAdd(org, dir, v);
 	R_AddSustainedLight(v, 0.15, bullet_light, 0.25);
 }
@@ -492,10 +512,10 @@ void Cl_ExplosionEffect(const vec3_t org){
 	p->image = r_explosiontexture;
 
 	p->scale = 1.0;
-	p->scalevel = 400.0;
+	p->scalevel = 600.0;
 
 	p->alpha = 1.0;
-	p->alphavel = -3.0;
+	p->alphavel = -4.0;
 
 	p->color = 224;
 
@@ -869,6 +889,21 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int color){
 
 		VectorCopy(p->org, move);
 	}
+
+	if(!(p = Cl_AllocParticle()))
+		return;
+
+	p->image = r_explosiontexture;
+
+	p->scale = 1.0;
+	p->scalevel = 400.0;
+
+	p->alpha = 2.0;
+	p->alphavel = -10.0;
+
+	p->color = color;
+
+	VectorCopy(end, p->org);
 }
 
 

@@ -522,7 +522,7 @@ static void R_LightPointPosition(static_lighting_t *lighting){
 }
 
 
-#define STATIC_LIGHTING_INTERVAL 0.2
+#define STATIC_LIGHTING_INTERVAL 0.1
 
 /*
  * R_LightPointLerp
@@ -571,7 +571,7 @@ void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 	// do the trace
 	VectorCopy(lighting->origin, start);
 	VectorCopy(lighting->origin, end);
-	end[2] -= 256.0;
+	end[2] -= 512.0;
 
 	R_Trace(start, end, 0.0, MASK_SOLID);
 
