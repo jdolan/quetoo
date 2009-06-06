@@ -143,7 +143,8 @@ skipspace:
 		return EndOfScript(crossline);
 
 	// comments
-	if(script->script_p[0] == '/' && script->script_p[1] == '/'){
+	if((script->script_p[0] == '/' && script->script_p[1] == '/') ||
+			script->script_p[0] == ';'){
 		if(!crossline)
 			Error("GetToken 1: Line %i is incomplete\n", scriptline);
 		while(*script->script_p++ != '\n')
