@@ -449,7 +449,7 @@ static void P_FireHyperblaster_(edict_t *ent){
 	vec3_t offset, start;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 20, 0, ent->viewheight - 8);
+	VectorSet(offset, 24.0, 6.0, ent->viewheight - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireHyperblaster(ent, start, forward, 2000, 22, 6);
