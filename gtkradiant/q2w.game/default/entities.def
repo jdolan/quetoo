@@ -201,19 +201,13 @@ model="models/weapons/shotgun/tris.obj"
 
 /*QUAKED weapon_supershotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons/supershotgun/tris.md3"
+model="models/weapons/supershotgun/tris.obj"
 */
 
 
 /*QUAKED weapon_machinegun (.3 .3 1) (-16 -16 -16) (16 16 16)
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/weapons/machinegun/tris.obj"
-*/
-
-
-/*QUAKED weapon_lightning (.3 .3 1) (-16 -16 -16) (16 16 16)
--------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
-model="models/weapons/lightning/tris.md3"
 */
 
 
@@ -293,7 +287,7 @@ model="models/ammo/nukes/tris.md3"
 
 
 /*QUAKED item_adrenaline (.3 .3 1) (-16 -16 -16) (16 16 16)
-model="models/items/adrenal/tris.md2"
+model="models/powerups/adren/tris.obj"
 */
 
 
@@ -395,11 +389,10 @@ Stepping onto this disc will teleport players to the targeted misc_teleporter_de
 
 /*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
 Point teleporters at these.
-model="models/objects/dmspot/tris.md2"
 */
 
 
-/*QUAKED misc_emit (.8 .8 0) (-8 -8 -8) (8 8 8) ? 1
+/*QUAKED misc_emit (.8 .8 0) (-8 -8 -8) (8 8 8) ? 1 2 4 8 16 32 64
 Client sided source of particles, ambient sounds, light flashes, and static models.
 "angles"		The angles of orientation for particles emissions and static models.
 "velocity"		The directional vector for steam emissions.
@@ -408,6 +401,7 @@ Client sided source of particles, ambient sounds, light flashes, and static mode
 "drift"		The factor of randomized drift applied to the emission rate.
 "radius"		The radius for coronas and light flashes.
 "count"		The number of particles to emit per event.
+"scale"		The scale for a static model.
 "sound"		The sound sample to accompany events.
 "attenuation"	The sound attenuation, -1 for global.
 "flags"		Determines emit type.
@@ -419,6 +413,14 @@ Client sided source of particles, ambient sounds, light flashes, and static mode
 16 =		Emit corona.
 32 =		Emit ambient sound.
 64 =		Emit static model.
+*/
+
+
+*QUAKED misc_model (.8 .8 0) (-8 -8 -8) (8 8 8)
+Client sided static models.
+"angles"		The angles of orientation for particles emissions and static models.
+"scale"		The scale for a static model.
+"model"		The static model name, e.g. trees/mytree.
 */
 
 
@@ -574,6 +576,6 @@ model="models/ctf/flag2/tris.md3"
 */
 
 /*QUAKED item_quad (0.4 0.4 1.0) (-16 -16 -16) (16 16 16)
-model="models/items/quad/tris.md3"
+model="models/powerups/quad/tris.md3"
 */
 

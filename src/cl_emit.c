@@ -218,7 +218,7 @@ void Cl_LoadEmits(void){
 			c = Com_Parse(&ents);
 			strncpy(class, c, sizeof(class) - 1);
 
-			if(!strcmp(c, "misc_emit"))
+			if(!strcmp(c, "misc_emit") || !strcmp(c, "misc_model"))
 				emit = true;
 		}
 
@@ -284,8 +284,7 @@ void Cl_LoadEmits(void){
 		}
 
 		if(!strcmp(c, "model")){
-			snprintf(e->model, sizeof(e->model),
-					"models/%s/tris.md3", Com_Parse(&ents));
+			strncpy(e->model, Com_Parse(&ents), sizeof(e->model));
 			e->mod = R_LoadModel(e->model);
 			continue;
 		}

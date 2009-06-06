@@ -456,8 +456,9 @@ void G_SpawnEntities(const char *name, const char *entities){
 				continue;
 			}
 
-			// emits are client sided
-			if(!strcmp(ent->classname, "misc_emit")){
+			// emits and models are client sided
+			if(!strcmp(ent->classname, "misc_emit") ||
+					!strcmp(ent->classname, "misc_model")){
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;

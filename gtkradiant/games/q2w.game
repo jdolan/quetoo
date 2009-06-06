@@ -17,7 +17,7 @@
   no_bsp_monitor="1"
   archivetypes="pak"
   texturetypes="tga png jpg wal"
-  modeltypes="md2 md3"
+  modeltypes="md2 md3 obj"
   maptypes="mapq2"
   shaderpath="scripts"
   shaders="quake3"
