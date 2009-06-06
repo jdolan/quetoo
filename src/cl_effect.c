@@ -632,14 +632,15 @@ static const vec3_t shot_light = {
  */
 void Cl_SmokeFlash(entity_state_t *ent){
 	particle_t *p;
-	vec3_t forward, org, org2;
+	vec3_t forward, right, org, org2;
 	trace_t tr;
 	float dist;
 	int j, c;
 
-	// project the puff just infront of the entity
-	AngleVectors(ent->angles, forward, NULL, NULL);
-	VectorMA(ent->origin, 30, forward, org);
+	// project the puff just in front of the entity
+	AngleVectors(ent->angles, forward, right, NULL);
+	VectorMA(ent->origin, 30.0, forward, org);
+	VectorMA(org, 6.0, right, org);
 
 	tr = Cm_BoxTrace(ent->origin, org, vec3_origin, vec3_origin, 0, MASK_SHOT);
 
@@ -651,7 +652,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
 	}
 
 	// and adjust for ducking (this is a hack)
-	dist = ent->solid == 4194 ? -2 : 8;
+	dist = ent->solid == 8290 ? -2.0 : 20.0;
 	org[2] += dist;
 
 	R_AddSustainedLight(org, 1.0, shot_light, 0.25);

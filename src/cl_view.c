@@ -230,7 +230,8 @@ static void Cl_UpdateVelocity(player_state_t *ps, player_state_t *ops){
  * Cl_UpdateThirdperson
  */
 static void Cl_UpdateThirdperson(player_state_t *ps){
-	vec3_t forward, dest;
+	vec3_t angles, forward, dest;
+	float dist;
 
 	if(!ps->stats[STAT_CHASE]){  // chasecam uses client side 3rd person
 
@@ -243,17 +244,24 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 			return;
 	}
 
-	AngleVectors(r_view.angles, forward, NULL, NULL);
+	dist = fabs(80.0 * cl_thirdperson->value);
+
+	VectorCopy(r_view.angles, angles);
+
+	if(cl_thirdperson->value < 0.0)  // to the right of the player
+		angles[1] += 90.0;
+
+	AngleVectors(angles, forward, NULL, NULL);
 
 	// project the view origin back and up for 3rd person
-	VectorMA(r_view.origin, -80.0 * cl_thirdperson->value, forward, dest);
-	dest[2] += 20;
+	VectorMA(r_view.origin, -dist, forward, dest);
+	dest[2] += 20.0;
 
 	// clip it to the world
 	R_Trace(r_view.origin, dest, 5.0, MASK_SHOT);
 
 	// adjust view angles to compensate for offset
-	VectorMA(r_view.origin, 2048, forward, dest);
+	VectorMA(r_view.origin, 2048.0, forward, dest);
 	VectorSubtract(dest, r_view.origin, dest);
 
 	// copy back to view

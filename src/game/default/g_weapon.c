@@ -641,7 +641,7 @@ static void G_LightningThink(edict_t *self){
 
 	// re-calculate endpoints based on owner's movement
 	AngleVectors(self->owner->client->angles, forward, right, NULL);
-	VectorSet(offset, 20, 0, self->owner->viewheight - 6);
+	VectorSet(offset, 30.0, 6.0, self->owner->viewheight - 10.0);
 	G_ProjectSource(self->owner->s.origin, offset, forward, right, start);
 
 	if(G_ImmediateWall(self->owner, forward))  // resolve start
