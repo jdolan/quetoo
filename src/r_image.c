@@ -36,6 +36,7 @@ image_t *r_bloodtexture;  // blood mist
 image_t *r_lightningtexture;  // lightning particles
 image_t *r_railtrailtexture;  // rail spiral
 image_t *r_flametexture;  // flames
+image_t *r_sparktexture;  // sparks
 image_t *r_bullettextures[NUM_BULLETTEXTURES];  // bullets hitting walls
 
 image_t *r_envmaptextures[NUM_ENVMAPTEXTURES];  // generic environment map
@@ -614,6 +615,7 @@ static void R_InitParticleTextures(void){
 	r_lightningtexture = R_LoadImage("particles/lightning.tga", it_effect);
 	r_railtrailtexture = R_LoadImage("particles/railtrail.tga", it_effect);
 	r_flametexture = R_LoadImage("particles/flame.tga", it_effect);
+	r_sparktexture = R_LoadImage("particles/spark.tga", it_effect);
 
 	for(i = 0; i < NUM_BULLETTEXTURES; i++)
 		r_bullettextures[i] = R_LoadImage(va("particles/bullet_%i.tga", i), it_effect);

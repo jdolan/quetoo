@@ -76,6 +76,8 @@ extern image_t *r_bloodtexture;
 extern image_t *r_lightningtexture;
 extern image_t *r_railtrailtexture;
 extern image_t *r_flametexture;
+extern image_t *r_sparktexture;
+
 #define NUM_BULLETTEXTURES 3
 extern image_t *r_bullettextures[NUM_BULLETTEXTURES];
 

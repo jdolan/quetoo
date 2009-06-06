@@ -255,6 +255,8 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 
 	p->accel[2] -= 4.0 * PARTICLE_GRAVITY;
 
+	p->image = r_sparktexture;
+
 	p->color = 221 + (rand() & 7);
 
 	p->scale = 1.5;
@@ -395,25 +397,31 @@ void Cl_GibEffect(const vec3_t org, int count){
 void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 	int i, j;
 	particle_t *p;
-	float d;
 
 	for(i = 0; i < count; i++){
 
 		if(!(p = Cl_AllocParticle()))
 			return;
 
+		p->image = r_sparktexture;
+
 		p->color = 0xe0 + (rand() & 7);
 
-		d = rand() & 31;
+		VectorCopy(org, p->org);
+		VectorCopy(dir, p->dir);
+
 		for(j = 0; j < 3; j++){
-			p->org[j] = org[j] + ((rand() & 7) - 4) + d * dir[j];
-			p->vel[j] = crand() * 20;
+			p->org[j] += crand() * 4.0;
+			p->vel[j] = crand() * 4.0;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY;
 
-		p->alpha = 1.0;
+		p->scale = 2.5;
+		p->scalevel = -4.0;
+
+		p->alpha = 1.5;
 		p->alphavel = -1.0 / (0.5 + frand() * 0.3);
 	}
 }
