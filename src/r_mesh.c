@@ -146,6 +146,7 @@ void R_ApplyMeshModelConfig(entity_t *e){
 		AngleVectors(e->angles, forward, right, up);
 
 		VectorMA(e->origin, c->translate[0] + f, forward, e->origin);
+		VectorMA(e->origin, 6.0, right, e->origin);
 
 		/*
 		 * Calculate the weapon bob.  This is done using a running time

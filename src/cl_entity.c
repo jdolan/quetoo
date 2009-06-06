@@ -538,7 +538,7 @@ static const vec3_t bfg_light = {
  */
 void Cl_AddEntities(frame_t *frame){
 	entity_t ent;
-	vec3_t start, end, forward;
+	vec3_t start, end, forward, right;
 	vec3_t wshell;
 	int pnum, mask;
 
@@ -548,7 +548,7 @@ void Cl_AddEntities(frame_t *frame){
 	VectorClear(start);
 	VectorClear(end);
 
-	AngleVectors(r_view.angles, forward, NULL, NULL);
+	AngleVectors(r_view.angles, forward, right, NULL);
 
 	VectorClear(wshell);
 
@@ -565,10 +565,11 @@ void Cl_AddEntities(frame_t *frame){
 			// skinnum is overridden to specify owner of the beam
 			if((state->skinnum == cl.playernum + 1) && !cl_thirdperson->value){
 				// we own this beam (lightning, grapple, etc..)
-				// project start position infront of view origin
+				// project start position in front of view origin
 				VectorCopy(r_view.origin, start);
-				start[2] -= 6.0;
-				VectorMA(start, 16.0, forward, start);
+				VectorMA(start, 24.0, forward, start);
+				VectorMA(start, 6.0, right, start);
+				start[2] -= 10.0;
 			}
 			else  // or simply lerp the start position
 				VectorLerp(cent->prev.origin, cent->current.origin, cl.lerp, start);

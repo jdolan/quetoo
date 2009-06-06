@@ -308,7 +308,7 @@ static void P_FireShotgun_(edict_t *ent){
 	vec3_t forward, right;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 20, 0, ent->viewheight - 6);
+	VectorSet(offset, 24.0, 6.0, ent->viewheight - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireShotgun(ent, start, forward, 6, 4, DEFAULT_SHOTGUN_HSPREAD,
@@ -336,7 +336,7 @@ static void P_FireSuperShotgun_(edict_t *ent){
 	vec3_t v;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 20, 0, ent->viewheight - 6);
+	VectorSet(offset, 24.0, 6.0, ent->viewheight - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	v[PITCH] = ent->client->angles[PITCH];
@@ -374,7 +374,7 @@ static void P_FireMachinegun_(edict_t *ent){
 
 	// get start / end positions
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 20, 0, ent->viewheight - 6);
+	VectorSet(offset, 24.0, 6.0, ent->viewheight - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireBullet(ent, start, forward, 8, 4, DEFAULT_BULLET_HSPREAD,
@@ -399,7 +399,7 @@ static void P_FireGrenadeLauncher_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
 
-	VectorSet(offset, 20, 0, ent->viewheight - 6);
+	VectorSet(offset, 24.0, 6.0, ent->viewheight - 10.0);
 	AngleVectors(ent->client->angles, forward, right, NULL);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
@@ -424,7 +424,7 @@ static void P_FireRocketLauncher_(edict_t *ent){
 	vec3_t forward, right;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 20, 0, ent->viewheight - 6);
+	VectorSet(offset, 24.0, 6.0, ent->viewheight - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireRocketLauncher(ent, start, forward, 500, 100, 100, 165.0);
@@ -474,7 +474,7 @@ static void P_FireLightning_(edict_t *ent){
 	vec3_t forward, right;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 20, 0, ent->viewheight - 6);
+	VectorSet(offset, 24.0, 6.0, ent->viewheight - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireLightning(ent, start, forward, 10, 12);
@@ -506,7 +506,7 @@ static void P_FireRailgun_(edict_t *ent){
 	vec3_t forward, right;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 20, 0, ent->viewheight - 6);
+	VectorSet(offset, 24.0, 6.0, ent->viewheight - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireRailgun(ent, start, forward, 110, 80);
@@ -531,7 +531,7 @@ static void P_FireBFG_(edict_t *ent){
 	vec3_t forward, right;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 20, 0, ent->viewheight - 6);
+	VectorSet(offset, 24.0, 6.0, ent->viewheight - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireBFG(ent, start, forward, 500, 90, 90, 1024.0);
