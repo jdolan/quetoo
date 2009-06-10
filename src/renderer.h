@@ -85,6 +85,7 @@ typedef struct particle_s {
 	vec3_t vel;
 	vec3_t accel;
 	vec3_t curorg;
+	vec3_t curend;
 	vec3_t dir;
 	float roll;
 	struct image_s *image;
@@ -96,6 +97,9 @@ typedef struct particle_s {
 	float scale;
 	float scalevel;
 	float curscale;
+	float scroll_s;
+	float scroll_t;
+	GLenum blend;
 } particle_t;
 
 #define MAX_PARTICLES		4096

@@ -160,6 +160,7 @@ static void Cl_ClearParticle(particle_t *p){
 	p->type = PARTICLE_NORMAL;
 	p->image = r_particletexture;
 	p->scale = 1.0;
+	p->blend = GL_ONE;
 
 	p->next = free_particles;
 	free_particles = p;
@@ -243,6 +244,8 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 	p->alpha = 2.0;
 	p->alphavel = -1.0 / (2.0 + frand() * 0.3);
 
+	p->blend = GL_ONE_MINUS_SRC_ALPHA;
+
 	if(!(p = Cl_AllocParticle()))
 		return;
 
@@ -292,6 +295,8 @@ void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale){
 
 	p->alpha = 2.0;
 	p->alphavel = -1.0 / (2.0 + frand() * 0.3);
+
+	p->blend = GL_ONE_MINUS_SRC_ALPHA;
 }
 
 
@@ -815,25 +820,45 @@ void Cl_LightningEffect(const vec3_t org){
  */
 void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 	particle_t *p;
+	vec3_t delta, pos;
+	float dist;
 
 	S_LoopSample(start, cl_sample_lightning_fly);
 	S_LoopSample(end, cl_sample_lightning_fly);
 
-	if(!(p = Cl_AllocParticle()))
-		return;
+	VectorSubtract(start, end, delta);
+	dist = VectorNormalize(delta);
 
-	p->type = PARTICLE_BEAM;
-	p->image = r_lightningtexture;
+	VectorScale(delta, -48.0, delta);
 
-	p->scale = 8.0;
+	VectorSet(pos, crand() * 0.5, crand() * 0.5, crand() * 0.5);
+	VectorAdd(pos, start, pos);
 
-	VectorCopy(start, p->org);
-	VectorCopy(end, p->end);
+	while(dist > 0.0){
 
-	p->alpha = 0.50;
-	p->alphavel = -9999.0;
+		if(!(p = Cl_AllocParticle()))
+			return;
 
-	p->color = 14;  // white-ish
+		p->type = PARTICLE_BEAM;
+		p->image = r_lightningtexture;
+
+		p->scale = 8.0;
+
+		VectorCopy(pos, p->org);
+
+		VectorAdd(pos, delta, pos);
+
+		VectorCopy(pos, p->end);
+
+		p->alpha = 1.0;
+		p->alphavel = -50.0;
+
+		p->color = 12 + (rand() & 3);
+
+		p->scroll_s = -4.0;
+
+		dist -= 48.0;
+	}
 }
 
 /*
@@ -1007,6 +1032,8 @@ void Cl_EnergyTrail(centity_t *ent, float radius, int color){
 		p->alphavel = -100.0;
 
 		p->vel[0] = p->vel[1] = p->vel[2] = 2.0 * crand();
+
+		p->blend = GL_ONE_MINUS_SRC_ALPHA;
 	}
 
 	// add a bubble trail if appropriate
@@ -1194,8 +1221,10 @@ void Cl_AddParticles(void){
 		if(p->curalpha > 1.0)  // clamp alpha
 			p->curalpha = 1.0;
 
-		for(i = 0; i < 3; i++)  // update origin and end
+		for(i = 0; i < 3; i++){  // update origin and end
 			p->curorg[i] = p->org[i] + p->vel[i] * time + p->accel[i] * time * time;
+			p->curend[i] = p->end[i] + p->vel[i] * time + p->accel[i] * time * time;
+		}
 
 		// free up weather particles that have hit the ground
 		if(p->type == PARTICLE_WEATHER && (p->curorg[2] <= p->end[2])){
