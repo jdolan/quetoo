@@ -820,16 +820,16 @@ void Cl_LightningEffect(const vec3_t org){
  */
 void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 	particle_t *p;
-	vec3_t delta, pos;
+	vec3_t dir, delta, pos;
 	float dist;
 
 	S_LoopSample(start, cl_sample_lightning_fly);
 	S_LoopSample(end, cl_sample_lightning_fly);
 
-	VectorSubtract(start, end, delta);
-	dist = VectorNormalize(delta);
+	VectorSubtract(start, end, dir);
+	dist = VectorNormalize(dir);
 
-	VectorScale(delta, -48.0, delta);
+	VectorScale(dir, -48.0, delta);
 
 	VectorSet(pos, crand() * 0.5, crand() * 0.5, crand() * 0.5);
 	VectorAdd(pos, start, pos);
@@ -845,6 +845,9 @@ void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 		p->scale = 8.0;
 
 		VectorCopy(pos, p->org);
+
+		if(dist < 48.0)
+			VectorScale(dir, dist, delta);
 
 		VectorAdd(pos, delta, pos);
 

@@ -106,13 +106,13 @@ typedef struct particle_s {
 
 #define PARTICLE_GRAVITY	120
 
-#define PARTICLE_NORMAL		0
-#define PARTICLE_ROLL		1
-#define PARTICLE_DECAL		2
-#define PARTICLE_BUBBLE		3
-#define PARTICLE_BEAM		4
-#define PARTICLE_WEATHER	5
-#define PARTICLE_SPLASH		6
+#define PARTICLE_NORMAL		0x1
+#define PARTICLE_ROLL		0x2
+#define PARTICLE_DECAL		0x4
+#define PARTICLE_BUBBLE		0x8
+#define PARTICLE_BEAM		0x10
+#define PARTICLE_WEATHER	0x20
+#define PARTICLE_SPLASH		0x40
 
 // coronas are soft, alpha-blended, rounded polys
 typedef struct corona_s {

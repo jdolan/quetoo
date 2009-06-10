@@ -185,36 +185,21 @@ static void R_ParticleColor(particle_t *p, GLfloat *out){
 
 
 /*
- * R_DrawParticles
+ * R_DrawParticles_
  */
-void R_DrawParticles(void){
+static void R_DrawParticles_(int mask){
 	particle_t *p;
 	image_t *image;
 	int i, j, k, l;
-	vec3_t v;
-
-	if(!r_view.num_particles)
-		return;
-
-	R_EnableColorArray(true);
-
-	R_ResetArrayState();
 
 	image = NULL;
 
-	VectorCopy(r_view.angles, v);
-
-	v[0] = 0;  // keep weather particles vertical by removing pitch
-	AngleVectors(v, NULL, ps.weather_right, ps.weather_up);
-
-	v[0] = -90;  // and splash particles horizontal by setting it
-	AngleVectors(v, NULL, ps.splash_right[0], ps.splash_up[0]);
-
-	v[0] = 90;  // even if they are below us
-	AngleVectors(v, NULL, ps.splash_right[1], ps.splash_up[1]);
-
 	j = k = l = 0;
+
 	for(p = r_view.particles, i = 0; i < r_view.num_particles; i++, p++){
+
+		if(!(p->type & mask))  // skip it
+			continue;
 
 		// bind the particle's texture
 		if(p->image != image){
@@ -240,7 +225,39 @@ void R_DrawParticles(void){
 		l += sizeof(vec4_t) / sizeof(vec_t) * 4;
 	}
 
-	glDrawArrays(GL_QUADS, 0, j / 3);
+	if(j)
+		glDrawArrays(GL_QUADS, 0, j / 3);
+}
+
+#define PARTICLE_MASK (PARTICLE_NORMAL | PARTICLE_ROLL | PARTICLE_BUBBLE | \
+					   PARTICLE_BEAM | PARTICLE_WEATHER | PARTICLE_SPLASH)
+/*
+ * R_DrawParticles
+ */
+void R_DrawParticles(void){
+	vec3_t v;
+
+	if(!r_view.num_particles)
+		return;
+
+	R_EnableColorArray(true);
+
+	R_ResetArrayState();
+
+	VectorCopy(r_view.angles, v);
+
+	v[0] = 0;  // keep weather particles vertical by removing pitch
+	AngleVectors(v, NULL, ps.weather_right, ps.weather_up);
+
+	v[0] = -90;  // and splash particles horizontal by setting it
+	AngleVectors(v, NULL, ps.splash_right[0], ps.splash_up[0]);
+
+	v[0] = 90;  // even if they are below us
+	AngleVectors(v, NULL, ps.splash_right[1], ps.splash_up[1]);
+
+	R_DrawParticles_(PARTICLE_DECAL);
+
+	R_DrawParticles_(PARTICLE_MASK);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

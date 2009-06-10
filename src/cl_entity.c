@@ -656,7 +656,7 @@ void Cl_AddEntities(frame_t *frame){
 			vec3_t dir;
 			Cl_LightningTrail(start, end);
 
-			R_AddLight(start, 1.0, lightning_light);
+			R_AddLight(start, 1.25, lightning_light);
 			VectorSubtract(end, start, dir);
 			VectorNormalize(dir);
 			VectorMA(end, -12.0, dir, end);
