@@ -241,7 +241,7 @@ static void Curses_Resize(int sig){
 /*
  * Curses_Frame
  *
- * Handle ncurses input and redraw if necessary
+ * Handle curses input and redraw if necessary
  */
 void Curses_Frame(int msec){
 	int key;
