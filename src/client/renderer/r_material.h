@@ -22,6 +22,8 @@
 #ifndef __R_MATERIAL_H__
 #define __R_MATERIAL_H__
 
+#include "common.h"
+
 // flags will persist on the stage structures but may also bubble
 // up to the material flags to determine render eligibility
 #define STAGE_TEXTURE			(1 << 0)

@@ -22,6 +22,8 @@
 #ifndef __IMAGES_H__
 #define __IMAGES_H__
 
+#include "config.h"
+
 #ifdef BUILD_CLIENT
 
 #include <SDL_image.h>
