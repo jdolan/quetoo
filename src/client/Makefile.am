@@ -30,8 +30,8 @@ libclient_la_SOURCES = \
 libclient_la_CFLAGS = \
 	-I.. \
 	-pipe \
-	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@ \
-	@SDL_CFLAGS@ \
-	@CURL_CFLAGS@
+	@WARN_CFLAGS@ \
+	@CURL_CFLAGS@ \
+	@SDL_CFLAGS@
 endif

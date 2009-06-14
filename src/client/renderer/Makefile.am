@@ -41,7 +41,7 @@ librenderer_la_SOURCES = \
 librenderer_la_CFLAGS = \
 	-I.. -I../.. \
 	-pipe \
-	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@ \
 	@SDL_CFLAGS@
 endif

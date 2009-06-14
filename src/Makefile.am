@@ -117,8 +117,8 @@ quake2world_DEPENDENCIES = \
 
 quake2world_CFLAGS = \
 	-pipe \
-	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@SDL_CFLAGS@
 
@@ -135,12 +135,13 @@ quake2world_LDADD = \
 	client/sound/libsound.la \
 	client/renderer/librenderer.la \
 	server/libserver.la \
+	@CURL_LIBS@ \
 	@CURSES_LIBS@ \
 	@DEBUG_LIBS@ \
 	@HOST_LIBS@ \
 	@HOST_OPENGL_LIBS@ \
-	@SDL_LIBS@ \
-	@CURL_LIBS@ \
 	@ICON@ \
+	@JPEG_LIBS@ \
+	@SDL_LIBS@ \
 	-lm -lz
 

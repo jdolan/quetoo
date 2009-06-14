@@ -14,7 +14,7 @@ libsound_la_SOURCES =\
 libsound_la_CFLAGS = \
 	-I.. -I../.. \
 	-pipe \
-	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@ \
 	@SDL_CFLAGS@
 endif
