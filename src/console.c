@@ -26,9 +26,8 @@
  */
 
 #include "shared.h"
-
 #include "console.h"
-#include "con_curses.h"
+#include "curses.h"
 #include "common.h"
 
 consoledata_t condata;

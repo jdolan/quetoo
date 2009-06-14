@@ -78,10 +78,17 @@ void Con_ToggleConsole_f(void);
 
 #ifdef HAVE_CURSES
 
+#include <curses.h>
+
 // structures for the server console
 extern console_t sv_con;
 extern cvar_t *con_curses;
 extern cvar_t *con_timeout;
+
+void Curses_Init(void);
+void Curses_Shutdown(void);
+void Curses_Frame(int msec);
+void Curses_Refresh(void);
 
 #endif /* HAVE_CURSES */
 

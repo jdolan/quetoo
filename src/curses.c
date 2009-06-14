@@ -26,18 +26,16 @@
 
 #ifdef HAVE_CURSES
 
-#include <curses.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "common.h"
 #include "console.h"
-#include "con_curses.h"
 
 #define CURSES_HISTORYSIZE 64
 #define CURSES_LINESIZE 1024
-#define CURSES_TIMEOUT 250	// 500 msec redraw timeout
+#define CURSES_TIMEOUT 250	// 250 msec redraw timeout
 
 static WINDOW *stdwin;	// ncurses standard window
 

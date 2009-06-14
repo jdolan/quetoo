@@ -23,10 +23,10 @@
 #define __CLIENT_H__
 
 #include "common.h"
-#include "renderer.h"
-#include "sound.h"
 #include "keys.h"
 #include "console.h"
+#include "renderer/renderer.h"
+#include "sound/sound.h"
 
 typedef struct frame_s {
 	qboolean valid;  // cleared if delta parsing was invalid

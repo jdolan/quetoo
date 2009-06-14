@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "client.h"
-#include "hash.h"
+#include "../client.h"
+#include "../../hash.h"
 
 #define MAX_CHARS 8192
 

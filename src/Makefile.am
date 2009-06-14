@@ -1,103 +1,145 @@
-SUBDIRS = . game tools @MASTER_SERVER@
+SUBDIRS = client server . game tools master
 
 SUFFIXES = .rc
 .rc.o:
 	@WINDRES@ $< -o $@
 
-COMMON_H = anorms.h binds.h console.h con_curses.h hash.h keys.h shared.h \
-	common.h files.h pak.h win32.h
+noinst_HEADERS = \
+	anorms.h \
+	binds.h \
+	common.h \
+	console.h \
+	files.h \
+	hash.h \
+	keys.h \
+	pak.h \
+	shared.h \
+	win32.h
 
-CLIENT_H = client.h
+noinst_LTLIBRARIES = \
+	libcmodel.la \
+	libcommon.la \
+	libfiles.la \
+	libhash.la \
+	libimages.la \
+	libpak.la \
+	libshared.la \
+	libsys.la
 
-CLIENT = cl_cmd.c cl_console.c cl_emit.c cl_entity.c cl_effect.c cl_http.c \
-	cl_input.c cl_keys.c cl_loc.c cl_main.c cl_parse.c cl_pred.c cl_screen.c \
-	cl_server.c cl_tentity.c cl_view.c
+libcmodel_la_SOURCES = \
+	cmodel.c
+libcmodel_la_CFLAGS = \
+	-pipe \
+	@WARN_CFLAGS@ \
+	@DEBUG_CFLAGS@
 
-RENDERER_H = images.h r_gl.h r_image.h r_material.h r_model.h r_program.h \
-	r_state.h renderer.h
+libcommon_la_SOURCES = \
+	common.c
+libcommon_la_CFLAGS = \
+	-pipe \
+	@WARN_CFLAGS@ \
+	@DEBUG_CFLAGS@ \
+	@SDL_CFLAGS@
+libcommon_la_LIBADD = \
+	@SDL_LIBS@
 
-RENDERER = r_array.c r_bsp.c r_context.c r_corona.c r_draw.c r_entity.c \
-	r_flare.c r_image.c r_light.c r_lightmap.c r_main.c r_material.c r_mesh.c \
-	r_model.c r_model_bsp.c r_model_mesh.c r_particle.c r_program.c r_sky.c \
-	r_state.c r_surface.c r_surface_pro.c r_thread.c
+libfiles_la_SOURCES = \
+	files.c
+libfiles_la_CFLAGS = \
+	-pipe \
+	@WARN_CFLAGS@ \
+	@DEBUG_CFLAGS@
 
-SOUND_H = sound.h
+libimages_la_SOURCES = \
+	images.c
+libimages_la_CFLAGS = \
+	-pipe \
+	@WARN_CFLAGS@ \
+	@DEBUG_CFLAGS@ \
+	@SDL_CFLAGS@
 
-SOUND = s_main.c s_mix.c s_music.c s_sample.c
+libhash_la_SOURCES = \
+	hash.c
+libhash_la_CFLAGS = \
+	-pipe \
+	@WARN_CFLAGS@ \
+	@DEBUG_CFLAGS@
 
-SERVER_H = server.h
+libpak_la_SOURCES = \
+	pak.c \
+	files.c
+libpak_la_CFLAGS = \
+	-pipe \
+	-D__LIBPAK_LA__ \
+	@WARN_CFLAGS@ \
+	@DEBUG_CFLAGS@
+libpak_la_LIBADD = \
+	libhash.la
 
-SERVER = cmd.c console.c con_curses.c cvar.c main.c net_chan.c net_udp.c pmove.c \
-	\
-	sv_ccmds.c sv_ents.c sv_game.c sv_init.c sv_main.c sv_send.c sv_user.c \
-	sv_world.c \
-	\
+libshared_la_SOURCES = \
+	shared.c
+libshared_la_CFLAGS = \
+	-pipe \
+	@WARN_CFLAGS@ \
+	@DEBUG_CFLAGS@
+
+libsys_la_SOURCES = \
+	main.c
+libsys_la_CFLAGS = \
+	-pipe \
+	-D__LIBSYS_LA__ \
+	@WARN_CFLAGS@ \
+	@DEBUG_CFLAGS@
+
+bin_PROGRAMS = \
+	quake2world
+
+quake2world_SOURCES = \
+	cmd.c \
+	cmodel.c \
+	console.c \
+	curses.c \
+	cvar.c \
+	images.c \
+	main.c \
+	net_chan.c \
+	net_udp.c \
+	pmove.c \
 	win32.c
 
-bin_PROGRAMS = quake2world
+EXTRA_quake2world_SOURCES = \
+	quake2world-icon.rc
 
-if BUILD_CLIENT
+quake2world_DEPENDENCIES = \
+	${noinst_LTLIBRARIES} \
+	${ICON}
 
-noinst_HEADERS = $(COMMON_H) $(SERVER_H) $(CLIENT_H) $(RENDERER_H) $(SOUND_H)
+quake2world_CFLAGS = \
+	-pipe \
+	@WARN_CFLAGS@ \
+	@DEBUG_CFLAGS@ \
+	@CURSES_CFLAGS@ \
+	@SDL_CFLAGS@
 
-noinst_LTLIBRARIES = libcmodel.la libcommon.la libfiles.la libhash.la \
-	libimages.la libpak.la libshared.la libsys.la
+quake2world_LDADD = \
+	libcmodel.la \
+	libcommon.la \
+	libfiles.la \
+	libhash.la \
+	libimages.la \
+	libpak.la \
+	libshared.la \
+	libsys.la \
+	client/libclient.la \
+	client/sound/libsound.la \
+	client/renderer/librenderer.la \
+	server/libserver.la \
+	@CURSES_LIBS@ \
+	@DEBUG_LIBS@ \
+	@HOST_LIBS@ \
+	@HOST_OPENGL_LIBS@ \
+	@SDL_LIBS@ \
+	@CURL_LIBS@ \
+	@ICON@ \
+	-lm -lz
 
-quake2world_SOURCES = $(SERVER) $(CLIENT) $(RENDERER) $(SOUND)
-
-EXTRA_quake2world_SOURCES = quake2world-icon.rc
-
-quake2world_DEPENDENCIES = ${ICON}
-
-quake2world_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@ @SDL_CFLAGS@ \
-	@CURL_CFLAGS@ @CURSES_CFLAGS@
-
-quake2world_LDADD = @ICON@ libcmodel.la libcommon.la libfiles.la libhash.la \
-	libimages.la libpak.la libshared.la @SDL_LIBS@ @CURL_LIBS@ @CURSES_LIBS@ \
-	@JPEG_LIBS@ @HOST_LIBS@ @HOST_OPENGL_LIBS@ @DEBUG_LIBS@ -lm -lz
-
-else
-
-noinst_HEADERS = $(COMMON_H) $(SERVER_H)
-
-noinst_LTLIBRARIES = libcmodel.la libcommon.la libfiles.la libhash.la \
-	libpak.la libshared.la libsys.la
-
-quake2world_SOURCES = $(SERVER) sv_dummy.c
-
-EXTRA_quake2world_SOURCES = quake2world-icon.rc
-
-quake2world_DEPENDENCIES = ${ICON}
-
-quake2world_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@ @CURSES_CFLAGS@
-
-quake2world_LDADD = @ICON@ libcmodel.la libcommon.la libfiles.la libhash.la \
-	libpak.la libshared.la @CURSES_LIBS@ @HOST_LIBS@ @DEBUG_LIBS@ -lm -lz
-
-endif
-
-libcmodel_la_SOURCES = cmodel.c
-libcmodel_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@
-
-libcommon_la_SOURCES = common.c
-libcommon_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@ @SDL_CFLAGS@
-libcommon_la_LIBADD = @SDL_LIBS@
-
-libfiles_la_SOURCES = files.c
-libfiles_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@
-
-libimages_la_SOURCES = images.c
-libimages_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@ @SDL_CFLAGS@
-
-libhash_la_SOURCES = hash.c
-libhash_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@
-
-libpak_la_SOURCES = pak.c files.c
-libpak_la_CFLAGS = -pipe -D__LIBPAK_LA__ @WARN_CFLAGS@ @DEBUG_CFLAGS@
-libpak_la_LIBADD = libhash.la
-
-libshared_la_SOURCES = shared.c
-libshared_la_CFLAGS = -pipe @WARN_CFLAGS@ @DEBUG_CFLAGS@
-
-libsys_la_SOURCES = main.c
-libsys_la_CFLAGS = -pipe -D__LIBSYS_LA__ @WARN_CFLAGS@ @DEBUG_CFLAGS@
