@@ -4,6 +4,7 @@ noinst_HEADERS =\
 noinst_LTLIBRARIES =\
 	libsound.la
 
+if BUILD_CLIENT
 libsound_la_SOURCES =\
 	s_main.c \
 	s_mix.c \
@@ -16,4 +17,4 @@ libsound_la_CFLAGS = \
 	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@ \
 	@SDL_CFLAGS@
-
+endif

@@ -11,6 +11,7 @@ noinst_HEADERS = \
 	console.h \
 	files.h \
 	hash.h \
+	images.h \
 	keys.h \
 	pak.h \
 	shared.h \

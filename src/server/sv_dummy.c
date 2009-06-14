@@ -22,6 +22,8 @@
 // dummy implementations of client functions
 // this is slightly prettier than ifdefs
 
+#ifndef BUILD_CLIENT
+
 #include "server.h"
 
 void Cl_Init(void){}
@@ -30,3 +32,4 @@ void Cl_Frame(int msec){}
 void Cl_Drop(void){}
 void Cmd_ForwardToServer(void){}
 
+#endif /* BUILD_CLIENT */

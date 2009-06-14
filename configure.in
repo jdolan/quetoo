@@ -94,7 +94,7 @@ else
 	AC_MSG_RESULT(yes)
 	BUILD_CLIENT=yes
 
-	AC_DEFINE(BUILD_CLIENT, 1, [Define this to build a client])
+	AC_DEFINE(BUILD_CLIENT, "1", [Define to 1 to build a client.])
 
 	dnl -------------------------------
 	dnl Check for OpenGL and extensions
@@ -146,7 +146,7 @@ else
 	AC_SUBST(SDL_CFLAGS)
 	AC_SUBST(SDL_LIBS)
 
-	AC_DEFINE(HAVE_SDL, 1, [Define this if you have libSDL])
+	AC_DEFINE(HAVE_SDL, "1", [Define to 1 if you have the SDL.h header file.])
 
 	dnl --------------
 	dnl Check for cURL
@@ -206,8 +206,8 @@ dnl Check for execinfo.h (optional)
 dnl -------------------------------
 
 AC_CHECK_HEADER(execinfo.h,
-		AC_DEFINE(HAVE_EXECINFO, 1,
-			[Define this if you have the <execinfo.h> header file.]),
+		AC_DEFINE(HAVE_EXECINFO, "1",
+			[Define to 1 if you have the <execinfo.h> header file.]),
 )
 
 dnl ---------------------------
@@ -249,7 +249,8 @@ if test "x${with_curses}" != xno; then
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(ncurses, initscr,
 			HAVE_CURSES=ncurses
-			AC_DEFINE(HAVE_CURSES, ncurses, [Define this if you have a curses compatible library])
+			AC_DEFINE(HAVE_CURSES, "ncurses",
+					[Define to value if you have a curses compatible library.])
 			CURSES_LIBS="$CURSES_LIBS -lncurses",
 			HAVE_CURSES=maybe
 		)
@@ -262,7 +263,8 @@ if test "x${with_curses}" != xno; then
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(pdcurses, initscr,
 			HAVE_CURSES=pdcurses
-			AC_DEFINE(HAVE_CURSES, pdcurses, [Define this if you have a curses compatible library])
+			AC_DEFINE(HAVE_CURSES, "pdcurses",
+					[Define to value if you have a curses compatible library.])
 			CURSES_LIBS="$CURSES_LIBS -lpdcurses",
 			HAVE_CURSES=maybe
 		)
@@ -275,7 +277,8 @@ if test "x${with_curses}" != xno; then
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(curses, initscr,
 			HAVE_CURSES=curses
-			AC_DEFINE(HAVE_CURSES, curses, [Define this if you have a curses compatible library])
+			AC_DEFINE(HAVE_CURSES, "curses",
+					[Define to value if you have a curses library.])
 			CURSES_LIBS="$CURSES_LIBS -lcurses",
 			HAVE_CURSES=no
 		)
@@ -309,7 +312,8 @@ if test "x${with_mysql}" != xno -a "x${MYSQL_CONFIG}" != x; then
 
 	AC_CHECK_HEADER(mysql.h,
 		HAVE_MYSQL=yes
-		AC_DEFINE(HAVE_MYSQL, 1, [Define this if you have MySQL])
+		AC_DEFINE(HAVE_MYSQL, "1",
+				[Define to 1 if you have the mysql.h header file.])
 		MYSQL_LIBS=`$MYSQL_CONFIG --libs`,
 		HAVE_MYSQL=no
 	)
@@ -354,7 +358,7 @@ AC_MSG_CHECKING(whether to build master server)
 
 if test "x${with_master}" = xyes; then
 	BUILD_MASTER=yes
-	AC_DEFINE(BUILD_MASTER, 1, [Define this to build a master server])
+	AC_DEFINE(BUILD_MASTER, "1", [Define to 1 to build a master server.])
 fi
 AC_MSG_RESULT($BUILD_MASTER)
 
@@ -407,7 +411,7 @@ test "$exec_prefix" = "NONE" && exec_prefix=$prefix
 
 eval PKGLIBDIR="$libdir/$PACKAGE"
 AC_DEFINE_UNQUOTED(PKGLIBDIR, "$PKGLIBDIR",
-	[Define this to the path containing the shared modules.]
+	[Define to path containing the shared modules.]
 )
 
 datarootdir=$prefix/share
@@ -415,7 +419,7 @@ test "$datadir" = "NONE" && datadir=$datarootdir
 
 eval PKGDATADIR="$datadir/$PACKAGE"
 AC_DEFINE_UNQUOTED(PKGDATADIR, "$PKGDATADIR",
-	[Define this to the path containing the game data.]
+	[Define to path containing the game data.]
 )
 AC_SUBST(PKGDATADIR)
 

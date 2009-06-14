@@ -19,8 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL_image.h>
 #include "images.h"
+
+#ifdef BUILD_CLIENT
 
 /* Work-around for a conflict between windows.h and jpeglib.h.
 If ADDRESS_TAG_BIT is defined then BaseTsd.h has been included and
@@ -474,3 +475,5 @@ void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unus
 
 	fclose(tga_file);
 }
+
+#endif /* BUILD_CLIENT */

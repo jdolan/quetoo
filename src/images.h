@@ -22,7 +22,9 @@
 #ifndef __IMAGES_H__
 #define __IMAGES_H__
 
-#include <SDL.h>
+#ifdef BUILD_CLIENT
+
+#include <SDL_image.h>
 
 #include "common.h"
 
@@ -74,5 +76,7 @@ Img_WriteTGARLE
 Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
 */
 void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unused);
+
+#endif /* BUILD_CLIENT */
 
 #endif /*__IMAGES_H__*/

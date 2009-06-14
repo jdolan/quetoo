@@ -6,6 +6,7 @@ noinst_LTLIBRARIES = \
 
 libserver_la_SOURCES = \
 	sv_ccmds.c \
+	sv_dummy.c \
 	sv_ents.c \
 	sv_game.c \
 	sv_init.c \

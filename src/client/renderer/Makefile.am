@@ -1,5 +1,3 @@
-SUBDIRS = \
-	.
 
 noinst_HEADERS = \
 	../../images.h \
@@ -13,7 +11,8 @@ noinst_HEADERS = \
 
 noinst_LTLIBRARIES = \
 	librenderer.la
-	
+
+if BUILD_CLIENT
 librenderer_la_SOURCES = \
 	r_array.c \
 	r_bsp.c \
@@ -45,4 +44,4 @@ librenderer_la_CFLAGS = \
 	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@ \
 	@SDL_CFLAGS@
-
+endif

@@ -1,8 +1,6 @@
-if BUILD_CLIENT
-
 SUBDIRS = \
-	sound \
-	renderer
+	renderer \
+	sound
 
 noinst_HEADERS = \
 	client.h
@@ -10,6 +8,7 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = \
 	libclient.la
 
+if BUILD_CLIENT
 libclient_la_SOURCES = \
 	cl_cmd.c \
 	cl_console.c \
@@ -35,5 +34,4 @@ libclient_la_CFLAGS = \
 	@DEBUG_CFLAGS@ \
 	@SDL_CFLAGS@ \
 	@CURL_CFLAGS@
-
 endif
