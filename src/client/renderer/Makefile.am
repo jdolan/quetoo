@@ -1,4 +1,3 @@
-
 noinst_HEADERS = \
 	../../images.h \
 	r_gl.h \

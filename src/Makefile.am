@@ -113,6 +113,10 @@ EXTRA_quake2world_SOURCES = \
 
 quake2world_DEPENDENCIES = \
 	${noinst_LTLIBRARIES} \
+	client/libclient.la \
+	client/sound/libsound.la \
+	client/renderer/librenderer.la \
+	server/libserver.la \
 	${ICON}
 
 quake2world_CFLAGS = \
@@ -123,18 +127,7 @@ quake2world_CFLAGS = \
 	@SDL_CFLAGS@
 
 quake2world_LDADD = \
-	libcmodel.la \
-	libcommon.la \
-	libfiles.la \
-	libhash.la \
-	libimages.la \
-	libpak.la \
-	libshared.la \
-	libsys.la \
-	client/libclient.la \
-	client/sound/libsound.la \
-	client/renderer/librenderer.la \
-	server/libserver.la \
+	${quake2world_DEPENDENCIES} \
 	@CURL_LIBS@ \
 	@CURSES_LIBS@ \
 	@DEBUG_LIBS@ \

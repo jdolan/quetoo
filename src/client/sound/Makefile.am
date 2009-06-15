@@ -1,11 +1,11 @@
-noinst_HEADERS =\
+noinst_HEADERS = \
 	sound.h
 
-noinst_LTLIBRARIES =\
+noinst_LTLIBRARIES = \
 	libsound.la
 
 if BUILD_CLIENT
-libsound_la_SOURCES =\
+libsound_la_SOURCES = \
 	s_main.c \
 	s_mix.c \
 	s_music.c \
