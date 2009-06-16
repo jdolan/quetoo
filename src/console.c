@@ -27,7 +27,6 @@
 
 #include "shared.h"
 #include "console.h"
-#include "curses.h"
 #include "common.h"
 
 consoledata_t condata;
@@ -38,6 +37,7 @@ extern cvar_t *dedicated;
 #endif
 
 #ifdef HAVE_CURSES
+#include "curses.h"
 console_t sv_con;
 cvar_t *con_curses;
 cvar_t *con_timeout;
