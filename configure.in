@@ -91,8 +91,6 @@ AC_MSG_CHECKING(whether to build client)
 
 if test "x${with_client}" = xno; then
     AC_MSG_RESULT(no)
-    HOST_OPENGL_LIBS=""
-    AC_SUBST(HOST_OPENGL_LIBS)
 else
 	AC_MSG_RESULT(yes)
 	BUILD_CLIENT=yes
@@ -111,6 +109,9 @@ else
 		[AC_MSG_ERROR([Couldn't find GL/glext.h, please install OpenGL])],
 		[#include <GL/gl.h>]
 	)
+	
+	OPENGL_LIBS=$HOST_OPENGL_LIBS
+	AC_SUBST(OPENGL_LIBS)
 	
 	dnl -------------
 	dnl Check for SDL

@@ -132,9 +132,9 @@ quake2world_LDADD = \
 	@CURSES_LIBS@ \
 	@DEBUG_LIBS@ \
 	@HOST_LIBS@ \
-	@HOST_OPENGL_LIBS@ \
 	@ICON@ \
 	@JPEG_LIBS@ \
+	@OPENGL_LIBS@ \
 	@SDL_LIBS@ \
 	-lm -lz
 
