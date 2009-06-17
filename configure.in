@@ -68,6 +68,7 @@ case "$host" in
 		AC_MSG_RESULT(generic unix)
 		;;
 esac
+
 AC_SUBST(ICON)
 AC_SUBST(HOST_LIBS)
 AC_SUBST(HOST_OPENGL_LIBS)
@@ -90,6 +91,8 @@ AC_MSG_CHECKING(whether to build client)
 
 if test "x${with_client}" = xno; then
     AC_MSG_RESULT(no)
+    HOST_OPENGL_LIBS=""
+    AC_SUBST(HOST_OPENGL_LIBS)
 else
 	AC_MSG_RESULT(yes)
 	BUILD_CLIENT=yes
