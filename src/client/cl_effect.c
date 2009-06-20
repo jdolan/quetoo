@@ -1036,8 +1036,6 @@ void Cl_EnergyTrail(centity_t *ent, float radius, int color){
 		p->alphavel = -100.0;
 
 		p->vel[0] = p->vel[1] = p->vel[2] = 2.0 * crand();
-
-		p->blend = GL_ONE_MINUS_SRC_ALPHA;
 	}
 
 	// add a bubble trail if appropriate
