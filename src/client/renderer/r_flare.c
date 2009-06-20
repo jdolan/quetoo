@@ -156,8 +156,8 @@ void R_DrawFlareSurfaces(msurfaces_t *surfs){
 		// scale according to distance
 		scale = f->radius + (f->radius * dist * .0005);
 
-		VectorScale(r_locals.right, scale, right);
-		VectorScale(r_locals.up, scale, up);
+		VectorScale(r_view.right, scale, right);
+		VectorScale(r_view.up, scale, up);
 
 		VectorAdd(up, right, upright);
 		VectorSubtract(right, up, downright);

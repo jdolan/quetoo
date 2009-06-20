@@ -214,6 +214,7 @@ extern cvar_t *cl_addentities;
 extern cvar_t *cl_addparticles;
 extern cvar_t *cl_async;
 extern cvar_t *cl_blend;
+extern cvar_t *cl_bob;
 extern cvar_t *cl_chatsound;
 extern cvar_t *cl_counters;
 extern cvar_t *cl_crosshair;

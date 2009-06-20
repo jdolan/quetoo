@@ -206,6 +206,8 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops){
 	else {  // for demos and chasecams, lerp between states without prediction
 		AngleLerp(ops->angles, ps->angles, cl.lerp, r_view.angles);
 	}
+
+	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
 }
 
 
@@ -269,6 +271,63 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 	VectorCopy(r_view.trace.endpos, r_view.origin);
 }
 
+/*
+ * Cl_UpdateBob
+ *
+ * Calculate the view bob.  This is done using a running time counter and a
+ * simple sin function.  The player's speed, as well as whether or not they
+ * are on the ground, determine the bob frequency and amplitude.
+ */
+static void Cl_UpdateBob(void){
+	static float time, vtime;
+	float ftime, speed;
+	vec3_t velocity;
+
+	if(!cl_bob->value)
+		return;
+
+	if(cl_thirdperson->value)
+		return;
+
+	if(!cl.frame.playerstate.stats[STAT_HEALTH])
+			return;  // deadz0r
+
+	if(cl.frame.playerstate.stats[STAT_SPECTATOR])
+		return;  // spectating
+
+	if(cl.frame.playerstate.stats[STAT_CHASE])
+		return;  // chasecam
+
+	VectorCopy(r_view.velocity, velocity);
+	velocity[2] = 0.0;
+
+	speed = VectorLength(velocity) / 450.0;
+
+	if(speed > 0.5)
+		speed *= (0.5 + speed);
+
+	ftime = r_view.time - vtime;
+
+	if(ftime < 0.0)  // clamp for level changes
+		ftime = 0.0;
+
+	ftime *= 1.0 + (2.0 * speed);
+
+	if(!r_view.ground)
+		ftime *= 0.5;
+
+	time += ftime;
+	vtime = r_view.time;
+
+	r_view.bob = sin(3.5 * time) * (0.5 + speed) * (0.5 + speed);
+
+	r_view.bob *= cl_bob->value;  // scale via cvar too
+
+	VectorMA(r_view.origin, -r_view.bob, r_view.forward, r_view.origin);
+	VectorMA(r_view.origin, r_view.bob, r_view.right, r_view.origin);
+	VectorMA(r_view.origin, r_view.bob, r_view.up, r_view.origin);
+}
+
 
 /*
  * Cl_UpdateView
@@ -309,6 +368,8 @@ void Cl_UpdateView(void){
 	Cl_UpdateVelocity(ps, ops);
 
 	Cl_UpdateThirdperson(ps);
+
+	Cl_UpdateBob();
 
 	Cl_UpdateFov();
 

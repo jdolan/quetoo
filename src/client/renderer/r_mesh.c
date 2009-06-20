@@ -134,52 +134,20 @@ void R_ApplyMeshModelConfig(entity_t *e){
 
 	// translation is applied differently for view weapons
 	if(e->flags & EF_WEAPON){
-		vec3_t forward, right, up, velocity;
-		static float time, vtime;
-		float ftime, speed;
 
 		// adjust forward/back offset according to field of view
 		float f = (r_view.fov_x - 100.0) / -4.0;
 
+		// add bob
+		float b = r_view.bob * 0.25;
+
 		c = e->model->view_config;
 
-		AngleVectors(e->angles, forward, right, up);
+		VectorMA(e->origin, c->translate[0] + f + b, r_view.forward, e->origin);
+		VectorMA(e->origin, 6.0, r_view.right, e->origin);
 
-		VectorMA(e->origin, c->translate[0] + f, forward, e->origin);
-		VectorMA(e->origin, 6.0, right, e->origin);
-
-		/*
-		 * Calculate the weapon bob.  This is done using a running time
-		 * counter and a simple sin function.  The player's speed, as well
-		 * as whether or not they are on the ground, determine the bob
-		 * frequency and amplitude.
-		 */
-
-		VectorCopy(r_view.velocity, velocity);
-		velocity[2] = 0.0;
-
-		speed = VectorLength(velocity) / 450.0;
-
-		if(speed > 1.0)
-			speed = 1.0;
-
-		ftime = r_view.time - vtime;
-
-		if(ftime < 0.0)  // clamp for level changes
-			ftime = 0.0;
-
-		ftime *= 1.0 + (2.0 * speed);
-
-		if(!r_view.ground)
-			ftime *= 0.5;
-
-		time += ftime;
-		vtime = r_view.time;
-
-		f = sin(4.0 * time) * (0.25 + speed);
-
-		VectorMA(e->origin, c->translate[1] + f, right, e->origin);
-		VectorMA(e->origin, c->translate[2] + f, up, e->origin);
+		VectorMA(e->origin, c->translate[1] + b, r_view.right, e->origin);
+		VectorMA(e->origin, c->translate[2] + b, r_view.up, e->origin);
 	}
 	else {  // versus world entities
 		c = e->model->world_config;

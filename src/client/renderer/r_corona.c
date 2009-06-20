@@ -87,8 +87,8 @@ void R_DrawCoronas(void){
 			const float a = i / (float)verts * M_PI * 2;
 
 			for(j = 0; j < 3; j++)
-				v[j] = c->org[j] + r_locals.right[j] * (float)cos(a) * c->radius
-					+ r_locals.up[j] * (float)sin(a) * c->radius;
+				v[j] = c->org[j] + r_view.right[j] * (float)cos(a) * c->radius
+					+ r_view.up[j] * (float)sin(a) * c->radius;
 
 			memcpy(&r_state.vertex_array_3d[vertind], v, sizeof(vec3_t));
 			vertind += 3;

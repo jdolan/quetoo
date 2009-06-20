@@ -156,14 +156,13 @@ const char *Cl_LocationHere(void){
  * Returns the description of the location nearest the client's crosshair.
  */
 const char *Cl_LocationThere(void){
-	vec3_t forward, end;
+	vec3_t dest;
 
 	// project vector from view position and angle
-	AngleVectors(r_view.angles, forward, NULL, NULL);
-	VectorMA(r_view.origin, 8192, forward, end);
+	VectorMA(r_view.origin, 8192.0, r_view.forward, dest);
 
 	// and trace to world model
-	R_Trace(r_view.origin, end, 0, MASK_SHOT);
+	R_Trace(r_view.origin, dest, 0, MASK_SHOT);
 
 	return Cl_Location(r_view.trace.endpos);
 }

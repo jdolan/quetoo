@@ -55,9 +55,9 @@ static void R_ParticleVerts(particle_t *p, GLfloat *out){
 	verts = (vec3_t *)out;
 
 	scale =  // hack a scale up to keep particles from disappearing
-		(p->curorg[0] - r_view.origin[0]) * r_locals.forward[0] +
-		(p->curorg[1] - r_view.origin[1]) * r_locals.forward[1] +
-		(p->curorg[2] - r_view.origin[2]) * r_locals.forward[2];
+		(p->curorg[0] - r_view.origin[0]) * r_view.forward[0] +
+		(p->curorg[1] - r_view.origin[1]) * r_view.forward[1] +
+		(p->curorg[2] - r_view.origin[2]) * r_view.forward[2];
 
 	if(scale > 20.0)  // use it
 		p->curscale += scale * 0.002;
@@ -122,8 +122,8 @@ static void R_ParticleVerts(particle_t *p, GLfloat *out){
 		VectorScale(up, p->curscale, up);
 	}
 	else {  // default particle alignment with view
-		VectorScale(r_locals.right, p->curscale, right);
-		VectorScale(r_locals.up, p->curscale, up);
+		VectorScale(r_view.right, p->curscale, right);
+		VectorScale(r_view.up, p->curscale, up);
 	}
 
 	VectorAdd(up, right, upright);

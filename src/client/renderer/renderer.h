@@ -148,8 +148,12 @@ typedef struct renderer_view_s {
 	vec3_t origin;  // client's view origin, angles, and velocity
 	vec3_t angles;
 	vec3_t velocity;
+	vec3_t forward;
+	vec3_t right;
+	vec3_t up;
 
 	qboolean ground;  // client is on ground
+	float bob;
 
 	float time;
 
@@ -230,10 +234,6 @@ typedef struct renderer_locals_s {
 	int lightframe;  // dynamic lighting frame
 
 	int tracenum;  // lighting traces
-
-	vec3_t up;  // angle vectors
-	vec3_t forward;
-	vec3_t right;
 
 	GLfloat modelview[16];  // world matrix
 

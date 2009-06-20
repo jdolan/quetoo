@@ -63,9 +63,6 @@ void S_Frame(void){
 		s_reverse->modified = false;
 	}
 
-	// update right angle for stereo panning
-	AngleVectors(r_view.angles, NULL, s_env.right, NULL);
-
 	// update spatialization for current sounds
 	ch = s_env.channels;
 

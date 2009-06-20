@@ -184,20 +184,17 @@ static inline int SignbitsForPlane(const cplane_t *plane){
 void R_UpdateFrustum(void){
 	int i;
 
-	// calculate angle vectors for view angle
-	AngleVectors(r_view.angles, r_locals.forward, r_locals.right, r_locals.up);
-
 	if(!r_cull->value)
 		return;
 
-	// rotate r_locals.forward right by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[0].normal, r_locals.up, r_locals.forward, -(90 - r_view.fov_x / 2));
-	// rotate r_locals.forward left by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[1].normal, r_locals.up, r_locals.forward, 90 - r_view.fov_x / 2);
-	// rotate r_locals.forward up by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[2].normal, r_locals.right, r_locals.forward, 90 - r_view.fov_y / 2);
-	// rotate r_locals.forward down by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[3].normal, r_locals.right, r_locals.forward, -(90 - r_view.fov_y / 2));
+	// rotate r_view.forward right by fov_x / 2 degrees
+	RotatePointAroundVector(r_locals.frustum[0].normal, r_view.up, r_view.forward, -(90 - r_view.fov_x / 2));
+	// rotate r_view.forward left by fov_x / 2 degrees
+	RotatePointAroundVector(r_locals.frustum[1].normal, r_view.up, r_view.forward, 90 - r_view.fov_x / 2);
+	// rotate r_view.forward up by fov_x / 2 degrees
+	RotatePointAroundVector(r_locals.frustum[2].normal, r_view.right, r_view.forward, 90 - r_view.fov_y / 2);
+	// rotate r_view.forward down by fov_x / 2 degrees
+	RotatePointAroundVector(r_locals.frustum[3].normal, r_view.right, r_view.forward, -(90 - r_view.fov_y / 2));
 
 	for(i = 0; i < 4; i++){
 		r_locals.frustum[i].type = PLANE_ANYZ;

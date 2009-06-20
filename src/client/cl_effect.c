@@ -1003,7 +1003,7 @@ void Cl_EnergyTrail(centity_t *ent, float radius, int color){
 
 	ltime = (float)cl.time / 300.0;
 
-	for(i = 0; i < NUMVERTEXNORMALS; i+= 4){
+	for(i = 0; i < NUMVERTEXNORMALS; i+= 2){
 
 		angle = ltime * avelocities[i][0];
 		sy = sin(angle);
@@ -1020,7 +1020,8 @@ void Cl_EnergyTrail(centity_t *ent, float radius, int color){
 		if(!(p = Cl_AllocParticle()))
 			return;
 
-		p->scale = 1.0 + radius * 0.05;
+		p->scale = 0.75;
+		p->scalevel = 800.0;
 
 		dist = sin(ltime + i) * radius;
 		p->org[0] = ent->current.origin[0] + bytedirs[i][0] * dist + forward[0] * 16.0;
@@ -1029,7 +1030,7 @@ void Cl_EnergyTrail(centity_t *ent, float radius, int color){
 
 		VectorSubtract(p->org, ent->current.origin, v);
 		dist = VectorLength(v) / (3.0 * radius);
-		p->color = color + dist * 7;
+		p->color = color + dist * 7.0;
 
 		p->alpha = 1.0 - dist;
 		p->alphavel = -100.0;

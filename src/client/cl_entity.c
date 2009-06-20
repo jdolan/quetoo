@@ -538,7 +538,7 @@ static const vec3_t bfg_light = {
  */
 void Cl_AddEntities(frame_t *frame){
 	entity_t ent;
-	vec3_t start, end, forward, right;
+	vec3_t start, end;
 	vec3_t wshell;
 	int pnum, mask;
 
@@ -547,8 +547,6 @@ void Cl_AddEntities(frame_t *frame){
 
 	VectorClear(start);
 	VectorClear(end);
-
-	AngleVectors(r_view.angles, forward, right, NULL);
 
 	VectorClear(wshell);
 
@@ -567,8 +565,8 @@ void Cl_AddEntities(frame_t *frame){
 				// we own this beam (lightning, grapple, etc..)
 				// project start position in front of view origin
 				VectorCopy(r_view.origin, start);
-				VectorMA(start, 24.0, forward, start);
-				VectorMA(start, 6.0, right, start);
+				VectorMA(start, 24.0, r_view.forward, start);
+				VectorMA(start, 6.0, r_view.right, start);
 				start[2] -= 10.0;
 			}
 			else  // or simply lerp the start position

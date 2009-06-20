@@ -27,6 +27,7 @@ cvar_t *cl_addentities;
 cvar_t *cl_addparticles;
 cvar_t *cl_async;
 cvar_t *cl_blend;
+cvar_t *cl_bob;
 cvar_t *cl_chatsound;
 cvar_t *cl_teamchatsound;
 cvar_t *cl_counters;
@@ -908,6 +909,7 @@ static void Cl_InitLocal(void){
 	cl_addparticles = Cvar_Get("cl_addparticles", "1", 0, NULL);
 	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE, NULL);
 	cl_blend = Cvar_Get("cl_blend", "1", CVAR_ARCHIVE, NULL);
+	cl_bob = Cvar_Get("cl_bob", "1", CVAR_ARCHIVE, NULL);
 	cl_chatsound = Cvar_Get("cl_chatsound", "misc/chat", 0, NULL);
 	cl_teamchatsound = Cvar_Get("cl_teamchatsound", "misc/teamchat", 0, NULL);
 	cl_counters = Cvar_Get("cl_counters", "1", CVAR_ARCHIVE, NULL);

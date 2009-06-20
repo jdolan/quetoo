@@ -59,8 +59,6 @@ typedef struct s_env_s {
 
 	s_music_t *active_music;
 
-	vec3_t right;  // for stereo panning
-
 	qboolean initialized;
 	qboolean update;
 } s_env_t;

@@ -76,7 +76,7 @@ void S_SpatializeChannel(s_channel_t *ch){
 		dist = 255.0;
 
 	if(dist > 10.0){  // resolve stereo panning
-		dot = DotProduct(s_env.right, delta);
+		dot = DotProduct(r_view.right, delta);
 		angle = acos(dot) * 180.0 / M_PI - 90.0;
 
 		angle = (int)(360.0 - angle) % 360;
