@@ -303,18 +303,18 @@ static void Cl_UpdateBob(void){
 
 	speed = VectorLength(velocity) / 450.0;
 
-	if(speed > 0.5)
-		speed *= (0.5 + speed);
+	if(speed > 1.0)
+		speed = 1.0;
 
 	ftime = r_view.time - vtime;
 
 	if(ftime < 0.0)  // clamp for level changes
 		ftime = 0.0;
 
-	ftime *= 1.0 + (2.0 * speed);
+	ftime *= (1.0 + speed * 1.0 + speed);
 
 	if(!r_view.ground)
-		ftime *= 0.5;
+		ftime *= 0.25;
 
 	time += ftime;
 	vtime = r_view.time;

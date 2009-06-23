@@ -139,12 +139,14 @@ void R_ApplyMeshModelConfig(entity_t *e){
 		float f = (r_view.fov_x - 100.0) / -4.0;
 
 		// add bob
-		float b = r_view.bob * 0.25;
+		float b = r_view.bob * 0.4;
 
 		c = e->model->view_config;
 
 		VectorMA(e->origin, c->translate[0] + f + b, r_view.forward, e->origin);
 		VectorMA(e->origin, 6.0, r_view.right, e->origin);
+
+		b = r_view.bob * 0.25;
 
 		VectorMA(e->origin, c->translate[1] + b, r_view.right, e->origin);
 		VectorMA(e->origin, c->translate[2] + b, r_view.up, e->origin);
