@@ -525,6 +525,11 @@ Pushes the player
 4				Emit teleporter effect for visual identification.
 */
 
+/*QUAKED trigger_teleporter (1 0 0) ? 0
+A brush teleporter
+"target"		the targetname of a misc_teleporter_dest
+*/
+
 
 /*QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION SLOW
 Any entity that touches this will be hurt.
