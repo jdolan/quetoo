@@ -110,7 +110,7 @@ PROTOCOL
 
 #define PROTOCOL 13  // unlucky
 
-#define IP_MASTER "81.169.143.159"  // satgnu
+#define IP_MASTER "173.45.234.158"  // jdolan.dyndns.org
 
 #define PORT_MASTER	1996  // some good years
 #define PORT_CLIENT	1997
