@@ -110,7 +110,7 @@ PROTOCOL
 
 #define PROTOCOL 13  // unlucky
 
-#define IP_MASTER "173.45.234.158"  // jdolan.dyndns.org
+#define IP_MASTER "74.54.186.226"  // tastyspleen.net
 
 #define PORT_MASTER	1996  // some good years
 #define PORT_CLIENT	1997
