@@ -62,12 +62,15 @@ cp -fp *.a /mingw/lib
 cp -fp zlib.h /mingw/include
 cp -fp zconf.h /mingw/include
 cp -fp zlib1.dll /mingw/bin
+#./configure --prefix=/mingw --shared
+make || return 1
+make install || return 1
 
 #compile nasm
 cd $TMP/deps
-wget -c http://downloads.sourceforge.net/sourceforge/nasm/nasm-2.06rc10.tar.gz
-tar xzf nasm-2.06rc10.tar.gz
-cd nasm-2.06rc10
+wget -c http://downloads.sourceforge.net/sourceforge/nasm/nasm-2.06.tar.gz
+tar xzf nasm-2.06.tar.gz
+cd nasm-2.06
 ./configure --prefix=/mingw
 make || return 1
 make install || return 1
@@ -83,18 +86,20 @@ make install || return 1
 
 #compile libpng (sdl_image dep)
 cd $TMP/deps
-wget -c http://downloads.sourceforge.net/libpng/libpng-1.2.35.tar.gz
-tar xzf libpng-1.2.35.tar.gz
-cd libpng-1.2.35
+wget -c http://downloads.sourceforge.net/libpng/libpng-1.2.37.tar.gz
+tar xzf libpng-1.2.37.tar.gz
+cd libpng-1.2.37
+awk 'NR==12478{$0="  return \"1.2.3\";";}1' configure > configure.new
+mv configure.new configure
 ./configure --prefix=/mingw
 make || return 1
 make install || return 1
 
 #compile jpeg6b (sdl_image dep)
 cd $TMP/deps
-wget -c http://www.ijg.org/files/jpegsrc.v6b.tar.gz
-tar xzf jpegsrc.v6b.tar.gz
-cd jpeg-6b
+wget -c http://www.ijg.org/files/jpegsrc.v7.tar.gz
+tar xzf jpegsrc.v7.tar.gz
+cd jpeg-7
 ./configure --prefix=/mingw --enable-shared --enable-static
 make || return 1
 make install || return 1
@@ -119,18 +124,18 @@ make install || return 1
 
 #compile libogg (sdl_mixer dep)
 cd $TMP/deps
-wget -c http://downloads.xiph.org/releases/ogg/libogg-1.1.3.tar.gz
-tar xzf libogg-1.1.3.tar.gz
-cd libogg-1.1.3
+wget -c http://downloads.xiph.org/releases/ogg/libogg-1.1.4.tar.gz
+tar xzf libogg-1.1.4.tar.gz
+cd libogg-1.1.4
 LDFLAGS='-mwindows' ./configure --prefix=/mingw
 make || return 1
 make install || return 1
 
 #compile libvorbis (sdl_mixer dep)
 cd $TMP/deps
-wget -c http://downloads.xiph.org/releases/vorbis/libvorbis-1.2.0.tar.gz
-tar xzf libvorbis-1.2.0.tar.gz
-cd libvorbis-1.2.0
+wget -c http://downloads.xiph.org/releases/vorbis/libvorbis-1.2.2.tar.gz
+tar xzf libvorbis-1.2.2.tar.gz
+cd libvorbis-1.2.2
 LDFLAGS='-mwindows' ./configure --prefix=/mingw
 make LIBS='-logg' || return 1
 make install || return 1
@@ -146,9 +151,9 @@ make install || return 1
 
 #compile libcurl
 cd $TMP/deps
-wget -c http://curl.haxx.se/download/curl-7.19.4.tar.gz
-tar xzf curl-7.19.4.tar.gz
-cd curl-7.19.4
+wget -c http://curl.haxx.se/download/curl-7.19.5.tar.gz
+tar xzf curl-7.19.5.tar.gz
+cd curl-7.19.5
 ./configure --prefix=/mingw --without-ssl
 make || return 1
 make install || return 1

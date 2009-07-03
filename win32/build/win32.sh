@@ -21,14 +21,14 @@
 START=`pwd`
 
 CHECKOUT(){
-	rev=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 4`
+	rev=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 3`
 	echo checked out $rev
 }
 
 CONFIGURATION(){
 	cd $START/quake2world
 	autoreconf -i --force || return 1
-	./configure || return 1
+	./configure --with-curses=no || return 1
 }
 
 MAKE(){
@@ -60,9 +60,9 @@ UPLOAD(){
 	ssh satgnu.net@satgnu.net ln -f /var/www/satgnu.net/files/quake2world_rev"$rev"zip  /var/www/satgnu.net/files/quake2world-win32-snapshot.zip
 }
 
-CHECKOUT
-CONFIGURATION
-MAKE
+CHECKOUT || return 1
+CONFIGURATION || return 1
+MAKE || return 1
 PACKAGE
 UPLOAD
 
