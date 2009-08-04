@@ -577,7 +577,11 @@ void Cl_HandleEvents(void){
 	} else {
 		if(!mouse_active){  // or take it back
 			SDL_WM_GrabInput(SDL_GRAB_ON);
+			// Warp is called twice to workaround a SDL bug
+			// http://bugzilla.libsdl.org/show_bug.cgi?id=341
+			SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
 			SDL_ShowCursor(false);
+			SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
 			mouse_active = true;
 		}
 	}
