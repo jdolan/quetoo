@@ -479,7 +479,7 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *uni
  * Cl_HandleEvent
  */
 static void Cl_HandleEvent(SDL_Event *event){
-	static boolean first_key_event = true;
+	static qboolean first_key_event = true;
 	unsigned int key;
 	unsigned short unicode;
 
@@ -519,7 +519,7 @@ static void Cl_HandleEvent(SDL_Event *event){
 		case SDL_KEYUP:
 			if(first_key_event){
 				// get starting state of numlock on first key press
-				boolean numlock_state = (event->key.keysym.mod & KMOD_NUM) != 0;
+				qboolean numlock_state = (event->key.keysym.mod & KMOD_NUM) != 0;
 				EVENT_ENQUEUE(K_NUMLOCK, 151, numlock_state)
 				first_key_event = false;
 			}

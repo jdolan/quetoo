@@ -135,7 +135,7 @@ keyname_t keynames[] = {
  */
 static void Cl_KeyConsole(int key, int unicode){
 	int i;
-	boolean numlock = key_down[K_NUMLOCK];
+	qboolean numlock = key_down[K_NUMLOCK];
 
 	// submit buffer on enter unicode with valid input
 	if((key == K_ENTER || key == K_KP_ENTER) && strlen(key_lines[edit_line]) > 1){
