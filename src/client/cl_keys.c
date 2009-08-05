@@ -135,6 +135,7 @@ keyname_t keynames[] = {
  */
 static void Cl_KeyConsole(int key, int unicode){
 	int i;
+	boolean numlock = key_down[K_NUMLOCK];
 
 	// submit buffer on enter unicode with valid input
 	if((key == K_ENTER || key == K_KP_ENTER) && strlen(key_lines[edit_line]) > 1){
@@ -173,18 +174,18 @@ static void Cl_KeyConsole(int key, int unicode){
 		return;
 	}
 
-	if(key == K_DEL || key == K_KP_DEL){  // delete char on cursor
+	if(key == K_DEL || (key == K_KP_DEL && !numlock)){  // delete char on cursor
 		if(key_linepos < strlen(key_lines[edit_line]))
 			strcpy(key_lines[edit_line] + key_linepos, key_lines[edit_line] + key_linepos + 1);
 		return;
 	}
 
-	if(key == K_INS || key == K_KP_INS){  // toggle insert mode
+	if(key == K_INS || (key == K_KP_INS && !numlock)){  // toggle insert mode
 		key_insert ^= 1;
 		return;
 	}
 
-	if(key == K_LEFTARROW || key == K_KP_LEFTARROW){  // move cursor left
+	if(key == K_LEFTARROW || (key == K_KP_LEFTARROW && !numlock)){  // move cursor left
 		if(key_down[K_CTRL]){ // by a whole word
 			while(key_linepos > 1 && key_lines[edit_line][key_linepos - 1] == ' ')
 				key_linepos--;  // get off current word
@@ -198,7 +199,7 @@ static void Cl_KeyConsole(int key, int unicode){
 		return;
 	}
 
-	if(key == K_RIGHTARROW || key == K_KP_RIGHTARROW){  // move cursor right
+	if(key == K_RIGHTARROW || (key == K_KP_RIGHTARROW && !numlock)){  // move cursor right
 		if((i = strlen(key_lines[edit_line])) == key_linepos)
 			return;	// no character to get
 
@@ -216,7 +217,7 @@ static void Cl_KeyConsole(int key, int unicode){
 		return;
 	}
 
-	if(key == K_UPARROW || key == K_KP_UPARROW){  // iterate history back
+	if(key == K_UPARROW || (key == K_KP_UPARROW && !numlock)){  // iterate history back
 		do {
 			history_line = (history_line + KEY_HISTORYSIZE - 1) % KEY_HISTORYSIZE;
 		} while(history_line != edit_line && !key_lines[history_line][1]);
@@ -229,7 +230,7 @@ static void Cl_KeyConsole(int key, int unicode){
 		return;
 	}
 
-	if(key == K_DOWNARROW || key == K_KP_DOWNARROW){  // iterate history forward
+	if(key == K_DOWNARROW || (key == K_KP_DOWNARROW && !numlock)){  // iterate history forward
 		if(history_line == edit_line)
 			return;
 		do {
@@ -246,14 +247,14 @@ static void Cl_KeyConsole(int key, int unicode){
 		return;
 	}
 
-	if(key == K_PGUP || key == K_KP_PGUP || key == K_MWHEELUP){
+	if(key == K_PGUP || (key == K_KP_PGUP && !numlock) || key == K_MWHEELUP){
 		cl_con.scroll += CON_SCROLL;
 		if(cl_con.scroll > cl_con.lastline)
 			cl_con.scroll = cl_con.lastline;
 		return;
 	}
 
-	if(key == K_PGDN || key == K_KP_PGDN || key == K_MWHEELDOWN){
+	if(key == K_PGDN || (key == K_KP_PGDN && !numlock) || key == K_MWHEELDOWN){
 		cl_con.scroll -= CON_SCROLL;
 		if(cl_con.scroll < 0)
 			cl_con.scroll = 0;
@@ -265,7 +266,7 @@ static void Cl_KeyConsole(int key, int unicode){
 		return;
 	}
 
-	if(key == K_HOME || key == K_KP_HOME){	// go to the start of line
+	if(key == K_HOME || (key == K_KP_HOME && !numlock)){	// go to the start of line
 		if(key_down[K_CTRL])	// go to the start of the console
 			cl_con.scroll = cl_con.lastline;
 		else
@@ -278,7 +279,7 @@ static void Cl_KeyConsole(int key, int unicode){
 		return;
 	}
 
-	if(key == K_END || key == K_KP_END){	// go to the end of line
+	if(key == K_END || (key == K_KP_END && !numlock)){	// go to the end of line
 		if(key_down[K_CTRL])	// go to the end of the console
 			cl_con.scroll = 0;
 		else

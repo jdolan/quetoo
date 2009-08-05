@@ -64,6 +64,8 @@ enum QKEYS {
 	K_AUX15,
 	K_AUX16,
 
+	K_NUMLOCK,
+
 	K_KP_INS,
 	K_KP_END,
 	K_KP_DOWNARROW,

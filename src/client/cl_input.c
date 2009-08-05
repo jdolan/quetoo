@@ -283,6 +283,11 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *uni
 	const unsigned int keysym = event->key.keysym.sym;
 
 	switch(keysym){
+
+		case SDLK_NUMLOCK:
+			key = K_NUMLOCK;
+			break;
+
 		case SDLK_KP9:
 			key = K_KP_PGUP;
 			break;
@@ -474,6 +479,7 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *uni
  * Cl_HandleEvent
  */
 static void Cl_HandleEvent(SDL_Event *event){
+	static boolean first_key_event = true;
 	unsigned int key;
 	unsigned short unicode;
 
@@ -511,9 +517,16 @@ static void Cl_HandleEvent(SDL_Event *event){
 
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
+			if(first_key_event){
+				// get starting state of numlock on first key press
+				boolean numlock_state = (event->key.keysym.mod & KMOD_NUM) != 0;
+				EVENT_ENQUEUE(K_NUMLOCK, 151, numlock_state)
+				first_key_event = false;
+			}
 			Cl_KeyMap(event, &key, &unicode);
 			EVENT_ENQUEUE(key, unicode, (event->type == SDL_KEYDOWN))
 			break;
+
 		case SDL_QUIT:
 			Cmd_ExecuteString("quit");
 			break;
