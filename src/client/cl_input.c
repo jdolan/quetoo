@@ -568,7 +568,10 @@ static void Cl_MouseMove(int mx, int my){
  * Cl_HandleEvents
  */
 void Cl_HandleEvents(void){
-
+	int mx, my;
+	const int cx = r_state.width / 2;
+	const int cy = r_state.height / 2;
+	static int m_active_wait_counter = 0;
 	SDL_Event event;
 
 	if(!SDL_WasInit(SDL_INIT_VIDEO))
@@ -589,22 +592,35 @@ void Cl_HandleEvents(void){
 		}
 	} else {
 		if(!mouse_active){  // or take it back
-			SDL_WM_GrabInput(SDL_GRAB_ON);
-			// Warp is called twice to workaround a SDL bug
-			// http://bugzilla.libsdl.org/show_bug.cgi?id=341
-			SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
-			SDL_ShowCursor(false);
-			SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
-			mouse_active = true;
+			/*
+			An SDL bug makes GetMouseState return crappy numbers
+			for a couple cycles. To prevent these numbers from
+			jerking the view angles around, wait a few cycles
+			before reactivating the mouse.
+			http://bugzilla.libsdl.org/show_bug.cgi?id=341
+			*/
+			switch(m_active_wait_counter){
+				case 0:
+					SDL_ShowCursor(false);
+					SDL_WM_GrabInput(SDL_GRAB_ON);
+				case 1:
+				case 2:
+					SDL_WarpMouse(cx, cy);
+					m_active_wait_counter++;
+					break;
+				default:
+					mouse_active = true;
+					m_active_wait_counter = 0;
+					break;
+			}
 		}
 	}
 
 	if(mouse_active){  // check for movement
-		int mx, my;
 		SDL_GetMouseState(&mx, &my);
 
-		mx -= r_state.width / 2;  // normalize to center
-		my -= r_state.height / 2;
+		mx -= cx;  // normalize to center
+		my -= cy;
 
 		if(m_sensitivity->modified) {
 			// invalid or unreasonable value - set back to sane value
@@ -617,7 +633,7 @@ void Cl_HandleEvents(void){
 
 		if(mx || my){  // mouse has moved
 			Cl_MouseMove(mx, my);
-			SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
+			SDL_WarpMouse(cx, cy);
 		}
 
 	}
