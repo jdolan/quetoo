@@ -306,7 +306,7 @@ void Cvar_Toggle(const char *var_name){
 	var = Cvar_FindVar(var_name);
 
 	if(!var){
-		Com_Printf("%s is not yet set.", var_name);
+		Com_Printf("\"%s\" is not set\n", var_name);
 		return;
 	}
 
@@ -437,6 +437,20 @@ static void Cvar_Set_f(void){
 		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), flags);
 	} else
 		Cvar_Set(Cmd_Argv(1), Cmd_Argv(2));
+}
+
+
+/*
+ * Cvar_Toggle_f
+ *
+ * Allows toggling of arbitrary cvars from console
+ */
+static void Cvar_Toggle_f(void){
+	if ( Cmd_Argc() != 2 ) {
+		Com_Printf ("Usage: toggle <variable>\n");
+		return;
+	}
+	Cvar_Toggle(Cmd_Argv(1));
 }
 
 
@@ -572,5 +586,6 @@ char *Cvar_Serverinfo(void){
  */
 void Cvar_Init(void){
 	Cmd_AddCommand("set", Cvar_Set_f, NULL);
+	Cmd_AddCommand("toggle", Cvar_Toggle_f, NULL);
 	Cmd_AddCommand("cvar_list", Cvar_List_f, NULL);
 }
