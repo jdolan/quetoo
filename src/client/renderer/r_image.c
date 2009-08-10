@@ -52,6 +52,8 @@ GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 GLint r_filter_max = GL_LINEAR;
 GLfloat r_filter_aniso = 1.0;
 
+#define MAX_TEXTURE_SIZE 2048
+
 typedef struct {
 	const char *name;
 	int minimize, maximize;
@@ -283,7 +285,7 @@ void R_SoftenTexture(byte *in, int width, int height, imagetype_t type){
 static void R_ScaleTexture(const unsigned *in, int inwidth, int inheight, unsigned *out, int outwidth, int outheight){
 	int i, j;
 	unsigned frac, fracstep;
-	unsigned p1[1024], p2[1024];
+	unsigned p1[MAX_TEXTURE_SIZE], p2[MAX_TEXTURE_SIZE];
 
 	fracstep = inwidth * 0x10000 / outwidth;
 
@@ -301,12 +303,11 @@ static void R_ScaleTexture(const unsigned *in, int inwidth, int inheight, unsign
 	for(i = 0; i < outheight; i++, out += outwidth){
 		const unsigned *inrow = in + inwidth * (int)((i + 0.25) * inheight / outheight);
 		const unsigned *inrow2 = in + inwidth * (int)((i + 0.75) * inheight / outheight);
-		frac = fracstep >> 1;
 		for(j = 0; j < outwidth; j++){
-			const byte *pix1 = (byte *)inrow + p1[j];
-			const byte *pix2 = (byte *)inrow + p2[j];
-			const byte *pix3 = (byte *)inrow2 + p1[j];
-			const byte *pix4 = (byte *)inrow2 + p2[j];
+			const byte *pix1 = (const byte *)inrow + p1[j];
+			const byte *pix2 = (const byte *)inrow + p2[j];
+			const byte *pix3 = (const byte *)inrow2 + p1[j];
+			const byte *pix4 = (const byte *)inrow2 + p2[j];
 			((byte *)(out + j))[0] = (pix1[0] + pix2[0] + pix3[0] + pix4[0]) >> 2;
 			((byte *)(out + j))[1] = (pix1[1] + pix2[1] + pix3[1] + pix4[1]) >> 2;
 			((byte *)(out + j))[2] = (pix1[2] + pix2[2] + pix3[2] + pix4[2]) >> 2;
@@ -450,11 +451,11 @@ static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color,
 	for(upload_height = 1; upload_height < height; upload_height <<= 1)
 		;
 
-	// don't ever bother with > 2048 textures
-	if(upload_width > 2048)
-		upload_width = 2048;
-	if(upload_height > 2048)
-		upload_height = 2048;
+	// don't ever bother with > MAX_TEXTURE_SIZE textures
+	if(upload_width > MAX_TEXTURE_SIZE)
+		upload_width = MAX_TEXTURE_SIZE;
+	if(upload_height > MAX_TEXTURE_SIZE)
+		upload_height = MAX_TEXTURE_SIZE;
 
 	if(upload_width < 1)
 		upload_width = 1;
