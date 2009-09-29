@@ -380,10 +380,10 @@ This is solid bmodel that will fall if it's support it removed.
 */
 
 
-/*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) ? 4
+/*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) x x no_effect
 Stepping onto this disc will teleport players to the targeted misc_teleporter_dest object.
 
-4				Inhibit normal teleporter effect
+"no_effect" Inhibit normal teleporter effect
 */
 
 
@@ -392,27 +392,27 @@ Point teleporters at these.
 */
 
 
-/*QUAKED misc_emit (.8 .8 0) (-8 -8 -8) (8 8 8) ? 1 2 4 8 16 32 64
+/*QUAKED misc_emit (.8 .8 0) (-8 -8 -8) (8 8 8) emit_lightflash emit_sparks emit_steam emit_flames emit_corona emit_sound emit_model
 Client sided source of particles, ambient sounds, light flashes, and static models.
-"angles"		The angles of orientation for particles emissions and static models.
-"velocity"		The directional vector for steam emissions.
+"angles"	The angles of orientation for particles emissions and static models.
+"velocity"	The directional vector for steam emissions.
 "color"		The color for particles, light flashes, and coronas.
-"hz"			The emission rate, in events-per-second.
+"hz"		The emission rate, in events-per-second.
 "drift"		The factor of randomized drift applied to the emission rate.
-"radius"		The radius for coronas and light flashes.
+"radius"	The radius for coronas and light flashes.
 "count"		The number of particles to emit per event.
 "scale"		The scale for a static model.
 "sound"		The sound sample to accompany events.
 "attenuation"	The sound attenuation, -1 for global.
 "flags"		Determines emit type.
 "model"		The static model name, e.g. trees/mytree.
-1 =			Emit a dynamic light flash.
-2 =			Emit sparks.
-4 =			Emit steam.
-8 =			Emit flames.
-16 =		Emit corona.
-32 =		Emit ambient sound.
-64 =		Emit static model.
+"emit_lightflash"	Emit a dynamic light flash (spawnflag 1)
+"emit_sparks"		Emit sparks (spawnflag 2)
+"emit_steam"		Emit steam (spawnflag 4)
+"emit_flames"		Emit flames (spawnflag 8)
+"emit_corona"		Emit corona (spawnflag 16)
+"emit_sound"		Emit ambient sound (spawnflag 32)
+"emit_model"		Emit static model (spawnflag 64)
 */
 
 
@@ -518,11 +518,11 @@ This trigger will always fire.  It is activated by the world.
 */
 
 
-/*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE 4
+/*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE x emit_effect
 Pushes the player
 "speed"		defaults to 100
 
-4				Emit teleporter effect for visual identification.
+"emit_effect"			Emit teleporter effect for visual identification (spawnflag 4)
 */
 
 /*QUAKED trigger_teleporter (1 0 0) ? 0
