@@ -245,8 +245,10 @@ model_t *R_LoadModel(const char *name){
 			break;
 	}
 
-	if(i == NUM_MODEL_FORMATS)  // not found
+	if(i == NUM_MODEL_FORMATS) {  // not found
+		Com_Warn("R_LoadModel: Failed to load %s.\n", name);
 		return NULL;
+	}
 
 	Com_StripExtension(n, mod->name);
 
