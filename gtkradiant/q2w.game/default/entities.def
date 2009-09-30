@@ -416,7 +416,7 @@ Client sided source of particles, ambient sounds, light flashes, and static mode
 */
 
 
-*QUAKED misc_model (.8 .8 0) (-8 -8 -8) (8 8 8)
+/*QUAKED misc_model (.8 .8 0) (-8 -8 -8) (8 8 8)
 Client sided static models.
 "angles"		The angles of orientation for particles emissions and static models.
 "scale"		The scale for a static model.
