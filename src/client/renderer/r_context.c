@@ -38,8 +38,6 @@ static void R_SetIcon(void){
 }
 
 
-static int desktop_w, desktop_h;  // desktop resolution
-
 /*
  * R_InitContext
  */
@@ -60,19 +58,10 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 		}
 	}
 
-	if(!desktop_w){  // first time through, resolve desktop resolution
-
-		const SDL_VideoInfo *vid = SDL_GetVideoInfo();
-
-		desktop_w = vid->current_w;
-		desktop_h = vid->current_h;
-	}
-
-	if(!width)
-		width = desktop_w;
-
-	if(!height)
-		height = desktop_h;
+	if(width < 0)
+		width = 0;
+	if(height < 0)
+		height = 0;
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
