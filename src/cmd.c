@@ -277,14 +277,19 @@ void Cbuf_AddLateCommands(void){
 static void Cmd_Exec_f(void){
 	void *buf;
 	int len;
+	char cfg[MAX_QPATH];
 
 	if(Cmd_Argc() != 2){
 		Com_Printf("Usage: %s <filename> : execute a script file\n", Cmd_Argv(0));
 		return;
 	}
 
-	if((len = Fs_LoadFile(Cmd_Argv(1), &buf)) == -1){
-		Com_Printf("couldn't exec %s\n", Cmd_Argv(1));
+	strcpy(cfg, Cmd_Argv(1));
+	if(strstr(cfg, ".cfg") == NULL)
+		strcat(cfg, ".cfg");
+
+	if((len = Fs_LoadFile(cfg, &buf)) == -1){
+		Com_Printf("couldn't exec %s\n", cfg);
 		return;
 	}
 

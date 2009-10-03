@@ -563,6 +563,7 @@ int Fs_LoadFile(const char *path, void **buffer);
 void Fs_AddPakfile(const char *pakfile);
 size_t Fs_Write(void *ptr, size_t size, size_t nmemb, FILE *stream);
 size_t Fs_Read(void *ptr, size_t size, size_t nmemb, FILE *stream);
+int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[]);
 
 // a null buffer will just return the file length without loading
 // a -1 length is not present

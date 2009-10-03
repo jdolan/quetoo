@@ -617,4 +617,88 @@ void Fs_InitFilesystem(void){
 		Fs_SetGamedir(fs_gamedirvar->string);
 }
 
+
+/*
+ * strcmp_wrapper
+ *
+ * Wraps strcmp() so it can be used to sort strings in qsort()
+ */
+static int strcmp_wrapper(const void *a, const void *b)
+{
+	return strcmp(*(char **)a, *(char **)b);
+}
+
+// temporarily store file names (not in paks) in an arbitrarily large buffer
+static char filelist[MAX_QPATH * 256];
+
+/*
+ * Fs_CompleteFile
+ */
+int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[])
+{
+	int i = 0;
+	int m = 0;
+	char *fl = filelist;
+	const char *n;
+	char name[MAX_OSPATH];
+	const searchpath_t *s;
+	const hashentry_t *h;
+
+	// search through paths for matches
+	for(s = fs_searchpaths; s != NULL; s = s->next)
+	{
+		snprintf(name, sizeof(name), "%s/%s%s*%s", s->path, dir, prefix, suffix);
+		
+		if ((n = Sys_FindFirst(name)) == NULL)
+		{
+			Sys_FindClose();
+			continue;
+		}
+		do
+		{
+			// copy filename to local buffer
+			strcpy(fl, n + strlen(s->path) + 1 + strlen(dir));
+			matches[m] = fl;
+			m++;
+			fl = fl + strlen(fl) + 1;
+		}
+		while ((n = Sys_FindNext()) != NULL);
+
+		Sys_FindClose();
+	}
+
+	// search through paks for matches
+	snprintf(name, sizeof(name), "%s%s*%s", dir, prefix, suffix);
+	for(i = 0; i < HASHBINS; i++)
+	{
+		h = fs_hashtable.bins[i];
+		while(h != NULL)
+		{
+			if(Com_GlobMatch(name, h->key) 
+			&& !(*dir == NULL && strchr(h->key, '/'))) // omit cfgs not in the root gamedir (map cfgs and such)
+			{
+				matches[m] = h->key + strlen(dir);
+				m++;
+			}
+			h = h->next;
+		}
+	}
+
+	// sort in alphabetical order
+	qsort(matches, m, sizeof(matches[0]), strcmp_wrapper);
+
+	// print out list of matches (minus duplicates)
+	for(i = 0; i < m; i++)
+	{
+		if(i == 0 || strcmp(matches[i], matches[i-1]))
+		{
+			strcpy(name, matches[i]);
+			if (strstr(name, suffix) != NULL)
+				*strstr(name, suffix) = 0;	// lop off file extension
+			Com_Printf("%s\n", name);
+		}
+	}
+
+	return m;
+}
 #endif // __LIBPAK_LA__

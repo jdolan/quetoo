@@ -404,8 +404,8 @@ static const char *complete[MAX_COMPLETE_MATCHES];
  */
 int Con_CompleteCommand(char *input_text, int *input_position){
 	const char *match, *partial;
+	const char *cmd = 0, *dir = 0, *ext = 0;
 	int matches;
-	qboolean space;
 
 	partial = input_text;
 	if(*partial == '\\' || *partial == '/')
@@ -415,26 +415,53 @@ int Con_CompleteCommand(char *input_text, int *input_position){
 		return false;  // lets start with at least something
 
 	memset(complete, 0, sizeof(complete));
-	space = false;
 
-	matches = Cmd_CompleteCommand(partial, &complete[0]);
-	matches += Cvar_CompleteVar(partial, &complete[matches]);
-
-	if(matches == 1){
-		match = complete[0];
-		space = true;
-	} else {
-		match = Com_CommonPrefix(complete, matches);
+	if(strstr(partial, "map ") == partial)
+	{
+		cmd = "map ";
+		dir = "maps/";
+		ext = ".bsp";
 	}
+	else if(strstr(partial, "demo ") == partial)
+	{
+		cmd = "demo ";
+		dir = "demos/";
+		ext = ".dem";
+	}
+	else if(strstr(partial, "exec ") == partial)
+	{
+		cmd = "exec ";
+		dir = "";
+		ext = ".cfg";
+	}
+
+	if(cmd)
+	{	// auto-complete parameters for a command
+		partial += strlen(cmd);
+		matches = Fs_CompleteFile(dir, partial, ext, &complete[0]);
+	}
+	else
+	{	// auto-complete a command or variable
+		cmd = "";
+		matches = Cmd_CompleteCommand(partial, &complete[0]);
+		matches += Cvar_CompleteVar(partial, &complete[matches]);
+	}
+
+	if(matches == 1)
+		match = complete[0];
+	else
+		match = Com_CommonPrefix(complete, matches);
 
 	if(!match || !strlen(match))
 		return false;
 
-	*input_text = '/';
-	strcpy(input_text + 1, match);
-	(*input_position) = strlen(match) + 1;
+	sprintf(input_text, "/%s%s", cmd, match);
+	if (ext && strstr(input_text, ext) != NULL)
+		*strstr(input_text, ext) = 0;	// lop off file extenion
+	(*input_position) = strlen(input_text);
 
-	if(space){  // append a trailing space for single matches
+	if(matches == 1 && *cmd == 0)
+	{	// append a trailing space for single matches
 		input_text[*input_position] = ' ';
 		(*input_position)++;
 	}
