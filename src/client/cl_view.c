@@ -192,18 +192,18 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops){
  * Cl_UpdateAngles
  *
  * The angles are typically fetched directly from input, unless the client is
- * watching a demo or chasecamming someone.
+ * watching a demo or chasing someone.
  */
 static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops){
 
-	// if not running a demo or chasecamming, add the local angle movement
+	// if not running a demo or chasing, add the local angle movement
 	if(cl.frame.playerstate.pmove.pm_type <= PM_DEAD){  // use predicted (input) values
 		VectorCopy(cl.predicted_angles, r_view.angles);
 
 		if(cl.frame.playerstate.pmove.pm_type == PM_DEAD)  // look only on x axis
 			r_view.angles[0] = r_view.angles[2] = 0.0;
 	}
-	else {  // for demos and chasecams, lerp between states without prediction
+	else {  // for demos and chasing, lerp between states without prediction
 		AngleLerp(ops->angles, ps->angles, cl.lerp, r_view.angles);
 	}
 
@@ -235,7 +235,7 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 	vec3_t angles, forward, dest;
 	float dist;
 
-	if(!ps->stats[STAT_CHASE]){  // chasecam uses client side 3rd person
+	if(!ps->stats[STAT_CHASE]){  // chasing uses client side 3rd person
 
 		// if we're spectating, don't translate the origin because we have
 		// no visible player model to begin with
@@ -246,7 +246,7 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 			return;
 	}
 
-	dist = fabs(80.0 * cl_thirdperson->value);
+	dist = fabs(100.0 * cl_thirdperson->value);
 
 	VectorCopy(r_view.angles, angles);
 
@@ -271,6 +271,7 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 	VectorCopy(r_view.trace.endpos, r_view.origin);
 }
 
+
 /*
  * Cl_UpdateBob
  *
@@ -290,13 +291,13 @@ static void Cl_UpdateBob(void){
 		return;
 
 	if(!cl.frame.playerstate.stats[STAT_HEALTH])
-			return;  // deadz0r
+			return;  // dead
 
 	if(cl.frame.playerstate.stats[STAT_SPECTATOR])
 		return;  // spectating
 
 	if(cl.frame.playerstate.stats[STAT_CHASE])
-		return;  // chasecam
+		return;  // chasing
 
 	VectorCopy(r_view.velocity, velocity);
 	velocity[2] = 0.0;
@@ -357,7 +358,7 @@ void Cl_UpdateView(void){
 
 	if(ps != ops){  // see if we've teleported
 		VectorSubtract(ps->pmove.origin, ops->pmove.origin, delta);
-		if(VectorLength(delta) > 256 * 8.0)
+		if(VectorLength(delta) > 256.0 * 8.0)
 			ops = ps;  // don't lerp
 	}
 
@@ -381,7 +382,7 @@ void Cl_UpdateView(void){
 	// inform the renderer if the client is on the ground
 	r_view.ground = ps->pmove.pm_flags & PMF_ON_GROUND;
 
-	// set areabits to mark visible leafs
+	// set area bits to mark visible leafs
 	r_view.areabits = cl.frame.areabits;
 
 	// tell the bsp thread to start

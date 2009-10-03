@@ -61,7 +61,7 @@ static const vec3_t lightning_det_light = {
 	0.6, 0.6, 1.0
 };
 static const vec3_t bfg_hit_light = {
-	0.5, 1.0, 0.5
+	0.8, 1.0, 0.5
 };
 
 /*
