@@ -75,8 +75,6 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 
 	if(i < 0)
 		i = 0;
-	if(i > 4)
-		i = 4;
 
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, i ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, i);
