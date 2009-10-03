@@ -29,29 +29,30 @@ static const vec3_t baseaxis[18] = {
 	  {0, 0, 1}
 	, {1, 0, 0}
 	, {0, -1, 0}
-	,									  // floor
+	,					// floor
 	  {0, 0, -1}
 	, {1, 0, 0}
 	, {0, -1, 0}
-	,									  // ceiling
+	,					// ceiling
 	  {1, 0, 0}
 	, {0, 1, 0}
 	, {0, 0, -1}
-	,									  // west wall
+	,					// west wall
 	  {-1, 0, 0}
 	, {0, 1, 0}
 	, {0, 0, -1}
-	,									  // east wall
+	,					// east wall
 	  {0, 1, 0}
 	, {1, 0, 0}
 	, {0, 0, -1}
-	,									  // south wall
+	,					// south wall
 	  {0, -1, 0}
 	, {1, 0, 0}
-	, {0, 0, -1}					  // north wall
+	, {0, 0, -1}
+	,					// north wall
 };
 
-static void TextureAxisFromPlane(plane_t * pln, vec3_t xv, vec3_t yv){
+static void TextureAxisFromPlane(plane_t *pln, vec3_t xv, vec3_t yv){
 	int bestaxis;
 	vec_t dot, best;
 	int i;
@@ -96,25 +97,25 @@ int TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, vec3_t origin){
 	shift[1] = DotProduct(origin, vecs[1]);
 
 	if(!bt->scale[0])
-		bt->scale[0] = 1;
+		bt->scale[0] = 1.0;
 	if(!bt->scale[1])
-		bt->scale[1] = 1;
+		bt->scale[1] = 1.0;
 
 	// rotate axis
-	if(bt->rotate == 0){
-		sinv = 0;
-		cosv = 1;
-	} else if(bt->rotate == 90){
-		sinv = 1;
-		cosv = 0;
-	} else if(bt->rotate == 180){
-		sinv = 0;
-		cosv = -1;
-	} else if(bt->rotate == 270){
-		sinv = -1;
-		cosv = 0;
+	if(bt->rotate == 0.0){
+		sinv = 0.0;
+		cosv = 1.0;
+	} else if(bt->rotate == 90.0){
+		sinv = 1.0;
+		cosv = 0.0;
+	} else if(bt->rotate == 180.0){
+		sinv = 0.0;
+		cosv = -1.0;
+	} else if(bt->rotate == 270.0){
+		sinv = -1.0;
+		cosv = 0.0;
 	} else {
-		ang = bt->rotate / 180 * M_PI;
+		ang = bt->rotate / 180.0 * M_PI;
 		sinv = sin(ang);
 		cosv = cos(ang);
 	}

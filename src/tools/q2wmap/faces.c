@@ -73,6 +73,10 @@ typedef struct hashvert_s {
 static int vertexchain[MAX_BSP_VERTS]; // the next vertex in a hash chain
 static int hashverts[HASH_SIZE * HASH_SIZE];	// a vertex number, or 0 for no verts
 
+
+/*
+ * HashVec
+ */
 static unsigned HashVec(const vec3_t vec){
 	const int x = (4096 + (int)(vec[0] + 0.5)) >> 7;
 	const int y = (4096 + (int)(vec[1] + 0.5)) >> 7;
@@ -397,6 +401,7 @@ static void FixFaceEdges(node_t *node, face_t *f){
 	FaceFromSuperverts(node, f, base);
 }
 
+
 /*
  * FixEdges_r
  */
@@ -413,6 +418,7 @@ static void FixEdges_r(node_t *node){
 	for(i = 0; i < 2; i++)
 		FixEdges_r(node->children[i]);
 }
+
 
 /*
  * FixTjuncs
@@ -442,11 +448,11 @@ void FixTjuncs(node_t *headnode){
 	Verbose("%5i bad start verts\n", c_badstartverts);
 }
 
+
 /*
- * GetEdge
+ * GetEdge2
  *
- * Called by writebsp.
- * Don't allow four way edges
+ * Called by writebsp.  Don't allow four way edges
  */
 int GetEdge2(int v1, int v2, face_t * f){
 	dedge_t *edge;
@@ -478,11 +484,13 @@ int GetEdge2(int v1, int v2, face_t * f){
 	return numedges - 1;
 }
 
+
 /*
  *
  * FACE MERGING
  *
  */
+
 
 #define	CONTINUOUS_EPSILON	0.001
 
@@ -578,6 +586,7 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2, const vec3_t p
 	return newf;
 }
 
+
 /*
  * TryMerge
  *
@@ -614,6 +623,7 @@ static face_t *TryMerge(face_t * f1, face_t * f2, const vec3_t planenormal){
 
 	return newf;
 }
+
 
 /*
  * MergeNodeFaces
@@ -716,6 +726,10 @@ static void SubdivideFace(node_t * node, face_t * f){
 	}
 }
 
+
+/*
+ * SubdivideNodeFaces
+ */
 static void SubdivideNodeFaces(node_t * node){
 	face_t *f;
 

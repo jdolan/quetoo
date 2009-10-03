@@ -759,7 +759,7 @@ void BuildFacelights(int facenum){
 	float *center;
 	float *sdir, *tdir, scale;
 	vec3_t pos;
-	vec3_t normal, binormal;
+	vec3_t normal, bitangent;
 	vec4_t tangent;
 	lightinfo_t l[MAX_SAMPLES];
 	facelight_t *fl;
@@ -857,10 +857,10 @@ void BuildFacelights(int facenum){
 				VectorNormalize(direction);
 
 				// transform it into tangent space
-				TangentVectors(normal, sdir, tdir, tangent, binormal);
+				TangentVectors(normal, sdir, tdir, tangent, bitangent);
 
 				dir[0] = DotProduct(direction, tangent);
-				dir[1] = DotProduct(direction, binormal);
+				dir[1] = DotProduct(direction, bitangent);
 				dir[2] = DotProduct(direction, normal);
 
 				VectorCopy(dir, direction);
