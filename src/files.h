@@ -43,8 +43,8 @@ typedef struct {
 } dmd2triangle_t;
 
 typedef struct {
-	byte v[3];  // scaled byte to fit in frame mins/maxs
-	byte n;  // index in bytedirs, see anorms.h
+	byte v[3];  // vertex scaled to fit in frame mins/maxs
+	byte n;  // normal index into anorms.h
 } dmd2vertex_t;
 
 typedef struct {
