@@ -395,7 +395,7 @@ static qboolean R_LightPointColor_(const int firstsurface, const int numsurfaces
  *
  * Clamps and scales the newly resolved sample color into an acceptable range.
  */
-static void R_LightPointClamp(static_lighting_t *lighting){
+static void R_LightPointClamp(vec3_t colors){
 	qboolean clamped;
 	float f;
 	int i;
@@ -403,15 +403,15 @@ static void R_LightPointClamp(static_lighting_t *lighting){
 	clamped = false;
 
 	for(i = 0; i < 3; i++){  // clamp it
-		if(lighting->colors[0][i] < STATIC_LIGHTING_MIN_COMPONENT){
-			lighting->colors[0][i] = STATIC_LIGHTING_MIN_COMPONENT;
+		if(colors[i] < STATIC_LIGHTING_MIN_COMPONENT){
+			colors[i] = STATIC_LIGHTING_MIN_COMPONENT;
 			clamped = true;
 		}
 	}
 
 	// scale it into acceptable range
-	while(VectorSum(lighting->colors[0]) < STATIC_LIGHTING_MIN_SUM){
-		VectorScale(lighting->colors[0], 1.25, lighting->colors[0]);
+	while(VectorSum(colors) < STATIC_LIGHTING_MIN_SUM){
+		VectorScale(colors, 1.25, colors);
 		clamped = true;
 	}
 
@@ -419,10 +419,10 @@ static void R_LightPointClamp(static_lighting_t *lighting){
 		return;
 
 	// pale it out some to minimize scaling artifacts
-	f = VectorSum(lighting->colors[0]) / 3.0;
+	f = VectorSum(colors) / 3.0;
 
 	for(i = 0; i < 3; i++)
-		lighting->colors[0][i] = (lighting->colors[0][i] + f) / 2.0;
+		colors[i] = (colors[i] + f) / 2.0;
 }
 
 
@@ -430,48 +430,82 @@ static void R_LightPointClamp(static_lighting_t *lighting){
  * R_LightPointColor
  *
  * Resolve the lighting color at the point of impact from the downward trace.
- * If the trace did not intersect a surface, use the level's ambient color.
+ * Do additional traces in different directions to improve lighting.
+ * If the traces don't intersect any surfaces, leave the color as is.
  */
-static void R_LightPointColor(static_lighting_t *lighting){
+static void R_LightPointColor(static_lighting_t *lighting)
+{
+	int i;
+	vec3_t end;
+	vec3_t point_colors;
+	qboolean first_run = true;
 
 	// shuffle the samples
 	VectorCopy(lighting->colors[0], lighting->colors[1]);
 
-	if(r_view.trace.leafnum){  // hit something
+	for(i = 4; i >= 0; i--)
+	{
+		if(!first_run)
+		{
+			// perform traces in multiple directions
+			VectorCopy(lighting->origin, end);
+			end[i/2] += 256 * (1 - 2 * (i % 2));
+			end[2] -= 96;
+			R_Trace(lighting->origin, end, 0.0, MASK_SOLID);
+		}
 
-		VectorSet(lighting->colors[0], 1.0, 1.0, 1.0);
+		if(r_view.trace.leafnum)
+		{
+			// hit something
+			if(r_worldmodel->lightdata)
+			{
+				// resolve the lighting sample
+				if(r_view.trace_ent)
+				{
+					// clip to all surfaces of the bsp entity
+					VectorSubtract(r_view.trace.endpos, r_view.trace_ent->origin, r_view.trace.endpos);
+					if(!R_LightPointColor_(r_view.trace_ent->model->firstmodelsurface,
+						r_view.trace_ent->model->nummodelsurfaces, r_view.trace.endpos, point_colors))
+					{
+						// nothing was written to point_colors
+						continue;
+					}
+				}
+				else
+				{
+					// general case is to recurse up the nodes
+					mleaf_t *leaf = &r_worldmodel->leafs[r_view.trace.leafnum];
+					mnode_t *node = leaf->parent;
 
-		if(r_worldmodel->lightdata){  // resolve the lighting sample
+					while(node)
+					{
+						if(R_LightPointColor_(node->firstsurface, node->numsurfaces,
+							r_view.trace.endpos, point_colors))
+						{
+							break;
+						}
+						node = node->parent;
+					}
+					if(!node)
+					{
+						// nothing was written to point_colors
+						continue;
+					}
+				}
+				R_LightPointClamp(point_colors);
 
-			if(r_view.trace_ent){  // clip to all surfaces of the bsp entity
-
-				VectorSubtract(r_view.trace.endpos,
-						r_view.trace_ent->origin, r_view.trace.endpos);
-
-				R_LightPointColor_(r_view.trace_ent->model->firstmodelsurface,
-						r_view.trace_ent->model->nummodelsurfaces,
-						r_view.trace.endpos, lighting->colors[0]);
-			}
-			else {  // general case is to recurse up the nodes
-				mleaf_t *leaf = &r_worldmodel->leafs[r_view.trace.leafnum];
-				mnode_t *node = leaf->parent;
-
-				while(node){
-
-					if(R_LightPointColor_(node->firstsurface, node->numsurfaces,
-								r_view.trace.endpos, lighting->colors[0]))
-						break;
-
-					node = node->parent;
+				if(VectorSum(point_colors) > VectorSum(lighting->colors[0]) || first_run)
+				{
+					// mix new color in if it's lighter
+					float mix = 1.0;
+					if(!first_run)
+						mix -= r_view.trace.fraction;
+					VectorMix(lighting->colors[0], point_colors, mix, lighting->colors[0]);
+					first_run = false;
 				}
 			}
 		}
 	}
-	else {  // use the level's ambient lighting
-		VectorCopy(r_view.ambient_light, lighting->colors[0]);
-	}
-
-	R_LightPointClamp(lighting);
 }
 
 
