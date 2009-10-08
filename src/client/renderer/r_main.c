@@ -495,10 +495,8 @@ void R_LoadMedia(void){
 		else
 			cl.model_clip[i] = NULL;
 
-		if(++j == 20)  // nudge loading progress
-			j = 20;
-
-		Cl_LoadProgress(50 + j);
+		if(++j <= 20)  // nudge loading progress
+			Cl_LoadProgress(50 + j);
 	}
 	Cl_LoadProgress(70);
 
@@ -507,6 +505,7 @@ void R_LoadMedia(void){
 
 	for(i = 1; i < MAX_IMAGES && cl.configstrings[CS_IMAGES + i][0]; i++)
 		cl.image_precache[i] = R_LoadPic(cl.configstrings[CS_IMAGES + i]);
+
 	Cl_LoadProgress(75);
 
 	Cl_LoadClientinfo(&cl.baseclientinfo, "newbie\\ichabod/ichabod");
@@ -521,10 +520,8 @@ void R_LoadMedia(void){
 
 		Cl_ParseClientinfo(i);
 
-		if(++j == 10)
-			j = 10;
-
-		Cl_LoadProgress(75 + j);
+		if(++j < 10)
+			Cl_LoadProgress(75 + j);
 	}
 	Cl_LoadProgress(85);
 
@@ -654,7 +651,7 @@ static void R_InitLocal(void){
 	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE, NULL);
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE, NULL);
 	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
-	r_hunkmegs = Cvar_Get("r_hunkmegs", "96", CVAR_R_CONTEXT, "Memory size for the renderer hunk in megabytes");
+	r_hunkmegs = Cvar_Get("r_hunkmegs", "128", CVAR_R_CONTEXT, "Memory size for the renderer hunk in megabytes");
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_lightmapsize = Cvar_Get("r_lightmapsize", "1024", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_lighting = Cvar_Get("r_lighting", "1", CVAR_ARCHIVE, "Activate or deactivate lighting effects");
