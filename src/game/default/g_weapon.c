@@ -359,7 +359,8 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	VectorScale(aimdir, speed, grenade->velocity);
 	VectorMA(grenade->velocity, 200.0 + crandom() * 10.0, up, grenade->velocity);
 	VectorMA(grenade->velocity, crandom() * 10.0, right, grenade->velocity);
-	VectorSet(grenade->avelocity, 300.0, 300.0, 300.0);
+	VectorSet(grenade->avelocity, crand(), crand(), crand());
+	VectorScale(grenade->avelocity, 600.0, grenade->avelocity);
 	grenade->movetype = MOVETYPE_BOUNCE;
 	grenade->clipmask = MASK_SHOT;
 	grenade->solid = SOLID_MISSILE;
@@ -425,39 +426,6 @@ static void G_RocketTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurfac
 	G_FreeEdict(ent);
 }
 
-static void G_RocketThink(edict_t *self){
-	vec3_t target;
-	vec3_t move;
-	float dist, f;
-
-	VectorSubtract(self->dest, self->s.origin, target);
-	dist = VectorNormalize(target);
-
-	if(dist < 64.0){  // if close, switch to standard projectile code
-
-		self->movetype = MOVETYPE_FLYMISSILE;
-
-		self->nextthink = level.time + 8.0;
-		self->think = G_FreeEdict;
-	}
-	else {
-		// otherwise, factor in parabolic acceleration
-		VectorScale(target, 1200.0, target);
-
-		f = powf(0.88, 1.0 / gi.serverframe);
-		VectorScale(target, f, target);
-
-		VectorScale(self->velocity, 1.0 - f, self->velocity);
-		VectorAdd(self->velocity, target, self->velocity);
-
-		self->nextthink = level.time + gi.serverframe;
-		self->think = G_RocketThink;
-	}
-
-	VectorScale(self->velocity, gi.serverframe, move);
-	G_PushEntity(self, move);
-}
-
 void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 		int damage, int knockback, float damage_radius){
 	edict_t *rocket;
@@ -474,15 +442,15 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	VectorCopy(dir, rocket->movedir);
 	VectorAngles(dir, rocket->s.angles);
 	VectorScale(dir, speed, rocket->velocity);
-	rocket->movetype = MOVETYPE_THINK;
+	rocket->movetype = MOVETYPE_FLYMISSILE;
 	rocket->clipmask = MASK_SHOT;
 	rocket->solid = SOLID_MISSILE;
 	rocket->s.effects = EF_ROCKET;
 	rocket->s.modelindex = rocket_index;
 	rocket->owner = self;
 	rocket->touch = G_RocketTouch;
-	rocket->nextthink = level.time + gi.serverframe;
-	rocket->think = G_RocketThink;
+	rocket->nextthink = level.time + 8.0;
+	rocket->think = G_FreeEdict;
 	rocket->dmg = damage;
 	rocket->knockback = knockback;
 	rocket->dmg_radius = damage_radius;

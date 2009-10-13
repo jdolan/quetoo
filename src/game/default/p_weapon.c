@@ -427,7 +427,7 @@ static void P_FireRocketLauncher_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireRocketLauncher(ent, start, forward, 500, 100, 100, 165.0);
+	G_FireRocketLauncher(ent, start, forward, 1000, 100, 100, 165.0);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzleflash);
@@ -477,7 +477,7 @@ static void P_FireLightning_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireLightning(ent, start, forward, 10, 12);
+	G_FireLightning(ent, start, forward, 12, 12);
 
 	// if the client has just begun to attack, send the muzzle flash
 	if(ent->s.frame == FRAME_attack1 || ent->s.frame == FRAME_crattak1){

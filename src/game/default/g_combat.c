@@ -244,8 +244,7 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	if(knockback && (targ->movetype != MOVETYPE_NONE) &&
 		(targ->movetype != MOVETYPE_BOUNCE) &&
 		(targ->movetype != MOVETYPE_PUSH) &&
-		(targ->movetype != MOVETYPE_STOP) &&
-		(targ->movetype != MOVETYPE_THINK)){
+		(targ->movetype != MOVETYPE_STOP)){
 
 		vec3_t kvel;
 		float mass;

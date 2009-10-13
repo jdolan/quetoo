@@ -916,7 +916,7 @@ void Sv_Init(void){
 		sv_maxclients = Cvar_Get("sv_maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH, NULL);
 
 	sv_maxrate = Cvar_Get("sv_maxrate", "32000", 0, NULL);
-	sv_packetrate = Cvar_Get("sv_packetrate", "20", CVAR_SERVERINFO | CVAR_LATCH, NULL);
+	sv_packetrate = Cvar_Get("sv_packetrate", "60", CVAR_SERVERINFO | CVAR_LATCH, NULL);
 	sv_timeout = Cvar_Get("sv_timeout", "30.0", 0, NULL);
 	sv_udpdownload = Cvar_Get("sv_udpdownload", "1", CVAR_ARCHIVE, NULL);
 
