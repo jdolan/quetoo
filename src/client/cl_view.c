@@ -246,7 +246,7 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 			return;
 	}
 
-	dist = fabs(100.0 * cl_thirdperson->value);
+	// we're either chasing, or intentionally using 3rd person
 
 	VectorCopy(r_view.angles, angles);
 
@@ -254,6 +254,13 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 		angles[1] += 90.0;
 
 	AngleVectors(angles, forward, NULL, NULL);
+
+	dist = cl_thirdperson->value;
+
+	if(!dist)
+		dist = 1.0;
+
+	dist = fabs(100.0 * dist);
 
 	// project the view origin back and up for 3rd person
 	VectorMA(r_view.origin, -dist, forward, dest);
