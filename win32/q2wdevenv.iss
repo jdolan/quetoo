@@ -2,55 +2,41 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
+; NOTE: The value of AppId uniquely identifies this application.
+; Do not use the same AppId value in installers for other applications.
+; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
+AppId={{A628434E-E5C6-43DB-AD7E-E5F74F8C62F5}
 AppName=Quake2World Development Environment
-AppVerName=Quake2World Development Environment 1.0.1
+AppVerName=Quake2World Development Environment 1.2
 AppPublisher=Marcel Wysocki
-AppPublisherURL=http://www.quake2world.net
-AppSupportURL=http://www.quake2world.net
-AppUpdatesURL=http://www.quake2world.net
-DefaultDirName=c:\q2wdevenv
-DefaultGroupName=Quake2World Development Enviroment
+AppPublisherURL=http://www.satgnu.net
+AppSupportURL=http://www.satgnu.net
+AppUpdatesURL=http://www.satgnu.net
+DefaultDirName=C:/q2wdevenv
+DefaultGroupName=Quake2World Development Environment
 AllowNoIcons=yes
-LicenseFile=C:\Dokumente und Einstellungen\maci\Desktop\LICENSE
-OutputBaseFilename=setup
+LicenseFile=C:\Dokumente und Einstellungen\Administrator\Desktop\LICENSE
+OutputBaseFilename=q2wdevenv_1.2
 Compression=lzma
 SolidCompression=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "basque"; MessagesFile: "compiler:Languages\Basque.isl"
-Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
-Name: "catalan"; MessagesFile: "compiler:Languages\Catalan.isl"
-Name: "czech"; MessagesFile: "compiler:Languages\Czech.isl"
-Name: "danish"; MessagesFile: "compiler:Languages\Danish.isl"
-Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
-Name: "finnish"; MessagesFile: "compiler:Languages\Finnish.isl"
-Name: "french"; MessagesFile: "compiler:Languages\French.isl"
-Name: "german"; MessagesFile: "compiler:Languages\German.isl"
-Name: "hebrew"; MessagesFile: "compiler:Languages\Hebrew.isl"
-Name: "hungarian"; MessagesFile: "compiler:Languages\Hungarian.isl"
-Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"
-Name: "norwegian"; MessagesFile: "compiler:Languages\Norwegian.isl"
-Name: "polish"; MessagesFile: "compiler:Languages\Polish.isl"
-Name: "portuguese"; MessagesFile: "compiler:Languages\Portuguese.isl"
-Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
-Name: "slovak"; MessagesFile: "compiler:Languages\Slovak.isl"
-Name: "slovenian"; MessagesFile: "compiler:Languages\Slovenian.isl"
-Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
 Source: "C:\q2wdevenv\msys.bat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\q2wdevenv\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{group}\Quake2World Development Environment"; Filename: "{app}\msys.bat"
-Name: "{group}\{cm:ProgramOnTheWeb,Quake2World Development Environment}"; Filename: "http://www.quake2world.net"
+Name: "{group}\{cm:ProgramOnTheWeb,Quake2World Development Environment}"; Filename: "http://www.satgnu.net"
 Name: "{group}\{cm:UninstallProgram,Quake2World Development Environment}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\Quake2World Development Environment"; Filename: "{app}\msys.bat"; Tasks: desktopicon
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Quake2World Development Environment"; Filename: "{app}\msys.bat"; Tasks: quicklaunchicon
 
 [Run]
 Filename: "{app}\msys.bat"; Description: "{cm:LaunchProgram,Quake2World Development Environment}"; Flags: shellexec postinstall skipifsilent
