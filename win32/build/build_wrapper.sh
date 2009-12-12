@@ -34,7 +34,7 @@ while true; do
 		if [ $? != "0" ];then
 
 			echo "Build error"
-			bmail -s 10.0.2.2 -t maci@satgnu.net -f build@satgnu.net -a "Build Failed" -m build.log
+			bmail -s 10.0.2.2 -t maci@satgnu.net -f build@satgnu.net -a "Build Failed" -m _build.log
 
 		fi
 
