@@ -18,26 +18,30 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #############################################################################
 
+function BUILD
+{
+	rm -f _build.log
+	sh _build_win32.sh > _build.log 2>&1
+
+	if [ $? != "0" ];then
+
+		echo "Build error"
+		mailsend.exe -d satgnu.net -smtp 10.0.2.2 -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@satgnu.net -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
+	else
+		rm _build.log
+	fi
+}
+
 while true; do
 
 	CURREV=`svn info quake2world|grep Revision:|cut -d\  -f2`
 	NEWREV=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 3|cut -d\. -f1`
 
-	if [ $CURREV == $NEWREV ];then
-		time=`date`
-			echo $time - "Nothing changed"
-		else
-
-		rm -f _build.log
-		sh _build_win32.sh > _build.log 2>&1
-
-		if [ $? != "0" ];then
-
-			echo "Build error"
-			mailsend.exe -d satgnu.net -smtp 10.0.2.2 -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@satgnu.net -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
-			
-		fi
-
+	if [ $CURREV != $NEWREV -o -e _build.log ];then
+		echo "Building"
+		BUILD
+	else
+		echo "Nothing has changed and no previsouly failed build."
 	fi
 
 	sleep 3h
