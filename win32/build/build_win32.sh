@@ -53,8 +53,8 @@ cp `find /mingw | grep .dll | grep zlib` .
 
 cp $START/quake2world/src/tools/pak/pak.exe .
 cp $START/quake2world/src/tools/q2wmap/q2wmap.exe .
-cp quake2world/src/game/default/game.dll ./default
-cp quake2world/src/quake2world.exe .
+cp $START/quake2world/src/game/default/game.dll ./default
+cp $START/quake2world/src/quake2world.exe .
 cd $START/dist
 $START/7za a -tzip -mx=9 ../quake2world_rev"$rev"zip quake2world
 
