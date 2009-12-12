@@ -43,7 +43,7 @@ wget -c http://www.libsdl.org/extras/win32/common/directx-devel.tar.gz
 wget -c http://downloads.sourceforge.net/project/tdm-gcc/TDM-GCC%204.4%20series/4.4.1-tdm-2%20SJLJ/gcc-4.4.1-tdm-2-core.tar.gz
 wget -c http://downloads.sourceforge.net/project/tdm-gcc/TDM-GCC%204.4%20series/4.4.1-tdm-2%20SJLJ/gcc-4.4.1-tdm-2-g%2B%2B.tar.gz
 
-wget -c http://downloads.sourceforge.net/project/mingw/MSYS%20crypt/crypt-1.1_1-2/libcrypt-1.1_1-2-msys-1.0.11-dll-0.tar.lzma?use_mirror
+wget -c http://downloads.sourceforge.net/project/mingw/MSYS%20crypt/crypt-1.1_1-2/libcrypt-1.1_1-2-msys-1.0.11-dll-0.tar.lzma
 wget -c http://downloads.sourceforge.net/project/mingw/MSYS%20perl/perl-5.6.1_2-1/perl-5.6.1_2-1-msys-1.0.11-bin.tar.lzma
 wget -c http://downloads.sourceforge.net/project/mingw/MSYS%20autoconf/autoconf-2.63-1/autoconf-2.63-1-msys-1.0.11-bin.tar.lzma
 wget -c http://downloads.sourceforge.net/project/mingw/MSYS%20automake/automake-1.11-1/automake-1.11-1-msys-1.0.11-bin.tar.lzma
