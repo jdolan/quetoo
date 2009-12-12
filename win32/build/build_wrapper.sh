@@ -33,15 +33,15 @@ function BUILD
 }
 
 while true; do
-
 	CURREV=`svn info quake2world|grep Revision:|cut -d\  -f2`
 	NEWREV=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 3|cut -d\. -f1`
 
 	if [ $CURREV != $NEWREV -o -e _build.log ];then
-		echo "Building"
+		echo "Building" - `date`
 		BUILD
+		echo "Building done" - `date`
 	else
-		echo "Nothing has changed and no previsouly failed build."
+		echo "Nothing has changed and no previsouly failed build." - `date`
 	fi
 
 	sleep 3h
