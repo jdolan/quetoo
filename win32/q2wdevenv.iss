@@ -5,14 +5,14 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{A628434E-E5C6-43DB-AD7E-E5F74F8C62F5}
+AppId={{4464AC50-E719-4DB4-8C60-A3B628AAA71E}
 AppName=Quake2World Development Environment
-AppVerName=Quake2World Development Environment 1.2
+AppVerName=Quake2World Development Environment 1.2.1
 AppPublisher=Marcel Wysocki
 AppPublisherURL=http://www.satgnu.net
 AppSupportURL=http://www.satgnu.net
 AppUpdatesURL=http://www.satgnu.net
-DefaultDirName=C:/q2wdevenv
+DefaultDirName=C:\q2wdevenv
 DefaultGroupName=Quake2World Development Environment
 AllowNoIcons=yes
 LicenseFile=C:\Dokumente und Einstellungen\Administrator\Desktop\LICENSE
@@ -29,6 +29,7 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 
 [Files]
 Source: "C:\q2wdevenv\msys.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\q2wdevenv\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
