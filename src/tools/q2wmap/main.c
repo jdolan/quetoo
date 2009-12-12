@@ -75,7 +75,7 @@ static int input_index_h, input_index_v;		//pdcurses print location
 static char title[64];							//window bar title (updates to show status)
 
 #ifdef HAVE_CURSES
-#include <ncurses.h>
+#include <curses.h>
 
 
 /*
