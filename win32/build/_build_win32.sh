@@ -29,8 +29,9 @@ echo checked out $rev
 
 cd $START/quake2world
 autoreconf -i --force
-./configure
+./configure --prefix=/tmp/quake2world
 make
+make install
 cd src/game/default
 gcc -shared -o game.dll *.o ../../.libs/libshared.a
 
@@ -51,10 +52,11 @@ cp `find /mingw | grep -v .dll.a | grep SDL_image.dll` .
 cp `find /mingw | grep -v .dll.a | grep SDL_mixer.dll` .
 cp `find /mingw | grep .dll | grep zlib` .
 
-cp $START/quake2world/src/tools/pak/.libs/pak.exe .
-cp $START/quake2world/src/tools/q2wmap/.libs/q2wmap.exe .
+cp /tmp/quake2world/bin/pak.exe .
+cp /tmp/quake2world/bin/q2wmap.exe .
+cp /tmp/quake2world/bin/quake2world.exe .
+rm -Rf /tmp/quake2world
 cp $START/quake2world/src/game/default/game.dll ./default
-cp $START/quake2world/src/.libs/quake2world.exe .
 cd $START/dist
 $START/7za a -tzip -mx=9 ../quake2world_rev"$rev"zip quake2world
 
