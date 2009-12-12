@@ -18,20 +18,26 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #############################################################################
 
-#exit on error
-set -e
-set -o errexit
-
 while true; do
 
 	CURREV=`svn info quake2world|grep Revision:|cut -d\  -f2`
 	NEWREV=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 3|cut -d\. -f1`
 
 	if [ $CURREV == $NEWREV ];then
-	time=`date`
-	echo $time - "Nothing changed"
-	else
-	sh build_win32.sh
+		time=`date`
+		echo $time - "Nothing changed"
+		else
+
+		rm -f build.log
+		sh _build_win32.sh > build.log 2>&1
+
+		if [ $? != "0" ];then
+
+			echo "Build error"
+			bmail -s 10.0.2.2 -t maci@satgnu.net -f build@satgnu.net -a "Build Failed" -m build.log
+
+		fi
+
 	fi
 
 	sleep 3h
