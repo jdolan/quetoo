@@ -1,5 +1,5 @@
 @echo off
-echo This program will update Quake2World.
+echo This program will update the Quake2World data files.
 echo Please be patient, this may take a while.
 rsync.exe -rz --progress --exclude=rsync.exe --exclude=cygwin1.dll rsync://jdolan.dyndns.org/quake2world-win32 .
 rsync.exe --delete -rz --progress rsync://jdolan.dyndns.org/quake2world temp
