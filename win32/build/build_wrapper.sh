@@ -25,11 +25,11 @@ while true; do
 
 	if [ $CURREV == $NEWREV ];then
 		time=`date`
-		echo $time - "Nothing changed"
+			echo $time - "Nothing changed"
 		else
 
-		rm -f build.log
-		sh _build_win32.sh > build.log 2>&1
+		rm -f _build.log
+		sh _build_win32.sh > _build.log 2>&1
 
 		if [ $? != "0" ];then
 
