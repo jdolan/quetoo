@@ -695,8 +695,7 @@ void Cl_UpdateScreen(void){
 
 		Cl_DrawStats();
 
-		if(cl.frame.playerstate.stats[STAT_LAYOUTS] & 1)
-			Cl_DrawLayout();
+		Cl_DrawLayout();
 
 		Cl_CheckDrawCenterString();
 

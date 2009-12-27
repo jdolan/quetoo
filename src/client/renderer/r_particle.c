@@ -173,6 +173,7 @@ static void R_ParticleColor(particle_t *p, GLfloat *out){
 
 	*(int *)color = palette[p->color];
 	color[3] = p->curalpha * 255.0;
+	j = 0;
 
 	for(i = 0; i < 4; i++){  // duplicate color data to all 4 verts
 		out[j + 0] = color[0] / 255.0;

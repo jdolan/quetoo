@@ -254,8 +254,6 @@ void R_DrawFrame(void){
 	if(r_threads->value){
 		while(r_threadstate.state != THREAD_RENDERER)
 			usleep(0);
-
-		r_threadstate.state = THREAD_CLIENT;
 	}
 	else {
 		R_UpdateFrustum();
@@ -308,6 +306,8 @@ void R_DrawFrame(void){
 	R_EnableBlend(false);
 
 	R_ResetArrayState();
+
+	r_threadstate.state = THREAD_CLIENT;
 }
 
 
