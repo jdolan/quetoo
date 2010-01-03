@@ -571,7 +571,7 @@ void Cl_HandleEvents(void){
 	int mx, my;
 	const int cx = r_state.width / 2;
 	const int cy = r_state.height / 2;
-	static int m_active_wait_counter = 0;
+	static int dirty_mouse_values = 0;
 	SDL_Event event;
 
 	if(!SDL_WasInit(SDL_INIT_VIDEO))
@@ -586,33 +586,17 @@ void Cl_HandleEvents(void){
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
 
 			if(!r_state.fullscreen)
-				SDL_ShowCursor(true);
+				SDL_ShowCursor(SDL_ENABLE);
 
 			mouse_active = false;
 		}
 	} else {
 		if(!mouse_active){  // or take it back
-			/*
-			An SDL bug makes GetMouseState return crappy numbers
-			for a couple cycles. To prevent these numbers from
-			jerking the view angles around, wait a few cycles
-			before reactivating the mouse.
-			http://bugzilla.libsdl.org/show_bug.cgi?id=341
-			*/
-			switch(m_active_wait_counter){
-				case 0:
-					SDL_ShowCursor(false);
-					SDL_WM_GrabInput(SDL_GRAB_ON);
-				case 1:
-				case 2:
-					SDL_WarpMouse(cx, cy);
-					m_active_wait_counter++;
-					break;
-				default:
-					mouse_active = true;
-					m_active_wait_counter = 0;
-					break;
-			}
+			SDL_ShowCursor(SDL_DISABLE);
+			SDL_WM_GrabInput(SDL_GRAB_ON);
+			SDL_WarpMouse(cx, cy);
+			mouse_active = true;
+			dirty_mouse_values = 1;
 		}
 	}
 
@@ -632,7 +616,12 @@ void Cl_HandleEvents(void){
 		}
 
 		if(mx || my){  // mouse has moved
-			Cl_MouseMove(mx, my);
+			if(dirty_mouse_values)
+				// ignore crappy values returned by SDL after an invisible grab
+				// http://bugzilla.libsdl.org/show_bug.cgi?id=341
+				dirty_mouse_values--;
+			else
+				Cl_MouseMove(mx, my);
 			SDL_WarpMouse(cx, cy);
 		}
 
@@ -652,7 +641,7 @@ static void Cl_ClampPitch(void){
 	float pitch;
 
 	// add frame's delta angles to our local input movement
-	// wraping where appropriate
+	// wrapping where appropriate
 	pitch = SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
 
 	if(pitch > 180)
