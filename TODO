@@ -1,0 +1,18 @@
+Fix R_ModelViewTransform; it's fucked.
+
+Toggling fullscreen loses fov
+
+Ctf scoring for assits, defense, etc.
+
+Shell effect via world.cfg
+
+Sound for telefrag
+
+Kill off dmflags, use cvars instead
+
+Sound func_plat plat_mid.wav not heard?
+
+Add configurable attack to dynamic lights for misc_emit etc..
+
+Use actual math for ducking smoke flash shift instead of hard-coded hack.
+
