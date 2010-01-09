@@ -628,7 +628,7 @@ static void R_LoadBspVertexArrays(void){
 	float soff, toff, s, t;
 	float *point, *normal, *sdir, *tdir;
 	vec4_t tangent;
-	vec3_t binormal;
+	vec3_t bitangent;
 	msurface_t *surf;
 	medge_t *edge;
 	mvertex_t *vert;
@@ -701,13 +701,8 @@ static void R_LoadBspVertexArrays(void){
 			memcpy(&r_loadmodel->normals[vertind], normal, sizeof(vec3_t));
 
 			// tangent vector
-			TangentVectors(normal, sdir, tdir, tangent, binormal);
+			TangentVectors(normal, sdir, tdir, tangent, bitangent);
 			memcpy(&r_loadmodel->tangents[tangind], tangent, sizeof(vec4_t));
-
-			/*printf("%1.3f %1.3f %1.3f\n%1.3f %1.3f %1.3f\n%1.3f %1.3f %1.3f\n---\n",
-					tangent[0], binormal[0], normal[0],
-					tangent[1], binormal[1], normal[1],
-					tangent[2], binormal[2], normal[2]);*/
 
 			// accumulate colors
 			R_AddBspVertexColor(vert, surf);
@@ -991,7 +986,7 @@ static void R_AddBspLight(vec3_t org, float radius){
 
 		VectorSubtract(org, l->org, delta);
 
-		if(VectorLength(delta) <= 48.0)  // merge them
+		if(VectorLength(delta) <= 32.0)  // merge them
 			break;
 	}
 
@@ -1033,6 +1028,24 @@ static void R_LoadBspLights(void){
 	msurface_t *surf;
 	int i;
 
+	// iterate the world surfaces for surface lights
+	surf = r_loadmodel->surfaces;
+
+	VectorClear(org);
+	radius = 0.0;
+
+	for(i = 0; i < r_loadmodel->numsurfaces; i++, surf++){
+
+		if((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value){
+			VectorMA(surf->center, 1.0, surf->normal, org);
+
+			VectorSubtract(surf->maxs, surf->mins, tmp);
+			radius = VectorLength(tmp);
+
+			R_AddBspLight(org, radius > 100.0 ? radius : 100.0);
+		}
+	}
+
 	// parse the entity string for point lights
 	ents = Cm_EntityString();
 
@@ -1061,8 +1074,14 @@ static void R_LoadBspLights(void){
 			Com_Dprintf("Closed entity %s\n", class);
 
 			if(light){  // add it
+
+				if(radius <= 0.0)  // clamp it
+					radius = 100.0;
+
 				R_AddBspLight(org, radius);
+
 				light = false;
+				radius = 0.0;
 			}
 		}
 
@@ -1085,21 +1104,6 @@ static void R_LoadBspLights(void){
 		if(!strcmp(c, "light")){
 			radius = atof(Com_Parse(&ents));
 			continue;
-		}
-	}
-
-	// iterate the world surfaces for surface lights
-
-	surf = r_loadmodel->surfaces;
-	for(i = 0; i < r_loadmodel->numsurfaces; i++, surf++){
-
-		if((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value){
-			VectorMA(surf->center, 1.0, surf->normal, org);
-
-			VectorSubtract(surf->maxs, surf->mins, tmp);
-			radius = VectorLength(tmp);
-
-			R_AddBspLight(org, radius > 100.0 ? radius : 100.0);
 		}
 	}
 

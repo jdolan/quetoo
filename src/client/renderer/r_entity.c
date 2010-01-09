@@ -107,6 +107,13 @@ void R_AddEntity(const entity_t *ent){
  */
 void R_RotateForEntity(const entity_t *e){
 
+	if(!e){
+		glPopMatrix();
+		return;
+	}
+
+	glPushMatrix();
+
 	glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
 
 	glRotatef(e->angles[YAW], 0.0, 0.0, 1.0);
@@ -114,6 +121,8 @@ void R_RotateForEntity(const entity_t *e){
 	glRotatef(e->angles[ROLL], 1.0, 0.0, 0.0);
 
 	glScalef(e->scale[0], e->scale[1], e->scale[2]);
+
+	glGetFloatv(GL_MODELVIEW_MATRIX, r_locals.modelview);
 }
 
 
@@ -209,7 +218,6 @@ static void R_DrawNullModel(const entity_t *e){
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	glPushMatrix();
 	R_RotateForEntity(e);
 
 	glBegin(GL_TRIANGLE_FAN);
@@ -224,7 +232,7 @@ static void R_DrawNullModel(const entity_t *e){
 		glVertex3f(16.0 * cos(i * M_PI / 2.0), 16.0 * sin(i * M_PI / 2.0), 0);
 	glEnd();
 
-	glPopMatrix();
+	R_RotateForEntity(NULL);
 
 	R_EnableTexture(&texunit_diffuse, true);
 }

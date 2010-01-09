@@ -135,10 +135,10 @@ void R_ApplyMeshModelConfig(entity_t *e){
 	// translation is applied differently for view weapons
 	if(e->flags & EF_WEAPON){
 
-		// adjust forward/back offset according to field of view
-		float f = (r_view.fov_x - 100.0) / -4.0;
+		// adjust forward / back offset according to field of view
+		float f = (r_view.fov_x - 90.0) * 0.15;
 
-		// add bob
+		// add bob on all 3 axis as well
 		float b = r_view.bob * 0.4;
 
 		c = e->model->view_config;
@@ -210,7 +210,7 @@ static void R_SetMeshColor_default(const entity_t *e){
 
 	if(e->flags & EF_PULSE){
 		f = (1.0 + sin((r_view.time + e->model->vertexcount) * 6.0)) * 0.5;
-		VectorScale(color, 0.75 + f, color);
+		VectorScale(color, 1.0 + f, color);
 	}
 
 	f = 0.0;
@@ -264,8 +264,7 @@ static void R_SetMeshState_default(const entity_t *e){
 		R_ProgramParameter3fv("LIGHTPOS", lightpos);
 	}
 
-	glPushMatrix();  // now rotate and translate to the ent's origin
-
+	// now rotate and translate to the ent's origin
 	R_RotateForEntity(e);
 }
 
@@ -281,7 +280,7 @@ static void R_ResetMeshState_default(const entity_t *e){
 	if(e->flags & EF_WEAPON)
 		glDepthRange(0.0, 1.0);
 
-	glPopMatrix();
+	R_RotateForEntity(NULL);
 }
 
 

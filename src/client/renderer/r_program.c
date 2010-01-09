@@ -379,7 +379,6 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name){
  * R_LoadProgram
  */
 static r_program_t *R_LoadProgram(const char *name, void *init, void *use){
-
 	r_program_t *prog;
 	char log[MAX_STRING_CHARS];
 	unsigned e;

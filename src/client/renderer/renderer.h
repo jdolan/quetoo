@@ -235,7 +235,7 @@ typedef struct renderer_locals_s {
 
 	int tracenum;  // lighting traces
 
-	GLfloat modelview[16];  // world matrix
+	GLfloat modelview[16];  // model-view matrix
 
 	cplane_t frustum[4];  // for box culling
 } renderer_locals_t;

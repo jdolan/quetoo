@@ -205,20 +205,22 @@ void R_ShiftLights(const vec3_t offset){
 void R_EnableLights(int mask){
 	static int last_mask;
 	static int last_count;
-	light_t *l;
-	vec4_t position;
-	vec4_t diffuse;
-	int i, count;
+	int count;
 
 	if(mask == last_mask)  // no change
 		return;
 
 	last_mask = mask;
-
-	position[3] = diffuse[3] = 1.0;
 	count = 0;
 
 	if(mask){  // enable up to 8 light sources
+		const light_t *l;
+		vec4_t position;
+		vec4_t diffuse;
+		int i;
+
+		position[3] = diffuse[3] = 1.0;
+
 		for(i = 0, l = r_view.lights; i < r_view.num_lights; i++, l++){
 
 			if(count == MAX_ACTIVE_LIGHTS)
