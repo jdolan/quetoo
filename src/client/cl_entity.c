@@ -585,7 +585,7 @@ void Cl_AddEntities(frame_t *frame){
 		// calculate angles
 		if(state->effects & EF_ROTATE){  // some bonus items rotate
 			ent.angles[0] = 0.0;
-			ent.angles[1] = cl.time / 4.0;
+			ent.angles[1] = cl.time / 3.4;
 			ent.angles[2] = 0.0;
 		}
 		else {  // lerp angles

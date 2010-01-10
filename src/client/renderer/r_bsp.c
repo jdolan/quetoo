@@ -156,13 +156,11 @@ void R_DrawBspModel(const entity_t *e){
 
 	R_ShiftLights(e->origin);
 
-	glPushMatrix();
-
 	R_RotateForEntity(e);
 
 	R_DrawBspModelSurfaces(e);
 
-	glPopMatrix();
+	R_RotateForEntity(NULL);
 
 	R_ShiftLights(vec3_origin);
 }

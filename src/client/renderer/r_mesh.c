@@ -209,7 +209,7 @@ static void R_SetMeshColor_default(const entity_t *e){
 		color[3] = 1.0;
 
 	if(e->flags & EF_PULSE){
-		f = (1.0 + sin((r_view.time + e->model->vertexcount) * 6.0)) * 0.5;
+		f = sin((r_view.time + e->model->vertexcount) * 6.0) * 0.75;
 		VectorScale(color, 1.0 + f, color);
 	}
 

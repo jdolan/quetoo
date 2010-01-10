@@ -121,8 +121,6 @@ void R_RotateForEntity(const entity_t *e){
 	glRotatef(e->angles[ROLL], 1.0, 0.0, 0.0);
 
 	glScalef(e->scale[0], e->scale[1], e->scale[2]);
-
-	glGetFloatv(GL_MODELVIEW_MATRIX, r_locals.modelview);
 }
 
 
