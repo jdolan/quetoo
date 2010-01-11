@@ -494,7 +494,8 @@ static void R_LightPointPosition(static_lighting_t *lighting){
 	VectorCopy(lighting->positions[0], lighting->positions[1]);
 
 	// set a safe default in case we don't find a nearby light
-	VectorSet(lighting->positions[0], 0.0, 0.0, 1.0);
+	VectorSet(delta, 0.0, 0.0, 1.0);
+	VectorMA(lighting->origin, 64.0, delta, lighting->positions[0]);
 
 	best = 0.0;
 
