@@ -493,7 +493,10 @@ static void R_LightPointPosition(static_lighting_t *lighting){
 	// shuffle the samples
 	VectorCopy(lighting->positions[0], lighting->positions[1]);
 
-	best = -99999.0;
+	// set a safe default in case we don't find a nearby light
+	VectorSet(lighting->positions[0], 0.0, 0.0, 1.0);
+
+	best = 0.0;
 
 	l = r_worldmodel->bsplights;
 	for(i = 0; i < r_worldmodel->numbsplights; i++, l++){
