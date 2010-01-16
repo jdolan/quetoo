@@ -20,7 +20,6 @@
  */
 
 #include "renderer.h"
-#include "matrix.h"
 
 static entity_t *r_bsp_entities;
 

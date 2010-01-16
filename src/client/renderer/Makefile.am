@@ -3,6 +3,7 @@ noinst_HEADERS = \
 	r_gl.h \
 	r_image.h \
 	r_material.h \
+	r_matrix.h \
 	r_model.h \
 	r_program.h \
 	r_state.h \
@@ -25,6 +26,7 @@ librenderer_la_SOURCES = \
 	r_lightmap.c \
 	r_main.c \
 	r_material.c \
+	r_matrix.c \
 	r_mesh.c \
 	r_model.c \
 	r_model_bsp.c \
@@ -43,7 +45,4 @@ librenderer_la_CFLAGS = \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@ \
 	@SDL_CFLAGS@
-
-#librenderer_la_LIBADD = \
-#	../../libmatrix.la
 endif

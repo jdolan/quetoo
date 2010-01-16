@@ -27,6 +27,7 @@
 
 #include "r_gl.h"
 #include "r_image.h"
+#include "r_matrix.h"
 #include "r_model.h"
 #include "r_state.h"
 

@@ -19,7 +19,6 @@ noinst_HEADERS = \
 	hash.h \
 	images.h \
 	keys.h \
-	matrix.h \
 	pak.h \
 	shared.h \
 	win32.h
@@ -30,7 +29,6 @@ noinst_LTLIBRARIES = \
 	libfiles.la \
 	libhash.la \
 	libimages.la \
-	libmatrix.la \
 	libpak.la \
 	libshared.la \
 	libsys.la
@@ -73,15 +71,6 @@ libhash_la_CFLAGS = \
 	-pipe \
 	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@
-
-libmatrix_la_SOURCES = \
-	matrix.c
-libmatrix_la_CFLAGS = \
-	-pipe \
-	@WARN_CFLAGS@ \
-	@DEBUG_CFLAGS@
-libmatrix_la_LIBADD = \
-	-lm
 
 libpak_la_SOURCES = \
 	pak.c \
