@@ -6,16 +6,10 @@ Shell effect via world.cfg
 
 Sound for telefrag
 
-Kill off dmflags, use cvars instead
-
 Sound func_plat plat_mid.wav not heard?
 
 Add configurable attack to dynamic lights for misc_emit etc..
 
 Use actual math for ducking smoke flash shift instead of hard-coded hack.
 
-Remove bob from spectator weapons and chasecam.
-
 Downward velocity for bullet tracers?
-
-librenderer_la_LIBADD should not be necessary.

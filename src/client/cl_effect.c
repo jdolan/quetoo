@@ -207,8 +207,8 @@ void Cl_BulletTrail(const vec3_t start, const vec3_t end){
 	v = VectorNormalize(p->vel);
 	VectorScale(p->vel, v < 1000.0 ? v : 1000.0, p->vel);
 
-	p->alpha = 0.5;
-	p->alphavel = -1.0;
+	p->alpha = 0.2;
+	p->alphavel = -0.4;
 
 	p->color = 14;
 }
