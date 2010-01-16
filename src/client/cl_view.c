@@ -157,7 +157,8 @@ static void Cl_UpdateDucking(void){
  * Cl_UpdateOrigin
  *
  * The origin is typically calculated using client sided prediction, provided
- * the client is not viewing a demo, playing in 3rd person mode, or chasecamming.
+ * the client is not viewing a demo, playing in 3rd person mode, or chasing
+ * another player.
  */
 static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops){
 	int i, ms;
@@ -297,14 +298,8 @@ static void Cl_UpdateBob(void){
 	if(cl_thirdperson->value)
 		return;
 
-	if(!cl.frame.playerstate.stats[STAT_HEALTH])
-			return;  // dead
-
-	if(cl.frame.playerstate.stats[STAT_SPECTATOR])
-		return;  // spectating
-
-	if(cl.frame.playerstate.stats[STAT_CHASE])
-		return;  // chasing
+	if(cl.frame.playerstate.pmove.pm_type != PM_NORMAL)
+		return;
 
 	VectorCopy(r_view.velocity, velocity);
 	velocity[2] = 0.0;
