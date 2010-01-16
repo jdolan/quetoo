@@ -42,5 +42,8 @@ librenderer_la_CFLAGS = \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL_CFLAGS@	
+
+librenderer_la_LIBADD = \
+	../../libmatrix.la
 endif

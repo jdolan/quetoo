@@ -20,6 +20,7 @@
  */
 
 #include "renderer.h"
+#include "matrix.h"
 
 static entity_t *r_bsp_entities;
 
@@ -121,6 +122,23 @@ void R_RotateForEntity(const entity_t *e){
 	glRotatef(e->angles[ROLL], 1.0, 0.0, 0.0);
 
 	glScalef(e->scale[0], e->scale[1], e->scale[2]);
+}
+
+/*
+ * Transforms a point by the inverse of the world-model matrix for the
+ * specified entity.
+ */
+void R_TransformForEntity(const entity_t *e, const vec3_t in, vec3_t out){
+	matrix4x4_t tmp, mat;
+
+	Matrix4x4_CreateFromQuakeEntity(&tmp,
+			e->origin[0], e->origin[1], e->origin[2],
+			e->angles[0], e->angles[1], e->angles[2],
+			e->scale[0]);
+
+	Matrix4x4_Invert_Simple(&mat, &tmp);
+
+	Matrix4x4_Transform(&mat, in, out);
 }
 
 

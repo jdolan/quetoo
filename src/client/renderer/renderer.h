@@ -350,6 +350,7 @@ void R_DrawFillAlphas(void);
 // r_entity.c
 void R_AddEntity(const entity_t *e);
 void R_RotateForEntity(const entity_t *e);
+void R_TransformForEntity(const entity_t *e, const vec3_t in, vec3_t out);
 void R_DrawEntities(void);
 
 // r_flare.c
@@ -386,7 +387,6 @@ void R_EndBuildingLightmaps(void);
 void R_LightPoint(const vec3_t point, static_lighting_t *lighting);
 
 // r_main.c
-void R_ModelViewTransform(const vec3_t in, vec3_t out);
 void R_Trace(const vec3_t start, const vec3_t end, float size, int mask);
 void R_Init(void);
 void R_Shutdown(void);
