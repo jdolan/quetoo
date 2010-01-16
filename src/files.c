@@ -674,9 +674,10 @@ int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, con
 		h = fs_hashtable.bins[i];
 		while(h != NULL)
 		{
-			if(Com_GlobMatch(name, h->key) 
-			&& !(*dir == NULL && strchr(h->key, '/'))) // omit cfgs not in the root gamedir (map cfgs and such)
+			if(Com_GlobMatch(name, h->key) &&
+					!(dir == NULL && strchr(h->key, '/')))
 			{
+				// omit configs not in the root gamedir
 				matches[m] = h->key + strlen(dir);
 				m++;
 			}

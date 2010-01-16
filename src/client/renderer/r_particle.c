@@ -171,7 +171,7 @@ static void R_ParticleColor(particle_t *p, GLfloat *out){
 	byte color[4];
 	int i, j;
 
-	*(int *)color = palette[p->color];
+	memcpy(&color, &palette[p->color], sizeof(color));
 	color[3] = p->curalpha * 255.0;
 	j = 0;
 

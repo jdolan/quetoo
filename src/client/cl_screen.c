@@ -472,7 +472,7 @@ static crosshair_t crosshair;
  */
 static void Cl_DrawCrosshair(void){
 	image_t *image;
-	int offset, w, h;
+	int offset, w, h, c;
 
 	if(!cl_crosshair->value)
 		return;
@@ -519,7 +519,8 @@ static void Cl_DrawCrosshair(void){
 	if(cl_crosshaircolor->modified){  // crosshair color
 		cl_crosshaircolor->modified = false;
 
-		*(int *)crosshair.color = palette[ColorByName(cl_crosshaircolor->string, 14)];
+		c = ColorByName(cl_crosshaircolor->string, 14);
+		memcpy(&crosshair.color, &palette[c], sizeof(crosshair.color));
 	}
 
 	glColor4ubv(crosshair.color);

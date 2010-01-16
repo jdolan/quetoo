@@ -307,7 +307,7 @@ void R_DrawFillAlpha(int x, int y, int w, int h, int c, float a){
 		return;
 	}
 
-	*(int *)color = palette[c];
+	memcpy(&color, &palette[c], sizeof(color));
 	color[3] = a * 255;
 
 	// duplicate color data to all 4 verts
