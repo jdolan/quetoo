@@ -1,4 +1,10 @@
-SUBDIRS = client server . game tools master
+SUBDIRS = \
+	client \
+	server \
+	. \
+	game \
+	tools \
+	master
 
 SUFFIXES = .rc
 .rc.o:
@@ -74,6 +80,8 @@ libmatrix_la_CFLAGS = \
 	-pipe \
 	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@
+libmatrix_la_LIBADD = \
+	-lm
 
 libpak_la_SOURCES = \
 	pak.c \

@@ -80,14 +80,12 @@ static void NetadrToSockadr(const netadr_t *a, struct sockaddr_in *s){
 
 	if(a->type == NA_IP_BROADCAST){
 		s->sin_family = AF_INET;
-
 		s->sin_port = a->port;
 		*(unsigned *)&s->sin_addr = -1;
 	} else if(a->type == NA_IP){
 		s->sin_family = AF_INET;
-
-		*(unsigned *)&s->sin_addr = *(unsigned *)&a->ip;
 		s->sin_port = a->port;
+		memcpy(&s->sin_addr, a->ip, sizeof(a->ip));
 	}
 }
 
@@ -96,7 +94,7 @@ static void NetadrToSockadr(const netadr_t *a, struct sockaddr_in *s){
  * SockadrToNetadr
  */
 static void SockadrToNetadr(const struct sockaddr_in *s, netadr_t *a){
-	*(unsigned *)&a->ip = *(unsigned *)&s->sin_addr;
+	memcpy(a->ip, &s->sin_addr, sizeof(a->ip));
 	a->port = s->sin_port;
 	a->type = NA_IP;
 }

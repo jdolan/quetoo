@@ -1,3 +1,5 @@
-SUBDIRS = @GAME_MODULES@
+SUBDIRS = \
+	@GAME_MODULES@
 
-noinst_HEADERS = game.h
+noinst_HEADERS = \
+	game.h
