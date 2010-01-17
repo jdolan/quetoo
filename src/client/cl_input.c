@@ -56,9 +56,12 @@ static int keyq_tail = 0;
 
 // mouse vars
 static qboolean mouse_active;
-static float mouse_x, mouse_y;
+float mouse_x, mouse_y;
 static float old_mouse_x, old_mouse_y;
 
+void Key_SetDest(int dest) {
+
+}
 
 /*
  * KEY BUTTONS
@@ -517,12 +520,14 @@ static void Cl_HandleEvent(SDL_Event *event){
 
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
+			/*
+			 * We use the first key event to determine the state of number lock.
+			 */
 			if(first_key_event){
-				// get starting state of numlock on first key press
-				qboolean numlock_state = (event->key.keysym.mod & KMOD_NUM) != 0;
-				EVENT_ENQUEUE(K_NUMLOCK, 151, numlock_state)
+				EVENT_ENQUEUE(K_NUMLOCK, 151, (event->key.keysym.mod & KMOD_NUM) != 0);
 				first_key_event = false;
 			}
+
 			Cl_KeyMap(event, &key, &unicode);
 			EVENT_ENQUEUE(key, unicode, (event->type == SDL_KEYDOWN))
 			break;
@@ -551,15 +556,17 @@ static void Cl_MouseMove(int mx, int my){
 	old_mouse_y = my;
 
 	if(mouse_x || mouse_y){
-		mouse_x *= m_sensitivity->value;
-		mouse_y *= m_sensitivity->value;
+		if(cls.state == ca_active){
+			mouse_x *= m_sensitivity->value;
+			mouse_y *= m_sensitivity->value;
 
-		if(m_invert->value)  // invert mouse
-			mouse_y = -mouse_y;
+			if(m_invert->value)  // invert mouse
+				mouse_y = -mouse_y;
 
-		// add horizontal and vertical movement
-		cl.angles[YAW] -= m_yaw->value * mouse_x;
-		cl.angles[PITCH] += m_pitch->value * mouse_y;
+			// add horizontal and vertical movement
+			cl.angles[YAW] -= m_yaw->value * mouse_x;
+			cl.angles[PITCH] += m_pitch->value * mouse_y;
+		}
 	}
 }
 
@@ -568,10 +575,6 @@ static void Cl_MouseMove(int mx, int my){
  * Cl_HandleEvents
  */
 void Cl_HandleEvents(void){
-	int mx, my;
-	const int cx = r_state.width / 2;
-	const int cy = r_state.height / 2;
-	static int dirty_mouse_values = 0;
 	SDL_Event event;
 
 	if(!SDL_WasInit(SDL_INIT_VIDEO))
@@ -581,48 +584,48 @@ void Cl_HandleEvents(void){
 	while(SDL_PollEvent(&event))
 		Cl_HandleEvent(&event);
 
-	if(!r_view.ready || cls.key_dest == key_console){
+	if(cls.key_dest == key_console){
 		if(mouse_active){  // yield cursor to os
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
 
 			if(!r_state.fullscreen)
-				SDL_ShowCursor(SDL_ENABLE);
+				SDL_ShowCursor(true);
 
 			mouse_active = false;
 		}
 	} else {
 		if(!mouse_active){  // or take it back
-			SDL_ShowCursor(SDL_DISABLE);
 			SDL_WM_GrabInput(SDL_GRAB_ON);
-			SDL_WarpMouse(cx, cy);
+			SDL_ShowCursor(false);
+
 			mouse_active = true;
-			dirty_mouse_values = 1;
 		}
 	}
 
 	if(mouse_active){  // check for movement
+		int mx, my;
 		SDL_GetMouseState(&mx, &my);
 
-		mx -= cx;  // normalize to center
-		my -= cy;
+		if(cls.state == ca_active){
+			mx -= r_state.width / 2;  // normalize to center
+			my -= r_state.height / 2;
 
-		if(m_sensitivity->modified) {
-			// invalid or unreasonable value - set back to sane value
-			if (m_sensitivity->value < 0.1)
-				m_sensitivity->value = 3.0f;
-			else if (m_sensitivity->value > 20.0f)
-				m_sensitivity->value = 3.0f;
-			m_sensitivity->modified = false;
+			if(m_sensitivity->modified) {
+				// invalid or unreasonable value - set back to sane value
+				if (m_sensitivity->value < 0.1)
+					m_sensitivity->value = 3.0f;
+				else if (m_sensitivity->value > 20.0f)
+					m_sensitivity->value = 3.0f;
+				m_sensitivity->modified = false;
+			}
 		}
 
 		if(mx || my){  // mouse has moved
-			if(dirty_mouse_values)
-				// ignore crappy values returned by SDL after an invisible grab
-				// http://bugzilla.libsdl.org/show_bug.cgi?id=341
-				dirty_mouse_values--;
-			else
-				Cl_MouseMove(mx, my);
-			SDL_WarpMouse(cx, cy);
+			Cl_MouseMove(mx, my);
+
+			// if the player is active, warp to center
+			if(cls.state == ca_active)
+				SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
 		}
 
 	}
@@ -644,18 +647,18 @@ static void Cl_ClampPitch(void){
 	// wrapping where appropriate
 	pitch = SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
 
-	if(pitch > 180)
-		pitch -= 360;
+	if(pitch > 180.0)
+		pitch -= 360.0;
 
-	if(cl.angles[PITCH] + pitch < -360)
-		cl.angles[PITCH] += 360;
-	if(cl.angles[PITCH] + pitch > 360)
-		cl.angles[PITCH] -= 360;
+	if(cl.angles[PITCH] + pitch < -360.0)
+		cl.angles[PITCH] += 360.0;
+	if(cl.angles[PITCH] + pitch > 360.0)
+		cl.angles[PITCH] -= 360.0;
 
-	if(cl.angles[PITCH] + pitch > 89)
-		cl.angles[PITCH] = 89 - pitch;
-	if(cl.angles[PITCH] + pitch < -89)
-		cl.angles[PITCH] = -89 - pitch;
+	if(cl.angles[PITCH] + pitch > 89.0)
+		cl.angles[PITCH] = 89.0 - pitch;
+	if(cl.angles[PITCH] + pitch < -89.0)
+		cl.angles[PITCH] = -89.0 - pitch;
 }
 
 
