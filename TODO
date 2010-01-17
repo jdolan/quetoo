@@ -11,5 +11,3 @@ Sound func_plat plat_mid.wav not heard?
 Add configurable attack to dynamic lights for misc_emit etc..
 
 Use actual math for ducking smoke flash shift instead of hard-coded hack.
-
-Downward velocity for bullet tracers?

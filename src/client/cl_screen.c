@@ -472,7 +472,7 @@ static crosshair_t crosshair;
  */
 static void Cl_DrawCrosshair(void){
 	image_t *image;
-	int offset, w, h, c;
+	int w, h, c;
 
 	if(!cl_crosshair->value)
 		return;
@@ -488,6 +488,9 @@ static void Cl_DrawCrosshair(void){
 
 	if(cl.frame.playerstate.stats[STAT_CHASE])
 		return;  // chasecam
+
+	if(cl_thirdperson->value)
+		return;  // third person
 
 	if(cl_crosshair->modified){  // crosshair image
 		cl_crosshair->modified = false;
@@ -525,15 +528,11 @@ static void Cl_DrawCrosshair(void){
 
 	glColor4ubv(crosshair.color);
 
-	// adjust the crosshair for 3rd person perspective
-	offset = cl_thirdperson->value * 0.008 * r_view.height;
-
 	// calculate width and height based on crosshair image and scale
 	w = (r_view.width - crosshair.width * cl_crosshairscale->value) / 2;
 	h = (r_view.height - crosshair.height * cl_crosshairscale->value) / 2;
 
-	R_DrawScaledPic(r_view.x + w, r_view.y + h + offset,
-			cl_crosshairscale->value, crosshair.name);
+	R_DrawScaledPic(r_view.x + w, r_view.y + h, cl_crosshairscale->value, crosshair.name);
 
 	glColor4ubv(color_white);
 }

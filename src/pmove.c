@@ -812,7 +812,7 @@ static void Pm_CheckDuck(void){
 	}
 
 	if(pm->s.pm_flags & PMF_DUCKED){  // ducked, reduce height
-		pm->viewheight = pm->mins[2] + (height * 0.5);
+		pm->viewheight = pm->mins[2] + (height * 0.375);
 		pm->maxs[2] = pm->maxs[2] + pm->mins[2] / 2.0;
 	}
 }

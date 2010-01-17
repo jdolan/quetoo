@@ -251,8 +251,8 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 
 	VectorCopy(r_view.angles, angles);
 
-	if(cl_thirdperson->value < 0.0)  // to the right of the player
-		angles[1] += 90.0;
+	if(cl_thirdperson->value < 0.0)  // in front of the player
+		angles[1] += 180.0;
 
 	AngleVectors(angles, forward, NULL, NULL);
 
@@ -269,14 +269,15 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 
 	// clip it to the world
 	R_Trace(r_view.origin, dest, 5.0, MASK_SHOT);
+	VectorCopy(r_view.trace.endpos, r_view.origin);
 
-	// adjust view angles to compensate for offset
+	// adjust view angles to compensate for height offset
 	VectorMA(r_view.origin, 2048.0, forward, dest);
 	VectorSubtract(dest, r_view.origin, dest);
 
-	// copy back to view
+	// copy angles back to view
 	VectorAngles(dest, r_view.angles);
-	VectorCopy(r_view.trace.endpos, r_view.origin);
+	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
 }
 
 
