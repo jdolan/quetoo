@@ -6,7 +6,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or(at your option) any later version.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -143,9 +143,9 @@ void R_Trace(const vec3_t start, const vec3_t end, float size, int mask){
 
 
 /*
- * SignbisForPlane
+ * R_SignbisForPlane
  */
-static inline int SignbitsForPlane(const cplane_t *plane){
+static inline int R_SignbitsForPlane(const cplane_t *plane){
 	int bits, j;
 
 	// for fast box on planeside test
@@ -179,7 +179,7 @@ void R_UpdateFrustum(void){
 	for(i = 0; i < 4; i++){
 		r_locals.frustum[i].type = PLANE_ANYZ;
 		r_locals.frustum[i].dist = DotProduct(r_view.origin, r_locals.frustum[i].normal);
-		r_locals.frustum[i].signbits = SignbitsForPlane(&r_locals.frustum[i]);
+		r_locals.frustum[i].signbits = R_SignbitsForPlane(&r_locals.frustum[i]);
 	}
 }
 
