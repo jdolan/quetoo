@@ -25,17 +25,31 @@
  * G_ProjectSpawn
  */
 void G_ProjectSpawn(edict_t *ent){
-	vec3_t forward;
-	float dist;
+	vec3_t mins, maxs, delta, forward;
+	float up, len0, len1, fwd;
 
 	// up
-	ent->s.origin[2] += (PM_MINS[2] - PM_MINS[2] * PM_SCALE);
+	up = ceilf(fabs(PM_SCALE * PM_MINS[2] - PM_MINS[2]));
+	ent->s.origin[2] += up;
 
-	dist = PM_MAXS[0] * PM_SCALE - PM_MAXS[0];
+	// forward, find the old x/y size
+	VectorCopy(PM_MINS, mins);
+	VectorCopy(PM_MAXS, maxs);
+	mins[2] = maxs[2] = 0.0;
 
-	// forward
+	VectorSubtract(maxs, mins, delta);
+	len0 = VectorLength(delta);
+
+	// and the new x/y size
+	VectorScale(delta, PM_SCALE, delta);
+	len1 = VectorLength(delta);
+
+	fwd = ceilf(len1 - len0);
+
+	gi.Printf("%f\n", fwd);
+
 	AngleVectors(ent->s.angles, forward, NULL, NULL);
-	VectorMA(ent->s.origin, dist, forward, ent->s.origin);
+	VectorMA(ent->s.origin, fwd, forward, ent->s.origin);
 }
 
 
