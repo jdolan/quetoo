@@ -335,7 +335,7 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
 	fclose(outfile);
 }
 
-
+#define TGA_CHANNELS 3
 /*
  * Img_WriteTGARLE
  *
@@ -343,12 +343,12 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
  */
 void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unused){
 	FILE *tga_file;
-	const unsigned int channels = 3;  // 24-bit RGB
+	const unsigned int channels = TGA_CHANNELS;  // 24-bit RGB
 	unsigned char header[18];
 	// write image data
 	// TGA has the R and B channels switched
-	unsigned char pixel_data[channels];
-	unsigned char block_data[channels*128];
+	unsigned char pixel_data[TGA_CHANNELS];
+	unsigned char block_data[TGA_CHANNELS * 128];
 	unsigned char rle_packet;
 	int compress = 0;
 	size_t block_length = 0;
