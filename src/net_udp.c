@@ -30,6 +30,7 @@
 #include <winsock.h>
 #include <ws2tcpip.h>
 #define Net_GetError() WSAGetLastError()
+#define Net_CloseSocket closesocket
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -38,6 +39,7 @@
 #include <sys/ioctl.h>
 #include <sys/uio.h>
 #define Net_GetError() errno
+#define Net_CloseSocket close
 #endif
 
 netadr_t net_local_adr = {
@@ -420,7 +422,8 @@ void Net_Config(netsrc_t source, qboolean up){
 
 	// or close it
 	if(ip_sockets[source])
-		close(ip_sockets[source]);
+		Net_CloseSocket(ip_sockets[source]);
+
 
 	ip_sockets[source] = 0;
 }
