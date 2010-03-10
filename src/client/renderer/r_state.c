@@ -44,7 +44,7 @@ inline void R_SelectTexture(r_texunit_t *texunit){
 /*
  * R_BindTexture
  */
-inline void R_BindTexture(GLuint texnum){
+void R_BindTexture(GLuint texnum){
 
 	if(texnum == r_state.active_texunit->texnum)
 		return;
@@ -58,7 +58,7 @@ inline void R_BindTexture(GLuint texnum){
 /*
  * R_BindLightmapTexture
  */
-inline void R_BindLightmapTexture(GLuint texnum){
+void R_BindLightmapTexture(GLuint texnum){
 
 	if(texnum == texunit_lightmap.texnum)
 		return;  // small optimization to save state changes
@@ -74,7 +74,7 @@ inline void R_BindLightmapTexture(GLuint texnum){
 /*
  * R_BindDeluxemapTexture
  */
-inline void R_BindDeluxemapTexture(GLuint texnum){
+void R_BindDeluxemapTexture(GLuint texnum){
 
 	if(texnum == texunit_deluxemap.texnum)
 		return;  // small optimization to save state changes
@@ -90,7 +90,7 @@ inline void R_BindDeluxemapTexture(GLuint texnum){
 /*
  * R_BindNormalmapTexture
  */
-inline void R_BindNormalmapTexture(GLuint texnum){
+void R_BindNormalmapTexture(GLuint texnum){
 
 	if(texnum == texunit_normalmap.texnum)
 		return;  // small optimization to save state changes
@@ -106,7 +106,7 @@ inline void R_BindNormalmapTexture(GLuint texnum){
 /*
  * R_BindArray
  */
-inline void R_BindArray(GLenum target, GLenum type, GLvoid *array){
+void R_BindArray(GLenum target, GLenum type, GLvoid *array){
 
 	switch(target){
 		case GL_VERTEX_ARRAY:
@@ -138,7 +138,7 @@ inline void R_BindArray(GLenum target, GLenum type, GLvoid *array){
  *
  * Binds the appropriate shared vertex array to the specified target.
  */
-inline void R_BindDefaultArray(GLenum target){
+void R_BindDefaultArray(GLenum target){
 
 	switch(target){
 		case GL_VERTEX_ARRAY:
@@ -168,7 +168,7 @@ inline void R_BindDefaultArray(GLenum target){
 /*
  * R_BindBuffer
  */
-inline void R_BindBuffer(GLenum target, GLenum type, GLuint id){
+void R_BindBuffer(GLenum target, GLenum type, GLuint id){
 
 	if(!qglBindBuffer)
 		return;
@@ -186,7 +186,7 @@ inline void R_BindBuffer(GLenum target, GLenum type, GLuint id){
 /*
  * R_BlendFunc
  */
-inline void R_BlendFunc(GLenum src, GLenum dest){
+void R_BlendFunc(GLenum src, GLenum dest){
 
 	if(r_state.blend_src == src && r_state.blend_dest == dest)
 		return;
@@ -201,7 +201,7 @@ inline void R_BlendFunc(GLenum src, GLenum dest){
 /*
  * R_EnableBlend
  */
-inline void R_EnableBlend(qboolean enable){
+void R_EnableBlend(qboolean enable){	
 
 	if(r_state.blend_enabled == enable)
 		return;
@@ -222,7 +222,7 @@ inline void R_EnableBlend(qboolean enable){
 /*
  * R_EnableAlphaTest
  */
-inline void R_EnableAlphaTest(qboolean enable){
+void R_EnableAlphaTest(qboolean enable){
 
 	if(r_state.alpha_test_enabled == enable)
 		return;
@@ -239,7 +239,7 @@ inline void R_EnableAlphaTest(qboolean enable){
 /*
  * R_EnableTexture
  */
-inline void R_EnableTexture(r_texunit_t *texunit, qboolean enable){
+void R_EnableTexture(r_texunit_t *texunit, qboolean enable){
 
 	if(enable == texunit->enabled)
 		return;
@@ -275,7 +275,7 @@ inline void R_EnableTexture(r_texunit_t *texunit, qboolean enable){
 /*
  * R_EnableColorArray
  */
-inline void R_EnableColorArray(qboolean enable){
+void R_EnableColorArray(qboolean enable){
 
 	if(r_state.color_array_enabled == enable)
 		return;
@@ -296,7 +296,7 @@ inline void R_EnableColorArray(qboolean enable){
  * should be called after any texture units which will be active for lighting
  * have been enabled.
  */
-inline void R_EnableLighting(r_program_t *program, qboolean enable){
+void R_EnableLighting(r_program_t *program, qboolean enable){
 
 	if(!r_programs->value)
 		return;
@@ -365,7 +365,7 @@ static inline void R_UseMaterial(material_t *material){
  * Enables bumpmapping while updating program parameters to reflect the
  * specified material.
  */
-inline void R_EnableBumpmap(material_t *material, qboolean enable){
+void R_EnableBumpmap(material_t *material, qboolean enable){
 
 	if(!r_state.lighting_enabled)
 		return;
@@ -396,7 +396,7 @@ inline void R_EnableBumpmap(material_t *material, qboolean enable){
 /*
  * R_EnableWarp
  */
-inline void R_EnableWarp(r_program_t *program, qboolean enable){
+void R_EnableWarp(r_program_t *program, qboolean enable){
 
 	if(!r_programs->value)
 		return;
@@ -431,7 +431,7 @@ inline void R_EnableWarp(r_program_t *program, qboolean enable){
 /*
  * R_EnableColorShell
  */
-inline void R_EnableShell(qboolean enable){
+void R_EnableShell(qboolean enable){
 
 	if(enable == r_state.shell_enabled)
 		return;
@@ -464,7 +464,7 @@ inline void R_EnableShell(qboolean enable){
 /*
  * R_EnableFog
  */
-inline void R_EnableFog(qboolean enable){
+void R_EnableFog(qboolean enable){
 
 	if(!r_fog->value || r_state.fog_enabled == enable)
 		return;
