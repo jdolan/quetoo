@@ -612,7 +612,7 @@ static void Pm_CategorizePosition(void){
 		}
 
 		// hitting the world means we're done being pushed
-		if((int)((long)trace.ent) == 1)
+		if((int)((intptr_t)trace.ent) == 1)
 			pm->s.pm_flags &= ~PMF_PUSHED;
 	}
 
