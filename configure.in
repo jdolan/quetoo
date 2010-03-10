@@ -207,6 +207,11 @@ AC_CHECK_HEADER(zlib.h,,
 )
 
 dnl -------------------------------
+dnl Check for stdint.h
+dnl -------------------------------
+AC_CHECK_HEADERS([stdint.h])
+
+dnl -------------------------------
 dnl Check for execinfo.h (optional)
 dnl -------------------------------
 
