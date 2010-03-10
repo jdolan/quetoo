@@ -24,12 +24,18 @@
 
 #include "config.h"
 
+// to support the gnuc __attribute__ command
+#if defined __ICC || !defined __GNUC__
+#  define __attribute__(x)  /*NOTHING*/
+#endif
+
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #ifdef HAVE_STRING_H
 #include <string.h>
