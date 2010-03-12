@@ -29,7 +29,7 @@ const float default_texcoords[] = {  // useful for particles, pics, etc..
 /*
  * R_SelectTexture
  */
-inline void R_SelectTexture(r_texunit_t *texunit){
+void R_SelectTexture(r_texunit_t *texunit){
 
 	if(texunit == r_state.active_texunit)
 		return;
@@ -201,7 +201,7 @@ void R_BlendFunc(GLenum src, GLenum dest){
 /*
  * R_EnableBlend
  */
-void R_EnableBlend(qboolean enable){	
+void R_EnableBlend(qboolean enable){
 
 	if(r_state.blend_enabled == enable)
 		return;
