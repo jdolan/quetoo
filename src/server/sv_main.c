@@ -739,8 +739,11 @@ void Sv_HeartbeatMasters(void){
 	if(svs.last_heartbeat > svs.realtime)  // catch wraps
 		svs.last_heartbeat = svs.realtime;
 
-	if(svs.realtime - svs.last_heartbeat < HEARTBEAT_SECONDS * 1000)
-		return;  // not time to send yet
+	if(svs.last_heartbeat) {  // if we've sent one, wait a while
+
+		if(svs.realtime - svs.last_heartbeat < HEARTBEAT_SECONDS * 1000)
+			return;  // not time to send yet
+	}
 
 	svs.last_heartbeat = svs.realtime;
 
