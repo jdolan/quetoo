@@ -137,8 +137,8 @@ static void Cl_KeyConsole(int key, int unicode){
 	int i;
 	qboolean numlock = key_down[K_NUMLOCK];
 
-	// submit buffer on enter unicode with valid input
-	if((key == K_ENTER || key == K_KP_ENTER) && strlen(key_lines[edit_line]) > 1){
+	// submit buffer on enter
+	if((key == K_ENTER || key == K_KP_ENTER)){
 		if(key_lines[edit_line][1] == '\\' || key_lines[edit_line][1] == '/')
 			Cbuf_AddText(key_lines[edit_line] + 2);  // skip the /
 		else
