@@ -46,8 +46,6 @@ void G_ProjectSpawn(edict_t *ent){
 
 	fwd = ceilf(len1 - len0);
 
-	gi.Printf("%f\n", fwd);
-
 	AngleVectors(ent->s.angles, forward, NULL, NULL);
 	VectorMA(ent->s.origin, fwd, forward, ent->s.origin);
 }
