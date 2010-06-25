@@ -30,6 +30,7 @@ static const char *MUSIC_TYPES[] = {
 	".ogg", NULL
 };
 
+
 /**
  * S_LoadMusic
  */
@@ -74,7 +75,11 @@ static s_music_t *S_LoadMusic(const char *name){
 		return &music;
 	}
 
-	Com_Warn("S_LoadMusic: Failed to load %s.\n", name);
+	// warn of failures to load non-default tracks
+	if (strncmp(name, "track", 5)){
+		Com_Warn("S_LoadMusic: Failed to load %s.\n", name);
+	}
+
 	return NULL;
 }
 
@@ -119,6 +124,13 @@ void S_LoadMusics(void){
 
 	S_FreeMusics();
 
+	// if no music is provided, use the default tracks
+	if (!cl.configstrings[CS_MUSICS + 1][0]){
+		for(i = 1; i < MAX_MUSICS; i++){
+			sprintf(cl.configstrings[CS_MUSICS + i], "track%d", i);
+		}
+	}
+
 	for(i = 1; i < MAX_MUSICS; i++){
 
 		if(!cl.configstrings[CS_MUSICS + i][0])
@@ -129,6 +141,7 @@ void S_LoadMusics(void){
 
 		memcpy(&s_env.musics[s_env.num_musics++], music, sizeof(s_music_t));
 	}
+
 	Com_Printf("Loaded %d tracks\n", s_env.num_musics);
 }
 

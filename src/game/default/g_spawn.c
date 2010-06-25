@@ -522,7 +522,7 @@ void G_SpawnEntities(const char *name, const char *entities){
  *
  */
 
-char *dm_statusbar =
+const char *dm_statusbar =
 	// health
 	"if 0 "
 	"xv	32 "
