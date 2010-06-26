@@ -63,5 +63,5 @@ $START/7za a -tzip -mx=9 ../quake2world_rev"$rev"zip quake2world
 cd $START
 scp -r dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32
 
-scp quake2world_rev"$rev"zip satgnu.net@satgnu.net:/var/www/satgnu.net/files
-ssh satgnu.net@satgnu.net ln -f /var/www/satgnu.net/files/quake2world_rev"$rev"zip  /var/www/satgnu.net/files/quake2world-win32-snapshot.zip
+scp quake2world_rev"$rev"zip web@satgnu.net:www/satgnu.net/files
+ssh satgnu.net@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world_rev"$rev"zip  /home/web/www/satgnu.net/files/quake2world-win32-snapshot.zip
