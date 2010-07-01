@@ -138,6 +138,13 @@ typedef struct sustain_s {
 	float sustain;
 } sustain_t;
 
+// shadows are alpha-blended particles on the X/Y plane
+typedef struct shadow_s {
+	vec3_t org;
+	vec3_t dir;
+	float scale;
+} shadow_t;
+
 #define MAX_LIGHTS			32
 #define MAX_ACTIVE_LIGHTS	8
 
@@ -181,6 +188,9 @@ typedef struct renderer_view_s {
 	light_t lights[MAX_LIGHTS];
 
 	sustain_t sustains[MAX_LIGHTS];
+
+	int num_shadows;
+	shadow_t shadows[MAX_ENTITIES];
 
 	trace_t trace;  // occlusion testing
 	entity_t *trace_ent;

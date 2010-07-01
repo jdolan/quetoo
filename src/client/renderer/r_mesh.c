@@ -24,15 +24,6 @@
 vec3_t r_mesh_verts[MD3_MAX_VERTS];  // verts are lerped here temporarily
 vec3_t r_mesh_norms[MD3_MAX_VERTS];  // same for normal vectors
 
-typedef struct shadow_s {
-	vec3_t org;
-	vec3_t dir;
-	float scale;
-} shadow_t;
-
-static shadow_t shadows[MAX_EDICTS];
-static int num_shadows;
-
 
 /*
  * R_AddMeshShadow
@@ -44,7 +35,7 @@ static void R_AddMeshShadow(const entity_t *e){
 	if(!r_shadows->value)
 		return;
 
-	if(num_shadows == MAX_EDICTS)
+	if(r_view.num_shadows == MAX_EDICTS)
 		return;
 
 	if(e->flags & EF_NO_SHADOW)  // no shadow for the weapon
@@ -59,7 +50,7 @@ static void R_AddMeshShadow(const entity_t *e){
 	if((h = e->origin[2] - e->lighting->point[2]) > 128)
 		return;
 
-	sh = &shadows[num_shadows++];
+	sh = &r_view.shadows[r_view.num_shadows++];
 
 	VectorCopy(e->lighting->point, sh->org);
 	sh->org[2] += 0.1;
@@ -86,7 +77,7 @@ void R_DrawMeshShadows(void){
 	if(!r_shadows->value)
 		return;
 
-	if(!num_shadows)
+	if(!r_view.num_shadows)
 		return;
 
 	R_ResetArrayState();
@@ -96,9 +87,9 @@ void R_DrawMeshShadows(void){
 	R_BindTexture(r_shadowtexture->texnum);
 
 	j = k = l = 0;
-	for(i = 0; i < num_shadows; i++){
+	for(i = 0; i < r_view.num_shadows; i++){
 
-		const shadow_t *sh = &shadows[i];
+		const shadow_t *sh = &r_view.shadows[i];
 		AngleVectors(sh->dir, NULL, right, up);
 
 		VectorAdd(up, right, verts[0]);
@@ -115,8 +106,6 @@ void R_DrawMeshShadows(void){
 		memcpy(&texunit_diffuse.texcoord_array[l], default_texcoords, sizeof(vec2_t) * 4);
 		l += 8;
 	}
-
-	num_shadows = 0;
 
 	glDrawArrays(GL_QUADS, 0, i * 4);
 
