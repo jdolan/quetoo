@@ -1,4 +1,5 @@
 SUBDIRS = \
+	menu \
 	renderer \
 	sound
 

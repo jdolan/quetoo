@@ -141,6 +141,9 @@ typedef struct sustain_s {
 #define MAX_LIGHTS			32
 #define MAX_ACTIVE_LIGHTS	8
 
+#define VID_NORM_WIDTH 		1024
+#define VID_NORM_HEIGHT 	768
+
 // read-write variables for renderer and client
 typedef struct renderer_view_s {
 	int x, y, width, height;  // in virtual screen coordinates
@@ -339,14 +342,16 @@ void R_FreePics(void);
 image_t *R_LoadPic(const char *name);
 void R_DrawScaledPic(int x, int y, float scale, const char *name);
 void R_DrawPic(int x, int y, const char *name);
+int R_StringWidth(const char *s);
 void R_DrawChar(int x, int y, char c, int color);
 int R_DrawString(int x, int y, const char *s, int color);
-int R_DrawBytes(int x, int y, const char *s, int size, int color);
-int R_DrawSizedString(int x, int y, const char *s, int len, int size, int color);
+int R_DrawBytes(int x, int y, const char *s, size_t size, int color);
+int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int color);
 void R_DrawChars(void);
 void R_DrawFill(int x, int y, int w, int h, int c);
 void R_DrawFillAlpha(int x, int y, int w, int h, int c, float a);
 void R_DrawFillAlphas(void);
+void R_DrawRect(int x, int y, int w, int h, const vec4_t color, float lineWidth, int pattern);
 
 // r_entity.c
 void R_AddEntity(const entity_t *e);

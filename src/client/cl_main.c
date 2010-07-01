@@ -22,6 +22,9 @@
 #include <unistd.h>
 
 #include "client.h"
+#include "menu/m_main.h"
+#include "menu/m_font.h"
+#include "menu/m_parse.h"
 
 cvar_t *cl_addentities;
 cvar_t *cl_addparticles;
@@ -469,10 +472,9 @@ static void Cl_CheckForResend(void){
  */
 static void Cl_Connect_f(void){
 	const char *s;
-	int i;
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <server>\n", Cmd_Argv(0));
+		Com_Printf("Usage: %s <address>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -481,13 +483,11 @@ static void Cl_Connect_f(void){
 
 	s = Cmd_Argv(1);
 
-	i = atoi(s);
-	if(i > 0 && !strchr(Cmd_Argv(1), '.')){  // resolve by server number
-
-		const server_info_t *server = Cl_ServerForNum(i);
+	if(s[0] == '*'){  // resolve by server number
+		const server_info_t *server = Cl_ServerForNum(atoi(s + 1));
 
 		if(!server){
-			Com_Printf("Invalid server number\n");
+			Com_Warn("Invalid server: %s\n", Cmd_Argv(1));
 			return;
 		}
 
@@ -826,11 +826,13 @@ static void Cl_LoadMedia(void){
 
 	Cl_LoadLocations();
 
+	cls.key_dest = key_game;
+
 	cls.loading = 0;
 }
 
 
-int precache_check; // for autodownload of precache items
+int precache_check;  // for autodownload of precache items
 int precache_spawncount;
 
 /*
@@ -898,6 +900,80 @@ static const char *Cl_GetUserName(void){
 	return username;
 }
 
+
+/*
+ * Cl_InitMenuFonts
+ */
+static void Cl_InitMenuFonts(const char *filename){
+	char *buffer;
+	const char *buf;
+	const char *token;
+
+	// load the file header
+	if(Fs_LoadFile(filename, (void **)(char *)&buffer) == -1)
+		Sys_Error("Failed to open %s\n", filename);
+
+	buf = buffer;
+
+	do {
+		token = Com_Parse(&buf);
+		if (!token || !buf)
+			break;
+		if (!strcmp(token, "font")) {
+			token = Com_Parse(&buf);
+			MN_ParseFont(token, &buf);
+		}
+	} while (true);
+
+	Fs_FreeFile(buffer);
+}
+
+
+/*
+ * Cl_InitMenu
+ */
+static void Cl_InitMenu(const char *filename){
+	char *buffer;
+	const char *buf;
+	const char *token;
+
+	// load the file header
+	if(Fs_LoadFile(filename, (void **)(char *)&buffer) == -1)
+		Sys_Error("Failed to open %s\n", filename);
+
+	buf = buffer;
+
+	token = Com_Parse(&buf);
+	if (strcmp(token, "window"))
+		Sys_Error("Failed to parse %s\n", filename);
+
+	token = Com_Parse(&buf);
+	MN_ParseMenu("window", token, &buf);
+
+	Fs_FreeFile(buffer);
+}
+
+
+/*
+ * Cl_InitMenus
+ */
+static void Cl_InitMenus(void){
+
+	MN_Init();
+
+	Cl_InitMenuFonts("ui/fonts.ui");
+
+	Cl_InitMenu("ui/main.ui");
+	Cl_InitMenu("ui/editor.ui");
+	Cl_InitMenu("ui/game.ui");
+	Cl_InitMenu("ui/create.ui");
+	Cl_InitMenu("ui/options.ui");
+	Cl_InitMenu("ui/credits.ui");
+
+	Cbuf_AddText("mn_push main;");
+
+	cls.key_dest = key_menu;
+}
 
 /*
  * Cl_InitLocal
@@ -985,6 +1061,8 @@ static void Cl_InitLocal(void){
 	Cmd_AddCommand("playerlist", NULL, NULL);
 	Cmd_AddCommand("configstrings", NULL, NULL);
 	Cmd_AddCommand("baselines", NULL, NULL);
+
+	Cl_InitMenus();
 }
 
 
@@ -1020,7 +1098,6 @@ static void Cl_WriteConfiguration(void){
  */
 void Cl_Frame(int msec){
 	qboolean packet_frame = true, render_frame = true;
-	static qboolean help_issued = false;
 	int ms;
 
 	if(dedicated->value)
@@ -1080,15 +1157,6 @@ void Cl_Frame(int msec){
 
 	if(cls.state <= ca_disconnected && !Com_ServerState()){
 		usleep(1000);  // idle at console
-
-		if(!help_issued){
-			Com_Printf("Type ^3servers^7 to find a game.\n");
-			help_issued = true;
-		}
-	}
-	else {  // reset help boolean
-		if(cls.state > ca_disconnected)
-			help_issued = false;
 	}
 
 	cl.time += msec;  // update time references
@@ -1194,6 +1262,8 @@ void Cl_Shutdown(void){
 	}
 
 	isdown = true;
+
+	MN_Shutdown();
 
 	Cl_ShutdownHttpDownload();
 

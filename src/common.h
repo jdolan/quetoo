@@ -278,6 +278,10 @@ typedef void(*xcommand_t)(void);
 
 void Cmd_Init(void);
 
+qboolean Cmd_Exists(const char *cmd_name);
+void Cmd_AddUserdata(const char *cmd_name, void *userdata);
+void *Cmd_Userdata(void);
+
 void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *description);
 // called by the init functions of other parts of the program to
 // register commands and functions to call for them.
@@ -362,6 +366,8 @@ char *Cvar_GetString(const char *var_name);
 
 int Cvar_CompleteVar(const char *partial, const char *matches[]);
 // attempts to match a partial variable name for command line completion
+
+cvar_t *Cvar_FindVar(const char *var_name);
 
 qboolean Cvar_PendingLatchedVars(void);
 // are there pending latch changes?

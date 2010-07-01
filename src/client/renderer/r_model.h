@@ -108,7 +108,7 @@ typedef struct msurface_s {
 } msurface_t;
 
 // surfaces are assigned to arrays based on their primary rendering type
-// and then sorted by material to reduce glBindTexture calls
+// and then sorted by world texnum to reduce binds
 typedef struct msurfaces_s {
 	msurface_t **surfaces;
 	int count;

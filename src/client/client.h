@@ -144,9 +144,16 @@ typedef enum {
 
 typedef enum {
 	key_game,
+	key_menu,
 	key_console,
 	key_message
 } keydest_t;
+
+typedef struct {
+	float x, y;
+	float old_x, old_y;
+	qboolean active;
+} mousestate_t;
 
 typedef struct {
 	qboolean http;
@@ -164,11 +171,10 @@ typedef enum {
 typedef struct server_info_s {
 	netadr_t adr;
 	server_source_t source;
-	int id;  // constant unique identifier
-	int num;  // ordering in servers list for last ping
 	int pingtime;
 	int ping;
 	char info[MAX_MSGLEN];
+	int num;
 	struct server_info_s *next;
 } server_info_t;
 
@@ -176,7 +182,10 @@ typedef struct server_info_s {
 
 typedef struct {
 	connstate_t state;
+
 	keydest_t key_dest;
+
+	mousestate_t mouse_state;
 
 	int realtime;  // always increasing, no clamping, etc
 
@@ -201,8 +210,7 @@ typedef struct {
 	FILE *demofile;
 
 	server_info_t *servers;  // list of servers from all sources
-	int server_id;  // provides server unique identifiers
-	int server_num;  // provides simple ordering
+	char *servers_text;  // tabular data for servers menu
 
 	int bcasttime;  // time when last broadcast ping was sent
 } client_static_t;

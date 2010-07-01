@@ -231,6 +231,7 @@ static qboolean Cl_ParseServerData(void){
 	// wipe the client_state_t struct
 	Cl_ClearState();
 	cls.state = ca_connected;
+	cls.key_dest = key_console;
 
 	// parse protocol version number
 	i = Msg_ReadLong(&net_message);
@@ -271,7 +272,7 @@ static qboolean Cl_ParseServerData(void){
 	str = Msg_ReadString(&net_message);
 	Com_Printf("\n"); Com_Printf("%c%s\n", 2, str);
 
-	// need to prep view at next oportunity
+	// need to prep view at next opportunity
 	r_view.ready = false;
 	return true;
 }

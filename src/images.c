@@ -48,8 +48,6 @@ typedef unsigned char boolean;
 #  undef XMD_H
 # endif
 
-
-
 // 8bit palette for wal images and particles
 #define PALETTE "pics/colormap"
 unsigned palette[256];

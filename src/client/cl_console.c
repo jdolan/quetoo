@@ -39,8 +39,13 @@ void Con_ToggleConsole_f(void){
 	Cl_ClearTyping();
 	Con_ClearNotify();
 
-	if(cls.key_dest == key_console)
-		cls.key_dest = key_game;
+	if(cls.key_dest == key_console){
+
+		if(cls.state == ca_active)
+			cls.key_dest = key_game;
+		else
+			cls.key_dest = key_menu;
+	}
 	else
 		cls.key_dest = key_console;
 }
@@ -100,7 +105,7 @@ void Con_InitClientConsole(void){
 	Con_ClearNotify();
 
 	con_notifytime = Cvar_Get("con_notifytime", "3", CVAR_ARCHIVE, "Seconds to draw the last messages on the game top");
-	con_alpha = Cvar_Get("con_alpha", "0.2", CVAR_ARCHIVE, "Console alpha background [0.0-1.0]");
+	con_alpha = Cvar_Get("con_alpha", "0.3", CVAR_ARCHIVE, "Console alpha background [0.0-1.0]");
 
 	Cmd_AddCommand("toggleconsole", Con_ToggleConsole_f, "Toggle the console");
 	Cmd_AddCommand("messagemode", Con_MessageMode_f, "Activate chat");
@@ -141,6 +146,7 @@ static void Con_DrawInput(void){
 	R_DrawBytes(0, cl_con.height << 5, text, cl_con.width, CON_COLOR_DEFAULT);
 }
 
+
 /*
  * Con_DrawNotify
  *
@@ -162,7 +168,6 @@ void Con_DrawNotify(void){
 			R_DrawBytes(0, y, cl_con.linestart[i], cl_con.linestart[i + 1] - cl_con.linestart[i], cl_con.linecolor[i]);
 			y += 32;
 		}
-
 	}
 
 	if(cls.key_dest == key_message){
@@ -211,8 +216,11 @@ void Con_DrawConsole(float frac){
 
 	Con_Resize(&cl_con, r_state.width >> 4, (height >> 5) - 1);
 
-	if(con_alpha->value && cls.state == ca_active)  // draw alpha background
-		R_DrawFillAlpha(0, 0, r_state.width, height, 8, con_alpha->value);
+	// draw a background
+	if(frac < 1.0)
+		R_DrawFillAlpha(0, 0, r_state.width, height, 5, con_alpha->value);
+	else
+		R_DrawFill(0, 0, r_state.width, height, 0);
 
 	// draw the text
 	lines = cl_con.height;

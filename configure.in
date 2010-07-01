@@ -446,6 +446,8 @@ AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
 	src/client/Makefile
+	src/client/menu/Makefile
+	src/client/menu/node/Makefile
 	src/client/sound/Makefile
 	src/client/renderer/Makefile
 	src/server/Makefile

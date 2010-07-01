@@ -110,8 +110,8 @@ static void EmitLeaf(node_t *node){
 	leaf_p->area = node->area;
 
 	// write bounding box info
-	VectorCopy((short)node->mins, leaf_p->mins);
-	VectorCopy((short)node->maxs, leaf_p->maxs);
+	VectorCopy(node->mins, leaf_p->mins);
+	VectorCopy(node->maxs, leaf_p->maxs);
 
 	// write the leafbrushes
 	leaf_p->firstleafbrush = numleafbrushes;
@@ -209,8 +209,8 @@ static int EmitDrawNode_r(node_t * node){
 	n = &dnodes[numnodes];
 	numnodes++;
 
-	VectorCopy((short)node->mins, n->mins);
-	VectorCopy((short)node->maxs, n->maxs);
+	VectorCopy(node->mins, n->mins);
+	VectorCopy(node->maxs, n->maxs);
 
 	if(node->planenum & 1)
 		Error("EmitDrawNode_r: odd planenum\n");

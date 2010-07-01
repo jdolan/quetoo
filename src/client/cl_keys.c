@@ -22,6 +22,7 @@
 #include <ctype.h>
 
 #include "client.h"
+#include "menu/m_input.h"
 
 static char key_lines[KEY_HISTORYSIZE][KEY_LINESIZE];
 int key_linepos;
@@ -375,6 +376,7 @@ static int Cl_StringToKeynum(const char *str){
 
 	if(!str || !str[0])
 		return -1;
+
 	if(!str[1])
 		return str[0];
 
@@ -382,6 +384,7 @@ static int Cl_StringToKeynum(const char *str){
 		if(!strcasecmp(str, kn->name))
 			return kn->keynum;
 	}
+
 	return -1;
 }
 
@@ -399,6 +402,7 @@ static const char *Cl_KeynumToString(int keynum){
 
 	if(keynum == -1)
 		return "<KEY NOT FOUND>";
+
 	if(keynum > 32 && keynum < 127){  // printable ascii
 		s[0] = keynum;
 		s[1] = 0;
@@ -655,33 +659,58 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 	else
 		key_repeats[key] = 0;
 
-	if(key == K_ESCAPE && down){  // escape can cancel messagemode or score
+	if(key == K_ESCAPE && down){  // escape can cancel a few things
 
+		// message mode
 		if(cls.key_dest == key_message){
 			Cl_KeyMessage(key, unicode);
 			return;
 		}
 
+		// score
 		if(cl.frame.playerstate.stats[STAT_LAYOUTS]){
 			Cbuf_AddText("score\n");
 			return;
 		}
+
+		// console
+		if(cls.key_dest == key_console){
+			Cbuf_AddText("toggleconsole\n");
+			return;
+		}
+
+		// and menus
+		if(cls.key_dest == key_menu){
+
+			// if we're in the game, just hide the menus
+			if(cls.state == ca_active)
+				cls.key_dest = key_game;
+			// otherwise, pop back from a child menu
+			else
+				Cbuf_AddText("mn_pop\n");
+
+			return;
+		}
+
+		cls.key_dest = key_menu;
+		return;
 	}
 
-	// but usually escape and tilde are for toggling the console
-	if((unicode == '`' || unicode == '~' || unicode == K_ESCAPE) && down){
+	// tilde always toggles the console
+	if((unicode == '`' || unicode == '~') && down){
 		Con_ToggleConsole_f();
 		return;
 	}
 
 	// little hack for slow motion or fast forward demo playback
+	// TODO: move this to commands that can be bound
 	if(down && cl.demoserver && Com_ServerState() &&
 			(key == K_LEFTARROW || key == K_RIGHTARROW)){
 		extern cvar_t *timescale;
 
 		float ts = timescale->value + (key == K_LEFTARROW ? -0.25 : 0.25);
 
-		ts = ts < 0.5 ? 0.5 : ts;  // enforce reasonable bounds
+		ts = ts < 0.25 ? 0.25 : ts;  // enforce reasonable bounds
 		ts = ts > 4.0 ? 4.0 : ts;
 
 		Cvar_Set("timescale", va("%f", ts));
@@ -714,7 +743,8 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 		return;
 	}
 
-	// if not a consolekey, send to the interpreter no matter what mode is
+	// TODO: is the first part of this even necessary?
+	// if not a console key, send to the interpreter no matter what mode is
 	if((cls.key_dest == key_console && !key_forconsole[key]) ||
 			(cls.key_dest == key_game && (cls.state == ca_active || !key_forconsole[key]))){
 		kb = key_bindings[key];
@@ -732,12 +762,14 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 
 	if(!down)
 		return;  // other systems only care about key down events
-	
+
 	switch(cls.key_dest){
 		case key_message:
 			Cl_KeyMessage(key, unicode);
 			break;
-		case key_game:
+		case key_menu:
+			MN_KeyPressed(key, unicode);
+			break;
 		case key_console:
 			Cl_KeyConsole(key, unicode);
 			break;

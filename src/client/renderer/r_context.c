@@ -95,9 +95,16 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 	if((surface = SDL_SetVideoMode(width, height, 0, flags)) == NULL)
 		return false;
 
-	r_state.width = surface->w;
-	r_state.height = surface->h;
-	r_state.fullscreen = (surface->flags & SDL_FULLSCREEN);
+	r_state.width = width;
+	r_state.height = height;
+
+	r_state.fullscreen = fullscreen;
+
+	r_state.virtualWidth = width;
+	r_state.virtualHeight = height;
+
+	r_state.rx = (float)r_state.width / r_state.virtualWidth;
+	r_state.ry = (float)r_state.height / r_state.virtualHeight;
 
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r_state.redbits);
 	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &r_state.greenbits);
@@ -113,9 +120,6 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 	SDL_WM_SetCaption("Quake2World", "Quake2World");
 
 	SDL_EnableUNICODE(1);
-
-	if(fullscreen)
-		SDL_ShowCursor(false);
 
 	R_SetIcon();
 

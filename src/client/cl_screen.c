@@ -20,6 +20,7 @@
  */
 
 #include "client.h"
+#include "menu/m_draw.h"
 
 #define COLOR_HUD_STAT         CON_COLOR_DEFAULT
 #define COLOR_HUD_STAT_MED     CON_COLOR_YELLOW
@@ -227,35 +228,40 @@ static void Cl_CheckDrawCenterString(void){
 
 
 /*
+ * Cl_DrawRspeeds
+ */
+static void Cl_DrawRspeeds(void){
+	char rspeeds[128];
+
+	if(!r_speeds->value)
+		return;
+
+	if(cls.state != ca_active)
+		return;
+
+	sprintf(rspeeds, "%i bsp %i mesh %i lights %i parts",
+			r_view.bsp_polys, r_view.mesh_polys, r_view.num_lights, r_view.num_particles);
+
+	R_DrawString(r_state.width - strlen(rspeeds) * 16, 0, rspeeds, CON_COLOR_YELLOW);
+}
+
+
+/*
  * Cl_DrawConsoleOrNotify
  */
 static void Cl_DrawConsoleOrNotify(void){
 
-	if(cls.state == ca_disconnected || cls.state == ca_connecting){
-		if(cls.download.http)
+	if(cls.key_dest == key_console){
+
+		if(cls.state == ca_active)
 			Con_DrawConsole(0.5);
 		else
 			Con_DrawConsole(1.0);
-		return;
 	}
+	else {
+		Con_DrawNotify();
 
-	if(cls.key_dest == key_console || cls.state == ca_connected){
-		Con_DrawConsole(0.5);
-		return;
-	}
-
-	if(cls.key_dest == key_game || cls.key_dest == key_message)
-		Con_DrawNotify();  // only draw notify in game
-
-	// a little hacky, but because of where we want rspeeds to show up
-	// this is the best place for it
-	if(r_speeds->value){
-		char rspeeds[128];
-
-		sprintf(rspeeds, "%i bsp %i mesh %i lights %i parts",
-				r_view.bsp_polys, r_view.mesh_polys, r_view.num_lights, r_view.num_particles);
-
-		R_DrawString(r_state.width - strlen(rspeeds) * 16, 0, rspeeds, CON_COLOR_YELLOW);
+		Cl_DrawRspeeds();
 	}
 }
 
@@ -556,7 +562,7 @@ static void Cl_DrawLayout(void){
 	if(!cl.frame.playerstate.stats[STAT_LAYOUTS])
 		return;
 
-	if(cls.key_dest == key_console)
+	if(cls.key_dest == key_console || cls.key_dest == key_menu)
 		return;
 
 	Cl_ExecuteLayoutString(cl.layout);
@@ -668,6 +674,19 @@ static void Cl_DrawBlend(void){
 
 
 /*
+ * Cl_DrawMenus
+ */
+static void Cl_DrawMenus(void){
+
+	if(cls.key_dest != key_menu)
+		return;
+
+	MN_Draw();
+
+	R_DrawPic(cls.mouse_state.x, cls.mouse_state.y, "ui/cursor");
+}
+
+/*
  * Cl_UpdateScreen
  *
  * This is called every frame, and can also be called explicitly to flush
@@ -687,25 +706,30 @@ void Cl_UpdateScreen(void){
 
 		R_Setup2D();
 
-		Cl_DrawTeamBanner();
+		if(cls.key_dest != key_menu){
 
-		Cl_DrawNetgraph();
+			Cl_DrawTeamBanner();
 
-		Cl_DrawCrosshair();
+			Cl_DrawNetgraph();
 
-		Cl_DrawStats();
+			Cl_DrawCrosshair();
 
-		Cl_DrawLayout();
+			Cl_DrawStats();
 
-		Cl_CheckDrawCenterString();
+			Cl_DrawLayout();
 
-		Cl_DrawCounters();
+			Cl_CheckDrawCenterString();
 
-		Cl_DrawBlend();
+			Cl_DrawCounters();
+
+			Cl_DrawBlend();
+		}
 	}
 	else {
 		R_Setup2D();
 	}
+
+	Cl_DrawMenus();
 
 	Cl_DrawConsoleOrNotify();
 

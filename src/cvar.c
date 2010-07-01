@@ -41,7 +41,7 @@ static qboolean Cvar_InfoValidate(const char *s){
 /*
  * Cvar_FindVar
  */
-static cvar_t *Cvar_FindVar(const char *var_name){
+cvar_t *Cvar_FindVar(const char *var_name){
 	cvar_t *var;
 
 	for(var = cvar_vars; var; var = var->next)

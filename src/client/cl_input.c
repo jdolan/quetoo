@@ -23,6 +23,7 @@
 
 #include "client.h"
 #include "keys.h"
+#include "menu/m_input.h"
 
 static cvar_t *cl_run;
 
@@ -54,14 +55,6 @@ static int keyq_tail = 0;
 		keyq_head = (keyq_head + 1) & (MAX_KEYQ - 1); \
 	}
 
-// mouse vars
-static qboolean mouse_active;
-float mouse_x, mouse_y;
-static float old_mouse_x, old_mouse_y;
-
-void Key_SetDest(int dest) {
-
-}
 
 /*
  * KEY BUTTONS
@@ -515,6 +508,21 @@ static void Cl_HandleEvent(SDL_Event *event){
 					key = K_AUX1 + (event->button.button - 8) % 16;
 					break;
 			}
+
+			if(cls.key_dest == key_menu) {
+				int x, y;
+
+				x = cls.mouse_state.x / r_state.rx;
+				y = cls.mouse_state.y / r_state.ry;
+
+				if(event->type == SDL_MOUSEBUTTONUP)
+					MN_MouseUp(x, y, key);
+				else
+					MN_MouseDown(x, y, key);
+
+				break;
+			}
+
 			EVENT_ENQUEUE(key, key, (event->type == SDL_MOUSEBUTTONDOWN))
 			break;
 
@@ -544,29 +552,49 @@ static void Cl_HandleEvent(SDL_Event *event){
  */
 static void Cl_MouseMove(int mx, int my){
 
-	if(m_interpolate->value){
-		mouse_x = (mx + old_mouse_x) * 0.5;
-		mouse_y = (my + old_mouse_y) * 0.5;
-	} else {
-		mouse_x = mx;
-		mouse_y = my;
+	if(m_sensitivity->modified) {  // clamp sensitivity
+
+		if(m_sensitivity->value < 0.1){
+			m_sensitivity->value = 3.0f;
+		}
+		else if(m_sensitivity->value > 20.0f){
+			m_sensitivity->value = 3.0f;
+		}
+
+		m_sensitivity->modified = false;
 	}
 
-	old_mouse_x = mx;
-	old_mouse_y = my;
+	if(m_interpolate->value){  // interpolate movements
+		cls.mouse_state.x = (mx + cls.mouse_state.old_x) * 0.5;
+		cls.mouse_state.y = (my + cls.mouse_state.old_y) * 0.5;
+	} else {
+		cls.mouse_state.x = mx;
+		cls.mouse_state.y = my;
+	}
 
-	if(mouse_x || mouse_y){
-		if(cls.state == ca_active){
-			mouse_x *= m_sensitivity->value;
-			mouse_y *= m_sensitivity->value;
+	cls.mouse_state.old_x = mx;
+	cls.mouse_state.old_y = my;
 
-			if(m_invert->value)  // invert mouse
-				mouse_y = -mouse_y;
+	// for active, connected players, add it to their move
+	if(cls.state == ca_active && cls.key_dest == key_game){
 
-			// add horizontal and vertical movement
-			cl.angles[YAW] -= m_yaw->value * mouse_x;
-			cl.angles[PITCH] += m_pitch->value * mouse_y;
-		}
+		cls.mouse_state.x -= r_state.width / 2;  // first normalize to center
+		cls.mouse_state.y -= r_state.height / 2;
+
+		cls.mouse_state.x *= m_sensitivity->value;  // then amplify
+		cls.mouse_state.y *= m_sensitivity->value;
+
+		if(m_invert->value)  // and finally invert
+			cls.mouse_state.y = -cls.mouse_state.y;
+
+		// add horizontal and vertical movement
+		cl.angles[YAW] -= m_yaw->value * cls.mouse_state.x;
+		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
+	}
+
+	if(cls.key_dest != key_menu){
+		// warp the cursor back to the center of the screen
+		SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
 	}
 }
 
@@ -581,53 +609,32 @@ void Cl_HandleEvents(void){
 		return;
 
 	// handle key events
-	while(SDL_PollEvent(&event))
+	while(SDL_PollEvent(&event)){
 		Cl_HandleEvent(&event);
+	}
 
-	if(cls.key_dest == key_console){
-		if(mouse_active){  // yield cursor to os
+	if(cls.key_dest == key_console){  // yield cursor
+		if(!r_state.fullscreen){
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
+			SDL_ShowCursor(true);
 
-			if(!r_state.fullscreen)
-				SDL_ShowCursor(true);
-
-			mouse_active = false;
+			cls.mouse_state.active = false;
 		}
 	} else {
-		if(!mouse_active){  // or take it back
+		if(!cls.mouse_state.active){  // or take it back
 			SDL_WM_GrabInput(SDL_GRAB_ON);
 			SDL_ShowCursor(false);
 
-			mouse_active = true;
+			cls.mouse_state.active = true;
 		}
 	}
 
-	if(mouse_active){  // check for movement
+	if(cls.mouse_state.active){  // check for movement
 		int mx, my;
+
 		SDL_GetMouseState(&mx, &my);
 
-		if(cls.state == ca_active){
-			mx -= r_state.width / 2;  // normalize to center
-			my -= r_state.height / 2;
-
-			if(m_sensitivity->modified) {
-				// invalid or unreasonable value - set back to sane value
-				if (m_sensitivity->value < 0.1)
-					m_sensitivity->value = 3.0f;
-				else if (m_sensitivity->value > 20.0f)
-					m_sensitivity->value = 3.0f;
-				m_sensitivity->modified = false;
-			}
-		}
-
-		if(mx || my){  // mouse has moved
-			Cl_MouseMove(mx, my);
-
-			// if the player is active, warp to center
-			if(cls.state == ca_active)
-				SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
-		}
-
+		Cl_MouseMove(mx, my);
 	}
 
 	while(keyq_head != keyq_tail){  // then check for keys

@@ -321,6 +321,17 @@ static void R_RenderMode(const char *mode){
 	}
 }
 
+static inline void R_Clear(void){
+
+	// clear screen if desired
+	if(r_clear->value || r_showpolys->value || r_view.x || r_view.y || !r_view.ready)
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	else
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+	glDepthFunc(GL_LEQUAL);
+	glDepthRange(0.0f, 1.0f);
+}
 
 /*
  * R_BeginFrame
@@ -372,11 +383,7 @@ void R_BeginFrame(void){
 		r_threads->modified = false;
 	}
 
-	// clear screen if desired
-	if(r_clear->value || r_showpolys->value || r_view.x || r_view.y || !r_view.ready)
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	else
-		glClear(GL_DEPTH_BUFFER_BIT);
+	R_Clear();
 }
 
 

@@ -48,6 +48,8 @@ typedef enum rendermode_s {
 typedef struct renderer_state_s {
 	int width, height;
 	qboolean fullscreen;
+	int virtualHeight, virtualWidth;
+	float rx, ry;
 
 	int redbits, greenbits, bluebits, alphabits;
 	int depthbits, doublebits;

@@ -734,3 +734,16 @@ void R_ShutdownImages(void){
 
 	r_numimages = 0;
 }
+
+void R_DrawImageArray(float image_texcoords[8], short image_verts[8], const image_t *image){
+	R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, image_verts);
+	R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, image_texcoords);
+
+	R_BindTexture(image->texnum);
+
+	glDrawArrays(GL_QUADS, 0, 4);
+
+	/* and restore them */
+	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+	R_BindDefaultArray(GL_VERTEX_ARRAY);
+}

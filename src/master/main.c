@@ -30,7 +30,7 @@
 # include <sys/socket.h>
 # include <unistd.h>
 
-#include "../common.h"
+#include "common.h"
 
 typedef struct server_s {
 	struct server_s *prev;

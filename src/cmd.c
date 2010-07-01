@@ -375,6 +375,7 @@ typedef struct cmd_function_s {
 	const char *name;
 	xcommand_t function;
 	const char *description;
+	void *userdata;
 } cmd_function_t;
 
 
@@ -382,6 +383,7 @@ static int cmd_argc;
 static char *cmd_argv[MAX_STRING_TOKENS];
 static char *cmd_null_string = "";
 static char cmd_args[MAX_STRING_CHARS];
+static void *cmd_userdata;
 
 static cmd_function_t *cmd_functions;  // possible commands to execute
 
@@ -484,6 +486,37 @@ void Cmd_TokenizeString(const char *text){
 	}
 }
 
+/*
+ * Cmd_Exists
+ */
+qboolean Cmd_Exists(const char *cmd_name){
+	cmd_function_t *cmd;
+
+	for(cmd = cmd_functions; cmd; cmd = cmd->next){
+		if(!strcmp(cmd_name, cmd->name)){
+			return true;
+		}
+	}
+	return false;
+}
+
+void Cmd_AddUserdata(const char *cmd_name, void *userdata){
+	cmd_function_t *cmd;
+
+	if(!cmd_name || !cmd_name[0])
+		return;
+
+	for(cmd = cmd_functions; cmd; cmd = cmd->next){
+		if(!strcmp(cmd_name, cmd->name)){
+			cmd->userdata = userdata;
+			return;
+		}
+	}
+}
+
+void *Cmd_Userdata(void){
+	return cmd_userdata;
+}
 
 /*
  * Cmd_AddCommand
@@ -497,12 +530,9 @@ void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *descr
 		return;
 	}
 
-	// fail if the command already exists
-	for(cmd = cmd_functions; cmd; cmd = cmd->next){
-		if(!strcmp(cmd_name, cmd->name)){
-			Com_Dprintf("Cmd_AddCommand: %s already defined\n", cmd_name);
-			return;
-		}
+	if(Cmd_Exists(cmd_name)) {
+		Com_Dprintf("Cmd_AddCommand: %s already defined\n", cmd_name);
+		return;
 	}
 
 	cmd = Z_Malloc(sizeof(*cmd));
@@ -610,8 +640,10 @@ void Cmd_ExecuteString(const char *text){
 		return;  // no tokens
 
 	if((cmd = Com_HashValue(&cmd_hashtable, cmd_argv[0]))){
-		if(cmd->function)  // forward to server command
+		if(cmd->function) {
+			cmd_userdata = cmd->userdata;
 			cmd->function();
+		}
 		else if(!dedicated->value)
 			Cmd_ForwardToServer();
 		return;

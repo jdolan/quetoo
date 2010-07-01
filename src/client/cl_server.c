@@ -20,7 +20,7 @@
  */
 
 #include "client.h"
-
+#include "menu/m_data.h"
 
 /*
  * Cl_AddServer
@@ -34,9 +34,27 @@ static server_info_t *Cl_AddServer(const netadr_t *adr){
 	cls.servers = s;
 
 	s->adr = *adr;
-	s->id = cls.server_id++;
 
 	return s;
+}
+
+
+/*
+ * Cl_NumServers
+ */
+static int Cl_NumServers(void){
+	server_info_t *s;
+	int i;
+
+	s = cls.servers;
+	i = 0;
+
+	while(s){
+		s = s->next;
+		i++;
+	}
+
+	return i;
 }
 
 
@@ -94,15 +112,13 @@ void Cl_FreeServers(void){
 		Z_Free(s);
 		s = next;
 	}
-
-	cls.server_id = 0;
 }
 
 
 /*
  * Cl_ServerSourceName
  */
-static inline char *Cl_ServerSourceName(server_source_t source){
+static char *Cl_ServerSourceName(server_source_t source){
 
 	switch(source){
 		case SERVER_SOURCE_INTERNET:
@@ -118,25 +134,41 @@ static inline char *Cl_ServerSourceName(server_source_t source){
 
 
 /*
+ * Cl_ServerSourceColor
+ */
+static int Cl_ServerSourceColor(server_source_t source){
+
+	switch(source){
+		case SERVER_SOURCE_INTERNET:
+			return CON_COLOR_GREEN;
+		case SERVER_SOURCE_USER:
+			return CON_COLOR_BLUE;
+		case SERVER_SOURCE_BCAST:
+			return CON_COLOR_YELLOW;
+		default:
+			return CON_COLOR_DEFAULT;
+	}
+}
+
+
+/*
  * Cl_ParseStatusMessage
  */
 void Cl_ParseStatusMessage(void){
 	server_info_t *server;
-	char *c;
+	char *c, line[128];
 	const char *source;
+	int i, color;
 
 	server = Cl_ServerForAdr(&net_from);
 
 	if(!server){  // unknown server, assumed response to broadcast
+
 		server = Cl_AddServer(&net_from);
 
 		server->source = SERVER_SOURCE_BCAST;
 		server->pingtime = cls.bcasttime;
 	}
-
-	server->num = cls.server_num++;
-
-	source = Cl_ServerSourceName(server->source);
 
 	strncpy(server->info, Msg_ReadString(&net_message), sizeof(server->info) - 1);
 
@@ -148,8 +180,34 @@ void Cl_ParseStatusMessage(void){
 	if(server->ping > 1000)  // clamp the ping
 		server->ping = 999;
 
-	Com_Printf("^3%02d^7. %8s %s  %3dms\n", server->num, source,
-			server->info, server->ping);
+	// rebuild the servers text buffer
+	if(cls.servers_text)
+		Z_Free(cls.servers_text);
+
+	cls.servers_text = Z_Malloc(Cl_NumServers() * sizeof(line));
+
+	server = cls.servers;
+	i = 0;
+	while(server){
+
+		if (server->ping) {  // only include ones which responded
+
+			source = Cl_ServerSourceName(server->source);
+
+			color = Cl_ServerSourceColor(server->source);
+
+			snprintf(line, sizeof(line), "^%d%-8s ^7%-44s %3dms\n",
+					color, source, server->info, server->ping);
+
+			strcat(cls.servers_text, line);
+
+			server->num = i++;
+		}
+
+		server = server->next;
+	}
+
+	MN_RegisterText(TEXT_LIST, cls.servers_text);
 }
 
 
@@ -159,49 +217,33 @@ void Cl_ParseStatusMessage(void){
 void Cl_Ping_f(void){
 	netadr_t adr;
 	server_info_t *server;
-	int i;
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <address|num>\n", Cmd_Argv(0));
+		Com_Printf("Usage: %s <address>\n", Cmd_Argv(0));
 		return;
 	}
 
 	server = NULL;
 
-	i = atoi(Cmd_Argv(1));
-	if(i > 0 && !strchr(Cmd_Argv(1), '.')){  // try numeric reference
-
-		server = Cl_ServerForNum(i);
-
-		if(!server){
-			Com_Printf("Invalid server number\n");
-			return;
-		}
-	}
-	else {  // try hostname or ip
-		if(!Net_StringToAdr(Cmd_Argv(1), &adr)){
-			Com_Printf("Invalid address\n");
-			return;
-		}
-
-		if(!adr.port)  // use default
-			adr.port = (unsigned short)BigShort(PORT_SERVER);
-
-		server = Cl_ServerForAdr(&adr);
-
-		if(!server){  // add it
-			server = Cl_AddServer(&adr);
-			server->source = SERVER_SOURCE_USER;
-		}
+	if(!Net_StringToAdr(Cmd_Argv(1), &adr)){
+		Com_Printf("Invalid address\n");
+		return;
 	}
 
-	cls.server_num = 1;
+	if(!adr.port)  // use default
+		adr.port = (unsigned short)BigShort(PORT_SERVER);
+
+	server = Cl_ServerForAdr(&adr);
+
+	if(!server){  // add it
+		server = Cl_AddServer(&adr);
+		server->source = SERVER_SOURCE_USER;
+	}
 
 	server->pingtime = cls.realtime;
+	server->ping = 0;
 
 	Com_Printf("Pinging %s\n", Net_AdrToString(server->adr));
-	Com_Printf("^3#^7   Source   Hostname                 Map          Clients Ping\n");
-	Com_Printf("----------------------------------------------------------------\n");
 
 	Netchan_OutOfBandPrint(NS_CLIENT, server->adr, "info %i", PROTOCOL);
 }
@@ -220,8 +262,10 @@ static void Cl_SendBroadcast(void){
 
 	while(server){  // update old pingtimes
 
-		if(server->source == SERVER_SOURCE_BCAST)
+		if(server->source == SERVER_SOURCE_BCAST){
 			server->pingtime = cls.bcasttime;
+			server->ping = 0;
+		}
 
 		server = server->next;
 	}
@@ -243,11 +287,7 @@ void Cl_Servers_f(void){
 		return;
 	}
 
-	cls.server_num = 1;
-
-	Com_Printf("Refreshing servers.  Type ^3connect #^7 to join a game.\n");
-	Com_Printf("^3#^7   Source   Hostname                 Map          Clients Ping\n");
-	Com_Printf("----------------------------------------------------------------\n");
+	Com_Printf("Refreshing servers.\n");
 
 	adr.type = NA_IP;
 	adr.port = (unsigned short)BigShort(PORT_MASTER);
@@ -270,7 +310,7 @@ void Cl_ParseServersList(void){
 	char s[32];
 
 	buffptr = net_message.data + 12;
-	buffend = buffptr + net_message.cursize;
+	buffend = buffptr + net_message.cursize - 12;
 
 	// parse the list
 	while(buffptr + 1 < buffend){
@@ -310,6 +350,8 @@ void Cl_ParseServersList(void){
 
 		if(server->source == SERVER_SOURCE_INTERNET){
 			server->pingtime = cls.realtime;
+			server->ping = 0;
+
 			Netchan_OutOfBandPrint(NS_CLIENT, server->adr, "info %i", PROTOCOL);
 		}
 

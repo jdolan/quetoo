@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "../client.h"
-#include "../../hash.h"
+#include "client.h"
+#include "hash.h"
 
 #define MAX_CHARS 8192
 
@@ -159,6 +159,14 @@ void R_DrawChars(void){
 
 
 /*
+ * R_StringWidth
+ */
+int R_StringWidth(const char *s){
+	return strlen(s) * 16;
+}
+
+
+/*
  * R_DrawString
  */
 int R_DrawString(int x, int y, const char *s, int color){
@@ -169,7 +177,7 @@ int R_DrawString(int x, int y, const char *s, int color){
 /*
  * R_DrawBytes
  */
-int R_DrawBytes(int x, int y, const char *s, int size, int color){
+int R_DrawBytes(int x, int y, const char *s, size_t size, int color){
 	return R_DrawSizedString(x, y, s, size, size, color);
 }
 
@@ -180,7 +188,7 @@ int R_DrawBytes(int x, int y, const char *s, int size, int color){
  * Draws at most len chars or size bytes of the specified string.  Color escape
  * sequences are not visible chars.  Returns the number of chars drawn.
  */
-int R_DrawSizedString(int x, int y, const char *s, int len, int size, int color){
+int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int color){
 	int i, j;
 
 	i = j = 0;
@@ -293,22 +301,25 @@ void R_DrawPic(int x, int y, const char *name){
 
 /*
  * R_DrawFillAlpha
+ *
+ * The color can be specified as an index into the palette with positive alpha
+ * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
 void R_DrawFillAlpha(int x, int y, int w, int h, int c, float a){
 	byte color[4];
 
-	if(c > 255 || c < 0){
-		Com_Warn("R_DrawFillAlpha: Bad color %d.\n", c);
-		return;
-	}
-
-	if(a > 1.0 || a < 0.0){
+	if(a > 1.0){
 		Com_Warn("R_DrawFillAlpha: Bad alpha %f.\n", a);
 		return;
 	}
 
-	memcpy(&color, &palette[c], sizeof(color));
-	color[3] = a * 255;
+	if(a < 0.0){  // RGBA integer
+		memcpy(&color, &c, 4);
+	}
+	else {  // palette index
+		memcpy(&color, &palette[c], sizeof(color));
+		color[3] = a * 255;
+	}
 
 	// duplicate color data to all 4 verts
 	memcpy(&fill_colors[fcolind +  0], color, 4);
@@ -367,4 +378,49 @@ void R_DrawFillAlphas(void){
 	R_EnableTexture(&texunit_diffuse, true);
 
 	fvertind = fcolind = 0;
+}
+
+
+/**
+ * @brief Draws a rect to the screen. Also has support for stippled rendering of the rect.
+ *
+ * @param[in] x X-position of the rect
+ * @param[in] y Y-position of the rect
+ * @param[in] w Width of the rect
+ * @param[in] h Height of the rect
+ * @param[in] color RGBA color of the rect
+ * @param[in] lineWidth Line strength in pixel of the rect
+ * @param[in] pattern Specifies a 16-bit integer whose bit pattern determines
+ * which fragments of a line will be drawn when the line is rasterized.
+ * Bit zero is used first; the default pattern is all 1's
+ * @note The stipple factor is @c 2 for this function
+ */
+void R_DrawRect (int x, int y, int w, int h, const vec4_t color,
+		float lineWidth, int pattern)
+{
+	const float nx = x * r_state.rx;
+	const float ny = y * r_state.ry;
+	const float nw = w * r_state.rx;
+	const float nh = h * r_state.ry;
+
+	glColor4fv(color);
+
+	glDisable(GL_TEXTURE_2D);
+	glLineWidth(lineWidth);
+	glLineStipple(2, pattern);
+	glEnable(GL_LINE_STIPPLE);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(nx, ny);
+	glVertex2f(nx + nw, ny);
+	glVertex2f(nx + nw, ny + nh);
+	glVertex2f(nx, ny + nh);
+	glEnd();
+
+	glEnable(GL_TEXTURE_2D);
+	glLineWidth(1.0f);
+	glDisable(GL_LINE_STIPPLE);
+
+	// restore draw color
+	glColor4ubv(color_white);
 }
