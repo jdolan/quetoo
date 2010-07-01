@@ -500,6 +500,10 @@ qboolean Cmd_Exists(const char *cmd_name){
 	return false;
 }
 
+
+/*
+ * Cmd_AddUserdata
+ */
 void Cmd_AddUserdata(const char *cmd_name, void *userdata){
 	cmd_function_t *cmd;
 
@@ -514,9 +518,14 @@ void Cmd_AddUserdata(const char *cmd_name, void *userdata){
 	}
 }
 
+
+/*
+ * Cmd_Userdata
+ */
 void *Cmd_Userdata(void){
 	return cmd_userdata;
 }
+
 
 /*
  * Cmd_AddCommand
