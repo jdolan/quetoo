@@ -145,24 +145,27 @@ void MN_DrawNormImage (float x, float y, float w, float h, float sh, float th, f
 		x2 += nh;
 	}
 
-	imageTexcoords[0] = sl;
-	imageTexcoords[1] = tl;
-	imageTexcoords[2] = sh;
-	imageTexcoords[3] = tl;
-	imageTexcoords[4] = sh;
-	imageTexcoords[5] = th;
-	imageTexcoords[6] = sl;
-	imageTexcoords[7] = th;
-	imageVerts[0] = x1;
-	imageVerts[1] = y1;
-	imageVerts[2] = x2;
-	imageVerts[3] = y2;
-	imageVerts[4] = x3;
-	imageVerts[5] = y3;
-	imageVerts[6] = x4;
-	imageVerts[7] = y4;
+	texunit_diffuse.texcoord_array[0] = sl;
+	texunit_diffuse.texcoord_array[1] = tl;
+	texunit_diffuse.texcoord_array[2] = sh;
+	texunit_diffuse.texcoord_array[3] = tl;
+	texunit_diffuse.texcoord_array[4] = sh;
+	texunit_diffuse.texcoord_array[5] = th;
+	texunit_diffuse.texcoord_array[6] = sl;
+	texunit_diffuse.texcoord_array[7] = th;
 
-	R_DrawImageArray(imageTexcoords, imageVerts, image);
+	r_state.vertex_array_2d[0] = x1;
+	r_state.vertex_array_2d[1] = y1;
+	r_state.vertex_array_2d[2] = x2;
+	r_state.vertex_array_2d[3] = y2;
+	r_state.vertex_array_2d[4] = x3;
+	r_state.vertex_array_2d[5] = y3;
+	r_state.vertex_array_2d[6] = x4;
+	r_state.vertex_array_2d[7] = y4;
+
+	R_BindTexture(image->texnum);
+
+	glDrawArrays(GL_QUADS, 0, 4);
 }
 
 /**

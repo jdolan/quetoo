@@ -101,6 +101,5 @@ void R_InitImages(void);
 void R_FreeImage(image_t *image);
 void R_FreeImages(void);
 void R_ShutdownImages(void);
-void R_DrawImageArray(float image_texcoords[8], short image_verts[8], const image_t *image);
 
 #endif /* __R_IMAGE_H__ */

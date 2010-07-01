@@ -321,6 +321,10 @@ static void R_RenderMode(const char *mode){
 	}
 }
 
+
+/*
+ * R_Clear
+ */
 static inline void R_Clear(void){
 
 	// clear screen if desired
@@ -328,9 +332,6 @@ static inline void R_Clear(void){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	else
 		glClear(GL_DEPTH_BUFFER_BIT);
-
-	glDepthFunc(GL_LEQUAL);
-	glDepthRange(0.0f, 1.0f);
 }
 
 /*
