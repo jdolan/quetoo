@@ -252,11 +252,7 @@ static void Cl_DrawRspeeds(void){
 static void Cl_DrawConsoleOrNotify(void){
 
 	if(cls.key_dest == key_console){
-
-		if(cls.state == ca_active)
-			Con_DrawConsole(0.5);
-		else
-			Con_DrawConsole(1.0);
+		Con_DrawConsole(1.0);
 	}
 	else {
 		Con_DrawNotify();
@@ -682,6 +678,18 @@ static void Cl_DrawMenus(void){
 		return;
 
 	MN_Draw();
+}
+
+/*
+ * Cl_DrawCursor
+ */
+static void Cl_DrawCursor(void){
+
+	if(cls.key_dest != key_menu && cls.mouse_state.grabbed)
+		return;
+
+	if(!(SDL_GetAppState() & SDL_APPMOUSEFOCUS))
+		return;
 
 	R_DrawPic(cls.mouse_state.x, cls.mouse_state.y, "ui/cursor");
 }
@@ -706,7 +714,7 @@ void Cl_UpdateScreen(void){
 
 		R_Setup2D();
 
-		if(cls.key_dest != key_menu){
+		if(cls.key_dest != key_console && cls.key_dest != key_menu){
 
 			Cl_DrawTeamBanner();
 
@@ -736,6 +744,8 @@ void Cl_UpdateScreen(void){
 	R_DrawFillAlphas();  // draw all fills accumulated above
 
 	R_DrawChars();  // draw all chars accumulated above
+
+	Cl_DrawCursor();
 
 	R_EndFrame();
 }

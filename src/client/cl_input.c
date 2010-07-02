@@ -592,7 +592,7 @@ static void Cl_MouseMove(int mx, int my){
 		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
 	}
 
-	if(cls.key_dest != key_menu){
+	if(cls.key_dest != key_menu && cls.mouse_state.grabbed){
 		// warp the cursor back to the center of the screen
 		SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
 	}
@@ -603,7 +603,9 @@ static void Cl_MouseMove(int mx, int my){
  * Cl_HandleEvents
  */
 void Cl_HandleEvents(void){
+	static int throwaway = 0;
 	SDL_Event event;
+	int mx, my;
 
 	if(!SDL_WasInit(SDL_INIT_VIDEO))
 		return;
@@ -613,29 +615,32 @@ void Cl_HandleEvents(void){
 		Cl_HandleEvent(&event);
 	}
 
-	if(cls.key_dest == key_console){  // yield cursor
+	if(cls.key_dest == key_console || cls.key_dest == key_menu){
 		if(!r_state.fullscreen){
+			// allow cursor to move outside window on console or menu
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
-			SDL_ShowCursor(true);
-
-			cls.mouse_state.active = false;
+			cls.mouse_state.grabbed = false;
 		}
 	} else {
-		if(!cls.mouse_state.active){  // or take it back
+		if(!cls.mouse_state.grabbed){
+			// grab the cursor for everything else
 			SDL_WM_GrabInput(SDL_GRAB_ON);
-			SDL_ShowCursor(false);
-
-			cls.mouse_state.active = true;
+			cls.mouse_state.grabbed = true;
+			throwaway = 2;
 		}
 	}
 
-	if(cls.mouse_state.active){  // check for movement
-		int mx, my;
+	SDL_GetMouseState(&mx, &my);
 
-		SDL_GetMouseState(&mx, &my);
-
-		Cl_MouseMove(mx, my);
+	if (throwaway) {
+		// ignore crappy values after SDL grabs mouse
+		// http://bugzilla.libsdl.org/show_bug.cgi?id=341
+		throwaway--;
+		mx = r_state.width / 2;
+		my = r_state.height / 2;
 	}
+
+	Cl_MouseMove(mx, my);
 
 	while(keyq_head != keyq_tail){  // then check for keys
 		Cl_KeyEvent(keyq[keyq_tail].key, keyq[keyq_tail].unicode, keyq[keyq_tail].down, cls.realtime);
@@ -766,4 +771,7 @@ void Cl_InitInput(void){
 	m_invert = Cvar_Get("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
 	m_pitch = Cvar_Get("m_pitch", "0.022", 0, NULL);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
+
+	// don't show cursor because the game will draw one
+	SDL_ShowCursor(false);
 }

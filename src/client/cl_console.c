@@ -217,7 +217,7 @@ void Con_DrawConsole(float frac){
 	Con_Resize(&cl_con, r_state.width >> 4, (height >> 5) - 1);
 
 	// draw a background
-	if(frac < 1.0)
+	if(cls.state == ca_active)
 		R_DrawFillAlpha(0, 0, r_state.width, height, 5, con_alpha->value);
 	else
 		R_DrawFill(0, 0, r_state.width, height, 0);

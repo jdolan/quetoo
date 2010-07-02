@@ -152,7 +152,7 @@ typedef enum {
 typedef struct {
 	float x, y;
 	float old_x, old_y;
-	qboolean active;
+	qboolean grabbed;
 } mousestate_t;
 
 typedef struct {
