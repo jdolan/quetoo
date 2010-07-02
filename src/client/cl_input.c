@@ -771,7 +771,6 @@ void Cl_InitInput(void){
 	m_invert = Cvar_Get("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
 	m_pitch = Cvar_Get("m_pitch", "0.022", 0, NULL);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
-
-	// don't show cursor because the game will draw one
-	SDL_ShowCursor(false);
+	
+	cls.mouse_state.grabbed = true;
 }

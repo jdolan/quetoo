@@ -119,6 +119,9 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 
 	SDL_WM_SetCaption("Quake2World", "Quake2World");
 
+	// don't show SDL cursor because the game will draw one
+	SDL_ShowCursor(false);
+	
 	SDL_EnableUNICODE(1);
 
 	R_SetIcon();
