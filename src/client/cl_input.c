@@ -603,6 +603,7 @@ static void Cl_MouseMove(int mx, int my){
  * Cl_HandleEvents
  */
 void Cl_HandleEvents(void){
+	static keydest_t prev_key_dest;
 	static int throwaway = 0;
 	SDL_Event event;
 	int mx, my;
@@ -626,15 +627,21 @@ void Cl_HandleEvents(void){
 			// grab the cursor for everything else
 			SDL_WM_GrabInput(SDL_GRAB_ON);
 			cls.mouse_state.grabbed = true;
+
+			// ignore crappy values after SDL grabs mouse
+			// http://bugzilla.libsdl.org/show_bug.cgi?id=341
 			throwaway = 2;
 		}
+		else if(prev_key_dest == key_menu){
+			// ignore mouse position from menu
+			throwaway = 1;
+		}
 	}
+	prev_key_dest = cls.key_dest;
 
 	SDL_GetMouseState(&mx, &my);
 
 	if (throwaway) {
-		// ignore crappy values after SDL grabs mouse
-		// http://bugzilla.libsdl.org/show_bug.cgi?id=341
 		throwaway--;
 		mx = r_state.width / 2;
 		my = r_state.height / 2;
