@@ -91,6 +91,8 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 
 	if(fullscreen)
 		flags |= SDL_FULLSCREEN;
+	else
+		flags |= SDL_RESIZABLE;
 
 	if((surface = SDL_SetVideoMode(width, height, 0, flags)) == NULL)
 		return false;

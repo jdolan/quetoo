@@ -543,6 +543,12 @@ static void Cl_HandleEvent(SDL_Event *event){
 		case SDL_QUIT:
 			Cmd_ExecuteString("quit");
 			break;
+
+		case SDL_VIDEORESIZE:
+			Cvar_SetValue("r_windowedwidth", event->resize.w);
+			Cvar_SetValue("r_windowedheight", event->resize.h);
+			Cmd_ExecuteString("r_restart");
+			break;
 	}
 }
 
