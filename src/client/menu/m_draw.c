@@ -110,7 +110,7 @@ static void MN_HighlightNode (const menuNode_t *node, const vec4_t color)
 	}
 
 	/* bounded box */
-	R_DrawRect(pos[0] - 1, pos[1] - 1, node->size[0] + 2, node->size[1] + 2, color, 2.0, 0x3333);
+	MN_DrawRect(pos[0] - 1, pos[1] - 1, node->size[0] + 2, node->size[1] + 2, color, 2.0, 0x3333);
 }
 
 /**
@@ -184,7 +184,7 @@ static void MN_DrawNode (menuNode_t *node)
 			MN_DrawFill(pos[0], pos[1], node->size[0], node->size[1], ALIGN_UL, node->bgcolor);
 
 		if (node->border && node->bordercolor[3] != 0) {
-			R_DrawRect(pos[0], pos[1], node->size[0], node->size[1],
+			MN_DrawRect(pos[0], pos[1], node->size[0], node->size[1],
 				node->bordercolor, node->border, 0xFFFF);
 		}
 	}

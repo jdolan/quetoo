@@ -31,19 +31,46 @@
  */
 void MN_DrawFill (int x, int y, int w, int h, int align, const vec4_t color)
 {
-	int c;
+	int c, r, g, b, a;
 
 	x *= r_state.rx;
 	y *= r_state.ry;
 	w *= r_state.rx;
 	h *= r_state.ry;
 
-	c = 	((int)(color[3] * 255.0) <<  0) +
-			((int)(color[2] * 255.0) <<  8) +
-			((int)(color[1] * 255.0) << 16) +
-			((int)(color[0] * 255.0) << 24);
+	r = color[0] * 255.0;
+	g = color[1] * 255.0;
+	b = color[2] * 255.0;
+	a = color[3] * 255.0;
 
-	R_DrawFillAlpha(x, y, w, h, c, -1.0);
+	c = (r <<  0) + (g <<  8) + (b << 16) + (a << 24);
+
+	R_DrawFill(x, y, w, h, c, -1.0);
+}
+
+/**
+ * @brief Draws a box of pixels with a single color
+ */
+void MN_DrawRect (int x, int y, int w, int h, const vec4_t color, float lineWidth, int pattern)
+{
+	int c, r, g, b, a;
+
+	x *= r_state.rx;
+	y *= r_state.ry;
+	w *= r_state.rx;
+	h *= r_state.ry;
+
+	r = color[0] * 255.0;
+	g = color[1] * 255.0;
+	b = color[2] * 255.0;
+	a = color[3] * 255.0;
+
+	c = (r <<  0) + (g <<  8) + (b << 16) + (a << 24);
+
+	R_DrawLine(x, y, x + w, y, c, -1.0);
+	R_DrawLine(x + w, y, x + w, y + h, c, -1.0);
+	R_DrawLine(x + w, y + h, x, y + h, c, -1.0);
+	R_DrawLine(x, y + h, x, y, c, -1.0);
 }
 
 /**

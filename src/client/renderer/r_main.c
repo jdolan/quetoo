@@ -548,7 +548,7 @@ static void R_Reload_f(void){
 
 	cls.loading = 1;
 
-	R_DrawFill(0, 0, r_view.width, r_view.height, 0);
+	R_DrawFill(0, 0, r_view.width, r_view.height, 0, 1.0);
 
 	R_ShutdownImages();
 

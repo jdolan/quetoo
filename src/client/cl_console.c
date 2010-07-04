@@ -218,9 +218,9 @@ void Con_DrawConsole(float frac){
 
 	// draw a background
 	if(cls.state == ca_active)
-		R_DrawFillAlpha(0, 0, r_state.width, height, 5, con_alpha->value);
+		R_DrawFill(0, 0, r_state.width, height, 5, con_alpha->value);
 	else
-		R_DrawFill(0, 0, r_state.width, height, 0);
+		R_DrawFill(0, 0, r_state.width, height, 0, 1.0);
 
 	// draw the text
 	lines = cl_con.height;

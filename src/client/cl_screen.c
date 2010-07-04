@@ -91,13 +91,15 @@ void Cl_AddNetgraph(void){
  * Cl_DrawNetgraph
  */
 static void Cl_DrawNetgraph(void){
-	int i, j, h;
+	int i, j, x, y, h;
 
 	if(!cl_netgraph->value)
 		return;
 
-	R_DrawFillAlpha(r_state.width - NETGRAPH_WIDTH, r_state.height - NETGRAPH_Y - NETGRAPH_HEIGHT,
-			NETGRAPH_WIDTH, NETGRAPH_HEIGHT, 8, 0.2);
+	x = r_state.width - NETGRAPH_WIDTH;
+	y = r_state.height - NETGRAPH_Y - NETGRAPH_HEIGHT;
+
+	R_DrawFill(x, y, NETGRAPH_WIDTH, NETGRAPH_HEIGHT, 8, 0.2);
 
 	for(i = 0; i < NETGRAPH_WIDTH; i++){
 
@@ -107,7 +109,10 @@ static void Cl_DrawNetgraph(void){
 		if(!h)
 			continue;
 
-		R_DrawFill(r_state.width - i, r_state.height - NETGRAPH_Y - h, 1, h, graphsamps[j].color);
+		x = r_state.width - i;
+		y = r_state.height - NETGRAPH_Y - h;
+
+		R_DrawFill(x, y, 1, h, graphsamps[j].color, 0.5);
 	}
 }
 
@@ -131,7 +136,7 @@ static void Cl_DrawTeamBanner(void){
 		return;
 	}
 
-	R_DrawFillAlpha(0, r_state.height - 96, r_state.width, r_state.height, color, 0.15);
+	R_DrawFill(0, r_state.height - 96, r_state.width, r_state.height, color, 0.15);
 }
 
 
@@ -661,7 +666,7 @@ static void Cl_DrawBlend(void){
 	}
 
 	if(al > 0.0)
-		R_DrawFillAlpha(r_view.x, r_view.y, r_view.width, r_view.height, color, al);
+		R_DrawFill(r_view.x, r_view.y, r_view.width, r_view.height, color, al);
 
 	h = dh;  // update our copies
 	a = da;
@@ -741,7 +746,9 @@ void Cl_UpdateScreen(void){
 
 	Cl_DrawConsoleOrNotify();
 
-	R_DrawFillAlphas();  // draw all fills accumulated above
+	R_DrawFills();  // draw all fills accumulated above
+
+	R_DrawLines();  // draw all lines accumulated above
 
 	R_DrawChars();  // draw all chars accumulated above
 

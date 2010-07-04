@@ -56,6 +56,19 @@ typedef struct fill_arrays_s {
 
 static fill_arrays_t r_fill_arrays;
 
+#define MAX_LINES 512
+
+// lines are batched per frame too
+typedef struct line_arrays_s {
+	GLshort verts[MAX_LINES * 2 * 2];
+	int vert_index;
+
+	GLbyte colors[MAX_LINES * 2 * 4];
+	int color_index;
+} line_arrays_t;
+
+static line_arrays_t r_line_arrays;
+
 // hash pics for fast lookup
 hashtable_t pics_hashtable;
 
@@ -89,6 +102,7 @@ void R_InitDraw(void){
 void R_DrawChar(int x, int y, char c, int color){
 	int row, col;
 	float frow, fcol;
+	unsigned *cc;
 
 	if(y <= -32)
 		return;  // totally off screen
@@ -104,10 +118,12 @@ void R_DrawChar(int x, int y, char c, int color){
 	frow = row * 0.0625;
 	fcol = col * 0.0625;
 
-	memcpy(&r_char_arrays.colors[r_char_arrays.color_index + 0], &r_char_colors[color], 4);
-	memcpy(&r_char_arrays.colors[r_char_arrays.color_index + 4], &r_char_colors[color], 4);
-	memcpy(&r_char_arrays.colors[r_char_arrays.color_index + 8], &r_char_colors[color], 4);
-	memcpy(&r_char_arrays.colors[r_char_arrays.color_index + 12], &r_char_colors[color], 4);
+	cc = &r_char_colors[color];
+
+	memcpy(&r_char_arrays.colors[r_char_arrays.color_index +  0], cc, 4);
+	memcpy(&r_char_arrays.colors[r_char_arrays.color_index +  4], cc, 4);
+	memcpy(&r_char_arrays.colors[r_char_arrays.color_index +  8], cc, 4);
+	memcpy(&r_char_arrays.colors[r_char_arrays.color_index + 12], cc, 4);
 
 	r_char_arrays.color_index += 16;
 
@@ -145,6 +161,9 @@ void R_DrawChar(int x, int y, char c, int color){
  * R_DrawChars
  */
 void R_DrawChars(void){
+
+	if(!r_char_arrays.vert_index)
+		return;
 
 	R_BindTexture(draw_chars->texnum);
 
@@ -281,6 +300,7 @@ void R_DrawScaledPic(int x, int y, float scale, const char *name){
 	image_t *pic;
 
 	pic = R_LoadPic(name);
+
 	if(!pic){
 		Com_Warn("R_DrawScaledPic: Can't find %s.\n", name);
 		return;
@@ -315,24 +335,24 @@ void R_DrawPic(int x, int y, const char *name){
 
 
 /*
- * R_DrawFillAlpha
+ * R_DrawFill
  *
  * The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
-void R_DrawFillAlpha(int x, int y, int w, int h, int c, float a){
+void R_DrawFill(int x, int y, int w, int h, int c, float a){
 	byte color[4];
 
 	if(a > 1.0){
-		Com_Warn("R_DrawFillAlpha: Bad alpha %f.\n", a);
+		Com_Warn("R_DrawFill: Bad alpha %f.\n", a);
 		return;
 	}
 
 	if(a < 0.0){  // RGBA integer
-		memcpy(&color, &c, 4);
+		memcpy(color, &c, 4);
 	}
 	else {  // palette index
-		memcpy(&color, &palette[c], sizeof(color));
+		memcpy(color, &palette[c], sizeof(color));
 		color[3] = a * 255;
 	}
 
@@ -341,6 +361,7 @@ void R_DrawFillAlpha(int x, int y, int w, int h, int c, float a){
 	memcpy(&r_fill_arrays.colors[r_fill_arrays.color_index +  4], color, 4);
 	memcpy(&r_fill_arrays.colors[r_fill_arrays.color_index +  8], color, 4);
 	memcpy(&r_fill_arrays.colors[r_fill_arrays.color_index + 12], color, 4);
+
 	r_fill_arrays.color_index += 16;
 
 	// populate verts
@@ -355,24 +376,18 @@ void R_DrawFillAlpha(int x, int y, int w, int h, int c, float a){
 
 	r_fill_arrays.verts[r_fill_arrays.vert_index + 6] = x;
 	r_fill_arrays.verts[r_fill_arrays.vert_index + 7] = y + h;
+
 	r_fill_arrays.vert_index += 8;
 }
 
 
 /*
- * R_DrawFill
- *
- * Fills a box of pixels with a single color
+ * R_DrawFills
  */
-void R_DrawFill(int x, int y, int w, int h, int c){
-	R_DrawFillAlpha(x, y, w, h, c, 1.0);
-}
+void R_DrawFills(void){
 
-
-/*
- * R_DrawFillAlphas
- */
-void R_DrawFillAlphas(void){
+	if(!r_fill_arrays.vert_index)
+		return;
 
 	R_EnableTexture(&texunit_diffuse, false);
 
@@ -396,46 +411,67 @@ void R_DrawFillAlphas(void){
 }
 
 
-/**
- * @brief Draws a rect to the screen. Also has support for stippled rendering of the rect.
- *
- * @param[in] x X-position of the rect
- * @param[in] y Y-position of the rect
- * @param[in] w Width of the rect
- * @param[in] h Height of the rect
- * @param[in] color RGBA color of the rect
- * @param[in] lineWidth Line strength in pixel of the rect
- * @param[in] pattern Specifies a 16-bit integer whose bit pattern determines
- * which fragments of a line will be drawn when the line is rasterized.
- * Bit zero is used first; the default pattern is all 1's
- * @note The stipple factor is @c 2 for this function
+/*
+ * R_DrawLine
  */
-void R_DrawRect (int x, int y, int w, int h, const vec4_t color,
-		float lineWidth, int pattern)
-{
-	const float nx = x * r_state.rx;
-	const float ny = y * r_state.ry;
-	const float nw = w * r_state.rx;
-	const float nh = h * r_state.ry;
+void R_DrawLine(int x1, int y1, int x2, int y2, int c, float a) {
+	byte color[4];
 
-	glColor4fv(color);
+	if(a > 1.0){
+		Com_Warn("R_DrawLine: Bad alpha %f.\n", a);
+		return;
+	}
 
-	glDisable(GL_TEXTURE_2D);
-	glLineWidth(lineWidth);
-	glLineStipple(2, pattern);
-	glEnable(GL_LINE_STIPPLE);
+	if(a < 0.0){  // RGBA integer
+		memcpy(color, &c, 4);
+	}
+	else {  // palette index
+		memcpy(color, &palette[c], sizeof(color));
+		color[3] = a * 255;
+	}
 
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(nx, ny);
-	glVertex2f(nx + nw, ny);
-	glVertex2f(nx + nw, ny + nh);
-	glVertex2f(nx, ny + nh);
-	glEnd();
+	// duplicate color data to all 4 verts
+	memcpy(&r_line_arrays.colors[r_line_arrays.color_index +  0], color, 4);
+	memcpy(&r_line_arrays.colors[r_line_arrays.color_index +  4], color, 4);
 
-	glEnable(GL_TEXTURE_2D);
-	glLineWidth(1.0f);
-	glDisable(GL_LINE_STIPPLE);
+	r_line_arrays.color_index += 8;
 
-	// restore draw color
-	glColor4ubv(color_white);
+	// populate verts
+	r_line_arrays.verts[r_line_arrays.vert_index + 0] = x1;
+	r_line_arrays.verts[r_line_arrays.vert_index + 1] = y1;
+
+	r_line_arrays.verts[r_line_arrays.vert_index + 2] = x2;
+	r_line_arrays.verts[r_line_arrays.vert_index + 3] = y2;
+
+	r_line_arrays.vert_index += 4;
+}
+
+
+/*
+ * R_DrawLines
+ */
+void R_DrawLines(void){
+
+	if(!r_line_arrays.vert_index)
+		return;
+
+	R_EnableTexture(&texunit_diffuse, false);
+
+	R_EnableColorArray(true);
+
+	// alter the array pointers
+	R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, r_line_arrays.verts);
+	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_line_arrays.colors);
+
+	glDrawArrays(GL_LINES, 0, r_line_arrays.vert_index / 2);
+
+	// and restore them
+	R_BindDefaultArray(GL_VERTEX_ARRAY);
+	R_BindDefaultArray(GL_COLOR_ARRAY);
+
+	R_EnableColorArray(false);
+
+	R_EnableTexture(&texunit_diffuse, true);
+
+	r_line_arrays.vert_index = r_line_arrays.color_index = 0;
 }

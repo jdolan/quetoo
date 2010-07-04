@@ -353,15 +353,15 @@ image_t *R_LoadPic(const char *name);
 void R_DrawScaledPic(int x, int y, float scale, const char *name);
 void R_DrawPic(int x, int y, const char *name);
 int R_StringWidth(const char *s);
-void R_DrawChar(int x, int y, char c, int color);
 int R_DrawString(int x, int y, const char *s, int color);
 int R_DrawBytes(int x, int y, const char *s, size_t size, int color);
 int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int color);
+void R_DrawChar(int x, int y, char c, int color);
 void R_DrawChars(void);
-void R_DrawFill(int x, int y, int w, int h, int c);
-void R_DrawFillAlpha(int x, int y, int w, int h, int c, float a);
-void R_DrawFillAlphas(void);
-void R_DrawRect(int x, int y, int w, int h, const vec4_t color, float lineWidth, int pattern);
+void R_DrawFill(int x, int y, int w, int h, int c, float a);
+void R_DrawFills(void);
+void R_DrawLine(int x1, int y1, int x2, int y2, int c, float a);
+void R_DrawLines(void);
 
 // r_entity.c
 void R_AddEntity(const entity_t *e);
