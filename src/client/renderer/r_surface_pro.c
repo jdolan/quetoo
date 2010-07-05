@@ -178,7 +178,7 @@ void R_DrawBackSurfaces_pro(msurfaces_t *surfs){
 	glLineWidth(1.0);
 	glColor4ubv(color_white);
 
-	if(!r_multisample)
+	if(!r_multisample->value)
 		glDisable(GL_LINE_SMOOTH);
 
 	glPolygonOffset(0.0, 0.0);
