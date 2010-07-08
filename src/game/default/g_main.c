@@ -888,9 +888,10 @@ static void G_RunFrame(void){
 		if(!(ent->s.effects & EF_LIGHTNING))  // update old origin for lerps
 			VectorCopy(ent->s.origin, ent->s.old_origin);
 
-		// if the ground entity moved, make sure we are still on it
-		if((ent->groundentity) && (ent->groundentity->linkcount != ent->groundentity_linkcount)){
-			ent->groundentity = NULL;
+		if(ent->groundentity){
+			// if the ground entity moved, make sure we are still on it
+			if(ent->groundentity->linkcount != ent->groundentity_linkcount)
+				ent->groundentity = NULL;
 		}
 
 		if(i > 0 && i <= sv_maxclients->value){

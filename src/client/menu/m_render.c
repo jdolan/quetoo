@@ -92,8 +92,6 @@ void MN_DrawNormImage (float x, float y, float w, float h, float sh, float th, f
 		const image_t *image)
 {
 	float nw, nh, x1, x2, x3, x4, y1, y2, y3, y4;
-	float imageTexcoords[8];
-	short imageVerts[8];
 
 	if (!image)
 		return;

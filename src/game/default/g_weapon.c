@@ -325,7 +325,7 @@ static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 		}
 
 		// we're live after a brief safety period for the owner
-		if(dot < -0.25 && level.time - ent->touch_time > 0.25){
+		if(dot < -0.35 && level.time - ent->touch_time > 0.5){
 			ent->groundentity = other;
 			G_GrenadeExplode(ent);
 		}
@@ -356,12 +356,16 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 
 	grenade = G_Spawn();
 	VectorCopy(start, grenade->s.origin);
+	VectorCopy(dir, grenade->s.angles);
 	VectorScale(aimdir, speed, grenade->velocity);
 	VectorMA(grenade->velocity, 200.0 + crandom() * 10.0, up, grenade->velocity);
 	VectorMA(grenade->velocity, crandom() * 10.0, right, grenade->velocity);
-	VectorSet(grenade->avelocity, crand(), crand(), crand());
-	VectorScale(grenade->avelocity, 600.0, grenade->avelocity);
-	grenade->movetype = MOVETYPE_BOUNCE;
+
+	grenade->avelocity[0] = -300.0 + 10 * crand();
+	grenade->avelocity[1] = 50 * crand();
+	grenade->avelocity[2] = 25 * crand();
+
+	grenade->movetype = MOVETYPE_TOSS;
 	grenade->clipmask = MASK_SHOT;
 	grenade->solid = SOLID_MISSILE;
 	grenade->s.effects = EF_GRENADE;
@@ -442,7 +446,7 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	VectorCopy(dir, rocket->movedir);
 	VectorAngles(dir, rocket->s.angles);
 	VectorScale(dir, speed, rocket->velocity);
-	rocket->movetype = MOVETYPE_FLYMISSILE;
+	rocket->movetype = MOVETYPE_FLY;
 	rocket->clipmask = MASK_SHOT;
 	rocket->solid = SOLID_MISSILE;
 	rocket->s.effects = EF_ROCKET;
@@ -528,7 +532,7 @@ void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
 	VectorCopy(start, bolt->s.old_origin);
 	VectorAngles(dir, bolt->s.angles);
 	VectorScale(dir, speed, bolt->velocity);
-	bolt->movetype = MOVETYPE_FLYMISSILE;
+	bolt->movetype = MOVETYPE_FLY;
 	bolt->clipmask = MASK_SHOT;
 	bolt->solid = SOLID_MISSILE;
 	bolt->s.effects = EF_HYPERBLASTER;
@@ -870,7 +874,7 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 		s = speed + (0.2 * speed * crand());
 		VectorScale(bfg->movedir, s, bfg->velocity);
 
-		bfg->movetype = MOVETYPE_FLYMISSILE;
+		bfg->movetype = MOVETYPE_FLY;
 		bfg->clipmask = MASK_SHOT;
 		bfg->solid = SOLID_MISSILE;
 		bfg->s.effects = EF_BFG;

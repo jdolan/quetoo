@@ -37,10 +37,18 @@ void Com_Warn(const char *fmt, ...){
 }
 
 int LittleLong(int l){
-	byte test[2] = {1, 0};
+
+	static union {
+		byte b[2];
+		unsigned short s;
+	} swaptest;
+
+	swaptest.b[0] = 1;
+	swaptest.b[1] = 0;
+
 	byte b1, b2, b3, b4;
 
-	if(*(short *)test == 1)
+	if(swaptest.s == 1)
 		return l;
 
 	b1 = l & 255;

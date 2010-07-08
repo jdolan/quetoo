@@ -105,11 +105,8 @@ typedef enum {
 	MOVETYPE_STOP,       // no clip to world, stops on box contact
 
 	MOVETYPE_WALK,       // gravity
-	MOVETYPE_STEP,       // gravity, special edge handling
 	MOVETYPE_FLY,
 	MOVETYPE_TOSS,       // gravity
-	MOVETYPE_FLYMISSILE, // no gravity
-	MOVETYPE_BOUNCE     // clip to world, bouncing off of walls
 } movetype_t;
 
 // a synonym for readability

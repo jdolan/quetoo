@@ -142,129 +142,7 @@ static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
 		change = normal[i] * backoff;
 		out[i] = in[i] - change;
 		if(out[i] > -STOP_EPSILON && out[i] < STOP_EPSILON)
-			out[i] = 0;
-	}
-
-	return blocked;
-}
-
-
-#define MAX_CLIP_PLANES	5
-
-/*
- * G_FlyMove
- *
- * The basic solid body movement clip that slides along multiple planes
- * Returns the clipflags if the velocity was modified (hit something solid)
- * 1 = floor
- * 2 = wall / step
- * 4 = dead stop
- */
-static int G_FlyMove(edict_t *ent, float time, int mask){
-	edict_t *hit;
-	int bumpcount, numbumps;
-	vec3_t dir;
-	float d;
-	int numplanes;
-	vec3_t planes[MAX_CLIP_PLANES];
-	vec3_t primal_velocity, original_velocity, new_velocity;
-	int i, j;
-	trace_t trace;
-	vec3_t end;
-	float time_left;
-	int blocked;
-
-	numbumps = 4;
-
-	blocked = 0;
-	VectorCopy(ent->velocity, original_velocity);
-	VectorCopy(ent->velocity, primal_velocity);
-	numplanes = 0;
-
-	time_left = time;
-
-	ent->groundentity = NULL;
-	for(bumpcount = 0; bumpcount < numbumps; bumpcount++){
-		for(i = 0; i < 3; i++)
-			end[i] = ent->s.origin[i] + time_left * ent->velocity[i];
-
-		trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, end, ent, mask);
-
-		if(trace.allsolid){  // entity is trapped in another solid
-			VectorCopy(vec3_origin, ent->velocity);
-			return 3;
-		}
-
-		if(trace.fraction > 0){  // actually covered some distance
-			VectorCopy(trace.endpos, ent->s.origin);
-			VectorCopy(ent->velocity, original_velocity);
-			numplanes = 0;
-		}
-
-		if(trace.fraction == 1)
-			break;  // moved the entire distance
-
-		hit = trace.ent;
-
-		if(trace.plane.normal[2] > 0.7){
-			blocked |= 1;  // floor
-			if(hit->solid == SOLID_BSP){
-				ent->groundentity = hit;
-				ent->groundentity_linkcount = hit->linkcount;
-			}
-		}
-		if(!trace.plane.normal[2]){
-			blocked |= 2;  // step
-		}
-
-		// run the impact function
-		G_Impact(ent, &trace);
-		if(!ent->inuse)
-			break;  // removed by the impact function
-
-
-		time_left -= time_left * trace.fraction;
-
-		// cliped to another plane
-		if(numplanes >= MAX_CLIP_PLANES){  // this shouldn't really happen
-			VectorCopy(vec3_origin, ent->velocity);
-			return 3;
-		}
-
-		VectorCopy(trace.plane.normal, planes[numplanes]);
-		numplanes++;
-
-		// modify original_velocity so it parallels all of the clip planes
-		for(i = 0; i < numplanes; i++){
-			ClipVelocity(original_velocity, planes[i], new_velocity, 1);
-
-			for(j = 0; j < numplanes; j++)
-				if((j != i) && !VectorCompare(planes[i], planes[j])){
-					if(DotProduct(new_velocity, planes[j]) < 0)
-						break;  // not ok
-				}
-			if(j == numplanes)
-				break;
-		}
-
-		if(i != numplanes){  // go along this plane
-			VectorCopy(new_velocity, ent->velocity);
-		} else {  // go along the crease
-			if(numplanes != 2){
-				VectorCopy(vec3_origin, ent->velocity);
-				return 7;
-			}
-			CrossProduct(planes[0], planes[1], dir);
-			d = DotProduct(dir, ent->velocity);
-			VectorScale(dir, d, ent->velocity);
-		}
-
-		// if original velocity is against the original velocity, stop dead
-		// to avoid tiny occilations in sloping corners
-		if(DotProduct(ent->velocity, primal_velocity) <= 0){
-			VectorCopy(vec3_origin, ent->velocity);
-			return blocked;
-		}
+			out[i] = 0.0;
 	}
 
 	return blocked;
@@ -440,7 +318,7 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 				check->client->ps.pmove.delta_angles[YAW] += amove[YAW];
 			}
 
-			// figure movement due to the pusher's amove
+			// figure movement due to the pusher's move
 			VectorSubtract(check->s.origin, pusher->s.origin, org);
 			org2[0] = DotProduct(org, forward);
 			org2[1] = -DotProduct(org, right);
@@ -453,14 +331,14 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 				check->groundentity = NULL;
 
 			block = G_TestEntityPosition(check);
-			if(!block){  // pushed ok
+			if(!block){  // pushed okay
 				gi.LinkEntity(check);
 				continue;
 			}
 
-			// if it is ok to leave in the old position, do it
-			// this is only relevent for riding entities, not pushed
-			// FIXME: this doesn't acount for rotation
+			// if it is okay to leave in the old position, do it
+			// this is only relevant for riding entities, not pushed
+			// FIXME: this doesn't account for rotation
 			VectorSubtract(check->s.origin, move, check->s.origin);
 			block = G_TestEntityPosition(check);
 			if(!block){
@@ -582,17 +460,14 @@ static void G_Physics_Noclip(edict_t *ent){
 /*
  * G_Physics_Toss
  *
- * Toss, bounce, and fly movement.  When onground, do nothing.
+ * Toss, bounce, and fly movement.  When on ground, do nothing.
  */
 static void G_Physics_Toss(edict_t *ent){
 	trace_t trace;
-	vec3_t move;
-	float backoff;
+	vec3_t org, move;
 	edict_t *slave;
 	qboolean wasinwater;
 	qboolean isinwater;
-	vec3_t old_origin;
-	int i;
 
 	// regular thinking
 	G_RunThink(ent);
@@ -601,7 +476,7 @@ static void G_Physics_Toss(edict_t *ent){
 	if(ent->flags & FL_TEAMSLAVE)
 		return;
 
-	// check for the groundentity going away
+	// check for the ground entity going away
 	if(ent->groundentity){
 		if(!ent->groundentity->inuse)
 			ent->groundentity = NULL;
@@ -614,19 +489,21 @@ static void G_Physics_Toss(edict_t *ent){
 	if(ent->groundentity || (ent->item && (ent->spawnflags & 4)))
 		return;
 
-	VectorCopy(ent->s.origin, old_origin);
-
+	// enforce max velocity values
 	G_CheckVelocity(ent);
 
 	// add gravity
-	if(ent->movetype != MOVETYPE_FLY && ent->movetype != MOVETYPE_FLYMISSILE)
+	if(ent->movetype != MOVETYPE_FLY)
 		G_AddGravity(ent);
 
 	// move angles
 	VectorMA(ent->s.angles, gi.serverframe, ent->avelocity, ent->s.angles);
 
 	// move origin
+	VectorCopy(ent->s.origin, org);
 	VectorScale(ent->velocity, gi.serverframe, move);
+
+	// push through the world, interacting with triggers and other ents
 	trace = G_PushEntity(ent, move);
 
 	if(!ent->inuse)
@@ -634,55 +511,32 @@ static void G_Physics_Toss(edict_t *ent){
 
 	if(trace.fraction < 1.0){  // move was blocked
 
-		if(ent->movetype == MOVETYPE_BOUNCE){
-			if(VectorLength(ent->velocity) > 300.0){  // increase angular velocity
-				VectorScale(ent->avelocity, 1.25, ent->avelocity);
+		// if it was a floor, we might bounce or come to rest
+		if(ClipVelocity(ent->velocity, trace.plane.normal, ent->velocity, 1.3) == 1){
 
-				for(i = 0; i < 3; i++){  // clamp it
-					if(ent->avelocity[i] > 300.0)
-						ent->avelocity[i] = 300.0;
-				}
+			VectorSubtract(ent->s.origin, org, move);
+
+			// if we're approaching a stop, clear our velocity and set ground
+			if(VectorLength(move) < STOP_EPSILON) {
+
+				VectorClear(ent->velocity);
+
+				ent->groundentity = trace.ent;
+				ent->groundentity_linkcount = trace.ent->linkcount;
 			}
+			else {
+				// bounce and slide along the floor
+				float bounce, speed = VectorLength(ent->velocity);
+				bounce = sqrt(speed);
 
-			backoff = 1.45;
-		}
-		else {
-			backoff = 1.0;
-		}
-
-		// collide with the blocker
-		ClipVelocity(ent->velocity, trace.plane.normal, ent->velocity, backoff);
-
-		// stop moving if we've been blocked
-		VectorSubtract(ent->s.origin, old_origin, move);
-		if(VectorLength(move) < 10.0 * gi.serverframe){
-
-			VectorScale(ent->avelocity, 15 * gi.serverframe, ent->avelocity);  // stop rotating
-
-			// take appropriate action for sufficiently up-facing planes
-			if(trace.plane.normal[2] > 0.4){
-
-				// slide along blocking plane(s)
-				if(ent->movetype == MOVETYPE_BOUNCE){
-
-					G_AddGravity(ent);
-					ClipVelocity(ent->velocity, trace.plane.normal, ent->velocity, 1.0);
-
-					G_FlyMove(ent, gi.serverframe, MASK_SOLID);
-					VectorScale(ent->velocity, 13 * gi.serverframe, ent->velocity);
-				}
-				else {  // or asign ground entity
-					VectorClear(ent->velocity);
-
-					ent->groundentity = trace.ent;
-					ent->groundentity_linkcount = trace.ent->linkcount;
-				}
+				if(ent->velocity[2] < bounce)
+					ent->velocity[2] = bounce;
 			}
 		}
-	}
-	else {  // move was successful
-		if(ent->movetype == MOVETYPE_BOUNCE)  // diminish angular velocity
-			VectorScale(ent->avelocity, 19 * gi.serverframe, ent->avelocity);
+
+		// all impacts reduce velocity and angular velocity
+		VectorScale(ent->velocity, 0.9, ent->velocity);
+		VectorScale(ent->avelocity, 0.9, ent->avelocity);
 	}
 
 	// check for water transition
@@ -696,7 +550,7 @@ static void G_Physics_Toss(edict_t *ent){
 		ent->waterlevel = 0;
 
 	if(!wasinwater && isinwater)
-		gi.PositionedSound(old_origin, g_edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
+		gi.PositionedSound(ent->s.origin, g_edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
 	else if(wasinwater && !isinwater)
 		gi.PositionedSound(ent->s.origin, g_edicts, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
@@ -705,98 +559,6 @@ static void G_Physics_Toss(edict_t *ent){
 		VectorCopy(ent->s.origin, slave->s.origin);
 		gi.LinkEntity(slave);
 	}
-}
-
-
-/*
- * G_Physics_Step
- *
- * Monsters freefall when they don't have a ground entity, otherwise
- * all movement is done with discrete steps.
- *
- * This is also used for objects that have become still on the ground, but
- * will fall if the floor is pulled out from under them.
- */
-
-#define sv_stopspeed		100
-#define sv_friction			6
-#define sv_waterfriction	1
-
-static void G_AddRotationalFriction(edict_t *ent){
-	int n;
-	float adjustment;
-
-	VectorMA(ent->s.angles, gi.serverframe, ent->avelocity, ent->s.angles);
-	adjustment = gi.serverframe * sv_stopspeed * sv_friction;
-	for(n = 0; n < 3; n++){
-		if(ent->avelocity[n] > 0){
-			ent->avelocity[n] -= adjustment;
-			if(ent->avelocity[n] < 0)
-				ent->avelocity[n] = 0;
-		} else {
-			ent->avelocity[n] += adjustment;
-			if(ent->avelocity[n] > 0)
-				ent->avelocity[n] = 0;
-		}
-	}
-}
-
-static void G_Physics_Step(edict_t *ent){
-	qboolean wasonground;
-	qboolean hitsound = false;
-	float speed, newspeed, control;
-	float friction;
-	edict_t *groundentity;
-
-	groundentity = ent->groundentity;
-
-	G_CheckVelocity(ent);
-
-	if(groundentity)
-		wasonground = true;
-	else
-		wasonground = false;
-
-	if(ent->avelocity[0] || ent->avelocity[1] || ent->avelocity[2])
-		G_AddRotationalFriction(ent);
-
-	// add gravity except:
-	//   flying ents
-	//   swimming ents who are in the water
-	if(!wasonground)
-		if(!(ent->flags & FL_FLY))
-			if(!((ent->flags & FL_SWIM) && (ent->waterlevel > 2))){
-				if(ent->velocity[2] < level.gravity * -gi.serverframe)
-					hitsound = true;
-				if(ent->waterlevel == 0)
-					G_AddGravity(ent);
-			}
-
-	// friction for flying ents that have been given vertical velocity
-	if((ent->flags & FL_FLY) && (ent->velocity[2] != 0)){
-		speed = fabsf(ent->velocity[2]);
-		control = speed < sv_stopspeed ? sv_stopspeed : speed;
-		friction = sv_friction / 3;
-		newspeed = speed - (gi.serverframe * control * friction);
-		if(newspeed < 0)
-			newspeed = 0;
-		newspeed /= speed;
-		ent->velocity[2] *= newspeed;
-	}
-
-	// friction for flying ents that have been given vertical velocity
-	if((ent->flags & FL_SWIM) &&(ent->velocity[2] != 0)){
-		speed = fabsf(ent->velocity[2]);
-		control = speed < sv_stopspeed ? sv_stopspeed : speed;
-		newspeed = speed - (gi.serverframe * control * sv_waterfriction * ent->waterlevel);
-		if(newspeed < 0)
-			newspeed = 0;
-		newspeed /= speed;
-		ent->velocity[2] *= newspeed;
-	}
-
-	// regular thinking
-	G_RunThink(ent);
 }
 
 
@@ -818,13 +580,8 @@ void G_RunEntity(edict_t *ent){
 		case MOVETYPE_NOCLIP:
 			G_Physics_Noclip(ent);
 			break;
-		case MOVETYPE_STEP:
-			G_Physics_Step(ent);
-			break;
-		case MOVETYPE_TOSS:
-		case MOVETYPE_BOUNCE:
 		case MOVETYPE_FLY:
-		case MOVETYPE_FLYMISSILE:
+		case MOVETYPE_TOSS:
 			G_Physics_Toss(ent);
 			break;
 		default:
