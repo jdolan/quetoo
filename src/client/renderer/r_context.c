@@ -97,13 +97,13 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 	if((surface = SDL_SetVideoMode(width, height, 0, flags)) == NULL)
 		return false;
 
-	r_state.width = width;
-	r_state.height = height;
+	r_state.width = surface->w;
+	r_state.height = surface->h;
 
 	r_state.fullscreen = fullscreen;
 
-	r_state.virtualWidth = width;
-	r_state.virtualHeight = height;
+	r_state.virtualWidth = surface->w;
+	r_state.virtualHeight = surface->h;
 
 	r_state.rx = (float)r_state.width / r_state.virtualWidth;
 	r_state.ry = (float)r_state.height / r_state.virtualHeight;

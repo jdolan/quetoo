@@ -666,8 +666,8 @@ static void R_InitLocal(void){
 	r_vertexbuffers = Cvar_Get("r_vertexbuffers", "1", CVAR_ARCHIVE, NULL);
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE, "Activate or deactivate warping surfaces");
 	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
-	r_windowedheight = Cvar_Get("r_windowedheight", "600", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
-	r_windowedwidth = Cvar_Get("r_windowedwidth", "800", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
+	r_windowedheight = Cvar_Get("r_windowedheight", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
+	r_windowedwidth = Cvar_Get("r_windowedwidth", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 
 	// prevent unecessary reloading for initial values
 	Cvar_ClearVars(CVAR_R_MASK);
