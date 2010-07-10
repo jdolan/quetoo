@@ -6,6 +6,7 @@ q2wmaster_SOURCES = \
 	main.c
 
 q2wmaster_CFLAGS = \
+	-I.. \
 	-pipe \
 	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@
