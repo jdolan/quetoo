@@ -412,7 +412,7 @@ static void P_FireGrenadeLauncher_(edict_t *ent){
 }
 
 void P_FireGrenadeLauncher(edict_t *ent){
-	P_FireWeapon(ent, 0.9, P_FireGrenadeLauncher_);
+	P_FireWeapon(ent, 0.65, P_FireGrenadeLauncher_);
 }
 
 
