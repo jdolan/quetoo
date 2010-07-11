@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 Id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006-2010 Quake2World.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,11 @@
 
 #include "client.h"
 #include "hash.h"
+
+#ifdef HAVE_SDL_SDL_TTF_H
+#include <SDL/SDL_ttf.h>
+#define SDL_TTF 1
+#endif
 
 // actual text colors as ABGR unsigned integers
 unsigned r_char_colors[MAX_COLORS];
@@ -75,12 +80,54 @@ hashtable_t pics_hashtable;
 // chars
 image_t *draw_chars;
 
+#define CHAR_FIRST '!'                  //  33
+#define CHAR_LAST  '~'                  // 126
+#define CHAR_NUM (CHAR_LAST-CHAR_FIRST) //  93
+
 /*
  * R_InitDraw
  */
 void R_InitDraw(void){
+#ifdef SDL_TTF
+	TTF_Font *font;
+	SDL_Surface *surf;
+	SDL_Color white = {255,255,255};
+	char char_str[CHAR_NUM+1];
+	int i;
 
+	// create a string with all drawable characters
+	for(i=0; i<CHAR_NUM; i++)
+		char_str[i] = CHAR_FIRST+i;
+	char_str[CHAR_NUM] = '\0';
+
+	// initialize SDL_TTF sub-system
+	if(TTF_Init()==-1){
+		printf("R_InitDraw: TTF_Init: %s\n", TTF_GetError());
+		exit(1);
+	}
+
+	// open the font
+	font = TTF_OpenFont(Fs_FindFirst("ui/default.ttf", true), 26);
+	if(!font){
+		printf("R_InitDraw: TTF_OpenFont: %s\n", TTF_GetError());
+		exit(1);
+	}
+
+	// render the characters
+	surf = TTF_RenderText_Blended(font, char_str, white);
+	if(!surf){
+		printf("R_InitDraw: TTF_RenderText_Blended: %s\n", TTF_GetError());
+		exit(1);
+	}
+
+	draw_chars = R_UploadImage("conchars", surf->pixels, surf->w, surf->h, it_chars);
+	
+	// cleanup
+	SDL_FreeSurface(surf);
+	TTF_Quit();
+#else
 	draw_chars = R_LoadImage("pics/conchars", it_chars);
+#endif
 
 	// set ABGR color values
 	r_char_colors[CON_COLOR_BLACK] 		= 0xFF000000;
@@ -102,21 +149,41 @@ void R_InitDraw(void){
 void R_DrawChar(int x, int y, char c, int color){
 	int row, col;
 	float frow, fcol;
+	float fwidth, fheight;
 	unsigned *cc;
 
 	if(y <= -32)
 		return;  // totally off screen
 
-	if(c == ' ')
-		return;  // small optimization for space
+	if(c == ' ' || c == 10)
+		return;  // ignore spaces and linefeeds
+
+	if(c == 11)
+		c = '_'; // cursor
+
+	if(c < CHAR_FIRST || c > CHAR_LAST){
+		Com_Warn("R_DrawChar: Character (%d) out of range.\n", (int)c);
+		c = '?';
+	}
 
 	color = color & (MAX_COLORS - 1);	// resolve color array
 
+#ifdef SDL_TTF
+	row = 0;
+	col = c - CHAR_FIRST;
+
+	fwidth = 1.0 / CHAR_NUM;
+	fheight = 1.0;
+#else
 	row = (int) c >> 4;
 	col = (int) c & 15;
 
-	frow = row * 0.0625;
-	fcol = col * 0.0625;
+	fwidth = 0.0625;
+	fheight = 0.0625;
+#endif
+
+	frow = row * fheight;
+	fcol = col * fwidth;
 
 	cc = &r_char_colors[color];
 
@@ -130,14 +197,14 @@ void R_DrawChar(int x, int y, char c, int color){
 	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 0] = fcol;
 	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 1] = frow;
 
-	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 2] = fcol + 0.0625;
+	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 2] = fcol + fwidth;
 	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 3] = frow;
 
-	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 4] = fcol + 0.0625;
-	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 5] = frow + 0.0625;
+	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 4] = fcol + fwidth;
+	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 5] = frow + fheight;
 
 	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 6] = fcol;
-	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 7] = frow + 0.0625;
+	r_char_arrays.texcoords[r_char_arrays.texcoord_index + 7] = frow + fheight;
 
 	r_char_arrays.texcoord_index += 8;
 
