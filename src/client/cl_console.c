@@ -153,7 +153,7 @@ static void Con_DrawInput(void){
  * Draws the last few lines of output transparently over the game top
  */
 void Con_DrawNotify(void){
-	int i, y;
+	int i, y = 0;
 	char *s;
 	int skip;
 	int len;
@@ -161,7 +161,9 @@ void Con_DrawNotify(void){
 	int cwidth = R_CharWidth();
 	int cheight = R_CharHeight();
 
-	y = 0;
+	if(cls.state != ca_active)
+		return;
+
 	for(i = cl_con.lastline - CON_NUMTIMES; i < cl_con.lastline; i++ ){
 		if(i < 0)
 			continue;
