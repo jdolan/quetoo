@@ -31,7 +31,7 @@
 
 #define NETGRAPH_HEIGHT 64
 #define NETGRAPH_WIDTH 128
-#define NETGRAPH_Y 128
+#define NETGRAPH_Y (4 * R_CharHeight())
 
 // netgraph samples
 typedef struct {
@@ -175,6 +175,8 @@ void Cl_CenterPrint(char *str){
 static void Cl_DrawCenterString(void){
 	const char *s;
 	int x, y, size, len;
+	int cwidth = R_CharWidth();
+	int cheight = R_CharHeight();
 
 	s = centerstring;
 
@@ -200,7 +202,7 @@ static void Cl_DrawCenterString(void){
 			len++;
 		}
 
-		x = (r_state.width - (len * 16)) / 2;
+		x = (r_state.width - (len * cwidth)) / 2;
 
 		// draw it
 		R_DrawSizedString(x, y, s, len, 999, CON_COLOR_DEFAULT);
@@ -215,7 +217,7 @@ static void Cl_DrawCenterString(void){
 
 		s++;  // skip the \n
 
-		y += 32;
+		y += cheight;
 	} while(true);
 }
 
@@ -247,7 +249,7 @@ static void Cl_DrawRspeeds(void){
 	sprintf(rspeeds, "%i bsp %i mesh %i lights %i parts",
 			r_view.bsp_polys, r_view.mesh_polys, r_view.num_lights, r_view.num_particles);
 
-	R_DrawString(r_state.width - strlen(rspeeds) * 16, 0, rspeeds, CON_COLOR_YELLOW);
+	R_DrawString(r_state.width - strlen(rspeeds) * R_CharWidth(), 0, rspeeds, CON_COLOR_YELLOW);
 }
 
 
@@ -275,6 +277,8 @@ static void Cl_DrawHUDString(const char *string, int x, int y, int centerwidth, 
 	char line[MAX_STRING_CHARS];
 	int width;
 	int i;
+	int cwidth = R_CharWidth();
+	int cheight = R_CharHeight();
 
 	margin = x;
 
@@ -286,17 +290,17 @@ static void Cl_DrawHUDString(const char *string, int x, int y, int centerwidth, 
 		line[width] = 0;
 
 		if(centerwidth)
-			x = margin + (centerwidth - width * 16) / 2;
+			x = margin + (centerwidth - width * cwidth) / 2;
 		else
 			x = margin;
 		for(i = 0; i < width; i++){
 			R_DrawChar(x, y, line[i] ,  color);
-			x += 16;
+			x += cwidth;
 		}
 		if(*string){
 			string++;  // skip the \n
 			x = margin;
-			y += 32;
+			y += cheight;
 		}
 	}
 }
@@ -579,6 +583,8 @@ static void Cl_DrawCounters(void){
 	static vec3_t velocity;
 	static char bps[8], pps[8], fps[8], spd[8];
 	static int millis;
+	int cwidth = R_CharWidth();
+	int cheight = R_CharHeight();
 
 	if(!cl_counters->value)
 		return;
@@ -602,10 +608,10 @@ static void Cl_DrawCounters(void){
 		bytes_this_second = 0;
 	}
 
-	R_DrawString(r_state.width - 112, r_state.height - 128, spd, COLOR_HUD_COUNTER);
-	R_DrawString(r_state.width - 112, r_state.height - 96, fps, COLOR_HUD_COUNTER);
-	R_DrawString(r_state.width - 112, r_state.height - 64, pps, COLOR_HUD_COUNTER);
-	R_DrawString(r_state.width - 112, r_state.height - 32, bps, COLOR_HUD_COUNTER);
+	R_DrawString(r_state.width - 7 * cwidth, r_state.height - 4 * cheight, spd, COLOR_HUD_COUNTER);
+	R_DrawString(r_state.width - 7 * cwidth, r_state.height - 3 * cheight, fps, COLOR_HUD_COUNTER);
+	R_DrawString(r_state.width - 7 * cwidth, r_state.height - 2 * cheight, pps, COLOR_HUD_COUNTER);
+	R_DrawString(r_state.width - 7 * cwidth, r_state.height - 1 * cheight, bps, COLOR_HUD_COUNTER);
 }
 
 

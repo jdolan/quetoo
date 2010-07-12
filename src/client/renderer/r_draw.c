@@ -75,19 +75,21 @@ typedef struct line_arrays_s {
 static line_arrays_t r_line_arrays;
 
 // hash pics for fast lookup
-hashtable_t pics_hashtable;
+static hashtable_t pics_hashtable;
 
 // chars
-image_t *draw_chars;
+static cvar_t *font_size;
+static image_t *draw_chars;
 
 #define CHAR_FIRST '!'                  //  33
 #define CHAR_LAST  '~'                  // 126
 #define CHAR_NUM (CHAR_LAST-CHAR_FIRST) //  93
 
+
 /*
- * R_InitDraw
+ * R_InitChars
  */
-void R_InitDraw(void){
+void R_InitChars(void){
 #ifdef SDL_TTF
 	TTF_Font *font;
 	SDL_Surface *surf;
@@ -102,29 +104,48 @@ void R_InitDraw(void){
 
 	// initialize SDL_TTF sub-system
 	if(TTF_Init()==-1){
-		printf("R_InitDraw: TTF_Init: %s\n", TTF_GetError());
+		printf("R_InitChar: TTF_Init: %s\n", TTF_GetError());
 		exit(1);
 	}
 
+	// get font size
+	font_size = Cvar_Get("font_size", "26", 0, NULL);	// don't archive cvar yet (wait until bugs are ironed out)
+	if(font_size->value < 8)
+		Cvar_Set("font_size", "8");	// force a min size
+
 	// open the font
-	font = TTF_OpenFont(Fs_FindFirst("ui/default.ttf", true), 26);
+	font = TTF_OpenFont(Fs_FindFirst("ui/default.ttf", true), (int)font_size->value);
 	if(!font){
-		printf("R_InitDraw: TTF_OpenFont: %s\n", TTF_GetError());
+		printf("R_InitChar: TTF_OpenFont: %s\n", TTF_GetError());
 		exit(1);
 	}
 
 	// render the characters
 	surf = TTF_RenderText_Blended(font, char_str, white);
 	if(!surf){
-		printf("R_InitDraw: TTF_RenderText_Blended: %s\n", TTF_GetError());
+		printf("R_InitChar: TTF_RenderText_Blended: %s\n", TTF_GetError());
 		exit(1);
 	}
 
+	R_FreeImage(draw_chars);
 	draw_chars = R_UploadImage("conchars", surf->pixels, surf->w, surf->h, it_chars);
 	
 	// cleanup
 	SDL_FreeSurface(surf);
+	font_size->modified = false;
 	TTF_Quit();
+#else
+	Com_Warn("Client was built without SDL_TTF.\n");
+#endif
+}
+
+
+/*
+ * R_InitDraw
+ */
+void R_InitDraw(void){
+#ifdef SDL_TTF
+	R_InitChars();
 #else
 	draw_chars = R_LoadImage("pics/conchars", it_chars);
 #endif
@@ -150,16 +171,20 @@ void R_DrawChar(int x, int y, char c, int color){
 	int row, col;
 	float frow, fcol;
 	float fwidth, fheight;
+	int cwidth, cheight;
 	unsigned *cc;
 
 	if(y <= -32)
 		return;  // totally off screen
 
-	if(c == ' ' || c == 10)
-		return;  // ignore spaces and linefeeds
+	if(c == ' ' || c == '\t' || c == '\n')
+		return;  // ignore whitespace
 
 	if(c == 11)
 		c = '_'; // cursor
+
+	if(font_size->modified)
+		R_InitChars();
 
 	if(c < CHAR_FIRST || c > CHAR_LAST){
 		Com_Warn("R_DrawChar: Character (%d) out of range.\n", (int)c);
@@ -208,17 +233,20 @@ void R_DrawChar(int x, int y, char c, int color){
 
 	r_char_arrays.texcoord_index += 8;
 
+	cwidth = R_CharWidth();
+	cheight = R_CharHeight();
+
 	r_char_arrays.verts[r_char_arrays.vert_index + 0] = x;
 	r_char_arrays.verts[r_char_arrays.vert_index + 1] = y;
 
-	r_char_arrays.verts[r_char_arrays.vert_index + 2] = x + 16;
+	r_char_arrays.verts[r_char_arrays.vert_index + 2] = x + cwidth;
 	r_char_arrays.verts[r_char_arrays.vert_index + 3] = y;
 
-	r_char_arrays.verts[r_char_arrays.vert_index + 4] = x + 16;
-	r_char_arrays.verts[r_char_arrays.vert_index + 5] = y + 32;
+	r_char_arrays.verts[r_char_arrays.vert_index + 4] = x + cwidth;
+	r_char_arrays.verts[r_char_arrays.vert_index + 5] = y + cheight;
 
 	r_char_arrays.verts[r_char_arrays.vert_index + 6] = x;
-	r_char_arrays.verts[r_char_arrays.vert_index + 7] = y + 32;
+	r_char_arrays.verts[r_char_arrays.vert_index + 7] = y + cheight;
 
 	r_char_arrays.vert_index += 8;
 }
@@ -263,9 +291,30 @@ void R_DrawChars(void){
  * R_StringWidth
  */
 int R_StringWidth(const char *s){
-	return strlen(s) * 16;
+	return strlen(s) * R_CharWidth();
 }
 
+/*
+ * R_CharWidth
+ */
+int R_CharWidth(void){
+#ifdef SDL_TTF
+	return draw_chars->width / CHAR_NUM;
+#else
+	return 16;
+#endif
+}
+
+/*
+ * R_CharHeight
+ */
+int R_CharHeight(void){
+#ifdef SDL_TTF
+	return draw_chars->height;
+#else
+	return 32;
+#endif
+}
 
 /*
  * R_DrawString
@@ -291,6 +340,7 @@ int R_DrawBytes(int x, int y, const char *s, size_t size, int color){
  */
 int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int color){
 	int i, j;
+	int cwidth = R_CharWidth();
 
 	i = j = 0;
 	while(*s && i < len && j < size){
@@ -310,7 +360,7 @@ int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int 
 		}
 
 		R_DrawChar(x, y, *s, color);
-		x += 16;  // next char position in line
+		x += cwidth;  // next char position in line
 
 		i++;
 		j++;
