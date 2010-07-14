@@ -353,8 +353,6 @@ image_t *R_LoadPic(const char *name);
 void R_DrawScaledPic(int x, int y, float scale, const char *name);
 void R_DrawPic(int x, int y, const char *name);
 int R_StringWidth(const char *s);
-int R_CharWidth(void);
-int R_CharHeight(void);
 int R_DrawString(int x, int y, const char *s, int color);
 int R_DrawBytes(int x, int y, const char *s, size_t size, int color);
 int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int color);

@@ -126,9 +126,9 @@ else
 
 		if test "x${BUILD_CLIENT}" != xno; then
 
-			dnl -------------------------------
-			dnl Check for SDL_image, mixer, tff
-			dnl -------------------------------
+			dnl -------------------
+			dnl Check for SDL_image
+			dnl -------------------
 
 			save_CPPFLAGS="$CPPFLAGS"
 			CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
@@ -141,11 +141,6 @@ else
 			AC_CHECK_HEADER(SDL/SDL_mixer.h,
 				SDL_LIBS="$SDL_LIBS -lSDL_mixer",
 				[AC_MSG_ERROR([Couldn't find SDL_mixer.h, please install sdl-mixer])]
-			)
-
-			AC_CHECK_HEADERS(SDL/SDL_ttf.h,
-				SDL_LIBS="$SDL_LIBS -lSDL_ttf",
-				[AC_MSG_WARN([Couldn't find SDL_ttf.h, please install sdl-ttf])]
 			)
 
 			CPPFLAGS="$save_CPPFLAGS"
