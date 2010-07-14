@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 Id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006-2010 Quake2World.
+ * Copyright(c) 2006 Quake2World.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -895,23 +895,7 @@ static const char *Cl_GetUserName(void){
 	const char *username = Sys_GetCurrentUser();
 
 	if(username[0] == '\0')
-		username = "Newbie";
-	else {
-		bool has_upper = false;
-		int i = 0;
-
-		// check if name has an uppercase letter
-		while(username[i] != '\0' && !has_upper) {
-			has_upper = isupper(username[i]);
-			i++;
-		}
-		// if there isn't, capitalize first letter (e.g. bob -> Bob)
-		if(!has_upper) {
-			char *buf = Z_Malloc(strlen(username)+1);
-			username = strcpy(buf, username);
-			buf[0] = toupper(buf[0]);
-		}
-	}
+		username = "newbie";
 
 	return username;
 }
