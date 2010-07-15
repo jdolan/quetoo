@@ -22,7 +22,7 @@
 #ifndef __CONSOLE_H__
 #define __CONSOLE_H__
 
-#include "shared.h"
+#include "common.h"
 
 #define CON_TEXTSIZE 32768
 #define CON_MAXLINES 1024
@@ -60,21 +60,6 @@ void Con_Shutdown(void);
 void Con_Print(const char *text);
 void Con_Resize(console_t *con, int width, int height);
 int Con_CompleteCommand(char *input_text, int *input_position);
-
-#ifdef BUILD_CLIENT
-
-// client console structures
-extern console_t cl_con;
-
-// client console functions
-void Con_InitClientConsole(void);
-void Con_DrawConsole(float frac);
-void Con_DrawNotify(void);
-void Con_UpdateNotify(int lastline);
-void Con_ClearNotify(void);
-void Con_ToggleConsole_f(void);
-
-#endif /* BUILD_CLIENT */
 
 #ifdef HAVE_CURSES
 

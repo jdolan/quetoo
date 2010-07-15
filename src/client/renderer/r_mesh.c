@@ -239,10 +239,7 @@ static void R_SetMeshState_default(const entity_t *e){
 		R_SetMeshColor_default(e);  // and color
 	}
 
-	if(e->flags & EF_WEAPON)  // prevent weapon from poking into walls
-		glDepthRange(0.0, 0.3);
-
-	// enable hardware light sources, transform the static light source vector
+	// enable hardware light sources, transform static lighting position
 	if(r_state.lighting_enabled && !(e->flags & EF_NO_LIGHTING)){
 		vec3_t lightpos;
 
@@ -252,6 +249,9 @@ static void R_SetMeshState_default(const entity_t *e){
 
 		R_ProgramParameter3fv("LIGHTPOS", lightpos);
 	}
+
+	if(e->flags & EF_WEAPON)  // prevent weapon from poking into walls
+		glDepthRange(0.0, 0.3);
 
 	// now rotate and translate to the ent's origin
 	R_RotateForEntity(e);

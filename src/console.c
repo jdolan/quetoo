@@ -25,22 +25,28 @@
  * the server curses console.
  */
 
-#include "shared.h"
 #include "console.h"
-#include "common.h"
 
 consoledata_t condata;
 
 #ifdef BUILD_CLIENT
-console_t cl_con;
+
+extern console_t cl_con;
 extern cvar_t *dedicated;
+
+extern void Cl_UpdateNotify(int lastline);
+extern void Cl_ClearNotify(void);
+
 #endif
 
 #ifdef HAVE_CURSES
+
 #include "curses.h"
+
 console_t sv_con;
 cvar_t *con_curses;
 cvar_t *con_timeout;
+
 #endif
 
 cvar_t *ansi;
@@ -165,7 +171,7 @@ void Con_Resize(console_t *con, int width, int height){
 	if (dedicated && !dedicated->value) {
 		// clear client notification timings
 		if (con == &cl_con)
-			Con_ClearNotify();
+			Cl_ClearNotify();
 	}
 #endif
 }
@@ -366,7 +372,7 @@ void Con_Print(const char *text){
 		Con_Update(&cl_con, condata.insert);
 
 		// update client message notification times
-		Con_UpdateNotify(lastline);
+		Cl_UpdateNotify(lastline);
 	}
 #endif
 

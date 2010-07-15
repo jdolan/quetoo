@@ -519,7 +519,7 @@ void R_LoadMedia(void){
 	// weather and fog effects
 	R_ResolveWeather();
 
-	Con_ClearNotify();
+	Cl_ClearNotify();
 
 	r_view.ready = r_view.update = true;
 }

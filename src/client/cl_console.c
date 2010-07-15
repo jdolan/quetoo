@@ -26,18 +26,20 @@
 
 #include "client.h"
 
+console_t cl_con;
+
 static cvar_t *con_notifytime;
 static cvar_t *con_alpha;
 
 extern int key_linepos;
 
 /*
- * Con_ToggleConsole_f
+ * Cl_ToggleConsole_f
  */
-void Con_ToggleConsole_f(void){
+void Cl_ToggleConsole_f(void){
 
 	Cl_ClearTyping();
-	Con_ClearNotify();
+	Cl_ClearNotify();
 
 	if(cls.key_dest == key_console){
 
@@ -52,11 +54,11 @@ void Con_ToggleConsole_f(void){
 
 
 /*
- * Con_UpdateNotify
+ * Cl_UpdateNotify
  *
  * Update client message notification times
  */
-void Con_UpdateNotify(int lastline){
+void Cl_UpdateNotify(int lastline){
 	int i;
 
 	for(i = lastline; i < cl_con.lastline; i++)
@@ -65,11 +67,11 @@ void Con_UpdateNotify(int lastline){
 
 
 /*
- * Con_ClearNotify
+ * Cl_ClearNotify
  *
  * Clear client message notification times
  */
-void Con_ClearNotify(void){
+void Cl_ClearNotify(void){
 	int i;
 
 	for(i = 0; i < CON_NUMTIMES; i++)
@@ -78,49 +80,53 @@ void Con_ClearNotify(void){
 
 
 /*
- * Con_MessageMode_f
+ * Cl_MessageMode_f
  */
-static void Con_MessageMode_f(void){
+static void Cl_MessageMode_f(void){
 	chat_team = false;
 	cls.key_dest = key_message;
 }
 
 
 /*
- * Con_MessageMode2_f
+ * Cl_MessageMode2_f
  */
-static void Con_MessageMode2_f(void){
+static void Cl_MessageMode2_f(void){
 	chat_team = true;
 	cls.key_dest = key_message;
 }
 
 
 /*
- * Con_InitClientConsole
+ * Cl_InitConsole
  */
-void Con_InitClientConsole(void){
+void Cl_InitConsole(void){
+
+	memset(&cl_con, 0, sizeof(console_t));
+
 	cl_con.width = -1;
 	// the last line of the console is reserved for input
 	Con_Resize(&cl_con, r_state.width >> 4, (r_state.height >> 5) - 1);
-	Con_ClearNotify();
+
+	Cl_ClearNotify();
 
 	con_notifytime = Cvar_Get("con_notifytime", "3", CVAR_ARCHIVE, "Seconds to draw the last messages on the game top");
 	con_alpha = Cvar_Get("con_alpha", "0.3", CVAR_ARCHIVE, "Console alpha background [0.0-1.0]");
 
-	Cmd_AddCommand("toggleconsole", Con_ToggleConsole_f, "Toggle the console");
-	Cmd_AddCommand("messagemode", Con_MessageMode_f, "Activate chat");
-	Cmd_AddCommand("messagemode2", Con_MessageMode2_f, "Activate team chat");
+	Cmd_AddCommand("toggleconsole", Cl_ToggleConsole_f, "Toggle the console");
+	Cmd_AddCommand("messagemode", Cl_MessageMode_f, "Activate chat");
+	Cmd_AddCommand("messagemode2", Cl_MessageMode2_f, "Activate team chat");
 
 	Com_Printf("Console initialized.\n");
 }
 
 
 /*
- * Con_DrawInput
+ * Cl_DrawInput
  *
  * The input line scrolls horizontally if typing goes beyond the right edge
  */
-static void Con_DrawInput(void){
+static void Cl_DrawInput(void){
 	int i, y;
 	char editlinecopy[KEY_LINESIZE], *text;
 
@@ -148,11 +154,11 @@ static void Con_DrawInput(void){
 
 
 /*
- * Con_DrawNotify
+ * Cl_DrawNotify
  *
  * Draws the last few lines of output transparently over the game top
  */
-void Con_DrawNotify(void){
+void Cl_DrawNotify(void){
 	int i, y = 0;
 	char *s;
 	int skip;
@@ -198,31 +204,25 @@ void Con_DrawNotify(void){
 
 
 /*
- * Con_DrawConsole
+ * Cl_DrawConsole
  */
-void Con_DrawConsole(float frac){
+void Cl_DrawConsole(void){
 	int line;
 	int lines;
-	int height;
 	int kb;
 	int y;
 	char dl[MAX_STRING_CHARS];
 
-	height = (int)((float)r_state.height * frac);
-
-	if(height <= 0)  // nothing to do
+	if(cls.key_dest != key_console)
 		return;
 
-	if(height > r_state.height)  // ensure sane height
-		height = r_state.height;
-
-	Con_Resize(&cl_con, r_state.width >> 4, (height >> 5) - 1);
+	Con_Resize(&cl_con, r_state.width >> 4, (r_state.height >> 5) - 1);
 
 	// draw a background
 	if(cls.state == ca_active)
-		R_DrawFill(0, 0, r_state.width, height, 5, con_alpha->value);
+		R_DrawFill(0, 0, r_state.width, r_state.height, 5, con_alpha->value);
 	else
-		R_DrawFill(0, 0, r_state.width, height, 0, 1.0);
+		R_DrawFill(0, 0, r_state.width, r_state.height, 0, 1.0);
 
 	// draw the text
 	lines = cl_con.height;
@@ -251,6 +251,6 @@ void Con_DrawConsole(float frac){
 		R_DrawString(0, cl_con.height << 5, dl, CON_COLOR_INFO);
 	}
 	else {  // draw the input prompt, user text, and cursor if desired
-		Con_DrawInput();
+		Cl_DrawInput();
 	}
 }

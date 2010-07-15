@@ -299,7 +299,7 @@ void Cl_SendCmd(void);
 extern console_t cl_con;
 
 void Cl_InitConsole(void);
-void Cl_DrawConsole(float frac);
+void Cl_DrawConsole(void);
 void Cl_DrawNotify(void);
 void Cl_UpdateNotify(int lastline);
 void Cl_ClearNotify(void);

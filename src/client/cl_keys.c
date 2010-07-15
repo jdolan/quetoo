@@ -698,7 +698,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 
 	// tilde always toggles the console
 	if((unicode == '`' || unicode == '~') && down){
-		Con_ToggleConsole_f();
+		Cl_ToggleConsole_f();
 		return;
 	}
 

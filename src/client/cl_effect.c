@@ -269,7 +269,7 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 	p->alphavel = -1.0 / (0.7 + crand() * 0.1);
 
 	VectorAdd(org, dir, v);
-	R_AddSustainedLight(v, 0.15, bullet_light, 0.25);
+	R_AddSustainedLight(v, 0.25, bullet_light, 0.25);
 }
 
 

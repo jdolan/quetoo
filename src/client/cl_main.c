@@ -1234,7 +1234,7 @@ void Cl_Init(void){
 
 	Cl_InitLocal();
 
-	Con_InitClientConsole();
+	Cl_InitConsole();
 
 	Cl_InitView();
 

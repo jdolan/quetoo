@@ -165,7 +165,7 @@ void Cl_CenterPrint(char *str){
 
 	Com_Printf("%s", str);
 
-	Con_ClearNotify();
+	Cl_ClearNotify();
 }
 
 
@@ -248,22 +248,6 @@ static void Cl_DrawRspeeds(void){
 			r_view.bsp_polys, r_view.mesh_polys, r_view.num_lights, r_view.num_particles);
 
 	R_DrawString(r_state.width - strlen(rspeeds) * 16, 0, rspeeds, CON_COLOR_YELLOW);
-}
-
-
-/*
- * Cl_DrawConsoleOrNotify
- */
-static void Cl_DrawConsoleOrNotify(void){
-
-	if(cls.key_dest == key_console){
-		Con_DrawConsole(1.0);
-	}
-	else {
-		Con_DrawNotify();
-
-		Cl_DrawRspeeds();
-	}
 }
 
 
@@ -736,6 +720,10 @@ void Cl_UpdateScreen(void){
 			Cl_DrawCounters();
 
 			Cl_DrawBlend();
+
+			Cl_DrawNotify();
+
+			Cl_DrawRspeeds();
 		}
 	}
 	else {
@@ -744,7 +732,7 @@ void Cl_UpdateScreen(void){
 
 	Cl_DrawMenus();
 
-	Cl_DrawConsoleOrNotify();
+	Cl_DrawConsole();
 
 	R_DrawFills();  // draw all fills accumulated above
 
