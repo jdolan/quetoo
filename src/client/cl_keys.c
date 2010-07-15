@@ -24,19 +24,7 @@
 #include "client.h"
 #include "menu/m_input.h"
 
-static char key_lines[KEY_HISTORYSIZE][KEY_LINESIZE];
-int key_linepos;
-static int key_insert;
-
-static int edit_line = 0;
-static int history_line = 0;
-
-static int key_waiting;
-static char *key_bindings[K_LAST];
-static qboolean key_forconsole[K_LAST];  // if true, can't be rebound while in console
-static int key_repeats[K_LAST];  // if > 1, it is autorepeating
-static qboolean key_down[K_LAST];
-int key_numdown;
+static key_state_t *ks = &cls.key_state;
 
 typedef struct {
 	const char *name;
@@ -134,24 +122,31 @@ keyname_t keynames[] = {
  *
  * Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(int key, int unicode){
+static void Cl_KeyConsole(unsigned key, unsigned short unicode, qboolean down, unsigned time){
+	qboolean numlock = ks->down[K_NUMLOCK];
 	int i;
-	qboolean numlock = key_down[K_NUMLOCK];
+
+	if(!down)  // don't care
+		return;
 
 	// submit buffer on enter
-	if((key == K_ENTER || key == K_KP_ENTER)){
-		if(key_lines[edit_line][1] == '\\' || key_lines[edit_line][1] == '/')
-			Cbuf_AddText(key_lines[edit_line] + 2);  // skip the /
+	if(key == K_ENTER || key == K_KP_ENTER){
+
+		if(ks->lines[ks->edit_line][1] == '\\' || ks->lines[ks->edit_line][1] == '/')
+			Cbuf_AddText(ks->lines[ks->edit_line] + 2);  // skip the /
 		else
-			Cbuf_AddText(key_lines[edit_line] + 1);  // valid command
+			Cbuf_AddText(ks->lines[ks->edit_line] + 1);  // valid command
 
 		Cbuf_AddText("\n");
-		Com_Printf("%s\n", key_lines[edit_line]);
-		edit_line = (edit_line + 1) % KEY_HISTORYSIZE;
-		history_line = edit_line;
-		memset(key_lines[edit_line], 0, sizeof(key_lines[0]));
-		key_lines[edit_line][0] = ']';
-		key_linepos = 1;
+		Com_Printf("%s\n", ks->lines[ks->edit_line]);
+
+		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORYSIZE;
+		ks->history_line = ks->edit_line;
+
+		memset(ks->lines[ks->edit_line], 0, sizeof(ks->lines[0]));
+
+		ks->lines[ks->edit_line][0] = ']';
+		ks->pos = 1;
 
 		if(cls.state == ca_disconnected)  // force an update, because the command
 			Cl_UpdateScreen();  // may take some time
@@ -161,89 +156,89 @@ static void Cl_KeyConsole(int key, int unicode){
 
 	if(key == K_TAB){  // command completion
 		// ignore the leading bracket in the input string
-		key_linepos--;
-		Con_CompleteCommand(key_lines[edit_line] + 1, &key_linepos);
-		key_linepos++;
+		ks->pos--;
+		Con_CompleteCommand(ks->lines[ks->edit_line] + 1, &ks->pos);
+		ks->pos++;
 		return;
 	}
 
 	if(key == K_BACKSPACE){  // delete char before cursor
-		if(key_linepos > 1){
-			strcpy(key_lines[edit_line] + key_linepos - 1, key_lines[edit_line] + key_linepos);
-			key_linepos--;
+		if(ks->pos > 1){
+			strcpy(ks->lines[ks->edit_line] + ks->pos - 1, ks->lines[ks->edit_line] + ks->pos);
+			ks->pos--;
 		}
 		return;
 	}
 
 	if(key == K_DEL || (key == K_KP_DEL && !numlock)){  // delete char on cursor
-		if(key_linepos < strlen(key_lines[edit_line]))
-			strcpy(key_lines[edit_line] + key_linepos, key_lines[edit_line] + key_linepos + 1);
+		if(ks->pos < strlen(ks->lines[ks->edit_line]))
+			strcpy(ks->lines[ks->edit_line] + ks->pos, ks->lines[ks->edit_line] + ks->pos + 1);
 		return;
 	}
 
 	if(key == K_INS || (key == K_KP_INS && !numlock)){  // toggle insert mode
-		key_insert ^= 1;
+		ks->insert ^= 1;
 		return;
 	}
 
 	if(key == K_LEFTARROW || (key == K_KP_LEFTARROW && !numlock)){  // move cursor left
-		if(key_down[K_CTRL]){ // by a whole word
-			while(key_linepos > 1 && key_lines[edit_line][key_linepos - 1] == ' ')
-				key_linepos--;  // get off current word
-			while(key_linepos > 1 && key_lines[edit_line][key_linepos - 1] != ' ')
-				key_linepos--;  // and behind previous word
+		if(ks->down[K_CTRL]){ // by a whole word
+			while(ks->pos > 1 && ks->lines[ks->edit_line][ks->pos - 1] == ' ')
+				ks->pos--;  // get off current word
+			while(ks->pos > 1 && ks->lines[ks->edit_line][ks->pos - 1] != ' ')
+				ks->pos--;  // and behind previous word
 			return;
 		}
 
-		if(key_linepos > 1)  //or just a char
-			key_linepos--;
+		if(ks->pos > 1)  //or just a char
+			ks->pos--;
 		return;
 	}
 
 	if(key == K_RIGHTARROW || (key == K_KP_RIGHTARROW && !numlock)){  // move cursor right
-		if((i = strlen(key_lines[edit_line])) == key_linepos)
+		if((i = strlen(ks->lines[ks->edit_line])) == ks->pos)
 			return;	// no character to get
 
-		if(key_down[K_CTRL]){  //by a whole word
-			while(key_linepos < i && key_lines[edit_line][key_linepos + 1] == ' ')
-				key_linepos++;  // get off current word
-			while(key_linepos < i && key_lines[edit_line][key_linepos + 1] != ' ')
-				key_linepos++;  // and in front of next word
-			if(key_linepos < i)  // all the way in front
-				key_linepos++;
+		if(ks->down[K_CTRL]){  //by a whole word
+			while(ks->pos < i && ks->lines[ks->edit_line][ks->pos + 1] == ' ')
+				ks->pos++;  // get off current word
+			while(ks->pos < i && ks->lines[ks->edit_line][ks->pos + 1] != ' ')
+				ks->pos++;  // and in front of next word
+			if(ks->pos < i)  // all the way in front
+				ks->pos++;
 			return;
 		}
 
-		key_linepos++;  // or just a char
+		ks->pos++;  // or just a char
 		return;
 	}
 
 	if(key == K_UPARROW || (key == K_KP_UPARROW && !numlock)){  // iterate history back
 		do {
-			history_line = (history_line + KEY_HISTORYSIZE - 1) % KEY_HISTORYSIZE;
-		} while(history_line != edit_line && !key_lines[history_line][1]);
+			ks->history_line = (ks->history_line + KEY_HISTORYSIZE - 1) % KEY_HISTORYSIZE;
+		} while(ks->history_line != ks->edit_line && !ks->lines[ks->history_line][1]);
 
-		if(history_line == edit_line)
-			history_line = (edit_line + 1) % KEY_HISTORYSIZE;
+		if(ks->history_line == ks->edit_line)
+			ks->history_line = (ks->edit_line + 1) % KEY_HISTORYSIZE;
 
-		strcpy(key_lines[edit_line], key_lines[history_line]);
-		key_linepos = strlen(key_lines[edit_line]);
+		strcpy(ks->lines[ks->edit_line], ks->lines[ks->history_line]);
+		ks->pos = strlen(ks->lines[ks->edit_line]);
 		return;
 	}
 
 	if(key == K_DOWNARROW || (key == K_KP_DOWNARROW && !numlock)){  // iterate history forward
-		if(history_line == edit_line)
+		if(ks->history_line == ks->edit_line)
 			return;
 		do {
-			history_line = (history_line + 1) % KEY_HISTORYSIZE;
-		} while(history_line != edit_line && !key_lines[history_line][1]);
+			ks->history_line = (ks->history_line + 1) % KEY_HISTORYSIZE;
+		} while(ks->history_line != ks->edit_line && !ks->lines[ks->history_line][1]);
 
-		if(history_line == edit_line){
-			strcpy(key_lines[edit_line], "]");
-			key_linepos = 1;
+		if(ks->history_line == ks->edit_line){
+			strcpy(ks->lines[ks->edit_line], "]");
+			ks->pos = 1;
 		} else {
-			strcpy(key_lines[edit_line], key_lines[history_line]);
-			key_linepos = strlen(key_lines[edit_line]);
+			strcpy(ks->lines[ks->edit_line], ks->lines[ks->history_line]);
+			ks->pos = strlen(ks->lines[ks->edit_line]);
 		}
 		return;
 	}
@@ -263,92 +258,117 @@ static void Cl_KeyConsole(int key, int unicode){
 	}
 
 	if(key == K_CTRL_A){  // start of line
-		key_linepos = 1;
+		ks->pos = 1;
 		return;
 	}
 
 	if(key == K_HOME || (key == K_KP_HOME && !numlock)){	// go to the start of line
-		if(key_down[K_CTRL])	// go to the start of the console
+		if(ks->down[K_CTRL])	// go to the start of the console
 			cl_con.scroll = cl_con.lastline;
 		else
-			key_linepos = 1;
+			ks->pos = 1;
 		return;
 	}
 
 	if(key == K_CTRL_E) {	// Ctrl+E shortcut to go to the end of line
-		key_linepos = strlen(key_lines[edit_line]);
+		ks->pos = strlen(ks->lines[ks->edit_line]);
 		return;
 	}
 
 	if(key == K_END || (key == K_KP_END && !numlock)){	// go to the end of line
-		if(key_down[K_CTRL])	// go to the end of the console
+		if(ks->down[K_CTRL])	// go to the end of the console
 			cl_con.scroll = 0;
 		else
-			key_linepos = strlen(key_lines[edit_line]);
+			ks->pos = strlen(ks->lines[ks->edit_line]);
 		return;
 	}
 
 	if(unicode < 32 || unicode > 127)
 		return;  // non printable
 
-	if(key_linepos < KEY_LINESIZE - 1){
-		int i;
+	if(ks->pos < KEY_LINESIZE - 1){
 
-		if(key_insert){  // can't do strcpy to move string to right
-			i = strlen(key_lines[edit_line]) - 1;
+		if(ks->insert){  // can't do strcpy to move string to right
+			i = strlen(ks->lines[ks->edit_line]) - 1;
 
 			if(i == 254)
 				i--;
 
-			for(; i >= key_linepos; i--)
-				key_lines[edit_line][i + 1] = key_lines[edit_line][i];
+			for(; i >= ks->pos; i--)
+				ks->lines[ks->edit_line][i + 1] = ks->lines[ks->edit_line][i];
 		}
 
-		i = key_lines[edit_line][key_linepos];
-		key_lines[edit_line][key_linepos] = unicode;
-		key_linepos++;
+		i = ks->lines[ks->edit_line][ks->pos];
+		ks->lines[ks->edit_line][ks->pos] = unicode;
+		ks->pos++;
 
 		if(!i)  // only null terminate if at the end
-			key_lines[edit_line][key_linepos] = 0;
+			ks->lines[ks->edit_line][ks->pos] = 0;
 	}
 }
 
 
-qboolean chat_team;
-char chat_buffer[KEY_LINESIZE];
-int chat_bufferlen = 0;
+/*
+ * Cl_KeyGame
+ */
+static void Cl_KeyGame(unsigned key, unsigned short unicode, qboolean down, unsigned time){
+	char cmd[MAX_STRING_CHARS];
+	char *kb;
+
+	if(cls.state != ca_active)  // not in game
+		return;
+
+	if(!ks->binds[key])
+		return;
+
+	memset(cmd, 0, sizeof(cmd));
+	kb = ks->binds[key];
+
+	if(kb[0] == '+'){  // button commands add key and time as a param
+		if(down)
+			snprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, time);
+		else
+			snprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, time);
+	}
+	else {
+		if(down){
+			snprintf(cmd, sizeof(cmd), "%s\n", kb);
+		}
+	}
+
+	if(cmd[0])  // send the command
+		Cbuf_AddText(cmd);
+}
+
 
 /*
  * Cl_KeyMessage
  */
-static void Cl_KeyMessage(int key, int unicode){
+static void Cl_KeyMessage(unsigned key, unsigned short unicode, qboolean down, unsigned time){
+
+	if(!down)  // don't care
+		return;
+
 	if(key == K_ENTER || key == K_KP_ENTER){
-		if(*chat_buffer){
-			if(chat_team)
+		if(*cls.chat_state.buffer){
+			if(cls.chat_state.team)
 				Cbuf_AddText("say_team \"");
 			else
 				Cbuf_AddText("say \"");
-			Cbuf_AddText(chat_buffer);
+			Cbuf_AddText(cls.chat_state.buffer);
 			Cbuf_AddText("\"");
 		}
 
 		cls.key_dest = key_game;
-		chat_bufferlen = 0;
-		chat_buffer[0] = 0;
-		return;
-	}
-
-	if(key == K_ESCAPE){
-		cls.key_dest = key_game;
-		chat_bufferlen = 0;
-		chat_buffer[0] = 0;
+		cls.chat_state.buffer[0] = 0;
+		cls.chat_state.len = 0;
 		return;
 	}
 
 	if(key == K_BACKSPACE){
-		if(chat_bufferlen){
-			chat_bufferlen--;
-			chat_buffer[chat_bufferlen] = 0;
+		if(cls.chat_state.len){
+			cls.chat_state.len--;
+			cls.chat_state.buffer[cls.chat_state.len] = 0;
 		}
 		return;
 	}
@@ -356,18 +376,30 @@ static void Cl_KeyMessage(int key, int unicode){
 	if(unicode < 32 || unicode > 127)
 		return;  // non printable
 
-	if(chat_bufferlen == sizeof(chat_buffer) - 1)
-		return; // all full
+	if(cls.chat_state.len == sizeof(cls.chat_state.buffer) - 1)
+		return;  // full
 
-	chat_buffer[chat_bufferlen++] = unicode;
-	chat_buffer[chat_bufferlen] = 0;
+	cls.chat_state.buffer[cls.chat_state.len++] = unicode;
+	cls.chat_state.buffer[cls.chat_state.len] = 0;
+}
+
+
+/*
+ * Cl_KeyMenu
+ */
+static void Cl_KeyMenu(unsigned key, unsigned short unicode, qboolean down, unsigned time){
+
+	if(!down)
+		return;
+
+	MN_KeyPressed(key, unicode);
 }
 
 
 /*
  * Cl_StringToKeynum
  *
- * Returns a key number to be used to index key_bindings[] by looking at
+ * Returns a key number to be used to index ks->binds[] by looking at
  * the given string.  Single ascii characters return themselves, while
  * the K_* names are matched up.
  */
@@ -426,14 +458,14 @@ static void Cl_Bind(int keynum, char *binding){
 		return;
 
 	// free old binding
-	if(key_bindings[keynum]){
-		Z_Free(key_bindings[keynum]);
-		key_bindings[keynum] = NULL;
+	if(ks->binds[keynum]){
+		Z_Free(ks->binds[keynum]);
+		ks->binds[keynum] = NULL;
 	}
 
 	// allocate for new binding and copy it in
-	key_bindings[keynum] = Z_Malloc(strlen(binding) + 1);
-	strcpy(key_bindings[keynum], binding);
+	ks->binds[keynum] = Z_Malloc(strlen(binding) + 1);
+	strcpy(ks->binds[keynum], binding);
 }
 
 
@@ -465,7 +497,7 @@ static void Cl_UnbindAll_f(void){
 	int i;
 
 	for(i = K_FIRST; i < K_LAST; i++)
-		if(key_bindings[i])
+		if(ks->binds[i])
 			Cl_Bind(i, "");
 }
 
@@ -490,8 +522,8 @@ static void Cl_Bind_f(void){
 	}
 
 	if(c == 2){
-		if(key_bindings[b])
-			Com_Printf("\"%s\" = \"%s\"\n", Cmd_Argv(1), key_bindings[b]);
+		if(ks->binds[b])
+			Com_Printf("\"%s\" = \"%s\"\n", Cmd_Argv(1), ks->binds[b]);
 		else
 			Com_Printf("\"%s\" is not bound\n", Cmd_Argv(1));
 		return;
@@ -518,8 +550,8 @@ void Cl_WriteBindings(FILE *f){
 	int i;
 
 	for(i = K_FIRST; i < K_LAST; i++)
-		if(key_bindings[i] && key_bindings[i][0])
-			fprintf(f, "bind %s \"%s\"\n", Cl_KeynumToString(i), key_bindings[i]);
+		if(ks->binds[i] && ks->binds[i][0])
+			fprintf(f, "bind %s \"%s\"\n", Cl_KeynumToString(i), ks->binds[i]);
 }
 
 
@@ -530,8 +562,8 @@ static void Cl_Bindlist_f(void){
 	int i;
 
 	for(i = K_FIRST; i < K_LAST; i++)
-		if(key_bindings[i] && key_bindings[i][0])
-			Com_Printf("%s \"%s\"\n", Cl_KeynumToString(i), key_bindings[i]);
+		if(ks->binds[i] && ks->binds[i][0])
+			Com_Printf("%s \"%s\"\n", Cl_KeynumToString(i), ks->binds[i]);
 }
 
 
@@ -550,9 +582,9 @@ static void Cl_WriteHistory(void){
 		return;
 	}
 
-	for(i = (edit_line + 1) % KEY_HISTORYSIZE; i != edit_line; i = (i+1) % KEY_HISTORYSIZE) {
-		if(key_lines[i][1]){
-			fprintf(f, "%s\n", key_lines[i] + 1);
+	for(i = (ks->edit_line + 1) % KEY_HISTORYSIZE; i != ks->edit_line; i = (i+1) % KEY_HISTORYSIZE) {
+		if(ks->lines[i][1]){
+			fprintf(f, "%s\n", ks->lines[i] + 1);
 		}
 	}
 
@@ -577,10 +609,10 @@ static void Cl_ReadHistory(void){
 	while(fgets(line, KEY_LINESIZE - 2, f)) {
 		if(line[strlen(line) - 1] == '\n')
 			line[strlen(line) - 1] = 0;
-		strncpy(&key_lines[edit_line][1], line, KEY_LINESIZE - 2);
-		edit_line = (edit_line + 1) % KEY_HISTORYSIZE;
-		history_line = edit_line;
-		key_lines[edit_line][1] = 0;
+		strncpy(&ks->lines[ks->edit_line][1], line, KEY_LINESIZE - 2);
+		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORYSIZE;
+		ks->history_line = ks->edit_line;
+		ks->lines[ks->edit_line][1] = 0;
 	}
 
 	Fs_CloseFile(f);
@@ -593,27 +625,21 @@ static void Cl_ReadHistory(void){
 void Cl_InitKeys(void){
 	int i;
 
-	key_insert = 1;
-	key_numdown = 0;
+	memset(ks, 0, sizeof(key_state_t));
+
+	ks->insert = 1;
 
 	for(i = K_FIRST; i < K_LAST; i++){
-
-		key_down[i] = false;
-		key_repeats[i] = 0;
-
-		key_forconsole[i] = true;
+		ks->down[i] = false;
 	}
-
-	key_forconsole['`'] = false;
-	key_forconsole['~'] = false;
 
 	for(i = 0; i < KEY_HISTORYSIZE; i++){
-		key_lines[i][0] = ']';
-		key_lines[i][1] = 0;
+		ks->lines[i][0] = ']';
+		ks->lines[i][1] = 0;
 	}
 
-	key_linepos = 1;
-	edit_line = history_line = 0;
+	ks->pos = 1;
+	ks->edit_line = ks->history_line = 0;
 
 	Cl_ReadHistory();
 
@@ -643,27 +669,17 @@ void Cl_ShutdownKeys(void){
  * Cl_KeyEvent
  */
 void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned time){
-	char *kb;
-	char cmd[MAX_STRING_CHARS];
-
-	// hack for modal presses
-	if(key_waiting == -1){
-		if(down)
-			key_waiting = key;
-		return;
-	}
-
-	// update auto-repeat status
-	if(down)
-		key_repeats[key]++;
-	else
-		key_repeats[key] = 0;
 
 	if(key == K_ESCAPE && down){  // escape can cancel a few things
 
 		// message mode
 		if(cls.key_dest == key_message){
-			Cl_KeyMessage(key, unicode);
+
+			// we should always be in game here, but check to be safe
+			if(cls.state == ca_active)
+				cls.key_dest = key_game;
+			else
+				cls.key_dest = key_menu;
 			return;
 		}
 
@@ -675,7 +691,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 
 		// console
 		if(cls.key_dest == key_console){
-			Cbuf_AddText("toggleconsole\n");
+			Cl_ToggleConsole_f();
 			return;
 		}
 
@@ -708,7 +724,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 			(key == K_LEFTARROW || key == K_RIGHTARROW)){
 		extern cvar_t *timescale;
 
-		float ts = timescale->value + (key == K_LEFTARROW ? -0.25 : 0.25);
+		float ts = timescale->value + (key == K_LEFTARROW ? -0.1 : 0.1);
 
 		ts = ts < 0.25 ? 0.25 : ts;  // enforce reasonable bounds
 		ts = ts > 4.0 ? 4.0 : ts;
@@ -716,65 +732,29 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 		Cvar_Set("timescale", va("%f", ts));
 
 		Com_Printf("Demo playback rate %d%%\n", (int)((ts / 1.0) * 100));
-	}
-
-	// track if any key is down for BUTTON_ANY
-	key_down[key] = down;
-	if(down){
-		if(key_repeats[key] == 1)
-			key_numdown++;
-	} else {
-		key_numdown--;
-		if(key_numdown < 0)
-			key_numdown = 0;
-	}
-
-	// key up events only generate commands if the game key binding is
-	// a button command (leading + sign).  These will occur even in console mode,
-	// to keep the character from continuing an action started before a console
-	// switch.  Button commands include the kenum as a parameter, so multiple
-	// downs can be matched with ups
-	if(!down){
-		kb = key_bindings[key];
-		if(kb && kb[0] == '+'){
-			snprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, time);
-			Cbuf_AddText(cmd);
-		}
 		return;
 	}
 
-	// TODO: is the first part of this even necessary?
-	// if not a console key, send to the interpreter no matter what mode is
-	if((cls.key_dest == key_console && !key_forconsole[key]) ||
-			(cls.key_dest == key_game && (cls.state == ca_active || !key_forconsole[key]))){
-		kb = key_bindings[key];
-		if(kb){
-			if(kb[0] == '+'){  // button commands add keynum and time as a parm
-				snprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, time);
-				Cbuf_AddText(cmd);
-			} else {
-				Cbuf_AddText(kb);
-				Cbuf_AddText("\n");
-			}
-		}
-		return;
-	}
+	ks->down[key] = down;
 
-	if(!down)
-		return;  // other systems only care about key down events
+	if(!down)  // always send up events to release button binds
+		Cl_KeyGame(key, unicode, down, time);
 
 	switch(cls.key_dest){
+		case key_game:
+			Cl_KeyGame(key, unicode, down, time);
+			break;
 		case key_message:
-			Cl_KeyMessage(key, unicode);
+			Cl_KeyMessage(key, unicode, down, time);
 			break;
 		case key_menu:
-			MN_KeyPressed(key, unicode);
+			Cl_KeyMenu(key, unicode, down, time);
 			break;
 		case key_console:
-			Cl_KeyConsole(key, unicode);
+			Cl_KeyConsole(key, unicode, down, time);
 			break;
 		default:
-			Com_Warn("Cl_KeyEvent: Bad cls.key_dest.\n");
+			Com_Dprintf("Cl_KeyEvent: Bad cls.key_dest: %d.\n", cls.key_dest);
 			break;
 	}
 }
@@ -786,8 +766,8 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
  * Clears the current input line.
  */
 void Cl_ClearTyping(void) {
-	key_lines[edit_line][1] = 0;
-	key_linepos = 1;
+	ks->lines[ks->edit_line][1] = 0;
+	ks->pos = 1;
 }
 
 
@@ -797,5 +777,5 @@ void Cl_ClearTyping(void) {
  * Returns the current input line.
  */
 char *Cl_EditLine(void) {
-	return key_lines[edit_line];
+	return ks->lines[ks->edit_line];
 }

@@ -615,7 +615,7 @@ void Cl_AddEntities(frame_t *frame){
 
 		// resolve model and skin
 		if(state->modelindex == 255){  // use custom player skin
-			const clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
+			const client_info_t *ci = &cl.clientinfo[state->skinnum & 0xff];
 			ent.skinnum = 0;
 			ent.skin = ci->skin;
 			ent.model = ci->model;
@@ -745,7 +745,7 @@ void Cl_AddEntities(frame_t *frame){
 		if(state->modelindex2){
 			if(state->modelindex2 == 255){  // custom weapon
 				// the weapon is masked on the skinnum
-				const clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
+				const client_info_t *ci = &cl.clientinfo[state->skinnum & 0xff];
 				int i = (state->skinnum >> 8);  // 0 is default weapon model
 				if(i > MAX_CLIENTWEAPONMODELS - 1)
 					i = 0;

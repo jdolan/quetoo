@@ -299,7 +299,7 @@ static void Cl_ParseBaseline(void){
  * Cl_LoadClientinfo
  *
  */
-void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
+void Cl_LoadClientinfo(client_info_t *ci, const char *s){
 	int i;
 	const char *t;
 	char *u, *v;
@@ -388,7 +388,7 @@ void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
  */
 void Cl_ParseClientinfo(int player){
 	const char *s;
-	clientinfo_t *ci;
+	client_info_t *ci;
 
 	s = cl.configstrings[player + CS_PLAYERSKINS];
 

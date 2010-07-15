@@ -62,7 +62,7 @@ typedef struct clientinfo_s {
 	struct image_s *skin;
 	struct model_s *model;
 	struct model_s *weaponmodel[MAX_CLIENTWEAPONMODELS];
-} clientinfo_t;
+} client_info_t;
 
 extern char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
 extern int num_cl_weaponmodels;
@@ -125,8 +125,8 @@ typedef struct client_state_s {
 	s_sample_t *sound_precache[MAX_SOUNDS];
 	image_t *image_precache[MAX_IMAGES];
 
-	clientinfo_t clientinfo[MAX_CLIENTS];
-	clientinfo_t baseclientinfo;
+	client_info_t clientinfo[MAX_CLIENTS];
+	client_info_t baseclientinfo;
 } client_state_t;
 
 extern client_state_t cl;
@@ -140,20 +140,39 @@ typedef enum {
 	ca_connecting,   // sending request packets to the server
 	ca_connected,   // netchan_t established, waiting for svc_serverdata
 	ca_active  // game views should be displayed
-} connstate_t;
+} connection_state_t;
 
 typedef enum {
 	key_game,
 	key_menu,
 	key_console,
 	key_message
-} keydest_t;
+} key_dest_t;
+
+typedef struct {
+	char lines[KEY_HISTORYSIZE][KEY_LINESIZE];
+	int pos;
+
+	qboolean insert;
+
+	unsigned edit_line;
+	unsigned history_line;
+
+	char *binds[K_LAST];
+	qboolean down[K_LAST];
+} key_state_t;
 
 typedef struct {
 	float x, y;
 	float old_x, old_y;
 	qboolean grabbed;
-} mousestate_t;
+} mouse_state_t;
+
+typedef struct {
+	char buffer[KEY_LINESIZE];
+	size_t len;
+	qboolean team;
+} chat_state_t;
 
 typedef struct {
 	qboolean http;
@@ -181,11 +200,15 @@ typedef struct server_info_s {
 #define MAX_SERVER_INFOS 128
 
 typedef struct {
-	connstate_t state;
+	connection_state_t state;
 
-	keydest_t key_dest;
+	key_dest_t key_dest;
 
-	mousestate_t mouse_state;
+	key_state_t key_state;
+
+	mouse_state_t mouse_state;
+
+	chat_state_t chat_state;
 
 	int realtime;  // always increasing, no clamping, etc
 
@@ -305,6 +328,14 @@ void Cl_UpdateNotify(int lastline);
 void Cl_ClearNotify(void);
 void Cl_ToggleConsole_f(void);
 
+// cl_keys.c
+void Cl_KeyEvent(unsigned int ascii, unsigned short unicode, qboolean down, unsigned time);
+char *Cl_EditLine(void);
+void Cl_WriteBindings(FILE *f);
+void Cl_InitKeys(void);
+void Cl_ShutdownKeys(void);
+void Cl_ClearTyping(void);
+
 // cl_parse.c
 extern centity_t cl_entities[MAX_EDICTS];
 
@@ -321,7 +352,7 @@ void Cl_ParseConfigstring(void);
 void Cl_ParseClientinfo(int player);
 void Cl_ParseMuzzleFlash(void);
 void Cl_ParseServerMessage(void);
-void Cl_LoadClientinfo(clientinfo_t *ci, const char *s);
+void Cl_LoadClientinfo(client_info_t *ci, const char *s);
 void Cl_Download_f(void);
 
 // cl_view.c

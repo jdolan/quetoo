@@ -111,18 +111,4 @@ enum QKEYS {
 	K_LAST = 511  // to support as many chars as posible
 };
 
-extern int key_numdown;
-
-extern char chat_buffer[];
-extern int chat_bufferlen;
-extern qboolean chat_team;
-
-void Cl_KeyEvent(unsigned int ascii, unsigned short unicode, qboolean down, unsigned time);
-char *Cl_EditLine(void);
-void Cl_WriteBindings(FILE *f);
-void Cl_InitKeys(void);
-void Cl_ShutdownKeys(void);
-void Cl_ClearTyping(void);
-void Cl_ClearNotify(void);
-
 #endif /* __KEYS_H__ */

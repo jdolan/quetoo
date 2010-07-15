@@ -609,7 +609,7 @@ static void Cl_MouseMove(int mx, int my){
  * Cl_HandleEvents
  */
 void Cl_HandleEvents(void){
-	static keydest_t prev_key_dest;
+	static key_dest_t prev_key_dest;
 	static int throwaway = 0;
 	SDL_Event event;
 	int mx, my;
@@ -726,7 +726,7 @@ void Cl_Move(usercmd_t *cmd){
 	for(i = 0; i < 3; i++)  // pack the angles into the command
 		cmd->angles[i] = ANGLE2SHORT(cl.angles[i]);
 
-	// set any button hits that occured since last frame
+	// set any button hits that occurred since last frame
 	if(in_attack.state & 3)
 		cmd->buttons |= BUTTON_ATTACK;
 
@@ -740,9 +740,6 @@ void Cl_Move(usercmd_t *cmd){
 		if(!(in_speed.state & 1))
 			cmd->buttons |= BUTTON_WALK;
 	}
-
-	if(key_numdown && cls.key_dest == key_game)  // something pressed
-		cmd->buttons |= BUTTON_ANY;
 }
 
 

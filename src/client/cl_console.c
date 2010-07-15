@@ -39,6 +39,7 @@ extern int key_linepos;
 void Cl_ToggleConsole_f(void){
 
 	Cl_ClearTyping();
+
 	Cl_ClearNotify();
 
 	if(cls.key_dest == key_console){
@@ -83,7 +84,11 @@ void Cl_ClearNotify(void){
  * Cl_MessageMode_f
  */
 static void Cl_MessageMode_f(void){
-	chat_team = false;
+
+	memset(&cls.chat_state, 0, sizeof(chat_state_t));
+
+	cls.chat_state.team = false;
+
 	cls.key_dest = key_message;
 }
 
@@ -92,7 +97,11 @@ static void Cl_MessageMode_f(void){
  * Cl_MessageMode2_f
  */
 static void Cl_MessageMode2_f(void){
-	chat_team = true;
+
+	memset(&cls.chat_state, 0, sizeof(chat_state_t));
+
+	cls.chat_state.team = true;
+
 	cls.key_dest = key_message;
 }
 
@@ -135,8 +144,8 @@ static void Cl_DrawInput(void){
 
 	// add the cursor frame
 	if((int)(cls.realtime >> 8) & 1){
-		text[key_linepos] = CON_CURSORCHAR;
-		if(key_linepos == y)
+		text[cls.key_state.pos] = CON_CURSORCHAR;
+		if(y == cls.key_state.pos)
 			y++;
 	}
 
@@ -145,8 +154,8 @@ static void Cl_DrawInput(void){
 		text[i] = ' ';
 
 	// prestep if horizontally scrolling
-	if(key_linepos >= cl_con.width)
-		text += 1 + key_linepos - cl_con.width;
+	if(cls.key_state.pos >= cl_con.width)
+		text += 1 + cls.key_state.pos - cl_con.width;
 
 	// draw it
 	R_DrawBytes(0, cl_con.height << 5, text, cl_con.width, CON_COLOR_DEFAULT);
@@ -179,7 +188,7 @@ void Cl_DrawNotify(void){
 	}
 
 	if(cls.key_dest == key_message){
-		if(chat_team){
+		if(cls.chat_state.team){
 			color = CON_COLOR_TEAMCHAT;
 			R_DrawString(0, y, "say_team", CON_COLOR_DEFAULT);
 			skip = 10;
@@ -190,10 +199,10 @@ void Cl_DrawNotify(void){
 		}
 		R_DrawChar((skip - 2) << 4 , y, ':', color);
 
-		s = chat_buffer;
+		s = cls.chat_state.buffer;
 		// FIXME check the skipped part for color codes
-		if(chat_bufferlen > (r_state.width >> 4) - (skip + 1))
-			s += chat_bufferlen - ((r_state.width >> 4) - (skip + 1));
+		if(cls.chat_state.len > (r_state.width >> 4) - (skip + 1))
+			s += cls.chat_state.len - ((r_state.width >> 4) - (skip + 1));
 
 		len = R_DrawString(skip << 4, y, s, color);
 
