@@ -8,7 +8,6 @@ noinst_HEADERS = \
 	mem.h \
 	ui_icon.h \
 	ui_internal.h \
-	ui_menus.h \
 	ui_parse.h \
 	ui_render.h \
 	scripts.h \
@@ -20,6 +19,7 @@ noinst_HEADERS = \
 	ui_nodes.h \
 	ui_popup.h \
 	ui_timer.h \
+	ui_windows.h \
 	utf8.h
 
 noinst_LTLIBRARIES = \
@@ -36,12 +36,12 @@ libui_la_SOURCES = \
 	ui_icon.c \
 	ui_input.c \
 	ui_main.c \
-	ui_menus.c \
 	ui_nodes.c \
 	ui_parse.c \
 	ui_popup.c \
 	ui_render.c \
 	ui_timer.c \
+	ui_windows.c \
 	scripts.c \
 	utf8.c
 

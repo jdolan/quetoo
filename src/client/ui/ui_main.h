@@ -34,7 +34,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "ui_actions.h"
 #include "ui_data.h"
-#include "ui_menus.h"
+#include "ui_windows.h"
 
 /* initialization */
 void MN_Init(void);

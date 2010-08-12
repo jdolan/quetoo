@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define SCRIPTS_H
 
 #include "shared.h"
-#include "ui_menus.h"
+#include "ui_windows.h"
 
 #include <stdint.h>
 #include <assert.h>
