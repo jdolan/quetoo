@@ -20,7 +20,7 @@
  */
 
 #include "client.h"
-#include "menu/m_data.h"
+#include "ui/ui_data.h"
 
 /*
  * Cl_AddServer

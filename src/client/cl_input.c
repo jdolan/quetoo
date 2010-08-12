@@ -23,7 +23,7 @@
 
 #include "client.h"
 #include "keys.h"
-#include "menu/m_input.h"
+#include "ui/ui_input.h"
 
 static cvar_t *cl_run;
 

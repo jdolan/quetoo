@@ -1,5 +1,5 @@
 SUBDIRS = \
-	menu \
+	ui \
 	renderer \
 	sound
 

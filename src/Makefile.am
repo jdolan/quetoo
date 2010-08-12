@@ -120,8 +120,8 @@ EXTRA_quake2world_SOURCES = \
 quake2world_DEPENDENCIES = \
 	${noinst_LTLIBRARIES} \
 	client/libclient.la \
-	client/menu/libmenu.la \
-	client/menu/node/libmenunode.la \
+	client/ui/libui.la \
+	client/ui/node/libuinode.la \
 	client/sound/libsound.la \
 	client/renderer/librenderer.la \
 	server/libserver.la \

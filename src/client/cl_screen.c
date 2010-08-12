@@ -20,7 +20,7 @@
  */
 
 #include "client.h"
-#include "menu/m_draw.h"
+#include "ui/ui_draw.h"
 
 #define COLOR_HUD_STAT         CON_COLOR_DEFAULT
 #define COLOR_HUD_STAT_MED     CON_COLOR_YELLOW

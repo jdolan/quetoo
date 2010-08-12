@@ -22,7 +22,7 @@
 #include <ctype.h>
 
 #include "client.h"
-#include "menu/m_input.h"
+#include "ui/ui_input.h"
 
 static key_state_t *ks = &cls.key_state;
 

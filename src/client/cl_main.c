@@ -22,9 +22,9 @@
 #include <unistd.h>
 
 #include "client.h"
-#include "menu/m_main.h"
-#include "menu/m_font.h"
-#include "menu/m_parse.h"
+#include "ui/ui_main.h"
+#include "ui/ui_font.h"
+#include "ui/ui_parse.h"
 
 cvar_t *cl_addentities;
 cvar_t *cl_addparticles;
