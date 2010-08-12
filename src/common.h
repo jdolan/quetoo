@@ -280,6 +280,7 @@ void Cmd_Init(void);
 
 qboolean Cmd_Exists(const char *cmd_name);
 void Cmd_AddUserdata(const char *cmd_name, void *userdata);
+void* Cmd_GetUserdata(const char *cmd_name);
 void *Cmd_Userdata(void);
 
 void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *description);
@@ -338,6 +339,8 @@ interface from being ambiguous.
 extern cvar_t *cvar_vars;
 
 void Cvar_LockCheatVars(qboolean lock);
+
+qboolean Cvar_Delete(const char *varName);
 
 cvar_t *Cvar_Get(const char *var_name, const char *value, int flags, const char *description);
 // creates the variable if it doesn't exist, or returns the existing one

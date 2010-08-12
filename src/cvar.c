@@ -104,6 +104,40 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]){
 }
 
 
+/**
+ * Cvar_Delete
+ *
+ * Function to remove the cvar and free the space
+ */
+qboolean Cvar_Delete(const char *varName){
+	cvar_t *var, *previousVar = NULL;
+
+	for(var = cvar_vars; var; var = var->next){
+		if(!strcmp(varName, var->name)){
+			if(var->flags & (CVAR_USERINFO | CVAR_SERVERINFO | CVAR_NOSET | CVAR_LATCH)){
+				Com_Printf("Can't delete the cvar '%s' - it's a special cvar\n", varName);
+				return false;
+			}
+
+			if(previousVar)
+				previousVar->next = var->next;
+			else
+				cvar_vars = var->next;
+
+			Z_Free(var->name);
+			Z_Free(var->string);
+			if(var->latched_string)
+				Z_Free(var->latched_string);
+			Z_Free(var);
+
+			return true;
+		}
+		previousVar = var;
+	}
+	Com_Printf("Cvar '%s' wasn't found\n", varName);
+	return false;
+}
+
 /*
  * Cvar_Get
  *

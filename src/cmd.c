@@ -518,6 +518,32 @@ void Cmd_AddUserdata(const char *cmd_name, void *userdata){
 	}
 }
 
+/**
+ * Cmd_GetUserdata
+ *
+ * Fetches the userdata for a console command.
+ *
+ * @param[in] cmd_name The name the command we want to add edit
+ * @return @c NULL if no userdata was set or the command wasn't found, the userdata
+ * pointer if it was found and set
+ * @sa Cmd_AddCommand
+ * @sa Cmd_CompleteCommandParameters
+ * @sa Cmd_AddUserdata
+ */
+void* Cmd_GetUserdata(const char *cmd_name){
+	cmd_function_t *cmd;
+
+	if (!cmd_name || !cmd_name[0]) {
+		Com_Printf("Cmd_GetUserdata: Invalide parameter\n");
+		return NULL;
+	}
+
+	if((cmd = Com_HashValue(&cmd_hashtable, cmd_name)))
+		return cmd->userdata;
+
+	Com_Printf("Cmd_GetUserdata: '%s' not found\n", cmd_name);
+	return NULL;
+}
 
 /*
  * Cmd_Userdata
@@ -695,7 +721,6 @@ static void Cmd_List_f(void){
 	}
 	Com_Printf("%i commands\n", i);
 }
-
 
 /*
  * Cmd_Init
