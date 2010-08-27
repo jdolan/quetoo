@@ -119,15 +119,11 @@ static void BuildFaceExtents(void){
  */
 static void CalcLightinfoExtents(lightinfo_t *l){
 	const dface_t *s;
-	float *mins, *maxs;
 	float *stmins, *stmaxs;
 	vec2_t lm_mins, lm_maxs;
 	int i;
 
 	s = l->face;
-
-	mins = face_extents[s - dfaces].mins;
-	maxs = face_extents[s - dfaces].maxs;
 
 	stmins = face_extents[s - dfaces].stmins;
 	stmaxs = face_extents[s - dfaces].stmaxs;
