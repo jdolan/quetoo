@@ -37,16 +37,16 @@ libcmodel_la_SOURCES = \
 	cmodel.c
 libcmodel_la_CFLAGS = \
 	-pipe \
-	@WARN_CFLAGS@ \
-	@DEBUG_CFLAGS@
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@ 
 
 libcommon_la_SOURCES = \
 	common.c
 libcommon_la_CFLAGS = \
 	-pipe \
-	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL_CFLAGS@ \
+	@WARN_CFLAGS@
 libcommon_la_LIBADD = \
 	@SDL_LIBS@
 
@@ -54,23 +54,23 @@ libfiles_la_SOURCES = \
 	files.c
 libfiles_la_CFLAGS = \
 	-pipe \
-	@WARN_CFLAGS@ \
-	@DEBUG_CFLAGS@
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
 
 libimages_la_SOURCES = \
 	images.c
 libimages_la_CFLAGS = \
 	-pipe \
-	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL_CFLAGS@ \
+	@WARN_CFLAGS@
 
 libhash_la_SOURCES = \
 	hash.c
 libhash_la_CFLAGS = \
 	-pipe \
-	@WARN_CFLAGS@ \
-	@DEBUG_CFLAGS@
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
 
 libpak_la_SOURCES = \
 	pak.c \
@@ -78,8 +78,8 @@ libpak_la_SOURCES = \
 libpak_la_CFLAGS = \
 	-pipe \
 	-D__LIBPAK_LA__ \
-	@WARN_CFLAGS@ \
-	@DEBUG_CFLAGS@
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
 libpak_la_LIBADD = \
 	libhash.la
 
@@ -87,16 +87,16 @@ libshared_la_SOURCES = \
 	shared.c
 libshared_la_CFLAGS = \
 	-pipe \
-	@WARN_CFLAGS@ \
-	@DEBUG_CFLAGS@
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
 
 libsys_la_SOURCES = \
 	main.c
 libsys_la_CFLAGS = \
 	-pipe \
 	-D__LIBSYS_LA__ \
-	@WARN_CFLAGS@ \
-	@DEBUG_CFLAGS@
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
 
 bin_PROGRAMS = \
 	quake2world
@@ -129,10 +129,11 @@ quake2world_DEPENDENCIES = \
 
 quake2world_CFLAGS = \
 	-pipe \
-	@DEBUG_CFLAGS@ \
-	@WARN_CFLAGS@ \
 	@CURSES_CFLAGS@ \
-	@SDL_CFLAGS@
+	@DEBUG_CFLAGS@ \
+	@OPENGL_CFLAGS@ \
+	@SDL_CFLAGS@ \
+	@WARN_CFLAGS@
 
 quake2world_LDADD = \
 	${quake2world_DEPENDENCIES} \

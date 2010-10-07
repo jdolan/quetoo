@@ -31,16 +31,42 @@ dnl ---------------
 dnl Check host type
 dnl ---------------
 
+ICON=""
+HOST_CFLAGS=""
+HOST_LDFLAGS=""
+HOST_LIBS=""
+HOST_OPENGL_CFLAGS=""
+HOST_OPENGL_LIBS=""
+HOST_WARN_CFLAGS=""
+HOST_WARN_LIBS=""
+HOST_DEBUG_CFLAGS=""
+HOST_DEBUG_LIBS=""
+SO_CFLAGS=""
+
 AC_MSG_CHECKING([host type])
 case "$host" in
+	*-apple-*)
+		HOST_CFLAGS="-D_BSD_SOURCE -D_XOPEN_SOURCE -I/opt/local/include"
+		HOST_LDFLAGS="-framework IOKit -framework Foundation -L/usr/X11/lib"
+		HOST_LIBS="-ldl"
+		HOST_OPENGL_CFLAGS="-I/usr/X11/include"
+		HOST_OPENGL_LIBS="-lGL"
+		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
+		HOST_DEBUG_LIBS="-rdynamic"
+		SO_CFLAGS="-fPIC -DPIC"
+		AC_MSG_RESULT(apple)
+		;;
+	*bsd*)
+		HOST_OPENGL_LIBS="-lGL"
+		HOST_WARN_CFLAGS="-Wmissing-declarations"
+		SO_CFLAGS="-fPIC -DPIC"
+		AC_MSG_RESULT(bsd)
+		;;
 	*-*-mingw*)
 		ICON="quake2world-icon.o"
 		HOST_LIBS="-lws2_32 -lole32"
 		HOST_OPENGL_LIBS="-lopengl32"
 		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
-		HOST_DEBUG_CFLAGS=""
-		HOST_DEBUG_LIBS=""
-		SO_CFLAGS=""
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
 			AC_MSG_ERROR([windres could not be found within your path.])
@@ -48,35 +74,29 @@ case "$host" in
 		AC_SUBST(WINDRES)
 		AC_MSG_RESULT(win32)
 		;;
-	*bsd*)
-		ICON=""
-		HOST_LIBS=""
-		HOST_OPENGL_LIBS="-lGL"
-		HOST_WARN_CFLAGS="-Wmissing-declarations"
-		HOST_DEBUG_CFLAGS=""
-		HOST_DEBUG_LIBS=""
-		SO_CFLAGS="-fPIC -DPIC"
-		AC_MSG_RESULT(bsd)
-		;;
 	*)
-		ICON=""
 		HOST_LIBS="-ldl"
 		HOST_OPENGL_LIBS="-lGL"
 		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
-		HOST_DEBUG_CFLAGS=""
 		HOST_DEBUG_LIBS="-rdynamic"
 		SO_CFLAGS="-fPIC -DPIC"
-		AC_MSG_RESULT(generic unix)
+		AC_MSG_RESULT(generic linux)
 		;;
 esac
 
 AC_SUBST(ICON)
+AC_SUBST(HOST_CFLAGS)
 AC_SUBST(HOST_LIBS)
+AC_SUBST(HOST_OPENGL_CFLAGS)
 AC_SUBST(HOST_OPENGL_LIBS)
 AC_SUBST(HOST_WARN_CFLAGS)
+AC_SUBST(HOST_WARN_LIBS)
 AC_SUBST(HOST_DEBUG_CFLAGS)
 AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(SO_CFLAGS)
+
+CPPFLAGS="$HOST_CFLAGS $CPPFLAGS"
+LDFLAGS="$HOST_LDFLAGS $LDFLAGS"
 
 dnl -----------------------------
 dnl Check whether to build client
@@ -102,16 +122,24 @@ else
 	dnl Check for OpenGL and extensions
 	dnl -------------------------------
 
+	save_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$CPPFLAGS $HOST_OPENGL_CFLAGS"
+
 	AC_CHECK_HEADER(GL/gl.h,,
-		[AC_MSG_ERROR([Couldn't find GL/gl.h, please install OpenGL])]
+		[AC_MSG_ERROR([Could not find GL/gl.h, please install OpenGL])]
 	)
 
 	AC_CHECK_HEADER(GL/glext.h,,
-		[AC_MSG_ERROR([Couldn't find GL/glext.h, please install OpenGL])],
+		[AC_MSG_ERROR([Could not find GL/glext.h, please install OpenGL])],
 		[#include <GL/gl.h>]
 	)
-	
-	OPENGL_LIBS=$HOST_OPENGL_LIBS
+
+	CPPFLAGS="$save_CPPFLAGS"
+
+	OPENGL_CFLAGS="$HOST_OPENGL_CFLAGS"
+	AC_SUBST(OPENGL_CFLAGS)
+
+	OPENGL_LIBS="$HOST_OPENGL_LIBS"
 	AC_SUBST(OPENGL_LIBS)
 	
 	dnl -------------
@@ -135,18 +163,18 @@ else
 
 			AC_CHECK_HEADER(SDL/SDL_image.h,
 				SDL_LIBS="$SDL_LIBS -lSDL_image",
-				[AC_MSG_ERROR([Couldn't find SDL_image.h, please install sdl-image])]
+				[AC_MSG_ERROR([Could not find SDL_image.h, please install sdl-image])]
 			)
 
 			AC_CHECK_HEADER(SDL/SDL_mixer.h,
 				SDL_LIBS="$SDL_LIBS -lSDL_mixer",
-				[AC_MSG_ERROR([Couldn't find SDL_mixer.h, please install sdl-mixer])]
+				[AC_MSG_ERROR([Could not find SDL_mixer.h, please install sdl-mixer])]
 			)
 
 			CPPFLAGS="$save_CPPFLAGS"
 		fi
 	else
-		AC_MSG_ERROR([Couldn't find sdl-config, please install libsdl])
+		AC_MSG_ERROR([Could not find sdl-config, please install libsdl])
 	fi
 	AC_SUBST(SDL_CFLAGS)
 	AC_SUBST(SDL_LIBS)
@@ -163,7 +191,7 @@ else
 		CURL_CFLAGS=`$CURL_CONFIG --cflags`
 		CURL_LIBS=`$CURL_CONFIG --libs`
 	else
-		AC_MSG_ERROR([Couldn't find curl-config, please install cURL])
+		AC_MSG_ERROR([Could not find curl-config, please install cURL])
 	fi
 	AC_SUBST(CURL_CFLAGS)
 	AC_SUBST(CURL_LIBS)
@@ -174,7 +202,7 @@ else
 
 	AC_CHECK_HEADER(jpeglib.h,
 		JPEG_LIBS="-ljpeg",
-		[AC_MSG_ERROR([Couldn't find jpeglib.h, please install libjpeg])]
+		[AC_MSG_ERROR([Could not find jpeglib.h, please install libjpeg])]
 	)
 	AC_SUBST(JPEG_LIBS)
 
@@ -203,7 +231,7 @@ dnl Check for Zlib
 dnl --------------
 
 AC_CHECK_HEADER(zlib.h,,
-	[AC_MSG_ERROR([Couldn't find zlib.h, please install zlib])]
+	[AC_MSG_ERROR([Could not find zlib.h, please install zlib])]
 )
 
 dnl -------------------------------
@@ -235,13 +263,13 @@ AC_ARG_WITH(curses,
 if test "x${with_curses}" != xno; then
 	if test "x${with_curses}" != xyes; then
 		CURSES_CFLAGS="$CURSES_CFLAGS -I${with_curses}/include"
-		CURSES_LIBS="$CURSES_LIBS -L${with_curses}/lib"
+		CURSES_LDFLAGS="$CURSES_LDFLAGS -L${with_curses}/lib"
 	fi
 	save_CPPFLAGS="$CPPFLAGS"
 	save_LDFLAGS="$LDFLAGS"
 
 	CPPFLAGS="$CPPFLAGS $CURSES_CFLAGS"
-	LDFLAGS="$LDFLAGS $CURSES_LIBS"
+	LDFLAGS="$LDFLAGS $CURSES_LDFLAGS"
 
 	dnl -----------------------
 	dnl Check for curses header
@@ -299,6 +327,7 @@ if test "x${with_curses}" != xno; then
 fi
 
 AC_SUBST(CURSES_CFLAGS)
+AC_SUBST(CURSES_LDFLAGS)
 AC_SUBST(CURSES_LIBS)
 
 dnl --------------------------
@@ -317,6 +346,7 @@ AC_PATH_PROG(MYSQL_CONFIG, mysql_config)
 
 if test "x${with_mysql}" != xno -a "x${MYSQL_CONFIG}" != x; then
 	MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
+
 	save_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$CPPFLAGS $MYSQL_CFLAGS"
 
@@ -468,7 +498,9 @@ Quake2World $VERSION: Automatic configuration OK.
   Configuration summary:
     Platform: .......... $host
     Compiler: .......... $CC
-    Libraries: ......... $HOST_LIBS
+    Flags: ............. $HOST_CFLAGS
+    Libraries: ......... $HOST_LDFLAGS
+    Linking: ........... $HOST_LIBS
 
     Build client: ...... $BUILD_CLIENT
 

@@ -15,6 +15,7 @@ libsound_la_CFLAGS = \
 	-I.. -I../.. \
 	-pipe \
 	@DEBUG_CFLAGS@ \
-	@WARN_CFLAGS@ \
-	@SDL_CFLAGS@
+	@OPENGL_CFLAGS@ \
+	@SDL_CFLAGS@ \
+	@WARN_CFLAGS@
 endif
