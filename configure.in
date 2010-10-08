@@ -47,9 +47,8 @@ AC_MSG_CHECKING([host type])
 case "$host" in
 	*-apple-*)
 		HOST_CFLAGS="-D_BSD_SOURCE -D_XOPEN_SOURCE -I/opt/local/include"
-		HOST_LDFLAGS="-L/usr/X11/lib"
+		HOST_LDFLAGS="-L/opt/local/lib"
 		HOST_LIBS="-ldl"
-		HOST_OPENGL_CFLAGS="-I/usr/X11/include"
 		HOST_OPENGL_LIBS="-lGL"
 		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
 		HOST_DEBUG_LIBS="-rdynamic"
@@ -96,7 +95,16 @@ AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(SO_CFLAGS)
 
 CPPFLAGS="$HOST_CFLAGS $CPPFLAGS"
+AC_SUBST(CPPFLAGS)
+
 LDFLAGS="$HOST_LDFLAGS $LDFLAGS"
+AC_SUBST(LDFLAGS)
+
+OPENGL_CFLAGS="$HOST_OPENGL_CFLAGS"
+AC_SUBST(OPENGL_CFLAGS)
+
+OPENGL_LIBS="$HOST_OPENGL_LIBS"
+AC_SUBST(OPENGL_LIBS)
 
 dnl -----------------------------
 dnl Check whether to build client
@@ -118,30 +126,6 @@ else
 
 	AC_DEFINE(BUILD_CLIENT, 1, [Define to 1 to build a client.])
 
-	dnl -------------------------------
-	dnl Check for OpenGL and extensions
-	dnl -------------------------------
-
-	save_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS="$CPPFLAGS $HOST_OPENGL_CFLAGS"
-
-	AC_CHECK_HEADER(GL/gl.h,,
-		[AC_MSG_ERROR([Could not find GL/gl.h, please install OpenGL])]
-	)
-
-	AC_CHECK_HEADER(GL/glext.h,,
-		[AC_MSG_ERROR([Could not find GL/glext.h, please install OpenGL])],
-		[#include <GL/gl.h>]
-	)
-
-	CPPFLAGS="$save_CPPFLAGS"
-
-	OPENGL_CFLAGS="$HOST_OPENGL_CFLAGS"
-	AC_SUBST(OPENGL_CFLAGS)
-
-	OPENGL_LIBS="$HOST_OPENGL_LIBS"
-	AC_SUBST(OPENGL_LIBS)
-	
 	dnl -------------
 	dnl Check for SDL
 	dnl -------------
@@ -154,21 +138,25 @@ else
 
 		if test "x${BUILD_CLIENT}" != xno; then
 
-			dnl -------------------
-			dnl Check for SDL_image
-			dnl -------------------
+			dnl ------------------------------------------
+			dnl Check for SDL_opengl, SDL_image, SDL_mixer
+			dnl ------------------------------------------
 
 			save_CPPFLAGS="$CPPFLAGS"
 			CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+			
+			AC_CHECK_HEADER(SDL/SDL_opengl.h,,
+				[AC_MSG_ERROR([Could not find SDL_opengl.h, please install libsdl])]
+			)
 
 			AC_CHECK_HEADER(SDL/SDL_image.h,
 				SDL_LIBS="$SDL_LIBS -lSDL_image",
-				[AC_MSG_ERROR([Could not find SDL_image.h, please install sdl-image])]
+				[AC_MSG_ERROR([Could not find SDL_image.h, please install libsdl-image])]
 			)
 
 			AC_CHECK_HEADER(SDL/SDL_mixer.h,
 				SDL_LIBS="$SDL_LIBS -lSDL_mixer",
-				[AC_MSG_ERROR([Could not find SDL_mixer.h, please install sdl-mixer])]
+				[AC_MSG_ERROR([Could not find SDL_mixer.h, please install libsdl-mixer])]
 			)
 
 			CPPFLAGS="$save_CPPFLAGS"
@@ -176,6 +164,7 @@ else
 	else
 		AC_MSG_ERROR([Could not find sdl-config, please install libsdl])
 	fi
+	
 	AC_SUBST(SDL_CFLAGS)
 	AC_SUBST(SDL_LIBS)
 
