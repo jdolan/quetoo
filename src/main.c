@@ -42,10 +42,23 @@ int main(int argc, char **argv){
 
 	AllocConsole();
 
-	hCrt = _open_osfhandle((long)GetStdHandle(STD_OUTPUT_HANDLE),_O_TEXT);
+	hCrt = _open_osfhandle((long)GetStdHandle(STD_OUTPUT_HANDLE), _O_TEXT);
 	hf = _fdopen(hCrt, "w");
 	*stdout = *hf;
 	setvbuf(stdout, NULL, _IONBF, 0);
+#endif
+
+#ifdef __APPLE__
+	// a hack for Mac to open Cocoa before we try to initialize SDL
+	void *cocoa_lib;
+	void (*nsappload)(void);
+
+	cocoa_lib = dlopen("/System/Library/Frameworks/Cocoa.framework/Cocoa", RTLD_LAZY);
+
+	nsappload = (void(*))dlsym(cocoa_lib, "NSApplicationLoad");
+	nsappload();
+
+	dlclose(cocoa_lib);
 #endif
 
 	printf("Quake2World %s\n", VERSION);

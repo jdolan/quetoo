@@ -47,7 +47,7 @@ AC_MSG_CHECKING([host type])
 case "$host" in
 	*-apple-*)
 		HOST_CFLAGS="-D_BSD_SOURCE -D_XOPEN_SOURCE -I/opt/local/include"
-		HOST_LDFLAGS="-framework IOKit -framework Foundation -L/usr/X11/lib"
+		HOST_LDFLAGS="-L/usr/X11/lib"
 		HOST_LIBS="-ldl"
 		HOST_OPENGL_CFLAGS="-I/usr/X11/include"
 		HOST_OPENGL_LIBS="-lGL"

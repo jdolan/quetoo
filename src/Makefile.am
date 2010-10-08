@@ -144,4 +144,3 @@ quake2world_LDADD = \
 	@OPENGL_LIBS@ \
 	@SDL_LIBS@ \
 	-lm -lz
-
