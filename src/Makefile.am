@@ -21,6 +21,7 @@ noinst_HEADERS = \
 	keys.h \
 	pak.h \
 	shared.h \
+	sys.h \
 	win32.h
 
 noinst_LTLIBRARIES = \
@@ -91,10 +92,9 @@ libshared_la_CFLAGS = \
 	@WARN_CFLAGS@
 
 libsys_la_SOURCES = \
-	main.c
+	sys.c
 libsys_la_CFLAGS = \
 	-pipe \
-	-D__LIBSYS_LA__ \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@
 
@@ -103,11 +103,9 @@ bin_PROGRAMS = \
 
 quake2world_SOURCES = \
 	cmd.c \
-	cmodel.c \
 	console.c \
 	curses.c \
 	cvar.c \
-	images.c \
 	main.c \
 	net_chan.c \
 	net_udp.c \

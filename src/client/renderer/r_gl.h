@@ -70,41 +70,41 @@
 #define GL_TANGENT_ARRAY -1
 
 // multitexture
-void (APIENTRY *qglActiveTexture)(GLenum texture);
-void (APIENTRY *qglClientActiveTexture)(GLenum texture);
+extern void (APIENTRY *qglActiveTexture)(GLenum texture);
+extern void (APIENTRY *qglClientActiveTexture)(GLenum texture);
 
 // vertex buffer objects
-void (APIENTRY *qglGenBuffers)(GLuint count, GLuint *id);
-void (APIENTRY *qglDeleteBuffers)(GLuint count, GLuint *id);
-void (APIENTRY *qglBindBuffer)(GLenum target, GLuint id);
-void (APIENTRY *qglBufferData)(GLenum target, GLsizei size, const GLvoid *data, GLenum usage);
+extern void (APIENTRY *qglGenBuffers)(GLuint count, GLuint *id);
+extern void (APIENTRY *qglDeleteBuffers)(GLuint count, GLuint *id);
+extern void (APIENTRY *qglBindBuffer)(GLenum target, GLuint id);
+extern void (APIENTRY *qglBufferData)(GLenum target, GLsizei size, const GLvoid *data, GLenum usage);
 
 // vertex attribute arrays
-void (APIENTRY *qglEnableVertexAttribArray)(GLuint index);
-void (APIENTRY *qglDisableVertexAttribArray)(GLuint index);
-void (APIENTRY *qglVertexAttribPointer)(GLuint index, GLint size, GLenum type,
+extern void (APIENTRY *qglEnableVertexAttribArray)(GLuint index);
+extern void (APIENTRY *qglDisableVertexAttribArray)(GLuint index);
+extern void (APIENTRY *qglVertexAttribPointer)(GLuint index, GLint size, GLenum type,
 		GLboolean normalized, GLsizei stride, const GLvoid *pointer);
 
 // glsl vertex and fragment shaders and programs
-GLuint (APIENTRY *qglCreateShader)(GLenum type);
-void (APIENTRY *qglDeleteShader)(GLuint id);
-void (APIENTRY *qglShaderSource)(GLuint id, GLuint count, GLchar **sources, GLuint *len);
-void (APIENTRY *qglCompileShader)(GLuint id);
-void (APIENTRY *qglGetShaderiv)(GLuint id, GLenum field, GLuint *dest);
-void (APIENTRY *qglGetShaderInfoLog)(GLuint id, GLuint maxlen, GLuint *len, GLchar *dest);
-GLuint (APIENTRY *qglCreateProgram)(void);
-void (APIENTRY *qglDeleteProgram)(GLuint id);
-void (APIENTRY *qglAttachShader)(GLuint prog, GLuint shader);
-void (APIENTRY *qglDetachShader)(GLuint prog, GLuint shader);
-void (APIENTRY *qglLinkProgram)(GLuint id);
-void (APIENTRY *qglUseProgram)(GLuint id);
-void (APIENTRY *qglGetProgramiv)(GLuint id, GLenum field, GLuint *dest);
-void (APIENTRY *qglGetProgramInfoLog)(GLuint id, GLuint maxlen, GLuint *len, GLchar *dest);
-GLint (APIENTRY *qglGetUniformLocation)(GLuint id, const GLchar *name);
-void (APIENTRY *qglUniform1i)(GLint location, GLint i);
-void (APIENTRY *qglUniform1f)(GLint location, GLfloat f);
-void (APIENTRY *qglUniform3fv)(GLint location, int count, GLfloat *f);
-void (APIENTRY *qglUniform4fv)(GLint location, int count, GLfloat *f);
-GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
+extern GLuint (APIENTRY *qglCreateShader)(GLenum type);
+extern void (APIENTRY *qglDeleteShader)(GLuint id);
+extern void (APIENTRY *qglShaderSource)(GLuint id, GLuint count, GLchar **sources, GLuint *len);
+extern void (APIENTRY *qglCompileShader)(GLuint id);
+extern void (APIENTRY *qglGetShaderiv)(GLuint id, GLenum field, GLuint *dest);
+extern void (APIENTRY *qglGetShaderInfoLog)(GLuint id, GLuint maxlen, GLuint *len, GLchar *dest);
+extern GLuint (APIENTRY *qglCreateProgram)(void);
+extern void (APIENTRY *qglDeleteProgram)(GLuint id);
+extern void (APIENTRY *qglAttachShader)(GLuint prog, GLuint shader);
+extern void (APIENTRY *qglDetachShader)(GLuint prog, GLuint shader);
+extern void (APIENTRY *qglLinkProgram)(GLuint id);
+extern void (APIENTRY *qglUseProgram)(GLuint id);
+extern void (APIENTRY *qglGetProgramiv)(GLuint id, GLenum field, GLuint *dest);
+extern void (APIENTRY *qglGetProgramInfoLog)(GLuint id, GLuint maxlen, GLuint *len, GLchar *dest);
+extern GLint (APIENTRY *qglGetUniformLocation)(GLuint id, const GLchar *name);
+extern void (APIENTRY *qglUniform1i)(GLint location, GLint i);
+extern void (APIENTRY *qglUniform1f)(GLint location, GLfloat f);
+extern void (APIENTRY *qglUniform3fv)(GLint location, int count, GLfloat *f);
+extern void (APIENTRY *qglUniform4fv)(GLint location, int count, GLfloat *f);
+extern GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
 #endif /* __R_GL_H__ */

@@ -25,6 +25,7 @@
 
 #include "shared.h"
 #include "files.h"
+#include "sys.h"
 
 #define BASEDIRNAME	"default"
 
@@ -79,17 +80,6 @@ float Msg_ReadAngle16(sizebuf_t *sb);
 void Msg_ReadDeltaUsercmd(sizebuf_t *sb, struct usercmd_s *from, struct usercmd_s *cmd);
 void Msg_ReadDir(sizebuf_t *sb, vec3_t vector);
 void Msg_ReadData(sizebuf_t *sb, void *buffer, size_t size);
-
-// filesystem searching
-const char *Sys_FindFirst(const char *path);
-const char *Sys_FindNext(void);
-void Sys_FindClose(void);
-
-extern int curtime;  // time returned by last Sys_Milliseconds
-
-int Sys_Milliseconds(void);
-const char *Sys_GetCurrentUser(void);
-void Sys_Mkdir(char *path);
 
 // command parsing facilities
 int Com_Argc(void);

@@ -1,0 +1,72 @@
+/*
+ * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quake2World.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#include <dirent.h>
+
+#ifndef _WIN32
+#include <dlfcn.h>
+#include <pwd.h>
+#endif
+
+#include <errno.h>
+#include <signal.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <unistd.h>
+
+#include "common.h"
+#include "game/game.h"
+#include "keys.h"
+
+#ifdef HAVE_EXECINFO
+#include <execinfo.h>
+#define MAX_BACKTRACE_SYMBOLS 50
+#endif
+
+#ifdef HAVE_SDL
+#include <SDL/SDL.h>
+#endif
+
+#ifndef __SYS_H__
+
+extern int curtime;
+int Sys_Milliseconds(void);
+
+const char *Sys_GetCurrentUser(void);
+
+void Sys_Mkdir(const char *path);
+const char *Sys_FindFirst(const char *path);
+const char *Sys_FindNext(void);
+void Sys_FindClose(void);
+
+void Sys_CloseLibrary(void **handle);
+void Sys_OpenLibrary(const char *name, void **handle);
+
+void *Sys_LoadGame(void *parms);
+void Sys_UnloadGame(void);
+
+void Sys_Quit(void);
+void Sys_Backtrace(void);
+void Sys_Error(const char *error, ...);
+void Sys_Signal(int s);
+
+#endif /* __SYS_H__ */

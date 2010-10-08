@@ -26,7 +26,7 @@ netadr_t master_adr[MAX_MASTERS];  // address of group servers
 
 client_t *sv_client;  // current client
 
-cvar_t *rcon_password;  // password for remote server commands
+cvar_t *sv_rcon_password;  // password for remote server commands
 
 cvar_t *sv_downloadurl;
 cvar_t *sv_enforcetime;
@@ -376,11 +376,11 @@ static void Svc_Connect(void){
 static int Sv_RconValidate(void){
 
 	// a password must be set for rcon to be available
-	if(!strlen(rcon_password->string))
+	if(!strlen(sv_rcon_password->string))
 		return 0;
 
 	// and of course the passwords must match
-	if(strcmp(Cmd_Argv(1), rcon_password->string))
+	if(strcmp(Cmd_Argv(1), sv_rcon_password->string))
 		return 0;
 
 	return 1;
@@ -902,7 +902,7 @@ void Sv_Init(void){
 
 	Sv_InitOperatorCommands();
 
-	rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
+	sv_rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
 
 	sv_downloadurl = Cvar_Get("sv_downloadurl", "", CVAR_SERVERINFO, NULL);
 	sv_enforcetime = Cvar_Get("sv_enforcetime", MSEC_ERROR_MAX, 0, NULL);

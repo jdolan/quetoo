@@ -317,13 +317,13 @@ extern model_t *r_worldmodel;
 extern model_t *r_loadmodel;
 
 // rendermode function pointers
-void (*R_DrawOpaqueSurfaces)(msurfaces_t *surfs);
-void (*R_DrawOpaqueWarpSurfaces)(msurfaces_t *surfs);
-void (*R_DrawAlphaTestSurfaces)(msurfaces_t *surfs);
-void (*R_DrawBlendSurfaces)(msurfaces_t *surfs);
-void (*R_DrawBlendWarpSurfaces)(msurfaces_t *surfs);
-void (*R_DrawBackSurfaces)(msurfaces_t *surfs);
-void (*R_DrawMeshModel)(entity_t *e);
+extern void (*R_DrawOpaqueSurfaces)(msurfaces_t *surfs);
+extern void (*R_DrawOpaqueWarpSurfaces)(msurfaces_t *surfs);
+extern void (*R_DrawAlphaTestSurfaces)(msurfaces_t *surfs);
+extern void (*R_DrawBlendSurfaces)(msurfaces_t *surfs);
+extern void (*R_DrawBlendWarpSurfaces)(msurfaces_t *surfs);
+extern void (*R_DrawBackSurfaces)(msurfaces_t *surfs);
+extern void (*R_DrawMeshModel)(entity_t *e);
 
 // r_array.c
 void R_SetArrayState(const model_t *mod);

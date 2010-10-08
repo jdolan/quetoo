@@ -213,17 +213,24 @@ else
 	AC_MSG_CHECKING(which tools to build)
 
 	TOOLS="pak q2wmap"
+	TOOL_DIRS="$TOOLS"
+	
 	AC_ARG_WITH(tools,
 		AC_HELP_STRING([--with-tools='pak q2wmap ...'],
 			[build specified tools]
 		)
 	)
 
-	if test "x${with_tools}" != x; then
+	if test "x${with_tools}" = xno; then
+		TOOLS="none"
+		TOOL_DIRS=""
+	elif test "x${with_tools}" != x; then
 		TOOLS="${with_tools}"
+		TOOL_DIRS="${with_tools}"
 	fi
-	AC_SUBST(TOOLS)
+	
 	AC_MSG_RESULT($TOOLS)
+	AC_SUBST(TOOL_DIRS)
 fi
 
 dnl --------------
