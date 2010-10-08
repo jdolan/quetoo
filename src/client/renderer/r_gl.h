@@ -22,13 +22,7 @@
 #ifndef __R_GL_H__
 #define __R_GL_H__
 
-#include <GL/gl.h>
-
-#ifdef HAVE_OPENGL_GLEXT
-# include <GL/glext.h>
-#else
-# include <GL/glu.h>
-#endif
+#include <SDL_opengl.h>
 
 #ifndef GLchar
 # define GLchar char
