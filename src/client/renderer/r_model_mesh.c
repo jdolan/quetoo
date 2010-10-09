@@ -779,6 +779,8 @@ static void R_LoadObjModel_(model_t *mod, mobj_t *obj, const void *buffer){
 	comment = false;
 	i = 0;
 
+	memset(&line, 0, sizeof(line));
+
 	while(*c){
 
 		if(*c == '#'){
@@ -787,16 +789,17 @@ static void R_LoadObjModel_(model_t *mod, mobj_t *obj, const void *buffer){
 			continue;
 		}
 
-		if(*c == '\r' || *c == '\n'){
+		if(*c == '\r' || *c == '\n'){  // end of line
 
-			line[i++] = 0;
-			i = 0;
-
-			if(!comment)
+			if(i && !comment)
 				R_LoadObjModelLine(mod, obj, Com_Trim(line));
 
-			comment = false;
 			c++;
+			comment = false;
+			i = 0;
+
+			memset(&line, 0, sizeof(line));
+
 			continue;
 		}
 
