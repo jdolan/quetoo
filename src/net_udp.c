@@ -364,23 +364,22 @@ void Net_Sleep(int msec){
 static int Net_Socket(const char *net_interface, int port){
 	int sock;
 	struct sockaddr_in addr;
-	qboolean _true = true;
 	int i = 1;
 
 	if((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
-		Com_Printf("ERROR: UDP_OpenSocket: socket: %s", Net_ErrorString());
+		Com_Error("Net_Socket: socket: %s", Net_ErrorString());
 		return 0;
 	}
 
 	// make it non-blocking
-	if(ioctl(sock, FIONBIO, &_true) == -1){
-		Com_Printf("ERROR: UDP_OpenSocket: ioctl FIONBIO: %s\n", Net_ErrorString());
+	if(ioctl(sock, FIONBIO, (char *)&i) == -1){
+		Com_Error("Net_Socket: ioctl: %s\n", Net_ErrorString());
 		return 0;
 	}
 
 	// make it broadcast capable
-	if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST,(char *)&i, sizeof(i)) == -1){
-		Com_Printf("ERROR: UDP_OpenSocket: setsockopt SO_BROADCAST: %s\n", Net_ErrorString());
+	if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&i, sizeof(i)) == -1){
+		Com_Error("Net_Socket: setsockopt: %s\n", Net_ErrorString());
 		return 0;
 	}
 
@@ -423,7 +422,6 @@ void Net_Config(netsrc_t source, qboolean up){
 	// or close it
 	if(ip_sockets[source])
 		Net_CloseSocket(ip_sockets[source]);
-
 
 	ip_sockets[source] = 0;
 }
