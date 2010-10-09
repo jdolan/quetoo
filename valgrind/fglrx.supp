@@ -1,0 +1,2674 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   fun:ukiCreateContext
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   fun:memcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   fun:memcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   fun:memcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   fun:memcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   fun:memcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   fun:memcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   fun:memcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   fun:memcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/dev/ati/card0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/valgrind/memcheck-amd64-linux
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Overlap
+   fun:strcpy
+   obj:/usr/lib/dri/fglrx_dri.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
