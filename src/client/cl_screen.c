@@ -673,6 +673,7 @@ static void Cl_DrawMenus(void){
  * Cl_DrawCursor
  */
 static void Cl_DrawCursor(void){
+	extern image_t *draw_cursor;
 
 	if(cls.key_dest != key_menu && cls.mouse_state.grabbed)
 		return;
@@ -680,7 +681,7 @@ static void Cl_DrawCursor(void){
 	if(!(SDL_GetAppState() & SDL_APPMOUSEFOCUS))
 		return;
 
-	R_DrawPic(cls.mouse_state.x, cls.mouse_state.y, "ui/cursor");
+	R_DrawCursor(cls.mouse_state.x, cls.mouse_state.y);
 }
 
 /*

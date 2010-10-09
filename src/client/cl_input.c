@@ -618,8 +618,14 @@ void Cl_HandleEvents(void){
 		return;
 
 	// handle key events
-	while(SDL_PollEvent(&event)){
-		Cl_HandleEvent(&event);
+	while(true){
+
+		memset(&event, 0, sizeof(event));
+
+		if(SDL_PollEvent(&event))
+			Cl_HandleEvent(&event);
+		else
+			break;
 	}
 
 	if(cls.key_dest == key_console || cls.key_dest == key_menu){

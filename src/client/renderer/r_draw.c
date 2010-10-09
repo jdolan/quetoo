@@ -70,17 +70,19 @@ typedef struct line_arrays_s {
 static line_arrays_t r_line_arrays;
 
 // hash pics for fast lookup
-hashtable_t pics_hashtable;
+hashtable_t r_pics_hashtable;
 
-// chars
-image_t *draw_chars;
+// chars and cursor
+image_t *r_draw_chars;
+image_t *r_draw_cursor;
 
 /*
  * R_InitDraw
  */
 void R_InitDraw(void){
 
-	draw_chars = R_LoadImage("pics/conchars", it_chars);
+	r_draw_chars = R_LoadImage("pics/conchars", it_chars);
+	r_draw_cursor = R_LoadImage("pics/cursor", it_chars);
 
 	// set ABGR color values
 	r_char_colors[CON_COLOR_BLACK] 		= 0xFF000000;
@@ -92,7 +94,7 @@ void R_InitDraw(void){
 	r_char_colors[CON_COLOR_MAGENTA]	= 0xFFFF00FF;
 	r_char_colors[CON_COLOR_WHITE] 		= 0xFFFFFFFF;
 
-	Com_HashInit(&pics_hashtable);
+	Com_HashInit(&r_pics_hashtable);
 }
 
 
@@ -165,7 +167,7 @@ void R_DrawChars(void){
 	if(!r_char_arrays.vert_index)
 		return;
 
-	R_BindTexture(draw_chars->texnum);
+	R_BindTexture(r_draw_chars->texnum);
 
 	R_EnableColorArray(true);
 
@@ -258,8 +260,8 @@ int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int 
  * R_FreePics
  */
 void R_FreePics(void){
-	Com_HashFree(&pics_hashtable);
-	Com_HashInit(&pics_hashtable);
+	Com_HashFree(&r_pics_hashtable);
+	Com_HashInit(&r_pics_hashtable);
 }
 
 
@@ -270,7 +272,7 @@ image_t *R_LoadPic(const char *name){
 	int i;
 	image_t *image;
 
-	if((image = Com_HashValue(&pics_hashtable, name)))
+	if((image = Com_HashValue(&r_pics_hashtable, name)))
 		return image;
 
 	for(i = 0; i < MAX_IMAGES; i++){
@@ -287,9 +289,34 @@ image_t *R_LoadPic(const char *name){
 	if(i < MAX_IMAGES)  // insert to precache
 		cl.image_precache[i] = image;
 
-	Com_HashInsert(&pics_hashtable, name, image);
+	Com_HashInsert(&r_pics_hashtable, name, image);
 
 	return image;
+}
+
+
+/*
+ * R_DrawScaledImage
+ */
+static void R_DrawScaledImage(int x, int y, float scale, image_t *image){
+
+	R_BindTexture(image->texnum);
+
+	// our texcoords are already setup, just set verts and draw
+
+	r_state.vertex_array_2d[0] = x;
+	r_state.vertex_array_2d[1] = y;
+
+	r_state.vertex_array_2d[2] = x + image->width * scale;
+	r_state.vertex_array_2d[3] = y;
+
+	r_state.vertex_array_2d[4] = x + image->width * scale;
+	r_state.vertex_array_2d[5] = y + image->height * scale;
+
+	r_state.vertex_array_2d[6] = x;
+	r_state.vertex_array_2d[7] = y + image->height * scale;
+
+	glDrawArrays(GL_QUADS, 0, 4);
 }
 
 
@@ -306,23 +333,7 @@ void R_DrawScaledPic(int x, int y, float scale, const char *name){
 		return;
 	}
 
-	R_BindTexture(pic->texnum);
-
-	// our texcoords are already setup, just set verts and draw
-
-	r_state.vertex_array_2d[0] = x;
-	r_state.vertex_array_2d[1] = y;
-
-	r_state.vertex_array_2d[2] = x + pic->width * scale;
-	r_state.vertex_array_2d[3] = y;
-
-	r_state.vertex_array_2d[4] = x + pic->width * scale;
-	r_state.vertex_array_2d[5] = y + pic->height * scale;
-
-	r_state.vertex_array_2d[6] = x;
-	r_state.vertex_array_2d[7] = y + pic->height * scale;
-
-	glDrawArrays(GL_QUADS, 0, 4);
+	R_DrawScaledImage(x, y, scale, pic);
 }
 
 
@@ -331,6 +342,18 @@ void R_DrawScaledPic(int x, int y, float scale, const char *name){
  */
 void R_DrawPic(int x, int y, const char *name){
 	R_DrawScaledPic(x, y, 1.0, name);
+}
+
+
+/*
+ * R_DrawCursor
+ */
+void R_DrawCursor(int x, int y){
+
+	x -= (r_draw_cursor->width / 2.0);
+	y += (r_draw_cursor->height / 2.0);
+
+	R_DrawScaledImage(x, y, 1.0, r_draw_cursor);
 }
 
 
