@@ -21,10 +21,6 @@
 
 #include "common.h"
 
-#ifdef HAVE_SDL
-#include <SDL/SDL_thread.h>
-#endif
-
 static int rd_target;
 static char *rd_buffer;
 static int rd_buffersize;
@@ -116,7 +112,7 @@ void Com_Dprintf(const char *fmt, ...){
  *
  * Both client and server can use this, and it will do the appropriate things.
  */
-void Com_Error(int code, const char *fmt, ...){
+void Com_Error(error_t err, const char *fmt, ...){
 	va_list	argptr;
 	char msg[MAX_PRINT_MSG];
 
@@ -127,7 +123,7 @@ void Com_Error(int code, const char *fmt, ...){
 	Com_Printf("^1%s\n", msg);
 
 	if(quake2world.Error)
-		quake2world.Error(code, (const char *)msg);
+		quake2world.Error(err, (const char *)msg);
 	else
 		exit(1);
 }
@@ -876,18 +872,6 @@ void Com_InitArgv(int argc, char **argv){
 
 
 /*
- * Com_CopyString
- */
-char *Com_CopyString(const char *in){
-	char *out;
-
-	out = Z_Malloc(strlen(in) + 1);
-	strcpy(out, in);
-	return out;
-}
-
-
-/*
  * Com_PrintInfo
  */
 void Com_PrintInfo(const char *s){
@@ -926,139 +910,4 @@ void Com_PrintInfo(const char *s){
 			s++;
 		Com_Printf("%s\n", value);
 	}
-}
-
-
-/*
- *
- *    ZONE MEMORY ALLOCATION
- *
- */
-
-#define Z_MAGIC 0x1d1d
-
-typedef struct zhead_s {
-	struct zhead_s	*prev, *next;
-	short magic;
-	short tag;  // for group free
-	size_t size;
-} zhead_t;
-
-static zhead_t z_chain;
-static size_t z_count, z_bytes;
-
-#ifdef HAVE_SDL
-static SDL_mutex *z_lock;
-#endif
-
-/*
- * Z_Init
- */
-void Z_Init(void){
-
-	z_chain.next = z_chain.prev = &z_chain;
-
-#ifdef HAVE_SDL
-	z_lock = SDL_CreateMutex();
-#endif
-}
-
-/*
- * Z_Shutdown
- */
-void Z_Shutdown(void){
-
-	Z_FreeTags(-1);
-
-#ifdef HAVE_SDL
-	SDL_DestroyMutex(z_lock);
-#endif
-}
-
-
-/*
- * Z_Free
- */
-void Z_Free(void *ptr){
-	zhead_t *z;
-
-	z = ((zhead_t *)ptr) - 1;
-
-	if(z->magic != Z_MAGIC){
-		Com_Error(ERR_FATAL, "Z_Free: Bad magic for %p.", ptr);
-	}
-
-#ifdef HAVE_SDL
-	SDL_mutexP(z_lock);
-#endif
-
-	z->prev->next = z->next;
-	z->next->prev = z->prev;
-
-#ifdef HAVE_SDL
-	SDL_mutexV(z_lock);
-#endif
-
-	z_count--;
-	z_bytes -= z->size;
-	free(z);
-}
-
-
-/*
- * Z_FreeTags
- */
-void Z_FreeTags(int tag){
-	zhead_t *z, *next;
-
-	for(z = z_chain.next; z != &z_chain; z = next){
-		next = z->next;
-		if(-1 == tag || z->tag == tag)
-			Z_Free((void *)(z + 1));
-	}
-}
-
-
-/*
- * Z_TagMalloc
- */
-void *Z_TagMalloc(size_t size, int tag){
-	zhead_t *z;
-
-	size = size + sizeof(zhead_t);
-	z = malloc(size);
-	if(!z){
-		Com_Error(ERR_FATAL, "Z_TagMalloc: Failed to allocate "Q2W_SIZE_T" bytes.", size);
-	}
-
-	z_count++;
-	z_bytes += size;
-
-	memset(z, 0, size);
-	z->magic = Z_MAGIC;
-	z->tag = tag;
-	z->size = size;
-
-#ifdef HAVE_SDL
-	SDL_mutexP(z_lock);
-#endif
-
-	z->next = z_chain.next;
-	z->prev = &z_chain;
-	z_chain.next->prev = z;
-	z_chain.next = z;
-
-#ifdef HAVE_SDL
-	SDL_mutexV(z_lock);
-#endif
-
-	return (void *)(z + 1);
-}
-
-
-/*
- * Z_Malloc
- */
-void *Z_Malloc(size_t size){
-	return Z_TagMalloc(size, 0);
 }

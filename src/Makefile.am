@@ -21,6 +21,7 @@ noinst_HEADERS = \
 	hash.h \
 	images.h \
 	keys.h \
+	mem.h \
 	net.h \
 	pak.h \
 	shared.h \
@@ -110,6 +111,7 @@ quake2world_SOURCES = \
 	curses.c \
 	cvar.c \
 	main.c \
+	mem.c \
 	net_chan.c \
 	net_udp.c \
 	pmove.c \

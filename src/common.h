@@ -25,6 +25,7 @@
 
 #include "cmd.h"
 #include "cvar.h"
+#include "mem.h"
 
 #define BASEDIRNAME	"default"
 
@@ -228,17 +229,6 @@ void Fs_FreeFile(void *buffer);
 void Fs_CreatePath(const char *path);
 void Fs_GunzipFile(const char *path);
 
-/*
- * Zone memory management.
- */
-
-void Z_Init(void);
-void Z_Shutdown(void);
-void Z_Free(void *ptr);
-void *Z_Malloc(size_t size);  // returns 0 filled memory
-void *Z_TagMalloc(size_t size, int tag);
-void Z_FreeTags(int tag);
-
 #define NUMVERTEXNORMALS 162
 extern const vec3_t bytedirs[NUMVERTEXNORMALS];
 
@@ -248,28 +238,24 @@ MISC
 
 */
 
-// TODO: make enums and move?
-#define ERR_FATAL		0  // unsafe error condition, game exiting
-#define ERR_DROP		1  // recoverable error condition
-#define ERR_NONE		2  // just a break condition
-
-#define EXEC_NOW	0  // don't return until completed
-#define EXEC_INSERT	1  // insert at current position, but don't run yet
-#define EXEC_APPEND	2  // add to end of the command buffer
+typedef enum {
+	ERR_FATAL,
+	ERR_DROP,
+	ERR_NONE
+} error_t;
 
 int Com_Argc(void);
 char *Com_Argv(int arg);  // range and null checked
 void Com_ClearArgv(int arg);
 void Com_InitArgv(int argc, char **argv);
 
-char *Com_CopyString(const char *in);
 void Com_PrintInfo(const char *s);
 
 void Com_BeginRedirect(int target, char *buffer, int buffersize, void(*flush)(int, char*));
 void Com_EndRedirect(void);
 void Com_Printf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Dprintf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Error(int code, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+void Com_Error(error_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 void Com_Warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 /*

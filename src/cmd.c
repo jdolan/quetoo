@@ -361,7 +361,7 @@ static void Cmd_Alias_f(void){
 	}
 	strcat(cmd, "\n");
 
-	a->value = Com_CopyString(cmd);
+	a->value = Z_CopyString(cmd);
 }
 
 /*
