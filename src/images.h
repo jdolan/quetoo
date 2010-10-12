@@ -70,7 +70,7 @@ Img_WriteJPEG
 
 Write pixel data to a JPEG file.
 */
-void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quality);
+void Img_WriteJPEG(char *path, byte *img_data, int width, int height, int quality);
 
 /*
 Img_WriteTGARLE

@@ -91,7 +91,7 @@ static void Cl_UpdateViewsize(void){
 /*
  * Cl_UpdateLerp
  */
-static void Cl_UpdateLerp(frame_t *from){
+static void Cl_UpdateLerp(cl_frame_t *from){
 
 	if(timedemo->value){
 		cl.lerp = 1.0;
@@ -341,7 +341,7 @@ static void Cl_UpdateBob(void){
  * the renderer.
  */
 void Cl_UpdateView(void){
-	frame_t *prev;
+	cl_frame_t *prev;
 	player_state_t *ps, *ops;
 	vec3_t delta;
 

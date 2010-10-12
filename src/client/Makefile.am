@@ -37,7 +37,7 @@ libclient_la_CFLAGS = \
 	@SDL_CFLAGS@ \
 	@WARN_CFLAGS@
 	
-libclient_la_LIBADD = \
-	../libcmodel.la
+#libclient_la_LIBADD = \
+#	../libcmodel.la
 
 endif

@@ -129,8 +129,8 @@ void Cl_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, i
  * Parses deltas from the given base and adds the resulting entity
  * to the current frame
  */
-static void Cl_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int bits){
-	centity_t *ent;
+static void Cl_DeltaEntity(cl_frame_t *frame, int newnum, entity_state_t *old, int bits){
+	cl_entity_t *ent;
 	entity_state_t *state;
 
 	ent = &cl_entities[newnum];
@@ -180,7 +180,7 @@ static void Cl_DeltaEntity(frame_t *frame, int newnum, entity_state_t *old, int 
  *
  * An svc_packetentities has just been parsed, deal with the rest of the data stream.
  */
-static void Cl_ParseEntities(const frame_t *oldframe, frame_t *newframe){
+static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 	unsigned int bits;
 	entity_state_t *oldstate = NULL;
 	int oldindex, oldnum;
@@ -305,7 +305,7 @@ static void Cl_ParseEntities(const frame_t *oldframe, frame_t *newframe){
 /*
  * Cl_ParsePlayerstate
  */
-static void Cl_ParsePlayerstate(const frame_t *oldframe, frame_t *newframe){
+static void Cl_ParsePlayerstate(const cl_frame_t *oldframe, cl_frame_t *newframe){
 	player_state_t *state;
 	byte flags;
 	int i;
@@ -370,7 +370,7 @@ static void Cl_ParsePlayerstate(const frame_t *oldframe, frame_t *newframe){
 /*
  * Cl_EntityEvents
  */
-static void Cl_EntityEvents(frame_t *frame){
+static void Cl_EntityEvents(cl_frame_t *frame){
 	int pnum;
 
 	for(pnum = 0; pnum < frame->num_entities; pnum++){
@@ -385,7 +385,7 @@ static void Cl_EntityEvents(frame_t *frame){
  */
 void Cl_ParseFrame(void){
 	size_t len;
-	frame_t *old;
+	cl_frame_t *old;
 
 	if(!cl.serverrate){  // avoid unstable reconnects
 		Cl_Reconnect_f();
@@ -536,7 +536,7 @@ static const vec3_t bfg_light = {
  * Entities with models are conditionally added to the view based on the
  * cl_addentities bitmask.
  */
-void Cl_AddEntities(frame_t *frame){
+void Cl_AddEntities(cl_frame_t *frame){
 	entity_t ent;
 	vec3_t start, end;
 	vec3_t wshell;
@@ -555,7 +555,7 @@ void Cl_AddEntities(frame_t *frame){
 
 		entity_state_t *state = &cl_parse_entities[(frame->parse_entities + pnum) & (MAX_PARSE_ENTITIES - 1)];
 
-		centity_t *cent = &cl_entities[state->number];
+		cl_entity_t *cent = &cl_entities[state->number];
 
 		// beams have two origins, most ents have just one
 		if(state->effects & EF_BEAM){
@@ -615,7 +615,7 @@ void Cl_AddEntities(frame_t *frame){
 
 		// resolve model and skin
 		if(state->modelindex == 255){  // use custom player skin
-			const client_info_t *ci = &cl.clientinfo[state->skinnum & 0xff];
+			const clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
 			ent.skinnum = 0;
 			ent.skin = ci->skin;
 			ent.model = ci->model;
@@ -745,7 +745,7 @@ void Cl_AddEntities(frame_t *frame){
 		if(state->modelindex2){
 			if(state->modelindex2 == 255){  // custom weapon
 				// the weapon is masked on the skinnum
-				const client_info_t *ci = &cl.clientinfo[state->skinnum & 0xff];
+				const clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
 				int i = (state->skinnum >> 8);  // 0 is default weapon model
 				if(i > MAX_CLIENTWEAPONMODELS - 1)
 					i = 0;

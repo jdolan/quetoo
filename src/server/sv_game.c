@@ -34,7 +34,7 @@ game_export_t *ge;
  */
 static void Sv_Unicast(edict_t *ent, qboolean reliable){
 	int p;
-	client_t *client;
+	sv_client_t *client;
 
 	if(!ent)
 		return;
@@ -148,7 +148,7 @@ static void Sv_Cnprintf(edict_t *ent, const char *fmt, ...){
  *
  * Abort the server with a game error
  */
-static void Sv_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
+static void Sv_Error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void Sv_Error(const char *fmt, ...){
 	char msg[1024];
 	va_list	argptr;

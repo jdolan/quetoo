@@ -722,7 +722,6 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 	// TODO: move this to commands that can be bound
 	if(down && cl.demoserver && Com_ServerState() &&
 			(key == K_LEFTARROW || key == K_RIGHTARROW)){
-		extern cvar_t *timescale;
 
 		float ts = timescale->value + (key == K_LEFTARROW ? -0.1 : 0.1);
 

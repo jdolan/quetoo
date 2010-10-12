@@ -25,7 +25,177 @@
 #include <windows.h>
 #endif
 
-#include "common.h"
+#include <setjmp.h>
+#include <signal.h>
+
+#include "client/client.h"
+#include "server/server.h"
+
+jmp_buf environment;
+
+quake2world_t quake2world;
+
+cvar_t *dedicated;
+cvar_t *developer;
+cvar_t *showtrace;
+cvar_t *timedemo;
+cvar_t *timescale;
+
+
+/*
+ * Shutdown
+ *
+ * Cleans up all game engine subsystems.
+ */
+static void Shutdown(const char *msg){
+
+	Sv_Shutdown(msg, false);
+
+	Cl_Shutdown();
+
+	Con_Shutdown();
+
+	Z_Shutdown();
+}
+
+
+/*
+ * Error
+ *
+ * Callback for subsystem failures.  Depending on the code, we might simply
+ * print a message, or shut the entire engine down and exit.
+ */
+static void Error(int code, const char *msg) __attribute__((noreturn));
+static void Error(int code, const char *msg){
+
+	switch(code){
+		case ERR_NONE:
+		case ERR_DROP:
+
+			Sv_Shutdown(msg, false);
+
+			Cl_Drop();
+
+			longjmp(environment, -1);
+			break;
+
+		default:  // we're at ERR_FATAL, shutdown and exit
+
+			Shutdown((const char *)msg);
+
+			Sys_Error("%s", msg);
+			break;
+	}
+}
+
+
+/*
+ * Quit_f
+ */
+static void Quit_f(void){
+
+	Shutdown("Server quit.\n");
+
+	Sys_Quit();
+}
+
+
+/*
+ * Init
+ */
+static void Init(int argc, char **argv){
+	char *s;
+
+	memset(&quake2world, 0, sizeof(quake2world));
+
+	if(setjmp(environment))
+		Sys_Error("Error during initialization.");
+
+	quake2world.Error = Error;
+
+	Z_Init();
+
+	Com_InitArgv(argc, argv);
+
+	Swap_Init();
+
+	Cbuf_Init();
+
+	Cmd_Init();
+
+	Cvar_Init();
+
+	/*
+	 * We need to add the early commands twice, because a base directory needs
+	 * to be set before executing configuration files, and we also want
+	 * command line parameters to override configuration files.
+	 */
+	Cbuf_AddEarlyCommands(false);
+
+	Fs_Init();
+
+	Cbuf_AddEarlyCommands(true);
+
+#ifndef BUILD_CLIENT
+	dedicated = Cvar_Get("dedicated", "1", CVAR_NOSET, NULL);
+#else
+	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET, NULL);
+#endif
+
+	developer = Cvar_Get("developer", "0", 0, NULL);
+	timedemo = Cvar_Get("timedemo", "0", 0, NULL);
+	timescale = Cvar_Get("timescale", "1.0", 0, NULL);
+	showtrace = Cvar_Get("showtrace", "0", 0, NULL);
+
+	Con_Init();
+	quake2world.Print = Con_Print;
+
+	s = va("Quake2World %s %s %s", VERSION, __DATE__, BUILDHOST);
+	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET, NULL);
+
+	Cmd_AddCommand("quit", Quit_f, "Quit Quake2World");
+
+	Net_Init();
+	Netchan_Init();
+
+	Sv_Init();
+	Cl_Init();
+
+	Com_Printf("Quake2World initialized.\n");
+
+	// add + commands from command line
+	Cbuf_AddLateCommands();
+
+	// dedicated server, nothing specified, use fractures.bsp
+	if(dedicated->value && !Com_ServerState()){
+		Cbuf_AddText("map fractures\n");
+		Cbuf_Execute();
+	}
+}
+
+
+/*
+ * Com_Frame
+ */
+static void Com_Frame(int msec){
+	extern int c_traces, c_brush_traces;
+	extern int c_pointcontents;
+
+	if(setjmp(environment))
+		return;  // an ERR_DROP or ERR_NONE was thrown
+
+	if(showtrace->value){
+		Com_Printf("%4i traces  %4i points\n", c_traces, c_pointcontents);
+		c_traces = c_brush_traces = c_pointcontents = 0;
+	}
+
+	Cbuf_Execute();
+
+	Sv_Frame(msec);
+
+	Cl_Frame(msec);
+}
+
 
 /*
  * main
@@ -48,22 +218,9 @@ int main(int argc, char **argv){
 	setvbuf(stdout, NULL, _IONBF, 0);
 #endif
 
-#ifdef __APPLE__
-	// a hack for Mac to open Cocoa before we try to initialize SDL
-	void *cocoa_lib;
-	void (*nsappload)(void);
-
-	cocoa_lib = dlopen("/System/Library/Frameworks/Cocoa.framework/Cocoa", RTLD_LAZY);
-
-	nsappload = (void(*))dlsym(cocoa_lib, "NSApplicationLoad");
-	nsappload();
-
-	dlclose(cocoa_lib);
-#endif
-
 	printf("Quake2World %s\n", VERSION);
 
-	Com_Init(argc, argv);
+	Init(argc, argv);
 
 	signal(SIGHUP, Sys_Signal);
 	signal(SIGINT, Sys_Signal);
@@ -78,7 +235,7 @@ int main(int argc, char **argv){
 
 	while(true){  // this is our main loop
 
-		Sys_Milliseconds();
+		quake2world.time = Sys_Milliseconds();
 
 		if(timescale->modified){
 			if(timescale->value < 0.1)
@@ -87,13 +244,13 @@ int main(int argc, char **argv){
 				timescale->value = 3.0;
 		}
 
-		msec = (curtime - oldtime) * timescale->value;
+		msec = (quake2world.time - oldtime) * timescale->value;
 
 		if(msec < 1)  // 0ms frames are not okay
 			continue;
 
 		Com_Frame(msec);
 
-		oldtime = curtime;
+		oldtime = quake2world.time;
 	}
 }

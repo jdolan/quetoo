@@ -482,7 +482,7 @@ static void MN_TextNodeLoaded (menuNode_t *node)
 
 	/* is text slot exists */
 	if (EXTRADATA(node).num >= MAX_MENUTEXTS)
-		Sys_Error("Error in node %s - max menu num exceeded (num: %i, max: %i)", MN_GetPath(node), EXTRADATA(node).num, MAX_MENUTEXTS);
+		Com_Error(ERR_FATAL, "Error in node %s - max menu num exceeded (num: %i, max: %i)", MN_GetPath(node), EXTRADATA(node).num, MAX_MENUTEXTS);
 
 #ifdef DEBUG
 	if (EXTRADATA(node).rows != (int)(node->size[1] / lineheight)) {

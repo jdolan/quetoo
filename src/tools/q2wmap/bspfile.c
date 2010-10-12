@@ -551,11 +551,11 @@ epair_t *ParseEpair(void){
 
 	if(strlen(token) >= MAX_KEY - 1)
 		Error("ParseEpar: token too long\n");
-	e->key = CopyString(token);
+	e->key = Com_CopyString(token);
 	GetToken(false);
 	if(strlen(token) >= MAX_VALUE - 1)
 		Error("ParseEpar: token too long\n");
-	e->value = CopyString(token);
+	e->value = Com_CopyString(token);
 
 	// strip trailing spaces
 	StripTrailing(e->key);
@@ -669,7 +669,7 @@ void SetKeyValue(entity_t *ent, const char *key, const char *value){
 	for(ep = ent->epairs; ep; ep = ep->next){
 		if(!strcmp(ep->key, key)){
 			Z_Free(ep->value);
-			ep->value = CopyString(value);
+			ep->value = Com_CopyString(value);
 			return;
 		}
 	}
@@ -677,8 +677,8 @@ void SetKeyValue(entity_t *ent, const char *key, const char *value){
 	ep = Z_Malloc(sizeof(*ep));
 	ep->next = ent->epairs;
 	ent->epairs = ep;
-	ep->key = CopyString(key);
-	ep->value = CopyString(value);
+	ep->key = Com_CopyString(key);
+	ep->value = Com_CopyString(value);
 }
 
 const char *ValueForKey(const entity_t *ent, const char *key){

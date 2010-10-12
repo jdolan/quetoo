@@ -384,7 +384,6 @@ const mleaf_t *R_LeafForPoint(const vec3_t p, const model_t *model){
 	}
 
 	Com_Error(ERR_DROP, "R_LeafForPoint: NULL");
-	return NULL;  // never reached
 }
 
 

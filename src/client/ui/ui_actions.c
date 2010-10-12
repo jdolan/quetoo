@@ -132,7 +132,7 @@ static const char* MN_GenInjectedString (const menuNode_t* source, qboolean useC
 							int l;
 							/* only allow common type or cvar */
 							if ((property->type & V_SPECIAL_TYPE) != 0 && (property->type & V_SPECIAL_TYPE) != V_SPECIAL_CVAR)
-								Sys_Error("MN_GenCommand: Unsupported type injection for property '%s', node '%s'", property->string, MN_GetPath(source));
+								Com_Error(ERR_FATAL, "MN_GenCommand: Unsupported type injection for property '%s', node '%s'", property->string, MN_GetPath(source));
 
 							/* inject the property value */
 							value = Com_ValueToStr((const void*)source, property->type, property->ofs);
@@ -220,7 +220,7 @@ static inline void MN_ExecuteSetAction (const menuNode_t* source, qboolean useCm
 		break;
 	default:
 		node = NULL;
-		Sys_Error("MN_ExecuteSetAction: Invalid actiontype (source: %s)", MN_GetPath(source));
+		Com_Error(ERR_FATAL, "MN_ExecuteSetAction: Invalid actiontype (source: %s)", MN_GetPath(source));
 	}
 
 	value = action->data2;
@@ -301,7 +301,7 @@ static void MN_ExecuteInjectedAction (const menuNode_t* source, qboolean useCmdP
 		break;
 
 	default:
-		Sys_Error("unknown action type");
+		Com_Error(ERR_FATAL, "unknown action type");
 	}
 }
 
@@ -401,7 +401,7 @@ menuAction_t* MN_AllocCommandAction (char *command)
 void MN_PoolAllocAction (menuAction_t** action, int type, const void *data)
 {
 	if (*action)
-		Sys_Error("There is already an action assigned");
+		Com_Error(ERR_FATAL, "There is already an action assigned");
 	*action = (menuAction_t *)Mem_PoolAlloc(sizeof(**action), cl_menuSysPool, 0);
 	(*action)->type.op = type;
 	switch (type) {
@@ -409,7 +409,7 @@ void MN_PoolAllocAction (menuAction_t** action, int type, const void *data)
 		(*action)->data = Mem_PoolStrDup((const char *)data, cl_menuSysPool, 0);
 		break;
 	default:
-		Sys_Error("Action type %i is not yet implemented", type);
+		Com_Error(ERR_FATAL, "Action type %i is not yet implemented", type);
 	}
 }
 

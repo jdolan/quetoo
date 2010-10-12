@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "common.h"
+#include "net.h"
 
 #include <unistd.h>
 #include <errno.h>
@@ -42,8 +42,8 @@
 #define Net_CloseSocket close
 #endif
 
-netadr_t net_local_adr = {
-	NA_LOOPBACK, {127, 0, 0, 1}, 0
+static netaddr_t net_local_addr = {
+	NA_LOCAL, {127, 0, 0, 1}, 0
 };
 
 #define MAX_LOOPBACK 4
@@ -75,9 +75,9 @@ static const char *Net_ErrorString(void){
 
 
 /*
- * NetadrToSockadr
+ * Net_NetAddrToSockaddr
  */
-static void NetadrToSockadr(const netadr_t *a, struct sockaddr_in *s){
+static void Net_NetAddrToSockaddr(const netaddr_t *a, struct sockaddr_in *s){
 	memset(s, 0, sizeof(*s));
 
 	if(a->type == NA_IP_BROADCAST){
@@ -93,9 +93,9 @@ static void NetadrToSockadr(const netadr_t *a, struct sockaddr_in *s){
 
 
 /*
- * SockadrToNetadr
+ * Net_SockaddrToNetaddr
  */
-static void SockadrToNetadr(const struct sockaddr_in *s, netadr_t *a){
+static void Net_SockaddrToNetaddr(const struct sockaddr_in *s, netaddr_t *a){
 	memcpy(a->ip, &s->sin_addr, sizeof(a->ip));
 	a->port = s->sin_port;
 	a->type = NA_IP;
@@ -103,25 +103,29 @@ static void SockadrToNetadr(const struct sockaddr_in *s, netadr_t *a){
 
 
 /*
- * Net_CompareAdr
+ * Net_CompareNetaddr
  */
-qboolean Net_CompareAdr(netadr_t a, netadr_t b){
+qboolean Net_CompareNetaddr(netaddr_t a, netaddr_t b){
+
 	if(a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2]
 			&& a.ip[3] == b.ip[3] && a.port == b.port)
 		return true;
+
 	return false;
 }
 
 
 /*
- * Net_CompareBaseAdr
+ * Net_CompareClientNetaddr
+ *
+ * Similar to Net_CompareNetaddr, but omits port checks.
  */
-qboolean Net_CompareBaseAdr(netadr_t a, netadr_t b){
+qboolean Net_CompareClientNetaddr(netaddr_t a, netaddr_t b){
 
 	if(a.type != b.type)
 		return false;
 
-	if(a.type == NA_LOOPBACK)
+	if(a.type == NA_LOCAL)
 		return true;
 
 	if(a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2]
@@ -133,9 +137,9 @@ qboolean Net_CompareBaseAdr(netadr_t a, netadr_t b){
 
 
 /*
- * Net_AdrToString
+ * Net_NetaddrToString
  */
-char *Net_AdrToString(netadr_t a){
+char *Net_NetaddrToString(netaddr_t a){
 	static char s[64];
 
 	snprintf(s, sizeof(s), "%i.%i.%i.%i:%i", a.ip[0], a.ip[1],
@@ -152,31 +156,31 @@ char *Net_AdrToString(netadr_t a){
  * 192.246.40.70
  * 192.246.40.70:28000
  */
-static qboolean Net_StringToSockaddr(const char *s, struct sockaddr *sadr){
+static qboolean Net_StringToSockaddr(const char *s, struct sockaddr *saddr){
 	struct hostent *h;
 	char *colon;
 	char copy[128];
 
-	memset(sadr, 0, sizeof(*sadr));
-	((struct sockaddr_in *)sadr)->sin_family = AF_INET;
+	memset(saddr, 0, sizeof(*saddr));
+	((struct sockaddr_in *)saddr)->sin_family = AF_INET;
 
-	((struct sockaddr_in *)sadr)->sin_port = 0;
+	((struct sockaddr_in *)saddr)->sin_port = 0;
 
 	strcpy(copy, s);
 	// strip off a trailing :port if present
 	for(colon = copy; *colon; colon++){
 		if(*colon == ':'){
 			*colon = 0;
-			((struct sockaddr_in *)sadr)->sin_port = htons((short)atoi(colon + 1));
+			((struct sockaddr_in *)saddr)->sin_port = htons((short)atoi(colon + 1));
 		}
 	}
 
 	if(copy[0] >= '0' && copy[0] <= '9'){
-		*(unsigned *)&((struct sockaddr_in *)sadr)->sin_addr = inet_addr(copy);
+		*(unsigned *)&((struct sockaddr_in *)saddr)->sin_addr = inet_addr(copy);
 	} else {
 		if(!(h = gethostbyname(copy)))
 			return false;
-		*(unsigned *)&((struct sockaddr_in *)sadr)->sin_addr = *(unsigned *)h->h_addr_list[0];
+		*(unsigned *)&((struct sockaddr_in *)saddr)->sin_addr = *(unsigned *)h->h_addr_list[0];
 	}
 
 	return true;
@@ -184,7 +188,7 @@ static qboolean Net_StringToSockaddr(const char *s, struct sockaddr *sadr){
 
 
 /*
- * Net_StringToAdr
+ * Net_StringToNetaddr
  *
  * localhost
  * idnewt
@@ -192,36 +196,36 @@ static qboolean Net_StringToSockaddr(const char *s, struct sockaddr *sadr){
  * 192.246.40.70
  * 192.246.40.70:28000
  */
-qboolean Net_StringToAdr(const char *s, netadr_t *a){
-	struct sockaddr_in sadr;
+qboolean Net_StringToNetaddr(const char *s, netaddr_t *a){
+	struct sockaddr_in saddr;
 
 	if(!strcmp(s, "localhost")){
 		memset(a, 0, sizeof(*a));
-		a->type = NA_LOOPBACK;
+		a->type = NA_LOCAL;
 		return true;
 	}
 
-	if(!Net_StringToSockaddr(s, (struct sockaddr *)&sadr))
+	if(!Net_StringToSockaddr(s, (struct sockaddr *)&saddr))
 		return false;
 
-	SockadrToNetadr(&sadr, a);
+	Net_SockaddrToNetaddr(&saddr, a);
 
 	return true;
 }
 
 
 /*
- * Net_IsLocalAddress
+ * Net_IsLocalNetaddr
  */
-qboolean Net_IsLocalAddress(netadr_t adr){
-	return Net_CompareAdr(adr, net_local_adr);
+qboolean Net_IsLocalNetaddr(netaddr_t addr){
+	return Net_CompareNetaddr(addr, net_local_addr);
 }
 
 
 /*
- * Net_GetLoopPacket
+ * Net_GetLocalPacket
  */
-static qboolean Net_GetLoopPacket(netsrc_t source, netadr_t *from, sizebuf_t *message){
+static qboolean Net_GetLocalPacket(netsrc_t source, netaddr_t *from, sizebuf_t *message){
 	int i;
 	loopback_t *loop;
 
@@ -239,15 +243,15 @@ static qboolean Net_GetLoopPacket(netsrc_t source, netadr_t *from, sizebuf_t *me
 
 	memcpy(message->data, loop->msgs[i].data, loop->msgs[i].datalen);
 	message->cursize = loop->msgs[i].datalen;
-	*from = net_local_adr;
+	*from = net_local_addr;
 	return true;
 }
 
 
 /*
- * Net_SendLoopPacket
+ * Net_SendLocalPacket
  */
-static void Net_SendLoopPacket(netsrc_t source, size_t length, void *data, netadr_t to){
+static void Net_SendLocalPacket(netsrc_t source, size_t length, void *data, netaddr_t to){
 	int i;
 	loopback_t *loop;
 
@@ -264,13 +268,13 @@ static void Net_SendLoopPacket(netsrc_t source, size_t length, void *data, netad
 /*
  * Net_GetPacket
  */
-qboolean Net_GetPacket(netsrc_t source, netadr_t *from, sizebuf_t *message){
+qboolean Net_GetPacket(netsrc_t source, netaddr_t *from, sizebuf_t *message){
 	int ret, err;
 	struct sockaddr_in from_addr;
 	socklen_t from_len;
 	char *s;
 
-	if(Net_GetLoopPacket(source, from, message))
+	if(Net_GetLocalPacket(source, from, message))
 		return true;
 
 	if(!ip_sockets[source])
@@ -281,7 +285,7 @@ qboolean Net_GetPacket(netsrc_t source, netadr_t *from, sizebuf_t *message){
 	ret = recvfrom(ip_sockets[source], (void *)message->data,
 			message->maxsize, 0, (struct sockaddr *)&from_addr, &from_len);
 
-	SockadrToNetadr(&from_addr, from);
+	Net_SockaddrToNetaddr(&from_addr, from);
 
 	if(ret == -1){
 		err = Net_GetError();
@@ -290,12 +294,12 @@ qboolean Net_GetPacket(netsrc_t source, netadr_t *from, sizebuf_t *message){
 			return false;  // not terribly abnormal
 
 		s = source == NS_SERVER ? "server" : "client";
-		Com_Warn("Net_GetPacket: %s: %s from %s\n", s, Net_ErrorString(), Net_AdrToString(*from));
+		Com_Warn("Net_GetPacket: %s: %s from %s\n", s, Net_ErrorString(), Net_NetaddrToString(*from));
 		return false;
 	}
 
 	if(ret == message->maxsize){
-		Com_Warn("Oversize packet from %s\n", Net_AdrToString(*from));
+		Com_Warn("Oversize packet from %s\n", Net_NetaddrToString(*from));
 		return false;
 	}
 
@@ -307,12 +311,12 @@ qboolean Net_GetPacket(netsrc_t source, netadr_t *from, sizebuf_t *message){
 /*
  * Net_SendPacket
  */
-void Net_SendPacket(netsrc_t source, size_t length, void *data, netadr_t to){
+void Net_SendPacket(netsrc_t source, size_t length, void *data, netaddr_t to){
 	struct sockaddr_in to_addr;
 	int sock, ret;
 
-	if(to.type == NA_LOOPBACK){
-		Net_SendLoopPacket(source, length, data, to);
+	if(to.type == NA_LOCAL){
+		Net_SendLocalPacket(source, length, data, to);
 		return;
 	}
 
@@ -326,15 +330,16 @@ void Net_SendPacket(netsrc_t source, size_t length, void *data, netadr_t to){
 			return;
 	} else {
 		Com_Error(ERR_DROP, "Net_SendPacket: Bad address type.");
+		return;
 	}
 
-	NetadrToSockadr(&to, &to_addr);
+	Net_NetAddrToSockaddr(&to, &to_addr);
 
 	ret = sendto(sock, data, length, 0,
 			(struct sockaddr *)&to_addr, sizeof(to_addr));
 
 	if(ret == -1)
-		Com_Warn("Net_SendPacket: %s to %s.\n", Net_ErrorString(), Net_AdrToString(to));
+		Com_Warn("Net_SendPacket: %s to %s.\n", Net_ErrorString(), Net_NetaddrToString(to));
 }
 
 
@@ -348,7 +353,7 @@ void Net_Sleep(int msec){
 	fd_set fdset;
 
 	if(!ip_sockets[NS_SERVER] || !dedicated->value)
-		return;  // we're not a server, just run full speed
+		return;  // we're not a server, simply return
 
 	FD_ZERO(&fdset);
 	FD_SET(ip_sockets[NS_SERVER], &fdset);  // network socket
@@ -367,19 +372,19 @@ static int Net_Socket(const char *net_interface, int port){
 	int i = 1;
 
 	if((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
-		Com_Error("Net_Socket: socket: %s", Net_ErrorString());
+		Com_Error(ERR_FATAL, "Net_Socket: socket: %s", Net_ErrorString());
 		return 0;
 	}
 
 	// make it non-blocking
 	if(ioctl(sock, FIONBIO, (char *)&i) == -1){
-		Com_Error("Net_Socket: ioctl: %s\n", Net_ErrorString());
+		Com_Error(ERR_FATAL, "Net_Socket: ioctl: %s\n", Net_ErrorString());
 		return 0;
 	}
 
 	// make it broadcast capable
 	if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&i, sizeof(i)) == -1){
-		Com_Error("Net_Socket: setsockopt: %s\n", Net_ErrorString());
+		Com_Error(ERR_FATAL, "Net_Socket: setsockopt: %s\n", Net_ErrorString());
 		return 0;
 	}
 

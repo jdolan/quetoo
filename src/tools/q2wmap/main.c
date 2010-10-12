@@ -664,7 +664,7 @@ int main(int argc, char **argv){
 
 	// init core facilities
 	Swap_Init();
-	Fs_InitFilesystem();
+	Fs_Init();
 
 	// start timer
 	start = time(NULL);

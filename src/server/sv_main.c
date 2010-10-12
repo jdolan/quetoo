@@ -22,9 +22,9 @@
 #include "server.h"
 #include "console.h"
 
-netadr_t master_adr[MAX_MASTERS];  // address of group servers
+netaddr_t master_addr[MAX_MASTERS];  // address of group servers
 
-client_t *sv_client;  // current client
+sv_client_t *sv_client;  // current client
 
 cvar_t *sv_rcon_password;  // password for remote server commands
 
@@ -47,7 +47,7 @@ cvar_t *sv_udpdownload;
  * or unwillingly.  This is NOT called if the entire server is quiting
  * or crashing.
  */
-void Sv_DropClient(client_t *cl){
+void Sv_DropClient(sv_client_t *cl){
 	// add the disconnect
 	Msg_WriteByte(&cl->netchan.message, svc_disconnect);
 
@@ -85,7 +85,7 @@ static const char *Sv_StatusString(void){
 	char player[1024];
 	static char status[MAX_MSGLEN - 16];
 	int i;
-	client_t *cl;
+	sv_client_t *cl;
 	int statusLength;
 	int playerLength;
 
@@ -124,7 +124,7 @@ static void Svc_Status(void){
  * Svc_Ack
  */
 static void Svc_Ack(void){
-	Com_Printf("Ping acknowledge from %s\n", Net_AdrToString(net_from));
+	Com_Printf("Ping acknowledge from %s\n", Net_NetaddrToString(net_from));
 }
 
 
@@ -194,7 +194,7 @@ static void Svc_GetChallenge(void){
 	// see if we already have a challenge for this ip
 	for(i = 0; i < MAX_CHALLENGES; i++){
 
-		if(Net_CompareBaseAdr(net_from, svs.challenges[i].adr))
+		if(Net_CompareClientNetaddr(net_from, svs.challenges[i].addr))
 			break;
 
 		if(svs.challenges[i].time < oldestTime){
@@ -206,8 +206,8 @@ static void Svc_GetChallenge(void){
 	if(i == MAX_CHALLENGES){
 		// overwrite the oldest
 		svs.challenges[oldest].challenge = rand() & 0x7fff;
-		svs.challenges[oldest].adr = net_from;
-		svs.challenges[oldest].time = curtime;
+		svs.challenges[oldest].addr = net_from;
+		svs.challenges[oldest].time = quake2world.time;
 		i = oldest;
 	}
 
@@ -223,9 +223,9 @@ static void Svc_GetChallenge(void){
  */
 static void Svc_Connect(void){
 	char userinfo[MAX_INFO_STRING];
-	netadr_t adr;
+	netaddr_t addr;
 	int i;
-	client_t *cl, *newcl;
+	sv_client_t *cl, *newcl;
 	edict_t *ent;
 	int edictnum;
 	int version;
@@ -234,13 +234,13 @@ static void Svc_Connect(void){
 
 	Com_Dprintf("Svc_Connect()\n");
 
-	adr = net_from;
+	addr = net_from;
 
 	version = atoi(Cmd_Argv(1));
 
 	// resolve protocol
 	if(version != PROTOCOL){
-		Netchan_OutOfBandPrint(NS_SERVER, adr,
+		Netchan_OutOfBandPrint(NS_SERVER, addr,
 				"print\nServer is version %d.\n", PROTOCOL);
 		return;
 	}
@@ -254,46 +254,46 @@ static void Svc_Connect(void){
 	userinfo[sizeof(userinfo) - 1] = 0;
 
 	if(!strlen(userinfo)){  // catch empty userinfo
-		Com_Printf("Empty userinfo from %s\n", Net_AdrToString(adr));
-		Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nConnection refused.\n");
+		Com_Printf("Empty userinfo from %s\n", Net_NetaddrToString(addr));
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
 
 	if(strchr(userinfo, '\xFF')){  // catch end of message in string exploit
-		Com_Printf("Illegal userinfo contained xFF from %s\n", Net_AdrToString(adr));
-		Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nConnection refused.\n");
+		Com_Printf("Illegal userinfo contained xFF from %s\n", Net_NetaddrToString(addr));
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
 
 	if(strlen(Info_ValueForKey(userinfo, "ip"))){  // catch spoofed ips
-		Com_Printf("Illegal userinfo contained ip from %s\n", Net_AdrToString(adr));
-		Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nConnection refused.\n");
+		Com_Printf("Illegal userinfo contained ip from %s\n", Net_NetaddrToString(addr));
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
 
 	if(!Info_Validate(userinfo)){  // catch otherwise invalid userinfo
-		Com_Printf("Invalid userinfo from %s\n", Net_AdrToString(adr));
-		Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nConnection refused.\n");
+		Com_Printf("Invalid userinfo from %s\n", Net_NetaddrToString(addr));
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
 
 	// force the ip so the game can filter on it
-	Info_SetValueForKey(userinfo, "ip", Net_AdrToString(adr));
+	Info_SetValueForKey(userinfo, "ip", Net_NetaddrToString(addr));
 
 	// enforce a valid challenge on remote clients to avoid dos attack
-	if(!Net_IsLocalAddress(adr)){
+	if(!Net_IsLocalNetaddr(addr)){
 		for(i = 0; i < MAX_CHALLENGES; i++){
-			if(Net_CompareBaseAdr(adr, svs.challenges[i].adr)){
+			if(Net_CompareClientNetaddr(addr, svs.challenges[i].addr)){
 				if(challenge == svs.challenges[i].challenge){
 					svs.challenges[i].challenge = 0;
 					break;  // good
 				}
-				Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nBad challenge.\n");
+				Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nBad challenge.\n");
 				return;
 			}
 		}
 		if(i == MAX_CHALLENGES){
-			Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nNo challenge for address.\n");
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nNo challenge for address.\n");
 			return;
 		}
 	}
@@ -310,8 +310,8 @@ static void Svc_Connect(void){
 			continue;
 
 		// the base address and either the qport or real port must match
-		if(Net_CompareBaseAdr(adr, ch->remote_address) &&
-				(qport == ch->qport || ch->remote_address.port == adr.port)){
+		if(Net_CompareClientNetaddr(addr, ch->remote_address) &&
+				(qport == ch->qport || ch->remote_address.port == addr.port)){
 			newcl = cl;
 			break;
 		}
@@ -329,7 +329,7 @@ static void Svc_Connect(void){
 
 	// no soup for you, next!!
 	if(!newcl){
-		Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nServer is full.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nServer is full.\n");
 		Com_Dprintf("Rejected a connection.\n");
 		return;
 	}
@@ -344,10 +344,10 @@ static void Svc_Connect(void){
 	// get the game a chance to reject this connection or modify the userinfo
 	if(!(ge->ClientConnect(ent, userinfo))){
 		if(*Info_ValueForKey(userinfo, "rejmsg"))
-			Netchan_OutOfBandPrint(NS_SERVER, adr, "print\n%s\nConnection refused.\n",
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused.\n",
 									Info_ValueForKey(userinfo, "rejmsg"));
 		else
-			Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nConnection refused.\n");
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		Com_Dprintf("Game rejected a connection.\n");
 		return;
 	}
@@ -357,9 +357,9 @@ static void Svc_Connect(void){
 	Sv_UserinfoChanged(newcl);
 
 	// send the connect packet to the client
-	Netchan_OutOfBandPrint(NS_SERVER, adr, "client_connect %s", sv_downloadurl->string);
+	Netchan_OutOfBandPrint(NS_SERVER, addr, "client_connect %s", sv_downloadurl->string);
 
-	Netchan_Setup(NS_SERVER, &newcl->netchan, adr, qport);
+	Netchan_Setup(NS_SERVER, &newcl->netchan, addr, qport);
 
 	Sb_Init(&newcl->datagram, newcl->datagram_buf, sizeof(newcl->datagram_buf));
 	newcl->datagram.allowoverflow = true;
@@ -400,9 +400,9 @@ static void Svc_RemoteCommand(void){
 	i = Sv_RconValidate();
 
 	if(i == 0)
-		Com_Printf("Bad rcon from %s:\n%s\n", Net_AdrToString(net_from), net_message.data + 4);
+		Com_Printf("Bad rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
 	else
-		Com_Printf("Rcon from %s:\n%s\n", Net_AdrToString(net_from), net_message.data + 4);
+		Com_Printf("Rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
 
 	Com_BeginRedirect(RD_PACKET, sv_outputbuf, SV_OUTPUTBUF_LENGTH, Sv_FlushRedirect);
 
@@ -442,7 +442,7 @@ static void Sv_ConnectionlessPacket(void){
 	Cmd_TokenizeString(s);
 
 	c = Cmd_Argv(0);
-	Com_Dprintf("Packet from %s: %s\n", Net_AdrToString(net_from), c);
+	Com_Dprintf("Packet from %s: %s\n", Net_NetaddrToString(net_from), c);
 
 	if(!strcmp(c, "ping"))
 		Svc_Ping();
@@ -460,7 +460,7 @@ static void Sv_ConnectionlessPacket(void){
 		Svc_RemoteCommand();
 	else
 		Com_Printf("Bad connectionless packet from %s:\n%s\n",
-				Net_AdrToString(net_from), s);
+				Net_NetaddrToString(net_from), s);
 }
 
 
@@ -471,7 +471,7 @@ static void Sv_ConnectionlessPacket(void){
  */
 static void Sv_CalcPings(void){
 	int i, j;
-	client_t *cl;
+	sv_client_t *cl;
 	int total, count;
 
 	for(i = 0; i < sv_maxclients->value; i++){
@@ -508,7 +508,7 @@ static void Sv_CalcPings(void){
  */
 static void Sv_GiveMsec(void){
 	int i;
-	client_t *cl;
+	sv_client_t *cl;
 
 	if(sv.framenum & 15)
 		return;
@@ -546,7 +546,7 @@ static void Sv_GiveMsec(void){
  */
 static void Sv_ReadPackets(void){
 	int i;
-	client_t *cl;
+	sv_client_t *cl;
 	int qport;
 
 	while(Net_GetPacket(NS_SERVER, &net_from, &net_message)){
@@ -570,7 +570,7 @@ static void Sv_ReadPackets(void){
 		for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
 			if(cl->state == cs_free)
 				continue;
-			if(!Net_CompareBaseAdr(net_from, cl->netchan.remote_address))
+			if(!Net_CompareClientNetaddr(net_from, cl->netchan.remote_address))
 				continue;
 			if(cl->netchan.qport != qport)
 				continue;
@@ -595,7 +595,7 @@ static void Sv_ReadPackets(void){
  */
 static void Sv_CheckTimeouts(void){
 	int i;
-	client_t *cl;
+	sv_client_t *cl;
 	int timeout;
 
 	timeout = svs.realtime - 1000 * sv_timeout->value;
@@ -668,7 +668,7 @@ void Sv_Frame(int msec){
 	if(!svs.initialized)
 		return;
 
-	svs.realtime += msec;
+	svs.realtime += msec;  // TODO: quake2world.time?
 
 	// keep the random time dependent
 	rand();
@@ -752,9 +752,9 @@ void Sv_HeartbeatMasters(void){
 
 	// send to group master
 	for(i = 0; i < MAX_MASTERS; i++){
-		if(master_adr[i].port){
-			Com_Printf("Sending heartbeat to %s\n", Net_AdrToString(master_adr[i]));
-			Netchan_OutOfBandPrint(NS_SERVER, master_adr[i], "heartbeat\n%s", string);
+		if(master_addr[i].port){
+			Com_Printf("Sending heartbeat to %s\n", Net_NetaddrToString(master_addr[i]));
+			Netchan_OutOfBandPrint(NS_SERVER, master_addr[i], "heartbeat\n%s", string);
 		}
 	}
 }
@@ -776,9 +776,9 @@ static void Sv_ShutdownMasters(void){
 
 	// send to group master
 	for(i = 0; i < MAX_MASTERS; i++){
-		if(master_adr[i].port){
-			Com_Printf("Sending shutdown to %s\n", Net_AdrToString(master_adr[i]));
-			Netchan_OutOfBandPrint(NS_SERVER, master_adr[i], "shutdown");
+		if(master_addr[i].port){
+			Com_Printf("Sending shutdown to %s\n", Net_NetaddrToString(master_addr[i]));
+			Netchan_OutOfBandPrint(NS_SERVER, master_addr[i], "shutdown");
 		}
 	}
 }
@@ -787,7 +787,7 @@ static void Sv_ShutdownMasters(void){
 /*
  * Sv_KickClient
  */
-void Sv_KickClient(client_t *cl, const char *msg){
+void Sv_KickClient(sv_client_t *cl, const char *msg){
 	char c[1024];
 
 	if(!cl)
@@ -812,10 +812,12 @@ void Sv_KickClient(client_t *cl, const char *msg){
 
 
 /*
- * Sv_ClientAdrToString
+ * Sv_NetaddrToString
+ *
+ * A convenience function for printing out client addresses.
  */
-char *Sv_ClientAdrToString(client_t *cl){
-	return Net_AdrToString(cl->netchan.remote_address);
+char *Sv_NetaddrToString(sv_client_t *cl){
+	return Net_NetaddrToString(cl->netchan.remote_address);
 }
 
 
@@ -827,24 +829,24 @@ char *Sv_ClientAdrToString(client_t *cl){
  *
  * Enforces safe userinfo data before passing onto game module.
  */
-void Sv_UserinfoChanged(client_t *cl){
+void Sv_UserinfoChanged(sv_client_t *cl){
 	char *val;
 	int i;
 
 	if(!strlen(cl->userinfo)){  // catch empty userinfo
-		Com_Printf("Empty userinfo from %s\n", Sv_ClientAdrToString(cl));
+		Com_Printf("Empty userinfo from %s\n", Sv_NetaddrToString(cl));
 		Sv_KickClient(cl, NULL);
 		return;
 	}
 
 	if(strchr(cl->userinfo, '\xFF')){  // catch end of message exploit
-		Com_Printf("Illegal userinfo contained xFF from %s\n", Sv_ClientAdrToString(cl));
+		Com_Printf("Illegal userinfo contained xFF from %s\n", Sv_NetaddrToString(cl));
 		Sv_KickClient(cl, NULL);
 		return;
 	}
 
 	if(!Info_Validate(cl->userinfo)){  // catch otherwise invalid userinfo
-		Com_Printf("Invalid userinfo from %s\n", Sv_ClientAdrToString(cl));
+		Com_Printf("Invalid userinfo from %s\n", Sv_NetaddrToString(cl));
 		Sv_KickClient(cl, NULL);
 		return;
 	}
@@ -927,8 +929,8 @@ void Sv_Init(void){
 	Cvar_Get("sv_protocol", va("%i", PROTOCOL), CVAR_SERVERINFO | CVAR_NOSET, NULL);
 
 	// set default master server
-	Net_StringToAdr(IP_MASTER, &master_adr[0]);
-	master_adr[0].port = BigShort(PORT_MASTER);
+	Net_StringToNetaddr(IP_MASTER, &master_addr[0]);
+	master_addr[0].port = BigShort(PORT_MASTER);
 
 	// initialize net buffer
 	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
@@ -943,16 +945,16 @@ void Sv_Init(void){
  * just stuck on the outgoing message list, because the server could
  * completely exit after returning from this function.
  */
-static void Sv_FinalMessage(const char *message, qboolean reconnect){
+static void Sv_FinalMessage(const char *msg, qboolean reconnect){
 	int i;
-	client_t *cl;
+	sv_client_t *cl;
 
 	Sb_Clear(&net_message);
 
-	if(message){  // send message
+	if(msg){  // send message
 		Msg_WriteByte(&net_message, svc_print);
 		Msg_WriteByte(&net_message, PRINT_HIGH);
-		Msg_WriteString(&net_message, message);
+		Msg_WriteString(&net_message, msg);
 	}
 
 	if(reconnect)  // send reconnect
@@ -971,10 +973,10 @@ static void Sv_FinalMessage(const char *message, qboolean reconnect){
  *
  * Called when server is shutting down, or doing a full restart.
  */
-void Sv_Shutdown(const char *finalmsg, qboolean reconnect){
+void Sv_Shutdown(const char *msg, qboolean reconnect){
 
 	if(svs.clients)  // send final message
-		Sv_FinalMessage(finalmsg, reconnect);
+		Sv_FinalMessage(msg, reconnect);
 
 	Sv_ShutdownMasters();
 	Sv_ShutdownGameProgs();

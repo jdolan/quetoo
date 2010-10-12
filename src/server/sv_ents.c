@@ -32,7 +32,7 @@
  *
  * Writes a delta update of an entity_state_t list to the message.
  */
-static void Sv_EmitEntities(client_frame_t *from, client_frame_t *to, sizebuf_t *msg){
+static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, sizebuf_t *msg){
 	entity_state_t *oldent = NULL, *newent = NULL;
 	int oldindex, newindex;
 	int oldnum, newnum;
@@ -100,7 +100,7 @@ static void Sv_EmitEntities(client_frame_t *from, client_frame_t *to, sizebuf_t 
 /*
  * Sv_WritePlayerstateToClient
  */
-static void Sv_WritePlayerstateToClient(client_t *client, client_frame_t *from, client_frame_t *to, sizebuf_t *msg){
+static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from, sv_frame_t *to, sizebuf_t *msg){
 	int i;
 	int pflags;
 	player_state_t *ps, *ops;
@@ -202,8 +202,8 @@ static void Sv_WritePlayerstateToClient(client_t *client, client_frame_t *from, 
 /*
  * Sv_WriteFrameToClient
  */
-void Sv_WriteFrameToClient(client_t *client, sizebuf_t *msg){
-	client_frame_t *frame, *oldframe;
+void Sv_WriteFrameToClient(sv_client_t *client, sizebuf_t *msg){
+	sv_frame_t *frame, *oldframe;
 	int lastframe;
 
 	// this is the frame we are creating
@@ -298,12 +298,12 @@ static void Sv_FatPVS(const vec3_t org){
  * Decides which entities are going to be visible to the client, and
  * copies off the playerstat and areabits.
  */
-void Sv_BuildClientFrame(client_t *client){
+void Sv_BuildClientFrame(sv_client_t *client){
 	int e, i;
 	vec3_t org;
 	edict_t *ent;
 	edict_t *clent;
-	client_frame_t *frame;
+	sv_frame_t *frame;
 	entity_state_t *state;
 	int l;
 	int clientarea, clientcluster;

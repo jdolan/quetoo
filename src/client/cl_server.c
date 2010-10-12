@@ -25,7 +25,7 @@
 /*
  * Cl_AddServer
  */
-static server_info_t *Cl_AddServer(const netadr_t *adr){
+static server_info_t *Cl_AddServer(const netaddr_t *addr){
 	server_info_t *s;
 
 	s = (server_info_t *)Z_Malloc(sizeof(*s));
@@ -33,7 +33,7 @@ static server_info_t *Cl_AddServer(const netadr_t *adr){
 	s->next = cls.servers;
 	cls.servers = s;
 
-	s->adr = *adr;
+	s->addr = *addr;
 
 	return s;
 }
@@ -59,16 +59,16 @@ static int Cl_NumServers(void){
 
 
 /*
- * Cl_ServerForAdr
+ * Cl_ServerForNetaddr
  */
-static server_info_t *Cl_ServerForAdr(const netadr_t *adr){
+static server_info_t *Cl_ServerForNetaddr(const netaddr_t *addr){
 	server_info_t *s;
 
 	s = cls.servers;
 
 	while(s){
 
-		if(Net_CompareAdr(*adr, s->adr))
+		if(Net_CompareNetaddr(*addr, s->addr))
 			return s;
 
 		s = s->next;
@@ -160,7 +160,7 @@ void Cl_ParseStatusMessage(void){
 	const char *source;
 	int i, color;
 
-	server = Cl_ServerForAdr(&net_from);
+	server = Cl_ServerForNetaddr(&net_from);
 
 	if(!server){  // unknown server, assumed response to broadcast
 
@@ -215,7 +215,7 @@ void Cl_ParseStatusMessage(void){
  * Cl_Ping_f
  */
 void Cl_Ping_f(void){
-	netadr_t adr;
+	netaddr_t addr;
 	server_info_t *server;
 
 	if(Cmd_Argc() != 2){
@@ -225,27 +225,27 @@ void Cl_Ping_f(void){
 
 	server = NULL;
 
-	if(!Net_StringToAdr(Cmd_Argv(1), &adr)){
+	if(!Net_StringToNetaddr(Cmd_Argv(1), &addr)){
 		Com_Printf("Invalid address\n");
 		return;
 	}
 
-	if(!adr.port)  // use default
-		adr.port = (unsigned short)BigShort(PORT_SERVER);
+	if(!addr.port)  // use default
+		addr.port = (unsigned short)BigShort(PORT_SERVER);
 
-	server = Cl_ServerForAdr(&adr);
+	server = Cl_ServerForNetaddr(&addr);
 
 	if(!server){  // add it
-		server = Cl_AddServer(&adr);
+		server = Cl_AddServer(&addr);
 		server->source = SERVER_SOURCE_USER;
 	}
 
 	server->pingtime = cls.realtime;
 	server->ping = 0;
 
-	Com_Printf("Pinging %s\n", Net_AdrToString(server->adr));
+	Com_Printf("Pinging %s\n", Net_NetaddrToString(server->addr));
 
-	Netchan_OutOfBandPrint(NS_CLIENT, server->adr, "info %i", PROTOCOL);
+	Netchan_OutOfBandPrint(NS_CLIENT, server->addr, "info %i", PROTOCOL);
 }
 
 
@@ -254,7 +254,7 @@ void Cl_Ping_f(void){
  */
 static void Cl_SendBroadcast(void){
 	server_info_t *server;
-	netadr_t adr;
+	netaddr_t addr;
 
 	cls.bcasttime = cls.realtime;
 
@@ -270,9 +270,9 @@ static void Cl_SendBroadcast(void){
 		server = server->next;
 	}
 
-	adr.type = NA_IP_BROADCAST;
-	adr.port = (unsigned short)BigShort(PORT_SERVER);
-	Netchan_OutOfBandPrint(NS_CLIENT, adr, "info %i", PROTOCOL);
+	addr.type = NA_IP_BROADCAST;
+	addr.port = (unsigned short)BigShort(PORT_SERVER);
+	Netchan_OutOfBandPrint(NS_CLIENT, addr, "info %i", PROTOCOL);
 }
 
 
@@ -280,18 +280,18 @@ static void Cl_SendBroadcast(void){
  * Cl_Servers_f
  */
 void Cl_Servers_f(void){
-	netadr_t adr;
+	netaddr_t addr;
 
-	if(!Net_StringToAdr(IP_MASTER, &adr)){
+	if(!Net_StringToNetaddr(IP_MASTER, &addr)){
 		Com_Printf("Failed to resolve %s\n", IP_MASTER);
 		return;
 	}
 
 	Com_Printf("Refreshing servers.\n");
 
-	adr.type = NA_IP;
-	adr.port = (unsigned short)BigShort(PORT_MASTER);
-	Netchan_OutOfBandPrint(NS_CLIENT, adr, "getservers");
+	addr.type = NA_IP;
+	addr.port = (unsigned short)BigShort(PORT_MASTER);
+	Netchan_OutOfBandPrint(NS_CLIENT, addr, "getservers");
 
 	Cl_SendBroadcast();
 }
@@ -305,7 +305,7 @@ void Cl_ParseServersList(void){
 	byte *buffend;
 	byte ip[4];
 	unsigned short port;
-	netadr_t adr;
+	netaddr_t addr;
 	server_info_t *server;
 	char s[32];
 
@@ -325,18 +325,18 @@ void Cl_ParseServersList(void){
 
 		snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
 
-		if(!Net_StringToAdr(s, &adr)){  // make sure it's valid
+		if(!Net_StringToNetaddr(s, &addr)){  // make sure it's valid
 			Com_Warn("Cl_ParseServersList: Invalid address: %s.\n", s);
 			break;
 		}
 
-		if(!adr.port)  // 0's mean we're done
+		if(!addr.port)  // 0's mean we're done
 			break;
 
-		server = Cl_ServerForAdr(&adr);
+		server = Cl_ServerForNetaddr(&addr);
 
 		if(!server)
-			server = Cl_AddServer(&adr);
+			server = Cl_AddServer(&addr);
 
 		server->source = SERVER_SOURCE_INTERNET;
 	}
@@ -352,7 +352,7 @@ void Cl_ParseServersList(void){
 			server->pingtime = cls.realtime;
 			server->ping = 0;
 
-			Netchan_OutOfBandPrint(NS_CLIENT, server->adr, "info %i", PROTOCOL);
+			Netchan_OutOfBandPrint(NS_CLIENT, server->addr, "info %i", PROTOCOL);
 		}
 
 		server = server->next;

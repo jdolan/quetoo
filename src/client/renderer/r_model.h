@@ -22,6 +22,8 @@
 #ifndef __R_MODEL_H__
 #define __R_MODEL_H__
 
+#include "cmodel.h"
+
 // bsp model memory representation
 typedef struct {
 	vec3_t position;

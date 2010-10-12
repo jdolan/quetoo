@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "common.h"
+#include "net.h"
 
 /*
  *
@@ -77,7 +77,7 @@ cvar_t *net_showpackets;
 cvar_t *net_showdrop;
 cvar_t *net_qport;
 
-netadr_t net_from;
+netaddr_t net_from;
 sizebuf_t net_message;
 byte net_message_buffer[MAX_MSGLEN];
 
@@ -103,7 +103,7 @@ void Netchan_Init(void){
  *
  * Sends an out-of-band datagram
  */
-void Netchan_OutOfBand(int net_socket, netadr_t adr, int length, byte *data){
+void Netchan_OutOfBand(int net_socket, netaddr_t addr, int length, byte *data){
 	sizebuf_t send;
 	byte send_buf[MAX_MSGLEN];
 
@@ -114,7 +114,7 @@ void Netchan_OutOfBand(int net_socket, netadr_t adr, int length, byte *data){
 	Sb_Write(&send, data, length);
 
 	// send the datagram
-	Net_SendPacket(net_socket, send.cursize, send.data, adr);
+	Net_SendPacket(net_socket, send.cursize, send.data, addr);
 }
 
 
@@ -123,7 +123,7 @@ void Netchan_OutOfBand(int net_socket, netadr_t adr, int length, byte *data){
  *
  * Sends a text message in an out-of-band datagram
  */
-void Netchan_OutOfBandPrint(int net_socket, netadr_t adr, const char *format, ...){
+void Netchan_OutOfBandPrint(int net_socket, netaddr_t addr, const char *format, ...){
 	va_list	argptr;
 	char string[MAX_MSGLEN - 4];
 
@@ -133,7 +133,7 @@ void Netchan_OutOfBandPrint(int net_socket, netadr_t adr, const char *format, ..
 	vsnprintf(string, sizeof(string), format, argptr);
 	va_end(argptr);
 
-	Netchan_OutOfBand(net_socket, adr, strlen(string), (byte *)string);
+	Netchan_OutOfBand(net_socket, addr, strlen(string), (byte *)string);
 }
 
 
@@ -142,13 +142,13 @@ void Netchan_OutOfBandPrint(int net_socket, netadr_t adr, const char *format, ..
  *
  * called to open a channel to a remote system
  */
-void Netchan_Setup(netsrc_t source, netchan_t *chan, netadr_t adr, int qport){
+void Netchan_Setup(netsrc_t source, netchan_t *chan, netaddr_t addr, int qport){
 	memset(chan, 0, sizeof(*chan));
 
 	chan->source = source;
-	chan->remote_address = adr;
+	chan->remote_address = addr;
 	chan->qport = qport;
-	chan->last_received = curtime;
+	chan->last_received = quake2world.time;
 	chan->incoming_sequence = 0;
 	chan->outgoing_sequence = 1;
 
@@ -206,7 +206,7 @@ void Netchan_Transmit(netchan_t *chan, int length, byte *data){
 	if(chan->message.overflowed){
 		chan->fatal_error = true;
 		Com_Printf("%s:Outgoing message overflow\n"
-					, Net_AdrToString(chan->remote_address));
+					, Net_NetaddrToString(chan->remote_address));
 		return;
 	}
 
@@ -226,7 +226,7 @@ void Netchan_Transmit(netchan_t *chan, int length, byte *data){
 	w2 = (chan->incoming_sequence & ~(1 << 31)) | (chan->incoming_reliable_sequence << 31);
 
 	chan->outgoing_sequence++;
-	chan->last_sent = curtime;
+	chan->last_sent = quake2world.time;
 
 	Msg_WriteLong(&send, w1);
 	Msg_WriteLong(&send, w2);
@@ -315,7 +315,7 @@ qboolean Netchan_Process(netchan_t *chan, sizebuf_t *msg){
 	if(sequence <= chan->incoming_sequence){
 		if(net_showdrop->value)
 			Com_Printf("%s:Out of order packet %i at %i\n"
-						, Net_AdrToString(chan->remote_address)
+						, Net_NetaddrToString(chan->remote_address)
 						, sequence
 						, chan->incoming_sequence);
 		return false;
@@ -326,7 +326,7 @@ qboolean Netchan_Process(netchan_t *chan, sizebuf_t *msg){
 	if(chan->dropped > 0){
 		if(net_showdrop->value)
 			Com_Printf("%s:Dropped %i packets at %i\n"
-						, Net_AdrToString(chan->remote_address)
+						, Net_NetaddrToString(chan->remote_address)
 						, chan->dropped
 						, sequence);
 	}
@@ -345,7 +345,7 @@ qboolean Netchan_Process(netchan_t *chan, sizebuf_t *msg){
 	}
 
 	// the message can now be read from the current message pointer
-	chan->last_received = curtime;
+	chan->last_received = quake2world.time;
 
 	return true;
 }

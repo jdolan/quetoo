@@ -126,7 +126,7 @@ static void Sv_Configstrings_f(void){
 	start = atoi(Cmd_Argv(2));
 
 	if(start < 0){  // catch negative offset
-		Com_Printf("Illegal configstring offset from %s\n", Sv_ClientAdrToString(sv_client));
+		Com_Printf("Illegal configstring offset from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -177,7 +177,7 @@ static void Sv_Baselines_f(void){
 	start = atoi(Cmd_Argv(2));
 
 	if(start < 0){  // catch negative offset
-		Com_Printf("Illegal baseline offset from %s\n", Sv_ClientAdrToString(sv_client));
+		Com_Printf("Illegal baseline offset from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -213,7 +213,7 @@ static void Sv_Begin_f(void){
 	Com_Dprintf("Begin() from %s\n", sv_client->name);
 
 	if(sv_client->state != cs_connected){  // catch duplicate spawns
-		Com_Printf("Illegal begin from %s\n", Sv_ClientAdrToString(sv_client));
+		Com_Printf("Illegal begin from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -285,7 +285,6 @@ static const char *downloadable[] = {
  * Sv_Download_f
  */
 static void Sv_Download_f(void){
-	extern cvar_t *sv_udpdownload;
 	const char *name;
 	void *buf;
 	int i = 0, offset = 0;
@@ -297,7 +296,7 @@ static void Sv_Download_f(void){
 
 	// catch illegal offset or filenames
 	if(offset < 0 || *name == '.' || *name == '/' || *name == '\\' || strstr(name, "..")){
-		Com_Printf("Malicious download from %s\n", Sv_ClientAdrToString(sv_client));
+		Com_Printf("Malicious download from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -309,7 +308,7 @@ static void Sv_Download_f(void){
 	}
 
 	if(!downloadable[i]){  // it wasnt
-		Com_Printf("Illegal download (%s) from %s\n", name, Sv_ClientAdrToString(sv_client));
+		Com_Printf("Illegal download (%s) from %s\n", name, Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -364,7 +363,7 @@ static void Sv_Info_f(void){
 	char line[MAX_STRING_CHARS];
 
 	if(!sv_client){  //print to server console
-		Info_Print(Cvar_Serverinfo());
+		Com_PrintInfo(Cvar_Serverinfo());
 		return;
 	}
 
@@ -405,7 +404,7 @@ static void Sv_ExecuteUserCommand(const char *s){
 	Cmd_TokenizeString(s);
 
 	if(strchr(s, '\xFF')){  // catch end of message exploit
-		Com_Printf("Illegal command contained xFF from %s\n", Sv_ClientAdrToString(sv_client));
+		Com_Printf("Illegal command contained xFF from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -434,7 +433,7 @@ static void Sv_ExecuteUserCommand(const char *s){
  *
  * Account for command timeslice and pass command to game dll.
  */
-static void Sv_ClientThink(client_t *cl, usercmd_t *cmd){
+static void Sv_ClientThink(sv_client_t *cl, usercmd_t *cmd){
 	cl->cmd_msec -= cmd->msec;
 	ge->ClientThink(cl->edict, cmd);
 }
@@ -446,7 +445,7 @@ static void Sv_ClientThink(client_t *cl, usercmd_t *cmd){
  *
  * The current net_message is parsed for the given client
  */
-void Sv_ExecuteClientMessage(client_t *cl){
+void Sv_ExecuteClientMessage(sv_client_t *cl){
 	usercmd_t nullcmd, oldest, oldcmd, newcmd;
 	int net_drop;
 	int stringCmdCount;
@@ -511,7 +510,7 @@ void Sv_ExecuteClientMessage(client_t *cl){
 
 				if(nullcmd.msec > 250 || oldest.msec > 250 ||  // catch illegal msec
 						oldcmd.msec > 250 || newcmd.msec > 250){
-					Com_Printf("Illegal msec in usercmd from %s\n", Sv_ClientAdrToString(cl));
+					Com_Printf("Illegal msec in usercmd from %s\n", Sv_NetaddrToString(cl));
 					Sv_KickClient(cl, NULL);
 					return;
 				}

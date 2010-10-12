@@ -579,7 +579,7 @@ void MN_InsertMenu(menuNode_t* menu)
 	int i;
 
 	if (mn.numMenus + 1 > MAX_MENUS)
-		Sys_Error("MN_InsertMenu: hit MAX_MENUS\n");
+		Com_Error(ERR_FATAL, "MN_InsertMenu: hit MAX_MENUS\n");
 
 	/* search the insertion position */
 	for (pos = 0; pos < mn.numMenus; pos++) {

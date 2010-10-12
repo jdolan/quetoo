@@ -25,10 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#include <SDL_thread.h>
+
 #include "common.h"
+#include "cmd.h"
 #include "mem.h"
 #include "scripts.h"
-#include <SDL_thread.h>
 
 #define MEM_HEAD_SENTINEL_TOP	0xFEBDFAED
 #define MEM_HEAD_SENTINEL_BOT	0xD0BAF0FF
@@ -111,7 +113,7 @@ memPool_t *_Mem_CreatePool (const char *name, const char *fileName, const int fi
 
 	/* Check name */
 	if (!name || !name[0])
-		Sys_Error("Mem_CreatePool: NULL name %s:#%i", fileName, fileLine);
+		Com_Error(ERR_FATAL, "Mem_CreatePool: NULL name %s:#%i", fileName, fileLine);
 	if (strlen(name) + 1 >= MEM_MAX_POOLNAME)
 		Com_Printf("Mem_CreatePoole: name '%s' too long, truncating!\n", name);
 
@@ -127,7 +129,7 @@ memPool_t *_Mem_CreatePool (const char *name, const char *fileName, const int fi
 	}
 	if (i == m_numPools) {
 		if (m_numPools + 1 >= MEM_MAX_POOLCOUNT)
-			Sys_Error("Mem_CreatePool: MEM_MAX_POOLCOUNT");
+			Com_Error(ERR_FATAL, "Mem_CreatePool: MEM_MAX_POOLCOUNT");
 		pool = &m_poolList[m_numPools++];
 	}
 
@@ -187,19 +189,19 @@ uint32_t _Mem_Free (void *ptr, const char *fileName, const int fileLine)
 	/* Check sentinels */
 	mem = (memBlock_t *)((byte *)ptr - sizeof(memBlock_t));
 	if (mem->topSentinel != MEM_HEAD_SENTINEL_TOP) {
-		Sys_Error("Mem_Free: bad memory header top sentinel [buffer underflow]\n"
+		Com_Error(ERR_FATAL, "Mem_Free: bad memory header top sentinel [buffer underflow]\n"
 			"free: %s:#%i", fileName, fileLine);
 	} else if (mem->botSentinel != MEM_HEAD_SENTINEL_BOT) {
-		Sys_Error("Mem_Free: bad memory header bottom sentinel [buffer underflow]\n"
+		Com_Error(ERR_FATAL, "Mem_Free: bad memory header bottom sentinel [buffer underflow]\n"
 			"free: %s:#%i", fileName, fileLine);
 	} else if (!mem->footer) {
-		Sys_Error("Mem_Free: bad memory footer [buffer overflow]\n"
+		Com_Error(ERR_FATAL, "Mem_Free: bad memory footer [buffer overflow]\n"
 			"pool: %s\n"
 			"alloc: %s:#%i\n"
 			"free: %s:#%i",
 			mem->pool ? mem->pool->name : "UNKNOWN", mem->allocFile, mem->allocLine, fileName, fileLine);
 	} else if (mem->footer->sentinel != MEM_FOOT_SENTINEL) {
-		Sys_Error("Mem_Free: bad memory footer sentinel [buffer overflow]\n"
+		Com_Error(ERR_FATAL, "Mem_Free: bad memory footer sentinel [buffer overflow]\n"
 			"pool: %s\n"
 			"alloc: %s:#%i\n"
 			"free: %s:#%i",
@@ -346,10 +348,10 @@ void* _Mem_ReAlloc (void *ptr, size_t size, const char *fileName, const int file
 	memBlock_t **prev;
 
 	if (!size)
-		Sys_Error("Use Mem_Free instead");
+		Com_Error(ERR_FATAL, "Use Mem_Free instead");
 
 	if (!ptr)
-		Sys_Error("Use Mem_Alloc instead");
+		Com_Error(ERR_FATAL, "Use Mem_Alloc instead");
 
 	mem = (memBlock_t *)((byte *)ptr - sizeof(memBlock_t));
 	mem = realloc(mem, size);
@@ -519,19 +521,19 @@ void _Mem_CheckPoolIntegrity (struct memPool_s *pool, const char *fileName, cons
 		for (mem = pool->blocks[j]; mem; blocks++, mem = mem->next) {
 			size += mem->size;
 			if (mem->topSentinel != MEM_HEAD_SENTINEL_TOP) {
-				Sys_Error("Mem_CheckPoolIntegrity: bad memory head top sentinel [buffer underflow]\n"
+				Com_Error(ERR_FATAL, "Mem_CheckPoolIntegrity: bad memory head top sentinel [buffer underflow]\n"
 					"check: %s:#%i", fileName, fileLine);
 			} else if (mem->botSentinel != MEM_HEAD_SENTINEL_BOT) {
-				Sys_Error("Mem_CheckPoolIntegrity: bad memory head bottom sentinel [buffer underflow]\n"
+				Com_Error(ERR_FATAL, "Mem_CheckPoolIntegrity: bad memory head bottom sentinel [buffer underflow]\n"
 					"check: %s:#%i", fileName, fileLine);
 			} else if (!mem->footer) {
-				Sys_Error("Mem_CheckPoolIntegrity: bad memory footer [buffer overflow]\n"
+				Com_Error(ERR_FATAL, "Mem_CheckPoolIntegrity: bad memory footer [buffer overflow]\n"
 					"pool: %s\n"
 					"alloc: %s:#%i\n"
 					"check: %s:#%i",
 					mem->pool ? mem->pool->name : "UNKNOWN", mem->allocFile, mem->allocLine, fileName, fileLine);
 			} else if (mem->footer->sentinel != MEM_FOOT_SENTINEL) {
-				Sys_Error("Mem_CheckPoolIntegrity: bad memory foot sentinel [buffer overflow]\n"
+				Com_Error(ERR_FATAL, "Mem_CheckPoolIntegrity: bad memory foot sentinel [buffer overflow]\n"
 					"pool: %s\n"
 					"alloc: %s:#%i\n"
 					"check: %s:#%i",
@@ -542,9 +544,9 @@ void _Mem_CheckPoolIntegrity (struct memPool_s *pool, const char *fileName, cons
 
 	/* Check block/byte counts */
 	if (pool->blockCount != blocks)
-		Sys_Error("Mem_CheckPoolIntegrity: bad block count\n" "check: %s:#%i", fileName, fileLine);
+		Com_Error(ERR_FATAL, "Mem_CheckPoolIntegrity: bad block count\n" "check: %s:#%i", fileName, fileLine);
 	if (pool->byteCount != size)
-		Sys_Error("Mem_CheckPoolIntegrity: bad pool size\n" "check: %s:#%i", fileName, fileLine);
+		Com_Error(ERR_FATAL, "Mem_CheckPoolIntegrity: bad pool size\n" "check: %s:#%i", fileName, fileLine);
 }
 
 

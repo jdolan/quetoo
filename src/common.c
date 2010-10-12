@@ -19,39 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <setjmp.h>
-
 #include "common.h"
 
 #ifdef HAVE_SDL
 #include <SDL/SDL_thread.h>
 #endif
-
-
-int com_argc;
-char *com_argv[MAX_NUM_ARGVS + 1];
-
-jmp_buf env;  // graceful rollback for ERR_DROP and ERR_NONE
-
-static cvar_t *developer;
-static cvar_t *showtrace;
-cvar_t *timescale;
-cvar_t *timedemo;
-cvar_t *dedicated;
-
-static int server_state;
-
-// These functions need an implementation
-void Con_Init(void);
-void Con_Shutdown(void);
-void Con_Print(const char *text);
-
-
-/*
- *
- * CLIENT / SERVER interactions
- *
- */
 
 static int rd_target;
 static char *rd_buffer;
@@ -63,8 +35,10 @@ static void	(*rd_flush)(int target, char *buffer);
  * Com_BeginRedirect
  */
 void Com_BeginRedirect(int target, char *buffer, int buffersize, void(*flush)(int, char*)){
+
 	if(!target || !buffer || !buffersize || !flush)
 		return;
+
 	rd_target = target;
 	rd_buffer = buffer;
 	rd_buffersize = buffersize;
@@ -109,8 +83,10 @@ void Com_Printf(const char *fmt, ...){
 		return;
 	}
 
-	// Call console print function
-	Con_Print(msg);
+	if(quake2world.Print)
+		quake2world.Print((const char *)msg);
+	else
+		printf("%s", msg);
 }
 
 
@@ -123,7 +99,7 @@ void Com_Dprintf(const char *fmt, ...){
 	va_list	argptr;
 	char msg[MAX_PRINT_MSG];
 
-	if(!developer || !developer->value)
+	if(!Cvar_GetValue("developer"))
 		return;
 
 	va_start(argptr, fmt);
@@ -138,31 +114,22 @@ void Com_Dprintf(const char *fmt, ...){
 /*
  * Com_Error
  *
- * Both client and server can use this, and it will do the apropriate things.
+ * Both client and server can use this, and it will do the appropriate things.
  */
 void Com_Error(int code, const char *fmt, ...){
 	va_list	argptr;
-	static char msg[MAX_PRINT_MSG];
+	char msg[MAX_PRINT_MSG];
 
 	va_start(argptr, fmt);
 	vsnprintf(msg, sizeof(msg), fmt, argptr);
 	va_end(argptr);
 
-	switch(code){
-		case ERR_NONE:
-		case ERR_DROP:
-			Com_Printf("^1%s\n", msg);
+	Com_Printf("^1%s\n", msg);
 
-			Sv_Shutdown(msg, false);
-			Cl_Drop();
-
-			// roll back to last known good frame
-			longjmp(env, -1);
-
-			break;
-		default:  // we're at ERR_FATAL, game will exit
-			Sys_Error("%s", msg);
-	}
+	if(quake2world.Error)
+		quake2world.Error(code, (const char *)msg);
+	else
+		exit(1);
 }
 
 
@@ -182,24 +149,10 @@ void Com_Warn(const char *fmt, ...){
 
 
 /*
- * Com_Quit
- *
- * Both client and server can use this, and it will do the apropriate things.
- */
-void Com_Quit(void){
-
-	Sv_Shutdown("Server quit.\n", false);
-	Cl_Shutdown();
-
-	Sys_Quit();
-}
-
-
-/*
  * Com_ServerState
  */
 int Com_ServerState(void){
-	return server_state;
+	return quake2world.server_state;
 }
 
 
@@ -207,7 +160,7 @@ int Com_ServerState(void){
  * Com_SetServerState
  */
 void Com_SetServerState(int state){
-	server_state = state;
+	quake2world.server_state = state;
 }
 
 
@@ -220,7 +173,7 @@ void Com_SetServerState(int state){
 
 
 const vec3_t bytedirs[NUMVERTEXNORMALS] = {
-#include "anorms.h"
+	#include "anorms.h"
 };
 
 
@@ -880,7 +833,7 @@ void Sb_Print(sizebuf_t *buf, const char *data){
  * Com_Argc
  */
 int Com_Argc(void){
-	return com_argc;
+	return quake2world.argc;
 }
 
 
@@ -888,9 +841,9 @@ int Com_Argc(void){
  * Com_Argv
  */
 char *Com_Argv(int arg){
-	if(arg < 0 || arg >= com_argc || !com_argv[arg])
+	if(arg < 0 || arg >= Com_Argc() || !quake2world.argv[arg])
 		return "";
-	return com_argv[arg];
+	return quake2world.argv[arg];
 }
 
 
@@ -898,9 +851,9 @@ char *Com_Argv(int arg){
  * Com_ClearArgv
  */
 void Com_ClearArgv(int arg){
-	if(arg < 0 || arg >= com_argc || !com_argv[arg])
+	if(arg < 0 || arg >= quake2world.argc || !quake2world.argv[arg])
 		return;
-	com_argv[arg] = "";
+	quake2world.argv[arg] = "";
 }
 
 
@@ -912,20 +865,20 @@ void Com_InitArgv(int argc, char **argv){
 
 	if(argc > MAX_NUM_ARGVS)
 		Com_Warn("Com_InitArgv: argc > MAX_NUM_ARGVS.");
-	com_argc = argc;
+	quake2world.argc = argc;
 	for(i = 0; i < argc && i < MAX_NUM_ARGVS; i++){
 		if(!argv[i] || strlen(argv[i]) >= MAX_TOKEN_CHARS)
-			com_argv[i] = "";
+			quake2world.argv[i] = "";
 		else
-			com_argv[i] = argv[i];
+			quake2world.argv[i] = argv[i];
 	}
 }
 
 
 /*
- * CopyString
+ * Com_CopyString
  */
-char *CopyString(const char *in){
+char *Com_CopyString(const char *in){
 	char *out;
 
 	out = Z_Malloc(strlen(in) + 1);
@@ -935,9 +888,9 @@ char *CopyString(const char *in){
 
 
 /*
- * Info_Print
+ * Com_PrintInfo
  */
-void Info_Print(const char *s){
+void Com_PrintInfo(const char *s){
 	char key[512];
 	char value[512];
 	char *o;
@@ -1010,7 +963,13 @@ void Z_Init(void){
 #endif
 }
 
+/*
+ * Z_Shutdown
+ */
 void Z_Shutdown(void){
+
+	Z_FreeTags(-1);
+
 #ifdef HAVE_SDL
 	SDL_DestroyMutex(z_lock);
 #endif
@@ -1047,14 +1006,6 @@ void Z_Free(void *ptr){
 
 
 /*
- * Z_Stats_f
- */
-static void Z_Stats_f(void){
-	Com_Printf(Q2W_SIZE_T" bytes in "Q2W_SIZE_T" blocks\n", z_bytes, z_count);
-}
-
-
-/*
  * Z_FreeTags
  */
 void Z_FreeTags(int tag){
@@ -1062,7 +1013,7 @@ void Z_FreeTags(int tag){
 
 	for(z = z_chain.next; z != &z_chain; z = next){
 		next = z->next;
-		if(z->tag == tag)
+		if(-1 == tag || z->tag == tag)
 			Z_Free((void *)(z + 1));
 	}
 }
@@ -1110,110 +1061,4 @@ void *Z_TagMalloc(size_t size, int tag){
  */
 void *Z_Malloc(size_t size){
 	return Z_TagMalloc(size, 0);
-}
-
-
-/*
- * Com_Init
- */
-void Com_Init(int argc, char **argv){
-	char *s;
-
-	if(setjmp(env))
-		Sys_Error("Error during initialization.");
-
-	Z_Init();
-
-	// prepare enough of the subsystems to handle
-	// cvar and command buffer management
-	Com_InitArgv(argc, argv);
-
-	Swap_Init();
-
-	Cbuf_Init();
-
-	Cmd_Init();
-	Cvar_Init();
-
-	// we need to add the early commands twice, because
-	// a basedir needs to be set before execing config files,
-	// but we want other parms to override the settings of
-	// the config files
-	Cbuf_AddEarlyCommands(false);
-
-	Fs_InitFilesystem();
-
-	Cbuf_AddEarlyCommands(true);
-
-	// init commands and vars
-	Cmd_AddCommand("z_stats", Z_Stats_f, NULL);
-
-	developer = Cvar_Get("developer", "0", 0, NULL);
-	timedemo = Cvar_Get("timedemo", "0", 0, NULL);
-	timescale = Cvar_Get("timescale", "1.0", 0, NULL);
-	showtrace = Cvar_Get("showtrace", "0", 0, NULL);
-
-#ifndef BUILD_CLIENT
-	dedicated = Cvar_Get("dedicated", "1", CVAR_NOSET, NULL);
-#else
-	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET, NULL);
-#endif
-
-	// initialize console subsystem
-	Con_Init();
-
-	s = va("Quake2World %s %s %s", VERSION, __DATE__, BUILDHOST);
-	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET, NULL);
-
-	if(dedicated->value)
-		Cmd_AddCommand("quit", Com_Quit, NULL);
-
-	Net_Init();
-	Netchan_Init();
-
-	Sv_Init();
-	Cl_Init();
-
-	Com_Printf("Quake2World initialized.\n");
-
-	// add + commands from command line
-	Cbuf_AddLateCommands();
-
-	// dedicated server, nothing specified, use fractures.bsp
-	if(dedicated->value && !Com_ServerState()){
-		Cbuf_AddText("map fractures\n");
-		Cbuf_Execute();
-	}
-}
-
-
-/*
- * Com_Frame
- */
-void Com_Frame(int msec){
-	extern int c_traces, c_brush_traces;
-	extern int c_pointcontents;
-
-	if(setjmp(env))
-		return;  // an ERR_DROP or ERR_NONE was thrown
-
-	if(showtrace->value){
-		Com_Printf("%4i traces  %4i points\n", c_traces, c_pointcontents);
-		c_traces = c_brush_traces = c_pointcontents = 0;
-	}
-
-	Cbuf_Execute();
-
-	Sv_Frame(msec);
-
-	Cl_Frame(msec);
-}
-
-
-/*
- * Com_Shutdown
- */
-void Com_Shutdown(void){
-	// shutdown the console subsystem
-	Con_Shutdown();
 }

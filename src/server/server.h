@@ -19,8 +19,14 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include "cvar.h"
+#include "cmd.h"
 #include "common.h"
+#include "cmodel.h"
 #include "game/game.h"
+#include "net.h"
+#include "pmove.h"
+#include "sys.h"
 
 typedef enum {
 	ss_dead,   // no level loaded
@@ -59,16 +65,16 @@ typedef enum {
 	cs_free,   // can be used for a new connection
 	cs_connected,   // client is connecting, but has not yet spawned
 	cs_spawned  // client is spawned
-} client_state_t;
+} sv_client_state_t;
 
-typedef struct {
+typedef struct sv_frame_s {
 	int areabytes;
-	byte areabits[MAX_BSP_AREAS / 8];  // portalarea visibility bits
+	byte areabits[MAX_BSP_AREAS / 8];  // portal area visibility bits
 	player_state_t ps;
 	int num_entities;
 	int first_entity;  // into the circular sv_packet_entities[]
 	int senttime;  // for ping calculations
-} client_frame_t;
+} sv_frame_t;
 
 #define LATENCY_COUNTS 16
 #define RATE_MESSAGES 10
@@ -79,8 +85,8 @@ typedef struct {
 #define MSEC_ERROR_MAX "30"  // three sequential bad moves probably means cheater
 #define MSEC_ERROR_STEP 10  // increment for bad movements
 
-typedef struct client_s {
-	client_state_t state;
+typedef struct sv_client_s {
+	sv_client_state_t state;
 
 	char userinfo[MAX_INFO_STRING];  // name, etc
 
@@ -107,7 +113,7 @@ typedef struct client_s {
 	sizebuf_t datagram;
 	byte datagram_buf[MAX_MSGLEN];
 
-	client_frame_t frames[UPDATE_BACKUP];  // updates can be delta'd from here
+	sv_frame_t frames[UPDATE_BACKUP];  // updates can be delta'd from here
 
 	byte *download;  // file being downloaded
 	int downloadsize;  // total bytes (can't use EOF because of paks)
@@ -123,7 +129,7 @@ typedef struct client_s {
 	int extensions;  // bitmapped enhanced capabilities
 
 	netchan_t netchan;
-} client_t;
+} sv_client_t;
 
 // a client can leave the server in one of four ways:
 // dropping properly by quiting or disconnecting
@@ -140,13 +146,13 @@ typedef struct client_s {
 // out before legitimate users connected
 #define MAX_CHALLENGES	1024
 
-typedef struct {
-	netadr_t adr;
+typedef struct challenge_s {
+	netaddr_t addr;
 	int challenge;
 	int time;
 } challenge_t;
 
-typedef struct {
+typedef struct server_static_s {
 	qboolean initialized;  // sv_init has completed
 	int realtime;  // always increasing, no clamping, etc
 
@@ -154,7 +160,7 @@ typedef struct {
 
 	int packetrate;  // packets per second to clients
 
-	client_t *clients;  // [maxclients->value];
+	sv_client_t *clients;  // [maxclients->value];
 	int num_client_entities;  // maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES
 	int next_client_entities;  // next client_entity to use
 	entity_state_t *client_entities;  // [num_client_entities]
@@ -166,26 +172,38 @@ typedef struct {
 
 extern server_static_t svs;  // persistent server info
 
-extern netadr_t net_from;
+extern netaddr_t net_from;
 extern sizebuf_t net_message;
 
 #define MAX_MASTERS	8  // max recipients for heartbeat packets
-extern netadr_t master_adr[MAX_MASTERS];
+extern netaddr_t master_addr[MAX_MASTERS];
 
+// cvars
+extern cvar_t *sv_rcon_password;
+extern cvar_t *sv_downloadurl;
 extern cvar_t *sv_enforcetime;
 extern cvar_t *sv_extensions;
+extern cvar_t *sv_hostname;
 extern cvar_t *sv_maxclients;
+extern cvar_t *sv_maxrate;
 extern cvar_t *sv_packetrate;
+extern cvar_t *sv_public;
+extern cvar_t *sv_timeout;
+extern cvar_t *sv_udpdownload;
 
-extern client_t *sv_client;
+// current client / player edict
+extern sv_client_t *sv_client;
 extern edict_t *sv_player;
 
 // sv_main.c
-char *Sv_ClientAdrToString(client_t *cl);
-void Sv_KickClient(client_t *cl, const char *msg);
-void Sv_DropClient(client_t *cl);
+void Sv_Init(void);
+void Sv_Shutdown(const char *finalmsg, qboolean reconnect);
+void Sv_Frame(int msec);
+char *Sv_NetaddrToString(sv_client_t *cl);
+void Sv_KickClient(sv_client_t *cl, const char *msg);
+void Sv_DropClient(sv_client_t *cl);
 void Sv_HeartbeatMasters(void);
-void Sv_UserinfoChanged(client_t *cl);
+void Sv_UserinfoChanged(sv_client_t *cl);
 
 // sv_init.c
 int Sv_ModelIndex(const char *name);
@@ -208,20 +226,20 @@ void Sv_FlushRedirect(int sv_redirected, char *outputbuf);
 void Sv_SendClientMessages(void);
 void Sv_Multicast(vec3_t origin, multicast_t to);
 void Sv_PositionedSound(vec3_t origin, edict_t *entity, int soundindex, int atten);
-void Sv_ClientPrintf(client_t *cl, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void Sv_ClientPrintf(sv_client_t *cl, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Sv_Bprintf(int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Sv_BroadcastCommand(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Sv_ZlibClientDatagrab(client_t *client, sizebuf_t *msg);
+void Sv_ZlibClientDatagrab(sv_client_t *client, sizebuf_t *msg);
 
 // sv_user.c
-void Sv_ExecuteClientMessage(client_t *cl);
+void Sv_ExecuteClientMessage(sv_client_t *cl);
 
 // sv_ccmds.c
 void Sv_InitOperatorCommands(void);
 
 // sv_ents.c
-void Sv_WriteFrameToClient(client_t *client, sizebuf_t *msg);
-void Sv_BuildClientFrame(client_t *client);
+void Sv_WriteFrameToClient(sv_client_t *client, sizebuf_t *msg);
+void Sv_BuildClientFrame(sv_client_t *client);
 
 // sv_game.c
 extern game_export_t *ge;

@@ -21,6 +21,7 @@
 
 #include "client.h"
 #include "game/game.h"
+#include "pmove.h"
 
 /*
  * Cl_CheckPredictionError

@@ -149,7 +149,7 @@ void MN_GetNodeAbsPos (const menuNode_t* node, vec2_t pos)
 
 	/* if we request the position of an undrawable node, there is a problem */
 	if (node->behaviour->isVirtual)
-		Sys_Error("MN_NodeAbsoluteToRelativePos: Node '%s' doesn't have a position", node->name);
+		Com_Error(ERR_FATAL, "MN_NodeAbsoluteToRelativePos: Node '%s' doesn't have a position", node->name);
 
 	Vector2Set(pos, 0, 0);
 	while (node) {
@@ -191,7 +191,7 @@ void MN_NodeAbsoluteToRelativePos (const menuNode_t* node, int *x, int *y)
 
 	/* if we request the position of an undrawable node, there is a problem */
 	if (node->behaviour->isVirtual)
-		Sys_Error("MN_NodeAbsoluteToRelativePos: Node '%s' doesn't have a position", node->name);
+		Com_Error(ERR_FATAL, "MN_NodeAbsoluteToRelativePos: Node '%s' doesn't have a position", node->name);
 
 	while (node) {
 		*x -= node->pos[0];

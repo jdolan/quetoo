@@ -13,12 +13,15 @@ SUFFIXES = .rc
 noinst_HEADERS = \
 	anorms.h \
 	binds.h \
+	cmd.h \
 	common.h \
 	console.h \
+	cvar.h \
 	files.h \
 	hash.h \
 	images.h \
 	keys.h \
+	net.h \
 	pak.h \
 	shared.h \
 	sys.h \

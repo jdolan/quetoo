@@ -65,7 +65,7 @@
 #define FL_FLY					0x00000001
 #define FL_SWIM					0x00000002  // implied immunity to drowning
 #define FL_GODMODE				0x00000004
-#define FL_TEAMSLAVE				0x00000008  // not the first on the team
+#define FL_TEAMSLAVE			0x00000008  // not the first on the team
 #define FL_RESPAWN				0x80000000  // used for item.locals.wning
 
 // memory tags to allow dynamic memory to be cleaned up

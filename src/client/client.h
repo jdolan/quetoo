@@ -23,23 +23,26 @@
 #define __CLIENT_H__
 
 #include "common.h"
-#include "keys.h"
+#include "cmodel.h"
 #include "console.h"
+#include "keys.h"
+#include "net.h"
 #include "renderer/renderer.h"
 #include "sound/sound.h"
+#include "sys.h"
 
-typedef struct frame_s {
+typedef struct cl_frame_s {
 	qboolean valid;  // cleared if delta parsing was invalid
 	int serverframe;
 	int servertime;  // server time the message is valid for (in msec)
 	int deltaframe;
-	byte areabits[MAX_BSP_AREAS / 8];  // portalarea visibility bits
+	byte areabits[MAX_BSP_AREAS / 8];  // portal area visibility bits
 	player_state_t playerstate;
 	int num_entities;
 	int parse_entities;  // non-masked index into cl_parse_entities array
-} frame_t;
+} cl_frame_t;
 
-typedef struct centity_s {
+typedef struct cl_entity_s {
 	entity_state_t baseline;  // delta from this if not from a previous frame
 	entity_state_t current;
 	entity_state_t prev;  // will always be valid, but might just be a copy of current
@@ -52,7 +55,7 @@ typedef struct centity_s {
 	int anim_frame;
 
 	static_lighting_t lighting;  // cached static lighting info
-} centity_t;
+} cl_entity_t;
 
 #define MAX_CLIENTWEAPONMODELS 12
 
@@ -62,7 +65,7 @@ typedef struct clientinfo_s {
 	struct image_s *skin;
 	struct model_s *model;
 	struct model_s *weaponmodel[MAX_CLIENTWEAPONMODELS];
-} client_info_t;
+} clientinfo_t;
 
 extern char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
 extern int num_cl_weaponmodels;
@@ -89,8 +92,8 @@ typedef struct client_state_s {
 
 	qboolean underwater;  // updated by client sided prediction
 
-	frame_t frame;  // received from server
-	frame_t frames[UPDATE_BACKUP];  // for calculating delta compression
+	cl_frame_t frame;  // received from server
+	cl_frame_t frames[UPDATE_BACKUP];  // for calculating delta compression
 
 	int parse_entities;  // index (not anded off) into cl_parse_entities[]
 	int playernum;  // our entity number
@@ -125,8 +128,8 @@ typedef struct client_state_s {
 	s_sample_t *sound_precache[MAX_SOUNDS];
 	image_t *image_precache[MAX_IMAGES];
 
-	client_info_t clientinfo[MAX_CLIENTS];
-	client_info_t baseclientinfo;
+	clientinfo_t clientinfo[MAX_CLIENTS];
+	clientinfo_t baseclientinfo;
 } client_state_t;
 
 extern client_state_t cl;
@@ -188,7 +191,7 @@ typedef enum {
 } server_source_t;
 
 typedef struct server_info_s {
-	netadr_t adr;
+	netaddr_t addr;
 	server_source_t source;
 	int pingtime;
 	int ping;
@@ -262,6 +265,7 @@ extern cvar_t *cl_netgraph;
 extern cvar_t *cl_predict;
 extern cvar_t *cl_showmiss;
 extern cvar_t *cl_shownet;
+extern cvar_t *cl_teamchatsound;
 extern cvar_t *cl_thirdperson;
 extern cvar_t *cl_timeout;
 extern cvar_t *cl_viewsize;
@@ -294,7 +298,7 @@ void Cl_AddEmits(void);
 unsigned int Cl_ParseEntityBits(unsigned int *bits);
 void Cl_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bits);
 void Cl_ParseFrame(void);
-void Cl_AddEntities(frame_t *frame);
+void Cl_AddEntities(cl_frame_t *frame);
 
 // cl_tentity.c
 void Cl_LoadTempEntitySamples(void);
@@ -302,6 +306,9 @@ void Cl_ParseTempEntity(void);
 
 // cl_main.c
 void Cl_Init(void);
+void Cl_Frame(int msec);
+void Cl_Shutdown(void);
+void Cl_Drop(void);
 void Cl_SendDisconnect(void);
 void Cl_Disconnect(void);
 void Cl_Reconnect_f(void);
@@ -337,12 +344,12 @@ void Cl_ShutdownKeys(void);
 void Cl_ClearTyping(void);
 
 // cl_parse.c
-extern centity_t cl_entities[MAX_EDICTS];
+extern cl_entity_t cl_entities[MAX_EDICTS];
 
 #define MAX_PARSE_ENTITIES 16384
 extern entity_state_t cl_parse_entities[MAX_PARSE_ENTITIES];
 
-extern netadr_t net_from;
+extern netaddr_t net_from;
 extern sizebuf_t net_message;
 
 extern char *svc_strings[256];
@@ -352,7 +359,7 @@ void Cl_ParseConfigstring(void);
 void Cl_ParseClientinfo(int player);
 void Cl_ParseMuzzleFlash(void);
 void Cl_ParseServerMessage(void);
-void Cl_LoadClientinfo(client_info_t *ci, const char *s);
+void Cl_LoadClientinfo(clientinfo_t *ci, const char *s);
 void Cl_Download_f(void);
 
 // cl_view.c
@@ -370,7 +377,7 @@ void Cl_CheckPredictionError(void);
 // cl_effect.c
 void Cl_LightningEffect(const vec3_t org);
 void Cl_LightningTrail(const vec3_t start, const vec3_t end);
-void Cl_EnergyTrail(centity_t *ent, float radius, int color);
+void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color);
 void Cl_BFGEffect(const vec3_t org);
 void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density);
 void Cl_EntityEvent(entity_state_t *ent);
@@ -381,13 +388,13 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count);
 void Cl_GibEffect(const vec3_t org, int count);
 void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count);
 void Cl_RailTrail(const vec3_t start, const vec3_t end, int color);
-void Cl_SmokeTrail(const vec3_t start, const vec3_t end, centity_t *ent);
+void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent);
 void Cl_SmokeFlash(entity_state_t *ent);
-void Cl_FlameTrail(const vec3_t start, const vec3_t end, centity_t *ent);
-void Cl_SteamTrail(const vec3_t org, const vec3_t vel, centity_t *ent);
+void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent);
+void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent);
 void Cl_ExplosionEffect(const vec3_t org);
 void Cl_ItemRespawnEffect(const vec3_t org);
-void Cl_TeleporterTrail(const vec3_t org, centity_t *ent);
+void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *ent);
 void Cl_LogoutEffect(const vec3_t org);
 void Cl_LoadEffectSamples(void);
 void Cl_AddParticles(void);

@@ -185,7 +185,7 @@ static void Sv_InitGame(void){
 		Cvar_FullSet("sv_maxclients", va("%i", MAX_CLIENTS), CVAR_SERVERINFO | CVAR_LATCH);
 
 	svs.spawncount = rand();
-	svs.clients = Z_Malloc(sizeof(client_t) * sv_maxclients->value);
+	svs.clients = Z_Malloc(sizeof(sv_client_t) * sv_maxclients->value);
 	svs.num_client_entities = sv_maxclients->value * UPDATE_BACKUP * 64;
 	svs.client_entities = Z_Malloc(sizeof(entity_state_t) * svs.num_client_entities);
 	svs.last_heartbeat = -999999;
@@ -347,7 +347,8 @@ void Sv_Map(const char *level){
 	if(!exists)  // demo or map file didn't exist
 		return;
 
-	Cl_Drop();  // make sure local client drops
+	// TODO: delete next line if the game still works
+	//Cl_Drop();  // make sure local client drops
 	Cbuf_CopyToDefer();
 	Sv_SpawnServer(level, state);
 }

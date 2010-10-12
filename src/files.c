@@ -33,6 +33,8 @@
 
 #include "common.h"
 #include "pak.h"
+#include "sys.h"
+
 
 /*
  * Fs_Write
@@ -583,9 +585,9 @@ void Fs_GunzipFile(const char *path){
 
 
 /*
- * Fs_InitFilesystem
+ * Fs_Init
  */
-void Fs_InitFilesystem(void){
+void Fs_Init(void){
 	char bd[MAX_OSPATH];
 
 	fs_searchpaths = NULL;

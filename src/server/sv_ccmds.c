@@ -44,22 +44,22 @@ static void Sv_SetMaster_f(void){
 	Cvar_Set("public", "1");
 
 	for(i = 1; i < MAX_MASTERS; i++)
-		memset(&master_adr[i], 0, sizeof(master_adr[i]));
+		memset(&master_addr[i], 0, sizeof(master_addr[i]));
 
 	slot = 1;  // slot 0 will always contain the q2w master
 	for(i = 1; i < Cmd_Argc(); i++){
 		if(slot == MAX_MASTERS)
 			break;
 
-		if(!Net_StringToAdr(Cmd_Argv(i), &master_adr[i])){
+		if(!Net_StringToNetaddr(Cmd_Argv(i), &master_addr[i])){
 			Com_Printf("Bad address: %s\n", Cmd_Argv(i));
 			continue;
 		}
-		if(master_adr[slot].port == 0)
-			master_adr[slot].port = BigShort(PORT_MASTER);
+		if(master_addr[slot].port == 0)
+			master_addr[slot].port = BigShort(PORT_MASTER);
 
-		Com_Printf("Master server at %s\n", Net_AdrToString(master_adr[slot]));
-		Netchan_OutOfBandPrint(NS_SERVER, master_adr[slot], "ping");
+		Com_Printf("Master server at %s\n", Net_NetaddrToString(master_addr[slot]));
+		Netchan_OutOfBandPrint(NS_SERVER, master_addr[slot], "ping");
 
 		slot++;
 	}
@@ -82,7 +82,7 @@ static void Sv_Heartbeat_f(void){
  * Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
  */
 static qboolean Sv_SetPlayer(void){
-	client_t *cl;
+	sv_client_t *cl;
 	int i;
 	int idnum;
 	char *s;
@@ -189,7 +189,7 @@ static void Sv_Kick_f(void){
 static void Sv_Status_f(void){
 	int i, j, l;
 	extern int zlib_accum;
-	client_t *cl;
+	sv_client_t *cl;
 	char *s;
 	int ping;
 
@@ -222,7 +222,7 @@ static void Sv_Status_f(void){
 		Com_Printf("%7i ", svs.realtime - cl->lastmessage);
 		Com_Printf("%d   ", (int)cl->extensions);
 
-		s = Net_AdrToString(cl->netchan.remote_address);
+		s = Net_NetaddrToString(cl->netchan.remote_address);
 		Com_Printf("%s", s);
 		l = 22 - strlen(s);
 		for(j = 0; j < l; j++)
@@ -240,7 +240,7 @@ static void Sv_Status_f(void){
  * Sv_Say_f
  */
 static void Sv_Say_f(void){
-	client_t *client;
+	sv_client_t *client;
 	int j;
 	char *p;
 	char text[1024];
@@ -279,7 +279,7 @@ static void Sv_Serverinfo_f(void){
 	}
 
 	Com_Printf("Server info settings:\n");
-	Info_Print(Cvar_Serverinfo());
+	Com_PrintInfo(Cvar_Serverinfo());
 }
 
 
@@ -301,7 +301,7 @@ static void Sv_Userinfo_f(void){
 	if(!Sv_SetPlayer())
 		return;
 
-	Info_Print(sv_client->userinfo);
+	Com_PrintInfo(sv_client->userinfo);
 }
 
 
@@ -309,6 +309,7 @@ static void Sv_Userinfo_f(void){
  * Sv_InitOperatorCommands
  */
 void Sv_InitOperatorCommands(void){
+
 	Cmd_AddCommand("kick", Sv_Kick_f, "Kick a specific user");
 	Cmd_AddCommand("status", Sv_Status_f, "Print some server status information");
 	Cmd_AddCommand("serverinfo", Sv_Serverinfo_f, "Print server info settings");

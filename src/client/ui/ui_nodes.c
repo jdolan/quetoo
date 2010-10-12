@@ -267,7 +267,7 @@ menuNode_t* MN_AllocNode (const char* type)
 {
 	menuNode_t* node = &mn.menuNodes[mn.numNodes++];
 	if (mn.numNodes >= MAX_MENUNODES)
-		Sys_Error("MN_AllocNode: MAX_MENUNODES hit");
+		Com_Error(ERR_FATAL, "MN_AllocNode: MAX_MENUNODES hit");
 	memset(node, 0, sizeof(*node));
 	node->behaviour = MN_GetNodeBehaviour(type);
 	return node;
@@ -380,7 +380,7 @@ nodeBehaviour_t* MN_GetNodeBehaviour (const char* name)
 			min = mid + 1;
 	}
 
-	Sys_Error("Node behaviour '%s' doesn't exist", name);
+	Com_Error(ERR_FATAL, "Node behaviour '%s' doesn't exist", name);
 	/* return NULL; */
 }
 
@@ -506,9 +506,9 @@ void MN_InitNodes (void)
 		assert(b);
 		if (strcmp(a->name, b->name) >= 0) {
 #ifdef DEBUG
-			Sys_Error("MN_InitNodes: '%s' is before '%s'. Please order node behaviour registrations by name\n", a->name, b->name);
+			Com_Error(ERR_FATAL, "MN_InitNodes: '%s' is before '%s'. Please order node behaviour registrations by name\n", a->name, b->name);
 #else
-			Sys_Error("MN_InitNodes: Error: '%s' is before '%s'\n", a->name, b->name);
+			Com_Error(ERR_FATAL, "MN_InitNodes: Error: '%s' is before '%s'\n", a->name, b->name);
 #endif
 		}
 		current++;

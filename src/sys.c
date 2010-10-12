@@ -22,19 +22,17 @@
 #include "sys.h"
 
 
-int curtime;
-
 /*
  * Sys_Milliseconds
  */
 int Sys_Milliseconds(void){
-	static int base;
+	static int base, time;
 
 #ifdef _WIN32
 	if(!base)
 		base = timeGetTime() & 0xffff0000;
 
-	curtime = timeGetTime() - base;
+	time = timeGetTime() - base;
 #else
 	struct timeval tp;
 
@@ -43,10 +41,10 @@ int Sys_Milliseconds(void){
 	if(!base)
 		base = tp.tv_sec;
 
-	curtime = (tp.tv_sec - base) * 1000 + tp.tv_usec / 1000;
+	time = (tp.tv_sec - base) * 1000 + tp.tv_usec / 1000;
 #endif
 
-	return curtime;
+	return time;
 }
 
 
@@ -243,12 +241,6 @@ void Sys_UnloadGame(void){
  * The final exit point of the program under normal exit conditions.
  */
 void Sys_Quit(void){
-
-	Sv_Shutdown(NULL, false);
-	Cl_Shutdown();
-
-	Com_Shutdown();
-
 	exit(0);
 }
 
@@ -277,11 +269,6 @@ void Sys_Error(const char *error, ...){
 	char string[MAX_STRING_CHARS];
 
 	Sys_Backtrace();
-
-	Sv_Shutdown(error, false);
-	Cl_Shutdown();
-
-	Com_Shutdown();
 
 	va_start(argptr, error);
 	vsnprintf(string, sizeof(string), error, argptr);

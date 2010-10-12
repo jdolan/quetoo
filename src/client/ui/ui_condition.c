@@ -162,7 +162,7 @@ qboolean MN_CheckCondition (const menuNode_t *source, menuCondition_t *condition
 		}
 	}
 
-	Sys_Error("Unknown condition for if statement: %i", condition->type.opCode);
+	Com_Error(ERR_FATAL, "Unknown condition for if statement: %i", condition->type.opCode);
 }
 
 /**
@@ -170,7 +170,7 @@ qboolean MN_CheckCondition (const menuNode_t *source, menuCondition_t *condition
  * @param[in] conditionString The string from scriptfiles (see if_strings)
  * @return menuIfCondition_t value
  * @return enum value for condition string
- * @note Produces a Sys_Error if conditionString was not found in if_strings array
+ * @note Produces a Com_Error if conditionString was not found in if_strings array
  */
 static int MN_GetOperatorByName (const char* operatorName)
 {
@@ -280,7 +280,7 @@ menuCondition_t *MN_AllocCondition (const char *description)
 	qboolean result;
 
 	if (mn.numConditions >= MAX_MENUCONDITIONS)
-		Sys_Error("MN_AllocCondition: Too many menu conditions");
+		Com_Error(ERR_FATAL, "MN_AllocCondition: Too many menu conditions");
 
 	result = MN_InitCondition(&condition, description);
 	if (!result)

@@ -569,7 +569,7 @@ static void Cl_DrawCounters(void){
 
 	frames_this_second++;
 
-	if(curtime - millis >= 1000){
+	if(quake2world.time - millis >= 1000){
 
 		VectorCopy(r_view.velocity, velocity);
 		velocity[2] = 0.0;
@@ -579,7 +579,7 @@ static void Cl_DrawCounters(void){
 		snprintf(pps, sizeof(pps), "%4dpps", packets_this_second);
 		snprintf(bps, sizeof(bps), "%4dbps", bytes_this_second);
 
-		millis = curtime;
+		millis = quake2world.time;
 
 		frames_this_second = 0;
 		packets_this_second = 0;
@@ -673,7 +673,6 @@ static void Cl_DrawMenus(void){
  * Cl_DrawCursor
  */
 static void Cl_DrawCursor(void){
-	extern image_t *draw_cursor;
 
 	if(cls.key_dest != key_menu && cls.mouse_state.grabbed)
 		return;

@@ -25,10 +25,6 @@
 static z_stream z;
 static byte zbuf[MAX_MSGLEN];
 
-extern cvar_t *cl_chatsound;
-extern cvar_t *cl_teamchatsound;
-extern cvar_t *cl_ignore;
-
 char *svc_strings[256] = {
 	"svc_bad",
 	"svc_nop",
@@ -299,7 +295,7 @@ static void Cl_ParseBaseline(void){
  * Cl_LoadClientinfo
  *
  */
-void Cl_LoadClientinfo(client_info_t *ci, const char *s){
+void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
 	int i;
 	const char *t;
 	char *u, *v;
@@ -388,7 +384,7 @@ void Cl_LoadClientinfo(client_info_t *ci, const char *s){
  */
 void Cl_ParseClientinfo(int player){
 	const char *s;
-	client_info_t *ci;
+	clientinfo_t *ci;
 
 	s = cl.configstrings[player + CS_PLAYERSKINS];
 

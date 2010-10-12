@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "common.h"
+#include "cvar.h"
 #include "hash.h"
 
 #define MAX_ALIAS_NAME 32
@@ -361,7 +361,7 @@ static void Cmd_Alias_f(void){
 	}
 	strcat(cmd, "\n");
 
-	a->value = CopyString(cmd);
+	a->value = Com_CopyString(cmd);
 }
 
 /*
@@ -679,7 +679,7 @@ void Cmd_ExecuteString(const char *text){
 			cmd_userdata = cmd->userdata;
 			cmd->function();
 		}
-		else if(!dedicated->value)
+		else if(!Cvar_GetValue("dedicated") && Cmd_ForwardToServer)
 			Cmd_ForwardToServer();
 		return;
 	}
@@ -701,7 +701,7 @@ void Cmd_ExecuteString(const char *text){
 		return;
 
 	// send it as a server command if we are connected
-	if (!dedicated->value)
+	if (!Cvar_GetValue("dedicated") && Cmd_ForwardToServer)
 		Cmd_ForwardToServer();
 }
 
@@ -722,6 +722,7 @@ static void Cmd_List_f(void){
 	Com_Printf("%i commands\n", i);
 }
 
+
 /*
  * Cmd_Init
  */
@@ -735,3 +736,9 @@ void Cmd_Init(void){
 	Cmd_AddCommand("alias", Cmd_Alias_f, NULL);
 	Cmd_AddCommand("wait", Cmd_Wait_f, NULL);
 }
+
+
+/*
+ * An optional function pointer the client will implement; the server will not.
+ */
+void (*Cmd_ForwardToServer)(void) = NULL;

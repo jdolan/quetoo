@@ -32,7 +32,6 @@ cvar_t *cl_async;
 cvar_t *cl_blend;
 cvar_t *cl_bob;
 cvar_t *cl_chatsound;
-cvar_t *cl_teamchatsound;
 cvar_t *cl_counters;
 cvar_t *cl_crosshair;
 cvar_t *cl_crosshaircolor;
@@ -48,6 +47,7 @@ cvar_t *cl_netgraph;
 cvar_t *cl_predict;
 cvar_t *cl_showmiss;
 cvar_t *cl_shownet;
+cvar_t *cl_teamchatsound;
 cvar_t *cl_thirdperson;
 cvar_t *cl_timeout;
 cvar_t *cl_viewsize;
@@ -70,7 +70,7 @@ cvar_t *recording;
 client_static_t cls;
 client_state_t cl;
 
-centity_t cl_entities[MAX_EDICTS];
+cl_entity_t cl_entities[MAX_EDICTS];
 
 entity_state_t cl_parse_entities[MAX_PARSE_ENTITIES];
 
@@ -320,13 +320,11 @@ static char *Cl_ExpandVariables(const char *text){
 
 
 /*
- * Cmd_ForwardToServer
+ * CL_ForwardCmdToServer
  *
- * Adds the current command line as a clc_stringcmd to the client message.
- * things like godmode, noclip, etc, are commands directed to the server,
- * so when they are typed in at the console, they will need to be forwarded.
+ * Client implementation of Cmd_ForwardToServer.
  */
-void Cmd_ForwardToServer(void){
+static void Cl_ForwardCmdToServer(void){
 	const char *cmd, *args;
 
 	if(cls.state <= ca_disconnected){
@@ -359,15 +357,6 @@ void Cmd_ForwardToServer(void){
 
 
 /*
- * Cl_Quit_f
- */
-static void Cl_Quit_f(void){
-	Cl_Disconnect();
-	Com_Quit();
-}
-
-
-/*
  * Cl_Drop
  *
  * Called after an ERR_DROP or ERR_NONE was thrown
@@ -392,23 +381,23 @@ void Cl_Drop(void){
  * We have gotten a challenge from the server, so try and connect.
  */
 static void Cl_SendConnect(void){
-	netadr_t adr;
+	netaddr_t addr;
 	int qport;
 
-	memset(&adr, 0, sizeof(adr));
+	memset(&addr, 0, sizeof(addr));
 
-	if(!Net_StringToAdr(cls.servername, &adr)){
+	if(!Net_StringToNetaddr(cls.servername, &addr)){
 		Com_Printf("Bad server address\n");
 		cls.connect_time = 0;
 		return;
 	}
 
-	if(adr.port == 0)  // use default port
-		adr.port = BigShort(PORT_SERVER);
+	if(addr.port == 0)  // use default port
+		addr.port = BigShort(PORT_SERVER);
 
 	qport = (int)Cvar_GetValue("net_qport");  // has been set by netchan
 
-	Netchan_OutOfBandPrint(NS_CLIENT, adr, "connect %i %i %i \"%s\"\n",
+	Netchan_OutOfBandPrint(NS_CLIENT, addr, "connect %i %i %i \"%s\"\n",
 			PROTOCOL, qport, cls.challenge, Cvar_Userinfo());
 
 	userinfo_modified = false;
@@ -422,7 +411,7 @@ extern cvar_t *sv_maxclients;
  * Resend a connect message if the last one has timed out
  */
 static void Cl_CheckForResend(void){
-	netadr_t adr;
+	netaddr_t addr;
 
 	// if the local server is running and we aren't then connect
 	if(cls.state == ca_disconnected && Com_ServerState()){
@@ -443,7 +432,7 @@ static void Cl_CheckForResend(void){
 	if(cls.realtime - cls.connect_time < 3000)
 		return;
 
-	if(!Net_StringToAdr(cls.servername, &adr)){
+	if(!Net_StringToNetaddr(cls.servername, &addr)){
 		Com_Printf("Bad server address\n");
 		cls.state = ca_disconnected;
 		return;
@@ -456,14 +445,14 @@ static void Cl_CheckForResend(void){
 	else
 		Cvar_LockCheatVars(true);
 
-	if(adr.port == 0)
-		adr.port = BigShort(PORT_SERVER);
+	if(addr.port == 0)
+		addr.port = BigShort(PORT_SERVER);
 
 	cls.connect_time = cls.realtime;  // for retransmit requests
 
 	Com_Printf("Connecting to %s...\n", cls.servername);
 
-	Netchan_OutOfBandPrint(NS_CLIENT, adr, "getchallenge\n");
+	Netchan_OutOfBandPrint(NS_CLIENT, addr, "getchallenge\n");
 }
 
 
@@ -471,6 +460,7 @@ static void Cl_CheckForResend(void){
  * Cl_Connect_f
  */
 static void Cl_Connect_f(void){
+	extern void Sv_Shutdown(const char *msg, qboolean reconnect);
 	const char *s;
 
 	if(Cmd_Argc() != 2){
@@ -491,7 +481,7 @@ static void Cl_Connect_f(void){
 			return;
 		}
 
-		strncpy(cls.servername, Net_AdrToString(server->adr),
+		strncpy(cls.servername, Net_NetaddrToString(server->addr),
 				sizeof(cls.servername) - 1);
 	}
 	else
@@ -512,7 +502,7 @@ static void Cl_Connect_f(void){
 static void Cl_Rcon_f(void){
 	char message[1024];
 	int i;
-	netadr_t to;
+	netaddr_t to;
 
 	if(!rcon_password->string){
 		Com_Printf("No rcon_password set.\n");
@@ -543,7 +533,7 @@ static void Cl_Rcon_f(void){
 			Com_Printf("Not connected and no rcon_address set.\n");
 			return;
 		}
-		Net_StringToAdr(rcon_address->string, &to);
+		Net_StringToNetaddr(rcon_address->string, &to);
 		if(to.port == 0)
 			to.port = BigShort(PORT_SERVER);
 	}
@@ -694,7 +684,7 @@ static void Cl_ConnectionlessPacket(void){
 
 	c = Cmd_Argv(0);
 
-	Com_Dprintf("%s: %s\n", Net_AdrToString(net_from), c);
+	Com_Dprintf("%s: %s\n", Net_NetaddrToString(net_from), c);
 
 	// server connection
 	if(!strcmp(c, "client_connect")){
@@ -775,14 +765,14 @@ static void Cl_ReadPackets(void){
 			continue;  // dump it if not connected
 
 		if(net_message.cursize < 8){
-			Com_Dprintf("%s: Runt packet.\n", Net_AdrToString(net_from));
+			Com_Dprintf("%s: Runt packet.\n", Net_NetaddrToString(net_from));
 			continue;
 		}
 
 		// packet from server
-		if(!Net_CompareAdr(net_from, cls.netchan.remote_address)){
+		if(!Net_CompareNetaddr(net_from, cls.netchan.remote_address)){
 			Com_Dprintf("%s: Sequenced packet without connection.\n",
-					Net_AdrToString(net_from));
+					Net_NetaddrToString(net_from));
 			continue;
 		}
 
@@ -794,7 +784,7 @@ static void Cl_ReadPackets(void){
 
 	// check timeout
 	if(cls.state >= ca_connected && cls.realtime - cls.netchan.last_received > cl_timeout->value * 1000){
-		Com_Printf("%s: Timed out.\n", Net_AdrToString(net_from));
+		Com_Printf("%s: Timed out.\n", Net_NetaddrToString(net_from));
 		Cl_Disconnect();
 	}
 }
@@ -911,7 +901,7 @@ static void Cl_InitMenuFonts(const char *filename){
 
 	// load the file header
 	if(Fs_LoadFile(filename, (void **)(char *)&buffer) == -1)
-		Sys_Error("Failed to open %s\n", filename);
+		Com_Error(ERR_FATAL, "Failed to open %s\n", filename);
 
 	buf = buffer;
 
@@ -939,13 +929,13 @@ static void Cl_InitMenu(const char *filename){
 
 	// load the file header
 	if(Fs_LoadFile(filename, (void **)(char *)&buffer) == -1)
-		Sys_Error("Failed to open %s\n", filename);
+		Com_Error(ERR_FATAL, "Failed to open %s\n", filename);
 
 	buf = buffer;
 
 	token = Com_Parse(&buf);
 	if (strcmp(token, "window"))
-		Sys_Error("Failed to parse %s\n", filename);
+		Com_Error(ERR_FATAL, "Failed to parse %s\n", filename);
 
 	token = Com_Parse(&buf);
 	MN_ParseMenu("window", token, &buf);
@@ -987,7 +977,6 @@ static void Cl_InitLocal(void){
 	cl_blend = Cvar_Get("cl_blend", "1", CVAR_ARCHIVE, NULL);
 	cl_bob = Cvar_Get("cl_bob", "1", CVAR_ARCHIVE, NULL);
 	cl_chatsound = Cvar_Get("cl_chatsound", "misc/chat", 0, NULL);
-	cl_teamchatsound = Cvar_Get("cl_teamchatsound", "misc/teamchat", 0, NULL);
 	cl_counters = Cvar_Get("cl_counters", "1", CVAR_ARCHIVE, NULL);
 	cl_crosshair = Cvar_Get("cl_crosshair", "1", CVAR_ARCHIVE, NULL);
 	cl_crosshaircolor = Cvar_Get("cl_crosshaircolor", "default", CVAR_ARCHIVE, NULL);
@@ -1003,6 +992,7 @@ static void Cl_InitLocal(void){
 	cl_predict = Cvar_Get("cl_predict", "1", 0, NULL);
 	cl_showmiss = Cvar_Get("cl_showmiss", "0", 0, NULL);
 	cl_shownet = Cvar_Get("cl_shownet", "0", 0, NULL);
+	cl_teamchatsound = Cvar_Get("cl_teamchatsound", "misc/teamchat", 0, NULL);
 	cl_thirdperson = Cvar_Get("cl_thirdperson", "0", CVAR_ARCHIVE,
 			"Toggles the third person camera.");
 	cl_timeout = Cvar_Get("cl_timeout", "15.0", 0, NULL);
@@ -1027,7 +1017,6 @@ static void Cl_InitLocal(void){
 	Cmd_AddCommand("servers", Cl_Servers_f, NULL);
 	Cmd_AddCommand("record", Cl_Record_f, NULL);
 	Cmd_AddCommand("stop", Cl_Stop_f, NULL);
-	Cmd_AddCommand("quit", Cl_Quit_f, NULL);
 	Cmd_AddCommand("connect", Cl_Connect_f, NULL);
 	Cmd_AddCommand("reconnect", Cl_Reconnect_f, NULL);
 	Cmd_AddCommand("disconnect", Cl_Disconnect_f, NULL);
@@ -1061,6 +1050,8 @@ static void Cl_InitLocal(void){
 	Cmd_AddCommand("playerlist", NULL, NULL);
 	Cmd_AddCommand("configstrings", NULL, NULL);
 	Cmd_AddCommand("baselines", NULL, NULL);
+
+	Cmd_ForwardToServer = Cl_ForwardCmdToServer;
 
 	Cl_InitMenus();
 }
@@ -1122,23 +1113,23 @@ void Cl_Frame(int msec){
 		cl_maxpps->modified = false;
 	}
 
-	if(timedemo->value){  // accumulate timedemo statistics
+	if(timedemo->value){  // accumulate timed demo statistics
 
 		if(!cl.timedemo_start)
 			cl.timedemo_start = cls.realtime;
 
 		cl.timedemo_frames++;
 	}
-	else {  // check framerate cap conditions
+	else {  // check frame rate cap conditions
 
-		if(cl_maxfps->value > 0.0){  // cap render framerate
+		if(cl_maxfps->value > 0.0){  // cap render frame rate
 			ms = 1000.0 * timescale->value / cl_maxfps->value;
 
 			if(cls.render_delta < ms)
 				render_frame = false;
 		}
 
-		if(cl_maxpps->value > 0.0){  // cap net framerate
+		if(cl_maxpps->value > 0.0){  // cap net frame rate
 			ms = 1000.0 * timescale->value / cl_maxpps->value;
 
 			if(cls.packet_delta < ms)
@@ -1160,7 +1151,7 @@ void Cl_Frame(int msec){
 	}
 
 	cl.time += msec;  // update time references
-	cls.realtime = curtime;
+	cls.realtime = quake2world.time;
 
 	if(render_frame){
 		// fetch updates from server
@@ -1214,7 +1205,7 @@ void Cl_Init(void){
 	memset(&cls, 0, sizeof(cls));
 
 	cls.state = ca_disconnected;
-	cls.realtime = curtime;
+	cls.realtime = quake2world.time;
 
 	Cl_InitKeys();
 
@@ -1262,6 +1253,8 @@ void Cl_Shutdown(void){
 	}
 
 	isdown = true;
+
+	Cl_Disconnect();
 
 	MN_Shutdown();
 

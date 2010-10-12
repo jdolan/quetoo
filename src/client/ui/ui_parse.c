@@ -98,7 +98,7 @@ float* MN_AllocFloat (int count)
 	result = (float*) mn.curadata;
 	mn.curadata += sizeof(float) * count;
 	if (mn.curadata - mn.adata > mn.adataize)
-		Sys_Error("MN_AllocFloat: Menu memory hunk exceeded - increase the size");
+		Com_Error(ERR_FATAL, "MN_AllocFloat: Menu memory hunk exceeded - increase the size");
 	return result;
 }
 
@@ -116,7 +116,7 @@ static void** MN_AllocPointer (int count)
 	result = (void**) mn.curadata;
 	mn.curadata += sizeof(void*) * count;
 	if (mn.curadata - mn.adata > mn.adataize)
-		Sys_Error("MN_AllocPointer: Menu memory hunk exceeded - increase the size");
+		Com_Error(ERR_FATAL, "MN_AllocPointer: Menu memory hunk exceeded - increase the size");
 	return result;
 }
 
@@ -134,7 +134,7 @@ vec4_t* MN_AllocColor (int count)
 	result = (vec4_t*) mn.curadata;
 	mn.curadata += sizeof(vec_t) * 4 * count;
 	if (mn.curadata - mn.adata > mn.adataize)
-		Sys_Error("MN_AllocColor: Menu memory hunk exceeded - increase the size");
+		Com_Error(ERR_FATAL, "MN_AllocColor: Menu memory hunk exceeded - increase the size");
 	return result;
 }
 
@@ -151,12 +151,12 @@ char* MN_AllocString (const char* string, int size)
 	mn.curadata = ALIGN_PTR(mn.curadata, sizeof(char));
 	if (size != 0) {
 		if (mn.curadata - mn.adata + size > mn.adataize)
-			Sys_Error("MN_AllocString: Menu memory hunk exceeded - increase the size");
+			Com_Error(ERR_FATAL, "MN_AllocString: Menu memory hunk exceeded - increase the size");
 		strncpy((char *)mn.curadata, string, size);
 		mn.curadata += size;
 	} else {
 		if (mn.curadata - mn.adata + strlen(string) + 1 > mn.adataize)
-			Sys_Error("MN_AllocString: Menu memory hunk exceeded - increase the size");
+			Com_Error(ERR_FATAL, "MN_AllocString: Menu memory hunk exceeded - increase the size");
 		mn.curadata += sprintf((char *)mn.curadata, "%s", string) + 1;
 	}
 	return result;
@@ -335,7 +335,7 @@ static menuAction_t *MN_ParseActionList (menuNode_t *menuNode, const char **text
 		/** @todo better to append the action after initialization */
 		/* add the action */
 		if (mn.numActions >= MAX_MENUACTIONS)
-			Sys_Error("MN_ParseActionList: MAX_MENUACTIONS exceeded (%i)\n", mn.numActions);
+			Com_Error(ERR_FATAL, "MN_ParseActionList: MAX_MENUACTIONS exceeded (%i)\n", mn.numActions);
 		action = &mn.menuActions[mn.numActions++];
 		memset(action, 0, sizeof(*action));
 		if (lastAction) {
@@ -703,7 +703,7 @@ static qboolean MN_ParseFunction (menuNode_t * node, const char **text, const ch
 	for (; *action; action = &(*action)->next) {}
 
 	if (mn.numActions >= MAX_MENUACTIONS)
-		Sys_Error("MN_ParseFunction: MAX_MENUACTIONS exceeded (%i)", mn.numActions);
+		Com_Error(ERR_FATAL, "MN_ParseFunction: MAX_MENUACTIONS exceeded (%i)", mn.numActions);
 	*action = &mn.menuActions[mn.numActions++];
 	memset(*action, 0, sizeof(**action));
 
@@ -994,7 +994,7 @@ void MN_ParseMenu (const char *type, const char *name, const char **text)
 	int i;
 
 	if (strcmp(type, "window") != 0) {
-		Sys_Error("MN_ParseMenu: '%s %s' is not a window node\n", type, name);
+		Com_Error(ERR_FATAL, "MN_ParseMenu: '%s %s' is not a window node\n", type, name);
 		return;	/* never reached */
 	}
 
@@ -1013,7 +1013,7 @@ void MN_ParseMenu (const char *type, const char *name, const char **text)
 	}
 
 	if (mn.numMenus >= MAX_MENUS) {
-		Sys_Error("MN_ParseMenu: max menus exceeded (%i) - ignore '%s'\n", MAX_MENUS, name);
+		Com_Error(ERR_FATAL, "MN_ParseMenu: max menus exceeded (%i) - ignore '%s'\n", MAX_MENUS, name);
 		return;	/* never reached */
 	}
 
@@ -1038,7 +1038,7 @@ void MN_ParseMenu (const char *type, const char *name, const char **text)
 		Com_DPrintf(DEBUG_CLIENT, "MN_ParseMenus: %s \"%s\" inheriting node \"%s\"\n", type, name, token);
 		superMenu = MN_GetMenu(token);
 		if (!superMenu)
-			Sys_Error("MN_ParseMenu: %s '%s' can't inherit from node '%s' - because '%s' was not found\n", type, name, token, token);
+			Com_Error(ERR_FATAL, "MN_ParseMenu: %s '%s' can't inherit from node '%s' - because '%s' was not found\n", type, name, token, token);
 		*menu = *superMenu;
 		menu->super = superMenu;
 		menu->root = menu;
@@ -1051,7 +1051,7 @@ void MN_ParseMenu (const char *type, const char *name, const char **text)
 		/* clone all super menu's nodes */
 		for (node = superMenu->firstChild; node; node = node->next) {
 			if (mn.numNodes >= MAX_MENUNODES)
-				Sys_Error("MAX_MENUNODES exceeded\n");
+				Com_Error(ERR_FATAL, "MAX_MENUNODES exceeded\n");
 
 			newNode = MN_CloneNode(node, menu, qtrue);
 			newNode->super = node;
@@ -1071,7 +1071,7 @@ void MN_ParseMenu (const char *type, const char *name, const char **text)
 	/* parse it's body */
 	result = MN_ParseNodeBody(menu, text, &token, errhead);
 	if (!result) {
-		Sys_Error("MN_ParseMenu: menu \"%s\" has a bad body\n", menu->name);
+		Com_Error(ERR_FATAL, "MN_ParseMenu: menu \"%s\" has a bad body\n", menu->name);
 		return;	/* never reached */
 	}
 

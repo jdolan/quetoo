@@ -52,7 +52,7 @@ void Sv_FlushRedirect(int sv_redirected, char *outputbuf){
  *
  * Sends text across to be displayed if the level passes
  */
-void Sv_ClientPrintf(client_t *cl, int level, const char *fmt, ...){
+void Sv_ClientPrintf(sv_client_t *cl, int level, const char *fmt, ...){
 	va_list	argptr;
 	char string[MAX_STRING_CHARS];
 
@@ -77,7 +77,7 @@ void Sv_ClientPrintf(client_t *cl, int level, const char *fmt, ...){
 void Sv_Bprintf(int level, const char *fmt, ...){
 	va_list	argptr;
 	char string[MAX_STRING_CHARS];
-	client_t *cl;
+	sv_client_t *cl;
 	int i;
 
 	va_start(argptr, fmt);
@@ -140,7 +140,7 @@ void Sv_BroadcastCommand(const char *fmt, ...){
  * MULTICAST_PHS	send to clients potentially hearable from org
  */
 void Sv_Multicast(vec3_t origin, multicast_t to){
-	client_t *client;
+	sv_client_t *client;
 	byte *mask;
 	int leafnum, cluster;
 	int j;
@@ -298,7 +298,7 @@ static byte zbuf[MAX_MSGLEN];
  * Deflates msg for clients supporting svc_zlib, and rewrites it if
  * the compression resulted in a smaller packet.
  */
-static void Sv_ZlibClientDatagram(client_t *client, sizebuf_t *msg){
+static void Sv_ZlibClientDatagram(sv_client_t *client, sizebuf_t *msg){
 	int len;
 
 	if(!((int)sv_extensions->value & QUAKE2WORLD_ZLIB))  // some servers may elect not to use this
@@ -343,7 +343,7 @@ static void Sv_ZlibClientDatagram(client_t *client, sizebuf_t *msg){
 /*
  * Sv_SendClientDatagram
  */
-static qboolean Sv_SendClientDatagram(client_t *client){
+static qboolean Sv_SendClientDatagram(sv_client_t *client){
 	byte msg_buf[MAX_MSGLEN];
 	sizebuf_t msg;
 
@@ -403,12 +403,12 @@ static void Sv_DemoCompleted(void){
  * Returns true if the client is over its current
  * bandwidth estimation and should not be sent another packet
  */
-static qboolean Sv_RateDrop(client_t *c){
+static qboolean Sv_RateDrop(sv_client_t *c){
 	int total;
 	int i;
 
 	// never drop over the loopback
-	if(c->netchan.remote_address.type == NA_LOOPBACK)
+	if(c->netchan.remote_address.type == NA_LOCAL)
 		return false;
 
 	total = 0;
@@ -432,7 +432,7 @@ static qboolean Sv_RateDrop(client_t *c){
  */
 void Sv_SendClientMessages(void){
 	int i;
-	client_t *c;
+	sv_client_t *c;
 	int msglen;
 	byte msgbuf[MAX_MSGLEN];
 	int r;
@@ -487,7 +487,8 @@ void Sv_SendClientMessages(void){
 				continue;
 			Sv_SendClientDatagram(c);
 		} else {  // just update reliable if needed
-			if(c->netchan.message.cursize || curtime - c->netchan.last_sent > 1000)
+			if(c->netchan.message.cursize ||
+					quake2world.time - c->netchan.last_sent > 1000)
 				Netchan_Transmit(&c->netchan, 0, NULL);
 		}
 	}

@@ -22,6 +22,8 @@
 #ifndef __FILES_H__
 #define __FILES_H__
 
+#include "shared.h"
+
 /*
 
 .MD2 triangle model file format

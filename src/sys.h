@@ -48,7 +48,6 @@
 
 #ifndef __SYS_H__
 
-extern int curtime;
 int Sys_Milliseconds(void);
 
 const char *Sys_GetCurrentUser(void);
@@ -66,7 +65,7 @@ void Sys_UnloadGame(void);
 
 void Sys_Quit(void);
 void Sys_Backtrace(void);
-void Sys_Error(const char *error, ...);
+void Sys_Error(const char *error, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void Sys_Signal(int s);
 
 #endif /* __SYS_H__ */

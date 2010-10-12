@@ -79,7 +79,7 @@ void Cl_LoadEffectSamples(void){
  */
 void Cl_ParseMuzzleFlash(void){
 	int i, weapon;
-	centity_t *cent;
+	cl_entity_t *cent;
 
 	i = Msg_ReadShort(&net_message);
 	if(i < 1 || i >= MAX_EDICTS){
@@ -435,7 +435,7 @@ void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 /*
  * Cl_TeleporterTrail
  */
-void Cl_TeleporterTrail(const vec3_t org, centity_t *cent){
+void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *cent){
 	int i;
 	particle_t *p;
 
@@ -569,7 +569,7 @@ void Cl_ExplosionEffect(const vec3_t org){
 /*
  * Cl_SmokeTrail
  */
-void Cl_SmokeTrail(const vec3_t start, const vec3_t end, centity_t *ent){
+void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	particle_t *p;
 	qboolean stationary;
 	int j, c;
@@ -699,7 +699,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
 /*
  * Cl_FlameTrail
  */
-void Cl_FlameTrail(const vec3_t start, const vec3_t end, centity_t *ent){
+void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	particle_t *p;
 	int j, c;
 
@@ -749,7 +749,7 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, centity_t *ent){
 /*
  * Cl_SteamTrail
  */
-void Cl_SteamTrail(const vec3_t org, const vec3_t vel, centity_t *ent){
+void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
 	particle_t *p;
 	vec3_t end;
 	int j, c;
@@ -986,7 +986,7 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
 /*
  * Cl_EnergyTrail
  */
-void Cl_EnergyTrail(centity_t *ent, float radius, int color){
+void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 	int i, c;
 	particle_t *p;
 	float angle;

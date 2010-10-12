@@ -145,7 +145,7 @@ int Com_EParseValue (void *base, const char *token, valueTypes_t type, int ofs, 
 	const resultStatus_t result = Com_ParseValue(base, token, type, ofs, size, &writtenBytes);
 	switch (result) {
 	case RESULT_ERROR:
-		Sys_Error("Com_EParseValue: %s\n", parseErrorMessage);
+		Com_Error(ERR_FATAL, "Com_EParseValue: %s\n", parseErrorMessage);
 		break;
 	case RESULT_WARNING:
 		Com_Printf("Com_EParseValue: %s\n", parseErrorMessage);
@@ -312,7 +312,7 @@ int Com_SetValue (void *base, const void *set, valueTypes_t type, int ofs, size_
 	b = (byte *) base + ofs;
 
 	if (size && size < vt_sizes[type])
-		Sys_Error("Size mismatch given for type %i", type);
+		Com_Error(ERR_FATAL, "Size mismatch given for type %i", type);
 
 	switch (type) {
 	case V_NULL:
@@ -380,7 +380,7 @@ int Com_SetValue (void *base, const void *set, valueTypes_t type, int ofs, size_
 		return ALIGN_NOTHING(1);
 
 	default:
-		Sys_Error("Com_SetValue: unknown value type\n");
+		Com_Error(ERR_FATAL, "Com_SetValue: unknown value type\n");
 	}
 }
 
@@ -452,7 +452,7 @@ const char *Com_ValueToStr (const void *base, const valueTypes_t type, const int
 		return valuestr;
 
 	default:
-		Sys_Error("Com_ValueToStr: unknown value type %i\n", type);
+		Com_Error(ERR_FATAL, "Com_ValueToStr: unknown value type %i\n", type);
 	}
 }
 
@@ -505,7 +505,7 @@ void Q_strcat (char *dest, const char *src, size_t destsize)
 	size_t dest_length;
 	dest_length = strlen(dest);
 	if (dest_length >= destsize)
-		Sys_Error("Q_strcat: already overflowed");
+		Com_Error(ERR_FATAL, "Q_strcat: already overflowed");
 	Q_strncpyz(dest + dest_length, src, destsize - dest_length);
 }
 

@@ -47,7 +47,7 @@ librenderer_la_CFLAGS = \
 	@SDL_CFLAGS@ \
 	@WARN_CFLAGS@
 	
-librenderer_la_LIBADD = \
-	../../libimages.la
+#librenderer_la_LIBADD = \
+#	../../libimages.la
 
 endif

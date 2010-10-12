@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "common.h"
+#include "cvar.h"
 
 cvar_t *cvar_vars;
 
@@ -44,6 +44,7 @@ static qboolean Cvar_InfoValidate(const char *s){
 cvar_t *Cvar_FindVar(const char *var_name){
 	cvar_t *var;
 
+	// TODO: hash table
 	for(var = cvar_vars; var; var = var->next)
 		if(!strcmp(var_name, var->name))
 			return var;
@@ -59,8 +60,10 @@ float Cvar_GetValue(const char *var_name){
 	cvar_t *var;
 
 	var = Cvar_FindVar(var_name);
+
 	if(!var)
-		return 0;
+		return 0.0f;
+
 	return atof(var->string);
 }
 
@@ -79,7 +82,7 @@ char *Cvar_GetString(const char *var_name){
 
 
 /*
- * Cvar_CompleteVariable
+ * Cvar_CompleteVar
  */
 int Cvar_CompleteVar(const char *partial, const char *matches[]){
 	cvar_t *cvar;
@@ -124,8 +127,8 @@ qboolean Cvar_Delete(const char *varName){
 			else
 				cvar_vars = var->next;
 
-			Z_Free(var->name);
-			Z_Free(var->string);
+			Z_Free((void *)var->name);
+			Z_Free((void *)var->string);
 			if(var->latched_string)
 				Z_Free(var->latched_string);
 			Z_Free(var);
@@ -171,8 +174,8 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const c
 	}
 
 	var = Z_Malloc(sizeof(*var));
-	var->name = CopyString(var_name);
-	var->string = CopyString(var_value);
+	var->name = Com_CopyString(var_name);
+	var->string = Com_CopyString(var_value);
 	var->modified = true;
 	var->value = atof(var->string);
 	var->flags = flags;
@@ -235,9 +238,9 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force
 
 			if(Com_ServerState()){
 				Com_Printf("%s will be changed for next game.\n", var_name);
-				var->latched_string = CopyString(value);
+				var->latched_string = Com_CopyString(value);
 			} else {
-				var->string = CopyString(value);
+				var->string = Com_CopyString(value);
 				var->value = atof(var->string);
 				if(!strcmp(var->name, "game")){
 					Fs_SetGamedir(var->string);
@@ -269,7 +272,7 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force
 
 	Z_Free(var->string);  // free the old value string
 
-	var->string = CopyString(value);
+	var->string = Com_CopyString(value);
 	var->value = atof(var->string);
 
 	return var;
@@ -310,7 +313,7 @@ cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags){
 
 	Z_Free(var->string);  // free the old value string
 
-	var->string = CopyString(value);
+	var->string = Com_CopyString(value);
 	var->value = atof(var->string);
 	var->flags = flags;
 

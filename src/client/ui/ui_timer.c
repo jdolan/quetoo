@@ -134,7 +134,7 @@ menuTimer_t* MN_AllocTimer (menuNode_t *node, int firstDelay, timerCallback_t ca
 		break;
 	}
 	if (timer == NULL)
-		Sys_Error("MN_AllocTimer: No more timer slot");
+		Com_Error(ERR_FATAL, "MN_AllocTimer: No more timer slot");
 
 	timer->owner = node;
 	timer->delay = firstDelay;

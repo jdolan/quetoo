@@ -20,6 +20,7 @@
  */
 
 #include "renderer.h"
+#include "cvar.h"
 
 
 /*
