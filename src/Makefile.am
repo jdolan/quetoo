@@ -18,6 +18,7 @@ noinst_HEADERS = \
 	console.h \
 	cvar.h \
 	files.h \
+	filesystem.h \
 	hash.h \
 	images.h \
 	keys.h \
@@ -29,14 +30,25 @@ noinst_HEADERS = \
 	win32.h
 
 noinst_LTLIBRARIES = \
+	libcmd.la \
 	libcmodel.la \
 	libcommon.la \
-	libfiles.la \
+	libcvar.la \
+	libfilesystem.la \
 	libhash.la \
 	libimages.la \
+	libmem.la \
+	libnet.la \
 	libpak.la \
 	libshared.la \
 	libsys.la
+
+libcmd_la_SOURCES = \
+	cmd.c
+libcmd_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
 
 libcmodel_la_SOURCES = \
 	cmodel.c
@@ -54,10 +66,17 @@ libcommon_la_CFLAGS = \
 	@WARN_CFLAGS@
 libcommon_la_LIBADD = \
 	@SDL_LIBS@
+	
+libcvar_la_SOURCES = \
+	cvar.c
+libcvar_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
 
-libfiles_la_SOURCES = \
-	files.c
-libfiles_la_CFLAGS = \
+libfilesystem_la_SOURCES = \
+	filesystem.c
+libfilesystem_la_CFLAGS = \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@
@@ -77,9 +96,24 @@ libhash_la_CFLAGS = \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@
 
+libmem_la_SOURCES = \
+	mem.c
+libmem_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+
+libnet_la_SOURCES = \
+	net_chan.c \
+	net_udp.c
+libnet_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+	
 libpak_la_SOURCES = \
 	pak.c \
-	files.c
+	filesystem.c
 libpak_la_CFLAGS = \
 	-pipe \
 	-D__LIBPAK_LA__ \
@@ -106,14 +140,9 @@ bin_PROGRAMS = \
 	quake2world
 
 quake2world_SOURCES = \
-	cmd.c \
 	console.c \
 	curses.c \
-	cvar.c \
 	main.c \
-	mem.c \
-	net_chan.c \
-	net_udp.c \
 	pmove.c \
 	win32.c
 

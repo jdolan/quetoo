@@ -31,7 +31,7 @@
 #include <unistd.h>
 #include <zlib.h>
 
-#include "common.h"
+#include "filesystem.h"
 #include "pak.h"
 #include "sys.h"
 
@@ -129,6 +129,7 @@ void Fs_CreatePath(const char *path){
 		}
 	}
 }
+
 
 /*
  * Fs_OpenFile

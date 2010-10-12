@@ -25,6 +25,7 @@
 
 #include "cmd.h"
 #include "cvar.h"
+#include "filesystem.h"
 #include "mem.h"
 
 #define BASEDIRNAME	"default"
@@ -200,34 +201,6 @@ enum clc_ops_e {
 #define U_MOREBITS3	(1<<23)  // read one additional byte
 
 // fourth byte not presently used
-
-
-/*
-
-FILESYSTEM
-
-*/
-
-void Fs_Init(void);
-void Fs_SetGamedir(const char *dir);
-const char *Fs_Gamedir(void);
-const char *Fs_NextPath(const char *prevpath);
-const char *Fs_FindFirst(const char *path, qboolean fullpath);
-void Fs_ExecAutoexec(void);
-int Fs_OpenFile(const char *filename, FILE **file, filemode_t mode);
-void Fs_CloseFile(FILE *f);
-int Fs_LoadFile(const char *path, void **buffer);
-void Fs_AddPakfile(const char *pakfile);
-size_t Fs_Write(void *ptr, size_t size, size_t nmemb, FILE *stream);
-size_t Fs_Read(void *ptr, size_t size, size_t nmemb, FILE *stream);
-int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[]);
-
-// a null buffer will just return the file length without loading
-// a -1 length is not present
-void Fs_ReadFile(void *buffer, int len, FILE *f);
-void Fs_FreeFile(void *buffer);
-void Fs_CreatePath(const char *path);
-void Fs_GunzipFile(const char *path);
 
 #define NUMVERTEXNORMALS 162
 extern const vec3_t bytedirs[NUMVERTEXNORMALS];
