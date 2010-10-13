@@ -22,13 +22,10 @@
 #ifndef __IMAGES_H__
 #define __IMAGES_H__
 
-#include "config.h"
+#include "filesystem.h"
 
 #ifdef BUILD_CLIENT
-
 #include <SDL/SDL_image.h>
-
-#include "common.h"
 
 // 8bit palette for wal images and particles
 extern unsigned palette[256];
@@ -80,5 +77,4 @@ Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
 void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unused);
 
 #endif /* BUILD_CLIENT */
-
 #endif /*__IMAGES_H__*/

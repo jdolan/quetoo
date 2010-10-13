@@ -24,7 +24,7 @@
 #define __CMODEL_H__
 
 #include "files.h"
-#include "common.h"
+#include "filesystem.h"
 
 cmodel_t *Cm_LoadMap(const char *name, int *mapsize);
 cmodel_t *Cm_InlineModel(const char *name);  // *1, *2, etc

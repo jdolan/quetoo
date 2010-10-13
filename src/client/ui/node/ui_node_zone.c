@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "ui_node_zone.h"
 #include "ui_node_window.h"
 
-#include "keys.h"
+#include "cl_keys.h"
 
 static menuTimer_t *capturedTimer;
 
@@ -91,7 +91,7 @@ static void MN_ZoneNodeLoaded (menuNode_t *node)
 		if (!root->u.window.renderNode)
 			root->u.window.renderNode = node;
 		else
-			Com_Printf("MN_ZoneNodeLoaded: second render node ignored (\"%s\")\n", MN_GetPath(node));
+			Com_Print("MN_ZoneNodeLoaded: second render node ignored (\"%s\")\n", MN_GetPath(node));
 	}
 }
 

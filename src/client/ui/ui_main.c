@@ -57,7 +57,7 @@ void MN_SetCvar (const char *name, const char *str, float value)
 	const cvar_t *cvar;
 	cvar = Cvar_FindVar(name);
 	if (!cvar) {
-		Com_Printf("Could not find cvar '%s'\n", name);
+		Com_Print("Could not find cvar '%s'\n", name);
 		return;
 	}
 	/* strip '*cvar ' from data[0] - length is already checked above */
@@ -78,7 +78,7 @@ static void MN_Modify_f (void)
 	float value;
 
 	if (Cmd_Argc() < 5)
-		Com_Printf("Usage: %s <name> <amount> <min> <max>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <name> <amount> <min> <max>\n", Cmd_Argv(0));
 
 	value = Cvar_GetValue(Cmd_Argv(1));
 	value += atof(Cmd_Argv(2));
@@ -102,7 +102,7 @@ static void MN_ModifyWrap_f (void)
 	float value;
 
 	if (Cmd_Argc() < 5) {
-		Com_Printf("Usage: %s <name> <amount> <min> <max>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <name> <amount> <min> <max>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -128,7 +128,7 @@ static void MN_Translate_f (void)
 	char original[MAX_VAR], translation[MAX_VAR];
 
 	if (Cmd_Argc() < 4) {
-		Com_Printf("Usage: %s <source> <dest> <list>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <source> <dest> <list>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -174,34 +174,34 @@ static void MN_Translate_f (void)
  */
 static void MN_Memory_f (void)
 {
-	Com_Printf("\tAllocation:\n");
-	Com_Printf("\t-Option allocation: %i/%i\n", mn.numOptions, MAX_MENUOPTIONS);
-	Com_Printf("\t-Node allocation: %i/%i\n", mn.numNodes, MAX_MENUNODES);
-	Com_Printf("\t-Menu allocation: %i/%i\n", mn.numMenus, MAX_MENUS);
-	Com_Printf("\t-Rendering menu stack slot: %i\n", MAX_MENUSTACK);
-	Com_Printf("\t-Action allocation: %i/%i\n", mn.numActions, MAX_MENUACTIONS);
-	Com_Printf("\t-Model allocation: %i/%i\n", mn.numMenuModels, MAX_MENUMODELS);
-	Com_Printf("\t-Exclude rect allocation: %i/%i\n", mn.numExcludeRect, MAX_EXLUDERECTS);
-	Com_Printf("\t-Condition allocation: %i/%i\n", mn.numConditions, MAX_MENUCONDITIONS);
-	Com_Printf("\t-AData allocation: "UFO_SIZE_T"/%i B\n", (ptrdiff_t)(mn.curadata - mn.adata), mn.adataize);
-	Com_Printf("\tMemory:\n");
-	Com_Printf("\t-Option structure size: "UFO_SIZE_T" B\n", sizeof(menuOption_t));
-	Com_Printf("\t-Node structure size: "UFO_SIZE_T" B\n", sizeof(menuNode_t));
-	Com_Printf("\t-Extra data node structure size: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u));
-	Com_Printf("\t\t-abstractvalue: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.abstractvalue));
-	Com_Printf("\t\t-abstractscrollbar: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.abstractscrollbar));
-	Com_Printf("\t\t-container: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.container));
-	Com_Printf("\t\t-linechart: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.linechart));
-	Com_Printf("\t\t-model: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.model));
-	Com_Printf("\t\t-option: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.option));
-	Com_Printf("\t\t-textentry: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.textentry));
-	Com_Printf("\t\t-text: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.text));
-	Com_Printf("\t\t-window: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.window));
-	Com_Printf("\t-Action structure size: "UFO_SIZE_T" B\n", sizeof(menuAction_t));
-	Com_Printf("\t-Model structure size: "UFO_SIZE_T" B\n", sizeof(menuModel_t));
-	Com_Printf("\t-Condition structure size: "UFO_SIZE_T" B\n", sizeof(menuCondition_t));
-	Com_Printf("\t-AData size: %i B\n", mn.adataize);
-	Com_Printf("\t-Full size: "UFO_SIZE_T" B\n", sizeof(menuGlobal_t) + mn.adataize);
+	Com_Print("\tAllocation:\n");
+	Com_Print("\t-Option allocation: %i/%i\n", mn.numOptions, MAX_MENUOPTIONS);
+	Com_Print("\t-Node allocation: %i/%i\n", mn.numNodes, MAX_MENUNODES);
+	Com_Print("\t-Menu allocation: %i/%i\n", mn.numMenus, MAX_MENUS);
+	Com_Print("\t-Rendering menu stack slot: %i\n", MAX_MENUSTACK);
+	Com_Print("\t-Action allocation: %i/%i\n", mn.numActions, MAX_MENUACTIONS);
+	Com_Print("\t-Model allocation: %i/%i\n", mn.numMenuModels, MAX_MENUMODELS);
+	Com_Print("\t-Exclude rect allocation: %i/%i\n", mn.numExcludeRect, MAX_EXLUDERECTS);
+	Com_Print("\t-Condition allocation: %i/%i\n", mn.numConditions, MAX_MENUCONDITIONS);
+	Com_Print("\t-AData allocation: "UFO_SIZE_T"/%i B\n", (ptrdiff_t)(mn.curadata - mn.adata), mn.adataize);
+	Com_Print("\tMemory:\n");
+	Com_Print("\t-Option structure size: "UFO_SIZE_T" B\n", sizeof(menuOption_t));
+	Com_Print("\t-Node structure size: "UFO_SIZE_T" B\n", sizeof(menuNode_t));
+	Com_Print("\t-Extra data node structure size: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u));
+	Com_Print("\t\t-abstractvalue: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.abstractvalue));
+	Com_Print("\t\t-abstractscrollbar: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.abstractscrollbar));
+	Com_Print("\t\t-container: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.container));
+	Com_Print("\t\t-linechart: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.linechart));
+	Com_Print("\t\t-model: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.model));
+	Com_Print("\t\t-option: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.option));
+	Com_Print("\t\t-textentry: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.textentry));
+	Com_Print("\t\t-text: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.text));
+	Com_Print("\t\t-window: "UFO_SIZE_T" B\n", MEMBER_SIZEOF(menuNode_t, u.window));
+	Com_Print("\t-Action structure size: "UFO_SIZE_T" B\n", sizeof(menuAction_t));
+	Com_Print("\t-Model structure size: "UFO_SIZE_T" B\n", sizeof(menuModel_t));
+	Com_Print("\t-Condition structure size: "UFO_SIZE_T" B\n", sizeof(menuCondition_t));
+	Com_Print("\t-AData size: %i B\n", mn.adataize);
+	Com_Print("\t-Full size: "UFO_SIZE_T" B\n", sizeof(menuGlobal_t) + mn.adataize);
 }
 #endif
 

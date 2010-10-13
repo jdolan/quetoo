@@ -929,7 +929,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
 	if(!brush->numsides)
 		return;
 
-	c_brush_traces++; // TODO: atomic increment for thread-safety
+	c_brush_traces++;
 
 	getout = startout = false;
 	leadside = NULL;
@@ -1218,7 +1218,7 @@ trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
 
 	tracedata_t data;
 
-	c_traces++;  // for statistics, TODO: atomic increment
+	c_traces++;  // for statistics
 
 	// fill in a default trace
 	memset(&data.trace, 0, sizeof(data.trace));

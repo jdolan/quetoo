@@ -38,9 +38,9 @@ const char *Com_EParse (const char **text, const char *errhead, const char *erri
 	token = Com_Parse(text);
 	if (!*text) {
 		if (errinfo)
-			Com_Printf("%s \"%s\")\n", errhead, errinfo);
+			Com_Print("%s \"%s\")\n", errhead, errinfo);
 		else
-			Com_Printf("%s\n", errhead);
+			Com_Print("%s\n", errhead);
 
 		return NULL;
 	}
@@ -148,7 +148,7 @@ int Com_EParseValue (void *base, const char *token, valueTypes_t type, int ofs, 
 		Com_Error(ERR_FATAL, "Com_EParseValue: %s\n", parseErrorMessage);
 		break;
 	case RESULT_WARNING:
-		Com_Printf("Com_EParseValue: %s\n", parseErrorMessage);
+		Com_Print("Com_EParseValue: %s\n", parseErrorMessage);
 		break;
 	case RESULT_OK:
 		break;
@@ -548,7 +548,7 @@ const char *Com_MacroExpandString (const char *text)
 
 	len = strlen(scan);
 	if (len >= MAX_STRING_CHARS) {
-		Com_Printf("Line exceeded %i chars, discarded.\n", MAX_STRING_CHARS);
+		Com_Print("Line exceeded %i chars, discarded.\n", MAX_STRING_CHARS);
 		return NULL;
 	}
 
@@ -581,12 +581,12 @@ const char *Com_MacroExpandString (const char *text)
 		/* get the cvar value */
 		cvarvalue = Cvar_GetString(token);
 		if (!cvarvalue) {
-			Com_Printf("Could not get cvar value for cvar: %s\n", token);
+			Com_Print("Could not get cvar value for cvar: %s\n", token);
 			return NULL;
 		}
 		j = strlen(cvarvalue);
 		if (strlen(pos) + j >= MAX_STRING_CHARS) {
-			Com_Printf("Expanded line exceeded %i chars, discarded.\n", MAX_STRING_CHARS);
+			Com_Print("Expanded line exceeded %i chars, discarded.\n", MAX_STRING_CHARS);
 			return NULL;
 		}
 
@@ -596,13 +596,13 @@ const char *Com_MacroExpandString (const char *text)
 		pos += j;
 
 		if (++count == 100) {
-			Com_Printf("Macro expansion loop, discarded.\n");
+			Com_Print("Macro expansion loop, discarded.\n");
 			return NULL;
 		}
 	}
 
 	if (inquote) {
-		Com_Printf("Line has unmatched quote, discarded.\n");
+		Com_Print("Line has unmatched quote, discarded.\n");
 		return NULL;
 	}
 

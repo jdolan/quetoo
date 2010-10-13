@@ -572,7 +572,7 @@ void R_LoadMedia(void){
 static void R_Sky_f(void){
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <basename>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <basename>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -843,7 +843,7 @@ static void R_EnforceVersion(void){
  */
 void R_Init(void){
 
-	Com_Printf("Video initialization..\n");
+	Com_Print("Video initialization..\n");
 
 	memset(&r_state, 0, sizeof(renderer_state_t));
 
@@ -863,7 +863,7 @@ void R_Init(void){
 	if(!R_InitExtensions())
 		Com_Error(ERR_FATAL, "Failed to resolve required extensions.");
 
-	Com_Printf("  Renderer: ^%d%s\n  Vendor:   ^%d%s\n  Version:  ^%d%s\n",
+	Com_Print("  Renderer: ^%d%s\n  Vendor:   ^%d%s\n  Version:  ^%d%s\n",
 			CON_COLOR_ALT, r_config.renderer_string, CON_COLOR_ALT,
 			r_config.vendor_string, CON_COLOR_ALT, r_config.version_string);
 
@@ -879,7 +879,7 @@ void R_Init(void){
 
 	R_InitModels();
 
-	Com_Printf("Video initialized %dx%dx%dbpp %s.\n", r_state.width, r_state.height,
+	Com_Print("Video initialized %dx%dx%dbpp %s.\n", r_state.width, r_state.height,
 			(r_state.redbits + r_state.greenbits + r_state.bluebits + r_state.alphabits),
 			(r_state.fullscreen ? "fullscreen" : "windowed"));
 }

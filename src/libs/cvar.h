@@ -22,7 +22,7 @@
 #ifndef __CVAR_H__
 #define __CVAR_H__
 
-#include "common.h"
+#include "filesystem.h"
 
 /*
 

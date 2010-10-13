@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cvar.h"
-#include "hash.h"
+#include "cmd.h"
 
 #define MAX_ALIAS_NAME 32
 
@@ -81,7 +80,7 @@ void Cbuf_AddText(const char *text){
 	l = strlen(text);
 
 	if(cmd_text.cursize + l >= cmd_text.maxsize){
-		Com_Printf("Cbuf_AddText: overflow\n");
+		Com_Print("Cbuf_AddText: overflow\n");
 		return;
 	}
 	Sb_Write(&cmd_text, text, l);
@@ -164,7 +163,7 @@ void Cbuf_Execute(void){
 		}
 
 		if(i > MAX_STRING_CHARS){  //length check each command
-			Com_Printf("Command exceeded %i chars, discarded\n", MAX_STRING_CHARS);
+			Com_Print("Command exceeded %i chars, discarded\n", MAX_STRING_CHARS);
 			return;
 		}
 
@@ -280,7 +279,7 @@ static void Cmd_Exec_f(void){
 	char cfg[MAX_QPATH];
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <filename> : execute a script file\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <filename> : execute a script file\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -289,7 +288,7 @@ static void Cmd_Exec_f(void){
 		strcat(cfg, ".cfg");
 
 	if((len = Fs_LoadFile(cfg, &buf)) == -1){
-		Com_Printf("couldn't exec %s\n", cfg);
+		Com_Print("couldn't exec %s\n", cfg);
 		return;
 	}
 
@@ -307,8 +306,8 @@ static void Cmd_Echo_f(void){
 	int i;
 
 	for(i = 1; i < Cmd_Argc(); i++)
-		Com_Printf("%s ", Cmd_Argv(i));
-	Com_Printf("\n");
+		Com_Print("%s ", Cmd_Argv(i));
+	Com_Print("\n");
 }
 
 
@@ -324,15 +323,15 @@ static void Cmd_Alias_f(void){
 	char *s;
 
 	if(Cmd_Argc() == 1){
-		Com_Printf("Current alias commands:\n");
+		Com_Print("Current alias commands:\n");
 		for(a = cmd_alias; a; a = a->next)
-			Com_Printf("%s : %s\n", a->name, a->value);
+			Com_Print("%s : %s\n", a->name, a->value);
 		return;
 	}
 
 	s = Cmd_Argv(1);
 	if(strlen(s) >= MAX_ALIAS_NAME){
-		Com_Printf("Alias name is too long\n");
+		Com_Print("Alias name is too long\n");
 		return;
 	}
 
@@ -534,14 +533,14 @@ void* Cmd_GetUserdata(const char *cmd_name){
 	cmd_function_t *cmd;
 
 	if (!cmd_name || !cmd_name[0]) {
-		Com_Printf("Cmd_GetUserdata: Invalide parameter\n");
+		Com_Print("Cmd_GetUserdata: Invalide parameter\n");
 		return NULL;
 	}
 
 	if((cmd = Com_HashValue(&cmd_hashtable, cmd_name)))
 		return cmd->userdata;
 
-	Com_Printf("Cmd_GetUserdata: '%s' not found\n", cmd_name);
+	Com_Print("Cmd_GetUserdata: '%s' not found\n", cmd_name);
 	return NULL;
 }
 
@@ -561,12 +560,12 @@ void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *descr
 
 	// fail if the command is a variable name
 	if(Cvar_GetString(cmd_name)[0]){
-		Com_Dprintf("Cmd_AddCommand: %s already defined as a var\n", cmd_name);
+		Com_Debug("Cmd_AddCommand: %s already defined as a var\n", cmd_name);
 		return;
 	}
 
 	if(Cmd_Exists(cmd_name)) {
-		Com_Dprintf("Cmd_AddCommand: %s already defined\n", cmd_name);
+		Com_Debug("Cmd_AddCommand: %s already defined\n", cmd_name);
 		return;
 	}
 
@@ -610,7 +609,7 @@ void Cmd_RemoveCommand(const char *cmd_name){
 	while(true){
 		cmd = *back;
 		if(!cmd){
-			Com_Dprintf("Cmd_RemoveCommand: %s not added\n", cmd_name);
+			Com_Debug("Cmd_RemoveCommand: %s not added\n", cmd_name);
 			return;
 		}
 		if(!strcmp(cmd_name, cmd->name)){
@@ -638,9 +637,9 @@ int Cmd_CompleteCommand(const char *partial, const char *matches[]){
 	// check for partial matches in commands
 	for(cmd = cmd_functions; cmd; cmd = cmd->next){
 		if(!strncmp(partial, cmd->name, len)){
-			Com_Printf("%c%s\n", (char)1, cmd->name);
+			Com_Print("%c%s\n", (char)1, cmd->name);
 			if (cmd->description)
-				Com_Printf("\t%s\n", cmd->description);
+				Com_Print("\t%s\n", cmd->description);
 			matches[m] = cmd->name;
 			m++;
 		}
@@ -649,7 +648,7 @@ int Cmd_CompleteCommand(const char *partial, const char *matches[]){
 	// and then aliases
 	for(a = cmd_alias; a; a = a->next){
 		if(!strncmp(partial, a->name, len)){
-			Com_Printf("%c%s\n", (char)1, a->name);
+			Com_Print("%c%s\n", (char)1, a->name);
 			matches[m] = a->name;
 			m++;
 		}
@@ -715,11 +714,11 @@ static void Cmd_List_f(void){
 
 	i = 0;
 	for(cmd = cmd_functions; cmd; cmd = cmd->next, i++) {
-		Com_Printf("%s\n", cmd->name);
+		Com_Print("%s\n", cmd->name);
 		if (cmd->description)
-			Com_Printf("   ^2%s\n", cmd->description);
+			Com_Print("   ^2%s\n", cmd->description);
 	}
-	Com_Printf("%i commands\n", i);
+	Com_Print("%i commands\n", i);
 }
 
 

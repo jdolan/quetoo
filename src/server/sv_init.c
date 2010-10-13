@@ -112,7 +112,7 @@ static qboolean Sv_CheckMap(const char *name){
 	Fs_OpenFile(map, &f, FILE_READ);
 
 	if(!f){
-		Com_Printf("Couldn't open %s\n", map);
+		Com_Print("Couldn't open %s\n", map);
 		return false;
 	}
 
@@ -137,7 +137,7 @@ static qboolean Sv_CheckDemo(const char *name){
 	snprintf(demo, sizeof(demo), "demos/%s", name);
 	Fs_OpenFile(demo, &f, FILE_READ);
 	if(!f){
-		Com_Printf("Couldn't open %s\n", demo);
+		Com_Print("Couldn't open %s\n", demo);
 		return false;
 	}
 
@@ -147,7 +147,7 @@ static qboolean Sv_CheckDemo(const char *name){
 	msglen = LittleLong(msglen);
 
 	if(msglen == -1 || msglen > MAX_MSGLEN){
-		Com_Printf("Sv_CheckDemo: %s is not a demo.\n", demo);
+		Com_Print("Sv_CheckDemo: %s is not a demo.\n", demo);
 		return false;
 	}
 
@@ -159,7 +159,7 @@ static qboolean Sv_CheckDemo(const char *name){
 	Fs_CloseFile(f);
 
 	if(LittleLong(protocol) != PROTOCOL){
-		Com_Printf("%s is protocol %d\n", demo, LittleLong(protocol));
+		Com_Print("%s is protocol %d\n", demo, LittleLong(protocol));
 		return false;
 	}
 
@@ -214,7 +214,7 @@ static void Sv_SpawnServer(const char *server, server_state_t serverstate){
 	FILE *f;
 	extern char *last_pak;
 
-	Com_Printf("Server initialization..\n");
+	Com_Print("Server initialization..\n");
 
 	reconnect = false;
 	if(!svs.initialized || Cvar_PendingLatchedVars()){
@@ -301,11 +301,11 @@ static void Sv_SpawnServer(const char *server, server_state_t serverstate){
 		// create a baseline for more efficient communications
 		Sv_CreateBaseline();
 
-		Com_Printf("  Loaded %s, %d entities.\n", sv.configstrings[CS_MODELS + 1],
+		Com_Print("  Loaded %s, %d entities.\n", sv.configstrings[CS_MODELS + 1],
 			ge->num_edicts);
 	}
 	else {
-		Com_Printf("  Loaded demo %s.\n", sv.name);
+		Com_Print("  Loaded demo %s.\n", sv.name);
 	}
 
 	Net_Config(NS_SERVER, true);
@@ -322,7 +322,7 @@ static void Sv_SpawnServer(const char *server, server_state_t serverstate){
 		Sv_SendClientMessages();
 	}
 
-	Com_Printf("Server initialized.\n");
+	Com_Print("Server initialized.\n");
 }
 
 

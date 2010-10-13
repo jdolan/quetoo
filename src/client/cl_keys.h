@@ -19,13 +19,15 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef __KEYS_H__
-#define __KEYS_H__
+#ifndef __CL_KEYS_H__
+#define __CL_KEYS_H__
+
+#include "common.h"
 
 #define KEY_HISTORYSIZE 64
 #define KEY_LINESIZE 256
 
-enum QKEYS {
+typedef enum {
 	K_FIRST,
 
 	K_CTRL_A = 1,
@@ -109,6 +111,13 @@ enum QKEYS {
 	K_ALT,
 
 	K_LAST = 511  // to support as many chars as posible
-};
+} keynum_t;
 
-#endif /* __KEYS_H__ */
+typedef struct keyname_s {
+	const char *name;
+	keynum_t keynum;
+} keyname_t;
+
+extern keyname_t keynames[];
+
+#endif /* __CL_KEYS_H__ */

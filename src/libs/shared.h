@@ -241,7 +241,7 @@ qboolean Info_Validate(const char *s);
 int ColorByName(const char *s, int def);
 
 // this is only here so the functions in shared.c and q_sh.c can link
-void Com_Printf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 /*
 

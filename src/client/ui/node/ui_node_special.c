@@ -40,22 +40,22 @@ static void MN_FuncNodeLoaded (menuNode_t *node)
 		if (!menu->u.window.onInit)
 			menu->u.window.onInit = node->onClick;
 		else
-			Com_Printf("MN_FuncNodeLoaded: second init function ignored (menu \"%s\")\n", menu->name);
+			Com_Print("MN_FuncNodeLoaded: second init function ignored (menu \"%s\")\n", menu->name);
 	} else if (!strcmp(node->name, "close")) {
 		if (!menu->u.window.onClose)
 			menu->u.window.onClose = node->onClick;
 		else
-			Com_Printf("MN_FuncNodeLoaded: second close function ignored (menu \"%s\")\n", menu->name);
+			Com_Print("MN_FuncNodeLoaded: second close function ignored (menu \"%s\")\n", menu->name);
 	} else if (!strcmp(node->name, "event")) {
 		if (!menu->u.window.onTimeOut) {
 			menu->u.window.onTimeOut = node->onClick;
 		} else
-			Com_Printf("MN_FuncNodeLoaded: second event function ignored (menu \"%s\")\n", menu->name);
+			Com_Print("MN_FuncNodeLoaded: second event function ignored (menu \"%s\")\n", menu->name);
 	} else if (!strcmp(node->name, "leave")) {
 		if (!menu->u.window.onLeave) {
 			menu->u.window.onLeave = node->onClick;
 		} else
-			Com_Printf("MN_FuncNodeLoaded: second leave function ignored (menu \"%s\")\n", menu->name);
+			Com_Print("MN_FuncNodeLoaded: second leave function ignored (menu \"%s\")\n", menu->name);
 	}
 
 }
@@ -99,7 +99,7 @@ static void MN_ConFuncNodeLoaded (menuNode_t *node)
 			Cmd_AddCommand(node->name, MN_ConfuncCommand_f, "Confunc callback");
 			Cmd_AddUserdata(node->name, node);
 		} else {
-			Com_Printf("MN_ParseNodeBody: Command name for confunc '%s' already registered\n", MN_GetPath(node));
+			Com_Print("MN_ParseNodeBody: Command name for confunc '%s' already registered\n", MN_GetPath(node));
 		}
 	}
 }

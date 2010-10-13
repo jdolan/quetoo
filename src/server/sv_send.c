@@ -93,7 +93,7 @@ void Sv_Bprintf(int level, const char *fmt, ...){
 		for(j = 0; j < MAX_STRING_CHARS - 1 && string[j]; j++)
 			copy[j] = string[j] & 127;
 		copy[j] = 0;
-		Com_Printf("%s", copy);
+		Com_Print("%s", copy);
 	}
 
 	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){

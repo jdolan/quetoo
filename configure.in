@@ -213,7 +213,7 @@ else
 	)
 
 	if test "x${with_tools}" = xno; then
-		TOOLS="none"
+		TOOLS="no"
 		TOOL_DIRS=""
 	elif test "x${with_tools}" != x; then
 		TOOLS="${with_tools}"
@@ -223,6 +223,8 @@ else
 	AC_MSG_RESULT($TOOLS)
 	AC_SUBST(TOOL_DIRS)
 fi
+
+AM_CONDITIONAL([BUILD_CLIENT], [test "x$BUILD_CLIENT" = "xyes"]) 
 
 dnl --------------
 dnl Check for Zlib
@@ -472,20 +474,21 @@ dnl -----------------------------------------------------------
 
 AC_CONFIG_FILES([
 	Makefile
+	doc/Makefile
 	src/Makefile
 	src/client/Makefile
 	src/client/ui/Makefile
 	src/client/ui/node/Makefile
 	src/client/sound/Makefile
 	src/client/renderer/Makefile
-	src/server/Makefile
 	src/game/Makefile
 	src/game/default/Makefile
+	src/libs/Makefile
+	src/master/Makefile
+	src/server/Makefile
 	src/tools/Makefile
 	src/tools/pak/Makefile
 	src/tools/q2wmap/Makefile
-	src/master/Makefile
-	doc/Makefile
 ])
 
 AC_OUTPUT

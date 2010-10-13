@@ -40,7 +40,7 @@ edict_t *sv_player;
 static void Sv_BeginDemoServer(void){
 	char demo[MAX_OSPATH];
 
-	Com_Dprintf("Sv_BeginDemoServer\n");
+	Com_Debug("Sv_BeginDemoServer\n");
 
 	snprintf(demo, sizeof(demo), "demos/%s", sv.name);
 	Fs_OpenFile(demo, &sv.demofile, FILE_READ);
@@ -61,10 +61,10 @@ static void Sv_New_f(void){
 	int playernum;
 	edict_t *ent;
 
-	Com_Dprintf("New() from %s\n", sv_client->name);
+	Com_Debug("New() from %s\n", sv_client->name);
 
 	if(sv_client->state != cs_connected){
-		Com_Printf("New not valid -- already spawned\n");
+		Com_Print("New not valid -- already spawned\n");
 		return;
 	}
 
@@ -109,16 +109,16 @@ static void Sv_New_f(void){
 static void Sv_Configstrings_f(void){
 	int start;
 
-	Com_Dprintf("Configstrings() from %s\n", sv_client->name);
+	Com_Debug("Configstrings() from %s\n", sv_client->name);
 
 	if(sv_client->state != cs_connected){
-		Com_Printf("Configstrings not valid -- already spawned\n");
+		Com_Print("Configstrings not valid -- already spawned\n");
 		return;
 	}
 
 	// handle the case of a level changing while a client was connecting
 	if(atoi(Cmd_Argv(1)) != svs.spawncount){
-		Com_Printf("Sv_Configstrings_f from different level\n");
+		Com_Print("Sv_Configstrings_f from different level\n");
 		Sv_New_f();
 		return;
 	}
@@ -126,7 +126,7 @@ static void Sv_Configstrings_f(void){
 	start = atoi(Cmd_Argv(2));
 
 	if(start < 0){  // catch negative offset
-		Com_Printf("Illegal configstring offset from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Print("Illegal configstring offset from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -160,16 +160,16 @@ static void Sv_Baselines_f(void){
 	entity_state_t nullstate;
 	entity_state_t *base;
 
-	Com_Dprintf("Baselines() from %s\n", sv_client->name);
+	Com_Debug("Baselines() from %s\n", sv_client->name);
 
 	if(sv_client->state != cs_connected){
-		Com_Printf("baselines not valid -- already spawned\n");
+		Com_Print("baselines not valid -- already spawned\n");
 		return;
 	}
 
 	// handle the case of a level changing while a client was connecting
 	if(atoi(Cmd_Argv(1)) != svs.spawncount){
-		Com_Printf("Sv_Baselines_f from different level\n");
+		Com_Print("Sv_Baselines_f from different level\n");
 		Sv_New_f();
 		return;
 	}
@@ -177,7 +177,7 @@ static void Sv_Baselines_f(void){
 	start = atoi(Cmd_Argv(2));
 
 	if(start < 0){  // catch negative offset
-		Com_Printf("Illegal baseline offset from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Print("Illegal baseline offset from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -210,10 +210,10 @@ static void Sv_Baselines_f(void){
  * Sv_Begin_f
  */
 static void Sv_Begin_f(void){
-	Com_Dprintf("Begin() from %s\n", sv_client->name);
+	Com_Debug("Begin() from %s\n", sv_client->name);
 
 	if(sv_client->state != cs_connected){  // catch duplicate spawns
-		Com_Printf("Illegal begin from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Print("Illegal begin from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -223,7 +223,7 @@ static void Sv_Begin_f(void){
 
 	// handle the case of a level changing while a client was connecting
 	if(atoi(Cmd_Argv(1)) != svs.spawncount){
-		Com_Printf("Sv_Begin_f from different level\n");
+		Com_Print("Sv_Begin_f from different level\n");
 		Sv_New_f();
 		return;
 	}
@@ -296,7 +296,7 @@ static void Sv_Download_f(void){
 
 	// catch illegal offset or filenames
 	if(offset < 0 || *name == '.' || *name == '/' || *name == '\\' || strstr(name, "..")){
-		Com_Printf("Malicious download from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Print("Malicious download from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -308,7 +308,7 @@ static void Sv_Download_f(void){
 	}
 
 	if(!downloadable[i]){  // it wasnt
-		Com_Printf("Illegal download (%s) from %s\n", name, Sv_NetaddrToString(sv_client));
+		Com_Print("Illegal download (%s) from %s\n", name, Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -331,7 +331,7 @@ static void Sv_Download_f(void){
 		sv_client->downloadcount = sv_client->downloadsize;
 
 	if(!sv_client->download){  // legal filename, but missing file
-		Com_Dprintf("Couldn't download %s to %s\n", name, sv_client->name);
+		Com_Debug("Couldn't download %s to %s\n", name, sv_client->name);
 		Msg_WriteByte(&sv_client->netchan.message, svc_download);
 		Msg_WriteShort(&sv_client->netchan.message, -1);
 		Msg_WriteByte(&sv_client->netchan.message, 0);
@@ -339,7 +339,7 @@ static void Sv_Download_f(void){
 	}
 
 	Sv_NextDownload_f();
-	Com_Dprintf("Downloading %s to %s\n", name, sv_client->name);
+	Com_Debug("Downloading %s to %s\n", name, sv_client->name);
 }
 
 
@@ -404,7 +404,7 @@ static void Sv_ExecuteUserCommand(const char *s){
 	Cmd_TokenizeString(s);
 
 	if(strchr(s, '\xFF')){  // catch end of message exploit
-		Com_Printf("Illegal command contained xFF from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Print("Illegal command contained xFF from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -464,7 +464,7 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 	while(true){
 
 		if(net_message.readcount > net_message.cursize){
-			Com_Printf("Sv_ReadClientMessage: badread\n");
+			Com_Print("Sv_ReadClientMessage: badread\n");
 			Sv_DropClient(cl);
 			return;
 		}
@@ -510,7 +510,7 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 
 				if(nullcmd.msec > 250 || oldest.msec > 250 ||  // catch illegal msec
 						oldcmd.msec > 250 || newcmd.msec > 250){
-					Com_Printf("Illegal msec in usercmd from %s\n", Sv_NetaddrToString(cl));
+					Com_Print("Illegal msec in usercmd from %s\n", Sv_NetaddrToString(cl));
 					Sv_KickClient(cl, NULL);
 					return;
 				}
@@ -542,7 +542,7 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 				break;
 
 			default:
-				Com_Printf("Sv_ReadClientMessage: unknown command %d\n", c);
+				Com_Print("Sv_ReadClientMessage: unknown command %d\n", c);
 				Sv_DropClient(cl);
 				return;
 		}

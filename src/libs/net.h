@@ -23,7 +23,7 @@
 #ifndef __NET_H__
 #define __NET_H__
 
-#include "common.h"
+#include "cvar.h"
 
 #define PORT_ANY	-1
 

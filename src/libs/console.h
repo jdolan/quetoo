@@ -22,7 +22,7 @@
 #ifndef __CONSOLE_H__
 #define __CONSOLE_H__
 
-#include "common.h"
+#include "cmd.h"
 
 #define CON_TEXTSIZE 32768
 #define CON_MAXLINES 1024
@@ -60,21 +60,5 @@ void Con_Shutdown(void);
 void Con_Print(const char *text);
 void Con_Resize(console_t *con, int width, int height);
 int Con_CompleteCommand(char *input_text, int *input_position);
-
-#ifdef HAVE_CURSES
-
-#include <curses.h>
-
-// structures for the server console
-extern console_t sv_con;
-extern cvar_t *con_curses;
-extern cvar_t *con_timeout;
-
-void Curses_Init(void);
-void Curses_Shutdown(void);
-void Curses_Frame(int msec);
-void Curses_Refresh(void);
-
-#endif /* HAVE_CURSES */
 
 #endif /* __CONSOLE_H__ */

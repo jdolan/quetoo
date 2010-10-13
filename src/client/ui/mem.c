@@ -115,7 +115,7 @@ memPool_t *_Mem_CreatePool (const char *name, const char *fileName, const int fi
 	if (!name || !name[0])
 		Com_Error(ERR_FATAL, "Mem_CreatePool: NULL name %s:#%i", fileName, fileLine);
 	if (strlen(name) + 1 >= MEM_MAX_POOLNAME)
-		Com_Printf("Mem_CreatePoole: name '%s' too long, truncating!\n", name);
+		Com_Print("Mem_CreatePoole: name '%s' too long, truncating!\n", name);
 
 	/* See if it already exists */
 	pool = Mem_FindPool(name);
@@ -298,7 +298,7 @@ void *_Mem_Alloc (size_t size, qboolean zeroFill, memPool_t *pool, const int tag
 
 	/* Check pool */
 	if (!pool) {
-		Com_Printf("Mem_Alloc: Error - no pool given\n" "alloc: %s:#%i\n", fileName, fileLine);
+		Com_Print("Mem_Alloc: Error - no pool given\n" "alloc: %s:#%i\n", fileName, fileLine);
 		return NULL;
 	}
 
@@ -651,38 +651,38 @@ static void Mem_Stats_f (void)
 				continue;
 			if (strstr(pool->name, Cmd_Args())) {
 				if (best) {
-					Com_Printf("Too many matches for '%s'...\n", Cmd_Args());
+					Com_Print("Too many matches for '%s'...\n", Cmd_Args());
 					return;
 				}
 				best = pool;
 			}
 		}
 		if (!best) {
-			Com_Printf("No matches for '%s'...\n", Cmd_Args());
+			Com_Print("No matches for '%s'...\n", Cmd_Args());
 			return;
 		}
 
-		Com_Printf("Pool stats for '%s':\n", best->name);
-		Com_Printf("block line  file                 size       \n");
-		Com_Printf("----- ----- -------------------- ---------- \n");
+		Com_Print("Pool stats for '%s':\n", best->name);
+		Com_Print("block line  file                 size       \n");
+		Com_Print("----- ----- -------------------- ---------- \n");
 
 		totalBytes = 0;
 		for (j = 0; j < MEM_HASH; j++) {
 			for (i = 0, mem = best->blocks[j]; mem; mem = mem->next, i++) {
-				Com_Printf("%5i %5i %20s "Q2W_SIZE_T"B\n", i + 1, mem->allocLine, mem->allocFile, mem->size);
+				Com_Print("%5i %5i %20s "Q2W_SIZE_T"B\n", i + 1, mem->allocLine, mem->allocFile, mem->size);
 
 				totalBytes += mem->size;
 			}
 		}
 
-		Com_Printf("----------------------------------------\n");
-		Com_Printf("Total: %i blocks, %i bytes (%6.3fMB)\n", i, totalBytes, totalBytes/1048576.0f);
+		Com_Print("----------------------------------------\n");
+		Com_Print("Total: %i blocks, %i bytes (%6.3fMB)\n", i, totalBytes, totalBytes/1048576.0f);
 		return;
 	}
 
-	Com_Printf("Memory stats:\n");
-	Com_Printf("    blocks size                  name\n");
-	Com_Printf("--- ------ ---------- ---------- --------\n");
+	Com_Print("Memory stats:\n");
+	Com_Print("    blocks size                  name\n");
+	Com_Print("--- ------ ---------- ---------- --------\n");
 
 	totalBlocks = 0;
 	totalBytes = 0;
@@ -693,14 +693,14 @@ static void Mem_Stats_f (void)
 
 		poolNum++;
 
-		Com_Printf("#%2i %6i %9iB (%6.3fMB) %s\n", poolNum, pool->blockCount, pool->byteCount, pool->byteCount/1048576.0f, pool->name);
+		Com_Print("#%2i %6i %9iB (%6.3fMB) %s\n", poolNum, pool->blockCount, pool->byteCount, pool->byteCount/1048576.0f, pool->name);
 
 		totalBlocks += pool->blockCount;
 		totalBytes += pool->byteCount;
 	}
 
-	Com_Printf("----------------------------------------\n");
-	Com_Printf("Total: %i pools, %i blocks, %i bytes (%6.3fMB)\n", i, totalBlocks, totalBytes, totalBytes/1048576.0f);
+	Com_Print("----------------------------------------\n");
+	Com_Print("Total: %i pools, %i blocks, %i bytes (%6.3fMB)\n", i, totalBlocks, totalBytes, totalBytes/1048576.0f);
 }
 
 /**

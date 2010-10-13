@@ -46,7 +46,7 @@ libui_la_SOURCES = \
 	utf8.c
 
 libui_la_CFLAGS = \
-	-I.. -I../.. \
+	-I.. -I../.. -I../../libs \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@OPENGL_CFLAGS@ \

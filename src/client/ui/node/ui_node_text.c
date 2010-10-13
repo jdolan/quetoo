@@ -93,19 +93,19 @@ static void MN_TextScroll_f (void)
 	menuNode_t *menu;
 
 	if (Cmd_Argc() < 3) {
-		Com_Printf("Usage: %s <nodename> <+/-offset>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <nodename> <+/-offset>\n", Cmd_Argv(0));
 		return;
 	}
 
 	menu = MN_GetActiveMenu();
 	if (!menu) {
-		Com_Printf("MN_TextScroll_f: No active menu\n");
+		Com_Print("MN_TextScroll_f: No active menu\n");
 		return;
 	}
 
 	node = MN_GetNodeByPath(va("%s.%s", menu->name, Cmd_Argv(1)));
 	if (!node) {
-		Com_DPrintf(DEBUG_CLIENT, "MN_TextScroll_f: Node '%s' not found.\n", Cmd_Argv(1));
+		Com_Debug("MN_TextScroll_f: Node '%s' not found.\n", Cmd_Argv(1));
 		return;
 	}
 
@@ -130,12 +130,12 @@ void MN_TextScrollBottom (const char* nodeName)
 {
 	menuNode_t *node = MN_GetNode(MN_GetActiveMenu(), nodeName);
 	if (!node) {
-		Com_DPrintf(DEBUG_CLIENT, "Node '%s' could not be found\n", nodeName);
+		Com_Debug("Node '%s' could not be found\n", nodeName);
 		return;
 	}
 
 	if (EXTRADATA(node).textLines > EXTRADATA(node).rows) {
-		Com_DPrintf(DEBUG_CLIENT, "\nMN_TextScrollBottom: Scrolling to line %i\n", EXTRADATA(node).textLines - EXTRADATA(node).rows + 1);
+		Com_Debug("\nMN_TextScrollBottom: Scrolling to line %i\n", EXTRADATA(node).textLines - EXTRADATA(node).rows + 1);
 		EXTRADATA(node).textScroll = EXTRADATA(node).textLines - EXTRADATA(node).rows + 1;
 	}
 }
@@ -471,7 +471,7 @@ static void MN_TextNodeLoaded (menuNode_t *node)
 			EXTRADATA(node).rows = node->size[1] / lineheight;
 		} else {
 			EXTRADATA(node).rows = 1;
-			Com_Printf("MN_TextNodeLoaded: node '%s' has no rows value\n", MN_GetPath(node));
+			Com_Print("MN_TextNodeLoaded: node '%s' has no rows value\n", MN_GetPath(node));
 		}
 	}
 
@@ -486,13 +486,13 @@ static void MN_TextNodeLoaded (menuNode_t *node)
 
 #ifdef DEBUG
 	if (EXTRADATA(node).rows != (int)(node->size[1] / lineheight)) {
-		Com_Printf("MN_TextNodeLoaded: rows value (%i) of node '%s' differs from size (%.0f) and format (%i) values\n",
+		Com_Print("MN_TextNodeLoaded: rows value (%i) of node '%s' differs from size (%.0f) and format (%i) values\n",
 			EXTRADATA(node).rows, MN_GetPath(node), node->size[1], lineheight);
 	}
 #endif
 
 	if (EXTRADATA(node).num == TEXT_NULL)
-		Com_Printf("MN_TextNodeLoaded: 'textid' property of node '%s' is not set\n", MN_GetPath(node));
+		Com_Print("MN_TextNodeLoaded: 'textid' property of node '%s' is not set\n", MN_GetPath(node));
 }
 
 static const value_t properties[] = {

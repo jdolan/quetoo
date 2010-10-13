@@ -76,11 +76,11 @@ static float MN_GetFloatFromParam (const menuNode_t *source, const char* value, 
 			const value_t *property;
 			MN_ReadNodePath(value, source, &node, &property);
 			if (!node) {
-				Com_Printf("MN_GetFloatFromParam: Node '%s' wasn't found; '0' returned", value);
+				Com_Print("MN_GetFloatFromParam: Node '%s' wasn't found; '0' returned", value);
 				return 0;
 			}
 			if (!property) {
-				Com_Printf("MN_GetFloatFromParam: Property '%s' wasn't found; '0' returned", value);
+				Com_Print("MN_GetFloatFromParam: Property '%s' wasn't found; '0' returned", value);
 				return 0;
 			}
 			return MN_GetFloatFromNodeProperty (node, property);
@@ -106,7 +106,7 @@ static const char* MN_GetStringFromParam (const menuNode_t *source, const char* 
 		return cvar->string;
 	}
 	case IF_VALUE_NODEPROPERTY:
-		Com_Printf("MN_GetStringFromParam: Node property '%s' to string unsupported", value);
+		Com_Print("MN_GetStringFromParam: Node property '%s' to string unsupported", value);
 		break;
 	}
 	return "";
@@ -234,7 +234,7 @@ qboolean MN_InitCondition (menuCondition_t *condition, const char *token)
 	memset(condition, 0, sizeof(*condition));
 	if (!strstr(token, " ")) {
 		if (strncmp(token, "*cvar:", 6) != 0) {
-			Com_Printf("Invalid 'if' statement. '%s' is not a cvar\n", token);
+			Com_Print("Invalid 'if' statement. '%s' is not a cvar\n", token);
 			return qfalse;
 		}
 		condition->leftValue = MN_AllocString(token + 6, 0);
@@ -245,14 +245,14 @@ qboolean MN_InitCondition (menuCondition_t *condition, const char *token)
 		char operator[BUF_SIZE + 1];
 		char param2[BUF_SIZE + 1];
 		if (sscanf(token, "%"DOUBLEQUOTE(MAX_VAR)"s %"DOUBLEQUOTE(MAX_VAR)"s %"DOUBLEQUOTE(MAX_VAR)"s", param1, operator, param2) != 3) {
-			Com_Printf("MN_InitCondition: Could not parse node condition.\n");
+			Com_Print("MN_InitCondition: Could not parse node condition.\n");
 			return qfalse;
 		}
 
 		/* operator code */
 		condition->type.opCode = MN_GetOperatorByName(operator);
 		if (condition->type.opCode == IF_INVALID) {
-			Com_Printf("Invalid 'if' statement. Unknown '%s' operator from token: '%s'\n", operator, token);
+			Com_Print("Invalid 'if' statement. Unknown '%s' operator from token: '%s'\n", operator, token);
 			return qfalse;
 		}
 		MN_SetParam(param1, condition->type.opCode, &condition->leftValue, &condition->type.left);
@@ -262,7 +262,7 @@ qboolean MN_InitCondition (menuCondition_t *condition, const char *token)
 	/* prevent wrong code */
 	if (condition->type.left == condition->type.right
 		 && (condition->type.left == IF_VALUE_STRING || condition->type.left == IF_VALUE_FLOAT)) {
-		Com_Printf("MN_InitCondition: '%s' dont use any var operand.\n", token);
+		Com_Print("MN_InitCondition: '%s' dont use any var operand.\n", token);
 	}
 
 	return qtrue;

@@ -808,7 +808,7 @@ static int R_ParseStage(stage_t *s, const char **buffer){
 
 		if(*c == '}'){
 
-			Com_Dprintf("Parsed stage\n"
+			Com_Debug("Parsed stage\n"
 					"  flags: %d\n"
 					"  image: %s\n"
 					"  blend: %d %d\n"
@@ -870,7 +870,7 @@ void R_LoadMaterials(const char *map){
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_LoadFile(path, &buf)) < 1){
-		Com_Dprintf("Couldn't load %s\n", path);
+		Com_Debug("Couldn't load %s\n", path);
 		return;
 	}
 
@@ -995,7 +995,7 @@ void R_LoadMaterials(const char *map){
 		}
 
 		if(*c == '}' && inmaterial){
-			Com_Dprintf("Parsed material %s with %d stages\n",
+			Com_Debug("Parsed material %s with %d stages\n",
 					image->name, m->num_stages);
 			inmaterial = false;
 			image = NULL;

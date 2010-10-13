@@ -99,7 +99,7 @@ void Cl_LoadEmits(void){
 		if(*c == '}'){
 			entity = false;
 
-			Com_Dprintf("Closed entity %s\n", class);
+			Com_Debug("Closed entity %s\n", class);
 
 			if(emit){
 
@@ -202,7 +202,7 @@ void Cl_LoadEmits(void){
 
 				e->lighting.dirty = true;
 
-				Com_Dprintf("Added %d emit at %f %f %f\n", e->flags,
+				Com_Debug("Added %d emit at %f %f %f\n", e->flags,
 						e->org[0], e->org[1], e->org[2]);
 
 				num_emits++;

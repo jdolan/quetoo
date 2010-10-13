@@ -124,7 +124,7 @@ static void Svc_Status(void){
  * Svc_Ack
  */
 static void Svc_Ack(void){
-	Com_Printf("Ping acknowledge from %s\n", Net_NetaddrToString(net_from));
+	Com_Print("Ping acknowledge from %s\n", Net_NetaddrToString(net_from));
 }
 
 
@@ -232,7 +232,7 @@ static void Svc_Connect(void){
 	int qport;
 	int challenge;
 
-	Com_Dprintf("Svc_Connect()\n");
+	Com_Debug("Svc_Connect()\n");
 
 	addr = net_from;
 
@@ -254,25 +254,25 @@ static void Svc_Connect(void){
 	userinfo[sizeof(userinfo) - 1] = 0;
 
 	if(!strlen(userinfo)){  // catch empty userinfo
-		Com_Printf("Empty userinfo from %s\n", Net_NetaddrToString(addr));
+		Com_Print("Empty userinfo from %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
 
 	if(strchr(userinfo, '\xFF')){  // catch end of message in string exploit
-		Com_Printf("Illegal userinfo contained xFF from %s\n", Net_NetaddrToString(addr));
+		Com_Print("Illegal userinfo contained xFF from %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
 
 	if(strlen(Info_ValueForKey(userinfo, "ip"))){  // catch spoofed ips
-		Com_Printf("Illegal userinfo contained ip from %s\n", Net_NetaddrToString(addr));
+		Com_Print("Illegal userinfo contained ip from %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
 
 	if(!Info_Validate(userinfo)){  // catch otherwise invalid userinfo
-		Com_Printf("Invalid userinfo from %s\n", Net_NetaddrToString(addr));
+		Com_Print("Invalid userinfo from %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
@@ -330,7 +330,7 @@ static void Svc_Connect(void){
 	// no soup for you, next!!
 	if(!newcl){
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nServer is full.\n");
-		Com_Dprintf("Rejected a connection.\n");
+		Com_Debug("Rejected a connection.\n");
 		return;
 	}
 
@@ -348,7 +348,7 @@ static void Svc_Connect(void){
 									Info_ValueForKey(userinfo, "rejmsg"));
 		else
 			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
-		Com_Dprintf("Game rejected a connection.\n");
+		Com_Debug("Game rejected a connection.\n");
 		return;
 	}
 
@@ -400,14 +400,14 @@ static void Svc_RemoteCommand(void){
 	i = Sv_RconValidate();
 
 	if(i == 0)
-		Com_Printf("Bad rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
+		Com_Print("Bad rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
 	else
-		Com_Printf("Rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
+		Com_Print("Rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
 
 	Com_BeginRedirect(RD_PACKET, sv_outputbuf, SV_OUTPUTBUF_LENGTH, Sv_FlushRedirect);
 
 	if(i == 0){
-		Com_Printf("Bad rcon_password.\n");
+		Com_Print("Bad rcon_password.\n");
 	} else {
 		remaining[0] = 0;
 
@@ -442,7 +442,7 @@ static void Sv_ConnectionlessPacket(void){
 	Cmd_TokenizeString(s);
 
 	c = Cmd_Argv(0);
-	Com_Dprintf("Packet from %s: %s\n", Net_NetaddrToString(net_from), c);
+	Com_Debug("Packet from %s: %s\n", Net_NetaddrToString(net_from), c);
 
 	if(!strcmp(c, "ping"))
 		Svc_Ping();
@@ -459,7 +459,7 @@ static void Sv_ConnectionlessPacket(void){
 	else if(!strcmp(c, "rcon"))
 		Svc_RemoteCommand();
 	else
-		Com_Printf("Bad connectionless packet from %s:\n%s\n",
+		Com_Print("Bad connectionless packet from %s:\n%s\n",
 				Net_NetaddrToString(net_from), s);
 }
 
@@ -652,7 +652,7 @@ static void Sv_RunGameFrame(void){
 
 	// never get more than one tic behind
 	if(sv.time < svs.realtime){
-		Com_Dprintf("Sv_RunGameFrame: High clamp: +%dms\n", sv.time - svs.realtime);
+		Com_Debug("Sv_RunGameFrame: High clamp: +%dms\n", sv.time - svs.realtime);
 		svs.realtime = sv.time;
 	}
 }
@@ -685,7 +685,7 @@ void Sv_Frame(int msec){
 	if(!timedemo->value && svs.realtime < sv.time){
 		// never let the time get too far off
 		if(sv.time - svs.realtime > frame_millis){
-			Com_Dprintf("Sv_Frame: High clamp: +%dms.\n", (sv.time - svs.realtime - frame_millis));
+			Com_Debug("Sv_Frame: High clamp: +%dms.\n", (sv.time - svs.realtime - frame_millis));
 			svs.realtime = sv.time - frame_millis;
 		}
 		Net_Sleep(sv.time - svs.realtime);
@@ -753,7 +753,7 @@ void Sv_HeartbeatMasters(void){
 	// send to group master
 	for(i = 0; i < MAX_MASTERS; i++){
 		if(master_addr[i].port){
-			Com_Printf("Sending heartbeat to %s\n", Net_NetaddrToString(master_addr[i]));
+			Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(master_addr[i]));
 			Netchan_OutOfBandPrint(NS_SERVER, master_addr[i], "heartbeat\n%s", string);
 		}
 	}
@@ -777,7 +777,7 @@ static void Sv_ShutdownMasters(void){
 	// send to group master
 	for(i = 0; i < MAX_MASTERS; i++){
 		if(master_addr[i].port){
-			Com_Printf("Sending shutdown to %s\n", Net_NetaddrToString(master_addr[i]));
+			Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(master_addr[i]));
 			Netchan_OutOfBandPrint(NS_SERVER, master_addr[i], "shutdown");
 		}
 	}
@@ -834,19 +834,19 @@ void Sv_UserinfoChanged(sv_client_t *cl){
 	int i;
 
 	if(!strlen(cl->userinfo)){  // catch empty userinfo
-		Com_Printf("Empty userinfo from %s\n", Sv_NetaddrToString(cl));
+		Com_Print("Empty userinfo from %s\n", Sv_NetaddrToString(cl));
 		Sv_KickClient(cl, NULL);
 		return;
 	}
 
 	if(strchr(cl->userinfo, '\xFF')){  // catch end of message exploit
-		Com_Printf("Illegal userinfo contained xFF from %s\n", Sv_NetaddrToString(cl));
+		Com_Print("Illegal userinfo contained xFF from %s\n", Sv_NetaddrToString(cl));
 		Sv_KickClient(cl, NULL);
 		return;
 	}
 
 	if(!Info_Validate(cl->userinfo)){  // catch otherwise invalid userinfo
-		Com_Printf("Invalid userinfo from %s\n", Sv_NetaddrToString(cl));
+		Com_Print("Invalid userinfo from %s\n", Sv_NetaddrToString(cl));
 		Sv_KickClient(cl, NULL);
 		return;
 	}

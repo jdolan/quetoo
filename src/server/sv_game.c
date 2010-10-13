@@ -66,7 +66,7 @@ static void Sv_Printf(const char *fmt, ...){
 	vsprintf(msg, fmt, argptr);
 	va_end(argptr);
 
-	Com_Printf("%s", msg);
+	Com_Print("%s", msg);
 }
 
 
@@ -82,7 +82,7 @@ static void Sv_Dprintf(const char *fmt, ...){
 	vsprintf(msg, fmt, argptr);
 	va_end(argptr);
 
-	Com_Dprintf("%s", msg);
+	Com_Debug("%s", msg);
 }
 
 
@@ -112,7 +112,7 @@ static void Sv_Cprintf(edict_t *ent, int level, const char *fmt, ...){
 	if(ent)
 		Sv_ClientPrintf(svs.clients + (n - 1), level, "%s", msg);
 	else
-		Com_Printf("%s", msg);
+		Com_Print("%s", msg);
 }
 
 

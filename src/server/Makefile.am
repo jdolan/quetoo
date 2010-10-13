@@ -15,7 +15,7 @@ libserver_la_SOURCES = \
 	sv_world.c
 
 libserver_la_CFLAGS = \
-	-I.. \
+	-I.. -I../libs \
 	-pipe \
 	@WARN_CFLAGS@ \
 	@DEBUG_CFLAGS@ \

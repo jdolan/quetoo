@@ -150,7 +150,7 @@ static void Cl_WriteDemoHeader(void){
 	Fs_Write(&len, 4, 1, cls.demofile);
 	Fs_Write(buf.data, buf.cursize, 1, cls.demofile);
 
-	Com_Printf("Recording to %s.\n", demoname);
+	Com_Print("Recording to %s.\n", demoname);
 	// the rest of the demo file will be individual frames
 }
 
@@ -190,7 +190,7 @@ static void Cl_Stop_f(void){
 	int len;
 
 	if(!cls.demofile){
-		Com_Printf("Not recording a demo.\n");
+		Com_Print("Not recording a demo.\n");
 		return;
 	}
 
@@ -200,7 +200,7 @@ static void Cl_Stop_f(void){
 	Fs_CloseFile(cls.demofile);
 
 	cls.demofile = NULL;
-	Com_Printf("Stopped demo.\n");
+	Com_Print("Stopped demo.\n");
 
 	// inform server we're done recording
 	Cvar_ForceSet("recording", "0");
@@ -216,17 +216,17 @@ static void Cl_Stop_f(void){
  */
 static void Cl_Record_f(void){
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <demoname>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <demoname>\n", Cmd_Argv(0));
 		return;
 	}
 
 	if(cls.demofile){
-		Com_Printf("Already recording.\n");
+		Com_Print("Already recording.\n");
 		return;
 	}
 
 	if(cls.state != ca_active){
-		Com_Printf("You must be in a level to record.\n");
+		Com_Print("You must be in a level to record.\n");
 		return;
 	}
 
@@ -246,7 +246,7 @@ static void Cl_Record_f(void){
 	// update userinfo var to inform server to send angles
 	Cvar_ForceSet("recording", "1");
 
-	Com_Printf("Requesting demo support from server..\n");
+	Com_Print("Requesting demo support from server..\n");
 }
 
 
@@ -328,14 +328,14 @@ static void Cl_ForwardCmdToServer(void){
 	const char *cmd, *args;
 
 	if(cls.state <= ca_disconnected){
-		Com_Printf("Not connected.\n");
+		Com_Print("Not connected.\n");
 		return;
 	}
 
 	cmd = Cmd_Argv(0);
 
 	if(*cmd == '-' || *cmd == '+'){
-		Com_Printf("Unknown command \"%s\"\n", cmd);
+		Com_Print("Unknown command \"%s\"\n", cmd);
 		return;
 	}
 
@@ -387,7 +387,7 @@ static void Cl_SendConnect(void){
 	memset(&addr, 0, sizeof(addr));
 
 	if(!Net_StringToNetaddr(cls.servername, &addr)){
-		Com_Printf("Bad server address\n");
+		Com_Print("Bad server address\n");
 		cls.connect_time = 0;
 		return;
 	}
@@ -433,7 +433,7 @@ static void Cl_CheckForResend(void){
 		return;
 
 	if(!Net_StringToNetaddr(cls.servername, &addr)){
-		Com_Printf("Bad server address\n");
+		Com_Print("Bad server address\n");
 		cls.state = ca_disconnected;
 		return;
 	}
@@ -450,7 +450,7 @@ static void Cl_CheckForResend(void){
 
 	cls.connect_time = cls.realtime;  // for retransmit requests
 
-	Com_Printf("Connecting to %s...\n", cls.servername);
+	Com_Print("Connecting to %s...\n", cls.servername);
 
 	Netchan_OutOfBandPrint(NS_CLIENT, addr, "getchallenge\n");
 }
@@ -464,7 +464,7 @@ static void Cl_Connect_f(void){
 	const char *s;
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <address>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -505,7 +505,7 @@ static void Cl_Rcon_f(void){
 	netaddr_t to;
 
 	if(!rcon_password->string){
-		Com_Printf("No rcon_password set.\n");
+		Com_Print("No rcon_password set.\n");
 		return;
 	}
 
@@ -530,7 +530,7 @@ static void Cl_Rcon_f(void){
 		to = cls.netchan.remote_address;
 	else {
 		if(!strlen(rcon_address->string)){
-			Com_Printf("Not connected and no rcon_address set.\n");
+			Com_Print("Not connected and no rcon_address set.\n");
 			return;
 		}
 		Net_StringToNetaddr(rcon_address->string, &to);
@@ -605,7 +605,7 @@ void Cl_Disconnect(void){
 
 		const float s = (cls.realtime - cl.timedemo_start) / 1000.0;
 
-		Com_Printf("%i frames, %3.2f seconds: %4.2ffps\n",
+		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n",
 				cl.timedemo_frames, s, cl.timedemo_frames / s);
 
 		cl.timedemo_frames = cl.timedemo_start = 0;
@@ -651,7 +651,7 @@ void Cl_Reconnect_f(void){
 		reconnect = !cl.demoserver;  // don't reconnect to demos
 
 		if(cls.state >= ca_connecting){
-			Com_Printf("Disconnecting...\n");
+			Com_Print("Disconnecting...\n");
 			Cl_Disconnect();
 		}
 
@@ -661,7 +661,7 @@ void Cl_Reconnect_f(void){
 		cls.connect_time = -99999;  // fire immediately
 		cls.state = ca_connecting;
 	}
-	else Com_Printf("No server to reconnect to\n");
+	else Com_Print("No server to reconnect to\n");
 }
 
 
@@ -684,13 +684,13 @@ static void Cl_ConnectionlessPacket(void){
 
 	c = Cmd_Argv(0);
 
-	Com_Dprintf("%s: %s\n", Net_NetaddrToString(net_from), c);
+	Com_Debug("%s: %s\n", Net_NetaddrToString(net_from), c);
 
 	// server connection
 	if(!strcmp(c, "client_connect")){
 
 		if(cls.state == ca_connected){
-			Com_Printf("Dup connect received.  Ignored.\n");
+			Com_Print("Dup connect received.  Ignored.\n");
 			return;
 		}
 
@@ -715,7 +715,7 @@ static void Cl_ConnectionlessPacket(void){
 	// print command from somewhere
 	if(!strcmp(c, "print")){
 		s = Msg_ReadString(&net_message);
-		Com_Printf("%s", s);
+		Com_Print("%s", s);
 		return;
 	}
 
@@ -734,7 +734,7 @@ static void Cl_ConnectionlessPacket(void){
 	// challenge from the server we are connecting to
 	if(!strcmp(c, "challenge")){
 		if(cls.state != ca_connecting){
-			Com_Printf("Dup challenge received.  Ignored.\n");
+			Com_Print("Dup challenge received.  Ignored.\n");
 			return;
 		}
 		cls.challenge = atoi(Cmd_Argv(1));
@@ -765,13 +765,13 @@ static void Cl_ReadPackets(void){
 			continue;  // dump it if not connected
 
 		if(net_message.cursize < 8){
-			Com_Dprintf("%s: Runt packet.\n", Net_NetaddrToString(net_from));
+			Com_Debug("%s: Runt packet.\n", Net_NetaddrToString(net_from));
 			continue;
 		}
 
 		// packet from server
 		if(!Net_CompareNetaddr(net_from, cls.netchan.remote_address)){
-			Com_Dprintf("%s: Sequenced packet without connection.\n",
+			Com_Debug("%s: Sequenced packet without connection.\n",
 					Net_NetaddrToString(net_from));
 			continue;
 		}
@@ -784,7 +784,7 @@ static void Cl_ReadPackets(void){
 
 	// check timeout
 	if(cls.state >= ca_connected && cls.realtime - cls.netchan.last_received > cl_timeout->value * 1000){
-		Com_Printf("%s: Timed out.\n", Net_NetaddrToString(net_from));
+		Com_Print("%s: Timed out.\n", Net_NetaddrToString(net_from));
 		Cl_Disconnect();
 	}
 }

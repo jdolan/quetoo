@@ -36,7 +36,7 @@ static void Sv_SetMaster_f(void){
 
 	// only dedicated servers send heartbeats
 	if(!dedicated->value){
-		Com_Printf("Only dedicated servers use masters.\n");
+		Com_Print("Only dedicated servers use masters.\n");
 		return;
 	}
 
@@ -52,13 +52,13 @@ static void Sv_SetMaster_f(void){
 			break;
 
 		if(!Net_StringToNetaddr(Cmd_Argv(i), &master_addr[i])){
-			Com_Printf("Bad address: %s\n", Cmd_Argv(i));
+			Com_Print("Bad address: %s\n", Cmd_Argv(i));
 			continue;
 		}
 		if(master_addr[slot].port == 0)
 			master_addr[slot].port = BigShort(PORT_MASTER);
 
-		Com_Printf("Master server at %s\n", Net_NetaddrToString(master_addr[slot]));
+		Com_Print("Master server at %s\n", Net_NetaddrToString(master_addr[slot]));
 		Netchan_OutOfBandPrint(NS_SERVER, master_addr[slot], "ping");
 
 		slot++;
@@ -96,14 +96,14 @@ static qboolean Sv_SetPlayer(void){
 	if(s[0] >= '0' && s[0] <= '9'){
 		idnum = atoi(Cmd_Argv(1));
 		if(idnum < 0 || idnum >= sv_maxclients->value){
-			Com_Printf("Bad client slot: %i\n", idnum);
+			Com_Print("Bad client slot: %i\n", idnum);
 			return false;
 		}
 
 		sv_client = &svs.clients[idnum];
 		sv_player = sv_client->edict;
 		if(!sv_client->state){
-			Com_Printf("Client %i is not active\n", idnum);
+			Com_Print("Client %i is not active\n", idnum);
 			return false;
 		}
 		return true;
@@ -120,7 +120,7 @@ static qboolean Sv_SetPlayer(void){
 		}
 	}
 
-	Com_Printf("Userid %s is not on the server\n", s);
+	Com_Print("Userid %s is not on the server\n", s);
 	return false;
 }
 
@@ -134,7 +134,7 @@ static void Sv_Demo_f(void){
 	char demo[MAX_QPATH];
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <demo>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <demo>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -150,7 +150,7 @@ static void Sv_Demo_f(void){
 static void Sv_Map_f(void){
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <map>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <map>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -167,12 +167,12 @@ static void Sv_Map_f(void){
 static void Sv_Kick_f(void){
 
 	if(!svs.initialized){
-		Com_Printf("No server running.\n");
+		Com_Print("No server running.\n");
 		return;
 	}
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <userid>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <userid>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -194,45 +194,45 @@ static void Sv_Status_f(void){
 	int ping;
 
 	if(!svs.initialized){
-		Com_Printf("No server running.\n");
+		Com_Print("No server running.\n");
 		return;
 	}
 
-	Com_Printf("map: %s\n", sv.name);
-	Com_Printf("num score ping name            lastmsg exts address               qport \n");
-	Com_Printf("--- ----- ---- --------------- ------- ---- --------------------- ------\n");
+	Com_Print("map: %s\n", sv.name);
+	Com_Print("num score ping name            lastmsg exts address               qport \n");
+	Com_Print("--- ----- ---- --------------- ------- ---- --------------------- ------\n");
 	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
 		if(!cl->state)
 			continue;
-		Com_Printf("%3i ", i);
-		Com_Printf("%5i ", cl->edict->client->ps.stats[STAT_FRAGS]);
+		Com_Print("%3i ", i);
+		Com_Print("%5i ", cl->edict->client->ps.stats[STAT_FRAGS]);
 
 		if(cl->state == cs_connected)
-			Com_Printf("CNCT ");
+			Com_Print("CNCT ");
 		else {
 			ping = cl->ping < 9999 ? cl->ping : 9999;
-			Com_Printf("%4i ", ping);
+			Com_Print("%4i ", ping);
 		}
 
-		Com_Printf("%s", cl->name);
+		Com_Print("%s", cl->name);
 		l = 16 - strlen(cl->name);
 		for(j = 0; j < l; j++)
-			Com_Printf(" ");
+			Com_Print(" ");
 
-		Com_Printf("%7i ", svs.realtime - cl->lastmessage);
-		Com_Printf("%d   ", (int)cl->extensions);
+		Com_Print("%7i ", svs.realtime - cl->lastmessage);
+		Com_Print("%d   ", (int)cl->extensions);
 
 		s = Net_NetaddrToString(cl->netchan.remote_address);
-		Com_Printf("%s", s);
+		Com_Print("%s", s);
 		l = 22 - strlen(s);
 		for(j = 0; j < l; j++)
-			Com_Printf(" ");
+			Com_Print(" ");
 
-		Com_Printf("%5i", cl->netchan.qport);
+		Com_Print("%5i", cl->netchan.qport);
 
-		Com_Printf("\n");
+		Com_Print("\n");
 	}
-	Com_Printf("Zlib: %d bytes saved\n", zlib_accum);
+	Com_Print("Zlib: %d bytes saved\n", zlib_accum);
 }
 
 
@@ -264,7 +264,7 @@ static void Sv_Say_f(void){
 		Sv_ClientPrintf(client, PRINT_CHAT, "%s\n", text);
 	}
 
-	Com_Printf("%s\n", text);
+	Com_Print("%s\n", text);
 }
 
 
@@ -274,11 +274,11 @@ static void Sv_Say_f(void){
 static void Sv_Serverinfo_f(void){
 
 	if(!svs.initialized){
-		Com_Printf("No server running.\n");
+		Com_Print("No server running.\n");
 		return;
 	}
 
-	Com_Printf("Server info settings:\n");
+	Com_Print("Server info settings:\n");
 	Com_PrintInfo(Cvar_Serverinfo());
 }
 
@@ -289,12 +289,12 @@ static void Sv_Serverinfo_f(void){
 static void Sv_Userinfo_f(void){
 
 	if(!svs.initialized){
-		Com_Printf("No server running.\n");
+		Com_Print("No server running.\n");
 		return;
 	}
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <userid>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <userid>\n", Cmd_Argv(0));
 		return;
 	}
 

@@ -24,13 +24,6 @@
 #include "client.h"
 #include "ui/ui_input.h"
 
-static key_state_t *ks = &cls.key_state;
-
-typedef struct {
-	const char *name;
-	int keynum;
-} keyname_t;
-
 keyname_t keynames[] = {
 	{"TAB", K_TAB},
 	{"ENTER", K_ENTER},
@@ -111,10 +104,12 @@ keyname_t keynames[] = {
 
 	{"PAUSE", K_PAUSE},
 
-	{"SEMICOLON", ';'},  // because a raw semicolon seperates commands
+	{"SEMICOLON", ';'},  // because a raw semicolon separates commands
 
 	{NULL, 0}
 };
+
+static key_state_t *ks = &cls.key_state;
 
 
 /*
@@ -138,7 +133,7 @@ static void Cl_KeyConsole(unsigned key, unsigned short unicode, qboolean down, u
 			Cbuf_AddText(ks->lines[ks->edit_line] + 1);  // valid command
 
 		Cbuf_AddText("\n");
-		Com_Printf("%s\n", ks->lines[ks->edit_line]);
+		Com_Print("%s\n", ks->lines[ks->edit_line]);
 
 		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORYSIZE;
 		ks->history_line = ks->edit_line;
@@ -476,13 +471,13 @@ static void Cl_Unbind_f(void){
 	int b;
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <key> : remove commands from a key\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <key> : remove commands from a key\n", Cmd_Argv(0));
 		return;
 	}
 
 	b = Cl_StringToKeynum(Cmd_Argv(1));
 	if(b == -1){
-		Com_Printf("\"%s\" isn't a valid key\n", Cmd_Argv(1));
+		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
 		return;
 	}
 
@@ -512,20 +507,20 @@ static void Cl_Bind_f(void){
 	c = Cmd_Argc();
 
 	if(c < 2){
-		Com_Printf("Usage: %s <key> [command] : attach a command to a key\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <key> [command] : attach a command to a key\n", Cmd_Argv(0));
 		return;
 	}
 	b = Cl_StringToKeynum(Cmd_Argv(1));
 	if(b == -1){
-		Com_Printf("\"%s\" isn't a valid key\n", Cmd_Argv(1));
+		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
 		return;
 	}
 
 	if(c == 2){
 		if(ks->binds[b])
-			Com_Printf("\"%s\" = \"%s\"\n", Cmd_Argv(1), ks->binds[b]);
+			Com_Print("\"%s\" = \"%s\"\n", Cmd_Argv(1), ks->binds[b]);
 		else
-			Com_Printf("\"%s\" is not bound\n", Cmd_Argv(1));
+			Com_Print("\"%s\" is not bound\n", Cmd_Argv(1));
 		return;
 	}
 
@@ -563,7 +558,7 @@ static void Cl_Bindlist_f(void){
 
 	for(i = K_FIRST; i < K_LAST; i++)
 		if(ks->binds[i] && ks->binds[i][0])
-			Com_Printf("%s \"%s\"\n", Cl_KeynumToString(i), ks->binds[i]);
+			Com_Print("%s \"%s\"\n", Cl_KeynumToString(i), ks->binds[i]);
 }
 
 
@@ -730,7 +725,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 
 		Cvar_Set("timescale", va("%f", ts));
 
-		Com_Printf("Demo playback rate %d%%\n", (int)((ts / 1.0) * 100));
+		Com_Print("Demo playback rate %d%%\n", (int)((ts / 1.0) * 100));
 		return;
 	}
 
@@ -753,7 +748,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 			Cl_KeyConsole(key, unicode, down, time);
 			break;
 		default:
-			Com_Dprintf("Cl_KeyEvent: Bad cls.key_dest: %d.\n", cls.key_dest);
+			Com_Debug("Cl_KeyEvent: Bad cls.key_dest: %d.\n", cls.key_dest);
 			break;
 	}
 }

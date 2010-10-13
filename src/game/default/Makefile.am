@@ -30,12 +30,13 @@ game_la_CFLAGS = \
 	@SO_CFLAGS@ \
 	-pipe \
 	-I../.. \
+	-I../../libs \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@ \
 	@MYSQL_CFLAGS@
 
 game_la_LIBADD = \
-	../../libshared.la \
+	../../libs/libshared.la \
 	@MYSQL_LIBS@
 
 game_la_LDFLAGS = \

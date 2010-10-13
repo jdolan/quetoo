@@ -34,7 +34,7 @@ renderer_threadstate_t r_threadstate;
  */
 int R_RunThread(void *p){
 
-	Com_Dprintf("R_RunThread: %d\n", SDL_ThreadID());
+	Com_Debug("R_RunThread: %d\n", SDL_ThreadID());
 
 	while(r_threads->value){
 

@@ -23,6 +23,11 @@
 #define __FILESYSTEM_H__
 
 #include "common.h"
+#include "cmd.h"
+#include "cvar.h"
+#include "hash.h"
+#include "pak.h"
+#include "sys.h"
 
 void Fs_Init(void);
 void Fs_SetGamedir(const char *dir);

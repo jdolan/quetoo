@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "ui_node_vscrollbar.h"
 
 #include "client.h"
-#include "keys.h"
+#include "cl_keys.h"
 
 static const int TILE_WIDTH = 32;
 static const int TILE_HEIGHT = 18;
@@ -193,17 +193,17 @@ static void MN_ActiveVScrollbarNode_f ()
 	int actionId;
 
 	if (Cmd_Argc() != 3) {
-		Com_Printf("Usage: %s <node-path> <action-id>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <node-path> <action-id>\n", Cmd_Argv(0));
 		return;
 	}
 
 	node = MN_GetNodeByPath(Cmd_Argv(1));
 	if (node == NULL) {
-		Com_Printf("MN_ActiveVScrollbarNode_f: node '%s' not found\n", Cmd_Argv(1));
+		Com_Print("MN_ActiveVScrollbarNode_f: node '%s' not found\n", Cmd_Argv(1));
 		return;
 	}
 	if (!MN_NodeInstanceOf(node, "vscrollbar")) {
-		Com_Printf("MN_ActiveVScrollbarNode_f: node '%s' is not a 'vscrollbar'\n", Cmd_Argv(1));
+		Com_Print("MN_ActiveVScrollbarNode_f: node '%s' is not a 'vscrollbar'\n", Cmd_Argv(1));
 		return;
 	}
 
@@ -413,7 +413,7 @@ static void MN_VScrollbarNodeLoaded (menuNode_t *node)
 {
 #ifdef DEBUG
 	if (node->size[1] - (ELEMENT_HEIGHT * 4) < 0)
-		Com_DPrintf(DEBUG_CLIENT, "Node '%s' too small. It can create graphical glitches\n", MN_GetPath(node));
+		Com_Debug("Node '%s' too small. It can create graphical glitches\n", MN_GetPath(node));
 #endif
 }
 

@@ -163,7 +163,7 @@ void Cl_CenterPrint(char *str){
 		s++;
 	}
 
-	Com_Printf("%s", str);
+	Com_Print("%s", str);
 
 	Cl_ClearNotify();
 }
@@ -499,7 +499,7 @@ static void Cl_DrawCrosshair(void){
 		image = R_LoadPic(crosshair.name);
 
 		if(image == r_notexture){
-			Com_Printf("Couldn't load pics/ch%d.\n", (int)cl_crosshair->value);
+			Com_Print("Couldn't load pics/ch%d.\n", (int)cl_crosshair->value);
 			return;
 		}
 

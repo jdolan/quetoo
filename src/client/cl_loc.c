@@ -60,7 +60,7 @@ void Cl_LoadLocations(void){
 	strcpy(filename + strlen(filename) - 3, "loc");
 
 	if(Fs_OpenFile(filename, &f, FILE_READ) == -1){
-		Com_Dprintf("Couldn't load %s\n", filename);
+		Com_Debug("Couldn't load %s\n", filename);
 		return;
 	}
 
@@ -77,7 +77,7 @@ void Cl_LoadLocations(void){
 		i++;
 	}
 
-	Com_Printf("Loaded %i locations.\n", numlocations);
+	Com_Print("Loaded %i locations.\n", numlocations);
 	Fs_CloseFile(f);
 }
 
@@ -107,7 +107,7 @@ static void Cl_SaveLocations_f(void){
 		);
 	}
 
-	Com_Printf("Saved %d locations.\n", numlocations);
+	Com_Print("Saved %d locations.\n", numlocations);
 	Fs_CloseFile(f);
 }
 
@@ -193,7 +193,7 @@ static void Cl_AddLocation(const vec3_t nearto, const char *desc){
 static void Cl_AddLocation_f(void){
 
 	if(Cmd_Argc() < 2){
-		Com_Printf("Usage: %s <description>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <description>\n", Cmd_Argv(0));
 		return;
 	}
 

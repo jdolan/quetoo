@@ -23,6 +23,8 @@
 #ifndef __HASH_H__
 #define __HASH_H__
 
+#include "mem.h"
+
 // hashtable implementation
 #define HASHBINS 512
 

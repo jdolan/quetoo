@@ -47,7 +47,7 @@ void Cl_CheckPredictionError(void){
 		VectorClear(cl.prediction_error);
 	} else {  // save the prediction error for interpolation
 		if(cl_showmiss->value && (delta[0] || delta[1] || delta[2]))
-			Com_Printf("Prediction miss on %i: %3.2f %3.2f %3.2f\n", cl.frame.serverframe,
+			Com_Print("Prediction miss on %i: %3.2f %3.2f %3.2f\n", cl.frame.serverframe,
 						fdelta[0], fdelta[1], fdelta[2]);
 
 		VectorCopy(cl.frame.playerstate.pmove.origin, cl.predicted_origins[frame]);

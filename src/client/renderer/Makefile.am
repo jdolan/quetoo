@@ -1,5 +1,4 @@
 noinst_HEADERS = \
-	../../images.h \
 	r_gl.h \
 	r_image.h \
 	r_material.h \
@@ -40,14 +39,13 @@ librenderer_la_SOURCES = \
 	r_thread.c
 
 librenderer_la_CFLAGS = \
-	-I.. -I../.. \
+	-I.. -I../.. -I../../libs \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@ \
 	@WARN_CFLAGS@
 	
-#librenderer_la_LIBADD = \
-#	../../libimages.la
-
+librenderer_la_LIBADD = \
+	../../libs/libimages.la
 endif

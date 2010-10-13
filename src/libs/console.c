@@ -26,27 +26,14 @@
  */
 
 #include "console.h"
+#include "curses.h"
 
 consoledata_t condata;
 
 #ifdef BUILD_CLIENT
-
 extern console_t cl_con;
-extern cvar_t *dedicated;
-
 extern void Cl_UpdateNotify(int lastline);
 extern void Cl_ClearNotify(void);
-
-#endif
-
-#ifdef HAVE_CURSES
-
-#include "curses.h"
-
-console_t sv_con;
-cvar_t *con_curses;
-cvar_t *con_timeout;
-
 #endif
 
 cvar_t *ansi;
@@ -214,7 +201,7 @@ static void Con_Dump_f(void){
 	char *pos;
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <filename>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <filename>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -235,7 +222,7 @@ static void Con_Dump_f(void){
 			pos++;
 		}
 		fclose(f);
-		Com_Printf("Dumped console text to %s.\n", name);
+		Com_Print("Dumped console text to %s.\n", name);
 	}
 }
 
@@ -384,7 +371,7 @@ void Con_Print(const char *text){
 	condata.insert += strlen(text);
 
 #ifdef HAVE_CURSES
-	if (con_curses && !con_curses->value){
+	if (!con_curses->value){
 		// print output to stdout
 		Con_PrintStdOut(text);
 	} else {
@@ -491,12 +478,6 @@ void Con_Init(void){
 #endif
 
 #ifdef HAVE_CURSES
-	if (dedicated && dedicated->value) {
-		con_curses = Cvar_Get("con_curses", "1", CVAR_NOSET, NULL);
-	} else {
-		con_curses = Cvar_Get("con_curses", "0", CVAR_NOSET, NULL);
-	}
-	con_timeout = Cvar_Get("con_timeout", "20", CVAR_ARCHIVE, NULL);
 	Curses_Init();
 #endif
 

@@ -98,7 +98,7 @@ static void MN_ResetData_f (void)
 		const char *menuTextID = Cmd_Argv(1);
 		const int id = MN_GetDataIDByName(menuTextID);
 		if (id < 0)
-			Com_Printf("%s: invalid mn.menuText ID: %s\n", Cmd_Argv(0), menuTextID);
+			Com_Print("%s: invalid mn.menuText ID: %s\n", Cmd_Argv(0), menuTextID);
 		else
 			MN_ResetData(id);
 	} else {

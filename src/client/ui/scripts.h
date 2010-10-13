@@ -42,7 +42,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define Vector2Set(v, x, y)     ((v)[0]=(x), (v)[1]=(y))
 #define Vector2Copy(v2, v1)     ((v1)[0]=(v2)[0], (v1)[1]=(v2)[2])
 #define Vector4Set(v, a, b, c, d)     ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d))
-#define Com_DPrintf(level, ...) Com_Dprintf(__VA_ARGS__)
 #define Com_sprintf(dest, size, ...) snprintf(dest, size, __VA_ARGS__)
 
 #define mousePosX (cls.mouse_state.x / r_state.rx)

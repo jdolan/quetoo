@@ -209,7 +209,7 @@ void MN_HideNode (menuNode_t* node)
 	if (node)
 		node->invis = qtrue;
 	else
-		Com_Printf("MN_HideNode: No node given\n");
+		Com_Print("MN_HideNode: No node given\n");
 }
 
 /**
@@ -221,7 +221,7 @@ static void MN_HideNode_f (void)
 	if (Cmd_Argc() == 2)
 		MN_HideNode(MN_GetNode(MN_GetActiveMenu(), Cmd_Argv(1)));
 	else
-		Com_Printf("Usage: %s <node>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <node>\n", Cmd_Argv(0));
 }
 
 /**
@@ -233,7 +233,7 @@ void MN_UnHideNode (menuNode_t* node)
 	if (node)
 		node->invis = qfalse;
 	else
-		Com_Printf("MN_UnHideNode: No node given\n");
+		Com_Print("MN_UnHideNode: No node given\n");
 }
 
 /**
@@ -245,7 +245,7 @@ static void MN_UnHideNode_f (void)
 	if (Cmd_Argc() == 2)
 		MN_UnHideNode(MN_GetNode(MN_GetActiveMenu(), Cmd_Argv(1)));
 	else
-		Com_Printf("Usage: %s <node>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <node>\n", Cmd_Argv(0));
 }
 
 /**
@@ -333,7 +333,7 @@ qboolean MN_NodeSetProperty (menuNode_t* node, const value_t *property, const ch
 			break;
 		result = Com_ParseValue(node, value, property->type, property->ofs, property->size, &bytes);
 		if (result != RESULT_OK) {
-			Com_Printf("MN_NodeSetProperty: Invalid value for property '%s': %s\n", property->string, Com_GetLastParseError());
+			Com_Print("MN_NodeSetProperty: Invalid value for property '%s': %s\n", property->string, Com_GetLastParseError());
 			return qfalse;
 		}
 		return qtrue;
@@ -346,7 +346,7 @@ qboolean MN_NodeSetProperty (menuNode_t* node, const value_t *property, const ch
 
 				result = Com_ParseValue(&f, value, V_FLOAT, 0, sizeof(f), &bytes);
 				if (result != RESULT_OK) {
-					Com_Printf("MN_NodeSetProperty: Invalid value for property '%s': %s\n", property->string, Com_GetLastParseError());
+					Com_Print("MN_NodeSetProperty: Invalid value for property '%s': %s\n", property->string, Com_GetLastParseError());
 					return qfalse;
 				}
 
@@ -367,7 +367,7 @@ qboolean MN_NodeSetProperty (menuNode_t* node, const value_t *property, const ch
 		}
 	}
 
-	Com_Printf("MN_NodeSetProperty: Unimplemented type for property '%s@%s'\n", MN_GetPath(node), property->string);
+	Com_Print("MN_NodeSetProperty: Unimplemented type for property '%s@%s'\n", MN_GetPath(node), property->string);
 	return qfalse;
 }
 
@@ -420,9 +420,9 @@ float MN_GetFloatFromNodeProperty (const menuNode_t* node, const value_t* proper
 		return *(const qboolean *) b;
 	} else {
 #ifdef DEBUG
-		Com_Printf("MN_GetFloatFromNodeProperty: Unimplemented float getter for property '%s@%s'. If it should return a float, request it.\n", MN_GetPath(node), property->string);
+		Com_Print("MN_GetFloatFromNodeProperty: Unimplemented float getter for property '%s@%s'. If it should return a float, request it.\n", MN_GetPath(node), property->string);
 #else
-		Com_Printf("MN_GetFloatFromNodeProperty: Property '%s@%s' can't return a float\n", MN_GetPath(node), property->string);
+		Com_Print("MN_GetFloatFromNodeProperty: Property '%s@%s' can't return a float\n", MN_GetPath(node), property->string);
 #endif
 	}
 
@@ -441,32 +441,32 @@ static void MN_NodeGetProperty_f (void)
 	float fValue;
 
 	if (Cmd_Argc() != 2) {
-		Com_Printf("Usage: %s <nodepath@prop>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <nodepath@prop>\n", Cmd_Argv(0));
 		return;
 	}
 
 	MN_ReadNodePath(Cmd_Argv(1), NULL, &node, &property);
 
 	if (node == NULL) {
-		Com_Printf("MN_NodeGetProperty_f: Node from path '%s' doesn't exist\n", Cmd_Argv(1));
+		Com_Print("MN_NodeGetProperty_f: Node from path '%s' doesn't exist\n", Cmd_Argv(1));
 		return;
 	}
 
 	if (property == NULL) {
-		Com_Printf("MN_NodeGetProperty_f: Property from path '%s' doesn't exist\n", Cmd_Argv(1));
+		Com_Print("MN_NodeGetProperty_f: Property from path '%s' doesn't exist\n", Cmd_Argv(1));
 		return;
 	}
 
 	/* check string value */
 	sValue = MN_GetStringFromNodeProperty(node, property);
 	if (sValue) {
-		Com_Printf("\"%s\" is \"%s\"\n", Cmd_Argv(1), sValue);
+		Com_Print("\"%s\" is \"%s\"\n", Cmd_Argv(1), sValue);
 		return;
 	}
 
 	/* check float value */
 	fValue = MN_GetFloatFromNodeProperty(node, property);
-	Com_Printf("\"%s\" is \"%f\"\n", Cmd_Argv(1), fValue);
+	Com_Print("\"%s\" is \"%f\"\n", Cmd_Argv(1), fValue);
 }
 
 /**
@@ -479,19 +479,19 @@ static void MN_NodeSetProperty_f (void)
 	const value_t *property;
 
 	if (Cmd_Argc() != 4) {
-		Com_Printf("Usage: %s <nodepath> <prop> <value>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <nodepath> <prop> <value>\n", Cmd_Argv(0));
 		return;
 	}
 
 	node = MN_GetNodeByPath(Cmd_Argv(1));
 	if (!node) {
-		Com_Printf("MN_NodeSetProperty_f: Node '%s' not found\n", Cmd_Argv(1));
+		Com_Print("MN_NodeSetProperty_f: Node '%s' not found\n", Cmd_Argv(1));
 		return;
 	}
 
 	property = MN_GetPropertyFromBehaviour(node->behaviour, Cmd_Argv(2));
 	if (!property) {
-		Com_Printf("Property '%s@%s' doesn't exist\n", MN_GetPath(node), Cmd_Argv(2));
+		Com_Print("Property '%s@%s' doesn't exist\n", MN_GetPath(node), Cmd_Argv(2));
 		return;
 	}
 

@@ -16,26 +16,9 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-/*
- * curses.c
- *
- * Functions for the curses console
- */
-
-#include "config.h"
+#include "curses.h"
 
 #ifdef HAVE_CURSES
-
-#include <signal.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "common.h"
-#include "console.h"
-
-#define CURSES_HISTORYSIZE 64
-#define CURSES_LINESIZE 1024
-#define CURSES_TIMEOUT 250	// 250 msec redraw timeout
 
 static WINDOW *stdwin;	// ncurses standard window
 
@@ -45,6 +28,9 @@ static int inputline;
 static int inputpos;
 
 console_t sv_con;
+
+cvar_t *con_curses;
+cvar_t *con_timeout;
 
 static char versionstring[32];
 
@@ -310,7 +296,7 @@ void Curses_Frame(int msec){
 					snprintf(buf, CURSES_LINESIZE - 2,"%s\n", input[historyline] + 1);
 				else
 					snprintf(buf, CURSES_LINESIZE - 1,"%s\n", input[historyline]);
-				Com_Printf("]%s\n", input[historyline]);
+				Com_Print("]%s\n", input[historyline]);
 				Cmd_ExecuteString(buf);
 
 				if (historyline == inputline)
@@ -369,9 +355,18 @@ void Curses_Frame(int msec){
  * Initialize the curses console
  */
 void Curses_Init(void){
-	sv_con.initialized = false;
 
-	if(con_curses && !con_curses->value)
+	memset(&sv_con, 0, sizeof(sv_con));
+
+	if (dedicated && dedicated->value) {
+		con_curses = Cvar_Get("con_curses", "1", CVAR_NOSET, NULL);
+	} else {
+		con_curses = Cvar_Get("con_curses", "0", CVAR_NOSET, NULL);
+	}
+
+	con_timeout = Cvar_Get("con_timeout", "20", CVAR_ARCHIVE, NULL);
+
+	if (!con_curses->value)
 		return;
 
 	stdwin = initscr();		// initialize the ncurses window

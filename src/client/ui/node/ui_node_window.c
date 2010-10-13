@@ -117,7 +117,7 @@ static void MN_WindowNodeDraw (menuNode_t *node)
 			node->lastTime = cls.realtime;
 		if (node->lastTime + node->timeOut < cls.realtime) {
 			node->lastTime = 0;	/**< allow to reset timeOut on the event, and restart it, with an uptodate lastTime */
-			Com_DPrintf(DEBUG_CLIENT, "MN_DrawMenus: timeout for node '%s'\n", node->name);
+			Com_Debug("MN_DrawMenus: timeout for node '%s'\n", node->name);
 			MN_ExecuteEventActions(node, node->u.window.onTimeOut);
 		}
 	}
@@ -294,7 +294,7 @@ static void MN_WindowNodeLoaded (menuNode_t *node)
 
 #ifdef DEBUG
 	if (node->size[0] < LEFT_WIDTH + MID_WIDTH + RIGHT_WIDTH || node->size[1] < TOP_HEIGHT + MID_HEIGHT + BOTTOM_HEIGHT)
-		Com_DPrintf(DEBUG_CLIENT, "Node '%s' too small. It can create graphical bugs\n", node->name);
+		Com_Debug("Node '%s' too small. It can create graphical bugs\n", node->name);
 #endif
 }
 

@@ -22,8 +22,7 @@
 #ifndef __PAK_H__
 #define __PAK_H__
 
-#include "common.h"
-#include "hash.h"
+#include "filesystem.h"
 
 #define ERR_OK   0
 #define ERR_DIR -1

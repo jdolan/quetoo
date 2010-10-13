@@ -133,38 +133,38 @@ void R_ListImages_f(void){
 
 		switch(image->type){
 			case it_chars:
-				Com_Printf("C");
+				Com_Print("C");
 				break;
 			case it_effect:
-				Com_Printf("E");
+				Com_Print("E");
 				break;
 			case it_world:
-				Com_Printf("W");
+				Com_Print("W");
 				break;
 			case it_normalmap:
-				Com_Printf("N");
+				Com_Print("N");
 				break;
 			case it_material:
-				Com_Printf("M");
+				Com_Print("M");
 				break;
 			case it_sky:
-				Com_Printf("K");
+				Com_Print("K");
 				break;
 			case it_skin:
-				Com_Printf("S");
+				Com_Print("S");
 				break;
 			case it_pic:
-				Com_Printf("P");
+				Com_Print("P");
 				break;
 			default:
-				Com_Printf(" ");
+				Com_Print(" ");
 				break;
 		}
 
-		Com_Printf(" %4ix%4i: %s\n",
+		Com_Print(" %4ix%4i: %s\n",
 					   image->upload_width, image->upload_height, image->name);
 	}
-	Com_Printf("Total texel count (not counting mipmaps or lightmaps): %i\n", texels);
+	Com_Print("Total texel count (not counting mipmaps or lightmaps): %i\n", texels);
 }
 
 
@@ -212,7 +212,7 @@ void R_Screenshot_f(void){
 		Fs_CloseFile(f);
 	}
 	if(i == 100){
-		Com_Printf( "R_Screenshot_f: Couldn't create a file\n");
+		Com_Print( "R_Screenshot_f: Couldn't create a file\n");
 		return;
 	}
 
@@ -234,7 +234,7 @@ void R_Screenshot_f(void){
 	(*Img_Write)(checkname, buffer, r_state.width, r_state.height, quality);
 
 	Z_Free(buffer);
-	Com_Printf("Saved %s\n", picname);
+	Com_Print("Saved %s\n", picname);
 }
 
 
@@ -588,7 +588,7 @@ image_t *R_LoadImage(const char *name, imagetype_t type){
 		}
 	}
 	else {
-		Com_Dprintf("R_LoadImage: Couldn't load %s\n", n);
+		Com_Debug("R_LoadImage: Couldn't load %s\n", n);
 		image = r_notexture;
 	}
 

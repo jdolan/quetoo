@@ -277,14 +277,14 @@ void R_ListModels_f(void){
 	int total;
 
 	total = 0;
-	Com_Printf("Loaded models:\n");
+	Com_Print("Loaded models:\n");
 	for(i = 0, mod = r_models; i < r_nummodels; i++, mod++){
 		if(!mod->name[0])
 			continue;
-		Com_Printf("%6i: %s\n", mod->vertexcount, mod->name);
+		Com_Print("%6i: %s\n", mod->vertexcount, mod->name);
 		total += mod->extradatasize;
 	}
-	Com_Printf("Total resident: %i\n", total);
+	Com_Print("Total resident: %i\n", total);
 }
 
 
@@ -292,7 +292,7 @@ void R_ListModels_f(void){
  * R_HunkStats_f
  */
 void R_HunkStats_f(void){
-	Com_Printf("Hunk usage: %.2f / %.2f MB\n",
+	Com_Print("Hunk usage: %.2f / %.2f MB\n",
 			hunkofs / 1024.0 / 1024.0, r_hunkmegs->value);
 }
 

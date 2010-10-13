@@ -60,7 +60,7 @@ qboolean Cl_CheckOrDownloadFile(const char *filename){
 	char cmd[MAX_STRING_CHARS];
 
 	if(cls.state == ca_disconnected){
-		Com_Printf("Not connected.\n");
+		Com_Print("Not connected.\n");
 		return true;
 	}
 
@@ -77,13 +77,13 @@ qboolean Cl_CheckOrDownloadFile(const char *filename){
 		return true;
 	}
 
-	Com_Dprintf("Checking for %s\n", filename);
+	Com_Debug("Checking for %s\n", filename);
 
 	if(Fs_LoadFile(filename, NULL) != -1){  // it exists, no need to download
 		return true;
 	}
 
-	Com_Dprintf("Attempting to download %s\n", filename);
+	Com_Debug("Attempting to download %s\n", filename);
 
 	strcpy(cls.download.name, filename);
 
@@ -108,14 +108,14 @@ qboolean Cl_CheckOrDownloadFile(const char *filename){
 		cls.download.file = fp;
 
 		// give the server the offset to start the download
-		Com_Dprintf("Resuming %s..\n", cls.download.name);
+		Com_Debug("Resuming %s..\n", cls.download.name);
 
 		snprintf(cmd, sizeof(cmd), "download %s %i", cls.download.name, len);
 		Msg_WriteByte(&cls.netchan.message, clc_stringcmd);
 		Msg_WriteString(&cls.netchan.message, cmd);
 	} else {
 		// or start if from the beginning
-		Com_Dprintf("Downloading %s..\n", cls.download.name);
+		Com_Debug("Downloading %s..\n", cls.download.name);
 
 		snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
 		Msg_WriteByte(&cls.netchan.message, clc_stringcmd);
@@ -134,7 +134,7 @@ qboolean Cl_CheckOrDownloadFile(const char *filename){
 void Cl_Download_f(void){
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <filename>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <filename>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -155,7 +155,7 @@ static void Cl_ParseDownload(void){
 	size = Msg_ReadShort(&net_message);
 	percent = Msg_ReadByte(&net_message);
 	if(size < 0){
-		Com_Dprintf("Server does not have this file.\n");
+		Com_Debug("Server does not have this file.\n");
 		if(cls.download.file){
 			// if here, we tried to resume a file but the server said no
 			Fs_CloseFile(cls.download.file);
@@ -266,7 +266,7 @@ static qboolean Cl_ParseServerData(void){
 
 	// get the full level name
 	str = Msg_ReadString(&net_message);
-	Com_Printf("\n"); Com_Printf("%c%s\n", 2, str);
+	Com_Print("\n"); Com_Print("%c%s\n", 2, str);
 
 	// need to prep view at next opportunity
 	r_view.ready = false;
@@ -514,7 +514,7 @@ static qboolean Cl_IgnoreChatMessage(const char *msg){
  */
 static void Cl_ShowNet(const char *s){
 	if(cl_shownet->value >= 2)
-		Com_Printf("%3zd: %s\n", net_message.readcount - 1, s);
+		Com_Print("%3zd: %s\n", net_message.readcount - 1, s);
 }
 
 
@@ -567,9 +567,9 @@ void Cl_ParseServerMessage(void){
 	int i;
 
 	if(cl_shownet->value == 1)
-		Com_Printf(Q2W_SIZE_T" ", net_message.cursize);
+		Com_Print(Q2W_SIZE_T" ", net_message.cursize);
 	else if(cl_shownet->value >= 2)
-		Com_Printf("------------------\n");
+		Com_Print("------------------\n");
 
 	bytes_this_second += net_message.cursize;
 	cmd = 0;
@@ -600,7 +600,7 @@ void Cl_ParseServerMessage(void){
 				break;
 
 			case svc_reconnect:
-				Com_Printf("Server disconnected, reconnecting..\n");
+				Com_Print("Server disconnected, reconnecting..\n");
 				// stop download
 				if(cls.download.file){
 					if(cls.download.http)  // clean up http downloads
@@ -627,7 +627,7 @@ void Cl_ParseServerMessage(void){
 					if(*cl_teamchatsound->string)  // trigger chat sound
 						S_StartLocalSample(cl_teamchatsound->string);
 				}
-				Com_Printf("%s", s);
+				Com_Print("%s", s);
 				break;
 
 			case svc_centerprint:
@@ -683,7 +683,7 @@ void Cl_ParseServerMessage(void){
 				break;
 
 			default:
-				Com_Printf("Cl_ParseServerMessage: Illegible server message\n"
+				Com_Print("Cl_ParseServerMessage: Illegible server message\n"
 						"  %d: last command was %s\n", cmd, svc_strings[oldcmd]);
 				break;
 		}

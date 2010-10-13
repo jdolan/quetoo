@@ -58,11 +58,49 @@ void Com_EndRedirect(void){
 
 
 /*
- * Com_Printf
+ * Com_Debug
  *
- * Both client and server can use this, and it will output to the apropriate place.
+ * A Com_Printf that only shows up if the "developer" cvar is set
  */
-void Com_Printf(const char *fmt, ...){
+void Com_Debug(const char *fmt, ...){
+	va_list	argptr;
+	char msg[MAX_PRINT_MSG];
+
+	va_start(argptr, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, argptr);
+	va_end(argptr);
+
+	if(quake2world.Debug)
+		quake2world.Debug((const char *)msg);
+	else
+		printf("%s", msg);
+}
+
+
+/*
+ * Com_Error
+ */
+void Com_Error(error_t err, const char *fmt, ...){
+	va_list	argptr;
+	char msg[MAX_PRINT_MSG];
+
+	va_start(argptr, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, argptr);
+	va_end(argptr);
+
+	if(quake2world.Error)
+		quake2world.Error(err, (const char *)msg);
+	else {
+		fprintf(stderr, "%s", msg);
+		exit(1);
+	}
+}
+
+
+/*
+ * Com_Print
+ */
+void Com_Print(const char *fmt, ...){
 	va_list	argptr;
 	char msg[MAX_PRINT_MSG];
 
@@ -87,49 +125,6 @@ void Com_Printf(const char *fmt, ...){
 
 
 /*
- * Com_Dprintf
- *
- * A Com_Printf that only shows up if the "developer" cvar is set
- */
-void Com_Dprintf(const char *fmt, ...){
-	va_list	argptr;
-	char msg[MAX_PRINT_MSG];
-
-	if(!Cvar_GetValue("developer"))
-		return;
-
-	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
-	va_end(argptr);
-
-	// Call console print function
-	Com_Printf("%s", msg);
-}
-
-
-/*
- * Com_Error
- *
- * Both client and server can use this, and it will do the appropriate things.
- */
-void Com_Error(error_t err, const char *fmt, ...){
-	va_list	argptr;
-	char msg[MAX_PRINT_MSG];
-
-	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
-	va_end(argptr);
-
-	Com_Printf("^1%s\n", msg);
-
-	if(quake2world.Error)
-		quake2world.Error(err, (const char *)msg);
-	else
-		exit(1);
-}
-
-
-/*
  * Com_Warn
  */
 void Com_Warn(const char *fmt, ...){
@@ -140,7 +135,10 @@ void Com_Warn(const char *fmt, ...){
 	vsnprintf(msg, sizeof(msg), fmt, argptr);
 	va_end(argptr);
 
-	Com_Printf("^3%s", msg);
+	if(quake2world.Warn)
+		quake2world.Warn((const char *)msg);
+	else
+		fprintf(stderr, "%s", msg);
 }
 
 
@@ -169,7 +167,7 @@ void Com_SetServerState(int state){
 
 
 const vec3_t bytedirs[NUMVERTEXNORMALS] = {
-	#include "anorms.h"
+	#include "common-anorms.h"
 };
 
 
@@ -893,10 +891,10 @@ void Com_PrintInfo(const char *s){
 			key[20] = 0;
 		} else
 			*o = 0;
-		Com_Printf("%s", key);
+		Com_Print("%s", key);
 
 		if(!*s){
-			Com_Printf("MISSING VALUE\n");
+			Com_Print("MISSING VALUE\n");
 			return;
 		}
 
@@ -908,6 +906,6 @@ void Com_PrintInfo(const char *s){
 
 		if(*s)
 			s++;
-		Com_Printf("%s\n", value);
+		Com_Print("%s\n", value);
 	}
 }

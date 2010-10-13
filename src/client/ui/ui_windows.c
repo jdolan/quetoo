@@ -129,7 +129,7 @@ static menuNode_t* MN_PushMenuDelete (const char *name, const char *parent, qboo
 
 	menu = MN_GetMenu(name);
 	if (menu == NULL) {
-		Com_Printf("Didn't find menu \"%s\"\n", name);
+		Com_Print("Didn't find menu \"%s\"\n", name);
 		return NULL;
 	}
 
@@ -141,7 +141,7 @@ static menuNode_t* MN_PushMenuDelete (const char *name, const char *parent, qboo
 		if (parent) {
 			const int parentPos = MN_GetMenuPositionFromStackByName(parent);
 			if (parentPos == -1) {
-				Com_Printf("Didn't find parent menu \"%s\"\n", parent);
+				Com_Print("Didn't find parent menu \"%s\"\n", parent);
 				return NULL;
 			}
 			MN_InsertMenuIntoStack(menu, parentPos + 1);
@@ -149,7 +149,7 @@ static menuNode_t* MN_PushMenuDelete (const char *name, const char *parent, qboo
 		} else
 			mn.menuStack[mn.menuStackPos++] = menu;
 	else
-		Com_Printf("Menu stack overflow\n");
+		Com_Print("Menu stack overflow\n");
 
 	if (menu->behaviour->init) {
 		menu->behaviour->init(menu);
@@ -178,7 +178,7 @@ static void MN_PushChildMenu_f (void)
 	if (Cmd_Argc() > 1)
 		MN_PushMenu(Cmd_Argv(1), Cmd_Argv(2));
 	else
-		Com_Printf("Usage: %s <name> <parentname>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <name> <parentname>\n", Cmd_Argv(0));
 }
 
 /**
@@ -190,7 +190,7 @@ static void MN_PushMenu_f (void)
 	if (Cmd_Argc() > 1)
 		MN_PushMenu(Cmd_Argv(1), NULL);
 	else
-		Com_Printf("Usage: %s <name>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <name>\n", Cmd_Argv(0));
 }
 
 /**
@@ -211,19 +211,19 @@ static void MN_PushDropDownMenu_f (void)
 	int result;
 
 	if (Cmd_Argc() != 4 && Cmd_Argc() != 5) {
-		Com_Printf("Usage: %s <source-anchor> <point-in-source-anchor> <dest-anchor> <point-in-dest-anchor>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <source-anchor> <point-in-source-anchor> <dest-anchor> <point-in-dest-anchor>\n", Cmd_Argv(0));
 		return;
 	}
 
 	/* get the source anchor */
 	node = MN_GetNodeByPath(Cmd_Argv(1));
 	if (node == NULL) {
-		Com_Printf("MN_PushDropDownMenu_f: Node '%s' doesn't exist\n", Cmd_Argv(1));
+		Com_Print("MN_PushDropDownMenu_f: Node '%s' doesn't exist\n", Cmd_Argv(1));
 		return;
 	}
 	result = Com_ParseValue(&pointPosition, Cmd_Argv(2), V_ALIGN, 0, sizeof(pointPosition), &writedByte);
 	if (result != RESULT_OK) {
-		Com_Printf("MN_PushDropDownMenu_f: '%s' in not a V_ALIGN\n", Cmd_Argv(2));
+		Com_Print("MN_PushDropDownMenu_f: '%s' in not a V_ALIGN\n", Cmd_Argv(2));
 		return;
 	}
 	MN_NodeGetPoint(node, source, pointPosition);
@@ -237,12 +237,12 @@ static void MN_PushDropDownMenu_f (void)
 		/* get the source anchor */
 		node = MN_GetNodeByPath(Cmd_Argv(3));
 		if (node == NULL) {
-			Com_Printf("MN_PushDropDownMenu_f: Node '%s' doesn't exist\n", Cmd_Argv(3));
+			Com_Print("MN_PushDropDownMenu_f: Node '%s' doesn't exist\n", Cmd_Argv(3));
 			return;
 		}
 		result = Com_ParseValue(&pointPosition, Cmd_Argv(4), V_ALIGN, 0, sizeof(pointPosition), &writedByte);
 		if (result != RESULT_OK) {
-			Com_Printf("MN_PushDropDownMenu_f: '%s' in not a V_ALIGN\n", Cmd_Argv(4));
+			Com_Print("MN_PushDropDownMenu_f: '%s' in not a V_ALIGN\n", Cmd_Argv(4));
 			return;
 		}
 		MN_NodeGetPoint(node, destination, pointPosition);
@@ -252,7 +252,7 @@ static void MN_PushDropDownMenu_f (void)
 	/* update the menu and push it */
 	node = MN_GetNodeByPath(Cmd_Argv(1));
 	if (node == NULL) {
-		Com_Printf("MN_PushDropDownMenu_f: Node '%s' doesn't exist\n", Cmd_Argv(1));
+		Com_Print("MN_PushDropDownMenu_f: Node '%s' doesn't exist\n", Cmd_Argv(1));
 		return;
 	}
 	node = node->root;
@@ -269,7 +269,7 @@ static void MN_PushDropDownMenu_f (void)
 static void MN_PushCopyMenu_f (void)
 {
 	if (Cmd_Argc() != 2) {
-		Com_Printf("Usage: %s <name>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <name>\n", Cmd_Argv(0));
 		return;
 	}
 	MN_PushMenuDelete(Cmd_Argv(1), NULL, qfalse);
@@ -350,7 +350,7 @@ static void MN_CloseMenuByRef (menuNode_t *menu)
 	assert(mn.menuStackPos);
 	i = MN_GetMenuPositionFromStackByName(menu->name);
 	if (i == -1) {
-		Com_Printf("Menu '%s' is not on the active stack\n", menu->name);
+		Com_Print("Menu '%s' is not on the active stack\n", menu->name);
 		return;
 	}
 
@@ -379,7 +379,7 @@ void MN_CloseMenu (const char* name)
 {
 	menuNode_t *menu = MN_GetMenu(name);
 	if (menu == NULL) {
-		Com_Printf("Menu '%s' doesn't exist\n", name);
+		Com_Print("Menu '%s' doesn't exist\n", name);
 		return;
 	}
 
@@ -432,7 +432,7 @@ void MN_PopMenu (qboolean all)
 static void MN_CloseMenu_f (void)
 {
 	if (Cmd_Argc() != 2) {
-		Com_Printf("Usage: %s <name>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <name>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -461,7 +461,7 @@ void MN_PopMenuWithEscKey (void)
 static void MN_PopMenu_f (void)
 {
 	if (Cmd_Argc() > 1) {
-		Com_Printf("Usage: %s\n", Cmd_Argv(0));
+		Com_Print("Usage: %s\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -605,7 +605,7 @@ void MN_SetNewMenuPos_f (void)
 	menuNode_t* menu = MN_GetActiveMenu();
 
 	if (Cmd_Argc() < 3)
-		Com_Printf("Usage: %s <x> <y>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <x> <y>\n", Cmd_Argv(0));
 
 	MN_SetNewMenuPos(menu, atoi(Cmd_Argv(1)), atoi(Cmd_Argv(2)));
 }
@@ -620,18 +620,18 @@ static void MN_FireInit_f (void)
 	const menuNode_t* menu;
 
 	if (Cmd_Argc() != 2) {
-		Com_Printf("Usage: %s <menu>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <menu>\n", Cmd_Argv(0));
 		return;
 	}
 
 	menu = MN_GetNodeByPath(Cmd_Argv(1));
 	if (menu == NULL) {
-		Com_Printf("MN_FireInit_f: Node '%s' not found\n", Cmd_Argv(1));
+		Com_Print("MN_FireInit_f: Node '%s' not found\n", Cmd_Argv(1));
 		return;
 	}
 
 	if (!MN_NodeInstanceOf(menu, "window")) {
-		Com_Printf("MN_FireInit_f: Node '%s' is not a 'window'\n", Cmd_Argv(1));
+		Com_Print("MN_FireInit_f: Node '%s' is not a 'window'\n", Cmd_Argv(1));
 		return;
 	}
 
@@ -639,7 +639,7 @@ static void MN_FireInit_f (void)
 	if (menu) {
 		if (menu->u.window.onInit)
 			MN_ExecuteEventActions(menu, menu->u.window.onInit);
-		Com_DPrintf(DEBUG_CLIENT, "Reinitialize %s\n", menu->name);
+		Com_Debug("Reinitialize %s\n", menu->name);
 	}
 }
 

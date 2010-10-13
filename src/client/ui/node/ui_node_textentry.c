@@ -98,14 +98,14 @@ static void MN_EditTextEntry_f (void)
 	const char* name;
 
 	if (Cmd_Argc() != 2) {
-		Com_Printf("Usage: %s <textentrynode>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <textentrynode>\n", Cmd_Argv(0));
 		return;
 	}
 
 	name = Cmd_Argv(1);
 	node = MN_GetNode(MN_GetActiveMenu(), name);
 	if (!node) {
-		Com_Printf("MN_EditTextEntry_f: node '%s' doesn't exist on the current active menu '%s'\n", name, MN_GetActiveMenu()->name);
+		Com_Print("MN_EditTextEntry_f: node '%s' doesn't exist on the current active menu '%s'\n", name, MN_GetActiveMenu()->name);
 		return;
 	}
 

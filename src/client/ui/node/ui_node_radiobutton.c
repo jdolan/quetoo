@@ -75,7 +75,7 @@ static void MN_RadioButtonNodeClick (menuNode_t * node, int x, int y)
 	/* the cvar string is stored in dataModelSkinOrCVar
 	 * no cvar given? */
 	if (!node->cvar || !*(char*)node->cvar) {
-		Com_Printf("MN_RadioButtonNodeClick: node '%s' doesn't have a valid cvar assigned\n", MN_GetPath(node));
+		Com_Print("MN_RadioButtonNodeClick: node '%s' doesn't have a valid cvar assigned\n", MN_GetPath(node));
 		return;
 	}
 

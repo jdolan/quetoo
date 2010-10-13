@@ -57,7 +57,7 @@ static void R_LoadBspLighting(const lump_t *l){
 
 		r_loadmodel->lightmap_scale = atoi(c);
 
-		Com_Dprintf("Resolved lightmap_scale: %d\n", r_loadmodel->lightmap_scale);
+		Com_Debug("Resolved lightmap_scale: %d\n", r_loadmodel->lightmap_scale);
 	}
 
 	if(r_loadmodel->lightmap_scale == -1)  // ensure safe default
@@ -78,7 +78,7 @@ static void R_LoadBspLighting(const lump_t *l){
 				r_view.ambient_light[i] = MIN_AMBIENT_COMPONENT;
 		}
 
-		Com_Dprintf("Resolved ambient_light: %1.2f %1.2f %1.2f\n",
+		Com_Debug("Resolved ambient_light: %1.2f %1.2f %1.2f\n",
 				r_view.ambient_light[0], r_view.ambient_light[1], r_view.ambient_light[2]);
 	}
 	else {  // ensure sane default
@@ -1060,7 +1060,7 @@ static void R_LoadBspLights(void){
 		if(*c == '}'){
 			entity = false;
 
-			Com_Dprintf("Closed entity %s\n", class);
+			Com_Debug("Closed entity %s\n", class);
 
 			if(light){  // add it
 
@@ -1096,7 +1096,7 @@ static void R_LoadBspLights(void){
 		}
 	}
 
-	Com_Dprintf("Loaded %d bsp lights\n", r_loadmodel->numbsplights);
+	Com_Debug("Loaded %d bsp lights\n", r_loadmodel->numbsplights);
 }
 
 
@@ -1222,23 +1222,23 @@ void R_LoadBspModel(model_t *mod, void *buffer){
 	R_LoadBspSubmodels(&header->lumps[LUMP_MODELS]);
 	Cl_LoadProgress(48);
 
-	Com_Dprintf("================================\n");
-	Com_Dprintf("R_LoadBspModel: %s\n", r_loadmodel->name);
-	Com_Dprintf("  Verts:      %d\n", r_loadmodel->numvertexes);
-	Com_Dprintf("  Edges:      %d\n", r_loadmodel->numedges);
-	Com_Dprintf("  Surfedges:  %d\n", r_loadmodel->numsurfedges);
-	Com_Dprintf("  Faces:      %d\n", r_loadmodel->numsurfaces);
-	Com_Dprintf("  Nodes:      %d\n", r_loadmodel->numnodes);
-	Com_Dprintf("  Leafs:      %d\n", r_loadmodel->numleafs);
-	Com_Dprintf("  Leaf faces: %d\n", r_loadmodel->numleafsurfaces);
-	Com_Dprintf("  Models:     %d\n", r_loadmodel->numsubmodels);
-	Com_Dprintf("  Lightdata:  %d\n", r_loadmodel->lightdatasize);
-	Com_Dprintf("  Vis:        %d\n", r_loadmodel->vissize);
+	Com_Debug("================================\n");
+	Com_Debug("R_LoadBspModel: %s\n", r_loadmodel->name);
+	Com_Debug("  Verts:      %d\n", r_loadmodel->numvertexes);
+	Com_Debug("  Edges:      %d\n", r_loadmodel->numedges);
+	Com_Debug("  Surfedges:  %d\n", r_loadmodel->numsurfedges);
+	Com_Debug("  Faces:      %d\n", r_loadmodel->numsurfaces);
+	Com_Debug("  Nodes:      %d\n", r_loadmodel->numnodes);
+	Com_Debug("  Leafs:      %d\n", r_loadmodel->numleafs);
+	Com_Debug("  Leaf faces: %d\n", r_loadmodel->numleafsurfaces);
+	Com_Debug("  Models:     %d\n", r_loadmodel->numsubmodels);
+	Com_Debug("  Lightdata:  %d\n", r_loadmodel->lightdatasize);
+	Com_Debug("  Vis:        %d\n", r_loadmodel->vissize);
 
 	if(r_loadmodel->vis)
-		Com_Dprintf("  Clusters:   %d\n", r_loadmodel->vis->numclusters);
+		Com_Debug("  Clusters:   %d\n", r_loadmodel->vis->numclusters);
 
-	Com_Dprintf("================================\n");
+	Com_Debug("================================\n");
 
 	R_LoadBspLights();
 

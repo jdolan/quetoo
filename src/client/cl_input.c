@@ -22,7 +22,6 @@
 #include <SDL.h>
 
 #include "client.h"
-#include "keys.h"
 #include "ui/ui_input.h"
 
 static cvar_t *cl_run;
@@ -108,7 +107,7 @@ static void Cl_KeyDown(kbutton_t *b){
 	else if(!b->down[1])
 		b->down[1] = k;
 	else {
-		Com_Printf("Three keys down for a button!\n");
+		Com_Print("Three keys down for a button!\n");
 		return;
 	}
 

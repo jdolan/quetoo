@@ -142,7 +142,7 @@ void S_LoadMusics(void){
 		memcpy(&s_env.musics[s_env.num_musics++], music, sizeof(s_music_t));
 	}
 
-	Com_Printf("Loaded %d tracks\n", s_env.num_musics);
+	Com_Print("Loaded %d tracks\n", s_env.num_musics);
 }
 
 

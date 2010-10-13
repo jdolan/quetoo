@@ -172,14 +172,14 @@ void Cl_HttpDownloadCleanup(){
 
 		if(gzip){  // retry uncompressed file
 
-			Com_Printf("Failed to download %s via HTTP (compressed): %s.\n"
+			Com_Print("Failed to download %s via HTTP (compressed): %s.\n"
 					"Trying uncompressed..\n", cls.download.name, c);
 
 			gzip = false;
 		}
 		else {  // or via legacy udp download
 
-			Com_Printf("Failed to download %s via HTTP: %s.\n"
+			Com_Print("Failed to download %s via HTTP: %s.\n"
 					"Trying UDP..\n", cls.download.name, c);
 
 			Msg_WriteByte(&cls.netchan.message, clc_stringcmd);

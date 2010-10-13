@@ -51,12 +51,12 @@ void MN_ParseFont (const char *name, const char **text)
 
 	/* search for font with same name */
 	if (MN_GetFontByID(name)) {
-		Com_Printf("MN_ParseFont: font \"%s\" with same name found, second ignored\n", name);
+		Com_Print("MN_ParseFont: font \"%s\" with same name found, second ignored\n", name);
 		return;
 	}
 
 	if (numFonts >= MAX_FONTS) {
-		Com_Printf("MN_ParseFont: Max fonts reached\n");
+		Com_Print("MN_ParseFont: Max fonts reached\n");
 		return;
 	}
 
@@ -66,13 +66,13 @@ void MN_ParseFont (const char *name, const char **text)
 
 	font->name = Mem_PoolStrDup(name, cl_menuSysPool, 0);
 
-	Com_DPrintf(DEBUG_CLIENT, "...found font %s (%i)\n", font->name, numFonts);
+	Com_Debug("...found font %s (%i)\n", font->name, numFonts);
 
 	/* get it's body */
 	token = Com_Parse(text);
 
 	if (!*text || *token != '{') {
-		Com_Printf("MN_ParseFont: font \"%s\" without body ignored\n", name);
+		Com_Print("MN_ParseFont: font \"%s\" without body ignored\n", name);
 		return;
 	}
 
@@ -98,7 +98,7 @@ void MN_ParseFont (const char *name, const char **text)
 			}
 
 		if (!v->string)
-			Com_Printf("MN_ParseFont: unknown token \"%s\" ignored (font %s)\n", token, name);
+			Com_Print("MN_ParseFont: unknown token \"%s\" ignored (font %s)\n", token, name);
 	} while (*text);
 }
 

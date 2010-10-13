@@ -280,7 +280,7 @@ void Img_ColorFromPalette(byte c, float *res){
 static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream){
 
 	if(fwrite(ptr, size, nmemb, stream) <= 0)
-	    Com_Printf( "Failed to write\n");
+	    Com_Print( "Failed to write\n");
 }
 
 
@@ -297,7 +297,7 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
 	int row_stride;	/* physical row width in image buffer */
 
 	if(!(outfile = fopen(path, "wb"))){  // failed to open
-		Com_Printf( "Failed to open to %s\n", path);
+		Com_Print( "Failed to open to %s\n", path);
 		return;
 	}
 
@@ -355,7 +355,7 @@ void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unus
 	size_t x;
 
 	if(!(tga_file = fopen(path, "wb"))){  // failed to open
-		Com_Printf( "Failed to open to %s\n", path);
+		Com_Print( "Failed to open to %s\n", path);
 		return;
 	}
 

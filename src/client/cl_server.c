@@ -219,14 +219,14 @@ void Cl_Ping_f(void){
 	server_info_t *server;
 
 	if(Cmd_Argc() != 2){
-		Com_Printf("Usage: %s <address>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
 		return;
 	}
 
 	server = NULL;
 
 	if(!Net_StringToNetaddr(Cmd_Argv(1), &addr)){
-		Com_Printf("Invalid address\n");
+		Com_Print("Invalid address\n");
 		return;
 	}
 
@@ -243,7 +243,7 @@ void Cl_Ping_f(void){
 	server->pingtime = cls.realtime;
 	server->ping = 0;
 
-	Com_Printf("Pinging %s\n", Net_NetaddrToString(server->addr));
+	Com_Print("Pinging %s\n", Net_NetaddrToString(server->addr));
 
 	Netchan_OutOfBandPrint(NS_CLIENT, server->addr, "info %i", PROTOCOL);
 }
@@ -283,11 +283,11 @@ void Cl_Servers_f(void){
 	netaddr_t addr;
 
 	if(!Net_StringToNetaddr(IP_MASTER, &addr)){
-		Com_Printf("Failed to resolve %s\n", IP_MASTER);
+		Com_Print("Failed to resolve %s\n", IP_MASTER);
 		return;
 	}
 
-	Com_Printf("Refreshing servers.\n");
+	Com_Print("Refreshing servers.\n");
 
 	addr.type = NA_IP;
 	addr.port = (unsigned short)BigShort(PORT_MASTER);

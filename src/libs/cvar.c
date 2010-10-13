@@ -95,9 +95,9 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]){
 	// check for partial matches
 	for(cvar = cvar_vars; cvar; cvar = cvar->next){
 		if(!strncmp(partial, cvar->name, len)){
-			Com_Printf("%s is \"%s\"\n", cvar->name, cvar->string);
+			Com_Print("%s is \"%s\"\n", cvar->name, cvar->string);
 			if (cvar->description)
-				Com_Printf("\t%s\n", cvar->description);
+				Com_Print("\t%s\n", cvar->description);
 			matches[m] = cvar->name;
 			m++;
 		}
@@ -118,7 +118,7 @@ qboolean Cvar_Delete(const char *varName){
 	for(var = cvar_vars; var; var = var->next){
 		if(!strcmp(varName, var->name)){
 			if(var->flags & (CVAR_USERINFO | CVAR_SERVERINFO | CVAR_NOSET | CVAR_LATCH)){
-				Com_Printf("Can't delete the cvar '%s' - it's a special cvar\n", varName);
+				Com_Print("Can't delete the cvar '%s' - it's a special cvar\n", varName);
 				return false;
 			}
 
@@ -137,7 +137,7 @@ qboolean Cvar_Delete(const char *varName){
 		}
 		previousVar = var;
 	}
-	Com_Printf("Cvar '%s' wasn't found\n", varName);
+	Com_Print("Cvar '%s' wasn't found\n", varName);
 	return false;
 }
 
@@ -152,7 +152,7 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const c
 
 	if(flags & (CVAR_USERINFO | CVAR_SERVERINFO)){
 		if(!Cvar_InfoValidate(var_name)){
-			Com_Printf("invalid info cvar name\n");
+			Com_Print("invalid info cvar name\n");
 			return NULL;
 		}
 	}
@@ -168,7 +168,7 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const c
 
 	if(flags & (CVAR_USERINFO | CVAR_SERVERINFO)){
 		if(!Cvar_InfoValidate(var_value)){
-			Com_Printf("invalid info cvar value\n");
+			Com_Print("invalid info cvar value\n");
 			return NULL;
 		}
 	}
@@ -215,14 +215,14 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force
 
 	if(var->flags & (CVAR_USERINFO | CVAR_SERVERINFO)){
 		if(!Cvar_InfoValidate(value)){
-			Com_Printf("Invalid info value\n");
+			Com_Print("Invalid info value\n");
 			return var;
 		}
 	}
 
 	if(!force){
 		if(var->flags & CVAR_NOSET){
-			Com_Printf("%s is write protected.\n", var_name);
+			Com_Print("%s is write protected.\n", var_name);
 			return var;
 		}
 
@@ -237,7 +237,7 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force
 			}
 
 			if(Com_ServerState()){
-				Com_Printf("%s will be changed for next game.\n", var_name);
+				Com_Print("%s will be changed for next game.\n", var_name);
 				var->latched_string = Z_CopyString(value);
 			} else {
 				var->string = Z_CopyString(value);
@@ -257,10 +257,10 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force
 	}
 
 	if(var->flags & CVAR_R_MASK)
-		Com_Printf("%s will be changed on ^3r_restart^7.\n", var_name);
+		Com_Print("%s will be changed on ^3r_restart^7.\n", var_name);
 
 	if(var->flags & CVAR_S_MASK)
-		Com_Printf("%s will be changed on ^3s_restart^7.\n", var_name);
+		Com_Print("%s will be changed on ^3s_restart^7.\n", var_name);
 
 	if(!strcmp(value, var->string))
 		return var;  // not changed
@@ -343,7 +343,7 @@ void Cvar_Toggle(const char *var_name){
 	var = Cvar_FindVar(var_name);
 
 	if(!var){
-		Com_Printf("\"%s\" is not set\n", var_name);
+		Com_Print("\"%s\" is not set\n", var_name);
 		return;
 	}
 
@@ -439,7 +439,7 @@ qboolean Cvar_Command(void){
 
 	// perform a variable print or set
 	if(Cmd_Argc() == 1){
-		Com_Printf("\"%s\" is \"%s\"\n", v->name, v->string);
+		Com_Print("\"%s\" is \"%s\"\n", v->name, v->string);
 		return true;
 	}
 
@@ -458,7 +458,7 @@ static void Cvar_Set_f(void){
 	const int c = Cmd_Argc();
 
 	if(c != 3 && c != 4){
-		Com_Printf("Usage: %s <variable> <value> [u | s]\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <variable> <value> [u | s]\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -468,7 +468,7 @@ static void Cvar_Set_f(void){
 		else if(!strcmp(Cmd_Argv(3), "s"))
 			flags = CVAR_SERVERINFO;
 		else {
-			Com_Printf("Invalid flags\n");
+			Com_Print("Invalid flags\n");
 			return;
 		}
 		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), flags);
@@ -484,7 +484,7 @@ static void Cvar_Set_f(void){
  */
 static void Cvar_Toggle_f(void){
 	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: toggle <variable>\n");
+		Com_Print ("Usage: toggle <variable>\n");
 		return;
 	}
 	Cvar_Toggle(Cmd_Argv(1));
@@ -523,28 +523,28 @@ static void Cvar_List_f(void){
 	i = 0;
 	for(var = cvar_vars; var; var = var->next, i++){
 		if(var->flags & CVAR_ARCHIVE)
-			Com_Printf("*");
+			Com_Print("*");
 		else
-			Com_Printf(" ");
+			Com_Print(" ");
 		if(var->flags & CVAR_USERINFO)
-			Com_Printf("U");
+			Com_Print("U");
 		else
-			Com_Printf(" ");
+			Com_Print(" ");
 		if(var->flags & CVAR_SERVERINFO)
-			Com_Printf("S");
+			Com_Print("S");
 		else
-			Com_Printf(" ");
+			Com_Print(" ");
 		if(var->flags & CVAR_NOSET)
-			Com_Printf("-");
+			Com_Print("-");
 		else if(var->flags & CVAR_LATCH)
-			Com_Printf("L");
+			Com_Print("L");
 		else
-			Com_Printf(" ");
-		Com_Printf(" %s \"%s\"\n", var->name, var->string);
+			Com_Print(" ");
+		Com_Print(" %s \"%s\"\n", var->name, var->string);
 		if (var->description)
-			Com_Printf("   ^2%s\n", var->description);
+			Com_Print("   ^2%s\n", var->description);
 	}
-	Com_Printf("%i cvars\n", i);
+	Com_Print("%i cvars\n", i);
 }
 
 

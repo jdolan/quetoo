@@ -217,7 +217,7 @@ const image_t *MN_DrawNormImageByName (float x, float y, float w, float h, float
 
 	image = MN_LoadImage(name);
 	if (!image) {
-		Com_Printf("Can't find pic: %s\n", name);
+		Com_Print("Can't find pic: %s\n", name);
 		return NULL;
 	}
 

@@ -32,8 +32,21 @@
 #include <zlib.h>
 
 #include "filesystem.h"
-#include "pak.h"
-#include "sys.h"
+
+static char fs_gamedir[MAX_OSPATH];
+
+static cvar_t *fs_basedir;
+cvar_t *fs_gamedirvar;
+
+typedef struct searchpath_s {
+	char path[MAX_OSPATH];
+	struct searchpath_s *next;
+} searchpath_t;
+
+static searchpath_t *fs_searchpaths;
+static searchpath_t *fs_base_searchpaths;  // without gamedirs
+
+static hashtable_t fs_hashtable;  // pakfiles are pushed into a hash
 
 
 /*
@@ -53,6 +66,7 @@ size_t Fs_Write(void *ptr, size_t size, size_t nmemb, FILE *stream){
 	return len;
 }
 
+
 /*
  * Fs_Read
  */
@@ -70,6 +84,7 @@ size_t Fs_Read(void *ptr, size_t size, size_t nmemb, FILE *stream){
 	return len;
 }
 
+
 /*
  * Fs_CloseFile
  */
@@ -77,22 +92,6 @@ void Fs_CloseFile(FILE *f){
 	fclose(f);
 }
 
-#ifndef __LIBPAK_LA__
-
-static char fs_gamedir[MAX_OSPATH];
-
-static cvar_t *fs_basedir;
-cvar_t *fs_gamedirvar;
-
-typedef struct searchpath_s {
-	char path[MAX_OSPATH];
-	struct searchpath_s *next;
-} searchpath_t;
-
-static searchpath_t *fs_searchpaths;
-static searchpath_t *fs_base_searchpaths;  // without gamedirs
-
-static hashtable_t fs_hashtable;  // pakfiles are pushed into a hash
 
 /*
  * Fs_FileLength
@@ -282,7 +281,7 @@ void Fs_AddPakfile(const char *pakfile){
 	for(i = 0; i < pak->numentries; i++)  // hash the entries to the pak
 		Com_HashInsert(&fs_hashtable, pak->entries[i].name, pak);
 
-	Com_Printf("Added %s: %i files.\n", pakfile, pak->numentries);
+	Com_Print("Added %s: %i files.\n", pakfile, pak->numentries);
 }
 
 
@@ -362,7 +361,7 @@ static void Fs_AddHomeAsGameDirectory(const char *dir){
 	memset(homedir, 0, sizeof(homedir));
 	snprintf(gdir, sizeof(gdir), "%s/%s", Fs_Homedir(), dir);
 
-	Com_Printf("Using %s for writing.\n", gdir);
+	Com_Print("Using %s for writing.\n", gdir);
 
 	Fs_CreatePath(va("%s/", gdir));
 
@@ -455,7 +454,7 @@ void Fs_SetGamedir(const char *dir){
 
 	if(strstr(dir, "..") || strstr(dir, "/")
 			|| strstr(dir, "\\") || strstr(dir, ":")){
-		Com_Printf("Gamedir should be a single directory name, not a path\n");
+		Com_Print("Gamedir should be a single directory name, not a path\n");
 		return;
 	}
 
@@ -699,10 +698,9 @@ int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, con
 			strcpy(name, matches[i]);
 			if (strstr(name, suffix) != NULL)
 				*strstr(name, suffix) = 0;	// lop off file extension
-			Com_Printf("%s\n", name);
+			Com_Print("%s\n", name);
 		}
 	}
 
 	return m;
 }
-#endif // __LIBPAK_LA__

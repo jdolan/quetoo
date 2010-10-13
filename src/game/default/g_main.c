@@ -1267,7 +1267,7 @@ game_export_t *LoadGame(game_import_t *import){
  *
  * Redefined here so functions in shared.c can link.
  */
-void Com_Printf(const char *msg, ...){
+void Com_Print(const char *msg, ...){
 	va_list	argptr;
 	char text[1024];
 

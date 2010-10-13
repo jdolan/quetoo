@@ -126,7 +126,7 @@ void Cl_InitConsole(void){
 	Cmd_AddCommand("messagemode", Cl_MessageMode_f, "Activate chat");
 	Cmd_AddCommand("messagemode2", Cl_MessageMode2_f, "Activate team chat");
 
-	Com_Printf("Console initialized.\n");
+	Com_Print("Console initialized.\n");
 }
 
 

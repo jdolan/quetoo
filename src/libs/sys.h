@@ -33,9 +33,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "common.h"
+#include "filesystem.h"
 #include "game/game.h"
-#include "keys.h"
 
 #ifdef HAVE_EXECINFO
 #include <execinfo.h>

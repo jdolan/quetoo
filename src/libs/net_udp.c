@@ -401,7 +401,7 @@ static int Net_Socket(const char *net_interface, int port){
 	addr.sin_family = AF_INET;
 
 	if(bind(sock, (void *)&addr, sizeof(addr)) == -1){
-		Com_Printf("ERROR: UDP_OpenSocket: bind: %s\n", Net_ErrorString());
+		Com_Print("ERROR: UDP_OpenSocket: bind: %s\n", Net_ErrorString());
 		close(sock);
 		return 0;
 	}

@@ -220,7 +220,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 		while(oldnum < newnum){  // one or more entities from oldframe are unchanged
 
 			if(cl_shownet->value == 3)
-				Com_Printf("   unchanged: %i\n", oldnum);
+				Com_Print("   unchanged: %i\n", oldnum);
 
 			Cl_DeltaEntity(newframe, oldnum, oldstate, 0);
 
@@ -237,7 +237,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 		if(bits & U_REMOVE){  // the entity present in the oldframe, and is not in the current frame
 
 			if(cl_shownet->value == 3)
-				Com_Printf("   remove: %i\n", newnum);
+				Com_Print("   remove: %i\n", newnum);
 
 			if(oldnum != newnum)
 				Com_Warn("Cl_ParseEntities: U_REMOVE: oldnum != newnum.\n");
@@ -256,7 +256,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 		if(oldnum == newnum){  // delta from previous state
 
 			if(cl_shownet->value == 3)
-				Com_Printf("   delta: %i\n", newnum);
+				Com_Print("   delta: %i\n", newnum);
 
 			Cl_DeltaEntity(newframe, newnum, oldstate, bits);
 
@@ -274,7 +274,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 		if(oldnum > newnum){  // delta from baseline
 
 			if(cl_shownet->value == 3)
-				Com_Printf("   baseline: %i\n", newnum);
+				Com_Print("   baseline: %i\n", newnum);
 
 			Cl_DeltaEntity(newframe, newnum, &cl_entities[newnum].baseline, bits);
 			continue;
@@ -286,7 +286,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 	while(oldnum != 99999){  // one or more entities from the old packet are unchanged
 
 		if(cl_shownet->value == 3)
-			Com_Printf("   unchanged: %i\n", oldnum);
+			Com_Print("   unchanged: %i\n", oldnum);
 
 		Cl_DeltaEntity(newframe, oldnum, oldstate, 0);
 
@@ -400,7 +400,7 @@ void Cl_ParseFrame(void){
 	cl.surpress_count = Msg_ReadByte(&net_message);
 
 	if(cl_shownet->value == 3)
-		Com_Printf ("   frame:%i  delta:%i\n", cl.frame.serverframe, cl.frame.deltaframe);
+		Com_Print ("   frame:%i  delta:%i\n", cl.frame.serverframe, cl.frame.deltaframe);
 
 	if(cl.frame.deltaframe <= 0){  // uncompressed frame
 		cls.demowaiting = false;

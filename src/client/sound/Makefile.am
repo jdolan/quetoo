@@ -12,7 +12,7 @@ libsound_la_SOURCES = \
 	s_sample.c
 
 libsound_la_CFLAGS = \
-	-I.. -I../.. \
+	-I.. -I../.. -I../../libs \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@OPENGL_CFLAGS@ \

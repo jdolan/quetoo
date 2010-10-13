@@ -320,7 +320,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name){
 	snprintf(path, sizeof(path), "shaders/%s", name);
 
 	if((len = Fs_LoadFile(path, &buf)) == -1){
-		Com_Dprintf("R_LoadShader: Failed to load %s.\n", name);
+		Com_Debug("R_LoadShader: Failed to load %s.\n", name);
 		return NULL;
 	}
 

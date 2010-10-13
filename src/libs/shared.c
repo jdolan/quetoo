@@ -1134,22 +1134,22 @@ void Info_SetValueForKey(char *s, const char *key, const char *value){
 	int maxsize = MAX_INFO_STRING;
 
 	if(strstr(key, "\\") || strstr(value, "\\")){
-		Com_Printf("Can't use keys or values with a \\\n");
+		Com_Print("Can't use keys or values with a \\\n");
 		return;
 	}
 
 	if(strstr(key, ";")){
-		Com_Printf("Can't use keys or values with a semicolon\n");
+		Com_Print("Can't use keys or values with a semicolon\n");
 		return;
 	}
 
 	if(strstr(key, "\"") || strstr(value, "\"")){
-		Com_Printf("Can't use keys or values with a \"\n");
+		Com_Print("Can't use keys or values with a \"\n");
 		return;
 	}
 
 	if(strlen(key) > MAX_INFO_KEY - 1 || strlen(value) > MAX_INFO_KEY - 1){
-		Com_Printf("Keys and values must be < 64 characters.\n");
+		Com_Print("Keys and values must be < 64 characters.\n");
 		return;
 	}
 	Info_RemoveKey(s, key);
@@ -1159,7 +1159,7 @@ void Info_SetValueForKey(char *s, const char *key, const char *value){
 	snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
 	if(strlen(newi) + strlen(s) > maxsize){
-		Com_Printf("Info string length exceeded\n");
+		Com_Print("Info string length exceeded\n");
 		return;
 	}
 

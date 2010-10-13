@@ -23,10 +23,7 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
-#include "cmd.h"
-#include "cvar.h"
-#include "filesystem.h"
-#include "mem.h"
+#include "shared.h"
 
 #define BASEDIRNAME	"default"
 
@@ -226,9 +223,9 @@ void Com_PrintInfo(const char *s);
 
 void Com_BeginRedirect(int target, char *buffer, int buffersize, void(*flush)(int, char*));
 void Com_EndRedirect(void);
-void Com_Printf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Dprintf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void Com_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Error(error_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 /*
@@ -242,8 +239,11 @@ typedef struct quake2world_s {
 	int time;
 	int server_state;
 
+	void (*Debug)(const char *msg);
+	void (*Error)(error_t err, const char *msg) __attribute__((noreturn));
 	void (*Print)(const char *msg);
-	void (*Error)(int code, const char *msg) __attribute__((noreturn));
+	void (*Warn)(const char *msg);
+
 } quake2world_t;
 
 extern quake2world_t quake2world;

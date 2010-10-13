@@ -41,21 +41,25 @@ cvar_t *showtrace;
 cvar_t *timedemo;
 cvar_t *timescale;
 
+static void Debug(const char *msg);
+static void Error(error_t err, const char *msg) __attribute__((noreturn));
+static void Print(const char *msg);
+static void Warn(const char *msg);
+static void Shutdown(const char *msg);
+
 
 /*
- * Shutdown
+ * Debug
  *
- * Cleans up all game engine subsystems.
+ * A wrapper our our primary print function which filters debugging output to
+ * when the `developer` cvar is set.
  */
-static void Shutdown(const char *msg){
+static void Debug(const char *msg){
 
-	Sv_Shutdown(msg, false);
+	if(!developer->value)
+		return;
 
-	Cl_Shutdown();
-
-	Con_Shutdown();
-
-	Z_Shutdown();
+	Print(msg);
 }
 
 
@@ -65,10 +69,11 @@ static void Shutdown(const char *msg){
  * Callback for subsystem failures.  Depending on the code, we might simply
  * print a message, or shut the entire engine down and exit.
  */
-static void Error(int code, const char *msg) __attribute__((noreturn));
-static void Error(int code, const char *msg){
+static void Error(error_t err, const char *msg){
 
-	switch(code){
+	Print(va("^1%s", msg));
+
+	switch(err){
 		case ERR_NONE:
 		case ERR_DROP:
 
@@ -86,6 +91,30 @@ static void Error(int code, const char *msg){
 			Sys_Error("%s", msg);
 			break;
 	}
+}
+
+
+/*
+ * Print
+ *
+ * Delegates all printing to the console.
+ */
+static void Print(const char *msg){
+
+	if(quake2world.time)
+		Con_Print(msg);
+	else
+		printf("%s", msg);
+}
+
+
+/*
+ * Warn
+ *
+ * Prints the specified message with a colored accent.
+ */
+static void Warn(const char *msg){
+	Print(va("^3%s", msg));
 }
 
 
@@ -111,7 +140,10 @@ static void Init(int argc, char **argv){
 	if(setjmp(environment))
 		Sys_Error("Error during initialization.");
 
+	quake2world.Debug = Debug;
 	quake2world.Error = Error;
+	quake2world.Print = Print;
+	quake2world.Warn = Warn;
 
 	Z_Init();
 
@@ -148,7 +180,7 @@ static void Init(int argc, char **argv){
 	showtrace = Cvar_Get("showtrace", "0", 0, NULL);
 
 	Con_Init();
-	quake2world.Print = Con_Print;
+	quake2world.time = Sys_Milliseconds();
 
 	s = va("Quake2World %s %s %s", VERSION, __DATE__, BUILDHOST);
 	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET, NULL);
@@ -161,7 +193,7 @@ static void Init(int argc, char **argv){
 	Sv_Init();
 	Cl_Init();
 
-	Com_Printf("Quake2World initialized.\n");
+	Com_Print("Quake2World initialized.\n");
 
 	// add + commands from command line
 	Cbuf_AddLateCommands();
@@ -171,6 +203,23 @@ static void Init(int argc, char **argv){
 		Cbuf_AddText("map fractures\n");
 		Cbuf_Execute();
 	}
+}
+
+
+/*
+ * Shutdown
+ *
+ * Cleans up all game engine subsystems.
+ */
+static void Shutdown(const char *msg){
+
+	Sv_Shutdown(msg, false);
+
+	Cl_Shutdown();
+
+	Con_Shutdown();
+
+	Z_Shutdown();
 }
 
 
@@ -185,7 +234,8 @@ static void Com_Frame(int msec){
 		return;  // an ERR_DROP or ERR_NONE was thrown
 
 	if(showtrace->value){
-		Com_Printf("%4i traces  %4i points\n", c_traces, c_pointcontents);
+		Com_Print("%4i traces (%4i clips), %4i points\n", c_traces,
+				c_brush_traces, c_pointcontents);
 		c_traces = c_brush_traces = c_pointcontents = 0;
 	}
 

@@ -51,7 +51,7 @@ static void MN_ImageNodeLoaded (menuNode_t *node)
 #ifdef DEBUG
 	if (node->size[0] == 0 && node->size[1] == 0) {
 		if (node->onClick || node->onRightClick || node->onMouseEnter || node->onMouseLeave || node->onWheelUp || node->onWheelDown || node->onWheel || node->onMiddleClick) {
-			Com_DPrintf(DEBUG_CLIENT, "Node '%s' is an active image without size\n", MN_GetPath(node));
+			Com_Debug("Node '%s' is an active image without size\n", MN_GetPath(node));
 		}
 	}
 #endif

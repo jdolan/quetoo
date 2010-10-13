@@ -247,7 +247,7 @@ void Sv_LinkEdict(edict_t *ent){
 			// but nothing should evern need more than that
 			if(ent->areanum && ent->areanum != area){
 				if(ent->areanum2 && ent->areanum2 != area && sv.state == ss_loading)
-					Com_Dprintf("Object touching 3 areas at %f %f %f\n",
+					Com_Debug("Object touching 3 areas at %f %f %f\n",
 								 ent->absmin[0], ent->absmin[1], ent->absmin[2]);
 				ent->areanum2 = area;
 			} else
@@ -339,7 +339,7 @@ static void Sv_AreaEdicts_r(areanode_t *node){
 			continue;  // not touching
 
 		if(area_count == area_maxcount){
-			Com_Printf("Sv_AreaEdicts: MAXCOUNT\n");
+			Com_Print("Sv_AreaEdicts: MAXCOUNT\n");
 			return;
 		}
 

@@ -152,7 +152,7 @@ static void S_List_f(void){
 		if(!sample->name[0])
 			continue;
 
-		Com_Printf("  %s\n", sample->name);
+		Com_Print("  %s\n", sample->name);
 	}
 }
 
@@ -184,7 +184,7 @@ void S_Init(void){
 		return;
 	}
 
-	Com_Printf("Sound initialization..\n");
+	Com_Print("Sound initialization..\n");
 
 	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sampling rate in Hz.");
 	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
@@ -224,7 +224,7 @@ void S_Init(void){
 
 	Mix_ChannelFinished(S_FreeChannel);
 
-	Com_Printf("Sound initialized %dKHz %d channels.\n", freq, channels);
+	Com_Print("Sound initialized %dKHz %d channels.\n", freq, channels);
 
 	s_env.initialized = true;
 

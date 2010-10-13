@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "ui_node_editor.h"
 #include "ui_node_abstractnode.h"
 
-#include "keys.h"
+#include "cl_keys.h"
 #include "client.h"
 
 static menuNode_t* anchoredNode = NULL;
@@ -204,7 +204,7 @@ static void MN_EditorNodeStart_f (void)
 {
 	menuNode_t* node;
 	if (Cmd_Argc() != 2) {
-		Com_Printf("Usage: %s <nodepath>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <nodepath>\n", Cmd_Argv(0));
 		return;
 	}
 	node = MN_GetNodeByPath(Cmd_Argv(1));
@@ -216,7 +216,7 @@ static void MN_EditorNodeStop_f (void)
 {
 	menuNode_t* node;
 	if (Cmd_Argc() != 2) {
-		Com_Printf("Usage: %s <nodepath>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <nodepath>\n", Cmd_Argv(0));
 		return;
 	}
 	node = MN_GetNodeByPath(Cmd_Argv(1));
@@ -236,18 +236,18 @@ static void MN_EditorNodeExtractNode (menuNode_t *node, int depth)
 	}
 	tab[i] = '\0';
 
-	Com_Printf("%s%s %s {\n", tab, node->behaviour->name, node->name);
+	Com_Print("%s%s %s {\n", tab, node->behaviour->name, node->name);
 	child = node->firstChild;
 
 	/* properties */
 	if (child) {
-		Com_Printf("%s\t{\n", tab);
-		Com_Printf("%s\t\tpos \"%d %d\"\n", tab, (int)node->pos[0], (int)node->pos[1]);
-		Com_Printf("%s\t\tsize \"%d %d\"\n", tab, (int)node->size[0], (int)node->size[1]);
-		Com_Printf("%s\t}\n", tab);
+		Com_Print("%s\t{\n", tab);
+		Com_Print("%s\t\tpos \"%d %d\"\n", tab, (int)node->pos[0], (int)node->pos[1]);
+		Com_Print("%s\t\tsize \"%d %d\"\n", tab, (int)node->size[0], (int)node->size[1]);
+		Com_Print("%s\t}\n", tab);
 	} else {
-		Com_Printf("%s\tpos \"%d %d\"\n", tab, (int)node->pos[0], (int)node->pos[1]);
-		Com_Printf("%s\tsize \"%d %d\"\n", tab, (int)node->size[0], (int)node->size[1]);
+		Com_Print("%s\tpos \"%d %d\"\n", tab, (int)node->pos[0], (int)node->pos[1]);
+		Com_Print("%s\tsize \"%d %d\"\n", tab, (int)node->size[0], (int)node->size[1]);
 	}
 
 	/* child */
@@ -256,7 +256,7 @@ static void MN_EditorNodeExtractNode (menuNode_t *node, int depth)
 		child = child->next;
 	}
 
-	Com_Printf("%s}\n", tab);
+	Com_Print("%s}\n", tab);
 }
 
 static void MN_EditorNodeExtract_f (void)
@@ -264,12 +264,12 @@ static void MN_EditorNodeExtract_f (void)
 	menuNode_t* menu;
 
 	if (Cmd_Argc() != 2) {
-		Com_Printf("Usage: %s <menuname>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <menuname>\n", Cmd_Argv(0));
 		return;
 	}
 	menu = MN_GetMenu(Cmd_Argv(1));
 	if (!menu) {
-		Com_Printf("Menu '%s' not found\n", Cmd_Argv(1));
+		Com_Print("Menu '%s' not found\n", Cmd_Argv(1));
 		return;
 	}
 
