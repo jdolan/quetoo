@@ -12,6 +12,7 @@ noinst_LTLIBRARIES = \
 	librenderer.la
 
 if BUILD_CLIENT
+
 librenderer_la_SOURCES = \
 	r_array.c \
 	r_bsp.c \
@@ -48,4 +49,13 @@ librenderer_la_CFLAGS = \
 	
 librenderer_la_LIBADD = \
 	../../libimages.la
+
+else
+
+librenderer_la_SOURCES = \
+	../../null.c
+	
+librenderer_la_CFLAGS = \
+	-D__LIBTOOL_LIBRARY__=librenderer_la
+	
 endif

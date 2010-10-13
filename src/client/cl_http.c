@@ -19,13 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <unistd.h>
+#include <curl/curl.h>
+
 #include "client.h"
 
-#include <unistd.h>
-
-#include <curl/curl.h>
-CURLM *curlm;
-CURL *curl;
+static CURLM *curlm;
+static CURL *curl;
 
 // generic encapsulation for common http response codes
 typedef struct response_s {

@@ -21,7 +21,6 @@
 
 #include "client.h"
 
-
 static vec3_t avelocities[NUMVERTEXNORMALS];
 
 static s_sample_t *cl_sample_shotgun_fire;

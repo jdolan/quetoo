@@ -23,6 +23,7 @@ noinst_LTLIBRARIES = \
 	libuinode.la
 
 if BUILD_CLIENT
+
 libuinode_la_SOURCES = \
 	ui_node_abstractnode.c \
 	ui_node_abstractscrollbar.c \
@@ -54,4 +55,13 @@ libuinode_la_CFLAGS = \
 
 libuinode_la_LIBADD = \
 	../libui.la
+	
+else
+
+libuinode_la_SOURCES = \
+	../../../null.c
+	
+libuinode_la_CFLAGS = \
+	-D__LIBTOOL_LIBRARY__=libuinode_la
+
 endif

@@ -12,6 +12,7 @@ noinst_LTLIBRARIES = \
 	libclient.la
 
 if BUILD_CLIENT
+
 libclient_la_SOURCES = \
 	cl_cmd.c \
 	cl_console.c \
@@ -41,4 +42,13 @@ libclient_la_CFLAGS = \
 	
 libclient_la_LIBADD = \
 	../libcmodel.la
+	
+else
+
+libclient_la_SOURCES = \
+	../null.c
+	
+libclient_la_CFLAGS = \
+	-D__LIBTOOL_LIBRARY__=libclient_la
+
 endif

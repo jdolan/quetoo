@@ -19,19 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SCRIPLIB_H__
-#define __SCRIPLIB_H__
+/*
+ * This file is referenced by Makefile.am's for modules which should not be
+ * built on a particular environment.  Essentially this just allows libtool to
+ * generate nearly-empty archives so that things can link easily.
+ *
+ * Compile with e.g. -D__LIBTOOL_ARCHIVE__=librenderer_la.
+ */
 
-#include "q2wmap.h"
+#include "shared.h"
 
-#define	MAXTOKEN 1024
-
-extern char token[MAXTOKEN];
-
-void LoadScriptFile(const char *filename);
-void ParseFromMemory(char *buffer, int size);
-
-qboolean GetToken(qboolean crossline);
-qboolean TokenAvailable(void);
-
-#endif /* __SCRIPLIB_H__ */
+const void *__LIBTOOL_ARCHIVE__ = NULL;

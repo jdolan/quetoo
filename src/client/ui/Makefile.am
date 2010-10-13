@@ -26,6 +26,7 @@ noinst_LTLIBRARIES = \
 	libui.la
 
 if BUILD_CLIENT
+
 libui_la_SOURCES = \
 	ui_actions.c \
 	ui_condition.c \
@@ -52,4 +53,13 @@ libui_la_CFLAGS = \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@ \
 	@WARN_CFLAGS@
+
+else
+
+libui_la_SOURCES = \
+	../../null.c
+	
+libui_la_CFLAGS = \
+	-D__LIBTOOL_LIBRARY__=libui_la
+
 endif

@@ -20,6 +20,7 @@
  */
 
 #include "common.h"
+#include "common-anorms.h"
 
 static int rd_target;
 static char *rd_buffer;
@@ -164,11 +165,6 @@ void Com_SetServerState(int state){
  *
  * Handles byte ordering and avoids alignment errors.
  */
-
-
-const vec3_t bytedirs[NUMVERTEXNORMALS] = {
-	#include "common-anorms.h"
-};
 
 
 /*

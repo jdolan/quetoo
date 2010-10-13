@@ -18,17 +18,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-# include <signal.h>
-# include <errno.h>
-# include <arpa/inet.h>
-# include <netinet/in.h>
-# include <sys/types.h>
-# include <sys/socket.h>
-# include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #include "common.h"
 

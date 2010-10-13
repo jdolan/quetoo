@@ -28,7 +28,9 @@
 #include <setjmp.h>
 #include <signal.h>
 
+#ifdef BUILD_CLIENT
 #include "client/client.h"
+#endif
 #include "server/server.h"
 
 jmp_buf environment;
@@ -79,7 +81,9 @@ static void Error(err_t err, const char *msg){
 
 			Sv_Shutdown(msg, false);
 
+#ifdef BUILD_CLIENT
 			Cl_Drop();
+#endif
 
 			longjmp(environment, -1);
 			break;
@@ -191,7 +195,10 @@ static void Init(int argc, char **argv){
 	Netchan_Init();
 
 	Sv_Init();
+
+#ifdef BUILD_CLIENT
 	Cl_Init();
+#endif
 
 	Com_Print("Quake2World initialized.\n");
 
@@ -215,7 +222,9 @@ static void Shutdown(const char *msg){
 
 	Sv_Shutdown(msg, false);
 
+#ifdef BUILD_CLIENT
 	Cl_Shutdown();
+#endif
 
 	Con_Shutdown();
 
@@ -224,9 +233,9 @@ static void Shutdown(const char *msg){
 
 
 /*
- * Com_Frame
+ * Frame
  */
-static void Com_Frame(int msec){
+static void Frame(int msec){
 	extern int c_traces, c_brush_traces;
 	extern int c_pointcontents;
 
@@ -243,7 +252,9 @@ static void Com_Frame(int msec){
 
 	Sv_Frame(msec);
 
+#ifdef BUILD_CLIENT
 	Cl_Frame(msec);
+#endif
 }
 
 
@@ -299,7 +310,7 @@ int main(int argc, char **argv){
 		if(msec < 1)  // 0ms frames are not okay
 			continue;
 
-		Com_Frame(msec);
+		Frame(msec);
 
 		oldtime = quake2world.time;
 	}
