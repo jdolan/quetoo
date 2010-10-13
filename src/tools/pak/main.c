@@ -21,42 +21,7 @@
 
 #include "pak.h"
 
-// we have to stub a few things from common and shared
-// since Pak_ReadPakfile uses them, and we need it
-
-void *Z_Malloc(size_t size){
-	return malloc(size);
-}
-
-void Z_Free(void *ptr){
-	free(ptr);
-}
-
-void Com_Warn(const char *fmt, ...){
-	fprintf(stderr, "%s", fmt);
-}
-
-int LittleLong(int l){
-
-	static union {
-		byte b[2];
-		unsigned short s;
-	} swaptest;
-
-	swaptest.b[0] = 1;
-	swaptest.b[1] = 0;
-
-	if(swaptest.s == 1)
-		return l;
-	else{
-		const byte b1 = l & 255;
-		const byte b2 = (l >> 8) & 255;
-		const byte b3 = (l >> 16) & 255;
-		const byte b4 = (l >> 24) & 255;
-
-		return ((int)b1 << 24) + ((int)b2 << 16) + ((int)b3 << 8) + b4;
-	}
-}
+quake2world_t quake2world;
 
 
 /*
@@ -81,6 +46,8 @@ int main(int argc, char **argv){
 				"Try `%s --help' for more information.\n", argv[0], argv[0]);
 		exit(ERR_ARG);
 	}
+
+   	memset(&quake2world, 0, sizeof(quake2world));
 
 	if(!strcmp(argv[1], "-c")){  // create
 		if(argc - 3 == 0)  // special case when no dirs specified

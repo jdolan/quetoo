@@ -7,11 +7,20 @@ pak_SOURCES = \
 pak_CFLAGS = \
 	-pipe \
 	-I../.. \
-	@WARN_CFLAGS@ \
-	@DEBUG_CFLAGS@
+	@DEBUG_CFLAGS@ \
+	@SDL_CFLAGS@ \
+	@WARN_CFLAGS@
 
 pak_LDADD = \
-	../../libfiles.la \
+	../../libcmd.la \
+	../../libcommon.la \
+	../../libcvar.la \
+	../../libfilesystem.la \
 	../../libhash.la \
+	../../libmem.la \
 	../../libpak.la \
+	../../libshared.la \
+	../../libsys.la \
+	../../libwin32.la \
+	@SDL_LIBS@ \
 	@DEBUG_LIBS@
