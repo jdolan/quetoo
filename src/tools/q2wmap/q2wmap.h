@@ -22,7 +22,8 @@
 #ifndef __Q2WMAP_H__
 #define __Q2WMAP_H__
 
-#include "common.h"
+#include "files.h"
+#include "filesystem.h"
 
 int BSP_Main(void);
 int VIS_Main(void);

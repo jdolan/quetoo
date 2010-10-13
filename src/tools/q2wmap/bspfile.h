@@ -19,6 +19,9 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifndef __BSPFILE_H__
+#define __BSPFILE_H__
+
 #include "q2wmap.h"
 
 extern int nummodels;
@@ -124,3 +127,4 @@ epair_t *ParseEpair(void);
 
 extern int subdivide_size;  // shared by qbsp and qrad
 
+#endif /* __BSPFILE_H__ */

@@ -22,6 +22,7 @@
 
 #include "bspfile.h"
 #include "polylib.h"
+#include "cmodel.h"
 
 typedef enum {
     emit_surface,

@@ -22,6 +22,8 @@
 #include <SDL/SDL.h>
 #include "q2wmap.h"
 
+quake2world_t quake2world;
+
 char mapname[MAX_OSPATH];
 char bspname[MAX_OSPATH];
 char outbase[MAX_OSPATH];
@@ -563,6 +565,11 @@ int main(int argc, char **argv){
 	qboolean do_light = false;
 	qboolean do_mat = false;
 	qboolean do_pak = false;
+
+	memset(&quake2world, 0, sizeof(quake2world));
+
+	// TODO: Wrap Print, Debug, Error and friends into quake2world_t function
+	// pointers
 
 #ifdef _WIN32
 	OpenWin32Console();		//	initialize the windows console
