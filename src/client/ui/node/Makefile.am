@@ -45,7 +45,7 @@ libuinode_la_SOURCES = \
 	ui_node_zone.c
 
 libuinode_la_CFLAGS = \
-	-I.. -I../.. -I../../.. -I../../../libs \
+	-I.. -I../.. -I../../.. \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@OPENGL_CFLAGS@ \

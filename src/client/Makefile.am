@@ -4,6 +4,7 @@ SUBDIRS = \
 	sound
 
 noinst_HEADERS = \
+	cl_binds.h \
 	cl_keys.h \
 	client.h
 
@@ -30,7 +31,7 @@ libclient_la_SOURCES = \
 	cl_view.c
 
 libclient_la_CFLAGS = \
-	-I.. -I../libs \
+	-I.. \
 	-pipe \
 	@CURL_CFLAGS@ \
 	@DEBUG_CFLAGS@ \
@@ -39,5 +40,5 @@ libclient_la_CFLAGS = \
 	@WARN_CFLAGS@
 	
 libclient_la_LIBADD = \
-	../libs/libcmodel.la
+	../libcmodel.la
 endif

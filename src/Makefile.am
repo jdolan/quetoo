@@ -1,70 +1,154 @@
 SUBDIRS = \
-	libs \
+	. \
 	client \
 	server \
-	. \
+	main \
 	game \
 	tools \
 	master
 
-SUFFIXES = .rc
-.rc.o:
-	@WINDRES@ $< -o $@
-
 noinst_HEADERS = \
-	binds.h \
-	files.h
+	cmd.h \
+	cmodel.h \
+	common.h \
+	common-anorms.h \
+	console.h \
+	curses.h \
+	cvar.h \
+	filesystem.h \
+	hash.h \
+	images.h \
+	mem.h \
+	net.h \
+	pak.h \
+	pmove.h \
+	shared.h \
+	sys.h \
+	win32.h
 
-bin_PROGRAMS = \
-	quake2world
+noinst_LTLIBRARIES = \
+	libcmd.la \
+	libcmodel.la \
+	libcommon.la \
+	libconsole.la \
+	libcvar.la \
+	libfilesystem.la \
+	libhash.la \
+	libimages.la \
+	libmem.la \
+	libnet.la \
+	libpak.la \
+	libpmove.la \
+	libshared.la \
+	libsys.la \
+	libwin32.la
 
-quake2world_SOURCES = \
-	main.c
-
-EXTRA_quake2world_SOURCES = \
-	quake2world-icon.rc
-
-quake2world_DEPENDENCIES = \
-	client/libclient.la \
-	client/ui/libui.la \
-	client/ui/node/libuinode.la \
-	client/sound/libsound.la \
-	client/renderer/librenderer.la \
-	libs/libcmd.la \
-	libs/libcmodel.la \
-	libs/libcommon.la \
-	libs/libconsole.la \
-	libs/libcvar.la \
-	libs/libfilesystem.la \
-	libs/libhash.la \
-	libs/libimages.la \
-	libs/libmem.la \
-	libs/libnet.la \
-	libs/libpak.la \
-	libs/libpmove.la \
-	libs/libshared.la \
-	libs/libsys.la \
-	libs/libwin32.la \
-	server/libserver.la \
-	${ICON}
-
-quake2world_CFLAGS = \
-	-I./libs \
+libcmd_la_SOURCES = \
+	cmd.c
+libcmd_la_CFLAGS = \
 	-pipe \
-	@CURSES_CFLAGS@ \
 	@DEBUG_CFLAGS@ \
-	@OPENGL_CFLAGS@ \
+	@WARN_CFLAGS@
+
+libcmodel_la_SOURCES = \
+	cmodel.c
+libcmodel_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@ 
+
+libcommon_la_SOURCES = \
+	common.c
+libcommon_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@SDL_CFLAGS@ \
+	@WARN_CFLAGS@
+	
+libconsole_la_SOURCES = \
+	console.c \
+	curses.c
+libconsole_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@CURSES_CFLAGS@ \
+	@WARN_CFLAGS@
+	
+libcvar_la_SOURCES = \
+	cvar.c
+libcvar_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+
+libfilesystem_la_SOURCES = \
+	filesystem.c
+libfilesystem_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+
+libimages_la_SOURCES = \
+	images.c
+libimages_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
 	@SDL_CFLAGS@ \
 	@WARN_CFLAGS@
 
-quake2world_LDADD = \
-	${quake2world_DEPENDENCIES} \
-	@CURL_LIBS@ \
-	@CURSES_LIBS@ \
-	@DEBUG_LIBS@ \
-	@HOST_LIBS@ \
-	@ICON@ \
-	@JPEG_LIBS@ \
-	@OPENGL_LIBS@ \
-	@SDL_LIBS@ \
-	-lm -lz
+libhash_la_SOURCES = \
+	hash.c
+libhash_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+
+libmem_la_SOURCES = \
+	mem.c
+libmem_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+
+libnet_la_SOURCES = \
+	net_chan.c \
+	net_udp.c
+libnet_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+	
+libpak_la_SOURCES = \
+	pak.c
+libpak_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+	
+libpmove_la_SOURCES = \
+	pmove.c
+libpmove_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+
+libshared_la_SOURCES = \
+	shared.c
+libshared_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+
+libsys_la_SOURCES = \
+	sys.c
+libsys_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@
+	
+libwin32_la_SOURCES = \
+	win32.c
+libwin32_la_CFLAGS = \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@WARN_CFLAGS@

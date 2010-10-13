@@ -39,7 +39,7 @@ librenderer_la_SOURCES = \
 	r_thread.c
 
 librenderer_la_CFLAGS = \
-	-I.. -I../.. -I../../libs \
+	-I.. -I../.. \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
@@ -47,5 +47,5 @@ librenderer_la_CFLAGS = \
 	@WARN_CFLAGS@
 	
 librenderer_la_LIBADD = \
-	../../libs/libimages.la
+	../../libimages.la
 endif

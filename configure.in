@@ -4,7 +4,7 @@ AC_INIT(quake2world, 0.1.0, quake2@jdolan.dyndns.org)
 
 AC_CONFIG_AUX_DIR(.)
 AC_CONFIG_MACRO_DIR(m4)
-AC_CONFIG_SRCDIR(src/main.c)
+AC_CONFIG_SRCDIR(src/shared.c)
 AM_CONFIG_HEADER(config.h)
 
 AC_CANONICAL_SYSTEM
@@ -483,7 +483,7 @@ AC_CONFIG_FILES([
 	src/client/renderer/Makefile
 	src/game/Makefile
 	src/game/default/Makefile
-	src/libs/Makefile
+	src/main/Makefile
 	src/master/Makefile
 	src/server/Makefile
 	src/tools/Makefile

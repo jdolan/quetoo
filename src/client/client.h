@@ -23,12 +23,12 @@
 #define __CLIENT_H__
 
 #include "cl_keys.h"
-#include "libs/cmodel.h"
-#include "libs/console.h"
-#include "libs/filesystem.h"
-#include "libs/mem.h"
-#include "libs/net.h"
-#include "libs/sys.h"
+#include "cmodel.h"
+#include "console.h"
+#include "filesystem.h"
+#include "mem.h"
+#include "net.h"
+#include "sys.h"
 #include "renderer/renderer.h"
 #include "sound/sound.h"
 

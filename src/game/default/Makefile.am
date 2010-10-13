@@ -28,15 +28,14 @@ game_la_SOURCES = \
 
 game_la_CFLAGS = \
 	@SO_CFLAGS@ \
-	-pipe \
 	-I../.. \
-	-I../../libs \
+	-pipe \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@ \
 	@MYSQL_CFLAGS@
 
 game_la_LIBADD = \
-	../../libs/libshared.la \
+	../../libshared.la \
 	@MYSQL_LIBS@
 
 game_la_LDFLAGS = \

@@ -1192,7 +1192,7 @@ void Cl_Frame(int msec){
 	}
 }
 
-#include "binds.h"
+#include "cl_binds.h"
 
 /*
  * Cl_Init
