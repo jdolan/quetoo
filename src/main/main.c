@@ -42,7 +42,7 @@ cvar_t *timedemo;
 cvar_t *timescale;
 
 static void Debug(const char *msg);
-static void Error(error_t err, const char *msg) __attribute__((noreturn));
+static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Print(const char *msg);
 static void Warn(const char *msg);
 static void Shutdown(const char *msg);
@@ -69,7 +69,7 @@ static void Debug(const char *msg){
  * Callback for subsystem failures.  Depending on the code, we might simply
  * print a message, or shut the entire engine down and exit.
  */
-static void Error(error_t err, const char *msg){
+static void Error(err_t err, const char *msg){
 
 	Print(va("^1%s", msg));
 

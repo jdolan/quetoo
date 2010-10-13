@@ -80,7 +80,7 @@ void Com_Debug(const char *fmt, ...){
 /*
  * Com_Error
  */
-void Com_Error(error_t err, const char *fmt, ...){
+void Com_Error(err_t err, const char *fmt, ...){
 	va_list	argptr;
 	char msg[MAX_PRINT_MSG];
 
