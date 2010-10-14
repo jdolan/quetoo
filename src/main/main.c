@@ -28,6 +28,7 @@
 #include <setjmp.h>
 #include <signal.h>
 
+#include "config.h"
 #ifdef BUILD_CLIENT
 #include "client/client.h"
 #endif

@@ -88,6 +88,8 @@ libfilesystem_la_CFLAGS = \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@
 
+if BUILD_CLIENT
+
 libimages_la_SOURCES = \
 	images.c
 libimages_la_CFLAGS = \
@@ -95,6 +97,15 @@ libimages_la_CFLAGS = \
 	@DEBUG_CFLAGS@ \
 	@SDL_CFLAGS@ \
 	@WARN_CFLAGS@
+
+else
+
+libimages_la_SOURCES = \
+	null.c
+libimages_la_CFLAGS = \
+	-D__LIBTOOL_LIBRARY__=libimages_la
+
+endif
 
 libhash_la_SOURCES = \
 	hash.c
@@ -145,10 +156,21 @@ libsys_la_CFLAGS = \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@
-	
+
+if WINDOWS
+
 libwin32_la_SOURCES = \
 	win32.c
 libwin32_la_CFLAGS = \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@
+
+else
+
+libwin32_la_SOURCES = \
+	null.c
+libwin32_la_CFLAGS = \
+	-D__LIBTOOL_LIBRARY__=libwin32_la
+
+endif
