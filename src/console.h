@@ -61,4 +61,25 @@ void Con_Print(const char *text);
 void Con_Resize(console_t *con, int width, int height);
 int Con_CompleteCommand(char *input_text, int *input_position);
 
+#ifdef HAVE_CURSES
+
+#include <signal.h>
+#include <curses.h>
+
+#define CURSES_HISTORYSIZE 64
+#define CURSES_LINESIZE 1024
+#define CURSES_TIMEOUT 250	// 250 msec redraw timeout
+
+// structures for the server console
+extern console_t sv_con;
+extern cvar_t *con_curses;
+extern cvar_t *con_timeout;
+
+void Curses_Init(void);
+void Curses_Shutdown(void);
+void Curses_Frame(int msec);
+void Curses_Refresh(void);
+
+#endif /* HAVE_CURSES */
+
 #endif /* __CONSOLE_H__ */

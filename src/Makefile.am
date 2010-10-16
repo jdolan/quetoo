@@ -13,7 +13,6 @@ noinst_HEADERS = \
 	common.h \
 	common-anorms.h \
 	console.h \
-	curses.h \
 	cvar.h \
 	filesystem.h \
 	hash.h \
@@ -67,7 +66,7 @@ libcommon_la_CFLAGS = \
 	
 libconsole_la_SOURCES = \
 	console.c \
-	curses.c
+	console-curses.c
 libconsole_la_CFLAGS = \
 	-pipe \
 	@DEBUG_CFLAGS@ \

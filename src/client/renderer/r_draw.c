@@ -94,7 +94,7 @@ void R_InitDraw(void){
 	r_char_colors[CON_COLOR_MAGENTA]	= 0xFFFF00FF;
 	r_char_colors[CON_COLOR_WHITE] 		= 0xFFFFFFFF;
 
-	Com_HashInit(&r_pics_hashtable);
+	Hash_Init(&r_pics_hashtable);
 }
 
 
@@ -260,8 +260,8 @@ int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int 
  * R_FreePics
  */
 void R_FreePics(void){
-	Com_HashFree(&r_pics_hashtable);
-	Com_HashInit(&r_pics_hashtable);
+	Hash_Free(&r_pics_hashtable);
+	Hash_Init(&r_pics_hashtable);
 }
 
 
@@ -272,7 +272,7 @@ image_t *R_LoadPic(const char *name){
 	int i;
 	image_t *image;
 
-	if((image = Com_HashValue(&r_pics_hashtable, name)))
+	if((image = Hash_Get(&r_pics_hashtable, name)))
 		return image;
 
 	for(i = 0; i < MAX_IMAGES; i++){
@@ -289,7 +289,7 @@ image_t *R_LoadPic(const char *name){
 	if(i < MAX_IMAGES)  // insert to precache
 		cl.image_precache[i] = image;
 
-	Com_HashInsert(&r_pics_hashtable, name, image);
+	Hash_Put(&r_pics_hashtable, name, image);
 
 	return image;
 }

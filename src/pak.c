@@ -72,14 +72,14 @@ pak_t *Pak_ReadPakfile(const char *pakfile){
 	fseek(pak->handle, header.dirofs, SEEK_SET);
 	Fs_Read(pak->entries, 1, header.dirlen, pak->handle);
 
-	Com_HashInit(&pak->hashtable);
+	Hash_Init(&pak->hashtable);
 
 	// parse the directory
 	for(i = 0; i < pak->numentries; ++i){
 		pak->entries[i].fileofs = LittleLong(pak->entries[i].fileofs);
 		pak->entries[i].filelen = LittleLong(pak->entries[i].filelen);
 
-		Com_HashInsert(&pak->hashtable, pak->entries[i].name, &pak->entries[i]);
+		Hash_Put(&pak->hashtable, pak->entries[i].name, &pak->entries[i]);
 	}
 
 	return pak;
@@ -102,7 +102,7 @@ void Pak_FreePakfile(pak_t *pak){
 	if(pak->entries)
 		Z_Free(pak->entries);
 
-	Com_HashFree(&pak->hashtable);
+	Hash_Free(&pak->hashtable);
 
 	Z_Free(pak);
 }

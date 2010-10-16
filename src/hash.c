@@ -23,11 +23,11 @@
 
 
 /*
- * Com_HashInit
+ * Hash_Init
  *
  * Initializes the specified hashtable.
  */
-void Com_HashInit(hashtable_t *hashtable){
+void Hash_Init(hashtable_t *hashtable){
 
 	if(!hashtable)
 		return;
@@ -37,11 +37,11 @@ void Com_HashInit(hashtable_t *hashtable){
 
 
 /*
- * Com_HashCode
+ * Hash_Hashcode
  *
  * Generate a bin number (not a unique code) for the specified key.
  */
-unsigned Com_HashCode(const char *key){
+unsigned Hash_Hashcode(const char *key){
 	unsigned code;
 	const char *c;
 
@@ -60,11 +60,11 @@ unsigned Com_HashCode(const char *key){
 
 
 /*
- * Com_HashInsert
+ * Hash_Put
  *
  * Insert the specified key-value pair to hashtable.
  */
-unsigned Com_HashInsert(hashtable_t *hashtable, const char *key, void *value){
+unsigned Hash_Put(hashtable_t *hashtable, const char *key, void *value){
 	hashentry_t *e;
 	unsigned code;
 
@@ -77,7 +77,7 @@ unsigned Com_HashInsert(hashtable_t *hashtable, const char *key, void *value){
 	e->key = key;
 	e->value = value;
 
-	code = Com_HashCode(key);
+	code = Hash_Hashcode(key);
 
 	if(!hashtable->bins[code]){
 		hashtable->bins[code] = e;
@@ -92,15 +92,15 @@ unsigned Com_HashInsert(hashtable_t *hashtable, const char *key, void *value){
 
 
 /*
- * Com_HashEntry
+ * Hash_GetEntry
  *
  * Returns the first entry associated to the specified key.
  */
-hashentry_t *Com_HashEntry(hashtable_t *hashtable, const char *key){
+hashentry_t *Hash_GetEntry(hashtable_t *hashtable, const char *key){
 	hashentry_t *e;
 	unsigned code;
 
-	code = Com_HashCode(key);
+	code = Hash_Hashcode(key);
 
 	if(!hashtable->bins[code])
 		return NULL;
@@ -117,14 +117,14 @@ hashentry_t *Com_HashEntry(hashtable_t *hashtable, const char *key){
 
 
 /*
- * Com_HashValue
+ * Hash_Get
  *
  * Return the first value hashed at key from hashtable.
  */
-void *Com_HashValue(hashtable_t *hashtable, const char *key){
+void *Hash_Get(hashtable_t *hashtable, const char *key){
 	hashentry_t *e;
 
-	if((e = Com_HashEntry(hashtable, key)))
+	if((e = Hash_GetEntry(hashtable, key)))
 		return e->value;
 
 	return NULL;
@@ -132,19 +132,19 @@ void *Com_HashValue(hashtable_t *hashtable, const char *key){
 
 
 /*
- * Com_HashRemoveEntry
+ * Hash_RemoveEntry
  *
  * Removes the specified entry from the hash and frees it, returning its
  * value so that it may also be freed if desired.
  */
-void *Com_HashRemoveEntry(hashtable_t *hashtable, hashentry_t *entry){
+void *Hash_RemoveEntry(hashtable_t *hashtable, hashentry_t *entry){
 	unsigned code;
 	void *ret;
 
 	if(!hashtable || !entry)
 		return NULL;
 
-	code = Com_HashCode(entry->key);
+	code = Hash_Hashcode(entry->key);
 
 	if(hashtable->bins[code] == entry)  // fix the bin if we were the head
 		hashtable->bins[code] = entry->next;
@@ -161,39 +161,39 @@ void *Com_HashRemoveEntry(hashtable_t *hashtable, hashentry_t *entry){
 
 
 /*
- * Com_HashRemove
+ * Hash_Remove
  *
  * Removes the first entry associated to key from the specified hash.
  */
-void *Com_HashRemove(hashtable_t *hashtable, const char *key){
+void *Hash_Remove(hashtable_t *hashtable, const char *key){
 	hashentry_t *e;
 
-	if((e = Com_HashEntry(hashtable, key)))
-		return Com_HashRemoveEntry(hashtable, e);
+	if((e = Hash_GetEntry(hashtable, key)))
+		return Hash_RemoveEntry(hashtable, e);
 
 	return NULL;
 }
 
 /*
- * Com_HashRemoveAll
+ * Hash_Clear
  *
  * Removes all entries associated to key from the specified hash.
  */
-void Com_HashRemoveAll(hashtable_t *hashtable, const char *key){
+void Hash_Clear(hashtable_t *hashtable, const char *key){
 	hashentry_t *e;
 
-	while((e = Com_HashEntry(hashtable, key)))
-		Com_HashRemoveEntry(hashtable, e);
+	while((e = Hash_GetEntry(hashtable, key)))
+		Hash_RemoveEntry(hashtable, e);
 }
 
 
 /*
- * Com_HashFree
+ * Hash_Free
  *
  * Free all hashentries associated with hashtable.  Does not free any of the
  * values referenced by the entries.
  */
-void Com_HashFree(hashtable_t *hashtable){
+void Hash_Free(hashtable_t *hashtable){
 	hashentry_t *e, *f;
 	int i;
 

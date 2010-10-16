@@ -26,7 +26,6 @@
  */
 
 #include "console.h"
-#include "curses.h"
 
 consoledata_t condata;
 

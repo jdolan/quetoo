@@ -170,10 +170,10 @@ int Fs_OpenFile(const char *filename, FILE **file, filemode_t mode){
 	}
 
 	// fall back on the pakfiles
-	if((pak = (pak_t *)Com_HashValue(&fs_hashtable, filename))){
+	if((pak = (pak_t *)Hash_Get(&fs_hashtable, filename))){
 
 		// find the entry within the pakfile
-		if((e = (pakentry_t *)Com_HashValue(&pak->hashtable, filename))){
+		if((e = (pakentry_t *)Hash_Get(&pak->hashtable, filename))){
 
 			*file = fopen(pak->filename, "rb");
 
@@ -279,7 +279,7 @@ void Fs_AddPakfile(const char *pakfile){
 		return;
 
 	for(i = 0; i < pak->numentries; i++)  // hash the entries to the pak
-		Com_HashInsert(&fs_hashtable, pak->entries[i].name, pak);
+		Hash_Put(&fs_hashtable, pak->entries[i].name, pak);
 
 	Com_Print("Added %s: %i files.\n", pakfile, pak->numentries);
 }
@@ -470,7 +470,7 @@ void Fs_SetGamedir(const char *dir){
 				if(!strstr(pak->filename, fs_searchpaths->path))
 					continue;
 
-				Com_HashRemoveEntry(&fs_hashtable, e);
+				Hash_RemoveEntry(&fs_hashtable, e);
 				Pak_FreePakfile(pak);
 			}
 		}
@@ -592,7 +592,7 @@ void Fs_Init(void){
 
 	fs_searchpaths = NULL;
 
-	Com_HashInit(&fs_hashtable);
+	Hash_Init(&fs_hashtable);
 
 	// allow the game to run from outside the data tree
 	fs_basedir = Cvar_Get("fs_basedir", "", CVAR_NOSET, NULL);

@@ -20,7 +20,7 @@
  */
 
 #include "server.h"
-#include "curses.h"
+#include "console.h"
 
 netaddr_t master_addr[MAX_MASTERS];  // address of group servers
 

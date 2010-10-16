@@ -4,14 +4,7 @@ bin_PROGRAMS = \
 pak_SOURCES = \
 	main.c
 
-pak_CFLAGS = \
-	-pipe \
-	-I../.. \
-	@DEBUG_CFLAGS@ \
-	@SDL_CFLAGS@ \
-	@WARN_CFLAGS@
-
-pak_LDADD = \
+pak_DEPENDENCIES = \
 	../../libcmd.la \
 	../../libcommon.la \
 	../../libcvar.la \
@@ -21,6 +14,18 @@ pak_LDADD = \
 	../../libpak.la \
 	../../libshared.la \
 	../../libsys.la \
-	../../libwin32.la \
+	../../libwin32.la
+
+pak_CFLAGS = \
+	-I../.. \
+	-pipe \
+	@DEBUG_CFLAGS@ \
+	@SDL_CFLAGS@ \
+	@WARN_CFLAGS@
+
+pak_LDADD = \
+	${pak_DEPENDENCIES} \
+	@DEBUG_LIBS@ \
+	@HOST_LIBS@ \
 	@SDL_LIBS@ \
-	@DEBUG_LIBS@
+	-lm

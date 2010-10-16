@@ -292,7 +292,7 @@ if test "x${with_curses}" != xno; then
 	)
 
 	dnl -----------------
-	dnl Ccheck for ncurses
+	dnl Check for ncurses
 	dnl -----------------
 
 	if test "${HAVE_CURSES}" = maybe; then
@@ -306,7 +306,7 @@ if test "x${with_curses}" != xno; then
 	fi
 
 	dnl ------------------
-	dnl check for pdcurses
+	dnl Check for pdcurses
 	dnl ------------------
 
 	if test "${HAVE_CURSES}" = maybe; then
@@ -320,7 +320,7 @@ if test "x${with_curses}" != xno; then
 	fi
 
 	dnl ------------------------
-	dnl check for generic curses
+	dnl Check for generic curses
 	dnl ------------------------
 
 	if test "${HAVE_CURSES}" = maybe; then

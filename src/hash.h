@@ -38,69 +38,69 @@ typedef struct hashtable_s {
 } hashtable_t;
 
 /*
-Com_HashInit
+Hash_Init
 
 Initializes the specified hashtable.
 */
-void Com_HashInit(hashtable_t *hashtable);
+void Hash_Init(hashtable_t *hashtable);
 
 /*
-Com_HashCode
+Hash_Hashcode
 
 Generate a bin number (not a unique code) for the specified key.
 */
-unsigned Com_HashCode(const char *key);
+unsigned Hash_Hashcode(const char *key);
 
 /*
-Com_HashInsert
+Hash_Put
 
 Insert the specified key-value pair to hashtable.
 */
-unsigned Com_HashInsert(hashtable_t *hashtable, const char *key, void *value);
+unsigned Hash_Put(hashtable_t *hashtable, const char *key, void *value);
 
 /*
-Com_HashEntry
+Hash_GetEntry
 
 Returns the first entry associated to the specified key.
 */
-hashentry_t *Com_HashEntry(hashtable_t *hashtable, const char *key);
+hashentry_t *Hash_GetEntry(hashtable_t *hashtable, const char *key);
 
 /*
-Com_HashValue
+Hash_Get
 
 Return the first value hashed at key from hashtable.
 */
-void *Com_HashValue(hashtable_t *hashtable, const char *key);
+void *Hash_Get(hashtable_t *hashtable, const char *key);
 
 /*
-Com_HashRemoveEntry
+Hash_RemoveEntry
 
 Removes the specified entry from the hash and frees it, returning its
 value so that it may also be freed if desired.
 */
-void *Com_HashRemoveEntry(hashtable_t *hashtable, hashentry_t *entry);
+void *Hash_RemoveEntry(hashtable_t *hashtable, hashentry_t *entry);
 
 /*
-Com_HashRemove
+Hash_Remove
 
 Removes the first entry associated to key from the specified hash and
 frees it, returning its value so that it may also be freed if desired.
 */
-void *Com_HashRemove(hashtable_t *hashtable, const char *key);
+void *Hash_Remove(hashtable_t *hashtable, const char *key);
 
 /*
-Com_HashRemoveAll
+Hash_Clear
 
 Removes all entries associated to key from the specified hash.
 */
-void Com_HashRemoveAll(hashtable_t *hashtable, const char *key);
+void Hash_Clear(hashtable_t *hashtable, const char *key);
 
 /*
-Com_HashFree
+Hash_Free
 
 Free all hashentries associated with hashtable.  Does not free any of the
 values referenced by the entries.
 */
-void Com_HashFree(hashtable_t *hashtable);
+void Hash_Free(hashtable_t *hashtable);
 
 #endif /*__HASH_H__*/
