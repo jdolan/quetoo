@@ -43,18 +43,8 @@ q2wmap_CFLAGS = \
 	@SDL_CFLAGS@
 
 q2wmap_LDADD = \
-	../../libcmd.la \
 	../../libcmodel.la \
-	../../libcommon.la \
-	../../libcvar.la \
-	../../libfilesystem.la \
-	../../libhash.la \
 	../../libimages.la \
-	../../libmem.la \
-	../../libpak.la \
-	../../libshared.la \
-	../../libsys.la \
-	../../libwin32.la \
 	@CURSES_LIBS@ \
 	@DEBUG_LIBS@ \
 	@JPEG_LIBS@ \

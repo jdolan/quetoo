@@ -17,21 +17,11 @@ quake2world_DEPENDENCIES = \
 	../client/ui/node/libuinode.la \
 	../client/sound/libsound.la \
 	../client/renderer/librenderer.la \
-	../libcmd.la \
 	../libcmodel.la \
-	../libcommon.la \
 	../libconsole.la \
-	../libcvar.la \
-	../libfilesystem.la \
-	../libhash.la \
 	../libimages.la \
-	../libmem.la \
 	../libnet.la \
-	../libpak.la \
 	../libpmove.la \
-	../libshared.la \
-	../libsys.la \
-	../libwin32.la \
 	../server/libserver.la \
 	${ICON}
 

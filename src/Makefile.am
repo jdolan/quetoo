@@ -26,35 +26,27 @@ noinst_HEADERS = \
 	win32.h
 
 noinst_LTLIBRARIES = \
-	libcmd.la \
 	libcmodel.la \
 	libcommon.la \
 	libconsole.la \
-	libcvar.la \
 	libfilesystem.la \
 	libhash.la \
 	libimages.la \
 	libmem.la \
 	libnet.la \
-	libpak.la \
 	libpmove.la \
 	libshared.la \
 	libsys.la \
 	libwin32.la
-
-libcmd_la_SOURCES = \
-	cmd.c
-libcmd_la_CFLAGS = \
-	-pipe \
-	@DEBUG_CFLAGS@ \
-	@WARN_CFLAGS@
 
 libcmodel_la_SOURCES = \
 	cmodel.c
 libcmodel_la_CFLAGS = \
 	-pipe \
 	@DEBUG_CFLAGS@ \
-	@WARN_CFLAGS@ 
+	@WARN_CFLAGS@
+libcmodel_la_LIBADD = \
+	libfilesystem.la
 
 libcommon_la_SOURCES = \
 	common.c
@@ -72,20 +64,25 @@ libconsole_la_CFLAGS = \
 	@DEBUG_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@WARN_CFLAGS@
+libconsole_la_LIBADD = \
+	libfilesystem.la
 	
-libcvar_la_SOURCES = \
-	cvar.c
-libcvar_la_CFLAGS = \
-	-pipe \
-	@DEBUG_CFLAGS@ \
-	@WARN_CFLAGS@
-
 libfilesystem_la_SOURCES = \
-	filesystem.c
+	cmd.c \
+	cvar.c \
+	filesystem.c \
+	pak.c
 libfilesystem_la_CFLAGS = \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@
+libfilesystem_la_LIBADD = \
+	libcommon.la \
+	libhash.la \
+	libmem.la \
+	libshared.la \
+	libsys.la \
+	libwin32.la
 
 if BUILD_CLIENT
 
@@ -96,6 +93,8 @@ libimages_la_CFLAGS = \
 	@DEBUG_CFLAGS@ \
 	@SDL_CFLAGS@ \
 	@WARN_CFLAGS@
+libimages_la_LIBADD = \
+	libfilesystem.la
 
 else
 
@@ -127,13 +126,8 @@ libnet_la_CFLAGS = \
 	-pipe \
 	@DEBUG_CFLAGS@ \
 	@WARN_CFLAGS@
-	
-libpak_la_SOURCES = \
-	pak.c
-libpak_la_CFLAGS = \
-	-pipe \
-	@DEBUG_CFLAGS@ \
-	@WARN_CFLAGS@
+libnet_la_LIBADD = \
+	libfilesystem.la
 	
 libpmove_la_SOURCES = \
 	pmove.c
