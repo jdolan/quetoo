@@ -41,7 +41,13 @@ libclient_la_CFLAGS = \
 	@WARN_CFLAGS@
 	
 libclient_la_LIBADD = \
-	../libcmodel.la
+	ui/node/libuinode.la \
+	sound/libsound.la \
+	renderer/librenderer.la \
+	../libconsole.la \
+	../libcmodel.la \
+	../libnet.la \
+	../libpmove.la
 	
 else
 

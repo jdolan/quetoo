@@ -11,20 +11,6 @@ quake2world_SOURCES = \
 EXTRA_quake2world_SOURCES = \
 	quake2world-icon.rc
 
-quake2world_DEPENDENCIES = \
-	../client/libclient.la \
-	../client/ui/libui.la \
-	../client/ui/node/libuinode.la \
-	../client/sound/libsound.la \
-	../client/renderer/librenderer.la \
-	../libcmodel.la \
-	../libconsole.la \
-	../libimages.la \
-	../libnet.la \
-	../libpmove.la \
-	../server/libserver.la \
-	${ICON}
-
 quake2world_CFLAGS = \
 	-I.. \
 	-pipe \
@@ -35,7 +21,9 @@ quake2world_CFLAGS = \
 	@WARN_CFLAGS@
 
 quake2world_LDADD = \
-	${quake2world_DEPENDENCIES} \
+	../client/libclient.la \
+	../server/libserver.la \
+	${ICON} \
 	@CURL_LIBS@ \
 	@CURSES_LIBS@ \
 	@DEBUG_LIBS@ \

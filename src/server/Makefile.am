@@ -21,3 +21,8 @@ libserver_la_CFLAGS = \
 	@DEBUG_CFLAGS@ \
 	@CURSES_CFLAGS@
 
+libserver_la_LIBADD = \
+	../libcmodel.la \
+	../libconsole.la \
+	../libnet.la \
+	../libpmove.la
