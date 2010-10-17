@@ -52,7 +52,7 @@
 #include "win32.h"
 #endif
 
-#ifndef _WIN32
+#ifndef _MSC_VER
 typedef unsigned char byte;
 #endif
 
