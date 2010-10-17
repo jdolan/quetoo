@@ -1,6 +1,6 @@
 SUFFIXES = .rc
 .rc.o:
-	@WINDRES@ $< -o $@a
+	@WINDRES@ $< -o $@
 
 bin_PROGRAMS = \
 	quake2world
@@ -10,6 +10,9 @@ quake2world_SOURCES = \
 
 EXTRA_quake2world_SOURCES = \
 	quake2world-icon.rc
+
+quake2world_DEPENDENCIES = \
+	${ICON}
 
 quake2world_CFLAGS = \
 	-I.. \
@@ -21,14 +24,13 @@ quake2world_CFLAGS = \
 	@WARN_CFLAGS@
 
 quake2world_LDADD = \
+	${quake2world_DEPENDENCIES} \
 	../client/libclient.la \
 	../server/libserver.la \
-	${ICON} \
 	@CURL_LIBS@ \
 	@CURSES_LIBS@ \
 	@DEBUG_LIBS@ \
 	@HOST_LIBS@ \
-	@ICON@ \
 	@JPEG_LIBS@ \
 	@OPENGL_LIBS@ \
 	@SDL_LIBS@ \
