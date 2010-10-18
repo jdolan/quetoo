@@ -577,8 +577,16 @@ int main(int argc, char **argv){
 
 	Print("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILDHOST);
 
-	// init memory management facilities
+	// init core facilities
 	Z_Init();
+
+	Swap_Init();
+
+	Cvar_Init();
+
+	Cmd_Init();
+
+	Fs_Init();
 
 	// init thread state
 	memset(&threadstate, 0, sizeof(threadstate));
@@ -668,10 +676,6 @@ int main(int argc, char **argv){
 	strcpy(bspname, mapname);
 	strcat(mapname, ".map");
 	strcat(bspname, ".bsp");
-
-	// init core facilities
-	Swap_Init();
-	Fs_Init();
 
 	// start timer
 	start = time(NULL);

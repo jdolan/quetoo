@@ -1245,14 +1245,6 @@ void Cl_Init(void){
  * Cl_Shutdown
  */
 void Cl_Shutdown(void){
-	static qboolean isdown = false;
-
-	if(isdown){
-		printf("Recursive shutdown..\n");
-		return;
-	}
-
-	isdown = true;
 
 	Cl_Disconnect();
 

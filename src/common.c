@@ -855,7 +855,9 @@ void Com_InitArgv(int argc, char **argv){
 
 	if(argc > MAX_NUM_ARGVS)
 		Com_Warn("Com_InitArgv: argc > MAX_NUM_ARGVS.");
+
 	quake2world.argc = argc;
+
 	for(i = 0; i < argc && i < MAX_NUM_ARGVS; i++){
 		if(!argv[i] || strlen(argv[i]) >= MAX_TOKEN_CHARS)
 			quake2world.argv[i] = "";
