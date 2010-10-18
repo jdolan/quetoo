@@ -607,10 +607,13 @@ static void R_Reload_f(void){
 
 /*
  * R_Restart_f
+ *
+ * Restarts any "dirty" portions of the renderer subsystem.  On OSX and
+ * Windows, this implies recreating the entire GL context, while Linux allows
+ * us to only refresh the parts we need to.
  */
 void R_Restart_f(void){
-#ifdef _WIN32
-	// on win32, we must always recreate the entire context
+#if defined(__APPLE__) || defined(_WIN32)
 	R_Shutdown();
 
 	R_Init();
