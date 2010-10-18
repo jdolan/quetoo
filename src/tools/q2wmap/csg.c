@@ -322,8 +322,8 @@ bspbrush_t *ChopBrushes(bspbrush_t * head){
 	bspbrush_t *sub, *sub2;
 	int c1, c2;
 
-	Verbose("---- ChopBrushes ----\n");
-	Verbose("original brushes: %i\n", CountBrushList(head));
+	Com_Verbose("---- ChopBrushes ----\n");
+	Com_Verbose("original brushes: %i\n", CountBrushList(head));
 
 	keep = NULL;
 
@@ -401,6 +401,6 @@ newlist:
 		}
 	}
 
-	Verbose("output brushes: %i\n", CountBrushList(keep));
+	Com_Verbose("output brushes: %i\n", CountBrushList(keep));
 	return keep;
 }

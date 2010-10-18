@@ -49,7 +49,7 @@ static int GetThreadWork(void){
 	if(f != threadstate.workfrac){
 		threadstate.workfrac = f;
 		if(threadstate.progress && !(verbose || debug)){
-			Print("%i...", f);
+			Com_Print("%i...", f);
 			fflush(stdout);
 		}
 	}
@@ -167,6 +167,6 @@ void RunThreadsOn(int workcount, qboolean progress, void(*func)(int)){
 	end = time(NULL);
 
 	if(threadstate.progress)
-		Print(" (%i seconds)\n", (int)(end - start));
+		Com_Print(" (%i seconds)\n", (int)(end - start));
 }
 

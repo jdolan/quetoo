@@ -82,7 +82,7 @@ static unsigned HashVec(const vec3_t vec){
 	const int y = (4096 + (int)(vec[1] + 0.5)) >> 7;
 
 	if(x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE)
-		Error("HashVec: point outside valid range");
+		Com_Error(ERR_FATAL, "HashVec: point outside valid range");
 
 	return y * HASH_SIZE + x;
 }
@@ -123,7 +123,7 @@ static int GetVertexnum(const vec3_t in){
 
 	// emit a vertex
 	if(numvertexes == MAX_BSP_VERTS)
-		Error("numvertexes == MAX_BSP_VERTS");
+		Com_Error(ERR_FATAL, "numvertexes == MAX_BSP_VERTS");
 
 	dvertexes[numvertexes].point[0] = vert[0];
 	dvertexes[numvertexes].point[1] = vert[1];
@@ -243,7 +243,7 @@ static void EmitFaceVertexes(node_t *node, face_t *f){
 	for(i = 0; i < w->numpoints; i++){
 		if(noweld){  // make every point unique
 			if(numvertexes == MAX_BSP_VERTS)
-				Error("MAX_BSP_VERTS");
+				Com_Error(ERR_FATAL, "MAX_BSP_VERTS");
 			superverts[i] = numvertexes;
 			VectorCopy(w->p[i], dvertexes[numvertexes].point);
 			numvertexes++;
@@ -339,7 +339,7 @@ static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert){
 
 	// the edge p1 to p2 is now free of tjunctions
 	if(numsuperverts >= MAX_SUPERVERTS)
-		Error("MAX_SUPERVERTS");
+		Com_Error(ERR_FATAL, "MAX_SUPERVERTS");
 	superverts[numsuperverts] = p1;
 	numsuperverts++;
 }
@@ -425,27 +425,27 @@ static void FixEdges_r(node_t *node){
  */
 void FixTjuncs(node_t *headnode){
 	// snap and merge all vertexes
-	Verbose("---- snap verts ----\n");
+	Com_Verbose("---- snap verts ----\n");
 	memset(hashverts, 0, sizeof(hashverts));
 	c_totalverts = 0;
 	c_uniqueverts = 0;
 	c_faceoverflows = 0;
 	EmitVertexes_r(headnode);
-	Verbose("%i unique from %i\n", c_uniqueverts, c_totalverts);
+	Com_Verbose("%i unique from %i\n", c_uniqueverts, c_totalverts);
 
 	// break edges on tjunctions
-	Verbose("---- tjunc ----\n");
+	Com_Verbose("---- tjunc ----\n");
 	c_tryedges = 0;
 	c_degenerate = 0;
 	c_facecollapse = 0;
 	c_tjunctions = 0;
 	if(!notjunc)
 		FixEdges_r(headnode);
-	Verbose("%5i edges degenerated\n", c_degenerate);
-	Verbose("%5i faces degenerated\n", c_facecollapse);
-	Verbose("%5i edges added by tjunctions\n", c_tjunctions);
-	Verbose("%5i faces added by tjunctions\n", c_faceoverflows);
-	Verbose("%5i bad start verts\n", c_badstartverts);
+	Com_Verbose("%5i edges degenerated\n", c_degenerate);
+	Com_Verbose("%5i faces degenerated\n", c_facecollapse);
+	Com_Verbose("%5i edges added by tjunctions\n", c_tjunctions);
+	Com_Verbose("%5i faces added by tjunctions\n", c_faceoverflows);
+	Com_Verbose("%5i bad start verts\n", c_badstartverts);
 }
 
 
@@ -474,7 +474,7 @@ int GetEdge2(int v1, int v2, face_t * f){
 	}
 	// emit an edge
 	if(numedges >= MAX_BSP_EDGES)
-		Error("numedges == MAX_BSP_EDGES");
+		Com_Error(ERR_FATAL, "numedges == MAX_BSP_EDGES");
 	edge = &dedges[numedges];
 	edge->v[0] = v1;
 	edge->v[1] = v2;
@@ -707,7 +707,7 @@ static void SubdivideFace(node_t * node, face_t * f){
 
 			ClipWindingEpsilon(w, temp, dist, ON_EPSILON, &frontw, &backw);
 			if(!frontw || !backw)
-				Error("SubdivideFace: didn't split the polygon");
+				Com_Error(ERR_FATAL, "SubdivideFace: didn't split the polygon");
 
 			f->split[0] = NewFaceFromFace(f);
 			f->split[0]->w = frontw;
@@ -827,14 +827,14 @@ static void MakeFaces_r(node_t * node){
  * MakeFaces
  */
 void MakeFaces(node_t * node){
-	Verbose("--- MakeFaces ---\n");
+	Com_Verbose("--- MakeFaces ---\n");
 	c_merge = 0;
 	c_subdivide = 0;
 	c_nodefaces = 0;
 
 	MakeFaces_r(node);
 
-	Verbose("%5i makefaces\n", c_nodefaces);
-	Verbose("%5i merged\n", c_merge);
-	Verbose("%5i subdivided\n", c_subdivide);
+	Com_Verbose("%5i makefaces\n", c_nodefaces);
+	Com_Verbose("%5i merged\n", c_merge);
+	Com_Verbose("%5i subdivided\n", c_subdivide);
 }

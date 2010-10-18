@@ -43,11 +43,11 @@ static void AddPath(char *path){
 			return;
 
 	if(num_paths == MAX_PAK_ENTRIES){
-		Error("MAX_PAK_ENTRIES exhausted\n");
+		Com_Error(ERR_FATAL, "MAX_PAK_ENTRIES exhausted\n");
 		return;
 	}
 
-	Debug("AddPath: %s\n", path);
+	Com_Debug("AddPath: %s\n", path);
 	strncpy(paths[num_paths++], path, MAX_QPATH);
 }
 
@@ -112,8 +112,8 @@ static void AddImage(const char *image){
 }
 
 
-#define NUM_MODEL_FORMATS 2
-static char *model_formats[NUM_MODEL_FORMATS] = {"md3", "md2"};
+#define NUM_MODEL_FORMATS 3
+static char *model_formats[NUM_MODEL_FORMATS] = {"md3", "md2", "obj"};
 
 /*
  * AddModel
@@ -171,7 +171,7 @@ static void AddSky(char *sky){
 static void AddAnimation(char *name, int count){
 	int i, j, k;
 
-	Debug("Adding %d frames for %s\n", count, name);
+	Com_Debug("Adding %d frames for %s\n", count, name);
 
 	j = strlen(name);
 
@@ -206,7 +206,7 @@ static void AddMaterials(void){
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_LoadFile(path, (void **)(char *)&buffer)) < 1){
-		Print("Couldn't load %s\n", path);
+		Com_Print("Couldn't load %s\n", path);
 		return;
 	}
 
@@ -332,7 +332,7 @@ static pak_t *GetPakfile(void){
 	snprintf(pakfile, sizeof(pakfile), "%s/map-%s-%d.pak", Fs_Gamedir(), c, getpid());
 
 	if(!(pak = Pak_CreatePakstream(pakfile)))
-		Error("Failed to open %s\n", pakfile);
+		Com_Error(ERR_FATAL, "Failed to open %s\n", pakfile);
 
 	return pak;
 }
@@ -359,7 +359,7 @@ int PAK_Main(void){
 		SetConsoleTitle(title);
 	#endif
 
-	Print("\n----- PAK -----\n\n");
+	Com_Print("\n----- PAK -----\n\n");
 
 	start = time(NULL);
 
@@ -373,13 +373,13 @@ int PAK_Main(void){
 		AddImage(va("textures/%s_local", texinfo[i].texture));
 	}
 
-	Print("Resolved %d textures, ", num_paths);
+	Com_Print("Resolved %d textures, ", num_paths);
 	j = num_paths;
 
 	// and the materials
 	AddMaterials();
 
-	Print("%d materials, ", num_paths - j);
+	Com_Print("%d materials, ", num_paths - j);
 	j = num_paths;
 
 	// and the sounds
@@ -403,7 +403,7 @@ int PAK_Main(void){
 	if(added_sky)
 		j += 6;
 
-	Print("%d sounds.\n", num_paths - j);
+	Com_Print("%d sounds.\n", num_paths - j);
 
 	// add location and docs
 	AddLocation();
@@ -414,14 +414,14 @@ int PAK_Main(void){
 	AddPath(mapname);
 
 	pak = GetPakfile();
-	Print("Paking %d resources to %s..\n", num_paths, pak->filename);
+	Com_Print("Paking %d resources to %s..\n", num_paths, pak->filename);
 
 	for(i = 0; i < num_paths; i++){
 
 		j = Fs_LoadFile(paths[i], (void **)(char *)&p);
 
 		if(j == -1){
-			Print("Couldn't open %s\n", paths[i]);
+			Com_Print("Couldn't open %s\n", paths[i]);
 			continue;
 		}
 
@@ -433,10 +433,10 @@ int PAK_Main(void){
 
 	end = time(NULL);
 	total_pak_time = (int)(end - start);
-	Print("\nPAK Time: ");
+	Com_Print("\nPAK Time: ");
 	if(total_pak_time > 59)
-		Print("%d Minutes ", total_pak_time / 60);
-	Print("%d Seconds\n", total_pak_time % 60);
+		Com_Print("%d Minutes ", total_pak_time / 60);
+	Com_Print("%d Seconds\n", total_pak_time % 60);
 
 	return 0;
 }

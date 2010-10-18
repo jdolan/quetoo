@@ -54,7 +54,7 @@ void CalcTextureReflectivity(void){
 		snprintf(path, sizeof(path), "textures/%s", texinfo[i].texture);
 
 		if(!Img_LoadImage(path, &surf)){
-			Print("Couldn't load %s\n", path);
+			Com_Warn("Couldn't load %s\n", path);
 			VectorSet(texture_reflectivity[i], 0.5, 0.5, 0.5);
 			continue;
 		}
@@ -70,7 +70,7 @@ void CalcTextureReflectivity(void){
 			color[2] += *pos++; // b
 		}
 
-		Verbose("Loaded %s (%dx%d)\n", texinfo[i].texture, surf->w, surf->h);
+		Com_Verbose("Loaded %s (%dx%d)\n", texinfo[i].texture, surf->w, surf->h);
 
 		SDL_FreeSurface(surf);
 

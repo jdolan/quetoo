@@ -68,7 +68,7 @@ static winding_t *NewWinding(int points){
 	size_t size;
 
 	if(points > MAX_POINTS_ON_WINDING)
-		Error("NewWinding: %i points\n", points);
+		Com_Error(ERR_FATAL, "NewWinding: %i points\n", points);
 
 	size = (size_t)((winding_t *) 0)->points[points];
 	w = Z_Malloc(size);
@@ -147,7 +147,7 @@ static void ClusterMerge(int leafnum){
 	for(i = 0; i < leaf->numportals; i++){
 		p = leaf->portals[i];
 		if(p->status != stat_done)
-			Error("portal not done\n");
+			Com_Error(ERR_FATAL, "portal not done\n");
 		for(j = 0; j < portallongs; j++)
 			((long *)portalvector)[j] |= ((long *)p->portalvis)[j];
 		pnum = p - portals;
@@ -158,7 +158,7 @@ static void ClusterMerge(int leafnum){
 	numvis = LeafVectorFromPortalVector(portalvector, uncompressed);
 
 	if(uncompressed[leafnum >> 3] & (1 << (leafnum & 7)))
-		Print("WARNING: Leaf portals saw into leaf\n");
+		Com_Warn("Leaf portals saw into leaf\n");
 
 	uncompressed[leafnum >> 3] |= (1 << (leafnum & 7));
 	numvis++;						  // count the leaf itself
@@ -167,7 +167,7 @@ static void ClusterMerge(int leafnum){
 	memcpy(uncompressedvis + leafnum * leafbytes, uncompressed, leafbytes);
 
 	// compress the bit string
-	Debug("cluster %4i : %4i visible\n", leafnum, numvis);
+	Com_Debug("cluster %4i : %4i visible\n", leafnum, numvis);
 	totalvis += numvis;
 
 	i = CompressVis(uncompressed, compressed);
@@ -176,7 +176,7 @@ static void ClusterMerge(int leafnum){
 	vismap_p += i;
 
 	if(vismap_p > vismap_end)
-		Error("Vismap expansion overflow\n");
+		Com_Error(ERR_FATAL, "Vismap expansion overflow\n");
 
 	dvis->bitofs[leafnum][DVIS_PVS] = dest - vismap;
 
@@ -219,7 +219,7 @@ static void CalcVis(void){
 	for(i = 0; i < portalclusters; i++)
 		ClusterMerge(i);
 
-	Print("Average clusters visible: %i\n", totalvis / portalclusters);
+	Com_Print("Average clusters visible: %i\n", totalvis / portalclusters);
 }
 
 
@@ -268,14 +268,14 @@ static void LoadPortals(const char *name){
 	plane_t plane;
 
 	if(Fs_OpenFile(name, &f, FILE_READ) == -1)
-		Error("Could not open %s\n", name);
+		Com_Error(ERR_FATAL, "Could not open %s\n", name);
 
 	if(fscanf(f, "%79s\n%i\n%i\n", magic, &portalclusters, &numportals) != 3)
-		Error("LoadPortals: failed to read header\n");
+		Com_Error(ERR_FATAL, "LoadPortals: failed to read header\n");
 	if(strcmp(magic, PORTALFILE))
-		Error("LoadPortals: not a portal file\n");
+		Com_Error(ERR_FATAL, "LoadPortals: not a portal file\n");
 
-	Verbose("Loading %4i portals, %4i portalclusters..\n",
+	Com_Verbose("Loading %4i portals, %4i portalclusters..\n",
 			numportals, portalclusters);
 
 	// these counts should take advantage of 64 bit systems automatically
@@ -303,12 +303,12 @@ static void LoadPortals(const char *name){
 
 	for(i = 0, p = portals; i < numportals; i++){
 		if(fscanf(f, "%i %i %i ", &numpoints, &leafnums[0], &leafnums[1]) != 3)
-			Error("LoadPortals: reading portal %i\n", i);
+			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
 		if(numpoints > MAX_POINTS_ON_WINDING)
-			Error("LoadPortals: portal %i has too many points\n", i);
+			Com_Error(ERR_FATAL, "LoadPortals: portal %i has too many points\n", i);
 		if((unsigned)leafnums[0] > portalclusters
 		        || (unsigned)leafnums[1] > portalclusters)
-			Error("LoadPortals: reading portal %i\n", i);
+			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
 
 		w = p->winding = NewWinding(numpoints);
 		w->original = true;
@@ -321,7 +321,7 @@ static void LoadPortals(const char *name){
 			// scanf into double, then assign to vec_t
 			// so we don't care what size vec_t is
 			if(fscanf(f, "(%lf %lf %lf ) ", &v[0], &v[1], &v[2]) != 3)
-				Error("LoadPortals: reading portal %i\n", i);
+				Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
 			for(k = 0; k < 3; k++)
 				w->points[j][k] = v[k];
 		}
@@ -333,7 +333,7 @@ static void LoadPortals(const char *name){
 		// create forward portal
 		l = &leafs[leafnums[0]];
 		if(l->numportals == MAX_PORTALS_ON_LEAF)
-			Error("Leaf with too many portals\n");
+			Com_Error(ERR_FATAL, "Leaf with too many portals\n");
 		l->portals[l->numportals] = p;
 		l->numportals++;
 
@@ -347,7 +347,7 @@ static void LoadPortals(const char *name){
 		// create backwards portal
 		l = &leafs[leafnums[1]];
 		if(l->numportals == MAX_PORTALS_ON_LEAF)
-			Error("Leaf with too many portals\n");
+			Com_Error(ERR_FATAL, "Leaf with too many portals\n");
 		l->portals[l->numportals] = p;
 		l->numportals++;
 
@@ -382,7 +382,7 @@ static void CalcPHS(void){
 	byte uncompressed[MAX_BSP_LEAFS / 8];
 	byte compressed[MAX_BSP_LEAFS / 8];
 
-	Verbose("Building PHS...\n");
+	Com_Verbose("Building PHS...\n");
 
 	count = 0;
 	for(i = 0; i < portalclusters; i++){
@@ -398,7 +398,7 @@ static void CalcPHS(void){
 				// OR this pvs row into the phs
 				index = ((j << 3) + k);
 				if(index >= portalclusters)
-					Error("Bad bit in PVS\n");	// pad bits should be 0
+					Com_Error(ERR_FATAL, "Bad bit in PVS\n");	// pad bits should be 0
 				src = (long *)(uncompressedvis + index * leafbytes);
 				dest = (long *)uncompressed;
 				for(l = 0; l < leaflongs; l++)
@@ -416,14 +416,14 @@ static void CalcPHS(void){
 		vismap_p += j;
 
 		if(vismap_p > vismap_end)
-			Error("Vismap expansion overflow\n");
+			Com_Error(ERR_FATAL, "Vismap expansion overflow\n");
 
 		dvis->bitofs[i][DVIS_PHS] = (byte *) dest - vismap;
 
 		memcpy(dest, compressed, j);
 	}
 
-	Print("Average clusters hearable: %i\n", count / portalclusters);
+	Com_Print("Average clusters hearable: %i\n", count / portalclusters);
 }
 
 /*
@@ -440,13 +440,13 @@ int VIS_Main(void){
 		SetConsoleTitle(title);
 	#endif
 
-	Print("\n----- VIS -----\n\n");
+	Com_Print("\n----- VIS -----\n\n");
 
 	start = time(NULL);
 
 	LoadBSPFile(bspname);
 	if(numnodes == 0 || numfaces == 0)
-		Error("Empty map\n");
+		Com_Error(ERR_FATAL, "Empty map\n");
 
 	Com_StripExtension(mapname, portalfile);
 	strcat(portalfile, ".prt");
@@ -458,17 +458,17 @@ int VIS_Main(void){
 	CalcPHS();
 
 	visdatasize = vismap_p - dvisdata;
-	Print("VIS data: %i bytes (compressed from %i bytes)\n", visdatasize,
+	Com_Print("VIS data: %i bytes (compressed from %i bytes)\n", visdatasize,
 			originalvismapsize * 2);
 
 	WriteBSPFile(bspname);
 
 	end = time(NULL);
 	total_vis_time = (int)(end - start);
-	Print("\nVIS Time: ");
+	Com_Print("\nVIS Time: ");
 	if(total_vis_time > 59)
-		Print("%d Minutes ", total_vis_time / 60);
-	Print("%d Seconds\n", total_vis_time % 60);
+		Com_Print("%d Minutes ", total_vis_time / 60);
+	Com_Print("%d Seconds\n", total_vis_time % 60);
 
 	return 0;
 }

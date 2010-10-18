@@ -109,10 +109,10 @@ static int CreateNewFloatPlane(vec3_t normal, vec_t dist){
 	plane_t *p, temp;
 
 	if(VectorLength(normal) < 0.5)
-		Error("FloatPlane: bad normal\n");
+		Com_Error(ERR_FATAL, "FloatPlane: bad normal\n");
 	// create a new plane
 	if(nummapplanes + 2 > MAX_BSP_PLANES)
-		Error("MAX_BSP_PLANES\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_PLANES\n");
 
 	p = &mapplanes[nummapplanes];
 	VectorCopy(normal, p->normal);
@@ -236,7 +236,7 @@ static int BrushContents(const mapbrush_t * b){
 	for(i = 1; i < b->numsides; i++, s++){
 		trans |= texinfo[s->texinfo].flags;
 		if(s->contents != contents){
-			Verbose("Entity %i, Brush %i: mixed face contents\n", b->entitynum,
+			Com_Verbose("Entity %i, Brush %i: mixed face contents\n", b->entitynum,
 			           b->brushnum);
 			break;
 		}
@@ -285,7 +285,7 @@ static void AddBrushBevels(mapbrush_t * b){
 
 			if(i == b->numsides){ // add a new side
 				if(nummapbrushsides == MAX_BSP_BRUSHSIDES)
-					Error("MAX_BSP_BRUSHSIDES\n");
+					Com_Error(ERR_FATAL, "MAX_BSP_BRUSHSIDES\n");
 				nummapbrushsides++;
 				b->numsides++;
 				VectorClear(normal);
@@ -381,7 +381,7 @@ static void AddBrushBevels(mapbrush_t * b){
 						continue;	  // wasn't part of the outer hull
 					// add this plane
 					if(nummapbrushsides == MAX_BSP_BRUSHSIDES)
-						Error("MAX_BSP_BRUSHSIDES\n");
+						Com_Error(ERR_FATAL, "MAX_BSP_BRUSHSIDES\n");
 					nummapbrushsides++;
 					s2 = &b->original_sides[b->numsides];
 					s2->planenum = FindFloatPlane(normal, dist);
@@ -434,10 +434,10 @@ static qboolean MakeBrushWindings(mapbrush_t * ob){
 
 	for(i = 0; i < 3; i++){
 		if(ob->mins[0] < -MAX_WORLD_WIDTH || ob->maxs[0] > MAX_WORLD_WIDTH)
-			Verbose("entity %i, brush %i: bounds out of range\n", ob->entitynum,
+			Com_Verbose("entity %i, brush %i: bounds out of range\n", ob->entitynum,
 			           ob->brushnum);
 		if(ob->mins[0] > MAX_WORLD_WIDTH || ob->maxs[0] < -MAX_WORLD_WIDTH)
-			Verbose("entity %i, brush %i: no visible sides on brush\n",
+			Com_Verbose("entity %i, brush %i: no visible sides on brush\n",
 			           ob->entitynum, ob->brushnum);
 	}
 
@@ -492,7 +492,7 @@ static void ParseBrush(entity_t *mapent){
 	vec3_t planepts[3];
 
 	if(nummapbrushes == MAX_BSP_BRUSHES)
-		Error("nummapbrushes == MAX_BSP_BRUSHES\n");
+		Com_Error(ERR_FATAL, "nummapbrushes == MAX_BSP_BRUSHES\n");
 
 	b = &mapbrushes[nummapbrushes];
 	b->original_sides = &brushsides[nummapbrushsides];
@@ -506,7 +506,7 @@ static void ParseBrush(entity_t *mapent){
 			break;
 
 		if(nummapbrushsides == MAX_BSP_BRUSHSIDES)
-			Error("MAX_BSP_BRUSHSIDES\n");
+			Com_Error(ERR_FATAL, "MAX_BSP_BRUSHSIDES\n");
 		side = &brushsides[nummapbrushsides];
 
 		// read the three point plane definition
@@ -514,7 +514,7 @@ static void ParseBrush(entity_t *mapent){
 			if(i != 0)
 				GetToken(true);
 			if(strcmp(token, "("))
-				Error("Parsing brush\n");
+				Com_Error(ERR_FATAL, "Parsing brush\n");
 
 			for(j = 0; j < 3; j++){
 				GetToken(false);
@@ -523,7 +523,7 @@ static void ParseBrush(entity_t *mapent){
 
 			GetToken(false);
 			if(strcmp(token, ")"))
-				Error("Parsing brush\n");
+				Com_Error(ERR_FATAL, "Parsing brush\n");
 		}
 
 		memset(&td, 0, sizeof(td));
@@ -532,7 +532,7 @@ static void ParseBrush(entity_t *mapent){
 		GetToken(false);
 
 		if(strlen(token) > sizeof(td.name) - 1)
-			Error("Texture name \"%s\" is too long.\n", token);
+			Com_Error(ERR_FATAL, "Texture name \"%s\" is too long.\n", token);
 
 		strncpy(td.name, token, sizeof(td.name) - 1);
 
@@ -584,7 +584,7 @@ static void ParseBrush(entity_t *mapent){
 		// find the plane number
 		planenum = PlaneFromPoints(planepts[0], planepts[1], planepts[2]);
 		if(planenum == -1){
-			Verbose("Entity %i, Brush %i: plane with no normal\n", b->entitynum,
+			Com_Verbose("Entity %i, Brush %i: plane with no normal\n", b->entitynum,
 			           b->brushnum);
 			continue;
 		}
@@ -593,12 +593,12 @@ static void ParseBrush(entity_t *mapent){
 		for(k = 0; k < b->numsides; k++){
 			s2 = b->original_sides + k;
 			if(s2->planenum == planenum){
-				Verbose("Entity %i, Brush %i: duplicate plane\n", b->entitynum,
+				Com_Verbose("Entity %i, Brush %i: duplicate plane\n", b->entitynum,
 				           b->brushnum);
 				break;
 			}
 			if(s2->planenum == (planenum ^ 1)){
-				Verbose("Entity %i, Brush %i: mirrored plane\n", b->entitynum,
+				Com_Verbose("Entity %i, Brush %i: mirrored plane\n", b->entitynum,
 				           b->brushnum);
 				break;
 			}
@@ -656,7 +656,7 @@ static void ParseBrush(entity_t *mapent){
 		vec3_t origin;
 
 		if(num_entities == 1){
-			Error("Entity %i, Brush %i: origin brushes not allowed in world\n",
+			Com_Error(ERR_FATAL, "Entity %i, Brush %i: origin brushes not allowed in world\n",
 			      b->entitynum, b->brushnum);
 			return;
 		}
@@ -739,10 +739,10 @@ static qboolean ParseMapEntity(void){
 		return false;
 
 	if(strcmp(token, "{"))
-		Error("ParseMapEntity: { not found\n");
+		Com_Error(ERR_FATAL, "ParseMapEntity: { not found\n");
 
 	if(num_entities == MAX_BSP_ENTITIES)
-		Error("num_entities == MAX_BSP_ENTITIES\n");
+		Com_Error(ERR_FATAL, "num_entities == MAX_BSP_ENTITIES\n");
 
 	mapent = &entities[num_entities];
 	num_entities++;
@@ -752,7 +752,7 @@ static qboolean ParseMapEntity(void){
 
 	do {
 		if(!GetToken(true))
-			Error("ParseMapEntity: EOF without closing brace\n");
+			Com_Error(ERR_FATAL, "ParseMapEntity: EOF without closing brace\n");
 		if(!strcmp(token, "}"))
 			break;
 		if(!strcmp(token, "{"))
@@ -799,7 +799,7 @@ static qboolean ParseMapEntity(void){
 		char str[128];
 
 		if(mapent->numbrushes != 1)
-			Error("ParseMapEntity: %i func_areaportal can only be a single brush\n",
+			Com_Error(ERR_FATAL, "ParseMapEntity: %i func_areaportal can only be a single brush\n",
 			      num_entities - 1);
 
 		b = &mapbrushes[nummapbrushes - 1];
@@ -824,7 +824,7 @@ void LoadMapFile(const char *filename){
 	int subdivide;
 	int i;
 
-	Verbose("--- LoadMapFile ---\n");
+	Com_Verbose("--- LoadMapFile ---\n");
 
 	LoadScriptFile(filename);
 
@@ -847,7 +847,7 @@ void LoadMapFile(const char *filename){
 	subdivide = atoi(ValueForKey(&entities[0], "subdivide"));
 
 	if(subdivide >= 256 && subdivide <= 2048){
-		Verbose("Using subdivide %d from worldspawn.\n", subdivide);
+		Com_Verbose("Using subdivide %d from worldspawn.\n", subdivide);
 		subdivide_size = subdivide;
 	}
 
@@ -859,14 +859,14 @@ void LoadMapFile(const char *filename){
 		AddPointToBounds(mapbrushes[i].maxs, map_mins, map_maxs);
 	}
 
-	Verbose("%5i brushes\n", nummapbrushes);
-	Verbose("%5i clipbrushes\n", c_clipbrushes);
-	Verbose("%5i total sides\n", nummapbrushsides);
-	Verbose("%5i boxbevels\n", c_boxbevels);
-	Verbose("%5i edgebevels\n", c_edgebevels);
-	Verbose("%5i entities\n", num_entities);
-	Verbose("%5i planes\n", nummapplanes);
-	Verbose("%5i areaportals\n", c_areaportals);
-	Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n",
+	Com_Verbose("%5i brushes\n", nummapbrushes);
+	Com_Verbose("%5i clipbrushes\n", c_clipbrushes);
+	Com_Verbose("%5i total sides\n", nummapbrushsides);
+	Com_Verbose("%5i boxbevels\n", c_boxbevels);
+	Com_Verbose("%5i edgebevels\n", c_edgebevels);
+	Com_Verbose("%5i entities\n", num_entities);
+	Com_Verbose("%5i planes\n", nummapplanes);
+	Com_Verbose("%5i areaportals\n", c_areaportals);
+	Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n",
 			map_mins[0], map_mins[1], map_mins[2], map_maxs[0], map_maxs[1], map_maxs[2]);
 }

@@ -74,7 +74,7 @@ int MAT_Main(void){
 		SetConsoleTitle(title);
 	#endif
 
-	Print("\n----- MAT -----\n\n");
+	Com_Print("\n----- MAT -----\n\n");
 
 	start = time(NULL);
 
@@ -82,15 +82,13 @@ int MAT_Main(void){
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_OpenFile(path, &f, FILE_READ)) > -1){
-
-		Print("Materials file %s exists, skipping..\n", path);
+		Com_Print("Materials file %s exists, skipping..\n", path);
 		Fs_CloseFile(f);
-
 	}
 	else {  // do it
 
 		if((i = Fs_OpenFile(path, &f, FILE_WRITE)) == -1)
-			Error("Couldn't open %s for writing.\n", path);
+			Com_Error(ERR_FATAL, "Couldn't open %s for writing.\n", path);
 
 		LoadBSPFileTexinfo(bspname);
 
@@ -115,16 +113,16 @@ int MAT_Main(void){
 
 		Fs_CloseFile(f);
 
-		Print("Generated %d materials\n", nummaterials);
+		Com_Print("Generated %d materials\n", nummaterials);
 	}
 
 	end = time(NULL);
 	total_mat_time = (int)(end - start);
 
-	Print("\nMaterials time: ");
+	Com_Print("\nMaterials time: ");
 	if(total_mat_time > 59)
-		Print("%d Minutes ", total_mat_time / 60);
-	Print("%d Seconds\n", total_mat_time % 60);
+		Com_Print("%d Minutes ", total_mat_time / 60);
+	Com_Print("%d Seconds\n", total_mat_time % 60);
 
 	return 0;
 }

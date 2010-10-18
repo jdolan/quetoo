@@ -38,28 +38,29 @@ jmp_buf environment;
 
 quake2world_t quake2world;
 
+cvar_t *debug;
 cvar_t *dedicated;
-cvar_t *developer;
 cvar_t *showtrace;
 cvar_t *timedemo;
 cvar_t *timescale;
+cvar_t *verbose;
 
 static void Debug(const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Print(const char *msg);
-static void Warn(const char *msg);
 static void Shutdown(const char *msg);
+static void Verbose(const char *msg);
+static void Warn(const char *msg);
 
 
 /*
  * Debug
  *
- * A wrapper our our primary print function which filters debugging output to
- * when the `developer` cvar is set.
+ * Filters debugging output to when the `debug` cvar is set.
  */
 static void Debug(const char *msg){
 
-	if(!developer->value)
+	if(!debug->value)
 		return;
 
 	Print(msg);
@@ -114,6 +115,20 @@ static void Print(const char *msg){
 
 
 /*
+ * Verbose
+ *
+ * Filters verbose output to when the `verbose` cvar is set.
+ */
+static void Verbose(const char *msg){
+
+	if(!verbose->value)
+		return;
+
+	Print(msg);
+}
+
+
+/*
  * Warn
  *
  * Prints the specified message with a colored accent.
@@ -148,6 +163,7 @@ static void Init(int argc, char **argv){
 	quake2world.Debug = Debug;
 	quake2world.Error = Error;
 	quake2world.Print = Print;
+	quake2world.Verbose = Verbose;
 	quake2world.Warn = Warn;
 
 	Z_Init();
@@ -179,10 +195,11 @@ static void Init(int argc, char **argv){
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET, NULL);
 #endif
 
-	developer = Cvar_Get("developer", "0", 0, NULL);
-	timedemo = Cvar_Get("timedemo", "0", 0, NULL);
-	timescale = Cvar_Get("timescale", "1.0", 0, NULL);
-	showtrace = Cvar_Get("showtrace", "0", 0, NULL);
+	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
+	showtrace = Cvar_Get("showtrace", "0", 0, "Print trace counts per frame");
+	timedemo = Cvar_Get("timedemo", "0", 0, "Benchmark and stress test");
+	timescale = Cvar_Get("timescale", "1.0", 0, "Controls time lapse");
+	verbose = Cvar_Get("verbose", "0", 0, "Print verbose information");
 
 	Con_Init();
 	quake2world.time = Sys_Milliseconds();

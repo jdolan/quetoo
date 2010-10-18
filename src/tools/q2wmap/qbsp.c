@@ -106,7 +106,7 @@ static void ProcessBlock_Thread(int blocknum){
 	yblock = block_yl + blocknum / (block_xh - block_xl + 1);
 	xblock = block_xl + blocknum % (block_xh - block_xl + 1);
 
-	Verbose("############### block %2i,%2i ###############\n",
+	Com_Verbose("############### block %2i,%2i ###############\n",
 	            xblock, yblock);
 
 	mins[0] = xblock * 1024;
@@ -175,7 +175,7 @@ static void ProcessWorldModel(void){
 		block_yh = 3;
 
 	for(optimize = false; optimize <= true; optimize++){
-		Verbose("--------------------------------------------\n");
+		Com_Verbose("--------------------------------------------\n");
 
 		RunThreadsOn((block_xh - block_xl + 1) * (block_yh - block_yl + 1),
 				!verbose, ProcessBlock_Thread);
@@ -184,7 +184,7 @@ static void ProcessWorldModel(void){
 		// oversizing the blocks guarantees that all the boundaries
 		// will also get nodes.
 
-		Verbose("--------------------------------------------\n");
+		Com_Verbose("--------------------------------------------\n");
 
 		tree = AllocTree();
 		tree->headnode = BlockTree(block_xl - 1, block_yl - 1, block_xh + 1, block_yh + 1);
@@ -207,10 +207,10 @@ static void ProcessWorldModel(void){
 			LeakFile(tree);
 
 			if(leaktest){
-				Verbose("--- MAP LEAKED, ABORTING LEAKTEST ---\n");
+				Com_Verbose("--- MAP LEAKED, ABORTING LEAKTEST ---\n");
 				exit(0);
 			}
-			Verbose("**** leaked ****\n");
+			Com_Verbose("**** leaked ****\n");
 		}
 
 		MarkVisibleSides(tree, brush_start, brush_end);
@@ -277,7 +277,7 @@ static void ProcessModels(void){
 		if(!entities[entity_num].numbrushes)
 			continue;
 
-		Verbose("############### model %i ###############\n",
+		Com_Verbose("############### model %i ###############\n",
 		            nummodels);
 		BeginModel();
 		if(entity_num == 0)
@@ -305,7 +305,7 @@ int BSP_Main(void){
 		SetConsoleTitle(title);
 	#endif
 
-	Print("\n----- BSP -----\n\n");
+	Com_Print("\n----- BSP -----\n\n");
 
 	start = time(NULL);
 
@@ -337,10 +337,10 @@ int BSP_Main(void){
 
 	end = time(NULL);
 	total_bsp_time = (int)(end - start);
-	Print("\nBSP Time: ");
+	Com_Print("\nBSP Time: ");
 	if(total_bsp_time > 59)
-		Print("%d Minutes ", total_bsp_time / 60);
-	Print("%d Seconds\n", total_bsp_time % 60);
+		Com_Print("%d Minutes ", total_bsp_time / 60);
+	Com_Print("%d Seconds\n", total_bsp_time % 60);
 
 	return 0;
 }

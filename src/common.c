@@ -60,8 +60,6 @@ void Com_EndRedirect(void){
 
 /*
  * Com_Debug
- *
- * A Com_Printf that only shows up if the "developer" cvar is set
  */
 void Com_Debug(const char *fmt, ...){
 	va_list	argptr;
@@ -140,6 +138,24 @@ void Com_Warn(const char *fmt, ...){
 		quake2world.Warn((const char *)msg);
 	else
 		fprintf(stderr, "%s", msg);
+}
+
+
+/*
+ * Com_Verbose
+ */
+void Com_Verbose(const char *fmt, ...){
+	va_list	argptr;
+	static char msg[MAX_PRINT_MSG];
+
+	va_start(argptr, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, argptr);
+	va_end(argptr);
+
+	if(quake2world.Verbose)
+		quake2world.Verbose((const char *)msg);
+	else
+		printf("%s", msg);
 }
 
 

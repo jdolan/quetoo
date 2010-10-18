@@ -318,7 +318,7 @@ static int TestBrushToPlanenum(bspbrush_t * brush, int planenum,
 	for(i = 0; i < brush->numsides; i++){
 		num = brush->sides[i].planenum;
 		if(num >= 0x10000)
-			Error("bad planenum\n");
+			Com_Error(ERR_FATAL, "bad planenum\n");
 		if(num == planenum)
 			return PSIDE_BACK | PSIDE_FACING;
 		if(num == (planenum ^ 1))
@@ -451,7 +451,7 @@ static void CheckPlaneAgainstParents(int pnum, node_t * node){
 
 	for(p = node->parent; p; p = p->parent){
 		if(p->planenum == pnum)
-			Error("Tried parent\n");
+			Com_Error(ERR_FATAL, "Tried parent\n");
 	}
 }
 
@@ -543,7 +543,7 @@ static side_t *SelectSplitSide(bspbrush_t * brushes, node_t * node){
 
 					splits += bsplits;
 					if(bsplits && (s & PSIDE_FACING))
-						Error("PSIDE_FACING with splits\n");
+						Com_Error(ERR_FATAL, "PSIDE_FACING with splits\n");
 
 					test->testside = s;
 					// if the brush shares this face, don't bother
@@ -701,7 +701,7 @@ void SplitBrush(bspbrush_t * brush, int planenum,
 	}
 
 	if(WindingIsHuge(w)){
-		Print("WARNING: Large winding.\n");
+		Com_Warn("Large winding.\n");
 	}
 
 	midwinding = w;
@@ -741,7 +741,7 @@ void SplitBrush(bspbrush_t * brush, int planenum,
 		BoundBrush(b[i]);
 		for(j = 0; j < 3; j++){
 			if(b[i]->mins[j] < -MAX_WORLD_WIDTH || b[i]->maxs[j] > MAX_WORLD_WIDTH){
-				Debug("bogus brush after clip\n");
+				Com_Debug("bogus brush after clip\n");
 				break;
 			}
 		}
@@ -754,9 +754,9 @@ void SplitBrush(bspbrush_t * brush, int planenum,
 
 	if(!(b[0] && b[1])){
 		if(!b[0] && !b[1])
-			Debug("split removed brush\n");
+			Com_Debug("split removed brush\n");
 		else
-			Debug("split not on both sides\n");
+			Com_Debug("split not on both sides\n");
 		if(b[0]){
 			FreeBrush(b[0]);
 			*front = CopyBrush(brush);
@@ -791,7 +791,7 @@ void SplitBrush(bspbrush_t * brush, int planenum,
 			if(v1 < 1.0){
 				FreeBrush(b[i]);
 				b[i] = NULL;
-				Debug("tiny volume after clip\n");
+				Com_Debug("tiny volume after clip\n");
 			}
 		}
 	}
@@ -921,7 +921,7 @@ tree_t *BrushBSP(bspbrush_t * brushlist, vec3_t mins, vec3_t maxs){
 	int i;
 	vec_t volume;
 
-	Debug("--- BrushBSP ---\n");
+	Com_Debug("--- BrushBSP ---\n");
 
 	tree = AllocTree();
 
@@ -933,7 +933,7 @@ tree_t *BrushBSP(bspbrush_t * brushlist, vec3_t mins, vec3_t maxs){
 
 		volume = BrushVolume(b);
 		if(volume < microvolume){
-			Print("WARNING: entity %i, brush %i: microbrush\n",
+			Com_Warn("entity %i, brush %i: microbrush\n",
 			           b->original->entitynum, b->original->brushnum);
 		}
 
@@ -954,9 +954,9 @@ tree_t *BrushBSP(bspbrush_t * brushlist, vec3_t mins, vec3_t maxs){
 		AddPointToBounds(b->maxs, tree->mins, tree->maxs);
 	}
 
-	Debug("%5i brushes\n", c_brushes);
-	Debug("%5i visible faces\n", c_faces);
-	Debug("%5i nonvisible faces\n", c_nonvisfaces);
+	Com_Debug("%5i brushes\n", c_brushes);
+	Com_Debug("%5i visible faces\n", c_faces);
+	Com_Debug("%5i nonvisible faces\n", c_nonvisfaces);
 
 	c_nodes = 0;
 	c_nonvis = 0;
@@ -968,9 +968,9 @@ tree_t *BrushBSP(bspbrush_t * brushlist, vec3_t mins, vec3_t maxs){
 
 	node = BuildTree_r(node, brushlist);
 
-	Debug("%5i visible nodes\n", c_nodes / 2 - c_nonvis);
-	Debug("%5i nonvis nodes\n", c_nonvis);
-	Debug("%5i leafs\n", (c_nodes + 1) / 2);
+	Com_Debug("%5i visible nodes\n", c_nodes / 2 - c_nonvis);
+	Com_Debug("%5i nonvis nodes\n", c_nonvis);
+	Com_Debug("%5i leafs\n", (c_nodes + 1) / 2);
 
 	return tree;
 }

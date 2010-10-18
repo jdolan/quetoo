@@ -38,14 +38,14 @@ void LeakFile(tree_t *tree){
 	if(!tree->outside_node.occupied)
 		return;
 
-	Print("--- LeakFile ---\n");
+	Com_Print("--- LeakFile ---\n");
 
 	// write the points to the file
 	Com_StripExtension(mapname, filename);
 	strcat(filename, ".lin");
 
 	if(Fs_OpenFile(filename, &leakfile, FILE_WRITE) == -1)
-		Error("Couldn't open %s\n", filename);
+		Com_Error(ERR_FATAL, "Couldn't open %s\n", filename);
 
 	count = 0;
 	node = &tree->outside_node;
@@ -75,7 +75,7 @@ void LeakFile(tree_t *tree){
 	GetVectorForKey(node->occupant, "origin", mid);
 
 	fprintf(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
-	Debug("%5i point leakfile\n", count + 1);
+	Com_Debug("%5i point leakfile\n", count + 1);
 
 	Fs_CloseFile(leakfile);
 }

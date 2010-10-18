@@ -63,7 +63,7 @@ static winding_t *AllocStackWinding(pstack_t * stack){
 		}
 	}
 
-	Error("AllocStackWinding: failed\n");
+	Com_Error(ERR_FATAL, "AllocStackWinding: failed\n");
 
 	return NULL;
 }
@@ -75,7 +75,7 @@ static void FreeStackWinding(const winding_t * w, pstack_t * stack){
 		return;						  // not from local
 
 	if(stack->freewindings[i])
-		Error("FreeStackWinding: already free\n");
+		Com_Error(ERR_FATAL, "FreeStackWinding: already free\n");
 	stack->freewindings[i] = 1;
 }
 
@@ -477,7 +477,7 @@ void PortalFlow(int portalnum){
 
 	c_can = CountBits(p->portalvis, numportals * 2);
 
-	Debug("portal:%4i  mightsee:%4i  cansee:%4i (%i chains)\n",
+	Com_Debug("portal:%4i  mightsee:%4i  cansee:%4i (%i chains)\n",
 	            (int)(p - portals), c_might, c_can, data.c_chains);
 }
 

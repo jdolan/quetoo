@@ -189,7 +189,7 @@ void WritePortalFile(tree_t *tree){
 	char filename[MAX_OSPATH];
 	node_t *headnode;
 
-	Verbose("--- WritePortalFile ---\n");
+	Com_Verbose("--- WritePortalFile ---\n");
 
 	headnode = tree->headnode;
 	num_visclusters = 0;
@@ -209,14 +209,14 @@ void WritePortalFile(tree_t *tree){
 	strcat(filename, ".prt");
 
 	if(Fs_OpenFile(filename, &pf, FILE_WRITE) == -1)
-		Error("Error opening %s\n", filename);
+		Com_Error(ERR_FATAL, "Error opening %s\n", filename);
 
 	fprintf(pf, "%s\n", PORTALFILE);
 	fprintf(pf, "%i\n", num_visclusters);
 	fprintf(pf, "%i\n", num_visportals);
 
-	Verbose("%5i visclusters\n", num_visclusters);
-	Verbose("%5i visportals\n", num_visportals);
+	Com_Verbose("%5i visclusters\n", num_visclusters);
+	Com_Verbose("%5i visportals\n", num_visportals);
 
 	WritePortalFile_r(headnode);
 

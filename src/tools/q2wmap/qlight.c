@@ -126,7 +126,7 @@ static void LightWorld(void){
 	int i;
 
 	if(numnodes == 0 || numfaces == 0)
-		Error("RadWorld: Empty map\n");
+		Com_Error(ERR_FATAL, "RadWorld: Empty map\n");
 
 	// load the map for tracing
 	Cm_LoadMap(bspname, &i);
@@ -160,7 +160,7 @@ static void LightWorld(void){
  */
 int LIGHT_Main(void){
 	time_t start, end;
-	int total_rad_time;
+	int total_light_time;
 
 	#ifdef _WIN32
 		char title[MAX_OSPATH];
@@ -168,14 +168,14 @@ int LIGHT_Main(void){
 		SetConsoleTitle(title);
 	#endif
 
-	Print("\n----- LIGHT -----\n\n");
+	Com_Print("\n----- LIGHT -----\n\n");
 
 	start = time(NULL);
 
 	LoadBSPFile(bspname);
 
 	if(!visdatasize)
-		Error("No vis information\n");
+		Com_Error(ERR_FATAL, "No vis information\n");
 
 	ParseEntities();
 
@@ -186,11 +186,11 @@ int LIGHT_Main(void){
 	WriteBSPFile(bspname);
 
 	end = time(NULL);
-	total_rad_time = (int)(end - start);
-	Print("\nLIGHT Time: ");
-	if(total_rad_time > 59)
-		Print("%d Minutes ", total_rad_time / 60);
-	Print("%d Seconds\n", total_rad_time % 60);
+	total_light_time = (int)(end - start);
+	Com_Print("\nLIGHT Time: ");
+	if(total_light_time > 59)
+		Com_Print("%d Minutes ", total_light_time / 60);
+	Com_Print("%d Seconds\n", total_light_time % 60);
 
 	return 0;
 }

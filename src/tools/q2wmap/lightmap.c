@@ -140,7 +140,7 @@ static void CalcLightinfoExtents(lightinfo_t *l){
 	}
 
 	if(l->texsize[0] * l->texsize[1] > MAX_BSP_LIGHTMAP)
-		Error("Surface too large to light (%dx%d)\n", l->texsize[0], l->texsize[1]);
+		Com_Error(ERR_FATAL, "Surface too large to light (%dx%d)\n", l->texsize[0], l->texsize[1]);
 }
 
 
@@ -175,7 +175,7 @@ static void CalcLightinfoVectors(lightinfo_t *l){
 	// flip it towards plane normal
 	distscale = DotProduct(texnormal, l->facenormal);
 	if(distscale == 0.0){
-		Print("WARNING: Texture axis perpendicular to face\n");
+		Com_Warn("Texture axis perpendicular to face\n");
 		distscale = 1.0;
 	}
 	if(distscale < 0.0){
@@ -397,7 +397,7 @@ void BuildLights(void){
 			if(target[0]){  // point towards target
 				entity_t *e2 = FindTargetEntity(target);
 				if(!e2){
-					Print("WARNING: light at (%i %i %i) has missing target\n",
+					Com_Warn("light at (%i %i %i) has missing target\n",
 							(int)l->origin[0], (int)l->origin[1],
 							(int)l->origin[2]);
 				} else {
@@ -422,7 +422,7 @@ void BuildLights(void){
 		}
 	}
 
-	Verbose("Lighting %i lights\n", numlights);
+	Com_Verbose("Lighting %i lights\n", numlights);
 
 	{
 		// sun.intensity parameters come from worldspawn
@@ -445,7 +445,7 @@ void BuildLights(void){
 		AngleVectors(sun.angles, sun.normal, NULL, NULL);
 
 		if(sun.intensity)
-			Verbose("Sun defined with light %3.0f, color %0.2f %0.2f %0.2f, "
+			Com_Verbose("Sun defined with light %3.0f, color %0.2f %0.2f %0.2f, "
 					"angles %1.3f %1.3f %1.3f\n",
 					sun.intensity, sun.color[0], sun.color[1], sun.color[2],
 					sun.angles[0], sun.angles[1], sun.angles[2]);
@@ -455,7 +455,7 @@ void BuildLights(void){
 		sscanf(color, "%f %f %f", &ambient[0], &ambient[1], &ambient[2]);
 
 		if(VectorLength(ambient))
-			Verbose("Ambient lighting defined with color %0.2f %0.2f %0.2f\n",
+			Com_Verbose("Ambient lighting defined with color %0.2f %0.2f %0.2f\n",
 					ambient[0], ambient[1], ambient[2]);
 
 		// optionally pull brightness from worldspawn
@@ -569,7 +569,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 						light = (l->intensity * 0.5 - dist) * dot;
 					break;
 				default:
-					Error("Bad l->type\n");
+					Com_Error(ERR_FATAL, "Bad l->type\n");
 			}
 
 			if(light <= 0.0)  // no light
@@ -646,7 +646,7 @@ static void FacesWithVert(int vert, int *faces, int *nfaces){
 			if(v == vert){  // face references vert
 				faces[k++] = i;
 				if(k == MAX_VERT_FACES)
-					Error("MAX_VERT_FACES\n");
+					Com_Error(ERR_FATAL, "MAX_VERT_FACES\n");
 				break;
 			}
 		}
@@ -763,7 +763,7 @@ void BuildFacelights(int facenum){
 	int i, j;
 
 	if(facenum >= MAX_BSP_FACES){
-		Verbose("MAX_BSP_FACES hit\n");
+		Com_Verbose("MAX_BSP_FACES hit\n");
 		return;
 	}
 
@@ -916,7 +916,7 @@ void FinalLightFace(int facenum){
 		lightdatasize += fl->numsamples * 3;
 
 	if(lightdatasize > MAX_BSP_LIGHTING)
-		Error("MAX_BSP_LIGHTING\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_LIGHTING\n");
 
 	ThreadUnlock();
 

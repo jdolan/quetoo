@@ -146,7 +146,7 @@ qboolean Portal_VisFlood(const portal_t * p){
 static qboolean Portal_EntityFlood(const portal_t * p, int s){
 	if(p->nodes[0]->planenum != PLANENUM_LEAF
 	        || p->nodes[1]->planenum != PLANENUM_LEAF)
-		Error("Portal_EntityFlood: not a leaf\n");
+		Com_Error(ERR_FATAL, "Portal_EntityFlood: not a leaf\n");
 
 	// can never cross to a solid
 	if((p->nodes[0]->contents & CONTENTS_SOLID)
@@ -169,7 +169,7 @@ static int c_tinyportals;
  */
 static void AddPortalToNodes(portal_t * p, node_t * front, node_t * back){
 	if(p->nodes[0] || p->nodes[1])
-		Error("AddPortalToNode: already included\n");
+		Com_Error(ERR_FATAL, "AddPortalToNode: already included\n");
 
 	p->nodes[0] = front;
 	p->next[0] = front->portals;
@@ -194,7 +194,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l){
 	while(true){
 		t = *pp;
 		if(!t)
-			Error("RemovePortalFromNode: portal not in leaf\n");
+			Com_Error(ERR_FATAL, "RemovePortalFromNode: portal not in leaf\n");
 
 		if(t == portal)
 			break;
@@ -204,7 +204,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l){
 		else if(t->nodes[1] == l)
 			pp = &t->next[1];
 		else
-			Error("RemovePortalFromNode: portal not bounding leaf\n");
+			Com_Error(ERR_FATAL, "RemovePortalFromNode: portal not bounding leaf\n");
 	}
 
 	if(portal->nodes[0] == l){
@@ -344,7 +344,7 @@ void MakeNodePortal(node_t * node){
 			VectorSubtract(vec3_origin, p->plane.normal, normal);
 			dist = -p->plane.dist;
 		} else
-			Error("CutNodePortals_r: mislinked portal\n");
+			Com_Error(ERR_FATAL, "CutNodePortals_r: mislinked portal\n");
 
 		ChopWindingInPlace(&w, normal, dist, 0.1);
 	}
@@ -395,7 +395,7 @@ void SplitNodePortals(node_t * node){
 		else if(p->nodes[1] == node)
 			side = 1;
 		else
-			Error("CutNodePortals_r: mislinked portal\n");
+			Com_Error(ERR_FATAL, "CutNodePortals_r: mislinked portal\n");
 		next_portal = p->next[side];
 
 		other_node = p->nodes[!side];
@@ -487,12 +487,12 @@ static void MakeTreePortals_r(node_t * node){
 
 	CalcNodeBounds(node);
 	if(node->mins[0] >= node->maxs[0]){
-		Verbose("WARNING: node without a volume\n");
+		Com_Verbose("WARNING: node without a volume\n");
 	}
 
 	for(i = 0; i < 3; i++){
 		if(node->mins[i] < -8000 || node->maxs[i] > 8000){
-			Verbose("WARNING: node with unbounded volume\n");
+			Com_Verbose("WARNING: node with unbounded volume\n");
 			break;
 		}
 	}
@@ -584,7 +584,7 @@ qboolean FloodEntities(tree_t *tree){
 	node_t *headnode;
 
 	headnode = tree->headnode;
-	Debug("--- FloodEntities ---\n");
+	Com_Debug("--- FloodEntities ---\n");
 	inside = false;
 	tree->outside_node.occupied = 0;
 	cl = "";
@@ -623,9 +623,9 @@ gotit:
 	}
 
 	if(!inside){
-		Debug("no entities in open -- no filling\n");
+		Com_Debug("no entities in open -- no filling\n");
 	} else if(tree->outside_node.occupied){
-		Debug("entity %s reached from outside -- no filling\n", cl);
+		Com_Debug("entity %s reached from outside -- no filling\n", cl);
 	}
 
 	return inside && !tree->outside_node.occupied;
@@ -658,7 +658,7 @@ static void FloodAreas_r(node_t * node){
 
 		// note the current area as bounding the portal
 		if(e->portalareas[1]){
-			Verbose("WARNING: areaportal entity %i touches > 2 areas\n",
+			Com_Verbose("WARNING: areaportal entity %i touches > 2 areas\n",
 			           b->original->entitynum);
 			return;
 		}
@@ -746,7 +746,7 @@ static void SetAreaPortalAreas_r(node_t * node){
 		e = &entities[b->original->entitynum];
 		node->area = e->portalareas[0];
 		if(!e->portalareas[1]){
-			Verbose("WARNING: areaportal entity %i doesn't touch two areas\n",
+			Com_Verbose("WARNING: areaportal entity %i doesn't touch two areas\n",
 			           b->original->entitynum);
 			return;
 		}
@@ -762,7 +762,7 @@ void EmitAreaPortals(node_t * headnode){
 	dareaportal_t *dp;
 
 	if(c_areas > MAX_BSP_AREAS)
-		Error("MAX_BSP_AREAS\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_AREAS\n");
 	numareas = c_areas + 1;
 	numareaportals = 1;			  // leave 0 as an error
 
@@ -786,8 +786,8 @@ void EmitAreaPortals(node_t * headnode){
 		dareas[i].numareaportals = numareaportals - dareas[i].firstareaportal;
 	}
 
-	Verbose("%5i numareas\n", numareas);
-	Verbose("%5i numareaportals\n", numareaportals);
+	Com_Verbose("%5i numareas\n", numareas);
+	Com_Verbose("%5i numareaportals\n", numareaportals);
 }
 
 
@@ -797,10 +797,10 @@ void EmitAreaPortals(node_t * headnode){
  * Mark each leaf with an area, bounded by CONTENTS_AREAPORTAL
  */
 void FloodAreas(tree_t * tree){
-	Verbose("--- FloodAreas ---\n");
+	Com_Verbose("--- FloodAreas ---\n");
 	FindAreas_r(tree->headnode);
 	SetAreaPortalAreas_r(tree->headnode);
-	Verbose("%5i areas\n", c_areas);
+	Com_Verbose("%5i areas\n", c_areas);
 }
 
 
@@ -838,11 +838,11 @@ void FillOutside(node_t * headnode){
 	c_outside = 0;
 	c_inside = 0;
 	c_solid = 0;
-	Verbose("--- FillOutside ---\n");
+	Com_Verbose("--- FillOutside ---\n");
 	FillOutside_r(headnode);
-	Verbose("%5i solid leafs\n", c_solid);
-	Verbose("%5i leafs filled\n", c_outside);
-	Verbose("%5i inside leafs\n", c_inside);
+	Com_Verbose("%5i solid leafs\n", c_solid);
+	Com_Verbose("%5i leafs filled\n", c_outside);
+	Com_Verbose("%5i inside leafs\n", c_inside);
 }
 
 
@@ -904,7 +904,7 @@ static void FindPortalSide(portal_t * p){
 
 gotit:
 	if(!bestside)
-		Verbose("WARNING: side not found for portal\n");
+		Com_Verbose("WARNING: side not found for portal\n");
 
 	p->sidefound = true;
 	p->side = bestside;
@@ -952,7 +952,7 @@ static void MarkVisibleSides_r(const node_t * node){
 void MarkVisibleSides(tree_t * tree, int startbrush, int endbrush){
 	int i, j;
 
-	Verbose("--- MarkVisibleSides ---\n");
+	Com_Verbose("--- MarkVisibleSides ---\n");
 
 	// clear all the visible flags
 	for(i = startbrush; i < endbrush; i++){

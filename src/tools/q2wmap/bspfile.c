@@ -136,7 +136,7 @@ void DecompressVis(byte *in, byte *decompressed){
 
 		c = in[1];
 		if(!c)
-			Error("DecompressVis: 0 repeat\n");
+			Com_Error(ERR_FATAL, "DecompressVis: 0 repeat\n");
 		in += 2;
 		while(c){
 			*out++ = 0;
@@ -296,7 +296,7 @@ static int CopyLump(int lump, void *dest, int size){
 	ofs = header->lumps[lump].fileofs;
 
 	if(length % size)
-		Error("LoadBSPFile: odd lump size\n");
+		Com_Error(ERR_FATAL, "LoadBSPFile: odd lump size\n");
 
 	memcpy(dest, (byte *)header + ofs, length);
 
@@ -312,17 +312,17 @@ void LoadBSPFile(char *filename){
 
 	// load the file header
 	if(Fs_LoadFile(filename, (void **)(char *)&header) == -1)
-		Error("Failed to open %s\n", filename);
+		Com_Error(ERR_FATAL, "Failed to open %s\n", filename);
 
 	// swap the header
 	for(i = 0; i < sizeof(dbspheader_t) / 4; i++)
 		((int *)header)[i] = LittleLong(((int *)header)[i]);
 
 	if(header->ident != BSP_HEADER)
-		Error("%s is not a IBSP file\n", filename);
+		Com_Error(ERR_FATAL, "%s is not a IBSP file\n", filename);
 
 	if(header->version != BSP_VERSION && header->version != BSP_VERSION_)
-		Error("%s is unsupported version %i\n", filename, header->version);
+		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", filename, header->version);
 
 	nummodels = CopyLump(LUMP_MODELS, dmodels, sizeof(dbspmodel_t));
 	numvertexes = CopyLump(LUMP_VERTEXES, dvertexes, sizeof(dbspvertex_t));
@@ -357,6 +357,9 @@ void LoadBSPFile(char *filename){
 
 	// swap everything
 	SwapBSPFile(false);
+
+	if(debug)
+		PrintBSPFileSizes();
 }
 
 
@@ -373,7 +376,7 @@ void LoadBSPFileTexinfo(char *filename){
 	header = Z_Malloc(sizeof(*header));
 
 	if(Fs_OpenFile(filename, &f, FILE_READ) == -1)
-		Error("Could not open %s\n", filename);
+		Com_Error(ERR_FATAL, "Could not open %s\n", filename);
 
 	Fs_Read(header, sizeof(*header), 1, f);
 
@@ -382,10 +385,10 @@ void LoadBSPFileTexinfo(char *filename){
 		((int *)header)[i] = LittleLong(((int *)header)[i]);
 
 	if(header->ident != BSP_HEADER)
-		Error("%s is not a bsp file\n", filename);
+		Com_Error(ERR_FATAL, "%s is not a bsp file\n", filename);
 
 	if(header->version != BSP_VERSION && header->version != BSP_VERSION_)
-		Error("%s is unsupported version %i\n", filename, header->version);
+		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", filename, header->version);
 
 	length = header->lumps[LUMP_TEXINFO].filelen;
 	ofs = header->lumps[LUMP_TEXINFO].fileofs;
@@ -440,7 +443,7 @@ void WriteBSPFile(char *filename){
 		header->version = LittleLong(BSP_VERSION_);
 
 	if(Fs_OpenFile(filename, &wadfile, FILE_WRITE) == -1)
-		Error("Could not open %s\n", filename);
+		Com_Error(ERR_FATAL, "Could not open %s\n", filename);
 
 	Fs_Write(header, 1, sizeof(dbspheader_t), wadfile);
 
@@ -485,40 +488,40 @@ void PrintBSPFileSizes(void){
 	if(!num_entities)
 		ParseEntities();
 
-	Verbose("%5i models       %7i\n"
+	Com_Verbose("%5i models       %7i\n"
 	       ,nummodels, (int)(nummodels*sizeof(dbspmodel_t)));
-	Verbose("%5i brushes      %7i\n"
+	Com_Verbose("%5i brushes      %7i\n"
 	       ,numbrushes, (int)(numbrushes*sizeof(dbrush_t)));
-	Verbose("%5i brushsides   %7i\n"
+	Com_Verbose("%5i brushsides   %7i\n"
 	       ,numbrushsides, (int)(numbrushsides*sizeof(dbrushside_t)));
-	Verbose("%5i planes       %7i\n"
+	Com_Verbose("%5i planes       %7i\n"
 	       ,numplanes, (int)(numplanes*sizeof(dplane_t)));
-	Verbose("%5i texinfo      %7i\n"
+	Com_Verbose("%5i texinfo      %7i\n"
 	       ,numtexinfo, (int)(numtexinfo*sizeof(dtexinfo_t)));
-	Verbose("%5i entdata      %7i\n", num_entities, entdatasize);
+	Com_Verbose("%5i entdata      %7i\n", num_entities, entdatasize);
 
-	Verbose("\n");
+	Com_Verbose("\n");
 
-	Verbose("%5i vertexes     %7i\n"
+	Com_Verbose("%5i vertexes     %7i\n"
 	       ,numvertexes, (int)(numvertexes*sizeof(dbspvertex_t)));
-	Verbose("%5i normals      %7i\n"
+	Com_Verbose("%5i normals      %7i\n"
 		   ,numnormals, (int)(numnormals*sizeof(dbspnormal_t)));
-	Verbose("%5i nodes        %7i\n"
+	Com_Verbose("%5i nodes        %7i\n"
 	       ,numnodes, (int)(numnodes*sizeof(dnode_t)));
-	Verbose("%5i faces        %7i\n"
+	Com_Verbose("%5i faces        %7i\n"
 	       ,numfaces, (int)(numfaces*sizeof(dface_t)));
-	Verbose("%5i leafs        %7i\n"
+	Com_Verbose("%5i leafs        %7i\n"
 	       ,numleafs, (int)(numleafs*sizeof(dleaf_t)));
-	Verbose("%5i leaffaces    %7i\n"
+	Com_Verbose("%5i leaffaces    %7i\n"
 	       ,numleaffaces, (int)(numleaffaces*sizeof(dleaffaces[0])));
-	Verbose("%5i leafbrushes  %7i\n"
+	Com_Verbose("%5i leafbrushes  %7i\n"
 	       ,numleafbrushes, (int)(numleafbrushes*sizeof(dleafbrushes[0])));
-	Verbose("%5i surfedges    %7i\n"
+	Com_Verbose("%5i surfedges    %7i\n"
 	       ,numsurfedges, (int)(numsurfedges*sizeof(dsurfedges[0])));
-	Verbose("%5i edges        %7i\n"
+	Com_Verbose("%5i edges        %7i\n"
 	       ,numedges, (int)(numedges*sizeof(dedge_t)));
-	Verbose("      lightdata    %7i\n", lightdatasize);
-	Verbose("      visdata      %7i\n", visdatasize);
+	Com_Verbose("      lightdata    %7i\n", lightdatasize);
+	Com_Verbose("      visdata      %7i\n", visdatasize);
 }
 
 
@@ -550,11 +553,11 @@ epair_t *ParseEpair(void){
 	memset(e, 0, sizeof(*e));
 
 	if(strlen(token) >= MAX_KEY - 1)
-		Error("ParseEpar: token too long\n");
+		Com_Error(ERR_FATAL, "ParseEpar: token too long\n");
 	e->key = Z_CopyString(token);
 	GetToken(false);
 	if(strlen(token) >= MAX_VALUE - 1)
-		Error("ParseEpar: token too long\n");
+		Com_Error(ERR_FATAL, "ParseEpar: token too long\n");
 	e->value = Z_CopyString(token);
 
 	// strip trailing spaces
@@ -576,17 +579,17 @@ static qboolean ParseEntity(void){
 		return false;
 
 	if(strcmp(token, "{"))
-		Error("ParseEntity: { not found\n");
+		Com_Error(ERR_FATAL, "ParseEntity: { not found\n");
 
 	if(num_entities == MAX_BSP_ENTITIES)
-		Error("num_entities == MAX_BSP_ENTITIES\n");
+		Com_Error(ERR_FATAL, "num_entities == MAX_BSP_ENTITIES\n");
 
 	mapent = &entities[num_entities];
 	num_entities++;
 
 	do {
 		if(!GetToken(true))
-			Error("ParseEntity: EOF without closing brace\n");
+			Com_Error(ERR_FATAL, "ParseEntity: EOF without closing brace\n");
 		if(!strcmp(token, "}"))
 			break;
 		e = ParseEpair();
@@ -614,7 +617,7 @@ void ParseEntities(void){
 	subdivide = atoi(ValueForKey(&entities[0], "subdivide"));
 
 	if(subdivide >= 256 && subdivide <= 2048){
-		Verbose("Using subdivide %d from worldspawn.\n", subdivide);
+		Com_Verbose("Using subdivide %d from worldspawn.\n", subdivide);
 		subdivide_size = subdivide;
 	}
 }
@@ -658,7 +661,7 @@ void UnparseEntities(void){
 		end += 2;
 
 		if(end > buf + MAX_BSP_ENTSTRING)
-			Error("Entity text too long\n");
+			Com_Error(ERR_FATAL, "Entity text too long\n");
 	}
 	entdatasize = end - buf + 1;
 }

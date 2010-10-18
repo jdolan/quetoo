@@ -31,11 +31,6 @@ int LIGHT_Main(void);
 int MAT_Main(void);
 int PAK_Main(void);
 
-void Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
-void Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-
 extern char mapname[MAX_OSPATH];
 extern char bspname[MAX_OSPATH];
 extern char outbase[MAX_OSPATH];

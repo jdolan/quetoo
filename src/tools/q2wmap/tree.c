@@ -108,9 +108,9 @@ void PruneNodes_r(node_t * node){
 	if((node->children[0]->contents & CONTENTS_SOLID)
 	        && (node->children[1]->contents & CONTENTS_SOLID)){
 		if(node->faces)
-			Error("node->faces seperating CONTENTS_SOLID\n");
+			Com_Error(ERR_FATAL, "node->faces seperating CONTENTS_SOLID\n");
 		if(node->children[0]->faces || node->children[1]->faces)
-			Error("!node->faces with children\n");
+			Com_Error(ERR_FATAL, "!node->faces with children\n");
 
 		// FIXME: free stuff
 		node->planenum = PLANENUM_LEAF;
@@ -118,7 +118,7 @@ void PruneNodes_r(node_t * node){
 		node->detail_seperator = false;
 
 		if(node->brushlist)
-			Error("PruneNodes: node->brushlist\n");
+			Com_Error(ERR_FATAL, "PruneNodes: node->brushlist\n");
 
 		// combine brush lists
 		node->brushlist = node->children[1]->brushlist;
@@ -135,8 +135,8 @@ void PruneNodes_r(node_t * node){
 
 
 void PruneNodes(node_t * node){
-	Verbose("--- PruneNodes ---\n");
+	Com_Verbose("--- PruneNodes ---\n");
 	c_pruned = 0;
 	PruneNodes_r(node);
-	Verbose("%5i pruned nodes\n", c_pruned);
+	Com_Verbose("%5i pruned nodes\n", c_pruned);
 }
