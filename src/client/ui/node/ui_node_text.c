@@ -259,7 +259,7 @@ static void MN_TextNodeDrawText (menuNode_t* node, const char *text)
 
 	R_Color(node->color);
 
-	/*Com_Printf("\n\n\nEXTRADATA(node).textLines: %i \n", EXTRADATA(node).textLines);*/
+	/*Com_Print("\n\n\nEXTRADATA(node).textLines: %i \n", EXTRADATA(node).textLines);*/
 	lines = 0;
 	do {
 		/* new line starts from node x position */
@@ -342,14 +342,14 @@ static void MN_TextNodeDrawText (menuNode_t* node, const char *text)
 			while (*tab == '\t')
 				*tab++ = '\0';
 
-			/*Com_Printf("tab - first part - lines: %i \n", lines);*/
+			/*Com_Print("tab - first part - lines: %i \n", lines);*/
 			MN_DrawString(font, node->textalign, x1, y, x, y, tabwidth - 1, height, node->u.text.lineHeight, cur, EXTRADATA(node).rows, EXTRADATA(node).textScroll, &lines, qfalse, LONGLINES_PRETTYCHOP);
 			x1 += tabwidth;
 			/* now skip to the first char after the \t */
 			cur = tab;
 		} while (1);
 
-		/*Com_Printf("until newline - lines: %i\n", lines);*/
+		/*Com_Print("until newline - lines: %i\n", lines);*/
 		/* the conditional expression at the end is a hack to draw "/n/n" as a blank line */
 		/* prevent line from being drawn if there is nothing that should be drawn after it */
 		if (cur && (cur[0] || end)) {
