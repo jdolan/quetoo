@@ -255,6 +255,7 @@ static void Verbose(const char *msg){
  * Warn
  */
 static void Warn(const char *msg){
+	unsigned long cChars;
 	const char *w = "WARNING: ";
 
 	fprintf(output_file, "%s", w);
