@@ -699,9 +699,9 @@ int main(int argc, char **argv){
 	snprintf(title, sizeof(title), "Q2WMap [Finished]");
 	SetConsoleTitle(title);
 
-	Print("\n-----------------------------------------------------------------\n");
-	Print("%s has been compiled sucessfully! \n\nPress any key to quit\n", bspname);
-	Print("-----------------------------------------------------------------");
+	Com_Print("\n-----------------------------------------------------------------\n");
+	Com_Print("%s has been compiled sucessfully! \n\nPress any key to quit\n", bspname);
+	Com_Print("-----------------------------------------------------------------");
 
 #ifdef HAVE_CURSES
 	do { // don't quit, leave output on screen until a key is pressed
