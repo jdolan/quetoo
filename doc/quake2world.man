@@ -82,7 +82,7 @@ quake2world
 .fi
 .
 .PP
-.B Typical Dedicaed Server Usage
+.B Typical Dedicated Server Usage
 .nf
 quake2world \+set dedicated 1 \+exec server.cfg
 .fi
