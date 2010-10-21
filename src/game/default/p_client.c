@@ -425,7 +425,7 @@ static qboolean P_GiveLevelLocals(gclient_t *client){
 	char buf[512], *it, *q;
 	int quantity;
 
-	if(!strlen(level.give))
+	if(*level.give == '\0')
 		return false;
 
 	strncpy(buf, level.give, sizeof(buf));
@@ -439,7 +439,7 @@ static qboolean P_GiveLevelLocals(gclient_t *client){
 
 		it = Com_TrimString(it);
 
-		if(strlen(it)){
+		if(*it != '\0'){
 
 			if((q = strrchr(it, ' '))){
 				quantity = atoi(q + 1);
@@ -964,7 +964,7 @@ void P_UserinfoChanged(edict_t *ent, const char *userinfo){
 
 	if(strncmp(cl->locals.netname, name, sizeof(cl->locals.netname))){
 
-		if(strlen(cl->locals.netname))
+		if(*cl->locals.netname != '\0')
 			gi.Bprintf(PRINT_MEDIUM, "%s changed name to %s\n", cl->locals.netname, name);
 
 		strncpy(cl->locals.netname, name, sizeof(cl->locals.netname) - 1);
@@ -987,7 +987,7 @@ void P_UserinfoChanged(edict_t *ent, const char *userinfo){
 	else
 		s = Info_ValueForKey(userinfo, "skin");
 
-	if(strlen(s))  // something valid-ish was provided
+	if(*s != '\0')  // something valid-ish was provided
 		strncpy(cl->locals.skin, s, sizeof(cl->locals.skin) - 1);
 	else {
 		strcpy(cl->locals.skin, "ichabod");
@@ -999,7 +999,7 @@ void P_UserinfoChanged(edict_t *ent, const char *userinfo){
 	c = strchr(s, '/');
 
 	// let players use just the model name, client will find skin
-	if(!c || !strlen(c)){
+	if(!c || *c == '\0'){
 		if(c)  // null terminate for strcat
 			*c = 0;
 

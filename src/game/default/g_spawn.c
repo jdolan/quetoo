@@ -618,7 +618,7 @@ static void G_WorldspawnMusic(void){
 	char *t, buf[MAX_STRING_CHARS];
 	int i;
 
-	if(!strlen(level.music))
+	if(*level.music == '\0')
 		return;
 
 	strncpy(buf, level.music, sizeof(buf));
@@ -634,7 +634,7 @@ static void G_WorldspawnMusic(void){
 		if(i == MAX_MUSICS)
 			break;
 
-		if(strlen(t))
+		if(*t != '\0')
 			gi.Configstring(CS_MUSICS + i++, Com_TrimString(t));
 
 		t = strtok(NULL, ",");

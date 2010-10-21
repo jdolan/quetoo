@@ -221,7 +221,7 @@ static void AddMaterials(void){
 
 		c = Com_Parse(&buf);
 
-		if(!strlen(c))
+		if(*c == '\0')
 			break;
 
 		// texture references should all be added

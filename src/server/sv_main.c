@@ -253,7 +253,7 @@ static void Svc_Connect(void){
 	strncpy(userinfo, Cmd_Argv(4), sizeof(userinfo) - 1 - 25);
 	userinfo[sizeof(userinfo) - 1] = 0;
 
-	if(!strlen(userinfo)){  // catch empty userinfo
+	if(*userinfo == '\0'){  // catch empty userinfo
 		Com_Print("Empty userinfo from %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
@@ -376,7 +376,7 @@ static void Svc_Connect(void){
 static int Sv_RconValidate(void){
 
 	// a password must be set for rcon to be available
-	if(!strlen(sv_rcon_password->string))
+	if(*sv_rcon_password->string == '\0')
 		return 0;
 
 	// and of course the passwords must match
@@ -796,10 +796,10 @@ void Sv_KickClient(sv_client_t *cl, const char *msg){
 	if(cl->state < cs_connected)
 		return;
 
-	if(!strlen(cl->name))  //force a name to kick
+	if(*cl->name == '\0')  //force a name to kick
 		strcpy(cl->name, "player");
 
-	if(msg && strlen(msg)){
+	if(msg && *msg != '\0'){
 		strncpy(c, msg, sizeof(c) - 1);
 		c[sizeof(c) - 1] = 0;
 	}
@@ -833,7 +833,7 @@ void Sv_UserinfoChanged(sv_client_t *cl){
 	char *val;
 	int i;
 
-	if(!strlen(cl->userinfo)){  // catch empty userinfo
+	if(*cl->userinfo == '\0'){  // catch empty userinfo
 		Com_Print("Empty userinfo from %s\n", Sv_NetaddrToString(cl));
 		Sv_KickClient(cl, NULL);
 		return;
@@ -865,7 +865,7 @@ void Sv_UserinfoChanged(sv_client_t *cl){
 
 	// rate command
 	val = Info_ValueForKey(cl->userinfo, "rate");
-	if(strlen(val)){
+	if(*val != '\0'){
 		i = atoi(val);
 		cl->rate = i;
 
@@ -880,7 +880,7 @@ void Sv_UserinfoChanged(sv_client_t *cl){
 
 	// limit the print messages the client receives
 	val = Info_ValueForKey(cl->userinfo, "msg");
-	if(strlen(val)){
+	if(*val != '\0'){
 		cl->messagelevel = atoi(val);
 	}
 

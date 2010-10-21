@@ -874,7 +874,7 @@ static void G_Teamname_f(edict_t *ent){
 
 	s = gi.Argv(1);
 
-	if(strlen(s))  // something valid-ish was provided
+	if(*s != '\0')  // something valid-ish was provided
 		strncpy(t->name, s, sizeof(t->name) - 1);
 	else strcpy(t->name, (t == &good ? "Good" : "Evil"));
 
@@ -917,7 +917,7 @@ static void G_Teamskin_f(edict_t *ent){
 
 	s = gi.Argv(1);
 
-	if(strlen(s))  // something valid-ish was provided
+	if(s != '\0')  // something valid-ish was provided
 		strncpy(t->skin, s, sizeof(t->skin) - 1);
 	else strcpy(t->skin, "ichabod");
 
@@ -927,7 +927,7 @@ static void G_Teamskin_f(edict_t *ent){
 	c = strchr(s, '/');
 
 	// let players use just the model name, client will find skin
-	if(!c || !strlen(c)){
+	if(!c || *c == '\0'){
 		if(c)  // null terminate for strcat
 			*c = 0;
 

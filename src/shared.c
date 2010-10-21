@@ -1153,7 +1153,7 @@ void Info_SetValueForKey(char *s, const char *key, const char *value){
 		return;
 	}
 	Info_RemoveKey(s, key);
-	if(!value || !strlen(value))
+	if(!value || *value == '\0')
 		return;
 
 	snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
@@ -1182,7 +1182,7 @@ void Info_SetValueForKey(char *s, const char *key, const char *value){
 int ColorByName(const char *s, int def){
 	int i;
 
-	if(!s || !strlen(s))
+	if(!s || *s == '\0')
 		return def;
 
 	i = atoi(s);

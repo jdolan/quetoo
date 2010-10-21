@@ -83,7 +83,7 @@ static void R_LoadMeshConfig(mesh_config_t *config, const char *path){
 
 		c = Com_Parse(&buffer);
 
-		if(!strlen(c))
+		if(*c == '\0')
 			break;
 
 		if(!strcmp(c, "translate")){
@@ -630,7 +630,7 @@ static int R_LoadObjModelFace(const model_t *mod, mobj_t *obj, const char *line)
 
 		const char *c = Com_Parse(&line);
 
-		if(!strlen(c))  // done
+		if(*c == '\0')  // done
 			break;
 
 		if(i == MAX_OBJ_FACE_VERTS){

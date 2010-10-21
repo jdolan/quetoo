@@ -975,7 +975,7 @@ static void G_ParseMaplist(const char *filename){
 
 		c = Com_Parse(&buffer);
 
-		if(!strlen(c))
+		if(*c == '\0')
 			break;
 
 		if(*c == '{')

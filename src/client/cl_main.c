@@ -529,7 +529,7 @@ static void Cl_Rcon_f(void){
 	if(cls.state >= ca_connected)
 		to = cls.netchan.remote_address;
 	else {
-		if(!strlen(rcon_address->string)){
+		if(*rcon_address->string == '\0'){
 			Com_Print("Not connected and no rcon_address set.\n");
 			return;
 		}
@@ -841,7 +841,7 @@ void Cl_RequestNextDownload(void){
 
 		precache_check = CS_MODELS;
 
-		if(strlen(cl.configstrings[CS_PAK])){
+		if(*cl.configstrings[CS_PAK] != '\0'){
 
 			if(!Cl_CheckOrDownloadFile(cl.configstrings[CS_PAK]))
 				return;  // started a download

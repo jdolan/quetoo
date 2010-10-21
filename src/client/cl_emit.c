@@ -87,7 +87,7 @@ void Cl_LoadEmits(void){
 
 		const char *c = Com_Parse(&ents);
 
-		if(!strlen(c))
+		if(*c == '\0')
 			break;
 
 		if(*c == '{')

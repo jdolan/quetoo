@@ -319,7 +319,7 @@ void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
 		t++;
 	}
 
-	if(!strlen(ci->cinfo) || i == -1)  // use default
+	if(*ci->cinfo == '\0' || i == -1)  // use default
 		strcpy(ci->cinfo, "newbie\\ichabod/ichabod");
 
 	// isolate the player's name
@@ -497,7 +497,7 @@ static qboolean Cl_IgnoreChatMessage(const char *msg){
 
 	const char *s = strtok(cl_ignore->string, " ");
 
-	if(!strlen(cl_ignore->string))
+	if(*cl_ignore->string == '\0')
 		return false;  // nothing currently filtered
 
 	while(s){

@@ -444,7 +444,7 @@ int Con_CompleteCommand(char *input_text, int *input_position){
 	else
 		match = Com_CommonPrefix(complete, matches);
 
-	if(!match || !strlen(match))
+	if(!match || *match == '\0')
 		return false;
 
 	sprintf(input_text, "/%s%s", cmd, match);

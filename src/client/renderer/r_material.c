@@ -554,7 +554,7 @@ static int R_ParseStage(stage_t *s, const char **buffer){
 
 		const char *c = Com_Parse(buffer);
 
-		if(!strlen(c))
+		if(*c == '\0')
 			break;
 
 		if(!strcmp(c, "texture")){
@@ -884,7 +884,7 @@ void R_LoadMaterials(const char *map){
 
 		c = Com_Parse(&buffer);
 
-		if(!strlen(c))
+		if(*c == '\0')
 			break;
 
 		if(*c == '{' && !inmaterial){

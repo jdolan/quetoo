@@ -171,7 +171,7 @@ static void Cl_ClearParticle(particle_t *p){
 static void Cl_ClearParticles(void){
 	int i;
 
-	for(i = 0; i < MAX_PARTICLES; i++){
+	for(i = 0; i < MAX_PARTICLES - 1; i++){
 		Cl_ClearParticle(&particles[i]);
 		particles[i].next = &particles[i + 1];
 	}

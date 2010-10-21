@@ -478,7 +478,7 @@ char *G_GameplayName(int g){
  */
 int G_GameplayByName(char *c){
 
-	if(!c || !strlen(c))
+	if(!c || *c == '\0')
 		return DEATHMATCH;
 
 	switch(*c){  // hack for numeric matches, atoi wont cut it

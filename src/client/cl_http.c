@@ -89,7 +89,7 @@ qboolean Cl_HttpDownload(void){
 	memset(game, 0, sizeof(game));  // resolve gamedir
 	strncpy(game, Cvar_GetString("game"), sizeof(game) - 1);
 
-	if(!strlen(game))  // use default if not set
+	if(*game == '\0')  // use default if not set
 		strcpy(game, "default");
 
 	memset(url, 0, sizeof(url));  // construct url
@@ -221,7 +221,7 @@ void Cl_HttpDownloadThink(void){
 	while(curl_multi_perform(curlm, &i) == CURLM_CALL_MULTI_PERFORM){}
 
 	// fail fast on any curl error
-	if(strlen(curlerr)){
+	if(*curlerr != '\0'){
 		Cl_HttpDownloadCleanup();
 		return;
 	}

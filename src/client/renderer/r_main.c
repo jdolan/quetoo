@@ -455,7 +455,7 @@ static void R_ResolveWeather(void){
 
 	weather = cl.configstrings[CS_WEATHER];
 
-	if(!weather || !strlen(weather))
+	if(!weather || *weather == '\0')
 		return;
 
 	if(strstr(weather, "rain"))
