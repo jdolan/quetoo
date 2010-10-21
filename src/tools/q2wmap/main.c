@@ -149,6 +149,7 @@ static void CloseWin32Console(void){
  * Debug
  */
 static void Debug(const char *msg){
+	unsigned long cChars;
 
 	if(!debug)
 		return;
@@ -166,7 +167,7 @@ static void Error(err_t err, const char *msg){
 	const char *e = "************ ERROR ************\n";
 	unsigned long cChars;
 
-	fprintf(output_file, "%s", e)
+	fprintf(output_file, "%s", e);
 	fprintf(output_file, "%s", msg);  // output to a file
 
 	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), e, lstrlen(e), &cChars, NULL);
@@ -239,6 +240,7 @@ static void Print(const char *msg){
  * Verbose
  */
 static void Verbose(const char *msg){
+	unsigned long cChars;
 
 	if(!verbose)
 		return;
