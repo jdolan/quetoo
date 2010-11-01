@@ -56,6 +56,7 @@ spawn_t spawns[] = {
 	{"trigger_relay", G_trigger_relay},
 	{"trigger_push", G_trigger_push},
 	{"trigger_hurt", G_trigger_hurt},
+	{"trigger_exec", G_trigger_exec},
 	{"trigger_teleporter", G_misc_teleporter},
 
 	{"target_speaker", G_target_speaker},
@@ -119,6 +120,7 @@ static void G_CallSpawn(edict_t *ent){
 			return;
 		}
 	}
+
 	gi.Dprintf("%s doesn't have a spawn function\n", ent->classname);
 }
 
@@ -172,7 +174,7 @@ typedef enum {
 
 typedef struct {
 	char *name;
-	int ofs;
+	ptrdiff_t ofs;
 	fieldtype_t type;
 	int flags;
 } field_t;
@@ -190,6 +192,8 @@ static const field_t fields[] = {
 	{"killtarget", FOFS(killtarget), F_LSTRING},
 	{"message", FOFS(message), F_LSTRING},
 	{"team", FOFS(team), F_LSTRING},
+	{"command", FOFS(command), F_LSTRING},
+	{"script", FOFS(script), F_LSTRING},
 	{"wait", FOFS(wait), F_FLOAT},
 	{"delay", FOFS(delay), F_FLOAT},
 	{"random", FOFS(random), F_FLOAT},

@@ -298,3 +298,35 @@ void G_trigger_hurt(edict_t *self){
 	gi.LinkEntity(self);
 }
 
+
+static void exec_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+
+	if(self->timestamp > level.time)
+		return;
+
+	self->timestamp = level.time + self->delay;
+
+	if(self->command)
+		gi.AddCommandString(va("%s\n", self->command));
+
+	else if(self->script)
+		gi.AddCommandString(va("exec %s\n", self->script));
+}
+
+/*
+ * A trigger which executes a command or script when touched.
+ */
+void G_trigger_exec(edict_t *self){
+
+	if(!self->command && !self->script){
+		gi.Dprintf("%s does not have a command or script", self->classname);
+		G_FreeEdict(self);
+		return;
+	}
+
+	InitTrigger(self);
+
+	self->touch = exec_touch;
+
+	gi.LinkEntity(self);
+}

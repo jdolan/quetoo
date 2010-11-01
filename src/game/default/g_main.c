@@ -42,6 +42,7 @@ cvar_t *g_fraglimit;
 cvar_t *g_fraglog;
 cvar_t *g_friendlyfire;
 cvar_t *g_gameplay;
+cvar_t *g_gravity;
 cvar_t *g_match;
 cvar_t *g_maxentities;
 cvar_t *g_mysql;
@@ -749,7 +750,7 @@ static void G_CheckRules(void){
 		}
 	}
 
-	if(g_gameplay->modified){  // change gameplay, fix items, respaw clients
+	if(g_gameplay->modified){  // change gameplay, fix items, respawn clients
 		g_gameplay->modified = false;
 		level.gameplay = G_GameplayByName(g_gameplay->string);
 
@@ -757,6 +758,13 @@ static void G_CheckRules(void){
 
 		gi.Bprintf(PRINT_HIGH, "Gameplay has changed to %s\n",
 				G_GameplayName(level.gameplay));
+	}
+
+	if(g_gravity->modified){  // send gravity config string
+		g_gravity->modified = false;
+
+		gi.Configstring(CS_GRAVITY, va("%d", g_gravity->value));
+		level.gravity = g_gravity->value;
 	}
 
 	if(g_teams->modified){  // reset teams, scores
@@ -1145,6 +1153,7 @@ void G_Init(void){
 	g_fraglog = gi.Cvar("g_fraglog", "0", 0, NULL);
 	g_friendlyfire = gi.Cvar("g_friendlyfire", "1", CVAR_SERVERINFO, NULL);
 	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVERINFO, NULL);
+	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVERINFO, NULL);
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVERINFO, NULL);
 	g_maxentities = gi.Cvar("g_maxentities", "1024", CVAR_LATCH, NULL);
 	g_mysql = gi.Cvar("g_mysql", "0", 0, NULL);

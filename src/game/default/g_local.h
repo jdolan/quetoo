@@ -339,6 +339,7 @@ extern cvar_t *g_fraglimit;
 extern cvar_t *g_fraglog;
 extern cvar_t *g_friendlyfire;
 extern cvar_t *g_gameplay;
+extern cvar_t *g_gravity;
 extern cvar_t *g_match;
 extern cvar_t *g_maxentities;
 extern cvar_t *g_mysql;
@@ -613,6 +614,7 @@ void G_trigger_multiple(edict_t *ent);
 void G_trigger_relay(edict_t *ent);
 void G_trigger_push(edict_t *ent);
 void G_trigger_hurt(edict_t *ent);
+void G_trigger_exec(edict_t *ent);
 
 // g_misc.c
 void G_info_null(edict_t *self);
@@ -771,7 +773,6 @@ struct edict_s {
 	float freetime;  // sv.time when the object was freed
 
 	// only used locally in game, not by server
-	char *message;
 	char *classname;
 	int spawnflags;
 
@@ -780,9 +781,13 @@ struct edict_s {
 	float angle;  // set in qe3, -1 = up, -2 = down
 	char *target;
 	char *targetname;
-	char *killtarget;
-	char *team;
 	char *pathtarget;
+	char *killtarget;
+	char *message;
+	char *team;
+	char *command;
+	char *script;
+
 	edict_t *target_ent;
 
 	float speed, accel, decel;
@@ -793,8 +798,7 @@ struct edict_s {
 	vec3_t avelocity;
 
 	float mass;
-	float gravity;  // per entity gravity multiplier (1.0 is normal)
-	// use for lowgrav artifact, flares
+	float gravity;
 
 	float nextthink;
 	void (*prethink)(edict_t *ent);
