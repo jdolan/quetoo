@@ -756,7 +756,7 @@ START_OPEN	the door to moves to its destination when spawned, and operate in rev
 4)	heavy
 */
 
-static void door_use_areaportals(edict_t *self, qboolean open){
+static void func_door_use_areaportals(edict_t *self, qboolean open){
 	edict_t *t = NULL;
 
 	if(!self->target)
@@ -769,9 +769,9 @@ static void door_use_areaportals(edict_t *self, qboolean open){
 	}
 }
 
-static void door_go_down(edict_t *self);
+static void func_door_go_down(edict_t *self);
 
-static void door_hit_top(edict_t *self){
+static void func_door_hit_top(edict_t *self){
 	if(!(self->flags & FL_TEAMSLAVE)){
 		if(self->moveinfo.sound_end)
 			gi.Sound(self, self->moveinfo.sound_end, ATTN_IDLE);
@@ -781,22 +781,22 @@ static void door_hit_top(edict_t *self){
 	if(self->spawnflags & DOOR_TOGGLE)
 		return;
 	if(self->moveinfo.wait >= 0){
-		self->think = door_go_down;
+		self->think = func_door_go_down;
 		self->nextthink = level.time + self->moveinfo.wait;
 	}
 }
 
-static void door_hit_bottom(edict_t *self){
+static void func_door_hit_bottom(edict_t *self){
 	if(!(self->flags & FL_TEAMSLAVE)){
 		if(self->moveinfo.sound_end)
 			gi.Sound(self, self->moveinfo.sound_end, ATTN_IDLE);
 		self->s.sound = 0;
 	}
 	self->moveinfo.state = STATE_BOTTOM;
-	door_use_areaportals(self, false);
+	func_door_use_areaportals(self, false);
 }
 
-static void door_go_down(edict_t *self){
+static void func_door_go_down(edict_t *self){
 	if(!(self->flags & FL_TEAMSLAVE)){
 		if(self->moveinfo.sound_start)
 			gi.Sound(self, self->moveinfo.sound_start, ATTN_IDLE);
@@ -809,12 +809,12 @@ static void door_go_down(edict_t *self){
 
 	self->moveinfo.state = STATE_DOWN;
 	if(strcmp(self->classname, "func_door") == 0)
-		Move_Calc(self, self->moveinfo.start_origin, door_hit_bottom);
+		Move_Calc(self, self->moveinfo.start_origin, func_door_hit_bottom);
 	else if(strcmp(self->classname, "func_door_rotating") == 0)
-		AngleMove_Calc(self, door_hit_bottom);
+		AngleMove_Calc(self, func_door_hit_bottom);
 }
 
-static void door_go_up(edict_t *self, edict_t *activator){
+static void func_door_go_up(edict_t *self, edict_t *activator){
 	if(self->moveinfo.state == STATE_UP)
 		return;  // already going up
 
@@ -831,15 +831,15 @@ static void door_go_up(edict_t *self, edict_t *activator){
 	}
 	self->moveinfo.state = STATE_UP;
 	if(strcmp(self->classname, "func_door") == 0)
-		Move_Calc(self, self->moveinfo.end_origin, door_hit_top);
+		Move_Calc(self, self->moveinfo.end_origin, func_door_hit_top);
 	else if(strcmp(self->classname, "func_door_rotating") == 0)
-		AngleMove_Calc(self, door_hit_top);
+		AngleMove_Calc(self, func_door_hit_top);
 
 	G_UseTargets(self, activator);
-	door_use_areaportals(self, true);
+	func_door_use_areaportals(self, true);
 }
 
-static void door_use(edict_t *self, edict_t *other, edict_t *activator){
+static void func_door_use(edict_t *self, edict_t *other, edict_t *activator){
 	edict_t *ent;
 
 	if(self->flags & FL_TEAMSLAVE)
@@ -851,7 +851,7 @@ static void door_use(edict_t *self, edict_t *other, edict_t *activator){
 			for(ent = self; ent; ent = ent->teamchain){
 				ent->message = NULL;
 				ent->touch = NULL;
-				door_go_down(ent);
+				func_door_go_down(ent);
 			}
 			return;
 		}
@@ -861,7 +861,7 @@ static void door_use(edict_t *self, edict_t *other, edict_t *activator){
 	for(ent = self; ent; ent = ent->teamchain){
 		ent->message = NULL;
 		ent->touch = NULL;
-		door_go_up(ent, activator);
+		func_door_go_up(ent, activator);
 	}
 }
 
@@ -877,7 +877,7 @@ static void Touch_DoorTrigger(edict_t *self, edict_t *other, cplane_t *plane, cs
 
 	self->touch_time = level.time + 1.0;
 
-	door_use(self->owner, other, other);
+	func_door_use(self->owner, other, other);
 }
 
 static void Think_CalcMoveSpeed(edict_t *self){
@@ -948,12 +948,12 @@ static void Think_SpawnDoorTrigger(edict_t *ent){
 	gi.LinkEntity(other);
 
 	if(ent->spawnflags & DOOR_START_OPEN)
-		door_use_areaportals(ent, true);
+		func_door_use_areaportals(ent, true);
 
 	Think_CalcMoveSpeed(ent);
 }
 
-static void door_blocked(edict_t *self, edict_t *other){
+static void func_door_blocked(edict_t *self, edict_t *other){
 	edict_t *ent;
 
 	if(!other->client)
@@ -969,25 +969,26 @@ static void door_blocked(edict_t *self, edict_t *other){
 	if(self->moveinfo.wait >= 0){
 		if(self->moveinfo.state == STATE_DOWN){
 			for(ent = self->teammaster; ent; ent = ent->teamchain)
-				door_go_up(ent, ent->activator);
+				func_door_go_up(ent, ent->activator);
 		} else {
 			for(ent = self->teammaster; ent; ent = ent->teamchain)
-				door_go_down(ent);
+				func_door_go_down(ent);
 		}
 	}
 }
 
-static void door_killed(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
+static void func_door_killed(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
 	edict_t *ent;
 
 	for(ent = self->teammaster; ent; ent = ent->teamchain){
 		ent->health = ent->max_health;
 		ent->takedamage = false;
 	}
-	door_use(self->teammaster, attacker, attacker);
+
+	func_door_use(self->teammaster, attacker, attacker);
 }
 
-static void door_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void func_door_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
 	if(!other->client)
 		return;
 
@@ -1015,8 +1016,8 @@ void G_func_door(edict_t *ent){
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
-	ent->blocked = door_blocked;
-	ent->use = door_use;
+	ent->blocked = func_door_blocked;
+	ent->use = func_door_use;
 
 	if(!ent->speed)
 		ent->speed = 100;
@@ -1053,11 +1054,11 @@ void G_func_door(edict_t *ent){
 
 	if(ent->health){
 		ent->takedamage = true;
-		ent->die = door_killed;
+		ent->die = func_door_killed;
 		ent->max_health = ent->health;
 	} else if(ent->targetname && ent->message){
 		gi.SoundIndex("misc/chat");
-		ent->touch = door_touch;
+		ent->touch = func_door_touch;
 	}
 
 	ent->moveinfo.speed = ent->speed;
@@ -1145,8 +1146,8 @@ void G_func_door_rotating(edict_t *ent){
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
-	ent->blocked = door_blocked;
-	ent->use = door_use;
+	ent->blocked = func_door_blocked;
+	ent->use = func_door_use;
 
 	if(!ent->speed)
 		ent->speed = 100;
@@ -1175,13 +1176,13 @@ void G_func_door_rotating(edict_t *ent){
 
 	if(ent->health){
 		ent->takedamage = true;
-		ent->die = door_killed;
+		ent->die = func_door_killed;
 		ent->max_health = ent->health;
 	}
 
 	if(ent->targetname && ent->message){
 		gi.SoundIndex("misc/chat");
-		ent->touch = door_touch;
+		ent->touch = func_door_touch;
 	}
 
 	ent->moveinfo.state = STATE_BOTTOM;
@@ -1260,7 +1261,7 @@ void G_func_water(edict_t *self){
 		self->wait = -1;
 	self->moveinfo.wait = self->wait;
 
-	self->use = door_use;
+	self->use = func_door_use;
 
 	if(self->wait == -1)
 		self->spawnflags |= DOOR_TOGGLE;
@@ -1285,9 +1286,9 @@ dmg		default	2
 noise	looping sound to play when the train is in motion
 
 */
-static void train_next(edict_t *self);
+static void func_train_next(edict_t *self);
 
-static void train_blocked(edict_t *self, edict_t *other){
+static void func_train_blocked(edict_t *self, edict_t *other){
 	if(!other->client)
 		return;
 
@@ -1301,7 +1302,7 @@ static void train_blocked(edict_t *self, edict_t *other){
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
 
-static void train_wait(edict_t *self){
+static void func_train_wait(edict_t *self){
 	if(self->target_ent->pathtarget){
 		char *savetarget;
 		edict_t *ent;
@@ -1320,10 +1321,10 @@ static void train_wait(edict_t *self){
 	if(self->moveinfo.wait){
 		if(self->moveinfo.wait > 0){
 			self->nextthink = level.time + self->moveinfo.wait;
-			self->think = train_next;
+			self->think = func_train_next;
 		} else if(self->spawnflags & TRAIN_TOGGLE)  // && wait < 0
 		{
-			train_next(self);
+			func_train_next(self);
 			self->spawnflags &= ~TRAIN_START_ON;
 			VectorClear(self->velocity);
 			self->nextthink = 0;
@@ -1335,12 +1336,12 @@ static void train_wait(edict_t *self){
 			self->s.sound = 0;
 		}
 	} else {
-		train_next(self);
+		func_train_next(self);
 	}
 
 }
 
-static void train_next(edict_t *self){
+static void func_train_next(edict_t *self){
 	edict_t *ent;
 	vec3_t dest;
 	qboolean first;
@@ -1385,11 +1386,11 @@ again:
 	self->moveinfo.state = STATE_TOP;
 	VectorCopy(self->s.origin, self->moveinfo.start_origin);
 	VectorCopy(dest, self->moveinfo.end_origin);
-	Move_Calc(self, dest, train_wait);
+	Move_Calc(self, dest, func_train_wait);
 	self->spawnflags |= TRAIN_START_ON;
 }
 
-static void train_resume(edict_t *self){
+static void func_train_resume(edict_t *self){
 	edict_t *ent;
 	vec3_t dest;
 
@@ -1399,7 +1400,7 @@ static void train_resume(edict_t *self){
 	self->moveinfo.state = STATE_TOP;
 	VectorCopy(self->s.origin, self->moveinfo.start_origin);
 	VectorCopy(dest, self->moveinfo.end_origin);
-	Move_Calc(self, dest, train_wait);
+	Move_Calc(self, dest, func_train_wait);
 	self->spawnflags |= TRAIN_START_ON;
 }
 
@@ -1426,12 +1427,12 @@ static void func_train_find(edict_t *self){
 
 	if(self->spawnflags & TRAIN_START_ON){
 		self->nextthink = level.time + gi.serverframe;
-		self->think = train_next;
+		self->think = func_train_next;
 		self->activator = self;
 	}
 }
 
-static void train_use(edict_t *self, edict_t *other, edict_t *activator){
+static void func_train_use(edict_t *self, edict_t *other, edict_t *activator){
 	self->activator = activator;
 
 	if(self->spawnflags & TRAIN_START_ON){
@@ -1442,9 +1443,9 @@ static void train_use(edict_t *self, edict_t *other, edict_t *activator){
 		self->nextthink = 0;
 	} else {
 		if(self->target_ent)
-			train_resume(self);
+			func_train_resume(self);
 		else
-			train_next(self);
+			func_train_next(self);
 	}
 }
 
@@ -1452,7 +1453,7 @@ void G_func_train(edict_t *self){
 	self->movetype = MOVETYPE_PUSH;
 
 	VectorClear(self->s.angles);
-	self->blocked = train_blocked;
+	self->blocked = func_train_blocked;
 	if(self->spawnflags & TRAIN_BLOCK_STOPS)
 		self->dmg = 0;
 	else {
@@ -1471,7 +1472,7 @@ void G_func_train(edict_t *self){
 	self->moveinfo.speed = self->speed;
 	self->moveinfo.accel = self->moveinfo.decel = self->moveinfo.speed;
 
-	self->use = train_use;
+	self->use = func_train_use;
 
 	gi.LinkEntity(self);
 
@@ -1595,61 +1596,61 @@ always_shoot	door is shootebale even if targeted
 #define SECRET_1ST_LEFT		2
 #define SECRET_1ST_DOWN		4
 
-static void door_secret_move1(edict_t *self);
-static void door_secret_move2(edict_t *self);
-static void door_secret_move3(edict_t *self);
-static void door_secret_move4(edict_t *self);
-static void door_secret_move5(edict_t *self);
-static void door_secret_move6(edict_t *self);
-static void door_secret_done(edict_t *self);
+static void func_door_secret_move1(edict_t *self);
+static void func_door_secret_move2(edict_t *self);
+static void func_door_secret_move3(edict_t *self);
+static void func_door_secret_move4(edict_t *self);
+static void func_door_secret_move5(edict_t *self);
+static void func_door_secret_move6(edict_t *self);
+static void func_door_secret_done(edict_t *self);
 
-static void door_secret_use(edict_t *self, edict_t *other, edict_t *activator){
+static void func_door_secret_use(edict_t *self, edict_t *other, edict_t *activator){
 	// make sure we're not already moving
 	if(!VectorCompare(self->s.origin, vec3_origin))
 		return;
 
-	Move_Calc(self, self->pos1, door_secret_move1);
-	door_use_areaportals(self, true);
+	Move_Calc(self, self->pos1, func_door_secret_move1);
+	func_door_use_areaportals(self, true);
 }
 
-static void door_secret_move1(edict_t *self){
+static void func_door_secret_move1(edict_t *self){
 	self->nextthink = level.time + 1.0;
-	self->think = door_secret_move2;
+	self->think = func_door_secret_move2;
 }
 
-static void door_secret_move2(edict_t *self){
-	Move_Calc(self, self->pos2, door_secret_move3);
+static void func_door_secret_move2(edict_t *self){
+	Move_Calc(self, self->pos2, func_door_secret_move3);
 }
 
-static void door_secret_move3(edict_t *self){
+static void func_door_secret_move3(edict_t *self){
 	if(self->wait == -1)
 		return;
 	self->nextthink = level.time + self->wait;
-	self->think = door_secret_move4;
+	self->think = func_door_secret_move4;
 }
 
-static void door_secret_move4(edict_t *self){
-	Move_Calc(self, self->pos1, door_secret_move5);
+static void func_door_secret_move4(edict_t *self){
+	Move_Calc(self, self->pos1, func_door_secret_move5);
 }
 
-static void door_secret_move5(edict_t *self){
+static void func_door_secret_move5(edict_t *self){
 	self->nextthink = level.time + 1.0;
-	self->think = door_secret_move6;
+	self->think = func_door_secret_move6;
 }
 
-static void door_secret_move6(edict_t *self){
-	Move_Calc(self, vec3_origin, door_secret_done);
+static void func_door_secret_move6(edict_t *self){
+	Move_Calc(self, vec3_origin, func_door_secret_done);
 }
 
-static void door_secret_done(edict_t *self){
+static void func_door_secret_done(edict_t *self){
 	if(!(self->targetname) ||(self->spawnflags & SECRET_ALWAYS_SHOOT)){
 		self->health = 0;
 		self->takedamage = true;
 	}
-	door_use_areaportals(self, false);
+	func_door_use_areaportals(self, false);
 }
 
-static void door_secret_blocked(edict_t *self, edict_t *other){
+static void func_door_secret_blocked(edict_t *self, edict_t *other){
 	if(!other->client)
 		return;
 
@@ -1660,9 +1661,9 @@ static void door_secret_blocked(edict_t *self, edict_t *other){
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
 
-static void door_secret_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
+static void func_door_secret_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
 	self->takedamage = false;
-	door_secret_use(self, attacker, attacker);
+	func_door_secret_use(self, attacker, attacker);
 }
 
 void G_func_door_secret(edict_t *ent){
@@ -1678,13 +1679,13 @@ void G_func_door_secret(edict_t *ent){
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
-	ent->blocked = door_secret_blocked;
-	ent->use = door_secret_use;
+	ent->blocked = func_door_secret_blocked;
+	ent->use = func_door_secret_use;
 
 	if(!(ent->targetname) ||(ent->spawnflags & SECRET_ALWAYS_SHOOT)){
 		ent->health = 0;
 		ent->takedamage = true;
-		ent->die = door_secret_die;
+		ent->die = func_door_secret_die;
 	}
 
 	if(!ent->dmg)
@@ -1714,11 +1715,11 @@ void G_func_door_secret(edict_t *ent){
 
 	if(ent->health){
 		ent->takedamage = true;
-		ent->die = door_killed;
+		ent->die = func_door_killed;
 		ent->max_health = ent->health;
 	} else if(ent->targetname && ent->message){
 		gi.SoundIndex("misc/chat");
-		ent->touch = door_touch;
+		ent->touch = func_door_touch;
 	}
 
 	ent->classname = "func_door";
@@ -1729,12 +1730,12 @@ void G_func_door_secret(edict_t *ent){
 /*QUAKED func_killbox(1 0 0) ?
 Kills everything inside when fired, regardless of protection.
 */
-static void use_killbox(edict_t *self, edict_t *other, edict_t *activator){
+static void func_killbox_use(edict_t *self, edict_t *other, edict_t *activator){
 	G_KillBox(self);
 }
 
 void G_func_killbox(edict_t *ent){
 	gi.SetModel(ent, ent->model);
-	ent->use = use_killbox;
+	ent->use = func_killbox_use;
 	ent->svflags = SVF_NOCLIENT;
 }

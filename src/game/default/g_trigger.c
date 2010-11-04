@@ -34,7 +34,7 @@ static void InitTrigger(edict_t *self){
 
 
 // the wait time has passed, so set back up for another activation
-static void multi_wait(edict_t *ent){
+static void trigger_multiple_wait(edict_t *ent){
 	ent->nextthink = 0;
 }
 
@@ -42,16 +42,17 @@ static void multi_wait(edict_t *ent){
 // the trigger was just activated
 // ent->activator should be set to the activator so it can be held through a delay
 // so wait for the delay time before firing
-static void multi_trigger(edict_t *ent){
+static void trigger_multiple_think(edict_t *ent){
+
 	if(ent->nextthink)
 		return;  // already been triggered
 
 	G_UseTargets(ent, ent->activator);
 
 	if(ent->wait > 0){
-		ent->think = multi_wait;
+		ent->think = trigger_multiple_wait;
 		ent->nextthink = level.time + ent->wait;
-	} else {  // we can't just remove(self) here, because this is a touch function
+	} else {  // we can't just remove (self) here, because this is a touch function
 		// called while looping through area links...
 		ent->touch = NULL;
 		ent->nextthink = level.time + gi.serverframe;
@@ -59,12 +60,15 @@ static void multi_trigger(edict_t *ent){
 	}
 }
 
-static void Use_Multi(edict_t *ent, edict_t *other, edict_t *activator){
+static void trigger_multiple_use(edict_t *ent, edict_t *other, edict_t *activator){
+
 	ent->activator = activator;
-	multi_trigger(ent);
+
+	trigger_multiple_think(ent);
 }
 
-static void Touch_Multi(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void trigger_multiple_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+
 	if(!other->client)
 		return;
 
@@ -80,8 +84,15 @@ static void Touch_Multi(edict_t *self, edict_t *other, cplane_t *plane, csurface
 	}
 
 	self->activator = other;
-	multi_trigger(self);
+	trigger_multiple_think(self);
 }
+
+static void trigger_multiple_enable(edict_t *self, edict_t *other, edict_t *activator){
+	self->solid = SOLID_TRIGGER;
+	self->use = trigger_multiple_use;
+	gi.LinkEntity(self);
+}
+
 
 /*QUAKED trigger_multiple(.5 .5 .5) ? MONSTER NOT_PLAYER TRIGGERED
 Variable sized repeatable trigger.  Must be targeted at one or more entities.
@@ -89,29 +100,23 @@ If "delay" is set, the trigger waits some time after activating before firing.
 "wait" : Seconds between triggerings.(.2 default)
 set "message" to text string
 */
-static void trigger_enable(edict_t *self, edict_t *other, edict_t *activator){
-	self->solid = SOLID_TRIGGER;
-	self->use = Use_Multi;
-	gi.LinkEntity(self);
-}
-
 void G_trigger_multiple(edict_t *ent){
 
 	ent->noise_index = gi.SoundIndex("misc/chat");
 
 	if(!ent->wait)
 		ent->wait = 0.2;
-	ent->touch = Touch_Multi;
+	ent->touch = trigger_multiple_touch;
 	ent->movetype = MOVETYPE_NONE;
 	ent->svflags |= SVF_NOCLIENT;
 
 
 	if(ent->spawnflags & 4){
 		ent->solid = SOLID_NOT;
-		ent->use = trigger_enable;
+		ent->use = trigger_multiple_enable;
 	} else {
 		ent->solid = SOLID_TRIGGER;
-		ent->use = Use_Multi;
+		ent->use = trigger_multiple_use;
 	}
 
 	if(!VectorCompare(ent->s.angles, vec3_origin))
@@ -130,11 +135,11 @@ If TRIGGERED, this trigger must be triggered before it is live.
 
 "message"	string to be displayed when triggered
 */
-
 void G_trigger_once(edict_t *ent){
 	ent->wait = -1;
 	G_trigger_multiple(ent);
 }
+
 
 /*QUAKED trigger_relay(.5 .5 .5)(-8 -8 -8)(8 8 8)
 This fixed size trigger cannot be touched, it can only be fired by other events.
@@ -232,7 +237,7 @@ NO_PROTECTION	*nothing* stops the damage
 "dmg"			default 5 (whole numbers only)
 
 */
-static void hurt_use(edict_t *self, edict_t *other, edict_t *activator){
+static void trigger_hurt_use(edict_t *self, edict_t *other, edict_t *activator){
 
 	if(self->solid == SOLID_NOT)
 		self->solid = SOLID_TRIGGER;
@@ -245,7 +250,7 @@ static void hurt_use(edict_t *self, edict_t *other, edict_t *activator){
 }
 
 
-static void hurt_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void trigger_hurt_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
 	int dflags;
 
 	if(!other->takedamage){  // deal with items that land on us
@@ -282,7 +287,7 @@ void G_trigger_hurt(edict_t *self){
 
 	InitTrigger(self);
 
-	self->touch = hurt_touch;
+	self->touch = trigger_hurt_touch;
 
 	if(!self->dmg)
 		self->dmg = 5;
@@ -293,13 +298,13 @@ void G_trigger_hurt(edict_t *self){
 		self->solid = SOLID_TRIGGER;
 
 	if(self->spawnflags & 2)
-		self->use = hurt_use;
+		self->use = trigger_hurt_use;
 
 	gi.LinkEntity(self);
 }
 
 
-static void exec_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void trigger_exec_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
 
 	if(self->timestamp > level.time)
 		return;
@@ -326,7 +331,7 @@ void G_trigger_exec(edict_t *self){
 
 	InitTrigger(self);
 
-	self->touch = exec_touch;
+	self->touch = trigger_exec_touch;
 
 	gi.LinkEntity(self);
 }
