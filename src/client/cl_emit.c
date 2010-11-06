@@ -164,7 +164,11 @@ void Cl_LoadEmits(void){
 
 				if(e->hz <= 0.0){  // default hz and drift
 
-					if(e->flags & (EMIT_LIGHT | EMIT_SPARKS))
+					if(e->flags & EMIT_LIGHT){
+						if(e->hz == 0.0)  // -1.0 for constant light
+							e->hz = 0.5;
+					}
+					else if(e->flags & EMIT_SPARKS)
 						e->hz = 0.5;
 					else if(e->flags & EMIT_STEAM)
 						e->hz = 20.0;
@@ -384,8 +388,12 @@ void Cl_AddEmits(void){
 		if(e->time && (e->time > cl.time))
 			continue;
 
-		if(e->flags & EMIT_LIGHT)
-			R_AddSustainedLight(e->org, e->radius, e->color, 0.65);
+		if(e->flags & EMIT_LIGHT){
+			if(e->hz > 0.0)  // add a self-sustaining light
+				R_AddSustainedLight(e->org, e->radius, e->color, 0.65);
+			else
+				R_AddLight(e->org, e->radius, e->color);
+		}
 
 		if(e->flags & EMIT_SPARKS)
 			Cl_SparksEffect(e->org, e->dir, e->count);
@@ -399,6 +407,8 @@ void Cl_AddEmits(void){
 		if((e->flags & EMIT_SOUND) && !e->loop)
 			S_PlaySample(e->org, -1, e->sample, e->atten);
 
-		e->time = cl.time + (1000.0 / e->hz + (e->drift * frand() * 1000.0));
+		// lastly, update the time stamp for the next emission
+		if(e->hz > 0.0)
+			e->time = cl.time + (1000.0 / e->hz + (e->drift * frand() * 1000.0));
 	}
 }
