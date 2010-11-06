@@ -49,6 +49,10 @@ int main(int argc, char **argv){
 
    	memset(&quake2world, 0, sizeof(quake2world));
 
+   	Z_Init();
+
+   	Swap_Init();
+
 	if(!strcmp(argv[1], "-c")){  // create
 		if(argc - 3 == 0)  // special case when no dirs specified
 			Pak_CreatePakfile(argv[2], 1, pwd);
