@@ -225,7 +225,7 @@ static void Init(int argc, char **argv){
 
 	// dedicated server, nothing specified, use fractures.bsp
 	if(dedicated->value && !Com_ServerState()){
-		Cbuf_AddText("map fractures\n");
+		Cbuf_AddText("map torn\n");
 		Cbuf_Execute();
 	}
 }
