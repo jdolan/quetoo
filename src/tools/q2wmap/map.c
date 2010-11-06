@@ -837,7 +837,7 @@ void LoadMapFile(const char *filename){
 	memset(side_brushtextures, 0, sizeof(brush_texture_t) * MAX_BSP_SIDES);
 
 	memset(mapplanes, 0, sizeof(plane_t) * MAX_BSP_PLANES);
-	numplanes = 0;
+	nummapplanes = 0;
 
 	num_entities = 0;
 	numtexinfo = 0;
