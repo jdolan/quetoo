@@ -299,7 +299,8 @@ static void Cl_UpdateBob(void){
 	if(cl_thirdperson->value)
 		return;
 
-	if(cl.frame.playerstate.pmove.pm_type != PM_NORMAL)
+	if(cl.frame.playerstate.pmove.pm_type == PM_SPECTATOR ||
+			cl.frame.playerstate.pmove.pm_type == PM_DEAD)
 		return;
 
 	VectorCopy(r_view.velocity, velocity);
