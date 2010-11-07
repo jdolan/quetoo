@@ -70,7 +70,7 @@ void S_SpatializeChannel(s_channel_t *ch){
 	origin[2] = r_view.origin[2];
 
 	VectorSubtract(origin, r_view.origin, delta);
-	dist = VectorNormalize(delta) * DISTANCE_SCALE * ch->atten * ch->atten;
+	dist = VectorNormalize(delta) * DISTANCE_SCALE * pow(ch->atten, 1.5);
 
 	if(dist > 255.0)  // clamp to max
 		dist = 255.0;
@@ -82,7 +82,7 @@ void S_SpatializeChannel(s_channel_t *ch){
 		angle = (int)(360.0 - angle) % 360;
 	}
 	else
-		angle = 0;
+		angle = 0.0;
 
 	Mix_SetPosition(c, (int)angle, (int)dist);
 }
