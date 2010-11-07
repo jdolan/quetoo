@@ -155,7 +155,7 @@ void R_DrawBackSurfaces_pro(msurfaces_t *surfs){
 	glPolygonMode(GL_FRONT, GL_LINE);
 
 	glEnable(GL_POLYGON_OFFSET_LINE);
-	glPolygonOffset(1.0, 1.0);
+	glPolygonOffset(1.0, -r_linewidth->value * 2.0);
 
 	if(!r_multisample->value)
 		glEnable(GL_LINE_SMOOTH);

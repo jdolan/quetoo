@@ -440,7 +440,7 @@ void R_EnableShell(qboolean enable){
 
 	if(enable){
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(-1.0, 1.0);
+		glPolygonOffset(-1.0, 0.0);
 
 		R_EnableBlend(true);
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE);

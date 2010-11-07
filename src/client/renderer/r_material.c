@@ -415,7 +415,7 @@ void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 					continue;
 			}
 
-			glPolygonOffset(j, 1.0);  // increase depth offset for each stage
+			glPolygonOffset(j, 0.0);  // increase depth offset for each stage
 
 			R_SetSurfaceStageState(surf, s);
 
