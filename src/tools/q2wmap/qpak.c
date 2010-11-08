@@ -28,19 +28,34 @@
 static char paths[MAX_PAK_ENTRIES][MAX_QPATH];
 static int num_paths;
 
+static int num_images;
+static int num_models;
+static int num_sounds;
 
 /*
- * AddPath
+ * FindPath
  *
- * Adds the specified path to the resouce list, after ensuring
- * that it is unique.
+ * Returns the index of the specified path if it exists, or -1 otherwise.
  */
-static void AddPath(char *path){
+static int FindPath(char *path){
 	int i;
 
 	for(i = 0; i < num_paths; i++)
 		if(!strncmp(paths[i], path, MAX_QPATH))
-			return;
+			return i;
+
+	return -1;
+}
+
+
+/*
+ * AddPath
+ *
+ * Adds the specified path to the resource list, after ensuring
+ * that it is unique.
+ */
+static void AddPath(char *path){
+	int i;
 
 	if(num_paths == MAX_PAK_ENTRIES){
 		Com_Error(ERR_FATAL, "MAX_PAK_ENTRIES exhausted\n");
@@ -61,19 +76,20 @@ static const char *sample_formats[NUM_SAMPLE_FORMATS] = {"ogg", "wav"};
  * Attempts to add the specified sound in any available format.
  */
 static void AddSound(const char *sound){
-	char path[MAX_QPATH];
+	char snd[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
 	int i;
+
+	Com_StripExtension(sound, snd);
 
 	memset(path, 0, sizeof(path));
 
 	for(i = 0; i < NUM_SAMPLE_FORMATS; i++){
 
-		snprintf(path, sizeof(path) - 5, "sounds/%s", sound);
-		Com_StripExtension(path, path);
+		snprintf(path, sizeof(path) - 5, "sounds/%s.%s", snd, sample_formats[i]);
 
-		strcat(path, ".");
-		strcat(path, sample_formats[i]);
+		if(FindPath(path) != -1)
+			return;
 
 		if(Fs_OpenFile(path, &f, FILE_READ) > 0){
 			AddPath(path);
@@ -81,6 +97,13 @@ static void AddSound(const char *sound){
 			break;
 		}
 	}
+
+	if(i == NUM_SAMPLE_FORMATS){
+		Com_Warn("Couldn't load sound %s\n", sound);
+		return;
+	}
+
+	num_sounds++;
 }
 
 
@@ -90,18 +113,24 @@ static const char *image_formats[NUM_IMAGE_FORMATS] = {"tga", "png", "jpg", "pcx
 /*
  * AddImage
  *
- * Attempts to add the specified image in any available format.
+ * Attempts to add the specified image in any available format.  If required,
+ * a warning will be issued should we fail to resolve the specified image.
  */
-static void AddImage(const char *image){
-	char path[MAX_QPATH];
+static void AddImage(const char *image, qboolean required){
+	char img[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
 	int i;
+
+	Com_StripExtension(image, img);
 
 	memset(path, 0, sizeof(path));
 
 	for(i = 0; i < NUM_IMAGE_FORMATS; i++){
 
-		snprintf(path, sizeof(path), "%s.%s", image, image_formats[i]);
+		snprintf(path, sizeof(path), "%s.%s", img, image_formats[i]);
+
+		if(FindPath(path) != -1)
+			return;
 
 		if(Fs_OpenFile(path, &f, FILE_READ) > 0){
 			AddPath(path);
@@ -109,6 +138,14 @@ static void AddImage(const char *image){
 			break;
 		}
 	}
+
+	if(i == NUM_IMAGE_FORMATS){
+		if(required)
+			Com_Warn("Couldn't load image %s\n", img);
+		return;
+	}
+
+	num_images++;
 }
 
 
@@ -121,18 +158,23 @@ static char *model_formats[NUM_MODEL_FORMATS] = {"md3", "md2", "obj"};
  * Attempts to add the specified mesh model.
  */
 static void AddModel(char *model){
-	char path[MAX_QPATH];
+	char mod[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
 	int i;
 
 	if(model[0] == '*')  // bsp submodel
 		return;
 
+	Com_StripExtension(model, mod);
+
 	memset(path, 0, sizeof(path));
 
 	for(i = 0; i < NUM_MODEL_FORMATS; i++){
 
-		snprintf(path, sizeof(path), "models/%s/tris.%s", model, model_formats[i]);
+		snprintf(path, sizeof(path), "%s.%s", mod, model_formats[i]);
+
+		if(FindPath(path) != -1)
+			return;
 
 		if(Fs_OpenFile(path, &f, FILE_READ) > 0){
 			AddPath(path);
@@ -141,16 +183,26 @@ static void AddModel(char *model){
 		}
 	}
 
-	snprintf(path, sizeof(path), "models/%s/skin", model);
-	AddImage(path);
+	if(i == NUM_MODEL_FORMATS){
+		Com_Warn("Couldn't load model %s\n", mod);
+		return;
+	}
 
-	snprintf(path, sizeof(path), "models/%s/world.cfg", model);
+	Com_Dirname(model, path);
+	strcat(path, "skin");
+
+	AddImage(path, true);
+
+	Com_Dirname(model, path);
+	strcat(path, "world.cfg");
+
 	AddPath(path);
+
+	num_models++;
 }
 
 
 static char *suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
-static qboolean added_sky = false;
 
 /*
  * AddSky
@@ -159,9 +211,7 @@ static void AddSky(char *sky){
 	int i;
 
 	for(i = 0; i < 6; i++)
-		AddImage(va("env/%s%s", sky, suf[i]));
-
-	added_sky = true;
+		AddImage(va("env/%s%s", sky, suf[i]), true);
 }
 
 
@@ -182,7 +232,7 @@ static void AddAnimation(char *name, int count){
 
 	for(k = 1, i = i + 1; k < count; k++, i++){
 		const char *c = va("%s%d", name, i);
-		AddImage(c);
+		AddImage(c, true);
 	}
 }
 
@@ -206,7 +256,7 @@ static void AddMaterials(void){
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_LoadFile(path, (void **)(char *)&buffer)) < 1){
-		Com_Print("Couldn't load %s\n", path);
+		Com_Warn("Couldn't load materials %s\n", path);
 		return;
 	}
 
@@ -227,14 +277,14 @@ static void AddMaterials(void){
 		// texture references should all be added
 		if(!strcmp(c, "texture")){
 			snprintf(texture, sizeof(texture), "textures/%s", Com_Parse(&buf));
-			AddImage(texture);
+			AddImage(texture, true);
 			continue;
 		}
 
 		// as should normalmaps
 		if(!strcmp(c, "normalmap")){
 			snprintf(texture, sizeof(texture), "textures/%s", Com_Parse(&buf));
-			AddImage(texture);
+			AddImage(texture, true);
 			continue;
 		}
 
@@ -246,7 +296,7 @@ static void AddMaterials(void){
 
 			if(i == 0 && strcmp(c, "0")){  // custom, add it
 				snprintf(texture, sizeof(texture), "envmaps/%s", c);
-				AddImage(texture);
+				AddImage(texture, true);
 			}
 			continue;
 		}
@@ -259,7 +309,7 @@ static void AddMaterials(void){
 
 			if(i == 0 && strcmp(c, "0")){  // custom, add it
 				snprintf(texture, sizeof(texture), "flares/%s", c);
-				AddImage(texture);
+				AddImage(texture, true);
 			}
 			continue;
 		}
@@ -347,8 +397,7 @@ static pak_t *GetPakfile(void){
  */
 int PAK_Main(void){
 	time_t start, end;
-	int total_pak_time;
-	int i, j;
+	int i, total_pak_time;
 	epair_t *e;
 	pak_t *pak;
 	void *p;
@@ -367,22 +416,16 @@ int PAK_Main(void){
 
 	// add the textures and normalmaps
 	for(i = 0; i < numtexinfo; i++){
-		AddImage(va("textures/%s", texinfo[i].texture));
-		AddImage(va("textures/%s_nm", texinfo[i].texture));
-		AddImage(va("textures/%s_norm", texinfo[i].texture));
-		AddImage(va("textures/%s_local", texinfo[i].texture));
+		AddImage(va("textures/%s", texinfo[i].texture), true);
+		AddImage(va("textures/%s_nm", texinfo[i].texture), false);
+		AddImage(va("textures/%s_norm", texinfo[i].texture), false);
+		AddImage(va("textures/%s_local", texinfo[i].texture), false);
 	}
-
-	Com_Print("Resolved %d textures, ", num_paths);
-	j = num_paths;
 
 	// and the materials
 	AddMaterials();
 
-	Com_Print("%d materials, ", num_paths - j);
-	j = num_paths;
-
-	// and the sounds
+	// and the sounds, models, sky, ..
 	ParseEntities();
 
 	for(i = 0; i < num_entities; i++){
@@ -400,10 +443,9 @@ int PAK_Main(void){
 		}
 	}
 
-	if(added_sky)
-		j += 6;
-
-	Com_Print("%d sounds.\n", num_paths - j);
+	Com_Print("Resolved %d images, ", num_images);
+	Com_Print("%d models, ", num_models);
+	Com_Print("%d sounds.\n", num_sounds);
 
 	// add location and docs
 	AddLocation();
@@ -418,7 +460,7 @@ int PAK_Main(void){
 
 	for(i = 0; i < num_paths; i++){
 
-		j = Fs_LoadFile(paths[i], (void **)(char *)&p);
+		const int j = Fs_LoadFile(paths[i], (void **)(char *)&p);
 
 		if(j == -1){
 			Com_Print("Couldn't open %s\n", paths[i]);
