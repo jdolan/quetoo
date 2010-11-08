@@ -142,7 +142,7 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 	}
 
 	if(message){  // suicide
-		gi.Bprintf(PRINT_MEDIUM, "%s %s.\n", self->client->locals.netname, message);
+		gi.BroadcastPrint(PRINT_MEDIUM, "%s %s.\n", self->client->locals.netname, message);
 
 		if(level.warmup)
 			return;
@@ -217,7 +217,7 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 
 		if(message){
 
-			gi.Bprintf(PRINT_MEDIUM, "%s%s %s %s %s\n", (ff ? "^1TEAMKILL^7 " : ""),
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s %s\n", (ff ? "^1TEAMKILL^7 " : ""),
 					self->client->locals.netname, message,
 					attacker->client->locals.netname, message2
 			);
@@ -303,7 +303,7 @@ void P_TossFlag(edict_t *self){
 	self->s.modelindex3 = 0;
 	self->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
 
-	gi.Bprintf(PRINT_HIGH, "%s dropped the %s flag\n",
+	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
 			self->client->locals.netname, ot->name);
 
 	G_DropItem(self, of->item);
@@ -841,12 +841,12 @@ void P_Respawn(edict_t *ent, qboolean voluntary){
 		return;
 
 	if(ent->client->locals.spectator)
-		gi.Bprintf(PRINT_HIGH, "%s likes to watch\n", ent->client->locals.netname);
+		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n", ent->client->locals.netname);
 	else if(ent->client->locals.team)
-		gi.Bprintf(PRINT_HIGH, "%s has joined %s\n", ent->client->locals.netname,
+		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", ent->client->locals.netname,
 				ent->client->locals.team->name);
 	else
-		gi.Bprintf(PRINT_HIGH, "%s wants some\n", ent->client->locals.netname);
+		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->locals.netname);
 }
 
 
@@ -901,7 +901,7 @@ void P_Begin(edict_t *ent){
 		if(g_voting->value)
 			strncat(welcome, "^2Voting is allowed\n", sizeof(welcome));
 
-		gi.Cnprintf(ent, "%s", welcome);
+		gi.ClientCenterPrint(ent, "%s", welcome);
 	}
 
 	// make sure all view stuff is valid
@@ -965,7 +965,7 @@ void P_UserinfoChanged(edict_t *ent, const char *userinfo){
 	if(strncmp(cl->locals.netname, name, sizeof(cl->locals.netname))){
 
 		if(*cl->locals.netname != '\0')
-			gi.Bprintf(PRINT_MEDIUM, "%s changed name to %s\n", cl->locals.netname, name);
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->locals.netname, name);
 
 		strncpy(cl->locals.netname, name, sizeof(cl->locals.netname) - 1);
 		cl->locals.netname[sizeof(cl->locals.netname) - 1] = 0;
@@ -1053,7 +1053,7 @@ qboolean P_Connect(edict_t *ent, char *userinfo){
 	P_UserinfoChanged(ent, userinfo);
 
 	if(sv_maxclients->value > 1)
-		gi.Bprintf(PRINT_HIGH, "%s connected\n", ent->client->locals.netname);
+		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.netname);
 
 	ent->svflags = 0; // make sure we start with known default
 	return true;
@@ -1074,7 +1074,7 @@ void P_Disconnect(edict_t *ent){
 	P_TossQuadDamage(ent);
 	P_TossFlag(ent);
 
-	gi.Bprintf(PRINT_HIGH, "%s bitched out\n", ent->client->locals.netname);
+	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.netname);
 
 	// send effect
 	gi.WriteByte(svc_muzzleflash);

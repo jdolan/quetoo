@@ -53,7 +53,7 @@ void G_target_speaker(edict_t *ent){
 	char buffer[MAX_QPATH];
 
 	if(!st.noise){
-		gi.Dprintf("target_speaker with no noise set at %s\n", vtos(ent->s.origin));
+		gi.Debug("target_speaker with no noise set at %s\n", vtos(ent->s.origin));
 		return;
 	}
 	if(!strstr(st.noise, ""))

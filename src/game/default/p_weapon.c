@@ -194,7 +194,7 @@ void P_DropWeapon(edict_t *ent, gitem_t *item){
 	// see if we're already using it and we only have one
 	if((item == ent->client->locals.weapon || item == ent->client->newweapon) &&
 			(ent->client->locals.inventory[index] == 1)){
-		gi.Cprintf(ent, PRINT_HIGH, "Can't drop current weapon\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop current weapon\n");
 		return;
 	}
 

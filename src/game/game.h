@@ -89,11 +89,11 @@ typedef struct {
 	int serverrate;  // server frames per second
 	float serverframe;  // seconds per frame
 
-	void (*Printf)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Dprintf)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Bprintf)(int printlevel, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*Cprintf)(edict_t *ent, int printlevel, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-	void (*Cnprintf)(edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+	void (*BroadcastPrint)(int printlevel, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*ClientPrint)(edict_t *ent, int printlevel, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+	void (*ClientCenterPrint)(edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 	void (*Error)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 

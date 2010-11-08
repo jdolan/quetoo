@@ -259,9 +259,11 @@ static void Sv_Say_f(void){
 	strcat(text, p);
 
 	for(j = 0, client = svs.clients; j < sv_maxclients->value; j++, client++){
+
 		if(client->state != cs_spawned)
 			continue;
-		Sv_ClientPrintf(client, PRINT_CHAT, "%s\n", text);
+
+		Sv_ClientPrint(EDICT_FOR_CLIENT(client), PRINT_CHAT, "%s\n", text);
 	}
 
 	Com_Print("%s\n", text);

@@ -89,7 +89,7 @@ static void G_CallSpawn(edict_t *ent){
 	int i;
 
 	if(!ent->classname){
-		gi.Dprintf("G_CallSpawn: NULL classname\n");
+		gi.Debug("G_CallSpawn: NULL classname\n");
 		return;
 	}
 
@@ -121,7 +121,7 @@ static void G_CallSpawn(edict_t *ent){
 		}
 	}
 
-	gi.Dprintf("%s doesn't have a spawn function\n", ent->classname);
+	gi.Debug("%s doesn't have a spawn function\n", ent->classname);
 }
 
 
@@ -305,7 +305,7 @@ static void G_ParseField(const char *key, const char *value, edict_t *ent){
 			return;
 		}
 	}
-	gi.Dprintf("%s is not a field\n", key);
+	gi.Debug("%s is not a field\n", key);
 }
 
 
@@ -402,7 +402,7 @@ static void G_FindEdictTeams(void){
 		}
 	}
 
-	gi.Dprintf("%i teams with %i entities\n", c, c2);
+	gi.Debug("%i teams with %i entities\n", c, c2);
 }
 
 
@@ -492,7 +492,7 @@ void G_SpawnEntities(const char *name, const char *entities){
 		}
 	}
 
-	gi.Dprintf("%i entities inhibited\n", inhibit);
+	gi.Debug("%i entities inhibited\n", inhibit);
 
 	// reset teams and votes
 	G_ResetTeams();

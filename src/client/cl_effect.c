@@ -664,7 +664,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
 	if(Cm_PointContents(ent->origin, r_worldmodel->firstnode) & c){
-		VectorMA(ent->origin, 40, forward, org2);
+		VectorMA(ent->origin, 40.0, forward, org2);
 		Cl_BubbleTrail(org, org2, 10.0);
 		return;
 	}

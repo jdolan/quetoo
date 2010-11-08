@@ -48,15 +48,28 @@ void Sv_FlushRedirect(int sv_redirected, char *outputbuf){
 
 
 /*
- * Sv_ClientPrintf
+ * Sv_ClientPrint
  *
- * Sends text across to be displayed if the level passes
+ * Sends text across to be displayed if the level filter passes.
  */
-void Sv_ClientPrintf(sv_client_t *cl, int level, const char *fmt, ...){
+void Sv_ClientPrint(edict_t *ent, int level, const char *fmt, ...){
+	sv_client_t *cl;
 	va_list	argptr;
 	char string[MAX_STRING_CHARS];
+	int n;
 
-	if(level < cl->messagelevel)
+	n = NUM_FOR_EDICT(ent);
+	if(n < 1 || n > sv_maxclients->value){
+		Com_Warn("Sv_ClientPrint: ClientPrint \"%s\" to non-client.\n", fmt);
+		return;
+	}
+
+	cl = &svs.clients[n - 1];
+
+	if(cl->state != cs_spawned)
+		return;
+
+	if(cl->messagelevel < level)
 		return;
 
 	va_start(argptr, fmt);
@@ -70,11 +83,39 @@ void Sv_ClientPrintf(sv_client_t *cl, int level, const char *fmt, ...){
 
 
 /*
- * Sv_Bprintf
+ * Sv_ClientCenterPrint
  *
- * Sends text to all active clients
+ * Center-print to a single client.  This is sent via Sv_Unicast so that it
+ * is transmitted over the reliable channel; center-prints are important.
  */
-void Sv_Bprintf(int level, const char *fmt, ...){
+void Sv_ClientCenterPrint(edict_t *ent, const char *fmt, ...){
+	char msg[1024];
+	va_list	argptr;
+	int n;
+
+	n = NUM_FOR_EDICT(ent);
+	if(n < 1 || n > sv_maxclients->value){
+		Com_Warn("Sv_ClientCenterPrint: ClientCenterPrintf to non-client.\n");
+		return;
+	}
+
+	va_start(argptr, fmt);
+	vsprintf(msg, fmt, argptr);
+	va_end(argptr);
+
+	Msg_WriteByte(&sv.multicast, svc_centerprint);
+	Msg_WriteString(&sv.multicast, msg);
+
+	Sv_Unicast(ent, true);
+}
+
+
+/*
+ * Sv_BroadcastPrint
+ *
+ * Sends text to all active clients over their unreliable channels.
+ */
+void Sv_BroadcastPrint(int level, const char *fmt, ...){
 	va_list	argptr;
 	char string[MAX_STRING_CHARS];
 	sv_client_t *cl;
@@ -97,10 +138,13 @@ void Sv_Bprintf(int level, const char *fmt, ...){
 	}
 
 	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
+
 		if(level < cl->messagelevel)
 			continue;
+
 		if(cl->state != cs_spawned)
 			continue;
+
 		Msg_WriteByte(&cl->netchan.message, svc_print);
 		Msg_WriteByte(&cl->netchan.message, level);
 		Msg_WriteString(&cl->netchan.message, string);
@@ -126,6 +170,33 @@ void Sv_BroadcastCommand(const char *fmt, ...){
 	Msg_WriteByte(&sv.multicast, svc_stufftext);
 	Msg_WriteString(&sv.multicast, string);
 	Sv_Multicast(NULL, MULTICAST_ALL_R);
+}
+
+
+/*
+ * Sv_Unicast
+ *
+ * Sends the contents of the mutlicast buffer to a single client
+ */
+void Sv_Unicast(edict_t *ent, qboolean reliable){
+	int n;
+	sv_client_t *cl;
+
+	if(!ent)
+		return;
+
+	n = NUM_FOR_EDICT(ent);
+	if(n < 1 || n > sv_maxclients->value)
+		return;
+
+	cl = svs.clients + (n - 1);
+
+	if(reliable)
+		Sb_Write(&cl->netchan.message, sv.multicast.data, sv.multicast.cursize);
+	else
+		Sb_Write(&cl->datagram, sv.multicast.data, sv.multicast.cursize);
+
+	Sb_Clear(&sv.multicast);
 }
 
 
@@ -476,7 +547,7 @@ void Sv_SendClientMessages(void){
 		if(c->netchan.message.overflowed){  // drop the client
 			Sb_Clear(&c->netchan.message);
 			Sb_Clear(&c->datagram);
-			Sv_Bprintf(PRINT_HIGH, "%s overflowed\n", c->name);
+			Sv_BroadcastPrint(PRINT_HIGH, "%s overflowed\n", c->name);
 			Sv_DropClient(c);
 		}
 

@@ -337,7 +337,7 @@ static void Svc_Connect(void){
 	// this is the only place a client_t is ever initialized
 	sv_client = newcl;
 	edictnum = (newcl - svs.clients) + 1;
-	ent = EDICT_NUM(edictnum);
+	ent = EDICT_FOR_NUM(edictnum);
 	newcl->edict = ent;
 	newcl->challenge = challenge; // save challenge for checksumming
 
@@ -611,7 +611,7 @@ static void Sv_CheckTimeouts(void){
 
 		// enforce timeouts by dropping the client
 		if(cl->lastmessage < timeout){
-			Sv_Bprintf(PRINT_HIGH, "%s timed out\n", cl->name);
+			Sv_BroadcastPrint(PRINT_HIGH, "%s timed out\n", cl->name);
 			Sv_DropClient(cl);
 		}
 	}
@@ -629,7 +629,7 @@ static void Sv_PrepWorldFrame(void){
 	int i;
 
 	for(i = 0; i < ge->num_edicts; i++, ent++){
-		ent = EDICT_NUM(i);
+		ent = EDICT_FOR_NUM(i);
 		// events only last for a single message
 		ent->s.event = 0;
 	}
@@ -796,17 +796,17 @@ void Sv_KickClient(sv_client_t *cl, const char *msg){
 	if(cl->state < cs_connected)
 		return;
 
-	if(*cl->name == '\0')  //force a name to kick
+	if(*cl->name == '\0')  // force a name to kick
 		strcpy(cl->name, "player");
 
-	if(msg && *msg != '\0'){
-		strncpy(c, msg, sizeof(c) - 1);
-		c[sizeof(c) - 1] = 0;
-	}
-	else c[0] = 0;
+	memset(c, 0, sizeof(c));
 
-	Sv_Bprintf(PRINT_HIGH, "%s was kicked\n", cl->name);
-	Sv_ClientPrintf(cl, PRINT_HIGH, "You were kicked %s\n", c);
+	if(msg && *msg != '\0')
+		snprintf(c, sizeof(c), ": %s", msg);
+
+	Sv_BroadcastPrint(PRINT_HIGH, "%s was kicked%s\n", cl->name, c);
+	Sv_ClientPrint(EDICT_FOR_CLIENT(cl), PRINT_HIGH, "You were kicked%s\n", c);
+
 	Sv_DropClient(cl);
 }
 

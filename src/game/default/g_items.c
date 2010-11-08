@@ -349,7 +349,7 @@ void G_ResetFlag(edict_t *ent){
 
 	gi.Sound(ent, gi.SoundIndex("ctf/return"), ATTN_NONE);
 
-	gi.Bprintf(PRINT_HIGH, "The %s flag has been returned\n", t->name);
+	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned\n", t->name);
 
 	G_FreeEdict(ent);
 }
@@ -390,7 +390,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 
 			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTN_NONE);
 
-			gi.Bprintf(PRINT_HIGH, "%s returned the %s flag\n",
+			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag\n",
 					other->client->locals.netname, t->name);
 
 			return true;
@@ -408,7 +408,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 
 			gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTN_NONE);
 
-			gi.Bprintf(PRINT_HIGH, "%s captured the %s flag\n",
+			gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
 					other->client->locals.netname, ot->name);
 
 			t->captures++;
@@ -434,7 +434,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTN_NONE);
 
-	gi.Bprintf(PRINT_HIGH, "%s stole the %s flag\n",
+	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
 			other->client->locals.netname, t->name);
 
 	other->s.effects |= G_EffectForTeam(t);
@@ -658,7 +658,7 @@ static void G_DropToFloor(edict_t *ent){
 
 		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
 		if(tr.startsolid){
-			gi.Dprintf("G_DropToFloor: %s startsolid at %s\n", ent->classname,
+			gi.Debug("G_DropToFloor: %s startsolid at %s\n", ent->classname,
 					vtos(ent->s.origin));
 			G_FreeEdict(ent);
 			return;
@@ -745,7 +745,7 @@ void G_SpawnItem(edict_t *ent, gitem_t *item){
 	G_PrecacheItem(item);
 
 	if(ent->spawnflags){
-		gi.Dprintf("%s at %s has spawnflags %d\n", ent->classname,
+		gi.Debug("%s at %s has spawnflags %d\n", ent->classname,
 				vtos(ent->s.origin), ent->spawnflags);
 	}
 

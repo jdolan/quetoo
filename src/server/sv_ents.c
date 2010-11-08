@@ -345,7 +345,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 	c_fullsend = 0;
 
 	for(e = 1; e < ge->num_edicts; e++){
-		ent = EDICT_NUM(e);
+		ent = EDICT_FOR_NUM(e);
 
 		// ignore ents without visible models
 		if(ent->svflags & SVF_NOCLIENT)

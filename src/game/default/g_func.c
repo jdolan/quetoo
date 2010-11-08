@@ -998,7 +998,7 @@ static void func_door_touch(edict_t *self, edict_t *other, cplane_t *plane, csur
 	self->touch_time = level.time + 5.0;
 
 	if(self->message && strlen(self->message))
-		gi.Cnprintf(other, "%s", self->message);
+		gi.ClientCenterPrint(other, "%s", self->message);
 
 	gi.Sound(other, gi.SoundIndex("misc/chat"), ATTN_NORM);
 }
@@ -1134,7 +1134,7 @@ void G_func_door_rotating(edict_t *ent){
 		VectorNegate(ent->movedir, ent->movedir);
 
 	if(!st.distance){
-		gi.Dprintf("%s at %s with no distance set\n", ent->classname, vtos(ent->s.origin));
+		gi.Debug("%s at %s with no distance set\n", ent->classname, vtos(ent->s.origin));
 		st.distance = 90;
 	}
 
@@ -1353,7 +1353,7 @@ again:
 
 	ent = G_PickTarget(self->target);
 	if(!ent){
-		gi.Dprintf("train_next: bad target %s\n", self->target);
+		gi.Debug("train_next: bad target %s\n", self->target);
 		return;
 	}
 
@@ -1362,7 +1362,7 @@ again:
 	// check for a teleport path_corner
 	if(ent->spawnflags & 1){
 		if(!first){
-			gi.Dprintf("connected teleport path_corners, see %s at %s\n", ent->classname, vtos(ent->s.origin));
+			gi.Debug("connected teleport path_corners, see %s at %s\n", ent->classname, vtos(ent->s.origin));
 			return;
 		}
 		first = false;
@@ -1408,12 +1408,12 @@ static void func_train_find(edict_t *self){
 	edict_t *ent;
 
 	if(!self->target){
-		gi.Dprintf("train_find: no target\n");
+		gi.Debug("train_find: no target\n");
 		return;
 	}
 	ent = G_PickTarget(self->target);
 	if(!ent){
-		gi.Dprintf("train_find: target %s not found\n", self->target);
+		gi.Debug("train_find: target %s not found\n", self->target);
 		return;
 	}
 	self->target = ent->target;
@@ -1482,7 +1482,7 @@ void G_func_train(edict_t *self){
 		self->nextthink = level.time + gi.serverframe;
 		self->think = func_train_find;
 	} else {
-		gi.Dprintf("func_train without a target at %s\n", vtos(self->absmin));
+		gi.Debug("func_train without a target at %s\n", vtos(self->absmin));
 	}
 }
 
@@ -1531,7 +1531,7 @@ void G_func_timer(edict_t *self){
 
 	if(self->random >= self->wait){
 		self->random = self->wait - gi.serverframe;
-		gi.Dprintf("func_timer at %s has random >= wait\n", vtos(self->s.origin));
+		gi.Debug("func_timer at %s has random >= wait\n", vtos(self->s.origin));
 	}
 
 	if(self->spawnflags & 1){

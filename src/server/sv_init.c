@@ -84,7 +84,7 @@ static void Sv_CreateBaseline(void){
 	int entnum;
 
 	for(entnum = 1; entnum < ge->num_edicts; entnum++){
-		svent = EDICT_NUM(entnum);
+		svent = EDICT_FOR_NUM(entnum);
 		if(!svent->inuse)
 			continue;
 		if(!svent->s.modelindex && !svent->s.sound && !svent->s.effects)
@@ -193,7 +193,7 @@ static void Sv_InitGame(void){
 	Sv_InitGameProgs();
 
 	for(i = 0; i < sv_maxclients->value; i++){
-		ent = EDICT_NUM(i + 1);
+		ent = EDICT_FOR_NUM(i + 1);
 		ent->s.number = i + 1;
 		svs.clients[i].edict = ent;
 		memset(&svs.clients[i].lastcmd, 0, sizeof(svs.clients[i].lastcmd));

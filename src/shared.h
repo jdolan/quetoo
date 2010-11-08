@@ -287,7 +287,7 @@ COLLISION DETECTION
 // lower bits are stronger, and will eat weaker brushes completely
 #define CONTENTS_SOLID			0x1  // an eye is never valid in a solid
 #define CONTENTS_WINDOW			0x2  // translucent, but not watery
-#define CONTENTS_AUX			0x4
+#define CONTENTS_AUX			0x4  // not used at the moment
 #define CONTENTS_LAVA			0x8
 #define CONTENTS_SLIME			0x10
 #define CONTENTS_WATER			0x20

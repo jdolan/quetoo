@@ -724,6 +724,8 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 		water = true;
 	}
 
+	memset(&tr, 0, sizeof(tr));
+
 	while(ignore){
 		tr = gi.Trace(from, NULL, NULL, end, ignore, content_mask);
 
@@ -761,6 +763,11 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 	gi.WriteByte(TE_RAILTRAIL);
 	gi.WritePosition(start);
 	gi.WritePosition(tr.endpos);
+
+	if(tr.surface->flags & SURF_SKY)
+		gi.Print("sky");
+	else
+		gi.Print("no sky");
 
 	// use team colors, or client's color
 	if(level.teams || level.ctf){

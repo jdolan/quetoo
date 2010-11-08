@@ -59,9 +59,6 @@ typedef struct {
 
 extern server_t sv;  // local server
 
-#define EDICT_NUM(n)((edict_t *)((byte *)ge->edicts + ge->edict_size*(n)))
-#define NUM_FOR_EDICT(e)(((byte *)(e)-(byte *)ge->edicts) / ge->edict_size)
-
 typedef enum {
 	cs_free,   // can be used for a new connection
 	cs_connected,   // client is connecting, but has not yet spawned
@@ -176,6 +173,11 @@ extern server_static_t svs;  // persistent server info
 extern netaddr_t net_from;
 extern sizebuf_t net_message;
 
+// macros for resolving game entities on the server
+#define EDICT_FOR_NUM(n)((edict_t *)((byte *)ge->edicts + ge->edict_size*(n)))
+#define NUM_FOR_EDICT(e)(((byte *)(e)-(byte *)ge->edicts) / ge->edict_size)
+#define EDICT_FOR_CLIENT(c)(EDICT_FOR_NUM(c - svs.clients) + 1)
+
 #define MAX_MASTERS	8  // max recipients for heartbeat packets
 extern netaddr_t master_addr[MAX_MASTERS];
 
@@ -225,12 +227,13 @@ extern char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
 void Sv_FlushRedirect(int sv_redirected, char *outputbuf);
 void Sv_SendClientMessages(void);
+void Sv_Unicast(edict_t *ent, qboolean reliable);
 void Sv_Multicast(vec3_t origin, multicast_t to);
 void Sv_PositionedSound(vec3_t origin, edict_t *entity, int soundindex, int atten);
-void Sv_ClientPrintf(sv_client_t *cl, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-void Sv_Bprintf(int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Sv_ClientPrint(edict_t *ent, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void Sv_ClientCenterPrint(edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Sv_BroadcastPrint(int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Sv_BroadcastCommand(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Sv_ZlibClientDatagrab(sv_client_t *client, sizebuf_t *msg);
 
 // sv_user.c
 void Sv_ExecuteClientMessage(sv_client_t *cl);

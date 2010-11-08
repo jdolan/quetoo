@@ -262,7 +262,7 @@ static void trigger_hurt_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 				G_FreeEdict(other);
 		}
 
-		gi.Dprintf("hurt_touch: %s\n", other->classname);
+		gi.Debug("hurt_touch: %s\n", other->classname);
 		return;
 	}
 
@@ -324,7 +324,7 @@ static void trigger_exec_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 void G_trigger_exec(edict_t *self){
 
 	if(!self->command && !self->script){
-		gi.Dprintf("%s does not have a command or script", self->classname);
+		gi.Debug("%s does not have a command or script", self->classname);
 		G_FreeEdict(self);
 		return;
 	}

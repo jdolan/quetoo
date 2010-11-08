@@ -37,7 +37,7 @@ static void G_Give_f(edict_t *ent){
 	edict_t *it_ent;
 
 	if(sv_maxclients->value > 1 && !g_cheats->value){
-		gi.Cprintf(ent, PRINT_HIGH, "Cheats are disabled.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
 		return;
 	}
 
@@ -101,13 +101,13 @@ static void G_Give_f(edict_t *ent){
 		name = gi.Argv(1);
 		it = G_FindItem(name);
 		if(!it){
-			gi.Cprintf(ent, PRINT_HIGH, "Unknown item: %s\n", name);
+			gi.ClientPrint(ent, PRINT_HIGH, "Unknown item: %s\n", name);
 			return;
 		}
 	}
 
 	if(!it->pickup){
-		gi.Cprintf(ent, PRINT_HIGH, "Non-pickup item: %s\n", name);
+		gi.ClientPrint(ent, PRINT_HIGH, "Non-pickup item: %s\n", name);
 		return;
 	}
 
@@ -139,7 +139,7 @@ static void G_God_f(edict_t *ent){
 	char *msg;
 
 	if(sv_maxclients->value > 1 && !g_cheats->value){
-		gi.Cprintf(ent, PRINT_HIGH, "Cheats are disabled.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
 		return;
 	}
 
@@ -149,7 +149,7 @@ static void G_God_f(edict_t *ent){
 	else
 		msg = "god ON\n";
 
-	gi.Cprintf(ent, PRINT_HIGH, "%s", msg);
+	gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
 }
 
 
@@ -160,7 +160,7 @@ static void G_Noclip_f(edict_t *ent){
 	char *msg;
 
 	if(sv_maxclients->value > 1 && !g_cheats->value){
-		gi.Cprintf(ent, PRINT_HIGH, "Cheats are disabled.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
 		return;
 	}
 
@@ -172,7 +172,7 @@ static void G_Noclip_f(edict_t *ent){
 		msg = "noclip ON\n";
 	}
 
-	gi.Cprintf(ent, PRINT_HIGH, "%s", msg);
+	gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
 }
 
 
@@ -187,16 +187,16 @@ static void G_Use_f(edict_t *ent){
 	s = gi.Args();
 	it = G_FindItem(s);
 	if(!it){
-		gi.Cprintf(ent, PRINT_HIGH, "Unknown item: %s\n", s);
+		gi.ClientPrint(ent, PRINT_HIGH, "Unknown item: %s\n", s);
 		return;
 	}
 	if(!it->use){
-		gi.Cprintf(ent, PRINT_HIGH, "Item is not usable.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Item is not usable.\n");
 		return;
 	}
 	index = ITEM_INDEX(it);
 	if(!ent->client->locals.inventory[index]){
-		gi.Cprintf(ent, PRINT_HIGH, "Out of item: %s\n", s);
+		gi.ClientPrint(ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
 	}
 
@@ -230,19 +230,19 @@ static void G_Drop_f(edict_t *ent){
 		it = G_FindItem(s);
 
 	if(!it){
-		gi.Cprintf(ent, PRINT_HIGH, "Unknown item: %s\n", s);
+		gi.ClientPrint(ent, PRINT_HIGH, "Unknown item: %s\n", s);
 		return;
 	}
 
 	if(!it->drop){
-		gi.Cprintf(ent, PRINT_HIGH, "Item is not dropable.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Item is not dropable.\n");
 		return;
 	}
 
 	index = ITEM_INDEX(it);
 
 	if(!ent->client->locals.inventory[index]){
-		gi.Cprintf(ent, PRINT_HIGH, "Out of item: %s\n", s);
+		gi.ClientPrint(ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
 	}
 
@@ -398,28 +398,28 @@ static void G_Wave_f(edict_t *ent){
 
 	switch(i){
 		case 0:
-			gi.Cprintf(ent, PRINT_LOW, "flipoff\n");
+			gi.ClientPrint(ent, PRINT_LOW, "flipoff\n");
 			ent->s.frame = FRAME_flip01 - 1;
 			ent->client->anim_end = FRAME_flip12;
 			break;
 		case 1:
-			gi.Cprintf(ent, PRINT_LOW, "salute\n");
+			gi.ClientPrint(ent, PRINT_LOW, "salute\n");
 			ent->s.frame = FRAME_salute01 - 1;
 			ent->client->anim_end = FRAME_salute11;
 			break;
 		case 2:
-			gi.Cprintf(ent, PRINT_LOW, "taunt\n");
+			gi.ClientPrint(ent, PRINT_LOW, "taunt\n");
 			ent->s.frame = FRAME_taunt01 - 1;
 			ent->client->anim_end = FRAME_taunt17;
 			break;
 		case 3:
-			gi.Cprintf(ent, PRINT_LOW, "wave\n");
+			gi.ClientPrint(ent, PRINT_LOW, "wave\n");
 			ent->s.frame = FRAME_wave01 - 1;
 			ent->client->anim_end = FRAME_wave11;
 			break;
 		case 4:
 		default:
-			gi.Cprintf(ent, PRINT_LOW, "point\n");
+			gi.ClientPrint(ent, PRINT_LOW, "point\n");
 			ent->s.frame = FRAME_point01 - 1;
 			ent->client->anim_end = FRAME_point12;
 			break;
@@ -439,7 +439,7 @@ static void G_Say_f(edict_t *ent){
 	gclient_t *cl;
 
 	if(ent->client->muted){
-		gi.Cprintf(ent, PRINT_HIGH, "You have been muted.  You're probably an asshole.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "You have been muted.  You're probably an asshole.\n");
 		return;
 	}
 
@@ -516,18 +516,18 @@ static void G_Say_f(edict_t *ent){
 			if(!G_OnSameTeam(ent, other)){
 				continue;
 			} else {
-				gi.Cprintf(other, PRINT_TEAMCHAT, "%s", text);
+				gi.ClientPrint(other, PRINT_TEAMCHAT, "%s", text);
 			}
 		} else {
-			gi.Cprintf(other, PRINT_CHAT, "%s", text);
+			gi.ClientPrint(other, PRINT_CHAT, "%s", text);
 		}
 	}
 
 	if(dedicated->value){  // print to the console
 		if(team)
-			gi.Cprintf(NULL, PRINT_TEAMCHAT, "%s", text);
+			gi.ClientPrint(NULL, PRINT_TEAMCHAT, "%s", text);
 		else
-			gi.Cprintf(NULL, PRINT_CHAT, "%s", text);
+			gi.ClientPrint(NULL, PRINT_CHAT, "%s", text);
 	}
 
 	if(chatlog != NULL)  // print to chatlog
@@ -560,12 +560,12 @@ static void G_PlayerList_f(edict_t *ent){
 
 		if(strlen(text) + strlen(st) > sizeof(text) - 200){
 			sprintf(text + strlen(text), "And more...\n");
-			gi.Cprintf(ent, PRINT_HIGH, "%s", text);
+			gi.ClientPrint(ent, PRINT_HIGH, "%s", text);
 			return;
 		}
 		strcat(text, st);
 	}
-	gi.Cprintf(ent, PRINT_HIGH, "%s", text);
+	gi.ClientPrint(ent, PRINT_HIGH, "%s", text);
 }
 
 static const char *vote_cmds[] = {
@@ -602,11 +602,11 @@ static qboolean Vote_Help(edict_t *ent){
 
 	if(!level.votetime){  // check for yes/no
 		if(gi.Argc() == 1 && (!strcasecmp(gi.Argv(0), "yes") || !strcasecmp(gi.Argv(0), "no"))){
-			gi.Cprintf(ent, PRINT_HIGH, "There is not a vote in progress\n");  // shorthand
+			gi.ClientPrint(ent, PRINT_HIGH, "There is not a vote in progress\n");  // shorthand
 			return true;
 		}
 		if(gi.Argc() == 2 && (!strcasecmp(gi.Argv(1), "yes") || !strcasecmp(gi.Argv(1), "no"))){
-			gi.Cprintf(ent, PRINT_HIGH, "There is not a vote in progress\n");  // explicit
+			gi.ClientPrint(ent, PRINT_HIGH, "There is not a vote in progress\n");  // explicit
 			return true;
 		}
 	}
@@ -623,7 +623,7 @@ static qboolean Vote_Help(edict_t *ent){
 			strcat(msg, "\n");
 			i++;
 		}
-		gi.Cprintf(ent, PRINT_HIGH, "%s", msg);
+		gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
 		return true;
 	}
 
@@ -635,7 +635,7 @@ static qboolean Vote_Help(edict_t *ent){
 	}
 
 	if(!vote_cmds[i]){  // inform client if it is not
-		gi.Cprintf(ent, PRINT_HIGH, "Voting on \"%s\" is not supported\n", gi.Argv(1));
+		gi.ClientPrint(ent, PRINT_HIGH, "Voting on \"%s\" is not supported\n", gi.Argv(1));
 		return true;
 	}
 
@@ -646,7 +646,7 @@ static qboolean Vote_Help(edict_t *ent){
 	if(gi.Argc() == 2 && !strcasecmp(gi.Argv(1), "map")){  // list available maps
 
 		if(!maplist.count){  // no maps in maplist
-			gi.Cprintf(ent, PRINT_HIGH, "Map voting is not available\n");
+			gi.ClientPrint(ent, PRINT_HIGH, "Map voting is not available\n");
 			return true;
 		}
 
@@ -668,18 +668,18 @@ static qboolean Vote_Help(edict_t *ent){
 			j += len;
 		}
 
-		gi.Cprintf(ent, PRINT_HIGH, "%s", msg);
+		gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
 		return true;
 	}
 
 	if(gi.Argc() == 2 && !strcasecmp(gi.Argv(1), "g_gameplay")){  // list gameplay modes
-		gi.Cprintf(ent, PRINT_HIGH, "\nAvailable gameplay modes:\n\n"
+		gi.ClientPrint(ent, PRINT_HIGH, "\nAvailable gameplay modes:\n\n"
 			 "  DEATHMATCH\n  INSTAGIB\n  ARENA\n");
 		return true;
 	}
 
 	if(gi.Argc() == 2){  // general catch for invalid commands
-		gi.Cprintf(ent, PRINT_HIGH, "Usage: %s <command args>\n", gi.Argv(0));
+		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <command args>\n", gi.Argv(0));
 		return true;
 	}
 
@@ -695,7 +695,7 @@ static void G_Vote_f(edict_t *ent){
 	int i;
 
 	if(!g_voting->value){
-		gi.Cprintf(ent, PRINT_HIGH, "Voting is not allowed");
+		gi.ClientPrint(ent, PRINT_HIGH, "Voting is not allowed");
 		return;
 	}
 
@@ -709,7 +709,7 @@ static void G_Vote_f(edict_t *ent){
 
 	if(level.votetime){  // check for vote from client
 		if(ent->client->locals.vote){
-			gi.Cprintf(ent, PRINT_HIGH, "You've already voted\n");
+			gi.ClientPrint(ent, PRINT_HIGH, "You've already voted\n");
 			return;
 		}
 		if(strcasecmp(vote, "yes") == 0)
@@ -717,12 +717,12 @@ static void G_Vote_f(edict_t *ent){
 		else if(strcasecmp(vote, "no") == 0)
 			ent->client->locals.vote = VOTE_NO;
 		else {  // only yes and no are valid during a vote
-			gi.Cprintf(ent, PRINT_HIGH, "A vote \"%s\" is already in progress\n", level.vote_cmd);
+			gi.ClientPrint(ent, PRINT_HIGH, "A vote \"%s\" is already in progress\n", level.vote_cmd);
 			return;
 		}
 
 		level.votes[ent->client->locals.vote]++;
-		gi.Bprintf(PRINT_HIGH, "Voting results \"%s\":\n  %d Yes     %d No\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Voting results \"%s\":\n  %d Yes     %d No\n",
 				level.vote_cmd, level.votes[VOTE_YES], level.votes[VOTE_NO]);
 		return;
 	}
@@ -737,7 +737,7 @@ static void G_Vote_f(edict_t *ent){
 		}
 
 		if(i == maplist.count){  // inform client if it is not
-			gi.Cprintf(ent, PRINT_HIGH, "Map \"%s\" is not available\n", gi.Argv(2));
+			gi.ClientPrint(ent, PRINT_HIGH, "Map \"%s\" is not available\n", gi.Argv(2));
 			return;
 		}
 	}
@@ -751,7 +751,7 @@ static void G_Vote_f(edict_t *ent){
 
 	gi.Configstring(CS_VOTE, level.vote_cmd);  // send to layout
 
-	gi.Bprintf(PRINT_HIGH, "%s has called a vote:\n"
+	gi.BroadcastPrint(PRINT_HIGH, "%s has called a vote:\n"
 			"  %s\n"
 			"To vote, press F1 for yes or F2 for no\n",
 			ent->client->locals.netname, level.vote_cmd);
@@ -767,12 +767,12 @@ qboolean G_AddClientToTeam(edict_t *ent, char *teamname){
 	team_t *team;
 
 	if(level.matchtime && level.matchtime <= level.time){
-		gi.Cprintf(ent, PRINT_HIGH, "Match has already started\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Match has already started\n");
 		return false;
 	}
 
 	if(!(team = G_TeamByName(teamname))){  // resolve team
-		gi.Cprintf(ent, PRINT_HIGH, "Team \"%s\" doesn't exist\n", teamname);
+		gi.ClientPrint(ent, PRINT_HIGH, "Team \"%s\" doesn't exist\n", teamname);
 		return false;
 	}
 
@@ -800,7 +800,7 @@ static void G_AddClientToRound(edict_t *ent){
 	int score;  // keep score across rounds
 
 	if(level.roundtime && level.roundtime <= level.time){
-		gi.Cprintf(ent, PRINT_HIGH, "Round has already started\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Round has already started\n");
 		return;
 	}
 
@@ -827,7 +827,7 @@ static void G_AddClientToRound(edict_t *ent){
 static void G_Team_f(edict_t *ent){
 
 	if((level.teams || level.ctf) && gi.Argc() != 2){
-		gi.Cprintf(ent, PRINT_HIGH, "Usage: %s <%s|%s>\n",
+		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <%s|%s>\n",
 				gi.Argv(0), good.name, evil.name);
 		return;
 	}
@@ -838,7 +838,7 @@ static void G_Team_f(edict_t *ent){
 	}
 
 	if(!level.teams && !level.ctf){
-		gi.Cprintf(ent, PRINT_HIGH, "Teams are disabled\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Teams are disabled\n");
 		return;
 	}
 
@@ -858,12 +858,12 @@ static void G_Teamname_f(edict_t *ent){
 	team_t *t;
 
 	if(gi.Argc() != 2){
-		gi.Cprintf(ent, PRINT_HIGH, "Usage: %s <name>\n", gi.Argv(0));
+		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <name>\n", gi.Argv(0));
 		return;
 	}
 
 	if(!ent->client->locals.team){
-		gi.Cprintf(ent, PRINT_HIGH, "You're not on a team\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "You're not on a team\n");
 		return;
 	}
 
@@ -886,7 +886,7 @@ static void G_Teamname_f(edict_t *ent){
 	cs = t == &good ? CS_TEAMGOOD : CS_TEAMEVIL;
 	gi.Configstring(cs, va("%15s", t->name));
 
-	gi.Bprintf(PRINT_HIGH, "%s changed teamname to %s\n",
+	gi.BroadcastPrint(PRINT_HIGH, "%s changed teamname to %s\n",
 			ent->client->locals.netname, t->name);
 }
 
@@ -901,12 +901,12 @@ static void G_Teamskin_f(edict_t *ent){
 	team_t *t;
 
 	if(gi.Argc() != 2){
-		gi.Cprintf(ent, PRINT_HIGH, "Usage: %s <skin>\n", gi.Argv(0));
+		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <skin>\n", gi.Argv(0));
 		return;
 	}
 
 	if(!ent->client->locals.team){
-		gi.Cprintf(ent, PRINT_HIGH, "You're not on a team\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "You're not on a team\n");
 		return;
 	}
 
@@ -948,7 +948,7 @@ static void G_Teamskin_f(edict_t *ent){
 		gi.Configstring(CS_PLAYERSKINS + i, va("%s\\%s", cl->locals.netname, cl->locals.skin));
 	}
 
-	gi.Bprintf(PRINT_HIGH, "%s changed teamskin to %s\n",
+	gi.BroadcastPrint(PRINT_HIGH, "%s changed teamskin to %s\n",
 			ent->client->locals.netname, t->skin);
 }
 
@@ -963,17 +963,17 @@ static void G_Ready_f(edict_t *ent){
 	gclient_t *cl;
 
 	if(!level.match){
-		gi.Cprintf(ent, PRINT_HIGH, "Match is disabled\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Match is disabled\n");
 		return;
 	}
 
 	if(ent->client->locals.spectator){
-		gi.Cprintf(ent, PRINT_HIGH, "You're a spectator\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "You're a spectator\n");
 		return;
 	}
 
 	if(ent->client->locals.ready){
-		gi.Cprintf(ent, PRINT_HIGH, "You're already ready\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "You're already ready\n");
 		return;
 	}
 
@@ -1009,11 +1009,11 @@ static void G_Ready_f(edict_t *ent){
 		return;
 
 	if(((int)level.teams == 2 || (int)level.ctf == 2) && (g != e)){  // balanced teams required
-		gi.Bprintf(PRINT_HIGH, "Teams must be balanced for match to start\n");
+		gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for match to start\n");
 		return;
 	}
 
-	gi.Bprintf(PRINT_HIGH, "Match starting in 10 seconds..\n");
+	gi.BroadcastPrint(PRINT_HIGH, "Match starting in 10 seconds..\n");
 	level.matchtime = level.time + 10.0;
 
 	level.start_match = true;
@@ -1025,22 +1025,22 @@ static void G_Ready_f(edict_t *ent){
 static void G_Unready_f(edict_t *ent){
 
 	if(!level.match){
-		gi.Cprintf(ent, PRINT_HIGH, "Match is disabled\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Match is disabled\n");
 		return;
 	}
 
 	if(ent->client->locals.spectator){
-		gi.Cprintf(ent, PRINT_HIGH, "You're a spectator\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "You're a spectator\n");
 		return;
 	}
 
 	if(level.matchtime){
-		gi.Cprintf(ent, PRINT_HIGH, "Match has started\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Match has started\n");
 		return;
 	}
 
 	if(!ent->client->locals.ready){
-		gi.Cprintf(ent, PRINT_HIGH, "You are not ready\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "You are not ready\n");
 		return;
 	}
 
@@ -1061,13 +1061,13 @@ static void G_Spectate_f(edict_t *ent){
 
 	// prevent spectators from joining matches
 	if(level.matchtime && ent->client->locals.spectator){
-		gi.Cprintf(ent, PRINT_HIGH, "Match has already started\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Match has already started\n");
 		return;
 	}
 
 	// prevent spectators from joining rounds
 	if(level.roundtime && ent->client->locals.spectator){
-		gi.Cprintf(ent, PRINT_HIGH, "Round has already started\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Round has already started\n");
 		return;
 	}
 
@@ -1078,7 +1078,7 @@ static void G_Spectate_f(edict_t *ent){
 			if(g_autojoin->value)  // assign them to a team
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
 			else {  // or ask them to pick
-				gi.Cprintf(ent, PRINT_HIGH, "Use team <%s|%s> to join the game\n",
+				gi.ClientPrint(ent, PRINT_HIGH, "Use team <%s|%s> to join the game\n",
 						good.name, evil.name);
 				return;
 			}

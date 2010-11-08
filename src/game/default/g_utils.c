@@ -142,7 +142,7 @@ edict_t *G_PickTarget(char *targetname){
 	edict_t *choice[MAXCHOICES];
 
 	if(!targetname){
-		gi.Dprintf("G_PickTarget called with NULL targetname\n");
+		gi.Debug("G_PickTarget called with NULL targetname\n");
 		return NULL;
 	}
 
@@ -156,7 +156,7 @@ edict_t *G_PickTarget(char *targetname){
 	}
 
 	if(!num_choices){
-		gi.Dprintf("G_PickTarget: target %s not found\n", targetname);
+		gi.Debug("G_PickTarget: target %s not found\n", targetname);
 		return NULL;
 	}
 
@@ -197,7 +197,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 		t->think = Think_Delay;
 		t->activator = activator;
 		if(!activator)
-			gi.Dprintf("Think_Delay with no activator\n");
+			gi.Debug("Think_Delay with no activator\n");
 		t->message = ent->message;
 		t->target = ent->target;
 		t->killtarget = ent->killtarget;
@@ -206,7 +206,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 
 	// print the message
 	if((ent->message) && activator->client){
-		gi.Cnprintf(activator, "%s", ent->message);
+		gi.ClientCenterPrint(activator, "%s", ent->message);
 		if(ent->noise_index)
 			gi.Sound(activator, ent->noise_index, ATTN_NORM);
 		else
@@ -219,7 +219,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 		while((t = G_Find(t, FOFS(targetname), ent->killtarget))){
 			G_FreeEdict(t);
 			if(!ent->inuse){
-				gi.Dprintf("entity was removed while using killtargets\n");
+				gi.Debug("entity was removed while using killtargets\n");
 				return;
 			}
 		}
@@ -235,13 +235,13 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 				continue;
 
 			if(t == ent){
-				gi.Dprintf("entity asked to use itself\n");
+				gi.Debug("entity asked to use itself\n");
 			} else {
 				if(t->use)
 					t->use(t, ent, activator);
 			}
 			if(!ent->inuse){
-				gi.Dprintf("entity was removed while using targets\n");
+				gi.Debug("entity was removed while using targets\n");
 				return;
 			}
 		}

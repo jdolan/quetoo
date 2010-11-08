@@ -27,38 +27,12 @@
 
 game_export_t *ge;
 
-/*
- * Sv_Unicast
- *
- * Sends the contents of the mutlicast buffer to a single client
- */
-static void Sv_Unicast(edict_t *ent, qboolean reliable){
-	int p;
-	sv_client_t *client;
-
-	if(!ent)
-		return;
-
-	p = NUM_FOR_EDICT(ent);
-	if(p < 1 || p > sv_maxclients->value)
-		return;
-
-	client = svs.clients +(p - 1);
-
-	if(reliable)
-		Sb_Write(&client->netchan.message, sv.multicast.data, sv.multicast.cursize);
-	else
-		Sb_Write(&client->datagram, sv.multicast.data, sv.multicast.cursize);
-
-	Sb_Clear(&sv.multicast);
-}
-
 
 /*
- * Sv_Printf
+ * Sv_Print
  */
-static void Sv_Printf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-static void Sv_Printf(const char *fmt, ...){
+static void Sv_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+static void Sv_Print(const char *fmt, ...){
 	char msg[1024];
 	va_list	argptr;
 
@@ -71,10 +45,10 @@ static void Sv_Printf(const char *fmt, ...){
 
 
 /*
- * Sv_Dprintf
+ * Sv_Debug
  */
-static void Sv_Dprintf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-static void Sv_Dprintf(const char *fmt, ...){
+static void Sv_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+static void Sv_Debug(const char *fmt, ...){
 	char msg[1024];
 	va_list	argptr;
 
@@ -83,63 +57,6 @@ static void Sv_Dprintf(const char *fmt, ...){
 	va_end(argptr);
 
 	Com_Debug("%s", msg);
-}
-
-
-/*
- * Sv_Cprintf
- *
- * Print to a single client
- */
-static void Sv_Cprintf(edict_t *ent, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-static void Sv_Cprintf(edict_t *ent, int level, const char *fmt, ...){
-	char msg[1024];
-	va_list	argptr;
-	int n = 0;
-
-	if(ent){
-		n = NUM_FOR_EDICT(ent);
-		if(n < 1 || n > sv_maxclients->value){
-			Com_Warn("Sv_Cprintf: Cprintf to non-client.\n");
-			return;
-		}
-	}
-
-	va_start(argptr, fmt);
-	vsprintf(msg, fmt, argptr);
-	va_end(argptr);
-
-	if(ent)
-		Sv_ClientPrintf(svs.clients + (n - 1), level, "%s", msg);
-	else
-		Com_Print("%s", msg);
-}
-
-
-/*
- * Sv_Cnprintf
- *
- * centerprint to a single client
- */
-static void Sv_Cnprintf(edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-static void Sv_Cnprintf(edict_t *ent, const char *fmt, ...){
-	char msg[1024];
-	va_list	argptr;
-	int n;
-
-	n = NUM_FOR_EDICT(ent);
-	if(n < 1 || n > sv_maxclients->value){
-		Com_Warn("Sv_Cnprintf: Cnprintf to non-client.\n");
-		return;
-	}
-
-	va_start(argptr, fmt);
-	vsprintf(msg, fmt, argptr);
-	va_end(argptr);
-
-	Msg_WriteByte(&sv.multicast, svc_centerprint);
-	Msg_WriteString(&sv.multicast, msg);
-	Sv_Unicast(ent, true);
 }
 
 
@@ -195,6 +112,7 @@ static void Sv_SetModel(edict_t *ent, const char *name){
  *
  */
 static void Sv_Configstring(int index, const char *val){
+
 	if(index < 0 || index >= MAX_CONFIGSTRINGS){
 		Com_Warn("Sv_Configstring: bad index %i.\n", index);
 		return;
@@ -203,8 +121,8 @@ static void Sv_Configstring(int index, const char *val){
 	if(!val)
 		val = "";
 
-	// change the string in sv
-	strcpy(sv.configstrings[index], val);
+	// change the string in sv.configstrings
+	strncpy(sv.configstrings[index], val, sizeof(sv.configstrings[0]));
 
 	if(sv.state != ss_loading){  // send the update to everyone
 		Sb_Clear(&sv.multicast);
@@ -217,30 +135,42 @@ static void Sv_Configstring(int index, const char *val){
 }
 
 
+/*
+ * Message wrappers which target the multicast buffer.
+ */
+
 static void Sv_WriteChar(int c){
 	Msg_WriteChar(&sv.multicast, c);
 }
+
 static void Sv_WriteByte(int c){
 	Msg_WriteByte(&sv.multicast, c);
 }
+
 static void Sv_WriteShort(int c){
 	Msg_WriteShort(&sv.multicast, c);
 }
+
 static void Sv_WriteLong(int c){
 	Msg_WriteLong(&sv.multicast, c);
 }
+
 static void Sv_WriteFloat(float f){
 	Msg_WriteFloat(&sv.multicast, f);
 }
+
 static void Sv_WriteString(const char *s){
 	Msg_WriteString(&sv.multicast, s);
 }
+
 static void Sv_WritePos(vec3_t pos){
 	Msg_WritePos(&sv.multicast, pos);
 }
+
 static void Sv_WriteDir(vec3_t dir){
 	Msg_WriteDir(&sv.multicast, dir);
 }
+
 static void Sv_WriteAngle(float f){
 	Msg_WriteAngle(&sv.multicast, f);
 }
@@ -265,10 +195,13 @@ static qboolean Sv_inPVS(const vec3_t p1, const vec3_t p2){
 	leafnum = Cm_PointLeafnum(p2);
 	cluster = Cm_LeafCluster(leafnum);
 	area2 = Cm_LeafArea(leafnum);
+
 	if(mask &&(!(mask[cluster >> 3] &(1 <<(cluster&7)))))
 		return false;
+
 	if(!Cm_AreasConnected(area1, area2))
 		return false;  // a door blocks sight
+
 	return true;
 }
 
@@ -304,12 +237,12 @@ static qboolean Sv_inPHS(const vec3_t p1, const vec3_t p2){
 /*
  * Sv_StartSound_
  */
-static void Sv_Sound(edict_t *entity, int soundindex, int atten){
+static void Sv_Sound(edict_t *ent, int soundindex, int atten){
 
-	if(!entity)
+	if(!ent)
 		return;
 
-	Sv_PositionedSound(NULL, entity, soundindex, atten);
+	Sv_PositionedSound(NULL, ent, soundindex, atten);
 }
 
 
@@ -345,11 +278,11 @@ void Sv_InitGameProgs(void){
 	import.serverrate = svs.packetrate;
 	import.serverframe = 1.0 / svs.packetrate;
 
-	import.Printf = Sv_Printf;
-	import.Dprintf = Sv_Dprintf;
-	import.Bprintf = Sv_Bprintf;
-	import.Cprintf = Sv_Cprintf;
-	import.Cnprintf = Sv_Cnprintf;
+	import.Print = Sv_Print;
+	import.Debug = Sv_Debug;
+	import.BroadcastPrint = Sv_BroadcastPrint;
+	import.ClientPrint = Sv_ClientPrint;
+	import.ClientCenterPrint = Sv_ClientCenterPrint;
 
 	import.Error = Sv_Error;
 

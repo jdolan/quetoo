@@ -237,7 +237,7 @@ static void G_RestartGame(qboolean teamz){
 	good.score = evil.score = 0;
 	good.captures = evil.captures = 0;
 
-	gi.Bprintf(PRINT_HIGH, "Game restarted\n");
+	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
 	gi.Sound(&g_edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
 }
 
@@ -323,7 +323,7 @@ static void G_CheckVote(void){
 		return;
 
 	if(level.time - level.votetime > MAX_VOTE_TIME){
-		gi.Bprintf(PRINT_HIGH, "Vote \"%s\" expired\n", level.vote_cmd);
+		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" expired\n", level.vote_cmd);
 		G_ResetVote();
 		return;
 	}
@@ -336,7 +336,7 @@ static void G_CheckVote(void){
 
 	if(level.votes[VOTE_YES] >= count * VOTE_MAJORITY){  // vote passed
 
-		gi.Bprintf(PRINT_HIGH, "Vote \"%s\" passed\n", level.vote_cmd);
+		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" passed\n", level.vote_cmd);
 
 		if(!strncmp(level.vote_cmd, "map ", 4)){  // special case for map
 			G_BeginIntermission(level.vote_cmd + 4);
@@ -355,7 +355,7 @@ static void G_CheckVote(void){
 		}
 		G_ResetVote();
 	} else if(level.votes[VOTE_NO] >= count * VOTE_MAJORITY){  // vote failed
-		gi.Bprintf(PRINT_HIGH, "Vote \"%s\" failed\n", level.vote_cmd);
+		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" failed\n", level.vote_cmd);
 		G_ResetVote();
 	}
 }
@@ -439,11 +439,11 @@ static void G_CheckRoundStart(void){
 
 	if((int)level.teams == 2 && (g != e)){  // balanced teams required
 		if(level.framenum % 100 == 0)
-			gi.Bprintf(PRINT_HIGH, "Teams must be balanced for round to start\n");
+			gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for round to start\n");
 		return;
 	}
 
-	gi.Bprintf(PRINT_HIGH, "Round starting in 10 seconds..\n");
+	gi.BroadcastPrint(PRINT_HIGH, "Round starting in 10 seconds..\n");
 	level.roundtime = level.time + 10.0;
 
 	level.start_round = true;
@@ -459,7 +459,7 @@ static void G_CheckRoundLimit(){
 	gclient_t *cl;
 
 	if(level.roundnum >= level.roundlimit){  // enforce roundlimit
-		gi.Bprintf(PRINT_HIGH, "Roundlimit hit\n");
+		gi.BroadcastPrint(PRINT_HIGH, "Roundlimit hit\n");
 		G_EndLevel();
 		return;
 	}
@@ -523,7 +523,7 @@ static void G_CheckRoundEnd(void){
 	}
 
 	if(clients == 0){  // corner case where everyone was fragged
-		gi.Bprintf(PRINT_HIGH, "Tie!\n");
+		gi.BroadcastPrint(PRINT_HIGH, "Tie!\n");
 		level.roundtime = 0;
 		G_CheckRoundLimit();
 		return;
@@ -558,7 +558,7 @@ static void G_CheckRoundEnd(void){
 	}
 
 	// we have a winner
-	gi.Bprintf(PRINT_HIGH, "%s wins!\n", (level.teams || level.ctf ?
+	gi.BroadcastPrint(PRINT_HIGH, "%s wins!\n", (level.teams || level.ctf ?
 				winner->client->locals.team->name : winner->client->locals.netname));
 
 	level.roundtime = 0;
@@ -597,13 +597,13 @@ static void G_CheckMatchEnd(void){
 	}
 
 	if(clients == 0){  // everyone left
-		gi.Bprintf(PRINT_HIGH, "No players left\n");
+		gi.BroadcastPrint(PRINT_HIGH, "No players left\n");
 		level.matchtime = 0;
 		return;
 	}
 
 	if((level.teams || level.ctf) && (!g || !e)){
-		gi.Bprintf(PRINT_HIGH, "Not enough players left\n");
+		gi.BroadcastPrint(PRINT_HIGH, "Not enough players left\n");
 		level.matchtime = 0;
 		return;
 	}
@@ -661,7 +661,7 @@ static void G_CheckRules(void){
 		}
 
 		gi.Sound(&g_edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
-		gi.Bprintf(PRINT_HIGH, "Match has started\n");
+		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
 	if(level.start_round && level.time >= level.roundtime){  // pre-game expired, begin round
@@ -675,7 +675,7 @@ static void G_CheckRules(void){
 		}
 
 		gi.Sound(&g_edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
-		gi.Bprintf(PRINT_HIGH, "Round has started\n");
+		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
 	seconds = level.time;
@@ -707,7 +707,7 @@ static void G_CheckRules(void){
 			t = level.time - level.roundtime;
 
 		if(t >= level.timelimit * 60){
-			gi.Bprintf(PRINT_HIGH, "Timelimit hit\n");
+			gi.BroadcastPrint(PRINT_HIGH, "Timelimit hit\n");
 			G_EndLevel();
 			return;
 		}
@@ -721,7 +721,7 @@ static void G_CheckRules(void){
 
 		if(level.teams){  // check team scores
  			if(good.score >= level.fraglimit || evil.score >= level.fraglimit){
-				gi.Bprintf(PRINT_HIGH, "Fraglimit hit\n");
+				gi.BroadcastPrint(PRINT_HIGH, "Fraglimit hit\n");
 				G_EndLevel();
 				return;
 			}
@@ -733,7 +733,7 @@ static void G_CheckRules(void){
 					continue;
 
 				if(cl->locals.score >= level.fraglimit){
-					gi.Bprintf(PRINT_HIGH, "Fraglimit hit\n");
+					gi.BroadcastPrint(PRINT_HIGH, "Fraglimit hit\n");
 					G_EndLevel();
 					return;
 				}
@@ -744,7 +744,7 @@ static void G_CheckRules(void){
 	if(level.ctf && level.capturelimit){  // check capture limit
 
 		if(good.captures >= level.capturelimit || evil.captures >= level.capturelimit){
-			gi.Bprintf(PRINT_HIGH, "Capturelimit hit\n");
+			gi.BroadcastPrint(PRINT_HIGH, "Capturelimit hit\n");
 			G_EndLevel();
 			return;
 		}
@@ -756,14 +756,14 @@ static void G_CheckRules(void){
 
 		G_RestartGame(false);  // reset all clients
 
-		gi.Bprintf(PRINT_HIGH, "Gameplay has changed to %s\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n",
 				G_GameplayName(level.gameplay));
 	}
 
 	if(g_gravity->modified){  // send gravity config string
 		g_gravity->modified = false;
 
-		gi.Configstring(CS_GRAVITY, va("%d", g_gravity->value));
+		gi.Configstring(CS_GRAVITY, va("%d", (int)g_gravity->value));
 		level.gravity = g_gravity->value;
 	}
 
@@ -771,7 +771,7 @@ static void G_CheckRules(void){
 		g_teams->modified = false;
 		level.teams = g_teams->value;
 
-		gi.Bprintf(PRINT_HIGH, "Teams have been %s\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n",
 				level.teams ? "enabled" : "disabled");
 
 		G_RestartGame(true);
@@ -781,7 +781,7 @@ static void G_CheckRules(void){
 		g_ctf->modified = false;
 		level.ctf = g_ctf->value;
 
-		gi.Bprintf(PRINT_HIGH, "CTF has been %s\n",
+		gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n",
 				level.ctf ? "enabled" : "disabled");
 
 		G_RestartGame(true);
@@ -793,7 +793,7 @@ static void G_CheckRules(void){
 
 		level.warmup = level.match;  // toggle warmup
 
-		gi.Bprintf(PRINT_HIGH, "Match has been %s\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Match has been %s\n",
 				level.match ? "enabled" : "disabled");
 
 		G_RestartGame(false);
@@ -805,7 +805,7 @@ static void G_CheckRules(void){
 
 		level.warmup = level.rounds;  // toggle warmup
 
-		gi.Bprintf(PRINT_HIGH, "Rounds have been %s\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Rounds have been %s\n",
 				level.rounds ? "enabled" : "disabled");
 
 		G_RestartGame(false);
@@ -814,7 +814,7 @@ static void G_CheckRules(void){
 	if(g_cheats->modified){  // notify when cheats changes
 		g_cheats->modified = false;
 
-		gi.Bprintf(PRINT_HIGH, "Cheats have been %s\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Cheats have been %s\n",
 				g_cheats->value ? "enabled" : "disabled");
 	}
 
@@ -822,7 +822,7 @@ static void G_CheckRules(void){
 		g_fraglimit->modified = false;
 		level.fraglimit = g_fraglimit->value;
 
-		gi.Bprintf(PRINT_HIGH, "Fraglimit has been changed to %d\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Fraglimit has been changed to %d\n",
 				level.fraglimit);
 	}
 
@@ -830,7 +830,7 @@ static void G_CheckRules(void){
 		g_roundlimit->modified = false;
 		level.roundlimit = g_roundlimit->value;
 
-		gi.Bprintf(PRINT_HIGH, "Roundlimit has been changed to %d\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Roundlimit has been changed to %d\n",
 				level.roundlimit);
 	}
 
@@ -838,7 +838,7 @@ static void G_CheckRules(void){
 		g_capturelimit->modified = false;
 		level.capturelimit = g_capturelimit->value;
 
-		gi.Bprintf(PRINT_HIGH, "Capturelimit has been changed to %d\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Capturelimit has been changed to %d\n",
 				level.capturelimit);
 	}
 
@@ -846,7 +846,7 @@ static void G_CheckRules(void){
 		g_timelimit->modified = false;
 		level.timelimit = g_timelimit->value;
 
-		gi.Bprintf(PRINT_HIGH, "Timelimit has been changed to %d\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Timelimit has been changed to %d\n",
 				(int)level.timelimit);
 	}
 }
@@ -970,7 +970,7 @@ static void G_ParseMaplist(const char *filename){
 	}
 
 	if((i = gi.LoadFile(filename, &buf)) < 1){
-		gi.Printf("Couldn't open %s\n", filename);
+		gi.Print("Couldn't open %s\n", filename);
 		maplist.count = 0;
 		return;
 	}
@@ -1139,7 +1139,7 @@ static void G_ParseMaplist(const char *filename){
  * This will be called when the game module is first loaded.
  */
 void G_Init(void){
-	gi.Printf("  Game initialization..\n");
+	gi.Print("  Game initialization..\n");
 
 	gi.Cvar("gamename", GAMEVERSION , CVAR_SERVERINFO | CVAR_NOSET, NULL);
 	gi.Cvar("gamedate", __DATE__ , CVAR_SERVERINFO | CVAR_NOSET, NULL);
@@ -1192,7 +1192,7 @@ void G_Init(void){
 		);
 
 		if(mysql != NULL)
-			gi.Printf("    MySQL connection to %s/%s", g_mysqlhost->string,
+			gi.Print("    MySQL connection to %s/%s", g_mysqlhost->string,
 					g_mysqluser->string);
 	}
 #endif
@@ -1216,7 +1216,7 @@ void G_Init(void){
 		g_ctf->modified = g_cheats->modified = g_fraglimit->modified =
 		g_roundlimit->modified = g_capturelimit->modified = g_timelimit->modified = false;
 
-	gi.Printf("  Game initialized.\n");
+	gi.Print("  Game initialized.\n");
 }
 
 
@@ -1225,7 +1225,7 @@ void G_Init(void){
  *  game is unloaded (complements G_Init).
  */
 void G_Shutdown(void){
-	gi.Printf("Game shutdown..\n");
+	gi.Print("Game shutdown..\n");
 
 	if(fraglog != NULL)
 		gi.CloseFile(fraglog);  // close fraglog
@@ -1284,5 +1284,5 @@ void Com_Print(const char *msg, ...){
 	vsprintf(text, msg, argptr);
 	va_end(argptr);
 
-	gi.Bprintf(PRINT_HIGH, "%s", text);
+	gi.BroadcastPrint(PRINT_HIGH, "%s", text);
 }

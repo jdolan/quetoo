@@ -756,10 +756,8 @@ static void R_LoadObjModelLine(const model_t *mod, mobj_t *obj, const char *line
 		else  // or just count it
 			obj->num_tris += R_LoadObjModelFace(mod, obj, line + 2);
 	}
-	else {
-		Com_Debug("R_LoadObjModelLine: Unsupported line for %s: %s.",
-				mod->name, line);
-	}
+
+	// else we just ignore it
 }
 
 

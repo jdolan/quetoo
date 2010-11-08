@@ -102,14 +102,14 @@ void G_func_wall(edict_t *self){
 
 	// it must be TRIGGER_SPAWN
 	if(!(self->spawnflags & 1)){
-		gi.Dprintf("func_wall missing TRIGGER_SPAWN\n");
+		gi.Debug("func_wall missing TRIGGER_SPAWN\n");
 		self->spawnflags |= 1;
 	}
 
 	// yell if the spawnflags are odd
 	if(self->spawnflags & 4){
 		if(!(self->spawnflags & 2)){
-			gi.Dprintf("func_wall START_ON without TOGGLE\n");
+			gi.Debug("func_wall START_ON without TOGGLE\n");
 			self->spawnflags |= 2;
 		}
 	}
@@ -239,7 +239,7 @@ static void G_teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 	dest = G_Find(NULL, FOFS(targetname), self->target);
 
 	if(!dest){
-		gi.Dprintf("G_teleporter_touch: Couldn't find destination.\n");
+		gi.Debug("G_teleporter_touch: Couldn't find destination.\n");
 		return;
 	}
 
@@ -289,7 +289,7 @@ void G_misc_teleporter(edict_t *ent){
 	vec3_t v;
 
 	if(!ent->target){
-		gi.Dprintf("G_misc_teleporter: No target specified.\n");
+		gi.Debug("G_misc_teleporter: No target specified.\n");
 		G_FreeEdict(ent);
 		return;
 	}

@@ -92,7 +92,7 @@ static void Sv_New_f(void){
 	Msg_WriteString(&sv_client->netchan.message, sv.configstrings[CS_NAME]);
 
 	// set up the entity for the client
-	ent = EDICT_NUM(playernum + 1);
+	ent = EDICT_FOR_NUM(playernum + 1);
 	ent->s.number = playernum + 1;
 	sv_client->edict = ent;
 	memset(&sv_client->lastcmd, 0, sizeof(sv_client->lastcmd));
@@ -373,7 +373,7 @@ static void Sv_Info_f(void){
 			continue;  //only print serverinfo cvars
 
 		snprintf(line, sizeof(line), "%s %s\n", cvar->name, cvar->string);
-		Sv_ClientPrintf(sv_client, PRINT_MEDIUM, "%s", line);
+		Sv_ClientPrint(EDICT_FOR_CLIENT(sv_client), PRINT_MEDIUM, "%s", line);
 	}
 }
 
