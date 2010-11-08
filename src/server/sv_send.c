@@ -293,7 +293,7 @@ void Sv_Multicast(vec3_t origin, multicast_t to){
  * have the origin explicitly sent.
  *
  * An attenuation of 0 will play full volume everywhere in the level.
- * Larger attenuation will drop off. (max 4 attenuation)
+ * Larger attenuation will drop off (max 4 attenuation).
  *
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for bmodels.

@@ -199,7 +199,7 @@ typedef struct {
 	char music[MAX_STRING_CHARS];
 
 	// intermission state
-	float intermissiontime;  // time intermission started
+	float intermission_time;  // time intermission started
 	vec3_t intermission_origin;
 	vec3_t intermission_angle;
 	const char *changemap;

@@ -348,7 +348,7 @@ void P_EndServerFrame(edict_t *ent){
 
 	// If the end of unit layout is displayed, don't give
 	// the player any normal movement attributes
-	if(level.intermissiontime){
+	if(level.intermission_time){
 		P_SetStats(ent);
 		return;
 	}

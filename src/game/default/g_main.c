@@ -262,10 +262,10 @@ static void G_BeginIntermission(const char *map){
 	int i;
 	edict_t *ent, *client;
 
-	if(level.intermissiontime)
+	if(level.intermission_time)
 		return;  // already activated
 
-	level.intermissiontime = level.time;
+	level.intermission_time = level.time;
 
 	// respawn any dead clients
 	for(i = 0; i < sv_maxclients->value; i++){
@@ -641,7 +641,7 @@ static void G_CheckRules(void){
 	int i, seconds;
 	gclient_t *cl;
 
-	if(level.intermissiontime)
+	if(level.intermission_time)
 		return;
 
 	// match mode, no match, or countdown underway
@@ -860,10 +860,13 @@ static void G_ExitLevel(void){
 	gi.AddCommandString(va("map %s\n", level.changemap));
 
 	level.changemap = NULL;
-	level.intermissiontime = 0;
+	level.intermission_time = 0;
 
 	P_EndServerFrames();
 }
+
+
+#define INTERMISSION 10.0  // intermission duration
 
 /*
  * G_RunFrame
@@ -877,10 +880,12 @@ static void G_RunFrame(void){
 	level.framenum++;
 	level.time = level.framenum * gi.serverframe;
 
-	// exit intermissions
-	if(level.intermissiontime && level.time > level.intermissiontime + 10.0){
-		G_ExitLevel();
-		return;
+	// check for level change after running intermission
+	if(level.intermission_time){
+		if(level.time > level.intermission_time + INTERMISSION){
+			G_ExitLevel();
+			return;
+		}
 	}
 
 	// treat each object in turn

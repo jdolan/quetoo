@@ -883,7 +883,7 @@ void P_Begin(edict_t *ent){
 	// spawn them in
 	P_Respawn(ent, true);
 
-	if(level.intermissiontime){
+	if(level.intermission_time){
 		P_MoveToIntermission(ent);
 	} else {
 		memset(welcome, 0, sizeof(welcome));
@@ -1147,7 +1147,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 	level.current_entity = ent;
 	client = ent->client;
 
-	if(level.intermissiontime){
+	if(level.intermission_time){
 		client->ps.pmove.pm_type = PM_FREEZE;
 		return;
 	}
@@ -1306,7 +1306,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 void P_BeginServerFrame(edict_t *ent){
 	gclient_t *client;
 
-	if(level.intermissiontime)
+	if(level.intermission_time)
 		return;
 
 	client = ent->client;

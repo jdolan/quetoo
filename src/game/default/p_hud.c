@@ -418,7 +418,7 @@ void P_SetStats(edict_t *ent){
 	// layouts
 	ent->client->ps.stats[STAT_LAYOUTS] = 0;
 
-	if(ent->client->locals.health <= 0 || level.intermissiontime || ent->client->showscores)
+	if(ent->client->locals.health <= 0 || level.intermission_time || ent->client->showscores)
 		ent->client->ps.stats[STAT_LAYOUTS] |= 1;
 
 	// frags
@@ -480,7 +480,7 @@ void P_SetSpectatorStats(edict_t *ent){
 	// layouts are independent in spectator
 	cl->ps.stats[STAT_LAYOUTS] = 0;
 
-	if(cl->locals.health <= 0 || level.intermissiontime || cl->showscores)
+	if(cl->locals.health <= 0 || level.intermission_time || cl->showscores)
 		cl->ps.stats[STAT_LAYOUTS] |= 1;
 
 	if(cl->chase_target && cl->chase_target->inuse)

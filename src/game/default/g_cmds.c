@@ -1134,7 +1134,8 @@ void P_Command(edict_t *ent){
 		return;
 	}
 
-	if(level.intermissiontime)
+	// most commands can not be executed during intermission
+	if(level.intermission_time)
 		return;
 
 	if(strcasecmp(cmd, "score") == 0)
