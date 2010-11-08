@@ -259,7 +259,7 @@ static float Cl_KeyState(kbutton_t *key, int cmd_msec){
 		key->downtime = cls.realtime;
 	}
 
-	v = (float)(msec / cmd_msec);
+	v = (msec * 1000.0) / (cmd_msec * 1000.0);
 
 	if(v > 1.0)
 		v = 1.0;
