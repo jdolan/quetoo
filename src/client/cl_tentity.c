@@ -69,7 +69,7 @@ static const vec3_t bfg_hit_light = {
  */
 void Cl_ParseTempEntity(void){
 	static int last_ric_time;
-	int i, type;
+	int i, j, type;
 	vec3_t pos, pos2, dir, light;
 
 	type = Msg_ReadByte(&net_message);
@@ -134,14 +134,18 @@ void Cl_ParseTempEntity(void){
 		case TE_RAILTRAIL:  // railgun effect
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadPos(&net_message, pos2);
-			i = Msg_ReadByte(&net_message);
-			Cl_RailTrail(pos, pos2, i);
-			Img_ColorFromPalette(i, light);
+			i = Msg_ReadLong(&net_message);
+			j = Msg_ReadByte(&net_message);
+			Cl_RailTrail(pos, pos2, i, j);
+			Img_ColorFromPalette(j, light);
 			R_AddSustainedLight(pos, 1.25, light, 0.75);
-			VectorSubtract(pos2, pos, dir);
-			VectorNormalize(dir);
-			VectorMA(pos2, -12.0, dir, pos2);
-			R_AddSustainedLight(pos2, 1.5, light, 1.25);
+
+			if(!(i & SURF_SKY)){
+				VectorSubtract(pos2, pos, dir);
+				VectorNormalize(dir);
+				VectorMA(pos2, -12.0, dir, pos2);
+				R_AddSustainedLight(pos2, 1.5, light, 1.25);
+			}
 			break;
 
 		case TE_EXPLOSION:  // rocket and grenade explosions

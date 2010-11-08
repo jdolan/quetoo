@@ -866,7 +866,7 @@ void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 /*
  * Cl_RailTrail
  */
-void Cl_RailTrail(const vec3_t start, const vec3_t end, int color){
+void Cl_RailTrail(const vec3_t start, const vec3_t end, int flags, int color){
 	vec3_t vec, move;
 	float len;
 	particle_t *p;
@@ -917,7 +917,7 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int color){
 
 		p->color = color;
 
-		// check for bubbletrail
+		// check for bubble trail
 		if(i && Cm_PointContents(move, r_worldmodel->firstnode) &
 				(CONTENTS_SLIME | CONTENTS_WATER)){
 			Cl_BubbleTrail(move, p->org, 16.0);
@@ -925,6 +925,10 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int color){
 
 		VectorCopy(p->org, move);
 	}
+
+	// check for explosion effect on solids
+	if(flags & SURF_SKY)
+		return;
 
 	if(!(p = Cl_AllocParticle()))
 		return;
