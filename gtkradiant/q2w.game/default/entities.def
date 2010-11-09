@@ -545,6 +545,13 @@ NO_PROTECTION	*nothing* stops the damage
 */
 
 
+/*QUAKED trigger_exec (1 0 1) ? 0
+A trigger which, when touched, executes commands or a script file.
+"command"		The console command(s) to execute.
+"script"		The script file (.cfg) to execute."
+*/
+
+
 /*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
 The normal starting point for a level.
 */
