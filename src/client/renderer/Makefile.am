@@ -16,6 +16,7 @@ if BUILD_CLIENT
 librenderer_la_SOURCES = \
 	r_array.c \
 	r_bsp.c \
+	r_capture.c \
 	r_context.c \
 	r_corona.c \
 	r_draw.c \

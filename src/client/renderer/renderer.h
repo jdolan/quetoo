@@ -219,22 +219,6 @@ typedef struct renderer_config_s {
 
 extern renderer_config_t r_config;
 
-// threading state
-typedef enum {
-	THREAD_DEAD,
-	THREAD_IDLE,
-	THREAD_CLIENT,
-	THREAD_BSP,
-	THREAD_RENDERER
-} threadstate_t;
-
-typedef struct renderer_threadstate_s {
-	SDL_Thread *thread;
-	threadstate_t state;
-} renderer_threadstate_t;
-
-extern renderer_threadstate_t r_threadstate;
-
 // private renderer variables
 typedef struct renderer_locals_s {
 	int cluster;  // PVS at origin
@@ -247,6 +231,9 @@ typedef struct renderer_locals_s {
 
 	int lightframe;  // dynamic lighting frame
 
+	int captureframe;  // screen capture frame
+	byte *capturebuffer;
+
 	int tracenum;  // lighting traces
 
 	GLfloat modelview[16];  // model-view matrix
@@ -255,6 +242,24 @@ typedef struct renderer_locals_s {
 } renderer_locals_t;
 
 extern renderer_locals_t r_locals;
+
+// threading state
+typedef enum {
+	THREAD_DEAD,
+	THREAD_IDLE,
+	THREAD_WAIT,
+	THREAD_RUN,
+} threadstate_t;
+
+typedef struct renderer_thread_s {
+	char name[32];
+	SDL_Thread *thread;
+	threadstate_t state;
+	int wait_count;
+} renderer_thread_t;
+
+extern renderer_thread_t *r_bsp_thread;  // threads
+extern renderer_thread_t *r_capture_thread;
 
 extern byte color_white[4];
 extern byte color_black[4];
@@ -274,6 +279,8 @@ extern cvar_t *r_speeds;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
 extern cvar_t *r_bumpmap;
+extern cvar_t *r_capture;
+extern cvar_t *r_capture_quality;
 extern cvar_t *r_contrast;
 extern cvar_t *r_coronas;
 extern cvar_t *r_drawbuffer;
@@ -337,6 +344,12 @@ void R_DrawBspNormals(void);
 void R_MarkSurfaces(void);
 const mleaf_t *R_LeafForPoint(const vec3_t p, const model_t *model);
 void R_MarkLeafs(void);
+
+// r_capture.c
+void R_UpdateCapture(void);
+void R_FlushCapture(void);
+void R_InitCapture(void);
+void R_ShutdownCapture(void);
 
 // r_context.c
 qboolean R_InitContext(int width, int height, qboolean fullscreen);
@@ -451,7 +464,7 @@ void R_DrawBlendSurfaces_pro(msurfaces_t *surfs);
 void R_DrawBackSurfaces_pro(msurfaces_t *surfs);
 
 // r_thread.c
-int R_RunThread(void *p);
+void R_WaitForThread(renderer_thread_t *t);
 void R_ShutdownThreads(void);
 void R_InitThreads(void);
 

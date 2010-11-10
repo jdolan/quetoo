@@ -54,6 +54,8 @@ cvar_t *r_speeds;
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bumpmap;
+cvar_t *r_capture;
+cvar_t *r_capture_quality;
 cvar_t *r_contrast;
 cvar_t *r_coronas;
 cvar_t *r_drawbuffer;
@@ -263,8 +265,6 @@ static void R_GetError(void){
 }
 
 
-#include <unistd.h>
-
 /*
  * R_DrawFrame
  */
@@ -272,9 +272,8 @@ void R_DrawFrame(void){
 
 	R_GetError();
 
-	if(r_threads->value){
-		while(r_threadstate.state != THREAD_RENDERER)
-			usleep(0);
+	if(r_bsp_thread){
+		R_WaitForThread(r_bsp_thread);
 	}
 	else {
 		R_UpdateFrustum();
@@ -327,8 +326,6 @@ void R_DrawFrame(void){
 	R_EnableBlend(false);
 
 	R_ResetArrayState();
-
-	r_threadstate.state = THREAD_CLIENT;
 }
 
 
@@ -418,10 +415,10 @@ void R_BeginFrame(void){
 
 	// threads
 	if(r_threads->modified){
-		if(r_threads->value)
-			R_InitThreads();
-		else
-			R_ShutdownThreads();
+		R_ShutdownThreads();
+
+		R_InitThreads();
+
 		r_threads->modified = false;
 	}
 
@@ -433,6 +430,19 @@ void R_BeginFrame(void){
  * R_EndFrame
  */
 void R_EndFrame(void){
+
+	if(r_capture_thread){
+		R_WaitForThread(r_capture_thread);
+
+		R_UpdateCapture();
+
+		r_capture_thread->state = THREAD_RUN;
+	}
+	else {
+		R_UpdateCapture();
+
+		R_FlushCapture();
+	}
 
 	SDL_GL_SwapBuffers();  // swap buffers
 }
@@ -481,6 +491,8 @@ static void R_ResolveWeather(void){
 
 /*
  * R_LoadMedia
+ *
+ * Iterate the configstrings, loading all renderer-specific media.
  */
 void R_LoadMedia(void){
 	char name[MAX_QPATH];
@@ -674,6 +686,8 @@ static void R_InitLocal(void){
 	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE, NULL);
 	r_brightness = Cvar_Get("r_brightness", "1.5", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_PROGRAMS, NULL);
+	r_capture = Cvar_Get("r_capture", "0", 0, "Toggle screen capturing to jpeg files");
+	r_capture_quality = Cvar_Get("r_capture_quality", "0.7", CVAR_ARCHIVE, "Screen capturing image quality");
 	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_coronas = Cvar_Get("r_coronas", "1", CVAR_ARCHIVE, "Activate or deactivate coronas");
 	r_drawbuffer = Cvar_Get("r_drawbuffer", "GL_BACK", CVAR_ARCHIVE, NULL);
@@ -874,6 +888,8 @@ void R_Init(void){
 
 	R_SetDefaultState();
 
+	R_InitThreads();
+
 	R_InitPrograms();
 
 	R_InitImages();
@@ -881,6 +897,8 @@ void R_Init(void){
 	R_InitDraw();
 
 	R_InitModels();
+
+	R_InitCapture();
 
 	Com_Print("Video initialized %dx%dx%dbpp %s.\n", r_state.width, r_state.height,
 			(r_state.redbits + r_state.greenbits + r_state.bluebits + r_state.alphabits),
@@ -901,11 +919,15 @@ void R_Shutdown(void){
 
 	Cmd_RemoveCommand("r_restart");
 
+	R_ShutdownCapture();
+
 	R_ShutdownModels();
 
 	R_ShutdownImages();
 
 	R_ShutdownPrograms();
+
+	R_ShutdownThreads();
 
 	R_ShutdownContext();
 }
