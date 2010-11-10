@@ -101,7 +101,7 @@ void R_WaitForThread(renderer_thread_t *t){
 	}
 
 	if(t->wait_count){
-		//printf("Waited %d for %s\n", t->wait_count, t->name);
+		printf("Waited %d for %s\n", t->wait_count, t->name);
 		t->wait_count = 0;
 	}
 }
@@ -114,7 +114,7 @@ static void R_ShutdownThread(renderer_thread_t *t){
 
 	R_WaitForThread(t);
 
-	//printf("Killing thread %s (%d)", t->name, SDL_GetThreadID(t->thread));
+	Com_Debug("Killing thread %s (%d)", t->name, SDL_GetThreadID(t->thread));
 
 	SDL_KillThread(t->thread);
 

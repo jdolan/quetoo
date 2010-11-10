@@ -1157,6 +1157,9 @@ void Cl_Frame(int msec){
 		// fetch updates from server
 		Cl_ReadPackets();
 
+		// update the view
+		Cl_UpdateView();
+
 		// execute any pending console commands
 		Cbuf_Execute();
 
@@ -1169,11 +1172,11 @@ void Cl_Frame(int msec){
 		// predict all unacknowledged movements
 		Cl_PredictMovement();
 
-		// update the screen
-		Cl_UpdateScreen();
-
 		// update audio
 		S_Frame();
+
+		// update the screen
+		Cl_UpdateScreen();
 
 		cls.render_delta = 0;
 	}

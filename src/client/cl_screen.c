@@ -695,8 +695,6 @@ void Cl_UpdateScreen(void){
 
 	if(cls.state == ca_active && r_view.ready){
 
-		Cl_UpdateView();
-
 		R_Setup3D();
 
 		R_DrawFrame();
