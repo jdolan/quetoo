@@ -29,7 +29,7 @@
  * processed in a separate thread for performance reasons.  See below.
  */
 void R_UpdateCapture(void){
-	int w, h, q;
+	int w, h;
 	byte *b;
 
 	if(r_view.update || r_capture->modified){

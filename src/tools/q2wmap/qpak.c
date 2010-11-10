@@ -55,7 +55,6 @@ static int FindPath(char *path){
  * that it is unique.
  */
 static void AddPath(char *path){
-	int i;
 
 	if(num_paths == MAX_PAK_ENTRIES){
 		Com_Error(ERR_FATAL, "MAX_PAK_ENTRIES exhausted\n");
