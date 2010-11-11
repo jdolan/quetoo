@@ -69,11 +69,11 @@ typedef struct mflare_s {
 #define MSURF_LIGHTMAP	2
 
 typedef struct msurface_s {
-	int visframe;  // PVS frame
+	int vis_frame;  // PVS frame
 	int frame;  // renderer frame
-	int backframe;  // back-facing renderer frame
-	int lightframe;  // dynamic lighting frame
-	int tracenum;  // lightmap trace lookups
+	int back_frame;  // back-facing renderer frame
+	int light_frame;  // dynamic lighting frame
+	int trace_num;  // lightmap trace lookups
 
 	cplane_t *plane;
 	int flags;  // MSURF_ flags
@@ -134,7 +134,7 @@ typedef struct msurfaces_s {
 typedef struct mnode_s {
 	// common with leaf
 	int contents;  // -1, to differentiate from leafs
-	int visframe;  // node needs to be traversed if current
+	int vis_frame;  // node needs to be traversed if current
 
 	float minmaxs[6];  // for bounding box culling
 
@@ -152,7 +152,7 @@ typedef struct mnode_s {
 typedef struct mleaf_s {
 	// common with node
 	int contents;  // will be a negative contents number
-	int visframe;  // node needs to be traversed if current
+	int vis_frame;  // node needs to be traversed if current
 
 	float minmaxs[6];  // for bounding box culling
 

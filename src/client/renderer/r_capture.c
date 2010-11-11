@@ -21,6 +21,13 @@
 
 #include "renderer.h"
 
+typedef struct capture_buffer_s {
+	byte *buffer;  // the buffer for RGB pixel data
+	int frame;  // the last capture frame
+	int time;  // the time of the last capture frame
+} r_capture_buffer_t;
+
+static r_capture_buffer_t capture_buffer;
 
 /*
  * R_UpdateCapture
@@ -29,25 +36,29 @@
  * processed in a separate thread for performance reasons.  See below.
  */
 void R_UpdateCapture(void){
-	int w, h;
-	byte *b;
+	int time;
+
+	if(!r_capture->value)
+		return;
 
 	if(r_view.update || r_capture->modified){
 		r_capture->modified = false;
 
 		R_ShutdownCapture();
+
 		R_InitCapture();
 	}
 
-	if(!r_capture->value)
+	time = Sys_Milliseconds();
+
+	// enforce the capture frame rate
+	if(time - capture_buffer.time < 1000.0 / r_capture_fps->value)
 		return;
 
-	w = r_state.width;
-	h = r_state.height;
+	glReadPixels(0, 0, r_state.width, r_state.height, GL_RGB, GL_UNSIGNED_BYTE, capture_buffer.buffer);
 
-	b = r_locals.capturebuffer;
-
-	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, b);
+	capture_buffer.time = time;
+	capture_buffer.frame++;
 }
 
 
@@ -57,21 +68,17 @@ void R_UpdateCapture(void){
  * Performs the JPEG file authoring for the most recently captured frame.
  */
 void R_FlushCapture(void){
+	static int last_frame;
 	char path[MAX_OSPATH];
-	int f, w, h, q;
-	byte *b;
+	int q;
 
 	if(!r_capture->value)
 		return;
 
-	f = r_locals.captureframe++;
+	if(capture_buffer.frame == last_frame)
+		return;
 
-	snprintf(path, sizeof(path), "%s/capture/%010d.jpg", Fs_Gamedir(), f);
-
-	b = r_locals.capturebuffer;
-
-	w = r_state.width;
-	h = r_state.height;
+	snprintf(path, sizeof(path), "%s/capture/%010d.jpg", Fs_Gamedir(), capture_buffer.frame);
 
 	q = r_capture_quality->value * 100;
 
@@ -80,7 +87,9 @@ void R_FlushCapture(void){
 	else if(q > 100)
 		q = 100;
 
-	Img_WriteJPEG(path, b, w, h, q);
+	Img_WriteJPEG(path, capture_buffer.buffer, r_state.width, r_state.height, q);
+
+	last_frame = capture_buffer.frame;
 }
 
 
@@ -89,14 +98,17 @@ void R_FlushCapture(void){
  */
 void R_InitCapture(void){
 	char path[MAX_OSPATH];
-	const size_t size = r_state.width * r_state.height * 3;
-
-	r_locals.capturebuffer = Z_Malloc(size);
-	r_locals.captureframe = 0;
 
 	// ensure the capture directory exists
 	snprintf(path, sizeof(path), "%s/capture/", Fs_Gamedir());
+
 	Fs_CreatePath(path);
+
+	// clear the existing capture buffer
+	memset(&capture_buffer, 0, sizeof(capture_buffer));
+
+	// allocate the actual buffer
+	capture_buffer.buffer = Z_Malloc(r_state.width * r_state.height * 3);
 }
 
 
@@ -105,6 +117,6 @@ void R_InitCapture(void){
  */
 void R_ShutdownCapture(void){
 
-	if(r_locals.capturebuffer)
-		Z_Free(r_locals.capturebuffer);
+	if(capture_buffer.buffer)
+		Z_Free(capture_buffer.buffer);
 }

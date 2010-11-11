@@ -103,11 +103,11 @@ static void R_DrawBspModelSurfaces(const entity_t *e){
 				(!(surf->flags & MSURF_PLANEBACK) && (dot > BACKFACE_EPSILON))){
 			// visible, flag for rendering
 			surf->frame = r_locals.frame;
-			surf->backframe = -1;
+			surf->back_frame = -1;
 		}
 		else {  // back-facing
 			surf->frame = -1;
-			surf->backframe = r_locals.frame;
+			surf->back_frame = r_locals.frame;
 		}
 	}
 
@@ -191,7 +191,7 @@ void R_DrawBspNormals(void){
 	surf = r_worldmodel->surfaces;
 	for(i = 0; i < r_worldmodel->numsurfaces; i++, surf++){
 
-		if(surf->visframe != r_locals.visframe)
+		if(surf->vis_frame != r_locals.vis_frame)
 			continue;  // not visible
 
 		if(surf->texinfo->flags & (SURF_SKY | SURF_WARP))
@@ -245,7 +245,7 @@ static void R_MarkSurfaces_(mnode_t *node){
 	if(node->contents == CONTENTS_SOLID)
 		return;  // solid
 
-	if(node->visframe != r_locals.visframe)
+	if(node->vis_frame != r_locals.vis_frame)
 		return;  // not in view
 
 	if(R_CullBox(node->minmaxs, node->minmaxs + 3))
@@ -263,7 +263,7 @@ static void R_MarkSurfaces_(mnode_t *node){
 		lsurf = leaf->firstleafsurface;
 
 		for(i = 0; i < leaf->numleafsurfaces; i++, lsurf++){
-			(*lsurf)->visframe = r_locals.visframe;
+			(*lsurf)->vis_frame = r_locals.vis_frame;
 		}
 
 		return;
@@ -294,15 +294,15 @@ static void R_MarkSurfaces_(mnode_t *node){
 
 	for(i = 0; i < node->numsurfaces; i++, surf++){
 
-		if(surf->visframe == r_locals.visframe){  // it's been marked
+		if(surf->vis_frame == r_locals.vis_frame){  // it's been marked
 
 			if((surf->flags & MSURF_PLANEBACK) != sidebit){  // but back-facing
 				surf->frame = -1;
-				surf->backframe = r_locals.frame;
+				surf->back_frame = r_locals.frame;
 			}
 			else {  // draw it
 				surf->frame = r_locals.frame;
-				surf->backframe = -1;
+				surf->back_frame = -1;
 			}
 		}
 	}
@@ -320,7 +320,7 @@ static void R_MarkSurfaces_(mnode_t *node){
  */
 void R_MarkSurfaces(void){
 	static vec3_t oldorigin, oldangles;
-	static int oldvisframe;
+	static int oldvis_frame;
 	static float oldfov;
 	vec3_t o, a;
 
@@ -329,12 +329,12 @@ void R_MarkSurfaces(void){
 
 	// only recurse after cluster change AND significant movement
 	if(r_optimize->value &&
-			(r_locals.visframe == oldvisframe) &&  // same pvs
+			(r_locals.vis_frame == oldvis_frame) &&  // same pvs
 			(r_view.fov_x == oldfov) &&  // same fov
 			VectorLength(o) < 5.0 && VectorLength(a) < 2.0)  // little movement
 		return;
 
-	oldvisframe = r_locals.visframe;
+	oldvis_frame = r_locals.vis_frame;
 	oldfov = r_view.fov_x;
 
 	r_locals.frame++;
@@ -461,21 +461,21 @@ void R_MarkLeafs(void){
 	// resolve current cluster
 	r_locals.cluster = R_LeafForPoint(r_view.origin, r_worldmodel)->cluster;
 
-	if(!r_novis->value && (r_locals.oldcluster == r_locals.cluster))
+	if(!r_novis->value && (r_locals.old_cluster == r_locals.cluster))
 		return;
 
-	r_locals.oldcluster = r_locals.cluster;
+	r_locals.old_cluster = r_locals.cluster;
 
-	r_locals.visframe++;
+	r_locals.vis_frame++;
 
-	if(r_locals.visframe > 0xffff)  // avoid overflows, negatives are reserved
-		r_locals.visframe = 0;
+	if(r_locals.vis_frame > 0xffff)  // avoid overflows, negatives are reserved
+		r_locals.vis_frame = 0;
 
 	if(r_novis->value || !r_worldmodel->vis){  // mark everything
 		for(i = 0; i < r_worldmodel->numleafs; i++)
-			r_worldmodel->leafs[i].visframe = r_locals.visframe;
+			r_worldmodel->leafs[i].vis_frame = r_locals.vis_frame;
 		for(i = 0; i < r_worldmodel->numnodes; i++)
-			r_worldmodel->nodes[i].visframe = r_locals.visframe;
+			r_worldmodel->nodes[i].vis_frame = r_locals.vis_frame;
 		return;
 	}
 
@@ -497,10 +497,10 @@ void R_MarkLeafs(void){
 		node = (mnode_t *)leaf;
 		while(node){
 
-			if(node->visframe == r_locals.visframe)
+			if(node->vis_frame == r_locals.vis_frame)
 				break;
 
-			node->visframe = r_locals.visframe;
+			node->vis_frame = r_locals.vis_frame;
 			node = node->parent;
 		}
 	}

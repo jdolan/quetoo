@@ -109,7 +109,7 @@ static void R_MarkLights_(light_t *light, vec3_t trans, int bit, mnode_t *node){
 	if(node->contents != CONTENTS_NODE)  // leaf
 		return;
 
-	if(node->visframe != r_locals.visframe)  // not visible
+	if(node->vis_frame != r_locals.vis_frame)  // not visible
 		if(!node->model)  // and not a bsp submodel
 			return;
 
@@ -135,8 +135,8 @@ static void R_MarkLights_(light_t *light, vec3_t trans, int bit, mnode_t *node){
 
 	for(i = 0; i < node->numsurfaces; i++, surf++){
 
-		if(surf->lightframe != r_locals.lightframe){  // reset it
-			surf->lightframe = r_locals.lightframe;
+		if(surf->light_frame != r_locals.light_frame){  // reset it
+			surf->light_frame = r_locals.light_frame;
 			surf->lights = 0;
 		}
 
@@ -155,10 +155,10 @@ static void R_MarkLights_(light_t *light, vec3_t trans, int bit, mnode_t *node){
 void R_MarkLights(void){
 	int i, j;
 
-	r_locals.lightframe++;
+	r_locals.light_frame++;
 
-	if(r_locals.lightframe > 0xffff)  // avoid overflows
-		r_locals.lightframe = 0;
+	if(r_locals.light_frame > 0xffff)  // avoid overflows
+		r_locals.light_frame = 0;
 
 	R_AddSustainedLights();
 

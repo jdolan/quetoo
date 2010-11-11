@@ -24,8 +24,7 @@
 
 #include "client.h"
 
-renderer_thread_t *r_bsp_thread;
-renderer_thread_t *r_capture_thread;
+renderer_thread_t r_threadpool[2];
 
 
 /*
@@ -46,16 +45,16 @@ static void R_ThreadSleep(renderer_thread_t *t){
  */
 static int R_RunBspThread(void *p){
 
-	while(r_bsp_thread){
+	while(r_bsp_thread.state > THREAD_DEAD){
 
 		if(!r_view.ready){
 			usleep(THREAD_IDLE_INTERVAL);
 			continue;
 		}
 
-		//printf("R_RunBspThread: %d\n", SDL_ThreadID());
+		//printf("R_RunBspThread: %u\n", SDL_ThreadID());
 
-		R_ThreadSleep(r_bsp_thread);
+		R_ThreadSleep(&r_bsp_thread);
 
 		R_UpdateFrustum();
 
@@ -63,7 +62,7 @@ static int R_RunBspThread(void *p){
 
 		R_MarkSurfaces();
 
-		r_bsp_thread->state = THREAD_WAIT;
+		r_bsp_thread.state = THREAD_WAIT;
 	}
 
 	return 0;
@@ -75,15 +74,15 @@ static int R_RunBspThread(void *p){
  */
 static int R_RunCaptureThread(void *p){
 
-	while(r_capture_thread){
+	while(r_capture_thread.state > THREAD_DEAD){
 
-		//printf("R_RunCaptureThread: %d\n", SDL_ThreadID());
+		//printf("R_RunCaptureThread: %u\n", SDL_ThreadID());
 
-		R_ThreadSleep(r_capture_thread);
+		R_ThreadSleep(&r_capture_thread);
 
 		R_FlushCapture();
 
-		r_capture_thread->state = THREAD_WAIT;
+		r_capture_thread.state = THREAD_WAIT;
 	}
 
 	return 0;
@@ -101,7 +100,7 @@ void R_WaitForThread(renderer_thread_t *t){
 	}
 
 	if(t->wait_count){
-		printf("Waited %d for %s\n", t->wait_count, t->name);
+		//printf("Waited %d for %s\n", t->wait_count, t->name);
 		t->wait_count = 0;
 	}
 }
@@ -112,13 +111,52 @@ void R_WaitForThread(renderer_thread_t *t){
  */
 static void R_ShutdownThread(renderer_thread_t *t){
 
+	if(t->state == THREAD_DEAD)
+		return;
+
+	Com_Debug("Waiting for thread %s (%u)\n", t->name, SDL_GetThreadID(t->thread));
+
 	R_WaitForThread(t);
 
-	Com_Debug("Killing thread %s (%d)", t->name, SDL_GetThreadID(t->thread));
+	Com_Debug("Killing thread %s (%u)\n", t->name, SDL_GetThreadID(t->thread));
 
 	SDL_KillThread(t->thread);
 
-	Z_Free(t);
+	t->state = THREAD_DEAD;
+}
+
+
+/*
+ * R_InitThread
+ *
+ * Creates (and starts) a new thread.
+ */
+static void R_InitThread(renderer_thread_t *t, const char *name, int (func(void *p))){
+
+	strncpy(t->name, name, sizeof(t->name) - 1);
+
+	t->state = THREAD_IDLE;
+
+	t->thread = SDL_CreateThread(func, NULL);
+
+	Com_Debug("Spawned thread %s (%u)\n", t->name, SDL_GetThreadID(t->thread));
+}
+
+
+/*
+ * Stops or starts the appropriate threads depending on the specified bit mask.
+ */
+void R_UpdateThreads(int mask){
+
+	if(mask & 1)
+		R_InitThread(&r_bsp_thread, "BSP", R_RunBspThread);
+	else
+		R_ShutdownThread(&r_bsp_thread);
+
+	if(mask & 2)
+		R_InitThread(&r_capture_thread, "Capture", R_RunCaptureThread);
+	else
+		R_ShutdownThread(&r_capture_thread);
 }
 
 
@@ -127,49 +165,21 @@ static void R_ShutdownThread(renderer_thread_t *t){
  */
 void R_ShutdownThreads(void){
 
-	if(r_bsp_thread){
-		R_ShutdownThread(r_bsp_thread);
-		r_bsp_thread = NULL;
-	}
+	if(r_bsp_thread.state > THREAD_DEAD)
+		R_ShutdownThread(&r_bsp_thread);
 
-	if(r_capture_thread){
-		R_ShutdownThread(r_capture_thread);
-		r_capture_thread = NULL;
-	}
-}
-
-
-/*
- * R_InitThread
- *
- * Creates (and starts) a new thread.  Because the thread may be started before
- * this function returns, we take in a pointer reference.  This ensures that
- * other code can test the pointer reference safely.
- */
-static void R_InitThread(renderer_thread_t **t, const char *name, int (func(void *p))){
-
-	*t = Z_Malloc(sizeof(renderer_thread_t));
-
-	strncpy((*t)->name, name, sizeof((*t)->name) - 1);
-
-	(*t)->state = THREAD_IDLE;
-
-	(*t)->thread = SDL_CreateThread(func, NULL);
-
-	Com_Debug("Spawned thread %s (%d)\n", (*t)->name, SDL_GetThreadID((*t)->thread));
+	if(r_capture_thread.state > THREAD_DEAD)
+		R_ShutdownThread(&r_capture_thread);
 }
 
 
 /*
  * R_InitThreads
+ *
+ * Initializes the thread pool.  No threads are started here; we let the
+ * modification of the console variable trigger that for us.
  */
 void R_InitThreads(void){
 
-	r_bsp_thread = r_capture_thread = NULL;
-
-	if(((int)r_threads->value) & 1)
-		R_InitThread(&r_bsp_thread, "BSP", R_RunBspThread);
-
-	if(((int)r_threads->value) & 2)
-		R_InitThread(&r_capture_thread, "Capture", R_RunCaptureThread);
+	memset(&r_threadpool, 0, sizeof(r_threadpool));
 }

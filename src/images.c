@@ -333,6 +333,7 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
 	fclose(outfile);
 }
 
+
 #define TGA_CHANNELS 3
 /*
  * Img_WriteTGARLE

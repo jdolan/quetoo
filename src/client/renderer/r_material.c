@@ -99,7 +99,7 @@ static void R_StageLighting(msurface_t *surf, stage_t *stage){
 						R_EnableBumpmap(NULL, false);
 				}
 
-				if(surf->lightframe == r_locals.lightframe)  // dynamic light sources
+				if(surf->light_frame == r_locals.light_frame)  // dynamic light sources
 					R_EnableLights(surf->lights);
 				else
 					R_EnableLights(0);

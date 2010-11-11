@@ -29,7 +29,7 @@ static void R_SetSurfaceState_pro(msurface_t *surf){
 
 	if(r_state.lighting_enabled){
 
-		if(surf->lightframe == r_locals.lightframe)  // dynamic light sources
+		if(surf->light_frame == r_locals.light_frame)  // dynamic light sources
 			R_EnableLights(surf->lights);
 		else
 			R_EnableLights(0);
@@ -166,7 +166,7 @@ void R_DrawBackSurfaces_pro(msurfaces_t *surfs){
 	// draw the surfaces
 	for(i = 0; i < surfs->count; i++){
 
-		if(surfs->surfaces[i]->backframe != r_locals.frame)
+		if(surfs->surfaces[i]->back_frame != r_locals.frame)
 			continue;
 
 		if(surfs->surfaces[i]->texinfo->flags & (SURF_WARP | SURF_SKY))

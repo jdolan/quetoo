@@ -55,6 +55,7 @@ cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bumpmap;
 cvar_t *r_capture;
+cvar_t *r_capture_fps;
 cvar_t *r_capture_quality;
 cvar_t *r_contrast;
 cvar_t *r_coronas;
@@ -149,10 +150,10 @@ void R_Trace(const vec3_t start, const vec3_t end, float size, int mask){
 	float frac;
 	int i;
 
-	r_locals.tracenum++;
+	r_locals.trace_num++;
 
-	if(r_locals.tracenum > 0xffff)  // avoid overflows
-		r_locals.tracenum = 0;
+	if(r_locals.trace_num > 0xffff)  // avoid overflows
+		r_locals.trace_num = 0;
 
 	VectorSet(mins, -size, -size, -size);
 	VectorSet(maxs, size, size, size);
@@ -272,8 +273,8 @@ void R_DrawFrame(void){
 
 	R_GetError();
 
-	if(r_bsp_thread){
-		R_WaitForThread(r_bsp_thread);
+	if(r_bsp_thread.state > THREAD_DEAD){
+		R_WaitForThread(&r_bsp_thread);
 	}
 	else {
 		R_UpdateFrustum();
@@ -415,10 +416,7 @@ void R_BeginFrame(void){
 
 	// threads
 	if(r_threads->modified){
-		R_ShutdownThreads();
-
-		R_InitThreads();
-
+		R_UpdateThreads((int)r_threads->value);
 		r_threads->modified = false;
 	}
 
@@ -431,12 +429,12 @@ void R_BeginFrame(void){
  */
 void R_EndFrame(void){
 
-	if(r_capture_thread){
-		R_WaitForThread(r_capture_thread);
+	if(r_capture_thread.state > THREAD_DEAD){
+		R_WaitForThread(&r_capture_thread);
 
 		R_UpdateCapture();
 
-		r_capture_thread->state = THREAD_RUN;
+		r_capture_thread.state = THREAD_RUN;
 	}
 	else {
 		R_UpdateCapture();
@@ -687,6 +685,7 @@ static void R_InitLocal(void){
 	r_brightness = Cvar_Get("r_brightness", "1.5", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_PROGRAMS, NULL);
 	r_capture = Cvar_Get("r_capture", "0", 0, "Toggle screen capturing to jpeg files");
+	r_capture_fps = Cvar_Get("r_capture_fps", "25", 0, "The desired framerate for screen capturing");
 	r_capture_quality = Cvar_Get("r_capture_quality", "0.7", CVAR_ARCHIVE, "Screen capturing image quality");
 	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_coronas = Cvar_Get("r_coronas", "1", CVAR_ARCHIVE, "Activate or deactivate coronas");

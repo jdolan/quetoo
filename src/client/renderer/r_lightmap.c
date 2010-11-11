@@ -357,10 +357,10 @@ static qboolean R_LightPointColor_(const int firstsurface, const int numsurfaces
 		if(!VectorCompare(r_view.trace.plane.normal, surf->plane->normal))
 			continue;  // facing the wrong way
 
-		if(surf->tracenum == r_locals.tracenum)
+		if(surf->trace_num == r_locals.trace_num)
 			continue;  // already checked this trace
 
-		surf->tracenum = r_locals.tracenum;
+		surf->trace_num = r_locals.trace_num;
 
 		tex = surf->texinfo;
 
@@ -502,7 +502,7 @@ static void R_LightPointPosition(static_lighting_t *lighting){
 	l = r_worldmodel->bsplights;
 	for(i = 0; i < r_worldmodel->numbsplights; i++, l++){
 
-		if(l->leaf->visframe != r_locals.visframe)
+		if(l->leaf->vis_frame != r_locals.vis_frame)
 			continue;
 
 		VectorSubtract(l->org, lighting->origin, delta);

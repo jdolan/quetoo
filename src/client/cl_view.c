@@ -392,9 +392,8 @@ void Cl_UpdateView(void){
 	r_view.areabits = cl.frame.areabits;
 
 	// inform the bsp thread to start
-	if(r_bsp_thread){
-		r_bsp_thread->state = THREAD_RUN;
-	}
+	if(r_bsp_thread.state > THREAD_DEAD)
+		r_bsp_thread.state = THREAD_RUN;
 
 	Cl_ClearScene();
 

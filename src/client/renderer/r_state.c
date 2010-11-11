@@ -532,9 +532,6 @@ void R_Setup3D(void){
 
 	glTranslatef(-r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
 
-	// retrieve the model-view matrix for local transformations
-	glGetFloatv(GL_MODELVIEW_MATRIX, r_locals.modelview);
-
 	r_state.ortho = false;
 
 	// bind default vertex array

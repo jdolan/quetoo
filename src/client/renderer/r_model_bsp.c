@@ -1249,5 +1249,5 @@ void R_LoadBspModel(model_t *mod, void *buffer){
 	R_LoadBspSurfacesArrays();
 
 	memset(&r_locals, 0, sizeof(r_locals));
-	r_locals.oldcluster = -1;  // force bsp iteration
+	r_locals.old_cluster = -1;  // force bsp iteration
 }

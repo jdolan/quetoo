@@ -222,44 +222,21 @@ extern renderer_config_t r_config;
 // private renderer variables
 typedef struct renderer_locals_s {
 	int cluster;  // PVS at origin
-	int oldcluster;
+	int old_cluster;
 
-	int visframe;  // PVS frame
+	int vis_frame;  // PVS frame
 
 	int frame;  // renderer frame
-	int backframe;  // back-facing renderer frame
+	int back_frame;  // back-facing renderer frame
 
-	int lightframe;  // dynamic lighting frame
+	int light_frame;  // dynamic lighting frame
 
-	int captureframe;  // screen capture frame
-	byte *capturebuffer;
-
-	int tracenum;  // lighting traces
-
-	GLfloat modelview[16];  // model-view matrix
+	int trace_num;  // lighting traces
 
 	cplane_t frustum[4];  // for box culling
 } renderer_locals_t;
 
 extern renderer_locals_t r_locals;
-
-// threading state
-typedef enum {
-	THREAD_DEAD,
-	THREAD_IDLE,
-	THREAD_WAIT,
-	THREAD_RUN,
-} threadstate_t;
-
-typedef struct renderer_thread_s {
-	char name[32];
-	SDL_Thread *thread;
-	threadstate_t state;
-	int wait_count;
-} renderer_thread_t;
-
-extern renderer_thread_t *r_bsp_thread;  // threads
-extern renderer_thread_t *r_capture_thread;
 
 extern byte color_white[4];
 extern byte color_black[4];
@@ -280,6 +257,7 @@ extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
 extern cvar_t *r_bumpmap;
 extern cvar_t *r_capture;
+extern cvar_t *r_capture_fps;
 extern cvar_t *r_capture_quality;
 extern cvar_t *r_contrast;
 extern cvar_t *r_coronas;
@@ -464,7 +442,27 @@ void R_DrawBlendSurfaces_pro(msurfaces_t *surfs);
 void R_DrawBackSurfaces_pro(msurfaces_t *surfs);
 
 // r_thread.c
+typedef enum {
+	THREAD_DEAD,
+	THREAD_IDLE,
+	THREAD_WAIT,
+	THREAD_RUN,
+} threadstate_t;
+
+typedef struct renderer_thread_s {
+	char name[32];
+	SDL_Thread *thread;
+	threadstate_t state;
+	int wait_count;
+} renderer_thread_t;
+
+extern renderer_thread_t r_threadpool[2];
+
+#define r_bsp_thread r_threadpool[0]
+#define r_capture_thread r_threadpool[1]
+
 void R_WaitForThread(renderer_thread_t *t);
+void R_UpdateThreads(int mask);
 void R_ShutdownThreads(void);
 void R_InitThreads(void);
 
