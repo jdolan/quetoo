@@ -338,15 +338,13 @@ static void Cl_UpdateBob(void){
  * Cl_UpdateView
  *
  * Updates the view_t for the renderer.  Origin, angles, etc are calculated.
- * Entities, particles, etc are then interpolated and added to the view.
+ * Entities, particles, etc are then lerped and added and pulled through to
+ * the renderer.
  */
 void Cl_UpdateView(void){
 	cl_frame_t *prev;
 	player_state_t *ps, *ops;
 	vec3_t delta;
-
-	if(cls.state != ca_active || !r_view.ready)
-		return;  // not yet spawned, or media is reloading
 
 	if(!cl.frame.valid && !r_view.update)
 		return;  // not a valid frame, and no forced update
