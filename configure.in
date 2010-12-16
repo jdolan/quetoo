@@ -35,8 +35,6 @@ HOST_NAME=""
 HOST_CFLAGS=""
 HOST_LDFLAGS=""
 HOST_LIBS=""
-HOST_OPENGL_CFLAGS=""
-HOST_OPENGL_LIBS=""
 HOST_WARN_CFLAGS=""
 HOST_WARN_LIBS=""
 HOST_DEBUG_CFLAGS=""
@@ -51,7 +49,6 @@ case "$host" in
 		HOST_CFLAGS="-I/opt/local/include"
 		HOST_LDFLAGS="-L/opt/local/lib"
 		HOST_LIBS="-ldl"
-		HOST_OPENGL_LIBS="-framework OpenGL"
 		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
@@ -59,7 +56,6 @@ case "$host" in
 		;;
 	*bsd*)
 		HOST_NAME="BSD"
-		HOST_OPENGL_LIBS="-lGL"
 		HOST_WARN_CFLAGS="-Wmissing-declarations"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		AC_MSG_RESULT(bsd)
@@ -67,7 +63,6 @@ case "$host" in
 	*-*-mingw*)
 		HOST_NAME="WINDOWS"
 		HOST_LIBS="-lws2_32 -lole32"
-		HOST_OPENGL_LIBS="-lopengl32"
 		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
 		ICON="quake2world-icon.o"
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
@@ -80,7 +75,6 @@ case "$host" in
 	*)
 		HOST_NAME="LINUX"
 		HOST_LIBS="-ldl"
-		HOST_OPENGL_LIBS="-lGL"
 		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
@@ -91,8 +85,6 @@ esac
 AC_SUBST(HOST_NAME)
 AC_SUBST(HOST_CFLAGS)
 AC_SUBST(HOST_LIBS)
-AC_SUBST(HOST_OPENGL_CFLAGS)
-AC_SUBST(HOST_OPENGL_LIBS)
 AC_SUBST(HOST_WARN_CFLAGS)
 AC_SUBST(HOST_WARN_LIBS)
 AC_SUBST(HOST_DEBUG_CFLAGS)
@@ -107,12 +99,6 @@ AC_SUBST(CPPFLAGS)
 
 LDFLAGS="$LDFLAGS $HOST_LDFLAGS"
 AC_SUBST(LDFLAGS)
-
-OPENGL_CFLAGS="$OPENGL_CFLAGS $HOST_OPENGL_CFLAGS"
-AC_SUBST(OPENGL_CFLAGS)
-
-OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
-AC_SUBST(OPENGL_LIBS)
 
 AM_CONDITIONAL([APPLE], [test "x$HOST_NAME" = "xAPPLE"])
 AM_CONDITIONAL([BSD], [test "x$HOST_NAME" = "xBSD"])
@@ -138,6 +124,37 @@ else
 	BUILD_CLIENT=yes
 
 	AC_DEFINE(BUILD_CLIENT, 1, [Define to 1 to build a client.])
+	
+	dnl -----------------------------------
+	dnl Sort out OpenGL flags and libraries
+	dnl -----------------------------------
+	
+	HOST_OPENGL_CFLAGS=""
+	HOST_OPENGL_LIBS=""
+	
+	case "$host" in
+		*-apple-*)
+			HOST_OPENGL_LIBS="-framework OpenGL"
+			;;
+		*bsd*)
+			HOST_OPENGL_LIBS="-lGL"
+			;;
+		*-*-mingw*)
+			HOST_OPENGL_LIBS="-lopengl32"
+			;;
+		*)
+			HOST_OPENGL_LIBS="-lGL"
+			;;
+	esac
+	
+	AC_SUBST(HOST_OPENGL_CFLAGS)
+	AC_SUBST(HOST_OPENGL_LIBS)
+
+	OPENGL_CFLAGS="$OPENGL_CFLAGS $HOST_OPENGL_CFLAGS"
+	AC_SUBST(OPENGL_CFLAGS)
+	
+	OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
+	AC_SUBST(OPENGL_LIBS)
 
 	dnl -------------
 	dnl Check for SDL
