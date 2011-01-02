@@ -1003,7 +1003,7 @@ static void Cl_InitLocal(void){
 
 	// userinfo
 	color = Cvar_Get("color", "default", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
-	msg = Cvar_Get("msg", "1", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
+	msg = Cvar_Get("msg", "0", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
 	name = Cvar_Get("name", Cl_GetUserName(), CVAR_USERINFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USERINFO, NULL);
 	rate = Cvar_Get("rate", "10000", CVAR_USERINFO | CVAR_ARCHIVE, NULL);

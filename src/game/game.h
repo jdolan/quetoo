@@ -81,7 +81,7 @@ struct edict_s {
 	// this point in the structure
 };
 
-#endif  /* GAME_INCLUDE */
+#endif  /* !GAME_INCLUDE */
 
 // functions provided by the main engine
 typedef struct {

@@ -67,17 +67,21 @@ void Sv_ClientPrint(edict_t *ent, int level, const char *fmt, ...){
 
 	n = NUM_FOR_EDICT(ent);
 	if(n < 1 || n > sv_maxclients->value){
-		Com_Warn("Sv_ClientPrint: ClientPrint \"%s\" to non-client.\n", fmt);
+		Com_Warn("Sv_ClientPrint: \"%s\" to non-client.\n", fmt);
 		return;
 	}
 
 	cl = &svs.clients[n - 1];
 
-	if(cl->state != cs_spawned)
+	if(cl->state != cs_spawned){
+		Com_Debug("Sv_ClientPrint: \"%s\" to unspawned client.\n", fmt);
 		return;
+	}
 
-	if(cl->messagelevel < level)
+	if(level < cl->messagelevel){
+		Com_Debug("Sv_ClientPrint: \"%s\" filtered by message level.\n", fmt);
 		return;
+	}
 
 	va_start(argptr, fmt);
 	vsprintf(string, fmt, argptr);
