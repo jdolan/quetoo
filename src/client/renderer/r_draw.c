@@ -73,8 +73,8 @@ static line_arrays_t r_line_arrays;
 hashtable_t r_pics_hashtable;
 
 // chars and cursor
-image_t *r_draw_chars;
-image_t *r_draw_cursor;
+r_image_t *r_draw_chars;
+r_image_t *r_draw_cursor;
 
 /*
  * R_InitDraw
@@ -268,9 +268,9 @@ void R_FreePics(void){
 /*
  * R_LoadPic
  */
-image_t *R_LoadPic(const char *name){
+r_image_t *R_LoadPic(const char *name){
 	int i;
-	image_t *image;
+	r_image_t *image;
 
 	if((image = Hash_Get(&r_pics_hashtable, name)))
 		return image;
@@ -298,7 +298,7 @@ image_t *R_LoadPic(const char *name){
 /*
  * R_DrawScaledImage
  */
-static void R_DrawScaledImage(int x, int y, float scale, image_t *image){
+static void R_DrawScaledImage(int x, int y, float scale, r_image_t *image){
 
 	R_BindTexture(image->texnum);
 
@@ -324,7 +324,7 @@ static void R_DrawScaledImage(int x, int y, float scale, image_t *image){
  * R_DrawScaledPic
  */
 void R_DrawScaledPic(int x, int y, float scale, const char *name){
-	image_t *pic;
+	r_image_t *pic;
 
 	pic = R_LoadPic(name);
 

@@ -31,7 +31,6 @@ console_t cl_con;
 static cvar_t *con_notifytime;
 static cvar_t *con_alpha;
 
-extern int key_linepos;
 
 /*
  * Cl_ToggleConsole_f
@@ -42,15 +41,15 @@ void Cl_ToggleConsole_f(void){
 
 	Cl_ClearNotify();
 
-	if(cls.key_dest == key_console){
+	if(cls.key_state.dest == key_console){
 
 		if(cls.state == ca_active)
-			cls.key_dest = key_game;
+			cls.key_state.dest = key_game;
 		else
-			cls.key_dest = key_menu;
+			cls.key_state.dest = key_menu;
 	}
 	else
-		cls.key_dest = key_console;
+		cls.key_state.dest = key_console;
 }
 
 
@@ -85,11 +84,11 @@ void Cl_ClearNotify(void){
  */
 static void Cl_MessageMode_f(void){
 
-	memset(&cls.chat_state, 0, sizeof(chat_state_t));
+	memset(&cls.chat_state, 0, sizeof(cl_chat_state_t));
 
 	cls.chat_state.team = false;
 
-	cls.key_dest = key_message;
+	cls.key_state.dest = key_message;
 }
 
 
@@ -98,11 +97,11 @@ static void Cl_MessageMode_f(void){
  */
 static void Cl_MessageMode2_f(void){
 
-	memset(&cls.chat_state, 0, sizeof(chat_state_t));
+	memset(&cls.chat_state, 0, sizeof(cl_chat_state_t));
 
 	cls.chat_state.team = true;
 
-	cls.key_dest = key_message;
+	cls.key_state.dest = key_message;
 }
 
 
@@ -187,7 +186,7 @@ void Cl_DrawNotify(void){
 		}
 	}
 
-	if(cls.key_dest == key_message){
+	if(cls.key_state.dest == key_message){
 		if(cls.chat_state.team){
 			color = CON_COLOR_TEAMCHAT;
 			R_DrawString(0, y, "say_team", CON_COLOR_DEFAULT);
@@ -222,7 +221,7 @@ void Cl_DrawConsole(void){
 	int y;
 	char dl[MAX_STRING_CHARS];
 
-	if(cls.key_dest != key_console)
+	if(cls.key_state.dest != key_console)
 		return;
 
 	Con_Resize(&cl_con, r_state.width >> 4, (r_state.height >> 5) - 1);

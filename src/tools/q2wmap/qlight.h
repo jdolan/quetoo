@@ -33,7 +33,7 @@ typedef enum {
 } emittype_t;
 
 typedef struct patch_s {
-	dface_t *face;
+	d_bsp_face_t *face;
 	winding_t *winding;
 
 	vec3_t origin;
@@ -71,7 +71,7 @@ qboolean PvsForOrigin(const vec3_t org, byte *pvs);
 
 void BuildLights(void);
 
-dleaf_t *Light_PointInLeaf(const vec3_t point);
+d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point);
 
 void Light_Trace(trace_t *trace, const vec3_t start, const vec3_t end, int mask);
 

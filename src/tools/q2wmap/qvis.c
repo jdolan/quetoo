@@ -178,7 +178,7 @@ static void ClusterMerge(int leafnum){
 	if(vismap_p > vismap_end)
 		Com_Error(ERR_FATAL, "Vismap expansion overflow\n");
 
-	dvis->bitofs[leafnum][DVIS_PVS] = dest - vismap;
+	dvis->bit_ofs[leafnum][DVIS_PVS] = dest - vismap;
 
 	memcpy(dest, compressed, i);
 }
@@ -296,8 +296,8 @@ static void LoadPortals(const char *name){
 	uncompressedvis = Z_Malloc(originalvismapsize);
 
 	vismap = vismap_p = dvisdata;
-	dvis->numclusters = portalclusters;
-	vismap_p = (byte *) & dvis->bitofs[portalclusters];
+	dvis->num_clusters = portalclusters;
+	vismap_p = (byte *) & dvis->bit_ofs[portalclusters];
 
 	vismap_end = vismap + MAX_BSP_VISIBILITY;
 
@@ -418,7 +418,7 @@ static void CalcPHS(void){
 		if(vismap_p > vismap_end)
 			Com_Error(ERR_FATAL, "Vismap expansion overflow\n");
 
-		dvis->bitofs[i][DVIS_PHS] = (byte *) dest - vismap;
+		dvis->bit_ofs[i][DVIS_PHS] = (byte *) dest - vismap;
 
 		memcpy(dest, compressed, j);
 	}
@@ -445,7 +445,7 @@ int VIS_Main(void){
 	start = time(NULL);
 
 	LoadBSPFile(bspname);
-	if(numnodes == 0 || numfaces == 0)
+	if(num_nodes == 0 || num_faces == 0)
 		Com_Error(ERR_FATAL, "Empty map\n");
 
 	Com_StripExtension(mapname, portalfile);

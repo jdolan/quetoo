@@ -28,7 +28,7 @@
  * R_AddLight
  */
 void R_AddLight(const vec3_t org, float radius, const vec3_t color){
-	light_t *l;
+	r_light_t *l;
 
 	if(!r_lights->value)
 		return;
@@ -48,7 +48,7 @@ void R_AddLight(const vec3_t org, float radius, const vec3_t color){
  * R_AddSustainedLight
  */
 void R_AddSustainedLight(const vec3_t org, float radius, const vec3_t color, float sustain){
-	sustain_t *s;
+	r_sustained_light_t *s;
 	int i;
 
 	if(!r_lights->value)
@@ -78,7 +78,7 @@ void R_AddSustainedLight(const vec3_t org, float radius, const vec3_t color, flo
 static void R_AddSustainedLights(void){
 	vec3_t color;
 	float intensity;
-	sustain_t *s;
+	r_sustained_light_t *s;
 	int i;
 
 	// sustains must be recalculated every frame
@@ -100,8 +100,8 @@ static void R_AddSustainedLights(void){
 /*
  * R_MarkLights_
  */
-static void R_MarkLights_(light_t *light, vec3_t trans, int bit, mnode_t *node){
-	msurface_t *surf;
+static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t *node){
+	r_bsp_surface_t *surf;
 	vec3_t origin;
 	float dist;
 	int i;
@@ -131,9 +131,9 @@ static void R_MarkLights_(light_t *light, vec3_t trans, int bit, mnode_t *node){
 		node->model->lights |= bit;
 
 	// mark all surfaces in this node
-	surf = r_worldmodel->surfaces + node->firstsurface;
+	surf = r_worldmodel->surfaces + node->first_surface;
 
-	for(i = 0; i < node->numsurfaces; i++, surf++){
+	for(i = 0; i < node->num_surfaces; i++, surf++){
 
 		if(surf->light_frame != r_locals.light_frame){  // reset it
 			surf->light_frame = r_locals.light_frame;
@@ -165,7 +165,7 @@ void R_MarkLights(void){
 	// flag all surfaces for each light source
 	for(i = 0; i < r_view.num_lights; i++){
 
-		light_t *light = &r_view.lights[i];
+		r_light_t *light = &r_view.lights[i];
 
 		// world surfaces
 		R_MarkLights_(light, vec3_origin, 1 << i, r_worldmodel->nodes);
@@ -173,7 +173,7 @@ void R_MarkLights(void){
 		// and bsp entity surfaces
 		for(j = 0; j < r_view.num_entities; j++){
 
-			entity_t *e = &r_view.entities[j];
+			r_entity_t *e = &r_view.entities[j];
 
 			if(e->model && e->model->type == mod_bsp_submodel){
 				e->model->lights = 0;
@@ -214,7 +214,7 @@ void R_EnableLights(int mask){
 	count = 0;
 
 	if(mask){  // enable up to 8 light sources
-		const light_t *l;
+		const r_light_t *l;
 		vec4_t position;
 		vec4_t diffuse;
 		int i;
@@ -254,7 +254,7 @@ void R_EnableLights(int mask){
  * R_EnableLightsByRadius
  */
 void R_EnableLightsByRadius(const vec3_t p){
-	const light_t *l;
+	const r_light_t *l;
 	vec3_t delta;
 	int i, mask;
 

@@ -28,10 +28,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "ui_nodes.h"
 #include "renderer/renderer.h"
 
-const image_t *MN_LoadImage(const char *name);
+const r_image_t *MN_LoadImage(const char *name);
 
-void MN_DrawNormImage(float x, float y, float w, float h, float sh, float th, float sl, float tl, int align, const image_t *image);
-const image_t *MN_DrawNormImageByName(float x, float y, float w, float h, float sh, float th, float sl, float tl, int align, const char *name);
+void MN_DrawNormImage(float x, float y, float w, float h, float sh, float th, float sl, float tl, int align, const r_image_t *image);
+const r_image_t *MN_DrawNormImageByName(float x, float y, float w, float h, float sh, float th, float sl, float tl, int align, const char *name);
 
 void MN_DrawPanel(const vec2_t pos, const vec2_t size, const char *texture, int texX, int texY, const int panelDef[6]);
 void MN_DrawFill(int x, int y, int w, int h, int align, const vec4_t color);

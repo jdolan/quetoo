@@ -60,7 +60,7 @@ static const int vec_to_st[6][3] = {
 
 // sky structure
 typedef struct sky_s {
-	image_t *images[6];
+	r_image_t *images[6];
 	vec2_t stmins[6];
 	vec2_t stmaxs[6];
 	vec_t stmin;
@@ -240,7 +240,7 @@ static void R_ClipSkySurface(int nump, vec3_t vecs, int stage){
 /*
  * R_AddSkySurface
  */
-static void R_AddSkySurface(const msurface_t *surf){
+static void R_AddSkySurface(const r_bsp_surface_t *surf){
 	int i, index;
 	vec3_t verts[MAX_CLIP_VERTS];
 
@@ -250,14 +250,14 @@ static void R_AddSkySurface(const msurface_t *surf){
 	index = surf->index * 3;  // raw index into cached vertex arrays
 
 	// calculate distance to surface verts
-	for(i = 0; i < surf->numedges; i++){
+	for(i = 0; i < surf->num_edges; i++){
 
 		const float *v = &r_worldmodel->verts[index + i * 3];
 
 		VectorSubtract(v, r_view.origin, verts[i]);
 	}
 
-	R_ClipSkySurface(surf->numedges, verts[0], 0);
+	R_ClipSkySurface(surf->num_edges, verts[0], 0);
 }
 
 
@@ -322,7 +322,7 @@ int skytexorder[6] = {0, 2, 1, 3, 4, 5};
  * R_DrawSkyBox
  */
 void R_DrawSkyBox(void){
-	msurfaces_t *surfs;
+	r_bsp_surfaces_t *surfs;
 	int i, j;
 
 	surfs = r_worldmodel->sky_surfaces;

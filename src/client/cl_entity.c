@@ -451,8 +451,8 @@ void Cl_ParseFrame(void){
  * Cl_AddWeapon
  */
 static void Cl_AddWeapon(const vec3_t shell){
-	static entity_t ent;
-	static static_lighting_t lighting;
+	static r_entity_t ent;
+	static r_lighting_t lighting;
 	int w;
 
 	if(!cl_weapon->value)
@@ -537,7 +537,7 @@ static const vec3_t bfg_light = {
  * cl_addentities bitmask.
  */
 void Cl_AddEntities(cl_frame_t *frame){
-	entity_t ent;
+	r_entity_t ent;
 	vec3_t start, end;
 	vec3_t wshell;
 	int pnum, mask;
@@ -615,7 +615,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 
 		// resolve model and skin
 		if(state->modelindex == 255){  // use custom player skin
-			const clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
+			const cl_clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
 			ent.skinnum = 0;
 			ent.skin = ci->skin;
 			ent.model = ci->model;
@@ -745,9 +745,9 @@ void Cl_AddEntities(cl_frame_t *frame){
 		if(state->modelindex2){
 			if(state->modelindex2 == 255){  // custom weapon
 				// the weapon is masked on the skinnum
-				const clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
+				const cl_clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
 				int i = (state->skinnum >> 8);  // 0 is default weapon model
-				if(i > MAX_CLIENTWEAPONMODELS - 1)
+				if(i > MAX_WEAPONMODELS - 1)
 					i = 0;
 				ent.model = ci->weaponmodel[i];
 				ent.flags = state->effects;

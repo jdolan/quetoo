@@ -24,13 +24,13 @@
 
 #include "client.h"
 
-renderer_thread_t r_threadpool[2];
+r_thread_t r_threadpool[2];
 
 
 /*
  * R_ThreadSleep
  */
-static void R_ThreadSleep(renderer_thread_t *t){
+static void R_ThreadSleep(r_thread_t *t){
 
 	while(t->state != THREAD_RUN){
 		usleep(0);
@@ -92,7 +92,7 @@ static int R_RunCaptureThread(void *p){
 /*
  * R_WaitForThread
  */
-void R_WaitForThread(renderer_thread_t *t){
+void R_WaitForThread(r_thread_t *t){
 
 	while(t->state == THREAD_RUN){
 		t->wait_count++;
@@ -109,7 +109,7 @@ void R_WaitForThread(renderer_thread_t *t){
 /*
  * R_ShutdownThread
  */
-static void R_ShutdownThread(renderer_thread_t *t){
+static void R_ShutdownThread(r_thread_t *t){
 
 	if(t->state == THREAD_DEAD)
 		return;
@@ -131,7 +131,7 @@ static void R_ShutdownThread(renderer_thread_t *t){
  *
  * Creates (and starts) a new thread.
  */
-static void R_InitThread(renderer_thread_t *t, const char *name, int (func(void *p))){
+static void R_InitThread(r_thread_t *t, const char *name, int (func(void *p))){
 
 	strncpy(t->name, name, sizeof(t->name) - 1);
 

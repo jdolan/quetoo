@@ -29,13 +29,20 @@
 
 char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
-void Sv_FlushRedirect(int sv_redirected, char *outputbuf){
-	if(sv_redirected == RD_PACKET){
-		Netchan_OutOfBandPrint(NS_SERVER, net_from, "print\n%s", outputbuf);
-	} else if(sv_redirected == RD_CLIENT){
-		Msg_WriteByte(&sv_client->netchan.message, svc_print);
-		Msg_WriteByte(&sv_client->netchan.message, PRINT_HIGH);
-		Msg_WriteString(&sv_client->netchan.message, outputbuf);
+void Sv_FlushRedirect(int target, char *outputbuf){
+
+	switch(target){
+		case RD_PACKET:
+			Netchan_OutOfBandPrint(NS_SERVER, net_from, "print\n%s", outputbuf);
+			break;
+		case RD_CLIENT:
+			Msg_WriteByte(&sv_client->netchan.message, svc_print);
+			Msg_WriteByte(&sv_client->netchan.message, PRINT_HIGH);
+			Msg_WriteString(&sv_client->netchan.message, outputbuf);
+			break;
+		default:
+			Com_Debug("Sv_FlushRedirect: %d\n", target);
+			break;
 	}
 }
 

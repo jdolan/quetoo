@@ -279,7 +279,7 @@ static void AddBrushBevels(mapbrush_t * b){
 		for(dir = -1; dir <= 1; dir += 2, order++){
 			// see if the plane is already present
 			for(i = 0, s = b->original_sides; i < b->numsides; i++, s++){
-				if(mapplanes[s->planenum].normal[axis] == dir)
+				if(mapplanes[s->plane_num].normal[axis] == dir)
 					break;
 			}
 
@@ -294,7 +294,7 @@ static void AddBrushBevels(mapbrush_t * b){
 					dist = b->maxs[axis];
 				else
 					dist = -b->mins[axis];
-				s->planenum = FindFloatPlane(normal, dist);
+				s->plane_num = FindFloatPlane(normal, dist);
 				s->texinfo = b->original_sides[0].texinfo;
 				s->contents = b->original_sides[0].contents;
 				s->bevel = true;
@@ -353,7 +353,7 @@ static void AddBrushBevels(mapbrush_t * b){
 						float minBack;
 
 						// if this plane has already been used, skip it
-						if(PlaneEqual(&mapplanes[b->original_sides[k].planenum]
+						if(PlaneEqual(&mapplanes[b->original_sides[k].plane_num]
 						               , normal, dist))
 							break;
 
@@ -384,7 +384,7 @@ static void AddBrushBevels(mapbrush_t * b){
 						Com_Error(ERR_FATAL, "MAX_BSP_BRUSHSIDES\n");
 					nummapbrushsides++;
 					s2 = &b->original_sides[b->numsides];
-					s2->planenum = FindFloatPlane(normal, dist);
+					s2->plane_num = FindFloatPlane(normal, dist);
 					s2->texinfo = b->original_sides[0].texinfo;
 					s2->contents = b->original_sides[0].contents;
 					s2->bevel = true;
@@ -409,17 +409,17 @@ static qboolean MakeBrushWindings(mapbrush_t * ob){
 	ClearBounds(ob->mins, ob->maxs);
 
 	for(i = 0; i < ob->numsides; i++){
-		const plane_t *plane = &mapplanes[ob->original_sides[i].planenum];
+		const plane_t *plane = &mapplanes[ob->original_sides[i].plane_num];
 		winding_t *w = BaseWindingForPlane(plane->normal, plane->dist);
 		for(j = 0; j < ob->numsides && w; j++){
 			if(i == j)
 				continue;
 			// back side clipaway
-			if(ob->original_sides[j].planenum == (ob->original_sides[j].planenum ^ 1))
+			if(ob->original_sides[j].plane_num == (ob->original_sides[j].plane_num ^ 1))
 				continue;
 			if(ob->original_sides[j].bevel)
 				continue;
-			plane = &mapplanes[ob->original_sides[j].planenum ^ 1];
+			plane = &mapplanes[ob->original_sides[j].plane_num ^ 1];
 			ChopWindingInPlace(&w, plane->normal, plane->dist, 0);	//CLIP_EPSILON);
 		}
 
@@ -487,7 +487,7 @@ static void ParseBrush(entity_t *mapent){
 	mapbrush_t *b;
 	int i, j, k;
 	side_t *side, *s2;
-	int planenum;
+	int plane_num;
 	brush_texture_t td;
 	vec3_t planepts[3];
 
@@ -582,8 +582,8 @@ static void ParseBrush(entity_t *mapent){
 		}
 
 		// find the plane number
-		planenum = PlaneFromPoints(planepts[0], planepts[1], planepts[2]);
-		if(planenum == -1){
+		plane_num = PlaneFromPoints(planepts[0], planepts[1], planepts[2]);
+		if(plane_num == -1){
 			Com_Verbose("Entity %i, Brush %i: plane with no normal\n", b->entitynum,
 			           b->brushnum);
 			continue;
@@ -592,12 +592,12 @@ static void ParseBrush(entity_t *mapent){
 		// see if the plane has been used already
 		for(k = 0; k < b->numsides; k++){
 			s2 = b->original_sides + k;
-			if(s2->planenum == planenum){
+			if(s2->plane_num == plane_num){
 				Com_Verbose("Entity %i, Brush %i: duplicate plane\n", b->entitynum,
 				           b->brushnum);
 				break;
 			}
-			if(s2->planenum == (planenum ^ 1)){
+			if(s2->plane_num == (plane_num ^ 1)){
 				Com_Verbose("Entity %i, Brush %i: mirrored plane\n", b->entitynum,
 				           b->brushnum);
 				break;
@@ -608,8 +608,8 @@ static void ParseBrush(entity_t *mapent){
 
 		// keep this side
 		side = b->original_sides + b->numsides;
-		side->planenum = planenum;
-		side->texinfo = TexinfoForBrushTexture(&mapplanes[planenum], &td, vec3_origin);
+		side->plane_num = plane_num;
+		side->texinfo = TexinfoForBrushTexture(&mapplanes[plane_num], &td, vec3_origin);
 
 		// save the td off in case there is an origin brush and we
 		// have to recalculate the texinfo
@@ -649,7 +649,7 @@ static void ParseBrush(entity_t *mapent){
 	// origin brushes are removed, but they set
 	// the rotation origin for the rest of the brushes
 	// in the entity.  After the entire entity is parsed,
-	// the planenums and texinfos will be adjusted for
+	// the plane_nums and texinfos will be adjusted for
 	// the origin brush
 	if(b->contents & CONTENTS_ORIGIN){
 		char string[32];
@@ -774,12 +774,12 @@ static qboolean ParseMapEntity(void){
 
 				s = &b->original_sides[j];
 
-				newdist = mapplanes[s->planenum].dist -
-				          DotProduct(mapplanes[s->planenum].normal, mapent->origin);
+				newdist = mapplanes[s->plane_num].dist -
+				          DotProduct(mapplanes[s->plane_num].normal, mapent->origin);
 
-				s->planenum = FindFloatPlane(mapplanes[s->planenum].normal, newdist);
+				s->plane_num = FindFloatPlane(mapplanes[s->plane_num].normal, newdist);
 
-				s->texinfo = TexinfoForBrushTexture(&mapplanes[s->planenum],
+				s->texinfo = TexinfoForBrushTexture(&mapplanes[s->plane_num],
 						&side_brushtextures[s - brushsides], mapent->origin);
 			}
 			MakeBrushWindings(b);
@@ -805,7 +805,7 @@ static qboolean ParseMapEntity(void){
 		b = &mapbrushes[nummapbrushes - 1];
 		b->contents = CONTENTS_AREAPORTAL;
 		c_areaportals++;
-		mapent->areaportalnum = c_areaportals;
+		mapent->areaportal_num = c_areaportals;
 		// set the portal number as "style"
 		sprintf(str, "%i", c_areaportals);
 		SetKeyValue(mapent, "style", str);
@@ -840,7 +840,7 @@ void LoadMapFile(const char *filename){
 	nummapplanes = 0;
 
 	num_entities = 0;
-	numtexinfo = 0;
+	num_texinfo = 0;
 
 	while(ParseMapEntity()){}
 

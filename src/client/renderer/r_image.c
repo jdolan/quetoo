@@ -21,32 +21,32 @@
 
 #include "renderer.h"
 
-image_t *r_notexture;  // use for bad textures
-image_t *r_particletexture;  // little dot for particles
-image_t *r_explosiontexture;  // expanding explosion particle
-image_t *r_teleporttexture;  // teleport ring particle
-image_t *r_smoketexture;  // smoke for rocket/grenade trails
-image_t *r_bubbletexture;  // bubble trails under water
-image_t *r_raintexture;  // atmospheric rain
-image_t *r_snowtexture;  // and snow effects
-image_t *r_beamtexture;  // rail trail beams
-image_t *r_burntexture;  // burn marks from hyperblaster
-image_t *r_shadowtexture;  // blob shadows
-image_t *r_bloodtexture;  // blood mist
-image_t *r_lightningtexture;  // lightning particles
-image_t *r_railtrailtexture;  // rail spiral
-image_t *r_flametexture;  // flames
-image_t *r_sparktexture;  // sparks
-image_t *r_bullettextures[NUM_BULLETTEXTURES];  // bullets hitting walls
+r_image_t *r_notexture;  // use for bad textures
+r_image_t *r_particletexture;  // little dot for particles
+r_image_t *r_explosiontexture;  // expanding explosion particle
+r_image_t *r_teleporttexture;  // teleport ring particle
+r_image_t *r_smoketexture;  // smoke for rocket/grenade trails
+r_image_t *r_bubbletexture;  // bubble trails under water
+r_image_t *r_raintexture;  // atmospheric rain
+r_image_t *r_snowtexture;  // and snow effects
+r_image_t *r_beamtexture;  // rail trail beams
+r_image_t *r_burntexture;  // burn marks from hyperblaster
+r_image_t *r_shadowtexture;  // blob shadows
+r_image_t *r_bloodtexture;  // blood mist
+r_image_t *r_lightningtexture;  // lightning particles
+r_image_t *r_railtrailtexture;  // rail spiral
+r_image_t *r_flametexture;  // flames
+r_image_t *r_sparktexture;  // sparks
+r_image_t *r_bullettextures[NUM_BULLETTEXTURES];  // bullets hitting walls
 
-image_t *r_envmaptextures[NUM_ENVMAPTEXTURES];  // generic environment map
+r_image_t *r_envmaptextures[NUM_ENVMAPTEXTURES];  // generic environment map
 
-image_t *r_flaretextures[NUM_FLARETEXTURES];  // lense flares
+r_image_t *r_flaretextures[NUM_FLARETEXTURES];  // lense flares
 
-image_t *r_warptexture;  // fragment program warping
+r_image_t *r_warptexture;  // fragment program warping
 
-image_t r_images[MAX_GL_TEXTURES];
-int r_numimages;
+r_image_t r_images[MAX_GL_TEXTURES];
+int r_num_images;
 
 GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 GLint r_filter_max = GL_LINEAR;
@@ -75,7 +75,7 @@ r_texturemode_t r_texturemodes[] = {
  * R_TextureMode
  */
 void R_TextureMode(const char *mode){
-	image_t *image;
+	r_image_t *image;
 	int i;
 
 	for(i = 0; i < NUM_GL_TEXTUREMODES; i++){
@@ -97,7 +97,7 @@ void R_TextureMode(const char *mode){
 		r_filter_aniso = 1.0;
 
 	// change all the existing mipmap texture objects
-	for(i = 0, image = r_images; i < r_numimages; i++, image++){
+	for(i = 0, image = r_images; i < r_num_images; i++, image++){
 
 		if(!image->texnum)
 			continue;
@@ -120,11 +120,11 @@ void R_TextureMode(const char *mode){
  */
 void R_ListImages_f(void){
 	int i;
-	image_t *image;
+	r_image_t *image;
 	int texels;
 
 	texels = 0;
-	for(i = 0, image = r_images; i < r_numimages; i++, image++){
+	for(i = 0, image = r_images; i < r_num_images; i++, image++){
 
 		if(!image->texnum)
 			continue;
@@ -241,7 +241,7 @@ void R_Screenshot_f(void){
 /*
  * R_SoftenTexture
  */
-void R_SoftenTexture(byte *in, int width, int height, imagetype_t type){
+void R_SoftenTexture(byte *in, int width, int height, r_image_type_t type){
 	byte *out;
 	int i, j, k, bpp;
 	byte *src, *dest;
@@ -324,7 +324,7 @@ static void R_ScaleTexture(const unsigned *in, int inwidth, int inheight, unsign
  * the image's average color.  Also handles image inversion and monochrome.  This is
  * all munged into one function to reduce loops on level load.
  */
-void R_FilterTexture(byte *in, int width, int height, vec3_t color, imagetype_t type){
+void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type_t type){
 	vec3_t intensity, luminosity, temp;
 	int i, j, c, bpp, mask;
 	unsigned col[3];
@@ -442,7 +442,7 @@ static int upload_width, upload_height;  // after power-of-two scale
 /*
  * R_UploadImage32
  */
-static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color, imagetype_t type){
+static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color, r_image_type_t type){
 	unsigned *scaled;
 	qboolean mipmap;
 
@@ -506,21 +506,21 @@ static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color,
  *
  * This is also used as an entry point for the generated r_notexture.
  */
-image_t *R_UploadImage(const char *name, void *data, int width, int height, imagetype_t type){
-	image_t *image;
+r_image_t *R_UploadImage(const char *name, void *data, int width, int height, r_image_type_t type){
+	r_image_t *image;
 	int i;
 
 	// find a free image_t
-	for(i = 0, image = r_images; i < r_numimages; i++, image++){
+	for(i = 0, image = r_images; i < r_num_images; i++, image++){
 		if(!image->texnum)
 			break;
 	}
-	if(i == r_numimages){
-		if(r_numimages == MAX_GL_TEXTURES){
+	if(i == r_num_images){
+		if(r_num_images == MAX_GL_TEXTURES){
 			Com_Warn("R_UploadImage: MAX_GL_TEXTURES reached.\n");
 			return r_notexture;
 		}
-		r_numimages++;
+		r_num_images++;
 	}
 	image = &r_images[i];
 
@@ -548,8 +548,8 @@ static const char *nm_suffix[] = {  // normalmap texture suffixes
 /*
  * R_LoadImage
  */
-image_t *R_LoadImage(const char *name, imagetype_t type){
-	image_t *image;
+r_image_t *R_LoadImage(const char *name, r_image_type_t type){
+	r_image_t *image;
 	char n[MAX_QPATH];
 	char nm[MAX_QPATH];
 	SDL_Surface *surf;
@@ -561,7 +561,7 @@ image_t *R_LoadImage(const char *name, imagetype_t type){
 	Com_StripExtension(name, n);
 
 	// see if it's already loaded
-	for(i = 0, image = r_images; i < r_numimages; i++, image++){
+	for(i = 0, image = r_images; i < r_num_images; i++, image++){
 		if(!strcmp(n, image->name))
 			return image;
 	}
@@ -692,13 +692,13 @@ void R_InitImages(void){
 /*
  * R_FreeImage
  */
-void R_FreeImage(image_t *image){
+void R_FreeImage(r_image_t *image){
 
 	if(!image || !image->texnum)
 		return;
 
 	glDeleteTextures(1, &image->texnum);
-	memset(image, 0, sizeof(image_t));
+	memset(image, 0, sizeof(r_image_t));
 }
 
 
@@ -707,9 +707,9 @@ void R_FreeImage(image_t *image){
  */
 void R_FreeImages(void){
 	int i;
-	image_t *image;
+	r_image_t *image;
 
-	for(i = 0, image = r_images; i < r_numimages; i++, image++){
+	for(i = 0, image = r_images; i < r_num_images; i++, image++){
 
 		if(!image->texnum)
 			continue;
@@ -727,10 +727,10 @@ void R_FreeImages(void){
  */
 void R_ShutdownImages(void){
 	int i;
-	image_t *image;
+	r_image_t *image;
 
-	for(i = 0, image = r_images; i < r_numimages; i++, image++)
+	for(i = 0, image = r_images; i < r_num_images; i++, image++)
 		R_FreeImage(image);
 
-	r_numimages = 0;
+	r_num_images = 0;
 }

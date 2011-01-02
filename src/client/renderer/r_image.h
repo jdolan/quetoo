@@ -36,22 +36,22 @@ typedef enum {
 	it_sky,
 	it_skin,
 	it_pic
-} imagetype_t;
+} r_image_type_t;
 
-typedef struct image_s {
+typedef struct r_image_s {
 	char name[MAX_QPATH];  // game path, excluding extension
-	imagetype_t type;
+	r_image_type_t type;
 	int width, height;  // source image
 	int upload_width, upload_height;  // after power of two
 	GLuint texnum;  // gl texture binding
-	material_t material;  // material definition
+	r_material_t material;  // material definition
 	vec3_t color;  // average color
-	struct image_s *normalmap;  // normalmap texture
-} image_t;
+	struct r_image_s *normalmap;  // normalmap texture
+} r_image_t;
 
 #define MAX_GL_TEXTURES		1024
-extern image_t r_images[MAX_GL_TEXTURES];
-extern int r_numimages;
+extern r_image_t r_images[MAX_GL_TEXTURES];
+extern int r_num_images;
 
 #define MAX_GL_LIGHTMAPS 	256
 #define TEXNUM_LIGHTMAPS 	MAX_GL_TEXTURES
@@ -61,44 +61,44 @@ extern int r_numimages;
 
 #define BACKFACE_EPSILON	0.01
 
-extern image_t *r_notexture;
-extern image_t *r_particletexture;
-extern image_t *r_explosiontexture;
-extern image_t *r_teleporttexture;
-extern image_t *r_smoketexture;
-extern image_t *r_bubbletexture;
-extern image_t *r_raintexture;
-extern image_t *r_snowtexture;
-extern image_t *r_beamtexture;
-extern image_t *r_burntexture;
-extern image_t *r_shadowtexture;
-extern image_t *r_bloodtexture;
-extern image_t *r_lightningtexture;
-extern image_t *r_railtrailtexture;
-extern image_t *r_flametexture;
-extern image_t *r_sparktexture;
+extern r_image_t *r_notexture;
+extern r_image_t *r_particletexture;
+extern r_image_t *r_explosiontexture;
+extern r_image_t *r_teleporttexture;
+extern r_image_t *r_smoketexture;
+extern r_image_t *r_bubbletexture;
+extern r_image_t *r_raintexture;
+extern r_image_t *r_snowtexture;
+extern r_image_t *r_beamtexture;
+extern r_image_t *r_burntexture;
+extern r_image_t *r_shadowtexture;
+extern r_image_t *r_bloodtexture;
+extern r_image_t *r_lightningtexture;
+extern r_image_t *r_railtrailtexture;
+extern r_image_t *r_flametexture;
+extern r_image_t *r_sparktexture;
 
 #define NUM_BULLETTEXTURES 3
-extern image_t *r_bullettextures[NUM_BULLETTEXTURES];
+extern r_image_t *r_bullettextures[NUM_BULLETTEXTURES];
 
 #define NUM_ENVMAPTEXTURES 3
-extern image_t *r_envmaptextures[NUM_ENVMAPTEXTURES];
+extern r_image_t *r_envmaptextures[NUM_ENVMAPTEXTURES];
 
 #define NUM_FLARETEXTURES 3
-extern image_t *r_flaretextures[NUM_FLARETEXTURES];
+extern r_image_t *r_flaretextures[NUM_FLARETEXTURES];
 
-extern image_t *r_warptexture;
+extern r_image_t *r_warptexture;
 
 // r_image.c
-void R_SoftenTexture(byte *in, int width, int height, imagetype_t type);
-void R_FilterTexture(byte *in, int width, int height, vec3_t color, imagetype_t type);
-image_t *R_UploadImage(const char *name, void *data, int width, int height, imagetype_t type);
-image_t *R_LoadImage(const char *name, imagetype_t type);
+void R_SoftenTexture(byte *in, int width, int height, r_image_type_t type);
+void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type_t type);
+r_image_t *R_UploadImage(const char *name, void *data, int width, int height, r_image_type_t type);
+r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 void R_TextureMode(const char *mode);
 void R_ListImages_f(void);
 void R_Screenshot_f(void);
 void R_InitImages(void);
-void R_FreeImage(image_t *image);
+void R_FreeImage(r_image_t *image);
 void R_FreeImages(void);
 void R_ShutdownImages(void);
 

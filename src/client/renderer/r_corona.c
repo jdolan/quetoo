@@ -26,7 +26,7 @@
  * R_AddCorona
  */
 void R_AddCorona(const vec3_t org, float radius, const vec3_t color){
-	corona_t *c;
+	r_corona_t *c;
 
 	if(!r_coronas->value)
 		return;
@@ -65,7 +65,7 @@ void R_DrawCoronas(void){
 
 	for(k = 0; k < r_view.num_coronas; k++){
 
-		const corona_t *c = &r_view.coronas[k];
+		const r_corona_t *c = &r_view.coronas[k];
 		int verts, vertind;
 
 		if(!c->radius)

@@ -33,7 +33,7 @@ static const char *weaps[] = {
  * Resolves the skin for the specified model.  For most models, skin.tga is tried
  * within the model's directory.  Player-weapon models are a special case.
  */
-static void R_LoadMeshSkin(model_t *mod){
+static void R_LoadMeshSkin(r_model_t *mod){
 	char skin[MAX_QPATH];
 	qboolean weap;
 	int i;
@@ -116,7 +116,7 @@ static void R_LoadMeshConfig(mesh_config_t *config, const char *path){
 /*
  * R_LoadMeshConfigs
  */
-static void R_LoadMeshConfigs(model_t *mod){
+static void R_LoadMeshConfigs(r_model_t *mod){
 	char path[MAX_QPATH];
 	int i;
 
@@ -147,20 +147,20 @@ static void R_LoadMeshConfigs(model_t *mod){
 /*
  * R_LoadMd2VertexArrays
  */
-static void R_LoadMd2VertexArrays(model_t *mod){
-	dmd2_t *md2;
-	dmd2frame_t *frame;
-	dmd2triangle_t *tri;
-	dmd2vertex_t *v;
-	dmd2texcoord_t *st;
+static void R_LoadMd2VertexArrays(r_model_t *mod){
+	d_md2_t *md2;
+	d_md2_frame_t *frame;
+	d_md2_tri_t *tri;
+	d_md2_vertex_t *v;
+	d_md2_texcoord_t *st;
 	vec2_t coord;
 	int i, j, vertind, coordind;
 
 	R_AllocVertexArrays(mod);  // allocate the arrays
 
-	md2 = (dmd2_t *)mod->extradata;
+	md2 = (d_md2_t *)mod->extra_data;
 
-	frame = (dmd2frame_t *)((byte *)md2 + md2->ofs_frames);
+	frame = (d_md2_frame_t *)((byte *)md2 + md2->ofs_frames);
 
 	vertind = coordind = 0;
 
@@ -175,8 +175,8 @@ static void R_LoadMd2VertexArrays(model_t *mod){
 		}
 	}
 
-	tri = (dmd2triangle_t *)((byte *)md2 + md2->ofs_tris);
-	st = (dmd2texcoord_t *)((byte *)md2 + md2->ofs_st);
+	tri = (d_md2_tri_t *)((byte *)md2 + md2->ofs_tris);
+	st = (d_md2_texcoord_t *)((byte *)md2 + md2->ofs_st);
 
 	for(i = 0; i < md2->num_tris; i++, tri++){  // build the arrays
 
@@ -191,8 +191,8 @@ static void R_LoadMd2VertexArrays(model_t *mod){
 		}
 
 		for(j = 0; j < 3; j++){
-			coord[0] = ((float)st[tri->index_st[j]].s / md2->skinwidth);
-			coord[1] = ((float)st[tri->index_st[j]].t / md2->skinheight);
+			coord[0] = ((float)st[tri->index_st[j]].s / md2->skin_width);
+			coord[1] = ((float)st[tri->index_st[j]].t / md2->skin_height);
 
 			memcpy(&mod->texcoords[coordind + j * 2], coord, sizeof(vec2_t));
 		}
@@ -206,16 +206,16 @@ static void R_LoadMd2VertexArrays(model_t *mod){
 /*
  * R_LoadMd2Model
  */
-void R_LoadMd2Model(model_t *mod, void *buffer){
+void R_LoadMd2Model(r_model_t *mod, void *buffer){
 	int i, j, version;
-	dmd2_t *inmodel, *outmodel;
-	dmd2texcoord_t *incoord, *outcoord;
-	dmd2triangle_t *intri, *outtri;
-	dmd2frame_t *inframe, *outframe;
+	d_md2_t *inmodel, *outmodel;
+	d_md2_texcoord_t *incoord, *outcoord;
+	d_md2_tri_t *intri, *outtri;
+	d_md2_frame_t *inframe, *outframe;
 	int *incmd, *outcmd;
 	vec3_t mins, maxs;
 
-	inmodel = (dmd2_t *)buffer;
+	inmodel = (d_md2_t *)buffer;
 
 	version = LittleLong(inmodel->version);
 	if(version != MD2_VERSION){
@@ -226,10 +226,10 @@ void R_LoadMd2Model(model_t *mod, void *buffer){
 	mod->type = mod_md2;
 	mod->version = version;
 
-	outmodel = (dmd2_t *)R_HunkAlloc(LittleLong(inmodel->ofs_end));
+	outmodel = (d_md2_t *)R_HunkAlloc(LittleLong(inmodel->ofs_end));
 
 	// byte swap the header fields and sanity check
-	for(i = 0; i < sizeof(dmd2_t) / 4; i++)
+	for(i = 0; i < sizeof(d_md2_t) / 4; i++)
 		((int *)outmodel)[i] = LittleLong(((int *)buffer)[i]);
 
 	mod->num_frames = outmodel->num_frames;
@@ -255,8 +255,8 @@ void R_LoadMd2Model(model_t *mod, void *buffer){
 	}
 
 	// load the texcoords
-	incoord = (dmd2texcoord_t *)((byte *)inmodel + outmodel->ofs_st);
-	outcoord = (dmd2texcoord_t *)((byte *)outmodel + outmodel->ofs_st);
+	incoord = (d_md2_texcoord_t *)((byte *)inmodel + outmodel->ofs_st);
+	outcoord = (d_md2_texcoord_t *)((byte *)outmodel + outmodel->ofs_st);
 
 	for(i = 0; i < outmodel->num_st; i++){
 		outcoord[i].s = LittleShort(incoord[i].s);
@@ -264,8 +264,8 @@ void R_LoadMd2Model(model_t *mod, void *buffer){
 	}
 
 	// load triangle lists
-	intri = (dmd2triangle_t *)((byte *)inmodel + outmodel->ofs_tris);
-	outtri = (dmd2triangle_t *)((byte *)outmodel + outmodel->ofs_tris);
+	intri = (d_md2_tri_t *)((byte *)inmodel + outmodel->ofs_tris);
+	outtri = (d_md2_tri_t *)((byte *)outmodel + outmodel->ofs_tris);
 
 	for(i = 0; i < outmodel->num_tris; i++){
 		for(j = 0; j < 3; j++){
@@ -276,10 +276,10 @@ void R_LoadMd2Model(model_t *mod, void *buffer){
 
 	// load the frames
 	for(i = 0; i < outmodel->num_frames; i++){
-		inframe = (dmd2frame_t *)((byte *)inmodel
-				+ outmodel->ofs_frames + i * outmodel->framesize);
-		outframe = (dmd2frame_t *)((byte *)outmodel
-				+ outmodel->ofs_frames + i * outmodel->framesize);
+		inframe = (d_md2_frame_t *)((byte *)inmodel
+				+ outmodel->ofs_frames + i * outmodel->frame_size);
+		outframe = (d_md2_frame_t *)((byte *)outmodel
+				+ outmodel->ofs_frames + i * outmodel->frame_size);
 
 		memcpy(outframe->name, inframe->name, sizeof(outframe->name));
 
@@ -295,7 +295,7 @@ void R_LoadMd2Model(model_t *mod, void *buffer){
 		AddPointToBounds(maxs, mod->mins, mod->maxs);
 
 		// verts are all 8 bit, so no swapping needed
-		memcpy(outframe->verts, inframe->verts, outmodel->num_xyz * sizeof(dmd2vertex_t));
+		memcpy(outframe->verts, inframe->verts, outmodel->num_xyz * sizeof(d_md2_vertex_t));
 	}
 
 	// load the glcmds
@@ -319,18 +319,18 @@ void R_LoadMd2Model(model_t *mod, void *buffer){
 /*
  * R_LoadMd3VertexArrays
  */
-static void R_LoadMd3VertexArrays(model_t *mod){
-	mmd3_t *md3;
-	dmd3frame_t *frame;
-	mmd3mesh_t *mesh;
-	mmd3vertex_t *v;
-	dmd3coord_t *texcoords;
+static void R_LoadMd3VertexArrays(r_model_t *mod){
+	r_md3_t *md3;
+	d_md3_frame_t *frame;
+	r_md3_mesh_t *mesh;
+	r_md3_vertex_t *v;
+	d_md3_texcoord_t *texcoords;
 	int i, j, k, vertind, coordind;
 	unsigned *tri;
 
 	R_AllocVertexArrays(mod);  // allocate the arrays
 
-	md3 = (mmd3_t *)mod->extradata;
+	md3 = (r_md3_t *)mod->extra_data;
 
 	frame = md3->frames;
 
@@ -376,21 +376,21 @@ static void R_LoadMd3VertexArrays(model_t *mod){
 /*
  * R_LoadMd3Model
  */
-void R_LoadMd3Model(model_t *mod, void *buffer){
+void R_LoadMd3Model(r_model_t *mod, void *buffer){
 	int version, i, j, l;
-	dmd3_t *inmodel;
-	mmd3_t *outmodel;
-	dmd3frame_t *inframe, *outframe;
-	dmd3tag_t *intag, *outtag;
-	dmd3mesh_t *inmesh;
-	mmd3mesh_t *outmesh;
-	dmd3coord_t *incoord, *outcoord;
-	dmd3vertex_t *invert;
-	mmd3vertex_t *outvert;
+	d_md3_t *inmodel;
+	r_md3_t *outmodel;
+	d_md3_frame_t *inframe, *outframe;
+	d_md3_tag_t *intag, *outtag;
+	d_md3_mesh_t *inmesh;
+	r_md3_mesh_t *outmesh;
+	d_md3_texcoord_t *incoord, *outcoord;
+	d_md3_vertex_t *invert;
+	r_md3_vertex_t *outvert;
 	unsigned int *inindex, *outindex;
 	float lat, lng;
 
-	inmodel = (dmd3_t *)buffer;
+	inmodel = (d_md3_t *)buffer;
 
 	version = LittleLong(inmodel->version);
 	if(version != MD3_VERSION){
@@ -401,7 +401,7 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
 	mod->type = mod_md3;
 	mod->version = version;
 
-	outmodel = (mmd3_t *)R_HunkAlloc(sizeof(mmd3_t));
+	outmodel = (r_md3_t *)R_HunkAlloc(sizeof(r_md3_t));
 
 	// byte swap the header fields and sanity check
 	inmodel->ofs_frames = LittleLong(inmodel->ofs_frames);
@@ -425,9 +425,9 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
 	}
 
 	// load the frames
-	inframe = (dmd3frame_t *)((byte *)inmodel + inmodel->ofs_frames);
-	outmodel->frames = outframe = (dmd3frame_t *)R_HunkAlloc(
-			outmodel->num_frames * sizeof(dmd3frame_t));
+	inframe = (d_md3_frame_t *)((byte *)inmodel + inmodel->ofs_frames);
+	outmodel->frames = outframe = (d_md3_frame_t *)R_HunkAlloc(
+			outmodel->num_frames * sizeof(d_md3_frame_t));
 
 	for(i = 0; i < outmodel->num_frames; i++, inframe++, outframe++){
 		for(j = 0; j < 3; j++){
@@ -443,9 +443,9 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
 	// load the tags
 	if(outmodel->num_tags){
 
-		intag = (dmd3tag_t *)((byte *)inmodel + inmodel->ofs_tags);
-		outmodel->tags = outtag = (dmd3tag_t *)R_HunkAlloc(
-				outmodel->num_tags * sizeof(dmd3tag_t));
+		intag = (d_md3_tag_t *)((byte *)inmodel + inmodel->ofs_tags);
+		outmodel->tags = outtag = (d_md3_tag_t *)R_HunkAlloc(
+				outmodel->num_tags * sizeof(d_md3_tag_t));
 
 		for(i = 0; i < outmodel->num_frames; i++){
 			for(l = 0; l < outmodel->num_tags; l++, intag++, outtag++){
@@ -461,9 +461,9 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
 	}
 
 	// load the meshes
-	inmesh = (dmd3mesh_t *)((byte *)inmodel + inmodel->ofs_meshes);
-	outmodel->meshes = outmesh = (mmd3mesh_t *)R_HunkAlloc(
-			outmodel->num_meshes * sizeof(mmd3mesh_t));
+	inmesh = (d_md3_mesh_t *)((byte *)inmodel + inmodel->ofs_meshes);
+	outmodel->meshes = outmesh = (r_md3_mesh_t *)R_HunkAlloc(
+			outmodel->num_meshes * sizeof(r_md3_mesh_t));
 
 	for(i = 0; i < outmodel->num_meshes; i++, outmesh++){
 		memcpy(outmesh->name, inmesh->name, MD3_MAX_PATH);
@@ -488,9 +488,9 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
 		}
 
 		// load the texcoords
-		incoord = (dmd3coord_t *)((byte *)inmesh + inmesh->ofs_tcs);
-		outmesh->coords = outcoord = (dmd3coord_t *)R_HunkAlloc(
-				outmesh->num_verts * sizeof(dmd3coord_t));
+		incoord = (d_md3_texcoord_t *)((byte *)inmesh + inmesh->ofs_tcs);
+		outmesh->coords = outcoord = (d_md3_texcoord_t *)R_HunkAlloc(
+				outmesh->num_verts * sizeof(d_md3_texcoord_t));
 
 		for(j = 0; j < outmesh->num_verts; j++, incoord++, outcoord++){
 			outcoord->st[0] = LittleFloat(incoord->st[0]);
@@ -498,9 +498,9 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
 		}
 
 		// load the verts and norms
-		invert = (dmd3vertex_t *)((byte *)inmesh + inmesh->ofs_verts);
-		outmesh->verts = outvert = (mmd3vertex_t *)R_HunkAlloc(
-				outmodel->num_frames * outmesh->num_verts * sizeof(mmd3vertex_t));
+		invert = (d_md3_vertex_t *)((byte *)inmesh + inmesh->ofs_verts);
+		outmesh->verts = outvert = (r_md3_vertex_t *)R_HunkAlloc(
+				outmodel->num_frames * outmesh->num_verts * sizeof(r_md3_vertex_t));
 
 		for(l = 0; l < outmodel->num_frames; l++){
 			for(j = 0; j < outmesh->num_verts; j++, invert++, outvert++){
@@ -520,7 +520,7 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
 			}
 		}
 
-		inmesh = (dmd3mesh_t *)((byte *)inmesh + inmesh->meshsize);
+		inmesh = (d_md3_mesh_t *)((byte *)inmesh + inmesh->meshsize);
 	}
 
 	// load the skin
@@ -537,14 +537,14 @@ void R_LoadMd3Model(model_t *mod, void *buffer){
 /*
  * R_LoadObjModelVertexArrays
  */
-static void R_LoadObjModelVertexArrays(model_t *mod){
-	const mobj_t *obj;
-	const mobjtri_t *t;
+static void R_LoadObjModelVertexArrays(r_model_t *mod){
+	const r_obj_t *obj;
+	const r_obj_tri_t *t;
 	int i, j, vertind, coordind;
 
 	R_AllocVertexArrays(mod);
 
-	obj = (mobj_t *)mod->extradata;
+	obj = (r_obj_t *)mod->extra_data;
 
 	vertind = coordind = 0;
 
@@ -552,7 +552,7 @@ static void R_LoadObjModelVertexArrays(model_t *mod){
 
 	for(i = 0; i < obj->num_tris; i++, t++){  // build the arrays
 
-		const mobjvert_t *v = t->verts;
+		const r_obj_vert_t *v = t->verts;
 
 		for(j = 0; j < 3; j++, v++){  // each vert
 
@@ -582,7 +582,7 @@ static void R_LoadObjModelVertexArrays(model_t *mod){
  * Triangulation of arbitrary polygons.  Assembles count tris on the model
  * from the specified array of verts.  All tris will share the first vert.
  */
-static void R_LoadObjModelTris(mobj_t *obj, const mobjvert_t *verts, int count){
+static void R_LoadObjModelTris(r_obj_t *obj, const r_obj_vert_t *verts, int count){
 	int i;
 
 	if(!obj->tris)
@@ -594,7 +594,7 @@ static void R_LoadObjModelTris(mobj_t *obj, const mobjvert_t *verts, int count){
 		const int v1 = 1 + i;
 		const int v2 = 2 + i;
 
-		mobjtri_t *t = &obj->tris[obj->num_tris_parsed + i];
+		r_obj_tri_t *t = &obj->tris[obj->num_tris_parsed + i];
 
 		t->verts[0] = verts[v0];
 		t->verts[1] = verts[v1];
@@ -617,8 +617,8 @@ static void R_LoadObjModelTris(mobj_t *obj, const mobjvert_t *verts, int count){
  *
  * Returns the number of triangles produced for the specified line.
  */
-static int R_LoadObjModelFace(const model_t *mod, mobj_t *obj, const char *line){
-	mobjvert_t *v, verts[MAX_OBJ_FACE_VERTS];
+static int R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char *line){
+	r_obj_vert_t *v, verts[MAX_OBJ_FACE_VERTS];
 	const char *d;
 	char *e, tok[32];
 	int i, tris;
@@ -700,7 +700,7 @@ static int R_LoadObjModelFace(const model_t *mod, mobj_t *obj, const char *line)
  * Parse the object file line.  If the structures have been allocated,
  * populate them.  Otherwise simply accumulate counts.
  */
-static void R_LoadObjModelLine(const model_t *mod, mobj_t *obj, const char *line){
+static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *line){
 
 	if(!line || !line[0])  // don't bother
 		return;
@@ -767,7 +767,7 @@ static void R_LoadObjModelLine(const model_t *mod, mobj_t *obj, const char *line
  * Drives the actual parsing of the object file.  The file is read twice:
  * once to acquire primitive counts, and a second time to load them.
  */
-static void R_LoadObjModel_(model_t *mod, mobj_t *obj, const void *buffer){
+static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer){
 	char line[MAX_STRING_CHARS];
 	const char *c;
 	qboolean comment;
@@ -809,8 +809,8 @@ static void R_LoadObjModel_(model_t *mod, mobj_t *obj, const void *buffer){
 /*
  * R_LoadObjModel
  */
-void R_LoadObjModel(model_t *mod, void *buffer){
-	mobj_t *obj;
+void R_LoadObjModel(r_model_t *mod, void *buffer){
+	r_obj_t *obj;
 	const float *v;
 	int i;
 
@@ -818,7 +818,7 @@ void R_LoadObjModel(model_t *mod, void *buffer){
 
 	mod->num_frames = 1;
 
-	obj = (mobj_t *)R_HunkAlloc(sizeof(mobj_t));
+	obj = (r_obj_t *)R_HunkAlloc(sizeof(r_obj_t));
 
 	R_LoadObjModel_(mod, obj, buffer);  // resolve counts
 
@@ -831,7 +831,7 @@ void R_LoadObjModel(model_t *mod, void *buffer){
 	obj->verts = (float *)R_HunkAlloc(obj->num_verts * sizeof(float) * 3);
 	obj->normals = (float *)R_HunkAlloc(obj->num_normals * sizeof(float) * 3);
 	obj->texcoords = (float *)R_HunkAlloc(obj->num_texcoords * sizeof(float) * 2);
-	obj->tris = (mobjtri_t *)R_HunkAlloc(obj->num_tris * sizeof(mobjtri_t));
+	obj->tris = (r_obj_tri_t *)R_HunkAlloc(obj->num_tris * sizeof(r_obj_tri_t));
 
 	R_LoadObjModel_(mod, obj, buffer);  // load it
 

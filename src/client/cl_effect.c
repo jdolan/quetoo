@@ -140,8 +140,8 @@ void Cl_ParseMuzzleFlash(void){
  *
  */
 
-static particle_t *active_particles, *free_particles;
-particle_t particles[MAX_PARTICLES];
+static r_particle_t *active_particles, *free_particles;
+r_particle_t particles[MAX_PARTICLES];
 
 #define WEATHER_PARTICLES 2048
 static int weather_particles;
@@ -149,12 +149,12 @@ static int weather_particles;
 /*
  * Cl_ClearParticle
  */
-static void Cl_ClearParticle(particle_t *p){
+static void Cl_ClearParticle(r_particle_t *p){
 
 	if(p->type == PARTICLE_WEATHER)
 		weather_particles--;
 
-	memset(p, 0, sizeof(particle_t));
+	memset(p, 0, sizeof(r_particle_t));
 
 	p->type = PARTICLE_NORMAL;
 	p->image = r_particletexture;
@@ -186,7 +186,7 @@ static void Cl_ClearParticles(void){
  * Cl_BulletTrail
  */
 void Cl_BulletTrail(const vec3_t start, const vec3_t end){
-	particle_t *p;
+	r_particle_t *p;
 	float v;
 
 	if(!(p = Cl_AllocParticle()))
@@ -221,7 +221,7 @@ static const vec3_t bullet_light = {
  * Cl_BulletEffect
  */
 void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
-	particle_t *p;
+	r_particle_t *p;
 	vec3_t v;
 
 	if(!(p = Cl_AllocParticle()))
@@ -276,7 +276,7 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
  * Cl_BurnEffect
  */
 void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale){
-	particle_t *p;
+	r_particle_t *p;
 	vec3_t v;
 
 	if(!(p = Cl_AllocParticle()))
@@ -304,7 +304,7 @@ void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale){
  */
 void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
 	int i, j;
-	particle_t *p;
+	r_particle_t *p;
 	float d;
 
 	for(i = 0; i < count; i++){
@@ -339,7 +339,7 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
  * Cl_GibEffect
  */
 void Cl_GibEffect(const vec3_t org, int count){
-	particle_t *p;
+	r_particle_t *p;
 	vec3_t o, v, tmp;
 	trace_t tr;
 	float dist;
@@ -400,7 +400,7 @@ void Cl_GibEffect(const vec3_t org, int count){
  */
 void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 	int i, j;
-	particle_t *p;
+	r_particle_t *p;
 
 	for(i = 0; i < count; i++){
 
@@ -436,7 +436,7 @@ void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
  */
 void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *cent){
 	int i;
-	particle_t *p;
+	r_particle_t *p;
 
 	if(cent){  // honor a slightly randomized time interval
 
@@ -484,7 +484,7 @@ static const vec3_t item_light = {
  */
 void Cl_ItemRespawnEffect(const vec3_t org){
 	int i, j;
-	particle_t *p;
+	r_particle_t *p;
 
 	for(i = 0; i < 64; i++){
 
@@ -516,7 +516,7 @@ void Cl_ItemRespawnEffect(const vec3_t org){
  */
 void Cl_ExplosionEffect(const vec3_t org){
 	int i, j;
-	particle_t *p;
+	r_particle_t *p;
 
 	if(!(p = Cl_AllocParticle()))
 		return;
@@ -569,7 +569,7 @@ void Cl_ExplosionEffect(const vec3_t org){
  * Cl_SmokeTrail
  */
 void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
-	particle_t *p;
+	r_particle_t *p;
 	qboolean stationary;
 	int j, c;
 
@@ -635,7 +635,7 @@ static const vec3_t shot_light = {
  * Cl_SmokeFlash
  */
 void Cl_SmokeFlash(entity_state_t *ent){
-	particle_t *p;
+	r_particle_t *p;
 	vec3_t forward, right, org, org2;
 	trace_t tr;
 	float dist;
@@ -699,7 +699,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
  * Cl_FlameTrail
  */
 void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
-	particle_t *p;
+	r_particle_t *p;
 	int j, c;
 
 	if(ent){  // trails should be framerate independent
@@ -749,7 +749,7 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
  * Cl_SteamTrail
  */
 void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
-	particle_t *p;
+	r_particle_t *p;
 	vec3_t end;
 	int j, c;
 
@@ -818,7 +818,7 @@ void Cl_LightningEffect(const vec3_t org){
  * Cl_LightningTrail
  */
 void Cl_LightningTrail(const vec3_t start, const vec3_t end){
-	particle_t *p;
+	r_particle_t *p;
 	vec3_t dir, delta, pos;
 	float dist;
 
@@ -869,7 +869,7 @@ void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 void Cl_RailTrail(const vec3_t start, const vec3_t end, int flags, int color){
 	vec3_t vec, move;
 	float len;
-	particle_t *p;
+	r_particle_t *p;
 	int i;
 
 	if(!(p = Cl_AllocParticle()))
@@ -955,7 +955,7 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
 	vec3_t vec;
 	float len, f;
 	int i, j;
-	particle_t *p;
+	r_particle_t *p;
 
 	VectorCopy(start, move);
 	VectorSubtract(end, start, vec);
@@ -991,7 +991,7 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
  */
 void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 	int i, c;
-	particle_t *p;
+	r_particle_t *p;
 	float angle;
 	float sp, sy, cp, cy;
 	vec3_t forward;
@@ -1058,7 +1058,7 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
  * Cl_BFGEffect
  */
 void Cl_BFGEffect(const vec3_t org){
-	particle_t *p;
+	r_particle_t *p;
 	int i;
 
 	for(i = 0; i < 4; i++){
@@ -1097,7 +1097,7 @@ static void Cl_WeatherEffects(void){
 	vec3_t start, end;
 	trace_t tr;
 	float ceiling;
-	particle_t *p;
+	r_particle_t *p;
 	s_sample_t *s;
 
 	if(!cl_weather->value)
@@ -1195,8 +1195,8 @@ static void Cl_WeatherEffects(void){
  * Cl_AddParticles
  */
 void Cl_AddParticles(void){
-	particle_t *p, *next;
-	particle_t *active, *tail;
+	r_particle_t *p, *next;
+	r_particle_t *active, *tail;
 	float time;
 	int i;
 
@@ -1286,8 +1286,8 @@ void Cl_EntityEvent(entity_state_t *ent){
 /*
  * Cl_AllocParticle
  */
-particle_t *Cl_AllocParticle(void){
-	particle_t *p;
+r_particle_t *Cl_AllocParticle(void){
+	r_particle_t *p;
 
 	if(!free_particles)
 		return NULL;

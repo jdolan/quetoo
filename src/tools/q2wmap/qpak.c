@@ -414,7 +414,7 @@ int PAK_Main(void){
 	LoadBSPFile(bspname);
 
 	// add the textures and normalmaps
-	for(i = 0; i < numtexinfo; i++){
+	for(i = 0; i < num_texinfo; i++){
 		AddImage(va("textures/%s", texinfo[i].texture), true);
 		AddImage(va("textures/%s_nm", texinfo[i].texture), false);
 		AddImage(va("textures/%s_norm", texinfo[i].texture), false);

@@ -40,26 +40,26 @@
 #define MD2_MAX_SKINNAME	64
 
 typedef struct {
-	short index_xyz[3];
-	short index_st[3];
-} dmd2triangle_t;
+	short index_xyz[3];  // three verts
+	short index_st[3];  // three coords
+} d_md2_tri_t;
 
 typedef struct {
 	byte v[3];  // vertex scaled to fit in frame mins/maxs
 	byte n;  // normal index into anorms.h
-} dmd2vertex_t;
+} d_md2_vertex_t;
 
 typedef struct {
 	short s;  // divide by skin dimensions for actual coords
 	short t;
-} dmd2texcoord_t;
+} d_md2_texcoord_t;
 
 typedef struct {
 	vec3_t scale;  // multiply byte verts by this
 	vec3_t translate;  // then add this
 	char name[16];  // frame name from grabbing
-	dmd2vertex_t verts[1];  // variable sized
-} dmd2frame_t;
+	d_md2_vertex_t verts[1];  // variable sized
+} d_md2_frame_t;
 
 // the glcmd format:
 // a positive integer starts a tristrip command, followed by that many
@@ -73,9 +73,9 @@ typedef struct {
 	int ident;
 	int version;
 
-	int skinwidth;
-	int skinheight;
-	int framesize;  // byte size of each frame
+	int skin_width;
+	int skin_height;
+	int frame_size;  // byte size of each frame
 
 	int num_skins;
 	int num_xyz;
@@ -90,7 +90,7 @@ typedef struct {
 	int ofs_frames;  // offset for first frame
 	int ofs_glcmds;
 	int ofs_end;  // end of file
-} dmd2_t;
+} d_md2_t;
 
 
 /*
@@ -117,12 +117,12 @@ typedef struct {
 
 typedef struct {
 	vec2_t st;
-} dmd3coord_t;
+} d_md3_texcoord_t;
 
 typedef struct {
 	short point[3];
 	short norm;
-} dmd3vertex_t;
+} d_md3_vertex_t;
 
 typedef struct {
 	vec3_t mins;
@@ -130,22 +130,22 @@ typedef struct {
 	vec3_t translate;
 	vec_t radius;
 	char creator[16];
-} dmd3frame_t;
+} d_md3_frame_t;
 
 typedef struct {
 	vec3_t origin;
 	vec3_t axis[3];
-} dmd3orientation_t;
+} d_md3_orientation_t;
 
 typedef struct {
 	char name[MD3_MAX_PATH];
-	dmd3orientation_t orient;
-} dmd3tag_t;
+	d_md3_orientation_t orient;
+} d_md3_tag_t;
 
 typedef struct {
 	char name[MD3_MAX_PATH];
 	int unused;  // shader
-} dmd3skin_t;
+} d_md3_skin_t;
 
 typedef struct {
 	int id;
@@ -165,7 +165,7 @@ typedef struct {
 	int ofs_verts;
 
 	int meshsize;
-} dmd3mesh_t;
+} d_md3_mesh_t;
 
 typedef struct {
 	int id;
@@ -184,7 +184,7 @@ typedef struct {
 	int ofs_tags;
 	int ofs_meshes;
 	int ofs_end;
-} dmd3_t;
+} d_md3_t;
 
 
 /*
@@ -231,8 +231,8 @@ typedef struct {
 #define MAX_VALUE	1024
 
 typedef struct {
-	int fileofs, filelen;
-} lump_t;
+	int file_ofs, file_len;
+} d_bsp_lump_t;
 
 #define LUMP_ENTITIES		0
 #define LUMP_PLANES			1
@@ -259,24 +259,24 @@ typedef struct {
 typedef struct {
 	int ident;
 	int version;
-	lump_t lumps[HEADER_LUMPS];
-} dbspheader_t;
+	d_bsp_lump_t lumps[HEADER_LUMPS];
+} d_bsp_header_t;
 
 typedef struct {
 	vec3_t mins, maxs;
 	vec3_t origin;  // for sounds or lights
-	int headnode;
-	int firstface, numfaces;  // submodels just draw faces
+	int head_node;
+	int first_face, num_faces;  // submodels just draw faces
 	// without walking the bsp tree
-} dbspmodel_t;
+} d_bsp_model_t;
 
 typedef struct {
 	vec3_t point;
-} dbspvertex_t;
+} d_bsp_vertex_t;
 
 typedef struct {
 	vec3_t normal;
-} dbspnormal_t;
+} d_bsp_normal_t;
 
 // if a brush just barely pokes onto the other side,
 // let it slide by without chopping
@@ -309,42 +309,42 @@ typedef struct {
 	float normal[3];
 	float dist;
 	int type;  // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
-} dplane_t;
+} d_bsp_plane_t;
 
 typedef struct {
-	int planenum;
+	int plane_num;
 	int children[2];  // negative numbers are -(leafs+1), not nodes
 	short mins[3];  // for frustum culling
 	short maxs[3];
-	unsigned short firstface;
-	unsigned short numfaces;  // counting both sides
-} dnode_t;
+	unsigned short first_face;
+	unsigned short num_faces;  // counting both sides
+} d_bsp_node_t;
 
 typedef struct {
 	float vecs[2][4];  // [s/t][xyz offset]
 	int flags;  // surface values
 	int value;  // light emission, etc
 	char texture[32];  // texture name (textures/*.tga)
-	int nexttexinfo;  // no longer used, here to maintain compatibility
-} dtexinfo_t;
+	int next_texinfo;  // no longer used, here to maintain compatibility
+} d_bsp_texinfo_t;
 
 // note that edge 0 is never used, because negative edge nums are used for
 // counterclockwise use of the edge in a face
 typedef struct {
 	unsigned short v[2];  // vertex numbers
-} dedge_t;
+} d_bsp_edge_t;
 
 typedef struct {
-	unsigned short planenum;
+	unsigned short plane_num;
 	short side;
 
-	int firstedge;  // we must support > 64k edges
-	short numedges;
+	int first_edge;  // we must support > 64k edges
+	short num_edges;
 	short texinfo;
 
-	byte unused[4];  // was lightstyles
-	int lightofs;  // start of samples in lighting lump
-} dface_t;
+	byte unused[4];  // was light styles
+	int light_ofs;  // start of samples in lighting lump
+} d_bsp_face_t;
 
 typedef struct {
 	int contents;  // OR of all brushes(not needed?)
@@ -355,23 +355,23 @@ typedef struct {
 	short mins[3];  // for frustum culling
 	short maxs[3];
 
-	unsigned short firstleafface;
-	unsigned short numleaffaces;
+	unsigned short first_leaf_face;
+	unsigned short num_leaf_faces;
 
-	unsigned short firstleafbrush;
-	unsigned short numleafbrushes;
-} dleaf_t;
+	unsigned short first_leaf_brush;
+	unsigned short num_leaf_brushes;
+} d_bsp_leaf_t;
 
 typedef struct {
-	unsigned short planenum;  // facing out of the leaf
-	unsigned short surfnum;
-} dbrushside_t;
+	unsigned short plane_num;  // facing out of the leaf
+	unsigned short surf_num;
+} d_bsp_brush_side_t;
 
 typedef struct {
 	int firstside;
 	int numsides;
 	int contents;
-} dbrush_t;
+} d_bsp_brush_t;
 
 // the visibility lump consists of a header with a count, then
 // byte offsets for the PVS and PHS of each cluster, then the raw
@@ -379,21 +379,21 @@ typedef struct {
 #define DVIS_PVS	0
 #define DVIS_PHS	1
 typedef struct {
-	int numclusters;
-	int bitofs[8][2];  // bitofs[numclusters][2]
-} dvis_t;
+	int num_clusters;
+	int bit_ofs[8][2];  // bit_ofs[num_clusters][2]
+} d_bsp_vis_t;
 
 // each area has a list of portals that lead into other areas
 // when portals are closed, other areas may not be visible or
 // hearable even if the vis info says that it should be
 typedef struct {
-	int portalnum;
-	int otherarea;
-} dareaportal_t;
+	int portal_num;
+	int other_area;
+} d_bsp_area_portal_t;
 
 typedef struct {
-	int numareaportals;
-	int firstareaportal;
-} darea_t;
+	int num_area_portals;
+	int first_area_portal;
+} d_bsp_area_t;
 
 #endif /*__FILES_H__*/

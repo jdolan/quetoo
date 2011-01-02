@@ -80,16 +80,16 @@ void MN_DrawRect (int x, int y, int w, int h, const vec4_t color, float lineWidt
  * @return NULL on error or image_t pointer on success
  * @sa R_FindImage
  */
-const struct image_s *MN_LoadImage (const char *name)
+const r_image_t *MN_LoadImage (const char *name)
 {
-	const struct image_s *image = R_LoadImage(name, it_pic);
+	const r_image_t *image = R_LoadImage(name, it_pic);
 	if (image == r_notexture)
 		return NULL;
 	return image;
 }
 
 void MN_DrawNormImage (float x, float y, float w, float h, float sh, float th, float sl, float tl, int align,
-		const image_t *image)
+		const r_image_t *image)
 {
 	float nw, nh, x1, x2, x3, x4, y1, y2, y3, y4;
 
@@ -210,10 +210,10 @@ void MN_DrawNormImage (float x, float y, float w, float h, float sh, float th, f
  * @note All these parameter are normalized to VID_NORM_WIDTH and VID_NORM_HEIGHT
  * they are adjusted in this function
  */
-const image_t *MN_DrawNormImageByName (float x, float y, float w, float h, float sh, float th, float sl, float tl,
+const r_image_t *MN_DrawNormImageByName (float x, float y, float w, float h, float sh, float th, float sl, float tl,
 		int align, const char *name)
 {
-	const struct image_s *image;
+	const r_image_t *image;
 
 	image = MN_LoadImage(name);
 	if (!image) {
@@ -258,7 +258,7 @@ void MN_DrawPanel (const vec2_t pos, const vec2_t size, const char *texture, int
 
 	int y, h;
 
-	const image_t *image = MN_LoadImage(texture);
+	const r_image_t *image = MN_LoadImage(texture);
 	if (!image)
 		return;
 

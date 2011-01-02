@@ -81,7 +81,7 @@ int TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, vec3_t origin){
 	int sv, tv;
 	vec_t ang, sinv, cosv;
 	vec_t ns, nt;
-	dtexinfo_t tx, *tc;
+	d_bsp_texinfo_t tx, *tc;
 	int i, j, k;
 	float shift[2];
 
@@ -149,11 +149,11 @@ int TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, vec3_t origin){
 	tx.vecs[1][3] = bt->shift[1] + shift[1];
 	tx.flags = bt->flags;
 	tx.value = bt->value;
-	tx.nexttexinfo = 0;
+	tx.next_texinfo = 0;
 
 	// find the texinfo
 	tc = texinfo;
-	for(i = 0; i < numtexinfo; i++, tc++){
+	for(i = 0; i < num_texinfo; i++, tc++){
 		if(tc->flags != tx.flags)
 			continue;
 		if(tc->value != tx.value)
@@ -172,6 +172,6 @@ skip:
 	}
 	*tc = tx;
 
-	numtexinfo++;
+	num_texinfo++;
 	return i;
 }

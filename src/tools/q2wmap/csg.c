@@ -69,7 +69,7 @@ static bspbrush_t *SubtractBrush(bspbrush_t * a, bspbrush_t * b){										 // a
 	in = a;
 	out = NULL;
 	for(i = 0; i < b->numsides && in; i++){
-		SplitBrush(in, b->sides[i].planenum, &front, &back);
+		SplitBrush(in, b->sides[i].plane_num, &front, &back);
 		if(in != a)
 			FreeBrush(in);
 		if(front){					 // add to list
@@ -107,7 +107,7 @@ static qboolean BrushesDisjoint(const bspbrush_t * a, const bspbrush_t * b){
 	// check for opposing planes
 	for(i = 0; i < a->numsides; i++){
 		for(j = 0; j < b->numsides; j++){
-			if(a->sides[i].planenum == (b->sides[j].planenum ^ 1))
+			if(a->sides[i].plane_num == (b->sides[j].plane_num ^ 1))
 				return true;		  // opposite planes, so not touching
 		}
 	}
@@ -115,8 +115,8 @@ static qboolean BrushesDisjoint(const bspbrush_t * a, const bspbrush_t * b){
 	return false;					  // might intersect
 }
 
-static int minplanenums[3];
-static int maxplanenums[3];
+static int minplane_nums[3];
+static int maxplane_nums[3];
 
 /*
  * ===============
@@ -132,7 +132,7 @@ static bspbrush_t *ClipBrushToBox(bspbrush_t * brush, vec3_t clipmins, vec3_t cl
 
 	for(j = 0; j < 2; j++){
 		if(brush->maxs[j] > clipmaxs[j]){
-			SplitBrush(brush, maxplanenums[j], &front, &back);
+			SplitBrush(brush, maxplane_nums[j], &front, &back);
 			FreeBrush(brush);
 			if(front)
 				FreeBrush(front);
@@ -141,7 +141,7 @@ static bspbrush_t *ClipBrushToBox(bspbrush_t * brush, vec3_t clipmins, vec3_t cl
 				return NULL;
 		}
 		if(brush->mins[j] < clipmins[j]){
-			SplitBrush(brush, minplanenums[j], &front, &back);
+			SplitBrush(brush, minplane_nums[j], &front, &back);
 			FreeBrush(brush);
 			if(back)
 				FreeBrush(back);
@@ -154,9 +154,9 @@ static bspbrush_t *ClipBrushToBox(bspbrush_t * brush, vec3_t clipmins, vec3_t cl
 	// remove any colinear faces
 
 	for(i = 0; i < brush->numsides; i++){
-		p = brush->sides[i].planenum & ~1;
-		if(p == maxplanenums[0] || p == maxplanenums[1]
-		        || p == minplanenums[0] || p == minplanenums[1]){
+		p = brush->sides[i].plane_num & ~1;
+		if(p == maxplane_nums[0] || p == maxplane_nums[1]
+		        || p == minplane_nums[0] || p == minplane_nums[1]){
 			brush->sides[i].texinfo = TEXINFO_NODE;
 			brush->sides[i].visible = false;
 		}
@@ -184,9 +184,9 @@ bspbrush_t *MakeBspBrushList(int startbrush, int endbrush,
 		VectorClear(normal);
 		normal[i] = 1;
 		dist = clipmaxs[i];
-		maxplanenums[i] = FindFloatPlane(normal, dist);
+		maxplane_nums[i] = FindFloatPlane(normal, dist);
 		dist = clipmins[i];
-		minplanenums[i] = FindFloatPlane(normal, dist);
+		minplane_nums[i] = FindFloatPlane(normal, dist);
 	}
 
 	brushlist = NULL;

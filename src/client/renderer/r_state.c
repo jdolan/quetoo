@@ -325,7 +325,7 @@ void R_EnableLighting(r_program_t *program, qboolean enable){
 /*
  * R_UseMaterial
  */
-static inline void R_UseMaterial(material_t *material){
+static inline void R_UseMaterial(r_material_t *material){
 	static float last_b, last_p, last_s, last_h;
 	float b, p, s, h;
 
@@ -365,7 +365,7 @@ static inline void R_UseMaterial(material_t *material){
  * Enables bumpmapping while updating program parameters to reflect the
  * specified material.
  */
-void R_EnableBumpmap(material_t *material, qboolean enable){
+void R_EnableBumpmap(r_material_t *material, qboolean enable){
 
 	if(!r_state.lighting_enabled)
 		return;

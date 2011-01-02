@@ -65,9 +65,9 @@ struct edict_s {
 	// FIXME: move these fields to a server private sv_entity_t
 	link_t area;  // linked to a division node or leaf
 
-	int num_clusters;  // if -1, use headnode instead
+	int num_clusters;  // if -1, use head_node instead
 	int clusternums[MAX_ENT_CLUSTERS];
-	int headnode;  // unused if num_clusters != -1
+	int head_node;  // unused if num_clusters != -1
 	int areanum, areanum2;
 
 	int svflags;  // SVF_NOCLIENT, etc
@@ -115,7 +115,7 @@ typedef struct {
 	int (*PointContents)(vec3_t point);
 	qboolean (*inPVS)(const vec3_t p1, const vec3_t p2);
 	qboolean (*inPHS)(const vec3_t p1, const vec3_t p2);
-	void (*SetAreaPortalState)(int portalnum, qboolean open);
+	void (*SetAreaPortalState)(int portal_num, qboolean open);
 	qboolean (*AreasConnected)(int area1, int area2);
 	void (*Pmove)(pmove_t *pmove);  // player movement code common with client prediction
 

@@ -25,10 +25,10 @@
 /*
  * Cl_AddServer
  */
-static server_info_t *Cl_AddServer(const netaddr_t *addr){
-	server_info_t *s;
+static cl_server_info_t *Cl_AddServer(const netaddr_t *addr){
+	cl_server_info_t *s;
 
-	s = (server_info_t *)Z_Malloc(sizeof(*s));
+	s = (cl_server_info_t *)Z_Malloc(sizeof(*s));
 
 	s->next = cls.servers;
 	cls.servers = s;
@@ -43,7 +43,7 @@ static server_info_t *Cl_AddServer(const netaddr_t *addr){
  * Cl_NumServers
  */
 static int Cl_NumServers(void){
-	server_info_t *s;
+	cl_server_info_t *s;
 	int i;
 
 	s = cls.servers;
@@ -61,8 +61,8 @@ static int Cl_NumServers(void){
 /*
  * Cl_ServerForNetaddr
  */
-static server_info_t *Cl_ServerForNetaddr(const netaddr_t *addr){
-	server_info_t *s;
+static cl_server_info_t *Cl_ServerForNetaddr(const netaddr_t *addr){
+	cl_server_info_t *s;
 
 	s = cls.servers;
 
@@ -81,8 +81,8 @@ static server_info_t *Cl_ServerForNetaddr(const netaddr_t *addr){
 /*
  * Cl_ServerForNum
  */
-server_info_t *Cl_ServerForNum(int num){
-	server_info_t *s;
+cl_server_info_t *Cl_ServerForNum(int num){
+	cl_server_info_t *s;
 
 	s = cls.servers;
 
@@ -102,7 +102,7 @@ server_info_t *Cl_ServerForNum(int num){
  * Cl_FreeServers
  */
 void Cl_FreeServers(void){
-	server_info_t *s, *next;
+	cl_server_info_t *s, *next;
 
 	s = cls.servers;
 
@@ -118,7 +118,7 @@ void Cl_FreeServers(void){
 /*
  * Cl_ServerSourceName
  */
-static char *Cl_ServerSourceName(server_source_t source){
+static char *Cl_ServerSourceName(cl_server_source_t source){
 
 	switch(source){
 		case SERVER_SOURCE_INTERNET:
@@ -136,7 +136,7 @@ static char *Cl_ServerSourceName(server_source_t source){
 /*
  * Cl_ServerSourceColor
  */
-static int Cl_ServerSourceColor(server_source_t source){
+static int Cl_ServerSourceColor(cl_server_source_t source){
 
 	switch(source){
 		case SERVER_SOURCE_INTERNET:
@@ -155,7 +155,7 @@ static int Cl_ServerSourceColor(server_source_t source){
  * Cl_ParseStatusMessage
  */
 void Cl_ParseStatusMessage(void){
-	server_info_t *server;
+	cl_server_info_t *server;
 	char *c, line[128];
 	const char *source;
 	int i, color;
@@ -216,7 +216,7 @@ void Cl_ParseStatusMessage(void){
  */
 void Cl_Ping_f(void){
 	netaddr_t addr;
-	server_info_t *server;
+	cl_server_info_t *server;
 
 	if(Cmd_Argc() != 2){
 		Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
@@ -253,7 +253,7 @@ void Cl_Ping_f(void){
  * Cl_SendBroadcast
  */
 static void Cl_SendBroadcast(void){
-	server_info_t *server;
+	cl_server_info_t *server;
 	netaddr_t addr;
 
 	cls.bcasttime = cls.realtime;
@@ -306,7 +306,7 @@ void Cl_ParseServersList(void){
 	byte ip[4];
 	unsigned short port;
 	netaddr_t addr;
-	server_info_t *server;
+	cl_server_info_t *server;
 	char s[32];
 
 	buffptr = net_message.data + 12;

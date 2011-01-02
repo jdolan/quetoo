@@ -21,8 +21,8 @@
 
 #include "server.h"
 
-server_static_t svs;  // persistent server info
-server_t sv;  // local server
+sv_static_t svs;  // persistent server info
+sv_server_t sv;  // local server
 
 /*
  * Sv_FindIndex
@@ -207,7 +207,7 @@ static void Sv_InitGame(void){
  * Change the server to a new map, taking all connected clients along with it.
  * The serverstate parameter must either be ss_game or ss_demo.  See Sv_Map.
  */
-static void Sv_SpawnServer(const char *server, server_state_t serverstate){
+static void Sv_SpawnServer(const char *server, sv_state_t serverstate){
 	int i;
 	int mapsize;
 	qboolean reconnect;
@@ -332,7 +332,7 @@ static void Sv_SpawnServer(const char *server, server_state_t serverstate){
  * Entry point for spawning a server on a .bsp or .dem.
  */
 void Sv_Map(const char *level){
-	server_state_t state;
+	sv_state_t state;
 	qboolean exists;
 	int i;
 

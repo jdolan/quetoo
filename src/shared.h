@@ -364,7 +364,7 @@ typedef struct cplane_s {
 typedef struct cmodel_s {
 	vec3_t mins, maxs;
 	vec3_t origin;  // for sounds or lights
-	int headnode;
+	int head_node;
 } cmodel_t;
 
 typedef struct csurface_s {

@@ -144,12 +144,12 @@ static void Pm_ClampVelocity(void){
 static int Pm_StepSlideMove_(void){
 	vec3_t vel, dir, end, planes[MAX_CLIP_PLANES];
 	trace_t trace;
-	int i, j, k, numplanes;
+	int i, j, k, num_planes;
 	float d, time;
 
 	VectorCopy(pml.velocity, vel);
 
-	numplanes = 0;
+	num_planes = 0;
 	time = pml.frametime;
 
 	for(k = 0; k < MAX_CLIP_PLANES; k++){
@@ -181,28 +181,28 @@ static int Pm_StepSlideMove_(void){
 		time -= time * trace.fraction;
 
 		// now slide along the plane
-		VectorCopy(trace.plane.normal, planes[numplanes]);
-		numplanes++;
+		VectorCopy(trace.plane.normal, planes[num_planes]);
+		num_planes++;
 
 		// clip the velocity to all impacted planes
-		for(i = 0; i < numplanes; i++){
+		for(i = 0; i < num_planes; i++){
 
 			Pm_ClipVelocity(pml.velocity, planes[i], pml.velocity);
 
-			for(j = 0; j < numplanes; j++){
+			for(j = 0; j < num_planes; j++){
 				if(j != i){
 					if(DotProduct(pml.velocity, planes[j]) < 0.0)
 						break;  // not ok
 				}
 			}
 
-			if(j == numplanes)
+			if(j == num_planes)
 				break;
 		}
 
-		if(i != numplanes){  // go along this plane
+		if(i != num_planes){  // go along this plane
 		} else {  // go along the crease
-			if(numplanes != 2){
+			if(num_planes != 2){
 				VectorClear(pml.velocity);
 				break;
 			}
@@ -219,7 +219,7 @@ static int Pm_StepSlideMove_(void){
 		}
 	}
 
-	return numplanes;
+	return num_planes;
 }
 
 

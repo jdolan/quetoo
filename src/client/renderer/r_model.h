@@ -30,36 +30,36 @@ typedef struct {
 	vec3_t normal;
 	vec4_t color;
 	int surfaces;
-} mvertex_t;
+} r_bsp_vertex_t;
 
 typedef struct {
 	vec3_t mins, maxs;
 	vec3_t origin;  // for sounds or lights
 	float radius;
-	int headnode;
-	int firstface, numfaces;
-} msubmodel_t;
+	int head_node;
+	int first_face, num_faces;
+} r_bsp_submodel_t;
 
 typedef struct {
 	unsigned short v[2];
-} medge_t;
+} r_bsp_edge_t;
 
-typedef struct mtexinfo_s {
+typedef struct {
 	float vecs[2][4];
 	int flags;
 	int value;
 	char name[32];
-	image_t *image;
-} mtexinfo_t;
+	r_image_t *image;
+} r_bsp_texinfo_t;
 
-typedef struct mflare_s {
+typedef struct {
 	vec3_t origin;
 	float radius;
-	const image_t *image;
+	const r_image_t *image;
 	vec3_t color;
 	float time;
 	float alpha;
-} mflare_t;
+} r_bsp_flare_t;
 
 #define SIDE_FRONT	0
 #define SIDE_BACK	1
@@ -68,7 +68,7 @@ typedef struct mflare_s {
 #define MSURF_PLANEBACK	1
 #define MSURF_LIGHTMAP	2
 
-typedef struct msurface_s {
+typedef struct {
 	int vis_frame;  // PVS frame
 	int frame;  // renderer frame
 	int back_frame;  // back-facing renderer frame
@@ -78,8 +78,8 @@ typedef struct msurface_s {
 	cplane_t *plane;
 	int flags;  // MSURF_ flags
 
-	int firstedge;  // look up in model->surfedges[], negative numbers
-	int numedges;  // are backwards edges
+	int first_edge;  // look up in model->surfedges[], negative numbers
+	int num_edges;  // are backwards edges
 
 	vec3_t mins;
 	vec3_t maxs;
@@ -93,9 +93,9 @@ typedef struct msurface_s {
 
 	GLuint index;  // index into r_worldmodel vertex buffers
 
-	mtexinfo_t *texinfo;  // SURF_ flags
+	r_bsp_texinfo_t *texinfo;  // SURF_ flags
 
-	mflare_t *flare;
+	r_bsp_flare_t *flare;
 
 	int light_s, light_t;  // lightmap texcoords
 	GLuint lightmap_texnum;
@@ -107,14 +107,14 @@ typedef struct msurface_s {
 	vec4_t color;
 
 	int lights;  // bit mask of enabled light sources
-} msurface_t;
+} r_bsp_surface_t;
 
 // surfaces are assigned to arrays based on their primary rendering type
-// and then sorted by world texnum to reduce binds
-typedef struct msurfaces_s {
-	msurface_t **surfaces;
+// and then sorted by world texnum to reduce glBindTexture calls
+typedef struct {
+	r_bsp_surface_t **surfaces;
 	int count;
-} msurfaces_t;
+} r_bsp_surfaces_t;
 
 #define sky_surfaces			sorted_surfaces[0]
 #define opaque_surfaces			sorted_surfaces[1]
@@ -129,57 +129,57 @@ typedef struct msurfaces_s {
 #define NUM_SURFACES_ARRAYS		9
 
 #define R_SurfaceToSurfaces(surfs, surf)\
-		(surfs)->surfaces[(surfs)->count++] = surf
+	(surfs)->surfaces[(surfs)->count++] = surf
 
-typedef struct mnode_s {
+typedef struct r_bsp_node_s {
 	// common with leaf
 	int contents;  // -1, to differentiate from leafs
 	int vis_frame;  // node needs to be traversed if current
 
 	float minmaxs[6];  // for bounding box culling
 
-	struct mnode_s *parent;
-	struct model_s *model;
+	struct r_bsp_node_s *parent;
+	struct r_model_s *model;
 
 	// node specific
 	cplane_t *plane;
-	struct mnode_s *children[2];
+	struct r_bsp_node_s *children[2];
 
-	unsigned short firstsurface;
-	unsigned short numsurfaces;
-} mnode_t;
+	unsigned short first_surface;
+	unsigned short num_surfaces;
+} r_bsp_node_t;
 
-typedef struct mleaf_s {
+typedef struct {
 	// common with node
 	int contents;  // will be a negative contents number
 	int vis_frame;  // node needs to be traversed if current
 
 	float minmaxs[6];  // for bounding box culling
 
-	struct mnode_s *parent;
+	struct r_bsp_node_s *parent;
 	struct model_s *model;
 
 	// leaf specific
 	int cluster;
 	int area;
 
-	msurface_t **firstleafsurface;
-	int numleafsurfaces;
-} mleaf_t;
+	r_bsp_surface_t **first_leaf_surface;
+	int num_leaf_surfaces;
+} r_bsp_leaf_t;
 
 // static light sources from the entities string
-typedef struct mbsplight_s {
+typedef struct {
 	vec3_t org;
 	float radius;
-	const mleaf_t *leaf;
-} mbsplight_t;
+	const r_bsp_leaf_t *leaf;
+} r_bsp_light_t;
 
 
 // md3 model memory representation
-typedef struct mmd3vertex_s {
+typedef struct {
 	vec3_t point;
 	vec3_t normal;
-} mmd3vertex_t;
+} r_md3_vertex_t;
 
 typedef struct {
 	char id[4];
@@ -191,14 +191,14 @@ typedef struct {
 	int num_skins;
 
 	int num_verts;
-	mmd3vertex_t *verts;
-	dmd3coord_t *coords;
+	r_md3_vertex_t *verts;
+	d_md3_texcoord_t *coords;
 
 	int num_tris;
 	unsigned *tris;
-} mmd3mesh_t;
+} r_md3_mesh_t;
 
-typedef struct mmd3_s {
+typedef struct {
 	int id;
 	int version;
 
@@ -207,28 +207,28 @@ typedef struct mmd3_s {
 	int flags;
 
 	int num_frames;
-	dmd3frame_t *frames;
+	d_md3_frame_t *frames;
 
 	int num_tags;
-	dmd3tag_t *tags;
+	d_md3_tag_t *tags;
 
 	int num_meshes;
-	mmd3mesh_t *meshes;
-} mmd3_t;
+	r_md3_mesh_t *meshes;
+} r_md3_t;
 
 
 // object model memory representation
-typedef struct mobjvert_s {
+typedef struct {
 	int vert;
 	int normal;
 	int texcoord;
-} mobjvert_t;
+} r_obj_vert_t;
 
-typedef struct mobjtri_s {
-	mobjvert_t verts[3];
-} mobjtri_t;
+typedef struct {
+	r_obj_vert_t verts[3];
+} r_obj_tri_t;
 
-typedef struct mobj_s {
+typedef struct {
 	int num_verts;
 	int num_verts_parsed;
 	float *verts;
@@ -243,26 +243,26 @@ typedef struct mobj_s {
 
 	int num_tris;
 	int num_tris_parsed;
-	mobjtri_t *tris;
-} mobj_t;
+	r_obj_tri_t *tris;
+} r_obj_t;
 
 
 // shared struct for all model types
 typedef enum {
 	mod_bad, mod_bsp, mod_bsp_submodel, mod_md2, mod_md3, mod_obj
-} modtype_t;
+} r_model_type_t;
 
 // shared mesh configuration
-typedef struct mesh_config_s {
+typedef struct {
 	vec3_t translate;
 	vec3_t scale;
 	int flags;  // EF_ALPHATEST, etc..
 } mesh_config_t;
 
-typedef struct model_s {
+typedef struct r_model_s {
 	char name[MAX_QPATH];
 
-	modtype_t type;
+	r_model_type_t type;
 	int version;
 
 	int num_frames;
@@ -273,57 +273,57 @@ typedef struct model_s {
 	float radius;
 
 	// for bsp models
-	int numsubmodels;
-	msubmodel_t *submodels;
+	int num_submodels;
+	r_bsp_submodel_t *submodels;
 
-	int numplanes;
+	int num_planes;
 	cplane_t *planes;
 
-	int numleafs;
-	mleaf_t *leafs;
+	int num_leafs;
+	r_bsp_leaf_t *leafs;
 
-	int numvertexes;
-	mvertex_t *vertexes;
+	int num_vertexes;
+	r_bsp_vertex_t *vertexes;
 
-	int numedges;
-	medge_t *edges;
+	int num_edges;
+	r_bsp_edge_t *edges;
 
-	int numnodes;
+	int num_nodes;
 	int firstnode;
-	mnode_t *nodes;
+	r_bsp_node_t *nodes;
 
-	int numtexinfo;
-	mtexinfo_t *texinfo;
+	int num_texinfo;
+	r_bsp_texinfo_t *texinfo;
 
-	int numsurfaces;
-	msurface_t *surfaces;
+	int num_surfaces;
+	r_bsp_surface_t *surfaces;
 
-	int numsurfedges;
+	int num_surfedges;
 	int *surfedges;
 
-	int numleafsurfaces;
-	msurface_t **leafsurfaces;
+	int num_leaf_surfaces;
+	r_bsp_surface_t **leafsurfaces;
 
-	int vissize;
-	dvis_t *vis;
+	int vis_size;
+	d_bsp_vis_t *vis;
 
 	int lightmap_scale;
-	int lightdatasize;
-	byte *lightdata;
+	int lightmap_data_size;
+	byte *lightmap_data;
 
-	int numbsplights;
-	mbsplight_t *bsplights;
+	int num_bsp_lights;
+	r_bsp_light_t *bsp_lights;
 
 	// sorted surfaces arrays
-	msurfaces_t *sorted_surfaces[NUM_SURFACES_ARRAYS];
+	r_bsp_surfaces_t *sorted_surfaces[NUM_SURFACES_ARRAYS];
 
-	int firstmodelsurface, nummodelsurfaces;  // for submodels
+	int first_model_surface, num_model_surfaces;  // for submodels
 	int lights;  // bit mask of enabled light sources for submodels
 
-	// for md2/md3 models
-	image_t *skin;
+	// for mesh models
+	r_image_t *skin;
 
-	int vertexcount;
+	int num_verts;  // raw vertex primitive count, used to build arrays
 
 	GLfloat *verts;  // vertex arrays
 	GLfloat *texcoords;
@@ -342,17 +342,17 @@ typedef struct model_s {
 	mesh_config_t *world_config;
 	mesh_config_t *view_config;
 
-	int extradatasize;
-	void *extradata;  // raw model data
-} model_t;
+	int extra_data_size;
+	void *extra_data;  // raw model data
+} r_model_t;
 
 #define MAX_MOD_KNOWN 512
-extern model_t r_models[MAX_MOD_KNOWN];
-extern model_t r_inlinemodels[MAX_MOD_KNOWN];
+extern r_model_t r_models[MAX_MOD_KNOWN];
+extern r_model_t r_inline_models[MAX_MOD_KNOWN];
 
 void *R_HunkAlloc(size_t size);
-void R_AllocVertexArrays(model_t *mod);
-model_t *R_LoadModel(const char *name);
+void R_AllocVertexArrays(r_model_t *mod);
+r_model_t *R_LoadModel(const char *name);
 void R_InitModels(void);
 void R_ShutdownModels(void);
 void R_BeginLoading(const char *map, int mapsize);
@@ -360,11 +360,11 @@ void R_ListModels_f(void);
 void R_HunkStats_f(void);
 
 // r_model_bsp.c
-void R_LoadBspModel(model_t *mod, void *buffer);
+void R_LoadBspModel(r_model_t *mod, void *buffer);
 
 // r_model_mesh.c
-void R_LoadMd2Model(model_t *mod, void *buffer);
-void R_LoadMd3Model(model_t *mod, void *buffer);
-void R_LoadObjModel(model_t *mod, void *buffer);
+void R_LoadMd2Model(r_model_t *mod, void *buffer);
+void R_LoadMd3Model(r_model_t *mod, void *buffer);
+void R_LoadObjModel(r_model_t *mod, void *buffer);
 
 #endif /* __R_MODEL_H__ */

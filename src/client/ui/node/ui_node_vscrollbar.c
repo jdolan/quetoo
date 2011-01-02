@@ -294,7 +294,7 @@ static void MN_VScrollbarNodeDraw (menuNode_t *node)
 	int texX = 0;
 	int texY = 0;
 	const char *texture;
-	const image_t *image;
+	const r_image_t *image;
 
 	MN_GetNodeAbsPos(node, pos);
 	y = pos[1];

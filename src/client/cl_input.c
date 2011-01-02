@@ -508,7 +508,7 @@ static void Cl_HandleEvent(SDL_Event *event){
 					break;
 			}
 
-			if(cls.key_dest == key_menu) {
+			if(cls.key_state.dest == key_menu) {
 				int x, y;
 
 				x = cls.mouse_state.x / r_state.rx;
@@ -581,7 +581,7 @@ static void Cl_MouseMove(int mx, int my){
 	cls.mouse_state.old_y = my;
 
 	// for active, connected players, add it to their move
-	if(cls.state == ca_active && cls.key_dest == key_game){
+	if(cls.state == ca_active && cls.key_state.dest == key_game){
 
 		cls.mouse_state.x -= r_state.width / 2;  // first normalize to center
 		cls.mouse_state.y -= r_state.height / 2;
@@ -597,7 +597,7 @@ static void Cl_MouseMove(int mx, int my){
 		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
 	}
 
-	if(cls.key_dest != key_menu && cls.mouse_state.grabbed){
+	if(cls.key_state.dest != key_menu && cls.mouse_state.grabbed){
 		// warp the cursor back to the center of the screen
 		SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
 	}
@@ -608,7 +608,7 @@ static void Cl_MouseMove(int mx, int my){
  * Cl_HandleEvents
  */
 void Cl_HandleEvents(void){
-	static key_dest_t prev_key_dest;
+	static cl_key_dest_t prev_key_dest;
 	static int throwaway = 0;
 	SDL_Event event;
 	int mx, my;
@@ -627,7 +627,7 @@ void Cl_HandleEvents(void){
 			break;
 	}
 
-	if(cls.key_dest == key_console || cls.key_dest == key_menu){
+	if(cls.key_state.dest == key_console || cls.key_state.dest == key_menu){
 		if(!r_state.fullscreen){
 			// allow cursor to move outside window on console or menu
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
@@ -648,7 +648,7 @@ void Cl_HandleEvents(void){
 			throwaway = 1;
 		}
 	}
-	prev_key_dest = cls.key_dest;
+	prev_key_dest = cls.key_state.dest;
 
 	SDL_GetMouseState(&mx, &my);
 

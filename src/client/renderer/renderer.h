@@ -43,7 +43,7 @@
 #define FOG_START	300.0
 #define FOG_END		2500.0
 
-typedef struct static_lighting_s {
+typedef struct r_lighting_s {
 	vec3_t origin;  // starting point, entity origin
 	vec3_t point;  // impact point, shadow origin
 	vec3_t normal;  // shadow direction
@@ -53,14 +53,14 @@ typedef struct static_lighting_s {
 	vec3_t colors[2];  // lerping color
 	vec3_t positions[2];  // and positions
 	qboolean dirty;  // cache invalidation
-} static_lighting_t;
+} r_lighting_t;
 
 #define MAX_ENTITIES		256
-typedef struct entity_s {
+typedef struct r_entity_s {
 	vec3_t origin;
 	vec3_t angles;
 
-	struct model_s *model;
+	struct r_model_s *model;
 
 	int frame, oldframe;  // frame-based animations
 	float lerp, backlerp;
@@ -68,18 +68,18 @@ typedef struct entity_s {
 	vec3_t scale;  // for mesh models
 
 	int skinnum;  // for masking players and vweaps
-	struct image_s *skin;  // NULL for inline skin
+	struct r_image_s *skin;  // NULL for inline skin
 
 	int flags;  // e.g. EF_ROCKET, EF_WEAPON, ..
 	vec3_t shell;  // shell color
 
-	static_lighting_t *lighting;
+	r_lighting_t *lighting;
 
-	struct entity_s *next;  // for chaining
-} entity_t;
+	struct r_entity_s *next;  // for chaining
+} r_entity_t;
 
-typedef struct particle_s {
-	struct particle_s *next;
+typedef struct r_particle_s {
+	struct r_particle_s *next;
 	float time;
 	vec3_t org;
 	vec3_t end;
@@ -89,7 +89,7 @@ typedef struct particle_s {
 	vec3_t curend;
 	vec3_t dir;
 	float roll;
-	struct image_s *image;
+	struct r_image_s *image;
 	int type;
 	int color;
 	float alpha;
@@ -101,7 +101,7 @@ typedef struct particle_s {
 	float scroll_s;
 	float scroll_t;
 	GLenum blend;
-} particle_t;
+} r_particle_t;
 
 #define MAX_PARTICLES		4096
 
@@ -116,34 +116,34 @@ typedef struct particle_s {
 #define PARTICLE_SPLASH		0x40
 
 // coronas are soft, alpha-blended, rounded polys
-typedef struct corona_s {
+typedef struct r_corona_s {
 	vec3_t org;
 	float radius;
 	vec3_t color;
-} corona_t;
+} r_corona_t;
 
 #define MAX_CORONAS 		128
 
 // lights are dynamic lighting sources
-typedef struct light_s {
+typedef struct r_light_s {
 	vec3_t org;
 	float radius;
 	vec3_t color;
-} light_t;
+} r_light_t;
 
 // sustains are light flashes which slowly decay
-typedef struct sustain_s {
-	light_t light;
+typedef struct r_sustained_light_s {
+	r_light_t light;
 	float time;
 	float sustain;
-} sustain_t;
+} r_sustained_light_t;
 
 // shadows are alpha-blended particles on the X/Y plane
-typedef struct shadow_s {
+typedef struct r_shadow_s {
 	vec3_t org;
 	vec3_t dir;
 	float scale;
-} shadow_t;
+} r_shadow_t;
 
 #define MAX_LIGHTS			32
 #define MAX_ACTIVE_LIGHTS	8
@@ -152,7 +152,7 @@ typedef struct shadow_s {
 #define VID_NORM_HEIGHT 	768
 
 // read-write variables for renderer and client
-typedef struct renderer_view_s {
+typedef struct r_view_s {
 	int x, y, width, height;  // in virtual screen coordinates
 	float fov_x, fov_y;
 
@@ -176,36 +176,36 @@ typedef struct renderer_view_s {
 	vec3_t ambient_light;  // from static lighting
 
 	int num_entities;
-	entity_t entities[MAX_ENTITIES];
+	r_entity_t entities[MAX_ENTITIES];
 
 	int num_particles;
-	particle_t particles[MAX_PARTICLES];
+	r_particle_t particles[MAX_PARTICLES];
 
 	int num_coronas;
-	corona_t coronas[MAX_CORONAS];
+	r_corona_t coronas[MAX_CORONAS];
 
 	int num_lights;
-	light_t lights[MAX_LIGHTS];
+	r_light_t lights[MAX_LIGHTS];
 
-	sustain_t sustains[MAX_LIGHTS];
+	r_sustained_light_t sustains[MAX_LIGHTS];
 
 	int num_shadows;
-	shadow_t shadows[MAX_ENTITIES];
+	r_shadow_t shadows[MAX_ENTITIES];
 
 	trace_t trace;  // occlusion testing
-	entity_t *trace_ent;
+	r_entity_t *trace_ent;
 
 	int bsp_polys;  // counters
 	int mesh_polys;
 
 	qboolean update;  // eligible for update from client
 	qboolean ready;  // eligible for rendering to the client
-} renderer_view_t;
+} r_view_t;
 
-extern renderer_view_t r_view;
+extern r_view_t r_view;
 
 // hardware configuration information
-typedef struct renderer_config_s {
+typedef struct r_config_s {
 	const char *renderer_string;
 	const char *vendor_string;
 	const char *version_string;
@@ -215,12 +215,12 @@ typedef struct renderer_config_s {
 	qboolean shaders;
 
 	int max_texunits;
-} renderer_config_t;
+} r_config_t;
 
-extern renderer_config_t r_config;
+extern r_config_t r_config;
 
 // private renderer variables
-typedef struct renderer_locals_s {
+typedef struct r_locals_s {
 	int cluster;  // PVS at origin
 	int old_cluster;
 
@@ -234,9 +234,9 @@ typedef struct renderer_locals_s {
 	int trace_num;  // lighting traces
 
 	cplane_t frustum[4];  // for box culling
-} renderer_locals_t;
+} r_locals_t;
 
-extern renderer_locals_t r_locals;
+extern r_locals_t r_locals;
 
 extern byte color_white[4];
 extern byte color_black[4];
@@ -298,29 +298,29 @@ extern cvar_t *r_width;
 extern cvar_t *r_windowedheight;
 extern cvar_t *r_windowedwidth;
 
-extern model_t *r_worldmodel;
-extern model_t *r_loadmodel;
+extern r_model_t *r_worldmodel;
+extern r_model_t *r_loadmodel;
 
 // rendermode function pointers
-extern void (*R_DrawOpaqueSurfaces)(msurfaces_t *surfs);
-extern void (*R_DrawOpaqueWarpSurfaces)(msurfaces_t *surfs);
-extern void (*R_DrawAlphaTestSurfaces)(msurfaces_t *surfs);
-extern void (*R_DrawBlendSurfaces)(msurfaces_t *surfs);
-extern void (*R_DrawBlendWarpSurfaces)(msurfaces_t *surfs);
-extern void (*R_DrawBackSurfaces)(msurfaces_t *surfs);
-extern void (*R_DrawMeshModel)(entity_t *e);
+extern void (*R_DrawOpaqueSurfaces)(r_bsp_surfaces_t *surfs);
+extern void (*R_DrawOpaqueWarpSurfaces)(r_bsp_surfaces_t *surfs);
+extern void (*R_DrawAlphaTestSurfaces)(r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBlendSurfaces)(r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBlendWarpSurfaces)(r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBackSurfaces)(r_bsp_surfaces_t *surfs);
+extern void (*R_DrawMeshModel)(r_entity_t *e);
 
 // r_array.c
-void R_SetArrayState(const model_t *mod);
+void R_SetArrayState(const r_model_t *mod);
 void R_ResetArrayState(void);
 
 // r_bsp.c
 qboolean R_CullBox(const vec3_t mins, const vec3_t maxs);
-qboolean R_CullBspModel(const entity_t *e);
-void R_DrawBspModel(const entity_t *e);
+qboolean R_CullBspModel(const r_entity_t *e);
+void R_DrawBspModel(const r_entity_t *e);
 void R_DrawBspNormals(void);
 void R_MarkSurfaces(void);
-const mleaf_t *R_LeafForPoint(const vec3_t p, const model_t *model);
+const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model);
 void R_MarkLeafs(void);
 
 // r_capture.c
@@ -340,7 +340,7 @@ void R_DrawCoronas(void);
 // r_draw.c
 void R_InitDraw(void);
 void R_FreePics(void);
-image_t *R_LoadPic(const char *name);
+r_image_t *R_LoadPic(const char *name);
 void R_DrawScaledPic(int x, int y, float scale, const char *name);
 void R_DrawPic(int x, int y, const char *name);
 void R_DrawCursor(int x, int y);
@@ -356,14 +356,14 @@ void R_DrawLine(int x1, int y1, int x2, int y2, int c, float a);
 void R_DrawLines(void);
 
 // r_entity.c
-void R_AddEntity(const entity_t *e);
-void R_RotateForEntity(const entity_t *e);
-void R_TransformForEntity(const entity_t *e, const vec3_t in, vec3_t out);
+void R_AddEntity(const r_entity_t *e);
+void R_RotateForEntity(const r_entity_t *e);
+void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out);
 void R_DrawEntities(void);
 
 // r_flare.c
-void R_CreateSurfaceFlare(msurface_t *surf);
-void R_DrawFlareSurfaces(msurfaces_t *surfs);
+void R_CreateSurfaceFlare(r_bsp_surface_t *surf);
+void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs);
 
 // r_light.c
 void R_AddLight(const vec3_t org, float radius, const vec3_t color);
@@ -374,7 +374,7 @@ void R_EnableLights(int mask);
 void R_EnableLightsByRadius(const vec3_t p);
 
 // r_lightmap.c
-typedef struct lightmaps_s {
+typedef struct r_lightmaps_s {
 	GLuint lightmap_texnum;
 	GLuint deluxemap_texnum;
 
@@ -385,14 +385,14 @@ typedef struct lightmaps_s {
 	byte *direction_buffer;
 
 	float fbuffer[MAX_BSP_LIGHTMAP * 3];  // RGB buffer for bsp loading
-} lightmaps_t;
+} r_lightmaps_t;
 
-extern lightmaps_t r_lightmaps;
+extern r_lightmaps_t r_lightmaps;
 
 void R_BeginBuildingLightmaps(void);
-void R_CreateSurfaceLightmap(msurface_t *surf);
+void R_CreateSurfaceLightmap(r_bsp_surface_t *surf);
 void R_EndBuildingLightmaps(void);
-void R_LightPoint(const vec3_t point, static_lighting_t *lighting);
+void R_UpdateLighting(const vec3_t point, r_lighting_t *lighting);
 
 // r_main.c
 void R_Trace(const vec3_t start, const vec3_t end, float size, int mask);
@@ -407,19 +407,19 @@ void R_Restart_f(void);
 qboolean R_SetMode(void);
 
 // r_material.c
-void R_DrawMaterialSurfaces(msurfaces_t *surfs);
+void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs);
 void R_LoadMaterials(const char *map);
 
 // r_mesh.c
 extern vec3_t r_mesh_verts[MD3_MAX_VERTS];
 extern vec3_t r_mesh_norms[MD3_MAX_VERTS];
-void R_ApplyMeshModelConfig(entity_t *e);
-qboolean R_CullMeshModel(const entity_t *e);
-void R_DrawMeshModel_default(entity_t *e);
+void R_ApplyMeshModelConfig(r_entity_t *e);
+qboolean R_CullMeshModel(const r_entity_t *e);
+void R_DrawMeshModel_default(r_entity_t *e);
 void R_DrawMeshShadows(void);
 
 // r_particle.c
-void R_AddParticle(particle_t *p);
+void R_AddParticle(r_particle_t *p);
 void R_DrawParticles(void);
 
 // r_sky.c
@@ -428,18 +428,18 @@ void R_DrawSkyBox(void);
 void R_SetSky(char *name);
 
 // r_surface.c
-void R_DrawOpaqueSurfaces_default(msurfaces_t *surfs);
-void R_DrawOpaqueWarpSurfaces_default(msurfaces_t *surfs);
-void R_DrawAlphaTestSurfaces_default(msurfaces_t *surfs);
-void R_DrawBlendSurfaces_default(msurfaces_t *surfs);
-void R_DrawBlendWarpSurfaces_default(msurfaces_t *surfs);
-void R_DrawBackSurfaces_default(msurfaces_t *surfs);
+void R_DrawOpaqueSurfaces_default(r_bsp_surfaces_t *surfs);
+void R_DrawOpaqueWarpSurfaces_default(r_bsp_surfaces_t *surfs);
+void R_DrawAlphaTestSurfaces_default(r_bsp_surfaces_t *surfs);
+void R_DrawBlendSurfaces_default(r_bsp_surfaces_t *surfs);
+void R_DrawBlendWarpSurfaces_default(r_bsp_surfaces_t *surfs);
+void R_DrawBackSurfaces_default(r_bsp_surfaces_t *surfs);
 
 // r_surface_pro.c
-void R_DrawOpaqueSurfaces_pro(msurfaces_t *surfs);
-void R_DrawAlphaTestSurfaces_pro(msurfaces_t *surfs);
-void R_DrawBlendSurfaces_pro(msurfaces_t *surfs);
-void R_DrawBackSurfaces_pro(msurfaces_t *surfs);
+void R_DrawOpaqueSurfaces_pro(r_bsp_surfaces_t *surfs);
+void R_DrawAlphaTestSurfaces_pro(r_bsp_surfaces_t *surfs);
+void R_DrawBlendSurfaces_pro(r_bsp_surfaces_t *surfs);
+void R_DrawBackSurfaces_pro(r_bsp_surfaces_t *surfs);
 
 // r_thread.c
 typedef enum {
@@ -447,21 +447,21 @@ typedef enum {
 	THREAD_IDLE,
 	THREAD_WAIT,
 	THREAD_RUN,
-} threadstate_t;
+} r_threadstate_t;
 
-typedef struct renderer_thread_s {
+typedef struct r_thread_s {
 	char name[32];
 	SDL_Thread *thread;
-	threadstate_t state;
+	r_threadstate_t state;
 	int wait_count;
-} renderer_thread_t;
+} r_thread_t;
 
-extern renderer_thread_t r_threadpool[2];
+extern r_thread_t r_threadpool[2];
 
 #define r_bsp_thread r_threadpool[0]
 #define r_capture_thread r_threadpool[1]
 
-void R_WaitForThread(renderer_thread_t *t);
+void R_WaitForThread(r_thread_t *t);
 void R_UpdateThreads(int mask);
 void R_ShutdownThreads(void);
 void R_InitThreads(void);

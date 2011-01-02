@@ -27,16 +27,16 @@
 
 #include "client.h"
 
-renderer_view_t r_view;
+r_view_t r_view;
 
-renderer_locals_t r_locals;
+r_locals_t r_locals;
 
-renderer_config_t r_config;
+r_config_t r_config;
 
 renderer_state_t r_state;
 
-model_t *r_worldmodel;
-model_t *r_loadmodel;
+r_model_t *r_worldmodel;
+r_model_t *r_loadmodel;
 
 byte color_white[4] = {255, 255, 255, 255};
 byte color_black[4] = {0, 0, 0, 128};
@@ -130,13 +130,13 @@ void (APIENTRY *qglUniform3fv)(GLint location, int count, GLfloat *f);
 void (APIENTRY *qglUniform4fv)(GLint location, int count, GLfloat *f);
 GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
-void (*R_DrawOpaqueSurfaces)(msurfaces_t *surfs);
-void (*R_DrawOpaqueWarpSurfaces)(msurfaces_t *surfs);
-void (*R_DrawAlphaTestSurfaces)(msurfaces_t *surfs);
-void (*R_DrawBlendSurfaces)(msurfaces_t *surfs);
-void (*R_DrawBlendWarpSurfaces)(msurfaces_t *surfs);
-void (*R_DrawBackSurfaces)(msurfaces_t *surfs);
-void (*R_DrawMeshModel)(entity_t *e);
+void (*R_DrawOpaqueSurfaces)(r_bsp_surfaces_t *surfs);
+void (*R_DrawOpaqueWarpSurfaces)(r_bsp_surfaces_t *surfs);
+void (*R_DrawAlphaTestSurfaces)(r_bsp_surfaces_t *surfs);
+void (*R_DrawBlendSurfaces)(r_bsp_surfaces_t *surfs);
+void (*R_DrawBlendWarpSurfaces)(r_bsp_surfaces_t *surfs);
+void (*R_DrawBackSurfaces)(r_bsp_surfaces_t *surfs);
+void (*R_DrawMeshModel)(r_entity_t *e);
 
 /*
  * R_Trace
@@ -167,8 +167,8 @@ void R_Trace(const vec3_t start, const vec3_t end, float size, int mask){
 	// check bsp models
 	for(i = 0; i < r_view.num_entities; i++){
 
-		entity_t *ent = &r_view.entities[i];
-		const model_t *m = ent->model;
+		r_entity_t *ent = &r_view.entities[i];
+		const r_model_t *m = ent->model;
 
 		if(!m || m->type != mod_bsp_submodel)
 			continue;
@@ -512,7 +512,7 @@ void R_LoadMedia(void){
 	R_BeginLoading(cl.configstrings[CS_MODELS + 1], atoi(cl.configstrings[CS_MAPSIZE]));
 	Cl_LoadProgress(50);
 
-	num_cl_weaponmodels = j = 0;
+	cl.num_weaponmodels = j = 0;
 
 	// models, including bsp submodels and client weapon models
 	for(i = 1; i < MAX_MODELS && cl.configstrings[CS_MODELS + i][0]; i++){
@@ -520,10 +520,10 @@ void R_LoadMedia(void){
 		strncpy(name, cl.configstrings[CS_MODELS + i], sizeof(name) - 1);
 
 		if(name[0] == '#'){  // hack to retrieve client weapon models from server
-			if(num_cl_weaponmodels < MAX_CLIENTWEAPONMODELS){
-				strncpy(cl_weaponmodels[num_cl_weaponmodels], cl.configstrings[CS_MODELS + i] + 1,
-						sizeof(cl_weaponmodels[num_cl_weaponmodels]) - 1);
-				num_cl_weaponmodels++;
+			if(cl.num_weaponmodels < MAX_WEAPONMODELS){
+				strncpy(cl.weaponmodels[cl.num_weaponmodels], cl.configstrings[CS_MODELS + i] + 1,
+						sizeof(cl.weaponmodels[cl.num_weaponmodels]) - 1);
+				cl.num_weaponmodels++;
 			}
 			continue;
 		}

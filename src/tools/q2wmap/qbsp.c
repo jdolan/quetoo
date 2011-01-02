@@ -59,7 +59,7 @@ static node_t *BlockTree(int xl, int yl, int xh, int yh){
 		node = block_nodes[xl + 5][yl + 5];
 		if(!node){					 // return an empty leaf
 			node = AllocNode();
-			node->planenum = PLANENUM_LEAF;
+			node->plane_num = PLANENUM_LEAF;
 			node->contents = 0;	  //CONTENTS_SOLID;
 			return node;
 		}
@@ -74,7 +74,7 @@ static node_t *BlockTree(int xl, int yl, int xh, int yh){
 		normal[1] = 0;
 		normal[2] = 0;
 		dist = mid * 1024;
-		node->planenum = FindFloatPlane(normal, dist);
+		node->plane_num = FindFloatPlane(normal, dist);
 		node->children[0] = BlockTree(mid, yl, xh, yh);
 		node->children[1] = BlockTree(xl, yl, mid - 1, yh);
 	} else {
@@ -83,7 +83,7 @@ static node_t *BlockTree(int xl, int yl, int xh, int yh){
 		normal[1] = 1;
 		normal[2] = 0;
 		dist = mid * 1024;
-		node->planenum = FindFloatPlane(normal, dist);
+		node->plane_num = FindFloatPlane(normal, dist);
 		node->children[0] = BlockTree(xl, mid, xh, yh);
 		node->children[1] = BlockTree(xl, yl, xh, mid - 1);
 	}
@@ -122,7 +122,7 @@ static void ProcessBlock_Thread(int blocknum){
 	brushes = MakeBspBrushList(brush_start, brush_end, mins, maxs);
 	if(!brushes){
 		node = AllocNode();
-		node->planenum = PLANENUM_LEAF;
+		node->plane_num = PLANENUM_LEAF;
 		node->contents = CONTENTS_SOLID;
 		block_nodes[xblock + 5][yblock + 5] = node;
 		ThreadUnlock();
@@ -136,7 +136,7 @@ static void ProcessBlock_Thread(int blocknum){
 	tree = BrushBSP(brushes, mins, maxs);
 
 	ThreadUnlock();
-	block_nodes[xblock + 5][yblock + 5] = tree->headnode;
+	block_nodes[xblock + 5][yblock + 5] = tree->head_node;
 }
 
 
@@ -187,7 +187,7 @@ static void ProcessWorldModel(void){
 		Com_Verbose("--------------------------------------------\n");
 
 		tree = AllocTree();
-		tree->headnode = BlockTree(block_xl - 1, block_yl - 1, block_xh + 1, block_yh + 1);
+		tree->head_node = BlockTree(block_xl - 1, block_yl - 1, block_xh + 1, block_yh + 1);
 
 		tree->mins[0] = (block_xl) * 1024;
 		tree->mins[1] = (block_yl) * 1024;
@@ -201,7 +201,7 @@ static void ProcessWorldModel(void){
 		MakeTreePortals(tree);
 
 		if(FloodEntities(tree))
-			FillOutside(tree->headnode);
+			FillOutside(tree->head_node);
 		else {
 			leaked = true;
 			LeakFile(tree);
@@ -222,13 +222,13 @@ static void ProcessWorldModel(void){
 	}
 
 	FloodAreas(tree);
-	MakeFaces(tree->headnode);
-	FixTjuncs(tree->headnode);
+	MakeFaces(tree->head_node);
+	FixTjuncs(tree->head_node);
 
 	if(!noprune)
-		PruneNodes(tree->headnode);
+		PruneNodes(tree->head_node);
 
-	WriteBSP(tree->headnode);
+	WriteBSP(tree->head_node);
 
 	if(!leaked)
 		WritePortalFile(tree);
@@ -260,9 +260,9 @@ static void ProcessSubModel(void){
 	tree = BrushBSP(list, mins, maxs);
 	MakeTreePortals(tree);
 	MarkVisibleSides(tree, start, end);
-	MakeFaces(tree->headnode);
-	FixTjuncs(tree->headnode);
-	WriteBSP(tree->headnode);
+	MakeFaces(tree->head_node);
+	FixTjuncs(tree->head_node);
+	WriteBSP(tree->head_node);
 	FreeTree(tree);
 }
 

@@ -462,7 +462,7 @@ static crosshair_t crosshair;
  * Cl_DrawCrosshair
  */
 static void Cl_DrawCrosshair(void){
-	image_t *image;
+	r_image_t *image;
 	int w, h, c;
 
 	if(!cl_crosshair->value)
@@ -547,7 +547,7 @@ static void Cl_DrawLayout(void){
 	if(!cl.frame.playerstate.stats[STAT_LAYOUTS])
 		return;
 
-	if(cls.key_dest == key_console || cls.key_dest == key_menu)
+	if(cls.key_state.dest == key_console || cls.key_state.dest == key_menu)
 		return;
 
 	Cl_ExecuteLayoutString(cl.layout);
@@ -663,7 +663,7 @@ static void Cl_DrawBlend(void){
  */
 static void Cl_DrawMenus(void){
 
-	if(cls.key_dest != key_menu)
+	if(cls.key_state.dest != key_menu)
 		return;
 
 	MN_Draw();
@@ -674,7 +674,7 @@ static void Cl_DrawMenus(void){
  */
 static void Cl_DrawCursor(void){
 
-	if(cls.key_dest != key_menu && cls.mouse_state.grabbed)
+	if(cls.key_state.dest != key_menu && cls.mouse_state.grabbed)
 		return;
 
 	if(!(SDL_GetAppState() & SDL_APPMOUSEFOCUS))
@@ -703,7 +703,7 @@ void Cl_UpdateScreen(void){
 
 		R_Setup2D();
 
-		if(cls.key_dest != key_console && cls.key_dest != key_menu){
+		if(cls.key_state.dest != key_console && cls.key_state.dest != key_menu){
 
 			Cl_DrawTeamBanner();
 

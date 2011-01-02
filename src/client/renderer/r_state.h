@@ -76,7 +76,7 @@ typedef struct renderer_state_s {
 	r_program_t *pro_program;
 	r_program_t *active_program;
 
-	material_t *active_material;
+	r_material_t *active_material;
 
 	qboolean color_array_enabled;
 	qboolean alpha_test_enabled;
@@ -111,7 +111,7 @@ void R_EnableAlphaTest(qboolean enable);
 void R_EnableTexture(r_texunit_t *texunit, qboolean enable);
 void R_EnableColorArray(qboolean enable);
 void R_EnableLighting(r_program_t *program, qboolean enable);
-void R_EnableBumpmap(material_t *material, qboolean enable);
+void R_EnableBumpmap(r_material_t *material, qboolean enable);
 void R_EnableWarp(r_program_t *program, qboolean enable);
 void R_EnableShell(qboolean enable);
 void R_EnableFog(qboolean enable);

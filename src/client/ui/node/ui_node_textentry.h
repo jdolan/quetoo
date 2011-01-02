@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "ui_nodes.h"
 
 /**
- * @brief extradata for the textentry, to custom draw and behaviour
+ * @brief extra_data for the textentry, to custom draw and behaviour
  */
 typedef struct textEntryExtraData_s {
 	qboolean isPassword;	/**< Display '*' instead of the real text */

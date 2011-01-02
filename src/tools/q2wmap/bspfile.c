@@ -26,62 +26,62 @@ void GetLeafNums(void);
 
 
 int nummodels;
-dbspmodel_t dmodels[MAX_BSP_MODELS];
+d_bsp_model_t dmodels[MAX_BSP_MODELS];
 
 int visdatasize;
 byte dvisdata[MAX_BSP_VISIBILITY];
-dvis_t *dvis = (dvis_t *)dvisdata;
+d_bsp_vis_t *dvis = (d_bsp_vis_t *)dvisdata;
 
-int lightdatasize;
-byte dlightdata[MAX_BSP_LIGHTING];
+int lightmap_data_size;
+byte dlightmap_data[MAX_BSP_LIGHTING];
 
 int entdatasize;
 char dentdata[MAX_BSP_ENTSTRING];
 
-int numleafs;
-dleaf_t dleafs[MAX_BSP_LEAFS];
+int num_leafs;
+d_bsp_leaf_t dleafs[MAX_BSP_LEAFS];
 
-int numplanes;
-dplane_t dplanes[MAX_BSP_PLANES];
+int num_planes;
+d_bsp_plane_t dplanes[MAX_BSP_PLANES];
 
-int numvertexes;
-dbspvertex_t dvertexes[MAX_BSP_VERTS];
+int num_vertexes;
+d_bsp_vertex_t dvertexes[MAX_BSP_VERTS];
 
 int numnormals;
-dbspnormal_t dnormals[MAX_BSP_VERTS];
+d_bsp_normal_t dnormals[MAX_BSP_VERTS];
 
-int numnodes;
-dnode_t dnodes[MAX_BSP_NODES];
+int num_nodes;
+d_bsp_node_t dnodes[MAX_BSP_NODES];
 
-int numtexinfo;
-dtexinfo_t texinfo[MAX_BSP_TEXINFO];
+int num_texinfo;
+d_bsp_texinfo_t texinfo[MAX_BSP_TEXINFO];
 
-int numfaces;
-dface_t dfaces[MAX_BSP_FACES];
+int num_faces;
+d_bsp_face_t dfaces[MAX_BSP_FACES];
 
-int numedges;
-dedge_t dedges[MAX_BSP_EDGES];
+int num_edges;
+d_bsp_edge_t dedges[MAX_BSP_EDGES];
 
-int numleaffaces;
+int num_leaf_faces;
 unsigned short dleaffaces[MAX_BSP_LEAFFACES];
 
-int numleafbrushes;
+int num_leaf_brushes;
 unsigned short dleafbrushes[MAX_BSP_LEAFBRUSHES];
 
-int numsurfedges;
+int num_surfedges;
 int dsurfedges[MAX_BSP_SURFEDGES];
 
 int numareas;
-darea_t dareas[MAX_BSP_AREAS];
+d_bsp_area_t dareas[MAX_BSP_AREAS];
 
-int numareaportals;
-dareaportal_t dareaportals[MAX_BSP_AREAPORTALS];
+int num_area_portals;
+d_bsp_area_portal_t dareaportals[MAX_BSP_AREAPORTALS];
 
 int numbrushes;
-dbrush_t dbrushes[MAX_BSP_BRUSHES];
+d_bsp_brush_t dbrushes[MAX_BSP_BRUSHES];
 
 int numbrushsides;
-dbrushside_t dbrushsides[MAX_BSP_BRUSHSIDES];
+d_bsp_brush_side_t dbrushsides[MAX_BSP_BRUSHSIDES];
 
 byte dpop[256];
 
@@ -96,7 +96,7 @@ int CompressVis(byte *vis, byte *dest){
 	byte *dest_p;
 
 	dest_p = dest;
-	visrow = (dvis->numclusters + 7) >> 3;
+	visrow = (dvis->num_clusters + 7) >> 3;
 
 	for(j=0 ; j<visrow ; j++){
 		*dest_p++ = vis[j];
@@ -125,7 +125,7 @@ void DecompressVis(byte *in, byte *decompressed){
 	byte *out;
 	int row;
 
-	row = (dvis->numclusters + 7) >> 3;
+	row = (dvis->num_clusters + 7) >> 3;
 	out = decompressed;
 
 	do {
@@ -156,11 +156,11 @@ static void SwapBSPFile(qboolean todisk){
 
 	// models
 	for(i = 0; i < nummodels; i++){
-		dbspmodel_t *d = &dmodels[i];
+		d_bsp_model_t *d = &dmodels[i];
 
-		d->firstface = LittleLong(d->firstface);
-		d->numfaces = LittleLong(d->numfaces);
-		d->headnode = LittleLong(d->headnode);
+		d->first_face = LittleLong(d->first_face);
+		d->num_faces = LittleLong(d->num_faces);
+		d->head_node = LittleLong(d->head_node);
 
 		for(j = 0; j < 3; j++){
 			d->mins[j] = LittleFloat(d->mins[j]);
@@ -170,13 +170,13 @@ static void SwapBSPFile(qboolean todisk){
 	}
 
 	// vertexes
-	for(i = 0; i < numvertexes; i++){
+	for(i = 0; i < num_vertexes; i++){
 		for(j = 0; j < 3; j++)
 			dvertexes[i].point[j] = LittleFloat(dvertexes[i].point[j]);
 	}
 
 	// planes
-	for(i = 0; i < numplanes; i++){
+	for(i = 0; i < num_planes; i++){
 		for(j = 0; j < 3; j++)
 			dplanes[i].normal[j] = LittleFloat(dplanes[i].normal[j]);
 		dplanes[i].dist = LittleFloat(dplanes[i].dist);
@@ -184,39 +184,39 @@ static void SwapBSPFile(qboolean todisk){
 	}
 
 	// texinfos
-	for(i = 0; i < numtexinfo; i++){
+	for(i = 0; i < num_texinfo; i++){
 		for(j = 0; j < 8; j++)
 			texinfo[i].vecs[0][j] = LittleFloat(texinfo[i].vecs[0][j]);
 		texinfo[i].flags = LittleLong(texinfo[i].flags);
 		texinfo[i].value = LittleLong(texinfo[i].value);
-		texinfo[i].nexttexinfo = LittleLong(texinfo[i].nexttexinfo);
+		texinfo[i].next_texinfo = LittleLong(texinfo[i].next_texinfo);
 	}
 
 	// faces
-	for(i = 0; i < numfaces; i++){
+	for(i = 0; i < num_faces; i++){
 		dfaces[i].texinfo = LittleShort(dfaces[i].texinfo);
-		dfaces[i].planenum = LittleShort(dfaces[i].planenum);
+		dfaces[i].plane_num = LittleShort(dfaces[i].plane_num);
 		dfaces[i].side = LittleShort(dfaces[i].side);
-		dfaces[i].lightofs = LittleLong(dfaces[i].lightofs);
-		dfaces[i].firstedge = LittleLong(dfaces[i].firstedge);
-		dfaces[i].numedges = LittleShort(dfaces[i].numedges);
+		dfaces[i].light_ofs = LittleLong(dfaces[i].light_ofs);
+		dfaces[i].first_edge = LittleLong(dfaces[i].first_edge);
+		dfaces[i].num_edges = LittleShort(dfaces[i].num_edges);
 	}
 
 	// nodes
-	for(i = 0; i < numnodes; i++){
-		dnodes[i].planenum = LittleLong(dnodes[i].planenum);
+	for(i = 0; i < num_nodes; i++){
+		dnodes[i].plane_num = LittleLong(dnodes[i].plane_num);
 		for(j = 0; j < 3; j++){
 			dnodes[i].mins[j] = LittleShort(dnodes[i].mins[j]);
 			dnodes[i].maxs[j] = LittleShort(dnodes[i].maxs[j]);
 		}
 		dnodes[i].children[0] = LittleLong(dnodes[i].children[0]);
 		dnodes[i].children[1] = LittleLong(dnodes[i].children[1]);
-		dnodes[i].firstface = LittleShort(dnodes[i].firstface);
-		dnodes[i].numfaces = LittleShort(dnodes[i].numfaces);
+		dnodes[i].first_face = LittleShort(dnodes[i].first_face);
+		dnodes[i].num_faces = LittleShort(dnodes[i].num_faces);
 	}
 
 	// leafs
-	for(i = 0; i < numleafs; i++){
+	for(i = 0; i < num_leafs; i++){
 		dleafs[i].contents = LittleLong(dleafs[i].contents);
 		dleafs[i].cluster = LittleShort(dleafs[i].cluster);
 		dleafs[i].area = LittleShort(dleafs[i].area);
@@ -225,26 +225,26 @@ static void SwapBSPFile(qboolean todisk){
 			dleafs[i].maxs[j] = LittleShort(dleafs[i].maxs[j]);
 		}
 
-		dleafs[i].firstleafface = LittleShort(dleafs[i].firstleafface);
-		dleafs[i].numleaffaces = LittleShort(dleafs[i].numleaffaces);
-		dleafs[i].firstleafbrush = LittleShort(dleafs[i].firstleafbrush);
-		dleafs[i].numleafbrushes = LittleShort(dleafs[i].numleafbrushes);
+		dleafs[i].first_leaf_face = LittleShort(dleafs[i].first_leaf_face);
+		dleafs[i].num_leaf_faces = LittleShort(dleafs[i].num_leaf_faces);
+		dleafs[i].first_leaf_brush = LittleShort(dleafs[i].first_leaf_brush);
+		dleafs[i].num_leaf_brushes = LittleShort(dleafs[i].num_leaf_brushes);
 	}
 
 	// leaffaces
-	for(i = 0; i < numleaffaces; i++)
+	for(i = 0; i < num_leaf_faces; i++)
 		dleaffaces[i] = LittleShort(dleaffaces[i]);
 
 	// leafbrushes
-	for(i = 0; i < numleafbrushes; i++)
+	for(i = 0; i < num_leaf_brushes; i++)
 		dleafbrushes[i] = LittleShort(dleafbrushes[i]);
 
 	// surfedges
-	for(i = 0; i < numsurfedges; i++)
+	for(i = 0; i < num_surfedges; i++)
 		dsurfedges[i] = LittleLong(dsurfedges[i]);
 
 	// edges
-	for(i = 0; i < numedges; i++){
+	for(i = 0; i < num_edges; i++){
 		dedges[i].v[0] = LittleShort(dedges[i].v[0]);
 		dedges[i].v[1] = LittleShort(dedges[i].v[1]);
 	}
@@ -258,42 +258,42 @@ static void SwapBSPFile(qboolean todisk){
 
 	// areas
 	for(i = 0; i < numareas; i++){
-		dareas[i].numareaportals = LittleLong(dareas[i].numareaportals);
-		dareas[i].firstareaportal = LittleLong(dareas[i].firstareaportal);
+		dareas[i].num_area_portals = LittleLong(dareas[i].num_area_portals);
+		dareas[i].first_area_portal = LittleLong(dareas[i].first_area_portal);
 	}
 
 	// areasportals
-	for(i = 0; i < numareaportals; i++){
-		dareaportals[i].portalnum = LittleLong(dareaportals[i].portalnum);
-		dareaportals[i].otherarea = LittleLong(dareaportals[i].otherarea);
+	for(i = 0; i < num_area_portals; i++){
+		dareaportals[i].portal_num = LittleLong(dareaportals[i].portal_num);
+		dareaportals[i].other_area = LittleLong(dareaportals[i].other_area);
 	}
 
 	// brushsides
 	for(i = 0; i < numbrushsides; i++){
-		dbrushsides[i].planenum = LittleShort(dbrushsides[i].planenum);
-		dbrushsides[i].surfnum = LittleShort(dbrushsides[i].surfnum);
+		dbrushsides[i].plane_num = LittleShort(dbrushsides[i].plane_num);
+		dbrushsides[i].surf_num = LittleShort(dbrushsides[i].surf_num);
 	}
 
 	// visibility
 	if(todisk)
-		j = dvis->numclusters;
+		j = dvis->num_clusters;
 	else
-		j = LittleLong(dvis->numclusters);
-	dvis->numclusters = LittleLong(dvis->numclusters);
+		j = LittleLong(dvis->num_clusters);
+	dvis->num_clusters = LittleLong(dvis->num_clusters);
 	for(i = 0; i < j; i++){
-		dvis->bitofs[i][0] = LittleLong(dvis->bitofs[i][0]);
-		dvis->bitofs[i][1] = LittleLong(dvis->bitofs[i][1]);
+		dvis->bit_ofs[i][0] = LittleLong(dvis->bit_ofs[i][0]);
+		dvis->bit_ofs[i][1] = LittleLong(dvis->bit_ofs[i][1]);
 	}
 }
 
 
-static dbspheader_t *header;
+static d_bsp_header_t *header;
 
 static int CopyLump(int lump, void *dest, int size){
 	int length, ofs;
 
-	length = header->lumps[lump].filelen;
-	ofs = header->lumps[lump].fileofs;
+	length = header->lumps[lump].file_len;
+	ofs = header->lumps[lump].file_ofs;
 
 	if(length % size)
 		Com_Error(ERR_FATAL, "LoadBSPFile: odd lump size\n");
@@ -315,7 +315,7 @@ void LoadBSPFile(char *filename){
 		Com_Error(ERR_FATAL, "Failed to open %s\n", filename);
 
 	// swap the header
-	for(i = 0; i < sizeof(dbspheader_t) / 4; i++)
+	for(i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
 		((int *)header)[i] = LittleLong(((int *)header)[i]);
 
 	if(header->ident != BSP_HEADER)
@@ -324,31 +324,31 @@ void LoadBSPFile(char *filename){
 	if(header->version != BSP_VERSION && header->version != BSP_VERSION_)
 		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", filename, header->version);
 
-	nummodels = CopyLump(LUMP_MODELS, dmodels, sizeof(dbspmodel_t));
-	numvertexes = CopyLump(LUMP_VERTEXES, dvertexes, sizeof(dbspvertex_t));
+	nummodels = CopyLump(LUMP_MODELS, dmodels, sizeof(d_bsp_model_t));
+	num_vertexes = CopyLump(LUMP_VERTEXES, dvertexes, sizeof(d_bsp_vertex_t));
 
 	memset(dnormals, 0, sizeof(dnormals));
-	numnormals = numvertexes;
+	numnormals = num_vertexes;
 
 	if(header->version == BSP_VERSION_)  // enhanced format
-		numnormals = CopyLump(LUMP_NORMALS, dnormals, sizeof(dbspnormal_t));
+		numnormals = CopyLump(LUMP_NORMALS, dnormals, sizeof(d_bsp_normal_t));
 
-	numplanes = CopyLump(LUMP_PLANES, dplanes, sizeof(dplane_t));
-	numleafs = CopyLump(LUMP_LEAFS, dleafs, sizeof(dleaf_t));
-	numnodes = CopyLump(LUMP_NODES, dnodes, sizeof(dnode_t));
-	numtexinfo = CopyLump(LUMP_TEXINFO, texinfo, sizeof(dtexinfo_t));
-	numfaces = CopyLump(LUMP_FACES, dfaces, sizeof(dface_t));
-	numleaffaces = CopyLump(LUMP_LEAFFACES, dleaffaces, sizeof(dleaffaces[0]));
-	numleafbrushes = CopyLump(LUMP_LEAFBRUSHES, dleafbrushes, sizeof(dleafbrushes[0]));
-	numsurfedges = CopyLump(LUMP_SURFEDGES, dsurfedges, sizeof(dsurfedges[0]));
-	numedges = CopyLump(LUMP_EDGES, dedges, sizeof(dedge_t));
-	numbrushes = CopyLump(LUMP_BRUSHES, dbrushes, sizeof(dbrush_t));
-	numbrushsides = CopyLump(LUMP_BRUSHSIDES, dbrushsides, sizeof(dbrushside_t));
-	numareas = CopyLump(LUMP_AREAS, dareas, sizeof(darea_t));
-	numareaportals = CopyLump(LUMP_AREAPORTALS, dareaportals, sizeof(dareaportal_t));
+	num_planes = CopyLump(LUMP_PLANES, dplanes, sizeof(d_bsp_plane_t));
+	num_leafs = CopyLump(LUMP_LEAFS, dleafs, sizeof(d_bsp_leaf_t));
+	num_nodes = CopyLump(LUMP_NODES, dnodes, sizeof(d_bsp_node_t));
+	num_texinfo = CopyLump(LUMP_TEXINFO, texinfo, sizeof(d_bsp_texinfo_t));
+	num_faces = CopyLump(LUMP_FACES, dfaces, sizeof(d_bsp_face_t));
+	num_leaf_faces = CopyLump(LUMP_LEAFFACES, dleaffaces, sizeof(dleaffaces[0]));
+	num_leaf_brushes = CopyLump(LUMP_LEAFBRUSHES, dleafbrushes, sizeof(dleafbrushes[0]));
+	num_surfedges = CopyLump(LUMP_SURFEDGES, dsurfedges, sizeof(dsurfedges[0]));
+	num_edges = CopyLump(LUMP_EDGES, dedges, sizeof(d_bsp_edge_t));
+	numbrushes = CopyLump(LUMP_BRUSHES, dbrushes, sizeof(d_bsp_brush_t));
+	numbrushsides = CopyLump(LUMP_BRUSHSIDES, dbrushsides, sizeof(d_bsp_brush_side_t));
+	numareas = CopyLump(LUMP_AREAS, dareas, sizeof(d_bsp_area_t));
+	num_area_portals = CopyLump(LUMP_AREAPORTALS, dareaportals, sizeof(d_bsp_area_portal_t));
 
 	visdatasize = CopyLump(LUMP_VISIBILITY, dvisdata, 1);
-	lightdatasize = CopyLump(LUMP_LIGHTING, dlightdata, 1);
+	lightmap_data_size = CopyLump(LUMP_LIGHTING, dlightmap_data, 1);
 	entdatasize = CopyLump(LUMP_ENTITIES, dentdata, 1);
 
 	CopyLump(LUMP_POP, dpop, 1);
@@ -390,14 +390,14 @@ void LoadBSPFileTexinfo(char *filename){
 	if(header->version != BSP_VERSION && header->version != BSP_VERSION_)
 		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", filename, header->version);
 
-	length = header->lumps[LUMP_TEXINFO].filelen;
-	ofs = header->lumps[LUMP_TEXINFO].fileofs;
+	length = header->lumps[LUMP_TEXINFO].file_len;
+	ofs = header->lumps[LUMP_TEXINFO].file_ofs;
 
 	fseek(f, ofs, SEEK_SET);
 	Fs_Read(texinfo, length, 1, f);
 	Fs_CloseFile(f);
 
-	numtexinfo = length / sizeof(dtexinfo_t);
+	num_texinfo = length / sizeof(d_bsp_texinfo_t);
 
 	Z_Free(header);		// everything has been copied out
 
@@ -406,19 +406,19 @@ void LoadBSPFileTexinfo(char *filename){
 
 
 FILE *wadfile;
-dbspheader_t outheader;
+d_bsp_header_t outheader;
 
 
 /*
  * AddLump
  */
 static void AddLump(int lumpnum, void *data, int len){
-	lump_t *lump;
+	d_bsp_lump_t *lump;
 
 	lump = &header->lumps[lumpnum];
 
-	lump->fileofs = LittleLong(ftell(wadfile));
-	lump->filelen = LittleLong(len);
+	lump->file_ofs = LittleLong(ftell(wadfile));
+	lump->file_len = LittleLong(len);
 
 	Fs_Write(data, 1, (len + 3) & ~3, wadfile);
 }
@@ -431,7 +431,7 @@ static void AddLump(int lumpnum, void *data, int len){
  */
 void WriteBSPFile(char *filename){
 	header = &outheader;
-	memset(header, 0, sizeof(dbspheader_t));
+	memset(header, 0, sizeof(d_bsp_header_t));
 
 	SwapBSPFile(true);
 
@@ -445,35 +445,35 @@ void WriteBSPFile(char *filename){
 	if(Fs_OpenFile(filename, &wadfile, FILE_WRITE) == -1)
 		Com_Error(ERR_FATAL, "Could not open %s\n", filename);
 
-	Fs_Write(header, 1, sizeof(dbspheader_t), wadfile);
+	Fs_Write(header, 1, sizeof(d_bsp_header_t), wadfile);
 
-	AddLump(LUMP_PLANES, dplanes, numplanes*sizeof(dplane_t));
-	AddLump(LUMP_LEAFS, dleafs, numleafs*sizeof(dleaf_t));
-	AddLump(LUMP_VERTEXES, dvertexes, numvertexes*sizeof(dbspvertex_t));
+	AddLump(LUMP_PLANES, dplanes, num_planes*sizeof(d_bsp_plane_t));
+	AddLump(LUMP_LEAFS, dleafs, num_leafs*sizeof(d_bsp_leaf_t));
+	AddLump(LUMP_VERTEXES, dvertexes, num_vertexes*sizeof(d_bsp_vertex_t));
 
 	if(!legacy)  // write vertex normals
-		AddLump(LUMP_NORMALS, dnormals, numnormals*sizeof(dbspnormal_t));
+		AddLump(LUMP_NORMALS, dnormals, numnormals*sizeof(d_bsp_normal_t));
 
-	AddLump(LUMP_NODES, dnodes, numnodes*sizeof(dnode_t));
-	AddLump(LUMP_TEXINFO, texinfo, numtexinfo*sizeof(dtexinfo_t));
-	AddLump(LUMP_FACES, dfaces, numfaces*sizeof(dface_t));
-	AddLump(LUMP_BRUSHES, dbrushes, numbrushes*sizeof(dbrush_t));
-	AddLump(LUMP_BRUSHSIDES, dbrushsides, numbrushsides*sizeof(dbrushside_t));
-	AddLump(LUMP_LEAFFACES, dleaffaces, numleaffaces*sizeof(dleaffaces[0]));
-	AddLump(LUMP_LEAFBRUSHES, dleafbrushes, numleafbrushes*sizeof(dleafbrushes[0]));
-	AddLump(LUMP_SURFEDGES, dsurfedges, numsurfedges*sizeof(dsurfedges[0]));
-	AddLump(LUMP_EDGES, dedges, numedges*sizeof(dedge_t));
-	AddLump(LUMP_MODELS, dmodels, nummodels*sizeof(dbspmodel_t));
-	AddLump(LUMP_AREAS, dareas, numareas*sizeof(darea_t));
-	AddLump(LUMP_AREAPORTALS, dareaportals, numareaportals*sizeof(dareaportal_t));
+	AddLump(LUMP_NODES, dnodes, num_nodes*sizeof(d_bsp_node_t));
+	AddLump(LUMP_TEXINFO, texinfo, num_texinfo*sizeof(d_bsp_texinfo_t));
+	AddLump(LUMP_FACES, dfaces, num_faces*sizeof(d_bsp_face_t));
+	AddLump(LUMP_BRUSHES, dbrushes, numbrushes*sizeof(d_bsp_brush_t));
+	AddLump(LUMP_BRUSHSIDES, dbrushsides, numbrushsides*sizeof(d_bsp_brush_side_t));
+	AddLump(LUMP_LEAFFACES, dleaffaces, num_leaf_faces*sizeof(dleaffaces[0]));
+	AddLump(LUMP_LEAFBRUSHES, dleafbrushes, num_leaf_brushes*sizeof(dleafbrushes[0]));
+	AddLump(LUMP_SURFEDGES, dsurfedges, num_surfedges*sizeof(dsurfedges[0]));
+	AddLump(LUMP_EDGES, dedges, num_edges*sizeof(d_bsp_edge_t));
+	AddLump(LUMP_MODELS, dmodels, nummodels*sizeof(d_bsp_model_t));
+	AddLump(LUMP_AREAS, dareas, numareas*sizeof(d_bsp_area_t));
+	AddLump(LUMP_AREAPORTALS, dareaportals, num_area_portals*sizeof(d_bsp_area_portal_t));
 
-	AddLump(LUMP_LIGHTING, dlightdata, lightdatasize);
+	AddLump(LUMP_LIGHTING, dlightmap_data, lightmap_data_size);
 	AddLump(LUMP_VISIBILITY, dvisdata, visdatasize);
 	AddLump(LUMP_ENTITIES, dentdata, entdatasize);
 	AddLump(LUMP_POP, dpop, sizeof(dpop));
 
 	fseek(wadfile, 0, SEEK_SET);
-	Fs_Write(header, 1, sizeof(dbspheader_t), wadfile);
+	Fs_Write(header, 1, sizeof(d_bsp_header_t), wadfile);
 	Fs_CloseFile(wadfile);
 }
 
@@ -489,38 +489,38 @@ void PrintBSPFileSizes(void){
 		ParseEntities();
 
 	Com_Verbose("%5i models       %7i\n"
-	       ,nummodels, (int)(nummodels*sizeof(dbspmodel_t)));
+	       ,nummodels, (int)(nummodels*sizeof(d_bsp_model_t)));
 	Com_Verbose("%5i brushes      %7i\n"
-	       ,numbrushes, (int)(numbrushes*sizeof(dbrush_t)));
+	       ,numbrushes, (int)(numbrushes*sizeof(d_bsp_brush_t)));
 	Com_Verbose("%5i brushsides   %7i\n"
-	       ,numbrushsides, (int)(numbrushsides*sizeof(dbrushside_t)));
+	       ,numbrushsides, (int)(numbrushsides*sizeof(d_bsp_brush_side_t)));
 	Com_Verbose("%5i planes       %7i\n"
-	       ,numplanes, (int)(numplanes*sizeof(dplane_t)));
+	       ,num_planes, (int)(num_planes*sizeof(d_bsp_plane_t)));
 	Com_Verbose("%5i texinfo      %7i\n"
-	       ,numtexinfo, (int)(numtexinfo*sizeof(dtexinfo_t)));
+	       ,num_texinfo, (int)(num_texinfo*sizeof(d_bsp_texinfo_t)));
 	Com_Verbose("%5i entdata      %7i\n", num_entities, entdatasize);
 
 	Com_Verbose("\n");
 
 	Com_Verbose("%5i vertexes     %7i\n"
-	       ,numvertexes, (int)(numvertexes*sizeof(dbspvertex_t)));
+	       ,num_vertexes, (int)(num_vertexes*sizeof(d_bsp_vertex_t)));
 	Com_Verbose("%5i normals      %7i\n"
-		   ,numnormals, (int)(numnormals*sizeof(dbspnormal_t)));
+		   ,numnormals, (int)(numnormals*sizeof(d_bsp_normal_t)));
 	Com_Verbose("%5i nodes        %7i\n"
-	       ,numnodes, (int)(numnodes*sizeof(dnode_t)));
+	       ,num_nodes, (int)(num_nodes*sizeof(d_bsp_node_t)));
 	Com_Verbose("%5i faces        %7i\n"
-	       ,numfaces, (int)(numfaces*sizeof(dface_t)));
+	       ,num_faces, (int)(num_faces*sizeof(d_bsp_face_t)));
 	Com_Verbose("%5i leafs        %7i\n"
-	       ,numleafs, (int)(numleafs*sizeof(dleaf_t)));
+	       ,num_leafs, (int)(num_leafs*sizeof(d_bsp_leaf_t)));
 	Com_Verbose("%5i leaffaces    %7i\n"
-	       ,numleaffaces, (int)(numleaffaces*sizeof(dleaffaces[0])));
+	       ,num_leaf_faces, (int)(num_leaf_faces*sizeof(dleaffaces[0])));
 	Com_Verbose("%5i leafbrushes  %7i\n"
-	       ,numleafbrushes, (int)(numleafbrushes*sizeof(dleafbrushes[0])));
+	       ,num_leaf_brushes, (int)(num_leaf_brushes*sizeof(dleafbrushes[0])));
 	Com_Verbose("%5i surfedges    %7i\n"
-	       ,numsurfedges, (int)(numsurfedges*sizeof(dsurfedges[0])));
+	       ,num_surfedges, (int)(num_surfedges*sizeof(dsurfedges[0])));
 	Com_Verbose("%5i edges        %7i\n"
-	       ,numedges, (int)(numedges*sizeof(dedge_t)));
-	Com_Verbose("      lightdata    %7i\n", lightdatasize);
+	       ,num_edges, (int)(num_edges*sizeof(d_bsp_edge_t)));
+	Com_Verbose("      lightmap_data    %7i\n", lightmap_data_size);
 	Com_Verbose("      visdata      %7i\n", visdatasize);
 }
 

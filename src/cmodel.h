@@ -36,20 +36,20 @@ char *Cm_EntityString(void);
 int Cm_HeadnodeForBox(const vec3_t mins, const vec3_t maxs);
 
 // returns an ORed contents mask
-int Cm_PointContents(const vec3_t p, int headnode);
-int Cm_TransformedPointContents(const vec3_t p, int headnode, const vec3_t origin, const vec3_t angles);
+int Cm_PointContents(const vec3_t p, int head_node);
+int Cm_TransformedPointContents(const vec3_t p, int head_node, const vec3_t origin, const vec3_t angles);
 
 trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		int headnode, int brushmask);
+		int head_node, int brushmask);
 trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		int headnode, int brushmask, const vec3_t origin, const vec3_t angles);
+		int head_node, int brushmask, const vec3_t origin, const vec3_t angles);
 
 byte *Cm_ClusterPVS(int cluster);
 byte *Cm_ClusterPHS(int cluster);
 
 int Cm_PointLeafnum(const vec3_t p);
 
-// call with topnode set to the headnode, returns with topnode
+// call with topnode set to the head_node, returns with topnode
 // set to the first node that splits the box
 int Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int *list, int listsize, int *topnode);
 
@@ -57,10 +57,10 @@ int Cm_LeafContents(int leafnum);
 int Cm_LeafCluster(int leafnum);
 int Cm_LeafArea(int leafnum);
 
-void Cm_SetAreaPortalState(int portalnum, qboolean open);
+void Cm_SetAreaPortalState(int portal_num, qboolean open);
 qboolean Cm_AreasConnected(int area1, int area2);
 
 int Cm_WriteAreaBits(byte *buffer, int area);
-qboolean Cm_HeadnodeVisible(int headnode, byte *visbits);
+qboolean Cm_HeadnodeVisible(int head_node, byte *visbits);
 
 #endif /* __CMODEL_H__ */

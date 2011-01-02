@@ -21,10 +21,10 @@
 
 #include "renderer.h"
 
-model_t r_models[MAX_MOD_KNOWN];
+r_model_t r_models[MAX_MOD_KNOWN];
 int r_nummodels;
 
-model_t r_inlinemodels[MAX_MOD_KNOWN];
+r_model_t r_inline_models[MAX_MOD_KNOWN];
 
 static byte *hunk = NULL;
 static size_t hunkbytes;
@@ -66,44 +66,44 @@ void *R_HunkAlloc(size_t size){
 /*
  * R_AllocVertexArrays
  */
-void R_AllocVertexArrays(model_t *mod){
+void R_AllocVertexArrays(r_model_t *mod){
 	int i, j;
 	int v, st, t, c;
 
-	mod->vertexcount = 0;
+	mod->num_verts = 0;
 
 	// first resolve the vertex count
 	if(mod->type == mod_bsp){
-		msurface_t *surf;
+		r_bsp_surface_t *surf;
 
-		for(i = 0, surf = mod->surfaces; i < mod->numsurfaces; i++, surf++){
-			for(j = 0; j < surf->numedges; j++)
-				mod->vertexcount++;
+		for(i = 0, surf = mod->surfaces; i < mod->num_surfaces; i++, surf++){
+			for(j = 0; j < surf->num_edges; j++)
+				mod->num_verts++;
 		}
 	}
 	else if(mod->type == mod_md2){
 
-		dmd2_t *md2 = (dmd2_t *)mod->extradata;
-		mod->vertexcount = md2->num_tris * 3;
+		d_md2_t *md2 = (d_md2_t *)mod->extra_data;
+		mod->num_verts = md2->num_tris * 3;
 	}
 	else if(mod->type == mod_md3){
 
-		mmd3_t *md3 = (mmd3_t *)mod->extradata;
-		mmd3mesh_t *mesh = md3->meshes;
+		r_md3_t *md3 = (r_md3_t *)mod->extra_data;
+		r_md3_mesh_t *mesh = md3->meshes;
 
 		for(i = 0; i < md3->num_meshes; i++, mesh++)
-			mod->vertexcount += mesh->num_tris * 3;
+			mod->num_verts += mesh->num_tris * 3;
 	}
 	else if(mod->type == mod_obj){
 
-		mobj_t *obj = (mobj_t *)mod->extradata;
-		mod->vertexcount = obj->num_tris * 3;
+		r_obj_t *obj = (r_obj_t *)mod->extra_data;
+		mod->num_verts = obj->num_tris * 3;
 	}
 
-	v = mod->vertexcount * 3 * sizeof(GLfloat);
-	st = mod->vertexcount * 2 * sizeof(GLfloat);
-	t = mod->vertexcount * 4 * sizeof(GLfloat);
-	c = mod->vertexcount * 4 * sizeof(GLfloat);
+	v = mod->num_verts * 3 * sizeof(GLfloat);
+	st = mod->num_verts * 2 * sizeof(GLfloat);
+	t = mod->num_verts * 4 * sizeof(GLfloat);
+	c = mod->num_verts * 4 * sizeof(GLfloat);
 
 	// allocate the arrays, static models get verts and normals
 	if(mod->num_frames < 2){
@@ -127,7 +127,7 @@ void R_AllocVertexArrays(model_t *mod){
 /*
  * R_LoadVertexBuffers
  */
-static void R_LoadVertexBuffers(model_t *mod){
+static void R_LoadVertexBuffers(r_model_t *mod){
 	int v, st, t, c;
 
 	if(!qglGenBuffers)
@@ -136,10 +136,10 @@ static void R_LoadVertexBuffers(model_t *mod){
 	if(mod->num_frames > 1)  // animated models don't use VBO
 		return;
 
-	v = mod->vertexcount * 3 * sizeof(GLfloat);
-	st = mod->vertexcount * 2 * sizeof(GLfloat);
-	t = mod->vertexcount * 4 * sizeof(GLfloat);
-	c = mod->vertexcount * 4 * sizeof(GLfloat);
+	v = mod->num_verts * 3 * sizeof(GLfloat);
+	st = mod->num_verts * 2 * sizeof(GLfloat);
+	t = mod->num_verts * 4 * sizeof(GLfloat);
+	c = mod->num_verts * 4 * sizeof(GLfloat);
 
 	// load the vertex buffer objects
 	qglGenBuffers(1, &mod->vertex_buffer);
@@ -178,7 +178,7 @@ static void R_LoadVertexBuffers(model_t *mod){
 
 typedef struct r_model_format_s {
 	const char *name;
-	void (*load)(model_t *mod, void *buffer);
+	void (*load)(r_model_t *mod, void *buffer);
 } r_model_format_t;
 
 static r_model_format_t r_model_formats[] = {
@@ -193,9 +193,9 @@ static r_model_format_t r_model_formats[] = {
 /*
  * R_LoadModel
  */
-model_t *R_LoadModel(const char *name){
+r_model_t *R_LoadModel(const char *name){
 	r_model_format_t *format;
-	model_t *mod;
+	r_model_t *mod;
 	char n[MAX_QPATH];
 	void *buf;
 	int i;
@@ -207,10 +207,10 @@ model_t *R_LoadModel(const char *name){
 	// inline models are fetched from a separate array
 	if(name[0] == '*'){
 		i = atoi(name + 1);
-		if(i < 1 || !r_worldmodel || i >= r_worldmodel->numsubmodels){
+		if(i < 1 || !r_worldmodel || i >= r_worldmodel->num_submodels){
 			Com_Error(ERR_DROP, "R_LoadModel: Bad inline model number.");
 		}
-		return &r_inlinemodels[i];
+		return &r_inline_models[i];
 	}
 
 	Com_StripExtension(name, n);
@@ -253,11 +253,11 @@ model_t *R_LoadModel(const char *name){
 	Com_StripExtension(n, mod->name);
 
 	r_loadmodel = mod;
-	r_loadmodel->extradata = R_HunkBegin();
+	r_loadmodel->extra_data = R_HunkBegin();
 
 	format->load(mod, buf);
 
-	r_loadmodel->extradatasize = R_HunkEnd(r_loadmodel->extradata);
+	r_loadmodel->extra_data_size = R_HunkEnd(r_loadmodel->extra_data);
 
 	// assemble vertex buffer objects from static arrays
 	R_LoadVertexBuffers(mod);
@@ -273,7 +273,7 @@ model_t *R_LoadModel(const char *name){
  */
 void R_ListModels_f(void){
 	int i;
-	model_t *mod;
+	r_model_t *mod;
 	int total;
 
 	total = 0;
@@ -281,8 +281,8 @@ void R_ListModels_f(void){
 	for(i = 0, mod = r_models; i < r_nummodels; i++, mod++){
 		if(!mod->name[0])
 			continue;
-		Com_Print("%6i: %s\n", mod->vertexcount, mod->name);
-		total += mod->extradatasize;
+		Com_Print("%6i: %s\n", mod->num_verts, mod->name);
+		total += mod->extra_data_size;
 	}
 	Com_Print("Total resident: %i\n", total);
 }
@@ -304,7 +304,7 @@ static void R_FreeModels(void){
 	int i;
 
 	for(i = 0; i < r_nummodels; i++){
-		model_t *mod = &r_models[i];
+		r_model_t *mod = &r_models[i];
 
 		if(mod->vertex_buffer)
 			qglDeleteBuffers(1, &mod->vertex_buffer);
@@ -323,7 +323,7 @@ static void R_FreeModels(void){
 	r_nummodels = 0;
 
 	// reset inline models
-	memset(r_inlinemodels, 0, sizeof(r_inlinemodels));
+	memset(r_inline_models, 0, sizeof(r_inline_models));
 
 	// reset the hunk
 	memset(hunk, 0, hunkbytes);

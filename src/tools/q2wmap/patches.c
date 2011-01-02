@@ -37,7 +37,7 @@ void CalcTextureReflectivity(void){
 	// always set index 0 even if no textures
 	VectorSet(texture_reflectivity[0], 0.5, 0.5, 0.5);
 
-	for(i = 0; i < numtexinfo; i++){
+	for(i = 0; i < num_texinfo; i++){
 
 		// see if an earlier texinfo already got the value
 		for(j = 0; j < i; j++){
@@ -85,17 +85,17 @@ void CalcTextureReflectivity(void){
 /*
  * WindingFromFace
  */
-static winding_t *WindingFromFace(const dface_t * f){
+static winding_t *WindingFromFace(const d_bsp_face_t * f){
 	int i;
-	dbspvertex_t *dv;
+	d_bsp_vertex_t *dv;
 	int v;
 	winding_t *w;
 
-	w = AllocWinding(f->numedges);
-	w->numpoints = f->numedges;
+	w = AllocWinding(f->num_edges);
+	w->numpoints = f->num_edges;
 
-	for(i = 0; i < f->numedges; i++){
-		const int se = dsurfedges[f->firstedge + i];
+	for(i = 0; i < f->num_edges; i++){
+		const int se = dsurfedges[f->first_edge + i];
 		if(se < 0)
 			v = dedges[-se].v[1];
 		else
@@ -114,8 +114,8 @@ static winding_t *WindingFromFace(const dface_t * f){
 /*
  * HasLight
  */
-static inline qboolean HasLight(const dface_t *f){
-	const dtexinfo_t *tex;
+static inline qboolean HasLight(const d_bsp_face_t *f){
+	const d_bsp_texinfo_t *tex;
 
 	tex = &texinfo[f->texinfo];
 	return (tex->flags & SURF_LIGHT) && tex->value;
@@ -125,8 +125,8 @@ static inline qboolean HasLight(const dface_t *f){
 /*
  * IsSky
  */
-static inline qboolean IsSky(const dface_t * f){
-	const dtexinfo_t *tex;
+static inline qboolean IsSky(const d_bsp_face_t * f){
+	const d_bsp_texinfo_t *tex;
 
 	tex = &texinfo[f->texinfo];
 	return tex->flags & SURF_SKY;
@@ -139,7 +139,7 @@ static inline qboolean IsSky(const dface_t * f){
 static inline void EmissiveLight(patch_t *patch){
 	if(HasLight(patch->face)){
 
-		const dtexinfo_t *tex = &texinfo[patch->face->texinfo];
+		const d_bsp_texinfo_t *tex = &texinfo[patch->face->texinfo];
 		const vec_t *ref = texture_reflectivity[patch->face->texinfo];
 
 		VectorScale(ref, tex->value, patch->light);
@@ -152,7 +152,7 @@ static inline void EmissiveLight(patch_t *patch){
  */
 static void BuildPatch(int fn, winding_t *w){
 	patch_t *patch;
-	dplane_t *plane;
+	d_bsp_plane_t *plane;
 
 	patch = (patch_t *)Z_Malloc(sizeof(*patch));
 
@@ -162,7 +162,7 @@ static void BuildPatch(int fn, winding_t *w){
 	patch->winding = w;
 
 	// resolve the normal
-	plane = &dplanes[patch->face->planenum];
+	plane = &dplanes[patch->face->plane_num];
 
 	if(patch->face->side)
 		VectorNegate(plane->normal, patch->normal);
@@ -218,17 +218,17 @@ void BuildPatches(void){
 
 	for(i = 0; i < nummodels; i++){
 
-		const dbspmodel_t *mod = &dmodels[i];
+		const d_bsp_model_t *mod = &dmodels[i];
 		const entity_t *ent = EntityForModel(i);
 
 		// bmodels with origin brushes need to be offset into their
 		// in-use position
 		GetVectorForKey(ent, "origin", origin);
 
-		for(j = 0; j < mod->numfaces; j++){
+		for(j = 0; j < mod->num_faces; j++){
 
-			const int facenum = mod->firstface + j;
-			dface_t *f = &dfaces[facenum];
+			const int facenum = mod->first_face + j;
+			d_bsp_face_t *f = &dfaces[facenum];
 
 			VectorCopy(origin, face_offset[facenum]);
 
@@ -336,7 +336,7 @@ void SubdividePatches(void){
 
 	for(i = 0; i < MAX_BSP_FACES; i++){
 
-		const dface_t *f = &dfaces[i];
+		const d_bsp_face_t *f = &dfaces[i];
 		patch_t *p = face_patches[i];
 
 		if(p && !IsSky(f))  // break it up

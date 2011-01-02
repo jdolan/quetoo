@@ -55,28 +55,24 @@ typedef struct cl_entity_s {
 	int anim_time;  // for animations
 	int anim_frame;
 
-	static_lighting_t lighting;  // cached static lighting info
+	r_lighting_t lighting;  // cached static lighting info
 } cl_entity_t;
 
-#define MAX_CLIENTWEAPONMODELS 12
+#define MAX_WEAPONMODELS 12
 
 typedef struct clientinfo_s {
 	char name[MAX_QPATH];
 	char cinfo[MAX_QPATH];
-	struct image_s *skin;
-	struct model_s *model;
-	struct model_s *weaponmodel[MAX_CLIENTWEAPONMODELS];
-} clientinfo_t;
-
-extern char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
-extern int num_cl_weaponmodels;
+	struct r_image_s *skin;
+	struct r_model_s *model;
+	struct r_model_s *weaponmodel[MAX_WEAPONMODELS];
+} cl_clientinfo_t;
 
 #define CMD_BACKUP 128  // allow a lot of command backups for very fast systems
 #define CMD_MASK (CMD_BACKUP - 1)
 
-// the client_state_s structure is wiped completely at every
-// server map change
-typedef struct client_state_s {
+// the cl_client_s structure is wiped completely at every map change
+typedef struct cl_client_s {
 	int timedemo_frames;
 	int timedemo_start;
 
@@ -123,17 +119,20 @@ typedef struct client_state_s {
 	char configstrings[MAX_CONFIGSTRINGS][MAX_STRING_CHARS];
 
 	// locally derived information from server state
-	model_t *model_draw[MAX_MODELS];
+	r_model_t *model_draw[MAX_MODELS];
 	cmodel_t *model_clip[MAX_MODELS];
 
 	s_sample_t *sound_precache[MAX_SOUNDS];
-	image_t *image_precache[MAX_IMAGES];
+	r_image_t *image_precache[MAX_IMAGES];
 
-	clientinfo_t clientinfo[MAX_CLIENTS];
-	clientinfo_t baseclientinfo;
-} client_state_t;
+	char weaponmodels[MAX_WEAPONMODELS][MAX_QPATH];
+	int num_weaponmodels;
 
-extern client_state_t cl;
+	cl_clientinfo_t clientinfo[MAX_CLIENTS];
+	cl_clientinfo_t baseclientinfo;
+} cl_client_t;
+
+extern cl_client_t cl;
 
 // the client_static_t structure is persistent through an arbitrary
 // number of server connections
@@ -144,16 +143,18 @@ typedef enum {
 	ca_connecting,   // sending request packets to the server
 	ca_connected,   // netchan_t established, waiting for svc_serverdata
 	ca_active  // game views should be displayed
-} connection_state_t;
+} cl_state_t;
 
 typedef enum {
 	key_game,
 	key_menu,
 	key_console,
 	key_message
-} key_dest_t;
+} cl_key_dest_t;
 
-typedef struct {
+typedef struct cl_key_state_s {
+	cl_key_dest_t dest;
+
 	char lines[KEY_HISTORYSIZE][KEY_LINESIZE];
 	int pos;
 
@@ -164,55 +165,53 @@ typedef struct {
 
 	char *binds[K_LAST];
 	qboolean down[K_LAST];
-} key_state_t;
+} cl_key_state_t;
 
-typedef struct {
+typedef struct cl_mouse_state_s {
 	float x, y;
 	float old_x, old_y;
 	qboolean grabbed;
-} mouse_state_t;
+} cl_mouse_state_t;
 
-typedef struct {
+typedef struct cl_chat_state_s {
 	char buffer[KEY_LINESIZE];
 	size_t len;
 	qboolean team;
-} chat_state_t;
+} cl_chat_state_t;
 
-typedef struct {
+typedef struct cl_download_s {
 	qboolean http;
 	FILE *file;
 	char tempname[MAX_OSPATH];
 	char name[MAX_OSPATH];
-} download_t;
+} cl_download_t;
 
 typedef enum {
 	SERVER_SOURCE_INTERNET,
 	SERVER_SOURCE_USER,
 	SERVER_SOURCE_BCAST
-} server_source_t;
+} cl_server_source_t;
 
-typedef struct server_info_s {
+typedef struct cl_server_info_s {
 	netaddr_t addr;
-	server_source_t source;
+	cl_server_source_t source;
 	int pingtime;
 	int ping;
 	char info[MAX_MSGLEN];
 	int num;
-	struct server_info_s *next;
-} server_info_t;
+	struct cl_server_info_s *next;
+} cl_server_info_t;
 
 #define MAX_SERVER_INFOS 128
 
-typedef struct {
-	connection_state_t state;
+typedef struct cl_static_s {
+	cl_state_t state;
 
-	key_dest_t key_dest;
+	cl_key_state_t key_state;
 
-	key_state_t key_state;
+	cl_mouse_state_t mouse_state;
 
-	mouse_state_t mouse_state;
-
-	chat_state_t chat_state;
+	cl_chat_state_t chat_state;
 
 	int realtime;  // always increasing, no clamping, etc
 
@@ -230,19 +229,19 @@ typedef struct {
 	int loading;  // loading percentage indicator
 
 	char downloadurl[MAX_OSPATH];  // for http downloads
-	download_t download;  // current download (udp or http)
+	cl_download_t download;  // current download (udp or http)
 
 	// demo recording info must be here, so it isn't cleared on level change
 	qboolean demowaiting;  // don't record until a non-delta message is received
 	FILE *demofile;
 
-	server_info_t *servers;  // list of servers from all sources
+	cl_server_info_t *servers;  // list of servers from all sources
 	char *servers_text;  // tabular data for servers menu
 
 	int bcasttime;  // time when last broadcast ping was sent
-} client_static_t;
+} cl_static_t;
 
-extern client_static_t cls;
+extern cl_static_t cls;
 
 // cvars
 extern cvar_t *cl_addentities;
@@ -360,14 +359,14 @@ void Cl_ParseConfigstring(void);
 void Cl_ParseClientinfo(int player);
 void Cl_ParseMuzzleFlash(void);
 void Cl_ParseServerMessage(void);
-void Cl_LoadClientinfo(clientinfo_t *ci, const char *s);
+void Cl_LoadClientinfo(cl_clientinfo_t *ci, const char *s);
 void Cl_Download_f(void);
 
 // cl_view.c
 void Cl_InitView(void);
 void Cl_ClearState(void);
-void Cl_AddEntity(entity_t *ent);
-void Cl_AddParticle(particle_t *p);
+void Cl_AddEntity(r_entity_t *ent);
+void Cl_AddParticle(r_particle_t *p);
 void Cl_UpdateView(void);
 
 // cl_pred.c
@@ -399,7 +398,7 @@ void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *ent);
 void Cl_LogoutEffect(const vec3_t org);
 void Cl_LoadEffectSamples(void);
 void Cl_AddParticles(void);
-particle_t *Cl_AllocParticle(void);
+r_particle_t *Cl_AllocParticle(void);
 void Cl_ClearEffects(void);
 
 // cl_http.c
@@ -422,6 +421,6 @@ void Cl_Servers_f(void);
 void Cl_ParseStatusMessage(void);
 void Cl_ParseServersList(void);
 void Cl_FreeServers(void);
-server_info_t *Cl_ServerForNum(int num);
+cl_server_info_t *Cl_ServerForNum(int num);
 
 #endif /* __CLIENT_H__ */

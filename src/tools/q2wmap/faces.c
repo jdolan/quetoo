@@ -122,21 +122,21 @@ static int GetVertexnum(const vec3_t in){
 	}
 
 	// emit a vertex
-	if(numvertexes == MAX_BSP_VERTS)
-		Com_Error(ERR_FATAL, "numvertexes == MAX_BSP_VERTS");
+	if(num_vertexes == MAX_BSP_VERTS)
+		Com_Error(ERR_FATAL, "num_vertexes == MAX_BSP_VERTS");
 
-	dvertexes[numvertexes].point[0] = vert[0];
-	dvertexes[numvertexes].point[1] = vert[1];
-	dvertexes[numvertexes].point[2] = vert[2];
+	dvertexes[num_vertexes].point[0] = vert[0];
+	dvertexes[num_vertexes].point[1] = vert[1];
+	dvertexes[num_vertexes].point[2] = vert[2];
 
-	vertexchain[numvertexes] = hashverts[h];
-	hashverts[h] = numvertexes;
+	vertexchain[num_vertexes] = hashverts[h];
+	hashverts[h] = num_vertexes;
 
 	c_uniqueverts++;
 
-	numvertexes++;
+	num_vertexes++;
 
-	return numvertexes - 1;
+	return num_vertexes - 1;
 }
 
 
@@ -242,11 +242,11 @@ static void EmitFaceVertexes(node_t *node, face_t *f){
 	w = f->w;
 	for(i = 0; i < w->numpoints; i++){
 		if(noweld){  // make every point unique
-			if(numvertexes == MAX_BSP_VERTS)
+			if(num_vertexes == MAX_BSP_VERTS)
 				Com_Error(ERR_FATAL, "MAX_BSP_VERTS");
-			superverts[i] = numvertexes;
-			VectorCopy(w->p[i], dvertexes[numvertexes].point);
-			numvertexes++;
+			superverts[i] = num_vertexes;
+			VectorCopy(w->p[i], dvertexes[num_vertexes].point);
+			num_vertexes++;
 			c_uniqueverts++;
 			c_totalverts++;
 		} else
@@ -266,7 +266,7 @@ static void EmitVertexes_r(node_t *node){
 	int i;
 	face_t *f;
 
-	if(node->planenum == PLANENUM_LEAF)
+	if(node->plane_num == PLANENUM_LEAF)
 		return;
 
 	for(f = node->faces; f; f = f->next){
@@ -286,7 +286,7 @@ static void EmitVertexes_r(node_t *node){
 static void FindEdgeVerts(vec3_t v1, vec3_t v2){
 	int i;
 
-	num_edge_verts = numvertexes - 1;
+	num_edge_verts = num_vertexes - 1;
 	for(i = 0; i < num_edge_verts; i++)
 		edge_verts[i] = i + 1;
 }
@@ -409,7 +409,7 @@ static void FixEdges_r(node_t *node){
 	int i;
 	face_t *f;
 
-	if(node->planenum == PLANENUM_LEAF)
+	if(node->plane_num == PLANENUM_LEAF)
 		return;
 
 	for(f = node->faces; f; f = f->next)
@@ -423,14 +423,14 @@ static void FixEdges_r(node_t *node){
 /*
  * FixTjuncs
  */
-void FixTjuncs(node_t *headnode){
+void FixTjuncs(node_t *head_node){
 	// snap and merge all vertexes
 	Com_Verbose("---- snap verts ----\n");
 	memset(hashverts, 0, sizeof(hashverts));
 	c_totalverts = 0;
 	c_uniqueverts = 0;
 	c_faceoverflows = 0;
-	EmitVertexes_r(headnode);
+	EmitVertexes_r(head_node);
 	Com_Verbose("%i unique from %i\n", c_uniqueverts, c_totalverts);
 
 	// break edges on tjunctions
@@ -440,7 +440,7 @@ void FixTjuncs(node_t *headnode){
 	c_facecollapse = 0;
 	c_tjunctions = 0;
 	if(!notjunc)
-		FixEdges_r(headnode);
+		FixEdges_r(head_node);
 	Com_Verbose("%5i edges degenerated\n", c_degenerate);
 	Com_Verbose("%5i faces degenerated\n", c_facecollapse);
 	Com_Verbose("%5i edges added by tjunctions\n", c_tjunctions);
@@ -455,13 +455,13 @@ void FixTjuncs(node_t *headnode){
  * Called by writebsp.  Don't allow four way edges
  */
 int GetEdge2(int v1, int v2, face_t * f){
-	dedge_t *edge;
+	d_bsp_edge_t *edge;
 	int i;
 
 	c_tryedges++;
 
 	if(!noshare){
-		for(i = firstmodeledge; i < numedges; i++){
+		for(i = firstmodeledge; i < num_edges; i++){
 			edge = &dedges[i];
 			if(v1 == edge->v[1] && v2 == edge->v[0]
 			        && edgefaces[i][0]->contents == f->contents){
@@ -473,15 +473,15 @@ int GetEdge2(int v1, int v2, face_t * f){
 		}
 	}
 	// emit an edge
-	if(numedges >= MAX_BSP_EDGES)
-		Com_Error(ERR_FATAL, "numedges == MAX_BSP_EDGES");
-	edge = &dedges[numedges];
+	if(num_edges >= MAX_BSP_EDGES)
+		Com_Error(ERR_FATAL, "num_edges == MAX_BSP_EDGES");
+	edge = &dedges[num_edges];
 	edge->v[0] = v1;
 	edge->v[1] = v2;
-	edgefaces[numedges][0] = f;
-	numedges++;
+	edgefaces[num_edges][0] = f;
+	num_edges++;
 
-	return numedges - 1;
+	return num_edges - 1;
 }
 
 
@@ -604,7 +604,7 @@ static face_t *TryMerge(face_t * f1, face_t * f2, const vec3_t planenormal){
 		return NULL;
 	if(f1->texinfo != f2->texinfo)
 		return NULL;
-	if(f1->planenum != f2->planenum)	// on front and back sides
+	if(f1->plane_num != f2->plane_num)	// on front and back sides
 		return NULL;
 	if(f1->contents != f2->contents)
 		return NULL;
@@ -633,7 +633,7 @@ static void MergeNodeFaces(node_t * node){
 	face_t *merged;
 	const plane_t *plane;
 
-	plane = &mapplanes[node->planenum];
+	plane = &mapplanes[node->plane_num];
 	merged = NULL;
 
 	for(f1 = node->faces; f1; f1 = f1->next){
@@ -666,7 +666,7 @@ static void SubdivideFace(node_t * node, face_t * f){
 	float mins, maxs;
 	vec_t v;
 	int axis, i;
-	const dtexinfo_t *tex;
+	const d_bsp_texinfo_t *tex;
 	vec3_t temp;
 	vec_t dist;
 	winding_t *w, *frontw, *backw;
@@ -760,7 +760,7 @@ static face_t *FaceFromPortal(portal_t * p, int pside){
 	f = AllocFace();
 
 	f->texinfo = side->texinfo;
-	f->planenum = (side->planenum & ~1) | pside;
+	f->plane_num = (side->plane_num & ~1) | pside;
 	f->portal = p;
 
 	if((p->nodes[pside]->contents & CONTENTS_WINDOW) &&
@@ -793,7 +793,7 @@ static void MakeFaces_r(node_t * node){
 	int s;
 
 	// recurse down to leafs
-	if(node->planenum != PLANENUM_LEAF){
+	if(node->plane_num != PLANENUM_LEAF){
 		MakeFaces_r(node->children[0]);
 		MakeFaces_r(node->children[1]);
 

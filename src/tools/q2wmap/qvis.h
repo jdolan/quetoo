@@ -124,9 +124,9 @@ extern byte *uncompressed;
 
 void LeafFlow(int leafnum);
 
-void BasePortalVis(int portalnum);
-void BetterPortalVis(int portalnum);
-void PortalFlow(int portalnum);
+void BasePortalVis(int portal_num);
+void BetterPortalVis(int portal_num);
+void PortalFlow(int portal_num);
 
 extern portal_t *sorted_portals[MAX_BSP_PORTALS * 2];
 

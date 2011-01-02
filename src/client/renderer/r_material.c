@@ -29,8 +29,8 @@
  *
  * Materials "think" every few milliseconds to advance animations.
  */
-static void R_UpdateMaterial(material_t *m){
-	stage_t *s;
+static void R_UpdateMaterial(r_material_t *m){
+	r_stage_t *s;
 
 	if(r_view.time - m->time < UPDATE_THRESHOLD)
 		return;
@@ -71,7 +71,7 @@ static void R_UpdateMaterial(material_t *m){
  *
  * Manages state for stages supporting static, dynamic, and per-pixel lighting.
  */
-static void R_StageLighting(msurface_t *surf, stage_t *stage){
+static void R_StageLighting(r_bsp_surface_t *surf, r_stage_t *stage){
 
 	// if the surface has a lightmap, and the stage specifies lighting..
 
@@ -122,7 +122,7 @@ static void R_StageLighting(msurface_t *surf, stage_t *stage){
  *
  * Generates a single vertex for the specified stage.
  */
-static inline void R_StageVertex(const msurface_t *surf, const stage_t *stage,
+static inline void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *stage,
 		const vec3_t in, vec3_t out){
 
 	// TODO: vertex deforms
@@ -136,7 +136,7 @@ static inline void R_StageVertex(const msurface_t *surf, const stage_t *stage,
  * Manages texture matrix manipulations for stages supporting rotations,
  * scrolls, and stretches (rotate, translate, scale).
  */
-static inline void R_StageTextureMatrix(msurface_t *surf, stage_t *stage){
+static inline void R_StageTextureMatrix(r_bsp_surface_t *surf, r_stage_t *stage){
 	static qboolean identity = true;
 	float s, t;
 
@@ -187,7 +187,7 @@ static inline void R_StageTextureMatrix(msurface_t *surf, stage_t *stage){
  *
  * Generates a single texture coordinate for the specified stage and vertex.
  */
-static inline void R_StageTexCoord(const stage_t *stage, const vec3_t v,
+static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v,
 		const vec2_t in, vec2_t out){
 
 	vec3_t tmp;
@@ -218,7 +218,7 @@ static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
  *
  * Generates a single color for the specified stage and vertex.
  */
-static inline void R_StageColor(const stage_t *stage, const vec3_t v,
+static inline void R_StageColor(const r_stage_t *stage, const vec3_t v,
 		vec4_t color){
 
 	float a;
@@ -262,7 +262,7 @@ static inline void R_StageColor(const stage_t *stage, const vec3_t v,
  *
  * Manages all state for the specified surface and stage.
  */
-static void R_SetSurfaceStageState(msurface_t *surf, stage_t *stage){
+static void R_SetSurfaceStageState(r_bsp_surface_t *surf, r_stage_t *stage){
 	vec4_t color;
 
 	// bind the texture
@@ -318,10 +318,10 @@ static void R_SetSurfaceStageState(msurface_t *surf, stage_t *stage){
  * Render the specified stage for the surface.  Resolve vertex attributes via
  * helper functions, outputting to the default vertex arrays.
  */
-static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
+static void R_DrawSurfaceStage(r_bsp_surface_t *surf, r_stage_t *stage){
 	int i;
 
-	for(i = 0; i < surf->numedges; i++){
+	for(i = 0; i < surf->num_edges; i++){
 
 		const float *v = &r_worldmodel->verts[surf->index * 3 + i * 3];
 		const float *st = &r_worldmodel->texcoords[surf->index * 2 + i * 2];
@@ -363,9 +363,9 @@ static void R_DrawSurfaceStage(msurface_t *surf, stage_t *stage){
  * throughout the iteration, so there is a concerted effort to restore the
  * state after all surface stages have been rendered.
  */
-void R_DrawMaterialSurfaces(msurfaces_t *surfs){
-	material_t *m;
-	stage_t *s;
+void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs){
+	r_material_t *m;
+	r_stage_t *s;
 	int i, j;
 
 	if(!r_materials->value || r_showpolys->value)
@@ -394,7 +394,7 @@ void R_DrawMaterialSurfaces(msurfaces_t *surfs){
 
 	for(i = 0; i < surfs->count; i++){
 
-		msurface_t *surf = surfs->surfaces[i];
+		r_bsp_surface_t *surf = surfs->surfaces[i];
 
 		if(surf->frame != r_locals.frame)
 			continue;
@@ -456,11 +456,11 @@ static void R_ClearMaterials(void){
 	// clear previously loaded materials
 	for(i = 0; i < MAX_GL_TEXTURES; i++){
 
-		material_t *m = &r_images[i].material;
-		stage_t *s = m->stages;
+		r_material_t *m = &r_images[i].material;
+		r_stage_t *s = m->stages;
 
 		while(s){  // free the stages chain
-			stage_t *ss = s->next;
+			r_stage_t *ss = s->next;
 			Z_Free(s);
 			s = ss;
 		}
@@ -505,7 +505,7 @@ static inline GLenum R_ConstByName(const char *c){
 /*
  * R_LoadAnimImages
  */
-static int R_LoadAnimImages(stage_t *s){
+static int R_LoadAnimImages(r_stage_t *s){
 	char name[MAX_QPATH];
 	int i, j, k;
 
@@ -547,7 +547,7 @@ static int R_LoadAnimImages(stage_t *s){
 /*
  * R_ParseStage
  */
-static int R_ParseStage(stage_t *s, const char **buffer){
+static int R_ParseStage(r_stage_t *s, const char **buffer){
 	int i;
 
 	while(true){
@@ -857,9 +857,9 @@ void R_LoadMaterials(const char *map){
 	const char *c;
 	const char *buffer;
 	qboolean inmaterial;
-	image_t *image;
-	material_t *m;
-	stage_t *s, *ss;
+	r_image_t *image;
+	r_material_t *m;
+	r_stage_t *s, *ss;
 	int i;
 
 	// clear previously loaded materials
@@ -964,7 +964,7 @@ void R_LoadMaterials(const char *map){
 
 		if(*c == '{' && inmaterial){
 
-			s = (stage_t *)Z_Malloc(sizeof(*s));
+			s = (r_stage_t *)Z_Malloc(sizeof(*s));
 
 			if(R_ParseStage(s, &buffer) == -1){
 				Z_Free(s);

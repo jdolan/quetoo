@@ -92,7 +92,7 @@ int MAT_Main(void){
 
 		LoadBSPFileTexinfo(bspname);
 
-		for(i = 0; i < numtexinfo; i++)  // resolve the materials
+		for(i = 0; i < num_texinfo; i++)  // resolve the materials
 			AddMaterial(texinfo[i].texture);
 
 		// sort them by name

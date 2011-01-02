@@ -28,8 +28,8 @@ vec3_t r_mesh_norms[MD3_MAX_VERTS];  // same for normal vectors
 /*
  * R_AddMeshShadow
  */
-static void R_AddMeshShadow(const entity_t *e){
-	shadow_t *sh;
+static void R_AddMeshShadow(const r_entity_t *e){
+	r_shadow_t *sh;
 	float h;
 
 	if(!r_shadows->value)
@@ -89,7 +89,7 @@ void R_DrawMeshShadows(void){
 	j = k = l = 0;
 	for(i = 0; i < r_view.num_shadows; i++){
 
-		const shadow_t *sh = &r_view.shadows[i];
+		const r_shadow_t *sh = &r_view.shadows[i];
 		AngleVectors(sh->dir, NULL, right, up);
 
 		VectorAdd(up, right, verts[0]);
@@ -116,7 +116,7 @@ void R_DrawMeshShadows(void){
 /*
  * R_ApplyMeshModelConfig
  */
-void R_ApplyMeshModelConfig(entity_t *e){
+void R_ApplyMeshModelConfig(r_entity_t *e){
 	const mesh_config_t *c;
 	vec3_t translate;
 	int i;
@@ -162,7 +162,7 @@ void R_ApplyMeshModelConfig(entity_t *e){
 /*
  * R_CullMeshModel
  */
-qboolean R_CullMeshModel(const entity_t *e){
+qboolean R_CullMeshModel(const r_entity_t *e){
 	vec3_t mins, maxs;
 	int i;
 
@@ -185,7 +185,7 @@ qboolean R_CullMeshModel(const entity_t *e){
 /*
  * R_SetMeshColor_default
  */
-static void R_SetMeshColor_default(const entity_t *e){
+static void R_SetMeshColor_default(const r_entity_t *e){
 	vec4_t color;
 	float f;
 	int i;
@@ -198,7 +198,7 @@ static void R_SetMeshColor_default(const entity_t *e){
 		color[3] = 1.0;
 
 	if(e->flags & EF_PULSE){
-		f = sin((r_view.time + e->model->vertexcount) * 6.0) * 0.75;
+		f = sin((r_view.time + e->model->num_verts) * 6.0) * 0.75;
 		VectorScale(color, 1.0 + f, color);
 	}
 
@@ -219,7 +219,7 @@ static void R_SetMeshColor_default(const entity_t *e){
 /*
  * R_SetMeshState_default
  */
-static void R_SetMeshState_default(const entity_t *e){
+static void R_SetMeshState_default(const r_entity_t *e){
 
 	if(e->model->num_frames == 1){  // draw static arrays
 		R_SetArrayState(e->model);
@@ -261,7 +261,7 @@ static void R_SetMeshState_default(const entity_t *e){
 /*
  * R_ResetMeshState_default
  */
-static void R_ResetMeshState_default(const entity_t *e){
+static void R_ResetMeshState_default(const r_entity_t *e){
 
 	if(e->model->num_frames > 1)
 		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
@@ -280,7 +280,7 @@ static void R_ResetMeshState_default(const entity_t *e){
  * re-lerping or re-scaling the entity, the currently bound vertex arrays
  * are simply re-drawn using a small depth offset and varying texcoord delta.
  */
-static void R_DrawMeshModelShell_default(const entity_t *e){
+static void R_DrawMeshModelShell_default(const r_entity_t *e){
 
 	if(VectorCompare(e->shell, vec3_origin))
 		return;
@@ -291,7 +291,7 @@ static void R_DrawMeshModelShell_default(const entity_t *e){
 
 	R_EnableShell(true);
 
-	glDrawArrays(GL_TRIANGLES, 0, e->model->vertexcount);
+	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
 	R_EnableShell(false);
 
@@ -302,20 +302,20 @@ static void R_DrawMeshModelShell_default(const entity_t *e){
 /*
  * R_DrawMd2ModelLerped_default
  */
-static void R_DrawMd2ModelLerped_default(const entity_t *e){
-	const dmd2_t *md2;
-	const dmd2frame_t *frame, *oldframe;
-	const dmd2vertex_t *v, *ov, *verts;
-	const dmd2triangle_t *tri;
+static void R_DrawMd2ModelLerped_default(const r_entity_t *e){
+	const d_md2_t *md2;
+	const d_md2_frame_t *frame, *oldframe;
+	const d_md2_vertex_t *v, *ov, *verts;
+	const d_md2_tri_t *tri;
 	vec3_t trans, scale, oldscale;
 	int i, vertind;
 
-	md2 = (const dmd2_t *)e->model->extradata;
+	md2 = (const d_md2_t *)e->model->extra_data;
 
-	frame = (const dmd2frame_t *)((byte *)md2 + md2->ofs_frames + e->frame * md2->framesize);
+	frame = (const d_md2_frame_t *)((byte *)md2 + md2->ofs_frames + e->frame * md2->frame_size);
 	verts = v = frame->verts;
 
-	oldframe = (const dmd2frame_t *)((byte *)md2 + md2->ofs_frames + e->oldframe * md2->framesize);
+	oldframe = (const d_md2_frame_t *)((byte *)md2 + md2->ofs_frames + e->oldframe * md2->frame_size);
 	ov = oldframe->verts;
 
 	// trans should be the delta back to the previous frame * backlerp
@@ -342,7 +342,7 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 		}
 	}
 
-	tri = (dmd2triangle_t *)((byte *)md2 + md2->ofs_tris);
+	tri = (d_md2_tri_t *)((byte *)md2 + md2->ofs_tris);
 	vertind = 0;
 
 	for(i = 0; i < md2->num_tris; i++, tri++){  // draw the tris
@@ -369,15 +369,15 @@ static void R_DrawMd2ModelLerped_default(const entity_t *e){
 /*
  * R_DrawMd3ModelLerped_default
  */
-static void R_DrawMd3ModelLerped_default(const entity_t *e){
-	const mmd3_t *md3;
-	const dmd3frame_t *frame, *oldframe;
-	const mmd3mesh_t *mesh;
+static void R_DrawMd3ModelLerped_default(const r_entity_t *e){
+	const r_md3_t *md3;
+	const d_md3_frame_t *frame, *oldframe;
+	const r_md3_mesh_t *mesh;
 	vec3_t trans;
 	int i, j, k, vertind;
 	unsigned *tri;
 
-	md3 = (mmd3_t *)e->model->extradata;
+	md3 = (r_md3_t *)e->model->extra_data;
 
 	frame = &md3->frames[e->frame];
 	oldframe = &md3->frames[e->oldframe];
@@ -387,8 +387,8 @@ static void R_DrawMd3ModelLerped_default(const entity_t *e){
 
 	for(k = 0, mesh = md3->meshes; k < md3->num_meshes; k++, mesh++){  // draw the meshes
 
-		const mmd3vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
-		const mmd3vertex_t *ov = mesh->verts + e->oldframe * mesh->num_verts;
+		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
+		const r_md3_vertex_t *ov = mesh->verts + e->oldframe * mesh->num_verts;
 
 		for(i = 0; i < mesh->num_verts; i++, v++, ov++){  // lerp the verts
 			VectorSet(r_mesh_verts[i],
@@ -432,18 +432,18 @@ static void R_DrawMd3ModelLerped_default(const entity_t *e){
 /*
  * R_DrawMeshModelArrays_default
  */
-static void R_DrawMeshModelArrays_default(const entity_t *e){
+static void R_DrawMeshModelArrays_default(const r_entity_t *e){
 
-	glDrawArrays(GL_TRIANGLES, 0, e->model->vertexcount);
+	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
-	r_view.mesh_polys += e->model->vertexcount / 3;
+	r_view.mesh_polys += e->model->num_verts / 3;
 }
 
 
 /*
  * R_DrawMeshModel_default
  */
-void R_DrawMeshModel_default(entity_t *e){
+void R_DrawMeshModel_default(r_entity_t *e){
 
 	if(e->frame >= e->model->num_frames || e->frame < 0){
 		Com_Warn("R_DrawMeshModel %s: no such frame %d\n", e->model->name, e->frame);
@@ -457,9 +457,9 @@ void R_DrawMeshModel_default(entity_t *e){
 
 	if(e->lighting->dirty){  // update static lighting info
 		if(e->flags & EF_WEAPON)
-			R_LightPoint(r_view.origin, e->lighting);
+			R_UpdateLighting(r_view.origin, e->lighting);
 		else
-			R_LightPoint(e->origin, e->lighting);
+			R_UpdateLighting(e->origin, e->lighting);
 	}
 
 	R_SetMeshState_default(e);

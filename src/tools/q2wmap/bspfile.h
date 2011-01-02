@@ -25,62 +25,62 @@
 #include "q2wmap.h"
 
 extern int nummodels;
-extern dbspmodel_t	dmodels[MAX_BSP_MODELS];
+extern d_bsp_model_t	dmodels[MAX_BSP_MODELS];
 
 extern int visdatasize;
 extern byte dvisdata[MAX_BSP_VISIBILITY];
-extern dvis_t *dvis;
+extern d_bsp_vis_t *dvis;
 
-extern int lightdatasize;
-extern byte dlightdata[MAX_BSP_LIGHTING];
+extern int lightmap_data_size;
+extern byte dlightmap_data[MAX_BSP_LIGHTING];
 
 extern int entdatasize;
 extern char dentdata[MAX_BSP_ENTSTRING];
 
-extern int numleafs;
-extern dleaf_t dleafs[MAX_BSP_LEAFS];
+extern int num_leafs;
+extern d_bsp_leaf_t dleafs[MAX_BSP_LEAFS];
 
-extern int numplanes;
-extern dplane_t dplanes[MAX_BSP_PLANES];
+extern int num_planes;
+extern d_bsp_plane_t dplanes[MAX_BSP_PLANES];
 
-extern int numvertexes;
-extern dbspvertex_t dvertexes[MAX_BSP_VERTS];
+extern int num_vertexes;
+extern d_bsp_vertex_t dvertexes[MAX_BSP_VERTS];
 
 extern int numnormals;
-extern dbspnormal_t dnormals[MAX_BSP_VERTS];
+extern d_bsp_normal_t dnormals[MAX_BSP_VERTS];
 
-extern int numnodes;
-extern dnode_t dnodes[MAX_BSP_NODES];
+extern int num_nodes;
+extern d_bsp_node_t dnodes[MAX_BSP_NODES];
 
-extern int numtexinfo;
-extern dtexinfo_t texinfo[MAX_BSP_TEXINFO];
+extern int num_texinfo;
+extern d_bsp_texinfo_t texinfo[MAX_BSP_TEXINFO];
 
-extern int numfaces;
-extern dface_t dfaces[MAX_BSP_FACES];
+extern int num_faces;
+extern d_bsp_face_t dfaces[MAX_BSP_FACES];
 
-extern int numedges;
-extern dedge_t dedges[MAX_BSP_EDGES];
+extern int num_edges;
+extern d_bsp_edge_t dedges[MAX_BSP_EDGES];
 
-extern int numleaffaces;
+extern int num_leaf_faces;
 extern unsigned short dleaffaces[MAX_BSP_LEAFFACES];
 
-extern int numleafbrushes;
+extern int num_leaf_brushes;
 extern unsigned short dleafbrushes[MAX_BSP_LEAFBRUSHES];
 
-extern int numsurfedges;
+extern int num_surfedges;
 extern int dsurfedges[MAX_BSP_SURFEDGES];
 
 extern int numareas;
-extern darea_t dareas[MAX_BSP_AREAS];
+extern d_bsp_area_t dareas[MAX_BSP_AREAS];
 
-extern int numareaportals;
-extern dareaportal_t dareaportals[MAX_BSP_AREAPORTALS];
+extern int num_area_portals;
+extern d_bsp_area_portal_t dareaportals[MAX_BSP_AREAPORTALS];
 
 extern int numbrushes;
-extern dbrush_t dbrushes[MAX_BSP_BRUSHES];
+extern d_bsp_brush_t dbrushes[MAX_BSP_BRUSHES];
 
 extern int numbrushsides;
-extern dbrushside_t dbrushsides[MAX_BSP_BRUSHSIDES];
+extern d_bsp_brush_side_t dbrushsides[MAX_BSP_BRUSHSIDES];
 
 extern byte dpop[256];
 
@@ -106,7 +106,7 @@ typedef struct {
 	epair_t *epairs;
 
 	// only valid for func_areaportals
-	int areaportalnum;
+	int areaportal_num;
 	int portalareas[2];
 } entity_t;
 

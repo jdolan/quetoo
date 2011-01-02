@@ -21,13 +21,13 @@
 
 #include "renderer.h"
 
-static entity_t *r_bsp_entities;
+static r_entity_t *r_bsp_entities;
 
-static entity_t *r_opaque_mesh_entities;
-static entity_t *r_alpha_test_mesh_entities;
-static entity_t *r_blend_mesh_entities;
+static r_entity_t *r_opaque_mesh_entities;
+static r_entity_t *r_alpha_test_mesh_entities;
+static r_entity_t *r_blend_mesh_entities;
 
-static entity_t *r_null_entities;
+static r_entity_t *r_null_entities;
 
 
 /*
@@ -37,8 +37,8 @@ static entity_t *r_null_entities;
  * are grouped by model to allow instancing wherever possible (e.g. armor
  * shards, ammo boxes, trees, etc..).
  */
-void R_AddEntity(const entity_t *ent){
-	entity_t *e, *in, **chain;
+void R_AddEntity(const r_entity_t *ent){
+	r_entity_t *e, *in, **chain;
 
 	if(r_view.num_entities >= MAX_ENTITIES){
 		Com_Warn("R_AddEntity: MAX_ENTITIES reached.\n");
@@ -105,7 +105,7 @@ void R_AddEntity(const entity_t *ent){
  *
  * Applies translation, rotation, and scale for the specified entity.
  */
-void R_RotateForEntity(const entity_t *e){
+void R_RotateForEntity(const r_entity_t *e){
 
 	if(!e){
 		glPopMatrix();
@@ -127,7 +127,7 @@ void R_RotateForEntity(const entity_t *e){
  * Transforms a point by the inverse of the world-model matrix for the
  * specified entity.
  */
-void R_TransformForEntity(const entity_t *e, const vec3_t in, vec3_t out){
+void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out){
 	matrix4x4_t tmp, mat;
 
 	Matrix4x4_CreateFromQuakeEntity(&tmp,
@@ -144,8 +144,8 @@ void R_TransformForEntity(const entity_t *e, const vec3_t in, vec3_t out){
 /*
  * R_DrawBspEntities
  */
-static void R_DrawBspEntities(const entity_t *ents){
-	const entity_t *e;
+static void R_DrawBspEntities(const r_entity_t *ents){
+	const r_entity_t *e;
 
 	e = ents;
 
@@ -159,8 +159,8 @@ static void R_DrawBspEntities(const entity_t *ents){
 /*
  * R_DrawMeshEntities
  */
-static void R_DrawMeshEntities(entity_t *ents){
-	entity_t *e;
+static void R_DrawMeshEntities(r_entity_t *ents){
+	r_entity_t *e;
 
 	e = ents;
 
@@ -174,7 +174,7 @@ static void R_DrawMeshEntities(entity_t *ents){
 /*
  * R_DrawOpaqueMeshEntities
  */
-static void R_DrawOpaqueMeshEntities(entity_t *ents){
+static void R_DrawOpaqueMeshEntities(r_entity_t *ents){
 
 	if(!ents)
 		return;
@@ -190,7 +190,7 @@ static void R_DrawOpaqueMeshEntities(entity_t *ents){
 /*
  * R_DrawAlphaTestMeshEntities
  */
-static void R_DrawAlphaTestMeshEntities(entity_t *ents){
+static void R_DrawAlphaTestMeshEntities(r_entity_t *ents){
 
 	if(!ents)
 		return;
@@ -210,7 +210,7 @@ static void R_DrawAlphaTestMeshEntities(entity_t *ents){
 /*
  * R_DrawBlendMeshEntities
  */
-static void R_DrawBlendMeshEntities(entity_t *ents){
+static void R_DrawBlendMeshEntities(r_entity_t *ents){
 
 	if(!ents)
 		return;
@@ -228,7 +228,7 @@ static void R_DrawBlendMeshEntities(entity_t *ents){
  *
  * Draws a placeholder "white diamond" prism for the specified entity.
  */
-static void R_DrawNullModel(const entity_t *e){
+static void R_DrawNullModel(const r_entity_t *e){
 	int i;
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -256,8 +256,8 @@ static void R_DrawNullModel(const entity_t *e){
 /*
  * R_DrawNullEntities
  */
-static void R_DrawNullEntities(const entity_t *ents){
-	const entity_t *e;
+static void R_DrawNullEntities(const r_entity_t *ents){
+	const r_entity_t *e;
 
 	if(!ents)
 		return;

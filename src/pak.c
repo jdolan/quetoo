@@ -76,8 +76,8 @@ pak_t *Pak_ReadPakfile(const char *pakfile){
 
 	// parse the directory
 	for(i = 0; i < pak->numentries; ++i){
-		pak->entries[i].fileofs = LittleLong(pak->entries[i].fileofs);
-		pak->entries[i].filelen = LittleLong(pak->entries[i].filelen);
+		pak->entries[i].file_ofs = LittleLong(pak->entries[i].file_ofs);
+		pak->entries[i].file_len = LittleLong(pak->entries[i].file_len);
 
 		Hash_Put(&pak->hashtable, pak->entries[i].name, &pak->entries[i]);
 	}
@@ -166,7 +166,7 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, qboolean test){
 
 		if(test){  // print contents and continue
 			printf("Contents %s (%d bytes).\n", pak->entries[i].name,
-					pak->entries[i].filelen);
+					pak->entries[i].file_len);
 			continue;
 		}
 
@@ -178,19 +178,19 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, qboolean test){
 			continue;
 		}
 
-		fseek(pak->handle, pak->entries[i].fileofs, SEEK_SET);
+		fseek(pak->handle, pak->entries[i].file_ofs, SEEK_SET);
 
-		p = (void *)Z_Malloc(pak->entries[i].filelen);
+		p = (void *)Z_Malloc(pak->entries[i].file_len);
 
-		Fs_Read(p, 1, pak->entries[i].filelen, pak->handle);
+		Fs_Read(p, 1, pak->entries[i].file_len, pak->handle);
 
-		Fs_Write(p, 1, pak->entries[i].filelen, f);
+		Fs_Write(p, 1, pak->entries[i].file_len, f);
 
 		Fs_CloseFile(f);
 		Z_Free(p);
 
 		printf("Extracted %s (%d bytes).\n", pak->entries[i].name,
-				pak->entries[i].filelen);
+				pak->entries[i].file_len);
 	}
 
 	Pak_FreePakfile(pak);
@@ -275,8 +275,8 @@ void Pak_AddEntry(pak_t *pak, char *name, int len, void *p){
 	memset(pak->entries[pak->numentries].name, 0, 56);
 	strncpy(pak->entries[pak->numentries].name, c, 55);
 
-	pak->entries[pak->numentries].filelen = len;
-	pak->entries[pak->numentries].fileofs = ftell(pak->handle);
+	pak->entries[pak->numentries].file_len = len;
+	pak->entries[pak->numentries].file_ofs = ftell(pak->handle);
 
 	Fs_Write(p, len, 1, pak->handle);
 

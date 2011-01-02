@@ -50,9 +50,9 @@ typedef struct emit_s {
 	int atten;  // sound attenuation
 	qboolean loop;  // loop sound versus timed
 	char model[MAX_QPATH];  // model name
-	model_t *mod;  // model
-	const mleaf_t *leaf;  // for pvs culling
-	static_lighting_t lighting;  // cached static lighting info
+	r_model_t *mod;  // model
+	const r_bsp_leaf_t *leaf;  // for pvs culling
+	r_lighting_t lighting;  // cached static lighting info
 	int time;  // when to fire next
 } emit_t;
 
@@ -343,7 +343,7 @@ static void Cl_UpdateEmits(void){
  */
 void Cl_AddEmits(void){
 	int i;
-	entity_t ent;
+	r_entity_t ent;
 
 	Cl_UpdateEmits();
 

@@ -52,8 +52,8 @@ static int Light_PointInLeafnum(const vec3_t point){
 
 	nodenum = 0;
 	while(nodenum >= 0){
-		dnode_t *node = &dnodes[nodenum];
-		dplane_t *plane = &dplanes[node->planenum];
+		d_bsp_node_t *node = &dnodes[nodenum];
+		d_bsp_plane_t *plane = &dplanes[node->plane_num];
 		vec_t dist = DotProduct(point, plane->normal) - plane->dist;
 		if(dist > 0)
 			nodenum = node->children[0];
@@ -68,7 +68,7 @@ static int Light_PointInLeafnum(const vec3_t point){
 /*
  * Light_PointInLeaf
  */
-dleaf_t *Light_PointInLeaf(const vec3_t point){
+d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point){
 	const int num = Light_PointInLeafnum(point);
 	return &dleafs[num];
 }
@@ -78,10 +78,10 @@ dleaf_t *Light_PointInLeaf(const vec3_t point){
  * PvsForOrigin
  */
 qboolean PvsForOrigin(const vec3_t org, byte *pvs){
-	dleaf_t *leaf;
+	d_bsp_leaf_t *leaf;
 
 	if(!visdatasize){
-		memset(pvs, 255, (numleafs + 7) / 8);
+		memset(pvs, 255, (num_leafs + 7) / 8);
 		return true;
 	}
 
@@ -89,7 +89,7 @@ qboolean PvsForOrigin(const vec3_t org, byte *pvs){
 	if(leaf->cluster == -1)
 		return false;  // in solid leaf
 
-	DecompressVis(dvisdata + dvis->bitofs[leaf->cluster][DVIS_PVS], pvs);
+	DecompressVis(dvisdata + dvis->bit_ofs[leaf->cluster][DVIS_PVS], pvs);
 	return true;
 }
 
@@ -109,7 +109,7 @@ void Light_Trace(trace_t *trace, const vec3_t start, const vec3_t end, int mask)
 	for(i = 0; i < numcmodels; i++){
 
 		const trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin,
-				map_cmodels[i].headnode, mask);
+				map_cmodels[i].head_node, mask);
 
 		if(tr.fraction < frac){
 			frac = tr.fraction;
@@ -125,7 +125,7 @@ void Light_Trace(trace_t *trace, const vec3_t start, const vec3_t end, int mask)
 static void LightWorld(void){
 	int i;
 
-	if(numnodes == 0 || numfaces == 0)
+	if(num_nodes == 0 || num_faces == 0)
 		Com_Error(ERR_FATAL, "RadWorld: Empty map\n");
 
 	// load the map for tracing
@@ -147,11 +147,11 @@ static void LightWorld(void){
 	BuildVertexNormals();
 
 	// build initial facelights
-	RunThreadsOn(numfaces, true, BuildFacelights);
+	RunThreadsOn(num_faces, true, BuildFacelights);
 
 	// finalize it and write it out
-	lightdatasize = 0;
-	RunThreadsOn(numfaces, true, FinalLightFace);
+	lightmap_data_size = 0;
+	RunThreadsOn(num_faces, true, FinalLightFace);
 }
 
 

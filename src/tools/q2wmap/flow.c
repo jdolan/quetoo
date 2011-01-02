@@ -25,7 +25,7 @@
  *
  *   each portal will have a list of all possible to see from first portal
  *
- *   if(!thread->portalmightsee[portalnum])
+ *   if(!thread->portalmightsee[portal_num])
  *
  *   portal mightsee
  *
@@ -452,13 +452,13 @@ static void RecursiveLeafFlow(int leafnum, threaddata_t * thread, pstack_t * pre
  *
  * generates the portalvis bit vector
  */
-void PortalFlow(int portalnum){
+void PortalFlow(int portal_num){
 	threaddata_t data;
 	int i;
 	portal_t *p;
 	int c_might, c_can;
 
-	p = sorted_portals[portalnum];
+	p = sorted_portals[portal_num];
 	p->status = stat_working;
 
 	c_might = CountBits(p->portalflood, numportals * 2);
@@ -512,13 +512,13 @@ static void SimpleFlood(portal_t * srcportal, int leafnum){
 /*
  * BasePortalVis
  */
-void BasePortalVis(int portalnum){
+void BasePortalVis(int portal_num){
 	int j, k;
 	portal_t *tp, *p;
 	float d;
 	const winding_t *w;
 
-	p = portals + portalnum;
+	p = portals + portal_num;
 
 	p->portalfront = Z_Malloc(portalbytes);
 	memset(p->portalfront, 0, portalbytes);
@@ -530,7 +530,7 @@ void BasePortalVis(int portalnum){
 	memset(p->portalvis, 0, portalbytes);
 
 	for(j = 0, tp = portals; j < numportals * 2; j++, tp++){
-		if(j == portalnum)
+		if(j == portal_num)
 			continue;
 		w = tp->winding;
 		for(k = 0; k < w->numpoints; k++){

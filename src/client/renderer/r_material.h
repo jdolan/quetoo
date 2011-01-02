@@ -56,79 +56,79 @@
 // frame based animation, lerp between consecutive images
 #define MAX_ANIM_FRAMES 8
 
-typedef struct blend_s {
+typedef struct r_stage_blend_s {
 	GLenum src, dest;
-} blend_t;
+} r_stage_blend_t;
 
-typedef struct pulse_s {
+typedef struct r_stage_pulse_s {
 	float hz, dhz;
-} pulse_t;
+} r_stage_pulse_t;
 
-typedef struct stretch_s {
+typedef struct r_stage_stretch_s {
 	float hz, dhz;
 	float amp, damp;
-} stretch_t;
+} r_stage_stretch_t;
 
-typedef struct rotate_s {
+typedef struct r_stage_rotate_s {
 	float hz, deg;
-} rotate_t;
+} r_stage_rotate_t;
 
-typedef struct scroll_s {
+typedef struct r_stage_scroll_s {
 	float s, t;
 	float ds, dt;
-} scroll_t;
+} r_stage_scroll_t;
 
-typedef struct scale_s {
+typedef struct r_stage_scale_s {
 	float s, t;
-} scale_t;
+} r_stage_scale_t;
 
-typedef struct terrain_s {
+typedef struct r_stage_terrain_s {
 	float floor, ceil;
 	float height;
-} terrain_t;
+} r_stage_terrain_t;
 
-typedef struct dirt_s {
+typedef struct r_stage_dirt_s {
 	float intensity;
-} dirt_t;
+} r_stage_dirt_t;
 
-typedef struct anim_s {
+typedef struct r_stage_anim_s {
 	int num_frames;
-	struct image_s *images[MAX_ANIM_FRAMES];
+	struct r_image_s *images[MAX_ANIM_FRAMES];
 	float fps;
 	float dtime;
 	int dframe;
-} anim_t;
+} r_stage_anim_t;
 
-typedef struct stage_s {
+typedef struct r_stage_s {
 	unsigned flags;
-	struct image_s *image;
-	blend_t blend;
+	struct r_image_s *image;
+	r_stage_blend_t blend;
 	vec3_t color;
-	pulse_t pulse;
-	stretch_t stretch;
-	rotate_t rotate;
-	scroll_t scroll;
-	scale_t scale;
-	terrain_t terrain;
-	dirt_t dirt;
-	anim_t anim;
-	struct stage_s *next;
-} stage_t;
+	r_stage_pulse_t pulse;
+	r_stage_stretch_t stretch;
+	r_stage_rotate_t rotate;
+	r_stage_scroll_t scroll;
+	r_stage_scale_t scale;
+	r_stage_terrain_t terrain;
+	r_stage_dirt_t dirt;
+	r_stage_anim_t anim;
+	struct r_stage_s *next;
+} r_stage_t;
 
 #define DEFAULT_BUMP 1.0
 #define DEFAULT_PARALLAX 1.0
 #define DEFAULT_HARDNESS 1.0
 #define DEFAULT_SPECULAR 1.0
 
-typedef struct material_s {
+typedef struct r_material_s {
 	unsigned flags;
 	float time;
 	float bump;
 	float parallax;
 	float hardness;
 	float specular;
-	stage_t *stages;
+	r_stage_t *stages;
 	int num_stages;
-} material_t;
+} r_material_t;
 
 #endif /*__R_MATERIAL_H__*/

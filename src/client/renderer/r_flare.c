@@ -25,9 +25,9 @@
 /*
  * R_CreateSurfaceFlare
  */
-void R_CreateSurfaceFlare(msurface_t *surf){
-	material_t *m;
-	const stage_t *s;
+void R_CreateSurfaceFlare(r_bsp_surface_t *surf){
+	r_material_t *m;
+	const r_stage_t *s;
 	vec3_t span;
 
 	m = &surf->texinfo->image->material;
@@ -35,7 +35,7 @@ void R_CreateSurfaceFlare(msurface_t *surf){
 	if(!(m->flags & STAGE_FLARE))  // surface is not flared
 		return;
 
-	surf->flare = (mflare_t *)R_HunkAlloc(sizeof(*surf->flare));
+	surf->flare = (r_bsp_flare_t *)R_HunkAlloc(sizeof(*surf->flare));
 
 	// move the flare away from the surface, into the level
 	VectorMA(surf->center, 2, surf->normal, surf->flare->origin);
@@ -75,8 +75,8 @@ void R_CreateSurfaceFlare(msurface_t *surf){
  * trace.  Flares are also faded according to the angle of their surface to the
  * view origin.
  */
-void R_DrawFlareSurfaces(msurfaces_t *surfs){
-	const image_t *image;
+void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
+	const r_image_t *image;
 	int i, j, k, l, m;
 	vec3_t view, verts[4];
 	vec3_t right, up, upright, downright;
@@ -101,8 +101,8 @@ void R_DrawFlareSurfaces(msurfaces_t *surfs){
 	j = k = l = 0;
 	for(i = 0; i < surfs->count; i++){
 
-		msurface_t *surf = surfs->surfaces[i];
-		mflare_t *f;
+		r_bsp_surface_t *surf = surfs->surfaces[i];
+		r_bsp_flare_t *f;
 
 		if(surf->frame != r_locals.frame)
 			continue;

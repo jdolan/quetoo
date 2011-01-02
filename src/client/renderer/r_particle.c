@@ -25,7 +25,7 @@
 /*
  * R_AddParticle
  */
-void R_AddParticle(particle_t *p){
+void R_AddParticle(r_particle_t *p){
 
 	if(r_view.num_particles >= MAX_PARTICLES)
 		return;
@@ -47,7 +47,7 @@ static particle_state_t ps;
 /*
  * R_ParticleVerts
  */
-static void R_ParticleVerts(particle_t *p, GLfloat *out){
+static void R_ParticleVerts(r_particle_t *p, GLfloat *out){
 	vec3_t v, up, right, upright, downright;
 	vec3_t *verts;
 	float scale;
@@ -139,7 +139,7 @@ static void R_ParticleVerts(particle_t *p, GLfloat *out){
 /*
  * R_ParticleTexcoords
  */
-static void R_ParticleTexcoords(particle_t *p, GLfloat *out){
+static void R_ParticleTexcoords(r_particle_t *p, GLfloat *out){
 	float s, t;
 
 	if(!p->scroll_s && !p->scroll_t){
@@ -167,7 +167,7 @@ static void R_ParticleTexcoords(particle_t *p, GLfloat *out){
 /*
  * R_ParticleColor
  */
-static void R_ParticleColor(particle_t *p, GLfloat *out){
+static void R_ParticleColor(r_particle_t *p, GLfloat *out){
 	byte color[4];
 	int i, j;
 
@@ -189,8 +189,8 @@ static void R_ParticleColor(particle_t *p, GLfloat *out){
  * R_DrawParticles_
  */
 static void R_DrawParticles_(int mask){
-	particle_t *p;
-	image_t *image;
+	r_particle_t *p;
+	r_image_t *image;
 	int i, j, k, l;
 
 	image = NULL;

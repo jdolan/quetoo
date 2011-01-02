@@ -37,16 +37,16 @@ int c_facenodes;
  */
 static void EmitPlanes(void){
 	int i;
-	dplane_t *dp;
+	d_bsp_plane_t *dp;
 	plane_t *mp;
 
 	mp = mapplanes;
 	for(i = 0; i < nummapplanes; i++, mp++){
-		dp = &dplanes[numplanes];
+		dp = &dplanes[num_planes];
 		VectorCopy(mp->normal, dp->normal);
 		dp->dist = mp->dist;
 		dp->type = mp->type;
-		numplanes++;
+		num_planes++;
 	}
 }
 
@@ -54,7 +54,7 @@ static void EmitPlanes(void){
 /*
  * EmitMarkFace
  */
-static void EmitMarkFace(dleaf_t *leaf_p, face_t *f){
+static void EmitMarkFace(d_bsp_leaf_t *leaf_p, face_t *f){
 	int i;
 	int facenum;
 
@@ -71,17 +71,17 @@ static void EmitMarkFace(dleaf_t *leaf_p, face_t *f){
 	if(facenum == -1)
 		return;  // degenerate face
 
-	if(facenum < 0 || facenum >= numfaces)
+	if(facenum < 0 || facenum >= num_faces)
 		Com_Error(ERR_FATAL, "Bad leafface\n");
-	for(i = leaf_p->firstleafface; i < numleaffaces; i++)
+	for(i = leaf_p->first_leaf_face; i < num_leaf_faces; i++)
 		if(dleaffaces[i] == facenum)
 			break;  // merged out face
-	if(i == numleaffaces){
-		if(numleaffaces >= MAX_BSP_LEAFFACES)
+	if(i == num_leaf_faces){
+		if(num_leaf_faces >= MAX_BSP_LEAFFACES)
 			Com_Error(ERR_FATAL, "MAX_BSP_LEAFFACES\n");
 
-		dleaffaces[numleaffaces] = facenum;
-		numleaffaces++;
+		dleaffaces[num_leaf_faces] = facenum;
+		num_leaf_faces++;
 	}
 }
 
@@ -90,7 +90,7 @@ static void EmitMarkFace(dleaf_t *leaf_p, face_t *f){
  * EmitLeaf
  */
 static void EmitLeaf(node_t *node){
-	dleaf_t *leaf_p;
+	d_bsp_leaf_t *leaf_p;
 	portal_t *p;
 	int s;
 	face_t *f;
@@ -99,11 +99,11 @@ static void EmitLeaf(node_t *node){
 	int brushnum;
 
 	// emit a leaf
-	if(numleafs >= MAX_BSP_LEAFS)
+	if(num_leafs >= MAX_BSP_LEAFS)
 		Com_Error(ERR_FATAL, "MAX_BSP_LEAFS\n");
 
-	leaf_p = &dleafs[numleafs];
-	numleafs++;
+	leaf_p = &dleafs[num_leafs];
+	num_leafs++;
 
 	leaf_p->contents = node->contents;
 	leaf_p->cluster = node->cluster;
@@ -114,27 +114,27 @@ static void EmitLeaf(node_t *node){
 	VectorCopy(node->maxs, leaf_p->maxs);
 
 	// write the leafbrushes
-	leaf_p->firstleafbrush = numleafbrushes;
+	leaf_p->first_leaf_brush = num_leaf_brushes;
 	for(b = node->brushlist; b; b = b->next){
-		if(numleafbrushes >= MAX_BSP_LEAFBRUSHES)
+		if(num_leaf_brushes >= MAX_BSP_LEAFBRUSHES)
 			Com_Error(ERR_FATAL, "MAX_BSP_LEAFBRUSHES\n");
 
 		brushnum = b->original - mapbrushes;
-		for(i = leaf_p->firstleafbrush; i < numleafbrushes; i++)
+		for(i = leaf_p->first_leaf_brush; i < num_leaf_brushes; i++)
 			if(dleafbrushes[i] == brushnum)
 				break;
-		if(i == numleafbrushes){
-			dleafbrushes[numleafbrushes] = brushnum;
-			numleafbrushes++;
+		if(i == num_leaf_brushes){
+			dleafbrushes[num_leaf_brushes] = brushnum;
+			num_leaf_brushes++;
 		}
 	}
-	leaf_p->numleafbrushes = numleafbrushes - leaf_p->firstleafbrush;
+	leaf_p->num_leaf_brushes = num_leaf_brushes - leaf_p->first_leaf_brush;
 
 	// write the leaffaces
 	if(leaf_p->contents & CONTENTS_SOLID)
 		return;  // no leaffaces in solids
 
-	leaf_p->firstleafface = numleaffaces;
+	leaf_p->first_leaf_face = num_leaf_faces;
 
 	for(p = node->portals; p; p = p->next[s]){
 		s = (p->nodes[1] == node);
@@ -145,7 +145,7 @@ static void EmitLeaf(node_t *node){
 		EmitMarkFace(leaf_p, f);
 	}
 
-	leaf_p->numleaffaces = numleaffaces - leaf_p->firstleafface;
+	leaf_p->num_leaf_faces = num_leaf_faces - leaf_p->first_leaf_face;
 }
 
 
@@ -153,7 +153,7 @@ static void EmitLeaf(node_t *node){
  * EmitFace
  */
 static void EmitFace(face_t *f){
-	dface_t *df;
+	d_bsp_face_t *df;
 	int i;
 	int e;
 
@@ -166,28 +166,28 @@ static void EmitFace(face_t *f){
 		return;  // not a final face
 	}
 	// save output number so leaffaces can use
-	f->outputnumber = numfaces;
+	f->outputnumber = num_faces;
 
-	if(numfaces >= MAX_BSP_FACES)
-		Com_Error(ERR_FATAL, "numfaces == MAX_BSP_FACES\n");
-	df = &dfaces[numfaces];
-	numfaces++;
+	if(num_faces >= MAX_BSP_FACES)
+		Com_Error(ERR_FATAL, "num_faces == MAX_BSP_FACES\n");
+	df = &dfaces[num_faces];
+	num_faces++;
 
-	// planenum is used by qlight, but not quake
-	df->planenum = f->planenum & (~1);
-	df->side = f->planenum & 1;
+	// plane_num is used by qlight, but not quake
+	df->plane_num = f->plane_num & (~1);
+	df->side = f->plane_num & 1;
 
-	df->firstedge = numsurfedges;
-	df->numedges = f->numpoints;
+	df->first_edge = num_surfedges;
+	df->num_edges = f->numpoints;
 	df->texinfo = f->texinfo;
 	for(i = 0; i < f->numpoints; i++){
 		e = GetEdge2(f->vertexnums[i], f->vertexnums[(i + 1) % f->numpoints], f);
-		if(numsurfedges >= MAX_BSP_SURFEDGES)
-			Com_Error(ERR_FATAL, "numsurfedges == MAX_BSP_SURFEDGES\n");
-		dsurfedges[numsurfedges] = e;
-		numsurfedges++;
+		if(num_surfedges >= MAX_BSP_SURFEDGES)
+			Com_Error(ERR_FATAL, "num_surfedges == MAX_BSP_SURFEDGES\n");
+		dsurfedges[num_surfedges] = e;
+		num_surfedges++;
 	}
-	df->lightofs = -1;
+	df->light_ofs = -1;
 }
 
 
@@ -195,27 +195,27 @@ static void EmitFace(face_t *f){
  * EmitDrawingNode_r
  */
 static int EmitDrawNode_r(node_t * node){
-	dnode_t *n;
+	d_bsp_node_t *n;
 	face_t *f;
 	int i;
 
-	if(node->planenum == PLANENUM_LEAF){
+	if(node->plane_num == PLANENUM_LEAF){
 		EmitLeaf(node);
-		return -numleafs;
+		return -num_leafs;
 	}
 	// emit a node
-	if(numnodes == MAX_BSP_NODES)
+	if(num_nodes == MAX_BSP_NODES)
 		Com_Error(ERR_FATAL, "MAX_BSP_NODES\n");
-	n = &dnodes[numnodes];
-	numnodes++;
+	n = &dnodes[num_nodes];
+	num_nodes++;
 
 	VectorCopy(node->mins, n->mins);
 	VectorCopy(node->maxs, n->maxs);
 
-	if(node->planenum & 1)
-		Com_Error(ERR_FATAL, "EmitDrawNode_r: odd planenum\n");
-	n->planenum = node->planenum;
-	n->firstface = numfaces;
+	if(node->plane_num & 1)
+		Com_Error(ERR_FATAL, "EmitDrawNode_r: odd plane_num\n");
+	n->plane_num = node->plane_num;
+	n->first_face = num_faces;
 
 	if(!node->faces)
 		c_nofaces++;
@@ -225,16 +225,16 @@ static int EmitDrawNode_r(node_t * node){
 	for(f = node->faces; f; f = f->next)
 		EmitFace(f);
 
-	n->numfaces = numfaces - n->firstface;
+	n->num_faces = num_faces - n->first_face;
 
 
 	// recursively output the other nodes
 	for(i = 0; i < 2; i++){
-		if(node->children[i]->planenum == PLANENUM_LEAF){
-			n->children[i] = -(numleafs + 1);
+		if(node->children[i]->plane_num == PLANENUM_LEAF){
+			n->children[i] = -(num_leafs + 1);
 			EmitLeaf(node->children[i]);
 		} else {
-			n->children[i] = numnodes;
+			n->children[i] = num_nodes;
 			EmitDrawNode_r(node->children[i]);
 		}
 	}
@@ -246,7 +246,7 @@ static int EmitDrawNode_r(node_t * node){
 /*
  * WriteBSP
  */
-void WriteBSP(node_t * headnode){
+void WriteBSP(node_t * head_node){
 	int oldfaces;
 
 	c_nofaces = 0;
@@ -254,13 +254,13 @@ void WriteBSP(node_t * headnode){
 
 	Com_Verbose("--- WriteBSP ---\n");
 
-	oldfaces = numfaces;
-	dmodels[nummodels].headnode = EmitDrawNode_r(headnode);
-	EmitAreaPortals(headnode);
+	oldfaces = num_faces;
+	dmodels[nummodels].head_node = EmitDrawNode_r(head_node);
+	EmitAreaPortals(head_node);
 
 	Com_Verbose("%5i nodes with faces\n", c_facenodes);
 	Com_Verbose("%5i nodes without faces\n", c_nofaces);
-	Com_Verbose("%5i faces\n", numfaces - oldfaces);
+	Com_Verbose("%5i faces\n", num_faces - oldfaces);
 }
 
 
@@ -289,12 +289,12 @@ void SetModelNumbers(void){
  */
 static void EmitBrushes(void){
 	int i, j, bnum, s, x;
-	dbrush_t *db;
+	d_bsp_brush_t *db;
 	mapbrush_t *b;
-	dbrushside_t *cp;
+	d_bsp_brush_side_t *cp;
 	vec3_t normal;
 	vec_t dist;
-	int planenum;
+	int plane_num;
 
 	numbrushsides = 0;
 	numbrushes = nummapbrushes;
@@ -311,8 +311,8 @@ static void EmitBrushes(void){
 				Com_Error(ERR_FATAL, "MAX_BSP_BRUSHSIDES\n");
 			cp = &dbrushsides[numbrushsides];
 			numbrushsides++;
-			cp->planenum = b->original_sides[j].planenum;
-			cp->surfnum = b->original_sides[j].texinfo;
+			cp->plane_num = b->original_sides[j].plane_num;
+			cp->surf_num = b->original_sides[j].texinfo;
 		}
 
 		// add any axis planes not contained in the brush to bevel off corners
@@ -325,17 +325,17 @@ static void EmitBrushes(void){
 					dist = -b->mins[x];
 				else
 					dist = b->maxs[x];
-				planenum = FindFloatPlane(normal, dist);
+				plane_num = FindFloatPlane(normal, dist);
 				for(i = 0; i < b->numsides; i++)
-					if(b->original_sides[i].planenum == planenum)
+					if(b->original_sides[i].plane_num == plane_num)
 						break;
 				if(i == b->numsides){
 					if(numbrushsides >= MAX_BSP_BRUSHSIDES)
 						Com_Error(ERR_FATAL, "MAX_BSP_BRUSHSIDES\n");
 
-					dbrushsides[numbrushsides].planenum = planenum;
-					dbrushsides[numbrushsides].surfnum =
-					    dbrushsides[numbrushsides - 1].surfnum;
+					dbrushsides[numbrushsides].plane_num = plane_num;
+					dbrushsides[numbrushsides].surf_num =
+					    dbrushsides[numbrushsides - 1].surf_num;
 					numbrushsides++;
 					db->numsides++;
 				}
@@ -352,24 +352,24 @@ void BeginBSPFile(void){
 	// these values may actually be initialized
 	// if the file existed when loaded, so clear them explicitly
 	nummodels = 0;
-	numfaces = 0;
-	numnodes = 0;
+	num_faces = 0;
+	num_nodes = 0;
 	numbrushsides = 0;
-	numvertexes = 0;
+	num_vertexes = 0;
 	numnormals = 0;
-	numleaffaces = 0;
-	numleafbrushes = 0;
-	numsurfedges = 0;
+	num_leaf_faces = 0;
+	num_leaf_brushes = 0;
+	num_surfedges = 0;
 
 	// edge 0 is not used, because 0 can't be negated
-	numedges = 1;
+	num_edges = 1;
 
 	// leave vertex 0 as an error
-	numvertexes = 1;
+	num_vertexes = 1;
 	numnormals = 1;
 
 	// leave leaf 0 as an error
-	numleafs = 1;
+	num_leafs = 1;
 	dleafs[0].contents = CONTENTS_SOLID;
 }
 
@@ -385,7 +385,7 @@ void EndBSPFile(void){
 
 	// now that the verts have been resolved, align the normals count
 	memset(dnormals, 0, sizeof(dnormals));
-	numnormals = numvertexes;
+	numnormals = num_vertexes;
 
 	// write the map
 	Com_Verbose("Writing %s\n", bspname);
@@ -398,7 +398,7 @@ void EndBSPFile(void){
  */
 extern int firstmodeledge;
 void BeginModel(void){
-	dbspmodel_t *mod;
+	d_bsp_model_t *mod;
 	int start, end;
 	mapbrush_t *b;
 	int j;
@@ -409,9 +409,9 @@ void BeginModel(void){
 		Com_Error(ERR_FATAL, "MAX_BSP_MODELS\n");
 	mod = &dmodels[nummodels];
 
-	mod->firstface = numfaces;
+	mod->first_face = num_faces;
 
-	firstmodeledge = numedges;
+	firstmodeledge = num_edges;
 
 	// bound the brushes
 	e = &entities[entity_num];
@@ -437,11 +437,11 @@ void BeginModel(void){
  * EndModel
  */
 void EndModel(void){
-	dbspmodel_t *mod;
+	d_bsp_model_t *mod;
 
 	mod = &dmodels[nummodels];
 
-	mod->numfaces = numfaces - mod->firstface;
+	mod->num_faces = num_faces - mod->first_face;
 
 	nummodels++;
 }

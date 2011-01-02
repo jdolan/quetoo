@@ -41,7 +41,7 @@ static void MN_ImageNodeLoaded (menuNode_t *node)
 			node->size[0] = node->texh[0] - node->texl[0];
 			node->size[1] = node->texh[1] - node->texl[1];
 		} else if (node->image) {
-			const image_t *image = MN_LoadImage(node->image);
+			const r_image_t *image = MN_LoadImage(node->image);
 			if (image) {
 				node->size[0] = image->width;
 				node->size[1] = image->height;
@@ -65,7 +65,7 @@ void MN_ImageNodeDraw (menuNode_t *node)
 {
 	vec2_t size;
 	vec2_t nodepos;
-	const image_t *image;
+	const r_image_t *image;
 
 	const char* imageName = MN_GetReferenceString(node, node->image);
 	if (!imageName || imageName[0] == '\0')

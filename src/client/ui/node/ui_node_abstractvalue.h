@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define CLIENT_MENU_M_NODE_ABSTRACTVALUE_H
 
 /**
- * @brief extradata for common GUI widget which allow to
+ * @brief extra_data for common GUI widget which allow to
  * edit a value (scrollbar, spinner, and more)
  */
 typedef struct abstractValueExtraData_s {

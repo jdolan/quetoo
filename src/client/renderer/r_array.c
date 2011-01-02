@@ -35,7 +35,7 @@
 #define R_ARRAY_TEX_LIGHTMAP	0x20
 
 typedef struct r_array_state_s {
-	const model_t *model;
+	const r_model_t *model;
 	int arrays;
 } r_array_state_t;
 
@@ -75,7 +75,7 @@ static int R_ArraysMask(void){
 /*
  * R_SetVertexArrayState
  */
-static void R_SetVertexArrayState(const model_t *mod, int mask){
+static void R_SetVertexArrayState(const r_model_t *mod, int mask){
 
 	// vertex array
 	if(mask & R_ARRAY_VERTEX)
@@ -124,7 +124,7 @@ static void R_SetVertexArrayState(const model_t *mod, int mask){
 /*
  * R_SetVertexBufferState
  */
-static void R_SetVertexBufferState(const model_t *mod, int mask){
+static void R_SetVertexBufferState(const r_model_t *mod, int mask){
 
 	// vertex array
 	if(mask & R_ARRAY_VERTEX)
@@ -173,7 +173,7 @@ static void R_SetVertexBufferState(const model_t *mod, int mask){
 /*
  * R_SetArrayState
  */
-void R_SetArrayState(const model_t *mod){
+void R_SetArrayState(const r_model_t *mod){
 	int arrays, mask;
 
 	if(r_vertexbuffers->modified){  // force a full re-bind

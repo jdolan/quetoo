@@ -26,7 +26,7 @@
  * they are just RGB, and we retrieve them using floating point for precision.
  */
 
-lightmaps_t r_lightmaps;
+r_lightmaps_t r_lightmaps;
 
 /*
  * R_UploadLightmapBlock
@@ -110,7 +110,7 @@ static qboolean R_AllocLightmapBlock(int w, int h, int *x, int *y){
 /*
  * R_BuildDefaultLightmap
  */
-static void R_BuildDefaultLightmap(msurface_t *surf, byte *sout, byte *dout, int stride){
+static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int stride){
 	int i, j;
 
 	const int smax = (surf->stextents[0] / r_loadmodel->lightmap_scale) + 1;
@@ -148,7 +148,7 @@ static void R_BuildDefaultLightmap(msurface_t *surf, byte *sout, byte *dout, int
  * Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
  * writing processed lightmap and deluxemap RGBA to the specified destinations.
  */
-static void R_BuildLightmap(msurface_t *surf, byte *sout, byte *dout, int stride){
+static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int stride){
 	int i, j;
 	byte *lightmap, *lm, *l, *deluxemap, *dm;
 
@@ -252,7 +252,7 @@ static void R_BuildLightmap(msurface_t *surf, byte *sout, byte *dout, int stride
 /*
  * R_CreateSurfaceLightmap
  */
-void R_CreateSurfaceLightmap(msurface_t *surf){
+void R_CreateSurfaceLightmap(r_bsp_surface_t *surf){
 	int smax, tmax, stride;
 	byte *samples, *directions;
 
@@ -331,22 +331,22 @@ void R_EndBuildingLightmaps(void){
 
 
 /*
- * R_LightPointColor_
+ * R_UpdateLighting_Color_
  *
  * Clip to all surfaces within the specified range, accumulating static lighting
  * color to the specified vector in the event of an intersection.
  */
-static qboolean R_LightPointColor_(const int firstsurface, const int numsurfaces,
+static qboolean R_UpdateLighting_Color_(const int first_surface, const int num_surfaces,
 		const vec3_t point, vec3_t color){
-	msurface_t *surf;
-	mtexinfo_t *tex;
+	r_bsp_surface_t *surf;
+	r_bsp_texinfo_t *tex;
 	int i, width, sample;
 	float s, t;
 
 	// resolve the surface that was impacted
-	surf = r_worldmodel->surfaces + firstsurface;
+	surf = r_worldmodel->surfaces + first_surface;
 
-	for(i = 0; i < numsurfaces; i++, surf++){
+	for(i = 0; i < num_surfaces; i++, surf++){
 
 		if(!(surf->flags & MSURF_LIGHTMAP))
 			continue;  // no lightmap
@@ -387,15 +387,15 @@ static qboolean R_LightPointColor_(const int firstsurface, const int numsurfaces
 }
 
 
-#define STATIC_LIGHTING_MIN_COMPONENT 0.05
-#define STATIC_LIGHTING_MIN_SUM 0.75
+#define LIGHTING_MIN_COMPONENT 0.05
+#define LIGHTING_MIN_SUM 0.75
 
 /*
- * R_LightPointClamp
+ * R_UpdateLighting_Clamp
  *
  * Clamps and scales the newly resolved sample color into an acceptable range.
  */
-static void R_LightPointClamp(static_lighting_t *lighting){
+static void R_UpdateLighting_Clamp(r_lighting_t *lighting){
 	qboolean clamped;
 	float f;
 	int i;
@@ -403,14 +403,14 @@ static void R_LightPointClamp(static_lighting_t *lighting){
 	clamped = false;
 
 	for(i = 0; i < 3; i++){  // clamp it
-		if(lighting->colors[0][i] < STATIC_LIGHTING_MIN_COMPONENT){
-			lighting->colors[0][i] = STATIC_LIGHTING_MIN_COMPONENT;
+		if(lighting->colors[0][i] < LIGHTING_MIN_COMPONENT){
+			lighting->colors[0][i] = LIGHTING_MIN_COMPONENT;
 			clamped = true;
 		}
 	}
 
 	// scale it into acceptable range
-	while(VectorSum(lighting->colors[0]) < STATIC_LIGHTING_MIN_SUM){
+	while(VectorSum(lighting->colors[0]) < LIGHTING_MIN_SUM){
 		VectorScale(lighting->colors[0], 1.25, lighting->colors[0]);
 		clamped = true;
 	}
@@ -427,12 +427,12 @@ static void R_LightPointClamp(static_lighting_t *lighting){
 
 
 /*
- * R_LightPointColor
+ * R_UpdateLighting_Color
  *
  * Resolve the lighting color at the point of impact from the downward trace.
  * If the trace did not intersect a surface, use the level's ambient color.
  */
-static void R_LightPointColor(static_lighting_t *lighting){
+static void R_UpdateLighting_Color(r_lighting_t *lighting){
 
 	// shuffle the samples
 	VectorCopy(lighting->colors[0], lighting->colors[1]);
@@ -441,24 +441,24 @@ static void R_LightPointColor(static_lighting_t *lighting){
 
 		VectorSet(lighting->colors[0], 1.0, 1.0, 1.0);
 
-		if(r_worldmodel->lightdata){  // resolve the lighting sample
+		if(r_worldmodel->lightmap_data){  // resolve the lighting sample
 
 			if(r_view.trace_ent){  // clip to all surfaces of the bsp entity
 
 				VectorSubtract(r_view.trace.endpos,
 						r_view.trace_ent->origin, r_view.trace.endpos);
 
-				R_LightPointColor_(r_view.trace_ent->model->firstmodelsurface,
-						r_view.trace_ent->model->nummodelsurfaces,
+				R_UpdateLighting_Color_(r_view.trace_ent->model->first_model_surface,
+						r_view.trace_ent->model->num_model_surfaces,
 						r_view.trace.endpos, lighting->colors[0]);
 			}
 			else {  // general case is to recurse up the nodes
-				mleaf_t *leaf = &r_worldmodel->leafs[r_view.trace.leafnum];
-				mnode_t *node = leaf->parent;
+				r_bsp_leaf_t *leaf = &r_worldmodel->leafs[r_view.trace.leafnum];
+				r_bsp_node_t *node = leaf->parent;
 
 				while(node){
 
-					if(R_LightPointColor_(node->firstsurface, node->numsurfaces,
+					if(R_UpdateLighting_Color_(node->first_surface, node->num_surfaces,
 								r_view.trace.endpos, lighting->colors[0]))
 						break;
 
@@ -471,18 +471,18 @@ static void R_LightPointColor(static_lighting_t *lighting){
 		VectorCopy(r_view.ambient_light, lighting->colors[0]);
 	}
 
-	R_LightPointClamp(lighting);
+	R_UpdateLighting_Clamp(lighting);
 }
 
 
 /*
- * R_LightPointPosition
+ * R_UpdateLighting_Position
  *
  * Resolves the closest static light source, populating the lighting's position
  * element.  This facilitates directional shading in the fragment program.
  */
-static void R_LightPointPosition(static_lighting_t *lighting){
-	mbsplight_t *l;
+static void R_UpdateLighting_Position(r_lighting_t *lighting){
+	r_bsp_light_t *l;
 	float light, best;
 	vec3_t delta;
 	int i;
@@ -499,8 +499,8 @@ static void R_LightPointPosition(static_lighting_t *lighting){
 
 	best = 0.0;
 
-	l = r_worldmodel->bsplights;
-	for(i = 0; i < r_worldmodel->numbsplights; i++, l++){
+	l = r_worldmodel->bsp_lights;
+	for(i = 0; i < r_worldmodel->num_bsp_lights; i++, l++){
 
 		if(l->leaf->vis_frame != r_locals.vis_frame)
 			continue;
@@ -526,14 +526,14 @@ static void R_LightPointPosition(static_lighting_t *lighting){
 }
 
 
-#define STATIC_LIGHTING_INTERVAL 0.1
+#define LIGHTING_INTERVAL 0.1
 
 /*
- * R_LightPointLerp
+ * R_UpdateLighting_Lerp
  *
  * Interpolate color and position information.
  */
-static void R_LightPointLerp(static_lighting_t *lighting){
+static void R_UpdateLighting_Lerp(r_lighting_t *lighting){
 	float lerp;
 
 	if(VectorCompare(lighting->colors[1], vec3_origin)){  // only one sample available
@@ -543,7 +543,7 @@ static void R_LightPointLerp(static_lighting_t *lighting){
 	}
 
 	// calculate the lerp fraction
-	lerp = (r_view.time - lighting->time) / STATIC_LIGHTING_INTERVAL;
+	lerp = (r_view.time - lighting->time) / LIGHTING_INTERVAL;
 
 	// and lerp the colors
 	VectorMix(lighting->colors[1], lighting->colors[0], lerp, lighting->color);
@@ -554,13 +554,13 @@ static void R_LightPointLerp(static_lighting_t *lighting){
 
 
 /*
- * R_LightPoint
+ * R_UpdateLighting
  *
  * Resolve static lighting information for the specified point.  Linear
  * interpolation is used to blend the previous lighting information, provided
  * it is recent.
  */
-void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
+void R_UpdateLighting(const vec3_t point, r_lighting_t *lighting){
 	vec3_t start, end;
 	float delta;
 
@@ -594,8 +594,8 @@ void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 
 	delta = r_view.time - lighting->time;
 
-	if(lighting->time && delta < STATIC_LIGHTING_INTERVAL){
-		R_LightPointLerp(lighting);  // still valid, just lerp
+	if(lighting->time && delta < LIGHTING_INTERVAL){
+		R_UpdateLighting_Lerp(lighting);  // still valid, just lerp
 		return;
 	}
 
@@ -603,11 +603,11 @@ void R_LightPoint(const vec3_t point, static_lighting_t *lighting){
 	lighting->time = r_view.time;
 
 	// resolve the lighting color
-	R_LightPointColor(lighting);
+	R_UpdateLighting_Color(lighting);
 
 	// resolve the static light source position
-	R_LightPointPosition(lighting);
+	R_UpdateLighting_Position(lighting);
 
 	// interpolate the static lighting information
-	R_LightPointLerp(lighting);
+	R_UpdateLighting_Lerp(lighting);
 }

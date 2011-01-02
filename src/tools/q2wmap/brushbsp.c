@@ -57,14 +57,14 @@ static void CreateBrushWindings(bspbrush_t * brush){
 
 	for(i = 0; i < brush->numsides; i++){
 		side = &brush->sides[i];
-		plane = &mapplanes[side->planenum];
+		plane = &mapplanes[side->plane_num];
 		w = BaseWindingForPlane(plane->normal, plane->dist);
 		for(j = 0; j < brush->numsides && w; j++){
 			if(i == j)
 				continue;
 			if(brush->sides[j].bevel)
 				continue;
-			plane = &mapplanes[brush->sides[j].planenum ^ 1];
+			plane = &mapplanes[brush->sides[j].plane_num ^ 1];
 			ChopWindingInPlace(&w, plane->normal, plane->dist, 0);	//CLIP_EPSILON);
 		}
 
@@ -92,11 +92,11 @@ static bspbrush_t *BrushFromBounds(vec3_t mins, vec3_t maxs){
 		VectorClear(normal);
 		normal[i] = 1;
 		dist = maxs[i];
-		b->sides[i].planenum = FindFloatPlane(normal, dist);
+		b->sides[i].plane_num = FindFloatPlane(normal, dist);
 
 		normal[i] = -1;
 		dist = -mins[i];
-		b->sides[3 + i].planenum = FindFloatPlane(normal, dist);
+		b->sides[3 + i].plane_num = FindFloatPlane(normal, dist);
 	}
 
 	CreateBrushWindings(b);
@@ -137,7 +137,7 @@ static vec_t BrushVolume(bspbrush_t * brush){
 		w = brush->sides[i].winding;
 		if(!w)
 			continue;
-		plane = &mapplanes[brush->sides[i].planenum];
+		plane = &mapplanes[brush->sides[i].plane_num];
 		d = -(DotProduct(corner, plane->normal) - plane->dist);
 		area = WindingArea(w);
 		volume += d * area;
@@ -301,7 +301,7 @@ static int Map_BoxOnPlaneSide(vec3_t mins, vec3_t maxs, plane_t * plane){
 /*
  * TestBrushToPlanenum
  */
-static int TestBrushToPlanenum(bspbrush_t * brush, int planenum,
+static int TestBrushToPlanenum(bspbrush_t * brush, int plane_num,
                         int *numsplits, qboolean * hintsplit, int *epsilonbrush){
 	int i, j, num;
 	plane_t *plane;
@@ -313,20 +313,20 @@ static int TestBrushToPlanenum(bspbrush_t * brush, int planenum,
 	*numsplits = 0;
 	*hintsplit = false;
 
-	// if the brush actually uses the planenum,
+	// if the brush actually uses the plane_num,
 	// we can tell the side for sure
 	for(i = 0; i < brush->numsides; i++){
-		num = brush->sides[i].planenum;
+		num = brush->sides[i].plane_num;
 		if(num >= 0x10000)
-			Com_Error(ERR_FATAL, "bad planenum\n");
-		if(num == planenum)
+			Com_Error(ERR_FATAL, "bad plane_num\n");
+		if(num == plane_num)
 			return PSIDE_BACK | PSIDE_FACING;
-		if(num == (planenum ^ 1))
+		if(num == (plane_num ^ 1))
 			return PSIDE_FRONT | PSIDE_FACING;
 	}
 
 	// box on plane side
-	plane = &mapplanes[planenum];
+	plane = &mapplanes[plane_num];
 	s = Map_BoxOnPlaneSide(brush->mins, brush->maxs, plane);
 
 	if(s != PSIDE_BOTH)
@@ -425,7 +425,7 @@ static void LeafNode(node_t * node, bspbrush_t * brushes){
 	bspbrush_t *b;
 	int i;
 
-	node->planenum = PLANENUM_LEAF;
+	node->plane_num = PLANENUM_LEAF;
 	node->contents = 0;
 
 	for(b = brushes; b; b = b->next){
@@ -450,7 +450,7 @@ static void CheckPlaneAgainstParents(int pnum, node_t * node){
 	node_t *p;
 
 	for(p = node->parent; p; p = p->parent){
-		if(p->planenum == pnum)
+		if(p->plane_num == pnum)
 			Com_Error(ERR_FATAL, "Tried parent\n");
 	}
 }
@@ -521,7 +521,7 @@ static side_t *SelectSplitSide(bspbrush_t * brushes, node_t * node){
 				if(side->visible ^(pass < 2))
 					continue;		  // only check visible faces on first pass
 
-				pnum = side->planenum;
+				pnum = side->plane_num;
 				pnum &= ~1;			  // always use positive facing plane
 
 				CheckPlaneAgainstParents(pnum, node);
@@ -551,7 +551,7 @@ static side_t *SelectSplitSide(bspbrush_t * brushes, node_t * node){
 					if(s & PSIDE_FACING){
 						facing++;
 						for(j = 0; j < test->numsides; j++){
-							if((test->sides[j].planenum & ~1) == pnum)
+							if((test->sides[j].plane_num & ~1) == pnum)
 								test->sides[j].tested = true;
 						}
 					}
@@ -645,7 +645,7 @@ static int BrushMostlyOnSide(bspbrush_t * brush, plane_t * plane){
  *
  * Generates two new brushes, leaving the original unchanged
  */
-void SplitBrush(bspbrush_t * brush, int planenum,
+void SplitBrush(bspbrush_t * brush, int plane_num,
                 bspbrush_t ** front, bspbrush_t ** back){
 	bspbrush_t *b[2];
 	int i, j;
@@ -655,7 +655,7 @@ void SplitBrush(bspbrush_t * brush, int planenum,
 	float d, d_front, d_back;
 
 	*front = *back = NULL;
-	plane = &mapplanes[planenum];
+	plane = &mapplanes[plane_num];
 
 	// check all points
 	d_front = d_back = 0;
@@ -685,7 +685,7 @@ void SplitBrush(bspbrush_t * brush, int planenum,
 
 	w = BaseWindingForPlane(plane->normal, plane->dist);
 	for(i = 0; i < brush->numsides && w; i++){
-		plane2 = &mapplanes[brush->sides[i].planenum ^ 1];
+		plane2 = &mapplanes[brush->sides[i].plane_num ^ 1];
 		ChopWindingInPlace(&w, plane2->normal, plane2->dist, 0);	// PLANESIDE_EPSILON);
 	}
 
@@ -772,7 +772,7 @@ void SplitBrush(bspbrush_t * brush, int planenum,
 		cs = &b[i]->sides[b[i]->numsides];
 		b[i]->numsides++;
 
-		cs->planenum = planenum ^ i ^ 1;
+		cs->plane_num = plane_num ^ i ^ 1;
 		cs->texinfo = TEXINFO_NODE;
 		cs->visible = false;
 		cs->tested = false;
@@ -816,7 +816,7 @@ static void SplitBrushList(bspbrush_t * brushes,
 		sides = brush->side;
 
 		if(sides == PSIDE_BOTH){ // split into two brushes
-			SplitBrush(brush, node->planenum, &newbrush, &newbrush2);
+			SplitBrush(brush, node->plane_num, &newbrush, &newbrush2);
 			if(newbrush){
 				newbrush->next = *front;
 				*front = newbrush;
@@ -830,13 +830,13 @@ static void SplitBrushList(bspbrush_t * brushes,
 
 		newbrush = CopyBrush(brush);
 
-		// if the planenum is actualy a part of the brush
+		// if the plane_num is actualy a part of the brush
 		// find the plane and flag it as used so it won't be tried
 		// as a splitter again
 		if(sides & PSIDE_FACING){
 			for(i = 0; i < newbrush->numsides; i++){
 				side = newbrush->sides + i;
-				if((side->planenum & ~1) == node->planenum)
+				if((side->plane_num & ~1) == node->plane_num)
 					side->texinfo = TEXINFO_NODE;
 			}
 		}
@@ -874,13 +874,13 @@ static node_t *BuildTree_r(node_t * node, bspbrush_t * brushes){
 	if(!bestside){
 		// leaf node
 		node->side = NULL;
-		node->planenum = -1;
+		node->plane_num = -1;
 		LeafNode(node, brushes);
 		return node;
 	}
 	// this is a splitplane node
 	node->side = bestside;
-	node->planenum = bestside->planenum & ~1;	// always use front facing
+	node->plane_num = bestside->plane_num & ~1;	// always use front facing
 
 	SplitBrushList(brushes, node, &children[0], &children[1]);
 	FreeBrushList(brushes);
@@ -892,7 +892,7 @@ static node_t *BuildTree_r(node_t * node, bspbrush_t * brushes){
 		node->children[i] = newnode;
 	}
 
-	SplitBrush(node->volume, node->planenum, &node->children[0]->volume,
+	SplitBrush(node->volume, node->plane_num, &node->children[0]->volume,
 	           &node->children[1]->volume);
 
 	// recursively process children
@@ -964,7 +964,7 @@ tree_t *BrushBSP(bspbrush_t * brushlist, vec3_t mins, vec3_t maxs){
 
 	node->volume = BrushFromBounds(mins, maxs);
 
-	tree->headnode = node;
+	tree->head_node = node;
 
 	node = BuildTree_r(node, brushlist);
 

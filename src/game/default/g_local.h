@@ -751,9 +751,9 @@ struct edict_s {
 
 	link_t area;  // linked to a division node or leaf
 
-	int num_clusters;  // if -1, use headnode instead
+	int num_clusters;  // if -1, use head_node instead
 	int clusternums[MAX_ENT_CLUSTERS];
-	int headnode;  // unused if num_clusters != -1
+	int head_node;  // unused if num_clusters != -1
 	int areanum, areanum2;
 
 	int svflags;

@@ -40,7 +40,7 @@ typedef struct {
 	vec2_t exactmins, exactmaxs;
 
 	int texmins[2], texsize[2];
-	dface_t *face;
+	d_bsp_face_t *face;
 } lightinfo_t;
 
 // face extents
@@ -61,13 +61,13 @@ static extents_t face_extents[MAX_BSP_FACES];
  * the face normal and towards the face center to help with traces.
  */
 static void BuildFaceExtents(void){
-	const dbspvertex_t *v;
+	const d_bsp_vertex_t *v;
 	int i, j, k;
 
-	for(k = 0; k < numfaces; k++){
+	for(k = 0; k < num_faces; k++){
 
-		const dface_t *s = &dfaces[k];
-		const dtexinfo_t *tex = &texinfo[s->texinfo];
+		const d_bsp_face_t *s = &dfaces[k];
+		const d_bsp_texinfo_t *tex = &texinfo[s->texinfo];
 
 		float *mins = face_extents[s - dfaces].mins;
 		float *maxs = face_extents[s - dfaces].maxs;
@@ -83,8 +83,8 @@ static void BuildFaceExtents(void){
 		stmins[0] = stmins[1] = 999999;
 		stmaxs[0] = stmaxs[1] = -999999;
 
-		for(i = 0; i < s->numedges; i++){
-			const int e = dsurfedges[s->firstedge + i];
+		for(i = 0; i < s->num_edges; i++){
+			const int e = dsurfedges[s->first_edge + i];
 			if(e >= 0)
 				v = dvertexes + dedges[e].v[0];
 			else
@@ -118,7 +118,7 @@ static void BuildFaceExtents(void){
  * Fills in l->texmins[] and l->texsize[], l->exactmins[] and l->exactmaxs[]
  */
 static void CalcLightinfoExtents(lightinfo_t *l){
-	const dface_t *s;
+	const d_bsp_face_t *s;
 	float *stmins, *stmaxs;
 	vec2_t lm_mins, lm_maxs;
 	int i;
@@ -150,7 +150,7 @@ static void CalcLightinfoExtents(lightinfo_t *l){
  * Fills in texorg, worldtotex. and textoworld
  */
 static void CalcLightinfoVectors(lightinfo_t *l){
-	const dtexinfo_t *tex;
+	const d_bsp_texinfo_t *tex;
 	int i;
 	vec3_t texnormal;
 	vec_t distscale;
@@ -307,7 +307,7 @@ static entity_t *FindTargetEntity(const char *target){
 void BuildLights(void){
 	int i;
 	light_t *l;
-	const dleaf_t *leaf;
+	const d_bsp_leaf_t *leaf;
 	int cluster;
 	const char *target;
 	vec3_t dest;
@@ -536,7 +536,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 	int i;
 
 	// iterate over lights, which are in buckets by cluster
-	for(i = 0; i < dvis->numclusters; i++){
+	for(i = 0; i < dvis->num_clusters; i++){
 
 		if(!(pvs[i >> 3] & (1 << (i & 7))))
 			continue;
@@ -625,22 +625,22 @@ static qboolean NudgeSamplePosition(const vec3_t in, const vec3_t normal, const 
 /*
  * FacesWithEdge
  *
- * Populate faces with indexes of all dface_t's referencing the specified edge.
- * The number of dface_t's referencing edge is returned in nfaces.
+ * Populate faces with indexes of all d_bsp_face_t's referencing the specified edge.
+ * The number of d_bsp_face_t's referencing edge is returned in nfaces.
  */
 static void FacesWithVert(int vert, int *faces, int *nfaces){
 	int i, j, k;
 
 	k = 0;
-	for(i = 0; i < numfaces; i++){
-		const dface_t *face = &dfaces[i];
+	for(i = 0; i < num_faces; i++){
+		const d_bsp_face_t *face = &dfaces[i];
 
 		if(!(texinfo[face->texinfo].flags & SURF_PHONG))
 			continue;
 
-		for(j = 0; j < face->numedges; j++){
+		for(j = 0; j < face->num_edges; j++){
 
-			const int e = dsurfedges[face->firstedge + j];
+			const int e = dsurfedges[face->first_edge + j];
 			const int v = e >= 0 ? dedges[e].v[0] : dedges[-e].v[1];
 
 			if(v == vert){  // face references vert
@@ -671,7 +671,7 @@ void BuildVertexNormals(void){
 
 	BuildFaceExtents();
 
-	for(i = 0; i < numvertexes; i++){
+	for(i = 0; i < num_vertexes; i++){
 
 		VectorClear(dnormals[i].normal);
 
@@ -681,8 +681,8 @@ void BuildVertexNormals(void){
 			continue;
 
 		for(j = 0; j < num_vert_faces; j++){
-			const dface_t *face = &dfaces[vert_faces[j]];
-			const dplane_t *plane = &dplanes[face->planenum];
+			const d_bsp_face_t *face = &dfaces[vert_faces[j]];
+			const d_bsp_plane_t *plane = &dplanes[face->plane_num];
 
 			// scale the contribution of each face based on size
 			VectorSubtract(face_extents[vert_faces[j]].maxs,
@@ -719,8 +719,8 @@ static void SampleNormal(const lightinfo_t *l, const vec3_t pos, vec3_t normal){
 	nearv = 0;
 
 	// calculate the distance to each vertex
-	for(i = 0; i < l->face->numedges; i++){
-		const int e = dsurfedges[l->face->firstedge + i];
+	for(i = 0; i < l->face->num_edges; i++){
+		const int e = dsurfedges[l->face->first_edge + i];
 		if(e >= 0)
 			v = dedges[e].v[0];
 		else
@@ -749,9 +749,9 @@ static const float sampleofs[MAX_SAMPLES][2] = {
  * BuildFacelights
  */
 void BuildFacelights(int facenum){
-	dface_t *face;
-	dplane_t *plane;
-	dtexinfo_t *tex;
+	d_bsp_face_t *face;
+	d_bsp_plane_t *plane;
+	d_bsp_texinfo_t *tex;
 	float *center;
 	float *sdir, *tdir, scale;
 	vec3_t pos;
@@ -768,7 +768,7 @@ void BuildFacelights(int facenum){
 	}
 
 	face = &dfaces[facenum];
-	plane = &dplanes[face->planenum];
+	plane = &dplanes[face->plane_num];
 
 	tex = &texinfo[face->texinfo];
 
@@ -890,7 +890,7 @@ static const vec3_t luminosity = {0.2125, 0.7154, 0.0721};
  * final map format.
  */
 void FinalLightFace(int facenum){
-	dface_t *f;
+	d_bsp_face_t *f;
 	int j, k;
 	vec3_t temp, intensity;
 	vec3_t dir;
@@ -909,19 +909,19 @@ void FinalLightFace(int facenum){
 
 	ThreadLock();
 
-	f->lightofs = lightdatasize;
-	lightdatasize += fl->numsamples * 3;
+	f->light_ofs = lightmap_data_size;
+	lightmap_data_size += fl->numsamples * 3;
 
 	if(!legacy)  // account for light direction data as well
-		lightdatasize += fl->numsamples * 3;
+		lightmap_data_size += fl->numsamples * 3;
 
-	if(lightdatasize > MAX_BSP_LIGHTING)
+	if(lightmap_data_size > MAX_BSP_LIGHTING)
 		Com_Error(ERR_FATAL, "MAX_BSP_LIGHTING\n");
 
 	ThreadUnlock();
 
 	// write it out
-	dest = &dlightdata[f->lightofs];
+	dest = &dlightmap_data[f->light_ofs];
 
 	for(j = 0; j < fl->numsamples; j++){
 

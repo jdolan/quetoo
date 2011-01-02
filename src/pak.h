@@ -35,7 +35,7 @@
 
 typedef struct {
 	char name[56];
-	int fileofs, filelen;
+	int file_ofs, file_len;
 } pakentry_t;
 
 typedef struct {

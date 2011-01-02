@@ -67,14 +67,14 @@ cvar_t *skin;
 
 cvar_t *recording;
 
-client_static_t cls;
-client_state_t cl;
+cl_static_t cls;
+cl_client_t cl;
 
 cl_entity_t cl_entities[MAX_EDICTS];
 
 entity_state_t cl_parse_entities[MAX_PARSE_ENTITIES];
 
-char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
+char cl_weaponmodels[MAX_WEAPONMODELS][MAX_QPATH];
 int num_cl_weaponmodels;
 
 char demoname[MAX_OSPATH];
@@ -254,7 +254,7 @@ static void Cl_Record_f(void){
 static char last_dropped_item[MAX_TOKEN_CHARS];
 
 /*
- * Cl_VariableString
+ * Cl_ExpandVariable
  *
  * This is the client-specific sibling to Cvar_VariableString.
  */
@@ -289,13 +289,11 @@ static const char *Cl_ExpandVariable(char v){
 }
 
 
-// expand %variables for say and say_team
-static char expanded[MAX_STRING_CHARS];
-
 /*
  * Cl_ExpandVariables
  */
 static char *Cl_ExpandVariables(const char *text){
+	static char expanded[MAX_STRING_CHARS];
 	int i, j, len;
 
 	if(!text || !text[0])
@@ -474,7 +472,7 @@ static void Cl_Connect_f(void){
 	s = Cmd_Argv(1);
 
 	if(s[0] == '*'){  // resolve by server number
-		const server_info_t *server = Cl_ServerForNum(atoi(s + 1));
+		const cl_server_info_t *server = Cl_ServerForNum(atoi(s + 1));
 
 		if(!server){
 			Com_Warn("Invalid server: %s\n", Cmd_Argv(1));
@@ -816,7 +814,7 @@ static void Cl_LoadMedia(void){
 
 	Cl_LoadLocations();
 
-	cls.key_dest = key_game;
+	cls.key_state.dest = key_game;
 
 	cls.loading = 0;
 }
@@ -962,7 +960,7 @@ static void Cl_InitMenus(void){
 
 	Cbuf_AddText("mn_push main;");
 
-	cls.key_dest = key_menu;
+	cls.key_state.dest = key_menu;
 }
 
 /*

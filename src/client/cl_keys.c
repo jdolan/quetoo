@@ -109,7 +109,7 @@ keyname_t keynames[] = {
 	{NULL, 0}
 };
 
-static key_state_t *ks = &cls.key_state;
+static cl_key_state_t *ks = &cls.key_state;
 
 
 /*
@@ -354,7 +354,7 @@ static void Cl_KeyMessage(unsigned key, unsigned short unicode, qboolean down, u
 			Cbuf_AddText("\"");
 		}
 
-		cls.key_dest = key_game;
+		ks->dest = key_game;
 		cls.chat_state.buffer[0] = 0;
 		cls.chat_state.len = 0;
 		return;
@@ -620,7 +620,7 @@ static void Cl_ReadHistory(void){
 void Cl_InitKeys(void){
 	int i;
 
-	memset(ks, 0, sizeof(key_state_t));
+	memset(ks, 0, sizeof(cl_key_state_t));
 
 	ks->insert = 1;
 
@@ -668,13 +668,13 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 	if(key == K_ESCAPE && down){  // escape can cancel a few things
 
 		// message mode
-		if(cls.key_dest == key_message){
+		if(ks->dest == key_message){
 
 			// we should always be in game here, but check to be safe
 			if(cls.state == ca_active)
-				cls.key_dest = key_game;
+				ks->dest = key_game;
 			else
-				cls.key_dest = key_menu;
+				ks->dest = key_menu;
 			return;
 		}
 
@@ -685,17 +685,17 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 		}
 
 		// console
-		if(cls.key_dest == key_console){
+		if(ks->dest == key_console){
 			Cl_ToggleConsole_f();
 			return;
 		}
 
 		// and menus
-		if(cls.key_dest == key_menu){
+		if(ks->dest == key_menu){
 
 			// if we're in the game, just hide the menus
 			if(cls.state == ca_active)
-				cls.key_dest = key_game;
+				ks->dest = key_game;
 			// otherwise, pop back from a child menu
 			else
 				Cbuf_AddText("mn_pop\n");
@@ -703,7 +703,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 			return;
 		}
 
-		cls.key_dest = key_menu;
+		ks->dest = key_menu;
 		return;
 	}
 
@@ -734,7 +734,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 	if(!down)  // always send up events to release button binds
 		Cl_KeyGame(key, unicode, down, time);
 
-	switch(cls.key_dest){
+	switch(ks->dest){
 		case key_game:
 			Cl_KeyGame(key, unicode, down, time);
 			break;
@@ -748,7 +748,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 			Cl_KeyConsole(key, unicode, down, time);
 			break;
 		default:
-			Com_Debug("Cl_KeyEvent: Bad cls.key_dest: %d.\n", cls.key_dest);
+			Com_Debug("Cl_KeyEvent: Bad cl_key_dest: %d.\n", ks->dest);
 			break;
 	}
 }

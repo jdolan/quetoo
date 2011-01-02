@@ -34,10 +34,10 @@ typedef enum {
 	ss_loading,   // spawning level edicts
 	ss_game,   // actively running
 	ss_demo
-} server_state_t;
+} sv_state_t;
 
-typedef struct {
-	server_state_t state;  // precache commands are only valid during load
+typedef struct sv_server_s {
+	sv_state_t state;  // precache commands are only valid during load
 
 	unsigned time;  // always sv.framenum * 100 msec
 	int framenum;
@@ -55,9 +55,9 @@ typedef struct {
 
 	// demo server information
 	FILE *demofile;
-} server_t;
+} sv_server_t;
 
-extern server_t sv;  // local server
+extern sv_server_t sv;  // local server
 
 typedef enum {
 	cs_free,   // can be used for a new connection
@@ -144,13 +144,13 @@ typedef struct sv_client_s {
 // out before legitimate users connected
 #define MAX_CHALLENGES	1024
 
-typedef struct challenge_s {
+typedef struct sv_challenge_s {
 	netaddr_t addr;
 	int challenge;
 	int time;
-} challenge_t;
+} sv_challenge_t;
 
-typedef struct server_static_s {
+typedef struct sv_static_s {
 	qboolean initialized;  // sv_init has completed
 	int realtime;  // always increasing, no clamping, etc
 
@@ -165,10 +165,10 @@ typedef struct server_static_s {
 
 	int last_heartbeat;
 
-	challenge_t challenges[MAX_CHALLENGES];  // to prevent invalid IPs from connecting
-} server_static_t;
+	sv_challenge_t challenges[MAX_CHALLENGES];  // to prevent invalid IPs from connecting
+} sv_static_t;
 
-extern server_static_t svs;  // persistent server info
+extern sv_static_t svs;  // persistent server info
 
 extern netaddr_t net_from;
 extern sizebuf_t net_message;
@@ -219,13 +219,13 @@ typedef enum {
 	RD_NONE,
 	RD_CLIENT,
 	RD_PACKET
-} redirect_t;
+} sv_redirect_t;
 
 #define SV_OUTPUTBUF_LENGTH	(MAX_MSGLEN - 16)
 
 extern char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
-void Sv_FlushRedirect(int sv_redirected, char *outputbuf);
+void Sv_FlushRedirect(int target, char *outputbuf);
 void Sv_SendClientMessages(void);
 void Sv_Unicast(edict_t *ent, qboolean reliable);
 void Sv_Multicast(vec3_t origin, multicast_t to);

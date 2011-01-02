@@ -31,7 +31,7 @@ struct menuAction_s;
 struct nodeBehaviour_s;
 
 /**
- * @brief extradata for the window node
+ * @brief extra_data for the window node
  */
 typedef struct {
 	int eventTime;

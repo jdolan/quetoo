@@ -25,7 +25,7 @@
 /*
  * R_SetSurfaceState_pro
  */
-static void R_SetSurfaceState_pro(msurface_t *surf){
+static void R_SetSurfaceState_pro(r_bsp_surface_t *surf){
 
 	if(r_state.lighting_enabled){
 
@@ -40,9 +40,9 @@ static void R_SetSurfaceState_pro(msurface_t *surf){
 /*
  * R_DrawSurface_pro
  */
-static void R_DrawSurface_pro(const msurface_t *surf){
+static void R_DrawSurface_pro(const r_bsp_surface_t *surf){
 
-	glDrawArrays(GL_POLYGON, surf->index, surf->numedges);
+	glDrawArrays(GL_POLYGON, surf->index, surf->num_edges);
 
 	r_view.bsp_polys++;
 }
@@ -51,7 +51,7 @@ static void R_DrawSurface_pro(const msurface_t *surf){
 /*
  * R_DrawSurfaces_pro
  */
-static void R_DrawSurfaces_pro(const msurfaces_t *surfs){
+static void R_DrawSurfaces_pro(const r_bsp_surfaces_t *surfs){
 	int i;
 
 	R_SetArrayState(r_worldmodel);
@@ -72,7 +72,7 @@ static void R_DrawSurfaces_pro(const msurfaces_t *surfs){
 /*
  * R_DrawOpaqueSurfaces_pro
  */
-void R_DrawOpaqueSurfaces_pro(msurfaces_t *surfs){
+void R_DrawOpaqueSurfaces_pro(r_bsp_surfaces_t *surfs){
 
 	if(!surfs->count)
 		return;
@@ -96,7 +96,7 @@ void R_DrawOpaqueSurfaces_pro(msurfaces_t *surfs){
 /*
  * R_DrawAlphaTestSurfaces_pro
  */
-void R_DrawAlphaTestSurfaces_pro(msurfaces_t *surfs){
+void R_DrawAlphaTestSurfaces_pro(r_bsp_surfaces_t *surfs){
 
 	if(!surfs->count)
 		return;
@@ -120,7 +120,7 @@ void R_DrawAlphaTestSurfaces_pro(msurfaces_t *surfs){
 /*
  * R_DrawBlendSurfaces_pro
  */
-void R_DrawBlendSurfaces_pro(msurfaces_t *surfs){
+void R_DrawBlendSurfaces_pro(r_bsp_surfaces_t *surfs){
 
 	if(!surfs->count)
 		return;
@@ -142,7 +142,7 @@ void R_DrawBlendSurfaces_pro(msurfaces_t *surfs){
 /*
  * R_DrawBackSurfaces_pro
  */
-void R_DrawBackSurfaces_pro(msurfaces_t *surfs){
+void R_DrawBackSurfaces_pro(r_bsp_surfaces_t *surfs){
 	int i;
 
 	if(!r_lines->value || !surfs->count)

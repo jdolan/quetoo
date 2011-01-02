@@ -30,7 +30,7 @@ struct menuIcon_s;
 struct menuCondition_s;
 struct value_s;
 
-/* extradata struct */
+/* extra_data struct */
 #include "node/ui_node_abstractscrollbar.h"
 #include "node/ui_node_abstractvalue.h"
 #include "node/ui_node_text.h"
@@ -114,7 +114,7 @@ typedef struct menuNode_s {
 	struct menuAction_s *onChange;	/**< called when the widget change from an user action */
 
 	/* temporary, and/or for testing */
-	float extraData1;			/**< allow behaviour to use it, how it need (before creating a real extradata structure) */
+	float extraData1;			/**< allow behaviour to use it, how it need (before creating a real extra_data structure) */
 
 	/* image, and more */
 	vec2_t texh;				/**< lower right texture coordinates, for text nodes texh[0] is the line height and texh[1] tabs width */
@@ -129,7 +129,7 @@ typedef struct menuNode_s {
 	qboolean repeat;			/**< repeat action when "click" is held */
 	int clickDelay;				/**< for nodes that have repeat set, this is the delay for the next click */
 
-	/** union will contain all extradata for a node */
+	/** union will contain all extra_data for a node */
 	union {
 		abstractValueExtraData_t abstractvalue;
 		abstractScrollbarExtraData_t abstractscrollbar;

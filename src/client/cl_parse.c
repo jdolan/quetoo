@@ -224,10 +224,10 @@ static qboolean Cl_ParseServerData(void){
 	char *str;
 	int i;
 
-	// wipe the client_state_t struct
+	// wipe the cl_client_t struct
 	Cl_ClearState();
 	cls.state = ca_connected;
-	cls.key_dest = key_console;
+	cls.key_state.dest = key_console;
 
 	// parse protocol version number
 	i = Msg_ReadLong(&net_message);
@@ -295,7 +295,7 @@ static void Cl_ParseBaseline(void){
  * Cl_LoadClientinfo
  *
  */
-void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
+void Cl_LoadClientinfo(cl_clientinfo_t *ci, const char *s){
 	int i;
 	const char *t;
 	char *u, *v;
@@ -361,15 +361,16 @@ void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
 	}
 
 	// weapon models
-	for(i = 0; i < num_cl_weaponmodels; i++){
-		snprintf(weapon_filename, sizeof(weapon_filename), "players/%s/%s", model_name, cl_weaponmodels[i]);
+	for(i = 0; i < cl.num_weaponmodels; i++){
+		snprintf(weapon_filename, sizeof(weapon_filename), "players/%s/%s", model_name, cl.weaponmodels[i]);
 		ci->weaponmodel[i] = R_LoadModel(weapon_filename);
 		if(!ci->weaponmodel[i])
 			break;
 	}
 
 	// must have loaded all components to be valid
-	if(!ci->model || ci->skin == r_notexture || i < num_cl_weaponmodels){
+	if(!ci->model || ci->skin == r_notexture || i < cl.num_weaponmodels){
+		Com_Debug("Cl_LoadClientInfo: Failed to load %s\n", ci->cinfo);
 		strcpy(model_name, ci->name);  // borrow this to store name
 		memcpy(ci, &cl.baseclientinfo, sizeof(*ci));
 		strcpy(ci->name, model_name);
@@ -384,7 +385,7 @@ void Cl_LoadClientinfo(clientinfo_t *ci, const char *s){
  */
 void Cl_ParseClientinfo(int player){
 	const char *s;
-	clientinfo_t *ci;
+	cl_clientinfo_t *ci;
 
 	s = cl.configstrings[player + CS_PLAYERSKINS];
 

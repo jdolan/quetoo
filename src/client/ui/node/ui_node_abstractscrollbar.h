@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "scripts.h"
 
 /**
- * @brief extradata for scrollbar widget
+ * @brief extra_data for scrollbar widget
  * @todo think about switching to percent when its possible (lowPosition, hightPosition)
  * @todo think about adding a "direction" property and merging v and h scrollbar
  */

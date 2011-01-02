@@ -182,10 +182,10 @@ int Fs_OpenFile(const char *filename, FILE **file, filemode_t mode){
 				return -1;
 			}
 
-			fseek(*file, e->fileofs, SEEK_SET);
+			fseek(*file, e->file_ofs, SEEK_SET);
 
 			last_pak = strrchr(pak->filename, '/') + 1;
-			return e->filelen;
+			return e->file_len;
 		}
 	}
 

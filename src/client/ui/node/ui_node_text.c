@@ -1,6 +1,6 @@
 /**
  * @file m_node_text.c
- * @todo add getter/setter to cleanup access to extradata from cl_*.c files (check "u.text.")
+ * @todo add getter/setter to cleanup access to extra_data from cl_*.c files (check "u.text.")
  */
 
 /*
@@ -281,7 +281,7 @@ static void MN_TextNodeDrawText (menuNode_t* node, const char *text)
 			}
 		} else if (!strncmp(cur, TEXT_IMAGETAG, strlen(TEXT_IMAGETAG))) {
 			const char *token;
-			const image_t *image;
+			const r_image_t *image;
 			int y1 = y;
 			/* cut the image tag */
 			cur += strlen(TEXT_IMAGETAG);

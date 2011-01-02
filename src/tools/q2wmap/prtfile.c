@@ -60,7 +60,7 @@ static void WritePortalFile_r(node_t *node){
 	vec_t dist;
 
 	// decision node
-	if(node->planenum != PLANENUM_LEAF && !node->detail_seperator){
+	if(node->plane_num != PLANENUM_LEAF && !node->detail_seperator){
 		WritePortalFile_r(node->children[0]);
 		WritePortalFile_r(node->children[1]);
 		return;
@@ -108,7 +108,7 @@ static void WritePortalFile_r(node_t *node){
  * All of the leafs under node will have the same cluster
  */
 static void FillLeafNumbers_r(node_t * node, int num){
-	if(node->planenum == PLANENUM_LEAF){
+	if(node->plane_num == PLANENUM_LEAF){
 		if(node->contents & CONTENTS_SOLID)
 			node->cluster = -1;
 		else
@@ -126,7 +126,7 @@ static void FillLeafNumbers_r(node_t * node, int num){
 static void NumberLeafs_r(node_t * node){
 	portal_t *p;
 
-	if(node->planenum != PLANENUM_LEAF && !node->detail_seperator){	// decision node
+	if(node->plane_num != PLANENUM_LEAF && !node->detail_seperator){	// decision node
 		node->cluster = -99;
 		NumberLeafs_r(node->children[0]);
 		NumberLeafs_r(node->children[1]);
@@ -162,7 +162,7 @@ static void NumberLeafs_r(node_t * node){
 static void CreateVisPortals_r(node_t * node){
 	// stop as soon as we get to a detail_seperator, which
 	// means that everything below is in a single cluster
-	if(node->planenum == PLANENUM_LEAF || node->detail_seperator)
+	if(node->plane_num == PLANENUM_LEAF || node->detail_seperator)
 		return;
 
 	MakeNodePortal(node);
@@ -174,7 +174,7 @@ static void CreateVisPortals_r(node_t * node){
 
 static int clusterleaf;
 static void SaveClusters_r(node_t * node){
-	if(node->planenum == PLANENUM_LEAF){
+	if(node->plane_num == PLANENUM_LEAF){
 		dleafs[clusterleaf++].cluster = node->cluster;
 		return;
 	}
@@ -187,22 +187,22 @@ static void SaveClusters_r(node_t * node){
  */
 void WritePortalFile(tree_t *tree){
 	char filename[MAX_OSPATH];
-	node_t *headnode;
+	node_t *head_node;
 
 	Com_Verbose("--- WritePortalFile ---\n");
 
-	headnode = tree->headnode;
+	head_node = tree->head_node;
 	num_visclusters = 0;
 	num_visportals = 0;
 
-	FreeTreePortals_r(headnode);
+	FreeTreePortals_r(head_node);
 
 	MakeHeadnodePortals(tree);
 
-	CreateVisPortals_r(headnode);
+	CreateVisPortals_r(head_node);
 
 	// set the cluster field in every leaf and count the total number of portals
-	NumberLeafs_r(headnode);
+	NumberLeafs_r(head_node);
 
 	// write the file
 	Com_StripExtension(mapname, filename);
@@ -218,12 +218,12 @@ void WritePortalFile(tree_t *tree){
 	Com_Verbose("%5i visclusters\n", num_visclusters);
 	Com_Verbose("%5i visportals\n", num_visportals);
 
-	WritePortalFile_r(headnode);
+	WritePortalFile_r(head_node);
 
 	Fs_CloseFile(pf);
 
 	// we need to store the clusters out now because ordering
 	// issues made us do this after writebsp...
 	clusterleaf = 1;
-	SaveClusters_r(headnode);
+	SaveClusters_r(head_node);
 }

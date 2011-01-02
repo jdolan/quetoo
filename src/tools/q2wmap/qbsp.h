@@ -47,7 +47,7 @@ typedef struct {
 } brush_texture_t;
 
 typedef struct side_s {
-	int planenum;
+	int plane_num;
 	int texinfo;
 	winding_t *winding;
 	struct side_s *original;	// bspbrush_t sides will reference the mapbrush_t sides
@@ -85,7 +85,7 @@ typedef struct face_s {
 
 	struct portal_s *portal;
 	int texinfo;
-	int planenum;
+	int plane_num;
 	int contents;				// faces in different contents can't merge
 	int outputnumber;
 	winding_t *w;
@@ -107,7 +107,7 @@ typedef struct bspbrush_s {
 #define	MAX_NODE_BRUSHES	8
 typedef struct node_s {
 	// both leafs and nodes
-	int planenum;				// -1 = leaf node
+	int plane_num;				// -1 = leaf node
 	struct node_s *parent;
 	vec3_t mins, maxs;			// valid after portalization
 	bspbrush_t *volume;			// one for each leaf/node
@@ -141,7 +141,7 @@ typedef struct portal_s {
 } portal_t;
 
 typedef struct {
-	node_t *headnode;
+	node_t *head_node;
 	node_t outside_node;
 	vec3_t mins, maxs;
 } tree_t;
@@ -208,7 +208,7 @@ void WriteBrushList(char *name, bspbrush_t * brush, qboolean onlyvis);
 
 bspbrush_t *CopyBrush(bspbrush_t * brush);
 
-void SplitBrush(bspbrush_t * brush, int planenum,
+void SplitBrush(bspbrush_t * brush, int plane_num,
                 bspbrush_t ** front, bspbrush_t ** back);
 
 tree_t *AllocTree(void);
@@ -231,11 +231,11 @@ qboolean Portal_VisFlood(const portal_t * p);
 void RemovePortalFromNode(portal_t * portal, node_t * l);
 
 qboolean FloodEntities(tree_t * tree);
-void FillOutside(node_t * headnode);
+void FillOutside(node_t * head_node);
 void FloodAreas(tree_t * tree);
 void MarkVisibleSides(tree_t * tree, int start, int end);
 void FreePortal(portal_t * p);
-void EmitAreaPortals(node_t * headnode);
+void EmitAreaPortals(node_t * head_node);
 
 void MakeTreePortals(tree_t * tree);
 
@@ -248,14 +248,14 @@ void WritePortalFile(tree_t * tree);
 // writebsp.c
 void SetModelNumbers(void);
 void BeginBSPFile(void);
-void WriteBSP(node_t * headnode);
+void WriteBSP(node_t * head_node);
 void EndBSPFile(void);
 void BeginModel(void);
 void EndModel(void);
 
 // faces.c
-void MakeFaces(node_t * headnode);
-void FixTjuncs(node_t * headnode);
+void MakeFaces(node_t * head_node);
+void FixTjuncs(node_t * head_node);
 int GetEdge2(int v1, int v2, face_t * f);
 
 void FreeFace(face_t * f);

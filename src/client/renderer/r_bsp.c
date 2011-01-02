@@ -51,11 +51,11 @@ qboolean R_CullBox(const vec3_t mins, const vec3_t maxs){
  * Returns true if the specified entity is completely culled by the view
  * frustum, false otherwise.
  */
-qboolean R_CullBspModel(const entity_t *e){
+qboolean R_CullBspModel(const r_entity_t *e){
 	vec3_t mins, maxs;
 	int i;
 
-	if(!e->model->nummodelsurfaces)  // no surfaces
+	if(!e->model->num_model_surfaces)  // no surfaces
 		return true;
 
 	if(e->angles[0] || e->angles[1] || e->angles[2]){
@@ -75,9 +75,9 @@ qboolean R_CullBspModel(const entity_t *e){
 /*
  * R_DrawBspModelSurfaces
  */
-static void R_DrawBspModelSurfaces(const entity_t *e){
+static void R_DrawBspModelSurfaces(const r_entity_t *e){
 	cplane_t *plane;
-	msurface_t *surf;
+	r_bsp_surface_t *surf;
 	float dot;
 	int i;
 
@@ -87,9 +87,9 @@ static void R_DrawBspModelSurfaces(const entity_t *e){
 	const int f = r_locals.frame;
 	r_locals.frame = -2;
 
-	surf = &e->model->surfaces[e->model->firstmodelsurface];
+	surf = &e->model->surfaces[e->model->first_model_surface];
 
-	for(i = 0; i < e->model->nummodelsurfaces; i++, surf++){
+	for(i = 0; i < e->model->num_model_surfaces; i++, surf++){
 
 		plane = surf->plane;
 
@@ -138,7 +138,7 @@ static void R_DrawBspModelSurfaces(const entity_t *e){
 /*
  * R_DrawBspModel
  */
-void R_DrawBspModel(const entity_t *e){
+void R_DrawBspModel(const r_entity_t *e){
 	vec3_t forward, right, up;
 	vec3_t temp;
 
@@ -173,7 +173,7 @@ void R_DrawBspModel(const entity_t *e){
  * surfaces show their normals when r_shownormals > 1.0.
  */
 void R_DrawBspNormals(void){
-	msurface_t *surf;
+	r_bsp_surface_t *surf;
 	GLfloat *vertex, *normal;
 	vec3_t end;
 	int i, j, k;
@@ -189,7 +189,7 @@ void R_DrawBspNormals(void){
 
 	k = 0;
 	surf = r_worldmodel->surfaces;
-	for(i = 0; i < r_worldmodel->numsurfaces; i++, surf++){
+	for(i = 0; i < r_worldmodel->num_surfaces; i++, surf++){
 
 		if(surf->vis_frame != r_locals.vis_frame)
 			continue;  // not visible
@@ -205,7 +205,7 @@ void R_DrawBspNormals(void){
 			k = 0;
 		}
 
-		for(j = 0; j < surf->numedges; j++){
+		for(j = 0; j < surf->num_edges; j++){
 			vertex = &r_worldmodel->verts[(surf->index + j) * 3];
 			normal = &r_worldmodel->normals[(surf->index + j) * 3];
 
@@ -236,9 +236,9 @@ void R_DrawBspNormals(void){
  * in that recursion must then pass a dot-product test to resolve sidedness.
  * Finally, the back-side child node is recursed.
  */
-static void R_MarkSurfaces_(mnode_t *node){
+static void R_MarkSurfaces_(r_bsp_node_t *node){
 	int i, side, sidebit;
-	msurface_t *surf, **lsurf;
+	r_bsp_surface_t *surf, **lsurf;
 	cplane_t *plane;
 	float dot;
 
@@ -253,16 +253,16 @@ static void R_MarkSurfaces_(mnode_t *node){
 
 	// if leaf node, flag surfaces to draw this frame
 	if(node->contents != CONTENTS_NODE){
-		mleaf_t *leaf = (mleaf_t *)node;
+		r_bsp_leaf_t *leaf = (r_bsp_leaf_t *)node;
 
 		if(r_view.areabits){  // check for door connected areas
 			if(!(r_view.areabits[leaf->area >> 3] & (1 << (leaf->area & 7))))
 				return;  // not visible
 		}
 
-		lsurf = leaf->firstleafsurface;
+		lsurf = leaf->first_leaf_surface;
 
-		for(i = 0; i < leaf->numleafsurfaces; i++, lsurf++){
+		for(i = 0; i < leaf->num_leaf_surfaces; i++, lsurf++){
 			(*lsurf)->vis_frame = r_locals.vis_frame;
 		}
 
@@ -290,9 +290,9 @@ static void R_MarkSurfaces_(mnode_t *node){
 	R_MarkSurfaces_(node->children[side]);
 
 	// prune all marked surfaces to just those which are front-facing
-	surf = r_worldmodel->surfaces + node->firstsurface;
+	surf = r_worldmodel->surfaces + node->first_surface;
 
-	for(i = 0; i < node->numsurfaces; i++, surf++){
+	for(i = 0; i < node->num_surfaces; i++, surf++){
 
 		if(surf->vis_frame == r_locals.vis_frame){  // it's been marked
 
@@ -355,8 +355,8 @@ void R_MarkSurfaces(void){
 /*
  * R_LeafForPoint
  */
-const mleaf_t *R_LeafForPoint(const vec3_t p, const model_t *model){
-	const mnode_t *node;
+const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model){
+	const r_bsp_node_t *node;
 	const cplane_t *plane;
 	float dot;
 
@@ -368,7 +368,7 @@ const mleaf_t *R_LeafForPoint(const vec3_t p, const model_t *model){
 	while(true){
 
 		if(node->contents != CONTENTS_NODE)
-			return (mleaf_t *)node;
+			return (r_bsp_leaf_t *)node;
 
 		plane = node->plane;
 
@@ -396,7 +396,7 @@ static byte *R_DecompressVis(const byte *in){
 	byte *out;
 	int row;
 
-	row = (r_worldmodel->vis->numclusters + 7) >> 3;
+	row = (r_worldmodel->vis->num_clusters + 7) >> 3;
 	out = decompressed;
 
 	if(!in){  // no vis info, so make all visible
@@ -428,7 +428,7 @@ static byte *R_DecompressVis(const byte *in){
 /*
  * R_LeafInVis
  */
-static inline qboolean R_LeafInVis(const mleaf_t *leaf, const byte *vis){
+static inline qboolean R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis){
 	int c;
 
 	if(!vis)
@@ -451,8 +451,8 @@ static inline qboolean R_LeafInVis(const mleaf_t *leaf, const byte *vis){
  */
 void R_MarkLeafs(void){
 	byte *vis;
-	mleaf_t *leaf;
-	mnode_t *node;
+	r_bsp_leaf_t *leaf;
+	r_bsp_node_t *node;
 	int i;
 
 	if(r_lockvis->value)
@@ -472,9 +472,9 @@ void R_MarkLeafs(void){
 		r_locals.vis_frame = 0;
 
 	if(r_novis->value || !r_worldmodel->vis){  // mark everything
-		for(i = 0; i < r_worldmodel->numleafs; i++)
+		for(i = 0; i < r_worldmodel->num_leafs; i++)
 			r_worldmodel->leafs[i].vis_frame = r_locals.vis_frame;
-		for(i = 0; i < r_worldmodel->numnodes; i++)
+		for(i = 0; i < r_worldmodel->num_nodes; i++)
 			r_worldmodel->nodes[i].vis_frame = r_locals.vis_frame;
 		return;
 	}
@@ -482,19 +482,19 @@ void R_MarkLeafs(void){
 	// resolve pvs for the current cluster
 	if(r_locals.cluster != -1)
 		vis = R_DecompressVis((byte *)r_worldmodel->vis +
-				r_worldmodel->vis->bitofs[r_locals.cluster][DVIS_PVS]);
+				r_worldmodel->vis->bit_ofs[r_locals.cluster][DVIS_PVS]);
 	else
 		vis = NULL;
 
 	// recurse up the bsp from the visible leafs, marking a path via the nodes
 	leaf = r_worldmodel->leafs;
 
-	for(i = 0; i < r_worldmodel->numleafs; i++, leaf++){
+	for(i = 0; i < r_worldmodel->num_leafs; i++, leaf++){
 
 		if(!R_LeafInVis(leaf, vis))
 			continue;
 
-		node = (mnode_t *)leaf;
+		node = (r_bsp_node_t *)leaf;
 		while(node){
 
 			if(node->vis_frame == r_locals.vis_frame)

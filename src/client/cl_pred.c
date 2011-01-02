@@ -62,7 +62,7 @@ void Cl_CheckPredictionError(void){
 static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, trace_t *tr){
 	int i;
 	trace_t trace;
-	int headnode;
+	int head_node;
 	const float *angles;
 	vec3_t bmins, bmaxs;
 
@@ -80,7 +80,7 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 			const cmodel_t *cmodel = cl.model_clip[ent->modelindex];
 			if(!cmodel)
 				continue;
-			headnode = cmodel->headnode;
+			head_node = cmodel->head_node;
 			angles = ent->angles;
 		} else {  // encoded bbox
 			const int x  = 8 * (ent->solid & 31);
@@ -92,12 +92,12 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 			bmins[2] = -zd;
 			bmaxs[2] = zu;
 
-			headnode = Cm_HeadnodeForBox(bmins, bmaxs);
+			head_node = Cm_HeadnodeForBox(bmins, bmaxs);
 			angles = vec3_origin;  // boxes don't rotate
 		}
 
 		trace = Cm_TransformedBoxTrace(start, end,
-				mins, maxs, headnode, MASK_PLAYERSOLID,
+				mins, maxs, head_node, MASK_PLAYERSOLID,
 				ent->origin, angles);
 
 		if(trace.startsolid || trace.fraction < tr->fraction){
@@ -147,7 +147,7 @@ static int Cl_Pointcontents(vec3_t point){
 		if(!cmodel)
 			continue;
 
-		contents |= Cm_TransformedPointContents(point, cmodel->headnode, ent->origin, ent->angles);
+		contents |= Cm_TransformedPointContents(point, cmodel->head_node, ent->origin, ent->angles);
 	}
 
 	return contents;

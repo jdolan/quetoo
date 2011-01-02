@@ -25,8 +25,8 @@
 /*
  * R_SetSurfaceState_default
  */
-static void R_SetSurfaceState_default(msurface_t *surf){
-	image_t *image;
+static void R_SetSurfaceState_default(r_bsp_surface_t *surf){
+	r_image_t *image;
 	float a;
 
 	if(r_state.blend_enabled){  // alpha blend
@@ -78,9 +78,9 @@ static void R_SetSurfaceState_default(msurface_t *surf){
 /*
  * R_DrawSurface_default
  */
-static void R_DrawSurface_default(msurface_t *surf){
+static void R_DrawSurface_default(r_bsp_surface_t *surf){
 
-	glDrawArrays(GL_POLYGON, surf->index, surf->numedges);
+	glDrawArrays(GL_POLYGON, surf->index, surf->num_edges);
 
 	r_view.bsp_polys++;
 }
@@ -89,7 +89,7 @@ static void R_DrawSurface_default(msurface_t *surf){
 /*
  * R_DrawSurfaces_default
  */
-static void R_DrawSurfaces_default(msurfaces_t *surfs){
+static void R_DrawSurfaces_default(r_bsp_surfaces_t *surfs){
 	int i;
 
 	R_SetArrayState(r_worldmodel);
@@ -121,7 +121,7 @@ static void R_DrawSurfaces_default(msurfaces_t *surfs){
 /*
  * R_DrawSurfacesLines_default
  */
-static void R_DrawSurfacesLines_default(msurfaces_t *surfs){
+static void R_DrawSurfacesLines_default(r_bsp_surfaces_t *surfs){
 	int i;
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -151,7 +151,7 @@ static void R_DrawSurfacesLines_default(msurfaces_t *surfs){
 /*
  * R_DrawOpaqueSurfaces_default
  */
-void R_DrawOpaqueSurfaces_default(msurfaces_t *surfs){
+void R_DrawOpaqueSurfaces_default(r_bsp_surfaces_t *surfs){
 
 	if(!surfs->count)
 		return;
@@ -176,7 +176,7 @@ void R_DrawOpaqueSurfaces_default(msurfaces_t *surfs){
 /*
  * R_DrawOpaqueWarpSurfaces_default
  */
-void R_DrawOpaqueWarpSurfaces_default(msurfaces_t *surfs){
+void R_DrawOpaqueWarpSurfaces_default(r_bsp_surfaces_t *surfs){
 
 	if(!surfs->count)
 		return;
@@ -197,7 +197,7 @@ void R_DrawOpaqueWarpSurfaces_default(msurfaces_t *surfs){
 /*
  * R_DrawAlphaTestSurfaces_default
  */
-void R_DrawAlphaTestSurfaces_default(msurfaces_t *surfs){
+void R_DrawAlphaTestSurfaces_default(r_bsp_surfaces_t *surfs){
 
 	if(!surfs->count)
 		return;
@@ -226,7 +226,7 @@ void R_DrawAlphaTestSurfaces_default(msurfaces_t *surfs){
 /*
  * R_DrawBlendSurfaces_default
  */
-void R_DrawBlendSurfaces_default(msurfaces_t *surfs){
+void R_DrawBlendSurfaces_default(r_bsp_surfaces_t *surfs){
 
 	if(!surfs->count)
 		return;
@@ -249,7 +249,7 @@ void R_DrawBlendSurfaces_default(msurfaces_t *surfs){
 /*
  * R_DrawBlendWarpSurfaces_default
  */
-void R_DrawBlendWarpSurfaces_default(msurfaces_t *surfs){
+void R_DrawBlendWarpSurfaces_default(r_bsp_surfaces_t *surfs){
 
 	if(!surfs->count)
 		return;
@@ -270,4 +270,4 @@ void R_DrawBlendWarpSurfaces_default(msurfaces_t *surfs){
 /*
  * R_DrawBackSurfaces_default
  */
-void R_DrawBackSurfaces_default(msurfaces_t *surfs){}
+void R_DrawBackSurfaces_default(r_bsp_surfaces_t *surfs){}
