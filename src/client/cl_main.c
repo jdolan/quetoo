@@ -70,15 +70,6 @@ cvar_t *recording;
 cl_static_t cls;
 cl_client_t cl;
 
-cl_entity_t cl_entities[MAX_EDICTS];
-
-entity_state_t cl_parse_entities[MAX_PARSE_ENTITIES];
-
-char cl_weaponmodels[MAX_WEAPONMODELS][MAX_QPATH];
-int num_cl_weaponmodels;
-
-char demoname[MAX_OSPATH];
-
 
 /*
  * Cl_WriteDemoHeader
@@ -124,7 +115,7 @@ static void Cl_WriteDemoHeader(void){
 
 	// and baselines
 	for(i = 0; i < MAX_EDICTS; i++){
-		entity_state_t *ent = &cl_entities[i].baseline;
+		entity_state_t *ent = &cl.entities[i].baseline;
 		if(!ent->number)
 			continue;
 
@@ -138,7 +129,7 @@ static void Cl_WriteDemoHeader(void){
 		memset(&nullstate, 0, sizeof(nullstate));
 
 		Msg_WriteByte(&buf, svc_spawnbaseline);
-		Msg_WriteDeltaEntity(&nullstate, &cl_entities[i].baseline, &buf, true, true);
+		Msg_WriteDeltaEntity(&nullstate, &cl.entities[i].baseline, &buf, true, true);
 	}
 
 	Msg_WriteByte(&buf, svc_stufftext);
@@ -150,7 +141,7 @@ static void Cl_WriteDemoHeader(void){
 	Fs_Write(&len, 4, 1, cls.demofile);
 	Fs_Write(buf.data, buf.cursize, 1, cls.demofile);
 
-	Com_Print("Recording to %s.\n", demoname);
+	Com_Print("Recording to %s.\n", cls.demopath);
 	// the rest of the demo file will be individual frames
 }
 
@@ -212,7 +203,7 @@ static void Cl_Stop_f(void){
  *
  * record <demoname>
  *
- * Begins recording a demo from the current position
+ * Begin recording a demo from the current frame until `stop` is issued.
  */
 static void Cl_Record_f(void){
 	if(Cmd_Argc() != 2){
@@ -231,12 +222,12 @@ static void Cl_Record_f(void){
 	}
 
 	// open the demo file
-	snprintf(demoname, sizeof(demoname), "%s/demos/%s.dem", Fs_Gamedir(), Cmd_Argv(1));
+	snprintf(cls.demopath, sizeof(cls.demopath), "%s/demos/%s.dem", Fs_Gamedir(), Cmd_Argv(1));
 
-	Fs_CreatePath(demoname);
-	cls.demofile = fopen(demoname, "wb");
+	Fs_CreatePath(cls.demopath);
+	cls.demofile = fopen(cls.demopath, "wb");
 	if(!cls.demofile){
-		Com_Warn("Cl_Record_f: couldn't open %s.\n", demoname);
+		Com_Warn("Cl_Record_f: couldn't open %s.\n", cls.demopath);
 		return;
 	}
 
@@ -552,9 +543,6 @@ void Cl_ClearState(void){
 
 	// wipe the entire cl structure
 	memset(&cl, 0, sizeof(cl));
-
-	// as well as the parse entities
-	memset(&cl_entities, 0, sizeof(cl_entities));
 
 	Sb_Clear(&cls.netchan.message);
 }

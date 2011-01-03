@@ -40,7 +40,7 @@ typedef struct cl_frame_s {
 	byte areabits[MAX_BSP_AREAS / 8];  // portal area visibility bits
 	player_state_t playerstate;
 	int num_entities;
-	int parse_entities;  // non-masked index into cl_parse_entities array
+	int entity_state;  // non-masked index into cl.entity_states array
 } cl_frame_t;
 
 typedef struct cl_entity_s {
@@ -71,6 +71,11 @@ typedef struct clientinfo_s {
 #define CMD_BACKUP 128  // allow a lot of command backups for very fast systems
 #define CMD_MASK (CMD_BACKUP - 1)
 
+// we accumulate parsed entity states in a rather large buffer so that they
+// may be safely delta'd in the future
+#define ENTITY_STATE_BACKUP 16384
+#define ENTITY_STATE_MASK (ENTITY_STATE_BACKUP - 1)
+
 // the cl_client_s structure is wiped completely at every map change
 typedef struct cl_client_s {
 	int timedemo_frames;
@@ -92,7 +97,11 @@ typedef struct cl_client_s {
 	cl_frame_t frame;  // received from server
 	cl_frame_t frames[UPDATE_BACKUP];  // for calculating delta compression
 
-	int parse_entities;  // index (not anded off) into cl_parse_entities[]
+	cl_entity_t entities[MAX_EDICTS];  // client entities
+
+	entity_state_t entity_states[ENTITY_STATE_BACKUP];  // accumulated each frame
+	int entity_state;  // index (not wrapped) into entity states
+
 	int playernum;  // our entity number
 
 	int surpress_count;  // number of messages rate supressed
@@ -231,8 +240,8 @@ typedef struct cl_static_s {
 	char downloadurl[MAX_OSPATH];  // for http downloads
 	cl_download_t download;  // current download (udp or http)
 
-	// demo recording info must be here, so it isn't cleared on level change
-	qboolean demowaiting;  // don't record until a non-delta message is received
+	qboolean demowaiting;  // don't begin recording until an uncompressed message is received
+	char demopath[MAX_OSPATH];
 	FILE *demofile;
 
 	cl_server_info_t *servers;  // list of servers from all sources
@@ -344,14 +353,6 @@ void Cl_ShutdownKeys(void);
 void Cl_ClearTyping(void);
 
 // cl_parse.c
-extern cl_entity_t cl_entities[MAX_EDICTS];
-
-#define MAX_PARSE_ENTITIES 16384
-extern entity_state_t cl_parse_entities[MAX_PARSE_ENTITIES];
-
-extern netaddr_t net_from;
-extern sizebuf_t net_message;
-
 extern char *svc_strings[256];
 
 qboolean Cl_CheckOrDownloadFile(const char *filename);

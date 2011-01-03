@@ -28,11 +28,9 @@ static byte zbuf[MAX_MSGLEN];
 char *svc_strings[256] = {
 	"svc_bad",
 	"svc_nop",
-
 	"svc_muzzleflash",
 	"svc_temp_entity",
 	"svc_layout",
-
 	"svc_disconnect",
 	"svc_reconnect",
 	"svc_sound",
@@ -100,7 +98,7 @@ qboolean Cl_CheckOrDownloadFile(const char *filename){
 	snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
 
 	fp = fopen(name, "r+b");
-	if(fp){ // temp fie exists, resume download
+	if(fp){ // a temp file exists, resume download
 		int len;
 		fseek(fp, 0, SEEK_END);
 		len = ftell(fp);
@@ -286,7 +284,7 @@ static void Cl_ParseBaseline(void){
 	memset(&nullstate, 0, sizeof(nullstate));
 
 	newnum = Cl_ParseEntityBits(&bits);
-	es = &cl_entities[newnum].baseline;
+	es = &cl.entities[newnum].baseline;
 	Cl_ParseDelta(&nullstate, es, newnum, bits);
 }
 

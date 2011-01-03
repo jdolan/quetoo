@@ -80,8 +80,8 @@ void S_Frame(void){
 	// add new dynamic sounds
 	for(i = 0; i < cl.frame.num_entities; i++){
 
-		const int e = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
-		const entity_state_t *ent = &cl_parse_entities[e];
+		const int e = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const entity_state_t *ent = &cl.entity_states[e];
 
 		if(!ent->sound)
 			continue;

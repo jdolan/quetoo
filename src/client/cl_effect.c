@@ -88,7 +88,7 @@ void Cl_ParseMuzzleFlash(void){
 	}
 
 	weapon = Msg_ReadByte(&net_message);
-	cent = &cl_entities[i];
+	cent = &cl.entities[i];
 
 	switch(weapon){
 		case MZ_SHOTGUN:

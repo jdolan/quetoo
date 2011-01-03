@@ -62,7 +62,7 @@ void S_SpatializeChannel(s_channel_t *ch){
 	c = (int)((ptrdiff_t)(ch - s_env.channels));
 
 	if(ch->entnum != -1){  // update the channel origin
-		ent = &cl_entities[ch->entnum].current;
+		ent = &cl.entities[ch->entnum].current;
 		VectorCopy(ent->origin, ch->org);
 	}
 
@@ -102,7 +102,7 @@ void S_PlaySample(const vec3_t org, int entnum, s_sample_t *sample, int atten){
 		return;
 
 	if(sample->name[0] == '*')
-		sample = S_LoadModelSample(&cl_entities[entnum].current, sample->name);
+		sample = S_LoadModelSample(&cl.entities[entnum].current, sample->name);
 
 	if(!sample->chunk)
 		return;

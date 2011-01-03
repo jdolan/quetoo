@@ -67,8 +67,8 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 	vec3_t bmins, bmaxs;
 
 	for(i = 0; i < cl.frame.num_entities; i++){
-		const int num = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
-		const entity_state_t *ent = &cl_parse_entities[num];
+		const int num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const entity_state_t *ent = &cl.entity_states[num];
 
 		if(!ent->solid)
 			continue;
@@ -137,8 +137,8 @@ static int Cl_Pointcontents(vec3_t point){
 	contents = Cm_PointContents(point, r_worldmodel->firstnode);
 
 	for(i = 0; i < cl.frame.num_entities; i++){
-		const int num = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
-		const entity_state_t *ent = &cl_parse_entities[num];
+		const int num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const entity_state_t *ent = &cl.entity_states[num];
 
 		if(ent->solid != 31) // special value for bsp models
 			continue;

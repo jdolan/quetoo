@@ -133,10 +133,10 @@ static void Cl_DeltaEntity(cl_frame_t *frame, int newnum, entity_state_t *old, i
 	cl_entity_t *ent;
 	entity_state_t *state;
 
-	ent = &cl_entities[newnum];
+	ent = &cl.entities[newnum];
 
-	state = &cl_parse_entities[cl.parse_entities & (MAX_PARSE_ENTITIES - 1)];
-	cl.parse_entities++;
+	state = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
+	cl.entity_state++;
 	frame->num_entities++;
 
 	Cl_ParseDelta(old, state, newnum, bits);
@@ -185,7 +185,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 	entity_state_t *oldstate = NULL;
 	int oldindex, oldnum;
 
-	newframe->parse_entities = cl.parse_entities;
+	newframe->entity_state = cl.entity_state;
 	newframe->num_entities = 0;
 
 	// delta from the entities present in oldframe
@@ -197,7 +197,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 		if(oldindex >= oldframe->num_entities)
 			oldnum = 99999;
 		else {
-			oldstate = &cl_parse_entities[(oldframe->parse_entities + oldindex) & (MAX_PARSE_ENTITIES - 1)];
+			oldstate = &cl.entity_states[(oldframe->entity_state + oldindex) & ENTITY_STATE_MASK];
 			oldnum = oldstate->number;
 		}
 	}
@@ -229,7 +229,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 			if(oldindex >= oldframe->num_entities)
 				oldnum = 99999;
 			else {
-				oldstate = &cl_parse_entities[(oldframe->parse_entities + oldindex) & (MAX_PARSE_ENTITIES - 1)];
+				oldstate = &cl.entity_states[(oldframe->entity_state + oldindex) & ENTITY_STATE_MASK];
 				oldnum = oldstate->number;
 			}
 		}
@@ -247,7 +247,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 			if(oldindex >= oldframe->num_entities)
 				oldnum = 99999;
 			else {
-				oldstate = &cl_parse_entities[(oldframe->parse_entities + oldindex) & (MAX_PARSE_ENTITIES - 1)];
+				oldstate = &cl.entity_states[(oldframe->entity_state + oldindex) & ENTITY_STATE_MASK];
 				oldnum = oldstate->number;
 			}
 			continue;
@@ -265,7 +265,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 			if(oldindex >= oldframe->num_entities)
 				oldnum = 99999;
 			else {
-				oldstate = &cl_parse_entities[(oldframe->parse_entities + oldindex) & (MAX_PARSE_ENTITIES - 1)];
+				oldstate = &cl.entity_states[(oldframe->entity_state + oldindex) & ENTITY_STATE_MASK];
 				oldnum = oldstate->number;
 			}
 			continue;
@@ -276,7 +276,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 			if(cl_shownet->value == 3)
 				Com_Print("   baseline: %i\n", newnum);
 
-			Cl_DeltaEntity(newframe, newnum, &cl_entities[newnum].baseline, bits);
+			Cl_DeltaEntity(newframe, newnum, &cl.entities[newnum].baseline, bits);
 			continue;
 		}
 
@@ -295,7 +295,7 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 		if(oldindex >= oldframe->num_entities)
 			oldnum = 99999;
 		else {
-			oldstate = &cl_parse_entities[(oldframe->parse_entities + oldindex) & (MAX_PARSE_ENTITIES - 1)];
+			oldstate = &cl.entity_states[(oldframe->entity_state + oldindex) & ENTITY_STATE_MASK];
 			oldnum = oldstate->number;
 		}
 	}
@@ -374,8 +374,8 @@ static void Cl_EntityEvents(cl_frame_t *frame){
 	int pnum;
 
 	for(pnum = 0; pnum < frame->num_entities; pnum++){
-		const int num = (frame->parse_entities + pnum) & (MAX_PARSE_ENTITIES - 1);
-		Cl_EntityEvent(&cl_parse_entities[num]);
+		const int num = (frame->entity_state + pnum) & ENTITY_STATE_MASK;
+		Cl_EntityEvent(&cl.entity_states[num]);
 	}
 }
 
@@ -406,14 +406,15 @@ void Cl_ParseFrame(void){
 		cls.demowaiting = false;
 		cl.frame.valid = true;
 		old = NULL;
-	} else {  // delta compressed frame
-
+	}
+	else {  // delta compressed frame
 		old = &cl.frames[cl.frame.deltaframe & UPDATE_MASK];
+
 		if(!old->valid)
 			Com_Warn("Cl_ParseFrame: Delta from invalid frame.\n");
 		else if(old->serverframe != cl.frame.deltaframe)
 			Com_Warn("Cl_ParseFrame: Delta frame too old.\n");
-		else if(cl.parse_entities - old->parse_entities > MAX_PARSE_ENTITIES - 128)
+		else if(cl.entity_state - old->entity_state > ENTITY_STATE_BACKUP - UPDATE_BACKUP)
 			Com_Warn("Cl_ParseFrame: Delta parse_entities too old.\n");
 		else
 			cl.frame.valid = true;
@@ -553,9 +554,9 @@ void Cl_AddEntities(cl_frame_t *frame){
 	// resolve any models, animations, lerps, rotations, bobbing, etc..
 	for(pnum = 0; pnum < frame->num_entities; pnum++){
 
-		entity_state_t *state = &cl_parse_entities[(frame->parse_entities + pnum) & (MAX_PARSE_ENTITIES - 1)];
+		entity_state_t *state = &cl.entity_states[(frame->entity_state + pnum) & ENTITY_STATE_MASK];
 
-		cl_entity_t *cent = &cl_entities[state->number];
+		cl_entity_t *cent = &cl.entities[state->number];
 
 		// beams have two origins, most ents have just one
 		if(state->effects & EF_BEAM){
