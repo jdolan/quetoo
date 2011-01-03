@@ -42,17 +42,19 @@ cvar_t *sv_udpdownload;
  * Sv_DropClient
  *
  * Called when the player is totally leaving the server, either willingly
- * or unwillingly.  This is NOT called if the entire server is quiting
+ * or unwillingly.  This is NOT called if the entire server is quitting
  * or crashing.
  */
 void Sv_DropClient(sv_client_t *cl){
-	// add the disconnect
-	Msg_WriteByte(&cl->netchan.message, svc_disconnect);
 
-	if(cl->state == cs_spawned){
-		// call the prog function for removing a client
-		// this will remove the body, among other things
-		ge->ClientDisconnect(cl->edict);
+	if(cl->state > cs_free){  // send the disconnect
+
+		if(cl->state == cs_spawned){  // after informing the game module
+			ge->ClientDisconnect(cl->edict);
+		}
+
+		Msg_WriteByte(&cl->netchan.message, svc_disconnect);
+		Netchan_Transmit(&cl->netchan, cl->netchan.message.cursize, cl->netchan.message.data);
 	}
 
 	if(cl->download){

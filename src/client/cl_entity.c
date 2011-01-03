@@ -207,11 +207,11 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 		const int newnum = Cl_ParseEntityBits(&bits);
 
 		if(newnum >= MAX_EDICTS){
-			Com_Error(ERR_DROP, "Cl_ParseEntities: bad number: %i.", newnum);
+			Com_Error(ERR_DROP, "Cl_ParseEntities: bad number: %i.\n", newnum);
 		}
 
 		if(net_message.readcount > net_message.cursize){
-			Com_Error(ERR_DROP, "Cl_ParseEntities: end of message.");
+			Com_Error(ERR_DROP, "Cl_ParseEntities: end of message.\n");
 		}
 
 		if(!newnum)

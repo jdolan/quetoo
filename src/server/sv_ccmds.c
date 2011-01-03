@@ -127,7 +127,7 @@ static qboolean Sv_SetPlayer(void){
 		}
 	}
 
-	Com_Print("Userid %s is not on the server\n", s);
+	Com_Print("Player %s is not on the server\n", s);
 	return false;
 }
 

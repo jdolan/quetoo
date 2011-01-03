@@ -74,7 +74,7 @@ static void Sv_Error(const char *fmt, ...){
 	vsprintf(msg, fmt, argptr);
 	va_end(argptr);
 
-	Com_Error(ERR_DROP, "Game error: %s.", msg);
+	Com_Error(ERR_DROP, "Game error: %s.\n", msg);
 }
 
 
@@ -340,10 +340,10 @@ void Sv_InitGameProgs(void){
 	ge = (game_export_t *)Sys_LoadGame(&import);
 
 	if(!ge){
-		Com_Error(ERR_DROP, "Sv_InitGameProgs: Failed to load game module.");
+		Com_Error(ERR_DROP, "Sv_InitGameProgs: Failed to load game module.\n");
 	}
 	if(ge->apiversion != GAME_API_VERSION){
-		Com_Error(ERR_DROP, "Sv_InitGameProgs: Game is version %i, not %i.",
+		Com_Error(ERR_DROP, "Sv_InitGameProgs: Game is version %i, not %i.\n",
 				ge->apiversion, GAME_API_VERSION);
 	}
 

@@ -290,7 +290,7 @@ static void Sv_SpawnServer(const char *server, sv_state_t state){
 		Com_SetServerState(sv.state);
 
 		if(ge == NULL){
-			Com_Error(ERR_FATAL, "Sv_SpawnServer: Game module not loaded.");
+			Com_Error(ERR_FATAL, "Sv_SpawnServer: Game module not loaded.\n");
 		}
 
 		ge->SpawnEntities(sv.name, Cm_EntityString());

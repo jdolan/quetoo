@@ -170,7 +170,7 @@ extern sv_static_t svs;  // persistent server info
 // macros for resolving game entities on the server
 #define EDICT_FOR_NUM(n)( (edict_t *)((void *)ge->edicts + ge->edict_size*(n)) )
 #define NUM_FOR_EDICT(e)( ((void *)(e) - (void *)ge->edicts) / ge->edict_size )
-#define EDICT_FOR_CLIENT(c)(EDICT_FOR_NUM(c - svs.clients) + 1)
+#define EDICT_FOR_CLIENT(c)(EDICT_FOR_NUM(c - svs.clients + 1))
 
 // cvars
 extern cvar_t *sv_rcon_password;

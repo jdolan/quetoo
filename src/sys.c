@@ -186,7 +186,7 @@ void Sys_OpenLibrary(const char *name, void **handle){
 #endif
 
 	if(!path){
-		Com_Error(ERR_DROP, "Sys_OpenLibrary: Couldn't find %s", name);
+		Com_Error(ERR_DROP, "Sys_OpenLibrary: Couldn't find %s\n", name);
 	}
 
 	Com_Print("Trying %s..\n", path);

@@ -46,7 +46,7 @@ static void Sv_BeginDemoServer(void){
 	Fs_OpenFile(demo, &sv.demofile, FILE_READ);
 
 	if(!sv.demofile)  // file was deleted during spawnserver
-		Com_Error(ERR_DROP, "Sv_BeginDemoServer: %s no longer exists.", demo);
+		Com_Error(ERR_DROP, "Sv_BeginDemoServer: %s no longer exists.\n", demo);
 }
 
 
@@ -510,7 +510,7 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 
 				if(nullcmd.msec > 250 || oldest.msec > 250 ||  // catch illegal msec
 						oldcmd.msec > 250 || newcmd.msec > 250){
-					Com_Print("Illegal msec in usercmd from %s\n", Sv_NetaddrToString(cl));
+					Com_Warn("Illegal msec in usercmd from %s\n", Sv_NetaddrToString(cl));
 					Sv_KickClient(cl, NULL);
 					return;
 				}

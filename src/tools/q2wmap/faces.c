@@ -82,7 +82,7 @@ static unsigned HashVec(const vec3_t vec){
 	const int y = (4096 + (int)(vec[1] + 0.5)) >> 7;
 
 	if(x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE)
-		Com_Error(ERR_FATAL, "HashVec: point outside valid range");
+		Com_Error(ERR_FATAL, "HashVec: point outside valid range\n");
 
 	return y * HASH_SIZE + x;
 }
@@ -123,7 +123,7 @@ static int GetVertexnum(const vec3_t in){
 
 	// emit a vertex
 	if(num_vertexes == MAX_BSP_VERTS)
-		Com_Error(ERR_FATAL, "num_vertexes == MAX_BSP_VERTS");
+		Com_Error(ERR_FATAL, "num_vertexes == MAX_BSP_VERTS\n");
 
 	dvertexes[num_vertexes].point[0] = vert[0];
 	dvertexes[num_vertexes].point[1] = vert[1];
@@ -243,7 +243,7 @@ static void EmitFaceVertexes(node_t *node, face_t *f){
 	for(i = 0; i < w->numpoints; i++){
 		if(noweld){  // make every point unique
 			if(num_vertexes == MAX_BSP_VERTS)
-				Com_Error(ERR_FATAL, "MAX_BSP_VERTS");
+				Com_Error(ERR_FATAL, "MAX_BSP_VERTS\n");
 			superverts[i] = num_vertexes;
 			VectorCopy(w->p[i], dvertexes[num_vertexes].point);
 			num_vertexes++;
@@ -339,7 +339,7 @@ static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert){
 
 	// the edge p1 to p2 is now free of tjunctions
 	if(numsuperverts >= MAX_SUPERVERTS)
-		Com_Error(ERR_FATAL, "MAX_SUPERVERTS");
+		Com_Error(ERR_FATAL, "MAX_SUPERVERTS\n");
 	superverts[numsuperverts] = p1;
 	numsuperverts++;
 }
@@ -474,7 +474,7 @@ int GetEdge2(int v1, int v2, face_t * f){
 	}
 	// emit an edge
 	if(num_edges >= MAX_BSP_EDGES)
-		Com_Error(ERR_FATAL, "num_edges == MAX_BSP_EDGES");
+		Com_Error(ERR_FATAL, "num_edges == MAX_BSP_EDGES\n");
 	edge = &dedges[num_edges];
 	edge->v[0] = v1;
 	edge->v[1] = v2;
@@ -707,7 +707,7 @@ static void SubdivideFace(node_t * node, face_t * f){
 
 			ClipWindingEpsilon(w, temp, dist, ON_EPSILON, &frontw, &backw);
 			if(!frontw || !backw)
-				Com_Error(ERR_FATAL, "SubdivideFace: didn't split the polygon");
+				Com_Error(ERR_FATAL, "SubdivideFace: didn't split the polygon\n");
 
 			f->split[0] = NewFaceFromFace(f);
 			f->split[0]->w = frontw;

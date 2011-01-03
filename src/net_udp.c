@@ -329,7 +329,7 @@ void Net_SendPacket(netsrc_t source, size_t length, void *data, netaddr_t to){
 		if(!sock)
 			return;
 	} else {
-		Com_Error(ERR_DROP, "Net_SendPacket: Bad address type.");
+		Com_Error(ERR_DROP, "Net_SendPacket: Bad address type.\n");
 		return;
 	}
 
@@ -372,7 +372,7 @@ static int Net_Socket(const char *net_interface, int port){
 	int i = 1;
 
 	if((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
-		Com_Error(ERR_FATAL, "Net_Socket: socket: %s", Net_ErrorString());
+		Com_Error(ERR_FATAL, "Net_Socket: socket: %s\n", Net_ErrorString());
 		return 0;
 	}
 

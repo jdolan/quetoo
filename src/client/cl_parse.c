@@ -233,7 +233,7 @@ static qboolean Cl_ParseServerData(void){
 
 	// ensure protocol matches
 	if(i != PROTOCOL){
-		Com_Error(ERR_DROP, "Cl_ParseServerData: Server is using unknown protocol %d.", i);
+		Com_Error(ERR_DROP, "Cl_ParseServerData: Server is using unknown protocol %d.\n", i);
 	}
 
 	// retrieve spawn count and packet rate
@@ -415,7 +415,7 @@ void Cl_ParseConfigstring(void){
 
 	i = Msg_ReadShort(&net_message);
 	if(i < 0 || i >= MAX_CONFIGSTRINGS){
-		Com_Error(ERR_DROP, "Cl_ParseConfigstring: Invalid index %i.", i);
+		Com_Error(ERR_DROP, "Cl_ParseConfigstring: Invalid index %i.\n", i);
 	}
 	s = Msg_ReadString(&net_message);
 
@@ -471,7 +471,7 @@ static void Cl_ParseSound(void){
 		entnum = Msg_ReadShort(&net_message);
 
 		if(entnum > MAX_EDICTS)
-			Com_Error(ERR_DROP, "Cl_ParseSound: entnum = %d.", entnum);
+			Com_Error(ERR_DROP, "Cl_ParseSound: entnum = %d.\n", entnum);
 	} else {
 		entnum = -1;
 	}
@@ -577,7 +577,7 @@ void Cl_ParseServerMessage(void){
 	// parse the message
 	while(true){
 		if(net_message.readcount > net_message.cursize){
-			Com_Error(ERR_DROP, "Cl_ParseServerMessage: Bad server message.");
+			Com_Error(ERR_DROP, "Cl_ParseServerMessage: Bad server message.\n");
 		}
 
 		oldcmd = cmd;
@@ -596,7 +596,7 @@ void Cl_ParseServerMessage(void){
 				break;
 
 			case svc_disconnect:
-				Com_Error(ERR_NONE, "Server disconnected.");
+				Com_Error(ERR_DROP, "Server disconnected.\n");
 				break;
 
 			case svc_reconnect:

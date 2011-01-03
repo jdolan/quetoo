@@ -371,7 +371,7 @@ void Msg_ReadDir(sizebuf_t *sb, vec3_t dir){
 
 	b = Msg_ReadByte(sb);
 	if(b >= NUMVERTEXNORMALS){
-		Com_Error(ERR_DROP, "Msg_ReadDir: out of range");
+		Com_Error(ERR_DROP, "Msg_ReadDir: out of range.\n");
 	}
 	VectorCopy(bytedirs[b], dir);
 }
@@ -387,10 +387,10 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, sizebuf_t *m
 	int bits;
 
 	if(!to->number){
-		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Unset entity number.");
+		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Unset entity number.\n");
 	}
 	if(to->number >= MAX_EDICTS){
-		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Entity number >= MAX_EDICTS.");
+		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Entity number >= MAX_EDICTS.\n");
 	}
 
 	// send an update
@@ -790,11 +790,11 @@ void *Sb_GetSpace(sizebuf_t *buf, size_t length){
 
 	if(buf->cursize + length > buf->maxsize){
 		if(!buf->allowoverflow){
-			Com_Error(ERR_FATAL, "Sb_GetSpace: Overflow without allowoverflow set.");
+			Com_Error(ERR_FATAL, "Sb_GetSpace: Overflow without allowoverflow set.\n");
 		}
 
 		if(length > buf->maxsize){
-			Com_Error(ERR_FATAL, "Sb_GetSpace: "Q2W_SIZE_T" is > full buffer size.", length);
+			Com_Error(ERR_FATAL, "Sb_GetSpace: "Q2W_SIZE_T" is > full buffer size.\n", length);
 		}
 
 		Com_Warn("Sb_GetSpace: overflow.\n");
