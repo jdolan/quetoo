@@ -1186,10 +1186,10 @@ void Cl_Frame(int msec){
  */
 void Cl_Init(void){
 
+	memset(&cls, 0, sizeof(cls));
+
 	if(dedicated->value)
 		return;  // nothing running on the client
-
-	memset(&cls, 0, sizeof(cls));
 
 	cls.state = ca_disconnected;
 	cls.realtime = quake2world.time;
@@ -1232,6 +1232,9 @@ void Cl_Init(void){
  * Cl_Shutdown
  */
 void Cl_Shutdown(void){
+
+	if(dedicated->value)
+		return;
 
 	Cl_Disconnect();
 
