@@ -22,8 +22,6 @@
 #include "server.h"
 #include "console.h"
 
-netaddr_t master_addr[MAX_MASTERS];  // address of group servers
-
 sv_client_t *sv_client;  // current client
 
 cvar_t *sv_rcon_password;  // password for remote server commands
@@ -720,12 +718,13 @@ void Sv_Frame(int msec){
 }
 
 
+#define HEARTBEAT_SECONDS 300
+
 /*
  * Sv_HeartbeatMasters
  *
  * Sends heartbeat messages to master servers every 300s.
  */
-#define HEARTBEAT_SECONDS 300
 void Sv_HeartbeatMasters(void){
 	const char *string;
 	int i;
@@ -747,14 +746,14 @@ void Sv_HeartbeatMasters(void){
 
 	svs.last_heartbeat = svs.realtime;
 
-	// send the same string that we would give for a status OOB command
+	// send the same string that we would give for a status command
 	string = Sv_StatusString();
 
-	// send to group master
+	// send to each master server
 	for(i = 0; i < MAX_MASTERS; i++){
-		if(master_addr[i].port){
-			Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(master_addr[i]));
-			Netchan_OutOfBandPrint(NS_SERVER, master_addr[i], "heartbeat\n%s", string);
+		if(svs.masters[i].port){
+			Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(svs.masters[i]));
+			Netchan_OutOfBandPrint(NS_SERVER, svs.masters[i], "heartbeat\n%s", string);
 		}
 	}
 }
@@ -776,9 +775,9 @@ static void Sv_ShutdownMasters(void){
 
 	// send to group master
 	for(i = 0; i < MAX_MASTERS; i++){
-		if(master_addr[i].port){
-			Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(master_addr[i]));
-			Netchan_OutOfBandPrint(NS_SERVER, master_addr[i], "shutdown");
+		if(svs.masters[i].port){
+			Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(svs.masters[i]));
+			Netchan_OutOfBandPrint(NS_SERVER, svs.masters[i], "shutdown");
 		}
 	}
 }
@@ -929,8 +928,8 @@ void Sv_Init(void){
 	Cvar_Get("sv_protocol", va("%i", PROTOCOL), CVAR_SERVERINFO | CVAR_NOSET, NULL);
 
 	// set default master server
-	Net_StringToNetaddr(IP_MASTER, &master_addr[0]);
-	master_addr[0].port = BigShort(PORT_MASTER);
+	Net_StringToNetaddr(IP_MASTER, &svs.masters[0]);
+	svs.masters[0].port = BigShort(PORT_MASTER);
 
 	// initialize net buffer
 	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));

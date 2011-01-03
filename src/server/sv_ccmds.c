@@ -33,6 +33,7 @@
  */
 static void Sv_SetMaster_f(void){
 	int i, slot;
+	netaddr_t *addr;
 
 	// only dedicated servers send heartbeats
 	if(!dedicated->value){
@@ -43,23 +44,29 @@ static void Sv_SetMaster_f(void){
 	// make sure the server is listed public
 	Cvar_Set("public", "1");
 
-	for(i = 1; i < MAX_MASTERS; i++)
-		memset(&master_addr[i], 0, sizeof(master_addr[i]));
+	for(i = 1; i < MAX_MASTERS; i++){
+		addr = &svs.masters[i];
+		memset(addr, 0, sizeof(addr));
+	}
 
-	slot = 1;  // slot 0 will always contain the q2w master
-	for(i = 1; i < Cmd_Argc(); i++){
+	// the first slot will always contain the default master
+	for(slot = i = 1; i < Cmd_Argc(); i++){
+
 		if(slot == MAX_MASTERS)
 			break;
 
-		if(!Net_StringToNetaddr(Cmd_Argv(i), &master_addr[i])){
+		addr = &svs.masters[slot];
+
+		if(!Net_StringToNetaddr(Cmd_Argv(i), addr)){
 			Com_Print("Bad address: %s\n", Cmd_Argv(i));
 			continue;
 		}
-		if(master_addr[slot].port == 0)
-			master_addr[slot].port = BigShort(PORT_MASTER);
 
-		Com_Print("Master server at %s\n", Net_NetaddrToString(master_addr[slot]));
-		Netchan_OutOfBandPrint(NS_SERVER, master_addr[slot], "ping");
+		if(addr->port == 0)
+			addr->port = BigShort(PORT_MASTER);
+
+		Com_Print("Master server at %s\n", Net_NetaddrToString(*addr));
+		Netchan_OutOfBandPrint(NS_SERVER, *addr, "ping");
 
 		slot++;
 	}

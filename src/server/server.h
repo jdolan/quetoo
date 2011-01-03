@@ -129,15 +129,11 @@ typedef struct sv_client_s {
 	netchan_t netchan;
 } sv_client_t;
 
-// a client can leave the server in one of four ways:
-// dropping properly by quiting or disconnecting
-// timing out if no valid messages are received for timeout.value seconds
-// getting kicked off by the server operator
-// a program error, like an overflowed reliable buffer
-
 // the server runs fixed-interval frames at a configurable rate (Hz)
 #define MIN_PACKETRATE 10
 #define MAX_PACKETRATE 120
+
+#define MAX_MASTERS	8  // max recipients for heartbeat packets
 
 // MAX_CHALLENGES is made large to prevent a denial
 // of service attack that could cycle all of them
@@ -163,6 +159,7 @@ typedef struct sv_static_s {
 	int next_client_entities;  // next client_entity to use
 	entity_state_t *client_entities;  // [num_client_entities]
 
+	netaddr_t masters[MAX_MASTERS];
 	int last_heartbeat;
 
 	sv_challenge_t challenges[MAX_CHALLENGES];  // to prevent invalid IPs from connecting
@@ -170,16 +167,10 @@ typedef struct sv_static_s {
 
 extern sv_static_t svs;  // persistent server info
 
-extern netaddr_t net_from;
-extern sizebuf_t net_message;
-
 // macros for resolving game entities on the server
 #define EDICT_FOR_NUM(n)( (edict_t *)((void *)ge->edicts + ge->edict_size*(n)) )
 #define NUM_FOR_EDICT(e)( ((void *)(e) - (void *)ge->edicts) / ge->edict_size )
 #define EDICT_FOR_CLIENT(c)(EDICT_FOR_NUM(c - svs.clients) + 1)
-
-#define MAX_MASTERS	8  // max recipients for heartbeat packets
-extern netaddr_t master_addr[MAX_MASTERS];
 
 // cvars
 extern cvar_t *sv_rcon_password;
