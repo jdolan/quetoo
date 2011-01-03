@@ -59,7 +59,7 @@ cvar_t *rcon_address;
 
 // userinfo
 cvar_t *color;
-cvar_t *msg;
+cvar_t *messagelevel;
 cvar_t *name;
 cvar_t *password;
 cvar_t *rate;
@@ -1003,7 +1003,7 @@ static void Cl_InitLocal(void){
 
 	// userinfo
 	color = Cvar_Get("color", "default", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
-	msg = Cvar_Get("msg", "0", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
+	messagelevel = Cvar_Get("messagelevel", "0", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
 	name = Cvar_Get("name", Cl_GetUserName(), CVAR_USERINFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USERINFO, NULL);
 	rate = Cvar_Get("rate", "10000", CVAR_USERINFO | CVAR_ARCHIVE, NULL);

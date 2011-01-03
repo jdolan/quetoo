@@ -879,7 +879,7 @@ void Sv_UserinfoChanged(sv_client_t *cl){
 		cl->rate = DEFAULT_RATE;
 
 	// limit the print messages the client receives
-	val = Info_ValueForKey(cl->userinfo, "msg");
+	val = Info_ValueForKey(cl->userinfo, "messagelevel");
 	if(*val != '\0'){
 		cl->messagelevel = atoi(val);
 	}

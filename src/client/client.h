@@ -277,7 +277,7 @@ extern cvar_t *rcon_address;
 
 // userinfo
 extern cvar_t *color;
-extern cvar_t *msg;
+extern cvar_t *messagelevel;
 extern cvar_t *name;
 extern cvar_t *password;
 extern cvar_t *rate;
