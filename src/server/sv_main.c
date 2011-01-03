@@ -982,7 +982,7 @@ void Sv_Shutdown(const char *msg, qboolean reconnect){
 
 	Net_Config(NS_SERVER, false);
 
-	// free current level
+	// close any open demo files
 	if(sv.demofile)
 		Fs_CloseFile(sv.demofile);
 

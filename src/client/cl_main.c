@@ -397,7 +397,7 @@ extern cvar_t *sv_maxclients;
 /*
  * Cl_CheckForResend
  *
- * Resend a connect message if the last one has timed out
+ * Resend a connect message if the last one has timed out.
  */
 static void Cl_CheckForResend(void){
 	netaddr_t addr;
@@ -580,12 +580,13 @@ void Cl_SendDisconnect(void){
  * Cl_Disconnect
  *
  * Sends a disconnect message to the current server, stops any pending
- * demo recording, and updates cls.state so that we drop to console
+ * demo recording, and updates cls.state so that we drop to console.
  */
 void Cl_Disconnect(void){
 
-	if(cls.state == ca_disconnected)
+	if(cls.state == ca_disconnected){
 		return;
+	}
 
 	if(timedemo->value){  // summarize timedemo results
 
@@ -612,6 +613,8 @@ void Cl_Disconnect(void){
 
 		cls.download.file = NULL;
 	}
+
+	cls.key_state.dest = key_menu;
 }
 
 
@@ -620,6 +623,8 @@ void Cl_Disconnect(void){
  */
 static void Cl_Disconnect_f(void){
 	Com_Error(ERR_NONE, "Disconnected from server.\n");
+
+	cls.key_state.dest = key_menu;
 }
 
 
@@ -627,27 +632,23 @@ static void Cl_Disconnect_f(void){
  * Cl_Reconnect_f
  */
 void Cl_Reconnect_f(void){
-	qboolean reconnect;
 
 	if(cls.download.file)  // don't disrupt downloads
 		return;
 
 	if(cls.servername[0] != '\0'){
 
-		reconnect = !cl.demoserver;  // don't reconnect to demos
-
 		if(cls.state >= ca_connecting){
 			Com_Print("Disconnecting...\n");
 			Cl_Disconnect();
 		}
 
-		if(!reconnect)
-			return;
-
 		cls.connect_time = -99999;  // fire immediately
 		cls.state = ca_connecting;
 	}
-	else Com_Print("No server to reconnect to\n");
+	else {
+		Com_Print("No server to reconnect to\n");
+	}
 }
 
 

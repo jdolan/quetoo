@@ -205,9 +205,9 @@ static void Sv_InitGame(void){
  * Sv_SpawnServer
  *
  * Change the server to a new map, taking all connected clients along with it.
- * The serverstate parameter must either be ss_game or ss_demo.  See Sv_Map.
+ * The state parameter must either be ss_game or ss_demo.  See Sv_Map.
  */
-static void Sv_SpawnServer(const char *server, sv_state_t serverstate){
+static void Sv_SpawnServer(const char *server, sv_state_t state){
 	int i;
 	int mapsize;
 	qboolean reconnect;
@@ -263,7 +263,7 @@ static void Sv_SpawnServer(const char *server, sv_state_t serverstate){
 	strcpy(sv.name, server);
 	strcpy(sv.configstrings[CS_NAME], server);
 
-	if(serverstate == ss_demo){  // playing a demo, no map on the server
+	if(state == ss_demo){  // playing a demo, no map on the server
 		sv.models[1] = Cm_LoadMap(NULL, &mapsize);
 	} else {  // playing a game, load the map
 		snprintf(sv.configstrings[CS_MODELS + 1], MAX_QPATH, "maps/%s.bsp", server);
@@ -284,7 +284,7 @@ static void Sv_SpawnServer(const char *server, sv_state_t serverstate){
 		sv.models[i + 1] = Cm_InlineModel(sv.configstrings[CS_MODELS + 1 + i]);
 	}
 
-	if(serverstate == ss_game){  // load and spawn all other entities
+	if(state == ss_game){  // load and spawn all other entities
 
 		sv.state = ss_loading;
 		Com_SetServerState(sv.state);
@@ -311,7 +311,7 @@ static void Sv_SpawnServer(const char *server, sv_state_t serverstate){
 	Net_Config(NS_SERVER, true);
 
 	// all precaches are complete
-	sv.state = serverstate;
+	sv.state = state;
 	Com_SetServerState(sv.state);
 
 	// set serverinfo variable
@@ -347,8 +347,6 @@ void Sv_Map(const char *level){
 	if(!exists)  // demo or map file didn't exist
 		return;
 
-	// TODO: delete next line if the game still works
-	//Cl_Drop();  // make sure local client drops
 	Cbuf_CopyToDefer();
 	Sv_SpawnServer(level, state);
 }

@@ -67,19 +67,19 @@ void Sv_ClientPrint(edict_t *ent, int level, const char *fmt, ...){
 
 	n = NUM_FOR_EDICT(ent);
 	if(n < 1 || n > sv_maxclients->value){
-		Com_Warn("Sv_ClientPrint: \"%s\" to non-client.\n", fmt);
+		Com_Warn("Sv_ClientPrint: Issued to non-client.\n");
 		return;
 	}
 
 	cl = &svs.clients[n - 1];
 
 	if(cl->state != cs_spawned){
-		Com_Debug("Sv_ClientPrint: \"%s\" to unspawned client.\n", fmt);
+		Com_Debug("Sv_ClientPrint: Issued to unspawned client.\n");
 		return;
 	}
 
 	if(level < cl->messagelevel){
-		Com_Debug("Sv_ClientPrint: \"%s\" filtered by message level.\n", fmt);
+		Com_Debug("Sv_ClientPrint: Filtered by message level.\n");
 		return;
 	}
 
@@ -469,12 +469,6 @@ static qboolean Sv_SendClientDatagram(sv_client_t *client){
  * Sv_DemoCompleted
  */
 static void Sv_DemoCompleted(void){
-
-	if(sv.demofile){
-		Fs_CloseFile(sv.demofile);
-		sv.demofile = NULL;
-	}
-
 	Sv_Shutdown("Demo complete.\n", false);
 }
 
@@ -526,24 +520,31 @@ void Sv_SendClientMessages(void){
 
 	// read the next demo message if needed
 	if(sv.state == ss_demo && sv.demofile){
-		// get the next message
+
 		r = Fs_Read(&msglen, 4, 1, sv.demofile);
-		if(r != 1){
+
+		if(r != 1){  // improperly terminated demo file
+			Com_Warn("Sv_SendClientMessages: Failed to read msglen from demo file.\n");
 			Sv_DemoCompleted();
 			return;
 		}
+
 		msglen = LittleLong(msglen);
-		if(msglen == -1){
+
+		if(msglen == -1){  // properly terminated demo file
 			Sv_DemoCompleted();
 			return;
 		}
-		if(msglen > MAX_MSGLEN){
+
+		if(msglen > MAX_MSGLEN){  // corrupt demo file
 			Com_Warn("Sv_SendClientMessages: %d > MAX_MSGLEN.\n", msglen);
 			return;
 		}
 
 		r = Fs_Read(msgbuf, msglen, 1, sv.demofile);
+
 		if(r != 1){
+			Com_Warn("Sv_SendClientMessages: Incomplete or corrupt demo file.\n");
 			Sv_DemoCompleted();
 			return;
 		}
@@ -562,13 +563,17 @@ void Sv_SendClientMessages(void){
 			Sv_DropClient(c);
 		}
 
-		if(sv.state == ss_demo){
+		if(sv.state == ss_demo){  // send the demo packet
 			Netchan_Transmit(&c->netchan, msglen, msgbuf);
-		} else if(c->state == cs_spawned){
+		}
+		else if(c->state == cs_spawned){  // send the game packet
+
 			if(Sv_RateDrop(c))  // don't overrun bandwidth
 				continue;
+
 			Sv_SendClientDatagram(c);
-		} else {  // just update reliable if needed
+		}
+		else {  // just update reliable if needed
 			if(c->netchan.message.cursize ||
 					quake2world.time - c->netchan.last_sent > 1000)
 				Netchan_Transmit(&c->netchan, 0, NULL);

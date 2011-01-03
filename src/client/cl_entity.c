@@ -388,6 +388,7 @@ void Cl_ParseFrame(void){
 	cl_frame_t *old;
 
 	if(!cl.serverrate){  // avoid unstable reconnects
+		Com_Warn("Cl_ParseFrame: Unstable reconnect detected.\n");
 		Cl_Reconnect_f();
 		return;
 	}

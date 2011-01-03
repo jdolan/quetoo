@@ -224,6 +224,7 @@ static qboolean Cl_ParseServerData(void){
 
 	// wipe the cl_client_t struct
 	Cl_ClearState();
+
 	cls.state = ca_connected;
 	cls.key_state.dest = key_console;
 
