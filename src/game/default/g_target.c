@@ -111,7 +111,7 @@ static void use_target_explosion(edict_t *self, edict_t *other, edict_t *activat
 	}
 
 	self->think = target_explosion_explode;
-	self->nextthink = level.time + self->delay;
+	self->next_think = g_level.time + self->delay;
 }
 
 void G_target_explosion(edict_t *ent){
@@ -132,7 +132,7 @@ static void target_splash_think(edict_t *self){
 	gi.WriteDir(self->movedir);
 	gi.Multicast(self->s.origin, MULTICAST_PVS);
 
-	self->nextthink = level.time + (frand() * 3);
+	self->next_think = g_level.time + (frand() * 3);
 }
 
 void G_target_splash(edict_t *self){
@@ -141,7 +141,7 @@ void G_target_splash(edict_t *self){
 
 	self->solid = SOLID_NOT;
 	self->think = target_splash_think;
-	self->nextthink = level.time + (frand() * 3);
+	self->next_think = g_level.time + (frand() * 3);
 
 	gi.LinkEntity(self);
 }

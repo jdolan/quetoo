@@ -71,14 +71,14 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 	char *message, *message2;
 	g_client_t *killer;
 
-	ff = meansOfDeath & MOD_FRIENDLY_FIRE;
-	mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;
+	ff = means_of_death & MOD_FRIENDLY_FIRE;
+	mod = means_of_death & ~MOD_FRIENDLY_FIRE;
 	message = NULL;
 	message2 = "";
 
 	killer = attacker->client ? attacker->client : self->client;
 
-	if(!level.warmup && fraglog != NULL){  // write fraglog
+	if(!g_level.warmup && fraglog != NULL){  // write fraglog
 
 		fprintf(fraglog, "\\%s\\%s\\\n", killer->locals.netname, self->client->locals.netname);
 
@@ -86,10 +86,10 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 	}
 
 #ifdef HAVE_MYSQL
-	if(!level.warmup && mysql != NULL){  // insert to db
+	if(!g_level.warmup && mysql != NULL){  // insert to db
 
 		snprintf(sql, sizeof(sql), "insert into frag values(null, now(), '%s', '%s', '%s', %d)",
-				 level.name, killer->locals.sqlname, self->client->locals.sqlname, mod
+				 g_level.name, killer->locals.sqlname, self->client->locals.sqlname, mod
 				);
 
 		sql[sizeof(sql) - 1] = '\0';
@@ -144,12 +144,12 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 	if(message){  // suicide
 		gi.BroadcastPrint(PRINT_MEDIUM, "%s %s.\n", self->client->locals.netname, message);
 
-		if(level.warmup)
+		if(g_level.warmup)
 			return;
 
 		self->client->locals.score--;
 
-		if((level.teams || level.ctf) && self->client->locals.team)
+		if((g_level.teams || g_level.ctf) && self->client->locals.team)
 			self->client->locals.team->score--;
 
 		return;
@@ -222,7 +222,7 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 					attacker->client->locals.netname, message2
 			);
 
-			if(level.warmup)
+			if(g_level.warmup)
 				return;
 
 			if(ff)
@@ -230,7 +230,7 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 			else
 				attacker->client->locals.score++;
 
-			if((level.teams || level.ctf) && attacker->client->locals.team){  // handle team scores too
+			if((g_level.teams || g_level.ctf) && attacker->client->locals.team){  // handle team scores too
 				if(ff)
 					attacker->client->locals.team->score--;
 				else
@@ -248,7 +248,7 @@ static void P_TossWeapon(edict_t *self){
 	g_item_t *item;
 
 	// don't drop weapon when falling into void
-	if(meansOfDeath == MOD_TRIGGER_HURT)
+	if(means_of_death == MOD_TRIGGER_HURT)
 		return;
 
 	item = self->client->locals.weapon;
@@ -328,21 +328,21 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 
 	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
 
-	self->client->respawn_time = level.time + 1.0;
+	self->client->respawn_time = g_level.time + 1.0;
 	self->client->ps.pmove.pm_type = PM_DEAD;
 
 	P_ClientObituary(self, inflictor, attacker);
 
-	if(!level.gameplay && !level.warmup)  // drop weapon
+	if(!g_level.gameplay && !g_level.warmup)  // drop weapon
 		P_TossWeapon(self);
 
 	self->client->newweapon = NULL;  // reset weapon state
 	P_ChangeWeapon(self);
 
-	if(!level.gameplay && !level.warmup)  // drop quad
+	if(!g_level.gameplay && !g_level.warmup)  // drop quad
 		P_TossQuadDamage(self);
 
-	if(level.ctf && !level.warmup)  // drop flag in ctf
+	if(g_level.ctf && !g_level.warmup)  // drop flag in ctf
 		P_TossFlag(self);
 
 	G_Score_f(self);  // show scores
@@ -425,10 +425,10 @@ static qboolean P_GiveLevelLocals(g_client_t *client){
 	char buf[512], *it, *q;
 	int quantity;
 
-	if(*level.give == '\0')
+	if(*g_level.give == '\0')
 		return false;
 
-	strncpy(buf, level.give, sizeof(buf));
+	strncpy(buf, g_level.give, sizeof(buf));
 
 	it = strtok(buf, ",");
 
@@ -487,12 +487,12 @@ static void P_InitClientLocals(g_client_t *client){
 	client->locals.max_nukes = 10;
 
 	// instagib gets railgun and slugs, both in normal mode and warmup
-	if(level.gameplay == INSTAGIB){
+	if(g_level.gameplay == INSTAGIB){
 		P_Give(client, "Railgun", 1000);
 		item = G_FindItem("Railgun");
 	}
 	// arena or dm warmup yields all weapons, health, etc..
-	else if((level.gameplay == ARENA) || level.warmup){
+	else if((g_level.gameplay == ARENA) || g_level.warmup){
 		P_Give(client, "Railgun", 50);
 		P_Give(client, "Lightning", 200);
 		P_Give(client, "Hyperblaster", 200);
@@ -554,7 +554,7 @@ static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 		VectorSubtract(spot->s.origin, player->s.origin, v);
 		dist = VectorLength(v);
 
-		if(level.teams || level.ctf){  // avoid collision with team mates
+		if(g_level.teams || g_level.ctf){  // avoid collision with team mates
 
 			if(player->client->locals.team == ent->client->locals.team){
 				if(dist > 64.0)  // if they're far away, ignore them
@@ -664,7 +664,7 @@ static edict_t *P_SelectCaptureSpawnPoint(edict_t *ent){
 static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
 	edict_t *spot = NULL;
 
-	if(level.teams || level.ctf)  // try teams/ctf spawns first if applicable
+	if(g_level.teams || g_level.ctf)  // try teams/ctf spawns first if applicable
 		spot = P_SelectCaptureSpawnPoint(ent);
 
 	if(!spot)  // fall back on dm spawns (e.g ctf games on dm maps)
@@ -733,7 +733,7 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->dead = false;
 	ent->jump_time = 0.0;
 	ent->gasp_time = 0.0;
-	ent->drown_time = level.time + 12.0;
+	ent->drown_time = g_level.time + 12.0;
 	ent->clipmask = MASK_PLAYERSOLID;
 	ent->model = "players/ichabod/tris.md2";
 	ent->pain = P_Pain;
@@ -804,8 +804,8 @@ static void P_PutClientInServer(edict_t *ent){
 	client->ps.pmove.pm_flags = PMF_TIME_TELEPORT;
 	client->ps.pmove.pm_time = 20;
 
-	client->locals.match_num = level.match_num;
-	client->locals.round_num = level.round_num;
+	client->locals.match_num = g_level.match_num;
+	client->locals.round_num = g_level.round_num;
 
 	gi.UnlinkEntity(ent);
 
@@ -835,7 +835,7 @@ void P_Respawn(edict_t *ent, qboolean voluntary){
 		ent->client->locals.match_num = ent->client->locals.round_num = 0;
 	}
 
-	ent->client->respawn_time = level.time;
+	ent->client->respawn_time = g_level.time;
 
 	if(!voluntary)  // dont announce involuntary spectator changes
 		return;
@@ -861,19 +861,19 @@ void P_Begin(edict_t *ent){
 
 	int player_num = ent - g_edicts - 1;
 
-	ent->client = game.clients + player_num;
+	ent->client = g_locals.clients + player_num;
 
 	G_InitEdict(ent);
 
 	P_InitClientLocals(ent->client);
 
 	VectorClear(ent->client->cmd_angles);
-	ent->client->locals.enterframe = level.frame_num;
+	ent->client->locals.enterframe = g_level.frame_num;
 
 	// force spectator if match or rounds
-	if(level.match || level.rounds)
+	if(g_level.match || g_level.rounds)
 		ent->client->locals.spectator = true;
-	else if(level.teams || level.ctf){
+	else if(g_level.teams || g_level.ctf){
 		if(g_autojoin->value)
 			G_AddClientToTeam(ent, G_SmallestTeam()->name);
 		else
@@ -883,19 +883,19 @@ void P_Begin(edict_t *ent){
 	// spawn them in
 	P_Respawn(ent, true);
 
-	if(level.intermission_time){
+	if(g_level.intermission_time){
 		P_MoveToIntermission(ent);
 	} else {
 		memset(welcome, 0, sizeof(welcome));
 
 		snprintf(welcome, sizeof(welcome),
 				"^2Welcome to ^7http://quake2world.net\n"
-				"^2Gameplay is ^1%s\n", G_GameplayName(level.gameplay));
+				"^2Gameplay is ^1%s\n", G_GameplayName(g_level.gameplay));
 
-		if(level.teams)
+		if(g_level.teams)
 			strncat(welcome, "^2Teams are enabled\n", sizeof(welcome));
 
-		if(level.ctf)
+		if(g_level.ctf)
 			strncat(welcome, "^2CTF is enabled\n", sizeof(welcome));
 
 		if(g_voting->value)
@@ -982,7 +982,7 @@ void P_UserinfoChanged(edict_t *ent, const char *user_info){
 #endif
 
 	// set skin
-	if((level.teams || level.ctf) && cl->locals.team)  // players must use teamskin to change
+	if((g_level.teams || g_level.ctf) && cl->locals.team)  // players must use teamskin to change
 		s = cl->locals.team->skin;
 	else
 		s = Info_ValueForKey(user_info, "skin");
@@ -1040,7 +1040,7 @@ qboolean P_Connect(edict_t *ent, char *user_info){
 	}
 
 	// they can connect
-	ent->client = game.clients + (ent - g_edicts - 1);
+	ent->client = g_locals.clients + (ent - g_edicts - 1);
 
 	// clean up locals things which are not reset on spawns
 	ent->client->locals.score = 0;
@@ -1117,7 +1117,7 @@ static void P_InventoryThink(edict_t *ent){
 
 	if(ent->client->locals.inventory[quad_damage_index]){  // if they have quad
 
-		if(ent->client->quad_damage_time < level.time){  // expire it
+		if(ent->client->quad_damage_time < g_level.time){  // expire it
 
 			ent->client->quad_damage_time = 0.0;
 			ent->client->locals.inventory[quad_damage_index] = 0;
@@ -1144,10 +1144,10 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 	int i, j;
 	pmove_t pm;
 
-	level.current_entity = ent;
+	g_level.current_entity = ent;
 	client = ent->client;
 
-	if(level.intermission_time){
+	if(g_level.intermission_time){
 		client->ps.pmove.pm_type = PM_FREEZE;
 		return;
 	}
@@ -1182,7 +1182,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 		else
 			client->ps.pmove.pm_type = PM_NORMAL;
 
-        client->ps.pmove.gravity = level.gravity;
+        client->ps.pmove.gravity = g_level.gravity;
 
 		memset(&pm, 0, sizeof(pm));
 		pm.s = client->ps.pmove;
@@ -1218,14 +1218,14 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 		// check for jump, play randomized sound
 		if(ent->ground_entity && !pm.ground_entity &&
 				(pm.cmd.up >= 10) && (pm.water_level == 0) &&
-				ent->jump_time < level.time - 0.2){
+				ent->jump_time < g_level.time - 0.2){
 
 			if(crandom() > 0)
 				gi.Sound(ent, gi.SoundIndex("*jump_1"), ATTN_NORM);
 			else
 				gi.Sound(ent, gi.SoundIndex("*jump_2"), ATTN_NORM);
 
-			ent->jump_time = level.time;
+			ent->jump_time = g_level.time;
 		}
 
 		ent->view_height = pm.view_height;
@@ -1306,7 +1306,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 void P_BeginServerFrame(edict_t *ent){
 	g_client_t *client;
 
-	if(level.intermission_time)
+	if(g_level.intermission_time)
 		return;
 
 	client = ent->client;
@@ -1323,11 +1323,11 @@ void P_BeginServerFrame(edict_t *ent){
 	if(ent->dead){  // check for respawn conditions
 
 		// rounds mode implies last-man-standing, force to spectator immediately if round underway
-		if(level.rounds && level.round_time && level.time >= level.round_time){
+		if(g_level.rounds && g_level.round_time && g_level.time >= g_level.round_time){
 			client->locals.spectator = true;
 			P_Respawn(ent, false);
 		}
-		else if(level.time > client->respawn_time && client->latched_buttons & BUTTON_ATTACK){
+		else if(g_level.time > client->respawn_time && client->latched_buttons & BUTTON_ATTACK){
 			P_Respawn(ent, false);  // all other respawns require a click from the player
 		}
 	}

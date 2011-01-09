@@ -94,7 +94,7 @@ static void G_CallSpawn(edict_t *ent){
 	}
 
 	// check overrides
-	for(i = 0; i < game.num_overrides; i++){
+	for(i = 0; i < g_locals.num_overrides; i++){
 		over = &overrides[i];
 		if(!strcmp(ent->classname, over->old)){  // found it
 			item = G_FindItemByClassname(over->new);
@@ -104,7 +104,7 @@ static void G_CallSpawn(edict_t *ent){
 	}
 
 	// check item spawn functions
-	for(i = 0, item = g_items; i < game.num_items; i++, item++){
+	for(i = 0, item = g_items; i < g_locals.num_items; i++, item++){
 		if(!item->classname)
 			continue;
 		if(!strcmp(item->classname, ent->classname)){  // found it
@@ -225,7 +225,7 @@ static const field_t fields[] = {
 	{"pain", FOFS(pain), F_FUNCTION, FFL_NOSPAWN},
 	{"die", FOFS(die), F_FUNCTION, FFL_NOSPAWN},
 
-	{"endfunc", FOFS(moveinfo.endfunc), F_FUNCTION, FFL_NOSPAWN},
+	{"done", FOFS(move_info.done), F_FUNCTION, FFL_NOSPAWN},
 
 	// temp spawn vars -- only valid when the spawn function is called
 	{"lip", STOFS(lip), F_INT, FFL_SPAWNTEMP},
@@ -374,7 +374,7 @@ static void G_FindEdictTeams(void){
 
 	c = 0;
 	c2 = 0;
-	for(i = 1, e = g_edicts + i; i < globals.num_edicts; i++, e++){
+	for(i = 1, e = g_edicts + i; i < ge.num_edicts; i++, e++){
 		if(!e->inuse)
 			continue;
 		if(!e->team)
@@ -385,7 +385,7 @@ static void G_FindEdictTeams(void){
 		e->teammaster = e;
 		c++;
 		c2++;
-		for(j = i + 1, e2 = e + 1; j < globals.num_edicts; j++, e2++){
+		for(j = i + 1, e2 = e + 1; j < ge.num_edicts; j++, e2++){
 			if(!e2->inuse)
 				continue;
 			if(!e2->team)
@@ -420,14 +420,14 @@ void G_SpawnEntities(const char *name, const char *entities){
 
 	gi.FreeTags(TAG_LEVEL);
 
-	memset(&level, 0, sizeof(level));
+	memset(&g_level, 0, sizeof(g_level));
 	memset(g_edicts, 0, g_maxentities->value * sizeof(g_edicts[0]));
 
-	strncpy(level.name, name, sizeof(level.name) - 1);
+	strncpy(g_level.name, name, sizeof(g_level.name) - 1);
 
 	// set client fields on player ents
 	for(i = 0; i < sv_maxclients->value; i++)
-		g_edicts[i + 1].client = game.clients + i;
+		g_edicts[i + 1].client = g_locals.clients + i;
 
 	ent = NULL;
 	inhibit = 0;
@@ -485,10 +485,10 @@ void G_SpawnEntities(const char *name, const char *entities){
 
 		G_CallSpawn(ent);
 
-		if(level.gameplay && ent->item){  // now that we've spawned them, hide them
+		if(g_level.gameplay && ent->item){  // now that we've spawned them, hide them
 			ent->svflags |= SVF_NOCLIENT;
 			ent->solid = SOLID_NOT;
-			ent->nextthink = 0.0;
+			ent->next_think = 0.0;
 		}
 	}
 
@@ -622,10 +622,10 @@ static void G_WorldspawnMusic(void){
 	char *t, buf[MAX_STRING_CHARS];
 	int i;
 
-	if(*level.music == '\0')
+	if(*g_level.music == '\0')
 		return;
 
-	strncpy(buf, level.music, sizeof(buf));
+	strncpy(buf, g_level.music, sizeof(buf));
 
 	i = 1;
 	t = strtok(buf, ",");
@@ -667,7 +667,7 @@ Only used for the world.
 */
 static void G_worldspawn(edict_t *ent){
 	int i;
-	maplistelt_t *map;
+	g_maplist_elt_t *map;
 
 	ent->movetype = MOVETYPE_PUSH;
 	ent->solid = SOLID_BSP;
@@ -679,17 +679,17 @@ static void G_worldspawn(edict_t *ent){
 
 	map = NULL;  // resolve the maps.lst entry for this level
 	for(i = 0; i < g_maplist.count; i++){
-		if(!strcmp(level.name, g_maplist.maps[i].name)){
+		if(!strcmp(g_level.name, g_maplist.maps[i].name)){
 			map = &g_maplist.maps[i];
 			break;
 		}
 	}
 
 	if(ent->message && *ent->message)
-		strncpy(level.title, ent->message, sizeof(level.title));
+		strncpy(g_level.title, ent->message, sizeof(g_level.title));
 	else  // or just the level name
-		strncpy(level.title, level.name, sizeof(level.title));
-	gi.Configstring(CS_NAME, level.title);
+		strncpy(g_level.title, g_level.name, sizeof(g_level.title));
+	gi.Configstring(CS_NAME, g_level.title);
 
 	if(map && *map->sky)  // prefer maps.lst sky
 		gi.Configstring(CS_SKY, map->sky);
@@ -710,118 +710,118 @@ static void G_worldspawn(edict_t *ent){
 	}
 
 	if(map && map->gravity > 0)  // prefer maps.lst gravity
-		level.gravity = map->gravity;
+		g_level.gravity = map->gravity;
 	else {  // or fall back on worldspawn
 		if(st.gravity && *st.gravity)
-			level.gravity = atoi(st.gravity);
+			g_level.gravity = atoi(st.gravity);
 		else  // or default to 800
-			level.gravity = 800;
+			g_level.gravity = 800;
 	}
-	gi.Configstring(CS_GRAVITY, va("%d", level.gravity));
+	gi.Configstring(CS_GRAVITY, va("%d", g_level.gravity));
 
 	if(map && map->gameplay > -1)  // prefer maps.lst gameplay
-		level.gameplay = map->gameplay;
+		g_level.gameplay = map->gameplay;
 	else {  // or fall back on worldspawn
 		if(st.gameplay && *st.gameplay)
-			level.gameplay = G_GameplayByName(st.gameplay);
+			g_level.gameplay = G_GameplayByName(st.gameplay);
 		else  // or default to deathmatch
-			level.gameplay = DEATHMATCH;
+			g_level.gameplay = DEATHMATCH;
 	}
 
 	if(map && map->teams > -1)  // prefer maps.lst teams
-		level.teams = map->teams;
+		g_level.teams = map->teams;
 	else {  // or fall back on worldspawn
 		if(st.teams && *st.teams)
-			level.teams = atoi(st.teams);
+			g_level.teams = atoi(st.teams);
 		else  // or default to cvar
-			level.teams = g_teams->value;
+			g_level.teams = g_teams->value;
 	}
 
 	if(map && map->ctf > -1)  // prefer maps.lst ctf
-		level.ctf = map->ctf;
+		g_level.ctf = map->ctf;
 	else {  // or fall back on worldspawn
 		if(st.ctf && *st.ctf)
-			level.ctf = atoi(st.ctf);
+			g_level.ctf = atoi(st.ctf);
 		else  // or default to cvar
-			level.ctf = g_ctf->value;
+			g_level.ctf = g_ctf->value;
 	}
 
-	if(level.teams && level.ctf)  // ctf overrides teams
-		level.teams = 0;
+	if(g_level.teams && g_level.ctf)  // ctf overrides teams
+		g_level.teams = 0;
 
 	if(map && map->match > -1)  // prefer maps.lst match
-		level.match = map->match;
+		g_level.match = map->match;
 	else {  // or fall back on worldspawn
 		if(st.match && *st.match)
-			level.match = atoi(st.match);
+			g_level.match = atoi(st.match);
 		else  // or default to cvar
-			level.match = g_match->value;
+			g_level.match = g_match->value;
 	}
 
 	if(map && map->rounds > -1)  // prefer maps.lst rounds
-		level.rounds = map->rounds;
+		g_level.rounds = map->rounds;
 	else {  // or fall back on worldspawn
 		if(st.rounds && *st.rounds)
-			level.rounds = atoi(st.rounds);
+			g_level.rounds = atoi(st.rounds);
 		else  // or default to cvar
-			level.rounds = g_rounds->value;
+			g_level.rounds = g_rounds->value;
 	}
 
-	if(level.match && level.rounds)  // rounds overrides match
-		level.match = 0;
+	if(g_level.match && g_level.rounds)  // rounds overrides match
+		g_level.match = 0;
 
 	if(map && map->frag_limit > -1)  // prefer maps.lst fraglimit
-		level.frag_limit = map->frag_limit;
+		g_level.frag_limit = map->frag_limit;
 	else {  // or fall back on worldspawn
 		if(st.frag_limit && *st.frag_limit)
-			level.frag_limit = atoi(st.frag_limit);
+			g_level.frag_limit = atoi(st.frag_limit);
 		else  // or default to cvar
-			level.frag_limit = g_fraglimit->value;
+			g_level.frag_limit = g_fraglimit->value;
 	}
 
 	if(map && map->round_limit > -1)  // prefer maps.lst roundlimit
-		level.round_limit = map->round_limit;
+		g_level.round_limit = map->round_limit;
 	else {  // or fall back on worldspawn
 		if(st.round_limit && *st.round_limit)
-			level.round_limit = atoi(st.round_limit);
+			g_level.round_limit = atoi(st.round_limit);
 		else  // or default to cvar
-			level.round_limit = g_roundlimit->value;
+			g_level.round_limit = g_roundlimit->value;
 	}
 
 	if(map && map->capture_limit > -1)  // prefer maps.lst capturelimit
-		level.capture_limit = map->capture_limit;
+		g_level.capture_limit = map->capture_limit;
 	else {  // or fall back on worldspawn
 		if(st.capture_limit && *st.capture_limit)
-			level.capture_limit = atoi(st.capture_limit);
+			g_level.capture_limit = atoi(st.capture_limit);
 		else  // or default to cvar
-			level.capture_limit = g_capturelimit->value;
+			g_level.capture_limit = g_capturelimit->value;
 	}
 
 	if(map && map->time_limit > -1)  // prefer maps.lst timelimit
-		level.time_limit = map->time_limit;
+		g_level.time_limit = map->time_limit;
 	else {  // or fall back on worldspawn
 		if(st.time_limit && *st.time_limit)
-			level.time_limit = atof(st.time_limit);
+			g_level.time_limit = atof(st.time_limit);
 		else  // or default to cvar
-			level.time_limit = g_timelimit->value;
+			g_level.time_limit = g_timelimit->value;
 	}
 
 	if(map && *map->give)  // prefer maps.lst give
-		strncpy(level.give, map->give, sizeof(level.give));
+		strncpy(g_level.give, map->give, sizeof(g_level.give));
 	else {  // or fall back on worldspawn
 		if(st.give && *st.give)
-			strncpy(level.give, st.give, sizeof(level.give));
+			strncpy(g_level.give, st.give, sizeof(g_level.give));
 		else  // or clean it
-			level.give[0] = 0;
+			g_level.give[0] = 0;
 	}
 
 	if(map && *map->music)  // prefer maps.lst music
-		strncpy(level.music, map->music, sizeof(level.music));
+		strncpy(g_level.music, map->music, sizeof(g_level.music));
 	else {  // or fall back on worldspawn
 		if(st.music && *st.music)
-			strncpy(level.music, st.music, sizeof(level.music));
+			strncpy(g_level.music, st.music, sizeof(g_level.music));
 		else
-			level.music[0] = 0;
+			g_level.music[0] = 0;
 	}
 
 	G_WorldspawnMusic();

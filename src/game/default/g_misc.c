@@ -171,7 +171,7 @@ void G_func_object(edict_t *self){
 		self->solid = SOLID_BSP;
 		self->movetype = MOVETYPE_PUSH;
 		self->think = G_func_object_release;
-		self->nextthink = level.time + 2 * gi.server_frame;
+		self->next_think = g_level.time + 2 * gi.server_frame;
 	} else {
 		self->solid = SOLID_NOT;
 		self->movetype = MOVETYPE_PUSH;

@@ -75,7 +75,7 @@ void P_ChangeWeapon(edict_t *ent){
 	ent->client->newweapon = NULL;
 
 	// update weapon state
-	ent->client->weapon_fire_time = level.time + 0.4;
+	ent->client->weapon_fire_time = g_level.time + 0.4;
 
 	// resolve ammo
 	if(ent->client->locals.weapon && ent->client->locals.weapon->ammo)
@@ -160,9 +160,9 @@ void P_NoAmmoWeaponChange(g_client_t *client){
  */
 static void NoAmmoWeaponChange(edict_t *ent){
 
-	if(level.time >= ent->pain_time){  // play a click sound
+	if(g_level.time >= ent->pain_time){  // play a click sound
 		gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTN_NORM);
-		ent->pain_time = level.time + 1;
+		ent->pain_time = g_level.time + 1;
 	}
 
 	P_NoAmmoWeaponChange(ent->client);
@@ -219,10 +219,10 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 	ent->client->latched_buttons &= ~BUTTON_ATTACK;
 
 	// use small epsilon for low server_frame rates
-	if(ent->client->weapon_fire_time > level.time + 0.001)
+	if(ent->client->weapon_fire_time > g_level.time + 0.001)
 		return;
 
-	ent->client->weapon_fire_time = level.time + interval;
+	ent->client->weapon_fire_time = g_level.time + interval;
 
 	// determine if ammo is required, and if the quantity is sufficient
 	n = ent->client->locals.inventory[ent->client->ammo_index];
@@ -267,10 +267,10 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 
 	if(ent->client->locals.inventory[quad_damage_index]){  // quad sound
 
-		if(ent->client->quad_attack_time < level.time){
+		if(ent->client->quad_attack_time < g_level.time){
 			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTN_NORM);
 
-			ent->client->quad_attack_time = level.time + 0.5;
+			ent->client->quad_attack_time = g_level.time + 0.5;
 		}
 	}
 
@@ -482,13 +482,13 @@ static void P_FireLightning_(edict_t *ent){
 	// if the client has just begun to attack, send the muzzle flash
 	if(ent->s.frame == FRAME_attack1 || ent->s.frame == FRAME_crattak1){
 
-		if(ent->client->muzzleflash_time < level.time){
+		if(ent->client->muzzleflash_time < g_level.time){
 			gi.WriteByte(svc_muzzleflash);
 			gi.WriteShort(ent - g_edicts);
 			gi.WriteByte(MZ_LIGHTNING);
 			gi.Multicast(ent->s.origin, MULTICAST_PVS);
 
-			ent->client->muzzleflash_time = level.time + 0.25;
+			ent->client->muzzleflash_time = g_level.time + 0.25;
 		}
 	}
 }

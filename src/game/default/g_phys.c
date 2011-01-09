@@ -82,15 +82,15 @@ static void G_CheckVelocity(edict_t *ent){
 static qboolean G_RunThink(edict_t *ent){
 	float thinktime;
 
-	thinktime = ent->nextthink;
+	thinktime = ent->next_think;
 
 	if(thinktime <= 0)
 		return true;
 
-	if(thinktime > level.time + 0.001)
+	if(thinktime > g_level.time + 0.001)
 		return true;
 
-	ent->nextthink = 0;
+	ent->next_think = 0;
 
 	if(!ent->think)
 		gi.Error("G_RunThink: No think function for ent.");
@@ -153,7 +153,7 @@ static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
  * G_AddGravity
  */
 static void G_AddGravity(edict_t *ent){
-	ent->velocity[2] -= ent->gravity * level.gravity * gi.server_frame;
+	ent->velocity[2] -= ent->gravity * g_level.gravity * gi.server_frame;
 }
 
 
@@ -269,7 +269,7 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 
 	// see if any solid entities are inside the final position
 	check = g_edicts + 1;
-	for(e = 1; e < globals.num_edicts; e++, check++){
+	for(e = 1; e < ge.num_edicts; e++, check++){
 
 		if(!check->inuse)
 			continue;
@@ -409,10 +409,10 @@ static void G_Physics_Pusher(edict_t *ent){
 		gi.Error("G_Physics_Pusher: MAX_EDICTS exceeded.");
 
 	if(part){
-		// the move failed, bump all nextthink times and back out moves
+		// the move failed, bump all next_think times and back out moves
 		for(mv = ent; mv; mv = mv->teamchain){
-			if(mv->nextthink > 0)
-				mv->nextthink += gi.server_frame;
+			if(mv->next_think > 0)
+				mv->next_think += gi.server_frame;
 		}
 
 		// if the pusher has a "blocked" function, call it

@@ -325,7 +325,7 @@ static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 		}
 
 		// we're live after a brief safety period for the owner
-		if(dot < -0.35 && level.time - ent->touch_time > 0.5){
+		if(dot < -0.35 && g_level.time - ent->touch_time > 0.5){
 			ent->ground_entity = other;
 			G_GrenadeExplode(ent);
 		}
@@ -374,8 +374,8 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	grenade->s.model_index = grenade_index;
 	grenade->owner = self;
 	grenade->touch = G_GrenadeTouch;
-	grenade->touch_time = level.time;
-	grenade->nextthink = level.time + timer;
+	grenade->touch_time = g_level.time;
+	grenade->next_think = g_level.time + timer;
 	grenade->think = G_GrenadeExplode;
 	grenade->dmg = damage;
 	grenade->knockback = knockback;
@@ -453,7 +453,7 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	rocket->s.model_index = rocket_index;
 	rocket->owner = self;
 	rocket->touch = G_RocketTouch;
-	rocket->nextthink = level.time + 8.0;
+	rocket->next_think = g_level.time + 8.0;
 	rocket->think = G_FreeEdict;
 	rocket->dmg = damage;
 	rocket->knockback = knockback;
@@ -538,7 +538,7 @@ void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
 	bolt->s.effects = EF_HYPERBLASTER;
 	bolt->owner = self;
 	bolt->touch = G_HyperblasterTouch;
-	bolt->nextthink = level.time + 3.0;
+	bolt->next_think = g_level.time + 3.0;
 	bolt->think = G_FreeEdict;
 	bolt->dmg = damage;
 	bolt->knockback = knockback;
@@ -590,7 +590,7 @@ static void G_LightningDischarge(edict_t *self){
 
 static qboolean G_LightningExpire(edict_t *self){
 
-	if(self->timestamp < level.time - 0.101)
+	if(self->timestamp < g_level.time - 0.101)
 		return true;
 
 	if(self->owner->dead)
@@ -649,7 +649,7 @@ static void G_LightningThink(edict_t *self){
 		}
 	}
 
-	if(self->timestamp <= level.time){  // shoot
+	if(self->timestamp <= g_level.time){  // shoot
 		if(tr.ent->takedamage){  // try to damage what we hit
 			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal,
 					self->dmg, self->knockback, DAMAGE_ENERGY, MOD_LIGHTNING);
@@ -665,7 +665,7 @@ static void G_LightningThink(edict_t *self){
 
 	gi.LinkEntity(self);
 
-	self->nextthink = level.time + gi.server_frame;
+	self->next_think = g_level.time + gi.server_frame;
 }
 
 void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int knockback){
@@ -693,7 +693,7 @@ void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int
 	}
 
 	// set the damage and think time
-	light->timestamp = light->nextthink = level.time;
+	light->timestamp = light->next_think = g_level.time;
 }
 
 
@@ -749,7 +749,7 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 			ignore = NULL;
 
 		if((tr.ent != self) && (tr.ent->takedamage)){
-			if(tr.ent->client && ((int)level.gameplay == INSTAGIB))
+			if(tr.ent->client && ((int)g_level.gameplay == INSTAGIB))
 				damage = 9999;  // be sure to cause a kill
 			G_Damage(tr.ent, self, self, aimdir, tr.end, tr.plane.normal,
 					damage, knockback, 0, MOD_RAILGUN);
@@ -766,7 +766,7 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 	gi.WriteLong(tr.surface->flags);
 
 	// use team colors, or client's color
-	if(level.teams || level.ctf){
+	if(g_level.teams || g_level.ctf){
 		if(self->client->locals.team == &good)
 			color = ColorByName("blue", 0);
 		else
@@ -838,7 +838,7 @@ static void G_BFGThink(edict_t *self){
 	if(VectorLength(self->velocity) < 1000.0)
 		VectorScale(self->velocity, 1.0 + (0.5 * gi.server_frame), self->velocity);
 
-	self->nextthink = level.time + gi.server_frame;
+	self->next_think = g_level.time + gi.server_frame;
 }
 
 void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
@@ -884,7 +884,7 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 		bfg->owner = self;
 		bfg->touch = G_BFGTouch;
 		bfg->think = G_BFGThink;
-		bfg->nextthink = level.time + gi.server_frame;
+		bfg->next_think = g_level.time + gi.server_frame;
 		bfg->dmg = damage;
 		bfg->knockback = knockback;
 		bfg->dmg_radius = damage_radius;

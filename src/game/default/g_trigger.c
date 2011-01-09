@@ -35,7 +35,7 @@ static void InitTrigger(edict_t *self){
 
 // the wait time has passed, so set back up for another activation
 static void trigger_multiple_wait(edict_t *ent){
-	ent->nextthink = 0;
+	ent->next_think = 0;
 }
 
 
@@ -44,18 +44,18 @@ static void trigger_multiple_wait(edict_t *ent){
 // so wait for the delay time before firing
 static void trigger_multiple_think(edict_t *ent){
 
-	if(ent->nextthink)
+	if(ent->next_think)
 		return;  // already been triggered
 
 	G_UseTargets(ent, ent->activator);
 
 	if(ent->wait > 0){
 		ent->think = trigger_multiple_wait;
-		ent->nextthink = level.time + ent->wait;
+		ent->next_think = g_level.time + ent->wait;
 	} else {  // we can't just remove (self) here, because this is a touch function
 		// called while looping through area links...
 		ent->touch = NULL;
-		ent->nextthink = level.time + gi.server_frame;
+		ent->next_think = g_level.time + gi.server_frame;
 		ent->think = G_FreeEdict;
 	}
 }
@@ -180,8 +180,8 @@ static void trigger_push_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 			other->client->ps.pmove.pm_flags |= (PMF_PUSHED | PMF_TIME_LAND);
 			other->client->ps.pmove.pm_time = 10;
 
-			if(other->push_time < level.time){
-				other->push_time = level.time + 1.5;
+			if(other->push_time < g_level.time){
+				other->push_time = g_level.time + 1.5;
 				gi.Sound(other, gi.SoundIndex("world/jumppad"), ATTN_NORM);
 			}
 		}
@@ -266,13 +266,13 @@ static void trigger_hurt_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 		return;
 	}
 
-	if(self->timestamp > level.time)
+	if(self->timestamp > g_level.time)
 		return;
 
 	if(self->spawnflags & 16)
-		self->timestamp = level.time + 1;
+		self->timestamp = g_level.time + 1;
 	else
-		self->timestamp = level.time + 0.1;
+		self->timestamp = g_level.time + 0.1;
 
 	if(self->spawnflags & 8)
 		dflags = DAMAGE_NO_PROTECTION;
@@ -306,10 +306,10 @@ void G_trigger_hurt(edict_t *self){
 
 static void trigger_exec_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
 
-	if(self->timestamp > level.time)
+	if(self->timestamp > g_level.time)
 		return;
 
-	self->timestamp = level.time + self->delay;
+	self->timestamp = g_level.time + self->delay;
 
 	if(self->command)
 		gi.AddCommandString(va("%s\n", self->command));

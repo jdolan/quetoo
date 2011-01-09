@@ -68,8 +68,8 @@ static void P_DamageFeedback(edict_t *player){
 	}
 
 	// play an apropriate pain sound
-	if(level.time > player->pain_time){
-		player->pain_time = level.time + 0.7;
+	if(g_level.time > player->pain_time){
+		player->pain_time = g_level.time + 0.7;
 		if(player->health < 25)
 			l = 25;
 		else if(player->health < 50)
@@ -132,7 +132,7 @@ static void P_FallingDamage(edict_t *ent){
 		else
 			event = EV_FALL;
 
-		ent->pain_time = level.time;  // suppress pain sound
+		ent->pain_time = g_level.time;  // suppress pain sound
 
 		damage = (delta - 40) * 0.1;
 
@@ -161,7 +161,7 @@ static void P_WorldEffects(void){
 	int water_level, old_water_level;
 
 	if(current_player->movetype == MOVETYPE_NOCLIP){
-		current_player->drown_time = level.time + 12;  // don't need air
+		current_player->drown_time = g_level.time + 12;  // don't need air
 		return;
 	}
 
@@ -179,20 +179,20 @@ static void P_WorldEffects(void){
 
 	// head just coming out of water
 	if(old_water_level == 3 && water_level != 3 &&
-			level.time - current_player->gasp_time > 2.0){
+			g_level.time - current_player->gasp_time > 2.0){
 
 		gi.Sound(current_player, gi.SoundIndex("*gasp_1"), ATTN_NORM);
-		current_player->gasp_time = level.time;
+		current_player->gasp_time = g_level.time;
 	}
 
 	// check for drowning
 	if(water_level != 3){  // take some air, push out drown time
-		current_player->drown_time = level.time + 12.0;
+		current_player->drown_time = g_level.time + 12.0;
 	}
 	else {  // we're underwater
-		if(current_player->drown_time < level.time){  // drown
-			if(current_client->drown_time < level.time && current_player->health > 0){
-				current_client->drown_time = level.time + 1.0;
+		if(current_player->drown_time < g_level.time){  // drown
+			if(current_client->drown_time < g_level.time && current_player->health > 0){
+				current_client->drown_time = g_level.time + 1.0;
 
 				// take more damage the longer underwater
 				current_player->dmg += 2;
@@ -205,7 +205,7 @@ static void P_WorldEffects(void){
 				else
 					gi.Sound(current_player, gi.SoundIndex("*gurp_1"), ATTN_NORM);
 
-				current_player->pain_time = level.time;
+				current_player->pain_time = g_level.time;
 
 				G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
 						vec3_origin, current_player->dmg, 0, DAMAGE_NO_ARMOR, MOD_WATER);
@@ -215,9 +215,9 @@ static void P_WorldEffects(void){
 
 	// check for sizzle damage
 	if(water_level && (current_player->water_type & (CONTENTS_LAVA | CONTENTS_SLIME))){
-		if(current_client->sizzle_time <= level.time && current_player->health > 0){
+		if(current_client->sizzle_time <= g_level.time && current_player->health > 0){
 
-			current_client->sizzle_time = level.time + 0.1;
+			current_client->sizzle_time = g_level.time + 0.1;
 
 			if(current_player->water_type & CONTENTS_LAVA){
 				G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
@@ -246,10 +246,10 @@ static void P_RunClientAnimation(edict_t *ent){
 	client = ent->client;
 
 	// use a small epsilon for low server_frame rates
-	if(client->anim_time > level.time + 0.001)
+	if(client->anim_time > g_level.time + 0.001)
 		return;
 
-	client->anim_time = level.time + 0.10; // 10hz animations
+	client->anim_time = g_level.time + 0.10; // 10hz animations
 
 	if(client->ps.pmove.pm_flags & PMF_DUCKED)
 		duck = true;
@@ -348,7 +348,7 @@ void P_EndServerFrame(edict_t *ent){
 
 	// If the end of unit layout is displayed, don't give
 	// the player any normal movement attributes
-	if(level.intermission_time){
+	if(g_level.intermission_time){
 		P_SetStats(ent);
 		return;
 	}
@@ -379,8 +379,8 @@ void P_EndServerFrame(edict_t *ent){
 		xyspeed = sqrt(ent->velocity[0] * ent->velocity[0] +
 				ent->velocity[1] * ent->velocity[1]);
 
-		if(xyspeed > 265.0 && ent->client->footstep_time < level.time){
-			ent->client->footstep_time = level.time + 0.3;
+		if(xyspeed > 265.0 && ent->client->footstep_time < g_level.time){
+			ent->client->footstep_time = g_level.time + 0.3;
 			ent->s.event = EV_FOOTSTEP;
 		}
 	}
@@ -406,8 +406,8 @@ void P_EndServerFrame(edict_t *ent){
 	VectorCopy(ent->client->ps.angles, ent->client->oldangles);
 
 	// if the scoreboard is up, update it
-	if(ent->client->showscores && !(level.frame_num & 31)){
-		if(level.teams || level.ctf)
+	if(ent->client->showscores && !(g_level.frame_num & 31)){
+		if(g_level.teams || g_level.ctf)
 			P_TeamsScoreboard(ent);
 		else
 			P_Scoreboard(ent);

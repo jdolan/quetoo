@@ -34,7 +34,7 @@ int quad_damage_index;
  * G_ItemByIndex
  */
 g_item_t *G_ItemByIndex(int index){
-	if(index == 0 || index >= game.num_items)
+	if(index == 0 || index >= g_locals.num_items)
 		return NULL;
 
 	return &g_items[index];
@@ -50,7 +50,7 @@ g_item_t *G_FindItemByClassname(const char *classname){
 	g_item_t *it;
 
 	it = g_items;
-	for(i = 0; i < game.num_items; i++, it++){
+	for(i = 0; i < g_locals.num_items; i++, it++){
 		if(!it->classname)
 			continue;
 		if(!strcasecmp(it->classname, classname))
@@ -69,7 +69,7 @@ g_item_t *G_FindItem(const char *pickup_name){
 	g_item_t *it;
 
 	it = g_items;
-	for(i = 0; i < game.num_items; i++, it++){
+	for(i = 0; i < g_locals.num_items; i++, it++){
 		if(!it->pickup_name)
 			continue;
 		if(!strcasecmp(it->pickup_name, pickup_name))
@@ -124,7 +124,7 @@ void G_SetRespawn(edict_t *ent, float delay){
 	ent->flags |= FL_RESPAWN;
 	ent->svflags |= SVF_NOCLIENT;
 	ent->solid = SOLID_NOT;
-	ent->nextthink = level.time + delay;
+	ent->next_think = g_level.time + delay;
 	ent->think = G_DoRespawn;
 	gi.LinkEntity(ent);
 }
@@ -156,10 +156,10 @@ static qboolean G_PickupQuadDamage(edict_t *ent, edict_t *other){
 	other->client->locals.inventory[quad_damage_index] = 1;
 
 	if(ent->spawnflags & SF_ITEM_DROPPED){  // receive only the time left
-		other->client->quad_damage_time = ent->nextthink;
+		other->client->quad_damage_time = ent->next_think;
 	}
 	else {
-		other->client->quad_damage_time = level.time + 30.0;
+		other->client->quad_damage_time = g_level.time + 30.0;
 		G_SetRespawn(ent, ent->item->quantity);
 	}
 
@@ -457,14 +457,14 @@ void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 	if(!ent->item->pickup)
 		return;  // not a grabbable item?
 
-	if(level.warmup)
+	if(g_level.warmup)
 		return;  // warmup mode
 
 	if((taken = ent->item->pickup(ent, other))){
 		// show icon and name on status bar
 		other->client->ps.stats[STAT_PICKUP_ICON] = gi.ImageIndex(ent->item->icon);
 		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ITEM_INDEX(ent->item);
-		other->client->pickup_msg_time = level.time + 3.0;
+		other->client->pickup_msg_time = g_level.time + 3.0;
 
 		if(ent->item->pickup_sound)  // play pickup sound
 			gi.Sound(other, gi.SoundIndex(ent->item->pickup_sound), ATTN_NORM);
@@ -509,7 +509,7 @@ static void G_DropItemThink(edict_t *ent){
 	float f;
 
 	if(!ent->ground_entity){  // keep falling in valid space
-		ent->nextthink = level.time + gi.server_frame;
+		ent->next_think = g_level.time + gi.server_frame;
 		return;
 	}
 
@@ -533,7 +533,7 @@ static void G_DropItemThink(edict_t *ent){
 		ent->think = G_FreeEdict;
 
 	if(ent->item->flags & IT_POWERUP)  // expire from last touch
-		f = ent->timestamp - level.time;
+		f = ent->timestamp - g_level.time;
 	else  // general case
 		f = 30.0;
 
@@ -544,7 +544,7 @@ static void G_DropItemThink(edict_t *ent){
 	if(contents & CONTENTS_SLIME)  // and slime
 		f *= 0.5;
 
-	ent->nextthink = level.time + f;
+	ent->next_think = g_level.time + f;
 }
 
 
@@ -612,7 +612,7 @@ edict_t *G_DropItem(edict_t *ent, g_item_t *item){
 	dropped->velocity[2] = 200.0 + (frand() * 150.0);
 
 	dropped->think = G_DropItemThink;
-	dropped->nextthink = level.time + gi.server_frame;
+	dropped->next_think = g_level.time + gi.server_frame;
 
 	gi.LinkEntity(dropped);
 
@@ -756,7 +756,7 @@ void G_SpawnItem(edict_t *ent, g_item_t *item){
 	ent->movetype = MOVETYPE_TOSS;
 	ent->touch = G_TouchItem;
 	ent->think = G_DropToFloor;
-	ent->nextthink = level.time + 2 * gi.server_frame;  // items start after other solids
+	ent->next_think = g_level.time + 2 * gi.server_frame;  // items start after other solids
 
 	ent->item = item;
 	ent->s.effects = item->effects;
@@ -774,13 +774,13 @@ void G_SpawnItem(edict_t *ent, g_item_t *item){
 		ent->svflags |= SVF_NOCLIENT;
 		ent->solid = SOLID_NOT;
 		if(ent == ent->teammaster){
-			ent->nextthink = level.time + gi.server_frame;
+			ent->next_think = g_level.time + gi.server_frame;
 			ent->think = G_DoRespawn;
 		}
 	}
 
 	// hide flags unless ctf is enabled
-	if(!level.ctf && (!strcmp(ent->classname, "item_flag_team1") ||
+	if(!g_level.ctf && (!strcmp(ent->classname, "item_flag_team1") ||
 				!strcmp(ent->classname, "item_flag_team2"))){
 
 		ent->svflags |= SVF_NOCLIENT;
@@ -1450,8 +1450,8 @@ g_override_t overrides[] = {
  * G_InitItems
  */
 void G_InitItems(void){
-	game.num_items = sizeof(g_items) / sizeof(g_items[0]) - 1;
-	game.num_overrides = sizeof(overrides) / sizeof(overrides[0]) - 1;
+	g_locals.num_items = sizeof(g_items) / sizeof(g_items[0]) - 1;
+	g_locals.num_overrides = sizeof(overrides) / sizeof(overrides[0]) - 1;
 }
 
 
@@ -1465,10 +1465,10 @@ void G_SetItemNames(void){
 	g_item_t *it;
 	g_override_t *ov;
 
-	for(i = 0; i < game.num_items; i++){
+	for(i = 0; i < g_locals.num_items; i++){
 		it = &g_items[i];
 		if(it->classname){
-			for(j = 0; j < game.num_overrides; j++){
+			for(j = 0; j < g_locals.num_overrides; j++){
 				ov = &overrides[j];
 				if(!strcmp(it->classname, ov->old)){
 					it = G_FindItemByClassname(ov->new);

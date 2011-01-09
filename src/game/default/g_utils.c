@@ -79,7 +79,7 @@ edict_t *G_Find(edict_t *from, int fieldofs, const char *match){
 	else
 		from++;
 
-	for(; from < &g_edicts[globals.num_edicts]; from++){
+	for(; from < &g_edicts[ge.num_edicts]; from++){
 		if(!from->inuse)
 			continue;
 		s = *(char **)((byte *)from + fieldofs);
@@ -108,7 +108,7 @@ edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad){
 		from = g_edicts;
 	else
 		from++;
-	for(; from < &g_edicts[globals.num_edicts]; from++){
+	for(; from < &g_edicts[ge.num_edicts]; from++){
 		if(!from->inuse)
 			continue;
 		if(from->solid == SOLID_NOT)
@@ -193,7 +193,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 		// create a temp object to fire at a later time
 		t = G_Spawn();
 		t->classname = "DelayedUse";
-		t->nextthink = level.time + ent->delay;
+		t->next_think = g_level.time + ent->delay;
 		t->think = Think_Delay;
 		t->activator = activator;
 		if(!activator)
@@ -324,7 +324,7 @@ void G_InitEdict(edict_t *e){
 	e->inuse = true;
 	e->classname = "noclass";
 	e->gravity = 1.0;
-	e->timestamp = level.time;
+	e->timestamp = g_level.time;
 	e->s.number = e - g_edicts;
 }
 
@@ -343,10 +343,10 @@ edict_t *G_Spawn(void){
 	edict_t *e;
 
 	e = &g_edicts[(int)sv_maxclients->value + 1];
-	for(i = sv_maxclients->value + 1; i < globals.num_edicts; i++, e++){
+	for(i = sv_maxclients->value + 1; i < ge.num_edicts; i++, e++){
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
-		if(!e->inuse && (e->freetime < 2 || level.time - e->freetime > 0.5)){
+		if(!e->inuse && (e->freetime < 2 || g_level.time - e->freetime > 0.5)){
 			G_InitEdict(e);
 			return e;
 		}
@@ -355,7 +355,7 @@ edict_t *G_Spawn(void){
 	if(i >= g_maxentities->value)
 		gi.Error("G_Spawn: No free edicts.");
 
-	globals.num_edicts++;
+	ge.num_edicts++;
 	G_InitEdict(e);
 	return e;
 }
@@ -374,7 +374,7 @@ void G_FreeEdict(edict_t *ed){
 
 	memset(ed, 0, sizeof(*ed));
 	ed->classname = "freed";
-	ed->freetime = level.time;
+	ed->freetime = g_level.time;
 	ed->inuse = false;
 }
 
@@ -522,7 +522,7 @@ g_team_t *G_TeamByName(char *c){
  */
 g_team_t *G_TeamForFlag(edict_t *ent){
 
-	if(!level.ctf)
+	if(!g_level.ctf)
 		return NULL;
 
 	if(!ent->item || !(ent->item->flags & IT_FLAG))
@@ -546,7 +546,7 @@ edict_t *G_FlagForTeam(g_team_t *t){
 	char class[32];
 	int i;
 
-	if(!level.ctf)
+	if(!g_level.ctf)
 		return NULL;
 
 	if(t != &good && t != &evil)
@@ -555,9 +555,9 @@ edict_t *G_FlagForTeam(g_team_t *t){
 	strcpy(class, (t == &good ? "item_flag_team1" : "item_flag_team2"));
 
 	i = (int)sv_maxclients->value + 1;
-	while(i < globals.num_edicts){
+	while(i < ge.num_edicts){
 
-		ent = &globals.edicts[i++];
+		ent = &ge.edicts[i++];
 
 		if(!ent->item || !(ent->item->flags & IT_FLAG))
 			continue;

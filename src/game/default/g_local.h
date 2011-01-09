@@ -81,7 +81,7 @@ typedef enum {
 	AMMO_BOLTS,
 	AMMO_SLUGS,
 	AMMO_NUKES
-} ammo_t;
+} g_ammo_t;
 
 // armor types
 #define ARMOR_NONE			0
@@ -107,7 +107,7 @@ typedef enum {
 	MOVETYPE_WALK,       // gravity
 	MOVETYPE_FLY,
 	MOVETYPE_TOSS,       // gravity
-} movetype_t;
+} g_move_type_t;
 
 // a synonym for readability
 #define MOVETYPE_THINK MOVETYPE_NONE
@@ -178,7 +178,6 @@ typedef struct g_locals_s {
 
 
 // this structure is cleared as each map is entered
-// it is read/written to the level.sav file for savegames
 typedef struct {
 	int frame_num;
 	float time;
@@ -219,7 +218,7 @@ typedef struct {
 	float votetime;  // time vote started
 
 	edict_t *current_entity;  // entity running from G_RunFrame
-} level_locals_t;
+} g_level_t;
 
 
 // spawn_temp_t is only used to hold entity field values that
@@ -248,7 +247,7 @@ typedef struct {
 	char *noise;
 	float pausetime;
 	char *item;
-} spawn_temp_t;
+} g_spawn_temp_t;
 
 
 typedef struct {
@@ -277,15 +276,16 @@ typedef struct {
 	float next_speed;
 	float remaining_distance;
 	float decel_distance;
-	void (*endfunc)(edict_t *);
-} moveinfo_t;
+	void (*done)(edict_t *);
+} g_move_info_t;
 
 
-extern g_locals_t game;
-extern level_locals_t level;
 extern game_import_t gi;
-extern game_export_t globals;
-extern spawn_temp_t st;
+extern game_export_t ge;
+
+extern g_locals_t g_locals;
+extern g_level_t g_level;
+extern g_spawn_temp_t st;
 
 extern int grenade_index, grenade_hit_index;
 extern int rocket_index, rocket_fly_index;
@@ -318,13 +318,13 @@ extern int quad_damage_index;
 #define MOD_TRIGGER_HURT	22
 #define MOD_FRIENDLY_FIRE	0x8000000
 
-extern int meansOfDeath;
+extern int means_of_death;
 
 extern edict_t *g_edicts;
 
 #define FOFS(x)(ptrdiff_t)&(((edict_t *)0)->x)
-#define STOFS(x)(ptrdiff_t)&(((spawn_temp_t *)0)->x)
-#define LLOFS(x)(ptrdiff_t)&(((level_locals_t *)0)->x)
+#define STOFS(x)(ptrdiff_t)&(((g_spawn_temp_t *)0)->x)
+#define LLOFS(x)(ptrdiff_t)&(((g_level_locals_t *)0)->x)
 #define CLOFS(x)(ptrdiff_t)&(((g_client_t *)0)->x)
 
 #define random() ((rand() & 0x7fff) / ((float)0x7fff))
@@ -362,7 +362,7 @@ extern cvar_t *sv_maxclients;
 extern cvar_t *dedicated;
 
 // maplist structs
-typedef struct maplistelt_s {
+typedef struct g_maplist_elt_s {
 	char name[32];
 	char title[128];
 	char sky[32];
@@ -380,12 +380,12 @@ typedef struct maplistelt_s {
 	char give[MAX_STRING_CHARS];
 	char music[MAX_STRING_CHARS];
 	float weight;
-} maplistelt_t;
+} g_maplist_elt_t;
 
 #define MAX_MAPLIST_ELTS 64
 #define MAPLIST_WEIGHT 16384
 typedef struct maplist_s {
-	maplistelt_t maps[MAX_MAPLIST_ELTS];
+	g_maplist_elt_t maps[MAX_MAPLIST_ELTS];
 	int count, index;
 
 	// weighted random selection
@@ -800,10 +800,10 @@ struct edict_s {
 	float mass;
 	float gravity;
 
-	float nextthink;
+	float next_think;
 	void (*prethink)(edict_t *ent);
 	void (*think)(edict_t *self);
-	void (*blocked)(edict_t *self, edict_t *other);  // move to moveinfo?
+	void (*blocked)(edict_t *self, edict_t *other);  // move to move_info?
 	void (*touch)(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);
 	void (*use)(edict_t *self, edict_t *other, edict_t *activator);
 	void (*pain)(edict_t *self, edict_t *other, int damage, int knockback);
@@ -860,5 +860,5 @@ struct edict_s {
 	vec3_t map_origin;  // where the map says we spawn
 
 	// common data blocks
-	moveinfo_t moveinfo;
+	g_move_info_t move_info;
 };

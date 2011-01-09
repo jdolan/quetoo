@@ -28,7 +28,7 @@
  */
 qboolean G_OnSameTeam(edict_t *ent1, edict_t *ent2){
 
-	if(!level.teams && !level.ctf)
+	if(!g_level.teams && !g_level.ctf)
 		return false;
 
 	if(!ent1->client || !ent2->client)
@@ -215,7 +215,7 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	}
 
 	// friendly fire avoidance
-	if(targ != attacker && (level.teams || level.ctf)){
+	if(targ != attacker && (g_level.teams || g_level.ctf)){
 		if(G_OnSameTeam(targ, attacker)){  // target and attacker are on same team
 
 			if(mod == MOD_TELEFRAG){  // telefrags can not be avoided
@@ -231,10 +231,10 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	}
 
 	// there is no self damage in instagib or arena, but there is knockback
-	if(targ == attacker && level.gameplay)
+	if(targ == attacker && g_level.gameplay)
 		damage = 0;
 
-	meansOfDeath = mod;
+	means_of_death = mod;
 
 	client = targ->client;
 
