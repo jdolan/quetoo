@@ -50,14 +50,14 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, sizebuf_t *msg){
 		if(newindex >= to->num_entities)
 			newnum = 9999;
 		else {
-			newent = &svs.client_entities[(to->first_entity + newindex) % svs.num_client_entities];
+			newent = &svs.entity_states[(to->first_entity + newindex) % svs.num_entity_states];
 			newnum = newent->number;
 		}
 
 		if(oldindex >= from_num_entities)
 			oldnum = 9999;
 		else {
-			oldent = &svs.client_entities[(from->first_entity + oldindex) % svs.num_client_entities];
+			oldent = &svs.entity_states[(from->first_entity + oldindex) % svs.num_entity_states];
 			oldnum = oldent->number;
 		}
 
@@ -340,7 +340,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 
 	// build up the list of visible entities
 	frame->num_entities = 0;
-	frame->first_entity = svs.next_client_entities;
+	frame->first_entity = svs.next_entity_state;
 
 	c_fullsend = 0;
 
@@ -398,7 +398,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 		}
 
 		// add it to the circular client_entities array
-		state = &svs.client_entities[svs.next_client_entities % svs.num_client_entities];
+		state = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
 		if(ent->s.number != e){
 			Com_Warn("Sv_BuildClientFrame: Fixing ent->s.number.\n");
 			ent->s.number = e;
@@ -409,7 +409,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 		if(ent->owner == client->edict)
 			state->solid = 0;
 
-		svs.next_client_entities++;
+		svs.next_entity_state++;
 		frame->num_entities++;
 	}
 }

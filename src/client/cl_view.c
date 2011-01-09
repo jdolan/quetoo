@@ -94,6 +94,7 @@ static void Cl_UpdateViewsize(void){
 static void Cl_UpdateLerp(cl_frame_t *from){
 
 	if(timedemo->value){
+		cl.time = cl.frame.servertime;
 		cl.lerp = 1.0;
 		return;
 	}

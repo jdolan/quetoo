@@ -272,8 +272,9 @@ void Sv_ShutdownGameProgs(void){
 void Sv_InitGameProgs(void){
 	game_import_t import;
 
-	if(ge)
+	if(ge){
 		Sv_ShutdownGameProgs();
+	}
 
 	import.serverrate = svs.packetrate;
 	import.serverframe = 1.0 / svs.packetrate;

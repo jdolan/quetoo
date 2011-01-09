@@ -97,10 +97,16 @@ PROTOCOL
 #define UPDATE_BACKUP 128  // copies of entity_state_t to keep buffered
 #define UPDATE_MASK (UPDATE_BACKUP - 1)
 
+// maximum number of entities we would ever reference in a single message
+#define MAX_PACKET_ENTITIES 64
 
-// the svc_strings[] array in cl_parse.c should mirror this
+// per-client bandwidth throttle, in bytes per second
+#define CLIENT_RATE_MIN 8192
+#define CLIENT_RATE_MAX 32768
+#define CLIENT_RATE 16384
 
 // server to client
+// the svc_strings[] array in cl_parse.c should mirror this
 enum svc_ops_e {
 	svc_bad,
 	svc_nop,
@@ -135,7 +141,7 @@ enum clc_ops_e {
 };
 
 
-// plyer_state_t communication
+// player_state_t communication
 
 #define PS_M_TYPE			(1<<0)
 #define PS_M_ORIGIN			(1<<1)

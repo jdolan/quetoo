@@ -251,12 +251,14 @@ void Sys_Quit(void){
  * On platforms supporting it, print a backtrace.
  */
 void Sys_Backtrace(void){
-#ifdef HAVE_EXECINFO______
+#ifdef HAVE_EXECINFO
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
 	int i;
 
 	i = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
 	backtrace_symbols_fd(symbols, i, STDERR_FILENO);
+
+	fflush(stderr);
 #endif
 }
 

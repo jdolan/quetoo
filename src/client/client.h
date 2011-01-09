@@ -73,7 +73,7 @@ typedef struct clientinfo_s {
 
 // we accumulate parsed entity states in a rather large buffer so that they
 // may be safely delta'd in the future
-#define ENTITY_STATE_BACKUP 16384
+#define ENTITY_STATE_BACKUP (UPDATE_BACKUP * MAX_PACKET_ENTITIES)
 #define ENTITY_STATE_MASK (ENTITY_STATE_BACKUP - 1)
 
 // the cl_client_s structure is wiped completely at every map change

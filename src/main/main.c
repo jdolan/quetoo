@@ -81,7 +81,7 @@ static void Error(err_t err, const char *msg){
 		case ERR_NONE:
 		case ERR_DROP:
 
-			Sv_Shutdown(msg, false);
+			Sv_Shutdown(msg);
 
 #ifdef BUILD_CLIENT
 			Cl_Drop();
@@ -90,7 +90,8 @@ static void Error(err_t err, const char *msg){
 			longjmp(environment, -1);
 			break;
 
-		default:  // we're at ERR_FATAL, shutdown and exit
+		case ERR_FATAL:
+		default:
 
 			Shutdown((const char *)msg);
 
@@ -238,7 +239,7 @@ static void Init(int argc, char **argv){
  */
 static void Shutdown(const char *msg){
 
-	Sv_Shutdown(msg, false);
+	Sv_Shutdown(msg);
 
 #ifdef BUILD_CLIENT
 	Cl_Shutdown();

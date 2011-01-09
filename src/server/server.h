@@ -70,18 +70,19 @@ typedef struct sv_frame_s {
 	byte areabits[MAX_BSP_AREAS / 8];  // portal area visibility bits
 	player_state_t ps;
 	int num_entities;
-	int first_entity;  // into the circular sv_packet_entities[]
+	int first_entity;  // index into svs.entity_states array
 	int senttime;  // for ping calculations
 } sv_frame_t;
 
-#define LATENCY_COUNTS 16
-#define RATE_MESSAGES 10
+#define LATENCY_COUNTS 16  // frame latency, averaged to determine ping
+#define CLIENT_RATE_MESSAGES 10  // message size, used to enforce rate throttle
 
 #define MSEC_OKAY_MIN 20  // at least 20ms for normal movement
 #define MSEC_OKAY_MAX 1800 // 1600 for valid movement, plus some slop
 #define MSEC_OKAY_STEP -1  // decrement count for normal movements
-#define MSEC_ERROR_MAX "30"  // three sequential bad moves probably means cheater
 #define MSEC_ERROR_STEP 10  // increment for bad movements
+#define MSEC_ERROR_MAX (MSEC_ERROR_STEP * 3)  // three sequential bad moves probably means cheater
+
 
 typedef struct sv_client_s {
 	sv_client_state_t state;
@@ -98,7 +99,7 @@ typedef struct sv_client_s {
 	int frame_latency[LATENCY_COUNTS];
 	int ping;
 
-	int message_size[RATE_MESSAGES];  // used to rate drop packets
+	int message_size[CLIENT_RATE_MESSAGES];  // used to rate drop packets
 	int rate;
 	int surpress_count;  // number of messages rate supressed
 
@@ -106,8 +107,8 @@ typedef struct sv_client_s {
 	char name[32];  // extracted from userinfo, high bits masked
 	int messagelevel;  // for filtering printed messages
 
-	// The datagram is written to by sound calls, prints, temp ents, etc.
-	// It can be harmlessly overflowed.
+	// the datagram is written to by sound calls, prints, temp ents, etc.
+	// it can be overflowed without consequence.
 	sizebuf_t datagram;
 	byte datagram_buf[MAX_MSGLEN];
 
@@ -130,21 +131,26 @@ typedef struct sv_client_s {
 } sv_client_t;
 
 // the server runs fixed-interval frames at a configurable rate (Hz)
-#define MIN_PACKETRATE 10
-#define MAX_PACKETRATE 120
+#define SERVER_PACKETRATE_MIN 30
+#define SERVER_PACKETRATE_MAX 120
+#define SERVER_PACKETRATE 60
+
+// clients will be dropped after no activity in so many seconds
+#define SERVER_TIMEOUT 30
 
 #define MAX_MASTERS	8  // max recipients for heartbeat packets
 
-// MAX_CHALLENGES is made large to prevent a denial
-// of service attack that could cycle all of them
-// out before legitimate users connected
-#define MAX_CHALLENGES	1024
-
+// challenges are a request for a connection; a handshake the client receives
+// and must then re-use to acquire a client slot
 typedef struct sv_challenge_s {
 	netaddr_t addr;
 	int challenge;
 	int time;
 } sv_challenge_t;
+
+// MAX_CHALLENGES is made large to prevent a denial of service attack that
+// could cycle all of them out before legitimate users connected.
+#define MAX_CHALLENGES 1024
 
 typedef struct sv_static_s {
 	qboolean initialized;  // sv_init has completed
@@ -154,10 +160,17 @@ typedef struct sv_static_s {
 
 	int packetrate;  // packets per second to clients
 
-	sv_client_t *clients;  // [maxclients->value];
-	int num_client_entities;  // maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES
-	int next_client_entities;  // next client_entity to use
-	entity_state_t *client_entities;  // [num_client_entities]
+	sv_client_t *clients;  // server-side client structures
+
+	// the server maintains an array of entity states it uses to calculate
+	// delta compression from frame to frame
+
+	// the size of this array is based on the number of clients we might be
+	// asked to support at any point in time during the current game
+
+	int num_entity_states;  // maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES
+	int next_entity_state;  // next entity_state to use for newly spawned entities
+	entity_state_t *entity_states;  // entity states array used for delta compression
 
 	netaddr_t masters[MAX_MASTERS];
 	int last_heartbeat;
@@ -179,7 +192,6 @@ extern cvar_t *sv_enforcetime;
 extern cvar_t *sv_extensions;
 extern cvar_t *sv_hostname;
 extern cvar_t *sv_maxclients;
-extern cvar_t *sv_maxrate;
 extern cvar_t *sv_packetrate;
 extern cvar_t *sv_public;
 extern cvar_t *sv_timeout;
@@ -191,12 +203,12 @@ extern edict_t *sv_player;
 
 // sv_main.c
 void Sv_Init(void);
-void Sv_Shutdown(const char *finalmsg, qboolean reconnect);
+void Sv_FinalMessage(const char *msg, qboolean reconnect);
+void Sv_Shutdown(const char *msg);
 void Sv_Frame(int msec);
 char *Sv_NetaddrToString(sv_client_t *cl);
 void Sv_KickClient(sv_client_t *cl, const char *msg);
 void Sv_DropClient(sv_client_t *cl);
-void Sv_HeartbeatMasters(void);
 void Sv_UserinfoChanged(sv_client_t *cl);
 
 // sv_init.c

@@ -31,7 +31,6 @@ cvar_t *sv_enforcetime;
 cvar_t *sv_extensions;
 cvar_t *sv_hostname;
 cvar_t *sv_maxclients;
-cvar_t *sv_maxrate;
 cvar_t *sv_packetrate;
 cvar_t *sv_public;
 cvar_t *sv_timeout;
@@ -219,7 +218,7 @@ static void Svc_GetChallenge(void){
 /*
  * Svc_Connect
  *
- * A connection request that did not come from the master
+ * A connection request that did not come from the master.
  */
 static void Svc_Connect(void){
 	char userinfo[MAX_INFO_STRING];
@@ -371,19 +370,19 @@ static void Svc_Connect(void){
 
 
 /*
- * Sv_RconValidate
+ * Sv_RconAuthenticate
  */
-static int Sv_RconValidate(void){
+static qboolean Sv_RconAuthenticate(void){
 
 	// a password must be set for rcon to be available
 	if(*sv_rcon_password->string == '\0')
-		return 0;
+		return false;
 
 	// and of course the passwords must match
 	if(strcmp(Cmd_Argv(1), sv_rcon_password->string))
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
 
@@ -394,21 +393,21 @@ static int Sv_RconValidate(void){
  * redirect all output to the invoking client.
  */
 static void Svc_RemoteCommand(void){
-	int i;
-	char remaining[MAX_STRING_CHARS];
+	const qboolean auth = Sv_RconAuthenticate();
 
-	i = Sv_RconValidate();
-
-	if(i == 0)
-		Com_Print("Bad rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
-	else
+	// first print to the server console
+	if(auth)
 		Com_Print("Rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
+	else
+		Com_Print("Bad rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
 
+	// then redirect the remaining output back to the client
 	Com_BeginRedirect(RD_PACKET, sv_outputbuf, SV_OUTPUTBUF_LENGTH, Sv_FlushRedirect);
 
-	if(i == 0){
-		Com_Print("Bad rcon_password.\n");
-	} else {
+	if(auth){
+		char remaining[MAX_STRING_CHARS];
+		int i;
+
 		remaining[0] = 0;
 
 		for(i = 2; i < Cmd_Argc(); i++){
@@ -417,6 +416,9 @@ static void Svc_RemoteCommand(void){
 		}
 
 		Cmd_ExecuteString(remaining);
+	}
+	else {
+		Com_Print("Bad rcon_password.\n");
 	}
 
 	Com_EndRedirect();
@@ -465,11 +467,11 @@ static void Sv_ConnectionlessPacket(void){
 
 
 /*
- * Sv_CalcPings
+ * Sv_UpdatePings
  *
- * Updates the cl->ping variables
+ * Updates the "ping" times for all spawned clients.
  */
-static void Sv_CalcPings(void){
+static void Sv_UpdatePings(void){
 	int i, j;
 	sv_client_t *cl;
 	int total, count;
@@ -494,7 +496,7 @@ static void Sv_CalcPings(void){
 		else
 			cl->ping = total / count;
 
-		// let the game dll know about the ping
+		// let the game module know about the ping
 		cl->edict->client->ping = cl->ping;
 	}
 }
@@ -510,7 +512,7 @@ static void Sv_GiveMsec(void){
 	int i;
 	sv_client_t *cl;
 
-	if(sv.framenum & 15)
+	if(sv.framenum & 15)  // TODO: this clearly does not work with variable packet rates
 		return;
 
 	for(i = 0; i < sv_maxclients->value; i++){
@@ -568,12 +570,16 @@ static void Sv_ReadPackets(void){
 
 		// check for packets from connected clients
 		for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
+
 			if(cl->state == cs_free)
 				continue;
+
 			if(!Net_CompareClientNetaddr(net_from, cl->netchan.remote_address))
 				continue;
+
 			if(cl->netchan.qport != qport)
 				continue;
+
 			if(cl->netchan.remote_address.port != net_from.port){
 				Com_Warn("Sv_ReadPackets: Fixing up a translated port.\n");
 				cl->netchan.remote_address.port = net_from.port;
@@ -584,6 +590,8 @@ static void Sv_ReadPackets(void){
 				cl->lastmessage = svs.realtime;  // nudge timeout
 				Sv_ExecuteClientMessage(cl);
 			}
+
+			// we've processed the packet for the correct client, so break
 			break;
 		}
 	}
@@ -625,13 +633,14 @@ static void Sv_CheckTimeouts(void){
  * player processing happens outside RunWorldFrame
  */
 static void Sv_PrepWorldFrame(void){
-	edict_t *ent;
 	int i;
 
-	for(i = 0; i < ge->num_edicts; i++, ent++){
-		ent = EDICT_FOR_NUM(i);
+	for(i = 0; i < ge->num_edicts; i++){
+
+		edict_t *edict = EDICT_FOR_NUM(i);
+
 		// events only last for a single message
-		ent->s.event = 0;
+		edict->s.event = 0;
 	}
 }
 
@@ -650,7 +659,7 @@ static void Sv_RunGameFrame(void){
 	if(sv.state == ss_game)
 		ge->RunFrame();
 
-	// never get more than one tic behind
+	// slow down for the game if need be
 	if(sv.time < svs.realtime){
 		Com_Debug("Sv_RunGameFrame: High clamp: +%dms\n", sv.time - svs.realtime);
 		svs.realtime = sv.time;
@@ -659,64 +668,15 @@ static void Sv_RunGameFrame(void){
 
 
 /*
- * Sv_Frame
+ * Sv_InitMasters
  */
-void Sv_Frame(int msec){
-	int frame_millis;
+static void Sv_InitMasters(void){
 
-	// if server is not active, do nothing
-	if(!svs.initialized)
-		return;
+	memset(&svs.masters, 0, sizeof(svs.masters));
 
-	svs.realtime += msec;  // TODO: quake2world.time?
-
-	// keep the random time dependent
-	rand();
-
-	// check timeouts
-	Sv_CheckTimeouts();
-
-	// get packets from clients
-	Sv_ReadPackets();
-
-	frame_millis = 1000 / svs.packetrate;
-
-	// move autonomous things around if enough time has passed
-	if(!timedemo->value && svs.realtime < sv.time){
-		// never let the time get too far off
-		if(sv.time - svs.realtime > frame_millis){
-			Com_Debug("Sv_Frame: High clamp: +%dms.\n", (sv.time - svs.realtime - frame_millis));
-			svs.realtime = sv.time - frame_millis;
-		}
-		Net_Sleep(sv.time - svs.realtime);
-		return;
-	}
-
-	// update ping based on the last known frame from all clients
-	Sv_CalcPings();
-
-	// give the clients some timeslices
-	Sv_GiveMsec();
-
-	// let everything in the world think and move
-	Sv_RunGameFrame();
-
-	// send messages back to the clients that had packets read this frame
-	Sv_SendClientMessages();
-
-	// were we shutdown this frame?
-	if(!svs.initialized)
-		return;
-
-	// send a heartbeat to the master if needed
-	Sv_HeartbeatMasters();
-
-	// clear teleport flags, etc for next frame
-	Sv_PrepWorldFrame();
-
-#ifdef HAVE_CURSES
-	Curses_Frame(msec);
-#endif
+	// set default master server
+	Net_StringToNetaddr(IP_MASTER, &svs.masters[0]);
+	svs.masters[0].port = BigShort(PORT_MASTER);
 }
 
 
@@ -727,21 +687,20 @@ void Sv_Frame(int msec){
  *
  * Sends heartbeat messages to master servers every 300s.
  */
-void Sv_HeartbeatMasters(void){
+static void Sv_HeartbeatMasters(void){
 	const char *string;
 	int i;
 
-	if(!dedicated || !dedicated->value)
-		return;  // only dedicated servers send heartbeats
+	if(!dedicated->value)
+		return;  // only dedicated servers report to masters
 
-	if(!sv_public || !sv_public->value)
+	if(!sv_public->value)
 		return;  // a private dedicated game
 
 	if(svs.last_heartbeat > svs.realtime)  // catch wraps
 		svs.last_heartbeat = svs.realtime;
 
 	if(svs.last_heartbeat) {  // if we've sent one, wait a while
-
 		if(svs.realtime - svs.last_heartbeat < HEARTBEAT_SECONDS * 1000)
 			return;  // not time to send yet
 	}
@@ -769,10 +728,10 @@ void Sv_HeartbeatMasters(void){
 static void Sv_ShutdownMasters(void){
 	int i;
 
-	if(!dedicated || !dedicated->value)
+	if(!dedicated->value)
 		return;  // only dedicated servers send heartbeats
 
-	if(!sv_public || !sv_public->value)
+	if(!sv_public->value)
 		return;  // a private dedicated game
 
 	// send to group master
@@ -822,8 +781,8 @@ char *Sv_NetaddrToString(sv_client_t *cl){
 }
 
 
-#define MIN_RATE 5000
-#define DEFAULT_RATE 10000
+#define MIN_RATE 8000
+#define DEFAULT_RATE 20000
 
 /*
  * Sv_UserinfoChanged
@@ -861,23 +820,20 @@ void Sv_UserinfoChanged(sv_client_t *cl){
 
 	// name for C code, mask off high bit
 	strncpy(cl->name, Info_ValueForKey(cl->userinfo, "name"), sizeof(cl->name) - 1);
-	for(i = 0; i < sizeof(cl->name); i++)
+	for(i = 0; i < sizeof(cl->name); i++){
 		cl->name[i] &= 127;
+	}
 
 	// rate command
 	val = Info_ValueForKey(cl->userinfo, "rate");
 	if(*val != '\0'){
-		i = atoi(val);
-		cl->rate = i;
+		cl->rate = atoi(val);
 
-		if(cl->rate > sv_maxrate->value)
-			cl->rate = sv_maxrate->value;
-		else if(cl->rate < MIN_RATE)
-			cl->rate = MIN_RATE;
-
+		if(cl->rate > CLIENT_RATE_MAX)
+			cl->rate = CLIENT_RATE_MAX;
+		else if(cl->rate < CLIENT_RATE_MIN)
+			cl->rate = CLIENT_RATE_MIN;
 	}
-	else
-		cl->rate = DEFAULT_RATE;
 
 	// limit the print messages the client receives
 	val = Info_ValueForKey(cl->userinfo, "messagelevel");
@@ -885,7 +841,7 @@ void Sv_UserinfoChanged(sv_client_t *cl){
 		cl->messagelevel = atoi(val);
 	}
 
-	// start/stop sending angles for demo recording
+	// start/stop sending view angles for demo recording
 	val = Info_ValueForKey(cl->userinfo, "recording");
 	cl->recording = atoi(val) == 1;
 
@@ -896,19 +852,82 @@ void Sv_UserinfoChanged(sv_client_t *cl){
 
 
 /*
+ * Sv_Frame
+ */
+void Sv_Frame(int msec){
+	int frame_millis;
+
+	// if server is not active, do nothing
+	if(!svs.initialized)
+		return;
+
+	// update time reference
+	svs.realtime += msec;
+
+	// keep the random time dependent
+	rand();
+
+	// check timeouts
+	Sv_CheckTimeouts();
+
+	// get packets from clients
+	Sv_ReadPackets();
+
+	frame_millis = 1000 / svs.packetrate;
+
+	// move autonomous things around if enough time has passed
+	if(!timedemo->value && svs.realtime < sv.time){
+		// never let the time get too far off
+		if(sv.time - svs.realtime > frame_millis){
+			Com_Debug("Sv_Frame: High clamp: +%dms.\n", (sv.time - svs.realtime - frame_millis));
+			svs.realtime = sv.time - frame_millis;
+		}
+		Net_Sleep(sv.time - svs.realtime);
+		return;
+	}
+
+	// update ping based on the last known frame from all clients
+	Sv_UpdatePings();
+
+	// give the clients some timeslices
+	Sv_GiveMsec();
+
+	// let everything in the world think and move
+	Sv_RunGameFrame();
+
+	// send messages back to the clients that had packets read this frame
+	Sv_SendClientMessages();
+
+	// were we shutdown this frame?
+	if(!svs.initialized)
+		return;
+
+	// send a heartbeat to the master if needed
+	Sv_HeartbeatMasters();
+
+	// clear teleport flags, etc for next frame
+	Sv_PrepWorldFrame();
+
+#ifdef HAVE_CURSES
+	Curses_Frame(msec);
+#endif
+}
+
+
+/*
  * Sv_Init
  *
- * Only called at Quake2World startup, not for each game
+ * Only called at Quake2World startup, not for each game.
  */
 void Sv_Init(void){
 	int bits;
 
-	Sv_InitOperatorCommands();
+	memset(&svs, 0, sizeof(svs));
 
 	sv_rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
 
 	sv_downloadurl = Cvar_Get("sv_downloadurl", "", CVAR_SERVERINFO, NULL);
-	sv_enforcetime = Cvar_Get("sv_enforcetime", MSEC_ERROR_MAX, 0, NULL);
+	sv_enforcetime = Cvar_Get("sv_enforcetime", va("%d", MSEC_ERROR_MAX), 0, NULL);
 
 	bits = QUAKE2WORLD_ZLIB;
 	sv_extensions = Cvar_Get("sv_extensions", va("%d", bits), 0, NULL);
@@ -921,17 +940,16 @@ void Sv_Init(void){
 	else
 		sv_maxclients = Cvar_Get("sv_maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH, NULL);
 
-	sv_maxrate = Cvar_Get("sv_maxrate", "32000", 0, NULL);
-	sv_packetrate = Cvar_Get("sv_packetrate", "60", CVAR_SERVERINFO | CVAR_LATCH, NULL);
-	sv_timeout = Cvar_Get("sv_timeout", "30.0", 0, NULL);
+	sv_packetrate = Cvar_Get("sv_packetrate", va("%d", SERVER_PACKETRATE), CVAR_SERVERINFO | CVAR_LATCH, NULL);
+	sv_timeout = Cvar_Get("sv_timeout", va("%d", SERVER_TIMEOUT), 0, NULL);
 	sv_udpdownload = Cvar_Get("sv_udpdownload", "1", CVAR_ARCHIVE, NULL);
 
 	// set this so clients and server browsers can see it
 	Cvar_Get("sv_protocol", va("%i", PROTOCOL), CVAR_SERVERINFO | CVAR_NOSET, NULL);
 
-	// set default master server
-	Net_StringToNetaddr(IP_MASTER, &svs.masters[0]);
-	svs.masters[0].port = BigShort(PORT_MASTER);
+	Sv_InitOperatorCommands();
+
+	Sv_InitMasters();
 
 	// initialize net buffer
 	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
@@ -941,14 +959,16 @@ void Sv_Init(void){
 /*
  * Sv_FinalMessage
  *
- * Used by Sv_Shutdown to send a final message to all connected clients
- * before the server goes down.  The messages are sent immediately, not
- * just stuck on the outgoing message list, because the server could
- * completely exit after returning from this function.
+ * Used by Sv_Shutdown and Sv_RestartGame to send a final message to all
+ * connected clients.  The messages are sent immediately, because the server
+ * could completely exit after returning from this function.
  */
-static void Sv_FinalMessage(const char *msg, qboolean reconnect){
-	int i;
+void Sv_FinalMessage(const char *msg, qboolean reconnect){
 	sv_client_t *cl;
+	int i;
+
+	if(!svs.initialized)
+		return;
 
 	Sb_Clear(&net_message);
 
@@ -972,14 +992,14 @@ static void Sv_FinalMessage(const char *msg, qboolean reconnect){
 /*
  * Sv_Shutdown
  *
- * Called when server is shutting down, or doing a full restart.
+ * Called when server is shutting down due to error or an explicit `quit`.
  */
-void Sv_Shutdown(const char *msg, qboolean reconnect){
+void Sv_Shutdown(const char *msg){
 
-	if(svs.clients)  // send final message
-		Sv_FinalMessage(msg, reconnect);
+	Sv_FinalMessage(msg, false);
 
 	Sv_ShutdownMasters();
+
 	Sv_ShutdownGameProgs();
 
 	Net_Config(NS_SERVER, false);
@@ -995,8 +1015,8 @@ void Sv_Shutdown(const char *msg, qboolean reconnect){
 	if(svs.clients)
 		Z_Free(svs.clients);
 
-	if(svs.client_entities)
-		Z_Free(svs.client_entities);
+	if(svs.entity_states)
+		Z_Free(svs.entity_states);
 
 	memset(&svs, 0, sizeof(svs));
 }

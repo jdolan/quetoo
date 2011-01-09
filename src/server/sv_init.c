@@ -27,6 +27,9 @@ sv_server_t sv;  // local server
 /*
  * Sv_FindIndex
  *
+ * Searches sv.configstrings from the specified start, searching for the
+ * desired name.  If not found, the name can be optionally created and sent to
+ * all connected clients.  This allows the game to lazily load assets.
  */
 static int Sv_FindIndex(const char *name, int start, int max, qboolean create){
 	int i;
@@ -166,38 +169,74 @@ static qboolean Sv_CheckDemo(const char *name){
 	return true;
 }
 
+/*
+ * Sv_UpdateLatchedVars
+ *
+ * Applies any pending variable changes and clamps ones we really care about.
+ */
+static void Sv_UpdateLatchedVars(void){
+	const int flags = CVAR_SERVERINFO | CVAR_LATCH;
+
+	Cvar_UpdateLatchedVars();
+
+	if(sv_packetrate->value < SERVER_PACKETRATE_MIN)
+		Cvar_FullSet("sv_packetrate", va("%i", SERVER_PACKETRATE_MIN), flags);
+	else if(sv_packetrate->value > SERVER_PACKETRATE_MAX)
+		Cvar_FullSet("sv_packetrate", va("%i", SERVER_PACKETRATE_MAX), flags);
+
+	if(sv_maxclients->value <= 1)
+		Cvar_FullSet("sv_maxclients", "1", flags);
+	else if(sv_maxclients->value > MAX_CLIENTS)
+		Cvar_FullSet("sv_maxclients", va("%i", MAX_CLIENTS), flags);
+}
+
 
 /*
- * Sv_InitGame
+ * Sv_RestartGame
  *
- * A brand new game has been started
+ * Reloads svs.clients, svs.client_entities, the game programs, etc.
  */
-static void Sv_InitGame(void){
+static void Sv_RestartGame(void){
 	int i;
-	edict_t *ent;
 
-	svs.initialized = true;
+	svs.initialized = false;
 
-	// init clients
-	if(sv_maxclients->value <= 1)
-		Cvar_FullSet("sv_maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
-	else if(sv_maxclients->value > MAX_CLIENTS)
-		Cvar_FullSet("sv_maxclients", va("%i", MAX_CLIENTS), CVAR_SERVERINFO | CVAR_LATCH);
+	Sv_ShutdownGameProgs();
+
+	Sv_UpdateLatchedVars();
+
+	// free server static data
+	if(svs.clients)
+		Z_Free(svs.clients);
+
+	// initialize the clients array
+	svs.clients = Z_Malloc(sizeof(sv_client_t) * sv_maxclients->value);
+
+	if(svs.entity_states)
+		Z_Free(svs.entity_states);
+
+	// and the entity states array
+	svs.num_entity_states = sv_maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
+	svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
+
+	svs.packetrate = sv_packetrate->value;
 
 	svs.spawncount = rand();
-	svs.clients = Z_Malloc(sizeof(sv_client_t) * sv_maxclients->value);
-	svs.num_client_entities = sv_maxclients->value * UPDATE_BACKUP * 64;
-	svs.client_entities = Z_Malloc(sizeof(entity_state_t) * svs.num_client_entities);
-	svs.last_heartbeat = -999999;
 
 	Sv_InitGameProgs();
 
+	// align the game entities with the server's clients
 	for(i = 0; i < sv_maxclients->value; i++){
-		ent = EDICT_FOR_NUM(i + 1);
-		ent->s.number = i + 1;
-		svs.clients[i].edict = ent;
-		memset(&svs.clients[i].lastcmd, 0, sizeof(svs.clients[i].lastcmd));
+
+		edict_t *edict = EDICT_FOR_NUM(i + 1);
+		edict->s.number = i + 1;
+
+		svs.clients[i].edict = edict;
 	}
+
+	svs.last_heartbeat = -99999;
+
+	svs.initialized = true;
 }
 
 
@@ -210,56 +249,38 @@ static void Sv_InitGame(void){
 static void Sv_SpawnServer(const char *server, sv_state_t state){
 	int i;
 	int mapsize;
-	qboolean reconnect;
 	FILE *f;
 	extern char *last_pak;
 
+	Sv_FinalMessage("Server restarting..", true);
+
 	Com_Print("Server initialization..\n");
-
-	reconnect = false;
-	if(!svs.initialized || Cvar_PendingLatchedVars()){
-
-		Sv_Shutdown("Server restarting..\n", true);
-
-		Cvar_UpdateLatchedVars();  // apply latched changes
-
-		// clamp the packet rate
-		if(sv_packetrate->value < MIN_PACKETRATE)
-			Cvar_SetValue("sv_packetrate", MIN_PACKETRATE);
-		else if(sv_packetrate->value > MAX_PACKETRATE)
-			Cvar_SetValue("sv_packetrate", MAX_PACKETRATE);
-
-		svs.packetrate = sv_packetrate->value;
-
-		Sv_InitGame();  // init clients, game progs, etc
-	}
-	else  // clients can immediately reconnect
-		reconnect = true;
-
-	if(sv.demofile)
-		Fs_CloseFile(sv.demofile);
-
-	svs.spawncount++;  // any partially connected client will be restarted
 
 	svs.realtime = 0;
 
-	sv.state = ss_dead;
+	if(sv.demofile)  // TODO: move this to svs, this isn't safe
+		Fs_CloseFile(sv.demofile);
+
+	memset(&sv, 0, sizeof(sv));
 	Com_SetServerState(sv.state);
 
-	// wipe the entire per-level structure
-	memset(&sv, 0, sizeof(sv));
+	if(!svs.initialized || Cvar_PendingLatchedVars())
+		Sv_RestartGame();
+	else
+		svs.spawncount++;
 
 	Sb_Init(&sv.multicast, sv.multicast_buf, sizeof(sv.multicast_buf));
 
 	// ensure all clients are no greater than connected
 	for(i = 0; i < sv_maxclients->value; i++){
+
 		if(svs.clients[i].state > cs_connected)
 			svs.clients[i].state = cs_connected;
+
 		svs.clients[i].lastframe = -1;
 	}
 
-	sv.time = 1000;  // set time
-
+	// load the new server
 	strcpy(sv.name, server);
 	strcpy(sv.configstrings[CS_NAME], server);
 
@@ -285,42 +306,27 @@ static void Sv_SpawnServer(const char *server, sv_state_t state){
 	}
 
 	if(state == ss_game){  // load and spawn all other entities
-
 		sv.state = ss_loading;
 		Com_SetServerState(sv.state);
 
-		if(ge == NULL){
-			Com_Error(ERR_FATAL, "Sv_SpawnServer: Game module not loaded.\n");
-		}
-
 		ge->SpawnEntities(sv.name, Cm_EntityString());
 
-		ge->RunFrame();  // run two frames to allow everything to settle
-		ge->RunFrame();
-
-		// create a baseline for more efficient communications
 		Sv_CreateBaseline();
 
-		Com_Print("  Loaded %s, %d entities.\n", sv.configstrings[CS_MODELS + 1],
-			ge->num_edicts);
+		Com_Print("  Loaded %s, %d entities.\n", sv.configstrings[CS_MODELS + 1], ge->num_edicts);
 	}
 	else {
 		Com_Print("  Loaded demo %s.\n", sv.name);
 	}
-
-	Net_Config(NS_SERVER, true);
+	// set serverinfo variable
+	Cvar_FullSet("mapname", sv.name, CVAR_SERVERINFO | CVAR_NOSET);
 
 	// all precaches are complete
 	sv.state = state;
 	Com_SetServerState(sv.state);
 
-	// set serverinfo variable
-	Cvar_FullSet("mapname", sv.name, CVAR_SERVERINFO | CVAR_NOSET);
-
-	if(reconnect){  // tell clients to reconnect
-		Sv_BroadcastCommand("reconnect\n");
-		Sv_SendClientMessages();
-	}
+	// prepare the socket
+	Net_Config(NS_SERVER, true);
 
 	Com_Print("Server initialized.\n");
 }

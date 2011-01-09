@@ -449,7 +449,7 @@ static void Cl_CheckForResend(void){
  * Cl_Connect_f
  */
 static void Cl_Connect_f(void){
-	extern void Sv_Shutdown(const char *msg, qboolean reconnect);
+	extern void Sv_Shutdown(const char *msg);
 	const char *s;
 
 	if(Cmd_Argc() != 2){
@@ -457,8 +457,8 @@ static void Cl_Connect_f(void){
 		return;
 	}
 
-	if(Com_ServerState())  // if running a local server, kill it and reissue
-		Sv_Shutdown("Server quit.\n", false);
+	if(Com_ServerState())  // if running a local server, kill it
+		Sv_Shutdown("Server quit.\n");
 
 	s = Cmd_Argv(1);
 
@@ -995,7 +995,7 @@ static void Cl_InitLocal(void){
 	messagelevel = Cvar_Get("messagelevel", "0", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
 	name = Cvar_Get("name", Cl_GetUserName(), CVAR_USERINFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USERINFO, NULL);
-	rate = Cvar_Get("rate", "10000", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
+	rate = Cvar_Get("rate", va("%d", CLIENT_RATE), CVAR_USERINFO | CVAR_ARCHIVE, NULL);
 	skin = Cvar_Get("skin", "ichabod/ichabod", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
 	recording = Cvar_Get("recording", "0", CVAR_USERINFO | CVAR_NOSET, NULL);
 
@@ -1081,6 +1081,12 @@ void Cl_Frame(int msec){
 	if(dedicated->value)
 		return;
 
+	// update time reference
+	cls.realtime = quake2world.time;
+
+	// increment the server time asl well
+	cl.time += msec;
+
 	cls.packet_delta += msec;
 	cls.render_delta += msec;
 
@@ -1136,9 +1142,6 @@ void Cl_Frame(int msec){
 	if(cls.state <= ca_disconnected && !Com_ServerState()){
 		usleep(1000);  // idle at console
 	}
-
-	cl.time += msec;  // update time references
-	cls.realtime = quake2world.time;
 
 	if(render_frame){
 		// fetch updates from server
