@@ -24,19 +24,19 @@
 
 #include "shared.h"
 
-#define BASEDIRNAME	"default"
+#define GAMEDIR	"default"
 
 #define MAX_PRINT_MSG 4096
 #define MAX_NUM_ARGVS 64
 
 // sizebuf and net message facilities
 typedef struct sizebuf_s {
-	qboolean allowoverflow;  // error if false and overflow occurs
-	qboolean overflowed;  // set to true when a write excedes maxsize
+	qboolean allow_overflow;  // error if false and overflow occurs
+	qboolean overflowed;  // set to true when a write excedes max_size
 	byte *data;
-	size_t maxsize;
-	size_t cursize;
-	size_t readcount;
+	size_t max_size;
+	size_t size;
+	size_t read;
 } sizebuf_t;
 
 void Sb_Init(sizebuf_t *buf, byte *data, size_t length);
@@ -136,7 +136,7 @@ enum clc_ops_e {
 	clc_bad,
 	clc_nop,
 	clc_move,  // [[usercmd_t]
-	clc_userinfo,  // [[userinfo string]
+	clc_user_info,  // [[user_info string]
 	clc_stringcmd  // [string] message
 };
 
@@ -204,8 +204,8 @@ enum clc_ops_e {
 
 // fourth byte not presently used
 
-#define NUMVERTEXNORMALS 162
-extern const vec3_t bytedirs[NUMVERTEXNORMALS];
+#define NUM_APPROXIMATE_NORMALS 162
+extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
 
 /*
 

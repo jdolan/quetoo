@@ -151,8 +151,8 @@ static inline void R_StageTextureMatrix(r_bsp_surface_t *surf, r_stage_t *stage)
 
 	glLoadIdentity();
 
-	s = surf->stcenter[0] / surf->texinfo->image->width;
-	t = surf->stcenter[1] / surf->texinfo->image->height;
+	s = surf->st_center[0] / surf->texinfo->image->width;
+	t = surf->st_center[1] / surf->texinfo->image->height;
 
 	if(stage->flags & STAGE_STRETCH){
 		glTranslatef(-s, -t, 0.0);

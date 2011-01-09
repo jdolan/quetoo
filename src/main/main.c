@@ -206,7 +206,7 @@ static void Init(int argc, char **argv){
 	quake2world.time = Sys_Milliseconds();
 
 	s = va("Quake2World %s %s %s", VERSION, __DATE__, BUILDHOST);
-	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET, NULL);
+	Cvar_Get("version", s, CVAR_SERVER_INFO | CVAR_NOSET, NULL);
 
 	Cmd_AddCommand("quit", Quit_f, "Quit Quake2World");
 

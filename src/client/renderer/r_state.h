@@ -47,12 +47,13 @@ typedef enum rendermode_s {
 // opengl state management
 typedef struct renderer_state_s {
 	int width, height;
-	qboolean fullscreen;
-	int virtualHeight, virtualWidth;
+	int virtual_height, virtual_width;
 	float rx, ry;
 
-	int redbits, greenbits, bluebits, alphabits;
-	int depthbits, doublebits;
+	qboolean fullscreen;
+
+	int red_bits, green_bits, blue_bits, alpha_bits;
+	int depth_bits, double_bits;
 
 	qboolean ortho;  // 2d vs 3d projection
 

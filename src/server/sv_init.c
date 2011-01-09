@@ -84,19 +84,19 @@ int Sv_ImageIndex(const char *name){
  */
 static void Sv_CreateBaseline(void){
 	edict_t *svent;
-	int entnum;
+	int ent_num;
 
-	for(entnum = 1; entnum < ge->num_edicts; entnum++){
-		svent = EDICT_FOR_NUM(entnum);
+	for(ent_num = 1; ent_num < ge->num_edicts; ent_num++){
+		svent = EDICT_FOR_NUM(ent_num);
 		if(!svent->inuse)
 			continue;
-		if(!svent->s.modelindex && !svent->s.sound && !svent->s.effects)
+		if(!svent->s.model_index && !svent->s.sound && !svent->s.effects)
 			continue;
-		svent->s.number = entnum;
+		svent->s.number = ent_num;
 
 		// take current state as baseline
 		VectorCopy(svent->s.origin, svent->s.old_origin);
-		sv.baselines[entnum] = svent->s;
+		sv.baselines[ent_num] = svent->s;
 	}
 }
 
@@ -175,7 +175,7 @@ static qboolean Sv_CheckDemo(const char *name){
  * Applies any pending variable changes and clamps ones we really care about.
  */
 static void Sv_UpdateLatchedVars(void){
-	const int flags = CVAR_SERVERINFO | CVAR_LATCH;
+	const int flags = CVAR_SERVER_INFO | CVAR_LATCH;
 
 	Cvar_UpdateLatchedVars();
 
@@ -219,9 +219,9 @@ static void Sv_RestartGame(void){
 	svs.num_entity_states = sv_maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
 	svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
 
-	svs.packetrate = sv_packetrate->value;
+	svs.packet_rate = sv_packetrate->value;
 
-	svs.spawncount = rand();
+	svs.spawn_count = rand();
 
 	Sv_InitGameProgs();
 
@@ -256,10 +256,10 @@ static void Sv_SpawnServer(const char *server, sv_state_t state){
 
 	Com_Print("Server initialization..\n");
 
-	svs.realtime = 0;
+	svs.real_time = 0;
 
-	if(sv.demofile)  // TODO: move this to svs, this isn't safe
-		Fs_CloseFile(sv.demofile);
+	if(sv.demo_file)  // TODO: move this to svs, this isn't safe
+		Fs_CloseFile(sv.demo_file);
 
 	memset(&sv, 0, sizeof(sv));
 	Com_SetServerState(sv.state);
@@ -267,9 +267,9 @@ static void Sv_SpawnServer(const char *server, sv_state_t state){
 	if(!svs.initialized || Cvar_PendingLatchedVars())
 		Sv_RestartGame();
 	else
-		svs.spawncount++;
+		svs.spawn_count++;
 
-	Sb_Init(&sv.multicast, sv.multicast_buf, sizeof(sv.multicast_buf));
+	Sb_Init(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
 	// ensure all clients are no greater than connected
 	for(i = 0; i < sv_maxclients->value; i++){
@@ -277,7 +277,7 @@ static void Sv_SpawnServer(const char *server, sv_state_t state){
 		if(svs.clients[i].state > cs_connected)
 			svs.clients[i].state = cs_connected;
 
-		svs.clients[i].lastframe = -1;
+		svs.clients[i].last_frame = -1;
 	}
 
 	// load the new server
@@ -319,7 +319,7 @@ static void Sv_SpawnServer(const char *server, sv_state_t state){
 		Com_Print("  Loaded demo %s.\n", sv.name);
 	}
 	// set serverinfo variable
-	Cvar_FullSet("mapname", sv.name, CVAR_SERVERINFO | CVAR_NOSET);
+	Cvar_FullSet("mapname", sv.name, CVAR_SERVER_INFO | CVAR_NOSET);
 
 	// all precaches are complete
 	sv.state = state;

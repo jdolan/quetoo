@@ -419,7 +419,7 @@ size_t Mem_Size (const void *ptr)
  * @param[out] out The location where you want the pool pointer to be stored
  * @param[in] pool The pool to allocate the memory in
  * @param[in] tagNum
- * @param[in] fileName The filename where this function was called from
+ * @param[in] fileName The file_name where this function was called from
  * @param[in] fileLine The line where this function was called from
  */
 char *_Mem_PoolStrDupTo (const char *in, char **out, struct memPool_s *pool, const int tagNum, const char *fileName, const int fileLine)
@@ -435,7 +435,7 @@ char *_Mem_PoolStrDupTo (const char *in, char **out, struct memPool_s *pool, con
  * @param[in] in String to store in the given pool
  * @param[in] pool The pool to allocate the memory in
  * @param[in] tagNum
- * @param[in] fileName The filename where this function was called from
+ * @param[in] fileName The file_name where this function was called from
  * @param[in] fileLine The line where this function was called from
  */
 char *_Mem_PoolStrDup (const char *in, struct memPool_s *pool, const int tagNum, const char *fileName, const int fileLine)

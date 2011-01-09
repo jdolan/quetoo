@@ -86,20 +86,20 @@ static void MN_WindowNodeDraw (menuNode_t *node)
 	if (MN_WindowIsFullScreen(node)) {
 		/* top */
 		if (pos[1] != 0)
-			MN_DrawFill(0, 0, r_state.virtualWidth, pos[1], ALIGN_UL, anamorphicBorder);
+			MN_DrawFill(0, 0, r_state.virtual_width, pos[1], ALIGN_UL, anamorphicBorder);
 		/* left-right */
 		if (pos[0] != 0)
 			MN_DrawFill(0, pos[1], pos[0], node->size[1], ALIGN_UL, anamorphicBorder);
-		if (pos[0] + node->size[0] < r_state.virtualWidth)
-			MN_DrawFill(r_state.virtualWidth, pos[1], r_state.virtualWidth - (pos[0] + node->size[0]), node->size[1], ALIGN_UR, anamorphicBorder);
+		if (pos[0] + node->size[0] < r_state.virtual_width)
+			MN_DrawFill(r_state.virtual_width, pos[1], r_state.virtual_width - (pos[0] + node->size[0]), node->size[1], ALIGN_UR, anamorphicBorder);
 		/* bottom */
-		if (pos[1] + node->size[1] < r_state.virtualHeight)
-			MN_DrawFill(0, r_state.virtualHeight, r_state.virtualWidth, r_state.virtualHeight - (pos[1] + node->size[1]), ALIGN_LL, anamorphicBorder);
+		if (pos[1] + node->size[1] < r_state.virtual_height)
+			MN_DrawFill(0, r_state.virtual_height, r_state.virtual_width, r_state.virtual_height - (pos[1] + node->size[1]), ALIGN_LL, anamorphicBorder);
 	}
 
 	/* darker background if last window is a modal */
 	if (node->u.window.modal && mn.menuStack[mn.menuStackPos - 1] == node)
-		MN_DrawFill(0, 0, r_state.virtualWidth, r_state.virtualHeight, ALIGN_UL, modalBackground);
+		MN_DrawFill(0, 0, r_state.virtual_width, r_state.virtual_height, ALIGN_UL, modalBackground);
 
 	/* draw the background */
 	image = MN_GetReferenceString(node, node->image);
@@ -114,8 +114,8 @@ static void MN_WindowNodeDraw (menuNode_t *node)
 	/* embedded timer */
 	if (node->u.window.onTimeOut && node->timeOut) {
 		if (node->lastTime == 0)
-			node->lastTime = cls.realtime;
-		if (node->lastTime + node->timeOut < cls.realtime) {
+			node->lastTime = cls.real_time;
+		if (node->lastTime + node->timeOut < cls.real_time) {
 			node->lastTime = 0;	/**< allow to reset timeOut on the event, and restart it, with an uptodate lastTime */
 			Com_Debug("MN_DrawMenus: timeout for node '%s'\n", node->name);
 			MN_ExecuteEventActions(node, node->u.window.onTimeOut);
@@ -185,20 +185,20 @@ static void MN_WindowNodeDoLayout (menuNode_t *node)
 
 	/* use a the space */
 	if (node->u.window.fill) {
-		if (node->size[0] != r_state.virtualWidth) {
-			node->size[0] = r_state.virtualWidth;
+		if (node->size[0] != r_state.virtual_width) {
+			node->size[0] = r_state.virtual_width;
 			resized = qtrue;
 		}
-		if (node->size[1] != r_state.virtualHeight) {
-			node->size[1] = r_state.virtualHeight;
+		if (node->size[1] != r_state.virtual_height) {
+			node->size[1] = r_state.virtual_height;
 			resized = qtrue;
 		}
 	}
 
 	/* move fullscreen menu on the center of the screen */
 	if (MN_WindowIsFullScreen(node)) {
-		node->pos[0] = (int) ((r_state.virtualWidth - node->size[0]) / 2);
-		node->pos[1] = (int) ((r_state.virtualHeight - node->size[1]) / 2);
+		node->pos[0] = (int) ((r_state.virtual_width - node->size[0]) / 2);
+		node->pos[1] = (int) ((r_state.virtual_height - node->size[1]) / 2);
 	}
 
 	/** @todo check and fix here window outside the screen */
@@ -222,7 +222,7 @@ static void MN_WindowNodeInit (menuNode_t *node)
 	menuNode_t *child;
 
 	/* init the embeded timer */
-	node->lastTime = cls.realtime;
+	node->lastTime = cls.real_time;
 
 	/* init child */
 	for (child = node->firstChild; child; child = child->next) {

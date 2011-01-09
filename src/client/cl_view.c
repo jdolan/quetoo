@@ -94,22 +94,22 @@ static void Cl_UpdateViewsize(void){
 static void Cl_UpdateLerp(cl_frame_t *from){
 
 	if(timedemo->value){
-		cl.time = cl.frame.servertime;
+		cl.time = cl.frame.server_time;
 		cl.lerp = 1.0;
 		return;
 	}
 
-	if(cl.time > cl.frame.servertime){
+	if(cl.time > cl.frame.server_time){
 		Com_Debug("Cl_UpdateViewValues: High clamp.\n");
-		cl.time = cl.frame.servertime;
+		cl.time = cl.frame.server_time;
 		cl.lerp = 1.0;
-	} else if(cl.time < from->servertime){
+	} else if(cl.time < from->server_time){
 		Com_Debug("Cl_UpdateViewValues: Low clamp.\n");
-		cl.time = from->servertime;
+		cl.time = from->server_time;
 		cl.lerp = 0.0;
 	} else {
-		cl.lerp = (float)(cl.time - from->servertime) /
-				(float)(cl.frame.servertime - from->servertime);
+		cl.lerp = (float)(cl.time - from->server_time) /
+				(float)(cl.frame.server_time - from->server_time);
 	}
 }
 
@@ -120,36 +120,36 @@ static void Cl_UpdateLerp(cl_frame_t *from){
 static void Cl_UpdateDucking(void){
 	static int ducktime, standtime;
 	vec3_t mins, maxs;
-	float height, viewheight;
+	float height, view_height;
 
 	VectorScale(PM_MINS, PM_SCALE, mins);
 	VectorScale(PM_MAXS, PM_SCALE, maxs);
 
 	height = maxs[2] - mins[2];
-	viewheight = mins[2] + (height * 0.75);
+	view_height = mins[2] + (height * 0.75);
 
-	if(cl.frame.playerstate.pmove.pm_flags & PMF_DUCKED){
+	if(cl.frame.ps.pmove.pm_flags & PMF_DUCKED){
 
 		if(standtime > ducktime)  // go back down
-			ducktime = cls.realtime + (cls.realtime - standtime);
+			ducktime = cls.real_time + (cls.real_time - standtime);
 		else if(!ducktime)  // or just start to duck
-			ducktime = cls.realtime + 200;
+			ducktime = cls.real_time + 200;
 
-		if(ducktime > cls.realtime)
-			r_view.origin[2] += (ducktime - cls.realtime) * viewheight / 200;
+		if(ducktime > cls.real_time)
+			r_view.origin[2] += (ducktime - cls.real_time) * view_height / 200;
 
 		return;
 	}
 
 	if(ducktime > standtime)  // currently ducked, but able to begin standing
-		standtime = cls.realtime;
+		standtime = cls.real_time;
 
-	if(cls.realtime - standtime <= 200){  // rise
-		r_view.origin[2] += (cls.realtime - standtime) * viewheight / 200;
+	if(cls.real_time - standtime <= 200){  // rise
+		r_view.origin[2] += (cls.real_time - standtime) * view_height / 200;
 	}
 	else {  // cancel ducking, add normal height
 		ducktime = standtime = 0;
-		r_view.origin[2] += viewheight;
+		r_view.origin[2] += view_height;
 	}
 }
 
@@ -164,15 +164,15 @@ static void Cl_UpdateDucking(void){
 static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops){
 	int i, ms;
 
-	if(!cl.demoserver && !cl_thirdperson->value && cl_predict->value &&
-			!(cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION)){
+	if(!cl.demo_server && !cl_thirdperson->value && cl_predict->value &&
+			!(cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION)){
 
 		// use client sided prediction
 		for(i = 0; i < 3; i++)
 			r_view.origin[i] = cl.predicted_origin[i] - (1.0 - cl.lerp) * cl.prediction_error[i];
 
 		 // lerp stairs over 50ms
-		ms = cls.realtime - cl.predicted_step_time;
+		ms = cls.real_time - cl.predicted_step_time;
 
 		if(ms < 50)  // small step
 			r_view.origin[2] -= cl.predicted_step * (50 - ms) * 0.02;
@@ -199,10 +199,10 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops){
 static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops){
 
 	// if not running a demo or chasing, add the local angle movement
-	if(cl.frame.playerstate.pmove.pm_type <= PM_DEAD){  // use predicted (input) values
+	if(cl.frame.ps.pmove.pm_type <= PM_DEAD){  // use predicted (input) values
 		VectorCopy(cl.predicted_angles, r_view.angles);
 
-		if(cl.frame.playerstate.pmove.pm_type == PM_DEAD)  // look only on x axis
+		if(cl.frame.ps.pmove.pm_type == PM_DEAD)  // look only on x axis
 			r_view.angles[0] = r_view.angles[2] = 0.0;
 	}
 	else {  // for demos and chasing, lerp between states without prediction
@@ -270,7 +270,7 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 
 	// clip it to the world
 	R_Trace(r_view.origin, dest, 5.0, MASK_SHOT);
-	VectorCopy(r_view.trace.endpos, r_view.origin);
+	VectorCopy(r_view.trace.end, r_view.origin);
 
 	// adjust view angles to compensate for height offset
 	VectorMA(r_view.origin, 2048.0, forward, dest);
@@ -300,8 +300,8 @@ static void Cl_UpdateBob(void){
 	if(cl_thirdperson->value)
 		return;
 
-	if(cl.frame.playerstate.pmove.pm_type == PM_SPECTATOR ||
-			cl.frame.playerstate.pmove.pm_type == PM_DEAD)
+	if(cl.frame.ps.pmove.pm_type == PM_SPECTATOR ||
+			cl.frame.ps.pmove.pm_type == PM_DEAD)
 		return;
 
 	VectorCopy(r_view.velocity, velocity);
@@ -351,15 +351,15 @@ void Cl_UpdateView(void){
 		return;  // not a valid frame, and no forced update
 
 	// find the previous frame to interpolate from
-	prev = &cl.frames[(cl.frame.serverframe - 1) & UPDATE_MASK];
+	prev = &cl.frames[(cl.frame.server_frame - 1) & UPDATE_MASK];
 
-	if(prev->serverframe != cl.frame.serverframe - 1 || !prev->valid)
+	if(prev->server_frame != cl.frame.server_frame - 1 || !prev->valid)
 		prev = &cl.frame;  // previous frame was dropped or invalid
 
 	Cl_UpdateLerp(prev);
 
-	ps = &cl.frame.playerstate;
-	ops = &prev->playerstate;
+	ps = &cl.frame.ps;
+	ops = &prev->ps;
 
 	if(ps != ops){  // see if we've teleported
 		VectorSubtract(ps->pmove.origin, ops->pmove.origin, delta);
@@ -388,7 +388,7 @@ void Cl_UpdateView(void){
 	r_view.ground = ps->pmove.pm_flags & PMF_ON_GROUND;
 
 	// set area bits to mark visible leafs
-	r_view.areabits = cl.frame.areabits;
+	r_view.area_bits = cl.frame.area_bits;
 
 	// inform the bsp thread to start
 	if(r_bsp_thread.state > THREAD_DEAD)

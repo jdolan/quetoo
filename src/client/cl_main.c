@@ -57,9 +57,9 @@ cvar_t *cl_weather;
 cvar_t *rcon_password;
 cvar_t *rcon_address;
 
-// userinfo
+// user info
 cvar_t *color;
-cvar_t *messagelevel;
+cvar_t *message_level;
 cvar_t *name;
 cvar_t *password;
 cvar_t *rate;
@@ -90,21 +90,21 @@ static void Cl_WriteDemoHeader(void){
 	// write the serverdata
 	Msg_WriteByte(&buf, svc_serverdata);
 	Msg_WriteLong(&buf, PROTOCOL);
-	Msg_WriteLong(&buf, cl.servercount);
-	Msg_WriteLong(&buf, cl.serverrate);
-	Msg_WriteByte(&buf, 1);  // demoserver byte
+	Msg_WriteLong(&buf, cl.server_count);
+	Msg_WriteLong(&buf, cl.server_hz);
+	Msg_WriteByte(&buf, 1);  // demo_server byte
 	Msg_WriteString(&buf, cl.gamedir);
-	Msg_WriteShort(&buf, cl.playernum);
+	Msg_WriteShort(&buf, cl.player_num);
 	Msg_WriteString(&buf, cl.configstrings[CS_NAME]);
 
 	// and configstrings
 	for(i = 0; i < MAX_CONFIGSTRINGS; i++){
 		if(cl.configstrings[i][0]){
-			if(buf.cursize + strlen(cl.configstrings[i]) + 32 > buf.maxsize){  // write it out
-				len = LittleLong(buf.cursize);
-				Fs_Write(&len, 4, 1, cls.demofile);
-				Fs_Write(buf.data, buf.cursize, 1, cls.demofile);
-				buf.cursize = 0;
+			if(buf.size + strlen(cl.configstrings[i]) + 32 > buf.max_size){  // write it out
+				len = LittleLong(buf.size);
+				Fs_Write(&len, 4, 1, cls.demo_file);
+				Fs_Write(buf.data, buf.size, 1, cls.demo_file);
+				buf.size = 0;
 			}
 
 			Msg_WriteByte(&buf, svc_configstring);
@@ -119,11 +119,11 @@ static void Cl_WriteDemoHeader(void){
 		if(!ent->number)
 			continue;
 
-		if(buf.cursize + 64 > buf.maxsize){  // write it out
-			len = LittleLong(buf.cursize);
-			Fs_Write(&len, 4, 1, cls.demofile);
-			Fs_Write(buf.data, buf.cursize, 1, cls.demofile);
-			buf.cursize = 0;
+		if(buf.size + 64 > buf.max_size){  // write it out
+			len = LittleLong(buf.size);
+			Fs_Write(&len, 4, 1, cls.demo_file);
+			Fs_Write(buf.data, buf.size, 1, cls.demo_file);
+			buf.size = 0;
 		}
 
 		memset(&nullstate, 0, sizeof(nullstate));
@@ -137,11 +137,11 @@ static void Cl_WriteDemoHeader(void){
 
 	// write it to the demo file
 
-	len = LittleLong(buf.cursize);
-	Fs_Write(&len, 4, 1, cls.demofile);
-	Fs_Write(buf.data, buf.cursize, 1, cls.demofile);
+	len = LittleLong(buf.size);
+	Fs_Write(&len, 4, 1, cls.demo_file);
+	Fs_Write(buf.data, buf.size, 1, cls.demo_file);
 
-	Com_Print("Recording to %s.\n", cls.demopath);
+	Com_Print("Recording to %s.\n", cls.demo_path);
 	// the rest of the demo file will be individual frames
 }
 
@@ -154,21 +154,21 @@ static void Cl_WriteDemoHeader(void){
 void Cl_WriteDemoMessage(void){
 	int len;
 
-	if(!cls.demofile)
+	if(!cls.demo_file)
 		return;
 
-	if(cls.demowaiting)  // we have not yet received a non-delta frame
+	if(cls.demo_waiting)  // we have not yet received a non-delta frame
 		return;
 
-	if(!ftell(cls.demofile))  // write header
+	if(!ftell(cls.demo_file))  // write header
 		Cl_WriteDemoHeader();
 
 	// the first eight bytes are just packet sequencing stuff
-	len = LittleLong(net_message.cursize - 8);
-	Fs_Write(&len, 4, 1, cls.demofile);
+	len = LittleLong(net_message.size - 8);
+	Fs_Write(&len, 4, 1, cls.demo_file);
 
 	// write the message payload
-	Fs_Write(net_message.data + 8, len, 1, cls.demofile);
+	Fs_Write(net_message.data + 8, len, 1, cls.demo_file);
 }
 
 
@@ -180,17 +180,17 @@ void Cl_WriteDemoMessage(void){
 static void Cl_Stop_f(void){
 	int len;
 
-	if(!cls.demofile){
+	if(!cls.demo_file){
 		Com_Print("Not recording a demo.\n");
 		return;
 	}
 
 	// finish up
 	len = -1;
-	Fs_Write(&len, 4, 1, cls.demofile);
-	Fs_CloseFile(cls.demofile);
+	Fs_Write(&len, 4, 1, cls.demo_file);
+	Fs_CloseFile(cls.demo_file);
 
-	cls.demofile = NULL;
+	cls.demo_file = NULL;
 	Com_Print("Stopped demo.\n");
 
 	// inform server we're done recording
@@ -211,7 +211,7 @@ static void Cl_Record_f(void){
 		return;
 	}
 
-	if(cls.demofile){
+	if(cls.demo_file){
 		Com_Print("Already recording.\n");
 		return;
 	}
@@ -222,19 +222,19 @@ static void Cl_Record_f(void){
 	}
 
 	// open the demo file
-	snprintf(cls.demopath, sizeof(cls.demopath), "%s/demos/%s.dem", Fs_Gamedir(), Cmd_Argv(1));
+	snprintf(cls.demo_path, sizeof(cls.demo_path), "%s/demos/%s.dem", Fs_Gamedir(), Cmd_Argv(1));
 
-	Fs_CreatePath(cls.demopath);
-	cls.demofile = fopen(cls.demopath, "wb");
-	if(!cls.demofile){
-		Com_Warn("Cl_Record_f: couldn't open %s.\n", cls.demopath);
+	Fs_CreatePath(cls.demo_path);
+	cls.demo_file = fopen(cls.demo_path, "wb");
+	if(!cls.demo_file){
+		Com_Warn("Cl_Record_f: couldn't open %s.\n", cls.demo_path);
 		return;
 	}
 
 	// don't start saving messages until a non-delta compressed message is received
-	cls.demowaiting = true;
+	cls.demo_waiting = true;
 
-	// update userinfo var to inform server to send angles
+	// update user info var to inform server to send angles
 	Cvar_ForceSet("recording", "1");
 
 	Com_Print("Requesting demo support from server..\n");
@@ -265,13 +265,13 @@ static const char *Cl_ExpandVariable(char v){
 		case 'h':  // health
 			if(!cl.frame.valid)
 				return "";
-			i = cl.frame.playerstate.stats[STAT_HEALTH];
+			i = cl.frame.ps.stats[STAT_HEALTH];
 			return va("%d", i);
 
 		case 'a':  // armor
 			if(!cl.frame.valid)
 				return "";
-			i = cl.frame.playerstate.stats[STAT_ARMOR];
+			i = cl.frame.ps.stats[STAT_ARMOR];
 			return va("%d", i);
 
 		default:
@@ -375,7 +375,7 @@ static void Cl_SendConnect(void){
 
 	memset(&addr, 0, sizeof(addr));
 
-	if(!Net_StringToNetaddr(cls.servername, &addr)){
+	if(!Net_StringToNetaddr(cls.server_name, &addr)){
 		Com_Print("Bad server address\n");
 		cls.connect_time = 0;
 		return;
@@ -387,9 +387,9 @@ static void Cl_SendConnect(void){
 	qport = (int)Cvar_GetValue("net_qport");  // has been set by netchan
 
 	Netchan_OutOfBandPrint(NS_CLIENT, addr, "connect %i %i %i \"%s\"\n",
-			PROTOCOL, qport, cls.challenge, Cvar_Userinfo());
+			PROTOCOL, qport, cls.challenge, Cvar_UserInfo());
 
-	userinfo_modified = false;
+	user_info_modified = false;
 }
 
 extern cvar_t *sv_maxclients;
@@ -408,7 +408,7 @@ static void Cl_CheckForResend(void){
 
 		Cvar_LockCheatVars(sv_maxclients->value > 1);  // lock cheat vars
 
-		strncpy(cls.servername, "localhost", sizeof(cls.servername) - 1);
+		strncpy(cls.server_name, "localhost", sizeof(cls.server_name) - 1);
 		// we don't need a challenge on the localhost
 		Cl_SendConnect();
 		return;
@@ -418,10 +418,10 @@ static void Cl_CheckForResend(void){
 	if(cls.state != ca_connecting)
 		return;
 
-	if(cls.realtime - cls.connect_time < 3000)
+	if(cls.real_time - cls.connect_time < 3000)
 		return;
 
-	if(!Net_StringToNetaddr(cls.servername, &addr)){
+	if(!Net_StringToNetaddr(cls.server_name, &addr)){
 		Com_Print("Bad server address\n");
 		cls.state = ca_disconnected;
 		return;
@@ -437,9 +437,9 @@ static void Cl_CheckForResend(void){
 	if(addr.port == 0)
 		addr.port = BigShort(PORT_SERVER);
 
-	cls.connect_time = cls.realtime;  // for retransmit requests
+	cls.connect_time = cls.real_time;  // for retransmit requests
 
-	Com_Print("Connecting to %s...\n", cls.servername);
+	Com_Print("Connecting to %s...\n", cls.server_name);
 
 	Netchan_OutOfBandPrint(NS_CLIENT, addr, "getchallenge\n");
 }
@@ -470,11 +470,11 @@ static void Cl_Connect_f(void){
 			return;
 		}
 
-		strncpy(cls.servername, Net_NetaddrToString(server->addr),
-				sizeof(cls.servername) - 1);
+		strncpy(cls.server_name, Net_NetaddrToString(server->addr),
+				sizeof(cls.server_name) - 1);
 	}
 	else
-		strncpy(cls.servername, s, sizeof(cls.servername) - 1);
+		strncpy(cls.server_name, s, sizeof(cls.server_name) - 1);
 
 	Cl_Disconnect();
 
@@ -590,7 +590,7 @@ void Cl_Disconnect(void){
 
 	if(timedemo->value){  // summarize timedemo results
 
-		const float s = (cls.realtime - cl.timedemo_start) / 1000.0;
+		const float s = (cls.real_time - cl.timedemo_start) / 1000.0;
 
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n",
 				cl.timedemo_frames, s, cl.timedemo_frames / s);
@@ -600,7 +600,7 @@ void Cl_Disconnect(void){
 
 	Cl_SendDisconnect();  // tell the server to disconnect
 
-	if(cls.demofile)  // stop demo recording
+	if(cls.demo_file)  // stop demo recording
 		Cl_Stop_f();
 
 	// stop download
@@ -636,7 +636,7 @@ void Cl_Reconnect_f(void){
 	if(cls.download.file)  // don't disrupt downloads
 		return;
 
-	if(cls.servername[0] != '\0'){
+	if(cls.server_name[0] != '\0'){
 
 		if(cls.state >= ca_connecting){
 			Com_Print("Disconnecting...\n");
@@ -687,9 +687,9 @@ static void Cl_ConnectionlessPacket(void){
 		Msg_WriteString(&cls.netchan.message, "new");
 		cls.state = ca_connected;
 
-		memset(cls.downloadurl, 0, sizeof(cls.downloadurl));
+		memset(cls.download_url, 0, sizeof(cls.download_url));
 		if(Cmd_Argc() == 2)  // http download url
-			strncpy(cls.downloadurl, Cmd_Argv(1), sizeof(cls.downloadurl) - 1);
+			strncpy(cls.download_url, Cmd_Argv(1), sizeof(cls.download_url) - 1);
 		return;
 	}
 
@@ -751,7 +751,7 @@ static void Cl_ReadPackets(void){
 		if(cls.state <= ca_connecting)
 			continue;  // dump it if not connected
 
-		if(net_message.cursize < 8){
+		if(net_message.size < 8){
 			Com_Debug("%s: Runt packet.\n", Net_NetaddrToString(net_from));
 			continue;
 		}
@@ -770,7 +770,7 @@ static void Cl_ReadPackets(void){
 	}
 
 	// check timeout
-	if(cls.state >= ca_connected && cls.realtime - cls.netchan.last_received > cl_timeout->value * 1000){
+	if(cls.state >= ca_connected && cls.real_time - cls.netchan.last_received > cl_timeout->value * 1000){
 		Com_Print("%s: Timed out.\n", Net_NetaddrToString(net_from));
 		Cl_Disconnect();
 	}
@@ -810,7 +810,7 @@ static void Cl_LoadMedia(void){
 
 
 int precache_check;  // for autodownload of precache items
-int precache_spawncount;
+int precache_spawn_count;
 
 /*
  * Cl_RequestNextDownload
@@ -847,7 +847,7 @@ void Cl_RequestNextDownload(void){
 	Cl_LoadMedia();
 
 	Msg_WriteByte(&cls.netchan.message, clc_stringcmd);
-	Msg_WriteString(&cls.netchan.message, va("begin %i\n", precache_spawncount));
+	Msg_WriteString(&cls.netchan.message, va("begin %i\n", precache_spawn_count));
 }
 
 
@@ -858,7 +858,7 @@ void Cl_RequestNextDownload(void){
  */
 static void Cl_Precache_f(void){
 
-	precache_spawncount = atoi(Cmd_Argv(1));
+	precache_spawn_count = atoi(Cmd_Argv(1));
 	precache_check = CS_PAK;
 
 	Cl_RequestNextDownload();
@@ -881,14 +881,14 @@ static const char *Cl_GetUserName(void){
 /*
  * Cl_InitMenuFonts
  */
-static void Cl_InitMenuFonts(const char *filename){
+static void Cl_InitMenuFonts(const char *file_name){
 	char *buffer;
 	const char *buf;
 	const char *token;
 
 	// load the file header
-	if(Fs_LoadFile(filename, (void **)(char *)&buffer) == -1)
-		Com_Error(ERR_FATAL, "Failed to open %s\n", filename);
+	if(Fs_LoadFile(file_name, (void **)(char *)&buffer) == -1)
+		Com_Error(ERR_FATAL, "Failed to open %s\n", file_name);
 
 	buf = buffer;
 
@@ -909,20 +909,20 @@ static void Cl_InitMenuFonts(const char *filename){
 /*
  * Cl_InitMenu
  */
-static void Cl_InitMenu(const char *filename){
+static void Cl_InitMenu(const char *file_name){
 	char *buffer;
 	const char *buf;
 	const char *token;
 
 	// load the file header
-	if(Fs_LoadFile(filename, (void **)(char *)&buffer) == -1)
-		Com_Error(ERR_FATAL, "Failed to open %s\n", filename);
+	if(Fs_LoadFile(file_name, (void **)(char *)&buffer) == -1)
+		Com_Error(ERR_FATAL, "Failed to open %s\n", file_name);
 
 	buf = buffer;
 
 	token = Com_Parse(&buf);
 	if (strcmp(token, "window"))
-		Com_Error(ERR_FATAL, "Failed to parse %s\n", filename);
+		Com_Error(ERR_FATAL, "Failed to parse %s\n", file_name);
 
 	token = Com_Parse(&buf);
 	MN_ParseMenu("window", token, &buf);
@@ -990,14 +990,14 @@ static void Cl_InitLocal(void){
 	rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
 	rcon_address = Cvar_Get("rcon_address", "", 0, NULL);
 
-	// userinfo
-	color = Cvar_Get("color", "default", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
-	messagelevel = Cvar_Get("messagelevel", "0", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
-	name = Cvar_Get("name", Cl_GetUserName(), CVAR_USERINFO | CVAR_ARCHIVE, NULL);
-	password = Cvar_Get("password", "", CVAR_USERINFO, NULL);
-	rate = Cvar_Get("rate", va("%d", CLIENT_RATE), CVAR_USERINFO | CVAR_ARCHIVE, NULL);
-	skin = Cvar_Get("skin", "ichabod/ichabod", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
-	recording = Cvar_Get("recording", "0", CVAR_USERINFO | CVAR_NOSET, NULL);
+	// user info
+	color = Cvar_Get("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	message_level = Cvar_Get("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	name = Cvar_Get("name", Cl_GetUserName(), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
+	rate = Cvar_Get("rate", va("%d", CLIENT_RATE), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	skin = Cvar_Get("skin", "ichabod/ichabod", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	recording = Cvar_Get("recording", "0", CVAR_USER_INFO | CVAR_NOSET, NULL);
 
 	// register our commands
 	Cmd_AddCommand("ping", Cl_Ping_f, NULL);
@@ -1082,7 +1082,7 @@ void Cl_Frame(int msec){
 		return;
 
 	// update time reference
-	cls.realtime = quake2world.time;
+	cls.real_time = quake2world.time;
 
 	// increment the server time asl well
 	cl.time += msec;
@@ -1109,7 +1109,7 @@ void Cl_Frame(int msec){
 	if(timedemo->value){  // accumulate timed demo statistics
 
 		if(!cl.timedemo_start)
-			cl.timedemo_start = cls.realtime;
+			cl.timedemo_start = cls.real_time;
 
 		cl.timedemo_frames++;
 	}
@@ -1168,7 +1168,7 @@ void Cl_Frame(int msec){
 		cls.render_delta = 0;
 	}
 
-	if(packet_frame || userinfo_modified){
+	if(packet_frame || user_info_modified){
 		// send command to the server
 		Cl_SendCmd();
 
@@ -1195,7 +1195,7 @@ void Cl_Init(void){
 		return;  // nothing running on the client
 
 	cls.state = ca_disconnected;
-	cls.realtime = quake2world.time;
+	cls.real_time = quake2world.time;
 
 	Cl_InitKeys();
 
@@ -1211,7 +1211,7 @@ void Cl_Init(void){
 	R_Init();
 
 	net_message.data = net_message_buffer;
-	net_message.maxsize = sizeof(net_message_buffer);
+	net_message.max_size = sizeof(net_message_buffer);
 
 	Cl_InitLocal();
 

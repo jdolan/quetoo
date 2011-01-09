@@ -45,7 +45,7 @@
 #define PKGLIBDIR "."
 #define PKGDATADIR "."
 
-void *dlopen(const char *filename, int flag);
+void *dlopen(const char *file_name, int flag);
 char *dlerror(void);
 void *dlsym(void *handle, const char *symbol);
 void dlclose(void *handle);

@@ -94,7 +94,7 @@ typedef struct {
 
 	// message is copied to this buffer when it is first transfered
 	int reliable_length;
-	byte reliable_buf[MAX_MSGLEN - 16];  // unacked reliable message
+	byte reliable_buffer[MAX_MSGLEN - 16];  // unacked reliable message
 } netchan_t;
 
 extern netaddr_t net_from;

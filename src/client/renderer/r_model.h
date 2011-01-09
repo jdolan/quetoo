@@ -86,10 +86,10 @@ typedef struct {
 	vec3_t center;
 	vec3_t normal;
 
-	vec2_t stmins;
-	vec2_t stmaxs;
-	vec2_t stcenter;
-	vec2_t stextents;
+	vec2_t st_mins;
+	vec2_t st_maxs;
+	vec2_t st_center;
+	vec2_t st_extents;
 
 	GLuint index;  // index into r_worldmodel vertex buffers
 
@@ -136,7 +136,8 @@ typedef struct r_bsp_node_s {
 	int contents;  // -1, to differentiate from leafs
 	int vis_frame;  // node needs to be traversed if current
 
-	float minmaxs[6];  // for bounding box culling
+	vec3_t mins;  // for bounded box culling
+	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
 	struct r_model_s *model;
@@ -154,7 +155,8 @@ typedef struct {
 	int contents;  // will be a negative contents number
 	int vis_frame;  // node needs to be traversed if current
 
-	float minmaxs[6];  // for bounding box culling
+	vec3_t mins;  // for bounding box culling
+	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
 	struct model_s *model;
@@ -202,7 +204,7 @@ typedef struct {
 	int id;
 	int version;
 
-	char filename[MD3_MAX_PATH];
+	char file_name[MD3_MAX_PATH];
 
 	int flags;
 

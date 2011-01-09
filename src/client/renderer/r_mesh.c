@@ -304,7 +304,7 @@ static void R_DrawMeshModelShell_default(const r_entity_t *e){
  */
 static void R_DrawMd2ModelLerped_default(const r_entity_t *e){
 	const d_md2_t *md2;
-	const d_md2_frame_t *frame, *oldframe;
+	const d_md2_frame_t *frame, *old_frame;
 	const d_md2_vertex_t *v, *ov, *verts;
 	const d_md2_tri_t *tri;
 	vec3_t trans, scale, oldscale;
@@ -315,16 +315,16 @@ static void R_DrawMd2ModelLerped_default(const r_entity_t *e){
 	frame = (const d_md2_frame_t *)((byte *)md2 + md2->ofs_frames + e->frame * md2->frame_size);
 	verts = v = frame->verts;
 
-	oldframe = (const d_md2_frame_t *)((byte *)md2 + md2->ofs_frames + e->oldframe * md2->frame_size);
-	ov = oldframe->verts;
+	old_frame = (const d_md2_frame_t *)((byte *)md2 + md2->ofs_frames + e->old_frame * md2->frame_size);
+	ov = old_frame->verts;
 
 	// trans should be the delta back to the previous frame * backlerp
 
 	for(i = 0; i < 3; i++){
-		trans[i] = e->backlerp * oldframe->translate[i] + e->lerp * frame->translate[i];
+		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
 
 		scale[i] = e->lerp * frame->scale[i];
-		oldscale[i] = e->backlerp * oldframe->scale[i];
+		oldscale[i] = e->back_lerp * old_frame->scale[i];
 	}
 
 	// lerp the verts
@@ -336,9 +336,9 @@ static void R_DrawMd2ModelLerped_default(const r_entity_t *e){
 
 		if(r_state.lighting_enabled){  // and the norms
 			VectorSet(r_mesh_norms[i],
-					e->backlerp * bytedirs[ov->n][0] + e->lerp * bytedirs[v->n][0],
-					e->backlerp * bytedirs[ov->n][1] + e->lerp * bytedirs[v->n][1],
-					e->backlerp * bytedirs[ov->n][2] + e->lerp * bytedirs[v->n][2]);
+					e->back_lerp * approximate_normals[ov->n][0] + e->lerp * approximate_normals[v->n][0],
+					e->back_lerp * approximate_normals[ov->n][1] + e->lerp * approximate_normals[v->n][1],
+					e->back_lerp * approximate_normals[ov->n][2] + e->lerp * approximate_normals[v->n][2]);
 		}
 	}
 
@@ -371,7 +371,7 @@ static void R_DrawMd2ModelLerped_default(const r_entity_t *e){
  */
 static void R_DrawMd3ModelLerped_default(const r_entity_t *e){
 	const r_md3_t *md3;
-	const d_md3_frame_t *frame, *oldframe;
+	const d_md3_frame_t *frame, *old_frame;
 	const r_md3_mesh_t *mesh;
 	vec3_t trans;
 	int i, j, k, vertind;
@@ -380,27 +380,27 @@ static void R_DrawMd3ModelLerped_default(const r_entity_t *e){
 	md3 = (r_md3_t *)e->model->extra_data;
 
 	frame = &md3->frames[e->frame];
-	oldframe = &md3->frames[e->oldframe];
+	old_frame = &md3->frames[e->old_frame];
 
 	for(i = 0; i < 3; i++)  // calculate the translation
-		trans[i] = e->backlerp * oldframe->translate[i] + e->lerp * frame->translate[i];
+		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
 
 	for(k = 0, mesh = md3->meshes; k < md3->num_meshes; k++, mesh++){  // draw the meshes
 
 		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
-		const r_md3_vertex_t *ov = mesh->verts + e->oldframe * mesh->num_verts;
+		const r_md3_vertex_t *ov = mesh->verts + e->old_frame * mesh->num_verts;
 
 		for(i = 0; i < mesh->num_verts; i++, v++, ov++){  // lerp the verts
 			VectorSet(r_mesh_verts[i],
-					trans[0] + ov->point[0] * e->backlerp + v->point[0] * e->lerp,
-					trans[1] + ov->point[1] * e->backlerp + v->point[1] * e->lerp,
-					trans[2] + ov->point[2] * e->backlerp + v->point[2] * e->lerp);
+					trans[0] + ov->point[0] * e->back_lerp + v->point[0] * e->lerp,
+					trans[1] + ov->point[1] * e->back_lerp + v->point[1] * e->lerp,
+					trans[2] + ov->point[2] * e->back_lerp + v->point[2] * e->lerp);
 
 			if(r_state.lighting_enabled){  // and the norms
 				VectorSet(r_mesh_norms[i],
-						v->normal[0] + (ov->normal[0] - v->normal[0]) * e->backlerp,
-						v->normal[1] + (ov->normal[1] - v->normal[1]) * e->backlerp,
-						v->normal[2] + (ov->normal[2] - v->normal[2]) * e->backlerp);
+						v->normal[0] + (ov->normal[0] - v->normal[0]) * e->back_lerp,
+						v->normal[1] + (ov->normal[1] - v->normal[1]) * e->back_lerp,
+						v->normal[2] + (ov->normal[2] - v->normal[2]) * e->back_lerp);
 			}
 		}
 
@@ -450,9 +450,9 @@ void R_DrawMeshModel_default(r_entity_t *e){
 		e->frame = 0;
 	}
 
-	if(e->oldframe >= e->model->num_frames || e->oldframe < 0){
-		Com_Warn("R_DrawMeshModel %s: no such oldframe %d\n", e->model->name, e->oldframe);
-		e->oldframe = 0;
+	if(e->old_frame >= e->model->num_frames || e->old_frame < 0){
+		Com_Warn("R_DrawMeshModel %s: no such old_frame %d\n", e->model->name, e->old_frame);
+		e->old_frame = 0;
 	}
 
 	if(e->lighting->dirty){  // update static lighting info

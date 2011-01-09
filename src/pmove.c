@@ -161,18 +161,18 @@ static int Pm_StepSlideMove_(void){
 		trace = pm->trace(pml.origin, pm->mins, pm->maxs, end);
 
 		// store a reference to the entity for firing game events
-		if(pm->numtouch < MAXTOUCH && trace.ent){
-			pm->touchents[pm->numtouch] = trace.ent;
-			pm->numtouch++;
+		if(pm->num_touch < MAXTOUCH && trace.ent){
+			pm->touch_ents[pm->num_touch] = trace.ent;
+			pm->num_touch++;
 		}
 
-		if(trace.allsolid){  // player is trapped in a solid
+		if(trace.all_solid){  // player is trapped in a solid
 			VectorClear(pml.velocity);
 			break;
 		}
 
 		// update the origin
-		VectorCopy(trace.endpos, pml.origin);
+		VectorCopy(trace.end, pml.origin);
 
 		if(trace.fraction == 1.0)  // moved the entire distance
 			break;
@@ -251,7 +251,7 @@ static void Pm_StepSlideMove(void){
 		VectorCopy(org, up);
 		up[2] += PM_STAIR_HEIGHT;
 
-		if(pm->trace(up, pm->mins, pm->maxs, up).allsolid)
+		if(pm->trace(up, pm->mins, pm->maxs, up).all_solid)
 			break;  // it's not
 
 		// the upward position is available, try to step from there
@@ -269,7 +269,7 @@ static void Pm_StepSlideMove(void){
 	down[2] = org[2];
 
 	trace = pm->trace(pml.origin, pm->mins, pm->maxs, down);
-	VectorCopy(trace.endpos, pml.origin);
+	VectorCopy(trace.end, pml.origin);
 
 	// ensure that what we stepped upon was actually step-able
 	if(trace.plane.normal[2] < PM_STAIR_NORMAL){
@@ -314,7 +314,7 @@ static void Pm_Friction(void){
 			control = speed < PM_SPEED_STOP ? PM_SPEED_STOP : speed;
 			drop = control * PM_FRICT_LADDER * pml.frametime;
 		}
-		else if(pm->groundentity){
+		else if(pm->ground_entity){
 
 			if(pm->s.pm_type == PM_DEAD){  // dead players slide on ground
 				friction = PM_FRICT_SPECTATOR;
@@ -329,8 +329,8 @@ static void Pm_Friction(void){
 			control = speed < PM_SPEED_STOP ? PM_SPEED_STOP : speed;
 			drop = control * friction * pml.frametime;
 		}
-		else if(pm->waterlevel){  // water friction
-			drop = speed * PM_FRICT_WATER * pm->waterlevel * pml.frametime;
+		else if(pm->water_level){  // water friction
+			drop = speed * PM_FRICT_WATER * pm->water_level * pml.frametime;
 		}
 		else {  // jumping or falling, add some friction
 			drop = speed * PM_FRICT_NO_GROUND * pml.frametime;
@@ -382,13 +382,13 @@ static void Pm_AddCurrents(vec3_t vel){
 
 	// account for ladders
 	if(pml.ladder && fabsf(pml.velocity[2]) <= PM_SPEED_LADDER){
-		if((pm->angles[PITCH] <= -15) && (pm->cmd.forwardmove > 0))
+		if((pm->angles[PITCH] <= -15) && (pm->cmd.forward > 0))
 			vel[2] = PM_SPEED_LADDER;
-		else if((pm->angles[PITCH] >= 15) && (pm->cmd.forwardmove > 0))
+		else if((pm->angles[PITCH] >= 15) && (pm->cmd.forward > 0))
 			vel[2] = -PM_SPEED_LADDER;
-		else if(pm->cmd.upmove > 0)
+		else if(pm->cmd.up > 0)
 			vel[2] = PM_SPEED_LADDER;
-		else if(pm->cmd.upmove < 0)
+		else if(pm->cmd.up < 0)
 			vel[2] = -PM_SPEED_LADDER;
 		else
 			vel[2] = 0.0;
@@ -408,31 +408,31 @@ static void Pm_AddCurrents(vec3_t vel){
 	}
 
 	// add water currents
-	if(pm->watertype & MASK_CURRENT){
+	if(pm->water_type & MASK_CURRENT){
 		VectorClear(v);
 
-		if(pm->watertype & CONTENTS_CURRENT_0)
+		if(pm->water_type & CONTENTS_CURRENT_0)
 			v[0] += 1.0;
-		if(pm->watertype & CONTENTS_CURRENT_90)
+		if(pm->water_type & CONTENTS_CURRENT_90)
 			v[1] += 1.0;
-		if(pm->watertype & CONTENTS_CURRENT_180)
+		if(pm->water_type & CONTENTS_CURRENT_180)
 			v[0] -= 1.0;
-		if(pm->watertype & CONTENTS_CURRENT_270)
+		if(pm->water_type & CONTENTS_CURRENT_270)
 			v[1] -= 1.0;
-		if(pm->watertype & CONTENTS_CURRENT_UP)
+		if(pm->water_type & CONTENTS_CURRENT_UP)
 			v[2] += 1.0;
-		if(pm->watertype & CONTENTS_CURRENT_DOWN)
+		if(pm->water_type & CONTENTS_CURRENT_DOWN)
 			v[2] -= 1.0;
 
 		s = PM_SPEED_RUN;
-		if((pm->waterlevel == 1) && pm->groundentity)
+		if((pm->water_level == 1) && pm->ground_entity)
 			s = PM_SPEED_WATER;
 
 		VectorMA(vel, s, v, vel);
 	}
 
 	// add conveyor belt velocities
-	if(pm->groundentity){
+	if(pm->ground_entity){
 		VectorClear(v);
 
 		if(pml.groundcontents & CONTENTS_CURRENT_0)
@@ -465,12 +465,12 @@ static void Pm_WaterMove(void){
 
 	// user intentions
 	for(i = 0; i < 3; i++)
-		vel[i] = pml.forward[i] * pm->cmd.forwardmove + pml.right[i] * pm->cmd.sidemove;
+		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.side;
 
-	if(!pm->cmd.forwardmove && !pm->cmd.sidemove && !pm->cmd.upmove)
+	if(!pm->cmd.forward && !pm->cmd.side && !pm->cmd.up)
 		vel[2] -= PM_SPEED_WATER_DOWN;  // sink
 	else
-		vel[2] += pm->cmd.upmove;
+		vel[2] += pm->cmd.up;
 
 	Pm_AddCurrents(vel);
 
@@ -488,10 +488,10 @@ static void Pm_WaterMove(void){
 	Pm_StepSlideMove();
 
 	// we've swam upward, let's not go water skiing
-	if(!pm->groundentity && !pml.ladder && pml.velocity[2] > 0.0){
+	if(!pm->ground_entity && !pml.ladder && pml.velocity[2] > 0.0){
 
 		VectorCopy(pml.origin, tmp);
-		tmp[2] += pm->viewheight - 6.0;
+		tmp[2] += pm->view_height - 6.0;
 
 		i = pm->pointcontents(tmp);
 
@@ -510,8 +510,8 @@ static void Pm_AirMove(void){
 	vec3_t vel, dir;
 	int i;
 
-	fmove = pm->cmd.forwardmove;
-	smove = pm->cmd.sidemove;
+	fmove = pm->cmd.forward;
+	smove = pm->cmd.side;
 
 	for(i = 0; i < 2; i++)
 		vel[i] = pml.forward[i] * fmove + pml.right[i] * smove;
@@ -550,7 +550,7 @@ static void Pm_AirMove(void){
 			}
 		}
 	}
-	else if(pm->groundentity){  // walking on ground
+	else if(pm->ground_entity){  // walking on ground
 
 		Pm_Accelerate(dir, speed, PM_ACCEL_GROUND);
 
@@ -600,10 +600,10 @@ static void Pm_CategorizePosition(void){
 			trace.plane.normal[2] < PM_STAIR_NORMAL){
 
 		pm->s.pm_flags &= ~PMF_ON_GROUND;
-		pm->groundentity = NULL;
+		pm->ground_entity = NULL;
 	} else {
 		pm->s.pm_flags |= PMF_ON_GROUND;
-		pm->groundentity = trace.ent;
+		pm->ground_entity = trace.ent;
 
 		// falling a significant distance disables jumping for a moment
 		if(pml.velocity[2] < -PM_SPEED_FALL){
@@ -617,15 +617,15 @@ static void Pm_CategorizePosition(void){
 	}
 
 	// save a reference to the entity touched for game events
-	if(pm->numtouch < MAXTOUCH && trace.ent){
-		pm->touchents[pm->numtouch] = trace.ent;
-		pm->numtouch++;
+	if(pm->num_touch < MAXTOUCH && trace.ent){
+		pm->touch_ents[pm->num_touch] = trace.ent;
+		pm->num_touch++;
 	}
 
-	// get waterlevel, accounting for ducking
-	pm->waterlevel = pm->watertype = 0;
+	// get water_level, accounting for ducking
+	pm->water_level = pm->water_type = 0;
 
-	sample2 = pm->viewheight - pm->mins[2];
+	sample2 = pm->view_height - pm->mins[2];
 	sample1 = sample2 / 2.0;
 
 	point[2] = pml.origin[2] + pm->mins[2] + 1.0;
@@ -633,8 +633,8 @@ static void Pm_CategorizePosition(void){
 
 	if(cont & MASK_WATER){
 
-		pm->watertype = cont;
-		pm->waterlevel = 1;
+		pm->water_type = cont;
+		pm->water_level = 1;
 
 		point[2] = pml.origin[2] + pm->mins[2] + sample1;
 
@@ -642,14 +642,14 @@ static void Pm_CategorizePosition(void){
 
 		if(cont & MASK_WATER){
 
-			pm->waterlevel = 2;
+			pm->water_level = 2;
 
 			point[2] = pml.origin[2] + pm->mins[2] + sample2;
 
 			cont = pm->pointcontents(point);
 
 			if(cont & MASK_WATER)
-				pm->waterlevel = 3;
+				pm->water_level = 3;
 		}
 	}
 }
@@ -667,7 +667,7 @@ static void Pm_CheckJump(void){
 	if(pm->s.pm_flags & PMF_TIME_LAND)
 		return;
 
-	if(pm->cmd.upmove < 10){  // jump key released
+	if(pm->cmd.up < 10){  // jump key released
 		pm->s.pm_flags &= ~PMF_JUMP_HELD;
 		return;
 	}
@@ -679,15 +679,15 @@ static void Pm_CheckJump(void){
 	if(!(pm->s.pm_flags & PMF_ON_GROUND))
 		return;
 
-	if(pm->waterlevel >= 2){  // swimming, not jumping
-		pm->groundentity = NULL;
+	if(pm->water_level >= 2){  // swimming, not jumping
+		pm->ground_entity = NULL;
 
 		if(pml.velocity[2] <= -PM_SPEED_JUMP)
 			return;
 
-		if(pm->watertype == CONTENTS_WATER)
+		if(pm->water_type == CONTENTS_WATER)
 			pml.velocity[2] = PM_SPEED_JUMP / 3.0;
-		else if(pm->watertype == CONTENTS_SLIME)
+		else if(pm->water_type == CONTENTS_SLIME)
 			pml.velocity[2] = PM_SPEED_JUMP / 4.0;
 		else
 			pml.velocity[2] = PM_SPEED_JUMP / 5.0;
@@ -703,7 +703,7 @@ static void Pm_CheckJump(void){
 
 	// clear the ground indicators
 	pm->s.pm_flags &= ~PMF_ON_GROUND;
-	pm->groundentity = NULL;
+	pm->ground_entity = NULL;
 
 	// and do the jump
 	pml.velocity[2] += PM_SPEED_JUMP;
@@ -734,7 +734,7 @@ static void Pm_CheckSpecialMovement(void){
 	VectorNormalize(flatforward);
 
 	VectorMA(pml.origin, 1.0, flatforward, spot);
-	spot[2] += pm->viewheight;
+	spot[2] += pm->view_height;
 
 	trace = pm->trace(pml.origin, pm->mins, pm->maxs, spot);
 
@@ -742,11 +742,11 @@ static void Pm_CheckSpecialMovement(void){
 		pml.ladder = true;
 
 	// check for water jump
-	if(pm->waterlevel != 2 || pm->cmd.upmove <= 0)
+	if(pm->water_level != 2 || pm->cmd.up <= 0)
 		return;
 
 	VectorMA(pml.origin, 30.0, flatforward, spot);
-	spot[2] += pm->viewheight;
+	spot[2] += pm->view_height;
 
 	cont = pm->pointcontents(spot);
 
@@ -787,7 +787,7 @@ static void Pm_WaterJumpMove(void){
 /*
  * Pm_CheckDuck
  *
- * Sets mins, maxs, and pm->viewheight
+ * Sets mins, maxs, and pm->view_height
  */
 static void Pm_CheckDuck(void){
 	float height;
@@ -797,22 +797,22 @@ static void Pm_CheckDuck(void){
 	VectorScale(PM_MAXS, PM_SCALE, pm->maxs);
 
 	height = pm->maxs[2] - pm->mins[2];
-	pm->viewheight = pm->mins[2] + (height * 0.75);
+	pm->view_height = pm->mins[2] + (height * 0.75);
 
 	if(pm->s.pm_type == PM_DEAD){
 		pm->s.pm_flags |= PMF_DUCKED;
-	} else if(pm->cmd.upmove < 0 && (pm->s.pm_flags & PMF_ON_GROUND)){  // duck
+	} else if(pm->cmd.up < 0 && (pm->s.pm_flags & PMF_ON_GROUND)){  // duck
 		pm->s.pm_flags |= PMF_DUCKED;
 	} else {  // stand up if possible
 		if(pm->s.pm_flags & PMF_DUCKED){  // try to stand up
 			trace = pm->trace(pml.origin, pm->mins, pm->maxs, pml.origin);
-			if(!trace.allsolid)
+			if(!trace.all_solid)
 				pm->s.pm_flags &= ~PMF_DUCKED;
 		}
 	}
 
 	if(pm->s.pm_flags & PMF_DUCKED){  // ducked, reduce height
-		pm->viewheight = pm->mins[2] + (height * 0.375);
+		pm->view_height = pm->mins[2] + (height * 0.375);
 		pm->maxs[2] = pm->maxs[2] + pm->mins[2] / 2.0;
 	}
 }
@@ -832,7 +832,7 @@ static qboolean Pm_GoodPosition(void){
 
 	trace = pm->trace(pos, pm->mins, pm->maxs, pos);
 
-	return !trace.allsolid;
+	return !trace.all_solid;
 }
 
 
@@ -930,14 +930,14 @@ static void Pm_SpectatorMove(){
 	float fmove, smove, speed;
 	int i;
 
-	pm->viewheight = 22.0;
+	pm->view_height = 22.0;
 
 	// apply friction
 	Pm_Friction();
 
 	// resolve desired movement
-	fmove = pm->cmd.forwardmove;
-	smove = pm->cmd.sidemove;
+	fmove = pm->cmd.forward;
+	smove = pm->cmd.side;
 
 	VectorNormalize(pml.forward);
 	VectorNormalize(pml.right);
@@ -945,7 +945,7 @@ static void Pm_SpectatorMove(){
 	for(i = 0; i < 3; i++)
 		vel[i] = pml.forward[i] * fmove + pml.right[i] * smove;
 
-	vel[2] += pm->cmd.upmove;
+	vel[2] += pm->cmd.up;
 
 	VectorCopy(vel, dir);
 	speed = VectorNormalize(dir);
@@ -969,11 +969,11 @@ static void Pm_Init(void){
 
 	VectorClear(pm->angles);
 
-	pm->viewheight = 0.0;
+	pm->view_height = 0.0;
 
-	pm->numtouch = 0;
-	pm->groundentity = NULL;
-	pm->watertype = pm->waterlevel = 0;
+	pm->num_touch = 0;
+	pm->ground_entity = NULL;
+	pm->water_type = pm->water_level = 0;
 
 	// reset stair climbing flag on every move
 	pm->s.pm_flags &= ~PMF_ON_STAIRS;
@@ -1040,16 +1040,16 @@ void Pmove(pmove_t *pmove){
 	}
 
 	if(pm->s.pm_type == PM_DEAD || pm->s.pm_type == PM_FREEZE){  // no control
-		pm->cmd.forwardmove = pm->cmd.sidemove = pm->cmd.upmove = 0;
+		pm->cmd.forward = pm->cmd.side = pm->cmd.up = 0;
 
 		if(pm->s.pm_type == PM_FREEZE)  // no movement
 			return;
 	}
 
-	// set mins, maxs, and viewheight
+	// set mins, maxs, and view_height
 	Pm_CheckDuck();
 
-	// set groundentity, watertype, and waterlevel
+	// set ground_entity, water_type, and water_level
 	Pm_CategorizePosition();
 
 	// attach to a ladder or jump out of the water
@@ -1068,7 +1068,7 @@ void Pmove(pmove_t *pmove){
 
 		Pm_Friction();
 
-		if(pm->waterlevel > 1)  // swim
+		if(pm->water_level > 1)  // swim
 			Pm_WaterMove();
 		else  // or walk
 			Pm_AirMove();
@@ -1077,7 +1077,7 @@ void Pmove(pmove_t *pmove){
 	// clamp horizontal velocity to reasonable bounds
 	Pm_ClampVelocity();
 
-	// set groundentity, watertype, and waterlevel for final spot
+	// set ground_entity, water_type, and water_level for final spot
 	Pm_CategorizePosition();
 
 	// ensure we're at a good point

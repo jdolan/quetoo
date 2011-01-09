@@ -39,8 +39,8 @@ typedef enum {
 typedef struct sv_server_s {
 	sv_state_t state;  // precache commands are only valid during load
 
-	unsigned time;  // always sv.framenum * 100 msec
-	int framenum;
+	int time;  // always sv.frame_num * 1000 / sv_packetrate->value
+	int frame_num;
 
 	char name[MAX_QPATH];  // map name
 	struct cmodel_s	*models[MAX_MODELS];
@@ -51,10 +51,10 @@ typedef struct sv_server_s {
 	// the multicast buffer is used to send a message to a set of clients
 	// it is only used to marshall data until Sv_Multicast is called
 	sizebuf_t multicast;
-	byte multicast_buf[MAX_MSGLEN];
+	byte multicast_buffer[MAX_MSGLEN];
 
 	// demo server information
-	FILE *demofile;
+	FILE *demo_file;
 } sv_server_t;
 
 extern sv_server_t sv;  // local server
@@ -66,12 +66,12 @@ typedef enum {
 } sv_client_state_t;
 
 typedef struct sv_frame_s {
-	int areabytes;
-	byte areabits[MAX_BSP_AREAS / 8];  // portal area visibility bits
+	int area_bytes;
+	byte area_bits[MAX_BSP_AREAS / 8];  // portal area visibility bits
 	player_state_t ps;
 	int num_entities;
 	int first_entity;  // index into svs.entity_states array
-	int senttime;  // for ping calculations
+	int sent_time;  // for ping calculations
 } sv_frame_t;
 
 #define LATENCY_COUNTS 16  // frame latency, averaged to determine ping
@@ -87,10 +87,10 @@ typedef struct sv_frame_s {
 typedef struct sv_client_s {
 	sv_client_state_t state;
 
-	char userinfo[MAX_INFO_STRING];  // name, etc
+	char user_info[MAX_INFO_STRING];  // name, etc
 
-	int lastframe;  // for delta compression
-	usercmd_t lastcmd;  // for filling in big drops
+	int last_frame;  // for delta compression
+	usercmd_t last_cmd;  // for filling in big drops
 
 	int cmd_msec;  // every seconds this is reset, if user
 	// commands exhaust it, assume time cheating
@@ -103,9 +103,9 @@ typedef struct sv_client_s {
 	int rate;
 	int surpress_count;  // number of messages rate supressed
 
-	edict_t *edict;  // EDICT_NUM(clientnum+1)
-	char name[32];  // extracted from userinfo, high bits masked
-	int messagelevel;  // for filtering printed messages
+	edict_t *edict;  // EDICT_NUM(client_num+1)
+	char name[32];  // extracted from user_info, high bits masked
+	int message_level;  // for filtering printed messages
 
 	// the datagram is written to by sound calls, prints, temp ents, etc.
 	// it can be overflowed without consequence.
@@ -115,11 +115,11 @@ typedef struct sv_client_s {
 	sv_frame_t frames[UPDATE_BACKUP];  // updates can be delta'd from here
 
 	byte *download;  // file being downloaded
-	int downloadsize;  // total bytes (can't use EOF because of paks)
-	int downloadcount;  // bytes sent
+	int download_size;  // total bytes (can't use EOF because of paks)
+	int download_count;  // bytes sent
 
-	int lastmessage;  // sv.framenum when packet was last received
-	int lastconnect;
+	int last_message;  // sv.frame_num when packet was last received
+	int last_connect;
 
 	int challenge;  // challenge of this user, randomly generated
 
@@ -154,11 +154,11 @@ typedef struct sv_challenge_s {
 
 typedef struct sv_static_s {
 	qboolean initialized;  // sv_init has completed
-	int realtime;  // always increasing, no clamping, etc
+	int real_time;  // always increasing, no clamping, etc
 
-	int spawncount;  // incremented each level start, used to check late spawns
+	int spawn_count;  // incremented each level start, used to check late spawns
 
-	int packetrate;  // packets per second to clients
+	int packet_rate;  // packets per second to clients
 
 	sv_client_t *clients;  // server-side client structures
 
@@ -187,7 +187,7 @@ extern sv_static_t svs;  // persistent server info
 
 // cvars
 extern cvar_t *sv_rcon_password;
-extern cvar_t *sv_downloadurl;
+extern cvar_t *sv_download_url;
 extern cvar_t *sv_enforcetime;
 extern cvar_t *sv_extensions;
 extern cvar_t *sv_hostname;
@@ -225,7 +225,6 @@ typedef enum {
 } sv_redirect_t;
 
 #define SV_OUTPUTBUF_LENGTH	(MAX_MSGLEN - 16)
-
 extern char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
 void Sv_FlushRedirect(int target, char *outputbuf);
@@ -266,7 +265,7 @@ void Sv_LinkEdict(edict_t *ent);
 // Needs to be called any time an entity changes origin, mins, maxs,
 // or solid.  Automatically unlinks if needed.
 // sets ent->v.absmin and ent->v.absmax
-// sets ent->leafnums[] for pvs determination even if the entity
+// sets ent->leaf_nums[] for pvs determination even if the entity
 // is not solid
 
 int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, edict_t **list, int maxcount, int areatype);
@@ -287,8 +286,8 @@ int Sv_PointContents(vec3_t p);
 trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, edict_t *passedict, int contentmask);
 // mins and maxs are relative
 
-// if the entire move stays in a solid volume, trace.allsolid will be set,
-// trace.startsolid will be set, and trace.fraction will be 0
+// if the entire move stays in a solid volume, trace.all_solid will be set,
+// trace.start_solid will be set, and trace.fraction will be 0
 
 // if the starting point is in a solid, it will be allowed to move out
 // to an open area

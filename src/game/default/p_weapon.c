@@ -28,7 +28,7 @@
  */
 qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
 	int index, ammoindex;
-	gitem_t *ammo;
+	g_item_t *ammo;
 
 	index = ITEM_INDEX(ent->item);
 
@@ -88,7 +88,7 @@ void P_ChangeWeapon(edict_t *ent){
 		i = ((ent->client->locals.weapon->weapmodel & 0xff) << 8);
 	else
 		i = 0;
-	ent->s.skinnum = (ent - g_edicts - 1) | i;
+	ent->s.skin_num = (ent - g_edicts - 1) | i;
 
 	if(ent->health < 1)
 		return;
@@ -111,7 +111,7 @@ void P_ChangeWeapon(edict_t *ent){
 /*
  * P_NoAmmoWeaponChange
  */
-void P_NoAmmoWeaponChange(gclient_t *client){
+void P_NoAmmoWeaponChange(g_client_t *client){
 
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("nukes"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("bfg10k"))]){
@@ -172,7 +172,7 @@ static void NoAmmoWeaponChange(edict_t *ent){
 /*
  * P_UseWeapon
  */
-void P_UseWeapon(edict_t *ent, gitem_t *item){
+void P_UseWeapon(edict_t *ent, g_item_t *item){
 
 	// see if we're already using it
 	if(item == ent->client->locals.weapon)
@@ -186,7 +186,7 @@ void P_UseWeapon(edict_t *ent, gitem_t *item){
 /*
  * P_DropWeapon
  */
-void P_DropWeapon(edict_t *ent, gitem_t *item){
+void P_DropWeapon(edict_t *ent, g_item_t *item){
 	int index;
 
 	index = ITEM_INDEX(item);
@@ -218,7 +218,7 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 
 	ent->client->latched_buttons &= ~BUTTON_ATTACK;
 
-	// use small epsilon for low serverframe rates
+	// use small epsilon for low server_frame rates
 	if(ent->client->weapon_fire_time > level.time + 0.001)
 		return;
 
@@ -295,8 +295,8 @@ void P_WeaponThink(edict_t *ent){
 	}
 
 	// call active weapon think routine
-	if(ent->client->locals.weapon && ent->client->locals.weapon->weaponthink)
-		ent->client->locals.weapon->weaponthink(ent);
+	if(ent->client->locals.weapon && ent->client->locals.weapon->weapon_think)
+		ent->client->locals.weapon->weapon_think(ent);
 }
 
 
@@ -308,7 +308,7 @@ static void P_FireShotgun_(edict_t *ent){
 	vec3_t forward, right;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
+	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireShotgun(ent, start, forward, 6, 4, DEFAULT_SHOTGUN_HSPREAD,
@@ -336,7 +336,7 @@ static void P_FireSuperShotgun_(edict_t *ent){
 	vec3_t v;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
+	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	v[PITCH] = ent->client->angles[PITCH];
@@ -374,7 +374,7 @@ static void P_FireMachinegun_(edict_t *ent){
 
 	// get start / end positions
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
+	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireBullet(ent, start, forward, 8, 4, DEFAULT_BULLET_HSPREAD,
@@ -399,7 +399,7 @@ static void P_FireGrenadeLauncher_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
 
-	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
+	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	AngleVectors(ent->client->angles, forward, right, NULL);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
@@ -424,7 +424,7 @@ static void P_FireRocketLauncher_(edict_t *ent){
 	vec3_t forward, right;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
+	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireRocketLauncher(ent, start, forward, 1000, 100, 100, 165.0);
@@ -449,7 +449,7 @@ static void P_FireHyperblaster_(edict_t *ent){
 	vec3_t offset, start;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
+	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireHyperblaster(ent, start, forward, 2000, 22, 6);
@@ -474,7 +474,7 @@ static void P_FireLightning_(edict_t *ent){
 	vec3_t forward, right;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
+	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireLightning(ent, start, forward, 12, 12);
@@ -506,7 +506,7 @@ static void P_FireRailgun_(edict_t *ent){
 	vec3_t forward, right;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
+	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireRailgun(ent, start, forward, 110, 80);
@@ -531,7 +531,7 @@ static void P_FireBFG_(edict_t *ent){
 	vec3_t forward, right;
 
 	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->viewheight - 10.0);
+	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
 	G_FireBFG(ent, start, forward, 500, 90, 90, 1024.0);

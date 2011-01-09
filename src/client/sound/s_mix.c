@@ -61,8 +61,8 @@ void S_SpatializeChannel(s_channel_t *ch){
 
 	c = (int)((ptrdiff_t)(ch - s_env.channels));
 
-	if(ch->entnum != -1){  // update the channel origin
-		ent = &cl.entities[ch->entnum].current;
+	if(ch->ent_num != -1){  // update the channel origin
+		ent = &cl.entities[ch->ent_num].current;
 		VectorCopy(ent->origin, ch->org);
 	}
 
@@ -91,7 +91,7 @@ void S_SpatializeChannel(s_channel_t *ch){
 /*
  * S_PlaySample
  */
-void S_PlaySample(const vec3_t org, int entnum, s_sample_t *sample, int atten){
+void S_PlaySample(const vec3_t org, int ent_num, s_sample_t *sample, int atten){
 	s_channel_t *ch;
 	int i;
 
@@ -102,7 +102,7 @@ void S_PlaySample(const vec3_t org, int entnum, s_sample_t *sample, int atten){
 		return;
 
 	if(sample->name[0] == '*')
-		sample = S_LoadModelSample(&cl.entities[entnum].current, sample->name);
+		sample = S_LoadModelSample(&cl.entities[ent_num].current, sample->name);
 
 	if(!sample->chunk)
 		return;
@@ -114,10 +114,10 @@ void S_PlaySample(const vec3_t org, int entnum, s_sample_t *sample, int atten){
 
 	if(org){  // positioned sound
 		VectorCopy(org, ch->org);
-		ch->entnum = -1;
+		ch->ent_num = -1;
 	}
 	else  // entity sound
-		ch->entnum = entnum;
+		ch->ent_num = ent_num;
 
 	ch->atten = atten;
 	ch->sample = sample;
@@ -143,7 +143,7 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample){
 
 	for(i = 0; i < MAX_CHANNELS; i++){  // find existing loop sound
 
-		if(s_env.channels[i].entnum != -1)
+		if(s_env.channels[i].ent_num != -1)
 			continue;
 
 		if(s_env.channels[i].sample == sample){
@@ -170,7 +170,7 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample){
 		ch = &s_env.channels[i];
 
 		VectorCopy(org, ch->org);
-		ch->entnum = -1;
+		ch->ent_num = -1;
 		ch->count = 1;
 		ch->atten = ATTN_IDLE;
 		ch->sample = sample;
@@ -198,5 +198,5 @@ void S_StartLocalSample(const char *name){
 		return;
 	}
 
-	S_PlaySample(NULL, cl.playernum + 1, sample, ATTN_NONE);
+	S_PlaySample(NULL, cl.player_num + 1, sample, ATTN_NONE);
 }

@@ -226,7 +226,7 @@ static void Sv_Status_f(void){
 		for(j = 0; j < l; j++)
 			Com_Print(" ");
 
-		Com_Print("%7i ", svs.realtime - cl->lastmessage);
+		Com_Print("%7i ", svs.real_time - cl->last_message);
 		Com_Print("%d   ", (int)cl->extensions);
 
 		s = Net_NetaddrToString(cl->netchan.remote_address);
@@ -288,7 +288,7 @@ static void Sv_Serverinfo_f(void){
 	}
 
 	Com_Print("Server info settings:\n");
-	Com_PrintInfo(Cvar_Serverinfo());
+	Com_PrintInfo(Cvar_ServerInfo());
 }
 
 
@@ -310,7 +310,7 @@ static void Sv_Userinfo_f(void){
 	if(!Sv_SetPlayer())
 		return;
 
-	Com_PrintInfo(sv_client->userinfo);
+	Com_PrintInfo(sv_client->user_info);
 }
 
 
@@ -322,7 +322,7 @@ void Sv_InitOperatorCommands(void){
 	Cmd_AddCommand("kick", Sv_Kick_f, "Kick a specific user");
 	Cmd_AddCommand("status", Sv_Status_f, "Print some server status information");
 	Cmd_AddCommand("serverinfo", Sv_Serverinfo_f, "Print server info settings");
-	Cmd_AddCommand("userinfo", Sv_Userinfo_f, "Print information for a given user");
+	Cmd_AddCommand("user_info", Sv_Userinfo_f, "Print information for a given user");
 
 	Cmd_AddCommand("demo", Sv_Demo_f, "Start playback of the specified demo file");
 	Cmd_AddCommand("map", Sv_Map_f, "Start a new map");

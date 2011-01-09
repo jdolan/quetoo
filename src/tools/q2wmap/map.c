@@ -820,13 +820,13 @@ static qboolean ParseMapEntity(void){
 /*
  * LoadMapFile
  */
-void LoadMapFile(const char *filename){
+void LoadMapFile(const char *file_name){
 	int subdivide;
 	int i;
 
 	Com_Verbose("--- LoadMapFile ---\n");
 
-	LoadScriptFile(filename);
+	LoadScriptFile(file_name);
 
 	memset(mapbrushes, 0, sizeof(mapbrush_t) * MAX_BSP_BRUSHES);
 	nummapbrushes = 0;

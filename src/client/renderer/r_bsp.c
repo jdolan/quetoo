@@ -248,15 +248,15 @@ static void R_MarkSurfaces_(r_bsp_node_t *node){
 	if(node->vis_frame != r_locals.vis_frame)
 		return;  // not in view
 
-	if(R_CullBox(node->minmaxs, node->minmaxs + 3))
+	if(R_CullBox(node->mins, node->maxs + 3))
 		return;  // culled out
 
 	// if leaf node, flag surfaces to draw this frame
 	if(node->contents != CONTENTS_NODE){
 		r_bsp_leaf_t *leaf = (r_bsp_leaf_t *)node;
 
-		if(r_view.areabits){  // check for door connected areas
-			if(!(r_view.areabits[leaf->area >> 3] & (1 << (leaf->area & 7))))
+		if(r_view.area_bits){  // check for door connected areas
+			if(!(r_view.area_bits[leaf->area >> 3] & (1 << (leaf->area & 7))))
 				return;  // not visible
 		}
 

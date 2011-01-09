@@ -307,22 +307,22 @@ static int CopyLump(int lump, void *dest, int size){
 /*
  * LoadBSPFile
  */
-void LoadBSPFile(char *filename){
+void LoadBSPFile(char *file_name){
 	int i;
 
 	// load the file header
-	if(Fs_LoadFile(filename, (void **)(char *)&header) == -1)
-		Com_Error(ERR_FATAL, "Failed to open %s\n", filename);
+	if(Fs_LoadFile(file_name, (void **)(char *)&header) == -1)
+		Com_Error(ERR_FATAL, "Failed to open %s\n", file_name);
 
 	// swap the header
 	for(i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
 		((int *)header)[i] = LittleLong(((int *)header)[i]);
 
 	if(header->ident != BSP_HEADER)
-		Com_Error(ERR_FATAL, "%s is not a IBSP file\n", filename);
+		Com_Error(ERR_FATAL, "%s is not a IBSP file\n", file_name);
 
 	if(header->version != BSP_VERSION && header->version != BSP_VERSION_)
-		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", filename, header->version);
+		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", file_name, header->version);
 
 	nummodels = CopyLump(LUMP_MODELS, dmodels, sizeof(d_bsp_model_t));
 	num_vertexes = CopyLump(LUMP_VERTEXES, dvertexes, sizeof(d_bsp_vertex_t));
@@ -368,15 +368,15 @@ void LoadBSPFile(char *filename){
  *
  * Only loads the texinfo lump, so we can scan for textures.
  */
-void LoadBSPFileTexinfo(char *filename){
+void LoadBSPFileTexinfo(char *file_name){
 	int i;
 	FILE *f;
 	int length, ofs;
 
 	header = Z_Malloc(sizeof(*header));
 
-	if(Fs_OpenFile(filename, &f, FILE_READ) == -1)
-		Com_Error(ERR_FATAL, "Could not open %s\n", filename);
+	if(Fs_OpenFile(file_name, &f, FILE_READ) == -1)
+		Com_Error(ERR_FATAL, "Could not open %s\n", file_name);
 
 	Fs_Read(header, sizeof(*header), 1, f);
 
@@ -385,10 +385,10 @@ void LoadBSPFileTexinfo(char *filename){
 		((int *)header)[i] = LittleLong(((int *)header)[i]);
 
 	if(header->ident != BSP_HEADER)
-		Com_Error(ERR_FATAL, "%s is not a bsp file\n", filename);
+		Com_Error(ERR_FATAL, "%s is not a bsp file\n", file_name);
 
 	if(header->version != BSP_VERSION && header->version != BSP_VERSION_)
-		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", filename, header->version);
+		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", file_name, header->version);
 
 	length = header->lumps[LUMP_TEXINFO].file_len;
 	ofs = header->lumps[LUMP_TEXINFO].file_ofs;
@@ -429,7 +429,7 @@ static void AddLump(int lumpnum, void *data, int len){
  *
  * Swaps the bsp file in place, so it should not be referenced again
  */
-void WriteBSPFile(char *filename){
+void WriteBSPFile(char *file_name){
 	header = &outheader;
 	memset(header, 0, sizeof(d_bsp_header_t));
 
@@ -442,8 +442,8 @@ void WriteBSPFile(char *filename){
 	else  // enhanced format
 		header->version = LittleLong(BSP_VERSION_);
 
-	if(Fs_OpenFile(filename, &wadfile, FILE_WRITE) == -1)
-		Com_Error(ERR_FATAL, "Could not open %s\n", filename);
+	if(Fs_OpenFile(file_name, &wadfile, FILE_WRITE) == -1)
+		Com_Error(ERR_FATAL, "Could not open %s\n", file_name);
 
 	Fs_Write(header, 1, sizeof(d_bsp_header_t), wadfile);
 

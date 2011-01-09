@@ -79,7 +79,7 @@ void Cbuf_AddText(const char *text){
 
 	l = strlen(text);
 
-	if(cmd_text.cursize + l >= cmd_text.maxsize){
+	if(cmd_text.size + l >= cmd_text.max_size){
 		Com_Print("Cbuf_AddText: overflow\n");
 		return;
 	}
@@ -99,7 +99,7 @@ void Cbuf_InsertText(const char *text){
 	int templen;
 
 	// copy off any commands still remaining in the exec buffer
-	templen = cmd_text.cursize;
+	templen = cmd_text.size;
 	if(templen){
 		temp = Z_Malloc(templen);
 		memcpy(temp, cmd_text.data, templen);
@@ -122,9 +122,9 @@ void Cbuf_InsertText(const char *text){
  * Cbuf_CopyToDefer
  */
 void Cbuf_CopyToDefer(void){
-	memcpy(defer_text_buf, cmd_text_buf, cmd_text.cursize);
-	defer_text_buf[cmd_text.cursize] = 0;
-	cmd_text.cursize = 0;
+	memcpy(defer_text_buf, cmd_text_buf, cmd_text.size);
+	defer_text_buf[cmd_text.size] = 0;
+	cmd_text.size = 0;
 }
 
 
@@ -148,12 +148,12 @@ void Cbuf_Execute(void){
 
 	alias_count = 0;  // don't allow infinite alias loops
 
-	while(cmd_text.cursize){
+	while(cmd_text.size){
 		// find a \n or; line break
 		text = (char *)cmd_text.data;
 
 		quotes = 0;
-		for(i = 0; i < cmd_text.cursize; i++){
+		for(i = 0; i < cmd_text.size; i++){
 			if(text[i] == '"')
 				quotes++;
 			if(!(quotes & 1) && text[i] == ';')
@@ -174,12 +174,12 @@ void Cbuf_Execute(void){
 		// this is necessary because commands(exec, alias) can insert data at the
 		// beginning of the text buffer
 
-		if(i == cmd_text.cursize)
-			cmd_text.cursize = 0;
+		if(i == cmd_text.size)
+			cmd_text.size = 0;
 		else {
 			i++;
-			cmd_text.cursize -= i;
-			memmove(text, text + i, cmd_text.cursize);
+			cmd_text.size -= i;
+			memmove(text, text + i, cmd_text.size);
 		}
 
 		// execute the command line
@@ -279,7 +279,7 @@ static void Cmd_Exec_f(void){
 	char cfg[MAX_QPATH];
 
 	if(Cmd_Argc() != 2){
-		Com_Print("Usage: %s <filename> : execute a script file\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <file_name> : execute a script file\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -386,7 +386,7 @@ static void *cmd_userdata;
 
 static cmd_function_t *cmd_functions;  // possible commands to execute
 
-static hashtable_t cmd_hashtable;  // hashed for fast lookups
+static hash_table_t cmd_hash_table;  // hashed for fast lookups
 
 
 /*
@@ -537,7 +537,7 @@ void* Cmd_GetUserdata(const char *cmd_name){
 		return NULL;
 	}
 
-	if((cmd = Hash_Get(&cmd_hashtable, cmd_name)))
+	if((cmd = Hash_Get(&cmd_hash_table, cmd_name)))
 		return cmd->userdata;
 
 	Com_Print("Cmd_GetUserdata: '%s' not found\n", cmd_name);
@@ -575,7 +575,7 @@ void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *descr
 	cmd->description = description;
 
 	// hash the command
-	Hash_Put(&cmd_hashtable, cmd_name, cmd);
+	Hash_Put(&cmd_hash_table, cmd_name, cmd);
 
 	// and add it to the chain
 	if(!cmd_functions){
@@ -603,7 +603,7 @@ void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *descr
 void Cmd_RemoveCommand(const char *cmd_name){
 	cmd_function_t *cmd, **back;
 
-	Hash_Remove(&cmd_hashtable, cmd_name);
+	Hash_Remove(&cmd_hash_table, cmd_name);
 
 	back = &cmd_functions;
 	while(true){
@@ -673,7 +673,7 @@ void Cmd_ExecuteString(const char *text){
 	if(!Cmd_Argc())
 		return;  // no tokens
 
-	if((cmd = Hash_Get(&cmd_hashtable, cmd_argv[0]))){
+	if((cmd = Hash_Get(&cmd_hash_table, cmd_argv[0]))){
 		if(cmd->function) {
 			cmd_userdata = cmd->userdata;
 			cmd->function();
@@ -727,7 +727,7 @@ static void Cmd_List_f(void){
  */
 void Cmd_Init(void){
 
-	Hash_Init(&cmd_hashtable);
+	Hash_Init(&cmd_hash_table);
 
 	Cmd_AddCommand("cmd_list", Cmd_List_f, NULL);
 	Cmd_AddCommand("exec", Cmd_Exec_f, NULL);

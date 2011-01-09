@@ -23,7 +23,7 @@
 
 #include "g_local.h"
 
-game_locals_t game;
+g_locals_t game;
 level_locals_t level;
 game_import_t gi;
 game_export_t globals;
@@ -64,9 +64,9 @@ cvar_t *password;
 cvar_t *sv_maxclients;
 cvar_t *dedicated;
 
-team_t good, evil;
+g_team_t good, evil;
 
-maplist_t maplist;
+g_maplist_t g_maplist;
 
 #ifdef HAVE_MYSQL
 MYSQL *mysql;
@@ -162,7 +162,7 @@ static void G_ResetItems(void){
 			else {  // or unhide them
 				ent->svflags &= ~SVF_NOCLIENT;
 				ent->solid = SOLID_TRIGGER;
-				ent->nextthink = level.time + 2.0 * gi.serverframe;
+				ent->nextthink = level.time + 2.0 * gi.server_frame;
 			}
 		}
 	}
@@ -179,13 +179,13 @@ static void G_ResetItems(void){
 static void G_RestartGame(qboolean teamz){
 	int i;
 	edict_t *ent;
-	gclient_t *cl;
+	g_client_t *cl;
 
-	if(level.matchtime)
-		level.matchnum++;
+	if(level.match_time)
+		level.match_num++;
 
-	if(level.roundtime)
-		level.roundnum++;
+	if(level.round_time)
+		level.round_num++;
 
 	for(i = 0; i < sv_maxclients->value; i++){  // reset clients
 
@@ -205,14 +205,14 @@ static void G_RestartGame(qboolean teamz){
 		// determine spectator or team affiliations
 
 		if(level.match){
-			if(cl->locals.matchnum == level.matchnum)
+			if(cl->locals.match_num == level.match_num)
 				cl->locals.spectator = false;
 			else
 				cl->locals.spectator = true;
 		}
 
 		else if(level.rounds){
-			if(cl->locals.roundnum == level.roundnum)
+			if(cl->locals.round_num == level.round_num)
 				cl->locals.spectator = false;
 			else
 				cl->locals.spectator = true;
@@ -233,7 +233,7 @@ static void G_RestartGame(qboolean teamz){
 
 	G_ResetItems();
 
-	level.matchtime = level.roundtime = 0;
+	level.match_time = level.round_time = 0;
 	good.score = evil.score = 0;
 	good.captures = evil.captures = 0;
 
@@ -246,7 +246,7 @@ static void G_RestartGame(qboolean teamz){
  * G_MuteClient
  */
 static void G_MuteClient(char *name, qboolean mute){
-	gclient_t *cl;
+	g_client_t *cl;
 
 	if(!(cl = G_ClientByName(name)))
 		return;
@@ -370,29 +370,29 @@ static void G_EndLevel(void){
 	int i;
 
 	// try maplist
-	if(maplist.count > 0){
+	if(g_maplist.count > 0){
 
 		if(g_randommap->value){  // random weighted selection
-			maplist.index = maplist.weighted_index[rand() % MAPLIST_WEIGHT];
+			g_maplist.index = g_maplist.weighted_index[rand() % MAPLIST_WEIGHT];
 		}
 		else { // incremental, so long as wieght is not 0
 
-			i = maplist.index;
+			i = g_maplist.index;
 
 			while(true){
-				maplist.index = (maplist.index + 1) % maplist.count;
+				g_maplist.index = (g_maplist.index + 1) % g_maplist.count;
 
-				if(!maplist.maps[maplist.index].weight)
+				if(!g_maplist.maps[g_maplist.index].weight)
 					continue;
 
-				if(maplist.index == i)  // wrapped around, all weights were 0
+				if(g_maplist.index == i)  // wrapped around, all weights were 0
 					break;
 
 				break;
 			}
 		}
 
-		G_BeginIntermission(maplist.maps[maplist.index].name);
+		G_BeginIntermission(g_maplist.maps[g_maplist.index].name);
 		return;
 	}
 
@@ -406,12 +406,12 @@ static void G_EndLevel(void){
  */
 static void G_CheckRoundStart(void){
 	int i, g, e, clients;
-	gclient_t *cl;
+	g_client_t *cl;
 
 	if(!level.rounds)
 		return;
 
-	if(level.roundtime)
+	if(level.round_time)
 		return;
 
 	clients = g = e = 0;
@@ -438,13 +438,13 @@ static void G_CheckRoundStart(void){
 		return;
 
 	if((int)level.teams == 2 && (g != e)){  // balanced teams required
-		if(level.framenum % 100 == 0)
+		if(level.frame_num % 100 == 0)
 			gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for round to start\n");
 		return;
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Round starting in 10 seconds..\n");
-	level.roundtime = level.time + 10.0;
+	level.round_time = level.time + 10.0;
 
 	level.start_round = true;
 }
@@ -456,9 +456,9 @@ static void G_CheckRoundStart(void){
 static void G_CheckRoundLimit(){
 	int i;
 	edict_t *ent;
-	gclient_t *cl;
+	g_client_t *cl;
 
-	if(level.roundnum >= level.roundlimit){  // enforce roundlimit
+	if(level.round_num >= level.round_limit){  // enforce roundlimit
 		gi.BroadcastPrint(PRINT_HIGH, "Roundlimit hit\n");
 		G_EndLevel();
 		return;
@@ -472,7 +472,7 @@ static void G_CheckRoundLimit(){
 		ent = &g_edicts[i + 1];
 		cl = ent->client;
 
-		if(cl->locals.roundnum != level.roundnum)
+		if(cl->locals.round_num != level.round_num)
 			continue;  // they were intentionally spectating, skip them
 
 		if(level.teams || level.ctf){  // rejoin a team
@@ -495,12 +495,12 @@ static void G_CheckRoundLimit(){
 static void G_CheckRoundEnd(void){
 	int i, g, e, clients;
 	edict_t *winner;
-	gclient_t *cl;
+	g_client_t *cl;
 
 	if(!level.rounds)
 		return;
 
-	if(!level.roundtime || level.roundtime > level.time)
+	if(!level.round_time || level.round_time > level.time)
 		return;  // no round currently running
 
 	winner = NULL;
@@ -524,7 +524,7 @@ static void G_CheckRoundEnd(void){
 
 	if(clients == 0){  // corner case where everyone was fragged
 		gi.BroadcastPrint(PRINT_HIGH, "Tie!\n");
-		level.roundtime = 0;
+		level.round_time = 0;
 		G_CheckRoundLimit();
 		return;
 	}
@@ -561,7 +561,7 @@ static void G_CheckRoundEnd(void){
 	gi.BroadcastPrint(PRINT_HIGH, "%s wins!\n", (level.teams || level.ctf ?
 				winner->client->locals.team->name : winner->client->locals.netname));
 
-	level.roundtime = 0;
+	level.round_time = 0;
 
 	G_CheckRoundLimit();
 }
@@ -572,12 +572,12 @@ static void G_CheckRoundEnd(void){
  */
 static void G_CheckMatchEnd(void){
 	int i, g, e, clients;
-	gclient_t *cl;
+	g_client_t *cl;
 
 	if(!level.match)
 		return;
 
-	if(!level.matchtime || level.matchtime > level.time)
+	if(!level.match_time || level.match_time > level.time)
 		return;  // no match currently running
 
 	g = e = clients = 0;
@@ -598,13 +598,13 @@ static void G_CheckMatchEnd(void){
 
 	if(clients == 0){  // everyone left
 		gi.BroadcastPrint(PRINT_HIGH, "No players left\n");
-		level.matchtime = 0;
+		level.match_time = 0;
 		return;
 	}
 
 	if((level.teams || level.ctf) && (!g || !e)){
 		gi.BroadcastPrint(PRINT_HIGH, "Not enough players left\n");
-		level.matchtime = 0;
+		level.match_time = 0;
 		return;
 	}
 }
@@ -639,18 +639,18 @@ static char *G_FormatTime(int secs){
  */
 static void G_CheckRules(void){
 	int i, seconds;
-	gclient_t *cl;
+	g_client_t *cl;
 
 	if(level.intermission_time)
 		return;
 
 	// match mode, no match, or countdown underway
-	level.warmup = level.match && (!level.matchtime || level.matchtime > level.time);
+	level.warmup = level.match && (!level.match_time || level.match_time > level.time);
 
 	// arena mode, no round, or countdown underway
-	level.warmup |= level.rounds && (!level.roundtime || level.roundtime > level.time);
+	level.warmup |= level.rounds && (!level.round_time || level.round_time > level.time);
 
-	if(level.start_match && level.time >= level.matchtime){  // players have readied, begin match
+	if(level.start_match && level.time >= level.match_time){  // players have readied, begin match
 		level.start_match = false;
 		level.warmup = false;
 
@@ -664,7 +664,7 @@ static void G_CheckRules(void){
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
-	if(level.start_round && level.time >= level.roundtime){  // pre-game expired, begin round
+	if(level.start_round && level.time >= level.round_time){  // pre-game expired, begin round
 		level.start_round = false;
 		level.warmup = false;
 
@@ -681,46 +681,46 @@ static void G_CheckRules(void){
 	seconds = level.time;
 
 	if(level.rounds){
-		if(level.roundtime > level.time)  // round about to start, show pre-game countdown
-			seconds = level.roundtime - level.time;
-		else if(level.roundtime)
-			seconds = level.time - level.roundtime;  // round started, count up
+		if(level.round_time > level.time)  // round about to start, show pre-game countdown
+			seconds = level.round_time - level.time;
+		else if(level.round_time)
+			seconds = level.time - level.round_time;  // round started, count up
 		else seconds = -1;
 	}
 	else if(level.match){
-		if(level.matchtime > level.time)  // match about to start, show pre-game countdown
-			seconds = level.matchtime - level.time;
-		else if(level.matchtime){
-			if(level.timelimit)  // count down to timelimit
-				seconds = level.matchtime + level.timelimit * 60 - level.time;
-			else seconds = level.time - level.matchtime;  // count up
+		if(level.match_time > level.time)  // match about to start, show pre-game countdown
+			seconds = level.match_time - level.time;
+		else if(level.match_time){
+			if(level.time_limit)  // count down to timelimit
+				seconds = level.match_time + level.time_limit * 60 - level.time;
+			else seconds = level.time - level.match_time;  // count up
 		}
 		else seconds = -1;
 	}
 
-	if(level.timelimit){  // check timelimit
+	if(level.time_limit){  // check timelimit
 		float t = level.time;
 
 		if(level.match)  // for matches
-			t = level.time - level.matchtime;
+			t = level.time - level.match_time;
 		else if(level.rounds)  // and for rounds
-			t = level.time - level.roundtime;
+			t = level.time - level.round_time;
 
-		if(t >= level.timelimit * 60){
+		if(t >= level.time_limit * 60){
 			gi.BroadcastPrint(PRINT_HIGH, "Timelimit hit\n");
 			G_EndLevel();
 			return;
 		}
-		seconds = level.timelimit * 60 - t;  // count down
+		seconds = level.time_limit * 60 - t;  // count down
 	}
 
-	if(level.framenum % gi.serverrate == 0)  // send time updates once per second
+	if(level.frame_num % gi.server_hz == 0)  // send time updates once per second
 		gi.Configstring(CS_TIME, (level.warmup ? "Warmup" : G_FormatTime(seconds)));
 
-	if(!level.ctf && level.fraglimit){  // check fraglimit
+	if(!level.ctf && level.frag_limit){  // check fraglimit
 
 		if(level.teams){  // check team scores
- 			if(good.score >= level.fraglimit || evil.score >= level.fraglimit){
+ 			if(good.score >= level.frag_limit || evil.score >= level.frag_limit){
 				gi.BroadcastPrint(PRINT_HIGH, "Fraglimit hit\n");
 				G_EndLevel();
 				return;
@@ -732,7 +732,7 @@ static void G_CheckRules(void){
 				if(!g_edicts[i + 1].inuse)
 					continue;
 
-				if(cl->locals.score >= level.fraglimit){
+				if(cl->locals.score >= level.frag_limit){
 					gi.BroadcastPrint(PRINT_HIGH, "Fraglimit hit\n");
 					G_EndLevel();
 					return;
@@ -741,9 +741,9 @@ static void G_CheckRules(void){
 		}
 	}
 
-	if(level.ctf && level.capturelimit){  // check capture limit
+	if(level.ctf && level.capture_limit){  // check capture limit
 
-		if(good.captures >= level.capturelimit || evil.captures >= level.capturelimit){
+		if(good.captures >= level.capture_limit || evil.captures >= level.capture_limit){
 			gi.BroadcastPrint(PRINT_HIGH, "Capturelimit hit\n");
 			G_EndLevel();
 			return;
@@ -820,34 +820,34 @@ static void G_CheckRules(void){
 
 	if(g_fraglimit->modified){
 		g_fraglimit->modified = false;
-		level.fraglimit = g_fraglimit->value;
+		level.frag_limit = g_fraglimit->value;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Fraglimit has been changed to %d\n",
-				level.fraglimit);
+				level.frag_limit);
 	}
 
 	if(g_roundlimit->modified){
 		g_roundlimit->modified = false;
-		level.roundlimit = g_roundlimit->value;
+		level.round_limit = g_roundlimit->value;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Roundlimit has been changed to %d\n",
-				level.roundlimit);
+				level.round_limit);
 	}
 
 	if(g_capturelimit->modified){
 		g_capturelimit->modified = false;
-		level.capturelimit = g_capturelimit->value;
+		level.capture_limit = g_capturelimit->value;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Capturelimit has been changed to %d\n",
-				level.capturelimit);
+				level.capture_limit);
 	}
 
 	if(g_timelimit->modified){
 		g_timelimit->modified = false;
-		level.timelimit = g_timelimit->value;
+		level.time_limit = g_timelimit->value;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Timelimit has been changed to %d\n",
-				(int)level.timelimit);
+				(int)level.time_limit);
 	}
 }
 
@@ -877,8 +877,8 @@ static void G_RunFrame(void){
 	int i;
 	edict_t *ent;
 
-	level.framenum++;
-	level.time = level.framenum * gi.serverframe;
+	level.frame_num++;
+	level.time = level.frame_num * gi.server_frame;
 
 	// check for level change after running intermission
 	if(level.intermission_time){
@@ -901,10 +901,10 @@ static void G_RunFrame(void){
 		if(!(ent->s.effects & EF_LIGHTNING))  // update old origin for lerps
 			VectorCopy(ent->s.origin, ent->s.old_origin);
 
-		if(ent->groundentity){
+		if(ent->ground_entity){
 			// if the ground entity moved, make sure we are still on it
-			if(ent->groundentity->linkcount != ent->groundentity_linkcount)
-				ent->groundentity = NULL;
+			if(ent->ground_entity->linkcount != ent->ground_entity_linkcount)
+				ent->ground_entity = NULL;
 		}
 
 		if(i > 0 && i <= sv_maxclients->value){
@@ -941,14 +941,14 @@ static void G_RunFrame(void){
 static void G_InitMaplist(void){
 	int i;
 
-	memset(&maplist, 0, sizeof(maplist));
+	memset(&g_maplist, 0, sizeof(g_maplist));
 
 	for(i = 0; i < MAX_MAPLIST_ELTS; i++){
-		maplistelt_t *map = &maplist.maps[i];
+		maplistelt_t *map = &g_maplist.maps[i];
 		map->gravity = map->gameplay = -1;
 		map->teams = map->ctf = map->match = -1;
-		map->fraglimit = map->roundlimit = map->capturelimit = -1;
-		map->timelimit = -1;
+		map->frag_limit = map->round_limit = map->capture_limit = -1;
+		map->time_limit = -1;
 		map->weight = 1.0;
 	}
 }
@@ -959,7 +959,7 @@ static void G_InitMaplist(void){
  *
  * Populates a maplist_t from a text file.  See default/maps.lst
  */
-static void G_ParseMaplist(const char *filename){
+static void G_ParseMaplist(const char *file_name){
 	void *buf;
 	const char *buffer;
 	int i, j, k, l;
@@ -969,14 +969,14 @@ static void G_ParseMaplist(const char *filename){
 
 	G_InitMaplist();
 
-	if(!filename || !filename[0]){
-		maplist.count = 0;
+	if(!file_name || !file_name[0]){
+		g_maplist.count = 0;
 		return;
 	}
 
-	if((i = gi.LoadFile(filename, &buf)) < 1){
-		gi.Print("Couldn't open %s\n", filename);
-		maplist.count = 0;
+	if((i = gi.LoadFile(file_name, &buf)) < 1){
+		gi.Print("Couldn't open %s\n", file_name);
+		g_maplist.count = 0;
 		return;
 	}
 
@@ -997,7 +997,7 @@ static void G_ParseMaplist(const char *filename){
 		if(!inmap)  // skip any whitespace between maps
 			continue;
 
-		map = &maplist.maps[i];
+		map = &g_maplist.maps[i];
 
 		if(!strcmp(c, "name")){
 			strncpy(map->name, Com_Parse(&buffer), 31);
@@ -1050,22 +1050,22 @@ static void G_ParseMaplist(const char *filename){
 		}
 
 		if(!strcmp(c, "fraglimit")){
-			map->fraglimit = atoi(Com_Parse(&buffer));
+			map->frag_limit = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "roundlimit")){
-			map->roundlimit = atoi(Com_Parse(&buffer));
+			map->round_limit = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "capturelimit")){
-			map->capturelimit = atoi(Com_Parse(&buffer));
+			map->capture_limit = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "timelimit")){
-			map->timelimit = atof(Com_Parse(&buffer));
+			map->time_limit = atof(Com_Parse(&buffer));
 			continue;
 		}
 
@@ -1110,30 +1110,30 @@ static void G_ParseMaplist(const char *filename){
 					map->timelimit, map->give, map->music, map->weight);*/
 
 			// accumulate total weight
-			maplist.total_weight += map->weight;
+			g_maplist.total_weight += map->weight;
 
 			if(++i == MAX_MAPLIST_ELTS)
 				break;
 		}
 	}
 
-	maplist.count = i;
-	maplist.index = 0;
+	g_maplist.count = i;
+	g_maplist.index = 0;
 
 	gi.TagFree(buf);
 
 	// thou shalt not divide by zero
-	if(!maplist.total_weight)
-		maplist.total_weight = 1.0;
+	if(!g_maplist.total_weight)
+		g_maplist.total_weight = 1.0;
 
 	// compute the weighted index list
-	for(i = 0, l = 0; i < maplist.count; i++){
+	for(i = 0, l = 0; i < g_maplist.count; i++){
 
-		map = &maplist.maps[i];
-		k = (map->weight / maplist.total_weight) * MAPLIST_WEIGHT;
+		map = &g_maplist.maps[i];
+		k = (map->weight / g_maplist.total_weight) * MAPLIST_WEIGHT;
 
 		for(j = 0; j < k; j++)
-			maplist.weighted_index[l++] = i;
+			g_maplist.weighted_index[l++] = i;
 	}
 }
 
@@ -1146,38 +1146,38 @@ static void G_ParseMaplist(const char *filename){
 void G_Init(void){
 	gi.Print("  Game initialization..\n");
 
-	gi.Cvar("gamename", GAMEVERSION , CVAR_SERVERINFO | CVAR_NOSET, NULL);
-	gi.Cvar("gamedate", __DATE__ , CVAR_SERVERINFO | CVAR_NOSET, NULL);
+	gi.Cvar("gamename", GAMEVERSION , CVAR_SERVER_INFO | CVAR_NOSET, NULL);
+	gi.Cvar("gamedate", __DATE__ , CVAR_SERVER_INFO | CVAR_NOSET, NULL);
 
-	g_autojoin = gi.Cvar("g_autojoin", "1", CVAR_SERVERINFO, NULL);
-	g_capturelimit = gi.Cvar("g_capturelimit", "8", CVAR_SERVERINFO, NULL);
+	g_autojoin = gi.Cvar("g_autojoin", "1", CVAR_SERVER_INFO, NULL);
+	g_capturelimit = gi.Cvar("g_capturelimit", "8", CVAR_SERVER_INFO, NULL);
 	g_chatlog = gi.Cvar("g_chatlog", "0", 0, NULL);
-	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVERINFO, NULL);
-	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVERINFO, NULL);
-	g_fraglimit = gi.Cvar("g_fraglimit", "30", CVAR_SERVERINFO, NULL);
+	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
+	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, NULL);
+	g_fraglimit = gi.Cvar("g_fraglimit", "30", CVAR_SERVER_INFO, NULL);
 	g_fraglog = gi.Cvar("g_fraglog", "0", 0, NULL);
-	g_friendlyfire = gi.Cvar("g_friendlyfire", "1", CVAR_SERVERINFO, NULL);
-	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVERINFO, NULL);
-	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVERINFO, NULL);
-	g_match = gi.Cvar("g_match", "0", CVAR_SERVERINFO, NULL);
+	g_friendlyfire = gi.Cvar("g_friendlyfire", "1", CVAR_SERVER_INFO, NULL);
+	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO, NULL);
+	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
+	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, NULL);
 	g_maxentities = gi.Cvar("g_maxentities", "1024", CVAR_LATCH, NULL);
 	g_mysql = gi.Cvar("g_mysql", "0", 0, NULL);
 	g_mysqldb = gi.Cvar("g_mysqldb", "quake2world", 0, NULL);
 	g_mysqlhost = gi.Cvar("g_mysqlhost", "localhost", 0, NULL);
 	g_mysqlpassword = gi.Cvar("g_mysqlpassword", "", 0, NULL);
 	g_mysqluser = gi.Cvar("g_mysqluser", "quake2world", 0, NULL);
-	g_playerprojectile = gi.Cvar("g_playerprojectile", "1", CVAR_SERVERINFO, NULL);
+	g_playerprojectile = gi.Cvar("g_playerprojectile", "1", CVAR_SERVER_INFO, NULL);
 	g_randommap = gi.Cvar("g_randommap", "0", 0, NULL);
-	g_roundlimit = gi.Cvar("g_roundlimit", "30", CVAR_SERVERINFO, NULL);
-	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVERINFO, NULL);
-	g_spawnfarthest = gi.Cvar("g_spawnfarthest", "0", CVAR_SERVERINFO, NULL);
-	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVERINFO, NULL);
-	g_timelimit = gi.Cvar("g_timelimit", "20", CVAR_SERVERINFO, NULL);
-	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVERINFO, "Activates voting");
+	g_roundlimit = gi.Cvar("g_roundlimit", "30", CVAR_SERVER_INFO, NULL);
+	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, NULL);
+	g_spawnfarthest = gi.Cvar("g_spawnfarthest", "0", CVAR_SERVER_INFO, NULL);
+	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, NULL);
+	g_timelimit = gi.Cvar("g_timelimit", "20", CVAR_SERVER_INFO, NULL);
+	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
 
-	password = gi.Cvar("password", "", CVAR_USERINFO, NULL);
+	password = gi.Cvar("password", "", CVAR_USER_INFO, NULL);
 
-	sv_maxclients = gi.Cvar("sv_maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH, NULL);
+	sv_maxclients = gi.Cvar("sv_maxclients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NOSET, NULL);
 
 	if(g_fraglog->value)
@@ -1282,12 +1282,12 @@ game_export_t *LoadGame(game_import_t *import){
  * Redefined here so functions in shared.c can link.
  */
 void Com_Print(const char *msg, ...){
-	va_list	argptr;
+	va_list	args;
 	char text[1024];
 
-	va_start(argptr, msg);
-	vsprintf(text, msg, argptr);
-	va_end(argptr);
+	va_start(args, msg);
+	vsprintf(text, msg, args);
+	va_end(args);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s", text);
 }

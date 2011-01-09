@@ -31,7 +31,7 @@
 void LeakFile(tree_t *tree){
 	vec3_t	mid;
 	FILE *leakfile;
-	char filename[MAX_OSPATH];
+	char file_name[MAX_OSPATH];
 	node_t *node;
 	int count;
 
@@ -41,11 +41,11 @@ void LeakFile(tree_t *tree){
 	Com_Print("--- LeakFile ---\n");
 
 	// write the points to the file
-	Com_StripExtension(mapname, filename);
-	strcat(filename, ".lin");
+	Com_StripExtension(mapname, file_name);
+	strcat(file_name, ".lin");
 
-	if(Fs_OpenFile(filename, &leakfile, FILE_WRITE) == -1)
-		Com_Error(ERR_FATAL, "Couldn't open %s\n", filename);
+	if(Fs_OpenFile(file_name, &leakfile, FILE_WRITE) == -1)
+		Com_Error(ERR_FATAL, "Couldn't open %s\n", file_name);
 
 	count = 0;
 	node = &tree->outside_node;

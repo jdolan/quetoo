@@ -50,7 +50,7 @@ static edict_t *G_TestEntityPosition(edict_t *ent){
 		mask = MASK_SOLID;
 	trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, ent, mask);
 
-	if(trace.startsolid)
+	if(trace.start_solid)
 		return g_edicts;
 
 	return NULL;
@@ -153,7 +153,7 @@ static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
  * G_AddGravity
  */
 static void G_AddGravity(edict_t *ent){
-	ent->velocity[2] -= ent->gravity * level.gravity * gi.serverframe;
+	ent->velocity[2] -= ent->gravity * level.gravity * gi.server_frame;
 }
 
 
@@ -186,7 +186,7 @@ retry:
 
 	trace = gi.Trace(start, ent->mins, ent->maxs, end, ent, mask);
 
-	VectorCopy(trace.endpos, ent->s.origin);
+	VectorCopy(trace.end, ent->s.origin);
 	gi.LinkEntity(ent);
 
 	if(trace.fraction != 1.0){
@@ -284,7 +284,7 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 			continue;  // not linked in anywhere
 
 		// if the entity is standing on the pusher, it will definitely be moved
-		if(check->groundentity != pusher){
+		if(check->ground_entity != pusher){
 
 			// do not push entities which are beside us
 			if(check->item)
@@ -304,7 +304,7 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 				continue;
 		}
 
-		if((pusher->movetype == MOVETYPE_PUSH) || (check->groundentity == pusher)){
+		if((pusher->movetype == MOVETYPE_PUSH) || (check->ground_entity == pusher)){
 			// move this entity
 			pushed_p->ent = check;
 			VectorCopy(check->s.origin, pushed_p->origin);
@@ -327,8 +327,8 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 			VectorAdd(check->s.origin, move2, check->s.origin);
 
 			// may have pushed them off an edge
-			if(check->groundentity != pusher)
-				check->groundentity = NULL;
+			if(check->ground_entity != pusher)
+				check->ground_entity = NULL;
 
 			block = G_TestEntityPosition(check);
 			if(!block){  // pushed okay
@@ -397,8 +397,8 @@ static void G_Physics_Pusher(edict_t *ent){
 		if(part->velocity[0] || part->velocity[1] || part->velocity[2] ||
 				part->avelocity[0] || part->avelocity[1] || part->avelocity[2]
 		  ){  // object is moving
-			VectorScale(part->velocity, gi.serverframe, move);
-			VectorScale(part->avelocity, gi.serverframe, amove);
+			VectorScale(part->velocity, gi.server_frame, move);
+			VectorScale(part->avelocity, gi.server_frame, amove);
 
 			if(!G_Push(part, move, amove))
 				break;  // move was blocked
@@ -412,7 +412,7 @@ static void G_Physics_Pusher(edict_t *ent){
 		// the move failed, bump all nextthink times and back out moves
 		for(mv = ent; mv; mv = mv->teamchain){
 			if(mv->nextthink > 0)
-				mv->nextthink += gi.serverframe;
+				mv->nextthink += gi.server_frame;
 		}
 
 		// if the pusher has a "blocked" function, call it
@@ -450,8 +450,8 @@ static void G_Physics_Noclip(edict_t *ent){
 	if(!G_RunThink(ent))
 		return;
 
-	VectorMA(ent->s.angles, gi.serverframe, ent->avelocity, ent->s.angles);
-	VectorMA(ent->s.origin, gi.serverframe, ent->velocity, ent->s.origin);
+	VectorMA(ent->s.angles, gi.server_frame, ent->avelocity, ent->s.angles);
+	VectorMA(ent->s.origin, gi.server_frame, ent->velocity, ent->s.origin);
 
 	gi.LinkEntity(ent);
 }
@@ -477,16 +477,16 @@ static void G_Physics_Toss(edict_t *ent){
 		return;
 
 	// check for the ground entity going away
-	if(ent->groundentity){
-		if(!ent->groundentity->inuse)
-			ent->groundentity = NULL;
-		else if(ent->velocity[2] > ent->groundentity->velocity[2] + 0.1)
-			ent->groundentity = NULL;
+	if(ent->ground_entity){
+		if(!ent->ground_entity->inuse)
+			ent->ground_entity = NULL;
+		else if(ent->velocity[2] > ent->ground_entity->velocity[2] + 0.1)
+			ent->ground_entity = NULL;
 		else return;
 	}
 
 	// if on ground, or intentionally floating, return without moving
-	if(ent->groundentity || (ent->item && (ent->spawnflags & 4)))
+	if(ent->ground_entity || (ent->item && (ent->spawnflags & 4)))
 		return;
 
 	// enforce max velocity values
@@ -497,11 +497,11 @@ static void G_Physics_Toss(edict_t *ent){
 		G_AddGravity(ent);
 
 	// move angles
-	VectorMA(ent->s.angles, gi.serverframe, ent->avelocity, ent->s.angles);
+	VectorMA(ent->s.angles, gi.server_frame, ent->avelocity, ent->s.angles);
 
 	// move origin
 	VectorCopy(ent->s.origin, org);
-	VectorScale(ent->velocity, gi.serverframe, move);
+	VectorScale(ent->velocity, gi.server_frame, move);
 
 	// push through the world, interacting with triggers and other ents
 	trace = G_PushEntity(ent, move);
@@ -521,8 +521,8 @@ static void G_Physics_Toss(edict_t *ent){
 
 				VectorClear(ent->velocity);
 
-				ent->groundentity = trace.ent;
-				ent->groundentity_linkcount = trace.ent->linkcount;
+				ent->ground_entity = trace.ent;
+				ent->ground_entity_linkcount = trace.ent->linkcount;
 			}
 			else {
 				// bounce and slide along the floor
@@ -540,14 +540,14 @@ static void G_Physics_Toss(edict_t *ent){
 	}
 
 	// check for water transition
-	wasinwater = (ent->watertype & MASK_WATER);
-	ent->watertype = gi.PointContents(ent->s.origin);
-	isinwater = ent->watertype & MASK_WATER;
+	wasinwater = (ent->water_type & MASK_WATER);
+	ent->water_type = gi.PointContents(ent->s.origin);
+	isinwater = ent->water_type & MASK_WATER;
 
 	if(isinwater)
-		ent->waterlevel = 1;
+		ent->water_level = 1;
 	else
-		ent->waterlevel = 0;
+		ent->water_level = 0;
 
 	if(!wasinwater && isinwater)
 		gi.PositionedSound(ent->s.origin, g_edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);

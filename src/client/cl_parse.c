@@ -52,7 +52,7 @@ char *svc_strings[256] = {
  * Returns true if the file exists, otherwise it attempts
  * to start a download from the server.
  */
-qboolean Cl_CheckOrDownloadFile(const char *filename){
+qboolean Cl_CheckOrDownloadFile(const char *file_name){
 	FILE *fp;
 	char name[MAX_OSPATH];
 	char cmd[MAX_STRING_CHARS];
@@ -62,35 +62,35 @@ qboolean Cl_CheckOrDownloadFile(const char *filename){
 		return true;
 	}
 
-	if(filename[0] == '/'){
+	if(file_name[0] == '/'){
 		Com_Warn("Refusing to download a path starting with /.\n");
 		return true;
 	}
-	if(strstr(filename, "..")){
+	if(strstr(file_name, "..")){
 		Com_Warn("Refusing to download a path with .. .\n");
 		return true;
 	}
-	if(strchr(filename, ' ')){
+	if(strchr(file_name, ' ')){
 		Com_Warn("Refusing to download a path with whitespace.\n");
 		return true;
 	}
 
-	Com_Debug("Checking for %s\n", filename);
+	Com_Debug("Checking for %s\n", file_name);
 
-	if(Fs_LoadFile(filename, NULL) != -1){  // it exists, no need to download
+	if(Fs_LoadFile(file_name, NULL) != -1){  // it exists, no need to download
 		return true;
 	}
 
-	Com_Debug("Attempting to download %s\n", filename);
+	Com_Debug("Attempting to download %s\n", file_name);
 
-	strcpy(cls.download.name, filename);
+	strcpy(cls.download.name, file_name);
 
 	// udp downloads to a temp name, and only renames when done
 	Com_StripExtension(cls.download.name, cls.download.tempname);
 	strcat(cls.download.tempname, ".tmp");
 
 	// attempt an http download if available
-	if(cls.downloadurl[0] && Cl_HttpDownload())
+	if(cls.download_url[0] && Cl_HttpDownload())
 		return false;
 
 	// check to see if we already have a tmp for this file, if so, try to resume
@@ -132,7 +132,7 @@ qboolean Cl_CheckOrDownloadFile(const char *filename){
 void Cl_Download_f(void){
 
 	if(Cmd_Argc() != 2){
-		Com_Print("Usage: %s <filename>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <file_name>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -170,16 +170,16 @@ static void Cl_ParseDownload(void){
 		Fs_CreatePath(name);
 
 		if(!(cls.download.file = fopen(name, "wb"))){
-			net_message.readcount += size;
+			net_message.read += size;
 			Com_Warn("Failed to open %s.\n", name);
 			Cl_RequestNextDownload();
 			return;
 		}
 	}
 
-	Fs_Write(net_message.data + net_message.readcount, 1, size, cls.download.file);
+	Fs_Write(net_message.data + net_message.read, 1, size, cls.download.file);
 
-	net_message.readcount += size;
+	net_message.read += size;
 
 	if(percent != 100){
 		Msg_WriteByte(&cls.netchan.message, clc_stringcmd);
@@ -237,11 +237,11 @@ static qboolean Cl_ParseServerData(void){
 	}
 
 	// retrieve spawn count and packet rate
-	cl.servercount = Msg_ReadLong(&net_message);
-	cl.serverrate = Msg_ReadLong(&net_message);
+	cl.server_count = Msg_ReadLong(&net_message);
+	cl.server_hz = Msg_ReadLong(&net_message);
 
 	// determine if we're viewing a demo
-	cl.demoserver = Msg_ReadByte(&net_message);
+	cl.demo_server = Msg_ReadByte(&net_message);
 
 	// game directory
 	str = Msg_ReadString(&net_message);
@@ -252,7 +252,7 @@ static qboolean Cl_ParseServerData(void){
 			(!*str && (*fs_gamedirvar->string))){
 
 		if(strcmp(fs_gamedirvar->string, str)){
-			if(cl.demoserver){
+			if(cl.demo_server){
 				Cvar_ForceSet("game", str);
 				Fs_SetGamedir(str);
 			}
@@ -261,7 +261,7 @@ static qboolean Cl_ParseServerData(void){
 	}
 
 	// parse player entity number
-	cl.playernum = Msg_ReadShort(&net_message);
+	cl.player_num = Msg_ReadShort(&net_message);
 
 	// get the full level name
 	str = Msg_ReadString(&net_message);
@@ -300,9 +300,9 @@ void Cl_LoadClientinfo(cl_clientinfo_t *ci, const char *s){
 	char *u, *v;
 	char model_name[MAX_QPATH];
 	char skin_name[MAX_QPATH];
-	char model_filename[MAX_QPATH];
-	char skin_filename[MAX_QPATH];
-	char weapon_filename[MAX_QPATH];
+	char model_file_name[MAX_QPATH];
+	char skin_file_name[MAX_QPATH];
+	char weapon_file_name[MAX_QPATH];
 
 	// copy the entire string
 	strncpy(ci->cinfo, s, sizeof(ci->cinfo));
@@ -340,29 +340,29 @@ void Cl_LoadClientinfo(cl_clientinfo_t *ci, const char *s){
 	}
 
 	// load the model
-	snprintf(model_filename, sizeof(model_filename), "players/%s/tris.md2", model_name);
-	ci->model = R_LoadModel(model_filename);
+	snprintf(model_file_name, sizeof(model_file_name), "players/%s/tris.md2", model_name);
+	ci->model = R_LoadModel(model_file_name);
 	if(!ci->model){
 		strcpy(model_name, "ichabod");
 		strcpy(skin_name, "ichabod");
-		snprintf(model_filename, sizeof(model_filename), "players/ichabod/tris.md2");
-		ci->model = R_LoadModel(model_filename);
+		snprintf(model_file_name, sizeof(model_file_name), "players/ichabod/tris.md2");
+		ci->model = R_LoadModel(model_file_name);
 	}
 
 	// and the skin
-	snprintf(skin_filename, sizeof(skin_filename), "players/%s/%s.pcx", model_name, skin_name);
-	ci->skin = R_LoadImage(skin_filename, it_skin);
+	snprintf(skin_file_name, sizeof(skin_file_name), "players/%s/%s.pcx", model_name, skin_name);
+	ci->skin = R_LoadImage(skin_file_name, it_skin);
 
 	// if we don't have it, use the first one we do have for the model
 	if(ci->skin == r_notexture){
-		snprintf(skin_filename, sizeof(skin_filename), "players/%s/?[!_]*.pcx", model_name);
-		ci->skin = R_LoadImage(Fs_FindFirst(skin_filename, false), it_skin);
+		snprintf(skin_file_name, sizeof(skin_file_name), "players/%s/?[!_]*.pcx", model_name);
+		ci->skin = R_LoadImage(Fs_FindFirst(skin_file_name, false), it_skin);
 	}
 
 	// weapon models
 	for(i = 0; i < cl.num_weaponmodels; i++){
-		snprintf(weapon_filename, sizeof(weapon_filename), "players/%s/%s", model_name, cl.weaponmodels[i]);
-		ci->weaponmodel[i] = R_LoadModel(weapon_filename);
+		snprintf(weapon_file_name, sizeof(weapon_file_name), "players/%s/%s", model_name, cl.weaponmodels[i]);
+		ci->weaponmodel[i] = R_LoadModel(weapon_file_name);
 		if(!ci->weaponmodel[i])
 			break;
 	}
@@ -454,7 +454,7 @@ static void Cl_ParseSound(void){
 	vec3_t origin;
 	float *org;
 	int soundindex;
-	int entnum;
+	int ent_num;
 	int atten;
 	int flags;
 
@@ -468,25 +468,25 @@ static void Cl_ParseSound(void){
 		atten = DEFAULT_SOUND_ATTENUATION;
 
 	if(flags & S_ENTNUM){  // entity relative
-		entnum = Msg_ReadShort(&net_message);
+		ent_num = Msg_ReadShort(&net_message);
 
-		if(entnum > MAX_EDICTS)
-			Com_Error(ERR_DROP, "Cl_ParseSound: entnum = %d.\n", entnum);
+		if(ent_num > MAX_EDICTS)
+			Com_Error(ERR_DROP, "Cl_ParseSound: ent_num = %d.\n", ent_num);
 	} else {
-		entnum = -1;
+		ent_num = -1;
 	}
 
 	if(flags & S_ORIGIN){  // positioned in space
 		Msg_ReadPos(&net_message, origin);
 
 		org = origin;
-	} else  // use entnum
+	} else  // use ent_num
 		org = NULL;
 
 	if(!cl.sound_precache[soundindex])
 		return;
 
-	S_PlaySample(org, entnum, cl.sound_precache[soundindex], atten);
+	S_PlaySample(org, ent_num, cl.sound_precache[soundindex], atten);
 }
 
 
@@ -514,7 +514,7 @@ static qboolean Cl_IgnoreChatMessage(const char *msg){
  */
 static void Cl_ShowNet(const char *s){
 	if(cl_shownet->value >= 2)
-		Com_Print("%3zd: %s\n", net_message.readcount - 1, s);
+		Com_Print("%3zd: %s\n", net_message.read - 1, s);
 }
 
 
@@ -535,8 +535,8 @@ static void Cl_ZlibServerMessage(void){
 
 	inflateInit2(&z, -15);
 
-	z.avail_in = net_message.cursize - net_message.readcount;
-	z.next_in = net_message.data + net_message.readcount;
+	z.avail_in = net_message.size - net_message.read;
+	z.next_in = net_message.data + net_message.read;
 
 	z.avail_out = MAX_MSGLEN;
 	z.next_out = zbuf;
@@ -546,14 +546,14 @@ static void Cl_ZlibServerMessage(void){
 
 	inflateEnd(&z);
 
-	net_message.readcount--;  // overwrite the zlib command
+	net_message.read--;  // overwrite the zlib command
 
 	// clear remainder of message, replace with deflated
 	// content, and update message length accordingly
-	memset(net_message.data + net_message.readcount, 0,
-			net_message.cursize - net_message.readcount);
-	memcpy(net_message.data + net_message.readcount, zbuf, len);
-	net_message.cursize = net_message.readcount + len;
+	memset(net_message.data + net_message.read, 0,
+			net_message.size - net_message.read);
+	memcpy(net_message.data + net_message.read, zbuf, len);
+	net_message.size = net_message.read + len;
 }
 
 
@@ -562,25 +562,25 @@ static void Cl_ZlibServerMessage(void){
  */
 void Cl_ParseServerMessage(void){
 	extern int bytes_this_second;
-	int cmd, oldcmd;
+	int cmd, old_cmd;
 	char *s;
 	int i;
 
 	if(cl_shownet->value == 1)
-		Com_Print(Q2W_SIZE_T" ", net_message.cursize);
+		Com_Print(Q2W_SIZE_T" ", net_message.size);
 	else if(cl_shownet->value >= 2)
 		Com_Print("------------------\n");
 
-	bytes_this_second += net_message.cursize;
+	bytes_this_second += net_message.size;
 	cmd = 0;
 
 	// parse the message
 	while(true){
-		if(net_message.readcount > net_message.cursize){
+		if(net_message.read > net_message.size){
 			Com_Error(ERR_DROP, "Cl_ParseServerMessage: Bad server message.\n");
 		}
 
-		oldcmd = cmd;
+		old_cmd = cmd;
 		cmd = Msg_ReadByte(&net_message);
 
 		if(cmd == -1){
@@ -684,7 +684,7 @@ void Cl_ParseServerMessage(void){
 
 			default:
 				Com_Print("Cl_ParseServerMessage: Illegible server message\n"
-						"  %d: last command was %s\n", cmd, svc_strings[oldcmd]);
+						"  %d: last command was %s\n", cmd, svc_strings[old_cmd]);
 				break;
 		}
 	}

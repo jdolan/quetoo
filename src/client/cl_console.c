@@ -62,7 +62,7 @@ void Cl_UpdateNotify(int lastline){
 	int i;
 
 	for(i = lastline; i < cl_con.lastline; i++)
-		cl_con.times[i % CON_NUMTIMES] = cls.realtime;
+		cl_con.times[i % CON_NUMTIMES] = cls.real_time;
 }
 
 
@@ -142,7 +142,7 @@ static void Cl_DrawInput(void){
 	y = strlen(text);
 
 	// add the cursor frame
-	if((int)(cls.realtime >> 8) & 1){
+	if((int)(cls.real_time >> 8) & 1){
 		text[cls.key_state.pos] = CON_CURSORCHAR;
 		if(y == cls.key_state.pos)
 			y++;
@@ -180,7 +180,7 @@ void Cl_DrawNotify(void){
 		if(i < 0)
 			continue;
 
-		if(cl_con.times[i % CON_NUMTIMES] + con_notifytime->value * 1000 > cls.realtime){
+		if(cl_con.times[i % CON_NUMTIMES] + con_notifytime->value * 1000 > cls.real_time){
 			R_DrawBytes(0, y, cl_con.linestart[i], cl_con.linestart[i + 1] - cl_con.linestart[i], cl_con.linecolor[i]);
 			y += 32;
 		}
@@ -205,7 +205,7 @@ void Cl_DrawNotify(void){
 
 		len = R_DrawString(skip << 4, y, s, color);
 
-		if((int)(cls.realtime >> 8) & 1)  // draw the cursor
+		if((int)(cls.real_time >> 8) & 1)  // draw the cursor
 			R_DrawChar((len + skip) << 4, y, CON_CURSORCHAR, color);
 	}
 }

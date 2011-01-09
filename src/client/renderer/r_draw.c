@@ -70,7 +70,7 @@ typedef struct line_arrays_s {
 static line_arrays_t r_line_arrays;
 
 // hash pics for fast lookup
-hashtable_t r_pics_hashtable;
+hash_table_t r_pics_hash_table;
 
 // chars and cursor
 r_image_t *r_draw_chars;
@@ -94,7 +94,7 @@ void R_InitDraw(void){
 	r_char_colors[CON_COLOR_MAGENTA]	= 0xFFFF00FF;
 	r_char_colors[CON_COLOR_WHITE] 		= 0xFFFFFFFF;
 
-	Hash_Init(&r_pics_hashtable);
+	Hash_Init(&r_pics_hash_table);
 }
 
 
@@ -260,8 +260,8 @@ int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int 
  * R_FreePics
  */
 void R_FreePics(void){
-	Hash_Free(&r_pics_hashtable);
-	Hash_Init(&r_pics_hashtable);
+	Hash_Free(&r_pics_hash_table);
+	Hash_Init(&r_pics_hash_table);
 }
 
 
@@ -272,7 +272,7 @@ r_image_t *R_LoadPic(const char *name){
 	int i;
 	r_image_t *image;
 
-	if((image = Hash_Get(&r_pics_hashtable, name)))
+	if((image = Hash_Get(&r_pics_hash_table, name)))
 		return image;
 
 	for(i = 0; i < MAX_IMAGES; i++){
@@ -289,7 +289,7 @@ r_image_t *R_LoadPic(const char *name){
 	if(i < MAX_IMAGES)  // insert to precache
 		cl.image_precache[i] = image;
 
-	Hash_Put(&r_pics_hashtable, name, image);
+	Hash_Put(&r_pics_hash_table, name, image);
 
 	return image;
 }

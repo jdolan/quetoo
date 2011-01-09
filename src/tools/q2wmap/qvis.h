@@ -122,7 +122,7 @@ extern int testlevel;
 
 extern byte *uncompressed;
 
-void LeafFlow(int leafnum);
+void LeafFlow(int leaf_num);
 
 void BasePortalVis(int portal_num);
 void BetterPortalVis(int portal_num);

@@ -33,11 +33,11 @@ int quad_damage_index;
 /*
  * G_ItemByIndex
  */
-gitem_t *G_ItemByIndex(int index){
+g_item_t *G_ItemByIndex(int index){
 	if(index == 0 || index >= game.num_items)
 		return NULL;
 
-	return &itemlist[index];
+	return &g_items[index];
 }
 
 
@@ -45,11 +45,11 @@ gitem_t *G_ItemByIndex(int index){
  * G_FindItemByClassname
  *
  */
-gitem_t *G_FindItemByClassname(const char *classname){
+g_item_t *G_FindItemByClassname(const char *classname){
 	int i;
-	gitem_t *it;
+	g_item_t *it;
 
-	it = itemlist;
+	it = g_items;
 	for(i = 0; i < game.num_items; i++, it++){
 		if(!it->classname)
 			continue;
@@ -64,11 +64,11 @@ gitem_t *G_FindItemByClassname(const char *classname){
 /*
  * G_FindItem
  */
-gitem_t *G_FindItem(const char *pickup_name){
+g_item_t *G_FindItem(const char *pickup_name){
 	int i;
-	gitem_t *it;
+	g_item_t *it;
 
-	it = itemlist;
+	it = g_items;
 	for(i = 0; i < game.num_items; i++, it++){
 		if(!it->pickup_name)
 			continue;
@@ -171,7 +171,7 @@ static qboolean G_PickupQuadDamage(edict_t *ent, edict_t *other){
 /*
  * G_AddAmmo
  */
-qboolean G_AddAmmo(edict_t *ent, gitem_t *item, int count){
+qboolean G_AddAmmo(edict_t *ent, g_item_t *item, int count){
 	int index;
 	int max;
 
@@ -234,7 +234,7 @@ static qboolean G_PickupAmmo(edict_t *ent, edict_t *other){
 /*
  * G_DropAmmo
  */
-static void G_DropAmmo(edict_t *ent, gitem_t *item){
+static void G_DropAmmo(edict_t *ent, g_item_t *item){
 	edict_t *dropped;
 	int index;
 
@@ -322,7 +322,7 @@ static qboolean G_PickupArmor(edict_t *ent, edict_t *other){
 /*
  * G_DropFlag
  */
-static void G_DropFlag(edict_t *ent, gitem_t *item){
+static void G_DropFlag(edict_t *ent, g_item_t *item){
 
 	// this routine already exists for player deaths
 	P_TossFlag(ent);
@@ -335,7 +335,7 @@ static void G_DropFlag(edict_t *ent, gitem_t *item){
  * A dropped flag has been idle for 30 seconds, return it.
  */
 void G_ResetFlag(edict_t *ent){
-	team_t *t;
+	g_team_t *t;
 	edict_t *f;
 
 	if(!(t = G_TeamForFlag(ent)))
@@ -362,7 +362,7 @@ void G_ResetFlag(edict_t *ent){
  * Take the enemy's flag.
  */
 static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
-	team_t *t, *ot;
+	g_team_t *t, *ot;
 	edict_t *f, *of;
 	int index;
 
@@ -401,7 +401,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 
 			other->client->locals.inventory[index] = 0;
 			other->s.effects &= ~G_EffectForTeam(ot);
-			other->s.modelindex3 = 0;
+			other->s.model_index3 = 0;
 
 			of->svflags &= ~SVF_NOCLIENT;  // reset the other flag
 			of->s.event = EV_ITEM_RESPAWN;
@@ -430,7 +430,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 	other->client->locals.inventory[index] = 1;
 
 	// link the flag model to the player
-	other->s.modelindex3 = gi.ModelIndex(f->item->model);
+	other->s.model_index3 = gi.ModelIndex(f->item->model);
 
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTN_NONE);
 
@@ -508,8 +508,8 @@ static void G_DropItemThink(edict_t *ent){
 	int contents;
 	float f;
 
-	if(!ent->groundentity){  // keep falling in valid space
-		ent->nextthink = level.time + gi.serverframe;
+	if(!ent->ground_entity){  // keep falling in valid space
+		ent->nextthink = level.time + gi.server_frame;
 		return;
 	}
 
@@ -554,7 +554,7 @@ static void G_DropItemThink(edict_t *ent){
  * Handles the mechanics of dropping items, but does not adjust the client's
  * inventory.  That is left to the caller.
  */
-edict_t *G_DropItem(edict_t *ent, gitem_t *item){
+edict_t *G_DropItem(edict_t *ent, g_item_t *item){
 	edict_t *dropped;
 	vec3_t forward, right;
 	vec3_t offset;
@@ -587,7 +587,7 @@ edict_t *G_DropItem(edict_t *ent, gitem_t *item){
 		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs,
 				dropped->s.origin, ent, CONTENTS_SOLID);
 
-		VectorCopy(trace.endpos, dropped->s.origin);
+		VectorCopy(trace.end, dropped->s.origin);
 	} else {
 		AngleVectors(ent->s.angles, forward, right, NULL);
 
@@ -598,7 +598,7 @@ edict_t *G_DropItem(edict_t *ent, gitem_t *item){
 	}
 
 	// we're in a bad spot, forget it
-	if(trace.startsolid){
+	if(trace.start_solid){
 
 		if(item->flags & IT_FLAG)
 			G_ResetFlag(dropped);
@@ -612,7 +612,7 @@ edict_t *G_DropItem(edict_t *ent, gitem_t *item){
 	dropped->velocity[2] = 200.0 + (frand() * 150.0);
 
 	dropped->think = G_DropItemThink;
-	dropped->nextthink = level.time + gi.serverframe;
+	dropped->nextthink = level.time + gi.server_frame;
 
 	gi.LinkEntity(dropped);
 
@@ -650,22 +650,22 @@ static void G_DropToFloor(edict_t *ent){
 
 	if(ent->spawnflags & SF_ITEM_HOVER){  // some items should not fall
 		ent->movetype = MOVETYPE_FLY;
-		ent->groundentity = NULL;
+		ent->ground_entity = NULL;
 	}
 	else {  // while most do, and will also be pushed by their ground
 		VectorCopy(ent->s.origin, dest);
 		dest[2] -= 8192;
 
 		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
-		if(tr.startsolid){
-			gi.Debug("G_DropToFloor: %s startsolid at %s\n", ent->classname,
+		if(tr.start_solid){
+			gi.Debug("G_DropToFloor: %s start_solid at %s\n", ent->classname,
 					vtos(ent->s.origin));
 			G_FreeEdict(ent);
 			return;
 		}
 
-		VectorCopy(tr.endpos, ent->s.origin);
-		ent->groundentity = tr.ent;
+		VectorCopy(tr.end, ent->s.origin);
+		ent->ground_entity = tr.ent;
 	}
 
 	gi.LinkEntity(ent);
@@ -679,11 +679,11 @@ static void G_DropToFloor(edict_t *ent){
  * This will be called for each item spawned in a level,
  * and for each item in each client's inventory.
  */
-void G_PrecacheItem(gitem_t *it){
+void G_PrecacheItem(g_item_t *it){
 	char *s, *start;
 	char data[MAX_QPATH];
 	int len;
-	gitem_t *ammo;
+	g_item_t *ammo;
 
 	if(!it)
 		return;
@@ -740,7 +740,7 @@ void G_PrecacheItem(gitem_t *it){
  * Items can't be immediately dropped to floor, because they might
  * be on an entity that hasn't spawned yet.
  */
-void G_SpawnItem(edict_t *ent, gitem_t *item){
+void G_SpawnItem(edict_t *ent, g_item_t *item){
 
 	G_PrecacheItem(item);
 
@@ -756,7 +756,7 @@ void G_SpawnItem(edict_t *ent, gitem_t *item){
 	ent->movetype = MOVETYPE_TOSS;
 	ent->touch = G_TouchItem;
 	ent->think = G_DropToFloor;
-	ent->nextthink = level.time + 2 * gi.serverframe;  // items start after other solids
+	ent->nextthink = level.time + 2 * gi.server_frame;  // items start after other solids
 
 	ent->item = item;
 	ent->s.effects = item->effects;
@@ -774,7 +774,7 @@ void G_SpawnItem(edict_t *ent, gitem_t *item){
 		ent->svflags |= SVF_NOCLIENT;
 		ent->solid = SOLID_NOT;
 		if(ent == ent->teammaster){
-			ent->nextthink = level.time + gi.serverframe;
+			ent->nextthink = level.time + gi.server_frame;
 			ent->think = G_DoRespawn;
 		}
 	}
@@ -800,7 +800,7 @@ void G_SpawnItem(edict_t *ent, gitem_t *item){
 }
 
 
-gitem_t itemlist[] = {
+g_item_t g_items[] = {
 	{
 		NULL
 	},     // leave index 0 alone
@@ -1437,7 +1437,7 @@ gitem_t itemlist[] = {
 
 
 // override quake2 items for legacy maps
-override_t overrides[] = {
+g_override_t overrides[] = {
 	{"weapon_chaingun", "weapon_machinegun"},
 	{"item_invulnerability", "item_quad"},
 	{"item_power_shield", "item_armor_combat"},
@@ -1450,7 +1450,7 @@ override_t overrides[] = {
  * G_InitItems
  */
 void G_InitItems(void){
-	game.num_items = sizeof(itemlist) / sizeof(itemlist[0]) - 1;
+	game.num_items = sizeof(g_items) / sizeof(g_items[0]) - 1;
 	game.num_overrides = sizeof(overrides) / sizeof(overrides[0]) - 1;
 }
 
@@ -1462,11 +1462,11 @@ void G_InitItems(void){
  */
 void G_SetItemNames(void){
 	int i, j;
-	gitem_t *it;
-	override_t *ov;
+	g_item_t *it;
+	g_override_t *ov;
 
 	for(i = 0; i < game.num_items; i++){
-		it = &itemlist[i];
+		it = &g_items[i];
 		if(it->classname){
 			for(j = 0; j < game.num_overrides; j++){
 				ov = &overrides[j];

@@ -168,7 +168,7 @@ extern qboolean notjunc;
 
 extern vec_t microvolume;
 
-void LoadMapFile(const char *filename);
+void LoadMapFile(const char *file_name);
 int FindFloatPlane(vec3_t normal, vec_t dist);
 qboolean WindingIsTiny(const winding_t * w);
 

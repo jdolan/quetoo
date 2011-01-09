@@ -47,7 +47,7 @@ static void Cl_ClearLocations(void){
  */
 void Cl_LoadLocations(void){
 	const char *c;
-	char filename[MAX_QPATH];
+	char file_name[MAX_QPATH];
 	FILE *f;
 	int i;
 
@@ -56,11 +56,11 @@ void Cl_LoadLocations(void){
 
 	// load the locations file
 	c = Com_Basename(cl.configstrings[CS_MODELS + 1]);
-	snprintf(filename, sizeof(filename), "locations/%s", c);
-	strcpy(filename + strlen(filename) - 3, "loc");
+	snprintf(file_name, sizeof(file_name), "locations/%s", c);
+	strcpy(file_name + strlen(file_name) - 3, "loc");
 
-	if(Fs_OpenFile(filename, &f, FILE_READ) == -1){
-		Com_Debug("Couldn't load %s\n", filename);
+	if(Fs_OpenFile(file_name, &f, FILE_READ) == -1){
+		Com_Debug("Couldn't load %s\n", file_name);
 		return;
 	}
 
@@ -88,15 +88,15 @@ void Cl_LoadLocations(void){
  * Write locations for current level to file.
  */
 static void Cl_SaveLocations_f(void){
-	char filename[MAX_QPATH];
+	char file_name[MAX_QPATH];
 	FILE *f;
 	int i;
 
-	snprintf(filename, sizeof(filename), "%s/%s", Fs_Gamedir(), cl.configstrings[CS_MODELS + 1]);
-	strcpy(filename + strlen(filename) - 3, "loc");  // change to .loc
+	snprintf(file_name, sizeof(file_name), "%s/%s", Fs_Gamedir(), cl.configstrings[CS_MODELS + 1]);
+	strcpy(file_name + strlen(file_name) - 3, "loc");  // change to .loc
 
-	if((f = fopen(filename, "w")) == NULL){
-		Com_Warn("Cl_SaveLocations_f: Failed to write %s\n", filename);
+	if((f = fopen(file_name, "w")) == NULL){
+		Com_Warn("Cl_SaveLocations_f: Failed to write %s\n", file_name);
 		return;
 	}
 
@@ -164,7 +164,7 @@ const char *Cl_LocationThere(void){
 	// and trace to world model
 	R_Trace(r_view.origin, dest, 0, MASK_SHOT);
 
-	return Cl_Location(r_view.trace.endpos);
+	return Cl_Location(r_view.trace.end);
 }
 
 

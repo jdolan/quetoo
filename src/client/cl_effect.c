@@ -21,8 +21,6 @@
 
 #include "client.h"
 
-static vec3_t avelocities[NUMVERTEXNORMALS];
-
 static s_sample_t *cl_sample_shotgun_fire;
 static s_sample_t *cl_sample_supershotgun_fire;
 static s_sample_t *cl_sample_grenadelauncher_fire;
@@ -207,7 +205,7 @@ void Cl_BulletTrail(const vec3_t start, const vec3_t end){
 	VectorScale(p->vel, v < 1000.0 ? v : 1000.0, p->vel);
 
 	p->alpha = 0.2;
-	p->alphavel = -0.4;
+	p->alpha_vel = -0.4;
 
 	p->color = 14;
 }
@@ -241,7 +239,7 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 	p->scale = 1.5;
 
 	p->alpha = 2.0;
-	p->alphavel = -1.0 / (2.0 + frand() * 0.3);
+	p->alpha_vel = -1.0 / (2.0 + frand() * 0.3);
 
 	p->blend = GL_ONE_MINUS_SRC_ALPHA;
 
@@ -262,10 +260,10 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 	p->color = 221 + (rand() & 7);
 
 	p->scale = 1.5;
-	p->scalevel = -4.0;
+	p->scale_vel = -4.0;
 
 	p->alpha = 1.0;
-	p->alphavel = -1.0 / (0.7 + crand() * 0.1);
+	p->alpha_vel = -1.0 / (0.7 + crand() * 0.1);
 
 	VectorAdd(org, dir, v);
 	R_AddSustainedLight(v, 0.25, bullet_light, 0.25);
@@ -293,7 +291,7 @@ void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale){
 	VectorAdd(org, dir, p->org);
 
 	p->alpha = 2.0;
-	p->alphavel = -1.0 / (2.0 + frand() * 0.3);
+	p->alpha_vel = -1.0 / (2.0 + frand() * 0.3);
 
 	p->blend = GL_ONE_MINUS_SRC_ALPHA;
 }
@@ -327,7 +325,7 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
 		p->accel[2] = PARTICLE_GRAVITY / 4.0;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0 / (0.5 + frand() * 0.3);
+		p->alpha_vel = -1.0 / (0.5 + frand() * 0.3);
 	}
 }
 
@@ -386,10 +384,10 @@ void Cl_GibEffect(const vec3_t org, int count){
 			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
 
 			p->scale = 6.0 + frand();
-			p->scalevel = -6.0 + crand();
+			p->scale_vel = -6.0 + crand();
 
 			p->alpha = 1.0;
-			p->alphavel = -1.0 / (2.0 + frand() * 0.3);
+			p->alpha_vel = -1.0 / (2.0 + frand() * 0.3);
 		}
 	}
 }
@@ -423,10 +421,10 @@ void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 		p->accel[2] = -PARTICLE_GRAVITY;
 
 		p->scale = 2.5;
-		p->scalevel = -4.0;
+		p->scale_vel = -4.0;
 
 		p->alpha = 1.5;
-		p->alphavel = -1.0 / (0.5 + frand() * 0.3);
+		p->alpha_vel = -1.0 / (0.5 + frand() * 0.3);
 	}
 }
 
@@ -458,7 +456,7 @@ void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *cent){
 		p->color = 216;
 		p->scale = 20;
 		p->alpha = 1.0;
-		p->alphavel = -1.4;
+		p->alpha_vel = -1.4;
 
 		VectorCopy(org, p->org);
 		p->org[2] -= (6 * i);
@@ -504,7 +502,7 @@ void Cl_ItemRespawnEffect(const vec3_t org){
 		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0 / (1.0 + frand() * 0.3);
+		p->alpha_vel = -1.0 / (1.0 + frand() * 0.3);
 	}
 
 	R_AddSustainedLight(org, 1.0, item_light, 0.5);
@@ -524,10 +522,10 @@ void Cl_ExplosionEffect(const vec3_t org){
 	p->image = r_explosiontexture;
 
 	p->scale = 1.0;
-	p->scalevel = 600.0;
+	p->scale_vel = 600.0;
 
 	p->alpha = 1.0;
-	p->alphavel = -4.0;
+	p->alpha_vel = -4.0;
 
 	p->color = 224;
 
@@ -549,10 +547,10 @@ void Cl_ExplosionEffect(const vec3_t org){
 	p->roll = crand() * 100.0;
 
 	p->scale = 12.0;
-	p->scalevel = 40.0;
+	p->scale_vel = 40.0;
 
 	p->alpha = 1.0;
-	p->alphavel = -1.0 / (1 + frand() * 0.6);
+	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
 
 	p->color = 4 + (rand() & 7);
 
@@ -608,10 +606,10 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	p->type = PARTICLE_ROLL;
 
 	p->scale = 2.0;
-	p->scalevel = 20.0;
+	p->scale_vel = 20.0;
 
 	p->alpha = 0.75;
-	p->alphavel = -1.0 / (1 + frand() * 0.6);
+	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
 	p->color = 6 + (rand() & 7);
 	for(j = 0; j < 3; j++){
 		p->org[j] = end[j];
@@ -621,7 +619,7 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 
 	// make smoke rise from grenades that have come to rest
 	if(ent && stationary){
-		p->alphavel *= 0.65;
+		p->alpha_vel *= 0.65;
 		p->accel[2] = 20.0;
 	}
 }
@@ -649,7 +647,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
 	tr = Cm_BoxTrace(ent->origin, org, vec3_origin, vec3_origin, 0, MASK_SHOT);
 
 	if(tr.fraction < 1.0){  // firing near a wall, back it up
-		VectorSubtract(ent->origin, tr.endpos, org);
+		VectorSubtract(ent->origin, tr.end, org);
 		VectorScale(org, 0.75, org);
 
 		VectorAdd(ent->origin, org, org);
@@ -678,10 +676,10 @@ void Cl_SmokeFlash(entity_state_t *ent){
 	p->type = PARTICLE_ROLL;
 
 	p->scale = 6.0;
-	p->scalevel = 12.0;
+	p->scale_vel = 12.0;
 
 	p->alpha = 0.3;
-	p->alphavel = -0.3;
+	p->alpha_vel = -0.3;
 
 	p->color = 6 + (rand() & 7);
 
@@ -727,7 +725,7 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	p->scale = 10.0 + crand();
 
 	p->alpha = 0.75;
-	p->alphavel = -1.0 / (2 + frand() * 0.3);
+	p->alpha_vel = -1.0 / (2 + frand() * 0.3);
 	p->color = 220 + (rand() & 7);
 
 	for(j = 0; j < 3; j++){
@@ -738,7 +736,7 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	// make static flames rise
 	if(ent){
 		if(VectorCompare(ent->current.origin, ent->current.old_origin)){
-			p->alphavel *= 0.65;
+			p->alpha_vel *= 0.65;
 			p->accel[2] = 20.0;
 		}
 	}
@@ -777,10 +775,10 @@ void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
 	p->type = PARTICLE_ROLL;
 
 	p->scale = 8.0;
-	p->scalevel = 20.0;
+	p->scale_vel = 20.0;
 
 	p->alpha = 0.75;
-	p->alphavel = -1.0 / (1 + frand() * 0.6);
+	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
 	p->color = 6 + (rand() & 7);
 
 	VectorCopy(org, p->org);
@@ -853,7 +851,7 @@ void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 		VectorCopy(pos, p->end);
 
 		p->alpha = 1.0;
-		p->alphavel = -50.0;
+		p->alpha_vel = -50.0;
 
 		p->color = 12 + (rand() & 3);
 
@@ -884,7 +882,7 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int flags, int color){
 	VectorCopy(end, p->end);
 
 	p->alpha = 0.75;
-	p->alphavel = -0.75;
+	p->alpha_vel = -0.75;
 
 	// white cores for some colors, shifted for others
 	p->color = (color > 239 || color == 187 ? 216 : color + 6);
@@ -910,10 +908,10 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int flags, int color){
 		p->image = r_railtrailtexture;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0;
+		p->alpha_vel = -1.0;
 
 		p->scale = 3.0 + crand() * 0.3;
-		p->scalevel = 8.0 + crand() * 0.3;
+		p->scale_vel = 8.0 + crand() * 0.3;
 
 		p->color = color;
 
@@ -936,10 +934,10 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int flags, int color){
 	p->image = r_explosiontexture;
 
 	p->scale = 1.0;
-	p->scalevel = 400.0;
+	p->scale_vel = 400.0;
 
 	p->alpha = 2.0;
-	p->alphavel = -10.0;
+	p->alpha_vel = -10.0;
 
 	p->color = color;
 
@@ -973,7 +971,7 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
 		p->type = PARTICLE_BUBBLE;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0 / (1 + frand() * 0.2);
+		p->alpha_vel = -1.0 / (1 + frand() * 0.2);
 		p->color = 4 + (rand() & 7);
 		for(j = 0; j < 3; j++){
 			p->org[j] = move[j] + crand() * 2;
@@ -990,6 +988,7 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
  * Cl_EnergyTrail
  */
 void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
+	static vec3_t angles[NUM_APPROXIMATE_NORMALS];
 	int i, c;
 	r_particle_t *p;
 	float angle;
@@ -999,20 +998,20 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 	vec3_t v;
 	float ltime;
 
-	if(!avelocities[0][0]){
-		for(i = 0; i < NUMVERTEXNORMALS * 3; i++)
-			avelocities[0][i] = (rand() & 255) * 0.01;
+	if(!angles[0][0]){  // initialize our angular velocities
+		for(i = 0; i < NUM_APPROXIMATE_NORMALS * 3; i++)
+			angles[0][i] = (rand() & 255) * 0.01;
 	}
 
 	ltime = (float)cl.time / 300.0;
 
-	for(i = 0; i < NUMVERTEXNORMALS; i+= 2){
+	for(i = 0; i < NUM_APPROXIMATE_NORMALS; i+= 2){
 
-		angle = ltime * avelocities[i][0];
+		angle = ltime * angles[i][0];
 		sy = sin(angle);
 		cy = cos(angle);
 
-		angle = ltime * avelocities[i][1];
+		angle = ltime * angles[i][1];
 		sp = sin(angle);
 		cp = cos(angle);
 
@@ -1024,19 +1023,22 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 			return;
 
 		p->scale = 0.75;
-		p->scalevel = 800.0;
+		p->scale_vel = 800.0;
 
 		dist = sin(ltime + i) * radius;
-		p->org[0] = ent->current.origin[0] + bytedirs[i][0] * dist + forward[0] * 16.0;
-		p->org[1] = ent->current.origin[1] + bytedirs[i][1] * dist + forward[1] * 16.0;
-		p->org[2] = ent->current.origin[2] + bytedirs[i][2] * dist + forward[2] * 16.0;
+
+		for(c = 0; c < 3; c++){
+			// project the origin outward, adding in angular velocity
+			p->org[c] = ent->current.origin[c] +
+					(approximate_normals[i][c] * dist) + forward[c] * 16.0;
+		}
 
 		VectorSubtract(p->org, ent->current.origin, v);
 		dist = VectorLength(v) / (3.0 * radius);
 		p->color = color + dist * 7.0;
 
 		p->alpha = 1.0 - dist;
-		p->alphavel = -100.0;
+		p->alpha_vel = -100.0;
 
 		p->vel[0] = p->vel[1] = p->vel[2] = 2.0 * crand();
 	}
@@ -1069,10 +1071,10 @@ void Cl_BFGEffect(const vec3_t org){
 		p->image = r_explosiontexture;
 
 		p->scale = 1.0;
-		p->scalevel = 200.0 * (i + 1);
+		p->scale_vel = 200.0 * (i + 1);
 
 		p->alpha = 1.0;
-		p->alphavel = -3.0;
+		p->alpha_vel = -3.0;
 
 		p->color = 201;
 
@@ -1133,10 +1135,10 @@ static void Cl_WeatherEffects(void){
 		p->type = PARTICLE_WEATHER;
 
 		// drop down somewhere between sky and player
-		ceiling = tr.endpos[2] > start[2] + 1024 ? start[2] + 1024 : tr.endpos[2];
-		tr.endpos[2] = tr.endpos[2] - ((ceiling - start[2]) * frand());
+		ceiling = tr.end[2] > start[2] + 1024 ? start[2] + 1024 : tr.end[2];
+		tr.end[2] = tr.end[2] - ((ceiling - start[2]) * frand());
 
-		VectorCopy(tr.endpos, p->org);
+		VectorCopy(tr.end, p->org);
 		p->org[2] -= 1;
 
 		// trace down look for ground
@@ -1148,7 +1150,7 @@ static void Cl_WeatherEffects(void){
 		if(!tr.surface)  // this shouldn't happen
 			VectorCopy(start, p->end);
 		else
-			VectorCopy(tr.endpos, p->end);
+			VectorCopy(tr.end, p->end);
 
 		// setup the particles
 		if(r_view.weather & WEATHER_RAIN){
@@ -1162,7 +1164,7 @@ static void Cl_WeatherEffects(void){
 			p->image = r_snowtexture;
 			p->vel[2] = -120;
 			p->alpha = 0.6;
-			p->alphavel = frand() * -1;
+			p->alpha_vel = frand() * -1;
 			p->color = 8;
 			p->scale = 1.5;
 		}
@@ -1214,25 +1216,25 @@ void Cl_AddParticles(void){
 
 		time = (cl.time - p->time) * 0.001;
 
-		p->curalpha = p->alpha + time * p->alphavel;
-		p->curscale = p->scale + time * p->scalevel;
+		p->current_alpha = p->alpha + time * p->alpha_vel;
+		p->current_scale = p->scale + time * p->scale_vel;
 
 		// free up particles that have faded or shrunk
-		if(p->curalpha <= 0 || p->curscale <= 0){
+		if(p->current_alpha <= 0 || p->current_scale <= 0){
 			Cl_ClearParticle(p);
 			continue;
 		}
 
-		if(p->curalpha > 1.0)  // clamp alpha
-			p->curalpha = 1.0;
+		if(p->current_alpha > 1.0)  // clamp alpha
+			p->current_alpha = 1.0;
 
 		for(i = 0; i < 3; i++){  // update origin and end
-			p->curorg[i] = p->org[i] + p->vel[i] * time + p->accel[i] * time * time;
-			p->curend[i] = p->end[i] + p->vel[i] * time + p->accel[i] * time * time;
+			p->current_org[i] = p->org[i] + p->vel[i] * time + p->accel[i] * time * time;
+			p->current_end[i] = p->end[i] + p->vel[i] * time + p->accel[i] * time * time;
 		}
 
 		// free up weather particles that have hit the ground
-		if(p->type == PARTICLE_WEATHER && (p->curorg[2] <= p->end[2])){
+		if(p->type == PARTICLE_WEATHER && (p->current_org[2] <= p->end[2])){
 			Cl_ClearParticle(p);
 			continue;
 		}

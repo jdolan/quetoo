@@ -26,7 +26,7 @@
  */
 
 typedef struct {
-	char filename[MAX_OSPATH];
+	char file_name[MAX_OSPATH];
 	char *buffer, *script_p, *end_p;
 	int line;
 } script_t;
@@ -42,21 +42,21 @@ static qboolean endofscript;
 /*
  * AddScriptToStack
  */
-static void AddScriptToStack(const char *filename){
+static void AddScriptToStack(const char *file_name){
 	int size;
 
 	script++;
 	if(script == &scriptstack[MAX_INCLUDES])
 		Com_Error(ERR_FATAL, "Script file exceeded MAX_INCLUDES\n");
 
-	strcpy(script->filename, filename);
+	strcpy(script->file_name, file_name);
 
-	size = Fs_LoadFile(script->filename, (void **)(char *)&script->buffer);
+	size = Fs_LoadFile(script->file_name, (void **)(char *)&script->buffer);
 
 	if(size == -1)
-		Com_Error(ERR_FATAL, "Could not load %s\n", script->filename);
+		Com_Error(ERR_FATAL, "Could not load %s\n", script->file_name);
 
-	Com_Verbose("Loading %s (%d bytes)\n", script->filename, size);
+	Com_Verbose("Loading %s (%d bytes)\n", script->file_name, size);
 
 	script->line = 1;
 
@@ -68,9 +68,9 @@ static void AddScriptToStack(const char *filename){
 /*
  * LoadScriptFile
  */
-void LoadScriptFile(const char *filename){
+void LoadScriptFile(const char *file_name){
 	script = scriptstack;
-	AddScriptToStack(filename);
+	AddScriptToStack(file_name);
 
 	endofscript = false;
 }
@@ -84,7 +84,7 @@ void ParseFromMemory(char *buffer, int size){
 	script++;
 	if(script == &scriptstack[MAX_INCLUDES])
 		Com_Error(ERR_FATAL, "script file exceeded MAX_INCLUDES\n");
-	strcpy(script->filename, "memory buffer");
+	strcpy(script->file_name, "memory buffer");
 
 	script->buffer = buffer;
 	script->line = 1;
@@ -101,7 +101,7 @@ static qboolean EndOfScript(qboolean crossline){
 	if(!crossline)
 		Com_Error(ERR_FATAL, "EndOfScript: Line %i is incomplete\n", scriptline);
 
-	if(!strcmp(script->filename, "memory buffer")){
+	if(!strcmp(script->file_name, "memory buffer")){
 		endofscript = true;
 		return false;
 	}
@@ -113,7 +113,7 @@ static qboolean EndOfScript(qboolean crossline){
 	}
 	script--;
 	scriptline = script->line;
-	Com_Verbose("returning to %s\n", script->filename);
+	Com_Verbose("returning to %s\n", script->file_name);
 	return GetToken(crossline);
 }
 

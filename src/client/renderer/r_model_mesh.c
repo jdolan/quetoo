@@ -171,7 +171,7 @@ static void R_LoadMd2VertexArrays(r_model_t *mod){
 					v->v[1] * frame->scale[1] + frame->translate[1],
 					v->v[2] * frame->scale[2] + frame->translate[2]);
 
-			VectorCopy(bytedirs[v->n], r_mesh_norms[i]);
+			VectorCopy(approximate_normals[v->n], r_mesh_norms[i]);
 		}
 	}
 

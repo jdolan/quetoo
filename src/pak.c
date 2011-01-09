@@ -46,7 +46,7 @@ pak_t *Pak_ReadPakfile(const char *pakfile){
 		return NULL;
 	}
 
-	strcpy(pak->filename, pakfile);
+	strcpy(pak->file_name, pakfile);
 
 	Fs_Read(&header, 1, sizeof(pakheader_t), pak->handle);
 	if(LittleLong(header.ident) != PAK_HEADER){
@@ -72,14 +72,14 @@ pak_t *Pak_ReadPakfile(const char *pakfile){
 	fseek(pak->handle, header.dirofs, SEEK_SET);
 	Fs_Read(pak->entries, 1, header.dirlen, pak->handle);
 
-	Hash_Init(&pak->hashtable);
+	Hash_Init(&pak->hash_table);
 
 	// parse the directory
 	for(i = 0; i < pak->numentries; ++i){
 		pak->entries[i].file_ofs = LittleLong(pak->entries[i].file_ofs);
 		pak->entries[i].file_len = LittleLong(pak->entries[i].file_len);
 
-		Hash_Put(&pak->hashtable, pak->entries[i].name, &pak->entries[i]);
+		Hash_Put(&pak->hash_table, pak->entries[i].name, &pak->entries[i]);
 	}
 
 	return pak;
@@ -102,7 +102,7 @@ void Pak_FreePakfile(pak_t *pak){
 	if(pak->entries)
 		Z_Free(pak->entries);
 
-	Hash_Free(&pak->hashtable);
+	Hash_Free(&pak->hash_table);
 
 	Z_Free(pak);
 }
@@ -220,7 +220,7 @@ pak_t *Pak_CreatePakstream(char *pakfile){
 	pak->numentries = 0;
 
 	pak->handle = f;
-	strcpy(pak->filename, pakfile);
+	strcpy(pak->file_name, pakfile);
 
 	// stuff a bogus header for now
 	memset(&header, 0, sizeof(header));

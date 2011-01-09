@@ -167,7 +167,7 @@ void Cl_ParseStatusMessage(void){
 		server = Cl_AddServer(&net_from);
 
 		server->source = SERVER_SOURCE_BCAST;
-		server->pingtime = cls.bcasttime;
+		server->pingtime = cls.broadcast_time;
 	}
 
 	strncpy(server->info, Msg_ReadString(&net_message), sizeof(server->info) - 1);
@@ -175,7 +175,7 @@ void Cl_ParseStatusMessage(void){
 	if((c = strstr(server->info, "\n")))
 		*c = '\0';
 
-	server->ping = cls.realtime - server->pingtime;
+	server->ping = cls.real_time - server->pingtime;
 
 	if(server->ping > 1000)  // clamp the ping
 		server->ping = 999;
@@ -240,7 +240,7 @@ void Cl_Ping_f(void){
 		server->source = SERVER_SOURCE_USER;
 	}
 
-	server->pingtime = cls.realtime;
+	server->pingtime = cls.real_time;
 	server->ping = 0;
 
 	Com_Print("Pinging %s\n", Net_NetaddrToString(server->addr));
@@ -256,14 +256,14 @@ static void Cl_SendBroadcast(void){
 	cl_server_info_t *server;
 	netaddr_t addr;
 
-	cls.bcasttime = cls.realtime;
+	cls.broadcast_time = cls.real_time;
 
 	server = cls.servers;
 
 	while(server){  // update old pingtimes
 
 		if(server->source == SERVER_SOURCE_BCAST){
-			server->pingtime = cls.bcasttime;
+			server->pingtime = cls.broadcast_time;
 			server->ping = 0;
 		}
 
@@ -310,7 +310,7 @@ void Cl_ParseServersList(void){
 	char s[32];
 
 	buffptr = net_message.data + 12;
-	buffend = buffptr + net_message.cursize - 12;
+	buffend = buffptr + net_message.size - 12;
 
 	// parse the list
 	while(buffptr + 1 < buffend){
@@ -341,7 +341,7 @@ void Cl_ParseServersList(void){
 		server->source = SERVER_SOURCE_INTERNET;
 	}
 
-	net_message.readcount = net_message.cursize;
+	net_message.read = net_message.size;
 
 	// then ping them
 	server = cls.servers;
@@ -349,7 +349,7 @@ void Cl_ParseServersList(void){
 	while(server){
 
 		if(server->source == SERVER_SOURCE_INTERNET){
-			server->pingtime = cls.realtime;
+			server->pingtime = cls.real_time;
 			server->ping = 0;
 
 			Netchan_OutOfBandPrint(NS_CLIENT, server->addr, "info %i", PROTOCOL);

@@ -200,7 +200,7 @@ static void Con_Dump_f(void){
 	char *pos;
 
 	if(Cmd_Argc() != 2){
-		Com_Print("Usage: %s <filename>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <file_name>\n", Cmd_Argv(0));
 		return;
 	}
 

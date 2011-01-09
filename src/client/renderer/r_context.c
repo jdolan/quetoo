@@ -102,19 +102,19 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 
 	r_state.fullscreen = fullscreen;
 
-	r_state.virtualWidth = surface->w;
-	r_state.virtualHeight = surface->h;
+	r_state.virtual_width = surface->w;
+	r_state.virtual_height = surface->h;
 
-	r_state.rx = (float)r_state.width / r_state.virtualWidth;
-	r_state.ry = (float)r_state.height / r_state.virtualHeight;
+	r_state.rx = (float)r_state.width / r_state.virtual_width;
+	r_state.ry = (float)r_state.height / r_state.virtual_height;
 
-	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r_state.redbits);
-	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &r_state.greenbits);
-	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &r_state.bluebits);
-	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &r_state.alphabits);
+	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r_state.red_bits);
+	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &r_state.green_bits);
+	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &r_state.blue_bits);
+	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &r_state.alpha_bits);
 
-	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &r_state.depthbits);
-	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_state.doublebits);
+	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &r_state.depth_bits);
+	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_state.double_bits);
 
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,
 			SDL_DEFAULT_REPEAT_INTERVAL);

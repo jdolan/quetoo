@@ -132,7 +132,7 @@ static void G_SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage){
  * G_CheckArmor
  */
 static int G_CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage, int dflags){
-	gclient_t *client;
+	g_client_t *client;
 	int saved;
 
 	if(damage < 1)
@@ -191,7 +191,7 @@ static int G_CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage, i
 void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 		vec3_t point, vec3_t normal, int damage, int knockback, int dflags, int mod){
 
-	gclient_t *client;
+	g_client_t *client;
 	int take;
 	int save;
 	int asave;

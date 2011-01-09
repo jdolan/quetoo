@@ -81,7 +81,7 @@ void Cl_AddNetgraph(void){
 
 	// see what the latency was on this packet
 	in = cls.netchan.incoming_acknowledged & (CMD_BACKUP - 1);
-	ping = cls.realtime - cl.cmd_time[in];
+	ping = cls.real_time - cl.cmd_time[in];
 
 	Cl_Netgraph(ping / 1000.0, 0xd0);  // 1000ms is lagged out
 }
@@ -122,7 +122,7 @@ static void Cl_DrawNetgraph(void){
  */
 static void Cl_DrawTeamBanner(void){
 	int color;
-	const int team = cl.frame.playerstate.stats[STAT_TEAMNAME];
+	const int team = cl.frame.ps.stats[STAT_TEAMNAME];
 
 	if(!team)
 		return;
@@ -345,7 +345,7 @@ static void Cl_ExecuteLayoutString(const char *s){
 
 		if(!strcmp(token, "pic")){  // draw a pic from a stat number
 			token = Com_Parse(&s);
-			value = cl.frame.playerstate.stats[atoi(token)];
+			value = cl.frame.ps.stats[atoi(token)];
 			if(value >= MAX_IMAGES)
 				Com_Warn("Cl_ExecuteLayoutString: pic %d >= MAX_IMAGES\n", value);
 			else if(cl.configstrings[CS_IMAGES + value]){
@@ -355,7 +355,7 @@ static void Cl_ExecuteLayoutString(const char *s){
 		}
 
 		if(!strcmp(token, "health")){  // health number
-			value = cl.frame.playerstate.stats[STAT_HEALTH];
+			value = cl.frame.ps.stats[STAT_HEALTH];
 			if(value > 0){
 				if (value >= 80)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT);
@@ -368,8 +368,8 @@ static void Cl_ExecuteLayoutString(const char *s){
 		}
 
 		if(!strcmp(token, "ammo")){  // ammo number
-			value = cl.frame.playerstate.stats[STAT_AMMO];
-			value2 = cl.frame.playerstate.stats[STAT_AMMO_LOW];
+			value = cl.frame.ps.stats[STAT_AMMO];
+			value2 = cl.frame.ps.stats[STAT_AMMO_LOW];
 			if(value > 0){
 				if (value >= value2)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT);
@@ -380,7 +380,7 @@ static void Cl_ExecuteLayoutString(const char *s){
 		}
 
 		if(!strcmp(token, "armor")){  // armor number
-			value = cl.frame.playerstate.stats[STAT_ARMOR];
+			value = cl.frame.ps.stats[STAT_ARMOR];
 			if(value > 0){
 				if (value >= 80)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT);
@@ -399,7 +399,7 @@ static void Cl_ExecuteLayoutString(const char *s){
 				Com_Warn("Cl_ExecuteLayoutString: Invalid stat_string index: %i.\n", index);
 				continue;
 			}
-			index = cl.frame.playerstate.stats[index];
+			index = cl.frame.ps.stats[index];
 			if(index < 0 || index >= MAX_CONFIGSTRINGS){
 				Com_Warn("Cl_ExecuteLayoutString: Bad stat_string index: %i.\n", index);
 				continue;
@@ -437,7 +437,7 @@ static void Cl_ExecuteLayoutString(const char *s){
 
 		if(!strcmp(token, "if")){  // conditional
 			token = Com_Parse(&s);
-			value = cl.frame.playerstate.stats[atoi(token)];
+			value = cl.frame.ps.stats[atoi(token)];
 			if(!value){  // skip to endif
 				while(s && strcmp(token, "endif")){
 					token = Com_Parse(&s);
@@ -471,13 +471,13 @@ static void Cl_DrawCrosshair(void){
 	if(cls.state != ca_active)
 		return;  // not spawned yet
 
-	if(cl.frame.playerstate.stats[STAT_LAYOUTS])
+	if(cl.frame.ps.stats[STAT_LAYOUTS])
 		return;  // scoreboard up
 
-	if(cl.frame.playerstate.stats[STAT_SPECTATOR])
+	if(cl.frame.ps.stats[STAT_SPECTATOR])
 		return;  // spectating
 
-	if(cl.frame.playerstate.stats[STAT_CHASE])
+	if(cl.frame.ps.stats[STAT_CHASE])
 		return;  // chasecam
 
 	if(cl_thirdperson->value)
@@ -544,7 +544,7 @@ static void Cl_DrawStats(void){
  */
 static void Cl_DrawLayout(void){
 
-	if(!cl.frame.playerstate.stats[STAT_LAYOUTS])
+	if(!cl.frame.ps.stats[STAT_LAYOUTS])
 		return;
 
 	if(cls.key_state.dest == key_console || cls.key_state.dest == key_menu)
@@ -611,11 +611,11 @@ static void Cl_DrawBlend(void){
 		last_blend_time = 0;
 
 	// determine if we've taken damage or picked up an item
-	dh = cl.frame.playerstate.stats[STAT_HEALTH];
-	da = cl.frame.playerstate.stats[STAT_ARMOR];
-	dp = cl.frame.playerstate.stats[STAT_PICKUP_STRING];
+	dh = cl.frame.ps.stats[STAT_HEALTH];
+	da = cl.frame.ps.stats[STAT_ARMOR];
+	dp = cl.frame.ps.stats[STAT_PICKUP_STRING];
 
-	if(cl.frame.playerstate.pmove.pm_type == PM_NORMAL){
+	if(cl.frame.ps.pmove.pm_type == PM_NORMAL){
 
 		if(dp && (dp != p)){  // picked up an item
 			last_blend_time = cl.time;

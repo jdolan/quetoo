@@ -62,12 +62,12 @@ void Com_EndRedirect(void){
  * Com_Debug
  */
 void Com_Debug(const char *fmt, ...){
-	va_list	argptr;
+	va_list	args;
 	char msg[MAX_PRINT_MSG];
 
-	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
-	va_end(argptr);
+	va_start(args, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, args);
+	va_end(args);
 
 	if(quake2world.Debug)
 		quake2world.Debug((const char *)msg);
@@ -80,12 +80,12 @@ void Com_Debug(const char *fmt, ...){
  * Com_Error
  */
 void Com_Error(err_t err, const char *fmt, ...){
-	va_list	argptr;
+	va_list	args;
 	char msg[MAX_PRINT_MSG];
 
-	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
-	va_end(argptr);
+	va_start(args, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, args);
+	va_end(args);
 
 	if(quake2world.Error)
 		quake2world.Error(err, (const char *)msg);
@@ -100,12 +100,12 @@ void Com_Error(err_t err, const char *fmt, ...){
  * Com_Print
  */
 void Com_Print(const char *fmt, ...){
-	va_list	argptr;
+	va_list	args;
 	char msg[MAX_PRINT_MSG];
 
-	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
-	va_end(argptr);
+	va_start(args, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, args);
+	va_end(args);
 
 	if(rd_target){  // handle redirection (rcon)
 		if((strlen(msg) + strlen(rd_buffer)) > (rd_buffersize - 1)){
@@ -127,12 +127,12 @@ void Com_Print(const char *fmt, ...){
  * Com_Warn
  */
 void Com_Warn(const char *fmt, ...){
-	va_list	argptr;
+	va_list	args;
 	static char msg[MAX_PRINT_MSG];
 
-	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
-	va_end(argptr);
+	va_start(args, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, args);
+	va_end(args);
 
 	if(quake2world.Warn)
 		quake2world.Warn((const char *)msg);
@@ -145,12 +145,12 @@ void Com_Warn(const char *fmt, ...){
  * Com_Verbose
  */
 void Com_Verbose(const char *fmt, ...){
-	va_list	argptr;
+	va_list	args;
 	static char msg[MAX_PRINT_MSG];
 
-	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
-	va_end(argptr);
+	va_start(args, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, args);
+	va_end(args);
 
 	if(quake2world.Verbose)
 		quake2world.Verbose((const char *)msg);
@@ -306,11 +306,11 @@ void Msg_WriteDeltaUsercmd(sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd){
 		bits |= CMD_ANGLE2;
 	if(cmd->angles[2] != from->angles[2])
 		bits |= CMD_ANGLE3;
-	if(cmd->forwardmove != from->forwardmove)
+	if(cmd->forward != from->forward)
 		bits |= CMD_FORWARD;
-	if(cmd->sidemove != from->sidemove)
+	if(cmd->side != from->side)
 		bits |= CMD_SIDE;
-	if(cmd->upmove != from->upmove)
+	if(cmd->up != from->up)
 		bits |= CMD_UP;
 	if(cmd->buttons != from->buttons)
 		bits |= CMD_BUTTONS;
@@ -325,11 +325,11 @@ void Msg_WriteDeltaUsercmd(sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd){
 		Msg_WriteShort(buf, cmd->angles[2]);
 
 	if(bits & CMD_FORWARD)
-		Msg_WriteShort(buf, cmd->forwardmove);
+		Msg_WriteShort(buf, cmd->forward);
 	if(bits & CMD_SIDE)
-		Msg_WriteShort(buf, cmd->sidemove);
+		Msg_WriteShort(buf, cmd->side);
 	if(bits & CMD_UP)
-		Msg_WriteShort(buf, cmd->upmove);
+		Msg_WriteShort(buf, cmd->up);
 
 	if(bits & CMD_BUTTONS)
 		Msg_WriteByte(buf, cmd->buttons);
@@ -352,8 +352,8 @@ void Msg_WriteDir(sizebuf_t *sb, vec3_t dir){
 
 	bestd = 0;
 	best = 0;
-	for(i = 0; i < NUMVERTEXNORMALS; i++){
-		d = DotProduct(dir, bytedirs[i]);
+	for(i = 0; i < NUM_APPROXIMATE_NORMALS; i++){
+		d = DotProduct(dir, approximate_normals[i]);
 		if(d > bestd){
 			bestd = d;
 			best = i;
@@ -370,10 +370,10 @@ void Msg_ReadDir(sizebuf_t *sb, vec3_t dir){
 	int b;
 
 	b = Msg_ReadByte(sb);
-	if(b >= NUMVERTEXNORMALS){
+	if(b >= NUM_APPROXIMATE_NORMALS){
 		Com_Error(ERR_DROP, "Msg_ReadDir: out of range.\n");
 	}
-	VectorCopy(bytedirs[b], dir);
+	VectorCopy(approximate_normals[b], dir);
 }
 
 
@@ -413,8 +413,8 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, sizebuf_t *m
 	if(to->angles[2] != from->angles[2])
 		bits |= U_ANGLE3;
 
-	if(to->skinnum != from->skinnum){  // used for vwep and colors
-		if(to->skinnum < 256)
+	if(to->skin_num != from->skin_num){  // used for vwep and colors
+		if(to->skin_num < 256)
 			bits |= U_SKIN8;
 		else bits |= U_SKIN16;
 	}
@@ -436,13 +436,13 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, sizebuf_t *m
 	if(to->event)
 		bits |= U_EVENT;
 
-	if(to->modelindex != from->modelindex)
+	if(to->model_index != from->model_index)
 		bits |= U_MODEL;
-	if(to->modelindex2 != from->modelindex2)
+	if(to->model_index2 != from->model_index2)
 		bits |= U_MODEL2;
-	if(to->modelindex3 != from->modelindex3)
+	if(to->model_index3 != from->model_index3)
 		bits |= U_MODEL3;
-	if(to->modelindex4 != from->modelindex4)
+	if(to->model_index4 != from->model_index4)
 		bits |= U_MODEL4;
 
 	if(to->sound != from->sound)
@@ -483,21 +483,21 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, sizebuf_t *m
 		Msg_WriteByte(msg, to->number);
 
 	if(bits & U_MODEL)
-		Msg_WriteByte(msg, to->modelindex);
+		Msg_WriteByte(msg, to->model_index);
 	if(bits & U_MODEL2)
-		Msg_WriteByte(msg, to->modelindex2);
+		Msg_WriteByte(msg, to->model_index2);
 	if(bits & U_MODEL3)
-		Msg_WriteByte(msg, to->modelindex3);
+		Msg_WriteByte(msg, to->model_index3);
 	if(bits & U_MODEL4)
-		Msg_WriteByte(msg, to->modelindex4);
+		Msg_WriteByte(msg, to->model_index4);
 
 	if(bits & U_FRAME)
 		Msg_WriteByte(msg, to->frame);
 
 	if(bits & U_SKIN8)
-		Msg_WriteByte(msg, to->skinnum);
+		Msg_WriteByte(msg, to->skin_num);
 	else if(bits & U_SKIN16)
-		Msg_WriteShort(msg, to->skinnum);
+		Msg_WriteShort(msg, to->skin_num);
 
 	if(bits & U_EFFECTS8)
 		Msg_WriteByte(msg, to->effects);
@@ -537,7 +537,7 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, sizebuf_t *m
  * Msg_BeginReading
  */
 void Msg_BeginReading(sizebuf_t *msg){
-	msg->readcount = 0;
+	msg->read = 0;
 }
 
 
@@ -546,14 +546,14 @@ void Msg_BeginReading(sizebuf_t *msg){
  *
  * Returns -1 if no more characters are available.
  */
-int Msg_ReadChar(sizebuf_t *msg_read){
+int Msg_ReadChar(sizebuf_t *sb){
 	int c;
 
-	if(msg_read->readcount + 1 > msg_read->cursize)
+	if(sb->read + 1 > sb->size)
 		c = -1;
 	else
-		c = (signed char)msg_read->data[msg_read->readcount];
-	msg_read->readcount++;
+		c = (signed char)sb->data[sb->read];
+	sb->read++;
 
 	return c;
 }
@@ -562,14 +562,14 @@ int Msg_ReadChar(sizebuf_t *msg_read){
 /*
  * Msg_ReadByte
  */
-int Msg_ReadByte(sizebuf_t *msg_read){
+int Msg_ReadByte(sizebuf_t *sb){
 	int c;
 
-	if(msg_read->readcount + 1 > msg_read->cursize)
+	if(sb->read + 1 > sb->size)
 		c = -1;
 	else
-		c = (unsigned char)msg_read->data[msg_read->readcount];
-	msg_read->readcount++;
+		c = (unsigned char)sb->data[sb->read];
+	sb->read++;
 
 	return c;
 }
@@ -578,16 +578,16 @@ int Msg_ReadByte(sizebuf_t *msg_read){
 /*
  * Msg_ReadShort
  */
-int Msg_ReadShort(sizebuf_t *msg_read){
+int Msg_ReadShort(sizebuf_t *sb){
 	int c;
 
-	if(msg_read->readcount + 2 > msg_read->cursize)
+	if(sb->read + 2 > sb->size)
 		c = -1;
 	else
-		c = (short)(msg_read->data[msg_read->readcount]
-			+ (msg_read->data[msg_read->readcount + 1] << 8));
+		c = (short)(sb->data[sb->read]
+			+ (sb->data[sb->read + 1] << 8));
 
-	msg_read->readcount += 2;
+	sb->read += 2;
 
 	return c;
 }
@@ -596,18 +596,18 @@ int Msg_ReadShort(sizebuf_t *msg_read){
 /*
  * Msg_ReadLong
  */
-int Msg_ReadLong(sizebuf_t *msg_read){
+int Msg_ReadLong(sizebuf_t *sb){
 	int c;
 
-	if(msg_read->readcount + 4 > msg_read->cursize)
+	if(sb->read + 4 > sb->size)
 		c = -1;
 	else
-		c = msg_read->data[msg_read->readcount]
-			+ (msg_read->data[msg_read->readcount + 1] << 8)
-			+ (msg_read->data[msg_read->readcount + 2] << 16)
-			+ (msg_read->data[msg_read->readcount + 3] << 24);
+		c = sb->data[sb->read]
+			+ (sb->data[sb->read + 1] << 8)
+			+ (sb->data[sb->read + 2] << 16)
+			+ (sb->data[sb->read + 3] << 24);
 
-	msg_read->readcount += 4;
+	sb->read += 4;
 
 	return c;
 }
@@ -616,22 +616,22 @@ int Msg_ReadLong(sizebuf_t *msg_read){
 /*
  * Msg_ReadFloat
  */
-float Msg_ReadFloat(sizebuf_t *msg_read){
+float Msg_ReadFloat(sizebuf_t *sb){
 	union {
 		byte b[4];
 		float f;
 		int l;
 	} dat;
 
-	if(msg_read->readcount + 4 > msg_read->cursize)
+	if(sb->read + 4 > sb->size)
 		dat.f = -1;
 	else {
-		dat.b[0] = msg_read->data[msg_read->readcount];
-		dat.b[1] = msg_read->data[msg_read->readcount + 1];
-		dat.b[2] = msg_read->data[msg_read->readcount + 2];
-		dat.b[3] = msg_read->data[msg_read->readcount + 3];
+		dat.b[0] = sb->data[sb->read];
+		dat.b[1] = sb->data[sb->read + 1];
+		dat.b[2] = sb->data[sb->read + 2];
+		dat.b[3] = sb->data[sb->read + 3];
 	}
-	msg_read->readcount += 4;
+	sb->read += 4;
 
 	dat.l = LittleLong(dat.l);
 
@@ -642,13 +642,13 @@ float Msg_ReadFloat(sizebuf_t *msg_read){
 /*
  * Msg_ReadString
  */
-char *Msg_ReadString(sizebuf_t *msg_read){
+char *Msg_ReadString(sizebuf_t *sb){
 	static char string[2048];
 	int l, c;
 
 	l = 0;
 	do {
-		c = Msg_ReadChar(msg_read);
+		c = Msg_ReadChar(sb);
 		if(c == -1 || c == 0)
 			break;
 		string[l] = c;
@@ -664,13 +664,13 @@ char *Msg_ReadString(sizebuf_t *msg_read){
 /*
  * Msg_ReadStringLine
  */
-char *Msg_ReadStringLine(sizebuf_t *msg_read){
+char *Msg_ReadStringLine(sizebuf_t *sb){
 	static char string[2048];
 	int l, c;
 
 	l = 0;
 	do {
-		c = Msg_ReadChar(msg_read);
+		c = Msg_ReadChar(sb);
 		if(c == -1 || c == 0 || c == '\n')
 			break;
 		string[l] = c;
@@ -686,80 +686,80 @@ char *Msg_ReadStringLine(sizebuf_t *msg_read){
 /*
  * Msg_ReadCoord
  */
-float Msg_ReadCoord(sizebuf_t *msg_read){
-	return Msg_ReadShort(msg_read) * (1.0 / 8);
+float Msg_ReadCoord(sizebuf_t *sb){
+	return Msg_ReadShort(sb) * (1.0 / 8);
 }
 
 
 /*
  * Msg_ReadPos
  */
-void Msg_ReadPos(sizebuf_t *msg_read, vec3_t pos){
-	pos[0] = Msg_ReadShort(msg_read) * (1.0 / 8);
-	pos[1] = Msg_ReadShort(msg_read) * (1.0 / 8);
-	pos[2] = Msg_ReadShort(msg_read) * (1.0 / 8);
+void Msg_ReadPos(sizebuf_t *sb, vec3_t pos){
+	pos[0] = Msg_ReadShort(sb) * (1.0 / 8);
+	pos[1] = Msg_ReadShort(sb) * (1.0 / 8);
+	pos[2] = Msg_ReadShort(sb) * (1.0 / 8);
 }
 
 
 /*
  * Msg_ReadAngle
  */
-float Msg_ReadAngle(sizebuf_t *msg_read){
-	return Msg_ReadChar(msg_read) * (360.0 / 256);
+float Msg_ReadAngle(sizebuf_t *sb){
+	return Msg_ReadChar(sb) * (360.0 / 256);
 }
 
 
 /*
  * Msg_ReadAngle16
  */
-float Msg_ReadAngle16(sizebuf_t *msg_read){
-	return SHORT2ANGLE(Msg_ReadShort(msg_read));
+float Msg_ReadAngle16(sizebuf_t *sb){
+	return SHORT2ANGLE(Msg_ReadShort(sb));
 }
 
 
 /*
  * Msg_ReadDeltaUsercmd
  */
-void Msg_ReadDeltaUsercmd(sizebuf_t *msg_read, usercmd_t *from, usercmd_t *move){
+void Msg_ReadDeltaUsercmd(sizebuf_t *sb, usercmd_t *from, usercmd_t *move){
 	int bits;
 
 	*move = *from;
 
-	bits = Msg_ReadByte(msg_read);
+	bits = Msg_ReadByte(sb);
 
 	// read current angles
 	if(bits & CMD_ANGLE1)
-		move->angles[0] = Msg_ReadShort(msg_read);
+		move->angles[0] = Msg_ReadShort(sb);
 	if(bits & CMD_ANGLE2)
-		move->angles[1] = Msg_ReadShort(msg_read);
+		move->angles[1] = Msg_ReadShort(sb);
 	if(bits & CMD_ANGLE3)
-		move->angles[2] = Msg_ReadShort(msg_read);
+		move->angles[2] = Msg_ReadShort(sb);
 
 	// read movement
 	if(bits & CMD_FORWARD)
-		move->forwardmove = Msg_ReadShort(msg_read);
+		move->forward = Msg_ReadShort(sb);
 	if(bits & CMD_SIDE)
-		move->sidemove = Msg_ReadShort(msg_read);
+		move->side = Msg_ReadShort(sb);
 	if(bits & CMD_UP)
-		move->upmove = Msg_ReadShort(msg_read);
+		move->up = Msg_ReadShort(sb);
 
 	// read buttons
 	if(bits & CMD_BUTTONS)
-		move->buttons = Msg_ReadByte(msg_read);
+		move->buttons = Msg_ReadByte(sb);
 
 	// read time to run command
-	move->msec = Msg_ReadByte(msg_read);
+	move->msec = Msg_ReadByte(sb);
 }
 
 
 /*
  * Msg_ReadData
  */
-void Msg_ReadData(sizebuf_t *msg_read, void *data, size_t len){
+void Msg_ReadData(sizebuf_t *sb, void *data, size_t len){
 	int i;
 
 	for(i = 0; i < len; i++)
-		((byte *)data)[i] = Msg_ReadByte(msg_read);
+		((byte *)data)[i] = Msg_ReadByte(sb);
 }
 
 
@@ -769,7 +769,7 @@ void Msg_ReadData(sizebuf_t *msg_read, void *data, size_t len){
 void Sb_Init(sizebuf_t *buf, byte *data, size_t length){
 	memset(buf, 0, sizeof(*buf));
 	buf->data = data;
-	buf->maxsize = length;
+	buf->max_size = length;
 }
 
 
@@ -777,7 +777,7 @@ void Sb_Init(sizebuf_t *buf, byte *data, size_t length){
  * Sb_Clear
  */
 void Sb_Clear(sizebuf_t *buf){
-	buf->cursize = 0;
+	buf->size = 0;
 	buf->overflowed = false;
 }
 
@@ -788,12 +788,12 @@ void Sb_Clear(sizebuf_t *buf){
 void *Sb_GetSpace(sizebuf_t *buf, size_t length){
 	void *data;
 
-	if(buf->cursize + length > buf->maxsize){
-		if(!buf->allowoverflow){
-			Com_Error(ERR_FATAL, "Sb_GetSpace: Overflow without allowoverflow set.\n");
+	if(buf->size + length > buf->max_size){
+		if(!buf->allow_overflow){
+			Com_Error(ERR_FATAL, "Sb_GetSpace: Overflow without allow_overflow set.\n");
 		}
 
-		if(length > buf->maxsize){
+		if(length > buf->max_size){
 			Com_Error(ERR_FATAL, "Sb_GetSpace: "Q2W_SIZE_T" is > full buffer size.\n", length);
 		}
 
@@ -802,8 +802,8 @@ void *Sb_GetSpace(sizebuf_t *buf, size_t length){
 		buf->overflowed = true;
 	}
 
-	data = buf->data + buf->cursize;
-	buf->cursize += length;
+	data = buf->data + buf->size;
+	buf->size += length;
 
 	return data;
 }
@@ -825,8 +825,8 @@ void Sb_Print(sizebuf_t *buf, const char *data){
 
 	len = strlen(data) + 1;
 
-	if(buf->cursize){
-		if(buf->data[buf->cursize - 1])
+	if(buf->size){
+		if(buf->data[buf->size - 1])
 			memcpy((byte *)Sb_GetSpace(buf, len), data, len); // no trailing 0
 		else
 			memcpy((byte *)Sb_GetSpace(buf, len - 1) - 1, data, len); // write over trailing 0

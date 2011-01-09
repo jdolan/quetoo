@@ -69,7 +69,7 @@ void G_info_player_team2(edict_t *self){
 static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
 	int ff, mod;
 	char *message, *message2;
-	gclient_t *killer;
+	g_client_t *killer;
 
 	ff = meansOfDeath & MOD_FRIENDLY_FIRE;
 	mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;
@@ -245,7 +245,7 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
  * P_TossWeapon
  */
 static void P_TossWeapon(edict_t *self){
-	gitem_t *item;
+	g_item_t *item;
 
 	// don't drop weapon when falling into void
 	if(meansOfDeath == MOD_TRIGGER_HURT)
@@ -283,7 +283,7 @@ void P_TossQuadDamage(edict_t *self){
  * P_TossFlag
  */
 void P_TossFlag(edict_t *self){
-	team_t *ot;
+	g_team_t *ot;
 	edict_t *of;
 	int index;
 
@@ -300,7 +300,7 @@ void P_TossFlag(edict_t *self){
 
 	self->client->locals.inventory[index] = 0;
 
-	self->s.modelindex3 = 0;
+	self->s.model_index3 = 0;
 	self->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
@@ -352,10 +352,10 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 	self->dead = true;
 	self->classname = "dead";
 
-	self->s.modelindex = 0;
-	self->s.modelindex2 = 0;
-	self->s.modelindex3 = 0;
-	self->s.modelindex4 = 0;
+	self->s.model_index = 0;
+	self->s.model_index2 = 0;
+	self->s.model_index3 = 0;
+	self->s.model_index4 = 0;
 	self->s.sound = 0;
 	self->s.event = 0;
 	self->s.effects = 0;
@@ -377,8 +377,8 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
  *  specified quantity of ammo, while health and armor are set to
  *  the specified quantity.
  */
-static void P_Give(gclient_t *client, char *it, int quantity){
-	gitem_t *item;
+static void P_Give(g_client_t *client, char *it, int quantity){
+	g_item_t *item;
 	int index;
 
 	if(!strcasecmp(it, "Health")){
@@ -421,7 +421,7 @@ static void P_Give(gclient_t *client, char *it, int quantity){
 /*
  * P_GiveLevelLocals
  */
-static qboolean P_GiveLevelLocals(gclient_t *client){
+static qboolean P_GiveLevelLocals(g_client_t *client){
 	char buf[512], *it, *q;
 	int quantity;
 
@@ -462,8 +462,8 @@ static qboolean P_GiveLevelLocals(gclient_t *client){
 /*
  * P_InitClientLocals
  */
-static void P_InitClientLocals(gclient_t *client){
-	gitem_t *item;
+static void P_InitClientLocals(g_client_t *client){
+	g_item_t *item;
 	int i;
 
 	// clear inventory
@@ -697,7 +697,7 @@ static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
 static void P_PutClientInServer(edict_t *ent){
 	vec3_t spawn_origin, spawn_angles, old_angles;
 	float height;
-	gclient_t *client;
+	g_client_t *client;
 	client_locals_t locals;
 	int i;
 
@@ -722,10 +722,10 @@ static void P_PutClientInServer(edict_t *ent){
 	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
 	height = ent->maxs[2] - ent->mins[2];
 
-	ent->groundentity = NULL;
+	ent->ground_entity = NULL;
 	ent->takedamage = true;
 	ent->movetype = MOVETYPE_WALK;
-	ent->viewheight = ent->mins[2] + (height * 0.75);
+	ent->view_height = ent->mins[2] + (height * 0.75);
 	ent->inuse = true;
 	ent->classname = "player";
 	ent->mass = 200.0;
@@ -738,8 +738,8 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->model = "players/ichabod/tris.md2";
 	ent->pain = P_Pain;
 	ent->die = P_Die;
-	ent->waterlevel = 0;
-	ent->watertype = 0;
+	ent->water_level = 0;
+	ent->water_type = 0;
 	ent->svflags = 0;
 
 	// copy these back once they have been set in locals
@@ -758,13 +758,13 @@ static void P_PutClientInServer(edict_t *ent){
 
 	// clear entity state values
 	ent->s.effects = 0;
-	ent->s.modelindex = 255;  // will use the skin specified model
-	ent->s.modelindex2 = 255;  // custom gun model
-	// skinnum is player num and weapon number
+	ent->s.model_index = 255;  // will use the skin specified model
+	ent->s.model_index2 = 255;  // custom gun model
+	// skin_num is player num and weapon number
 	// weapon number will be added in changeweapon
-	ent->s.skinnum = ent - g_edicts - 1;
-	ent->s.modelindex3 = 0;
-	ent->s.modelindex4 = 0;
+	ent->s.skin_num = ent - g_edicts - 1;
+	ent->s.model_index3 = 0;
+	ent->s.model_index4 = 0;
 
 	ent->s.frame = 0;
 	VectorCopy(spawn_origin, ent->s.origin);
@@ -804,8 +804,8 @@ static void P_PutClientInServer(edict_t *ent){
 	client->ps.pmove.pm_flags = PMF_TIME_TELEPORT;
 	client->ps.pmove.pm_time = 20;
 
-	client->locals.matchnum = level.matchnum;
-	client->locals.roundnum = level.roundnum;
+	client->locals.match_num = level.match_num;
+	client->locals.round_num = level.round_num;
 
 	gi.UnlinkEntity(ent);
 
@@ -832,7 +832,7 @@ void P_Respawn(edict_t *ent, qboolean voluntary){
 	// clear scores and match/round on voluntary changes
 	if(ent->client->locals.spectator && voluntary){
 		ent->client->locals.score = ent->client->locals.captures = 0;
-		ent->client->locals.matchnum = ent->client->locals.roundnum = 0;
+		ent->client->locals.match_num = ent->client->locals.round_num = 0;
 	}
 
 	ent->client->respawn_time = level.time;
@@ -859,16 +859,16 @@ void P_Respawn(edict_t *ent, qboolean voluntary){
 void P_Begin(edict_t *ent){
 	char welcome[256];
 
-	int playernum = ent - g_edicts - 1;
+	int player_num = ent - g_edicts - 1;
 
-	ent->client = game.clients + playernum;
+	ent->client = game.clients + player_num;
 
 	G_InitEdict(ent);
 
 	P_InitClientLocals(ent->client);
 
 	VectorClear(ent->client->cmd_angles);
-	ent->client->locals.enterframe = level.framenum;
+	ent->client->locals.enterframe = level.frame_num;
 
 	// force spectator if match or rounds
 	if(level.match || level.rounds)
@@ -914,23 +914,23 @@ void P_Begin(edict_t *ent){
 /*
  * P_UserinfoChanged
  */
-void P_UserinfoChanged(edict_t *ent, const char *userinfo){
+void P_UserinfoChanged(edict_t *ent, const char *user_info){
 	const char *s;
 	char *c;
 	char name[MAX_NETNAME];
-	int playernum, i;
+	int player_num, i;
 	qboolean color;
-	gclient_t *cl;
+	g_client_t *cl;
 
 	// check for malformed or illegal info strings
-	if(!Info_Validate(userinfo)){
-		userinfo = "\\name\\newbie\\skin\\ichabod/ichabod";
+	if(!Info_Validate(user_info)){
+		user_info = "\\name\\newbie\\skin\\ichabod/ichabod";
 	}
 
 	cl = ent->client;
 
 	// set name, use a temp buffer to compute length and crutch up bad names
-	s = Info_ValueForKey(userinfo, "name");
+	s = Info_ValueForKey(user_info, "name");
 
 	strncpy(name, s, sizeof(name) - 1);
 	name[sizeof(name) - 1] = 0;
@@ -985,7 +985,7 @@ void P_UserinfoChanged(edict_t *ent, const char *userinfo){
 	if((level.teams || level.ctf) && cl->locals.team)  // players must use teamskin to change
 		s = cl->locals.team->skin;
 	else
-		s = Info_ValueForKey(userinfo, "skin");
+		s = Info_ValueForKey(user_info, "skin");
 
 	if(*s != '\0')  // something valid-ish was provided
 		strncpy(cl->locals.skin, s, sizeof(cl->locals.skin) - 1);
@@ -1007,16 +1007,16 @@ void P_UserinfoChanged(edict_t *ent, const char *userinfo){
 	}
 
 	// set color
-	s = Info_ValueForKey(userinfo, "color");
+	s = Info_ValueForKey(user_info, "color");
 	cl->locals.color = ColorByName(s, 243);
 
-	playernum = ent - g_edicts - 1;
+	player_num = ent - g_edicts - 1;
 
 	// combine name and skin into a configstring
-	gi.Configstring(CS_PLAYERSKINS + playernum, va("%s\\%s", cl->locals.netname, cl->locals.skin));
+	gi.Configstring(CS_PLAYERSKINS + player_num, va("%s\\%s", cl->locals.netname, cl->locals.skin));
 
-	// save off the userinfo in case we want to check something later
-	strncpy(ent->client->locals.userinfo, userinfo, sizeof(ent->client->locals.userinfo) - 1);
+	// save off the user_info in case we want to check something later
+	strncpy(ent->client->locals.user_info, user_info, sizeof(ent->client->locals.user_info) - 1);
 }
 
 
@@ -1029,13 +1029,13 @@ void P_UserinfoChanged(edict_t *ent, const char *userinfo){
  * and eventually get to P_Begin()
  * Changing levels will NOT cause this to be called again.
  */
-qboolean P_Connect(edict_t *ent, char *userinfo){
+qboolean P_Connect(edict_t *ent, char *user_info){
 
 	// check password
-	const char *value = Info_ValueForKey(userinfo, "password");
+	const char *value = Info_ValueForKey(user_info, "password");
 	if(*password->string && strcmp(password->string, "none") &&
 			strcmp(password->string, value)){
-		Info_SetValueForKey(userinfo, "rejmsg", "Password required or incorrect.");
+		Info_SetValueForKey(user_info, "rejmsg", "Password required or incorrect.");
 		return false;
 	}
 
@@ -1050,7 +1050,7 @@ qboolean P_Connect(edict_t *ent, char *userinfo){
 	ent->client->locals.netname[0] = 0;
 
 	// set name, skin, etc..
-	P_UserinfoChanged(ent, userinfo);
+	P_UserinfoChanged(ent, user_info);
 
 	if(sv_maxclients->value > 1)
 		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.netname);
@@ -1066,7 +1066,7 @@ qboolean P_Connect(edict_t *ent, char *userinfo){
  * Called when a player drops from the server.  Not be called between levels.
  */
 void P_Disconnect(edict_t *ent){
-	int playernum;
+	int player_num;
 
 	if(!ent->client)
 		return;
@@ -1084,18 +1084,18 @@ void P_Disconnect(edict_t *ent){
 
 	gi.UnlinkEntity(ent);
 
-	ent->client->locals.userinfo[0] = 0;
+	ent->client->locals.user_info[0] = 0;
 
 	ent->inuse = false;
 	ent->solid = SOLID_NOT;
-	ent->s.modelindex = 0;
-	ent->s.modelindex2 = 0;
-	ent->s.modelindex3 = 0;
-	ent->s.modelindex4 = 0;
+	ent->s.model_index = 0;
+	ent->s.model_index2 = 0;
+	ent->s.model_index3 = 0;
+	ent->s.model_index4 = 0;
 	ent->classname = "disconnected";
 
-	playernum = ent - g_edicts - 1;
-	gi.Configstring(CS_PLAYERSKINS + playernum, "");
+	player_num = ent - g_edicts - 1;
+	gi.Configstring(CS_PLAYERSKINS + player_num, "");
 }
 
 
@@ -1139,7 +1139,7 @@ static void P_InventoryThink(edict_t *ent){
  * usually be a couple times for each server frame.
  */
 void P_Think(edict_t *ent, usercmd_t *ucmd){
-	gclient_t *client;
+	g_client_t *client;
 	edict_t *other;
 	int i, j;
 	pmove_t pm;
@@ -1177,7 +1177,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 		if(ent->movetype == MOVETYPE_NOCLIP)
 			client->ps.pmove.pm_type = PM_SPECTATOR;
-		else if(ent->s.modelindex != 255 || ent->dead)
+		else if(ent->s.model_index != 255 || ent->dead)
 			client->ps.pmove.pm_type = PM_DEAD;
 		else
 			client->ps.pmove.pm_type = PM_NORMAL;
@@ -1216,8 +1216,8 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 		client->cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
 
 		// check for jump, play randomized sound
-		if(ent->groundentity && !pm.groundentity &&
-				(pm.cmd.upmove >= 10) && (pm.waterlevel == 0) &&
+		if(ent->ground_entity && !pm.ground_entity &&
+				(pm.cmd.up >= 10) && (pm.water_level == 0) &&
 				ent->jump_time < level.time - 0.2){
 
 			if(crandom() > 0)
@@ -1228,13 +1228,13 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 			ent->jump_time = level.time;
 		}
 
-		ent->viewheight = pm.viewheight;
-		ent->waterlevel = pm.waterlevel;
-		ent->watertype = pm.watertype;
+		ent->view_height = pm.view_height;
+		ent->water_level = pm.water_level;
+		ent->water_type = pm.water_type;
 
-		ent->groundentity = pm.groundentity;
-		if(pm.groundentity)
-			ent->groundentity_linkcount = pm.groundentity->linkcount;
+		ent->ground_entity = pm.ground_entity;
+		if(pm.ground_entity)
+			ent->ground_entity_linkcount = pm.ground_entity->linkcount;
 
 		VectorCopy(pm.angles, client->angles);
 		VectorCopy(pm.angles, client->ps.angles);
@@ -1246,12 +1246,12 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 			G_TouchTriggers(ent);
 
 		// touch other objects
-		for(i = 0; i < pm.numtouch; i++){
+		for(i = 0; i < pm.num_touch; i++){
 
-			other = pm.touchents[i];
+			other = pm.touch_ents[i];
 
 			for(j = 0; j < i; j++)
-				if(pm.touchents[j] == other)
+				if(pm.touch_ents[j] == other)
 					break;
 
 			if(j != i)
@@ -1304,14 +1304,14 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
  * any other entities in the world.
  */
 void P_BeginServerFrame(edict_t *ent){
-	gclient_t *client;
+	g_client_t *client;
 
 	if(level.intermission_time)
 		return;
 
 	client = ent->client;
 
-	if(ent->groundentity)  // let this be reset each frame as needed
+	if(ent->ground_entity)  // let this be reset each frame as needed
 		client->ps.pmove.pm_flags &= ~PMF_PUSHED;
 
 	// run weaponthink if it hasn't been done by a ucmd_t
@@ -1323,7 +1323,7 @@ void P_BeginServerFrame(edict_t *ent){
 	if(ent->dead){  // check for respawn conditions
 
 		// rounds mode implies last-man-standing, force to spectator immediately if round underway
-		if(level.rounds && level.roundtime && level.time >= level.roundtime){
+		if(level.rounds && level.round_time && level.time >= level.round_time){
 			client->locals.spectator = true;
 			P_Respawn(ent, false);
 		}

@@ -43,9 +43,9 @@ static void Sv_BeginDemoServer(void){
 	Com_Debug("Sv_BeginDemoServer\n");
 
 	snprintf(demo, sizeof(demo), "demos/%s", sv.name);
-	Fs_OpenFile(demo, &sv.demofile, FILE_READ);
+	Fs_OpenFile(demo, &sv.demo_file, FILE_READ);
 
-	if(!sv.demofile)  // file was deleted during spawnserver
+	if(!sv.demo_file)  // file was deleted during spawnserver
 		Com_Error(ERR_DROP, "Sv_BeginDemoServer: %s no longer exists.\n", demo);
 }
 
@@ -58,7 +58,7 @@ static void Sv_BeginDemoServer(void){
  */
 static void Sv_New_f(void){
 	char *gamedir;
-	int playernum;
+	int player_num;
 	edict_t *ent;
 
 	Com_Debug("New() from %s\n", sv_client->name);
@@ -80,26 +80,26 @@ static void Sv_New_f(void){
 	// send the serverdata
 	Msg_WriteByte(&sv_client->netchan.message, svc_serverdata);
 	Msg_WriteLong(&sv_client->netchan.message, PROTOCOL);
-	Msg_WriteLong(&sv_client->netchan.message, svs.spawncount);
-	Msg_WriteLong(&sv_client->netchan.message, svs.packetrate);
+	Msg_WriteLong(&sv_client->netchan.message, svs.spawn_count);
+	Msg_WriteLong(&sv_client->netchan.message, svs.packet_rate);
 	Msg_WriteByte(&sv_client->netchan.message, 0);
 	Msg_WriteString(&sv_client->netchan.message, gamedir);
 
-	playernum = sv_client - svs.clients;
-	Msg_WriteShort(&sv_client->netchan.message, playernum);
+	player_num = sv_client - svs.clients;
+	Msg_WriteShort(&sv_client->netchan.message, player_num);
 
 	// send full levelname
 	Msg_WriteString(&sv_client->netchan.message, sv.configstrings[CS_NAME]);
 
 	// set up the entity for the client
-	ent = EDICT_FOR_NUM(playernum + 1);
-	ent->s.number = playernum + 1;
+	ent = EDICT_FOR_NUM(player_num + 1);
+	ent->s.number = player_num + 1;
 	sv_client->edict = ent;
-	memset(&sv_client->lastcmd, 0, sizeof(sv_client->lastcmd));
+	memset(&sv_client->last_cmd, 0, sizeof(sv_client->last_cmd));
 
 	// begin fetching configstrings
 	Msg_WriteByte(&sv_client->netchan.message, svc_stufftext);
-	Msg_WriteString(&sv_client->netchan.message, va("configstrings %i 0\n", svs.spawncount));
+	Msg_WriteString(&sv_client->netchan.message, va("configstrings %i 0\n", svs.spawn_count));
 }
 
 
@@ -117,7 +117,7 @@ static void Sv_Configstrings_f(void){
 	}
 
 	// handle the case of a level changing while a client was connecting
-	if(atoi(Cmd_Argv(1)) != svs.spawncount){
+	if(atoi(Cmd_Argv(1)) != svs.spawn_count){
 		Com_Print("Sv_Configstrings_f from different level\n");
 		Sv_New_f();
 		return;
@@ -132,7 +132,7 @@ static void Sv_Configstrings_f(void){
 	}
 
 	// write a packet full of data
-	while(sv_client->netchan.message.cursize < MAX_MSGLEN / 2
+	while(sv_client->netchan.message.size < MAX_MSGLEN / 2
 			&& start < MAX_CONFIGSTRINGS){
 		if(sv.configstrings[start][0]){
 			Msg_WriteByte(&sv_client->netchan.message, svc_configstring);
@@ -145,10 +145,10 @@ static void Sv_Configstrings_f(void){
 	// send next command
 	if(start == MAX_CONFIGSTRINGS){
 		Msg_WriteByte(&sv_client->netchan.message, svc_stufftext);
-		Msg_WriteString(&sv_client->netchan.message, va("baselines %i 0\n", svs.spawncount));
+		Msg_WriteString(&sv_client->netchan.message, va("baselines %i 0\n", svs.spawn_count));
 	} else {
 		Msg_WriteByte(&sv_client->netchan.message, svc_stufftext);
-		Msg_WriteString(&sv_client->netchan.message, va("configstrings %i %i\n", svs.spawncount, start));
+		Msg_WriteString(&sv_client->netchan.message, va("configstrings %i %i\n", svs.spawn_count, start));
 	}
 }
 
@@ -168,7 +168,7 @@ static void Sv_Baselines_f(void){
 	}
 
 	// handle the case of a level changing while a client was connecting
-	if(atoi(Cmd_Argv(1)) != svs.spawncount){
+	if(atoi(Cmd_Argv(1)) != svs.spawn_count){
 		Com_Print("Sv_Baselines_f from different level\n");
 		Sv_New_f();
 		return;
@@ -185,10 +185,10 @@ static void Sv_Baselines_f(void){
 	memset(&nullstate, 0, sizeof(nullstate));
 
 	// write a packet full of data
-	while(sv_client->netchan.message.cursize < MAX_MSGLEN / 2
+	while(sv_client->netchan.message.size < MAX_MSGLEN / 2
 			&& start < MAX_EDICTS){
 		base = &sv.baselines[start];
-		if(base->modelindex || base->sound || base->effects){
+		if(base->model_index || base->sound || base->effects){
 			Msg_WriteByte(&sv_client->netchan.message, svc_spawnbaseline);
 			Msg_WriteDeltaEntity(&nullstate, base, &sv_client->netchan.message, true, true);
 		}
@@ -198,10 +198,10 @@ static void Sv_Baselines_f(void){
 	// send next command
 	if(start == MAX_EDICTS){
 		Msg_WriteByte(&sv_client->netchan.message, svc_stufftext);
-		Msg_WriteString(&sv_client->netchan.message, va("precache %i\n", svs.spawncount));
+		Msg_WriteString(&sv_client->netchan.message, va("precache %i\n", svs.spawn_count));
 	} else {
 		Msg_WriteByte(&sv_client->netchan.message, svc_stufftext);
-		Msg_WriteString(&sv_client->netchan.message, va("baselines %i %i\n", svs.spawncount, start));
+		Msg_WriteString(&sv_client->netchan.message, va("baselines %i %i\n", svs.spawn_count, start));
 	}
 }
 
@@ -222,7 +222,7 @@ static void Sv_Begin_f(void){
 		return;
 
 	// handle the case of a level changing while a client was connecting
-	if(atoi(Cmd_Argv(1)) != svs.spawncount){
+	if(atoi(Cmd_Argv(1)) != svs.spawn_count){
 		Com_Print("Sv_Begin_f from different level\n");
 		Sv_New_f();
 		return;
@@ -247,7 +247,7 @@ static void Sv_NextDownload_f(void){
 	if(!sv_client->download)
 		return;
 
-	r = sv_client->downloadsize - sv_client->downloadcount;
+	r = sv_client->download_size - sv_client->download_count;
 	if(r > 1280)  // stock quake2 sends 1024 byte chunks
 		r = 1280;  // but i see no harm in sending another 256 bytes
 
@@ -256,18 +256,18 @@ static void Sv_NextDownload_f(void){
 	Msg_WriteByte(&msg, svc_download);
 	Msg_WriteShort(&msg, r);
 
-	sv_client->downloadcount += r;
-	size = sv_client->downloadsize;
+	sv_client->download_count += r;
+	size = sv_client->download_size;
 	if(!size)
 		size = 1;
 
-	percent = sv_client->downloadcount * 100 / size;
+	percent = sv_client->download_count * 100 / size;
 	Msg_WriteByte(&msg, percent);
 
-	Sb_Write(&msg, sv_client->download + sv_client->downloadcount - r, r);
-	Sb_Write(&sv_client->netchan.message, msg.data, msg.cursize);
+	Sb_Write(&msg, sv_client->download + sv_client->download_count - r, r);
+	Sb_Write(&sv_client->netchan.message, msg.data, msg.size);
 
-	if(sv_client->downloadcount != sv_client->downloadsize)
+	if(sv_client->download_count != sv_client->download_size)
 		return;
 
 	Fs_FreeFile(sv_client->download);
@@ -294,7 +294,7 @@ static void Sv_Download_f(void){
 	if(Cmd_Argc() > 2)
 		offset = atoi(Cmd_Argv(2)); // downloaded offset
 
-	// catch illegal offset or filenames
+	// catch illegal offset or file_names
 	if(offset < 0 || *name == '.' || *name == '/' || *name == '\\' || strstr(name, "..")){
 		Com_Print("Malicious download from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
@@ -323,14 +323,14 @@ static void Sv_Download_f(void){
 	if(sv_client->download)  // free last download
 		Fs_FreeFile(sv_client->download);
 
-	sv_client->downloadsize = Fs_LoadFile(name, &buf);
+	sv_client->download_size = Fs_LoadFile(name, &buf);
 	sv_client->download = (byte *)buf;
-	sv_client->downloadcount = offset;
+	sv_client->download_count = offset;
 
-	if(offset > sv_client->downloadsize)
-		sv_client->downloadcount = sv_client->downloadsize;
+	if(offset > sv_client->download_size)
+		sv_client->download_count = sv_client->download_size;
 
-	if(!sv_client->download){  // legal filename, but missing file
+	if(!sv_client->download){  // legal file_name, but missing file
 		Com_Debug("Couldn't download %s to %s\n", name, sv_client->name);
 		Msg_WriteByte(&sv_client->netchan.message, svc_download);
 		Msg_WriteShort(&sv_client->netchan.message, -1);
@@ -363,13 +363,13 @@ static void Sv_Info_f(void){
 	char line[MAX_STRING_CHARS];
 
 	if(!sv_client){  //print to server console
-		Com_PrintInfo(Cvar_Serverinfo());
+		Com_PrintInfo(Cvar_ServerInfo());
 		return;
 	}
 
 	for(cvar = cvar_vars; cvar; cvar = cvar->next){
 
-		if(!(cvar->flags & CVAR_SERVERINFO))
+		if(!(cvar->flags & CVAR_SERVER_INFO))
 			continue;  //only print serverinfo cvars
 
 		snprintf(line, sizeof(line), "%s %s\n", cvar->name, cvar->string);
@@ -446,11 +446,11 @@ static void Sv_ClientThink(sv_client_t *cl, usercmd_t *cmd){
  * The current net_message is parsed for the given client
  */
 void Sv_ExecuteClientMessage(sv_client_t *cl){
-	usercmd_t nullcmd, oldest, oldcmd, newcmd;
+	usercmd_t null_cmd, oldest, old_cmd, newcmd;
 	int net_drop;
 	int stringCmdCount;
 	qboolean move_issued;
-	int lastframe;
+	int last_frame;
 	int c;
 	char *s;
 
@@ -463,7 +463,7 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 
 	while(true){
 
-		if(net_message.readcount > net_message.cursize){
+		if(net_message.read > net_message.size){
 			Com_Print("Sv_ReadClientMessage: badread\n");
 			Sv_DropClient(cl);
 			return;
@@ -477,8 +477,8 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 			case clc_nop:
 				break;
 
-			case clc_userinfo:
-				strncpy(cl->userinfo, Msg_ReadString(&net_message), sizeof(cl->userinfo) - 1);
+			case clc_user_info:
+				strncpy(cl->user_info, Msg_ReadString(&net_message), sizeof(cl->user_info) - 1);
 				Sv_UserinfoChanged(cl);
 				break;
 
@@ -488,28 +488,28 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 
 				move_issued = true;
 
-				lastframe = Msg_ReadLong(&net_message);
-				if(lastframe != cl->lastframe){
-					cl->lastframe = lastframe;
-					if(cl->lastframe > -1){
-						cl->frame_latency[cl->lastframe & (LATENCY_COUNTS - 1)] =
-							svs.realtime - cl->frames[cl->lastframe & UPDATE_MASK].senttime;
+				last_frame = Msg_ReadLong(&net_message);
+				if(last_frame != cl->last_frame){
+					cl->last_frame = last_frame;
+					if(cl->last_frame > -1){
+						cl->frame_latency[cl->last_frame & (LATENCY_COUNTS - 1)] =
+							svs.real_time - cl->frames[cl->last_frame & UPDATE_MASK].sent_time;
 					}
 				}
 
-				memset(&nullcmd, 0, sizeof(nullcmd));
-				Msg_ReadDeltaUsercmd(&net_message, &nullcmd, &oldest);
-				Msg_ReadDeltaUsercmd(&net_message, &oldest, &oldcmd);
-				Msg_ReadDeltaUsercmd(&net_message, &oldcmd, &newcmd);
+				memset(&null_cmd, 0, sizeof(null_cmd));
+				Msg_ReadDeltaUsercmd(&net_message, &null_cmd, &oldest);
+				Msg_ReadDeltaUsercmd(&net_message, &oldest, &old_cmd);
+				Msg_ReadDeltaUsercmd(&net_message, &old_cmd, &newcmd);
 
 				// don't start delta compression until the client is spawned
 				if(cl->state != cs_spawned){
-					cl->lastframe = -1;
+					cl->last_frame = -1;
 					break;
 				}
 
-				if(nullcmd.msec > 250 || oldest.msec > 250 ||  // catch illegal msec
-						oldcmd.msec > 250 || newcmd.msec > 250){
+				if(null_cmd.msec > 250 || oldest.msec > 250 ||  // catch illegal msec
+						old_cmd.msec > 250 || newcmd.msec > 250){
 					Com_Warn("Illegal msec in usercmd from %s\n", Sv_NetaddrToString(cl));
 					Sv_KickClient(cl, NULL);
 					return;
@@ -518,16 +518,16 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 				net_drop = cl->netchan.dropped;
 				if(net_drop < 20){
 					while(net_drop > 2){
-						Sv_ClientThink(cl, &cl->lastcmd);
+						Sv_ClientThink(cl, &cl->last_cmd);
 						net_drop--;
 					}
 					if(net_drop > 1)
 						Sv_ClientThink(cl, &oldest);
 					if(net_drop > 0)
-						Sv_ClientThink(cl, &oldcmd);
+						Sv_ClientThink(cl, &old_cmd);
 				}
 				Sv_ClientThink(cl, &newcmd);
-				cl->lastcmd = newcmd;
+				cl->last_cmd = newcmd;
 				break;
 
 			case clc_stringcmd:

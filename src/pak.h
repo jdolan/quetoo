@@ -45,11 +45,11 @@ typedef struct {
 } pakheader_t;
 
 typedef struct pak_s {
-	char filename[MAX_OSPATH];
+	char file_name[MAX_OSPATH];
 	FILE *handle;
 	int numentries;
 	pakentry_t *entries;
-	hashtable_t hashtable;
+	hash_table_t hash_table;
 } pak_t;
 
 /*

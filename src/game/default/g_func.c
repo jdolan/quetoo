@@ -79,23 +79,23 @@ static void Move_Final(edict_t *ent){
 		return;
 	}
 
-	VectorScale(ent->moveinfo.dir, ent->moveinfo.remaining_distance / gi.serverframe, ent->velocity);
+	VectorScale(ent->moveinfo.dir, ent->moveinfo.remaining_distance / gi.server_frame, ent->velocity);
 
 	ent->think = Move_Done;
-	ent->nextthink = level.time + gi.serverframe;
+	ent->nextthink = level.time + gi.server_frame;
 }
 
 static void Move_Begin(edict_t *ent){
 	float frames;
 
-	if((ent->moveinfo.speed * gi.serverframe) >= ent->moveinfo.remaining_distance){
+	if((ent->moveinfo.speed * gi.server_frame) >= ent->moveinfo.remaining_distance){
 		Move_Final(ent);
 		return;
 	}
 	VectorScale(ent->moveinfo.dir, ent->moveinfo.speed, ent->velocity);
-	frames = floor((ent->moveinfo.remaining_distance / ent->moveinfo.speed) / gi.serverframe);
-	ent->moveinfo.remaining_distance -= frames * ent->moveinfo.speed * gi.serverframe;
-	ent->nextthink = level.time + (frames * gi.serverframe);
+	frames = floor((ent->moveinfo.remaining_distance / ent->moveinfo.speed) / gi.server_frame);
+	ent->moveinfo.remaining_distance -= frames * ent->moveinfo.speed * gi.server_frame;
+	ent->nextthink = level.time + (frames * gi.server_frame);
 	ent->think = Move_Final;
 }
 
@@ -112,14 +112,14 @@ static void Move_Calc(edict_t *ent, vec3_t dest, void(*func)(edict_t*)){
 		if(level.current_entity == ((ent->flags & FL_TEAMSLAVE) ? ent->teammaster : ent)){
 			Move_Begin(ent);
 		} else {
-			ent->nextthink = level.time + gi.serverframe;
+			ent->nextthink = level.time + gi.server_frame;
 			ent->think = Move_Begin;
 		}
 	} else {
 		// accelerative
 		ent->moveinfo.current_speed = 0;
 		ent->think = Think_AccelMove;
-		ent->nextthink = level.time + gi.serverframe;
+		ent->nextthink = level.time + gi.server_frame;
 	}
 }
 
@@ -144,10 +144,10 @@ static void AngleMove_Final(edict_t *ent){
 		return;
 	}
 
-	VectorScale(move, 1.0 / gi.serverframe, ent->avelocity);
+	VectorScale(move, 1.0 / gi.server_frame, ent->avelocity);
 
 	ent->think = AngleMove_Done;
-	ent->nextthink = level.time + gi.serverframe;
+	ent->nextthink = level.time + gi.server_frame;
 }
 
 static void AngleMove_Begin(edict_t *ent){
@@ -168,18 +168,18 @@ static void AngleMove_Begin(edict_t *ent){
 	// divide by speed to get time to reach dest
 	traveltime = len / ent->moveinfo.speed;
 
-	if(traveltime < gi.serverframe){
+	if(traveltime < gi.server_frame){
 		AngleMove_Final(ent);
 		return;
 	}
 
-	frames = floor(traveltime / gi.serverframe);
+	frames = floor(traveltime / gi.server_frame);
 
 	// scale the destdelta vector by the time spent traveling to get velocity
 	VectorScale(destdelta, 1.0 / traveltime, ent->avelocity);
 
 	// set nextthink to trigger a think when dest is reached
-	ent->nextthink = level.time + frames * gi.serverframe;
+	ent->nextthink = level.time + frames * gi.server_frame;
 	ent->think = AngleMove_Final;
 }
 
@@ -189,7 +189,7 @@ static void AngleMove_Calc(edict_t *ent, void(*func)(edict_t*)){
 	if(level.current_entity == ((ent->flags & FL_TEAMSLAVE) ? ent->teammaster : ent)){
 		AngleMove_Begin(ent);
 	} else {
-		ent->nextthink = level.time + gi.serverframe;
+		ent->nextthink = level.time + gi.server_frame;
 		ent->think = AngleMove_Begin;
 	}
 }
@@ -307,8 +307,8 @@ static void Think_AccelMove(edict_t *ent){
 		return;
 	}
 
-	VectorScale(ent->moveinfo.dir, ent->moveinfo.current_speed * gi.serverrate, ent->velocity);
-	ent->nextthink = level.time + gi.serverframe;
+	VectorScale(ent->moveinfo.dir, ent->moveinfo.current_speed * gi.server_hz, ent->velocity);
+	ent->nextthink = level.time + gi.server_frame;
 	ent->think = Think_AccelMove;
 }
 
@@ -469,7 +469,7 @@ void G_func_plat(edict_t *ent){
 	ent->decel *= 0.1;
 
 	// normalize moveinfo based on server rate, stock q2 rate was 10hz
-	f = 100.0 / (gi.serverrate * gi.serverrate);
+	f = 100.0 / (gi.server_hz * gi.server_hz);
 	ent->speed *= f;
 	ent->accel *= f;
 	ent->decel *= f;
@@ -1081,7 +1081,7 @@ void G_func_door(edict_t *ent){
 
 	gi.LinkEntity(ent);
 
-	ent->nextthink = level.time + gi.serverframe;
+	ent->nextthink = level.time + gi.server_frame;
 	if(ent->health || ent->targetname)
 		ent->think = Think_CalcMoveSpeed;
 	else
@@ -1204,7 +1204,7 @@ void G_func_door_rotating(edict_t *ent){
 
 	gi.LinkEntity(ent);
 
-	ent->nextthink = level.time + gi.serverframe;
+	ent->nextthink = level.time + gi.server_frame;
 	if(ent->health || ent->targetname)
 		ent->think = Think_CalcMoveSpeed;
 	else
@@ -1426,7 +1426,7 @@ static void func_train_find(edict_t *self){
 		self->spawnflags |= TRAIN_START_ON;
 
 	if(self->spawnflags & TRAIN_START_ON){
-		self->nextthink = level.time + gi.serverframe;
+		self->nextthink = level.time + gi.server_frame;
 		self->think = func_train_next;
 		self->activator = self;
 	}
@@ -1479,7 +1479,7 @@ void G_func_train(edict_t *self){
 	if(self->target){
 		// start trains on the second frame, to make sure their targets have had
 		// a chance to spawn
-		self->nextthink = level.time + gi.serverframe;
+		self->nextthink = level.time + gi.server_frame;
 		self->think = func_train_find;
 	} else {
 		gi.Debug("func_train without a target at %s\n", vtos(self->absmin));
@@ -1530,7 +1530,7 @@ void G_func_timer(edict_t *self){
 	self->think = func_timer_think;
 
 	if(self->random >= self->wait){
-		self->random = self->wait - gi.serverframe;
+		self->random = self->wait - gi.server_frame;
 		gi.Debug("func_timer at %s has random >= wait\n", vtos(self->s.origin));
 	}
 

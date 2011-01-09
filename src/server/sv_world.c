@@ -435,7 +435,7 @@ int Sv_HullForEntity(edict_t *ent){
 
 	// decide which clipping hull to use, based on the size
 	if(ent->solid == SOLID_BSP){  // explicit hulls in the BSP model
-		model = sv.models[ent->s.modelindex];
+		model = sv.models[ent->s.model_index];
 
 		if(!model)
 			Com_Error(ERR_FATAL, "Sv_HullForEntity: MOVETYPE_PUSH with a non bsp model.\n");
@@ -469,7 +469,7 @@ static void Sv_ClipMoveToEntities(moveclip_t *clip){
 			continue;
 		if(touch == clip->passedict)
 			continue;
-		if(clip->trace.allsolid)
+		if(clip->trace.all_solid)
 			return;
 		if(clip->passedict){
 			if(touch->owner == clip->passedict)
@@ -488,15 +488,15 @@ static void Sv_ClipMoveToEntities(moveclip_t *clip){
 					clip->mins, clip->maxs, head_node, clip->contentmask,
 					touch->s.origin, angles);
 
-		if(trace.allsolid || trace.startsolid || trace.fraction < clip->trace.fraction){
+		if(trace.all_solid || trace.start_solid || trace.fraction < clip->trace.fraction){
 			trace.ent = touch;
-			if(clip->trace.startsolid){
+			if(clip->trace.start_solid){
 				clip->trace = trace;
-				clip->trace.startsolid = true;
+				clip->trace.start_solid = true;
 			} else
 				clip->trace = trace;
-		} else if(trace.startsolid)
-			clip->trace.startsolid = true;
+		} else if(trace.start_solid)
+			clip->trace.start_solid = true;
 	}
 }
 

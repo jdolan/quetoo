@@ -55,7 +55,7 @@ static void trigger_multiple_think(edict_t *ent){
 	} else {  // we can't just remove (self) here, because this is a touch function
 		// called while looping through area links...
 		ent->touch = NULL;
-		ent->nextthink = level.time + gi.serverframe;
+		ent->nextthink = level.time + gi.server_frame;
 		ent->think = G_FreeEdict;
 	}
 }

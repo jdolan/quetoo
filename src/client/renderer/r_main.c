@@ -223,7 +223,7 @@ void R_UpdateFrustum(void){
 	for(i = 0; i < 4; i++){
 		r_locals.frustum[i].type = PLANE_ANYZ;
 		r_locals.frustum[i].dist = DotProduct(r_view.origin, r_locals.frustum[i].normal);
-		r_locals.frustum[i].signbits = R_SignbitsForPlane(&r_locals.frustum[i]);
+		r_locals.frustum[i].sign_bits = R_SignbitsForPlane(&r_locals.frustum[i]);
 	}
 }
 
@@ -900,7 +900,7 @@ void R_Init(void){
 	R_InitCapture();
 
 	Com_Print("Video initialized %dx%dx%dbpp %s.\n", r_state.width, r_state.height,
-			(r_state.redbits + r_state.greenbits + r_state.bluebits + r_state.alphabits),
+			(r_state.red_bits + r_state.green_bits + r_state.blue_bits + r_state.alpha_bits),
 			(r_state.fullscreen ? "fullscreen" : "windowed"));
 }
 

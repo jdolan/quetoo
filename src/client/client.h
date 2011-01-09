@@ -34,11 +34,11 @@
 
 typedef struct cl_frame_s {
 	qboolean valid;  // cleared if delta parsing was invalid
-	int serverframe;
-	int servertime;  // server time the message is valid for (in msec)
-	int deltaframe;
-	byte areabits[MAX_BSP_AREAS / 8];  // portal area visibility bits
-	player_state_t playerstate;
+	int server_frame;
+	int server_time;  // server time the message is valid for (in msec)
+	int delta_frame;
+	byte area_bits[MAX_BSP_AREAS / 8];  // portal area visibility bits
+	player_state_t ps;
 	int num_entities;
 	int entity_state;  // non-masked index into cl.entity_states array
 } cl_frame_t;
@@ -48,7 +48,7 @@ typedef struct cl_entity_s {
 	entity_state_t current;
 	entity_state_t prev;  // will always be valid, but might just be a copy of current
 
-	int serverframe;  // if not current, this ent isn't in the frame
+	int server_frame;  // if not current, this ent isn't in the frame
 
 	int time;  // for intermittent effects
 
@@ -102,12 +102,12 @@ typedef struct cl_client_s {
 	entity_state_t entity_states[ENTITY_STATE_BACKUP];  // accumulated each frame
 	int entity_state;  // index (not wrapped) into entity states
 
-	int playernum;  // our entity number
+	int player_num;  // our entity number
 
 	int surpress_count;  // number of messages rate supressed
 
 	int time;  // this is the server time value that the client
-	// is rendering at.  always <= cls.realtime due to latency
+	// is rendering at.  always <= cls.real_time due to latency
 
 	float lerp;  // linear interpolation between frames
 
@@ -119,10 +119,10 @@ typedef struct cl_client_s {
 
 	char layout[MAX_STRING_CHARS];  // general 2D overlay
 
-	int servercount;  // server identification for prespawns
-	int serverrate;  // server tick rate (fps)
+	int server_count;  // server identification for prespawns
+	int server_hz;  // server tick rate (fps)
 
-	qboolean demoserver;  // we're viewing a demo
+	qboolean demo_server;  // we're viewing a demo
 
 	char gamedir[MAX_QPATH];
 	char configstrings[MAX_CONFIGSTRINGS][MAX_STRING_CHARS];
@@ -222,13 +222,13 @@ typedef struct cl_static_s {
 
 	cl_chat_state_t chat_state;
 
-	int realtime;  // always increasing, no clamping, etc
+	int real_time;  // always increasing, no clamping, etc
 
 	int packet_delta;  // millis since last outgoing packet
 	int render_delta;  // millis since last renderer frame
 
 	// connection information
-	char servername[MAX_OSPATH];  // name of server to connect to
+	char server_name[MAX_OSPATH];  // name of server to connect to
 	float connect_time;  // for connection retransmits
 
 	netchan_t netchan;  // network channel
@@ -237,17 +237,17 @@ typedef struct cl_static_s {
 
 	int loading;  // loading percentage indicator
 
-	char downloadurl[MAX_OSPATH];  // for http downloads
+	char download_url[MAX_OSPATH];  // for http downloads
 	cl_download_t download;  // current download (udp or http)
 
-	qboolean demowaiting;  // don't begin recording until an uncompressed message is received
-	char demopath[MAX_OSPATH];
-	FILE *demofile;
+	qboolean demo_waiting;  // don't begin recording until an uncompressed message is received
+	char demo_path[MAX_OSPATH];
+	FILE *demo_file;
 
 	cl_server_info_t *servers;  // list of servers from all sources
 	char *servers_text;  // tabular data for servers menu
 
-	int bcasttime;  // time when last broadcast ping was sent
+	int broadcast_time;  // time when last broadcast ping was sent
 } cl_static_t;
 
 extern cl_static_t cls;
@@ -284,9 +284,9 @@ extern cvar_t *cl_weather;
 extern cvar_t *rcon_password;
 extern cvar_t *rcon_address;
 
-// userinfo
+// user_info
 extern cvar_t *color;
-extern cvar_t *messagelevel;
+extern cvar_t *message_level;
 extern cvar_t *name;
 extern cvar_t *password;
 extern cvar_t *rate;
@@ -355,7 +355,7 @@ void Cl_ClearTyping(void);
 // cl_parse.c
 extern char *svc_strings[256];
 
-qboolean Cl_CheckOrDownloadFile(const char *filename);
+qboolean Cl_CheckOrDownloadFile(const char *file_name);
 void Cl_ParseConfigstring(void);
 void Cl_ParseClientinfo(int player);
 void Cl_ParseMuzzleFlash(void);

@@ -267,14 +267,14 @@ void Sys_Backtrace(void){
  * The final exit point of the program under abnormal exit conditions.
  */
 void Sys_Error(const char *error, ...){
-	va_list argptr;
+	va_list args;
 	char string[MAX_STRING_CHARS];
 
 	Sys_Backtrace();
 
-	va_start(argptr, error);
-	vsnprintf(string, sizeof(string), error, argptr);
-	va_end(argptr);
+	va_start(args, error);
+	vsnprintf(string, sizeof(string), error, args);
+	va_end(args);
 
 	fprintf(stderr, "ERROR: %s\n", string);
 

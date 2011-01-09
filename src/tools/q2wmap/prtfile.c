@@ -186,7 +186,7 @@ static void SaveClusters_r(node_t * node){
  * WritePortalFile
  */
 void WritePortalFile(tree_t *tree){
-	char filename[MAX_OSPATH];
+	char file_name[MAX_OSPATH];
 	node_t *head_node;
 
 	Com_Verbose("--- WritePortalFile ---\n");
@@ -205,11 +205,11 @@ void WritePortalFile(tree_t *tree){
 	NumberLeafs_r(head_node);
 
 	// write the file
-	Com_StripExtension(mapname, filename);
-	strcat(filename, ".prt");
+	Com_StripExtension(mapname, file_name);
+	strcat(file_name, ".prt");
 
-	if(Fs_OpenFile(filename, &pf, FILE_WRITE) == -1)
-		Com_Error(ERR_FATAL, "Error opening %s\n", filename);
+	if(Fs_OpenFile(file_name, &pf, FILE_WRITE) == -1)
+		Com_Error(ERR_FATAL, "Error opening %s\n", file_name);
 
 	fprintf(pf, "%s\n", PORTALFILE);
 	fprintf(pf, "%i\n", num_visclusters);

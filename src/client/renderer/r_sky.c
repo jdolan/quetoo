@@ -61,8 +61,8 @@ static const int vec_to_st[6][3] = {
 // sky structure
 typedef struct sky_s {
 	r_image_t *images[6];
-	vec2_t stmins[6];
-	vec2_t stmaxs[6];
+	vec2_t st_mins[6];
+	vec2_t st_maxs[6];
 	vec_t stmin;
 	vec_t stmax;
 	int coordind;
@@ -136,15 +136,15 @@ static void R_DrawSkySurface(int nump, vec3_t vecs){
 		else
 			t = vecs[j - 1] / dv;
 
-		if(s < sky.stmins[0][axis])
-			sky.stmins[0][axis] = s;
-		if(t < sky.stmins[1][axis])
-			sky.stmins[1][axis] = t;
+		if(s < sky.st_mins[0][axis])
+			sky.st_mins[0][axis] = s;
+		if(t < sky.st_mins[1][axis])
+			sky.st_mins[1][axis] = t;
 
-		if(s > sky.stmaxs[0][axis])
-			sky.stmaxs[0][axis] = s;
-		if(t > sky.stmaxs[1][axis])
-			sky.stmaxs[1][axis] = t;
+		if(s > sky.st_maxs[0][axis])
+			sky.st_maxs[0][axis] = s;
+		if(t > sky.st_maxs[1][axis])
+			sky.st_maxs[1][axis] = t;
 	}
 }
 
@@ -268,8 +268,8 @@ void R_ClearSkyBox(void){
 	int i;
 
 	for(i = 0; i < 6; i++){
-		sky.stmins[0][i] = sky.stmins[1][i] =  9999;
-		sky.stmaxs[0][i] = sky.stmaxs[1][i] = -9999;
+		sky.st_mins[0][i] = sky.st_mins[1][i] =  9999;
+		sky.st_maxs[0][i] = sky.st_maxs[1][i] = -9999;
 	}
 }
 
@@ -351,15 +351,15 @@ void R_DrawSkyBox(void){
 
 	for(i = 0; i < 6; i++){
 
-		if(sky.stmins[0][i] >= sky.stmaxs[0][i] || sky.stmins[1][i] >= sky.stmaxs[1][i])
+		if(sky.st_mins[0][i] >= sky.st_maxs[0][i] || sky.st_mins[1][i] >= sky.st_maxs[1][i])
 			continue;  // nothing on this plane
 
 		R_BindTexture(sky.images[skytexorder[i]]->texnum);
 
-		R_MakeSkyVec(sky.stmins[0][i], sky.stmins[1][i], i);
-		R_MakeSkyVec(sky.stmins[0][i], sky.stmaxs[1][i], i);
-		R_MakeSkyVec(sky.stmaxs[0][i], sky.stmaxs[1][i], i);
-		R_MakeSkyVec(sky.stmaxs[0][i], sky.stmins[1][i], i);
+		R_MakeSkyVec(sky.st_mins[0][i], sky.st_mins[1][i], i);
+		R_MakeSkyVec(sky.st_mins[0][i], sky.st_maxs[1][i], i);
+		R_MakeSkyVec(sky.st_maxs[0][i], sky.st_maxs[1][i], i);
+		R_MakeSkyVec(sky.st_maxs[0][i], sky.st_mins[1][i], i);
 
 		glDrawArrays(GL_QUADS, 0, sky.vertind / 3);
 		sky.coordind = sky.vertind = 0;

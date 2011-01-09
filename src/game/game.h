@@ -44,12 +44,12 @@ typedef struct link_s {
 
 #define MAX_ENT_CLUSTERS 16
 
-typedef struct gclient_s gclient_t;  // typedef'ed here, defined below
+typedef struct g_client_s g_client_t;  // typedef'ed here, defined below
 typedef struct edict_s edict_t;  // OR in game module
 
 #ifndef GAME_INCLUDE
 
-struct gclient_s {
+struct g_client_s {
 	player_state_t ps;  // communicated by server to clients
 	int ping;
 	// the game dll can add anything it wants after
@@ -58,7 +58,7 @@ struct gclient_s {
 
 struct edict_s {
 	entity_state_t s;
-	struct gclient_s *client;
+	struct g_client_s *client;
 	qboolean inuse;
 	int linkcount;
 
@@ -86,8 +86,8 @@ struct edict_s {
 // functions provided by the main engine
 typedef struct {
 
-	int serverrate;  // server frames per second
-	float serverframe;  // seconds per frame
+	int server_hz;  // server frames per second
+	float server_frame;  // seconds per frame
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
@@ -146,9 +146,9 @@ typedef struct {
 
 	// filesystem interaction
 	const char *(*Gamedir)(void);
-	int (*OpenFile)(const char *filename, FILE **file, filemode_t mode);
+	int (*OpenFile)(const char *file_name, FILE **file, file_mode_t mode);
 	void (*CloseFile)(FILE *file);
-	int (*LoadFile)(const char *filename, void **buffer);
+	int (*LoadFile)(const char *file_name, void **buffer);
 
 	// console variable interaction
 	cvar_t *(*Cvar)(const char *var_name, const char *value, int flags, const char *description);
@@ -176,9 +176,9 @@ typedef struct {
 	// each new level entered will cause a call to SpawnEntities
 	void (*SpawnEntities)(const char *mapname, const char *entstring);
 
-	qboolean (*ClientConnect)(edict_t *ent, char *userinfo);
+	qboolean (*ClientConnect)(edict_t *ent, char *user_info);
 	void (*ClientBegin)(edict_t *ent);
-	void (*ClientUserinfoChanged)(edict_t *ent, const char *userinfo);
+	void (*ClientUserinfoChanged)(edict_t *ent, const char *user_info);
 	void (*ClientDisconnect)(edict_t *ent);
 	void (*ClientCommand)(edict_t *ent);
 	void (*ClientThink)(edict_t *ent, usercmd_t *cmd);

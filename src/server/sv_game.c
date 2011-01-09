@@ -34,11 +34,11 @@ game_export_t *ge;
 static void Sv_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void Sv_Print(const char *fmt, ...){
 	char msg[1024];
-	va_list	argptr;
+	va_list	args;
 
-	va_start(argptr, fmt);
-	vsprintf(msg, fmt, argptr);
-	va_end(argptr);
+	va_start(args, fmt);
+	vsprintf(msg, fmt, args);
+	va_end(args);
 
 	Com_Print("%s", msg);
 }
@@ -50,11 +50,11 @@ static void Sv_Print(const char *fmt, ...){
 static void Sv_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void Sv_Debug(const char *fmt, ...){
 	char msg[1024];
-	va_list	argptr;
+	va_list	args;
 
-	va_start(argptr, fmt);
-	vsprintf(msg, fmt, argptr);
-	va_end(argptr);
+	va_start(args, fmt);
+	vsprintf(msg, fmt, args);
+	va_end(args);
 
 	Com_Debug("%s", msg);
 }
@@ -68,11 +68,11 @@ static void Sv_Debug(const char *fmt, ...){
 static void Sv_Error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void Sv_Error(const char *fmt, ...){
 	char msg[1024];
-	va_list	argptr;
+	va_list	args;
 
-	va_start(argptr, fmt);
-	vsprintf(msg, fmt, argptr);
-	va_end(argptr);
+	va_start(args, fmt);
+	vsprintf(msg, fmt, args);
+	va_end(args);
 
 	Com_Error(ERR_DROP, "Game error: %s.\n", msg);
 }
@@ -95,7 +95,7 @@ static void Sv_SetModel(edict_t *ent, const char *name){
 	i = Sv_ModelIndex(name);
 
 	//	ent->model = name;
-	ent->s.modelindex = i;
+	ent->s.model_index = i;
 
 	// if it is an inline model, get the size information for it
 	if(name[0] == '*'){
@@ -182,19 +182,19 @@ static void Sv_WriteAngle(float f){
  * Also checks portalareas so that doors block sight
  */
 static qboolean Sv_inPVS(const vec3_t p1, const vec3_t p2){
-	int leafnum;
+	int leaf_num;
 	int cluster;
 	int area1, area2;
 	byte *mask;
 
-	leafnum = Cm_PointLeafnum(p1);
-	cluster = Cm_LeafCluster(leafnum);
-	area1 = Cm_LeafArea(leafnum);
+	leaf_num = Cm_PointLeafnum(p1);
+	cluster = Cm_LeafCluster(leaf_num);
+	area1 = Cm_LeafArea(leaf_num);
 	mask = Cm_ClusterPVS(cluster);
 
-	leafnum = Cm_PointLeafnum(p2);
-	cluster = Cm_LeafCluster(leafnum);
-	area2 = Cm_LeafArea(leafnum);
+	leaf_num = Cm_PointLeafnum(p2);
+	cluster = Cm_LeafCluster(leaf_num);
+	area2 = Cm_LeafArea(leaf_num);
 
 	if(mask &&(!(mask[cluster >> 3] &(1 <<(cluster&7)))))
 		return false;
@@ -212,19 +212,19 @@ static qboolean Sv_inPVS(const vec3_t p1, const vec3_t p2){
  * Also checks portalareas so that doors block sound
  */
 static qboolean Sv_inPHS(const vec3_t p1, const vec3_t p2){
-	int leafnum;
+	int leaf_num;
 	int cluster;
 	int area1, area2;
 	byte *mask;
 
-	leafnum = Cm_PointLeafnum(p1);
-	cluster = Cm_LeafCluster(leafnum);
-	area1 = Cm_LeafArea(leafnum);
+	leaf_num = Cm_PointLeafnum(p1);
+	cluster = Cm_LeafCluster(leaf_num);
+	area1 = Cm_LeafArea(leaf_num);
 	mask = Cm_ClusterPHS(cluster);
 
-	leafnum = Cm_PointLeafnum(p2);
-	cluster = Cm_LeafCluster(leafnum);
-	area2 = Cm_LeafArea(leafnum);
+	leaf_num = Cm_PointLeafnum(p2);
+	cluster = Cm_LeafCluster(leaf_num);
+	area2 = Cm_LeafArea(leaf_num);
 	if(mask &&(!(mask[cluster >> 3] &(1 <<(cluster&7)))))
 		return false;  // more than one bounce away
 	if(!Cm_AreasConnected(area1, area2))
@@ -276,8 +276,8 @@ void Sv_InitGameProgs(void){
 		Sv_ShutdownGameProgs();
 	}
 
-	import.serverrate = svs.packetrate;
-	import.serverframe = 1.0 / svs.packetrate;
+	import.server_hz = svs.packet_rate;
+	import.server_frame = 1.0 / svs.packet_rate;
 
 	import.Print = Sv_Print;
 	import.Debug = Sv_Debug;

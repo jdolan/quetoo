@@ -242,7 +242,7 @@ static qboolean Net_GetLocalPacket(netsrc_t source, netaddr_t *from, sizebuf_t *
 	++;
 
 	memcpy(message->data, loop->msgs[i].data, loop->msgs[i].datalen);
-	message->cursize = loop->msgs[i].datalen;
+	message->size = loop->msgs[i].datalen;
 	*from = net_local_addr;
 	return true;
 }
@@ -283,7 +283,7 @@ qboolean Net_GetPacket(netsrc_t source, netaddr_t *from, sizebuf_t *message){
 	from_len = sizeof(from_addr);
 
 	ret = recvfrom(ip_sockets[source], (void *)message->data,
-			message->maxsize, 0, (struct sockaddr *)&from_addr, &from_len);
+			message->max_size, 0, (struct sockaddr *)&from_addr, &from_len);
 
 	Net_SockaddrToNetaddr(&from_addr, from);
 
@@ -298,12 +298,12 @@ qboolean Net_GetPacket(netsrc_t source, netaddr_t *from, sizebuf_t *message){
 		return false;
 	}
 
-	if(ret == message->maxsize){
+	if(ret == message->max_size){
 		Com_Warn("Oversize packet from %s\n", Net_NetaddrToString(*from));
 		return false;
 	}
 
-	message->cursize = ret;
+	message->size = ret;
 	return true;
 }
 

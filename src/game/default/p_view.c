@@ -23,7 +23,7 @@
 #include "m_player.h"
 
 static edict_t *current_player;
-static gclient_t *current_client;
+static g_client_t *current_client;
 
 
 /*
@@ -32,7 +32,7 @@ static gclient_t *current_client;
  * Assign pain animations and sounds.
  */
 static void P_DamageFeedback(edict_t *player){
-	gclient_t *client;
+	g_client_t *client;
 	int l;
 
 	client = player->client;
@@ -41,7 +41,7 @@ static void P_DamageFeedback(edict_t *player){
 		return;  // didn't take any damage
 
 	// start a pain animation if still in the player model
-	if(client->anim_priority < ANIM_PAIN && player->s.modelindex == 255){
+	if(client->anim_priority < ANIM_PAIN && player->s.model_index == 255){
 		static int i;
 
 		client->anim_priority = ANIM_PAIN;
@@ -98,22 +98,22 @@ static void P_FallingDamage(edict_t *ent){
 	if(ent->movetype == MOVETYPE_NOCLIP)
 		return;
 
-	if(ent->health < 1 || ent->waterlevel == 3)
+	if(ent->health < 1 || ent->water_level == 3)
 		return;
 
 	v = ent->velocity[2];
 	ov = ent->client->oldvelocity[2];
 
-	if(ent->groundentity)  // they are on the ground
+	if(ent->ground_entity)  // they are on the ground
 		delta = v - ov;
 	else if(ov < 0 && v > ov)  // they hit the ground and immediately jumped
 		delta = ov;
 	else
 		return;
 
-	if(ent->waterlevel == 2)
+	if(ent->water_level == 2)
 		delta *= 0.25;
-	if(ent->waterlevel == 1)
+	if(ent->water_level == 1)
 		delta *= 0.5;
 
 	// square it to magnify spread
@@ -158,27 +158,27 @@ static void P_FallingDamage(edict_t *ent){
  * P_WorldEffects
  */
 static void P_WorldEffects(void){
-	int waterlevel, old_waterlevel;
+	int water_level, old_water_level;
 
 	if(current_player->movetype == MOVETYPE_NOCLIP){
 		current_player->drown_time = level.time + 12;  // don't need air
 		return;
 	}
 
-	waterlevel = current_player->waterlevel;
-	old_waterlevel = current_client->old_waterlevel;
-	current_client->old_waterlevel = waterlevel;
+	water_level = current_player->water_level;
+	old_water_level = current_client->old_water_level;
+	current_client->old_water_level = water_level;
 
 	// if just entered a water volume, play a sound
-	if(!old_waterlevel && waterlevel)
+	if(!old_water_level && water_level)
 		gi.Sound(current_player, gi.SoundIndex("world/water_in"), ATTN_NORM);
 
 	// completely exited the water
-	if(old_waterlevel && !waterlevel)
+	if(old_water_level && !water_level)
 		gi.Sound(current_player, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
 	// head just coming out of water
-	if(old_waterlevel == 3 && waterlevel != 3 &&
+	if(old_water_level == 3 && water_level != 3 &&
 			level.time - current_player->gasp_time > 2.0){
 
 		gi.Sound(current_player, gi.SoundIndex("*gasp_1"), ATTN_NORM);
@@ -186,7 +186,7 @@ static void P_WorldEffects(void){
 	}
 
 	// check for drowning
-	if(waterlevel != 3){  // take some air, push out drown time
+	if(water_level != 3){  // take some air, push out drown time
 		current_player->drown_time = level.time + 12.0;
 	}
 	else {  // we're underwater
@@ -214,19 +214,19 @@ static void P_WorldEffects(void){
 	}
 
 	// check for sizzle damage
-	if(waterlevel && (current_player->watertype & (CONTENTS_LAVA | CONTENTS_SLIME))){
+	if(water_level && (current_player->water_type & (CONTENTS_LAVA | CONTENTS_SLIME))){
 		if(current_client->sizzle_time <= level.time && current_player->health > 0){
 
 			current_client->sizzle_time = level.time + 0.1;
 
-			if(current_player->watertype & CONTENTS_LAVA){
+			if(current_player->water_type & CONTENTS_LAVA){
 				G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
-						vec3_origin, 2 * waterlevel, 0, 0, MOD_LAVA);
+						vec3_origin, 2 * water_level, 0, 0, MOD_LAVA);
 			}
 
-			if(current_player->watertype & CONTENTS_SLIME){
+			if(current_player->water_type & CONTENTS_SLIME){
 				G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
-						vec3_origin, 1 * waterlevel, 0, 0, MOD_SLIME);
+						vec3_origin, 1 * water_level, 0, 0, MOD_SLIME);
 			}
 		}
 	}
@@ -237,15 +237,15 @@ static void P_WorldEffects(void){
  * P_RunClientAnimation
  */
 static void P_RunClientAnimation(edict_t *ent){
-	gclient_t *client;
+	g_client_t *client;
 	qboolean duck, run;
 
-	if(ent->s.modelindex != 255)
+	if(ent->s.model_index != 255)
 		return;  // not in the player model
 
 	client = ent->client;
 
-	// use a small epsilon for low serverframe rates
+	// use a small epsilon for low server_frame rates
 	if(client->anim_time > level.time + 0.001)
 		return;
 
@@ -266,7 +266,7 @@ static void P_RunClientAnimation(edict_t *ent){
 		goto newanim;
 	if(run != client->anim_run && client->anim_priority == ANIM_BASIC)
 		goto newanim;
-	if(!ent->groundentity && client->anim_priority <= ANIM_WAVE)
+	if(!ent->ground_entity && client->anim_priority <= ANIM_WAVE)
 		goto newanim;
 
 	if(client->anim_priority == ANIM_REVERSE){
@@ -283,7 +283,7 @@ static void P_RunClientAnimation(edict_t *ent){
 		return;  // stay there
 
 	if(client->anim_priority == ANIM_JUMP){
-		if(!ent->groundentity)
+		if(!ent->ground_entity)
 			return;  // stay there
 		ent->client->anim_priority = ANIM_WAVE;
 		ent->s.frame = FRAME_jump3;
@@ -297,7 +297,7 @@ newanim:
 	client->anim_duck = duck;
 	client->anim_run = run;
 
-	if(!ent->groundentity){
+	if(!ent->ground_entity){
 		client->anim_priority = ANIM_JUMP;
 		if(ent->s.frame != FRAME_jump2)
 			ent->s.frame = FRAME_jump1;
@@ -370,11 +370,11 @@ void P_EndServerFrame(edict_t *ent){
 	ent->s.angles[ROLL] = dot * 0.025;
 
 	// less roll when in the air
-	if(!ent->groundentity)
+	if(!ent->ground_entity)
 		ent->s.angles[ROLL] *= 0.25;
 
 	// check for footsteps
-	if(ent->groundentity && !ent->s.event){
+	if(ent->ground_entity && !ent->s.event){
 
 		xyspeed = sqrt(ent->velocity[0] * ent->velocity[0] +
 				ent->velocity[1] * ent->velocity[1]);
@@ -406,7 +406,7 @@ void P_EndServerFrame(edict_t *ent){
 	VectorCopy(ent->client->ps.angles, ent->client->oldangles);
 
 	// if the scoreboard is up, update it
-	if(ent->client->showscores && !(level.framenum & 31)){
+	if(ent->client->showscores && !(level.frame_num & 31)){
 		if(level.teams || level.ctf)
 			P_TeamsScoreboard(ent);
 		else

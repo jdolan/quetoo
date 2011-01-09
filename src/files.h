@@ -171,7 +171,7 @@ typedef struct {
 	int id;
 	int version;
 
-	char filename[MD3_MAX_PATH];
+	char file_name[MD3_MAX_PATH];
 
 	int flags;
 

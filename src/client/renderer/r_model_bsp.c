@@ -278,11 +278,11 @@ static void R_LoadBspTexinfo(const d_bsp_lump_t *l){
 /*
  * R_SetupBspSurface
  *
- * Sets in s->mins, s->maxs, s->stmins, s->stmaxs, ..
+ * Sets in s->mins, s->maxs, s->st_mins, s->st_maxs, ..
  */
 static void R_SetupBspSurface(r_bsp_surface_t *surf){
 	vec3_t mins, maxs;
-	vec2_t stmins, stmaxs;
+	vec2_t st_mins, st_maxs;
 	int i, j;
 	const r_bsp_vertex_t *v;
 	const r_bsp_texinfo_t *tex;
@@ -290,8 +290,8 @@ static void R_SetupBspSurface(r_bsp_surface_t *surf){
 	VectorSet(mins, 999999, 999999, 999999);
 	VectorSet(maxs, -999999, -999999, -999999);
 
-	stmins[0] = stmins[1] = 999999;
-	stmaxs[0] = stmaxs[1] = -999999;
+	st_mins[0] = st_mins[1] = 999999;
+	st_maxs[0] = st_maxs[1] = -999999;
 
 	tex = surf->texinfo;
 
@@ -309,12 +309,12 @@ static void R_SetupBspSurface(r_bsp_surface_t *surf){
 				mins[j] = v->position[j];
 		}
 
-		for(j = 0; j < 2; j++){  // calculate stmins, stmaxs
+		for(j = 0; j < 2; j++){  // calculate st_mins, st_maxs
 			const float val = DotProduct(v->position, tex->vecs[j]) + tex->vecs[j][3];
-			if(val < stmins[j])
-				stmins[j] = val;
-			if(val > stmaxs[j])
-				stmaxs[j] = val;
+			if(val < st_mins[j])
+				st_mins[j] = val;
+			if(val > st_maxs[j])
+				st_maxs[j] = val;
 		}
 	}
 
@@ -325,14 +325,14 @@ static void R_SetupBspSurface(r_bsp_surface_t *surf){
 		surf->center[i] = (surf->mins[i] + surf->maxs[i]) / 2.0;
 
 	for(i = 0; i < 2; i++){
-		const int bmins = floor(stmins[i] / r_loadmodel->lightmap_scale);
-		const int bmaxs = ceil(stmaxs[i] / r_loadmodel->lightmap_scale);
+		const int bmins = floor(st_mins[i] / r_loadmodel->lightmap_scale);
+		const int bmaxs = ceil(st_maxs[i] / r_loadmodel->lightmap_scale);
 
-		surf->stmins[i] = bmins * r_loadmodel->lightmap_scale;
-		surf->stmaxs[i] = bmaxs * r_loadmodel->lightmap_scale;
+		surf->st_mins[i] = bmins * r_loadmodel->lightmap_scale;
+		surf->st_maxs[i] = bmaxs * r_loadmodel->lightmap_scale;
 
-		surf->stcenter[i] = (surf->stmaxs[i] + surf->stmins[i]) / 2.0;
-		surf->stextents[i] = surf->stmaxs[i] - surf->stmins[i];
+		surf->st_center[i] = (surf->st_maxs[i] + surf->st_mins[i]) / 2.0;
+		surf->st_extents[i] = surf->st_maxs[i] - surf->st_mins[i];
 	}
 }
 
@@ -447,8 +447,8 @@ static void R_LoadBspNodes(const d_bsp_lump_t *l){
 	for(i = 0; i < count; i++, in++, out++){
 
 		for(j = 0; j < 3; j++){
-			out->minmaxs[j] = LittleShort(in->mins[j]);
-			out->minmaxs[3 + j] = LittleShort(in->maxs[j]);
+			out->mins[j] = LittleShort(in->mins[j]);
+			out->maxs[j] = LittleShort(in->maxs[j]);
 		}
 
 		p = LittleLong(in->plane_num);
@@ -493,8 +493,8 @@ static void R_LoadBspLeafs(const d_bsp_lump_t *l){
 	for(i = 0; i < count; i++, in++, out++){
 
 		for(j = 0; j < 3; j++){
-			out->minmaxs[j] = LittleShort(in->mins[j]);
-			out->minmaxs[3 + j] = LittleShort(in->maxs[j]);
+			out->mins[j] = LittleShort(in->mins[j]);
+			out->maxs[j] = LittleShort(in->maxs[j]);
 		}
 
 		out->contents = LittleLong(in->contents);
@@ -600,7 +600,7 @@ static void R_LoadBspPlanes(const d_bsp_lump_t *l){
 
 		out->dist = LittleFloat(in->dist);
 		out->type = LittleLong(in->type);
-		out->signbits = bits;
+		out->sign_bits = bits;
 	}
 }
 
@@ -680,13 +680,13 @@ static void R_LoadBspVertexArrays(void){
 
 			if(surf->flags & MSURF_LIGHTMAP){  // lightmap coordinates
 				s = DotProduct(point, sdir) + soff;
-				s -= surf->stmins[0];
+				s -= surf->st_mins[0];
 				s += surf->light_s * r_loadmodel->lightmap_scale;
 				s += r_loadmodel->lightmap_scale / 2.0;
 				s /= r_lightmaps.size * r_loadmodel->lightmap_scale;
 
 				t = DotProduct(point, tdir) + toff;
-				t -= surf->stmins[1];
+				t -= surf->st_mins[1];
 				t += surf->light_t * r_loadmodel->lightmap_scale;
 				t += r_loadmodel->lightmap_scale / 2.0;
 				t /= r_lightmaps.size * r_loadmodel->lightmap_scale;

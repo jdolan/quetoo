@@ -117,7 +117,7 @@ qboolean Cvar_Delete(const char *varName){
 
 	for(var = cvar_vars; var; var = var->next){
 		if(!strcmp(varName, var->name)){
-			if(var->flags & (CVAR_USERINFO | CVAR_SERVERINFO | CVAR_NOSET | CVAR_LATCH)){
+			if(var->flags & (CVAR_USER_INFO | CVAR_SERVER_INFO | CVAR_NOSET | CVAR_LATCH)){
 				Com_Print("Can't delete the cvar '%s' - it's a special cvar\n", varName);
 				return false;
 			}
@@ -150,7 +150,7 @@ qboolean Cvar_Delete(const char *varName){
 cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const char *description){
 	cvar_t *v, *var;
 
-	if(flags & (CVAR_USERINFO | CVAR_SERVERINFO)){
+	if(flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)){
 		if(!Cvar_InfoValidate(var_name)){
 			Com_Print("invalid info cvar name\n");
 			return NULL;
@@ -166,7 +166,7 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const c
 	if(!var_value)
 		return NULL;
 
-	if(flags & (CVAR_USERINFO | CVAR_SERVERINFO)){
+	if(flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)){
 		if(!Cvar_InfoValidate(var_value)){
 			Com_Print("invalid info cvar value\n");
 			return NULL;
@@ -213,7 +213,7 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force
 		return Cvar_Get(var_name, value, 0, NULL);
 	}
 
-	if(var->flags & (CVAR_USERINFO | CVAR_SERVERINFO)){
+	if(var->flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)){
 		if(!Cvar_InfoValidate(value)){
 			Com_Print("Invalid info value\n");
 			return var;
@@ -267,8 +267,8 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force
 
 	var->modified = true;
 
-	if(var->flags & CVAR_USERINFO)
-		userinfo_modified = true;  // transmit at next oportunity
+	if(var->flags & CVAR_USER_INFO)
+		user_info_modified = true;  // transmit at next oportunity
 
 	Z_Free(var->string);  // free the old value string
 
@@ -308,8 +308,8 @@ cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags){
 
 	var->modified = true;
 
-	if(var->flags & CVAR_USERINFO)
-		userinfo_modified = true;  // transmit at next oportunity
+	if(var->flags & CVAR_USER_INFO)
+		user_info_modified = true;  // transmit at next oportunity
 
 	Z_Free(var->string);  // free the old value string
 
@@ -464,9 +464,9 @@ static void Cvar_Set_f(void){
 
 	if(c == 4){
 		if(!strcmp(Cmd_Argv(3), "u"))
-			flags = CVAR_USERINFO;
+			flags = CVAR_USER_INFO;
 		else if(!strcmp(Cmd_Argv(3), "s"))
-			flags = CVAR_SERVERINFO;
+			flags = CVAR_SERVER_INFO;
 		else {
 			Com_Print("Invalid flags\n");
 			return;
@@ -526,11 +526,11 @@ static void Cvar_List_f(void){
 			Com_Print("*");
 		else
 			Com_Print(" ");
-		if(var->flags & CVAR_USERINFO)
+		if(var->flags & CVAR_USER_INFO)
 			Com_Print("U");
 		else
 			Com_Print(" ");
-		if(var->flags & CVAR_SERVERINFO)
+		if(var->flags & CVAR_SERVER_INFO)
 			Com_Print("S");
 		else
 			Com_Print(" ");
@@ -588,7 +588,7 @@ void Cvar_LockCheatVars(qboolean lock){
 }
 
 
-qboolean userinfo_modified;
+qboolean user_info_modified;
 
 /*
  * Cvar_BitInfo
@@ -603,17 +603,18 @@ static char *Cvar_BitInfo(int bit){
 		if(var->flags & bit)
 			Info_SetValueForKey(info, var->name, var->string);
 	}
+
 	return info;
 }
 
-// returns an info string containing all the CVAR_USERINFO cvars
-char *Cvar_Userinfo(void){
-	return Cvar_BitInfo(CVAR_USERINFO);
+// returns an info string containing all the CVAR_USER_INFO cvars
+char *Cvar_UserInfo(void){
+	return Cvar_BitInfo(CVAR_USER_INFO);
 }
 
-// returns an info string containing all the CVAR_SERVERINFO cvars
-char *Cvar_Serverinfo(void){
-	return Cvar_BitInfo(CVAR_SERVERINFO);
+// returns an info string containing all the CVAR_SERVER_INFO cvars
+char *Cvar_ServerInfo(void){
+	return Cvar_BitInfo(CVAR_SERVER_INFO);
 }
 
 /*

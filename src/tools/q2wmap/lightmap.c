@@ -47,7 +47,7 @@ typedef struct {
 typedef struct extents_s {
 	vec3_t mins, maxs;
 	vec3_t center;
-	vec2_t stmins, stmaxs;
+	vec2_t st_mins, st_maxs;
 } extents_t;
 
 static extents_t face_extents[MAX_BSP_FACES];
@@ -74,14 +74,14 @@ static void BuildFaceExtents(void){
 
 		float *center = face_extents[s - dfaces].center;
 
-		float *stmins = face_extents[s - dfaces].stmins;
-		float *stmaxs = face_extents[s - dfaces].stmaxs;
+		float *st_mins = face_extents[s - dfaces].st_mins;
+		float *st_maxs = face_extents[s - dfaces].st_maxs;
 
 		VectorSet(mins, 999999, 999999, 999999);
 		VectorSet(maxs, -999999, -999999, -999999);
 
-		stmins[0] = stmins[1] = 999999;
-		stmaxs[0] = stmaxs[1] = -999999;
+		st_mins[0] = st_mins[1] = 999999;
+		st_maxs[0] = st_maxs[1] = -999999;
 
 		for(i = 0; i < s->num_edges; i++){
 			const int e = dsurfedges[s->first_edge + i];
@@ -97,12 +97,12 @@ static void BuildFaceExtents(void){
 					mins[j] = v->point[j];
 			}
 
-			for(j = 0; j < 2; j++){  // calculate stmins, stmaxs
+			for(j = 0; j < 2; j++){  // calculate st_mins, st_maxs
 				const float val = DotProduct(v->point, tex->vecs[j]) + tex->vecs[j][3];
-				if(val < stmins[j])
-					stmins[j] = val;
-				if(val > stmaxs[j])
-					stmaxs[j] = val;
+				if(val < st_mins[j])
+					st_mins[j] = val;
+				if(val > st_maxs[j])
+					st_maxs[j] = val;
 			}
 		}
 
@@ -119,21 +119,21 @@ static void BuildFaceExtents(void){
  */
 static void CalcLightinfoExtents(lightinfo_t *l){
 	const d_bsp_face_t *s;
-	float *stmins, *stmaxs;
+	float *st_mins, *st_maxs;
 	vec2_t lm_mins, lm_maxs;
 	int i;
 
 	s = l->face;
 
-	stmins = face_extents[s - dfaces].stmins;
-	stmaxs = face_extents[s - dfaces].stmaxs;
+	st_mins = face_extents[s - dfaces].st_mins;
+	st_maxs = face_extents[s - dfaces].st_maxs;
 
 	for(i = 0; i < 2; i++){
-		l->exactmins[i] = stmins[i];
-		l->exactmaxs[i] = stmaxs[i];
+		l->exactmins[i] = st_mins[i];
+		l->exactmaxs[i] = st_maxs[i];
 
-		lm_mins[i] = floor(stmins[i] / lightmap_scale);
-		lm_maxs[i] = ceil(stmaxs[i] / lightmap_scale);
+		lm_mins[i] = floor(st_mins[i] / lightmap_scale);
+		lm_maxs[i] = ceil(st_maxs[i] / lightmap_scale);
 
 		l->texmins[i] = lm_mins[i];
 		l->texsize[i] = lm_maxs[i] - lm_mins[i];

@@ -34,8 +34,8 @@
  */
 static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, sizebuf_t *msg){
 	entity_state_t *oldent = NULL, *newent = NULL;
-	int oldindex, newindex;
-	int oldnum, newnum;
+	int old_index, newindex;
+	int old_num, newnum;
 	int from_num_entities;
 	int bits;
 
@@ -45,8 +45,8 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, sizebuf_t *msg){
 		from_num_entities = from->num_entities;
 
 	newindex = 0;
-	oldindex = 0;
-	while(newindex < to->num_entities || oldindex < from_num_entities){
+	old_index = 0;
+	while(newindex < to->num_entities || old_index < from_num_entities){
 		if(newindex >= to->num_entities)
 			newnum = 9999;
 		else {
@@ -54,29 +54,29 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, sizebuf_t *msg){
 			newnum = newent->number;
 		}
 
-		if(oldindex >= from_num_entities)
-			oldnum = 9999;
+		if(old_index >= from_num_entities)
+			old_num = 9999;
 		else {
-			oldent = &svs.entity_states[(from->first_entity + oldindex) % svs.num_entity_states];
-			oldnum = oldent->number;
+			oldent = &svs.entity_states[(from->first_entity + old_index) % svs.num_entity_states];
+			old_num = oldent->number;
 		}
 
-		if(newnum == oldnum){  // delta update from old position
+		if(newnum == old_num){  // delta update from old position
 			Msg_WriteDeltaEntity(oldent, newent, msg, false, newent->number <= sv_maxclients->value);
-			oldindex++;
+			old_index++;
 			newindex++;
 			continue;
 		}
 
-		if(newnum < oldnum){  // this is a new entity, send it from the baseline
+		if(newnum < old_num){  // this is a new entity, send it from the baseline
 			Msg_WriteDeltaEntity(&sv.baselines[newnum], newent, msg, true, true);
 			newindex++;
 			continue;
 		}
 
-		if(newnum > oldnum){  // the old entity isn't present in the new message
+		if(newnum > old_num){  // the old entity isn't present in the new message
 			bits = U_REMOVE;
-			if(oldnum >= 256)
+			if(old_num >= 256)
 				bits |= U_NUMBER16 | U_MOREBITS1;
 
 			Msg_WriteByte(msg, bits & 255);
@@ -84,11 +84,11 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, sizebuf_t *msg){
 				Msg_WriteByte(msg, (bits >> 8) & 255);
 
 			if(bits & U_NUMBER16)
-				Msg_WriteShort(msg, oldnum);
+				Msg_WriteShort(msg, old_num);
 			else
-				Msg_WriteByte(msg, oldnum);
+				Msg_WriteByte(msg, old_num);
 
-			oldindex++;
+			old_index++;
 			continue;
 		}
 	}
@@ -203,41 +203,41 @@ static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from, s
  * Sv_WriteFrameToClient
  */
 void Sv_WriteFrameToClient(sv_client_t *client, sizebuf_t *msg){
-	sv_frame_t *frame, *oldframe;
-	int lastframe;
+	sv_frame_t *frame, *old_frame;
+	int last_frame;
 
 	// this is the frame we are creating
-	frame = &client->frames[sv.framenum & UPDATE_MASK];
+	frame = &client->frames[sv.frame_num & UPDATE_MASK];
 
-	if(client->lastframe < 0){
+	if(client->last_frame < 0){
 		// client is asking for a retransmit
-		oldframe = NULL;
-		lastframe = -1;
-	} else if(sv.framenum - client->lastframe >= (UPDATE_BACKUP - 3)){
+		old_frame = NULL;
+		last_frame = -1;
+	} else if(sv.frame_num - client->last_frame >= (UPDATE_BACKUP - 3)){
 		// client hasn't gotten a good message through in a long time
-		oldframe = NULL;
-		lastframe = -1;
+		old_frame = NULL;
+		last_frame = -1;
 	} else {
 		// we have a valid message to delta from
-		oldframe = &client->frames[client->lastframe & UPDATE_MASK];
-		lastframe = client->lastframe;
+		old_frame = &client->frames[client->last_frame & UPDATE_MASK];
+		last_frame = client->last_frame;
 	}
 
 	Msg_WriteByte(msg, svc_frame);
-	Msg_WriteLong(msg, sv.framenum);
-	Msg_WriteLong(msg, lastframe);  // what we are delta'ing from
+	Msg_WriteLong(msg, sv.frame_num);
+	Msg_WriteLong(msg, last_frame);  // what we are delta'ing from
 	Msg_WriteByte(msg, client->surpress_count);  // rate dropped packets
 	client->surpress_count = 0;
 
-	// send over the areabits
-	Msg_WriteByte(msg, frame->areabytes);
-	Sb_Write(msg, frame->areabits, frame->areabytes);
+	// send over the area_bits
+	Msg_WriteByte(msg, frame->area_bytes);
+	Sb_Write(msg, frame->area_bits, frame->area_bytes);
 
 	// delta encode the playerstate
-	Sv_WritePlayerstateToClient(client, oldframe, frame, msg);
+	Sv_WritePlayerstateToClient(client, old_frame, frame, msg);
 
 	// delta encode the entities
-	Sv_EmitEntities(oldframe, frame, msg);
+	Sv_EmitEntities(old_frame, frame, msg);
 }
 
 
@@ -296,7 +296,7 @@ static void Sv_FatPVS(const vec3_t org){
  * Sv_BuildClientFrame
  *
  * Decides which entities are going to be visible to the client, and
- * copies off the playerstat and areabits.
+ * copies off the playerstat and area_bits.
  */
 void Sv_BuildClientFrame(sv_client_t *client){
 	int e, i;
@@ -307,7 +307,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 	entity_state_t *state;
 	int l;
 	int clientarea, clientcluster;
-	int leafnum;
+	int leaf_num;
 	int c_fullsend;
 	byte *clientphs;
 	byte *bitvector;
@@ -317,20 +317,20 @@ void Sv_BuildClientFrame(sv_client_t *client){
 		return;  // not in game yet
 
 	// this is the frame we are creating
-	frame = &client->frames[sv.framenum & UPDATE_MASK];
+	frame = &client->frames[sv.frame_num & UPDATE_MASK];
 
-	frame->senttime = svs.realtime; // save it for ping calc later
+	frame->sent_time = svs.real_time; // save it for ping calc later
 
 	// find the client's PVS
 	for(i = 0; i < 3; i++)
 		org[i] = clent->client->ps.pmove.origin[i] * 0.125;
 
-	leafnum = Cm_PointLeafnum(org);
-	clientarea = Cm_LeafArea(leafnum);
-	clientcluster = Cm_LeafCluster(leafnum);
+	leaf_num = Cm_PointLeafnum(org);
+	clientarea = Cm_LeafArea(leaf_num);
+	clientcluster = Cm_LeafCluster(leaf_num);
 
 	// calculate the visible areas
-	frame->areabytes = Cm_WriteAreaBits(frame->areabits, clientarea);
+	frame->area_bytes = Cm_WriteAreaBits(frame->area_bits, clientarea);
 
 	// grab the current player_state_t
 	frame->ps = clent->client->ps;
@@ -352,7 +352,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 			continue;
 
 		// ignore ents without visible models unless they have an effect
-		if(!ent->s.modelindex && !ent->s.effects && !ent->s.sound && !ent->s.event)
+		if(!ent->s.model_index && !ent->s.effects && !ent->s.sound && !ent->s.event)
 			continue;
 
 		// ignore if not touching a PV leaf
@@ -385,7 +385,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 					continue;  // not visible
 			}
 
-			if(!ent->s.modelindex && !ent->solid && !ent->s.effects){
+			if(!ent->s.model_index && !ent->solid && !ent->s.effects){
 				// don't send sounds if they will be attenuated away
 				vec3_t delta;
 				float len;

@@ -28,7 +28,7 @@
 
 extern char token[MAXTOKEN];
 
-void LoadScriptFile(const char *filename);
+void LoadScriptFile(const char *file_name);
 void ParseFromMemory(char *buffer, int size);
 
 qboolean GetToken(qboolean crossline);

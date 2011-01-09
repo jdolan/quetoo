@@ -340,7 +340,7 @@ static void Cm_LoadPlanes(const d_bsp_lump_t *l){
 
 		out->dist = LittleFloat(in->dist);
 		out->type = LittleLong(in->type);
-		out->signbits = bits;
+		out->sign_bits = bits;
 	}
 }
 
@@ -609,25 +609,25 @@ char *Cm_EntityString(void){
 	return map_entitystring;
 }
 
-int Cm_LeafContents(int leafnum){
-	if(leafnum < 0 || leafnum >= num_leafs){
+int Cm_LeafContents(int leaf_num){
+	if(leaf_num < 0 || leaf_num >= num_leafs){
 		Com_Error(ERR_DROP, "Cm_LeafContents: Bad number.\n");
 	}
-	return map_leafs[leafnum].contents;
+	return map_leafs[leaf_num].contents;
 }
 
-int Cm_LeafCluster(int leafnum){
-	if(leafnum < 0 || leafnum >= num_leafs){
+int Cm_LeafCluster(int leaf_num){
+	if(leaf_num < 0 || leaf_num >= num_leafs){
 		Com_Error(ERR_DROP, "Cm_LeafCluster: Bad number.\n");
 	}
-	return map_leafs[leafnum].cluster;
+	return map_leafs[leaf_num].cluster;
 }
 
-int Cm_LeafArea(int leafnum){
-	if(leafnum < 0 || leafnum >= num_leafs){
+int Cm_LeafArea(int leaf_num){
+	if(leaf_num < 0 || leaf_num >= num_leafs){
 		Com_Error(ERR_DROP, "Cm_LeafArea: Bad number.\n");
 	}
-	return map_leafs[leafnum].area;
+	return map_leafs[leaf_num].area;
 }
 
 
@@ -690,13 +690,13 @@ static void Cm_InitBoxHull(void){
 		// planes
 		p = &box_planes[i * 2];
 		p->type = i >> 1;
-		p->signbits = 0;
+		p->sign_bits = 0;
 		VectorClear(p->normal);
 		p->normal[i >> 1] = 1;
 
 		p = &box_planes[i * 2 + 1];
 		p->type = PLANE_ANYX + (i >> 1);
-		p->signbits = 0;
+		p->sign_bits = 0;
 		VectorClear(p->normal);
 		p->normal[i >> 1] = -1;
 	}
@@ -944,7 +944,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
 
 			// push the plane out apropriately for mins/maxs
 
-			// FIXME: use signbits into 8 way lookup for each mins/maxs
+			// FIXME: use sign_bits into 8 way lookup for each mins/maxs
 			for(j = 0; j < 3; j++){
 				if(plane->normal[j] < 0.0)
 					ofs[j] = maxs[j];
@@ -988,10 +988,10 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
 	}
 
 	if(!startout){  // original point was inside brush
-		trace->startsolid = true;
+		trace->start_solid = true;
 		if(!getout)
-			trace->allsolid = true;
-		trace->leafnum = leaf - map_leafs;
+			trace->all_solid = true;
+		trace->leaf_num = leaf - map_leafs;
 	}
 
 	if(enterfrac < leavefrac){  // pierced brush
@@ -1002,7 +1002,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
 			trace->plane = *clipplane;
 			trace->surface = leadside->surface;
 			trace->contents = brush->contents;
-			trace->leafnum = leaf - map_leafs;
+			trace->leaf_num = leaf - map_leafs;
 		}
 	}
 }
@@ -1032,7 +1032,7 @@ static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, trace_t *trac
 
 		// push the plane out apropriately for mins/maxs
 
-		// FIXME: use signbits into 8 way lookup for each mins/maxs
+		// FIXME: use sign_bits into 8 way lookup for each mins/maxs
 		for(j = 0; j < 3; j++){
 			if(plane->normal[j] < 0.0)
 				ofs[j] = maxs[j];
@@ -1050,7 +1050,7 @@ static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, trace_t *trac
 	}
 
 	// inside this brush
-	trace->startsolid = trace->allsolid = true;
+	trace->start_solid = trace->all_solid = true;
 	trace->fraction = 0.0;
 	trace->contents = brush->contents;
 }
@@ -1059,11 +1059,11 @@ static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, trace_t *trac
 /*
  * Cm_TraceToLeaf
  */
-static void Cm_TraceToLeaf(int leafnum, tracedata_t *data){
+static void Cm_TraceToLeaf(int leaf_num, tracedata_t *data){
 	int k;
 	cleaf_t *leaf;
 
-	leaf = &map_leafs[leafnum];
+	leaf = &map_leafs[leaf_num];
 
 	if(!(leaf->contents & data->contents))
 		return;
@@ -1082,7 +1082,7 @@ static void Cm_TraceToLeaf(int leafnum, tracedata_t *data){
 		Cm_ClipBoxToBrush(data->mins, data->maxs, data->start, data->end,
 				&data->trace, leaf, b, data->ispoint);
 
-		if(data->trace.allsolid)
+		if(data->trace.all_solid)
 			return;
 	}
 }
@@ -1091,11 +1091,11 @@ static void Cm_TraceToLeaf(int leafnum, tracedata_t *data){
 /*
  * Cm_TestInLeaf
  */
-static void Cm_TestInLeaf(int leafnum, tracedata_t *data) {
+static void Cm_TestInLeaf(int leaf_num, tracedata_t *data) {
 	int k;
 	cleaf_t *leaf;
 
-	leaf = &map_leafs[leafnum];
+	leaf = &map_leafs[leaf_num];
 	if(!(leaf->contents & data->contents))
 		return;
 
@@ -1109,7 +1109,7 @@ static void Cm_TestInLeaf(int leafnum, tracedata_t *data) {
 		if(!(b->contents & data->contents))
 			continue;
 		Cm_TestBoxInBrush(data->mins, data->maxs, data->start, &data->trace, b);
-		if(data->trace.allsolid)
+		if(data->trace.all_solid)
 			return;
 	}
 }
@@ -1253,10 +1253,10 @@ trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
 
 		for(i = 0; i < num_leafs; i++){
 			Cm_TestInLeaf(pointleafs[i], &data);
-			if(data.trace.allsolid)
+			if(data.trace.all_solid)
 				break;
 		}
-		VectorCopy(start, data.trace.endpos);
+		VectorCopy(start, data.trace.end);
 		return data.trace;
 	}
 
@@ -1275,10 +1275,10 @@ trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
 	Cm_RecursiveHullCheck(head_node, 0, 1, start, end, &data);
 
 	if(data.trace.fraction == 1){
-		VectorCopy(end, data.trace.endpos);
+		VectorCopy(end, data.trace.end);
 	} else {
 		for(i = 0; i < 3; i++)
-			data.trace.endpos[i] = start[i] + data.trace.fraction * (end[i] - start[i]);
+			data.trace.end[i] = start[i] + data.trace.fraction * (end[i] - start[i]);
 	}
 	return data.trace;
 }
@@ -1340,9 +1340,9 @@ trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 		trace.plane.normal[2] = DotProduct(temp, up);
 	}
 
-	trace.endpos[0] = start[0] + trace.fraction * (end[0] - start[0]);
-	trace.endpos[1] = start[1] + trace.fraction * (end[1] - start[1]);
-	trace.endpos[2] = start[2] + trace.fraction * (end[2] - start[2]);
+	trace.end[0] = start[0] + trace.fraction * (end[0] - start[0]);
+	trace.end[1] = start[1] + trace.fraction * (end[1] - start[1]);
+	trace.end[2] = start[2] + trace.fraction * (end[2] - start[2]);
 
 	return trace;
 }
@@ -1521,8 +1521,8 @@ qboolean Cm_HeadnodeVisible(int nodenum, byte *visbits){
 	const cnode_t *node;
 
 	if(nodenum < 0){  // at a leaf, check it
-		const int leafnum = -1 - nodenum;
-		const int cluster = map_leafs[leafnum].cluster;
+		const int leaf_num = -1 - nodenum;
+		const int cluster = map_leafs[leaf_num].cluster;
 		if(cluster == -1)
 			return false;
 		if(visbits[cluster >> 3] & (1 << (cluster & 7)))

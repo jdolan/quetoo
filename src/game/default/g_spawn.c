@@ -84,8 +84,8 @@ spawn_t spawns[] = {
  */
 static void G_CallSpawn(edict_t *ent){
 	spawn_t *s;
-	gitem_t *item;
-	override_t *over;
+	g_item_t *item;
+	g_override_t *over;
 	int i;
 
 	if(!ent->classname){
@@ -104,7 +104,7 @@ static void G_CallSpawn(edict_t *ent){
 	}
 
 	// check item spawn functions
-	for(i = 0, item = itemlist; i < game.num_items; i++, item++){
+	for(i = 0, item = g_items; i < game.num_items; i++, item++){
 		if(!item->classname)
 			continue;
 		if(!strcmp(item->classname, ent->classname)){  // found it
@@ -210,7 +210,7 @@ static const field_t fields[] = {
 
 	{"enemy", FOFS(enemy), F_EDICT, FFL_NOSPAWN},
 	{"activator", FOFS(activator), F_EDICT, FFL_NOSPAWN},
-	{"groundentity", FOFS(groundentity), F_EDICT, FFL_NOSPAWN},
+	{"ground_entity", FOFS(ground_entity), F_EDICT, FFL_NOSPAWN},
 	{"teamchain", FOFS(teamchain), F_EDICT, FFL_NOSPAWN},
 	{"teammaster", FOFS(teammaster), F_EDICT, FFL_NOSPAWN},
 	{"owner", FOFS(owner), F_EDICT, FFL_NOSPAWN},
@@ -246,10 +246,10 @@ static const field_t fields[] = {
 	{"teams", STOFS(teams), F_LSTRING, FFL_SPAWNTEMP},
 	{"ctf", STOFS(ctf), F_LSTRING, FFL_SPAWNTEMP},
 	{"match", STOFS(match), F_LSTRING, FFL_SPAWNTEMP},
-	{"fraglimit", STOFS(fraglimit), F_LSTRING, FFL_SPAWNTEMP},
-	{"roundlimit", STOFS(roundlimit), F_LSTRING, FFL_SPAWNTEMP},
-	{"capturelimit", STOFS(capturelimit), F_LSTRING, FFL_SPAWNTEMP},
-	{"timelimit", STOFS(timelimit), F_LSTRING, FFL_SPAWNTEMP},
+	{"fraglimit", STOFS(frag_limit), F_LSTRING, FFL_SPAWNTEMP},
+	{"roundlimit", STOFS(round_limit), F_LSTRING, FFL_SPAWNTEMP},
+	{"capturelimit", STOFS(capture_limit), F_LSTRING, FFL_SPAWNTEMP},
+	{"timelimit", STOFS(time_limit), F_LSTRING, FFL_SPAWNTEMP},
 	{"give", STOFS(give), F_LSTRING, FFL_SPAWNTEMP},
 
 	{0, 0, 0, 0}
@@ -672,15 +672,15 @@ static void G_worldspawn(edict_t *ent){
 	ent->movetype = MOVETYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	ent->inuse = true;  // since the world doesn't use G_Spawn()
-	ent->s.modelindex = 1;  // world model is always index 1
+	ent->s.model_index = 1;  // world model is always index 1
 
 	// set configstrings for items
 	G_SetItemNames();
 
 	map = NULL;  // resolve the maps.lst entry for this level
-	for(i = 0; i < maplist.count; i++){
-		if(!strcmp(level.name, maplist.maps[i].name)){
-			map = &maplist.maps[i];
+	for(i = 0; i < g_maplist.count; i++){
+		if(!strcmp(level.name, g_maplist.maps[i].name)){
+			map = &g_maplist.maps[i];
 			break;
 		}
 	}
@@ -770,40 +770,40 @@ static void G_worldspawn(edict_t *ent){
 	if(level.match && level.rounds)  // rounds overrides match
 		level.match = 0;
 
-	if(map && map->fraglimit > -1)  // prefer maps.lst fraglimit
-		level.fraglimit = map->fraglimit;
+	if(map && map->frag_limit > -1)  // prefer maps.lst fraglimit
+		level.frag_limit = map->frag_limit;
 	else {  // or fall back on worldspawn
-		if(st.fraglimit && *st.fraglimit)
-			level.fraglimit = atoi(st.fraglimit);
+		if(st.frag_limit && *st.frag_limit)
+			level.frag_limit = atoi(st.frag_limit);
 		else  // or default to cvar
-			level.fraglimit = g_fraglimit->value;
+			level.frag_limit = g_fraglimit->value;
 	}
 
-	if(map && map->roundlimit > -1)  // prefer maps.lst roundlimit
-		level.roundlimit = map->roundlimit;
+	if(map && map->round_limit > -1)  // prefer maps.lst roundlimit
+		level.round_limit = map->round_limit;
 	else {  // or fall back on worldspawn
-		if(st.roundlimit && *st.roundlimit)
-			level.roundlimit = atoi(st.roundlimit);
+		if(st.round_limit && *st.round_limit)
+			level.round_limit = atoi(st.round_limit);
 		else  // or default to cvar
-			level.roundlimit = g_roundlimit->value;
+			level.round_limit = g_roundlimit->value;
 	}
 
-	if(map && map->capturelimit > -1)  // prefer maps.lst capturelimit
-		level.capturelimit = map->capturelimit;
+	if(map && map->capture_limit > -1)  // prefer maps.lst capturelimit
+		level.capture_limit = map->capture_limit;
 	else {  // or fall back on worldspawn
-		if(st.capturelimit && *st.capturelimit)
-			level.capturelimit = atoi(st.capturelimit);
+		if(st.capture_limit && *st.capture_limit)
+			level.capture_limit = atoi(st.capture_limit);
 		else  // or default to cvar
-			level.capturelimit = g_capturelimit->value;
+			level.capture_limit = g_capturelimit->value;
 	}
 
-	if(map && map->timelimit > -1)  // prefer maps.lst timelimit
-		level.timelimit = map->timelimit;
+	if(map && map->time_limit > -1)  // prefer maps.lst timelimit
+		level.time_limit = map->time_limit;
 	else {  // or fall back on worldspawn
-		if(st.timelimit && *st.timelimit)
-			level.timelimit = atof(st.timelimit);
+		if(st.time_limit && *st.time_limit)
+			level.time_limit = atof(st.time_limit);
 		else  // or default to cvar
-			level.timelimit = g_timelimit->value;
+			level.time_limit = g_timelimit->value;
 	}
 
 	if(map && *map->give)  // prefer maps.lst give

@@ -118,7 +118,7 @@ extern float LittleFloat(float l);
 // file opening modes
 typedef enum {
 	FILE_READ, FILE_WRITE, FILE_APPEND
-} filemode_t;
+} file_mode_t;
 
 // destination class for gi.multicast()
 typedef enum {
@@ -249,22 +249,21 @@ CVARS (console variables)
 
 */
 
-#define CVAR_ARCHIVE	0x1  // set to cause it to be saved to vars.rc
-#define CVAR_USERINFO	0x2  // added to userinfo when changed
-#define CVAR_SERVERINFO	0x4  // added to serverinfo when changed
-#define CVAR_NOSET		0x8  // don't allow change from console at all
-#define CVAR_LATCH		0x10  // save changes until server restart
-#define CVAR_R_IMAGES	0x20  // effects image filtering
-#define CVAR_R_CONTEXT	0x40  // effects OpenGL context
-#define CVAR_R_PROGRAMS	0x80  // effects GLSL programs
-#define CVAR_R_MODE		0x100  // effects screen resolution
-#define CVAR_S_DEVICE	0x200  // effects sound device parameters
-#define CVAR_S_SAMPLES	0x400  // effects sound samples
+#define CVAR_ARCHIVE		0x1  // set to cause it to be saved to vars.rc
+#define CVAR_USER_INFO		0x2  // added to user_info when changed
+#define CVAR_SERVER_INFO	0x4  // added to serverinfo when changed
+#define CVAR_NOSET			0x8  // don't allow change from console at all
+#define CVAR_LATCH			0x10  // save changes until server restart
+#define CVAR_R_IMAGES		0x20  // effects image filtering
+#define CVAR_R_CONTEXT		0x40  // effects OpenGL context
+#define CVAR_R_PROGRAMS		0x80  // effects GLSL programs
+#define CVAR_R_MODE			0x100  // effects screen resolution
+#define CVAR_S_DEVICE		0x200  // effects sound device parameters
+#define CVAR_S_SAMPLES		0x400  // effects sound samples
 
-#define CVAR_R_MASK		(CVAR_R_IMAGES | CVAR_R_CONTEXT | \
-		CVAR_R_PROGRAMS | CVAR_R_MODE)
+#define CVAR_R_MASK			(CVAR_R_IMAGES | CVAR_R_CONTEXT | CVAR_R_PROGRAMS | CVAR_R_MODE)
 
-#define CVAR_S_MASK 	(CVAR_S_DEVICE | CVAR_S_SAMPLES)
+#define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_SAMPLES)
 
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s {
@@ -358,7 +357,7 @@ typedef struct cplane_s {
 	vec3_t normal;
 	float dist;
 	int type;  // for fast side tests
-	int signbits;  // signx + (signy << 1) + (signz << 1)
+	int sign_bits;  // signx + (signy << 1) + (signz << 1)
 } cplane_t;
 
 typedef struct cmodel_s {
@@ -375,18 +374,18 @@ typedef struct csurface_s {
 
 // a trace is returned when a box is swept through the world
 typedef struct {
-	qboolean allsolid;  // if true, plane is not valid
-	qboolean startsolid;  // if true, the initial point was in a solid area
+	qboolean all_solid;  // if true, plane is not valid
+	qboolean start_solid;  // if true, the initial point was in a solid area
 	float fraction;  // time completed, 1.0 = didn't hit anything
-	vec3_t endpos;  // final position
+	vec3_t end;  // final position
 	cplane_t plane;  // surface normal at impact
 	csurface_t *surface;  // surface hit
-	int leafnum;
+	int leaf_num;
 	int contents;  // contents on other side of surface hit
 	struct edict_s *ent;  // not set by CM_*() functions
 } trace_t;
 
-// player bbox and viewheight scaling
+// player bbox and view_height scaling
 extern vec3_t PM_MINS;
 extern vec3_t PM_MAXS;
 
@@ -444,7 +443,7 @@ typedef struct usercmd_s {
 	byte msec;
 	byte buttons;
 	short angles[3];
-	short forwardmove, sidemove, upmove;
+	short forward, side, up;
 } usercmd_t;
 
 #define MAXTOUCH 32
@@ -453,17 +452,18 @@ typedef struct {
 
 	usercmd_t cmd;  // command (in)
 
-	int numtouch;  // results (out)
-	struct edict_s *touchents[MAXTOUCH];
+	int num_touch;  // results (out)
+	struct edict_s *touch_ents[MAXTOUCH];
 
 	vec3_t angles;  // clamped
-	float viewheight;
+	float view_height;
 
 	vec3_t mins, maxs;  // bounding box size
 
-	struct edict_s *groundentity;
-	int watertype;
-	int waterlevel;
+	struct edict_s *ground_entity;
+
+	int water_type;
+	int water_level;
 
 	// callbacks to test the world
 	trace_t (*trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
@@ -619,9 +619,12 @@ typedef struct entity_state_s {
 	vec3_t origin;
 	vec3_t angles;
 	vec3_t old_origin;  // for lerping
-	byte modelindex, modelindex2, modelindex3, modelindex4;  // weapons, CTF flags, etc
-	byte frame;
-	unsigned short skinnum;
+
+	// primary model, weapon model, CTF flag, etc
+	byte model_index, model_index2, model_index3, model_index4;
+	byte frame;  // frame number for animations
+
+	unsigned short skin_num;  // masked off for players
 	unsigned short effects;  // particles, lights, envmapping, ..
 	unsigned short solid;  // for client side prediction, 8 * (bits 0-4) is x/y radius
 	// 8 * (bits 5-9) is z down distance, 8 * (bits10-15) is z up

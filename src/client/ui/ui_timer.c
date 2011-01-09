@@ -99,7 +99,7 @@ static void MN_InsertTimerInActiveList (menuTimer_t* first, menuTimer_t* newTime
 void MN_HandleTimers (void)
 {
 	/* is first element is out of date? */
-	while (mn_firstTimer && mn_firstTimer->nextTime <= cls.realtime) {
+	while (mn_firstTimer && mn_firstTimer->nextTime <= cls.real_time) {
 		menuTimer_t *timer = mn_firstTimer;
 
 		/* throw event */
@@ -154,7 +154,7 @@ void MN_TimerStart (menuTimer_t *timer)
 	if (timer->isRunning)
 		return;
 	assert(mn_firstTimer != timer && timer->prev == NULL && timer->next == NULL);
-	timer->nextTime = cls.realtime + timer->delay;
+	timer->nextTime = cls.real_time + timer->delay;
 	timer->isRunning = qtrue;
 	MN_InsertTimerInActiveList(mn_firstTimer, timer);
 }

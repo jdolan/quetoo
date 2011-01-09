@@ -51,12 +51,12 @@ int sock;
  * Ms_Print
  */
 static void Ms_Print(const char *msg, ...){
-	va_list argptr;
+	va_list args;
 	char text[1024];
 
-	va_start(argptr, msg);
-	vsnprintf(text, sizeof(text), msg, argptr);
-	va_end(argptr);
+	va_start(args, msg);
+	vsnprintf(text, sizeof(text), msg, args);
+	va_end(args);
 
 	text[sizeof(text) - 1] = 0;
 	printf("%s", text);

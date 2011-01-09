@@ -32,10 +32,10 @@
 void Fs_Init(void);
 void Fs_SetGamedir(const char *dir);
 const char *Fs_Gamedir(void);
-const char *Fs_NextPath(const char *prevpath);
-const char *Fs_FindFirst(const char *path, qboolean fullpath);
+const char *Fs_NextPath(const char *prev_path);
+const char *Fs_FindFirst(const char *path, qboolean absolute);
 void Fs_ExecAutoexec(void);
-int Fs_OpenFile(const char *filename, FILE **file, filemode_t mode);
+int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode);
 void Fs_CloseFile(FILE *f);
 int Fs_LoadFile(const char *path, void **buffer);
 void Fs_AddPakfile(const char *pakfile);

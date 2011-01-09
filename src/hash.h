@@ -24,25 +24,25 @@
 
 #include "mem.h"
 
-// hashtable implementation
-#define HASHBINS 512
+// hash_table implementation
+#define HASH_BINS 512
 
-typedef struct hashentry_s {
+typedef struct hash_entry_s {
 	const char *key;
 	void *value;
-	struct hashentry_s *prev, *next;
-} hashentry_t;
+	struct hash_entry_s *prev, *next;
+} hash_entry_t;
 
-typedef struct hashtable_s {
-	hashentry_t *bins[HASHBINS];
-} hashtable_t;
+typedef struct hash_table_s {
+	hash_entry_t *bins[HASH_BINS];
+} hash_table_t;
 
 /*
 Hash_Init
 
-Initializes the specified hashtable.
+Initializes the specified hash_table.
 */
-void Hash_Init(hashtable_t *hashtable);
+void Hash_Init(hash_table_t *table);
 
 /*
 Hash_Hashcode
@@ -54,23 +54,23 @@ unsigned Hash_Hashcode(const char *key);
 /*
 Hash_Put
 
-Insert the specified key-value pair to hashtable.
+Insert the specified key-value pair to hash_table.
 */
-unsigned Hash_Put(hashtable_t *hashtable, const char *key, void *value);
+unsigned Hash_Put(hash_table_t *table, const char *key, void *value);
 
 /*
 Hash_GetEntry
 
 Returns the first entry associated to the specified key.
 */
-hashentry_t *Hash_GetEntry(hashtable_t *hashtable, const char *key);
+hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key);
 
 /*
 Hash_Get
 
-Return the first value hashed at key from hashtable.
+Return the first value hashed at key from hash_table.
 */
-void *Hash_Get(hashtable_t *hashtable, const char *key);
+void *Hash_Get(hash_table_t *table, const char *key);
 
 /*
 Hash_RemoveEntry
@@ -78,7 +78,7 @@ Hash_RemoveEntry
 Removes the specified entry from the hash and frees it, returning its
 value so that it may also be freed if desired.
 */
-void *Hash_RemoveEntry(hashtable_t *hashtable, hashentry_t *entry);
+void *Hash_RemoveEntry(hash_table_t *table, hash_entry_t *entry);
 
 /*
 Hash_Remove
@@ -86,21 +86,21 @@ Hash_Remove
 Removes the first entry associated to key from the specified hash and
 frees it, returning its value so that it may also be freed if desired.
 */
-void *Hash_Remove(hashtable_t *hashtable, const char *key);
+void *Hash_Remove(hash_table_t *table, const char *key);
 
 /*
 Hash_Clear
 
 Removes all entries associated to key from the specified hash.
 */
-void Hash_Clear(hashtable_t *hashtable, const char *key);
+void Hash_Clear(hash_table_t *table, const char *key);
 
 /*
 Hash_Free
 
-Free all hashentries associated with hashtable.  Does not free any of the
+Free all hashentries associated with hash_table.  Does not free any of the
 values referenced by the entries.
 */
-void Hash_Free(hashtable_t *hashtable);
+void Hash_Free(hash_table_t *table);
 
 #endif /*__HASH_H__*/

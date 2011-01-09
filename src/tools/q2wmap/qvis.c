@@ -129,7 +129,7 @@ static int LeafVectorFromPortalVector(byte * portalbits, byte * leafbits){
  *
  * Merges the portal visibility for a leaf
  */
-static void ClusterMerge(int leafnum){
+static void ClusterMerge(int leaf_num){
 	leaf_t *leaf;
 	byte portalvector[MAX_PORTALS / 8];
 	byte uncompressed[MAX_BSP_LEAFS / 8];
@@ -143,7 +143,7 @@ static void ClusterMerge(int leafnum){
 	// OR together all the portalvis bits
 
 	memset(portalvector, 0, portalbytes);
-	leaf = &leafs[leafnum];
+	leaf = &leafs[leaf_num];
 	for(i = 0; i < leaf->numportals; i++){
 		p = leaf->portals[i];
 		if(p->status != stat_done)
@@ -157,17 +157,17 @@ static void ClusterMerge(int leafnum){
 	// convert portal bits to leaf bits
 	numvis = LeafVectorFromPortalVector(portalvector, uncompressed);
 
-	if(uncompressed[leafnum >> 3] & (1 << (leafnum & 7)))
+	if(uncompressed[leaf_num >> 3] & (1 << (leaf_num & 7)))
 		Com_Warn("Leaf portals saw into leaf\n");
 
-	uncompressed[leafnum >> 3] |= (1 << (leafnum & 7));
+	uncompressed[leaf_num >> 3] |= (1 << (leaf_num & 7));
 	numvis++;						  // count the leaf itself
 
 	// save uncompressed for PHS calculation
-	memcpy(uncompressedvis + leafnum * leafbytes, uncompressed, leafbytes);
+	memcpy(uncompressedvis + leaf_num * leafbytes, uncompressed, leafbytes);
 
 	// compress the bit string
-	Com_Debug("cluster %4i : %4i visible\n", leafnum, numvis);
+	Com_Debug("cluster %4i : %4i visible\n", leaf_num, numvis);
 	totalvis += numvis;
 
 	i = CompressVis(uncompressed, compressed);
@@ -178,7 +178,7 @@ static void ClusterMerge(int leafnum){
 	if(vismap_p > vismap_end)
 		Com_Error(ERR_FATAL, "Vismap expansion overflow\n");
 
-	dvis->bit_ofs[leafnum][DVIS_PVS] = dest - vismap;
+	dvis->bit_ofs[leaf_num][DVIS_PVS] = dest - vismap;
 
 	memcpy(dest, compressed, i);
 }
@@ -264,7 +264,7 @@ static void LoadPortals(const char *name){
 	FILE *f;
 	int numpoints;
 	winding_t *w;
-	int leafnums[2];
+	int leaf_nums[2];
 	plane_t plane;
 
 	if(Fs_OpenFile(name, &f, FILE_READ) == -1)
@@ -302,12 +302,12 @@ static void LoadPortals(const char *name){
 	vismap_end = vismap + MAX_BSP_VISIBILITY;
 
 	for(i = 0, p = portals; i < numportals; i++){
-		if(fscanf(f, "%i %i %i ", &numpoints, &leafnums[0], &leafnums[1]) != 3)
+		if(fscanf(f, "%i %i %i ", &numpoints, &leaf_nums[0], &leaf_nums[1]) != 3)
 			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
 		if(numpoints > MAX_POINTS_ON_WINDING)
 			Com_Error(ERR_FATAL, "LoadPortals: portal %i has too many points\n", i);
-		if((unsigned)leafnums[0] > portalclusters
-		        || (unsigned)leafnums[1] > portalclusters)
+		if((unsigned)leaf_nums[0] > portalclusters
+		        || (unsigned)leaf_nums[1] > portalclusters)
 			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
 
 		w = p->winding = NewWinding(numpoints);
@@ -331,7 +331,7 @@ static void LoadPortals(const char *name){
 		PlaneFromWinding(w, &plane);
 
 		// create forward portal
-		l = &leafs[leafnums[0]];
+		l = &leafs[leaf_nums[0]];
 		if(l->numportals == MAX_PORTALS_ON_LEAF)
 			Com_Error(ERR_FATAL, "Leaf with too many portals\n");
 		l->portals[l->numportals] = p;
@@ -340,12 +340,12 @@ static void LoadPortals(const char *name){
 		p->winding = w;
 		VectorSubtract(vec3_origin, plane.normal, p->plane.normal);
 		p->plane.dist = -plane.dist;
-		p->leaf = leafnums[1];
+		p->leaf = leaf_nums[1];
 		SetPortalSphere(p);
 		p++;
 
 		// create backwards portal
-		l = &leafs[leafnums[1]];
+		l = &leafs[leaf_nums[1]];
 		if(l->numportals == MAX_PORTALS_ON_LEAF)
 			Com_Error(ERR_FATAL, "Leaf with too many portals\n");
 		l->portals[l->numportals] = p;
@@ -358,7 +358,7 @@ static void LoadPortals(const char *name){
 		}
 
 		p->plane = plane;
-		p->leaf = leafnums[0];
+		p->leaf = leaf_nums[0];
 		SetPortalSphere(p);
 		p++;
 	}

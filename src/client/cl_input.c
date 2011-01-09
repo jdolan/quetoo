@@ -118,7 +118,7 @@ static void Cl_KeyDown(kbutton_t *b){
 	c = Cmd_Argv(2);
 	b->downtime = atoi(c);
 	if(!b->downtime)
-		b->downtime = cls.realtime - 100;
+		b->downtime = cls.real_time - 100;
 
 	b->state |= 1;
 }
@@ -255,8 +255,8 @@ static float Cl_KeyState(kbutton_t *key, int cmd_msec){
 	key->msec = 0;
 
 	if(key->state){  // still down, reset downtime for next frame
-		msec += cls.realtime - key->downtime;
-		key->downtime = cls.realtime;
+		msec += cls.real_time - key->downtime;
+		key->downtime = cls.real_time;
 	}
 
 	v = (msec * 1000.0) / (cmd_msec * 1000.0);
@@ -661,7 +661,7 @@ void Cl_HandleEvents(void){
 	Cl_MouseMove(mx, my);
 
 	while(keyq_head != keyq_tail){  // then check for keys
-		Cl_KeyEvent(keyq[keyq_tail].key, keyq[keyq_tail].unicode, keyq[keyq_tail].down, cls.realtime);
+		Cl_KeyEvent(keyq[keyq_tail].key, keyq[keyq_tail].unicode, keyq[keyq_tail].down, cls.real_time);
 		keyq_tail = (keyq_tail + 1) & (MAX_KEYQ - 1);
 	}
 }
@@ -675,7 +675,7 @@ static void Cl_ClampPitch(void){
 
 	// add frame's delta angles to our local input movement
 	// wrapping where appropriate
-	pitch = SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
+	pitch = SHORT2ANGLE(cl.frame.ps.pmove.delta_angles[PITCH]);
 
 	if(pitch > 180.0)
 		pitch -= 360.0;
@@ -705,16 +705,16 @@ void Cl_Move(usercmd_t *cmd){
 	mod = 500.0;
 
 	// keyboard move forward / back
-	cmd->forwardmove += mod * Cl_KeyState(&in_forward, cmd->msec);
-	cmd->forwardmove -= mod * Cl_KeyState(&in_back, cmd->msec);
+	cmd->forward += mod * Cl_KeyState(&in_forward, cmd->msec);
+	cmd->forward -= mod * Cl_KeyState(&in_back, cmd->msec);
 
 	// keyboard strafe left / right
-	cmd->sidemove += mod * Cl_KeyState(&in_moveright, cmd->msec);
-	cmd->sidemove -= mod * Cl_KeyState(&in_moveleft, cmd->msec);
+	cmd->side += mod * Cl_KeyState(&in_moveright, cmd->msec);
+	cmd->side -= mod * Cl_KeyState(&in_moveleft, cmd->msec);
 
 	// keyboard jump / crouch
-	cmd->upmove += mod * Cl_KeyState(&in_up, cmd->msec);
-	cmd->upmove -= mod * Cl_KeyState(&in_down, cmd->msec);
+	cmd->up += mod * Cl_KeyState(&in_up, cmd->msec);
+	cmd->up -= mod * Cl_KeyState(&in_down, cmd->msec);
 
 	mod = 2.0;  // reduce sensitivity for turning
 

@@ -30,7 +30,7 @@
  */
 static void G_Give_f(edict_t *ent){
 	char *name;
-	gitem_t *it;
+	g_item_t *it;
 	int index;
 	int i;
 	qboolean give_all;
@@ -59,7 +59,7 @@ static void G_Give_f(edict_t *ent){
 
 	if(give_all || strcasecmp(name, "weapons") == 0){
 		for(i = 0; i < game.num_items; i++){
-			it = itemlist + i;
+			it = g_items + i;
 			if(!it->pickup)
 				continue;
 			if(!(it->flags & IT_WEAPON))
@@ -72,7 +72,7 @@ static void G_Give_f(edict_t *ent){
 
 	if(give_all || strcasecmp(name, "ammo") == 0){
 		for(i = 0; i < game.num_items; i++){
-			it = itemlist + i;
+			it = g_items + i;
 			if(!it->pickup)
 				continue;
 			if(!(it->flags & IT_AMMO))
@@ -181,7 +181,7 @@ static void G_Noclip_f(edict_t *ent){
  */
 static void G_Use_f(edict_t *ent){
 	int index;
-	gitem_t *it;
+	g_item_t *it;
 	char *s;
 
 	s = gi.Args();
@@ -210,7 +210,7 @@ static void G_Use_f(edict_t *ent){
 static void G_Drop_f(edict_t *ent){
 	int index;
 	edict_t *f;
-	gitem_t *it;
+	g_item_t *it;
 	char *s;
 
 	// we dont drop in instagib or arena
@@ -254,9 +254,9 @@ static void G_Drop_f(edict_t *ent){
  * G_WeapPrev_f
  */
 static void G_WeapPrev_f(edict_t *ent){
-	gclient_t *cl;
+	g_client_t *cl;
 	int i, index;
-	gitem_t *it;
+	g_item_t *it;
 	int selected_weapon;
 
 	cl = ent->client;
@@ -279,7 +279,7 @@ static void G_WeapPrev_f(edict_t *ent){
 		index =(selected_weapon + i) % MAX_ITEMS;
 		if(!cl->locals.inventory[index])
 			continue;
-		it = &itemlist[index];
+		it = &g_items[index];
 		if(!it->use)
 			continue;
 		if(!(it->flags & IT_WEAPON))
@@ -294,9 +294,9 @@ static void G_WeapPrev_f(edict_t *ent){
  * G_WeapNext_f
  */
 static void G_WeapNext_f(edict_t *ent){
-	gclient_t *cl;
+	g_client_t *cl;
 	int i, index;
-	gitem_t *it;
+	g_item_t *it;
 	int selected_weapon;
 
 	cl = ent->client;
@@ -319,7 +319,7 @@ static void G_WeapNext_f(edict_t *ent){
 		index =(selected_weapon + MAX_ITEMS - i) % MAX_ITEMS;
 		if(!cl->locals.inventory[index])
 			continue;
-		it = &itemlist[index];
+		it = &g_items[index];
 		if(!it->use)
 			continue;
 		if(!(it->flags & IT_WEAPON))
@@ -335,9 +335,9 @@ static void G_WeapNext_f(edict_t *ent){
  * G_WeapLast_f
  */
 static void G_WeapLast_f(edict_t *ent){
-	gclient_t *cl;
+	g_client_t *cl;
 	int index;
-	gitem_t *it;
+	g_item_t *it;
 
 	cl = ent->client;
 
@@ -347,7 +347,7 @@ static void G_WeapLast_f(edict_t *ent){
 	index = ITEM_INDEX(cl->locals.lastweapon);
 	if(!cl->locals.inventory[index])
 		return;
-	it = &itemlist[index];
+	it = &g_items[index];
 	if(!it->use)
 		return;
 	if(!(it->flags & IT_WEAPON))
@@ -436,7 +436,7 @@ static void G_Say_f(edict_t *ent){
 	qboolean team, arg0;
 	char *c, text[256];
 	edict_t *other;
-	gclient_t *cl;
+	g_client_t *cl;
 
 	if(ent->client->muted){
 		gi.ClientPrint(ent, PRINT_HIGH, "You have been muted.  You're probably an asshole.\n");
@@ -551,8 +551,8 @@ static void G_PlayerList_f(edict_t *ent){
 			continue;
 
 		snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n",
-					(level.framenum - e2->client->locals.enterframe) / 600,
-					((level.framenum - e2->client->locals.enterframe) % 600) / 10,
+					(level.frame_num - e2->client->locals.enterframe) / 600,
+					((level.frame_num - e2->client->locals.enterframe) % 600) / 10,
 					e2->client->ping,
 					e2->client->locals.score,
 					e2->client->locals.netname,
@@ -645,7 +645,7 @@ static qboolean Vote_Help(edict_t *ent){
 	// command-specific help for some commands
 	if(gi.Argc() == 2 && !strcasecmp(gi.Argv(1), "map")){  // list available maps
 
-		if(!maplist.count){  // no maps in maplist
+		if(!g_maplist.count){  // no maps in maplist
 			gi.ClientPrint(ent, PRINT_HIGH, "Map voting is not available\n");
 			return true;
 		}
@@ -653,17 +653,17 @@ static qboolean Vote_Help(edict_t *ent){
 		strcat(msg, "\nAvailable maps:\n\n");
 
 		j = 0;
-		for(i = 0; i < maplist.count; i++){
-			len = strlen(maplist.maps[i].name) + 3;
-			len += strlen(maplist.maps[i].title) + 2;
+		for(i = 0; i < g_maplist.count; i++){
+			len = strlen(g_maplist.maps[i].name) + 3;
+			len += strlen(g_maplist.maps[i].title) + 2;
 
 			if(j + len > sizeof(msg))  // don't overrun msg
 				break;
 
 			strcat(msg, "  ");
-			strcat(msg, maplist.maps[i].name);
+			strcat(msg, g_maplist.maps[i].name);
 			strcat(msg, " ");
-			strcat(msg, maplist.maps[i].title);
+			strcat(msg, g_maplist.maps[i].title);
 			strcat(msg, "\n");
 			j += len;
 		}
@@ -731,12 +731,12 @@ static void G_Vote_f(edict_t *ent){
 		return;
 
 	if(!strcasecmp(gi.Argv(1), "map")){  // ensure map is in maplist
-		for(i = 0; i < maplist.count; i++){
-			if(!strcasecmp(gi.Argv(2), maplist.maps[i].name))
+		for(i = 0; i < g_maplist.count; i++){
+			if(!strcasecmp(gi.Argv(2), g_maplist.maps[i].name))
 				break;  // found it
 		}
 
-		if(i == maplist.count){  // inform client if it is not
+		if(i == g_maplist.count){  // inform client if it is not
 			gi.ClientPrint(ent, PRINT_HIGH, "Map \"%s\" is not available\n", gi.Argv(2));
 			return;
 		}
@@ -764,9 +764,9 @@ static void G_Vote_f(edict_t *ent){
  * Returns true if the client's team was changed, false otherwise.
  */
 qboolean G_AddClientToTeam(edict_t *ent, char *teamname){
-	team_t *team;
+	g_team_t *team;
 
-	if(level.matchtime && level.matchtime <= level.time){
+	if(level.match_time && level.match_time <= level.time){
 		gi.ClientPrint(ent, PRINT_HIGH, "Match has already started\n");
 		return false;
 	}
@@ -788,7 +788,7 @@ qboolean G_AddClientToTeam(edict_t *ent, char *teamname){
 	ent->client->locals.spectator = false;
 	ent->client->locals.ready = false;
 
-	P_UserinfoChanged(ent, ent->client->locals.userinfo);
+	P_UserinfoChanged(ent, ent->client->locals.user_info);
 	return true;
 }
 
@@ -799,7 +799,7 @@ qboolean G_AddClientToTeam(edict_t *ent, char *teamname){
 static void G_AddClientToRound(edict_t *ent){
 	int score;  // keep score across rounds
 
-	if(level.roundtime && level.roundtime <= level.time){
+	if(level.round_time && level.round_time <= level.time){
 		gi.ClientPrint(ent, PRINT_HIGH, "Round has already started\n");
 		return;
 	}
@@ -855,7 +855,7 @@ static void G_Team_f(edict_t *ent){
 static void G_Teamname_f(edict_t *ent){
 	int cs;
 	char *s;
-	team_t *t;
+	g_team_t *t;
 
 	if(gi.Argc() != 2){
 		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <name>\n", gi.Argv(0));
@@ -896,9 +896,9 @@ static void G_Teamname_f(edict_t *ent){
  */
 static void G_Teamskin_f(edict_t *ent){
 	int i;
-	gclient_t *cl;
+	g_client_t *cl;
 	char *c, *s;
-	team_t *t;
+	g_team_t *t;
 
 	if(gi.Argc() != 2){
 		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <skin>\n", gi.Argv(0));
@@ -960,7 +960,7 @@ static void G_Teamskin_f(edict_t *ent){
  */
 static void G_Ready_f(edict_t *ent){
 	int i, g, e, clients;
-	gclient_t *cl;
+	g_client_t *cl;
 
 	if(!level.match){
 		gi.ClientPrint(ent, PRINT_HIGH, "Match is disabled\n");
@@ -1014,7 +1014,7 @@ static void G_Ready_f(edict_t *ent){
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Match starting in 10 seconds..\n");
-	level.matchtime = level.time + 10.0;
+	level.match_time = level.time + 10.0;
 
 	level.start_match = true;
 }
@@ -1034,7 +1034,7 @@ static void G_Unready_f(edict_t *ent){
 		return;
 	}
 
-	if(level.matchtime){
+	if(level.match_time){
 		gi.ClientPrint(ent, PRINT_HIGH, "Match has started\n");
 		return;
 	}
@@ -1060,13 +1060,13 @@ static void G_Spectate_f(edict_t *ent){
 		return;
 
 	// prevent spectators from joining matches
-	if(level.matchtime && ent->client->locals.spectator){
+	if(level.match_time && ent->client->locals.spectator){
 		gi.ClientPrint(ent, PRINT_HIGH, "Match has already started\n");
 		return;
 	}
 
 	// prevent spectators from joining rounds
-	if(level.roundtime && ent->client->locals.spectator){
+	if(level.round_time && ent->client->locals.spectator){
 		gi.ClientPrint(ent, PRINT_HIGH, "Round has already started\n");
 		return;
 	}

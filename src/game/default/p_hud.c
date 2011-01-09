@@ -33,11 +33,11 @@ void P_MoveToIntermission(edict_t *ent){
 	VectorCopy(level.intermission_angle, ent->client->ps.angles);
 	ent->client->ps.pmove.pm_type = PM_FREEZE;
 
-	ent->viewheight = 0;
-	ent->s.modelindex = 0;
-	ent->s.modelindex2 = 0;
-	ent->s.modelindex3 = 0;
-	ent->s.modelindex4 = 0;
+	ent->view_height = 0;
+	ent->s.model_index = 0;
+	ent->s.model_index2 = 0;
+	ent->s.model_index3 = 0;
+	ent->s.model_index4 = 0;
 	ent->s.effects = 0;
 	ent->s.sound = 0;
 	ent->solid = SOLID_NOT;
@@ -68,7 +68,7 @@ void P_MoveToIntermission(edict_t *ent){
  * Copies src to dest, padding it to the specified maximum length.
  * Color escape sequences do not contribute to length.
  */
-static void P_ColoredName(char *dst, const char *src, int maxlen, int maxsize){
+static void P_ColoredName(char *dst, const char *src, int maxlen, int max_size){
 	int c, l;
 	const char *s;
 
@@ -77,7 +77,7 @@ static void P_ColoredName(char *dst, const char *src, int maxlen, int maxsize){
 
 	while(*s){
 
-		if(c > maxsize - 2)  // prevent overflows
+		if(c > max_size - 2)  // prevent overflows
 			break;
 
 		if(IS_COLOR(s)){  // copy the color code, omitting length
@@ -119,7 +119,7 @@ void P_TeamsScoreboard(edict_t *ent){
 	int goodtime, eviltime;
 	int minutes;
 	int x, y;
-	gclient_t *cl;
+	g_client_t *cl;
 	edict_t *cl_ent;
 	char *c;
 
@@ -137,11 +137,11 @@ void P_TeamsScoreboard(edict_t *ent){
 
 		if(cl->locals.team == &good){  // head and score count each team
 			goodping += cl->ping;
-			goodtime += (level.framenum - cl->locals.enterframe);
+			goodtime += (level.frame_num - cl->locals.enterframe);
 			goodcount++;
 		} else if(cl->locals.team == &evil){
 			evilping += cl->ping;
-			eviltime += (level.framenum - cl->locals.enterframe);
+			eviltime += (level.frame_num - cl->locals.enterframe);
 			evilcount++;
 		} else speccount++;
 
@@ -161,8 +161,8 @@ void P_TeamsScoreboard(edict_t *ent){
 	}
 
 	// normalize times to minutes
-	goodtime = goodtime / gi.serverrate / 60;
-	eviltime = eviltime / gi.serverrate / 60;
+	goodtime = goodtime / gi.server_hz / 60;
+	eviltime = eviltime / gi.server_hz / 60;
 
 	string[0] = stringlength = 0;
 	j = k = l = 0;
@@ -180,7 +180,7 @@ void P_TeamsScoreboard(edict_t *ent){
 			x = 128; y = 32 * l++ + 192 + ((goodcount + evilcount) * 32);
 		}
 
-		minutes = (level.framenum - cl->locals.enterframe) / gi.serverrate / 60;
+		minutes = (level.frame_num - cl->locals.enterframe) / gi.server_hz / 60;
 
 		P_ColoredName(netname, cl->locals.netname, 16, MAX_NETNAME);
 
@@ -278,7 +278,7 @@ void P_Scoreboard(edict_t *ent){
 	int playercount, speccount, total;
 	int minutes;
 	int x, y;
-	gclient_t *cl;
+	g_client_t *cl;
 	edict_t *cl_ent;
 
 	playercount = speccount = total = 0;
@@ -325,7 +325,7 @@ void P_Scoreboard(edict_t *ent){
 			x = 64; y = 32 * j++ + 32;
 		}
 
-		minutes = (level.framenum - cl->locals.enterframe) / gi.serverrate / 60;
+		minutes = (level.frame_num - cl->locals.enterframe) / gi.server_hz / 60;
 
 		P_ColoredName(netname, cl->locals.netname, 16, MAX_NETNAME);
 
@@ -361,7 +361,7 @@ void P_Scoreboard(edict_t *ent){
  * P_SetStats
  */
 void P_SetStats(edict_t *ent){
-	gitem_t *item;
+	g_item_t *item;
 
 	// health
 	if(ent->client->locals.spectator || ent->dead){
@@ -378,7 +378,7 @@ void P_SetStats(edict_t *ent){
 		ent->client->ps.stats[STAT_AMMO_ICON] = 0;
 		ent->client->ps.stats[STAT_AMMO] = 0;
 	} else {
-		item = &itemlist[ent->client->ammo_index];
+		item = &g_items[ent->client->ammo_index];
 		ent->client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(item->icon);
 		ent->client->ps.stats[STAT_AMMO] = ent->client->locals.inventory[ent->client->ammo_index];
 		ent->client->ps.stats[STAT_AMMO_LOW] = item->quantity;
@@ -441,7 +441,7 @@ void P_SetStats(edict_t *ent){
 
 	ent->client->ps.stats[STAT_READY] = 0;
 
-	if(level.match && level.matchtime)  // match enabled but not started
+	if(level.match && level.match_time)  // match enabled but not started
 		ent->client->ps.stats[STAT_READY] = ent->client->locals.ready;
 }
 
@@ -451,7 +451,7 @@ void P_SetStats(edict_t *ent){
  */
 void P_CheckChaseStats(edict_t *ent){
 	int i;
-	gclient_t *cl;
+	g_client_t *cl;
 
 	for(i = 1; i <= sv_maxclients->value; i++){
 
@@ -470,7 +470,7 @@ void P_CheckChaseStats(edict_t *ent){
  * P_SetSpectatorStats
  */
 void P_SetSpectatorStats(edict_t *ent){
-	gclient_t *cl = ent->client;
+	g_client_t *cl = ent->client;
 
 	if(!cl->chase_target){
 		P_SetStats(ent);

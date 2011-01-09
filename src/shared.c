@@ -321,7 +321,7 @@ int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct cplane_s
 	}
 
 	// general case
-	switch(p->signbits){
+	switch(p->sign_bits){
 		case 0:
 			dist1 = DotProduct(p->normal, emaxs);
 			dist2 = DotProduct(p->normal, emins);
@@ -928,14 +928,14 @@ void Swap_Init(void){
  * A shorthand sprintf into a temp buffer.
  */
 char *va(const char *format, ...){
-	va_list	argptr;
+	va_list	args;
 	static char string[MAX_STRING_CHARS];
 
 	memset(string, 0, sizeof(string));
 
-	va_start(argptr, format);
-	vsnprintf(string, sizeof(string), format, argptr);
-	va_end(argptr);
+	va_start(args, format);
+	vsnprintf(string, sizeof(string), format, args);
+	va_end(args);
 
 	return string;
 }
@@ -1131,7 +1131,7 @@ qboolean Info_Validate(const char *s){
 void Info_SetValueForKey(char *s, const char *key, const char *value){
 	char newi[MAX_INFO_STRING], *v;
 	int c;
-	int maxsize = MAX_INFO_STRING;
+	int max_size = MAX_INFO_STRING;
 
 	if(strstr(key, "\\") || strstr(value, "\\")){
 		Com_Print("Can't use keys or values with a \\\n");
@@ -1158,7 +1158,7 @@ void Info_SetValueForKey(char *s, const char *key, const char *value){
 
 	snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
-	if(strlen(newi) + strlen(s) > maxsize){
+	if(strlen(newi) + strlen(s) > max_size){
 		Com_Print("Info string length exceeded\n");
 		return;
 	}

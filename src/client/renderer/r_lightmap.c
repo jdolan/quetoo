@@ -113,8 +113,8 @@ static qboolean R_AllocLightmapBlock(int w, int h, int *x, int *y){
 static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int stride){
 	int i, j;
 
-	const int smax = (surf->stextents[0] / r_loadmodel->lightmap_scale) + 1;
-	const int tmax = (surf->stextents[1] / r_loadmodel->lightmap_scale) + 1;
+	const int smax = (surf->st_extents[0] / r_loadmodel->lightmap_scale) + 1;
+	const int tmax = (surf->st_extents[1] / r_loadmodel->lightmap_scale) + 1;
 
 	stride -= (smax * 3);
 
@@ -152,8 +152,8 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 	int i, j;
 	byte *lightmap, *lm, *l, *deluxemap, *dm;
 
-	const int smax = (surf->stextents[0] / r_loadmodel->lightmap_scale) + 1;
-	const int tmax = (surf->stextents[1] / r_loadmodel->lightmap_scale) + 1;
+	const int smax = (surf->st_extents[0] / r_loadmodel->lightmap_scale) + 1;
+	const int tmax = (surf->st_extents[1] / r_loadmodel->lightmap_scale) + 1;
 
 	const int size = smax * tmax;
 	stride -= (smax * 3);
@@ -259,8 +259,8 @@ void R_CreateSurfaceLightmap(r_bsp_surface_t *surf){
 	if(!(surf->flags & MSURF_LIGHTMAP))
 		return;
 
-	smax = (surf->stextents[0] / r_loadmodel->lightmap_scale) + 1;
-	tmax = (surf->stextents[1] / r_loadmodel->lightmap_scale) + 1;
+	smax = (surf->st_extents[0] / r_loadmodel->lightmap_scale) + 1;
+	tmax = (surf->st_extents[1] / r_loadmodel->lightmap_scale) + 1;
 
 	if(!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)){
 
@@ -364,10 +364,10 @@ static qboolean R_UpdateLighting_Color_(const int first_surface, const int num_s
 
 		tex = surf->texinfo;
 
-		s = DotProduct(point, tex->vecs[0]) + tex->vecs[0][3] - surf->stmins[0];
-		t = DotProduct(point, tex->vecs[1]) + tex->vecs[1][3] - surf->stmins[1];
+		s = DotProduct(point, tex->vecs[0]) + tex->vecs[0][3] - surf->st_mins[0];
+		t = DotProduct(point, tex->vecs[1]) + tex->vecs[1][3] - surf->st_mins[1];
 
-		if((s < 0.0 || s > surf->stextents[0]) || (t < 0.0 || t > surf->stextents[1]))
+		if((s < 0.0 || s > surf->st_extents[0]) || (t < 0.0 || t > surf->st_extents[1]))
 			continue;
 
 		// we've hit, resolve the texture coordinates
@@ -375,7 +375,7 @@ static qboolean R_UpdateLighting_Color_(const int first_surface, const int num_s
 		t /= r_worldmodel->lightmap_scale;
 
 		// resolve the lightmap at intersection
-		width = (surf->stextents[0] / r_worldmodel->lightmap_scale) + 1;
+		width = (surf->st_extents[0] / r_worldmodel->lightmap_scale) + 1;
 		sample = (int)(3 * ((int)t * width + (int)s));
 
 		// and convert it to floating point
@@ -437,7 +437,7 @@ static void R_UpdateLighting_Color(r_lighting_t *lighting){
 	// shuffle the samples
 	VectorCopy(lighting->colors[0], lighting->colors[1]);
 
-	if(r_view.trace.leafnum){  // hit something
+	if(r_view.trace.leaf_num){  // hit something
 
 		VectorSet(lighting->colors[0], 1.0, 1.0, 1.0);
 
@@ -445,21 +445,21 @@ static void R_UpdateLighting_Color(r_lighting_t *lighting){
 
 			if(r_view.trace_ent){  // clip to all surfaces of the bsp entity
 
-				VectorSubtract(r_view.trace.endpos,
-						r_view.trace_ent->origin, r_view.trace.endpos);
+				VectorSubtract(r_view.trace.end,
+						r_view.trace_ent->origin, r_view.trace.end);
 
 				R_UpdateLighting_Color_(r_view.trace_ent->model->first_model_surface,
 						r_view.trace_ent->model->num_model_surfaces,
-						r_view.trace.endpos, lighting->colors[0]);
+						r_view.trace.end, lighting->colors[0]);
 			}
 			else {  // general case is to recurse up the nodes
-				r_bsp_leaf_t *leaf = &r_worldmodel->leafs[r_view.trace.leafnum];
+				r_bsp_leaf_t *leaf = &r_worldmodel->leafs[r_view.trace.leaf_num];
 				r_bsp_node_t *node = leaf->parent;
 
 				while(node){
 
 					if(R_UpdateLighting_Color_(node->first_surface, node->num_surfaces,
-								r_view.trace.endpos, lighting->colors[0]))
+								r_view.trace.end, lighting->colors[0]))
 						break;
 
 					node = node->parent;
@@ -581,8 +581,8 @@ void R_UpdateLighting(const vec3_t point, r_lighting_t *lighting){
 
 	// resolve the shadow origin and direction
 
-	if(r_view.trace.leafnum){  // hit something
-		VectorCopy(r_view.trace.endpos, lighting->point);
+	if(r_view.trace.leaf_num){  // hit something
+		VectorCopy(r_view.trace.end, lighting->point);
 		VectorCopy(r_view.trace.plane.normal, lighting->normal);
 	}
 	else {  // clear it

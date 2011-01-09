@@ -98,13 +98,13 @@ void Cvar_WriteVars(const char *path);
 
 void Cvar_Init(void);
 
-char *Cvar_Userinfo(void);
+char *Cvar_UserInfo(void);
 // returns an info string containing all the CVAR_USERINFO cvars
 
-char *Cvar_Serverinfo(void);
+char *Cvar_ServerInfo(void);
 // returns an info string containing all the CVAR_SERVERINFO cvars
 
-extern qboolean userinfo_modified;
+extern qboolean user_info_modified;
 // this is set each time a CVAR_USERINFO variable is changed
 // so that the client knows to send it to the server
 

@@ -114,7 +114,7 @@ void Netchan_OutOfBand(int net_socket, netaddr_t addr, int length, byte *data){
 	Sb_Write(&send, data, length);
 
 	// send the datagram
-	Net_SendPacket(net_socket, send.cursize, send.data, addr);
+	Net_SendPacket(net_socket, send.size, send.data, addr);
 }
 
 
@@ -124,14 +124,14 @@ void Netchan_OutOfBand(int net_socket, netaddr_t addr, int length, byte *data){
  * Sends a text message in an out-of-band datagram
  */
 void Netchan_OutOfBandPrint(int net_socket, netaddr_t addr, const char *format, ...){
-	va_list	argptr;
+	va_list	args;
 	char string[MAX_MSGLEN - 4];
 
 	memset(string, 0, sizeof(string));
 
-	va_start(argptr, format);
-	vsnprintf(string, sizeof(string), format, argptr);
-	va_end(argptr);
+	va_start(args, format);
+	vsnprintf(string, sizeof(string), format, args);
+	va_end(args);
 
 	Netchan_OutOfBand(net_socket, addr, strlen(string), (byte *)string);
 }
@@ -153,7 +153,7 @@ void Netchan_Setup(netsrc_t source, netchan_t *chan, netaddr_t addr, int qport){
 	chan->outgoing_sequence = 1;
 
 	Sb_Init(&chan->message, chan->message_buf, sizeof(chan->message_buf));
-	chan->message.allowoverflow = true;
+	chan->message.allow_overflow = true;
 }
 
 
@@ -180,7 +180,7 @@ qboolean Netchan_NeedReliable(netchan_t *chan){
 		send_reliable = true;
 
 	// if the reliable transmit buffer is empty, copy the current message out
-	if(!chan->reliable_length && chan->message.cursize){
+	if(!chan->reliable_length && chan->message.size){
 		send_reliable = true;
 	}
 
@@ -212,10 +212,10 @@ void Netchan_Transmit(netchan_t *chan, int length, byte *data){
 
 	send_reliable = Netchan_NeedReliable(chan);
 
-	if(!chan->reliable_length && chan->message.cursize){
-		memcpy(chan->reliable_buf, chan->message_buf, chan->message.cursize);
-		chan->reliable_length = chan->message.cursize;
-		chan->message.cursize = 0;
+	if(!chan->reliable_length && chan->message.size){
+		memcpy(chan->reliable_buffer, chan->message_buf, chan->message.size);
+		chan->reliable_length = chan->message.size;
+		chan->message.size = 0;
 		chan->reliable_sequence ^= 1;
 	}
 
@@ -237,30 +237,30 @@ void Netchan_Transmit(netchan_t *chan, int length, byte *data){
 
 	// copy the reliable message to the packet first
 	if(send_reliable){
-		Sb_Write(&send, chan->reliable_buf, chan->reliable_length);
+		Sb_Write(&send, chan->reliable_buffer, chan->reliable_length);
 		chan->last_reliable_sequence = chan->outgoing_sequence;
 	}
 
 	// add the unreliable part if space is available
-	if(send.maxsize - send.cursize >= length)
+	if(send.max_size - send.size >= length)
 		Sb_Write(&send, data, length);
 	else
 		Com_Print("Netchan_Transmit: dumped unreliable\n");
 
 	// send the datagram
-	Net_SendPacket(chan->source, send.cursize, send.data, chan->remote_address);
+	Net_SendPacket(chan->source, send.size, send.data, chan->remote_address);
 
 	if(net_showpackets->value){
 		if(send_reliable)
 			Com_Print("send "Q2W_SIZE_T" : s=%i reliable=%i ack=%i rack=%i\n"
-						, send.cursize
+						, send.size
 						, chan->outgoing_sequence - 1
 						, chan->reliable_sequence
 						, chan->incoming_sequence
 						, chan->incoming_reliable_sequence);
 		else
 			Com_Print("send "Q2W_SIZE_T" : s=%i ack=%i rack=%i\n"
-						, send.cursize
+						, send.size
 						, chan->outgoing_sequence - 1
 						, chan->incoming_sequence
 						, chan->incoming_reliable_sequence);
@@ -298,14 +298,14 @@ qboolean Netchan_Process(netchan_t *chan, sizebuf_t *msg){
 	if(net_showpackets->value){
 		if(reliable_message)
 			Com_Print("recv "Q2W_SIZE_T" : s=%i reliable=%i ack=%i rack=%i\n"
-						, msg->cursize
+						, msg->size
 						, sequence
 						, chan->incoming_reliable_sequence ^ 1
 						, sequence_ack
 						, reliable_ack);
 		else
 			Com_Print("recv "Q2W_SIZE_T" : s=%i ack=%i rack=%i\n"
-						, msg->cursize
+						, msg->size
 						, sequence
 						, sequence_ack
 						, reliable_ack);

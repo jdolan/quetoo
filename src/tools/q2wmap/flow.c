@@ -326,7 +326,7 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
  * If src_portal is NULL, this is the originating leaf
  * ==================
  */
-static void RecursiveLeafFlow(int leafnum, threaddata_t * thread, pstack_t * prevstack){
+static void RecursiveLeafFlow(int leaf_num, threaddata_t * thread, pstack_t * prevstack){
 	pstack_t stack;
 	portal_t *p;
 	plane_t backplane;
@@ -337,7 +337,7 @@ static void RecursiveLeafFlow(int leafnum, threaddata_t * thread, pstack_t * pre
 
 	thread->c_chains++;
 
-	leaf = &leafs[leafnum];
+	leaf = &leafs[leaf_num];
 
 	prevstack->next = &stack;
 
@@ -485,13 +485,13 @@ void PortalFlow(int portal_num){
 /*
  * SimpleFlood
  */
-static void SimpleFlood(portal_t * srcportal, int leafnum){
+static void SimpleFlood(portal_t * srcportal, int leaf_num){
 	int i;
 	leaf_t *leaf;
 	portal_t *p;
 	int pnum;
 
-	leaf = &leafs[leafnum];
+	leaf = &leafs[leaf_num];
 
 	for(i = 0; i < leaf->numportals; i++){
 		p = leaf->portals[i];

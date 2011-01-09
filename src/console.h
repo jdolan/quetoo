@@ -50,7 +50,7 @@ typedef struct {
 
 	int scroll;			// scroll position
 
-	float times[CON_NUMTIMES];  	// cls.realtime time the line was generated
+	float times[CON_NUMTIMES];  	// cls.real_time time the line was generated
 					// for transparent notify lines
 } console_t;
 

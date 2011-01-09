@@ -25,8 +25,8 @@
 #include "win32.h"
 
 // wrap dlfcn calls
-void *dlopen(const char *filename, int flag){
-	return LoadLibrary(filename);
+void *dlopen(const char *file_name, int flag){
+	return LoadLibrary(file_name);
 }
 
 char *dlerror(void){

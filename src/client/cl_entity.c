@@ -72,21 +72,21 @@ void Cl_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, i
 	to->number = number;
 
 	if(bits & U_MODEL)
-		to->modelindex = Msg_ReadByte(&net_message);
+		to->model_index = Msg_ReadByte(&net_message);
 	if(bits & U_MODEL2)
-		to->modelindex2 = Msg_ReadByte(&net_message);
+		to->model_index2 = Msg_ReadByte(&net_message);
 	if(bits & U_MODEL3)
-		to->modelindex3 = Msg_ReadByte(&net_message);
+		to->model_index3 = Msg_ReadByte(&net_message);
 	if(bits & U_MODEL4)
-		to->modelindex4 = Msg_ReadByte(&net_message);
+		to->model_index4 = Msg_ReadByte(&net_message);
 
 	if(bits & U_FRAME)
 		to->frame = Msg_ReadByte(&net_message);
 
 	if(bits & U_SKIN8)
-		to->skinnum = Msg_ReadByte(&net_message);
+		to->skin_num = Msg_ReadByte(&net_message);
 	else if(bits & U_SKIN16)
-		to->skinnum = Msg_ReadShort(&net_message);
+		to->skin_num = Msg_ReadShort(&net_message);
 
 	if(bits & U_EFFECTS8)
 		to->effects = Msg_ReadByte(&net_message);
@@ -142,19 +142,19 @@ static void Cl_DeltaEntity(cl_frame_t *frame, int newnum, entity_state_t *old, i
 	Cl_ParseDelta(old, state, newnum, bits);
 
 	// some data changes will force no lerping
-	if(state->modelindex != ent->current.modelindex
-			|| state->modelindex2 != ent->current.modelindex2
-			|| state->modelindex3 != ent->current.modelindex3
-			|| state->modelindex4 != ent->current.modelindex4
+	if(state->model_index != ent->current.model_index
+			|| state->model_index2 != ent->current.model_index2
+			|| state->model_index3 != ent->current.model_index3
+			|| state->model_index4 != ent->current.model_index4
 			|| abs(state->origin[0] - ent->current.origin[0]) > 512
 			|| abs(state->origin[1] - ent->current.origin[1]) > 512
 			|| abs(state->origin[2] - ent->current.origin[2]) > 512
 			|| state->event == EV_TELEPORT
 	  ){
-		ent->serverframe = -99;
+		ent->server_frame = -99;
 	}
 
-	if(ent->serverframe != cl.frame.serverframe - 1){
+	if(ent->server_frame != cl.frame.server_frame - 1){
 		// wasn't in last update, so initialize some things
 		// duplicate the current state so lerping doesn't hurt anything
 		ent->prev = *state;
@@ -164,7 +164,7 @@ static void Cl_DeltaEntity(cl_frame_t *frame, int newnum, entity_state_t *old, i
 		ent->prev = ent->current;
 	}
 
-	ent->serverframe = cl.frame.serverframe;
+	ent->server_frame = cl.frame.server_frame;
 	ent->current = *state;
 
 	// bump animation time for frame interpolation
@@ -180,123 +180,123 @@ static void Cl_DeltaEntity(cl_frame_t *frame, int newnum, entity_state_t *old, i
  *
  * An svc_packetentities has just been parsed, deal with the rest of the data stream.
  */
-static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
+static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame){
 	unsigned int bits;
-	entity_state_t *oldstate = NULL;
-	int oldindex, oldnum;
+	entity_state_t *old_state = NULL;
+	int old_index, old_num;
 
-	newframe->entity_state = cl.entity_state;
-	newframe->num_entities = 0;
+	new_frame->entity_state = cl.entity_state;
+	new_frame->num_entities = 0;
 
-	// delta from the entities present in oldframe
-	oldindex = 0;
+	// delta from the entities present in old_frame
+	old_index = 0;
 
-	if(!oldframe)
-		oldnum = 99999;
+	if(!old_frame)
+		old_num = 99999;
 	else {
-		if(oldindex >= oldframe->num_entities)
-			oldnum = 99999;
+		if(old_index >= old_frame->num_entities)
+			old_num = 99999;
 		else {
-			oldstate = &cl.entity_states[(oldframe->entity_state + oldindex) & ENTITY_STATE_MASK];
-			oldnum = oldstate->number;
+			old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
+			old_num = old_state->number;
 		}
 	}
 
 	while(true){
 
-		const int newnum = Cl_ParseEntityBits(&bits);
+		const int new_num = Cl_ParseEntityBits(&bits);
 
-		if(newnum >= MAX_EDICTS){
-			Com_Error(ERR_DROP, "Cl_ParseEntities: bad number: %i.\n", newnum);
+		if(new_num >= MAX_EDICTS){
+			Com_Error(ERR_DROP, "Cl_ParseEntities: bad number: %i.\n", new_num);
 		}
 
-		if(net_message.readcount > net_message.cursize){
+		if(net_message.read > net_message.size){
 			Com_Error(ERR_DROP, "Cl_ParseEntities: end of message.\n");
 		}
 
-		if(!newnum)
+		if(!new_num)
 			break;
 
-		while(oldnum < newnum){  // one or more entities from oldframe are unchanged
+		while(old_num < new_num){  // one or more entities from old_frame are unchanged
 
 			if(cl_shownet->value == 3)
-				Com_Print("   unchanged: %i\n", oldnum);
+				Com_Print("   unchanged: %i\n", old_num);
 
-			Cl_DeltaEntity(newframe, oldnum, oldstate, 0);
+			Cl_DeltaEntity(new_frame, old_num, old_state, 0);
 
-			oldindex++;
+			old_index++;
 
-			if(oldindex >= oldframe->num_entities)
-				oldnum = 99999;
+			if(old_index >= old_frame->num_entities)
+				old_num = 99999;
 			else {
-				oldstate = &cl.entity_states[(oldframe->entity_state + oldindex) & ENTITY_STATE_MASK];
-				oldnum = oldstate->number;
+				old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
+				old_num = old_state->number;
 			}
 		}
 
-		if(bits & U_REMOVE){  // the entity present in the oldframe, and is not in the current frame
+		if(bits & U_REMOVE){  // the entity present in the old_frame, and is not in the current frame
 
 			if(cl_shownet->value == 3)
-				Com_Print("   remove: %i\n", newnum);
+				Com_Print("   remove: %i\n", new_num);
 
-			if(oldnum != newnum)
-				Com_Warn("Cl_ParseEntities: U_REMOVE: oldnum != newnum.\n");
+			if(old_num != new_num)
+				Com_Warn("Cl_ParseEntities: U_REMOVE: old_num != newnum.\n");
 
-			oldindex++;
+			old_index++;
 
-			if(oldindex >= oldframe->num_entities)
-				oldnum = 99999;
+			if(old_index >= old_frame->num_entities)
+				old_num = 99999;
 			else {
-				oldstate = &cl.entity_states[(oldframe->entity_state + oldindex) & ENTITY_STATE_MASK];
-				oldnum = oldstate->number;
-			}
-			continue;
-		}
-
-		if(oldnum == newnum){  // delta from previous state
-
-			if(cl_shownet->value == 3)
-				Com_Print("   delta: %i\n", newnum);
-
-			Cl_DeltaEntity(newframe, newnum, oldstate, bits);
-
-			oldindex++;
-
-			if(oldindex >= oldframe->num_entities)
-				oldnum = 99999;
-			else {
-				oldstate = &cl.entity_states[(oldframe->entity_state + oldindex) & ENTITY_STATE_MASK];
-				oldnum = oldstate->number;
+				old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
+				old_num = old_state->number;
 			}
 			continue;
 		}
 
-		if(oldnum > newnum){  // delta from baseline
+		if(old_num == new_num){  // delta from previous state
 
 			if(cl_shownet->value == 3)
-				Com_Print("   baseline: %i\n", newnum);
+				Com_Print("   delta: %i\n", new_num);
 
-			Cl_DeltaEntity(newframe, newnum, &cl.entities[newnum].baseline, bits);
+			Cl_DeltaEntity(new_frame, new_num, old_state, bits);
+
+			old_index++;
+
+			if(old_index >= old_frame->num_entities)
+				old_num = 99999;
+			else {
+				old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
+				old_num = old_state->number;
+			}
+			continue;
+		}
+
+		if(old_num > new_num){  // delta from baseline
+
+			if(cl_shownet->value == 3)
+				Com_Print("   baseline: %i\n", new_num);
+
+			Cl_DeltaEntity(new_frame, new_num, &cl.entities[new_num].baseline, bits);
 			continue;
 		}
 
 	}
 
 	// any remaining entities in the old frame are copied over
-	while(oldnum != 99999){  // one or more entities from the old packet are unchanged
+	while(old_num != 99999){  // one or more entities from the old packet are unchanged
 
 		if(cl_shownet->value == 3)
-			Com_Print("   unchanged: %i\n", oldnum);
+			Com_Print("   unchanged: %i\n", old_num);
 
-		Cl_DeltaEntity(newframe, oldnum, oldstate, 0);
+		Cl_DeltaEntity(new_frame, old_num, old_state, 0);
 
-		oldindex++;
+		old_index++;
 
-		if(oldindex >= oldframe->num_entities)
-			oldnum = 99999;
+		if(old_index >= old_frame->num_entities)
+			old_num = 99999;
 		else {
-			oldstate = &cl.entity_states[(oldframe->entity_state + oldindex) & ENTITY_STATE_MASK];
-			oldnum = oldstate->number;
+			old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
+			old_num = old_state->number;
 		}
 	}
 }
@@ -305,65 +305,65 @@ static void Cl_ParseEntities(const cl_frame_t *oldframe, cl_frame_t *newframe){
 /*
  * Cl_ParsePlayerstate
  */
-static void Cl_ParsePlayerstate(const cl_frame_t *oldframe, cl_frame_t *newframe){
-	player_state_t *state;
+static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_frame){
+	player_state_t *ps;
 	byte flags;
 	int i;
 	int statbits;
 
-	state = &newframe->playerstate;
+	ps = &new_frame->ps;
 
 	// copy old value before delta parsing
-	if(oldframe)
-		*state = oldframe->playerstate;
+	if(old_frame)
+		*ps = old_frame->ps;
 	else  // or start clean
-		memset(state, 0, sizeof(*state));
+		memset(ps, 0, sizeof(*ps));
 
 	flags = Msg_ReadByte(&net_message);
 
 	// parse the pmove_state_t
 
 	if(flags & PS_M_TYPE)
-		state->pmove.pm_type = Msg_ReadByte(&net_message);
+		ps->pmove.pm_type = Msg_ReadByte(&net_message);
 
-	if(cl.demoserver)
-		state->pmove.pm_type = PM_FREEZE;
+	if(cl.demo_server)
+		ps->pmove.pm_type = PM_FREEZE;
 
 	if(flags & PS_M_ORIGIN){
-		state->pmove.origin[0] = Msg_ReadShort(&net_message);
-		state->pmove.origin[1] = Msg_ReadShort(&net_message);
-		state->pmove.origin[2] = Msg_ReadShort(&net_message);
+		ps->pmove.origin[0] = Msg_ReadShort(&net_message);
+		ps->pmove.origin[1] = Msg_ReadShort(&net_message);
+		ps->pmove.origin[2] = Msg_ReadShort(&net_message);
 	}
 
 	if(flags & PS_M_VELOCITY){
-		state->pmove.velocity[0] = Msg_ReadShort(&net_message);
-		state->pmove.velocity[1] = Msg_ReadShort(&net_message);
-		state->pmove.velocity[2] = Msg_ReadShort(&net_message);
+		ps->pmove.velocity[0] = Msg_ReadShort(&net_message);
+		ps->pmove.velocity[1] = Msg_ReadShort(&net_message);
+		ps->pmove.velocity[2] = Msg_ReadShort(&net_message);
 	}
 
 	if(flags & PS_M_TIME)
-		state->pmove.pm_time = Msg_ReadByte(&net_message);
+		ps->pmove.pm_time = Msg_ReadByte(&net_message);
 
 	if(flags & PS_M_FLAGS)
-		state->pmove.pm_flags = Msg_ReadShort(&net_message);
+		ps->pmove.pm_flags = Msg_ReadShort(&net_message);
 
 	if(flags & PS_M_DELTA_ANGLES){
-		state->pmove.delta_angles[0] = Msg_ReadShort(&net_message);
-		state->pmove.delta_angles[1] = Msg_ReadShort(&net_message);
-		state->pmove.delta_angles[2] = Msg_ReadShort(&net_message);
+		ps->pmove.delta_angles[0] = Msg_ReadShort(&net_message);
+		ps->pmove.delta_angles[1] = Msg_ReadShort(&net_message);
+		ps->pmove.delta_angles[2] = Msg_ReadShort(&net_message);
 	}
 
 	if(flags & PS_VIEWANGLES){  // demo, chasecam, recording
-		state->angles[0] = Msg_ReadAngle16(&net_message);
-		state->angles[1] = Msg_ReadAngle16(&net_message);
-		state->angles[2] = Msg_ReadAngle16(&net_message);
+		ps->angles[0] = Msg_ReadAngle16(&net_message);
+		ps->angles[1] = Msg_ReadAngle16(&net_message);
+		ps->angles[2] = Msg_ReadAngle16(&net_message);
 	}
 
 	// parse stats
 	statbits = Msg_ReadLong(&net_message);
 	for(i = 0; i < MAX_STATS; i++)
 		if(statbits & (1 << i))
-			state->stats[i] = Msg_ReadShort(&net_message);
+			ps->stats[i] = Msg_ReadShort(&net_message);
 }
 
 
@@ -385,61 +385,61 @@ static void Cl_EntityEvents(cl_frame_t *frame){
  */
 void Cl_ParseFrame(void){
 	size_t len;
-	cl_frame_t *old;
+	cl_frame_t *old_frame;
 
-	if(!cl.serverrate){  // avoid unstable reconnects
+	if(!cl.server_hz){  // avoid unstable reconnects
 		Com_Warn("Cl_ParseFrame: Unstable reconnect detected.\n");
 		Cl_Reconnect_f();
 		return;
 	}
 
-	cl.frame.serverframe = Msg_ReadLong(&net_message);
-	cl.frame.servertime = cl.frame.serverframe * 1000 / cl.serverrate;
+	cl.frame.server_frame = Msg_ReadLong(&net_message);
+	cl.frame.server_time = cl.frame.server_frame * 1000 / cl.server_hz;
 
-	cl.frame.deltaframe = Msg_ReadLong(&net_message);
+	cl.frame.delta_frame = Msg_ReadLong(&net_message);
 
 	cl.surpress_count = Msg_ReadByte(&net_message);
 
 	if(cl_shownet->value == 3)
-		Com_Print ("   frame:%i  delta:%i\n", cl.frame.serverframe, cl.frame.deltaframe);
+		Com_Print ("   frame:%i  delta:%i\n", cl.frame.server_frame, cl.frame.delta_frame);
 
-	if(cl.frame.deltaframe <= 0){  // uncompressed frame
-		cls.demowaiting = false;
+	if(cl.frame.delta_frame <= 0){  // uncompressed frame
+		cls.demo_waiting = false;
 		cl.frame.valid = true;
-		old = NULL;
+		old_frame = NULL;
 	}
 	else {  // delta compressed frame
-		old = &cl.frames[cl.frame.deltaframe & UPDATE_MASK];
+		old_frame = &cl.frames[cl.frame.delta_frame & UPDATE_MASK];
 
-		if(!old->valid)
+		if(!old_frame->valid)
 			Com_Warn("Cl_ParseFrame: Delta from invalid frame.\n");
-		else if(old->serverframe != cl.frame.deltaframe)
+		else if(old_frame->server_frame != cl.frame.delta_frame)
 			Com_Warn("Cl_ParseFrame: Delta frame too old.\n");
-		else if(cl.entity_state - old->entity_state > ENTITY_STATE_BACKUP - UPDATE_BACKUP)
+		else if(cl.entity_state - old_frame->entity_state > ENTITY_STATE_BACKUP - UPDATE_BACKUP)
 			Com_Warn("Cl_ParseFrame: Delta parse_entities too old.\n");
 		else
 			cl.frame.valid = true;
 	}
 
-	len = Msg_ReadByte(&net_message); // read areabits
-	Msg_ReadData(&net_message, &cl.frame.areabits, len);
+	len = Msg_ReadByte(&net_message); // read area_bits
+	Msg_ReadData(&net_message, &cl.frame.area_bits, len);
 
-	Cl_ParsePlayerstate(old, &cl.frame);
+	Cl_ParsePlayerstate(old_frame, &cl.frame);
 
-	Cl_ParseEntities(old, &cl.frame);
+	Cl_ParseEntities(old_frame, &cl.frame);
 
 	// save the frame off in the backup array for later delta comparisons
-	cl.frames[cl.frame.serverframe & UPDATE_MASK] = cl.frame;
+	cl.frames[cl.frame.server_frame & UPDATE_MASK] = cl.frame;
 
 	if(cl.frame.valid){
 		// getting a valid frame message ends the connection process
 		if(cls.state != ca_active){
 			cls.state = ca_active;
 
-			VectorCopy(cl.frame.playerstate.pmove.origin, cl.predicted_origin);
+			VectorCopy(cl.frame.ps.pmove.origin, cl.predicted_origin);
 			VectorScale(cl.predicted_origin, 0.125, cl.predicted_origin);
 
-			VectorCopy(cl.frame.playerstate.angles, cl.predicted_angles);
+			VectorCopy(cl.frame.ps.angles, cl.predicted_angles);
 		}
 
 		Cl_EntityEvents(&cl.frame); // fire entity events
@@ -466,16 +466,16 @@ static void Cl_AddWeapon(const vec3_t shell){
 	if(cl_thirdperson->value)
 		return;
 
-	if(!cl.frame.playerstate.stats[STAT_HEALTH])
+	if(!cl.frame.ps.stats[STAT_HEALTH])
 		return;  // deadz0r
 
-	if(cl.frame.playerstate.stats[STAT_SPECTATOR])
+	if(cl.frame.ps.stats[STAT_SPECTATOR])
 		return;  // spectating
 
-	if(cl.frame.playerstate.stats[STAT_CHASE])
+	if(cl.frame.ps.stats[STAT_CHASE])
 		return;  // chasecam
 
-	w = cl.frame.playerstate.stats[STAT_WEAPON];
+	w = cl.frame.ps.stats[STAT_WEAPON];
 	if(!w)  // no weapon, e.g. level intermission
 		return;
 
@@ -562,8 +562,8 @@ void Cl_AddEntities(cl_frame_t *frame){
 		// beams have two origins, most ents have just one
 		if(state->effects & EF_BEAM){
 
-			// skinnum is overridden to specify owner of the beam
-			if((state->skinnum == cl.playernum + 1) && !cl_thirdperson->value){
+			// skin_num is overridden to specify owner of the beam
+			if((state->skin_num == cl.player_num + 1) && !cl_thirdperson->value){
 				// we own this beam (lightning, grapple, etc..)
 				// project start position in front of view origin
 				VectorCopy(r_view.origin, start);
@@ -602,7 +602,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		else
 			ent.frame = state->frame;
 
-		ent.oldframe = cent->anim_frame;
+		ent.old_frame = cent->anim_frame;
 
 		ent.lerp = (cl.time - cent->anim_time) / 100.0;
 
@@ -611,14 +611,14 @@ void Cl_AddEntities(cl_frame_t *frame){
 		else if(ent.lerp > 1.0)
 			ent.lerp = 1.0;
 
-		ent.backlerp = 1.0 - ent.lerp;
+		ent.back_lerp = 1.0 - ent.lerp;
 
 		VectorSet(ent.scale, 1.0, 1.0, 1.0);  // scale
 
 		// resolve model and skin
-		if(state->modelindex == 255){  // use custom player skin
-			const cl_clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
-			ent.skinnum = 0;
+		if(state->model_index == 255){  // use custom player skin
+			const cl_clientinfo_t *ci = &cl.clientinfo[state->skin_num & 0xff];
+			ent.skin_num = 0;
 			ent.skin = ci->skin;
 			ent.model = ci->model;
 			if(!ent.skin || !ent.model){
@@ -627,9 +627,9 @@ void Cl_AddEntities(cl_frame_t *frame){
 			}
 			VectorSet(ent.scale, PM_SCALE, PM_SCALE, PM_SCALE);
 		} else {
-			ent.skinnum = state->skinnum;
+			ent.skin_num = state->skin_num;
 			ent.skin = NULL;
-			ent.model = cl.model_draw[state->modelindex];
+			ent.model = cl.model_draw[state->model_index];
 		}
 
 		if(state->effects & (EF_ROCKET | EF_GRENADE))
@@ -691,7 +691,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 			Cl_TeleporterTrail(ent.origin, cent);
 
 		// if there's no model associated with the entity, we're done
-		if(!state->modelindex)
+		if(!state->model_index)
 			continue;
 
 		// filter by model type
@@ -701,7 +701,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 			continue;
 
 		// don't draw ourselves unless third person is set
-		if(state->number == cl.playernum + 1){
+		if(state->number == cl.player_num + 1){
 
 			// retain our shell effect for view model
 			VectorCopy(ent.shell, wshell);
@@ -744,21 +744,21 @@ void Cl_AddEntities(cl_frame_t *frame){
 		ent.skin = NULL;
 		ent.flags = 0;
 
-		if(state->modelindex2){
-			if(state->modelindex2 == 255){  // custom weapon
-				// the weapon is masked on the skinnum
-				const cl_clientinfo_t *ci = &cl.clientinfo[state->skinnum & 0xff];
-				int i = (state->skinnum >> 8);  // 0 is default weapon model
+		if(state->model_index2){
+			if(state->model_index2 == 255){  // custom weapon
+				// the weapon is masked on the skin_num
+				const cl_clientinfo_t *ci = &cl.clientinfo[state->skin_num & 0xff];
+				int i = (state->skin_num >> 8);  // 0 is default weapon model
 				if(i > MAX_WEAPONMODELS - 1)
 					i = 0;
 				ent.model = ci->weaponmodel[i];
 				ent.flags = state->effects;
 			} else
-				ent.model = cl.model_draw[state->modelindex2];
+				ent.model = cl.model_draw[state->model_index2];
 
 			R_AddEntity(&ent);
 		}
-		if(state->modelindex3){  // ctf flags
+		if(state->model_index3){  // ctf flags
 			vec3_t fwd, rgt;
 			float f;
 
@@ -774,16 +774,16 @@ void Cl_AddEntities(cl_frame_t *frame){
 
 			ent.angles[2] += 15.0;
 
-			ent.frame = ent.oldframe = 0;
-			ent.model = cl.model_draw[state->modelindex3];
+			ent.frame = ent.old_frame = 0;
+			ent.model = cl.model_draw[state->model_index3];
 
 			VectorSet(ent.scale, 0.6, 0.6, 0.6);
 			VectorScale(ent.scale, PM_SCALE, ent.scale);
 
 			R_AddEntity(&ent);
 		}
-		if(state->modelindex4){
-			ent.model = cl.model_draw[state->modelindex4];
+		if(state->model_index4){
+			ent.model = cl.model_draw[state->model_index4];
 			R_AddEntity(&ent);
 		}
 	}

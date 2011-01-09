@@ -679,7 +679,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 		}
 
 		// score
-		if(cl.frame.playerstate.stats[STAT_LAYOUTS]){
+		if(cl.frame.ps.stats[STAT_LAYOUTS]){
 			Cbuf_AddText("score\n");
 			return;
 		}
@@ -715,7 +715,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 
 	// little hack for slow motion or fast forward demo playback
 	// TODO: move this to commands that can be bound
-	if(down && cl.demoserver && Com_ServerState() &&
+	if(down && cl.demo_server && Com_ServerState() &&
 			(key == K_LEFTARROW || key == K_RIGHTARROW)){
 
 		float ts = timescale->value + (key == K_LEFTARROW ? -0.1 : 0.1);

@@ -58,7 +58,7 @@ static size_t Cl_HttpDownloadRecv(void *buffer, size_t size, size_t nmemb, void 
 /*
  * Cl_HttpDownload
  *
- * Queue up an http download.  The url is resolved from cls.downloadurl and
+ * Queue up an http download.  The url is resolved from cls.download_url and
  * the current gamedir.  We use cURL's multi interface, even tho we only ever
  * perform one download at a time, because it is non-blocking.
  */
@@ -94,9 +94,9 @@ qboolean Cl_HttpDownload(void){
 
 	memset(url, 0, sizeof(url));  // construct url
 	if(gzip)
-		snprintf(url, sizeof(url), "%s/%s/%s.gz", cls.downloadurl, game, cls.download.name);
+		snprintf(url, sizeof(url), "%s/%s/%s.gz", cls.download_url, game, cls.download.name);
 	else
-		snprintf(url, sizeof(url), "%s/%s/%s", cls.downloadurl, game, cls.download.name);
+		snprintf(url, sizeof(url), "%s/%s/%s", cls.download_url, game, cls.download.name);
 
 	// set handle to default state
 	curl_easy_reset(curl);
@@ -214,7 +214,7 @@ void Cl_HttpDownloadThink(void){
 	CURLMsg *msg;
 	int i;
 
-	if(!cls.downloadurl[0] || !cls.download.file)
+	if(!cls.download_url[0] || !cls.download.file)
 		return;  // nothing to do
 
 	// process the download as long as data is avaialble

@@ -62,12 +62,12 @@ typedef struct r_entity_s {
 
 	struct r_model_s *model;
 
-	int frame, oldframe;  // frame-based animations
-	float lerp, backlerp;
+	int frame, old_frame;  // frame-based animations
+	float lerp, back_lerp;
 
 	vec3_t scale;  // for mesh models
 
-	int skinnum;  // for masking players and vweaps
+	int skin_num;  // for masking players and vweaps
 	struct r_image_s *skin;  // NULL for inline skin
 
 	int flags;  // e.g. EF_ROCKET, EF_WEAPON, ..
@@ -85,19 +85,19 @@ typedef struct r_particle_s {
 	vec3_t end;
 	vec3_t vel;
 	vec3_t accel;
-	vec3_t curorg;
-	vec3_t curend;
+	vec3_t current_org;
+	vec3_t current_end;
 	vec3_t dir;
 	float roll;
 	struct r_image_s *image;
 	int type;
 	int color;
 	float alpha;
-	float alphavel;
-	float curalpha;
+	float alpha_vel;
+	float current_alpha;
 	float scale;
-	float scalevel;
-	float curscale;
+	float scale_vel;
+	float current_scale;
 	float scroll_s;
 	float scroll_t;
 	GLenum blend;
@@ -168,7 +168,7 @@ typedef struct r_view_s {
 
 	float time;
 
-	byte *areabits;  // if not NULL, only areas with set bits will be drawn
+	byte *area_bits;  // if not NULL, only areas with set bits will be drawn
 
 	int weather;  // weather effects
 	vec4_t fog_color;

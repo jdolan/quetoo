@@ -55,27 +55,27 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out){
 	verts = (vec3_t *)out;
 
 	scale =  // hack a scale up to keep particles from disappearing
-		(p->curorg[0] - r_view.origin[0]) * r_view.forward[0] +
-		(p->curorg[1] - r_view.origin[1]) * r_view.forward[1] +
-		(p->curorg[2] - r_view.origin[2]) * r_view.forward[2];
+		(p->current_org[0] - r_view.origin[0]) * r_view.forward[0] +
+		(p->current_org[1] - r_view.origin[1]) * r_view.forward[1] +
+		(p->current_org[2] - r_view.origin[2]) * r_view.forward[2];
 
 	if(scale > 20.0)  // use it
-		p->curscale += scale * 0.002;
+		p->current_scale += scale * 0.002;
 
 	if(p->type == PARTICLE_BEAM){  // beams are lines with starts and ends
-		VectorSubtract(p->curorg, p->curend, v);
+		VectorSubtract(p->current_org, p->current_end, v);
 		VectorNormalize(v);
 		VectorCopy(v, up);
 
-		VectorSubtract(r_view.origin, p->curend, v);
+		VectorSubtract(r_view.origin, p->current_end, v);
 		CrossProduct(up, v, right);
 		VectorNormalize(right);
-		VectorScale(right, p->curscale, right);
+		VectorScale(right, p->current_scale, right);
 
-		VectorAdd(p->curorg, right, verts[0]);
-		VectorAdd(p->curend, right, verts[1]);
-		VectorSubtract(p->curend, right, verts[2]);
-		VectorSubtract(p->curorg, right, verts[3]);
+		VectorAdd(p->current_org, right, verts[0]);
+		VectorAdd(p->current_end, right, verts[1]);
+		VectorSubtract(p->current_end, right, verts[2]);
+		VectorSubtract(p->current_org, right, verts[3]);
 		return;
 	}
 
@@ -87,28 +87,28 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out){
 		VectorNegate(verts[0], verts[2]);
 		VectorNegate(verts[1], verts[3]);
 
-		VectorMA(p->curorg, p->curscale, verts[0], verts[0]);
-		VectorMA(p->curorg, p->curscale, verts[1], verts[1]);
-		VectorMA(p->curorg, p->curscale, verts[2], verts[2]);
-		VectorMA(p->curorg, p->curscale, verts[3], verts[3]);
+		VectorMA(p->current_org, p->current_scale, verts[0], verts[0]);
+		VectorMA(p->current_org, p->current_scale, verts[1], verts[1]);
+		VectorMA(p->current_org, p->current_scale, verts[2], verts[2]);
+		VectorMA(p->current_org, p->current_scale, verts[3], verts[3]);
 		return;
 	}
 
 	// all other particles are aligned with the client's view
 
 	if(p->type == PARTICLE_WEATHER){  // keep it vertical
-		VectorScale(ps.weather_right, p->curscale, right);
-		VectorScale(ps.weather_up, p->curscale, up);
+		VectorScale(ps.weather_right, p->current_scale, right);
+		VectorScale(ps.weather_up, p->current_scale, up);
 	}
 	else if(p->type == PARTICLE_SPLASH){  // keep it horizontal
 
-		if(p->curorg[2] > r_view.origin[2]){  // it's above us
-			VectorScale(ps.splash_right[0], p->curscale, right);
-			VectorScale(ps.splash_up[0], p->curscale, up);
+		if(p->current_org[2] > r_view.origin[2]){  // it's above us
+			VectorScale(ps.splash_right[0], p->current_scale, right);
+			VectorScale(ps.splash_up[0], p->current_scale, up);
 		}
 		else {  // it's below us
-			VectorScale(ps.splash_right[1], p->curscale, right);
-			VectorScale(ps.splash_up[1], p->curscale, up);
+			VectorScale(ps.splash_right[1], p->current_scale, right);
+			VectorScale(ps.splash_up[1], p->current_scale, up);
 		}
 	}
 	else if(p->type == PARTICLE_ROLL){  // roll it
@@ -118,21 +118,21 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out){
 
 		AngleVectors(p->dir, NULL, right, up);
 
-		VectorScale(right, p->curscale, right);
-		VectorScale(up, p->curscale, up);
+		VectorScale(right, p->current_scale, right);
+		VectorScale(up, p->current_scale, up);
 	}
 	else {  // default particle alignment with view
-		VectorScale(r_view.right, p->curscale, right);
-		VectorScale(r_view.up, p->curscale, up);
+		VectorScale(r_view.right, p->current_scale, right);
+		VectorScale(r_view.up, p->current_scale, up);
 	}
 
 	VectorAdd(up, right, upright);
 	VectorSubtract(right, up, downright);
 
-	VectorSubtract(p->curorg, downright, verts[0]);
-	VectorAdd(p->curorg, upright, verts[1]);
-	VectorAdd(p->curorg, downright, verts[2]);
-	VectorSubtract(p->curorg, upright, verts[3]);
+	VectorSubtract(p->current_org, downright, verts[0]);
+	VectorAdd(p->current_org, upright, verts[1]);
+	VectorAdd(p->current_org, downright, verts[2]);
+	VectorSubtract(p->current_org, upright, verts[3]);
 }
 
 
@@ -172,7 +172,7 @@ static void R_ParticleColor(r_particle_t *p, GLfloat *out){
 	int i, j;
 
 	memcpy(&color, &palette[p->color], sizeof(color));
-	color[3] = p->curalpha * 255.0;
+	color[3] = p->current_alpha * 255.0;
 	j = 0;
 
 	for(i = 0; i < 4; i++){  // duplicate color data to all 4 verts

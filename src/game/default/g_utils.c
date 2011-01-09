@@ -503,7 +503,7 @@ int G_GameplayByName(char *c){
 /*
  * G_TeamByName
  */
-team_t *G_TeamByName(char *c){
+g_team_t *G_TeamByName(char *c){
 
 	if(!c || !*c)
 		return NULL;
@@ -520,7 +520,7 @@ team_t *G_TeamByName(char *c){
 /*
  * G_TeamForFlag
  */
-team_t *G_TeamForFlag(edict_t *ent){
+g_team_t *G_TeamForFlag(edict_t *ent){
 
 	if(!level.ctf)
 		return NULL;
@@ -541,7 +541,7 @@ team_t *G_TeamForFlag(edict_t *ent){
 /*
  * G_FlagForTeam
  */
-edict_t *G_FlagForTeam(team_t *t){
+edict_t *G_FlagForTeam(g_team_t *t){
 	edict_t *ent;
 	char class[32];
 	int i;
@@ -578,7 +578,7 @@ edict_t *G_FlagForTeam(team_t *t){
 /*
  * G_EffectForTeam
  */
-int G_EffectForTeam(team_t *t){
+int G_EffectForTeam(g_team_t *t){
 
 	if(!t)
 		return 0;
@@ -590,7 +590,7 @@ int G_EffectForTeam(team_t *t){
 /*
  * G_OtherTeam
  */
-team_t *G_OtherTeam(team_t *t){
+g_team_t *G_OtherTeam(g_team_t *t){
 
 	if(!t)
 		return NULL;
@@ -608,9 +608,9 @@ team_t *G_OtherTeam(team_t *t){
 /*
  * G_SmallestTeam
  */
-team_t *G_SmallestTeam(void){
+g_team_t *G_SmallestTeam(void){
 	int i, g, e;
-	gclient_t *cl;
+	g_client_t *cl;
 
 	g = e = 0;
 
@@ -633,9 +633,9 @@ team_t *G_SmallestTeam(void){
 /*
  * G_ClientByName
  */
-gclient_t *G_ClientByName(char *name){
+g_client_t *G_ClientByName(char *name){
 	int i, j, min;
-	gclient_t *cl, *ret;
+	g_client_t *cl, *ret;
 
 	if(!name)
 		return NULL;

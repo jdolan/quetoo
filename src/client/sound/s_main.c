@@ -87,7 +87,7 @@ void S_Frame(void){
 			continue;
 
 		for(j = 0; j < MAX_CHANNELS; j++){
-			if(s_env.channels[j].entnum == ent->number)
+			if(s_env.channels[j].ent_num == ent->number)
 				break;
 		}
 

@@ -77,25 +77,25 @@ static qboolean G_IsStructural(edict_t *ent, csurface_t *surf){
 static void G_BubbleTrail(vec3_t start, trace_t *tr){
 	vec3_t dir, pos;
 
-	if(VectorCompare(tr->endpos, start))
+	if(VectorCompare(tr->end, start))
 		return;
 
-	VectorSubtract(tr->endpos, start, dir);
+	VectorSubtract(tr->end, start, dir);
 	VectorNormalize(dir);
-	VectorMA(tr->endpos, -2, dir, pos);
+	VectorMA(tr->end, -2, dir, pos);
 
 	if(gi.PointContents(pos) & MASK_WATER)
-		VectorCopy(pos, tr->endpos);
+		VectorCopy(pos, tr->end);
 	else
-		tr->endpos = gi.Trace(pos, NULL, NULL, start, tr->ent, MASK_WATER).endpos;
+		tr->end = gi.Trace(pos, NULL, NULL, start, tr->ent, MASK_WATER).end;
 
-	VectorAdd(start, tr->endpos, pos);
+	VectorAdd(start, tr->end, pos);
 	VectorScale(pos, 0.5, pos);
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_BUBBLETRAIL);
 	gi.WritePosition(start);
-	gi.WritePosition(tr->endpos);
+	gi.WritePosition(tr->end);
 	gi.Multicast(pos, MULTICAST_PVS);
 }
 
@@ -196,7 +196,7 @@ void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
 		if(tr.contents & MASK_WATER && !water){
 
 			water = true;
-			VectorCopy(tr.endpos, water_start);
+			VectorCopy(tr.end, water_start);
 
 			// change bullet's course when it enters water
 			VectorSubtract(end, start, dir);
@@ -217,12 +217,12 @@ void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
 	if(tr.fraction < 1.0){
 
 		if(tr.ent->takedamage){  // bleed and damage the enemy
-			G_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal,
+			G_Damage(tr.ent, self, self, aimdir, tr.end, tr.plane.normal,
 					damage, knockback, DAMAGE_BULLET, mod);
 		}
 		else {  // leave an impact mark on the wall
 			if(G_IsStructural(tr.ent, tr.surface)){
-				G_BulletMark(tr.endpos, &tr.plane, tr.surface);
+				G_BulletMark(tr.end, &tr.plane, tr.surface);
 			}
 		}
 	}
@@ -232,7 +232,7 @@ void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
 		G_Tracer(start, water_start);
 	}
 	else {
-		G_Tracer(start, tr.endpos);
+		G_Tracer(start, tr.end);
 	}
 }
 
@@ -279,7 +279,7 @@ static void G_GrenadeExplode(edict_t *ent){
 	G_RadiusDamage(ent, ent->owner, ent->enemy, ent->dmg, ent->knockback,
 			ent->dmg_radius, MOD_G_SPLASH);
 
-	if(G_IsStationary(ent->groundentity))
+	if(G_IsStationary(ent->ground_entity))
 		VectorMA(ent->s.origin, 16.0, ent->plane.normal, origin);
 	else
 		VectorCopy(ent->s.origin, origin);
@@ -289,7 +289,7 @@ static void G_GrenadeExplode(edict_t *ent){
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PHS);
 
-	if(G_IsStationary(ent->groundentity))
+	if(G_IsStationary(ent->ground_entity))
 		G_BurnMark(ent->s.origin, &ent->plane, &ent->surf, 20);
 
 	G_FreeEdict(ent);
@@ -326,7 +326,7 @@ static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 
 		// we're live after a brief safety period for the owner
 		if(dot < -0.35 && level.time - ent->touch_time > 0.5){
-			ent->groundentity = other;
+			ent->ground_entity = other;
 			G_GrenadeExplode(ent);
 		}
 		else
@@ -371,7 +371,7 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	grenade->s.effects = EF_GRENADE;
 	VectorCopy(mins, grenade->mins);
 	VectorCopy(maxs, grenade->maxs);
-	grenade->s.modelindex = grenade_index;
+	grenade->s.model_index = grenade_index;
 	grenade->owner = self;
 	grenade->touch = G_GrenadeTouch;
 	grenade->touch_time = level.time;
@@ -450,7 +450,7 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	rocket->clipmask = MASK_SHOT;
 	rocket->solid = SOLID_MISSILE;
 	rocket->s.effects = EF_ROCKET;
-	rocket->s.modelindex = rocket_index;
+	rocket->s.model_index = rocket_index;
 	rocket->owner = self;
 	rocket->touch = G_RocketTouch;
 	rocket->nextthink = level.time + 8.0;
@@ -463,7 +463,7 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 
 	VectorMA(start, 8192.0, dir, dest);
 	tr = gi.Trace(start, NULL, NULL, dest, self, MASK_SHOT);
-	VectorCopy(tr.endpos, rocket->dest);
+	VectorCopy(tr.end, rocket->dest);
 
 	G_PlayerProjectile(rocket, scale);
 
@@ -570,11 +570,11 @@ static void G_LightningDischarge(edict_t *self){
 
 		if(gi.inPVS(self->s.origin, ent->s.origin)){
 
-			if(ent->waterlevel){
+			if(ent->water_level){
 
 				// we always kill ourselves, we inflict a lot of damage but
 				// we don't necessarily kill everyone else
-				d = ent == self ? 999 : 50 * ent->waterlevel;
+				d = ent == self ? 999 : 50 * ent->water_level;
 
 				G_Damage(ent, self, self->owner, vec3_origin, ent->s.origin, vec3_origin,
 						d, 100, DAMAGE_NO_ARMOR, MOD_L_DISCHARGE);
@@ -613,7 +613,7 @@ static void G_LightningThink(edict_t *self){
 
 	// re-calculate endpoints based on owner's movement
 	AngleVectors(self->owner->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, self->owner->viewheight - 10.0);
+	VectorSet(offset, 30.0, 6.0, self->owner->view_height - 10.0);
 	G_ProjectSource(self->owner->s.origin, offset, forward, right, start);
 
 	if(G_ImmediateWall(self->owner, forward))  // resolve start
@@ -630,42 +630,42 @@ static void G_LightningThink(edict_t *self){
 	tr = gi.Trace(start, NULL, NULL, end, self, MASK_SHOT | MASK_WATER);
 
 	if(tr.contents & MASK_WATER){  // entered water, play sound, leave trail
-		VectorCopy(tr.endpos, water_start);
+		VectorCopy(tr.end, water_start);
 
-		if(!self->waterlevel){
+		if(!self->water_level){
 			gi.PositionedSound(water_start, g_edicts,
 					gi.SoundIndex("world/water_in"), ATTN_NORM);
-			self->waterlevel = 1;
+			self->water_level = 1;
 		}
 
 		tr = gi.Trace(water_start, NULL, NULL, end, self, MASK_SHOT);
 		G_BubbleTrail(water_start, &tr);
 	}
 	else {
-		if(self->waterlevel){  // exited water, play sound, no trail
+		if(self->water_level){  // exited water, play sound, no trail
 			gi.PositionedSound(water_start, g_edicts,
 					gi.SoundIndex("world/water_out"), ATTN_NORM);
-			self->waterlevel = 0;
+			self->water_level = 0;
 		}
 	}
 
 	if(self->timestamp <= level.time){  // shoot
 		if(tr.ent->takedamage){  // try to damage what we hit
-			G_Damage(tr.ent, self, self->owner, forward, tr.endpos, tr.plane.normal,
+			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal,
 					self->dmg, self->knockback, DAMAGE_ENERGY, MOD_LIGHTNING);
 		}
 		else {  // or leave a mark
 			if((tr.contents & CONTENTS_SOLID) && G_IsStructural(tr.ent, tr.surface))
-				G_BurnMark(tr.endpos, &tr.plane, tr.surface, 8);
+				G_BurnMark(tr.end, &tr.plane, tr.surface, 8);
 		}
 	}
 
 	VectorCopy(start, self->s.origin);  // update endpoints
-	VectorCopy(tr.endpos, self->s.old_origin);
+	VectorCopy(tr.end, self->s.old_origin);
 
 	gi.LinkEntity(self);
 
-	self->nextthink = level.time + gi.serverframe;
+	self->nextthink = level.time + gi.server_frame;
 }
 
 void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int knockback){
@@ -683,7 +683,7 @@ void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int
 		light->think = G_LightningThink;
 		light->dmg = damage;
 		light->knockback = knockback;
-		light->s.skinnum = self - g_edicts;  // player number, for client prediction fix
+		light->s.skin_num = self - g_edicts;  // player number, for client prediction fix
 		light->s.effects = EF_BEAM | EF_LIGHTNING;
 		light->s.sound = lightning_fly_index;
 		light->classname = "lightning";
@@ -734,7 +734,7 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 			content_mask &= ~MASK_WATER;
 			water = true;
 
-			VectorCopy(tr.endpos, water_start);
+			VectorCopy(tr.end, water_start);
 
 			gi.PositionedSound(water_start, g_edicts,
 					gi.SoundIndex("world/water_in"), ATTN_NORM);
@@ -751,18 +751,18 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 		if((tr.ent != self) && (tr.ent->takedamage)){
 			if(tr.ent->client && ((int)level.gameplay == INSTAGIB))
 				damage = 9999;  // be sure to cause a kill
-			G_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal,
+			G_Damage(tr.ent, self, self, aimdir, tr.end, tr.plane.normal,
 					damage, knockback, 0, MOD_RAILGUN);
 		}
 
-		VectorCopy(tr.endpos, from);
+		VectorCopy(tr.end, from);
 	}
 
 	// send rail trail
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_RAILTRAIL);
 	gi.WritePosition(start);
-	gi.WritePosition(tr.endpos);
+	gi.WritePosition(tr.end);
 	gi.WriteLong(tr.surface->flags);
 
 	// use team colors, or client's color
@@ -781,8 +781,8 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 
 	// calculate position of burn mark
 	if(G_IsStructural(tr.ent, tr.surface)){
-		VectorMA(tr.endpos, -1, aimdir, tr.endpos);
-		G_BurnMark(tr.endpos, &tr.plane, tr.surface, 6);
+		VectorMA(tr.end, -1, aimdir, tr.end);
+		G_BurnMark(tr.end, &tr.plane, tr.surface, 6);
 	}
 }
 
@@ -831,14 +831,14 @@ static void G_BFGTouch(edict_t *self, edict_t *other, cplane_t *plane, csurface_
 static void G_BFGThink(edict_t *self){
 
 	// radius damage
-	G_RadiusDamage(self, self->owner, self->owner, self->dmg * 10.0 * gi.serverframe,
-			self->knockback * 10 * gi.serverframe, self->dmg_radius, MOD_BFG_LASER);
+	G_RadiusDamage(self, self->owner, self->owner, self->dmg * 10.0 * gi.server_frame,
+			self->knockback * 10 * gi.server_frame, self->dmg_radius, MOD_BFG_LASER);
 
 	// linear, clamped acceleration
 	if(VectorLength(self->velocity) < 1000.0)
-		VectorScale(self->velocity, 1.0 + (0.5 * gi.serverframe), self->velocity);
+		VectorScale(self->velocity, 1.0 + (0.5 * gi.server_frame), self->velocity);
 
-	self->nextthink = level.time + gi.serverframe;
+	self->nextthink = level.time + gi.server_frame;
 }
 
 void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
@@ -884,7 +884,7 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 		bfg->owner = self;
 		bfg->touch = G_BFGTouch;
 		bfg->think = G_BFGThink;
-		bfg->nextthink = level.time + gi.serverframe;
+		bfg->nextthink = level.time + gi.server_frame;
 		bfg->dmg = damage;
 		bfg->knockback = knockback;
 		bfg->dmg_radius = damage_radius;

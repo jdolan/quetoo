@@ -25,7 +25,7 @@
 /*
  * Directional vectors for over-the-wire approximations.
  */
-const vec3_t bytedirs[NUMVERTEXNORMALS] = {
+const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS] = {
 	{ -0.525731, 0.000000, 0.850651},
 	{ -0.442863, 0.238856, 0.864188},
 	{ -0.295242, 0.000000, 0.955423},

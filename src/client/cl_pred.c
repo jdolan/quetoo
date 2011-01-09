@@ -31,7 +31,7 @@ void Cl_CheckPredictionError(void){
 	short delta[3];
 	vec3_t fdelta;
 
-	if(!cl_predict->value || (cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION))
+	if(!cl_predict->value || (cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION))
 		return;
 
 	// calculate the last usercmd_t we sent that the server has processed
@@ -39,7 +39,7 @@ void Cl_CheckPredictionError(void){
 	frame &= CMD_MASK;
 
 	// compare what the server returned with what we had predicted it to be
-	VectorSubtract(cl.frame.playerstate.pmove.origin, cl.predicted_origins[frame], delta);
+	VectorSubtract(cl.frame.ps.pmove.origin, cl.predicted_origins[frame], delta);
 
 	VectorScale(delta, 0.125, fdelta);  // denormalize back to floats
 
@@ -47,10 +47,10 @@ void Cl_CheckPredictionError(void){
 		VectorClear(cl.prediction_error);
 	} else {  // save the prediction error for interpolation
 		if(cl_showmiss->value && (delta[0] || delta[1] || delta[2]))
-			Com_Print("Prediction miss on %i: %3.2f %3.2f %3.2f\n", cl.frame.serverframe,
+			Com_Print("Prediction miss on %i: %3.2f %3.2f %3.2f\n", cl.frame.server_frame,
 						fdelta[0], fdelta[1], fdelta[2]);
 
-		VectorCopy(cl.frame.playerstate.pmove.origin, cl.predicted_origins[frame]);
+		VectorCopy(cl.frame.ps.pmove.origin, cl.predicted_origins[frame]);
 		VectorCopy(fdelta, cl.prediction_error);
 	}
 }
@@ -73,11 +73,11 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 		if(!ent->solid)
 			continue;
 
-		if(ent->number == cl.playernum + 1)
+		if(ent->number == cl.player_num + 1)
 			continue;
 
 		if(ent->solid == 31){  // special value for bmodel
-			const cmodel_t *cmodel = cl.model_clip[ent->modelindex];
+			const cmodel_t *cmodel = cl.model_clip[ent->model_index];
 			if(!cmodel)
 				continue;
 			head_node = cmodel->head_node;
@@ -100,7 +100,7 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 				mins, maxs, head_node, MASK_PLAYERSOLID,
 				ent->origin, angles);
 
-		if(trace.startsolid || trace.fraction < tr->fraction){
+		if(trace.start_solid || trace.fraction < tr->fraction){
 			trace.ent = (struct edict_s *)ent;
 			*tr = trace;
 		}
@@ -143,7 +143,7 @@ static int Cl_Pointcontents(vec3_t point){
 		if(ent->solid != 31) // special value for bsp models
 			continue;
 
-		cmodel = cl.model_clip[ent->modelindex];
+		cmodel = cl.model_clip[ent->model_index];
 		if(!cmodel)
 			continue;
 
@@ -170,10 +170,10 @@ void Cl_PredictMovement(void){
 	if(cls.state != ca_active)
 		return;
 
-	if(!cl_predict->value || (cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION)){
+	if(!cl_predict->value || (cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION)){
 		for(i = 0; i < 3; i++){  // just set angles
 			cl.predicted_angles[i] = cl.angles[i] +
-				SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[i]);
+				SHORT2ANGLE(cl.frame.ps.pmove.delta_angles[i]);
 		}
 		return;
 	}
@@ -191,7 +191,7 @@ void Cl_PredictMovement(void){
 	memset(&pm, 0, sizeof(pm));
 	pm.trace = Cl_Trace;
 	pm.pointcontents = Cl_Pointcontents;
-	pm.s = cl.frame.playerstate.pmove;
+	pm.s = cl.frame.ps.pmove;
 	pm.s.gravity = cl_gravity;
 
 	// run frames
@@ -212,7 +212,7 @@ void Cl_PredictMovement(void){
 	step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
 
 	if(pm.s.pm_flags & PMF_ON_STAIRS && step > 4.0){  // save for stair lerping
-		cl.predicted_step_time = cls.realtime;
+		cl.predicted_step_time = cls.real_time;
 		cl.predicted_step = step;
 	}
 
@@ -220,5 +220,5 @@ void Cl_PredictMovement(void){
 	VectorScale(pm.s.origin, 0.125, cl.predicted_origin);
 	VectorCopy(pm.angles, cl.predicted_angles);
 
-	cl.underwater = pm.waterlevel > 2;
+	cl.underwater = pm.water_level > 2;
 }

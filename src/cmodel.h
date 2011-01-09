@@ -53,9 +53,9 @@ int Cm_PointLeafnum(const vec3_t p);
 // set to the first node that splits the box
 int Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int *list, int listsize, int *topnode);
 
-int Cm_LeafContents(int leafnum);
-int Cm_LeafCluster(int leafnum);
-int Cm_LeafArea(int leafnum);
+int Cm_LeafContents(int leaf_num);
+int Cm_LeafCluster(int leaf_num);
+int Cm_LeafArea(int leaf_num);
 
 void Cm_SetAreaPortalState(int portal_num, qboolean open);
 qboolean Cm_AreasConnected(int area1, int area2);

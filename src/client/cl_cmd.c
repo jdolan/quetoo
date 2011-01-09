@@ -84,8 +84,8 @@ void Cl_SendCmd(void){
 	extern int packets_this_second;
 	sizebuf_t buf;
 	byte data[128];
-	usercmd_t *cmd, *oldcmd;
-	usercmd_t nullcmd;
+	usercmd_t *cmd, *old_cmd;
+	usercmd_t null_cmd;
 
 	if(cls.state <= ca_connecting)
 		return;
@@ -94,17 +94,17 @@ void Cl_SendCmd(void){
 
 	if(cls.state == ca_connected){
 		// send anything we have pending, or just don't timeout
-		if(cls.netchan.message.cursize || cls.realtime - cls.netchan.last_sent > 1000)
+		if(cls.netchan.message.size || cls.real_time - cls.netchan.last_sent > 1000)
 			Netchan_Transmit(&cls.netchan, 0, buf.data);
 		return;
 	}
 
-	// send a userinfo update if needed
-	if(userinfo_modified){
-		Msg_WriteByte(&cls.netchan.message, clc_userinfo);
-		Msg_WriteString(&cls.netchan.message, Cvar_Userinfo());
+	// send a user_info update if needed
+	if(user_info_modified){
+		Msg_WriteByte(&cls.netchan.message, clc_user_info);
+		Msg_WriteString(&cls.netchan.message, Cvar_UserInfo());
 
-		userinfo_modified = false;
+		user_info_modified = false;
 	}
 
 	// finalize the current command
@@ -115,31 +115,31 @@ void Cl_SendCmd(void){
 
 	// let the server know what the last frame we got was, so the next
 	// message can be delta compressed
-	if(!cl.frame.valid || cls.demowaiting)
+	if(!cl.frame.valid || cls.demo_waiting)
 		Msg_WriteLong(&buf, -1);  // no compression
 	else
-		Msg_WriteLong(&buf, cl.frame.serverframe);
+		Msg_WriteLong(&buf, cl.frame.server_frame);
 
 	// send this and the previous two cmds in the message, so
 	// if the last packet was dropped, it can be recovered
-	memset(&nullcmd, 0, sizeof(nullcmd));
+	memset(&null_cmd, 0, sizeof(null_cmd));
 
 	cmd = &cl.cmds[(cls.netchan.outgoing_sequence - 2) & CMD_MASK];
-	Msg_WriteDeltaUsercmd(&buf, &nullcmd, cmd);
+	Msg_WriteDeltaUsercmd(&buf, &null_cmd, cmd);
 
-	oldcmd = cmd;
+	old_cmd = cmd;
 	cmd = &cl.cmds[(cls.netchan.outgoing_sequence - 1) & CMD_MASK];
-	Msg_WriteDeltaUsercmd(&buf, oldcmd, cmd);
+	Msg_WriteDeltaUsercmd(&buf, old_cmd, cmd);
 
-	oldcmd = cmd;
+	old_cmd = cmd;
 	cmd = &cl.cmds[(cls.netchan.outgoing_sequence) & CMD_MASK];
-	Msg_WriteDeltaUsercmd(&buf, oldcmd, cmd);
+	Msg_WriteDeltaUsercmd(&buf, old_cmd, cmd);
 
 	// record a timestamp for netgraph calculations
-	cl.cmd_time[(cls.netchan.outgoing_sequence) & CMD_MASK] = cls.realtime;
+	cl.cmd_time[(cls.netchan.outgoing_sequence) & CMD_MASK] = cls.real_time;
 
 	// deliver the message
-	Netchan_Transmit(&cls.netchan, buf.cursize, buf.data);
+	Netchan_Transmit(&cls.netchan, buf.size, buf.data);
 
 	packets_this_second++;
 
