@@ -1010,7 +1010,7 @@ static void R_AddBspLight(vec3_t org, float radius){
  */
 static void R_LoadBspLights(void){
 	const char *ents;
-	char class[128];
+	char class_name[128];
 	vec3_t org, tmp;
 	float radius;
 	qboolean entity, light;
@@ -1041,7 +1041,7 @@ static void R_LoadBspLights(void){
 	VectorClear(org);
 	radius = 0.0;
 
-	memset(class, 0, sizeof(class));
+	memset(class_name, 0, sizeof(class_name));
 	entity = light = false;
 
 	while(true){
@@ -1060,7 +1060,7 @@ static void R_LoadBspLights(void){
 		if(*c == '}'){
 			entity = false;
 
-			Com_Debug("Closed entity %s\n", class);
+			Com_Debug("Closed entity %s\n", class_name);
 
 			if(light){  // add it
 
@@ -1077,7 +1077,7 @@ static void R_LoadBspLights(void){
 		if(!strcmp(c, "classname")){
 
 			c = Com_Parse(&ents);
-			strncpy(class, c, sizeof(class) - 1);
+			strncpy(class_name, c, sizeof(class_name) - 1);
 
 			if(!strncmp(c, "light", 5))  // light, light_spot, etc..
 				light = true;

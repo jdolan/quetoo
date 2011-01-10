@@ -45,12 +45,12 @@ typedef struct sv_server_s {
 	char name[MAX_QPATH];  // map name
 	struct cmodel_s	*models[MAX_MODELS];
 
-	char configstrings[MAX_CONFIGSTRINGS][MAX_STRING_CHARS];
+	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	entity_state_t baselines[MAX_EDICTS];
 
 	// the multicast buffer is used to send a message to a set of clients
 	// it is only used to marshall data until Sv_Multicast is called
-	sizebuf_t multicast;
+	size_buf_t multicast;
 	byte multicast_buffer[MAX_MSGLEN];
 
 	// demo server information
@@ -90,7 +90,7 @@ typedef struct sv_client_s {
 	char user_info[MAX_INFO_STRING];  // name, etc
 
 	int last_frame;  // for delta compression
-	usercmd_t last_cmd;  // for filling in big drops
+	user_cmd_t last_cmd;  // for filling in big drops
 
 	int cmd_msec;  // every seconds this is reset, if user
 	// commands exhaust it, assume time cheating
@@ -109,7 +109,7 @@ typedef struct sv_client_s {
 
 	// the datagram is written to by sound calls, prints, temp ents, etc.
 	// it can be overflowed without consequence.
-	sizebuf_t datagram;
+	size_buf_t datagram;
 	byte datagram_buf[MAX_MSGLEN];
 
 	sv_frame_t frames[UPDATE_BACKUP];  // updates can be delta'd from here
@@ -131,9 +131,9 @@ typedef struct sv_client_s {
 } sv_client_t;
 
 // the server runs fixed-interval frames at a configurable rate (Hz)
-#define SERVER_PACKETRATE_MIN 30
-#define SERVER_PACKETRATE_MAX 120
-#define SERVER_PACKETRATE 60
+#define SERVER_FRAME_RATE_MIN 30
+#define SERVER_FRAME_RATE_MAX 120
+#define SERVER_FRAME_RATE 60
 
 // clients will be dropped after no activity in so many seconds
 #define SERVER_TIMEOUT 30
@@ -158,7 +158,7 @@ typedef struct sv_static_s {
 
 	int spawn_count;  // incremented each level start, used to check late spawns
 
-	int packet_rate;  // packets per second to clients
+	int frame_rate;  // configurable server frame rate
 
 	sv_client_t *clients;  // server-side client structures
 
@@ -176,14 +176,16 @@ typedef struct sv_static_s {
 	int last_heartbeat;
 
 	sv_challenge_t challenges[MAX_CHALLENGES];  // to prevent invalid IPs from connecting
+
+	g_export_t *game;
 } sv_static_t;
 
 extern sv_static_t svs;  // persistent server info
 
 // macros for resolving game entities on the server
-#define EDICT_FOR_NUM(n)( (edict_t *)((void *)ge->edicts + ge->edict_size*(n)) )
-#define NUM_FOR_EDICT(e)( ((void *)(e) - (void *)ge->edicts) / ge->edict_size )
-#define EDICT_FOR_CLIENT(c)(EDICT_FOR_NUM(c - svs.clients + 1))
+#define EDICT_FOR_NUM(n)( (edict_t *)((void *)svs.game->edicts + svs.game->edict_size*(n)) )
+#define NUM_FOR_EDICT(e)( ((void *)(e) - (void *)svs.game->edicts) / svs.game->edict_size )
+#define EDICT_FOR_CLIENT(c)( EDICT_FOR_NUM(c - svs.clients + 1) )
 
 // cvars
 extern cvar_t *sv_rcon_password;
@@ -192,7 +194,7 @@ extern cvar_t *sv_enforcetime;
 extern cvar_t *sv_extensions;
 extern cvar_t *sv_hostname;
 extern cvar_t *sv_maxclients;
-extern cvar_t *sv_packetrate;
+extern cvar_t *sv_framerate;
 extern cvar_t *sv_public;
 extern cvar_t *sv_timeout;
 extern cvar_t *sv_udpdownload;
@@ -209,7 +211,7 @@ void Sv_Frame(int msec);
 char *Sv_NetaddrToString(sv_client_t *cl);
 void Sv_KickClient(sv_client_t *cl, const char *msg);
 void Sv_DropClient(sv_client_t *cl);
-void Sv_UserinfoChanged(sv_client_t *cl);
+void Sv_UserInfoChanged(sv_client_t *cl);
 
 // sv_init.c
 int Sv_ModelIndex(const char *name);
@@ -244,12 +246,10 @@ void Sv_ExecuteClientMessage(sv_client_t *cl);
 void Sv_InitOperatorCommands(void);
 
 // sv_ents.c
-void Sv_WriteFrameToClient(sv_client_t *client, sizebuf_t *msg);
+void Sv_WriteFrameToClient(sv_client_t *client, size_buf_t *msg);
 void Sv_BuildClientFrame(sv_client_t *client);
 
 // sv_game.c
-extern game_export_t *ge;
-
 void Sv_InitGameProgs(void);
 void Sv_ShutdownGameProgs(void);
 
@@ -264,7 +264,7 @@ void Sv_UnlinkEdict(edict_t *ent);
 void Sv_LinkEdict(edict_t *ent);
 // Needs to be called any time an entity changes origin, mins, maxs,
 // or solid.  Automatically unlinks if needed.
-// sets ent->v.absmin and ent->v.absmax
+// sets ent->v.abs_mins and ent->v.abs_maxs
 // sets ent->leaf_nums[] for pvs determination even if the entity
 // is not solid
 

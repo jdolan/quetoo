@@ -125,18 +125,18 @@ void S_LoadMusics(void){
 	S_FreeMusics();
 
 	// if no music is provided, use the default tracks
-	if (!cl.configstrings[CS_MUSICS + 1][0]){
+	if (!cl.config_strings[CS_MUSICS + 1][0]){
 		for(i = 1; i < MAX_MUSICS; i++){
-			sprintf(cl.configstrings[CS_MUSICS + i], "track%d", i);
+			sprintf(cl.config_strings[CS_MUSICS + i], "track%d", i);
 		}
 	}
 
 	for(i = 1; i < MAX_MUSICS; i++){
 
-		if(!cl.configstrings[CS_MUSICS + i][0])
+		if(!cl.config_strings[CS_MUSICS + i][0])
 			break;
 
-		if(!(music = S_LoadMusic(cl.configstrings[CS_MUSICS + i])))
+		if(!(music = S_LoadMusic(cl.config_strings[CS_MUSICS + i])))
 			continue;
 
 		memcpy(&s_env.musics[s_env.num_musics++], music, sizeof(s_music_t));

@@ -23,16 +23,13 @@
 
 #include "g_local.h"
 
-game_import_t gi;
-game_export_t ge;
+g_import_t gi;
+g_export_t ge;
 
-g_locals_t g_locals;
+g_game_t g_game;
 g_level_t g_level;
-g_spawn_temp_t st;
 
 int means_of_death;
-
-edict_t *g_edicts;
 
 cvar_t *g_autojoin;
 cvar_t *g_capturelimit;
@@ -67,7 +64,7 @@ cvar_t *dedicated;
 
 g_team_t good, evil;
 
-g_maplist_t g_maplist;
+g_map_list_t g_map_list;
 
 #ifdef HAVE_MYSQL
 MYSQL *mysql;
@@ -86,10 +83,10 @@ void G_ResetTeams(void){
 	memset(&evil, 0, sizeof(evil));
 
 	strcpy(good.name, "Good");
-	gi.Configstring(CS_TEAMGOOD, va("%15s", good.name));
+	gi.ConfigString(CS_TEAM_GOOD, va("%15s", good.name));
 
 	strcpy(evil.name, "Evil");
-	gi.Configstring(CS_TEAMEVIL, va("%15s", evil.name));
+	gi.ConfigString(CS_TEAM_EVIL, va("%15s", evil.name));
 
 	strcpy(good.skin, "ogro/freedom");
 	strcpy(evil.skin, "ichabod/ichabod");
@@ -103,12 +100,12 @@ void G_ResetVote(void){
 	int i;
 
 	for(i = 0; i < sv_maxclients->value; i++){  //reset vote flags
-		if(!g_edicts[i + 1].inuse)
+		if(!g_game.edicts[i + 1].in_use)
 			continue;
-		g_edicts[i + 1].client->locals.vote = VOTE_NOOP;
+		g_game.edicts[i + 1].client->locals.vote = VOTE_NOOP;
 	}
 
-	gi.Configstring(CS_VOTE, NULL);
+	gi.ConfigString(CS_VOTE, NULL);
 
 	g_level.votes[0] = g_level.votes[1] = g_level.votes[2] = 0;
 	g_level.vote_cmd[0] = 0;
@@ -127,15 +124,15 @@ static void G_ResetItems(void){
 
 	for(i = 1; i < ge.num_edicts; i++){  // reset items
 
-		ent = &g_edicts[i];
+		ent = &g_game.edicts[i];
 
-		if(!ent->inuse)
+		if(!ent->in_use)
 			continue;
 
 		if(!ent->item)
 			continue;
 
-		if(ent->spawnflags & SF_ITEM_DROPPED){  // free dropped ones
+		if(ent->spawn_flags & SF_ITEM_DROPPED){  // free dropped ones
 			G_FreeEdict(ent);
 			continue;
 		}
@@ -143,12 +140,12 @@ static void G_ResetItems(void){
 		if(ent->item->flags & IT_FLAG){  // flags only appear for ctf
 
 			if(g_level.ctf){
-				ent->svflags &= ~SVF_NOCLIENT;
+				ent->sv_flags &= ~SVF_NOCLIENT;
 				ent->solid = SOLID_TRIGGER;
 				ent->next_think = g_level.time + 0.2;
 			}
 			else {
-				ent->svflags |= SVF_NOCLIENT;
+				ent->sv_flags |= SVF_NOCLIENT;
 				ent->solid = SOLID_NOT;
 				ent->next_think = 0;
 			}
@@ -156,12 +153,12 @@ static void G_ResetItems(void){
 		else {  // everything else honors gameplay
 
 			if(g_level.gameplay){  // hide items
-				ent->svflags |= SVF_NOCLIENT;
+				ent->sv_flags |= SVF_NOCLIENT;
 				ent->solid = SOLID_NOT;
 				ent->next_think = 0.0;
 			}
 			else {  // or unhide them
-				ent->svflags &= ~SVF_NOCLIENT;
+				ent->sv_flags &= ~SVF_NOCLIENT;
 				ent->solid = SOLID_TRIGGER;
 				ent->next_think = g_level.time + 2.0 * gi.server_frame;
 			}
@@ -190,10 +187,10 @@ static void G_RestartGame(qboolean teamz){
 
 	for(i = 0; i < sv_maxclients->value; i++){  // reset clients
 
-		if(!g_edicts[i + 1].inuse)
+		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
-		ent = &g_edicts[i + 1];
+		ent = &g_game.edicts[i + 1];
 		cl = ent->client;
 
 		cl->locals.ready = false;  // back to warmup
@@ -239,7 +236,7 @@ static void G_RestartGame(qboolean teamz){
 	good.captures = evil.captures = 0;
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
-	gi.Sound(&g_edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
+	gi.Sound(&g_game.edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
 }
 
 
@@ -271,9 +268,9 @@ static void G_BeginIntermission(const char *map){
 	// respawn any dead clients
 	for(i = 0; i < sv_maxclients->value; i++){
 
-		client = g_edicts + 1 + i;
+		client = g_game.edicts + 1 + i;
 
-		if(!client->inuse)
+		if(!client->in_use)
 			continue;
 
 		if(client->health <= 0)
@@ -281,11 +278,11 @@ static void G_BeginIntermission(const char *map){
 	}
 
 	// find an intermission spot
-	ent = G_Find(NULL, FOFS(classname), "info_player_intermission");
+	ent = G_Find(NULL, FOFS(class_name), "info_player_intermission");
 	if(!ent){  // map does not have an intermission point
-		ent = G_Find(NULL, FOFS(classname), "info_player_start");
+		ent = G_Find(NULL, FOFS(class_name), "info_player_start");
 		if(!ent)
-			ent = G_Find(NULL, FOFS(classname), "info_player_deathmatch");
+			ent = G_Find(NULL, FOFS(class_name), "info_player_deathmatch");
 	}
 
 	VectorCopy(ent->s.origin, g_level.intermission_origin);
@@ -294,16 +291,16 @@ static void G_BeginIntermission(const char *map){
 	// move all clients to the intermission point
 	for(i = 0; i < sv_maxclients->value; i++){
 
-		client = g_edicts + 1 + i;
+		client = g_game.edicts + 1 + i;
 
-		if(!client->inuse)
+		if(!client->in_use)
 			continue;
 
 		P_MoveToIntermission(client);
 	}
 
 	// play a dramatic sound effect
-	gi.PositionedSound(g_level.intermission_origin, g_edicts,
+	gi.PositionedSound(g_level.intermission_origin, g_game.edicts,
 			gi.SoundIndex("weapons/bfg/hit"), ATTN_NORM);
 
 	// stay on same level if not provided
@@ -330,7 +327,7 @@ static void G_CheckVote(void){
 	}
 
 	for(i = 0; i < sv_maxclients->value; i++){
-		if(!g_edicts[i + 1].inuse)
+		if(!g_game.edicts[i + 1].in_use)
 			continue;
 		count++;
 	}
@@ -365,35 +362,35 @@ static void G_CheckVote(void){
 /*
  * G_EndLevel
  *
- * The timelimit, fraglimit, etc.. has been exceeded.
+ * The time limit, frag limit, etc.. has been exceeded.
  */
 static void G_EndLevel(void){
 	int i;
 
 	// try maplist
-	if(g_maplist.count > 0){
+	if(g_map_list.count > 0){
 
 		if(g_randommap->value){  // random weighted selection
-			g_maplist.index = g_maplist.weighted_index[rand() % MAPLIST_WEIGHT];
+			g_map_list.index = g_map_list.weighted_index[rand() % MAP_LIST_WEIGHT];
 		}
 		else { // incremental, so long as wieght is not 0
 
-			i = g_maplist.index;
+			i = g_map_list.index;
 
 			while(true){
-				g_maplist.index = (g_maplist.index + 1) % g_maplist.count;
+				g_map_list.index = (g_map_list.index + 1) % g_map_list.count;
 
-				if(!g_maplist.maps[g_maplist.index].weight)
+				if(!g_map_list.maps[g_map_list.index].weight)
 					continue;
 
-				if(g_maplist.index == i)  // wrapped around, all weights were 0
+				if(g_map_list.index == i)  // wrapped around, all weights were 0
 					break;
 
 				break;
 			}
 		}
 
-		G_BeginIntermission(g_maplist.maps[g_maplist.index].name);
+		G_BeginIntermission(g_map_list.maps[g_map_list.index].name);
 		return;
 	}
 
@@ -418,10 +415,10 @@ static void G_CheckRoundStart(void){
 	clients = g = e = 0;
 
 	for(i = 0; i < sv_maxclients->value; i++){
-		if(!g_edicts[i + 1].inuse)
+		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
-		cl = g_edicts[i + 1].client;
+		cl = g_game.edicts[i + 1].client;
 
 		if(cl->locals.spectator)
 			continue;
@@ -467,10 +464,10 @@ static void G_CheckRoundLimit(){
 
 	// or attempt to re-join previously active players
 	for(i = 0; i < sv_maxclients->value; i++){
-		if(!g_edicts[i + 1].inuse)
+		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
-		ent = &g_edicts[i + 1];
+		ent = &g_game.edicts[i + 1];
 		cl = ent->client;
 
 		if(cl->locals.round_num != g_level.round_num)
@@ -507,15 +504,15 @@ static void G_CheckRoundEnd(void){
 	winner = NULL;
 	g = e = clients = 0;
 	for(i = 0; i < sv_maxclients->value; i++){
-		if(!g_edicts[i + 1].inuse)
+		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
-		cl = g_edicts[i + 1].client;
+		cl = g_game.edicts[i + 1].client;
 
 		if(cl->locals.spectator)  // true spectator, or dead
 			continue;
 
-		winner = &g_edicts[i + 1];
+		winner = &g_game.edicts[i + 1];
 
 		if(g_level.teams)
 			cl->locals.team == &good ? g++ : e++;
@@ -539,13 +536,13 @@ static void G_CheckRoundEnd(void){
 
 	// allow enemy projectiles to expire before declaring a winner
 	for(i = 0; i < ge.num_edicts; i++){
-		if(!g_edicts[i + 1].inuse)
+		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
-		if(!g_edicts[i + 1].owner)
+		if(!g_game.edicts[i + 1].owner)
 			continue;
 
-		if(!(cl = g_edicts[i + 1].owner->client))
+		if(!(cl = g_game.edicts[i + 1].owner->client))
 			continue;
 
 		if(g_level.teams || g_level.ctf){
@@ -553,14 +550,14 @@ static void G_CheckRoundEnd(void){
 				return;
 		}
 		else {
-			if(g_edicts[i + 1].owner != winner)
+			if(g_game.edicts[i + 1].owner != winner)
 				return;
 		}
 	}
 
 	// we have a winner
 	gi.BroadcastPrint(PRINT_HIGH, "%s wins!\n", (g_level.teams || g_level.ctf ?
-				winner->client->locals.team->name : winner->client->locals.netname));
+				winner->client->locals.team->name : winner->client->locals.net_name));
 
 	g_level.round_time = 0;
 
@@ -583,10 +580,10 @@ static void G_CheckMatchEnd(void){
 
 	g = e = clients = 0;
 	for(i = 0; i < sv_maxclients->value; i++){
-		if(!g_edicts[i + 1].inuse)
+		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
-		cl = g_edicts[i + 1].client;
+		cl = g_game.edicts[i + 1].client;
 
 		if(cl->locals.spectator)
 			continue;
@@ -656,12 +653,12 @@ static void G_CheckRules(void){
 		g_level.warmup = false;
 
 		for(i = 0; i < sv_maxclients->value; i++){
-			if(!g_edicts[i + 1].inuse)
+			if(!g_game.edicts[i + 1].in_use)
 				continue;
-			P_Respawn(&g_edicts[i + 1], false);
+			P_Respawn(&g_game.edicts[i + 1], false);
 		}
 
-		gi.Sound(&g_edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
+		gi.Sound(&g_game.edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
@@ -670,12 +667,12 @@ static void G_CheckRules(void){
 		g_level.warmup = false;
 
 		for(i = 0; i < sv_maxclients->value; i++){
-			if(!g_edicts[i + 1].inuse)
+			if(!g_game.edicts[i + 1].in_use)
 				continue;
-			P_Respawn(&g_edicts[i + 1], false);
+			P_Respawn(&g_game.edicts[i + 1], false);
 		}
 
-		gi.Sound(&g_edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
+		gi.Sound(&g_game.edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
@@ -715,8 +712,8 @@ static void G_CheckRules(void){
 		seconds = g_level.time_limit * 60 - t;  // count down
 	}
 
-	if(g_level.frame_num % gi.server_hz == 0)  // send time updates once per second
-		gi.Configstring(CS_TIME, (g_level.warmup ? "Warmup" : G_FormatTime(seconds)));
+	if(g_level.frame_num % gi.frame_rate == 0)  // send time updates once per second
+		gi.ConfigString(CS_TIME, (g_level.warmup ? "Warmup" : G_FormatTime(seconds)));
 
 	if(!g_level.ctf && g_level.frag_limit){  // check fraglimit
 
@@ -729,8 +726,8 @@ static void G_CheckRules(void){
 		}
 		else {  // or individual scores
 			for(i = 0; i < sv_maxclients->value; i++){
-				cl = g_locals.clients + i;
-				if(!g_edicts[i + 1].inuse)
+				cl = g_game.clients + i;
+				if(!g_game.edicts[i + 1].in_use)
 					continue;
 
 				if(cl->locals.score >= g_level.frag_limit){
@@ -764,7 +761,7 @@ static void G_CheckRules(void){
 	if(g_gravity->modified){  // send gravity config string
 		g_gravity->modified = false;
 
-		gi.Configstring(CS_GRAVITY, va("%d", (int)g_gravity->value));
+		gi.ConfigString(CS_GRAVITY, va("%d", (int)g_gravity->value));
 		g_level.gravity = g_gravity->value;
 	}
 
@@ -891,10 +888,10 @@ static void G_RunFrame(void){
 
 	// treat each object in turn
 	// even the world gets a chance to think
-	ent = &g_edicts[0];
+	ent = &g_game.edicts[0];
 	for(i = 0; i < ge.num_edicts; i++, ent++){
 
-		if(!ent->inuse)
+		if(!ent->in_use)
 			continue;
 
 		g_level.current_entity = ent;
@@ -904,7 +901,7 @@ static void G_RunFrame(void){
 
 		if(ent->ground_entity){
 			// if the ground entity moved, make sure we are still on it
-			if(ent->ground_entity->linkcount != ent->ground_entity_linkcount)
+			if(ent->ground_entity->link_count != ent->ground_entity_link_count)
 				ent->ground_entity = NULL;
 		}
 
@@ -937,15 +934,15 @@ static void G_RunFrame(void){
 
 
 /*
- * G_InitMaplist
+ * G_InitMapList
  */
-static void G_InitMaplist(void){
+static void G_InitMapList(void){
 	int i;
 
-	memset(&g_maplist, 0, sizeof(g_maplist));
+	memset(&g_map_list, 0, sizeof(g_map_list));
 
-	for(i = 0; i < MAX_MAPLIST_ELTS; i++){
-		g_maplist_elt_t *map = &g_maplist.maps[i];
+	for(i = 0; i < MAX_MAP_LIST_ELTS; i++){
+		g_map_list_elt_t *map = &g_map_list.maps[i];
 		map->gravity = map->gameplay = -1;
 		map->teams = map->ctf = map->match = -1;
 		map->frag_limit = map->round_limit = map->capture_limit = -1;
@@ -956,35 +953,35 @@ static void G_InitMaplist(void){
 
 
 /*
- * G_ParseMaplist
+ * G_ParseMapList
  *
- * Populates a maplist_t from a text file.  See default/maps.lst
+ * Populates a g_map_list_t from a text file.  See default/maps.lst
  */
-static void G_ParseMaplist(const char *file_name){
+static void G_ParseMapList(const char *file_name){
 	void *buf;
 	const char *buffer;
 	int i, j, k, l;
 	const char *c;
-	qboolean inmap;
-	g_maplist_elt_t *map;
+	qboolean map;
+	g_map_list_elt_t *elt;
 
-	G_InitMaplist();
+	G_InitMapList();
 
 	if(!file_name || !file_name[0]){
-		g_maplist.count = 0;
+		g_map_list.count = 0;
 		return;
 	}
 
 	if((i = gi.LoadFile(file_name, &buf)) < 1){
 		gi.Print("Couldn't open %s\n", file_name);
-		g_maplist.count = 0;
+		g_map_list.count = 0;
 		return;
 	}
 
 	buffer = (char *)buf;
 
 	i = 0;
-	inmap = false;
+	map = false;
 	while(true){
 
 		c = Com_Parse(&buffer);
@@ -993,100 +990,100 @@ static void G_ParseMaplist(const char *file_name){
 			break;
 
 		if(*c == '{')
-			inmap = true;
+			map = true;
 
-		if(!inmap)  // skip any whitespace between maps
+		if(!map)  // skip any whitespace between maps
 			continue;
 
-		map = &g_maplist.maps[i];
+		elt = &g_map_list.maps[i];
 
 		if(!strcmp(c, "name")){
-			strncpy(map->name, Com_Parse(&buffer), 31);
+			strncpy(elt->name, Com_Parse(&buffer), 31);
 			continue;
 		}
 
 		if(!strcmp(c, "title")){
-			strncpy(map->title, Com_Parse(&buffer), 127);
+			strncpy(elt->title, Com_Parse(&buffer), 127);
 			continue;
 		}
 
 		if(!strcmp(c, "sky")){
-			strncpy(map->sky, Com_Parse(&buffer), 31);
+			strncpy(elt->sky, Com_Parse(&buffer), 31);
 			continue;
 		}
 
 		if(!strcmp(c, "weather")){
-			strncpy(map->weather, Com_Parse(&buffer), 63);
+			strncpy(elt->weather, Com_Parse(&buffer), 63);
 			continue;
 		}
 
 		if(!strcmp(c, "gravity")){
-			map->gravity = atoi(Com_Parse(&buffer));
+			elt->gravity = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "gameplay")){
-			map->gameplay = G_GameplayByName(Com_Parse(&buffer));
+			elt->gameplay = G_GameplayByName(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "teams")){
-			map->teams = atoi(Com_Parse(&buffer));
+			elt->teams = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "ctf")){
-			map->ctf = atoi(Com_Parse(&buffer));
+			elt->ctf = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "match")){
-			map->match = atoi(Com_Parse(&buffer));
+			elt->match = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "rounds")){
-			map->rounds = atoi(Com_Parse(&buffer));
+			elt->rounds = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "fraglimit")){
-			map->frag_limit = atoi(Com_Parse(&buffer));
+			elt->frag_limit = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "roundlimit")){
-			map->round_limit = atoi(Com_Parse(&buffer));
+			elt->round_limit = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "capturelimit")){
-			map->capture_limit = atoi(Com_Parse(&buffer));
+			elt->capture_limit = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "timelimit")){
-			map->time_limit = atof(Com_Parse(&buffer));
+			elt->time_limit = atof(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "give")){
-			strncpy(map->give, Com_Parse(&buffer), 1023);
+			strncpy(elt->give, Com_Parse(&buffer), 1023);
 			continue;
 		}
 
 		if(!strcmp(c, "music")){
-			strncpy(map->music, Com_Parse(&buffer), 1023);
+			strncpy(elt->music, Com_Parse(&buffer), 1023);
 			continue;
 		}
 
 		if(!strcmp(c, "weight")){
-			map->weight = atof(Com_Parse(&buffer));
+			elt->weight = atof(Com_Parse(&buffer));
 			continue;
 		}
 
 		if(*c == '}'){  // close it out
-			inmap = false;
+			map = false;
 
 			/*printf("Loaded map %s:\n"
 					"title: %s\n"
@@ -1107,34 +1104,34 @@ static void G_ParseMaplist(const char *file_name){
 					"weight: %f\n",
 					map->name, map->title, map->sky, map->weather, map->gravity,
 					map->gameplay, map->teams, map->ctf, map->match, map->rounds,
-					map->fraglimit, map->roundlimit, map->capturelimit,
-					map->timelimit, map->give, map->music, map->weight);*/
+					map->frag_limit, map->round_limit, map->capture_limit,
+					map->time_limit, map->give, map->music, map->weight);*/
 
 			// accumulate total weight
-			g_maplist.total_weight += map->weight;
+			g_map_list.total_weight += elt->weight;
 
-			if(++i == MAX_MAPLIST_ELTS)
+			if(++i == MAX_MAP_LIST_ELTS)
 				break;
 		}
 	}
 
-	g_maplist.count = i;
-	g_maplist.index = 0;
+	g_map_list.count = i;
+	g_map_list.index = 0;
 
 	gi.TagFree(buf);
 
 	// thou shalt not divide by zero
-	if(!g_maplist.total_weight)
-		g_maplist.total_weight = 1.0;
+	if(!g_map_list.total_weight)
+		g_map_list.total_weight = 1.0;
 
 	// compute the weighted index list
-	for(i = 0, l = 0; i < g_maplist.count; i++){
+	for(i = 0, l = 0; i < g_map_list.count; i++){
 
-		map = &g_maplist.maps[i];
-		k = (map->weight / g_maplist.total_weight) * MAPLIST_WEIGHT;
+		elt = &g_map_list.maps[i];
+		k = (elt->weight / g_map_list.total_weight) * MAP_LIST_WEIGHT;
 
 		for(j = 0; j < k; j++)
-			g_maplist.weighted_index[l++] = i;
+			g_map_list.weighted_index[l++] = i;
 	}
 }
 
@@ -1145,7 +1142,10 @@ static void G_ParseMaplist(const char *file_name){
  * This will be called when the game module is first loaded.
  */
 void G_Init(void){
+
 	gi.Print("  Game initialization..\n");
+
+	memset(&g_game, 0, sizeof(g_game));
 
 	gi.Cvar("gamename", GAMEVERSION , CVAR_SERVER_INFO | CVAR_NOSET, NULL);
 	gi.Cvar("gamedate", __DATE__ , CVAR_SERVER_INFO | CVAR_NOSET, NULL);
@@ -1203,18 +1203,16 @@ void G_Init(void){
 	}
 #endif
 
-	G_ParseMaplist("maps.lst");
+	G_ParseMapList("maps.lst");
 
 	G_InitItems();
 
-	// initialize all entities for this game
-	g_edicts = gi.TagMalloc(g_maxentities->value * sizeof(g_edicts[0]), TAG_GAME);
-	ge.edicts = g_edicts;
-	ge.max_edicts = g_maxentities->value;
+	// initialize entities and clients for this game
+	g_game.edicts = gi.TagMalloc(g_maxentities->value * sizeof(edict_t), TAG_GAME);
+	g_game.clients = gi.TagMalloc(sv_maxclients->value * sizeof(g_client_t), TAG_GAME);
 
-	// initialize all clients for this game
-	sv_maxclients->value = sv_maxclients->value;
-	g_locals.clients = gi.TagMalloc(sv_maxclients->value * sizeof(g_locals.clients[0]), TAG_GAME);
+	ge.edicts = g_game.edicts;
+	ge.max_edicts = g_maxentities->value;
 	ge.num_edicts = sv_maxclients->value + 1;
 
 	// set these to false to avoid spurious game restarts and alerts on init
@@ -1252,20 +1250,24 @@ void G_Shutdown(void){
 /*
  * LoadGame
  *
- * Returns a pointer to the structure with all entry points
- * and global variables
+ * Copies in the game import structure and returns a pointer to the populated
+ * game export structure.
  */
-game_export_t *LoadGame(game_import_t *import){
+g_export_t *LoadGame(g_import_t *import){
+
 	gi = *import;
 
-	ge.apiversion = GAME_API_VERSION;
+	memset(&ge, 0, sizeof(ge));
+
+	ge.api_version = GAME_API_VERSION;
+
 	ge.Init = G_Init;
 	ge.Shutdown = G_Shutdown;
 	ge.SpawnEntities = G_SpawnEntities;
 
 	ge.ClientThink = P_Think;
 	ge.ClientConnect = P_Connect;
-	ge.ClientUserinfoChanged = P_UserinfoChanged;
+	ge.ClientUserInfoChanged = P_UserInfoChanged;
 	ge.ClientDisconnect = P_Disconnect;
 	ge.ClientBegin = P_Begin;
 	ge.ClientCommand = P_Command;

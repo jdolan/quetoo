@@ -84,7 +84,7 @@ void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *descr
 // register commands and functions to call for them.
 // The cmd_name is referenced later, so it should not be in temp memory
 // if function is NULL, the command will be forwarded to the server
-// as a clc_stringcmd instead of executed locally
+// as a clc_string_cmd instead of executed locally
 void Cmd_RemoveCommand(const char *cmd_name);
 
 int Cmd_CompleteCommand(const char *partial, const char *matches[]);
@@ -106,7 +106,7 @@ void Cmd_ExecuteString(const char *text);
 // as if it was typed at the console
 
 extern void (*Cmd_ForwardToServer)(void);
-// adds the current command line as a clc_stringcmd to the client message.
+// adds the current command line as a clc_string_cmd to the client message.
 // things like godmode, noclip, etc, are commands directed to the server,
 // so when they are typed in at the console, they will need to be forwarded.
 

@@ -32,7 +32,7 @@
  *
  * Writes a delta update of an entity_state_t list to the message.
  */
-static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, sizebuf_t *msg){
+static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg){
 	entity_state_t *oldent = NULL, *newent = NULL;
 	int old_index, newindex;
 	int old_num, newnum;
@@ -100,7 +100,7 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, sizebuf_t *msg){
 /*
  * Sv_WritePlayerstateToClient
  */
-static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from, sv_frame_t *to, sizebuf_t *msg){
+static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from, sv_frame_t *to, size_buf_t *msg){
 	int i;
 	int pflags;
 	player_state_t *ps, *ops;
@@ -202,7 +202,7 @@ static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from, s
 /*
  * Sv_WriteFrameToClient
  */
-void Sv_WriteFrameToClient(sv_client_t *client, sizebuf_t *msg){
+void Sv_WriteFrameToClient(sv_client_t *client, size_buf_t *msg){
 	sv_frame_t *frame, *old_frame;
 	int last_frame;
 
@@ -344,11 +344,11 @@ void Sv_BuildClientFrame(sv_client_t *client){
 
 	c_fullsend = 0;
 
-	for(e = 1; e < ge->num_edicts; e++){
+	for(e = 1; e < svs.game->num_edicts; e++){
 		ent = EDICT_FOR_NUM(e);
 
 		// ignore ents without visible models
-		if(ent->svflags & SVF_NOCLIENT)
+		if(ent->sv_flags & SVF_NOCLIENT)
 			continue;
 
 		// ignore ents without visible models unless they have an effect
@@ -358,9 +358,9 @@ void Sv_BuildClientFrame(sv_client_t *client){
 		// ignore if not touching a PV leaf
 		if(ent != clent){
 			// check area
-			if(!Cm_AreasConnected(clientarea, ent->areanum)){  // doors can legally straddle two areas, so
+			if(!Cm_AreasConnected(clientarea, ent->area_num)){  // doors can legally straddle two areas, so
 				// we may need to check another one
-				if(!ent->areanum2 || !Cm_AreasConnected(clientarea, ent->areanum2))
+				if(!ent->area_num2 || !Cm_AreasConnected(clientarea, ent->area_num2))
 					continue;  // blocked by a door
 			}
 
@@ -377,7 +377,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 				c_fullsend++;
 			} else {  // check individual leafs
 				for(i = 0; i < ent->num_clusters; i++){
-					l = ent->clusternums[i];
+					l = ent->cluster_nums[i];
 					if(bitvector[l >> 3] & (1 << (l & 7)))
 						break;
 				}

@@ -31,7 +31,7 @@ cvar_t *sv_enforcetime;
 cvar_t *sv_extensions;
 cvar_t *sv_hostname;
 cvar_t *sv_maxclients;
-cvar_t *sv_packetrate;
+cvar_t *sv_framerate;
 cvar_t *sv_public;
 cvar_t *sv_timeout;
 cvar_t *sv_udpdownload;
@@ -49,7 +49,7 @@ void Sv_DropClient(sv_client_t *cl){
 	if(cl->state > cs_free){  // send the disconnect
 
 		if(cl->state == cs_spawned){  // after informing the game module
-			ge->ClientDisconnect(cl->edict);
+			svs.game->ClientDisconnect(cl->edict);
 		}
 
 		Msg_WriteByte(&cl->netchan.message, svc_disconnect);
@@ -341,7 +341,7 @@ static void Svc_Connect(void){
 	newcl->challenge = challenge; // save challenge for checksumming
 
 	// get the game a chance to reject this connection or modify the user_info
-	if(!(ge->ClientConnect(ent, user_info))){
+	if(!(svs.game->ClientConnect(ent, user_info))){
 		if(*Info_ValueForKey(user_info, "rejmsg"))
 			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused.\n",
 									Info_ValueForKey(user_info, "rejmsg"));
@@ -353,7 +353,7 @@ static void Svc_Connect(void){
 
 	// parse some info from the info strings
 	strncpy(newcl->user_info, user_info, sizeof(newcl->user_info) - 1);
-	Sv_UserinfoChanged(newcl);
+	Sv_UserInfoChanged(newcl);
 
 	// send the connect packet to the client
 	Netchan_OutOfBandPrint(NS_SERVER, addr, "client_connect %s", sv_download_url->string);
@@ -635,7 +635,7 @@ static void Sv_CheckTimeouts(void){
 static void Sv_PrepWorldFrame(void){
 	int i;
 
-	for(i = 0; i < ge->num_edicts; i++){
+	for(i = 0; i < svs.game->num_edicts; i++){
 
 		edict_t *edict = EDICT_FOR_NUM(i);
 
@@ -654,10 +654,11 @@ static void Sv_RunGameFrame(void){
 	// otherwise the delta compression can get confused when a client
 	// has the "current" frame
 	sv.frame_num++;
-	sv.time = sv.frame_num * 1000 / svs.packet_rate;
+	sv.time = sv.frame_num * 1000 / svs.frame_rate;
 
-	if(sv.state == ss_game)
-		ge->RunFrame();
+	if(sv.state == ss_game){
+		svs.game->RunFrame();
+	}
 
 	// slow down for the game if need be
 	if(sv.time < svs.real_time){
@@ -785,11 +786,11 @@ char *Sv_NetaddrToString(sv_client_t *cl){
 #define DEFAULT_RATE 20000
 
 /*
- * Sv_UserinfoChanged
+ * Sv_UserInfoChanged
  *
  * Enforces safe user_info data before passing onto game module.
  */
-void Sv_UserinfoChanged(sv_client_t *cl){
+void Sv_UserInfoChanged(sv_client_t *cl){
 	char *val;
 	int i;
 
@@ -815,8 +816,8 @@ void Sv_UserinfoChanged(sv_client_t *cl){
 	if(strstr(val, ".."))  // catch malformed skins
 		Info_SetValueForKey(cl->user_info, "skin", "ichabod/ichabod");
 
-	// call prog code to allow overrides
-	ge->ClientUserinfoChanged(cl->edict, cl->user_info);
+	// call game code to allow overrides
+	svs.game->ClientUserInfoChanged(cl->edict, cl->user_info);
 
 	// name for C code, mask off high bit
 	strncpy(cl->name, Info_ValueForKey(cl->user_info, "name"), sizeof(cl->name) - 1);
@@ -873,7 +874,7 @@ void Sv_Frame(int msec){
 	// get packets from clients
 	Sv_ReadPackets();
 
-	frame_millis = 1000 / svs.packet_rate;
+	frame_millis = 1000 / svs.frame_rate;
 
 	// move autonomous things around if enough time has passed
 	if(!timedemo->value && svs.real_time < sv.time){
@@ -940,7 +941,7 @@ void Sv_Init(void){
 	else
 		sv_maxclients = Cvar_Get("sv_maxclients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 
-	sv_packetrate = Cvar_Get("sv_packetrate", va("%d", SERVER_PACKETRATE), CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+	sv_framerate = Cvar_Get("sv_framerate", va("%d", SERVER_FRAME_RATE), CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	sv_timeout = Cvar_Get("sv_timeout", va("%d", SERVER_TIMEOUT), 0, NULL);
 	sv_udpdownload = Cvar_Get("sv_udpdownload", "1", CVAR_ARCHIVE, NULL);
 

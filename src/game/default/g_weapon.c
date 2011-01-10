@@ -178,8 +178,8 @@ void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
 		VectorAngles(aimdir, dir);
 		AngleVectors(dir, forward, right, up);
 
-		r = crandom() * hspread;
-		u = crandom() * vspread;
+		r = crand() * hspread;
+		u = crand() * vspread;
 		VectorMA(start, 8192, forward, end);
 		VectorMA(end, r, right, end);
 		VectorMA(end, u, up, end);
@@ -202,8 +202,8 @@ void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
 			VectorSubtract(end, start, dir);
 			VectorAngles(dir, dir);
 			AngleVectors(dir, forward, right, up);
-			r = crandom() * hspread * 2;
-			u = crandom() * vspread * 2;
+			r = crand() * hspread * 2;
+			u = crand() * vspread * 2;
 			VectorMA(water_start, 8192, forward, end);
 			VectorMA(end, r, right, end);
 			VectorMA(end, u, up, end);
@@ -358,14 +358,14 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	VectorCopy(start, grenade->s.origin);
 	VectorCopy(dir, grenade->s.angles);
 	VectorScale(aimdir, speed, grenade->velocity);
-	VectorMA(grenade->velocity, 200.0 + crandom() * 10.0, up, grenade->velocity);
-	VectorMA(grenade->velocity, crandom() * 10.0, right, grenade->velocity);
+	VectorMA(grenade->velocity, 200.0 + crand() * 10.0, up, grenade->velocity);
+	VectorMA(grenade->velocity, crand() * 10.0, right, grenade->velocity);
 
 	grenade->avelocity[0] = -300.0 + 10 * crand();
 	grenade->avelocity[1] = 50 * crand();
 	grenade->avelocity[2] = 25 * crand();
 
-	grenade->movetype = MOVETYPE_TOSS;
+	grenade->move_type = MOVE_TYPE_TOSS;
 	grenade->clipmask = MASK_SHOT;
 	grenade->solid = SOLID_MISSILE;
 	grenade->s.effects = EF_GRENADE;
@@ -380,7 +380,7 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	grenade->dmg = damage;
 	grenade->knockback = knockback;
 	grenade->dmg_radius = damage_radius;
-	grenade->classname = "grenade";
+	grenade->class_name = "grenade";
 
 	G_PlayerProjectile(grenade, scale);
 
@@ -446,7 +446,7 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	VectorCopy(dir, rocket->movedir);
 	VectorAngles(dir, rocket->s.angles);
 	VectorScale(dir, speed, rocket->velocity);
-	rocket->movetype = MOVETYPE_FLY;
+	rocket->move_type = MOVE_TYPE_FLY;
 	rocket->clipmask = MASK_SHOT;
 	rocket->solid = SOLID_MISSILE;
 	rocket->s.effects = EF_ROCKET;
@@ -459,7 +459,7 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	rocket->knockback = knockback;
 	rocket->dmg_radius = damage_radius;
 	rocket->s.sound = rocket_fly_index;
-	rocket->classname = "rocket";
+	rocket->class_name = "rocket";
 
 	VectorMA(start, 8192.0, dir, dest);
 	tr = gi.Trace(start, NULL, NULL, dest, self, MASK_SHOT);
@@ -532,7 +532,7 @@ void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
 	VectorCopy(start, bolt->s.old_origin);
 	VectorAngles(dir, bolt->s.angles);
 	VectorScale(dir, speed, bolt->velocity);
-	bolt->movetype = MOVETYPE_FLY;
+	bolt->move_type = MOVE_TYPE_FLY;
 	bolt->clipmask = MASK_SHOT;
 	bolt->solid = SOLID_MISSILE;
 	bolt->s.effects = EF_HYPERBLASTER;
@@ -542,7 +542,7 @@ void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
 	bolt->think = G_FreeEdict;
 	bolt->dmg = damage;
 	bolt->knockback = knockback;
-	bolt->classname = "bolt";
+	bolt->class_name = "bolt";
 
 	G_PlayerProjectile(bolt, scale);
 
@@ -560,9 +560,9 @@ static void G_LightningDischarge(edict_t *self){
 	// find all clients in the same water area and kill them
 	for(i = 0; i < sv_maxclients->value; i++){
 
-		ent = &g_edicts[i + 1];
+		ent = &g_game.edicts[i + 1];
 
-		if(!ent->inuse)
+		if(!ent->in_use)
 			continue;
 
 		if(!ent->takedamage)  // dead or spectator
@@ -633,7 +633,7 @@ static void G_LightningThink(edict_t *self){
 		VectorCopy(tr.end, water_start);
 
 		if(!self->water_level){
-			gi.PositionedSound(water_start, g_edicts,
+			gi.PositionedSound(water_start, g_game.edicts,
 					gi.SoundIndex("world/water_in"), ATTN_NORM);
 			self->water_level = 1;
 		}
@@ -643,7 +643,7 @@ static void G_LightningThink(edict_t *self){
 	}
 	else {
 		if(self->water_level){  // exited water, play sound, no trail
-			gi.PositionedSound(water_start, g_edicts,
+			gi.PositionedSound(water_start, g_game.edicts,
 					gi.SoundIndex("world/water_out"), ATTN_NORM);
 			self->water_level = 0;
 		}
@@ -678,15 +678,15 @@ void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int
 		VectorCopy(start, light->s.origin);
 		VectorCopy(start, light->s.old_origin);
 		light->solid = SOLID_NOT;
-		light->movetype = MOVETYPE_THINK;
+		light->move_type = MOVE_TYPE_THINK;
 		light->owner = self;
 		light->think = G_LightningThink;
 		light->dmg = damage;
 		light->knockback = knockback;
-		light->s.skin_num = self - g_edicts;  // player number, for client prediction fix
+		light->s.skin_num = self - g_game.edicts;  // player number, for client prediction fix
 		light->s.effects = EF_BEAM | EF_LIGHTNING;
 		light->s.sound = lightning_fly_index;
-		light->classname = "lightning";
+		light->class_name = "lightning";
 
 		gi.LinkEntity(light);
 		self->lightning = light;
@@ -736,7 +736,7 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 
 			VectorCopy(tr.end, water_start);
 
-			gi.PositionedSound(water_start, g_edicts,
+			gi.PositionedSound(water_start, g_game.edicts,
 					gi.SoundIndex("world/water_in"), ATTN_NORM);
 
 			ignore = self;
@@ -877,7 +877,7 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 		s = speed + (0.2 * speed * crand());
 		VectorScale(bfg->movedir, s, bfg->velocity);
 
-		bfg->movetype = MOVETYPE_FLY;
+		bfg->move_type = MOVE_TYPE_FLY;
 		bfg->clipmask = MASK_SHOT;
 		bfg->solid = SOLID_MISSILE;
 		bfg->s.effects = EF_BFG;
@@ -888,7 +888,7 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 		bfg->dmg = damage;
 		bfg->knockback = knockback;
 		bfg->dmg_radius = damage_radius;
-		bfg->classname = "bfg blast";
+		bfg->class_name = "bfg blast";
 
 		G_PlayerProjectile(bfg, scale);
 

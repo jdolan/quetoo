@@ -114,7 +114,7 @@ void Sv_ClientCenterPrint(edict_t *ent, const char *fmt, ...){
 	vsprintf(msg, fmt, args);
 	va_end(args);
 
-	Msg_WriteByte(&sv.multicast, svc_centerprint);
+	Msg_WriteByte(&sv.multicast, svc_center_print);
 	Msg_WriteString(&sv.multicast, msg);
 
 	Sv_Unicast(ent, true);
@@ -178,7 +178,7 @@ void Sv_BroadcastCommand(const char *fmt, ...){
 	vsprintf(string, fmt, args);
 	va_end(args);
 
-	Msg_WriteByte(&sv.multicast, svc_stufftext);
+	Msg_WriteByte(&sv.multicast, svc_stuff_text);
 	Msg_WriteString(&sv.multicast, string);
 	Sv_Multicast(NULL, MULTICAST_ALL_R);
 }
@@ -325,7 +325,7 @@ void Sv_PositionedSound(vec3_t origin, edict_t *entity, int soundindex, int atte
 
 	// the client doesn't know that bsp models have weird origins
 	// the origin can also be explicitly set
-	if((entity->svflags & SVF_NOCLIENT) || (entity->solid == SOLID_BSP) || origin)
+	if((entity->sv_flags & SVF_NOCLIENT) || (entity->solid == SOLID_BSP) || origin)
 		flags |= S_ORIGIN;
 	else
 		flags |= S_ENTNUM;
@@ -380,7 +380,7 @@ static byte zbuf[MAX_MSGLEN];
  * Deflates msg for clients supporting svc_zlib, and rewrites it if
  * the compression resulted in a smaller packet.
  */
-static void Sv_ZlibClientDatagram(sv_client_t *client, sizebuf_t *msg){
+static void Sv_ZlibClientDatagram(sv_client_t *client, size_buf_t *msg){
 	int len;
 
 	if(!((int)sv_extensions->value & QUAKE2WORLD_ZLIB))  // some servers may elect not to use this
@@ -427,7 +427,7 @@ static void Sv_ZlibClientDatagram(sv_client_t *client, sizebuf_t *msg){
  */
 static qboolean Sv_SendClientDatagram(sv_client_t *client){
 	byte msg_buf[MAX_MSGLEN];
-	sizebuf_t msg;
+	size_buf_t msg;
 
 	Sv_BuildClientFrame(client);
 

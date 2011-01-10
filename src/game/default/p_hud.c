@@ -44,7 +44,7 @@ void P_MoveToIntermission(edict_t *ent){
 	ent->dead = true;
 
 	// show scores
-	ent->client->showscores = true;
+	ent->client->show_scores = true;
 
 	// hide the hud
 	ent->client->locals.weapon = NULL;
@@ -107,43 +107,43 @@ static void P_ColoredName(char *dst, const char *src, int maxlen, int max_size){
 void P_TeamsScoreboard(edict_t *ent){
 	char entry[512];
 	char string[1300];
-	char netname[MAX_NETNAME];
-	char netname2[MAX_NETNAME];
+	char net_name[MAX_NET_NAME];
+	char net_name2[MAX_NET_NAME];
 	int stringlength;
 	int i, j, k, l;
 	int sorted[MAX_CLIENTS];
 	int sortedscores[MAX_CLIENTS];
-	char goodname[64], evilname[64];
-	int goodcount, evilcount, speccount, total;
-	int goodping, evilping;
-	int goodtime, eviltime;
+	char good_name[64], evil_name[64];
+	int good_count, evil_count, spec_count, total;
+	int good_ping, evil_ping;
+	int good_time, evil_time;
 	int minutes;
 	int x, y;
 	g_client_t *cl;
 	edict_t *cl_ent;
 	char *c;
 
-	goodcount = evilcount = speccount = total = 0;
-	goodping = evilping = 0;
-	goodtime = eviltime = 0;
+	good_count = evil_count = spec_count = total = 0;
+	good_ping = evil_ping = 0;
+	good_time = evil_time = 0;
 
 	for(i = 0; i < sv_maxclients->value; i++){  // sort the clients by score
 
-		cl_ent = g_edicts + 1 + i;
+		cl_ent = g_game.edicts + 1 + i;
 		cl = cl_ent->client;
 
-		if(!cl_ent->inuse)
+		if(!cl_ent->in_use)
 			continue;
 
 		if(cl->locals.team == &good){  // head and score count each team
-			goodping += cl->ping;
-			goodtime += (g_level.frame_num - cl->locals.enterframe);
-			goodcount++;
+			good_ping += cl->ping;
+			good_time += (g_level.frame_num - cl->locals.first_frame);
+			good_count++;
 		} else if(cl->locals.team == &evil){
-			evilping += cl->ping;
-			eviltime += (g_level.frame_num - cl->locals.enterframe);
-			evilcount++;
-		} else speccount++;
+			evil_ping += cl->ping;
+			evil_time += (g_level.frame_num - cl->locals.first_frame);
+			evil_count++;
+		} else spec_count++;
 
 		for(j = 0; j < total; j++){
 			if(cl->locals.score > sortedscores[j])
@@ -161,46 +161,46 @@ void P_TeamsScoreboard(edict_t *ent){
 	}
 
 	// normalize times to minutes
-	goodtime = goodtime / gi.server_hz / 60;
-	eviltime = eviltime / gi.server_hz / 60;
+	good_time = good_time / gi.frame_rate / 60;
+	evil_time = evil_time / gi.frame_rate / 60;
 
 	string[0] = stringlength = 0;
 	j = k = l = 0;
 
-	// build the scoreboard, resolve coords based on team
+	// build the scoreboard, resolve coordinates based on team
 	for(i = 0; i < total; i++){
-		cl = &g_locals.clients[sorted[i]];
-		cl_ent = g_edicts + 1 + sorted[i];
+		cl = &g_game.clients[sorted[i]];
+		cl_ent = g_game.edicts + 1 + sorted[i];
 
 		if(cl->locals.team == &good){  // good up top, evil below
 			x = 64; y = 32 * j++ + 64;
 		} else if(cl->locals.team == &evil){
-			x = 64; y = 32 * k++ + 128 + (goodcount * 32);
+			x = 64; y = 32 * k++ + 128 + (good_count * 32);
 		} else {
-			x = 128; y = 32 * l++ + 192 + ((goodcount + evilcount) * 32);
+			x = 128; y = 32 * l++ + 192 + ((good_count + evil_count) * 32);
 		}
 
-		minutes = (g_level.frame_num - cl->locals.enterframe) / gi.server_hz / 60;
+		minutes = (g_level.frame_num - cl->locals.first_frame) / gi.frame_rate / 60;
 
-		P_ColoredName(netname, cl->locals.netname, 16, MAX_NETNAME);
+		P_ColoredName(net_name, cl->locals.net_name, 16, MAX_NET_NAME);
 
 		if(!cl->locals.team){  // spectators
 			// name[ping]
 			snprintf(entry, sizeof(entry),
-					"xv %i yv %i string \"%s[%i]\" ", x, y, cl->locals.netname, cl->ping);
+					"xv %i yv %i string \"%s[%i]\" ", x, y, cl->locals.net_name, cl->ping);
 		} else {  // teamed players
 			if(g_level.ctf){ // name        captures score ping time
 				x = 0;
 				snprintf(entry, sizeof(entry),
 						"xv %i yv %i string \"%s    %4i  %4i %4i %4i\" ",
-						x, y, netname, cl->locals.captures,
+						x, y, net_name, cl->locals.captures,
 						cl->locals.score, cl->ping, minutes
 				);
 			}
 			else { // name        score ping time
 				snprintf(entry, sizeof(entry),
 						"xv %i yv %i string \"%s %4i %4i %4i\" ",
-						x, y, netname, cl->locals.score, cl->ping, minutes
+						x, y, net_name, cl->locals.score, cl->ping, minutes
 				);
 			}
 		}
@@ -211,28 +211,28 @@ void P_TeamsScoreboard(edict_t *ent){
 		strcat(string, entry);
 	}
 
-	y = (goodcount * 32) + 96;  // draw evil beneath good
+	y = (good_count * 32) + 96;  // draw evil beneath good
 
-	goodcount = goodcount ? goodcount : 1;  // avoid divide by zero
-	evilcount = evilcount ? evilcount : 1;
+	good_count = good_count ? good_count : 1;  // avoid divide by zero
+	evil_count = evil_count ? evil_count : 1;
 
-	snprintf(goodname, sizeof(goodname), "%s (%s", good.name, good.skin);
-	if((c = strchr(goodname, '/')))  // trim to modelname
+	snprintf(good_name, sizeof(good_name), "%s (%s", good.name, good.skin);
+	if((c = strchr(good_name, '/')))  // trim to model name
 		*c = 0;
-	strcat(goodname, ")");
-	if(strlen(goodname) > 15)
-		goodname[15] = 0;
+	strcat(good_name, ")");
+	if(strlen(good_name) > 15)
+		good_name[15] = 0;
 
-	snprintf(evilname, sizeof(evilname), "%s (%s", evil.name, evil.skin);
-	if((c = strchr(evilname, '/')))  // trim to modelname
+	snprintf(evil_name, sizeof(evil_name), "%s (%s", evil.name, evil.skin);
+	if((c = strchr(evil_name, '/')))  // trim to model name
 		*c = 0;
-	strcat(evilname, ")");
-	if(strlen(evilname) > 15)
-		evilname[15] = 0;
+	strcat(evil_name, ")");
+	if(strlen(evil_name) > 15)
+		evil_name[15] = 0;
 
 	// headers, team names, and team scores
-	P_ColoredName(netname, goodname, 16, MAX_NETNAME);
-	P_ColoredName(netname2, evilname, 16, MAX_NETNAME);
+	P_ColoredName(net_name, good_name, 16, MAX_NET_NAME);
+	P_ColoredName(net_name2, evil_name, 16, MAX_NET_NAME);
 
 	if(g_level.ctf){
 		snprintf(entry, sizeof(entry),
@@ -240,9 +240,9 @@ void P_TeamsScoreboard(edict_t *ent){
 				"xv 0 yv 32 string2 \"%s    %4i  %4i %4i %4i\" "
 				"xv 0 yv %i string2 \"%s    %4i  %4i %4i %4i\" ",
 
-				netname, good.captures, good.score, goodping / goodcount, goodtime / goodcount,
+				net_name, good.captures, good.score, good_ping / good_count, good_time / good_count,
 
-				y, netname2, evil.captures, evil.score, evilping / evilcount, eviltime / evilcount
+				y, net_name2, evil.captures, evil.score, evil_ping / evil_count, evil_time / evil_count
 		);
 	}
 	else {
@@ -251,9 +251,9 @@ void P_TeamsScoreboard(edict_t *ent){
 				"xv 64 yv 32 string2 \"%s %4i %4i %4i\" "
 				"xv 64 yv %i string2 \"%s %4i %4i %4i\" ",
 
-				netname, good.score, goodping / goodcount, goodtime / goodcount,
+				net_name, good.score, good_ping / good_count, good_time / good_count,
 
-				y, netname2, evil.score, evilping / evilcount, eviltime / evilcount
+				y, net_name2, evil.score, evil_ping / evil_count, evil_time / evil_count
 		);
 	}
 
@@ -270,7 +270,7 @@ void P_TeamsScoreboard(edict_t *ent){
 void P_Scoreboard(edict_t *ent){
 	char entry[512];
 	char string[1300];
-	char netname[MAX_NETNAME];
+	char net_name[MAX_NET_NAME];
 	int stringlength;
 	int i, j, k, l;
 	int sorted[MAX_CLIENTS];
@@ -285,10 +285,10 @@ void P_Scoreboard(edict_t *ent){
 
 	for(i = 0; i < sv_maxclients->value; i++){  // sort the clients by score
 
-		cl_ent = g_edicts + 1 + i;
+		cl_ent = g_game.edicts + 1 + i;
 		cl = cl_ent->client;
 
-		if(!cl_ent->inuse)
+		if(!cl_ent->in_use)
 			continue;
 
 		if(cl->locals.spectator)
@@ -315,8 +315,8 @@ void P_Scoreboard(edict_t *ent){
 
 	// build the scoreboard, resolve coords based on team
 	for(i = 0; i < total; i++){
-		cl = &g_locals.clients[sorted[i]];
-		cl_ent = g_edicts + 1 + sorted[i];
+		cl = &g_game.clients[sorted[i]];
+		cl_ent = g_game.edicts + 1 + sorted[i];
 
 		if(cl->locals.spectator){  // spectators below players
 			x = 128; y = 32 * l++ + 64 + (playercount * 32);
@@ -325,19 +325,19 @@ void P_Scoreboard(edict_t *ent){
 			x = 64; y = 32 * j++ + 32;
 		}
 
-		minutes = (g_level.frame_num - cl->locals.enterframe) / gi.server_hz / 60;
+		minutes = (g_level.frame_num - cl->locals.first_frame) / gi.frame_rate / 60;
 
-		P_ColoredName(netname, cl->locals.netname, 16, MAX_NETNAME);
+		P_ColoredName(net_name, cl->locals.net_name, 16, MAX_NET_NAME);
 
 		if(cl->locals.spectator){  // spectators
 			// name[ping]
 			snprintf(entry, sizeof(entry),
-					"xv %i yv %i string \"%s[%i]\" ", x, y, cl->locals.netname, cl->ping);
+					"xv %i yv %i string \"%s[%i]\" ", x, y, cl->locals.net_name, cl->ping);
 		} else {  //players
 			// name        score ping time
 			snprintf(entry, sizeof(entry),
 					"xv %i yv %i string \"%s %4i %4i %4i\" ",
-					x, y, netname, cl->locals.score, cl->ping, minutes
+					x, y, net_name, cl->locals.score, cl->ping, minutes
 			);
 		}
 
@@ -418,7 +418,7 @@ void P_SetStats(edict_t *ent){
 	// layouts
 	ent->client->ps.stats[STAT_LAYOUTS] = 0;
 
-	if(ent->client->locals.health <= 0 || g_level.intermission_time || ent->client->showscores)
+	if(ent->client->locals.health <= 0 || g_level.intermission_time || ent->client->show_scores)
 		ent->client->ps.stats[STAT_LAYOUTS] |= 1;
 
 	// frags
@@ -432,8 +432,8 @@ void P_SetStats(edict_t *ent){
 
 	if((g_level.teams || g_level.ctf) && ent->client->locals.team){  // send teamname
 		if(ent->client->locals.team == &good)
-			ent->client->ps.stats[STAT_TEAMNAME] = CS_TEAMGOOD;
-		else ent->client->ps.stats[STAT_TEAMNAME] = CS_TEAMEVIL;
+			ent->client->ps.stats[STAT_TEAMNAME] = CS_TEAM_GOOD;
+		else ent->client->ps.stats[STAT_TEAMNAME] = CS_TEAM_EVIL;
 	}
 	else ent->client->ps.stats[STAT_TEAMNAME] = 0;
 
@@ -455,13 +455,13 @@ void P_CheckChaseStats(edict_t *ent){
 
 	for(i = 1; i <= sv_maxclients->value; i++){
 
-		cl = g_edicts[i].client;
+		cl = g_game.edicts[i].client;
 
-		if(!g_edicts[i].inuse || cl->chase_target != ent)
+		if(!g_game.edicts[i].in_use || cl->chase_target != ent)
 			continue;
 
 		memcpy(cl->ps.stats, ent->client->ps.stats, sizeof(cl->ps.stats));
-		P_SetSpectatorStats(g_edicts + i);
+		P_SetSpectatorStats(g_game.edicts + i);
 	}
 }
 
@@ -480,11 +480,11 @@ void P_SetSpectatorStats(edict_t *ent){
 	// layouts are independent in spectator
 	cl->ps.stats[STAT_LAYOUTS] = 0;
 
-	if(cl->locals.health <= 0 || g_level.intermission_time || cl->showscores)
+	if(cl->locals.health <= 0 || g_level.intermission_time || cl->show_scores)
 		cl->ps.stats[STAT_LAYOUTS] |= 1;
 
-	if(cl->chase_target && cl->chase_target->inuse)
-		cl->ps.stats[STAT_CHASE] = CS_PLAYERSKINS + (cl->chase_target - g_edicts) - 1;
+	if(cl->chase_target && cl->chase_target->in_use)
+		cl->ps.stats[STAT_CHASE] = CS_PLAYER_SKINS + (cl->chase_target - g_game.edicts) - 1;
 	else
 		cl->ps.stats[STAT_CHASE] = 0;
 }

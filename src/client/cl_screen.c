@@ -127,9 +127,9 @@ static void Cl_DrawTeamBanner(void){
 	if(!team)
 		return;
 
-	if(team == CS_TEAMGOOD)
+	if(team == CS_TEAM_GOOD)
 		color = 243;
-	else if(team == CS_TEAMEVIL)
+	else if(team == CS_TEAM_EVIL)
 		color = 242;
 	else {
 		Com_Warn("Cl_DrawTeamBanner: unknown team: %d.\n", team);
@@ -348,8 +348,8 @@ static void Cl_ExecuteLayoutString(const char *s){
 			value = cl.frame.ps.stats[atoi(token)];
 			if(value >= MAX_IMAGES)
 				Com_Warn("Cl_ExecuteLayoutString: pic %d >= MAX_IMAGES\n", value);
-			else if(cl.configstrings[CS_IMAGES + value]){
-				R_DrawPic(x, y, cl.configstrings[CS_IMAGES + value]);
+			else if(cl.config_strings[CS_IMAGES + value]){
+				R_DrawPic(x, y, cl.config_strings[CS_IMAGES + value]);
 			}
 			continue;
 		}
@@ -395,16 +395,16 @@ static void Cl_ExecuteLayoutString(const char *s){
 		if(!strcmp(token, "stat_string")){
 			token = Com_Parse(&s);
 			index = atoi(token);
-			if(index < 0 || index >= MAX_CONFIGSTRINGS){
+			if(index < 0 || index >= MAX_CONFIG_STRINGS){
 				Com_Warn("Cl_ExecuteLayoutString: Invalid stat_string index: %i.\n", index);
 				continue;
 			}
 			index = cl.frame.ps.stats[index];
-			if(index < 0 || index >= MAX_CONFIGSTRINGS){
+			if(index < 0 || index >= MAX_CONFIG_STRINGS){
 				Com_Warn("Cl_ExecuteLayoutString: Bad stat_string index: %i.\n", index);
 				continue;
 			}
-			strncpy(string, cl.configstrings[index], sizeof(string) - 1);
+			strncpy(string, cl.config_strings[index], sizeof(string) - 1);
 			if((c = strchr(string, '\\')))  // mute chasecam skins
 				*c = 0;
 			R_DrawString(x, y, string, CON_COLOR_DEFAULT);
@@ -535,7 +535,7 @@ static void Cl_DrawCrosshair(void){
  * The status bar is a small layout program based on the stats array
  */
 static void Cl_DrawStats(void){
-	Cl_ExecuteLayoutString(cl.configstrings[CS_STATUSBAR]);
+	Cl_ExecuteLayoutString(cl.config_strings[CS_LAYOUT]);
 }
 
 

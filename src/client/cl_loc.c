@@ -55,7 +55,7 @@ void Cl_LoadLocations(void){
 	i = 0;
 
 	// load the locations file
-	c = Com_Basename(cl.configstrings[CS_MODELS + 1]);
+	c = Com_Basename(cl.config_strings[CS_MODELS + 1]);
 	snprintf(file_name, sizeof(file_name), "locations/%s", c);
 	strcpy(file_name + strlen(file_name) - 3, "loc");
 
@@ -92,7 +92,7 @@ static void Cl_SaveLocations_f(void){
 	FILE *f;
 	int i;
 
-	snprintf(file_name, sizeof(file_name), "%s/%s", Fs_Gamedir(), cl.configstrings[CS_MODELS + 1]);
+	snprintf(file_name, sizeof(file_name), "%s/%s", Fs_Gamedir(), cl.config_strings[CS_MODELS + 1]);
 	strcpy(file_name + strlen(file_name) - 3, "loc");  // change to .loc
 
 	if((f = fopen(file_name, "w")) == NULL){

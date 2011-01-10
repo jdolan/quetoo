@@ -27,9 +27,9 @@ static void InitTrigger(edict_t *self){
 		G_SetMovedir(self->s.angles, self->movedir);
 
 	self->solid = SOLID_TRIGGER;
-	self->movetype = MOVETYPE_NONE;
+	self->move_type = MOVE_TYPE_NONE;
 	gi.SetModel(self, self->model);
-	self->svflags = SVF_NOCLIENT;
+	self->sv_flags = SVF_NOCLIENT;
 }
 
 
@@ -72,7 +72,7 @@ static void trigger_multiple_touch(edict_t *self, edict_t *other, cplane_t *plan
 	if(!other->client)
 		return;
 
-	if(self->spawnflags & 2)
+	if(self->spawn_flags & 2)
 		return;
 
 	if(!VectorCompare(self->movedir, vec3_origin)){
@@ -107,11 +107,11 @@ void G_trigger_multiple(edict_t *ent){
 	if(!ent->wait)
 		ent->wait = 0.2;
 	ent->touch = trigger_multiple_touch;
-	ent->movetype = MOVETYPE_NONE;
-	ent->svflags |= SVF_NOCLIENT;
+	ent->move_type = MOVE_TYPE_NONE;
+	ent->sv_flags |= SVF_NOCLIENT;
 
 
-	if(ent->spawnflags & 4){
+	if(ent->spawn_flags & 4){
 		ent->solid = SOLID_NOT;
 		ent->use = trigger_multiple_enable;
 	} else {
@@ -170,7 +170,7 @@ void G_trigger_always(edict_t *ent){
 
 static void trigger_push_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
 
-	if(!strcmp(other->classname, "grenade") || other->health > 0){
+	if(!strcmp(other->class_name, "grenade") || other->health > 0){
 
 		VectorScale(self->movedir, self->speed * 10.0, other->velocity);
 
@@ -187,7 +187,7 @@ static void trigger_push_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 		}
 	}
 
-	if(self->spawnflags & PUSH_ONCE)
+	if(self->spawn_flags & PUSH_ONCE)
 		G_FreeEdict(self);
 }
 
@@ -208,13 +208,13 @@ void G_trigger_push(edict_t *self){
 
 	gi.LinkEntity(self);
 
-	if(!(self->spawnflags & PUSH_EFFECT))
+	if(!(self->spawn_flags & PUSH_EFFECT))
 		return;
 
 	// add a teleporter trail
 	ent = G_Spawn();
 	ent->solid = SOLID_TRIGGER;
-	ent->movetype = MOVETYPE_NONE;
+	ent->move_type = MOVE_TYPE_NONE;
 
 	// uber hack to resolve origin
 	VectorAdd(self->mins, self->maxs, ent->s.origin);
@@ -245,7 +245,7 @@ static void trigger_hurt_use(edict_t *self, edict_t *other, edict_t *activator){
 		self->solid = SOLID_NOT;
 	gi.LinkEntity(self);
 
-	if(!(self->spawnflags & 2))
+	if(!(self->spawn_flags & 2))
 		self->use = NULL;
 }
 
@@ -262,19 +262,19 @@ static void trigger_hurt_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 				G_FreeEdict(other);
 		}
 
-		gi.Debug("hurt_touch: %s\n", other->classname);
+		gi.Debug("hurt_touch: %s\n", other->class_name);
 		return;
 	}
 
 	if(self->timestamp > g_level.time)
 		return;
 
-	if(self->spawnflags & 16)
+	if(self->spawn_flags & 16)
 		self->timestamp = g_level.time + 1;
 	else
 		self->timestamp = g_level.time + 0.1;
 
-	if(self->spawnflags & 8)
+	if(self->spawn_flags & 8)
 		dflags = DAMAGE_NO_PROTECTION;
 	else
 		dflags = 0;
@@ -292,12 +292,12 @@ void G_trigger_hurt(edict_t *self){
 	if(!self->dmg)
 		self->dmg = 5;
 
-	if(self->spawnflags & 1)
+	if(self->spawn_flags & 1)
 		self->solid = SOLID_NOT;
 	else
 		self->solid = SOLID_TRIGGER;
 
-	if(self->spawnflags & 2)
+	if(self->spawn_flags & 2)
 		self->use = trigger_hurt_use;
 
 	gi.LinkEntity(self);
@@ -324,7 +324,7 @@ static void trigger_exec_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 void G_trigger_exec(edict_t *self){
 
 	if(!self->command && !self->script){
-		gi.Debug("%s does not have a command or script", self->classname);
+		gi.Debug("%s does not have a command or script", self->class_name);
 		G_FreeEdict(self);
 		return;
 	}

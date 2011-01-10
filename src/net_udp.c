@@ -225,7 +225,7 @@ qboolean Net_IsLocalNetaddr(netaddr_t addr){
 /*
  * Net_GetLocalPacket
  */
-static qboolean Net_GetLocalPacket(netsrc_t source, netaddr_t *from, sizebuf_t *message){
+static qboolean Net_GetLocalPacket(netsrc_t source, netaddr_t *from, size_buf_t *message){
 	int i;
 	loopback_t *loop;
 
@@ -268,7 +268,7 @@ static void Net_SendLocalPacket(netsrc_t source, size_t length, void *data, neta
 /*
  * Net_GetPacket
  */
-qboolean Net_GetPacket(netsrc_t source, netaddr_t *from, sizebuf_t *message){
+qboolean Net_GetPacket(netsrc_t source, netaddr_t *from, size_buf_t *message){
 	int ret, err;
 	struct sockaddr_in from_addr;
 	socklen_t from_len;

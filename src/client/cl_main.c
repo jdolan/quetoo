@@ -74,12 +74,12 @@ cl_client_t cl;
 /*
  * Cl_WriteDemoHeader
  *
- * Writes serverdata, configstrings, and baselines once a non-delta
+ * Writes serverdata, config_strings, and baselines once a non-delta
  * compressed frame arrives from the server.
  */
 static void Cl_WriteDemoHeader(void){
 	byte buf_data[MAX_MSGLEN];
-	sizebuf_t buf;
+	size_buf_t buf;
 	int i;
 	int len;
 	entity_state_t nullstate;
@@ -88,28 +88,28 @@ static void Cl_WriteDemoHeader(void){
 	Sb_Init(&buf, buf_data, sizeof(buf_data));
 
 	// write the serverdata
-	Msg_WriteByte(&buf, svc_serverdata);
+	Msg_WriteByte(&buf, svc_server_data);
 	Msg_WriteLong(&buf, PROTOCOL);
 	Msg_WriteLong(&buf, cl.server_count);
-	Msg_WriteLong(&buf, cl.server_hz);
+	Msg_WriteLong(&buf, cl.server_frame_rate);
 	Msg_WriteByte(&buf, 1);  // demo_server byte
 	Msg_WriteString(&buf, cl.gamedir);
 	Msg_WriteShort(&buf, cl.player_num);
-	Msg_WriteString(&buf, cl.configstrings[CS_NAME]);
+	Msg_WriteString(&buf, cl.config_strings[CS_NAME]);
 
-	// and configstrings
-	for(i = 0; i < MAX_CONFIGSTRINGS; i++){
-		if(cl.configstrings[i][0]){
-			if(buf.size + strlen(cl.configstrings[i]) + 32 > buf.max_size){  // write it out
+	// and config_strings
+	for(i = 0; i < MAX_CONFIG_STRINGS; i++){
+		if(cl.config_strings[i][0]){
+			if(buf.size + strlen(cl.config_strings[i]) + 32 > buf.max_size){  // write it out
 				len = LittleLong(buf.size);
 				Fs_Write(&len, 4, 1, cls.demo_file);
 				Fs_Write(buf.data, buf.size, 1, cls.demo_file);
 				buf.size = 0;
 			}
 
-			Msg_WriteByte(&buf, svc_configstring);
+			Msg_WriteByte(&buf, svc_config_string);
 			Msg_WriteShort(&buf, i);
-			Msg_WriteString(&buf, cl.configstrings[i]);
+			Msg_WriteString(&buf, cl.config_strings[i]);
 		}
 	}
 
@@ -128,11 +128,11 @@ static void Cl_WriteDemoHeader(void){
 
 		memset(&nullstate, 0, sizeof(nullstate));
 
-		Msg_WriteByte(&buf, svc_spawnbaseline);
+		Msg_WriteByte(&buf, svc_spawn_baseline);
 		Msg_WriteDeltaEntity(&nullstate, &cl.entities[i].baseline, &buf, true, true);
 	}
 
-	Msg_WriteByte(&buf, svc_stufftext);
+	Msg_WriteByte(&buf, svc_stuff_text);
 	Msg_WriteString(&buf, "precache\n");
 
 	// write it to the demo file
@@ -336,7 +336,7 @@ static void Cl_ForwardCmdToServer(void){
 	if(!strcmp(cmd, "say") || !strcmp(cmd, "say_team"))
 		args = Cl_ExpandVariables(args);
 
-	Msg_WriteByte(&cls.netchan.message, clc_stringcmd);
+	Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
 	Sb_Print(&cls.netchan.message, cmd);
 	if(Cmd_Argc() > 1){
 		Sb_Print(&cls.netchan.message, " ");
@@ -563,7 +563,7 @@ void Cl_SendDisconnect(void){
 		return;
 
 	// send a disconnect message to the server
-	final[0] = clc_stringcmd;
+	final[0] = clc_string_cmd;
 	strcpy((char *)final + 1, "disconnect");
 	Netchan_Transmit(&cls.netchan, strlen((char *)final), final);
 	Netchan_Transmit(&cls.netchan, strlen((char *)final), final);
@@ -683,7 +683,7 @@ static void Cl_ConnectionlessPacket(void){
 
 		qport = (int)Cvar_GetValue("net_qport");
 		Netchan_Setup(NS_CLIENT, &cls.netchan, net_from, qport);
-		Msg_WriteChar(&cls.netchan.message, clc_stringcmd);
+		Msg_WriteChar(&cls.netchan.message, clc_string_cmd);
 		Msg_WriteString(&cls.netchan.message, "new");
 		cls.state = ca_connected;
 
@@ -828,9 +828,9 @@ void Cl_RequestNextDownload(void){
 
 		precache_check = CS_MODELS;
 
-		if(*cl.configstrings[CS_PAK] != '\0'){
+		if(*cl.config_strings[CS_PAK] != '\0'){
 
-			if(!Cl_CheckOrDownloadFile(cl.configstrings[CS_PAK]))
+			if(!Cl_CheckOrDownloadFile(cl.config_strings[CS_PAK]))
 				return;  // started a download
 		}
 	}
@@ -840,13 +840,13 @@ void Cl_RequestNextDownload(void){
 
 		precache_check++;
 
-		if(!Cl_CheckOrDownloadFile(cl.configstrings[CS_MODELS + 1]))
+		if(!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS + 1]))
 			return;  // started a download
 	}
 
 	Cl_LoadMedia();
 
-	Msg_WriteByte(&cls.netchan.message, clc_stringcmd);
+	Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
 	Msg_WriteString(&cls.netchan.message, va("begin %i\n", precache_spawn_count));
 }
 
@@ -1035,7 +1035,7 @@ static void Cl_InitLocal(void){
 	Cmd_AddCommand("ready", NULL, NULL);
 	Cmd_AddCommand("unready", NULL, NULL);
 	Cmd_AddCommand("playerlist", NULL, NULL);
-	Cmd_AddCommand("configstrings", NULL, NULL);
+	Cmd_AddCommand("config_strings", NULL, NULL);
 	Cmd_AddCommand("baselines", NULL, NULL);
 
 	Cmd_ForwardToServer = Cl_ForwardCmdToServer;

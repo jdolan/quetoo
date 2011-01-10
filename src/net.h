@@ -52,7 +52,7 @@ void Net_Shutdown(void);
 
 void Net_Config(netsrc_t source, qboolean up);
 
-qboolean Net_GetPacket(netsrc_t source, netaddr_t *from, sizebuf_t *message);
+qboolean Net_GetPacket(netsrc_t source, netaddr_t *from, size_buf_t *message);
 void Net_SendPacket(netsrc_t source, size_t length, void *data, netaddr_t to);
 
 qboolean Net_CompareNetaddr(netaddr_t a, netaddr_t b);
@@ -89,7 +89,7 @@ typedef struct {
 	int last_reliable_sequence;  // sequence number of last send
 
 	// reliable staging and holding areas
-	sizebuf_t message;  // writing buffer to send to server
+	size_buf_t message;  // writing buffer to send to server
 	byte message_buf[MAX_MSGLEN - 16];  // leave space for header
 
 	// message is copied to this buffer when it is first transfered
@@ -98,7 +98,7 @@ typedef struct {
 } netchan_t;
 
 extern netaddr_t net_from;
-extern sizebuf_t net_message;
+extern size_buf_t net_message;
 extern byte net_message_buffer[MAX_MSGLEN];
 
 void Netchan_Init(void);
@@ -106,7 +106,7 @@ void Netchan_Setup(netsrc_t source, netchan_t *chan, netaddr_t adr, int qport);
 void Netchan_Transmit(netchan_t *chan, int length, byte *data);
 void Netchan_OutOfBand(int net_socket, netaddr_t adr, int length, byte *data);
 void Netchan_OutOfBandPrint(int net_socket, netaddr_t adr, const char *format, ...) __attribute__((format(printf, 3, 4)));
-qboolean Netchan_Process(netchan_t *chan, sizebuf_t *msg);
+qboolean Netchan_Process(netchan_t *chan, size_buf_t *msg);
 qboolean Netchan_CanReliable(netchan_t *chan);
 qboolean Netchan_NeedReliable(netchan_t *chan);
 

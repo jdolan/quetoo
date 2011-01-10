@@ -36,7 +36,7 @@ qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
 	ammo = G_FindItem(ent->item->ammo);
 	ammoindex = ITEM_INDEX(ammo);
 
-	if(!(ent->spawnflags & SF_ITEM_DROPPED) && other->client->locals.inventory[index]){
+	if(!(ent->spawn_flags & SF_ITEM_DROPPED) && other->client->locals.inventory[index]){
 		if(other->client->locals.inventory[ammoindex] >= ammo->quantity)
 			G_AddAmmo(other, ammo, ent->item->quantity);  // q3 style
 		else
@@ -46,7 +46,7 @@ qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
 		G_AddAmmo(other, ammo, ammo->quantity);
 
 	// setup respawn if it's not a dropped item
-	if(!(ent->spawnflags & SF_ITEM_DROPPED))
+	if(!(ent->spawn_flags & SF_ITEM_DROPPED))
 		G_SetRespawn(ent, 5);
 
 	// add the weapon to inventory
@@ -55,7 +55,7 @@ qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
 	// auto-change if it's the first weapon we pick up
 	if(other->client->locals.weapon != ent->item &&
 			(other->client->locals.weapon == G_FindItem("Shotgun")))
-		other->client->newweapon = ent->item;
+		other->client->new_weapon = ent->item;
 
 	return true;
 }
@@ -71,8 +71,8 @@ void P_ChangeWeapon(edict_t *ent){
 
 	// change weapon
 	ent->client->locals.lastweapon = ent->client->locals.weapon;
-	ent->client->locals.weapon = ent->client->newweapon;
-	ent->client->newweapon = NULL;
+	ent->client->locals.weapon = ent->client->new_weapon;
+	ent->client->new_weapon = NULL;
 
 	// update weapon state
 	ent->client->weapon_fire_time = g_level.time + 0.4;
@@ -85,10 +85,10 @@ void P_ChangeWeapon(edict_t *ent){
 
 	// set visible model
 	if(ent->client->locals.weapon)
-		i = ((ent->client->locals.weapon->weapmodel & 0xff) << 8);
+		i = ((ent->client->locals.weapon->weapon_model & 0xff) << 8);
 	else
 		i = 0;
-	ent->s.skin_num = (ent - g_edicts - 1) | i;
+	ent->s.skin_num = (ent - g_game.edicts - 1) | i;
 
 	if(ent->health < 1)
 		return;
@@ -115,41 +115,41 @@ void P_NoAmmoWeaponChange(g_client_t *client){
 
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("nukes"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("bfg10k"))]){
-		client->newweapon = G_FindItem("bfg10k");
+		client->new_weapon = G_FindItem("bfg10k");
 		return;
 	}
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("slugs"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("railgun"))]){
-		client->newweapon = G_FindItem("railgun");
+		client->new_weapon = G_FindItem("railgun");
 		return;
 	}
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("bolts"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("lightning"))]){
-		client->newweapon = G_FindItem("lightning");
+		client->new_weapon = G_FindItem("lightning");
 		return;
 	}
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("cells"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("hyperblaster"))]){
-		client->newweapon = G_FindItem("hyperblaster");
+		client->new_weapon = G_FindItem("hyperblaster");
 		return;
 	}
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("rockets"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("rocket launcher"))]){
-		client->newweapon = G_FindItem ("rocket launcher");
+		client->new_weapon = G_FindItem ("rocket launcher");
 		return;
 	}
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("bullets"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("machinegun"))]){
-		client->newweapon = G_FindItem("machinegun");
+		client->new_weapon = G_FindItem("machinegun");
 		return;
 	}
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("shells"))] > 1
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("super shotgun"))]){
-		client->newweapon = G_FindItem("super shotgun");
+		client->new_weapon = G_FindItem("super shotgun");
 		return;
 	}
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("shells"))]){
-		client->newweapon = G_FindItem("shotgun");
+		client->new_weapon = G_FindItem("shotgun");
 		return;
 	}
 }
@@ -179,7 +179,7 @@ void P_UseWeapon(edict_t *ent, g_item_t *item){
 		return;
 
 	// change to this weapon when down
-	ent->client->newweapon = item;
+	ent->client->new_weapon = item;
 }
 
 
@@ -192,7 +192,7 @@ void P_DropWeapon(edict_t *ent, g_item_t *item){
 	index = ITEM_INDEX(item);
 
 	// see if we're already using it and we only have one
-	if((item == ent->client->locals.weapon || item == ent->client->newweapon) &&
+	if((item == ent->client->locals.weapon || item == ent->client->new_weapon) &&
 			(ent->client->locals.inventory[index] == 1)){
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop current weapon\n");
 		return;
@@ -289,7 +289,7 @@ void P_WeaponThink(edict_t *ent){
 	if(ent->health < 1)
 		return;
 
-	if(ent->client->newweapon){
+	if(ent->client->new_weapon){
 		P_ChangeWeapon(ent);
 		return;
 	}
@@ -315,8 +315,8 @@ static void P_FireShotgun_(edict_t *ent){
 			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SHOTGUN_COUNT, MOD_SHOTGUN);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_SHOTGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
@@ -354,8 +354,8 @@ static void P_FireSuperShotgun_(edict_t *ent){
 			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_SSHOTGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
@@ -381,8 +381,8 @@ static void P_FireMachinegun_(edict_t *ent){
 			DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_MACHINEGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
@@ -405,8 +405,8 @@ static void P_FireGrenadeLauncher_(edict_t *ent){
 
 	G_FireGrenadeLauncher(ent, start, forward, 900, 90, 100, 185.0, 3.0);
 
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_GRENADE);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
@@ -430,8 +430,8 @@ static void P_FireRocketLauncher_(edict_t *ent){
 	G_FireRocketLauncher(ent, start, forward, 1000, 100, 100, 165.0);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_ROCKET);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
@@ -455,8 +455,8 @@ static void P_FireHyperblaster_(edict_t *ent){
 	G_FireHyperblaster(ent, start, forward, 2000, 22, 6);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_HYPERBLASTER);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
@@ -482,13 +482,13 @@ static void P_FireLightning_(edict_t *ent){
 	// if the client has just begun to attack, send the muzzle flash
 	if(ent->s.frame == FRAME_attack1 || ent->s.frame == FRAME_crattak1){
 
-		if(ent->client->muzzleflash_time < g_level.time){
-			gi.WriteByte(svc_muzzleflash);
-			gi.WriteShort(ent - g_edicts);
+		if(ent->client->muzzle_flash_time < g_level.time){
+			gi.WriteByte(svc_muzzle_flash);
+			gi.WriteShort(ent - g_game.edicts);
 			gi.WriteByte(MZ_LIGHTNING);
 			gi.Multicast(ent->s.origin, MULTICAST_PVS);
 
-			ent->client->muzzleflash_time = g_level.time + 0.25;
+			ent->client->muzzle_flash_time = g_level.time + 0.25;
 		}
 	}
 }
@@ -512,8 +512,8 @@ static void P_FireRailgun_(edict_t *ent){
 	G_FireRailgun(ent, start, forward, 110, 80);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_RAILGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
@@ -537,8 +537,8 @@ static void P_FireBFG_(edict_t *ent){
 	G_FireBFG(ent, start, forward, 500, 90, 90, 1024.0);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_BFG);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }

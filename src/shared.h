@@ -402,7 +402,7 @@ typedef enum {
 	// no acceleration or turning
 	PM_DEAD,
 	PM_FREEZE
-} pmtype_t;
+} pm_type_t;
 
 // pmove->pm_flags
 #define PMF_DUCKED			0x1
@@ -423,7 +423,7 @@ typedef enum {
 // if any part of the game code modifies this struct, it
 // will result in a prediction error of some degree.
 typedef struct {
-	pmtype_t pm_type;
+	pm_type_t pm_type;
 
 	short origin[3];  // 12.3
 	short velocity[3];  // 12.3
@@ -432,25 +432,25 @@ typedef struct {
 	short gravity;
 	short delta_angles[3];  // add to command angles to get view direction
 	// changed by spawns, rotating objects, and teleporters
-} pmove_state_t;
+} pm_move_state_t;
 
 // button bits
 #define BUTTON_ATTACK		1
 #define BUTTON_WALK			2
 
-// usercmd_t is sent to the server each client frame
-typedef struct usercmd_s {
+// user_cmd_t is sent to the server each client frame
+typedef struct user_cmd_s {
 	byte msec;
 	byte buttons;
 	short angles[3];
 	short forward, side, up;
-} usercmd_t;
+} user_cmd_t;
 
 #define MAXTOUCH 32
 typedef struct {
-	pmove_state_t s;  // state (in / out)
+	pm_move_state_t s;  // state (in / out)
 
-	usercmd_t cmd;  // command (in)
+	user_cmd_t cmd;  // command (in)
 
 	int num_touch;  // results (out)
 	struct edict_s *touch_ents[MAXTOUCH];
@@ -468,7 +468,7 @@ typedef struct {
 	// callbacks to test the world
 	trace_t (*trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
 	int (*pointcontents)(vec3_t point);
-} pmove_t;
+} pm_move_t;
 
 // entity_state_t->effects
 // handled on the client side (particles, frame animations, ..)
@@ -575,25 +575,25 @@ typedef enum {
 #define CS_SKY				2
 #define CS_WEATHER			3
 #define CS_PAK				4  // pak for current level
-#define CS_STATUSBAR		5  // display program string
+#define CS_LAYOUT		5  // display program string
 
-#define CS_MAXCLIENTS		30
-#define CS_MAPSIZE			31  // for catching cheater maps
+#define CS_MAX_CLIENTS		30
+#define CS_MAP_SIZE			31  // for catching cheater maps
 
 #define CS_MODELS			32
 #define CS_SOUNDS			(CS_MODELS + MAX_MODELS)
 #define CS_MUSICS			(CS_SOUNDS + MAX_SOUNDS)
 #define CS_IMAGES			(CS_MUSICS + MAX_MUSICS)
 #define CS_ITEMS			(CS_IMAGES + MAX_IMAGES)
-#define CS_PLAYERSKINS		(CS_ITEMS + MAX_ITEMS)
-#define CS_GENERAL			(CS_PLAYERSKINS + MAX_CLIENTS)
+#define CS_PLAYER_SKINS		(CS_ITEMS + MAX_ITEMS)
+#define CS_GENERAL			(CS_PLAYER_SKINS + MAX_CLIENTS)
 
 #define CS_VOTE				(CS_GENERAL + 1)  // current vote
-#define CS_TEAMGOOD			(CS_GENERAL + 2)  // team names
-#define CS_TEAMEVIL			(CS_GENERAL + 3)
+#define CS_TEAM_GOOD		(CS_GENERAL + 2)  // team names
+#define CS_TEAM_EVIL		(CS_GENERAL + 3)
 #define CS_TIME				(CS_GENERAL + 4)  // level/match timer
 
-#define MAX_CONFIGSTRINGS	(CS_GENERAL + MAX_GENERAL)
+#define MAX_CONFIG_STRINGS	(CS_GENERAL + MAX_GENERAL)
 
 
 // entity_state_t->event values
@@ -640,7 +640,7 @@ typedef struct entity_state_s {
 // but the number of pmove_state_t changes will be reletive to client
 // frame rates
 typedef struct {
-	pmove_state_t pmove;  // for prediction
+	pm_move_state_t pmove;  // for prediction
 	// these fields do not need to be communicated bit-precise
 	vec3_t angles;  // for fixed views like chasecams
 	short stats[MAX_STATS];  // fast status bar updates

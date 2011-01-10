@@ -34,7 +34,7 @@ int quad_damage_index;
  * G_ItemByIndex
  */
 g_item_t *G_ItemByIndex(int index){
-	if(index == 0 || index >= g_locals.num_items)
+	if(index == 0 || index >= g_game.num_items)
 		return NULL;
 
 	return &g_items[index];
@@ -45,15 +45,15 @@ g_item_t *G_ItemByIndex(int index){
  * G_FindItemByClassname
  *
  */
-g_item_t *G_FindItemByClassname(const char *classname){
+g_item_t *G_FindItemByClassname(const char *class_name){
 	int i;
 	g_item_t *it;
 
 	it = g_items;
-	for(i = 0; i < g_locals.num_items; i++, it++){
-		if(!it->classname)
+	for(i = 0; i < g_game.num_items; i++, it++){
+		if(!it->class_name)
 			continue;
-		if(!strcasecmp(it->classname, classname))
+		if(!strcasecmp(it->class_name, class_name))
 			return it;
 	}
 
@@ -69,7 +69,7 @@ g_item_t *G_FindItem(const char *pickup_name){
 	g_item_t *it;
 
 	it = g_items;
-	for(i = 0; i < g_locals.num_items; i++, it++){
+	for(i = 0; i < g_game.num_items; i++, it++){
 		if(!it->pickup_name)
 			continue;
 		if(!strcasecmp(it->pickup_name, pickup_name))
@@ -108,7 +108,7 @@ static void G_DoRespawn(edict_t *ent){
 	VectorCopy(origin, ent->s.origin);
 	G_DropToFloor(ent);
 
-	ent->svflags &= ~SVF_NOCLIENT;
+	ent->sv_flags &= ~SVF_NOCLIENT;
 	ent->solid = SOLID_TRIGGER;
 	gi.LinkEntity(ent);
 
@@ -122,7 +122,7 @@ static void G_DoRespawn(edict_t *ent){
  */
 void G_SetRespawn(edict_t *ent, float delay){
 	ent->flags |= FL_RESPAWN;
-	ent->svflags |= SVF_NOCLIENT;
+	ent->sv_flags |= SVF_NOCLIENT;
 	ent->solid = SOLID_NOT;
 	ent->next_think = g_level.time + delay;
 	ent->think = G_DoRespawn;
@@ -138,7 +138,7 @@ static qboolean G_PickupAdrenaline(edict_t *ent, edict_t *other){
 	if(other->health < other->max_health)
 		other->health = other->max_health;
 
-	if(!(ent->spawnflags & SF_ITEM_DROPPED))
+	if(!(ent->spawn_flags & SF_ITEM_DROPPED))
 		G_SetRespawn(ent, 30);
 
 	return true;
@@ -155,7 +155,7 @@ static qboolean G_PickupQuadDamage(edict_t *ent, edict_t *other){
 
 	other->client->locals.inventory[quad_damage_index] = 1;
 
-	if(ent->spawnflags & SF_ITEM_DROPPED){  // receive only the time left
+	if(ent->spawn_flags & SF_ITEM_DROPPED){  // receive only the time left
 		other->client->quad_damage_time = ent->next_think;
 	}
 	else {
@@ -225,7 +225,7 @@ static qboolean G_PickupAmmo(edict_t *ent, edict_t *other){
 	if(!G_AddAmmo(other, ent->item, count))
 		return false;
 
-	if(!(ent->spawnflags & SF_ITEM_DROPPED))
+	if(!(ent->spawn_flags & SF_ITEM_DROPPED))
 		G_SetRespawn(ent, 20);
 	return true;
 }
@@ -312,7 +312,7 @@ static qboolean G_PickupArmor(edict_t *ent, edict_t *other){
 		taken = false;
 	}
 
-	if(taken && !(ent->spawnflags & SF_ITEM_DROPPED))
+	if(taken && !(ent->spawn_flags & SF_ITEM_DROPPED))
 		G_SetRespawn(ent, 20);
 
 	return taken;
@@ -344,7 +344,7 @@ void G_ResetFlag(edict_t *ent){
 	if(!(f = G_FlagForTeam(t)))
 		return;
 
-	f->svflags &= ~SVF_NOCLIENT;
+	f->sv_flags &= ~SVF_NOCLIENT;
 	f->s.event = EV_ITEM_RESPAWN;
 
 	gi.Sound(ent, gi.SoundIndex("ctf/return"), ATTN_NONE);
@@ -383,15 +383,15 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 
 	if(t == other->client->locals.team){  // our flag
 
-		if(ent->spawnflags & SF_ITEM_DROPPED){  // return it if necessary
+		if(ent->spawn_flags & SF_ITEM_DROPPED){  // return it if necessary
 
-			f->svflags &= ~SVF_NOCLIENT;  // and toggle the static one
+			f->sv_flags &= ~SVF_NOCLIENT;  // and toggle the static one
 			f->s.event = EV_ITEM_RESPAWN;
 
 			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTN_NONE);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag\n",
-					other->client->locals.netname, t->name);
+					other->client->locals.net_name, t->name);
 
 			return true;
 		}
@@ -403,13 +403,13 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 			other->s.effects &= ~G_EffectForTeam(ot);
 			other->s.model_index3 = 0;
 
-			of->svflags &= ~SVF_NOCLIENT;  // reset the other flag
+			of->sv_flags &= ~SVF_NOCLIENT;  // reset the other flag
 			of->s.event = EV_ITEM_RESPAWN;
 
 			gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTN_NONE);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
-					other->client->locals.netname, ot->name);
+					other->client->locals.net_name, ot->name);
 
 			t->captures++;
 			other->client->locals.captures++;
@@ -422,7 +422,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 	}
 
 	// enemy's flag
-	if(ent->svflags & SVF_NOCLIENT)  // already taken
+	if(ent->sv_flags & SVF_NOCLIENT)  // already taken
 		return false;
 
 	// take it
@@ -435,7 +435,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTN_NONE);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
-			other->client->locals.netname, t->name);
+			other->client->locals.net_name, t->name);
 
 	other->s.effects |= G_EffectForTeam(t);
 	return true;
@@ -470,22 +470,22 @@ void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 			gi.Sound(other, gi.SoundIndex(ent->item->pickup_sound), ATTN_NORM);
 	}
 
-	if(!(ent->spawnflags & SF_ITEM_TARGETS_USED)){
+	if(!(ent->spawn_flags & SF_ITEM_TARGETS_USED)){
 		G_UseTargets(ent, other);
-		ent->spawnflags |= SF_ITEM_TARGETS_USED;
+		ent->spawn_flags |= SF_ITEM_TARGETS_USED;
 	}
 
 	if(!taken)
 		return;
 
-	if(ent->spawnflags & SF_ITEM_DROPPED){
+	if(ent->spawn_flags & SF_ITEM_DROPPED){
 		if(ent->flags & FL_RESPAWN)
 			ent->flags &= ~FL_RESPAWN;
 		else
 			G_FreeEdict(ent);
 	}
 	else if(ent->item->flags & IT_FLAG)  // if a flag has been taken, hide it
-		ent->svflags |= SVF_NOCLIENT;
+		ent->sv_flags |= SVF_NOCLIENT;
 }
 
 
@@ -516,7 +516,7 @@ static void G_DropItemThink(edict_t *ent){
 	// see if we've landed on a trigger_hurt
 	G_TouchTriggers(ent);
 
-	if(!ent->inuse)  // we have
+	if(!ent->in_use)  // we have
 		return;
 
 	// restore full entity effects (e.g. EF_BOB)
@@ -563,15 +563,15 @@ edict_t *G_DropItem(edict_t *ent, g_item_t *item){
 
 	dropped = G_Spawn();
 
-	dropped->classname = item->classname;
+	dropped->class_name = item->class_name;
 	dropped->item = item;
-	dropped->spawnflags = SF_ITEM_DROPPED;
+	dropped->spawn_flags = SF_ITEM_DROPPED;
 	dropped->s.effects = (item->effects & ~EF_BOB);
 	VectorSet(dropped->mins, -15, -15, -15);
 	VectorSet(dropped->maxs, 15, 15, 15);
 	gi.SetModel(dropped, dropped->item->model);
 	dropped->solid = SOLID_TRIGGER;
-	dropped->movetype = MOVETYPE_TOSS;
+	dropped->move_type = MOVE_TYPE_TOSS;
 	dropped->touch = G_DropItemUntouchable;
 	dropped->owner = ent;
 
@@ -624,10 +624,10 @@ edict_t *G_DropItem(edict_t *ent, g_item_t *item){
  * G_UseItem
  */
 static void G_UseItem(edict_t *ent, edict_t *other, edict_t *activator){
-	ent->svflags &= ~SVF_NOCLIENT;
+	ent->sv_flags &= ~SVF_NOCLIENT;
 	ent->use = NULL;
 
-	if(ent->spawnflags & SF_ITEM_NO_TOUCH){
+	if(ent->spawn_flags & SF_ITEM_NO_TOUCH){
 		ent->solid = SOLID_BBOX;
 		ent->touch = NULL;
 	} else {
@@ -648,8 +648,8 @@ static void G_DropToFloor(edict_t *ent){
 
 	VectorClear(ent->velocity);
 
-	if(ent->spawnflags & SF_ITEM_HOVER){  // some items should not fall
-		ent->movetype = MOVETYPE_FLY;
+	if(ent->spawn_flags & SF_ITEM_HOVER){  // some items should not fall
+		ent->move_type = MOVE_TYPE_FLY;
 		ent->ground_entity = NULL;
 	}
 	else {  // while most do, and will also be pushed by their ground
@@ -658,7 +658,7 @@ static void G_DropToFloor(edict_t *ent){
 
 		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
 		if(tr.start_solid){
-			gi.Debug("G_DropToFloor: %s start_solid at %s\n", ent->classname,
+			gi.Debug("G_DropToFloor: %s start_solid at %s\n", ent->class_name,
 					vtos(ent->s.origin));
 			G_FreeEdict(ent);
 			return;
@@ -714,7 +714,7 @@ void G_PrecacheItem(g_item_t *it){
 
 		len = s - start;
 		if(len >= MAX_QPATH || len < 5)
-			gi.Error("G_PrecacheItem: %s has bad precache string.", it->classname);
+			gi.Error("G_PrecacheItem: %s has bad precache string.", it->class_name);
 		memcpy(data, start, len);
 		data[len] = 0;
 		if(*s)
@@ -727,7 +727,7 @@ void G_PrecacheItem(g_item_t *it){
 			gi.SoundIndex(data);
 		else if(!strcmp(data + len - 3, "pcx") || !strcmp(data + len - 3, "tga"))
 			gi.ImageIndex(data);
-		else gi.Error("G_PrecacheItem: %s has unknown data type.", it->classname);
+		else gi.Error("G_PrecacheItem: %s has unknown data type.", it->class_name);
 	}
 }
 
@@ -744,16 +744,16 @@ void G_SpawnItem(edict_t *ent, g_item_t *item){
 
 	G_PrecacheItem(item);
 
-	if(ent->spawnflags){
-		gi.Debug("%s at %s has spawnflags %d\n", ent->classname,
-				vtos(ent->s.origin), ent->spawnflags);
+	if(ent->spawn_flags){
+		gi.Debug("%s at %s has spawnflags %d\n", ent->class_name,
+				vtos(ent->s.origin), ent->spawn_flags);
 	}
 
 	VectorSet(ent->mins, -15, -15, -15);
 	VectorSet(ent->maxs, 15, 15, 15);
 
 	ent->solid = SOLID_TRIGGER;
-	ent->movetype = MOVETYPE_TOSS;
+	ent->move_type = MOVE_TYPE_TOSS;
 	ent->touch = G_TouchItem;
 	ent->think = G_DropToFloor;
 	ent->next_think = g_level.time + 2 * gi.server_frame;  // items start after other solids
@@ -771,7 +771,7 @@ void G_SpawnItem(edict_t *ent, g_item_t *item){
 		ent->chain = ent->teamchain;
 		ent->teamchain = NULL;
 
-		ent->svflags |= SVF_NOCLIENT;
+		ent->sv_flags |= SVF_NOCLIENT;
 		ent->solid = SOLID_NOT;
 		if(ent == ent->teammaster){
 			ent->next_think = g_level.time + gi.server_frame;
@@ -780,20 +780,20 @@ void G_SpawnItem(edict_t *ent, g_item_t *item){
 	}
 
 	// hide flags unless ctf is enabled
-	if(!g_level.ctf && (!strcmp(ent->classname, "item_flag_team1") ||
-				!strcmp(ent->classname, "item_flag_team2"))){
+	if(!g_level.ctf && (!strcmp(ent->class_name, "item_flag_team1") ||
+				!strcmp(ent->class_name, "item_flag_team2"))){
 
-		ent->svflags |= SVF_NOCLIENT;
+		ent->sv_flags |= SVF_NOCLIENT;
 		ent->solid = SOLID_NOT;
 	}
 
-	if(ent->spawnflags & SF_ITEM_NO_TOUCH){
+	if(ent->spawn_flags & SF_ITEM_NO_TOUCH){
 		ent->solid = SOLID_BBOX;
 		ent->touch = NULL;
 	}
 
-	if(ent->spawnflags & SF_ITEM_TRIGGER){
-		ent->svflags |= SVF_NOCLIENT;
+	if(ent->spawn_flags & SF_ITEM_TRIGGER){
+		ent->sv_flags |= SVF_NOCLIENT;
 		ent->solid = SOLID_NOT;
 		ent->use = G_UseItem;
 	}
@@ -1437,7 +1437,7 @@ g_item_t g_items[] = {
 
 
 // override quake2 items for legacy maps
-g_override_t overrides[] = {
+g_override_t g_overrides[] = {
 	{"weapon_chaingun", "weapon_machinegun"},
 	{"item_invulnerability", "item_quad"},
 	{"item_power_shield", "item_armor_combat"},
@@ -1450,8 +1450,8 @@ g_override_t overrides[] = {
  * G_InitItems
  */
 void G_InitItems(void){
-	g_locals.num_items = sizeof(g_items) / sizeof(g_items[0]) - 1;
-	g_locals.num_overrides = sizeof(overrides) / sizeof(overrides[0]) - 1;
+	g_game.num_items = sizeof(g_items) / sizeof(g_items[0]) - 1;
+	g_game.num_overrides = sizeof(g_overrides) / sizeof(g_overrides[0]) - 1;
 }
 
 
@@ -1465,18 +1465,18 @@ void G_SetItemNames(void){
 	g_item_t *it;
 	g_override_t *ov;
 
-	for(i = 0; i < g_locals.num_items; i++){
+	for(i = 0; i < g_game.num_items; i++){
 		it = &g_items[i];
-		if(it->classname){
-			for(j = 0; j < g_locals.num_overrides; j++){
-				ov = &overrides[j];
-				if(!strcmp(it->classname, ov->old)){
+		if(it->class_name){
+			for(j = 0; j < g_game.num_overrides; j++){
+				ov = &g_overrides[j];
+				if(!strcmp(it->class_name, ov->old)){
 					it = G_FindItemByClassname(ov->new);
 					break;
 				}
 			}
 		}
-		gi.Configstring(CS_ITEMS + i, it->pickup_name);
+		gi.ConfigString(CS_ITEMS + i, it->pickup_name);
 	}
 
 	grenade_index = gi.ModelIndex("models/objects/grenade/tris.md3");

@@ -40,11 +40,11 @@
 
 // protocol bytes that can be directly added to messages
 // these must be kept in sync with the declarations in common.h
-#define svc_muzzleflash		2
+#define svc_muzzle_flash		2
 #define svc_temp_entity		3
 #define svc_layout			4
 #define svc_sound			7
-#define svc_stufftext		9
+#define svc_stuff_text		9
 
 // edict->spawnflags
 #define SF_ITEM_TRIGGER			0x00000001
@@ -52,14 +52,14 @@
 #define SF_ITEM_HOVER			0x00000004
 
 // we keep these around for compatibility with legacy levels
-#define SF_NOT_EASY			0x00000100
+#define SF_NOT_EASY				0x00000100
 #define SF_NOT_MEDIUM			0x00000200
-#define SF_NOT_HARD			0x00000400
+#define SF_NOT_HARD				0x00000400
 #define SF_NOT_DEATHMATCH		0x00000800
-#define SF_NOT_COOP			0x00001000
+#define SF_NOT_COOP				0x00001000
 
 #define SF_ITEM_DROPPED			0x00010000
-#define SF_ITEM_TARGETS_USED		0x00020000
+#define SF_ITEM_TARGETS_USED	0x00020000
 
 // edict->flags
 #define FL_FLY					0x00000001
@@ -97,20 +97,20 @@ typedef enum {
 #define HEALTH_LARGE		3
 #define HEALTH_MEGA			4
 
-// edict->movetype values
+// edict->move_type values
 typedef enum {
-	MOVETYPE_NONE,       // never moves
-	MOVETYPE_NOCLIP,     // origin and angles change with no interaction
-	MOVETYPE_PUSH,       // no clip to world, push on box contact
-	MOVETYPE_STOP,       // no clip to world, stops on box contact
+	MOVE_TYPE_NONE,       // never moves
+	MOVE_TYPE_NOCLIP,     // origin and angles change with no interaction
+	MOVE_TYPE_PUSH,       // no clip to world, push on box contact
+	MOVE_TYPE_STOP,       // no clip to world, stops on box contact
 
-	MOVETYPE_WALK,       // gravity
-	MOVETYPE_FLY,
-	MOVETYPE_TOSS,       // gravity
+	MOVE_TYPE_WALK,       // gravity
+	MOVE_TYPE_FLY,
+	MOVE_TYPE_TOSS,       // gravity
 } g_move_type_t;
 
 // a synonym for readability
-#define MOVETYPE_THINK MOVETYPE_NONE
+#define MOVE_TYPE_THINK MOVE_TYPE_NONE
 
 
 // gitem_t->flags
@@ -121,7 +121,7 @@ typedef enum {
 #define IT_HEALTH		16
 #define IT_POWERUP		32
 
-// gitem_t->weapmodel for weapons indicates model index
+// g_item_t->weapon_model for weapons indicates model index
 #define WEAP_SHOTGUN			0
 #define WEAP_SUPERSHOTGUN		1
 #define WEAP_MACHINEGUN			2
@@ -133,7 +133,7 @@ typedef enum {
 #define WEAP_BFG				8
 
 typedef struct g_item_s {
-	char *classname;  // spawning name
+	char *class_name;  // spawning name
 	qboolean (*pickup)(struct edict_s *ent, struct edict_s *other);
 	void (*use)(struct edict_s *ent, struct g_item_s *item);
 	void (*drop)(struct edict_s *ent, struct g_item_s *item);
@@ -150,7 +150,7 @@ typedef struct g_item_s {
 	char *ammo;  // for weapons
 	int flags;  // IT_* flags
 
-	int weapmodel;  // weapon model index (for weapons)
+	int weapon_model;  // weapon model index (for visual weapons)
 	int tag;
 
 	char *precaches;  // string of all models, sounds, and images this item will use
@@ -162,23 +162,86 @@ typedef struct g_override_s {
 	char *new;
 } g_override_t;
 
-extern g_override_t overrides[];
+extern g_override_t g_overrides[];
+
+
+// spawn_temp_t is only used to hold entity field values that
+// can be set from the editor, but aren't actually present
+// in edict_t during gameplay
+typedef struct g_spawn_temp_s {
+	// world vars, we use strings to avoid ambiguity between 0 and unset
+	char *sky;
+	char *weather;
+	char *gravity;
+	char *gameplay;
+	char *teams;
+	char *ctf;
+	char *match;
+	char *rounds;
+	char *frag_limit;
+	char *round_limit;
+	char *capture_limit;
+	char *time_limit;
+	char *give;
+	char *music;
+
+	int lip;
+	int distance;
+	int height;
+	char *noise;
+	float pausetime;
+	char *item;
+} g_spawn_temp_t;
+
+
+typedef struct g_move_info_s {
+	// fixed data
+	vec3_t start_origin;
+	vec3_t start_angles;
+	vec3_t end_origin;
+	vec3_t end_angles;
+
+	int sound_start;
+	int sound_middle;
+	int sound_end;
+
+	float accel;
+	float speed;
+	float decel;
+	float distance;
+
+	float wait;
+
+	// state data
+	int state;
+	vec3_t dir;
+	float current_speed;
+	float move_speed;
+	float next_speed;
+	float remaining_distance;
+	float decel_distance;
+	void (*done)(edict_t *);
+} g_move_info_t;
 
 // this structure is left intact through an entire game
-// it should be initialized at dll load time, and read/written to
-// the server.ssv file for savegames
 typedef struct g_locals_s {
+
+	edict_t *edicts;  // [g_maxentities]
+
 	g_client_t *clients;  // [sv_maxclients]
 
-	// items
+	g_spawn_temp_t spawn;
+
 	int num_items;
 	int num_overrides;
 
-} g_locals_t;
+} g_game_t;
+
+extern g_game_t g_game;
 
 
 // this structure is cleared as each map is entered
-typedef struct {
+typedef struct g_level_s {
 	int frame_num;
 	float time;
 
@@ -220,72 +283,10 @@ typedef struct {
 	edict_t *current_entity;  // entity running from G_RunFrame
 } g_level_t;
 
-
-// spawn_temp_t is only used to hold entity field values that
-// can be set from the editor, but aren't actualy present
-// in edict_t during gameplay
-typedef struct {
-	// world vars, we use strings to avoid ambiguity between 0 and unset
-	char *sky;
-	char *weather;
-	char *gravity;
-	char *gameplay;
-	char *teams;
-	char *ctf;
-	char *match;
-	char *rounds;
-	char *frag_limit;
-	char *round_limit;
-	char *capture_limit;
-	char *time_limit;
-	char *give;
-	char *music;
-
-	int lip;
-	int distance;
-	int height;
-	char *noise;
-	float pausetime;
-	char *item;
-} g_spawn_temp_t;
-
-
-typedef struct {
-	// fixed data
-	vec3_t start_origin;
-	vec3_t start_angles;
-	vec3_t end_origin;
-	vec3_t end_angles;
-
-	int sound_start;
-	int sound_middle;
-	int sound_end;
-
-	float accel;
-	float speed;
-	float decel;
-	float distance;
-
-	float wait;
-
-	// state data
-	int state;
-	vec3_t dir;
-	float current_speed;
-	float move_speed;
-	float next_speed;
-	float remaining_distance;
-	float decel_distance;
-	void (*done)(edict_t *);
-} g_move_info_t;
-
-
-extern game_import_t gi;
-extern game_export_t ge;
-
-extern g_locals_t g_locals;
 extern g_level_t g_level;
-extern g_spawn_temp_t st;
+
+extern g_import_t gi;
+extern g_export_t ge;
 
 extern int grenade_index, grenade_hit_index;
 extern int rocket_index, rocket_fly_index;
@@ -320,15 +321,9 @@ extern int quad_damage_index;
 
 extern int means_of_death;
 
-extern edict_t *g_edicts;
-
+// some macros to help with field lookups
 #define FOFS(x)(ptrdiff_t)&(((edict_t *)0)->x)
-#define STOFS(x)(ptrdiff_t)&(((g_spawn_temp_t *)0)->x)
-#define LLOFS(x)(ptrdiff_t)&(((g_level_locals_t *)0)->x)
-#define CLOFS(x)(ptrdiff_t)&(((g_client_t *)0)->x)
-
-#define random() ((rand() & 0x7fff) / ((float)0x7fff))
-#define crandom() (2.0 * (random() - 0.5))
+#define SOFS(x)(ptrdiff_t)&(((g_spawn_temp_t *)0)->x)
 
 extern cvar_t *g_autojoin;
 extern cvar_t *g_capturelimit;
@@ -362,7 +357,7 @@ extern cvar_t *sv_maxclients;
 extern cvar_t *dedicated;
 
 // maplist structs
-typedef struct g_maplist_elt_s {
+typedef struct g_map_list_elt_s {
 	char name[32];
 	char title[128];
 	char sky[32];
@@ -380,20 +375,21 @@ typedef struct g_maplist_elt_s {
 	char give[MAX_STRING_CHARS];
 	char music[MAX_STRING_CHARS];
 	float weight;
-} g_maplist_elt_t;
+} g_map_list_elt_t;
 
-#define MAX_MAPLIST_ELTS 64
-#define MAPLIST_WEIGHT 16384
-typedef struct maplist_s {
-	g_maplist_elt_t maps[MAX_MAPLIST_ELTS];
+#define MAX_MAP_LIST_ELTS 64
+#define MAP_LIST_WEIGHT 16384
+
+typedef struct g_map_list_s {
+	g_map_list_elt_t maps[MAX_MAP_LIST_ELTS];
 	int count, index;
 
 	// weighted random selection
-	int weighted_index[MAPLIST_WEIGHT];
+	int weighted_index[MAP_LIST_WEIGHT];
 	float total_weight;
-} g_maplist_t;
+} g_map_list_t;
 
-extern g_maplist_t g_maplist;
+extern g_map_list_t g_map_list;
 
 // voting
 #define MAX_VOTE_TIME 60.0
@@ -444,7 +440,7 @@ void G_PrecacheItem(g_item_t *it);
 void G_InitItems(void);
 void G_SetItemNames(void);
 g_item_t *G_FindItem(const char *pickup_name);
-g_item_t *G_FindItemByClassname(const char *classname);
+g_item_t *G_FindItemByClassname(const char *class_name);
 edict_t *G_DropItem(edict_t *ent, g_item_t *item);
 void G_SetRespawn(edict_t *ent, float delay);
 void G_SpawnItem(edict_t *ent, g_item_t *item);
@@ -457,9 +453,9 @@ void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 qboolean G_KillBox(edict_t *ent);
 void G_ProjectSpawn(edict_t *ent);
 void G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result);
-edict_t *G_Find(edict_t *from, int fieldofs, const char *match);
+edict_t *G_Find(edict_t *from, ptrdiff_t field, const char *match);
 edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad);
-edict_t *G_PickTarget(char *targetname);
+edict_t *G_PickTarget(char *target_name);
 void G_UseTargets(edict_t *ent, edict_t *activator);
 void G_SetMovedir(vec3_t angles, vec3_t movedir);
 char *G_GameplayName(int g);
@@ -524,12 +520,12 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir,
 
 // p_client.c
 qboolean P_Connect(edict_t *ent, char *user_info);
-void P_UserinfoChanged(edict_t *ent, const char *user_info);
+void P_UserInfoChanged(edict_t *ent, const char *user_info);
 void P_Disconnect(edict_t *ent);
 void P_Begin(edict_t *ent);
 void P_Respawn(edict_t *ent, qboolean voluntary);
 void P_BeginServerFrame(edict_t *ent);
-void P_Think(edict_t *ent, usercmd_t *ucmd);
+void P_Think(edict_t *ent, user_cmd_t *ucmd);
 void P_Pain(edict_t *self, edict_t *other, int damage, int knockback);
 void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
 void P_TossQuadDamage(edict_t *self);
@@ -635,14 +631,15 @@ void G_target_string(edict_t *ent);
 #define ANIM_DEATH		5
 #define ANIM_REVERSE	6
 
-#define MAX_NETNAME 64
+#define MAX_NET_NAME 64
+
 // client data that persists through respawns
-typedef struct {
-	int enterframe;  // level.frame_num the client entered the game
+typedef struct g_client_locals_s {
+	int first_frame;  // g_level.frame_num the client entered the game
 
 	char user_info[MAX_INFO_STRING];
-	char netname[MAX_NETNAME];
-	char sqlname[20];
+	char net_name[MAX_NET_NAME];
+	char sql_name[20];
 	char skin[32];
 	int score;
 	int captures;
@@ -678,7 +675,7 @@ typedef struct {
 	int match_num;  // most recent match
 	int round_num;  // most recent arena round
 	int color;  // weapon effect colors
-} client_locals_t;
+} g_client_locals_t;
 
 
 // this structure is cleared on each respawn
@@ -688,20 +685,21 @@ struct g_client_s {
 	int ping;
 
 	// private to game
-	client_locals_t locals;
 
-	qboolean showscores;  // set layout stat
+	g_client_locals_t locals;
+
+	qboolean show_scores;  // sets layout bit mask in player state
 
 	int ammo_index;
 
 	int buttons;
-	int oldbuttons;
+	int old_buttons;
 	int latched_buttons;
 
 	qboolean weapon_thunk;
 	float weapon_fire_time;  // can fire when time > this
-	float muzzleflash_time;  // should send muzzle flash when time > this
-	g_item_t *newweapon;
+	float muzzle_flash_time;  // should send muzzle flash when time > this
+	g_item_t *new_weapon;
 
 	int damage_armor;  // damage absorbed by armor
 	int damage_blood;  // damage taken out of health
@@ -742,23 +740,20 @@ struct g_client_s {
 struct edict_s {
 	entity_state_t s;
 	struct g_client_s *client;  // NULL if not a player
-	// the server expects the first part
-	// of g_client_s to be a player_state_t
-	// but the rest of it is opaque
 
-	qboolean inuse;
-	int linkcount;
+	qboolean in_use;
+	int link_count;
 
 	link_t area;  // linked to a division node or leaf
 
 	int num_clusters;  // if -1, use head_node instead
-	int clusternums[MAX_ENT_CLUSTERS];
+	int cluster_nums[MAX_ENT_CLUSTERS];
 	int head_node;  // unused if num_clusters != -1
-	int areanum, areanum2;
+	int area_num, area_num2;
 
-	int svflags;
+	int sv_flags;
 	vec3_t mins, maxs;
-	vec3_t absmin, absmax, size;
+	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
 	int clipmask;
 	edict_t *owner;
@@ -766,23 +761,23 @@ struct edict_s {
 	// DO NOT MODIFY ANYTHING ABOVE THIS, THE SERVER
 	// EXPECTS THE FIELDS IN THAT ORDER!
 
-	int movetype;
+	g_move_type_t move_type;
 	int flags;
 
 	char *model;
-	float freetime;  // sv.time when the object was freed
+	float free_time;  // sv.time when the object was freed
 
 	// only used locally in game, not by server
-	char *classname;
-	int spawnflags;
+	char *class_name;
+	int spawn_flags;
 
 	float timestamp;
 
 	float angle;  // set in qe3, -1 = up, -2 = down
 	char *target;
-	char *targetname;
-	char *pathtarget;
-	char *killtarget;
+	char *target_name;
+	char *path_target;
+	char *kill_target;
 	char *message;
 	char *team;
 	char *command;
@@ -832,7 +827,7 @@ struct edict_s {
 	edict_t *enemy;
 	edict_t *activator;
 	edict_t *ground_entity;
-	int ground_entity_linkcount;
+	int ground_entity_link_count;
 	edict_t *teamchain;
 	edict_t *teammaster;
 	edict_t *lightning;

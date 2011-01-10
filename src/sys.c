@@ -198,7 +198,7 @@ void Sys_OpenLibrary(const char *name, void **handle){
 }
 
 
-typedef game_export_t *loadgame_t(game_import_t *);
+typedef g_export_t *loadgame_t(g_import_t *);
 static void *game_handle;
 
 /*
@@ -206,7 +206,7 @@ static void *game_handle;
  *
  * Attempts to open and load the game module.
  */
-void *Sys_LoadGame(void *parms){
+void *Sys_LoadGame(void *params){
 	loadgame_t *LoadGame;
 
 	if(game_handle){
@@ -223,7 +223,7 @@ void *Sys_LoadGame(void *parms){
 		return NULL;
 	}
 
-	return LoadGame(parms);
+	return LoadGame(params);
 }
 
 

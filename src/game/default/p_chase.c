@@ -56,16 +56,16 @@ void P_ChaseNext(edict_t *ent){
 	if(!ent->client->chase_target)
 		return;
 
-	i = ent->client->chase_target - g_edicts;
+	i = ent->client->chase_target - g_game.edicts;
 	do {
 		i++;
 
 		if(i > sv_maxclients->value)
 			i = 1;
 
-		e = g_edicts + i;
+		e = g_game.edicts + i;
 
-		if(!e->inuse)
+		if(!e->in_use)
 			continue;
 
 		if(!e->client->locals.spectator)
@@ -87,16 +87,16 @@ void P_ChasePrev(edict_t *ent){
 	if(!ent->client->chase_target)
 		return;
 
-	i = ent->client->chase_target - g_edicts;
+	i = ent->client->chase_target - g_game.edicts;
 	do {
 		i--;
 
 		if(i < 1)
 			i = sv_maxclients->value;
 
-		e = g_edicts + i;
+		e = g_game.edicts + i;
 
-		if(!e->inuse)
+		if(!e->in_use)
 			continue;
 
 		if(!e->client->locals.spectator)
@@ -116,8 +116,8 @@ void P_GetChaseTarget(edict_t *ent){
 	edict_t *other;
 
 	for(i = 1; i <= sv_maxclients->value; i++){
-		other = g_edicts + i;
-		if(other->inuse && !other->client->locals.spectator){
+		other = g_game.edicts + i;
+		if(other->in_use && !other->client->locals.spectator){
 			ent->client->chase_target = other;
 			P_UpdateChaseCam(ent);
 			return;

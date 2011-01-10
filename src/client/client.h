@@ -81,7 +81,7 @@ typedef struct cl_client_s {
 	int timedemo_frames;
 	int timedemo_start;
 
-	usercmd_t cmds[CMD_BACKUP];  // each mesage will send several old cmds
+	user_cmd_t cmds[CMD_BACKUP];  // each mesage will send several old cmds
 	int cmd_time[CMD_BACKUP];  // time sent, for calculating pings
 
 	vec_t predicted_step;
@@ -120,12 +120,12 @@ typedef struct cl_client_s {
 	char layout[MAX_STRING_CHARS];  // general 2D overlay
 
 	int server_count;  // server identification for prespawns
-	int server_hz;  // server tick rate (fps)
+	int server_frame_rate;  // server frame rate (packets per second)
 
 	qboolean demo_server;  // we're viewing a demo
 
 	char gamedir[MAX_QPATH];
-	char configstrings[MAX_CONFIGSTRINGS][MAX_STRING_CHARS];
+	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 
 	// locally derived information from server state
 	r_model_t *model_draw[MAX_MODELS];
@@ -150,7 +150,7 @@ typedef enum {
 	ca_uninitialized,
 	ca_disconnected,    // not talking to a server
 	ca_connecting,   // sending request packets to the server
-	ca_connected,   // netchan_t established, waiting for svc_serverdata
+	ca_connected,   // netchan_t established, waiting for svc_server_data
 	ca_active  // game views should be displayed
 } cl_state_t;
 
@@ -328,7 +328,7 @@ void Cl_WriteDemoMessage(void);
 // cl_input.c
 void Cl_InitInput(void);
 void Cl_HandleEvents(void);
-void Cl_Move(usercmd_t *cmd);
+void Cl_Move(user_cmd_t *cmd);
 
 // cl_cmd.c
 void Cl_UpdateCmd(void);
@@ -356,7 +356,7 @@ void Cl_ClearTyping(void);
 extern char *svc_strings[256];
 
 qboolean Cl_CheckOrDownloadFile(const char *file_name);
-void Cl_ParseConfigstring(void);
+void Cl_ParseConfigString(void);
 void Cl_ParseClientinfo(int player);
 void Cl_ParseMuzzleFlash(void);
 void Cl_ParseServerMessage(void);

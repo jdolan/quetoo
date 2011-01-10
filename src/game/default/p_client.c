@@ -80,7 +80,7 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 
 	if(!g_level.warmup && fraglog != NULL){  // write fraglog
 
-		fprintf(fraglog, "\\%s\\%s\\\n", killer->locals.netname, self->client->locals.netname);
+		fprintf(fraglog, "\\%s\\%s\\\n", killer->locals.net_name, self->client->locals.net_name);
 
 		fflush(fraglog);
 	}
@@ -89,7 +89,7 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 	if(!g_level.warmup && mysql != NULL){  // insert to db
 
 		snprintf(sql, sizeof(sql), "insert into frag values(null, now(), '%s', '%s', '%s', %d)",
-				 g_level.name, killer->locals.sqlname, self->client->locals.sqlname, mod
+				 g_level.name, killer->locals.sql_name, self->client->locals.sql_name, mod
 				);
 
 		sql[sizeof(sql) - 1] = '\0';
@@ -142,7 +142,7 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 	}
 
 	if(message){  // suicide
-		gi.BroadcastPrint(PRINT_MEDIUM, "%s %s.\n", self->client->locals.netname, message);
+		gi.BroadcastPrint(PRINT_MEDIUM, "%s %s.\n", self->client->locals.net_name, message);
 
 		if(g_level.warmup)
 			return;
@@ -218,8 +218,8 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 		if(message){
 
 			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s %s\n", (ff ? "^1TEAMKILL^7 " : ""),
-					self->client->locals.netname, message,
-					attacker->client->locals.netname, message2
+					self->client->locals.net_name, message,
+					attacker->client->locals.net_name, message2
 			);
 
 			if(g_level.warmup)
@@ -304,7 +304,7 @@ void P_TossFlag(edict_t *self){
 	self->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
-			self->client->locals.netname, ot->name);
+			self->client->locals.net_name, ot->name);
 
 	G_DropItem(self, of->item);
 }
@@ -336,7 +336,7 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 	if(!g_level.gameplay && !g_level.warmup)  // drop weapon
 		P_TossWeapon(self);
 
-	self->client->newweapon = NULL;  // reset weapon state
+	self->client->new_weapon = NULL;  // reset weapon state
 	P_ChangeWeapon(self);
 
 	if(!g_level.gameplay && !g_level.warmup)  // drop quad
@@ -347,10 +347,10 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 
 	G_Score_f(self);  // show scores
 
-	self->svflags |= SVF_NOCLIENT;
+	self->sv_flags |= SVF_NOCLIENT;
 
 	self->dead = true;
-	self->classname = "dead";
+	self->class_name = "dead";
 
 	self->s.model_index = 0;
 	self->s.model_index2 = 0;
@@ -514,14 +514,14 @@ static void P_InitClientLocals(g_client_t *client){
 
 	if(P_GiveLevelLocals(client)){  // use the best weapon we were given by level
 		P_NoAmmoWeaponChange(client);
-		client->locals.weapon = client->newweapon;
+		client->locals.weapon = client->new_weapon;
 	}
 	else  // or use best given by gameplay
 		client->locals.weapon = item;
 
 	// clean up weapon state
 	client->locals.lastweapon = NULL;
-	client->newweapon = NULL;
+	client->new_weapon = NULL;
 	client->locals.weapon_frame = 0;
 }
 
@@ -540,9 +540,9 @@ static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 	bestdist = 9999999.0;
 
 	for(n = 1; n <= sv_maxclients->value; n++){
-		player = &g_edicts[n];
+		player = &g_game.edicts[n];
 
-		if(!player->inuse)
+		if(!player->in_use)
 			continue;
 
 		if(player->health <= 0)
@@ -573,13 +573,13 @@ static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 /*
  * P_SelectRandomDeathmatchSpawnPoint
  */
-static edict_t *P_SelectRandomSpawnPoint(edict_t *ent, const char *classname){
+static edict_t *P_SelectRandomSpawnPoint(edict_t *ent, const char *class_name){
 	edict_t *spot;
 	int count = 0;
 
 	spot = NULL;
 
-	while((spot = G_Find(spot, FOFS(classname), classname)) != NULL)
+	while((spot = G_Find(spot, FOFS(class_name), class_name)) != NULL)
 		count++;
 
 	if(!count)
@@ -588,7 +588,7 @@ static edict_t *P_SelectRandomSpawnPoint(edict_t *ent, const char *classname){
 	count = rand() % count;
 
 	while(count-- >= 0)
-		spot = G_Find(spot, FOFS(classname), classname);
+		spot = G_Find(spot, FOFS(class_name), class_name);
 
 	return spot;
 }
@@ -597,14 +597,14 @@ static edict_t *P_SelectRandomSpawnPoint(edict_t *ent, const char *classname){
 /*
  * P_SelectFarthestDeathmatchSpawnPoint
  */
-static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *classname){
+static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *class_name){
 	edict_t *spot, *bestspot;
 	float dist, bestdist;
 
 	spot = bestspot = NULL;
 	bestdist = 0.0;
 
-	while((spot = G_Find(spot, FOFS(classname), classname)) != NULL){
+	while((spot = G_Find(spot, FOFS(class_name), class_name)) != NULL){
 
 		dist = P_EnemyRangeFromSpot(ent, spot);
 
@@ -619,7 +619,7 @@ static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *classname){
 
 	// if there is an enemy just spawned on each and every start spot
 	// we have no choice to turn one into a telefrag meltdown
-	spot = G_Find(NULL, FOFS(classname), classname);
+	spot = G_Find(NULL, FOFS(class_name), class_name);
 
 	return spot;
 }
@@ -672,13 +672,13 @@ static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
 
 	// and lastly fall back on single player start
 	if(!spot){
-		while((spot = G_Find(spot, FOFS(classname), "info_player_start")) != NULL){
-			if(!spot->targetname)  // hopefully without a target
+		while((spot = G_Find(spot, FOFS(class_name), "info_player_start")) != NULL){
+			if(!spot->target_name)  // hopefully without a target
 				break;
 		}
 
 		if(!spot){  // last resort, find any
-			if((spot = G_Find(spot, FOFS(classname), "info_player_start")) == NULL)
+			if((spot = G_Find(spot, FOFS(class_name), "info_player_start")) == NULL)
 				gi.Error("P_SelectSpawnPoint: Couldn't find spawn point.");
 		}
 	}
@@ -698,7 +698,7 @@ static void P_PutClientInServer(edict_t *ent){
 	vec3_t spawn_origin, spawn_angles, old_angles;
 	float height;
 	g_client_t *client;
-	client_locals_t locals;
+	g_client_locals_t locals;
 	int i;
 
 	// find a spawn point
@@ -724,10 +724,10 @@ static void P_PutClientInServer(edict_t *ent){
 
 	ent->ground_entity = NULL;
 	ent->takedamage = true;
-	ent->movetype = MOVETYPE_WALK;
+	ent->move_type = MOVE_TYPE_WALK;
 	ent->view_height = ent->mins[2] + (height * 0.75);
-	ent->inuse = true;
-	ent->classname = "player";
+	ent->in_use = true;
+	ent->class_name = "player";
 	ent->mass = 200.0;
 	ent->solid = SOLID_BBOX;
 	ent->dead = false;
@@ -740,7 +740,7 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->die = P_Die;
 	ent->water_level = 0;
 	ent->water_type = 0;
-	ent->svflags = 0;
+	ent->sv_flags = 0;
 
 	// copy these back once they have been set in locals
 	ent->health = ent->client->locals.health;
@@ -762,7 +762,7 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->s.model_index2 = 255;  // custom gun model
 	// skin_num is player num and weapon number
 	// weapon number will be added in changeweapon
-	ent->s.skin_num = ent - g_edicts - 1;
+	ent->s.skin_num = ent - g_game.edicts - 1;
 	ent->s.model_index3 = 0;
 	ent->s.model_index4 = 0;
 
@@ -788,9 +788,9 @@ static void P_PutClientInServer(edict_t *ent){
 		client->locals.team = NULL;
 		client->locals.ready = false;
 
-		ent->movetype = MOVETYPE_NOCLIP;
+		ent->move_type = MOVE_TYPE_NOCLIP;
 		ent->solid = SOLID_NOT;
-		ent->svflags |= SVF_NOCLIENT;
+		ent->sv_flags |= SVF_NOCLIENT;
 		ent->takedamage = false;
 
 		gi.LinkEntity(ent);
@@ -814,7 +814,7 @@ static void P_PutClientInServer(edict_t *ent){
 	gi.LinkEntity(ent);
 
 	// force the current weapon up
-	client->newweapon = client->locals.weapon;
+	client->new_weapon = client->locals.weapon;
 	P_ChangeWeapon(ent);
 }
 
@@ -841,12 +841,12 @@ void P_Respawn(edict_t *ent, qboolean voluntary){
 		return;
 
 	if(ent->client->locals.spectator)
-		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n", ent->client->locals.netname);
+		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n", ent->client->locals.net_name);
 	else if(ent->client->locals.team)
-		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", ent->client->locals.netname,
+		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", ent->client->locals.net_name,
 				ent->client->locals.team->name);
 	else
-		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->locals.netname);
+		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->locals.net_name);
 }
 
 
@@ -859,16 +859,16 @@ void P_Respawn(edict_t *ent, qboolean voluntary){
 void P_Begin(edict_t *ent){
 	char welcome[256];
 
-	int player_num = ent - g_edicts - 1;
+	int player_num = ent - g_game.edicts - 1;
 
-	ent->client = g_locals.clients + player_num;
+	ent->client = g_game.clients + player_num;
 
 	G_InitEdict(ent);
 
 	P_InitClientLocals(ent->client);
 
 	VectorClear(ent->client->cmd_angles);
-	ent->client->locals.enterframe = g_level.frame_num;
+	ent->client->locals.first_frame = g_level.frame_num;
 
 	// force spectator if match or rounds
 	if(g_level.match || g_level.rounds)
@@ -912,12 +912,12 @@ void P_Begin(edict_t *ent){
 
 
 /*
- * P_UserinfoChanged
+ * P_UserInfoChanged
  */
-void P_UserinfoChanged(edict_t *ent, const char *user_info){
+void P_UserInfoChanged(edict_t *ent, const char *user_info){
 	const char *s;
 	char *c;
-	char name[MAX_NETNAME];
+	char name[MAX_NET_NAME];
 	int player_num, i;
 	qboolean color;
 	g_client_t *cl;
@@ -962,22 +962,22 @@ void P_UserinfoChanged(edict_t *ent, const char *user_info){
 	if(color)  // reset to white
 		strcat(name, "^7");
 
-	if(strncmp(cl->locals.netname, name, sizeof(cl->locals.netname))){
+	if(strncmp(cl->locals.net_name, name, sizeof(cl->locals.net_name))){
 
-		if(*cl->locals.netname != '\0')
-			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->locals.netname, name);
+		if(*cl->locals.net_name != '\0')
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->locals.net_name, name);
 
-		strncpy(cl->locals.netname, name, sizeof(cl->locals.netname) - 1);
-		cl->locals.netname[sizeof(cl->locals.netname) - 1] = 0;
+		strncpy(cl->locals.net_name, name, sizeof(cl->locals.net_name) - 1);
+		cl->locals.net_name[sizeof(cl->locals.net_name) - 1] = 0;
 	}
 
 #ifdef HAVE_MYSQL
 	if(mysql != NULL){  // escape name for safe db insertions
 
-		Com_StripColor(cl->locals.netname, name);
+		Com_StripColor(cl->locals.net_name, name);
 
-		mysql_real_escape_string(mysql, name, cl->locals.sqlname,
-				sizeof(cl->locals.sqlname));
+		mysql_real_escape_string(mysql, name, cl->locals.sql_name,
+				sizeof(cl->locals.sql_name));
 	}
 #endif
 
@@ -1010,10 +1010,10 @@ void P_UserinfoChanged(edict_t *ent, const char *user_info){
 	s = Info_ValueForKey(user_info, "color");
 	cl->locals.color = ColorByName(s, 243);
 
-	player_num = ent - g_edicts - 1;
+	player_num = ent - g_game.edicts - 1;
 
-	// combine name and skin into a configstring
-	gi.Configstring(CS_PLAYERSKINS + player_num, va("%s\\%s", cl->locals.netname, cl->locals.skin));
+	// combine name and skin into a config_string
+	gi.ConfigString(CS_PLAYER_SKINS + player_num, va("%s\\%s", cl->locals.net_name, cl->locals.skin));
 
 	// save off the user_info in case we want to check something later
 	strncpy(ent->client->locals.user_info, user_info, sizeof(ent->client->locals.user_info) - 1);
@@ -1040,22 +1040,22 @@ qboolean P_Connect(edict_t *ent, char *user_info){
 	}
 
 	// they can connect
-	ent->client = g_locals.clients + (ent - g_edicts - 1);
+	ent->client = g_game.clients + (ent - g_game.edicts - 1);
 
 	// clean up locals things which are not reset on spawns
 	ent->client->locals.score = 0;
 	ent->client->locals.team = NULL;
 	ent->client->locals.vote = VOTE_NOOP;
 	ent->client->locals.spectator = false;
-	ent->client->locals.netname[0] = 0;
+	ent->client->locals.net_name[0] = 0;
 
 	// set name, skin, etc..
-	P_UserinfoChanged(ent, user_info);
+	P_UserInfoChanged(ent, user_info);
 
 	if(sv_maxclients->value > 1)
-		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.netname);
+		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.net_name);
 
-	ent->svflags = 0; // make sure we start with known default
+	ent->sv_flags = 0; // make sure we start with known default
 	return true;
 }
 
@@ -1074,11 +1074,11 @@ void P_Disconnect(edict_t *ent){
 	P_TossQuadDamage(ent);
 	P_TossFlag(ent);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.netname);
+	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.net_name);
 
 	// send effect
-	gi.WriteByte(svc_muzzleflash);
-	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_LOGOUT);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 
@@ -1086,16 +1086,16 @@ void P_Disconnect(edict_t *ent){
 
 	ent->client->locals.user_info[0] = 0;
 
-	ent->inuse = false;
+	ent->in_use = false;
 	ent->solid = SOLID_NOT;
 	ent->s.model_index = 0;
 	ent->s.model_index2 = 0;
 	ent->s.model_index3 = 0;
 	ent->s.model_index4 = 0;
-	ent->classname = "disconnected";
+	ent->class_name = "disconnected";
 
-	player_num = ent - g_edicts - 1;
-	gi.Configstring(CS_PLAYERSKINS + player_num, "");
+	player_num = ent - g_game.edicts - 1;
+	gi.ConfigString(CS_PLAYER_SKINS + player_num, "");
 }
 
 
@@ -1138,11 +1138,11 @@ static void P_InventoryThink(edict_t *ent){
  * This will be called once for each client frame, which will
  * usually be a couple times for each server frame.
  */
-void P_Think(edict_t *ent, usercmd_t *ucmd){
+void P_Think(edict_t *ent, user_cmd_t *ucmd){
 	g_client_t *client;
 	edict_t *other;
 	int i, j;
-	pmove_t pm;
+	pm_move_t pm;
 
 	g_level.current_entity = ent;
 	client = ent->client;
@@ -1158,7 +1158,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 		client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
 
-		if(!client->chase_target->inuse ||
+		if(!client->chase_target->in_use ||
 				client->chase_target->client->locals.spectator){
 
 			other = client->chase_target;
@@ -1175,7 +1175,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 		client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 
-		if(ent->movetype == MOVETYPE_NOCLIP)
+		if(ent->move_type == MOVE_TYPE_NOCLIP)
 			client->ps.pmove.pm_type = PM_SPECTATOR;
 		else if(ent->s.model_index != 255 || ent->dead)
 			client->ps.pmove.pm_type = PM_DEAD;
@@ -1220,7 +1220,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 				(pm.cmd.up >= 10) && (pm.water_level == 0) &&
 				ent->jump_time < g_level.time - 0.2){
 
-			if(crandom() > 0)
+			if(crand() > 0)
 				gi.Sound(ent, gi.SoundIndex("*jump_1"), ATTN_NORM);
 			else
 				gi.Sound(ent, gi.SoundIndex("*jump_2"), ATTN_NORM);
@@ -1234,7 +1234,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 		ent->ground_entity = pm.ground_entity;
 		if(pm.ground_entity)
-			ent->ground_entity_linkcount = pm.ground_entity->linkcount;
+			ent->ground_entity_link_count = pm.ground_entity->link_count;
 
 		VectorCopy(pm.angles, client->angles);
 		VectorCopy(pm.angles, client->ps.angles);
@@ -1242,7 +1242,7 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 		gi.LinkEntity(ent);
 
 		// touch jump pads, hurt brushes, etc..
-		if(ent->movetype != MOVETYPE_NOCLIP && ent->health > 0)
+		if(ent->move_type != MOVE_TYPE_NOCLIP && ent->health > 0)
 			G_TouchTriggers(ent);
 
 		// touch other objects
@@ -1264,9 +1264,9 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 		}
 	}
 
-	client->oldbuttons = client->buttons;
+	client->old_buttons = client->buttons;
 	client->buttons = ucmd->buttons;
-	client->latched_buttons |= client->buttons & ~client->oldbuttons;
+	client->latched_buttons |= client->buttons & ~client->old_buttons;
 
 	// fire weapon if requested
 	if(client->latched_buttons & BUTTON_ATTACK){
@@ -1288,8 +1288,8 @@ void P_Think(edict_t *ent, usercmd_t *ucmd){
 
 	// update chase cam if being followed
 	for(i = 1; i <= sv_maxclients->value; i++){
-		other = g_edicts + i;
-		if(other->inuse && other->client->chase_target == ent)
+		other = g_game.edicts + i;
+		if(other->in_use && other->client->chase_target == ent)
 			P_UpdateChaseCam(other);
 	}
 

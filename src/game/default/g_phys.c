@@ -51,7 +51,7 @@ static edict_t *G_TestEntityPosition(edict_t *ent){
 	trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, ent, mask);
 
 	if(trace.start_solid)
-		return g_edicts;
+		return g_game.edicts;
 
 	return NULL;
 }
@@ -193,7 +193,7 @@ retry:
 		G_Impact(ent, &trace);
 
 		// if the pushed entity went away and the pusher is still there
-		if(!trace.ent->inuse && ent->inuse){
+		if(!trace.ent->in_use && ent->in_use){
 			// move the pusher back and try again
 			VectorCopy(start, ent->s.origin);
 			gi.LinkEntity(ent);
@@ -201,7 +201,7 @@ retry:
 		}
 	}
 
-	if(ent->inuse && ent->client && ent->health > 0)
+	if(ent->in_use && ent->client && ent->health > 0)
 		G_TouchTriggers(ent);
 
 	return trace;
@@ -246,8 +246,8 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 
 	// find the bounding box
 	for(i = 0; i < 3; i++){
-		mins[i] = pusher->absmin[i] + move[i];
-		maxs[i] = pusher->absmax[i] + move[i];
+		mins[i] = pusher->abs_mins[i] + move[i];
+		maxs[i] = pusher->abs_maxs[i] + move[i];
 	}
 
 	// we need this for pushing things later
@@ -268,16 +268,16 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 	gi.LinkEntity(pusher);
 
 	// see if any solid entities are inside the final position
-	check = g_edicts + 1;
+	check = g_game.edicts + 1;
 	for(e = 1; e < ge.num_edicts; e++, check++){
 
-		if(!check->inuse)
+		if(!check->in_use)
 			continue;
 
-		if(check->movetype == MOVETYPE_PUSH
-				|| check->movetype == MOVETYPE_STOP
-				|| check->movetype == MOVETYPE_NONE
-				|| check->movetype == MOVETYPE_NOCLIP)
+		if(check->move_type == MOVE_TYPE_PUSH
+				|| check->move_type == MOVE_TYPE_STOP
+				|| check->move_type == MOVE_TYPE_NONE
+				|| check->move_type == MOVE_TYPE_NOCLIP)
 			continue;
 
 		if(!check->area.prev)
@@ -291,12 +291,12 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 				continue;
 
 			// see if the ent needs to be tested
-			if(check->absmin[0] >= maxs[0]
-					|| check->absmin[1] >= maxs[1]
-					|| check->absmin[2] >= maxs[2]
-					|| check->absmax[0] <= mins[0]
-					|| check->absmax[1] <= mins[1]
-					|| check->absmax[2] <= mins[2])
+			if(check->abs_mins[0] >= maxs[0]
+					|| check->abs_mins[1] >= maxs[1]
+					|| check->abs_mins[2] >= maxs[2]
+					|| check->abs_maxs[0] <= mins[0]
+					|| check->abs_maxs[1] <= mins[1]
+					|| check->abs_maxs[2] <= mins[2])
 				continue;
 
 			// see if the ent's bbox is inside the pusher's final position
@@ -304,7 +304,7 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 				continue;
 		}
 
-		if((pusher->movetype == MOVETYPE_PUSH) || (check->ground_entity == pusher)){
+		if((pusher->move_type == MOVE_TYPE_PUSH) || (check->ground_entity == pusher)){
 			// move this entity
 			pushed_p->ent = check;
 			VectorCopy(check->s.origin, pushed_p->origin);
@@ -367,7 +367,7 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 	//FIXME: is there a better way to handle this?
 	// see if anything we moved has touched a trigger
 	for(p = pushed_p - 1; p >= pushed; p--){
-		if(p->ent->inuse && p->ent->client && p->ent->health > 0)
+		if(p->ent->in_use && p->ent->client && p->ent->health > 0)
 			G_TouchTriggers(p->ent);
 	}
 
@@ -478,7 +478,7 @@ static void G_Physics_Toss(edict_t *ent){
 
 	// check for the ground entity going away
 	if(ent->ground_entity){
-		if(!ent->ground_entity->inuse)
+		if(!ent->ground_entity->in_use)
 			ent->ground_entity = NULL;
 		else if(ent->velocity[2] > ent->ground_entity->velocity[2] + 0.1)
 			ent->ground_entity = NULL;
@@ -486,14 +486,14 @@ static void G_Physics_Toss(edict_t *ent){
 	}
 
 	// if on ground, or intentionally floating, return without moving
-	if(ent->ground_entity || (ent->item && (ent->spawnflags & 4)))
+	if(ent->ground_entity || (ent->item && (ent->spawn_flags & 4)))
 		return;
 
 	// enforce max velocity values
 	G_CheckVelocity(ent);
 
 	// add gravity
-	if(ent->movetype != MOVETYPE_FLY)
+	if(ent->move_type != MOVE_TYPE_FLY)
 		G_AddGravity(ent);
 
 	// move angles
@@ -506,7 +506,7 @@ static void G_Physics_Toss(edict_t *ent){
 	// push through the world, interacting with triggers and other ents
 	trace = G_PushEntity(ent, move);
 
-	if(!ent->inuse)
+	if(!ent->in_use)
 		return;
 
 	if(trace.fraction < 1.0){  // move was blocked
@@ -522,7 +522,7 @@ static void G_Physics_Toss(edict_t *ent){
 				VectorClear(ent->velocity);
 
 				ent->ground_entity = trace.ent;
-				ent->ground_entity_linkcount = trace.ent->linkcount;
+				ent->ground_entity_link_count = trace.ent->link_count;
 			}
 			else {
 				// bounce and slide along the floor
@@ -550,9 +550,9 @@ static void G_Physics_Toss(edict_t *ent){
 		ent->water_level = 0;
 
 	if(!wasinwater && isinwater)
-		gi.PositionedSound(ent->s.origin, g_edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
+		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
 	else if(wasinwater && !isinwater)
-		gi.PositionedSound(ent->s.origin, g_edicts, gi.SoundIndex("world/water_out"), ATTN_NORM);
+		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
 	// move teamslaves
 	for(slave = ent->teamchain; slave; slave = slave->teamchain){
@@ -569,22 +569,22 @@ void G_RunEntity(edict_t *ent){
 	if(ent->prethink)
 		ent->prethink(ent);
 
-	switch((int)ent->movetype){
-		case MOVETYPE_PUSH:
-		case MOVETYPE_STOP:
+	switch((int)ent->move_type){
+		case MOVE_TYPE_PUSH:
+		case MOVE_TYPE_STOP:
 			G_Physics_Pusher(ent);
 			break;
-		case MOVETYPE_NONE:
+		case MOVE_TYPE_NONE:
 			G_Physics_None(ent);
 			break;
-		case MOVETYPE_NOCLIP:
+		case MOVE_TYPE_NOCLIP:
 			G_Physics_Noclip(ent);
 			break;
-		case MOVETYPE_FLY:
-		case MOVETYPE_TOSS:
+		case MOVE_TYPE_FLY:
+		case MOVE_TYPE_TOSS:
 			G_Physics_Toss(ent);
 			break;
 		default:
-			gi.Error("G_RunEntity: Bad movetype %i.", (int)ent->movetype);
+			gi.Error("G_RunEntity: Bad move type %i.", (int)ent->move_type);
 	}
 }

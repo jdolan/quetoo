@@ -248,7 +248,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node){
 	if(node->vis_frame != r_locals.vis_frame)
 		return;  // not in view
 
-	if(R_CullBox(node->mins, node->maxs + 3))
+	if(R_CullBox(node->mins, node->maxs))
 		return;  // culled out
 
 	// if leaf node, flag surfaces to draw this frame

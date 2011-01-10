@@ -293,9 +293,9 @@ static void Sv_Serverinfo_f(void){
 
 
 /*
- * Sv_Userinfo_f
+ * Sv_UserInfo_f
  */
-static void Sv_Userinfo_f(void){
+static void Sv_UserInfo_f(void){
 
 	if(!svs.initialized){
 		Com_Print("No server running.\n");
@@ -322,7 +322,7 @@ void Sv_InitOperatorCommands(void){
 	Cmd_AddCommand("kick", Sv_Kick_f, "Kick a specific user");
 	Cmd_AddCommand("status", Sv_Status_f, "Print some server status information");
 	Cmd_AddCommand("serverinfo", Sv_Serverinfo_f, "Print server info settings");
-	Cmd_AddCommand("user_info", Sv_Userinfo_f, "Print information for a given user");
+	Cmd_AddCommand("user_info", Sv_UserInfo_f, "Print information for a given user");
 
 	Cmd_AddCommand("demo", Sv_Demo_f, "Start playback of the specified demo file");
 	Cmd_AddCommand("map", Sv_Map_f, "Start a new map");

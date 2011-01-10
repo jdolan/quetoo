@@ -30,53 +30,50 @@
 #define MAX_NUM_ARGVS 64
 
 // sizebuf and net message facilities
-typedef struct sizebuf_s {
+typedef struct size_buf_s {
 	qboolean allow_overflow;  // error if false and overflow occurs
 	qboolean overflowed;  // set to true when a write excedes max_size
 	byte *data;
 	size_t max_size;
 	size_t size;
 	size_t read;
-} sizebuf_t;
+} size_buf_t;
 
-void Sb_Init(sizebuf_t *buf, byte *data, size_t length);
-void Sb_Clear(sizebuf_t *buf);
-void *Sb_GetSpace(sizebuf_t *buf, size_t length);
-void Sb_Write(sizebuf_t *buf, const void *data, size_t length);
-void Sb_Print(sizebuf_t *buf, const char *data);
+void Sb_Init(size_buf_t *buf, byte *data, size_t length);
+void Sb_Clear(size_buf_t *buf);
+void *Sb_GetSpace(size_buf_t *buf, size_t length);
+void Sb_Write(size_buf_t *buf, const void *data, size_t length);
+void Sb_Print(size_buf_t *buf, const char *data);
 
-struct usercmd_s;
-struct entity_state_s;
+void Msg_WriteChar(size_buf_t *sb, int c);
+void Msg_WriteByte(size_buf_t *sb, int c);
+void Msg_WriteShort(size_buf_t *sb, int c);
+void Msg_WriteLong(size_buf_t *sb, int c);
+void Msg_WriteFloat(size_buf_t *sb, float f);
+void Msg_WriteString(size_buf_t *sb, const char *s);
+void Msg_WriteCoord(size_buf_t *sb, float f);
+void Msg_WritePos(size_buf_t *sb, vec3_t pos);
+void Msg_WriteAngle(size_buf_t *sb, float f);
+void Msg_WriteAngle16(size_buf_t *sb, float f);
+void Msg_WriteDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
+void Msg_WriteDeltaEntity(struct entity_state_s *from, struct entity_state_s *to, size_buf_t *msg, qboolean force, qboolean newentity);
+void Msg_WriteDir(size_buf_t *sb, vec3_t vector);
 
-void Msg_WriteChar(sizebuf_t *sb, int c);
-void Msg_WriteByte(sizebuf_t *sb, int c);
-void Msg_WriteShort(sizebuf_t *sb, int c);
-void Msg_WriteLong(sizebuf_t *sb, int c);
-void Msg_WriteFloat(sizebuf_t *sb, float f);
-void Msg_WriteString(sizebuf_t *sb, const char *s);
-void Msg_WriteCoord(sizebuf_t *sb, float f);
-void Msg_WritePos(sizebuf_t *sb, vec3_t pos);
-void Msg_WriteAngle(sizebuf_t *sb, float f);
-void Msg_WriteAngle16(sizebuf_t *sb, float f);
-void Msg_WriteDeltaUsercmd(sizebuf_t *sb, struct usercmd_s *from, struct usercmd_s *cmd);
-void Msg_WriteDeltaEntity(struct entity_state_s *from, struct entity_state_s *to, sizebuf_t *msg, qboolean force, qboolean newentity);
-void Msg_WriteDir(sizebuf_t *sb, vec3_t vector);
-
-void Msg_BeginReading(sizebuf_t *sb);
-int Msg_ReadChar(sizebuf_t *sb);
-int Msg_ReadByte(sizebuf_t *sb);
-int Msg_ReadShort(sizebuf_t *sb);
-int Msg_ReadLong(sizebuf_t *sb);
-float Msg_ReadFloat(sizebuf_t *sb);
-char *Msg_ReadString(sizebuf_t *sb);
-char *Msg_ReadStringLine(sizebuf_t *sb);
-float Msg_ReadCoord(sizebuf_t *sb);
-void Msg_ReadPos(sizebuf_t *sb, vec3_t pos);
-float Msg_ReadAngle(sizebuf_t *sb);
-float Msg_ReadAngle16(sizebuf_t *sb);
-void Msg_ReadDeltaUsercmd(sizebuf_t *sb, struct usercmd_s *from, struct usercmd_s *cmd);
-void Msg_ReadDir(sizebuf_t *sb, vec3_t vector);
-void Msg_ReadData(sizebuf_t *sb, void *buffer, size_t size);
+void Msg_BeginReading(size_buf_t *sb);
+int Msg_ReadChar(size_buf_t *sb);
+int Msg_ReadByte(size_buf_t *sb);
+int Msg_ReadShort(size_buf_t *sb);
+int Msg_ReadLong(size_buf_t *sb);
+float Msg_ReadFloat(size_buf_t *sb);
+char *Msg_ReadString(size_buf_t *sb);
+char *Msg_ReadStringLine(size_buf_t *sb);
+float Msg_ReadCoord(size_buf_t *sb);
+void Msg_ReadPos(size_buf_t *sb, vec3_t pos);
+float Msg_ReadAngle(size_buf_t *sb);
+float Msg_ReadAngle16(size_buf_t *sb);
+void Msg_ReadDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
+void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
+void Msg_ReadData(size_buf_t *sb, void *buffer, size_t size);
 
 
 /*
@@ -110,18 +107,18 @@ PROTOCOL
 enum svc_ops_e {
 	svc_bad,
 	svc_nop,
-	svc_muzzleflash,
+	svc_muzzle_flash,
 	svc_temp_entity,
 	svc_layout,
 	svc_disconnect,
 	svc_reconnect,
 	svc_sound,   // <see code>
 	svc_print,   // [byte] id [string] null terminated string
-	svc_stufftext,   // [string] stuffed into client's console buffer, should be \n terminated
-	svc_serverdata,   // [long] protocol ...
-	svc_configstring,   // [short] [string]
-	svc_spawnbaseline,
-	svc_centerprint,   // [string] to put in center of the screen
+	svc_stuff_text,   // [string] stuffed into client's console buffer, should be \n terminated
+	svc_server_data,   // [long] protocol ...
+	svc_config_string,   // [short] [string]
+	svc_spawn_baseline,
+	svc_center_print,   // [string] to put in center of the screen
 	svc_download,   // [short] size [size bytes]
 	svc_frame,
 	svc_zlib  // quake2world specific zlib compression command
@@ -137,7 +134,7 @@ enum clc_ops_e {
 	clc_nop,
 	clc_move,  // [[usercmd_t]
 	clc_user_info,  // [[user_info string]
-	clc_stringcmd  // [string] message
+	clc_string_cmd  // [string] message
 };
 
 

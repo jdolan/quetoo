@@ -88,15 +88,15 @@ static void G_CallSpawn(edict_t *ent){
 	g_override_t *over;
 	int i;
 
-	if(!ent->classname){
+	if(!ent->class_name){
 		gi.Debug("G_CallSpawn: NULL classname\n");
 		return;
 	}
 
 	// check overrides
-	for(i = 0; i < g_locals.num_overrides; i++){
-		over = &overrides[i];
-		if(!strcmp(ent->classname, over->old)){  // found it
+	for(i = 0; i < g_game.num_overrides; i++){
+		over = &g_overrides[i];
+		if(!strcmp(ent->class_name, over->old)){  // found it
 			item = G_FindItemByClassname(over->new);
 			G_SpawnItem(ent, item);
 			return;
@@ -104,10 +104,10 @@ static void G_CallSpawn(edict_t *ent){
 	}
 
 	// check item spawn functions
-	for(i = 0, item = g_items; i < g_locals.num_items; i++, item++){
-		if(!item->classname)
+	for(i = 0, item = g_items; i < g_game.num_items; i++, item++){
+		if(!item->class_name)
 			continue;
-		if(!strcmp(item->classname, ent->classname)){  // found it
+		if(!strcmp(item->class_name, ent->class_name)){  // found it
 			G_SpawnItem(ent, item);
 			return;
 		}
@@ -115,13 +115,13 @@ static void G_CallSpawn(edict_t *ent){
 
 	// check normal spawn functions
 	for(s = spawns; s->name; s++){
-		if(!strcmp(s->name, ent->classname)){  // found it
+		if(!strcmp(s->name, ent->class_name)){  // found it
 			s->spawn(ent);
 			return;
 		}
 	}
 
-	gi.Debug("%s doesn't have a spawn function\n", ent->classname);
+	gi.Debug("%s doesn't have a spawn function\n", ent->class_name);
 }
 
 
@@ -154,46 +154,42 @@ static char *G_NewString(const char *string){
 
 
 // fields are needed for spawning from the entity string
-#define FFL_SPAWNTEMP		1
-#define FFL_NOSPAWN			2
+#define FFL_SPAWN_TEMP		1
+#define FFL_NO_SPAWN			2
 
-typedef enum {
+typedef enum g_field_type_s {
 	F_INT,
 	F_FLOAT,
-	F_LSTRING,     // string on disk, pointer in memory, TAG_LEVEL
-	F_GSTRING,     // string on disk, pointer in memory, TAG_GAME
+	F_STRING,     // string on disk, pointer in memory, TAG_LEVEL
 	F_VECTOR,
 	F_ANGLEHACK,
 	F_EDICT,     // index on disk, pointer in memory
 	F_ITEM,     // index on disk, pointer in memory
-	F_CLIENT,     // index on disk, pointer in memory
-	F_FUNCTION,
-	F_MMOVE,
-	F_IGNORE
-} fieldtype_t;
+	F_FUNCTION
+} g_field_type_t;
 
-typedef struct {
+typedef struct g_field_s {
 	char *name;
 	ptrdiff_t ofs;
-	fieldtype_t type;
+	g_field_type_t type;
 	int flags;
-} field_t;
+} g_field_t;
 
-static const field_t fields[] = {
-	{"classname", FOFS(classname), F_LSTRING},
-	{"model", FOFS(model), F_LSTRING},
-	{"spawnflags", FOFS(spawnflags), F_INT},
+static const g_field_t fields[] = {
+	{"classname", FOFS(class_name), F_STRING},
+	{"model", FOFS(model), F_STRING},
+	{"spawnflags", FOFS(spawn_flags), F_INT},
 	{"speed", FOFS(speed), F_FLOAT},
 	{"accel", FOFS(accel), F_FLOAT},
 	{"decel", FOFS(decel), F_FLOAT},
-	{"target", FOFS(target), F_LSTRING},
-	{"targetname", FOFS(targetname), F_LSTRING},
-	{"pathtarget", FOFS(pathtarget), F_LSTRING},
-	{"killtarget", FOFS(killtarget), F_LSTRING},
-	{"message", FOFS(message), F_LSTRING},
-	{"team", FOFS(team), F_LSTRING},
-	{"command", FOFS(command), F_LSTRING},
-	{"script", FOFS(script), F_LSTRING},
+	{"target", FOFS(target), F_STRING},
+	{"targetname", FOFS(target_name), F_STRING},
+	{"pathtarget", FOFS(path_target), F_STRING},
+	{"killtarget", FOFS(kill_target), F_STRING},
+	{"message", FOFS(message), F_STRING},
+	{"team", FOFS(team), F_STRING},
+	{"command", FOFS(command), F_STRING},
+	{"script", FOFS(script), F_STRING},
 	{"wait", FOFS(wait), F_FLOAT},
 	{"delay", FOFS(delay), F_FLOAT},
 	{"random", FOFS(random), F_FLOAT},
@@ -208,49 +204,49 @@ static const field_t fields[] = {
 	{"angles", FOFS(s.angles), F_VECTOR},
 	{"angle", FOFS(s.angles), F_ANGLEHACK},
 
-	{"enemy", FOFS(enemy), F_EDICT, FFL_NOSPAWN},
-	{"activator", FOFS(activator), F_EDICT, FFL_NOSPAWN},
-	{"ground_entity", FOFS(ground_entity), F_EDICT, FFL_NOSPAWN},
-	{"teamchain", FOFS(teamchain), F_EDICT, FFL_NOSPAWN},
-	{"teammaster", FOFS(teammaster), F_EDICT, FFL_NOSPAWN},
-	{"owner", FOFS(owner), F_EDICT, FFL_NOSPAWN},
-	{"target_ent", FOFS(target_ent), F_EDICT, FFL_NOSPAWN},
-	{"chain", FOFS(chain), F_EDICT, FFL_NOSPAWN},
+	{"enemy", FOFS(enemy), F_EDICT, FFL_NO_SPAWN},
+	{"activator", FOFS(activator), F_EDICT, FFL_NO_SPAWN},
+	{"ground_entity", FOFS(ground_entity), F_EDICT, FFL_NO_SPAWN},
+	{"teamchain", FOFS(teamchain), F_EDICT, FFL_NO_SPAWN},
+	{"teammaster", FOFS(teammaster), F_EDICT, FFL_NO_SPAWN},
+	{"owner", FOFS(owner), F_EDICT, FFL_NO_SPAWN},
+	{"target_ent", FOFS(target_ent), F_EDICT, FFL_NO_SPAWN},
+	{"chain", FOFS(chain), F_EDICT, FFL_NO_SPAWN},
 
-	{"prethink", FOFS(prethink), F_FUNCTION, FFL_NOSPAWN},
-	{"think", FOFS(think), F_FUNCTION, FFL_NOSPAWN},
-	{"blocked", FOFS(blocked), F_FUNCTION, FFL_NOSPAWN},
-	{"touch", FOFS(touch), F_FUNCTION, FFL_NOSPAWN},
-	{"use", FOFS(use), F_FUNCTION, FFL_NOSPAWN},
-	{"pain", FOFS(pain), F_FUNCTION, FFL_NOSPAWN},
-	{"die", FOFS(die), F_FUNCTION, FFL_NOSPAWN},
+	{"prethink", FOFS(prethink), F_FUNCTION, FFL_NO_SPAWN},
+	{"think", FOFS(think), F_FUNCTION, FFL_NO_SPAWN},
+	{"blocked", FOFS(blocked), F_FUNCTION, FFL_NO_SPAWN},
+	{"touch", FOFS(touch), F_FUNCTION, FFL_NO_SPAWN},
+	{"use", FOFS(use), F_FUNCTION, FFL_NO_SPAWN},
+	{"pain", FOFS(pain), F_FUNCTION, FFL_NO_SPAWN},
+	{"die", FOFS(die), F_FUNCTION, FFL_NO_SPAWN},
 
-	{"done", FOFS(move_info.done), F_FUNCTION, FFL_NOSPAWN},
+	{"done", FOFS(move_info.done), F_FUNCTION, FFL_NO_SPAWN},
 
 	// temp spawn vars -- only valid when the spawn function is called
-	{"lip", STOFS(lip), F_INT, FFL_SPAWNTEMP},
-	{"distance", STOFS(distance), F_INT, FFL_SPAWNTEMP},
-	{"height", STOFS(height), F_INT, FFL_SPAWNTEMP},
-	{"noise", STOFS(noise), F_LSTRING, FFL_SPAWNTEMP},
-	{"pausetime", STOFS(pausetime), F_FLOAT, FFL_SPAWNTEMP},
-	{"item", STOFS(item), F_LSTRING, FFL_SPAWNTEMP},
+	{"lip", SOFS(lip), F_INT, FFL_SPAWN_TEMP},
+	{"distance", SOFS(distance), F_INT, FFL_SPAWN_TEMP},
+	{"height", SOFS(height), F_INT, FFL_SPAWN_TEMP},
+	{"noise", SOFS(noise), F_STRING, FFL_SPAWN_TEMP},
+	{"pausetime", SOFS(pausetime), F_FLOAT, FFL_SPAWN_TEMP},
+	{"item", SOFS(item), F_STRING, FFL_SPAWN_TEMP},
 
 	// need for item field in edict struct, FFL_SPAWNTEMP item will be skipped on saves
 	{"item", FOFS(item), F_ITEM},
 
 	// world vars, we use strings to differentiate between 0 and unset
-	{"sky", STOFS(sky), F_LSTRING, FFL_SPAWNTEMP},
-	{"weather", STOFS(weather), F_LSTRING, FFL_SPAWNTEMP},
-	{"gravity", STOFS(gravity), F_LSTRING, FFL_SPAWNTEMP},
-	{"gameplay", STOFS(gameplay), F_LSTRING, FFL_SPAWNTEMP},
-	{"teams", STOFS(teams), F_LSTRING, FFL_SPAWNTEMP},
-	{"ctf", STOFS(ctf), F_LSTRING, FFL_SPAWNTEMP},
-	{"match", STOFS(match), F_LSTRING, FFL_SPAWNTEMP},
-	{"fraglimit", STOFS(frag_limit), F_LSTRING, FFL_SPAWNTEMP},
-	{"roundlimit", STOFS(round_limit), F_LSTRING, FFL_SPAWNTEMP},
-	{"capturelimit", STOFS(capture_limit), F_LSTRING, FFL_SPAWNTEMP},
-	{"timelimit", STOFS(time_limit), F_LSTRING, FFL_SPAWNTEMP},
-	{"give", STOFS(give), F_LSTRING, FFL_SPAWNTEMP},
+	{"sky", SOFS(sky), F_STRING, FFL_SPAWN_TEMP},
+	{"weather", SOFS(weather), F_STRING, FFL_SPAWN_TEMP},
+	{"gravity", SOFS(gravity), F_STRING, FFL_SPAWN_TEMP},
+	{"gameplay", SOFS(gameplay), F_STRING, FFL_SPAWN_TEMP},
+	{"teams", SOFS(teams), F_STRING, FFL_SPAWN_TEMP},
+	{"ctf", SOFS(ctf), F_STRING, FFL_SPAWN_TEMP},
+	{"match", SOFS(match), F_STRING, FFL_SPAWN_TEMP},
+	{"fraglimit", SOFS(frag_limit), F_STRING, FFL_SPAWN_TEMP},
+	{"roundlimit", SOFS(round_limit), F_STRING, FFL_SPAWN_TEMP},
+	{"capturelimit", SOFS(capture_limit), F_STRING, FFL_SPAWN_TEMP},
+	{"timelimit", SOFS(time_limit), F_STRING, FFL_SPAWN_TEMP},
+	{"give", SOFS(give), F_STRING, FFL_SPAWN_TEMP},
 
 	{0, 0, 0, 0}
 };
@@ -259,24 +255,25 @@ static const field_t fields[] = {
 /*
  * G_ParseField
  *
- * Takes a key/value pair and sets the binary values
- * in an edict
+ * Takes a key-value pair and sets the binary values in an edict.
  */
 static void G_ParseField(const char *key, const char *value, edict_t *ent){
-	const field_t *f;
+	const g_field_t *f;
 	byte *b;
 	float v;
 	vec3_t vec;
 
 	for(f = fields; f->name; f++){
-		if(!(f->flags & FFL_NOSPAWN) && !strcasecmp(f->name, key)){  // found it
-			if(f->flags & FFL_SPAWNTEMP)
-				b = (byte *)&st;
+
+		if(!(f->flags & FFL_NO_SPAWN) && !strcasecmp(f->name, key)){  // found it
+
+			if(f->flags & FFL_SPAWN_TEMP)
+				b = (byte *)&g_game.spawn;
 			else
 				b = (byte *)ent;
 
 			switch(f->type){
-				case F_LSTRING:
+				case F_STRING:
 					*(char **)(b + f->ofs) = G_NewString(value);
 					break;
 				case F_VECTOR:
@@ -297,14 +294,13 @@ static void G_ParseField(const char *key, const char *value, edict_t *ent){
 					((float *)(b + f->ofs))[1] = v;
 					((float *)(b + f->ofs))[2] = 0;
 					break;
-				case F_IGNORE:
-					break;
 				default:
 					break;
 			}
 			return;
 		}
 	}
+
 	gi.Debug("%s is not a field\n", key);
 }
 
@@ -317,39 +313,39 @@ static void G_ParseField(const char *key, const char *value, edict_t *ent){
  */
 static const char *G_ParseEdict(const char *data, edict_t *ent){
 	qboolean init;
-	char keyname[256];
-	const char *com_token;
+	char key[256];
+	const char *tok;
 
 	init = false;
-	memset(&st, 0, sizeof(st));
+	memset(&g_game.spawn, 0, sizeof(g_game.spawn));
 
 	// go through all the dictionary pairs
 	while(true){
 		// parse key
-		com_token = Com_Parse(&data);
-		if(com_token[0] == '}')
+		tok = Com_Parse(&data);
+		if(tok[0] == '}')
 			break;
 		if(!data)
 			gi.Error("G_ParseEdict: EOF without closing brace.");
 
-		strncpy(keyname, com_token, sizeof(keyname) - 1);
+		strncpy(key, tok, sizeof(key) - 1);
 
 		// parse value
-		com_token = Com_Parse(&data);
+		tok = Com_Parse(&data);
 		if(!data)
 			gi.Error("G_ParseEdict: EOF in edict definition.");
 
-		if(com_token[0] == '}')
+		if(tok[0] == '}')
 			gi.Error("G_ParseEdict: No edict definition.");
 
 		init = true;
 
-		// keynames with a leading underscore are used for utility comments,
+		// keys with a leading underscore are used for utility comments,
 		// and are immediately discarded by quake
-		if(keyname[0] == '_')
+		if(key[0] == '_')
 			continue;
 
-		G_ParseField(keyname, com_token, ent);
+		G_ParseField(key, tok, ent);
 	}
 
 	if(!init)
@@ -374,8 +370,8 @@ static void G_FindEdictTeams(void){
 
 	c = 0;
 	c2 = 0;
-	for(i = 1, e = g_edicts + i; i < ge.num_edicts; i++, e++){
-		if(!e->inuse)
+	for(i = 1, e = g_game.edicts + i; i < ge.num_edicts; i++, e++){
+		if(!e->in_use)
 			continue;
 		if(!e->team)
 			continue;
@@ -386,7 +382,7 @@ static void G_FindEdictTeams(void){
 		c++;
 		c2++;
 		for(j = i + 1, e2 = e + 1; j < ge.num_edicts; j++, e2++){
-			if(!e2->inuse)
+			if(!e2->in_use)
 				continue;
 			if(!e2->team)
 				continue;
@@ -421,13 +417,13 @@ void G_SpawnEntities(const char *name, const char *entities){
 	gi.FreeTags(TAG_LEVEL);
 
 	memset(&g_level, 0, sizeof(g_level));
-	memset(g_edicts, 0, g_maxentities->value * sizeof(g_edicts[0]));
+	memset(g_game.edicts, 0, g_maxentities->value * sizeof(g_game.edicts[0]));
 
 	strncpy(g_level.name, name, sizeof(g_level.name) - 1);
 
 	// set client fields on player ents
 	for(i = 0; i < sv_maxclients->value; i++)
-		g_edicts[i + 1].client = g_locals.clients + i;
+		g_game.edicts[i + 1].client = g_game.clients + i;
 
 	ent = NULL;
 	inhibit = 0;
@@ -444,39 +440,39 @@ void G_SpawnEntities(const char *name, const char *entities){
 			gi.Error("SpawnEntities: Found %s when expecting {.", com_token);
 
 		if(!ent)
-			ent = g_edicts;
+			ent = g_game.edicts;
 		else
 			ent = G_Spawn();
 
 		entities = G_ParseEdict(entities, ent);
 
 		// some ents don't belong in deathmatch
-		if(ent != g_edicts){
+		if(ent != g_game.edicts){
 
 			// legacy levels may require this
-			if(ent->spawnflags & SF_NOT_DEATHMATCH){
+			if(ent->spawn_flags & SF_NOT_DEATHMATCH){
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// emits and models are client sided
-			if(!strcmp(ent->classname, "misc_emit") ||
-					!strcmp(ent->classname, "misc_model")){
+			if(!strcmp(ent->class_name, "misc_emit") ||
+					!strcmp(ent->class_name, "misc_model")){
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// lights aren't even used
-			if(!strcmp(ent->classname, "light")){
+			if(!strcmp(ent->class_name, "light")){
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// strip away unsupported flags
-			ent->spawnflags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM |
+			ent->spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM |
 			SF_NOT_HARD | SF_NOT_COOP | SF_NOT_DEATHMATCH);
 		}
 
@@ -486,7 +482,7 @@ void G_SpawnEntities(const char *name, const char *entities){
 		G_CallSpawn(ent);
 
 		if(g_level.gameplay && ent->item){  // now that we've spawned them, hide them
-			ent->svflags |= SVF_NOCLIENT;
+			ent->sv_flags |= SVF_NOCLIENT;
 			ent->solid = SOLID_NOT;
 			ent->next_think = 0.0;
 		}
@@ -526,7 +522,7 @@ void G_SpawnEntities(const char *name, const char *entities){
  *
  */
 
-const char *dm_statusbar =
+const char *g_layout =
 	// health
 	"if 0 "
 	"xv	32 "
@@ -639,7 +635,7 @@ static void G_WorldspawnMusic(void){
 			break;
 
 		if(*t != '\0')
-			gi.Configstring(CS_MUSICS + i++, Com_TrimString(t));
+			gi.ConfigString(CS_MUSICS + i++, Com_TrimString(t));
 
 		t = strtok(NULL, ",");
 	}
@@ -667,20 +663,20 @@ Only used for the world.
 */
 static void G_worldspawn(edict_t *ent){
 	int i;
-	g_maplist_elt_t *map;
+	g_map_list_elt_t *map;
 
-	ent->movetype = MOVETYPE_PUSH;
+	ent->move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
-	ent->inuse = true;  // since the world doesn't use G_Spawn()
+	ent->in_use = true;  // since the world doesn't use G_Spawn()
 	ent->s.model_index = 1;  // world model is always index 1
 
-	// set configstrings for items
+	// set config_strings for items
 	G_SetItemNames();
 
 	map = NULL;  // resolve the maps.lst entry for this level
-	for(i = 0; i < g_maplist.count; i++){
-		if(!strcmp(g_level.name, g_maplist.maps[i].name)){
-			map = &g_maplist.maps[i];
+	for(i = 0; i < g_map_list.count; i++){
+		if(!strcmp(g_level.name, g_map_list.maps[i].name)){
+			map = &g_map_list.maps[i];
 			break;
 		}
 	}
@@ -689,41 +685,41 @@ static void G_worldspawn(edict_t *ent){
 		strncpy(g_level.title, ent->message, sizeof(g_level.title));
 	else  // or just the level name
 		strncpy(g_level.title, g_level.name, sizeof(g_level.title));
-	gi.Configstring(CS_NAME, g_level.title);
+	gi.ConfigString(CS_NAME, g_level.title);
 
 	if(map && *map->sky)  // prefer maps.lst sky
-		gi.Configstring(CS_SKY, map->sky);
+		gi.ConfigString(CS_SKY, map->sky);
 	else {  // or fall back on worldspawn
-		if(st.sky && *st.sky)
-			gi.Configstring(CS_SKY, st.sky);
+		if(g_game.spawn.sky && *g_game.spawn.sky)
+			gi.ConfigString(CS_SKY, g_game.spawn.sky);
 		else  // or default to unit1_
-			gi.Configstring(CS_SKY, "unit1_");
+			gi.ConfigString(CS_SKY, "unit1_");
 	}
 
 	if(map && *map->weather)  // prefer maps.lst weather
-		gi.Configstring(CS_WEATHER, map->weather);
+		gi.ConfigString(CS_WEATHER, map->weather);
 	else {  // or fall back on worldspawn
-		if(st.weather && *st.weather)
-			gi.Configstring(CS_WEATHER, st.weather);
+		if(g_game.spawn.weather && *g_game.spawn.weather)
+			gi.ConfigString(CS_WEATHER, g_game.spawn.weather);
 		else  // or default to none
-			gi.Configstring(CS_WEATHER, "none");
+			gi.ConfigString(CS_WEATHER, "none");
 	}
 
 	if(map && map->gravity > 0)  // prefer maps.lst gravity
 		g_level.gravity = map->gravity;
 	else {  // or fall back on worldspawn
-		if(st.gravity && *st.gravity)
-			g_level.gravity = atoi(st.gravity);
+		if(g_game.spawn.gravity && *g_game.spawn.gravity)
+			g_level.gravity = atoi(g_game.spawn.gravity);
 		else  // or default to 800
 			g_level.gravity = 800;
 	}
-	gi.Configstring(CS_GRAVITY, va("%d", g_level.gravity));
+	gi.ConfigString(CS_GRAVITY, va("%d", g_level.gravity));
 
 	if(map && map->gameplay > -1)  // prefer maps.lst gameplay
 		g_level.gameplay = map->gameplay;
 	else {  // or fall back on worldspawn
-		if(st.gameplay && *st.gameplay)
-			g_level.gameplay = G_GameplayByName(st.gameplay);
+		if(g_game.spawn.gameplay && *g_game.spawn.gameplay)
+			g_level.gameplay = G_GameplayByName(g_game.spawn.gameplay);
 		else  // or default to deathmatch
 			g_level.gameplay = DEATHMATCH;
 	}
@@ -731,8 +727,8 @@ static void G_worldspawn(edict_t *ent){
 	if(map && map->teams > -1)  // prefer maps.lst teams
 		g_level.teams = map->teams;
 	else {  // or fall back on worldspawn
-		if(st.teams && *st.teams)
-			g_level.teams = atoi(st.teams);
+		if(g_game.spawn.teams && *g_game.spawn.teams)
+			g_level.teams = atoi(g_game.spawn.teams);
 		else  // or default to cvar
 			g_level.teams = g_teams->value;
 	}
@@ -740,8 +736,8 @@ static void G_worldspawn(edict_t *ent){
 	if(map && map->ctf > -1)  // prefer maps.lst ctf
 		g_level.ctf = map->ctf;
 	else {  // or fall back on worldspawn
-		if(st.ctf && *st.ctf)
-			g_level.ctf = atoi(st.ctf);
+		if(g_game.spawn.ctf && *g_game.spawn.ctf)
+			g_level.ctf = atoi(g_game.spawn.ctf);
 		else  // or default to cvar
 			g_level.ctf = g_ctf->value;
 	}
@@ -752,8 +748,8 @@ static void G_worldspawn(edict_t *ent){
 	if(map && map->match > -1)  // prefer maps.lst match
 		g_level.match = map->match;
 	else {  // or fall back on worldspawn
-		if(st.match && *st.match)
-			g_level.match = atoi(st.match);
+		if(g_game.spawn.match && *g_game.spawn.match)
+			g_level.match = atoi(g_game.spawn.match);
 		else  // or default to cvar
 			g_level.match = g_match->value;
 	}
@@ -761,8 +757,8 @@ static void G_worldspawn(edict_t *ent){
 	if(map && map->rounds > -1)  // prefer maps.lst rounds
 		g_level.rounds = map->rounds;
 	else {  // or fall back on worldspawn
-		if(st.rounds && *st.rounds)
-			g_level.rounds = atoi(st.rounds);
+		if(g_game.spawn.rounds && *g_game.spawn.rounds)
+			g_level.rounds = atoi(g_game.spawn.rounds);
 		else  // or default to cvar
 			g_level.rounds = g_rounds->value;
 	}
@@ -773,8 +769,8 @@ static void G_worldspawn(edict_t *ent){
 	if(map && map->frag_limit > -1)  // prefer maps.lst fraglimit
 		g_level.frag_limit = map->frag_limit;
 	else {  // or fall back on worldspawn
-		if(st.frag_limit && *st.frag_limit)
-			g_level.frag_limit = atoi(st.frag_limit);
+		if(g_game.spawn.frag_limit && *g_game.spawn.frag_limit)
+			g_level.frag_limit = atoi(g_game.spawn.frag_limit);
 		else  // or default to cvar
 			g_level.frag_limit = g_fraglimit->value;
 	}
@@ -782,8 +778,8 @@ static void G_worldspawn(edict_t *ent){
 	if(map && map->round_limit > -1)  // prefer maps.lst roundlimit
 		g_level.round_limit = map->round_limit;
 	else {  // or fall back on worldspawn
-		if(st.round_limit && *st.round_limit)
-			g_level.round_limit = atoi(st.round_limit);
+		if(g_game.spawn.round_limit && *g_game.spawn.round_limit)
+			g_level.round_limit = atoi(g_game.spawn.round_limit);
 		else  // or default to cvar
 			g_level.round_limit = g_roundlimit->value;
 	}
@@ -791,8 +787,8 @@ static void G_worldspawn(edict_t *ent){
 	if(map && map->capture_limit > -1)  // prefer maps.lst capturelimit
 		g_level.capture_limit = map->capture_limit;
 	else {  // or fall back on worldspawn
-		if(st.capture_limit && *st.capture_limit)
-			g_level.capture_limit = atoi(st.capture_limit);
+		if(g_game.spawn.capture_limit && *g_game.spawn.capture_limit)
+			g_level.capture_limit = atoi(g_game.spawn.capture_limit);
 		else  // or default to cvar
 			g_level.capture_limit = g_capturelimit->value;
 	}
@@ -800,8 +796,8 @@ static void G_worldspawn(edict_t *ent){
 	if(map && map->time_limit > -1)  // prefer maps.lst timelimit
 		g_level.time_limit = map->time_limit;
 	else {  // or fall back on worldspawn
-		if(st.time_limit && *st.time_limit)
-			g_level.time_limit = atof(st.time_limit);
+		if(g_game.spawn.time_limit && *g_game.spawn.time_limit)
+			g_level.time_limit = atof(g_game.spawn.time_limit);
 		else  // or default to cvar
 			g_level.time_limit = g_timelimit->value;
 	}
@@ -809,8 +805,8 @@ static void G_worldspawn(edict_t *ent){
 	if(map && *map->give)  // prefer maps.lst give
 		strncpy(g_level.give, map->give, sizeof(g_level.give));
 	else {  // or fall back on worldspawn
-		if(st.give && *st.give)
-			strncpy(g_level.give, st.give, sizeof(g_level.give));
+		if(g_game.spawn.give && *g_game.spawn.give)
+			strncpy(g_level.give, g_game.spawn.give, sizeof(g_level.give));
 		else  // or clean it
 			g_level.give[0] = 0;
 	}
@@ -818,8 +814,8 @@ static void G_worldspawn(edict_t *ent){
 	if(map && *map->music)  // prefer maps.lst music
 		strncpy(g_level.music, map->music, sizeof(g_level.music));
 	else {  // or fall back on worldspawn
-		if(st.music && *st.music)
-			strncpy(g_level.music, st.music, sizeof(g_level.music));
+		if(g_game.spawn.music && *g_game.spawn.music)
+			strncpy(g_level.music, g_game.spawn.music, sizeof(g_level.music));
 		else
 			g_level.music[0] = 0;
 	}
@@ -827,10 +823,10 @@ static void G_worldspawn(edict_t *ent){
 	G_WorldspawnMusic();
 
 	// send sv_maxclients to clients
-	gi.Configstring(CS_MAXCLIENTS, va("%i", (int)(sv_maxclients->value)));
+	gi.ConfigString(CS_MAX_CLIENTS, va("%i", (int)(sv_maxclients->value)));
 
 	// status bar program
-	gi.Configstring(CS_STATUSBAR, dm_statusbar);
+	gi.ConfigString(CS_LAYOUT, g_layout);
 
 	G_PrecacheItem(G_FindItem("Shotgun"));
 	G_PrecacheItem(G_FindItem("Shuper Shotgun"));
@@ -861,8 +857,8 @@ static void G_worldspawn(edict_t *ent){
 	gi.SoundIndex("weapons/common/pickup");
 	gi.SoundIndex("weapons/common/switch");
 
-	gi.Configstring(CS_VOTE, "");
-	gi.Configstring(CS_TEAMGOOD, va("%15s", good.name));
-	gi.Configstring(CS_TEAMEVIL, va("%15s", evil.name));
+	gi.ConfigString(CS_VOTE, "");
+	gi.ConfigString(CS_TEAM_GOOD, va("%15s", good.name));
+	gi.ConfigString(CS_TEAM_EVIL, va("%15s", evil.name));
 }
 

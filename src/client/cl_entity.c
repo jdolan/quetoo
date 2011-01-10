@@ -387,14 +387,15 @@ void Cl_ParseFrame(void){
 	size_t len;
 	cl_frame_t *old_frame;
 
-	if(!cl.server_hz){  // avoid unstable reconnects
+	// TODO: remove this properly
+	if(!cl.server_frame_rate){  // avoid unstable reconnects
 		Com_Warn("Cl_ParseFrame: Unstable reconnect detected.\n");
 		Cl_Reconnect_f();
 		return;
 	}
 
 	cl.frame.server_frame = Msg_ReadLong(&net_message);
-	cl.frame.server_time = cl.frame.server_frame * 1000 / cl.server_hz;
+	cl.frame.server_time = cl.frame.server_frame * 1000 / cl.server_frame_rate;
 
 	cl.frame.delta_frame = Msg_ReadLong(&net_message);
 

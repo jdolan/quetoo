@@ -95,7 +95,7 @@ static void P_FallingDamage(edict_t *ent){
 	int damage, event;
 	vec3_t dir;
 
-	if(ent->movetype == MOVETYPE_NOCLIP)
+	if(ent->move_type == MOVE_TYPE_NOCLIP)
 		return;
 
 	if(ent->health < 1 || ent->water_level == 3)
@@ -160,7 +160,7 @@ static void P_FallingDamage(edict_t *ent){
 static void P_WorldEffects(void){
 	int water_level, old_water_level;
 
-	if(current_player->movetype == MOVETYPE_NOCLIP){
+	if(current_player->move_type == MOVE_TYPE_NOCLIP){
 		current_player->drown_time = g_level.time + 12;  // don't need air
 		return;
 	}
@@ -406,7 +406,7 @@ void P_EndServerFrame(edict_t *ent){
 	VectorCopy(ent->client->ps.angles, ent->client->oldangles);
 
 	// if the scoreboard is up, update it
-	if(ent->client->showscores && !(g_level.frame_num & 31)){
+	if(ent->client->show_scores && !(g_level.frame_num % gi.frame_rate)){
 		if(g_level.teams || g_level.ctf)
 			P_TeamsScoreboard(ent);
 		else
@@ -426,8 +426,8 @@ void P_EndServerFrames(void){
 	// calc the player views now that all pushing
 	// and damage has been added
 	for(i = 0; i < sv_maxclients->value; i++){
-		ent = g_edicts + 1 + i;
-		if(!ent->inuse || !ent->client)
+		ent = g_game.edicts + 1 + i;
+		if(!ent->in_use || !ent->client)
 			continue;
 		P_EndServerFrame(ent);
 	}

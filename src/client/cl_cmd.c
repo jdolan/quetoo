@@ -28,7 +28,7 @@
  * Accumulate all movement for the current packet frame in a command.
  */
 void Cl_UpdateCmd(void){
-	usercmd_t *cmd;
+	user_cmd_t *cmd;
 
 	if(cls.state != ca_active)
 		return;
@@ -48,12 +48,12 @@ void Cl_UpdateCmd(void){
  * over the next packet frame.
  */
 static void Cl_InitCmd(void){
-	usercmd_t *cmd;
+	user_cmd_t *cmd;
 
 	// the outgoing sequence has just been incremented, mask it off and
 	// clear the command which will now accumulate movement
 	cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
-	memset(cmd, 0, sizeof(usercmd_t));
+	memset(cmd, 0, sizeof(user_cmd_t));
 }
 
 
@@ -63,7 +63,7 @@ static void Cl_InitCmd(void){
  * Calculate the true command duration and clamp it so that it may be sent.
  */
 static void Cl_FinalizeCmd(void){
-	usercmd_t *cmd;
+	user_cmd_t *cmd;
 
 	// resolve the cumulative command duration
 	cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
@@ -82,10 +82,10 @@ static void Cl_FinalizeCmd(void){
  */
 void Cl_SendCmd(void){
 	extern int packets_this_second;
-	sizebuf_t buf;
+	size_buf_t buf;
 	byte data[128];
-	usercmd_t *cmd, *old_cmd;
-	usercmd_t null_cmd;
+	user_cmd_t *cmd, *old_cmd;
+	user_cmd_t null_cmd;
 
 	if(cls.state <= ca_connecting)
 		return;

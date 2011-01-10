@@ -164,7 +164,7 @@ int cl_gravity;
  */
 void Cl_PredictMovement(void){
 	int i, ack, current;
-	pmove_t pm;
+	pm_move_t pm;
 	float step;
 
 	if(cls.state != ca_active)
@@ -197,7 +197,7 @@ void Cl_PredictMovement(void){
 	// run frames
 	while(++ack <= current){
 		const int frame = ack & CMD_MASK;
-		const usercmd_t *cmd = &cl.cmds[frame];
+		const user_cmd_t *cmd = &cl.cmds[frame];
 
 		if(!cmd->msec)
 			continue;

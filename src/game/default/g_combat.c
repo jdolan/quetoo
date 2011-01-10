@@ -49,8 +49,8 @@ qboolean G_CanDamage(edict_t *targ, edict_t *inflictor){
 	trace_t trace;
 
 	// bmodels need special checking because their origin is 0,0,0
-	if(targ->movetype == MOVETYPE_PUSH){
-		VectorAdd(targ->absmin, targ->absmax, dest);
+	if(targ->move_type == MOVE_TYPE_PUSH){
+		VectorAdd(targ->abs_mins, targ->abs_maxs, dest);
 		VectorScale(dest, 0.5, dest);
 		trace = gi.Trace(inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 		if(trace.fraction == 1.0)
@@ -106,7 +106,7 @@ static void G_Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker, int d
 
 	targ->enemy = attacker;
 
-	if(targ->movetype == MOVETYPE_PUSH || targ->movetype == MOVETYPE_STOP || targ->movetype == MOVETYPE_NONE){  // doors, triggers, etc
+	if(targ->move_type == MOVE_TYPE_PUSH || targ->move_type == MOVE_TYPE_STOP || targ->move_type == MOVE_TYPE_NONE){  // doors, triggers, etc
 		targ->die(targ, inflictor, attacker, damage, point);
 		return;
 	}
@@ -202,10 +202,10 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 		return;
 
 	if(!inflictor)  // use world
-		inflictor = &g_edicts[0];
+		inflictor = &g_game.edicts[0];
 
 	if(!attacker)  // use world
-		attacker = &g_edicts[0];
+		attacker = &g_game.edicts[0];
 
 	// quad damage affects both damage and knockback
 	if(attacker->client &&
@@ -241,10 +241,10 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	VectorNormalize(dir);
 
 	// calculate velocity change due to knockback
-	if(knockback && (targ->movetype != MOVETYPE_NONE) &&
-		(targ->movetype != MOVETYPE_TOSS) &&
-		(targ->movetype != MOVETYPE_PUSH) &&
-		(targ->movetype != MOVETYPE_STOP)){
+	if(knockback && (targ->move_type != MOVE_TYPE_NONE) &&
+		(targ->move_type != MOVE_TYPE_TOSS) &&
+		(targ->move_type != MOVE_TYPE_PUSH) &&
+		(targ->move_type != MOVE_TYPE_STOP)){
 
 		vec3_t kvel;
 		float mass;

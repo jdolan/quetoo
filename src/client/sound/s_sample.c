@@ -188,9 +188,9 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name){
 
 	// determine what model the client is using
 	model[0] = 0;
-	n = CS_PLAYERSKINS + ent->number - 1;
-	if(cl.configstrings[n][0]){
-		p = strchr(cl.configstrings[n], '\\');
+	n = CS_PLAYER_SKINS + ent->number - 1;
+	if(cl.config_strings[n][0]){
+		p = strchr(cl.config_strings[n], '\\');
 		if(p){
 			p += 1;
 			strcpy(model, p);
@@ -259,9 +259,9 @@ void S_LoadSamples(void){
 
 	for(i = 1; i < MAX_SOUNDS; i++){
 
-		if(!cl.configstrings[CS_SOUNDS + i][0])
+		if(!cl.config_strings[CS_SOUNDS + i][0])
 			break;
 
-		cl.sound_precache[i] = S_LoadSample(cl.configstrings[CS_SOUNDS + i]);
+		cl.sound_precache[i] = S_LoadSample(cl.config_strings[CS_SOUNDS + i]);
 	}
 }

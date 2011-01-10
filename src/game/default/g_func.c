@@ -42,7 +42,7 @@
  *
  * object characteristics that use move segments
  * ---------------------------------------------
- * movetype_push, or movetype_stop
+ * move_type_push, or move_type_stop
  * action when touched
  * action when blocked
  * action when used
@@ -310,7 +310,7 @@ static void Think_AccelMove(edict_t *ent){
 		return;
 	}
 
-	VectorScale(ent->move_info.dir, ent->move_info.current_speed * gi.server_hz, ent->velocity);
+	VectorScale(ent->move_info.dir, ent->move_info.current_speed * gi.frame_rate, ent->velocity);
 	ent->next_think = g_level.time + gi.server_frame;
 	ent->think = Think_AccelMove;
 }
@@ -400,7 +400,7 @@ static void plat_spawn_inside_trigger(edict_t *ent){
 	// middle trigger
 	trigger = G_Spawn();
 	trigger->touch = Touch_Plat_Center;
-	trigger->movetype = MOVETYPE_NONE;
+	trigger->move_type = MOVE_TYPE_NONE;
 	trigger->solid = SOLID_TRIGGER;
 	trigger->enemy = ent;
 
@@ -412,9 +412,9 @@ static void plat_spawn_inside_trigger(edict_t *ent){
 	tmax[1] = ent->maxs[1] - 25;
 	tmax[2] = ent->maxs[2] + 8;
 
-	tmin[2] = tmax[2] - (ent->pos1[2] - ent->pos2[2] + st.lip);
+	tmin[2] = tmax[2] - (ent->pos1[2] - ent->pos2[2] + g_game.spawn.lip);
 
-	if(ent->spawnflags & PLAT_LOW_TRIGGER)
+	if(ent->spawn_flags & PLAT_LOW_TRIGGER)
 		tmax[2] = tmin[2] + 8;
 
 	if(tmax[0] - tmin[0] <= 0){
@@ -453,7 +453,7 @@ void G_func_plat(edict_t *ent){
 
 	VectorClear(ent->s.angles);
 	ent->solid = SOLID_BSP;
-	ent->movetype = MOVETYPE_PUSH;
+	ent->move_type = MOVE_TYPE_PUSH;
 
 	gi.SetModel(ent, ent->model);
 
@@ -472,7 +472,7 @@ void G_func_plat(edict_t *ent){
 	ent->decel *= 0.1;
 
 	// normalize move_info based on server rate, stock q2 rate was 10hz
-	f = 100.0 / (gi.server_hz * gi.server_hz);
+	f = 100.0 / (gi.frame_rate * gi.frame_rate);
 	ent->speed *= f;
 	ent->accel *= f;
 	ent->decel *= f;
@@ -480,23 +480,23 @@ void G_func_plat(edict_t *ent){
 	if(!ent->dmg)
 		ent->dmg = 2;
 
-	if(!st.lip)
-		st.lip = 8;
+	if(!g_game.spawn.lip)
+		g_game.spawn.lip = 8;
 
 	// pos1 is the top position, pos2 is the bottom
 	VectorCopy(ent->s.origin, ent->pos1);
 	VectorCopy(ent->s.origin, ent->pos2);
 
-	if(st.height)  // use the specified height
-		ent->pos2[2] -= st.height;
+	if(g_game.spawn.height)  // use the specified height
+		ent->pos2[2] -= g_game.spawn.height;
 	else  // or derive it from the model height
-		ent->pos2[2] -= (ent->maxs[2] - ent->mins[2]) - st.lip;
+		ent->pos2[2] -= (ent->maxs[2] - ent->mins[2]) - g_game.spawn.lip;
 
 	ent->use = Use_Plat;
 
 	plat_spawn_inside_trigger(ent);  // the "start moving" trigger
 
-	if(ent->targetname){
+	if(ent->target_name){
 		ent->move_info.state = STATE_UP;
 	} else {
 		VectorCopy(ent->pos2, ent->s.origin);
@@ -548,29 +548,29 @@ static void rotating_use(edict_t *self, edict_t *other, edict_t *activator){
 	} else {
 		self->s.sound = self->move_info.sound_middle;
 		VectorScale(self->movedir, self->speed, self->avelocity);
-		if(self->spawnflags & 16)
+		if(self->spawn_flags & 16)
 			self->touch = rotating_touch;
 	}
 }
 
 void G_func_rotating(edict_t *ent){
 	ent->solid = SOLID_BSP;
-	if(ent->spawnflags & 32)
-		ent->movetype = MOVETYPE_STOP;
+	if(ent->spawn_flags & 32)
+		ent->move_type = MOVE_TYPE_STOP;
 	else
-		ent->movetype = MOVETYPE_PUSH;
+		ent->move_type = MOVE_TYPE_PUSH;
 
 	// set the axis of rotation
 	VectorClear(ent->movedir);
-	if(ent->spawnflags & 4)
+	if(ent->spawn_flags & 4)
 		ent->movedir[2] = 1.0;
-	else if(ent->spawnflags & 8)
+	else if(ent->spawn_flags & 8)
 		ent->movedir[0] = 1.0;
 	else // Z_AXIS
 		ent->movedir[1] = 1.0;
 
 	// check for reverse rotation
-	if(ent->spawnflags & 2)
+	if(ent->spawn_flags & 2)
 		VectorNegate(ent->movedir, ent->movedir);
 
 	if(!ent->speed)
@@ -583,12 +583,12 @@ void G_func_rotating(edict_t *ent){
 	if(ent->dmg)
 		ent->blocked = rotating_blocked;
 
-	if(ent->spawnflags & 1)
+	if(ent->spawn_flags & 1)
 		ent->use(ent, NULL, NULL);
 
-	if(ent->spawnflags & 64)
+	if(ent->spawn_flags & 64)
 		ent->s.effects |= EF_ANIMATE;
-	if(ent->spawnflags & 128)
+	if(ent->spawn_flags & 128)
 		ent->s.effects |= EF_ANIMATE_FAST;
 
 	gi.SetModel(ent, ent->model);
@@ -682,7 +682,7 @@ void G_func_button(edict_t *ent){
 	float dist;
 
 	G_SetMovedir(ent->s.angles, ent->movedir);
-	ent->movetype = MOVETYPE_STOP;
+	ent->move_type = MOVE_TYPE_STOP;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
@@ -698,14 +698,14 @@ void G_func_button(edict_t *ent){
 
 	if(!ent->wait)
 		  ent->wait = 3;
-	if(!st.lip)
-		  st.lip = 4;
+	if(!g_game.spawn.lip)
+		  g_game.spawn.lip = 4;
 
 	VectorCopy(ent->s.origin, ent->pos1);
 	abs_movedir[0] = fabsf(ent->movedir[0]);
 	abs_movedir[1] = fabsf(ent->movedir[1]);
 	abs_movedir[2] = fabsf(ent->movedir[2]);
-	dist = abs_movedir[0] * ent->size[0] + abs_movedir[1] * ent->size[1] + abs_movedir[2] * ent->size[2] - st.lip;
+	dist = abs_movedir[0] * ent->size[0] + abs_movedir[1] * ent->size[1] + abs_movedir[2] * ent->size[2] - g_game.spawn.lip;
 	VectorMA(ent->pos1, dist, ent->movedir, ent->pos2);
 
 	ent->use = button_use;
@@ -714,7 +714,7 @@ void G_func_button(edict_t *ent){
 		  ent->max_health = ent->health;
 		  ent->die = button_killed;
 		  ent->takedamage = true;
-	} else if(! ent->targetname)
+	} else if(! ent->target_name)
 		  ent->touch = button_touch;
 
 	ent->move_info.state = STATE_BOTTOM;
@@ -765,8 +765,8 @@ static void func_door_use_areaportals(edict_t *self, qboolean open){
 	if(!self->target)
 		  return;
 
-	while((t = G_Find(t, FOFS(targetname), self->target))){
-		  if(strcasecmp(t->classname, "func_areaportal") == 0){
+	while((t = G_Find(t, FOFS(target_name), self->target))){
+		  if(strcasecmp(t->class_name, "func_areaportal") == 0){
 			  gi.SetAreaPortalState(t->style, open);
 		  }
 	}
@@ -781,7 +781,7 @@ static void func_door_hit_top(edict_t *self){
 		self->s.sound = 0;
 	}
 	self->move_info.state = STATE_TOP;
-	if(self->spawnflags & DOOR_TOGGLE)
+	if(self->spawn_flags & DOOR_TOGGLE)
 		return;
 	if(self->move_info.wait >= 0){
 		self->think = func_door_go_down;
@@ -811,9 +811,9 @@ static void func_door_go_down(edict_t *self){
 	}
 
 	self->move_info.state = STATE_DOWN;
-	if(strcmp(self->classname, "func_door") == 0)
+	if(strcmp(self->class_name, "func_door") == 0)
 		Move_Calc(self, self->move_info.start_origin, func_door_hit_bottom);
-	else if(strcmp(self->classname, "func_door_rotating") == 0)
+	else if(strcmp(self->class_name, "func_door_rotating") == 0)
 		AngleMove_Calc(self, func_door_hit_bottom);
 }
 
@@ -833,9 +833,9 @@ static void func_door_go_up(edict_t *self, edict_t *activator){
 		self->s.sound = self->move_info.sound_middle;
 	}
 	self->move_info.state = STATE_UP;
-	if(strcmp(self->classname, "func_door") == 0)
+	if(strcmp(self->class_name, "func_door") == 0)
 		Move_Calc(self, self->move_info.end_origin, func_door_hit_top);
-	else if(strcmp(self->classname, "func_door_rotating") == 0)
+	else if(strcmp(self->class_name, "func_door_rotating") == 0)
 		AngleMove_Calc(self, func_door_hit_top);
 
 	G_UseTargets(self, activator);
@@ -848,7 +848,7 @@ static void func_door_use(edict_t *self, edict_t *other, edict_t *activator){
 	if(self->flags & FL_TEAMSLAVE)
 		return;
 
-	if(self->spawnflags & DOOR_TOGGLE){
+	if(self->spawn_flags & DOOR_TOGGLE){
 		if(self->move_info.state == STATE_UP || self->move_info.state == STATE_TOP){
 			// trigger all paired doors
 			for(ent = self; ent; ent = ent->teamchain){
@@ -927,12 +927,12 @@ static void Think_SpawnDoorTrigger(edict_t *ent){
 	if(ent->flags & FL_TEAMSLAVE)
 		return;  // only the team leader spawns a trigger
 
-	VectorCopy(ent->absmin, mins);
-	VectorCopy(ent->absmax, maxs);
+	VectorCopy(ent->abs_mins, mins);
+	VectorCopy(ent->abs_maxs, maxs);
 
 	for(other = ent->teamchain; other; other = other->teamchain){
-		AddPointToBounds(other->absmin, mins, maxs);
-		AddPointToBounds(other->absmax, mins, maxs);
+		AddPointToBounds(other->abs_mins, mins, maxs);
+		AddPointToBounds(other->abs_maxs, mins, maxs);
 	}
 
 	// expand
@@ -946,11 +946,11 @@ static void Think_SpawnDoorTrigger(edict_t *ent){
 	VectorCopy(maxs, other->maxs);
 	other->owner = ent;
 	other->solid = SOLID_TRIGGER;
-	other->movetype = MOVETYPE_NONE;
+	other->move_type = MOVE_TYPE_NONE;
 	other->touch = Touch_DoorTrigger;
 	gi.LinkEntity(other);
 
-	if(ent->spawnflags & DOOR_START_OPEN)
+	if(ent->spawn_flags & DOOR_START_OPEN)
 		func_door_use_areaportals(ent, true);
 
 	Think_CalcMoveSpeed(ent);
@@ -964,7 +964,7 @@ static void func_door_blocked(edict_t *self, edict_t *other){
 
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 
-	if(self->spawnflags & DOOR_CRUSHER)
+	if(self->spawn_flags & DOOR_CRUSHER)
 		return;
 
 	// if a door has a negative wait, it would never come back if blocked,
@@ -1015,7 +1015,7 @@ void G_func_door(edict_t *ent){
 	}
 
 	G_SetMovedir(ent->s.angles, ent->movedir);
-	ent->movetype = MOVETYPE_PUSH;
+	ent->move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
@@ -1033,8 +1033,8 @@ void G_func_door(edict_t *ent){
 
 	if(!ent->wait)
 		ent->wait = 3;
-	if(!st.lip)
-		st.lip = 8;
+	if(!g_game.spawn.lip)
+		g_game.spawn.lip = 8;
 	if(!ent->dmg)
 		ent->dmg = 2;
 
@@ -1043,11 +1043,11 @@ void G_func_door(edict_t *ent){
 	abs_movedir[0] = fabsf(ent->movedir[0]);
 	abs_movedir[1] = fabsf(ent->movedir[1]);
 	abs_movedir[2] = fabsf(ent->movedir[2]);
-	ent->move_info.distance = abs_movedir[0] * ent->size[0] + abs_movedir[1] * ent->size[1] + abs_movedir[2] * ent->size[2] - st.lip;
+	ent->move_info.distance = abs_movedir[0] * ent->size[0] + abs_movedir[1] * ent->size[1] + abs_movedir[2] * ent->size[2] - g_game.spawn.lip;
 	VectorMA(ent->pos1, ent->move_info.distance, ent->movedir, ent->pos2);
 
 	// if it starts open, switch the positions
-	if(ent->spawnflags & DOOR_START_OPEN){
+	if(ent->spawn_flags & DOOR_START_OPEN){
 		VectorCopy(ent->pos2, ent->s.origin);
 		VectorCopy(ent->pos1, ent->pos2);
 		VectorCopy(ent->s.origin, ent->pos1);
@@ -1059,7 +1059,7 @@ void G_func_door(edict_t *ent){
 		ent->takedamage = true;
 		ent->die = func_door_killed;
 		ent->max_health = ent->health;
-	} else if(ent->targetname && ent->message){
+	} else if(ent->target_name && ent->message){
 		gi.SoundIndex("misc/chat");
 		ent->touch = func_door_touch;
 	}
@@ -1073,9 +1073,9 @@ void G_func_door(edict_t *ent){
 	VectorCopy(ent->pos2, ent->move_info.end_origin);
 	VectorCopy(ent->s.angles, ent->move_info.end_angles);
 
-	if(ent->spawnflags & 16)
+	if(ent->spawn_flags & 16)
 		ent->s.effects |= EF_ANIMATE;
-	if(ent->spawnflags & 64)
+	if(ent->spawn_flags & 64)
 		ent->s.effects |= EF_ANIMATE_FAST;
 
 	// to simplify logic elsewhere, make non-teamed doors into a team of one
@@ -1085,7 +1085,7 @@ void G_func_door(edict_t *ent){
 	gi.LinkEntity(ent);
 
 	ent->next_think = g_level.time + gi.server_frame;
-	if(ent->health || ent->targetname)
+	if(ent->health || ent->target_name)
 		ent->think = Think_CalcMoveSpeed;
 	else
 		ent->think = Think_SpawnDoorTrigger;
@@ -1125,27 +1125,27 @@ void G_func_door_rotating(edict_t *ent){
 
 	// set the axis of rotation
 	VectorClear(ent->movedir);
-	if(ent->spawnflags & DOOR_X_AXIS)
+	if(ent->spawn_flags & DOOR_X_AXIS)
 		ent->movedir[2] = 1.0;
-	else if(ent->spawnflags & DOOR_Y_AXIS)
+	else if(ent->spawn_flags & DOOR_Y_AXIS)
 		ent->movedir[0] = 1.0;
 	else // Z_AXIS
 		ent->movedir[1] = 1.0;
 
 	// check for reverse rotation
-	if(ent->spawnflags & DOOR_REVERSE)
+	if(ent->spawn_flags & DOOR_REVERSE)
 		VectorNegate(ent->movedir, ent->movedir);
 
-	if(!st.distance){
-		gi.Debug("%s at %s with no distance set\n", ent->classname, vtos(ent->s.origin));
-		st.distance = 90;
+	if(!g_game.spawn.distance){
+		gi.Debug("%s at %s with no distance set\n", ent->class_name, vtos(ent->s.origin));
+		g_game.spawn.distance = 90;
 	}
 
 	VectorCopy(ent->s.angles, ent->pos1);
-	VectorMA(ent->s.angles, st.distance, ent->movedir, ent->pos2);
-	ent->move_info.distance = st.distance;
+	VectorMA(ent->s.angles, g_game.spawn.distance, ent->movedir, ent->pos2);
+	ent->move_info.distance = g_game.spawn.distance;
 
-	ent->movetype = MOVETYPE_PUSH;
+	ent->move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
@@ -1170,7 +1170,7 @@ void G_func_door_rotating(edict_t *ent){
 	}
 
 	// if it starts open, switch the positions
-	if(ent->spawnflags & DOOR_START_OPEN){
+	if(ent->spawn_flags & DOOR_START_OPEN){
 		VectorCopy(ent->pos2, ent->s.angles);
 		VectorCopy(ent->pos1, ent->pos2);
 		VectorCopy(ent->s.angles, ent->pos1);
@@ -1183,7 +1183,7 @@ void G_func_door_rotating(edict_t *ent){
 		ent->max_health = ent->health;
 	}
 
-	if(ent->targetname && ent->message){
+	if(ent->target_name && ent->message){
 		gi.SoundIndex("misc/chat");
 		ent->touch = func_door_touch;
 	}
@@ -1198,7 +1198,7 @@ void G_func_door_rotating(edict_t *ent){
 	VectorCopy(ent->s.origin, ent->move_info.end_origin);
 	VectorCopy(ent->pos2, ent->move_info.end_angles);
 
-	if(ent->spawnflags & 16)
+	if(ent->spawn_flags & 16)
 		ent->s.effects |= EF_ANIMATE;
 
 	// to simplify logic elsewhere, make non-teamed doors into a team of one
@@ -1208,7 +1208,7 @@ void G_func_door_rotating(edict_t *ent){
 	gi.LinkEntity(ent);
 
 	ent->next_think = g_level.time + gi.server_frame;
-	if(ent->health || ent->targetname)
+	if(ent->health || ent->target_name)
 		ent->think = Think_CalcMoveSpeed;
 	else
 		ent->think = Think_SpawnDoorTrigger;
@@ -1230,7 +1230,7 @@ void G_func_water(edict_t *self){
 	vec3_t abs_movedir;
 
 	G_SetMovedir(self->s.angles, self->movedir);
-	self->movetype = MOVETYPE_PUSH;
+	self->move_type = MOVE_TYPE_PUSH;
 	self->solid = SOLID_BSP;
 	gi.SetModel(self, self->model);
 
@@ -1239,11 +1239,11 @@ void G_func_water(edict_t *self){
 	abs_movedir[0] = fabsf(self->movedir[0]);
 	abs_movedir[1] = fabsf(self->movedir[1]);
 	abs_movedir[2] = fabsf(self->movedir[2]);
-	self->move_info.distance = abs_movedir[0] * self->size[0] + abs_movedir[1] * self->size[1] + abs_movedir[2] * self->size[2] - st.lip;
+	self->move_info.distance = abs_movedir[0] * self->size[0] + abs_movedir[1] * self->size[1] + abs_movedir[2] * self->size[2] - g_game.spawn.lip;
 	VectorMA(self->pos1, self->move_info.distance, self->movedir, self->pos2);
 
 	// if it starts open, switch the positions
-	if(self->spawnflags & DOOR_START_OPEN){
+	if(self->spawn_flags & DOOR_START_OPEN){
 		VectorCopy(self->pos2, self->s.origin);
 		VectorCopy(self->pos1, self->pos2);
 		VectorCopy(self->s.origin, self->pos1);
@@ -1267,9 +1267,9 @@ void G_func_water(edict_t *self){
 	self->use = func_door_use;
 
 	if(self->wait == -1)
-		self->spawnflags |= DOOR_TOGGLE;
+		self->spawn_flags |= DOOR_TOGGLE;
 
-	self->classname = "func_door";
+	self->class_name = "func_door";
 
 	gi.LinkEntity(self);
 }
@@ -1306,18 +1306,18 @@ static void func_train_blocked(edict_t *self, edict_t *other){
 }
 
 static void func_train_wait(edict_t *self){
-	if(self->target_ent->pathtarget){
+	if(self->target_ent->path_target){
 		char *savetarget;
 		edict_t *ent;
 
 		ent = self->target_ent;
 		savetarget = ent->target;
-		ent->target = ent->pathtarget;
+		ent->target = ent->path_target;
 		G_UseTargets(ent, self->activator);
 		ent->target = savetarget;
 
 		// make sure we didn't get killed by a killtarget
-		if(!self->inuse)
+		if(!self->in_use)
 			return;
 	}
 
@@ -1325,10 +1325,10 @@ static void func_train_wait(edict_t *self){
 		if(self->move_info.wait > 0){
 			self->next_think = g_level.time + self->move_info.wait;
 			self->think = func_train_next;
-		} else if(self->spawnflags & TRAIN_TOGGLE)  // && wait < 0
+		} else if(self->spawn_flags & TRAIN_TOGGLE)  // && wait < 0
 		{
 			func_train_next(self);
-			self->spawnflags &= ~TRAIN_START_ON;
+			self->spawn_flags &= ~TRAIN_START_ON;
 			VectorClear(self->velocity);
 			self->next_think = 0;
 		}
@@ -1363,9 +1363,9 @@ again:
 	self->target = ent->target;
 
 	// check for a teleport path_corner
-	if(ent->spawnflags & 1){
+	if(ent->spawn_flags & 1){
 		if(!first){
-			gi.Debug("connected teleport path_corners, see %s at %s\n", ent->classname, vtos(ent->s.origin));
+			gi.Debug("connected teleport path_corners, see %s at %s\n", ent->class_name, vtos(ent->s.origin));
 			return;
 		}
 		first = false;
@@ -1390,7 +1390,7 @@ again:
 	VectorCopy(self->s.origin, self->move_info.start_origin);
 	VectorCopy(dest, self->move_info.end_origin);
 	Move_Calc(self, dest, func_train_wait);
-	self->spawnflags |= TRAIN_START_ON;
+	self->spawn_flags |= TRAIN_START_ON;
 }
 
 static void func_train_resume(edict_t *self){
@@ -1404,7 +1404,7 @@ static void func_train_resume(edict_t *self){
 	VectorCopy(self->s.origin, self->move_info.start_origin);
 	VectorCopy(dest, self->move_info.end_origin);
 	Move_Calc(self, dest, func_train_wait);
-	self->spawnflags |= TRAIN_START_ON;
+	self->spawn_flags |= TRAIN_START_ON;
 }
 
 static void func_train_find(edict_t *self){
@@ -1425,10 +1425,10 @@ static void func_train_find(edict_t *self){
 	gi.LinkEntity(self);
 
 	// if not triggered, start immediately
-	if(!self->targetname)
-		self->spawnflags |= TRAIN_START_ON;
+	if(!self->target_name)
+		self->spawn_flags |= TRAIN_START_ON;
 
-	if(self->spawnflags & TRAIN_START_ON){
+	if(self->spawn_flags & TRAIN_START_ON){
 		self->next_think = g_level.time + gi.server_frame;
 		self->think = func_train_next;
 		self->activator = self;
@@ -1438,10 +1438,10 @@ static void func_train_find(edict_t *self){
 static void func_train_use(edict_t *self, edict_t *other, edict_t *activator){
 	self->activator = activator;
 
-	if(self->spawnflags & TRAIN_START_ON){
-		if(!(self->spawnflags & TRAIN_TOGGLE))
+	if(self->spawn_flags & TRAIN_START_ON){
+		if(!(self->spawn_flags & TRAIN_TOGGLE))
 			return;
-		self->spawnflags &= ~TRAIN_START_ON;
+		self->spawn_flags &= ~TRAIN_START_ON;
 		VectorClear(self->velocity);
 		self->next_think = 0;
 	} else {
@@ -1453,11 +1453,11 @@ static void func_train_use(edict_t *self, edict_t *other, edict_t *activator){
 }
 
 void G_func_train(edict_t *self){
-	self->movetype = MOVETYPE_PUSH;
+	self->move_type = MOVE_TYPE_PUSH;
 
 	VectorClear(self->s.angles);
 	self->blocked = func_train_blocked;
-	if(self->spawnflags & TRAIN_BLOCK_STOPS)
+	if(self->spawn_flags & TRAIN_BLOCK_STOPS)
 		self->dmg = 0;
 	else {
 		if(!self->dmg)
@@ -1466,8 +1466,8 @@ void G_func_train(edict_t *self){
 	self->solid = SOLID_BSP;
 	gi.SetModel(self, self->model);
 
-	if(st.noise)
-		self->move_info.sound_middle = gi.SoundIndex(st.noise);
+	if(g_game.spawn.noise)
+		self->move_info.sound_middle = gi.SoundIndex(g_game.spawn.noise);
 
 	if(!self->speed)
 		self->speed = 100;
@@ -1485,7 +1485,7 @@ void G_func_train(edict_t *self){
 		self->next_think = g_level.time + gi.server_frame;
 		self->think = func_train_find;
 	} else {
-		gi.Debug("func_train without a target at %s\n", vtos(self->absmin));
+		gi.Debug("func_train without a target at %s\n", vtos(self->abs_mins));
 	}
 }
 
@@ -1506,7 +1506,7 @@ These can used but not touched.
 */
 static void func_timer_think(edict_t *self){
 	G_UseTargets(self, self->activator);
-	self->next_think = g_level.time + self->wait + crandom() * self->random;
+	self->next_think = g_level.time + self->wait + crand() * self->random;
 }
 
 static void func_timer_use(edict_t *self, edict_t *other, edict_t *activator){
@@ -1537,12 +1537,12 @@ void G_func_timer(edict_t *self){
 		gi.Debug("func_timer at %s has random >= wait\n", vtos(self->s.origin));
 	}
 
-	if(self->spawnflags & 1){
-		self->next_think = g_level.time + 1.0 + st.pausetime + self->delay + self->wait + crandom() * self->random;
+	if(self->spawn_flags & 1){
+		self->next_think = g_level.time + 1.0 + g_game.spawn.pausetime + self->delay + self->wait + crand() * self->random;
 		self->activator = self;
 	}
 
-	self->svflags = SVF_NOCLIENT;
+	self->sv_flags = SVF_NOCLIENT;
 }
 
 
@@ -1553,15 +1553,15 @@ speed	default 100
 */
 
 static void func_conveyor_use(edict_t *self, edict_t *other, edict_t *activator){
-	if(self->spawnflags & 1){
+	if(self->spawn_flags & 1){
 		self->speed = 0;
-		self->spawnflags &= ~1;
+		self->spawn_flags &= ~1;
 	} else {
 		self->speed = self->count;
-		self->spawnflags |= 1;
+		self->spawn_flags |= 1;
 	}
 
-	if(!(self->spawnflags & 2))
+	if(!(self->spawn_flags & 2))
 		self->count = 0;
 }
 
@@ -1569,7 +1569,7 @@ void G_func_conveyor(edict_t *self){
 	if(!self->speed)
 		self->speed = 100;
 
-	if(!(self->spawnflags & 1)){
+	if(!(self->spawn_flags & 1)){
 		self->count = self->speed;
 		self->speed = 0;
 	}
@@ -1646,7 +1646,7 @@ static void func_door_secret_move6(edict_t *self){
 }
 
 static void func_door_secret_done(edict_t *self){
-	if(!(self->targetname) ||(self->spawnflags & SECRET_ALWAYS_SHOOT)){
+	if(!(self->target_name) ||(self->spawn_flags & SECRET_ALWAYS_SHOOT)){
 		self->health = 0;
 		self->takedamage = true;
 	}
@@ -1678,14 +1678,14 @@ void G_func_door_secret(edict_t *ent){
 	ent->move_info.sound_start = gi.SoundIndex("world/door_start");
 	ent->move_info.sound_end = gi.SoundIndex("world/door_end");
 
-	ent->movetype = MOVETYPE_PUSH;
+	ent->move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
 	ent->blocked = func_door_secret_blocked;
 	ent->use = func_door_secret_use;
 
-	if(!(ent->targetname) ||(ent->spawnflags & SECRET_ALWAYS_SHOOT)){
+	if(!(ent->target_name) ||(ent->spawn_flags & SECRET_ALWAYS_SHOOT)){
 		ent->health = 0;
 		ent->takedamage = true;
 		ent->die = func_door_secret_die;
@@ -1704,13 +1704,13 @@ void G_func_door_secret(edict_t *ent){
 	// calculate positions
 	AngleVectors(ent->s.angles, forward, right, up);
 	VectorClear(ent->s.angles);
-	side = 1.0 -(ent->spawnflags & SECRET_1ST_LEFT);
-	if(ent->spawnflags & SECRET_1ST_DOWN)
+	side = 1.0 -(ent->spawn_flags & SECRET_1ST_LEFT);
+	if(ent->spawn_flags & SECRET_1ST_DOWN)
 		width = fabsf(DotProduct(up, ent->size));
 	else
 		width = fabsf(DotProduct(right, ent->size));
 	length = fabsf(DotProduct(forward, ent->size));
-	if(ent->spawnflags & SECRET_1ST_DOWN)
+	if(ent->spawn_flags & SECRET_1ST_DOWN)
 		VectorMA(ent->s.origin, -1 * width, up, ent->pos1);
 	else
 		VectorMA(ent->s.origin, side * width, right, ent->pos1);
@@ -1720,12 +1720,12 @@ void G_func_door_secret(edict_t *ent){
 		ent->takedamage = true;
 		ent->die = func_door_killed;
 		ent->max_health = ent->health;
-	} else if(ent->targetname && ent->message){
+	} else if(ent->target_name && ent->message){
 		gi.SoundIndex("misc/chat");
 		ent->touch = func_door_touch;
 	}
 
-	ent->classname = "func_door";
+	ent->class_name = "func_door";
 
 	gi.LinkEntity(ent);
 }
@@ -1740,5 +1740,5 @@ static void func_killbox_use(edict_t *self, edict_t *other, edict_t *activator){
 void G_func_killbox(edict_t *ent){
 	gi.SetModel(ent, ent->model);
 	ent->use = func_killbox_use;
-	ent->svflags = SVF_NOCLIENT;
+	ent->sv_flags = SVF_NOCLIENT;
 }

@@ -19,13 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/*
- * interface to the game dll
- */
-
 #include "server.h"
-
-game_export_t *ge;
 
 
 /*
@@ -108,25 +102,25 @@ static void Sv_SetModel(edict_t *ent, const char *name){
 
 
 /*
- * Sv_Configstring
+ * Sv_ConfigString
  *
  */
-static void Sv_Configstring(int index, const char *val){
+static void Sv_ConfigString(int index, const char *val){
 
-	if(index < 0 || index >= MAX_CONFIGSTRINGS){
-		Com_Warn("Sv_Configstring: bad index %i.\n", index);
+	if(index < 0 || index >= MAX_CONFIG_STRINGS){
+		Com_Warn("Sv_ConfigString: bad index %i.\n", index);
 		return;
 	}
 
 	if(!val)
 		val = "";
 
-	// change the string in sv.configstrings
-	strncpy(sv.configstrings[index], val, sizeof(sv.configstrings[0]));
+	// change the string in sv.config_strings
+	strncpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
 
 	if(sv.state != ss_loading){  // send the update to everyone
 		Sb_Clear(&sv.multicast);
-		Msg_WriteChar(&sv.multicast, svc_configstring);
+		Msg_WriteChar(&sv.multicast, svc_config_string);
 		Msg_WriteShort(&sv.multicast, index);
 		Msg_WriteString(&sv.multicast, val);
 
@@ -254,11 +248,11 @@ static void Sv_Sound(edict_t *ent, int soundindex, int atten){
  */
 void Sv_ShutdownGameProgs(void){
 
-	if(!ge)
+	if(!svs.game)
 		return;
 
-	ge->Shutdown();
-	ge = NULL;
+	svs.game->Shutdown();
+	svs.game= NULL;
 
 	Sys_UnloadGame();
 }
@@ -270,14 +264,16 @@ void Sv_ShutdownGameProgs(void){
  * Init the game subsystem for a new map
  */
 void Sv_InitGameProgs(void){
-	game_import_t import;
+	g_import_t import;
 
-	if(ge){
+	if(svs.game){
 		Sv_ShutdownGameProgs();
 	}
 
-	import.server_hz = svs.packet_rate;
-	import.server_frame = 1.0 / svs.packet_rate;
+	memset(&import, 0, sizeof(import));
+
+	import.frame_rate = svs.frame_rate;
+	import.server_frame = 1.0 / svs.frame_rate;
 
 	import.Print = Sv_Print;
 	import.Debug = Sv_Debug;
@@ -287,7 +283,7 @@ void Sv_InitGameProgs(void){
 
 	import.Error = Sv_Error;
 
-	import.Configstring = Sv_Configstring;
+	import.ConfigString = Sv_ConfigString;
 
 	import.ModelIndex = Sv_ModelIndex;
 	import.SoundIndex = Sv_SoundIndex;
@@ -338,15 +334,15 @@ void Sv_InitGameProgs(void){
 
 	import.AddCommandString = Cbuf_AddText;
 
-	ge = (game_export_t *)Sys_LoadGame(&import);
+	svs.game = (g_export_t *)Sys_LoadGame(&import);
 
-	if(!ge){
+	if(!svs.game){
 		Com_Error(ERR_DROP, "Sv_InitGameProgs: Failed to load game module.\n");
 	}
-	if(ge->apiversion != GAME_API_VERSION){
+	if(svs.game->api_version != GAME_API_VERSION){
 		Com_Error(ERR_DROP, "Sv_InitGameProgs: Game is version %i, not %i.\n",
-				ge->apiversion, GAME_API_VERSION);
+				svs.game->api_version, GAME_API_VERSION);
 	}
 
-	ge->Init();
+	svs.game->Init();
 }

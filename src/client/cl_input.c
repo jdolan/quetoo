@@ -695,7 +695,7 @@ static void Cl_ClampPitch(void){
 /*
  * Cl_Move
  */
-void Cl_Move(usercmd_t *cmd){
+void Cl_Move(user_cmd_t *cmd){
 	float mod;
 	int i;
 

@@ -40,7 +40,7 @@ typedef struct {
 	qboolean ladder;
 } pml_t;
 
-pmove_t *pm;
+pm_move_t *pm;
 pml_t pml;
 
 
@@ -1022,7 +1022,7 @@ static void Pm_InitLocal(void){
  *
  * Can be called by either the server or the client to update prediction.
  */
-void Pmove(pmove_t *pmove){
+void Pmove(pm_move_t *pmove){
 	pm = pmove;
 
 	Pm_Init();

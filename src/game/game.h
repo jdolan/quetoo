@@ -22,9 +22,9 @@
 #ifndef __GAME_H__
 #define __GAME_H__
 
-#define GAME_API_VERSION 4
+#define GAME_API_VERSION 5
 
-// edict->svflags
+// edict->sv_flags
 #define SVF_NOCLIENT 1  // don't send entity to clients
 
 // edict->solid values
@@ -59,20 +59,21 @@ struct g_client_s {
 struct edict_s {
 	entity_state_t s;
 	struct g_client_s *client;
-	qboolean inuse;
-	int linkcount;
+
+	qboolean in_use;
+	int link_count;
 
 	// FIXME: move these fields to a server private sv_entity_t
 	link_t area;  // linked to a division node or leaf
 
 	int num_clusters;  // if -1, use head_node instead
-	int clusternums[MAX_ENT_CLUSTERS];
+	int cluster_nums[MAX_ENT_CLUSTERS];
 	int head_node;  // unused if num_clusters != -1
-	int areanum, areanum2;
+	int area_num, area_num2;
 
-	int svflags;  // SVF_NOCLIENT, etc
+	int sv_flags;  // SVF_NOCLIENT, etc
 	vec3_t mins, maxs;
-	vec3_t absmin, absmax, size;
+	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
 	int clipmask;
 	edict_t *owner;
@@ -84,9 +85,9 @@ struct edict_s {
 #endif  /* !GAME_INCLUDE */
 
 // functions provided by the main engine
-typedef struct {
+typedef struct g_import_s {
 
-	int server_hz;  // server frames per second
+	int frame_rate;  // server frames per second
 	float server_frame;  // seconds per frame
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
@@ -97,11 +98,11 @@ typedef struct {
 
 	void (*Error)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
-	// configstrings are used to transmit arbitrary tokens such
+	// config_strings are used to transmit arbitrary tokens such
 	// as model names, skin names, team names, and weather effects
-	void (*Configstring)(int num, const char *string);
+	void (*ConfigString)(int num, const char *string);
 
-	// create configstrings and some internal server state
+	// create config_strings and some internal server state
 	int (*ModelIndex)(const char *name);
 	int (*SoundIndex)(const char *name);
 	int (*ImageIndex)(const char *name);
@@ -117,7 +118,7 @@ typedef struct {
 	qboolean (*inPHS)(const vec3_t p1, const vec3_t p2);
 	void (*SetAreaPortalState)(int portal_num, qboolean open);
 	qboolean (*AreasConnected)(int area1, int area2);
-	void (*Pmove)(pmove_t *pmove);  // player movement code common with client prediction
+	void (*Pmove)(pm_move_t *pmove);  // player movement code common with client prediction
 
 	// an entity will never be sent to a client or used for collision
 	// if it is not passed to linkentity.  if the size, position, or
@@ -161,11 +162,11 @@ typedef struct {
 	// add commands to the server console as if they were typed in
 	// for map changing, etc
 	void (*AddCommandString)(const char *text);
-} game_import_t;
+} g_import_t;
 
 // functions exported by the game subsystem
-typedef struct {
-	int apiversion;
+typedef struct g_export_s {
+	int api_version;
 
 	// the init function will only be called when a game starts,
 	// not each time a level is loaded.  Persistent data for clients
@@ -174,14 +175,14 @@ typedef struct {
 	void (*Shutdown)(void);
 
 	// each new level entered will cause a call to SpawnEntities
-	void (*SpawnEntities)(const char *mapname, const char *entstring);
+	void (*SpawnEntities)(const char *name, const char *entities);
 
 	qboolean (*ClientConnect)(edict_t *ent, char *user_info);
 	void (*ClientBegin)(edict_t *ent);
-	void (*ClientUserinfoChanged)(edict_t *ent, const char *user_info);
+	void (*ClientUserInfoChanged)(edict_t *ent, const char *user_info);
 	void (*ClientDisconnect)(edict_t *ent);
 	void (*ClientCommand)(edict_t *ent);
-	void (*ClientThink)(edict_t *ent, usercmd_t *cmd);
+	void (*ClientThink)(edict_t *ent, user_cmd_t *cmd);
 
 	void (*RunFrame)(void);
 
@@ -195,9 +196,9 @@ typedef struct {
 	int edict_size;
 	int num_edicts;  // current number, <= max_edicts
 	int max_edicts;
-} game_export_t;
+} g_export_t;
 
-game_export_t *LoadGame(game_import_t * import);
+g_export_t *LoadGame(g_import_t *import);
 
 
 #endif /* __GAME_H__ */

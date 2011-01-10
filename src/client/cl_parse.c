@@ -28,18 +28,18 @@ static byte zbuf[MAX_MSGLEN];
 char *svc_strings[256] = {
 	"svc_bad",
 	"svc_nop",
-	"svc_muzzleflash",
+	"svc_muzzle_flash",
 	"svc_temp_entity",
 	"svc_layout",
 	"svc_disconnect",
 	"svc_reconnect",
 	"svc_sound",
 	"svc_print",
-	"svc_stufftext",
-	"svc_serverdata",
-	"svc_configstring",
-	"svc_spawnbaseline",
-	"svc_centerprint",
+	"svc_stuff_text",
+	"svc_server_data",
+	"svc_config_string",
+	"svc_spawn_baseline",
+	"svc_center_print",
 	"svc_download",
 	"svc_frame",
 	"svc_zlib"
@@ -109,14 +109,14 @@ qboolean Cl_CheckOrDownloadFile(const char *file_name){
 		Com_Debug("Resuming %s..\n", cls.download.name);
 
 		snprintf(cmd, sizeof(cmd), "download %s %i", cls.download.name, len);
-		Msg_WriteByte(&cls.netchan.message, clc_stringcmd);
+		Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
 		Msg_WriteString(&cls.netchan.message, cmd);
 	} else {
 		// or start if from the beginning
 		Com_Debug("Downloading %s..\n", cls.download.name);
 
 		snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
-		Msg_WriteByte(&cls.netchan.message, clc_stringcmd);
+		Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
 		Msg_WriteString(&cls.netchan.message, cmd);
 	}
 
@@ -182,7 +182,7 @@ static void Cl_ParseDownload(void){
 	net_message.read += size;
 
 	if(percent != 100){
-		Msg_WriteByte(&cls.netchan.message, clc_stringcmd);
+		Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
 		Sb_Print(&cls.netchan.message, "nextdl");
 	} else {
 		char oldn[MAX_OSPATH];
@@ -238,7 +238,7 @@ static qboolean Cl_ParseServerData(void){
 
 	// retrieve spawn count and packet rate
 	cl.server_count = Msg_ReadLong(&net_message);
-	cl.server_hz = Msg_ReadLong(&net_message);
+	cl.server_frame_rate = Msg_ReadLong(&net_message);
 
 	// determine if we're viewing a demo
 	cl.demo_server = Msg_ReadByte(&net_message);
@@ -386,7 +386,7 @@ void Cl_ParseClientinfo(int player){
 	const char *s;
 	cl_clientinfo_t *ci;
 
-	s = cl.configstrings[player + CS_PLAYERSKINS];
+	s = cl.config_strings[player + CS_PLAYER_SKINS];
 
 	ci = &cl.clientinfo[player];
 
@@ -406,43 +406,43 @@ static void Cl_ParseGravity(const char *gravity){
 
 
 /*
- * Cl_ParseConfigstring
+ * Cl_ParseConfigString
  */
-void Cl_ParseConfigstring(void){
+void Cl_ParseConfigString(void){
 	int i;
 	char *s;
 	char olds[MAX_QPATH];
 
 	i = Msg_ReadShort(&net_message);
-	if(i < 0 || i >= MAX_CONFIGSTRINGS){
-		Com_Error(ERR_DROP, "Cl_ParseConfigstring: Invalid index %i.\n", i);
+	if(i < 0 || i >= MAX_CONFIG_STRINGS){
+		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
 	}
 	s = Msg_ReadString(&net_message);
 
-	strncpy(olds, cl.configstrings[i], sizeof(olds));
+	strncpy(olds, cl.config_strings[i], sizeof(olds));
 	olds[sizeof(olds) - 1] = 0;
 
-	strcpy(cl.configstrings[i], s);
+	strcpy(cl.config_strings[i], s);
 
 	if(i == CS_GRAVITY)
-		Cl_ParseGravity(cl.configstrings[i]);
+		Cl_ParseGravity(cl.config_strings[i]);
 	else if(i >= CS_MODELS && i < CS_MODELS + MAX_MODELS){
 		if(r_view.ready){
-			cl.model_draw[i - CS_MODELS] = R_LoadModel(cl.configstrings[i]);
-			if(cl.configstrings[i][0] == '*')
-				cl.model_clip[i - CS_MODELS] = Cm_InlineModel(cl.configstrings[i]);
+			cl.model_draw[i - CS_MODELS] = R_LoadModel(cl.config_strings[i]);
+			if(cl.config_strings[i][0] == '*')
+				cl.model_clip[i - CS_MODELS] = Cm_InlineModel(cl.config_strings[i]);
 			else
 				cl.model_clip[i - CS_MODELS] = NULL;
 		}
 	} else if(i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS){
 		if(r_view.ready)
-			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(cl.configstrings[i]);
+			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(cl.config_strings[i]);
 	} else if(i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES){
 		if(r_view.ready)
-			cl.image_precache[i - CS_IMAGES] = R_LoadPic(cl.configstrings[i]);
-	} else if(i >= CS_PLAYERSKINS && i < CS_PLAYERSKINS + MAX_CLIENTS){
+			cl.image_precache[i - CS_IMAGES] = R_LoadPic(cl.config_strings[i]);
+	} else if(i >= CS_PLAYER_SKINS && i < CS_PLAYER_SKINS + MAX_CLIENTS){
 		if(r_view.ready && strcmp(olds, s))
-			Cl_ParseClientinfo(i - CS_PLAYERSKINS);
+			Cl_ParseClientinfo(i - CS_PLAYER_SKINS);
 	}
 }
 
@@ -630,30 +630,30 @@ void Cl_ParseServerMessage(void){
 				Com_Print("%s", s);
 				break;
 
-			case svc_centerprint:
+			case svc_center_print:
 				Cl_CenterPrint(Msg_ReadString(&net_message));
 				break;
 
-			case svc_stufftext:
+			case svc_stuff_text:
 				s = Msg_ReadString(&net_message);
 				Cbuf_AddText(s);
 				break;
 
-			case svc_serverdata:
+			case svc_server_data:
 				Cbuf_Execute();  // make sure any stuffed commands are done
 				if(!Cl_ParseServerData())
 					return;
 				break;
 
-			case svc_configstring:
-				Cl_ParseConfigstring();
+			case svc_config_string:
+				Cl_ParseConfigString();
 				break;
 
 			case svc_sound:
 				Cl_ParseSound();
 				break;
 
-			case svc_spawnbaseline:
+			case svc_spawn_baseline:
 				Cl_ParseBaseline();
 				break;
 
@@ -661,7 +661,7 @@ void Cl_ParseServerMessage(void){
 				Cl_ParseTempEntity();
 				break;
 
-			case svc_muzzleflash:
+			case svc_muzzle_flash:
 				Cl_ParseMuzzleFlash();
 				break;
 

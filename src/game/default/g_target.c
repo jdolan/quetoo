@@ -37,7 +37,7 @@ Multiple identical looping sounds will just increase volume without any speed co
 */
 static void Use_Target_Speaker(edict_t *ent, edict_t *other, edict_t *activator){
 
-	if(ent->spawnflags & 3){  // looping sound toggles
+	if(ent->spawn_flags & 3){  // looping sound toggles
 		if(ent->s.sound)
 			ent->s.sound = 0;  // turn it off
 		else
@@ -52,14 +52,14 @@ static void Use_Target_Speaker(edict_t *ent, edict_t *other, edict_t *activator)
 void G_target_speaker(edict_t *ent){
 	char buffer[MAX_QPATH];
 
-	if(!st.noise){
+	if(!g_game.spawn.noise){
 		gi.Debug("target_speaker with no noise set at %s\n", vtos(ent->s.origin));
 		return;
 	}
-	if(!strstr(st.noise, ""))
-		snprintf(buffer, sizeof(buffer), "%s", st.noise);
+	if(!strstr(g_game.spawn.noise, ""))
+		snprintf(buffer, sizeof(buffer), "%s", g_game.spawn.noise);
 	else
-		strncpy(buffer, st.noise, sizeof(buffer));
+		strncpy(buffer, g_game.spawn.noise, sizeof(buffer));
 	ent->noise_index = gi.SoundIndex(buffer);
 
 	if(!ent->attenuation)
@@ -68,7 +68,7 @@ void G_target_speaker(edict_t *ent){
 		ent->attenuation = ATTN_NONE;
 
 	// check for looping sound
-	if(ent->spawnflags & 1)
+	if(ent->spawn_flags & 1)
 		ent->s.sound = ent->noise_index;
 
 	ent->use = Use_Target_Speaker;
@@ -116,7 +116,7 @@ static void use_target_explosion(edict_t *self, edict_t *other, edict_t *activat
 
 void G_target_explosion(edict_t *ent){
 	ent->use = use_target_explosion;
-	ent->svflags = SVF_NOCLIENT;
+	ent->sv_flags = SVF_NOCLIENT;
 }
 
 

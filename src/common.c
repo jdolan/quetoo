@@ -186,7 +186,7 @@ void Com_SetServerState(int state){
 /*
  * Msg_WriteChar
  */
-void Msg_WriteChar(sizebuf_t *sb, int c){
+void Msg_WriteChar(size_buf_t *sb, int c){
 	byte *buf;
 
 	buf = Sb_GetSpace(sb, 1);
@@ -197,7 +197,7 @@ void Msg_WriteChar(sizebuf_t *sb, int c){
 /*
  * Msg_WriteByte
  */
-void Msg_WriteByte(sizebuf_t *sb, int c){
+void Msg_WriteByte(size_buf_t *sb, int c){
 	byte *buf;
 
 	buf = Sb_GetSpace(sb, 1);
@@ -208,7 +208,7 @@ void Msg_WriteByte(sizebuf_t *sb, int c){
 /*
  * Msg_WriteShort
  */
-void Msg_WriteShort(sizebuf_t *sb, int c){
+void Msg_WriteShort(size_buf_t *sb, int c){
 	byte *buf;
 
 	buf = Sb_GetSpace(sb, 2);
@@ -220,7 +220,7 @@ void Msg_WriteShort(sizebuf_t *sb, int c){
 /*
  * Msg_WriteLong
  */
-void Msg_WriteLong(sizebuf_t *sb, int c){
+void Msg_WriteLong(size_buf_t *sb, int c){
 	byte *buf;
 
 	buf = Sb_GetSpace(sb, 4);
@@ -234,7 +234,7 @@ void Msg_WriteLong(sizebuf_t *sb, int c){
 /*
  * Msg_WriteFloat
  */
-void Msg_WriteFloat(sizebuf_t *sb, float f){
+void Msg_WriteFloat(size_buf_t *sb, float f){
 	union {
 		float f;
 		int l;
@@ -250,7 +250,7 @@ void Msg_WriteFloat(sizebuf_t *sb, float f){
 /*
  * Msg_WriteString
  */
-void Msg_WriteString(sizebuf_t *sb, const char *s){
+void Msg_WriteString(size_buf_t *sb, const char *s){
 	if(!s)
 		Sb_Write(sb, "", 1);
 	else
@@ -261,7 +261,7 @@ void Msg_WriteString(sizebuf_t *sb, const char *s){
 /*
  * Msg_WriteCoord
  */
-void Msg_WriteCoord(sizebuf_t *sb, float f){
+void Msg_WriteCoord(size_buf_t *sb, float f){
 	Msg_WriteShort(sb, (int)(f * 8));
 }
 
@@ -269,7 +269,7 @@ void Msg_WriteCoord(sizebuf_t *sb, float f){
 /*
  * Msg_WritePos
  */
-void Msg_WritePos(sizebuf_t *sb, vec3_t pos){
+void Msg_WritePos(size_buf_t *sb, vec3_t pos){
 	Msg_WriteShort(sb, (int)(pos[0] * 8));
 	Msg_WriteShort(sb, (int)(pos[1] * 8));
 	Msg_WriteShort(sb, (int)(pos[2] * 8));
@@ -279,7 +279,7 @@ void Msg_WritePos(sizebuf_t *sb, vec3_t pos){
 /*
  * Msg_WriteAngle
  */
-void Msg_WriteAngle(sizebuf_t *sb, float f){
+void Msg_WriteAngle(size_buf_t *sb, float f){
 	Msg_WriteByte(sb, (int)(f * 256 / 360) & 255);
 }
 
@@ -287,7 +287,7 @@ void Msg_WriteAngle(sizebuf_t *sb, float f){
 /*
  * Msg_WriteAngle16
  */
-void Msg_WriteAngle16(sizebuf_t *sb, float f){
+void Msg_WriteAngle16(size_buf_t *sb, float f){
 	Msg_WriteShort(sb, ANGLE2SHORT(f));
 }
 
@@ -295,7 +295,7 @@ void Msg_WriteAngle16(sizebuf_t *sb, float f){
 /*
  * Msg_WriteDeltaUsercmd
  */
-void Msg_WriteDeltaUsercmd(sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd){
+void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd){
 	int bits;
 
 	// send the movement message
@@ -341,7 +341,7 @@ void Msg_WriteDeltaUsercmd(sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd){
 /*
  * Msg_WriteDir
  */
-void Msg_WriteDir(sizebuf_t *sb, vec3_t dir){
+void Msg_WriteDir(size_buf_t *sb, vec3_t dir){
 	int i, best;
 	float d, bestd;
 
@@ -366,7 +366,7 @@ void Msg_WriteDir(sizebuf_t *sb, vec3_t dir){
 /*
  * Msg_ReadDir
  */
-void Msg_ReadDir(sizebuf_t *sb, vec3_t dir){
+void Msg_ReadDir(size_buf_t *sb, vec3_t dir){
 	int b;
 
 	b = Msg_ReadByte(sb);
@@ -383,7 +383,7 @@ void Msg_ReadDir(sizebuf_t *sb, vec3_t dir){
  * Writes part of a packetentities message.
  * Can delta from either a baseline or a previous packet_entity
  */
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, sizebuf_t *msg, qboolean force, qboolean newentity){
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, qboolean force, qboolean newentity){
 	int bits;
 
 	if(!to->number){
@@ -536,7 +536,7 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, sizebuf_t *m
 /*
  * Msg_BeginReading
  */
-void Msg_BeginReading(sizebuf_t *msg){
+void Msg_BeginReading(size_buf_t *msg){
 	msg->read = 0;
 }
 
@@ -546,7 +546,7 @@ void Msg_BeginReading(sizebuf_t *msg){
  *
  * Returns -1 if no more characters are available.
  */
-int Msg_ReadChar(sizebuf_t *sb){
+int Msg_ReadChar(size_buf_t *sb){
 	int c;
 
 	if(sb->read + 1 > sb->size)
@@ -562,7 +562,7 @@ int Msg_ReadChar(sizebuf_t *sb){
 /*
  * Msg_ReadByte
  */
-int Msg_ReadByte(sizebuf_t *sb){
+int Msg_ReadByte(size_buf_t *sb){
 	int c;
 
 	if(sb->read + 1 > sb->size)
@@ -578,7 +578,7 @@ int Msg_ReadByte(sizebuf_t *sb){
 /*
  * Msg_ReadShort
  */
-int Msg_ReadShort(sizebuf_t *sb){
+int Msg_ReadShort(size_buf_t *sb){
 	int c;
 
 	if(sb->read + 2 > sb->size)
@@ -596,7 +596,7 @@ int Msg_ReadShort(sizebuf_t *sb){
 /*
  * Msg_ReadLong
  */
-int Msg_ReadLong(sizebuf_t *sb){
+int Msg_ReadLong(size_buf_t *sb){
 	int c;
 
 	if(sb->read + 4 > sb->size)
@@ -616,7 +616,7 @@ int Msg_ReadLong(sizebuf_t *sb){
 /*
  * Msg_ReadFloat
  */
-float Msg_ReadFloat(sizebuf_t *sb){
+float Msg_ReadFloat(size_buf_t *sb){
 	union {
 		byte b[4];
 		float f;
@@ -642,7 +642,7 @@ float Msg_ReadFloat(sizebuf_t *sb){
 /*
  * Msg_ReadString
  */
-char *Msg_ReadString(sizebuf_t *sb){
+char *Msg_ReadString(size_buf_t *sb){
 	static char string[2048];
 	int l, c;
 
@@ -664,7 +664,7 @@ char *Msg_ReadString(sizebuf_t *sb){
 /*
  * Msg_ReadStringLine
  */
-char *Msg_ReadStringLine(sizebuf_t *sb){
+char *Msg_ReadStringLine(size_buf_t *sb){
 	static char string[2048];
 	int l, c;
 
@@ -686,7 +686,7 @@ char *Msg_ReadStringLine(sizebuf_t *sb){
 /*
  * Msg_ReadCoord
  */
-float Msg_ReadCoord(sizebuf_t *sb){
+float Msg_ReadCoord(size_buf_t *sb){
 	return Msg_ReadShort(sb) * (1.0 / 8);
 }
 
@@ -694,7 +694,7 @@ float Msg_ReadCoord(sizebuf_t *sb){
 /*
  * Msg_ReadPos
  */
-void Msg_ReadPos(sizebuf_t *sb, vec3_t pos){
+void Msg_ReadPos(size_buf_t *sb, vec3_t pos){
 	pos[0] = Msg_ReadShort(sb) * (1.0 / 8);
 	pos[1] = Msg_ReadShort(sb) * (1.0 / 8);
 	pos[2] = Msg_ReadShort(sb) * (1.0 / 8);
@@ -704,7 +704,7 @@ void Msg_ReadPos(sizebuf_t *sb, vec3_t pos){
 /*
  * Msg_ReadAngle
  */
-float Msg_ReadAngle(sizebuf_t *sb){
+float Msg_ReadAngle(size_buf_t *sb){
 	return Msg_ReadChar(sb) * (360.0 / 256);
 }
 
@@ -712,7 +712,7 @@ float Msg_ReadAngle(sizebuf_t *sb){
 /*
  * Msg_ReadAngle16
  */
-float Msg_ReadAngle16(sizebuf_t *sb){
+float Msg_ReadAngle16(size_buf_t *sb){
 	return SHORT2ANGLE(Msg_ReadShort(sb));
 }
 
@@ -720,7 +720,7 @@ float Msg_ReadAngle16(sizebuf_t *sb){
 /*
  * Msg_ReadDeltaUsercmd
  */
-void Msg_ReadDeltaUsercmd(sizebuf_t *sb, usercmd_t *from, usercmd_t *move){
+void Msg_ReadDeltaUsercmd(size_buf_t *sb, user_cmd_t *from, user_cmd_t *move){
 	int bits;
 
 	*move = *from;
@@ -755,7 +755,7 @@ void Msg_ReadDeltaUsercmd(sizebuf_t *sb, usercmd_t *from, usercmd_t *move){
 /*
  * Msg_ReadData
  */
-void Msg_ReadData(sizebuf_t *sb, void *data, size_t len){
+void Msg_ReadData(size_buf_t *sb, void *data, size_t len){
 	int i;
 
 	for(i = 0; i < len; i++)
@@ -766,7 +766,7 @@ void Msg_ReadData(sizebuf_t *sb, void *data, size_t len){
 /*
  * Sb_Init
  */
-void Sb_Init(sizebuf_t *buf, byte *data, size_t length){
+void Sb_Init(size_buf_t *buf, byte *data, size_t length){
 	memset(buf, 0, sizeof(*buf));
 	buf->data = data;
 	buf->max_size = length;
@@ -776,7 +776,7 @@ void Sb_Init(sizebuf_t *buf, byte *data, size_t length){
 /*
  * Sb_Clear
  */
-void Sb_Clear(sizebuf_t *buf){
+void Sb_Clear(size_buf_t *buf){
 	buf->size = 0;
 	buf->overflowed = false;
 }
@@ -785,7 +785,7 @@ void Sb_Clear(sizebuf_t *buf){
 /*
  * Sb_GetSpace
  */
-void *Sb_GetSpace(sizebuf_t *buf, size_t length){
+void *Sb_GetSpace(size_buf_t *buf, size_t length){
 	void *data;
 
 	if(buf->size + length > buf->max_size){
@@ -812,7 +812,7 @@ void *Sb_GetSpace(sizebuf_t *buf, size_t length){
 /*
  * Sb_Write
  */
-void Sb_Write(sizebuf_t *buf, const void *data, size_t length){
+void Sb_Write(size_buf_t *buf, const void *data, size_t length){
 	memcpy(Sb_GetSpace(buf, length), data, length);
 }
 
@@ -820,7 +820,7 @@ void Sb_Write(sizebuf_t *buf, const void *data, size_t length){
 /*
  * Sb_Print
  */
-void Sb_Print(sizebuf_t *buf, const char *data){
+void Sb_Print(size_buf_t *buf, const char *data){
 	size_t len;
 
 	len = strlen(data) + 1;

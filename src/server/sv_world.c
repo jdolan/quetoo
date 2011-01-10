@@ -160,10 +160,10 @@ void Sv_LinkEdict(edict_t *ent){
 	if(ent->area.prev)
 		Sv_UnlinkEdict(ent);  // unlink from old position
 
-	if(ent == ge->edicts)
+	if(ent == svs.game->edicts)
 		return;  // don't add the world
 
-	if(!ent->inuse)
+	if(!ent->in_use)
 		return;
 
 	// set the size
@@ -213,30 +213,30 @@ void Sv_LinkEdict(edict_t *ent){
 				max = v;
 		}
 		for(i = 0; i < 3; i++){
-			ent->absmin[i] = ent->s.origin[i] - max;
-			ent->absmax[i] = ent->s.origin[i] + max;
+			ent->abs_mins[i] = ent->s.origin[i] - max;
+			ent->abs_maxs[i] = ent->s.origin[i] + max;
 		}
 	} else {  // normal
-		VectorAdd(ent->s.origin, ent->mins, ent->absmin);
-		VectorAdd(ent->s.origin, ent->maxs, ent->absmax);
+		VectorAdd(ent->s.origin, ent->mins, ent->abs_mins);
+		VectorAdd(ent->s.origin, ent->maxs, ent->abs_maxs);
 	}
 
 	// because movement is clipped an epsilon away from an actual edge,
 	// we must fully check even when bounding boxes don't quite touch
-	ent->absmin[0] -= 1;
-	ent->absmin[1] -= 1;
-	ent->absmin[2] -= 1;
-	ent->absmax[0] += 1;
-	ent->absmax[1] += 1;
-	ent->absmax[2] += 1;
+	ent->abs_mins[0] -= 1;
+	ent->abs_mins[1] -= 1;
+	ent->abs_mins[2] -= 1;
+	ent->abs_maxs[0] += 1;
+	ent->abs_maxs[1] += 1;
+	ent->abs_maxs[2] += 1;
 
 	// link to PVS leafs
 	ent->num_clusters = 0;
-	ent->areanum = 0;
-	ent->areanum2 = 0;
+	ent->area_num = 0;
+	ent->area_num2 = 0;
 
 	//get all leafs, including solids
-	num_leafs = Cm_BoxLeafnums(ent->absmin, ent->absmax,
+	num_leafs = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs,
 								leafs, MAX_TOTAL_ENT_LEAFS, &topnode);
 
 	// set areas
@@ -245,13 +245,13 @@ void Sv_LinkEdict(edict_t *ent){
 		area = Cm_LeafArea(leafs[i]);
 		if(area){  // doors may legally straggle two areas,
 			// but nothing should evern need more than that
-			if(ent->areanum && ent->areanum != area){
-				if(ent->areanum2 && ent->areanum2 != area && sv.state == ss_loading)
+			if(ent->area_num && ent->area_num != area){
+				if(ent->area_num2 && ent->area_num2 != area && sv.state == ss_loading)
 					Com_Debug("Object touching 3 areas at %f %f %f\n",
-								 ent->absmin[0], ent->absmin[1], ent->absmin[2]);
-				ent->areanum2 = area;
+								 ent->abs_mins[0], ent->abs_mins[1], ent->abs_mins[2]);
+				ent->area_num2 = area;
 			} else
-				ent->areanum = area;
+				ent->area_num = area;
 		}
 	}
 
@@ -273,16 +273,16 @@ void Sv_LinkEdict(edict_t *ent){
 					break;
 				}
 
-				ent->clusternums[ent->num_clusters++] = clusters[i];
+				ent->cluster_nums[ent->num_clusters++] = clusters[i];
 			}
 		}
 	}
 
 	// if first time, make sure old_origin is valid
-	if(!ent->linkcount){
+	if(!ent->link_count){
 		VectorCopy(ent->s.origin, ent->s.old_origin);
 	}
-	ent->linkcount++;
+	ent->link_count++;
 
 	if(ent->solid == SOLID_NOT)
 		return;
@@ -292,9 +292,9 @@ void Sv_LinkEdict(edict_t *ent){
 	while(true){
 		if(node->axis == -1)
 			break;
-		if(ent->absmin[node->axis] > node->dist)
+		if(ent->abs_mins[node->axis] > node->dist)
 			node = node->children[0];
-		else if(ent->absmax[node->axis] < node->dist)
+		else if(ent->abs_maxs[node->axis] < node->dist)
 			node = node->children[1];
 		else
 			break;  // crosses the node
@@ -330,12 +330,12 @@ static void Sv_AreaEdicts_r(areanode_t *node){
 
 		if(check->solid == SOLID_NOT)
 			continue;  // deactivated
-		if(check->absmin[0] > area_maxs[0]
-				|| check->absmin[1] > area_maxs[1]
-				|| check->absmin[2] > area_maxs[2]
-				|| check->absmax[0] < area_mins[0]
-				|| check->absmax[1] < area_mins[1]
-				|| check->absmax[2] < area_mins[2])
+		if(check->abs_mins[0] > area_maxs[0]
+				|| check->abs_mins[1] > area_maxs[1]
+				|| check->abs_mins[2] > area_maxs[2]
+				|| check->abs_maxs[0] < area_mins[0]
+				|| check->abs_maxs[1] < area_mins[1]
+				|| check->abs_maxs[2] < area_mins[2])
 			continue;  // not touching
 
 		if(area_count == area_maxcount){
@@ -540,7 +540,8 @@ trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, edict_t *pa
 
 	// clip to world
 	clip.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contentmask);
-	clip.trace.ent = ge->edicts;
+	clip.trace.ent = svs.game->edicts;
+
 	if(clip.trace.fraction == 0)
 		return clip.trace;  // blocked by the world
 

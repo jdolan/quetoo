@@ -24,6 +24,6 @@
 
 #include "common.h"
 
-void Pmove(pmove_t *pmove);
+void Pmove(pm_move_t *pmove);
 
 #endif /* __PMOVE_H__ */

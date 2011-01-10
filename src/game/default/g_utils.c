@@ -64,25 +64,28 @@ void G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward, vec3_t right
 /*
  * G_Find
  *
- * Searches all active entities for the next one that holds
- * the matching string at fieldofs(use the FOFS() macro) in the structure.
+ * Searches all active entities for the next one that holds the matching string
+ * at field offset (use the FOFS() macro) in the structure.
  *
  * Searches beginning at the edict after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.
  *
+ * Example:
+ *   G_Find(NULL, FOFS(class_name), "info_player_deathmatch");
+ *
  */
-edict_t *G_Find(edict_t *from, int fieldofs, const char *match){
+edict_t *G_Find(edict_t *from, ptrdiff_t field, const char *match){
 	char *s;
 
 	if(!from)
-		from = g_edicts;
+		from = g_game.edicts;
 	else
 		from++;
 
-	for(; from < &g_edicts[ge.num_edicts]; from++){
-		if(!from->inuse)
+	for(; from < &g_game.edicts[ge.num_edicts]; from++){
+		if(!from->in_use)
 			continue;
-		s = *(char **)((byte *)from + fieldofs);
+		s = *(char **)((byte *)from + field);
 		if(!s)
 			continue;
 		if(!strcasecmp(s, match))
@@ -105,11 +108,11 @@ edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad){
 	int j;
 
 	if(!from)
-		from = g_edicts;
+		from = g_game.edicts;
 	else
 		from++;
-	for(; from < &g_edicts[ge.num_edicts]; from++){
-		if(!from->inuse)
+	for(; from < &g_game.edicts[ge.num_edicts]; from++){
+		if(!from->in_use)
 			continue;
 		if(from->solid == SOLID_NOT)
 			continue;
@@ -136,18 +139,18 @@ edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad){
  */
 #define MAXCHOICES	8
 
-edict_t *G_PickTarget(char *targetname){
+edict_t *G_PickTarget(char *target_name){
 	edict_t *ent = NULL;
 	int num_choices = 0;
 	edict_t *choice[MAXCHOICES];
 
-	if(!targetname){
+	if(!target_name){
 		gi.Debug("G_PickTarget called with NULL targetname\n");
 		return NULL;
 	}
 
 	while(true){
-		ent = G_Find(ent, FOFS(targetname), targetname);
+		ent = G_Find(ent, FOFS(target_name), target_name);
 		if(!ent)
 			break;
 		choice[num_choices++] = ent;
@@ -156,7 +159,7 @@ edict_t *G_PickTarget(char *targetname){
 	}
 
 	if(!num_choices){
-		gi.Debug("G_PickTarget: target %s not found\n", targetname);
+		gi.Debug("G_PickTarget: target %s not found\n", target_name);
 		return NULL;
 	}
 
@@ -192,7 +195,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 	if(ent->delay){
 		// create a temp object to fire at a later time
 		t = G_Spawn();
-		t->classname = "DelayedUse";
+		t->class_name = "DelayedUse";
 		t->next_think = g_level.time + ent->delay;
 		t->think = Think_Delay;
 		t->activator = activator;
@@ -200,7 +203,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 			gi.Debug("Think_Delay with no activator\n");
 		t->message = ent->message;
 		t->target = ent->target;
-		t->killtarget = ent->killtarget;
+		t->kill_target = ent->kill_target;
 		return;
 	}
 
@@ -214,11 +217,11 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 	}
 
 	// kill killtargets
-	if(ent->killtarget){
+	if(ent->kill_target){
 		t = NULL;
-		while((t = G_Find(t, FOFS(targetname), ent->killtarget))){
+		while((t = G_Find(t, FOFS(target_name), ent->kill_target))){
 			G_FreeEdict(t);
-			if(!ent->inuse){
+			if(!ent->in_use){
 				gi.Debug("entity was removed while using killtargets\n");
 				return;
 			}
@@ -228,10 +231,10 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 	// fire targets
 	if(ent->target){
 		t = NULL;
-		while((t = G_Find(t, FOFS(targetname), ent->target))){
+		while((t = G_Find(t, FOFS(target_name), ent->target))){
 			// doors fire area portals in a specific way
-			if(!strcasecmp(t->classname, "func_areaportal") &&
-					(!strcasecmp(ent->classname, "func_door") || !strcasecmp(ent->classname, "func_door_rotating")))
+			if(!strcasecmp(t->class_name, "func_areaportal") &&
+					(!strcasecmp(ent->class_name, "func_door") || !strcasecmp(ent->class_name, "func_door_rotating")))
 				continue;
 
 			if(t == ent){
@@ -240,7 +243,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 				if(t->use)
 					t->use(t, ent, activator);
 			}
-			if(!ent->inuse){
+			if(!ent->in_use){
 				gi.Debug("entity was removed while using targets\n");
 				return;
 			}
@@ -321,11 +324,11 @@ char *G_CopyString(char *in){
 
 
 void G_InitEdict(edict_t *e){
-	e->inuse = true;
-	e->classname = "noclass";
+	e->in_use = true;
+	e->class_name = "noclass";
 	e->gravity = 1.0;
 	e->timestamp = g_level.time;
-	e->s.number = e - g_edicts;
+	e->s.number = e - g_game.edicts;
 }
 
 
@@ -342,11 +345,11 @@ edict_t *G_Spawn(void){
 	int i;
 	edict_t *e;
 
-	e = &g_edicts[(int)sv_maxclients->value + 1];
+	e = &g_game.edicts[(int)sv_maxclients->value + 1];
 	for(i = sv_maxclients->value + 1; i < ge.num_edicts; i++, e++){
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
-		if(!e->inuse && (e->freetime < 2 || g_level.time - e->freetime > 0.5)){
+		if(!e->in_use && (e->free_time < 2 || g_level.time - e->free_time > 0.5)){
 			G_InitEdict(e);
 			return e;
 		}
@@ -369,13 +372,13 @@ edict_t *G_Spawn(void){
 void G_FreeEdict(edict_t *ed){
 	gi.UnlinkEntity(ed);  // unlink from world
 
-	if((ed - g_edicts) <= sv_maxclients->value)
+	if((ed - g_game.edicts) <= sv_maxclients->value)
 		return;
 
 	memset(ed, 0, sizeof(*ed));
-	ed->classname = "freed";
-	ed->freetime = g_level.time;
-	ed->inuse = false;
+	ed->class_name = "freed";
+	ed->free_time = g_level.time;
+	ed->in_use = false;
 }
 
 
@@ -386,7 +389,7 @@ void G_TouchTriggers(edict_t *ent){
 	int i, num;
 	edict_t *touch[MAX_EDICTS], *hit;
 
-	num = gi.BoxEdicts(ent->absmin, ent->absmax, touch, MAX_EDICTS, AREA_TRIGGERS);
+	num = gi.BoxEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_TRIGGERS);
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it (killtriggered)
@@ -394,7 +397,7 @@ void G_TouchTriggers(edict_t *ent){
 
 		hit = touch[i];
 
-		if(!hit->inuse)
+		if(!hit->in_use)
 			continue;
 
 		if(!hit->touch)
@@ -415,17 +418,17 @@ void G_TouchSolids(edict_t *ent){
 	int i, num;
 	edict_t *touch[MAX_EDICTS], *hit;
 
-	num = gi.BoxEdicts(ent->absmin, ent->absmax, touch, MAX_EDICTS, AREA_SOLID);
+	num = gi.BoxEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_SOLID);
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it(killtriggered)
 	for(i = 0; i < num; i++){
 		hit = touch[i];
-		if(!hit->inuse)
+		if(!hit->in_use)
 			continue;
 		if(ent->touch)
 			ent->touch(hit, ent, NULL, NULL);
-		if(!ent->inuse)
+		if(!ent->in_use)
 			break;
 	}
 }
@@ -528,10 +531,10 @@ g_team_t *G_TeamForFlag(edict_t *ent){
 	if(!ent->item || !(ent->item->flags & IT_FLAG))
 		return NULL;
 
-	if(!strcmp(ent->classname, "item_flag_team1"))
+	if(!strcmp(ent->class_name, "item_flag_team1"))
 		return &good;
 
-	if(!strcmp(ent->classname, "item_flag_team2"))
+	if(!strcmp(ent->class_name, "item_flag_team2"))
 		return &evil;
 
 	return NULL;
@@ -564,10 +567,10 @@ edict_t *G_FlagForTeam(g_team_t *t){
 
 		// when a carrier is killed, we spawn a new temporary flag
 		// where they died.  we are generally not interested in these.
-		if(ent->spawnflags & SF_ITEM_DROPPED)
+		if(ent->spawn_flags & SF_ITEM_DROPPED)
 			continue;
 
-		if(!strcmp(ent->classname, class))
+		if(!strcmp(ent->class_name, class))
 			return ent;
 	}
 
@@ -615,10 +618,10 @@ g_team_t *G_SmallestTeam(void){
 	g = e = 0;
 
 	for(i = 0; i < sv_maxclients->value; i++){
-		if(!g_edicts[i + 1].inuse)
+		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
-		cl = g_edicts[i + 1].client;
+		cl = g_game.edicts[i + 1].client;
 
 		if(cl->locals.team == &good)
 			g++;
@@ -644,11 +647,11 @@ g_client_t *G_ClientByName(char *name){
 	min = 9999;
 
 	for(i = 0; i < sv_maxclients->value; i++){
-		if(!g_edicts[i + 1].inuse)
+		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
-		cl = g_edicts[i + 1].client;
-		if((j = strcmp(name, cl->locals.netname)) < min){
+		cl = g_game.edicts[i + 1].client;
+		if((j = strcmp(name, cl->locals.net_name)) < min){
 			ret = cl;
 			min = j;
 		}

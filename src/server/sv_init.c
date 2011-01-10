@@ -27,7 +27,7 @@ sv_server_t sv;  // local server
 /*
  * Sv_FindIndex
  *
- * Searches sv.configstrings from the specified start, searching for the
+ * Searches sv.config_strings from the specified start, searching for the
  * desired name.  If not found, the name can be optionally created and sent to
  * all connected clients.  This allows the game to lazily load assets.
  */
@@ -37,8 +37,8 @@ static int Sv_FindIndex(const char *name, int start, int max, qboolean create){
 	if(!name || !name[0])
 		return 0;
 
-	for(i = 1; i < max && sv.configstrings[start + i][0]; i++)
-		if(!strcmp(sv.configstrings[start + i], name))
+	for(i = 1; i < max && sv.config_strings[start + i][0]; i++)
+		if(!strcmp(sv.config_strings[start + i], name))
 			return i;
 
 	if(!create)
@@ -49,11 +49,11 @@ static int Sv_FindIndex(const char *name, int start, int max, qboolean create){
 		return 0;
 	}
 
-	strncpy(sv.configstrings[start + i], name, sizeof(sv.configstrings[i]));
+	strncpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
 
 	if(sv.state != ss_loading){  // send the update to everyone
 		Sb_Clear(&sv.multicast);
-		Msg_WriteChar(&sv.multicast, svc_configstring);
+		Msg_WriteChar(&sv.multicast, svc_config_string);
 		Msg_WriteShort(&sv.multicast, start + i);
 		Msg_WriteString(&sv.multicast, name);
 		Sv_Multicast(vec3_origin, MULTICAST_ALL_R);
@@ -84,19 +84,19 @@ int Sv_ImageIndex(const char *name){
  */
 static void Sv_CreateBaseline(void){
 	edict_t *svent;
-	int ent_num;
+	int i;
 
-	for(ent_num = 1; ent_num < ge->num_edicts; ent_num++){
-		svent = EDICT_FOR_NUM(ent_num);
-		if(!svent->inuse)
+	for(i = 1; i < svs.game->num_edicts; i++){
+		svent = EDICT_FOR_NUM(i);
+		if(!svent->in_use)
 			continue;
 		if(!svent->s.model_index && !svent->s.sound && !svent->s.effects)
 			continue;
-		svent->s.number = ent_num;
+		svent->s.number = i;
 
 		// take current state as baseline
 		VectorCopy(svent->s.origin, svent->s.old_origin);
-		sv.baselines[ent_num] = svent->s;
+		sv.baselines[i] = svent->s;
 	}
 }
 
@@ -179,10 +179,10 @@ static void Sv_UpdateLatchedVars(void){
 
 	Cvar_UpdateLatchedVars();
 
-	if(sv_packetrate->value < SERVER_PACKETRATE_MIN)
-		Cvar_FullSet("sv_packetrate", va("%i", SERVER_PACKETRATE_MIN), flags);
-	else if(sv_packetrate->value > SERVER_PACKETRATE_MAX)
-		Cvar_FullSet("sv_packetrate", va("%i", SERVER_PACKETRATE_MAX), flags);
+	if(sv_framerate->value < SERVER_FRAME_RATE_MIN)
+		Cvar_FullSet("sv_packetrate", va("%i", SERVER_FRAME_RATE_MIN), flags);
+	else if(sv_framerate->value > SERVER_FRAME_RATE_MAX)
+		Cvar_FullSet("sv_packetrate", va("%i", SERVER_FRAME_RATE_MAX), flags);
 
 	if(sv_maxclients->value <= 1)
 		Cvar_FullSet("sv_maxclients", "1", flags);
@@ -219,7 +219,7 @@ static void Sv_RestartGame(void){
 	svs.num_entity_states = sv_maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
 	svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
 
-	svs.packet_rate = sv_packetrate->value;
+	svs.frame_rate = sv_framerate->value;
 
 	svs.spawn_count = rand();
 
@@ -282,38 +282,39 @@ static void Sv_SpawnServer(const char *server, sv_state_t state){
 
 	// load the new server
 	strcpy(sv.name, server);
-	strcpy(sv.configstrings[CS_NAME], server);
+	strcpy(sv.config_strings[CS_NAME], server);
 
 	if(state == ss_demo){  // playing a demo, no map on the server
 		sv.models[1] = Cm_LoadMap(NULL, &mapsize);
 	} else {  // playing a game, load the map
-		snprintf(sv.configstrings[CS_MODELS + 1], MAX_QPATH, "maps/%s.bsp", server);
+		snprintf(sv.config_strings[CS_MODELS + 1], MAX_QPATH, "maps/%s.bsp", server);
 
-		Fs_OpenFile(sv.configstrings[CS_MODELS + 1], &f, FILE_READ);  // resolve CS_PAK
-		strcpy(sv.configstrings[CS_PAK], (last_pak ? last_pak : ""));
+		Fs_OpenFile(sv.config_strings[CS_MODELS + 1], &f, FILE_READ);  // resolve CS_PAK
+		strcpy(sv.config_strings[CS_PAK], (last_pak ? last_pak : ""));
 		Fs_CloseFile(f);
 
-		sv.models[1] = Cm_LoadMap(sv.configstrings[CS_MODELS + 1], &mapsize);
+		sv.models[1] = Cm_LoadMap(sv.config_strings[CS_MODELS + 1], &mapsize);
 	}
-	snprintf(sv.configstrings[CS_MAPSIZE], MAX_QPATH, "%i", mapsize);
+	snprintf(sv.config_strings[CS_MAP_SIZE], MAX_QPATH, "%i", mapsize);
 
 	// clear physics interaction links
 	Sv_ClearWorld();
 
 	for(i = 1; i < Cm_NumInlineModels(); i++){
-		snprintf(sv.configstrings[CS_MODELS + 1 + i], MAX_QPATH, "*%i", i);
-		sv.models[i + 1] = Cm_InlineModel(sv.configstrings[CS_MODELS + 1 + i]);
+		snprintf(sv.config_strings[CS_MODELS + 1 + i], MAX_QPATH, "*%i", i);
+		sv.models[i + 1] = Cm_InlineModel(sv.config_strings[CS_MODELS + 1 + i]);
 	}
 
 	if(state == ss_game){  // load and spawn all other entities
 		sv.state = ss_loading;
 		Com_SetServerState(sv.state);
 
-		ge->SpawnEntities(sv.name, Cm_EntityString());
+		svs.game->SpawnEntities(sv.name, Cm_EntityString());
 
 		Sv_CreateBaseline();
 
-		Com_Print("  Loaded %s, %d entities.\n", sv.configstrings[CS_MODELS + 1], ge->num_edicts);
+		Com_Print("  Loaded %s, %d entities.\n", sv.config_strings[CS_MODELS + 1],
+				svs.game->num_edicts);
 	}
 	else {
 		Com_Print("  Loaded demo %s.\n", sv.name);

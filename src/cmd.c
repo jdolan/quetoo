@@ -55,7 +55,7 @@ static void Cmd_Wait_f(void){
  *
  */
 
-static sizebuf_t cmd_text;
+static size_buf_t cmd_text;
 static byte cmd_text_buf[8192];
 
 static char defer_text_buf[8192];

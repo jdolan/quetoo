@@ -50,8 +50,8 @@ void G_info_null(edict_t *self){
 Used as a positional target for lightning.
 */
 void G_info_notnull(edict_t *self){
-	VectorCopy(self->s.origin, self->absmin);
-	VectorCopy(self->s.origin, self->absmax);
+	VectorCopy(self->s.origin, self->abs_mins);
+	VectorCopy(self->s.origin, self->abs_maxs);
 }
 
 
@@ -72,55 +72,55 @@ START_ON		only valid for TRIGGER_SPAWN walls
 static void G_func_wall_use(edict_t *self, edict_t *other, edict_t *activator){
 	if(self->solid == SOLID_NOT){
 		self->solid = SOLID_BSP;
-		self->svflags &= ~SVF_NOCLIENT;
+		self->sv_flags &= ~SVF_NOCLIENT;
 		G_KillBox(self);
 	} else {
 		self->solid = SOLID_NOT;
-		self->svflags |= SVF_NOCLIENT;
+		self->sv_flags |= SVF_NOCLIENT;
 	}
 	gi.LinkEntity(self);
 
-	if(!(self->spawnflags & 2))
+	if(!(self->spawn_flags & 2))
 		self->use = NULL;
 }
 
 void G_func_wall(edict_t *self){
-	self->movetype = MOVETYPE_PUSH;
+	self->move_type = MOVE_TYPE_PUSH;
 	gi.SetModel(self, self->model);
 
-	if(self->spawnflags & 8)
+	if(self->spawn_flags & 8)
 		self->s.effects |= EF_ANIMATE;
-	if(self->spawnflags & 16)
+	if(self->spawn_flags & 16)
 		self->s.effects |= EF_ANIMATE_FAST;
 
 	// just a wall
-	if((self->spawnflags & 7) == 0){
+	if((self->spawn_flags & 7) == 0){
 		self->solid = SOLID_BSP;
 		gi.LinkEntity(self);
 		return;
 	}
 
 	// it must be TRIGGER_SPAWN
-	if(!(self->spawnflags & 1)){
+	if(!(self->spawn_flags & 1)){
 		gi.Debug("func_wall missing TRIGGER_SPAWN\n");
-		self->spawnflags |= 1;
+		self->spawn_flags |= 1;
 	}
 
 	// yell if the spawnflags are odd
-	if(self->spawnflags & 4){
-		if(!(self->spawnflags & 2)){
+	if(self->spawn_flags & 4){
+		if(!(self->spawn_flags & 2)){
 			gi.Debug("func_wall START_ON without TOGGLE\n");
-			self->spawnflags |= 2;
+			self->spawn_flags |= 2;
 		}
 	}
 
 	self->use = G_func_wall_use;
 
-	if(self->spawnflags & 4){
+	if(self->spawn_flags & 4){
 		self->solid = SOLID_BSP;
 	} else {
 		self->solid = SOLID_NOT;
-		self->svflags |= SVF_NOCLIENT;
+		self->sv_flags |= SVF_NOCLIENT;
 	}
 	gi.LinkEntity(self);
 }
@@ -142,13 +142,13 @@ static void G_func_object_touch(edict_t *self, edict_t *other, cplane_t *plane, 
 }
 
 static void G_func_object_release(edict_t *self){
-	self->movetype = MOVETYPE_TOSS;
+	self->move_type = MOVE_TYPE_TOSS;
 	self->touch = G_func_object_touch;
 }
 
 static void G_func_object_use(edict_t *self, edict_t *other, edict_t *activator){
 	self->solid = SOLID_BSP;
-	self->svflags &= ~SVF_NOCLIENT;
+	self->sv_flags &= ~SVF_NOCLIENT;
 	self->use = NULL;
 	G_KillBox(self);
 	G_func_object_release(self);
@@ -167,21 +167,21 @@ void G_func_object(edict_t *self){
 	if(!self->dmg)
 		self->dmg = 100;
 
-	if(self->spawnflags == 0){
+	if(self->spawn_flags == 0){
 		self->solid = SOLID_BSP;
-		self->movetype = MOVETYPE_PUSH;
+		self->move_type = MOVE_TYPE_PUSH;
 		self->think = G_func_object_release;
 		self->next_think = g_level.time + 2 * gi.server_frame;
 	} else {
 		self->solid = SOLID_NOT;
-		self->movetype = MOVETYPE_PUSH;
+		self->move_type = MOVE_TYPE_PUSH;
 		self->use = G_func_object_use;
-		self->svflags |= SVF_NOCLIENT;
+		self->sv_flags |= SVF_NOCLIENT;
 	}
 
-	if(self->spawnflags & 2)
+	if(self->spawn_flags & 2)
 		self->s.effects |= EF_ANIMATE;
-	if(self->spawnflags & 4)
+	if(self->spawn_flags & 4)
 		self->s.effects |= EF_ANIMATE_FAST;
 
 	self->clipmask = MASK_PLAYERSOLID;
@@ -236,7 +236,7 @@ static void G_teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, c
 	if(!other->client)
 		return;
 
-	dest = G_Find(NULL, FOFS(targetname), self->target);
+	dest = G_Find(NULL, FOFS(target_name), self->target);
 
 	if(!dest){
 		gi.Debug("G_teleporter_touch: Couldn't find destination.\n");
@@ -295,11 +295,11 @@ void G_misc_teleporter(edict_t *ent){
 	}
 
 	ent->solid = SOLID_TRIGGER;
-	ent->movetype = MOVETYPE_NONE;
+	ent->move_type = MOVE_TYPE_NONE;
 
 	if(ent->model){  // model form, trigger_teleporter
 		gi.SetModel(ent, ent->model);
-		ent->svflags = SVF_NOCLIENT;
+		ent->sv_flags = SVF_NOCLIENT;
 	}
 	else {  // or model-less form, misc_teleporter
 		VectorSet(ent->mins, -32.0, -32.0, -24.0);
@@ -309,7 +309,7 @@ void G_misc_teleporter(edict_t *ent){
 		v[2] -= 16.0;
 
 		// add effect if ent is not burried and effect is not inhibited
-		if(!gi.PointContents(v) && !(ent->spawnflags & 4)){
+		if(!gi.PointContents(v) && !(ent->spawn_flags & 4)){
 			ent->s.effects = EF_TELEPORTER;
 			ent->s.sound = gi.SoundIndex("world/teleport_hum");
 		}

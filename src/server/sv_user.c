@@ -78,10 +78,10 @@ static void Sv_New_f(void){
 	gamedir = Cvar_GetString("gamedir");
 
 	// send the serverdata
-	Msg_WriteByte(&sv_client->netchan.message, svc_serverdata);
+	Msg_WriteByte(&sv_client->netchan.message, svc_server_data);
 	Msg_WriteLong(&sv_client->netchan.message, PROTOCOL);
 	Msg_WriteLong(&sv_client->netchan.message, svs.spawn_count);
-	Msg_WriteLong(&sv_client->netchan.message, svs.packet_rate);
+	Msg_WriteLong(&sv_client->netchan.message, svs.frame_rate);
 	Msg_WriteByte(&sv_client->netchan.message, 0);
 	Msg_WriteString(&sv_client->netchan.message, gamedir);
 
@@ -89,7 +89,7 @@ static void Sv_New_f(void){
 	Msg_WriteShort(&sv_client->netchan.message, player_num);
 
 	// send full levelname
-	Msg_WriteString(&sv_client->netchan.message, sv.configstrings[CS_NAME]);
+	Msg_WriteString(&sv_client->netchan.message, sv.config_strings[CS_NAME]);
 
 	// set up the entity for the client
 	ent = EDICT_FOR_NUM(player_num + 1);
@@ -97,28 +97,28 @@ static void Sv_New_f(void){
 	sv_client->edict = ent;
 	memset(&sv_client->last_cmd, 0, sizeof(sv_client->last_cmd));
 
-	// begin fetching configstrings
-	Msg_WriteByte(&sv_client->netchan.message, svc_stufftext);
-	Msg_WriteString(&sv_client->netchan.message, va("configstrings %i 0\n", svs.spawn_count));
+	// begin fetching config_strings
+	Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
+	Msg_WriteString(&sv_client->netchan.message, va("config_strings %i 0\n", svs.spawn_count));
 }
 
 
 /*
- * Sv_Configstrings_f
+ * Sv_ConfigStrings_f
  */
-static void Sv_Configstrings_f(void){
+static void Sv_ConfigStrings_f(void){
 	int start;
 
-	Com_Debug("Configstrings() from %s\n", sv_client->name);
+	Com_Debug("ConfigStrings() from %s\n", sv_client->name);
 
 	if(sv_client->state != cs_connected){
-		Com_Print("Configstrings not valid -- already spawned\n");
+		Com_Print("ConfigStrings not valid -- already spawned\n");
 		return;
 	}
 
 	// handle the case of a level changing while a client was connecting
 	if(atoi(Cmd_Argv(1)) != svs.spawn_count){
-		Com_Print("Sv_Configstrings_f from different level\n");
+		Com_Print("Sv_ConfigStrings_f from different level\n");
 		Sv_New_f();
 		return;
 	}
@@ -126,29 +126,29 @@ static void Sv_Configstrings_f(void){
 	start = atoi(Cmd_Argv(2));
 
 	if(start < 0){  // catch negative offset
-		Com_Print("Illegal configstring offset from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Print("Illegal config_string offset from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
 
 	// write a packet full of data
 	while(sv_client->netchan.message.size < MAX_MSGLEN / 2
-			&& start < MAX_CONFIGSTRINGS){
-		if(sv.configstrings[start][0]){
-			Msg_WriteByte(&sv_client->netchan.message, svc_configstring);
+			&& start < MAX_CONFIG_STRINGS){
+		if(sv.config_strings[start][0]){
+			Msg_WriteByte(&sv_client->netchan.message, svc_config_string);
 			Msg_WriteShort(&sv_client->netchan.message, start);
-			Msg_WriteString(&sv_client->netchan.message, sv.configstrings[start]);
+			Msg_WriteString(&sv_client->netchan.message, sv.config_strings[start]);
 		}
 		start++;
 	}
 
 	// send next command
-	if(start == MAX_CONFIGSTRINGS){
-		Msg_WriteByte(&sv_client->netchan.message, svc_stufftext);
+	if(start == MAX_CONFIG_STRINGS){
+		Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
 		Msg_WriteString(&sv_client->netchan.message, va("baselines %i 0\n", svs.spawn_count));
 	} else {
-		Msg_WriteByte(&sv_client->netchan.message, svc_stufftext);
-		Msg_WriteString(&sv_client->netchan.message, va("configstrings %i %i\n", svs.spawn_count, start));
+		Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
+		Msg_WriteString(&sv_client->netchan.message, va("config_strings %i %i\n", svs.spawn_count, start));
 	}
 }
 
@@ -189,7 +189,7 @@ static void Sv_Baselines_f(void){
 			&& start < MAX_EDICTS){
 		base = &sv.baselines[start];
 		if(base->model_index || base->sound || base->effects){
-			Msg_WriteByte(&sv_client->netchan.message, svc_spawnbaseline);
+			Msg_WriteByte(&sv_client->netchan.message, svc_spawn_baseline);
 			Msg_WriteDeltaEntity(&nullstate, base, &sv_client->netchan.message, true, true);
 		}
 		start++;
@@ -197,10 +197,10 @@ static void Sv_Baselines_f(void){
 
 	// send next command
 	if(start == MAX_EDICTS){
-		Msg_WriteByte(&sv_client->netchan.message, svc_stufftext);
+		Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
 		Msg_WriteString(&sv_client->netchan.message, va("precache %i\n", svs.spawn_count));
 	} else {
-		Msg_WriteByte(&sv_client->netchan.message, svc_stufftext);
+		Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
 		Msg_WriteString(&sv_client->netchan.message, va("baselines %i %i\n", svs.spawn_count, start));
 	}
 }
@@ -231,7 +231,7 @@ static void Sv_Begin_f(void){
 	sv_client->state = cs_spawned;
 
 	// call the game begin function
-	ge->ClientBegin(sv_player);
+	svs.game->ClientBegin(sv_player);
 
 	Cbuf_InsertFromDefer();
 }
@@ -242,7 +242,7 @@ static void Sv_Begin_f(void){
 static void Sv_NextDownload_f(void){
 	int r, size, percent;
 	byte buf[MAX_MSGLEN];
-	sizebuf_t msg;
+	size_buf_t msg;
 
 	if(!sv_client->download)
 		return;
@@ -385,7 +385,7 @@ typedef struct {
 
 ucmd_t ucmds[] = {
 	{"new", Sv_New_f},
-	{"configstrings", Sv_Configstrings_f},
+	{"config_strings", Sv_ConfigStrings_f},
 	{"baselines", Sv_Baselines_f},
 	{"begin", Sv_Begin_f},
 	{"disconnect", Sv_Disconnect_f},
@@ -418,7 +418,7 @@ static void Sv_ExecuteUserCommand(const char *s){
 		}
 
 	if(!u->name && sv.state == ss_game)
-		ge->ClientCommand(sv_player);
+		svs.game->ClientCommand(sv_player);
 }
 
 /*
@@ -433,9 +433,9 @@ static void Sv_ExecuteUserCommand(const char *s){
  *
  * Account for command timeslice and pass command to game dll.
  */
-static void Sv_ClientThink(sv_client_t *cl, usercmd_t *cmd){
+static void Sv_ClientThink(sv_client_t *cl, user_cmd_t *cmd){
 	cl->cmd_msec -= cmd->msec;
-	ge->ClientThink(cl->edict, cmd);
+	svs.game->ClientThink(cl->edict, cmd);
 }
 
 
@@ -446,7 +446,7 @@ static void Sv_ClientThink(sv_client_t *cl, usercmd_t *cmd){
  * The current net_message is parsed for the given client
  */
 void Sv_ExecuteClientMessage(sv_client_t *cl){
-	usercmd_t null_cmd, oldest, old_cmd, newcmd;
+	user_cmd_t null_cmd, oldest, old_cmd, newcmd;
 	int net_drop;
 	int stringCmdCount;
 	qboolean move_issued;
@@ -479,7 +479,7 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 
 			case clc_user_info:
 				strncpy(cl->user_info, Msg_ReadString(&net_message), sizeof(cl->user_info) - 1);
-				Sv_UserinfoChanged(cl);
+				Sv_UserInfoChanged(cl);
 				break;
 
 			case clc_move:
@@ -530,7 +530,7 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 				cl->last_cmd = newcmd;
 				break;
 
-			case clc_stringcmd:
+			case clc_string_cmd:
 				s = Msg_ReadString(&net_message);
 
 				// malicious users may try using too many string commands

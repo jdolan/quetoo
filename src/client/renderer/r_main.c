@@ -449,7 +449,7 @@ void R_EndFrame(void){
 /*
  * R_ResolveWeather
  *
- * Parses the weather configstring for weather and fog definitions,
+ * Parses the weather config_string for weather and fog definitions,
  * e.g. "rain fog 0.8 0.75 0.65".
  */
 static void R_ResolveWeather(void){
@@ -461,7 +461,7 @@ static void R_ResolveWeather(void){
 
 	VectorSet(r_view.fog_color, 0.75, 0.75, 0.75);
 
-	weather = cl.configstrings[CS_WEATHER];
+	weather = cl.config_strings[CS_WEATHER];
 
 	if(!weather || *weather == '\0')
 		return;
@@ -490,13 +490,13 @@ static void R_ResolveWeather(void){
 /*
  * R_LoadMedia
  *
- * Iterate the configstrings, loading all renderer-specific media.
+ * Iterate the config_strings, loading all renderer-specific media.
  */
 void R_LoadMedia(void){
 	char name[MAX_QPATH];
 	int i, j;
 
-	if(!cl.configstrings[CS_MODELS + 1][0])
+	if(!cl.config_strings[CS_MODELS + 1][0])
 		return;  // no map loaded
 
 	Cl_LoadProgress(0);
@@ -506,31 +506,31 @@ void R_LoadMedia(void){
 
 	R_FreeImages();
 
-	strncpy(name, cl.configstrings[CS_MODELS + 1] + 5, sizeof(name) - 1);  // skip "maps/"
+	strncpy(name, cl.config_strings[CS_MODELS + 1] + 5, sizeof(name) - 1);  // skip "maps/"
 	name[strlen(name) - 4] = 0;  // cut off ".bsp"
 
-	R_BeginLoading(cl.configstrings[CS_MODELS + 1], atoi(cl.configstrings[CS_MAPSIZE]));
+	R_BeginLoading(cl.config_strings[CS_MODELS + 1], atoi(cl.config_strings[CS_MAP_SIZE]));
 	Cl_LoadProgress(50);
 
 	cl.num_weaponmodels = j = 0;
 
 	// models, including bsp submodels and client weapon models
-	for(i = 1; i < MAX_MODELS && cl.configstrings[CS_MODELS + i][0]; i++){
+	for(i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++){
 		memset(name, 0, sizeof(name));
-		strncpy(name, cl.configstrings[CS_MODELS + i], sizeof(name) - 1);
+		strncpy(name, cl.config_strings[CS_MODELS + i], sizeof(name) - 1);
 
 		if(name[0] == '#'){  // hack to retrieve client weapon models from server
 			if(cl.num_weaponmodels < MAX_WEAPONMODELS){
-				strncpy(cl.weaponmodels[cl.num_weaponmodels], cl.configstrings[CS_MODELS + i] + 1,
+				strncpy(cl.weaponmodels[cl.num_weaponmodels], cl.config_strings[CS_MODELS + i] + 1,
 						sizeof(cl.weaponmodels[cl.num_weaponmodels]) - 1);
 				cl.num_weaponmodels++;
 			}
 			continue;
 		}
 
-		cl.model_draw[i] = R_LoadModel(cl.configstrings[CS_MODELS + i]);
+		cl.model_draw[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
 		if(name[0] == '*')
-			cl.model_clip[i] = Cm_InlineModel(cl.configstrings[CS_MODELS + i]);
+			cl.model_clip[i] = Cm_InlineModel(cl.config_strings[CS_MODELS + i]);
 		else
 			cl.model_clip[i] = NULL;
 
@@ -542,8 +542,8 @@ void R_LoadMedia(void){
 	// images for the heads up display
 	R_FreePics();
 
-	for(i = 1; i < MAX_IMAGES && cl.configstrings[CS_IMAGES + i][0]; i++)
-		cl.image_precache[i] = R_LoadPic(cl.configstrings[CS_IMAGES + i]);
+	for(i = 1; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++)
+		cl.image_precache[i] = R_LoadPic(cl.config_strings[CS_IMAGES + i]);
 
 	Cl_LoadProgress(75);
 
@@ -554,7 +554,7 @@ void R_LoadMedia(void){
 	// client models and skins
 	for(i = 0; i < MAX_CLIENTS; i++){
 
-		if(!cl.configstrings[CS_PLAYERSKINS + i][0])
+		if(!cl.config_strings[CS_PLAYER_SKINS + i][0])
 			continue;
 
 		Cl_ParseClientinfo(i);
@@ -564,7 +564,7 @@ void R_LoadMedia(void){
 	}
 	Cl_LoadProgress(85);
 
-	R_SetSky(cl.configstrings[CS_SKY]);
+	R_SetSky(cl.config_strings[CS_SKY]);
 	Cl_LoadProgress(90);
 
 	// weather and fog effects
