@@ -25,7 +25,7 @@
 /*
  * R_AddCorona
  */
-void R_AddCorona(const vec3_t org, float radius, const vec3_t color){
+void R_AddCorona(const vec3_t org, float radius, float flicker, const vec3_t color){
 	r_corona_t *c;
 
 	if(!r_coronas->value)
@@ -38,6 +38,7 @@ void R_AddCorona(const vec3_t org, float radius, const vec3_t color){
 
 	VectorCopy(org, c->org);
 	c->radius = radius;
+	c->flicker = flicker;
 	VectorCopy(color, c->color);
 }
 
@@ -64,8 +65,8 @@ void R_DrawCoronas(void){
 	R_BlendFunc(GL_ONE, GL_ONE);
 
 	for(k = 0; k < r_view.num_coronas; k++){
-
 		const r_corona_t *c = &r_view.coronas[k];
+		const float f = c->radius * c->flicker * sin(90.0 * r_view.time);
 		int verts, vertind;
 
 		if(!c->radius)
@@ -87,8 +88,8 @@ void R_DrawCoronas(void){
 			const float a = i / (float)verts * M_PI * 2;
 
 			for(j = 0; j < 3; j++)
-				v[j] = c->org[j] + r_view.right[j] * (float)cos(a) * c->radius
-					+ r_view.up[j] * (float)sin(a) * c->radius;
+				v[j] = c->org[j] + r_view.right[j] * (float)cos(a) * (c->radius + f)
+					+ r_view.up[j] * (float)sin(a) * (c->radius + f);
 
 			memcpy(&r_state.vertex_array_3d[vertind], v, sizeof(vec3_t));
 			vertind += 3;

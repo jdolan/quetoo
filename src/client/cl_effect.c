@@ -112,6 +112,7 @@ void Cl_ParseMuzzleFlash(void){
 			break;
 		case MZ_HYPERBLASTER:
 			S_PlaySample(NULL, i, cl_sample_hyperblaster_fire, ATTN_NORM);
+			Cl_EnergyFlash(&cent->current, 105, 8);
 			break;
 		case MZ_LIGHTNING:
 			S_PlaySample(NULL, i, cl_sample_lightning_fire, ATTN_NORM);
@@ -121,6 +122,7 @@ void Cl_ParseMuzzleFlash(void){
 			break;
 		case MZ_BFG:
 			S_PlaySample(NULL, i, cl_sample_bfg_fire, ATTN_NORM);
+			Cl_EnergyFlash(&cent->current, 200, 64);
 			break;
 		case MZ_LOGOUT:
 			S_PlaySample(NULL, i, cl_sample_teleport, ATTN_NORM);
@@ -454,9 +456,10 @@ void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *cent){
 		p->type = PARTICLE_SPLASH;
 		p->image = r_teleporttexture;
 		p->color = 216;
-		p->scale = 20;
+		p->scale = 16.0;
+		p->scale_vel = 24.0;
 		p->alpha = 1.0;
-		p->alpha_vel = -1.4;
+		p->alpha_vel = -1.8;
 
 		VectorCopy(org, p->org);
 		p->org[2] -= (6 * i);
@@ -480,7 +483,7 @@ static const vec3_t item_respawn_light = {
 /*
  * Cl_ItemRespawnEffect
  */
-static void Cl_ItemRespawnEffect(const vec3_t org){
+void Cl_ItemRespawnEffect(const vec3_t org){
 	int i, j;
 	r_particle_t *p;
 
@@ -520,7 +523,7 @@ static const vec3_t item_pickup_light = {
 /*
  * Cl_ItemPickupEffect
  */
-static void Cl_ItemPickupEffect(const vec3_t org){
+void Cl_ItemPickupEffect(const vec3_t org){
 	int i, j;
 	r_particle_t *p;
 
@@ -597,6 +600,7 @@ void Cl_ExplosionEffect(const vec3_t org){
 	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
 
 	p->color = 4 + (rand() & 7);
+	p->blend = GL_ONE_MINUS_SRC_ALPHA;
 
 	VectorCopy(org, p->org);
 	p->org[2] += 10;
@@ -652,9 +656,12 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	p->scale = 2.0;
 	p->scale_vel = 20.0;
 
-	p->alpha = 0.75;
+	p->alpha = 1.0;
 	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
-	p->color = 6 + (rand() & 7);
+
+	p->color = 4 + (rand() & 7);
+	p->blend = GL_ONE_MINUS_SRC_ALPHA;
+
 	for(j = 0; j < 3; j++){
 		p->org[j] = end[j];
 		p->vel[j] = crand();
@@ -670,7 +677,7 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 
 
 static const vec3_t shot_light = {
-	0.5, 0.4, 0.4
+	0.8, 0.7, 0.5
 };
 
 /*
@@ -701,7 +708,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
 	dist = ent->solid == 8290 ? -2.0 : 20.0;
 	org[2] += dist;
 
-	R_AddSustainedLight(org, 1.0, shot_light, 0.25);
+	R_AddSustainedLight(org, 1.0, shot_light, 0.3);
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
@@ -719,19 +726,21 @@ void Cl_SmokeFlash(entity_state_t *ent){
 	p->image = r_smoketexture;
 	p->type = PARTICLE_ROLL;
 
-	p->scale = 6.0;
-	p->scale_vel = 12.0;
+	p->scale = 4.0;
+	p->scale_vel = 24.0;
 
-	p->alpha = 0.3;
-	p->alpha_vel = -0.3;
+	p->alpha = 0.8;
+	p->alpha_vel = -1.0;
 
-	p->color = 6 + (rand() & 7);
+	p->color = 4 + (rand() & 7);
+	p->blend = GL_ONE_MINUS_SRC_ALPHA;
 
 	VectorCopy(org, p->org);
 
-	for(j = 0; j < 3; j++){
+	for(j = 0; j < 2; j++){
 		p->vel[j] = crand();
 	}
+	p->vel[2] = 10.0;
 
 	p->roll = crand() * 100.0;  // rotation
 }
@@ -815,7 +824,7 @@ void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
 	if(!(p = Cl_AllocParticle()))
 		return;
 
-	p->image = r_smoketexture;
+	p->image = r_steamtexture;
 	p->type = PARTICLE_ROLL;
 
 	p->scale = 8.0;
@@ -823,6 +832,7 @@ void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
 
 	p->alpha = 0.75;
 	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
+
 	p->color = 6 + (rand() & 7);
 
 	VectorCopy(org, p->org);
@@ -1097,6 +1107,70 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 
 	if(Cm_PointContents(ent->current.origin, r_worldmodel->firstnode) & c)
 		Cl_BubbleTrail(ent->prev.origin, ent->current.origin, 1.0);
+}
+
+
+static const vec3_t energy_light = {
+	0.7, 0.9, 0.9
+};
+
+/*
+ * Cl_EnergyFlash
+ */
+void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
+	r_particle_t *p;
+	vec3_t forward, right, org, org2;
+	trace_t tr;
+	float dist;
+	int i, j, c;
+
+	// project the particles just in front of the entity
+	AngleVectors(ent->angles, forward, right, NULL);
+	VectorMA(ent->origin, 30.0, forward, org);
+	VectorMA(org, 6.0, right, org);
+
+	tr = Cm_BoxTrace(ent->origin, org, vec3_origin, vec3_origin, 0, MASK_SHOT);
+
+	if(tr.fraction < 1.0){  // firing near a wall, back it up
+		VectorSubtract(ent->origin, tr.end, org);
+		VectorScale(org, 0.75, org);
+
+		VectorAdd(ent->origin, org, org);
+	}
+
+	// and adjust for ducking (this is a hack)
+	dist = ent->solid == 8290 ? -2.0 : 20.0;
+	org[2] += dist;
+
+	R_AddSustainedLight(org, 1.0, energy_light, 0.3);
+
+	c = CONTENTS_SLIME | CONTENTS_WATER;
+
+	if(Cm_PointContents(ent->origin, r_worldmodel->firstnode) & c){
+		VectorMA(ent->origin, 40.0, forward, org2);
+		Cl_BubbleTrail(org, org2, 10.0);
+		return;
+	}
+
+	for(i = 0; i < count; i++){
+
+		if(!(p = Cl_AllocParticle()))
+			return;
+
+		p->accel[2] = -PARTICLE_GRAVITY;
+
+		p->alpha = 1.0;
+		p->alpha_vel = -2.0;
+
+		p->scale_vel = 4.0;
+
+		p->color = color + (rand() & 15);
+
+		for(j = 0; j < 3; j++){
+			p->org[j] = org[j] + 8.0 * crand();
+			p->vel[j] = 128.0 * crand();
+		}
+	}
 }
 
 

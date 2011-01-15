@@ -507,9 +507,6 @@ static void Cl_AddWeapon(const vec3_t shell){
 static const vec3_t rocket_light = {
 	1.0, 0.5, 0.3
 };
-static const vec3_t grenade_light = {
-	0.6, 0.4, 0.1
-};
 static const vec3_t ctf_blue_light = {
 	0.3, 0.3, 1.0
 };
@@ -633,21 +630,17 @@ void Cl_AddEntities(cl_frame_t *frame){
 			ent.model = cl.model_draw[state->model_index];
 		}
 
-		if(state->effects & (EF_ROCKET | EF_GRENADE))
+		if(state->effects & (EF_ROCKET | EF_GRENADE)){
 			Cl_SmokeTrail(cent->prev.origin, ent.origin, cent);
+		}
 
 		if(state->effects & EF_ROCKET){
-			R_AddCorona(ent.origin, 6.0, rocket_light);
+			R_AddCorona(ent.origin, 3.0, 0.25, rocket_light);
 			R_AddLight(ent.origin, 1.5, rocket_light);
 		}
 
-		if(state->effects & EF_GRENADE){
-			R_AddCorona(ent.origin, 10.0, grenade_light);
-			R_AddLight(ent.origin, 1.25, grenade_light);
-		}
-
 		if(state->effects & EF_HYPERBLASTER){
-			R_AddCorona(ent.origin, 12.0, hyperblaster_light);
+			R_AddCorona(ent.origin, 12.0, 0.15, hyperblaster_light);
 			R_AddLight(ent.origin, 1.25, hyperblaster_light);
 
 			Cl_EnergyTrail(cent, 10.0, 107);
@@ -665,7 +658,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		}
 
 		if(state->effects & EF_BFG){
-			R_AddCorona(ent.origin, 24.0, bfg_light);
+			R_AddCorona(ent.origin, 24.0, 0.05, bfg_light);
 			R_AddLight(ent.origin, 1.5, bfg_light);
 
 			Cl_EnergyTrail(cent, 20.0, 206);

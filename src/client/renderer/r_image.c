@@ -26,6 +26,7 @@ r_image_t *r_particletexture;  // little dot for particles
 r_image_t *r_explosiontexture;  // expanding explosion particle
 r_image_t *r_teleporttexture;  // teleport ring particle
 r_image_t *r_smoketexture;  // smoke for rocket/grenade trails
+r_image_t *r_steamtexture;  // smoke for rocket/grenade trails
 r_image_t *r_bubbletexture;  // bubble trails under water
 r_image_t *r_raintexture;  // atmospheric rain
 r_image_t *r_snowtexture;  // and snow effects
@@ -606,6 +607,7 @@ static void R_InitParticleTextures(void){
 	r_explosiontexture = R_LoadImage("particles/explosion.tga", it_effect);
 	r_teleporttexture = R_LoadImage("particles/teleport.tga", it_effect);
 	r_smoketexture = R_LoadImage("particles/smoke.tga", it_effect);
+	r_steamtexture = R_LoadImage("particles/steam.tga", it_effect);
 	r_bubbletexture = R_LoadImage("particles/bubble.tga", it_effect);
 	r_raintexture = R_LoadImage("particles/rain.tga", it_effect);
 	r_snowtexture = R_LoadImage("particles/snow.tga", it_effect);

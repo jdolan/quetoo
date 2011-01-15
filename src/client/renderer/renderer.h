@@ -105,7 +105,7 @@ typedef struct r_particle_s {
 
 #define MAX_PARTICLES		4096
 
-#define PARTICLE_GRAVITY	120
+#define PARTICLE_GRAVITY	150
 
 #define PARTICLE_NORMAL		0x1
 #define PARTICLE_ROLL		0x2
@@ -119,6 +119,7 @@ typedef struct r_particle_s {
 typedef struct r_corona_s {
 	vec3_t org;
 	float radius;
+	float flicker;
 	vec3_t color;
 } r_corona_t;
 
@@ -334,7 +335,7 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen);
 void R_ShutdownContext(void);
 
 // r_corona.c
-void R_AddCorona(const vec3_t org, float intensity, const vec3_t color);
+void R_AddCorona(const vec3_t org, float radius, float flicker, const vec3_t color);
 void R_DrawCoronas(void);
 
 // r_draw.c

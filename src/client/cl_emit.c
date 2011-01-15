@@ -43,6 +43,7 @@ typedef struct emit_s {
 	vec3_t color;
 	float hz, drift;  // how frequently and randomly we fire
 	float radius;  // flame and corona radius
+	float flicker;
 	vec3_t scale;  // mesh model scale
 	int count;  // particle counts
 	char sound[MAX_QPATH];  // sound name
@@ -265,6 +266,11 @@ void Cl_LoadEmits(void){
 			continue;
 		}
 
+		if(!strcmp(c, "flicker")){
+			e->flicker = atof(Com_Parse(&ents));
+			continue;
+		}
+
 		if(!strcmp(c, "scale")){
 			sscanf(Com_Parse(&ents), "%f %f %f",
 					&e->scale[0], &e->scale[1], &e->scale[2]);
@@ -380,7 +386,7 @@ void Cl_AddEmits(void){
 		}
 
 		if(e->flags & EMIT_CORONA)
-			R_AddCorona(e->org, e->radius, e->color);
+			R_AddCorona(e->org, e->radius, e->flicker, e->color);
 
 		// most emits are timed events, so simply continue if it's
 		// not time to fire our event yet

@@ -66,6 +66,7 @@ extern r_image_t *r_particletexture;
 extern r_image_t *r_explosiontexture;
 extern r_image_t *r_teleporttexture;
 extern r_image_t *r_smoketexture;
+extern r_image_t *r_steamtexture;
 extern r_image_t *r_bubbletexture;
 extern r_image_t *r_raintexture;
 extern r_image_t *r_snowtexture;
