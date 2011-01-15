@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 Id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006-2011 Quake2World.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -879,9 +879,9 @@ void R_Init(void){
 	if(!R_InitExtensions())
 		Com_Error(ERR_FATAL, "Failed to resolve required extensions.");
 
-	Com_Print("  Renderer: ^%d%s\n  Vendor:   ^%d%s\n  Version:  ^%d%s\n",
-			CON_COLOR_ALT, r_config.renderer_string, CON_COLOR_ALT,
-			r_config.vendor_string, CON_COLOR_ALT, r_config.version_string);
+	Com_Print("  Renderer: %s\n", r_config.renderer_string);
+	Com_Print("  Vendor:   %s\n", r_config.vendor_string);
+	Com_Print("  Version:  %s\n", r_config.version_string);
 
 	R_EnforceVersion();
 
