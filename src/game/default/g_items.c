@@ -227,6 +227,7 @@ static qboolean G_PickupAmmo(edict_t *ent, edict_t *other){
 
 	if(!(ent->spawn_flags & SF_ITEM_DROPPED))
 		G_SetRespawn(ent, 20);
+
 	return true;
 }
 
@@ -455,7 +456,7 @@ void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 		return;  // dead people can't pickup
 
 	if(!ent->item->pickup)
-		return;  // not a grabbable item?
+		return;  // item can't be picked up
 
 	if(g_level.warmup)
 		return;  // warmup mode
@@ -466,8 +467,11 @@ void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ITEM_INDEX(ent->item);
 		other->client->pickup_msg_time = g_level.time + 3.0;
 
-		if(ent->item->pickup_sound)  // play pickup sound
+		if(ent->item->pickup_sound){  // play pickup sound
 			gi.Sound(other, gi.SoundIndex(ent->item->pickup_sound), ATTN_NORM);
+		}
+
+		other->s.event = EV_ITEM_PICKUP;
 	}
 
 	if(!(ent->spawn_flags & SF_ITEM_TARGETS_USED)){

@@ -473,14 +473,14 @@ void Cl_LogoutEffect(const vec3_t org){
 }
 
 
-static const vec3_t item_light = {
-	0.1, 0.3, 0.2
+static const vec3_t item_respawn_light = {
+	0.9, 0.9, 0.9
 };
 
 /*
  * Cl_ItemRespawnEffect
  */
-void Cl_ItemRespawnEffect(const vec3_t org){
+static void Cl_ItemRespawnEffect(const vec3_t org){
 	int i, j;
 	r_particle_t *p;
 
@@ -489,25 +489,69 @@ void Cl_ItemRespawnEffect(const vec3_t org){
 		if(!(p = Cl_AllocParticle()))
 			return;
 
-		p->color = 0xd4 + (rand() & 3);  // green
+		p->image = r_sparktexture;
+		p->scale_vel = 3.0;
 
-		p->org[0] = org[0] + crand() * 16;
-		p->org[1] = org[1] + crand() * 16;
-		p->org[2] = org[2] + crand() * 16;
+		p->color = 110;  // white
 
-		for(j = 0; j < 3; j++)
-			p->vel[j] = crand() * 4;
+		p->org[0] = org[0] + crand() * 8.0;
+		p->org[1] = org[1] + crand() * 8.0;
+		p->org[2] = org[2] + 8 + frand() * 8.0;
+
+		for(j = 0; j < 2; j++)
+			p->vel[j] = crand() * 48.0;
+		p->vel[2] = frand() * 48.0;
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
-		p->alpha = 1.0;
 
-		p->alpha_vel = -1.0 / (1.0 + frand() * 0.3);
+		p->alpha = 1.0;
+		p->alpha_vel = -1.5 + frand() * 0.5;
 	}
 
-	R_AddSustainedLight(org, 1.0, item_light, 0.5);
+	R_AddSustainedLight(org, 1.0, item_respawn_light, 1.0);
 }
 
+
+static const vec3_t item_pickup_light = {
+	0.9, 1.0, 1.0
+};
+
+/*
+ * Cl_ItemPickupEffect
+ */
+static void Cl_ItemPickupEffect(const vec3_t org){
+	int i, j;
+	r_particle_t *p;
+
+	for(i = 0; i < 32; i++){
+
+		if(!(p = Cl_AllocParticle()))
+			return;
+
+		p->image = r_sparktexture;
+		p->scale_vel = 3.0;
+
+		p->color = 110;  // white
+
+		p->org[0] = org[0] + crand() * 8.0;
+		p->org[1] = org[1] + crand() * 8.0;
+		p->org[2] = org[2] + 8 + crand() * 16.0;
+
+		for(j = 0; j < 2; j++)
+			p->vel[j] = crand() * 16.0;
+		p->vel[2] = frand() * 128.0;
+
+		p->accel[0] = p->accel[1] = 0;
+		p->accel[2] = PARTICLE_GRAVITY * 0.2;
+
+		p->alpha = 1.0;
+		p->alpha_vel = -1.5 + frand() * 0.5;
+	}
+
+	R_AddSustainedLight(org, 1.0, item_pickup_light, 1.0);
+
+}
 
 /*
  * Cl_ExplosionEffect
@@ -1262,6 +1306,9 @@ void Cl_EntityEvent(entity_state_t *ent){
 		case EV_ITEM_RESPAWN:
 			S_PlaySample(NULL, ent->number, cl_sample_respawn, ATTN_IDLE);
 			Cl_ItemRespawnEffect(ent->origin);
+			break;
+		case EV_ITEM_PICKUP:
+			Cl_ItemPickupEffect(ent->origin);
 			break;
 		case EV_TELEPORT:
 			S_PlaySample(NULL, ent->number, cl_sample_teleport, ATTN_IDLE);

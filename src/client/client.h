@@ -394,7 +394,6 @@ void Cl_SmokeFlash(entity_state_t *ent);
 void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent);
 void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent);
 void Cl_ExplosionEffect(const vec3_t org);
-void Cl_ItemRespawnEffect(const vec3_t org);
 void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *ent);
 void Cl_LogoutEffect(const vec3_t org);
 void Cl_LoadEffectSamples(void);

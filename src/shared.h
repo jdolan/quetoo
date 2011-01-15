@@ -499,17 +499,19 @@ typedef struct {
 #define EF_NO_SHADOW		(1 << 30)  // no shadow (map models)
 #define EF_WEAPON			(1 << 31)  // view weapon
 
-// muzzle flashes / player effects
-#define MZ_SHOTGUN			0
-#define MZ_SSHOTGUN			1
-#define MZ_MACHINEGUN		2
-#define MZ_GRENADE			3
-#define MZ_ROCKET			4
-#define MZ_HYPERBLASTER		5
-#define MZ_LIGHTNING		6
-#define MZ_RAILGUN			7
-#define MZ_BFG				8
-#define MZ_LOGOUT			9
+// muzzle flashes
+typedef enum {
+	MZ_SHOTGUN,
+	MZ_SSHOTGUN,
+	MZ_MACHINEGUN,
+	MZ_GRENADE,
+	MZ_ROCKET,
+	MZ_HYPERBLASTER,
+	MZ_LIGHTNING,
+	MZ_RAILGUN,
+	MZ_BFG,
+	MZ_LOGOUT,
+} muzzle_flash_t;
 
 // temp entity events
 // Temp entity events are for things that happen
@@ -596,12 +598,13 @@ typedef enum {
 
 
 // entity_state_t->event values
-// ertity events are for effects that take place reletive
+// entity events are for effects that take place relative
 // to an existing entities origin.  Very network efficient.
 // All muzzle flashes really should be converted to events...
 typedef enum {
 	EV_NONE,
 	EV_ITEM_RESPAWN,
+	EV_ITEM_PICKUP,
 	EV_FOOTSTEP,
 	EV_FALLSHORT,
 	EV_FALL,
