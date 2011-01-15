@@ -61,6 +61,10 @@ static const char *DEFAULT_BINDS =
 "bind MWHEELUP weapprev\n"
 "bind MWHEELDOWN weapnext\n"
 
+// demo playback rate
+"bind LEFTARROW slowmotion\n"
+"bind RIGHTARROW fastforward\n"
+
 // zoom alias for nubs
 "alias +ZOOM \""
 	"set f $cl_fov;"

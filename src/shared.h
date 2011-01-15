@@ -509,8 +509,7 @@ typedef struct {
 #define MZ_LIGHTNING		6
 #define MZ_RAILGUN			7
 #define MZ_BFG				8
-#define MZ_ITEMRESPAWN		9
-#define MZ_LOGOUT			10
+#define MZ_LOGOUT			9
 
 // temp entity events
 // Temp entity events are for things that happen
@@ -525,9 +524,9 @@ typedef enum {
 	TE_SPARKS,
 	TE_HYPERBLASTER,
 	TE_LIGHTNING,
-	TE_RAILTRAIL,
+	TE_RAIL,
 	TE_EXPLOSION,
-	TE_BUBBLETRAIL,
+	TE_BUBBLES,
 	TE_BFG,
 	TE_GIB
 } temp_event_t;

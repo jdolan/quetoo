@@ -950,7 +950,7 @@ void Sv_Init(void){
 
 	Sv_InitOperatorCommands();
 
-	Sv_InitMasters();
+	Sv_InitMasters();  // FIXME: this is lost after Sv_Shutdown
 
 	// initialize net buffer
 	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));

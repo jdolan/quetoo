@@ -241,6 +241,44 @@ static void Cl_Record_f(void){
 }
 
 
+/*
+ * Cl_AdjustDemoPlayback
+ *
+ * Adjusts time scale by delta, clamping to reasonable limits.
+ */
+static void Cl_AdjustDemoPlayback(float delta){
+	float f;
+
+	if(!cl.demo_server){
+		return;
+	}
+
+	f = timescale->value + delta;
+
+	if(f >= 0.25 && f <= 4.0){
+		Cvar_Set("timescale", va("%f", f));
+	}
+
+	Com_Print("Demo playback rate %d%%\n", (int)(timescale->value * 100));
+}
+
+
+/*
+ * Cl_FastForward_f
+ */
+static void Cl_FastForward_f(void){
+	Cl_AdjustDemoPlayback(0.25);
+}
+
+
+/*
+ * Cl_SlowMotion_f
+ */
+static void Cl_SlowMotion_f(void){
+	Cl_AdjustDemoPlayback(-0.25);
+}
+
+
 // a copy of the last item we dropped, for %d
 static char last_dropped_item[MAX_TOKEN_CHARS];
 
@@ -1003,6 +1041,8 @@ static void Cl_InitLocal(void){
 	Cmd_AddCommand("ping", Cl_Ping_f, NULL);
 	Cmd_AddCommand("servers", Cl_Servers_f, NULL);
 	Cmd_AddCommand("record", Cl_Record_f, NULL);
+	Cmd_AddCommand("fastforward", Cl_FastForward_f, NULL);
+	Cmd_AddCommand("slowmotion", Cl_SlowMotion_f, NULL);
 	Cmd_AddCommand("stop", Cl_Stop_f, NULL);
 	Cmd_AddCommand("connect", Cl_Connect_f, NULL);
 	Cmd_AddCommand("reconnect", Cl_Reconnect_f, NULL);

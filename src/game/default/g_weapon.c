@@ -93,7 +93,7 @@ static void G_BubbleTrail(vec3_t start, trace_t *tr){
 	VectorScale(pos, 0.5, pos);
 
 	gi.WriteByte(svc_temp_entity);
-	gi.WriteByte(TE_BUBBLETRAIL);
+	gi.WriteByte(TE_BUBBLES);
 	gi.WritePosition(start);
 	gi.WritePosition(tr->end);
 	gi.Multicast(pos, MULTICAST_PVS);
@@ -760,7 +760,7 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 
 	// send rail trail
 	gi.WriteByte(svc_temp_entity);
-	gi.WriteByte(TE_RAILTRAIL);
+	gi.WriteByte(TE_RAIL);
 	gi.WritePosition(start);
 	gi.WritePosition(tr.end);
 	gi.WriteLong(tr.surface->flags);

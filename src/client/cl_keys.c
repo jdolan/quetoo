@@ -713,22 +713,6 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned t
 		return;
 	}
 
-	// little hack for slow motion or fast forward demo playback
-	// TODO: move this to commands that can be bound
-	if(down && cl.demo_server && Com_ServerState() &&
-			(key == K_LEFTARROW || key == K_RIGHTARROW)){
-
-		float ts = timescale->value + (key == K_LEFTARROW ? -0.1 : 0.1);
-
-		ts = ts < 0.25 ? 0.25 : ts;  // enforce reasonable bounds
-		ts = ts > 4.0 ? 4.0 : ts;
-
-		Cvar_Set("timescale", va("%f", ts));
-
-		Com_Print("Demo playback rate %d%%\n", (int)((ts / 1.0) * 100));
-		return;
-	}
-
 	ks->down[key] = down;
 
 	if(!down)  // always send up events to release button binds

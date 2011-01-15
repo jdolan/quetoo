@@ -131,7 +131,7 @@ void Cl_ParseTempEntity(void){
 			R_AddSustainedLight(pos, 1.25, lightning_det_light, 0.75);
 			break;
 
-		case TE_RAILTRAIL:  // railgun effect
+		case TE_RAIL:  // railgun effect
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadPos(&net_message, pos2);
 			i = Msg_ReadLong(&net_message);
@@ -162,7 +162,7 @@ void Cl_ParseTempEntity(void){
 			R_AddSustainedLight(pos, 2.5, bfg_hit_light, 1.0);
 			break;
 
-		case TE_BUBBLETRAIL:  // bubbles chasing projectiles in water
+		case TE_BUBBLES:  // bubbles chasing projectiles in water
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadPos(&net_message, pos2);
 			Cl_BubbleTrail(pos, pos2, 1.0);

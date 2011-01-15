@@ -368,8 +368,9 @@ void Sv_BuildClientFrame(sv_client_t *client){
 			// in the PVS, only the PHS, clear the model
 			if(ent->s.sound){
 				bitvector = fatpvs;  // clientphs;
-			} else
+			} else {
 				bitvector = fatpvs;
+			}
 
 			if(ent->num_clusters == -1){  // too many leafs for individual check, go by head_node
 				if(!Cm_HeadnodeVisible(ent->head_node, bitvector))

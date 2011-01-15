@@ -91,18 +91,17 @@ void Cbuf_AddText(const char *text){
  * Cbuf_InsertText
  *
  * Adds command text immediately after the current command
- * Adds a \n to the text
- * FIXME: actually change the command buffer to do less copying
+ * Adds a \n to the text.
  */
 void Cbuf_InsertText(const char *text){
 	char *temp;
-	int templen;
+	int temp_len;
 
 	// copy off any commands still remaining in the exec buffer
-	templen = cmd_text.size;
-	if(templen){
-		temp = Z_Malloc(templen);
-		memcpy(temp, cmd_text.data, templen);
+	temp_len = cmd_text.size;
+	if(temp_len){
+		temp = Z_Malloc(temp_len);
+		memcpy(temp, cmd_text.data, temp_len);
 		Sb_Clear(&cmd_text);
 	} else
 		temp = NULL;  // shut up compiler
@@ -111,8 +110,8 @@ void Cbuf_InsertText(const char *text){
 	Cbuf_AddText(text);
 
 	// add the copied off data
-	if(templen){
-		Sb_Write(&cmd_text, temp, templen);
+	if(temp_len){
+		Sb_Write(&cmd_text, temp, temp_len);
 		Z_Free(temp);
 	}
 }
