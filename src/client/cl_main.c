@@ -237,7 +237,7 @@ static void Cl_Record_f(void){
 	// update user info var to inform server to send angles
 	Cvar_ForceSet("recording", "1");
 
-	Com_Print("Requesting demo support from server..\n");
+	Com_Print("Requesting demo support from server...\n");
 }
 
 

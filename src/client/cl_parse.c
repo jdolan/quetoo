@@ -106,14 +106,14 @@ qboolean Cl_CheckOrDownloadFile(const char *file_name){
 		cls.download.file = fp;
 
 		// give the server the offset to start the download
-		Com_Debug("Resuming %s..\n", cls.download.name);
+		Com_Debug("Resuming %s...\n", cls.download.name);
 
 		snprintf(cmd, sizeof(cmd), "download %s %i", cls.download.name, len);
 		Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
 		Msg_WriteString(&cls.netchan.message, cmd);
 	} else {
 		// or start if from the beginning
-		Com_Debug("Downloading %s..\n", cls.download.name);
+		Com_Debug("Downloading %s...\n", cls.download.name);
 
 		snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
 		Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
@@ -600,7 +600,7 @@ void Cl_ParseServerMessage(void){
 				break;
 
 			case svc_reconnect:
-				Com_Print("Server disconnected, reconnecting..\n");
+				Com_Print("Server disconnected, reconnecting...\n");
 				// stop download
 				if(cls.download.file){
 					if(cls.download.http)  // clean up http downloads

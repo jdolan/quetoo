@@ -82,7 +82,7 @@ int MAT_Main(void){
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_OpenFile(path, &f, FILE_READ)) > -1){
-		Com_Print("Materials file %s exists, skipping..\n", path);
+		Com_Print("Materials file %s exists, skipping...\n", path);
 		Fs_CloseFile(f);
 	}
 	else {  // do it

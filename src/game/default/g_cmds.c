@@ -1018,7 +1018,7 @@ static void G_Ready_f(edict_t *ent){
 		return;
 	}
 
-	gi.BroadcastPrint(PRINT_HIGH, "Match starting in 10 seconds..\n");
+	gi.BroadcastPrint(PRINT_HIGH, "Match starting in 10 seconds...\n");
 	g_level.match_time = g_level.time + 10.0;
 
 	g_level.start_match = true;

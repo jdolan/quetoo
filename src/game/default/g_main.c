@@ -441,7 +441,7 @@ static void G_CheckRoundStart(void){
 		return;
 	}
 
-	gi.BroadcastPrint(PRINT_HIGH, "Round starting in 10 seconds..\n");
+	gi.BroadcastPrint(PRINT_HIGH, "Round starting in 10 seconds...\n");
 	g_level.round_time = g_level.time + 10.0;
 
 	g_level.start_round = true;
@@ -1143,7 +1143,7 @@ static void G_ParseMapList(const char *file_name){
  */
 void G_Init(void){
 
-	gi.Print("  Game initialization..\n");
+	gi.Print("  Game initialization...\n");
 
 	memset(&g_game, 0, sizeof(g_game));
 
@@ -1229,7 +1229,7 @@ void G_Init(void){
  *  game is unloaded (complements G_Init).
  */
 void G_Shutdown(void){
-	gi.Print("Game shutdown..\n");
+	gi.Print("Game shutdown...\n");
 
 	if(fraglog != NULL)
 		gi.CloseFile(fraglog);  // close fraglog

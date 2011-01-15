@@ -275,7 +275,7 @@ static void LoadPortals(const char *name){
 	if(strcmp(magic, PORTALFILE))
 		Com_Error(ERR_FATAL, "LoadPortals: not a portal file\n");
 
-	Com_Verbose("Loading %4i portals, %4i portalclusters..\n",
+	Com_Verbose("Loading %4i portals, %4i portalclusters...\n",
 			numportals, portalclusters);
 
 	// these counts should take advantage of 64 bit systems automatically

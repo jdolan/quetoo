@@ -189,7 +189,7 @@ void Sys_OpenLibrary(const char *name, void **handle){
 		Com_Error(ERR_DROP, "Sys_OpenLibrary: Couldn't find %s\n", name);
 	}
 
-	Com_Print("Trying %s..\n", path);
+	Com_Print("Trying %s...\n", path);
 
 	if((*handle = dlopen(path, RTLD_NOW)))
 		return;
@@ -210,7 +210,7 @@ void *Sys_LoadGame(void *params){
 	loadgame_t *LoadGame;
 
 	if(game_handle){
-		Com_Warn("Sys_LoadGame: game already loaded, unloading..\n");
+		Com_Warn("Sys_LoadGame: game already loaded, unloading...\n");
 		Sys_UnloadGame();
 	}
 
@@ -294,7 +294,7 @@ void Sys_Signal(int s){
 		case SIGINT:
 		case SIGQUIT:
 		case SIGTERM:
-			Com_Print("Received signal %d, quitting..\n", s);
+			Com_Print("Received signal %d, quitting...\n", s);
 			Sys_Quit();
 			break;
 		default:

@@ -455,7 +455,7 @@ int PAK_Main(void){
 	AddPath(mapname);
 
 	pak = GetPakfile();
-	Com_Print("Paking %d resources to %s..\n", num_paths, pak->file_name);
+	Com_Print("Paking %d resources to %s...\n", num_paths, pak->file_name);
 
 	for(i = 0; i < num_paths; i++){
 

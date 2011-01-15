@@ -859,7 +859,7 @@ static void R_EnforceVersion(void){
  */
 void R_Init(void){
 
-	Com_Print("Video initialization..\n");
+	Com_Print("Video initialization...\n");
 
 	memset(&r_state, 0, sizeof(renderer_state_t));
 

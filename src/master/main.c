@@ -322,7 +322,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data){
  */
 static void Ms_HandleSignal(int sig){
 
-	Ms_Print("Received signal %d, exiting..\n", sig);
+	Ms_Print("Received signal %d, exiting...\n", sig);
 
 	Ms_Shutdown();
 

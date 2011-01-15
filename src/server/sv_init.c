@@ -254,7 +254,7 @@ static void Sv_SpawnServer(const char *server, sv_state_t state){
 
 	Sv_FinalMessage("Server restarting..", true);
 
-	Com_Print("Server initialization..\n");
+	Com_Print("Server initialization...\n");
 
 	svs.real_time = 0;
 
