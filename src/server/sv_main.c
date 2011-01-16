@@ -506,40 +506,54 @@ static void Sv_UpdatePings(void){
 /*
  * Sv_GiveMsec
  *
- * Every few frames, gives all clients an allotment of milliseconds
- * for their command moves.  If they exceed it, assume cheating.
+ * Once per second, gives all clients an allotment of 1000 milliseconds
+ * for their command moves.  If they exceed it, by a significant margin
+ * over the next 1s, assume cheating.
  */
 static void Sv_GiveMsec(void){
-	int i;
+	static int last_give_msec = -9999;
 	sv_client_t *cl;
+	int i;
 
-	if(sv.frame_num & 15)  // TODO: this clearly does not work with variable packet rates
+	if(svs.real_time < last_give_msec){  // wraps
+		last_give_msec = -9999;
+	}
+
+	// see if its time to check the movements
+	if(svs.real_time - last_give_msec < MSEC_CHECK_INTERVAL){
 		return;
+	}
 
+	last_give_msec = svs.real_time;
+
+	// inspect each client, ensuring they are reasonably in sync with us
 	for(i = 0; i < sv_maxclients->value; i++){
 
 		cl = &svs.clients[i];
 
-		if(cl->state == cs_free)  // nothing to worry about
+		if(cl->state < cs_spawned)  // nothing to worry about
 			continue;
 
 		if(!sv_enforcetime->value){
-			cl->cmd_msec = MSEC_OKAY_MAX;  // reset for next cycle
+			cl->cmd_msec = MSEC_CHECK_INTERVAL;  // reset for next cycle
 			continue;
 		}
 
-		if(cl->cmd_msec < MSEC_OKAY_MIN || cl->cmd_msec > MSEC_OKAY_MAX){
-			cl->cmd_msec_errors += MSEC_ERROR_STEP;  // irregular movement
+		Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmd_msec);
+
+		if(cl->cmd_msec < MSEC_DRIFT_MIN || cl->cmd_msec > MSEC_DRIFT_MAX){
+			cl->cmd_msec_errors++;  // irregular movement
 
 			if(cl->cmd_msec_errors >= sv_enforcetime->value){
 				Sv_KickClient(cl, " for irregular movement.");
 	            continue;
 			}
 		}
-		else if(cl->cmd_msec_errors > 0)  // normal movement
-			cl->cmd_msec_errors += MSEC_OKAY_STEP;
+		else if(cl->cmd_msec_errors > 0){
+			cl->cmd_msec_errors--;  // normal movement
+		}
 
-		cl->cmd_msec = MSEC_OKAY_MAX;  // reset for next cycle
+		cl->cmd_msec = MSEC_CHECK_INTERVAL;  // reset for next cycle
 	}
 }
 

@@ -77,17 +77,21 @@ typedef struct sv_frame_s {
 #define LATENCY_COUNTS 16  // frame latency, averaged to determine ping
 #define CLIENT_RATE_MESSAGES 10  // message size, used to enforce rate throttle
 
-#define MSEC_OKAY_MIN 20  // at least 20ms for normal movement
-#define MSEC_OKAY_MAX 1800 // 1600 for valid movement, plus some slop
-#define MSEC_OKAY_STEP -1  // decrement count for normal movements
-#define MSEC_ERROR_STEP 10  // increment for bad movements
-#define MSEC_ERROR_MAX (MSEC_ERROR_STEP * 3)  // three sequential bad moves probably means cheater
+/*
+ * We check users movement command duration every so often to ensure that
+ * they are not cheating.  If their movement is too far out of sync with the
+ * server's clock, we take notice and eventually kick them.
+ */
 
+#define MSEC_CHECK_INTERVAL 1000
+#define MSEC_DRIFT_MIN -150
+#define MSEC_DRIFT_MAX  150
+#define MSEC_ERROR_MAX 10
 
 typedef struct sv_client_s {
 	sv_client_state_t state;
 
-	char user_info[MAX_INFO_STRING];  // name, etc
+	char user_info[MAX_INFO_STRING];  // name, skin, etc
 
 	int last_frame;  // for delta compression
 	user_cmd_t last_cmd;  // for filling in big drops
