@@ -566,6 +566,7 @@ static void G_Physics_Toss(edict_t *ent){
  * G_RunEntity
  */
 void G_RunEntity(edict_t *ent){
+
 	if(ent->prethink)
 		ent->prethink(ent);
 

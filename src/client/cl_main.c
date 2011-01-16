@@ -374,7 +374,7 @@ static void Cl_ForwardCmdToServer(void){
 	if(!strcmp(cmd, "say") || !strcmp(cmd, "say_team"))
 		args = Cl_ExpandVariables(args);
 
-	Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
+	Msg_WriteByte(&cls.netchan.message, clc_string);
 	Sb_Print(&cls.netchan.message, cmd);
 	if(Cmd_Argc() > 1){
 		Sb_Print(&cls.netchan.message, " ");
@@ -430,7 +430,6 @@ static void Cl_SendConnect(void){
 	user_info_modified = false;
 }
 
-extern cvar_t *sv_maxclients;
 
 /*
  * Cl_CheckForResend
@@ -441,18 +440,19 @@ static void Cl_CheckForResend(void){
 	netaddr_t addr;
 
 	// if the local server is running and we aren't then connect
-	if(cls.state == ca_disconnected && Com_ServerState()){
-		cls.state = ca_connecting;
+	if(Com_ServerState() && strcmp(cls.server_name, "localhost")){
 
-		Cvar_LockCheatVars(sv_maxclients->value > 1);  // lock cheat vars
+		if(cls.state > ca_disconnected){
+			Cl_Disconnect();
+		}
 
 		strncpy(cls.server_name, "localhost", sizeof(cls.server_name) - 1);
-		// we don't need a challenge on the localhost
-		Cl_SendConnect();
-		return;
+
+		cls.state = ca_connecting;
+		cls.connect_time = -99999;
 	}
 
-	// resend if we haven't gotten a reply yet
+	// resend if we haven't received a reply yet
 	if(cls.state != ca_connecting)
 		return;
 
@@ -464,13 +464,6 @@ static void Cl_CheckForResend(void){
 		cls.state = ca_disconnected;
 		return;
 	}
-
-	// if we are running a local server, and no one else is connected, cheat
-	// cvars may be modified, otherwise they may not
-	if(Com_ServerState())
-		Cvar_LockCheatVars(sv_maxclients->value > 1);
-	else
-		Cvar_LockCheatVars(true);
 
 	if(addr.port == 0)
 		addr.port = BigShort(PORT_SERVER);
@@ -488,15 +481,16 @@ static void Cl_CheckForResend(void){
  */
 static void Cl_Connect_f(void){
 	extern void Sv_ShutdownServer(const char *msg);
-	const char *s;
+	char *s;
 
 	if(Cmd_Argc() != 2){
 		Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
 		return;
 	}
 
-	if(Com_ServerState())  // if running a local server, kill it
+	if(Com_ServerState()){  // if running a local server, kill it
 		Sv_ShutdownServer("Server quit.\n");
+	}
 
 	s = Cmd_Argv(1);
 
@@ -504,17 +498,16 @@ static void Cl_Connect_f(void){
 		const cl_server_info_t *server = Cl_ServerForNum(atoi(s + 1));
 
 		if(!server){
-			Com_Warn("Invalid server: %s\n", Cmd_Argv(1));
+			Com_Warn("Cl_Connect_f: Invalid server: %s\n", Cmd_Argv(1));
 			return;
 		}
 
-		strncpy(cls.server_name, Net_NetaddrToString(server->addr),
-				sizeof(cls.server_name) - 1);
+		s = Net_NetaddrToString(server->addr);
 	}
-	else
-		strncpy(cls.server_name, s, sizeof(cls.server_name) - 1);
 
 	Cl_Disconnect();
+
+	strncpy(cls.server_name, s, sizeof(cls.server_name) - 1);
 
 	cls.connect_time = -99999;  // fire immediately
 	cls.state = ca_connecting;
@@ -600,8 +593,10 @@ void Cl_SendDisconnect(void){
 	if(cls.state == ca_disconnected)
 		return;
 
+	Com_Print("Disconnecting from %s...\n", cls.server_name);
+
 	// send a disconnect message to the server
-	final[0] = clc_string_cmd;
+	final[0] = clc_string;
 	strcpy((char *)final + 1, "disconnect");
 	Netchan_Transmit(&cls.netchan, strlen((char *)final), final);
 	Netchan_Transmit(&cls.netchan, strlen((char *)final), final);
@@ -721,7 +716,7 @@ static void Cl_ConnectionlessPacket(void){
 
 		qport = (int)Cvar_GetValue("net_qport");
 		Netchan_Setup(NS_CLIENT, &cls.netchan, net_from, qport);
-		Msg_WriteChar(&cls.netchan.message, clc_string_cmd);
+		Msg_WriteChar(&cls.netchan.message, clc_string);
 		Msg_WriteString(&cls.netchan.message, "new");
 		cls.state = ca_connected;
 
@@ -884,7 +879,7 @@ void Cl_RequestNextDownload(void){
 
 	Cl_LoadMedia();
 
-	Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
+	Msg_WriteByte(&cls.netchan.message, clc_string);
 	Msg_WriteString(&cls.netchan.message, va("begin %i\n", precache_spawn_count));
 }
 

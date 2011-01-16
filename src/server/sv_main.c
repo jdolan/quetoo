@@ -283,22 +283,20 @@ static void Svc_Connect(void){
 	// force the ip so the game can filter on it
 	Info_SetValueForKey(user_info, "ip", Net_NetaddrToString(addr));
 
-	// enforce a valid challenge on remote clients to avoid dos attack
-	if(!Net_IsLocalNetaddr(addr)){
-		for(i = 0; i < MAX_CHALLENGES; i++){
-			if(Net_CompareClientNetaddr(addr, svs.challenges[i].addr)){
-				if(challenge == svs.challenges[i].challenge){
-					svs.challenges[i].challenge = 0;
-					break;  // good
-				}
-				Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nBad challenge.\n");
-				return;
+	// enforce a valid challenge to avoid denial of service attack
+	for(i = 0; i < MAX_CHALLENGES; i++){
+		if(Net_CompareClientNetaddr(addr, svs.challenges[i].addr)){
+			if(challenge == svs.challenges[i].challenge){
+				svs.challenges[i].challenge = 0;
+				break;  // good
 			}
-		}
-		if(i == MAX_CHALLENGES){
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nNo challenge for address.\n");
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nBad challenge.\n");
 			return;
 		}
+	}
+	if(i == MAX_CHALLENGES){
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nNo challenge for address.\n");
+		return;
 	}
 
 	// resolve the client slot
@@ -364,7 +362,7 @@ static void Svc_Connect(void){
 	Sb_Init(&client->datagram, client->datagram_buf, sizeof(client->datagram_buf));
 	client->datagram.allow_overflow = true;
 
-	client->last_message = client->last_connect = svs.real_time;  // don't timeout
+	client->last_message = svs.real_time;  // don't timeout
 
 	client->state = cs_connected;
 }
@@ -485,7 +483,7 @@ static void Sv_UpdatePings(void){
 			continue;
 
 		total = count = 0;
-		for(j = 0; j < LATENCY_COUNTS; j++){
+		for(j = 0; j < CLIENT_LATENCY_COUNTS; j++){
 			if(cl->frame_latency[j] > 0){
 				total += cl->frame_latency[j];
 				count++;
@@ -504,56 +502,59 @@ static void Sv_UpdatePings(void){
 
 
 /*
- * Sv_GiveMsec
+ * Sv_CheckCommandTimes
  *
  * Once per second, gives all clients an allotment of 1000 milliseconds
- * for their command moves.  If they exceed it, by a significant margin
- * over the next 1s, assume cheating.
+ * for their movement commands which will be decremented as we receive
+ * new information from them.  If they drift by a significant margin
+ * over the next interval, assume they are trying to cheat.
  */
-static void Sv_GiveMsec(void){
-	static int last_give_msec = -9999;
-	sv_client_t *cl;
+static void Sv_CheckCommandTimes(void){
+	static int last_check_time = -9999;
 	int i;
 
-	if(svs.real_time < last_give_msec){  // wraps
-		last_give_msec = -9999;
+	if(svs.real_time < last_check_time){  // wrap around from last level
+		last_check_time = -9999;
 	}
 
 	// see if its time to check the movements
-	if(svs.real_time - last_give_msec < MSEC_CHECK_INTERVAL){
+	if(svs.real_time - last_check_time < CMD_MSEC_CHECK_INTERVAL){
 		return;
 	}
 
-	last_give_msec = svs.real_time;
+	last_check_time = svs.real_time;
 
 	// inspect each client, ensuring they are reasonably in sync with us
 	for(i = 0; i < sv_maxclients->value; i++){
+		sv_client_t *cl = &svs.clients[i];
 
-		cl = &svs.clients[i];
-
-		if(cl->state < cs_spawned)  // nothing to worry about
-			continue;
-
-		if(!sv_enforcetime->value){
-			cl->cmd_msec = MSEC_CHECK_INTERVAL;  // reset for next cycle
+		if(cl->state < cs_spawned){
 			continue;
 		}
 
-		Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmd_msec);
+		if(sv_enforcetime->value){  // check them
 
-		if(cl->cmd_msec < MSEC_DRIFT_MIN || cl->cmd_msec > MSEC_DRIFT_MAX){
-			cl->cmd_msec_errors++;  // irregular movement
+			if(abs(cl->cmd_msec) > CMD_MSEC_ALLOWABLE_DRIFT){  // irregular movement
 
-			if(cl->cmd_msec_errors >= sv_enforcetime->value){
-				Sv_KickClient(cl, " for irregular movement.");
-	            continue;
+				cl->cmd_msec_errors++;
+
+				Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmd_msec);
+
+				if(cl->cmd_msec_errors >= sv_enforcetime->value){
+					Com_Warn("Sv_CheckCommandTimes: Too many errors from %s\n", Sv_NetaddrToString(cl));
+					Sv_KickClient(cl, "Irregular movement");
+					continue;
+				}
+			}
+			else {  // normal movement
+
+				if(cl->cmd_msec_errors > 0){
+					cl->cmd_msec_errors--;
+				}
 			}
 		}
-		else if(cl->cmd_msec_errors > 0){
-			cl->cmd_msec_errors--;  // normal movement
-		}
 
-		cl->cmd_msec = MSEC_CHECK_INTERVAL;  // reset for next cycle
+		cl->cmd_msec = CMD_MSEC_CHECK_INTERVAL;  // reset for next cycle
 	}
 }
 
@@ -628,10 +629,6 @@ static void Sv_CheckTimeouts(void){
 		if(cl->state == cs_free)
 			continue;
 
-		// wrap message times across level changes
-		if(cl->last_message > svs.real_time)
-			cl->last_message = svs.real_time;
-
 		// enforce timeouts by dropping the client
 		if(cl->last_message < timeout){
 			Sv_BroadcastPrint(PRINT_HIGH, "%s timed out\n", cl->name);
@@ -642,13 +639,15 @@ static void Sv_CheckTimeouts(void){
 
 
 /*
- * Sv_PrepWorldFrame
+ * Sv_ResetEntities
  *
- * This has to be done before the world logic, because
- * player processing happens outside RunWorldFrame
+ * Resets entity flags and other state which should only last one frame.
  */
-static void Sv_PrepWorldFrame(void){
+static void Sv_ResetEntities(void){
 	int i;
+
+	if(sv.state != ss_game)
+		return;
 
 	for(i = 0; i < svs.game->num_edicts; i++){
 
@@ -662,23 +661,22 @@ static void Sv_PrepWorldFrame(void){
 
 /*
  * Sv_RunGameFrame
+ *
+ * Updates the game module's time and runs its frame function once per
+ * server frame.
  */
 static void Sv_RunGameFrame(void){
 
-	// we always need to bump frame_num, even if we don't run the world,
-	// otherwise the delta compression can get confused when a client
-	// has the "current" frame
 	sv.frame_num++;
 	sv.time = sv.frame_num * 1000 / svs.frame_rate;
 
-	if(sv.state == ss_game){
-		svs.game->RunFrame();
+	if(sv.time < svs.real_time){
+		Com_Debug("Sv_RunGameFrame: High clamp: %dms\n", svs.real_time - sv.time);
+		svs.real_time = sv.time;
 	}
 
-	// slow down for the game if need be
-	if(sv.time < svs.real_time){
-		Com_Debug("Sv_RunGameFrame: High clamp: +%dms\n", sv.time - svs.real_time);
-		svs.real_time = sv.time;
+	if(sv.state == ss_game){
+		svs.game->Frame();
 	}
 }
 
@@ -712,6 +710,9 @@ static void Sv_HeartbeatMasters(void){
 
 	if(!sv_public->value)
 		return;  // a private dedicated game
+
+	if(!svs.initialized)  // we're not up yet
+		return;
 
 	if(svs.last_heartbeat > svs.real_time)  // catch wraps
 		svs.last_heartbeat = svs.real_time;
@@ -780,10 +781,11 @@ void Sv_KickClient(sv_client_t *cl, const char *msg){
 	if(msg && *msg != '\0')
 		snprintf(c, sizeof(c), ": %s", msg);
 
-	Sv_BroadcastPrint(PRINT_HIGH, "%s was kicked%s\n", cl->name, c);
 	Sv_ClientPrint(EDICT_FOR_CLIENT(cl), PRINT_HIGH, "You were kicked%s\n", c);
 
 	Sv_DropClient(cl);
+
+	Sv_BroadcastPrint(PRINT_HIGH, "%s was kicked%s\n", cl->name, c);
 }
 
 
@@ -811,19 +813,19 @@ void Sv_UserInfoChanged(sv_client_t *cl){
 
 	if(*cl->user_info == '\0'){  // catch empty user_info
 		Com_Print("Empty user_info from %s\n", Sv_NetaddrToString(cl));
-		Sv_KickClient(cl, NULL);
+		Sv_KickClient(cl, "Bad user info");
 		return;
 	}
 
 	if(strchr(cl->user_info, '\xFF')){  // catch end of message exploit
 		Com_Print("Illegal user_info contained xFF from %s\n", Sv_NetaddrToString(cl));
-		Sv_KickClient(cl, NULL);
+		Sv_KickClient(cl, "Bad user info");
 		return;
 	}
 
 	if(!Info_Validate(cl->user_info)){  // catch otherwise invalid user_info
 		Com_Print("Invalid user_info from %s\n", Sv_NetaddrToString(cl));
-		Sv_KickClient(cl, NULL);
+		Sv_KickClient(cl, "Bad user info");
 		return;
 	}
 
@@ -891,22 +893,25 @@ void Sv_Frame(int msec){
 
 	frame_millis = 1000 / svs.frame_rate;
 
-	// move autonomous things around if enough time has passed
+	// keep the game module's time in sync with reality
 	if(!timedemo->value && svs.real_time < sv.time){
-		// never let the time get too far off
+
+		// if the server has fallen far behind the game, try to catch up
 		if(sv.time - svs.real_time > frame_millis){
-			Com_Debug("Sv_Frame: High clamp: +%dms.\n", (sv.time - svs.real_time - frame_millis));
+			Com_Debug("Sv_Frame: Low clamp: %dms.\n", (sv.time - svs.real_time - frame_millis));
 			svs.real_time = sv.time - frame_millis;
 		}
-		Net_Sleep(sv.time - svs.real_time);
-		return;
+		else {  // wait until its time to run the next frame
+			Net_Sleep(sv.time - svs.real_time);
+			return;
+		}
 	}
 
 	// update ping based on the last known frame from all clients
 	Sv_UpdatePings();
 
 	// give the clients some timeslices
-	Sv_GiveMsec();
+	Sv_CheckCommandTimes();
 
 	// let everything in the world think and move
 	Sv_RunGameFrame();
@@ -914,15 +919,11 @@ void Sv_Frame(int msec){
 	// send messages back to the clients that had packets read this frame
 	Sv_SendClientMessages();
 
-	// were we shutdown this frame?
-	if(!svs.initialized)
-		return;
-
 	// send a heartbeat to the master if needed
 	Sv_HeartbeatMasters();
 
-	// clear teleport flags, etc for next frame
-	Sv_PrepWorldFrame();
+	// clear entity flags, etc for next frame
+	Sv_ResetEntities();
 
 #ifdef HAVE_CURSES
 	Curses_Frame(msec);
@@ -943,7 +944,7 @@ void Sv_Init(void){
 	sv_rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
 
 	sv_download_url = Cvar_Get("sv_download_url", "", CVAR_SERVER_INFO, NULL);
-	sv_enforcetime = Cvar_Get("sv_enforcetime", va("%d", MSEC_ERROR_MAX), 0, NULL);
+	sv_enforcetime = Cvar_Get("sv_enforcetime", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, NULL);
 
 	bits = QUAKE2WORLD_ZLIB;
 	sv_extensions = Cvar_Get("sv_extensions", va("%d", bits), 0, NULL);

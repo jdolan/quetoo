@@ -74,7 +74,7 @@ typedef struct sv_frame_s {
 	int sent_time;  // for ping calculations
 } sv_frame_t;
 
-#define LATENCY_COUNTS 16  // frame latency, averaged to determine ping
+#define CLIENT_LATENCY_COUNTS 16  // frame latency, averaged to determine ping
 #define CLIENT_RATE_MESSAGES 10  // message size, used to enforce rate throttle
 
 /*
@@ -83,10 +83,9 @@ typedef struct sv_frame_s {
  * server's clock, we take notice and eventually kick them.
  */
 
-#define MSEC_CHECK_INTERVAL 1000
-#define MSEC_DRIFT_MIN -150
-#define MSEC_DRIFT_MAX  150
-#define MSEC_ERROR_MAX 10
+#define CMD_MSEC_CHECK_INTERVAL 1000
+#define CMD_MSEC_ALLOWABLE_DRIFT  150
+#define CMD_MSEC_MAX_DRIFT_ERRORS  10
 
 typedef struct sv_client_s {
 	sv_client_state_t state;
@@ -96,16 +95,15 @@ typedef struct sv_client_s {
 	int last_frame;  // for delta compression
 	user_cmd_t last_cmd;  // for filling in big drops
 
-	int cmd_msec;  // every few seconds this is reset, if user
-	// commands exhaust it, assume time cheating
-	int cmd_msec_errors;  // maintain how many msec problems we've seen
+	int cmd_msec;  // for sv_enforcetime
+	int cmd_msec_errors;  // maintain how many problems we've seen
 
-	int frame_latency[LATENCY_COUNTS];
+	int frame_latency[CLIENT_LATENCY_COUNTS];
 	int ping;
 
 	int message_size[CLIENT_RATE_MESSAGES];  // used to rate drop packets
 	int rate;
-	int surpress_count;  // number of messages rate supressed
+	int surpress_count;  // number of messages rate suppressed
 
 	edict_t *edict;  // EDICT_FOR_NUM(client_num + 1)
 	char name[32];  // extracted from user_info, high bits masked
@@ -122,8 +120,7 @@ typedef struct sv_client_s {
 	int download_size;  // total bytes (can't use EOF because of paks)
 	int download_count;  // bytes sent
 
-	int last_message;  // sv.frame_num when packet was last received
-	int last_connect;
+	int last_message;  // svs.real_time when packet was last received
 
 	qboolean recording;  // client is currently recording a demo
 
@@ -133,9 +130,9 @@ typedef struct sv_client_s {
 } sv_client_t;
 
 // the server runs fixed-interval frames at a configurable rate (Hz)
-#define SERVER_FRAME_RATE_MIN 30
+#define SERVER_FRAME_RATE_MIN 20
 #define SERVER_FRAME_RATE_MAX 120
-#define SERVER_FRAME_RATE 60
+#define SERVER_FRAME_RATE 30
 
 // clients will be dropped after no activity in so many seconds
 #define SERVER_TIMEOUT 30

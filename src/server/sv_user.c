@@ -371,9 +371,12 @@ sv_user_string_cmd_t sv_user_string_cmds[] = {
 };
 
 /*
- * Sv_ExecuteUserStringCommand
+ * Sv_UserStringCommand
+ *
+ * Invoke the specified user string command.  If we don't have a function for
+ * it, pass it off to the game module.
  */
-static void Sv_ExecuteUserStringCommand(const char *s){
+static void Sv_UserStringCommand(const char *s){
 	sv_user_string_cmd_t *c;
 
 	Cmd_TokenizeString(s);
@@ -396,9 +399,6 @@ static void Sv_ExecuteUserStringCommand(const char *s){
 
 	if(!c->name){  // unmatched command
 
-		Com_Warn("Sv_ExecuteUserStringCommand: Unknown command %s from %s\n",
-				Cmd_Argv(0), Sv_NetaddrToString(sv_client));
-
 		if(sv.state == ss_game)  // maybe the game knows what to do with it
 			svs.game->ClientCommand(sv_player);
 	}
@@ -418,7 +418,9 @@ static void Sv_ClientThink(sv_client_t *cl, user_cmd_t *cmd){
 }
 
 
-#define MAX_STRINGCMDS 8
+#define CMD_MAX_MSEC 250
+#define CMD_MAX_MOVES 1
+#define CMD_MAX_STRINGS 8
 
 /*
  * Sv_ParseClientMessage
@@ -428,8 +430,8 @@ static void Sv_ClientThink(sv_client_t *cl, user_cmd_t *cmd){
 void Sv_ParseClientMessage(sv_client_t *cl){
 	user_cmd_t null_cmd, oldest_cmd, old_cmd, new_cmd;
 	int net_drop;
-	int stringCmdCount;
-	qboolean move_issued;
+	int strings_issued;
+	int moves_issued;
 	int last_frame;
 	int c;
 	char *s;
@@ -437,9 +439,8 @@ void Sv_ParseClientMessage(sv_client_t *cl){
 	sv_client = cl;
 	sv_player = sv_client->edict;
 
-	// only allow one move command
-	move_issued = false;
-	stringCmdCount = 0;
+	// allow a finite number of moves and strings
+	moves_issued = strings_issued = 0;
 
 	while(true){
 
@@ -465,16 +466,15 @@ void Sv_ParseClientMessage(sv_client_t *cl){
 				break;
 
 			case clc_move:
-				if(move_issued)
+				if(++moves_issued > CMD_MAX_MOVES){
 					return;  // someone is trying to cheat
-
-				move_issued = true;
+				}
 
 				last_frame = Msg_ReadLong(&net_message);
 				if(last_frame != cl->last_frame){
 					cl->last_frame = last_frame;
 					if(cl->last_frame > -1){
-						cl->frame_latency[cl->last_frame & (LATENCY_COUNTS - 1)] =
+						cl->frame_latency[cl->last_frame & (CLIENT_LATENCY_COUNTS - 1)] =
 							svs.real_time - cl->frames[cl->last_frame & UPDATE_MASK].sent_time;
 					}
 				}
@@ -491,10 +491,11 @@ void Sv_ParseClientMessage(sv_client_t *cl){
 					break;
 				}
 
-				if(null_cmd.msec > 250 || oldest_cmd.msec > 250 ||  // catch illegal msec
-						old_cmd.msec > 250 || new_cmd.msec > 250){
-					Com_Warn("Illegal msec in movement from %s\n", Sv_NetaddrToString(cl));
-					Sv_KickClient(cl, NULL);
+				// catch extremely high msec movements
+				if(null_cmd.msec > CMD_MAX_MSEC || oldest_cmd.msec > CMD_MAX_MSEC ||
+						old_cmd.msec > CMD_MAX_MSEC || new_cmd.msec > CMD_MAX_MSEC){
+					Com_Warn("Sv_ParseClientMessage: Illegal msec from %s\n", Sv_NetaddrToString(cl));
+					Sv_KickClient(cl, "Illegal movement");
 					return;
 				}
 
@@ -513,12 +514,18 @@ void Sv_ParseClientMessage(sv_client_t *cl){
 				cl->last_cmd = new_cmd;
 				break;
 
-			case clc_string_cmd:
+			case clc_string:
 				s = Msg_ReadString(&net_message);
 
 				// malicious users may try using too many string commands
-				if(++stringCmdCount < MAX_STRINGCMDS)
-					Sv_ExecuteUserStringCommand(s);
+				if(++strings_issued < CMD_MAX_STRINGS)
+					Sv_UserStringCommand(s);
+				else {
+					Com_Warn("Sv_ParseClientMessage: CMD_MAX_STRINGS exceeded for %s\n",
+							Sv_NetaddrToString(cl));
+					Sv_KickClient(cl, "Too many commands.");
+					return;
+				}
 
 				if(cl->state == cs_free)
 					return;  // disconnect command

@@ -184,7 +184,7 @@ typedef struct g_export_s {
 	void (*ClientCommand)(edict_t *ent);
 	void (*ClientThink)(edict_t *ent, user_cmd_t *cmd);
 
-	void (*RunFrame)(void);
+	void (*Frame)(void);
 
 	// global variables shared between game and server
 

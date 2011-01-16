@@ -134,7 +134,7 @@ enum clc_ops_e {
 	clc_nop,
 	clc_move,  // [[usercmd_t]
 	clc_user_info,  // [[user_info string]
-	clc_string_cmd  // [string] message
+	clc_string  // [string] message
 };
 
 

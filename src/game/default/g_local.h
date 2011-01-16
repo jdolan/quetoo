@@ -696,7 +696,7 @@ struct g_client_s {
 	int old_buttons;
 	int latched_buttons;
 
-	qboolean weapon_thunk;
+	float weapon_think_time;  // time when the weapon think was called
 	float weapon_fire_time;  // can fire when time > this
 	float muzzle_flash_time;  // should send muzzle flash when time > this
 	g_item_t *new_weapon;

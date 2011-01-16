@@ -109,14 +109,14 @@ qboolean Cl_CheckOrDownloadFile(const char *file_name){
 		Com_Debug("Resuming %s...\n", cls.download.name);
 
 		snprintf(cmd, sizeof(cmd), "download %s %i", cls.download.name, len);
-		Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
+		Msg_WriteByte(&cls.netchan.message, clc_string);
 		Msg_WriteString(&cls.netchan.message, cmd);
 	} else {
 		// or start if from the beginning
 		Com_Debug("Downloading %s...\n", cls.download.name);
 
 		snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
-		Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
+		Msg_WriteByte(&cls.netchan.message, clc_string);
 		Msg_WriteString(&cls.netchan.message, cmd);
 	}
 
@@ -182,7 +182,7 @@ static void Cl_ParseDownload(void){
 	net_message.read += size;
 
 	if(percent != 100){
-		Msg_WriteByte(&cls.netchan.message, clc_string_cmd);
+		Msg_WriteByte(&cls.netchan.message, clc_string);
 		Sb_Print(&cls.netchan.message, "nextdl");
 	} else {
 		char oldn[MAX_OSPATH];

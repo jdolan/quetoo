@@ -867,11 +867,12 @@ static void G_ExitLevel(void){
 #define INTERMISSION 10.0  // intermission duration
 
 /*
- * G_RunFrame
+ * G_Frame
  *
- * Advances the world by 0.1 seconds
+ * The main game module "think" function, called once per server frame.
+ * Nothing would happen in Quake land if this weren't called.
  */
-static void G_RunFrame(void){
+static void G_Frame(void){
 	int i;
 	edict_t *ent;
 
@@ -896,15 +897,18 @@ static void G_RunFrame(void){
 
 		g_level.current_entity = ent;
 
-		if(!(ent->s.effects & EF_LIGHTNING))  // update old origin for lerps
+		// update old origin for interpolation
+		if(!(ent->s.effects & EF_LIGHTNING))
 			VectorCopy(ent->s.origin, ent->s.old_origin);
 
 		if(ent->ground_entity){
-			// if the ground entity moved, make sure we are still on it
+
+			// check for ground entities going away
 			if(ent->ground_entity->link_count != ent->ground_entity_link_count)
 				ent->ground_entity = NULL;
 		}
 
+		// update clients
 		if(i > 0 && i <= sv_maxclients->value){
 			P_BeginServerFrame(ent);
 			continue;
@@ -1229,7 +1233,7 @@ void G_Init(void){
  *  game is unloaded (complements G_Init).
  */
 void G_Shutdown(void){
-	gi.Print("Game shutdown...\n");
+	gi.Print("  Game shutdown...\n");
 
 	if(fraglog != NULL)
 		gi.CloseFile(fraglog);  // close fraglog
@@ -1275,7 +1279,7 @@ g_export_t *G_LoadGame(g_import_t *import){
 	ge.ClientBegin = P_Begin;
 	ge.ClientCommand = P_Command;
 
-	ge.RunFrame = G_RunFrame;
+	ge.Frame = G_Frame;
 
 	ge.edict_size = sizeof(edict_t);
 

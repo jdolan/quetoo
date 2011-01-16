@@ -151,6 +151,9 @@ static void Sv_ClearState() {
 
 	memset(&sv, 0, sizeof(sv));
 	Com_SetServerState(sv.state);
+
+	svs.real_time = 0;
+	svs.last_heartbeat = -9999999;
 }
 
 
@@ -188,8 +191,6 @@ static void Sv_InitClients(void){
 
 	if(!svs.initialized || Cvar_PendingLatchedVars()){
 
-		svs.initialized = false;
-
 		Sv_ShutdownGameProgs();
 
 		Sv_UpdateLatchedVars();
@@ -213,8 +214,6 @@ static void Sv_InitClients(void){
 		svs.spawn_count = rand();
 
 		Sv_InitGameProgs();
-
-		svs.initialized = true;
 	}
 	else {
 		svs.spawn_count++;
@@ -226,15 +225,16 @@ static void Sv_InitClients(void){
 		edict_t *edict = EDICT_FOR_NUM(i + 1);
 		edict->s.number = i + 1;
 
+		// assign their edict
 		svs.clients[i].edict = edict;
 
-		// ensure no clients are greater than connected
-
+		// reset state of spawned clients back to connected
 		if(svs.clients[i].state > cs_connected)
 			svs.clients[i].state = cs_connected;
 
 		// invalidate last frame to force a baseline
 		svs.clients[i].last_frame = -1;
+		svs.clients[i].last_message = 0;
 	}
 }
 
@@ -342,14 +342,14 @@ void Sv_InitServer(const char *server, sv_state_t state){
 
 	Com_Print("Server initialization...\n");
 
-	svs.real_time = 0;  // TODO: quake2world.time?  move to Sv_Frame?
-	svs.last_heartbeat = -9999999;
-
 	// initialize the clients, loading the game progs if we need them
 	Sv_InitClients();
 
 	// load the map or demo and related media
 	Sv_LoadMedia(server, state);
+
+	// we unlock the "cheat" cvars if we're just running 1 client
+	Cvar_LockCheatVars(sv_maxclients->value > 1);
 
 	sv.state = state;
 	Com_SetServerState(sv.state);
@@ -357,6 +357,8 @@ void Sv_InitServer(const char *server, sv_state_t state){
 	Sb_Init(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
 	Com_Print("Server initialized.\n");
+
+	svs.initialized = true;
 }
 
 
@@ -369,9 +371,15 @@ void Sv_ShutdownServer(const char *msg){
 
 	Com_Debug("Sv_ShutdownServer: %s\n", msg);
 
+	Com_Print("Server shutdown...\n");
+
 	Sv_ShutdownMessage(msg, false);
 
 	Sv_ShutdownGameProgs();
 
 	Sv_ClearState();
+
+	Com_Print("Server down\n");
+
+	svs.initialized = false;
 }

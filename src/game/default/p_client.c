@@ -1280,8 +1280,7 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 			} else {
 				P_GetChaseTarget(ent);
 			}
-		} else if(!client->weapon_thunk){
-			client->weapon_thunk = true;
+		} else if(client->weapon_think_time < g_level.time){
 			P_WeaponThink(ent);
 		}
 	}
@@ -1314,11 +1313,9 @@ void P_BeginServerFrame(edict_t *ent){
 	if(ent->ground_entity)  // let this be reset each frame as needed
 		client->ps.pmove.pm_flags &= ~PMF_PUSHED;
 
-	// run weaponthink if it hasn't been done by a ucmd_t
-	if(!client->weapon_thunk && !client->locals.spectator)
+	// run weapon think if it hasn't been done by a command
+	if(client->weapon_think_time < g_level.time && !client->locals.spectator)
 		P_WeaponThink(ent);
-
-	client->weapon_thunk = false;
 
 	if(ent->dead){  // check for respawn conditions
 

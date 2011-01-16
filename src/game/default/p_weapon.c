@@ -289,6 +289,8 @@ void P_WeaponThink(edict_t *ent){
 	if(ent->health < 1)
 		return;
 
+	ent->client->weapon_think_time = g_level.time;
+
 	if(ent->client->new_weapon){
 		P_ChangeWeapon(ent);
 		return;
