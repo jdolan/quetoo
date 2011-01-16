@@ -118,8 +118,10 @@ static qboolean Sv_SetPlayer(void){
 
 	// check for a name match
 	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
+
 		if(!cl->state)
 			continue;
+
 		if(!strcmp(cl->name, s)){
 			sv_client = cl;
 			sv_player = sv_client->edict;
@@ -138,7 +140,6 @@ static qboolean Sv_SetPlayer(void){
  * Starts playback of the specified demo file.
  */
 static void Sv_Demo_f(void){
-	char demo[MAX_QPATH];
 
 	if(Cmd_Argc() != 2){
 		Com_Print("Usage: %s <demo>\n", Cmd_Argv(0));
@@ -146,13 +147,14 @@ static void Sv_Demo_f(void){
 	}
 
 	// start up the demo
-	snprintf(demo, sizeof(demo), "%s.dem", Cmd_Argv(1));
-	Sv_Map(demo);
+	Sv_InitServer(Cmd_Argv(1), ss_demo);
 }
 
 
 /*
  * Sv_Map_f
+ *
+ * Creates a server for the specified map.
  */
 static void Sv_Map_f(void){
 
@@ -162,7 +164,7 @@ static void Sv_Map_f(void){
 	}
 
 	// start up the map
-	Sv_Map(Cmd_Argv(1));
+	Sv_InitServer(Cmd_Argv(1), ss_game);
 }
 
 
@@ -209,8 +211,10 @@ static void Sv_Status_f(void){
 	Com_Print("num score ping name            lastmsg exts address               qport \n");
 	Com_Print("--- ----- ---- --------------- ------- ---- --------------------- ------\n");
 	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
+
 		if(!cl->state)
 			continue;
+
 		Com_Print("%3i ", i);
 		Com_Print("%5i ", cl->edict->client->ps.stats[STAT_FRAGS]);
 
@@ -322,10 +326,10 @@ void Sv_InitOperatorCommands(void){
 	Cmd_AddCommand("kick", Sv_Kick_f, "Kick a specific user");
 	Cmd_AddCommand("status", Sv_Status_f, "Print some server status information");
 	Cmd_AddCommand("serverinfo", Sv_Serverinfo_f, "Print server info settings");
-	Cmd_AddCommand("user_info", Sv_UserInfo_f, "Print information for a given user");
+	Cmd_AddCommand("userinfo", Sv_UserInfo_f, "Print information for a given user");
 
 	Cmd_AddCommand("demo", Sv_Demo_f, "Start playback of the specified demo file");
-	Cmd_AddCommand("map", Sv_Map_f, "Start a new map");
+	Cmd_AddCommand("map", Sv_Map_f, "Start a server for the specified map");
 
 	Cmd_AddCommand("setmaster", Sv_SetMaster_f, "Set the masterserver for the dedicated server");
 	Cmd_AddCommand("heartbeat", Sv_Heartbeat_f, "Send a heartbeat to the masterserver");

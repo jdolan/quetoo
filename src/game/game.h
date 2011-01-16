@@ -198,7 +198,7 @@ typedef struct g_export_s {
 	int max_edicts;
 } g_export_t;
 
-g_export_t *LoadGame(g_import_t *import);
-
+// entry point in game module, called by the server
+g_export_t *G_LoadGame(g_import_t *import);
 
 #endif /* __GAME_H__ */

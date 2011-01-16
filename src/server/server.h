@@ -92,7 +92,7 @@ typedef struct sv_client_s {
 	int last_frame;  // for delta compression
 	user_cmd_t last_cmd;  // for filling in big drops
 
-	int cmd_msec;  // every seconds this is reset, if user
+	int cmd_msec;  // every few seconds this is reset, if user
 	// commands exhaust it, assume time cheating
 	int cmd_msec_errors;  // maintain how many msec problems we've seen
 
@@ -103,7 +103,7 @@ typedef struct sv_client_s {
 	int rate;
 	int surpress_count;  // number of messages rate supressed
 
-	edict_t *edict;  // EDICT_NUM(client_num+1)
+	edict_t *edict;  // EDICT_FOR_NUM(client_num + 1)
 	char name[32];  // extracted from user_info, high bits masked
 	int message_level;  // for filtering printed messages
 
@@ -120,8 +120,6 @@ typedef struct sv_client_s {
 
 	int last_message;  // sv.frame_num when packet was last received
 	int last_connect;
-
-	int challenge;  // challenge of this user, randomly generated
 
 	qboolean recording;  // client is currently recording a demo
 
@@ -205,7 +203,6 @@ extern edict_t *sv_player;
 
 // sv_main.c
 void Sv_Init(void);
-void Sv_FinalMessage(const char *msg, qboolean reconnect);
 void Sv_Shutdown(const char *msg);
 void Sv_Frame(int msec);
 char *Sv_NetaddrToString(sv_client_t *cl);
@@ -217,7 +214,8 @@ void Sv_UserInfoChanged(sv_client_t *cl);
 int Sv_ModelIndex(const char *name);
 int Sv_SoundIndex(const char *name);
 int Sv_ImageIndex(const char *name);
-void Sv_Map(const char *levelstring);
+void Sv_ShutdownServer(const char *msg);
+void Sv_InitServer(const char *name, sv_state_t state);
 
 // sv_send.c
 typedef enum {
@@ -240,7 +238,7 @@ void Sv_BroadcastPrint(int level, const char *fmt, ...) __attribute__((format(pr
 void Sv_BroadcastCommand(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 // sv_user.c
-void Sv_ExecuteClientMessage(sv_client_t *cl);
+void Sv_ParseClientMessage(sv_client_t *cl);
 
 // sv_ccmds.c
 void Sv_InitOperatorCommands(void);
@@ -254,7 +252,7 @@ void Sv_InitGameProgs(void);
 void Sv_ShutdownGameProgs(void);
 
 // sv_world.c
-void Sv_ClearWorld(void);
+void Sv_InitWorld(void);
 // called after the world model has been loaded, before linking any entities
 
 void Sv_UnlinkEdict(edict_t *ent);

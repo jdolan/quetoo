@@ -99,6 +99,7 @@ extern float LittleFloat(float l);
 #define MAX_OSPATH			128   // max length of a filesystem pathname
 
 // per-level limits
+#define MIN_CLIENTS			1     // duh
 #define MAX_CLIENTS			256   // absolute limit
 #define MAX_EDICTS			1024  // must change protocol to increase more
 #define MAX_MODELS			256   // these are sent over the net as bytes

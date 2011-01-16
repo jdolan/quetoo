@@ -22,7 +22,11 @@
 #include "server.h"
 #include "console.h"
 
+sv_static_t svs;  // persistent server info
+sv_server_t sv;  // per-level server info
+
 sv_client_t *sv_client;  // current client
+edict_t *sv_player;  // current client edict
 
 cvar_t *sv_rcon_password;  // password for remote server commands
 
@@ -45,6 +49,7 @@ cvar_t *sv_udpdownload;
  * or crashing.
  */
 void Sv_DropClient(sv_client_t *cl){
+	edict_t *ent;
 
 	if(cl->state > cs_free){  // send the disconnect
 
@@ -61,24 +66,19 @@ void Sv_DropClient(sv_client_t *cl){
 		cl->download = NULL;
 	}
 
-	cl->state = cs_free;
-	cl->last_message = 0;
+	ent = cl->edict;
+
+	memset(cl, 0, sizeof(*cl));
+
+	cl->edict = ent;
 	cl->last_frame = -1;
-	cl->name[0] = 0;
 }
-
-
-/*
- *
- * CONNECTIONLESS COMMANDS
- *
- */
 
 
 /*
  * Sv_StatusString
  *
- * Builds the string that is sent as heartbeats and status replies
+ * Returns a string fit for heartbeats and status replies.
  */
 static const char *Sv_StatusString(void){
 	char player[1024];
@@ -93,13 +93,19 @@ static const char *Sv_StatusString(void){
 	statusLength = strlen(status);
 
 	for(i = 0; i < sv_maxclients->value; i++){
+
 		cl = &svs.clients[i];
+
 		if(cl->state == cs_connected || cl->state == cs_spawned){
+
 			snprintf(player, sizeof(player), "%i %i \"%s\"\n",
 						 cl->edict->client->ps.stats[STAT_FRAGS], cl->ping, cl->name);
+
 			playerLength = strlen(player);
+
 			if(statusLength + playerLength >= sizeof(status))
 				break;  // can't hold any more
+
 			strcpy(status + statusLength, player);
 			statusLength += playerLength;
 		}
@@ -222,14 +228,12 @@ static void Svc_GetChallenge(void){
  */
 static void Svc_Connect(void){
 	char user_info[MAX_INFO_STRING];
+	sv_client_t *cl, *client;
 	netaddr_t addr;
-	int i;
-	sv_client_t *cl, *newcl;
-	edict_t *ent;
-	int edictnum;
 	int version;
 	int qport;
 	int challenge;
+	int i;
 
 	Com_Debug("Svc_Connect()\n");
 
@@ -298,7 +302,7 @@ static void Svc_Connect(void){
 	}
 
 	// resolve the client slot
-	newcl = NULL;
+	client = NULL;
 
 	// first check for an ungraceful reconnect (client crashed, perhaps)
 	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
@@ -311,61 +315,58 @@ static void Svc_Connect(void){
 		// the base address and either the qport or real port must match
 		if(Net_CompareClientNetaddr(addr, ch->remote_address) &&
 				(qport == ch->qport || ch->remote_address.port == addr.port)){
-			newcl = cl;
+			client = cl;
 			break;
 		}
 	}
 
 	// otherwise, treat as a fresh connect to a new slot
-	if(!newcl){
+	if(!client){
 		for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
 			if(cl->state == cs_free){  // we have a free one
-				newcl = cl;
+				client = cl;
 				break;
 			}
 		}
 	}
 
 	// no soup for you, next!!
-	if(!newcl){
+	if(!client){
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nServer is full.\n");
 		Com_Debug("Rejected a connection.\n");
 		return;
 	}
 
-	// this is the only place a client_t is ever initialized
-	sv_client = newcl;
-	edictnum = (newcl - svs.clients) + 1;
-	ent = EDICT_FOR_NUM(edictnum);
-	newcl->edict = ent;
-	newcl->challenge = challenge; // save challenge for checksumming
+	// give the game a chance to reject this connection or modify the user_info
+	if(!(svs.game->ClientConnect(client->edict, user_info))){
 
-	// get the game a chance to reject this connection or modify the user_info
-	if(!(svs.game->ClientConnect(ent, user_info))){
-		if(*Info_ValueForKey(user_info, "rejmsg"))
+		if(*Info_ValueForKey(user_info, "rejmsg")){
 			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused.\n",
-									Info_ValueForKey(user_info, "rejmsg"));
-		else
+					Info_ValueForKey(user_info, "rejmsg"));
+		}
+		else {
 			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+		}
+
 		Com_Debug("Game rejected a connection.\n");
 		return;
 	}
 
 	// parse some info from the info strings
-	strncpy(newcl->user_info, user_info, sizeof(newcl->user_info) - 1);
-	Sv_UserInfoChanged(newcl);
+	strncpy(client->user_info, user_info, sizeof(client->user_info) - 1);
+	Sv_UserInfoChanged(client);
 
 	// send the connect packet to the client
 	Netchan_OutOfBandPrint(NS_SERVER, addr, "client_connect %s", sv_download_url->string);
 
-	Netchan_Setup(NS_SERVER, &newcl->netchan, addr, qport);
+	Netchan_Setup(NS_SERVER, &client->netchan, addr, qport);
 
-	Sb_Init(&newcl->datagram, newcl->datagram_buf, sizeof(newcl->datagram_buf));
-	newcl->datagram.allow_overflow = true;
+	Sb_Init(&client->datagram, client->datagram_buf, sizeof(client->datagram_buf));
+	client->datagram.allow_overflow = true;
 
-	newcl->last_message = newcl->last_connect = svs.real_time;  // don't timeout
+	client->last_message = client->last_connect = svs.real_time;  // don't timeout
 
-	newcl->state = cs_connected;
+	client->state = cs_connected;
 }
 
 
@@ -588,7 +589,7 @@ static void Sv_ReadPackets(void){
 			// this is a valid, sequenced packet, so process it
 			if(Netchan_Process(&cl->netchan, &net_message)){
 				cl->last_message = svs.real_time;  // nudge timeout
-				Sv_ExecuteClientMessage(cl);
+				Sv_ParseClientMessage(cl);
 			}
 
 			// we've processed the packet for the correct client, so break
@@ -950,43 +951,11 @@ void Sv_Init(void){
 
 	Sv_InitOperatorCommands();
 
-	Sv_InitMasters();  // FIXME: this is lost after Sv_Shutdown
+	Sv_InitMasters();
 
-	// initialize net buffer
 	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
-}
 
-
-/*
- * Sv_FinalMessage
- *
- * Used by Sv_Shutdown and Sv_RestartGame to send a final message to all
- * connected clients.  The messages are sent immediately, because the server
- * could completely exit after returning from this function.
- */
-void Sv_FinalMessage(const char *msg, qboolean reconnect){
-	sv_client_t *cl;
-	int i;
-
-	if(!svs.initialized)
-		return;
-
-	Sb_Clear(&net_message);
-
-	if(msg){  // send message
-		Msg_WriteByte(&net_message, svc_print);
-		Msg_WriteByte(&net_message, PRINT_HIGH);
-		Msg_WriteString(&net_message, msg);
-	}
-
-	if(reconnect)  // send reconnect
-		Msg_WriteByte(&net_message, svc_reconnect);
-	else  // or just disconnect
-		Msg_WriteByte(&net_message, svc_disconnect);
-
-	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++)
-		if(cl->state >= cs_connected)
-			Netchan_Transmit(&cl->netchan, net_message.size, net_message.data);
+	Net_Config(NS_SERVER, true);
 }
 
 
@@ -997,20 +966,13 @@ void Sv_FinalMessage(const char *msg, qboolean reconnect){
  */
 void Sv_Shutdown(const char *msg){
 
-	Sv_FinalMessage(msg, false);
+	Sv_ShutdownServer(msg);
 
 	Sv_ShutdownMasters();
 
-	Sv_ShutdownGameProgs();
-
 	Net_Config(NS_SERVER, false);
 
-	// close any open demo files
-	if(sv.demo_file)
-		Fs_CloseFile(sv.demo_file);
-
-	memset(&sv, 0, sizeof(sv));
-	Com_SetServerState(sv.state);
+	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
 
 	// free server static data
 	if(svs.clients)

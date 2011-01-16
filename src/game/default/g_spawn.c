@@ -301,7 +301,7 @@ static void G_ParseField(const char *key, const char *value, edict_t *ent){
 		}
 	}
 
-	gi.Debug("%s is not a field\n", key);
+	//gi.Debug("%s is not a field\n", key);
 }
 
 
@@ -309,11 +309,12 @@ static void G_ParseField(const char *key, const char *value, edict_t *ent){
  * G_ParseEdict
  *
  * Parses an edict out of the given string, returning the new position
- * ed should be a properly initialized empty edict.
+ * in said string.  The edict parameter should be a properly initialized
+ * free edict.
  */
 static const char *G_ParseEdict(const char *data, edict_t *ent){
 	qboolean init;
-	char key[256];
+	char key[MAX_QPATH];
 	const char *tok;
 
 	init = false;
@@ -325,6 +326,7 @@ static const char *G_ParseEdict(const char *data, edict_t *ent){
 		tok = Com_Parse(&data);
 		if(tok[0] == '}')
 			break;
+
 		if(!data)
 			gi.Error("G_ParseEdict: EOF without closing brace.");
 

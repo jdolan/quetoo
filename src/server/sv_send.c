@@ -21,14 +21,14 @@
 
 #include "server.h"
 
-/*
- *
- * Com_Printf redirection
- *
- */
-
 char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
+/*
+ * Sv_FlushRedirect
+ *
+ * Handles Com_Print output redirection, allowing the server to send output
+ * from any command to a connected client or even a foreign one.
+ */
 void Sv_FlushRedirect(int target, char *outputbuf){
 
 	switch(target){
@@ -45,13 +45,6 @@ void Sv_FlushRedirect(int target, char *outputbuf){
 			break;
 	}
 }
-
-
-/*
- *
- * EVENT MESSAGES
- *
- */
 
 
 /*
@@ -469,7 +462,7 @@ static qboolean Sv_SendClientDatagram(sv_client_t *client){
  * Sv_DemoCompleted
  */
 static void Sv_DemoCompleted(void){
-	Sv_Shutdown("Demo complete.\n");
+	Sv_ShutdownServer("Demo complete.\n");
 }
 
 
@@ -519,7 +512,7 @@ void Sv_SendClientMessages(void){
 	msglen = 0;
 
 	// read the next demo message if needed
-	if(sv.state == ss_demo && sv.demo_file){
+	if(sv.state == ss_demo){
 
 		r = Fs_Read(&msglen, 4, 1, sv.demo_file);
 

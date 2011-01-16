@@ -130,6 +130,8 @@ void Fs_CreatePath(const char *path){
 }
 
 
+char *fs_last_pak = NULL;  // the server uses this to determine CS_PAK
+
 /*
  * Fs_OpenFile
  *
@@ -137,7 +139,6 @@ void Fs_CreatePath(const char *path){
  * and an open FILE pointer.  This generalizes opening files from paks vs
  * opening filesystem resources directly.
  */
-char *last_pak;  // the server uses this to determine CS_PAK
 int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 	searchpath_t *search;
 	char path[MAX_OSPATH];
@@ -145,7 +146,7 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 	pak_t *pak;
 	pakentry_t *e;
 
-	// open for write or append in gamedir and return
+	// open for write or append in game dir and return
 	if(mode == FILE_WRITE || mode == FILE_APPEND){
 
 		snprintf(path, sizeof(path), "%s/%s", Fs_Gamedir(), file_name);
@@ -155,7 +156,7 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 		return *file ? 0 : -1;
 	}
 
-	// try the searchpaths
+	// try the search paths
 	for(search = fs_searchpaths; search; search = search->next){
 
 		snprintf(path, sizeof(path), "%s/%s", search->path, file_name);
@@ -169,10 +170,10 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 		return Fs_FileLength(*file);
 	}
 
-	// fall back on the pakfiles
+	// fall back on the pak files
 	if((pak = (pak_t *)Hash_Get(&fs_hash_table, file_name))){
 
-		// find the entry within the pakfile
+		// find the entry within the pak file
 		if((e = (pakentry_t *)Hash_Get(&pak->hash_table, file_name))){
 
 			*file = fopen(pak->file_name, "rb");
@@ -184,13 +185,12 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 
 			fseek(*file, e->file_ofs, SEEK_SET);
 
-			last_pak = strrchr(pak->file_name, '/') + 1;
+			fs_last_pak = strrchr(pak->file_name, '/') + 1;
 			return e->file_len;
 		}
 	}
 
-	last_pak = NULL;
-
+	fs_last_pak = NULL;
 
 	if(Com_Mixedcase(file_name)) {  // try lowercase version
 		char lower[MAX_QPATH];
@@ -198,7 +198,7 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 		return Fs_OpenFile(Com_Lowercase(lower), file, mode);
 	}
 
-	//Com_Dprintf("Fs_OpenFile: can't find %s.\n", file_name);
+	//Com_Debug("Fs_OpenFile: can't find %s.\n", file_name);
 
 	*file = NULL;
 	return -1;

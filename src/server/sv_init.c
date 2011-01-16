@@ -21,9 +21,6 @@
 
 #include "server.h"
 
-sv_static_t svs;  // persistent server info
-sv_server_t sv;  // local server
-
 /*
  * Sv_FindIndex
  *
@@ -83,91 +80,79 @@ int Sv_ImageIndex(const char *name){
  * baseline will be transmitted
  */
 static void Sv_CreateBaseline(void){
-	edict_t *svent;
+	edict_t *ent;
 	int i;
 
 	for(i = 1; i < svs.game->num_edicts; i++){
-		svent = EDICT_FOR_NUM(i);
-		if(!svent->in_use)
+
+		ent = EDICT_FOR_NUM(i);
+
+		if(!ent->in_use)
 			continue;
-		if(!svent->s.model_index && !svent->s.sound && !svent->s.effects)
+
+		if(!ent->s.model_index && !ent->s.sound && !ent->s.effects)
 			continue;
-		svent->s.number = i;
+
+		ent->s.number = i;
 
 		// take current state as baseline
-		VectorCopy(svent->s.origin, svent->s.old_origin);
-		sv.baselines[i] = svent->s;
+		VectorCopy(ent->s.origin, ent->s.old_origin);
+		sv.baselines[i] = ent->s;
 	}
 }
 
 
 /*
- * Sv_CheckMap
+ * Sv_ShutdownMessage
  *
- * Ensures that map exists before attempting to spawn a server to it.
- * Returns true if the map exists, false otherwise.
+ * Sends the shutdown message message to all connected clients.  The message
+ * is sent immediately, because the server could completely terminate after
+ * returning from this function.
  */
-static qboolean Sv_CheckMap(const char *name){
-	char map[MAX_OSPATH];
-	FILE *f;
+static void Sv_ShutdownMessage(const char *msg, qboolean reconnect){
+	sv_client_t *cl;
+	int i;
 
-	snprintf(map, sizeof(map), "maps/%s.bsp", name);
-	Fs_OpenFile(map, &f, FILE_READ);
+	if(!svs.initialized)
+		return;
 
-	if(!f){
-		Com_Print("Couldn't open %s\n", map);
-		return false;
+	Sb_Clear(&net_message);
+
+	if(msg){  // send message
+		Msg_WriteByte(&net_message, svc_print);
+		Msg_WriteByte(&net_message, PRINT_HIGH);
+		Msg_WriteString(&net_message, msg);
 	}
 
-	Fs_CloseFile(f);
-	return true;
+	if(reconnect)  // send reconnect
+		Msg_WriteByte(&net_message, svc_reconnect);
+	else  // or just disconnect
+		Msg_WriteByte(&net_message, svc_disconnect);
+
+	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++)
+		if(cl->state >= cs_connected)
+			Netchan_Transmit(&cl->netchan, net_message.size, net_message.data);
 }
 
 
 /*
- * Sv_CheckDemo
+ * Sv_ClearState
  *
- * Attempts to open and peek into the specified demo file.  Returns
- * true if the file exists and appears to be a valid demo, false otherwise.
- * File is closed.
+ * Wipes the sv_server_t structure after freeing any references it holds.
  */
-static qboolean Sv_CheckDemo(const char *name){
-	char demo[MAX_OSPATH];
-	byte buff[MAX_MSGLEN];
-	int msglen, protocol;
-	FILE *f;
+static void Sv_ClearState() {
 
-	snprintf(demo, sizeof(demo), "demos/%s", name);
-	Fs_OpenFile(demo, &f, FILE_READ);
-	if(!f){
-		Com_Print("Couldn't open %s\n", demo);
-		return false;
+	if(svs.initialized){  // if we were intialized, cleanup
+
+		if(sv.demo_file){
+			Fs_CloseFile(sv.demo_file);
+		}
 	}
 
-	if(fread(&msglen, 4, 1, f) != 1)
-		Com_Warn("Sv_CheckDemo: Failed to read demo.\n");
-
-	msglen = LittleLong(msglen);
-
-	if(msglen == -1 || msglen > MAX_MSGLEN){
-		Com_Print("Sv_CheckDemo: %s is not a demo.\n", demo);
-		return false;
-	}
-
-	if(fread(buff, msglen, 1, f) != 1)
-		Com_Warn("Sv_CheckDemo: Failed to read demo.\n");
-
-	memcpy(&protocol, buff + 1, 4);
-
-	Fs_CloseFile(f);
-
-	if(LittleLong(protocol) != PROTOCOL){
-		Com_Print("%s is protocol %d\n", demo, LittleLong(protocol));
-		return false;
-	}
-
-	return true;
+	memset(&sv, 0, sizeof(sv));
+	Com_SetServerState(sv.state);
 }
+
 
 /*
  * Sv_UpdateLatchedVars
@@ -175,55 +160,65 @@ static qboolean Sv_CheckDemo(const char *name){
  * Applies any pending variable changes and clamps ones we really care about.
  */
 static void Sv_UpdateLatchedVars(void){
-	const int flags = CVAR_SERVER_INFO | CVAR_LATCH;
 
 	Cvar_UpdateLatchedVars();
 
-	if(sv_framerate->value < SERVER_FRAME_RATE_MIN)
-		Cvar_FullSet("sv_packetrate", va("%i", SERVER_FRAME_RATE_MIN), flags);
-	else if(sv_framerate->value > SERVER_FRAME_RATE_MAX)
-		Cvar_FullSet("sv_packetrate", va("%i", SERVER_FRAME_RATE_MAX), flags);
-
-	if(sv_maxclients->value <= 1)
-		Cvar_FullSet("sv_maxclients", "1", flags);
+	if(sv_maxclients->value < MIN_CLIENTS)
+		sv_maxclients->value = MIN_CLIENTS;
 	else if(sv_maxclients->value > MAX_CLIENTS)
-		Cvar_FullSet("sv_maxclients", va("%i", MAX_CLIENTS), flags);
+		sv_maxclients->value = MAX_CLIENTS;
+
+
+	if(sv_framerate->value < SERVER_FRAME_RATE_MIN)
+		sv_framerate->value = SERVER_FRAME_RATE_MIN;
+	else if(sv_framerate->value > SERVER_FRAME_RATE_MAX)
+		sv_framerate->value = SERVER_FRAME_RATE_MAX;
 }
 
 
 /*
- * Sv_RestartGame
+ * Sv_InitClients
  *
- * Reloads svs.clients, svs.client_entities, the game programs, etc.
+ * Reloads svs.clients, svs.client_entities, the game programs, etc.  Because
+ * we must allocate clients and edicts based on sizes the game module requests,
+ * we refresh the game module
  */
-static void Sv_RestartGame(void){
+static void Sv_InitClients(void){
 	int i;
 
-	svs.initialized = false;
+	if(!svs.initialized || Cvar_PendingLatchedVars()){
 
-	Sv_ShutdownGameProgs();
+		svs.initialized = false;
 
-	Sv_UpdateLatchedVars();
+		Sv_ShutdownGameProgs();
 
-	// free server static data
-	if(svs.clients)
-		Z_Free(svs.clients);
+		Sv_UpdateLatchedVars();
 
-	// initialize the clients array
-	svs.clients = Z_Malloc(sizeof(sv_client_t) * sv_maxclients->value);
+		// free server static data
+		if(svs.clients)
+			Z_Free(svs.clients);
 
-	if(svs.entity_states)
-		Z_Free(svs.entity_states);
+		// initialize the clients array
+		svs.clients = Z_Malloc(sizeof(sv_client_t) * sv_maxclients->value);
 
-	// and the entity states array
-	svs.num_entity_states = sv_maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
-	svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
+		if(svs.entity_states)
+			Z_Free(svs.entity_states);
 
-	svs.frame_rate = sv_framerate->value;
+		// and the entity states array
+		svs.num_entity_states = sv_maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
+		svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
 
-	svs.spawn_count = rand();
+		svs.frame_rate = sv_framerate->value;
 
-	Sv_InitGameProgs();
+		svs.spawn_count = rand();
+
+		Sv_InitGameProgs();
+
+		svs.initialized = true;
+	}
+	else {
+		svs.spawn_count++;
+	}
 
 	// align the game entities with the server's clients
 	for(i = 0; i < sv_maxclients->value; i++){
@@ -232,128 +227,151 @@ static void Sv_RestartGame(void){
 		edict->s.number = i + 1;
 
 		svs.clients[i].edict = edict;
-	}
 
-	svs.last_heartbeat = -99999;
-
-	svs.initialized = true;
-}
-
-
-/*
- * Sv_SpawnServer
- *
- * Change the server to a new map, taking all connected clients along with it.
- * The state parameter must either be ss_game or ss_demo.  See Sv_Map.
- */
-static void Sv_SpawnServer(const char *server, sv_state_t state){
-	int i;
-	int mapsize;
-	FILE *f;
-	extern char *last_pak;
-
-	Sv_FinalMessage("Server restarting..", true);
-
-	Com_Print("Server initialization...\n");
-
-	svs.real_time = 0;
-
-	if(sv.demo_file)  // TODO: move this to svs, this isn't safe
-		Fs_CloseFile(sv.demo_file);
-
-	memset(&sv, 0, sizeof(sv));
-	Com_SetServerState(sv.state);
-
-	if(!svs.initialized || Cvar_PendingLatchedVars())
-		Sv_RestartGame();
-	else
-		svs.spawn_count++;
-
-	Sb_Init(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
-
-	// ensure all clients are no greater than connected
-	for(i = 0; i < sv_maxclients->value; i++){
+		// ensure no clients are greater than connected
 
 		if(svs.clients[i].state > cs_connected)
 			svs.clients[i].state = cs_connected;
 
+		// invalidate last frame to force a baseline
 		svs.clients[i].last_frame = -1;
 	}
+}
 
-	// load the new server
+
+/*
+ * Sv_LoadMedia
+ *
+ * Loads the map or demo file and populates the server-controlled "config
+ * strings."  We hand off the entity string to the game module, which will
+ * load the rest.
+ */
+static void Sv_LoadMedia(const char *server, sv_state_t state){
+	extern char *fs_last_pak;
+	char demo[MAX_QPATH];
+	int i, mapsize;
+
 	strcpy(sv.name, server);
 	strcpy(sv.config_strings[CS_NAME], server);
 
-	if(state == ss_demo){  // playing a demo, no map on the server
-		sv.models[1] = Cm_LoadMap(NULL, &mapsize);
-	} else {  // playing a game, load the map
-		snprintf(sv.config_strings[CS_MODELS + 1], MAX_QPATH, "maps/%s.bsp", server);
+	if(state == ss_demo){  // loading a demo
+		snprintf(demo, sizeof(demo), "demos/%s.dem", sv.name);
 
-		Fs_OpenFile(sv.config_strings[CS_MODELS + 1], &f, FILE_READ);  // resolve CS_PAK
-		strcpy(sv.config_strings[CS_PAK], (last_pak ? last_pak : ""));
-		Fs_CloseFile(f);
+		sv.models[1] = Cm_LoadMap(NULL, &mapsize);
+
+		Fs_OpenFile(demo, &sv.demo_file, FILE_READ);
+
+		Com_Print("  Loaded demo %s.\n", sv.name);
+	}
+	else {  // loading a map
+		snprintf(sv.config_strings[CS_MODELS + 1], MAX_QPATH, "maps/%s.bsp", sv.name);
 
 		sv.models[1] = Cm_LoadMap(sv.config_strings[CS_MODELS + 1], &mapsize);
-	}
-	snprintf(sv.config_strings[CS_MAP_SIZE], MAX_QPATH, "%i", mapsize);
 
-	// clear physics interaction links
-	Sv_ClearWorld();
+		if(fs_last_pak){
+			strncpy(sv.config_strings[CS_PAK], fs_last_pak, MAX_QPATH);
+		}
 
-	for(i = 1; i < Cm_NumInlineModels(); i++){
-		snprintf(sv.config_strings[CS_MODELS + 1 + i], MAX_QPATH, "*%i", i);
-		sv.models[i + 1] = Cm_InlineModel(sv.config_strings[CS_MODELS + 1 + i]);
-	}
+		for(i = 1; i < Cm_NumInlineModels(); i++){
 
-	if(state == ss_game){  // load and spawn all other entities
+			char *s = sv.config_strings[CS_MODELS + 1 + i];
+			snprintf(s, MAX_QPATH, "*%i", i);
+
+			sv.models[i + 1] = Cm_InlineModel(s);
+		}
+
 		sv.state = ss_loading;
 		Com_SetServerState(sv.state);
+
+		Sv_InitWorld();
 
 		svs.game->SpawnEntities(sv.name, Cm_EntityString());
 
 		Sv_CreateBaseline();
 
-		Com_Print("  Loaded %s, %d entities.\n", sv.config_strings[CS_MODELS + 1],
-				svs.game->num_edicts);
+		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_edicts);
 	}
-	else {
-		Com_Print("  Loaded demo %s.\n", sv.name);
-	}
-	// set serverinfo variable
-	Cvar_FullSet("mapname", sv.name, CVAR_SERVER_INFO | CVAR_NOSET);
+	snprintf(sv.config_strings[CS_MAP_SIZE], MAX_QPATH, "%i", mapsize);
 
-	// all precaches are complete
+	Cvar_FullSet("mapname", sv.name, CVAR_SERVER_INFO | CVAR_NOSET);
+}
+
+
+/*
+ * Sv_InitServer
+ *
+ * Entry point for spawning a new server or changing maps / demos.  Brings any
+ * connected clients along for the ride by broadcasting a reconnect before
+ * clearing state.  Special effort is made to ensure that a locally connected
+ * client sees the reconnect message immediately.
+ */
+void Sv_InitServer(const char *server, sv_state_t state){
+#ifdef BUILD_CLIENT
+	extern void Cl_Frame(int msec);
+#endif
+	char path[MAX_QPATH];
+	FILE *file;
+
+	Com_Debug("Sv_InitServer: %s (%d)\n", server, state);
+
+	// ensure that the requested map or demo exists
+	if(state == ss_demo)
+		snprintf(path, sizeof(path), "demos/%s.dem", server);
+	else
+		snprintf(path, sizeof(path), "maps/%s.bsp", server);
+
+	Fs_OpenFile(path, &file, FILE_READ);
+
+	if(!file){
+		Com_Print("Couldn't open %s\n", path);
+		return;
+	}
+
+	Fs_CloseFile(file);
+
+	// inform any connected clients to reconnect to us
+	Sv_ShutdownMessage("Server restarting...\n", true);
+
+#ifdef BUILD_CLIENT
+	// pump a frame through our client so that they reconnect
+	Cl_Frame(999);
+#endif
+
+	// clear the sv_server_t structure
+	Sv_ClearState();
+
+	Com_Print("Server initialization...\n");
+
+	svs.real_time = 0;  // TODO: quake2world.time?  move to Sv_Frame?
+	svs.last_heartbeat = -9999999;
+
+	// initialize the clients, loading the game progs if we need them
+	Sv_InitClients();
+
+	// load the map or demo and related media
+	Sv_LoadMedia(server, state);
+
 	sv.state = state;
 	Com_SetServerState(sv.state);
 
-	// prepare the socket
-	Net_Config(NS_SERVER, true);
+	Sb_Init(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
 	Com_Print("Server initialized.\n");
 }
 
 
 /*
- * Sv_Map
+ * Sv_ShutdownServer
  *
- * Entry point for spawning a server on a .bsp or .dem.
+ * Called with the game is shutting down.
  */
-void Sv_Map(const char *level){
-	sv_state_t state;
-	qboolean exists;
-	int i;
+void Sv_ShutdownServer(const char *msg){
 
-	i = strlen(level);
-	state = i > 4 && !strcasecmp(level + i - 4, ".dem") ? ss_demo : ss_game;
+	Com_Debug("Sv_ShutdownServer: %s\n", msg);
 
-	if(state == ss_demo)  // ensure demo or map exists
-		exists = Sv_CheckDemo(level);
-	else
-		exists = Sv_CheckMap(level);
+	Sv_ShutdownMessage(msg, false);
 
-	if(!exists)  // demo or map file didn't exist
-		return;
+	Sv_ShutdownGameProgs();
 
-	Cbuf_CopyToDefer();
-	Sv_SpawnServer(level, state);
+	Sv_ClearState();
 }

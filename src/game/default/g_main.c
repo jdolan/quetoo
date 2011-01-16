@@ -1248,12 +1248,15 @@ void G_Shutdown(void){
 
 
 /*
- * LoadGame
+ * G_LoadGame
  *
- * Copies in the game import structure and returns a pointer to the populated
- * game export structure.
+ * This is the entry point responsible for aligning the server and game module.
+ * The server resolves this symbol upon successfully loading the game library,
+ * and invokes it.  We're responsible for copying the import structure so that
+ * we can call back into the server, and returning a populated game export
+ * structure.
  */
-g_export_t *LoadGame(g_import_t *import){
+g_export_t *G_LoadGame(g_import_t *import){
 
 	gi = *import;
 
@@ -1277,20 +1280,4 @@ g_export_t *LoadGame(g_import_t *import){
 	ge.edict_size = sizeof(edict_t);
 
 	return &ge;
-}
-
-/*
- * Com_Printf
- *
- * Redefined here so functions in shared.c can link.
- */
-void Com_Print(const char *msg, ...){
-	va_list	args;
-	char text[1024];
-
-	va_start(args, msg);
-	vsprintf(text, msg, args);
-	va_end(args);
-
-	gi.BroadcastPrint(PRINT_HIGH, "%s", text);
 }

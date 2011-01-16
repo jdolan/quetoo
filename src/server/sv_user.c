@@ -21,35 +21,6 @@
 
 #include "server.h"
 
-edict_t *sv_player;
-
-/*
- *
- * USER STRINGCMD EXECUTION
- *
- * sv_client and sv_player will be valid.
- */
-
-
-/*
- * Sv_BeginDemoServer
- *
- * Begin a demo server.  It is expected that the demo protocol has already
- * been resolved by Sv_CheckDemo.  Therefore we simply open it.
- */
-static void Sv_BeginDemoServer(void){
-	char demo[MAX_OSPATH];
-
-	Com_Debug("Sv_BeginDemoServer\n");
-
-	snprintf(demo, sizeof(demo), "demos/%s", sv.name);
-	Fs_OpenFile(demo, &sv.demo_file, FILE_READ);
-
-	if(!sv.demo_file)  // file was deleted during spawnserver
-		Com_Error(ERR_DROP, "Sv_BeginDemoServer: %s no longer exists.\n", demo);
-}
-
-
 /*
  * Sv_New_f
  *
@@ -59,18 +30,16 @@ static void Sv_BeginDemoServer(void){
 static void Sv_New_f(void){
 	char *gamedir;
 	int player_num;
-	edict_t *ent;
 
-	Com_Debug("New() from %s\n", sv_client->name);
+	Com_Debug("New() from %s\n", Sv_NetaddrToString(sv_client));
 
 	if(sv_client->state != cs_connected){
-		Com_Print("New not valid -- already spawned\n");
+		Com_Warn("Sv_New_f: %s already spawned\n", Sv_NetaddrToString(sv_client));
 		return;
 	}
 
-	// demo servers just dump the file message
+	// demo servers will send the demo file's server info packet
 	if(sv.state == ss_demo){
-		Sv_BeginDemoServer();
 		return;
 	}
 
@@ -88,14 +57,8 @@ static void Sv_New_f(void){
 	player_num = sv_client - svs.clients;
 	Msg_WriteShort(&sv_client->netchan.message, player_num);
 
-	// send full levelname
+	// send full level name
 	Msg_WriteString(&sv_client->netchan.message, sv.config_strings[CS_NAME]);
-
-	// set up the entity for the client
-	ent = EDICT_FOR_NUM(player_num + 1);
-	ent->s.number = player_num + 1;
-	sv_client->edict = ent;
-	memset(&sv_client->last_cmd, 0, sizeof(sv_client->last_cmd));
 
 	// begin fetching config_strings
 	Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
@@ -109,24 +72,27 @@ static void Sv_New_f(void){
 static void Sv_ConfigStrings_f(void){
 	int start;
 
-	Com_Debug("ConfigStrings() from %s\n", sv_client->name);
+	Com_Debug("ConfigStrings() from %s\n", Sv_NetaddrToString(sv_client));
 
 	if(sv_client->state != cs_connected){
-		Com_Print("ConfigStrings not valid -- already spawned\n");
+		Com_Warn("Sv_ConfigStrings_f: %s already spawned\n",
+				Sv_NetaddrToString(sv_client));
 		return;
 	}
 
 	// handle the case of a level changing while a client was connecting
 	if(atoi(Cmd_Argv(1)) != svs.spawn_count){
-		Com_Print("Sv_ConfigStrings_f from different level\n");
+		Com_Debug("Sv_ConfigStrings_f: Stale spawn count from %s\n",
+				Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
 
 	start = atoi(Cmd_Argv(2));
 
-	if(start < 0){  // catch negative offset
-		Com_Print("Illegal config_string offset from %s\n", Sv_NetaddrToString(sv_client));
+	if(start < 0 || start >= MAX_CONFIG_STRINGS){  // catch bad offsets
+		Com_Warn("Sv_ConfigStrings_f: Bad config_string offset from %s\n",
+				Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -160,16 +126,17 @@ static void Sv_Baselines_f(void){
 	entity_state_t nullstate;
 	entity_state_t *base;
 
-	Com_Debug("Baselines() from %s\n", sv_client->name);
+	Com_Debug("Baselines() from %s\n", Sv_NetaddrToString(sv_client));
 
 	if(sv_client->state != cs_connected){
-		Com_Print("baselines not valid -- already spawned\n");
+		Com_Warn("Sv_Baselines_f: %s already spawned\n", Sv_NetaddrToString(sv_client));
 		return;
 	}
 
 	// handle the case of a level changing while a client was connecting
 	if(atoi(Cmd_Argv(1)) != svs.spawn_count){
-		Com_Print("Sv_Baselines_f from different level\n");
+		Com_Debug("Sv_Baselines_f: Stale spawn count from %s\n",
+				Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
@@ -177,7 +144,8 @@ static void Sv_Baselines_f(void){
 	start = atoi(Cmd_Argv(2));
 
 	if(start < 0){  // catch negative offset
-		Com_Print("Illegal baseline offset from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Warn("Sv_Baselines_f: Illegal offset from %s\n",
+				Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -210,10 +178,11 @@ static void Sv_Baselines_f(void){
  * Sv_Begin_f
  */
 static void Sv_Begin_f(void){
-	Com_Debug("Begin() from %s\n", sv_client->name);
+
+	Com_Debug("Begin() from %s\n", Sv_NetaddrToString(sv_client));
 
 	if(sv_client->state != cs_connected){  // catch duplicate spawns
-		Com_Print("Illegal begin from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Warn("Sv_Begin_f: Invalid Begin() from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -223,7 +192,7 @@ static void Sv_Begin_f(void){
 
 	// handle the case of a level changing while a client was connecting
 	if(atoi(Cmd_Argv(1)) != svs.spawn_count){
-		Com_Print("Sv_Begin_f from different level\n");
+		Com_Debug("Sv_Begin_f: Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
@@ -248,8 +217,9 @@ static void Sv_NextDownload_f(void){
 		return;
 
 	r = sv_client->download_size - sv_client->download_count;
-	if(r > 1280)  // stock quake2 sends 1024 byte chunks
-		r = 1280;  // but i see no harm in sending another 256 bytes
+
+	if(r > 1024)  // cap the download chunk at 1024 bytes
+		r = 1024;
 
 	Sb_Init(&msg, buf, MAX_MSGLEN);
 
@@ -277,8 +247,7 @@ static void Sv_NextDownload_f(void){
 
 // only these prefixes are valid downloads, all else are denied
 static const char *downloadable[] = {
-	"*.pak", "maps/*.bsp", "sounds/*", "env/*.tga",
-	"textures/*.wal", "textures/*.tga", NULL
+	"*.pak", "maps/*", "sounds/*", "env/*", "textures/*", NULL
 };
 
 /*
@@ -296,7 +265,9 @@ static void Sv_Download_f(void){
 
 	// catch illegal offset or file_names
 	if(offset < 0 || *name == '.' || *name == '/' || *name == '\\' || strstr(name, "..")){
-		Com_Print("Malicious download from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Warn("Sv_Download_f: Malicious download (%s:%d) from %s\n",
+				name, offset, Sv_NetaddrToString(sv_client)
+		);
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -307,8 +278,10 @@ static void Sv_Download_f(void){
 		i++;
 	}
 
-	if(!downloadable[i]){  // it wasnt
-		Com_Print("Illegal download (%s) from %s\n", name, Sv_NetaddrToString(sv_client));
+	if(!downloadable[i]){  // it wasn't
+		Com_Warn("Sv_Download_f: Illegal download (%s) from %s\n",
+				name, Sv_NetaddrToString(sv_client)
+		);
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -330,8 +303,10 @@ static void Sv_Download_f(void){
 	if(offset > sv_client->download_size)
 		sv_client->download_count = sv_client->download_size;
 
-	if(!sv_client->download){  // legal file_name, but missing file
-		Com_Debug("Couldn't download %s to %s\n", name, sv_client->name);
+	if(!sv_client->download){  // legal file name, but missing file
+		Com_Warn("Sv_Download_f: Couldn't download %s to %s\n",
+				name, Sv_NetaddrToString(sv_client)
+		);
 		Msg_WriteByte(&sv_client->netchan.message, svc_download);
 		Msg_WriteShort(&sv_client->netchan.message, -1);
 		Msg_WriteByte(&sv_client->netchan.message, 0);
@@ -362,7 +337,7 @@ static void Sv_Info_f(void){
 	const cvar_t *cvar;
 	char line[MAX_STRING_CHARS];
 
-	if(!sv_client){  //print to server console
+	if(!sv_client){  // print to server console
 		Com_PrintInfo(Cvar_ServerInfo());
 		return;
 	}
@@ -378,12 +353,12 @@ static void Sv_Info_f(void){
 }
 
 
-typedef struct {
+typedef struct sv_user_string_cmd_s {
 	char *name;
 	void (*func)(void);
-} ucmd_t;
+} sv_user_string_cmd_t;
 
-ucmd_t ucmds[] = {
+sv_user_string_cmd_t sv_user_string_cmds[] = {
 	{"new", Sv_New_f},
 	{"config_strings", Sv_ConfigStrings_f},
 	{"baselines", Sv_Baselines_f},
@@ -396,57 +371,62 @@ ucmd_t ucmds[] = {
 };
 
 /*
- * Sv_ExecuteUserCommand
+ * Sv_ExecuteUserStringCommand
  */
-static void Sv_ExecuteUserCommand(const char *s){
-	ucmd_t *u;
+static void Sv_ExecuteUserStringCommand(const char *s){
+	sv_user_string_cmd_t *c;
 
 	Cmd_TokenizeString(s);
 
 	if(strchr(s, '\xFF')){  // catch end of message exploit
-		Com_Print("Illegal command contained xFF from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Warn("Sv_ExecuteUserCommand: Illegal command from %s\n",
+				Sv_NetaddrToString(sv_client)
+		);
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
 
-	sv_player = sv_client->edict;
+	for(c = sv_user_string_cmds; c->name; c++){
 
-	for(u = ucmds; u->name; u++)
-		if(!strcmp(Cmd_Argv(0), u->name)){
-			u->func();
+		if(!strcmp(Cmd_Argv(0), c->name)){
+			c->func();
 			break;
 		}
+	}
 
-	if(!u->name && sv.state == ss_game)
-		svs.game->ClientCommand(sv_player);
+	if(!c->name){  // unmatched command
+
+		Com_Warn("Sv_ExecuteUserStringCommand: Unknown command %s from %s\n",
+				Cmd_Argv(0), Sv_NetaddrToString(sv_client));
+
+		if(sv.state == ss_game)  // maybe the game knows what to do with it
+			svs.game->ClientCommand(sv_player);
+	}
 }
-
-/*
- *
- * USER CMD EXECUTION
- *
- */
 
 
 /*
  * Sv_ClientThink
  *
- * Account for command timeslice and pass command to game dll.
+ * Account for command time and pass the command to game module.
  */
 static void Sv_ClientThink(sv_client_t *cl, user_cmd_t *cmd){
+
 	cl->cmd_msec -= cmd->msec;
+
 	svs.game->ClientThink(cl->edict, cmd);
 }
 
 
 #define MAX_STRINGCMDS 8
+
 /*
- * Sv_ExecuteClientMessage
+ * Sv_ParseClientMessage
  *
- * The current net_message is parsed for the given client
+ * The current net_message is parsed for the given client.
  */
-void Sv_ExecuteClientMessage(sv_client_t *cl){
-	user_cmd_t null_cmd, oldest, old_cmd, newcmd;
+void Sv_ParseClientMessage(sv_client_t *cl){
+	user_cmd_t null_cmd, oldest_cmd, old_cmd, new_cmd;
 	int net_drop;
 	int stringCmdCount;
 	qboolean move_issued;
@@ -464,7 +444,9 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 	while(true){
 
 		if(net_message.read > net_message.size){
-			Com_Print("Sv_ReadClientMessage: badread\n");
+			Com_Warn("Sv_ParseClientMessage: Bad read from %s\n",
+					Sv_NetaddrToString(sv_client)
+			);
 			Sv_DropClient(cl);
 			return;
 		}
@@ -498,19 +480,20 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 				}
 
 				memset(&null_cmd, 0, sizeof(null_cmd));
-				Msg_ReadDeltaUsercmd(&net_message, &null_cmd, &oldest);
-				Msg_ReadDeltaUsercmd(&net_message, &oldest, &old_cmd);
-				Msg_ReadDeltaUsercmd(&net_message, &old_cmd, &newcmd);
+				Msg_ReadDeltaUsercmd(&net_message, &null_cmd, &oldest_cmd);
+				Msg_ReadDeltaUsercmd(&net_message, &oldest_cmd, &old_cmd);
+				Msg_ReadDeltaUsercmd(&net_message, &old_cmd, &new_cmd);
 
 				// don't start delta compression until the client is spawned
+				// TODO: should this be a little higher up?
 				if(cl->state != cs_spawned){
 					cl->last_frame = -1;
 					break;
 				}
 
-				if(null_cmd.msec > 250 || oldest.msec > 250 ||  // catch illegal msec
-						old_cmd.msec > 250 || newcmd.msec > 250){
-					Com_Warn("Illegal msec in usercmd from %s\n", Sv_NetaddrToString(cl));
+				if(null_cmd.msec > 250 || oldest_cmd.msec > 250 ||  // catch illegal msec
+						old_cmd.msec > 250 || new_cmd.msec > 250){
+					Com_Warn("Illegal msec in movement from %s\n", Sv_NetaddrToString(cl));
 					Sv_KickClient(cl, NULL);
 					return;
 				}
@@ -522,12 +505,12 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 						net_drop--;
 					}
 					if(net_drop > 1)
-						Sv_ClientThink(cl, &oldest);
+						Sv_ClientThink(cl, &oldest_cmd);
 					if(net_drop > 0)
 						Sv_ClientThink(cl, &old_cmd);
 				}
-				Sv_ClientThink(cl, &newcmd);
-				cl->last_cmd = newcmd;
+				Sv_ClientThink(cl, &new_cmd);
+				cl->last_cmd = new_cmd;
 				break;
 
 			case clc_string_cmd:
@@ -535,14 +518,14 @@ void Sv_ExecuteClientMessage(sv_client_t *cl){
 
 				// malicious users may try using too many string commands
 				if(++stringCmdCount < MAX_STRINGCMDS)
-					Sv_ExecuteUserCommand(s);
+					Sv_ExecuteUserStringCommand(s);
 
 				if(cl->state == cs_free)
 					return;  // disconnect command
 				break;
 
 			default:
-				Com_Print("Sv_ReadClientMessage: unknown command %d\n", c);
+				Com_Print("Sv_ParseClientMessage: unknown command %d\n", c);
 				Sv_DropClient(cl);
 				return;
 		}

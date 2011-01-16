@@ -243,8 +243,8 @@ static void Sv_Sound(edict_t *ent, int soundindex, int atten){
 /*
  * Sv_ShutdownGameProgs
  *
- * Called when either the entire server is being killed, or
- * it is changing to a different game directory.
+ * Called when either the entire server is being killed, or it is changing to a
+ * different game directory.
  */
 void Sv_ShutdownGameProgs(void){
 
@@ -261,7 +261,14 @@ void Sv_ShutdownGameProgs(void){
 /*
  * Sv_InitGameProgs
  *
- * Init the game subsystem for a new map
+ * Initializes the game module by exposing a subset of server functionality
+ * through function pointers.  In return, the game module allocates memory for
+ * entities and returns a few pointers of its own.
+ *
+ * Note that the terminology here is worded from the game module's perspective;
+ * that is, "import" is what we give to the game, and "export" is what the game
+ * returns to us.  This distinction seems a bit backwards, but it was likely
+ * deemed less confusing to "mod" authors back in the day.
  */
 void Sv_InitGameProgs(void){
 	g_import_t import;

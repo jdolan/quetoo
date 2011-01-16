@@ -1060,8 +1060,6 @@ static void R_LoadBspLights(void){
 		if(*c == '}'){
 			entity = false;
 
-			Com_Debug("Closed entity %s\n", class_name);
-
 			if(light){  // add it
 
 				if(radius <= 0.0)  // clamp it

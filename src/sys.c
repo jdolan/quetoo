@@ -198,32 +198,34 @@ void Sys_OpenLibrary(const char *name, void **handle){
 }
 
 
-typedef g_export_t *loadgame_t(g_import_t *);
-static void *game_handle;
+static void *game_lib;
 
 /*
  * Sys_LoadGame
  *
- * Attempts to open and load the game module.
+ * Attempts to open and load the game module.  This is accomplished by
+ * resolving a single symbol (G_LoadGame) from the game module.  This function
+ * is then invoked to setup the rest of the server -> game interaction.
  */
 void *Sys_LoadGame(void *params){
-	loadgame_t *LoadGame;
+	typedef g_export_t *g_loadgame_t(g_import_t *);
+	g_loadgame_t *G_LoadGame;
 
-	if(game_handle){
+	if(game_lib){
 		Com_Warn("Sys_LoadGame: game already loaded, unloading...\n");
 		Sys_UnloadGame();
 	}
 
-	Sys_OpenLibrary("game", &game_handle);
+	Sys_OpenLibrary("game", &game_lib);
 
-	LoadGame = (loadgame_t *)dlsym(game_handle, "LoadGame");
+	G_LoadGame = (g_loadgame_t *)dlsym(game_lib, "G_LoadGame");
 
-	if(!LoadGame){
-		Sys_CloseLibrary(&game_handle);
+	if(!G_LoadGame){
+		Sys_CloseLibrary(&game_lib);
 		return NULL;
 	}
 
-	return LoadGame(params);
+	return G_LoadGame(params);
 }
 
 
@@ -231,7 +233,7 @@ void *Sys_LoadGame(void *params){
  * Sys_UnloadGame
  */
 void Sys_UnloadGame(void){
-	Sys_CloseLibrary(&game_handle);
+	Sys_CloseLibrary(&game_lib);
 }
 
 

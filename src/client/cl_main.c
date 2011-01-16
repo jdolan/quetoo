@@ -487,7 +487,7 @@ static void Cl_CheckForResend(void){
  * Cl_Connect_f
  */
 static void Cl_Connect_f(void){
-	extern void Sv_Shutdown(const char *msg);
+	extern void Sv_ShutdownServer(const char *msg);
 	const char *s;
 
 	if(Cmd_Argc() != 2){
@@ -496,7 +496,7 @@ static void Cl_Connect_f(void){
 	}
 
 	if(Com_ServerState())  // if running a local server, kill it
-		Sv_Shutdown("Server quit.\n");
+		Sv_ShutdownServer("Server quit.\n");
 
 	s = Cmd_Argv(1);
 

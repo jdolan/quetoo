@@ -100,8 +100,6 @@ void Cl_LoadEmits(void){
 		if(*c == '}'){
 			entity = false;
 
-			Com_Debug("Closed entity %s\n", class);
-
 			if(emit){
 
 				// resolve the leaf so that the entity may be added only when in PVS
