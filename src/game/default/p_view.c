@@ -41,10 +41,10 @@ static void P_DamageFeedback(edict_t *player){
 		return;  // didn't take any damage
 
 	// start a pain animation if still in the player model
-	if(client->anim_priority < ANIM_PAIN && player->s.model_index == 255){
+	if(client->anim < ANIM_PAIN && player->s.model_index == 255){
 		static int i;
 
-		client->anim_priority = ANIM_PAIN;
+		client->anim = ANIM_PAIN;
 		if(client->ps.pmove.pm_flags & PMF_DUCKED){
 			player->s.frame = FRAME_crpain1 - 1;
 			client->anim_end = FRAME_crpain4;
@@ -238,72 +238,70 @@ static void P_WorldEffects(void){
  */
 static void P_RunClientAnimation(edict_t *ent){
 	g_client_t *client;
-	qboolean duck, run;
+	qboolean ducked, running;
 
 	if(ent->s.model_index != 255)
 		return;  // not in the player model
 
 	client = ent->client;
 
-	// use a small epsilon for low server_frame rates
-	if(client->anim_time > g_level.time + 0.001)
+	// use small epsilon for low server_frame rates
+	if(client->anim_time > g_level.time)
 		return;
 
 	client->anim_time = g_level.time + 0.10; // 10hz animations
 
-	if(client->ps.pmove.pm_flags & PMF_DUCKED)
-		duck = true;
-	else
-		duck = false;
+	// if we've been explicitly asked to jump to a frame, do it
+	if(ent->client->anim_next){
+		ent->s.frame = ent->client->anim_next;
+		ent->client->anim_next = 0;
+		return;
+	}
 
-	if(ent->velocity[0] || ent->velocity[1])
-		run = true;
-	else
-		run = false;
+	ducked = client->ps.pmove.pm_flags & PMF_DUCKED;
+	running = ent->velocity[0] || ent->velocity[1];
 
 	// check for stand/duck and stop/go transitions
-	if(duck != client->anim_duck && client->anim_priority < ANIM_DEATH)
-		goto newanim;
-	if(run != client->anim_run && client->anim_priority == ANIM_BASIC)
-		goto newanim;
-	if(!ent->ground_entity && client->anim_priority <= ANIM_WAVE)
-		goto newanim;
+	if(ducked != client->anim_duck)
+		goto new_anim;
 
-	if(client->anim_priority == ANIM_REVERSE){
-		if(ent->s.frame > client->anim_end){
-			ent->s.frame--;
-			return;
-		}
-	} else if(ent->s.frame < client->anim_end){  // continue an animation
+	if(running != client->anim_run && client->anim == ANIM_BASIC)
+		goto new_anim;
+
+	if(!ent->ground_entity && client->anim < ANIM_JUMP)
+		goto new_anim;
+
+	// finish running the current animation
+	if(ent->s.frame < client->anim_end){
 		ent->s.frame++;
 		return;
 	}
 
-	if(client->anim_priority == ANIM_DEATH)
-		return;  // stay there
+	// finish a jump animation if we're on the ground
+	if(client->anim == ANIM_JUMP){
 
-	if(client->anim_priority == ANIM_JUMP){
 		if(!ent->ground_entity)
-			return;  // stay there
-		ent->client->anim_priority = ANIM_WAVE;
+			return;
+
+		ent->client->anim = ANIM_WAVE;
 		ent->s.frame = FRAME_jump3;
 		ent->client->anim_end = FRAME_jump6;
 		return;
 	}
 
-newanim:
+new_anim:
 	// return to either a running or standing frame
-	client->anim_priority = ANIM_BASIC;
-	client->anim_duck = duck;
-	client->anim_run = run;
+	client->anim = ANIM_BASIC;
+	client->anim_duck = ducked;
+	client->anim_run = running;
 
 	if(!ent->ground_entity){
-		client->anim_priority = ANIM_JUMP;
+		client->anim = ANIM_JUMP;
 		if(ent->s.frame != FRAME_jump2)
 			ent->s.frame = FRAME_jump1;
 		client->anim_end = FRAME_jump2;
-	} else if(run){  // running
-		if(duck){
+	} else if(running){  // running
+		if(ducked){
 			ent->s.frame = FRAME_crwalk1;
 			client->anim_end = FRAME_crwalk6;
 		} else {
@@ -311,7 +309,7 @@ newanim:
 			client->anim_end = FRAME_run6;
 		}
 	} else {  // standing
-		if(duck){
+		if(ducked){
 			ent->s.frame = FRAME_crstnd01;
 			client->anim_end = FRAME_crstnd19;
 		} else {

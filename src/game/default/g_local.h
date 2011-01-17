@@ -623,13 +623,13 @@ void G_target_splash(edict_t *ent);
 void G_target_string(edict_t *ent);
 
 // client_t->anim_priority
-#define ANIM_BASIC		0  // stand / run
-#define ANIM_WAVE		1
-#define ANIM_JUMP		2
-#define ANIM_PAIN		3
-#define ANIM_ATTACK		4
-#define ANIM_DEATH		5
-#define ANIM_REVERSE	6
+typedef enum {
+	ANIM_BASIC,
+	ANIM_WAVE,
+	ANIM_JUMP,
+	ANIM_PAIN,
+	ANIM_ATTACK
+} g_client_anim_t;
 
 #define MAX_NET_NAME 64
 
@@ -717,8 +717,9 @@ struct g_client_s {
 	float footstep_time;
 
 	// animation vars
+	g_client_anim_t anim;
 	int anim_end;
-	int anim_priority;
+	int anim_next;
 	qboolean anim_duck;
 	qboolean anim_run;
 	float anim_time;

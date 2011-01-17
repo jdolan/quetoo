@@ -462,23 +462,31 @@ static const float kick_ramp[] = {
  */
 static float Cl_WeaponKick(r_entity_t *self){
 	float k1, k2;
-	int base_frame;
+	int start_frame, end_frame, old_frame;
 
-	base_frame = 0;
+	start_frame = end_frame = old_frame = 0;
 
 	if(self->frame >= FRAME_attack1 && self->frame <= FRAME_attack8){
-		base_frame = FRAME_attack1;
+		start_frame = FRAME_attack1;
+		end_frame = FRAME_attack8;
 	}
 	else if(self->frame >= FRAME_crattak1 && self->frame <= FRAME_crattak8){
-		base_frame = FRAME_crattak1;
+		start_frame = FRAME_crattak1;
+		end_frame = FRAME_crattak8;
 	}
 
-	if(!base_frame){  // we're not firing
+	if(!start_frame){  // we're not firing
 		return 0.0;
 	}
 
-	k1 = kick_ramp[self->frame - base_frame];
-	k2 = kick_ramp[self->old_frame - base_frame];
+	old_frame = self->old_frame;
+
+	if(old_frame < start_frame || old_frame > end_frame){
+		old_frame = start_frame;
+	}
+
+	k1 = kick_ramp[self->frame - start_frame];
+	k2 = kick_ramp[old_frame - start_frame];
 
 	return k1 * self->lerp + k2 * self->back_lerp;
 }

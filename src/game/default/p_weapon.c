@@ -94,7 +94,7 @@ void P_ChangeWeapon(edict_t *ent){
 		return;
 
 	// set animation
-	ent->client->anim_priority = ANIM_PAIN;
+	ent->client->anim = ANIM_PAIN;
 	if(ent->client->ps.pmove.pm_flags & PMF_DUCKED){
 		ent->s.frame = FRAME_crpain1;
 		ent->client->anim_end = FRAME_crpain4;
@@ -228,6 +228,7 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 	n = ent->client->locals.inventory[ent->client->ammo_index];
 	m = ent->client->locals.weapon->quantity;
 
+	// they are out of ammo
 	if(ent->client->ammo_index && n < m){
 		NoAmmoWeaponChange(ent);
 		return;
@@ -236,9 +237,9 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 	ducked = ent->client->ps.pmove.pm_flags & PMF_DUCKED;
 
 	// they've pressed their fire button, and have ammo, so fire
-	if(ent->client->anim_priority != ANIM_ATTACK){
+	if(ent->client->anim != ANIM_ATTACK){
 
-		ent->client->anim_priority = ANIM_ATTACK;
+		ent->client->anim = ANIM_ATTACK;
 
 		if(ducked){
 			ent->s.frame = FRAME_crattak1;
@@ -248,20 +249,16 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 			ent->client->anim_end = FRAME_attack8;
 		}
 	}
-
-	// for rapid fire weapons, stay at top of attack anim
-	if(interval < 0.5){
-		if(ducked && ent->s.frame > FRAME_crattak4){
-			if(ent->s.frame == FRAME_crattak4)
-				ent->s.frame = FRAME_crattak5;
-			else
-				ent->s.frame = FRAME_crattak4;
+	else {  // for rapid fire weapons, stay at peak of attack sequence
+		if(ducked){
+			ent->client->anim_next = FRAME_crattak2;
+		} else {
+			ent->client->anim_next = FRAME_attack2;
 		}
-		if(!ducked && ent->s.frame > FRAME_attack4){
-			if(ent->s.frame == FRAME_attack4)
-				ent->s.frame = FRAME_attack5;
-			else
-				ent->s.frame = FRAME_attack4;
+
+		// randomize it a little bit so that the gun bobs
+		if(rand() & 1){
+			ent->client->anim_next++;
 		}
 	}
 

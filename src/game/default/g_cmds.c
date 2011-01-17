@@ -391,10 +391,10 @@ static void G_Wave_f(edict_t *ent){
 	if(ent->client->ps.pmove.pm_flags & PMF_DUCKED)
 		return;
 
-	if(ent->client->anim_priority > ANIM_WAVE)
+	if(ent->client->anim > ANIM_WAVE)
 		return;
 
-	ent->client->anim_priority = ANIM_WAVE;
+	ent->client->anim = ANIM_WAVE;
 
 	switch(i){
 		case 0:
