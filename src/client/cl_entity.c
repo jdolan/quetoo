@@ -443,10 +443,51 @@ void Cl_ParseFrame(void){
 }
 
 
+// we borrow a few animation frame defines for view weapon kick
+#define FRAME_attack1		 	46
+#define FRAME_attack8		 	53
+#define FRAME_crattak1			160
+#define FRAME_crattak8			167
+
+static const float kick_ramp[] = {
+	3.0, 10.0, 8.0, 6.5, 4.0, 3.0, 1.5, 0.0
+};
+
+
+/*
+ * Cl_WeaponKick
+ *
+ * Calculates a pitch offset for the view weapon based on our player's
+ * animation state.
+ */
+static float Cl_WeaponKick(r_entity_t *self){
+	float k1, k2;
+	int base_frame;
+
+	base_frame = 0;
+
+	if(self->frame >= FRAME_attack1 && self->frame <= FRAME_attack8){
+		base_frame = FRAME_attack1;
+	}
+	else if(self->frame >= FRAME_crattak1 && self->frame <= FRAME_crattak8){
+		base_frame = FRAME_crattak1;
+	}
+
+	if(!base_frame){  // we're not firing
+		return 0.0;
+	}
+
+	k1 = kick_ramp[self->frame - base_frame];
+	k2 = kick_ramp[self->old_frame - base_frame];
+
+	return k1 * self->lerp + k2 * self->back_lerp;
+}
+
+
 /*
  * Cl_AddWeapon
  */
-static void Cl_AddWeapon(const vec3_t shell){
+static void Cl_AddWeapon(r_entity_t *self){
 	static r_entity_t ent;
 	static r_lighting_t lighting;
 	int w;
@@ -480,7 +521,9 @@ static void Cl_AddWeapon(const vec3_t shell){
 	VectorCopy(r_view.origin, ent.origin);
 	VectorCopy(r_view.angles, ent.angles);
 
-	VectorCopy(shell, ent.shell);
+	ent.angles[PITCH] -= Cl_WeaponKick(self);
+
+	VectorCopy(self->shell, ent.shell);
 
 	ent.model = cl.model_draw[w];
 
@@ -530,10 +573,9 @@ static const vec3_t bfg_light = {
  * cl_addentities bitmask.
  */
 void Cl_AddEntities(cl_frame_t *frame){
-	r_entity_t ent;
+	r_entity_t ent, self;
 	vec3_t start, end;
-	vec3_t wshell;
-	int pnum, mask;
+	int i, mask;
 
 	if(!cl_addentities->value)
 		return;
@@ -541,12 +583,13 @@ void Cl_AddEntities(cl_frame_t *frame){
 	VectorClear(start);
 	VectorClear(end);
 
-	VectorClear(wshell);
+	memset(&ent, 0, sizeof(ent));
+	memset(&self, 0, sizeof(self));
 
 	// resolve any models, animations, lerps, rotations, bobbing, etc..
-	for(pnum = 0; pnum < frame->num_entities; pnum++){
+	for(i = 0; i < frame->num_entities; i++){
 
-		entity_state_t *state = &cl.entity_states[(frame->entity_state + pnum) & ENTITY_STATE_MASK];
+		entity_state_t *state = &cl.entity_states[(frame->entity_state + i) & ENTITY_STATE_MASK];
 
 		cl_entity_t *cent = &cl.entities[state->number];
 
@@ -690,8 +733,8 @@ void Cl_AddEntities(cl_frame_t *frame){
 		// don't draw ourselves unless third person is set
 		if(state->number == cl.player_num + 1){
 
-			// retain our shell effect for view model
-			VectorCopy(ent.shell, wshell);
+			// retain a reference to ourselves for the weapon model
+			self = ent;
 
 			if(!cl_thirdperson->value)
 				continue;
@@ -776,5 +819,5 @@ void Cl_AddEntities(cl_frame_t *frame){
 	}
 
 	// lastly, add the view weapon
-	Cl_AddWeapon(wshell);
+	Cl_AddWeapon(&self);
 }
