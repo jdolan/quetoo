@@ -589,7 +589,7 @@ static void G_LightningThink(edict_t *self){
 		return;
 	}
 
-	// re-calculate endpoints based on owner's movement
+	// re-calculate end points based on owner's movement
 	AngleVectors(self->owner->client->angles, forward, right, NULL);
 	VectorSet(offset, 30.0, 6.0, self->owner->view_height - 10.0);
 	G_ProjectSource(self->owner->s.origin, offset, forward, right, start);
@@ -627,7 +627,7 @@ static void G_LightningThink(edict_t *self){
 		}
 	}
 
-	if(self->timestamp <= g_level.time){  // shoot
+	if(self->dmg){  // shoot, removing our damage until it is renewed
 		if(tr.ent->takedamage){  // try to damage what we hit
 			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal,
 					self->dmg, self->knockback, DAMAGE_ENERGY, MOD_LIGHTNING);
@@ -636,8 +636,7 @@ static void G_LightningThink(edict_t *self){
 			if((tr.contents & CONTENTS_SOLID) && G_IsStructural(tr.ent, tr.surface))
 				G_BurnMark(tr.end, &tr.plane, tr.surface, 8);
 		}
-
-		self->timestamp = g_level.time + 0.1;
+		self->dmg = 0;
 	}
 
 	VectorCopy(start, self->s.origin);  // update endpoints
@@ -661,7 +660,6 @@ void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int
 		light->move_type = MOVE_TYPE_THINK;
 		light->owner = self;
 		light->think = G_LightningThink;
-		light->dmg = damage;
 		light->knockback = knockback;
 		light->s.skin_num = self - g_game.edicts;  // player number, for client prediction fix
 		light->s.effects = EF_BEAM | EF_LIGHTNING;
@@ -673,6 +671,7 @@ void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int
 	}
 
 	// set the damage and think time
+	light->dmg = damage;
 	light->timestamp = light->next_think = g_level.time;
 }
 
