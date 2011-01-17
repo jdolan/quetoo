@@ -70,7 +70,7 @@ static void R_LoadMeshSkin(r_model_t *mod){
 /*
  * R_LoadMeshConfig
  */
-static void R_LoadMeshConfig(mesh_config_t *config, const char *path){
+static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path){
 	const char *buffer, *c;
 	void *buf;
 
@@ -120,8 +120,8 @@ static void R_LoadMeshConfigs(r_model_t *mod){
 	char path[MAX_QPATH];
 	int i;
 
-	mod->world_config = (mesh_config_t *)R_HunkAlloc(sizeof(mesh_config_t));
-	mod->view_config = (mesh_config_t *)R_HunkAlloc(sizeof(mesh_config_t));
+	mod->world_config = (r_mesh_config_t *)R_HunkAlloc(sizeof(r_mesh_config_t));
+	mod->view_config = (r_mesh_config_t *)R_HunkAlloc(sizeof(r_mesh_config_t));
 
 	VectorSet(mod->world_config->scale, 1.0, 1.0, 1.0);
 	VectorSet(mod->view_config->scale, 1.0, 1.0, 1.0);
@@ -138,7 +138,7 @@ static void R_LoadMeshConfigs(r_model_t *mod){
 	R_LoadMeshConfig(mod->world_config, va("%sworld.cfg", path));
 
 	// by default, the view config inherits the world config
-	memcpy(mod->view_config, mod->world_config, sizeof(mesh_config_t));
+	memcpy(mod->view_config, mod->world_config, sizeof(r_mesh_config_t));
 
 	R_LoadMeshConfig(mod->view_config, va("%sview.cfg", path));
 }
@@ -273,6 +273,8 @@ void R_LoadMd2Model(r_model_t *mod, void *buffer){
 			outtri[i].index_st[j] = LittleShort(intri[i].index_st[j]);
 		}
 	}
+
+	ClearBounds(mod->mins, mod->maxs);
 
 	// load the frames
 	for(i = 0; i < outmodel->num_frames; i++){
@@ -428,6 +430,8 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 	inframe = (d_md3_frame_t *)((byte *)inmodel + inmodel->ofs_frames);
 	outmodel->frames = outframe = (d_md3_frame_t *)R_HunkAlloc(
 			outmodel->num_frames * sizeof(d_md3_frame_t));
+
+	ClearBounds(mod->mins, mod->maxs);
 
 	for(i = 0; i < outmodel->num_frames; i++, inframe++, outframe++){
 		for(j = 0; j < 3; j++){
@@ -834,6 +838,8 @@ void R_LoadObjModel(r_model_t *mod, void *buffer){
 	obj->tris = (r_obj_tri_t *)R_HunkAlloc(obj->num_tris * sizeof(r_obj_tri_t));
 
 	R_LoadObjModel_(mod, obj, buffer);  // load it
+
+	ClearBounds(mod->mins, mod->maxs);
 
 	v = obj->verts;
 	for(i = 0; i < obj->num_verts; i++, v+= 3){  // resolve mins/maxs
