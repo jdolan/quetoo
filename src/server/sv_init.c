@@ -180,6 +180,33 @@ static void Sv_UpdateLatchedVars(void){
 
 
 /*
+ * Sv_ShutdownClients
+ *
+ * Gracefully frees all resources allocated to svs.clients.
+ */
+static void Sv_ShutdownClients(void){
+	sv_client_t *cl;
+	int i;
+
+	if(!svs.initialized)
+		return;
+
+	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
+
+		if(cl->download){
+			Fs_FreeFile(cl->download);
+		}
+	}
+
+	Z_Free(svs.clients);
+	svs.clients = NULL;
+
+	Z_Free(svs.entity_states);
+	svs.entity_states = NULL;
+}
+
+
+/*
  * Sv_InitClients
  *
  * Reloads svs.clients, svs.client_entities, the game programs, etc.  Because
@@ -193,17 +220,12 @@ static void Sv_InitClients(void){
 
 		Sv_ShutdownGameProgs();
 
-		Sv_UpdateLatchedVars();
+		Sv_ShutdownClients();
 
-		// free server static data
-		if(svs.clients)
-			Z_Free(svs.clients);
+		Sv_UpdateLatchedVars();
 
 		// initialize the clients array
 		svs.clients = Z_Malloc(sizeof(sv_client_t) * sv_maxclients->value);
-
-		if(svs.entity_states)
-			Z_Free(svs.entity_states);
 
 		// and the entity states array
 		svs.num_entity_states = sv_maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
@@ -378,6 +400,8 @@ void Sv_ShutdownServer(const char *msg){
 	Sv_ShutdownMessage(msg, false);
 
 	Sv_ShutdownGameProgs();
+
+	Sv_ShutdownClients();
 
 	Sv_ClearState();
 

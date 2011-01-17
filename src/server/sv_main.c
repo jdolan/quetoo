@@ -989,12 +989,5 @@ void Sv_Shutdown(const char *msg){
 
 	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
 
-	// free server static data
-	if(svs.clients)
-		Z_Free(svs.clients);
-
-	if(svs.entity_states)
-		Z_Free(svs.entity_states);
-
 	memset(&svs, 0, sizeof(svs));
 }
