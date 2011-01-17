@@ -314,6 +314,8 @@ void Sv_InitServer(const char *server, sv_state_t state){
 
 	Com_Debug("Sv_InitServer: %s (%d)\n", server, state);
 
+	Cbuf_CopyToDefer();
+
 	// ensure that the requested map or demo exists
 	if(state == ss_demo)
 		snprintf(path, sizeof(path), "demos/%s.dem", server);

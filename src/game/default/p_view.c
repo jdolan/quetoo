@@ -67,7 +67,7 @@ static void P_DamageFeedback(edict_t *player){
 		}
 	}
 
-	// play an apropriate pain sound
+	// play an appropriate pain sound
 	if(g_level.time > player->pain_time){
 		player->pain_time = g_level.time + 0.7;
 		if(player->health < 25)
