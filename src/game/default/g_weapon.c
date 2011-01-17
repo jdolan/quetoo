@@ -636,6 +636,8 @@ static void G_LightningThink(edict_t *self){
 			if((tr.contents & CONTENTS_SOLID) && G_IsStructural(tr.ent, tr.surface))
 				G_BurnMark(tr.end, &tr.plane, tr.surface, 8);
 		}
+
+		self->timestamp = g_level.time + 0.1;
 	}
 
 	VectorCopy(start, self->s.origin);  // update endpoints
