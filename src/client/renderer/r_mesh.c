@@ -117,7 +117,7 @@ void R_DrawMeshShadows(void){
  * R_ApplyMeshModelConfig
  */
 void R_ApplyMeshModelConfig(r_entity_t *e){
-	const mesh_config_t *c;
+	const r_mesh_config_t *c;
 	vec3_t translate;
 	int i;
 
@@ -248,6 +248,20 @@ static void R_SetMeshState_default(const r_entity_t *e){
 		R_TransformForEntity(e, e->lighting->position, lightpos);
 
 		R_ProgramParameter3fv("LIGHTPOS", lightpos);
+#if 0
+		if(e->flags & EF_WEAPON){
+
+			r_entity_t ent;
+
+			ent.model = NULL;
+			ent.lerp = 1.0;
+			VectorSet(ent.scale, 1.0, 1.0, 1.0);
+			VectorCopy(e->lighting->position, ent.origin);
+			R_AddEntity(&ent);
+
+			Com_Debug("%3.2f %3.2f %3.2f\n", lightpos[0], lightpos[1], lightpos[2]);
+		}
+#endif
 	}
 
 	if(e->flags & EF_WEAPON)  // prevent weapon from poking into walls

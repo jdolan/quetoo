@@ -259,7 +259,7 @@ typedef struct {
 	vec3_t translate;
 	vec3_t scale;
 	int flags;  // EF_ALPHATEST, etc..
-} mesh_config_t;
+} r_mesh_config_t;
 
 typedef struct r_model_s {
 	char name[MAX_QPATH];
@@ -341,8 +341,8 @@ typedef struct r_model_s {
 	GLuint tangent_buffer;
 	GLuint color_buffer;
 
-	mesh_config_t *world_config;
-	mesh_config_t *view_config;
+	r_mesh_config_t *world_config;
+	r_mesh_config_t *view_config;
 
 	int extra_data_size;
 	void *extra_data;  // raw model data

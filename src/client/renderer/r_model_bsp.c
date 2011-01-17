@@ -202,7 +202,7 @@ static void R_LoadBspSubmodels(const d_bsp_lump_t *l){
 	r_loadmodel->num_submodels = count;
 
 	for(i = 0; i < count; i++, in++, out++){
-		for(j = 0; j < 3; j++){  // spread the mins / maxs by a pixel
+		for(j = 0; j < 3; j++){  // spread the mins / maxs by 1 unit
 			out->mins[j] = LittleFloat(in->mins[j]) - 1.0;
 			out->maxs[j] = LittleFloat(in->maxs[j]) + 1.0;
 			out->origin[j] = LittleFloat(in->origin[j]);

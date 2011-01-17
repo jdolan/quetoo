@@ -123,7 +123,11 @@ void R_RotateForEntity(const r_entity_t *e){
 	glScalef(e->scale[0], e->scale[1], e->scale[2]);
 }
 
+
 /*
+ *
+ * R_TransformForEntity
+ *
  * Transforms a point by the inverse of the world-model matrix for the
  * specified entity.
  */
