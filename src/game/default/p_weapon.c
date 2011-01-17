@@ -476,7 +476,7 @@ static void P_FireLightning_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireLightning(ent, start, forward, 16, 12);
+	G_FireLightning(ent, start, forward, 8, 12);
 
 	// if the client has just begun to attack, send the muzzle flash
 	if(ent->s.frame == FRAME_attack1 || ent->s.frame == FRAME_crattak1){
