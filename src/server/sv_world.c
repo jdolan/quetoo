@@ -186,7 +186,7 @@ void Sv_LinkEdict(edict_t *ent){
 	VectorSubtract(ent->maxs, ent->mins, ent->size);
 
 	// encode the size into the entity_state for client prediction
-	if(ent->solid == SOLID_BBOX){  // assume that x/y are equal and symetric
+	if(ent->solid == SOLID_BOX){  // assume that x/y are equal and symetric
 		i = ent->maxs[0] / 8;
 		if(i < 1)
 			i = 1;
@@ -498,13 +498,16 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace){
 		if(trace->skip){  // see if we can skip it
 
 			if(touch == trace->skip)
-				continue;  // explicitly
+				continue;  // explicitly (ourselves)
 
 			if(touch->owner == trace->skip)
-				continue;  // or via ownership
+				continue;  // or via ownership (we own it)
 
-			if(trace->skip->owner == touch)
-				continue;  // which is mutual
+			if(touch == trace->skip->owner)
+				continue;  // which is bi-directional (inverse of previous case)
+
+			if(touch->owner == trace->skip->owner)
+				continue;  // and communitive (we are both owned by the same)
 		}
 
 		// we couldn't skip it, so trace to it and see if we hit

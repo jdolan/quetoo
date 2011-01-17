@@ -57,7 +57,7 @@ static edict_t *G_TestEntityPosition(edict_t *ent){
 }
 
 
-#define MAX_VELOCITY 2000
+#define MAX_VELOCITY 2500
 
 /*
  * G_CheckVelocity
@@ -391,7 +391,7 @@ static void G_Physics_Pusher(edict_t *ent){
 	// make sure all team slaves can move before commiting
 	// any moves or calling any think functions
 	// if the move is blocked, all moved objects will be backed out
-	//retry:
+	// retry:
 	pushed_p = pushed;
 	for(part = ent; part; part = part->teamchain){
 		if(part->velocity[0] || part->velocity[1] || part->velocity[2] ||

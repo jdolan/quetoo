@@ -632,7 +632,7 @@ static void G_UseItem(edict_t *ent, edict_t *other, edict_t *activator){
 	ent->use = NULL;
 
 	if(ent->spawn_flags & SF_ITEM_NO_TOUCH){
-		ent->solid = SOLID_BBOX;
+		ent->solid = SOLID_BOX;
 		ent->touch = NULL;
 	} else {
 		ent->solid = SOLID_TRIGGER;
@@ -792,7 +792,7 @@ void G_SpawnItem(edict_t *ent, g_item_t *item){
 	}
 
 	if(ent->spawn_flags & SF_ITEM_NO_TOUCH){
-		ent->solid = SOLID_BBOX;
+		ent->solid = SOLID_BOX;
 		ent->touch = NULL;
 	}
 

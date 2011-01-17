@@ -729,7 +729,7 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->in_use = true;
 	ent->class_name = "player";
 	ent->mass = 200.0;
-	ent->solid = SOLID_BBOX;
+	ent->solid = SOLID_BOX;
 	ent->dead = false;
 	ent->jump_time = 0.0;
 	ent->gasp_time = 0.0;

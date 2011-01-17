@@ -636,7 +636,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 			R_AddCorona(ent.origin, 12.0, 0.15, hyperblaster_light);
 			R_AddLight(ent.origin, 1.25, hyperblaster_light);
 
-			Cl_EnergyTrail(cent, 10.0, 107);
+			Cl_EnergyTrail(cent, 8.0, 107);
 		}
 
 		if(state->effects & EF_LIGHTNING){
@@ -654,7 +654,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 			R_AddCorona(ent.origin, 24.0, 0.05, bfg_light);
 			R_AddLight(ent.origin, 1.5, bfg_light);
 
-			Cl_EnergyTrail(cent, 20.0, 206);
+			Cl_EnergyTrail(cent, 16.0, 206);
 		}
 
 		VectorClear(ent.shell);

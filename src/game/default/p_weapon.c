@@ -324,7 +324,7 @@ static void P_FireShotgun_(edict_t *ent){
 }
 
 void P_FireShotgun(edict_t *ent){
-	P_FireWeapon(ent, 1.0, P_FireShotgun_);
+	P_FireWeapon(ent, 0.65, P_FireShotgun_);
 }
 
 
@@ -363,7 +363,7 @@ static void P_FireSuperShotgun_(edict_t *ent){
 }
 
 void P_FireSuperShotgun(edict_t *ent){
-	P_FireWeapon(ent, 1.0, P_FireSuperShotgun_);
+	P_FireWeapon(ent, 0.85, P_FireSuperShotgun_);
 }
 
 
@@ -390,7 +390,7 @@ static void P_FireMachinegun_(edict_t *ent){
 }
 
 void P_FireMachinegun(edict_t *ent){
-	P_FireWeapon(ent, 0.05, P_FireMachinegun_);
+	P_FireWeapon(ent, 0.04, P_FireMachinegun_);
 }
 
 
@@ -405,7 +405,7 @@ static void P_FireGrenadeLauncher_(edict_t *ent){
 	AngleVectors(ent->client->angles, forward, right, NULL);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireGrenadeLauncher(ent, start, forward, 900, 90, 100, 185.0, 3.0);
+	G_FireGrenadeLauncher(ent, start, forward, 900, 100, 100, 185.0, 2.0);
 
 	gi.WriteByte(svc_muzzle_flash);
 	gi.WriteShort(ent - g_game.edicts);
@@ -414,7 +414,7 @@ static void P_FireGrenadeLauncher_(edict_t *ent){
 }
 
 void P_FireGrenadeLauncher(edict_t *ent){
-	P_FireWeapon(ent, 0.65, P_FireGrenadeLauncher_);
+	P_FireWeapon(ent, 0.6, P_FireGrenadeLauncher_);
 }
 
 
@@ -429,7 +429,7 @@ static void P_FireRocketLauncher_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireRocketLauncher(ent, start, forward, 1000, 100, 100, 165.0);
+	G_FireRocketLauncher(ent, start, forward, 1250, 120, 120, 165.0);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -439,7 +439,7 @@ static void P_FireRocketLauncher_(edict_t *ent){
 }
 
 void P_FireRocketLauncher(edict_t *ent){
-	P_FireWeapon(ent, 0.85, P_FireRocketLauncher_);
+	P_FireWeapon(ent, 0.8, P_FireRocketLauncher_);
 }
 
 
@@ -454,7 +454,7 @@ static void P_FireHyperblaster_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireHyperblaster(ent, start, forward, 2000, 22, 6);
+	G_FireHyperblaster(ent, start, forward, 2000, 12, 6);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -479,7 +479,7 @@ static void P_FireLightning_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireLightning(ent, start, forward, 12, 12);
+	G_FireLightning(ent, start, forward, 16, 16);
 
 	// if the client has just begun to attack, send the muzzle flash
 	if(ent->s.frame == FRAME_attack1 || ent->s.frame == FRAME_crattak1){
@@ -496,7 +496,7 @@ static void P_FireLightning_(edict_t *ent){
 }
 
 void P_FireLightning(edict_t *ent){
-	P_FireWeapon(ent, 0.05, P_FireLightning_);
+	P_FireWeapon(ent, 0.1, P_FireLightning_);
 }
 
 
@@ -511,7 +511,7 @@ static void P_FireRailgun_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireRailgun(ent, start, forward, 110, 80);
+	G_FireRailgun(ent, start, forward, 120, 80);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -521,7 +521,7 @@ static void P_FireRailgun_(edict_t *ent){
 }
 
 void P_FireRailgun(edict_t *ent){
-	P_FireWeapon(ent, 1.4, P_FireRailgun_);
+	P_FireWeapon(ent, 1.5, P_FireRailgun_);
 }
 
 
@@ -536,7 +536,7 @@ static void P_FireBFG_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireBFG(ent, start, forward, 500, 90, 90, 1024.0);
+	G_FireBFG(ent, start, forward, 800, 100, 100, 1024.0);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);

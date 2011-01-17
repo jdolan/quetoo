@@ -31,7 +31,7 @@
 typedef enum {
 	SOLID_NOT,   // no interaction with other objects
 	SOLID_TRIGGER,   // only touch when inside, after moving
-	SOLID_BBOX,   // touch on edge
+	SOLID_BOX,   // touch on edge
 	SOLID_MISSILE,  // touch on edge
 	SOLID_BSP  // bsp clip, touch on edge
 } solid_t;

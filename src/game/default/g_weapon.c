@@ -25,7 +25,7 @@
 /*
  * G_PlayerProjectile
  */
-static void G_PlayerProjectile(edict_t *ent, vec3_t scale){
+static void G_PlayerProjectile(edict_t *ent, const vec3_t scale){
 	vec3_t tmp;
 	int i;
 
@@ -296,8 +296,6 @@ static void G_GrenadeExplode(edict_t *ent){
 }
 
 static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
-	float vel, dot;
-	vec3_t dir;
 
 	if(other == ent->owner)
 		return;
@@ -307,31 +305,8 @@ static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 		return;
 	}
 
-	if(!other->takedamage){  // bounce or detonate, based on time
-
-		VectorCopy(ent->velocity, dir);
-
-		if((vel = VectorNormalize(dir)) < 250.0)
-			return;
-
-		dot = 0.0;
-
-		if(plane && surf){
-
-			ent->plane = *plane;
-			ent->surf = *surf;
-
-			dot = DotProduct(plane->normal, dir);
-		}
-
-		// we're live after a brief safety period for the owner
-		if(dot < -0.35 && g_level.time - ent->touch_time > 0.5){
-			ent->ground_entity = other;
-			G_GrenadeExplode(ent);
-		}
-		else
-			gi.Sound(ent, grenade_hit_index, ATTN_NORM);
-
+	if(!other->takedamage){  // bounce
+		gi.Sound(ent, grenade_hit_index, ATTN_NORM);
 		return;
 	}
 
@@ -344,9 +319,9 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	edict_t *grenade;
 	vec3_t dir;
 	vec3_t forward, right, up;
-	vec3_t mins = {-2, -2, -2};
-	vec3_t maxs = { 2,  2,  2};
-	vec3_t scale = {0.3, 0.3, 0.3};
+	const vec3_t mins = {-3.0, -3.0, -3.0};
+	const vec3_t maxs = { 3.0,  3.0,  3.0};
+	const vec3_t scale = {0.3, 0.3, 0.3};
 
 	if(G_ImmediateWall(self, aimdir))
 		VectorCopy(self->s.origin, start);
@@ -356,7 +331,10 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 
 	grenade = G_Spawn();
 	VectorCopy(start, grenade->s.origin);
+
 	VectorCopy(dir, grenade->s.angles);
+	grenade->s.angles[PITCH] += 90.0;
+
 	VectorScale(aimdir, speed, grenade->velocity);
 	VectorMA(grenade->velocity, 200.0 + crand() * 10.0, up, grenade->velocity);
 	VectorMA(grenade->velocity, crand() * 10.0, right, grenade->velocity);
@@ -435,7 +413,7 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	edict_t *rocket;
 	vec3_t dest;
 	trace_t tr;
-	vec3_t scale = {0.25, 0.25, 0.15};
+	const vec3_t scale = {0.25, 0.25, 0.15};
 
 	if(G_ImmediateWall(self, dir))
 		VectorCopy(self->s.origin, start);
@@ -522,7 +500,7 @@ static void G_HyperblasterTouch(edict_t *self, edict_t *other, cplane_t *plane, 
 void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
 		int speed, int damage, int knockback){
 	edict_t *bolt;
-	vec3_t scale = {0.5, 0.5, 0.25};
+	const vec3_t scale = {0.5, 0.5, 0.25};
 
 	if(G_ImmediateWall(self, dir))
 		VectorCopy(self->s.origin, start);
@@ -743,7 +721,7 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 			continue;
 		}
 
-		if(tr.ent->client || tr.ent->solid == SOLID_BBOX)
+		if(tr.ent->client || tr.ent->solid == SOLID_BOX)
 			ignore = tr.ent;
 		else
 			ignore = NULL;
@@ -831,8 +809,8 @@ static void G_BFGTouch(edict_t *self, edict_t *other, cplane_t *plane, csurface_
 static void G_BFGThink(edict_t *self){
 
 	// radius damage
-	G_RadiusDamage(self, self->owner, self->owner, self->dmg * 10.0 * gi.server_frame,
-			self->knockback * 10 * gi.server_frame, self->dmg_radius, MOD_BFG_LASER);
+	G_RadiusDamage(self, self->owner, self->owner, self->dmg * 25 * gi.server_frame,
+			self->knockback * 25 * gi.server_frame, self->dmg_radius, MOD_BFG_LASER);
 
 	// linear, clamped acceleration
 	if(VectorLength(self->velocity) < 1000.0)
@@ -847,7 +825,7 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 	vec3_t angles, right, up, r, u;
 	int i;
 	float s;
-	vec3_t scale = {0.15, 0.15, 0.05};
+	const vec3_t scale = {0.15, 0.15, 0.05};
 
 	if(G_ImmediateWall(self, dir))
 		VectorCopy(self->s.origin, start);
