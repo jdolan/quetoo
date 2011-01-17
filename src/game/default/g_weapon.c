@@ -809,8 +809,8 @@ static void G_BFGTouch(edict_t *self, edict_t *other, cplane_t *plane, csurface_
 static void G_BFGThink(edict_t *self){
 
 	// radius damage
-	G_RadiusDamage(self, self->owner, self->owner, self->dmg * 25 * gi.server_frame,
-			self->knockback * 25 * gi.server_frame, self->dmg_radius, MOD_BFG_LASER);
+	G_RadiusDamage(self, self->owner, self->owner, self->dmg * 10 * gi.server_frame,
+			self->knockback * 10 * gi.server_frame, self->dmg_radius, MOD_BFG_LASER);
 
 	// linear, clamped acceleration
 	if(VectorLength(self->velocity) < 1000.0)

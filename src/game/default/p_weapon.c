@@ -426,7 +426,7 @@ static void P_FireRocketLauncher_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireRocketLauncher(ent, start, forward, 1250, 120, 120, 165.0);
+	G_FireRocketLauncher(ent, start, forward, 1250, 110, 110, 125.0);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -451,7 +451,7 @@ static void P_FireHyperblaster_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireHyperblaster(ent, start, forward, 2000, 12, 6);
+	G_FireHyperblaster(ent, start, forward, 2000, 16, 6);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -476,7 +476,7 @@ static void P_FireLightning_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireLightning(ent, start, forward, 16, 16);
+	G_FireLightning(ent, start, forward, 16, 12);
 
 	// if the client has just begun to attack, send the muzzle flash
 	if(ent->s.frame == FRAME_attack1 || ent->s.frame == FRAME_crattak1){
