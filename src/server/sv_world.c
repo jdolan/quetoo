@@ -503,11 +503,14 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace){
 			if(touch->owner == trace->skip)
 				continue;  // or via ownership (we own it)
 
-			if(touch == trace->skip->owner)
-				continue;  // which is bi-directional (inverse of previous case)
+			if(trace->skip->owner){
 
-			if(touch->owner == trace->skip->owner)
-				continue;  // and communitive (we are both owned by the same)
+				if(touch == trace->skip->owner)
+					continue;  // which is bi-directional (inverse of previous case)
+
+				if(touch->owner == trace->skip->owner)
+					continue;  // and communitive (we are both owned by the same)
+			}
 		}
 
 		// we couldn't skip it, so trace to it and see if we hit
