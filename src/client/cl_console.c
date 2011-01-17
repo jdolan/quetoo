@@ -245,7 +245,7 @@ void Cl_DrawConsole(void){
 		y += 32;
 	}
 
-	if(cls.loading){  // draw loading progress
+	if(cls.state == ca_connected && cls.loading){  // draw loading progress
 		snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
 		R_DrawString(0, cl_con.height << 5, dl, CON_COLOR_INFO);
 	}

@@ -70,6 +70,8 @@ cvar_t *recording;
 cl_static_t cls;
 cl_client_t cl;
 
+extern void Sv_ShutdownServer(const char *msg);
+
 
 /*
  * Cl_WriteDemoHeader
@@ -384,25 +386,6 @@ static void Cl_ForwardCmdToServer(void){
 
 
 /*
- * Cl_Drop
- *
- * Called after an ERR_DROP or ERR_NONE was thrown
- */
-void Cl_Drop(void){
-
-	cls.loading = 0;
-
-	if(cls.state == ca_uninitialized)
-		return;
-
-	if(cls.state == ca_disconnected)
-		return;
-
-	Cl_Disconnect();
-}
-
-
-/*
  * Cl_SendConnect
  *
  * We have gotten a challenge from the server, so try and connect.
@@ -480,7 +463,7 @@ static void Cl_CheckForResend(void){
  * Cl_Connect_f
  */
 static void Cl_Connect_f(void){
-	extern void Sv_ShutdownServer(const char *msg);
+
 	char *s;
 
 	if(Cmd_Argc() != 2){
@@ -633,8 +616,9 @@ void Cl_Disconnect(void){
 
 	Cl_SendDisconnect();  // tell the server to disconnect
 
-	if(cls.demo_file)  // stop demo recording
+	if(cls.demo_file){  // stop demo recording
 		Cl_Stop_f();
+	}
 
 	// stop download
 	if(cls.download.file){
@@ -647,6 +631,8 @@ void Cl_Disconnect(void){
 		cls.download.file = NULL;
 	}
 
+	memset(cls.server_name, 0, sizeof(cls.server_name));
+
 	cls.key_state.dest = key_menu;
 }
 
@@ -655,9 +641,12 @@ void Cl_Disconnect(void){
  * Cl_Disconnect_f
  */
 static void Cl_Disconnect_f(void){
-	Com_Error(ERR_NONE, "Disconnected from server.\n");
 
-	cls.key_state.dest = key_menu;
+	if(Com_ServerState()){  // if running a local server, kill it
+		Sv_ShutdownServer("Disconnected.\n");
+	}
+
+	Cl_Disconnect();
 }
 
 
@@ -672,8 +661,13 @@ void Cl_Reconnect_f(void){
 	if(cls.server_name[0] != '\0'){
 
 		if(cls.state >= ca_connecting){
-			Com_Print("Disconnecting...\n");
+			char server_name[MAX_OSPATH];
+
+			strncpy(server_name, cls.server_name, sizeof(server_name) - 1);
+
 			Cl_Disconnect();
+
+			strncpy(cls.server_name, server_name, sizeof(cls.server_name) - 1);
 		}
 
 		cls.connect_time = -99999;  // fire immediately

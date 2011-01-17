@@ -84,7 +84,8 @@ static void Error(err_t err, const char *msg){
 			Sv_Shutdown(msg);
 
 #ifdef BUILD_CLIENT
-			Cl_Drop();
+			Cl_Disconnect();
+			cls.key_state.dest = key_console;
 #endif
 
 			longjmp(environment, -1);

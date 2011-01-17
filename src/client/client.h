@@ -317,7 +317,6 @@ void Cl_ParseTempEntity(void);
 void Cl_Init(void);
 void Cl_Frame(int msec);
 void Cl_Shutdown(void);
-void Cl_Drop(void);
 void Cl_SendDisconnect(void);
 void Cl_Disconnect(void);
 void Cl_Reconnect_f(void);
