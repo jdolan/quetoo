@@ -146,6 +146,8 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 	pak_t *pak;
 	pakentry_t *e;
 
+	fs_last_pak = NULL;
+
 	// open for write or append in game dir and return
 	if(mode == FILE_WRITE || mode == FILE_APPEND){
 
@@ -189,8 +191,6 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 			return e->file_len;
 		}
 	}
-
-	fs_last_pak = NULL;
 
 	if(Com_Mixedcase(file_name)) {  // try lowercase version
 		char lower[MAX_QPATH];
