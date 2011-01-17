@@ -60,7 +60,7 @@ void Sv_ClientPrint(edict_t *ent, int level, const char *fmt, ...){
 
 	n = NUM_FOR_EDICT(ent);
 	if(n < 1 || n > sv_maxclients->value){
-		Com_Warn("Sv_ClientPrint: Issued to non-client.\n");
+		Com_Warn("Sv_ClientPrint: Issued to non-client %d.\n", n);
 		return;
 	}
 

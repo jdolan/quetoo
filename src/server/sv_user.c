@@ -349,7 +349,7 @@ static void Sv_Info_f(void){
 			continue;  //only print serverinfo cvars
 
 		snprintf(line, sizeof(line), "%s %s\n", cvar->name, cvar->string);
-		Sv_ClientPrint(EDICT_FOR_CLIENT(sv_client), PRINT_MEDIUM, "%s", line);
+		Sv_ClientPrint(sv_client->edict, PRINT_MEDIUM, "%s", line);
 	}
 }
 

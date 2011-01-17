@@ -513,21 +513,20 @@ static void G_Say_f(edict_t *ent){
 			continue;
 
 		if(team){
-			if(!G_OnSameTeam(ent, other)){
+			if(!G_OnSameTeam(ent, other))
 				continue;
-			} else {
-				gi.ClientPrint(other, PRINT_TEAMCHAT, "%s", text);
-			}
-		} else {
+			gi.ClientPrint(other, PRINT_TEAMCHAT, "%s", text);
+		}
+		else {
 			gi.ClientPrint(other, PRINT_CHAT, "%s", text);
 		}
 	}
 
 	if(dedicated->value){  // print to the console
 		if(team)
-			gi.ClientPrint(NULL, PRINT_TEAMCHAT, "%s", text);
+			gi.Print("%s", text);
 		else
-			gi.ClientPrint(NULL, PRINT_CHAT, "%s", text);
+			gi.Print("%s", text);
 	}
 
 	if(chatlog != NULL)  // print to chatlog

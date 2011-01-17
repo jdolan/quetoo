@@ -765,7 +765,7 @@ static void Sv_ShutdownMasters(void){
  * Sv_KickClient
  */
 void Sv_KickClient(sv_client_t *cl, const char *msg){
-	char c[1024];
+	char buf[1024], name[32];
 
 	if(!cl)
 		return;
@@ -774,19 +774,23 @@ void Sv_KickClient(sv_client_t *cl, const char *msg){
 		return;
 
 	if(*cl->name == '\0')  // force a name to kick
-		strcpy(cl->name, "player");
+		strncpy(name, "player", sizeof(name) - 1);
+	else
+		strncpy(name, cl->name, sizeof(name) - 1);
 
-	memset(c, 0, sizeof(c));
+	memset(buf, 0, sizeof(buf));
 
 	if(msg && *msg != '\0')
-		snprintf(c, sizeof(c), ": %s", msg);
+		snprintf(buf, sizeof(buf), ": %s", msg);
 
-	Sv_ClientPrint(EDICT_FOR_CLIENT(cl), PRINT_HIGH, "You were kicked%s\n", c);
+	Sv_ClientPrint(cl->edict, PRINT_HIGH, "You were kicked%s\n", buf);
 
 	Sv_DropClient(cl);
 
-	Sv_BroadcastPrint(PRINT_HIGH, "%s was kicked%s\n", cl->name, c);
+	Sv_BroadcastPrint(PRINT_HIGH, "%s was kicked%s\n", name, buf);
 }
+
+
 
 
 /*
