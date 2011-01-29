@@ -1159,7 +1159,7 @@ void Info_SetValueForKey(char *s, const char *key, const char *value){
 	snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
 	if(strlen(newi) + strlen(s) > max_size){
-		Com_Print("Info string length exceeded\n");
+		//Com_Print("Info string length exceeded\n");
 		return;
 	}
 
