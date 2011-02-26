@@ -68,6 +68,7 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
@@ -113,8 +114,9 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &r_state.blue_bits);
 	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &r_state.alpha_bits);
 
+	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &r_state.stencil_bits);
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &r_state.depth_bits);
-	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_state.double_bits);
+	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_state.double_buffer);
 
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,
 			SDL_DEFAULT_REPEAT_INTERVAL);

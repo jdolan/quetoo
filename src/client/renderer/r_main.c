@@ -316,8 +316,6 @@ void R_DrawFrame(void){
 
 	R_DrawBlendWarpSurfaces(r_worldmodel->blend_warp_surfaces);
 
-	R_DrawMeshShadows();
-
 	R_DrawParticles();
 
 	R_EnableFog(false);
@@ -364,13 +362,20 @@ static void R_RenderMode(const char *mode){
 /*
  * R_Clear
  */
-static inline void R_Clear(void){
+static void R_Clear(void){
+	int bits;
 
-	// clear screen if desired
+	bits = GL_DEPTH_BUFFER_BIT;
+
+	// clear the stencil bit if shadows are enabled
+	if(r_shadows->value)
+		bits |= GL_STENCIL_BUFFER_BIT;
+
+	// clear the color buffer if desired or necessary
 	if(r_clear->value || r_showpolys->value || r_view.x || r_view.y || !r_view.ready)
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	else
-		glClear(GL_DEPTH_BUFFER_BIT);
+		bits |= GL_COLOR_BUFFER_BIT;
+
+	glClear(bits);
 }
 
 /*

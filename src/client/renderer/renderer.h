@@ -139,13 +139,6 @@ typedef struct r_sustained_light_s {
 	float sustain;
 } r_sustained_light_t;
 
-// shadows are alpha-blended particles on the X/Y plane
-typedef struct r_shadow_s {
-	vec3_t org;
-	vec3_t dir;
-	float scale;
-} r_shadow_t;
-
 #define MAX_LIGHTS			32
 #define MAX_ACTIVE_LIGHTS	8
 
@@ -189,9 +182,6 @@ typedef struct r_view_s {
 	r_light_t lights[MAX_LIGHTS];
 
 	r_sustained_light_t sustains[MAX_LIGHTS];
-
-	int num_shadows;
-	r_shadow_t shadows[MAX_ENTITIES];
 
 	trace_t trace;  // occlusion testing
 	r_entity_t *trace_ent;
@@ -417,7 +407,6 @@ extern vec3_t r_mesh_norms[MD3_MAX_VERTS];
 void R_ApplyMeshModelConfig(r_entity_t *e);
 qboolean R_CullMeshModel(const r_entity_t *e);
 void R_DrawMeshModel_default(r_entity_t *e);
-void R_DrawMeshShadows(void);
 
 // r_particle.c
 void R_AddParticle(r_particle_t *p);

@@ -237,6 +237,23 @@ void R_EnableAlphaTest(qboolean enable){
 
 
 /*
+ * R_EnableStencilTest
+ */
+void R_EnableStencilTest(qboolean enable){
+
+	if(r_state.stencil_test_enabled == enable)
+		return;
+
+	r_state.stencil_test_enabled = enable;
+
+	if(enable)
+		glEnable(GL_STENCIL_TEST);
+	else
+		glDisable(GL_STENCIL_TEST);
+}
+
+
+/*
  * R_EnableTexture
  */
 void R_EnableTexture(r_texunit_t *texunit, qboolean enable){
@@ -612,6 +629,10 @@ void R_SetDefaultState(void){
 
 	// alpha test parameters
 	glAlphaFunc(GL_GREATER, 0.25);
+
+	// stencil test parameters
+	glStencilFunc(GL_GEQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 
 	// fog parameters
 	glFogi(GL_FOG_MODE, GL_LINEAR);

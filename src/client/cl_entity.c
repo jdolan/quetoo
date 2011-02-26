@@ -758,17 +758,16 @@ void Cl_AddEntities(cl_frame_t *frame){
 			ent.lighting->dirty = true;
 		}
 
-		if(ent.skin)  // always re-light players
-			ent.lighting->dirty = true;
-
-		if(!VectorCompare(cent->current.origin, cent->prev.origin))
-			ent.lighting->dirty = true;  // or anything that moves
-
-		if(ent.flags & EF_NO_LIGHTING){  // except projectiles
+		if(ent.flags & EF_NO_LIGHTING){  // some entities are never lit
 			ent.lighting->dirty = false;
 
 			VectorClear(ent.lighting->point);
 			VectorSet(ent.lighting->color, 1.0, 1.0, 1.0);
+		}
+		else {  // but by default, we light everything that moves
+			if(!VectorCompare(cent->current.origin, cent->prev.origin) ||
+					!VectorCompare(cent->current.angles, cent->prev.angles))
+				ent.lighting->dirty = true;
 		}
 
 		// add to view list
@@ -787,15 +786,20 @@ void Cl_AddEntities(cl_frame_t *frame){
 				// the weapon is masked on the skin_num
 				const cl_clientinfo_t *ci = &cl.clientinfo[state->skin_num & 0xff];
 				int i = (state->skin_num >> 8);  // 0 is default weapon model
+
 				if(i > MAX_WEAPONMODELS - 1)
 					i = 0;
+
 				ent.model = ci->weaponmodel[i];
 				ent.flags = state->effects;
-			} else
+			}
+			else {
 				ent.model = cl.model_draw[state->model_index2];
+			}
 
 			R_AddEntity(&ent);
 		}
+
 		if(state->model_index3){  // ctf flags
 			vec3_t fwd, rgt;
 			float f;
@@ -820,6 +824,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 
 			R_AddEntity(&ent);
 		}
+
 		if(state->model_index4){
 			ent.model = cl.model_draw[state->model_index4];
 			R_AddEntity(&ent);

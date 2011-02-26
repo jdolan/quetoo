@@ -378,8 +378,6 @@ void Cl_AddEmits(void){
 
 			ent.lighting = &e->lighting;
 
-			ent.flags = EF_NO_SHADOW;
-
 			R_AddEntity(&ent);
 		}
 

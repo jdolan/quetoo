@@ -26,95 +26,10 @@ vec3_t r_mesh_norms[MD3_MAX_VERTS];  // same for normal vectors
 
 
 /*
- * R_AddMeshShadow
- */
-static void R_AddMeshShadow(const r_entity_t *e){
-	r_shadow_t *sh;
-	float h;
-
-	if(!r_shadows->value)
-		return;
-
-	if(r_view.num_shadows == MAX_EDICTS)
-		return;
-
-	if(e->flags & EF_NO_SHADOW)  // no shadow for the weapon
-		return;
-
-	if(VectorCompare(e->lighting->point, vec3_origin))
-		return;
-
-	if(e->lighting->point[2] > r_view.origin[2])
-		return;
-
-	if((h = e->origin[2] - e->lighting->point[2]) > 128)
-		return;
-
-	sh = &r_view.shadows[r_view.num_shadows++];
-
-	VectorCopy(e->lighting->point, sh->org);
-	sh->org[2] += 0.1;
-
-	// transform the normal vector to angles
-	VectorAngles(e->lighting->normal, sh->dir);
-
-	sh->scale = 5.0 / (0.5 * h + 1);
-	sh->scale = sh->scale > 1.0 ? 1.0 : sh->scale;
-
-	if(e->skin)  // scale up player shadows
-		sh->scale *= 2.0;
-}
-
-
-/*
- * R_DrawMeshShadows
- */
-void R_DrawMeshShadows(void){
-	vec3_t right, up, verts[4];
-	int i, j, k, l;
-	float x;
-
-	if(!r_shadows->value)
-		return;
-
-	if(!r_view.num_shadows)
-		return;
-
-	R_ResetArrayState();
-
-	glColor4f(1.0, 1.0, 1.0, r_shadows->value);
-
-	R_BindTexture(r_shadowtexture->texnum);
-
-	j = k = l = 0;
-	for(i = 0; i < r_view.num_shadows; i++){
-
-		const r_shadow_t *sh = &r_view.shadows[i];
-		AngleVectors(sh->dir, NULL, right, up);
-
-		VectorAdd(up, right, verts[0]);
-		VectorSubtract(right, up, verts[1]);
-		VectorNegate(verts[0], verts[2]);
-		VectorNegate(verts[1], verts[3]);
-
-		x = r_shadowtexture->width * sh->scale;
-
-		for(j = 0; j < 4; j++)
-			VectorMA(sh->org, x, verts[j], &r_state.vertex_array_3d[k + j * 3]);
-		k += 12;
-
-		memcpy(&texunit_diffuse.texcoord_array[l], default_texcoords, sizeof(vec2_t) * 4);
-		l += 8;
-	}
-
-	glDrawArrays(GL_QUADS, 0, i * 4);
-
-	glColor4ubv(color_white);
-}
-
-
-/*
  * R_ApplyMeshModelConfig
+ *
+ * Applies any client-side transformations specified by the model's world or
+ * view configuration structure.
  */
 void R_ApplyMeshModelConfig(r_entity_t *e){
 	const r_mesh_config_t *c;
@@ -250,13 +165,15 @@ static void R_SetMeshState_default(const r_entity_t *e){
 		R_ProgramParameter3fv("LIGHTPOS", lightpos);
 #if 0
 		if(e->flags & EF_WEAPON){
-
 			r_entity_t ent;
 
-			ent.model = NULL;
+			memset(&ent, 0, sizeof(ent));
+
 			ent.lerp = 1.0;
+
 			VectorSet(ent.scale, 1.0, 1.0, 1.0);
 			VectorCopy(e->lighting->position, ent.origin);
+
 			R_AddEntity(&ent);
 
 			Com_Debug("%3.2f %3.2f %3.2f\n", lightpos[0], lightpos[1], lightpos[2]);
@@ -287,12 +204,104 @@ static void R_ResetMeshState_default(const r_entity_t *e){
 }
 
 
+#define SHADOW_HEIGHT_THRESHOLD 128.0
+#define SHADOW_SCALE 1.5
+#define SHADOW_ALPHA 0.2
+
+/*
+ * R_RotateForMeshShadow_default
+ *
+ * Applies translation, rotation and scale for the shadow of the specified
+ * entity.  In order to reuse the vertex arrays from the primary rendering
+ * pass, the shadow origin must transformed into model-view space.
+ */
+static void R_RotateForMeshShadow_default(const r_entity_t *e){
+	vec3_t shadow_org;
+	float h, t, s;
+
+	if(!e){
+		glPopMatrix();
+		return;
+	}
+
+	R_TransformForEntity(e, e->lighting->point, shadow_org);
+
+	h = -shadow_org[2];
+
+	t = SHADOW_HEIGHT_THRESHOLD * e->scale[2];
+
+	s = SHADOW_SCALE * (t - h) / t;
+
+	glPushMatrix();
+
+	glTranslatef(1.0, 1.0, -h + 1.0);
+
+	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
+
+	glScalef(s, s, 0.0);
+}
+
+
+/*
+ * R_DrawMeshShadow_default
+ *
+ * Re-draws the mesh using the stencil test.  Meshes with stale lighting
+ * information, or with a lighting point above our view, are not drawn.
+ */
+static void R_DrawMeshShadow_default(r_entity_t *e){
+
+	if(!r_shadows->value)
+		return;
+
+	if(r_showpolys->value)
+		return;
+
+	if(e->flags & EF_NO_SHADOW)
+		return;
+
+	if(e->flags & EF_BLEND)
+		return;
+
+	if(VectorCompare(e->lighting->point, vec3_origin))
+		return;
+
+	if(e->lighting->point[2] > r_view.origin[2])
+		return;
+
+	glColor4f(0.0, 0.0, 0.0, r_shadows->value * SHADOW_ALPHA);
+
+	R_EnableTexture(&texunit_diffuse, false);
+
+	R_EnableBlend(true);
+
+	R_RotateForMeshShadow_default(e);
+
+	glDepthRange(0.0, 0.999);
+
+	R_EnableStencilTest(true);
+
+	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+
+	R_EnableStencilTest(false);
+
+	glDepthRange(0.0, 1.0);
+
+	R_RotateForMeshShadow_default(NULL);
+
+	R_EnableBlend(false);
+
+	R_EnableTexture(&texunit_diffuse, true);
+
+	glColor4ubv(color_white);
+}
+
+
 /*
  * R_DrawMeshModelShell_default
  *
  * Draws an animated, colored shell for the specified entity.  Rather than
  * re-lerping or re-scaling the entity, the currently bound vertex arrays
- * are simply re-drawn using a small depth offset and varying texcoord delta.
+ * are simply re-drawn using a small depth offset.
  */
 static void R_DrawMeshModelShell_default(const r_entity_t *e){
 
@@ -487,9 +496,9 @@ void R_DrawMeshModel_default(r_entity_t *e){
 	else if(e->model->type == mod_md3)  // or an interpolated md3
 		R_DrawMd3ModelLerped_default(e);
 
-	R_DrawMeshModelShell_default(e);  // lastly draw any shells
+	R_DrawMeshModelShell_default(e);  // draw any shell effects
+
+	R_DrawMeshShadow_default(e);  // lastly draw the shadow
 
 	R_ResetMeshState_default(e);
-
-	R_AddMeshShadow(e);
 }

@@ -32,7 +32,6 @@ r_image_t *r_raintexture;  // atmospheric rain
 r_image_t *r_snowtexture;  // and snow effects
 r_image_t *r_beamtexture;  // rail trail beams
 r_image_t *r_burntexture;  // burn marks from hyperblaster
-r_image_t *r_shadowtexture;  // blob shadows
 r_image_t *r_bloodtexture;  // blood mist
 r_image_t *r_lightningtexture;  // lightning particles
 r_image_t *r_railtrailtexture;  // rail spiral
@@ -613,7 +612,6 @@ static void R_InitParticleTextures(void){
 	r_snowtexture = R_LoadImage("particles/snow.tga", it_effect);
 	r_beamtexture = R_LoadImage("particles/beam.tga", it_effect);
 	r_burntexture = R_LoadImage("particles/burn.tga", it_effect);
-	r_shadowtexture = R_LoadImage("particles/shadow.tga", it_effect);
 	r_bloodtexture = R_LoadImage("particles/blood.tga", it_effect);
 	r_lightningtexture = R_LoadImage("particles/lightning.tga", it_effect);
 	r_railtrailtexture = R_LoadImage("particles/railtrail.tga", it_effect);

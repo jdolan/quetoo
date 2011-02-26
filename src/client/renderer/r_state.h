@@ -53,7 +53,7 @@ typedef struct renderer_state_s {
 	qboolean fullscreen;
 
 	int red_bits, green_bits, blue_bits, alpha_bits;
-	int depth_bits, double_bits;
+	int stencil_bits, depth_bits, double_buffer;
 
 	qboolean ortho;  // 2d vs 3d projection
 
@@ -81,6 +81,7 @@ typedef struct renderer_state_s {
 
 	qboolean color_array_enabled;
 	qboolean alpha_test_enabled;
+	qboolean stencil_test_enabled;
 	qboolean lighting_enabled;
 	qboolean bumpmap_enabled;
 	qboolean warp_enabled;
@@ -109,6 +110,7 @@ void R_BindBuffer(GLenum target, GLenum type, GLuint id);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(qboolean enable);
 void R_EnableAlphaTest(qboolean enable);
+void R_EnableStencilTest(qboolean enable);
 void R_EnableTexture(r_texunit_t *texunit, qboolean enable);
 void R_EnableColorArray(qboolean enable);
 void R_EnableLighting(r_program_t *program, qboolean enable);

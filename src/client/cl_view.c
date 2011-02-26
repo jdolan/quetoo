@@ -27,13 +27,11 @@
  */
 static void Cl_ClearScene(void){
 
-	// reset entity and particle counts
-	r_view.num_entities = r_view.num_particles = 0;
+	// reset entity, light, particle and corona counts
+	r_view.num_entities = r_view.num_lights = 0;
+	r_view.num_particles = r_view.num_coronas = 0;
 
-	// lights, shadows, and coronas are populated as ents are added
-	r_view.num_lights = r_view.num_shadows = r_view.num_coronas = 0;
-
-	// reset poly counters
+	// reset geometry counters
 	r_view.bsp_polys = r_view.mesh_polys = 0;
 }
 
