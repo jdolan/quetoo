@@ -228,7 +228,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e){
 
 	h = -shadow_org[2];
 
-	t = SHADOW_HEIGHT_THRESHOLD * e->scale[2];
+	t = SHADOW_HEIGHT_THRESHOLD / e->scale[2];
 
 	s = SHADOW_SCALE * (t - h) / t;
 
