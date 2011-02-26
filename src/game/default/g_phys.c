@@ -466,8 +466,8 @@ static void G_Physics_Toss(edict_t *ent){
 	trace_t trace;
 	vec3_t org, move;
 	edict_t *slave;
-	qboolean wasinwater;
-	qboolean isinwater;
+	qboolean was_in_water;
+	qboolean is_in_water;
 
 	// regular thinking
 	G_RunThink(ent);
@@ -540,18 +540,18 @@ static void G_Physics_Toss(edict_t *ent){
 	}
 
 	// check for water transition
-	wasinwater = (ent->water_type & MASK_WATER);
+	was_in_water = (ent->water_type & MASK_WATER);
 	ent->water_type = gi.PointContents(ent->s.origin);
-	isinwater = ent->water_type & MASK_WATER;
+	is_in_water = ent->water_type & MASK_WATER;
 
-	if(isinwater)
+	if(is_in_water)
 		ent->water_level = 1;
 	else
 		ent->water_level = 0;
 
-	if(!wasinwater && isinwater)
+	if(!was_in_water && is_in_water)
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
-	else if(wasinwater && !isinwater)
+	else if(was_in_water && !is_in_water)
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
 	// move teamslaves

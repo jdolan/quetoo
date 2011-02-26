@@ -851,7 +851,7 @@ struct edict_s {
 	g_item_t *item;  // for bonus items
 
 	cplane_t plane;  // last touched
-	csurface_t surf;
+	csurface_t *surf;
 
 	vec3_t map_origin;  // where the map says we spawn
 

@@ -289,8 +289,9 @@ static void G_GrenadeExplode(edict_t *ent){
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PHS);
 
-	if(G_IsStationary(ent->ground_entity))
-		G_BurnMark(ent->s.origin, &ent->plane, &ent->surf, 20);
+	if(G_IsStationary(ent->ground_entity)){
+		G_BurnMark(ent->s.origin, &ent->plane, ent->surf, 20);
+	}
 
 	G_FreeEdict(ent);
 }
@@ -303,6 +304,11 @@ static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 	if(surf && (surf->flags & SURF_SKY)){
 		G_FreeEdict(ent);
 		return;
+	}
+
+	if(G_IsStructural(other, surf)){
+		ent->plane = *plane;
+		ent->surf = surf;
 	}
 
 	if(!other->takedamage){  // bounce
