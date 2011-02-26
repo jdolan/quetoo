@@ -150,7 +150,7 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample){
 
 			VectorSubtract(s_env.channels[i].org, org, delta);
 
-			if(VectorLength(delta) < 255.0){
+			if(VectorLength(delta) < 512.0){
 				ch = &s_env.channels[i];
 				break;
 			}
