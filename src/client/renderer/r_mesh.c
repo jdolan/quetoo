@@ -216,29 +216,35 @@ static void R_ResetMeshState_default(const r_entity_t *e){
  * pass, the shadow origin must transformed into model-view space.
  */
 static void R_RotateForMeshShadow_default(const r_entity_t *e){
-	vec3_t shadow_org;
-	float h, t, s;
+	vec3_t org, dir;
+	float height, threshold, scale, dist;
 
 	if(!e){
 		glPopMatrix();
 		return;
 	}
 
-	R_TransformForEntity(e, e->lighting->point, shadow_org);
+	R_TransformForEntity(e, e->lighting->point, org);
 
-	h = -shadow_org[2];
+	height = -org[2];
 
-	t = SHADOW_HEIGHT_THRESHOLD / e->scale[2];
+	threshold = SHADOW_HEIGHT_THRESHOLD / e->scale[2];
 
-	s = SHADOW_SCALE * (t - h) / t;
+	scale = SHADOW_SCALE * (threshold - height) / threshold;
+
+	R_TransformForEntity(e, e->lighting->position, dir);
+	dir[2] = 0.0;
+
+	dist = VectorNormalize(dir);
+	VectorScale(dir, sqrt(dist), dir);
 
 	glPushMatrix();
 
-	glTranslatef(1.0, 1.0, -h + 1.0);
+	glTranslatef(-dir[0], -dir[1], -height + 1.0);
 
 	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
 
-	glScalef(s, s, 0.0);
+	glScalef(scale, scale, 0.0);
 }
 
 

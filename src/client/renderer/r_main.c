@@ -47,6 +47,7 @@ cvar_t *r_deluxemap;
 cvar_t *r_lightmap;
 cvar_t *r_lockvis;
 cvar_t *r_novis;
+cvar_t *r_showlights;
 cvar_t *r_shownormals;
 cvar_t *r_showpolys;
 cvar_t *r_speeds;
@@ -311,6 +312,8 @@ void R_DrawFrame(void){
 	R_DrawEntities();
 
 	R_EnableBlend(true);
+
+	R_DrawBspLights();
 
 	R_DrawBlendSurfaces(r_worldmodel->blend_surfaces);
 
@@ -681,6 +684,7 @@ static void R_InitLocal(void){
 	r_lightmap = Cvar_Get("r_lightmap", "0", CVAR_R_PROGRAMS, "Activate or deactivate the rendering of lightmap textures (developer tool)");
 	r_lockvis = Cvar_Get("r_lockvis", "0", 0, NULL);
 	r_novis = Cvar_Get("r_novis", "0", 0, NULL);
+	r_showlights = Cvar_Get("r_showlights", "0", 0, "Activate or deactivate the rendering of static BSP light sources (developer tool)");
 	r_shownormals = Cvar_Get("r_shownormals", "0", 0, "Activate or deactivate the rendering of surface normals (developer tool)");
 	r_showpolys = Cvar_Get("r_showpolys", "0", 0, NULL);
 	r_speeds = Cvar_Get("r_speeds", "0", 0, NULL);

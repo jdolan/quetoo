@@ -123,7 +123,7 @@ typedef struct r_corona_s {
 	vec3_t color;
 } r_corona_t;
 
-#define MAX_CORONAS 		128
+#define MAX_CORONAS 		1024
 
 // lights are dynamic lighting sources
 typedef struct r_light_s {
@@ -239,6 +239,7 @@ extern cvar_t *r_deluxemap;
 extern cvar_t *r_lightmap;
 extern cvar_t *r_lockvis;
 extern cvar_t *r_novis;
+extern cvar_t *r_showlights;
 extern cvar_t *r_shownormals;
 extern cvar_t *r_showpolys;
 extern cvar_t *r_speeds;
@@ -309,6 +310,7 @@ void R_ResetArrayState(void);
 qboolean R_CullBox(const vec3_t mins, const vec3_t maxs);
 qboolean R_CullBspModel(const r_entity_t *e);
 void R_DrawBspModel(const r_entity_t *e);
+void R_DrawBspLights(void);
 void R_DrawBspNormals(void);
 void R_MarkSurfaces(void);
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model);

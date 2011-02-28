@@ -130,8 +130,8 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
 
 			f->alpha += (visible ? 0.03 : -0.15);  // ramp
 
-			if(f->alpha > 0.75)  // clamp
-				f->alpha = 0.75;
+			if(f->alpha > 1.0)  // clamp
+				f->alpha = 1.0;
 			else if(f->alpha < 0)
 				f->alpha = 0.0;
 

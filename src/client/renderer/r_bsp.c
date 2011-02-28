@@ -167,6 +167,25 @@ void R_DrawBspModel(const r_entity_t *e){
 
 
 /*
+ * R_DrawBspLights
+ *
+ * Developer tool for viewing static BSP light sources.
+ */
+void R_DrawBspLights(void){
+	r_bsp_light_t *l;
+	int i;
+
+	if(!r_showlights->value)
+		return;
+
+	l = r_worldmodel->bsp_lights;
+	for(i = 0; i < r_worldmodel->num_bsp_lights; i++, l++){
+		R_AddCorona(l->origin, l->radius, 0, l->color);
+	}
+}
+
+
+/*
  * R_DrawBspNormals
  *
  * Developer tool for viewing BSP vertex normals.  Only Phong interpolated

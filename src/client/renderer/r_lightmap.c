@@ -505,17 +505,17 @@ static void R_UpdateLighting_Position(r_lighting_t *lighting){
 		if(l->leaf->vis_frame != r_locals.vis_frame)
 			continue;
 
-		VectorSubtract(l->org, lighting->origin, delta);
+		VectorSubtract(l->origin, lighting->origin, delta);
 		light = l->radius - VectorLength(delta);
 
 		if(light > best){  // it's close, but is it in sight
 
-			R_Trace(l->org, lighting->origin, 0.0, CONTENTS_SOLID);
+			R_Trace(l->origin, lighting->origin, 0.0, CONTENTS_SOLID);
 			if(r_view.trace.fraction < 1.0)
 				continue;
 
 			best = light;
-			VectorCopy(l->org, lighting->positions[0]);
+			VectorCopy(l->origin, lighting->positions[0]);
 		}
 	}
 

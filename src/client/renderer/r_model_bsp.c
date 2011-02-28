@@ -965,7 +965,7 @@ static void R_LoadBspSurfacesArrays(void){
  * Adds the specified static light source to the world model, after first
  * ensuring that it can not be merged with any known sources.
  */
-static void R_AddBspLight(vec3_t org, float radius){
+static void R_AddBspLight(vec3_t org, float radius, vec3_t color){
 	r_bsp_light_t *l;
 	vec3_t delta;
 	int i;
@@ -973,33 +973,35 @@ static void R_AddBspLight(vec3_t org, float radius){
 	l = r_loadmodel->bsp_lights;
 	for(i = 0; i < r_loadmodel->num_bsp_lights; i++, l++){
 
-		VectorSubtract(org, l->org, delta);
+		VectorSubtract(org, l->origin, delta);
 
 		if(VectorLength(delta) <= 32.0)  // merge them
 			break;
 	}
 
-	if(i == r_loadmodel->num_bsp_lights){
-		// we can assume that all the bsplight memory is
-		// next to each other because of the hunk allocation
-		// implementation.
-		l = (r_bsp_light_t *)R_HunkAlloc(sizeof(*l));
+	if(i == r_loadmodel->num_bsp_lights){  // or allocate a new one
 
-		VectorCopy(org, l->org);
-		l->leaf = R_LeafForPoint(l->org, r_loadmodel);
+		l = (r_bsp_light_t *)R_HunkAlloc(sizeof(*l));
 
 		if(!r_loadmodel->bsp_lights)  // first source
 			r_loadmodel->bsp_lights = l;
 
+		VectorCopy(org, l->origin);
+		VectorCopy(color, l->color);
+
+
+		l->leaf = R_LeafForPoint(l->origin, r_loadmodel);
 		r_loadmodel->num_bsp_lights++;
 	}
 
-	l->radius += radius;
+	l->count++;
 
-	if(l->radius > 250.0)  // clamp
-		l->radius = 250.0;
+	l->radius = (l->radius * l->count - 1) + radius / l->count;
 }
 
+
+#define BSP_LIGHT_SURFACE_RADIUS_SCALE 1.0
+#define BSP_LIGHT_POINT_RADIUS_SCALE 1.0
 
 /*
  * R_LoadBspLights
@@ -1011,7 +1013,7 @@ static void R_AddBspLight(vec3_t org, float radius){
 static void R_LoadBspLights(void){
 	const char *ents;
 	char class_name[128];
-	vec3_t org, tmp;
+	vec3_t org, tmp, color;
 	float radius;
 	qboolean entity, light;
 	r_bsp_surface_t *surf;
@@ -1019,9 +1021,6 @@ static void R_LoadBspLights(void){
 
 	// iterate the world surfaces for surface lights
 	surf = r_loadmodel->surfaces;
-
-	VectorClear(org);
-	radius = 0.0;
 
 	for(i = 0; i < r_loadmodel->num_surfaces; i++, surf++){
 
@@ -1031,7 +1030,7 @@ static void R_LoadBspLights(void){
 			VectorSubtract(surf->maxs, surf->mins, tmp);
 			radius = VectorLength(tmp);
 
-			R_AddBspLight(org, radius > 100.0 ? radius : 100.0);
+			R_AddBspLight(org, radius * BSP_LIGHT_SURFACE_RADIUS_SCALE, surf->color);
 		}
 	}
 
@@ -1040,6 +1039,7 @@ static void R_LoadBspLights(void){
 
 	VectorClear(org);
 	radius = 0.0;
+	VectorSet(color, 1.0, 1.0, 1.0);
 
 	memset(class_name, 0, sizeof(class_name));
 	entity = light = false;
@@ -1062,13 +1062,15 @@ static void R_LoadBspLights(void){
 
 			if(light){  // add it
 
-				if(radius <= 0.0)  // clamp it
-					radius = 100.0;
+				if(radius <= 0.0)  // clamp it like q2wmap does
+					radius = 300.0;
 
-				R_AddBspLight(org, radius);
+				R_AddBspLight(org, radius * BSP_LIGHT_POINT_RADIUS_SCALE, color);
+
+				radius = 0.0;
+				VectorSet(color, 1.0, 1.0, 1.0);
 
 				light = false;
-				radius = 0.0;
 			}
 		}
 
@@ -1090,6 +1092,11 @@ static void R_LoadBspLights(void){
 
 		if(!strcmp(c, "light")){
 			radius = atof(Com_Parse(&ents));
+			continue;
+		}
+
+		if(!strcmp(c, "color")){
+			sscanf(Com_Parse(&ents), "%f %f %f", &color[0], &color[1], &color[2]);
 			continue;
 		}
 	}

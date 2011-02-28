@@ -171,8 +171,10 @@ typedef struct {
 
 // static light sources from the entities string
 typedef struct {
-	vec3_t org;
+	vec3_t origin;
 	float radius;
+	vec3_t color;
+	int count;
 	const r_bsp_leaf_t *leaf;
 } r_bsp_light_t;
 
