@@ -127,21 +127,21 @@ void Cl_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, i
  * Cl_DeltaEntity
  *
  * Parses deltas from the given base and adds the resulting entity
- * to the current frame
+ * to the current frame.
  */
-static void Cl_DeltaEntity(cl_frame_t *frame, int newnum, entity_state_t *old, int bits){
+static void Cl_DeltaEntity(cl_frame_t *frame, int new_num, entity_state_t *old_state, int bits){
 	cl_entity_t *ent;
 	entity_state_t *state;
 
-	ent = &cl.entities[newnum];
+	ent = &cl.entities[new_num];
 
 	state = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
 	cl.entity_state++;
 	frame->num_entities++;
 
-	Cl_ParseDelta(old, state, newnum, bits);
+	Cl_ParseDelta(old_state, state, new_num, bits);
 
-	// some data changes will force no lerping
+	// some data changes will force no interpolation
 	if(state->model_index != ent->current.model_index
 			|| state->model_index2 != ent->current.model_index2
 			|| state->model_index3 != ent->current.model_index3
@@ -151,14 +151,14 @@ static void Cl_DeltaEntity(cl_frame_t *frame, int newnum, entity_state_t *old, i
 			|| abs(state->origin[2] - ent->current.origin[2]) > 512
 			|| state->event == EV_TELEPORT
 	  ){
-		ent->server_frame = -99;
+		ent->server_frame = -99999;
 	}
 
 	if(ent->server_frame != cl.frame.server_frame - 1){
 		// wasn't in last update, so initialize some things
-		// duplicate the current state so lerping doesn't hurt anything
+		// duplicate the current state so interpolation works
 		ent->prev = *state;
-		ent->lighting.dirty = true;
+		ent->lighting.state = LIGHTING_INIT;
 		VectorCopy(state->old_origin, ent->prev.origin);
 	} else {  // shuffle the last state to previous
 		ent->prev = ent->current;
@@ -240,7 +240,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 				Com_Print("   remove: %i\n", new_num);
 
 			if(old_num != new_num)
-				Com_Warn("Cl_ParseEntities: U_REMOVE: old_num != newnum.\n");
+				Com_Warn("Cl_ParseEntities: U_REMOVE: old_num != new_num.\n");
 
 			old_index++;
 
@@ -279,7 +279,6 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 			Cl_DeltaEntity(new_frame, new_num, &cl.entities[new_num].baseline, bits);
 			continue;
 		}
-
 	}
 
 	// any remaining entities in the old frame are copied over
@@ -449,7 +448,7 @@ void Cl_ParseFrame(void){
 #define FRAME_crattak1			160
 #define FRAME_crattak8			167
 
-static const float kick_ramp[] = {
+static const float weapon_kick_ramp[] = {
 	3.0, 10.0, 8.0, 6.5, 4.0, 3.0, 1.5, 0.0
 };
 
@@ -485,8 +484,8 @@ static float Cl_WeaponKick(r_entity_t *self){
 		old_frame = start_frame;
 	}
 
-	k1 = kick_ramp[self->frame - start_frame];
-	k2 = kick_ramp[old_frame - start_frame];
+	k1 = weapon_kick_ramp[self->frame - start_frame];
+	k2 = weapon_kick_ramp[old_frame - start_frame];
 
 	return k1 * self->lerp + k2 * self->back_lerp;
 }
@@ -516,7 +515,7 @@ static void Cl_AddWeapon(r_entity_t *self){
 		return;  // spectating
 
 	if(cl.frame.ps.stats[STAT_CHASE])
-		return;  // chasecam
+		return;  // chase camera
 
 	w = cl.frame.ps.stats[STAT_WEAPON];
 	if(!w)  // no weapon, e.g. level intermission
@@ -524,7 +523,7 @@ static void Cl_AddWeapon(r_entity_t *self){
 
 	memset(&ent, 0, sizeof(ent));
 
-	ent.flags = EF_WEAPON | EF_NO_SHADOW;
+	ent.effects = EF_WEAPON | EF_NO_SHADOW;
 
 	VectorCopy(r_view.origin, ent.origin);
 	VectorCopy(r_view.angles, ent.angles);
@@ -541,8 +540,10 @@ static void Cl_AddWeapon(r_entity_t *self){
 	ent.lerp = 1.0;
 	VectorSet(ent.scale, 1.0, 1.0, 1.0);
 
+	memset(&lighting, 0, sizeof(lighting));
+
 	ent.lighting = &lighting;
-	ent.lighting->dirty = true;
+	ent.lighting->state = LIGHTING_DIRTY;
 
 	R_AddEntity(&ent);
 }
@@ -591,21 +592,22 @@ void Cl_AddEntities(cl_frame_t *frame){
 	VectorClear(start);
 	VectorClear(end);
 
-	memset(&ent, 0, sizeof(ent));
 	memset(&self, 0, sizeof(self));
 
-	// resolve any models, animations, lerps, rotations, bobbing, etc..
+	// resolve any models, animations, interpolations, rotations, bobbing, etc..
 	for(i = 0; i < frame->num_entities; i++){
 
-		entity_state_t *state = &cl.entity_states[(frame->entity_state + i) & ENTITY_STATE_MASK];
+		entity_state_t *s = &cl.entity_states[(frame->entity_state + i) & ENTITY_STATE_MASK];
 
-		cl_entity_t *cent = &cl.entities[state->number];
+		cl_entity_t *e = &cl.entities[s->number];
+
+		memset(&ent, 0, sizeof(ent));
 
 		// beams have two origins, most ents have just one
-		if(state->effects & EF_BEAM){
+		if(s->effects & EF_BEAM){
 
 			// skin_num is overridden to specify owner of the beam
-			if((state->skin_num == cl.player_num + 1) && !cl_thirdperson->value){
+			if((s->skin_num == cl.player_num + 1) && !cl_thirdperson->value){
 				// we own this beam (lightning, grapple, etc..)
 				// project start position in front of view origin
 				VectorCopy(r_view.origin, start);
@@ -614,39 +616,39 @@ void Cl_AddEntities(cl_frame_t *frame){
 				start[2] -= 10.0;
 			}
 			else  // or simply lerp the start position
-				VectorLerp(cent->prev.origin, cent->current.origin, cl.lerp, start);
+				VectorLerp(e->prev.origin, e->current.origin, cl.lerp, start);
 
-			VectorLerp(cent->prev.old_origin, cent->current.old_origin, cl.lerp, end);
+			VectorLerp(e->prev.old_origin, e->current.old_origin, cl.lerp, end);
 		}
 		else {  // for most ents, just lerp the origin
-			VectorLerp(cent->prev.origin, cent->current.origin, cl.lerp, ent.origin);
+			VectorLerp(e->prev.origin, e->current.origin, cl.lerp, ent.origin);
 		}
 
 		// bob items, shift them to randomize the effect in crowded scenes
-		if(state->effects & EF_BOB)
+		if(s->effects & EF_BOB)
 			ent.origin[2] += 4.0 * sin((cl.time * 0.005) + ent.origin[0] + ent.origin[1]);
 
 		// calculate angles
-		if(state->effects & EF_ROTATE){  // some bonus items rotate
+		if(s->effects & EF_ROTATE){  // some bonus items rotate
 			ent.angles[0] = 0.0;
 			ent.angles[1] = cl.time / 3.4;
 			ent.angles[2] = 0.0;
 		}
 		else {  // lerp angles
-			AngleLerp(cent->prev.angles, cent->current.angles, cl.lerp, ent.angles);
+			AngleLerp(e->prev.angles, e->current.angles, cl.lerp, ent.angles);
 		}
 
 		// lerp frames
-		if(state->effects & EF_ANIMATE)
+		if(s->effects & EF_ANIMATE)
 			ent.frame = cl.time / 500;
-		else if(state->effects & EF_ANIMATE_FAST)
+		else if(s->effects & EF_ANIMATE_FAST)
 			ent.frame = cl.time / 100;
 		else
-			ent.frame = state->frame;
+			ent.frame = s->frame;
 
-		ent.old_frame = cent->anim_frame;
+		ent.old_frame = e->anim_frame;
 
-		ent.lerp = (cl.time - cent->anim_time) / 100.0;
+		ent.lerp = (cl.time - e->anim_time) / 100.0;
 
 		if(ent.lerp < 0.0)  // clamp
 			ent.lerp = 0.0;
@@ -658,8 +660,8 @@ void Cl_AddEntities(cl_frame_t *frame){
 		VectorSet(ent.scale, 1.0, 1.0, 1.0);  // scale
 
 		// resolve model and skin
-		if(state->model_index == 255){  // use custom player skin
-			const cl_clientinfo_t *ci = &cl.clientinfo[state->skin_num & 0xff];
+		if(s->model_index == 255){  // use custom player skin
+			const cl_clientinfo_t *ci = &cl.clientinfo[s->skin_num & 0xff];
 			ent.skin_num = 0;
 			ent.skin = ci->skin;
 			ent.model = ci->model;
@@ -669,67 +671,67 @@ void Cl_AddEntities(cl_frame_t *frame){
 			}
 			VectorSet(ent.scale, PM_SCALE, PM_SCALE, PM_SCALE);
 		} else {
-			ent.skin_num = state->skin_num;
+			ent.skin_num = s->skin_num;
 			ent.skin = NULL;
-			ent.model = cl.model_draw[state->model_index];
+			ent.model = cl.model_draw[s->model_index];
 		}
 
-		if(state->effects & (EF_ROCKET | EF_GRENADE)){
-			Cl_SmokeTrail(cent->prev.origin, ent.origin, cent);
+		if(s->effects & (EF_ROCKET | EF_GRENADE)){
+			Cl_SmokeTrail(e->prev.origin, ent.origin, e);
 		}
 
-		if(state->effects & EF_ROCKET){
+		if(s->effects & EF_ROCKET){
 			R_AddCorona(ent.origin, 3.0, 0.25, rocket_light);
-			R_AddLight(ent.origin, 1.5, rocket_light);
+			R_AddLight(ent.origin, 120.0, rocket_light);
 		}
 
-		if(state->effects & EF_HYPERBLASTER){
+		if(s->effects & EF_HYPERBLASTER){
 			R_AddCorona(ent.origin, 12.0, 0.15, hyperblaster_light);
-			R_AddLight(ent.origin, 1.25, hyperblaster_light);
+			R_AddLight(ent.origin, 100.0, hyperblaster_light);
 
-			Cl_EnergyTrail(cent, 8.0, 107);
+			Cl_EnergyTrail(e, 8.0, 107);
 		}
 
-		if(state->effects & EF_LIGHTNING){
+		if(s->effects & EF_LIGHTNING){
 			vec3_t dir;
 			Cl_LightningTrail(start, end);
 
-			R_AddLight(start, 1.25, lightning_light);
+			R_AddLight(start, 100.0, lightning_light);
 			VectorSubtract(end, start, dir);
 			VectorNormalize(dir);
 			VectorMA(end, -12.0, dir, end);
-			R_AddLight(end, 1.0 + (0.1 * crand()), lightning_light);
+			R_AddLight(end, 80.0 + (10.0 * crand()), lightning_light);
 		}
 
-		if(state->effects & EF_BFG){
+		if(s->effects & EF_BFG){
 			R_AddCorona(ent.origin, 24.0, 0.05, bfg_light);
-			R_AddLight(ent.origin, 1.5, bfg_light);
+			R_AddLight(ent.origin, 120.0, bfg_light);
 
-			Cl_EnergyTrail(cent, 16.0, 206);
+			Cl_EnergyTrail(e, 16.0, 206);
 		}
 
 		VectorClear(ent.shell);
 
-		if(state->effects & EF_CTF_BLUE){
-			R_AddLight(ent.origin, 1.0, ctf_blue_light);
+		if(s->effects & EF_CTF_BLUE){
+			R_AddLight(ent.origin, 80.0, ctf_blue_light);
 			VectorCopy(ctf_blue_light, ent.shell);
 		}
 
-		if(state->effects & EF_CTF_RED){
-			R_AddLight(ent.origin, 1.0, ctf_red_light);
+		if(s->effects & EF_CTF_RED){
+			R_AddLight(ent.origin, 80.0, ctf_red_light);
 			VectorCopy(ctf_red_light, ent.shell);
 		}
 
-		if(state->effects & EF_QUAD){
-			R_AddLight(ent.origin, 1.0, quad_light);
+		if(s->effects & EF_QUAD){
+			R_AddLight(ent.origin, 80.0, quad_light);
 			VectorCopy(quad_light, ent.shell);
 		}
 
-		if(state->effects & EF_TELEPORTER)
-			Cl_TeleporterTrail(ent.origin, cent);
+		if(s->effects & EF_TELEPORTER)
+			Cl_TeleporterTrail(ent.origin, e);
 
 		// if there's no model associated with the entity, we're done
-		if(!state->model_index)
+		if(!s->model_index)
 			continue;
 
 		// filter by model type
@@ -739,7 +741,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 			continue;
 
 		// don't draw ourselves unless third person is set
-		if(state->number == cl.player_num + 1){
+		if(s->number == cl.player_num + 1){
 
 			// retain a reference to ourselves for the weapon model
 			self = ent;
@@ -748,26 +750,22 @@ void Cl_AddEntities(cl_frame_t *frame){
 				continue;
 		}
 
-		ent.flags = state->effects;
+		ent.effects = s->effects;
 
 		// setup the write-through lighting cache
-		ent.lighting = &cent->lighting;
+		ent.lighting = &e->lighting;
 
-		if(r_view.update){  // new lighting information is available
-			memset(ent.lighting, 0, sizeof(*(ent.lighting)));
-			ent.lighting->dirty = true;
+		if(ent.effects & EF_NO_LIGHTING){
+			// some entities are never lit, like rockets and grenades
+			ent.lighting->state = LIGHTING_READY;
 		}
-
-		if(ent.flags & EF_NO_LIGHTING){  // some entities are never lit
-			ent.lighting->dirty = false;
-
-			VectorClear(ent.lighting->point);
-			VectorSet(ent.lighting->color, 1.0, 1.0, 1.0);
-		}
-		else {  // but by default, we light everything that moves
-			if(!VectorCompare(cent->current.origin, cent->prev.origin) ||
-					!VectorCompare(cent->current.angles, cent->prev.angles))
-				ent.lighting->dirty = true;
+		else {
+			// but most are, so update their lighting if appropriate
+			if(ent.lighting->state == LIGHTING_READY){
+				if(r_view.update || !VectorCompare(e->current.origin, e->prev.origin)){
+					ent.lighting->state = LIGHTING_DIRTY;
+				}
+			}
 		}
 
 		// add to view list
@@ -779,28 +777,28 @@ void Cl_AddEntities(cl_frame_t *frame){
 		 * accommodate visual weapons, CTF flags, etc..
 		 */
 		ent.skin = NULL;
-		ent.flags = 0;
+		ent.effects = 0;
 
-		if(state->model_index2){
-			if(state->model_index2 == 255){  // custom weapon
+		if(s->model_index2){
+			if(s->model_index2 == 255){  // custom weapon
 				// the weapon is masked on the skin_num
-				const cl_clientinfo_t *ci = &cl.clientinfo[state->skin_num & 0xff];
-				int i = (state->skin_num >> 8);  // 0 is default weapon model
+				const cl_clientinfo_t *ci = &cl.clientinfo[s->skin_num & 0xff];
+				int i = (s->skin_num >> 8);  // 0 is default weapon model
 
 				if(i > MAX_WEAPONMODELS - 1)
 					i = 0;
 
 				ent.model = ci->weaponmodel[i];
-				ent.flags = state->effects;
+				ent.effects = s->effects;
 			}
 			else {
-				ent.model = cl.model_draw[state->model_index2];
+				ent.model = cl.model_draw[s->model_index2];
 			}
 
 			R_AddEntity(&ent);
 		}
 
-		if(state->model_index3){  // ctf flags
+		if(s->model_index3){  // ctf flags
 			vec3_t fwd, rgt;
 			float f;
 
@@ -817,7 +815,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 			ent.angles[2] += 15.0;
 
 			ent.frame = ent.old_frame = 0;
-			ent.model = cl.model_draw[state->model_index3];
+			ent.model = cl.model_draw[s->model_index3];
 
 			VectorSet(ent.scale, 0.6, 0.6, 0.6);
 			VectorScale(ent.scale, PM_SCALE, ent.scale);
@@ -825,8 +823,8 @@ void Cl_AddEntities(cl_frame_t *frame){
 			R_AddEntity(&ent);
 		}
 
-		if(state->model_index4){
-			ent.model = cl.model_draw[state->model_index4];
+		if(s->model_index4){
+			ent.model = cl.model_draw[s->model_index4];
 			R_AddEntity(&ent);
 		}
 	}

@@ -553,7 +553,9 @@ void Cl_ClearState(void){
 	Cl_ClearEffects();
 
 	// wipe the entire view
+	// TODO: Make or move this to an R_Something() and call it?
 	memset(&r_view, 0, sizeof(r_view));
+	memset(&r_locals, 0, sizeof(r_locals));
 
 	// wipe the entire cl structure
 	memset(&cl, 0, sizeof(cl));

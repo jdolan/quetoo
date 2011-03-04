@@ -169,7 +169,7 @@ typedef struct {
 	int num_leaf_surfaces;
 } r_bsp_leaf_t;
 
-// static light sources from the entities string
+// static light sources
 typedef struct {
 	vec3_t origin;
 	float radius;
@@ -177,7 +177,6 @@ typedef struct {
 	int count;
 	const r_bsp_leaf_t *leaf;
 } r_bsp_light_t;
-
 
 // md3 model memory representation
 typedef struct {
@@ -251,7 +250,7 @@ typedef struct {
 } r_obj_t;
 
 
-// shared struct for all model types
+// shared structure for all model types
 typedef enum {
 	mod_bad, mod_bsp, mod_bsp_submodel, mod_md2, mod_md3, mod_obj
 } r_model_type_t;

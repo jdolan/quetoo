@@ -241,7 +241,7 @@ typedef struct {
 #define LUMP_NODES			4
 #define LUMP_TEXINFO		5
 #define LUMP_FACES			6
-#define LUMP_LIGHTING		7
+#define LUMP_LIGHMAPS		7
 #define LUMP_LEAFS			8
 #define LUMP_LEAFFACES		9
 #define LUMP_LEAFBRUSHES	10

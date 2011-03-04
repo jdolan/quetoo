@@ -460,8 +460,6 @@ static void R_InitWorldProgram(void){
 static void R_InitMeshProgram(void){
 	R_ProgramParameter1i("SAMPLER0", 0);
 
-	R_ProgramParameter3fv("LIGHTPOS", vec3_origin);
-
 	R_ProgramParameter1f("OFFSET", 0.0);
 }
 

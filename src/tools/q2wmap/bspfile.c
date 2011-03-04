@@ -348,7 +348,7 @@ void LoadBSPFile(char *file_name){
 	num_area_portals = CopyLump(LUMP_AREAPORTALS, dareaportals, sizeof(d_bsp_area_portal_t));
 
 	visdatasize = CopyLump(LUMP_VISIBILITY, dvisdata, 1);
-	lightmap_data_size = CopyLump(LUMP_LIGHTING, dlightmap_data, 1);
+	lightmap_data_size = CopyLump(LUMP_LIGHMAPS, dlightmap_data, 1);
 	entdatasize = CopyLump(LUMP_ENTITIES, dentdata, 1);
 
 	CopyLump(LUMP_POP, dpop, 1);
@@ -467,7 +467,7 @@ void WriteBSPFile(char *file_name){
 	AddLump(LUMP_AREAS, dareas, numareas*sizeof(d_bsp_area_t));
 	AddLump(LUMP_AREAPORTALS, dareaportals, num_area_portals*sizeof(d_bsp_area_portal_t));
 
-	AddLump(LUMP_LIGHTING, dlightmap_data, lightmap_data_size);
+	AddLump(LUMP_LIGHMAPS, dlightmap_data, lightmap_data_size);
 	AddLump(LUMP_VISIBILITY, dvisdata, visdatasize);
 	AddLump(LUMP_ENTITIES, dentdata, entdatasize);
 	AddLump(LUMP_POP, dpop, sizeof(dpop));

@@ -73,17 +73,17 @@ static int emptyleaf, solidleaf;
 static int num_leaf_brushes;
 static unsigned short map_leafbrushes[MAX_BSP_LEAFBRUSHES];
 
-int numcmodels;
+int num_cmodels;
 cmodel_t map_cmodels[MAX_BSP_MODELS];
 
 static int numbrushes;
 static cbrush_t map_brushes[MAX_BSP_BRUSHES];
 
-static int numvisibility;
+static int num_visibility;
 static byte map_visibility[MAX_BSP_VISIBILITY];
 static d_bsp_vis_t *map_vis = (d_bsp_vis_t *)map_visibility;
 
-int numentitychars;
+int num_entity_chars;
 char map_entitystring[MAX_BSP_ENTSTRING];
 
 static int numareas = 1;
@@ -138,7 +138,7 @@ static void Cm_LoadSubmodels(const d_bsp_lump_t *l){
 		Com_Error(ERR_DROP, "Cm_LoadSubmodels: Map has too many models.\n");
 	}
 
-	numcmodels = count;
+	num_cmodels = count;
 
 	for(i = 0; i < count; i++, in++){
 		cmodel_t *out = &map_cmodels[i];
@@ -478,7 +478,7 @@ static void Cm_LoadAreaPortals(const d_bsp_lump_t *l){
 static void Cm_LoadVisibility(const d_bsp_lump_t *l){
 	int i;
 
-	numvisibility = l->file_len;
+	num_visibility = l->file_len;
 	if(l->file_len > MAX_BSP_VISIBILITY){
 		Com_Error(ERR_DROP, "Cm_LOadVisibility: Map has too large visibility lump.\n");
 	}
@@ -497,7 +497,9 @@ static void Cm_LoadVisibility(const d_bsp_lump_t *l){
  * Cm_LoadEntityString
  */
 static void Cm_LoadEntityString(const d_bsp_lump_t *l){
-	numentitychars = l->file_len;
+
+	num_entity_chars = l->file_len;
+
 	if(l->file_len > MAX_BSP_ENTSTRING){
 		Com_Error(ERR_DROP, "Cm_LoadEntityString: Map has too large entity lump.\n");
 	}
@@ -522,9 +524,9 @@ cmodel_t *Cm_LoadMap(const char *name, int *mapsize){
 	num_planes = 0;
 	num_nodes = 0;
 	num_leafs = 0;
-	numcmodels = 0;
-	numvisibility = 0;
-	numentitychars = 0;
+	num_cmodels = 0;
+	num_visibility = 0;
+	num_entity_chars = 0;
 	map_entitystring[0] = 0;
 	map_name[0] = 0;
 
@@ -590,7 +592,7 @@ cmodel_t *Cm_InlineModel(const char *name){
 		Com_Error(ERR_DROP, "Cm_InlineModel: Bad name.\n");
 	}
 	num = atoi(name + 1);
-	if(num < 1 || num >= numcmodels){
+	if(num < 1 || num >= num_cmodels){
 		Com_Error(ERR_DROP, "Cm_InlineModel: Bad number: %d\n.", num);
 	}
 
@@ -602,7 +604,7 @@ int Cm_NumClusters(void){
 }
 
 int Cm_NumInlineModels(void){
-	return numcmodels;
+	return num_cmodels;
 }
 
 char *Cm_EntityString(void){
@@ -1366,7 +1368,7 @@ static void Cm_DecompressVis(const byte *in, byte *out){
 	row = (num_clusters + 7) >> 3;
 	out_p = out;
 
-	if(!in || !numvisibility){  // no vis info, so make all visible
+	if(!in || !num_visibility){  // no vis info, so make all visible
 		while(row){
 			*out_p++ = 0xff;
 			row--;

@@ -139,6 +139,29 @@ void (*R_DrawBlendWarpSurfaces)(r_bsp_surfaces_t *surfs);
 void (*R_DrawBackSurfaces)(r_bsp_surfaces_t *surfs);
 void (*R_DrawMeshModel)(r_entity_t *e);
 
+
+/*
+ * R_WordspawnValue
+ *
+ * Parses values from the worldspawn entity definition.
+ */
+const char *R_WorldspawnValue(const char *key){
+	const char *c, *v;
+
+	c = strstr(Cm_EntityString(), va("\"%s\"", key));
+
+	if(c){
+		v = Com_Parse(&c);  // parse the key itself
+		v = Com_Parse(&c);  // parse the value
+	}
+	else {
+		v = NULL;
+	}
+
+	return v;
+}
+
+
 /*
  * R_Trace
  *
@@ -153,7 +176,7 @@ void R_Trace(const vec3_t start, const vec3_t end, float size, int mask){
 
 	r_locals.trace_num++;
 
-	if(r_locals.trace_num > 0xffff)  // avoid overflows
+	if(r_locals.trace_num < 0)  // avoid overflows
 		r_locals.trace_num = 0;
 
 	VectorSet(mins, -size, -size, -size);
@@ -713,7 +736,7 @@ static void R_InitLocal(void){
 	r_lines = Cvar_Get("r_lines", "0.5", CVAR_ARCHIVE, NULL);
 	r_linewidth = Cvar_Get("r_linewidth", "1.0", CVAR_ARCHIVE, NULL);
 	r_materials = Cvar_Get("r_materials", "1", CVAR_ARCHIVE, NULL);
-	r_modulate = Cvar_Get("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_IMAGES, "Controls the brightness of the lightmap");
+	r_modulate = Cvar_Get("r_modulate", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, "Controls the brightness of the lightmap");
 	r_monochrome = Cvar_Get("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_multisample = Cvar_Get("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_optimize = Cvar_Get("r_optimize", "1", CVAR_ARCHIVE, NULL);

@@ -85,14 +85,14 @@ void R_InitDraw(void){
 	r_draw_cursor = R_LoadImage("pics/cursor", it_chars);
 
 	// set ABGR color values
-	r_char_colors[CON_COLOR_BLACK] 		= 0xFF000000;
-	r_char_colors[CON_COLOR_RED] 		= 0xFF0000FF;
-	r_char_colors[CON_COLOR_GREEN] 		= 0xFF00FF00;
-	r_char_colors[CON_COLOR_YELLOW] 	= 0xFF00FFFF;
-	r_char_colors[CON_COLOR_BLUE] 		= 0xFFFF0000;
-	r_char_colors[CON_COLOR_CYAN] 		= 0xFFFFFF00;
-	r_char_colors[CON_COLOR_MAGENTA]	= 0xFFFF00FF;
-	r_char_colors[CON_COLOR_WHITE] 		= 0xFFFFFFFF;
+	r_char_colors[CON_COLOR_BLACK] 		= 0xff000000;
+	r_char_colors[CON_COLOR_RED] 		= 0xff0000ff;
+	r_char_colors[CON_COLOR_GREEN] 		= 0xff00ff00;
+	r_char_colors[CON_COLOR_YELLOW] 	= 0xff00ffff;
+	r_char_colors[CON_COLOR_BLUE] 		= 0xffff0000;
+	r_char_colors[CON_COLOR_CYAN] 		= 0xffffff00;
+	r_char_colors[CON_COLOR_MAGENTA]	= 0xffff00ff;
+	r_char_colors[CON_COLOR_WHITE] 		= 0xffffffff;
 
 	Hash_Init(&r_pics_hash_table);
 }

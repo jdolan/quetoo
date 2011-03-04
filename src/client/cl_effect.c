@@ -268,7 +268,7 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 	p->alpha_vel = -1.0 / (0.7 + crand() * 0.1);
 
 	VectorAdd(org, dir, v);
-	R_AddSustainedLight(v, 0.25, bullet_light, 0.25);
+	R_AddSustainedLight(v, 20.0, bullet_light, 0.25);
 }
 
 
@@ -512,7 +512,7 @@ void Cl_ItemRespawnEffect(const vec3_t org){
 		p->alpha_vel = -1.5 + frand() * 0.5;
 	}
 
-	R_AddSustainedLight(org, 1.0, item_respawn_light, 1.0);
+	R_AddSustainedLight(org, 80.0, item_respawn_light, 1.0);
 }
 
 
@@ -552,7 +552,7 @@ void Cl_ItemPickupEffect(const vec3_t org){
 		p->alpha_vel = -1.5 + frand() * 0.5;
 	}
 
-	R_AddSustainedLight(org, 1.0, item_pickup_light, 1.0);
+	R_AddSustainedLight(org, 80.0, item_pickup_light, 1.0);
 
 }
 
@@ -708,7 +708,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
 	dist = ent->solid == 8290 ? -2.0 : 20.0;
 	org[2] += dist;
 
-	R_AddSustainedLight(org, 1.0, shot_light, 0.3);
+	R_AddSustainedLight(org, 80.0, shot_light, 0.3);
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
@@ -1142,7 +1142,7 @@ void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
 	dist = ent->solid == 8290 ? -2.0 : 20.0;
 	org[2] += dist;
 
-	R_AddSustainedLight(org, 1.0, energy_light, 0.3);
+	R_AddSustainedLight(org, 80.0, energy_light, 0.3);
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 

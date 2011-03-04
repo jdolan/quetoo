@@ -28,13 +28,11 @@
 static const byte *mod_base;
 
 
-#define MIN_AMBIENT_COMPONENT 0.05
-
 /*
- * R_LoadBspLighting
+ * R_LoadBspLightmaps
  */
-static void R_LoadBspLighting(const d_bsp_lump_t *l){
-	const char *s, *c;
+static void R_LoadBspLightmaps(const d_bsp_lump_t *l){
+	const char *c;
 
 	if(!l->file_len){
 		r_loadmodel->lightmap_data = NULL;
@@ -50,10 +48,7 @@ static void R_LoadBspLighting(const d_bsp_lump_t *l){
 	r_loadmodel->lightmap_scale = -1;
 
 	// resolve lightmap scale
-	if((s = strstr(Cm_EntityString(), "\"lightmap_scale\""))){
-
-		c = Com_Parse(&s);  // parse the string itself
-		c = Com_Parse(&s);  // and then the value
+	if((c = R_WorldspawnValue("lightmap_scale"))){
 
 		r_loadmodel->lightmap_scale = atoi(c);
 
@@ -62,29 +57,6 @@ static void R_LoadBspLighting(const d_bsp_lump_t *l){
 
 	if(r_loadmodel->lightmap_scale == -1)  // ensure safe default
 		r_loadmodel->lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
-
-	// resolve ambient light
-	if((s = strstr(Cm_EntityString(), "\"ambient_light\""))){
-		int i;
-
-		c = Com_Parse(&s);  // parse the string itself
-		c = Com_Parse(&s);  // and the vector
-
-		sscanf(c, "%f %f %f", &r_view.ambient_light[0],
-				&r_view.ambient_light[1], &r_view.ambient_light[2]);
-
-		for(i = 0; i < 3; i++){  // clamp it
-			if(r_view.ambient_light[i] < MIN_AMBIENT_COMPONENT)
-				r_view.ambient_light[i] = MIN_AMBIENT_COMPONENT;
-		}
-
-		Com_Debug("Resolved ambient_light: %1.2f %1.2f %1.2f\n",
-				r_view.ambient_light[0], r_view.ambient_light[1], r_view.ambient_light[2]);
-	}
-	else {  // ensure sane default
-		VectorSet(r_view.ambient_light,
-			MIN_AMBIENT_COMPONENT, MIN_AMBIENT_COMPONENT, MIN_AMBIENT_COMPONENT);
-	}
 }
 
 
@@ -213,6 +185,59 @@ static void R_LoadBspSubmodels(const d_bsp_lump_t *l){
 
 		out->first_face = LittleLong(in->first_face);
 		out->num_faces = LittleLong(in->num_faces);
+	}
+}
+
+
+/*
+ * R_SetupBspSubmodel
+ *
+ * Recurses the specified submodel nodes, assigning the model so that it can
+ * be quickly resolved during traces and dynamic light processing.
+ */
+static void R_SetupBspSubmodel(r_bsp_node_t *node, r_model_t *model){
+
+	node->model = model;
+
+	if(node->contents != CONTENTS_NODE)
+		return;
+
+	R_SetupBspSubmodel(node->children[0], model);
+	R_SetupBspSubmodel(node->children[1], model);
+}
+
+
+/*
+ * R_SetupBspSubmodels
+ *
+ * The submodels have been loaded into memory, but are not yet
+ * represented as model_t.  Convert them.
+ */
+static void R_SetupBspSubmodels(void){
+	int i;
+
+	for(i = 0; i < r_loadmodel->num_submodels; i++){
+
+		r_model_t *mod = &r_inline_models[i];
+		const r_bsp_submodel_t *sub = &r_loadmodel->submodels[i];
+
+		*mod = *r_loadmodel;  // copy most info from world
+		mod->type = mod_bsp_submodel;
+
+		snprintf(mod->name, sizeof(mod->name), "*%d", i);
+
+		// copy the rest from the submodel
+		VectorCopy(sub->maxs, mod->maxs);
+		VectorCopy(sub->mins, mod->mins);
+		mod->radius = sub->radius;
+
+		mod->firstnode = sub->head_node;
+		mod->nodes = &r_loadmodel->nodes[mod->firstnode];
+
+		R_SetupBspSubmodel(mod->nodes, mod);
+
+		mod->first_model_surface = sub->first_face;
+		mod->num_model_surfaces = sub->num_faces;
 	}
 }
 
@@ -960,205 +985,6 @@ static void R_LoadBspSurfacesArrays(void){
 
 
 /*
- * R_AddBspLight
- *
- * Adds the specified static light source to the world model, after first
- * ensuring that it can not be merged with any known sources.
- */
-static void R_AddBspLight(vec3_t org, float radius, vec3_t color){
-	r_bsp_light_t *l;
-	vec3_t delta;
-	int i;
-
-	l = r_loadmodel->bsp_lights;
-	for(i = 0; i < r_loadmodel->num_bsp_lights; i++, l++){
-
-		VectorSubtract(org, l->origin, delta);
-
-		if(VectorLength(delta) <= 32.0)  // merge them
-			break;
-	}
-
-	if(i == r_loadmodel->num_bsp_lights){  // or allocate a new one
-
-		l = (r_bsp_light_t *)R_HunkAlloc(sizeof(*l));
-
-		if(!r_loadmodel->bsp_lights)  // first source
-			r_loadmodel->bsp_lights = l;
-
-		VectorCopy(org, l->origin);
-		VectorCopy(color, l->color);
-
-
-		l->leaf = R_LeafForPoint(l->origin, r_loadmodel);
-		r_loadmodel->num_bsp_lights++;
-	}
-
-	l->count++;
-
-	l->radius = (l->radius * l->count - 1) + radius / l->count;
-}
-
-
-#define BSP_LIGHT_SURFACE_RADIUS_SCALE 1.0
-#define BSP_LIGHT_POINT_RADIUS_SCALE 1.0
-
-/*
- * R_LoadBspLights
- *
- * Parse the entity string and resolve all static light sources.  Also
- * iterate the world surfaces, allocating static light sources for those
- * which emit light.
- */
-static void R_LoadBspLights(void){
-	const char *ents;
-	char class_name[128];
-	vec3_t org, tmp, color;
-	float radius;
-	qboolean entity, light;
-	r_bsp_surface_t *surf;
-	int i;
-
-	// iterate the world surfaces for surface lights
-	surf = r_loadmodel->surfaces;
-
-	for(i = 0; i < r_loadmodel->num_surfaces; i++, surf++){
-
-		if((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value){
-			VectorMA(surf->center, 1.0, surf->normal, org);
-
-			VectorSubtract(surf->maxs, surf->mins, tmp);
-			radius = VectorLength(tmp);
-
-			R_AddBspLight(org, radius * BSP_LIGHT_SURFACE_RADIUS_SCALE, surf->color);
-		}
-	}
-
-	// parse the entity string for point lights
-	ents = Cm_EntityString();
-
-	VectorClear(org);
-	radius = 0.0;
-	VectorSet(color, 1.0, 1.0, 1.0);
-
-	memset(class_name, 0, sizeof(class_name));
-	entity = light = false;
-
-	while(true){
-
-		const char *c = Com_Parse(&ents);
-
-		if(!strlen(c))
-			break;
-
-		if(*c == '{')
-			entity = true;
-
-		if(!entity)  // skip any whitespace between ents
-			continue;
-
-		if(*c == '}'){
-			entity = false;
-
-			if(light){  // add it
-
-				if(radius <= 0.0)  // clamp it like q2wmap does
-					radius = 300.0;
-
-				R_AddBspLight(org, radius * BSP_LIGHT_POINT_RADIUS_SCALE, color);
-
-				radius = 0.0;
-				VectorSet(color, 1.0, 1.0, 1.0);
-
-				light = false;
-			}
-		}
-
-		if(!strcmp(c, "classname")){
-
-			c = Com_Parse(&ents);
-			strncpy(class_name, c, sizeof(class_name) - 1);
-
-			if(!strncmp(c, "light", 5))  // light, light_spot, etc..
-				light = true;
-
-			continue;
-		}
-
-		if(!strcmp(c, "origin")){
-			sscanf(Com_Parse(&ents), "%f %f %f", &org[0], &org[1], &org[2]);
-			continue;
-		}
-
-		if(!strcmp(c, "light")){
-			radius = atof(Com_Parse(&ents));
-			continue;
-		}
-
-		if(!strcmp(c, "color")){
-			sscanf(Com_Parse(&ents), "%f %f %f", &color[0], &color[1], &color[2]);
-			continue;
-		}
-	}
-
-	Com_Debug("Loaded %d bsp lights\n", r_loadmodel->num_bsp_lights);
-}
-
-
-/*
- * R_SetupBspSubmodel
- *
- * Recurses the specified submodel nodes, assigning the model so that it can
- * be quickly resolved during traces and dynamic light processing.
- */
-static void R_SetupBspSubmodel(r_bsp_node_t *node, r_model_t *model){
-
-	node->model = model;
-
-	if(node->contents != CONTENTS_NODE)
-		return;
-
-	R_SetupBspSubmodel(node->children[0], model);
-	R_SetupBspSubmodel(node->children[1], model);
-}
-
-
-/*
- * R_SetupBspSubmodels
- *
- * The submodels have been loaded into memory, but are not yet
- * represented as model_t.  Convert them.
- */
-static void R_SetupBspSubmodels(void){
-	int i;
-
-	for(i = 0; i < r_loadmodel->num_submodels; i++){
-
-		r_model_t *mod = &r_inline_models[i];
-		const r_bsp_submodel_t *sub = &r_loadmodel->submodels[i];
-
-		*mod = *r_loadmodel;  // copy most info from world
-		mod->type = mod_bsp_submodel;
-
-		snprintf(mod->name, sizeof(mod->name), "*%d", i);
-
-		// copy the rest from the submodel
-		VectorCopy(sub->maxs, mod->maxs);
-		VectorCopy(sub->mins, mod->mins);
-		mod->radius = sub->radius;
-
-		mod->firstnode = sub->head_node;
-		mod->nodes = &r_loadmodel->nodes[mod->firstnode];
-
-		R_SetupBspSubmodel(mod->nodes, mod);
-
-		mod->first_model_surface = sub->first_face;
-		mod->num_model_surfaces = sub->num_faces;
-	}
-}
-
-
-/*
  * R_LoadBspModel
  */
 void R_LoadBspModel(r_model_t *mod, void *buffer){
@@ -1200,7 +1026,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer){
 	R_LoadBspSurfedges(&header->lumps[LUMP_SURFEDGES]);
 	Cl_LoadProgress(12);
 
-	R_LoadBspLighting(&header->lumps[LUMP_LIGHTING]);
+	R_LoadBspLightmaps(&header->lumps[LUMP_LIGHMAPS]);
 	Cl_LoadProgress(16);
 
 	R_LoadBspPlanes(&header->lumps[LUMP_PLANES]);
@@ -1227,6 +1053,8 @@ void R_LoadBspModel(r_model_t *mod, void *buffer){
 	R_LoadBspSubmodels(&header->lumps[LUMP_MODELS]);
 	Cl_LoadProgress(48);
 
+	R_SetupBspSubmodels();
+
 	Com_Debug("================================\n");
 	Com_Debug("R_LoadBspModel: %s\n", r_loadmodel->name);
 	Com_Debug("  Verts:      %d\n", r_loadmodel->num_vertexes);
@@ -1237,7 +1065,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer){
 	Com_Debug("  Leafs:      %d\n", r_loadmodel->num_leafs);
 	Com_Debug("  Leaf faces: %d\n", r_loadmodel->num_leaf_surfaces);
 	Com_Debug("  Models:     %d\n", r_loadmodel->num_submodels);
-	Com_Debug("  Lightdata:  %d\n", r_loadmodel->lightmap_data_size);
+	Com_Debug("  Lightmaps:  %d\n", r_loadmodel->lightmap_data_size);
 	Com_Debug("  Vis:        %d\n", r_loadmodel->vis_size);
 
 	if(r_loadmodel->vis)
@@ -1245,14 +1073,11 @@ void R_LoadBspModel(r_model_t *mod, void *buffer){
 
 	Com_Debug("================================\n");
 
-	R_LoadBspLights();
-
-	R_SetupBspSubmodels();
-
 	R_LoadBspVertexArrays();
 
 	R_LoadBspSurfacesArrays();
 
-	memset(&r_locals, 0, sizeof(r_locals));
+	R_LoadBspLights();
+
 	r_locals.old_cluster = -1;  // force bsp iteration
 }

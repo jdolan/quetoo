@@ -37,7 +37,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e){
 	int i;
 
 	// translation is applied differently for view weapons
-	if(e->flags & EF_WEAPON){
+	if(e->effects & EF_WEAPON){
 
 		// adjust forward / back offset according to field of view
 		float f = (r_view.fov_x - 90.0) * 0.15;
@@ -70,7 +70,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e){
 		e->scale[i] *= c->scale[i];
 
 	// lastly apply effects
-	e->flags |= c->flags;
+	e->effects |= c->flags;
 }
 
 
@@ -81,7 +81,7 @@ qboolean R_CullMeshModel(const r_entity_t *e){
 	vec3_t mins, maxs;
 	int i;
 
-	if(e->flags & EF_WEAPON)  // never cull the weapon
+	if(e->effects & EF_WEAPON)  // never cull the weapon
 		return false;
 
 	// determine scaled mins/maxs
@@ -105,14 +105,14 @@ static void R_SetMeshColor_default(const r_entity_t *e){
 	float f;
 	int i;
 
-	VectorCopy(e->lighting->color, color);
+	VectorCopy(r_locals.ambient_light, color);
 
-	if(e->flags & EF_BLEND)
+	if(e->effects & EF_BLEND)
 		color[3] = 0.25;
 	else
 		color[3] = 1.0;
 
-	if(e->flags & EF_PULSE){
+	if(e->effects & EF_PULSE){
 		f = sin((r_view.time + e->model->num_verts) * 6.0) * 0.75;
 		VectorScale(color, 1.0 + f, color);
 	}
@@ -151,37 +151,41 @@ static void R_SetMeshState_default(const r_entity_t *e){
 		else
 			R_BindTexture(e->model->skin->texnum);
 
-		R_SetMeshColor_default(e);  // and color
+		R_SetMeshColor_default(e);
 	}
 
 	// enable hardware light sources, transform static lighting position
-	if(r_state.lighting_enabled && !(e->flags & EF_NO_LIGHTING)){
-		vec3_t lightpos;
+	if(r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)){
 
 		R_EnableLightsByRadius(e->origin);
 
-		R_TransformForEntity(e, e->lighting->position, lightpos);
+		R_ApplyLighting(e->lighting);
 
-		R_ProgramParameter3fv("LIGHTPOS", lightpos);
 #if 0
-		if(e->flags & EF_WEAPON){
+		if(e->effects & EF_WEAPON){
 			r_entity_t ent;
+			int i;
 
-			memset(&ent, 0, sizeof(ent));
+			for(i = 0; i < MAX_ACTIVE_LIGHTS; i++){
+				const r_bsp_light_t *l = e->lighting->bsp_lights[i];
 
-			ent.lerp = 1.0;
+				if(!l)
+					break;
 
-			VectorSet(ent.scale, 1.0, 1.0, 1.0);
-			VectorCopy(e->lighting->position, ent.origin);
+				memset(&ent, 0, sizeof(ent));
 
-			R_AddEntity(&ent);
+				ent.lerp = 1.0;
 
-			Com_Debug("%3.2f %3.2f %3.2f\n", lightpos[0], lightpos[1], lightpos[2]);
+				VectorSet(ent.scale, 1.0, 1.0, 1.0);
+				VectorCopy(l->origin, ent.origin);
+
+				R_AddEntity(&ent);
+			}
 		}
 #endif
 	}
 
-	if(e->flags & EF_WEAPON)  // prevent weapon from poking into walls
+	if(e->effects & EF_WEAPON)  // prevent weapon from poking into walls
 		glDepthRange(0.0, 0.3);
 
 	// now rotate and translate to the ent's origin
@@ -197,16 +201,15 @@ static void R_ResetMeshState_default(const r_entity_t *e){
 	if(e->model->num_frames > 1)
 		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 
-	if(e->flags & EF_WEAPON)
+	if(e->effects & EF_WEAPON)
 		glDepthRange(0.0, 1.0);
 
 	R_RotateForEntity(NULL);
 }
 
 
-#define SHADOW_HEIGHT_THRESHOLD 128.0
-#define SHADOW_SCALE 1.5
-#define SHADOW_ALPHA 0.2
+#define MESH_SHADOW_SCALE 1.5
+#define MESH_SHADOW_ALPHA 0.2
 
 /*
  * R_RotateForMeshShadow_default
@@ -216,31 +219,25 @@ static void R_ResetMeshState_default(const r_entity_t *e){
  * pass, the shadow origin must transformed into model-view space.
  */
 static void R_RotateForMeshShadow_default(const r_entity_t *e){
-	vec3_t org, dir;
-	float height, threshold, scale, dist;
+	vec3_t origin;
+	float height, threshold, scale;
 
 	if(!e){
 		glPopMatrix();
 		return;
 	}
 
-	R_TransformForEntity(e, e->lighting->point, org);
+	R_TransformForEntity(e, e->lighting->shadow_origin, origin);
 
-	height = -org[2];
+	height = -origin[2];
 
-	threshold = SHADOW_HEIGHT_THRESHOLD / e->scale[2];
+	threshold = LIGHTING_MAX_SHADOW_DISTANCE / e->scale[2];
 
-	scale = SHADOW_SCALE * (threshold - height) / threshold;
-
-	R_TransformForEntity(e, e->lighting->position, dir);
-	dir[2] = 0.0;
-
-	dist = VectorNormalize(dir);
-	VectorScale(dir, sqrt(dist), dir);
+	scale = MESH_SHADOW_SCALE * (threshold - height) / threshold;
 
 	glPushMatrix();
 
-	glTranslatef(-dir[0], -dir[1], -height + 1.0);
+	glTranslatef(origin[0], origin[1], -height + 1.0);
 
 	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
 
@@ -262,19 +259,19 @@ static void R_DrawMeshShadow_default(r_entity_t *e){
 	if(r_showpolys->value)
 		return;
 
-	if(e->flags & EF_NO_SHADOW)
+	if(e->effects & EF_NO_SHADOW)
 		return;
 
-	if(e->flags & EF_BLEND)
+	if(e->effects & EF_BLEND)
 		return;
 
-	if(VectorCompare(e->lighting->point, vec3_origin))
+	if(VectorCompare(e->lighting->shadow_origin, vec3_origin))
 		return;
 
-	if(e->lighting->point[2] > r_view.origin[2])
+	if(e->lighting->shadow_origin[2] > r_view.origin[2])
 		return;
 
-	glColor4f(0.0, 0.0, 0.0, r_shadows->value * SHADOW_ALPHA);
+	glColor4f(0.0, 0.0, 0.0, r_shadows->value * MESH_SHADOW_ALPHA);
 
 	R_EnableTexture(&texunit_diffuse, false);
 
@@ -484,8 +481,8 @@ void R_DrawMeshModel_default(r_entity_t *e){
 		e->old_frame = 0;
 	}
 
-	if(e->lighting->dirty){  // update static lighting info
-		if(e->flags & EF_WEAPON)
+	if(e->lighting->state != LIGHTING_READY){  // update static lighting info
+		if(e->effects & EF_WEAPON)
 			R_UpdateLighting(r_view.origin, e->lighting);
 		else
 			R_UpdateLighting(e->origin, e->lighting);

@@ -94,7 +94,7 @@ qboolean PvsForOrigin(const vec3_t org, byte *pvs){
 }
 
 
-extern int numcmodels;
+extern int num_cmodels;
 extern cmodel_t map_cmodels[MAX_BSP_MODELS];
 
 /*
@@ -106,7 +106,7 @@ void Light_Trace(trace_t *trace, const vec3_t start, const vec3_t end, int mask)
 
 	frac = 9999.0;
 
-	for(i = 0; i < numcmodels; i++){
+	for(i = 0; i < num_cmodels; i++){
 
 		const trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin,
 				map_cmodels[i].head_node, mask);

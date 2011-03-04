@@ -22,12 +22,10 @@
 #include "renderer.h"
 
 
-#define LIGHT_RADIUS_FACTOR 80.0  // light radius multiplier for shader
-
 /*
  * R_AddLight
  */
-void R_AddLight(const vec3_t org, float radius, const vec3_t color){
+void R_AddLight(const vec3_t origin, float radius, const vec3_t color){
 	r_light_t *l;
 
 	if(!r_lights->value)
@@ -38,7 +36,7 @@ void R_AddLight(const vec3_t org, float radius, const vec3_t color){
 
 	l = &r_view.lights[r_view.num_lights++];
 
-	VectorCopy(org, l->org);
+	VectorCopy(origin, l->origin);
 	l->radius = radius;
 	VectorCopy(color, l->color);
 }
@@ -47,14 +45,14 @@ void R_AddLight(const vec3_t org, float radius, const vec3_t color){
 /*
  * R_AddSustainedLight
  */
-void R_AddSustainedLight(const vec3_t org, float radius, const vec3_t color, float sustain){
+void R_AddSustainedLight(const vec3_t origin, float radius, const vec3_t color, float sustain){
 	r_sustained_light_t *s;
 	int i;
 
 	if(!r_lights->value)
 		return;
 
-	s = r_view.sustains;
+	s = r_view.sustained_lights;
 
 	for(i = 0; i < MAX_LIGHTS; i++, s++)
 		if(!s->sustain)
@@ -63,7 +61,7 @@ void R_AddSustainedLight(const vec3_t org, float radius, const vec3_t color, flo
 	if(i == MAX_LIGHTS)
 		return;
 
-	VectorCopy(org, s->light.org);
+	VectorCopy(origin, s->light.origin);
 	s->light.radius = radius;
 	VectorCopy(color, s->light.color);
 
@@ -82,7 +80,7 @@ static void R_AddSustainedLights(void){
 	int i;
 
 	// sustains must be recalculated every frame
-	for(i = 0, s = r_view.sustains; i < MAX_LIGHTS; i++, s++){
+	for(i = 0, s = r_view.sustained_lights; i < MAX_LIGHTS; i++, s++){
 
 		if(s->sustain <= r_view.time){  // clear it
 			s->sustain = 0;
@@ -92,13 +90,27 @@ static void R_AddSustainedLights(void){
 		intensity = (s->sustain - r_view.time) / (s->sustain - s->time);
 		VectorScale(s->light.color, intensity, color);
 
-		R_AddLight(s->light.org, s->light.radius, color);
+		R_AddLight(s->light.origin, s->light.radius, color);
 	}
+}
+
+/*
+ * R_ResetLights
+ *
+ * Resets hardware light source state.  Note that this is accomplished purely
+ * client-side.  Our internal accounting lets us avoid GL state changes.
+ */
+void R_ResetLights(void){
+
+	r_locals.active_light_mask = 0xffffffff;
+	r_locals.active_light_count = 0;
 }
 
 
 /*
  * R_MarkLights_
+ *
+ * Recursively populates light source bit masks for world surfaces.
  */
 static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t *node){
 	r_bsp_surface_t *surf;
@@ -113,16 +125,16 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t 
 		if(!node->model)  // and not a bsp submodel
 			return;
 
-	VectorSubtract(light->org, trans, origin);
+	VectorSubtract(light->origin, trans, origin);
 
 	dist = DotProduct(origin, node->plane->normal) - node->plane->dist;
 
-	if(dist > light->radius * LIGHT_RADIUS_FACTOR){  // front only
+	if(dist > light->radius){  // front only
 		R_MarkLights_(light, trans, bit, node->children[0]);
 		return;
 	}
 
-	if(dist < light->radius * -LIGHT_RADIUS_FACTOR){  // back only
+	if(dist < -light->radius){  // back only
 		R_MarkLights_(light, trans, bit, node->children[1]);
 		return;
 	}
@@ -151,13 +163,17 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t 
 
 /*
  * R_MarkLights
+ *
+ * Iterates the world surfaces (and those of BSP sub-models), populating the
+ * light source bit masks so that we know which light sources each surface
+ * should receive.
  */
 void R_MarkLights(void){
 	int i, j;
 
 	r_locals.light_frame++;
 
-	if(r_locals.light_frame > 0xffff)  // avoid overflows
+	if(r_locals.light_frame > 0x7FFFFFFF)  // avoid overflows
 		r_locals.light_frame = 0;
 
 	R_AddSustainedLights();
@@ -181,9 +197,6 @@ void R_MarkLights(void){
 			}
 		}
 	}
-
-	// reset state
-	R_EnableLights(0);
 }
 
 
@@ -192,7 +205,7 @@ static vec3_t lights_offset;
 /*
  * R_ShiftLights
  *
- * Light sources must be translated for bsp submodel entities.
+ * Light sources must be translated for mod_bsp_submodel entities.
  */
 void R_ShiftLights(const vec3_t offset){
 	VectorCopy(offset, lights_offset);
@@ -201,19 +214,20 @@ void R_ShiftLights(const vec3_t offset){
 
 /*
  * R_EnableLights
+ *
+ * Enables the light sources indicated by the specified bit mask.  Care is
+ * taken to avoid GL state changes whenever possible.
  */
 void R_EnableLights(int mask){
-	static int last_mask;
-	static int last_count;
 	int count;
 
-	if(mask == last_mask)  // no change
+	if(mask == r_locals.active_light_mask)  // no change
 		return;
 
-	last_mask = mask;
+	r_locals.active_light_mask = mask;
 	count = 0;
 
-	if(mask){  // enable up to 8 light sources
+	if(mask){  // enable up to MAX_ACTIVE_LIGHT sources
 		const r_light_t *l;
 		vec4_t position;
 		vec4_t diffuse;
@@ -228,30 +242,31 @@ void R_EnableLights(int mask){
 
 			if(mask & (1 << i)){
 
-				VectorSubtract(l->org, lights_offset, position);
+				VectorSubtract(l->origin, lights_offset, position);
 				glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
 
 				VectorCopy(l->color, diffuse);
 				glLightfv(GL_LIGHT0 + count, GL_DIFFUSE, diffuse);
 
-				glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION,
-						l->radius * LIGHT_RADIUS_FACTOR);
+				glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, l->radius);
 				count++;
 			}
 		}
 	}
 
-	if(count != last_count){
-		if(count < MAX_ACTIVE_LIGHTS)  // disable the next light as a stop
-			glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, 0.0);
-	}
+	if(count < MAX_ACTIVE_LIGHTS)  // disable the next light as a stop
+		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, 0.0);
 
-	last_count = count;
+	r_locals.active_light_count = count;
 }
 
 
 /*
  * R_EnableLightsByRadius
+ *
+ * Enables light sources within range of the specified point.  This is used by
+ * mesh entities, as they are not addressed with the recursive BSP-related
+ * functions above.
  */
 void R_EnableLightsByRadius(const vec3_t p){
 	const r_light_t *l;
@@ -262,9 +277,9 @@ void R_EnableLightsByRadius(const vec3_t p){
 
 	for(i = 0, l = r_view.lights; i < r_view.num_lights; i++, l++){
 
-		VectorSubtract(l->org, p, delta);
+		VectorSubtract(l->origin, p, delta);
 
-		if(VectorLength(delta) < l->radius * LIGHT_RADIUS_FACTOR)
+		if(VectorLength(delta) < l->radius)
 			mask |= (1 << i);
 	}
 

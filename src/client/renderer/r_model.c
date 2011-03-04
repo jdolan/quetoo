@@ -22,28 +22,31 @@
 #include "renderer.h"
 
 r_model_t r_models[MAX_MOD_KNOWN];
-int r_nummodels;
+int r_num_models;
 
 r_model_t r_inline_models[MAX_MOD_KNOWN];
 
-static byte *hunk = NULL;
-static size_t hunkbytes;
-static ptrdiff_t hunkofs;
+typedef struct r_hunk_s {
+	byte *base;
+	size_t size;
+	ptrdiff_t offset;
+} r_hunk_t;
 
+static r_hunk_t r_hunk;
 
 /*
  * R_HunkBegin
  */
 static void *R_HunkBegin(){
-	return hunk + hunkofs;
+	return r_hunk.base + r_hunk.offset;
 }
 
 
 /*
  * R_HunkEnd
  */
-static int R_HunkEnd(void *buf){
-	return hunk + hunkofs - (byte *)buf;
+static size_t R_HunkEnd(void *buf){
+	return r_hunk.base + r_hunk.offset - (byte *)buf;
 }
 
 
@@ -53,12 +56,13 @@ static int R_HunkEnd(void *buf){
 void *R_HunkAlloc(size_t size){
 	byte *b;
 
-	if(hunkofs + size > hunkbytes){
+	if(r_hunk.offset + size > r_hunk.size){
 		Com_Error(ERR_FATAL, "R_HunkAlloc: Overflow.");
 	}
 
-	b = hunk + hunkofs;
-	hunkofs += size;
+	b = r_hunk.base + r_hunk.offset;
+	r_hunk.offset += size;
+
 	return b;
 }
 
@@ -216,22 +220,22 @@ r_model_t *R_LoadModel(const char *name){
 	Com_StripExtension(name, n);
 
 	// search the currently loaded models
-	for(i = 0 , mod = r_models; i < r_nummodels; i++, mod++){
+	for(i = 0 , mod = r_models; i < r_num_models; i++, mod++){
 		if(!strcmp(n, mod->name))
 			return mod;
 	}
 
 	// find a free model slot spot
-	for(i = 0, mod = r_models; i < r_nummodels; i++, mod++){
+	for(i = 0, mod = r_models; i < r_num_models; i++, mod++){
 		if(!mod->name[0])
 			break;  // free spot
 	}
 
-	if(i == r_nummodels){
-		if(r_nummodels == MAX_MOD_KNOWN){
+	if(i == r_num_models){
+		if(r_num_models == MAX_MOD_KNOWN){
 			Com_Error(ERR_DROP, "R_LoadModel: MAX_MOD_KNOWN reached.");
 		}
-		r_nummodels++;
+		r_num_models++;
 	}
 
 	// load the file
@@ -272,18 +276,22 @@ r_model_t *R_LoadModel(const char *name){
  * R_ListModels_f
  */
 void R_ListModels_f(void){
-	int i;
 	r_model_t *mod;
-	int total;
+	int i, total;
 
 	total = 0;
 	Com_Print("Loaded models:\n");
-	for(i = 0, mod = r_models; i < r_nummodels; i++, mod++){
+
+	for(i = 0, mod = r_models; i < r_num_models; i++, mod++){
+
 		if(!mod->name[0])
 			continue;
+
 		Com_Print("%6i: %s\n", mod->num_verts, mod->name);
+
 		total += mod->extra_data_size;
 	}
+
 	Com_Print("Total resident: %i\n", total);
 }
 
@@ -293,7 +301,7 @@ void R_ListModels_f(void){
  */
 void R_HunkStats_f(void){
 	Com_Print("Hunk usage: %.2f / %.2f MB\n",
-			hunkofs / 1024.0 / 1024.0, r_hunkmegs->value);
+			r_hunk.offset / 1024.0 / 1024.0, r_hunkmegs->value);
 }
 
 
@@ -303,7 +311,7 @@ void R_HunkStats_f(void){
 static void R_FreeModels(void){
 	int i;
 
-	for(i = 0; i < r_nummodels; i++){
+	for(i = 0; i < r_num_models; i++){
 		r_model_t *mod = &r_models[i];
 
 		if(mod->vertex_buffer)
@@ -320,14 +328,14 @@ static void R_FreeModels(void){
 
 	// reset the models array
 	memset(r_models, 0, sizeof(r_models));
-	r_nummodels = 0;
+	r_num_models = 0;
 
 	// reset inline models
 	memset(r_inline_models, 0, sizeof(r_inline_models));
 
 	// reset the hunk
-	memset(hunk, 0, hunkbytes);
-	hunkofs = 0;
+	memset(r_hunk.base, 0, r_hunk.size);
+	r_hunk.offset = 0;
 }
 
 
@@ -362,13 +370,13 @@ void R_BeginLoading(const char *map, int mapsize){
 void R_InitModels(void){
 
 	// allocate the hunk
-	hunkbytes = (int)r_hunkmegs->value * 1024 * 1024;
+	r_hunk.size = (size_t)r_hunkmegs->value * 1024 * 1024;
 
-	if(!(hunk = Z_Malloc(hunkbytes))){  // malloc the new one
+	if(!(r_hunk.base = Z_Malloc(r_hunk.size))){  // malloc the new one
 		Com_Error(ERR_FATAL, "R_HunkInit: Unable to allocate hunk.");
 	}
 
-	hunkofs = 0;
+	r_hunk.offset = 0;
 }
 
 
@@ -379,6 +387,6 @@ void R_ShutdownModels(void){
 
 	R_FreeModels();
 
-	if(hunk)  // free the hunk
-		Z_Free(hunk);
+	if(r_hunk.base)  // free the hunk
+		Z_Free(r_hunk.base);
 }

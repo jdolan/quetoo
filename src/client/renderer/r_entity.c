@@ -72,9 +72,9 @@ void R_AddEntity(const r_entity_t *ent){
 			return;
 		}
 
-		if(e->flags & EF_ALPHATEST)
+		if(e->effects & EF_ALPHATEST)
 			chain = &r_alpha_test_mesh_entities;
-		else if(e->flags & EF_BLEND)
+		else if(e->effects & EF_BLEND)
 			chain = &r_blend_mesh_entities;
 		else
 			chain = &r_opaque_mesh_entities;

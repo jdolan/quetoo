@@ -477,31 +477,66 @@ void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out){
 		out[i] = v1[i] * (1.0 - mix) + v2[i] * mix;
 }
 
-
 /*
  * ColorNormalize
  */
 vec_t ColorNormalize(const vec3_t in, vec3_t out){
-	vec_t max;
+	vec_t max = 0.0;
+	int i;
 
+	VectorCopy(in, out);
 
-	// find the brightest component
-	max = in[0];
+	for(i = 0; i < 3; i++){  // find the brightest component
 
-	if(in[1] > max)
-		max = in[1];
+		if(out[i] < 0.0)  // enforcing positive values
+			out[i] = 0.0;
 
-	if(in[2] > max)
-		max = in[2];
-
-	if(max == 0.0){  // avoid FPE
-		VectorClear(out);
-		return 0.0;
+		if(out[i] > max)
+			max = out[i];
 	}
 
-	VectorScale(in, 1.0 / max, out);
+	if(max > 1.0)  // clamp without changing hue
+		VectorScale(out, 1.0 / max, out);
 
 	return max;
+}
+
+
+/*
+ * ColorFilter
+ *
+ * Applies brightness, saturation and contrast to the specified input color.
+ */
+void ColorFilter(const vec3_t in, vec3_t out, float brightness,
+		float saturation, float contrast){
+	const vec3_t luminosity = {0.2125, 0.7154, 0.0721};
+	vec3_t intensity;
+	float d;
+	int i;
+
+	// apply global scale factor
+	VectorScale(in, brightness, out);
+
+	ColorNormalize(out, out);
+
+	for(i = 0; i < 3; i++){  // apply contrast
+
+		out[i] -= 0.5;  // normalize to -0.5 through 0.5
+
+		out[i] *= contrast;  // scale
+
+		out[i] += 0.5;
+	}
+
+	ColorNormalize(out, out);
+
+	// apply saturation
+	d = DotProduct(out, luminosity);
+
+	VectorSet(intensity, d, d, d);
+	VectorMix(intensity, out, saturation, out);
+
+	ColorNormalize(out, out);
 }
 
 

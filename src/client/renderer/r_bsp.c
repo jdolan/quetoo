@@ -338,31 +338,31 @@ static void R_MarkSurfaces_(r_bsp_node_t *node){
  * is also where the infamous r_optimize strategy is implemented.
  */
 void R_MarkSurfaces(void){
-	static vec3_t oldorigin, oldangles;
-	static int oldvis_frame;
-	static float oldfov;
+	static vec3_t old_origin, old_angles;
+	static int old_vis_frame;
+	static float old_fov;
 	vec3_t o, a;
 
-	VectorSubtract(r_view.origin, oldorigin, o);
-	VectorSubtract(r_view.angles, oldangles, a);
+	VectorSubtract(r_view.origin, old_origin, o);
+	VectorSubtract(r_view.angles, old_angles, a);
 
 	// only recurse after cluster change AND significant movement
 	if(r_optimize->value &&
-			(r_locals.vis_frame == oldvis_frame) &&  // same pvs
-			(r_view.fov_x == oldfov) &&  // same fov
+			(r_locals.vis_frame == old_vis_frame) &&  // same pvs
+			(r_view.fov_x == old_fov) &&  // same fov
 			VectorLength(o) < 5.0 && VectorLength(a) < 2.0)  // little movement
 		return;
 
-	oldvis_frame = r_locals.vis_frame;
-	oldfov = r_view.fov_x;
+	old_vis_frame = r_locals.vis_frame;
+	old_fov = r_view.fov_x;
 
 	r_locals.frame++;
 
-	if(r_locals.frame > 0xffff)  // avoid overflows, negatives are reserved
+	if(r_locals.frame > 0x7FFFFFFF)  // avoid overflows, negatives are reserved
 		r_locals.frame = 0;
 
-	VectorCopy(r_view.origin, oldorigin);
-	VectorCopy(r_view.angles, oldangles);
+	VectorCopy(r_view.origin, old_origin);
+	VectorCopy(r_view.angles, old_angles);
 
 	R_ClearSkyBox();
 
@@ -487,7 +487,7 @@ void R_MarkLeafs(void){
 
 	r_locals.vis_frame++;
 
-	if(r_locals.vis_frame > 0xffff)  // avoid overflows, negatives are reserved
+	if(r_locals.vis_frame > 0x7FFFFFFF)  // avoid overflows, negatives are reserved
 		r_locals.vis_frame = 0;
 
 	if(r_novis->value || !r_worldmodel->vis){  // mark everything

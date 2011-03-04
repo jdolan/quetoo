@@ -277,16 +277,16 @@ static qboolean Cl_ParseServerData(void){
  * Cl_ParseBaseline
  */
 static void Cl_ParseBaseline(void){
-	entity_state_t *es;
+	entity_state_t *state;
 	unsigned int bits;
-	int newnum;
-	entity_state_t nullstate;
+	int new_num;
+	entity_state_t null_state;
 
-	memset(&nullstate, 0, sizeof(nullstate));
+	memset(&null_state, 0, sizeof(null_state));
 
-	newnum = Cl_ParseEntityBits(&bits);
-	es = &cl.entities[newnum].baseline;
-	Cl_ParseDelta(&nullstate, es, newnum, bits);
+	new_num = Cl_ParseEntityBits(&bits);
+	state = &cl.entities[new_num].baseline;
+	Cl_ParseDelta(&null_state, state, new_num, bits);
 }
 
 

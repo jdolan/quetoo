@@ -174,6 +174,7 @@ void VectorMix(const vec3_t v1, const vec3_t v2, const float mix, vec3_t out);
 void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t vecc);
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
 vec_t ColorNormalize(const vec3_t in, vec3_t out);
+void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation, float contrast);
 
 #define DEG2RAD(a)				(a * M_PI) / 180.0F
 
@@ -492,7 +493,7 @@ typedef struct {
 #define EF_BEAM				(1 << 14)  // overload old_origin for 2nd endpoint
 
 // small or full-bright entities can skip static and dynamic lighting
-#define EF_NO_LIGHTING		(/*EF_GRENADE | EF_ROCKET*/ 0)
+#define EF_NO_LIGHTING		(EF_GRENADE | EF_ROCKET)
 
 // the 16 high bits are never transmitted, they're for the renderer only
 #define EF_ALPHATEST		(1 << 28)  // alpha test

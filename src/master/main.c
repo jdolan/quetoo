@@ -218,7 +218,7 @@ static void Ms_RunFrame(void){
  */
 static void Ms_SendServersList(struct sockaddr_in *from){
 	int buflen;
-	char buff[0xFFFF];
+	char buff[0xffff];
 	server_t *server = &servers;
 
 	buflen = 0;

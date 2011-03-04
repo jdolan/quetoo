@@ -15,6 +15,7 @@ if BUILD_CLIENT
 
 librenderer_la_SOURCES = \
 	r_array.c \
+	r_bsp_light.c \
 	r_bsp.c \
 	r_capture.c \
 	r_context.c \
@@ -24,6 +25,7 @@ librenderer_la_SOURCES = \
 	r_flare.c \
 	r_image.c \
 	r_light.c \
+	r_lighting.c \
 	r_lightmap.c \
 	r_main.c \
 	r_material.c \

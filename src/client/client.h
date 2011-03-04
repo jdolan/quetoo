@@ -35,7 +35,7 @@
 typedef struct cl_frame_s {
 	qboolean valid;  // cleared if delta parsing was invalid
 	int server_frame;
-	int server_time;  // server time the message is valid for (in msec)
+	int server_time;  // server time the message is valid for (in milliseconds)
 	int delta_frame;
 	byte area_bits[MAX_BSP_AREAS / 8];  // portal area visibility bits
 	player_state_t ps;
@@ -48,7 +48,7 @@ typedef struct cl_entity_s {
 	entity_state_t current;
 	entity_state_t prev;  // will always be valid, but might just be a copy of current
 
-	int server_frame;  // if not current, this ent isn't in the frame
+	int server_frame;  // if not current, this entity isn't in the frame
 
 	int time;  // for intermittent effects
 

@@ -34,6 +34,9 @@ void R_AddCorona(const vec3_t org, float radius, float flicker, const vec3_t col
 	if(r_view.num_coronas == MAX_CORONAS)
 		return;
 
+	if(radius < 1.0)
+		return;
+
 	c = &r_view.coronas[r_view.num_coronas++];
 
 	VectorCopy(org, c->org);
@@ -68,9 +71,6 @@ void R_DrawCoronas(void){
 		const r_corona_t *c = &r_view.coronas[k];
 		const float f = c->radius * c->flicker * sin(90.0 * r_view.time);
 		int verts, vertind;
-
-		if(!c->radius)
-			continue;
 
 		// use at least 12 verts, more for larger coronas
 		verts = 12 + c->radius / 8;

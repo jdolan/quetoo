@@ -329,6 +329,8 @@ void R_EnableLighting(r_program_t *program, qboolean enable){
 	if(enable){  // toggle state
 		R_UseProgram(program);
 
+		R_ResetLights();
+
 		glEnableClientState(GL_NORMAL_ARRAY);
 	}
 	else {
@@ -631,7 +633,7 @@ void R_SetDefaultState(void){
 	glAlphaFunc(GL_GREATER, 0.25);
 
 	// stencil test parameters
-	glStencilFunc(GL_GEQUAL, 1, 0xFF);
+	glStencilFunc(GL_GEQUAL, 1, 0xff);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 
 	// fog parameters

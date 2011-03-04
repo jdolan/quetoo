@@ -70,7 +70,7 @@ static int num_emits = 0;
  */
 void Cl_LoadEmits(void){
 	const char *ents;
-	char class[128];
+	char class_name[128];
 	emit_t *e;
 	qboolean entity, emit;
 
@@ -79,7 +79,7 @@ void Cl_LoadEmits(void){
 
 	ents = Cm_EntityString();
 
-	memset(class, 0, sizeof(class));
+	memset(class_name, 0, sizeof(class_name));
 	entity = emit = false;
 
 	e = NULL;
@@ -137,7 +137,7 @@ void Cl_LoadEmits(void){
 				if(e->count <= 0)  // default particle count
 					e->count = 12;
 
-				if(e->radius <= 0.0){  // default flame and corona radius
+				if(e->radius <= 0.0){  // default light and corona radius
 
 					if(e->flags & EMIT_CORONA)
 						e->radius = 12.0;
@@ -203,8 +203,6 @@ void Cl_LoadEmits(void){
 						e->loop = e->hz == 0.0;
 				}
 
-				e->lighting.dirty = true;
-
 				Com_Debug("Added %d emit at %f %f %f\n", e->flags,
 						e->org[0], e->org[1], e->org[2]);
 
@@ -219,7 +217,7 @@ void Cl_LoadEmits(void){
 		if(!strcmp(c, "classname")){
 
 			c = Com_Parse(&ents);
-			strncpy(class, c, sizeof(class) - 1);
+			strncpy(class_name, c, sizeof(class_name) - 1);
 
 			if(!strcmp(c, "misc_emit") || !strcmp(c, "misc_model"))
 				emit = true;
@@ -324,7 +322,7 @@ static void Cl_UpdateEmits(void){
 
 			if(e->flags & EMIT_MODEL){
 				e->mod = R_LoadModel(e->model);
-				e->lighting.dirty = true;
+				e->lighting.state = LIGHTING_INIT;
 			}
 		}
 	}
@@ -392,9 +390,9 @@ void Cl_AddEmits(void){
 
 		if(e->flags & EMIT_LIGHT){
 			if(e->hz > 0.0)  // add a self-sustaining light
-				R_AddSustainedLight(e->org, e->radius, e->color, 0.65);
+				R_AddSustainedLight(e->org, e->radius * 80.0, e->color, 0.65);
 			else
-				R_AddLight(e->org, e->radius, e->color);
+				R_AddLight(e->org, e->radius * 80.0, e->color);
 		}
 
 		if(e->flags & EMIT_SPARKS)

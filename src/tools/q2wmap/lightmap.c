@@ -881,7 +881,6 @@ void BuildFacelights(int facenum){
 	}
 }
 
-static const vec3_t luminosity = {0.2125, 0.7154, 0.0721};
 
 /*
  * FinalLightFace
@@ -892,11 +891,10 @@ static const vec3_t luminosity = {0.2125, 0.7154, 0.0721};
 void FinalLightFace(int facenum){
 	d_bsp_face_t *f;
 	int j, k;
-	vec3_t temp, intensity;
+	vec3_t temp;
 	vec3_t dir;
 	facelight_t *fl;
 	byte *dest;
-	float max, d;
 
 	f = &dfaces[facenum];
 	fl = &facelight[facenum];
@@ -934,42 +932,8 @@ void FinalLightFace(int facenum){
 		// add an ambient term if desired
 		VectorAdd(temp, ambient, temp);
 
-		// apply global scale factor
-		VectorScale(temp, brightness, temp);
-
-		max = 0.0;
-
-		for(k = 0; k < 3; k++){  // find the brightest component
-
-			if(temp[k] < 0.0)  // enforcing positive values
-				temp[k] = 0.0;
-
-			if(temp[k] > max)
-				max = temp[k];
-		}
-
-		if(max > 255.0)  // clamp without changing hue
-			VectorScale(temp, 255.0 / max, temp);
-
-		for(k = 0; k < 3; k++){  // apply contrast
-
-			temp[k] -= 0.5;  // normalize to -0.5 through 0.5
-
-			temp[k] *= contrast;  // scale
-
-			temp[k] += 0.5;
-
-			if(temp[k] > 1.0)  // clamp
-				temp[k] = 1.0;
-			else if(temp[k] < 0)
-				temp[k] = 0;
-		}
-
-		// apply saturation
-		d = DotProduct(temp, luminosity);
-
-		VectorSet(intensity, d, d, d);
-		VectorMix(intensity, temp, saturation, temp);
+		// apply brightness, saturation and contrast
+		ColorFilter(temp, temp, brightness, saturation, contrast);
 
 		// write the lightmap sample data
 		for(k = 0; k < 3; k++){

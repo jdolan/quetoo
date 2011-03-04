@@ -178,12 +178,12 @@ void R_SetArrayState(const r_model_t *mod){
 
 	if(r_vertexbuffers->modified){  // force a full re-bind
 		r_array_state.model = NULL;
-		r_array_state.arrays = 0xFFFF;
+		r_array_state.arrays = 0xffff;
 	}
 
 	r_vertexbuffers->modified = false;
 
-	mask = 0xFFFF, arrays = R_ArraysMask();  // resolve the desired arrays mask
+	mask = 0xffff, arrays = R_ArraysMask();  // resolve the desired arrays mask
 
 	if(r_array_state.model == mod){  // try to save some binds
 
@@ -212,7 +212,7 @@ void R_SetArrayState(const r_model_t *mod){
 void R_ResetArrayState(void){
 	int arrays, mask;
 
-	mask = 0xFFFF, arrays = R_ArraysMask();  // resolve the desired arrays mask
+	mask = 0xffff, arrays = R_ArraysMask();  // resolve the desired arrays mask
 
 	if(r_array_state.model == NULL){
 		const int xor = r_array_state.arrays ^ arrays;

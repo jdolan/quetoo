@@ -325,16 +325,17 @@ static void R_ScaleTexture(const unsigned *in, int inwidth, int inheight, unsign
  * all munged into one function to reduce loops on level load.
  */
 void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type_t type){
-	vec3_t intensity, luminosity, temp;
+	vec3_t temp;
 	int i, j, c, bpp, mask;
 	unsigned col[3];
 	byte *p;
-	float max, d;
+	float brightness;
 
 	p = in;
 	c = width * height;
 
 	bpp = mask = 0;  // monochrome / invert
+	brightness = r_brightness->value;
 
 	if(type == it_world || type == it_effect || type == it_material){
 		bpp = 4;
@@ -343,55 +344,19 @@ void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type
 	else if(type == it_lightmap){
 		bpp = 3;
 		mask = 2;
+
+		brightness = r_modulate->value;
 	}
 
 	if(color)  // compute average color
 		VectorClear(col);
 
-	VectorSet(luminosity, 0.2125, 0.7154, 0.0721);
-
 	for(i = 0; i < c; i++, p+= bpp){
 
 		VectorScale(p, 1.0 / 255.0, temp);  // convert to float
 
-		if(type == it_lightmap)  // apply brightness
-			VectorScale(temp, r_modulate->value, temp);
-		else
-			VectorScale(temp, r_brightness->value, temp);
-
-		max = 0.0;  // determine brightest component
-
-		for(j = 0; j < 3; j++){
-
-			if(temp[j] > max)
-				max = temp[j];
-
-			if(temp[j] < 0.0)  // enforcing positive values
-				temp[j] = 0.0;
-		}
-
-		if(max > 1.0)  // clamp without changing hue
-			VectorScale(temp, 1.0 / max, temp);
-
-		for(j = 0; j < 3; j++){  // apply contrast
-
-			temp[j] -= 0.5;  // normalize to -0.5 through 0.5
-
-			temp[j] *= r_contrast->value;  // scale
-
-			temp[j] += 0.5;
-
-			if(temp[j] > 1.0)  // clamp
-				temp[j] = 1.0;
-			else if(temp[j] < 0)
-				temp[j] = 0;
-		}
-
-		// finally saturation, which requires rgb
-		d = DotProduct(temp, luminosity);
-
-		VectorSet(intensity, d, d, d);
-		VectorMix(intensity, temp, r_saturation->value, temp);
+		// apply brightness, saturation and contrast
+		ColorFilter(temp, temp, brightness, r_saturation->value, r_contrast->value);
 
 		for(j = 0; j < 3; j++){
 

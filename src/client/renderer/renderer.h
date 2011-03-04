@@ -43,17 +43,46 @@
 #define FOG_START	300.0
 #define FOG_END		2500.0
 
+// lights are dynamic lighting sources
+typedef struct r_light_s {
+	vec3_t origin;
+	float radius;
+	vec3_t color;
+} r_light_t;
+
+// sustains are light flashes which slowly decay
+typedef struct r_sustained_light_s {
+	r_light_t light;
+	float time;
+	float sustain;
+} r_sustained_light_t;
+
+#define MAX_LIGHTS			32
+#define MAX_ACTIVE_LIGHTS	8
+
+// a reference to a static light source plus a light level
+typedef struct r_bsp_light_ref_s {
+	r_bsp_light_t *bsp_light;
+	vec3_t dir;
+	float intensity;
+} r_bsp_light_ref_t;
+
+typedef enum {
+	LIGHTING_INIT,
+	LIGHTING_DIRTY,
+	LIGHTING_READY
+} r_lighting_state_t;
+
+// lighting structures contain static lighting info for entities
 typedef struct r_lighting_s {
 	vec3_t origin;  // starting point, entity origin
-	vec3_t point;  // impact point, shadow origin
-	vec3_t normal;  // shadow direction
-	vec3_t color;  // light color
-	vec3_t position;  // and position
-	float time;  // lerping interval
-	vec3_t colors[2];  // lerping color
-	vec3_t positions[2];  // and positions
-	qboolean dirty;  // cache invalidation
+	vec3_t shadow_origin;
+	vec3_t shadow_normal;
+	r_bsp_light_ref_t bsp_light_refs[MAX_ACTIVE_LIGHTS];  // light sources
+	r_lighting_state_t state;
 } r_lighting_t;
+
+#define LIGHTING_MAX_SHADOW_DISTANCE 128.0
 
 #define MAX_ENTITIES		256
 typedef struct r_entity_s {
@@ -70,10 +99,10 @@ typedef struct r_entity_s {
 	int skin_num;  // for masking players and vweaps
 	struct r_image_s *skin;  // NULL for inline skin
 
-	int flags;  // e.g. EF_ROCKET, EF_WEAPON, ..
+	int effects;  // e.g. EF_ROCKET, EF_WEAPON, ..
 	vec3_t shell;  // shell color
 
-	r_lighting_t *lighting;
+	r_lighting_t *lighting;  // static lighting information
 
 	struct r_entity_s *next;  // for chaining
 } r_entity_t;
@@ -125,23 +154,6 @@ typedef struct r_corona_s {
 
 #define MAX_CORONAS 		1024
 
-// lights are dynamic lighting sources
-typedef struct r_light_s {
-	vec3_t org;
-	float radius;
-	vec3_t color;
-} r_light_t;
-
-// sustains are light flashes which slowly decay
-typedef struct r_sustained_light_s {
-	r_light_t light;
-	float time;
-	float sustain;
-} r_sustained_light_t;
-
-#define MAX_LIGHTS			32
-#define MAX_ACTIVE_LIGHTS	8
-
 #define VID_NORM_WIDTH 		1024
 #define VID_NORM_HEIGHT 	768
 
@@ -167,8 +179,6 @@ typedef struct r_view_s {
 	int weather;  // weather effects
 	vec4_t fog_color;
 
-	vec3_t ambient_light;  // from static lighting
-
 	int num_entities;
 	r_entity_t entities[MAX_ENTITIES];
 
@@ -181,7 +191,7 @@ typedef struct r_view_s {
 	int num_lights;
 	r_light_t lights[MAX_LIGHTS];
 
-	r_sustained_light_t sustains[MAX_LIGHTS];
+	r_sustained_light_t sustained_lights[MAX_LIGHTS];
 
 	trace_t trace;  // occlusion testing
 	r_entity_t *trace_ent;
@@ -212,6 +222,16 @@ extern r_config_t r_config;
 
 // private renderer variables
 typedef struct r_locals_s {
+
+	vec3_t ambient_light;  // from worldspawn entity
+
+	float sun_light;
+	vec3_t sun_color;
+
+	float brightness;
+	float saturation;
+	float contrast;
+
 	int cluster;  // PVS at origin
 	int old_cluster;
 
@@ -221,6 +241,9 @@ typedef struct r_locals_s {
 	int back_frame;  // back-facing renderer frame
 
 	int light_frame;  // dynamic lighting frame
+
+	int active_light_mask;  // a bit mask into r_view.lights
+	int active_light_count;  // a count of active lights
 
 	int trace_num;  // lighting traces
 
@@ -306,6 +329,9 @@ extern void (*R_DrawMeshModel)(r_entity_t *e);
 void R_SetArrayState(const r_model_t *mod);
 void R_ResetArrayState(void);
 
+// r_bsp_light.c
+void R_LoadBspLights(void);
+
 // r_bsp.c
 qboolean R_CullBox(const vec3_t mins, const vec3_t maxs);
 qboolean R_CullBspModel(const r_entity_t *e);
@@ -359,12 +385,17 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf);
 void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs);
 
 // r_light.c
-void R_AddLight(const vec3_t org, float radius, const vec3_t color);
-void R_AddSustainedLight(const vec3_t org, float radius, const vec3_t color, float sustain);
+void R_AddLight(const vec3_t origin, float radius, const vec3_t color);
+void R_AddSustainedLight(const vec3_t origin, float radius, const vec3_t color, float sustain);
+void R_ResetLights(void);
 void R_MarkLights(void);
 void R_ShiftLights(const vec3_t offset);
 void R_EnableLights(int mask);
 void R_EnableLightsByRadius(const vec3_t p);
+
+// r_lighting.c
+void R_UpdateLighting(const vec3_t point, r_lighting_t *lighting);
+void R_ApplyLighting(const r_lighting_t *lighting);
 
 // r_lightmap.c
 typedef struct r_lightmaps_s {
@@ -374,7 +405,7 @@ typedef struct r_lightmaps_s {
 	int size;  // lightmap block size (NxN)
 	unsigned *allocated;  // block availability
 
-	byte *sample_buffer;  // RGBA buffers for uploading
+	byte *sample_buffer;  // RGB buffers for uploading
 	byte *direction_buffer;
 
 	float fbuffer[MAX_BSP_LIGHTMAP * 3];  // RGB buffer for bsp loading
@@ -385,9 +416,9 @@ extern r_lightmaps_t r_lightmaps;
 void R_BeginBuildingLightmaps(void);
 void R_CreateSurfaceLightmap(r_bsp_surface_t *surf);
 void R_EndBuildingLightmaps(void);
-void R_UpdateLighting(const vec3_t point, r_lighting_t *lighting);
 
 // r_main.c
+const char *R_WorldspawnValue(const char *key);
 void R_Trace(const vec3_t start, const vec3_t end, float size, int mask);
 void R_Init(void);
 void R_Shutdown(void);
