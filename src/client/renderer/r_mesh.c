@@ -252,7 +252,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e){
  * information, or with a lighting point above our view, are not drawn.
  */
 static void R_DrawMeshShadow_default(r_entity_t *e){
-	qboolean lighting;
+	const qboolean lighting = r_state.lighting_enabled;
 
 	if(!r_shadows->value)
 		return;
@@ -272,9 +272,6 @@ static void R_DrawMeshShadow_default(r_entity_t *e){
 	if(e->lighting->shadow_origin[2] > r_view.origin[2])
 		return;
 
-	if((lighting = r_state.lighting_enabled))
-		R_EnableLighting(NULL, false);
-
 	R_EnableTexture(&texunit_diffuse, false);
 
 	glColor4f(0.0, 0.0, 0.0, r_shadows->value * MESH_SHADOW_ALPHA);
@@ -287,7 +284,13 @@ static void R_DrawMeshShadow_default(r_entity_t *e){
 
 	R_EnableStencilTest(true);
 
+	if(lighting)
+		R_EnableLighting(NULL, false);
+
 	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+
+	if(lighting)
+		R_EnableLighting(r_state.mesh_program, true);
 
 	R_EnableStencilTest(false);
 
@@ -300,9 +303,6 @@ static void R_DrawMeshShadow_default(r_entity_t *e){
 	R_EnableTexture(&texunit_diffuse, true);
 
 	glColor4ubv(color_white);
-
-	if(lighting)
-		R_EnableLighting(r_state.mesh_program, true);
 }
 
 
