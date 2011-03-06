@@ -408,7 +408,7 @@ int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, edict_t **area_edicts,
  * testing object's origin to get a point to use with the returned hull.
  */
 static int Sv_HullForEntity(const edict_t *ent){
-	cmodel_t *model;
+	c_model_t *model;
 
 	// decide which clipping hull to use, based on the size
 	if(ent->solid == SOLID_BSP){  // explicit hulls in the BSP model

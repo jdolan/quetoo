@@ -77,10 +77,10 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 			continue;
 
 		if(ent->solid == 31){  // special value for bmodel
-			const cmodel_t *cmodel = cl.model_clip[ent->model_index];
-			if(!cmodel)
+			const c_model_t *model = cl.model_clip[ent->model_index];
+			if(!model)
 				continue;
-			head_node = cmodel->head_node;
+			head_node = model->head_node;
 			angles = ent->angles;
 		} else {  // encoded bbox
 			const int x  = 8 * (ent->solid & 31);
@@ -131,7 +131,7 @@ static trace_t Cl_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
  */
 static int Cl_Pointcontents(vec3_t point){
 	int i;
-	cmodel_t *cmodel;
+	c_model_t *model;
 	int contents;
 
 	contents = Cm_PointContents(point, r_worldmodel->firstnode);
@@ -143,11 +143,11 @@ static int Cl_Pointcontents(vec3_t point){
 		if(ent->solid != 31) // special value for bsp models
 			continue;
 
-		cmodel = cl.model_clip[ent->model_index];
-		if(!cmodel)
+		model = cl.model_clip[ent->model_index];
+		if(!model)
 			continue;
 
-		contents |= Cm_TransformedPointContents(point, cmodel->head_node, ent->origin, ent->angles);
+		contents |= Cm_TransformedPointContents(point, model->head_node, ent->origin, ent->angles);
 	}
 
 	return contents;

@@ -25,7 +25,7 @@
 /*
  * TextureAxisFromPlane
  */
-static const vec3_t baseaxis[18] = {
+static const vec3_t base_axis[18] = {
 	  {0, 0, 1}
 	, {1, 0, 0}
 	, {0, -1, 0}
@@ -52,7 +52,7 @@ static const vec3_t baseaxis[18] = {
 	,					// north wall
 };
 
-static void TextureAxisFromPlane(plane_t *pln, vec3_t xv, vec3_t yv){
+static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv){
 	int bestaxis;
 	vec_t dot, best;
 	int i;
@@ -61,22 +61,22 @@ static void TextureAxisFromPlane(plane_t *pln, vec3_t xv, vec3_t yv){
 	bestaxis = 0;
 
 	for(i = 0; i < 6; i++){
-		dot = DotProduct(pln->normal, baseaxis[i * 3]);
+		dot = DotProduct(pln->normal, base_axis[i * 3]);
 		if(dot > best){
 			best = dot;
 			bestaxis = i;
 		}
 	}
 
-	VectorCopy(baseaxis[bestaxis * 3 + 1], xv);
-	VectorCopy(baseaxis[bestaxis * 3 + 2], yv);
+	VectorCopy(base_axis[bestaxis * 3 + 1], xv);
+	VectorCopy(base_axis[bestaxis * 3 + 2], yv);
 }
 
 
 /*
  * TexinfoForBrushTexture
  */
-int TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, vec3_t origin){
+int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3_t origin){
 	vec3_t vecs[2];
 	int sv, tv;
 	vec_t ang, sinv, cosv;
@@ -152,14 +152,18 @@ int TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, vec3_t origin){
 	tx.next_texinfo = 0;
 
 	// find the texinfo
-	tc = texinfo;
-	for(i = 0; i < num_texinfo; i++, tc++){
+	tc = d_bsp.texinfo;
+	for(i = 0; i < d_bsp.num_texinfo; i++, tc++){
+
 		if(tc->flags != tx.flags)
 			continue;
+
 		if(tc->value != tx.value)
 			continue;
+
 		if(strcmp(tc->texture, tx.texture))
 			continue;
+
 		for(j = 0; j < 2; j++){
 			for(k = 0; k < 4; k++){
 				if(tc->vecs[j][k] != tx.vecs[j][k])
@@ -172,6 +176,6 @@ skip:
 	}
 	*tc = tx;
 
-	num_texinfo++;
+	d_bsp.num_texinfo++;
 	return i;
 }

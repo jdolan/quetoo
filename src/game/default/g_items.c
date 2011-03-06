@@ -446,7 +446,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 /*
  * G_TouchItem
  */
-void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
+void G_TouchItem(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	qboolean taken;
 
 	if(!other->client)
@@ -496,7 +496,7 @@ void G_TouchItem(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 /*
  * G_DropItemUntouchable
  */
-static void G_DropItemUntouchable(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void G_DropItemUntouchable(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(other == ent->owner)  // prevent the dropper from picking it right back up
 		return;

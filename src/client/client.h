@@ -129,7 +129,7 @@ typedef struct cl_client_s {
 
 	// locally derived information from server state
 	r_model_t *model_draw[MAX_MODELS];
-	cmodel_t *model_clip[MAX_MODELS];
+	c_model_t *model_clip[MAX_MODELS];
 
 	s_sample_t *sound_precache[MAX_SOUNDS];
 	r_image_t *image_precache[MAX_IMAGES];

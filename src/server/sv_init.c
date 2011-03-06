@@ -279,7 +279,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state){
 	if(state == ss_demo){  // loading a demo
 		snprintf(demo, sizeof(demo), "demos/%s.dem", sv.name);
 
-		sv.models[1] = Cm_LoadMap(NULL, &mapsize);
+		sv.models[1] = Cm_LoadBsp(NULL, &mapsize);
 
 		Fs_OpenFile(demo, &sv.demo_file, FILE_READ);
 
@@ -288,18 +288,18 @@ static void Sv_LoadMedia(const char *server, sv_state_t state){
 	else {  // loading a map
 		snprintf(sv.config_strings[CS_MODELS + 1], MAX_QPATH, "maps/%s.bsp", sv.name);
 
-		sv.models[1] = Cm_LoadMap(sv.config_strings[CS_MODELS + 1], &mapsize);
+		sv.models[1] = Cm_LoadBsp(sv.config_strings[CS_MODELS + 1], &mapsize);
 
 		if(fs_last_pak){
 			strncpy(sv.config_strings[CS_PAK], fs_last_pak, MAX_QPATH);
 		}
 
-		for(i = 1; i < Cm_NumInlineModels(); i++){
+		for(i = 1; i < Cm_NumModels(); i++){
 
 			char *s = sv.config_strings[CS_MODELS + 1 + i];
-			snprintf(s, MAX_QPATH, "*%i", i);
+			snprintf(s, MAX_QPATH, "*%d", i);
 
-			sv.models[i + 1] = Cm_InlineModel(s);
+			sv.models[i + 1] = Cm_Model(s);
 		}
 
 		sv.state = ss_loading;
@@ -313,9 +313,9 @@ static void Sv_LoadMedia(const char *server, sv_state_t state){
 
 		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_edicts);
 	}
-	snprintf(sv.config_strings[CS_MAP_SIZE], MAX_QPATH, "%i", mapsize);
+	snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", mapsize);
 
-	Cvar_FullSet("mapname", sv.name, CVAR_SERVER_INFO | CVAR_NOSET);
+	Cvar_FullSet("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NOSET);
 }
 
 

@@ -99,7 +99,7 @@ static int brush_start, brush_end;
 static void ProcessBlock_Thread(int blocknum){
 	int xblock, yblock;
 	vec3_t mins, maxs;
-	bspbrush_t *brushes;
+	bsp_brush_t *brushes;
 	tree_t *tree;
 	node_t *node;
 
@@ -152,7 +152,7 @@ static void ProcessWorldModel(void){
 	e = &entities[entity_num];
 
 	brush_start = e->firstbrush;
-	brush_end = brush_start + e->numbrushes;
+	brush_end = brush_start + e->num_brushes;
 	leaked = false;
 
 	// perform per-block operations
@@ -207,8 +207,7 @@ static void ProcessWorldModel(void){
 			LeakFile(tree);
 
 			if(leaktest){
-				Com_Verbose("--- MAP LEAKED, ABORTING LEAKTEST ---\n");
-				exit(0);
+				Com_Error(ERR_FATAL, "--- MAP LEAKED, ABORTING LEAKTEST ---\n");
 			}
 			Com_Verbose("**** leaked ****\n");
 		}
@@ -244,13 +243,13 @@ static void ProcessSubModel(void){
 	entity_t *e;
 	int start, end;
 	tree_t *tree;
-	bspbrush_t *list;
+	bsp_brush_t *list;
 	vec3_t mins, maxs;
 
 	e = &entities[entity_num];
 
 	start = e->firstbrush;
-	end = start + e->numbrushes;
+	end = start + e->num_brushes;
 
 	mins[0] = mins[1] = mins[2] = -MAX_WORLD_WIDTH;
 	maxs[0] = maxs[1] = maxs[2] = MAX_WORLD_WIDTH;
@@ -274,11 +273,11 @@ static void ProcessModels(void){
 	BeginBSPFile();
 
 	for(entity_num = 0; entity_num < num_entities; entity_num++){
-		if(!entities[entity_num].numbrushes)
+		if(!entities[entity_num].num_brushes)
 			continue;
 
 		Com_Verbose("############### model %i ###############\n",
-		            nummodels);
+		            d_bsp.num_models);
 		BeginModel();
 		if(entity_num == 0)
 			ProcessWorldModel();
@@ -309,7 +308,10 @@ int BSP_Main(void){
 
 	start = time(NULL);
 
-	Com_StripExtension(mapname, base);
+	Com_StripExtension(map_name, base);
+
+	// clear the whole bsp structure
+	memset(&d_bsp, 0, sizeof(d_bsp));
 
 	// delete portal and line files
 	remove(va("%s.prt", base));
@@ -318,18 +320,18 @@ int BSP_Main(void){
 	// if onlyents, just grab the entites and resave
 	if(onlyents){
 
-		LoadBSPFile(bspname);
+		LoadBSPFile(bsp_name);
 		num_entities = 0;
 
-		LoadMapFile(mapname);
+		LoadMapFile(map_name);
 		SetModelNumbers();
 
 		UnparseEntities();
 
-		WriteBSPFile(bspname);
+		WriteBSPFile(bsp_name);
 	} else {
 		// start from scratch
-		LoadMapFile(mapname);
+		LoadMapFile(map_name);
 		SetModelNumbers();
 
 		ProcessModels();

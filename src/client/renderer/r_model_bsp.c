@@ -78,8 +78,8 @@ static void R_LoadBspVisibility(const d_bsp_lump_t *l){
 	r_loadmodel->vis->num_clusters = LittleLong(r_loadmodel->vis->num_clusters);
 
 	for(i = 0; i < r_loadmodel->vis->num_clusters; i++){
-		r_loadmodel->vis->bit_ofs[i][0] = LittleLong(r_loadmodel->vis->bit_ofs[i][0]);
-		r_loadmodel->vis->bit_ofs[i][1] = LittleLong(r_loadmodel->vis->bit_ofs[i][1]);
+		r_loadmodel->vis->bit_offsets[i][0] = LittleLong(r_loadmodel->vis->bit_offsets[i][0]);
+		r_loadmodel->vis->bit_offsets[i][1] = LittleLong(r_loadmodel->vis->bit_offsets[i][1]);
 	}
 }
 
@@ -588,7 +588,7 @@ static void R_LoadBspSurfedges(const d_bsp_lump_t *l){
 	out = R_HunkAlloc(count * sizeof(*out));
 
 	r_loadmodel->surfedges = out;
-	r_loadmodel->num_surfedges = count;
+	r_loadmodel->num_surf_edges = count;
 
 	for(i = 0; i < count; i++)
 		out[i] = LittleLong(in[i]);
@@ -600,7 +600,7 @@ static void R_LoadBspSurfedges(const d_bsp_lump_t *l){
  */
 static void R_LoadBspPlanes(const d_bsp_lump_t *l){
 	int i, j;
-	cplane_t *out;
+	c_plane_t *out;
 	const d_bsp_plane_t *in;
 	int count;
 
@@ -1059,7 +1059,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer){
 	Com_Debug("R_LoadBspModel: %s\n", r_loadmodel->name);
 	Com_Debug("  Verts:      %d\n", r_loadmodel->num_vertexes);
 	Com_Debug("  Edges:      %d\n", r_loadmodel->num_edges);
-	Com_Debug("  Surfedges:  %d\n", r_loadmodel->num_surfedges);
+	Com_Debug("  Surfedges:  %d\n", r_loadmodel->num_surf_edges);
 	Com_Debug("  Faces:      %d\n", r_loadmodel->num_surfaces);
 	Com_Debug("  Nodes:      %d\n", r_loadmodel->num_nodes);
 	Com_Debug("  Leafs:      %d\n", r_loadmodel->num_leafs);

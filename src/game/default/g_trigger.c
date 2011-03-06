@@ -67,7 +67,7 @@ static void trigger_multiple_use(edict_t *ent, edict_t *other, edict_t *activato
 	trigger_multiple_think(ent);
 }
 
-static void trigger_multiple_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void trigger_multiple_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(!other->client)
 		return;
@@ -168,7 +168,7 @@ void G_trigger_always(edict_t *ent){
 #define PUSH_ONCE 1
 #define PUSH_EFFECT 2
 
-static void trigger_push_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void trigger_push_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(!strcmp(other->class_name, "grenade") || other->health > 0){
 
@@ -250,7 +250,7 @@ static void trigger_hurt_use(edict_t *self, edict_t *other, edict_t *activator){
 }
 
 
-static void trigger_hurt_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void trigger_hurt_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	int dflags;
 
 	if(!other->takedamage){  // deal with items that land on us
@@ -304,7 +304,7 @@ void G_trigger_hurt(edict_t *self){
 }
 
 
-static void trigger_exec_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void trigger_exec_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(self->timestamp > g_level.time)
 		return;

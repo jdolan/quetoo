@@ -130,7 +130,7 @@ void G_func_wall(edict_t *self){
 This is solid bmodel that will fall if it's support it removed.
 */
 
-static void G_func_object_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void G_func_object_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	// only squash thing we fall on top of
 	if(!plane)
 		return;
@@ -227,7 +227,7 @@ void G_target_string(edict_t *self){
 }
 
 
-static void G_teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void G_teleporter_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	edict_t *dest;
 	float speed;
 	vec3_t forward;

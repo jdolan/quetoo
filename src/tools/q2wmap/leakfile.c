@@ -41,7 +41,7 @@ void LeakFile(tree_t *tree){
 	Com_Print("--- LeakFile ---\n");
 
 	// write the points to the file
-	Com_StripExtension(mapname, file_name);
+	Com_StripExtension(map_name, file_name);
 	strcat(file_name, ".lin");
 
 	if(Fs_OpenFile(file_name, &leakfile, FILE_WRITE) == -1)

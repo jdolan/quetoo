@@ -79,7 +79,7 @@ static void Sv_Error(const char *fmt, ...){
  */
 static void Sv_SetModel(edict_t *ent, const char *name){
 	int i;
-	cmodel_t *mod;
+	c_model_t *mod;
 
 	if(!name){
 		Com_Warn("Sv_SetModel %d: NULL.\n", (int)NUM_FOR_EDICT(ent));
@@ -93,7 +93,7 @@ static void Sv_SetModel(edict_t *ent, const char *name){
 
 	// if it is an inline model, get the size information for it
 	if(name[0] == '*'){
-		mod = Cm_InlineModel(name);
+		mod = Cm_Model(name);
 		VectorCopy(mod->mins, ent->mins);
 		VectorCopy(mod->maxs, ent->maxs);
 		Sv_LinkEdict(ent);

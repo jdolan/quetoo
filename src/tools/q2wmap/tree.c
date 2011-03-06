@@ -59,7 +59,7 @@ void FreeTree_r(node_t * node){
 		FreeTree_r(node->children[1]);
 	}
 	// free bspbrushes
-	FreeBrushList(node->brushlist);
+	FreeBrushList(node->brushes);
 
 	// free faces
 	for(f = node->faces; f; f = nextf){
@@ -98,7 +98,7 @@ int c_pruned;
  * PruneNodes_r
  */
 void PruneNodes_r(node_t * node){
-	bspbrush_t *b, *next;
+	bsp_brush_t *b, *next;
 
 	if(node->plane_num == PLANENUM_LEAF)
 		return;
@@ -117,16 +117,16 @@ void PruneNodes_r(node_t * node){
 		node->contents = CONTENTS_SOLID;
 		node->detail_seperator = false;
 
-		if(node->brushlist)
+		if(node->brushes)
 			Com_Error(ERR_FATAL, "PruneNodes: node->brushlist\n");
 
 		// combine brush lists
-		node->brushlist = node->children[1]->brushlist;
+		node->brushes = node->children[1]->brushes;
 
-		for(b = node->children[0]->brushlist; b; b = next){
+		for(b = node->children[0]->brushes; b; b = next){
 			next = b->next;
-			b->next = node->brushlist;
-			node->brushlist = b;
+			b->next = node->brushes;
+			node->brushes = b;
 		}
 
 		c_pruned++;

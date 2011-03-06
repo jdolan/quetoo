@@ -226,7 +226,7 @@ void MakeHeadnodePortals(tree_t * tree){
 	vec3_t bounds[2];
 	int i, j, n;
 	portal_t *p, *portals[6];
-	plane_t bplanes[6], *pl;
+	map_plane_t bplanes[6], *pl;
 	node_t *node;
 
 	node = tree->head_node;
@@ -238,7 +238,7 @@ void MakeHeadnodePortals(tree_t * tree){
 	}
 
 	tree->outside_node.plane_num = PLANENUM_LEAF;
-	tree->outside_node.brushlist = NULL;
+	tree->outside_node.brushes = NULL;
 	tree->outside_node.portals = NULL;
 	tree->outside_node.contents = 0;
 
@@ -288,16 +288,16 @@ void MakeHeadnodePortals(tree_t * tree){
 static winding_t *BaseWindingForNode(const node_t * node){
 	winding_t *w;
 	const node_t *n;
-	const plane_t *plane;
+	const map_plane_t *plane;
 	vec3_t normal;
 	vec_t dist;
 
-	w = BaseWindingForPlane(mapplanes[node->plane_num].normal,
-							mapplanes[node->plane_num].dist);
+	w = BaseWindingForPlane(map_planes[node->plane_num].normal,
+							map_planes[node->plane_num].dist);
 
 	// clip by all the parents
 	for(n = node->parent; n && w;){
-		plane = &mapplanes[n->plane_num];
+		plane = &map_planes[n->plane_num];
 
 		if(n->children[0] == node){	// take front
 			ChopWindingInPlace(&w, plane->normal, plane->dist,
@@ -361,7 +361,7 @@ void MakeNodePortal(node_t * node){
 
 
 	new_portal = AllocPortal();
-	new_portal->plane = mapplanes[node->plane_num];
+	new_portal->plane = map_planes[node->plane_num];
 	new_portal->onnode = node;
 	new_portal->winding = w;
 	AddPortalToNodes(new_portal, node->children[0], node->children[1]);
@@ -380,10 +380,10 @@ void SplitNodePortals(node_t * node){
 	portal_t *p, *next_portal, *new_portal;
 	node_t *f, *b, *other_node;
 	int side;
-	plane_t *plane;
+	map_plane_t *plane;
 	winding_t *frontwinding, *backwinding;
 
-	plane = &mapplanes[node->plane_num];
+	plane = &map_planes[node->plane_num];
 	f = node->children[0];
 	b = node->children[1];
 
@@ -553,7 +553,7 @@ static qboolean PlaceOccupant(node_t * head_node, vec3_t origin, entity_t * occu
 	// find the leaf to start in
 	node = head_node;
 	while(node->plane_num != PLANENUM_LEAF){
-		const plane_t *plane = &mapplanes[node->plane_num];
+		const map_plane_t *plane = &map_planes[node->plane_num];
 		const vec_t d = DotProduct(origin, plane->normal) - plane->dist;
 		if(d >= 0)
 			node = node->children[0];
@@ -648,8 +648,8 @@ static void FloodAreas_r(node_t * node){
 
 	if(node->contents == CONTENTS_AREAPORTAL){
 		// this node is part of an area portal
-		const bspbrush_t *b = node->brushlist;
-		entity_t *e = &entities[b->original->entitynum];
+		const bsp_brush_t *b = node->brushes;
+		entity_t *e = &entities[b->original->entity_num];
 
 		// if the current area has already touched this
 		// portal, we are done
@@ -659,7 +659,7 @@ static void FloodAreas_r(node_t * node){
 		// note the current area as bounding the portal
 		if(e->portalareas[1]){
 			Com_Verbose("WARNING: areaportal entity %i touches > 2 areas\n",
-			           b->original->entitynum);
+			           b->original->entity_num);
 			return;
 		}
 		if(e->portalareas[0])
@@ -729,7 +729,7 @@ static void FindAreas_r(node_t * node){
  * =============
  */
 static void SetAreaPortalAreas_r(node_t * node){
-	bspbrush_t *b;
+	bsp_brush_t *b;
 	entity_t *e;
 
 	if(node->plane_num != PLANENUM_LEAF){
@@ -742,12 +742,12 @@ static void SetAreaPortalAreas_r(node_t * node){
 		if(node->area)
 			return;					  // already set
 
-		b = node->brushlist;
-		e = &entities[b->original->entitynum];
+		b = node->brushes;
+		e = &entities[b->original->entity_num];
 		node->area = e->portalareas[0];
 		if(!e->portalareas[1]){
 			Com_Verbose("WARNING: areaportal entity %i doesn't touch two areas\n",
-			           b->original->entitynum);
+			           b->original->entity_num);
 			return;
 		}
 	}
@@ -763,31 +763,35 @@ void EmitAreaPortals(node_t * head_node){
 
 	if(c_areas > MAX_BSP_AREAS)
 		Com_Error(ERR_FATAL, "MAX_BSP_AREAS\n");
-	numareas = c_areas + 1;
-	num_area_portals = 1;			  // leave 0 as an error
+
+	d_bsp.num_areas = c_areas + 1;
+	d_bsp.num_area_portals = 1;  // leave 0 as an error
 
 	for(i = 1; i <= c_areas; i++){
-		dareas[i].first_area_portal = num_area_portals;
+		d_bsp.areas[i].first_area_portal = d_bsp.num_area_portals;
 		for(j = 0; j < num_entities; j++){
 			const entity_t *e = &entities[j];
+
 			if(!e->areaportal_num)
 				continue;
-			dp = &dareaportals[num_area_portals];
+
+			dp = &d_bsp.area_portals[d_bsp.num_area_portals];
+
 			if(e->portalareas[0] == i){
 				dp->portal_num = e->areaportal_num;
 				dp->other_area = e->portalareas[1];
-				num_area_portals++;
+				d_bsp.num_area_portals++;
 			} else if(e->portalareas[1] == i){
 				dp->portal_num = e->areaportal_num;
 				dp->other_area = e->portalareas[0];
-				num_area_portals++;
+				d_bsp.num_area_portals++;
 			}
 		}
-		dareas[i].num_area_portals = num_area_portals - dareas[i].first_area_portal;
+		d_bsp.areas[i].num_area_portals = d_bsp.num_area_portals - d_bsp.areas[i].first_area_portal;
 	}
 
-	Com_Verbose("%5i numareas\n", numareas);
-	Com_Verbose("%5i num_area_portals\n", num_area_portals);
+	Com_Verbose("%5i num_areas\n", d_bsp.num_areas);
+	Com_Verbose("%5i num_area_portals\n", d_bsp.num_area_portals);
 }
 
 
@@ -857,12 +861,12 @@ void FillOutside(node_t * head_node){
  */
 static void FindPortalSide(portal_t * p){
 	int viscontents;
-	bspbrush_t *bb;
+	bsp_brush_t *bb;
 	int i, j;
 	int plane_num;
 	side_t *bestside;
 	float dot, bestdot;
-	plane_t *p2;
+	map_plane_t *p2;
 
 	// decide which content change is strongest
 	// solid > lava > water, etc
@@ -876,12 +880,12 @@ static void FindPortalSide(portal_t * p){
 
 	for(j = 0; j < 2; j++){
 		const node_t *n = p->nodes[j];
-		const plane_t *p1 = &mapplanes[p->onnode->plane_num];
-		for(bb = n->brushlist; bb; bb = bb->next){
-			const mapbrush_t *brush = bb->original;
+		const map_plane_t *p1 = &map_planes[p->onnode->plane_num];
+		for(bb = n->brushes; bb; bb = bb->next){
+			const map_brush_t *brush = bb->original;
 			if(!(brush->contents & viscontents))
 				continue;
-			for(i = 0; i < brush->numsides; i++){
+			for(i = 0; i < brush->num_sides; i++){
 				side_t *side = &brush->original_sides[i];
 				if(side->bevel)
 					continue;
@@ -892,7 +896,7 @@ static void FindPortalSide(portal_t * p){
 					goto gotit;
 				}
 				// see how close the match is
-				p2 = &mapplanes[side->plane_num & ~1];
+				p2 = &map_planes[side->plane_num & ~1];
 				dot = DotProduct(p1->normal, p2->normal);
 				if(dot > bestdot){
 					bestdot = dot;
@@ -956,9 +960,9 @@ void MarkVisibleSides(tree_t * tree, int startbrush, int endbrush){
 
 	// clear all the visible flags
 	for(i = startbrush; i < endbrush; i++){
-		mapbrush_t *mb = &mapbrushes[i];
-		const int numsides = mb->numsides;
-		for(j = 0; j < numsides; j++)
+		map_brush_t *mb = &map_brushes[i];
+		const int num_sides = mb->num_sides;
+		for(j = 0; j < num_sides; j++)
 			mb->original_sides[j].visible = false;
 	}
 

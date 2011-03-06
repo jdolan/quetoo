@@ -77,8 +77,7 @@ typedef struct passage_s {
 	struct passage_s *next;
 	int from, to;				// leaf numbers
 	sep_t *planes;
-}
-passage_t;
+} passage_t;
 
 #define	MAX_PORTALS_ON_LEAF		128
 typedef struct leaf_s {
@@ -106,7 +105,7 @@ typedef struct {
 	portal_t *base;
 	int c_chains;
 	pstack_t pstack_head;
-} threaddata_t;
+} thread_data_t;
 
 
 extern int numportals;

@@ -379,7 +379,7 @@ static void Use_Plat(edict_t *ent, edict_t *other, edict_t *activator){
 }
 
 
-static void Touch_Plat_Center(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void Touch_Plat_Center(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(!other->client)
 		return;
 
@@ -535,7 +535,7 @@ static void rotating_blocked(edict_t *self, edict_t *other){
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
 
-static void rotating_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void rotating_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(self->avelocity[0] || self->avelocity[1] || self->avelocity[2])
 		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
@@ -659,7 +659,7 @@ static void button_use(edict_t *self, edict_t *other, edict_t *activator){
 	button_fire(self);
 }
 
-static void button_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void button_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(!other->client)
 		  return;
 
@@ -868,7 +868,7 @@ static void func_door_use(edict_t *self, edict_t *other, edict_t *activator){
 	}
 }
 
-static void Touch_DoorTrigger(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void Touch_DoorTrigger(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(other->health <= 0)
 		return;
 
@@ -991,7 +991,7 @@ static void func_door_killed(edict_t *self, edict_t *inflictor, edict_t *attacke
 	func_door_use(self->teammaster, attacker, attacker);
 }
 
-static void func_door_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void func_door_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(!other->client)
 		return;
 

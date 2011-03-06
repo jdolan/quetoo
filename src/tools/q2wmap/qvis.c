@@ -27,7 +27,7 @@ int portalclusters;
 portal_t *portals;
 leaf_t *leafs;
 
-byte *uncompressedvis;
+byte *uncompressed_vis;
 
 static byte *vismap, *vismap_p, *vismap_end;	// past visfile
 static int originalvismapsize;
@@ -164,7 +164,7 @@ static void ClusterMerge(int leaf_num){
 	numvis++;						  // count the leaf itself
 
 	// save uncompressed for PHS calculation
-	memcpy(uncompressedvis + leaf_num * leafbytes, uncompressed, leafbytes);
+	memcpy(uncompressed_vis + leaf_num * leafbytes, uncompressed, leafbytes);
 
 	// compress the bit string
 	Com_Debug("cluster %4i : %4i visible\n", leaf_num, numvis);
@@ -178,7 +178,7 @@ static void ClusterMerge(int leaf_num){
 	if(vismap_p > vismap_end)
 		Com_Error(ERR_FATAL, "Vismap expansion overflow\n");
 
-	dvis->bit_ofs[leaf_num][DVIS_PVS] = dest - vismap;
+	d_vis->bit_offsets[leaf_num][DVIS_PVS] = dest - vismap;
 
 	memcpy(dest, compressed, i);
 }
@@ -293,11 +293,11 @@ static void LoadPortals(const char *name){
 	memset(leafs, 0, portalclusters * sizeof(leaf_t));
 
 	originalvismapsize = portalclusters * leafbytes;
-	uncompressedvis = Z_Malloc(originalvismapsize);
+	uncompressed_vis = Z_Malloc(originalvismapsize);
 
-	vismap = vismap_p = dvisdata;
-	dvis->num_clusters = portalclusters;
-	vismap_p = (byte *) & dvis->bit_ofs[portalclusters];
+	vismap = vismap_p = d_bsp.vis_data;
+	d_vis->num_clusters = portalclusters;
+	vismap_p = (byte *) & d_vis->bit_offsets[portalclusters];
 
 	vismap_end = vismap + MAX_BSP_VISIBILITY;
 
@@ -386,7 +386,7 @@ static void CalcPHS(void){
 
 	count = 0;
 	for(i = 0; i < portalclusters; i++){
-		scan = uncompressedvis + i * leafbytes;
+		scan = uncompressed_vis + i * leafbytes;
 		memcpy(uncompressed, scan, leafbytes);
 		for(j = 0; j < leafbytes; j++){
 			bitbyte = scan[j];
@@ -399,7 +399,7 @@ static void CalcPHS(void){
 				index = ((j << 3) + k);
 				if(index >= portalclusters)
 					Com_Error(ERR_FATAL, "Bad bit in PVS\n");	// pad bits should be 0
-				src = (long *)(uncompressedvis + index * leafbytes);
+				src = (long *)(uncompressed_vis + index * leafbytes);
 				dest = (long *)uncompressed;
 				for(l = 0; l < leaflongs; l++)
 					((long *)uncompressed)[l] |= src[l];
@@ -418,7 +418,7 @@ static void CalcPHS(void){
 		if(vismap_p > vismap_end)
 			Com_Error(ERR_FATAL, "Vismap expansion overflow\n");
 
-		dvis->bit_ofs[i][DVIS_PHS] = (byte *) dest - vismap;
+		d_vis->bit_offsets[i][DVIS_PHS] = (byte *) dest - vismap;
 
 		memcpy(dest, compressed, j);
 	}
@@ -430,7 +430,7 @@ static void CalcPHS(void){
  * VIS_Main
  */
 int VIS_Main(void){
-	char portalfile[MAX_OSPATH];
+	char portal_file[MAX_OSPATH];
 	double start, end;
 	int total_vis_time;
 
@@ -444,24 +444,24 @@ int VIS_Main(void){
 
 	start = time(NULL);
 
-	LoadBSPFile(bspname);
-	if(num_nodes == 0 || num_faces == 0)
+	LoadBSPFile(bsp_name);
+	if(d_bsp.num_nodes == 0 || d_bsp.num_faces == 0)
 		Com_Error(ERR_FATAL, "Empty map\n");
 
-	Com_StripExtension(mapname, portalfile);
-	strcat(portalfile, ".prt");
+	Com_StripExtension(map_name, portal_file);
+	strcat(portal_file, ".prt");
 
-	LoadPortals(portalfile);
+	LoadPortals(portal_file);
 
 	CalcVis();
 
 	CalcPHS();
 
-	visdatasize = vismap_p - dvisdata;
-	Com_Print("VIS data: %i bytes (compressed from %i bytes)\n", visdatasize,
+	d_bsp.vis_data_size = vismap_p - d_bsp.vis_data;
+	Com_Print("VIS data: %i bytes (compressed from %i bytes)\n", d_bsp.vis_data_size,
 			originalvismapsize * 2);
 
-	WriteBSPFile(bspname);
+	WriteBSPFile(bsp_name);
 
 	end = time(NULL);
 	total_vis_time = (int)(end - start);

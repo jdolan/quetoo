@@ -360,19 +360,19 @@ typedef struct cplane_s {
 	float dist;
 	int type;  // for fast side tests
 	int sign_bits;  // signx + (signy << 1) + (signz << 1)
-} cplane_t;
+} c_plane_t;
 
-typedef struct cmodel_s {
+typedef struct c_model_s {
 	vec3_t mins, maxs;
 	vec3_t origin;  // for sounds or lights
 	int head_node;
-} cmodel_t;
+} c_model_t;
 
 typedef struct csurface_s {
 	char name[32];
 	int flags;
 	int value;
-} csurface_t;
+} c_surface_t;
 
 // a trace is returned when a box is swept through the world
 typedef struct {
@@ -380,8 +380,8 @@ typedef struct {
 	qboolean start_solid;  // if true, the initial point was in a solid area
 	float fraction;  // time completed, 1.0 = didn't hit anything
 	vec3_t end;  // final position
-	cplane_t plane;  // surface normal at impact
-	csurface_t *surface;  // surface hit
+	c_plane_t plane;  // surface normal at impact
+	c_surface_t *surface;  // surface hit
 	int leaf_num;
 	int contents;  // contents on other side of surface hit
 	struct edict_s *ent;  // not set by CM_*() functions
@@ -581,7 +581,7 @@ typedef enum {
 #define CS_LAYOUT		5  // display program string
 
 #define CS_MAX_CLIENTS		30
-#define CS_MAP_SIZE			31  // for catching cheater maps
+#define CS_BSP_SIZE			31  // for catching incompatible maps
 
 #define CS_MODELS			32
 #define CS_SOUNDS			(CS_MODELS + MAX_MODELS)

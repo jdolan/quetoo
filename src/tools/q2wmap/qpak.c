@@ -24,13 +24,18 @@
 #include "qbsp.h"
 #include "pak.h"
 
+// assets are accumulated in this structure
+typedef struct qpak_s {
+	char paths[MAX_PAK_ENTRIES][MAX_QPATH];
+	int num_paths;
 
-static char paths[MAX_PAK_ENTRIES][MAX_QPATH];
-static int num_paths;
+	int num_images;
+	int num_models;
+	int num_sounds;
+} qpak_t;
 
-static int num_images;
-static int num_models;
-static int num_sounds;
+static qpak_t qpak;
+
 
 /*
  * FindPath
@@ -40,8 +45,8 @@ static int num_sounds;
 static int FindPath(char *path){
 	int i;
 
-	for(i = 0; i < num_paths; i++)
-		if(!strncmp(paths[i], path, MAX_QPATH))
+	for(i = 0; i < qpak.num_paths; i++)
+		if(!strncmp(qpak.paths[i], path, MAX_QPATH))
 			return i;
 
 	return -1;
@@ -51,18 +56,18 @@ static int FindPath(char *path){
 /*
  * AddPath
  *
- * Adds the specified path to the resource list, after ensuring
- * that it is unique.
+ * Adds the specified path to the resource list, after ensuring that it is
+ * unique.
  */
 static void AddPath(char *path){
 
-	if(num_paths == MAX_PAK_ENTRIES){
+	if(qpak.num_paths == MAX_PAK_ENTRIES){
 		Com_Error(ERR_FATAL, "MAX_PAK_ENTRIES exhausted\n");
 		return;
 	}
 
 	Com_Debug("AddPath: %s\n", path);
-	strncpy(paths[num_paths++], path, MAX_QPATH);
+	strncpy(qpak.paths[qpak.num_paths++], path, MAX_QPATH);
 }
 
 
@@ -102,7 +107,7 @@ static void AddSound(const char *sound){
 		return;
 	}
 
-	num_sounds++;
+	qpak.num_sounds++;
 }
 
 
@@ -144,7 +149,7 @@ static void AddImage(const char *image, qboolean required){
 		return;
 	}
 
-	num_images++;
+	qpak.num_images++;
 }
 
 
@@ -197,7 +202,7 @@ static void AddModel(char *model){
 
 	AddPath(path);
 
-	num_models++;
+	qpak.num_models++;
 }
 
 
@@ -251,7 +256,7 @@ static void AddMaterials(void){
 	int i, num_frames;
 
 	// load the materials file
-	snprintf(path, sizeof(path), "materials/%s", Com_Basename(bspname));
+	snprintf(path, sizeof(path), "materials/%s", Com_Basename(bsp_name));
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_LoadFile(path, (void **)(char *)&buffer)) < 1){
@@ -339,7 +344,7 @@ static void AddMaterials(void){
 static void AddLocation(void){
 	char base[MAX_QPATH];
 
-	Com_StripExtension(bspname, base);
+	Com_StripExtension(bsp_name, base);
 	AddPath(va("%s.loc", base));
 }
 
@@ -351,7 +356,7 @@ static void AddDocumentation(void){
 	char base[MAX_OSPATH];
 	char *c;
 
-	Com_StripExtension(bspname, base);
+	Com_StripExtension(bsp_name, base);
 
 	c = strstr(base, "maps/");
 	c = c ? c + 5 : base;
@@ -373,7 +378,7 @@ static pak_t *GetPakfile(void){
 	const char *c;
 	pak_t *pak;
 
-	Com_StripExtension(bspname, base);
+	Com_StripExtension(bsp_name, base);
 
 	c = strstr(base, "maps/");
 	c = c ? c + 5 : base;
@@ -411,14 +416,14 @@ int PAK_Main(void){
 
 	start = time(NULL);
 
-	LoadBSPFile(bspname);
+	LoadBSPFile(bsp_name);
 
 	// add the textures and normalmaps
-	for(i = 0; i < num_texinfo; i++){
-		AddImage(va("textures/%s", texinfo[i].texture), true);
-		AddImage(va("textures/%s_nm", texinfo[i].texture), false);
-		AddImage(va("textures/%s_norm", texinfo[i].texture), false);
-		AddImage(va("textures/%s_local", texinfo[i].texture), false);
+	for(i = 0; i < d_bsp.num_texinfo; i++){
+		AddImage(va("textures/%s", d_bsp.texinfo[i].texture), true);
+		AddImage(va("textures/%s_nm", d_bsp.texinfo[i].texture), false);
+		AddImage(va("textures/%s_norm", d_bsp.texinfo[i].texture), false);
+		AddImage(va("textures/%s_local", d_bsp.texinfo[i].texture), false);
 	}
 
 	// and the materials
@@ -442,31 +447,31 @@ int PAK_Main(void){
 		}
 	}
 
-	Com_Print("Resolved %d images, ", num_images);
-	Com_Print("%d models, ", num_models);
-	Com_Print("%d sounds.\n", num_sounds);
+	Com_Print("Resolved %d images, ", qpak.num_images);
+	Com_Print("%d models, ", qpak.num_models);
+	Com_Print("%d sounds.\n", qpak.num_sounds);
 
 	// add location and docs
 	AddLocation();
 	AddDocumentation();
 
 	// and of course the bsp and map
-	AddPath(bspname);
-	AddPath(mapname);
+	AddPath(bsp_name);
+	AddPath(map_name);
 
 	pak = GetPakfile();
-	Com_Print("Paking %d resources to %s...\n", num_paths, pak->file_name);
+	Com_Print("Paking %d resources to %s...\n", qpak.num_paths, pak->file_name);
 
-	for(i = 0; i < num_paths; i++){
+	for(i = 0; i < qpak.num_paths; i++){
 
-		const int j = Fs_LoadFile(paths[i], (void **)(char *)&p);
+		const int j = Fs_LoadFile(qpak.paths[i], (void **)(char *)&p);
 
 		if(j == -1){
-			Com_Print("Couldn't open %s\n", paths[i]);
+			Com_Print("Couldn't open %s\n", qpak.paths[i]);
 			continue;
 		}
 
-		Pak_AddEntry(pak, paths[i], j, p);
+		Pak_AddEntry(pak, qpak.paths[i], j, p);
 		Z_Free(p);
 	}
 

@@ -24,8 +24,8 @@
 
 quake2world_t quake2world;
 
-char mapname[MAX_OSPATH];
-char bspname[MAX_OSPATH];
+char map_name[MAX_OSPATH];
+char bsp_name[MAX_OSPATH];
 char outbase[MAX_OSPATH];
 
 qboolean verbose;
@@ -60,7 +60,7 @@ extern qboolean nosort;
 extern int testlevel;
 
 /** LIGHT */
-extern qboolean extrasamples;
+extern qboolean extra_samples;
 extern float brightness;
 extern float saturation;
 extern float contrast;
@@ -440,7 +440,7 @@ static int Check_LIGHT_Options(int argc, char **argv){
 
 	for(i = 1; i < argc; i++){
 		if(!strcmp(argv[i], "-extra")){
-			extrasamples = true;
+			extra_samples = true;
 			Com_Verbose("extrasamples = true\n");
 		} else if(!strcmp(argv[i], "-brightness")){
 			brightness = atof(argv[i + 1]);
@@ -666,10 +666,10 @@ int main(int argc, char **argv){
 	c = strstr(argv[argc - 1], "/maps/");
 	c = c ? c + 1 : argv[argc - 1];
 
-	Com_StripExtension(c, mapname);
-	strcpy(bspname, mapname);
-	strcat(mapname, ".map");
-	strcat(bspname, ".bsp");
+	Com_StripExtension(c, map_name);
+	strcpy(bsp_name, map_name);
+	strcat(map_name, ".map");
+	strcat(bsp_name, ".bsp");
 
 	// start timer
 	start = time(NULL);
@@ -701,7 +701,7 @@ int main(int argc, char **argv){
 	SetConsoleTitle(title);
 
 	Com_Print("\n-----------------------------------------------------------------\n");
-	Com_Print("%s has been compiled sucessfully! \n\nPress any key to quit\n", bspname);
+	Com_Print("%s has been compiled sucessfully! \n\nPress any key to quit\n", bsp_name);
 	Com_Print("-----------------------------------------------------------------");
 
 #ifdef HAVE_CURSES

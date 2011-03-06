@@ -61,14 +61,14 @@
  * The originals are undisturbed.
  * ===============
  */
-static bspbrush_t *SubtractBrush(bspbrush_t * a, bspbrush_t * b){										 // a - b = out (list)
+static bsp_brush_t *SubtractBrush(bsp_brush_t * a, bsp_brush_t * b){										 // a - b = out (list)
 	int i;
-	bspbrush_t *front, *back;
-	bspbrush_t *out, *in;
+	bsp_brush_t *front, *back;
+	bsp_brush_t *out, *in;
 
 	in = a;
 	out = NULL;
-	for(i = 0; i < b->numsides && in; i++){
+	for(i = 0; i < b->num_sides && in; i++){
 		SplitBrush(in, b->sides[i].plane_num, &front, &back);
 		if(in != a)
 			FreeBrush(in);
@@ -95,7 +95,7 @@ static bspbrush_t *SubtractBrush(bspbrush_t * a, bspbrush_t * b){										 // a
  * There will be false negatives for some non-axial combinations.
  * ===============
  */
-static qboolean BrushesDisjoint(const bspbrush_t * a, const bspbrush_t * b){
+static qboolean BrushesDisjoint(const bsp_brush_t * a, const bsp_brush_t * b){
 	int i, j;
 
 	// check bounding boxes
@@ -105,8 +105,8 @@ static qboolean BrushesDisjoint(const bspbrush_t * a, const bspbrush_t * b){
 			return true;			  // bounding boxes don't overlap
 
 	// check for opposing planes
-	for(i = 0; i < a->numsides; i++){
-		for(j = 0; j < b->numsides; j++){
+	for(i = 0; i < a->num_sides; i++){
+		for(j = 0; j < b->num_sides; j++){
 			if(a->sides[i].plane_num == (b->sides[j].plane_num ^ 1))
 				return true;		  // opposite planes, so not touching
 		}
@@ -125,9 +125,9 @@ static int maxplane_nums[3];
  * Any planes shared with the box edge will be set to no texinfo
  * ===============
  */
-static bspbrush_t *ClipBrushToBox(bspbrush_t * brush, vec3_t clipmins, vec3_t clipmaxs){
+static bsp_brush_t *ClipBrushToBox(bsp_brush_t * brush, vec3_t clipmins, vec3_t clipmaxs){
 	int i, j;
-	bspbrush_t *front, *back;
+	bsp_brush_t *front, *back;
 	int p;
 
 	for(j = 0; j < 2; j++){
@@ -153,7 +153,7 @@ static bspbrush_t *ClipBrushToBox(bspbrush_t * brush, vec3_t clipmins, vec3_t cl
 
 	// remove any colinear faces
 
-	for(i = 0; i < brush->numsides; i++){
+	for(i = 0; i < brush->num_sides; i++){
 		p = brush->sides[i].plane_num & ~1;
 		if(p == maxplane_nums[0] || p == maxplane_nums[1]
 		        || p == minplane_nums[0] || p == minplane_nums[1]){
@@ -169,13 +169,13 @@ static bspbrush_t *ClipBrushToBox(bspbrush_t * brush, vec3_t clipmins, vec3_t cl
  * MakeBspBrushList
  * ===============
  */
-bspbrush_t *MakeBspBrushList(int startbrush, int endbrush,
+bsp_brush_t *MakeBspBrushList(int startbrush, int endbrush,
                              vec3_t clipmins, vec3_t clipmaxs){
-	bspbrush_t *brushlist, *newbrush;
+	bsp_brush_t *brushlist, *newbrush;
 	int i, j;
 	int c_faces;
 	int c_brushes;
-	int numsides;
+	int num_sides;
 	int vis;
 	vec3_t normal;
 	float dist;
@@ -194,14 +194,14 @@ bspbrush_t *MakeBspBrushList(int startbrush, int endbrush,
 	c_brushes = 0;
 
 	for(i = startbrush; i < endbrush; i++){
-		mapbrush_t *mb = &mapbrushes[i];
+		map_brush_t *mb = &map_brushes[i];
 
-		numsides = mb->numsides;
-		if(!numsides)
+		num_sides = mb->num_sides;
+		if(!num_sides)
 			continue;
 		// make sure the brush has at least one face showing
 		vis = 0;
-		for(j = 0; j < numsides; j++)
+		for(j = 0; j < num_sides; j++)
 			if(mb->original_sides[j].visible && mb->original_sides[j].winding)
 				vis++;
 #if 0
@@ -219,11 +219,11 @@ bspbrush_t *MakeBspBrushList(int startbrush, int endbrush,
 		//
 		// make a copy of the brush
 		//
-		newbrush = AllocBrush(mb->numsides);
+		newbrush = AllocBrush(mb->num_sides);
 		newbrush->original = mb;
-		newbrush->numsides = mb->numsides;
-		memcpy(newbrush->sides, mb->original_sides, numsides * sizeof(side_t));
-		for(j = 0; j < numsides; j++){
+		newbrush->num_sides = mb->num_sides;
+		memcpy(newbrush->sides, mb->original_sides, num_sides * sizeof(side_t));
+		for(j = 0; j < num_sides; j++){
 			if(newbrush->sides[j].winding)
 				newbrush->sides[j].winding =
 				    CopyWinding(newbrush->sides[j].winding);
@@ -255,8 +255,8 @@ bspbrush_t *MakeBspBrushList(int startbrush, int endbrush,
  * AddBspBrushListToTail
  * ===============
  */
-static bspbrush_t *AddBrushListToTail(bspbrush_t * list, bspbrush_t * tail){
-	bspbrush_t *walk, *next;
+static bsp_brush_t *AddBrushListToTail(bsp_brush_t * list, bsp_brush_t * tail){
+	bsp_brush_t *walk, *next;
 
 	for(walk = list; walk; walk = next){	// add to end of list
 		next = walk->next;
@@ -275,9 +275,9 @@ static bspbrush_t *AddBrushListToTail(bspbrush_t * list, bspbrush_t * tail){
  * Builds a new list that doesn't hold the given brush
  * ===========
  */
-static bspbrush_t *CullList(bspbrush_t * list, const bspbrush_t * skip1){
-	bspbrush_t *newlist;
-	bspbrush_t *next;
+static bsp_brush_t *CullList(bsp_brush_t * list, const bsp_brush_t * skip1){
+	bsp_brush_t *newlist;
+	bsp_brush_t *next;
 
 	newlist = NULL;
 
@@ -299,7 +299,7 @@ static bspbrush_t *CullList(bspbrush_t * list, const bspbrush_t * skip1){
  *
  * Returns true if b1 is allowed to bite b2
  */
-static inline qboolean BrushGE(const bspbrush_t * b1, const bspbrush_t * b2){
+static inline qboolean BrushGE(const bsp_brush_t * b1, const bsp_brush_t * b2){
 	// detail brushes never bite structural brushes
 	if((b1->original->contents & CONTENTS_DETAIL)
 	        && !(b2->original->contents & CONTENTS_DETAIL))
@@ -315,11 +315,11 @@ static inline qboolean BrushGE(const bspbrush_t * b1, const bspbrush_t * b2){
  * Carves any intersecting solid brushes into the minimum number
  * of non-intersecting brushes.
  */
-bspbrush_t *ChopBrushes(bspbrush_t * head){
-	bspbrush_t *b1, *b2, *next;
-	bspbrush_t *tail;
-	bspbrush_t *keep;
-	bspbrush_t *sub, *sub2;
+bsp_brush_t *ChopBrushes(bsp_brush_t * head){
+	bsp_brush_t *b1, *b2, *next;
+	bsp_brush_t *tail;
+	bsp_brush_t *keep;
+	bsp_brush_t *sub, *sub2;
 	int c1, c2;
 
 	Com_Verbose("---- ChopBrushes ----\n");

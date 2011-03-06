@@ -48,10 +48,10 @@ static int c_badstartverts;
 
 #define	MAX_SUPERVERTS	512
 static int superverts[MAX_SUPERVERTS];
-static int numsuperverts;
+static int num_superverts;
 
-static face_t *edgefaces[MAX_BSP_EDGES][2];
-int firstmodeledge = 1;
+static face_t *edge_faces[MAX_BSP_EDGES][2];
+int first_bsp_model_edge = 1;
 
 static int c_tryedges;
 
@@ -63,15 +63,10 @@ static int edge_verts[MAX_BSP_VERTS];
 
 int subdivide_size = 1024;
 
-typedef struct hashvert_s {
-	struct hashvert_s *next;
-	int num;
-} hashvert_t;
-
 #define	HASH_SIZE	64
 
-static int vertexchain[MAX_BSP_VERTS]; // the next vertex in a hash chain
-static int hashverts[HASH_SIZE * HASH_SIZE];	// a vertex number, or 0 for no verts
+static int vertex_chain[MAX_BSP_VERTS]; // the next vertex in a hash chain
+static int hash_verts[HASH_SIZE * HASH_SIZE];	// a vertex number, or 0 for no verts
 
 
 /*
@@ -113,8 +108,8 @@ static int GetVertexnum(const vec3_t in){
 
 	h = HashVec(vert);
 
-	for(vnum = hashverts[h]; vnum; vnum = vertexchain[vnum]){
-		p = dvertexes[vnum].point;
+	for(vnum = hash_verts[h]; vnum; vnum = vertex_chain[vnum]){
+		p = d_bsp.vertexes[vnum].point;
 		if(fabs(p[0] - vert[0]) < POINT_EPSILON
 		        && fabs(p[1] - vert[1]) < POINT_EPSILON
 		        && fabs(p[2] - vert[2]) < POINT_EPSILON)
@@ -122,21 +117,21 @@ static int GetVertexnum(const vec3_t in){
 	}
 
 	// emit a vertex
-	if(num_vertexes == MAX_BSP_VERTS)
+	if(d_bsp.num_vertexes == MAX_BSP_VERTS)
 		Com_Error(ERR_FATAL, "num_vertexes == MAX_BSP_VERTS\n");
 
-	dvertexes[num_vertexes].point[0] = vert[0];
-	dvertexes[num_vertexes].point[1] = vert[1];
-	dvertexes[num_vertexes].point[2] = vert[2];
+	d_bsp.vertexes[d_bsp.num_vertexes].point[0] = vert[0];
+	d_bsp.vertexes[d_bsp.num_vertexes].point[1] = vert[1];
+	d_bsp.vertexes[d_bsp.num_vertexes].point[2] = vert[2];
 
-	vertexchain[num_vertexes] = hashverts[h];
-	hashverts[h] = num_vertexes;
+	vertex_chain[d_bsp.num_vertexes] = hash_verts[h];
+	hash_verts[h] = d_bsp.num_vertexes;
 
 	c_uniqueverts++;
 
-	num_vertexes++;
+	d_bsp.num_vertexes++;
 
-	return num_vertexes - 1;
+	return d_bsp.num_vertexes - 1;
 }
 
 
@@ -200,7 +195,7 @@ static void FaceFromSuperverts(node_t *node, face_t *f, int base){
 	int remaining;
 	int i;
 
-	remaining = numsuperverts;
+	remaining = num_superverts;
 	while(remaining > MAXEDGES){  // must split into two faces, because of vertex overload
 		c_faceoverflows++;
 
@@ -209,9 +204,9 @@ static void FaceFromSuperverts(node_t *node, face_t *f, int base){
 		newf->next = node->faces;
 		node->faces = newf;
 
-		newf->numpoints = MAXEDGES;
+		newf->num_points = MAXEDGES;
 		for(i = 0; i < MAXEDGES; i++)
-			newf->vertexnums[i] = superverts[(i + base) % numsuperverts];
+			newf->vertexnums[i] = superverts[(i + base) % num_superverts];
 
 		f->split[1] = NewFaceFromFace(f);
 		f = f->split[1];
@@ -219,13 +214,13 @@ static void FaceFromSuperverts(node_t *node, face_t *f, int base){
 		node->faces = f;
 
 		remaining -= (MAXEDGES - 2);
-		base = (base + MAXEDGES - 1) % numsuperverts;
+		base = (base + MAXEDGES - 1) % num_superverts;
 	}
 
 	// copy the vertexes back to the face
-	f->numpoints = remaining;
+	f->num_points = remaining;
 	for(i = 0; i < remaining; i++)
-		f->vertexnums[i] = superverts[(i + base) % numsuperverts];
+		f->vertexnums[i] = superverts[(i + base) % num_superverts];
 }
 
 
@@ -242,17 +237,17 @@ static void EmitFaceVertexes(node_t *node, face_t *f){
 	w = f->w;
 	for(i = 0; i < w->numpoints; i++){
 		if(noweld){  // make every point unique
-			if(num_vertexes == MAX_BSP_VERTS)
+			if(d_bsp.num_vertexes == MAX_BSP_VERTS)
 				Com_Error(ERR_FATAL, "MAX_BSP_VERTS\n");
-			superverts[i] = num_vertexes;
-			VectorCopy(w->p[i], dvertexes[num_vertexes].point);
-			num_vertexes++;
+			superverts[i] = d_bsp.num_vertexes;
+			VectorCopy(w->p[i], d_bsp.vertexes[d_bsp.num_vertexes].point);
+			d_bsp.num_vertexes++;
 			c_uniqueverts++;
 			c_totalverts++;
 		} else
 			superverts[i] = GetVertexnum(w->p[i]);
 	}
-	numsuperverts = w->numpoints;
+	num_superverts = w->numpoints;
 
 	// this may fragment the face if > MAXEDGES
 	FaceFromSuperverts(node, f, 0);
@@ -286,7 +281,7 @@ static void EmitVertexes_r(node_t *node){
 static void FindEdgeVerts(vec3_t v1, vec3_t v2){
 	int i;
 
-	num_edge_verts = num_vertexes - 1;
+	num_edge_verts = d_bsp.num_vertexes - 1;
 	for(i = 0; i < num_edge_verts; i++)
 		edge_verts[i] = i + 1;
 }
@@ -316,7 +311,7 @@ static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert){
 		if(j == p1 || j == p2)
 			continue;
 
-		VectorCopy(dvertexes[j].point, p);
+		VectorCopy(d_bsp.vertexes[j].point, p);
 
 		VectorSubtract(p, edge_start, delta);
 		dist = DotProduct(delta, edge_dir);
@@ -338,10 +333,10 @@ static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert){
 	}
 
 	// the edge p1 to p2 is now free of tjunctions
-	if(numsuperverts >= MAX_SUPERVERTS)
+	if(num_superverts >= MAX_SUPERVERTS)
 		Com_Error(ERR_FATAL, "MAX_SUPERVERTS\n");
-	superverts[numsuperverts] = p1;
-	numsuperverts++;
+	superverts[num_superverts] = p1;
+	num_superverts++;
 }
 
 
@@ -358,39 +353,39 @@ static void FixFaceEdges(node_t *node, face_t *f){
 	if(f->merged || f->split[0] || f->split[1])
 		return;
 
-	numsuperverts = 0;
+	num_superverts = 0;
 
-	for(i = 0; i < f->numpoints; i++){
+	for(i = 0; i < f->num_points; i++){
 		const int p1 = f->vertexnums[i];
-		const int p2 = f->vertexnums[(i + 1) % f->numpoints];
+		const int p2 = f->vertexnums[(i + 1) % f->num_points];
 
-		VectorCopy(dvertexes[p1].point, edge_start);
-		VectorCopy(dvertexes[p2].point, e2);
+		VectorCopy(d_bsp.vertexes[p1].point, edge_start);
+		VectorCopy(d_bsp.vertexes[p2].point, e2);
 
 		FindEdgeVerts(edge_start, e2);
 
 		VectorSubtract(e2, edge_start, edge_dir);
 		len = VectorNormalize(edge_dir);
 
-		start[i] = numsuperverts;
+		start[i] = num_superverts;
 		TestEdge(0, len, p1, p2, 0);
 
-		count[i] = numsuperverts - start[i];
+		count[i] = num_superverts - start[i];
 	}
 
-	if(numsuperverts < 3){  // entire face collapsed
-		f->numpoints = 0;
+	if(num_superverts < 3){  // entire face collapsed
+		f->num_points = 0;
 		c_facecollapse++;
 		return;
 	}
 	// we want to pick a vertex that doesn't have tjunctions
 	// on either side, which can cause artifacts on trifans,
 	// especially underwater
-	for(i = 0; i < f->numpoints; i++){
-		if(count[i] == 1 && count[(i + f->numpoints - 1) % f->numpoints] == 1)
+	for(i = 0; i < f->num_points; i++){
+		if(count[i] == 1 && count[(i + f->num_points - 1) % f->num_points] == 1)
 			break;
 	}
-	if(i == f->numpoints){
+	if(i == f->num_points){
 		c_badstartverts++;
 		base = 0;
 	} else {  // rotate the vertex order
@@ -426,7 +421,7 @@ static void FixEdges_r(node_t *node){
 void FixTjuncs(node_t *head_node){
 	// snap and merge all vertexes
 	Com_Verbose("---- snap verts ----\n");
-	memset(hashverts, 0, sizeof(hashverts));
+	memset(hash_verts, 0, sizeof(hash_verts));
 	c_totalverts = 0;
 	c_uniqueverts = 0;
 	c_faceoverflows = 0;
@@ -461,27 +456,27 @@ int GetEdge2(int v1, int v2, face_t * f){
 	c_tryedges++;
 
 	if(!noshare){
-		for(i = firstmodeledge; i < num_edges; i++){
-			edge = &dedges[i];
+		for(i = first_bsp_model_edge; i < d_bsp.num_edges; i++){
+			edge = &d_bsp.edges[i];
 			if(v1 == edge->v[1] && v2 == edge->v[0]
-			        && edgefaces[i][0]->contents == f->contents){
-				if(edgefaces[i][1])
+			        && edge_faces[i][0]->contents == f->contents){
+				if(edge_faces[i][1])
 					continue;
-				edgefaces[i][1] = f;
+				edge_faces[i][1] = f;
 				return -i;
 			}
 		}
 	}
 	// emit an edge
-	if(num_edges >= MAX_BSP_EDGES)
+	if(d_bsp.num_edges >= MAX_BSP_EDGES)
 		Com_Error(ERR_FATAL, "num_edges == MAX_BSP_EDGES\n");
-	edge = &dedges[num_edges];
+	edge = &d_bsp.edges[d_bsp.num_edges];
 	edge->v[0] = v1;
 	edge->v[1] = v2;
-	edgefaces[num_edges][0] = f;
-	num_edges++;
+	edge_faces[d_bsp.num_edges][0] = f;
+	d_bsp.num_edges++;
 
-	return num_edges - 1;
+	return d_bsp.num_edges - 1;
 }
 
 
@@ -631,9 +626,9 @@ static face_t *TryMerge(face_t * f1, face_t * f2, const vec3_t planenormal){
 static void MergeNodeFaces(node_t * node){
 	face_t *f1, *f2, *end;
 	face_t *merged;
-	const plane_t *plane;
+	const map_plane_t *plane;
 
-	plane = &mapplanes[node->plane_num];
+	plane = &map_planes[node->plane_num];
 	merged = NULL;
 
 	for(f1 = node->faces; f1; f1 = f1->next){
@@ -662,7 +657,7 @@ static void MergeNodeFaces(node_t * node){
  *
  * Chop up faces that are larger than we want in the surface cache
  */
-static void SubdivideFace(node_t * node, face_t * f){
+static void SubdivideFace(node_t *node, face_t * f){
 	float mins, maxs;
 	vec_t v;
 	int axis, i;
@@ -675,7 +670,7 @@ static void SubdivideFace(node_t * node, face_t * f){
 		return;
 
 	// special (non-surface cached) faces don't need subdivision
-	tex = &texinfo[f->texinfo];
+	tex = &d_bsp.texinfo[f->texinfo];
 
 	if(tex->flags & (SURF_SKY | SURF_WARP))
 		return;
@@ -834,7 +829,7 @@ void MakeFaces(node_t * node){
 
 	MakeFaces_r(node);
 
-	Com_Verbose("%5i makefaces\n", c_nodefaces);
+	Com_Verbose("%5i node faces\n", c_nodefaces);
 	Com_Verbose("%5i merged\n", c_merge);
 	Com_Verbose("%5i subdivided\n", c_subdivide);
 }

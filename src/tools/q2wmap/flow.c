@@ -82,7 +82,7 @@ static void FreeStackWinding(const winding_t * w, pstack_t * stack){
 /*
  * Vis_ChopWinding
  */
-static winding_t *Vis_ChopWinding(winding_t * in, pstack_t * stack, plane_t * split){
+static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack, plane_t *split){
 	vec_t dists[128];
 	int sides[128];
 	int counts[3];
@@ -288,11 +288,11 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 			if(!counts[0])
 				continue;			  // planar with seperating plane
 #else
-			k = (j + 1) % pass->numpoints;
+			k = (j + 1) % pass->num_points;
 			d = DotProduct(pass->points[k], plane.normal) - plane.dist;
 			if(d < -ON_EPSILON)
 				continue;
-			k = (j + pass->numpoints - 1) % pass->numpoints;
+			k = (j + pass->num_points - 1) % pass->num_points;
 			d = DotProduct(pass->points[k], plane.normal) - plane.dist;
 			if(d < -ON_EPSILON)
 				continue;
@@ -326,10 +326,10 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
  * If src_portal is NULL, this is the originating leaf
  * ==================
  */
-static void RecursiveLeafFlow(int leaf_num, threaddata_t * thread, pstack_t * prevstack){
+static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread, pstack_t * prevstack){
 	pstack_t stack;
 	portal_t *p;
-	plane_t backplane;
+	plane_t back_plane;
 	leaf_t *leaf;
 	int i, j;
 	long *test, *might, *vis, more;
@@ -374,8 +374,8 @@ static void RecursiveLeafFlow(int leaf_num, threaddata_t * thread, pstack_t * pr
 		}
 		// get plane of portal, point normal into the neighbor leaf
 		stack.portalplane = p->plane;
-		VectorSubtract(vec3_origin, p->plane.normal, backplane.normal);
-		backplane.dist = -p->plane.dist;
+		VectorSubtract(vec3_origin, p->plane.normal, back_plane.normal);
+		back_plane.dist = -p->plane.dist;
 
 		stack.portal = p;
 		stack.next = NULL;
@@ -411,7 +411,7 @@ static void RecursiveLeafFlow(int leaf_num, threaddata_t * thread, pstack_t * pr
 				stack.source = prevstack->source;
 			} else {
 				stack.source =
-				    Vis_ChopWinding(prevstack->source, &stack, &backplane);
+				    Vis_ChopWinding(prevstack->source, &stack, &back_plane);
 				if(!stack.source)
 					continue;
 			}
@@ -453,7 +453,7 @@ static void RecursiveLeafFlow(int leaf_num, threaddata_t * thread, pstack_t * pr
  * generates the portalvis bit vector
  */
 void PortalFlow(int portal_num){
-	threaddata_t data;
+	thread_data_t data;
 	int i;
 	portal_t *p;
 	int c_might, c_can;

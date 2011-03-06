@@ -23,7 +23,7 @@
 
 
 static char materials[MAX_BSP_TEXINFO][32];
-static int nummaterials;
+static int num_materials;
 
 
 /*
@@ -35,13 +35,13 @@ static void AddMaterial(const char *name){
 	if(!name || !strcmp(name, "NULL"))
 		return;
 
-	for(i = 0; i < nummaterials; i++){
+	for(i = 0; i < num_materials; i++){
 		if(!strncmp(materials[i], name, sizeof(materials[0])))
 			return;
 	}
 
-	strncpy(materials[nummaterials], name, sizeof(materials[0]));
-	nummaterials++;
+	strncpy(materials[num_materials], name, sizeof(materials[0]));
+	num_materials++;
 }
 
 
@@ -78,7 +78,7 @@ int MAT_Main(void){
 
 	start = time(NULL);
 
-	snprintf(path, sizeof(path), "materials/%s", Com_Basename(bspname));
+	snprintf(path, sizeof(path), "materials/%s", Com_Basename(bsp_name));
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_OpenFile(path, &f, FILE_READ)) > -1){
@@ -90,15 +90,15 @@ int MAT_Main(void){
 		if((i = Fs_OpenFile(path, &f, FILE_WRITE)) == -1)
 			Com_Error(ERR_FATAL, "Couldn't open %s for writing.\n", path);
 
-		LoadBSPFileTexinfo(bspname);
+		LoadBSPFileTexinfo(bsp_name);
 
-		for(i = 0; i < num_texinfo; i++)  // resolve the materials
-			AddMaterial(texinfo[i].texture);
+		for(i = 0; i < d_bsp.num_texinfo; i++)  // resolve the materials
+			AddMaterial(d_bsp.texinfo[i].texture);
 
 		// sort them by name
-		qsort(&materials[0], nummaterials, sizeof(materials[0]), CompareStrings);
+		qsort(&materials[0], num_materials, sizeof(materials[0]), CompareStrings);
 
-		for(i = 0; i < nummaterials; i++){  // write the .mat definition
+		for(i = 0; i < num_materials; i++){  // write the .mat definition
 
 			fprintf(f,
 					"{\n"
@@ -113,7 +113,7 @@ int MAT_Main(void){
 
 		Fs_CloseFile(f);
 
-		Com_Print("Generated %d materials\n", nummaterials);
+		Com_Print("Generated %d materials\n", num_materials);
 	}
 
 	end = time(NULL);

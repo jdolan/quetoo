@@ -43,7 +43,7 @@ typedef struct sv_server_s {
 	int frame_num;
 
 	char name[MAX_QPATH];  // map name
-	struct cmodel_s	*models[MAX_MODELS];
+	struct c_model_s *models[MAX_MODELS];
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	entity_state_t baselines[MAX_EDICTS];

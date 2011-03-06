@@ -342,25 +342,26 @@ static void R_FreeModels(void){
 /*
  * R_BeginLoading
  *
- * Loads the specified map after resetting all model data.
+ * Loads the specified level after resetting all model data.
  */
-void R_BeginLoading(const char *map, int mapsize){
-	int ms;
+void R_BeginLoading(const char *bsp_name, int bsp_size){
+	int bs;
 
 	R_FreeModels();  // free all models
 
-	// load map for collision detection (prediction)
-	Cm_LoadMap(map, &ms);
+	// load bsp for collision detection (prediction)
+	Cm_LoadBsp(bsp_name, &bs);
 
-	if(ms != mapsize){
+	if(bs != bsp_size){
 		Com_Error(ERR_DROP, "Local map version differs from server: "
-				"%i != %i.", ms, mapsize);
+				"%i != %i.", bs, bsp_size);
 	}
 
 	// then load materials
-	R_LoadMaterials(map);
+	R_LoadMaterials(bsp_name);
 
-	r_worldmodel = R_LoadModel(map);
+	// finally load the bsp for rendering (surface arrays)
+	r_worldmodel = R_LoadModel(bsp_name);
 }
 
 

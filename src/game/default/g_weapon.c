@@ -56,7 +56,7 @@ static qboolean G_ImmediateWall(edict_t *ent, vec3_t dir){
 /*
  * G_IsStructural
  */
-static qboolean G_IsStructural(edict_t *ent, csurface_t *surf){
+static qboolean G_IsStructural(edict_t *ent, c_surface_t *surf){
 
 	if(!ent || ent->client || ent->takedamage)
 		return false;  // we hit nothing, or something we damaged
@@ -128,7 +128,7 @@ static void G_Tracer(vec3_t start, vec3_t end){
 /*
  * G_BulletMark
  */
-static void G_BulletMark(vec3_t org, cplane_t *plane, csurface_t *surf){
+static void G_BulletMark(vec3_t org, c_plane_t *plane, c_surface_t *surf){
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_BULLET);
@@ -144,7 +144,7 @@ static void G_BulletMark(vec3_t org, cplane_t *plane, csurface_t *surf){
  *
  * Used to add burn marks on surfaces hit by projectiles.
  */
-static void G_BurnMark(vec3_t org, cplane_t *plane, csurface_t *surf, byte scale){
+static void G_BurnMark(vec3_t org, c_plane_t *plane, c_surface_t *surf, byte scale){
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_BURN);
@@ -296,7 +296,7 @@ static void G_GrenadeExplode(edict_t *ent){
 	G_FreeEdict(ent);
 }
 
-static void G_GrenadeTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void G_GrenadeTouch(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(other == ent->owner)
 		return;
@@ -375,7 +375,7 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 /*
  * G_FireRocketLauncher
  */
-static void G_RocketTouch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void G_RocketTouch(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	vec3_t origin;
 
 	if(other == ent->owner)
@@ -458,7 +458,7 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 /*
  * G_FireHyperblaster
  */
-static void G_HyperblasterTouch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void G_HyperblasterTouch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	vec3_t origin;
 	vec3_t v;
 
@@ -775,7 +775,7 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 /*
  * G_FireBFG
  */
-static void G_BFGTouch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf){
+static void G_BFGTouch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	vec3_t origin;
 
 	if(other == self->owner)

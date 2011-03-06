@@ -25,23 +25,23 @@ static int lightmap_scale;
 
 // lightinfo is a temporary bucket for lighting calculations
 typedef struct {
-	vec_t facedist;
-	vec3_t facenormal;
+	vec_t face_dist;
+	vec3_t face_normal;
 
-	int numsurfpt;
-	vec3_t *surfpt;
+	int num_sample_points;
+	vec3_t *sample_points;
 
-	vec3_t modelorg;  // for origined bmodels
+	vec3_t model_org;  // for bsp submodels
 
 	vec3_t texorg;
-	vec3_t worldtotex[2];  // s = (world - texorg) . worldtotex[0]
-	vec3_t textoworld[2];  // world = texorg + s * textoworld[0]
+	vec3_t world_to_tex[2];  // s = (world - texorg) . worldtotex[0]
+	vec3_t tex_to_world[2];  // world = texorg + s * textoworld[0]
 
-	vec2_t exactmins, exactmaxs;
+	vec2_t exact_mins, exact_maxs;
 
-	int texmins[2], texsize[2];
+	int tex_mins[2], tex_size[2];
 	d_bsp_face_t *face;
-} lightinfo_t;
+} light_info_t;
 
 // face extents
 typedef struct extents_s {
@@ -64,18 +64,18 @@ static void BuildFaceExtents(void){
 	const d_bsp_vertex_t *v;
 	int i, j, k;
 
-	for(k = 0; k < num_faces; k++){
+	for(k = 0; k < d_bsp.num_faces; k++){
 
-		const d_bsp_face_t *s = &dfaces[k];
-		const d_bsp_texinfo_t *tex = &texinfo[s->texinfo];
+		const d_bsp_face_t *s = &d_bsp.faces[k];
+		const d_bsp_texinfo_t *tex = &d_bsp.texinfo[s->texinfo];
 
-		float *mins = face_extents[s - dfaces].mins;
-		float *maxs = face_extents[s - dfaces].maxs;
+		float *mins = face_extents[s - d_bsp.faces].mins;
+		float *maxs = face_extents[s - d_bsp.faces].maxs;
 
-		float *center = face_extents[s - dfaces].center;
+		float *center = face_extents[s - d_bsp.faces].center;
 
-		float *st_mins = face_extents[s - dfaces].st_mins;
-		float *st_maxs = face_extents[s - dfaces].st_maxs;
+		float *st_mins = face_extents[s - d_bsp.faces].st_mins;
+		float *st_maxs = face_extents[s - d_bsp.faces].st_maxs;
 
 		VectorSet(mins, 999999, 999999, 999999);
 		VectorSet(maxs, -999999, -999999, -999999);
@@ -84,11 +84,11 @@ static void BuildFaceExtents(void){
 		st_maxs[0] = st_maxs[1] = -999999;
 
 		for(i = 0; i < s->num_edges; i++){
-			const int e = dsurfedges[s->first_edge + i];
+			const int e = d_bsp.surf_edges[s->first_edge + i];
 			if(e >= 0)
-				v = dvertexes + dedges[e].v[0];
+				v = d_bsp.vertexes + d_bsp.edges[e].v[0];
 			else
-				v = dvertexes + dedges[-e].v[1];
+				v = d_bsp.vertexes + d_bsp.edges[-e].v[1];
 
 			for(j = 0; j < 3; j++){  // calculate mins, maxs
 				if(v->point[j] > maxs[j])
@@ -117,7 +117,7 @@ static void BuildFaceExtents(void){
  *
  * Fills in l->texmins[] and l->texsize[], l->exactmins[] and l->exactmaxs[]
  */
-static void CalcLightinfoExtents(lightinfo_t *l){
+static void CalcLightinfoExtents(light_info_t *l){
 	const d_bsp_face_t *s;
 	float *st_mins, *st_maxs;
 	vec2_t lm_mins, lm_maxs;
@@ -125,22 +125,22 @@ static void CalcLightinfoExtents(lightinfo_t *l){
 
 	s = l->face;
 
-	st_mins = face_extents[s - dfaces].st_mins;
-	st_maxs = face_extents[s - dfaces].st_maxs;
+	st_mins = face_extents[s - d_bsp.faces].st_mins;
+	st_maxs = face_extents[s - d_bsp.faces].st_maxs;
 
 	for(i = 0; i < 2; i++){
-		l->exactmins[i] = st_mins[i];
-		l->exactmaxs[i] = st_maxs[i];
+		l->exact_mins[i] = st_mins[i];
+		l->exact_maxs[i] = st_maxs[i];
 
 		lm_mins[i] = floor(st_mins[i] / lightmap_scale);
 		lm_maxs[i] = ceil(st_maxs[i] / lightmap_scale);
 
-		l->texmins[i] = lm_mins[i];
-		l->texsize[i] = lm_maxs[i] - lm_mins[i];
+		l->tex_mins[i] = lm_mins[i];
+		l->tex_size[i] = lm_maxs[i] - lm_mins[i];
 	}
 
-	if(l->texsize[0] * l->texsize[1] > MAX_BSP_LIGHTMAP)
-		Com_Error(ERR_FATAL, "Surface too large to light (%dx%d)\n", l->texsize[0], l->texsize[1]);
+	if(l->tex_size[0] * l->tex_size[1] > MAX_BSP_LIGHTMAP)
+		Com_Error(ERR_FATAL, "Surface too large to light (%dx%d)\n", l->tex_size[0], l->tex_size[1]);
 }
 
 
@@ -149,18 +149,18 @@ static void CalcLightinfoExtents(lightinfo_t *l){
  *
  * Fills in texorg, worldtotex. and textoworld
  */
-static void CalcLightinfoVectors(lightinfo_t *l){
+static void CalcLightinfoVectors(light_info_t *l){
 	const d_bsp_texinfo_t *tex;
 	int i;
 	vec3_t texnormal;
 	vec_t distscale;
 	vec_t dist;
 
-	tex = &texinfo[l->face->texinfo];
+	tex = &d_bsp.texinfo[l->face->texinfo];
 
 	// convert from float to double
 	for(i = 0; i < 2; i++)
-		VectorCopy(tex->vecs[i], l->worldtotex[i]);
+		VectorCopy(tex->vecs[i], l->world_to_tex[i]);
 
 	// calculate a normal to the texture axis.  points can be moved along this
 	// without changing their S/T
@@ -173,7 +173,7 @@ static void CalcLightinfoVectors(lightinfo_t *l){
 	VectorNormalize(texnormal);
 
 	// flip it towards plane normal
-	distscale = DotProduct(texnormal, l->facenormal);
+	distscale = DotProduct(texnormal, l->face_normal);
 	if(distscale == 0.0){
 		Com_Warn("Texture axis perpendicular to face\n");
 		distscale = 1.0;
@@ -187,29 +187,29 @@ static void CalcLightinfoVectors(lightinfo_t *l){
 	distscale = 1.0 / distscale;
 
 	for(i = 0; i < 2; i++){
-		const vec_t len = VectorLength(l->worldtotex[i]);
-		const vec_t distance = DotProduct(l->worldtotex[i], l->facenormal) * distscale;
-		VectorMA(l->worldtotex[i], -distance, texnormal, l->textoworld[i]);
-		VectorScale(l->textoworld[i], (1 / len) * (1 / len), l->textoworld[i]);
+		const vec_t len = VectorLength(l->world_to_tex[i]);
+		const vec_t distance = DotProduct(l->world_to_tex[i], l->face_normal) * distscale;
+		VectorMA(l->world_to_tex[i], -distance, texnormal, l->tex_to_world[i]);
+		VectorScale(l->tex_to_world[i], (1 / len) * (1 / len), l->tex_to_world[i]);
 	}
 
 	// calculate texorg on the texture plane
 	for(i = 0; i < 3; i++)
 		l->texorg[i] =
-		    -tex->vecs[0][3] * l->textoworld[0][i] -
-		    tex->vecs[1][3] * l->textoworld[1][i];
+		    -tex->vecs[0][3] * l->tex_to_world[0][i] -
+		    tex->vecs[1][3] * l->tex_to_world[1][i];
 
 	// project back to the face plane
-	dist = DotProduct(l->texorg, l->facenormal) - l->facedist - 1;
+	dist = DotProduct(l->texorg, l->face_normal) - l->face_dist - 1;
 	dist *= distscale;
 	VectorMA(l->texorg, -dist, texnormal, l->texorg);
 
 	// compensate for org'd bmodels
-	VectorAdd(l->texorg, l->modelorg, l->texorg);
+	VectorAdd(l->texorg, l->model_org, l->texorg);
 
 	// total sample count
-	l->numsurfpt = (l->texsize[0] + 1) * (l->texsize[1] + 1);
-	l->surfpt = Z_Malloc(l->numsurfpt * sizeof(vec3_t));
+	l->num_sample_points = (l->tex_size[0] + 1) * (l->tex_size[1] + 1);
+	l->sample_points = Z_Malloc(l->num_sample_points * sizeof(vec3_t));
 }
 
 
@@ -219,20 +219,20 @@ static void CalcLightinfoVectors(lightinfo_t *l){
  * For each texture aligned grid point, back project onto the plane
  * to get the world xyz value of the sample point
  */
-static void CalcPoints(lightinfo_t *l, float sofs, float tofs){
+static void CalcPoints(light_info_t *l, float sofs, float tofs){
 	int s, t, j;
 	int w, h, step;
 	vec_t starts, startt;
 	vec_t *surf;
 
-	surf = l->surfpt[0];
+	surf = l->sample_points[0];
 
-	h = l->texsize[1] + 1;
-	w = l->texsize[0] + 1;
+	h = l->tex_size[1] + 1;
+	w = l->tex_size[0] + 1;
 
 	step = lightmap_scale;
-	starts = l->texmins[0] * step;
-	startt = l->texmins[1] * step;
+	starts = l->tex_mins[0] * step;
+	startt = l->tex_mins[1] * step;
 
 	for(t = 0; t < h; t++){
 		for(s = 0; s < w; s++, surf += 3){
@@ -241,21 +241,21 @@ static void CalcPoints(lightinfo_t *l, float sofs, float tofs){
 
 			// calculate texture point
 			for(j = 0; j < 3; j++)
-				surf[j] = l->texorg[j] + l->textoworld[0][j] * us +
-					l->textoworld[1][j] * ut;
+				surf[j] = l->texorg[j] + l->tex_to_world[0][j] * us +
+					l->tex_to_world[1][j] * ut;
 		}
 	}
 }
 
 
 typedef struct {  // buckets for sample accumulation
-	int numsamples;
+	int num_samples;
 	float *origins;
 	float *samples;
 	float *directions;
 } facelight_t;
 
-static facelight_t facelight[MAX_BSP_FACES];
+static facelight_t face_lights[MAX_BSP_FACES];
 
 typedef struct light_s {  // a light source
 	struct light_s *next;
@@ -269,7 +269,7 @@ typedef struct light_s {  // a light source
 } light_t;
 
 static light_t *lights[MAX_BSP_LEAFS];
-static int numlights;
+static int num_lights;
 
 // sunlight, borrowed from ufo2map
 typedef struct sun_s {
@@ -325,7 +325,7 @@ void BuildLights(void){
 			if(VectorCompare(p->light, vec3_origin))
 				continue;
 
-			numlights++;
+			num_lights++;
 			l = Z_Malloc(sizeof(*l));
 
 			VectorCopy(p->origin, l->origin);
@@ -354,7 +354,7 @@ void BuildLights(void){
 		if(strncmp(name, "light", 5))  // not a light
 			continue;
 
-		numlights++;
+		num_lights++;
 		l = Z_Malloc(sizeof(*l));
 
 		GetVectorForKey(e, "origin", l->origin);
@@ -422,7 +422,7 @@ void BuildLights(void){
 		}
 	}
 
-	Com_Verbose("Lighting %i lights\n", numlights);
+	Com_Verbose("Lighting %i lights\n", num_lights);
 
 	{
 		// sun.intensity parameters come from worldspawn
@@ -536,7 +536,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 	int i;
 
 	// iterate over lights, which are in buckets by cluster
-	for(i = 0; i < dvis->num_clusters; i++){
+	for(i = 0; i < d_vis->num_clusters; i++){
 
 		if(!(pvs[i >> 3] & (1 << (i & 7))))
 			continue;
@@ -632,16 +632,16 @@ static void FacesWithVert(int vert, int *faces, int *nfaces){
 	int i, j, k;
 
 	k = 0;
-	for(i = 0; i < num_faces; i++){
-		const d_bsp_face_t *face = &dfaces[i];
+	for(i = 0; i < d_bsp.num_faces; i++){
+		const d_bsp_face_t *face = &d_bsp.faces[i];
 
-		if(!(texinfo[face->texinfo].flags & SURF_PHONG))
+		if(!(d_bsp.texinfo[face->texinfo].flags & SURF_PHONG))
 			continue;
 
 		for(j = 0; j < face->num_edges; j++){
 
-			const int e = dsurfedges[face->first_edge + j];
-			const int v = e >= 0 ? dedges[e].v[0] : dedges[-e].v[1];
+			const int e = d_bsp.surf_edges[face->first_edge + j];
+			const int v = e >= 0 ? d_bsp.edges[e].v[0] : d_bsp.edges[-e].v[1];
 
 			if(v == vert){  // face references vert
 				faces[k++] = i;
@@ -671,9 +671,9 @@ void BuildVertexNormals(void){
 
 	BuildFaceExtents();
 
-	for(i = 0; i < num_vertexes; i++){
+	for(i = 0; i < d_bsp.num_vertexes; i++){
 
-		VectorClear(dnormals[i].normal);
+		VectorClear(d_bsp.normals[i].normal);
 
 		FacesWithVert(i, vert_faces, &num_vert_faces);
 
@@ -681,8 +681,8 @@ void BuildVertexNormals(void){
 			continue;
 
 		for(j = 0; j < num_vert_faces; j++){
-			const d_bsp_face_t *face = &dfaces[vert_faces[j]];
-			const d_bsp_plane_t *plane = &dplanes[face->plane_num];
+			const d_bsp_face_t *face = &d_bsp.faces[vert_faces[j]];
+			const d_bsp_plane_t *plane = &d_bsp.planes[face->plane_num];
 
 			// scale the contribution of each face based on size
 			VectorSubtract(face_extents[vert_faces[j]].maxs,
@@ -695,10 +695,10 @@ void BuildVertexNormals(void){
 			else
 				VectorScale(plane->normal, scale, norm);
 
-			VectorAdd(dnormals[i].normal, norm, dnormals[i].normal);
+			VectorAdd(d_bsp.normals[i].normal, norm, d_bsp.normals[i].normal);
 		}
 
-		VectorNormalize(dnormals[i].normal);
+		VectorNormalize(d_bsp.normals[i].normal);
 	}
 }
 
@@ -709,7 +709,7 @@ void BuildVertexNormals(void){
  * For Phong-shaded samples, interpolate the vertex normals for the surface in
  * question, weighing them according to their proximity to the sample position.
  */
-static void SampleNormal(const lightinfo_t *l, const vec3_t pos, vec3_t normal){
+static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal){
 	vec3_t temp;
 	float dist[MAX_VERT_FACES];
 	float nearest;
@@ -720,13 +720,13 @@ static void SampleNormal(const lightinfo_t *l, const vec3_t pos, vec3_t normal){
 
 	// calculate the distance to each vertex
 	for(i = 0; i < l->face->num_edges; i++){
-		const int e = dsurfedges[l->face->first_edge + i];
+		const int e = d_bsp.surf_edges[l->face->first_edge + i];
 		if(e >= 0)
-			v = dedges[e].v[0];
+			v = d_bsp.edges[e].v[0];
 		else
-			v = dedges[-e].v[1];
+			v = d_bsp.edges[-e].v[1];
 
-		VectorSubtract(pos, dvertexes[v].point, temp);
+		VectorSubtract(pos, d_bsp.vertexes[v].point, temp);
 		dist[i] = VectorLength(temp);
 
 		if(dist[i] < nearest){
@@ -735,7 +735,7 @@ static void SampleNormal(const lightinfo_t *l, const vec3_t pos, vec3_t normal){
 		}
 	}
 
-	VectorCopy(dnormals[nearv].normal, normal);
+	VectorCopy(d_bsp.normals[nearv].normal, normal);
 }
 
 
@@ -757,9 +757,9 @@ void BuildFacelights(int facenum){
 	vec3_t pos;
 	vec3_t normal, bitangent;
 	vec4_t tangent;
-	lightinfo_t l[MAX_SAMPLES];
+	light_info_t l[MAX_SAMPLES];
 	facelight_t *fl;
-	int numsamples;
+	int num_samples;
 	int i, j;
 
 	if(facenum >= MAX_BSP_FACES){
@@ -767,10 +767,10 @@ void BuildFacelights(int facenum){
 		return;
 	}
 
-	face = &dfaces[facenum];
-	plane = &dplanes[face->plane_num];
+	face = &d_bsp.faces[facenum];
+	plane = &d_bsp.planes[face->plane_num];
 
-	tex = &texinfo[face->texinfo];
+	tex = &d_bsp.texinfo[face->texinfo];
 
 	if(tex->flags & (SURF_SKY | SURF_WARP))
 		return;  // non-lit texture
@@ -778,29 +778,29 @@ void BuildFacelights(int facenum){
 	sdir = tex->vecs[0];
 	tdir = tex->vecs[1];
 
-	if(extrasamples)  // rad -extra antialiasing
-		numsamples = MAX_SAMPLES;
+	if(extra_samples)  // rad -extra antialiasing
+		num_samples = MAX_SAMPLES;
 	else
-		numsamples = 1;
+		num_samples = 1;
 
-	scale = 1.0 / numsamples;  // each sample contributes this much
+	scale = 1.0 / num_samples;  // each sample contributes this much
 
 	memset(l, 0, sizeof(l));
 
-	for(i = 0; i < numsamples; i++){  // assemble the lightinfo
+	for(i = 0; i < num_samples; i++){  // assemble the lightinfo
 
 		l[i].face = face;
-		l[i].facedist = plane->dist;
+		l[i].face_dist = plane->dist;
 
-		VectorCopy(plane->normal, l[i].facenormal);
+		VectorCopy(plane->normal, l[i].face_normal);
 
 		if(face->side){  // negate the normal and dist
-			VectorNegate(l[i].facenormal, l[i].facenormal);
-			l[i].facedist = -l[i].facedist;
+			VectorNegate(l[i].face_normal, l[i].face_normal);
+			l[i].face_dist = -l[i].face_dist;
 		}
 
 		// get the origin offset for rotating bmodels
-		VectorCopy(face_offset[facenum], l[i].modelorg);
+		VectorCopy(face_offset[facenum], l[i].model_org);
 
 		// calculate lightmap texture mins and maxs
 		CalcLightinfoExtents(&l[i]);
@@ -812,33 +812,33 @@ void BuildFacelights(int facenum){
 		CalcPoints(&l[i], sampleofs[i][0], sampleofs[i][1]);
 	}
 
-	fl = &facelight[facenum];
-	fl->numsamples = l[0].numsurfpt;
+	fl = &face_lights[facenum];
+	fl->num_samples = l[0].num_sample_points;
 
-	fl->origins = Z_Malloc(fl->numsamples * sizeof(vec3_t));
-	memcpy(fl->origins, l[0].surfpt, fl->numsamples * sizeof(vec3_t));
+	fl->origins = Z_Malloc(fl->num_samples * sizeof(vec3_t));
+	memcpy(fl->origins, l[0].sample_points, fl->num_samples * sizeof(vec3_t));
 
-	fl->samples = Z_Malloc(fl->numsamples * sizeof(vec3_t));
-	fl->directions = Z_Malloc(fl->numsamples * sizeof(vec3_t));
+	fl->samples = Z_Malloc(fl->num_samples * sizeof(vec3_t));
+	fl->directions = Z_Malloc(fl->num_samples * sizeof(vec3_t));
 
 	center = face_extents[facenum].center;  // center of the face
 
-	for(i = 0; i < fl->numsamples; i++){  // calculate light for each sample
+	for(i = 0; i < fl->num_samples; i++){  // calculate light for each sample
 
 		float *sample = fl->samples + i * 3;  // accumulate lighting here
 		float *direction = fl->directions + i * 3;  // accumulate direction here
 
-		for(j = 0; j < numsamples; j++){  // with antialiasing
+		for(j = 0; j < num_samples; j++){  // with antialiasing
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
 			if(tex->flags & SURF_PHONG){  // interpolated normal
-				SampleNormal(&l[0], l[j].surfpt[i], normal);
+				SampleNormal(&l[0], l[j].sample_points[i], normal);
 			}
 			else {  // or just plane normal
-				VectorCopy(l[0].facenormal, normal);
+				VectorCopy(l[0].face_normal, normal);
 			}
 
-			if(!NudgeSamplePosition(l[j].surfpt[i], normal, center, pos, pvs))
+			if(!NudgeSamplePosition(l[j].sample_points[i], normal, center, pos, pvs))
 				continue;  // not a valid point
 
 			GatherSampleLight(pos, normal, pvs, sample, direction, scale);
@@ -866,7 +866,7 @@ void BuildFacelights(int facenum){
 
 	if(!legacy){  // pad underlit samples with default direction
 
-		for(i = 0; i < l[0].numsurfpt; i++){  // pad them
+		for(i = 0; i < l[0].num_sample_points; i++){  // pad them
 
 			float *direction = fl->directions + i * 3;
 
@@ -876,8 +876,8 @@ void BuildFacelights(int facenum){
 	}
 
 	// free the sample positions for the face
-	for(i = 0; i < numsamples; i++){
-		Z_Free(l[i].surfpt);
+	for(i = 0; i < num_samples; i++){
+		Z_Free(l[i].sample_points);
 	}
 }
 
@@ -888,7 +888,7 @@ void BuildFacelights(int facenum){
  * Add the indirect lighting on top of the direct lighting and save into
  * final map format.
  */
-void FinalLightFace(int facenum){
+void FinalLightFace(int face_num){
 	d_bsp_face_t *f;
 	int j, k;
 	vec3_t temp;
@@ -896,10 +896,10 @@ void FinalLightFace(int facenum){
 	facelight_t *fl;
 	byte *dest;
 
-	f = &dfaces[facenum];
-	fl = &facelight[facenum];
+	f = &d_bsp.faces[face_num];
+	fl = &face_lights[face_num];
 
-	if(texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
+	if(d_bsp.texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
 		return;  // non-lit texture
 
 	f->unused[0] = 0;  // pack the old lightstyles array for legacy games
@@ -907,21 +907,21 @@ void FinalLightFace(int facenum){
 
 	ThreadLock();
 
-	f->light_ofs = lightmap_data_size;
-	lightmap_data_size += fl->numsamples * 3;
+	f->light_ofs = d_bsp.lightmap_data_size;
+	d_bsp.lightmap_data_size += fl->num_samples * 3;
 
 	if(!legacy)  // account for light direction data as well
-		lightmap_data_size += fl->numsamples * 3;
+		d_bsp.lightmap_data_size += fl->num_samples * 3;
 
-	if(lightmap_data_size > MAX_BSP_LIGHTING)
+	if(d_bsp.lightmap_data_size > MAX_BSP_LIGHTING)
 		Com_Error(ERR_FATAL, "MAX_BSP_LIGHTING\n");
 
 	ThreadUnlock();
 
 	// write it out
-	dest = &dlightmap_data[f->light_ofs];
+	dest = &d_bsp.lightmap_data[f->light_ofs];
 
-	for(j = 0; j < fl->numsamples; j++){
+	for(j = 0; j < fl->num_samples; j++){
 
 		// start with raw sample data
 		VectorCopy((fl->samples + j * 3), temp);

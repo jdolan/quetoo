@@ -24,65 +24,70 @@
 
 #include "q2wmap.h"
 
-extern int nummodels;
-extern d_bsp_model_t	dmodels[MAX_BSP_MODELS];
+typedef struct d_bsp_s {
+	int num_models;
+	d_bsp_model_t models[MAX_BSP_MODELS];
 
-extern int visdatasize;
-extern byte dvisdata[MAX_BSP_VISIBILITY];
-extern d_bsp_vis_t *dvis;
+	int vis_data_size;
+	byte vis_data[MAX_BSP_VISIBILITY];
 
-extern int lightmap_data_size;
-extern byte dlightmap_data[MAX_BSP_LIGHTING];
+	int lightmap_data_size;
+	byte lightmap_data[MAX_BSP_LIGHTING];
 
-extern int entdatasize;
-extern char dentdata[MAX_BSP_ENTSTRING];
+	int entity_string_len;
+	char entity_string[MAX_BSP_ENTSTRING];
 
-extern int num_leafs;
-extern d_bsp_leaf_t dleafs[MAX_BSP_LEAFS];
+	int num_leafs;
+	d_bsp_leaf_t leafs[MAX_BSP_LEAFS];
 
-extern int num_planes;
-extern d_bsp_plane_t dplanes[MAX_BSP_PLANES];
+	int num_planes;
+	d_bsp_plane_t planes[MAX_BSP_PLANES];
 
-extern int num_vertexes;
-extern d_bsp_vertex_t dvertexes[MAX_BSP_VERTS];
+	int num_vertexes;
+	d_bsp_vertex_t vertexes[MAX_BSP_VERTS];
 
-extern int numnormals;
-extern d_bsp_normal_t dnormals[MAX_BSP_VERTS];
+	int num_normals;
+	d_bsp_normal_t normals[MAX_BSP_VERTS];
 
-extern int num_nodes;
-extern d_bsp_node_t dnodes[MAX_BSP_NODES];
+	int num_nodes;
+	d_bsp_node_t nodes[MAX_BSP_NODES];
 
-extern int num_texinfo;
-extern d_bsp_texinfo_t texinfo[MAX_BSP_TEXINFO];
+	int num_texinfo;
+	d_bsp_texinfo_t texinfo[MAX_BSP_TEXINFO];
 
-extern int num_faces;
-extern d_bsp_face_t dfaces[MAX_BSP_FACES];
+	int num_faces;
+	d_bsp_face_t faces[MAX_BSP_FACES];
 
-extern int num_edges;
-extern d_bsp_edge_t dedges[MAX_BSP_EDGES];
+	int num_edges;
+	d_bsp_edge_t edges[MAX_BSP_EDGES];
 
-extern int num_leaf_faces;
-extern unsigned short dleaffaces[MAX_BSP_LEAFFACES];
+	int num_leaf_faces;
+	unsigned short leaf_faces[MAX_BSP_LEAFFACES];
 
-extern int num_leaf_brushes;
-extern unsigned short dleafbrushes[MAX_BSP_LEAFBRUSHES];
+	int num_leaf_brushes;
+	unsigned short leaf_brushes[MAX_BSP_LEAFBRUSHES];
 
-extern int num_surfedges;
-extern int dsurfedges[MAX_BSP_SURFEDGES];
+	int num_surf_edges;
+	int surf_edges[MAX_BSP_SURFEDGES];
 
-extern int numareas;
-extern d_bsp_area_t dareas[MAX_BSP_AREAS];
+	int num_areas;
+	d_bsp_area_t areas[MAX_BSP_AREAS];
 
-extern int num_area_portals;
-extern d_bsp_area_portal_t dareaportals[MAX_BSP_AREAPORTALS];
+	int num_area_portals;
+	d_bsp_area_portal_t area_portals[MAX_BSP_AREAPORTALS];
 
-extern int numbrushes;
-extern d_bsp_brush_t dbrushes[MAX_BSP_BRUSHES];
+	int num_brushes;
+	d_bsp_brush_t brushes[MAX_BSP_BRUSHES];
 
-extern int numbrushsides;
-extern d_bsp_brush_side_t dbrushsides[MAX_BSP_BRUSHSIDES];
+	int num_brush_sides;
+	d_bsp_brush_side_t brush_sides[MAX_BSP_BRUSHSIDES];
 
-extern byte dpop[256];
+	byte dpop[256];
+} d_bsp_t;
+
+extern d_bsp_t d_bsp;
+extern d_bsp_vis_t *d_vis;
+
 
 void DecompressVis(byte *in, byte *decompressed);
 int CompressVis(byte *vis, byte *dest);
@@ -91,7 +96,6 @@ void LoadBSPFile(char *file_name);
 void LoadBSPFileTexinfo(char *file_name);	// just for qdata
 void WriteBSPFile(char *file_name);
 void PrintBSPFileSizes(void);
-
 
 typedef struct epair_s {
 	struct epair_s *next;
@@ -102,7 +106,7 @@ typedef struct epair_s {
 typedef struct {
 	vec3_t origin;
 	int firstbrush;
-	int numbrushes;
+	int num_brushes;
 	epair_t *epairs;
 
 	// only valid for func_areaportals

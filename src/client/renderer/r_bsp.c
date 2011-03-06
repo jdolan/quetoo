@@ -76,7 +76,7 @@ qboolean R_CullBspModel(const r_entity_t *e){
  * R_DrawBspModelSurfaces
  */
 static void R_DrawBspModelSurfaces(const r_entity_t *e){
-	cplane_t *plane;
+	c_plane_t *plane;
 	r_bsp_surface_t *surf;
 	float dot;
 	int i;
@@ -258,7 +258,7 @@ void R_DrawBspNormals(void){
 static void R_MarkSurfaces_(r_bsp_node_t *node){
 	int i, side, sidebit;
 	r_bsp_surface_t *surf, **lsurf;
-	cplane_t *plane;
+	c_plane_t *plane;
 	float dot;
 
 	if(node->contents == CONTENTS_SOLID)
@@ -376,7 +376,7 @@ void R_MarkSurfaces(void){
  */
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model){
 	const r_bsp_node_t *node;
-	const cplane_t *plane;
+	const c_plane_t *plane;
 	float dot;
 
 	if(!model || !model->nodes){
@@ -501,7 +501,7 @@ void R_MarkLeafs(void){
 	// resolve pvs for the current cluster
 	if(r_locals.cluster != -1)
 		vis = R_DecompressVis((byte *)r_worldmodel->vis +
-				r_worldmodel->vis->bit_ofs[r_locals.cluster][DVIS_PVS]);
+				r_worldmodel->vis->bit_offsets[r_locals.cluster][DVIS_PVS]);
 	else
 		vis = NULL;
 

@@ -57,7 +57,7 @@ extern float entity_scale;
 
 extern vec3_t ambient;
 
-extern qboolean extrasamples;
+extern qboolean extra_samples;
 
 void BuildLightmaps(void);
 

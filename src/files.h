@@ -368,8 +368,8 @@ typedef struct {
 } d_bsp_brush_side_t;
 
 typedef struct {
-	int firstside;
-	int numsides;
+	int first_side;
+	int num_sides;
 	int contents;
 } d_bsp_brush_t;
 
@@ -380,7 +380,7 @@ typedef struct {
 #define DVIS_PHS	1
 typedef struct {
 	int num_clusters;
-	int bit_ofs[8][2];  // bit_ofs[num_clusters][2]
+	int bit_offsets[8][2];  // bit_offsets[num_clusters][2]
 } d_bsp_vis_t;
 
 // each area has a list of portals that lead into other areas

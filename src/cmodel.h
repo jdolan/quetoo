@@ -25,11 +25,11 @@
 #include "files.h"
 #include "filesystem.h"
 
-cmodel_t *Cm_LoadMap(const char *name, int *mapsize);
-cmodel_t *Cm_InlineModel(const char *name);  // *1, *2, etc
+c_model_t *Cm_LoadBsp(const char *name, int *map_size);
+c_model_t *Cm_Model(const char *name);  // *1, *2, etc
 
 int Cm_NumClusters(void);
-int Cm_NumInlineModels(void);
+int Cm_NumModels(void);
 char *Cm_EntityString(void);
 
 // creates a clipping hull for an arbitrary box
@@ -40,9 +40,9 @@ int Cm_PointContents(const vec3_t p, int head_node);
 int Cm_TransformedPointContents(const vec3_t p, int head_node, const vec3_t origin, const vec3_t angles);
 
 trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		int head_node, int brushmask);
+		int head_node, int brush_mask);
 trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		int head_node, int brushmask, const vec3_t origin, const vec3_t angles);
+		int head_node, int brush_mask, const vec3_t origin, const vec3_t angles);
 
 byte *Cm_ClusterPVS(int cluster);
 byte *Cm_ClusterPHS(int cluster);
@@ -61,6 +61,6 @@ void Cm_SetAreaPortalState(int portal_num, qboolean open);
 qboolean Cm_AreasConnected(int area1, int area2);
 
 int Cm_WriteAreaBits(byte *buffer, int area);
-qboolean Cm_HeadnodeVisible(int head_node, byte *visbits);
+qboolean Cm_HeadnodeVisible(int head_node, byte *vis);
 
 #endif /* __CMODEL_H__ */

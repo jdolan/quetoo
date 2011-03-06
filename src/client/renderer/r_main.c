@@ -213,7 +213,7 @@ void R_Trace(const vec3_t start, const vec3_t end, float size, int mask){
 /*
  * R_SignbisForPlane
  */
-static inline int R_SignbitsForPlane(const cplane_t *plane){
+static inline int R_SignbitsForPlane(const c_plane_t *plane){
 	int bits, j;
 
 	// for fast box on planeside test
@@ -540,7 +540,7 @@ void R_LoadMedia(void){
 	strncpy(name, cl.config_strings[CS_MODELS + 1] + 5, sizeof(name) - 1);  // skip "maps/"
 	name[strlen(name) - 4] = 0;  // cut off ".bsp"
 
-	R_BeginLoading(cl.config_strings[CS_MODELS + 1], atoi(cl.config_strings[CS_MAP_SIZE]));
+	R_BeginLoading(cl.config_strings[CS_MODELS + 1], atoi(cl.config_strings[CS_BSP_SIZE]));
 	Cl_LoadProgress(50);
 
 	cl.num_weaponmodels = j = 0;
@@ -561,7 +561,7 @@ void R_LoadMedia(void){
 
 		cl.model_draw[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
 		if(name[0] == '*')
-			cl.model_clip[i] = Cm_InlineModel(cl.config_strings[CS_MODELS + i]);
+			cl.model_clip[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
 		else
 			cl.model_clip[i] = NULL;
 

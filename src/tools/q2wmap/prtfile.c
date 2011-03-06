@@ -175,7 +175,7 @@ static void CreateVisPortals_r(node_t * node){
 static int clusterleaf;
 static void SaveClusters_r(node_t * node){
 	if(node->plane_num == PLANENUM_LEAF){
-		dleafs[clusterleaf++].cluster = node->cluster;
+		d_bsp.leafs[clusterleaf++].cluster = node->cluster;
 		return;
 	}
 	SaveClusters_r(node->children[0]);
@@ -205,7 +205,7 @@ void WritePortalFile(tree_t *tree){
 	NumberLeafs_r(head_node);
 
 	// write the file
-	Com_StripExtension(mapname, file_name);
+	Com_StripExtension(map_name, file_name);
 	strcat(file_name, ".prt");
 
 	if(Fs_OpenFile(file_name, &pf, FILE_WRITE) == -1)

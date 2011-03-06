@@ -430,7 +430,7 @@ void Cl_ParseConfigString(void){
 		if(r_view.ready){
 			cl.model_draw[i - CS_MODELS] = R_LoadModel(cl.config_strings[i]);
 			if(cl.config_strings[i][0] == '*')
-				cl.model_clip[i - CS_MODELS] = Cm_InlineModel(cl.config_strings[i]);
+				cl.model_clip[i - CS_MODELS] = Cm_Model(cl.config_strings[i]);
 			else
 				cl.model_clip[i - CS_MODELS] = NULL;
 		}

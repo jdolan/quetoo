@@ -168,17 +168,18 @@ void R_ListImages_f(void){
 }
 
 
+#define MAX_SCREENSHOTS 100
+
 /*
  * R_Screenshot_f
  */
 void R_Screenshot_f(void){
-	byte *buffer;
-	char picname[MAX_QPATH];
-	char checkname[MAX_OSPATH];
-	int i, c;
-	int quality;
-	FILE *f;
 	static int last_shot;  // small optimization, don't fopen so many times
+	char file_name[MAX_OSPATH];
+	int i, quality;
+	byte *buffer;
+	FILE *f;
+
 	void (*Img_Write)(char *path, byte *img_data, int width, int height, int quality);
 
 	// use format specified in type cvar
@@ -196,30 +197,29 @@ void R_Screenshot_f(void){
 	}
 
 	// create the screenshots directory if it doesn't exist
-	snprintf(checkname, sizeof(checkname), "%s/screenshots/", Fs_Gamedir());
-	Fs_CreatePath(checkname);
+	snprintf(file_name, sizeof(file_name), "%s/screenshots/", Fs_Gamedir());
+	Fs_CreatePath(file_name);
 
 	// find a file name to save it to
-	snprintf(picname, sizeof(picname), "quake2world--.%s", r_screenshot_type->string);
+	for(i = last_shot; i < MAX_SCREENSHOTS; i++){
 
-	for(i = last_shot; i <= 99; i++){
-		picname[11] = i / 10 + '0';
-		picname[12] = i % 10 + '0';
-		snprintf(checkname, sizeof(checkname), "%s/screenshots/%s", Fs_Gamedir(), picname);
-		f = fopen(checkname, "rb");
-		if(!f)
+		snprintf(file_name, sizeof(file_name), "%s/screenshots/quake2world%02d.%s",
+				Fs_Gamedir(), i, r_screenshot_type->string);
+
+		if(!(f = fopen(file_name, "rb")))
 			break;  // file doesn't exist
+
 		Fs_CloseFile(f);
 	}
-	if(i == 100){
-		Com_Print( "R_Screenshot_f: Couldn't create a file\n");
+
+	if(i == MAX_SCREENSHOTS){
+		Com_Print("R_Screenshot_f: Couldn't create a file\n");
 		return;
 	}
 
 	last_shot = i;
 
-	c = r_state.width * r_state.height * 3;
-	buffer = Z_Malloc(c);
+	buffer = Z_Malloc(r_state.width * r_state.height * 3);
 
 	glReadPixels(0, 0, r_state.width, r_state.height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
@@ -231,10 +231,10 @@ void R_Screenshot_f(void){
 	if(quality > 100)
 		quality = 100;
 
-	(*Img_Write)(checkname, buffer, r_state.width, r_state.height, quality);
+	(*Img_Write)(file_name, buffer, r_state.width, r_state.height, quality);
 
 	Z_Free(buffer);
-	Com_Print("Saved %s\n", picname);
+	Com_Print("Saved %s\n", Com_Basename(file_name));
 }
 
 

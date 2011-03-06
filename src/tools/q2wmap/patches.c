@@ -37,11 +37,11 @@ void CalcTextureReflectivity(void){
 	// always set index 0 even if no textures
 	VectorSet(texture_reflectivity[0], 0.5, 0.5, 0.5);
 
-	for(i = 0; i < num_texinfo; i++){
+	for(i = 0; i < d_bsp.num_texinfo; i++){
 
 		// see if an earlier texinfo already got the value
 		for(j = 0; j < i; j++){
-			if(!strcmp(texinfo[i].texture, texinfo[j].texture)){
+			if(!strcmp(d_bsp.texinfo[i].texture, d_bsp.texinfo[j].texture)){
 				VectorCopy(texture_reflectivity[j], texture_reflectivity[i]);
 				break;
 			}
@@ -51,7 +51,7 @@ void CalcTextureReflectivity(void){
 			continue;
 
 		// load the image to calculate reflectivity
-		snprintf(path, sizeof(path), "textures/%s", texinfo[i].texture);
+		snprintf(path, sizeof(path), "textures/%s", d_bsp.texinfo[i].texture);
 
 		if(!Img_LoadImage(path, &surf)){
 			Com_Warn("Couldn't load %s\n", path);
@@ -70,7 +70,7 @@ void CalcTextureReflectivity(void){
 			color[2] += *pos++; // b
 		}
 
-		Com_Verbose("Loaded %s (%dx%d)\n", texinfo[i].texture, surf->w, surf->h);
+		Com_Verbose("Loaded %s (%dx%d)\n", d_bsp.texinfo[i].texture, surf->w, surf->h);
 
 		SDL_FreeSurface(surf);
 
@@ -95,13 +95,13 @@ static winding_t *WindingFromFace(const d_bsp_face_t * f){
 	w->numpoints = f->num_edges;
 
 	for(i = 0; i < f->num_edges; i++){
-		const int se = dsurfedges[f->first_edge + i];
+		const int se = d_bsp.surf_edges[f->first_edge + i];
 		if(se < 0)
-			v = dedges[-se].v[1];
+			v = d_bsp.edges[-se].v[1];
 		else
-			v = dedges[se].v[0];
+			v = d_bsp.edges[se].v[0];
 
-		dv = &dvertexes[v];
+		dv = &d_bsp.vertexes[v];
 		VectorCopy(dv->point, w->p[i]);
 	}
 
@@ -117,7 +117,7 @@ static winding_t *WindingFromFace(const d_bsp_face_t * f){
 static inline qboolean HasLight(const d_bsp_face_t *f){
 	const d_bsp_texinfo_t *tex;
 
-	tex = &texinfo[f->texinfo];
+	tex = &d_bsp.texinfo[f->texinfo];
 	return (tex->flags & SURF_LIGHT) && tex->value;
 }
 
@@ -128,7 +128,7 @@ static inline qboolean HasLight(const d_bsp_face_t *f){
 static inline qboolean IsSky(const d_bsp_face_t * f){
 	const d_bsp_texinfo_t *tex;
 
-	tex = &texinfo[f->texinfo];
+	tex = &d_bsp.texinfo[f->texinfo];
 	return tex->flags & SURF_SKY;
 }
 
@@ -137,9 +137,9 @@ static inline qboolean IsSky(const d_bsp_face_t * f){
  * EmissiveLight
  */
 static inline void EmissiveLight(patch_t *patch){
-	if(HasLight(patch->face)){
 
-		const d_bsp_texinfo_t *tex = &texinfo[patch->face->texinfo];
+	if(HasLight(patch->face)){
+		const d_bsp_texinfo_t *tex = &d_bsp.texinfo[patch->face->texinfo];
 		const vec_t *ref = texture_reflectivity[patch->face->texinfo];
 
 		VectorScale(ref, tex->value, patch->light);
@@ -158,11 +158,11 @@ static void BuildPatch(int fn, winding_t *w){
 
 	face_patches[fn] = patch;
 
-	patch->face = &dfaces[fn];
+	patch->face = &d_bsp.faces[fn];
 	patch->winding = w;
 
 	// resolve the normal
-	plane = &dplanes[patch->face->plane_num];
+	plane = &d_bsp.planes[patch->face->plane_num];
 
 	if(patch->face->side)
 		VectorNegate(plane->normal, patch->normal);
@@ -186,11 +186,11 @@ static void BuildPatch(int fn, winding_t *w){
 /*
  * EntityForModel
  */
-static entity_t *EntityForModel(int modnum){
+static entity_t *EntityForModel(int num){
 	int i;
 	char name[16];
 
-	snprintf(name, sizeof(name), "*%i", modnum);
+	snprintf(name, sizeof(name), "*%i", num);
 
 	// search the entities for one using modnum
 	for(i = 0; i < num_entities; i++){
@@ -216,9 +216,9 @@ void BuildPatches(void){
 	winding_t *w;
 	vec3_t origin;
 
-	for(i = 0; i < nummodels; i++){
+	for(i = 0; i < d_bsp.num_models; i++){
 
-		const d_bsp_model_t *mod = &dmodels[i];
+		const d_bsp_model_t *mod = &d_bsp.models[i];
 		const entity_t *ent = EntityForModel(i);
 
 		// bmodels with origin brushes need to be offset into their
@@ -228,7 +228,7 @@ void BuildPatches(void){
 		for(j = 0; j < mod->num_faces; j++){
 
 			const int facenum = mod->first_face + j;
-			d_bsp_face_t *f = &dfaces[facenum];
+			d_bsp_face_t *f = &d_bsp.faces[facenum];
 
 			VectorCopy(origin, face_offset[facenum]);
 
@@ -336,7 +336,7 @@ void SubdividePatches(void){
 
 	for(i = 0; i < MAX_BSP_FACES; i++){
 
-		const d_bsp_face_t *f = &dfaces[i];
+		const d_bsp_face_t *f = &d_bsp.faces[i];
 		patch_t *p = face_patches[i];
 
 		if(p && !IsSky(f))  // break it up

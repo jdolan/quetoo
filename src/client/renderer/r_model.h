@@ -75,7 +75,7 @@ typedef struct {
 	int light_frame;  // dynamic lighting frame
 	int trace_num;  // lightmap trace lookups
 
-	cplane_t *plane;
+	c_plane_t *plane;
 	int flags;  // MSURF_ flags
 
 	int first_edge;  // look up in model->surfedges[], negative numbers
@@ -143,7 +143,7 @@ typedef struct r_bsp_node_s {
 	struct r_model_s *model;
 
 	// node specific
-	cplane_t *plane;
+	c_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
 	unsigned short first_surface;
@@ -280,7 +280,7 @@ typedef struct r_model_s {
 	r_bsp_submodel_t *submodels;
 
 	int num_planes;
-	cplane_t *planes;
+	c_plane_t *planes;
 
 	int num_leafs;
 	r_bsp_leaf_t *leafs;
@@ -301,7 +301,7 @@ typedef struct r_model_s {
 	int num_surfaces;
 	r_bsp_surface_t *surfaces;
 
-	int num_surfedges;
+	int num_surf_edges;
 	int *surfedges;
 
 	int num_leaf_surfaces;

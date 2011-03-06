@@ -31,8 +31,8 @@ int LIGHT_Main(void);
 int MAT_Main(void);
 int PAK_Main(void);
 
-extern char mapname[MAX_OSPATH];
-extern char bspname[MAX_OSPATH];
+extern char map_name[MAX_OSPATH];
+extern char bsp_name[MAX_OSPATH];
 extern char outbase[MAX_OSPATH];
 
 extern qboolean verbose;
