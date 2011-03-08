@@ -245,7 +245,7 @@ void R_EnableLights(int mask){
 				VectorSubtract(l->origin, lights_offset, position);
 				glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
 
-				VectorCopy(l->color, diffuse);
+				VectorScale(l->color, r_lighting->value, diffuse);
 				glLightfv(GL_LIGHT0 + count, GL_DIFFUSE, diffuse);
 
 				glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, l->radius);

@@ -714,7 +714,7 @@ static void R_InitLocal(void){
 
 	// settings and preferences
 	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE, NULL);
-	r_brightness = Cvar_Get("r_brightness", "1.5", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
+	r_brightness = Cvar_Get("r_brightness", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_PROGRAMS, NULL);
 	r_capture = Cvar_Get("r_capture", "0", 0, "Toggle screen capturing to jpeg files");
 	r_capture_fps = Cvar_Get("r_capture_fps", "25", 0, "The desired framerate for screen capturing");
@@ -731,12 +731,12 @@ static void R_InitLocal(void){
 	r_hunkmegs = Cvar_Get("r_hunkmegs", "128", CVAR_R_CONTEXT, "Memory size for the renderer hunk in megabytes");
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_lightmapsize = Cvar_Get("r_lightmapsize", "1024", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
-	r_lighting = Cvar_Get("r_lighting", "1", CVAR_ARCHIVE, "Activate or deactivate lighting effects");
+	r_lighting = Cvar_Get("r_lighting", "1.0", CVAR_ARCHIVE, "Controls intensity of hardware lighting effects");
 	r_lights = Cvar_Get("r_lights", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS, NULL);
 	r_lines = Cvar_Get("r_lines", "0.5", CVAR_ARCHIVE, NULL);
 	r_linewidth = Cvar_Get("r_linewidth", "1.0", CVAR_ARCHIVE, NULL);
 	r_materials = Cvar_Get("r_materials", "1", CVAR_ARCHIVE, NULL);
-	r_modulate = Cvar_Get("r_modulate", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES, "Controls the brightness of the lightmap");
+	r_modulate = Cvar_Get("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_IMAGES, "Controls the brightness of the lightmap");
 	r_monochrome = Cvar_Get("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_multisample = Cvar_Get("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_optimize = Cvar_Get("r_optimize", "1", CVAR_ARCHIVE, NULL);
@@ -758,7 +758,7 @@ static void R_InitLocal(void){
 	r_windowedheight = Cvar_Get("r_windowedheight", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 	r_windowedwidth = Cvar_Get("r_windowedwidth", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 
-	// prevent unecessary reloading for initial values
+	// prevent unnecessary reloading for initial values
 	Cvar_ClearVars(CVAR_R_MASK);
 
 	Cmd_AddCommand("r_listmodels", R_ListModels_f, "Print information about all the loaded models to the game console");

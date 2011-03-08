@@ -440,6 +440,7 @@ static r_program_t *R_LoadProgram(const char *name, void *init, void *use){
  * R_InitWorldProgram
  */
 static void R_InitWorldProgram(void){
+
 	R_ProgramParameter1i("SAMPLER0", 0);
 	R_ProgramParameter1i("SAMPLER1", 1);
 	R_ProgramParameter1i("SAMPLER2", 2);
@@ -455,12 +456,33 @@ static void R_InitWorldProgram(void){
 
 
 /*
+ * R_UseWorldProgram
+ */
+static void R_UseWorldProgram(void){
+
+	R_ProgramParameter1f("LIGHT_CLAMP_MIN", 0.0);
+	R_ProgramParameter1f("LIGHT_CLAMP_MAX", 4.0);
+}
+
+
+/*
  * R_InitMeshProgram
  */
 static void R_InitMeshProgram(void){
+
 	R_ProgramParameter1i("SAMPLER0", 0);
 
 	R_ProgramParameter1f("OFFSET", 0.0);
+}
+
+
+/*
+ * R_UseMeshProgram
+ */
+static void R_UseMeshProgram(void){
+
+	R_ProgramParameter1f("LIGHT_CLAMP_MIN", -0.1);
+	R_ProgramParameter1f("LIGHT_CLAMP_MAX",  3.0);
 }
 
 
@@ -504,10 +526,10 @@ void R_InitPrograms(void){
 		return;
 
 	r_state.world_program = R_LoadProgram(
-			"world", R_InitWorldProgram, NULL);
+			"world", R_InitWorldProgram, R_UseWorldProgram);
 
 	r_state.mesh_program = R_LoadProgram(
-				"mesh", R_InitMeshProgram, NULL);
+				"mesh", R_InitMeshProgram, R_UseMeshProgram);
 
 	r_state.warp_program = R_LoadProgram(
 			"warp", R_InitWarpProgram, R_UseWarpProgram);

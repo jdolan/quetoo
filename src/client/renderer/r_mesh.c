@@ -209,7 +209,7 @@ static void R_ResetMeshState_default(const r_entity_t *e){
 
 
 #define MESH_SHADOW_SCALE 1.5
-#define MESH_SHADOW_ALPHA 0.2
+#define MESH_SHADOW_ALPHA 0.3
 
 /*
  * R_RotateForMeshShadow_default
@@ -242,6 +242,32 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e){
 	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
 
 	glScalef(scale, scale, 0.0);
+}
+
+
+/*
+ * R_DrawMeshModelShell_default
+ *
+ * Draws an animated, colored shell for the specified entity.  Rather than
+ * re-lerping or re-scaling the entity, the currently bound vertex arrays
+ * are simply re-drawn using a small depth offset.
+ */
+static void R_DrawMeshModelShell_default(const r_entity_t *e){
+
+	if(VectorCompare(e->shell, vec3_origin))
+		return;
+
+	glColor3fv(e->shell);
+
+	R_BindTexture(r_envmaptextures[2]->texnum);
+
+	R_EnableShell(true);
+
+	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+
+	R_EnableShell(false);
+
+	glColor4ubv(color_white);
 }
 
 
@@ -301,32 +327,6 @@ static void R_DrawMeshShadow_default(r_entity_t *e){
 	R_EnableBlend(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
-
-	glColor4ubv(color_white);
-}
-
-
-/*
- * R_DrawMeshModelShell_default
- *
- * Draws an animated, colored shell for the specified entity.  Rather than
- * re-lerping or re-scaling the entity, the currently bound vertex arrays
- * are simply re-drawn using a small depth offset.
- */
-static void R_DrawMeshModelShell_default(const r_entity_t *e){
-
-	if(VectorCompare(e->shell, vec3_origin))
-		return;
-
-	glColor3fv(e->shell);
-
-	R_BindTexture(r_envmaptextures[2]->texnum);
-
-	R_EnableShell(true);
-
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
-
-	R_EnableShell(false);
 
 	glColor4ubv(color_white);
 }
@@ -394,8 +394,6 @@ static void R_DrawMd2ModelLerped_default(const r_entity_t *e){
 	}
 
 	glDrawArrays(GL_TRIANGLES, 0, md2->num_tris * 3);
-
-	r_view.mesh_polys += md2->num_tris;
 }
 
 
@@ -456,8 +454,6 @@ static void R_DrawMd3ModelLerped_default(const r_entity_t *e){
 		}
 
 		glDrawArrays(GL_TRIANGLES, 0, mesh->num_tris * 3);
-
-		r_view.mesh_polys += mesh->num_tris;
 	}
 }
 
@@ -468,8 +464,6 @@ static void R_DrawMd3ModelLerped_default(const r_entity_t *e){
 static void R_DrawMeshModelArrays_default(const r_entity_t *e){
 
 	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
-
-	r_view.mesh_polys += e->model->num_verts / 3;
 }
 
 
@@ -511,4 +505,6 @@ void R_DrawMeshModel_default(r_entity_t *e){
 	R_DrawMeshShadow_default(e);  // lastly draw the shadow
 
 	R_ResetMeshState_default(e);
+
+	r_view.mesh_polys += e->model->num_verts / 3;
 }

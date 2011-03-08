@@ -161,6 +161,8 @@ void R_UpdateLighting(const vec3_t point, r_lighting_t *lighting){
 }
 
 
+#define LIGHTING_AMBIENT_ATTENUATION 300.0
+
 /*
  * R_ApplyLighting
  *
@@ -183,10 +185,10 @@ void R_ApplyLighting(const r_lighting_t *lighting){
 		VectorAdd(lighting->origin, up, position);
 		glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
 
-		VectorCopy(r_locals.ambient_light, diffuse);
+		VectorScale(r_locals.ambient_light, r_lighting->value, diffuse);
 		glLightfv(GL_LIGHT0 + count, GL_DIFFUSE, diffuse);
 
-		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, 300.0);
+		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, LIGHTING_AMBIENT_ATTENUATION);
 		count++;
 
 		i = 0;
@@ -199,7 +201,7 @@ void R_ApplyLighting(const r_lighting_t *lighting){
 			VectorCopy(r->bsp_light->origin, position);
 			glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
 
-			VectorCopy(r->bsp_light->color, diffuse);
+			VectorScale(r->bsp_light->color, r_lighting->value, diffuse);
 			glLightfv(GL_LIGHT0 + count, GL_DIFFUSE, diffuse);
 
 			glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, r->bsp_light->radius);
