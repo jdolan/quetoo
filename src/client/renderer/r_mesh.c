@@ -483,10 +483,17 @@ void R_DrawMeshModel_default(r_entity_t *e){
 	}
 
 	if(e->lighting->state != LIGHTING_READY){  // update static lighting info
+
 		if(e->effects & EF_WEAPON)
-			R_UpdateLighting(r_view.origin, e->lighting);
+			VectorCopy(r_view.origin, e->lighting->origin);
 		else
-			R_UpdateLighting(e->origin, e->lighting);
+			VectorCopy(e->origin, e->lighting->origin);
+
+		// determine scaled mins/maxs in world space
+		VectorMA(e->lighting->origin, e->scale[0], e->model->mins, e->lighting->mins);
+		VectorMA(e->lighting->origin, e->scale[0], e->model->maxs, e->lighting->maxs);
+
+		R_UpdateLighting(e->lighting);
 	}
 
 	R_SetMeshState_default(e);

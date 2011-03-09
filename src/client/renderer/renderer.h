@@ -76,6 +76,7 @@ typedef enum {
 // lighting structures contain static lighting info for entities
 typedef struct r_lighting_s {
 	vec3_t origin;  // starting point, entity origin
+	vec3_t mins, maxs;
 	vec3_t shadow_origin;
 	vec3_t shadow_normal;
 	r_bsp_light_ref_t bsp_light_refs[MAX_ACTIVE_LIGHTS];  // light sources
@@ -394,7 +395,7 @@ void R_EnableLights(int mask);
 void R_EnableLightsByRadius(const vec3_t p);
 
 // r_lighting.c
-void R_UpdateLighting(const vec3_t point, r_lighting_t *lighting);
+void R_UpdateLighting(r_lighting_t *lighting);
 void R_ApplyLighting(const r_lighting_t *lighting);
 
 // r_lightmap.c

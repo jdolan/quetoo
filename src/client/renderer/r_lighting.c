@@ -72,11 +72,17 @@ static int R_UpdateBspLightRefs(r_lighting_t *lighting){
 		if(intensity <= 0.0)
 			continue;
 
-		// is it visible to the entity
-		R_Trace(l->origin, lighting->origin, 0.0, CONTENTS_SOLID);
+		// is it visible to the entity; trace to corners of bounding box
+		R_Trace(l->origin, lighting->mins, 0.0, MASK_VISIBLE);
 
-		if(r_view.trace.fraction < 1.0)
-			continue;
+		if(r_view.trace.fraction < 1.0){
+
+			R_Trace(l->origin, lighting->maxs, 0.0, MASK_VISIBLE);
+
+			if(r_view.trace.fraction < 1.0){
+				continue;
+			}
+		}
 
 		// everything checks out, so keep it
 		r = &light_refs[j++];
@@ -112,11 +118,9 @@ static int R_UpdateBspLightRefs(r_lighting_t *lighting){
  * Resolves static lighting information for the specified point, including
  * most relevant static light sources and shadow positioning.
  */
-void R_UpdateLighting(const vec3_t point, r_lighting_t *lighting){
+void R_UpdateLighting(r_lighting_t *lighting){
 	vec3_t start, end;
 	int i, j;
-
-	VectorCopy(point, lighting->origin);
 
 	VectorCopy(lighting->origin, start);
 	VectorCopy(lighting->origin, end);
