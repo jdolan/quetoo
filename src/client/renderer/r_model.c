@@ -202,6 +202,7 @@ r_model_t *R_LoadModel(const char *name){
 	r_model_t *mod;
 	char n[MAX_QPATH];
 	void *buf;
+	vec3_t tmp;
 	int i;
 
 	if(!name || !name[0]){
@@ -265,6 +266,10 @@ r_model_t *R_LoadModel(const char *name){
 
 	// assemble vertex buffer objects from static arrays
 	R_LoadVertexBuffers(mod);
+
+	// calculate an approximate radius from the bounding box
+	VectorSubtract(mod->maxs, mod->mins, tmp);
+	mod->radius = VectorLength(tmp) / 2.0;
 
 	Fs_FreeFile(buf);
 

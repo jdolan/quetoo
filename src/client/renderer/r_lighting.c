@@ -67,7 +67,7 @@ static int R_UpdateBspLightRefs(r_lighting_t *lighting){
 
 		// is it within range of the entity
 		VectorSubtract(l->origin, lighting->origin, dir);
-		intensity = (l->radius - VectorNormalize(dir)) / l->radius;
+		intensity = (l->radius + lighting->radius - VectorNormalize(dir)) / l->radius;
 
 		if(intensity <= 0.0)
 			continue;
@@ -144,6 +144,11 @@ void R_UpdateLighting(r_lighting_t *lighting){
 			// translate the projected end point
 			VectorMA(end, -scale, dir, end);
 		}
+
+		/*
+		 * TODO: Calculate a flat color and store it in r_lighting_t for
+		 * folks who have r_lighting disabled.
+		 */
 	}
 
 	end[2] = start[2] - LIGHTING_MAX_SHADOW_DISTANCE;

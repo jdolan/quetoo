@@ -636,8 +636,8 @@ int Cmd_CompleteCommand(const char *partial, const char *matches[]){
 	// check for partial matches in commands
 	for(cmd = cmd_functions; cmd; cmd = cmd->next){
 		if(!strncmp(partial, cmd->name, len)){
-			Com_Print("%c%s\n", (char)1, cmd->name);
-			if (cmd->description)
+			Com_Print("^1%s^7\n", cmd->name);
+			if(cmd->description)
 				Com_Print("\t%s\n", cmd->description);
 			matches[m] = cmd->name;
 			m++;
@@ -647,7 +647,7 @@ int Cmd_CompleteCommand(const char *partial, const char *matches[]){
 	// and then aliases
 	for(a = cmd_alias; a; a = a->next){
 		if(!strncmp(partial, a->name, len)){
-			Com_Print("%c%s\n", (char)1, a->name);
+			Com_Print("^3%s^7\n", a->name);
 			matches[m] = a->name;
 			m++;
 		}

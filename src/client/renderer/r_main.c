@@ -700,10 +700,10 @@ void R_Restart_f(void){
 static void R_InitLocal(void){
 
 	// development tools
-	r_clear = Cvar_Get("r_clear", "0", 0, NULL);
-	r_cull = Cvar_Get("r_cull", "1", 0, NULL);
-	r_lock_vis = Cvar_Get("r_lock_vis", "0", 0, NULL);
-	r_no_vis = Cvar_Get("r_no_vis", "0", 0, NULL);
+	r_clear = Cvar_Get("r_clear", "0", 0, "Controls screen clearing at each frame (developer tool)");
+	r_cull = Cvar_Get("r_cull", "1", 0, "Controls bounded box culling routines (developer tool)");
+	r_lock_vis = Cvar_Get("r_lock_vis", "0", 0, "Temporarily locks the PVS lookup for world surfaces (developer tool)");
+	r_no_vis = Cvar_Get("r_no_vis", "0", 0, "Disables PVS refresh and lookup for world surfaces (developer tool)");
 	r_draw_bsp_lights = Cvar_Get("r_draw_bsp_lights", "0", 0, "Controls the rendering of static BSP light sources (developer tool)");
 	r_draw_bsp_normals = Cvar_Get("r_draw_bsp_normals", "0", 0, "Controls the rendering of surface normals (developer tool)");
 	r_draw_bsp_wireframe = Cvar_Get("r_draw_bsp_wireframe", "0", 0, "Controls the rendering of world surfaces as wireframes (developer tool)");
@@ -909,9 +909,9 @@ void R_Init(void){
 	if(!R_InitExtensions())
 		Com_Error(ERR_FATAL, "Failed to resolve required extensions.");
 
-	Com_Print("  Renderer: %s\n", r_config.renderer_string);
-	Com_Print("  Vendor:   %s\n", r_config.vendor_string);
-	Com_Print("  Version:  %s\n", r_config.version_string);
+	Com_Print("  Renderer: ^2%s^7\n", r_config.renderer_string);
+	Com_Print("  Vendor:   ^2%s^7\n", r_config.vendor_string);
+	Com_Print("  Version:  ^2%s^7\n", r_config.version_string);
 
 	R_EnforceVersion();
 

@@ -75,8 +75,10 @@ char *Cvar_GetString(const char *var_name){
 	cvar_t *var;
 
 	var = Cvar_FindVar(var_name);
+
 	if(!var)
 		return "";
+
 	return var->string;
 }
 
@@ -95,8 +97,8 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]){
 	// check for partial matches
 	for(cvar = cvar_vars; cvar; cvar = cvar->next){
 		if(!strncmp(partial, cvar->name, len)){
-			Com_Print("%s is \"%s\"\n", cvar->name, cvar->string);
-			if (cvar->description)
+			Com_Print("^2%s^7 is \"%s\"\n", cvar->name, cvar->string);
+			if(cvar->description)
 				Com_Print("\t%s\n", cvar->description);
 			matches[m] = cvar->name;
 			m++;
@@ -160,6 +162,8 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const c
 	var = Cvar_FindVar(var_name);
 	if(var){
 		var->flags |= flags;
+		if(description)
+			var->description = description;
 		return var;
 	}
 
@@ -554,15 +558,7 @@ typedef struct {
 } cheatvar_t;
 
 static const cheatvar_t cheatvars[] = {
-	{"r_clear", "0"},
-	{"r_cull", "1"},
-	{"r_deluxemap", "0"},
-	{"r_lightmap", "0"},
-	{"r_lockvis", "0"},
-	{"r_novis", "0"},
-	{"r_shownormals", "0"},
-	{"r_showpolys", "0"},
-	{"r_speeds", "0"},
+	{"r_draw_bsp_wireframe", "0"},
 	{"timedemo", "0"},
 	{"timescale", "1"},
 	{NULL, NULL}

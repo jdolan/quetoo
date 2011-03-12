@@ -489,6 +489,8 @@ void R_DrawMeshModel_default(r_entity_t *e){
 		else
 			VectorCopy(e->origin, e->lighting->origin);
 
+		e->lighting->radius = e->scale[0] * e->model->radius;
+
 		// determine scaled mins/maxs in world space
 		VectorMA(e->lighting->origin, e->scale[0], e->model->mins, e->lighting->mins);
 		VectorMA(e->lighting->origin, e->scale[0], e->model->maxs, e->lighting->maxs);

@@ -284,9 +284,7 @@ void R_DrawEntities(void){
 
 	if(r_draw_bsp_wireframe->value){
 		R_BindTexture(r_notexture->texnum);
-
 		R_EnableTexture(&texunit_diffuse, false);
-
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
@@ -298,7 +296,6 @@ void R_DrawEntities(void){
 
 	if(r_draw_bsp_wireframe->value){
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 		R_EnableTexture(&texunit_diffuse, true);
 	}
 
