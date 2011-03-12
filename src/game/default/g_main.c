@@ -59,7 +59,7 @@ cvar_t *g_voting;
 
 cvar_t *password;
 
-cvar_t *sv_maxclients;
+cvar_t *sv_max_clients;
 cvar_t *dedicated;
 
 g_team_t good, evil;
@@ -99,7 +99,7 @@ void G_ResetTeams(void){
 void G_ResetVote(void){
 	int i;
 
-	for(i = 0; i < sv_maxclients->value; i++){  //reset vote flags
+	for(i = 0; i < sv_max_clients->value; i++){  //reset vote flags
 		if(!g_game.edicts[i + 1].in_use)
 			continue;
 		g_game.edicts[i + 1].client->locals.vote = VOTE_NOOP;
@@ -185,7 +185,7 @@ static void G_RestartGame(qboolean teamz){
 	if(g_level.round_time)
 		g_level.round_num++;
 
-	for(i = 0; i < sv_maxclients->value; i++){  // reset clients
+	for(i = 0; i < sv_max_clients->value; i++){  // reset clients
 
 		if(!g_game.edicts[i + 1].in_use)
 			continue;
@@ -266,7 +266,7 @@ static void G_BeginIntermission(const char *map){
 	g_level.intermission_time = g_level.time;
 
 	// respawn any dead clients
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 
 		client = g_game.edicts + 1 + i;
 
@@ -289,7 +289,7 @@ static void G_BeginIntermission(const char *map){
 	VectorCopy(ent->s.angles, g_level.intermission_angle);
 
 	// move all clients to the intermission point
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 
 		client = g_game.edicts + 1 + i;
 
@@ -326,7 +326,7 @@ static void G_CheckVote(void){
 		return;
 	}
 
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 		if(!g_game.edicts[i + 1].in_use)
 			continue;
 		count++;
@@ -414,7 +414,7 @@ static void G_CheckRoundStart(void){
 
 	clients = g = e = 0;
 
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
@@ -463,7 +463,7 @@ static void G_CheckRoundLimit(){
 	}
 
 	// or attempt to re-join previously active players
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
@@ -503,7 +503,7 @@ static void G_CheckRoundEnd(void){
 
 	winner = NULL;
 	g = e = clients = 0;
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
@@ -579,7 +579,7 @@ static void G_CheckMatchEnd(void){
 		return;  // no match currently running
 
 	g = e = clients = 0;
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
@@ -652,7 +652,7 @@ static void G_CheckRules(void){
 		g_level.start_match = false;
 		g_level.warmup = false;
 
-		for(i = 0; i < sv_maxclients->value; i++){
+		for(i = 0; i < sv_max_clients->value; i++){
 			if(!g_game.edicts[i + 1].in_use)
 				continue;
 			P_Respawn(&g_game.edicts[i + 1], false);
@@ -666,7 +666,7 @@ static void G_CheckRules(void){
 		g_level.start_round = false;
 		g_level.warmup = false;
 
-		for(i = 0; i < sv_maxclients->value; i++){
+		for(i = 0; i < sv_max_clients->value; i++){
 			if(!g_game.edicts[i + 1].in_use)
 				continue;
 			P_Respawn(&g_game.edicts[i + 1], false);
@@ -725,7 +725,7 @@ static void G_CheckRules(void){
 			}
 		}
 		else {  // or individual scores
-			for(i = 0; i < sv_maxclients->value; i++){
+			for(i = 0; i < sv_max_clients->value; i++){
 				cl = g_game.clients + i;
 				if(!g_game.edicts[i + 1].in_use)
 					continue;
@@ -909,7 +909,7 @@ static void G_Frame(void){
 		}
 
 		// update clients
-		if(i > 0 && i <= sv_maxclients->value){
+		if(i > 0 && i <= sv_max_clients->value){
 			P_BeginServerFrame(ent);
 			continue;
 		}
@@ -1182,7 +1182,7 @@ void G_Init(void){
 
 	password = gi.Cvar("password", "", CVAR_USER_INFO, NULL);
 
-	sv_maxclients = gi.Cvar("sv_maxclients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+	sv_max_clients = gi.Cvar("sv_maxclients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NOSET, NULL);
 
 	if(g_fraglog->value)
@@ -1213,11 +1213,11 @@ void G_Init(void){
 
 	// initialize entities and clients for this game
 	g_game.edicts = gi.TagMalloc(g_maxentities->value * sizeof(edict_t), TAG_GAME);
-	g_game.clients = gi.TagMalloc(sv_maxclients->value * sizeof(g_client_t), TAG_GAME);
+	g_game.clients = gi.TagMalloc(sv_max_clients->value * sizeof(g_client_t), TAG_GAME);
 
 	ge.edicts = g_game.edicts;
 	ge.max_edicts = g_maxentities->value;
-	ge.num_edicts = sv_maxclients->value + 1;
+	ge.num_edicts = sv_max_clients->value + 1;
 
 	// set these to false to avoid spurious game restarts and alerts on init
 	g_gameplay->modified = g_teams->modified = g_match->modified = g_rounds->modified =

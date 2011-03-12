@@ -1320,7 +1320,7 @@ void Cl_AddParticles(void){
 	float time;
 	int i;
 
-	if(!cl_addparticles->value)
+	if(!cl_add_particles->value)
 		return;
 
 	// add weather effects after all other effects for the frame

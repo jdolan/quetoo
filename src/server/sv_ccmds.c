@@ -102,7 +102,7 @@ static qboolean Sv_SetPlayer(void){
 	// numeric values are just slot numbers
 	if(s[0] >= '0' && s[0] <= '9'){
 		idnum = atoi(Cmd_Argv(1));
-		if(idnum < 0 || idnum >= sv_maxclients->value){
+		if(idnum < 0 || idnum >= sv_max_clients->value){
 			Com_Print("Bad client slot: %i\n", idnum);
 			return false;
 		}
@@ -117,7 +117,7 @@ static qboolean Sv_SetPlayer(void){
 	}
 
 	// check for a name match
-	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
+	for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
 
 		if(!cl->state)
 			continue;
@@ -210,7 +210,7 @@ static void Sv_Status_f(void){
 	Com_Print("map: %s\n", sv.name);
 	Com_Print("num score ping name            lastmsg exts address               qport \n");
 	Com_Print("--- ----- ---- --------------- ------- ---- --------------------- ------\n");
-	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
+	for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
 
 		if(!cl->state)
 			continue;
@@ -269,7 +269,7 @@ static void Sv_Say_f(void){
 
 	strcat(text, p);
 
-	for(j = 0, client = svs.clients; j < sv_maxclients->value; j++, client++){
+	for(j = 0, client = svs.clients; j < sv_max_clients->value; j++, client++){
 
 		if(client->state != cs_spawned)
 			continue;

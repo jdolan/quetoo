@@ -62,7 +62,7 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg){
 		}
 
 		if(newnum == old_num){  // delta update from old position
-			Msg_WriteDeltaEntity(oldent, newent, msg, false, newent->number <= sv_maxclients->value);
+			Msg_WriteDeltaEntity(oldent, newent, msg, false, newent->number <= sv_max_clients->value);
 			old_index++;
 			newindex++;
 			continue;

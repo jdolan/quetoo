@@ -176,7 +176,7 @@ static void trigger_push_touch(edict_t *self, edict_t *other, c_plane_t *plane, 
 
 		if(other->client){  // don't take falling damage immediately from this
 
-			VectorCopy(other->velocity, other->client->oldvelocity);
+			VectorCopy(other->velocity, other->client->old_velocity);
 			other->client->ps.pmove.pm_flags |= (PMF_PUSHED | PMF_TIME_LAND);
 			other->client->ps.pmove.pm_time = 10;
 

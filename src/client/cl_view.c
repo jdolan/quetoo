@@ -66,15 +66,15 @@ static void Cl_UpdateFov(void){
 static void Cl_UpdateViewsize(void){
 	int size;
 
-	if(!cl_viewsize->modified && !r_view.update)
+	if(!cl_view_size->modified && !r_view.update)
 		return;
 
-	if(cl_viewsize->value < 40.0)
+	if(cl_view_size->value < 40.0)
 		Cvar_Set("cl_viewsize", "40.0");
-	if(cl_viewsize->value > 100.0)
+	if(cl_view_size->value > 100.0)
 		Cvar_Set("cl_viewsize", "100.0");
 
-	size = cl_viewsize->value;
+	size = cl_view_size->value;
 
 	r_view.width = r_state.width * size / 100.0;
 	r_view.height = r_state.height * size / 100.0;
@@ -82,7 +82,7 @@ static void Cl_UpdateViewsize(void){
 	r_view.x = (r_state.width - r_view.width) / 2.0;
 	r_view.y = (r_state.height - r_view.height) / 2.0;
 
-	cl_viewsize->modified = false;
+	cl_view_size->modified = false;
 }
 
 
@@ -162,7 +162,7 @@ static void Cl_UpdateDucking(void){
 static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops){
 	int i, ms;
 
-	if(!cl.demo_server && !cl_thirdperson->value && cl_predict->value &&
+	if(!cl.demo_server && !cl_third_person->value && cl_predict->value &&
 			!(cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION)){
 
 		// use client sided prediction
@@ -242,7 +242,7 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 		if(ps->pmove.pm_type == PM_SPECTATOR && !ps->stats[STAT_HEALTH])
 			return;
 
-		if(!cl_thirdperson->value)
+		if(!cl_third_person->value)
 			return;
 	}
 
@@ -250,12 +250,12 @@ static void Cl_UpdateThirdperson(player_state_t *ps){
 
 	VectorCopy(r_view.angles, angles);
 
-	if(cl_thirdperson->value < 0.0)  // in front of the player
+	if(cl_third_person->value < 0.0)  // in front of the player
 		angles[1] += 180.0;
 
 	AngleVectors(angles, forward, NULL, NULL);
 
-	dist = cl_thirdperson->value;
+	dist = cl_third_person->value;
 
 	if(!dist)
 		dist = 1.0;
@@ -295,7 +295,7 @@ static void Cl_UpdateBob(void){
 	if(!cl_bob->value)
 		return;
 
-	if(cl_thirdperson->value)
+	if(cl_third_person->value)
 		return;
 
 	if(cl.frame.ps.pmove.pm_type != PM_NORMAL)
@@ -408,18 +408,18 @@ void Cl_UpdateView(void){
 
 
 /*
- * Cl_ViewsizeUp_f
+ * Cl_ViewSizeUp_f
  */
-static void Cl_ViewsizeUp_f(void){
-	Cvar_SetValue("cl_viewsize", cl_viewsize->value + 10);
+static void Cl_ViewSizeUp_f(void){
+	Cvar_SetValue("cl_view_size", cl_view_size->value + 10);
 }
 
 
 /*
- * Cl_ViewsizeDown_f
+ * Cl_ViewSizeDown_f
  */
-static void Cl_ViewsizeDown_f(void){
-	Cvar_SetValue("cl_viewsize", cl_viewsize->value - 10);
+static void Cl_ViewSizeDown_f(void){
+	Cvar_SetValue("cl_view_size", cl_view_size->value - 10);
 }
 
 
@@ -427,6 +427,6 @@ static void Cl_ViewsizeDown_f(void){
  * Cl_InitView
  */
 void Cl_InitView(void){
-	Cmd_AddCommand("viewsize_up", Cl_ViewsizeUp_f, NULL);
-	Cmd_AddCommand("viewsize_down", Cl_ViewsizeDown_f, NULL);
+	Cmd_AddCommand("view_size_up", Cl_ViewSizeUp_f, NULL);
+	Cmd_AddCommand("view_size_down", Cl_ViewSizeDown_f, NULL);
 }

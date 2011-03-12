@@ -542,7 +542,7 @@ static void G_LightningDischarge(edict_t *self){
 	int i, d;
 
 	// find all clients in the same water area and kill them
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 
 		ent = &g_game.edicts[i + 1];
 

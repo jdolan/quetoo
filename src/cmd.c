@@ -23,13 +23,13 @@
 
 #define MAX_ALIAS_NAME 32
 
-typedef struct cmdalias_s {
-	struct cmdalias_s *next;
+typedef struct cmd_alias_s {
+	struct cmd_alias_s *next;
 	char name[MAX_ALIAS_NAME];
 	char *value;
-} cmdalias_t;
+} cmd_alias_t;
 
-static cmdalias_t *cmd_alias;
+static cmd_alias_t *cmd_alias;
 
 static qboolean cmd_wait;
 
@@ -316,7 +316,7 @@ static void Cmd_Echo_f(void){
  * Creates a new command that executes a command string (possibly ; seperated)
  */
 static void Cmd_Alias_f(void){
-	cmdalias_t *a;
+	cmd_alias_t *a;
 	char cmd[MAX_STRING_CHARS];
 	int i, c;
 	char *s;
@@ -626,7 +626,7 @@ void Cmd_RemoveCommand(const char *cmd_name){
  */
 int Cmd_CompleteCommand(const char *partial, const char *matches[]){
 	cmd_function_t *cmd;
-	cmdalias_t *a;
+	cmd_alias_t *a;
 	int len;
 	int m;
 
@@ -664,7 +664,7 @@ int Cmd_CompleteCommand(const char *partial, const char *matches[]){
  */
 void Cmd_ExecuteString(const char *text){
 	cmd_function_t *cmd;
-	cmdalias_t *a;
+	cmd_alias_t *a;
 
 	Cmd_TokenizeString(text);
 

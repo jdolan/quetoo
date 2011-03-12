@@ -287,7 +287,7 @@ static void Sv_Download_f(void){
 		return;
 	}
 
-	if(!sv_udpdownload->value){  // lastly, ensure server wishes to allow
+	if(!sv_udp_download->value){  // lastly, ensure server wishes to allow
 		Msg_WriteByte(&sv_client->netchan.message, svc_download);
 		Msg_WriteShort(&sv_client->netchan.message, -1);
 		Msg_WriteByte(&sv_client->netchan.message, 0);

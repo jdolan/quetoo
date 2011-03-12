@@ -129,7 +129,7 @@ static void Sv_ShutdownMessage(const char *msg, qboolean reconnect){
 	else  // or just disconnect
 		Msg_WriteByte(&net_message, svc_disconnect);
 
-	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++)
+	for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++)
 		if(cl->state >= cs_connected)
 			Netchan_Transmit(&cl->netchan, net_message.size, net_message.data);
 }
@@ -166,10 +166,10 @@ static void Sv_UpdateLatchedVars(void){
 
 	Cvar_UpdateLatchedVars();
 
-	if(sv_maxclients->value < MIN_CLIENTS)
-		sv_maxclients->value = MIN_CLIENTS;
-	else if(sv_maxclients->value > MAX_CLIENTS)
-		sv_maxclients->value = MAX_CLIENTS;
+	if(sv_max_clients->value < MIN_CLIENTS)
+		sv_max_clients->value = MIN_CLIENTS;
+	else if(sv_max_clients->value > MAX_CLIENTS)
+		sv_max_clients->value = MAX_CLIENTS;
 
 
 	if(sv_framerate->value < SERVER_FRAME_RATE_MIN)
@@ -191,7 +191,7 @@ static void Sv_ShutdownClients(void){
 	if(!svs.initialized)
 		return;
 
-	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
+	for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
 
 		if(cl->download){
 			Fs_FreeFile(cl->download);
@@ -225,10 +225,10 @@ static void Sv_InitClients(void){
 		Sv_UpdateLatchedVars();
 
 		// initialize the clients array
-		svs.clients = Z_Malloc(sizeof(sv_client_t) * sv_maxclients->value);
+		svs.clients = Z_Malloc(sizeof(sv_client_t) * sv_max_clients->value);
 
 		// and the entity states array
-		svs.num_entity_states = sv_maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
+		svs.num_entity_states = sv_max_clients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
 		svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
 
 		svs.frame_rate = sv_framerate->value;
@@ -242,7 +242,7 @@ static void Sv_InitClients(void){
 	}
 
 	// align the game entities with the server's clients
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 
 		edict_t *edict = EDICT_FOR_NUM(i + 1);
 		edict->s.number = i + 1;
@@ -373,7 +373,7 @@ void Sv_InitServer(const char *server, sv_state_t state){
 	Sv_LoadMedia(server, state);
 
 	// we unlock the "cheat" cvars if we're just running 1 client
-	Cvar_LockCheatVars(sv_maxclients->value > 1);
+	Cvar_LockCheatVars(sv_max_clients->value > 1);
 
 	sv.state = state;
 	Com_SetServerState(sv.state);

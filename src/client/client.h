@@ -253,31 +253,31 @@ typedef struct cl_static_s {
 extern cl_static_t cls;
 
 // cvars
-extern cvar_t *cl_addentities;
-extern cvar_t *cl_addparticles;
+extern cvar_t *cl_add_entities;
+extern cvar_t *cl_add_particles;
 extern cvar_t *cl_async;
 extern cvar_t *cl_blend;
 extern cvar_t *cl_bob;
-extern cvar_t *cl_chatsound;
+extern cvar_t *cl_chat_sound;
 extern cvar_t *cl_counters;
 extern cvar_t *cl_crosshair;
-extern cvar_t *cl_crosshaircolor;
-extern cvar_t *cl_crosshairscale;
+extern cvar_t *cl_crosshair_color;
+extern cvar_t *cl_crosshair_scale;
 extern cvar_t *cl_emits;
 extern cvar_t *cl_fov;
-extern cvar_t *cl_fovzoom;
+extern cvar_t *cl_fov_zoom;
 extern cvar_t *cl_hud;
 extern cvar_t *cl_ignore;
-extern cvar_t *cl_maxfps;
-extern cvar_t *cl_maxpps;
-extern cvar_t *cl_netgraph;
+extern cvar_t *cl_max_fps;
+extern cvar_t *cl_max_pps;
+extern cvar_t *cl_net_graph;
 extern cvar_t *cl_predict;
-extern cvar_t *cl_showmiss;
-extern cvar_t *cl_shownet;
-extern cvar_t *cl_teamchatsound;
-extern cvar_t *cl_thirdperson;
+extern cvar_t *cl_show_prediction_misses;
+extern cvar_t *cl_show_net_messages;
+extern cvar_t *cl_team_chat_sound;
+extern cvar_t *cl_third_person;
 extern cvar_t *cl_timeout;
-extern cvar_t *cl_viewsize;
+extern cvar_t *cl_view_size;
 extern cvar_t *cl_weapon;
 extern cvar_t *cl_weather;
 

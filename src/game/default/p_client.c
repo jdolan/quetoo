@@ -520,7 +520,7 @@ static void P_InitClientLocals(g_client_t *client){
 		client->locals.weapon = item;
 
 	// clean up weapon state
-	client->locals.lastweapon = NULL;
+	client->locals.last_weapon = NULL;
 	client->new_weapon = NULL;
 	client->locals.weapon_frame = 0;
 }
@@ -539,7 +539,7 @@ static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 
 	bestdist = 9999999.0;
 
-	for(n = 1; n <= sv_maxclients->value; n++){
+	for(n = 1; n <= sv_max_clients->value; n++){
 		player = &g_game.edicts[n];
 
 		if(!player->in_use)
@@ -788,7 +788,7 @@ static void P_PutClientInServer(edict_t *ent){
 		client->locals.team = NULL;
 		client->locals.ready = false;
 
-		ent->move_type = MOVE_TYPE_NOCLIP;
+		ent->move_type = MOVE_TYPE_NO_CLIP;
 		ent->solid = SOLID_NOT;
 		ent->sv_flags |= SVF_NOCLIENT;
 		ent->takedamage = false;
@@ -982,7 +982,7 @@ void P_UserInfoChanged(edict_t *ent, const char *user_info){
 #endif
 
 	// set skin
-	if((g_level.teams || g_level.ctf) && cl->locals.team)  // players must use teamskin to change
+	if((g_level.teams || g_level.ctf) && cl->locals.team)  // players must use team_skin to change
 		s = cl->locals.team->skin;
 	else
 		s = Info_ValueForKey(user_info, "skin");
@@ -1052,7 +1052,7 @@ qboolean P_Connect(edict_t *ent, char *user_info){
 	// set name, skin, etc..
 	P_UserInfoChanged(ent, user_info);
 
-	if(sv_maxclients->value > 1)
+	if(sv_max_clients->value > 1)
 		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.net_name);
 
 	ent->sv_flags = 0; // make sure we start with known default
@@ -1175,7 +1175,7 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 
 		client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 
-		if(ent->move_type == MOVE_TYPE_NOCLIP)
+		if(ent->move_type == MOVE_TYPE_NO_CLIP)
 			client->ps.pmove.pm_type = PM_SPECTATOR;
 		else if(ent->s.model_index != 255 || ent->dead)
 			client->ps.pmove.pm_type = PM_DEAD;
@@ -1242,7 +1242,7 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 		gi.LinkEntity(ent);
 
 		// touch jump pads, hurt brushes, etc..
-		if(ent->move_type != MOVE_TYPE_NOCLIP && ent->health > 0)
+		if(ent->move_type != MOVE_TYPE_NO_CLIP && ent->health > 0)
 			G_TouchTriggers(ent);
 
 		// touch other objects
@@ -1286,7 +1286,7 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 	}
 
 	// update chase cam if being followed
-	for(i = 1; i <= sv_maxclients->value; i++){
+	for(i = 1; i <= sv_max_clients->value; i++){
 		other = g_game.edicts + i;
 		if(other->in_use && other->client->chase_target == ent)
 			P_UpdateChaseCam(other);

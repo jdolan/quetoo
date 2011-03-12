@@ -27,7 +27,7 @@
 static cvar_t *cl_run;
 
 static cvar_t *m_sensitivity;
-static cvar_t *m_sensitivityzoom;
+static cvar_t *m_sensitivity_zoom;
 static cvar_t *m_interpolate;
 static cvar_t *m_invert;
 static cvar_t *m_yaw;
@@ -74,14 +74,14 @@ static int keyq_tail = 0;
 
 typedef struct {
 	int down[2];  // key nums holding it down
-	unsigned downtime;  // msec timestamp
+	unsigned down_time;  // msec timestamp
 	unsigned msec;  // msec down this frame
 	int state;
 } kbutton_t;
 
 static kbutton_t in_left, in_right, in_forward, in_back;
-static kbutton_t in_lookup, in_lookdown;
-static kbutton_t in_moveleft, in_moveright;
+static kbutton_t in_look_up, in_look_down;
+static kbutton_t in_move_left, in_move_right;
 static kbutton_t in_speed, in_attack;
 static kbutton_t in_up, in_down;
 
@@ -116,9 +116,9 @@ static void Cl_KeyDown(kbutton_t *b){
 
 	// save timestamp
 	c = Cmd_Argv(2);
-	b->downtime = atoi(c);
-	if(!b->downtime)
-		b->downtime = cls.real_time - 100;
+	b->down_time = atoi(c);
+	if(!b->down_time)
+		b->down_time = cls.real_time - 100;
 
 	b->state |= 1;
 }
@@ -157,7 +157,7 @@ static void Cl_KeyUp(kbutton_t *b){
 	c = Cmd_Argv(2);
 	uptime = atoi(c);
 	if(uptime)
-		b->msec += uptime - b->downtime;
+		b->msec += uptime - b->down_time;
 	else
 		b->msec += 10;
 
@@ -165,76 +165,76 @@ static void Cl_KeyUp(kbutton_t *b){
 }
 
 
-static void Cl_UpDown_f(void){
+static void Cl_Up_down_f(void){
 	Cl_KeyDown(&in_up);
 }
-static void Cl_UpUp_f(void){
+static void Cl_Up_up_f(void){
 	Cl_KeyUp(&in_up);
 }
-static void Cl_DownDown_f(void){
+static void Cl_Down_down_f(void){
 	Cl_KeyDown(&in_down);
 }
-static void Cl_DownUp_f(void){
+static void Cl_Down_up_f(void){
 	Cl_KeyUp(&in_down);
 }
-static void Cl_LeftDown_f(void){
+static void Cl_Left_down_f(void){
 	Cl_KeyDown(&in_left);
 }
-static void Cl_LeftUp_f(void){
+static void Cl_Left_up_f(void){
 	Cl_KeyUp(&in_left);
 }
-static void Cl_RightDown_f(void){
+static void Cl_Right_down_f(void){
 	Cl_KeyDown(&in_right);
 }
-static void Cl_RightUp_f(void){
+static void Cl_Right_up_f(void){
 	Cl_KeyUp(&in_right);
 }
-static void Cl_ForwardDown_f(void){
+static void Cl_Forward_down_f(void){
 	Cl_KeyDown(&in_forward);
 }
-static void Cl_ForwardUp_f(void){
+static void Cl_Forward_up_f(void){
 	Cl_KeyUp(&in_forward);
 }
-static void Cl_BackDown_f(void){
+static void Cl_Back_down_f(void){
 	Cl_KeyDown(&in_back);
 }
-static void Cl_BackUp_f(void){
+static void Cl_Back_up_f(void){
 	Cl_KeyUp(&in_back);
 }
-static void Cl_LookupDown_f(void){
-	Cl_KeyDown(&in_lookup);
+static void Cl_LookUp_down_f(void){
+	Cl_KeyDown(&in_look_up);
 }
-static void Cl_LookupUp_f(void){
-	Cl_KeyUp(&in_lookup);
+static void Cl_LookUp_up_f(void){
+	Cl_KeyUp(&in_look_up);
 }
-static void Cl_LookdownDown_f(void){
-	Cl_KeyDown(&in_lookdown);
+static void Cl_LookDown_down_f(void){
+	Cl_KeyDown(&in_look_down);
 }
-static void Cl_LookdownUp_f(void){
-	Cl_KeyUp(&in_lookdown);
+static void Cl_LookDown_up_f(void){
+	Cl_KeyUp(&in_look_down);
 }
-static void Cl_MoveleftDown_f(void){
-	Cl_KeyDown(&in_moveleft);
+static void Cl_MoveLeft_down_f(void){
+	Cl_KeyDown(&in_move_left);
 }
-static void Cl_MoveleftUp_f(void){
-	Cl_KeyUp(&in_moveleft);
+static void Cl_MoveLeft_up_f(void){
+	Cl_KeyUp(&in_move_left);
 }
-static void Cl_MoverightDown_f(void){
-	Cl_KeyDown(&in_moveright);
+static void Cl_MoveRight_down_f(void){
+	Cl_KeyDown(&in_move_right);
 }
-static void Cl_MoverightUp_f(void){
-	Cl_KeyUp(&in_moveright);
+static void Cl_MoveRight_up_f(void){
+	Cl_KeyUp(&in_move_right);
 }
-static void Cl_SpeedDown_f(void){
+static void Cl_Speed_down_f(void){
 	Cl_KeyDown(&in_speed);
 }
-static void Cl_SpeedUp_f(void){
+static void Cl_Speed_up_f(void){
 	Cl_KeyUp(&in_speed);
 }
-static void Cl_AttackDown_f(void){
+static void Cl_Attack_down_f(void){
 	Cl_KeyDown(&in_attack);
 }
-static void Cl_AttackUp_f(void){
+static void Cl_Attack_up_f(void){
 	Cl_KeyUp(&in_attack);
 }
 static void Cl_CenterView_f(void){
@@ -255,8 +255,8 @@ static float Cl_KeyState(kbutton_t *key, int cmd_msec){
 	key->msec = 0;
 
 	if(key->state){  // still down, reset downtime for next frame
-		msec += cls.real_time - key->downtime;
-		key->downtime = cls.real_time;
+		msec += cls.real_time - key->down_time;
+		key->down_time = cls.real_time;
 	}
 
 	v = (msec * 1000.0) / (cmd_msec * 1000.0);
@@ -709,8 +709,8 @@ void Cl_Move(user_cmd_t *cmd){
 	cmd->forward -= mod * Cl_KeyState(&in_back, cmd->msec);
 
 	// keyboard strafe left / right
-	cmd->side += mod * Cl_KeyState(&in_moveright, cmd->msec);
-	cmd->side -= mod * Cl_KeyState(&in_moveleft, cmd->msec);
+	cmd->side += mod * Cl_KeyState(&in_move_right, cmd->msec);
+	cmd->side -= mod * Cl_KeyState(&in_move_left, cmd->msec);
 
 	// keyboard jump / crouch
 	cmd->up += mod * Cl_KeyState(&in_up, cmd->msec);
@@ -723,8 +723,8 @@ void Cl_Move(user_cmd_t *cmd){
 	cl.angles[YAW] += mod * Cl_KeyState(&in_left, cmd->msec);
 
 	// keyboard look up / down
-	cl.angles[PITCH] -= mod * Cl_KeyState(&in_lookup, cmd->msec);
-	cl.angles[PITCH] += mod * Cl_KeyState(&in_lookdown, cmd->msec);
+	cl.angles[PITCH] -= mod * Cl_KeyState(&in_look_up, cmd->msec);
+	cl.angles[PITCH] += mod * Cl_KeyState(&in_look_down, cmd->msec);
 
 	Cl_ClampPitch();  // clamp, accounting for frame delta angles
 
@@ -752,36 +752,36 @@ void Cl_Move(user_cmd_t *cmd){
  * Cl_InitInput
  */
 void Cl_InitInput(void){
-	Cmd_AddCommand("centerview", Cl_CenterView_f, NULL);
-	Cmd_AddCommand("+moveup", Cl_UpDown_f, NULL);
-	Cmd_AddCommand("-moveup", Cl_UpUp_f, NULL);
-	Cmd_AddCommand("+movedown", Cl_DownDown_f, NULL);
-	Cmd_AddCommand("-movedown", Cl_DownUp_f, NULL);
-	Cmd_AddCommand("+left", Cl_LeftDown_f, NULL);
-	Cmd_AddCommand("-left", Cl_LeftUp_f, NULL);
-	Cmd_AddCommand("+right", Cl_RightDown_f, NULL);
-	Cmd_AddCommand("-right", Cl_RightUp_f, NULL);
-	Cmd_AddCommand("+forward", Cl_ForwardDown_f, NULL);
-	Cmd_AddCommand("-forward", Cl_ForwardUp_f, NULL);
-	Cmd_AddCommand("+back", Cl_BackDown_f, NULL);
-	Cmd_AddCommand("-back", Cl_BackUp_f, NULL);
-	Cmd_AddCommand("+lookup", Cl_LookupDown_f, NULL);
-	Cmd_AddCommand("-lookup", Cl_LookupUp_f, NULL);
-	Cmd_AddCommand("+lookdown", Cl_LookdownDown_f, NULL);
-	Cmd_AddCommand("-lookdown", Cl_LookdownUp_f, NULL);
-	Cmd_AddCommand("+moveleft", Cl_MoveleftDown_f, NULL);
-	Cmd_AddCommand("-moveleft", Cl_MoveleftUp_f, NULL);
-	Cmd_AddCommand("+moveright", Cl_MoverightDown_f, NULL);
-	Cmd_AddCommand("-moveright", Cl_MoverightUp_f, NULL);
-	Cmd_AddCommand("+speed", Cl_SpeedDown_f, NULL);
-	Cmd_AddCommand("-speed", Cl_SpeedUp_f, NULL);
-	Cmd_AddCommand("+attack", Cl_AttackDown_f, NULL);
-	Cmd_AddCommand("-attack", Cl_AttackUp_f, NULL);
+	Cmd_AddCommand("center_view", Cl_CenterView_f, NULL);
+	Cmd_AddCommand("+move_up", Cl_Up_down_f, NULL);
+	Cmd_AddCommand("-move_up", Cl_Up_up_f, NULL);
+	Cmd_AddCommand("+move_down", Cl_Down_down_f, NULL);
+	Cmd_AddCommand("-move_down", Cl_Down_up_f, NULL);
+	Cmd_AddCommand("+left", Cl_Left_down_f, NULL);
+	Cmd_AddCommand("-left", Cl_Left_up_f, NULL);
+	Cmd_AddCommand("+right", Cl_Right_down_f, NULL);
+	Cmd_AddCommand("-right", Cl_Right_up_f, NULL);
+	Cmd_AddCommand("+forward", Cl_Forward_down_f, NULL);
+	Cmd_AddCommand("-forward", Cl_Forward_up_f, NULL);
+	Cmd_AddCommand("+back", Cl_Back_down_f, NULL);
+	Cmd_AddCommand("-back", Cl_Back_up_f, NULL);
+	Cmd_AddCommand("+look_up", Cl_LookUp_down_f, NULL);
+	Cmd_AddCommand("-look_up", Cl_LookUp_up_f, NULL);
+	Cmd_AddCommand("+look_down", Cl_LookDown_down_f, NULL);
+	Cmd_AddCommand("-look_down", Cl_LookDown_up_f, NULL);
+	Cmd_AddCommand("+move_left", Cl_MoveLeft_down_f, NULL);
+	Cmd_AddCommand("-move_left", Cl_MoveLeft_up_f, NULL);
+	Cmd_AddCommand("+move_right", Cl_MoveRight_down_f, NULL);
+	Cmd_AddCommand("-move_right", Cl_MoveRight_up_f, NULL);
+	Cmd_AddCommand("+speed", Cl_Speed_down_f, NULL);
+	Cmd_AddCommand("-speed", Cl_Speed_up_f, NULL);
+	Cmd_AddCommand("+attack", Cl_Attack_down_f, NULL);
+	Cmd_AddCommand("-attack", Cl_Attack_up_f, NULL);
 
 	cl_run = Cvar_Get("cl_run", "1", CVAR_ARCHIVE, NULL);
 
-	m_sensitivity = Cvar_Get("m_sensitivity", "3", CVAR_ARCHIVE, NULL);
-	m_sensitivityzoom = Cvar_Get("m_sensitivityzoom", "1", CVAR_ARCHIVE, NULL);
+	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
+	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
 	m_interpolate = Cvar_Get("m_interpolate", "0", CVAR_ARCHIVE, NULL);
 	m_invert = Cvar_Get("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
 	m_pitch = Cvar_Get("m_pitch", "0.022", 0, NULL);

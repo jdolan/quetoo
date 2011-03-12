@@ -46,7 +46,7 @@ void Cl_CheckPredictionError(void){
 	if(VectorLength(fdelta) > 256.0){  // assume a teleport or something
 		VectorClear(cl.prediction_error);
 	} else {  // save the prediction error for interpolation
-		if(cl_showmiss->value && (delta[0] || delta[1] || delta[2]))
+		if(cl_show_prediction_misses->value && (delta[0] || delta[1] || delta[2]))
 			Com_Print("Prediction miss on %i: %3.2f %3.2f %3.2f\n", cl.frame.server_frame,
 						fdelta[0], fdelta[1], fdelta[2]);
 

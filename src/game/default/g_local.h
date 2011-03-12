@@ -100,7 +100,7 @@ typedef enum {
 // edict->move_type values
 typedef enum {
 	MOVE_TYPE_NONE,       // never moves
-	MOVE_TYPE_NOCLIP,     // origin and angles change with no interaction
+	MOVE_TYPE_NO_CLIP,     // origin and angles change with no interaction
 	MOVE_TYPE_PUSH,       // no clip to world, push on box contact
 	MOVE_TYPE_STOP,       // no clip to world, stops on box contact
 
@@ -353,7 +353,7 @@ extern cvar_t *g_voting;
 
 extern cvar_t *password;
 
-extern cvar_t *sv_maxclients;
+extern cvar_t *sv_max_clients;
 extern cvar_t *dedicated;
 
 // maplist structs
@@ -429,7 +429,7 @@ extern char sql[512];
 // g_cmds.c
 void P_Command(edict_t *ent);
 void G_Score_f(edict_t *ent);
-qboolean G_AddClientToTeam(edict_t *ent, char *teamname);
+qboolean G_AddClientToTeam(edict_t *ent, char *team_name);
 
 // g_items.c
 extern g_item_t g_items[];
@@ -663,7 +663,7 @@ typedef struct g_client_locals_s {
 	int max_nukes;
 
 	g_item_t *weapon;
-	g_item_t *lastweapon;
+	g_item_t *last_weapon;
 
 	int weapon_frame;
 
@@ -706,8 +706,8 @@ struct g_client_s {
 	vec3_t damage_from;  // origin for vector calculation
 
 	vec3_t angles;  // aiming direction
-	vec3_t oldangles;
-	vec3_t oldvelocity;
+	vec3_t old_angles;
+	vec3_t old_velocity;
 
 	vec3_t cmd_angles;  // angles sent over in the last command
 

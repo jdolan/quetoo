@@ -219,7 +219,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 		while(old_num < new_num){  // one or more entities from old_frame are unchanged
 
-			if(cl_shownet->value == 3)
+			if(cl_show_net_messages->value == 3)
 				Com_Print("   unchanged: %i\n", old_num);
 
 			Cl_DeltaEntity(new_frame, old_num, old_state, 0);
@@ -236,7 +236,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 		if(bits & U_REMOVE){  // the entity present in the old_frame, and is not in the current frame
 
-			if(cl_shownet->value == 3)
+			if(cl_show_net_messages->value == 3)
 				Com_Print("   remove: %i\n", new_num);
 
 			if(old_num != new_num)
@@ -255,7 +255,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 		if(old_num == new_num){  // delta from previous state
 
-			if(cl_shownet->value == 3)
+			if(cl_show_net_messages->value == 3)
 				Com_Print("   delta: %i\n", new_num);
 
 			Cl_DeltaEntity(new_frame, new_num, old_state, bits);
@@ -273,7 +273,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 		if(old_num > new_num){  // delta from baseline
 
-			if(cl_shownet->value == 3)
+			if(cl_show_net_messages->value == 3)
 				Com_Print("   baseline: %i\n", new_num);
 
 			Cl_DeltaEntity(new_frame, new_num, &cl.entities[new_num].baseline, bits);
@@ -284,7 +284,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 	// any remaining entities in the old frame are copied over
 	while(old_num != 99999){  // one or more entities from the old packet are unchanged
 
-		if(cl_shownet->value == 3)
+		if(cl_show_net_messages->value == 3)
 			Com_Print("   unchanged: %i\n", old_num);
 
 		Cl_DeltaEntity(new_frame, old_num, old_state, 0);
@@ -393,7 +393,7 @@ void Cl_ParseFrame(void){
 
 	cl.surpress_count = Msg_ReadByte(&net_message);
 
-	if(cl_shownet->value == 3)
+	if(cl_show_net_messages->value == 3)
 		Com_Print ("   frame:%i  delta:%i\n", cl.frame.server_frame, cl.frame.delta_frame);
 
 	if(cl.frame.delta_frame <= 0){  // uncompressed frame
@@ -502,10 +502,10 @@ static void Cl_AddWeapon(r_entity_t *self){
 	if(!cl_weapon->value)
 		return;
 
-	if(!((int)cl_addentities->value & 2))
+	if(!((int)cl_add_entities->value & 2))
 		return;
 
-	if(cl_thirdperson->value)
+	if(cl_third_person->value)
 		return;
 
 	if(!cl.frame.ps.stats[STAT_HEALTH])
@@ -586,7 +586,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 	vec3_t start, end;
 	int i, mask;
 
-	if(!cl_addentities->value)
+	if(!cl_add_entities->value)
 		return;
 
 	VectorClear(start);
@@ -607,7 +607,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		if(s->effects & EF_BEAM){
 
 			// skin_num is overridden to specify owner of the beam
-			if((s->skin_num == cl.player_num + 1) && !cl_thirdperson->value){
+			if((s->skin_num == cl.player_num + 1) && !cl_third_person->value){
 				// we own this beam (lightning, grapple, etc..)
 				// project start position in front of view origin
 				VectorCopy(r_view.origin, start);
@@ -737,7 +737,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		// filter by model type
 		mask = ent.model && ent.model->type == mod_bsp_submodel ? 1 : 2;
 
-		if(!((int)cl_addentities->value & mask))
+		if(!((int)cl_add_entities->value & mask))
 			continue;
 
 		// don't draw ourselves unless third person is set
@@ -746,7 +746,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 			// retain a reference to ourselves for the weapon model
 			self = ent;
 
-			if(!cl_thirdperson->value)
+			if(!cl_third_person->value)
 				continue;
 		}
 

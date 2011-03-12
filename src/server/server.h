@@ -188,14 +188,14 @@ extern sv_static_t svs;  // persistent server info
 // cvars
 extern cvar_t *sv_rcon_password;
 extern cvar_t *sv_download_url;
-extern cvar_t *sv_enforcetime;
+extern cvar_t *sv_enforce_time;
 extern cvar_t *sv_extensions;
 extern cvar_t *sv_hostname;
-extern cvar_t *sv_maxclients;
+extern cvar_t *sv_max_clients;
 extern cvar_t *sv_framerate;
 extern cvar_t *sv_public;
 extern cvar_t *sv_timeout;
-extern cvar_t *sv_udpdownload;
+extern cvar_t *sv_udp_download;
 
 // current client / player edict
 extern sv_client_t *sv_client;

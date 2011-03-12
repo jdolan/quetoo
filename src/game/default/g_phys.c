@@ -277,7 +277,7 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
 		if(check->move_type == MOVE_TYPE_PUSH
 				|| check->move_type == MOVE_TYPE_STOP
 				|| check->move_type == MOVE_TYPE_NONE
-				|| check->move_type == MOVE_TYPE_NOCLIP)
+				|| check->move_type == MOVE_TYPE_NO_CLIP)
 			continue;
 
 		if(!check->area.prev)
@@ -578,7 +578,7 @@ void G_RunEntity(edict_t *ent){
 		case MOVE_TYPE_NONE:
 			G_Physics_None(ent);
 			break;
-		case MOVE_TYPE_NOCLIP:
+		case MOVE_TYPE_NO_CLIP:
 			G_Physics_Noclip(ent);
 			break;
 		case MOVE_TYPE_FLY:

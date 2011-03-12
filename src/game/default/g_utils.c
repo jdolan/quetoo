@@ -345,8 +345,8 @@ edict_t *G_Spawn(void){
 	int i;
 	edict_t *e;
 
-	e = &g_game.edicts[(int)sv_maxclients->value + 1];
-	for(i = sv_maxclients->value + 1; i < ge.num_edicts; i++, e++){
+	e = &g_game.edicts[(int)sv_max_clients->value + 1];
+	for(i = sv_max_clients->value + 1; i < ge.num_edicts; i++, e++){
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
 		if(!e->in_use && (e->free_time < 2 || g_level.time - e->free_time > 0.5)){
@@ -372,7 +372,7 @@ edict_t *G_Spawn(void){
 void G_FreeEdict(edict_t *ed){
 	gi.UnlinkEntity(ed);  // unlink from world
 
-	if((ed - g_game.edicts) <= sv_maxclients->value)
+	if((ed - g_game.edicts) <= sv_max_clients->value)
 		return;
 
 	memset(ed, 0, sizeof(*ed));
@@ -557,7 +557,7 @@ edict_t *G_FlagForTeam(g_team_t *t){
 
 	strcpy(class, (t == &good ? "item_flag_team1" : "item_flag_team2"));
 
-	i = (int)sv_maxclients->value + 1;
+	i = (int)sv_max_clients->value + 1;
 	while(i < ge.num_edicts){
 
 		ent = &ge.edicts[i++];
@@ -617,7 +617,7 @@ g_team_t *G_SmallestTeam(void){
 
 	g = e = 0;
 
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 		if(!g_game.edicts[i + 1].in_use)
 			continue;
 
@@ -646,7 +646,7 @@ g_client_t *G_ClientByName(char *name){
 	ret = NULL;
 	min = 9999;
 
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 		if(!g_game.edicts[i + 1].in_use)
 			continue;
 

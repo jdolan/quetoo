@@ -127,7 +127,7 @@ void P_TeamsScoreboard(edict_t *ent){
 	good_ping = evil_ping = 0;
 	good_time = evil_time = 0;
 
-	for(i = 0; i < sv_maxclients->value; i++){  // sort the clients by score
+	for(i = 0; i < sv_max_clients->value; i++){  // sort the clients by score
 
 		cl_ent = g_game.edicts + 1 + i;
 		cl = cl_ent->client;
@@ -283,7 +283,7 @@ void P_Scoreboard(edict_t *ent){
 
 	playercount = speccount = total = 0;
 
-	for(i = 0; i < sv_maxclients->value; i++){  // sort the clients by score
+	for(i = 0; i < sv_max_clients->value; i++){  // sort the clients by score
 
 		cl_ent = g_game.edicts + 1 + i;
 		cl = cl_ent->client;
@@ -430,7 +430,7 @@ void P_SetStats(edict_t *ent){
 		ent->client->ps.stats[STAT_VOTE] = CS_VOTE;
 	else ent->client->ps.stats[STAT_VOTE] = 0;
 
-	if((g_level.teams || g_level.ctf) && ent->client->locals.team){  // send teamname
+	if((g_level.teams || g_level.ctf) && ent->client->locals.team){  // send team_name
 		if(ent->client->locals.team == &good)
 			ent->client->ps.stats[STAT_TEAMNAME] = CS_TEAM_GOOD;
 		else ent->client->ps.stats[STAT_TEAMNAME] = CS_TEAM_EVIL;
@@ -453,7 +453,7 @@ void P_CheckChaseStats(edict_t *ent){
 	int i;
 	g_client_t *cl;
 
-	for(i = 1; i <= sv_maxclients->value; i++){
+	for(i = 1; i <= sv_max_clients->value; i++){
 
 		cl = g_game.edicts[i].client;
 

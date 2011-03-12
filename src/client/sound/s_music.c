@@ -21,7 +21,7 @@
 
 #include "client.h"
 
-cvar_t *s_musicvolume;
+cvar_t *s_music_volume;
 
 static s_music_t default_music;
 
@@ -222,21 +222,21 @@ static s_music_t *S_NextMusic(void){
 void S_FrameMusic(void){
 	s_music_t *music;
 
-	if(s_musicvolume->modified){
+	if(s_music_volume->modified){
 
-		if(s_musicvolume->value > 1.0)
-			s_musicvolume->value = 1.0;
+		if(s_music_volume->value > 1.0)
+			s_music_volume->value = 1.0;
 
-		if(s_musicvolume->value < 0.0)
-			s_musicvolume->value = 0.0;
+		if(s_music_volume->value < 0.0)
+			s_music_volume->value = 0.0;
 
-		if(s_musicvolume->value)
-			Mix_VolumeMusic(s_musicvolume->value * 255);
+		if(s_music_volume->value)
+			Mix_VolumeMusic(s_music_volume->value * 255);
 		else
 			S_StopMusic();
 	}
 
-	if(!s_musicvolume->value)
+	if(!s_music_volume->value)
 		return;
 
 	music = &default_music;
@@ -275,9 +275,9 @@ static void S_NextTrack_f(void){
 void S_InitMusic(void){
 	s_music_t *music;
 
-	s_musicvolume = Cvar_Get("s_musicvolume", "0.25", CVAR_ARCHIVE, "Music volume level.");
+	s_music_volume = Cvar_Get("s_music_volume", "0.25", CVAR_ARCHIVE, "Music volume level.");
 
-	Cmd_AddCommand("s_nexttrack", S_NextTrack_f, "Play the next music track.");
+	Cmd_AddCommand("s_next_track", S_NextTrack_f, "Play the next music track.");
 
 	S_FreeMusics();
 

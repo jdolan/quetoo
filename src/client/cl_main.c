@@ -26,31 +26,31 @@
 #include "ui/ui_font.h"
 #include "ui/ui_parse.h"
 
-cvar_t *cl_addentities;
-cvar_t *cl_addparticles;
+cvar_t *cl_add_entities;
+cvar_t *cl_add_particles;
 cvar_t *cl_async;
 cvar_t *cl_blend;
 cvar_t *cl_bob;
-cvar_t *cl_chatsound;
+cvar_t *cl_chat_sound;
 cvar_t *cl_counters;
 cvar_t *cl_crosshair;
-cvar_t *cl_crosshaircolor;
-cvar_t *cl_crosshairscale;
+cvar_t *cl_crosshair_color;
+cvar_t *cl_crosshair_scale;
 cvar_t *cl_emits;
 cvar_t *cl_fov;
-cvar_t *cl_fovzoom;
+cvar_t *cl_fov_zoom;
 cvar_t *cl_hud;
 cvar_t *cl_ignore;
-cvar_t *cl_maxfps;
-cvar_t *cl_maxpps;
-cvar_t *cl_netgraph;
+cvar_t *cl_max_fps;
+cvar_t *cl_max_pps;
+cvar_t *cl_net_graph;
 cvar_t *cl_predict;
-cvar_t *cl_showmiss;
-cvar_t *cl_shownet;
-cvar_t *cl_teamchatsound;
-cvar_t *cl_thirdperson;
+cvar_t *cl_show_prediction_misses;
+cvar_t *cl_show_net_messages;
+cvar_t *cl_team_chat_sound;
+cvar_t *cl_third_person;
 cvar_t *cl_timeout;
-cvar_t *cl_viewsize;
+cvar_t *cl_view_size;
 cvar_t *cl_weapon;
 cvar_t *cl_weather;
 
@@ -987,32 +987,32 @@ static void Cl_InitMenus(void){
 static void Cl_InitLocal(void){
 
 	// register our variables
-	cl_addentities = Cvar_Get("cl_addentities", "3", 0, NULL);
-	cl_addparticles = Cvar_Get("cl_addparticles", "1", 0, NULL);
+	cl_add_entities = Cvar_Get("cl_add_entities", "3", 0, NULL);
+	cl_add_particles = Cvar_Get("cl_add_particles", "1", 0, NULL);
 	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE, NULL);
 	cl_blend = Cvar_Get("cl_blend", "1", CVAR_ARCHIVE, NULL);
 	cl_bob = Cvar_Get("cl_bob", "1", CVAR_ARCHIVE, NULL);
-	cl_chatsound = Cvar_Get("cl_chatsound", "misc/chat", 0, NULL);
+	cl_chat_sound = Cvar_Get("cl_chat_sound", "misc/chat", 0, NULL);
 	cl_counters = Cvar_Get("cl_counters", "1", CVAR_ARCHIVE, NULL);
 	cl_crosshair = Cvar_Get("cl_crosshair", "1", CVAR_ARCHIVE, NULL);
-	cl_crosshaircolor = Cvar_Get("cl_crosshaircolor", "default", CVAR_ARCHIVE, NULL);
-	cl_crosshairscale = Cvar_Get("cl_crosshairscale", "1.0", CVAR_ARCHIVE, NULL);
+	cl_crosshair_color = Cvar_Get("cl_crosshair_color", "default", CVAR_ARCHIVE, NULL);
+	cl_crosshair_scale = Cvar_Get("cl_crosshair_scale", "1.0", CVAR_ARCHIVE, NULL);
 	cl_emits = Cvar_Get("cl_emits", "1", CVAR_ARCHIVE, NULL);
 	cl_fov = Cvar_Get("cl_fov", "100.0", CVAR_ARCHIVE, NULL);
-	cl_fovzoom = Cvar_Get("cl_fovzoom", "40.0", CVAR_ARCHIVE, NULL);
+	cl_fov_zoom = Cvar_Get("cl_fov_zoom", "40.0", CVAR_ARCHIVE, NULL);
 	cl_hud = Cvar_Get("cl_hud", "1", CVAR_ARCHIVE, NULL);
 	cl_ignore = Cvar_Get("cl_ignore", "", 0, NULL);
-	cl_maxfps = Cvar_Get("cl_maxfps", "0", CVAR_ARCHIVE, NULL);
-	cl_maxpps = Cvar_Get("cl_maxpps", "0", CVAR_ARCHIVE, NULL);
-	cl_netgraph = Cvar_Get("cl_netgraph", "1", CVAR_ARCHIVE, NULL);
+	cl_max_fps = Cvar_Get("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
+	cl_max_pps = Cvar_Get("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
+	cl_net_graph = Cvar_Get("cl_net_graph", "1", CVAR_ARCHIVE, NULL);
 	cl_predict = Cvar_Get("cl_predict", "1", 0, NULL);
-	cl_showmiss = Cvar_Get("cl_showmiss", "0", 0, NULL);
-	cl_shownet = Cvar_Get("cl_shownet", "0", 0, NULL);
-	cl_teamchatsound = Cvar_Get("cl_teamchatsound", "misc/teamchat", 0, NULL);
-	cl_thirdperson = Cvar_Get("cl_thirdperson", "0", CVAR_ARCHIVE,
+	cl_show_prediction_misses = Cvar_Get("cl_show_prediction_misses", "0", 0, NULL);
+	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", 0, NULL);
+	cl_team_chat_sound = Cvar_Get("cl_team_chat_sound", "misc/teamchat", 0, NULL);
+	cl_third_person = Cvar_Get("cl_third_person", "0", CVAR_ARCHIVE,
 			"Toggles the third person camera.");
 	cl_timeout = Cvar_Get("cl_timeout", "15.0", 0, NULL);
-	cl_viewsize = Cvar_Get("cl_viewsize", "100.0", CVAR_ARCHIVE, NULL);
+	cl_view_size = Cvar_Get("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
 	cl_weapon = Cvar_Get("cl_weapon", "1", CVAR_ARCHIVE, NULL);
 	cl_weather = Cvar_Get("cl_weather", "1", CVAR_ARCHIVE, NULL);
 
@@ -1032,8 +1032,8 @@ static void Cl_InitLocal(void){
 	Cmd_AddCommand("ping", Cl_Ping_f, NULL);
 	Cmd_AddCommand("servers", Cl_Servers_f, NULL);
 	Cmd_AddCommand("record", Cl_Record_f, NULL);
-	Cmd_AddCommand("fastforward", Cl_FastForward_f, NULL);
-	Cmd_AddCommand("slowmotion", Cl_SlowMotion_f, NULL);
+	Cmd_AddCommand("fast_forward", Cl_FastForward_f, NULL);
+	Cmd_AddCommand("slow_motion", Cl_SlowMotion_f, NULL);
 	Cmd_AddCommand("stop", Cl_Stop_f, NULL);
 	Cmd_AddCommand("connect", Cl_Connect_f, NULL);
 	Cmd_AddCommand("reconnect", Cl_Reconnect_f, NULL);
@@ -1052,20 +1052,20 @@ static void Cl_InitLocal(void){
 	Cmd_AddCommand("info", NULL, NULL);
 	Cmd_AddCommand("give", NULL, NULL);
 	Cmd_AddCommand("god", NULL, NULL);
-	Cmd_AddCommand("noclip", NULL, NULL);
-	Cmd_AddCommand("weapnext", NULL, NULL);
-	Cmd_AddCommand("weapprev", NULL, NULL);
-	Cmd_AddCommand("weaplast", NULL, NULL);
+	Cmd_AddCommand("no_clip", NULL, NULL);
+	Cmd_AddCommand("weapon_next", NULL, NULL);
+	Cmd_AddCommand("weapon_previous", NULL, NULL);
+	Cmd_AddCommand("weapon_last", NULL, NULL);
 	Cmd_AddCommand("vote", NULL, NULL);
 	Cmd_AddCommand("team", NULL, NULL);
-	Cmd_AddCommand("teamname", NULL, NULL);
-	Cmd_AddCommand("teamskin", NULL, NULL);
+	Cmd_AddCommand("team_name", NULL, NULL);
+	Cmd_AddCommand("team_skin", NULL, NULL);
 	Cmd_AddCommand("spectate", NULL, NULL);
 	Cmd_AddCommand("join", NULL, NULL);
 	Cmd_AddCommand("score", NULL, NULL);
 	Cmd_AddCommand("ready", NULL, NULL);
 	Cmd_AddCommand("unready", NULL, NULL);
-	Cmd_AddCommand("playerlist", NULL, NULL);
+	Cmd_AddCommand("player_list", NULL, NULL);
 	Cmd_AddCommand("config_strings", NULL, NULL);
 	Cmd_AddCommand("baselines", NULL, NULL);
 
@@ -1121,20 +1121,20 @@ void Cl_Frame(int msec){
 	cls.packet_delta += msec;
 	cls.render_delta += msec;
 
-	if(cl_maxfps->modified){  // ensure frame caps are sane
+	if(cl_max_fps->modified){  // ensure frame caps are sane
 
-		if(cl_maxfps->value > 0.0 && cl_maxfps->value < 30.0)
-			cl_maxfps->value = 30.0;
+		if(cl_max_fps->value > 0.0 && cl_max_fps->value < 30.0)
+			cl_max_fps->value = 30.0;
 
-		cl_maxfps->modified = false;
+		cl_max_fps->modified = false;
 	}
 
-	if(cl_maxpps->modified){
+	if(cl_max_pps->modified){
 
-		if(cl_maxpps->value > 0.0 && cl_maxpps->value < 20.0)
-			cl_maxpps->value = 20.0;
+		if(cl_max_pps->value > 0.0 && cl_max_pps->value < 20.0)
+			cl_max_pps->value = 20.0;
 
-		cl_maxpps->modified = false;
+		cl_max_pps->modified = false;
 	}
 
 	if(timedemo->value){  // accumulate timed demo statistics
@@ -1146,15 +1146,15 @@ void Cl_Frame(int msec){
 	}
 	else {  // check frame rate cap conditions
 
-		if(cl_maxfps->value > 0.0){  // cap render frame rate
-			ms = 1000.0 * timescale->value / cl_maxfps->value;
+		if(cl_max_fps->value > 0.0){  // cap render frame rate
+			ms = 1000.0 * timescale->value / cl_max_fps->value;
 
 			if(cls.render_delta < ms)
 				render_frame = false;
 		}
 
-		if(cl_maxpps->value > 0.0){  // cap net frame rate
-			ms = 1000.0 * timescale->value / cl_maxpps->value;
+		if(cl_max_pps->value > 0.0){  // cap net frame rate
+			ms = 1000.0 * timescale->value / cl_max_pps->value;
 
 			if(cls.packet_delta < ms)
 				packet_frame = false;

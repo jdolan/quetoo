@@ -59,7 +59,7 @@ void Sv_ClientPrint(edict_t *ent, int level, const char *fmt, ...){
 	int n;
 
 	n = NUM_FOR_EDICT(ent);
-	if(n < 1 || n > sv_maxclients->value){
+	if(n < 1 || n > sv_max_clients->value){
 		Com_Warn("Sv_ClientPrint: Issued to non-client %d.\n", n);
 		return;
 	}
@@ -98,7 +98,7 @@ void Sv_ClientCenterPrint(edict_t *ent, const char *fmt, ...){
 	int n;
 
 	n = NUM_FOR_EDICT(ent);
-	if(n < 1 || n > sv_maxclients->value){
+	if(n < 1 || n > sv_max_clients->value){
 		Com_Warn("Sv_ClientCenterPrint: ClientCenterPrintf to non-client.\n");
 		return;
 	}
@@ -141,7 +141,7 @@ void Sv_BroadcastPrint(int level, const char *fmt, ...){
 		Com_Print("%s", copy);
 	}
 
-	for(i = 0, cl = svs.clients; i < sv_maxclients->value; i++, cl++){
+	for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
 
 		if(level < cl->message_level)
 			continue;
@@ -190,7 +190,7 @@ void Sv_Unicast(edict_t *ent, qboolean reliable){
 		return;
 
 	n = NUM_FOR_EDICT(ent);
-	if(n < 1 || n > sv_maxclients->value)
+	if(n < 1 || n > sv_max_clients->value)
 		return;
 
 	cl = svs.clients + (n - 1);
@@ -262,7 +262,7 @@ void Sv_Multicast(vec3_t origin, multicast_t to){
 	}
 
 	// send the data to all relevent clients
-	for(j = 0, client = svs.clients; j < sv_maxclients->value; j++, client++){
+	for(j = 0, client = svs.clients; j < sv_max_clients->value; j++, client++){
 
 		if(client->state == cs_free)
 			continue;
@@ -544,7 +544,7 @@ void Sv_SendClientMessages(void){
 	}
 
 	// send a message to each connected client
-	for(i = 0, c = svs.clients; i < sv_maxclients->value; i++, c++){
+	for(i = 0, c = svs.clients; i < sv_max_clients->value; i++, c++){
 
 		if(!c->state)  // don't bother
 			continue;

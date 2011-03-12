@@ -36,7 +36,7 @@ static void G_Give_f(edict_t *ent){
 	qboolean give_all;
 	edict_t *it_ent;
 
-	if(sv_maxclients->value > 1 && !g_cheats->value){
+	if(sv_max_clients->value > 1 && !g_cheats->value){
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
 		return;
 	}
@@ -138,7 +138,7 @@ static void G_Give_f(edict_t *ent){
 static void G_God_f(edict_t *ent){
 	char *msg;
 
-	if(sv_maxclients->value > 1 && !g_cheats->value){
+	if(sv_max_clients->value > 1 && !g_cheats->value){
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
 		return;
 	}
@@ -154,22 +154,22 @@ static void G_God_f(edict_t *ent){
 
 
 /*
- * G_Noclip_f
+ * G_NoClip_f
  */
-static void G_Noclip_f(edict_t *ent){
+static void G_NoClip_f(edict_t *ent){
 	char *msg;
 
-	if(sv_maxclients->value > 1 && !g_cheats->value){
+	if(sv_max_clients->value > 1 && !g_cheats->value){
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
 		return;
 	}
 
-	if(ent->move_type == MOVE_TYPE_NOCLIP){
+	if(ent->move_type == MOVE_TYPE_NO_CLIP){
 		ent->move_type = MOVE_TYPE_WALK;
-		msg = "noclip OFF\n";
+		msg = "no_clip OFF\n";
 	} else {
-		ent->move_type = MOVE_TYPE_NOCLIP;
-		msg = "noclip ON\n";
+		ent->move_type = MOVE_TYPE_NO_CLIP;
+		msg = "no_clip ON\n";
 	}
 
 	gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
@@ -251,9 +251,9 @@ static void G_Drop_f(edict_t *ent){
 
 
 /*
- * G_WeapPrev_f
+ * G_WeaponPrevious_f
  */
-static void G_WeapPrev_f(edict_t *ent){
+static void G_WeaponPrevious_f(edict_t *ent){
 	g_client_t *cl;
 	int i, index;
 	g_item_t *it;
@@ -291,9 +291,9 @@ static void G_WeapPrev_f(edict_t *ent){
 }
 
 /*
- * G_WeapNext_f
+ * G_WeaponNext_f
  */
-static void G_WeapNext_f(edict_t *ent){
+static void G_WeaponNext_f(edict_t *ent){
 	g_client_t *cl;
 	int i, index;
 	g_item_t *it;
@@ -332,19 +332,19 @@ static void G_WeapNext_f(edict_t *ent){
 
 
 /*
- * G_WeapLast_f
+ * G_WeaponLast_f
  */
-static void G_WeapLast_f(edict_t *ent){
+static void G_WeaponLast_f(edict_t *ent){
 	g_client_t *cl;
 	int index;
 	g_item_t *it;
 
 	cl = ent->client;
 
-	if(!cl->locals.weapon || !cl->locals.lastweapon)
+	if(!cl->locals.weapon || !cl->locals.last_weapon)
 		return;
 
-	index = ITEM_INDEX(cl->locals.lastweapon);
+	index = ITEM_INDEX(cl->locals.last_weapon);
 	if(!cl->locals.inventory[index])
 		return;
 	it = &g_items[index];
@@ -506,7 +506,7 @@ static void G_Say_f(edict_t *ent){
 		cl->chat_time = g_level.time + 1;
 	}
 
-	for(i = 1; i <= sv_maxclients->value; i++){  // print to clients
+	for(i = 1; i <= sv_max_clients->value; i++){  // print to clients
 		other = &g_game.edicts[i];
 
 		if(!other->in_use)
@@ -546,7 +546,7 @@ static void G_PlayerList_f(edict_t *ent){
 	memset(text, 0, sizeof(text));
 
 	// connect time, ping, score, name
-	for(i = 0, e2 = g_game.edicts + 1; i < sv_maxclients->value; i++, e2++){
+	for(i = 0, e2 = g_game.edicts + 1; i < sv_max_clients->value; i++, e2++){
 
 		if(!e2->in_use)
 			continue;
@@ -767,7 +767,7 @@ static void G_Vote_f(edict_t *ent){
  *
  * Returns true if the client's team was changed, false otherwise.
  */
-qboolean G_AddClientToTeam(edict_t *ent, char *teamname){
+qboolean G_AddClientToTeam(edict_t *ent, char *team_name){
 	g_team_t *team;
 
 	if(g_level.match_time && g_level.match_time <= g_level.time){
@@ -775,8 +775,8 @@ qboolean G_AddClientToTeam(edict_t *ent, char *teamname){
 		return false;
 	}
 
-	if(!(team = G_TeamByName(teamname))){  // resolve team
-		gi.ClientPrint(ent, PRINT_HIGH, "Team \"%s\" doesn't exist\n", teamname);
+	if(!(team = G_TeamByName(team_name))){  // resolve team
+		gi.ClientPrint(ent, PRINT_HIGH, "Team \"%s\" doesn't exist\n", team_name);
 		return false;
 	}
 
@@ -890,7 +890,7 @@ static void G_Teamname_f(edict_t *ent){
 	cs = t == &good ? CS_TEAM_GOOD : CS_TEAM_EVIL;
 	gi.ConfigString(cs, va("%15s", t->name));
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s changed teamname to %s\n",
+	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n",
 			ent->client->locals.net_name, t->name);
 }
 
@@ -940,7 +940,7 @@ static void G_Teamskin_f(edict_t *ent){
 
 	t->skintime = g_level.time;
 
-	for(i = 0; i < sv_maxclients->value; i++){  // update skins
+	for(i = 0; i < sv_max_clients->value; i++){  // update skins
 		cl = g_game.clients + i;
 
 		if(!cl->locals.team || cl->locals.team != t)
@@ -952,7 +952,7 @@ static void G_Teamskin_f(edict_t *ent){
 		gi.ConfigString(CS_PLAYER_SKINS + i, va("%s\\%s", cl->locals.net_name, cl->locals.skin));
 	}
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s changed teamskin to %s\n",
+	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_skin to %s\n",
 			ent->client->locals.net_name, t->skin);
 }
 
@@ -985,7 +985,7 @@ static void G_Ready_f(edict_t *ent){
 
 	clients = g = e = 0;
 
-	for(i = 0; i < sv_maxclients->value; i++){  // is everyone ready?
+	for(i = 0; i < sv_max_clients->value; i++){  // is everyone ready?
 		cl = g_game.clients + i;
 
 		if(!g_game.edicts[i + 1].in_use)
@@ -1003,7 +1003,7 @@ static void G_Ready_f(edict_t *ent){
 			cl->locals.team == &good ? g++ : e++;
 	}
 
-	if(i != (int)sv_maxclients->value)  // someone isn't ready
+	if(i != (int)sv_max_clients->value)  // someone isn't ready
 		return;
 
 	if(clients < 2)  // need at least 2 clients to trigger match
@@ -1148,9 +1148,9 @@ void P_Command(edict_t *ent){
 		G_Spectate_f(ent);
 	else if(strcasecmp(cmd, "team") == 0 || strcasecmp(cmd, "join") == 0)
 		G_Team_f(ent);
-	else if(strcasecmp(cmd, "teamname") == 0)
+	else if(strcasecmp(cmd, "team_name") == 0)
 		G_Teamname_f(ent);
-	else if(strcasecmp(cmd, "teamskin") == 0)
+	else if(strcasecmp(cmd, "team_skin") == 0)
 		G_Teamskin_f(ent);
 	else if(strcasecmp(cmd, "ready") == 0)
 		G_Ready_f(ent);
@@ -1164,19 +1164,19 @@ void P_Command(edict_t *ent){
 		G_Give_f(ent);
 	else if(strcasecmp(cmd, "god") == 0)
 		G_God_f(ent);
-	else if(strcasecmp(cmd, "noclip") == 0)
-		G_Noclip_f(ent);
-	else if(strcasecmp(cmd, "weapprev") == 0)
-		G_WeapPrev_f(ent);
-	else if(strcasecmp(cmd, "weapnext") == 0)
-		G_WeapNext_f(ent);
-	else if(strcasecmp(cmd, "weaplast") == 0)
-		G_WeapLast_f(ent);
+	else if(strcasecmp(cmd, "no_clip") == 0)
+		G_NoClip_f(ent);
+	else if(strcasecmp(cmd, "weapon_previous") == 0)
+		G_WeaponPrevious_f(ent);
+	else if(strcasecmp(cmd, "weapon_next") == 0)
+		G_WeaponNext_f(ent);
+	else if(strcasecmp(cmd, "weapon_last") == 0)
+		G_WeaponLast_f(ent);
 	else if(strcasecmp(cmd, "kill") == 0)
 		G_Kill_f(ent);
 	else if(strcasecmp(cmd, "wave") == 0)
 		G_Wave_f(ent);
-	else if(strcasecmp(cmd, "playerlist") == 0)
+	else if(strcasecmp(cmd, "player_list") == 0)
 		G_PlayerList_f(ent);
 	else if(strcasecmp(cmd, "vote") == 0 || strcasecmp(cmd, "yes") == 0 || strcasecmp(cmd, "no") == 0)
 		G_Vote_f(ent);

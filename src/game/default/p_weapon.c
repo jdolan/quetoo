@@ -70,7 +70,7 @@ void P_ChangeWeapon(edict_t *ent){
 	int i;
 
 	// change weapon
-	ent->client->locals.lastweapon = ent->client->locals.weapon;
+	ent->client->locals.last_weapon = ent->client->locals.weapon;
 	ent->client->locals.weapon = ent->client->new_weapon;
 	ent->client->new_weapon = NULL;
 

@@ -29,18 +29,18 @@
 #define COLOR_HUD_COUNTER      CON_COLOR_DEFAULT
 #define COLOR_SCORES_HEADER    CON_COLOR_ALT
 
-#define NETGRAPH_HEIGHT 64
-#define NETGRAPH_WIDTH 128
-#define NETGRAPH_Y 128
+#define NET_GRAPH_HEIGHT 64
+#define NET_GRAPH_WIDTH 128
+#define NET_GRAPH_Y 128
 
-// netgraph samples
+// net graph samples
 typedef struct {
 	float value;
 	int color;
-} graphsamp_t;
+} net_graph_sample_t;
 
-static graphsamp_t graphsamps[NETGRAPH_WIDTH];
-static int num_graphsamps;
+static net_graph_sample_t net_graph_samples[NET_GRAPH_WIDTH];
+static int num_net_graph_samples;
 
 
 /*
@@ -48,16 +48,16 @@ static int num_graphsamps;
  */
 static void Cl_Netgraph(float value, int color){
 
-	graphsamps[num_graphsamps].value = value;
-	graphsamps[num_graphsamps].color = color;
+	net_graph_samples[num_net_graph_samples].value = value;
+	net_graph_samples[num_net_graph_samples].color = color;
 
-	if(graphsamps[num_graphsamps].value > 1.0)
-		graphsamps[num_graphsamps].value = 1.0;
+	if(net_graph_samples[num_net_graph_samples].value > 1.0)
+		net_graph_samples[num_net_graph_samples].value = 1.0;
 
-	num_graphsamps++;
+	num_net_graph_samples++;
 
-	if(num_graphsamps == NETGRAPH_WIDTH)
-		num_graphsamps = 0;
+	if(num_net_graph_samples == NET_GRAPH_WIDTH)
+		num_net_graph_samples = 0;
 }
 
 
@@ -70,7 +70,7 @@ void Cl_AddNetgraph(void){
 	int ping;
 
 	// we only need to do our accounting when asked to
-	if(!cl_netgraph->value)
+	if(!cl_net_graph->value)
 		return;
 
 	for(i = 0; i < cls.netchan.dropped; i++)
@@ -93,26 +93,26 @@ void Cl_AddNetgraph(void){
 static void Cl_DrawNetgraph(void){
 	int i, j, x, y, h;
 
-	if(!cl_netgraph->value)
+	if(!cl_net_graph->value)
 		return;
 
-	x = r_state.width - NETGRAPH_WIDTH;
-	y = r_state.height - NETGRAPH_Y - NETGRAPH_HEIGHT;
+	x = r_state.width - NET_GRAPH_WIDTH;
+	y = r_state.height - NET_GRAPH_Y - NET_GRAPH_HEIGHT;
 
-	R_DrawFill(x, y, NETGRAPH_WIDTH, NETGRAPH_HEIGHT, 8, 0.2);
+	R_DrawFill(x, y, NET_GRAPH_WIDTH, NET_GRAPH_HEIGHT, 8, 0.2);
 
-	for(i = 0; i < NETGRAPH_WIDTH; i++){
+	for(i = 0; i < NET_GRAPH_WIDTH; i++){
 
-		j = (num_graphsamps - i) & (NETGRAPH_WIDTH - 1);
-		h = graphsamps[j].value * NETGRAPH_HEIGHT;
+		j = (num_net_graph_samples - i) & (NET_GRAPH_WIDTH - 1);
+		h = net_graph_samples[j].value * NET_GRAPH_HEIGHT;
 
 		if(!h)
 			continue;
 
 		x = r_state.width - i;
-		y = r_state.height - NETGRAPH_Y - h;
+		y = r_state.height - NET_GRAPH_Y - h;
 
-		R_DrawFill(x, y, 1, h, graphsamps[j].color, 0.5);
+		R_DrawFill(x, y, 1, h, net_graph_samples[j].color, 0.5);
 	}
 }
 
@@ -480,7 +480,7 @@ static void Cl_DrawCrosshair(void){
 	if(cl.frame.ps.stats[STAT_CHASE])
 		return;  // chasecam
 
-	if(cl_thirdperson->value)
+	if(cl_third_person->value)
 		return;  // third person
 
 	if(cl_crosshair->modified){  // crosshair image
@@ -510,20 +510,20 @@ static void Cl_DrawCrosshair(void){
 	if(!crosshair.width)  // not found
 		return;
 
-	if(cl_crosshaircolor->modified){  // crosshair color
-		cl_crosshaircolor->modified = false;
+	if(cl_crosshair_color->modified){  // crosshair color
+		cl_crosshair_color->modified = false;
 
-		c = ColorByName(cl_crosshaircolor->string, 14);
+		c = ColorByName(cl_crosshair_color->string, 14);
 		memcpy(&crosshair.color, &palette[c], sizeof(crosshair.color));
 	}
 
 	glColor4ubv(crosshair.color);
 
 	// calculate width and height based on crosshair image and scale
-	w = (r_view.width - crosshair.width * cl_crosshairscale->value) / 2;
-	h = (r_view.height - crosshair.height * cl_crosshairscale->value) / 2;
+	w = (r_view.width - crosshair.width * cl_crosshair_scale->value) / 2;
+	h = (r_view.height - crosshair.height * cl_crosshair_scale->value) / 2;
 
-	R_DrawScaledPic(r_view.x + w, r_view.y + h, cl_crosshairscale->value, crosshair.name);
+	R_DrawScaledPic(r_view.x + w, r_view.y + h, cl_crosshair_scale->value, crosshair.name);
 
 	glColor4ubv(color_white);
 }

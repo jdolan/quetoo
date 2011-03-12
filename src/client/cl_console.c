@@ -121,9 +121,10 @@ void Cl_InitConsole(void){
 	con_notifytime = Cvar_Get("con_notifytime", "3", CVAR_ARCHIVE, "Seconds to draw the last messages on the game top");
 	con_alpha = Cvar_Get("con_alpha", "0.3", CVAR_ARCHIVE, "Console alpha background [0.0-1.0]");
 
-	Cmd_AddCommand("toggleconsole", Cl_ToggleConsole_f, "Toggle the console");
-	Cmd_AddCommand("messagemode", Cl_MessageMode_f, "Activate chat");
-	Cmd_AddCommand("messagemode2", Cl_MessageMode2_f, "Activate team chat");
+	Cmd_AddCommand("toggle_console", Cl_ToggleConsole_f, "Toggle the console");
+
+	Cmd_AddCommand("message_mode", Cl_MessageMode_f, "Activate chat");
+	Cmd_AddCommand("message_mode_2", Cl_MessageMode2_f, "Activate team chat");
 
 	Com_Print("Console initialized.\n");
 }

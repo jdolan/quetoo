@@ -513,7 +513,7 @@ static qboolean Cl_IgnoreChatMessage(const char *msg){
  * Cl_ShowNet
  */
 static void Cl_ShowNet(const char *s){
-	if(cl_shownet->value >= 2)
+	if(cl_show_net_messages->value >= 2)
 		Com_Print("%3zd: %s\n", net_message.read - 1, s);
 }
 
@@ -566,9 +566,9 @@ void Cl_ParseServerMessage(void){
 	char *s;
 	int i;
 
-	if(cl_shownet->value == 1)
+	if(cl_show_net_messages->value == 1)
 		Com_Print(Q2W_SIZE_T" ", net_message.size);
-	else if(cl_shownet->value >= 2)
+	else if(cl_show_net_messages->value >= 2)
 		Com_Print("------------------\n");
 
 	bytes_this_second += net_message.size;
@@ -588,7 +588,7 @@ void Cl_ParseServerMessage(void){
 			break;
 		}
 
-		if(cl_shownet->value >= 2 && svc_strings[cmd])
+		if(cl_show_net_messages->value >= 2 && svc_strings[cmd])
 			Cl_ShowNet(svc_strings[cmd]);
 
 		switch(cmd){
@@ -619,13 +619,13 @@ void Cl_ParseServerMessage(void){
 				if(i == PRINT_CHAT){
 					if(Cl_IgnoreChatMessage(s))  // filter /ignore'd chatters
 						break;
-					if(*cl_chatsound->string)  // trigger chat sound
-						S_StartLocalSample(cl_chatsound->string);
+					if(*cl_chat_sound->string)  // trigger chat sound
+						S_StartLocalSample(cl_chat_sound->string);
 				} else if(i == PRINT_TEAMCHAT){
 					if(Cl_IgnoreChatMessage(s))  // filter /ignore'd chatters
 						break;
-					if(*cl_teamchatsound->string)  // trigger chat sound
-						S_StartLocalSample(cl_teamchatsound->string);
+					if(*cl_team_chat_sound->string)  // trigger chat sound
+						S_StartLocalSample(cl_team_chat_sound->string);
 				}
 				Com_Print("%s", s);
 				break;

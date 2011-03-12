@@ -95,14 +95,14 @@ static void P_FallingDamage(edict_t *ent){
 	int damage, event;
 	vec3_t dir;
 
-	if(ent->move_type == MOVE_TYPE_NOCLIP)
+	if(ent->move_type == MOVE_TYPE_NO_CLIP)
 		return;
 
 	if(ent->health < 1 || ent->water_level == 3)
 		return;
 
 	v = ent->velocity[2];
-	ov = ent->client->oldvelocity[2];
+	ov = ent->client->old_velocity[2];
 
 	if(ent->ground_entity)  // they are on the ground
 		delta = v - ov;
@@ -160,7 +160,7 @@ static void P_FallingDamage(edict_t *ent){
 static void P_WorldEffects(void){
 	int water_level, old_water_level;
 
-	if(current_player->move_type == MOVE_TYPE_NOCLIP){
+	if(current_player->move_type == MOVE_TYPE_NO_CLIP){
 		current_player->drown_time = g_level.time + 12;  // don't need air
 		return;
 	}
@@ -400,8 +400,8 @@ void P_EndServerFrame(edict_t *ent){
 	// animations
 	P_RunClientAnimation(ent);
 
-	VectorCopy(ent->velocity, ent->client->oldvelocity);
-	VectorCopy(ent->client->ps.angles, ent->client->oldangles);
+	VectorCopy(ent->velocity, ent->client->old_velocity);
+	VectorCopy(ent->client->ps.angles, ent->client->old_angles);
 
 	// if the scoreboard is up, update it
 	if(ent->client->show_scores && !(g_level.frame_num % gi.frame_rate)){
@@ -423,7 +423,7 @@ void P_EndServerFrames(void){
 
 	// calc the player views now that all pushing
 	// and damage has been added
-	for(i = 0; i < sv_maxclients->value; i++){
+	for(i = 0; i < sv_max_clients->value; i++){
 		ent = g_game.edicts + 1 + i;
 		if(!ent->in_use || !ent->client)
 			continue;
