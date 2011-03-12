@@ -156,8 +156,8 @@ static void R_AddBspLight(vec3_t org, float radius, vec3_t color){
 		return;
 	}
 
-	l = r_loadmodel->bsp_lights;
-	for(i = 0; i < r_loadmodel->num_bsp_lights; i++, l++){
+	l = r_load_model->bsp_lights;
+	for(i = 0; i < r_load_model->num_bsp_lights; i++, l++){
 
 		VectorSubtract(org, l->origin, delta);
 
@@ -165,17 +165,17 @@ static void R_AddBspLight(vec3_t org, float radius, vec3_t color){
 			break;
 	}
 
-	if(i == r_loadmodel->num_bsp_lights){  // or allocate a new one
+	if(i == r_load_model->num_bsp_lights){  // or allocate a new one
 
 		l = (r_bsp_light_t *)R_HunkAlloc(sizeof(*l));
 
-		if(!r_loadmodel->bsp_lights)  // first source
-			r_loadmodel->bsp_lights = l;
+		if(!r_load_model->bsp_lights)  // first source
+			r_load_model->bsp_lights = l;
 
 		VectorCopy(org, l->origin);
-		l->leaf = R_LeafForPoint(l->origin, r_loadmodel);
+		l->leaf = R_LeafForPoint(l->origin, r_load_model);
 
-		r_loadmodel->num_bsp_lights++;
+		r_load_model->num_bsp_lights++;
 	}
 
 	l->count++;
@@ -206,9 +206,9 @@ void R_LoadBspLights(void){
 	R_ResolveBspLightParameters();
 
 	// iterate the world surfaces for surface lights
-	surf = r_loadmodel->surfaces;
+	surf = r_load_model->surfaces;
 
-	for(i = 0; i < r_loadmodel->num_surfaces; i++, surf++){
+	for(i = 0; i < r_load_model->num_surfaces; i++, surf++){
 		vec3_t color = {0.0, 0.0, 0.0};
 		float scale = 1.0;
 
@@ -301,8 +301,8 @@ void R_LoadBspLights(void){
 		}
 	}
 
-	l = r_loadmodel->bsp_lights;
-	for(i = 0; i < r_loadmodel->num_bsp_lights; i++, l++){
+	l = r_load_model->bsp_lights;
+	for(i = 0; i < r_load_model->num_bsp_lights; i++, l++){
 		float max = 0.0;
 		int j;
 
@@ -316,5 +316,5 @@ void R_LoadBspLights(void){
 		}
 	}
 
-	Com_Debug("Loaded %d bsp lights\n", r_loadmodel->num_bsp_lights);
+	Com_Debug("Loaded %d bsp lights\n", r_load_model->num_bsp_lights);
 }

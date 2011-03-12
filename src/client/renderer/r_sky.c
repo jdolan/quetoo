@@ -244,7 +244,7 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf){
 	int i, index;
 	vec3_t verts[MAX_CLIP_VERTS];
 
-	if(r_showpolys->value)
+	if(r_draw_bsp_wireframe->value)
 		return;
 
 	index = surf->index * 3;  // raw index into cached vertex arrays
@@ -252,7 +252,7 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf){
 	// calculate distance to surface verts
 	for(i = 0; i < surf->num_edges; i++){
 
-		const float *v = &r_worldmodel->verts[index + i * 3];
+		const float *v = &r_world_model->verts[index + i * 3];
 
 		VectorSubtract(v, r_view.origin, verts[i]);
 	}
@@ -325,7 +325,7 @@ void R_DrawSkyBox(void){
 	r_bsp_surfaces_t *surfs;
 	int i, j;
 
-	surfs = r_worldmodel->sky_surfaces;
+	surfs = r_world_model->sky_surfaces;
 	j = 0;
 
 	// first add all visible sky surfaces to the sky bounds

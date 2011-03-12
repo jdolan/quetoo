@@ -323,15 +323,15 @@ static void R_DrawSurfaceStage(r_bsp_surface_t *surf, r_stage_t *stage){
 
 	for(i = 0; i < surf->num_edges; i++){
 
-		const float *v = &r_worldmodel->verts[surf->index * 3 + i * 3];
-		const float *st = &r_worldmodel->texcoords[surf->index * 2 + i * 2];
+		const float *v = &r_world_model->verts[surf->index * 3 + i * 3];
+		const float *st = &r_world_model->texcoords[surf->index * 2 + i * 2];
 
 		R_StageVertex(surf, stage, v, &r_state.vertex_array_3d[i * 3]);
 
 		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
 
 		if(texunit_lightmap.enabled){  // lightmap texcoords
-			st = &r_worldmodel->lmtexcoords[surf->index * 2 + i * 2];
+			st = &r_world_model->lmtexcoords[surf->index * 2 + i * 2];
 			texunit_lightmap.texcoord_array[i * 2 + 0] = st[0];
 			texunit_lightmap.texcoord_array[i * 2 + 1] = st[1];
 		}
@@ -341,11 +341,11 @@ static void R_DrawSurfaceStage(r_bsp_surface_t *surf, r_stage_t *stage){
 
 		if(r_state.lighting_enabled){  // normals and tangents
 
-			const float *n = &r_worldmodel->normals[surf->index * 3 + i * 3];
+			const float *n = &r_world_model->normals[surf->index * 3 + i * 3];
 			VectorCopy(n, (&r_state.normal_array[i * 3]));
 
 			if(r_state.bumpmap_enabled){
-				const float *t = &r_worldmodel->tangents[surf->index * 4 + i * 4];
+				const float *t = &r_world_model->tangents[surf->index * 4 + i * 4];
 				VectorCopy(t, (&r_state.tangent_array[i * 4]));
 			}
 		}
@@ -368,7 +368,7 @@ void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs){
 	r_stage_t *s;
 	int i, j;
 
-	if(!r_materials->value || r_showpolys->value)
+	if(!r_materials->value || r_draw_bsp_wireframe->value)
 		return;
 
 	if(!surfs->count)

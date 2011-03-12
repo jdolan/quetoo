@@ -103,7 +103,7 @@ void Cl_LoadEmits(void){
 			if(emit){
 
 				// resolve the leaf so that the entity may be added only when in PVS
-				e->leaf = R_LeafForPoint(e->org, r_worldmodel);
+				e->leaf = R_LeafForPoint(e->org, r_world_model);
 
 				// add default sounds and models
 				if(!e->sample){
@@ -318,7 +318,7 @@ static void Cl_UpdateEmits(void){
 
 			emit_t *e = &emits[i];
 
-			e->leaf = R_LeafForPoint(e->org, r_worldmodel);
+			e->leaf = R_LeafForPoint(e->org, r_world_model);
 
 			if(e->flags & EMIT_MODEL){
 				e->mod = R_LoadModel(e->model);

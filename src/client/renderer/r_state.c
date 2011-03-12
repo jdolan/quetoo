@@ -173,7 +173,7 @@ void R_BindBuffer(GLenum target, GLenum type, GLuint id){
 	if(!qglBindBuffer)
 		return;
 
-	if(!r_vertexbuffers->value)
+	if(!r_vertex_buffers->value)
 		return;
 
 	qglBindBuffer(GL_ARRAY_BUFFER, id);
@@ -273,7 +273,7 @@ void R_EnableTexture(r_texunit_t *texunit, qboolean enable){
 
 		if(texunit == &texunit_lightmap){
 
-			if(r_lightmap->value)
+			if(r_draw_lightmaps->value)
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 			else
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);

@@ -50,7 +50,7 @@ static void R_UploadLightmapBlock(){
 
 	r_lightmaps.lightmap_texnum++;
 
-	if(r_loadmodel->version == BSP_VERSION_){  // upload deluxe block as well
+	if(r_load_model->version == BSP_VERSION_){  // upload deluxe block as well
 
 		if(r_lightmaps.deluxemap_texnum == MAX_GL_DELUXEMAPS){
 			Com_Warn("R_UploadLightmapBlock: MAX_GL_DELUXEMAPS reached.\n");
@@ -115,8 +115,8 @@ static qboolean R_AllocLightmapBlock(int w, int h, int *x, int *y){
 static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int stride){
 	int i, j;
 
-	const int smax = (surf->st_extents[0] / r_loadmodel->lightmap_scale) + 1;
-	const int tmax = (surf->st_extents[1] / r_loadmodel->lightmap_scale) + 1;
+	const int smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
+	const int tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
 
 	stride -= (smax * 3);
 
@@ -129,7 +129,7 @@ static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout
 
 			sout += 3;
 
-			if(r_loadmodel->version == BSP_VERSION_){
+			if(r_load_model->version == BSP_VERSION_){
 				dout[0] = 127;
 				dout[1] = 127;
 				dout[2] = 255;
@@ -154,8 +154,8 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 	int i, j;
 	byte *lightmap, *lm, *l, *deluxemap, *dm;
 
-	const int smax = (surf->st_extents[0] / r_loadmodel->lightmap_scale) + 1;
-	const int tmax = (surf->st_extents[1] / r_loadmodel->lightmap_scale) + 1;
+	const int smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
+	const int tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
 
 	const int size = smax * tmax;
 	stride -= (smax * 3);
@@ -165,7 +165,7 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 
 	deluxemap = dm = NULL;
 
-	if(r_loadmodel->version == BSP_VERSION_){
+	if(r_load_model->version == BSP_VERSION_){
 		deluxemap = (byte *)Z_Malloc(size * 3);
 		dm = deluxemap;
 	}
@@ -177,7 +177,7 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 		lm[2] = surf->samples[j++];
 
 		// read in directional samples for deluxe mapping as well
-		if(r_loadmodel->version == BSP_VERSION_){
+		if(r_load_model->version == BSP_VERSION_){
 			dm[0] = surf->samples[j++];
 			dm[1] = surf->samples[j++];
 			dm[2] = surf->samples[j++];
@@ -199,7 +199,7 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 		for(i = 0; i < r_soften->value; i++){
 			R_SoftenTexture(lightmap, smax, tmax, it_lightmap);
 
-			if(r_loadmodel->version == BSP_VERSION_)
+			if(r_load_model->version == BSP_VERSION_)
 				R_SoftenTexture(deluxemap, smax, tmax, it_deluxemap);
 		}
 	}
@@ -212,7 +212,7 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 
 	lm = lightmap;
 
-	if(r_loadmodel->version == BSP_VERSION_)
+	if(r_load_model->version == BSP_VERSION_)
 		dm = deluxemap;
 
 	for(i = 0; i < tmax; i++, sout += stride, dout += stride){
@@ -233,7 +233,7 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 			lm += 3;
 
 			// lastly copy the deluxemap to the strided block
-			if(r_loadmodel->version == BSP_VERSION_){
+			if(r_load_model->version == BSP_VERSION_){
 				dout[0] = dm[0];
 				dout[1] = dm[1];
 				dout[2] = dm[2];
@@ -246,7 +246,7 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 
 	Z_Free(lightmap);
 
-	if(r_loadmodel->version == BSP_VERSION_)
+	if(r_load_model->version == BSP_VERSION_)
 		Z_Free(deluxemap);
 }
 
@@ -261,8 +261,8 @@ void R_CreateSurfaceLightmap(r_bsp_surface_t *surf){
 	if(!(surf->flags & MSURF_LIGHTMAP))
 		return;
 
-	smax = (surf->st_extents[0] / r_loadmodel->lightmap_scale) + 1;
-	tmax = (surf->st_extents[1] / r_loadmodel->lightmap_scale) + 1;
+	smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
+	tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
 
 	if(!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)){
 
@@ -299,7 +299,7 @@ void R_BeginBuildingLightmaps(void){
 	int max;
 
 	// users can tune lightmap size for their card
-	r_lightmaps.size = (int)r_lightmapsize->value;
+	r_lightmaps.size = (int)r_lightmap_block_size->value;
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
 

@@ -28,7 +28,7 @@
 void R_AddLight(const vec3_t origin, float radius, const vec3_t color){
 	r_light_t *l;
 
-	if(!r_lights->value)
+	if(!r_lighting->value)
 		return;
 
 	if(r_view.num_lights == MAX_LIGHTS)
@@ -49,7 +49,7 @@ void R_AddSustainedLight(const vec3_t origin, float radius, const vec3_t color, 
 	r_sustained_light_t *s;
 	int i;
 
-	if(!r_lights->value)
+	if(!r_lighting->value)
 		return;
 
 	s = r_view.sustained_lights;
@@ -143,7 +143,7 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t 
 		node->model->lights |= bit;
 
 	// mark all surfaces in this node
-	surf = r_worldmodel->surfaces + node->first_surface;
+	surf = r_world_model->surfaces + node->first_surface;
 
 	for(i = 0; i < node->num_surfaces; i++, surf++){
 
@@ -184,7 +184,7 @@ void R_MarkLights(void){
 		r_light_t *light = &r_view.lights[i];
 
 		// world surfaces
-		R_MarkLights_(light, vec3_origin, 1 << i, r_worldmodel->nodes);
+		R_MarkLights_(light, vec3_origin, 1 << i, r_world_model->nodes);
 
 		// and bsp entity surfaces
 		for(j = 0; j < r_view.num_entities; j++){

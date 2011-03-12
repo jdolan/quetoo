@@ -92,7 +92,7 @@ static void R_DrawSurface_default(r_bsp_surface_t *surf){
 static void R_DrawSurfaces_default(r_bsp_surfaces_t *surfs){
 	int i;
 
-	R_SetArrayState(r_worldmodel);
+	R_SetArrayState(r_world_model);
 
 	// draw the surfaces
 	for(i = 0; i < surfs->count; i++){
@@ -128,7 +128,7 @@ static void R_DrawSurfacesLines_default(r_bsp_surfaces_t *surfs){
 
 	R_EnableColorArray(true);
 
-	R_SetArrayState(r_worldmodel);
+	R_SetArrayState(r_world_model);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -156,7 +156,7 @@ void R_DrawOpaqueSurfaces_default(r_bsp_surfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
-	if(r_showpolys->value){  // surface outlines
+	if(r_draw_bsp_wireframe->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -181,7 +181,7 @@ void R_DrawOpaqueWarpSurfaces_default(r_bsp_surfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
-	if(r_showpolys->value){  // surface outlines
+	if(r_draw_bsp_wireframe->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -202,7 +202,7 @@ void R_DrawAlphaTestSurfaces_default(r_bsp_surfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
-	if(r_showpolys->value){  // surface outlines
+	if(r_draw_bsp_wireframe->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -231,7 +231,7 @@ void R_DrawBlendSurfaces_default(r_bsp_surfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
-	if(r_showpolys->value){  // surface outlines
+	if(r_draw_bsp_wireframe->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -254,7 +254,7 @@ void R_DrawBlendWarpSurfaces_default(r_bsp_surfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
-	if(r_showpolys->value){  // surface outlines
+	if(r_draw_bsp_wireframe->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}

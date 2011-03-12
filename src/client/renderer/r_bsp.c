@@ -175,11 +175,11 @@ void R_DrawBspLights(void){
 	r_bsp_light_t *l;
 	int i;
 
-	if(!r_showlights->value)
+	if(!r_draw_bsp_lights->value)
 		return;
 
-	l = r_worldmodel->bsp_lights;
-	for(i = 0; i < r_worldmodel->num_bsp_lights; i++, l++){
+	l = r_world_model->bsp_lights;
+	for(i = 0; i < r_world_model->num_bsp_lights; i++, l++){
 		R_AddCorona(l->origin, l->radius, 0, l->color);
 	}
 }
@@ -197,7 +197,7 @@ void R_DrawBspNormals(void){
 	vec3_t end;
 	int i, j, k;
 
-	if(!r_shownormals->value)
+	if(!r_draw_bsp_normals->value)
 		return;
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -207,8 +207,8 @@ void R_DrawBspNormals(void){
 	glColor3f(1.0, 0.0, 0.0);
 
 	k = 0;
-	surf = r_worldmodel->surfaces;
-	for(i = 0; i < r_worldmodel->num_surfaces; i++, surf++){
+	surf = r_world_model->surfaces;
+	for(i = 0; i < r_world_model->num_surfaces; i++, surf++){
 
 		if(surf->vis_frame != r_locals.vis_frame)
 			continue;  // not visible
@@ -216,7 +216,7 @@ void R_DrawBspNormals(void){
 		if(surf->texinfo->flags & (SURF_SKY | SURF_WARP))
 			continue;  // don't care
 
-		if(r_shownormals->value > 1.0 && !(surf->texinfo->flags & SURF_PHONG))
+		if(r_draw_bsp_normals->value > 1.0 && !(surf->texinfo->flags & SURF_PHONG))
 			continue;  // don't care
 
 		if(k > MAX_GL_ARRAY_LENGTH - 512){  // avoid overflows, draw in batches
@@ -225,8 +225,8 @@ void R_DrawBspNormals(void){
 		}
 
 		for(j = 0; j < surf->num_edges; j++){
-			vertex = &r_worldmodel->verts[(surf->index + j) * 3];
-			normal = &r_worldmodel->normals[(surf->index + j) * 3];
+			vertex = &r_world_model->verts[(surf->index + j) * 3];
+			normal = &r_world_model->normals[(surf->index + j) * 3];
 
 			VectorMA(vertex, 12.0, normal, end);
 
@@ -309,7 +309,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node){
 	R_MarkSurfaces_(node->children[side]);
 
 	// prune all marked surfaces to just those which are front-facing
-	surf = r_worldmodel->surfaces + node->first_surface;
+	surf = r_world_model->surfaces + node->first_surface;
 
 	for(i = 0; i < node->num_surfaces; i++, surf++){
 
@@ -367,7 +367,7 @@ void R_MarkSurfaces(void){
 	R_ClearSkyBox();
 
 	// flag all visible world surfaces
-	R_MarkSurfaces_(r_worldmodel->nodes);
+	R_MarkSurfaces_(r_world_model->nodes);
 }
 
 
@@ -415,7 +415,7 @@ static byte *R_DecompressVis(const byte *in){
 	byte *out;
 	int row;
 
-	row = (r_worldmodel->vis->num_clusters + 7) >> 3;
+	row = (r_world_model->vis->num_clusters + 7) >> 3;
 	out = decompressed;
 
 	if(!in){  // no vis info, so make all visible
@@ -474,13 +474,13 @@ void R_MarkLeafs(void){
 	r_bsp_node_t *node;
 	int i;
 
-	if(r_lockvis->value)
+	if(r_lock_vis->value)
 		return;
 
 	// resolve current cluster
-	r_locals.cluster = R_LeafForPoint(r_view.origin, r_worldmodel)->cluster;
+	r_locals.cluster = R_LeafForPoint(r_view.origin, r_world_model)->cluster;
 
-	if(!r_novis->value && (r_locals.old_cluster == r_locals.cluster))
+	if(!r_no_vis->value && (r_locals.old_cluster == r_locals.cluster))
 		return;
 
 	r_locals.old_cluster = r_locals.cluster;
@@ -490,25 +490,25 @@ void R_MarkLeafs(void){
 	if(r_locals.vis_frame > 0x7FFFFFFF)  // avoid overflows, negatives are reserved
 		r_locals.vis_frame = 0;
 
-	if(r_novis->value || !r_worldmodel->vis){  // mark everything
-		for(i = 0; i < r_worldmodel->num_leafs; i++)
-			r_worldmodel->leafs[i].vis_frame = r_locals.vis_frame;
-		for(i = 0; i < r_worldmodel->num_nodes; i++)
-			r_worldmodel->nodes[i].vis_frame = r_locals.vis_frame;
+	if(r_no_vis->value || !r_world_model->vis){  // mark everything
+		for(i = 0; i < r_world_model->num_leafs; i++)
+			r_world_model->leafs[i].vis_frame = r_locals.vis_frame;
+		for(i = 0; i < r_world_model->num_nodes; i++)
+			r_world_model->nodes[i].vis_frame = r_locals.vis_frame;
 		return;
 	}
 
 	// resolve pvs for the current cluster
 	if(r_locals.cluster != -1)
-		vis = R_DecompressVis((byte *)r_worldmodel->vis +
-				r_worldmodel->vis->bit_offsets[r_locals.cluster][DVIS_PVS]);
+		vis = R_DecompressVis((byte *)r_world_model->vis +
+				r_world_model->vis->bit_offsets[r_locals.cluster][DVIS_PVS]);
 	else
 		vis = NULL;
 
 	// recurse up the bsp from the visible leafs, marking a path via the nodes
-	leaf = r_worldmodel->leafs;
+	leaf = r_world_model->leafs;
 
-	for(i = 0; i < r_worldmodel->num_leafs; i++, leaf++){
+	for(i = 0; i < r_world_model->num_leafs; i++, leaf++){
 
 		if(!R_LeafInVis(leaf, vis))
 			continue;

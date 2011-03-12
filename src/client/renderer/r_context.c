@@ -80,7 +80,7 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, i ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, i);
 
-	i = (int)r_swapinterval->value;
+	i = (int)r_swap_interval->value;
 	if(i < 0)
 		i = 0;
 	if(i > 2)

@@ -145,7 +145,7 @@ static void R_SetMeshState_default(const r_entity_t *e){
 		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
 	}
 
-	if(!r_showpolys->value){
+	if(!r_draw_bsp_wireframe->value){
 		if(e->skin)  // resolve texture
 			R_BindTexture(e->skin->texnum);
 		else
@@ -283,7 +283,7 @@ static void R_DrawMeshShadow_default(r_entity_t *e){
 	if(!r_shadows->value)
 		return;
 
-	if(r_showpolys->value)
+	if(r_draw_bsp_wireframe->value)
 		return;
 
 	if(e->effects & EF_NO_SHADOW)

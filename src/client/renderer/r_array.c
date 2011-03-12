@@ -176,12 +176,12 @@ static void R_SetVertexBufferState(const r_model_t *mod, int mask){
 void R_SetArrayState(const r_model_t *mod){
 	int arrays, mask;
 
-	if(r_vertexbuffers->modified){  // force a full re-bind
+	if(r_vertex_buffers->modified){  // force a full re-bind
 		r_array_state.model = NULL;
 		r_array_state.arrays = 0xffff;
 	}
 
-	r_vertexbuffers->modified = false;
+	r_vertex_buffers->modified = false;
 
 	mask = 0xffff, arrays = R_ArraysMask();  // resolve the desired arrays mask
 
@@ -196,7 +196,7 @@ void R_SetArrayState(const r_model_t *mod){
 		mask = arrays & xor;
 	}
 
-	if(r_vertexbuffers->value && qglGenBuffers)  // use vbo
+	if(r_vertex_buffers->value && qglGenBuffers)  // use vbo
 		R_SetVertexBufferState(mod, mask);
 	else  // or arrays
 		R_SetVertexArrayState(mod, mask);

@@ -54,7 +54,7 @@ static void R_DrawSurface_pro(const r_bsp_surface_t *surf){
 static void R_DrawSurfaces_pro(const r_bsp_surfaces_t *surfs){
 	int i;
 
-	R_SetArrayState(r_worldmodel);
+	R_SetArrayState(r_world_model);
 
 	// draw the surfaces
 	for(i = 0; i < surfs->count; i++){
@@ -145,23 +145,23 @@ void R_DrawBlendSurfaces_pro(r_bsp_surfaces_t *surfs){
 void R_DrawBackSurfaces_pro(r_bsp_surfaces_t *surfs){
 	int i;
 
-	if(!r_lines->value || !surfs->count)
+	if(!r_line_alpha->value || !surfs->count)
 		return;
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	R_SetArrayState(r_worldmodel);
+	R_SetArrayState(r_world_model);
 
 	glPolygonMode(GL_FRONT, GL_LINE);
 
 	glEnable(GL_POLYGON_OFFSET_LINE);
-	glPolygonOffset(1.0, -r_linewidth->value * 2.0);
+	glPolygonOffset(1.0, -r_line_width->value * 2.0);
 
 	if(!r_multisample->value)
 		glEnable(GL_LINE_SMOOTH);
 
-	glLineWidth(r_linewidth->value);
-	glColor4f(0.0, 0.0, 0.0, r_lines->value);
+	glLineWidth(r_line_width->value);
+	glColor4f(0.0, 0.0, 0.0, r_line_alpha->value);
 
 	// draw the surfaces
 	for(i = 0; i < surfs->count; i++){

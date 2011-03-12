@@ -211,7 +211,7 @@ r_model_t *R_LoadModel(const char *name){
 	// inline models are fetched from a separate array
 	if(name[0] == '*'){
 		i = atoi(name + 1);
-		if(i < 1 || !r_worldmodel || i >= r_worldmodel->num_submodels){
+		if(i < 1 || !r_world_model || i >= r_world_model->num_submodels){
 			Com_Error(ERR_DROP, "R_LoadModel: Bad inline model number.");
 		}
 		return &r_inline_models[i];
@@ -256,12 +256,12 @@ r_model_t *R_LoadModel(const char *name){
 
 	Com_StripExtension(n, mod->name);
 
-	r_loadmodel = mod;
-	r_loadmodel->extra_data = R_HunkBegin();
+	r_load_model = mod;
+	r_load_model->extra_data = R_HunkBegin();
 
 	format->load(mod, buf);
 
-	r_loadmodel->extra_data_size = R_HunkEnd(r_loadmodel->extra_data);
+	r_load_model->extra_data_size = R_HunkEnd(r_load_model->extra_data);
 
 	// assemble vertex buffer objects from static arrays
 	R_LoadVertexBuffers(mod);
@@ -301,7 +301,7 @@ void R_ListModels_f(void){
  */
 void R_HunkStats_f(void){
 	Com_Print("Hunk usage: %.2f / %.2f MB\n",
-			r_hunk.offset / 1024.0 / 1024.0, r_hunkmegs->value);
+			r_hunk.offset / 1024.0 / 1024.0, r_hunk_mb->value);
 }
 
 
@@ -324,7 +324,7 @@ static void R_FreeModels(void){
 			qglDeleteBuffers(1, &mod->normal_buffer);
 	}
 
-	r_worldmodel = NULL;
+	r_world_model = NULL;
 
 	// reset the models array
 	memset(r_models, 0, sizeof(r_models));
@@ -361,7 +361,7 @@ void R_BeginLoading(const char *bsp_name, int bsp_size){
 	R_LoadMaterials(bsp_name);
 
 	// finally load the bsp for rendering (surface arrays)
-	r_worldmodel = R_LoadModel(bsp_name);
+	r_world_model = R_LoadModel(bsp_name);
 }
 
 
@@ -371,7 +371,7 @@ void R_BeginLoading(const char *bsp_name, int bsp_size){
 void R_InitModels(void){
 
 	// allocate the hunk
-	r_hunk.size = (size_t)r_hunkmegs->value * 1024 * 1024;
+	r_hunk.size = (size_t)r_hunk_mb->value * 1024 * 1024;
 
 	if(!(r_hunk.base = Z_Malloc(r_hunk.size))){  // malloc the new one
 		Com_Error(ERR_FATAL, "R_HunkInit: Unable to allocate hunk.");

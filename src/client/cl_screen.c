@@ -238,7 +238,7 @@ static void Cl_CheckDrawCenterString(void){
 static void Cl_DrawRspeeds(void){
 	char rspeeds[128];
 
-	if(!r_speeds->value)
+	if(!r_draw_poly_counts->value)
 		return;
 
 	if(cls.state != ca_active)
