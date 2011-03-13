@@ -1182,7 +1182,7 @@ void G_Init(void){
 
 	password = gi.Cvar("password", "", CVAR_USER_INFO, NULL);
 
-	sv_max_clients = gi.Cvar("sv_maxclients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+	sv_max_clients = gi.Cvar("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NOSET, NULL);
 
 	if(g_fraglog->value)

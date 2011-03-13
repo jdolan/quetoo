@@ -167,7 +167,7 @@ typedef struct sv_static_s {
 	// the size of this array is based on the number of clients we might be
 	// asked to support at any point in time during the current game
 
-	int num_entity_states;  // maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES
+	int num_entity_states;  // sv_max_clients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES
 	int next_entity_state;  // next entity_state to use for newly spawned entities
 	entity_state_t *entity_states;  // entity states array used for delta compression
 

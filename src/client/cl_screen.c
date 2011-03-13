@@ -83,7 +83,7 @@ void Cl_AddNetgraph(void){
 	in = cls.netchan.incoming_acknowledged & (CMD_BACKUP - 1);
 	ping = cls.real_time - cl.cmd_time[in];
 
-	Cl_Netgraph(ping / 1000.0, 0xd0);  // 1000ms is lagged out
+	Cl_Netgraph(ping / 300.0, 0xd0);  // 300ms is lagged out
 }
 
 

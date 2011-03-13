@@ -824,7 +824,7 @@ static void G_worldspawn(edict_t *ent){
 
 	G_WorldspawnMusic();
 
-	// send sv_maxclients to clients
+	// send sv_max_clients to clients
 	gi.ConfigString(CS_MAX_CLIENTS, va("%i", (int)(sv_max_clients->value)));
 
 	// status bar program
