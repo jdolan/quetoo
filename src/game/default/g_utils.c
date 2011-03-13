@@ -355,7 +355,7 @@ edict_t *G_Spawn(void){
 		}
 	}
 
-	if(i >= g_maxentities->value)
+	if(i >= g_max_entities->value)
 		gi.Error("G_Spawn: No free edicts.");
 
 	ge.num_edicts++;

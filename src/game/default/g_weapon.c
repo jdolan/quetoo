@@ -33,7 +33,7 @@ static void G_PlayerProjectile(edict_t *ent, const vec3_t scale){
 		return;
 
 	for(i = 0; i < 3; i++)
-		tmp[i] = ent->owner->velocity[i] * g_playerprojectile->value * scale[i];
+		tmp[i] = ent->owner->velocity[i] * g_player_projectile->value * scale[i];
 
 	VectorAdd(tmp, ent->velocity, ent->velocity);
 }

@@ -222,7 +222,7 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 				mod |= MOD_FRIENDLY_FIRE;
 			}
 			else {  // while everything else can
-				if(g_friendlyfire->value)
+				if(g_friendly_fire->value)
 					mod |= MOD_FRIENDLY_FIRE;
 				else
 					damage = 0;

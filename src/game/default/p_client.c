@@ -78,11 +78,11 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 
 	killer = attacker->client ? attacker->client : self->client;
 
-	if(!g_level.warmup && fraglog != NULL){  // write fraglog
+	if(!g_level.warmup && frag_log != NULL){  // write frag_log
 
-		fprintf(fraglog, "\\%s\\%s\\\n", killer->locals.net_name, self->client->locals.net_name);
+		fprintf(frag_log, "\\%s\\%s\\\n", killer->locals.net_name, self->client->locals.net_name);
 
-		fflush(fraglog);
+		fflush(frag_log);
 	}
 
 #ifdef HAVE_MYSQL
@@ -630,7 +630,7 @@ static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *class_name)
  */
 static edict_t *P_SelectDeathmatchSpawnPoint(edict_t *ent){
 
-	if(g_spawnfarthest->value)
+	if(g_spawn_farthest->value)
 		return P_SelectFarthestSpawnPoint(ent, "info_player_deathmatch");
 
 	return P_SelectRandomSpawnPoint(ent, "info_player_deathmatch");
@@ -649,7 +649,7 @@ static edict_t *P_SelectCaptureSpawnPoint(edict_t *ent){
 	c = ent->client->locals.team == &good ?
 		"info_player_team1" : "info_player_team2";
 
-	if(g_spawnfarthest->value)
+	if(g_spawn_farthest->value)
 		return P_SelectFarthestSpawnPoint(ent, c);
 
 	return P_SelectRandomSpawnPoint(ent, c);
@@ -874,7 +874,7 @@ void P_Begin(edict_t *ent){
 	if(g_level.match || g_level.rounds)
 		ent->client->locals.spectator = true;
 	else if(g_level.teams || g_level.ctf){
-		if(g_autojoin->value)
+		if(g_auto_join->value)
 			G_AddClientToTeam(ent, G_SmallestTeam()->name);
 		else
 			ent->client->locals.spectator = true;

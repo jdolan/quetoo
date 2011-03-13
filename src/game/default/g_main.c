@@ -31,30 +31,30 @@ g_level_t g_level;
 
 int means_of_death;
 
-cvar_t *g_autojoin;
-cvar_t *g_capturelimit;
-cvar_t *g_chatlog;
+cvar_t *g_auto_join;
+cvar_t *g_capture_limit;
+cvar_t *g_chat_log;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
-cvar_t *g_fraglimit;
-cvar_t *g_fraglog;
-cvar_t *g_friendlyfire;
+cvar_t *g_frag_limit;
+cvar_t *g_frag_log;
+cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
 cvar_t *g_gravity;
 cvar_t *g_match;
-cvar_t *g_maxentities;
+cvar_t *g_max_entities;
 cvar_t *g_mysql;
-cvar_t *g_mysqldb;
-cvar_t *g_mysqlhost;
-cvar_t *g_mysqlpassword;
-cvar_t *g_mysqluser;
-cvar_t *g_playerprojectile;
-cvar_t *g_randommap;
-cvar_t *g_roundlimit;
+cvar_t *g_mysql_db;
+cvar_t *g_mysql_host;
+cvar_t *g_mysql_password;
+cvar_t *g_mysql_user;
+cvar_t *g_player_projectile;
+cvar_t *g_random_map;
+cvar_t *g_round_limit;
 cvar_t *g_rounds;
-cvar_t *g_spawnfarthest;
+cvar_t *g_spawn_farthest;
 cvar_t *g_teams;
-cvar_t *g_timelimit;
+cvar_t *g_time_limit;
 cvar_t *g_voting;
 
 cvar_t *password;
@@ -71,7 +71,7 @@ MYSQL *mysql;
 char sql[512];
 #endif
 
-FILE *fraglog, *chatlog, *f;
+FILE *frag_log, *chat_log, *f;
 
 
 /*
@@ -219,7 +219,7 @@ static void G_RestartGame(qboolean teamz){
 		if(g_level.teams || g_level.ctf){
 			
 			if(!cl->locals.team){
-				if(g_autojoin->value)
+				if(g_auto_join->value)
 					G_AddClientToTeam(ent, G_SmallestTeam()->name);
 				else
 					cl->locals.spectator = true;
@@ -370,7 +370,7 @@ static void G_EndLevel(void){
 	// try maplist
 	if(g_map_list.count > 0){
 
-		if(g_randommap->value){  // random weighted selection
+		if(g_random_map->value){  // random weighted selection
 			g_map_list.index = g_map_list.weighted_index[rand() % MAP_LIST_WEIGHT];
 		}
 		else { // incremental, so long as wieght is not 0
@@ -456,7 +456,7 @@ static void G_CheckRoundLimit(){
 	edict_t *ent;
 	g_client_t *cl;
 
-	if(g_level.round_num >= g_level.round_limit){  // enforce roundlimit
+	if(g_level.round_num >= g_level.round_limit){  // enforce round_limit
 		gi.BroadcastPrint(PRINT_HIGH, "Roundlimit hit\n");
 		G_EndLevel();
 		return;
@@ -689,14 +689,14 @@ static void G_CheckRules(void){
 		if(g_level.match_time > g_level.time)  // match about to start, show pre-game countdown
 			seconds = g_level.match_time - g_level.time;
 		else if(g_level.match_time){
-			if(g_level.time_limit)  // count down to timelimit
+			if(g_level.time_limit)  // count down to time_limit
 				seconds = g_level.match_time + g_level.time_limit * 60 - g_level.time;
 			else seconds = g_level.time - g_level.match_time;  // count up
 		}
 		else seconds = -1;
 	}
 
-	if(g_level.time_limit){  // check timelimit
+	if(g_level.time_limit){  // check time_limit
 		float t = g_level.time;
 
 		if(g_level.match)  // for matches
@@ -715,7 +715,7 @@ static void G_CheckRules(void){
 	if(g_level.frame_num % gi.frame_rate == 0)  // send time updates once per second
 		gi.ConfigString(CS_TIME, (g_level.warmup ? "Warmup" : G_FormatTime(seconds)));
 
-	if(!g_level.ctf && g_level.frag_limit){  // check fraglimit
+	if(!g_level.ctf && g_level.frag_limit){  // check frag_limit
 
 		if(g_level.teams){  // check team scores
  			if(good.score >= g_level.frag_limit || evil.score >= g_level.frag_limit){
@@ -816,33 +816,33 @@ static void G_CheckRules(void){
 				g_cheats->value ? "enabled" : "disabled");
 	}
 
-	if(g_fraglimit->modified){
-		g_fraglimit->modified = false;
-		g_level.frag_limit = g_fraglimit->value;
+	if(g_frag_limit->modified){
+		g_frag_limit->modified = false;
+		g_level.frag_limit = g_frag_limit->value;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Fraglimit has been changed to %d\n",
 				g_level.frag_limit);
 	}
 
-	if(g_roundlimit->modified){
-		g_roundlimit->modified = false;
-		g_level.round_limit = g_roundlimit->value;
+	if(g_round_limit->modified){
+		g_round_limit->modified = false;
+		g_level.round_limit = g_round_limit->value;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Roundlimit has been changed to %d\n",
 				g_level.round_limit);
 	}
 
-	if(g_capturelimit->modified){
-		g_capturelimit->modified = false;
-		g_level.capture_limit = g_capturelimit->value;
+	if(g_capture_limit->modified){
+		g_capture_limit->modified = false;
+		g_level.capture_limit = g_capture_limit->value;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Capturelimit has been changed to %d\n",
 				g_level.capture_limit);
 	}
 
-	if(g_timelimit->modified){
-		g_timelimit->modified = false;
-		g_level.time_limit = g_timelimit->value;
+	if(g_time_limit->modified){
+		g_time_limit->modified = false;
+		g_level.time_limit = g_time_limit->value;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Timelimit has been changed to %d\n",
 				(int)g_level.time_limit);
@@ -1051,22 +1051,22 @@ static void G_ParseMapList(const char *file_name){
 			continue;
 		}
 
-		if(!strcmp(c, "fraglimit")){
+		if(!strcmp(c, "frag_limit")){
 			elt->frag_limit = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
-		if(!strcmp(c, "roundlimit")){
+		if(!strcmp(c, "round_limit")){
 			elt->round_limit = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
-		if(!strcmp(c, "capturelimit")){
+		if(!strcmp(c, "capture_limit")){
 			elt->capture_limit = atoi(Com_Parse(&buffer));
 			continue;
 		}
 
-		if(!strcmp(c, "timelimit")){
+		if(!strcmp(c, "time_limit")){
 			elt->time_limit = atof(Com_Parse(&buffer));
 			continue;
 		}
@@ -1099,10 +1099,10 @@ static void G_ParseMapList(const char *file_name){
 					"ctf: %d\n"
 					"match: %d\n"
 					"rounds: %d\n"
-					"fraglimit: %d\n"
-					"roundlimit: %d\n"
-					"capturelimit: %d\n"
-					"timelimit: %f\n"
+					"frag_limit: %d\n"
+					"round_limit: %d\n"
+					"capture_limit: %d\n"
+					"time_limit: %f\n"
 					"give: %s\n"
 					"music: %s\n"
 					"weight: %f\n",
@@ -1154,30 +1154,30 @@ void G_Init(void){
 	gi.Cvar("gamename", GAMEVERSION , CVAR_SERVER_INFO | CVAR_NOSET, NULL);
 	gi.Cvar("gamedate", __DATE__ , CVAR_SERVER_INFO | CVAR_NOSET, NULL);
 
-	g_autojoin = gi.Cvar("g_autojoin", "1", CVAR_SERVER_INFO, NULL);
-	g_capturelimit = gi.Cvar("g_capturelimit", "8", CVAR_SERVER_INFO, NULL);
-	g_chatlog = gi.Cvar("g_chatlog", "0", 0, NULL);
+	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, NULL);
+	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, NULL);
+	g_chat_log = gi.Cvar("g_chat_log", "0", 0, NULL);
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, NULL);
-	g_fraglimit = gi.Cvar("g_fraglimit", "30", CVAR_SERVER_INFO, NULL);
-	g_fraglog = gi.Cvar("g_fraglog", "0", 0, NULL);
-	g_friendlyfire = gi.Cvar("g_friendlyfire", "1", CVAR_SERVER_INFO, NULL);
+	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, NULL);
+	g_frag_log = gi.Cvar("g_frag_log", "0", 0, NULL);
+	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, NULL);
 	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO, NULL);
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, NULL);
-	g_maxentities = gi.Cvar("g_maxentities", "1024", CVAR_LATCH, NULL);
+	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_mysql = gi.Cvar("g_mysql", "0", 0, NULL);
-	g_mysqldb = gi.Cvar("g_mysqldb", "quake2world", 0, NULL);
-	g_mysqlhost = gi.Cvar("g_mysqlhost", "localhost", 0, NULL);
-	g_mysqlpassword = gi.Cvar("g_mysqlpassword", "", 0, NULL);
-	g_mysqluser = gi.Cvar("g_mysqluser", "quake2world", 0, NULL);
-	g_playerprojectile = gi.Cvar("g_playerprojectile", "1", CVAR_SERVER_INFO, NULL);
-	g_randommap = gi.Cvar("g_randommap", "0", 0, NULL);
-	g_roundlimit = gi.Cvar("g_roundlimit", "30", CVAR_SERVER_INFO, NULL);
+	g_mysql_db = gi.Cvar("g_mysql_db", "quake2world", 0, NULL);
+	g_mysql_host = gi.Cvar("g_mysql_host", "localhost", 0, NULL);
+	g_mysql_password = gi.Cvar("g_mysql_password", "", 0, NULL);
+	g_mysql_user = gi.Cvar("g_mysql_user", "quake2world", 0, NULL);
+	g_player_projectile = gi.Cvar("g_player_projectile", "1", CVAR_SERVER_INFO, NULL);
+	g_random_map = gi.Cvar("g_random_map", "0", 0, NULL);
+	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, NULL);
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, NULL);
-	g_spawnfarthest = gi.Cvar("g_spawnfarthest", "0", CVAR_SERVER_INFO, NULL);
+	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, NULL);
-	g_timelimit = gi.Cvar("g_timelimit", "20", CVAR_SERVER_INFO, NULL);
+	g_time_limit = gi.Cvar("g_time_limit", "20", CVAR_SERVER_INFO, NULL);
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
 
 	password = gi.Cvar("password", "", CVAR_USER_INFO, NULL);
@@ -1185,25 +1185,25 @@ void G_Init(void){
 	sv_max_clients = gi.Cvar("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NOSET, NULL);
 
-	if(g_fraglog->value)
-		gi.OpenFile("fraglog.log", &fraglog, FILE_APPEND);
+	if(g_frag_log->value)
+		gi.OpenFile("frag_log.log", &frag_log, FILE_APPEND);
 
-	if(g_chatlog->value)
-		gi.OpenFile("chatlog.log", &chatlog, FILE_APPEND);
+	if(g_chat_log->value)
+		gi.OpenFile("chat_log.log", &chat_log, FILE_APPEND);
 
 #ifdef HAVE_MYSQL
 	if(g_mysql->value){  //init database
 
 		mysql = mysql_init(NULL);
 
-		mysql_real_connect(mysql, g_mysqlhost->string,
-				g_mysqluser->string, g_mysqlpassword->string,
-				g_mysqldb->string, 0, NULL, 0
+		mysql_real_connect(mysql, g_mysql_host->string,
+				g_mysql_user->string, g_mysql_password->string,
+				g_mysql_db->string, 0, NULL, 0
 		);
 
 		if(mysql != NULL)
-			gi.Print("    MySQL connection to %s/%s", g_mysqlhost->string,
-					g_mysqluser->string);
+			gi.Print("    MySQL connection to %s/%s", g_mysql_host->string,
+					g_mysql_user->string);
 	}
 #endif
 
@@ -1212,34 +1212,34 @@ void G_Init(void){
 	G_InitItems();
 
 	// initialize entities and clients for this game
-	g_game.edicts = gi.TagMalloc(g_maxentities->value * sizeof(edict_t), TAG_GAME);
+	g_game.edicts = gi.TagMalloc(g_max_entities->value * sizeof(edict_t), TAG_GAME);
 	g_game.clients = gi.TagMalloc(sv_max_clients->value * sizeof(g_client_t), TAG_GAME);
 
 	ge.edicts = g_game.edicts;
-	ge.max_edicts = g_maxentities->value;
+	ge.max_edicts = g_max_entities->value;
 	ge.num_edicts = sv_max_clients->value + 1;
 
 	// set these to false to avoid spurious game restarts and alerts on init
 	g_gameplay->modified = g_teams->modified = g_match->modified = g_rounds->modified =
-		g_ctf->modified = g_cheats->modified = g_fraglimit->modified =
-		g_roundlimit->modified = g_capturelimit->modified = g_timelimit->modified = false;
+		g_ctf->modified = g_cheats->modified = g_frag_limit->modified =
+		g_round_limit->modified = g_capture_limit->modified = g_time_limit->modified = false;
 
 	gi.Print("  Game initialized.\n");
 }
 
 
 /*
- *  Frees tags and closes fraglog.  This is called when the
+ *  Frees tags and closes frag_log.  This is called when the
  *  game is unloaded (complements G_Init).
  */
 void G_Shutdown(void){
 	gi.Print("  Game shutdown...\n");
 
-	if(fraglog != NULL)
-		gi.CloseFile(fraglog);  // close fraglog
+	if(frag_log != NULL)
+		gi.CloseFile(frag_log);  // close frag_log
 
-	if(chatlog != NULL)
-		gi.CloseFile(chatlog);  // and chatlog
+	if(chat_log != NULL)
+		gi.CloseFile(chat_log);  // and chat_log
 
 #ifdef HAVE_MYSQL
 	if(mysql != NULL)

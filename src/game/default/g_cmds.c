@@ -529,8 +529,8 @@ static void G_Say_f(edict_t *ent){
 			gi.Print("%s", text);
 	}
 
-	if(chatlog != NULL)  // print to chatlog
-		fprintf(chatlog, "%s", text);
+	if(chat_log != NULL)  // print to chat_log
+		fprintf(chat_log, "%s", text);
 }
 
 
@@ -573,17 +573,17 @@ static void G_PlayerList_f(edict_t *ent){
 }
 
 static const char *vote_cmds[] = {
-	"g_capturelimit",
+	"g_capture_limit",
 	"g_ctf",
-	"g_fraglimit",
-	"g_friendlyfire",
+	"g_frag_limit",
+	"g_friendly_fire",
 	"g_gameplay",
 	"g_match",
-	"g_roundlimit",
+	"g_round_limit",
 	"g_rounds",
-	"g_spawnfarthest",
+	"g_spawn_farthest",
 	"g_teams",
-	"g_timelimit",
+	"g_time_limit",
 	"kick",
 	"map",
 	"mute",
@@ -1079,7 +1079,7 @@ static void G_Spectate_f(edict_t *ent){
 
 	if(ent->client->locals.spectator){  // they wish to join
 		if(g_level.teams || g_level.ctf){
-			if(g_autojoin->value)  // assign them to a team
+			if(g_auto_join->value)  // assign them to a team
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
 			else {  // or ask them to pick
 				gi.ClientPrint(ent, PRINT_HIGH, "Use team <%s|%s> to join the game\n",

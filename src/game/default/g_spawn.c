@@ -242,10 +242,10 @@ static const g_field_t fields[] = {
 	{"teams", SOFS(teams), F_STRING, FFL_SPAWN_TEMP},
 	{"ctf", SOFS(ctf), F_STRING, FFL_SPAWN_TEMP},
 	{"match", SOFS(match), F_STRING, FFL_SPAWN_TEMP},
-	{"fraglimit", SOFS(frag_limit), F_STRING, FFL_SPAWN_TEMP},
-	{"roundlimit", SOFS(round_limit), F_STRING, FFL_SPAWN_TEMP},
-	{"capturelimit", SOFS(capture_limit), F_STRING, FFL_SPAWN_TEMP},
-	{"timelimit", SOFS(time_limit), F_STRING, FFL_SPAWN_TEMP},
+	{"frag_limit", SOFS(frag_limit), F_STRING, FFL_SPAWN_TEMP},
+	{"round_limit", SOFS(round_limit), F_STRING, FFL_SPAWN_TEMP},
+	{"capture_limit", SOFS(capture_limit), F_STRING, FFL_SPAWN_TEMP},
+	{"time_limit", SOFS(time_limit), F_STRING, FFL_SPAWN_TEMP},
 	{"give", SOFS(give), F_STRING, FFL_SPAWN_TEMP},
 
 	{0, 0, 0, 0}
@@ -419,7 +419,7 @@ void G_SpawnEntities(const char *name, const char *entities){
 	gi.FreeTags(TAG_LEVEL);
 
 	memset(&g_level, 0, sizeof(g_level));
-	memset(g_game.edicts, 0, g_maxentities->value * sizeof(g_game.edicts[0]));
+	memset(g_game.edicts, 0, g_max_entities->value * sizeof(g_game.edicts[0]));
 
 	strncpy(g_level.name, name, sizeof(g_level.name) - 1);
 
@@ -656,10 +656,10 @@ Only used for the world.
 "ctf"			0 off, 1 on, 2 balanced
 "match"			0 off, 1 on
 "round"			0 off, 1 on
-"fraglimit" 	20 frags
-"roundlimit" 	20 rounds
-"capturelimit" 	8 captures
-"timelimit"		20 minutes
+"frag_limit" 	20 frags
+"round_limit" 	20 rounds
+"capture_limit" 	8 captures
+"time_limit"		20 minutes
 "give"			comma-delimited items list
 "music"			comma-delimited track list
 */
@@ -768,40 +768,40 @@ static void G_worldspawn(edict_t *ent){
 	if(g_level.match && g_level.rounds)  // rounds overrides match
 		g_level.match = 0;
 
-	if(map && map->frag_limit > -1)  // prefer maps.lst fraglimit
+	if(map && map->frag_limit > -1)  // prefer maps.lst frag_limit
 		g_level.frag_limit = map->frag_limit;
 	else {  // or fall back on worldspawn
 		if(g_game.spawn.frag_limit && *g_game.spawn.frag_limit)
 			g_level.frag_limit = atoi(g_game.spawn.frag_limit);
 		else  // or default to cvar
-			g_level.frag_limit = g_fraglimit->value;
+			g_level.frag_limit = g_frag_limit->value;
 	}
 
-	if(map && map->round_limit > -1)  // prefer maps.lst roundlimit
+	if(map && map->round_limit > -1)  // prefer maps.lst round_limit
 		g_level.round_limit = map->round_limit;
 	else {  // or fall back on worldspawn
 		if(g_game.spawn.round_limit && *g_game.spawn.round_limit)
 			g_level.round_limit = atoi(g_game.spawn.round_limit);
 		else  // or default to cvar
-			g_level.round_limit = g_roundlimit->value;
+			g_level.round_limit = g_round_limit->value;
 	}
 
-	if(map && map->capture_limit > -1)  // prefer maps.lst capturelimit
+	if(map && map->capture_limit > -1)  // prefer maps.lst capture_limit
 		g_level.capture_limit = map->capture_limit;
 	else {  // or fall back on worldspawn
 		if(g_game.spawn.capture_limit && *g_game.spawn.capture_limit)
 			g_level.capture_limit = atoi(g_game.spawn.capture_limit);
 		else  // or default to cvar
-			g_level.capture_limit = g_capturelimit->value;
+			g_level.capture_limit = g_capture_limit->value;
 	}
 
-	if(map && map->time_limit > -1)  // prefer maps.lst timelimit
+	if(map && map->time_limit > -1)  // prefer maps.lst time_limit
 		g_level.time_limit = map->time_limit;
 	else {  // or fall back on worldspawn
 		if(g_game.spawn.time_limit && *g_game.spawn.time_limit)
 			g_level.time_limit = atof(g_game.spawn.time_limit);
 		else  // or default to cvar
-			g_level.time_limit = g_timelimit->value;
+			g_level.time_limit = g_time_limit->value;
 	}
 
 	if(map && *map->give)  // prefer maps.lst give

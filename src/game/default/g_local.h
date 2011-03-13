@@ -226,7 +226,7 @@ typedef struct g_move_info_s {
 // this structure is left intact through an entire game
 typedef struct g_locals_s {
 
-	edict_t *edicts;  // [g_maxentities]
+	edict_t *edicts;  // [g_max_entities]
 
 	g_client_t *clients;  // [sv_max_clients]
 
@@ -325,30 +325,30 @@ extern int means_of_death;
 #define FOFS(x)(ptrdiff_t)&(((edict_t *)0)->x)
 #define SOFS(x)(ptrdiff_t)&(((g_spawn_temp_t *)0)->x)
 
-extern cvar_t *g_autojoin;
-extern cvar_t *g_capturelimit;
-extern cvar_t *g_chatlog;
+extern cvar_t *g_auto_join;
+extern cvar_t *g_capture_limit;
+extern cvar_t *g_chat_log;
 extern cvar_t *g_cheats;
 extern cvar_t *g_ctf;
-extern cvar_t *g_fraglimit;
-extern cvar_t *g_fraglog;
-extern cvar_t *g_friendlyfire;
+extern cvar_t *g_frag_limit;
+extern cvar_t *g_frag_log;
+extern cvar_t *g_friendly_fire;
 extern cvar_t *g_gameplay;
 extern cvar_t *g_gravity;
 extern cvar_t *g_match;
-extern cvar_t *g_maxentities;
+extern cvar_t *g_max_entities;
 extern cvar_t *g_mysql;
-extern cvar_t *g_mysqldb;
-extern cvar_t *g_mysqlhost;
-extern cvar_t *g_mysqlpassword;
-extern cvar_t *g_mysqluser;
-extern cvar_t *g_playerprojectile;
-extern cvar_t *g_randommap;
-extern cvar_t *g_roundlimit;
+extern cvar_t *g_mysql_db;
+extern cvar_t *g_mysql_host;
+extern cvar_t *g_mysql_password;
+extern cvar_t *g_mysql_user;
+extern cvar_t *g_player_projectile;
+extern cvar_t *g_random_map;
+extern cvar_t *g_round_limit;
 extern cvar_t *g_rounds;
-extern cvar_t *g_spawnfarthest;
+extern cvar_t *g_spawn_farthest;
 extern cvar_t *g_teams;
-extern cvar_t *g_timelimit;
+extern cvar_t *g_time_limit;
 extern cvar_t *g_voting;
 
 extern cvar_t *password;
@@ -418,7 +418,7 @@ typedef struct team_s {
 extern g_team_t good, evil;
 
 // text file logging
-extern FILE *fraglog, *chatlog;
+extern FILE *frag_log, *chat_log;
 
 // mysql database logging
 #ifdef HAVE_MYSQL
