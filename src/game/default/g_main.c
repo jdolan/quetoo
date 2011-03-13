@@ -1151,8 +1151,8 @@ void G_Init(void){
 
 	memset(&g_game, 0, sizeof(g_game));
 
-	gi.Cvar("gamename", GAMEVERSION , CVAR_SERVER_INFO | CVAR_NOSET, NULL);
-	gi.Cvar("gamedate", __DATE__ , CVAR_SERVER_INFO | CVAR_NOSET, NULL);
+	gi.Cvar("game_name", GAMEVERSION , CVAR_SERVER_INFO | CVAR_NOSET, NULL);
+	gi.Cvar("game_date", __DATE__ , CVAR_SERVER_INFO | CVAR_NOSET, NULL);
 
 	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, NULL);
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, NULL);

@@ -80,6 +80,7 @@ typedef struct r_lighting_s {
 	vec3_t mins, maxs;  // entity bounding box in world space
 	vec3_t shadow_origin;
 	vec3_t shadow_normal;
+	vec3_t color;
 	r_bsp_light_ref_t bsp_light_refs[MAX_ACTIVE_LIGHTS];  // light sources
 	r_lighting_state_t state;
 } r_lighting_t;

@@ -125,30 +125,32 @@ void R_UpdateLighting(r_lighting_t *lighting){
 	VectorCopy(lighting->origin, start);
 	VectorCopy(lighting->origin, end);
 
+	VectorCopy(r_locals.ambient_light, lighting->color);
+
 	// resolve the static light sources
 	i = R_UpdateBspLightRefs(lighting);
 
 	// resolve the shadow origin, factoring in light sources
 	for(j = 0; j < i; j++){
-		r_bsp_light_ref_t *l = &lighting->bsp_light_refs[j];
+		r_bsp_light_ref_t *r = &lighting->bsp_light_refs[j];
 
 		// only consider light sources above us
-		if(l->bsp_light->origin[2] > start[2]){
-			const float scale = LIGHTING_MAX_SHADOW_DISTANCE * l->intensity;
+		if(r->bsp_light->origin[2] > start[2]){
+			const float scale = LIGHTING_MAX_SHADOW_DISTANCE * r->intensity;
 			vec3_t dir;
 
 			// and only factor in the X and Y components
-			VectorCopy(l->dir, dir);
+			VectorCopy(r->dir, dir);
 			dir[2] = 0.0;
 
 			// translate the projected end point
 			VectorMA(end, -scale, dir, end);
 		}
 
-		/*
-		 * TODO: Calculate a flat color and store it in r_lighting_t for
-		 * folks who have r_lighting disabled.
-		 */
+		// factor in the light source color
+		if(!r_lighting->value){
+			VectorMA(lighting->color, r->intensity, r->bsp_light->color, lighting->color);
+		}
 	}
 
 	end[2] = start[2] - LIGHTING_MAX_SHADOW_DISTANCE;

@@ -105,7 +105,7 @@ static void R_SetMeshColor_default(const r_entity_t *e){
 	float f;
 	int i;
 
-	VectorCopy(r_locals.ambient_light, color);
+	VectorCopy(e->lighting->color, color);
 
 	if(e->effects & EF_BLEND)
 		color[3] = 0.25;
