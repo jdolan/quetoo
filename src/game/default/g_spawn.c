@@ -467,7 +467,8 @@ void G_SpawnEntities(const char *name, const char *entities){
 			}
 
 			// lights aren't even used
-			if(!strcmp(ent->class_name, "light")){
+			if(!strcmp(ent->class_name, "light") ||
+					!strcmp(ent->class_name, "light_spot")){
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;

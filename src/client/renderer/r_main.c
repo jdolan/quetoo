@@ -940,12 +940,15 @@ void R_Init(void){
  */
 void R_Shutdown(void){
 
-	Cmd_RemoveCommand("r_listmodels");
-	Cmd_RemoveCommand("r_listimages");
+	Cmd_RemoveCommand("r_list_models");
+	Cmd_RemoveCommand("r_hunk_stats");
+
+	Cmd_RemoveCommand("r_list_images");
 	Cmd_RemoveCommand("r_screenshot");
 
-	Cmd_RemoveCommand("r_reload");
+	Cmd_RemoveCommand("r_sky");
 
+	Cmd_RemoveCommand("r_reload");
 	Cmd_RemoveCommand("r_restart");
 
 	R_ShutdownCapture();

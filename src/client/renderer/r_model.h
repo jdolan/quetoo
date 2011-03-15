@@ -362,10 +362,10 @@ void R_BeginLoading(const char *map, int mapsize);
 void R_ListModels_f(void);
 void R_HunkStats_f(void);
 
-// r_model_bsp.c
+// r_bsp_model.c
 void R_LoadBspModel(r_model_t *mod, void *buffer);
 
-// r_model_mesh.c
+// r_mesh_model.c
 void R_LoadMd2Model(r_model_t *mod, void *buffer);
 void R_LoadMd3Model(r_model_t *mod, void *buffer);
 void R_LoadObjModel(r_model_t *mod, void *buffer);

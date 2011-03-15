@@ -25,11 +25,11 @@
 
 
 /*
- * R_UpdateBspLightRefs_Compare
+ * R_UpdateBspLightReferences_Compare
  *
- * A comparator function for sorting r_bsp_light_ref_t elements via qsort.
+ * A comparator for sorting r_bsp_light_ref_t elements via quick sort.
  */
-static int R_UpdateBspLightRefs_Compare(const void *l1, const void *l2){
+static int R_UpdateBspLightReferences_Compare(const void *l1, const void *l2){
 	const r_bsp_light_ref_t *_l1 = (r_bsp_light_ref_t *)l1;
 	const r_bsp_light_ref_t *_l2 = (r_bsp_light_ref_t *)l2;
 
@@ -38,13 +38,13 @@ static int R_UpdateBspLightRefs_Compare(const void *l1, const void *l2){
 
 
 /*
- * R_UpdateBspLightRefs
+ * R_UpdateBspLightReferences
  *
  * Resolves the strongest static light sources, populating the light references
  * for the specified structure and returning the number of light sources found.
  * This facilitates directional shading in the fragment program.
  */
-static int R_UpdateBspLightRefs(r_lighting_t *lighting){
+static int R_UpdateBspLightReferences(r_lighting_t *lighting){
 	r_bsp_light_ref_t light_refs[LIGHTING_MAX_BSP_LIGHT_REFS];
 	r_bsp_light_ref_t *r;
 	r_bsp_light_t *l;
@@ -92,14 +92,14 @@ static int R_UpdateBspLightRefs(r_lighting_t *lighting){
 		r->intensity = intensity;
 
 		if(j == LIGHTING_MAX_BSP_LIGHT_REFS){
-			Com_Debug("R_UpdateBspLightRefs: LIGHTING_MAX_BSP_LIGHT_REFS\n");
+			Com_Debug("R_UpdateBspLightReferences: LIGHTING_MAX_BSP_LIGHT_REFS\n");
 			break;
 		}
 	}
 
 	if(j){
 		// sort them by intensity
-		qsort((void *)light_refs, j, sizeof(r_bsp_light_ref_t), R_UpdateBspLightRefs_Compare);
+		qsort((void *)light_refs, j, sizeof(r_bsp_light_ref_t), R_UpdateBspLightReferences_Compare);
 
 		if(j > MAX_ACTIVE_LIGHTS)
 			j = MAX_ACTIVE_LIGHTS;
@@ -128,7 +128,7 @@ void R_UpdateLighting(r_lighting_t *lighting){
 	VectorCopy(r_locals.ambient_light, lighting->color);
 
 	// resolve the static light sources
-	i = R_UpdateBspLightRefs(lighting);
+	i = R_UpdateBspLightReferences(lighting);
 
 	// resolve the shadow origin, factoring in light sources
 	for(j = 0; j < i; j++){
