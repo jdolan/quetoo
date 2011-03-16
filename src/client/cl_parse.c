@@ -354,7 +354,7 @@ void Cl_LoadClientinfo(cl_clientinfo_t *ci, const char *s){
 	ci->skin = R_LoadImage(skin_file_name, it_skin);
 
 	// if we don't have it, use the first one we do have for the model
-	if(ci->skin == r_notexture){
+	if(ci->skin == r_no_image){
 		snprintf(skin_file_name, sizeof(skin_file_name), "players/%s/?[!_]*.pcx", model_name);
 		ci->skin = R_LoadImage(Fs_FindFirst(skin_file_name, false), it_skin);
 	}
@@ -368,7 +368,7 @@ void Cl_LoadClientinfo(cl_clientinfo_t *ci, const char *s){
 	}
 
 	// must have loaded all components to be valid
-	if(!ci->model || ci->skin == r_notexture || i < cl.num_weaponmodels){
+	if(!ci->model || ci->skin == r_no_image || i < cl.num_weaponmodels){
 		Com_Debug("Cl_LoadClientInfo: Failed to load %s\n", ci->cinfo);
 		strcpy(model_name, ci->name);  // borrow this to store name
 		memcpy(ci, &cl.baseclientinfo, sizeof(*ci));

@@ -95,7 +95,7 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
 
 	glDisable(GL_DEPTH_TEST);
 
-	image = r_flaretextures[0];
+	image = r_flare_images[0];
 	R_BindTexture(image->texnum);
 
 	j = k = l = 0;

@@ -259,7 +259,7 @@ static void R_DrawMeshModelShell_default(const r_entity_t *e){
 
 	glColor3fv(e->shell);
 
-	R_BindTexture(r_envmaptextures[2]->texnum);
+	R_BindTexture(r_envmap_images[2]->texnum);
 
 	R_EnableShell(true);
 

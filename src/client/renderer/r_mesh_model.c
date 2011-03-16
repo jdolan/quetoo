@@ -53,7 +53,7 @@ static void R_LoadMeshSkin(r_model_t *mod){
 		Com_StripExtension(mod->name, skin);
 		mod->skin = R_LoadImage(skin, it_skin);
 
-		if(mod->skin == r_notexture){  // trying the common one if necessary
+		if(mod->skin == r_no_image){  // trying the common one if necessary
 			snprintf(skin, sizeof(skin), "players/common/%s", weaps[i]);
 			mod->skin = R_LoadImage(skin, it_skin);
 		}

@@ -387,7 +387,7 @@ void R_SetSky(char *name){
 		snprintf(pathname, sizeof(pathname), "env/%s%s", name, suf[i]);
 		sky.images[i] = R_LoadImage(pathname, it_sky);
 
-		if(!sky.images[i] || sky.images[i] == r_notexture){  // try unit1_
+		if(!sky.images[i] || sky.images[i] == r_no_image){  // try unit1_
 			if(strcmp(name, "unit1_")){
 				R_SetSky("unit1_");
 				return;

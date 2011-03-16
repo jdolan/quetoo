@@ -61,34 +61,33 @@ extern int r_num_images;
 
 #define BACKFACE_EPSILON	0.01
 
-extern r_image_t *r_notexture;
-extern r_image_t *r_particletexture;
-extern r_image_t *r_explosiontexture;
-extern r_image_t *r_teleporttexture;
-extern r_image_t *r_smoketexture;
-extern r_image_t *r_steamtexture;
-extern r_image_t *r_bubbletexture;
-extern r_image_t *r_raintexture;
-extern r_image_t *r_snowtexture;
-extern r_image_t *r_beamtexture;
-extern r_image_t *r_burntexture;
-extern r_image_t *r_shadowtexture;
-extern r_image_t *r_bloodtexture;
-extern r_image_t *r_lightningtexture;
-extern r_image_t *r_railtrailtexture;
-extern r_image_t *r_flametexture;
-extern r_image_t *r_sparktexture;
+extern r_image_t *r_no_image;
+extern r_image_t *r_particle_image;
+extern r_image_t *r_explosion_image;
+extern r_image_t *r_teleport_image;
+extern r_image_t *r_smoke_image;
+extern r_image_t *r_steam_image;
+extern r_image_t *r_bubble_image;
+extern r_image_t *r_rain_image;
+extern r_image_t *r_snow_image;
+extern r_image_t *r_beam_image;
+extern r_image_t *r_burn_image;
+extern r_image_t *r_blood_image;
+extern r_image_t *r_lightning_image;
+extern r_image_t *r_rail_trail_image;
+extern r_image_t *r_flame_image;
+extern r_image_t *r_spark_image;
 
-#define NUM_BULLETTEXTURES 3
-extern r_image_t *r_bullettextures[NUM_BULLETTEXTURES];
+#define NUM_BULLET_IMAGES 3
+extern r_image_t *r_bullet_images[NUM_BULLET_IMAGES];
 
-#define NUM_ENVMAPTEXTURES 3
-extern r_image_t *r_envmaptextures[NUM_ENVMAPTEXTURES];
+#define NUM_ENVMAP_IMAGES 3
+extern r_image_t *r_envmap_images[NUM_ENVMAP_IMAGES];
 
-#define NUM_FLARETEXTURES 3
-extern r_image_t *r_flaretextures[NUM_FLARETEXTURES];
+#define NUM_FLARE_IMAGES 3
+extern r_image_t *r_flare_images[NUM_FLARE_IMAGES];
 
-extern r_image_t *r_warptexture;
+extern r_image_t *r_warp_image;
 
 // r_image.c
 void R_SoftenTexture(byte *in, int width, int height, r_image_type_t type);

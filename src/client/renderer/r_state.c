@@ -433,7 +433,7 @@ void R_EnableWarp(r_program_t *program, qboolean enable){
 	if(enable){
 		glEnable(GL_TEXTURE_2D);
 
-		R_BindTexture(r_warptexture->texnum);
+		R_BindTexture(r_warp_image->texnum);
 
 		R_UseProgram(program);
 	}

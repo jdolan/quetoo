@@ -498,7 +498,7 @@ static void Cl_DrawCrosshair(void){
 
 		image = R_LoadPic(crosshair.name);
 
-		if(image == r_notexture){
+		if(image == r_no_image){
 			Com_Print("Couldn't load pics/ch%d.\n", (int)cl_crosshair->value);
 			return;
 		}

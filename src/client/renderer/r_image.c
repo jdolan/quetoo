@@ -21,29 +21,29 @@
 
 #include "renderer.h"
 
-r_image_t *r_notexture;  // use for bad textures
-r_image_t *r_particletexture;  // little dot for particles
-r_image_t *r_explosiontexture;  // expanding explosion particle
-r_image_t *r_teleporttexture;  // teleport ring particle
-r_image_t *r_smoketexture;  // smoke for rocket/grenade trails
-r_image_t *r_steamtexture;  // smoke for rocket/grenade trails
-r_image_t *r_bubbletexture;  // bubble trails under water
-r_image_t *r_raintexture;  // atmospheric rain
-r_image_t *r_snowtexture;  // and snow effects
-r_image_t *r_beamtexture;  // rail trail beams
-r_image_t *r_burntexture;  // burn marks from hyperblaster
-r_image_t *r_bloodtexture;  // blood mist
-r_image_t *r_lightningtexture;  // lightning particles
-r_image_t *r_railtrailtexture;  // rail spiral
-r_image_t *r_flametexture;  // flames
-r_image_t *r_sparktexture;  // sparks
-r_image_t *r_bullettextures[NUM_BULLETTEXTURES];  // bullets hitting walls
+r_image_t *r_no_image;  // use for bad textures
+r_image_t *r_particle_image;  // little dot for particles
+r_image_t *r_explosion_image;  // expanding explosion particle
+r_image_t *r_teleport_image;  // teleport ring particle
+r_image_t *r_smoke_image;  // smoke for rocket/grenade trails
+r_image_t *r_steam_image;  // smoke for rocket/grenade trails
+r_image_t *r_bubble_image;  // bubble trails under water
+r_image_t *r_rain_image;  // atmospheric rain
+r_image_t *r_snow_image;  // and snow effects
+r_image_t *r_beam_image;  // rail trail beams
+r_image_t *r_burn_image;  // burn marks from hyperblaster
+r_image_t *r_blood_image;  // blood mist
+r_image_t *r_lightning_image;  // lightning particles
+r_image_t *r_rail_trail_image;  // rail spiral
+r_image_t *r_flame_image;  // flames
+r_image_t *r_spark_image;  // sparks
+r_image_t *r_bullet_images[NUM_BULLET_IMAGES];  // bullets hitting walls
 
-r_image_t *r_envmaptextures[NUM_ENVMAPTEXTURES];  // generic environment map
+r_image_t *r_envmap_images[NUM_ENVMAP_IMAGES];  // generic environment map
 
-r_image_t *r_flaretextures[NUM_FLARETEXTURES];  // lense flares
+r_image_t *r_flare_images[NUM_FLARE_IMAGES];  // lense flares
 
-r_image_t *r_warptexture;  // fragment program warping
+r_image_t *r_warp_image;  // fragment program warping
 
 r_image_t r_images[MAX_GL_TEXTURES];
 int r_num_images;
@@ -483,7 +483,7 @@ r_image_t *R_UploadImage(const char *name, void *data, int width, int height, r_
 	if(i == r_num_images){
 		if(r_num_images == MAX_GL_TEXTURES){
 			Com_Warn("R_UploadImage: MAX_GL_TEXTURES reached.\n");
-			return r_notexture;
+			return r_no_image;
 		}
 		r_num_images++;
 	}
@@ -521,7 +521,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type){
 	int i;
 
 	if(!name || !name[0])
-		return r_notexture;
+		return r_no_image;
 
 	Com_StripExtension(name, n);
 
@@ -545,7 +545,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type){
 				snprintf(nm, sizeof(nm), "%s_%s", n, nm_suffix[i]);
 				image->normalmap = R_LoadImage(nm, it_normalmap);
 
-				if(image->normalmap != r_notexture)
+				if(image->normalmap != r_no_image)
 					break;
 
 				image->normalmap = NULL;
@@ -554,7 +554,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type){
 	}
 	else {
 		Com_Debug("R_LoadImage: Couldn't load %s\n", n);
-		image = r_notexture;
+		image = r_no_image;
 	}
 
 	return image;
@@ -567,24 +567,24 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type){
 static void R_InitParticleTextures(void){
 	int i;
 
-	r_particletexture = R_LoadImage("particles/particle.tga", it_effect);
-	r_explosiontexture = R_LoadImage("particles/explosion.tga", it_effect);
-	r_teleporttexture = R_LoadImage("particles/teleport.tga", it_effect);
-	r_smoketexture = R_LoadImage("particles/smoke.tga", it_effect);
-	r_steamtexture = R_LoadImage("particles/steam.tga", it_effect);
-	r_bubbletexture = R_LoadImage("particles/bubble.tga", it_effect);
-	r_raintexture = R_LoadImage("particles/rain.tga", it_effect);
-	r_snowtexture = R_LoadImage("particles/snow.tga", it_effect);
-	r_beamtexture = R_LoadImage("particles/beam.tga", it_effect);
-	r_burntexture = R_LoadImage("particles/burn.tga", it_effect);
-	r_bloodtexture = R_LoadImage("particles/blood.tga", it_effect);
-	r_lightningtexture = R_LoadImage("particles/lightning.tga", it_effect);
-	r_railtrailtexture = R_LoadImage("particles/railtrail.tga", it_effect);
-	r_flametexture = R_LoadImage("particles/flame.tga", it_effect);
-	r_sparktexture = R_LoadImage("particles/spark.tga", it_effect);
+	r_particle_image = R_LoadImage("particles/particle.tga", it_effect);
+	r_explosion_image = R_LoadImage("particles/explosion.tga", it_effect);
+	r_teleport_image = R_LoadImage("particles/teleport.tga", it_effect);
+	r_smoke_image = R_LoadImage("particles/smoke.tga", it_effect);
+	r_steam_image = R_LoadImage("particles/steam.tga", it_effect);
+	r_bubble_image = R_LoadImage("particles/bubble.tga", it_effect);
+	r_rain_image = R_LoadImage("particles/rain.tga", it_effect);
+	r_snow_image = R_LoadImage("particles/snow.tga", it_effect);
+	r_beam_image = R_LoadImage("particles/beam.tga", it_effect);
+	r_burn_image = R_LoadImage("particles/burn.tga", it_effect);
+	r_blood_image = R_LoadImage("particles/blood.tga", it_effect);
+	r_lightning_image = R_LoadImage("particles/lightning.tga", it_effect);
+	r_rail_trail_image = R_LoadImage("particles/railtrail.tga", it_effect);
+	r_flame_image = R_LoadImage("particles/flame.tga", it_effect);
+	r_spark_image = R_LoadImage("particles/spark.tga", it_effect);
 
-	for(i = 0; i < NUM_BULLETTEXTURES; i++)
-		r_bullettextures[i] = R_LoadImage(va("particles/bullet_%i.tga", i), it_effect);
+	for(i = 0; i < NUM_BULLET_IMAGES; i++)
+		r_bullet_images[i] = R_LoadImage(va("particles/bullet_%i.tga", i), it_effect);
 }
 
 
@@ -594,8 +594,8 @@ static void R_InitParticleTextures(void){
 static void R_InitEnvmapTextures(void){
 	int i;
 
-	for(i = 0; i < NUM_ENVMAPTEXTURES; i++)
-		r_envmaptextures[i] = R_LoadImage(va("envmaps/envmap_%i.tga", i), it_effect);
+	for(i = 0; i < NUM_ENVMAP_IMAGES; i++)
+		r_envmap_images[i] = R_LoadImage(va("envmaps/envmap_%i.tga", i), it_effect);
 }
 
 
@@ -605,8 +605,8 @@ static void R_InitEnvmapTextures(void){
 static void R_InitFlareTextures(void){
 	int i;
 
-	for(i = 0; i < NUM_FLARETEXTURES; i++)
-		r_flaretextures[i] = R_LoadImage(va("flares/flare_%i.tga", i), it_effect);
+	for(i = 0; i < NUM_FLARE_IMAGES; i++)
+		r_flare_images[i] = R_LoadImage(va("flares/flare_%i.tga", i), it_effect);
 }
 
 
@@ -628,7 +628,7 @@ static void R_InitWarpTexture(void){
 		}
 	}
 
-	r_warptexture = R_UploadImage("***r_warptexture***", (void *)warp, 16, 16, it_effect);
+	r_warp_image = R_UploadImage("***r_warptexture***", (void *)warp, 16, 16, it_effect);
 }
 
 
@@ -640,7 +640,7 @@ void R_InitImages(void){
 
 	memset(&data, 255, sizeof(data));
 
-	r_notexture = R_UploadImage("***r_notexture***", (void *)data, 16, 16, it_effect);
+	r_no_image = R_UploadImage("***r_notexture***", (void *)data, 16, 16, it_effect);
 
 	Img_InitPalette();
 

@@ -193,7 +193,7 @@ void Cl_LoadEmits(void){
 						e->atten = ATTN_NONE;
 					else {
 						if(e->atten == 0)  // default
-							e->atten = ATTN_IDLE;
+							e->atten = ATTN_NORM;
 					}
 
 					// flame and steam sounds are always looped

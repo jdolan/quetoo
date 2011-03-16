@@ -157,7 +157,7 @@ static void Cl_ClearParticle(r_particle_t *p){
 	memset(p, 0, sizeof(r_particle_t));
 
 	p->type = PARTICLE_NORMAL;
-	p->image = r_particletexture;
+	p->image = r_particle_image;
 	p->scale = 1.0;
 	p->blend = GL_ONE;
 
@@ -193,7 +193,7 @@ void Cl_BulletTrail(const vec3_t start, const vec3_t end){
 		return;
 
 	p->type = PARTICLE_BEAM;
-	p->image = r_beamtexture;
+	p->image = r_beam_image;
 
 	p->scale = 1.0;
 
@@ -234,7 +234,7 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 	VectorAngles(v, p->dir);
 	p->dir[ROLL] = rand() % 360;
 
-	p->image = r_bullettextures[rand() & (NUM_BULLETTEXTURES - 1)];
+	p->image = r_bullet_images[rand() & (NUM_BULLET_IMAGES - 1)];
 
 	p->color = 0 + (rand() & 1);
 
@@ -257,7 +257,7 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 
 	p->accel[2] -= 4.0 * PARTICLE_GRAVITY;
 
-	p->image = r_sparktexture;
+	p->image = r_spark_image;
 
 	p->color = 221 + (rand() & 7);
 
@@ -282,7 +282,7 @@ void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale){
 	if(!(p = Cl_AllocParticle()))
 		return;
 
-	p->image = r_burntexture;
+	p->image = r_burn_image;
 	p->color = 0 + (rand() & 1);
 	p->type = PARTICLE_DECAL;
 	p->scale = scale;
@@ -313,7 +313,7 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
 			return;
 
 		p->color = 232 + (rand() & 7);
-		p->image = r_bloodtexture;
+		p->image = r_blood_image;
 		p->scale = 6.0;
 
 		d = rand() & 31;
@@ -373,7 +373,7 @@ void Cl_GibEffect(const vec3_t org, int count){
 				return;
 
 			p->color = 232 + (rand() & 7);
-			p->image = r_bloodtexture;
+			p->image = r_blood_image;
 
 			VectorCopy(o, p->org);
 
@@ -407,7 +407,7 @@ void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 		if(!(p = Cl_AllocParticle()))
 			return;
 
-		p->image = r_sparktexture;
+		p->image = r_spark_image;
 
 		p->color = 0xe0 + (rand() & 7);
 
@@ -454,7 +454,7 @@ void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *cent){
 			return;
 
 		p->type = PARTICLE_SPLASH;
-		p->image = r_teleporttexture;
+		p->image = r_teleport_image;
 		p->color = 216;
 		p->scale = 16.0;
 		p->scale_vel = 24.0;
@@ -492,7 +492,7 @@ void Cl_ItemRespawnEffect(const vec3_t org){
 		if(!(p = Cl_AllocParticle()))
 			return;
 
-		p->image = r_sparktexture;
+		p->image = r_spark_image;
 		p->scale_vel = 3.0;
 
 		p->color = 110;  // white
@@ -532,7 +532,7 @@ void Cl_ItemPickupEffect(const vec3_t org){
 		if(!(p = Cl_AllocParticle()))
 			return;
 
-		p->image = r_sparktexture;
+		p->image = r_spark_image;
 		p->scale_vel = 3.0;
 
 		p->color = 110;  // white
@@ -566,7 +566,7 @@ void Cl_ExplosionEffect(const vec3_t org){
 	if(!(p = Cl_AllocParticle()))
 		return;
 
-	p->image = r_explosiontexture;
+	p->image = r_explosion_image;
 
 	p->scale = 1.0;
 	p->scale_vel = 600.0;
@@ -588,7 +588,7 @@ void Cl_ExplosionEffect(const vec3_t org){
 
 	p->accel[2] = 20;
 
-	p->image = r_smoketexture;
+	p->image = r_smoke_image;
 
 	p->type = PARTICLE_ROLL;
 	p->roll = crand() * 100.0;
@@ -599,8 +599,8 @@ void Cl_ExplosionEffect(const vec3_t org){
 	p->alpha = 1.0;
 	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
 
-	p->color = 4 + (rand() & 7);
-	p->blend = GL_ONE_MINUS_SRC_ALPHA;
+	p->color = rand() & 7;
+	p->blend = GL_ONE;
 
 	VectorCopy(org, p->org);
 	p->org[2] += 10;
@@ -650,7 +650,7 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 
 	p->accel[2] = 5.0;
 
-	p->image = r_smoketexture;
+	p->image = r_smoke_image;
 	p->type = PARTICLE_ROLL;
 
 	p->scale = 2.0;
@@ -659,8 +659,8 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	p->alpha = 1.0;
 	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
 
-	p->color = 4 + (rand() & 7);
-	p->blend = GL_ONE_MINUS_SRC_ALPHA;
+	p->color = rand() & 7;
+	p->blend = GL_ONE;
 
 	for(j = 0; j < 3; j++){
 		p->org[j] = end[j];
@@ -723,7 +723,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
 
 	p->accel[2] = 5.0;
 
-	p->image = r_smoketexture;
+	p->image = r_smoke_image;
 	p->type = PARTICLE_ROLL;
 
 	p->scale = 4.0;
@@ -732,8 +732,8 @@ void Cl_SmokeFlash(entity_state_t *ent){
 	p->alpha = 0.8;
 	p->alpha_vel = -1.0;
 
-	p->color = 4 + (rand() & 7);
-	p->blend = GL_ONE_MINUS_SRC_ALPHA;
+	p->color = rand() & 7;
+	p->blend = GL_ONE;
 
 	VectorCopy(org, p->org);
 
@@ -773,7 +773,7 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 
 	p->accel[2] = 15.0;
 
-	p->image = r_flametexture;
+	p->image = r_flame_image;
 	p->type = PARTICLE_NORMAL;
 	p->scale = 10.0 + crand();
 
@@ -824,7 +824,7 @@ void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
 	if(!(p = Cl_AllocParticle()))
 		return;
 
-	p->image = r_steamtexture;
+	p->image = r_steam_image;
 	p->type = PARTICLE_ROLL;
 
 	p->scale = 8.0;
@@ -891,7 +891,7 @@ void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 			return;
 
 		p->type = PARTICLE_BEAM;
-		p->image = r_lightningtexture;
+		p->image = r_lightning_image;
 
 		p->scale = 8.0;
 
@@ -929,7 +929,7 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int flags, int color){
 
 	// draw the core with a beam
 	p->type = PARTICLE_BEAM;
-	p->image = r_beamtexture;
+	p->image = r_beam_image;
 	p->scale = 3.0;
 
 	VectorCopy(start, p->org);
@@ -959,7 +959,7 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int flags, int color){
 
 		VectorSet(p->vel, 0.0, 0.0, 2.0);
 
-		p->image = r_railtrailtexture;
+		p->image = r_rail_trail_image;
 
 		p->alpha = 1.0;
 		p->alpha_vel = -1.0;
@@ -985,7 +985,7 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int flags, int color){
 	if(!(p = Cl_AllocParticle()))
 		return;
 
-	p->image = r_explosiontexture;
+	p->image = r_explosion_image;
 
 	p->scale = 1.0;
 	p->scale_vel = 400.0;
@@ -1021,7 +1021,7 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
 		if(!(p = Cl_AllocParticle()))
 			return;
 
-		p->image = r_bubbletexture;
+		p->image = r_bubble_image;
 		p->type = PARTICLE_BUBBLE;
 
 		p->alpha = 1.0;
@@ -1186,7 +1186,7 @@ void Cl_BFGEffect(const vec3_t org){
 		if(!(p = Cl_AllocParticle()))
 			return;
 
-		p->image = r_explosiontexture;
+		p->image = r_explosion_image;
 
 		p->scale = 1.0;
 		p->scale_vel = 200.0 * (i + 1);
@@ -1272,14 +1272,14 @@ static void Cl_WeatherEffects(void){
 
 		// setup the particles
 		if(r_view.weather & WEATHER_RAIN){
-			p->image = r_raintexture;
+			p->image = r_rain_image;
 			p->vel[2] = -800;
 			p->alpha = 0.4;
 			p->color = 8;
 			p->scale = 6;
 		}
 		else if(r_view.weather & WEATHER_SNOW){
-			p->image = r_snowtexture;
+			p->image = r_snow_image;
 			p->vel[2] = -120;
 			p->alpha = 0.6;
 			p->alpha_vel = frand() * -1;
