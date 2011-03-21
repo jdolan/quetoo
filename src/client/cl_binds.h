@@ -90,7 +90,7 @@ static const char *DEFAULT_BINDS =
 	"set cl_counters 0;"
 	"set cl_crosshair 0;"
 	"set cl_hud 0;"
-	"set cl_netgraph 0;"
+	"set cl_net_graph 0;"
 	"set cl_weapon 0;"
 	"bind F10 SCREENSHOTS_OFF"
 	"\"\n"
