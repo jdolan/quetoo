@@ -610,7 +610,7 @@ static void G_LightningThink(edict_t *self){
 		return;
 	}
 
-	VectorMA(start, 666.0, forward, end);  // resolve end
+	VectorMA(start, 800.0, forward, end);  // resolve end
 	tr = gi.Trace(start, NULL, NULL, end, self, MASK_SHOT | MASK_WATER);
 
 	if(tr.contents & MASK_WATER){  // entered water, play sound, leave trail
