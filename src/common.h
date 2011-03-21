@@ -164,8 +164,6 @@ enum clc_ops_e {
 #define S_ORIGIN	(1<<1)  // three coordinates
 #define S_ENTNUM	(1<<2)  // entity number
 
-#define DEFAULT_SOUND_ATTENUATION	ATTN_NORM
-
 
 // entity_state_t communication
 

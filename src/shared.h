@@ -541,6 +541,8 @@ typedef enum {
 #define ATTN_IDLE  			2
 #define ATTN_STATIC  		3  // diminish very rapidly with distance
 
+#define DEFAULT_SOUND_ATTENUATION	ATTN_NORM
+
 // player_state->stats[] indexes
 #define STAT_HEALTH_ICON	0
 #define STAT_HEALTH			1

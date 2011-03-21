@@ -46,7 +46,7 @@ void S_FreeChannel(int c){
 }
 
 
-#define DISTANCE_SCALE 0.15
+#define SOUND_DISTANCE_SCALE 0.15
 
 /*
  * S_SpatializeChannel
@@ -55,7 +55,7 @@ void S_FreeChannel(int c){
  */
 void S_SpatializeChannel(s_channel_t *ch){
 	entity_state_t *ent;
-	vec3_t origin, delta;
+	vec3_t delta;
 	int c;
 	float dist, dot, angle;
 
@@ -66,16 +66,13 @@ void S_SpatializeChannel(s_channel_t *ch){
 		VectorCopy(ent->origin, ch->org);
 	}
 
-	VectorCopy(ch->org, origin);
-	origin[2] = r_view.origin[2];
-
-	VectorSubtract(origin, r_view.origin, delta);
-	dist = VectorNormalize(delta) * DISTANCE_SCALE * pow(ch->atten, 1.5);
+	VectorSubtract(ch->org, r_view.origin, delta);
+	dist = VectorNormalize(delta) * SOUND_DISTANCE_SCALE * ch->atten;
 
 	if(dist > 255.0)  // clamp to max
 		dist = 255.0;
 
-	if(dist > 10.0){  // resolve stereo panning
+	if(dist > 1.0){  // resolve stereo panning
 		dot = DotProduct(r_view.right, delta);
 		angle = acos(dot) * 180.0 / M_PI - 90.0;
 
