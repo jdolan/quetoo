@@ -34,7 +34,7 @@
 #define EMIT_SOUND		0x20
 #define EMIT_MODEL		0x40
 
-typedef struct emit_s {
+typedef struct cl_emit_s {
 	int flags;
 	vec3_t org;
 	vec3_t angles;  // for model orientation
@@ -55,10 +55,10 @@ typedef struct emit_s {
 	const r_bsp_leaf_t *leaf;  // for pvs culling
 	r_lighting_t lighting;  // cached static lighting info
 	int time;  // when to fire next
-} emit_t;
+} cl_emit_t;
 
 #define MAX_EMITS 256
-static emit_t emits[MAX_EMITS];
+static cl_emit_t emits[MAX_EMITS];
 static int num_emits = 0;
 
 
@@ -71,7 +71,7 @@ static int num_emits = 0;
 void Cl_LoadEmits(void){
 	const char *ents;
 	char class_name[128];
-	emit_t *e;
+	cl_emit_t *e;
 	qboolean entity, emit;
 
 	memset(&emits, 0, sizeof(emits));
@@ -193,7 +193,7 @@ void Cl_LoadEmits(void){
 						e->atten = ATTN_NONE;
 					else {
 						if(e->atten == 0)  // default
-							e->atten = ATTN_NORM;
+							e->atten = DEFAULT_SOUND_ATTENUATION;
 					}
 
 					// flame and steam sounds are always looped
@@ -209,7 +209,7 @@ void Cl_LoadEmits(void){
 				num_emits++;
 			}
 			else
-				memset(&emits[num_emits], 0, sizeof(emit_t));
+				memset(&emits[num_emits], 0, sizeof(cl_emit_t));
 
 			emit = false;
 		}
@@ -316,7 +316,7 @@ static void Cl_UpdateEmits(void){
 
 		for(i = 0; i < num_emits; i++){
 
-			emit_t *e = &emits[i];
+			cl_emit_t *e = &emits[i];
 
 			e->leaf = R_LeafForPoint(e->org, r_world_model);
 
@@ -331,7 +331,7 @@ static void Cl_UpdateEmits(void){
 
 		for(i = 0; i < num_emits; i++){
 
-			emit_t *e = &emits[i];
+			cl_emit_t *e = &emits[i];
 
 			if(e->flags & EMIT_SOUND)
 				e->sample = S_LoadSample(e->sound);
@@ -356,7 +356,7 @@ void Cl_AddEmits(void){
 
 	for(i = 0; i < num_emits; i++){
 
-		emit_t *e = &emits[i];
+		cl_emit_t *e = &emits[i];
 
 		if(e->leaf && (e->leaf->vis_frame != r_locals.vis_frame))
 			continue;  // culled
