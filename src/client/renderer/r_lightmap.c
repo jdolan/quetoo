@@ -299,7 +299,7 @@ void R_BeginBuildingLightmaps(void){
 	int max;
 
 	// users can tune lightmap size for their card
-	r_lightmaps.size = (int)r_lightmap_block_size->value;
+	r_lightmaps.size = r_lightmap_block_size->integer;
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
 

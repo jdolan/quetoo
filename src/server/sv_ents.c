@@ -62,7 +62,7 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg){
 		}
 
 		if(newnum == old_num){  // delta update from old position
-			Msg_WriteDeltaEntity(oldent, newent, msg, false, newent->number <= sv_max_clients->value);
+			Msg_WriteDeltaEntity(oldent, newent, msg, false, newent->number <= sv_max_clients->integer);
 			old_index++;
 			newindex++;
 			continue;
@@ -145,10 +145,10 @@ static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from, s
 			(ps->angles[0] != ops->angles[0]
 			|| ps->angles[1] != ops->angles[1]
 			|| ps->angles[2] != ops->angles[2]))
-		pflags |= PS_VIEWANGLES;
+		pflags |= PS_VIEW_ANGLES;
 
 	if(client->recording)  // or anyone recording a demo
-		pflags |= PS_VIEWANGLES;
+		pflags |= PS_VIEW_ANGLES;
 
 	// write it
 	Msg_WriteByte(msg, pflags);
@@ -181,7 +181,7 @@ static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from, s
 		Msg_WriteShort(msg, ps->pmove.delta_angles[2]);
 	}
 
-	if(pflags & PS_VIEWANGLES){
+	if(pflags & PS_VIEW_ANGLES){
 		Msg_WriteAngle16(msg, ps->angles[0]);
 		Msg_WriteAngle16(msg, ps->angles[1]);
 		Msg_WriteAngle16(msg, ps->angles[2]);

@@ -58,15 +58,15 @@ typedef struct cl_entity_s {
 	r_lighting_t lighting;  // cached static lighting info
 } cl_entity_t;
 
-#define MAX_WEAPONMODELS 12
+#define MAX_WEAPON_MODELS 12
 
-typedef struct clientinfo_s {
+typedef struct client_info_s {
 	char name[MAX_QPATH];
 	char cinfo[MAX_QPATH];
 	struct r_image_s *skin;
 	struct r_model_s *model;
-	struct r_model_s *weaponmodel[MAX_WEAPONMODELS];
-} cl_clientinfo_t;
+	struct r_model_s *weapon_model[MAX_WEAPON_MODELS];
+} cl_client_info_t;
 
 #define CMD_BACKUP 128  // allow a lot of command backups for very fast systems
 #define CMD_MASK (CMD_BACKUP - 1)
@@ -81,7 +81,7 @@ typedef struct cl_client_s {
 	int timedemo_frames;
 	int timedemo_start;
 
-	user_cmd_t cmds[CMD_BACKUP];  // each mesage will send several old cmds
+	user_cmd_t cmds[CMD_BACKUP];  // each message will send several old cmds
 	int cmd_time[CMD_BACKUP];  // time sent, for calculating pings
 
 	vec_t predicted_step;
@@ -104,7 +104,7 @@ typedef struct cl_client_s {
 
 	int player_num;  // our entity number
 
-	int surpress_count;  // number of messages rate supressed
+	int surpress_count;  // number of messages rate suppressed
 
 	int time;  // this is the server time value that the client
 	// is rendering at.  always <= cls.real_time due to latency
@@ -119,7 +119,7 @@ typedef struct cl_client_s {
 
 	char layout[MAX_STRING_CHARS];  // general 2D overlay
 
-	int server_count;  // server identification for prespawns
+	int server_count;  // server identification for precache
 	int server_frame_rate;  // server frame rate (packets per second)
 
 	qboolean demo_server;  // we're viewing a demo
@@ -134,11 +134,11 @@ typedef struct cl_client_s {
 	s_sample_t *sound_precache[MAX_SOUNDS];
 	r_image_t *image_precache[MAX_IMAGES];
 
-	char weaponmodels[MAX_WEAPONMODELS][MAX_QPATH];
-	int num_weaponmodels;
+	char weapon_models[MAX_WEAPON_MODELS][MAX_QPATH];
+	int num_weapon_models;
 
-	cl_clientinfo_t clientinfo[MAX_CLIENTS];
-	cl_clientinfo_t baseclientinfo;
+	cl_client_info_t client_info[MAX_CLIENTS];
+	cl_client_info_t base_client_info;
 } cl_client_t;
 
 extern cl_client_t cl;
@@ -356,10 +356,10 @@ extern char *svc_strings[256];
 
 qboolean Cl_CheckOrDownloadFile(const char *file_name);
 void Cl_ParseConfigString(void);
-void Cl_ParseClientinfo(int player);
+void Cl_ParseClientInfo(int player);
 void Cl_ParseMuzzleFlash(void);
 void Cl_ParseServerMessage(void);
-void Cl_LoadClientinfo(cl_clientinfo_t *ci, const char *s);
+void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s);
 void Cl_Download_f(void);
 
 // cl_view.c

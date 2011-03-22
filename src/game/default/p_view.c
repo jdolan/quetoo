@@ -423,7 +423,7 @@ void P_EndServerFrames(void){
 
 	// calc the player views now that all pushing
 	// and damage has been added
-	for(i = 0; i < sv_max_clients->value; i++){
+	for(i = 0; i < sv_max_clients->integer; i++){
 		ent = g_game.edicts + 1 + i;
 		if(!ent->in_use || !ent->client)
 			continue;

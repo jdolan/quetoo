@@ -83,7 +83,7 @@ void MN_DrawRect (int x, int y, int w, int h, const vec4_t color, float lineWidt
 const r_image_t *MN_LoadImage (const char *name)
 {
 	const r_image_t *image = R_LoadImage(name, it_pic);
-	if (image == r_no_image)
+	if (image == r_null_image)
 		return NULL;
 	return image;
 }

@@ -368,7 +368,7 @@ void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs){
 	r_stage_t *s;
 	int i, j;
 
-	if(!r_materials->value || r_draw_bsp_wireframe->value)
+	if(!r_materials->value || r_draw_wireframe->value)
 		return;
 
 	if(!surfs->count)
@@ -534,7 +534,7 @@ static int R_LoadAnimImages(r_stage_t *s){
 		const char *c = va("%s%d", name, i);
 		s->anim.images[k] = R_LoadImage(c, it_material);
 
-		if(s->anim.images[k] == r_no_image){
+		if(s->anim.images[k] == r_null_image){
 			Com_Warn("R_LoadAnimImages: Failed to resolve texture: %s\n", c);
 			return -1;
 		}
@@ -562,7 +562,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 			c = Com_Parse(buffer);
 			s->image = R_LoadImage(va("textures/%s", c), it_material);
 
-			if(s->image == r_no_image){
+			if(s->image == r_null_image){
 				Com_Warn("R_ParseStage: Failed to resolve texture: %s\n", c);
 				return -1;
 			}
@@ -581,7 +581,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 			else
 				s->image = R_LoadImage(va("envmaps/%s", c), it_material);
 
-			if(s->image == r_no_image){
+			if(s->image == r_null_image){
 				Com_Warn("R_ParseStage: Failed to resolve envmap: %s\n", c);
 				return -1;
 			}
@@ -797,7 +797,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 			else
 				s->image = R_LoadImage(va("flares/%s", c), it_material);
 
-			if(s->image == r_no_image){
+			if(s->image == r_null_image){
 				Com_Warn("R_ParseStage: Failed to resolve flare: %s\n", c);
 				return -1;
 			}
@@ -896,7 +896,7 @@ void R_LoadMaterials(const char *map){
 			c = Com_Parse(&buffer);
 			image = R_LoadImage(va("textures/%s", c), it_world);
 
-			if(image == r_no_image){
+			if(image == r_null_image){
 				Com_Warn("R_LoadMaterials: Failed to resolve texture: %s\n", c);
 				image = NULL;
 			}
@@ -913,7 +913,7 @@ void R_LoadMaterials(const char *map){
 			c = Com_Parse(&buffer);
 			image->normalmap = R_LoadImage(va("textures/%s", c), it_normalmap);
 
-			if(image->normalmap == r_no_image){
+			if(image->normalmap == r_null_image){
 				Com_Warn("R_LoadMaterials: Failed to resolve normalmap: %s\n", c);
 				image->normalmap = NULL;
 			}

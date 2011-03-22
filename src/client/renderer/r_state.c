@@ -491,7 +491,7 @@ void R_EnableFog(qboolean enable){
 	r_state.fog_enabled = false;
 
 	if(enable){
-		if(r_view.weather & WEATHER_FOG || (int)r_fog->value == 2){
+		if(r_view.weather & WEATHER_FOG || r_fog->integer == 2){
 
 			r_state.fog_enabled = true;
 

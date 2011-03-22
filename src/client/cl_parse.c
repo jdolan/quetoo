@@ -21,10 +21,6 @@
 
 #include "client.h"
 
-#include <zlib.h>
-static z_stream z;
-static byte zbuf[MAX_MSGLEN];
-
 char *svc_strings[256] = {
 	"svc_bad",
 	"svc_nop",
@@ -41,8 +37,7 @@ char *svc_strings[256] = {
 	"svc_spawn_baseline",
 	"svc_center_print",
 	"svc_download",
-	"svc_frame",
-	"svc_zlib"
+	"svc_frame"
 };
 
 
@@ -291,10 +286,10 @@ static void Cl_ParseBaseline(void){
 
 
 /*
- * Cl_LoadClientinfo
+ * Cl_LoadClientInfo
  *
  */
-void Cl_LoadClientinfo(cl_clientinfo_t *ci, const char *s){
+void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s){
 	int i;
 	const char *t;
 	char *u, *v;
@@ -354,43 +349,43 @@ void Cl_LoadClientinfo(cl_clientinfo_t *ci, const char *s){
 	ci->skin = R_LoadImage(skin_file_name, it_skin);
 
 	// if we don't have it, use the first one we do have for the model
-	if(ci->skin == r_no_image){
+	if(ci->skin == r_null_image){
 		snprintf(skin_file_name, sizeof(skin_file_name), "players/%s/?[!_]*.pcx", model_name);
 		ci->skin = R_LoadImage(Fs_FindFirst(skin_file_name, false), it_skin);
 	}
 
 	// weapon models
-	for(i = 0; i < cl.num_weaponmodels; i++){
-		snprintf(weapon_file_name, sizeof(weapon_file_name), "players/%s/%s", model_name, cl.weaponmodels[i]);
-		ci->weaponmodel[i] = R_LoadModel(weapon_file_name);
-		if(!ci->weaponmodel[i])
+	for(i = 0; i < cl.num_weapon_models; i++){
+		snprintf(weapon_file_name, sizeof(weapon_file_name), "players/%s/%s", model_name, cl.weapon_models[i]);
+		ci->weapon_model[i] = R_LoadModel(weapon_file_name);
+		if(!ci->weapon_model[i])
 			break;
 	}
 
 	// must have loaded all components to be valid
-	if(!ci->model || ci->skin == r_no_image || i < cl.num_weaponmodels){
+	if(!ci->model || ci->skin == r_null_image || i < cl.num_weapon_models){
 		Com_Debug("Cl_LoadClientInfo: Failed to load %s\n", ci->cinfo);
 		strcpy(model_name, ci->name);  // borrow this to store name
-		memcpy(ci, &cl.baseclientinfo, sizeof(*ci));
+		memcpy(ci, &cl.base_client_info, sizeof(*ci));
 		strcpy(ci->name, model_name);
 	}
 }
 
 
 /*
- * Cl_ParseClientinfo
+ * Cl_ParseClientInfo
  *
- * Load the model and skin for a client
+ * Load the model and skin for a client.
  */
-void Cl_ParseClientinfo(int player){
+void Cl_ParseClientInfo(int player){
 	const char *s;
-	cl_clientinfo_t *ci;
+	cl_client_info_t *ci;
 
 	s = cl.config_strings[player + CS_PLAYER_SKINS];
 
-	ci = &cl.clientinfo[player];
+	ci = &cl.client_info[player];
 
-	Cl_LoadClientinfo(ci, s);
+	Cl_LoadClientInfo(ci, s);
 }
 
 
@@ -442,7 +437,7 @@ void Cl_ParseConfigString(void){
 			cl.image_precache[i - CS_IMAGES] = R_LoadPic(cl.config_strings[i]);
 	} else if(i >= CS_PLAYER_SKINS && i < CS_PLAYER_SKINS + MAX_CLIENTS){
 		if(r_view.ready && strcmp(olds, s))
-			Cl_ParseClientinfo(i - CS_PLAYER_SKINS);
+			Cl_ParseClientInfo(i - CS_PLAYER_SKINS);
 	}
 }
 
@@ -515,45 +510,6 @@ static qboolean Cl_IgnoreChatMessage(const char *msg){
 static void Cl_ShowNet(const char *s){
 	if(cl_show_net_messages->value >= 2)
 		Com_Print("%3zd: %s\n", net_message.read - 1, s);
-}
-
-
-/*
- * Cl_ZlibServerMessage
- *
- * Called for svc_zlib, this function inflates the remainder of the
- * current net_message and adjusts its length accordingly.
- */
-static void Cl_ZlibServerMessage(void){
-	int len;
-
-	memset(zbuf, 0, MAX_MSGLEN);
-
-	z.zalloc = Z_NULL;
-	z.zfree = Z_NULL;
-	z.opaque = Z_NULL;
-
-	inflateInit2(&z, -15);
-
-	z.avail_in = net_message.size - net_message.read;
-	z.next_in = net_message.data + net_message.read;
-
-	z.avail_out = MAX_MSGLEN;
-	z.next_out = zbuf;
-
-	inflate(&z, Z_NO_FLUSH);
-	len = MAX_MSGLEN - z.avail_out;
-
-	inflateEnd(&z);
-
-	net_message.read--;  // overwrite the zlib command
-
-	// clear remainder of message, replace with deflated
-	// content, and update message length accordingly
-	memset(net_message.data + net_message.read, 0,
-			net_message.size - net_message.read);
-	memcpy(net_message.data + net_message.read, zbuf, len);
-	net_message.size = net_message.read + len;
 }
 
 
@@ -671,10 +627,6 @@ void Cl_ParseServerMessage(void){
 
 			case svc_frame:
 				Cl_ParseFrame();
-				break;
-
-			case svc_zlib:
-				Cl_ZlibServerMessage();
 				break;
 
 			case svc_layout:

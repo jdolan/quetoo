@@ -61,7 +61,7 @@ extern int r_num_images;
 
 #define BACKFACE_EPSILON	0.01
 
-extern r_image_t *r_no_image;
+extern r_image_t *r_null_image;
 extern r_image_t *r_particle_image;
 extern r_image_t *r_explosion_image;
 extern r_image_t *r_teleport_image;

@@ -352,7 +352,7 @@ static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_fra
 		ps->pmove.delta_angles[2] = Msg_ReadShort(&net_message);
 	}
 
-	if(flags & PS_VIEWANGLES){  // demo, chasecam, recording
+	if(flags & PS_VIEW_ANGLES){  // demo, chasecam, recording
 		ps->angles[0] = Msg_ReadAngle16(&net_message);
 		ps->angles[1] = Msg_ReadAngle16(&net_message);
 		ps->angles[2] = Msg_ReadAngle16(&net_message);
@@ -502,7 +502,7 @@ static void Cl_AddWeapon(r_entity_t *self){
 	if(!cl_weapon->value)
 		return;
 
-	if(!((int)cl_add_entities->value & 2))
+	if(!(cl_add_entities->integer & 2))
 		return;
 
 	if(cl_third_person->value)
@@ -661,13 +661,13 @@ void Cl_AddEntities(cl_frame_t *frame){
 
 		// resolve model and skin
 		if(s->model_index == 255){  // use custom player skin
-			const cl_clientinfo_t *ci = &cl.clientinfo[s->skin_num & 0xff];
+			const cl_client_info_t *ci = &cl.client_info[s->skin_num & 0xff];
 			ent.skin_num = 0;
 			ent.skin = ci->skin;
 			ent.model = ci->model;
 			if(!ent.skin || !ent.model){
-				ent.skin = cl.baseclientinfo.skin;
-				ent.model = cl.baseclientinfo.model;
+				ent.skin = cl.base_client_info.skin;
+				ent.model = cl.base_client_info.model;
 			}
 			VectorSet(ent.scale, PM_SCALE, PM_SCALE, PM_SCALE);
 		} else {
@@ -737,7 +737,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		// filter by model type
 		mask = ent.model && ent.model->type == mod_bsp_submodel ? 1 : 2;
 
-		if(!((int)cl_add_entities->value & mask))
+		if(!(cl_add_entities->integer & mask))
 			continue;
 
 		// don't draw ourselves unless third person is set
@@ -782,13 +782,13 @@ void Cl_AddEntities(cl_frame_t *frame){
 		if(s->model_index2){
 			if(s->model_index2 == 255){  // custom weapon
 				// the weapon is masked on the skin_num
-				const cl_clientinfo_t *ci = &cl.clientinfo[s->skin_num & 0xff];
+				const cl_client_info_t *ci = &cl.client_info[s->skin_num & 0xff];
 				int i = (s->skin_num >> 8);  // 0 is default weapon model
 
-				if(i > MAX_WEAPONMODELS - 1)
+				if(i > MAX_WEAPON_MODELS - 1)
 					i = 0;
 
-				ent.model = ci->weaponmodel[i];
+				ent.model = ci->weapon_model[i];
 				ent.effects = s->effects;
 			}
 			else {

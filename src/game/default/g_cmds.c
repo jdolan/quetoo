@@ -36,7 +36,7 @@ static void G_Give_f(edict_t *ent){
 	qboolean give_all;
 	edict_t *it_ent;
 
-	if(sv_max_clients->value > 1 && !g_cheats->value){
+	if(sv_max_clients->integer > 1 && !g_cheats->value){
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
 		return;
 	}
@@ -138,7 +138,7 @@ static void G_Give_f(edict_t *ent){
 static void G_God_f(edict_t *ent){
 	char *msg;
 
-	if(sv_max_clients->value > 1 && !g_cheats->value){
+	if(sv_max_clients->integer > 1 && !g_cheats->value){
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
 		return;
 	}
@@ -159,7 +159,7 @@ static void G_God_f(edict_t *ent){
 static void G_NoClip_f(edict_t *ent){
 	char *msg;
 
-	if(sv_max_clients->value > 1 && !g_cheats->value){
+	if(sv_max_clients->integer > 1 && !g_cheats->value){
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
 		return;
 	}
@@ -506,7 +506,7 @@ static void G_Say_f(edict_t *ent){
 		cl->chat_time = g_level.time + 1;
 	}
 
-	for(i = 1; i <= sv_max_clients->value; i++){  // print to clients
+	for(i = 1; i <= sv_max_clients->integer; i++){  // print to clients
 		other = &g_game.edicts[i];
 
 		if(!other->in_use)
@@ -546,7 +546,7 @@ static void G_PlayerList_f(edict_t *ent){
 	memset(text, 0, sizeof(text));
 
 	// connect time, ping, score, name
-	for(i = 0, e2 = g_game.edicts + 1; i < sv_max_clients->value; i++, e2++){
+	for(i = 0, e2 = g_game.edicts + 1; i < sv_max_clients->integer; i++, e2++){
 
 		if(!e2->in_use)
 			continue;
@@ -940,7 +940,7 @@ static void G_Teamskin_f(edict_t *ent){
 
 	t->skintime = g_level.time;
 
-	for(i = 0; i < sv_max_clients->value; i++){  // update skins
+	for(i = 0; i < sv_max_clients->integer; i++){  // update skins
 		cl = g_game.clients + i;
 
 		if(!cl->locals.team || cl->locals.team != t)
@@ -985,7 +985,7 @@ static void G_Ready_f(edict_t *ent){
 
 	clients = g = e = 0;
 
-	for(i = 0; i < sv_max_clients->value; i++){  // is everyone ready?
+	for(i = 0; i < sv_max_clients->integer; i++){  // is everyone ready?
 		cl = g_game.clients + i;
 
 		if(!g_game.edicts[i + 1].in_use)
@@ -1003,7 +1003,7 @@ static void G_Ready_f(edict_t *ent){
 			cl->locals.team == &good ? g++ : e++;
 	}
 
-	if(i != (int)sv_max_clients->value)  // someone isn't ready
+	if(i != (int)sv_max_clients->integer)  // someone isn't ready
 		return;
 
 	if(clients < 2)  // need at least 2 clients to trigger match

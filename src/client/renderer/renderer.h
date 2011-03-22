@@ -265,10 +265,10 @@ extern cvar_t *r_lock_vis;
 extern cvar_t *r_no_vis;
 extern cvar_t *r_draw_bsp_lights;
 extern cvar_t *r_draw_bsp_normals;
-extern cvar_t *r_draw_bsp_wireframe;
 extern cvar_t *r_draw_deluxemaps;
 extern cvar_t *r_draw_lightmaps;
 extern cvar_t *r_draw_poly_counts;
+extern cvar_t *r_draw_wireframe;
 
 // settings and preferences
 extern cvar_t *r_anisotropy;
@@ -404,7 +404,7 @@ typedef struct r_lightmaps_s {
 	GLuint lightmap_texnum;
 	GLuint deluxemap_texnum;
 
-	int size;  // lightmap block size (NxN)
+	size_t size;  // lightmap block size (NxN)
 	unsigned *allocated;  // block availability
 
 	byte *sample_buffer;  // RGB buffers for uploading

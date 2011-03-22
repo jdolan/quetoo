@@ -411,7 +411,7 @@ void Cl_UpdateView(void){
  * Cl_ViewSizeUp_f
  */
 static void Cl_ViewSizeUp_f(void){
-	Cvar_SetValue("cl_view_size", cl_view_size->value + 10);
+	Cvar_SetValue("cl_view_size", cl_view_size->integer + 10);
 }
 
 
@@ -419,7 +419,7 @@ static void Cl_ViewSizeUp_f(void){
  * Cl_ViewSizeDown_f
  */
 static void Cl_ViewSizeDown_f(void){
-	Cvar_SetValue("cl_view_size", cl_view_size->value - 10);
+	Cvar_SetValue("cl_view_size", cl_view_size->integer - 10);
 }
 
 

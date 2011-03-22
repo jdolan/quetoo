@@ -32,7 +32,6 @@ cvar_t *sv_rcon_password;  // password for remote server commands
 
 cvar_t *sv_download_url;
 cvar_t *sv_enforce_time;
-cvar_t *sv_extensions;
 cvar_t *sv_hostname;
 cvar_t *sv_max_clients;
 cvar_t *sv_framerate;
@@ -92,7 +91,7 @@ static const char *Sv_StatusString(void){
 	strcat(status, "\n");
 	statusLength = strlen(status);
 
-	for(i = 0; i < sv_max_clients->value; i++){
+	for(i = 0; i < sv_max_clients->integer; i++){
 
 		cl = &svs.clients[i];
 
@@ -144,7 +143,7 @@ static void Svc_Info(void){
 	int i, count;
 	int prot;
 
-	if(sv_max_clients->value == 1)
+	if(sv_max_clients->integer == 1)
 		return;  // ignore in single player
 
 	prot = atoi(Cmd_Argv(1));
@@ -154,7 +153,7 @@ static void Svc_Info(void){
 	else {
 		count = 0;
 
-		for(i = 0; i < sv_max_clients->value; i++){
+		for(i = 0; i < sv_max_clients->integer; i++){
 			if(svs.clients[i].state >= cs_connected)
 				count++;
 		}
@@ -162,7 +161,7 @@ static void Svc_Info(void){
 		Com_StripColor(sv_hostname->string, hostname);
 
 		snprintf(string, sizeof(string), "%-24.24s %-12.12s %02d/%02d\n",
-				hostname, sv.name, count, (int)sv_max_clients->value);
+				hostname, sv.name, count, (int)sv_max_clients->integer);
 	}
 
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "info\n%s", string);
@@ -303,7 +302,7 @@ static void Svc_Connect(void){
 	client = NULL;
 
 	// first check for an ungraceful reconnect (client crashed, perhaps)
-	for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
+	for(i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++){
 
 		const netchan_t *ch = &cl->netchan;
 
@@ -320,7 +319,7 @@ static void Svc_Connect(void){
 
 	// otherwise, treat as a fresh connect to a new slot
 	if(!client){
-		for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
+		for(i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++){
 			if(cl->state == cs_free){  // we have a free one
 				client = cl;
 				break;
@@ -475,7 +474,7 @@ static void Sv_UpdatePings(void){
 	sv_client_t *cl;
 	int total, count;
 
-	for(i = 0; i < sv_max_clients->value; i++){
+	for(i = 0; i < sv_max_clients->integer; i++){
 
 		cl = &svs.clients[i];
 
@@ -525,7 +524,7 @@ static void Sv_CheckCommandTimes(void){
 	last_check_time = svs.real_time;
 
 	// inspect each client, ensuring they are reasonably in sync with us
-	for(i = 0; i < sv_max_clients->value; i++){
+	for(i = 0; i < sv_max_clients->integer; i++){
 		sv_client_t *cl = &svs.clients[i];
 
 		if(cl->state < cs_spawned){
@@ -585,7 +584,7 @@ static void Sv_ReadPackets(void){
 		qport = Msg_ReadByte(&net_message) & 0xff;
 
 		// check for packets from connected clients
-		for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
+		for(i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++){
 
 			if(cl->state == cs_free)
 				continue;
@@ -624,7 +623,7 @@ static void Sv_CheckTimeouts(void){
 
 	timeout = svs.real_time - 1000 * sv_timeout->value;
 
-	for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
+	for(i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++){
 
 		if(cl->state == cs_free)
 			continue;
@@ -866,10 +865,6 @@ void Sv_UserInfoChanged(sv_client_t *cl){
 	// start/stop sending view angles for demo recording
 	val = Info_ValueForKey(cl->user_info, "recording");
 	cl->recording = atoi(val) == 1;
-
-	// quake2world extensions
-	val = Info_ValueForKey(cl->user_info, "extensions");
-	cl->extensions = atoi(val);
 }
 
 
@@ -941,7 +936,6 @@ void Sv_Frame(int msec){
  * Only called at Quake2World startup, not for each game.
  */
 void Sv_Init(void){
-	int bits;
 
 	memset(&svs, 0, sizeof(svs));
 
@@ -949,9 +943,6 @@ void Sv_Init(void){
 
 	sv_download_url = Cvar_Get("sv_download_url", "", CVAR_SERVER_INFO, NULL);
 	sv_enforce_time = Cvar_Get("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, NULL);
-
-	bits = QUAKE2WORLD_ZLIB;
-	sv_extensions = Cvar_Get("sv_extensions", va("%d", bits), 0, NULL);
 
 	sv_hostname = Cvar_Get("sv_hostname", "Quake2World", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
 	sv_public = Cvar_Get("sv_public", "0", 0, NULL);

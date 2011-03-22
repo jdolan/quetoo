@@ -156,7 +156,7 @@ void R_DrawOpaqueSurfaces_default(r_bsp_surfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
-	if(r_draw_bsp_wireframe->value){  // surface outlines
+	if(r_draw_wireframe->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -181,7 +181,7 @@ void R_DrawOpaqueWarpSurfaces_default(r_bsp_surfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
-	if(r_draw_bsp_wireframe->value){  // surface outlines
+	if(r_draw_wireframe->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -202,7 +202,7 @@ void R_DrawAlphaTestSurfaces_default(r_bsp_surfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
-	if(r_draw_bsp_wireframe->value){  // surface outlines
+	if(r_draw_wireframe->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -231,7 +231,7 @@ void R_DrawBlendSurfaces_default(r_bsp_surfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
-	if(r_draw_bsp_wireframe->value){  // surface outlines
+	if(r_draw_wireframe->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -254,7 +254,7 @@ void R_DrawBlendWarpSurfaces_default(r_bsp_surfaces_t *surfs){
 	if(!surfs->count)
 		return;
 
-	if(r_draw_bsp_wireframe->value){  // surface outlines
+	if(r_draw_wireframe->value){  // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}

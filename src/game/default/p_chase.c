@@ -60,7 +60,7 @@ void P_ChaseNext(edict_t *ent){
 	do {
 		i++;
 
-		if(i > sv_max_clients->value)
+		if(i > sv_max_clients->integer)
 			i = 1;
 
 		e = g_game.edicts + i;
@@ -92,7 +92,7 @@ void P_ChasePrev(edict_t *ent){
 		i--;
 
 		if(i < 1)
-			i = sv_max_clients->value;
+			i = sv_max_clients->integer;
 
 		e = g_game.edicts + i;
 
@@ -115,7 +115,7 @@ void P_GetChaseTarget(edict_t *ent){
 	int i;
 	edict_t *other;
 
-	for(i = 1; i <= sv_max_clients->value; i++){
+	for(i = 1; i <= sv_max_clients->integer; i++){
 		other = g_game.edicts + i;
 		if(other->in_use && !other->client->locals.spectator){
 			ent->client->chase_target = other;

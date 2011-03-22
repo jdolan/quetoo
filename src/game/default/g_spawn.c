@@ -424,7 +424,7 @@ void G_SpawnEntities(const char *name, const char *entities){
 	strncpy(g_level.name, name, sizeof(g_level.name) - 1);
 
 	// set client fields on player ents
-	for(i = 0; i < sv_max_clients->value; i++)
+	for(i = 0; i < sv_max_clients->integer; i++)
 		g_game.edicts[i + 1].client = g_game.clients + i;
 
 	ent = NULL;
@@ -826,7 +826,7 @@ static void G_worldspawn(edict_t *ent){
 	G_WorldspawnMusic();
 
 	// send sv_max_clients to clients
-	gi.ConfigString(CS_MAX_CLIENTS, va("%i", (int)(sv_max_clients->value)));
+	gi.ConfigString(CS_MAX_CLIENTS, va("%i", sv_max_clients->integer));
 
 	// status bar program
 	gi.ConfigString(CS_LAYOUT, g_layout);

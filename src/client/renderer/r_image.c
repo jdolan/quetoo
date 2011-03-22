@@ -21,7 +21,7 @@
 
 #include "renderer.h"
 
-r_image_t *r_no_image;  // use for bad textures
+r_image_t *r_null_image;  // use for bad textures
 r_image_t *r_particle_image;  // little dot for particles
 r_image_t *r_explosion_image;  // expanding explosion particle
 r_image_t *r_teleport_image;  // teleport ring particle
@@ -373,10 +373,10 @@ void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type
 				col[j] += p[j];
 		}
 
-		if((int)r_monochrome->value & mask)  // monochrome
+		if(r_monochrome->integer & mask)  // monochrome
 			p[0] = p[1] = p[2] = (p[0] + p[1] + p[2]) / 3;
 
-		if((int)r_invert->value & mask){  // inverted
+		if(r_invert->integer & mask){  // inverted
 			p[0] = 255 - p[0];
 			p[1] = 255 - p[1];
 			p[2] = 255 - p[2];
@@ -387,10 +387,10 @@ void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type
 		for(i = 0; i < 3; i++)
 			col[i] /= (width * height);
 
-		if((int)r_monochrome->value & mask)
+		if(r_monochrome->integer & mask)
 			col[0] = col[1] = col[2] = (col[0] + col[1] + col[2]) / 3;
 
-		if((int)r_invert->value & mask){
+		if(r_invert->integer & mask){
 			col[0] = 255 - col[0];
 			col[1] = 255 - col[1];
 			col[2] = 255 - col[2];
@@ -483,7 +483,7 @@ r_image_t *R_UploadImage(const char *name, void *data, int width, int height, r_
 	if(i == r_num_images){
 		if(r_num_images == MAX_GL_TEXTURES){
 			Com_Warn("R_UploadImage: MAX_GL_TEXTURES reached.\n");
-			return r_no_image;
+			return r_null_image;
 		}
 		r_num_images++;
 	}
@@ -521,7 +521,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type){
 	int i;
 
 	if(!name || !name[0])
-		return r_no_image;
+		return r_null_image;
 
 	Com_StripExtension(name, n);
 
@@ -545,7 +545,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type){
 				snprintf(nm, sizeof(nm), "%s_%s", n, nm_suffix[i]);
 				image->normalmap = R_LoadImage(nm, it_normalmap);
 
-				if(image->normalmap != r_no_image)
+				if(image->normalmap != r_null_image)
 					break;
 
 				image->normalmap = NULL;
@@ -554,7 +554,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type){
 	}
 	else {
 		Com_Debug("R_LoadImage: Couldn't load %s\n", n);
-		image = r_no_image;
+		image = r_null_image;
 	}
 
 	return image;
@@ -640,7 +640,7 @@ void R_InitImages(void){
 
 	memset(&data, 255, sizeof(data));
 
-	r_no_image = R_UploadImage("***r_notexture***", (void *)data, 16, 16, it_effect);
+	r_null_image = R_UploadImage("***r_notexture***", (void *)data, 16, 16, it_effect);
 
 	Img_InitPalette();
 

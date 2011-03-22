@@ -416,7 +416,7 @@ static int Net_Socket(const char *net_interface, int port){
 void Net_Config(netsrc_t source, qboolean up){
 	int p;
 
-	p = source == NS_CLIENT ? PORT_ANY : (int)net_port->value;
+	p = source == NS_CLIENT ? PORT_ANY : net_port->integer;
 
 	if(up){  // open the socket
 		if(!ip_sockets[source])

@@ -49,8 +49,8 @@ cvar_t *r_lock_vis;
 cvar_t *r_no_vis;
 cvar_t *r_draw_bsp_lights;
 cvar_t *r_draw_bsp_normals;
-cvar_t *r_draw_bsp_wireframe;
 cvar_t *r_draw_poly_counts;
+cvar_t *r_draw_wireframe;
 
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
@@ -397,7 +397,7 @@ static void R_Clear(void){
 		bits |= GL_STENCIL_BUFFER_BIT;
 
 	// clear the color buffer if desired or necessary
-	if(r_clear->value || r_draw_bsp_wireframe->value || r_view.x || r_view.y || !r_view.ready)
+	if(r_clear->value || r_draw_wireframe->value || r_view.x || r_view.y || !r_view.ready)
 		bits |= GL_COLOR_BUFFER_BIT;
 
 	glClear(bits);
@@ -446,7 +446,7 @@ void R_BeginFrame(void){
 
 	// threads
 	if(r_threads->modified){
-		R_UpdateThreads((int)r_threads->value);
+		R_UpdateThreads(r_threads->integer);
 		r_threads->modified = false;
 	}
 
@@ -542,7 +542,7 @@ void R_LoadMedia(void){
 	R_BeginLoading(cl.config_strings[CS_MODELS + 1], atoi(cl.config_strings[CS_BSP_SIZE]));
 	Cl_LoadProgress(50);
 
-	cl.num_weaponmodels = j = 0;
+	cl.num_weapon_models = j = 0;
 
 	// models, including bsp submodels and client weapon models
 	for(i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++){
@@ -550,10 +550,10 @@ void R_LoadMedia(void){
 		strncpy(name, cl.config_strings[CS_MODELS + i], sizeof(name) - 1);
 
 		if(name[0] == '#'){  // hack to retrieve client weapon models from server
-			if(cl.num_weaponmodels < MAX_WEAPONMODELS){
-				strncpy(cl.weaponmodels[cl.num_weaponmodels], cl.config_strings[CS_MODELS + i] + 1,
-						sizeof(cl.weaponmodels[cl.num_weaponmodels]) - 1);
-				cl.num_weaponmodels++;
+			if(cl.num_weapon_models < MAX_WEAPON_MODELS){
+				strncpy(cl.weapon_models[cl.num_weapon_models], cl.config_strings[CS_MODELS + i] + 1,
+						sizeof(cl.weapon_models[cl.num_weapon_models]) - 1);
+				cl.num_weapon_models++;
 			}
 			continue;
 		}
@@ -577,7 +577,7 @@ void R_LoadMedia(void){
 
 	Cl_LoadProgress(75);
 
-	Cl_LoadClientinfo(&cl.baseclientinfo, "newbie\\ichabod/ichabod");
+	Cl_LoadClientInfo(&cl.base_client_info, "newbie\\ichabod/ichabod");
 
 	j = 0;
 
@@ -587,7 +587,7 @@ void R_LoadMedia(void){
 		if(!cl.config_strings[CS_PLAYER_SKINS + i][0])
 			continue;
 
-		Cl_ParseClientinfo(i);
+		Cl_ParseClientInfo(i);
 
 		if(++j < 10)
 			Cl_LoadProgress(75 + j);
@@ -706,10 +706,10 @@ static void R_InitLocal(void){
 	r_no_vis = Cvar_Get("r_no_vis", "0", 0, "Disables PVS refresh and lookup for world surfaces (developer tool)");
 	r_draw_bsp_lights = Cvar_Get("r_draw_bsp_lights", "0", 0, "Controls the rendering of static BSP light sources (developer tool)");
 	r_draw_bsp_normals = Cvar_Get("r_draw_bsp_normals", "0", 0, "Controls the rendering of surface normals (developer tool)");
-	r_draw_bsp_wireframe = Cvar_Get("r_draw_bsp_wireframe", "0", 0, "Controls the rendering of world surfaces as wireframes (developer tool)");
 	r_draw_deluxemaps = Cvar_Get("r_draw_bsp_deluxemaps", "0", CVAR_R_PROGRAMS, "Controls the rendering of deluxemap textures (developer tool)");
 	r_draw_lightmaps = Cvar_Get("r_draw_bsp_lightmaps", "0", CVAR_R_PROGRAMS, "Controls the rendering of lightmap textures (developer tool)");
 	r_draw_poly_counts = Cvar_Get("r_draw_poly_counts", "0", 0, "Controls the rendering of polygon counts per frame (developer tool)");
+	r_draw_wireframe = Cvar_Get("r_draw_wireframe", "0", 0, "Controls the rendering of polygons as wireframe (developer tool)");
 
 	// settings and preferences
 	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE, "Controls anisotropic texture filtering");
@@ -779,12 +779,12 @@ qboolean R_SetMode(void){
 	int w, h;
 
 	if(r_fullscreen->value){
-		w = r_width->value;
-		h = r_height->value;
+		w = r_width->integer;
+		h = r_height->integer;
 	}
 	else {
-		w = r_windowed_width->value;
-		h = r_windowed_height->value;
+		w = r_windowed_width->integer;
+		h = r_windowed_height->integer;
 	}
 
 	return R_InitContext(w, h, r_fullscreen->value);

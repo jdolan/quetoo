@@ -244,7 +244,7 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf){
 	int i, index;
 	vec3_t verts[MAX_CLIP_VERTS];
 
-	if(r_draw_bsp_wireframe->value)
+	if(r_draw_wireframe->value)
 		return;
 
 	index = surf->index * 3;  // raw index into cached vertex arrays
@@ -387,7 +387,7 @@ void R_SetSky(char *name){
 		snprintf(pathname, sizeof(pathname), "env/%s%s", name, suf[i]);
 		sky.images[i] = R_LoadImage(pathname, it_sky);
 
-		if(!sky.images[i] || sky.images[i] == r_no_image){  // try unit1_
+		if(!sky.images[i] || sky.images[i] == r_null_image){  // try unit1_
 			if(strcmp(name, "unit1_")){
 				R_SetSky("unit1_");
 				return;

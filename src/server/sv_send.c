@@ -59,7 +59,7 @@ void Sv_ClientPrint(edict_t *ent, int level, const char *fmt, ...){
 	int n;
 
 	n = NUM_FOR_EDICT(ent);
-	if(n < 1 || n > sv_max_clients->value){
+	if(n < 1 || n > sv_max_clients->integer){
 		Com_Warn("Sv_ClientPrint: Issued to non-client %d.\n", n);
 		return;
 	}
@@ -98,7 +98,7 @@ void Sv_ClientCenterPrint(edict_t *ent, const char *fmt, ...){
 	int n;
 
 	n = NUM_FOR_EDICT(ent);
-	if(n < 1 || n > sv_max_clients->value){
+	if(n < 1 || n > sv_max_clients->integer){
 		Com_Warn("Sv_ClientCenterPrint: ClientCenterPrintf to non-client.\n");
 		return;
 	}
@@ -141,7 +141,7 @@ void Sv_BroadcastPrint(int level, const char *fmt, ...){
 		Com_Print("%s", copy);
 	}
 
-	for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
+	for(i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++){
 
 		if(level < cl->message_level)
 			continue;
@@ -190,7 +190,7 @@ void Sv_Unicast(edict_t *ent, qboolean reliable){
 		return;
 
 	n = NUM_FOR_EDICT(ent);
-	if(n < 1 || n > sv_max_clients->value)
+	if(n < 1 || n > sv_max_clients->integer)
 		return;
 
 	cl = svs.clients + (n - 1);
@@ -262,7 +262,7 @@ void Sv_Multicast(vec3_t origin, multicast_t to){
 	}
 
 	// send the data to all relevent clients
-	for(j = 0, client = svs.clients; j < sv_max_clients->value; j++, client++){
+	for(j = 0, client = svs.clients; j < sv_max_clients->integer; j++, client++){
 
 		if(client->state == cs_free)
 			continue;
@@ -361,59 +361,6 @@ void Sv_PositionedSound(vec3_t origin, edict_t *entity, int soundindex, int atte
  *
  */
 
-int zlib_accum = 0;  // count of bytes saved via zlib
-
-#include <zlib.h>
-static z_stream z;
-static byte zbuf[MAX_MSGLEN];
-
-/*
- * Sv_ZlibClientDatagrab
- *
- * Deflates msg for clients supporting svc_zlib, and rewrites it if
- * the compression resulted in a smaller packet.
- */
-static void Sv_ZlibClientDatagram(sv_client_t *client, size_buf_t *msg){
-	int len;
-
-	if(!((int)sv_extensions->value & QUAKE2WORLD_ZLIB))  // some servers may elect not to use this
-		return;
-
-	if(!((int)client->extensions & QUAKE2WORLD_ZLIB))  // some clients wont support it
-		return;
-
-	if(msg->size < 600)  // and some payloads are too small to bother
-		return;
-
-	memset(zbuf, 0, MAX_MSGLEN);
-
-	z.zalloc = Z_NULL;
-	z.zfree = Z_NULL;
-	z.opaque = Z_NULL;
-
-	deflateInit2(&z, Z_BEST_COMPRESSION, Z_DEFLATED, -15, 9, Z_DEFAULT_STRATEGY);
-
-	z.avail_in = msg->size;
-	z.next_in = msg->data;
-
-	z.avail_out = MAX_MSGLEN;
-	z.next_out = zbuf;
-
-	deflate(&z, Z_FULL_FLUSH);
-	len = MAX_MSGLEN - z.avail_out;
-
-	deflateEnd(&z);
-
-	if(len >= msg->size)  // compression not beneficial
-		return;
-
-	zlib_accum += (msg->size - len);
-	memset(msg->data, 0, MAX_MSGLEN);
-	msg->data[0] = svc_zlib;
-	memcpy(msg->data + 1, zbuf, len);
-	msg->size = len + 1;
-}
-
 
 /*
  * Sv_SendClientDatagram
@@ -443,17 +390,15 @@ static qboolean Sv_SendClientDatagram(sv_client_t *client){
 
 	if(msg.overflowed){  // must have room left for the packet header
 		Com_Warn("Message overflowed for %s.\n", client->name);
-		Sb_Clear(&msg);
+		Sv_DropClient(client);
+		return false;
 	}
-
-	Sv_ZlibClientDatagram(client, &msg);  // if zlib is available, use it
 
 	// send the datagram
 	Netchan_Transmit(&client->netchan, msg.size, msg.data);
 
 	// record the size for rate estimation
 	client->message_size[sv.frame_num % CLIENT_RATE_MESSAGES] = msg.size;
-
 	return true;
 }
 
@@ -544,7 +489,7 @@ void Sv_SendClientMessages(void){
 	}
 
 	// send a message to each connected client
-	for(i = 0, c = svs.clients; i < sv_max_clients->value; i++, c++){
+	for(i = 0, c = svs.clients; i < sv_max_clients->integer; i++, c++){
 
 		if(!c->state)  // don't bother
 			continue;

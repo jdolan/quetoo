@@ -59,7 +59,7 @@ void S_Frame(void){
 	}
 
 	if(s_reverse->modified){  // update reverse stereo
-		Mix_SetReverseStereo(MIX_CHANNEL_POST, (int)s_reverse->value);
+		Mix_SetReverseStereo(MIX_CHANNEL_POST, s_reverse->integer);
 		s_reverse->modified = false;
 	}
 
@@ -207,7 +207,7 @@ void S_Init(void){
 		}
 	}
 
-	if(Mix_OpenAudio((int)s_rate->value, MIX_DEFAULT_FORMAT, 2, 1024) == -1){
+	if(Mix_OpenAudio(s_rate->integer, MIX_DEFAULT_FORMAT, 2, 1024) == -1){
 		Com_Warn("S_Init: %s\n", Mix_GetError());
 		return;
 	}

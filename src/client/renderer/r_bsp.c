@@ -216,7 +216,7 @@ void R_DrawBspNormals(void){
 		if(surf->texinfo->flags & (SURF_SKY | SURF_WARP))
 			continue;  // don't care
 
-		if(r_draw_bsp_normals->value > 1.0 && !(surf->texinfo->flags & SURF_PHONG))
+		if((r_draw_bsp_normals->integer & 2) && !(surf->texinfo->flags & SURF_PHONG))
 			continue;  // don't care
 
 		if(k > MAX_GL_ARRAY_LENGTH - 512){  // avoid overflows, draw in batches

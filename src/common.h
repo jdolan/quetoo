@@ -32,7 +32,7 @@
 // sizebuf and net message facilities
 typedef struct size_buf_s {
 	qboolean allow_overflow;  // error if false and overflow occurs
-	qboolean overflowed;  // set to true when a write excedes max_size
+	qboolean overflowed;  // set to true when a write exceeds max_size
 	byte *data;
 	size_t max_size;
 	size_t size;
@@ -91,7 +91,7 @@ PROTOCOL
 #define PORT_CLIENT	1997
 #define PORT_SERVER	1998
 
-#define UPDATE_BACKUP 128  // copies of entity_state_t to keep buffered
+#define UPDATE_BACKUP 1024  // copies of entity_state_t to keep buffered
 #define UPDATE_MASK (UPDATE_BACKUP - 1)
 
 // maximum number of entities we would ever reference in a single message
@@ -120,13 +120,9 @@ enum svc_ops_e {
 	svc_spawn_baseline,
 	svc_center_print,   // [string] to put in center of the screen
 	svc_download,   // [short] size [size bytes]
-	svc_frame,
-	svc_zlib  // quake2world specific zlib compression command
+	svc_frame
 };
 
-
-// quake2world protocol extensions
-#define QUAKE2WORLD_ZLIB 1
 
 // client to server
 enum clc_ops_e {
@@ -146,7 +142,7 @@ enum clc_ops_e {
 #define PS_M_TIME			(1<<3)
 #define PS_M_FLAGS			(1<<4)
 #define PS_M_DELTA_ANGLES	(1<<5)
-#define PS_VIEWANGLES		(1<<6)
+#define PS_VIEW_ANGLES		(1<<6)
 
 // user_cmd_t communication
 
@@ -159,7 +155,7 @@ enum clc_ops_e {
 #define CMD_BUTTONS	(1<<6)
 
 
-// a sound without an ent or pos will be a local only sound
+// a sound without an entity or position will be a local only sound
 #define S_ATTEN		(1<<0)  // a byte
 #define S_ORIGIN	(1<<1)  // three coordinates
 #define S_ENTNUM	(1<<2)  // entity number

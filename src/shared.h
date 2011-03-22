@@ -276,6 +276,7 @@ typedef struct cvar_s {
 	int flags;
 	qboolean modified;  // set each time the cvar is changed
 	float value;
+	int integer;
 	struct cvar_s *next;
 } cvar_t;
 

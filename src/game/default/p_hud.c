@@ -127,7 +127,7 @@ void P_TeamsScoreboard(edict_t *ent){
 	good_ping = evil_ping = 0;
 	good_time = evil_time = 0;
 
-	for(i = 0; i < sv_max_clients->value; i++){  // sort the clients by score
+	for(i = 0; i < sv_max_clients->integer; i++){  // sort the clients by score
 
 		cl_ent = g_game.edicts + 1 + i;
 		cl = cl_ent->client;
@@ -283,7 +283,7 @@ void P_Scoreboard(edict_t *ent){
 
 	playercount = speccount = total = 0;
 
-	for(i = 0; i < sv_max_clients->value; i++){  // sort the clients by score
+	for(i = 0; i < sv_max_clients->integer; i++){  // sort the clients by score
 
 		cl_ent = g_game.edicts + 1 + i;
 		cl = cl_ent->client;
@@ -453,7 +453,7 @@ void P_CheckChaseStats(edict_t *ent){
 	int i;
 	g_client_t *cl;
 
-	for(i = 1; i <= sv_max_clients->value; i++){
+	for(i = 1; i <= sv_max_clients->integer; i++){
 
 		cl = g_game.edicts[i].client;
 

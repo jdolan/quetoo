@@ -494,12 +494,12 @@ static void Cl_DrawCrosshair(void){
 		if(cl_crosshair->value > 100)
 			cl_crosshair->value = 100;
 
-		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", (int)cl_crosshair->value);
+		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cl_crosshair->integer);
 
 		image = R_LoadPic(crosshair.name);
 
-		if(image == r_no_image){
-			Com_Print("Couldn't load pics/ch%d.\n", (int)cl_crosshair->value);
+		if(image == r_null_image){
+			Com_Print("Couldn't load pics/ch%d.\n", cl_crosshair->integer);
 			return;
 		}
 

@@ -102,7 +102,7 @@ static qboolean Sv_SetPlayer(void){
 	// numeric values are just slot numbers
 	if(s[0] >= '0' && s[0] <= '9'){
 		idnum = atoi(Cmd_Argv(1));
-		if(idnum < 0 || idnum >= sv_max_clients->value){
+		if(idnum < 0 || idnum >= sv_max_clients->integer){
 			Com_Print("Bad client slot: %i\n", idnum);
 			return false;
 		}
@@ -117,7 +117,7 @@ static qboolean Sv_SetPlayer(void){
 	}
 
 	// check for a name match
-	for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
+	for(i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++){
 
 		if(!cl->state)
 			continue;
@@ -197,7 +197,6 @@ static void Sv_Kick_f(void){
  */
 static void Sv_Status_f(void){
 	int i, j, l;
-	extern int zlib_accum;
 	sv_client_t *cl;
 	char *s;
 	int ping;
@@ -208,9 +207,9 @@ static void Sv_Status_f(void){
 	}
 
 	Com_Print("map: %s\n", sv.name);
-	Com_Print("num score ping name            lastmsg exts address               qport \n");
-	Com_Print("--- ----- ---- --------------- ------- ---- --------------------- ------\n");
-	for(i = 0, cl = svs.clients; i < sv_max_clients->value; i++, cl++){
+	Com_Print("num score ping name            lastmsg address               qport \n");
+	Com_Print("--- ----- ---- --------------- ------- --------------------- ------\n");
+	for(i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++){
 
 		if(!cl->state)
 			continue;
@@ -231,7 +230,6 @@ static void Sv_Status_f(void){
 			Com_Print(" ");
 
 		Com_Print("%7i ", svs.real_time - cl->last_message);
-		Com_Print("%d   ", (int)cl->extensions);
 
 		s = Net_NetaddrToString(cl->netchan.remote_address);
 		Com_Print("%s", s);
@@ -243,7 +241,6 @@ static void Sv_Status_f(void){
 
 		Com_Print("\n");
 	}
-	Com_Print("Zlib: %d bytes saved\n", zlib_accum);
 }
 
 
@@ -269,7 +266,7 @@ static void Sv_Say_f(void){
 
 	strcat(text, p);
 
-	for(j = 0, client = svs.clients; j < sv_max_clients->value; j++, client++){
+	for(j = 0, client = svs.clients; j < sv_max_clients->integer; j++, client++){
 
 		if(client->state != cs_spawned)
 			continue;

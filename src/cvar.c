@@ -114,18 +114,18 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]){
  *
  * Function to remove the cvar and free the space
  */
-qboolean Cvar_Delete(const char *varName){
-	cvar_t *var, *previousVar = NULL;
+qboolean Cvar_Delete(const char *var_name){
+	cvar_t *var, *prev = NULL;
 
 	for(var = cvar_vars; var; var = var->next){
-		if(!strcmp(varName, var->name)){
+		if(!strcmp(var_name, var->name)){
 			if(var->flags & (CVAR_USER_INFO | CVAR_SERVER_INFO | CVAR_NOSET | CVAR_LATCH)){
-				Com_Print("Can't delete the cvar '%s' - it's a special cvar\n", varName);
+				Com_Print("Can't delete the cvar '%s' - it's a special cvar\n", var_name);
 				return false;
 			}
 
-			if(previousVar)
-				previousVar->next = var->next;
+			if(prev)
+				prev->next = var->next;
 			else
 				cvar_vars = var->next;
 
@@ -137,24 +137,25 @@ qboolean Cvar_Delete(const char *varName){
 
 			return true;
 		}
-		previousVar = var;
+		prev = var;
 	}
-	Com_Print("Cvar '%s' wasn't found\n", varName);
+	Com_Print("Cvar '%s' wasn't found\n", var_name);
 	return false;
 }
+
 
 /*
  * Cvar_Get
  *
- * If the variable already exists, the value will not be set
- * The flags will be or'ed in if the variable exists.
+ * If the variable already exists, the value will not be set. The flags,
+ * however, are always OR'ed into the variable.
  */
 cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const char *description){
 	cvar_t *v, *var;
 
 	if(flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)){
 		if(!Cvar_InfoValidate(var_name)){
-			Com_Print("invalid info cvar name\n");
+			Com_Print("Invalid variable name: %s\n", var_name);
 			return NULL;
 		}
 	}
@@ -172,7 +173,7 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const c
 
 	if(flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)){
 		if(!Cvar_InfoValidate(var_value)){
-			Com_Print("invalid info cvar value\n");
+			Com_Print("Invalid variable value: %s\n", var_value);
 			return NULL;
 		}
 	}
@@ -182,6 +183,7 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const c
 	var->string = Z_CopyString(var_value);
 	var->modified = true;
 	var->value = atof(var->string);
+	var->integer = atoi(var->string);
 	var->flags = flags;
 	var->description = description;
 
@@ -246,6 +248,7 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force
 			} else {
 				var->string = Z_CopyString(value);
 				var->value = atof(var->string);
+				var->integer = atoi(var->string);
 				if(!strcmp(var->name, "game")){
 					Fs_SetGamedir(var->string);
 					Fs_ExecAutoexec();
@@ -272,12 +275,13 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force
 	var->modified = true;
 
 	if(var->flags & CVAR_USER_INFO)
-		user_info_modified = true;  // transmit at next oportunity
+		user_info_modified = true;  // transmit at next opportunity
 
 	Z_Free(var->string);  // free the old value string
 
 	var->string = Z_CopyString(value);
 	var->value = atof(var->string);
+	var->integer = atoi(var->string);
 
 	return var;
 }
@@ -335,8 +339,10 @@ void Cvar_SetValue(const char *var_name, float value){
 		snprintf(val, sizeof(val), "%i",(int)value);
 	else
 		snprintf(val, sizeof(val), "%f", value);
+
 	Cvar_Set(var_name, val);
 }
+
 
 /*
  * Cvar_Toggle

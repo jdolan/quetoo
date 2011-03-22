@@ -72,7 +72,7 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	i = (int)r_multisample->value;
+	i = r_multisample->integer;
 
 	if(i < 0)
 		i = 0;
@@ -80,7 +80,7 @@ qboolean R_InitContext(int width, int height, qboolean fullscreen){
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, i ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, i);
 
-	i = (int)r_swap_interval->value;
+	i = r_swap_interval->integer;
 	if(i < 0)
 		i = 0;
 	if(i > 2)

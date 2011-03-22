@@ -187,7 +187,8 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name){
 		return NULL;
 
 	// determine what model the client is using
-	model[0] = 0;
+	memset(model, 0, sizeof(model));
+
 	n = CS_PLAYER_SKINS + ent->number - 1;
 	if(cl.config_strings[n][0]){
 		p = strchr(cl.config_strings[n], '\\');
@@ -200,12 +201,12 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name){
 		}
 	}
 
-	// if we cant figure it out, use common
-	if(!model[0])
+	// if we can't figure it out, use common
+	if(*model == '\0')
 		strcpy(model, "common");
 
 	// see if we already know of the model specific sound
-	snprintf(alias, sizeof(alias), "#players/%s/%s", model, name + 1);
+	snprintf(alias, sizeof(alias) - 1, "#players/%s/%s", model, name + 1);
 	sample = S_FindName(alias);
 
 	if(sample)  // we do, use it
@@ -218,7 +219,7 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name){
 	}
 
 	// that didn't work, so load the common one and alias it
-	snprintf(path, sizeof(path), "#players/common/%s", name + 1);
+	snprintf(path, sizeof(path) - 1, "#players/common/%s", name + 1);
 	sample = S_LoadSample(path);
 
 	if(sample)

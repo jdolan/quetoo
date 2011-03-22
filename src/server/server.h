@@ -124,8 +124,6 @@ typedef struct sv_client_s {
 
 	qboolean recording;  // client is currently recording a demo
 
-	int extensions;  // bitmapped enhanced capabilities
-
 	netchan_t netchan;
 } sv_client_t;
 
@@ -167,7 +165,7 @@ typedef struct sv_static_s {
 	// the size of this array is based on the number of clients we might be
 	// asked to support at any point in time during the current game
 
-	int num_entity_states;  // sv_max_clients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES
+	int num_entity_states;  // sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES
 	int next_entity_state;  // next entity_state to use for newly spawned entities
 	entity_state_t *entity_states;  // entity states array used for delta compression
 
@@ -189,7 +187,6 @@ extern sv_static_t svs;  // persistent server info
 extern cvar_t *sv_rcon_password;
 extern cvar_t *sv_download_url;
 extern cvar_t *sv_enforce_time;
-extern cvar_t *sv_extensions;
 extern cvar_t *sv_hostname;
 extern cvar_t *sv_max_clients;
 extern cvar_t *sv_framerate;

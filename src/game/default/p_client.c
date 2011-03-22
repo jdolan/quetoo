@@ -539,7 +539,7 @@ static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 
 	bestdist = 9999999.0;
 
-	for(n = 1; n <= sv_max_clients->value; n++){
+	for(n = 1; n <= sv_max_clients->integer; n++){
 		player = &g_game.edicts[n];
 
 		if(!player->in_use)
@@ -1052,7 +1052,7 @@ qboolean P_Connect(edict_t *ent, char *user_info){
 	// set name, skin, etc..
 	P_UserInfoChanged(ent, user_info);
 
-	if(sv_max_clients->value > 1)
+	if(sv_max_clients->integer > 1)
 		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.net_name);
 
 	ent->sv_flags = 0; // make sure we start with known default
@@ -1286,7 +1286,7 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 	}
 
 	// update chase cam if being followed
-	for(i = 1; i <= sv_max_clients->value; i++){
+	for(i = 1; i <= sv_max_clients->integer; i++){
 		other = g_game.edicts + i;
 		if(other->in_use && other->client->chase_target == ent)
 			P_UpdateChaseCam(other);

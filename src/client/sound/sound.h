@@ -29,7 +29,7 @@ typedef struct s_sample_s {
 	qboolean alias;
 } s_sample_t;
 
-#define MAX_SAMPLES 256
+#define MAX_SAMPLES (MAX_SOUNDS * 2)  // max server side sounds, plus room for local samples
 
 typedef struct s_channel_s {
 	vec3_t org;  // for temporary entities and other positioned sounds
