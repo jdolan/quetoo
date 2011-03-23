@@ -465,7 +465,8 @@ AC_ARG_ENABLE(debug,
 	AC_HELP_STRING(
 		[--disable-debug], [don't include debugging information]
 	),
-	AC_MSG_RESULT(no),
+	AC_MSG_RESULT(no)
+	DEBUG_CFLAGS="-O2",
 	AC_MSG_RESULT(yes)
 	DEBUG_CFLAGS="$DEBUG_CFLAGS $HOST_DEBUG_CFLAGS"
 	DEBUG_LIBS="$DEBUG_LIBS $HOST_DEBUG_LIBS"
