@@ -495,6 +495,7 @@ void R_DrawMeshModel_default(r_entity_t *e){
 		VectorMA(e->lighting->origin, e->scale[0], e->model->mins, e->lighting->mins);
 		VectorMA(e->lighting->origin, e->scale[0], e->model->maxs, e->lighting->maxs);
 
+		Com_Debug("Updating lighting for %s\n", e->model->name);
 		R_UpdateLighting(e->lighting);
 	}
 

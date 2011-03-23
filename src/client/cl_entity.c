@@ -158,7 +158,6 @@ static void Cl_DeltaEntity(cl_frame_t *frame, int new_num, entity_state_t *old_s
 		// wasn't in last update, so initialize some things
 		// duplicate the current state so interpolation works
 		ent->prev = *state;
-		ent->lighting.state = LIGHTING_INIT;
 		VectorCopy(state->old_origin, ent->prev.origin);
 	} else {  // shuffle the last state to previous
 		ent->prev = ent->current;
