@@ -34,11 +34,10 @@ libclient_la_SOURCES = \
 libclient_la_CFLAGS = \
 	-I.. \
 	-pipe \
+	@BASE_CFLAGS@ \
 	@CURL_CFLAGS@ \
-	@DEBUG_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
-	@SDL_CFLAGS@ \
-	@WARN_CFLAGS@
+	@SDL_CFLAGS@
 	
 libclient_la_LIBADD = \
 	ui/node/libuinode.la \

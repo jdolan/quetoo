@@ -39,6 +39,8 @@ HOST_WARN_CFLAGS=""
 HOST_WARN_LIBS=""
 HOST_DEBUG_CFLAGS=""
 HOST_DEBUG_LIBS=""
+HOST_PROFILE_CFLAGS=""
+HOST_PROFILE_LIBS=""
 HOST_SO_CFLAGS=""
 ICON=""
 
@@ -89,6 +91,8 @@ AC_SUBST(HOST_WARN_CFLAGS)
 AC_SUBST(HOST_WARN_LIBS)
 AC_SUBST(HOST_DEBUG_CFLAGS)
 AC_SUBST(HOST_DEBUG_LIBS)
+AC_SUBST(HOST_PROFILE_CFLAGS)
+AC_SUBST(HOST_PROFILE_LIBS)
 AC_SUBST(ICON)
 
 SO_CFLAGS="$SO_CFLAGS $HOST_SO_CFLAGS"
@@ -272,8 +276,8 @@ dnl Check for execinfo.h (optional)
 dnl -------------------------------
 
 AC_CHECK_HEADER(execinfo.h,
-		AC_DEFINE(HAVE_EXECINFO, 1,
-			[Define to 1 if you have the <execinfo.h> header file.]),
+	AC_DEFINE(HAVE_EXECINFO, 1,
+	[Define to 1 if you have the <execinfo.h> header file.]),
 )
 
 dnl ---------------------------
@@ -436,15 +440,15 @@ dnl -----------------
 
 AC_MSG_CHECKING(whether to abort on compiler warnings)
 
-WARN_CFLAGS="-Wall -Wmissing-prototypes -Wmissing-declarations"
+WARN_CFLAGS="-Wall -Wmissing-prototypes -Wmissing-declarations $HOST_WARN_FLAGS"
 
 AC_ARG_ENABLE(warn,
 	AC_HELP_STRING(
-		[--disable-warn], [don't abort on compiler warnings]
+		[--enable-warn], [abort on compiler warnings]
 	),
-	AC_MSG_RESULT(no),
 	AC_MSG_RESULT(yes)
-	WARN_CFLAGS="$WARN_CFLAGS $HOST_WARN_CFLAGS"
+	WARN_CFLAGS="-Werror $WARN_CFLAGS",
+	AC_MSG_RESULT(no)
 )
 AC_SUBST(WARN_CFLAGS)
 
@@ -469,6 +473,38 @@ AC_ARG_ENABLE(debug,
 AC_SUBST(DEBUG_CFLAGS)
 AC_SUBST(DEBUG_LIBS)
 
+dnl ---------------------
+dnl Profiling information
+dnl ---------------------
+
+AC_MSG_CHECKING(whether to include profiling information)
+
+PROFILE_CFLAGS=""
+DEBUG_LIBS=""
+
+AC_ARG_ENABLE(profile,
+	AC_HELP_STRING(
+		[--enable-profile], [include profiling information]
+	),
+	AC_MSG_RESULT(yes)
+	PROFILE_CFLAGS="-pg $HOST_PROFILE_CFLAGS"
+	PROFILE_LIBS="$HOST_DEBUG_LIBS",
+	AC_MSG_RESULT(no)
+)
+AC_SUBST(PROFILE_CFLAGS)
+AC_SUBST(PROFILE_LIBS)
+
+dnl ----------------------------------------
+dnl Consolidate our core flags and libraries
+dnl ----------------------------------------
+
+BASE_CFLAGS=`echo $CPPFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS`
+BASE_LIBS=`echo $HOST_LIBS $DEBUG_LIBS $PROFILE_LIBS $WARN_LIBS`
+BASE_LDFLAGS=`echo $LDFLAGS`
+
+AC_SUBST(BASE_CFLAGS)
+AC_SUBST(BASE_LIBS)
+AC_SUBST(BASE_LDFLAGS)
 
 dnl ----------------------
 dnl Fill in path variables
@@ -527,9 +563,9 @@ Quake2World $VERSION: Automatic configuration OK.
   Configuration summary:
     Platform: .......... $host
     Compiler: .......... $CC
-    Flags: ............. $HOST_CFLAGS
-    Libraries: ......... $HOST_LDFLAGS
-    Linking: ........... $HOST_LIBS
+    Flags: ............. $BASE_CFLAGS
+    Libraries: ......... $BASE_LIBS
+    Linking: ........... $BASE_LDFLAGS
 
     Build client: ...... $BUILD_CLIENT
 

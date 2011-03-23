@@ -17,8 +17,7 @@ libserver_la_SOURCES = \
 libserver_la_CFLAGS = \
 	-I.. \
 	-pipe \
-	@WARN_CFLAGS@ \
-	@DEBUG_CFLAGS@ \
+	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@
 
 libserver_la_LIBADD = \

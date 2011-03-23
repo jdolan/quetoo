@@ -9,10 +9,9 @@ q2wmaster_SOURCES = \
 q2wmaster_CFLAGS = \
 	-I.. \
 	-pipe \
-	@WARN_CFLAGS@ \
-	@DEBUG_CFLAGS@
+	@BASE_CFLAGS@
 
 q2wmaster_LDADD = \
-	@DEBUG_LIBS@
+	@BASE_LIBS@
 
 endif

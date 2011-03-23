@@ -30,8 +30,7 @@ game_la_CFLAGS = \
 	@SO_CFLAGS@ \
 	-I../.. \
 	-pipe \
-	@DEBUG_CFLAGS@ \
-	@WARN_CFLAGS@ \
+	@BASE_CFLAGS@ \
 	@MYSQL_CFLAGS@
 
 game_la_LIBADD = \
