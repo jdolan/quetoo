@@ -729,7 +729,7 @@ static void R_InitLocal(void){
 	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
 	r_hunk_mb = Cvar_Get("r_hunk_mb", "128", CVAR_R_CONTEXT, "Memory size for the renderer hunk in megabytes");
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES, "Inverts the RGB values of all world textures");
-	r_lightmap_block_size = Cvar_Get("r_lightmap_block_size", "1024", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
+	r_lightmap_block_size = Cvar_Get("r_lightmap_block_size", "4096", CVAR_ARCHIVE | CVAR_R_IMAGES, NULL);
 	r_lighting = Cvar_Get("r_lighting", "1.0", CVAR_ARCHIVE, "Controls intensity of hardware lighting effects");
 	r_line_alpha = Cvar_Get("r_line_alpha", "0.5", CVAR_ARCHIVE, NULL);
 	r_line_width = Cvar_Get("r_line_width", "1.0", CVAR_ARCHIVE, NULL);
