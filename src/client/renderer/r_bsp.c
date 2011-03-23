@@ -22,7 +22,7 @@
 #include "renderer.h"
 
 
-vec3_t modelorg;  // relative to viewpoint
+vec3_t r_bsp_model_org;  // relative to r_view.origin
 
 
 /*
@@ -95,9 +95,9 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e){
 
 		// find which side of the surf we are on
 		if(AXIAL(plane))
-			dot = modelorg[plane->type] - plane->dist;
+			dot = r_bsp_model_org[plane->type] - plane->dist;
 		else
-			dot = DotProduct(modelorg, plane->normal) - plane->dist;
+			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
 
 		if(((surf->flags & MSURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
 				(!(surf->flags & MSURF_PLANEBACK) && (dot > BACKFACE_EPSILON))){
@@ -143,15 +143,15 @@ void R_DrawBspModel(const r_entity_t *e){
 	vec3_t temp;
 
 	// set the relative origin, accounting for rotation if necessary
-	VectorSubtract(r_view.origin, e->origin, modelorg);
+	VectorSubtract(r_view.origin, e->origin, r_bsp_model_org);
 	if(e->angles[0] || e->angles[1] || e->angles[2]){
 
-		VectorCopy(modelorg, temp);
+		VectorCopy(r_bsp_model_org, temp);
 		AngleVectors(e->angles, forward, right, up);
 
-		modelorg[0] = DotProduct(temp, forward);
-		modelorg[1] = -DotProduct(temp, right);
-		modelorg[2] = DotProduct(temp, up);
+		r_bsp_model_org[0] = DotProduct(temp, forward);
+		r_bsp_model_org[1] = -DotProduct(temp, right);
+		r_bsp_model_org[2] = DotProduct(temp, up);
 	}
 
 	R_ShiftLights(e->origin);
