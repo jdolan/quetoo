@@ -756,7 +756,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		ent.lighting = &e->lighting;
 
 		if(ent.effects & EF_NO_LIGHTING){
-			// some entities are never lit, like rockets and grenades
+			// some entities are never lit, like rockets
 			ent.lighting->state = LIGHTING_READY;
 		}
 		else {

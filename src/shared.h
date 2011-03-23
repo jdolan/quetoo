@@ -494,7 +494,7 @@ typedef struct {
 #define EF_BEAM				(1 << 14)  // overload old_origin for 2nd endpoint
 
 // small or full-bright entities can skip static and dynamic lighting
-#define EF_NO_LIGHTING		(EF_GRENADE | EF_ROCKET)
+#define EF_NO_LIGHTING		(EF_ROCKET)
 
 // the 16 high bits are never transmitted, they're for the renderer only
 #define EF_ALPHATEST		(1 << 28)  // alpha test
