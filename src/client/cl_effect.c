@@ -1229,7 +1229,7 @@ static void Cl_WeatherEffects(void){
 	p = NULL;  // so that we add the right amount
 
 	// never attempt to add more than a set amount per frame
-	max = 25 * cl_weather->value;
+	max = 50 * cl_weather->value;
 
 	k = 0;
 	while(weather_particles < WEATHER_PARTICLES && k++ < max){
