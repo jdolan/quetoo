@@ -698,7 +698,7 @@ static void SubdivideFace(node_t *node, face_t * f){
 
 			v = VectorNormalize(temp);
 
-			dist = (mins + subdivide_size - 16) / v;
+			dist = (mins + subdivide_size - 16.0) / v;
 
 			ClipWindingEpsilon(w, temp, dist, ON_EPSILON, &frontw, &backw);
 			if(!frontw || !backw)

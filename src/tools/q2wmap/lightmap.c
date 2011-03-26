@@ -23,8 +23,8 @@
 
 static int lightmap_scale;
 
-// lightinfo is a temporary bucket for lighting calculations
-typedef struct {
+// light_info_t is a temporary bucket for lighting calculations
+typedef struct light_info_s {
 	vec_t face_dist;
 	vec3_t face_normal;
 
@@ -44,13 +44,13 @@ typedef struct {
 } light_info_t;
 
 // face extents
-typedef struct extents_s {
+typedef struct face_extents_s {
 	vec3_t mins, maxs;
 	vec3_t center;
 	vec2_t st_mins, st_maxs;
-} extents_t;
+} face_extents_t;
 
-static extents_t face_extents[MAX_BSP_FACES];
+static face_extents_t face_extents[MAX_BSP_FACES];
 
 
 /*
