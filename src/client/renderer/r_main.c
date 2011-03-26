@@ -33,11 +33,6 @@ r_locals_t r_locals;
 
 r_config_t r_config;
 
-renderer_state_t r_state;
-
-r_model_t *r_world_model;
-r_model_t *r_load_model;
-
 byte color_white[4] = {255, 255, 255, 255};
 byte color_black[4] = {0, 0, 0, 128};
 
@@ -477,6 +472,16 @@ void R_EndFrame(void){
 
 
 /*
+ * R_InitView
+ */
+void R_InitView(void) {
+
+	memset(&r_view, 0, sizeof(r_view));
+	memset(&r_locals, 0, sizeof(r_locals));
+}
+
+
+/*
  * R_ResolveWeather
  *
  * Parses the weather config_string for weather and fog definitions,
@@ -531,8 +536,7 @@ void R_LoadMedia(void){
 
 	Cl_LoadProgress(0);
 
-	memset(&r_view, 0, sizeof(r_view));
-	memset(&r_locals, 0, sizeof(r_locals));
+	R_InitView();
 
 	R_FreeImages();
 
@@ -792,6 +796,56 @@ qboolean R_SetMode(void){
 
 
 /*
+ * R_InitConfig
+ */
+static void R_InitConfig(void){
+
+	memset(&r_config, 0, sizeof(r_config));
+
+	r_config.renderer_string = (char *)glGetString(GL_RENDERER);
+	r_config.vendor_string = (char *)glGetString(GL_VENDOR);
+	r_config.version_string = (char *)glGetString(GL_VERSION);
+	r_config.extensions_string = (char *)glGetString(GL_EXTENSIONS);
+	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &r_config.max_texunits);
+
+	Com_Print("  Renderer: ^2%s^7\n", r_config.renderer_string);
+	Com_Print("  Vendor:   ^2%s^7\n", r_config.vendor_string);
+	Com_Print("  Version:  ^2%s^7\n", r_config.version_string);
+}
+
+
+/*
+ * R_EnforceVersion
+ */
+static void R_EnforceVersion(void){
+	int maj, min, rel;
+
+	sscanf(r_config.version_string, "%d.%d.%d ", &maj, &min, &rel);
+
+	if(maj > 1)
+		return;
+
+	if(maj < 1)
+		Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.2.1",
+				r_config.version_string);
+
+	if(min > 2)
+		return;
+
+	if(min < 2)
+		Com_Error(ERR_FATAL, "OpenGL Version %s is less than 1.2.1",
+				r_config.version_string);
+
+	if(rel > 1)
+		return;
+
+	if(rel < 1)
+		Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.2.1",
+				r_config.version_string);
+}
+
+
+/*
  * R_InitExtensions
  */
 static qboolean R_InitExtensions(void){
@@ -854,70 +908,31 @@ static qboolean R_InitExtensions(void){
 
 
 /*
- * R_EnforceVersion
- */
-static void R_EnforceVersion(void){
-	int maj, min, rel;
-
-	sscanf(r_config.version_string, "%d.%d.%d ", &maj, &min, &rel);
-
-	if(maj > 1)
-		return;
-
-	if(maj < 1)
-		Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.2.1",
-				r_config.version_string);
-
-	if(min > 2)
-		return;
-
-	if(min < 2)
-		Com_Error(ERR_FATAL, "OpenGL Version %s is less than 1.2.1",
-				r_config.version_string);
-
-	if(rel > 1)
-		return;
-
-	if(rel < 1)
-		Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.2.1",
-				r_config.version_string);
-}
-
-
-/*
  * R_Init
  */
 void R_Init(void){
 
 	Com_Print("Video initialization...\n");
 
-	memset(&r_state, 0, sizeof(renderer_state_t));
-
 	R_InitLocal();
+
+	R_InitState();
 
 	// create the window and set up the context
 	if(!R_SetMode())
 		Com_Error(ERR_FATAL, "Failed to set video mode.");
 
-	r_config.renderer_string = (char *)glGetString(GL_RENDERER);
-	r_config.vendor_string = (char *)glGetString(GL_VENDOR);
-	r_config.version_string = (char *)glGetString(GL_VERSION);
-	r_config.extensions_string = (char *)glGetString(GL_EXTENSIONS);
-	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &r_config.max_texunits);
+	R_InitConfig();
+
+	R_EnforceVersion();
 
 	// initialize any extensions
 	if(!R_InitExtensions())
 		Com_Error(ERR_FATAL, "Failed to resolve required extensions.");
 
-	Com_Print("  Renderer: ^2%s^7\n", r_config.renderer_string);
-	Com_Print("  Vendor:   ^2%s^7\n", r_config.vendor_string);
-	Com_Print("  Version:  ^2%s^7\n", r_config.version_string);
-
-	R_EnforceVersion();
+	R_InitThreads();
 
 	R_SetDefaultState();
-
-	R_InitThreads();
 
 	R_InitPrograms();
 

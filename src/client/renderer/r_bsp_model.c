@@ -905,7 +905,7 @@ static void R_LoadBspSurfacesArrays_(r_model_t *mod){
 		} else {
 			if(surf->texinfo->flags & SURF_WARP)
 				mod->opaque_warp_surfaces->count++;
-			else if(surf->texinfo->flags & SURF_ALPHATEST)
+			else if(surf->texinfo->flags & SURF_ALPHA_TEST)
 				mod->alpha_test_surfaces->count++;
 			else
 				mod->opaque_surfaces->count++;
@@ -949,7 +949,7 @@ static void R_LoadBspSurfacesArrays_(r_model_t *mod){
 		} else {
 			if(surf->texinfo->flags & SURF_WARP)
 				R_SurfaceToSurfaces(mod->opaque_warp_surfaces, surf);
-			else if(surf->texinfo->flags & SURF_ALPHATEST)
+			else if(surf->texinfo->flags & SURF_ALPHA_TEST)
 				R_SurfaceToSurfaces(mod->alpha_test_surfaces, surf);
 			else
 				R_SurfaceToSurfaces(mod->opaque_surfaces, surf);

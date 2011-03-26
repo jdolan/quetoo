@@ -428,6 +428,7 @@ void R_BeginFrame(void);
 void R_UpdateFrustum(void);
 void R_DrawFrame(void);
 void R_EndFrame(void);
+void R_InitView(void);
 void R_LoadMedia(void);
 void R_Restart_f(void);
 qboolean R_SetMode(void);

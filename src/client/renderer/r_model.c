@@ -26,6 +26,9 @@ int r_num_models;
 
 r_model_t r_inline_models[MAX_MOD_KNOWN];
 
+r_model_t *r_world_model;
+r_model_t *r_load_model;
+
 typedef struct r_hunk_s {
 	byte *base;
 	size_t size;

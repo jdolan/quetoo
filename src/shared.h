@@ -330,10 +330,10 @@ COLLISION DETECTION
 #define SURF_BLEND33	0x10  // 0.33 alpha blending
 #define SURF_BLEND66	0x20  // 0.66 alpha blending
 #define SURF_FLOWING	0x40  // scroll towards angle, no longer supported
-#define SURF_NODRAW		0x80  // don't bother referencing the texture
+#define SURF_NO_DRAW	0x80  // don't bother referencing the texture
 #define SURF_HINT		0x100  // make a primary bsp splitter
 #define SURF_SKIP		0x200  // completely skip, allowing non-closed brushes
-#define SURF_ALPHATEST	0x400  // alpha test (grates, foliage, etc..)
+#define SURF_ALPHA_TEST	0x400  // alpha test (grates, foliage, etc..)
 #define SURF_PHONG		0x800  // phong interpolated lighting at compile time
 
 // content masks

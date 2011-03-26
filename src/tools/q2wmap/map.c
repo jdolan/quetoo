@@ -243,7 +243,7 @@ static int BrushContents(const map_brush_t * b){
 	}
 
 	// if any side is translucent, mark the contents and change solid to window
-	if(trans & (SURF_ALPHATEST | SURF_BLEND33 | SURF_BLEND66)){
+	if(trans & (SURF_ALPHA_TEST | SURF_BLEND33 | SURF_BLEND66)){
 		contents |= CONTENTS_TRANSLUCENT;
 		if(contents & CONTENTS_SOLID){
 			contents &= ~CONTENTS_SOLID;
@@ -451,9 +451,9 @@ static qboolean MakeBrushWindings(map_brush_t * ob){
 static void SetImpliedFlags(side_t *side, const char *tex){
 
 	if(!strcmp(tex, "common/caulk"))
-		side->surf |= SURF_NODRAW;
+		side->surf |= SURF_NO_DRAW;
 	else if(!strcmp(tex, "common/trigger"))
-		side->surf |= SURF_NODRAW;
+		side->surf |= SURF_NO_DRAW;
 	else if(!strcmp(tex, "common/sky"))
 		side->surf |= SURF_SKY;
 	else if(!strcmp(tex, "common/hint"))
@@ -492,7 +492,7 @@ static void ParseBrush(entity_t *mapent){
 	vec3_t planepts[3];
 
 	if(num_map_brushes == MAX_BSP_BRUSHES)
-		Com_Error(ERR_FATAL, "nummapbrushes == MAX_BSP_BRUSHES\n");
+		Com_Error(ERR_FATAL, "num_map_brushes == MAX_BSP_BRUSHES\n");
 
 	b = &map_brushes[num_map_brushes];
 	b->original_sides = &map_brush_sides[num_map_brush_sides];
@@ -565,7 +565,7 @@ static void ParseBrush(entity_t *mapent){
 		SetImpliedFlags(side, td.name);
 
 		// translucent objects are automatically classified as detail
-		if(side->surf & (SURF_ALPHATEST | SURF_BLEND33 | SURF_BLEND66))
+		if(side->surf & (SURF_ALPHA_TEST | SURF_BLEND33 | SURF_BLEND66))
 			side->contents |= CONTENTS_DETAIL;
 		if(side->contents & (CONTENTS_PLAYERCLIP | CONTENTS_MONSTERCLIP))
 			side->contents |= CONTENTS_DETAIL;

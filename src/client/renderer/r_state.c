@@ -21,6 +21,8 @@
 
 #include "renderer.h"
 
+renderer_state_t r_state;
+
 const float default_texcoords[] = {  // useful for particles, pics, etc..
 	0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0
 };
@@ -593,9 +595,9 @@ void R_Setup2D(void){
 
 
 /*
- * R_SetDefaultState
+ * R_SetDEfaultState
  *
- * Set OpenGL state parameters we never change.
+ * Sets OpenGL state parameters to appropiate defaults.
  */
 void R_SetDefaultState(void){
 	int i;
@@ -644,4 +646,12 @@ void R_SetDefaultState(void){
 
 	// alpha blend parameters
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+
+/*
+ * R_InitState
+ */
+void R_InitState(void){
+	memset(&r_state, 0, sizeof(r_state));
 }

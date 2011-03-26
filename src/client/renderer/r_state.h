@@ -121,5 +121,6 @@ void R_EnableFog(qboolean enable);
 void R_Setup3D(void);
 void R_Setup2D(void);
 void R_SetDefaultState(void);
+void R_InitState(void);
 
 #endif /* __R_STATE_H__ */

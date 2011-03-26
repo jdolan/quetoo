@@ -209,7 +209,7 @@ static entity_t *EntityForModel(int num){
  * BuildPatches
  *
  * Create surface fragments for light-emitting surfaces so that light sources
- * may be computed along them.  This function is responsible for one
+ * may be computed along them.
  */
 void BuildPatches(void){
 	int i, j, k;
