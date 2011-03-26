@@ -762,12 +762,12 @@ static void G_CheckRules(void){
 		g_gravity->modified = false;
 
 		gi.ConfigString(CS_GRAVITY, va("%d", g_gravity->integer));
-		g_level.gravity = g_gravity->value;
+		g_level.gravity = g_gravity->integer;
 	}
 
 	if(g_teams->modified){  // reset teams, scores
 		g_teams->modified = false;
-		g_level.teams = g_teams->value;
+		g_level.teams = g_teams->integer;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n",
 				g_level.teams ? "enabled" : "disabled");
@@ -777,7 +777,7 @@ static void G_CheckRules(void){
 
 	if(g_ctf->modified){  // reset teams, scores
 		g_ctf->modified = false;
-		g_level.ctf = g_ctf->value;
+		g_level.ctf = g_ctf->integer;
 
 		gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n",
 				g_level.ctf ? "enabled" : "disabled");
@@ -787,7 +787,7 @@ static void G_CheckRules(void){
 
 	if(g_match->modified){  // reset scores
 		g_match->modified = false;
-		g_level.match = g_match->value;
+		g_level.match = g_match->integer;
 
 		g_level.warmup = g_level.match;  // toggle warmup
 
@@ -799,7 +799,7 @@ static void G_CheckRules(void){
 
 	if(g_rounds->modified){  // reset scores
 		g_rounds->modified = false;
-		g_level.rounds = g_rounds->value;
+		g_level.rounds = g_rounds->integer;
 
 		g_level.warmup = g_level.rounds;  // toggle warmup
 
@@ -813,12 +813,12 @@ static void G_CheckRules(void){
 		g_cheats->modified = false;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Cheats have been %s\n",
-				g_cheats->value ? "enabled" : "disabled");
+				g_cheats->integer ? "enabled" : "disabled");
 	}
 
 	if(g_frag_limit->modified){
 		g_frag_limit->modified = false;
-		g_level.frag_limit = g_frag_limit->value;
+		g_level.frag_limit = g_frag_limit->integer;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Fraglimit has been changed to %d\n",
 				g_level.frag_limit);
@@ -826,7 +826,7 @@ static void G_CheckRules(void){
 
 	if(g_round_limit->modified){
 		g_round_limit->modified = false;
-		g_level.round_limit = g_round_limit->value;
+		g_level.round_limit = g_round_limit->integer;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Roundlimit has been changed to %d\n",
 				g_level.round_limit);
@@ -834,7 +834,7 @@ static void G_CheckRules(void){
 
 	if(g_capture_limit->modified){
 		g_capture_limit->modified = false;
-		g_level.capture_limit = g_capture_limit->value;
+		g_level.capture_limit = g_capture_limit->integer;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Capturelimit has been changed to %d\n",
 				g_level.capture_limit);

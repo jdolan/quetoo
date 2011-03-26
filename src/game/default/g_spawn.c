@@ -733,7 +733,7 @@ static void G_worldspawn(edict_t *ent){
 		if(g_game.spawn.teams && *g_game.spawn.teams)
 			g_level.teams = atoi(g_game.spawn.teams);
 		else  // or default to cvar
-			g_level.teams = g_teams->value;
+			g_level.teams = g_teams->integer;
 	}
 
 	if(map && map->ctf > -1)  // prefer maps.lst ctf
@@ -742,7 +742,7 @@ static void G_worldspawn(edict_t *ent){
 		if(g_game.spawn.ctf && *g_game.spawn.ctf)
 			g_level.ctf = atoi(g_game.spawn.ctf);
 		else  // or default to cvar
-			g_level.ctf = g_ctf->value;
+			g_level.ctf = g_ctf->integer;
 	}
 
 	if(g_level.teams && g_level.ctf)  // ctf overrides teams
@@ -754,7 +754,7 @@ static void G_worldspawn(edict_t *ent){
 		if(g_game.spawn.match && *g_game.spawn.match)
 			g_level.match = atoi(g_game.spawn.match);
 		else  // or default to cvar
-			g_level.match = g_match->value;
+			g_level.match = g_match->integer;
 	}
 
 	if(map && map->rounds > -1)  // prefer maps.lst rounds
@@ -763,7 +763,7 @@ static void G_worldspawn(edict_t *ent){
 		if(g_game.spawn.rounds && *g_game.spawn.rounds)
 			g_level.rounds = atoi(g_game.spawn.rounds);
 		else  // or default to cvar
-			g_level.rounds = g_rounds->value;
+			g_level.rounds = g_rounds->integer;
 	}
 
 	if(g_level.match && g_level.rounds)  // rounds overrides match
@@ -775,7 +775,7 @@ static void G_worldspawn(edict_t *ent){
 		if(g_game.spawn.frag_limit && *g_game.spawn.frag_limit)
 			g_level.frag_limit = atoi(g_game.spawn.frag_limit);
 		else  // or default to cvar
-			g_level.frag_limit = g_frag_limit->value;
+			g_level.frag_limit = g_frag_limit->integer;
 	}
 
 	if(map && map->round_limit > -1)  // prefer maps.lst round_limit
@@ -784,7 +784,7 @@ static void G_worldspawn(edict_t *ent){
 		if(g_game.spawn.round_limit && *g_game.spawn.round_limit)
 			g_level.round_limit = atoi(g_game.spawn.round_limit);
 		else  // or default to cvar
-			g_level.round_limit = g_round_limit->value;
+			g_level.round_limit = g_round_limit->integer;
 	}
 
 	if(map && map->capture_limit > -1)  // prefer maps.lst capture_limit
@@ -793,7 +793,7 @@ static void G_worldspawn(edict_t *ent){
 		if(g_game.spawn.capture_limit && *g_game.spawn.capture_limit)
 			g_level.capture_limit = atoi(g_game.spawn.capture_limit);
 		else  // or default to cvar
-			g_level.capture_limit = g_capture_limit->value;
+			g_level.capture_limit = g_capture_limit->integer;
 	}
 
 	if(map && map->time_limit > -1)  // prefer maps.lst time_limit
