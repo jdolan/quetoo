@@ -153,6 +153,10 @@ void Cl_LoadEmits(void){
 						VectorSet(e->vel, 0.0, 0.0, 40.0);
 				}
 
+				if(e->flags & EMIT_SPARKS){  // default directional scale
+					VectorScale(e->dir, 30.0, e->dir);
+				}
+
 				if(VectorCompare(e->scale, vec3_origin)){  // default mesh model scale
 
 					if(e->flags & EMIT_MODEL)

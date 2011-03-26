@@ -412,11 +412,11 @@ void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 		p->color = 0xe0 + (rand() & 7);
 
 		VectorCopy(org, p->org);
-		VectorCopy(dir, p->dir);
+		VectorCopy(dir, p->vel);
 
 		for(j = 0; j < 3; j++){
 			p->org[j] += crand() * 4.0;
-			p->vel[j] = crand() * 4.0;
+			p->vel[j] += crand() * 4.0;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
