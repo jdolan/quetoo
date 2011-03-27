@@ -13,6 +13,8 @@ EXTRA_quake2world_SOURCES = \
 
 quake2world_DEPENDENCIES = \
 	${ICON}
+	
+if BUILD_CLIENT
 
 quake2world_CFLAGS = \
 	-I.. \
@@ -33,3 +35,24 @@ quake2world_LDADD = \
 	@OPENGL_LIBS@ \
 	@SDL_LIBS@ \
 	-lm -lz
+	
+else
+
+quake2world_CFLAGS = \
+	-I.. \
+	-pipe \
+	@BASE_CFLAGS@ \
+	@CURSES_CFLAGS@ \
+	@SDL_CFLAGS@
+
+quake2world_LDADD = \
+	${quake2world_DEPENDENCIES} \
+	../client/libclient.la \
+	../server/libserver.la \
+	@BASE_LIBS@ \
+	@CURL_LIBS@ \
+	@CURSES_LIBS@ \
+	@SDL_LIBS@ \
+	-lm -lz
+	
+endif
