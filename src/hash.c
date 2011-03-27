@@ -102,6 +102,9 @@ hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key){
 
 	code = Hash_Hashcode(key);
 
+	if(code == -1)
+		return NULL;
+
 	if(!table->bins[code])
 		return NULL;
 
