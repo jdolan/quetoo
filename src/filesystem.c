@@ -536,7 +536,7 @@ void Fs_GunzipFile(const char *path){
 	size_t r, w;
 	char p[MAX_OSPATH];
 
-	if(!path || *path[0] == '\0')
+	if(!path || *path == '\0')
 		return;
 
 	strncpy(p, path, sizeof(p));
