@@ -442,50 +442,56 @@ static qboolean Sv_RateDrop(sv_client_t *c){
 
 
 /*
+ * Sv_DemoMessage
+ *
+ * Reads the next frame from the current demo file into the specified buffer,
+ * returning the size of the frame in bytes.
+ */
+static size_t Sv_GetDemoMessage(byte *buffer){
+	size_t size;
+	size_t r;
+
+	r = Fs_Read(&size, 4, 1, sv.demo_file);
+
+	if(r != 1){  // improperly terminated demo file
+		Com_Warn("Sv_GetDemoMessage: Failed to read demo file.\n");
+		Sv_DemoCompleted();
+		return 0;
+	}
+
+	size = LittleLong(size);
+
+	if(size == -1){  // properly terminated demo file
+		Sv_DemoCompleted();
+		return 0;
+	}
+
+	if(size > MAX_MSG_SIZE){  // corrupt demo file
+		Com_Warn("Sv_GetDemoMessage: %d > MAX_MSG_SIZE.\n", (int)size);
+		Sv_DemoCompleted();
+		return 0;
+	}
+
+	r = Fs_Read(buffer, size, 1, sv.demo_file);
+
+	if(r != 1){
+		Com_Warn("Sv_GetDemoMessage: Incomplete or corrupt demo file.\n");
+		Sv_DemoCompleted();
+		return 0;
+	}
+
+	return size;
+}
+
+/*
  * Sv_SendClientMessages
  */
 void Sv_SendClientMessages(void){
-	byte buffer[MAX_MSG_SIZE];
-	size_t size;
 	sv_client_t *c;
-	int i, r;
+	int i;
 
 	if(!svs.initialized)
 		return;
-
-	size = 0;
-
-	// read the next demo message if needed
-	if(sv.state == ss_demo){
-
-		r = Fs_Read(&size, 4, 1, sv.demo_file);
-
-		if(r != 1){  // improperly terminated demo file
-			Com_Warn("Sv_SendClientMessages: Failed to read demo file.\n");
-			Sv_DemoCompleted();
-			return;
-		}
-
-		size = LittleLong(size);
-
-		if(size == -1){  // properly terminated demo file
-			Sv_DemoCompleted();
-			return;
-		}
-
-		if(size > MAX_MSG_SIZE){  // corrupt demo file
-			Com_Warn("Sv_SendClientMessages: %d > MAX_MSG_SIZE.\n", (int)size);
-			return;
-		}
-
-		r = Fs_Read(buffer, size, 1, sv.demo_file);
-
-		if(r != 1){
-			Com_Warn("Sv_SendClientMessages: Incomplete or corrupt demo file.\n");
-			Sv_DemoCompleted();
-			return;
-		}
-	}
 
 	// send a message to each connected client
 	for(i = 0, c = svs.clients; i < sv_max_clients->integer; i++, c++){
@@ -501,7 +507,12 @@ void Sv_SendClientMessages(void){
 		}
 
 		if(sv.state == ss_demo){  // send the demo packet
-			Netchan_Transmit(&c->netchan, size, buffer);
+			byte buffer[MAX_MSG_SIZE];
+			size_t size;
+
+			if((size = Sv_GetDemoMessage(buffer))){
+				Netchan_Transmit(&c->netchan, size, buffer);
+			}
 		}
 		else if(c->state == cs_spawned){  // send the game packet
 
