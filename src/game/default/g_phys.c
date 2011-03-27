@@ -60,9 +60,9 @@ static edict_t *G_TestEntityPosition(edict_t *ent){
 #define MAX_VELOCITY 2500
 
 /*
- * G_CheckVelocity
+ * G_ClampVelocity
  */
-static void G_CheckVelocity(edict_t *ent){
+static void G_ClampVelocity(edict_t *ent){
 	int i;
 
 	// bound velocity
@@ -120,12 +120,12 @@ static void G_Impact(edict_t *e1, trace_t *trace){
 #define STOP_EPSILON	0.1
 
 /*
- * ClipVelocity
+ * G_ClipVelocity
  *
  * Slide off of the impacting object
  * returns the blocked flags (1 = floor, 2 = step / wall)
  */
-static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
+static int G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
 	float backoff;
 	float change;
 	int i, blocked;
@@ -153,7 +153,12 @@ static int ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce){
  * G_AddGravity
  */
 static void G_AddGravity(edict_t *ent){
-	ent->velocity[2] -= ent->gravity * g_level.gravity * gi.server_frame;
+	float g = g_level.gravity;
+
+	if(ent->water_level)
+		g *= 0.5;
+
+	ent->velocity[2] -= ent->gravity * g * gi.server_frame;
 }
 
 
@@ -490,7 +495,7 @@ static void G_Physics_Toss(edict_t *ent){
 		return;
 
 	// enforce max velocity values
-	G_CheckVelocity(ent);
+	G_ClampVelocity(ent);
 
 	// add gravity
 	if(ent->move_type != MOVE_TYPE_FLY)
@@ -512,7 +517,7 @@ static void G_Physics_Toss(edict_t *ent){
 	if(trace.fraction < 1.0){  // move was blocked
 
 		// if it was a floor, we might bounce or come to rest
-		if(ClipVelocity(ent->velocity, trace.plane.normal, ent->velocity, 1.3) == 1){
+		if(G_ClipVelocity(ent->velocity, trace.plane.normal, ent->velocity, 1.3) == 1){
 
 			VectorSubtract(ent->s.origin, org, move);
 
@@ -549,8 +554,10 @@ static void G_Physics_Toss(edict_t *ent){
 	else
 		ent->water_level = 0;
 
-	if(!was_in_water && is_in_water)
+	if(!was_in_water && is_in_water){
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
+		VectorScale(ent->velocity, 0.5, ent->velocity);
+	}
 	else if(was_in_water && !is_in_water)
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
