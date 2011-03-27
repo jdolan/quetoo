@@ -202,11 +202,11 @@ typedef enum {
 } cl_server_source_t;
 
 typedef struct cl_server_info_s {
-	netaddr_t addr;
+	net_addr_t addr;
 	cl_server_source_t source;
 	int pingtime;
 	int ping;
-	char info[MAX_MSGLEN];
+	char info[MAX_MSG_SIZE];
 	int num;
 	struct cl_server_info_s *next;
 } cl_server_info_t;
@@ -231,7 +231,7 @@ typedef struct cl_static_s {
 	char server_name[MAX_OSPATH];  // name of server to connect to
 	float connect_time;  // for connection retransmits
 
-	netchan_t netchan;  // network channel
+	net_chan_t netchan;  // network channel
 
 	int challenge;  // from the server to use for connecting
 

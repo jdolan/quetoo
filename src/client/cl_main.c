@@ -80,16 +80,16 @@ extern void Sv_ShutdownServer(const char *msg);
  * compressed frame arrives from the server.
  */
 static void Cl_WriteDemoHeader(void){
-	byte buf_data[MAX_MSGLEN];
+	byte buf_data[MAX_MSG_SIZE];
 	size_buf_t buf;
 	int i;
 	int len;
-	entity_state_t nullstate;
+	entity_state_t null_state;
 
 	// write out messages to hold the startup information
 	Sb_Init(&buf, buf_data, sizeof(buf_data));
 
-	// write the serverdata
+	// write the server data
 	Msg_WriteByte(&buf, svc_server_data);
 	Msg_WriteLong(&buf, PROTOCOL);
 	Msg_WriteLong(&buf, cl.server_count);
@@ -101,7 +101,7 @@ static void Cl_WriteDemoHeader(void){
 
 	// and config_strings
 	for(i = 0; i < MAX_CONFIG_STRINGS; i++){
-		if(cl.config_strings[i][0]){
+		if(*cl.config_strings[i] != '\0'){
 			if(buf.size + strlen(cl.config_strings[i]) + 32 > buf.max_size){  // write it out
 				len = LittleLong(buf.size);
 				Fs_Write(&len, 4, 1, cls.demo_file);
@@ -128,14 +128,14 @@ static void Cl_WriteDemoHeader(void){
 			buf.size = 0;
 		}
 
-		memset(&nullstate, 0, sizeof(nullstate));
+		memset(&null_state, 0, sizeof(null_state));
 
 		Msg_WriteByte(&buf, svc_spawn_baseline);
-		Msg_WriteDeltaEntity(&nullstate, &cl.entities[i].baseline, &buf, true, true);
+		Msg_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &buf, true, true);
 	}
 
 	Msg_WriteByte(&buf, svc_stuff_text);
-	Msg_WriteString(&buf, "precache\n");
+	Msg_WriteString(&buf, "precache 0\n");
 
 	// write it to the demo file
 
@@ -154,7 +154,7 @@ static void Cl_WriteDemoHeader(void){
  * Dumps the current net message, prefixed by the length.
  */
 void Cl_WriteDemoMessage(void){
-	int len;
+	int size;
 
 	if(!cls.demo_file)
 		return;
@@ -166,11 +166,11 @@ void Cl_WriteDemoMessage(void){
 		Cl_WriteDemoHeader();
 
 	// the first eight bytes are just packet sequencing stuff
-	len = LittleLong(net_message.size - 8);
-	Fs_Write(&len, 4, 1, cls.demo_file);
+	size = LittleLong(net_message.size - 8);
+	Fs_Write(&size, 4, 1, cls.demo_file);
 
 	// write the message payload
-	Fs_Write(net_message.data + 8, len, 1, cls.demo_file);
+	Fs_Write(net_message.data + 8, size, 1, cls.demo_file);
 }
 
 
@@ -180,7 +180,7 @@ void Cl_WriteDemoMessage(void){
  * Stop recording a demo
  */
 static void Cl_Stop_f(void){
-	int len;
+	int size;
 
 	if(!cls.demo_file){
 		Com_Print("Not recording a demo.\n");
@@ -188,8 +188,8 @@ static void Cl_Stop_f(void){
 	}
 
 	// finish up
-	len = -1;
-	Fs_Write(&len, 4, 1, cls.demo_file);
+	size = -1;
+	Fs_Write(&size, 4, 1, cls.demo_file);
 	Fs_CloseFile(cls.demo_file);
 
 	cls.demo_file = NULL;
@@ -203,13 +203,14 @@ static void Cl_Stop_f(void){
 /*
  * Cl_Record_f
  *
- * record <demoname>
+ * record <demo name>
  *
  * Begin recording a demo from the current frame until `stop` is issued.
  */
 static void Cl_Record_f(void){
+
 	if(Cmd_Argc() != 2){
-		Com_Print("Usage: %s <demoname>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <demo name>\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -391,7 +392,7 @@ static void Cl_ForwardCmdToServer(void){
  * We have gotten a challenge from the server, so try and connect.
  */
 static void Cl_SendConnect(void){
-	netaddr_t addr;
+	net_addr_t addr;
 	int qport;
 
 	memset(&addr, 0, sizeof(addr));
@@ -420,7 +421,7 @@ static void Cl_SendConnect(void){
  * Resend a connect message if the last one has timed out.
  */
 static void Cl_CheckForResend(void){
-	netaddr_t addr;
+	net_addr_t addr;
 
 	// if the local server is running and we aren't then connect
 	if(Com_ServerState() && strcmp(cls.server_name, "localhost")){
@@ -505,7 +506,7 @@ static void Cl_Connect_f(void){
 static void Cl_Rcon_f(void){
 	char message[1024];
 	int i;
-	netaddr_t to;
+	net_addr_t to;
 
 	if(!rcon_password->string){
 		Com_Print("No rcon_password set.\n");
@@ -835,8 +836,8 @@ static void Cl_LoadMedia(void){
 }
 
 
-int precache_check;  // for autodownload of precache items
-int precache_spawn_count;
+static int precache_check;  // for auto-download of precache items
+static int precache_spawn_count;
 
 /*
  * Cl_RequestNextDownload
@@ -866,8 +867,11 @@ void Cl_RequestNextDownload(void){
 
 		precache_check++;
 
-		if(!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS + 1]))
-			return;  // started a download
+		if(*cl.config_strings[CS_MODELS + 1] != '\0'){
+
+			if(!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS + 1]))
+				return;  // started a download
+		}
 	}
 
 	Cl_LoadMedia();

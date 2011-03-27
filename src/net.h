@@ -24,56 +24,52 @@
 
 #include "cvar.h"
 
-#define PORT_ANY	-1
-
-#define MAX_MSGLEN 	1400  // max length of a message
-
-#define PACKET_HEADER 10  // two ints and a short
+#define MAX_MSG_SIZE 	1400  // max length of a message
 
 typedef enum {
 	NA_LOCAL,
 	NA_IP_BROADCAST,
 	NA_IP
-} netadrtype_t;
+} net_adr_type_t;
 
 typedef enum {
 	NS_CLIENT,
 	NS_SERVER
-} netsrc_t;
+} net_src_t;
 
 typedef struct {
-	netadrtype_t type;
+	net_adr_type_t type;
 	byte ip[4];
 	unsigned short port;
-} netaddr_t;
+} net_addr_t;
 
 void Net_Init(void);
 void Net_Shutdown(void);
 
-void Net_Config(netsrc_t source, qboolean up);
+void Net_Config(net_src_t source, qboolean up);
 
-qboolean Net_GetPacket(netsrc_t source, netaddr_t *from, size_buf_t *message);
-void Net_SendPacket(netsrc_t source, size_t length, void *data, netaddr_t to);
+qboolean Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message);
+void Net_SendPacket(net_src_t source, size_t length, void *data, net_addr_t to);
 
-qboolean Net_CompareNetaddr(netaddr_t a, netaddr_t b);
-qboolean Net_CompareClientNetaddr(netaddr_t a, netaddr_t b);
-qboolean Net_IsLocalNetaddr(netaddr_t adr);
-char *Net_NetaddrToString(netaddr_t a);
-qboolean Net_StringToNetaddr(const char *s, netaddr_t *a);
+qboolean Net_CompareNetaddr(net_addr_t a, net_addr_t b);
+qboolean Net_CompareClientNetaddr(net_addr_t a, net_addr_t b);
+qboolean Net_IsLocalNetaddr(net_addr_t adr);
+char *Net_NetaddrToString(net_addr_t a);
+qboolean Net_StringToNetaddr(const char *s, net_addr_t *a);
 void Net_Sleep(int msec);
 
 
 typedef struct {
 	qboolean fatal_error;
 
-	netsrc_t source;
+	net_src_t source;
 
 	int dropped;  // between last packet and previous
 
 	int last_received;  // for timeouts
 	int last_sent;  // for retransmits
 
-	netaddr_t remote_address;
+	net_addr_t remote_address;
 
 	int qport;  // qport value to write when transmitting
 
@@ -90,24 +86,24 @@ typedef struct {
 
 	// reliable staging and holding areas
 	size_buf_t message;  // writing buffer to send to server
-	byte message_buf[MAX_MSGLEN - 16];  // leave space for header
+	byte message_buffer[MAX_MSG_SIZE - 16];  // leave space for header
 
 	// message is copied to this buffer when it is first transfered
-	int reliable_length;
-	byte reliable_buffer[MAX_MSGLEN - 16];  // unacked reliable message
-} netchan_t;
+	int reliable_size;
+	byte reliable_buffer[MAX_MSG_SIZE - 16];  // unacked reliable message
+} net_chan_t;
 
-extern netaddr_t net_from;
+extern net_addr_t net_from;
 extern size_buf_t net_message;
-extern byte net_message_buffer[MAX_MSGLEN];
+extern byte net_message_buffer[MAX_MSG_SIZE];
 
 void Netchan_Init(void);
-void Netchan_Setup(netsrc_t source, netchan_t *chan, netaddr_t adr, int qport);
-void Netchan_Transmit(netchan_t *chan, int length, byte *data);
-void Netchan_OutOfBand(int net_socket, netaddr_t adr, int length, byte *data);
-void Netchan_OutOfBandPrint(int net_socket, netaddr_t adr, const char *format, ...) __attribute__((format(printf, 3, 4)));
-qboolean Netchan_Process(netchan_t *chan, size_buf_t *msg);
-qboolean Netchan_CanReliable(netchan_t *chan);
-qboolean Netchan_NeedReliable(netchan_t *chan);
+void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t adr, int qport);
+void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data);
+void Netchan_OutOfBand(int net_socket, net_addr_t adr, size_t size, byte *data);
+void Netchan_OutOfBandPrint(int net_socket, net_addr_t adr, const char *format, ...) __attribute__((format(printf, 3, 4)));
+qboolean Netchan_Process(net_chan_t *chan, size_buf_t *msg);
+qboolean Netchan_CanReliable(net_chan_t *chan);
+qboolean Netchan_NeedReliable(net_chan_t *chan);
 
 #endif /* __NET_H__ */

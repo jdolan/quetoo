@@ -51,7 +51,7 @@ typedef struct sv_server_s {
 	// the multicast buffer is used to send a message to a set of clients
 	// it is only used to marshall data until Sv_Multicast is called
 	size_buf_t multicast;
-	byte multicast_buffer[MAX_MSGLEN];
+	byte multicast_buffer[MAX_MSG_SIZE];
 
 	// demo server information
 	FILE *demo_file;
@@ -112,7 +112,7 @@ typedef struct sv_client_s {
 	// the datagram is written to by sound calls, prints, temp ents, etc.
 	// it can be overflowed without consequence.
 	size_buf_t datagram;
-	byte datagram_buf[MAX_MSGLEN];
+	byte datagram_buf[MAX_MSG_SIZE];
 
 	sv_frame_t frames[UPDATE_BACKUP];  // updates can be delta'd from here
 
@@ -124,7 +124,7 @@ typedef struct sv_client_s {
 
 	qboolean recording;  // client is currently recording a demo
 
-	netchan_t netchan;
+	net_chan_t netchan;
 } sv_client_t;
 
 // the server runs fixed-interval frames at a configurable rate (Hz)
@@ -140,7 +140,7 @@ typedef struct sv_client_s {
 // challenges are a request for a connection; a handshake the client receives
 // and must then re-use to acquire a client slot
 typedef struct sv_challenge_s {
-	netaddr_t addr;
+	net_addr_t addr;
 	int challenge;
 	int time;
 } sv_challenge_t;
@@ -169,7 +169,7 @@ typedef struct sv_static_s {
 	int next_entity_state;  // next entity_state to use for newly spawned entities
 	entity_state_t *entity_states;  // entity states array used for delta compression
 
-	netaddr_t masters[MAX_MASTERS];
+	net_addr_t masters[MAX_MASTERS];
 	int last_heartbeat;
 
 	sv_challenge_t challenges[MAX_CHALLENGES];  // to prevent invalid IPs from connecting
@@ -221,7 +221,7 @@ typedef enum {
 	RD_PACKET
 } sv_redirect_t;
 
-#define SV_OUTPUTBUF_LENGTH	(MAX_MSGLEN - 16)
+#define SV_OUTPUTBUF_LENGTH	(MAX_MSG_SIZE - 16)
 extern char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
 void Sv_FlushRedirect(int target, char *outputbuf);

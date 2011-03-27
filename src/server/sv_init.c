@@ -282,6 +282,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state){
 		sv.models[1] = Cm_LoadBsp(NULL, &mapsize);
 
 		Fs_OpenFile(demo, &sv.demo_file, FILE_READ);
+		svs.spawn_count = 0;
 
 		Com_Print("  Loaded demo %s.\n", sv.name);
 	}

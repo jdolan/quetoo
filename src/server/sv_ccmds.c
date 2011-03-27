@@ -33,7 +33,7 @@
  */
 static void Sv_SetMaster_f(void){
 	int i, slot;
-	netaddr_t *addr;
+	net_addr_t *addr;
 
 	// only dedicated servers send heartbeats
 	if(!dedicated->value){

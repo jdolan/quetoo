@@ -81,7 +81,7 @@ void Sv_DropClient(sv_client_t *cl){
  */
 static const char *Sv_StatusString(void){
 	char player[1024];
-	static char status[MAX_MSGLEN - 16];
+	static char status[MAX_MSG_SIZE - 16];
 	int i;
 	sv_client_t *cl;
 	int statusLength;
@@ -228,7 +228,7 @@ static void Svc_GetChallenge(void){
 static void Svc_Connect(void){
 	char user_info[MAX_INFO_STRING];
 	sv_client_t *cl, *client;
-	netaddr_t addr;
+	net_addr_t addr;
 	int version;
 	int qport;
 	int challenge;
@@ -304,7 +304,7 @@ static void Svc_Connect(void){
 	// first check for an ungraceful reconnect (client crashed, perhaps)
 	for(i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++){
 
-		const netchan_t *ch = &cl->netchan;
+		const net_chan_t *ch = &cl->netchan;
 
 		if(cl->state == cs_free)  // not in use, not interested
 			continue;

@@ -98,7 +98,7 @@ static void Sv_ConfigStrings_f(void){
 	}
 
 	// write a packet full of data
-	while(sv_client->netchan.message.size < MAX_MSGLEN / 2
+	while(sv_client->netchan.message.size < MAX_MSG_SIZE / 2
 			&& start < MAX_CONFIG_STRINGS){
 		if(sv.config_strings[start][0]){
 			Msg_WriteByte(&sv_client->netchan.message, svc_config_string);
@@ -153,7 +153,7 @@ static void Sv_Baselines_f(void){
 	memset(&nullstate, 0, sizeof(nullstate));
 
 	// write a packet full of data
-	while(sv_client->netchan.message.size < MAX_MSGLEN / 2
+	while(sv_client->netchan.message.size < MAX_MSG_SIZE / 2
 			&& start < MAX_EDICTS){
 		base = &sv.baselines[start];
 		if(base->model_index || base->sound || base->effects){
@@ -211,7 +211,7 @@ static void Sv_Begin_f(void){
  */
 static void Sv_NextDownload_f(void){
 	int r, size, percent;
-	byte buf[MAX_MSGLEN];
+	byte buf[MAX_MSG_SIZE];
 	size_buf_t msg;
 
 	if(!sv_client->download)
@@ -222,7 +222,7 @@ static void Sv_NextDownload_f(void){
 	if(r > 1024)  // cap the download chunk at 1024 bytes
 		r = 1024;
 
-	Sb_Init(&msg, buf, MAX_MSGLEN);
+	Sb_Init(&msg, buf, MAX_MSG_SIZE);
 
 	Msg_WriteByte(&msg, svc_download);
 	Msg_WriteShort(&msg, r);

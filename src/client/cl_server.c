@@ -25,7 +25,7 @@
 /*
  * Cl_AddServer
  */
-static cl_server_info_t *Cl_AddServer(const netaddr_t *addr){
+static cl_server_info_t *Cl_AddServer(const net_addr_t *addr){
 	cl_server_info_t *s;
 
 	s = (cl_server_info_t *)Z_Malloc(sizeof(*s));
@@ -61,7 +61,7 @@ static int Cl_NumServers(void){
 /*
  * Cl_ServerForNetaddr
  */
-static cl_server_info_t *Cl_ServerForNetaddr(const netaddr_t *addr){
+static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr){
 	cl_server_info_t *s;
 
 	s = cls.servers;
@@ -215,7 +215,7 @@ void Cl_ParseStatusMessage(void){
  * Cl_Ping_f
  */
 void Cl_Ping_f(void){
-	netaddr_t addr;
+	net_addr_t addr;
 	cl_server_info_t *server;
 
 	if(Cmd_Argc() != 2){
@@ -254,7 +254,7 @@ void Cl_Ping_f(void){
  */
 static void Cl_SendBroadcast(void){
 	cl_server_info_t *server;
-	netaddr_t addr;
+	net_addr_t addr;
 
 	cls.broadcast_time = cls.real_time;
 
@@ -280,7 +280,7 @@ static void Cl_SendBroadcast(void){
  * Cl_Servers_f
  */
 void Cl_Servers_f(void){
-	netaddr_t addr;
+	net_addr_t addr;
 
 	if(!Net_StringToNetaddr(IP_MASTER, &addr)){
 		Com_Print("Failed to resolve %s\n", IP_MASTER);
@@ -305,7 +305,7 @@ void Cl_ParseServersList(void){
 	byte *buffend;
 	byte ip[4];
 	unsigned short port;
-	netaddr_t addr;
+	net_addr_t addr;
 	cl_server_info_t *server;
 	char s[32];
 

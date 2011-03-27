@@ -366,7 +366,7 @@ void Sv_PositionedSound(vec3_t origin, edict_t *entity, int soundindex, int atte
  * Sv_SendClientDatagram
  */
 static qboolean Sv_SendClientDatagram(sv_client_t *client){
-	byte msg_buf[MAX_MSGLEN];
+	byte msg_buf[MAX_MSG_SIZE];
 	size_buf_t msg;
 
 	Sv_BuildClientFrame(client);
@@ -445,41 +445,40 @@ static qboolean Sv_RateDrop(sv_client_t *c){
  * Sv_SendClientMessages
  */
 void Sv_SendClientMessages(void){
-	int i;
+	byte buffer[MAX_MSG_SIZE];
+	size_t size;
 	sv_client_t *c;
-	int msglen;
-	byte msgbuf[MAX_MSGLEN];
-	int r;
+	int i, r;
 
 	if(!svs.initialized)
 		return;
 
-	msglen = 0;
+	size = 0;
 
 	// read the next demo message if needed
 	if(sv.state == ss_demo){
 
-		r = Fs_Read(&msglen, 4, 1, sv.demo_file);
+		r = Fs_Read(&size, 4, 1, sv.demo_file);
 
 		if(r != 1){  // improperly terminated demo file
-			Com_Warn("Sv_SendClientMessages: Failed to read msglen from demo file.\n");
+			Com_Warn("Sv_SendClientMessages: Failed to read demo file.\n");
 			Sv_DemoCompleted();
 			return;
 		}
 
-		msglen = LittleLong(msglen);
+		size = LittleLong(size);
 
-		if(msglen == -1){  // properly terminated demo file
+		if(size == -1){  // properly terminated demo file
 			Sv_DemoCompleted();
 			return;
 		}
 
-		if(msglen > MAX_MSGLEN){  // corrupt demo file
-			Com_Warn("Sv_SendClientMessages: %d > MAX_MSGLEN.\n", msglen);
+		if(size > MAX_MSG_SIZE){  // corrupt demo file
+			Com_Warn("Sv_SendClientMessages: %d > MAX_MSG_SIZE.\n", (int)size);
 			return;
 		}
 
-		r = Fs_Read(msgbuf, msglen, 1, sv.demo_file);
+		r = Fs_Read(buffer, size, 1, sv.demo_file);
 
 		if(r != 1){
 			Com_Warn("Sv_SendClientMessages: Incomplete or corrupt demo file.\n");
@@ -502,7 +501,7 @@ void Sv_SendClientMessages(void){
 		}
 
 		if(sv.state == ss_demo){  // send the demo packet
-			Netchan_Transmit(&c->netchan, msglen, msgbuf);
+			Netchan_Transmit(&c->netchan, size, buffer);
 		}
 		else if(c->state == cs_spawned){  // send the game packet
 
