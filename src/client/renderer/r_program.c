@@ -511,6 +511,16 @@ static void R_UseWarpProgram(void){
 
 
 /*
+ * R_UseProProgram
+ */
+static void R_UseProProgram(void){
+
+	R_ProgramParameter1f("LIGHT_CLAMP_MIN", 0.0);
+	R_ProgramParameter1f("LIGHT_CLAMP_MAX", 4.0);
+}
+
+
+/*
  * R_InitPrograms
  */
 void R_InitPrograms(void){
@@ -535,6 +545,6 @@ void R_InitPrograms(void){
 			"warp", R_InitWarpProgram, R_UseWarpProgram);
 
 	r_state.pro_program = R_LoadProgram(
-			"pro", NULL, NULL);
+			"pro", NULL, R_UseProProgram);
 }
 
