@@ -148,6 +148,11 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 
 	fs_last_pak = NULL;
 
+	if(!file_name || *file_name == '\0'){
+		Com_Warn("Fs_OpenFile: Missing file name\n");
+		return -1;
+	}
+
 	// open for write or append in game dir and return
 	if(mode == FILE_WRITE || mode == FILE_APPEND){
 
@@ -214,6 +219,7 @@ void Fs_ReadFile(void *buffer, int len, FILE *f){
 	int read;
 
 	read = Fs_Read(buffer, 1, len, f);
+
 	if(read != len){  // read failed, exit
 		Com_Error(ERR_DROP, "Fs_ReadFile: %d bytes read.\n", read);
 	}
@@ -530,7 +536,7 @@ void Fs_GunzipFile(const char *path){
 	size_t r, w;
 	char p[MAX_OSPATH];
 
-	if(!path || !path[0])
+	if(!path || *path[0] == '\0')
 		return;
 
 	strncpy(p, path, sizeof(p));
