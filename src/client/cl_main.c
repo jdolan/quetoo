@@ -80,38 +80,38 @@ extern void Sv_ShutdownServer(const char *msg);
  * compressed frame arrives from the server.
  */
 static void Cl_WriteDemoHeader(void){
-	byte buf_data[MAX_MSG_SIZE];
-	size_buf_t buf;
+	byte buffer[MAX_MSG_SIZE];
+	size_buf_t msg;
 	int i;
 	int len;
 	entity_state_t null_state;
 
 	// write out messages to hold the startup information
-	Sb_Init(&buf, buf_data, sizeof(buf_data));
+	Sb_Init(&msg, buffer, sizeof(buffer));
 
 	// write the server data
-	Msg_WriteByte(&buf, svc_server_data);
-	Msg_WriteLong(&buf, PROTOCOL);
-	Msg_WriteLong(&buf, cl.server_count);
-	Msg_WriteLong(&buf, cl.server_frame_rate);
-	Msg_WriteByte(&buf, 1);  // demo_server byte
-	Msg_WriteString(&buf, cl.gamedir);
-	Msg_WriteShort(&buf, cl.player_num);
-	Msg_WriteString(&buf, cl.config_strings[CS_NAME]);
+	Msg_WriteByte(&msg, svc_server_data);
+	Msg_WriteLong(&msg, PROTOCOL);
+	Msg_WriteLong(&msg, cl.server_count);
+	Msg_WriteLong(&msg, cl.server_frame_rate);
+	Msg_WriteByte(&msg, 1);  // demo_server byte
+	Msg_WriteString(&msg, cl.gamedir);
+	Msg_WriteShort(&msg, cl.player_num);
+	Msg_WriteString(&msg, cl.config_strings[CS_NAME]);
 
 	// and config_strings
 	for(i = 0; i < MAX_CONFIG_STRINGS; i++){
 		if(*cl.config_strings[i] != '\0'){
-			if(buf.size + strlen(cl.config_strings[i]) + 32 > buf.max_size){  // write it out
-				len = LittleLong(buf.size);
+			if(msg.size + strlen(cl.config_strings[i]) + 32 > msg.max_size){  // write it out
+				len = LittleLong(msg.size);
 				Fs_Write(&len, 4, 1, cls.demo_file);
-				Fs_Write(buf.data, buf.size, 1, cls.demo_file);
-				buf.size = 0;
+				Fs_Write(msg.data, msg.size, 1, cls.demo_file);
+				msg.size = 0;
 			}
 
-			Msg_WriteByte(&buf, svc_config_string);
-			Msg_WriteShort(&buf, i);
-			Msg_WriteString(&buf, cl.config_strings[i]);
+			Msg_WriteByte(&msg, svc_config_string);
+			Msg_WriteShort(&msg, i);
+			Msg_WriteString(&msg, cl.config_strings[i]);
 		}
 	}
 
@@ -121,27 +121,27 @@ static void Cl_WriteDemoHeader(void){
 		if(!ent->number)
 			continue;
 
-		if(buf.size + 64 > buf.max_size){  // write it out
-			len = LittleLong(buf.size);
+		if(msg.size + 64 > msg.max_size){  // write it out
+			len = LittleLong(msg.size);
 			Fs_Write(&len, 4, 1, cls.demo_file);
-			Fs_Write(buf.data, buf.size, 1, cls.demo_file);
-			buf.size = 0;
+			Fs_Write(msg.data, msg.size, 1, cls.demo_file);
+			msg.size = 0;
 		}
 
 		memset(&null_state, 0, sizeof(null_state));
 
-		Msg_WriteByte(&buf, svc_spawn_baseline);
-		Msg_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &buf, true, true);
+		Msg_WriteByte(&msg, svc_spawn_baseline);
+		Msg_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &msg, true, true);
 	}
 
-	Msg_WriteByte(&buf, svc_stuff_text);
-	Msg_WriteString(&buf, "precache 0\n");
+	Msg_WriteByte(&msg, svc_stuff_text);
+	Msg_WriteString(&msg, "precache 0\n");
 
 	// write it to the demo file
 
-	len = LittleLong(buf.size);
+	len = LittleLong(msg.size);
 	Fs_Write(&len, 4, 1, cls.demo_file);
-	Fs_Write(buf.data, buf.size, 1, cls.demo_file);
+	Fs_Write(msg.data, msg.size, 1, cls.demo_file);
 
 	Com_Print("Recording to %s.\n", cls.demo_path);
 	// the rest of the demo file will be individual frames
@@ -456,7 +456,7 @@ static void Cl_CheckForResend(void){
 
 	Com_Print("Connecting to %s...\n", cls.server_name);
 
-	Netchan_OutOfBandPrint(NS_CLIENT, addr, "getchallenge\n");
+	Netchan_OutOfBandPrint(NS_CLIENT, addr, "get_challenge\n");
 }
 
 
@@ -464,7 +464,6 @@ static void Cl_CheckForResend(void){
  * Cl_Connect_f
  */
 static void Cl_Connect_f(void){
-
 	char *s;
 
 	if(Cmd_Argc() != 2){
@@ -797,7 +796,8 @@ static void Cl_ReadPackets(void){
 	}
 
 	// check timeout
-	if(cls.state >= ca_connected && cls.real_time - cls.netchan.last_received > cl_timeout->value * 1000){
+	if(cls.state >= ca_connected &&
+			cls.real_time - cls.netchan.last_received > cl_timeout->value * 1000){
 		Com_Print("%s: Timed out.\n", Net_NetaddrToString(net_from));
 		Cl_Disconnect();
 	}

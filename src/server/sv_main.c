@@ -452,7 +452,7 @@ static void Sv_ConnectionlessPacket(void){
 		Svc_Status();
 	else if(!strcmp(c, "info"))
 		Svc_Info();
-	else if(!strcmp(c, "getchallenge"))
+	else if(!strcmp(c, "get_challenge"))
 		Svc_GetChallenge();
 	else if(!strcmp(c, "connect"))
 		Svc_Connect();
