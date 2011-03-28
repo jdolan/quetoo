@@ -134,7 +134,7 @@ static int Cl_Pointcontents(vec3_t point){
 	c_model_t *model;
 	int contents;
 
-	contents = Cm_PointContents(point, r_world_model->firstnode);
+	contents = Cm_PointContents(point, r_world_model->first_node);
 
 	for(i = 0; i < cl.frame.num_entities; i++){
 		const int num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;

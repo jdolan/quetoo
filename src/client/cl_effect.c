@@ -346,7 +346,7 @@ void Cl_GibEffect(const vec3_t org, int count){
 	int i, j;
 
 	// if a player has died underwater, emit some bubbles
-	if(Cm_PointContents(org, r_world_model->firstnode) & MASK_WATER){
+	if(Cm_PointContents(org, r_world_model->first_node) & MASK_WATER){
 		VectorCopy(org, tmp);
 		tmp[2] += 64.0;
 
@@ -583,7 +583,7 @@ void Cl_ExplosionEffect(const vec3_t org){
 
 	i = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(org, r_world_model->firstnode) & i)
+	if(Cm_PointContents(org, r_world_model->first_node) & i)
 		return;
 
 	p->accel[2] = 20;
@@ -640,7 +640,7 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(end, r_world_model->firstnode) & c){
+	if(Cm_PointContents(end, r_world_model->first_node) & c){
 		Cl_BubbleTrail(start, end, 16.0);
 		return;
 	}
@@ -712,7 +712,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(ent->origin, r_world_model->firstnode) & c){
+	if(Cm_PointContents(ent->origin, r_world_model->first_node) & c){
 		VectorMA(ent->origin, 40.0, forward, org2);
 		Cl_BubbleTrail(org, org2, 10.0);
 		return;
@@ -763,7 +763,7 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(end, r_world_model->firstnode) & c){
+	if(Cm_PointContents(end, r_world_model->first_node) & c){
 		Cl_BubbleTrail(start, end, 10.0);
 		return;
 	}
@@ -816,7 +816,7 @@ void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(org, r_world_model->firstnode) & c){
+	if(Cm_PointContents(org, r_world_model->first_node) & c){
 		Cl_BubbleTrail(org, end, 10.0);
 		return;
 	}
@@ -970,7 +970,7 @@ void Cl_RailTrail(const vec3_t start, const vec3_t end, int flags, int color){
 		p->color = color;
 
 		// check for bubble trail
-		if(i && Cm_PointContents(move, r_world_model->firstnode) &
+		if(i && Cm_PointContents(move, r_world_model->first_node) &
 				(CONTENTS_SLIME | CONTENTS_WATER)){
 			Cl_BubbleTrail(move, p->org, 16.0);
 		}
@@ -1105,7 +1105,7 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(ent->current.origin, r_world_model->firstnode) & c)
+	if(Cm_PointContents(ent->current.origin, r_world_model->first_node) & c)
 		Cl_BubbleTrail(ent->prev.origin, ent->current.origin, 1.0);
 }
 
@@ -1146,7 +1146,7 @@ void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(ent->origin, r_world_model->firstnode) & c){
+	if(Cm_PointContents(ent->origin, r_world_model->first_node) & c){
 		VectorMA(ent->origin, 40.0, forward, org2);
 		Cl_BubbleTrail(org, org2, 10.0);
 		return;

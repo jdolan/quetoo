@@ -231,8 +231,8 @@ static void R_SetupBspSubmodels(void){
 		VectorCopy(sub->mins, mod->mins);
 		mod->radius = sub->radius;
 
-		mod->firstnode = sub->head_node;
-		mod->nodes = &r_load_model->nodes[mod->firstnode];
+		mod->first_node = sub->head_node;
+		mod->nodes = &r_load_model->nodes[mod->first_node];
 
 		R_SetupBspSubmodel(mod->nodes, mod);
 
@@ -481,6 +481,7 @@ static void R_LoadBspNodes(const d_bsp_lump_t *l){
 
 		out->first_surface = LittleShort(in->first_face);
 		out->num_surfaces = LittleShort(in->num_faces);
+
 		out->contents = CONTENTS_NODE;  // differentiate from leafs
 
 		for(j = 0; j < 2; j++){
@@ -528,7 +529,7 @@ static void R_LoadBspLeafs(const d_bsp_lump_t *l){
 		out->area = LittleShort(in->area);
 
 		out->first_leaf_surface = r_load_model->leafsurfaces +
-				LittleShort(in->first_leaf_face);
+				((unsigned short)LittleShort(in->first_leaf_face));
 
 		out->num_leaf_surfaces = LittleShort(in->num_leaf_faces);
 	}

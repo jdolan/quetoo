@@ -177,7 +177,7 @@ void R_Trace(const vec3_t start, const vec3_t end, float size, int mask){
 	VectorSet(maxs, size, size, size);
 
 	// check world
-	r_view.trace = Cm_BoxTrace(start, end, mins, maxs, r_world_model->firstnode, mask);
+	r_view.trace = Cm_BoxTrace(start, end, mins, maxs, r_world_model->first_node, mask);
 	r_view.trace_ent = NULL;
 
 	frac = r_view.trace.fraction;
@@ -191,7 +191,7 @@ void R_Trace(const vec3_t start, const vec3_t end, float size, int mask){
 		if(!m || m->type != mod_bsp_submodel)
 			continue;
 
-		tr = Cm_TransformedBoxTrace(start, end, mins, maxs, m->firstnode,
+		tr = Cm_TransformedBoxTrace(start, end, mins, maxs, m->first_node,
 				mask, ent->origin, ent->angles);
 
 		if(tr.fraction < frac){

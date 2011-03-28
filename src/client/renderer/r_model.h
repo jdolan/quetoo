@@ -73,13 +73,12 @@ typedef struct {
 	int frame;  // renderer frame
 	int back_frame;  // back-facing renderer frame
 	int light_frame;  // dynamic lighting frame
-	int trace_num;  // lightmap trace lookups
 
 	c_plane_t *plane;
 	int flags;  // MSURF_ flags
 
-	int first_edge;  // look up in model->surfedges[], negative numbers
-	int num_edges;  // are backwards edges
+	unsigned int first_edge;  // look up in model->surf_edges, negative numbers
+	unsigned int num_edges;  // are backwards edges
 
 	vec3_t mins;
 	vec3_t maxs;
@@ -162,8 +161,8 @@ typedef struct {
 	struct model_s *model;
 
 	// leaf specific
-	int cluster;
-	int area;
+	short cluster;
+	short area;
 
 	r_bsp_surface_t **first_leaf_surface;
 	int num_leaf_surfaces;
@@ -292,7 +291,7 @@ typedef struct r_model_s {
 	r_bsp_edge_t *edges;
 
 	int num_nodes;
-	int firstnode;
+	int first_node;
 	r_bsp_node_t *nodes;
 
 	int num_texinfo;

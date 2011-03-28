@@ -235,8 +235,8 @@ typedef struct r_locals_s {
 	float saturation;
 	float contrast;
 
-	int cluster;  // PVS at origin
-	int old_cluster;
+	short cluster;  // PVS at origin
+	short old_cluster;
 
 	int vis_frame;  // PVS frame
 
