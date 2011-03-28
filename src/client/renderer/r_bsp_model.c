@@ -528,7 +528,7 @@ static void R_LoadBspLeafs(const d_bsp_lump_t *l){
 		out->cluster = LittleShort(in->cluster);
 		out->area = LittleShort(in->area);
 
-		out->first_leaf_surface = r_load_model->leafsurfaces +
+		out->first_leaf_surface = r_load_model->leaf_surfaces +
 				((unsigned short)LittleShort(in->first_leaf_face));
 
 		out->num_leaf_surfaces = LittleShort(in->num_leaf_faces);
@@ -552,7 +552,7 @@ static void R_LoadBspLeafsurfaces(const d_bsp_lump_t *l){
 	count = l->file_len / sizeof(*in);
 	out = R_HunkAlloc(count * sizeof(*out));
 
-	r_load_model->leafsurfaces = out;
+	r_load_model->leaf_surfaces = out;
 	r_load_model->num_leaf_surfaces = count;
 
 	for(i = 0; i < count; i++){

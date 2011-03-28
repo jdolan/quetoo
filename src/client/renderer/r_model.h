@@ -304,7 +304,7 @@ typedef struct r_model_s {
 	int *surfedges;
 
 	int num_leaf_surfaces;
-	r_bsp_surface_t **leafsurfaces;
+	r_bsp_surface_t **leaf_surfaces;
 
 	int vis_size;
 	d_bsp_vis_t *vis;
