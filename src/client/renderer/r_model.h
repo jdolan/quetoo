@@ -291,8 +291,8 @@ typedef struct r_model_s {
 	r_bsp_edge_t *edges;
 
 	int num_nodes;
-	int first_node;
 	r_bsp_node_t *nodes;
+	int first_node;
 
 	int num_texinfo;
 	r_bsp_texinfo_t *texinfo;
@@ -300,8 +300,8 @@ typedef struct r_model_s {
 	int num_surfaces;
 	r_bsp_surface_t *surfaces;
 
-	int num_surf_edges;
-	int *surfedges;
+	int num_surface_edges;
+	int *surface_edges;
 
 	int num_leaf_surfaces;
 	r_bsp_surface_t **leaf_surfaces;
@@ -350,7 +350,10 @@ typedef struct r_model_s {
 
 #define MAX_MOD_KNOWN 512
 extern r_model_t r_models[MAX_MOD_KNOWN];
-extern r_model_t r_inline_models[MAX_MOD_KNOWN];
+extern r_model_t r_inline_models[MAX_BSP_MODELS];
+
+extern r_model_t *r_world_model;
+extern r_model_t *r_load_model;
 
 void *R_HunkAlloc(size_t size);
 void R_AllocVertexArrays(r_model_t *mod);

@@ -35,7 +35,7 @@ typedef struct d_bsp_s {
 	byte lightmap_data[MAX_BSP_LIGHTING];
 
 	int entity_string_len;
-	char entity_string[MAX_BSP_ENTSTRING];
+	char entity_string[MAX_BSP_ENT_STRING];
 
 	int num_leafs;
 	d_bsp_leaf_t leafs[MAX_BSP_LEAFS];
@@ -62,25 +62,25 @@ typedef struct d_bsp_s {
 	d_bsp_edge_t edges[MAX_BSP_EDGES];
 
 	int num_leaf_faces;
-	unsigned short leaf_faces[MAX_BSP_LEAFFACES];
+	unsigned short leaf_faces[MAX_BSP_LEAF_FACES];
 
 	int num_leaf_brushes;
-	unsigned short leaf_brushes[MAX_BSP_LEAFBRUSHES];
+	unsigned short leaf_brushes[MAX_BSP_LEAF_BRUSHES];
 
-	int num_surf_edges;
-	int surf_edges[MAX_BSP_SURFEDGES];
+	int num_face_edges;
+	int face_edges[MAX_BSP_FACE_EDGES];
 
 	int num_areas;
 	d_bsp_area_t areas[MAX_BSP_AREAS];
 
 	int num_area_portals;
-	d_bsp_area_portal_t area_portals[MAX_BSP_AREAPORTALS];
+	d_bsp_area_portal_t area_portals[MAX_BSP_AREA_PORTALS];
 
 	int num_brushes;
 	d_bsp_brush_t brushes[MAX_BSP_BRUSHES];
 
 	int num_brush_sides;
-	d_bsp_brush_side_t brush_sides[MAX_BSP_BRUSHSIDES];
+	d_bsp_brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
 
 	byte dpop[256];
 } d_bsp_t;

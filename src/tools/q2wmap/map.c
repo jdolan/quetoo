@@ -284,8 +284,8 @@ static void AddBrushBevels(map_brush_t * b){
 			}
 
 			if(i == b->num_sides){ // add a new side
-				if(num_map_brush_sides == MAX_BSP_BRUSHSIDES)
-					Com_Error(ERR_FATAL, "MAX_BSP_BRUSHSIDES\n");
+				if(num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
+					Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 				num_map_brush_sides++;
 				b->num_sides++;
 				VectorClear(normal);
@@ -380,8 +380,8 @@ static void AddBrushBevels(map_brush_t * b){
 					if(k != b->num_sides)
 						continue;	  // wasn't part of the outer hull
 					// add this plane
-					if(num_map_brush_sides == MAX_BSP_BRUSHSIDES)
-						Com_Error(ERR_FATAL, "MAX_BSP_BRUSHSIDES\n");
+					if(num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
+						Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 					num_map_brush_sides++;
 					s2 = &b->original_sides[b->num_sides];
 					s2->plane_num = FindFloatPlane(normal, dist);
@@ -505,8 +505,8 @@ static void ParseBrush(entity_t *mapent){
 		if(!strcmp(token, "}"))
 			break;
 
-		if(num_map_brush_sides == MAX_BSP_BRUSHSIDES)
-			Com_Error(ERR_FATAL, "MAX_BSP_BRUSHSIDES\n");
+		if(num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
+			Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 		side = &map_brush_sides[num_map_brush_sides];
 
 		// read the three point plane definition
@@ -804,7 +804,7 @@ static qboolean ParseMapEntity(void){
 			      num_entities - 1);
 
 		b = &map_brushes[num_map_brushes - 1];
-		b->contents = CONTENTS_AREAPORTAL;
+		b->contents = CONTENTS_AREA_PORTAL;
 		c_areaportals++;
 		mapent->areaportal_num = c_areaportals;
 		// set the portal number as "style"

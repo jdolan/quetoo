@@ -315,9 +315,6 @@ extern cvar_t *r_width;
 extern cvar_t *r_windowed_height;
 extern cvar_t *r_windowed_width;
 
-extern r_model_t *r_world_model;
-extern r_model_t *r_load_model;
-
 // rendermode function pointers
 extern void (*R_DrawOpaqueSurfaces)(r_bsp_surfaces_t *surfs);
 extern void (*R_DrawOpaqueWarpSurfaces)(r_bsp_surfaces_t *surfs);

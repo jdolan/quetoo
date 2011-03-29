@@ -321,7 +321,7 @@ static void R_SetupBspSurface(r_bsp_surface_t *surf){
 	tex = surf->texinfo;
 
 	for(i = 0; i < surf->num_edges; i++){
-		const int e = r_load_model->surfedges[surf->first_edge + i];
+		const int e = r_load_model->surface_edges[surf->first_edge + i];
 		if(e >= 0)
 			v = &r_load_model->vertexes[r_load_model->edges[e].v[0]];
 		else
@@ -537,16 +537,16 @@ static void R_LoadBspLeafs(const d_bsp_lump_t *l){
 
 
 /*
- * R_LoadBspLeafsurfaces
+ * R_LoadBspLeafSurfaces
  */
-static void R_LoadBspLeafsurfaces(const d_bsp_lump_t *l){
+static void R_LoadBspLeafSurfaces(const d_bsp_lump_t *l){
 	int i, count;
 	const unsigned short *in;
 	r_bsp_surface_t **out;
 
 	in = (const void *)(mod_base + l->file_ofs);
 	if(l->file_len % sizeof(*in)){
-		Com_Error(ERR_DROP, "R_LoadBspLeafsurfaces: Funny lump size in %s.", r_load_model->name);
+		Com_Error(ERR_DROP, "R_LoadBspLeafSurfaces: Funny lump size in %s.", r_load_model->name);
 	}
 
 	count = l->file_len / sizeof(*in);
@@ -560,7 +560,7 @@ static void R_LoadBspLeafsurfaces(const d_bsp_lump_t *l){
 		const unsigned short j = (unsigned short)LittleShort(in[i]);
 
 		if(j >= r_load_model->num_surfaces){
-			Com_Error(ERR_DROP, "R_LoadBspLeafsurfaces: Bad surface number: %d.", j);
+			Com_Error(ERR_DROP, "R_LoadBspLeafSurfaces: Bad surface number: %d.", j);
 		}
 
 		out[i] = r_load_model->surfaces + j;
@@ -569,27 +569,27 @@ static void R_LoadBspLeafsurfaces(const d_bsp_lump_t *l){
 
 
 /*
- * R_LoadBspSurfedges
+ * R_LoadBspSurfaceEdges
  */
-static void R_LoadBspSurfedges(const d_bsp_lump_t *l){
+static void R_LoadBspSurfaceEdges(const d_bsp_lump_t *l){
 	int i, count;
 	const int *in;
 	int *out;
 
 	in = (const void *)(mod_base + l->file_ofs);
 	if(l->file_len % sizeof(*in)){
-		Com_Error(ERR_DROP, "R_LoadBspSurfedges: Funny lump size in %s.", r_load_model->name);
+		Com_Error(ERR_DROP, "R_LoadBspSurfaceEdges: Funny lump size in %s.", r_load_model->name);
 	}
 
 	count = l->file_len / sizeof(*in);
-	if(count < 1 || count >= MAX_BSP_SURFEDGES){
-		Com_Error(ERR_DROP, "R_LoadBspSurfedges: Bad surfedges count: %i.", count);
+	if(count < 1 || count >= MAX_BSP_FACE_EDGES){
+		Com_Error(ERR_DROP, "R_LoadBspSurfaceEdges: Bad surfface edges count: %i.", count);
 	}
 
 	out = R_HunkAlloc(count * sizeof(*out));
 
-	r_load_model->surfedges = out;
-	r_load_model->num_surf_edges = count;
+	r_load_model->surface_edges = out;
+	r_load_model->num_surface_edges = count;
 
 	for(i = 0; i < count; i++)
 		out[i] = LittleLong(in[i]);
@@ -673,7 +673,7 @@ static void R_LoadBspVertexArrays(void){
 		surf->index = vertind / 3;
 
 		for(j = 0; j < surf->num_edges; j++){
-			const int index = r_load_model->surfedges[surf->first_edge + j];
+			const int index = r_load_model->surface_edges[surf->first_edge + j];
 
 			// vertex
 			if(index > 0){  // negative indices to differentiate which end of the edge
@@ -750,7 +750,7 @@ static void R_LoadBspVertexArrays(void){
 	for(i = 0; i < r_load_model->num_surfaces; i++, surf++){
 
 		for(j = 0; j < surf->num_edges; j++){
-			const int index = r_load_model->surfedges[surf->first_edge + j];
+			const int index = r_load_model->surface_edges[surf->first_edge + j];
 
 			// vertex
 			if(index > 0){  // negative indices to differentiate which end of the edge
@@ -1024,7 +1024,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer){
 	R_LoadBspEdges(&header->lumps[LUMP_EDGES]);
 	Cl_LoadProgress( 8);
 
-	R_LoadBspSurfedges(&header->lumps[LUMP_SURFEDGES]);
+	R_LoadBspSurfaceEdges(&header->lumps[LUMP_FACE_EDGES]);
 	Cl_LoadProgress(12);
 
 	R_LoadBspLightmaps(&header->lumps[LUMP_LIGHMAPS]);
@@ -1039,7 +1039,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer){
 	R_LoadBspSurfaces(&header->lumps[LUMP_FACES]);
 	Cl_LoadProgress(28);
 
-	R_LoadBspLeafsurfaces(&header->lumps[LUMP_LEAFFACES]);
+	R_LoadBspLeafSurfaces(&header->lumps[LUMP_LEAF_FACES]);
 	Cl_LoadProgress(32);
 
 	R_LoadBspVisibility(&header->lumps[LUMP_VISIBILITY]);
@@ -1058,16 +1058,16 @@ void R_LoadBspModel(r_model_t *mod, void *buffer){
 
 	Com_Debug("================================\n");
 	Com_Debug("R_LoadBspModel: %s\n", r_load_model->name);
-	Com_Debug("  Verts:      %d\n", r_load_model->num_vertexes);
-	Com_Debug("  Edges:      %d\n", r_load_model->num_edges);
-	Com_Debug("  Surfedges:  %d\n", r_load_model->num_surf_edges);
-	Com_Debug("  Faces:      %d\n", r_load_model->num_surfaces);
-	Com_Debug("  Nodes:      %d\n", r_load_model->num_nodes);
-	Com_Debug("  Leafs:      %d\n", r_load_model->num_leafs);
-	Com_Debug("  Leaf faces: %d\n", r_load_model->num_leaf_surfaces);
-	Com_Debug("  Models:     %d\n", r_load_model->num_submodels);
-	Com_Debug("  Lightmaps:  %d\n", r_load_model->lightmap_data_size);
-	Com_Debug("  Vis:        %d\n", r_load_model->vis_size);
+	Com_Debug("  Verts:          %d\n", r_load_model->num_vertexes);
+	Com_Debug("  Edges:          %d\n", r_load_model->num_edges);
+	Com_Debug("  Surface edges:  %d\n", r_load_model->num_surface_edges);
+	Com_Debug("  Faces:          %d\n", r_load_model->num_surfaces);
+	Com_Debug("  Nodes:          %d\n", r_load_model->num_nodes);
+	Com_Debug("  Leafs:          %d\n", r_load_model->num_leafs);
+	Com_Debug("  Leaf surfaces:  %d\n", r_load_model->num_leaf_surfaces);
+	Com_Debug("  Models:         %d\n", r_load_model->num_submodels);
+	Com_Debug("  Lightmaps:      %d\n", r_load_model->lightmap_data_size);
+	Com_Debug("  Vis:            %d\n", r_load_model->vis_size);
 
 	if(r_load_model->vis)
 		Com_Debug("  Clusters:   %d\n", r_load_model->vis->num_clusters);

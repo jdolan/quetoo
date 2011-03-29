@@ -200,30 +200,30 @@ typedef struct {
 #define BSP_VERSION_ 69  // haha, 69..
 
 // upper design bounds
-// leaffaces, leafbrushes, planes, and verts are still bounded by
+// leaf faces, leaf brushes, planes, and vertexes are still bounded by
 // 16 bit short limits
-#define MAX_BSP_MODELS		1024
-#define MAX_BSP_BRUSHES		16384
-#define MAX_BSP_ENTITIES	2048
-#define MAX_BSP_ENTSTRING	0x40000
-#define MAX_BSP_TEXINFO		16384
+#define MAX_BSP_MODELS			1024
+#define MAX_BSP_BRUSHES			16384
+#define MAX_BSP_ENTITIES		2048
+#define MAX_BSP_ENT_STRING		0x40000
+#define MAX_BSP_TEXINFO			16384
 
-#define MAX_BSP_AREAS		256
-#define MAX_BSP_AREAPORTALS	1024
-#define MAX_BSP_PLANES		65536
-#define MAX_BSP_NODES		65536
-#define MAX_BSP_BRUSHSIDES	65536
-#define MAX_BSP_LEAFS		65536
-#define MAX_BSP_VERTS		65536
-#define MAX_BSP_FACES		65536
-#define MAX_BSP_LEAFFACES	65536
-#define MAX_BSP_LEAFBRUSHES 65536
-#define MAX_BSP_PORTALS		65536
-#define MAX_BSP_EDGES		128000
-#define MAX_BSP_SURFEDGES	256000
-#define MAX_BSP_LIGHTING	0x10000000  // increased from 0x200000
-#define MAX_BSP_LIGHTMAP	(512 * 512)
-#define MAX_BSP_VISIBILITY	0x400000 // increased from 0x100000
+#define MAX_BSP_AREAS			256
+#define MAX_BSP_AREA_PORTALS	1024
+#define MAX_BSP_PLANES			65536
+#define MAX_BSP_NODES			65536
+#define MAX_BSP_BRUSH_SIDES		65536
+#define MAX_BSP_LEAFS			65536
+#define MAX_BSP_VERTS			65536
+#define MAX_BSP_FACES			65536
+#define MAX_BSP_LEAF_FACES		65536
+#define MAX_BSP_LEAF_BRUSHES 	65536
+#define MAX_BSP_PORTALS			65536
+#define MAX_BSP_EDGES			128000
+#define MAX_BSP_FACE_EDGES		256000
+#define MAX_BSP_LIGHTING		0x10000000  // increased from 0x200000
+#define MAX_BSP_LIGHTMAP		(512 * 512)
+#define MAX_BSP_VISIBILITY		0x400000 // increased from 0x100000
 
 // key / value pair sizes
 
@@ -243,16 +243,16 @@ typedef struct {
 #define LUMP_FACES			6
 #define LUMP_LIGHMAPS		7
 #define LUMP_LEAFS			8
-#define LUMP_LEAFFACES		9
-#define LUMP_LEAFBRUSHES	10
+#define LUMP_LEAF_FACES		9
+#define LUMP_LEAF_BRUSHES	10
 #define LUMP_EDGES			11
-#define LUMP_SURFEDGES		12
+#define LUMP_FACE_EDGES		12
 #define LUMP_MODELS			13
 #define LUMP_BRUSHES		14
-#define LUMP_BRUSHSIDES		15
+#define LUMP_BRUSH_SIDES		15
 #define LUMP_POP			16
 #define LUMP_AREAS			17
-#define LUMP_AREAPORTALS	18
+#define LUMP_AREA_PORTALS	18
 #define LUMP_NORMALS		19  // new for q2w
 #define HEADER_LUMPS		20
 

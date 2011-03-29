@@ -32,10 +32,10 @@ static void R_SetSurfaceState_default(r_bsp_surface_t *surf){
 	if(r_state.blend_enabled){  // alpha blend
 		switch(surf->texinfo->flags & (SURF_BLEND33 | SURF_BLEND66)){
 			case SURF_BLEND33:
-				a = 0.20;
+				a = 0.33;
 				break;
 			case SURF_BLEND66:
-				a = 0.40;
+				a = 0.66;
 				break;
 			default:  // both flags mean use the texture's alpha channel
 				a = 1.0;

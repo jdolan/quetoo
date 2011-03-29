@@ -183,8 +183,8 @@ static void SwapBSPFile(qboolean todisk){
 		d_bsp.leaf_brushes[i] = LittleShort(d_bsp.leaf_brushes[i]);
 
 	// surf edges
-	for(i = 0; i < d_bsp.num_surf_edges; i++)
-		d_bsp.surf_edges[i] = LittleLong(d_bsp.surf_edges[i]);
+	for(i = 0; i < d_bsp.num_face_edges; i++)
+		d_bsp.face_edges[i] = LittleLong(d_bsp.face_edges[i]);
 
 	// edges
 	for(i = 0; i < d_bsp.num_edges; i++){
@@ -280,14 +280,14 @@ void LoadBSPFile(char *file_name){
 	d_bsp.num_nodes = CopyLump(LUMP_NODES, d_bsp.nodes, sizeof(d_bsp_node_t));
 	d_bsp.num_texinfo = CopyLump(LUMP_TEXINFO, d_bsp.texinfo, sizeof(d_bsp_texinfo_t));
 	d_bsp.num_faces = CopyLump(LUMP_FACES, d_bsp.faces, sizeof(d_bsp_face_t));
-	d_bsp.num_leaf_faces = CopyLump(LUMP_LEAFFACES, d_bsp.leaf_faces, sizeof(d_bsp.leaf_faces[0]));
-	d_bsp.num_leaf_brushes = CopyLump(LUMP_LEAFBRUSHES, d_bsp.leaf_brushes, sizeof(d_bsp.leaf_brushes[0]));
-	d_bsp.num_surf_edges = CopyLump(LUMP_SURFEDGES, d_bsp.surf_edges, sizeof(d_bsp.surf_edges[0]));
+	d_bsp.num_leaf_faces = CopyLump(LUMP_LEAF_FACES, d_bsp.leaf_faces, sizeof(d_bsp.leaf_faces[0]));
+	d_bsp.num_leaf_brushes = CopyLump(LUMP_LEAF_BRUSHES, d_bsp.leaf_brushes, sizeof(d_bsp.leaf_brushes[0]));
+	d_bsp.num_face_edges = CopyLump(LUMP_FACE_EDGES, d_bsp.face_edges, sizeof(d_bsp.face_edges[0]));
 	d_bsp.num_edges = CopyLump(LUMP_EDGES, d_bsp.edges, sizeof(d_bsp_edge_t));
 	d_bsp.num_brushes = CopyLump(LUMP_BRUSHES, d_bsp.brushes, sizeof(d_bsp_brush_t));
-	d_bsp.num_brush_sides = CopyLump(LUMP_BRUSHSIDES, d_bsp.brush_sides, sizeof(d_bsp_brush_side_t));
+	d_bsp.num_brush_sides = CopyLump(LUMP_BRUSH_SIDES, d_bsp.brush_sides, sizeof(d_bsp_brush_side_t));
 	d_bsp.num_areas = CopyLump(LUMP_AREAS, d_bsp.areas, sizeof(d_bsp_area_t));
-	d_bsp.num_area_portals = CopyLump(LUMP_AREAPORTALS, d_bsp.area_portals, sizeof(d_bsp_area_portal_t));
+	d_bsp.num_area_portals = CopyLump(LUMP_AREA_PORTALS, d_bsp.area_portals, sizeof(d_bsp_area_portal_t));
 
 	d_bsp.vis_data_size = CopyLump(LUMP_VISIBILITY, d_bsp.vis_data, 1);
 	d_bsp.lightmap_data_size = CopyLump(LUMP_LIGHMAPS, d_bsp.lightmap_data, 1);
@@ -401,14 +401,14 @@ void WriteBSPFile(char *file_name){
 	AddLump(LUMP_TEXINFO, d_bsp.texinfo, d_bsp.num_texinfo * sizeof(d_bsp_texinfo_t));
 	AddLump(LUMP_FACES, d_bsp.faces, d_bsp.num_faces * sizeof(d_bsp_face_t));
 	AddLump(LUMP_BRUSHES, d_bsp.brushes, d_bsp.num_brushes * sizeof(d_bsp_brush_t));
-	AddLump(LUMP_BRUSHSIDES, d_bsp.brush_sides, d_bsp.num_brush_sides * sizeof(d_bsp_brush_side_t));
-	AddLump(LUMP_LEAFFACES, d_bsp.leaf_faces, d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0]));
-	AddLump(LUMP_LEAFBRUSHES, d_bsp.leaf_brushes, d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0]));
-	AddLump(LUMP_SURFEDGES, d_bsp.surf_edges, d_bsp.num_surf_edges * sizeof(d_bsp.surf_edges[0]));
+	AddLump(LUMP_BRUSH_SIDES, d_bsp.brush_sides, d_bsp.num_brush_sides * sizeof(d_bsp_brush_side_t));
+	AddLump(LUMP_LEAF_FACES, d_bsp.leaf_faces, d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0]));
+	AddLump(LUMP_LEAF_BRUSHES, d_bsp.leaf_brushes, d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0]));
+	AddLump(LUMP_FACE_EDGES, d_bsp.face_edges, d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0]));
 	AddLump(LUMP_EDGES, d_bsp.edges, d_bsp.num_edges * sizeof(d_bsp_edge_t));
 	AddLump(LUMP_MODELS, d_bsp.models, d_bsp.num_models * sizeof(d_bsp_model_t));
 	AddLump(LUMP_AREAS, d_bsp.areas, d_bsp.num_areas * sizeof(d_bsp_area_t));
-	AddLump(LUMP_AREAPORTALS, d_bsp.area_portals, d_bsp.num_area_portals * sizeof(d_bsp_area_portal_t));
+	AddLump(LUMP_AREA_PORTALS, d_bsp.area_portals, d_bsp.num_area_portals * sizeof(d_bsp_area_portal_t));
 
 	AddLump(LUMP_LIGHMAPS, d_bsp.lightmap_data, d_bsp.lightmap_data_size);
 	AddLump(LUMP_VISIBILITY, d_bsp.vis_data, d_bsp.vis_data_size);
@@ -471,8 +471,8 @@ void PrintBSPFileSizes(void) {
 	Com_Verbose("%5i leaf_brushes %7i\n", d_bsp.num_leaf_brushes,
 			(int) (d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0])));
 
-	Com_Verbose("%5i surf_edges   %7i\n", d_bsp.num_surf_edges,
-			(int) (d_bsp.num_surf_edges * sizeof(d_bsp.surf_edges[0])));
+	Com_Verbose("%5i surf_edges   %7i\n", d_bsp.num_face_edges,
+			(int) (d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0])));
 
 	Com_Verbose("%5i edges        %7i\n", d_bsp.num_edges,
 			(int) (d_bsp.num_edges * sizeof(d_bsp_edge_t)));
@@ -618,7 +618,7 @@ void UnparseEntities(void){
 		strcat(end,"}\n");
 		end += 2;
 
-		if(end > buf + MAX_BSP_ENTSTRING)
+		if(end > buf + MAX_BSP_ENT_STRING)
 			Com_Error(ERR_FATAL, "Entity text too long\n");
 	}
 

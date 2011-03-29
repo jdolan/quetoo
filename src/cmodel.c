@@ -57,7 +57,7 @@ typedef struct c_bsp_s {
 	byte *base;
 
 	int num_brush_sides;
-	c_brush_side_t brush_sides[MAX_BSP_BRUSHSIDES];
+	c_brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
 
 	int num_surfaces;
 	c_surface_t surfaces[MAX_BSP_TEXINFO];
@@ -73,7 +73,7 @@ typedef struct c_bsp_s {
 	int empty_leaf, solid_leaf;
 
 	int num_leaf_brushes;
-	unsigned short leaf_brushes[MAX_BSP_LEAFBRUSHES];
+	unsigned short leaf_brushes[MAX_BSP_LEAF_BRUSHES];
 
 	int num_models;
 	c_model_t models[MAX_BSP_MODELS];
@@ -85,13 +85,13 @@ typedef struct c_bsp_s {
 	byte visibility[MAX_BSP_VISIBILITY];
 
 	int entity_string_len;
-	char entity_string[MAX_BSP_ENTSTRING];
+	char entity_string[MAX_BSP_ENT_STRING];
 
 	int num_areas;
 	c_area_t areas[MAX_BSP_AREAS];
 
 	int num_area_portals;
-	d_bsp_area_portal_t area_portals[MAX_BSP_AREAPORTALS];
+	d_bsp_area_portal_t area_portals[MAX_BSP_AREA_PORTALS];
 
 	int num_clusters;
 
@@ -99,7 +99,7 @@ typedef struct c_bsp_s {
 
 	int flood_valid;
 
-	qboolean portal_open[MAX_BSP_AREAPORTALS];
+	qboolean portal_open[MAX_BSP_AREA_PORTALS];
 } c_bsp_t;
 
 static c_bsp_t cm_bsp;
@@ -361,7 +361,7 @@ static void Cm_LoadLeafBrushes(const d_bsp_lump_t *l){
 		Com_Error(ERR_DROP, "Cm_LoadLeafBrushes: Map with no planes.\n");
 	}
 	// need to save space for box planes
-	if(count > MAX_BSP_LEAFBRUSHES){
+	if(count > MAX_BSP_LEAF_BRUSHES){
 		Com_Error(ERR_DROP, "Cm_LoadLeafBrushes: Map has too many leafbrushes.\n");
 	}
 
@@ -390,7 +390,7 @@ static void Cm_LoadBrushSides(const d_bsp_lump_t *l){
 	count = l->file_len / sizeof(*in);
 
 	// need to save space for box planes
-	if(count > MAX_BSP_BRUSHSIDES){
+	if(count > MAX_BSP_BRUSH_SIDES){
 		Com_Error(ERR_DROP, "Cm_LoadBrushSides: Map has too many planes.\n");
 	}
 
@@ -497,7 +497,7 @@ static void Cm_LoadEntityString(const d_bsp_lump_t *l){
 
 	cm_bsp.entity_string_len = l->file_len;
 
-	if(l->file_len > MAX_BSP_ENTSTRING){
+	if(l->file_len > MAX_BSP_ENT_STRING){
 		Com_Error(ERR_DROP, "Cm_LoadEntityString: Map has too large entity lump.\n");
 	}
 
@@ -549,14 +549,14 @@ c_model_t *Cm_LoadBsp(const char *name, int *size){
 	// load into heap
 	Cm_LoadSurfaces(&header.lumps[LUMP_TEXINFO]);
 	Cm_LoadLeafs(&header.lumps[LUMP_LEAFS]);
-	Cm_LoadLeafBrushes(&header.lumps[LUMP_LEAFBRUSHES]);
+	Cm_LoadLeafBrushes(&header.lumps[LUMP_LEAF_BRUSHES]);
 	Cm_LoadPlanes(&header.lumps[LUMP_PLANES]);
 	Cm_LoadBrushes(&header.lumps[LUMP_BRUSHES]);
-	Cm_LoadBrushSides(&header.lumps[LUMP_BRUSHSIDES]);
+	Cm_LoadBrushSides(&header.lumps[LUMP_BRUSH_SIDES]);
 	Cm_LoadSubmodels(&header.lumps[LUMP_MODELS]);
 	Cm_LoadNodes(&header.lumps[LUMP_NODES]);
 	Cm_LoadAreas(&header.lumps[LUMP_AREAS]);
-	Cm_LoadAreaPortals(&header.lumps[LUMP_AREAPORTALS]);
+	Cm_LoadAreaPortals(&header.lumps[LUMP_AREA_PORTALS]);
 	Cm_LoadVisibility(&header.lumps[LUMP_VISIBILITY]);
 	Cm_LoadEntityString(&header.lumps[LUMP_ENTITIES]);
 
@@ -677,8 +677,8 @@ static void Cm_InitBoxHull(void){
 	cm_box.planes = &cm_bsp.planes[cm_bsp.num_planes];
 	if(cm_bsp.num_nodes + 6 > MAX_BSP_NODES
 			|| cm_bsp.num_brushes + 1 > MAX_BSP_BRUSHES
-			|| cm_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAFBRUSHES
-			|| cm_bsp.num_brush_sides + 6 > MAX_BSP_BRUSHSIDES
+			|| cm_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES
+			|| cm_bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES
 			|| cm_bsp.num_planes + 12 > MAX_BSP_PLANES){
 		Com_Error(ERR_DROP, "Cm_InitBoxHull: Not enough room for box tree.\n");
 	}
@@ -1463,7 +1463,7 @@ byte *Cm_ClusterPHS(int cluster){
 
 /*
  *
- * AREAPORTALS
+ * AREA_PORTALS
  *
  */
 

@@ -24,7 +24,7 @@
 r_model_t r_models[MAX_MOD_KNOWN];
 int r_num_models;
 
-r_model_t r_inline_models[MAX_MOD_KNOWN];
+r_model_t r_inline_models[MAX_BSP_MODELS];
 
 r_model_t *r_world_model;
 r_model_t *r_load_model;
@@ -60,7 +60,7 @@ void *R_HunkAlloc(size_t size){
 	byte *b;
 
 	if(r_hunk.offset + size > r_hunk.size){
-		Com_Error(ERR_FATAL, "R_HunkAlloc: Overflow.");
+		Com_Error(ERR_DROP, "R_HunkAlloc: Overflow.");
 	}
 
 	b = r_hunk.base + r_hunk.offset;

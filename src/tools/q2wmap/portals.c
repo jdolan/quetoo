@@ -646,7 +646,7 @@ static void FloodAreas_r(node_t * node){
 	portal_t *p;
 	int s;
 
-	if(node->contents == CONTENTS_AREAPORTAL){
+	if(node->contents == CONTENTS_AREA_PORTAL){
 		// this node is part of an area portal
 		const bsp_brush_t *b = node->brushes;
 		entity_t *e = &entities[b->original->entity_num];
@@ -713,7 +713,7 @@ static void FindAreas_r(node_t * node){
 
 	// area portals are always only flooded into, never
 	// out of
-	if(node->contents == CONTENTS_AREAPORTAL)
+	if(node->contents == CONTENTS_AREA_PORTAL)
 		return;
 
 	c_areas++;
@@ -738,7 +738,7 @@ static void SetAreaPortalAreas_r(node_t * node){
 		return;
 	}
 
-	if(node->contents == CONTENTS_AREAPORTAL){
+	if(node->contents == CONTENTS_AREA_PORTAL){
 		if(node->area)
 			return;					  // already set
 
@@ -798,7 +798,7 @@ void EmitAreaPortals(node_t * head_node){
 /*
  * FloodAreas
  *
- * Mark each leaf with an area, bounded by CONTENTS_AREAPORTAL
+ * Mark each leaf with an area, bounded by CONTENTS_AREA_PORTAL
  */
 void FloodAreas(tree_t * tree){
 	Com_Verbose("--- FloodAreas ---\n");

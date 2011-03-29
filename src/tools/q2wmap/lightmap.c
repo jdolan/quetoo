@@ -84,7 +84,7 @@ static void BuildFaceExtents(void){
 		st_maxs[0] = st_maxs[1] = -999999;
 
 		for(i = 0; i < s->num_edges; i++){
-			const int e = d_bsp.surf_edges[s->first_edge + i];
+			const int e = d_bsp.face_edges[s->first_edge + i];
 			if(e >= 0)
 				v = d_bsp.vertexes + d_bsp.edges[e].v[0];
 			else
@@ -503,7 +503,7 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
 
 	VectorMA(pos, 2 * MAX_WORLD_WIDTH, sun.normal, delta);
 
-	Light_Trace(&trace, pos, delta, MASK_SOLID);
+	Light_Trace(&trace, pos, delta, CONTENTS_SOLID);
 
 	if(trace.fraction < 1.0 && !(trace.surface->flags & SURF_SKY))
 		return;  // occluded
@@ -575,7 +575,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 			if(light <= 0.0)  // no light
 				continue;
 
-			Light_Trace(&trace, l->origin, pos, MASK_SOLID);
+			Light_Trace(&trace, l->origin, pos, CONTENTS_SOLID);
 
 			if(trace.fraction < 1.0)
 				continue;  // occluded
@@ -640,7 +640,7 @@ static void FacesWithVert(int vert, int *faces, int *nfaces){
 
 		for(j = 0; j < face->num_edges; j++){
 
-			const int e = d_bsp.surf_edges[face->first_edge + j];
+			const int e = d_bsp.face_edges[face->first_edge + j];
 			const int v = e >= 0 ? d_bsp.edges[e].v[0] : d_bsp.edges[-e].v[1];
 
 			if(v == vert){  // face references vert
@@ -718,7 +718,7 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 
 	// calculate the distance to each vertex
 	for(i = 0; i < l->face->num_edges; i++){
-		const int e = d_bsp.surf_edges[l->face->first_edge + i];
+		const int e = d_bsp.face_edges[l->face->first_edge + i];
 		unsigned short v;
 
 		vec3_t delta;

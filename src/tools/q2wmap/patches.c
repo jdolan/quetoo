@@ -95,7 +95,7 @@ static winding_t *WindingFromFace(const d_bsp_face_t * f){
 	w->numpoints = f->num_edges;
 
 	for(i = 0; i < f->num_edges; i++){
-		const int se = d_bsp.surf_edges[f->first_edge + i];
+		const int se = d_bsp.face_edges[f->first_edge + i];
 		if(se < 0)
 			v = d_bsp.edges[-se].v[1];
 		else
