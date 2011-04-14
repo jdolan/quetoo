@@ -710,11 +710,11 @@ void BuildVertexNormals(void){
  * linear interpolation between the nearest and farthest vertexes.
  */
 static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal){
-	float near, *nearest;
+	float best_dist, *best_normal;
 	int i;
 
-	near = 9999.0;
-	nearest = NULL;
+	best_dist = 9999.0;
+	best_normal = NULL;
 
 	// calculate the distance to each vertex
 	for(i = 0; i < l->face->num_edges; i++){
@@ -733,13 +733,13 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 
 		dist = VectorLength(delta);
 
-		if(dist < near){
-			near = dist;
-			nearest = d_bsp.normals[v].normal;
+		if(dist < best_dist){
+			best_dist = dist;
+			best_normal = d_bsp.normals[v].normal;
 		}
 	}
 
-	VectorCopy(nearest, normal);
+	VectorCopy(best_normal, normal);
 }
 
 
