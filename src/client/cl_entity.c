@@ -491,6 +491,34 @@ static float Cl_WeaponKick(r_entity_t *self){
 
 
 /*
+ * Cl_UpdateLighting
+ *
+ * Updates and assigns the appropriate static lighting cache for the
+ * specified entity at the specified index.  Some client entities actually
+ * require several renderer entities (linked models), and so this function
+ * may be called several times per client entity.
+ */
+static void Cl_UpdateLighting(cl_entity_t *e, r_entity_t *ent, const int index){
+
+	// setup the write-through lighting cache
+	ent->lighting = &e->lighting[index];
+
+	if(e->current.effects & EF_NO_LIGHTING){
+		// some entities are never lit, like rockets
+		ent->lighting->state = LIGHTING_READY;
+	}
+	else {
+		// but most are, so update their lighting if appropriate
+		if(ent->lighting->state == LIGHTING_READY){
+			if(r_view.update || !VectorCompare(e->current.origin, e->prev.origin)){
+				ent->lighting->state = LIGHTING_DIRTY;
+			}
+		}
+	}
+}
+
+
+/*
  * Cl_AddWeapon
  */
 static void Cl_AddWeapon(r_entity_t *self){
@@ -751,21 +779,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 
 		ent.effects = s->effects;
 
-		// setup the write-through lighting cache
-		ent.lighting = &e->lighting;
-
-		if(ent.effects & EF_NO_LIGHTING){
-			// some entities are never lit, like rockets
-			ent.lighting->state = LIGHTING_READY;
-		}
-		else {
-			// but most are, so update their lighting if appropriate
-			if(ent.lighting->state == LIGHTING_READY){
-				if(r_view.update || !VectorCompare(e->current.origin, e->prev.origin)){
-					ent.lighting->state = LIGHTING_DIRTY;
-				}
-			}
-		}
+		Cl_UpdateLighting(e, &ent, 0);
 
 		// add to view list
 		R_AddEntity(&ent);
@@ -794,6 +808,8 @@ void Cl_AddEntities(cl_frame_t *frame){
 				ent.model = cl.model_draw[s->model_index2];
 			}
 
+			Cl_UpdateLighting(e, &ent, 1);
+
 			R_AddEntity(&ent);
 		}
 
@@ -819,11 +835,16 @@ void Cl_AddEntities(cl_frame_t *frame){
 			VectorSet(ent.scale, 0.6, 0.6, 0.6);
 			VectorScale(ent.scale, PM_SCALE, ent.scale);
 
+			Cl_UpdateLighting(e, &ent, 2);
+
 			R_AddEntity(&ent);
 		}
 
 		if(s->model_index4){
 			ent.model = cl.model_draw[s->model_index4];
+
+			Cl_UpdateLighting(e, &ent, 3);
+
 			R_AddEntity(&ent);
 		}
 	}

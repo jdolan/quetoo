@@ -43,6 +43,8 @@ typedef struct cl_frame_s {
 	int entity_state;  // non-masked index into cl.entity_states array
 } cl_frame_t;
 
+# define MAX_ENTITY_LIGHTING 4  // the number of static lighting caches each entity might use
+
 typedef struct cl_entity_s {
 	entity_state_t baseline;  // delta from this if not from a previous frame
 	entity_state_t current;
@@ -55,7 +57,7 @@ typedef struct cl_entity_s {
 	int anim_time;  // for animations
 	int anim_frame;
 
-	r_lighting_t lighting;  // cached static lighting info
+	r_lighting_t lighting[MAX_ENTITY_LIGHTING];  // cached static lighting info
 } cl_entity_t;
 
 #define MAX_WEAPON_MODELS 12
