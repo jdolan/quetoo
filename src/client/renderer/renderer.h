@@ -435,8 +435,8 @@ void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs);
 void R_LoadMaterials(const char *map);
 
 // r_mesh.c
-extern vec3_t r_mesh_verts[MD3_MAX_VERTS];
-extern vec3_t r_mesh_norms[MD3_MAX_VERTS];
+extern vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3];
+extern vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];
 void R_ApplyMeshModelConfig(r_entity_t *e);
 qboolean R_CullMeshModel(const r_entity_t *e);
 void R_DrawMeshModel_default(r_entity_t *e);

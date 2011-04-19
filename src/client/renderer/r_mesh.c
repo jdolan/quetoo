@@ -21,8 +21,8 @@
 
 #include "renderer.h"
 
-vec3_t r_mesh_verts[MD3_MAX_VERTS];  // verts are lerped here temporarily
-vec3_t r_mesh_norms[MD3_MAX_VERTS];  // same for normal vectors
+vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3];  // vertexes are interpolated here temporarily
+vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];  // same for normal vectors
 
 
 /*
@@ -136,7 +136,7 @@ static void R_SetMeshColor_default(const r_entity_t *e){
  */
 static void R_SetMeshState_default(const r_entity_t *e){
 
-	if(e->model->num_frames == 1){  // draw static arrays
+	if(e->model->num_frames == 1){  // bind static arrays
 		R_SetArrayState(e->model);
 	}
 	else {  // or use the default arrays
@@ -145,48 +145,50 @@ static void R_SetMeshState_default(const r_entity_t *e){
 		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
 	}
 
-	if(!r_draw_wireframe->value){
-		if(e->skin)  // resolve texture
-			R_BindTexture(e->skin->texnum);
-		else
-			R_BindTexture(e->model->skin->texnum);
+	if(!(e->effects & EF_NO_DRAW)){  // setup state for diffuse render
 
-		R_SetMeshColor_default(e);
-	}
+		if(!r_draw_wireframe->value){
+			if(e->skin)  // resolve texture
+				R_BindTexture(e->skin->texnum);
+			else
+				R_BindTexture(e->model->skin->texnum);
 
-	// enable hardware light sources, transform static lighting position
-	if(r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)){
-
-		R_EnableLightsByRadius(e->origin);
-
-		R_ApplyLighting(e->lighting);
-
-#if 0
-		if(e->effects & EF_WEAPON){
-			r_entity_t ent;
-			int i;
-
-			for(i = 0; i < MAX_ACTIVE_LIGHTS; i++){
-				const r_bsp_light_t *l = e->lighting->bsp_lights[i];
-
-				if(!l)
-					break;
-
-				memset(&ent, 0, sizeof(ent));
-
-				ent.lerp = 1.0;
-
-				VectorSet(ent.scale, 1.0, 1.0, 1.0);
-				VectorCopy(l->origin, ent.origin);
-
-				R_AddEntity(&ent);
-			}
+			R_SetMeshColor_default(e);
 		}
-#endif
-	}
 
-	if(e->effects & EF_WEAPON)  // prevent weapon from poking into walls
-		glDepthRange(0.0, 0.3);
+		// enable hardware light sources, transform static lighting position
+		if(r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)){
+
+			R_EnableLightsByRadius(e->origin);
+
+			R_ApplyLighting(e->lighting);
+	#if 0
+			if(e->effects & EF_WEAPON){
+				r_entity_t ent;
+				int i;
+
+				for(i = 0; i < MAX_ACTIVE_LIGHTS; i++){
+					const r_bsp_light_t *l = e->lighting->bsp_lights[i];
+
+					if(!l)
+						break;
+
+					memset(&ent, 0, sizeof(ent));
+
+					ent.lerp = 1.0;
+
+					VectorSet(ent.scale, 1.0, 1.0, 1.0);
+					VectorCopy(l->origin, ent.origin);
+
+					R_AddEntity(&ent);
+				}
+			}
+	#endif
+		}
+
+		if(e->effects & EF_WEAPON)  // prevent weapon from poking into walls
+			glDepthRange(0.0, 0.3);
+	}
 
 	// now rotate and translate to the ent's origin
 	R_RotateForEntity(e);
@@ -333,15 +335,15 @@ static void R_DrawMeshShadow_default(r_entity_t *e){
 
 
 /*
- * R_DrawMd2ModelLerped_default
+ * R_InterpolateMd2Model_default
  */
-static void R_DrawMd2ModelLerped_default(const r_entity_t *e){
+static void R_InterpolateMd2Model_default(const r_entity_t *e){
 	const d_md2_t *md2;
 	const d_md2_frame_t *frame, *old_frame;
 	const d_md2_vertex_t *v, *ov, *verts;
 	const d_md2_tri_t *tri;
-	vec3_t trans, scale, oldscale;
-	int i, vertind;
+	vec3_t trans, scale, old_scale;
+	int i, vert_index;
 
 	md2 = (const d_md2_t *)e->model->extra_data;
 
@@ -357,15 +359,15 @@ static void R_DrawMd2ModelLerped_default(const r_entity_t *e){
 		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
 
 		scale[i] = e->lerp * frame->scale[i];
-		oldscale[i] = e->back_lerp * old_frame->scale[i];
+		old_scale[i] = e->back_lerp * old_frame->scale[i];
 	}
 
 	// lerp the verts
 	for(i = 0; i < md2->num_xyz; i++, v++, ov++){
 		VectorSet(r_mesh_verts[i],
-				trans[0] + ov->v[0] * oldscale[0] + v->v[0] * scale[0],
-				trans[1] + ov->v[1] * oldscale[1] + v->v[1] * scale[1],
-				trans[2] + ov->v[2] * oldscale[2] + v->v[2] * scale[2]);
+				trans[0] + ov->v[0] * old_scale[0] + v->v[0] * scale[0],
+				trans[1] + ov->v[1] * old_scale[1] + v->v[1] * scale[1],
+				trans[2] + ov->v[2] * old_scale[2] + v->v[2] * scale[2]);
 
 		if(r_state.lighting_enabled){  // and the norms
 			VectorSet(r_mesh_norms[i],
@@ -376,42 +378,42 @@ static void R_DrawMd2ModelLerped_default(const r_entity_t *e){
 	}
 
 	tri = (d_md2_tri_t *)((byte *)md2 + md2->ofs_tris);
-	vertind = 0;
+	vert_index = 0;
 
 	for(i = 0; i < md2->num_tris; i++, tri++){  // draw the tris
 
-		VectorCopy(r_mesh_verts[tri->index_xyz[0]], (&r_state.vertex_array_3d[vertind + 0]));
-		VectorCopy(r_mesh_verts[tri->index_xyz[1]], (&r_state.vertex_array_3d[vertind + 3]));
-		VectorCopy(r_mesh_verts[tri->index_xyz[2]], (&r_state.vertex_array_3d[vertind + 6]));
+		VectorCopy(r_mesh_verts[tri->index_xyz[0]], (&r_state.vertex_array_3d[vert_index + 0]));
+		VectorCopy(r_mesh_verts[tri->index_xyz[1]], (&r_state.vertex_array_3d[vert_index + 3]));
+		VectorCopy(r_mesh_verts[tri->index_xyz[2]], (&r_state.vertex_array_3d[vert_index + 6]));
 
 		if(r_state.lighting_enabled){  // normal vectors for lighting
-			VectorCopy(r_mesh_norms[tri->index_xyz[0]], (&r_state.normal_array[vertind + 0]));
-			VectorCopy(r_mesh_norms[tri->index_xyz[1]], (&r_state.normal_array[vertind + 3]));
-			VectorCopy(r_mesh_norms[tri->index_xyz[2]], (&r_state.normal_array[vertind + 6]));
+			VectorCopy(r_mesh_norms[tri->index_xyz[0]], (&r_state.normal_array[vert_index + 0]));
+			VectorCopy(r_mesh_norms[tri->index_xyz[1]], (&r_state.normal_array[vert_index + 3]));
+			VectorCopy(r_mesh_norms[tri->index_xyz[2]], (&r_state.normal_array[vert_index + 6]));
 		}
 
-		vertind += 9;
+		vert_index += 9;
 	}
-
-	glDrawArrays(GL_TRIANGLES, 0, md2->num_tris * 3);
 }
 
 
 /*
- * R_DrawMd3ModelLerped_default
+ * R_InterpolateMd3Model_default
  */
-static void R_DrawMd3ModelLerped_default(const r_entity_t *e){
+static void R_InterpolateMd3Model_default(const r_entity_t *e){
 	const r_md3_t *md3;
 	const d_md3_frame_t *frame, *old_frame;
 	const r_md3_mesh_t *mesh;
 	vec3_t trans;
-	int i, j, k, vertind;
-	unsigned *tri;
+	int vert_index;
+	int i, j, k;
 
 	md3 = (r_md3_t *)e->model->extra_data;
 
 	frame = &md3->frames[e->frame];
 	old_frame = &md3->frames[e->old_frame];
+
+	vert_index = 0;
 
 	for(i = 0; i < 3; i++)  // calculate the translation
 		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
@@ -420,6 +422,8 @@ static void R_DrawMd3ModelLerped_default(const r_entity_t *e){
 
 		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
 		const r_md3_vertex_t *ov = mesh->verts + e->old_frame * mesh->num_verts;
+
+		const unsigned *tri = mesh->tris;
 
 		for(i = 0; i < mesh->num_verts; i++, v++, ov++){  // lerp the verts
 			VectorSet(r_mesh_verts[i],
@@ -435,35 +439,21 @@ static void R_DrawMd3ModelLerped_default(const r_entity_t *e){
 			}
 		}
 
-		tri = mesh->tris;
-		vertind = 0;
-
 		for(j = 0; j < mesh->num_tris; j++, tri += 3){  // draw the tris
 
-			VectorCopy(r_mesh_verts[tri[0]], (&r_state.vertex_array_3d[vertind + 0]));
-			VectorCopy(r_mesh_verts[tri[1]], (&r_state.vertex_array_3d[vertind + 3]));
-			VectorCopy(r_mesh_verts[tri[2]], (&r_state.vertex_array_3d[vertind + 6]));
+			VectorCopy(r_mesh_verts[tri[0]], (&r_state.vertex_array_3d[vert_index + 0]));
+			VectorCopy(r_mesh_verts[tri[1]], (&r_state.vertex_array_3d[vert_index + 3]));
+			VectorCopy(r_mesh_verts[tri[2]], (&r_state.vertex_array_3d[vert_index + 6]));
 
 			if(r_state.lighting_enabled){  // normal vectors for lighting
-				VectorCopy(r_mesh_norms[tri[0]], (&r_state.normal_array[vertind + 0]));
-				VectorCopy(r_mesh_norms[tri[1]], (&r_state.normal_array[vertind + 3]));
-				VectorCopy(r_mesh_norms[tri[2]], (&r_state.normal_array[vertind + 6]));
+				VectorCopy(r_mesh_norms[tri[0]], (&r_state.normal_array[vert_index + 0]));
+				VectorCopy(r_mesh_norms[tri[1]], (&r_state.normal_array[vert_index + 3]));
+				VectorCopy(r_mesh_norms[tri[2]], (&r_state.normal_array[vert_index + 6]));
 			}
 
-			vertind += 9;
+			vert_index += 9;
 		}
-
-		glDrawArrays(GL_TRIANGLES, 0, mesh->num_tris * 3);
 	}
-}
-
-
-/*
- * R_DrawMeshModelArrays_default
- */
-static void R_DrawMeshModelArrays_default(const r_entity_t *e){
-
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 }
 
 
@@ -501,16 +491,21 @@ void R_DrawMeshModel_default(r_entity_t *e){
 
 	R_SetMeshState_default(e);
 
-	if(e->model->num_frames == 1)  // draw static arrays
-		R_DrawMeshModelArrays_default(e);
+	if(e->frame != e->old_frame){  // interpolate frames
 
-	else if(e->model->type == mod_md2)  // or an interpolated md2
-		R_DrawMd2ModelLerped_default(e);
+		if(e->model->type == mod_md2)
+			R_InterpolateMd2Model_default(e);
 
-	else if(e->model->type == mod_md3)  // or an interpolated md3
-		R_DrawMd3ModelLerped_default(e);
+		else if(e->model->type == mod_md3)
+			R_InterpolateMd3Model_default(e);
+	}
 
-	R_DrawMeshModelShell_default(e);  // draw any shell effects
+	if(!(e->effects & EF_NO_DRAW)){  // draw the mesh
+
+		glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+
+		R_DrawMeshModelShell_default(e);  // draw any shell effects
+	}
 
 	R_DrawMeshShadow_default(e);  // lastly draw the shadow
 
