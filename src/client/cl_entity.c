@@ -568,9 +568,7 @@ static void Cl_AddWeapon(r_entity_t *self){
 	VectorSet(ent.scale, 1.0, 1.0, 1.0);
 
 	memset(&lighting, 0, sizeof(lighting));
-
 	ent.lighting = &lighting;
-	ent.lighting->state = LIGHTING_DIRTY;
 
 	R_AddEntity(&ent);
 }
@@ -602,11 +600,11 @@ static const vec3_t bfg_light = {
  * Cl_AddEntities
  *
  * Iterate all entities in the current frame, adding models, particles,
- * coronas, and anything else associated with them.  Client-side animations
+ * lights, and anything else associated with them.  Client-side animations
  * like bobbing and rotating are also resolved here.
  *
  * Entities with models are conditionally added to the view based on the
- * cl_addentities bitmask.
+ * cl_add_entities bit mask.
  */
 void Cl_AddEntities(cl_frame_t *frame){
 	r_entity_t ent, self;
@@ -642,12 +640,12 @@ void Cl_AddEntities(cl_frame_t *frame){
 				VectorMA(start, 6.0, r_view.right, start);
 				start[2] -= 10.0;
 			}
-			else  // or simply lerp the start position
+			else  // or simply interpolate the start position
 				VectorLerp(e->prev.origin, e->current.origin, cl.lerp, start);
 
 			VectorLerp(e->prev.old_origin, e->current.old_origin, cl.lerp, end);
 		}
-		else {  // for most ents, just lerp the origin
+		else {  // for most ents, just interpolate the origin
 			VectorLerp(e->prev.origin, e->current.origin, cl.lerp, ent.origin);
 		}
 
@@ -661,11 +659,11 @@ void Cl_AddEntities(cl_frame_t *frame){
 			ent.angles[1] = cl.time / 3.4;
 			ent.angles[2] = 0.0;
 		}
-		else {  // lerp angles
+		else {  // interpolate angles
 			AngleLerp(e->prev.angles, e->current.angles, cl.lerp, ent.angles);
 		}
 
-		// lerp frames
+		// interpolate frames
 		if(s->effects & EF_ANIMATE)
 			ent.frame = cl.time / 500;
 		else if(s->effects & EF_ANIMATE_FAST)
@@ -692,12 +690,15 @@ void Cl_AddEntities(cl_frame_t *frame){
 			ent.skin_num = 0;
 			ent.skin = ci->skin;
 			ent.model = ci->model;
+
 			if(!ent.skin || !ent.model){
 				ent.skin = cl.base_client_info.skin;
 				ent.model = cl.base_client_info.model;
 			}
+
 			VectorSet(ent.scale, PM_SCALE, PM_SCALE, PM_SCALE);
-		} else {
+		}
+		else {  // or use the model defined by the entity state
 			ent.skin_num = s->skin_num;
 			ent.skin = NULL;
 			ent.model = cl.model_draw[s->model_index];
@@ -767,18 +768,25 @@ void Cl_AddEntities(cl_frame_t *frame){
 		if(!(cl_add_entities->integer & mask))
 			continue;
 
+		// pass the remaining effects through to the renderer
+		ent.effects = s->effects;
+
 		// don't draw ourselves unless third person is set
 		if(s->number == cl.player_num + 1){
 
 			// retain a reference to ourselves for the weapon model
 			self = ent;
 
-			if(!cl_third_person->value)
-				continue;
+			if(!cl_third_person->value){
+				ent.effects |= EF_NO_DRAW;
+
+				// keep our shadow underneath us using the predicted origin
+				ent.origin[0] = r_view.origin[0];
+				ent.origin[1] = r_view.origin[1];
+			}
 		}
 
-		ent.effects = s->effects;
-
+		// setup the lighting cache, flagging those which are stale
 		Cl_UpdateLighting(e, &ent, 0);
 
 		// add to view list
@@ -789,6 +797,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		 * of the owning entity.  There are a few special cases here to
 		 * accommodate visual weapons, CTF flags, etc..
 		 */
+
 		ent.skin = NULL;
 		ent.effects = 0;
 
@@ -798,14 +807,23 @@ void Cl_AddEntities(cl_frame_t *frame){
 				const cl_client_info_t *ci = &cl.client_info[s->skin_num & 0xff];
 				int i = (s->skin_num >> 8);  // 0 is default weapon model
 
-				if(i > MAX_WEAPON_MODELS - 1)
+				if(i > MAX_WEAPON_MODELS - 1){
+					Com_Debug("Invalid weapon model: %d\n", i);
 					i = 0;
+				}
 
 				ent.model = ci->weapon_model[i];
 				ent.effects = s->effects;
 			}
 			else {
 				ent.model = cl.model_draw[s->model_index2];
+			}
+
+			// don't draw our own weapon unless third person is set
+			if(s->number == cl.player_num + 1){
+				if(!cl_third_person->value){
+					ent.effects |= EF_NO_DRAW;
+				}
 			}
 
 			Cl_UpdateLighting(e, &ent, 1);
@@ -835,6 +853,12 @@ void Cl_AddEntities(cl_frame_t *frame){
 			VectorSet(ent.scale, 0.6, 0.6, 0.6);
 			VectorScale(ent.scale, PM_SCALE, ent.scale);
 
+			if(s->number == cl.player_num + 1){
+				if(!cl_third_person->value){
+					ent.effects |= EF_NO_DRAW;
+				}
+			}
+
 			Cl_UpdateLighting(e, &ent, 2);
 
 			R_AddEntity(&ent);
@@ -842,6 +866,12 @@ void Cl_AddEntities(cl_frame_t *frame){
 
 		if(s->model_index4){
 			ent.model = cl.model_draw[s->model_index4];
+
+			if(s->number == cl.player_num + 1){
+				if(!cl_third_person->value){
+					ent.effects |= EF_NO_DRAW;
+				}
+			}
 
 			Cl_UpdateLighting(e, &ent, 3);
 
