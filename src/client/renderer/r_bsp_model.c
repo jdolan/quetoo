@@ -654,7 +654,7 @@ static void R_AddBspVertexColor(r_bsp_vertex_t *vert, const r_bsp_surface_t *sur
  */
 static void R_LoadBspVertexArrays(void){
 	int i, j;
-	int vertind, coordind, tangind, colorind;
+	int vert_index, texcoord_index, tangent_index, color_index;
 	float soff, toff, s, t;
 	float *point, *normal, *sdir, *tdir;
 	vec4_t tangent;
@@ -665,12 +665,12 @@ static void R_LoadBspVertexArrays(void){
 
 	R_AllocVertexArrays(r_load_model);  // allocate the arrays
 
-	vertind = coordind = tangind = 0;
+	vert_index = texcoord_index = tangent_index = 0;
 	surf = r_load_model->surfaces;
 
 	for(i = 0; i < r_load_model->num_surfaces; i++, surf++){
 
-		surf->index = vertind / 3;
+		surf->index = vert_index / 3;
 
 		for(j = 0; j < surf->num_edges; j++){
 			const int index = r_load_model->surface_edges[surf->first_edge + j];
@@ -685,7 +685,7 @@ static void R_LoadBspVertexArrays(void){
 			}
 
 			point = vert->position;
-			memcpy(&r_load_model->verts[vertind], point, sizeof(vec3_t));
+			memcpy(&r_load_model->verts[vert_index], point, sizeof(vec3_t));
 
 			// texture directional vectors and offsets
 			sdir = surf->texinfo->vecs[0];
@@ -701,8 +701,8 @@ static void R_LoadBspVertexArrays(void){
 			t = DotProduct(point, tdir) + toff;
 			t /= surf->texinfo->image->height;
 
-			r_load_model->texcoords[coordind + 0] = s;
-			r_load_model->texcoords[coordind + 1] = t;
+			r_load_model->texcoords[texcoord_index + 0] = s;
+			r_load_model->texcoords[texcoord_index + 1] = t;
 
 			if(surf->flags & MSURF_LIGHTMAP){  // lightmap coordinates
 				s = DotProduct(point, sdir) + soff;
@@ -718,8 +718,8 @@ static void R_LoadBspVertexArrays(void){
 				t /= r_lightmaps.size * r_load_model->lightmap_scale;
 			}
 
-			r_load_model->lmtexcoords[coordind + 0] = s;
-			r_load_model->lmtexcoords[coordind + 1] = t;
+			r_load_model->lmtexcoords[texcoord_index + 0] = s;
+			r_load_model->lmtexcoords[texcoord_index + 1] = t;
 
 			// normal vector
 			if(surf->texinfo->flags & SURF_PHONG &&
@@ -728,22 +728,22 @@ static void R_LoadBspVertexArrays(void){
 			else  // per-plane
 				normal = surf->normal;
 
-			memcpy(&r_load_model->normals[vertind], normal, sizeof(vec3_t));
+			memcpy(&r_load_model->normals[vert_index], normal, sizeof(vec3_t));
 
 			// tangent vector
 			TangentVectors(normal, sdir, tdir, tangent, bitangent);
-			memcpy(&r_load_model->tangents[tangind], tangent, sizeof(vec4_t));
+			memcpy(&r_load_model->tangents[tangent_index], tangent, sizeof(vec4_t));
 
 			// accumulate colors
 			R_AddBspVertexColor(vert, surf);
 
-			vertind += 3;
-			coordind += 2;
-			tangind += 4;
+			vert_index += 3;
+			texcoord_index += 2;
+			tangent_index += 4;
 		}
 	}
 
-	colorind = 0;
+	color_index = 0;
 	surf = r_load_model->surfaces;
 
 	// now iterate over the verts again, assembling the accumulated colors
@@ -761,8 +761,8 @@ static void R_LoadBspVertexArrays(void){
 				vert = &r_load_model->vertexes[edge->v[1]];
 			}
 
-			memcpy(&r_load_model->colors[colorind], vert->color, sizeof(vec4_t));
-			colorind += 4;
+			memcpy(&r_load_model->colors[color_index], vert->color, sizeof(vec4_t));
+			color_index += 4;
 		}
 	}
 }

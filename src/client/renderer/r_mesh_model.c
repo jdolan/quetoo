@@ -154,7 +154,7 @@ static void R_LoadMd2VertexArrays(r_model_t *mod){
 	d_md2_vertex_t *v;
 	d_md2_texcoord_t *st;
 	vec2_t coord;
-	int i, j, vertind, coordind;
+	int i, j, vert_index, texcoord_index;
 
 	R_AllocVertexArrays(mod);  // allocate the arrays
 
@@ -162,7 +162,7 @@ static void R_LoadMd2VertexArrays(r_model_t *mod){
 
 	frame = (d_md2_frame_t *)((byte *)md2 + md2->ofs_frames);
 
-	vertind = coordind = 0;
+	vert_index = texcoord_index = 0;
 
 	if(mod->num_frames == 1){  // for static models, build the verts and normals
 		for(i = 0, v = frame->verts; i < md2->num_xyz; i++, v++){
@@ -181,24 +181,24 @@ static void R_LoadMd2VertexArrays(r_model_t *mod){
 	for(i = 0; i < md2->num_tris; i++, tri++){  // build the arrays
 
 		if(mod->num_frames == 1){
-			VectorCopy(r_mesh_verts[tri->index_xyz[0]], (&mod->verts[vertind + 0]));
-			VectorCopy(r_mesh_verts[tri->index_xyz[1]], (&mod->verts[vertind + 3]));
-			VectorCopy(r_mesh_verts[tri->index_xyz[2]], (&mod->verts[vertind + 6]));
+			VectorCopy(r_mesh_verts[tri->index_xyz[0]], (&mod->verts[vert_index + 0]));
+			VectorCopy(r_mesh_verts[tri->index_xyz[1]], (&mod->verts[vert_index + 3]));
+			VectorCopy(r_mesh_verts[tri->index_xyz[2]], (&mod->verts[vert_index + 6]));
 
-			VectorCopy(r_mesh_norms[tri->index_xyz[0]], (&mod->normals[vertind + 0]));
-			VectorCopy(r_mesh_norms[tri->index_xyz[1]], (&mod->normals[vertind + 3]));
-			VectorCopy(r_mesh_norms[tri->index_xyz[2]], (&mod->normals[vertind + 6]));
+			VectorCopy(r_mesh_norms[tri->index_xyz[0]], (&mod->normals[vert_index + 0]));
+			VectorCopy(r_mesh_norms[tri->index_xyz[1]], (&mod->normals[vert_index + 3]));
+			VectorCopy(r_mesh_norms[tri->index_xyz[2]], (&mod->normals[vert_index + 6]));
 		}
 
 		for(j = 0; j < 3; j++){
 			coord[0] = ((float)st[tri->index_st[j]].s / md2->skin_width);
 			coord[1] = ((float)st[tri->index_st[j]].t / md2->skin_height);
 
-			memcpy(&mod->texcoords[coordind + j * 2], coord, sizeof(vec2_t));
+			memcpy(&mod->texcoords[texcoord_index + j * 2], coord, sizeof(vec2_t));
 		}
 
-		coordind += 6;
-		vertind += 9;
+		texcoord_index += 6;
+		vert_index += 9;
 	}
 }
 
@@ -327,7 +327,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod){
 	r_md3_mesh_t *mesh;
 	r_md3_vertex_t *v;
 	d_md3_texcoord_t *texcoords;
-	int i, j, k, vertind, coordind;
+	int i, j, k, vert_index, texcoord_index;
 	unsigned *tri;
 
 	R_AllocVertexArrays(mod);  // allocate the arrays
@@ -336,7 +336,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod){
 
 	frame = md3->frames;
 
-	vertind = coordind = 0;
+	vert_index = texcoord_index = 0;
 
 	for(k = 0, mesh = md3->meshes; k < md3->num_meshes; k++, mesh++){  // iterate the meshes
 
@@ -355,21 +355,21 @@ static void R_LoadMd3VertexArrays(r_model_t *mod){
 		for(j = 0; j < mesh->num_tris; j++, tri += 3){  // populate the arrays
 
 			if(mod->num_frames == 1){
-				VectorCopy(r_mesh_verts[tri[0]], (&mod->verts[vertind + 0]));
-				VectorCopy(r_mesh_verts[tri[1]], (&mod->verts[vertind + 3]));
-				VectorCopy(r_mesh_verts[tri[2]], (&mod->verts[vertind + 6]));
+				VectorCopy(r_mesh_verts[tri[0]], (&mod->verts[vert_index + 0]));
+				VectorCopy(r_mesh_verts[tri[1]], (&mod->verts[vert_index + 3]));
+				VectorCopy(r_mesh_verts[tri[2]], (&mod->verts[vert_index + 6]));
 
-				VectorCopy(r_mesh_norms[tri[0]], (&mod->normals[vertind + 0]));
-				VectorCopy(r_mesh_norms[tri[1]], (&mod->normals[vertind + 3]));
-				VectorCopy(r_mesh_norms[tri[2]], (&mod->normals[vertind + 6]));
+				VectorCopy(r_mesh_norms[tri[0]], (&mod->normals[vert_index + 0]));
+				VectorCopy(r_mesh_norms[tri[1]], (&mod->normals[vert_index + 3]));
+				VectorCopy(r_mesh_norms[tri[2]], (&mod->normals[vert_index + 6]));
 			}
 
-			memcpy(&mod->texcoords[coordind + 0], &texcoords[tri[0]], sizeof(vec2_t));
-			memcpy(&mod->texcoords[coordind + 2], &texcoords[tri[1]], sizeof(vec2_t));
-			memcpy(&mod->texcoords[coordind + 4], &texcoords[tri[2]], sizeof(vec2_t));
+			memcpy(&mod->texcoords[texcoord_index + 0], &texcoords[tri[0]], sizeof(vec2_t));
+			memcpy(&mod->texcoords[texcoord_index + 2], &texcoords[tri[1]], sizeof(vec2_t));
+			memcpy(&mod->texcoords[texcoord_index + 4], &texcoords[tri[2]], sizeof(vec2_t));
 
-			coordind += 6;
-			vertind += 9;
+			texcoord_index += 6;
+			vert_index += 9;
 		}
 	}
 }
@@ -544,13 +544,13 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 static void R_LoadObjModelVertexArrays(r_model_t *mod){
 	const r_obj_t *obj;
 	const r_obj_tri_t *t;
-	int i, j, vertind, coordind;
+	int i, j, vert_index, texcoord_index;
 
 	R_AllocVertexArrays(mod);
 
 	obj = (r_obj_t *)mod->extra_data;
 
-	vertind = coordind = 0;
+	vert_index = texcoord_index = 0;
 
 	t = obj->tris;
 
@@ -561,21 +561,21 @@ static void R_LoadObjModelVertexArrays(r_model_t *mod){
 		for(j = 0; j < 3; j++, v++){  // each vert
 
 			VectorCopy((&obj->verts[(v->vert - 1) * 3]),
-					(&mod->verts[vertind + j * 3]));
+					(&mod->verts[vert_index + j * 3]));
 
 			if(v->normal){
 				VectorCopy((&obj->normals[(v->normal  - 1) * 3]),
-						(&mod->normals[vertind + j * 3]));
+						(&mod->normals[vert_index + j * 3]));
 			}
 
 			if(v->texcoord){
-				memcpy(&mod->texcoords[coordind + j * 2],
+				memcpy(&mod->texcoords[texcoord_index + j * 2],
 						&obj->texcoords[(v->texcoord - 1) * 2], sizeof(vec2_t));
 			}
 		}
 
-		coordind += 6;
-		vertind += 9;
+		texcoord_index += 6;
+		vert_index += 9;
 	}
 }
 

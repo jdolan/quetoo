@@ -65,8 +65,8 @@ typedef struct sky_s {
 	vec2_t st_maxs[6];
 	vec_t stmin;
 	vec_t stmax;
-	int coordind;
-	int vertind;
+	int texcoord_index;
+	int vert_index;
 } sky_t;
 
 static sky_t sky;
@@ -308,11 +308,11 @@ static void R_MakeSkyVec(float s, float t, int axis){
 
 	t = 1.0 - t;
 
-	texunit_diffuse.texcoord_array[sky.coordind++] = s;
-	texunit_diffuse.texcoord_array[sky.coordind++] = t;
+	texunit_diffuse.texcoord_array[sky.texcoord_index++] = s;
+	texunit_diffuse.texcoord_array[sky.texcoord_index++] = t;
 
-	memcpy(&r_state.vertex_array_3d[sky.vertind], v, sizeof(vec3_t));
-	sky.vertind += 3;
+	memcpy(&r_state.vertex_array_3d[sky.vert_index], v, sizeof(vec3_t));
+	sky.vert_index += 3;
 }
 
 
@@ -347,7 +347,7 @@ void R_DrawSkyBox(void){
 	if(r_state.fog_enabled)
 		glFogf(GL_FOG_END, FOG_END * 8);
 
-	sky.coordind = sky.vertind = 0;
+	sky.texcoord_index = sky.vert_index = 0;
 
 	for(i = 0; i < 6; i++){
 
@@ -361,8 +361,8 @@ void R_DrawSkyBox(void){
 		R_MakeSkyVec(sky.st_maxs[0][i], sky.st_maxs[1][i], i);
 		R_MakeSkyVec(sky.st_maxs[0][i], sky.st_mins[1][i], i);
 
-		glDrawArrays(GL_QUADS, 0, sky.vertind / 3);
-		sky.coordind = sky.vertind = 0;
+		glDrawArrays(GL_QUADS, 0, sky.vert_index / 3);
+		sky.texcoord_index = sky.vert_index = 0;
 	}
 
 	if(r_state.fog_enabled)

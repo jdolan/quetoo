@@ -70,32 +70,32 @@ void R_DrawCoronas(void){
 	for(k = 0; k < r_view.num_coronas; k++){
 		const r_corona_t *c = &r_view.coronas[k];
 		const float f = c->radius * c->flicker * sin(90.0 * r_view.time);
-		int verts, vertind;
+		int num_verts, vert_index;
 
 		// use at least 12 verts, more for larger coronas
-		verts = 12 + c->radius / 8;
+		num_verts = 12 + c->radius / 8;
 
 		memcpy(&r_state.color_array[0], c->color, sizeof(vec3_t));
 		r_state.color_array[3] = 1.0f;  // set origin color
 
 		// and the corner colors
-		memset(&r_state.color_array[4], 0, verts * 2 * sizeof(vec4_t));
+		memset(&r_state.color_array[4], 0, num_verts * 2 * sizeof(vec4_t));
 
 		memcpy(&r_state.vertex_array_3d[0], c->org, sizeof(vec3_t));
-		vertind = 3;  // and the origin
+		vert_index = 3;  // and the origin
 
-		for(i = verts; i >= 0; i--){  // now draw the corners
-			const float a = i / (float)verts * M_PI * 2;
+		for(i = num_verts; i >= 0; i--){  // now draw the corners
+			const float a = i / (float)num_verts * M_PI * 2;
 
 			for(j = 0; j < 3; j++)
 				v[j] = c->org[j] + r_view.right[j] * (float)cos(a) * (c->radius + f)
 					+ r_view.up[j] * (float)sin(a) * (c->radius + f);
 
-			memcpy(&r_state.vertex_array_3d[vertind], v, sizeof(vec3_t));
-			vertind += 3;
+			memcpy(&r_state.vertex_array_3d[vert_index], v, sizeof(vec3_t));
+			vert_index += 3;
 		}
 
-		glDrawArrays(GL_TRIANGLE_FAN, 0, vertind / 3);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, vert_index / 3);
 	}
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
