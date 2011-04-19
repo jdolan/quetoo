@@ -495,10 +495,11 @@ typedef struct {
 #define EF_NO_LIGHTING		(EF_ROCKET)
 
 // the 16 high bits are never transmitted, they're for the renderer only
+#define EF_WEAPON			(1 << 27)  // view weapon
 #define EF_ALPHATEST		(1 << 28)  // alpha test
 #define EF_BLEND			(1 << 29)  // blend
-#define EF_NO_SHADOW		(1 << 30)  // no shadow (view weapon models)
-#define EF_WEAPON			(1 << 31)  // view weapon
+#define EF_NO_SHADOW		(1 << 30)  // no shadow
+#define EF_NO_DRAW			(1 << 31)  // no draw (but perhaps shadow)
 
 // muzzle flashes
 typedef enum {
