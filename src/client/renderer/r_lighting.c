@@ -75,11 +75,11 @@ static int R_UpdateBspLightReferences(r_lighting_t *lighting){
 		// is it visible to the entity; trace to corners of bounding box
 		R_Trace(l->origin, lighting->mins, 0.0, CONTENTS_SOLID);
 
-		if(r_view.trace.fraction < 1.0){
+		if(r_view.trace.fraction < 0.9){
 
 			R_Trace(l->origin, lighting->maxs, 0.0, CONTENTS_SOLID);
 
-			if(r_view.trace.fraction < 1.0){
+			if(r_view.trace.fraction < 0.9){
 				continue;
 			}
 		}
@@ -135,7 +135,7 @@ void R_UpdateLighting(r_lighting_t *lighting){
 		r_bsp_light_ref_t *r = &lighting->bsp_light_refs[j];
 
 		// only consider light sources above us
-		if(r->bsp_light->origin[2] > start[2]){
+		if(r->bsp_light->origin[2] > lighting->mins[2]){
 			const float scale = LIGHTING_MAX_SHADOW_DISTANCE * r->intensity;
 			vec3_t dir;
 
