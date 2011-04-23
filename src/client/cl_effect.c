@@ -1210,6 +1210,46 @@ static void Cl_TeleporterEffect(const vec3_t org){
 
 
 /*
+ * Cl_EntityEvent
+ */
+void Cl_EntityEvent(entity_state_t *ent){
+	switch(ent->event){
+		case EV_ITEM_RESPAWN:
+			S_PlaySample(NULL, ent->number, cl_sample_respawn, ATTN_IDLE);
+			Cl_ItemRespawnEffect(ent->origin);
+			break;
+		case EV_ITEM_PICKUP:
+			Cl_ItemPickupEffect(ent->origin);
+			break;
+		case EV_TELEPORT:
+			S_PlaySample(NULL, ent->number, cl_sample_teleport, ATTN_IDLE);
+			Cl_TeleporterEffect(ent->origin);
+			break;
+		case EV_JUMP:
+			if(rand() & 1)
+				S_PlaySample(NULL, ent->number, S_LoadSample("*jump_1"), ATTN_NORM);
+			else
+				S_PlaySample(NULL, ent->number, S_LoadSample("*jump_2"), ATTN_NORM);
+			break;
+		case EV_FOOTSTEP:
+			S_PlaySample(NULL, ent->number, cl_sample_footsteps[rand() & 3], ATTN_NORM);
+			break;
+		case EV_FALL_SHORT:
+			S_PlaySample(NULL, ent->number, S_LoadSample("*land_1"), ATTN_NORM);
+			break;
+		case EV_FALL:
+			S_PlaySample(NULL, ent->number, S_LoadSample("*fall_2"), ATTN_NORM);
+			break;
+		case EV_FALL_FAR:
+			S_PlaySample(NULL, ent->number, S_LoadSample("*fall_1"), ATTN_NORM);
+			break;
+		default:
+			break;
+	}
+}
+
+
+/*
  * Cl_WeatherEffects
  */
 static void Cl_WeatherEffects(void){
@@ -1369,40 +1409,6 @@ void Cl_AddParticles(void){
 	}
 
 	active_particles = active;
-}
-
-
-/*
- * Cl_EntityEvent
- */
-void Cl_EntityEvent(entity_state_t *ent){
-	switch(ent->event){
-		case EV_ITEM_RESPAWN:
-			S_PlaySample(NULL, ent->number, cl_sample_respawn, ATTN_IDLE);
-			Cl_ItemRespawnEffect(ent->origin);
-			break;
-		case EV_ITEM_PICKUP:
-			Cl_ItemPickupEffect(ent->origin);
-			break;
-		case EV_TELEPORT:
-			S_PlaySample(NULL, ent->number, cl_sample_teleport, ATTN_IDLE);
-			Cl_TeleporterEffect(ent->origin);
-			break;
-		case EV_FOOTSTEP:
-			S_PlaySample(NULL, ent->number, cl_sample_footsteps[rand() & 3], ATTN_NORM);
-			break;
-		case EV_FALLSHORT:
-			S_PlaySample(NULL, ent->number, S_LoadSample("*land_1"), ATTN_NORM);
-			break;
-		case EV_FALL:
-			S_PlaySample(NULL, ent->number, S_LoadSample("*fall_2"), ATTN_NORM);
-			break;
-		case EV_FALLFAR:
-			S_PlaySample(NULL, ent->number, S_LoadSample("*fall_1"), ATTN_NORM);
-			break;
-		default:
-			break;
-	}
 }
 
 

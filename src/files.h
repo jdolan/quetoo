@@ -164,7 +164,7 @@ typedef struct {
 	int ofs_tcs;
 	int ofs_verts;
 
-	int meshsize;
+	int size;
 } d_md3_mesh_t;
 
 typedef struct {

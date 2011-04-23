@@ -41,7 +41,7 @@ typedef struct size_buf_s {
 
 void Sb_Init(size_buf_t *buf, byte *data, size_t length);
 void Sb_Clear(size_buf_t *buf);
-void *Sb_GetSpace(size_buf_t *buf, size_t length);
+void *Sb_Alloc(size_buf_t *buf, size_t length);
 void Sb_Write(size_buf_t *buf, const void *data, size_t length);
 void Sb_Print(size_buf_t *buf, const char *data);
 
@@ -49,14 +49,14 @@ void Msg_WriteChar(size_buf_t *sb, int c);
 void Msg_WriteByte(size_buf_t *sb, int c);
 void Msg_WriteShort(size_buf_t *sb, int c);
 void Msg_WriteLong(size_buf_t *sb, int c);
-void Msg_WriteFloat(size_buf_t *sb, float f);
 void Msg_WriteString(size_buf_t *sb, const char *s);
 void Msg_WriteCoord(size_buf_t *sb, float f);
 void Msg_WritePos(size_buf_t *sb, vec3_t pos);
 void Msg_WriteAngle(size_buf_t *sb, float f);
+void Msg_WriteAngles(size_buf_t *sb, vec3_t angles);
 void Msg_WriteAngle16(size_buf_t *sb, float f);
 void Msg_WriteDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Msg_WriteDeltaEntity(struct entity_state_s *from, struct entity_state_s *to, size_buf_t *msg, qboolean force, qboolean newentity);
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, qboolean force, qboolean newentity);
 void Msg_WriteDir(size_buf_t *sb, vec3_t vector);
 
 void Msg_BeginReading(size_buf_t *sb);
@@ -64,14 +64,15 @@ int Msg_ReadChar(size_buf_t *sb);
 int Msg_ReadByte(size_buf_t *sb);
 int Msg_ReadShort(size_buf_t *sb);
 int Msg_ReadLong(size_buf_t *sb);
-float Msg_ReadFloat(size_buf_t *sb);
 char *Msg_ReadString(size_buf_t *sb);
 char *Msg_ReadStringLine(size_buf_t *sb);
 float Msg_ReadCoord(size_buf_t *sb);
 void Msg_ReadPos(size_buf_t *sb, vec3_t pos);
 float Msg_ReadAngle(size_buf_t *sb);
+void Msg_ReadAngles(size_buf_t *sb, vec3_t angles);
 float Msg_ReadAngle16(size_buf_t *sb);
 void Msg_ReadDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
+void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, unsigned short bits, unsigned short number);
 void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
 void Msg_ReadData(size_buf_t *sb, void *buffer, size_t size);
 
@@ -163,37 +164,20 @@ enum clc_ops_e {
 
 // entity_state_t communication
 
-// try to pack the common update flags into the first byte
-#define U_ORIGIN1	(1<<0)
-#define U_ORIGIN2	(1<<1)
-#define U_ANGLE2	(1<<2)
-#define U_ANGLE3	(1<<3)
-#define U_FRAME		(1<<4)  // frame is a byte
-#define U_EVENT		(1<<5)
-#define U_REMOVE	(1<<6)  // REMOVE this entity, don't add it
-#define U_MOREBITS1	(1<<7)  // read one additional byte
-
-// second byte
-#define U_NUMBER16	(1<<8)  // NUMBER8 is implicit if not set
-#define U_ORIGIN3	(1<<9)
-#define U_MODEL		(1<<10)
-#define U_MODEL2	(1<<11)  // linked model
-#define U_EFFECTS8	(1<<12)  // client side effects
-#define U_EFFECTS16	(1<<13)
-#define U_SOUND		(1<<14)
-#define U_MOREBITS2	(1<<15)  // read one additional byte
-
-// third byte
-#define U_ANGLE1	(1<<16)
-#define U_SKIN8		(1<<17)
-#define U_SKIN16	(1<<18)
-#define U_MODEL3	(1<<19)
-#define U_MODEL4	(1<<20)
-#define U_OLDORIGIN	(1<<21)  // used by lightning
-#define U_SOLID		(1<<22)
-#define U_MOREBITS3	(1<<23)  // read one additional byte
-
-// fourth byte not presently used
+// This bit mask is packed into a short for each entity_state_t per frame.
+// It describes which fields must be read to successfully parse the delta-
+// compression.
+#define U_ORIGIN		(1<<0)
+#define U_OLD_ORIGIN	(1<<1)  // used by lightning
+#define U_ANGLES		(1<<2)
+#define U_FRAMES		(1<<3)  // animation frames
+#define U_EVENTS		(1<<4)  // client side events
+#define U_EFFECTS		(1<<5)  // client side effects
+#define U_MODELS		(1<<6)  // models (primary and linked)
+#define U_SKIN			(1<<7)
+#define U_SOUND			(1<<8)  // looped sounds
+#define U_SOLID			(1<<9)
+#define U_REMOVE		(1<<10)  // remove this entity, don't add it
 
 #define NUM_APPROXIMATE_NORMALS 162
 extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];

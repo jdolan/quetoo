@@ -96,10 +96,10 @@ void P_ChangeWeapon(edict_t *ent){
 	// set animation
 	ent->client->anim = ANIM_PAIN;
 	if(ent->client->ps.pmove.pm_flags & PMF_DUCKED){
-		ent->s.frame = FRAME_crpain1;
+		ent->s.frame1 = FRAME_crpain1;
 		ent->client->anim_end = FRAME_crpain4;
 	} else {
-		ent->s.frame = FRAME_pain301;
+		ent->s.frame1 = FRAME_pain301;
 		ent->client->anim_end = FRAME_pain304;
 	}
 
@@ -242,10 +242,10 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 		ent->client->anim = ANIM_ATTACK;
 
 		if(ducked){
-			ent->s.frame = FRAME_crattak1;
+			ent->s.frame1 = FRAME_crattak1;
 			ent->client->anim_end = FRAME_crattak9;
 		} else {
-			ent->s.frame = FRAME_attack1;
+			ent->s.frame1 = FRAME_attack1;
 			ent->client->anim_end = FRAME_attack8;
 		}
 	}
@@ -479,7 +479,7 @@ static void P_FireLightning_(edict_t *ent){
 	G_FireLightning(ent, start, forward, 10, 12);
 
 	// if the client has just begun to attack, send the muzzle flash
-	if(ent->s.frame == FRAME_attack1 || ent->s.frame == FRAME_crattak1){
+	if(ent->s.frame1 == FRAME_attack1 || ent->s.frame1 == FRAME_crattak1){
 
 		if(ent->client->muzzle_flash_time < g_level.time){
 			gi.WriteByte(svc_muzzle_flash);

@@ -204,19 +204,19 @@ static void G_target_string_use(edict_t *self, edict_t *other, edict_t *activato
 			continue;
 		n = e->count - 1;
 		if(n > l){
-			e->s.frame = 12;
+			e->s.frame1 = 12;
 			continue;
 		}
 
 		c = self->message[n];
 		if(c >= '0' && c <= '9')
-			e->s.frame = c - '0';
+			e->s.frame1 = c - '0';
 		else if(c == '-')
-			e->s.frame = 10;
+			e->s.frame1 = 10;
 		else if(c == ':')
-			e->s.frame = 11;
+			e->s.frame1 = 11;
 		else
-			e->s.frame = 12;
+			e->s.frame1 = 12;
 	}
 }
 

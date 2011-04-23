@@ -41,26 +41,26 @@ static void P_DamageFeedback(edict_t *player){
 		return;  // didn't take any damage
 
 	// start a pain animation if still in the player model
-	if(client->anim < ANIM_PAIN && player->s.model_index == 255){
+	if(client->anim < ANIM_PAIN && player->s.model_index1 == 255){
 		static int i;
 
 		client->anim = ANIM_PAIN;
 		if(client->ps.pmove.pm_flags & PMF_DUCKED){
-			player->s.frame = FRAME_crpain1 - 1;
+			player->s.frame1 = FRAME_crpain1 - 1;
 			client->anim_end = FRAME_crpain4;
 		} else {
 			i = (i + 1) % 3;
 			switch(i){
 				case 0:
-					player->s.frame = FRAME_pain101 - 1;
+					player->s.frame1 = FRAME_pain101 - 1;
 					client->anim_end = FRAME_pain104;
 					break;
 				case 1:
-					player->s.frame = FRAME_pain201 - 1;
+					player->s.frame1 = FRAME_pain201 - 1;
 					client->anim_end = FRAME_pain204;
 					break;
 				case 2:
-					player->s.frame = FRAME_pain301 - 1;
+					player->s.frame1 = FRAME_pain301 - 1;
 					client->anim_end = FRAME_pain304;
 					break;
 			}
@@ -128,7 +128,7 @@ static void P_FallingDamage(edict_t *ent){
 	if(delta > 40){  // player will take damage
 
 		if(delta >= 65)
-			event = EV_FALLFAR;
+			event = EV_FALL_FAR;
 		else
 			event = EV_FALL;
 
@@ -144,8 +144,8 @@ static void P_FallingDamage(edict_t *ent){
 		G_Damage(ent, NULL, NULL, dir, ent->s.origin,
 				vec3_origin, damage, 0, 0, MOD_FALLING);
 	}
-	else if(delta > 5)
-		event = EV_FALLSHORT;
+	else if(delta > 5.0)
+		event = EV_FALL_SHORT;
 	else
 		event = EV_FOOTSTEP;
 
@@ -240,7 +240,7 @@ static void P_RunClientAnimation(edict_t *ent){
 	g_client_t *client;
 	qboolean ducked, running;
 
-	if(ent->s.model_index != 255)
+	if(ent->s.model_index1 != 255)
 		return;  // not in the player model
 
 	client = ent->client;
@@ -253,7 +253,7 @@ static void P_RunClientAnimation(edict_t *ent){
 
 	// if we've been explicitly asked to jump to a frame, do it
 	if(ent->client->anim_next){
-		ent->s.frame = ent->client->anim_next;
+		ent->s.frame1 = ent->client->anim_next;
 		ent->client->anim_next = 0;
 		return;
 	}
@@ -265,15 +265,15 @@ static void P_RunClientAnimation(edict_t *ent){
 	if(ducked != client->anim_duck)
 		goto new_anim;
 
-	if(running != client->anim_run && client->anim == ANIM_BASIC)
+	if(running != client->anim_run && client->anim == ANIM_IDLE)
 		goto new_anim;
 
 	if(!ent->ground_entity && client->anim < ANIM_JUMP)
 		goto new_anim;
 
 	// finish running the current animation
-	if(ent->s.frame < client->anim_end){
-		ent->s.frame++;
+	if(ent->s.frame1 < client->anim_end){
+		ent->s.frame1++;
 		return;
 	}
 
@@ -284,36 +284,36 @@ static void P_RunClientAnimation(edict_t *ent){
 			return;
 
 		ent->client->anim = ANIM_WAVE;
-		ent->s.frame = FRAME_jump3;
+		ent->s.frame1 = FRAME_jump3;
 		ent->client->anim_end = FRAME_jump6;
 		return;
 	}
 
 new_anim:
 	// return to either a running or standing frame
-	client->anim = ANIM_BASIC;
+	client->anim = ANIM_IDLE;
 	client->anim_duck = ducked;
 	client->anim_run = running;
 
 	if(!ent->ground_entity){
 		client->anim = ANIM_JUMP;
-		if(ent->s.frame != FRAME_jump2)
-			ent->s.frame = FRAME_jump1;
+		if(ent->s.frame1 != FRAME_jump2)
+			ent->s.frame1 = FRAME_jump1;
 		client->anim_end = FRAME_jump2;
 	} else if(running){  // running
 		if(ducked){
-			ent->s.frame = FRAME_crwalk1;
+			ent->s.frame1 = FRAME_crwalk1;
 			client->anim_end = FRAME_crwalk6;
 		} else {
-			ent->s.frame = FRAME_run1;
+			ent->s.frame1 = FRAME_run1;
 			client->anim_end = FRAME_run6;
 		}
 	} else {  // standing
 		if(ducked){
-			ent->s.frame = FRAME_crstnd01;
+			ent->s.frame1 = FRAME_crstnd01;
 			client->anim_end = FRAME_crstnd19;
 		} else {
-			ent->s.frame = FRAME_stand01;
+			ent->s.frame1 = FRAME_stand01;
 			client->anim_end = FRAME_stand40;
 		}
 	}

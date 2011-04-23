@@ -399,28 +399,28 @@ static void G_Wave_f(edict_t *ent){
 	switch(i){
 		case 0:
 			gi.ClientPrint(ent, PRINT_LOW, "flipoff\n");
-			ent->s.frame = FRAME_flip01 - 1;
+			ent->s.frame1 = FRAME_flip01 - 1;
 			ent->client->anim_end = FRAME_flip12;
 			break;
 		case 1:
 			gi.ClientPrint(ent, PRINT_LOW, "salute\n");
-			ent->s.frame = FRAME_salute01 - 1;
+			ent->s.frame1 = FRAME_salute01 - 1;
 			ent->client->anim_end = FRAME_salute11;
 			break;
 		case 2:
 			gi.ClientPrint(ent, PRINT_LOW, "taunt\n");
-			ent->s.frame = FRAME_taunt01 - 1;
+			ent->s.frame1 = FRAME_taunt01 - 1;
 			ent->client->anim_end = FRAME_taunt17;
 			break;
 		case 3:
 			gi.ClientPrint(ent, PRINT_LOW, "wave\n");
-			ent->s.frame = FRAME_wave01 - 1;
+			ent->s.frame1 = FRAME_wave01 - 1;
 			ent->client->anim_end = FRAME_wave11;
 			break;
 		case 4:
 		default:
 			gi.ClientPrint(ent, PRINT_LOW, "point\n");
-			ent->s.frame = FRAME_point01 - 1;
+			ent->s.frame1 = FRAME_point01 - 1;
 			ent->client->anim_end = FRAME_point12;
 			break;
 	}

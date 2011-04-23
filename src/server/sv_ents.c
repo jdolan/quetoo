@@ -33,67 +33,58 @@
  * Writes a delta update of an entity_state_t list to the message.
  */
 static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg){
-	entity_state_t *oldent = NULL, *newent = NULL;
-	int old_index, newindex;
-	int old_num, newnum;
+	entity_state_t *old_ent = NULL, *new_ent = NULL;
+	int old_index, new_index;
+	unsigned short old_num, new_num;
 	int from_num_entities;
-	int bits;
 
 	if(!from)
 		from_num_entities = 0;
 	else
 		from_num_entities = from->num_entities;
 
-	newindex = 0;
+	new_index = 0;
 	old_index = 0;
-	while(newindex < to->num_entities || old_index < from_num_entities){
-		if(newindex >= to->num_entities)
-			newnum = 9999;
+	while(new_index < to->num_entities || old_index < from_num_entities){
+		if(new_index >= to->num_entities)
+			new_num = 0xffff;
 		else {
-			newent = &svs.entity_states[(to->first_entity + newindex) % svs.num_entity_states];
-			newnum = newent->number;
+			new_ent = &svs.entity_states[(to->first_entity + new_index) % svs.num_entity_states];
+			new_num = new_ent->number;
 		}
 
 		if(old_index >= from_num_entities)
-			old_num = 9999;
+			old_num = 0xffff;
 		else {
-			oldent = &svs.entity_states[(from->first_entity + old_index) % svs.num_entity_states];
-			old_num = oldent->number;
+			old_ent = &svs.entity_states[(from->first_entity + old_index) % svs.num_entity_states];
+			old_num = old_ent->number;
 		}
 
-		if(newnum == old_num){  // delta update from old position
-			Msg_WriteDeltaEntity(oldent, newent, msg, false, newent->number <= sv_max_clients->integer);
+		if(new_num == old_num){  // delta update from old position
+			Msg_WriteDeltaEntity(old_ent, new_ent, msg, false, new_ent->number <= sv_max_clients->integer);
 			old_index++;
-			newindex++;
+			new_index++;
 			continue;
 		}
 
-		if(newnum < old_num){  // this is a new entity, send it from the baseline
-			Msg_WriteDeltaEntity(&sv.baselines[newnum], newent, msg, true, true);
-			newindex++;
+		if(new_num < old_num){  // this is a new entity, send it from the baseline
+			Msg_WriteDeltaEntity(&sv.baselines[new_num], new_ent, msg, true, true);
+			new_index++;
 			continue;
 		}
 
-		if(newnum > old_num){  // the old entity isn't present in the new message
-			bits = U_REMOVE;
-			if(old_num >= 256)
-				bits |= U_NUMBER16 | U_MOREBITS1;
+		if(new_num > old_num){  // the old entity isn't present in the new message
+			const short bits = U_REMOVE;
 
-			Msg_WriteByte(msg, bits & 255);
-			if(bits & 0x0000ff00)
-				Msg_WriteByte(msg, (bits >> 8) & 255);
-
-			if(bits & U_NUMBER16)
-				Msg_WriteShort(msg, old_num);
-			else
-				Msg_WriteByte(msg, old_num);
+			Msg_WriteShort(msg, old_num);
+			Msg_WriteShort(msg, bits);
 
 			old_index++;
 			continue;
 		}
 	}
 
-	Msg_WriteShort(msg, 0);  // end of packetentities
+	Msg_WriteLong(msg, 0);  // end of entities
 }
 
 
@@ -352,10 +343,10 @@ void Sv_BuildClientFrame(sv_client_t *client){
 			continue;
 
 		// ignore ents without visible models unless they have an effect
-		if(!ent->s.model_index && !ent->s.effects && !ent->s.sound && !ent->s.event)
+		if(!ent->s.model_index1 && !ent->s.effects && !ent->s.sound && !ent->s.event)
 			continue;
 
-		// ignore if not touching a PV leaf
+		// ignore if not touching a PVS leaf
 		if(ent != clent){
 			// check area
 			if(!Cm_AreasConnected(clientarea, ent->area_num)){  // doors can legally straddle two areas, so
@@ -386,7 +377,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 					continue;  // not visible
 			}
 
-			if(!ent->s.model_index && !ent->solid && !ent->s.effects){
+			if(!ent->s.model_index1 && !ent->solid && !ent->s.effects){
 				// don't send sounds if they will be attenuated away
 				vec3_t delta;
 				float len;
@@ -398,7 +389,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 			}
 		}
 
-		// add it to the circular client_entities array
+		// add it to the circular entity_state_t array
 		state = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
 		if(ent->s.number != e){
 			Com_Warn("Sv_BuildClientFrame: Fixing ent->s.number.\n");

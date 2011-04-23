@@ -352,7 +352,7 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 	self->dead = true;
 	self->class_name = "dead";
 
-	self->s.model_index = 0;
+	self->s.model_index1 = 0;
 	self->s.model_index2 = 0;
 	self->s.model_index3 = 0;
 	self->s.model_index4 = 0;
@@ -758,7 +758,7 @@ static void P_PutClientInServer(edict_t *ent){
 
 	// clear entity state values
 	ent->s.effects = 0;
-	ent->s.model_index = 255;  // will use the skin specified model
+	ent->s.model_index1 = 255;  // will use the skin specified model
 	ent->s.model_index2 = 255;  // custom gun model
 	// skin_num is player num and weapon number
 	// weapon number will be added in changeweapon
@@ -766,7 +766,7 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->s.model_index3 = 0;
 	ent->s.model_index4 = 0;
 
-	ent->s.frame = 0;
+	ent->s.frame1 = 0;
 	VectorCopy(spawn_origin, ent->s.origin);
 	VectorCopy(ent->s.origin, ent->s.old_origin);
 
@@ -1088,7 +1088,7 @@ void P_Disconnect(edict_t *ent){
 
 	ent->in_use = false;
 	ent->solid = SOLID_NOT;
-	ent->s.model_index = 0;
+	ent->s.model_index1 = 0;
 	ent->s.model_index2 = 0;
 	ent->s.model_index3 = 0;
 	ent->s.model_index4 = 0;
@@ -1135,8 +1135,8 @@ static void P_InventoryThink(edict_t *ent){
 /*
  * P_Think
  *
- * This will be called once for each client frame, which will
- * usually be a couple times for each server frame.
+ * This will be called once for each client frame, which will usually be a
+ * couple times for each server frame.
  */
 void P_Think(edict_t *ent, user_cmd_t *ucmd){
 	g_client_t *client;
@@ -1177,7 +1177,7 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 
 		if(ent->move_type == MOVE_TYPE_NO_CLIP)
 			client->ps.pmove.pm_type = PM_SPECTATOR;
-		else if(ent->s.model_index != 255 || ent->dead)
+		else if(ent->s.model_index1 != 255 || ent->dead)
 			client->ps.pmove.pm_type = PM_DEAD;
 		else
 			client->ps.pmove.pm_type = PM_NORMAL;
@@ -1220,11 +1220,7 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 				(pm.cmd.up >= 10) && (pm.water_level == 0) &&
 				ent->jump_time < g_level.time - 0.2){
 
-			if(crand() > 0)
-				gi.Sound(ent, gi.SoundIndex("*jump_1"), ATTN_NORM);
-			else
-				gi.Sound(ent, gi.SoundIndex("*jump_2"), ATTN_NORM);
-
+			ent->s.event = EV_JUMP;
 			ent->jump_time = g_level.time;
 		}
 

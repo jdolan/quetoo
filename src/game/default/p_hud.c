@@ -34,7 +34,7 @@ void P_MoveToIntermission(edict_t *ent){
 	ent->client->ps.pmove.pm_type = PM_FREEZE;
 
 	ent->view_height = 0;
-	ent->s.model_index = 0;
+	ent->s.model_index1 = 0;
 	ent->s.model_index2 = 0;
 	ent->s.model_index3 = 0;
 	ent->s.model_index4 = 0;

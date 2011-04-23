@@ -89,7 +89,7 @@ static void Sv_SetModel(edict_t *ent, const char *name){
 	i = Sv_ModelIndex(name);
 
 	//	ent->model = name;
-	ent->s.model_index = i;
+	ent->s.model_index1 = i;
 
 	// if it is an inline model, get the size information for it
 	if(name[0] == '*'){
@@ -147,10 +147,6 @@ static void Sv_WriteShort(int c){
 
 static void Sv_WriteLong(int c){
 	Msg_WriteLong(&sv.multicast, c);
-}
-
-static void Sv_WriteFloat(float f){
-	Msg_WriteFloat(&sv.multicast, f);
 }
 
 static void Sv_WriteString(const char *s){
@@ -318,7 +314,6 @@ void Sv_InitGameProgs(void){
 	import.WriteByte = Sv_WriteByte;
 	import.WriteShort = Sv_WriteShort;
 	import.WriteLong = Sv_WriteLong;
-	import.WriteFloat = Sv_WriteFloat;
 	import.WriteString = Sv_WriteString;
 	import.WritePosition = Sv_WritePos;
 	import.WriteDir = Sv_WriteDir;

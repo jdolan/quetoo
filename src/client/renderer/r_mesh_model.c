@@ -475,7 +475,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 		inmesh->ofs_tris = LittleLong(inmesh->ofs_tris);
 		inmesh->ofs_tcs = LittleLong(inmesh->ofs_tcs);
 		inmesh->ofs_verts = LittleLong(inmesh->ofs_verts);
-		inmesh->meshsize = LittleLong(inmesh->meshsize);
+		inmesh->size = LittleLong(inmesh->size);
 
 		outmesh->num_tris = LittleLong(inmesh->num_tris);
 		outmesh->num_verts = LittleLong(inmesh->num_verts);
@@ -524,7 +524,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 			}
 		}
 
-		inmesh = (d_md3_mesh_t *)((byte *)inmesh + inmesh->meshsize);
+		inmesh = (d_md3_mesh_t *)((byte *)inmesh + inmesh->size);
 	}
 
 	// load the skin

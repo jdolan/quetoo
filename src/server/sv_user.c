@@ -156,7 +156,7 @@ static void Sv_Baselines_f(void){
 	while(sv_client->netchan.message.size < MAX_MSG_SIZE / 2
 			&& start < MAX_EDICTS){
 		base = &sv.baselines[start];
-		if(base->model_index || base->sound || base->effects){
+		if(base->model_index1 || base->sound || base->effects){
 			Msg_WriteByte(&sv_client->netchan.message, svc_spawn_baseline);
 			Msg_WriteDeltaEntity(&nullstate, base, &sv_client->netchan.message, true, true);
 		}

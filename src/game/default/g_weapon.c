@@ -355,7 +355,7 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	grenade->s.effects = EF_GRENADE;
 	VectorCopy(mins, grenade->mins);
 	VectorCopy(maxs, grenade->maxs);
-	grenade->s.model_index = grenade_index;
+	grenade->s.model_index1 = grenade_index;
 	grenade->owner = self;
 	grenade->touch = G_GrenadeTouch;
 	grenade->touch_time = g_level.time;
@@ -434,7 +434,7 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	rocket->clipmask = MASK_SHOT;
 	rocket->solid = SOLID_MISSILE;
 	rocket->s.effects = EF_ROCKET;
-	rocket->s.model_index = rocket_index;
+	rocket->s.model_index1 = rocket_index;
 	rocket->owner = self;
 	rocket->touch = G_RocketTouch;
 	rocket->next_think = g_level.time + 8.0;

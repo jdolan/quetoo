@@ -78,6 +78,8 @@ void Com_Debug(const char *fmt, ...){
 
 /*
  * Com_Error
+ *
+ * An error condition has occurred.  This function does not return.
  */
 void Com_Error(err_t err, const char *fmt, ...){
 	va_list	args;
@@ -189,7 +191,7 @@ void Com_SetServerState(int state){
 void Msg_WriteChar(size_buf_t *sb, int c){
 	byte *buf;
 
-	buf = Sb_GetSpace(sb, 1);
+	buf = Sb_Alloc(sb, 1);
 	buf[0] = c;
 }
 
@@ -200,7 +202,7 @@ void Msg_WriteChar(size_buf_t *sb, int c){
 void Msg_WriteByte(size_buf_t *sb, int c){
 	byte *buf;
 
-	buf = Sb_GetSpace(sb, 1);
+	buf = Sb_Alloc(sb, 1);
 	buf[0] = c;
 }
 
@@ -211,7 +213,7 @@ void Msg_WriteByte(size_buf_t *sb, int c){
 void Msg_WriteShort(size_buf_t *sb, int c){
 	byte *buf;
 
-	buf = Sb_GetSpace(sb, 2);
+	buf = Sb_Alloc(sb, 2);
 	buf[0] = c & 0xff;
 	buf[1] = c >> 8;
 }
@@ -223,27 +225,11 @@ void Msg_WriteShort(size_buf_t *sb, int c){
 void Msg_WriteLong(size_buf_t *sb, int c){
 	byte *buf;
 
-	buf = Sb_GetSpace(sb, 4);
+	buf = Sb_Alloc(sb, 4);
 	buf[0] = c & 0xff;
 	buf[1] = (c >> 8) & 0xff;
 	buf[2] = (c >> 16) & 0xff;
 	buf[3] = c >> 24;
-}
-
-
-/*
- * Msg_WriteFloat
- */
-void Msg_WriteFloat(size_buf_t *sb, float f){
-	union {
-		float f;
-		int l;
-	} dat;
-
-	dat.f = f;
-	dat.l = LittleLong(dat.l);
-
-	Sb_Write(sb, &dat.l, 4);
 }
 
 
@@ -262,7 +248,7 @@ void Msg_WriteString(size_buf_t *sb, const char *s){
  * Msg_WriteCoord
  */
 void Msg_WriteCoord(size_buf_t *sb, float f){
-	Msg_WriteShort(sb, (int)(f * 8));
+	Msg_WriteShort(sb, (int)(f * 8.0));
 }
 
 
@@ -280,7 +266,17 @@ void Msg_WritePos(size_buf_t *sb, vec3_t pos){
  * Msg_WriteAngle
  */
 void Msg_WriteAngle(size_buf_t *sb, float f){
-	Msg_WriteByte(sb, (int)(f * 256 / 360) & 255);
+	Msg_WriteByte(sb, (int)(f * 256.0 / 360.0) & 255);
+}
+
+
+/*
+ * Msg_WriteAngles
+ */
+void Msg_WriteAngles(size_buf_t *sb, vec3_t angles){
+	Msg_WriteAngle(sb, angles[0]);
+	Msg_WriteAngle(sb, angles[1]);
+	Msg_WriteAngle(sb, angles[2]);
 }
 
 
@@ -383,153 +379,149 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir){
  * Writes part of a packetentities message.
  * Can delta from either a baseline or a previous packet_entity
  */
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, qboolean force, qboolean newentity){
-	int bits;
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
+		size_buf_t *msg, qboolean force, qboolean is_new){
 
-	if(!to->number){
+	unsigned short bits = 0;
+
+	if(to->number <= 0){
 		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Unset entity number.\n");
 	}
+
 	if(to->number >= MAX_EDICTS){
 		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Entity number >= MAX_EDICTS.\n");
 	}
 
-	// send an update
-	bits = 0;
+	if(!VectorCompare(to->origin, from->origin))
+		bits |= U_ORIGIN;
 
-	if(to->number >= 256)
-		bits |= U_NUMBER16;  // number8 is implicit otherwise
+	if(is_new || !VectorCompare(from->old_origin, to->old_origin))
+		bits |= U_OLD_ORIGIN;
 
-	if(to->origin[0] != from->origin[0])
-		bits |= U_ORIGIN1;
-	if(to->origin[1] != from->origin[1])
-		bits |= U_ORIGIN2;
-	if(to->origin[2] != from->origin[2])
-		bits |= U_ORIGIN3;
+	if(!VectorCompare(to->angles, from->angles))
+		bits |= U_ANGLES;
 
-	if(to->angles[0] != from->angles[0])
-		bits |= U_ANGLE1;
-	if(to->angles[1] != from->angles[1])
-		bits |= U_ANGLE2;
-	if(to->angles[2] != from->angles[2])
-		bits |= U_ANGLE3;
+	if(to->frame1 != from->frame1 || to->frame2 != from->frame2)
+		bits |= U_FRAMES;
 
-	if(to->skin_num != from->skin_num){  // used for vwep and colors
-		if(to->skin_num < 256)
-			bits |= U_SKIN8;
-		else bits |= U_SKIN16;
-	}
+	if(to->event)  // event is not delta compressed, just 0 compressed
+		bits |= U_EVENTS;
 
-	if(to->frame != from->frame)
-		bits |= U_FRAME;
+	if(to->effects != from->effects)
+		bits |= U_EFFECTS;
 
-	if(to->effects != from->effects){
-		if(to->effects < 256)
-			bits |= U_EFFECTS8;
-		else
-			bits |= U_EFFECTS16;
-	}
+	if(to->model_index1 != from->model_index1 ||
+			to->model_index2 != from->model_index2 ||
+			to->model_index3 != from->model_index3 ||
+			to->model_index4 != from->model_index4)
+		bits |= U_MODELS;
 
-	if(to->solid != from->solid)
-		bits |= U_SOLID;
-
-	// event is not delta compressed, just 0 compressed
-	if(to->event)
-		bits |= U_EVENT;
-
-	if(to->model_index != from->model_index)
-		bits |= U_MODEL;
-	if(to->model_index2 != from->model_index2)
-		bits |= U_MODEL2;
-	if(to->model_index3 != from->model_index3)
-		bits |= U_MODEL3;
-	if(to->model_index4 != from->model_index4)
-		bits |= U_MODEL4;
+	if(to->skin_num != from->skin_num)
+		bits |= U_SKIN;
 
 	if(to->sound != from->sound)
 		bits |= U_SOUND;
 
-	if(newentity || !VectorCompare(from->old_origin, to->old_origin))
-		bits |= U_OLDORIGIN;
+	if(to->solid != from->solid)
+		bits |= U_SOLID;
+
+	if(!bits && !force)
+		return;  // nothing to send
 
 	// write the message
-	if(!bits && !force)
-		return;  // nothing to send!
 
-	if(bits & 0xff000000)
-		bits |= U_MOREBITS3 | U_MOREBITS2 | U_MOREBITS1;
-	else if(bits & 0x00ff0000)
-		bits |= U_MOREBITS2 | U_MOREBITS1;
-	else if(bits & 0x0000ff00)
-		bits |= U_MOREBITS1;
+	Msg_WriteShort(msg, to->number);
+	Msg_WriteShort(msg, bits);
 
-	Msg_WriteByte(msg, bits & 255);
+	if(bits & U_ORIGIN)
+		Msg_WritePos(msg, to->origin);
 
-	if(bits & 0xff000000){
-		Msg_WriteByte(msg, (bits >> 8) & 255);
-		Msg_WriteByte(msg, (bits >> 16) & 255);
-		Msg_WriteByte(msg, (bits >> 24) & 255);
-	} else if(bits & 0x00ff0000){
-		Msg_WriteByte(msg, (bits >> 8) & 255);
-		Msg_WriteByte(msg, (bits >> 16) & 255);
-	} else if(bits & 0x0000ff00){
-		Msg_WriteByte(msg, (bits >> 8) & 255);
+	if(bits & U_OLD_ORIGIN)
+		Msg_WritePos(msg, to->old_origin);
+
+	if(bits & U_ANGLES)
+		Msg_WriteAngles(msg, to->angles);
+
+	if(bits & U_FRAMES){
+		Msg_WriteByte(msg, to->frame1);
+		Msg_WriteByte(msg, to->frame2);
 	}
 
-	//----------
+	if(bits & U_EVENTS)
+		Msg_WriteByte(msg, to->event);
 
-	if(bits & U_NUMBER16)
-		Msg_WriteShort(msg, to->number);
-	else
-		Msg_WriteByte(msg, to->number);
-
-	if(bits & U_MODEL)
-		Msg_WriteByte(msg, to->model_index);
-	if(bits & U_MODEL2)
-		Msg_WriteByte(msg, to->model_index2);
-	if(bits & U_MODEL3)
-		Msg_WriteByte(msg, to->model_index3);
-	if(bits & U_MODEL4)
-		Msg_WriteByte(msg, to->model_index4);
-
-	if(bits & U_FRAME)
-		Msg_WriteByte(msg, to->frame);
-
-	if(bits & U_SKIN8)
-		Msg_WriteByte(msg, to->skin_num);
-	else if(bits & U_SKIN16)
-		Msg_WriteShort(msg, to->skin_num);
-
-	if(bits & U_EFFECTS8)
-		Msg_WriteByte(msg, to->effects);
-	else if(bits & U_EFFECTS16)
+	if(bits & U_EFFECTS)
 		Msg_WriteShort(msg, to->effects);
 
-	if(bits & U_ORIGIN1)
-		Msg_WriteCoord(msg, to->origin[0]);
-	if(bits & U_ORIGIN2)
-		Msg_WriteCoord(msg, to->origin[1]);
-	if(bits & U_ORIGIN3)
-		Msg_WriteCoord(msg, to->origin[2]);
-
-	if(bits & U_ANGLE1)
-		Msg_WriteAngle(msg, to->angles[0]);
-	if(bits & U_ANGLE2)
-		Msg_WriteAngle(msg, to->angles[1]);
-	if(bits & U_ANGLE3)
-		Msg_WriteAngle(msg, to->angles[2]);
-
-	if(bits & U_OLDORIGIN){
-		Msg_WriteCoord(msg, to->old_origin[0]);
-		Msg_WriteCoord(msg, to->old_origin[1]);
-		Msg_WriteCoord(msg, to->old_origin[2]);
+	if(bits & U_MODELS){
+		Msg_WriteByte(msg, to->model_index1);
+		Msg_WriteByte(msg, to->model_index2);
+		Msg_WriteByte(msg, to->model_index3);
+		Msg_WriteByte(msg, to->model_index4);
 	}
+
+	if(bits & U_SKIN)
+		Msg_WriteShort(msg, to->skin_num);
 
 	if(bits & U_SOUND)
 		Msg_WriteByte(msg, to->sound);
-	if(bits & U_EVENT)
-		Msg_WriteByte(msg, to->event);
+
 	if(bits & U_SOLID)
 		Msg_WriteShort(msg, to->solid);
+}
+
+
+/*
+ * Msg_ReadDeltaEntity
+ */
+void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to,
+		size_buf_t *msg, unsigned short number, unsigned short bits){
+
+	// set everything to the state we are delta'ing from
+	*to = *from;
+
+	if(!(from->effects & EF_BEAM))
+		VectorCopy(from->origin, to->old_origin);
+
+	to->number = number;
+
+	if(bits & U_ORIGIN)
+		Msg_ReadPos(msg, to->origin);
+
+	if(bits & U_OLD_ORIGIN)
+		Msg_ReadPos(msg, to->old_origin);
+
+	if(bits & U_ANGLES)
+		Msg_ReadAngles(msg, to->angles);
+
+	if(bits & U_FRAMES){
+		to->frame1 = Msg_ReadByte(msg);
+		to->frame2 = Msg_ReadByte(msg);
+	}
+
+	if(bits & U_EVENTS)
+		to->event = Msg_ReadByte(msg);
+	else
+		to->event = 0;
+
+	if(bits & U_EFFECTS)
+		to->effects = Msg_ReadShort(msg);
+
+	if(bits & U_MODELS){
+		to->model_index1 = Msg_ReadByte(msg);
+		to->model_index2 = Msg_ReadByte(msg);
+		to->model_index3 = Msg_ReadByte(msg);
+		to->model_index4 = Msg_ReadByte(msg);
+	}
+
+	if(bits & U_SKIN)
+		to->skin_num = Msg_ReadShort(msg);
+
+	if(bits & U_SOUND)
+			to->sound = Msg_ReadByte(msg);
+
+	if(bits & U_SOLID)
+		to->solid = Msg_ReadShort(msg);
 }
 
 
@@ -614,36 +606,10 @@ int Msg_ReadLong(size_buf_t *sb){
 
 
 /*
- * Msg_ReadFloat
- */
-float Msg_ReadFloat(size_buf_t *sb){
-	union {
-		byte b[4];
-		float f;
-		int l;
-	} dat;
-
-	if(sb->read + 4 > sb->size)
-		dat.f = -1;
-	else {
-		dat.b[0] = sb->data[sb->read];
-		dat.b[1] = sb->data[sb->read + 1];
-		dat.b[2] = sb->data[sb->read + 2];
-		dat.b[3] = sb->data[sb->read + 3];
-	}
-	sb->read += 4;
-
-	dat.l = LittleLong(dat.l);
-
-	return dat.f;
-}
-
-
-/*
  * Msg_ReadString
  */
 char *Msg_ReadString(size_buf_t *sb){
-	static char string[2048];
+	static char string[MAX_STRING_CHARS];
 	int l, c;
 
 	l = 0;
@@ -665,7 +631,7 @@ char *Msg_ReadString(size_buf_t *sb){
  * Msg_ReadStringLine
  */
 char *Msg_ReadStringLine(size_buf_t *sb){
-	static char string[2048];
+	static char string[MAX_STRING_CHARS];
 	int l, c;
 
 	l = 0;
@@ -687,7 +653,7 @@ char *Msg_ReadStringLine(size_buf_t *sb){
  * Msg_ReadCoord
  */
 float Msg_ReadCoord(size_buf_t *sb){
-	return Msg_ReadShort(sb) * (1.0 / 8);
+	return Msg_ReadShort(sb) * (1.0 / 8.0);
 }
 
 
@@ -695,9 +661,9 @@ float Msg_ReadCoord(size_buf_t *sb){
  * Msg_ReadPos
  */
 void Msg_ReadPos(size_buf_t *sb, vec3_t pos){
-	pos[0] = Msg_ReadShort(sb) * (1.0 / 8);
-	pos[1] = Msg_ReadShort(sb) * (1.0 / 8);
-	pos[2] = Msg_ReadShort(sb) * (1.0 / 8);
+	pos[0] = Msg_ReadCoord(sb);
+	pos[1] = Msg_ReadCoord(sb);
+	pos[2] = Msg_ReadCoord(sb);
 }
 
 
@@ -705,7 +671,16 @@ void Msg_ReadPos(size_buf_t *sb, vec3_t pos){
  * Msg_ReadAngle
  */
 float Msg_ReadAngle(size_buf_t *sb){
-	return Msg_ReadChar(sb) * (360.0 / 256);
+	return Msg_ReadChar(sb) * (360.0 / 255.0);
+}
+
+/*
+ * Msg_ReadAngles
+ */
+void Msg_ReadAngles(size_buf_t *sb, vec3_t angles){
+	angles[0] = Msg_ReadAngle(sb);
+	angles[1] = Msg_ReadAngle(sb);
+	angles[2] = Msg_ReadAngle(sb);
 }
 
 
@@ -783,9 +758,9 @@ void Sb_Clear(size_buf_t *buf){
 
 
 /*
- * Sb_GetSpace
+ * Sb_Alloc
  */
-void *Sb_GetSpace(size_buf_t *buf, size_t length){
+void *Sb_Alloc(size_buf_t *buf, size_t length){
 	void *data;
 
 	if(buf->size + length > buf->max_size){
@@ -813,7 +788,7 @@ void *Sb_GetSpace(size_buf_t *buf, size_t length){
  * Sb_Write
  */
 void Sb_Write(size_buf_t *buf, const void *data, size_t length){
-	memcpy(Sb_GetSpace(buf, length), data, length);
+	memcpy(Sb_Alloc(buf, length), data, length);
 }
 
 
@@ -827,11 +802,11 @@ void Sb_Print(size_buf_t *buf, const char *data){
 
 	if(buf->size){
 		if(buf->data[buf->size - 1])
-			memcpy((byte *)Sb_GetSpace(buf, len), data, len); // no trailing 0
+			memcpy((byte *)Sb_Alloc(buf, len), data, len); // no trailing 0
 		else
-			memcpy((byte *)Sb_GetSpace(buf, len - 1) - 1, data, len); // write over trailing 0
+			memcpy((byte *)Sb_Alloc(buf, len - 1) - 1, data, len); // write over trailing 0
 	} else
-		memcpy((byte *)Sb_GetSpace(buf, len), data, len);
+		memcpy((byte *)Sb_Alloc(buf, len), data, len);
 }
 
 

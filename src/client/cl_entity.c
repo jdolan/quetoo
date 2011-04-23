@@ -23,153 +23,47 @@
 
 
 /*
- * Cl_ParseEntityBits
- *
- * Returns the entity number and the header bits
- */
-unsigned int Cl_ParseEntityBits(unsigned int *bits){
-	unsigned int b, total;
-	unsigned int number;
-
-	total = Msg_ReadByte(&net_message);
-	if(total & U_MOREBITS1){
-		b = Msg_ReadByte(&net_message);
-		total |= b << 8;
-	}
-	if(total & U_MOREBITS2){
-		b = Msg_ReadByte(&net_message);
-		total |= b << 16;
-	}
-	if(total & U_MOREBITS3){
-		b = Msg_ReadByte(&net_message);
-		total |= b << 24;
-	}
-
-	if(total & U_NUMBER16)
-		number = Msg_ReadShort(&net_message);
-	else
-		number = Msg_ReadByte(&net_message);
-
-	*bits = total;
-
-	return number;
-}
-
-
-/*
- * Cl_ParseDelta
- *
- * Can go from either a baseline or a previous packet_entity
- */
-void Cl_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bits){
-
-	// set everything to the state we are delta'ing from
-	*to = *from;
-
-	if(!(from->effects & EF_BEAM))
-		VectorCopy(from->origin, to->old_origin);
-
-	to->number = number;
-
-	if(bits & U_MODEL)
-		to->model_index = Msg_ReadByte(&net_message);
-	if(bits & U_MODEL2)
-		to->model_index2 = Msg_ReadByte(&net_message);
-	if(bits & U_MODEL3)
-		to->model_index3 = Msg_ReadByte(&net_message);
-	if(bits & U_MODEL4)
-		to->model_index4 = Msg_ReadByte(&net_message);
-
-	if(bits & U_FRAME)
-		to->frame = Msg_ReadByte(&net_message);
-
-	if(bits & U_SKIN8)
-		to->skin_num = Msg_ReadByte(&net_message);
-	else if(bits & U_SKIN16)
-		to->skin_num = Msg_ReadShort(&net_message);
-
-	if(bits & U_EFFECTS8)
-		to->effects = Msg_ReadByte(&net_message);
-	else if(bits & U_EFFECTS16)
-		to->effects = Msg_ReadShort(&net_message);
-
-	if(bits & U_ORIGIN1)
-		to->origin[0] = Msg_ReadCoord(&net_message);
-	if(bits & U_ORIGIN2)
-		to->origin[1] = Msg_ReadCoord(&net_message);
-	if(bits & U_ORIGIN3)
-		to->origin[2] = Msg_ReadCoord(&net_message);
-
-	if(bits & U_ANGLE1)
-		to->angles[0] = Msg_ReadAngle(&net_message);
-	if(bits & U_ANGLE2)
-		to->angles[1] = Msg_ReadAngle(&net_message);
-	if(bits & U_ANGLE3)
-		to->angles[2] = Msg_ReadAngle(&net_message);
-
-	if(bits & U_OLDORIGIN)
-		Msg_ReadPos(&net_message, to->old_origin);
-
-	if(bits & U_SOUND)
-		to->sound = Msg_ReadByte(&net_message);
-
-	if(bits & U_EVENT)
-		to->event = Msg_ReadByte(&net_message);
-	else
-		to->event = 0;
-
-	if(bits & U_SOLID)
-		to->solid = Msg_ReadShort(&net_message);
-}
-
-
-/*
  * Cl_DeltaEntity
  *
  * Parses deltas from the given base and adds the resulting entity
  * to the current frame.
  */
-static void Cl_DeltaEntity(cl_frame_t *frame, int new_num, entity_state_t *old_state, int bits){
+static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from,
+		unsigned short number, unsigned short bits){
+
 	cl_entity_t *ent;
-	entity_state_t *state;
+	entity_state_t *to;
 
-	ent = &cl.entities[new_num];
+	ent = &cl.entities[number];
 
-	state = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
+	to = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
 	cl.entity_state++;
 	frame->num_entities++;
 
-	Cl_ParseDelta(old_state, state, new_num, bits);
+	Msg_ReadDeltaEntity(from, to, &net_message, number, bits);
 
 	// some data changes will force no interpolation
-	if(state->model_index != ent->current.model_index
-			|| state->model_index2 != ent->current.model_index2
-			|| state->model_index3 != ent->current.model_index3
-			|| state->model_index4 != ent->current.model_index4
-			|| abs(state->origin[0] - ent->current.origin[0]) > 512
-			|| abs(state->origin[1] - ent->current.origin[1]) > 512
-			|| abs(state->origin[2] - ent->current.origin[2]) > 512
-			|| state->event == EV_TELEPORT
-	  ){
+	if(to->event == EV_TELEPORT){
 		ent->server_frame = -99999;
 	}
 
 	if(ent->server_frame != cl.frame.server_frame - 1){
 		// wasn't in last update, so initialize some things
 		// duplicate the current state so interpolation works
-		ent->prev = *state;
-		VectorCopy(state->old_origin, ent->prev.origin);
-	} else {  // shuffle the last state to previous
+		ent->prev = *to;
+		VectorCopy(to->old_origin, ent->prev.origin);
+	}
+	else {  // shuffle the last state to previous
 		ent->prev = ent->current;
 	}
 
 	ent->server_frame = cl.frame.server_frame;
-	ent->current = *state;
+	ent->current = *to;
 
 	// bump animation time for frame interpolation
-	if(ent->current.frame != ent->prev.frame){
+	if(ent->current.frame1 != ent->prev.frame1){
 		ent->anim_time = cl.time;
-		ent->anim_frame = ent->prev.frame;
+		ent->anim_frame = ent->prev.frame1;
 	}
 }
 
@@ -180,9 +74,9 @@ static void Cl_DeltaEntity(cl_frame_t *frame, int new_num, entity_state_t *old_s
  * An svc_packetentities has just been parsed, deal with the rest of the data stream.
  */
 static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame){
-	unsigned int bits;
 	entity_state_t *old_state = NULL;
-	int old_index, old_num;
+	int old_index;
+	unsigned short old_number;
 
 	new_frame->entity_state = cl.entity_state;
 	new_frame->num_entities = 0;
@@ -191,110 +85,108 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 	old_index = 0;
 
 	if(!old_frame)
-		old_num = 99999;
+		old_number = 0xffff;
 	else {
 		if(old_index >= old_frame->num_entities)
-			old_num = 99999;
+			old_number = 0xffff;
 		else {
 			old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
-			old_num = old_state->number;
+			old_number = old_state->number;
 		}
 	}
 
 	while(true){
+		const unsigned short number = Msg_ReadShort(&net_message);
+		const unsigned short bits = Msg_ReadShort(&net_message);
 
-		const int new_num = Cl_ParseEntityBits(&bits);
+		if(number >= MAX_EDICTS)
+			Com_Error(ERR_DROP, "Cl_ParseEntities: bad number: %i.\n", number);
 
-		if(new_num >= MAX_EDICTS){
-			Com_Error(ERR_DROP, "Cl_ParseEntities: bad number: %i.\n", new_num);
-		}
-
-		if(net_message.read > net_message.size){
+		if(net_message.read > net_message.size)
 			Com_Error(ERR_DROP, "Cl_ParseEntities: end of message.\n");
-		}
 
-		if(!new_num)
+		if(!number)
 			break;
 
-		while(old_num < new_num){  // one or more entities from old_frame are unchanged
+		while(old_number < number){  // one or more entities from old_frame are unchanged
 
 			if(cl_show_net_messages->value == 3)
-				Com_Print("   unchanged: %i\n", old_num);
+				Com_Print("   unchanged: %i\n", old_number);
 
-			Cl_DeltaEntity(new_frame, old_num, old_state, 0);
+			Cl_DeltaEntity(new_frame, old_state, old_number, 0);
 
 			old_index++;
 
 			if(old_index >= old_frame->num_entities)
-				old_num = 99999;
+				old_number = 0xffff;
 			else {
 				old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
-				old_num = old_state->number;
+				old_number = old_state->number;
 			}
 		}
 
 		if(bits & U_REMOVE){  // the entity present in the old_frame, and is not in the current frame
 
 			if(cl_show_net_messages->value == 3)
-				Com_Print("   remove: %i\n", new_num);
+				Com_Print("   remove: %i\n", number);
 
-			if(old_num != new_num)
-				Com_Warn("Cl_ParseEntities: U_REMOVE: old_num != new_num.\n");
-
-			old_index++;
-
-			if(old_index >= old_frame->num_entities)
-				old_num = 99999;
-			else {
-				old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
-				old_num = old_state->number;
-			}
-			continue;
-		}
-
-		if(old_num == new_num){  // delta from previous state
-
-			if(cl_show_net_messages->value == 3)
-				Com_Print("   delta: %i\n", new_num);
-
-			Cl_DeltaEntity(new_frame, new_num, old_state, bits);
+			if(old_number != number)
+				Com_Warn("Cl_ParseEntities: U_REMOVE: old_number != number.\n");
 
 			old_index++;
 
 			if(old_index >= old_frame->num_entities)
-				old_num = 99999;
+				old_number = 0xffff;
 			else {
 				old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
-				old_num = old_state->number;
+				old_number = old_state->number;
 			}
 			continue;
 		}
 
-		if(old_num > new_num){  // delta from baseline
+		if(old_number == number){  // delta from previous state
 
 			if(cl_show_net_messages->value == 3)
-				Com_Print("   baseline: %i\n", new_num);
+				Com_Print("   delta: %i\n", number);
 
-			Cl_DeltaEntity(new_frame, new_num, &cl.entities[new_num].baseline, bits);
+			Cl_DeltaEntity(new_frame, old_state, number, bits);
+
+			old_index++;
+
+			if(old_index >= old_frame->num_entities)
+				old_number = 0xffff;
+			else {
+				old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
+				old_number = old_state->number;
+			}
+			continue;
+		}
+
+		if(old_number > number){  // delta from baseline
+
+			if(cl_show_net_messages->value == 3)
+				Com_Print("   baseline: %i\n", number);
+
+			Cl_DeltaEntity(new_frame, &cl.entities[number].baseline, number, bits);
 			continue;
 		}
 	}
 
 	// any remaining entities in the old frame are copied over
-	while(old_num != 99999){  // one or more entities from the old packet are unchanged
+	while(old_number != 0xffff){  // one or more entities from the old packet are unchanged
 
 		if(cl_show_net_messages->value == 3)
-			Com_Print("   unchanged: %i\n", old_num);
+			Com_Print("   unchanged: %i\n", old_number);
 
-		Cl_DeltaEntity(new_frame, old_num, old_state, 0);
+		Cl_DeltaEntity(new_frame, old_state, old_number, 0);
 
 		old_index++;
 
 		if(old_index >= old_frame->num_entities)
-			old_num = 99999;
+			old_number = 0xffff;
 		else {
 			old_state = &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
-			old_num = old_state->number;
+			old_number = old_state->number;
 		}
 	}
 }
@@ -359,9 +251,11 @@ static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_fra
 
 	// parse stats
 	statbits = Msg_ReadLong(&net_message);
-	for(i = 0; i < MAX_STATS; i++)
+
+	for(i = 0; i < MAX_STATS; i++){
 		if(statbits & (1 << i))
 			ps->stats[i] = Msg_ReadShort(&net_message);
+	}
 }
 
 
@@ -396,21 +290,23 @@ void Cl_ParseFrame(void){
 		Com_Print ("   frame:%i  delta:%i\n", cl.frame.server_frame, cl.frame.delta_frame);
 
 	if(cl.frame.delta_frame <= 0){  // uncompressed frame
+		old_frame = NULL;
 		cls.demo_waiting = false;
 		cl.frame.valid = true;
-		old_frame = NULL;
 	}
 	else {  // delta compressed frame
 		old_frame = &cl.frames[cl.frame.delta_frame & UPDATE_MASK];
 
 		if(!old_frame->valid)
-			Com_Warn("Cl_ParseFrame: Delta from invalid frame.\n");
-		else if(old_frame->server_frame != cl.frame.delta_frame)
-			Com_Warn("Cl_ParseFrame: Delta frame too old.\n");
+			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta from invalid frame.\n");
+
+		if(old_frame->server_frame != cl.frame.delta_frame)
+			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta frame too old.\n");
+
 		else if(cl.entity_state - old_frame->entity_state > ENTITY_STATE_BACKUP - UPDATE_BACKUP)
-			Com_Warn("Cl_ParseFrame: Delta parse_entities too old.\n");
-		else
-			cl.frame.valid = true;
+			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta parse_entities too old.\n");
+
+		cl.frame.valid = true;
 	}
 
 	len = Msg_ReadByte(&net_message); // read area_bits
@@ -429,7 +325,7 @@ void Cl_ParseFrame(void){
 			cls.state = ca_active;
 
 			VectorCopy(cl.frame.ps.pmove.origin, cl.predicted_origin);
-			VectorScale(cl.predicted_origin, 0.125, cl.predicted_origin);
+			VectorScale(cl.predicted_origin, (1.0 / 8.0), cl.predicted_origin);
 
 			VectorCopy(cl.frame.ps.angles, cl.predicted_angles);
 		}
@@ -669,7 +565,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		else if(s->effects & EF_ANIMATE_FAST)
 			ent.frame = cl.time / 100;
 		else
-			ent.frame = s->frame;
+			ent.frame = s->frame1;
 
 		ent.old_frame = e->anim_frame;
 
@@ -685,7 +581,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		VectorSet(ent.scale, 1.0, 1.0, 1.0);  // scale
 
 		// resolve model and skin
-		if(s->model_index == 255){  // use custom player skin
+		if(s->model_index1 == 255){  // use custom player skin
 			const cl_client_info_t *ci = &cl.client_info[s->skin_num & 0xff];
 			ent.skin_num = 0;
 			ent.skin = ci->skin;
@@ -701,7 +597,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		else {  // or use the model defined by the entity state
 			ent.skin_num = s->skin_num;
 			ent.skin = NULL;
-			ent.model = cl.model_draw[s->model_index];
+			ent.model = cl.model_draw[s->model_index1];
 		}
 
 		if(s->effects & (EF_ROCKET | EF_GRENADE)){
@@ -759,7 +655,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 			Cl_TeleporterTrail(ent.origin, e);
 
 		// if there's no model associated with the entity, we're done
-		if(!s->model_index)
+		if(!s->model_index1)
 			continue;
 
 		// filter by model type

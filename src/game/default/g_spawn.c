@@ -671,7 +671,7 @@ static void G_worldspawn(edict_t *ent){
 	ent->move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	ent->in_use = true;  // since the world doesn't use G_Spawn()
-	ent->s.model_index = 1;  // world model is always index 1
+	ent->s.model_index1 = 1;  // world model is always index 1
 
 	// set config_strings for items
 	G_SetItemNames();

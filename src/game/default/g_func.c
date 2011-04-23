@@ -627,7 +627,7 @@ static void button_return(edict_t *self){
 
 	Move_Calc(self, self->move_info.start_origin, button_done);
 
-	self->s.frame = 0;
+	self->s.frame1 = 0;
 
 	if(self->health)
 		self->takedamage = true;
@@ -637,7 +637,7 @@ static void button_wait(edict_t *self){
 	self->move_info.state = STATE_TOP;
 
 	G_UseTargets(self, self->activator);
-	self->s.frame = 1;
+	self->s.frame1 = 1;
 	if(self->move_info.wait >= 0){
 		  self->next_think = g_level.time + self->move_info.wait;
 		  self->think = button_return;

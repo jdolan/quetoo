@@ -610,9 +610,10 @@ typedef enum {
 	EV_ITEM_RESPAWN,
 	EV_ITEM_PICKUP,
 	EV_FOOTSTEP,
-	EV_FALLSHORT,
+	EV_JUMP,
+	EV_FALL_SHORT,
 	EV_FALL,
-	EV_FALLFAR,
+	EV_FALL_FAR,
 	EV_TELEPORT
 } entity_event_t;
 
@@ -620,18 +621,18 @@ typedef enum {
 // in an update message about entities that the client will
 // need to render in some way
 typedef struct entity_state_s {
-	int number;  // edict index
+	unsigned short number;  // edict index
 
 	vec3_t origin;
 	vec3_t angles;
-	vec3_t old_origin;  // for lerping
+	vec3_t old_origin;  // for interpolating
 
 	// primary model, weapon model, CTF flag, etc
-	byte model_index, model_index2, model_index3, model_index4;
-	byte frame;  // frame number for animations
+	byte model_index1, model_index2, model_index3, model_index4;
+	byte frame1, frame2;  // frame numbers for animations
 
 	unsigned short skin_num;  // masked off for players
-	unsigned short effects;  // particles, lights, envmapping, ..
+	unsigned short effects;  // particles, lights, etc..
 	unsigned short solid;  // for client side prediction, 8 * (bits 0-4) is x/y radius
 	// 8 * (bits 5-9) is z down distance, 8 * (bits10-15) is z up
 	// gi.linkentity sets this properly

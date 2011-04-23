@@ -296,41 +296,6 @@ extern cvar_t *skin;
 
 extern cvar_t *recording;
 
-// cl_screen.c
-void Cl_CenterPrint(char *s);
-void Cl_AddNetgraph(void);
-void Cl_UpdateScreen(void);
-
-// cl_emit.c
-void Cl_LoadEmits(void);
-void Cl_AddEmits(void);
-
-// cl_entity.c
-unsigned int Cl_ParseEntityBits(unsigned int *bits);
-void Cl_ParseDelta(const entity_state_t *from, entity_state_t *to, int number, int bits);
-void Cl_ParseFrame(void);
-void Cl_AddEntities(cl_frame_t *frame);
-
-// cl_tentity.c
-void Cl_LoadTempEntitySamples(void);
-void Cl_ParseTempEntity(void);
-
-// cl_main.c
-void Cl_Init(void);
-void Cl_Frame(int msec);
-void Cl_Shutdown(void);
-void Cl_SendDisconnect(void);
-void Cl_Disconnect(void);
-void Cl_Reconnect_f(void);
-void Cl_LoadProgress(int percent);
-void Cl_RequestNextDownload(void);
-void Cl_WriteDemoMessage(void);
-
-// cl_input.c
-void Cl_InitInput(void);
-void Cl_HandleEvents(void);
-void Cl_Move(user_cmd_t *cmd);
-
 // cl_cmd.c
 void Cl_UpdateCmd(void);
 void Cl_SendCmd(void);
@@ -344,37 +309,6 @@ void Cl_DrawNotify(void);
 void Cl_UpdateNotify(int lastline);
 void Cl_ClearNotify(void);
 void Cl_ToggleConsole_f(void);
-
-// cl_keys.c
-void Cl_KeyEvent(unsigned int ascii, unsigned short unicode, qboolean down, unsigned time);
-char *Cl_EditLine(void);
-void Cl_WriteBindings(FILE *f);
-void Cl_InitKeys(void);
-void Cl_ShutdownKeys(void);
-void Cl_ClearTyping(void);
-
-// cl_parse.c
-extern char *svc_strings[256];
-
-qboolean Cl_CheckOrDownloadFile(const char *file_name);
-void Cl_ParseConfigString(void);
-void Cl_ParseClientInfo(int player);
-void Cl_ParseMuzzleFlash(void);
-void Cl_ParseServerMessage(void);
-void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s);
-void Cl_Download_f(void);
-
-// cl_view.c
-void Cl_InitView(void);
-void Cl_ClearState(void);
-void Cl_AddEntity(r_entity_t *ent);
-void Cl_AddParticle(r_particle_t *p);
-void Cl_UpdateView(void);
-
-// cl_pred.c
-extern int cl_gravity;
-void Cl_PredictMovement(void);
-void Cl_CheckPredictionError(void);
 
 // cl_effect.c
 void Cl_LightningEffect(const vec3_t org);
@@ -405,6 +339,14 @@ void Cl_AddParticles(void);
 r_particle_t *Cl_AllocParticle(void);
 void Cl_ClearEffects(void);
 
+// cl_emit.c
+void Cl_LoadEmits(void);
+void Cl_AddEmits(void);
+
+// cl_entity.c
+void Cl_ParseFrame(void);
+void Cl_AddEntities(cl_frame_t *frame);
+
 // cl_http.c
 void Cl_InitHttpDownload(void);
 void Cl_HttpDownloadCleanup(void);
@@ -412,12 +354,57 @@ qboolean Cl_HttpDownload(void);
 void Cl_HttpDownloadThink(void);
 void Cl_ShutdownHttpDownload(void);
 
-//cl_loc.c
+// cl_input.c
+void Cl_InitInput(void);
+void Cl_HandleEvents(void);
+void Cl_Move(user_cmd_t *cmd);
+
+// cl_keys.c
+void Cl_KeyEvent(unsigned int ascii, unsigned short unicode, qboolean down, unsigned time);
+char *Cl_EditLine(void);
+void Cl_WriteBindings(FILE *f);
+void Cl_InitKeys(void);
+void Cl_ShutdownKeys(void);
+void Cl_ClearTyping(void);
+
+// cl_loc.c
 void Cl_InitLocations(void);
 void Cl_ShutdownLocations(void);
 void Cl_LoadLocations(void);
 const char *Cl_LocationHere(void);
 const char *Cl_LocationThere(void);
+
+// cl_main.c
+void Cl_Init(void);
+void Cl_Frame(int msec);
+void Cl_Shutdown(void);
+void Cl_SendDisconnect(void);
+void Cl_Disconnect(void);
+void Cl_Reconnect_f(void);
+void Cl_LoadProgress(int percent);
+void Cl_RequestNextDownload(void);
+void Cl_WriteDemoMessage(void);
+
+// cl_parse.c
+extern char *svc_strings[256];
+
+qboolean Cl_CheckOrDownloadFile(const char *file_name);
+void Cl_ParseConfigString(void);
+void Cl_ParseClientInfo(int player);
+void Cl_ParseMuzzleFlash(void);
+void Cl_ParseServerMessage(void);
+void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s);
+void Cl_Download_f(void);
+
+// cl_pred.c
+extern int cl_gravity;
+void Cl_PredictMovement(void);
+void Cl_CheckPredictionError(void);
+
+// cl_screen.c
+void Cl_CenterPrint(char *s);
+void Cl_AddNetgraph(void);
+void Cl_UpdateScreen(void);
 
 // cl_server.c
 void Cl_Ping_f(void);
@@ -426,5 +413,16 @@ void Cl_ParseStatusMessage(void);
 void Cl_ParseServersList(void);
 void Cl_FreeServers(void);
 cl_server_info_t *Cl_ServerForNum(int num);
+
+// cl_tentity.c
+void Cl_LoadTempEntitySamples(void);
+void Cl_ParseTempEntity(void);
+
+// cl_view.c
+void Cl_InitView(void);
+void Cl_ClearState(void);
+void Cl_AddEntity(r_entity_t *ent);
+void Cl_AddParticle(r_particle_t *p);
+void Cl_UpdateView(void);
 
 #endif /* __CLIENT_H__ */

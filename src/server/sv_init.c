@@ -90,7 +90,7 @@ static void Sv_CreateBaseline(void){
 		if(!ent->in_use)
 			continue;
 
-		if(!ent->s.model_index && !ent->s.sound && !ent->s.effects)
+		if(!ent->s.model_index1 && !ent->s.sound && !ent->s.effects)
 			continue;
 
 		ent->s.number = i;

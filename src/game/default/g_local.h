@@ -624,7 +624,7 @@ void G_target_string(edict_t *ent);
 
 // client_t->anim_priority
 typedef enum {
-	ANIM_BASIC,
+	ANIM_IDLE,
 	ANIM_WAVE,
 	ANIM_JUMP,
 	ANIM_PAIN,

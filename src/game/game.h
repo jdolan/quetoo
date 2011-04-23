@@ -134,7 +134,6 @@ typedef struct g_import_s {
 	void (*WriteByte)(int c);
 	void (*WriteShort)(int c);
 	void (*WriteLong)(int c);
-	void (*WriteFloat)(float f);
 	void (*WriteString)(const char *s);
 	void (*WritePosition)(vec3_t pos);  // some fractional bits
 	void (*WriteDir)(vec3_t pos);  // single byte encoded, very coarse
