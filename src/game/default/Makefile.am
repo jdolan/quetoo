@@ -1,8 +1,7 @@
 gamelibdir=$(libdir)/@PACKAGE@/default
 
 noinst_HEADERS = \
-	g_local.h \
-	m_player.h
+	g_local.h
 
 gamelib_LTLIBRARIES = \
 	game.la

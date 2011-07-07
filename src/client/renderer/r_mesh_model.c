@@ -21,49 +21,89 @@
 
 #include "renderer.h"
 
-static const char *weaps[] = {
-	"w_bfg", "w_chaingun", "w_glauncher", "w_hyperblaster", "w_machinegun",
-	"w_railgun", "w_rlauncher", "w_shotgun", "w_sshotgun", NULL
-};
-
 
 /*
  * R_LoadMeshSkin
  *
- * Resolves the skin for the specified model.  For most models, skin.tga is tried
- * within the model's directory.  Player-weapon models are a special case.
+ * Resolves the skin for the specified model.  By default, we simply load
+ * "skin.tga" in the model's directory.
  */
 static void R_LoadMeshSkin(r_model_t *mod){
 	char skin[MAX_QPATH];
-	qboolean weap;
-	int i;
 
-	weap = false;
-	i = 0;
-	while(weaps[i]){  // determine if this is a weapon model for skin checks
-		if(strstr(mod->name, weaps[i])){
-			weap = true;
+	Com_Dirname(mod->name, skin);
+	strcat(skin, "skin");
+
+	mod->skin = R_LoadImage(skin, it_skin);
+}
+
+
+/*
+ * R_LoadMd3Animations
+ *
+ * Parses animation.cfg, loading the frame specifications for the given model.
+ */
+static void R_LoadMd3Animations(r_model_t *mod){
+	r_md3_t *md3;
+	char path[MAX_QPATH];
+	const char *buffer, *c;
+	void *buf;
+	int skip;
+
+	md3 = (r_md3_t *)mod->extra_data;
+
+	Com_Dirname(mod->name, path);
+	strcat(path, "animation.cfg");
+
+	if(Fs_LoadFile(path, &buf) == -1){
+		Com_Warn("R_LoadMd3Animation: No animation.cfg for %s\n", mod->name);
+		return;
+	}
+
+	md3->animations = (r_md3_animation_t *)R_HunkAlloc(
+			sizeof(r_md3_animation_t) * MD3_MAX_ANIMATIONS);
+
+	buffer = (char *)buf;
+	skip = 0;
+
+	while(true){
+
+		c = Com_Parse(&buffer);
+
+		if(*c == '\0')
+			break;
+
+		if(*c >= '0' && *c <= '9'){
+			r_md3_animation_t *a = &md3->animations[md3->num_animations];
+
+			a->first_frame = atoi(c);
+			c = Com_Parse(&buffer);
+			a->num_frames = atoi(c);
+			c = Com_Parse(&buffer);
+			a->looped_frames = atoi(c);
+			c = Com_Parse(&buffer);
+			a->hz = atoi(c);
+
+			if(md3->num_animations == ANIM_LEGS_WALKCR)
+				skip = a->first_frame - md3->animations[ANIM_TORSO_GESTURE].first_frame;
+
+			if(md3->num_animations >= ANIM_LEGS_WALKCR)
+				a->first_frame -= skip;
+
+			Com_Debug("R_LoadMd3Animations: Parsed %d: %d %d %d %d\n",
+					md3->num_animations, a->first_frame, a->num_frames,
+					a->looped_frames, a->hz);
+
+			md3->num_animations++;
+		}
+
+		if(md3->num_animations == MD3_MAX_ANIMATIONS){
+			Com_Warn("R_LoadMd3Animations: MD3_MAX_ANIMATIONS reached: %s\n", mod->name);
 			break;
 		}
-		i++;
 	}
 
-	// load the skin
-	if(weap){  // using the model name for weaps
-		Com_StripExtension(mod->name, skin);
-		mod->skin = R_LoadImage(skin, it_skin);
-
-		if(mod->skin == r_null_image){  // trying the common one if necessary
-			snprintf(skin, sizeof(skin), "players/common/%s", weaps[i]);
-			mod->skin = R_LoadImage(skin, it_skin);
-		}
-	}
-	else {  // or simply skin for others
-		Com_Dirname(mod->name, skin);
-		strcat(skin, "skin");
-
-		mod->skin = R_LoadImage(skin, it_skin);
-	}
+	Com_Debug("R_LoadMd3Animations: Loaded %d animations: %s\n", md3->num_animations, mod->name);
 }
 
 
@@ -118,20 +158,12 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path){
  */
 static void R_LoadMeshConfigs(r_model_t *mod){
 	char path[MAX_QPATH];
-	int i;
 
 	mod->world_config = (r_mesh_config_t *)R_HunkAlloc(sizeof(r_mesh_config_t));
 	mod->view_config = (r_mesh_config_t *)R_HunkAlloc(sizeof(r_mesh_config_t));
 
 	VectorSet(mod->world_config->scale, 1.0, 1.0, 1.0);
 	VectorSet(mod->view_config->scale, 1.0, 1.0, 1.0);
-
-	i = 0;
-	while(weaps[i]){  // determine if this is a weapon model
-		if(strstr(mod->name, weaps[i]))  // for which configs are not supported
-			return;
-		i++;
-	}
 
 	Com_Dirname(mod->name, path);
 
@@ -145,180 +177,6 @@ static void R_LoadMeshConfigs(r_model_t *mod){
 
 
 /*
- * R_LoadMd2VertexArrays
- */
-static void R_LoadMd2VertexArrays(r_model_t *mod){
-	d_md2_t *md2;
-	d_md2_frame_t *frame;
-	d_md2_tri_t *tri;
-	d_md2_vertex_t *v;
-	d_md2_texcoord_t *st;
-	vec2_t coord;
-	int i, j, vert_index, texcoord_index;
-
-	R_AllocVertexArrays(mod);  // allocate the arrays
-
-	md2 = (d_md2_t *)mod->extra_data;
-
-	frame = (d_md2_frame_t *)((byte *)md2 + md2->ofs_frames);
-
-	vert_index = texcoord_index = 0;
-
-	if(mod->num_frames == 1){  // for static models, build the verts and normals
-		for(i = 0, v = frame->verts; i < md2->num_xyz; i++, v++){
-			VectorSet(r_mesh_verts[i],
-					v->v[0] * frame->scale[0] + frame->translate[0],
-					v->v[1] * frame->scale[1] + frame->translate[1],
-					v->v[2] * frame->scale[2] + frame->translate[2]);
-
-			VectorCopy(approximate_normals[v->n], r_mesh_norms[i]);
-		}
-	}
-
-	tri = (d_md2_tri_t *)((byte *)md2 + md2->ofs_tris);
-	st = (d_md2_texcoord_t *)((byte *)md2 + md2->ofs_st);
-
-	for(i = 0; i < md2->num_tris; i++, tri++){  // build the arrays
-
-		if(mod->num_frames == 1){
-			VectorCopy(r_mesh_verts[tri->index_xyz[0]], (&mod->verts[vert_index + 0]));
-			VectorCopy(r_mesh_verts[tri->index_xyz[1]], (&mod->verts[vert_index + 3]));
-			VectorCopy(r_mesh_verts[tri->index_xyz[2]], (&mod->verts[vert_index + 6]));
-
-			VectorCopy(r_mesh_norms[tri->index_xyz[0]], (&mod->normals[vert_index + 0]));
-			VectorCopy(r_mesh_norms[tri->index_xyz[1]], (&mod->normals[vert_index + 3]));
-			VectorCopy(r_mesh_norms[tri->index_xyz[2]], (&mod->normals[vert_index + 6]));
-		}
-
-		for(j = 0; j < 3; j++){
-			coord[0] = ((float)st[tri->index_st[j]].s / md2->skin_width);
-			coord[1] = ((float)st[tri->index_st[j]].t / md2->skin_height);
-
-			memcpy(&mod->texcoords[texcoord_index + j * 2], coord, sizeof(vec2_t));
-		}
-
-		texcoord_index += 6;
-		vert_index += 9;
-	}
-}
-
-
-/*
- * R_LoadMd2Model
- */
-void R_LoadMd2Model(r_model_t *mod, void *buffer){
-	int i, j, version;
-	d_md2_t *inmodel, *outmodel;
-	d_md2_texcoord_t *incoord, *outcoord;
-	d_md2_tri_t *intri, *outtri;
-	d_md2_frame_t *inframe, *outframe;
-	int *incmd, *outcmd;
-	vec3_t mins, maxs;
-
-	inmodel = (d_md2_t *)buffer;
-
-	version = LittleLong(inmodel->version);
-	if(version != MD2_VERSION){
-		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has wrong version number "
-				"(%i should be %i).", mod->name, version, MD2_VERSION);
-	}
-
-	mod->type = mod_md2;
-	mod->version = version;
-
-	outmodel = (d_md2_t *)R_HunkAlloc(LittleLong(inmodel->ofs_end));
-
-	// byte swap the header fields and sanity check
-	for(i = 0; i < sizeof(d_md2_t) / 4; i++)
-		((int *)outmodel)[i] = LittleLong(((int *)buffer)[i]);
-
-	mod->num_frames = outmodel->num_frames;
-
-	if(outmodel->num_xyz <= 0){
-		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has no vertices.", mod->name);
-	}
-
-	if(outmodel->num_xyz > MD2_MAX_VERTS){
-		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has too many vertices.", mod->name);
-	}
-
-	if(outmodel->num_st <= 0){
-		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has no st vertices.", mod->name);
-	}
-
-	if(outmodel->num_tris <= 0){
-		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has no triangles.", mod->name);
-	}
-
-	if(outmodel->num_frames <= 0){
-		Com_Error(ERR_DROP, "R_LoadMd2Model: %s has no frames.", mod->name);
-	}
-
-	// load the texcoords
-	incoord = (d_md2_texcoord_t *)((byte *)inmodel + outmodel->ofs_st);
-	outcoord = (d_md2_texcoord_t *)((byte *)outmodel + outmodel->ofs_st);
-
-	for(i = 0; i < outmodel->num_st; i++){
-		outcoord[i].s = LittleShort(incoord[i].s);
-		outcoord[i].t = LittleShort(incoord[i].t);
-	}
-
-	// load triangle lists
-	intri = (d_md2_tri_t *)((byte *)inmodel + outmodel->ofs_tris);
-	outtri = (d_md2_tri_t *)((byte *)outmodel + outmodel->ofs_tris);
-
-	for(i = 0; i < outmodel->num_tris; i++){
-		for(j = 0; j < 3; j++){
-			outtri[i].index_xyz[j] = LittleShort(intri[i].index_xyz[j]);
-			outtri[i].index_st[j] = LittleShort(intri[i].index_st[j]);
-		}
-	}
-
-	ClearBounds(mod->mins, mod->maxs);
-
-	// load the frames
-	for(i = 0; i < outmodel->num_frames; i++){
-		inframe = (d_md2_frame_t *)((byte *)inmodel
-				+ outmodel->ofs_frames + i * outmodel->frame_size);
-		outframe = (d_md2_frame_t *)((byte *)outmodel
-				+ outmodel->ofs_frames + i * outmodel->frame_size);
-
-		memcpy(outframe->name, inframe->name, sizeof(outframe->name));
-
-		for(j = 0; j < 3; j++){
-			outframe->scale[j] = LittleFloat(inframe->scale[j]);
-			outframe->translate[j] = LittleFloat(inframe->translate[j]);
-		}
-
-		VectorCopy(outframe->translate, mins);
-		VectorMA(mins, 255.0, outframe->scale, maxs);
-
-		AddPointToBounds(mins, mod->mins, mod->maxs);
-		AddPointToBounds(maxs, mod->mins, mod->maxs);
-
-		// verts are all 8 bit, so no swapping needed
-		memcpy(outframe->verts, inframe->verts, outmodel->num_xyz * sizeof(d_md2_vertex_t));
-	}
-
-	// load the glcmds
-	incmd = (int *)((byte *)inmodel + outmodel->ofs_glcmds);
-	outcmd = (int *)((byte *)outmodel + outmodel->ofs_glcmds);
-
-	for(i = 0; i < outmodel->num_glcmds; i++)
-		outcmd[i] = LittleLong(incmd[i]);
-
-	// load the skin
-	R_LoadMeshSkin(mod);
-
-	// and configs
-	R_LoadMeshConfigs(mod);
-
-	// and finally the arrays
-	R_LoadMd2VertexArrays(mod);
-}
-
-
-/*
  * R_LoadMd3VertexArrays
  */
 static void R_LoadMd3VertexArrays(r_model_t *mod){
@@ -327,7 +185,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod){
 	r_md3_mesh_t *mesh;
 	r_md3_vertex_t *v;
 	d_md3_texcoord_t *texcoords;
-	int i, j, k, vert_index, texcoord_index;
+	int i, j, vert_index, texcoord_index;
 	unsigned *tri;
 
 	R_AllocVertexArrays(mod);  // allocate the arrays
@@ -338,14 +196,14 @@ static void R_LoadMd3VertexArrays(r_model_t *mod){
 
 	vert_index = texcoord_index = 0;
 
-	for(k = 0, mesh = md3->meshes; k < md3->num_meshes; k++, mesh++){  // iterate the meshes
+	for(i = 0, mesh = md3->meshes; i < md3->num_meshes; i++, mesh++){  // iterate the meshes
 
 		v = mesh->verts;
 
 		if(mod->num_frames == 1){  // for static models, build the verts and normals
-			for(i = 0; i < mesh->num_verts; i++, v++){
-				VectorAdd(frame->translate, v->point, r_mesh_verts[i]);
-				VectorCopy(v->normal, r_mesh_norms[i]);
+			for(j = 0; j < mesh->num_verts; j++, v++){
+				VectorAdd(frame->translate, v->point, r_mesh_verts[j]);
+				VectorCopy(v->normal, r_mesh_norms[j]);
 			}
 		}
 
@@ -389,7 +247,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 	d_md3_texcoord_t *incoord, *outcoord;
 	d_md3_vertex_t *invert;
 	r_md3_vertex_t *outvert;
-	unsigned int *inindex, *outindex;
+	unsigned *inindex, *outindex;
 	float lat, lng;
 
 	inmodel = (d_md3_t *)buffer;
@@ -416,6 +274,10 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 
 	if(outmodel->num_frames < 1){
 		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has no frames.", mod->name);
+	}
+
+	if(outmodel->num_frames > MD3_MAX_FRAMES){
+		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many frames.", mod->name);
 	}
 
 	if(outmodel->num_tags > MD3_MAX_TAGS){
@@ -473,12 +335,30 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 		memcpy(outmesh->name, inmesh->name, MD3_MAX_PATH);
 
 		inmesh->ofs_tris = LittleLong(inmesh->ofs_tris);
+		inmesh->ofs_skins = LittleLong(inmesh->ofs_skins);
 		inmesh->ofs_tcs = LittleLong(inmesh->ofs_tcs);
 		inmesh->ofs_verts = LittleLong(inmesh->ofs_verts);
 		inmesh->size = LittleLong(inmesh->size);
 
+		outmesh->flags = LittleLong(inmesh->flags);
+		outmesh->num_skins = LittleLong(inmesh->num_skins);
 		outmesh->num_tris = LittleLong(inmesh->num_tris);
 		outmesh->num_verts = LittleLong(inmesh->num_verts);
+
+		if(outmesh->num_skins > MD3_MAX_SHADERS){
+			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many skins.",
+					mod->name, outmesh->name);
+		}
+
+		if(outmesh->num_tris > MD3_MAX_TRIANGLES){
+			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many triangles.",
+					mod->name, outmesh->name);
+		}
+
+		if(outmesh->num_verts > MD3_MAX_VERTS){
+			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many vertexes.",
+					mod->name, outmesh->name);
+		}
 
 		// load the triangle indexes
 		inindex = (unsigned *)((byte *)inmesh + inmesh->ofs_tris);
@@ -524,17 +404,28 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 			}
 		}
 
+		Com_Debug("R_LoadMd3Model: %s: %s: %d triangles\n", mod->name,
+				outmesh->name, outmesh->num_tris);
+
 		inmesh = (d_md3_mesh_t *)((byte *)inmesh + inmesh->size);
 	}
 
-	// load the skin
-	R_LoadMeshSkin(mod);
+	// load the skin for objects, and the animations for players
+	if(!strstr(mod->name, "players/"))
+		R_LoadMeshSkin(mod);
 
-	// and configs
+	else if(strstr(mod->name, "/upper"))
+		R_LoadMd3Animations(mod);
+
+	// and the configs
 	R_LoadMeshConfigs(mod);
 
 	// and finally the arrays
 	R_LoadMd3VertexArrays(mod);
+
+	Com_Debug("R_LoadMd3Model: %s\n"
+		"  %d meshes\n  %d frames\n  %d tags\n  %d vertexes\n", mod->name,
+		outmodel->num_meshes, outmodel->num_frames, outmodel->num_tags, mod->num_verts);
 }
 
 

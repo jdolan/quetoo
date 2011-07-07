@@ -40,9 +40,9 @@ quake2world_t quake2world;
 
 cvar_t *debug;
 cvar_t *dedicated;
-cvar_t *showtrace;
-cvar_t *timedemo;
-cvar_t *timescale;
+cvar_t *show_trace;
+cvar_t *time_demo;
+cvar_t *time_scale;
 cvar_t *verbose;
 
 static void Debug(const char *msg);
@@ -198,9 +198,9 @@ static void Init(int argc, char **argv){
 #endif
 
 	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
-	showtrace = Cvar_Get("showtrace", "0", 0, "Print trace counts per frame");
-	timedemo = Cvar_Get("timedemo", "0", 0, "Benchmark and stress test");
-	timescale = Cvar_Get("timescale", "1.0", 0, "Controls time lapse");
+	show_trace = Cvar_Get("showtrace", "0", 0, "Print trace counts per frame");
+	time_demo = Cvar_Get("time_demo", "0", 0, "Benchmark and stress test");
+	time_scale = Cvar_Get("time_scale", "1.0", 0, "Controls time lapse");
 	verbose = Cvar_Get("verbose", "0", 0, "Print verbose information");
 
 	Con_Init();
@@ -262,7 +262,7 @@ static void Frame(int msec){
 	if(setjmp(environment))
 		return;  // an ERR_DROP or ERR_NONE was thrown
 
-	if(showtrace->value){
+	if(show_trace->value){
 		Com_Print("%4i traces (%4i clips), %4i points\n", c_traces,
 				c_brush_traces, c_pointcontents);
 		c_traces = c_brush_traces = c_pointcontents = 0;
@@ -318,14 +318,14 @@ int main(int argc, char **argv){
 
 		quake2world.time = Sys_Milliseconds();
 
-		if(timescale->modified){
-			if(timescale->value < 0.1)
-				timescale->value = 0.1;
-			else if(timescale->value > 3.0)
-				timescale->value = 3.0;
+		if(time_scale->modified){
+			if(time_scale->value < 0.1)
+				time_scale->value = 0.1;
+			else if(time_scale->value > 3.0)
+				time_scale->value = 3.0;
 		}
 
-		msec = (quake2world.time - oldtime) * timescale->value;
+		msec = (quake2world.time - oldtime) * time_scale->value;
 
 		if(msec < 1)  // 0ms frames are not okay
 			continue;

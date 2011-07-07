@@ -43,7 +43,12 @@ typedef struct cl_frame_s {
 	int entity_state;  // non-masked index into cl.entity_states array
 } cl_frame_t;
 
-# define MAX_ENTITY_LIGHTING 4  // the number of static lighting caches each entity might use
+typedef struct cl_entity_animation_s {
+	entity_animation_t animation;
+	int time;
+	int frame;
+	int old_frame;
+} cl_entity_animation_t;
 
 typedef struct cl_entity_s {
 	entity_state_t baseline;  // delta from this if not from a previous frame
@@ -54,20 +59,21 @@ typedef struct cl_entity_s {
 
 	int time;  // for intermittent effects
 
-	int anim_time;  // for animations
-	int anim_frame;
+	cl_entity_animation_t animation1;
+	cl_entity_animation_t animation2;
 
-	r_lighting_t lighting[MAX_ENTITY_LIGHTING];  // cached static lighting info
+	r_lighting_t lighting;  // cached static lighting info
 } cl_entity_t;
 
-#define MAX_WEAPON_MODELS 12
-
 typedef struct client_info_s {
+	char info[MAX_QPATH];
 	char name[MAX_QPATH];
-	char cinfo[MAX_QPATH];
-	struct r_image_s *skin;
-	struct r_model_s *model;
-	struct r_model_s *weapon_model[MAX_WEAPON_MODELS];
+	r_model_t *head;
+	r_model_t *upper;
+	r_model_t *lower;
+	r_image_t *head_skin;
+	r_image_t *upper_skin;
+	r_image_t *lower_skin;
 } cl_client_info_t;
 
 #define CMD_BACKUP 128  // allow a lot of command backups for very fast systems
@@ -80,8 +86,8 @@ typedef struct client_info_s {
 
 // the cl_client_s structure is wiped completely at every map change
 typedef struct cl_client_s {
-	int timedemo_frames;
-	int timedemo_start;
+	int time_demo_frames;
+	int time_demo_start;
 
 	user_cmd_t cmds[CMD_BACKUP];  // each message will send several old cmds
 	int cmd_time[CMD_BACKUP];  // time sent, for calculating pings
@@ -136,11 +142,7 @@ typedef struct cl_client_s {
 	s_sample_t *sound_precache[MAX_SOUNDS];
 	r_image_t *image_precache[MAX_IMAGES];
 
-	char weapon_models[MAX_WEAPON_MODELS][MAX_QPATH];
-	int num_weapon_models;
-
 	cl_client_info_t client_info[MAX_CLIENTS];
-	cl_client_info_t base_client_info;
 } cl_client_t;
 
 extern cl_client_t cl;
@@ -296,6 +298,10 @@ extern cvar_t *skin;
 
 extern cvar_t *recording;
 
+// cl_client.c
+void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s);
+void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower);
+
 // cl_cmd.c
 void Cl_UpdateCmd(void);
 void Cl_SendCmd(void);
@@ -393,7 +399,6 @@ void Cl_ParseConfigString(void);
 void Cl_ParseClientInfo(int player);
 void Cl_ParseMuzzleFlash(void);
 void Cl_ParseServerMessage(void);
-void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s);
 void Cl_Download_f(void);
 
 // cl_pred.c

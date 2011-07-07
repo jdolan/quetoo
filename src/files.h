@@ -24,74 +24,6 @@
 
 #include "shared.h"
 
-/*
-
-.MD2 triangle model file format
-
-*/
-
-#define MD2_HEADER			(('2'<<24) + ('P'<<16) + ('D'<<8) + 'I')
-#define MD2_VERSION			8
-
-#define MD2_MAX_TRIANGLES	4096
-#define MD2_MAX_VERTS		2048
-#define MD2_MAX_FRAMES		512
-#define MD2_MAX_SKINS		32
-#define MD2_MAX_SKINNAME	64
-
-typedef struct {
-	short index_xyz[3];  // three verts
-	short index_st[3];  // three coords
-} d_md2_tri_t;
-
-typedef struct {
-	byte v[3];  // vertex scaled to fit in frame mins/maxs
-	byte n;  // normal index into anorms.h
-} d_md2_vertex_t;
-
-typedef struct {
-	short s;  // divide by skin dimensions for actual coords
-	short t;
-} d_md2_texcoord_t;
-
-typedef struct {
-	vec3_t scale;  // multiply byte verts by this
-	vec3_t translate;  // then add this
-	char name[16];  // frame name from grabbing
-	d_md2_vertex_t verts[1];  // variable sized
-} d_md2_frame_t;
-
-// the glcmd format:
-// a positive integer starts a tristrip command, followed by that many
-// vertex structures.
-// a negative integer starts a trifan command, followed by -x vertexes
-// a zero indicates the end of the command list.
-// a vertex consists of a floating point s, a floating point t,
-// and an integer vertex index.
-
-typedef struct {
-	int ident;
-	int version;
-
-	int skin_width;
-	int skin_height;
-	int frame_size;  // byte size of each frame
-
-	int num_skins;
-	int num_xyz;
-	int num_st;  // greater than num_xyz for seams
-	int num_tris;
-	int num_glcmds;  // dwords in strip/fan command list
-	int num_frames;
-
-	int ofs_skins;  // each skin is a MAX_SKINNAME string
-	int ofs_st;  // byte offset from start for stverts
-	int ofs_tris;  // offset for dtriangles
-	int ofs_frames;  // offset for first frame
-	int ofs_glcmds;
-	int ofs_end;  // end of file
-} d_md2_t;
-
 
 /*
 
@@ -110,7 +42,8 @@ typedef struct {
 #define MD3_MAX_FRAMES		1024  // per model
 #define	MD3_MAX_MESHES		32  // per model
 #define MD3_MAX_TAGS		16  // per frame
-#define MD3_MAX_PATH		64
+#define MD3_MAX_PATH		64  // relative file references
+#define MD3_MAX_ANIMATIONS	32  // see entity_animation_t
 
 // vertex scales from origin
 #define	MD3_XYZ_SCALE		(1.0 / 64)
@@ -129,7 +62,7 @@ typedef struct {
 	vec3_t maxs;
 	vec3_t translate;
 	vec_t radius;
-	char creator[16];
+	char name[16];
 } d_md3_frame_t;
 
 typedef struct {

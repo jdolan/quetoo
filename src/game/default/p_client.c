@@ -20,7 +20,6 @@
  */
 
 #include "g_local.h"
-#include "m_player.h"
 
 
 /*QUAKED info_player_start(1 0 0)(-16 -16 -24)(16 16 32)
@@ -300,7 +299,7 @@ void P_TossFlag(edict_t *self){
 
 	self->client->locals.inventory[index] = 0;
 
-	self->s.model_index3 = 0;
+	self->s.model3 = 0;
 	self->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
@@ -352,16 +351,16 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 	self->dead = true;
 	self->class_name = "dead";
 
-	self->s.model_index1 = 0;
-	self->s.model_index2 = 0;
-	self->s.model_index3 = 0;
-	self->s.model_index4 = 0;
+	self->s.model1 = 0;
+	self->s.model2 = 0;
+	self->s.model3 = 0;
+	self->s.model4 = 0;
 	self->s.sound = 0;
 	self->s.event = 0;
 	self->s.effects = 0;
 
 	self->solid = SOLID_NOT;
-	self->takedamage = false;
+	self->take_damage = false;
 
 	gi.LinkEntity(self);
 
@@ -398,7 +397,7 @@ static void P_Give(g_client_t *client, char *it, int quantity){
 
 	index = ITEM_INDEX(item);
 
-	if(item->flags & IT_WEAPON){  // weapons receive quantity as ammo
+	if(item->type == ITEM_WEAPON){  // weapons receive quantity as ammo
 		client->locals.inventory[index] = 1;
 
 		item = G_FindItem(item->ammo);
@@ -723,7 +722,7 @@ static void P_PutClientInServer(edict_t *ent){
 	height = ent->maxs[2] - ent->mins[2];
 
 	ent->ground_entity = NULL;
-	ent->takedamage = true;
+	ent->take_damage = true;
 	ent->move_type = MOVE_TYPE_WALK;
 	ent->view_height = ent->mins[2] + (height * 0.75);
 	ent->in_use = true;
@@ -734,8 +733,8 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->jump_time = 0.0;
 	ent->gasp_time = 0.0;
 	ent->drown_time = g_level.time + 12.0;
-	ent->clipmask = MASK_PLAYERSOLID;
-	ent->model = "players/ichabod/tris.md2";
+	ent->clip_mask = MASK_PLAYERSOLID;
+	ent->model = "players/qforcer/upper.md3";
 	ent->pain = P_Pain;
 	ent->die = P_Die;
 	ent->water_level = 0;
@@ -749,24 +748,24 @@ static void P_PutClientInServer(edict_t *ent){
 	VectorClear(ent->velocity);
 	ent->velocity[2] = 150.0;
 
-	// clear playerstate values
+	// clear player state values
 	memset(&ent->client->ps, 0, sizeof(client->ps));
 
-	client->ps.pmove.origin[0] = spawn_origin[0] * 8;
-	client->ps.pmove.origin[1] = spawn_origin[1] * 8;
-	client->ps.pmove.origin[2] = spawn_origin[2] * 8;
+	client->ps.pmove.origin[0] = spawn_origin[0] * 8.0;
+	client->ps.pmove.origin[1] = spawn_origin[1] * 8.0;
+	client->ps.pmove.origin[2] = spawn_origin[2] * 8.0;
 
 	// clear entity state values
 	ent->s.effects = 0;
-	ent->s.model_index1 = 255;  // will use the skin specified model
-	ent->s.model_index2 = 255;  // custom gun model
-	// skin_num is player num and weapon number
-	// weapon number will be added in changeweapon
-	ent->s.skin_num = ent - g_game.edicts - 1;
-	ent->s.model_index3 = 0;
-	ent->s.model_index4 = 0;
+	ent->s.model1 = 0xff;  // use the client info model
+	ent->s.model2 = 0;
+	ent->s.model3 = 0;
+	ent->s.model4 = 0;
+	ent->s.client = ent - g_game.edicts - 1;
 
-	ent->s.frame1 = 0;
+	G_SetAnimation(ent, ANIM_TORSO_ATTACK2);
+	G_SetAnimation(ent, ANIM_LEGS_IDLE);
+
 	VectorCopy(spawn_origin, ent->s.origin);
 	VectorCopy(ent->s.origin, ent->s.old_origin);
 
@@ -791,7 +790,7 @@ static void P_PutClientInServer(edict_t *ent){
 		ent->move_type = MOVE_TYPE_NO_CLIP;
 		ent->solid = SOLID_NOT;
 		ent->sv_flags |= SVF_NOCLIENT;
-		ent->takedamage = false;
+		ent->take_damage = false;
 
 		gi.LinkEntity(ent);
 		return;
@@ -924,7 +923,7 @@ void P_UserInfoChanged(edict_t *ent, const char *user_info){
 
 	// check for malformed or illegal info strings
 	if(!Info_Validate(user_info)){
-		user_info = "\\name\\newbie\\skin\\ichabod/ichabod";
+		user_info = "\\name\\newbie\\skin\\qforcer/enforcer";
 	}
 
 	cl = ent->client;
@@ -990,20 +989,8 @@ void P_UserInfoChanged(edict_t *ent, const char *user_info){
 	if(*s != '\0')  // something valid-ish was provided
 		strncpy(cl->locals.skin, s, sizeof(cl->locals.skin) - 1);
 	else {
-		strcpy(cl->locals.skin, "ichabod");
+		strcpy(cl->locals.skin, "qforcer/enforcer");
 		cl->locals.skin[sizeof(cl->locals.skin) - 1] = 0;
-	}
-
-	s = cl->locals.skin;
-
-	c = strchr(s, '/');
-
-	// let players use just the model name, client will find skin
-	if(!c || *c == '\0'){
-		if(c)  // null terminate for strcat
-			*c = 0;
-
-		strncat(cl->locals.skin, "/default", sizeof(cl->locals.skin) - 1 - strlen(s));
 	}
 
 	// set color
@@ -1088,10 +1075,10 @@ void P_Disconnect(edict_t *ent){
 
 	ent->in_use = false;
 	ent->solid = SOLID_NOT;
-	ent->s.model_index1 = 0;
-	ent->s.model_index2 = 0;
-	ent->s.model_index3 = 0;
-	ent->s.model_index4 = 0;
+	ent->s.model1 = 0;
+	ent->s.model2 = 0;
+	ent->s.model3 = 0;
+	ent->s.model4 = 0;
 	ent->class_name = "disconnected";
 
 	player_num = ent - g_game.edicts - 1;
@@ -1128,7 +1115,59 @@ static void P_InventoryThink(edict_t *ent){
 		}
 	}
 
-	// other runes and things can be timed out here as well
+	// other power-ups and things can be timed out here as well
+}
+
+
+/*
+ * P_SetAnimation
+ *
+ * Sets the animation sequences for the specified entity.  This is called
+ * towards the end of P_Think, after our ground entity and water level have
+ * been resolved.
+ */
+static void P_SetAnimation(edict_t *ent){
+
+	if(ent->ground_entity){  // on the ground
+
+		if(ent->water_level < 2){  // not swimming
+			vec3_t velocity;
+			float speed;
+
+			VectorCopy(ent->velocity, velocity);
+			velocity[2] = 0.0;
+
+			speed = VectorLength(velocity);
+
+			if(ent->client->ps.pmove.pm_flags & PMF_DUCKED){  // ducked
+				if(speed < 1.0)
+					G_SetAnimation(ent, ANIM_LEGS_IDLECR);
+				else
+					G_SetAnimation(ent, ANIM_LEGS_WALKCR);
+			}
+			else {  // standing / walking / running
+				const entity_event_t e = ent->s.event;
+
+				if(e >= EV_CLIENT_LAND && e <= EV_CLIENT_FALL_FAR){  // just landed
+					G_SetAnimation(ent, ANIM_LEGS_LAND1);
+				}
+				else {
+					if(speed < 1.0)
+						G_SetAnimation(ent, ANIM_LEGS_IDLE);
+					else if(speed < 150.0)
+						G_SetAnimation(ent, ANIM_LEGS_WALK);
+					else
+						G_SetAnimation(ent, ANIM_LEGS_RUN);
+				}
+			}
+		}
+		else {
+			G_SetAnimation(ent, ANIM_LEGS_SWIM);
+		}
+	}
+	else {
+		G_SetAnimation(ent, ANIM_LEGS_JUMP1);
+	}
 }
 
 
@@ -1177,7 +1216,7 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 
 		if(ent->move_type == MOVE_TYPE_NO_CLIP)
 			client->ps.pmove.pm_type = PM_SPECTATOR;
-		else if(ent->s.model_index1 != 255 || ent->dead)
+		else if(ent->s.model1 != 255 || ent->dead)
 			client->ps.pmove.pm_type = PM_DEAD;
 		else
 			client->ps.pmove.pm_type = PM_NORMAL;
@@ -1220,17 +1259,17 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 				(pm.cmd.up >= 10) && (pm.water_level == 0) &&
 				ent->jump_time < g_level.time - 0.2){
 
-			ent->s.event = EV_JUMP;
+			ent->s.event = EV_CLIENT_JUMP;
 			ent->jump_time = g_level.time;
 		}
 
 		ent->view_height = pm.view_height;
 		ent->water_level = pm.water_level;
 		ent->water_type = pm.water_type;
-
 		ent->ground_entity = pm.ground_entity;
-		if(pm.ground_entity)
-			ent->ground_entity_link_count = pm.ground_entity->link_count;
+
+		if(ent->ground_entity)
+			ent->ground_entity_link_count = ent->ground_entity->link_count;
 
 		VectorCopy(pm.angles, client->angles);
 		VectorCopy(pm.angles, client->ps.angles);
@@ -1270,22 +1309,29 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 
 			client->latched_buttons = 0;
 
-			if(client->chase_target){  // toggle chasecam
+			if(client->chase_target){  // toggle chase camera
 				client->chase_target = NULL;
 				client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
-			} else {
+			}
+			else {
 				P_GetChaseTarget(ent);
 			}
-		} else if(client->weapon_think_time < g_level.time){
+		}
+		else if(client->weapon_think_time < g_level.time){
 			P_WeaponThink(ent);
 		}
 	}
 
-	// update chase cam if being followed
+	P_SetAnimation(ent);
+
+	// update chase camera if being followed
 	for(i = 1; i <= sv_max_clients->integer; i++){
+
 		other = g_game.edicts + i;
-		if(other->in_use && other->client->chase_target == ent)
+
+		if(other->in_use && other->client->chase_target == ent){
 			P_UpdateChaseCam(other);
+		}
 	}
 
 	P_InventoryThink(ent);

@@ -109,7 +109,7 @@ static void Move_Calc(edict_t *ent, vec3_t dest, void(*done)(edict_t*)){
 	ent->move_info.done = done;
 
 	if(ent->move_info.speed == ent->move_info.accel && ent->move_info.speed == ent->move_info.decel){
-		if(g_level.current_entity == ((ent->flags & FL_TEAMSLAVE) ? ent->teammaster : ent)){
+		if(g_level.current_entity == ((ent->flags & FL_TEAMSLAVE) ? ent->team_master : ent)){
 			Move_Begin(ent);
 		} else {
 			ent->next_think = g_level.time + gi.server_frame;
@@ -189,7 +189,7 @@ static void AngleMove_Calc(edict_t *ent, void(*done)(edict_t*)){
 
 	ent->move_info.done = done;
 
-	if(g_level.current_entity == ((ent->flags & FL_TEAMSLAVE) ? ent->teammaster : ent)){
+	if(g_level.current_entity == ((ent->flags & FL_TEAMSLAVE) ? ent->team_master : ent)){
 		AngleMove_Begin(ent);
 	} else {
 		ent->next_think = g_level.time + gi.server_frame;
@@ -519,7 +519,7 @@ void G_func_plat(edict_t *ent){
 }
 
 
-/*QUAKED func_rotating(0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS TOUCH_PAIN STOP ANIMATED ANIMATED_FAST
+/*QUAKED func_rotating(0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS TOUCH_PAIN STOP
 You need to have an origin brush as part of this entity.  The center of that brush will be
 the point around which it is rotated. It will rotate around the Z axis by default.  You can
 check either the X_AXIS or Y_AXIS box to change that.
@@ -586,11 +586,6 @@ void G_func_rotating(edict_t *ent){
 	if(ent->spawn_flags & 1)
 		ent->use(ent, NULL, NULL);
 
-	if(ent->spawn_flags & 64)
-		ent->s.effects |= EF_ANIMATE;
-	if(ent->spawn_flags & 128)
-		ent->s.effects |= EF_ANIMATE_FAST;
-
 	gi.SetModel(ent, ent->model);
 	gi.LinkEntity(ent);
 }
@@ -627,17 +622,15 @@ static void button_return(edict_t *self){
 
 	Move_Calc(self, self->move_info.start_origin, button_done);
 
-	self->s.frame1 = 0;
-
 	if(self->health)
-		self->takedamage = true;
+		self->take_damage = true;
 }
 
 static void button_wait(edict_t *self){
 	self->move_info.state = STATE_TOP;
 
 	G_UseTargets(self, self->activator);
-	self->s.frame1 = 1;
+
 	if(self->move_info.wait >= 0){
 		  self->next_think = g_level.time + self->move_info.wait;
 		  self->think = button_return;
@@ -673,7 +666,7 @@ static void button_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surf
 static void button_killed(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
 	self->activator = attacker;
 	self->health = self->max_health;
-	self->takedamage = false;
+	self->take_damage = false;
 	button_fire(self);
 }
 
@@ -713,7 +706,7 @@ void G_func_button(edict_t *ent){
 	if(ent->health){
 		  ent->max_health = ent->health;
 		  ent->die = button_killed;
-		  ent->takedamage = true;
+		  ent->take_damage = true;
 	} else if(! ent->target_name)
 		  ent->touch = button_touch;
 
@@ -740,7 +733,7 @@ void G_func_button(edict_t *ent){
  *
  */
 
-/*QUAKED func_door(0 .5 .8) ? START_OPEN x CRUSHER ANIMATED TOGGLE ANIMATED_FAST
+/*QUAKED func_door(0 .5 .8) ? START_OPEN x CRUSHER TOGGLE
 TOGGLE		wait in both the start and end states for a trigger event.
 START_OPEN	the door to moves to its destination when spawned, and operate in reverse.  It is used to temporarily or permanently close off an area when triggered(not useful for touch or takedamage doors).
 
@@ -806,7 +799,7 @@ static void func_door_go_down(edict_t *self){
 		self->s.sound = self->move_info.sound_middle;
 	}
 	if(self->max_health){
-		self->takedamage = true;
+		self->take_damage = true;
 		self->health = self->max_health;
 	}
 
@@ -851,7 +844,7 @@ static void func_door_use(edict_t *self, edict_t *other, edict_t *activator){
 	if(self->spawn_flags & DOOR_TOGGLE){
 		if(self->move_info.state == STATE_UP || self->move_info.state == STATE_TOP){
 			// trigger all paired doors
-			for(ent = self; ent; ent = ent->teamchain){
+			for(ent = self; ent; ent = ent->team_chain){
 				ent->message = NULL;
 				ent->touch = NULL;
 				func_door_go_down(ent);
@@ -861,7 +854,7 @@ static void func_door_use(edict_t *self, edict_t *other, edict_t *activator){
 	}
 
 	// trigger all paired doors
-	for(ent = self; ent; ent = ent->teamchain){
+	for(ent = self; ent; ent = ent->team_chain){
 		ent->message = NULL;
 		ent->touch = NULL;
 		func_door_go_up(ent, activator);
@@ -896,7 +889,7 @@ static void Think_CalcMoveSpeed(edict_t *self){
 
 	// find the smallest distance any member of the team will be moving
 	min = fabsf(self->move_info.distance);
-	for(ent = self->teamchain; ent; ent = ent->teamchain){
+	for(ent = self->team_chain; ent; ent = ent->team_chain){
 		dist = fabsf(ent->move_info.distance);
 		if(dist < min)
 			min = dist;
@@ -905,7 +898,7 @@ static void Think_CalcMoveSpeed(edict_t *self){
 	time = min / self->move_info.speed;
 
 	// adjust speeds so they will all complete at the same time
-	for(ent = self; ent; ent = ent->teamchain){
+	for(ent = self; ent; ent = ent->team_chain){
 		newspeed = fabsf(ent->move_info.distance) / time;
 		ratio = newspeed / ent->move_info.speed;
 		if(ent->move_info.accel == ent->move_info.speed)
@@ -930,7 +923,7 @@ static void Think_SpawnDoorTrigger(edict_t *ent){
 	VectorCopy(ent->abs_mins, mins);
 	VectorCopy(ent->abs_maxs, maxs);
 
-	for(other = ent->teamchain; other; other = other->teamchain){
+	for(other = ent->team_chain; other; other = other->team_chain){
 		AddPointToBounds(other->abs_mins, mins, maxs);
 		AddPointToBounds(other->abs_maxs, mins, maxs);
 	}
@@ -971,10 +964,10 @@ static void func_door_blocked(edict_t *self, edict_t *other){
 	// so let it just squash the object to death real fast
 	if(self->move_info.wait >= 0){
 		if(self->move_info.state == STATE_DOWN){
-			for(ent = self->teammaster; ent; ent = ent->teamchain)
+			for(ent = self->team_master; ent; ent = ent->team_chain)
 				func_door_go_up(ent, ent->activator);
 		} else {
-			for(ent = self->teammaster; ent; ent = ent->teamchain)
+			for(ent = self->team_master; ent; ent = ent->team_chain)
 				func_door_go_down(ent);
 		}
 	}
@@ -983,12 +976,12 @@ static void func_door_blocked(edict_t *self, edict_t *other){
 static void func_door_killed(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
 	edict_t *ent;
 
-	for(ent = self->teammaster; ent; ent = ent->teamchain){
+	for(ent = self->team_master; ent; ent = ent->team_chain){
 		ent->health = ent->max_health;
-		ent->takedamage = false;
+		ent->take_damage = false;
 	}
 
-	func_door_use(self->teammaster, attacker, attacker);
+	func_door_use(self->team_master, attacker, attacker);
 }
 
 static void func_door_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
@@ -1056,7 +1049,7 @@ void G_func_door(edict_t *ent){
 	ent->move_info.state = STATE_BOTTOM;
 
 	if(ent->health){
-		ent->takedamage = true;
+		ent->take_damage = true;
 		ent->die = func_door_killed;
 		ent->max_health = ent->health;
 	} else if(ent->target_name && ent->message){
@@ -1073,14 +1066,9 @@ void G_func_door(edict_t *ent){
 	VectorCopy(ent->pos2, ent->move_info.end_origin);
 	VectorCopy(ent->s.angles, ent->move_info.end_angles);
 
-	if(ent->spawn_flags & 16)
-		ent->s.effects |= EF_ANIMATE;
-	if(ent->spawn_flags & 64)
-		ent->s.effects |= EF_ANIMATE_FAST;
-
 	// to simplify logic elsewhere, make non-teamed doors into a team of one
 	if(!ent->team)
-		ent->teammaster = ent;
+		ent->team_master = ent;
 
 	gi.LinkEntity(ent);
 
@@ -1092,7 +1080,7 @@ void G_func_door(edict_t *ent){
 }
 
 
-/*QUAKED func_door_rotating(0 .5 .8) ? START_OPEN REVERSE CRUSHER ANIMATED TOGGLE X_AXIS Y_AXIS
+/*QUAKED func_door_rotating(0 .5 .8) ? START_OPEN REVERSE CRUSHER TOGGLE X_AXIS Y_AXIS
 TOGGLE causes the door to wait in both the start and end states for a trigger event.
 
 START_OPEN	the door to moves to its destination when spawned, and operate in reverse.  It is used to temporarily or permanently close off an area when triggered(not useful for touch or takedamage doors).
@@ -1178,7 +1166,7 @@ void G_func_door_rotating(edict_t *ent){
 	}
 
 	if(ent->health){
-		ent->takedamage = true;
+		ent->take_damage = true;
 		ent->die = func_door_killed;
 		ent->max_health = ent->health;
 	}
@@ -1198,12 +1186,9 @@ void G_func_door_rotating(edict_t *ent){
 	VectorCopy(ent->s.origin, ent->move_info.end_origin);
 	VectorCopy(ent->pos2, ent->move_info.end_angles);
 
-	if(ent->spawn_flags & 16)
-		ent->s.effects |= EF_ANIMATE;
-
 	// to simplify logic elsewhere, make non-teamed doors into a team of one
 	if(!ent->team)
-		ent->teammaster = ent;
+		ent->team_master = ent;
 
 	gi.LinkEntity(ent);
 
@@ -1648,7 +1633,7 @@ static void func_door_secret_move6(edict_t *self){
 static void func_door_secret_done(edict_t *self){
 	if(!(self->target_name) ||(self->spawn_flags & SECRET_ALWAYS_SHOOT)){
 		self->health = 0;
-		self->takedamage = true;
+		self->take_damage = true;
 	}
 	func_door_use_areaportals(self, false);
 }
@@ -1665,7 +1650,7 @@ static void func_door_secret_blocked(edict_t *self, edict_t *other){
 }
 
 static void func_door_secret_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
-	self->takedamage = false;
+	self->take_damage = false;
 	func_door_secret_use(self, attacker, attacker);
 }
 
@@ -1687,7 +1672,7 @@ void G_func_door_secret(edict_t *ent){
 
 	if(!(ent->target_name) ||(ent->spawn_flags & SECRET_ALWAYS_SHOOT)){
 		ent->health = 0;
-		ent->takedamage = true;
+		ent->take_damage = true;
 		ent->die = func_door_secret_die;
 	}
 
@@ -1717,7 +1702,7 @@ void G_func_door_secret(edict_t *ent){
 	VectorMA(ent->pos1, length, forward, ent->pos2);
 
 	if(ent->health){
-		ent->takedamage = true;
+		ent->take_damage = true;
 		ent->die = func_door_killed;
 		ent->max_health = ent->health;
 	} else if(ent->target_name && ent->message){

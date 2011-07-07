@@ -58,7 +58,7 @@ static qboolean G_ImmediateWall(edict_t *ent, vec3_t dir){
  */
 static qboolean G_IsStructural(edict_t *ent, c_surface_t *surf){
 
-	if(!ent || ent->client || ent->takedamage)
+	if(!ent || ent->client || ent->take_damage)
 		return false;  // we hit nothing, or something we damaged
 
 	if(!surf || (surf->flags & SURF_SKY))
@@ -216,7 +216,7 @@ void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
 	// send trails and marks
 	if(tr.fraction < 1.0){
 
-		if(tr.ent->takedamage){  // bleed and damage the enemy
+		if(tr.ent->take_damage){  // bleed and damage the enemy
 			G_Damage(tr.ent, self, self, aimdir, tr.end, tr.plane.normal,
 					damage, knockback, DAMAGE_BULLET, mod);
 		}
@@ -311,7 +311,7 @@ static void G_GrenadeTouch(edict_t *ent, edict_t *other, c_plane_t *plane, c_sur
 		ent->surf = surf;
 	}
 
-	if(!other->takedamage){  // bounce
+	if(!other->take_damage){  // bounce
 		gi.Sound(ent, grenade_hit_index, ATTN_NORM);
 		return;
 	}
@@ -350,12 +350,12 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	grenade->avelocity[2] = 25 * crand();
 
 	grenade->move_type = MOVE_TYPE_TOSS;
-	grenade->clipmask = MASK_SHOT;
+	grenade->clip_mask = MASK_SHOT;
 	grenade->solid = SOLID_MISSILE;
 	grenade->s.effects = EF_GRENADE;
 	VectorCopy(mins, grenade->mins);
 	VectorCopy(maxs, grenade->maxs);
-	grenade->s.model_index1 = grenade_index;
+	grenade->s.model1 = grenade_index;
 	grenade->owner = self;
 	grenade->touch = G_GrenadeTouch;
 	grenade->touch_time = g_level.time;
@@ -397,7 +397,7 @@ static void G_RocketTouch(edict_t *ent, edict_t *other, c_plane_t *plane, c_surf
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PHS);
 
-	if(other->takedamage){  // direct hit
+	if(other->take_damage){  // direct hit
 		G_Damage(other, ent, ent->owner, ent->velocity, ent->s.origin,
 				plane->normal, ent->dmg, ent->knockback, 0, MOD_ROCKET);
 	}
@@ -431,10 +431,10 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	VectorAngles(dir, rocket->s.angles);
 	VectorScale(dir, speed, rocket->velocity);
 	rocket->move_type = MOVE_TYPE_FLY;
-	rocket->clipmask = MASK_SHOT;
+	rocket->clip_mask = MASK_SHOT;
 	rocket->solid = SOLID_MISSILE;
 	rocket->s.effects = EF_ROCKET;
-	rocket->s.model_index1 = rocket_index;
+	rocket->s.model1 = rocket_index;
 	rocket->owner = self;
 	rocket->touch = G_RocketTouch;
 	rocket->next_think = g_level.time + 8.0;
@@ -481,7 +481,7 @@ static void G_HyperblasterTouch(edict_t *self, edict_t *other, c_plane_t *plane,
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PVS);
 
-	if(other->takedamage){
+	if(other->take_damage){
 		G_Damage(other, self, self->owner, self->velocity, self->s.origin,
 				plane->normal, self->dmg, self->knockback, DAMAGE_ENERGY, MOD_HYPERBLASTER);
 	} else {
@@ -517,7 +517,7 @@ void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
 	VectorAngles(dir, bolt->s.angles);
 	VectorScale(dir, speed, bolt->velocity);
 	bolt->move_type = MOVE_TYPE_FLY;
-	bolt->clipmask = MASK_SHOT;
+	bolt->clip_mask = MASK_SHOT;
 	bolt->solid = SOLID_MISSILE;
 	bolt->s.effects = EF_HYPERBLASTER;
 	bolt->owner = self;
@@ -549,7 +549,7 @@ static void G_LightningDischarge(edict_t *self){
 		if(!ent->in_use)
 			continue;
 
-		if(!ent->takedamage)  // dead or spectator
+		if(!ent->take_damage)  // dead or spectator
 			continue;
 
 		if(gi.inPVS(self->s.origin, ent->s.origin)){
@@ -634,7 +634,7 @@ static void G_LightningThink(edict_t *self){
 	}
 
 	if(self->dmg){  // shoot, removing our damage until it is renewed
-		if(tr.ent->takedamage){  // try to damage what we hit
+		if(tr.ent->take_damage){  // try to damage what we hit
 			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal,
 					self->dmg, self->knockback, DAMAGE_ENERGY, MOD_LIGHTNING);
 		}
@@ -667,7 +667,7 @@ void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int
 		light->owner = self;
 		light->think = G_LightningThink;
 		light->knockback = knockback;
-		light->s.skin_num = self - g_game.edicts;  // player number, for client prediction fix
+		light->s.client = self - g_game.edicts;  // player number, for client prediction fix
 		light->s.effects = EF_BEAM | EF_LIGHTNING;
 		light->s.sound = lightning_fly_index;
 		light->class_name = "lightning";
@@ -733,7 +733,7 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 		else
 			ignore = NULL;
 
-		if((tr.ent != self) && (tr.ent->takedamage)){
+		if((tr.ent != self) && (tr.ent->take_damage)){
 			if(tr.ent->client && ((int)g_level.gameplay == INSTAGIB))
 				damage = 9999;  // be sure to cause a kill
 			G_Damage(tr.ent, self, self, aimdir, tr.end, tr.plane.normal,
@@ -797,7 +797,7 @@ static void G_BFGTouch(edict_t *self, edict_t *other, c_plane_t *plane, c_surfac
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PVS);
 
-	if(other->takedamage)  // hurt what we hit
+	if(other->take_damage)  // hurt what we hit
 		G_Damage(other, self, self->owner, self->velocity, self->s.origin,
 				plane->normal, self->dmg, self->knockback, DAMAGE_ENERGY, MOD_BFG_BLAST);
 
@@ -863,7 +863,7 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 		VectorScale(bfg->movedir, s, bfg->velocity);
 
 		bfg->move_type = MOVE_TYPE_FLY;
-		bfg->clipmask = MASK_SHOT;
+		bfg->clip_mask = MASK_SHOT;
 		bfg->solid = SOLID_MISSILE;
 		bfg->s.effects = EF_BFG;
 		bfg->owner = self;

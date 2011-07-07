@@ -472,24 +472,22 @@ typedef struct {
 } pm_move_t;
 
 // entity_state_t->effects
-// handled on the client side (particles, frame animations, ..)
+// handled on the client side (particles, lights, ..)
 // an entity that has effects will be sent to the client
 // even if it has a zero index model.
 #define EF_ROTATE			(1 << 0)  // rotate on z
 #define EF_BOB				(1 << 1)  // bob on z
 #define EF_PULSE			(1 << 2)  // pulsate lighting color
-#define EF_ANIMATE			(1 << 3)  // automatically cycle through all frames at 2hz
-#define EF_ANIMATE_FAST		(1 << 4)  // automatically cycle through all frames at 10hz
-#define EF_GRENADE			(1 << 5)  // smoke trail above water, bubble trail in water
-#define EF_ROCKET			(1 << 6)  // smoke trail above water, bubble trail in water
-#define EF_HYPERBLASTER		(1 << 7)  // bubble trail in water
-#define EF_LIGHTNING		(1 << 8)  // lightning bolt
-#define EF_BFG				(1 << 9)  // big particle snotball
-#define EF_TELEPORTER		(1 << 10)  // particle fountain
-#define EF_QUAD				(1 << 11)  // quad damage
-#define EF_CTF_BLUE			(1 << 12)  // blue flag carrier
-#define EF_CTF_RED			(1 << 13)  // red flag carrier
-#define EF_BEAM				(1 << 14)  // overload old_origin for 2nd endpoint
+#define EF_GRENADE			(1 << 3)  // smoke trail above water, bubble trail in water
+#define EF_ROCKET			(1 << 4)  // smoke trail above water, bubble trail in water
+#define EF_HYPERBLASTER		(1 << 5)  // bubble trail in water
+#define EF_LIGHTNING		(1 << 6)  // lightning bolt
+#define EF_BFG				(1 << 7)  // big particle snotball
+#define EF_TELEPORTER		(1 << 8)  // particle fountain
+#define EF_QUAD				(1 << 9)  // quad damage
+#define EF_CTF_BLUE			(1 << 10)  // blue flag carrier
+#define EF_CTF_RED			(1 << 11)  // red flag carrier
+#define EF_BEAM				(1 << 12)  // overload old_origin for 2nd endpoint
 
 // small or full-bright entities can skip static and dynamic lighting
 #define EF_NO_LIGHTING		(EF_ROCKET)
@@ -566,21 +564,21 @@ typedef enum {
 #define STAT_GENERAL		STAT_AMMO_LOW  // for mods to extend
 #define MAX_STATS			32
 
-#define ANGLE2SHORT(x)	((int)((x)*65536/360) & 65535)
-#define SHORT2ANGLE(x)	((x)*(360.0/65536))
+#define ANGLE2SHORT(x)		((unsigned short)((x)*65536/360.0) & 65535)
+#define SHORT2ANGLE(x)		((x)*(360.0/65536.0))
 
 // -4096 up to +4096
-#define MAX_WORLD_WIDTH 4096
+#define MAX_WORLD_WIDTH		4096
 
-// config strings are a general means of communication from
+// ConfigStrings are a general means of communication from
 // the server to all connected clients.
-// Each config string can be at most MAX_QPATH characters.
+// Each ConfigString can be at most MAX_QPATH characters.
 #define CS_NAME				0
 #define CS_GRAVITY			1
 #define CS_SKY				2
 #define CS_WEATHER			3
 #define CS_PAK				4  // pak for current level
-#define CS_LAYOUT		5  // display program string
+#define CS_LAYOUT			5  // display program string
 
 #define CS_MAX_CLIENTS		30
 #define CS_BSP_SIZE			31  // for catching incompatible maps
@@ -600,57 +598,105 @@ typedef enum {
 
 #define MAX_CONFIG_STRINGS	(CS_GENERAL + MAX_GENERAL)
 
+/*
+ * Entity animation sequences (player animations) are resolved on the server
+ * but are run (interpolated) on the client.
+ */
+typedef enum {
+	ANIM_BOTH_DEATH1,
+	ANIM_BOTH_DEAD1,
+	ANIM_BOTH_DEATH2,
+	ANIM_BOTH_DEAD2,
+	ANIM_BOTH_DEATH3,
+	ANIM_BOTH_DEAD3,
 
-// entity_state_t->event values
-// entity events are for effects that take place relative
-// to an existing entities origin.  Very network efficient.
-// All muzzle flashes really should be converted to events...
+	ANIM_TORSO_GESTURE,
+
+	ANIM_TORSO_ATTACK1,
+	ANIM_TORSO_ATTACK2,
+
+	ANIM_TORSO_DROP,
+	ANIM_TORSO_RAISE,
+
+	ANIM_TORSO_STAND1,
+	ANIM_TORSO_STAND2,
+
+	ANIM_LEGS_WALKCR,
+	ANIM_LEGS_WALK,
+	ANIM_LEGS_RUN,
+	ANIM_LEGS_BACK,
+	ANIM_LEGS_SWIM,
+
+	ANIM_LEGS_JUMP1,
+	ANIM_LEGS_LAND1,
+	ANIM_LEGS_JUMP2,
+	ANIM_LEGS_LAND2,
+
+	ANIM_LEGS_IDLE,
+	ANIM_LEGS_IDLECR,
+
+	ANIM_LEGS_TURN
+} entity_animation_t;
+
+#define ANIM_TOGGLE_BIT 0x80  // used to restart the same animation
+
+/*
+ * Entity events are instantaneous, transpiring at an entity's origin for
+ * precisely one frame.
+ */
 typedef enum {
 	EV_NONE,
 	EV_ITEM_RESPAWN,
 	EV_ITEM_PICKUP,
-	EV_FOOTSTEP,
-	EV_JUMP,
-	EV_FALL_SHORT,
-	EV_FALL,
-	EV_FALL_FAR,
+	EV_CLIENT_FOOTSTEP,
+	EV_CLIENT_LAND,
+	EV_CLIENT_FALL,
+	EV_CLIENT_FALL_FAR,
+	EV_CLIENT_JUMP,
 	EV_TELEPORT
 } entity_event_t;
 
-// entity_state_t is the information conveyed from the server
-// in an update message about entities that the client will
-// need to render in some way
+/*
+ * Entity states are transmitted by the server to the client using delta
+ * compression.  The client parses these states and adds or removes entities
+ * from the scene as needed.
+ */
 typedef struct entity_state_s {
 	unsigned short number;  // edict index
 
 	vec3_t origin;
-	vec3_t angles;
 	vec3_t old_origin;  // for interpolating
 
-	// primary model, weapon model, CTF flag, etc
-	byte model_index1, model_index2, model_index3, model_index4;
-	byte frame1, frame2;  // frame numbers for animations
+	vec3_t angles;
 
-	unsigned short skin_num;  // masked off for players
+	byte animation1, animation2;  // animations (running, attacking, ..)
+
+	byte event;  // client side events (particles, lights, ..)
+
 	unsigned short effects;  // particles, lights, etc..
-	unsigned short solid;  // for client side prediction, 8 * (bits 0-4) is x/y radius
-	// 8 * (bits 5-9) is z down distance, 8 * (bits10-15) is z up
-	// gi.linkentity sets this properly
-	byte sound;  // for looping sounds, to guarantee shutoff
-	byte event;  // muzzle flashes, footsteps, etc
-	// events only go out for a single frame, they
-	// are automatically cleared each frame
+
+	byte model1, model2, model3, model4;  // primary model, linked models
+
+	byte client;  // client info index
+
+	byte sound;  // looped sounds
+
+	/*
+	 * Encoded bounding box dimensions for mesh entities.  This facilitates
+	 * client-sided prediction so that players don't e.g. run through each
+	 * other.  See gi.LinkEntity.
+	 */
+	unsigned short solid;
 } entity_state_t;
 
-// player_state_t is the information needed in addition to pmove_state_t
-// to rendered a view.  There will only be 10 player_state_t sent each second,
-// but the number of pmove_state_t changes will be reletive to client
-// frame rates
-typedef struct {
-	pm_move_state_t pmove;  // for prediction
-	// these fields do not need to be communicated bit-precise
-	vec3_t angles;  // for fixed views like chasecams
-	short stats[MAX_STATS];  // fast status bar updates
+/*
+ * Player state structures contain authoritative snapshots of the player's
+ * movement, as well as the player's statistics (inventory, health, etc.).
+ */
+typedef struct player_state_s {
+	pm_move_state_t pmove;
+	vec3_t angles;  // for fixed views like chase camera & demo recording
+	short stats[MAX_STATS];  // status bar updates
 } player_state_t;
 
 
@@ -666,14 +712,14 @@ typedef struct {
 #define CON_COLOR_MAGENTA	6
 #define CON_COLOR_WHITE		7
 
-#define MAX_COLORS		8
+#define MAX_COLORS			8
 
-#define CON_COLOR_DEFAULT		CON_COLOR_WHITE
+#define CON_COLOR_DEFAULT	CON_COLOR_WHITE
 #define CON_COLOR_ALT		CON_COLOR_GREEN
 
 #define CON_COLOR_INFO		CON_COLOR_ALT
 #define CON_COLOR_CHAT		CON_COLOR_ALT
-#define CON_COLOR_TEAMCHAT		CON_COLOR_YELLOW
+#define CON_COLOR_TEAMCHAT	CON_COLOR_YELLOW
 
 #define IS_COLOR(c)( \
 	*c == COLOR_ESC && ( \

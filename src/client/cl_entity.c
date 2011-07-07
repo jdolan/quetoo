@@ -59,12 +59,6 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from,
 
 	ent->server_frame = cl.frame.server_frame;
 	ent->current = *to;
-
-	// bump animation time for frame interpolation
-	if(ent->current.frame1 != ent->prev.frame1){
-		ent->anim_time = cl.time;
-		ent->anim_frame = ent->prev.frame1;
-	}
 }
 
 
@@ -197,7 +191,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
  */
 static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_frame){
 	player_state_t *ps;
-	byte flags;
+	byte bits;
 	int i;
 	int statbits;
 
@@ -209,41 +203,41 @@ static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_fra
 	else  // or start clean
 		memset(ps, 0, sizeof(*ps));
 
-	flags = Msg_ReadByte(&net_message);
+	bits = Msg_ReadByte(&net_message);
 
 	// parse the pmove_state_t
 
-	if(flags & PS_M_TYPE)
+	if(bits & PS_M_TYPE)
 		ps->pmove.pm_type = Msg_ReadByte(&net_message);
 
 	if(cl.demo_server)
 		ps->pmove.pm_type = PM_FREEZE;
 
-	if(flags & PS_M_ORIGIN){
+	if(bits & PS_M_ORIGIN){
 		ps->pmove.origin[0] = Msg_ReadShort(&net_message);
 		ps->pmove.origin[1] = Msg_ReadShort(&net_message);
 		ps->pmove.origin[2] = Msg_ReadShort(&net_message);
 	}
 
-	if(flags & PS_M_VELOCITY){
+	if(bits & PS_M_VELOCITY){
 		ps->pmove.velocity[0] = Msg_ReadShort(&net_message);
 		ps->pmove.velocity[1] = Msg_ReadShort(&net_message);
 		ps->pmove.velocity[2] = Msg_ReadShort(&net_message);
 	}
 
-	if(flags & PS_M_TIME)
+	if(bits & PS_M_TIME)
 		ps->pmove.pm_time = Msg_ReadByte(&net_message);
 
-	if(flags & PS_M_FLAGS)
+	if(bits & PS_M_FLAGS)
 		ps->pmove.pm_flags = Msg_ReadShort(&net_message);
 
-	if(flags & PS_M_DELTA_ANGLES){
+	if(bits & PS_M_DELTA_ANGLES){
 		ps->pmove.delta_angles[0] = Msg_ReadShort(&net_message);
 		ps->pmove.delta_angles[1] = Msg_ReadShort(&net_message);
 		ps->pmove.delta_angles[2] = Msg_ReadShort(&net_message);
 	}
 
-	if(flags & PS_VIEW_ANGLES){  // demo, chasecam, recording
+	if(bits & PS_VIEW_ANGLES){  // demo, chasecam, recording
 		ps->angles[0] = Msg_ReadAngle16(&net_message);
 		ps->angles[1] = Msg_ReadAngle16(&net_message);
 		ps->angles[2] = Msg_ReadAngle16(&net_message);
@@ -337,6 +331,111 @@ void Cl_ParseFrame(void){
 }
 
 
+/*
+ * Cl_UpdateLighting
+ */
+static void Cl_UpdateLighting(cl_entity_t *e, r_entity_t *ent){
+
+	// setup the write-through lighting cache
+	ent->lighting = &e->lighting;
+
+	if(e->current.effects & EF_NO_LIGHTING){
+		// some entities are never lit, like rockets
+		ent->lighting->state = LIGHTING_READY;
+	}
+	else {
+		// but most are, so update their lighting if appropriate
+		if(ent->lighting->state == LIGHTING_READY){
+			if(r_view.update || !VectorCompare(e->current.origin, e->prev.origin)){
+				ent->lighting->state = LIGHTING_DIRTY;
+			}
+		}
+	}
+}
+
+
+/*
+ * Cl_AddLinkedClientEntity
+ *
+ * Adds a linked model (weapon, CTF flag, etc..) to the renderer.
+ */
+static void Cl_AddLinkedClientEntity(r_entity_t *upper, const char *tag, int model){
+	r_entity_t ent = *upper;
+
+	ent.model = cl.model_draw[model];
+	ent.skin = NULL;
+
+	ent.frame = ent.old_frame = 0;
+
+	ent.lerp = 1.0;
+	ent.back_lerp = 0.0;
+
+	// TODO: Tags.
+
+	R_AddEntity(&ent);
+}
+
+/*
+ * Cl_AddClientEntity
+ *
+ * Adds the numerous render entities which comprise a given client (player)
+ * entity: head, upper, lower, weapon, flags, etc.
+ */
+static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
+	const entity_state_t *s = &e->current;
+	const cl_client_info_t *ci = &cl.client_info[s->client];
+	r_entity_t head, upper, lower;
+	int effects = s->effects;
+
+	VectorSet(ent->scale, PM_SCALE, PM_SCALE, PM_SCALE);
+
+	head = upper = lower = *ent;
+
+	head.model = ci->head;
+	head.skin = ci->head_skin;
+
+	upper.model = ci->upper;
+	upper.skin = ci->upper_skin;
+
+	lower.model = ci->lower;
+	lower.skin = ci->lower_skin;
+
+	Cl_AnimateClientEntity(e, &upper, &lower);
+
+	// don't draw ourselves unless third person is set
+	if(s->number == cl.player_num + 1){
+
+		if(!cl_third_person->value){
+			effects |= EF_NO_DRAW;
+
+			// keep our shadow underneath us using the predicted origin
+			upper.origin[0] = r_view.origin[0];
+			upper.origin[1] = r_view.origin[1];
+		}
+	}
+
+	head.effects = upper.effects = lower.effects = effects;
+
+	Cl_UpdateLighting(e, &upper);
+
+	head.lighting = lower.lighting = upper.lighting;
+
+	// TODO: tags
+	R_AddEntity(&head);
+	R_AddEntity(&upper);
+	R_AddEntity(&lower);
+
+	if(s->model2)
+		Cl_AddLinkedClientEntity(&upper, "tag_weapon", s->model2);
+
+	if(s->model3)
+		Cl_AddLinkedClientEntity(&upper, "tag_flag", s->model3);
+
+	if(s->model4)
+		Com_Warn("Cl_AddClientEntity: Unsupported model_index4\n");
+}
+
+
 // we borrow a few animation frame defines for view weapon kick
 #define FRAME_attack1		 	46
 #define FRAME_attack8		 	53
@@ -383,34 +482,6 @@ static float Cl_WeaponKick(r_entity_t *self){
 	k2 = weapon_kick_ramp[old_frame - start_frame];
 
 	return k1 * self->lerp + k2 * self->back_lerp;
-}
-
-
-/*
- * Cl_UpdateLighting
- *
- * Updates and assigns the appropriate static lighting cache for the
- * specified entity at the specified index.  Some client entities actually
- * require several renderer entities (linked models), and so this function
- * may be called several times per client entity.
- */
-static void Cl_UpdateLighting(cl_entity_t *e, r_entity_t *ent, const int index){
-
-	// setup the write-through lighting cache
-	ent->lighting = &e->lighting[index];
-
-	if(e->current.effects & EF_NO_LIGHTING){
-		// some entities are never lit, like rockets
-		ent->lighting->state = LIGHTING_READY;
-	}
-	else {
-		// but most are, so update their lighting if appropriate
-		if(ent->lighting->state == LIGHTING_READY){
-			if(r_view.update || !VectorCompare(e->current.origin, e->prev.origin)){
-				ent->lighting->state = LIGHTING_DIRTY;
-			}
-		}
-	}
 }
 
 
@@ -503,32 +574,29 @@ static const vec3_t bfg_light = {
  * cl_add_entities bit mask.
  */
 void Cl_AddEntities(cl_frame_t *frame){
-	r_entity_t ent, self;
-	vec3_t start, end;
-	int i, mask;
+	r_entity_t self;
+	int i;
 
 	if(!cl_add_entities->value)
 		return;
-
-	VectorClear(start);
-	VectorClear(end);
 
 	memset(&self, 0, sizeof(self));
 
 	// resolve any models, animations, interpolations, rotations, bobbing, etc..
 	for(i = 0; i < frame->num_entities; i++){
-
-		entity_state_t *s = &cl.entity_states[(frame->entity_state + i) & ENTITY_STATE_MASK];
-
+		const entity_state_t *s = &cl.entity_states[(frame->entity_state + i) & ENTITY_STATE_MASK];
 		cl_entity_t *e = &cl.entities[s->number];
+		r_entity_t ent;
+		vec3_t start, end;
+		int mask;
 
 		memset(&ent, 0, sizeof(ent));
 
-		// beams have two origins, most ents have just one
+		// beams have two origins, most entities have just one
 		if(s->effects & EF_BEAM){
 
 			// skin_num is overridden to specify owner of the beam
-			if((s->skin_num == cl.player_num + 1) && !cl_third_person->value){
+			if((s->client == cl.player_num + 1) && !cl_third_person->value){
 				// we own this beam (lightning, grapple, etc..)
 				// project start position in front of view origin
 				VectorCopy(r_view.origin, start);
@@ -559,47 +627,9 @@ void Cl_AddEntities(cl_frame_t *frame){
 			AngleLerp(e->prev.angles, e->current.angles, cl.lerp, ent.angles);
 		}
 
-		// interpolate frames
-		if(s->effects & EF_ANIMATE)
-			ent.frame = cl.time / 500;
-		else if(s->effects & EF_ANIMATE_FAST)
-			ent.frame = cl.time / 100;
-		else
-			ent.frame = s->frame1;
-
-		ent.old_frame = e->anim_frame;
-
-		ent.lerp = (cl.time - e->anim_time) / 100.0;
-
-		if(ent.lerp < 0.0)  // clamp
-			ent.lerp = 0.0;
-		else if(ent.lerp > 1.0)
-			ent.lerp = 1.0;
-
-		ent.back_lerp = 1.0 - ent.lerp;
-
 		VectorSet(ent.scale, 1.0, 1.0, 1.0);  // scale
 
-		// resolve model and skin
-		if(s->model_index1 == 255){  // use custom player skin
-			const cl_client_info_t *ci = &cl.client_info[s->skin_num & 0xff];
-			ent.skin_num = 0;
-			ent.skin = ci->skin;
-			ent.model = ci->model;
-
-			if(!ent.skin || !ent.model){
-				ent.skin = cl.base_client_info.skin;
-				ent.model = cl.base_client_info.model;
-			}
-
-			VectorSet(ent.scale, PM_SCALE, PM_SCALE, PM_SCALE);
-		}
-		else {  // or use the model defined by the entity state
-			ent.skin_num = s->skin_num;
-			ent.skin = NULL;
-			ent.model = cl.model_draw[s->model_index1];
-		}
-
+		// parse the effects bit mask
 		if(s->effects & (EF_ROCKET | EF_GRENADE)){
 			Cl_SmokeTrail(e->prev.origin, ent.origin, e);
 		}
@@ -655,8 +685,11 @@ void Cl_AddEntities(cl_frame_t *frame){
 			Cl_TeleporterTrail(ent.origin, e);
 
 		// if there's no model associated with the entity, we're done
-		if(!s->model_index1)
+		if(!s->model1)
 			continue;
+
+		// assign the model, players will reference 0xff
+		ent.model = cl.model_draw[s->model1];
 
 		// filter by model type
 		mask = ent.model && ent.model->type == mod_bsp_submodel ? 1 : 2;
@@ -664,115 +697,23 @@ void Cl_AddEntities(cl_frame_t *frame){
 		if(!(cl_add_entities->integer & mask))
 			continue;
 
-		// pass the remaining effects through to the renderer
+		// pass the effects through to the renderer
 		ent.effects = s->effects;
 
-		// don't draw ourselves unless third person is set
-		if(s->number == cl.player_num + 1){
+		if(s->model1 == 0xff){  // add the client entities
 
-			// retain a reference to ourselves for the weapon model
-			self = ent;
+			if(s->number == cl.player_num + 1)
+				self = ent;
 
-			if(!cl_third_person->value){
-				ent.effects |= EF_NO_DRAW;
-
-				// keep our shadow underneath us using the predicted origin
-				ent.origin[0] = r_view.origin[0];
-				ent.origin[1] = r_view.origin[1];
-			}
+			Cl_AddClientEntity(e, &ent);
+			continue;
 		}
 
 		// setup the lighting cache, flagging those which are stale
-		Cl_UpdateLighting(e, &ent, 0);
+		Cl_UpdateLighting(e, &ent);
 
 		// add to view list
 		R_AddEntity(&ent);
-
-		/*
-		 * Check for linked models; these start with the origin and angles
-		 * of the owning entity.  There are a few special cases here to
-		 * accommodate visual weapons, CTF flags, etc..
-		 */
-
-		ent.skin = NULL;
-		ent.effects = 0;
-
-		if(s->model_index2){
-			if(s->model_index2 == 255){  // custom weapon
-				// the weapon is masked on the skin_num
-				const cl_client_info_t *ci = &cl.client_info[s->skin_num & 0xff];
-				int i = (s->skin_num >> 8);  // 0 is default weapon model
-
-				if(i > MAX_WEAPON_MODELS - 1){
-					Com_Debug("Invalid weapon model: %d\n", i);
-					i = 0;
-				}
-
-				ent.model = ci->weapon_model[i];
-				ent.effects = s->effects;
-			}
-			else {
-				ent.model = cl.model_draw[s->model_index2];
-			}
-
-			// don't draw our own weapon unless third person is set
-			if(s->number == cl.player_num + 1){
-				if(!cl_third_person->value){
-					ent.effects |= EF_NO_DRAW;
-				}
-			}
-
-			Cl_UpdateLighting(e, &ent, 1);
-
-			R_AddEntity(&ent);
-		}
-
-		if(s->model_index3){  // ctf flags
-			vec3_t fwd, rgt;
-			float f;
-
-			// project back and to the right
-			AngleVectors(ent.angles, fwd, rgt, NULL);
-			VectorMA(ent.origin, -8.0 * PM_SCALE, fwd, ent.origin);
-			VectorMA(ent.origin, 3.0 * PM_SCALE, rgt, ent.origin);
-
-			f = sin(cl.time * 0.004) * 0.5;
-			ent.origin[0] += f;
-			ent.origin[1] += f;
-			ent.origin[2] += 2.0;
-
-			ent.angles[2] += 15.0;
-
-			ent.frame = ent.old_frame = 0;
-			ent.model = cl.model_draw[s->model_index3];
-
-			VectorSet(ent.scale, 0.6, 0.6, 0.6);
-			VectorScale(ent.scale, PM_SCALE, ent.scale);
-
-			if(s->number == cl.player_num + 1){
-				if(!cl_third_person->value){
-					ent.effects |= EF_NO_DRAW;
-				}
-			}
-
-			Cl_UpdateLighting(e, &ent, 2);
-
-			R_AddEntity(&ent);
-		}
-
-		if(s->model_index4){
-			ent.model = cl.model_draw[s->model_index4];
-
-			if(s->number == cl.player_num + 1){
-				if(!cl_third_person->value){
-					ent.effects |= EF_NO_DRAW;
-				}
-			}
-
-			Cl_UpdateLighting(e, &ent, 3);
-
-			R_AddEntity(&ent);
-		}
 	}
 
 	// lastly, add the view weapon

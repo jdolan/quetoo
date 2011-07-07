@@ -93,7 +93,7 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg){
  */
 static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from, sv_frame_t *to, size_buf_t *msg){
 	int i;
-	int pflags;
+	byte bits;
 	player_state_t *ps, *ops;
 	player_state_t dummy;
 	int statbits;
@@ -106,73 +106,73 @@ static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from, s
 		ops = &from->ps;
 
 	// determine what needs to be sent
-	pflags = 0;
+	bits = 0;
 
 	if(ps->pmove.pm_type != ops->pmove.pm_type)
-		pflags |= PS_M_TYPE;
+		bits |= PS_M_TYPE;
 
 	if(ps->pmove.origin[0] != ops->pmove.origin[0]
 			|| ps->pmove.origin[1] != ops->pmove.origin[1]
 			|| ps->pmove.origin[2] != ops->pmove.origin[2])
-		pflags |= PS_M_ORIGIN;
+		bits |= PS_M_ORIGIN;
 
 	if(ps->pmove.velocity[0] != ops->pmove.velocity[0]
 			|| ps->pmove.velocity[1] != ops->pmove.velocity[1]
 			|| ps->pmove.velocity[2] != ops->pmove.velocity[2])
-		pflags |= PS_M_VELOCITY;
+		bits |= PS_M_VELOCITY;
 
 	if(ps->pmove.pm_time != ops->pmove.pm_time)
-		pflags |= PS_M_TIME;
+		bits |= PS_M_TIME;
 
 	if(ps->pmove.pm_flags != ops->pmove.pm_flags)
-		pflags |= PS_M_FLAGS;
+		bits |= PS_M_FLAGS;
 
 	if(ps->pmove.delta_angles[0] != ops->pmove.delta_angles[0]
 			|| ps->pmove.delta_angles[1] != ops->pmove.delta_angles[1]
 			|| ps->pmove.delta_angles[2] != ops->pmove.delta_angles[2])
-		pflags |= PS_M_DELTA_ANGLES;
+		bits |= PS_M_DELTA_ANGLES;
 
 	if(ps->pmove.pm_type == PM_FREEZE &&  // send for chasecammers
 			(ps->angles[0] != ops->angles[0]
 			|| ps->angles[1] != ops->angles[1]
 			|| ps->angles[2] != ops->angles[2]))
-		pflags |= PS_VIEW_ANGLES;
+		bits |= PS_VIEW_ANGLES;
 
 	if(client->recording)  // or anyone recording a demo
-		pflags |= PS_VIEW_ANGLES;
+		bits |= PS_VIEW_ANGLES;
 
 	// write it
-	Msg_WriteByte(msg, pflags);
+	Msg_WriteByte(msg, bits);
 
 	// write the pmove_state_t
-	if(pflags & PS_M_TYPE)
+	if(bits & PS_M_TYPE)
 		Msg_WriteByte(msg, ps->pmove.pm_type);
 
-	if(pflags & PS_M_ORIGIN){
+	if(bits & PS_M_ORIGIN){
 		Msg_WriteShort(msg, ps->pmove.origin[0]);
 		Msg_WriteShort(msg, ps->pmove.origin[1]);
 		Msg_WriteShort(msg, ps->pmove.origin[2]);
 	}
 
-	if(pflags & PS_M_VELOCITY){
+	if(bits & PS_M_VELOCITY){
 		Msg_WriteShort(msg, ps->pmove.velocity[0]);
 		Msg_WriteShort(msg, ps->pmove.velocity[1]);
 		Msg_WriteShort(msg, ps->pmove.velocity[2]);
 	}
 
-	if(pflags & PS_M_TIME)
+	if(bits & PS_M_TIME)
 		Msg_WriteByte(msg, ps->pmove.pm_time);
 
-	if(pflags & PS_M_FLAGS)
+	if(bits & PS_M_FLAGS)
 		Msg_WriteShort(msg, ps->pmove.pm_flags);
 
-	if(pflags & PS_M_DELTA_ANGLES){
+	if(bits & PS_M_DELTA_ANGLES){
 		Msg_WriteShort(msg, ps->pmove.delta_angles[0]);
 		Msg_WriteShort(msg, ps->pmove.delta_angles[1]);
 		Msg_WriteShort(msg, ps->pmove.delta_angles[2]);
 	}
 
-	if(pflags & PS_VIEW_ANGLES){
+	if(bits & PS_VIEW_ANGLES){
 		Msg_WriteAngle16(msg, ps->angles[0]);
 		Msg_WriteAngle16(msg, ps->angles[1]);
 		Msg_WriteAngle16(msg, ps->angles[2]);
@@ -343,7 +343,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 			continue;
 
 		// ignore ents without visible models unless they have an effect
-		if(!ent->s.model_index1 && !ent->s.effects && !ent->s.sound && !ent->s.event)
+		if(!ent->s.model1 && !ent->s.effects && !ent->s.sound && !ent->s.event)
 			continue;
 
 		// ignore if not touching a PVS leaf
@@ -377,7 +377,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 					continue;  // not visible
 			}
 
-			if(!ent->s.model_index1 && !ent->solid && !ent->s.effects){
+			if(!ent->s.model1 && !ent->solid && !ent->s.effects){
 				// don't send sounds if they will be attenuated away
 				vec3_t delta;
 				float len;

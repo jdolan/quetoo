@@ -88,22 +88,15 @@ void R_AllocVertexArrays(r_model_t *mod){
 				mod->num_verts++;
 		}
 	}
-	else if(mod->type == mod_md2){
-
-		d_md2_t *md2 = (d_md2_t *)mod->extra_data;
-		mod->num_verts = md2->num_tris * 3;
-	}
 	else if(mod->type == mod_md3){
-
-		r_md3_t *md3 = (r_md3_t *)mod->extra_data;
-		r_md3_mesh_t *mesh = md3->meshes;
+		const r_md3_t *md3 = (r_md3_t *)mod->extra_data;
+		const r_md3_mesh_t *mesh = md3->meshes;
 
 		for(i = 0; i < md3->num_meshes; i++, mesh++)
 			mod->num_verts += mesh->num_tris * 3;
 	}
 	else if(mod->type == mod_obj){
-
-		r_obj_t *obj = (r_obj_t *)mod->extra_data;
+		const r_obj_t *obj = (r_obj_t *)mod->extra_data;
 		mod->num_verts = obj->num_tris * 3;
 	}
 
@@ -191,7 +184,6 @@ typedef struct r_model_format_s {
 static r_model_format_t r_model_formats[] = {
 		{".obj", R_LoadObjModel},
 		{".md3", R_LoadMd3Model},
-		{".md2", R_LoadMd2Model},
 		{".bsp", R_LoadBspModel}
 };
 

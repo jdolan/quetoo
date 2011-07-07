@@ -335,78 +335,15 @@ static void R_DrawMeshShadow_default(r_entity_t *e){
 
 
 /*
- * R_InterpolateMd2Model_default
+ * R_InterpolateMeshModel_default
  */
-static void R_InterpolateMd2Model_default(const r_entity_t *e){
-	const d_md2_t *md2;
-	const d_md2_frame_t *frame, *old_frame;
-	const d_md2_vertex_t *v, *ov, *verts;
-	const d_md2_tri_t *tri;
-	vec3_t trans, scale, old_scale;
-	int i, vert_index;
-
-	md2 = (const d_md2_t *)e->model->extra_data;
-
-	frame = (const d_md2_frame_t *)((byte *)md2 + md2->ofs_frames + e->frame * md2->frame_size);
-	verts = v = frame->verts;
-
-	old_frame = (const d_md2_frame_t *)((byte *)md2 + md2->ofs_frames + e->old_frame * md2->frame_size);
-	ov = old_frame->verts;
-
-	// trans should be the delta back to the previous frame * backlerp
-
-	for(i = 0; i < 3; i++){
-		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
-
-		scale[i] = e->lerp * frame->scale[i];
-		old_scale[i] = e->back_lerp * old_frame->scale[i];
-	}
-
-	// lerp the verts
-	for(i = 0; i < md2->num_xyz; i++, v++, ov++){
-		VectorSet(r_mesh_verts[i],
-				trans[0] + ov->v[0] * old_scale[0] + v->v[0] * scale[0],
-				trans[1] + ov->v[1] * old_scale[1] + v->v[1] * scale[1],
-				trans[2] + ov->v[2] * old_scale[2] + v->v[2] * scale[2]);
-
-		if(r_state.lighting_enabled){  // and the norms
-			VectorSet(r_mesh_norms[i],
-					e->back_lerp * approximate_normals[ov->n][0] + e->lerp * approximate_normals[v->n][0],
-					e->back_lerp * approximate_normals[ov->n][1] + e->lerp * approximate_normals[v->n][1],
-					e->back_lerp * approximate_normals[ov->n][2] + e->lerp * approximate_normals[v->n][2]);
-		}
-	}
-
-	tri = (d_md2_tri_t *)((byte *)md2 + md2->ofs_tris);
-	vert_index = 0;
-
-	for(i = 0; i < md2->num_tris; i++, tri++){  // draw the tris
-
-		VectorCopy(r_mesh_verts[tri->index_xyz[0]], (&r_state.vertex_array_3d[vert_index + 0]));
-		VectorCopy(r_mesh_verts[tri->index_xyz[1]], (&r_state.vertex_array_3d[vert_index + 3]));
-		VectorCopy(r_mesh_verts[tri->index_xyz[2]], (&r_state.vertex_array_3d[vert_index + 6]));
-
-		if(r_state.lighting_enabled){  // normal vectors for lighting
-			VectorCopy(r_mesh_norms[tri->index_xyz[0]], (&r_state.normal_array[vert_index + 0]));
-			VectorCopy(r_mesh_norms[tri->index_xyz[1]], (&r_state.normal_array[vert_index + 3]));
-			VectorCopy(r_mesh_norms[tri->index_xyz[2]], (&r_state.normal_array[vert_index + 6]));
-		}
-
-		vert_index += 9;
-	}
-}
-
-
-/*
- * R_InterpolateMd3Model_default
- */
-static void R_InterpolateMd3Model_default(const r_entity_t *e){
+static void R_InterpolateMeshModel_default(const r_entity_t *e){
 	const r_md3_t *md3;
 	const d_md3_frame_t *frame, *old_frame;
 	const r_md3_mesh_t *mesh;
 	vec3_t trans;
 	int vert_index;
-	int i, j, k;
+	int i, j;
 
 	md3 = (r_md3_t *)e->model->extra_data;
 
@@ -418,28 +355,28 @@ static void R_InterpolateMd3Model_default(const r_entity_t *e){
 	for(i = 0; i < 3; i++)  // calculate the translation
 		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
 
-	for(k = 0, mesh = md3->meshes; k < md3->num_meshes; k++, mesh++){  // draw the meshes
+	for(i = 0, mesh = md3->meshes; i < md3->num_meshes; i++, mesh++){  // iterate the meshes
 
 		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
 		const r_md3_vertex_t *ov = mesh->verts + e->old_frame * mesh->num_verts;
 
 		const unsigned *tri = mesh->tris;
 
-		for(i = 0; i < mesh->num_verts; i++, v++, ov++){  // lerp the verts
-			VectorSet(r_mesh_verts[i],
+		for(j = 0; j < mesh->num_verts; j++, v++, ov++){  // interpolate the vertexes
+			VectorSet(r_mesh_verts[j],
 					trans[0] + ov->point[0] * e->back_lerp + v->point[0] * e->lerp,
 					trans[1] + ov->point[1] * e->back_lerp + v->point[1] * e->lerp,
 					trans[2] + ov->point[2] * e->back_lerp + v->point[2] * e->lerp);
 
-			if(r_state.lighting_enabled){  // and the norms
-				VectorSet(r_mesh_norms[i],
+			if(r_state.lighting_enabled){  // and the normals
+				VectorSet(r_mesh_norms[j],
 						v->normal[0] + (ov->normal[0] - v->normal[0]) * e->back_lerp,
 						v->normal[1] + (ov->normal[1] - v->normal[1]) * e->back_lerp,
 						v->normal[2] + (ov->normal[2] - v->normal[2]) * e->back_lerp);
 			}
 		}
 
-		for(j = 0; j < mesh->num_tris; j++, tri += 3){  // draw the tris
+		for(j = 0; j < mesh->num_tris; j++, tri += 3){  // populate the triangles
 
 			VectorCopy(r_mesh_verts[tri[0]], (&r_state.vertex_array_3d[vert_index + 0]));
 			VectorCopy(r_mesh_verts[tri[1]], (&r_state.vertex_array_3d[vert_index + 3]));
@@ -485,19 +422,14 @@ void R_DrawMeshModel_default(r_entity_t *e){
 		VectorMA(e->lighting->origin, e->scale[0], e->model->mins, e->lighting->mins);
 		VectorMA(e->lighting->origin, e->scale[0], e->model->maxs, e->lighting->maxs);
 
-		Com_Debug("Updating lighting for %s\n", e->model->name);
+		//Com_Debug("Updating lighting for %s\n", e->model->name);
 		R_UpdateLighting(e->lighting);
 	}
 
 	R_SetMeshState_default(e);
 
 	if(e->frame != e->old_frame){  // interpolate frames
-
-		if(e->model->type == mod_md2)
-			R_InterpolateMd2Model_default(e);
-
-		else if(e->model->type == mod_md3)
-			R_InterpolateMd3Model_default(e);
+		R_InterpolateMeshModel_default(e);
 	}
 
 	if(!(e->effects & EF_NO_DRAW)){  // draw the mesh

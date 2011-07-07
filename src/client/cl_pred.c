@@ -77,7 +77,7 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 			continue;
 
 		if(ent->solid == 31){  // special value for bmodel
-			const c_model_t *model = cl.model_clip[ent->model_index1];
+			const c_model_t *model = cl.model_clip[ent->model1];
 			if(!model)
 				continue;
 			head_node = model->head_node;
@@ -143,7 +143,7 @@ static int Cl_Pointcontents(vec3_t point){
 		if(ent->solid != 31) // special value for bsp models
 			continue;
 
-		model = cl.model_clip[ent->model_index1];
+		model = cl.model_clip[ent->model1];
 		if(!model)
 			continue;
 

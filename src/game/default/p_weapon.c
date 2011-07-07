@@ -20,7 +20,6 @@
  */
 
 #include "g_local.h"
-#include "m_player.h"
 
 
 /*
@@ -67,7 +66,6 @@ qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
  * The old weapon has been put away, so make the new one current
  */
 void P_ChangeWeapon(edict_t *ent){
-	int i;
 
 	// change weapon
 	ent->client->locals.last_weapon = ent->client->locals.weapon;
@@ -85,23 +83,12 @@ void P_ChangeWeapon(edict_t *ent){
 
 	// set visible model
 	if(ent->client->locals.weapon)
-		i = ((ent->client->locals.weapon->weapon_model & 0xff) << 8);
+		ent->s.model2 = gi.ModelIndex(ent->client->locals.weapon->model);
 	else
-		i = 0;
-	ent->s.skin_num = (ent - g_game.edicts - 1) | i;
+		ent->s.model2 = 0;
 
 	if(ent->health < 1)
 		return;
-
-	// set animation
-	ent->client->anim = ANIM_PAIN;
-	if(ent->client->ps.pmove.pm_flags & PMF_DUCKED){
-		ent->s.frame1 = FRAME_crpain1;
-		ent->client->anim_end = FRAME_crpain4;
-	} else {
-		ent->s.frame1 = FRAME_pain301;
-		ent->client->anim_end = FRAME_pain304;
-	}
 
 	// play a sound
 	gi.Sound(ent, gi.SoundIndex("weapons/common/switch"), ATTN_NORM);
@@ -156,20 +143,6 @@ void P_NoAmmoWeaponChange(g_client_t *client){
 
 
 /*
- * NoAmmoWeaponChange
- */
-static void NoAmmoWeaponChange(edict_t *ent){
-
-	if(g_level.time >= ent->pain_time){  // play a click sound
-		gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTN_NORM);
-		ent->pain_time = g_level.time + 1;
-	}
-
-	P_NoAmmoWeaponChange(ent->client);
-}
-
-
-/*
  * P_UseWeapon
  */
 void P_UseWeapon(edict_t *ent, g_item_t *item){
@@ -209,7 +182,6 @@ void P_DropWeapon(edict_t *ent, g_item_t *item){
 static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent)){
 	int n, m;
 	int buttons;
-	qboolean ducked;
 
 	buttons = (ent->client->latched_buttons | ent->client->buttons);
 
@@ -230,37 +202,18 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 
 	// they are out of ammo
 	if(ent->client->ammo_index && n < m){
-		NoAmmoWeaponChange(ent);
+
+		if(g_level.time >= ent->pain_time){  // play a click sound
+			gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTN_NORM);
+			ent->pain_time = g_level.time + 1;
+		}
+
+		P_NoAmmoWeaponChange(ent->client);
 		return;
 	}
 
-	ducked = ent->client->ps.pmove.pm_flags & PMF_DUCKED;
-
 	// they've pressed their fire button, and have ammo, so fire
-	if(ent->client->anim != ANIM_ATTACK){
-
-		ent->client->anim = ANIM_ATTACK;
-
-		if(ducked){
-			ent->s.frame1 = FRAME_crattak1;
-			ent->client->anim_end = FRAME_crattak9;
-		} else {
-			ent->s.frame1 = FRAME_attack1;
-			ent->client->anim_end = FRAME_attack8;
-		}
-	}
-	else {  // for rapid fire weapons, stay at peak of attack sequence
-		if(ducked){
-			ent->client->anim_next = FRAME_crattak2;
-		} else {
-			ent->client->anim_next = FRAME_attack2;
-		}
-
-		// randomize it a little bit so that the gun bobs
-		if(rand() & 1){
-			ent->client->anim_next++;
-		}
-	}
+	G_SetAnimation(ent, ANIM_TORSO_ATTACK1);
 
 	if(ent->client->locals.inventory[quad_damage_index]){  // quad sound
 
@@ -479,16 +432,13 @@ static void P_FireLightning_(edict_t *ent){
 	G_FireLightning(ent, start, forward, 10, 12);
 
 	// if the client has just begun to attack, send the muzzle flash
-	if(ent->s.frame1 == FRAME_attack1 || ent->s.frame1 == FRAME_crattak1){
+	if(ent->client->muzzle_flash_time < g_level.time){
+		gi.WriteByte(svc_muzzle_flash);
+		gi.WriteShort(ent - g_game.edicts);
+		gi.WriteByte(MZ_LIGHTNING);
+		gi.Multicast(ent->s.origin, MULTICAST_PVS);
 
-		if(ent->client->muzzle_flash_time < g_level.time){
-			gi.WriteByte(svc_muzzle_flash);
-			gi.WriteShort(ent - g_game.edicts);
-			gi.WriteByte(MZ_LIGHTNING);
-			gi.Multicast(ent->s.origin, MULTICAST_PVS);
-
-			ent->client->muzzle_flash_time = g_level.time + 0.25;
-		}
+		ent->client->muzzle_flash_time = g_level.time + 0.25;
 	}
 }
 

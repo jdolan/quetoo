@@ -565,8 +565,8 @@ typedef struct {
 
 static const cheatvar_t cheatvars[] = {
 	{"r_draw_wireframe", "0"},
-	{"timedemo", "0"},
-	{"timescale", "1"},
+	{"time_demo", "0"},
+	{"time_scale", "1"},
 	{NULL, NULL}
 };
 

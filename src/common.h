@@ -170,11 +170,11 @@ enum clc_ops_e {
 #define U_ORIGIN		(1<<0)
 #define U_OLD_ORIGIN	(1<<1)  // used by lightning
 #define U_ANGLES		(1<<2)
-#define U_FRAMES		(1<<3)  // animation frames
-#define U_EVENTS		(1<<4)  // client side events
+#define U_ANIMATIONS	(1<<3)  // animation frames
+#define U_EVENT			(1<<4)  // client side events
 #define U_EFFECTS		(1<<5)  // client side effects
 #define U_MODELS		(1<<6)  // models (primary and linked)
-#define U_SKIN			(1<<7)
+#define U_CLIENT		(1<<7)  // offset into client skins array
 #define U_SOUND			(1<<8)  // looped sounds
 #define U_SOLID			(1<<9)
 #define U_REMOVE		(1<<10)  // remove this entity, don't add it
@@ -234,7 +234,7 @@ int Com_ServerState(void);
 void Com_SetServerState(int state);
 
 extern cvar_t *dedicated;
-extern cvar_t *timedemo;
-extern cvar_t *timescale;
+extern cvar_t *time_demo;
+extern cvar_t *time_scale;
 
 #endif /* __COMMON_H__ */

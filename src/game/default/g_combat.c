@@ -198,7 +198,7 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	int te_sparks;
 	float scale;
 
-	if(!targ->takedamage)
+	if(!targ->take_damage)
 		return;
 
 	if(!inflictor)  // use world
@@ -340,7 +340,7 @@ void G_RadiusDamage(edict_t *inflictor, edict_t *attacker, edict_t *ignore,
 		if(ent == ignore)
 			continue;
 
-		if(!ent->takedamage)
+		if(!ent->take_damage)
 			continue;
 
 		VectorSubtract(ent->s.origin, inflictor->s.origin, dir);

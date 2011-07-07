@@ -207,8 +207,8 @@ static const g_field_t fields[] = {
 	{"enemy", FOFS(enemy), F_EDICT, FFL_NO_SPAWN},
 	{"activator", FOFS(activator), F_EDICT, FFL_NO_SPAWN},
 	{"ground_entity", FOFS(ground_entity), F_EDICT, FFL_NO_SPAWN},
-	{"teamchain", FOFS(teamchain), F_EDICT, FFL_NO_SPAWN},
-	{"teammaster", FOFS(teammaster), F_EDICT, FFL_NO_SPAWN},
+	{"teamchain", FOFS(team_chain), F_EDICT, FFL_NO_SPAWN},
+	{"teammaster", FOFS(team_master), F_EDICT, FFL_NO_SPAWN},
 	{"owner", FOFS(owner), F_EDICT, FFL_NO_SPAWN},
 	{"target_ent", FOFS(target_ent), F_EDICT, FFL_NO_SPAWN},
 	{"chain", FOFS(chain), F_EDICT, FFL_NO_SPAWN},
@@ -380,7 +380,7 @@ static void G_FindEdictTeams(void){
 		if(e->flags & FL_TEAMSLAVE)
 			continue;
 		chain = e;
-		e->teammaster = e;
+		e->team_master = e;
 		c++;
 		c2++;
 		for(j = i + 1, e2 = e + 1; j < ge.num_edicts; j++, e2++){
@@ -392,8 +392,8 @@ static void G_FindEdictTeams(void){
 				continue;
 			if(!strcmp(e->team, e2->team)){
 				c2++;
-				chain->teamchain = e2;
-				e2->teammaster = e;
+				chain->team_chain = e2;
+				e2->team_master = e;
 				chain = e2;
 				e2->flags |= FL_TEAMSLAVE;
 			}
@@ -671,7 +671,7 @@ static void G_worldspawn(edict_t *ent){
 	ent->move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	ent->in_use = true;  // since the world doesn't use G_Spawn()
-	ent->s.model_index1 = 1;  // world model is always index 1
+	ent->s.model1 = 1;  // world model is always index 1
 
 	// set config_strings for items
 	G_SetItemNames();
@@ -840,18 +840,6 @@ static void G_worldspawn(edict_t *ent){
 	G_PrecacheItem(G_FindItem("Hyperblaster"));
 	G_PrecacheItem(G_FindItem("Railgun"));
 	G_PrecacheItem(G_FindItem("BFG10K"));
-
-	// THIS ORDER MUST MATCH THE DEFINES IN g_locals.h
-	// you can add more, max 15
-	gi.ModelIndex("#w_shotgun.md2");
-	gi.ModelIndex("#w_sshotgun.md2");
-	gi.ModelIndex("#w_machinegun.md2");
-	gi.ModelIndex("#w_glauncher.md2");
-	gi.ModelIndex("#w_rlauncher.md2");
-	gi.ModelIndex("#w_hyperblaster.md2");
-	gi.ModelIndex("#w_chaingun.md2");  //TODO: replace with lightning
-	gi.ModelIndex("#w_railgun.md2");
-	gi.ModelIndex("#w_bfg.md2");
 
 	gi.SoundIndex("world/water_in");
 	gi.SoundIndex("world/water_out");

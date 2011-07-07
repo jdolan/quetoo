@@ -20,7 +20,6 @@
  */
 
 #include "g_local.h"
-#include "m_player.h"
 
 static edict_t *current_player;
 static g_client_t *current_client;
@@ -29,7 +28,7 @@ static g_client_t *current_client;
 /*
  * P_DamageFeedback
  *
- * Assign pain animations and sounds.
+ * Play pain sounds.
  */
 static void P_DamageFeedback(edict_t *player){
 	g_client_t *client;
@@ -39,33 +38,6 @@ static void P_DamageFeedback(edict_t *player){
 
 	if(client->damage_blood + client->damage_armor == 0)
 		return;  // didn't take any damage
-
-	// start a pain animation if still in the player model
-	if(client->anim < ANIM_PAIN && player->s.model_index1 == 255){
-		static int i;
-
-		client->anim = ANIM_PAIN;
-		if(client->ps.pmove.pm_flags & PMF_DUCKED){
-			player->s.frame1 = FRAME_crpain1 - 1;
-			client->anim_end = FRAME_crpain4;
-		} else {
-			i = (i + 1) % 3;
-			switch(i){
-				case 0:
-					player->s.frame1 = FRAME_pain101 - 1;
-					client->anim_end = FRAME_pain104;
-					break;
-				case 1:
-					player->s.frame1 = FRAME_pain201 - 1;
-					client->anim_end = FRAME_pain204;
-					break;
-				case 2:
-					player->s.frame1 = FRAME_pain301 - 1;
-					client->anim_end = FRAME_pain304;
-					break;
-			}
-		}
-	}
 
 	// play an appropriate pain sound
 	if(g_level.time > player->pain_time){
@@ -122,15 +94,15 @@ static void P_FallingDamage(edict_t *ent){
 	// then reduce it to reasonable numbers
 	delta *= 0.0001;
 
-	if(delta < 1)
+	if(delta < 1.0)
 		return;
 
-	if(delta > 40){  // player will take damage
+	if(delta > 40.0){  // player will take damage
 
-		if(delta >= 65)
-			event = EV_FALL_FAR;
+		if(delta >= 65.0)
+			event = EV_CLIENT_FALL_FAR;
 		else
-			event = EV_FALL;
+			event = EV_CLIENT_FALL;
 
 		ent->pain_time = g_level.time;  // suppress pain sound
 
@@ -145,9 +117,9 @@ static void P_FallingDamage(edict_t *ent){
 				vec3_origin, damage, 0, 0, MOD_FALLING);
 	}
 	else if(delta > 5.0)
-		event = EV_FALL_SHORT;
+		event = EV_CLIENT_LAND;
 	else
-		event = EV_FOOTSTEP;
+		event = EV_CLIENT_FOOTSTEP;
 
 	if(ent->s.event != EV_TELEPORT)  // don't override teleport events
 		ent->s.event = event;
@@ -234,93 +206,6 @@ static void P_WorldEffects(void){
 
 
 /*
- * P_RunClientAnimation
- */
-static void P_RunClientAnimation(edict_t *ent){
-	g_client_t *client;
-	qboolean ducked, running;
-
-	if(ent->s.model_index1 != 255)
-		return;  // not in the player model
-
-	client = ent->client;
-
-	// use small epsilon for low server_frame rates
-	if(client->anim_time > g_level.time)
-		return;
-
-	client->anim_time = g_level.time + 0.10; // 10hz animations
-
-	// if we've been explicitly asked to jump to a frame, do it
-	if(ent->client->anim_next){
-		ent->s.frame1 = ent->client->anim_next;
-		ent->client->anim_next = 0;
-		return;
-	}
-
-	ducked = client->ps.pmove.pm_flags & PMF_DUCKED;
-	running = ent->velocity[0] || ent->velocity[1];
-
-	// check for stand/duck and stop/go transitions
-	if(ducked != client->anim_duck)
-		goto new_anim;
-
-	if(running != client->anim_run && client->anim == ANIM_IDLE)
-		goto new_anim;
-
-	if(!ent->ground_entity && client->anim < ANIM_JUMP)
-		goto new_anim;
-
-	// finish running the current animation
-	if(ent->s.frame1 < client->anim_end){
-		ent->s.frame1++;
-		return;
-	}
-
-	// finish a jump animation if we're on the ground
-	if(client->anim == ANIM_JUMP){
-
-		if(!ent->ground_entity)
-			return;
-
-		ent->client->anim = ANIM_WAVE;
-		ent->s.frame1 = FRAME_jump3;
-		ent->client->anim_end = FRAME_jump6;
-		return;
-	}
-
-new_anim:
-	// return to either a running or standing frame
-	client->anim = ANIM_IDLE;
-	client->anim_duck = ducked;
-	client->anim_run = running;
-
-	if(!ent->ground_entity){
-		client->anim = ANIM_JUMP;
-		if(ent->s.frame1 != FRAME_jump2)
-			ent->s.frame1 = FRAME_jump1;
-		client->anim_end = FRAME_jump2;
-	} else if(running){  // running
-		if(ducked){
-			ent->s.frame1 = FRAME_crwalk1;
-			client->anim_end = FRAME_crwalk6;
-		} else {
-			ent->s.frame1 = FRAME_run1;
-			client->anim_end = FRAME_run6;
-		}
-	} else {  // standing
-		if(ducked){
-			ent->s.frame1 = FRAME_crstnd01;
-			client->anim_end = FRAME_crstnd19;
-		} else {
-			ent->s.frame1 = FRAME_stand01;
-			client->anim_end = FRAME_stand40;
-		}
-	}
-}
-
-
-/*
  * P_EndServerFrame
  *
  * Called for each player at the end of the server frame and right after spawning
@@ -379,7 +264,7 @@ void P_EndServerFrame(edict_t *ent){
 
 		if(xyspeed > 265.0 && ent->client->footstep_time < g_level.time){
 			ent->client->footstep_time = g_level.time + 0.3;
-			ent->s.event = EV_FOOTSTEP;
+			ent->s.event = EV_CLIENT_FOOTSTEP;
 		}
 	}
 
@@ -396,9 +281,6 @@ void P_EndServerFrame(edict_t *ent){
 		P_SetStats(ent);
 
 	P_CheckChaseStats(ent);
-
-	// animations
-	P_RunClientAnimation(ent);
 
 	VectorCopy(ent->velocity, ent->client->old_velocity);
 	VectorCopy(ent->client->ps.angles, ent->client->old_angles);
@@ -421,12 +303,14 @@ void P_EndServerFrames(void){
 	int i;
 	edict_t *ent;
 
-	// calc the player views now that all pushing
-	// and damage has been added
+	// finalize the player_state_t for this frame
 	for(i = 0; i < sv_max_clients->integer; i++){
+
 		ent = g_game.edicts + 1 + i;
+
 		if(!ent->in_use || !ent->client)
 			continue;
+
 		P_EndServerFrame(ent);
 	}
 }

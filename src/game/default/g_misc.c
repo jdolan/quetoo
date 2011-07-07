@@ -55,11 +55,11 @@ void G_info_notnull(edict_t *self){
 }
 
 
-/*QUAKED func_wall(0 .5 .8) ? TRIGGER_SPAWN TOGGLE START_ON ANIMATED ANIMATED_FAST
+/*QUAKED func_wall(0 .5 .8) ? TRIGGER_SPAWN TOGGLE START_ON
 This is just a solid wall if not inhibited
 
 TRIGGER_SPAWN	the wall will not be present until triggered
-				it will then blink in to existance; it will
+				it will then blink in to existence; it will
 				kill anything that was in it's way
 
 TOGGLE			only valid for TRIGGER_SPAWN walls
@@ -87,11 +87,6 @@ static void G_func_wall_use(edict_t *self, edict_t *other, edict_t *activator){
 void G_func_wall(edict_t *self){
 	self->move_type = MOVE_TYPE_PUSH;
 	gi.SetModel(self, self->model);
-
-	if(self->spawn_flags & 8)
-		self->s.effects |= EF_ANIMATE;
-	if(self->spawn_flags & 16)
-		self->s.effects |= EF_ANIMATE_FAST;
 
 	// just a wall
 	if((self->spawn_flags & 7) == 0){
@@ -126,7 +121,7 @@ void G_func_wall(edict_t *self){
 }
 
 
-/*QUAKED func_object(0 .5 .8) ? TRIGGER_SPAWN ANIMATED ANIMATED_FAST
+/*QUAKED func_object(0 .5 .8) ? TRIGGER_SPAWN
 This is solid bmodel that will fall if it's support it removed.
 */
 
@@ -136,7 +131,7 @@ static void G_func_object_touch(edict_t *self, edict_t *other, c_plane_t *plane,
 		return;
 	if(plane->normal[2] < 1.0)
 		return;
-	if(!other->takedamage)
+	if(!other->take_damage)
 		return;
 	G_Damage(other, self, self, vec3_origin, self->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
@@ -179,27 +174,23 @@ void G_func_object(edict_t *self){
 		self->sv_flags |= SVF_NOCLIENT;
 	}
 
-	if(self->spawn_flags & 2)
-		self->s.effects |= EF_ANIMATE;
-	if(self->spawn_flags & 4)
-		self->s.effects |= EF_ANIMATE_FAST;
-
-	self->clipmask = MASK_PLAYERSOLID;
+	self->clip_mask = MASK_PLAYERSOLID;
 
 	gi.LinkEntity(self);
 }
 
 
 /*QUAKED target_string(0 0 1)(-8 -8 -8)(8 8 8)
-*/
-
+ *
+ * TODO: gi.CenterPrint + think delay?
+ */
 static void G_target_string_use(edict_t *self, edict_t *other, edict_t *activator){
-	edict_t *e;
+	/*edict_t *e;
 	int n, l;
 	char c;
 
 	l = strlen(self->message);
-	for(e = self->teammaster; e; e = e->teamchain){
+	for(e = self->team_master; e; e = e->team_chain){
 		if(!e->count)
 			continue;
 		n = e->count - 1;
@@ -217,7 +208,7 @@ static void G_target_string_use(edict_t *self, edict_t *other, edict_t *activato
 			e->s.frame1 = 11;
 		else
 			e->s.frame1 = 12;
-	}
+	}*/
 }
 
 void G_target_string(edict_t *self){

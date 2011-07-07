@@ -20,7 +20,6 @@
  */
 
 #include "g_local.h"
-#include "m_player.h"
 
 
 /*
@@ -62,7 +61,7 @@ static void G_Give_f(edict_t *ent){
 			it = g_items + i;
 			if(!it->pickup)
 				continue;
-			if(!(it->flags & IT_WEAPON))
+			if(it->type != ITEM_WEAPON)
 				continue;
 			ent->client->locals.inventory[i] += 1;
 		}
@@ -75,7 +74,7 @@ static void G_Give_f(edict_t *ent){
 			it = g_items + i;
 			if(!it->pickup)
 				continue;
-			if(!(it->flags & IT_AMMO))
+			if(it->type != ITEM_AMMO)
 				continue;
 			G_AddAmmo(ent, it, 1000);
 		}
@@ -111,7 +110,7 @@ static void G_Give_f(edict_t *ent){
 		return;
 	}
 
-	if(it->flags & IT_AMMO){  // give the requested ammo quantity
+	if(it->type == ITEM_AMMO){  // give the requested ammo quantity
 		index = ITEM_INDEX(it);
 
 		if(gi.Argc() == 3)
@@ -276,13 +275,13 @@ static void G_WeaponPrevious_f(edict_t *ent){
 
 	// scan  for the next valid one
 	for(i = 1; i <= MAX_ITEMS; i++){
-		index =(selected_weapon + i) % MAX_ITEMS;
+		index = (selected_weapon + i) % MAX_ITEMS;
 		if(!cl->locals.inventory[index])
 			continue;
 		it = &g_items[index];
 		if(!it->use)
 			continue;
-		if(!(it->flags & IT_WEAPON))
+		if(it->type != ITEM_WEAPON)
 			continue;
 		it->use(ent, it);
 		if(cl->locals.weapon == it)
@@ -316,13 +315,13 @@ static void G_WeaponNext_f(edict_t *ent){
 
 	// scan  for the next valid one
 	for(i = 1; i <= MAX_ITEMS; i++){
-		index =(selected_weapon + MAX_ITEMS - i) % MAX_ITEMS;
+		index = (selected_weapon + MAX_ITEMS - i) % MAX_ITEMS;
 		if(!cl->locals.inventory[index])
 			continue;
 		it = &g_items[index];
 		if(!it->use)
 			continue;
-		if(!(it->flags & IT_WEAPON))
+		if(it->type != ITEM_WEAPON)
 			continue;
 		it->use(ent, it);
 		if(cl->locals.weapon == it)
@@ -350,7 +349,7 @@ static void G_WeaponLast_f(edict_t *ent){
 	it = &g_items[index];
 	if(!it->use)
 		return;
-	if(!(it->flags & IT_WEAPON))
+	if(it->type != ITEM_WEAPON)
 		return;
 	it->use(ent, it);
 }
@@ -376,54 +375,6 @@ static void G_Kill_f(edict_t *ent){
 	means_of_death = MOD_SUICIDE;
 
 	P_Die(ent, ent, ent, 100000, vec3_origin);
-}
-
-
-/*
- * G_Wave_f
- */
-static void G_Wave_f(edict_t *ent){
-	int i;
-
-	i = atoi(gi.Argv(1));
-
-	// can't wave when ducked
-	if(ent->client->ps.pmove.pm_flags & PMF_DUCKED)
-		return;
-
-	if(ent->client->anim > ANIM_WAVE)
-		return;
-
-	ent->client->anim = ANIM_WAVE;
-
-	switch(i){
-		case 0:
-			gi.ClientPrint(ent, PRINT_LOW, "flipoff\n");
-			ent->s.frame1 = FRAME_flip01 - 1;
-			ent->client->anim_end = FRAME_flip12;
-			break;
-		case 1:
-			gi.ClientPrint(ent, PRINT_LOW, "salute\n");
-			ent->s.frame1 = FRAME_salute01 - 1;
-			ent->client->anim_end = FRAME_salute11;
-			break;
-		case 2:
-			gi.ClientPrint(ent, PRINT_LOW, "taunt\n");
-			ent->s.frame1 = FRAME_taunt01 - 1;
-			ent->client->anim_end = FRAME_taunt17;
-			break;
-		case 3:
-			gi.ClientPrint(ent, PRINT_LOW, "wave\n");
-			ent->s.frame1 = FRAME_wave01 - 1;
-			ent->client->anim_end = FRAME_wave11;
-			break;
-		case 4:
-		default:
-			gi.ClientPrint(ent, PRINT_LOW, "point\n");
-			ent->s.frame1 = FRAME_point01 - 1;
-			ent->client->anim_end = FRAME_point12;
-			break;
-	}
 }
 
 
@@ -873,7 +824,7 @@ static void G_Teamname_f(edict_t *ent){
 
 	t = ent->client->locals.team;
 
-	if(g_level.time - t->nametime < TEAM_CHANGE_TIME)
+	if(g_level.time - t->name_time < TEAM_CHANGE_TIME)
 		return;  // prevent change spamming
 
 	s = gi.Argv(1);
@@ -885,7 +836,7 @@ static void G_Teamname_f(edict_t *ent){
 	s = t->name;
 	s[sizeof(t->name) - 1] = 0;
 
-	t->nametime = g_level.time;
+	t->name_time = g_level.time;
 
 	cs = t == &good ? CS_TEAM_GOOD : CS_TEAM_EVIL;
 	gi.ConfigString(cs, va("%15s", t->name));
@@ -916,14 +867,14 @@ static void G_Teamskin_f(edict_t *ent){
 
 	t = ent->client->locals.team;
 
-	if(g_level.time - t->skintime < TEAM_CHANGE_TIME)
+	if(g_level.time - t->skin_time < TEAM_CHANGE_TIME)
 		return;  // prevent change spamming
 
 	s = gi.Argv(1);
 
 	if(s != '\0')  // something valid-ish was provided
 		strncpy(t->skin, s, sizeof(t->skin) - 1);
-	else strcpy(t->skin, "ichabod");
+	else strcpy(t->skin, "qforcer");
 
 	s = t->skin;
 	s[sizeof(t->skin) - 1] = 0;
@@ -938,7 +889,7 @@ static void G_Teamskin_f(edict_t *ent){
 		strncat(t->skin, "/default", sizeof(t->skin) - 1 - strlen(s));
 	}
 
-	t->skintime = g_level.time;
+	t->skin_time = g_level.time;
 
 	for(i = 0; i < sv_max_clients->integer; i++){  // update skins
 		cl = g_game.clients + i;
@@ -1174,8 +1125,6 @@ void P_Command(edict_t *ent){
 		G_WeaponLast_f(ent);
 	else if(strcasecmp(cmd, "kill") == 0)
 		G_Kill_f(ent);
-	else if(strcasecmp(cmd, "wave") == 0)
-		G_Wave_f(ent);
 	else if(strcasecmp(cmd, "player_list") == 0)
 		G_PlayerList_f(ent);
 	else if(strcasecmp(cmd, "vote") == 0 || strcasecmp(cmd, "yes") == 0 || strcasecmp(cmd, "no") == 0)

@@ -69,9 +69,12 @@ g_item_t *G_FindItem(const char *pickup_name){
 	g_item_t *it;
 
 	it = g_items;
+
 	for(i = 0; i < g_game.num_items; i++, it++){
+
 		if(!it->pickup_name)
 			continue;
+
 		if(!strcasecmp(it->pickup_name, pickup_name))
 			return it;
 	}
@@ -90,7 +93,7 @@ static void G_DoRespawn(edict_t *ent){
 
 	if(ent->team){  // pick a random member from the team
 
-		master = ent->teammaster;
+		master = ent->team_master;
 		VectorCopy(master->map_origin, origin);
 
 		for(count = 0, ent = master; ent; ent = ent->chain, count++)
@@ -402,7 +405,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 
 			other->client->locals.inventory[index] = 0;
 			other->s.effects &= ~G_EffectForTeam(ot);
-			other->s.model_index3 = 0;
+			other->s.model3 = 0;
 
 			of->sv_flags &= ~SVF_NOCLIENT;  // reset the other flag
 			of->s.event = EV_ITEM_RESPAWN;
@@ -431,7 +434,7 @@ static qboolean G_PickupFlag(edict_t *ent, edict_t *other){
 	other->client->locals.inventory[index] = 1;
 
 	// link the flag model to the player
-	other->s.model_index3 = gi.ModelIndex(f->item->model);
+	other->s.model3 = gi.ModelIndex(f->item->model);
 
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTN_NONE);
 
@@ -488,7 +491,7 @@ void G_TouchItem(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *su
 		else
 			G_FreeEdict(ent);
 	}
-	else if(ent->item->flags & IT_FLAG)  // if a flag has been taken, hide it
+	else if(ent->item->type == ITEM_FLAG)  // if a flag has been taken, hide it
 		ent->sv_flags |= SVF_NOCLIENT;
 }
 
@@ -531,12 +534,12 @@ static void G_DropItemThink(edict_t *ent){
 
 	// setup the next think function and time
 
-	if(ent->item->flags & IT_FLAG)  // flags go back to base
+	if(ent->item->type == ITEM_FLAG)  // flags go back to base
 		ent->think = G_ResetFlag;
 	else  // everything else just gets freed
 		ent->think = G_FreeEdict;
 
-	if(ent->item->flags & IT_POWERUP)  // expire from last touch
+	if(ent->item->type == ITEM_POWERUP)  // expire from last touch
 		f = ent->timestamp - g_level.time;
 	else  // general case
 		f = 30.0;
@@ -604,7 +607,7 @@ edict_t *G_DropItem(edict_t *ent, g_item_t *item){
 	// we're in a bad spot, forget it
 	if(trace.start_solid){
 
-		if(item->flags & IT_FLAG)
+		if(item->type == ITEM_FLAG)
 			G_ResetFlag(dropped);
 		else
 			G_FreeEdict(dropped);
@@ -725,11 +728,11 @@ void G_PrecacheItem(g_item_t *it){
 			s++;
 
 		// determine type based on extension
-		if(!strcmp(data + len - 3, "md2") || !strcmp(data + len - 3, "md3"))
+		if(!strcmp(data + len - 3, "md3") || !strcmp(data + len - 3, "obj"))
 			gi.ModelIndex(data);
 		else if(!strcmp(data + len - 3, "wav"))
 			gi.SoundIndex(data);
-		else if(!strcmp(data + len - 3, "pcx") || !strcmp(data + len - 3, "tga"))
+		else if(!strcmp(data + len - 3, "tga") || !strcmp(data + len - 3, "png"))
 			gi.ImageIndex(data);
 		else gi.Error("G_PrecacheItem: %s has unknown data type.", it->class_name);
 	}
@@ -772,12 +775,12 @@ void G_SpawnItem(edict_t *ent, g_item_t *item){
 
 	if(ent->team){
 		ent->flags &= ~FL_TEAMSLAVE;
-		ent->chain = ent->teamchain;
-		ent->teamchain = NULL;
+		ent->chain = ent->team_chain;
+		ent->team_chain = NULL;
 
 		ent->sv_flags |= SVF_NOCLIENT;
 		ent->solid = SOLID_NOT;
-		if(ent == ent->teammaster){
+		if(ent == ent->team_master){
 			ent->next_think = g_level.time + gi.server_frame;
 			ent->think = G_DoRespawn;
 		}
@@ -828,8 +831,7 @@ g_item_t g_items[] = {
 		"Body Armor",
 		200,
 		NULL,
-		IT_ARMOR,
-		0,
+		ITEM_ARMOR,
 		ARMOR_BODY,
 		""
 	},
@@ -849,8 +851,7 @@ g_item_t g_items[] = {
 		"Combat Armor",
 		100,
 		NULL,
-		IT_ARMOR,
-		0,
+		ITEM_ARMOR,
 		ARMOR_COMBAT,
 		""
 	},
@@ -870,8 +871,7 @@ g_item_t g_items[] = {
 		"Jacket Armor",
 		50,
 		NULL,
-		IT_ARMOR,
-		0,
+		ITEM_ARMOR,
 		ARMOR_JACKET,
 		""
 	},
@@ -891,12 +891,10 @@ g_item_t g_items[] = {
 		"Armor Shard",
 		3,
 		NULL,
-		IT_ARMOR,
-		0,
+		ITEM_ARMOR,
 		ARMOR_SHARD,
 		""
 	},
-
 
 	//
 	// WEAPONS
@@ -911,14 +909,13 @@ g_item_t g_items[] = {
 		P_DropWeapon,
 		P_FireShotgun,
 		"weapons/common/pickup.wav",
-		"models/weapons/shotgun/tris.md2",
+		"models/weapons/shotgun/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"w_shotgun",
 		"Shotgun",
 		1,
 		"Shells",
-		IT_WEAPON,
-		WEAP_SHOTGUN,
+		ITEM_WEAPON,
 		0,
 		"weapons/shotgun/fire.wav"
 	},
@@ -932,14 +929,13 @@ g_item_t g_items[] = {
 		P_DropWeapon,
 		P_FireSuperShotgun,
 		"weapons/common/pickup.wav",
-		"models/weapons/supershotgun/tris.md3",
+		"models/weapons/supershotgun/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"w_sshotgun",
 		"Super Shotgun",
 		2,
 		"Shells",
-		IT_WEAPON,
-		WEAP_SUPERSHOTGUN,
+		ITEM_WEAPON,
 		0,
 		"weapons/supershotgun/fire.wav"
 	},
@@ -953,14 +949,13 @@ g_item_t g_items[] = {
 		P_DropWeapon,
 		P_FireMachinegun,
 		"weapons/common/pickup.wav",
-		"models/weapons/machinegun/tris.md2",
+		"models/weapons/machinegun/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"w_machinegun",
 		"Machinegun",
 		1,
 		"Bullets",
-		IT_WEAPON,
-		WEAP_MACHINEGUN,
+		ITEM_WEAPON,
 		0,
 		"weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
 			"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav"
@@ -975,16 +970,15 @@ g_item_t g_items[] = {
 		P_DropWeapon,
 		P_FireGrenadeLauncher,
 		"weapons/common/pickup.wav",
-		"models/weapons/grenadelauncher/tris.md2",
+		"models/weapons/grenadelauncher/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"w_glauncher",
 		"Grenade Launcher",
 		1,
 		"Grenades",
-		IT_WEAPON,
-		WEAP_GRENADELAUNCHER,
+		ITEM_WEAPON,
 		0,
-		"models/objects/grenade/tris.md2 weapons/grenadelauncher/fire.wav"
+		"models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav"
 	},
 
 	/*QUAKED weapon_rocketlauncher(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1002,10 +996,9 @@ g_item_t g_items[] = {
 		"Rocket Launcher",
 		1,
 		"Rockets",
-		IT_WEAPON,
-		WEAP_ROCKETLAUNCHER,
+		ITEM_WEAPON,
 		0,
-		"models/objects/rocket/tris.md2 objects/rocket/fly.wav "
+		"models/objects/rocket/tris.md3 objects/rocket/fly.wav "
 			"weapons/rocketlauncher/fire.wav"
 	},
 
@@ -1024,8 +1017,7 @@ g_item_t g_items[] = {
 		"Hyperblaster",
 		1,
 		"Cells",
-		IT_WEAPON,
-		WEAP_HYPERBLASTER,
+		ITEM_WEAPON,
 		0,
 		"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav"
 	},
@@ -1045,8 +1037,7 @@ g_item_t g_items[] = {
 		"Lightning",
 		1,
 		"Bolts",
-		IT_WEAPON,
-		WEAP_LIGHTNING,
+		ITEM_WEAPON,
 		0,
 		"weapons/lightning/fire.wav weapons/lightning/fly.wav "
 		"weapons/lightning/discharge.wav"
@@ -1061,14 +1052,13 @@ g_item_t g_items[] = {
 		P_DropWeapon,
 		P_FireRailgun,
 		"weapons/common/pickup.wav",
-		"models/weapons/railgun/tris.md2",
+		"models/weapons/railgun/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"w_railgun",
 		"Railgun",
 		1,
 		"Slugs",
-		IT_WEAPON,
-		WEAP_RAILGUN,
+		ITEM_WEAPON,
 		0,
 		"weapons/railgun/fire.wav"
 	},
@@ -1088,8 +1078,7 @@ g_item_t g_items[] = {
 		"BFG10K",
 		1,
 		"Nukes",
-		IT_WEAPON,
-		WEAP_BFG,
+		ITEM_WEAPON,
 		0,
 		"weapons/bfg/fire.wav weapons/bfg/hit.wav"
 	},
@@ -1113,8 +1102,7 @@ g_item_t g_items[] = {
 		"Shells",
 		10,
 		NULL,
-		IT_AMMO,
-		0,
+		ITEM_AMMO,
 		AMMO_SHELLS,
 		""
 	},
@@ -1134,8 +1122,7 @@ g_item_t g_items[] = {
 		"Bullets",
 		50,
 		NULL,
-		IT_AMMO,
-		0,
+		ITEM_AMMO,
 		AMMO_BULLETS,
 		""
 	},
@@ -1155,8 +1142,7 @@ g_item_t g_items[] = {
 		"Grenades",
 		10,
 		"grenades",
-		IT_AMMO,
-		0,
+		ITEM_AMMO,
 		AMMO_GRENADES,
 		""
 	},
@@ -1176,8 +1162,7 @@ g_item_t g_items[] = {
 		"Rockets",
 		10,
 		NULL,
-		IT_AMMO,
-		0,
+		ITEM_AMMO,
 		AMMO_ROCKETS,
 		""
 	},
@@ -1197,8 +1182,7 @@ g_item_t g_items[] = {
 		"Cells",
 		50,
 		NULL,
-		IT_AMMO,
-		0,
+		ITEM_AMMO,
 		AMMO_CELLS,
 		""
 	},
@@ -1218,8 +1202,7 @@ g_item_t g_items[] = {
 		"Bolts",
 		25,
 		NULL,
-		IT_AMMO,
-		0,
+		ITEM_AMMO,
 		AMMO_BOLTS,
 		""
 	},
@@ -1239,8 +1222,7 @@ g_item_t g_items[] = {
 		"Slugs",
 		10,
 		NULL,
-		IT_AMMO,
-		0,
+		ITEM_AMMO,
 		AMMO_SLUGS,
 		""
 	},
@@ -1260,8 +1242,7 @@ g_item_t g_items[] = {
 		"Nukes",
 		2,
 		NULL,
-		IT_AMMO,
-		0,
+		ITEM_AMMO,
 		AMMO_NUKES,
 		""
 	},
@@ -1276,13 +1257,12 @@ g_item_t g_items[] = {
 		NULL,
 		NULL,
 		"adren/pickup.wav",
-		"models/powerups/adren/tris.md2",
+		"models/powerups/adren/tris.obj",
 		EF_ROTATE | EF_PULSE,
 		"p_adrenaline",
 		"Adrenaline",
 		0,
 		NULL,
-		0,
 		0,
 		0,
 		""
@@ -1303,8 +1283,7 @@ g_item_t g_items[] = {
 		"Small Health",
 		3,
 		NULL,
-		IT_HEALTH,
-		0,
+		ITEM_HEALTH,
 		HEALTH_SMALL,
 		""
 	},
@@ -1324,8 +1303,7 @@ g_item_t g_items[] = {
 		"Medium Health",
 		15,
 		NULL,
-		IT_HEALTH,
-		0,
+		ITEM_HEALTH,
 		HEALTH_MEDIUM,
 		""
 	},
@@ -1345,8 +1323,7 @@ g_item_t g_items[] = {
 		"Large Health",
 		25,
 		NULL,
-		IT_HEALTH,
-		0,
+		ITEM_HEALTH,
 		HEALTH_LARGE,
 		""
 	},
@@ -1360,14 +1337,13 @@ g_item_t g_items[] = {
 		NULL,
 		NULL,
 		"health/mega/pickup.wav",
-		"models/health/mega/tris.md2",
+		"models/health/mega/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"i_health",
 		"Mega Health",
 		75,
 		NULL,
-		IT_HEALTH,
-		0,
+		ITEM_HEALTH,
 		HEALTH_MEGA,
 		""
 	},
@@ -1387,8 +1363,7 @@ g_item_t g_items[] = {
 		"Flag",
 		0,
 		NULL,
-		IT_FLAG,
-		0,
+		ITEM_FLAG,
 		0,
 		"ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},
@@ -1408,8 +1383,7 @@ g_item_t g_items[] = {
 		"Flag",
 		0,
 		NULL,
-		IT_FLAG,
-		0,
+		ITEM_FLAG,
 		0,
 		"ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},
@@ -1429,8 +1403,7 @@ g_item_t g_items[] = {
 		"Quad Damage",
 		60,
 		NULL,
-		IT_POWERUP,
-		0,
+		ITEM_POWERUP,
 		0,
 		"quad/attack.wav quad/expire.wav"
 	},

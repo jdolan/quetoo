@@ -528,7 +528,7 @@ g_team_t *G_TeamForFlag(edict_t *ent){
 	if(!g_level.ctf)
 		return NULL;
 
-	if(!ent->item || !(ent->item->flags & IT_FLAG))
+	if(!ent->item || ent->item->type != ITEM_FLAG)
 		return NULL;
 
 	if(!strcmp(ent->class_name, "item_flag_team1"))
@@ -562,7 +562,7 @@ edict_t *G_FlagForTeam(g_team_t *t){
 
 		ent = &ge.edicts[i++];
 
-		if(!ent->item || !(ent->item->flags & IT_FLAG))
+		if(!ent->item || ent->item->type != ITEM_FLAG)
 			continue;
 
 		// when a carrier is killed, we spawn a new temporary flag
@@ -670,5 +670,22 @@ qboolean G_IsStationary(edict_t *ent){
 		return false;
 
 	return VectorCompare(vec3_origin, ent->velocity);
+}
+
+
+/*
+ * G_SetAnimation
+ *
+ * Assigns the specified animation to the correct member on the specified entity.
+ */
+void G_SetAnimation(edict_t *ent, entity_animation_t anim){
+	byte *dest;
+
+	if(anim < ANIM_LEGS_WALKCR)
+		dest = &ent->s.animation1;
+	else
+		dest = &ent->s.animation2;
+
+	*dest = anim;
 }
 

@@ -153,8 +153,8 @@ static void AddImage(const char *image, qboolean required){
 }
 
 
-#define NUM_MODEL_FORMATS 3
-static char *model_formats[NUM_MODEL_FORMATS] = {"md3", "md2", "obj"};
+#define NUM_MODEL_FORMATS 2
+static char *model_formats[NUM_MODEL_FORMATS] = {"md3", "obj"};
 
 /*
  * AddModel

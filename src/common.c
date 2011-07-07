@@ -256,9 +256,9 @@ void Msg_WriteCoord(size_buf_t *sb, float f){
  * Msg_WritePos
  */
 void Msg_WritePos(size_buf_t *sb, vec3_t pos){
-	Msg_WriteShort(sb, (int)(pos[0] * 8));
-	Msg_WriteShort(sb, (int)(pos[1] * 8));
-	Msg_WriteShort(sb, (int)(pos[2] * 8));
+	Msg_WriteShort(sb, (int)(pos[0] * 8.0));
+	Msg_WriteShort(sb, (int)(pos[1] * 8.0));
+	Msg_WriteShort(sb, (int)(pos[2] * 8.0));
 }
 
 
@@ -266,7 +266,7 @@ void Msg_WritePos(size_buf_t *sb, vec3_t pos){
  * Msg_WriteAngle
  */
 void Msg_WriteAngle(size_buf_t *sb, float f){
-	Msg_WriteByte(sb, (int)(f * 256.0 / 360.0) & 255);
+	Msg_WriteByte(sb, (int)(f * 255.0 / 360.0) & 255);
 }
 
 
@@ -366,9 +366,11 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir){
 	int b;
 
 	b = Msg_ReadByte(sb);
+
 	if(b >= NUM_APPROXIMATE_NORMALS){
 		Com_Error(ERR_DROP, "Msg_ReadDir: out of range.\n");
 	}
+
 	VectorCopy(approximate_normals[b], dir);
 }
 
@@ -401,23 +403,24 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 	if(!VectorCompare(to->angles, from->angles))
 		bits |= U_ANGLES;
 
-	if(to->frame1 != from->frame1 || to->frame2 != from->frame2)
-		bits |= U_FRAMES;
+	if(to->animation1 != from->animation1 ||
+			to->animation2 != from->animation2)
+		bits |= U_ANIMATIONS;
 
 	if(to->event)  // event is not delta compressed, just 0 compressed
-		bits |= U_EVENTS;
+		bits |= U_EVENT;
 
 	if(to->effects != from->effects)
 		bits |= U_EFFECTS;
 
-	if(to->model_index1 != from->model_index1 ||
-			to->model_index2 != from->model_index2 ||
-			to->model_index3 != from->model_index3 ||
-			to->model_index4 != from->model_index4)
+	if(to->model1 != from->model1 ||
+			to->model2 != from->model2 ||
+			to->model3 != from->model3 ||
+			to->model4 != from->model4)
 		bits |= U_MODELS;
 
-	if(to->skin_num != from->skin_num)
-		bits |= U_SKIN;
+	if(to->client != from->client)
+		bits |= U_CLIENT;
 
 	if(to->sound != from->sound)
 		bits |= U_SOUND;
@@ -442,26 +445,26 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 	if(bits & U_ANGLES)
 		Msg_WriteAngles(msg, to->angles);
 
-	if(bits & U_FRAMES){
-		Msg_WriteByte(msg, to->frame1);
-		Msg_WriteByte(msg, to->frame2);
+	if(bits & U_ANIMATIONS){
+		Msg_WriteByte(msg, to->animation1);
+		Msg_WriteByte(msg, to->animation2);
 	}
 
-	if(bits & U_EVENTS)
+	if(bits & U_EVENT)
 		Msg_WriteByte(msg, to->event);
 
 	if(bits & U_EFFECTS)
 		Msg_WriteShort(msg, to->effects);
 
 	if(bits & U_MODELS){
-		Msg_WriteByte(msg, to->model_index1);
-		Msg_WriteByte(msg, to->model_index2);
-		Msg_WriteByte(msg, to->model_index3);
-		Msg_WriteByte(msg, to->model_index4);
+		Msg_WriteByte(msg, to->model1);
+		Msg_WriteByte(msg, to->model2);
+		Msg_WriteByte(msg, to->model3);
+		Msg_WriteByte(msg, to->model4);
 	}
 
-	if(bits & U_SKIN)
-		Msg_WriteShort(msg, to->skin_num);
+	if(bits & U_CLIENT)
+		Msg_WriteByte(msg, to->client);
 
 	if(bits & U_SOUND)
 		Msg_WriteByte(msg, to->sound);
@@ -494,12 +497,12 @@ void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to,
 	if(bits & U_ANGLES)
 		Msg_ReadAngles(msg, to->angles);
 
-	if(bits & U_FRAMES){
-		to->frame1 = Msg_ReadByte(msg);
-		to->frame2 = Msg_ReadByte(msg);
+	if(bits & U_ANIMATIONS){
+		to->animation1 = Msg_ReadByte(msg);
+		to->animation2 = Msg_ReadByte(msg);
 	}
 
-	if(bits & U_EVENTS)
+	if(bits & U_EVENT)
 		to->event = Msg_ReadByte(msg);
 	else
 		to->event = 0;
@@ -508,14 +511,14 @@ void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to,
 		to->effects = Msg_ReadShort(msg);
 
 	if(bits & U_MODELS){
-		to->model_index1 = Msg_ReadByte(msg);
-		to->model_index2 = Msg_ReadByte(msg);
-		to->model_index3 = Msg_ReadByte(msg);
-		to->model_index4 = Msg_ReadByte(msg);
+		to->model1 = Msg_ReadByte(msg);
+		to->model2 = Msg_ReadByte(msg);
+		to->model3 = Msg_ReadByte(msg);
+		to->model4 = Msg_ReadByte(msg);
 	}
 
-	if(bits & U_SKIN)
-		to->skin_num = Msg_ReadShort(msg);
+	if(bits & U_CLIENT)
+		to->client = Msg_ReadByte(msg);
 
 	if(bits & U_SOUND)
 			to->sound = Msg_ReadByte(msg);
@@ -733,8 +736,9 @@ void Msg_ReadDeltaUsercmd(size_buf_t *sb, user_cmd_t *from, user_cmd_t *move){
 void Msg_ReadData(size_buf_t *sb, void *data, size_t len){
 	int i;
 
-	for(i = 0; i < len; i++)
+	for(i = 0; i < len; i++){
 		((byte *)data)[i] = Msg_ReadByte(sb);
+	}
 }
 
 

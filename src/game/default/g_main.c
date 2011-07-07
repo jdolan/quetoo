@@ -88,8 +88,8 @@ void G_ResetTeams(void){
 	strcpy(evil.name, "Evil");
 	gi.ConfigString(CS_TEAM_EVIL, va("%15s", evil.name));
 
-	strcpy(good.skin, "ogro/freedom");
-	strcpy(evil.skin, "ichabod/ichabod");
+	strcpy(good.skin, "qforcer/blue");
+	strcpy(evil.skin, "qforcer/red");
 }
 
 
@@ -137,7 +137,7 @@ static void G_ResetItems(void){
 			continue;
 		}
 
-		if(ent->item->flags & IT_FLAG){  // flags only appear for ctf
+		if(ent->item->type == ITEM_FLAG){  // flags only appear for ctf
 
 			if(g_level.ctf){
 				ent->sv_flags &= ~SVF_NOCLIENT;

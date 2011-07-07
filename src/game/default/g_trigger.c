@@ -253,10 +253,10 @@ static void trigger_hurt_use(edict_t *self, edict_t *other, edict_t *activator){
 static void trigger_hurt_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	int dflags;
 
-	if(!other->takedamage){  // deal with items that land on us
+	if(!other->take_damage){  // deal with items that land on us
 
 		if(other->item){
-			if(other->item->flags & IT_FLAG)
+			if(other->item->type == ITEM_FLAG)
 				G_ResetFlag(other);
 			else
 				G_FreeEdict(other);

@@ -893,7 +893,7 @@ void Sv_Frame(int msec){
 	frame_millis = 1000 / svs.frame_rate;
 
 	// keep the game module's time in sync with reality
-	if(!timedemo->value && svs.real_time < sv.time){
+	if(!time_demo->value && svs.real_time < sv.time){
 
 		// if the server has fallen far behind the game, try to catch up
 		if(sv.time - svs.real_time > frame_millis){

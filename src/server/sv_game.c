@@ -89,7 +89,7 @@ static void Sv_SetModel(edict_t *ent, const char *name){
 	i = Sv_ModelIndex(name);
 
 	//	ent->model = name;
-	ent->s.model_index1 = i;
+	ent->s.model1 = i;
 
 	// if it is an inline model, get the size information for it
 	if(name[0] == '*'){

@@ -44,8 +44,8 @@ static edict_t *G_TestEntityPosition(edict_t *ent){
 	trace_t trace;
 	int mask;
 
-	if(ent->clipmask)
-		mask = ent->clipmask;
+	if(ent->clip_mask)
+		mask = ent->clip_mask;
 	else
 		mask = MASK_SOLID;
 	trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, ent, mask);
@@ -184,8 +184,8 @@ trace_t G_PushEntity(edict_t *ent, vec3_t push){
 	VectorAdd(start, push, end);
 
 retry:
-	if(ent->clipmask)
-		mask = ent->clipmask;
+	if(ent->clip_mask)
+		mask = ent->clip_mask;
 	else
 		mask = MASK_SOLID;
 
@@ -398,7 +398,7 @@ static void G_Physics_Pusher(edict_t *ent){
 	// if the move is blocked, all moved objects will be backed out
 	// retry:
 	pushed_p = pushed;
-	for(part = ent; part; part = part->teamchain){
+	for(part = ent; part; part = part->team_chain){
 		if(part->velocity[0] || part->velocity[1] || part->velocity[2] ||
 				part->avelocity[0] || part->avelocity[1] || part->avelocity[2]
 		  ){  // object is moving
@@ -415,7 +415,7 @@ static void G_Physics_Pusher(edict_t *ent){
 
 	if(part){
 		// the move failed, bump all next_think times and back out moves
-		for(mv = ent; mv; mv = mv->teamchain){
+		for(mv = ent; mv; mv = mv->team_chain){
 			if(mv->next_think > 0)
 				mv->next_think += gi.server_frame;
 		}
@@ -427,7 +427,7 @@ static void G_Physics_Pusher(edict_t *ent){
 
 	} else {
 		// the move succeeded, so call all think functions
-		for(part = ent; part; part = part->teamchain){
+		for(part = ent; part; part = part->team_chain){
 			G_RunThink(part);
 		}
 	}
@@ -562,7 +562,7 @@ static void G_Physics_Toss(edict_t *ent){
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
 	// move teamslaves
-	for(slave = ent->teamchain; slave; slave = slave->teamchain){
+	for(slave = ent->team_chain; slave; slave = slave->team_chain){
 		VectorCopy(ent->s.origin, slave->s.origin);
 		gi.LinkEntity(slave);
 	}

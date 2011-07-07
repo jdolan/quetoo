@@ -14,6 +14,7 @@ noinst_LTLIBRARIES = \
 if BUILD_CLIENT
 
 libclient_la_SOURCES = \
+	cl_client.c \
 	cl_cmd.c \
 	cl_console.c \
 	cl_emit.c \

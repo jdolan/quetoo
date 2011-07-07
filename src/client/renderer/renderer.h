@@ -99,8 +99,7 @@ typedef struct r_entity_s {
 
 	vec3_t scale;  // for mesh models
 
-	int skin_num;  // for masking players and vweaps
-	struct r_image_s *skin;  // NULL for inline skin
+	struct r_image_s *skin;  // NULL for default skin
 
 	int effects;  // e.g. EF_ROCKET, EF_WEAPON, ..
 	vec3_t shell;  // shell color

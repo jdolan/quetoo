@@ -75,7 +75,7 @@ struct edict_s {
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
-	int clipmask;
+	int clip_mask;
 	edict_t *owner;
 
 	// the game dll can add anything it wants after

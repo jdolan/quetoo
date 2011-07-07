@@ -72,6 +72,7 @@
 #define TAG_GAME	765  // clear when unloading the dll
 #define TAG_LEVEL	766  // clear when loading a new level
 
+// ammo types
 typedef enum {
 	AMMO_SHELLS,
 	AMMO_BULLETS,
@@ -84,18 +85,22 @@ typedef enum {
 } g_ammo_t;
 
 // armor types
-#define ARMOR_NONE			0
-#define ARMOR_JACKET		1
-#define ARMOR_COMBAT		2
-#define ARMOR_BODY			3
-#define ARMOR_SHARD			4
+typedef enum {
+	ARMOR_NONE,
+	ARMOR_JACKET,
+	ARMOR_COMBAT,
+	ARMOR_BODY,
+	ARMOR_SHARD
+} g_armor_t;
 
 // health types
-#define HEALTH_NONE			0
-#define HEALTH_SMALL		1
-#define HEALTH_MEDIUM		2
-#define HEALTH_LARGE		3
-#define HEALTH_MEGA			4
+typedef enum {
+	HEALTH_NONE,
+	HEALTH_SMALL,
+	HEALTH_MEDIUM,
+	HEALTH_LARGE,
+	HEALTH_MEGA
+} g_health_t;
 
 // edict->move_type values
 typedef enum {
@@ -114,23 +119,14 @@ typedef enum {
 
 
 // gitem_t->flags
-#define IT_WEAPON		1  // use makes active weapon
-#define IT_AMMO			2
-#define IT_ARMOR		4
-#define IT_FLAG			8
-#define IT_HEALTH		16
-#define IT_POWERUP		32
-
-// g_item_t->weapon_model for weapons indicates model index
-#define WEAP_SHOTGUN			0
-#define WEAP_SUPERSHOTGUN		1
-#define WEAP_MACHINEGUN			2
-#define WEAP_GRENADELAUNCHER	3
-#define WEAP_ROCKETLAUNCHER		4
-#define WEAP_HYPERBLASTER		5
-#define WEAP_LIGHTNING			6
-#define WEAP_RAILGUN			7
-#define WEAP_BFG				8
+typedef enum {
+	ITEM_WEAPON,
+	ITEM_AMMO,
+	ITEM_ARMOR,
+	ITEM_FLAG,
+	ITEM_HEALTH,
+	ITEM_POWERUP
+} g_item_type_t;
 
 typedef struct g_item_s {
 	char *class_name;  // spawning name
@@ -148,10 +144,8 @@ typedef struct g_item_s {
 
 	int quantity;  // for ammo how much, for weapons how much is used per shot
 	char *ammo;  // for weapons
-	int flags;  // IT_* flags
-
-	int weapon_model;  // weapon model index (for visual weapons)
-	int tag;
+	g_item_type_t type;  // g_item_type_t, see above
+	int tag;  // type-specific flags
 
 	char *precaches;  // string of all models, sounds, and images this item will use
 } g_item_t;
@@ -410,8 +404,8 @@ typedef struct team_s {
 	char skin[32];
 	int score;
 	int captures;
-	float nametime;  // prevent change spamming
-	float skintime;
+	float name_time;  // prevent change spamming
+	float skin_time;
 } g_team_t;
 
 #define TEAM_CHANGE_TIME 5.0
@@ -468,6 +462,7 @@ int G_EffectForTeam(g_team_t *t);
 g_team_t *G_SmallestTeam(void);
 g_client_t *G_ClientByName(char *name);
 qboolean G_IsStationary(edict_t *ent);
+void G_SetAnimation(edict_t *ent, entity_animation_t anim);
 edict_t *G_Spawn(void);
 void G_InitEdict(edict_t *e);
 void G_FreeEdict(edict_t *e);
@@ -622,15 +617,6 @@ void G_target_explosion(edict_t *ent);
 void G_target_splash(edict_t *ent);
 void G_target_string(edict_t *ent);
 
-// client_t->anim_priority
-typedef enum {
-	ANIM_IDLE,
-	ANIM_WAVE,
-	ANIM_JUMP,
-	ANIM_PAIN,
-	ANIM_ATTACK
-} g_client_anim_t;
-
 #define MAX_NET_NAME 64
 
 // client data that persists through respawns
@@ -714,15 +700,8 @@ struct g_client_s {
 	float drown_time;
 	float sizzle_time;
 	int old_water_level;
-	float footstep_time;
 
-	// animation vars
-	g_client_anim_t anim;
-	int anim_end;
-	int anim_next;
-	qboolean anim_duck;
-	qboolean anim_run;
-	float anim_time;
+	float footstep_time;  // TODO: move to client
 
 	float pickup_msg_time;  // display msg until time > this
 
@@ -756,7 +735,7 @@ struct edict_s {
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
-	int clipmask;
+	int clip_mask;
 	edict_t *owner;
 
 	// DO NOT MODIFY ANYTHING ABOVE THIS, THE SERVER
@@ -817,7 +796,7 @@ struct edict_s {
 	qboolean dead;
 
 	int view_height;  // height above origin where eyesight is determined
-	qboolean takedamage;
+	qboolean take_damage;
 	int dmg;
 	int knockback;
 	float dmg_radius;
@@ -829,8 +808,8 @@ struct edict_s {
 	edict_t *activator;
 	edict_t *ground_entity;
 	int ground_entity_link_count;
-	edict_t *teamchain;
-	edict_t *teammaster;
+	edict_t *team_chain;
+	edict_t *team_master;
 	edict_t *lightning;
 
 	int noise_index;

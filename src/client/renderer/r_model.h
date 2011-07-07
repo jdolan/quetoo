@@ -201,6 +201,13 @@ typedef struct {
 } r_md3_mesh_t;
 
 typedef struct {
+	int first_frame;
+	int num_frames;
+	int looped_frames;
+	int hz;
+} r_md3_animation_t;
+
+typedef struct {
 	int id;
 	int version;
 
@@ -216,6 +223,9 @@ typedef struct {
 
 	int num_meshes;
 	r_md3_mesh_t *meshes;
+
+	int num_animations;
+	r_md3_animation_t *animations;
 } r_md3_t;
 
 
@@ -251,7 +261,7 @@ typedef struct {
 
 // shared structure for all model types
 typedef enum {
-	mod_bad, mod_bsp, mod_bsp_submodel, mod_md2, mod_md3, mod_obj
+	mod_bad, mod_bsp, mod_bsp_submodel, mod_md3, mod_obj
 } r_model_type_t;
 
 // shared mesh configuration
@@ -368,7 +378,6 @@ void R_HunkStats_f(void);
 void R_LoadBspModel(r_model_t *mod, void *buffer);
 
 // r_mesh_model.c
-void R_LoadMd2Model(r_model_t *mod, void *buffer);
 void R_LoadMd3Model(r_model_t *mod, void *buffer);
 void R_LoadObjModel(r_model_t *mod, void *buffer);
 

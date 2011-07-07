@@ -256,13 +256,13 @@ static void Cl_AdjustDemoPlayback(float delta){
 		return;
 	}
 
-	f = timescale->value + delta;
+	f = time_scale->value + delta;
 
 	if(f >= 0.25 && f <= 4.0){
-		Cvar_Set("timescale", va("%f", f));
+		Cvar_Set("time_scale", va("%f", f));
 	}
 
-	Com_Print("Demo playback rate %d%%\n", (int)(timescale->value * 100));
+	Com_Print("Demo playback rate %d%%\n", (int)(time_scale->value * 100));
 }
 
 
@@ -603,14 +603,14 @@ void Cl_Disconnect(void){
 		return;
 	}
 
-	if(timedemo->value){  // summarize timedemo results
+	if(time_demo->value){  // summarize time_demo results
 
-		const float s = (cls.real_time - cl.timedemo_start) / 1000.0;
+		const float s = (cls.real_time - cl.time_demo_start) / 1000.0;
 
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n",
-				cl.timedemo_frames, s, cl.timedemo_frames / s);
+				cl.time_demo_frames, s, cl.time_demo_frames / s);
 
-		cl.timedemo_frames = cl.timedemo_start = 0;
+		cl.time_demo_frames = cl.time_demo_start = 0;
 	}
 
 	Cl_SendDisconnect();  // tell the server to disconnect
@@ -1026,7 +1026,7 @@ static void Cl_InitLocal(void){
 	name = Cvar_Get("name", Cl_GetUserName(), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
 	rate = Cvar_Get("rate", va("%d", CLIENT_RATE), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	skin = Cvar_Get("skin", "ichabod/ichabod", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	skin = Cvar_Get("skin", "qforcer/enforcer", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	recording = Cvar_Get("recording", "0", CVAR_USER_INFO | CVAR_NOSET, NULL);
 
 	// register our commands
@@ -1138,24 +1138,24 @@ void Cl_Frame(int msec){
 		cl_max_pps->modified = false;
 	}
 
-	if(timedemo->value){  // accumulate timed demo statistics
+	if(time_demo->value){  // accumulate timed demo statistics
 
-		if(!cl.timedemo_start)
-			cl.timedemo_start = cls.real_time;
+		if(!cl.time_demo_start)
+			cl.time_demo_start = cls.real_time;
 
-		cl.timedemo_frames++;
+		cl.time_demo_frames++;
 	}
 	else {  // check frame rate cap conditions
 
 		if(cl_max_fps->value > 0.0){  // cap render frame rate
-			ms = 1000.0 * timescale->value / cl_max_fps->value;
+			ms = 1000.0 * time_scale->value / cl_max_fps->value;
 
 			if(cls.render_delta < ms)
 				render_frame = false;
 		}
 
 		if(cl_max_pps->value > 0.0){  // cap net frame rate
-			ms = 1000.0 * timescale->value / cl_max_pps->value;
+			ms = 1000.0 * time_scale->value / cl_max_pps->value;
 
 			if(cls.packet_delta < ms)
 				packet_frame = false;

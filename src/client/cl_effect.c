@@ -1225,22 +1225,22 @@ void Cl_EntityEvent(entity_state_t *ent){
 			S_PlaySample(NULL, ent->number, cl_sample_teleport, ATTN_IDLE);
 			Cl_TeleporterEffect(ent->origin);
 			break;
-		case EV_JUMP:
+		case EV_CLIENT_JUMP:
 			if(rand() & 1)
 				S_PlaySample(NULL, ent->number, S_LoadSample("*jump_1"), ATTN_NORM);
 			else
 				S_PlaySample(NULL, ent->number, S_LoadSample("*jump_2"), ATTN_NORM);
 			break;
-		case EV_FOOTSTEP:
+		case EV_CLIENT_FOOTSTEP:
 			S_PlaySample(NULL, ent->number, cl_sample_footsteps[rand() & 3], ATTN_NORM);
 			break;
-		case EV_FALL_SHORT:
+		case EV_CLIENT_LAND:
 			S_PlaySample(NULL, ent->number, S_LoadSample("*land_1"), ATTN_NORM);
 			break;
-		case EV_FALL:
+		case EV_CLIENT_FALL:
 			S_PlaySample(NULL, ent->number, S_LoadSample("*fall_2"), ATTN_NORM);
 			break;
-		case EV_FALL_FAR:
+		case EV_CLIENT_FALL_FAR:
 			S_PlaySample(NULL, ent->number, S_LoadSample("*fall_1"), ATTN_NORM);
 			break;
 		default:

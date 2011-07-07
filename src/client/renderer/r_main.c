@@ -546,29 +546,23 @@ void R_LoadMedia(void){
 	R_BeginLoading(cl.config_strings[CS_MODELS + 1], atoi(cl.config_strings[CS_BSP_SIZE]));
 	Cl_LoadProgress(50);
 
-	cl.num_weapon_models = j = 0;
+	j = 0;
 
 	// models, including bsp submodels and client weapon models
 	for(i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++){
+
 		memset(name, 0, sizeof(name));
+
 		strncpy(name, cl.config_strings[CS_MODELS + i], sizeof(name) - 1);
 
-		if(name[0] == '#'){  // hack to retrieve client weapon models from server
-			if(cl.num_weapon_models < MAX_WEAPON_MODELS){
-				strncpy(cl.weapon_models[cl.num_weapon_models], cl.config_strings[CS_MODELS + i] + 1,
-						sizeof(cl.weapon_models[cl.num_weapon_models]) - 1);
-				cl.num_weapon_models++;
-			}
-			continue;
-		}
-
 		cl.model_draw[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
+
 		if(name[0] == '*')
 			cl.model_clip[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
 		else
 			cl.model_clip[i] = NULL;
 
-		if(++j <= 20)  // nudge loading progress
+		if(++j <= 20)  // bump loading progress
 			Cl_LoadProgress(50 + j);
 	}
 	Cl_LoadProgress(70);
@@ -580,8 +574,6 @@ void R_LoadMedia(void){
 		cl.image_precache[i] = R_LoadPic(cl.config_strings[CS_IMAGES + i]);
 
 	Cl_LoadProgress(75);
-
-	Cl_LoadClientInfo(&cl.base_client_info, "newbie\\ichabod/ichabod");
 
 	j = 0;
 
