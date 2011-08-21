@@ -469,19 +469,19 @@ typedef enum {
 	THREAD_IDLE,
 	THREAD_WAIT,
 	THREAD_RUN,
-} r_threadstate_t;
+} r_thread_state_t;
 
 typedef struct r_thread_s {
 	char name[32];
 	SDL_Thread *thread;
-	r_threadstate_t state;
+	r_thread_state_t state;
 	int wait_count;
 } r_thread_t;
 
-extern r_thread_t r_threadpool[2];
+extern r_thread_t r_thread_pool[2];
 
-#define r_bsp_thread r_threadpool[0]
-#define r_capture_thread r_threadpool[1]
+#define r_bsp_thread r_thread_pool[0]
+#define r_capture_thread r_thread_pool[1]
 
 void R_WaitForThread(r_thread_t *t);
 void R_UpdateThreads(int mask);

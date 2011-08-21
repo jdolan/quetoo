@@ -24,7 +24,7 @@
 
 #include "client.h"
 
-r_thread_t r_threadpool[2];
+r_thread_t r_thread_pool[2];
 
 
 /*
@@ -181,5 +181,5 @@ void R_ShutdownThreads(void){
  */
 void R_InitThreads(void){
 
-	memset(&r_threadpool, 0, sizeof(r_threadpool));
+	memset(&r_thread_pool, 0, sizeof(r_thread_pool));
 }
