@@ -156,7 +156,7 @@ static void R_SetMeshState_default(const r_entity_t *e){
 			R_SetMeshColor_default(e);
 		}
 
-		// enable hardware light sources, transform static lighting position
+		// enable hardware light sources (dynamic and static)
 		if(r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)){
 
 			R_EnableLightsByRadius(e->origin);
@@ -248,13 +248,13 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e){
 
 
 /*
- * R_DrawMeshModelShell_default
+ * R_DrawMeshShell_default
  *
  * Draws an animated, colored shell for the specified entity.  Rather than
  * re-lerping or re-scaling the entity, the currently bound vertex arrays
  * are simply re-drawn using a small depth offset.
  */
-static void R_DrawMeshModelShell_default(const r_entity_t *e){
+static void R_DrawMeshShell_default(const r_entity_t *e){
 
 	if(VectorCompare(e->shell, vec3_origin))
 		return;
@@ -428,15 +428,15 @@ void R_DrawMeshModel_default(r_entity_t *e){
 
 	R_SetMeshState_default(e);
 
-	if(e->frame != e->old_frame){  // interpolate frames
+	if(e->model->num_frames > 1){  // interpolate frames
 		R_InterpolateMeshModel_default(e);
 	}
 
-	if(!(e->effects & EF_NO_DRAW)){  // draw the mesh
+	if(!(e->effects & EF_NO_DRAW)){  // draw the model
 
 		glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
-		R_DrawMeshModelShell_default(e);  // draw any shell effects
+		R_DrawMeshShell_default(e);  // draw any shell effects
 	}
 
 	R_DrawMeshShadow_default(e);  // lastly draw the shadow
