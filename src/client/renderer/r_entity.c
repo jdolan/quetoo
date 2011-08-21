@@ -21,13 +21,16 @@
 
 #include "renderer.h"
 
-static r_entity_t *r_bsp_entities;
+// entities are chained together by type to reduce state changes
+typedef struct r_entities_s {
+	r_entity_t *bsp;
+	r_entity_t *mesh;
+	r_entity_t *mesh_alpha_test;
+	r_entity_t *mesh_blend;
+	r_entity_t *null;
+} r_entities_t;
 
-static r_entity_t *r_opaque_mesh_entities;
-static r_entity_t *r_alpha_test_mesh_entities;
-static r_entity_t *r_blend_mesh_entities;
-
-static r_entity_t *r_null_entities;
+r_entities_t r_entities;
 
 
 /*
@@ -38,7 +41,7 @@ static r_entity_t *r_null_entities;
  * shards, ammo boxes, trees, etc..).
  */
 void R_AddEntity(const r_entity_t *ent){
-	r_entity_t *e, *in, **chain;
+	r_entity_t *e, *in, **ents;
 
 	if(r_view.num_entities >= MAX_ENTITIES){
 		Com_Warn("R_AddEntity: MAX_ENTITIES reached.\n");
@@ -48,9 +51,9 @@ void R_AddEntity(const r_entity_t *ent){
 	e = &r_view.entities[r_view.num_entities++];
 	*e = *ent;  // copy it in
 
-	if(!e->model){  // null model chain
-		e->next = r_null_entities;
-		r_null_entities = e;
+	if(!e->model){  // null model list
+		e->next = r_entities.null;
+		r_entities.null = e;
 		return;
 	}
 
@@ -62,7 +65,7 @@ void R_AddEntity(const r_entity_t *ent){
 			return;
 		}
 
-		chain = &r_bsp_entities;
+		ents = &r_entities.bsp;
 	}
 	else {  // mod_mesh
 		R_ApplyMeshModelConfig(e);  // apply mesh config
@@ -73,14 +76,14 @@ void R_AddEntity(const r_entity_t *ent){
 		}
 
 		if(e->effects & EF_ALPHATEST)
-			chain = &r_alpha_test_mesh_entities;
+			ents = &r_entities.mesh_alpha_test;
 		else if(e->effects & EF_BLEND)
-			chain = &r_blend_mesh_entities;
+			ents = &r_entities.mesh_blend;
 		else
-			chain = &r_opaque_mesh_entities;
+			ents = &r_entities.mesh;
 	}
 
-	in = *chain;
+	in = *ents;
 
 	// insert into the sorted chain
 	while(in){
@@ -95,8 +98,8 @@ void R_AddEntity(const r_entity_t *ent){
 	}
 
 	// or simply push to the head of the chain
-	e->next = *chain;
-	*chain = e;
+	e->next = *ents;
+	*ents = e;
 }
 
 
@@ -148,10 +151,10 @@ void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out){
 /*
  * R_DrawBspEntities
  */
-static void R_DrawBspEntities(const r_entity_t *ents){
+static void R_DrawBspEntities(){
 	const r_entity_t *e;
 
-	e = ents;
+	e = r_entities.bsp;
 
 	while(e){
 		R_DrawBspModel(e);
@@ -178,14 +181,14 @@ static void R_DrawMeshEntities(r_entity_t *ents){
 /*
  * R_DrawOpaqueMeshEntities
  */
-static void R_DrawOpaqueMeshEntities(r_entity_t *ents){
+static void R_DrawOpaqueMeshEntities(){
 
-	if(!ents)
+	if(!r_entities.mesh)
 		return;
 
 	R_EnableLighting(r_state.mesh_program, true);
 
-	R_DrawMeshEntities(ents);
+	R_DrawMeshEntities(r_entities.mesh);
 
 	R_EnableLighting(NULL, false);
 }
@@ -194,16 +197,16 @@ static void R_DrawOpaqueMeshEntities(r_entity_t *ents){
 /*
  * R_DrawAlphaTestMeshEntities
  */
-static void R_DrawAlphaTestMeshEntities(r_entity_t *ents){
+static void R_DrawAlphaTestMeshEntities(){
 
-	if(!ents)
+	if(!r_entities.mesh_alpha_test)
 		return;
 
 	R_EnableAlphaTest(true);
 
 	R_EnableLighting(r_state.mesh_program, true);
 
-	R_DrawMeshEntities(ents);
+	R_DrawMeshEntities(r_entities.mesh_alpha_test);
 
 	R_EnableLighting(NULL, false);
 
@@ -214,14 +217,14 @@ static void R_DrawAlphaTestMeshEntities(r_entity_t *ents){
 /*
  * R_DrawBlendMeshEntities
  */
-static void R_DrawBlendMeshEntities(r_entity_t *ents){
+static void R_DrawBlendMeshEntities(){
 
-	if(!ents)
+	if(!r_entities.mesh_blend)
 		return;
 
 	R_EnableBlend(true);
 
-	R_DrawMeshEntities(ents);
+	R_DrawMeshEntities(r_entities.mesh_blend);
 
 	R_EnableBlend(false);
 }
@@ -230,7 +233,7 @@ static void R_DrawBlendMeshEntities(r_entity_t *ents){
 /*
  * R_DrawNullModel
  *
- * Draws a placeholder "white diamond" prism for the specified entity.
+ * Draws a place-holder "white diamond" prism for the specified entity.
  */
 static void R_DrawNullModel(const r_entity_t *e){
 	int i;
@@ -260,13 +263,13 @@ static void R_DrawNullModel(const r_entity_t *e){
 /*
  * R_DrawNullEntities
  */
-static void R_DrawNullEntities(const r_entity_t *ents){
+static void R_DrawNullEntities(){
 	const r_entity_t *e;
 
-	if(!ents)
+	if(!r_entities.null)
 		return;
 
-	e = ents;
+	e = r_entities.null;
 
 	while(e){
 		R_DrawNullModel(e);
@@ -288,11 +291,11 @@ void R_DrawEntities(void){
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	R_DrawOpaqueMeshEntities(r_opaque_mesh_entities);
+	R_DrawOpaqueMeshEntities();
 
-	R_DrawAlphaTestMeshEntities(r_alpha_test_mesh_entities);
+	R_DrawAlphaTestMeshEntities();
 
-	R_DrawBlendMeshEntities(r_blend_mesh_entities);
+	R_DrawBlendMeshEntities();
 
 	if(r_draw_wireframe->value){
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -301,11 +304,10 @@ void R_DrawEntities(void){
 
 	glColor4ubv(color_white);
 
-	R_DrawBspEntities(r_bsp_entities);
+	R_DrawBspEntities();
 
-	R_DrawNullEntities(r_null_entities);
+	R_DrawNullEntities();
 
-	// clear chains for next frame
-	r_bsp_entities = r_opaque_mesh_entities = r_alpha_test_mesh_entities =
-		r_blend_mesh_entities = r_null_entities = NULL;
+	// clear draw lists for next frame
+	memset(&r_entities, 0, sizeof(r_entities));
 }
