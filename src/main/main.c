@@ -334,4 +334,6 @@ int main(int argc, char **argv){
 
 		oldtime = quake2world.time;
 	}
+
+	return 0;
 }
