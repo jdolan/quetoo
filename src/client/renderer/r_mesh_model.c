@@ -311,7 +311,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 
 		intag = (d_md3_tag_t *)((byte *)inmodel + inmodel->ofs_tags);
 		outmodel->tags = outtag = (d_md3_tag_t *)R_HunkAlloc(
-				outmodel->num_tags * sizeof(d_md3_tag_t));
+				outmodel->num_tags * outmodel->num_frames * sizeof(d_md3_tag_t));
 
 		for(i = 0; i < outmodel->num_frames; i++){
 			for(l = 0; l < outmodel->num_tags; l++, intag++, outtag++){

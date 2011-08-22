@@ -87,7 +87,7 @@ typedef struct r_lighting_s {
 
 #define LIGHTING_MAX_SHADOW_DISTANCE 128.0
 
-#define MAX_ENTITIES		256
+#define MAX_ENTITIES		512
 typedef struct r_entity_s {
 	vec3_t origin;
 	vec3_t angles;
@@ -106,7 +106,7 @@ typedef struct r_entity_s {
 
 	r_lighting_t *lighting;  // static lighting information
 
-	struct r_entity_s *next;  // for chaining
+	struct r_entity_s *next;  // for draw lists
 } r_entity_t;
 
 typedef struct r_particle_s {
@@ -436,6 +436,7 @@ void R_LoadMaterials(const char *map);
 // r_mesh.c
 extern vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3];
 extern vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];
+void R_ApplyMeshModelTag(r_entity_t *parent, r_entity_t *e, const char *name);
 void R_ApplyMeshModelConfig(r_entity_t *e);
 qboolean R_CullMeshModel(const r_entity_t *e);
 void R_DrawMeshModel_default(r_entity_t *e);

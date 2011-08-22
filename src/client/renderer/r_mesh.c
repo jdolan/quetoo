@@ -26,6 +26,81 @@ vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];  // same for normal vectors
 
 
 /*
+ * R_GetMeshModelTag
+ *
+ * Returns the desired tag structure, or NULL.
+ */
+static const d_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const char *name){
+
+	if(frame > mod->num_frames){
+		Com_Warn("R_GetMeshModelTag: %s: Invalid frame: %d\n", mod->name, frame);
+		return NULL;
+	}
+
+	const r_md3_t *md3 = (r_md3_t *)mod->extra_data;
+	const d_md3_tag_t *tag = &md3->tags[frame * md3->num_tags];
+	int i;
+
+	for(i = 0; i < md3->num_tags; i++, tag++){
+		if(!strcmp(name, tag->name)){
+			return tag;
+		}
+	}
+
+	Com_Warn("R_GetMeshModelTag: %s: Tag not found: %s\n", mod->name, name);
+	return NULL;
+
+}
+
+
+/*
+ * R_ApplyMeshModelTag
+ *
+ * Applies transformation and rotation for the specified linked entity.
+ */
+void R_ApplyMeshModelTag(r_entity_t *parent, r_entity_t *e, const char *name){
+
+	if(!parent || !parent->model || parent->model->type != mod_md3){
+		Com_Warn("R_ApplyMeshModelTag: Invalid parent entity\n");
+		return;
+	}
+
+	// interpolate the tag over the frames of the parent entity
+
+	const d_md3_tag_t *start = R_GetMeshModelTag(parent->model, parent->old_frame, name);
+	const d_md3_tag_t *end = R_GetMeshModelTag(parent->model, parent->frame, name);
+
+	if(!start || !end){
+		return;
+	}
+
+	const d_md3_orientation_t *sor = &start->orient, *eor = &end->orient;
+	d_md3_orientation_t or;
+	vec3_t angles;
+	int i;
+
+	memset(&or, 0, sizeof(or));
+
+	for(i = 0; i < 3; i++){
+		or.origin[i]  = sor->origin[i]  * parent->back_lerp + eor->origin[i]  * parent->lerp;
+		or.axis[0][i] = sor->axis[0][i] * parent->back_lerp + eor->axis[0][i] * parent->lerp;
+		//or->axis[1][i] = sor->axis[1][i] * parent->back_lerp + eor->axis[1][i] * parent->lerp;
+		//or->axis[2][i] = sor->axis[2][i] * parent->back_lerp + eor->axis[2][i] * parent->lerp;
+	}
+
+	VectorNormalize(or.axis[0]);
+	//VectorNormalize(or.axis[1]);
+	//VectorNormalize(or.axis[2]);
+
+	// apply it
+
+	VectorAdd(parent->origin, or.origin, e->origin);
+
+	VectorAngles(or.axis[0], angles);
+	VectorAdd(parent->angles, angles, e->angles);
+}
+
+/*
  * R_ApplyMeshModelConfig
  *
  * Applies any client-side transformations specified by the model's world or

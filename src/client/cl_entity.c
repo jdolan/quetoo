@@ -355,12 +355,12 @@ static void Cl_UpdateLighting(cl_entity_t *e, r_entity_t *ent){
 
 
 /*
- * Cl_AddLinkedClientEntity
+ * Cl_AddLinkedEntity
  *
- * Adds a linked model (weapon, CTF flag, etc..) to the renderer.
+ * Adds a linked static model (weapon, CTF flag, etc..) to the renderer.
  */
-static void Cl_AddLinkedClientEntity(r_entity_t *upper, const char *tag, int model){
-	r_entity_t ent = *upper;
+static void Cl_AddLinkedEntity(r_entity_t *parent, int model, const char *tag_name){
+	r_entity_t ent = *parent;
 
 	ent.model = cl.model_draw[model];
 	ent.skin = NULL;
@@ -370,7 +370,10 @@ static void Cl_AddLinkedClientEntity(r_entity_t *upper, const char *tag, int mod
 	ent.lerp = 1.0;
 	ent.back_lerp = 0.0;
 
-	// TODO: Tags.
+	R_ApplyMeshModelTag(parent, &ent, tag_name);
+
+	// FIXME: Hack to make weapons closer to player (broken models)
+	ent.origin[2] -= 26.0;
 
 	R_AddEntity(&ent);
 }
@@ -385,6 +388,7 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 	const entity_state_t *s = &e->current;
 	const cl_client_info_t *ci = &cl.client_info[s->client];
 	r_entity_t head, upper, lower;
+
 	int effects = s->effects;
 
 	VectorSet(ent->scale, PM_SCALE, PM_SCALE, PM_SCALE);
@@ -420,16 +424,20 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 
 	head.lighting = lower.lighting = upper.lighting;
 
-	// TODO: tags
-	R_AddEntity(&head);
-	R_AddEntity(&upper);
+	// apply tags to align the torso and head with the legs
+
+	R_ApplyMeshModelTag(&lower, &upper, "tag_torso");
+	R_ApplyMeshModelTag(&upper, &head, "tag_head");
+
 	R_AddEntity(&lower);
+	R_AddEntity(&upper);
+	R_AddEntity(&head);
 
 	if(s->model2)
-		Cl_AddLinkedClientEntity(&upper, "tag_weapon", s->model2);
+		Cl_AddLinkedEntity(&upper, s->model2, "tag_weapon");
 
 	if(s->model3)
-		Cl_AddLinkedClientEntity(&upper, "tag_flag", s->model3);
+		Cl_AddLinkedEntity(&upper, s->model3, "tag_flag");
 
 	if(s->model4)
 		Com_Warn("Cl_AddClientEntity: Unsupported model_index4\n");

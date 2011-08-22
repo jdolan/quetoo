@@ -43,13 +43,13 @@ r_entities_t r_entities;
 void R_AddEntity(const r_entity_t *ent){
 	r_entity_t *e, *in, **ents;
 
-	if(r_view.num_entities >= MAX_ENTITIES){
+	if(r_view.num_entities == MAX_ENTITIES){
 		Com_Warn("R_AddEntity: MAX_ENTITIES reached.\n");
 		return;
 	}
 
 	e = &r_view.entities[r_view.num_entities++];
-	*e = *ent;  // copy it in
+	*e = *ent;  // copy in to renderer array
 
 	if(!e->model){  // null model list
 		e->next = r_entities.null;
@@ -68,19 +68,21 @@ void R_AddEntity(const r_entity_t *ent){
 		ents = &r_entities.bsp;
 	}
 	else {  // mod_mesh
-		R_ApplyMeshModelConfig(e);  // apply mesh config
+		R_ApplyMeshModelConfig(e);  // apply mesh config before culling
 
 		if(R_CullMeshModel(e)){
 			r_view.num_entities--;
 			return;
 		}
 
-		if(e->effects & EF_ALPHATEST)
+		ents = &r_entities.mesh;
+
+		if(e->effects & EF_ALPHATEST){
 			ents = &r_entities.mesh_alpha_test;
-		else if(e->effects & EF_BLEND)
+		}
+		else if(e->effects & EF_BLEND){
 			ents = &r_entities.mesh_blend;
-		else
-			ents = &r_entities.mesh;
+		}
 	}
 
 	in = *ents;
