@@ -420,6 +420,7 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 
 	head.effects = upper.effects = lower.effects = effects;
 
+	// TODO: Use separate lighting for each? Might look better.
 	Cl_UpdateLighting(e, &upper);
 
 	head.lighting = lower.lighting = upper.lighting;
@@ -460,6 +461,8 @@ static const float weapon_kick_ramp[] = {
  *
  * Calculates a pitch offset for the view weapon based on our player's
  * animation state.
+ *
+ * TODO: This is completely broken since adding Quake3 animations. Needs rework.
  */
 static float Cl_WeaponKick(r_entity_t *self){
 	float k1, k2;

@@ -57,6 +57,9 @@ static const d_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const cha
  * R_ApplyMeshModelTag
  *
  * Applies transformation and rotation for the specified linked entity.
+ *
+ * TODO: This is incomplete. We should probably switch to using Quake3's axis
+ * structure (rotational array) instead of r_entity_t.angles.
  */
 void R_ApplyMeshModelTag(r_entity_t *parent, r_entity_t *e, const char *name){
 
