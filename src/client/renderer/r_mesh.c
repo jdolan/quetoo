@@ -57,9 +57,6 @@ static const d_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const cha
  * R_ApplyMeshModelTag
  *
  * Applies transformation and rotation for the specified linked entity.
- *
- * TODO: This is incomplete. We should probably switch to using Quake3's axis
- * structure (rotational array) instead of r_entity_t.angles.
  */
 void R_ApplyMeshModelTag(r_entity_t *parent, r_entity_t *e, const char *name){
 
@@ -79,7 +76,6 @@ void R_ApplyMeshModelTag(r_entity_t *parent, r_entity_t *e, const char *name){
 
 	const d_md3_orientation_t *sor = &start->orient, *eor = &end->orient;
 	d_md3_orientation_t or;
-	vec3_t angles;
 	int i;
 
 	memset(&or, 0, sizeof(or));
@@ -87,20 +83,35 @@ void R_ApplyMeshModelTag(r_entity_t *parent, r_entity_t *e, const char *name){
 	for(i = 0; i < 3; i++){
 		or.origin[i]  = sor->origin[i]  * parent->back_lerp + eor->origin[i]  * parent->lerp;
 		or.axis[0][i] = sor->axis[0][i] * parent->back_lerp + eor->axis[0][i] * parent->lerp;
-		//or->axis[1][i] = sor->axis[1][i] * parent->back_lerp + eor->axis[1][i] * parent->lerp;
-		//or->axis[2][i] = sor->axis[2][i] * parent->back_lerp + eor->axis[2][i] * parent->lerp;
+		or.axis[1][i] = sor->axis[1][i] * parent->back_lerp + eor->axis[1][i] * parent->lerp;
+		or.axis[2][i] = sor->axis[2][i] * parent->back_lerp + eor->axis[2][i] * parent->lerp;
 	}
 
 	VectorNormalize(or.axis[0]);
-	//VectorNormalize(or.axis[1]);
-	//VectorNormalize(or.axis[2]);
+	VectorNormalize(or.axis[1]);
+	VectorNormalize(or.axis[2]);
 
 	// apply it
 
-	VectorAdd(parent->origin, or.origin, e->origin);
+	e->transform[ 0] = or.axis[0][0];
+	e->transform[ 4] = or.axis[1][0];
+	e->transform[ 8] = or.axis[2][0];
+	e->transform[12] = or.origin[0];
 
-	VectorAngles(or.axis[0], angles);
-	VectorAdd(parent->angles, angles, e->angles);
+	e->transform[ 1] = or.axis[0][1];
+	e->transform[ 5] = or.axis[1][1];
+	e->transform[ 9] = or.axis[2][1];
+	e->transform[13] = or.origin[1];
+
+	e->transform[ 2] = or.axis[0][2];
+	e->transform[ 6] = or.axis[1][2];
+	e->transform[10] = or.axis[2][2];
+	e->transform[14] = or.origin[2];
+
+	e->transform[ 3] = 0.0;
+	e->transform[ 7] = 0.0;
+	e->transform[11] = 0.0;
+	e->transform[15] = 1.0;
 }
 
 /*

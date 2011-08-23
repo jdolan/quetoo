@@ -92,6 +92,8 @@ typedef struct r_entity_s {
 	vec3_t origin;
 	vec3_t angles;
 
+	GLfloat transform[16];
+
 	struct r_model_s *model;
 
 	int frame, old_frame;  // frame-based animations

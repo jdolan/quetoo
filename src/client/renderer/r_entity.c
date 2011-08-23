@@ -111,6 +111,7 @@ void R_AddEntity(const r_entity_t *ent){
  * Applies translation, rotation, and scale for the specified entity.
  */
 void R_RotateForEntity(const r_entity_t *e){
+	static GLfloat null_transform[16];
 
 	if(!e){
 		glPopMatrix();
@@ -118,6 +119,10 @@ void R_RotateForEntity(const r_entity_t *e){
 	}
 
 	glPushMatrix();
+
+	if(memcmp(null_transform, e->transform, sizeof(null_transform))){
+		glMultMatrixf(e->transform);
+	}
 
 	glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
 

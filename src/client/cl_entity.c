@@ -372,9 +372,6 @@ static void Cl_AddLinkedEntity(r_entity_t *parent, int model, const char *tag_na
 
 	R_ApplyMeshModelTag(parent, &ent, tag_name);
 
-	// FIXME: Hack to make weapons closer to player (broken models)
-	ent.origin[2] -= 26.0;
-
 	R_AddEntity(&ent);
 }
 
@@ -420,13 +417,11 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 
 	head.effects = upper.effects = lower.effects = effects;
 
-	// TODO: Use separate lighting for each? Might look better.
 	Cl_UpdateLighting(e, &upper);
 
 	head.lighting = lower.lighting = upper.lighting;
 
 	// apply tags to align the torso and head with the legs
-
 	R_ApplyMeshModelTag(&lower, &upper, "tag_torso");
 	R_ApplyMeshModelTag(&upper, &head, "tag_head");
 
