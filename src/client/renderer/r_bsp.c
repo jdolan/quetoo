@@ -37,9 +37,10 @@ qboolean R_CullBox(const vec3_t mins, const vec3_t maxs){
 	if(!r_cull->value)
 		return false;
 
-	for(i = 0; i < 4; i++)
+	for(i = 0; i < 4; i++){
 		if(BOX_ON_PLANE_SIDE(mins, maxs, &r_locals.frustum[i]) == SIDE_ON)
 			return true;
+	}
 
 	return false;
 }

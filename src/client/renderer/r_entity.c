@@ -34,66 +34,93 @@ r_entities_t r_entities;
 
 
 /*
+ * R_EntityList
+ *
+ * Returns the appropriate entity list for the specified entity.
+ */
+static r_entity_t **R_EntityList(const r_entity_t *e) {
+
+	if(!e->model)
+		return &r_entities.null;
+
+	if(e->model->type == mod_bsp_submodel)
+		return &r_entities.bsp;
+
+	// mesh models
+
+	if(e->effects & EF_ALPHATEST)
+		return &r_entities.mesh_alpha_test;
+
+	if(e->effects & EF_BLEND)
+		return &r_entities.mesh_blend;
+
+	return &r_entities.mesh;
+}
+
+
+/*
+ * R_CullEntity
+ *
+ * Returns true if the specified entity is outside of the view frustum, false
+ * otherwise.
+ */
+static qboolean R_CullEntity(r_entity_t *e){
+
+	if(!e->model)  // don't bother culling null models
+		return false;
+
+	if(e->model->type == mod_bsp_submodel)
+		return R_CullBspModel(e);
+
+	// for mesh models, apply translation and scale before culling
+
+	R_ApplyMeshModelConfig(e);
+
+	return R_CullMeshModel(e);
+}
+
+
+/*
  * R_AddEntity
  *
  * Adds a copy of the specified entity to the correct draw list.  Entities
  * are grouped by model to allow instancing wherever possible (e.g. armor
  * shards, ammo boxes, trees, etc..).
  */
-void R_AddEntity(const r_entity_t *ent){
+r_entity_t *R_AddEntity(const r_entity_t *ent){
 	r_entity_t *e, *in, **ents;
 
 	if(r_view.num_entities == MAX_ENTITIES){
 		Com_Warn("R_AddEntity: MAX_ENTITIES reached.\n");
-		return;
+		return NULL;
 	}
 
 	e = &r_view.entities[r_view.num_entities++];
 	*e = *ent;  // copy in to renderer array
 
-	if(!e->model){  // null model list
-		e->next = r_entities.null;
-		r_entities.null = e;
-		return;
+	if(R_CullEntity(e)){  // cull it, discarding entities which fail
+		r_view.num_entities--;
+		return NULL;
 	}
 
-	// frustum cull, appending those which pass to a sorted list
-	if(e->model->type == mod_bsp_submodel){
-
-		if(R_CullBspModel(e)){
-			r_view.num_entities--;
-			return;
-		}
-
-		ents = &r_entities.bsp;
-	}
-	else {  // mod_mesh
-		R_ApplyMeshModelConfig(e);  // apply mesh config before culling
-
-		if(R_CullMeshModel(e)){
-			r_view.num_entities--;
-			return;
-		}
-
-		ents = &r_entities.mesh;
-
-		if(e->effects & EF_ALPHATEST){
-			ents = &r_entities.mesh_alpha_test;
-		}
-		else if(e->effects & EF_BLEND){
-			ents = &r_entities.mesh_blend;
-		}
+	// setup the transform matrix
+	if(!(e->effects & EF_LINKED)){
+		Matrix4x4_CreateFromQuakeEntity(&e->matrix,
+				e->origin[0], e->origin[1], e->origin[2],
+				e->angles[0], e->angles[1], e->angles[2],
+				e->scale[0]);
 	}
 
+	// and insert into the sorted list
+	ents = R_EntityList(e);
 	in = *ents;
 
-	// insert into the sorted chain
 	while(in){
 
 		if(in->model == e->model){
 			e->next = in->next;
 			in->next = e;
-			return;
+			return e;
 		}
 
 		in = in->next;
@@ -102,6 +129,7 @@ void R_AddEntity(const r_entity_t *ent){
 	// or simply push to the head of the chain
 	e->next = *ents;
 	*ents = e;
+	return e;
 }
 
 
@@ -111,26 +139,19 @@ void R_AddEntity(const r_entity_t *ent){
  * Applies translation, rotation, and scale for the specified entity.
  */
 void R_RotateForEntity(const r_entity_t *e){
-	static GLfloat null_transform[16];
 
 	if(!e){
 		glPopMatrix();
 		return;
 	}
 
+	GLfloat mat[16];
+
+	Matrix4x4_ToArrayFloatGL(&e->matrix, mat);
+
 	glPushMatrix();
 
-	if(memcmp(null_transform, e->transform, sizeof(null_transform))){
-		glMultMatrixf(e->transform);
-	}
-
-	glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
-
-	glRotatef(e->angles[YAW], 0.0, 0.0, 1.0);
-	glRotatef(e->angles[PITCH], 0.0, 1.0, 0.0);
-	glRotatef(e->angles[ROLL], 1.0, 0.0, 0.0);
-
-	glScalef(e->scale[0], e->scale[1], e->scale[2]);
+	glMultMatrixf(mat);
 }
 
 
@@ -142,14 +163,9 @@ void R_RotateForEntity(const r_entity_t *e){
  * specified entity.
  */
 void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out){
-	matrix4x4_t tmp, mat;
+	matrix4x4_t mat;
 
-	Matrix4x4_CreateFromQuakeEntity(&tmp,
-			e->origin[0], e->origin[1], e->origin[2],
-			e->angles[0], e->angles[1], e->angles[2],
-			e->scale[0]);
-
-	Matrix4x4_Invert_Simple(&mat, &tmp);
+	Matrix4x4_Invert_Simple(&mat, &e->matrix);
 
 	Matrix4x4_Transform(&mat, in, out);
 }

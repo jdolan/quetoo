@@ -158,54 +158,54 @@ void Matrix4x4_Transpose (matrix4x4_t *out, const matrix4x4_t *in1)
 // added helper for common subexpression elimination by eihrul, and other optimizations by div0
 int Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1)
 {
-        float det;
+	float det;
 
-        // note: orientation does not matter, as transpose(invert(transpose(m))) == invert(m), proof:
-        //   transpose(invert(transpose(m))) * m
-        // = transpose(invert(transpose(m))) * transpose(transpose(m))
-        // = transpose(transpose(m) * invert(transpose(m)))
-        // = transpose(identity)
-        // = identity
+	// note: orientation does not matter, as transpose(invert(transpose(m))) == invert(m), proof:
+	//   transpose(invert(transpose(m))) * m
+	// = transpose(invert(transpose(m))) * transpose(transpose(m))
+	// = transpose(transpose(m) * invert(transpose(m)))
+	// = transpose(identity)
+	// = identity
 
-        // this seems to help gcc's common subexpression elimination, and also makes the code look nicer
-        float   m00 = in1->m[0][0], m01 = in1->m[0][1], m02 = in1->m[0][2], m03 = in1->m[0][3],
-                m10 = in1->m[1][0], m11 = in1->m[1][1], m12 = in1->m[1][2], m13 = in1->m[1][3],
-                m20 = in1->m[2][0], m21 = in1->m[2][1], m22 = in1->m[2][2], m23 = in1->m[2][3],
-                m30 = in1->m[3][0], m31 = in1->m[3][1], m32 = in1->m[3][2], m33 = in1->m[3][3];
+	// this seems to help gcc's common subexpression elimination, and also makes the code look nicer
+	float   m00 = in1->m[0][0], m01 = in1->m[0][1], m02 = in1->m[0][2], m03 = in1->m[0][3],
+			m10 = in1->m[1][0], m11 = in1->m[1][1], m12 = in1->m[1][2], m13 = in1->m[1][3],
+			m20 = in1->m[2][0], m21 = in1->m[2][1], m22 = in1->m[2][2], m23 = in1->m[2][3],
+			m30 = in1->m[3][0], m31 = in1->m[3][1], m32 = in1->m[3][2], m33 = in1->m[3][3];
 
-        // calculate the adjoint
-        out->m[0][0] =  (m11*(m22*m33 - m23*m32) - m21*(m12*m33 - m13*m32) + m31*(m12*m23 - m13*m22));
-        out->m[0][1] = -(m01*(m22*m33 - m23*m32) - m21*(m02*m33 - m03*m32) + m31*(m02*m23 - m03*m22));
-        out->m[0][2] =  (m01*(m12*m33 - m13*m32) - m11*(m02*m33 - m03*m32) + m31*(m02*m13 - m03*m12));
-        out->m[0][3] = -(m01*(m12*m23 - m13*m22) - m11*(m02*m23 - m03*m22) + m21*(m02*m13 - m03*m12));
-        out->m[1][0] = -(m10*(m22*m33 - m23*m32) - m20*(m12*m33 - m13*m32) + m30*(m12*m23 - m13*m22));
-        out->m[1][1] =  (m00*(m22*m33 - m23*m32) - m20*(m02*m33 - m03*m32) + m30*(m02*m23 - m03*m22));
-        out->m[1][2] = -(m00*(m12*m33 - m13*m32) - m10*(m02*m33 - m03*m32) + m30*(m02*m13 - m03*m12));
-        out->m[1][3] =  (m00*(m12*m23 - m13*m22) - m10*(m02*m23 - m03*m22) + m20*(m02*m13 - m03*m12));
-        out->m[2][0] =  (m10*(m21*m33 - m23*m31) - m20*(m11*m33 - m13*m31) + m30*(m11*m23 - m13*m21));
-        out->m[2][1] = -(m00*(m21*m33 - m23*m31) - m20*(m01*m33 - m03*m31) + m30*(m01*m23 - m03*m21));
-        out->m[2][2] =  (m00*(m11*m33 - m13*m31) - m10*(m01*m33 - m03*m31) + m30*(m01*m13 - m03*m11));
-        out->m[2][3] = -(m00*(m11*m23 - m13*m21) - m10*(m01*m23 - m03*m21) + m20*(m01*m13 - m03*m11));
-        out->m[3][0] = -(m10*(m21*m32 - m22*m31) - m20*(m11*m32 - m12*m31) + m30*(m11*m22 - m12*m21));
-        out->m[3][1] =  (m00*(m21*m32 - m22*m31) - m20*(m01*m32 - m02*m31) + m30*(m01*m22 - m02*m21));
-        out->m[3][2] = -(m00*(m11*m32 - m12*m31) - m10*(m01*m32 - m02*m31) + m30*(m01*m12 - m02*m11));
-        out->m[3][3] =  (m00*(m11*m22 - m12*m21) - m10*(m01*m22 - m02*m21) + m20*(m01*m12 - m02*m11));
+	// calculate the adjoint
+	out->m[0][0] =  (m11*(m22*m33 - m23*m32) - m21*(m12*m33 - m13*m32) + m31*(m12*m23 - m13*m22));
+	out->m[0][1] = -(m01*(m22*m33 - m23*m32) - m21*(m02*m33 - m03*m32) + m31*(m02*m23 - m03*m22));
+	out->m[0][2] =  (m01*(m12*m33 - m13*m32) - m11*(m02*m33 - m03*m32) + m31*(m02*m13 - m03*m12));
+	out->m[0][3] = -(m01*(m12*m23 - m13*m22) - m11*(m02*m23 - m03*m22) + m21*(m02*m13 - m03*m12));
+	out->m[1][0] = -(m10*(m22*m33 - m23*m32) - m20*(m12*m33 - m13*m32) + m30*(m12*m23 - m13*m22));
+	out->m[1][1] =  (m00*(m22*m33 - m23*m32) - m20*(m02*m33 - m03*m32) + m30*(m02*m23 - m03*m22));
+	out->m[1][2] = -(m00*(m12*m33 - m13*m32) - m10*(m02*m33 - m03*m32) + m30*(m02*m13 - m03*m12));
+	out->m[1][3] =  (m00*(m12*m23 - m13*m22) - m10*(m02*m23 - m03*m22) + m20*(m02*m13 - m03*m12));
+	out->m[2][0] =  (m10*(m21*m33 - m23*m31) - m20*(m11*m33 - m13*m31) + m30*(m11*m23 - m13*m21));
+	out->m[2][1] = -(m00*(m21*m33 - m23*m31) - m20*(m01*m33 - m03*m31) + m30*(m01*m23 - m03*m21));
+	out->m[2][2] =  (m00*(m11*m33 - m13*m31) - m10*(m01*m33 - m03*m31) + m30*(m01*m13 - m03*m11));
+	out->m[2][3] = -(m00*(m11*m23 - m13*m21) - m10*(m01*m23 - m03*m21) + m20*(m01*m13 - m03*m11));
+	out->m[3][0] = -(m10*(m21*m32 - m22*m31) - m20*(m11*m32 - m12*m31) + m30*(m11*m22 - m12*m21));
+	out->m[3][1] =  (m00*(m21*m32 - m22*m31) - m20*(m01*m32 - m02*m31) + m30*(m01*m22 - m02*m21));
+	out->m[3][2] = -(m00*(m11*m32 - m12*m31) - m10*(m01*m32 - m02*m31) + m30*(m01*m12 - m02*m11));
+	out->m[3][3] =  (m00*(m11*m22 - m12*m21) - m10*(m01*m22 - m02*m21) + m20*(m01*m12 - m02*m11));
 
-        // calculate the determinant (as inverse == 1/det * adjoint, adjoint * m == identity * det, so this calculates the det)
-        det = m00*out->m[0][0] + m10*out->m[0][1] + m20*out->m[0][2] + m30*out->m[0][3];
-        if (det == 0.0f)
-                return 0;
+	// calculate the determinant (as inverse == 1/det * adjoint, adjoint * m == identity * det, so this calculates the det)
+	det = m00*out->m[0][0] + m10*out->m[0][1] + m20*out->m[0][2] + m30*out->m[0][3];
+	if (det == 0.0f)
+			return 0;
 
-        // multiplications are faster than divisions, usually
-        det = 1.0f / det;
+	// multiplications are faster than divisions, usually
+	det = 1.0f / det;
 
-        // manually unrolled loop to multiply all matrix elements by 1/det
-        out->m[0][0] *= det; out->m[0][1] *= det; out->m[0][2] *= det; out->m[0][3] *= det;
-        out->m[1][0] *= det; out->m[1][1] *= det; out->m[1][2] *= det; out->m[1][3] *= det;
-        out->m[2][0] *= det; out->m[2][1] *= det; out->m[2][2] *= det; out->m[2][3] *= det;
-        out->m[3][0] *= det; out->m[3][1] *= det; out->m[3][2] *= det; out->m[3][3] *= det;
+	// manually unrolled loop to multiply all matrix elements by 1/det
+	out->m[0][0] *= det; out->m[0][1] *= det; out->m[0][2] *= det; out->m[0][3] *= det;
+	out->m[1][0] *= det; out->m[1][1] *= det; out->m[1][2] *= det; out->m[1][3] *= det;
+	out->m[2][0] *= det; out->m[2][1] *= det; out->m[2][2] *= det; out->m[2][3] *= det;
+	out->m[3][0] *= det; out->m[3][1] *= det; out->m[3][2] *= det; out->m[3][3] *= det;
 
-        return 1;
+	return 1;
 }
 #elif 1
 // Adapted from code contributed to Mesa by David Moore (Mesa 7.6 under SGI Free License B - which is MIT/X11-type)
@@ -486,7 +486,7 @@ void Matrix4x4_Invert_Simple (matrix4x4_t *out, const matrix4x4_t *in1)
 #endif
 }
 
-void Matrix4x4_Interpolate (matrix4x4_t *out, matrix4x4_t *in1, matrix4x4_t *in2, double frac)
+void Matrix4x4_Interpolate (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4_t *in2, double frac)
 {
 	int i, j;
 	for (i = 0;i < 4;i++)
@@ -502,7 +502,7 @@ void Matrix4x4_Clear (matrix4x4_t *out)
 			out->m[i][j] = 0;
 }
 
-void Matrix4x4_Accumulate (matrix4x4_t *out, matrix4x4_t *in, double weight)
+void Matrix4x4_Accumulate (matrix4x4_t *out, const matrix4x4_t *in, double weight)
 {
 	int i, j;
 	for (i = 0;i < 4;i++)
@@ -510,7 +510,7 @@ void Matrix4x4_Accumulate (matrix4x4_t *out, matrix4x4_t *in, double weight)
 			out->m[i][j] += in->m[i][j] * weight;
 }
 
-void Matrix4x4_Normalize (matrix4x4_t *out, matrix4x4_t *in1)
+void Matrix4x4_Normalize (matrix4x4_t *out, const matrix4x4_t *in1)
 {
 	// scale rotation matrix vectors to a length of 1
 	// note: this is only designed to undo uniform scaling
@@ -519,7 +519,7 @@ void Matrix4x4_Normalize (matrix4x4_t *out, matrix4x4_t *in1)
 	Matrix4x4_Scale(out, scale, 1);
 }
 
-void Matrix4x4_Normalize3 (matrix4x4_t *out, matrix4x4_t *in1)
+void Matrix4x4_Normalize3 (matrix4x4_t *out, const matrix4x4_t *in1)
 {
 	int i;
 	double scale;

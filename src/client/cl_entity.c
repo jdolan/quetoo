@@ -384,7 +384,7 @@ static void Cl_AddLinkedEntity(r_entity_t *parent, int model, const char *tag_na
 static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 	const entity_state_t *s = &e->current;
 	const cl_client_info_t *ci = &cl.client_info[s->client];
-	r_entity_t head, upper, lower;
+	r_entity_t head, upper, lower, *parent;
 
 	int effects = s->effects;
 
@@ -421,12 +421,14 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 
 	head.lighting = lower.lighting = upper.lighting;
 
-	// apply tags to align the torso and head with the legs
-	R_ApplyMeshModelTag(&lower, &upper, "tag_torso");
-	R_ApplyMeshModelTag(&upper, &head, "tag_head");
+	parent = R_AddEntity(&lower);
 
-	R_AddEntity(&lower);
-	R_AddEntity(&upper);
+	R_ApplyMeshModelTag(parent, &upper, "tag_torso");
+
+	parent = R_AddEntity(&upper);
+
+	R_ApplyMeshModelTag(parent, &head, "tag_head");
+
 	R_AddEntity(&head);
 
 	if(s->model2)

@@ -184,6 +184,11 @@ typedef struct {
 } r_md3_vertex_t;
 
 typedef struct {
+	char name[MD3_MAX_PATH];
+	matrix4x4_t matrix;
+} r_md3_tag_t;
+
+typedef struct {
 	char id[4];
 
 	char name[MD3_MAX_PATH];
@@ -219,7 +224,7 @@ typedef struct {
 	d_md3_frame_t *frames;
 
 	int num_tags;
-	d_md3_tag_t *tags;
+	r_md3_tag_t *tags;
 
 	int num_meshes;
 	r_md3_mesh_t *meshes;

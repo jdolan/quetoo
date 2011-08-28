@@ -30,7 +30,7 @@ vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];  // same for normal vectors
  *
  * Returns the desired tag structure, or NULL.
  */
-static const d_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const char *name){
+static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const char *name){
 
 	if(frame > mod->num_frames){
 		Com_Warn("R_GetMeshModelTag: %s: Invalid frame: %d\n", mod->name, frame);
@@ -38,7 +38,7 @@ static const d_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const cha
 	}
 
 	const r_md3_t *md3 = (r_md3_t *)mod->extra_data;
-	const d_md3_tag_t *tag = &md3->tags[frame * md3->num_tags];
+	const r_md3_tag_t *tag = &md3->tags[frame * md3->num_tags];
 	int i;
 
 	for(i = 0; i < md3->num_tags; i++, tag++){
@@ -49,7 +49,6 @@ static const d_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const cha
 
 	Com_Warn("R_GetMeshModelTag: %s: Tag not found: %s\n", mod->name, name);
 	return NULL;
-
 }
 
 
@@ -67,52 +66,26 @@ void R_ApplyMeshModelTag(r_entity_t *parent, r_entity_t *e, const char *name){
 
 	// interpolate the tag over the frames of the parent entity
 
-	const d_md3_tag_t *start = R_GetMeshModelTag(parent->model, parent->old_frame, name);
-	const d_md3_tag_t *end = R_GetMeshModelTag(parent->model, parent->frame, name);
+	const r_md3_tag_t *start = R_GetMeshModelTag(parent->model, parent->old_frame, name);
+	const r_md3_tag_t *end = R_GetMeshModelTag(parent->model, parent->frame, name);
 
 	if(!start || !end){
 		return;
 	}
 
-	const d_md3_orientation_t *sor = &start->orient, *eor = &end->orient;
-	d_md3_orientation_t or;
-	int i;
+	matrix4x4_t lerped, normalized;
 
-	memset(&or, 0, sizeof(or));
+	Matrix4x4_Interpolate(&lerped, &end->matrix, &start->matrix, parent->lerp);
+	Matrix4x4_Normalize(&normalized, &lerped);
 
-	for(i = 0; i < 3; i++){
-		or.origin[i]  = sor->origin[i]  * parent->back_lerp + eor->origin[i]  * parent->lerp;
-		or.axis[0][i] = sor->axis[0][i] * parent->back_lerp + eor->axis[0][i] * parent->lerp;
-		or.axis[1][i] = sor->axis[1][i] * parent->back_lerp + eor->axis[1][i] * parent->lerp;
-		or.axis[2][i] = sor->axis[2][i] * parent->back_lerp + eor->axis[2][i] * parent->lerp;
-	}
+	Matrix4x4_Concat(&e->matrix, &parent->matrix, &normalized);
 
-	VectorNormalize(or.axis[0]);
-	VectorNormalize(or.axis[1]);
-	VectorNormalize(or.axis[2]);
+	Com_Debug("%s: %3.2f %3.2f %3.2f\n", name,
+			e->matrix.m[0][3], e->matrix.m[1][3], e->matrix.m[2][3]);
 
-	// apply it
-
-	e->transform[ 0] = or.axis[0][0];
-	e->transform[ 4] = or.axis[1][0];
-	e->transform[ 8] = or.axis[2][0];
-	e->transform[12] = or.origin[0];
-
-	e->transform[ 1] = or.axis[0][1];
-	e->transform[ 5] = or.axis[1][1];
-	e->transform[ 9] = or.axis[2][1];
-	e->transform[13] = or.origin[1];
-
-	e->transform[ 2] = or.axis[0][2];
-	e->transform[ 6] = or.axis[1][2];
-	e->transform[10] = or.axis[2][2];
-	e->transform[14] = or.origin[2];
-
-	e->transform[ 3] = 0.0;
-	e->transform[ 7] = 0.0;
-	e->transform[11] = 0.0;
-	e->transform[15] = 1.0;
+	e->effects |= EF_LINKED;
 }
+
 
 /*
  * R_ApplyMeshModelConfig

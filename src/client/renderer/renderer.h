@@ -92,7 +92,7 @@ typedef struct r_entity_s {
 	vec3_t origin;
 	vec3_t angles;
 
-	GLfloat transform[16];
+	matrix4x4_t matrix;
 
 	struct r_model_s *model;
 
@@ -375,7 +375,7 @@ void R_DrawLine(int x1, int y1, int x2, int y2, int c, float a);
 void R_DrawLines(void);
 
 // r_entity.c
-void R_AddEntity(const r_entity_t *e);
+r_entity_t *R_AddEntity(const r_entity_t *e);
 void R_RotateForEntity(const r_entity_t *e);
 void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out);
 void R_DrawEntities(void);
