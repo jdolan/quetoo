@@ -89,6 +89,11 @@ typedef struct r_lighting_s {
 
 #define MAX_ENTITIES		512
 typedef struct r_entity_s {
+	struct r_entity_s *next;  // for draw lists
+
+	const struct r_entity_s *parent;  // for linked models
+	const char *tag_name;
+
 	vec3_t origin;
 	vec3_t angles;
 
@@ -99,7 +104,7 @@ typedef struct r_entity_s {
 	int frame, old_frame;  // frame-based animations
 	float lerp, back_lerp;
 
-	vec3_t scale;  // for mesh models
+	float scale;  // for mesh models
 
 	struct r_image_s *skin;  // NULL for default skin
 
@@ -107,8 +112,6 @@ typedef struct r_entity_s {
 	vec3_t shell;  // shell color
 
 	r_lighting_t *lighting;  // static lighting information
-
-	struct r_entity_s *next;  // for draw lists
 } r_entity_t;
 
 typedef struct r_particle_s {
@@ -316,14 +319,14 @@ extern cvar_t *r_width;
 extern cvar_t *r_windowed_height;
 extern cvar_t *r_windowed_width;
 
-// rendermode function pointers
-extern void (*R_DrawOpaqueSurfaces)(r_bsp_surfaces_t *surfs);
-extern void (*R_DrawOpaqueWarpSurfaces)(r_bsp_surfaces_t *surfs);
-extern void (*R_DrawAlphaTestSurfaces)(r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBlendSurfaces)(r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBlendWarpSurfaces)(r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBackSurfaces)(r_bsp_surfaces_t *surfs);
-extern void (*R_DrawMeshModel)(r_entity_t *e);
+// render mode function pointers
+extern void (*R_DrawOpaqueSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawOpaqueWarpSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawAlphaTestSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBlendSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBlendWarpSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBackSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawMeshModel)(const r_entity_t *e);
 
 // r_array.c
 void R_SetArrayState(const r_model_t *mod);
@@ -375,7 +378,7 @@ void R_DrawLine(int x1, int y1, int x2, int y2, int c, float a);
 void R_DrawLines(void);
 
 // r_entity.c
-r_entity_t *R_AddEntity(const r_entity_t *e);
+const r_entity_t *R_AddEntity(const r_entity_t *e);
 void R_RotateForEntity(const r_entity_t *e);
 void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out);
 void R_DrawEntities(void);
@@ -438,10 +441,10 @@ void R_LoadMaterials(const char *map);
 // r_mesh.c
 extern vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3];
 extern vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];
-void R_ApplyMeshModelTag(r_entity_t *parent, r_entity_t *e, const char *name);
+void R_ApplyMeshModelTag(r_entity_t *e);
 void R_ApplyMeshModelConfig(r_entity_t *e);
 qboolean R_CullMeshModel(const r_entity_t *e);
-void R_DrawMeshModel_default(r_entity_t *e);
+void R_DrawMeshModel_default(const r_entity_t *e);
 
 // r_particle.c
 void R_AddParticle(r_particle_t *p);
@@ -453,18 +456,18 @@ void R_DrawSkyBox(void);
 void R_SetSky(char *name);
 
 // r_surface.c
-void R_DrawOpaqueSurfaces_default(r_bsp_surfaces_t *surfs);
-void R_DrawOpaqueWarpSurfaces_default(r_bsp_surfaces_t *surfs);
-void R_DrawAlphaTestSurfaces_default(r_bsp_surfaces_t *surfs);
-void R_DrawBlendSurfaces_default(r_bsp_surfaces_t *surfs);
-void R_DrawBlendWarpSurfaces_default(r_bsp_surfaces_t *surfs);
-void R_DrawBackSurfaces_default(r_bsp_surfaces_t *surfs);
+void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawOpaqueWarpSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawBlendSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawBlendWarpSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawBackSurfaces_default(const r_bsp_surfaces_t *surfs);
 
 // r_surface_pro.c
-void R_DrawOpaqueSurfaces_pro(r_bsp_surfaces_t *surfs);
-void R_DrawAlphaTestSurfaces_pro(r_bsp_surfaces_t *surfs);
-void R_DrawBlendSurfaces_pro(r_bsp_surfaces_t *surfs);
-void R_DrawBackSurfaces_pro(r_bsp_surfaces_t *surfs);
+void R_DrawOpaqueSurfaces_pro(const r_bsp_surfaces_t *surfs);
+void R_DrawAlphaTestSurfaces_pro(const r_bsp_surfaces_t *surfs);
+void R_DrawBlendSurfaces_pro(const r_bsp_surfaces_t *surfs);
+void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs);
 
 // r_thread.c
 typedef enum {

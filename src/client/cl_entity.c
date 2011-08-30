@@ -359,8 +359,17 @@ static void Cl_UpdateLighting(cl_entity_t *e, r_entity_t *ent){
  *
  * Adds a linked static model (weapon, CTF flag, etc..) to the renderer.
  */
-static void Cl_AddLinkedEntity(r_entity_t *parent, int model, const char *tag_name){
+static void Cl_AddLinkedEntity(const r_entity_t *parent, int model, const char *tag_name){
+
+	if(!parent){
+		Com_Warn("Cl_AddLinkedEntity: NULL parent\n");
+		return;
+	}
+
 	r_entity_t ent = *parent;
+
+	ent.parent = parent;
+	ent.tag_name = tag_name;
 
 	ent.model = cl.model_draw[model];
 	ent.skin = NULL;
@@ -370,10 +379,9 @@ static void Cl_AddLinkedEntity(r_entity_t *parent, int model, const char *tag_na
 	ent.lerp = 1.0;
 	ent.back_lerp = 0.0;
 
-	R_ApplyMeshModelTag(parent, &ent, tag_name);
-
 	R_AddEntity(&ent);
 }
+
 
 /*
  * Cl_AddClientEntity
@@ -384,12 +392,11 @@ static void Cl_AddLinkedEntity(r_entity_t *parent, int model, const char *tag_na
 static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 	const entity_state_t *s = &e->current;
 	const cl_client_info_t *ci = &cl.client_info[s->client];
-	r_entity_t head, upper, lower, *parent;
+	r_entity_t head, upper, lower;
 
 	int effects = s->effects;
 
-	VectorSet(ent->scale, PM_SCALE, PM_SCALE, PM_SCALE);
-
+	// copy the specified entity to all body segments
 	head = upper = lower = *ent;
 
 	head.model = ci->head;
@@ -410,32 +417,30 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 			effects |= EF_NO_DRAW;
 
 			// keep our shadow underneath us using the predicted origin
-			upper.origin[0] = r_view.origin[0];
-			upper.origin[1] = r_view.origin[1];
+			lower.origin[0] = r_view.origin[0];
+			lower.origin[1] = r_view.origin[1];
 		}
 	}
 
 	head.effects = upper.effects = lower.effects = effects;
 
-	Cl_UpdateLighting(e, &upper);
+	Cl_UpdateLighting(e, &lower);
 
-	head.lighting = lower.lighting = upper.lighting;
+	head.lighting = upper.lighting = lower.lighting;
 
-	parent = R_AddEntity(&lower);
+	upper.parent = R_AddEntity(&lower);
+	upper.tag_name = "tag_torso";
 
-	R_ApplyMeshModelTag(parent, &upper, "tag_torso");
-
-	parent = R_AddEntity(&upper);
-
-	R_ApplyMeshModelTag(parent, &head, "tag_head");
+	head.parent = R_AddEntity(&upper);
+	head.tag_name = "tag_head";
 
 	R_AddEntity(&head);
 
 	if(s->model2)
-		Cl_AddLinkedEntity(&upper, s->model2, "tag_weapon");
+		Cl_AddLinkedEntity(head.parent, s->model2, "tag_weapon");
 
 	if(s->model3)
-		Cl_AddLinkedEntity(&upper, s->model3, "tag_flag");
+		Cl_AddLinkedEntity(head.parent, s->model3, "tag_flag");
 
 	if(s->model4)
 		Com_Warn("Cl_AddClientEntity: Unsupported model_index4\n");
@@ -539,8 +544,7 @@ static void Cl_AddWeapon(r_entity_t *self){
 	if(!ent.model)  // for development
 		return;
 
-	ent.lerp = 1.0;
-	VectorSet(ent.scale, 1.0, 1.0, 1.0);
+	ent.lerp = ent.scale = 1.0;
 
 	memset(&lighting, 0, sizeof(lighting));
 	ent.lighting = &lighting;
@@ -599,6 +603,7 @@ void Cl_AddEntities(cl_frame_t *frame){
 		int mask;
 
 		memset(&ent, 0, sizeof(ent));
+		ent.scale = 1.0;
 
 		// beams have two origins, most entities have just one
 		if(s->effects & EF_BEAM){
@@ -634,8 +639,6 @@ void Cl_AddEntities(cl_frame_t *frame){
 		else {  // interpolate angles
 			AngleLerp(e->prev.angles, e->current.angles, cl.lerp, ent.angles);
 		}
-
-		VectorSet(ent.scale, 1.0, 1.0, 1.0);  // scale
 
 		// parse the effects bit mask
 		if(s->effects & (EF_ROCKET | EF_GRENADE)){

@@ -493,7 +493,6 @@ typedef struct {
 #define EF_NO_LIGHTING		(EF_ROCKET)
 
 // the 16 high bits are never transmitted, they're for the renderer only
-#define EF_LINKED			(1 << 26)  // linked model
 #define EF_WEAPON			(1 << 27)  // view weapon
 #define EF_ALPHATEST		(1 << 28)  // alpha test
 #define EF_BLEND			(1 << 29)  // blend

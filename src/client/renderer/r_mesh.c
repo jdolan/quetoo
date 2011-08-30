@@ -26,6 +26,59 @@ vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];  // same for normal vectors
 
 
 /*
+ * R_ApplyMeshModelConfig
+ *
+ * Applies any client-side transformations specified by the model's world or
+ * view configuration structure.
+ */
+void R_ApplyMeshModelConfig(r_entity_t *e){
+	const r_mesh_config_t *c;
+	vec3_t translate;
+	int i;
+
+	// translation is applied differently for view weapons
+	if(e->effects & EF_WEAPON){
+
+		// adjust forward / back offset according to field of view
+		float f = (r_view.fov_x - 90.0) * 0.15;
+
+		// add bob on all 3 axis as well
+		float b = r_view.bob * 0.4;
+
+		c = e->model->view_config;
+
+		VectorMA(e->origin, c->translate[0] + f + b, r_view.forward, e->origin);
+		VectorMA(e->origin, 6.0, r_view.right, e->origin);
+
+		b = r_view.bob * 0.25;
+
+		VectorMA(e->origin, c->translate[1] + b, r_view.right, e->origin);
+		VectorMA(e->origin, c->translate[2] + b, r_view.up, e->origin);
+	}
+	else {  // versus world and linked entities
+
+		if(e->parent)
+			c = e->model->link_config;
+		else
+			c = e->model->world_config;
+
+		// normalize the config's translation to the entity scale
+		for(i = 0; i < 3; i++)
+			translate[i] = c->translate[i] * e->scale;
+
+		// and add it to the origin
+		VectorAdd(e->origin, translate, e->origin);
+	}
+
+	// apply scale
+	e->scale *= c->scale;
+
+	// lastly apply effects
+	e->effects |= c->flags;
+}
+
+
+/*
  * R_GetMeshModelTag
  *
  * Returns the desired tag structure, or NULL.
@@ -57,82 +110,38 @@ static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const cha
  *
  * Applies transformation and rotation for the specified linked entity.
  */
-void R_ApplyMeshModelTag(r_entity_t *parent, r_entity_t *e, const char *name){
+void R_ApplyMeshModelTag(r_entity_t *e){
 
-	if(!parent || !parent->model || parent->model->type != mod_md3){
+	if(!e->parent || !e->parent->model || e->parent->model->type != mod_md3){
 		Com_Warn("R_ApplyMeshModelTag: Invalid parent entity\n");
+		return;
+	}
+
+	if(!e->tag_name){
+		Com_Warn("R_ApplyMeshModelTag: NULL tag_name\n");
 		return;
 	}
 
 	// interpolate the tag over the frames of the parent entity
 
-	const r_md3_tag_t *start = R_GetMeshModelTag(parent->model, parent->old_frame, name);
-	const r_md3_tag_t *end = R_GetMeshModelTag(parent->model, parent->frame, name);
+	const r_md3_tag_t *start = R_GetMeshModelTag(e->parent->model, e->parent->old_frame, e->tag_name);
+	const r_md3_tag_t *end = R_GetMeshModelTag(e->parent->model, e->parent->frame, e->tag_name);
 
 	if(!start || !end){
 		return;
 	}
 
-	matrix4x4_t lerped, normalized;
+	matrix4x4_t local, lerped, normalized;
 
-	Matrix4x4_Interpolate(&lerped, &end->matrix, &start->matrix, parent->lerp);
+	Matrix4x4_Concat(&local, &e->parent->matrix, &e->matrix);
+
+	Matrix4x4_Interpolate(&lerped, &end->matrix, &start->matrix, e->parent->lerp);
 	Matrix4x4_Normalize(&normalized, &lerped);
 
-	Matrix4x4_Concat(&e->matrix, &parent->matrix, &normalized);
+	Matrix4x4_Concat(&e->matrix, &local, &normalized);
 
-	Com_Debug("%s: %3.2f %3.2f %3.2f\n", name,
+	Com_Debug("%s: %3.2f %3.2f %3.2f\n", e->tag_name,
 			e->matrix.m[0][3], e->matrix.m[1][3], e->matrix.m[2][3]);
-
-	e->effects |= EF_LINKED;
-}
-
-
-/*
- * R_ApplyMeshModelConfig
- *
- * Applies any client-side transformations specified by the model's world or
- * view configuration structure.
- */
-void R_ApplyMeshModelConfig(r_entity_t *e){
-	const r_mesh_config_t *c;
-	vec3_t translate;
-	int i;
-
-	// translation is applied differently for view weapons
-	if(e->effects & EF_WEAPON){
-
-		// adjust forward / back offset according to field of view
-		float f = (r_view.fov_x - 90.0) * 0.15;
-
-		// add bob on all 3 axis as well
-		float b = r_view.bob * 0.4;
-
-		c = e->model->view_config;
-
-		VectorMA(e->origin, c->translate[0] + f + b, r_view.forward, e->origin);
-		VectorMA(e->origin, 6.0, r_view.right, e->origin);
-
-		b = r_view.bob * 0.25;
-
-		VectorMA(e->origin, c->translate[1] + b, r_view.right, e->origin);
-		VectorMA(e->origin, c->translate[2] + b, r_view.up, e->origin);
-	}
-	else {  // versus world entities
-		c = e->model->world_config;
-
-		// normalize the config's translation to the entity scale
-		for(i = 0; i < 3; i++)
-			translate[i] = c->translate[i] * e->scale[i];
-
-		// and add it to the origin
-		VectorAdd(e->origin, translate, e->origin);
-	}
-
-	for(i = 0; i < 3; i++)  // apply config scale
-		e->scale[i] *= c->scale[i];
-
-	// lastly apply effects
-	e->effects |= c->flags;
 }
 
 
@@ -141,19 +150,14 @@ void R_ApplyMeshModelConfig(r_entity_t *e){
  */
 qboolean R_CullMeshModel(const r_entity_t *e){
 	vec3_t mins, maxs;
-	int i;
 
 	if(e->effects & EF_WEAPON)  // never cull the weapon
 		return false;
 
-	// determine scaled mins/maxs
-	for(i = 0; i < 3; i++){
-		mins[i] = e->model->mins[i] * e->scale[i];
-		maxs[i] = e->model->maxs[i] * e->scale[i];
-	}
+	// calculate scaled bounding box in world space
 
-	VectorAdd(e->origin, mins, mins);
-	VectorAdd(e->origin, maxs, maxs);
+	VectorMA(e->origin, e->scale, e->model->mins, mins);
+	VectorMA(e->origin, e->scale, e->model->maxs, maxs);
 
 	return R_CullBox(mins, maxs);
 }
@@ -295,7 +299,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e){
 
 	height = -origin[2];
 
-	threshold = LIGHTING_MAX_SHADOW_DISTANCE / e->scale[2];
+	threshold = LIGHTING_MAX_SHADOW_DISTANCE / e->scale;
 
 	scale = MESH_SHADOW_SCALE * (threshold - height) / threshold;
 
@@ -341,7 +345,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e){
  * Re-draws the mesh using the stencil test.  Meshes with stale lighting
  * information, or with a lighting point above our view, are not drawn.
  */
-static void R_DrawMeshShadow_default(r_entity_t *e){
+static void R_DrawMeshShadow_default(const r_entity_t *e){
 	const qboolean lighting = r_state.lighting_enabled;
 
 	if(!r_shadows->value)
@@ -459,16 +463,16 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e){
 /*
  * R_DrawMeshModel_default
  */
-void R_DrawMeshModel_default(r_entity_t *e){
+void R_DrawMeshModel_default(const r_entity_t *e){
 
 	if(e->frame >= e->model->num_frames || e->frame < 0){
 		Com_Warn("R_DrawMeshModel %s: no such frame %d\n", e->model->name, e->frame);
-		e->frame = 0;
+		return;
 	}
 
 	if(e->old_frame >= e->model->num_frames || e->old_frame < 0){
 		Com_Warn("R_DrawMeshModel %s: no such old_frame %d\n", e->model->name, e->old_frame);
-		e->old_frame = 0;
+		return;
 	}
 
 	if(e->lighting->state != LIGHTING_READY){  // update static lighting info
@@ -478,11 +482,11 @@ void R_DrawMeshModel_default(r_entity_t *e){
 		else
 			VectorCopy(e->origin, e->lighting->origin);
 
-		e->lighting->radius = e->scale[0] * e->model->radius;
+		e->lighting->radius = e->scale * e->model->radius;
 
-		// determine scaled mins/maxs in world space
-		VectorMA(e->lighting->origin, e->scale[0], e->model->mins, e->lighting->mins);
-		VectorMA(e->lighting->origin, e->scale[0], e->model->maxs, e->lighting->maxs);
+		// calculate scaled bounding box in world space
+		VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
+		VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
 
 		//Com_Debug("Updating lighting for %s\n", e->model->name);
 		R_UpdateLighting(e->lighting);

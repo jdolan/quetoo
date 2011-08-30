@@ -125,13 +125,13 @@ void (APIENTRY *qglUniform3fv)(GLint location, int count, GLfloat *f);
 void (APIENTRY *qglUniform4fv)(GLint location, int count, GLfloat *f);
 GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
-void (*R_DrawOpaqueSurfaces)(r_bsp_surfaces_t *surfs);
-void (*R_DrawOpaqueWarpSurfaces)(r_bsp_surfaces_t *surfs);
-void (*R_DrawAlphaTestSurfaces)(r_bsp_surfaces_t *surfs);
-void (*R_DrawBlendSurfaces)(r_bsp_surfaces_t *surfs);
-void (*R_DrawBlendWarpSurfaces)(r_bsp_surfaces_t *surfs);
-void (*R_DrawBackSurfaces)(r_bsp_surfaces_t *surfs);
-void (*R_DrawMeshModel)(r_entity_t *e);
+void (*R_DrawOpaqueSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawOpaqueWarpSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawAlphaTestSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawBlendSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawBlendWarpSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawBackSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawMeshModel)(const r_entity_t *e);
 
 
 /*

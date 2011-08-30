@@ -34,6 +34,70 @@ r_entities_t r_entities;
 
 
 /*
+ * R_SetMatrixForEntity
+ *
+ * Applies any configuration and tag alignment, populating the model-view
+ * matrix for the entity in the process.
+ */
+static void R_SetMatrixForEntity(r_entity_t *e){
+
+	if(e->parent){
+		vec3_t tmp;
+
+		if(!IS_MESH_MODEL(e->model)){
+			Com_Warn("R_SetMatrixForEntity: Invalid model for linked entity\n");
+			return;
+		}
+
+		VectorClear(e->origin);
+		VectorClear(e->angles);
+
+		R_ApplyMeshModelConfig(e);
+
+		Matrix4x4_CreateFromQuakeEntity(&e->matrix,
+				e->origin[0], e->origin[1], e->origin[2],
+				e->angles[0], e->angles[1], e->angles[2],
+				e->scale);
+
+		R_ApplyMeshModelTag(e);
+
+		Matrix4x4_ToVectors(&e->matrix, tmp, tmp, tmp, e->origin);
+		VectorCopy(e->parent->angles, e->angles);
+		return;
+	}
+
+	if(IS_MESH_MODEL(e->model)){
+		R_ApplyMeshModelConfig(e);
+	}
+
+	Matrix4x4_CreateFromQuakeEntity(&e->matrix,
+			e->origin[0], e->origin[1], e->origin[2],
+			e->angles[0], e->angles[1], e->angles[2],
+			e->scale);
+}
+
+
+/*
+ * R_CullEntity
+ *
+ * Returns true if the specified entity is outside of the view frustum, false
+ * otherwise. Delegates to the appropriate model-specific sub-routine.
+ */
+static qboolean R_CullEntity(const r_entity_t *e){
+
+	if(!e->model)  // don't bother culling null models
+		return false;
+
+	if(e->model->type == mod_bsp_submodel)
+		return R_CullBspModel(e);
+
+	// mesh models
+
+	return R_CullMeshModel(e);
+}
+
+
+/*
  * R_EntityList
  *
  * Returns the appropriate entity list for the specified entity.
@@ -59,35 +123,14 @@ static r_entity_t **R_EntityList(const r_entity_t *e) {
 
 
 /*
- * R_CullEntity
- *
- * Returns true if the specified entity is outside of the view frustum, false
- * otherwise.
- */
-static qboolean R_CullEntity(r_entity_t *e){
-
-	if(!e->model)  // don't bother culling null models
-		return false;
-
-	if(e->model->type == mod_bsp_submodel)
-		return R_CullBspModel(e);
-
-	// for mesh models, apply translation and scale before culling
-
-	R_ApplyMeshModelConfig(e);
-
-	return R_CullMeshModel(e);
-}
-
-
-/*
  * R_AddEntity
  *
- * Adds a copy of the specified entity to the correct draw list.  Entities
- * are grouped by model to allow instancing wherever possible (e.g. armor
- * shards, ammo boxes, trees, etc..).
+ * Copies the specified entity into the view structure, calculating its
+ * model-view matrix and performing a frustum cull in the process. Entities
+ * which pass the frustum cull are added to draw lists, sorted by model to
+ * allow instancing.
  */
-r_entity_t *R_AddEntity(const r_entity_t *ent){
+const r_entity_t *R_AddEntity(const r_entity_t *ent){
 	r_entity_t *e, *in, **ents;
 
 	if(r_view.num_entities == MAX_ENTITIES){
@@ -95,23 +138,23 @@ r_entity_t *R_AddEntity(const r_entity_t *ent){
 		return NULL;
 	}
 
-	e = &r_view.entities[r_view.num_entities++];
-	*e = *ent;  // copy in to renderer array
-
-	if(R_CullEntity(e)){  // cull it, discarding entities which fail
-		r_view.num_entities--;
+	if(ent->scale <= 0.0){
+		Com_Warn("R_AddEntity: Invalid scale\n");
 		return NULL;
 	}
 
-	// setup the transform matrix
-	if(!(e->effects & EF_LINKED)){
-		Matrix4x4_CreateFromQuakeEntity(&e->matrix,
-				e->origin[0], e->origin[1], e->origin[2],
-				e->angles[0], e->angles[1], e->angles[2],
-				e->scale[0]);
+	// copy in to renderer array
+	e = &r_view.entities[r_view.num_entities++];
+	*e = *ent;
+
+	// calculate the transform matrix
+	R_SetMatrixForEntity(e);
+
+	if(R_CullEntity(e)){  // if culled, don't add to draw list
+		return e;
 	}
 
-	// and insert into the sorted list
+	// otherwise, insert into the sorted draw list
 	ents = R_EntityList(e);
 	in = *ents;
 
@@ -120,15 +163,18 @@ r_entity_t *R_AddEntity(const r_entity_t *ent){
 		if(in->model == e->model){
 			e->next = in->next;
 			in->next = e;
-			return e;
+			break;
 		}
 
 		in = in->next;
 	}
 
-	// or simply push to the head of the chain
-	e->next = *ents;
-	*ents = e;
+	// push to the head if necessary
+	if(!in){
+		e->next = *ents;
+		*ents = e;
+	}
+
 	return e;
 }
 
@@ -139,13 +185,12 @@ r_entity_t *R_AddEntity(const r_entity_t *ent){
  * Applies translation, rotation, and scale for the specified entity.
  */
 void R_RotateForEntity(const r_entity_t *e){
+	GLfloat mat[16];
 
 	if(!e){
 		glPopMatrix();
 		return;
 	}
-
-	GLfloat mat[16];
 
 	Matrix4x4_ToArrayFloatGL(&e->matrix, mat);
 

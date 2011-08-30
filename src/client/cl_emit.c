@@ -44,7 +44,7 @@ typedef struct cl_emit_s {
 	float hz, drift;  // how frequently and randomly we fire
 	float radius;  // flame and corona radius
 	float flicker;
-	vec3_t scale;  // mesh model scale
+	float scale;  // mesh model scale
 	int count;  // particle counts
 	char sound[MAX_QPATH];  // sound name
 	s_sample_t *sample;  // sound sample
@@ -157,12 +157,8 @@ void Cl_LoadEmits(void){
 					VectorScale(e->dir, 30.0, e->dir);
 				}
 
-				if(VectorCompare(e->scale, vec3_origin)){  // default mesh model scale
-
-					if(e->flags & EMIT_MODEL)
-						VectorSet(e->scale, 1.0, 1.0, 1.0);
-					else
-						VectorSet(e->scale, 1.0, 1.0, 1.0);
+				if(e->scale <= 0.0){  // default mesh model scale
+					e->scale = 1.0;
 				}
 
 				if(e->hz <= 0.0){  // default hz and drift
@@ -272,8 +268,7 @@ void Cl_LoadEmits(void){
 		}
 
 		if(!strcmp(c, "scale")){
-			sscanf(Com_Parse(&ents), "%f %f %f",
-					&e->scale[0], &e->scale[1], &e->scale[2]);
+			sscanf(Com_Parse(&ents), "%f", &e->scale);
 			continue;
 		}
 
@@ -376,7 +371,7 @@ void Cl_AddEmits(void){
 			ent.model = e->mod;
 			ent.lerp = 1.0;
 
-			VectorCopy(e->scale, ent.scale);
+			ent.scale = e->scale;
 
 			ent.lighting = &e->lighting;
 

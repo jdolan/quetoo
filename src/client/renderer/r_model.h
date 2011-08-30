@@ -272,8 +272,8 @@ typedef enum {
 // shared mesh configuration
 typedef struct {
 	vec3_t translate;
-	vec3_t scale;
-	int flags;  // EF_ALPHATEST, etc..
+	float scale;
+	int flags;  // EF_ALPHA_TEST, etc..
 } r_mesh_config_t;
 
 typedef struct r_model_s {
@@ -358,6 +358,7 @@ typedef struct r_model_s {
 
 	r_mesh_config_t *world_config;
 	r_mesh_config_t *view_config;
+	r_mesh_config_t *link_config;
 
 	int extra_data_size;
 	void *extra_data;  // raw model data
@@ -366,6 +367,8 @@ typedef struct r_model_s {
 #define MAX_MOD_KNOWN 512
 extern r_model_t r_models[MAX_MOD_KNOWN];
 extern r_model_t r_inline_models[MAX_BSP_MODELS];
+
+#define IS_MESH_MODEL(m) (m && (m->type == mod_md3 || m->type == mod_obj))
 
 extern r_model_t *r_world_model;
 extern r_model_t *r_load_model;

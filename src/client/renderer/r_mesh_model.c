@@ -133,8 +133,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path){
 		}
 
 		if(!strcmp(c, "scale")){
-			sscanf(Com_Parse(&buffer), "%f %f %f", &config->scale[0],
-					&config->scale[1], &config->scale[2]);
+			sscanf(Com_Parse(&buffer), "%f", &config->scale);
 			continue;
 		}
 
@@ -161,18 +160,20 @@ static void R_LoadMeshConfigs(r_model_t *mod){
 
 	mod->world_config = (r_mesh_config_t *)R_HunkAlloc(sizeof(r_mesh_config_t));
 	mod->view_config = (r_mesh_config_t *)R_HunkAlloc(sizeof(r_mesh_config_t));
+	mod->link_config = (r_mesh_config_t *)R_HunkAlloc(sizeof(r_mesh_config_t));
 
-	VectorSet(mod->world_config->scale, 1.0, 1.0, 1.0);
-	VectorSet(mod->view_config->scale, 1.0, 1.0, 1.0);
+	mod->world_config->scale = 1.0;
 
 	Com_Dirname(mod->name, path);
 
 	R_LoadMeshConfig(mod->world_config, va("%sworld.cfg", path));
 
-	// by default, the view config inherits the world config
+	// by default, additional configs inherit from world
 	memcpy(mod->view_config, mod->world_config, sizeof(r_mesh_config_t));
+	memcpy(mod->link_config, mod->world_config, sizeof(r_mesh_config_t));
 
 	R_LoadMeshConfig(mod->view_config, va("%sview.cfg", path));
+	R_LoadMeshConfig(mod->link_config, va("%slink.cfg", path));
 }
 
 
