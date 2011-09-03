@@ -35,7 +35,7 @@ Normal sounds play each time the target is used.  The reliable flag can be set f
 Looped sounds are always atten 3 / vol 1, and the use function toggles it on/off.
 Multiple identical looping sounds will just increase volume without any speed cost.
 */
-static void Use_Target_Speaker(edict_t *ent, edict_t *other, edict_t *activator){
+static void G_target_speaker_use(edict_t *ent, edict_t *other, edict_t *activator){
 
 	if(ent->spawn_flags & 3){  // looping sound toggles
 		if(ent->s.sound)
@@ -71,7 +71,7 @@ void G_target_speaker(edict_t *ent){
 	if(ent->spawn_flags & 1)
 		ent->s.sound = ent->noise_index;
 
-	ent->use = Use_Target_Speaker;
+	ent->use = G_target_speaker_use;
 
 	// must link the entity so we get areas and clusters so
 	// the server can determine who to send updates to
@@ -85,7 +85,7 @@ Spawns an explosion temporary entity when used.
 "delay"		wait this long before going off
 "dmg"		how much radius damage should be done, defaults to 0
 */
-static void target_explosion_explode(edict_t *self){
+static void G_target_explosion_explode(edict_t *self){
 	float save;
 
 	gi.WriteByte(svc_temp_entity);
@@ -102,20 +102,20 @@ static void target_explosion_explode(edict_t *self){
 	self->delay = save;
 }
 
-static void use_target_explosion(edict_t *self, edict_t *other, edict_t *activator){
+static void G_target_explosion_use(edict_t *self, edict_t *other, edict_t *activator){
 	self->activator = activator;
 
 	if(!self->delay){
-		target_explosion_explode(self);
+		G_target_explosion_explode(self);
 		return;
 	}
 
-	self->think = target_explosion_explode;
+	self->think = G_target_explosion_explode;
 	self->next_think = g_level.time + self->delay;
 }
 
 void G_target_explosion(edict_t *ent){
-	ent->use = use_target_explosion;
+	ent->use = G_target_explosion_use;
 	ent->sv_flags = SVF_NOCLIENT;
 }
 
@@ -123,8 +123,7 @@ void G_target_explosion(edict_t *ent){
 /*QUAKED target_splash(1 0 0)(-8 -8 -8)(8 8 8)
 Creates a particle splash effect.
 */
-
-static void target_splash_think(edict_t *self){
+static void G_target_splash_think(edict_t *self){
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_SPARKS);
@@ -140,8 +139,45 @@ void G_target_splash(edict_t *self){
 	G_SetMovedir(self->s.angles, self->movedir);
 
 	self->solid = SOLID_NOT;
-	self->think = target_splash_think;
+	self->think = G_target_splash_think;
 	self->next_think = g_level.time + (frand() * 3);
 
 	gi.LinkEntity(self);
+}
+
+/*QUAKED target_string(0 0 1)(-8 -8 -8)(8 8 8)
+ *
+ * TODO: gi.CenterPrint + think delay?
+ */
+static void G_target_string_use(edict_t *self, edict_t *other, edict_t *activator){
+	/*edict_t *e;
+	int n, l;
+	char c;
+
+	l = strlen(self->message);
+	for(e = self->team_master; e; e = e->team_chain){
+		if(!e->count)
+			continue;
+		n = e->count - 1;
+		if(n > l){
+			e->s.frame1 = 12;
+			continue;
+		}
+
+		c = self->message[n];
+		if(c >= '0' && c <= '9')
+			e->s.frame1 = c - '0';
+		else if(c == '-')
+			e->s.frame1 = 10;
+		else if(c == ':')
+			e->s.frame1 = 11;
+		else
+			e->s.frame1 = 12;
+	}*/
+}
+
+void G_target_string(edict_t *self){
+	if(!self->message)
+		self->message = "";
+	self->use = G_target_string_use;
 }

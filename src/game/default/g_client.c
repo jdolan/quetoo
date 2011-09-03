@@ -22,50 +22,12 @@
 #include "g_local.h"
 
 
-/*QUAKED info_player_start(1 0 0)(-16 -16 -24)(16 16 32)
-The normal starting point for a level.
-*/
-void G_info_player_start(edict_t *self){
-	G_ProjectSpawn(self);
-}
-
-/*QUAKED info_player_intermission(1 0 1)(-16 -16 -24)(16 16 32)
-Level intermission point will be at one of these
-Use 'angles' instead of 'angle', so you can set pitch or roll as well as yaw.
-'pitch yaw roll'
-*/
-void G_info_player_intermission(edict_t *self){
-	G_ProjectSpawn(self);
-}
-
-/*QUAKED info_player_deathmatch(1 0 1)(-16 -16 -24)(16 16 32)
-potential spawning position for deathmatch games
-*/
-void G_info_player_deathmatch(edict_t *self){
-	G_ProjectSpawn(self);
-}
-
-/*QUAKED info_player_team1(1 0 1)(-16 -16 -24)(16 16 32)
-potential spawning position for team games
-*/
-void G_info_player_team1(edict_t *self){
-	G_ProjectSpawn(self);
-}
-
-/*QUAKED info_player_team2(1 0 1)(-16 -16 -24)(16 16 32)
-potential spawning position for team games
-*/
-void G_info_player_team2(edict_t *self){
-	G_ProjectSpawn(self);
-}
-
-
 /*
- * P_ClientObituary
+ * G_Obituary
  *
  * Make a tasteless death announcement.
  */
-static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
+static void G_Obituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
 	int ff, mod;
 	char *message, *message2;
 	g_client_t *killer;
@@ -241,9 +203,9 @@ static void P_ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacke
 
 
 /*
- * P_TossWeapon
+ * G_TossWeapon
  */
-static void P_TossWeapon(edict_t *self){
+static void G_TossWeapon(edict_t *self){
 	g_item_t *item;
 
 	// don't drop weapon when falling into void
@@ -260,9 +222,9 @@ static void P_TossWeapon(edict_t *self){
 
 
 /*
- * P_TossQuadDamage
+ * G_TossQuadDamage
  */
-void P_TossQuadDamage(edict_t *self){
+void G_TossQuadDamage(edict_t *self){
 	edict_t *quad;
 
 	if(!self->client->locals.inventory[quad_damage_index])
@@ -279,9 +241,9 @@ void P_TossQuadDamage(edict_t *self){
 
 
 /*
- * P_TossFlag
+ * G_TossFlag
  */
-void P_TossFlag(edict_t *self){
+void G_TossFlag(edict_t *self){
 	g_team_t *ot;
 	edict_t *of;
 	int index;
@@ -310,9 +272,9 @@ void P_TossFlag(edict_t *self){
 
 
 /*
- * P_Pain
+ * G_Pain
  */
-void P_Pain(edict_t *self, edict_t *other, int damage, int knockback){
+void G_Pain(edict_t *self, edict_t *other, int damage, int knockback){
 
 	if(other && other->client && other != self){  // play a hit sound
 		gi.Sound(other, gi.SoundIndex("misc/hit"), ATTN_STATIC);
@@ -321,28 +283,28 @@ void P_Pain(edict_t *self, edict_t *other, int damage, int knockback){
 
 
 /*
- * P_Die
+ * G_Die
  */
-void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
+void G_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
 
 	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
 
 	self->client->respawn_time = g_level.time + 1.0;
 	self->client->ps.pmove.pm_type = PM_DEAD;
 
-	P_ClientObituary(self, inflictor, attacker);
+	G_Obituary(self, inflictor, attacker);
 
 	if(!g_level.gameplay && !g_level.warmup)  // drop weapon
-		P_TossWeapon(self);
+		G_TossWeapon(self);
 
 	self->client->new_weapon = NULL;  // reset weapon state
-	P_ChangeWeapon(self);
+	G_ChangeWeapon(self);
 
 	if(!g_level.gameplay && !g_level.warmup)  // drop quad
-		P_TossQuadDamage(self);
+		G_TossQuadDamage(self);
 
 	if(g_level.ctf && !g_level.warmup)  // drop flag in ctf
-		P_TossFlag(self);
+		G_TossFlag(self);
 
 	G_Score_f(self);  // show scores
 
@@ -376,7 +338,7 @@ void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
  *  specified quantity of ammo, while health and armor are set to
  *  the specified quantity.
  */
-static void P_Give(g_client_t *client, char *it, int quantity){
+static void G_Give(g_client_t *client, char *it, int quantity){
 	g_item_t *item;
 	int index;
 
@@ -418,9 +380,9 @@ static void P_Give(g_client_t *client, char *it, int quantity){
 
 
 /*
- * P_GiveLevelLocals
+ * G_GiveLevelLocals
  */
-static qboolean P_GiveLevelLocals(g_client_t *client){
+static qboolean G_GiveLevelLocals(g_client_t *client){
 	char buf[512], *it, *q;
 	int quantity;
 
@@ -449,7 +411,7 @@ static qboolean P_GiveLevelLocals(g_client_t *client){
 			else
 				quantity = -1;
 
-			P_Give(client, it, quantity);
+			G_Give(client, it, quantity);
 		}
 
 		it = strtok(NULL, ",");
@@ -459,9 +421,9 @@ static qboolean P_GiveLevelLocals(g_client_t *client){
 }
 
 /*
- * P_InitClientLocals
+ * G_InitClientLocals
  */
-static void P_InitClientLocals(g_client_t *client){
+static void G_InitClientLocals(g_client_t *client){
 	g_item_t *item;
 	int i;
 
@@ -487,32 +449,32 @@ static void P_InitClientLocals(g_client_t *client){
 
 	// instagib gets railgun and slugs, both in normal mode and warmup
 	if(g_level.gameplay == INSTAGIB){
-		P_Give(client, "Railgun", 1000);
+		G_Give(client, "Railgun", 1000);
 		item = G_FindItem("Railgun");
 	}
 	// arena or dm warmup yields all weapons, health, etc..
 	else if((g_level.gameplay == ARENA) || g_level.warmup){
-		P_Give(client, "Railgun", 50);
-		P_Give(client, "Lightning", 200);
-		P_Give(client, "Hyperblaster", 200);
-		P_Give(client, "Rocket Launcher", 50);
-		P_Give(client, "Grenade Launcher", 50);
-		P_Give(client, "Machinegun", 200);
-		P_Give(client, "Super Shotgun", 80);
-		P_Give(client, "Shotgun", 80);
+		G_Give(client, "Railgun", 50);
+		G_Give(client, "Lightning", 200);
+		G_Give(client, "Hyperblaster", 200);
+		G_Give(client, "Rocket Launcher", 50);
+		G_Give(client, "Grenade Launcher", 50);
+		G_Give(client, "Machinegun", 200);
+		G_Give(client, "Super Shotgun", 80);
+		G_Give(client, "Shotgun", 80);
 
-		P_Give(client, "Armor", 200);
+		G_Give(client, "Armor", 200);
 
 		item = G_FindItem("Rocket Launcher");
 	}
 	// dm gets shotgun and 10 shots
 	else {
-		P_Give(client, "Shotgun", 10);
+		G_Give(client, "Shotgun", 10);
 		item = G_FindItem("Shotgun");
 	}
 
-	if(P_GiveLevelLocals(client)){  // use the best weapon we were given by level
-		P_NoAmmoWeaponChange(client);
+	if(G_GiveLevelLocals(client)){  // use the best weapon we were given by level
+		G_UseBestWeapon(client);
 		client->locals.weapon = client->new_weapon;
 	}
 	else  // or use best given by gameplay
@@ -526,11 +488,11 @@ static void P_InitClientLocals(g_client_t *client){
 
 
 /*
- * P_EnemyRangeFromSpot
+ * G_EnemyRangeFromSpot
  *
  * Returns the distance to the nearest enemy from the given spot
  */
-static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
+static float G_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 	edict_t *player;
 	float dist, bestdist;
 	vec3_t v;
@@ -570,9 +532,9 @@ static float P_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 
 
 /*
- * P_SelectRandomDeathmatchSpawnPoint
+ * P_SelectRandomSpawnPoint
  */
-static edict_t *P_SelectRandomSpawnPoint(edict_t *ent, const char *class_name){
+static edict_t *G_SelectRandomSpawnPoint(edict_t *ent, const char *class_name){
 	edict_t *spot;
 	int count = 0;
 
@@ -594,9 +556,9 @@ static edict_t *P_SelectRandomSpawnPoint(edict_t *ent, const char *class_name){
 
 
 /*
- * P_SelectFarthestDeathmatchSpawnPoint
+ * P_SelectFarthestSpawnPoint
  */
-static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *class_name){
+static edict_t *G_SelectFarthestSpawnPoint(edict_t *ent, const char *class_name){
 	edict_t *spot, *bestspot;
 	float dist, bestdist;
 
@@ -605,7 +567,7 @@ static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *class_name)
 
 	while((spot = G_Find(spot, FOFS(class_name), class_name)) != NULL){
 
-		dist = P_EnemyRangeFromSpot(ent, spot);
+		dist = G_EnemyRangeFromSpot(ent, spot);
 
 		if(dist > bestdist){
 			bestspot = spot;
@@ -625,21 +587,21 @@ static edict_t *P_SelectFarthestSpawnPoint(edict_t *ent, const char *class_name)
 
 
 /*
- * P_SelectDeathmatchSpawnPoint
+ * G_SelectDeathmatchSpawnPoint
  */
-static edict_t *P_SelectDeathmatchSpawnPoint(edict_t *ent){
+static edict_t *G_SelectDeathmatchSpawnPoint(edict_t *ent){
 
 	if(g_spawn_farthest->value)
-		return P_SelectFarthestSpawnPoint(ent, "info_player_deathmatch");
+		return G_SelectFarthestSpawnPoint(ent, "info_player_deathmatch");
 
-	return P_SelectRandomSpawnPoint(ent, "info_player_deathmatch");
+	return G_SelectRandomSpawnPoint(ent, "info_player_deathmatch");
 }
 
 
 /*
- * P_SelectCaptureSpawnPoint
+ * G_SelectCaptureSpawnPoint
  */
-static edict_t *P_SelectCaptureSpawnPoint(edict_t *ent){
+static edict_t *G_SelectCaptureSpawnPoint(edict_t *ent){
 	char *c;
 
 	if(!ent->client->locals.team)
@@ -649,25 +611,25 @@ static edict_t *P_SelectCaptureSpawnPoint(edict_t *ent){
 		"info_player_team1" : "info_player_team2";
 
 	if(g_spawn_farthest->value)
-		return P_SelectFarthestSpawnPoint(ent, c);
+		return G_SelectFarthestSpawnPoint(ent, c);
 
-	return P_SelectRandomSpawnPoint(ent, c);
+	return G_SelectRandomSpawnPoint(ent, c);
 }
 
 
 /*
- * P_SelectSpawnPoint
+ * G_SelectSpawnPoint
  *
  * Chooses a player start, deathmatch start, etc
  */
-static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
+static void G_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
 	edict_t *spot = NULL;
 
 	if(g_level.teams || g_level.ctf)  // try teams/ctf spawns first if applicable
-		spot = P_SelectCaptureSpawnPoint(ent);
+		spot = G_SelectCaptureSpawnPoint(ent);
 
 	if(!spot)  // fall back on dm spawns (e.g ctf games on dm maps)
-		spot = P_SelectDeathmatchSpawnPoint(ent);
+		spot = G_SelectDeathmatchSpawnPoint(ent);
 
 	// and lastly fall back on single player start
 	if(!spot){
@@ -689,32 +651,32 @@ static void P_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
 
 
 /*
- * P_PutClientInServer
+ * G_ClientRespawn_
  *
  * The grunt work of putting the client into the server on [re]spawn.
  */
-static void P_PutClientInServer(edict_t *ent){
+static void G_ClientRespawn_(edict_t *ent){
 	vec3_t spawn_origin, spawn_angles, old_angles;
 	float height;
-	g_client_t *client;
+	g_client_t *cl;
 	g_client_locals_t locals;
 	int i;
 
 	// find a spawn point
-	P_SelectSpawnPoint(ent, spawn_origin, spawn_angles);
+	G_SelectSpawnPoint(ent, spawn_origin, spawn_angles);
 
-	client = ent->client;
+	cl = ent->client;
 
 	// retain last angles for delta
 	VectorCopy(ent->client->cmd_angles, old_angles);
 
 	// reset inventory, health, etc
-	P_InitClientLocals(client);
+	G_InitClientLocals(cl);
 
 	// clear everything but locals
-	locals = client->locals;
-	memset(client, 0, sizeof(*client));
-	client->locals = locals;
+	locals = cl->locals;
+	memset(cl, 0, sizeof(*cl));
+	cl->locals = locals;
 
 	// clear entity values
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
@@ -735,8 +697,8 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->drown_time = g_level.time + 12.0;
 	ent->clip_mask = MASK_PLAYERSOLID;
 	ent->model = "players/qforcer/upper.md3";
-	ent->pain = P_Pain;
-	ent->die = P_Die;
+	ent->pain = G_Pain;
+	ent->die = G_Die;
 	ent->water_level = 0;
 	ent->water_type = 0;
 	ent->sv_flags = 0;
@@ -749,11 +711,11 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->velocity[2] = 150.0;
 
 	// clear player state values
-	memset(&ent->client->ps, 0, sizeof(client->ps));
+	memset(&ent->client->ps, 0, sizeof(cl->ps));
 
-	client->ps.pmove.origin[0] = spawn_origin[0] * 8.0;
-	client->ps.pmove.origin[1] = spawn_origin[1] * 8.0;
-	client->ps.pmove.origin[2] = spawn_origin[2] * 8.0;
+	cl->ps.pmove.origin[0] = spawn_origin[0] * 8.0;
+	cl->ps.pmove.origin[1] = spawn_origin[1] * 8.0;
+	cl->ps.pmove.origin[2] = spawn_origin[2] * 8.0;
 
 	// clear entity state values
 	ent->s.effects = 0;
@@ -771,21 +733,21 @@ static void P_PutClientInServer(edict_t *ent){
 
 	// set the delta angle of the spawn point
 	for(i = 0; i < 3; i++){
-		client->ps.pmove.delta_angles[i] =
+		cl->ps.pmove.delta_angles[i] =
 			ANGLE2SHORT(spawn_angles[i] - old_angles[i]);
 	}
 
-	VectorClear(client->cmd_angles);
-	VectorClear(client->angles);
+	VectorClear(cl->cmd_angles);
+	VectorClear(cl->angles);
 	VectorClear(ent->s.angles);
 
 	// spawn a spectator
-	if(client->locals.spectator){
-		client->chase_target = NULL;
+	if(cl->locals.spectator){
+		cl->chase_target = NULL;
 
-		client->locals.weapon = NULL;
-		client->locals.team = NULL;
-		client->locals.ready = false;
+		cl->locals.weapon = NULL;
+		cl->locals.team = NULL;
+		cl->locals.ready = false;
 
 		ent->move_type = MOVE_TYPE_NO_CLIP;
 		ent->solid = SOLID_NOT;
@@ -800,11 +762,11 @@ static void P_PutClientInServer(edict_t *ent){
 	ent->s.event = EV_TELEPORT;
 
 	// hold in place briefly
-	client->ps.pmove.pm_flags = PMF_TIME_TELEPORT;
-	client->ps.pmove.pm_time = 20;
+	cl->ps.pmove.pm_flags = PMF_TIME_TELEPORT;
+	cl->ps.pmove.pm_time = 20;
 
-	client->locals.match_num = g_level.match_num;
-	client->locals.round_num = g_level.round_num;
+	cl->locals.match_num = g_level.match_num;
+	cl->locals.round_num = g_level.round_num;
 
 	gi.UnlinkEntity(ent);
 
@@ -813,20 +775,20 @@ static void P_PutClientInServer(edict_t *ent){
 	gi.LinkEntity(ent);
 
 	// force the current weapon up
-	client->new_weapon = client->locals.weapon;
-	P_ChangeWeapon(ent);
+	cl->new_weapon = cl->locals.weapon;
+	G_ChangeWeapon(ent);
 }
 
 
 /*
- * P_Respawn
+ * G_ClientRespawn
  *
  * In this case, voluntary means that the client has explicitly requested
  * a respawn by changing their spectator status.
  */
-void P_Respawn(edict_t *ent, qboolean voluntary){
+void G_ClientRespawn(edict_t *ent, qboolean voluntary){
 
-	P_PutClientInServer(ent);
+	G_ClientRespawn_(ent);
 
 	// clear scores and match/round on voluntary changes
 	if(ent->client->locals.spectator && voluntary){
@@ -850,12 +812,12 @@ void P_Respawn(edict_t *ent, qboolean voluntary){
 
 
 /*
- * P_Begin
+ * G_ClientBegin
  *
  * Called when a client has finished connecting, and is ready
  * to be placed into the game.  This will happen every level load.
  */
-void P_Begin(edict_t *ent){
+void G_ClientBegin(edict_t *ent){
 	char welcome[256];
 
 	int player_num = ent - g_game.edicts - 1;
@@ -864,7 +826,7 @@ void P_Begin(edict_t *ent){
 
 	G_InitEdict(ent);
 
-	P_InitClientLocals(ent->client);
+	G_InitClientLocals(ent->client);
 
 	VectorClear(ent->client->cmd_angles);
 	ent->client->locals.first_frame = g_level.frame_num;
@@ -880,10 +842,10 @@ void P_Begin(edict_t *ent){
 	}
 
 	// spawn them in
-	P_Respawn(ent, true);
+	G_ClientRespawn(ent, true);
 
 	if(g_level.intermission_time){
-		P_MoveToIntermission(ent);
+		G_ClientToIntermission(ent);
 	} else {
 		memset(welcome, 0, sizeof(welcome));
 
@@ -904,16 +866,16 @@ void P_Begin(edict_t *ent){
 	}
 
 	// make sure all view stuff is valid
-	P_EndServerFrame(ent);
+	G_ClientEndFrame(ent);
 
 	srand(time(NULL));  // set random seed
 }
 
 
 /*
- * P_UserInfoChanged
+ * G_ClientUserInfoChanged
  */
-void P_UserInfoChanged(edict_t *ent, const char *user_info){
+void G_ClientUserInfoChanged(edict_t *ent, const char *user_info){
 	const char *s;
 	char *c;
 	char name[MAX_NET_NAME];
@@ -1008,15 +970,15 @@ void P_UserInfoChanged(edict_t *ent, const char *user_info){
 
 
 /*
- * P_Connect
+ * G_ClientConnect
  *
  * Called when a player begins connecting to the server.
  * The game can refuse entrance to a client by returning false.
  * If the client is allowed, the connection process will continue
- * and eventually get to P_Begin()
+ * and eventually get to G_Begin()
  * Changing levels will NOT cause this to be called again.
  */
-qboolean P_Connect(edict_t *ent, char *user_info){
+qboolean G_ClientConnect(edict_t *ent, char *user_info){
 
 	// check password
 	const char *value = Info_ValueForKey(user_info, "password");
@@ -1037,7 +999,7 @@ qboolean P_Connect(edict_t *ent, char *user_info){
 	ent->client->locals.net_name[0] = 0;
 
 	// set name, skin, etc..
-	P_UserInfoChanged(ent, user_info);
+	G_ClientUserInfoChanged(ent, user_info);
 
 	if(sv_max_clients->integer > 1)
 		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.net_name);
@@ -1048,18 +1010,18 @@ qboolean P_Connect(edict_t *ent, char *user_info){
 
 
 /*
- * P_Disconnect
+ * G_ClientDisconnect
  *
  * Called when a player drops from the server.  Not be called between levels.
  */
-void P_Disconnect(edict_t *ent){
+void G_ClientDisconnect(edict_t *ent){
 	int player_num;
 
 	if(!ent->client)
 		return;
 
-	P_TossQuadDamage(ent);
-	P_TossFlag(ent);
+	G_TossQuadDamage(ent);
+	G_TossFlag(ent);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.net_name);
 
@@ -1089,7 +1051,7 @@ void P_Disconnect(edict_t *ent){
 static edict_t *pm_passent;
 
 // pmove doesn't need to know about passent and contentmask
-static trace_t P_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
+static trace_t G_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
 	if(pm_passent->health > 0)
 		return gi.Trace(start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
 	else
@@ -1098,9 +1060,11 @@ static trace_t P_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
 
 
 /*
- * P_InventoryThink
+ * G_InventoryThink
+ *
+ * Expire any items which are time-sensitive.
  */
-static void P_InventoryThink(edict_t *ent){
+static void G_InventoryThink(edict_t *ent){
 
 	if(ent->client->locals.inventory[quad_damage_index]){  // if they have quad
 
@@ -1120,13 +1084,13 @@ static void P_InventoryThink(edict_t *ent){
 
 
 /*
- * P_SetAnimation
+ * G_AnimationThink
  *
  * Sets the animation sequences for the specified entity.  This is called
- * towards the end of P_Think, after our ground entity and water level have
+ * towards the end of G_ClientThink, after our ground entity and water level have
  * been resolved.
  */
-static void P_SetAnimation(edict_t *ent){
+static void G_AnimationThink(edict_t *ent){
 
 	if(ent->ground_entity){  // on the ground
 
@@ -1172,12 +1136,12 @@ static void P_SetAnimation(edict_t *ent){
 
 
 /*
- * P_Think
+ * G_ClientThink
  *
  * This will be called once for each client frame, which will usually be a
  * couple times for each server frame.
  */
-void P_Think(edict_t *ent, user_cmd_t *ucmd){
+void G_ClientThink(edict_t *ent, user_cmd_t *ucmd){
 	g_client_t *client;
 	edict_t *other;
 	int i, j;
@@ -1202,7 +1166,7 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 
 			other = client->chase_target;
 
-			P_ChaseNext(ent);
+			G_ChaseNext(ent);
 
 			if(client->chase_target == other){  // no one to chase
 				client->chase_target = NULL;
@@ -1233,7 +1197,7 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 
 		pm.cmd = *ucmd;
 
-		pm.trace = P_Trace;  // adds default params
+		pm.trace = G_Trace;  // adds default params
 		pm.pointcontents = gi.PointContents;
 
 		// perform a pmove
@@ -1314,15 +1278,15 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 				client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 			}
 			else {
-				P_GetChaseTarget(ent);
+				G_GetChaseTarget(ent);
 			}
 		}
 		else if(client->weapon_think_time < g_level.time){
-			P_WeaponThink(ent);
+			G_WeaponThink(ent);
 		}
 	}
 
-	P_SetAnimation(ent);
+	G_AnimationThink(ent);
 
 	// update chase camera if being followed
 	for(i = 1; i <= sv_max_clients->integer; i++){
@@ -1330,21 +1294,21 @@ void P_Think(edict_t *ent, user_cmd_t *ucmd){
 		other = g_game.edicts + i;
 
 		if(other->in_use && other->client->chase_target == ent){
-			P_UpdateChaseCam(other);
+			G_UpdateChaseCam(other);
 		}
 	}
 
-	P_InventoryThink(ent);
+	G_InventoryThink(ent);
 }
 
 
 /*
- * P_BeginServerFrame
+ * G_ClientBeginFrame
  *
  * This will be called once for each server frame, before running
  * any other entities in the world.
  */
-void P_BeginServerFrame(edict_t *ent){
+void G_ClientBeginFrame(edict_t *ent){
 	g_client_t *client;
 
 	if(g_level.intermission_time)
@@ -1357,17 +1321,17 @@ void P_BeginServerFrame(edict_t *ent){
 
 	// run weapon think if it hasn't been done by a command
 	if(client->weapon_think_time < g_level.time && !client->locals.spectator)
-		P_WeaponThink(ent);
+		G_WeaponThink(ent);
 
 	if(ent->dead){  // check for respawn conditions
 
 		// rounds mode implies last-man-standing, force to spectator immediately if round underway
 		if(g_level.rounds && g_level.round_time && g_level.time >= g_level.round_time){
 			client->locals.spectator = true;
-			P_Respawn(ent, false);
+			G_ClientRespawn(ent, false);
 		}
 		else if(g_level.time > client->respawn_time && client->latched_buttons & BUTTON_ATTACK){
-			P_Respawn(ent, false);  // all other respawns require a click from the player
+			G_ClientRespawn(ent, false);  // all other respawns require a click from the player
 		}
 	}
 

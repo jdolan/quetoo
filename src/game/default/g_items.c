@@ -34,6 +34,7 @@ int quad_damage_index;
  * G_ItemByIndex
  */
 g_item_t *G_ItemByIndex(int index){
+
 	if(index == 0 || index >= g_game.num_items)
 		return NULL;
 
@@ -51,8 +52,10 @@ g_item_t *G_FindItemByClassname(const char *class_name){
 
 	it = g_items;
 	for(i = 0; i < g_game.num_items; i++, it++){
+
 		if(!it->class_name)
 			continue;
+
 		if(!strcasecmp(it->class_name, class_name))
 			return it;
 	}
@@ -84,9 +87,9 @@ g_item_t *G_FindItem(const char *pickup_name){
 
 
 /*
- * G_DoRespawn
+ * G_ItemRespawn
  */
-static void G_DoRespawn(edict_t *ent){
+static void G_ItemRespawn(edict_t *ent){
 	edict_t *master;
 	int count, choice;
 	vec3_t origin;
@@ -128,7 +131,7 @@ void G_SetRespawn(edict_t *ent, float delay){
 	ent->sv_flags |= SVF_NOCLIENT;
 	ent->solid = SOLID_NOT;
 	ent->next_think = g_level.time + delay;
-	ent->think = G_DoRespawn;
+	ent->think = G_ItemRespawn;
 	gi.LinkEntity(ent);
 }
 
@@ -177,9 +180,6 @@ static qboolean G_PickupQuadDamage(edict_t *ent, edict_t *other){
 qboolean G_AddAmmo(edict_t *ent, g_item_t *item, int count){
 	int index;
 	int max;
-
-	if(!ent->client)
-		return false;
 
 	if(item->tag == AMMO_SHELLS)
 		max = ent->client->locals.max_shells;
@@ -244,6 +244,9 @@ static void G_DropAmmo(edict_t *ent, g_item_t *item){
 
 	index = ITEM_INDEX(item);
 	dropped = G_DropItem(ent, item);
+
+	if(!dropped)
+		return;
 
 	if(ent->client->locals.inventory[index] >= item->quantity)
 		dropped->count = item->quantity;
@@ -324,12 +327,12 @@ static qboolean G_PickupArmor(edict_t *ent, edict_t *other){
 
 
 /*
- * G_DropFlag
+ * G_ClientDropFlag
  */
 static void G_DropFlag(edict_t *ent, g_item_t *item){
 
 	// this routine already exists for player deaths
-	P_TossFlag(ent);
+	G_TossFlag(ent);
 }
 
 
@@ -628,9 +631,9 @@ edict_t *G_DropItem(edict_t *ent, g_item_t *item){
 
 
 /*
- * G_UseItem
+ * G_ClientUseItem
  */
-static void G_UseItem(edict_t *ent, edict_t *other, edict_t *activator){
+static void G_ClientUseItem(edict_t *ent, edict_t *other, edict_t *activator){
 	ent->sv_flags &= ~SVF_NOCLIENT;
 	ent->use = NULL;
 
@@ -782,7 +785,7 @@ void G_SpawnItem(edict_t *ent, g_item_t *item){
 		ent->solid = SOLID_NOT;
 		if(ent == ent->team_master){
 			ent->next_think = g_level.time + gi.server_frame;
-			ent->think = G_DoRespawn;
+			ent->think = G_ItemRespawn;
 		}
 	}
 
@@ -802,7 +805,7 @@ void G_SpawnItem(edict_t *ent, g_item_t *item){
 	if(ent->spawn_flags & SF_ITEM_TRIGGER){
 		ent->sv_flags |= SVF_NOCLIENT;
 		ent->solid = SOLID_NOT;
-		ent->use = G_UseItem;
+		ent->use = G_ClientUseItem;
 	}
 }
 
@@ -904,10 +907,10 @@ g_item_t g_items[] = {
 	*/
 	{
 		"weapon_shotgun",
-		P_PickupWeapon,
-		P_UseWeapon,
-		P_DropWeapon,
-		P_FireShotgun,
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_ClientFireShotgun,
 		"weapons/common/pickup.wav",
 		"models/weapons/shotgun/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
@@ -924,10 +927,10 @@ g_item_t g_items[] = {
 	*/
 	{
 		"weapon_supershotgun",
-		P_PickupWeapon,
-		P_UseWeapon,
-		P_DropWeapon,
-		P_FireSuperShotgun,
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_ClientFireSuperShotgun,
 		"weapons/common/pickup.wav",
 		"models/weapons/supershotgun/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
@@ -944,10 +947,10 @@ g_item_t g_items[] = {
 	*/
 	{
 		"weapon_machinegun",
-		P_PickupWeapon,
-		P_UseWeapon,
-		P_DropWeapon,
-		P_FireMachinegun,
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_ClientFireMachinegun,
 		"weapons/common/pickup.wav",
 		"models/weapons/machinegun/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
@@ -965,10 +968,10 @@ g_item_t g_items[] = {
 	*/
 	{
 		"weapon_grenadelauncher",
-		P_PickupWeapon,
-		P_UseWeapon,
-		P_DropWeapon,
-		P_FireGrenadeLauncher,
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_ClientFireGrenadeLauncher,
 		"weapons/common/pickup.wav",
 		"models/weapons/grenadelauncher/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
@@ -985,10 +988,10 @@ g_item_t g_items[] = {
 	*/
 	{
 		"weapon_rocketlauncher",
-		P_PickupWeapon,
-		P_UseWeapon,
-		P_DropWeapon,
-		P_FireRocketLauncher,
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_ClientFireRocketLauncher,
 		"weapons/common/pickup.wav",
 		"models/weapons/rocketlauncher/tris.md3",
 		EF_ROTATE | EF_BOB | EF_PULSE,
@@ -1006,10 +1009,10 @@ g_item_t g_items[] = {
 	*/
 	{
 		"weapon_hyperblaster",
-		P_PickupWeapon,
-		P_UseWeapon,
-		P_DropWeapon,
-		P_FireHyperblaster,
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_ClientFireHyperblaster,
 		"weapons/common/pickup.wav",
 		"models/weapons/hyperblaster/tris.md3",
 		EF_ROTATE | EF_BOB | EF_PULSE,
@@ -1026,10 +1029,10 @@ g_item_t g_items[] = {
 	*/
 	{
 		"weapon_lightning",
-		P_PickupWeapon,
-		P_UseWeapon,
-		P_DropWeapon,
-		P_FireLightning,
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_ClientFireLightning,
 		"weapons/common/pickup.wav",
 		"models/weapons/lightning/tris.md3",
 		EF_ROTATE | EF_BOB | EF_PULSE,
@@ -1047,10 +1050,10 @@ g_item_t g_items[] = {
 	*/
 	{
 		"weapon_railgun",
-		P_PickupWeapon,
-		P_UseWeapon,
-		P_DropWeapon,
-		P_FireRailgun,
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_ClientFireRailgun,
 		"weapons/common/pickup.wav",
 		"models/weapons/railgun/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
@@ -1067,10 +1070,10 @@ g_item_t g_items[] = {
 	*/
 	{
 		"weapon_bfg",
-		P_PickupWeapon,
-		P_UseWeapon,
-		P_DropWeapon,
-		P_FireBFG,
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_ClientFireBFG,
 		"weapons/common/pickup.wav",
 		"models/weapons/bfg/tris.md3",
 		EF_ROTATE | EF_BOB | EF_PULSE,

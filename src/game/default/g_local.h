@@ -421,7 +421,7 @@ extern char sql[512];
 #endif
 
 // g_cmds.c
-void P_Command(edict_t *ent);
+void G_ClientCommand(edict_t *ent);
 void G_Score_f(edict_t *ent);
 qboolean G_AddClientToTeam(edict_t *ent, char *team_name);
 
@@ -514,48 +514,45 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir,
 		int speed, int damage, int knockback, float damage_radius);
 
 // p_client.c
-qboolean P_Connect(edict_t *ent, char *user_info);
-void P_UserInfoChanged(edict_t *ent, const char *user_info);
-void P_Disconnect(edict_t *ent);
-void P_Begin(edict_t *ent);
-void P_Respawn(edict_t *ent, qboolean voluntary);
-void P_BeginServerFrame(edict_t *ent);
-void P_Think(edict_t *ent, user_cmd_t *ucmd);
-void P_Pain(edict_t *self, edict_t *other, int damage, int knockback);
-void P_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
-void P_TossQuadDamage(edict_t *self);
-void P_TossFlag(edict_t *self);
-void P_NoAmmoWeaponChange(g_client_t *client);
+qboolean G_ClientConnect(edict_t *ent, char *user_info);
+void G_ClientUserInfoChanged(edict_t *ent, const char *user_info);
+void G_ClientDisconnect(edict_t *ent);
+void G_ClientBegin(edict_t *ent);
+void G_ClientRespawn(edict_t *ent, qboolean voluntary);
+void G_ClientBeginFrame(edict_t *ent);
+void G_ClientThink(edict_t *ent, user_cmd_t *ucmd);
+void G_Pain(edict_t *self, edict_t *other, int damage, int knockback);
+void G_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
+void G_TossQuadDamage(edict_t *self);
+void G_TossFlag(edict_t *self);
+void G_UseBestWeapon(g_client_t *client);
 
-// p_view.c
-void P_EndServerFrame(edict_t *ent);
-void P_EndServerFrames(void);
+// g_view.c
+void G_ClientEndFrame(edict_t *ent);
+void G_EndClientFrames(void);
 
-// p_hud.c
-void P_MoveToIntermission(edict_t *client);
-void P_SetStats(edict_t *ent);
-void P_SetSpectatorStats(edict_t *ent);
-void P_CheckChaseStats(edict_t *ent);
-void P_TeamsScoreboard(edict_t *client);
-void P_Scoreboard(edict_t *client);
+// g_stats.c
+void G_ClientToIntermission(edict_t *client);
+void G_ClientStats(edict_t *ent);
+void G_ClientSpectatorStats(edict_t *ent);
+void G_ClientTeamsScoreboard(edict_t *client);
+void G_ClientScoreboard(edict_t *client);
 
-// p_weapon.c
-void P_ChangeWeapon(edict_t *ent);
-void P_WeaponThink(edict_t *ent);
-qboolean P_PickupWeapon(edict_t *ent, edict_t *other);
-void P_UseWeapon(edict_t *ent, g_item_t *inv);
-void P_DropWeapon(edict_t *ent, g_item_t *inv);
-
-void P_FireShotgun(edict_t *ent);
-void P_FireSuperShotgun(edict_t *ent);
-void P_FireMachinegun(edict_t *ent);
-void P_FireHyperblaster(edict_t *ent);
-void P_FireRocketLauncher(edict_t *ent);
-void P_FireGrenadeLauncher(edict_t *ent);
-void P_FireLightning(edict_t *ent);
-void P_FireRailgun(edict_t *ent);
-void P_FireBFG(edict_t *ent);
-
+// g_weapon.c
+void G_ChangeWeapon(edict_t *ent);
+void G_WeaponThink(edict_t *ent);
+qboolean G_PickupWeapon(edict_t *ent, edict_t *other);
+void G_UseWeapon(edict_t *ent, g_item_t *inv);
+void G_DropWeapon(edict_t *ent, g_item_t *inv);
+void G_ClientFireShotgun(edict_t *ent);
+void G_ClientFireSuperShotgun(edict_t *ent);
+void G_ClientFireMachinegun(edict_t *ent);
+void G_ClientFireHyperblaster(edict_t *ent);
+void G_ClientFireRocketLauncher(edict_t *ent);
+void G_ClientFireGrenadeLauncher(edict_t *ent);
+void G_ClientFireLightning(edict_t *ent);
+void G_ClientFireRailgun(edict_t *ent);
+void G_ClientFireBFG(edict_t *ent);
 
 // g_phys.c
 void G_RunEntity(edict_t *ent);
@@ -566,16 +563,16 @@ void G_Shutdown(void);
 void G_ResetTeams(void);
 void G_ResetVote(void);
 
-// p_chase.c
-void P_UpdateChaseCam(edict_t *ent);
-void P_ChaseNext(edict_t *ent);
-void P_ChasePrev(edict_t *ent);
-void P_GetChaseTarget(edict_t *ent);
+// g_chase.c
+void G_UpdateChaseCam(edict_t *ent);
+void G_ChaseNext(edict_t *ent);
+void G_ChasePrev(edict_t *ent);
+void G_GetChaseTarget(edict_t *ent);
 
 // g_spawn.c
 void G_SpawnEntities(const char *name, const char *entities);
 
-// g_func.c
+// g_entity_func.c
 void G_func_plat(edict_t *ent);
 void G_func_rotating(edict_t *ent);
 void G_func_button(edict_t *ent);
@@ -591,14 +588,26 @@ void G_func_timer(edict_t *self);
 void G_func_areaportal(edict_t *ent);
 void G_func_killbox(edict_t *ent);
 
-// p_client.c
+// g_entity_info.c
+void G_info_null(edict_t *self);
+void G_info_notnull(edict_t *self);
 void G_info_player_start(edict_t *ent);
 void G_info_player_deathmatch(edict_t *ent);
 void G_info_player_team1(edict_t *ent);
 void G_info_player_team2(edict_t *ent);
 void G_info_player_intermission(edict_t *ent);
 
-// g_trigger.c
+// g_entity_misc.c
+void G_misc_teleporter(edict_t *self);
+void G_misc_teleporter_dest(edict_t *self);
+
+// g_entity_target.c
+void G_target_speaker(edict_t *ent);
+void G_target_explosion(edict_t *ent);
+void G_target_splash(edict_t *ent);
+void G_target_string(edict_t *ent);
+
+// g_entity_trigger.c
 void G_trigger_always(edict_t *ent);
 void G_trigger_once(edict_t *ent);
 void G_trigger_multiple(edict_t *ent);
@@ -606,16 +615,6 @@ void G_trigger_relay(edict_t *ent);
 void G_trigger_push(edict_t *ent);
 void G_trigger_hurt(edict_t *ent);
 void G_trigger_exec(edict_t *ent);
-
-// g_misc.c
-void G_info_null(edict_t *self);
-void G_info_notnull(edict_t *self);
-void G_misc_teleporter(edict_t *self);
-void G_misc_teleporter_dest(edict_t *self);
-void G_target_speaker(edict_t *ent);
-void G_target_explosion(edict_t *ent);
-void G_target_splash(edict_t *ent);
-void G_target_string(edict_t *ent);
 
 #define MAX_NET_NAME 64
 

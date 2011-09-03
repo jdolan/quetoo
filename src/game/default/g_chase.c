@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-void P_UpdateChaseCam(edict_t *ent){
+void G_UpdateChaseCam(edict_t *ent){
 	const edict_t *targ;
 
 	targ = ent->client->chase_target;
@@ -47,9 +47,9 @@ void P_UpdateChaseCam(edict_t *ent){
 
 
 /*
- * P_ChaseNext
+ * G_ChaseNext
  */
-void P_ChaseNext(edict_t *ent){
+void G_ChaseNext(edict_t *ent){
 	int i;
 	edict_t *e;
 
@@ -78,9 +78,9 @@ void P_ChaseNext(edict_t *ent){
 
 
 /*
- * P_ChasePrev
+ * G_ChasePrev
  */
-void P_ChasePrev(edict_t *ent){
+void G_ChasePrev(edict_t *ent){
 	int i;
 	edict_t *e;
 
@@ -109,9 +109,9 @@ void P_ChasePrev(edict_t *ent){
 
 
 /*
- * P_GetChaseTarget
+ * G_GetChaseTarget
  */
-void P_GetChaseTarget(edict_t *ent){
+void G_GetChaseTarget(edict_t *ent){
 	int i;
 	edict_t *other;
 
@@ -119,7 +119,7 @@ void P_GetChaseTarget(edict_t *ent){
 		other = g_game.edicts + i;
 		if(other->in_use && !other->client->locals.spectator){
 			ent->client->chase_target = other;
-			P_UpdateChaseCam(ent);
+			G_UpdateChaseCam(ent);
 			return;
 		}
 	}

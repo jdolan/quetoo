@@ -226,7 +226,7 @@ static void G_RestartGame(qboolean teamz){
 			}
 		}
 
-		P_Respawn(ent, false);
+		G_ClientRespawn(ent, false);
 	}
 
 	G_ResetItems();
@@ -274,7 +274,7 @@ static void G_BeginIntermission(const char *map){
 			continue;
 
 		if(client->health <= 0)
-			P_Respawn(client, false);
+			G_ClientRespawn(client, false);
 	}
 
 	// find an intermission spot
@@ -296,7 +296,7 @@ static void G_BeginIntermission(const char *map){
 		if(!client->in_use)
 			continue;
 
-		P_MoveToIntermission(client);
+		G_ClientToIntermission(client);
 	}
 
 	// play a dramatic sound effect
@@ -482,7 +482,7 @@ static void G_CheckRoundLimit(){
 		else  // just rejoin the game
 			cl->locals.spectator = false;
 
-		P_Respawn(ent, false);
+		G_ClientRespawn(ent, false);
 	}
 }
 
@@ -655,7 +655,7 @@ static void G_CheckRules(void){
 		for(i = 0; i < sv_max_clients->integer; i++){
 			if(!g_game.edicts[i + 1].in_use)
 				continue;
-			P_Respawn(&g_game.edicts[i + 1], false);
+			G_ClientRespawn(&g_game.edicts[i + 1], false);
 		}
 
 		gi.Sound(&g_game.edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
@@ -669,7 +669,7 @@ static void G_CheckRules(void){
 		for(i = 0; i < sv_max_clients->integer; i++){
 			if(!g_game.edicts[i + 1].in_use)
 				continue;
-			P_Respawn(&g_game.edicts[i + 1], false);
+			G_ClientRespawn(&g_game.edicts[i + 1], false);
 		}
 
 		gi.Sound(&g_game.edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
@@ -860,7 +860,7 @@ static void G_ExitLevel(void){
 	g_level.changemap = NULL;
 	g_level.intermission_time = 0;
 
-	P_EndServerFrames();
+	G_EndClientFrames();
 }
 
 
@@ -908,13 +908,10 @@ static void G_Frame(void){
 				ent->ground_entity = NULL;
 		}
 
-		// update clients
-		if(i > 0 && i <= sv_max_clients->integer){
-			P_BeginServerFrame(ent);
-			continue;
-		}
-
-		G_RunEntity(ent);
+		if(i > 0 && i <= sv_max_clients->integer)
+			G_ClientBeginFrame(ent);
+		else
+			G_RunEntity(ent);
 	}
 
 	// see if a vote has passed
@@ -932,8 +929,8 @@ static void G_Frame(void){
 	// see if an arena round should end
 	G_CheckRoundEnd();
 
-	// build the playerstate_t structures for all players
-	P_EndServerFrames();
+	// build the player_state_t structures for all players
+	G_EndClientFrames();
 }
 
 
@@ -1272,12 +1269,12 @@ g_export_t *G_LoadGame(g_import_t *import){
 	ge.Shutdown = G_Shutdown;
 	ge.SpawnEntities = G_SpawnEntities;
 
-	ge.ClientThink = P_Think;
-	ge.ClientConnect = P_Connect;
-	ge.ClientUserInfoChanged = P_UserInfoChanged;
-	ge.ClientDisconnect = P_Disconnect;
-	ge.ClientBegin = P_Begin;
-	ge.ClientCommand = P_Command;
+	ge.ClientThink = G_ClientThink;
+	ge.ClientConnect = G_ClientConnect;
+	ge.ClientUserInfoChanged = G_ClientUserInfoChanged;
+	ge.ClientDisconnect = G_ClientDisconnect;
+	ge.ClientBegin = G_ClientBegin;
+	ge.ClientCommand = G_ClientCommand;
 
 	ge.Frame = G_Frame;
 

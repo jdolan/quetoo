@@ -21,6 +21,23 @@
 
 #include "g_local.h"
 
+static void G_func_areaportal_use(edict_t *ent, edict_t *other, edict_t *activator){
+	ent->count ^= 1;  // toggle state
+	gi.SetAreaPortalState(ent->style, ent->count);
+}
+
+/*QUAKED func_areaportal(0 0 0) ?
+
+This is a non-visible object that divides the world into
+areas that are seperated when this portal is not activated.
+Usually enclosed in the middle of a door.
+*/
+void G_func_areaportal(edict_t *ent){
+	ent->use = G_func_areaportal_use;
+	ent->count = 0;  // always start closed;
+}
+
+
 /*
  * PLATS
  *
@@ -67,41 +84,41 @@
 
 // Support routines for movement (changes in origin using velocity)
 
-static void Move_Done(edict_t *ent){
+static void G_func_move_done(edict_t *ent){
 	VectorClear(ent->velocity);
 	ent->move_info.done(ent);
 }
 
-static void Move_Final(edict_t *ent){
+static void G_func_move_last(edict_t *ent){
 
 	if(ent->move_info.remaining_distance == 0){
-		Move_Done(ent);
+		G_func_move_done(ent);
 		return;
 	}
 
 	VectorScale(ent->move_info.dir, ent->move_info.remaining_distance / gi.server_frame, ent->velocity);
 
-	ent->think = Move_Done;
+	ent->think = G_func_move_done;
 	ent->next_think = g_level.time + gi.server_frame;
 }
 
-static void Move_Begin(edict_t *ent){
+static void G_func_move_begin(edict_t *ent){
 	float frames;
 
 	if((ent->move_info.speed * gi.server_frame) >= ent->move_info.remaining_distance){
-		Move_Final(ent);
+		G_func_move_last(ent);
 		return;
 	}
 	VectorScale(ent->move_info.dir, ent->move_info.speed, ent->velocity);
 	frames = floor((ent->move_info.remaining_distance / ent->move_info.speed) / gi.server_frame);
 	ent->move_info.remaining_distance -= frames * ent->move_info.speed * gi.server_frame;
 	ent->next_think = g_level.time + (frames * gi.server_frame);
-	ent->think = Move_Final;
+	ent->think = G_func_move_last;
 }
 
 static void Think_AccelMove(edict_t *ent);
 
-static void Move_Calc(edict_t *ent, vec3_t dest, void(*done)(edict_t*)){
+static void G_func_move_calc(edict_t *ent, vec3_t dest, void(*done)(edict_t*)){
 
 	VectorClear(ent->velocity);
 	VectorSubtract(dest, ent->s.origin, ent->move_info.dir);
@@ -110,10 +127,10 @@ static void Move_Calc(edict_t *ent, vec3_t dest, void(*done)(edict_t*)){
 
 	if(ent->move_info.speed == ent->move_info.accel && ent->move_info.speed == ent->move_info.decel){
 		if(g_level.current_entity == ((ent->flags & FL_TEAMSLAVE) ? ent->team_master : ent)){
-			Move_Begin(ent);
+			G_func_move_begin(ent);
 		} else {
 			ent->next_think = g_level.time + gi.server_frame;
-			ent->think = Move_Begin;
+			ent->think = G_func_move_begin;
 		}
 	} else {
 		// accelerative
@@ -306,7 +323,7 @@ static void Think_AccelMove(edict_t *ent){
 
 	// will the entire move complete on next frame?
 	if(ent->move_info.remaining_distance <= ent->move_info.current_speed){
-		Move_Final(ent);
+		G_func_move_last(ent);
 		return;
 	}
 
@@ -346,7 +363,7 @@ static void plat_go_down(edict_t *ent){
 		ent->s.sound = ent->move_info.sound_middle;
 	}
 	ent->move_info.state = STATE_DOWN;
-	Move_Calc(ent, ent->move_info.end_origin, plat_hit_bottom);
+	G_func_move_calc(ent, ent->move_info.end_origin, plat_hit_bottom);
 }
 
 static void plat_go_up(edict_t *ent){
@@ -356,7 +373,7 @@ static void plat_go_up(edict_t *ent){
 		ent->s.sound = ent->move_info.sound_middle;
 	}
 	ent->move_info.state = STATE_UP;
-	Move_Calc(ent, ent->move_info.start_origin, plat_hit_top);
+	G_func_move_calc(ent, ent->move_info.start_origin, plat_hit_top);
 }
 
 static void plat_blocked(edict_t *self, edict_t *other){
@@ -620,7 +637,7 @@ static void button_done(edict_t *self){
 static void button_return(edict_t *self){
 	self->move_info.state = STATE_DOWN;
 
-	Move_Calc(self, self->move_info.start_origin, button_done);
+	G_func_move_calc(self, self->move_info.start_origin, button_done);
 
 	if(self->health)
 		self->take_damage = true;
@@ -644,7 +661,7 @@ static void button_fire(edict_t *self){
 	self->move_info.state = STATE_UP;
 	if(self->move_info.sound_start && !(self->flags & FL_TEAMSLAVE))
 		  gi.Sound(self, self->move_info.sound_start, ATTN_IDLE);
-	Move_Calc(self, self->move_info.end_origin, button_wait);
+	G_func_move_calc(self, self->move_info.end_origin, button_wait);
 }
 
 static void button_use(edict_t *self, edict_t *other, edict_t *activator){
@@ -805,7 +822,7 @@ static void func_door_go_down(edict_t *self){
 
 	self->move_info.state = STATE_DOWN;
 	if(strcmp(self->class_name, "func_door") == 0)
-		Move_Calc(self, self->move_info.start_origin, func_door_hit_bottom);
+		G_func_move_calc(self, self->move_info.start_origin, func_door_hit_bottom);
 	else if(strcmp(self->class_name, "func_door_rotating") == 0)
 		AngleMove_Calc(self, func_door_hit_bottom);
 }
@@ -827,7 +844,7 @@ static void func_door_go_up(edict_t *self, edict_t *activator){
 	}
 	self->move_info.state = STATE_UP;
 	if(strcmp(self->class_name, "func_door") == 0)
-		Move_Calc(self, self->move_info.end_origin, func_door_hit_top);
+		G_func_move_calc(self, self->move_info.end_origin, func_door_hit_top);
 	else if(strcmp(self->class_name, "func_door_rotating") == 0)
 		AngleMove_Calc(self, func_door_hit_top);
 
@@ -1200,6 +1217,131 @@ void G_func_door_rotating(edict_t *ent){
 }
 
 
+/*QUAKED func_object(0 .5 .8) ? TRIGGER_SPAWN
+This is solid bmodel that will fall if it's support it removed.
+*/
+
+static void G_func_object_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+	// only squash thing we fall on top of
+	if(!plane)
+		return;
+	if(plane->normal[2] < 1.0)
+		return;
+	if(!other->take_damage)
+		return;
+	G_Damage(other, self, self, vec3_origin, self->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
+}
+
+static void G_func_object_release(edict_t *self){
+	self->move_type = MOVE_TYPE_TOSS;
+	self->touch = G_func_object_touch;
+}
+
+static void G_func_object_use(edict_t *self, edict_t *other, edict_t *activator){
+	self->solid = SOLID_BSP;
+	self->sv_flags &= ~SVF_NOCLIENT;
+	self->use = NULL;
+	G_KillBox(self);
+	G_func_object_release(self);
+}
+
+void G_func_object(edict_t *self){
+	gi.SetModel(self, self->model);
+
+	self->mins[0] += 1;
+	self->mins[1] += 1;
+	self->mins[2] += 1;
+	self->maxs[0] -= 1;
+	self->maxs[1] -= 1;
+	self->maxs[2] -= 1;
+
+	if(!self->dmg)
+		self->dmg = 100;
+
+	if(self->spawn_flags == 0){
+		self->solid = SOLID_BSP;
+		self->move_type = MOVE_TYPE_PUSH;
+		self->think = G_func_object_release;
+		self->next_think = g_level.time + 2 * gi.server_frame;
+	} else {
+		self->solid = SOLID_NOT;
+		self->move_type = MOVE_TYPE_PUSH;
+		self->use = G_func_object_use;
+		self->sv_flags |= SVF_NOCLIENT;
+	}
+
+	self->clip_mask = MASK_PLAYERSOLID;
+
+	gi.LinkEntity(self);
+}
+
+
+/*QUAKED func_wall(0 .5 .8) ? TRIGGER_SPAWN TOGGLE START_ON
+This is just a solid wall if not inhibited
+
+TRIGGER_SPAWN	the wall will not be present until triggered
+				it will then blink in to existence; it will
+				kill anything that was in it's way
+
+TOGGLE			only valid for TRIGGER_SPAWN walls
+				this allows the wall to be turned on and off
+
+START_ON		only valid for TRIGGER_SPAWN walls
+				the wall will initially be present
+*/
+
+static void G_func_wall_use(edict_t *self, edict_t *other, edict_t *activator){
+	if(self->solid == SOLID_NOT){
+		self->solid = SOLID_BSP;
+		self->sv_flags &= ~SVF_NOCLIENT;
+		G_KillBox(self);
+	} else {
+		self->solid = SOLID_NOT;
+		self->sv_flags |= SVF_NOCLIENT;
+	}
+	gi.LinkEntity(self);
+
+	if(!(self->spawn_flags & 2))
+		self->use = NULL;
+}
+
+void G_func_wall(edict_t *self){
+	self->move_type = MOVE_TYPE_PUSH;
+	gi.SetModel(self, self->model);
+
+	// just a wall
+	if((self->spawn_flags & 7) == 0){
+		self->solid = SOLID_BSP;
+		gi.LinkEntity(self);
+		return;
+	}
+
+	// it must be TRIGGER_SPAWN
+	if(!(self->spawn_flags & 1)){
+		gi.Debug("func_wall missing TRIGGER_SPAWN\n");
+		self->spawn_flags |= 1;
+	}
+
+	// yell if the spawnflags are odd
+	if(self->spawn_flags & 4){
+		if(!(self->spawn_flags & 2)){
+			gi.Debug("func_wall START_ON without TOGGLE\n");
+			self->spawn_flags |= 2;
+		}
+	}
+
+	self->use = G_func_wall_use;
+
+	if(self->spawn_flags & 4){
+		self->solid = SOLID_BSP;
+	} else {
+		self->solid = SOLID_NOT;
+		self->sv_flags |= SVF_NOCLIENT;
+	}
+	gi.LinkEntity(self);
+}
+
+
 /*QUAKED func_water(0 .5 .8) ? START_OPEN
 func_water is a moveable water brush.  It must be targeted to operate.  Use a non-water texture at your own risk.
 
@@ -1374,7 +1516,7 @@ again:
 	self->move_info.state = STATE_TOP;
 	VectorCopy(self->s.origin, self->move_info.start_origin);
 	VectorCopy(dest, self->move_info.end_origin);
-	Move_Calc(self, dest, func_train_wait);
+	G_func_move_calc(self, dest, func_train_wait);
 	self->spawn_flags |= TRAIN_START_ON;
 }
 
@@ -1388,7 +1530,7 @@ static void func_train_resume(edict_t *self){
 	self->move_info.state = STATE_TOP;
 	VectorCopy(self->s.origin, self->move_info.start_origin);
 	VectorCopy(dest, self->move_info.end_origin);
-	Move_Calc(self, dest, func_train_wait);
+	G_func_move_calc(self, dest, func_train_wait);
 	self->spawn_flags |= TRAIN_START_ON;
 }
 
@@ -1597,7 +1739,7 @@ static void func_door_secret_use(edict_t *self, edict_t *other, edict_t *activat
 	if(!VectorCompare(self->s.origin, vec3_origin))
 		return;
 
-	Move_Calc(self, self->pos1, func_door_secret_move1);
+	G_func_move_calc(self, self->pos1, func_door_secret_move1);
 	func_door_use_areaportals(self, true);
 }
 
@@ -1607,7 +1749,7 @@ static void func_door_secret_move1(edict_t *self){
 }
 
 static void func_door_secret_move2(edict_t *self){
-	Move_Calc(self, self->pos2, func_door_secret_move3);
+	G_func_move_calc(self, self->pos2, func_door_secret_move3);
 }
 
 static void func_door_secret_move3(edict_t *self){
@@ -1618,7 +1760,7 @@ static void func_door_secret_move3(edict_t *self){
 }
 
 static void func_door_secret_move4(edict_t *self){
-	Move_Calc(self, self->pos1, func_door_secret_move5);
+	G_func_move_calc(self, self->pos1, func_door_secret_move5);
 }
 
 static void func_door_secret_move5(edict_t *self){
@@ -1627,7 +1769,7 @@ static void func_door_secret_move5(edict_t *self){
 }
 
 static void func_door_secret_move6(edict_t *self){
-	Move_Calc(self, vec3_origin, func_door_secret_done);
+	G_func_move_calc(self, vec3_origin, func_door_secret_done);
 }
 
 static void func_door_secret_done(edict_t *self){

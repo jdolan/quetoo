@@ -23,9 +23,9 @@
 
 
 /*
- * P_MoveToIntermission
+ * G_ClientToIntermission
  */
-void P_MoveToIntermission(edict_t *ent){
+void G_ClientToIntermission(edict_t *ent){
 	VectorCopy(g_level.intermission_origin, ent->s.origin);
 	ent->client->ps.pmove.origin[0] = g_level.intermission_origin[0] * 8;
 	ent->client->ps.pmove.origin[1] = g_level.intermission_origin[1] * 8;
@@ -54,21 +54,21 @@ void P_MoveToIntermission(edict_t *ent){
 
 	// add the layout
 	if(g_level.teams || g_level.ctf)
-		P_TeamsScoreboard(ent);
+		G_ClientTeamsScoreboard(ent);
 	else
-		P_Scoreboard(ent);
+		G_ClientScoreboard(ent);
 
 	gi.Unicast(ent, true);
 }
 
 
 /*
- * P_ColoredName
+ * G_ColoredName
  *
  * Copies src to dest, padding it to the specified maximum length.
  * Color escape sequences do not contribute to length.
  */
-static void P_ColoredName(char *dst, const char *src, int maxlen, int max_size){
+static void G_ColoredName(char *dst, const char *src, int max_len, int max_size){
 	int c, l;
 	const char *s;
 
@@ -92,7 +92,7 @@ static void P_ColoredName(char *dst, const char *src, int maxlen, int max_size){
 		}
 	}
 
-	while(l < maxlen){  // pad with spaces
+	while(l < max_len){  // pad with spaces
 		dst[c++] = ' ';
 		l++;
 	}
@@ -102,9 +102,9 @@ static void P_ColoredName(char *dst, const char *src, int maxlen, int max_size){
 
 
 /*
- * P_TeamsScoreboard
+ * G_ClientTeamsScoreboard
  */
-void P_TeamsScoreboard(edict_t *ent){
+void G_ClientTeamsScoreboard(edict_t *ent){
 	char entry[512];
 	char string[1300];
 	char net_name[MAX_NET_NAME];
@@ -182,7 +182,7 @@ void P_TeamsScoreboard(edict_t *ent){
 
 		minutes = (g_level.frame_num - cl->locals.first_frame) / gi.frame_rate / 60;
 
-		P_ColoredName(net_name, cl->locals.net_name, 16, MAX_NET_NAME);
+		G_ColoredName(net_name, cl->locals.net_name, 16, MAX_NET_NAME);
 
 		if(!cl->locals.team){  // spectators
 			// name[ping]
@@ -231,8 +231,8 @@ void P_TeamsScoreboard(edict_t *ent){
 		evil_name[15] = 0;
 
 	// headers, team names, and team scores
-	P_ColoredName(net_name, good_name, 16, MAX_NET_NAME);
-	P_ColoredName(net_name2, evil_name, 16, MAX_NET_NAME);
+	G_ColoredName(net_name, good_name, 16, MAX_NET_NAME);
+	G_ColoredName(net_name2, evil_name, 16, MAX_NET_NAME);
 
 	if(g_level.ctf){
 		snprintf(entry, sizeof(entry),
@@ -265,9 +265,9 @@ void P_TeamsScoreboard(edict_t *ent){
 
 
 /*
- * P_Scoreboard
+ * G_ClientScoreboard
  */
-void P_Scoreboard(edict_t *ent){
+void G_ClientScoreboard(edict_t *ent){
 	char entry[512];
 	char string[1300];
 	char net_name[MAX_NET_NAME];
@@ -327,7 +327,7 @@ void P_Scoreboard(edict_t *ent){
 
 		minutes = (g_level.frame_num - cl->locals.first_frame) / gi.frame_rate / 60;
 
-		P_ColoredName(net_name, cl->locals.net_name, 16, MAX_NET_NAME);
+		G_ColoredName(net_name, cl->locals.net_name, 16, MAX_NET_NAME);
 
 		if(cl->locals.spectator){  // spectators
 			// name[ping]
@@ -358,9 +358,9 @@ void P_Scoreboard(edict_t *ent){
 
 
 /*
- * P_SetStats
+ * G_ClientStats
  */
-void P_SetStats(edict_t *ent){
+void G_ClientStats(edict_t *ent){
 	g_item_t *item;
 
 	// health
@@ -447,33 +447,13 @@ void P_SetStats(edict_t *ent){
 
 
 /*
- * P_CheckChaseStats
+ * G_ClientSpectatorStats
  */
-void P_CheckChaseStats(edict_t *ent){
-	int i;
-	g_client_t *cl;
-
-	for(i = 1; i <= sv_max_clients->integer; i++){
-
-		cl = g_game.edicts[i].client;
-
-		if(!g_game.edicts[i].in_use || cl->chase_target != ent)
-			continue;
-
-		memcpy(cl->ps.stats, ent->client->ps.stats, sizeof(cl->ps.stats));
-		P_SetSpectatorStats(g_game.edicts + i);
-	}
-}
-
-
-/*
- * P_SetSpectatorStats
- */
-void P_SetSpectatorStats(edict_t *ent){
+void G_ClientSpectatorStats(edict_t *ent){
 	g_client_t *cl = ent->client;
 
 	if(!cl->chase_target){
-		P_SetStats(ent);
+		G_ClientStats(ent);
 		cl->ps.stats[STAT_SPECTATOR] = 1;
 	}
 
@@ -483,8 +463,10 @@ void P_SetSpectatorStats(edict_t *ent){
 	if(cl->locals.health <= 0 || g_level.intermission_time || cl->show_scores)
 		cl->ps.stats[STAT_LAYOUTS] |= 1;
 
-	if(cl->chase_target && cl->chase_target->in_use)
+	if(cl->chase_target && cl->chase_target->in_use){
 		cl->ps.stats[STAT_CHASE] = CS_PLAYER_SKINS + (cl->chase_target - g_game.edicts) - 1;
+		memcpy(cl->ps.stats, cl->chase_target->client->ps.stats, sizeof(cl->ps.stats));
+	}
 	else
 		cl->ps.stats[STAT_CHASE] = 0;
 }

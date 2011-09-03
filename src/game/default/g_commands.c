@@ -263,7 +263,7 @@ static void G_WeaponPrevious_f(edict_t *ent){
 	if(cl->locals.spectator){
 
 		if(cl->chase_target)  // chase the previous player
-			P_ChasePrev(ent);
+			G_ChasePrev(ent);
 
 		return;
 	}
@@ -303,7 +303,7 @@ static void G_WeaponNext_f(edict_t *ent){
 	if(cl->locals.spectator){
 
 		if(cl->chase_target)  // chase the next player
-			P_ChaseNext(ent);
+			G_ChaseNext(ent);
 
 		return;
 	}
@@ -374,7 +374,7 @@ static void G_Kill_f(edict_t *ent){
 
 	means_of_death = MOD_SUICIDE;
 
-	P_Die(ent, ent, ent, 100000, vec3_origin);
+	G_Die(ent, ent, ent, 100000, vec3_origin);
 }
 
 
@@ -735,15 +735,15 @@ qboolean G_AddClientToTeam(edict_t *ent, char *team_name){
 		return false;
 
 	if(!ent->client->locals.spectator){  // changing teams
-		P_TossQuadDamage(ent);
-		P_TossFlag(ent);
+		G_TossQuadDamage(ent);
+		G_TossFlag(ent);
 	}
 
 	ent->client->locals.team = team;
 	ent->client->locals.spectator = false;
 	ent->client->locals.ready = false;
 
-	P_UserInfoChanged(ent, ent->client->locals.user_info);
+	G_ClientUserInfoChanged(ent, ent->client->locals.user_info);
 	return true;
 }
 
@@ -771,7 +771,7 @@ static void G_AddClientToRound(edict_t *ent){
 		ent->client->locals.spectator = false;
 	}
 
-	P_Respawn(ent, true);
+	G_ClientRespawn(ent, true);
 	ent->client->locals.score = score;  // lastly restore score
 }
 
@@ -800,7 +800,7 @@ static void G_Team_f(edict_t *ent){
 	if(!G_AddClientToTeam(ent, gi.Argv(1)))
 		return;
 
-	P_Respawn(ent, true);
+	G_ClientRespawn(ent, true);
 }
 
 
@@ -1040,12 +1040,12 @@ static void G_Spectate_f(edict_t *ent){
 		}
 	}
 	else {  // they wish to spectate
-		P_TossQuadDamage(ent);
-		P_TossFlag(ent);
+		G_TossQuadDamage(ent);
+		G_TossFlag(ent);
 	}
 
 	ent->client->locals.spectator = !spectator;
-	P_Respawn(ent, true);
+	G_ClientRespawn(ent, true);
 }
 
 
@@ -1062,17 +1062,17 @@ void G_Score_f(edict_t *ent){
 	ent->client->show_scores = true;
 
 	if(g_level.teams || g_level.ctf)
-		P_TeamsScoreboard(ent);
-	else P_Scoreboard(ent);
+		G_ClientTeamsScoreboard(ent);
+	else G_ClientScoreboard(ent);
 
 	gi.Unicast(ent, true);
 }
 
 
 /*
- * P_Command
+ * G_Command
  */
-void P_Command(edict_t *ent){
+void G_ClientCommand(edict_t *ent){
 	char *cmd;
 
 	if(!ent->client)

@@ -26,11 +26,11 @@ static g_client_t *current_client;
 
 
 /*
- * P_DamageFeedback
+ * G_ClientDamage
  *
- * Play pain sounds.
+ * TODO: Move this to G_Pain?
  */
-static void P_DamageFeedback(edict_t *player){
+static void G_ClientDamage(edict_t *player){
 	g_client_t *client;
 	int l;
 
@@ -60,9 +60,9 @@ static void P_DamageFeedback(edict_t *player){
 
 
 /*
- * P_FallingDamage
+ * G_ClientFall
  */
-static void P_FallingDamage(edict_t *ent){
+static void G_ClientFall(edict_t *ent){
 	float v, ov, delta;
 	int damage, event;
 	vec3_t dir;
@@ -127,9 +127,9 @@ static void P_FallingDamage(edict_t *ent){
 
 
 /*
- * P_WorldEffects
+ * G_ClientWaterLevel
  */
-static void P_WorldEffects(void){
+static void G_ClientWaterLevel(void){
 	int water_level, old_water_level;
 
 	if(current_player->move_type == MOVE_TYPE_NO_CLIP){
@@ -161,12 +161,12 @@ static void P_WorldEffects(void){
 	if(water_level != 3){  // take some air, push out drown time
 		current_player->drown_time = g_level.time + 12.0;
 	}
-	else {  // we're underwater
+	else {  // we're under water
 		if(current_player->drown_time < g_level.time){  // drown
 			if(current_client->drown_time < g_level.time && current_player->health > 0){
 				current_client->drown_time = g_level.time + 1.0;
 
-				// take more damage the longer underwater
+				// take more damage the longer under water
 				current_player->dmg += 2;
 				if(current_player->dmg > 15)
 					current_player->dmg = 15;
@@ -206,11 +206,11 @@ static void P_WorldEffects(void){
 
 
 /*
- * P_EndServerFrame
+ * G_ClientEndFrame
  *
- * Called for each player at the end of the server frame and right after spawning
+ * Called for each client at the end of the server frame.
  */
-void P_EndServerFrame(edict_t *ent){
+void G_ClientEndFrame(edict_t *ent){
 	vec3_t forward, right, up;
 	float dot, xyspeed;
 	int i;
@@ -218,7 +218,7 @@ void P_EndServerFrame(edict_t *ent){
 	current_player = ent;
 	current_client = ent->client;
 
-	// If the origin or velocity have changed since P_Think(),
+	// If the origin or velocity have changed since G_Think(),
 	// update the pmove values.  This will happen when the client
 	// is pushed by a bmodel or kicked by an explosion.
 	//
@@ -232,12 +232,12 @@ void P_EndServerFrame(edict_t *ent){
 	// If the end of unit layout is displayed, don't give
 	// the player any normal movement attributes
 	if(g_level.intermission_time){
-		P_SetStats(ent);
+		G_ClientStats(ent);
 		return;
 	}
 
-	// burn from lava, slime, etc
-	P_WorldEffects();
+	// check for water entry / exit, burn from lava, slime, etc
+	G_ClientWaterLevel();
 
 	// set model angles from view angles so other things in
 	// the world can tell which direction you are looking
@@ -269,18 +269,16 @@ void P_EndServerFrame(edict_t *ent){
 	}
 
 	// detect hitting the floor
-	P_FallingDamage(ent);
+	G_ClientFall(ent);
 
 	// apply all the damage taken this frame
-	P_DamageFeedback(ent);
+	G_ClientDamage(ent);
 
-	// chase cam stuff
+	// set the stats for this client
 	if(ent->client->locals.spectator)
-		P_SetSpectatorStats(ent);
+		G_ClientSpectatorStats(ent);
 	else
-		P_SetStats(ent);
-
-	P_CheckChaseStats(ent);
+		G_ClientStats(ent);
 
 	VectorCopy(ent->velocity, ent->client->old_velocity);
 	VectorCopy(ent->client->ps.angles, ent->client->old_angles);
@@ -288,18 +286,18 @@ void P_EndServerFrame(edict_t *ent){
 	// if the scoreboard is up, update it
 	if(ent->client->show_scores && !(g_level.frame_num % gi.frame_rate)){
 		if(g_level.teams || g_level.ctf)
-			P_TeamsScoreboard(ent);
+			G_ClientTeamsScoreboard(ent);
 		else
-			P_Scoreboard(ent);
+			G_ClientScoreboard(ent);
 		gi.Unicast(ent, false);
 	}
 }
 
 
 /*
- * P_EndServerFrames
+ * G_EndClientFrames
  */
-void P_EndServerFrames(void){
+void G_EndClientFrames(void){
 	int i;
 	edict_t *ent;
 
@@ -311,6 +309,6 @@ void P_EndServerFrames(void){
 		if(!ent->in_use || !ent->client)
 			continue;
 
-		P_EndServerFrame(ent);
+		G_ClientEndFrame(ent);
 	}
 }

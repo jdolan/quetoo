@@ -23,9 +23,9 @@
 
 
 /*
- * P_PickupWeapon
+ * G_PickupWeapon
  */
-qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
+qboolean G_PickupWeapon(edict_t *ent, edict_t *other){
 	int index, ammoindex;
 	g_item_t *ammo;
 
@@ -61,11 +61,11 @@ qboolean P_PickupWeapon(edict_t *ent, edict_t *other){
 
 
 /*
- * P_ChangeWeapon
+ * G_ChangeWeapon
  *
  * The old weapon has been put away, so make the new one current
  */
-void P_ChangeWeapon(edict_t *ent){
+void G_ChangeWeapon(edict_t *ent){
 
 	// change weapon
 	ent->client->locals.last_weapon = ent->client->locals.weapon;
@@ -96,9 +96,9 @@ void P_ChangeWeapon(edict_t *ent){
 
 
 /*
- * P_NoAmmoWeaponChange
+ * G_UseBestWeapon
  */
-void P_NoAmmoWeaponChange(g_client_t *client){
+void G_UseBestWeapon(g_client_t *client){
 
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("nukes"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("bfg10k"))]){
@@ -143,9 +143,9 @@ void P_NoAmmoWeaponChange(g_client_t *client){
 
 
 /*
- * P_UseWeapon
+ * G_UseWeapon
  */
-void P_UseWeapon(edict_t *ent, g_item_t *item){
+void G_UseWeapon(edict_t *ent, g_item_t *item){
 
 	// see if we're already using it
 	if(item == ent->client->locals.weapon)
@@ -157,9 +157,9 @@ void P_UseWeapon(edict_t *ent, g_item_t *item){
 
 
 /*
- * P_DropWeapon
+ * G_DropWeapon
  */
-void P_DropWeapon(edict_t *ent, g_item_t *item){
+void G_DropWeapon(edict_t *ent, g_item_t *item){
 	int index;
 
 	index = ITEM_INDEX(item);
@@ -177,9 +177,9 @@ void P_DropWeapon(edict_t *ent, g_item_t *item){
 
 
 /*
- * P_FireWeapon
+ * G_FireWeapon
  */
-static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent)){
+static void G_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent)){
 	int n, m;
 	int buttons;
 
@@ -208,7 +208,7 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 			ent->pain_time = g_level.time + 1;
 		}
 
-		P_NoAmmoWeaponChange(ent->client);
+		G_UseBestWeapon(ent->client);
 		return;
 	}
 
@@ -232,9 +232,9 @@ static void P_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 
 
 /*
- * P_WeaponThink
+ * G_WeaponThink
  */
-void P_WeaponThink(edict_t *ent){
+void G_WeaponThink(edict_t *ent){
 
 	if(ent->health < 1)
 		return;
@@ -242,7 +242,7 @@ void P_WeaponThink(edict_t *ent){
 	ent->client->weapon_think_time = g_level.time;
 
 	if(ent->client->new_weapon){
-		P_ChangeWeapon(ent);
+		G_ChangeWeapon(ent);
 		return;
 	}
 
@@ -253,9 +253,9 @@ void P_WeaponThink(edict_t *ent){
 
 
 /*
- * P_FireShotgun
+ * G_FireShotgun
  */
-static void P_FireShotgun_(edict_t *ent){
+static void G_FireShotgun_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
 
@@ -273,15 +273,15 @@ static void P_FireShotgun_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void P_FireShotgun(edict_t *ent){
-	P_FireWeapon(ent, 0.65, P_FireShotgun_);
+void G_ClientFireShotgun(edict_t *ent){
+	G_FireWeapon(ent, 0.65, G_FireShotgun_);
 }
 
 
 /*
- * P_FireSuperShotgun
+ * G_FireSuperShotgun
  */
-static void P_FireSuperShotgun_(edict_t *ent){
+static void G_FireSuperShotgun_(edict_t *ent){
 	vec3_t start;
 	vec3_t forward, right;
 	vec3_t offset;
@@ -312,15 +312,15 @@ static void P_FireSuperShotgun_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void P_FireSuperShotgun(edict_t *ent){
-	P_FireWeapon(ent, 0.85, P_FireSuperShotgun_);
+void G_ClientFireSuperShotgun(edict_t *ent){
+	G_FireWeapon(ent, 0.85, G_FireSuperShotgun_);
 }
 
 
 /*
- * P_FireMachinegun
+ * G_FireMachinegun
  */
-static void P_FireMachinegun_(edict_t *ent){
+static void G_FireMachinegun_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
 
@@ -339,15 +339,15 @@ static void P_FireMachinegun_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void P_FireMachinegun(edict_t *ent){
-	P_FireWeapon(ent, 0.04, P_FireMachinegun_);
+void G_ClientFireMachinegun(edict_t *ent){
+	G_FireWeapon(ent, 0.04, G_FireMachinegun_);
 }
 
 
 /*
- * P_FireGrenadeLauncher
+ * G_FireGrenadeLauncher
  */
-static void P_FireGrenadeLauncher_(edict_t *ent){
+static void G_FireGrenadeLauncher_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
 
@@ -363,15 +363,15 @@ static void P_FireGrenadeLauncher_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void P_FireGrenadeLauncher(edict_t *ent){
-	P_FireWeapon(ent, 0.6, P_FireGrenadeLauncher_);
+void G_ClientFireGrenadeLauncher(edict_t *ent){
+	G_FireWeapon(ent, 0.6, G_FireGrenadeLauncher_);
 }
 
 
 /*
- * P_FireRocketLauncher
+ * G_FireRocketLauncher
  */
-static void P_FireRocketLauncher_(edict_t *ent){
+static void G_FireRocketLauncher_(edict_t *ent){
 	vec3_t offset, start;
 	vec3_t forward, right;
 
@@ -388,15 +388,15 @@ static void P_FireRocketLauncher_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void P_FireRocketLauncher(edict_t *ent){
-	P_FireWeapon(ent, 0.8, P_FireRocketLauncher_);
+void G_ClientFireRocketLauncher(edict_t *ent){
+	G_FireWeapon(ent, 0.8, G_FireRocketLauncher_);
 }
 
 
 /*
- * P_FireHyperblaster
+ * G_FireHyperblaster
  */
-static void P_FireHyperblaster_(edict_t *ent){
+static void G_FireHyperblaster_(edict_t *ent){
 	vec3_t forward, right;
 	vec3_t offset, start;
 
@@ -413,15 +413,15 @@ static void P_FireHyperblaster_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void P_FireHyperblaster(edict_t *ent){
-	P_FireWeapon(ent, 0.1, P_FireHyperblaster_);
+void G_ClientFireHyperblaster(edict_t *ent){
+	G_FireWeapon(ent, 0.1, G_FireHyperblaster_);
 }
 
 
 /*
- * P_FireLightning
+ * G_FireLightning
  */
-static void P_FireLightning_(edict_t *ent){
+static void G_FireLightning_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
 
@@ -442,15 +442,15 @@ static void P_FireLightning_(edict_t *ent){
 	}
 }
 
-void P_FireLightning(edict_t *ent){
-	P_FireWeapon(ent, 0.1, P_FireLightning_);
+void G_ClientFireLightning(edict_t *ent){
+	G_FireWeapon(ent, 0.1, G_FireLightning_);
 }
 
 
 /*
- * P_FireRailgun
+ * G_FireRailgun
  */
-static void P_FireRailgun_(edict_t *ent){
+static void G_FireRailgun_(edict_t *ent){
 	vec3_t start, offset;
 	vec3_t forward, right;
 
@@ -467,15 +467,15 @@ static void P_FireRailgun_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void P_FireRailgun(edict_t *ent){
-	P_FireWeapon(ent, 1.5, P_FireRailgun_);
+void G_ClientFireRailgun(edict_t *ent){
+	G_FireWeapon(ent, 1.5, G_FireRailgun_);
 }
 
 
 /*
- * P_FireBFG
+ * G_FireBFG
  */
-static void P_FireBFG_(edict_t *ent){
+static void G_FireBFG_(edict_t *ent){
 	vec3_t offset, start;
 	vec3_t forward, right;
 
@@ -492,6 +492,6 @@ static void P_FireBFG_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void P_FireBFG(edict_t *ent){
-	P_FireWeapon(ent, 2.0, P_FireBFG_);
+void G_ClientFireBFG(edict_t *ent){
+	G_FireWeapon(ent, 2.0, G_FireBFG_);
 }

@@ -7,22 +7,23 @@ gamelib_LTLIBRARIES = \
 	game.la
 
 game_la_SOURCES = \
-	g_cmds.c \
+	g_ballistics.c \
+	g_chase.c \
+	g_client.c \
+	g_commands.c \
 	g_combat.c \
-	g_func.c \
+	g_entity_func.c \
+	g_entity_info.c \
+	g_entity_misc.c \
+	g_entity_target.c \
+	g_entity_trigger.c \
 	g_items.c \
 	g_main.c \
-	g_misc.c \
-	g_phys.c \
+	g_physics.c \
 	g_spawn.c \
-	g_target.c \
-	g_trigger.c \
+	g_stats.c \
 	g_utils.c \
-	g_weapon.c \
-	p_chase.c \
-	p_client.c \
-	p_hud.c \
-	p_view.c \
+	g_view.c \
 	p_weapon.c
 
 game_la_CFLAGS = \
