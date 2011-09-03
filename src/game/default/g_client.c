@@ -494,11 +494,11 @@ static void G_InitClientLocals(g_client_t *client){
  */
 static float G_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 	edict_t *player;
-	float dist, bestdist;
+	float dist, best_dist;
 	vec3_t v;
 	int n;
 
-	bestdist = 9999999.0;
+	best_dist = 9999999.0;
 
 	for(n = 1; n <= sv_max_clients->integer; n++){
 		player = &g_game.edicts[n];
@@ -523,11 +523,11 @@ static float G_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 			}
 		}
 
-		if(dist < bestdist)
-			bestdist = dist;
+		if(dist < best_dist)
+			best_dist = dist;
 	}
 
-	return bestdist;
+	return best_dist;
 }
 
 
@@ -559,24 +559,24 @@ static edict_t *G_SelectRandomSpawnPoint(edict_t *ent, const char *class_name){
  * P_SelectFarthestSpawnPoint
  */
 static edict_t *G_SelectFarthestSpawnPoint(edict_t *ent, const char *class_name){
-	edict_t *spot, *bestspot;
-	float dist, bestdist;
+	edict_t *spot, *best_spot;
+	float dist, best_dist;
 
-	spot = bestspot = NULL;
-	bestdist = 0.0;
+	spot = best_spot = NULL;
+	best_dist = 0.0;
 
 	while((spot = G_Find(spot, FOFS(class_name), class_name)) != NULL){
 
 		dist = G_EnemyRangeFromSpot(ent, spot);
 
-		if(dist > bestdist){
-			bestspot = spot;
-			bestdist = dist;
+		if(dist > best_dist){
+			best_spot = spot;
+			best_dist = dist;
 		}
 	}
 
-	if(bestspot)
-		return bestspot;
+	if(best_spot)
+		return best_spot;
 
 	// if there is an enemy just spawned on each and every start spot
 	// we have no choice to turn one into a telefrag meltdown

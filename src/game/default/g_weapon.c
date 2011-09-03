@@ -263,7 +263,7 @@ static void G_FireShotgun_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireShotgun(ent, start, forward, 6, 4, DEFAULT_SHOTGUN_HSPREAD,
+	G_ShotgunProjectiles(ent, start, forward, 6, 4, DEFAULT_SHOTGUN_HSPREAD,
 			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SHOTGUN_COUNT, MOD_SHOTGUN);
 
 	// send muzzle flash
@@ -273,7 +273,7 @@ static void G_FireShotgun_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_ClientFireShotgun(edict_t *ent){
+void G_FireShotgun(edict_t *ent){
 	G_FireWeapon(ent, 0.65, G_FireShotgun_);
 }
 
@@ -296,13 +296,13 @@ static void G_FireSuperShotgun_(edict_t *ent){
 	v[ROLL] = ent->client->angles[ROLL];
 	AngleVectors(v, forward, NULL, NULL);
 
-	G_FireShotgun(ent, start, forward, 4, 4, DEFAULT_SHOTGUN_HSPREAD,
+	G_ShotgunProjectiles(ent, start, forward, 4, 4, DEFAULT_SHOTGUN_HSPREAD,
 			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 
 	v[YAW] = ent->client->angles[YAW] + 5;
 	AngleVectors(v, forward, NULL, NULL);
 
-	G_FireShotgun(ent, start, forward, 4, 4, DEFAULT_SHOTGUN_HSPREAD,
+	G_ShotgunProjectiles(ent, start, forward, 4, 4, DEFAULT_SHOTGUN_HSPREAD,
 			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 
 	// send muzzle flash
@@ -312,7 +312,7 @@ static void G_FireSuperShotgun_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_ClientFireSuperShotgun(edict_t *ent){
+void G_FireSuperShotgun(edict_t *ent){
 	G_FireWeapon(ent, 0.85, G_FireSuperShotgun_);
 }
 
@@ -329,7 +329,7 @@ static void G_FireMachinegun_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireBullet(ent, start, forward, 8, 4, DEFAULT_BULLET_HSPREAD,
+	G_BulletProjectile(ent, start, forward, 8, 4, DEFAULT_BULLET_HSPREAD,
 			DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
 
 	// send muzzle flash
@@ -339,7 +339,7 @@ static void G_FireMachinegun_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_ClientFireMachinegun(edict_t *ent){
+void G_FireMachinegun(edict_t *ent){
 	G_FireWeapon(ent, 0.04, G_FireMachinegun_);
 }
 
@@ -355,7 +355,7 @@ static void G_FireGrenadeLauncher_(edict_t *ent){
 	AngleVectors(ent->client->angles, forward, right, NULL);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireGrenadeLauncher(ent, start, forward, 900, 100, 100, 185.0, 2.0);
+	G_GrenadeProjectile(ent, start, forward, 900, 100, 100, 185.0, 2.0);
 
 	gi.WriteByte(svc_muzzle_flash);
 	gi.WriteShort(ent - g_game.edicts);
@@ -363,7 +363,7 @@ static void G_FireGrenadeLauncher_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_ClientFireGrenadeLauncher(edict_t *ent){
+void G_FireGrenadeLauncher(edict_t *ent){
 	G_FireWeapon(ent, 0.6, G_FireGrenadeLauncher_);
 }
 
@@ -379,7 +379,7 @@ static void G_FireRocketLauncher_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireRocketLauncher(ent, start, forward, 1250, 120, 120, 150.0);
+	G_RocketProjectile(ent, start, forward, 1250, 120, 120, 150.0);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -388,7 +388,7 @@ static void G_FireRocketLauncher_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_ClientFireRocketLauncher(edict_t *ent){
+void G_FireRocketLauncher(edict_t *ent){
 	G_FireWeapon(ent, 0.8, G_FireRocketLauncher_);
 }
 
@@ -404,7 +404,7 @@ static void G_FireHyperblaster_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireHyperblaster(ent, start, forward, 2000, 16, 6);
+	G_HyperblasterProjectile(ent, start, forward, 2000, 16, 6);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -413,7 +413,7 @@ static void G_FireHyperblaster_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_ClientFireHyperblaster(edict_t *ent){
+void G_FireHyperblaster(edict_t *ent){
 	G_FireWeapon(ent, 0.1, G_FireHyperblaster_);
 }
 
@@ -429,7 +429,7 @@ static void G_FireLightning_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireLightning(ent, start, forward, 10, 12);
+	G_LightningProjectile(ent, start, forward, 10, 12);
 
 	// if the client has just begun to attack, send the muzzle flash
 	if(ent->client->muzzle_flash_time < g_level.time){
@@ -442,7 +442,7 @@ static void G_FireLightning_(edict_t *ent){
 	}
 }
 
-void G_ClientFireLightning(edict_t *ent){
+void G_FireLightning(edict_t *ent){
 	G_FireWeapon(ent, 0.1, G_FireLightning_);
 }
 
@@ -458,7 +458,7 @@ static void G_FireRailgun_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireRailgun(ent, start, forward, 120, 80);
+	G_RailgunProjectile(ent, start, forward, 120, 80);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -467,15 +467,15 @@ static void G_FireRailgun_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_ClientFireRailgun(edict_t *ent){
+void G_FireRailgun(edict_t *ent){
 	G_FireWeapon(ent, 1.5, G_FireRailgun_);
 }
 
 
 /*
- * G_FireBFG
+ * G_FireBfg
  */
-static void G_FireBFG_(edict_t *ent){
+static void G_FireBfg_(edict_t *ent){
 	vec3_t offset, start;
 	vec3_t forward, right;
 
@@ -483,7 +483,7 @@ static void G_FireBFG_(edict_t *ent){
 	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
 	G_ProjectSource(ent->s.origin, offset, forward, right, start);
 
-	G_FireBFG(ent, start, forward, 800, 100, 100, 1024.0);
+	G_BfgProjectiles(ent, start, forward, 800, 100, 100, 1024.0);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -492,6 +492,6 @@ static void G_FireBFG_(edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_ClientFireBFG(edict_t *ent){
-	G_FireWeapon(ent, 2.0, G_FireBFG_);
+void G_FireBfg(edict_t *ent){
+	G_FireWeapon(ent, 2.0, G_FireBfg_);
 }

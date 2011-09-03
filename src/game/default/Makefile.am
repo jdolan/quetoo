@@ -24,7 +24,7 @@ game_la_SOURCES = \
 	g_stats.c \
 	g_utils.c \
 	g_view.c \
-	p_weapon.c
+	g_weapon.c
 
 game_la_CFLAGS = \
 	@SO_CFLAGS@ \

@@ -495,25 +495,25 @@ void G_RadiusDamage(edict_t *inflictor, edict_t *attacker, edict_t *ignore,
 #define DEFAULT_SHOTGUN_COUNT	12
 #define DEFAULT_SSHOTGUN_COUNT	24
 
-// g_weapon.c
-void G_FireBullet(edict_t *self, vec3_t start, vec3_t dir,
+// g_ballistics.c
+void G_BulletProjectile(edict_t *self, vec3_t start, vec3_t dir,
 		int damage, int knockback, int hspread, int vspread, int mod);
-void G_FireShotgun(edict_t *self, vec3_t start, vec3_t dir,
+void G_ShotgunProjectiles(edict_t *self, vec3_t start, vec3_t dir,
 		int damage, int knockback, int hspread, int vspread, int count, int mod);
-void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
+void G_HyperblasterProjectile(edict_t *self, vec3_t start, vec3_t dir,
 		int speed, int damage, int knockback);
-void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t dir,
+void G_GrenadeProjectile(edict_t *self, vec3_t start, vec3_t dir,
 		int speed, int damage, int knockback, float damage_radius, float timer);
-void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir,
+void G_RocketProjectile(edict_t *self, vec3_t start, vec3_t dir,
 		int speed, int damage, int knockback, float damage_radius);
-void G_FireLightning(edict_t *self, vec3_t start, vec3_t dir,
+void G_LightningProjectile(edict_t *self, vec3_t start, vec3_t dir,
 		int damage, int knockback);
-void G_FireRailgun(edict_t *self, vec3_t start, vec3_t dir,
+void G_RailgunProjectile(edict_t *self, vec3_t start, vec3_t dir,
 		int damage, int knockback);
-void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir,
+void G_BfgProjectiles(edict_t *self, vec3_t start, vec3_t dir,
 		int speed, int damage, int knockback, float damage_radius);
 
-// p_client.c
+// g_client.c
 qboolean G_ClientConnect(edict_t *ent, char *user_info);
 void G_ClientUserInfoChanged(edict_t *ent, const char *user_info);
 void G_ClientDisconnect(edict_t *ent);
@@ -525,7 +525,6 @@ void G_Pain(edict_t *self, edict_t *other, int damage, int knockback);
 void G_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
 void G_TossQuadDamage(edict_t *self);
 void G_TossFlag(edict_t *self);
-void G_UseBestWeapon(g_client_t *client);
 
 // g_view.c
 void G_ClientEndFrame(edict_t *ent);
@@ -542,19 +541,20 @@ void G_ClientScoreboard(edict_t *client);
 void G_ChangeWeapon(edict_t *ent);
 void G_WeaponThink(edict_t *ent);
 qboolean G_PickupWeapon(edict_t *ent, edict_t *other);
+void G_UseBestWeapon(g_client_t *client);
 void G_UseWeapon(edict_t *ent, g_item_t *inv);
 void G_DropWeapon(edict_t *ent, g_item_t *inv);
-void G_ClientFireShotgun(edict_t *ent);
-void G_ClientFireSuperShotgun(edict_t *ent);
-void G_ClientFireMachinegun(edict_t *ent);
-void G_ClientFireHyperblaster(edict_t *ent);
-void G_ClientFireRocketLauncher(edict_t *ent);
-void G_ClientFireGrenadeLauncher(edict_t *ent);
-void G_ClientFireLightning(edict_t *ent);
-void G_ClientFireRailgun(edict_t *ent);
-void G_ClientFireBFG(edict_t *ent);
+void G_FireShotgun(edict_t *ent);
+void G_FireSuperShotgun(edict_t *ent);
+void G_FireMachinegun(edict_t *ent);
+void G_FireHyperblaster(edict_t *ent);
+void G_FireRocketLauncher(edict_t *ent);
+void G_FireGrenadeLauncher(edict_t *ent);
+void G_FireLightning(edict_t *ent);
+void G_FireRailgun(edict_t *ent);
+void G_FireBfg(edict_t *ent);
 
-// g_phys.c
+// g_physics.c
 void G_RunEntity(edict_t *ent);
 
 // g_main.c

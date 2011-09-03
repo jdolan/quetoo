@@ -24,6 +24,10 @@
 
 /*
  * G_PlayerProjectile
+ *
+ * Adds a fraction of the player's velocity to any projectiles they emit. This
+ * is more realistic, but very strange feeling in Quake, so we keep the fraction
+ * quite low.
  */
 static void G_PlayerProjectile(edict_t *ent, const vec3_t scale){
 	vec3_t tmp;
@@ -41,6 +45,8 @@ static void G_PlayerProjectile(edict_t *ent, const vec3_t scale){
 
 /*
  * G_ImmediateWall
+ *
+ * Returns true if the entity is facing a wall at close proximity.
  */
 static qboolean G_ImmediateWall(edict_t *ent, vec3_t dir){
 	trace_t tr;
@@ -55,6 +61,8 @@ static qboolean G_ImmediateWall(edict_t *ent, vec3_t dir){
 
 /*
  * G_IsStructural
+ *
+ * Returns true if the specified surface appears structural.
  */
 static qboolean G_IsStructural(edict_t *ent, c_surface_t *surf){
 
@@ -103,7 +111,7 @@ static void G_BubbleTrail(vec3_t start, trace_t *tr){
 /*
  * G_Tracer
  *
- * Used to add trails to bullet shots.
+ * Used to add tracer trails to bullet shots.
  */
 static void G_Tracer(vec3_t start, vec3_t end){
 	vec3_t dir, mid;
@@ -127,6 +135,8 @@ static void G_Tracer(vec3_t start, vec3_t end){
 
 /*
  * G_BulletMark
+ *
+ * Used to add impact marks on surfaces hit by bullets.
  */
 static void G_BulletMark(vec3_t org, c_plane_t *plane, c_surface_t *surf){
 
@@ -157,11 +167,9 @@ static void G_BurnMark(vec3_t org, c_plane_t *plane, c_surface_t *surf, byte sca
 
 
 /*
- * G_FireBullet
- *
- * Used by bullet and pellet weapons.
+ * G_BulletProjectile
  */
-void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
+void G_BulletProjectile(edict_t *self, vec3_t start, vec3_t aimdir,
 		int damage, int knockback, int hspread, int vspread, int mod){
 	trace_t tr;
 	vec3_t dir;
@@ -238,23 +246,21 @@ void G_FireBullet(edict_t *self, vec3_t start, vec3_t aimdir,
 
 
 /*
- * G_FireShotgun
- *
- * Fires shotgun pellets.  Used by shotgun and super shotgun.
+ * G_ShotgunProjectiles
  */
-void G_FireShotgun(edict_t *self, vec3_t start, vec3_t aimdir,
+void G_ShotgunProjectiles(edict_t *self, vec3_t start, vec3_t aimdir,
 		int damage, int knockback, int hspread, int vspread, int count, int mod){
 	int i;
 
 	for(i = 0; i < count; i++)
-		G_FireBullet(self, start, aimdir, damage, knockback, hspread, vspread, mod);
+		G_BulletProjectile(self, start, aimdir, damage, knockback, hspread, vspread, mod);
 }
 
 
 /*
- * G_FireGrenadeLauncher
+ * G_GrenadeProjectile_Explode
  */
-static void G_GrenadeExplode(edict_t *ent){
+static void G_GrenadeProjectile_Explode(edict_t *ent){
 	vec3_t origin;
 
 	if(ent->enemy){  // direct hit
@@ -296,7 +302,11 @@ static void G_GrenadeExplode(edict_t *ent){
 	G_FreeEdict(ent);
 }
 
-static void G_GrenadeTouch(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+
+/*
+ * G_GrenadeProjectile_Touch
+ */
+static void G_GrenadeProjectile_Touch(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(other == ent->owner)
 		return;
@@ -317,10 +327,14 @@ static void G_GrenadeTouch(edict_t *ent, edict_t *other, c_plane_t *plane, c_sur
 	}
 
 	ent->enemy = other;
-	G_GrenadeExplode(ent);
+	G_GrenadeProjectile_Explode(ent);
 }
 
-void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed,
+
+/*
+ * G_GrenadeProjectile
+ */
+void G_GrenadeProjectile(edict_t *self, vec3_t start, vec3_t aimdir, int speed,
 		int damage, int knockback, float damage_radius, float timer){
 	edict_t *grenade;
 	vec3_t dir;
@@ -357,10 +371,10 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 	VectorCopy(maxs, grenade->maxs);
 	grenade->s.model1 = grenade_index;
 	grenade->owner = self;
-	grenade->touch = G_GrenadeTouch;
+	grenade->touch = G_GrenadeProjectile_Touch;
 	grenade->touch_time = g_level.time;
 	grenade->next_think = g_level.time + timer;
-	grenade->think = G_GrenadeExplode;
+	grenade->think = G_GrenadeProjectile_Explode;
 	grenade->dmg = damage;
 	grenade->knockback = knockback;
 	grenade->dmg_radius = damage_radius;
@@ -372,10 +386,10 @@ void G_FireGrenadeLauncher(edict_t *self, vec3_t start, vec3_t aimdir, int speed
 }
 
 
-/*
- * G_FireRocketLauncher
+/**
+ * G_RocketProjectile_Touch
  */
-static void G_RocketTouch(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_RocketProjectile_Touch(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	vec3_t origin;
 
 	if(other == ent->owner)
@@ -414,7 +428,11 @@ static void G_RocketTouch(edict_t *ent, edict_t *other, c_plane_t *plane, c_surf
 	G_FreeEdict(ent);
 }
 
-void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
+
+/*
+ * G_RocketProjectile
+ */
+void G_RocketProjectile(edict_t *self, vec3_t start, vec3_t dir, int speed,
 		int damage, int knockback, float damage_radius){
 	edict_t *rocket;
 	vec3_t dest;
@@ -436,7 +454,7 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	rocket->s.effects = EF_ROCKET;
 	rocket->s.model1 = rocket_index;
 	rocket->owner = self;
-	rocket->touch = G_RocketTouch;
+	rocket->touch = G_RocketProjectile_Touch;
 	rocket->next_think = g_level.time + 8.0;
 	rocket->think = G_FreeEdict;
 	rocket->dmg = damage;
@@ -456,9 +474,9 @@ void G_FireRocketLauncher(edict_t *self, vec3_t start, vec3_t dir, int speed,
 
 
 /*
- * G_FireHyperblaster
+ * G_HyperblasterProjectile_Touch
  */
-static void G_HyperblasterTouch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_HyperblasterProjectile_Touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	vec3_t origin;
 	vec3_t v;
 
@@ -503,7 +521,11 @@ static void G_HyperblasterTouch(edict_t *self, edict_t *other, c_plane_t *plane,
 	G_FreeEdict(self);
 }
 
-void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
+
+/*
+ * G_HyperblasterProjectile
+ */
+void G_HyperblasterProjectile(edict_t *self, vec3_t start, vec3_t dir,
 		int speed, int damage, int knockback){
 	edict_t *bolt;
 	const vec3_t scale = {0.5, 0.5, 0.25};
@@ -521,7 +543,7 @@ void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
 	bolt->solid = SOLID_MISSILE;
 	bolt->s.effects = EF_HYPERBLASTER;
 	bolt->owner = self;
-	bolt->touch = G_HyperblasterTouch;
+	bolt->touch = G_HyperblasterProjectile_Touch;
 	bolt->next_think = g_level.time + 3.0;
 	bolt->think = G_FreeEdict;
 	bolt->dmg = damage;
@@ -535,9 +557,9 @@ void G_FireHyperblaster(edict_t *self, vec3_t start, vec3_t dir,
 
 
 /*
- * G_FireLightning
+ * G_LightningProjectile_Discharge
  */
-static void G_LightningDischarge(edict_t *self){
+static void G_LightningProjectile_Discharge(edict_t *self){
 	edict_t *ent;
 	int i, d;
 
@@ -572,7 +594,11 @@ static void G_LightningDischarge(edict_t *self){
 	gi.WritePosition(self->s.origin);
 }
 
-static qboolean G_LightningExpire(edict_t *self){
+
+/*
+ * G_LightningProjectile_Expire
+ */
+static qboolean G_LightningProjectile_Expire(edict_t *self){
 
 	if(self->timestamp < g_level.time - 0.101)
 		return true;
@@ -583,13 +609,17 @@ static qboolean G_LightningExpire(edict_t *self){
 	return false;
 }
 
-static void G_LightningThink(edict_t *self){
+
+/*
+ * G_LightningProjectile_Think
+ */
+static void G_LightningProjectile_Think(edict_t *self){
 	vec3_t forward, right, offset;
 	vec3_t start, end;
 	vec3_t water_start;
 	trace_t tr;
 
-	if(G_LightningExpire(self)){
+	if(G_LightningProjectile_Expire(self)){
 		self->owner->lightning = NULL;
 		G_FreeEdict(self);
 		return;
@@ -604,7 +634,7 @@ static void G_LightningThink(edict_t *self){
 		VectorCopy(self->owner->s.origin, start);
 
 	if(gi.PointContents(start) & MASK_WATER){  // discharge and return
-		G_LightningDischarge(self);
+		G_LightningProjectile_Discharge(self);
 		self->owner->lightning = NULL;
 		G_FreeEdict(self);
 		return;
@@ -653,7 +683,11 @@ static void G_LightningThink(edict_t *self){
 	self->next_think = g_level.time + gi.server_frame;
 }
 
-void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int knockback){
+
+/*
+ * G_LightningProjectile
+ */
+void G_LightningProjectile(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int knockback){
 	edict_t *light;
 
 	light = self->lightning;
@@ -665,7 +699,7 @@ void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int
 		light->solid = SOLID_NOT;
 		light->move_type = MOVE_TYPE_THINK;
 		light->owner = self;
-		light->think = G_LightningThink;
+		light->think = G_LightningProjectile_Think;
 		light->knockback = knockback;
 		light->s.client = self - g_game.edicts;  // player number, for client prediction fix
 		light->s.effects = EF_BEAM | EF_LIGHTNING;
@@ -683,9 +717,9 @@ void G_FireLightning(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int
 
 
 /*
- * G_FireRailgun
+ * G_RailgunProjectile
  */
-void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int knockback){
+void G_RailgunProjectile(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int knockback){
 	vec3_t from;
 	vec3_t end;
 	trace_t tr;
@@ -773,9 +807,9 @@ void G_FireRailgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 
 
 /*
- * G_FireBFG
+ * G_BfgProjectile_Touch
  */
-static void G_BFGTouch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_BfgProjectile_Touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	vec3_t origin;
 
 	if(other == self->owner)
@@ -813,7 +847,11 @@ static void G_BFGTouch(edict_t *self, edict_t *other, c_plane_t *plane, c_surfac
 	G_FreeEdict(self);
 }
 
-static void G_BFGThink(edict_t *self){
+
+/*
+ * G_BfgProjectile_Think
+ */
+static void G_BfgProjectile_Think(edict_t *self){
 
 	// radius damage
 	G_RadiusDamage(self, self->owner, self->owner, self->dmg * 10 * gi.server_frame,
@@ -826,7 +864,11 @@ static void G_BFGThink(edict_t *self){
 	self->next_think = g_level.time + gi.server_frame;
 }
 
-void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
+
+/*
+ * G_BfgProjectiles
+ */
+void G_BfgProjectiles(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 		int knockback, float damage_radius){
 	edict_t *bfg;
 	vec3_t angles, right, up, r, u;
@@ -867,13 +909,13 @@ void G_FireBFG(edict_t *self, vec3_t start, vec3_t dir, int speed, int damage,
 		bfg->solid = SOLID_MISSILE;
 		bfg->s.effects = EF_BFG;
 		bfg->owner = self;
-		bfg->touch = G_BFGTouch;
-		bfg->think = G_BFGThink;
+		bfg->touch = G_BfgProjectile_Touch;
+		bfg->think = G_BfgProjectile_Think;
 		bfg->next_think = g_level.time + gi.server_frame;
 		bfg->dmg = damage;
 		bfg->knockback = knockback;
 		bfg->dmg_radius = damage_radius;
-		bfg->class_name = "bfg blast";
+		bfg->class_name = "bfg projectile";
 
 		G_PlayerProjectile(bfg, scale);
 
