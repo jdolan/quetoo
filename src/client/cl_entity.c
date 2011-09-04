@@ -452,8 +452,7 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 /*
  * Cl_WeaponKick
  *
- * Calculates a pitch offset for the view weapon based on our player's
- * animation state.
+ * Calculates a kick amplitude based on our player's attack animation state.
  */
 static float Cl_WeaponKick(cl_entity_t *e){
 
@@ -463,7 +462,7 @@ static float Cl_WeaponKick(cl_entity_t *e){
 	if(e->animation1.fraction > 1.0)
 		return 0.0;
 
-	return (e->animation1.fraction - 1.0) * -15.0;
+	return (e->animation1.fraction - 1.0);
 }
 
 
@@ -474,6 +473,7 @@ static void Cl_AddWeapon(cl_entity_t *e, r_entity_t *self){
 	static r_entity_t ent;
 	static r_lighting_t lighting;
 	int w;
+	float kick;
 
 	if(!cl_weapon->value)
 		return;
@@ -494,14 +494,16 @@ static void Cl_AddWeapon(cl_entity_t *e, r_entity_t *self){
 	if(!w)  // no weapon, e.g. level intermission
 		return;
 
+	kick = Cl_WeaponKick(e);
+
 	memset(&ent, 0, sizeof(ent));
 
 	ent.effects = EF_WEAPON | EF_NO_SHADOW;
 
-	VectorCopy(r_view.origin, ent.origin);
-	VectorCopy(r_view.angles, ent.angles);
+	VectorMA(r_view.origin, kick * 4.0, r_view.forward, ent.origin);
 
-	ent.angles[PITCH] -= Cl_WeaponKick(e);
+	VectorCopy(r_view.angles, ent.angles);
+	ent.angles[PITCH] -= kick * -15.0;
 
 	VectorCopy(self->shell, ent.shell);
 

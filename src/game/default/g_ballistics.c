@@ -360,8 +360,8 @@ void G_GrenadeProjectile(edict_t *self, vec3_t start, vec3_t aimdir, int speed,
 	VectorMA(grenade->velocity, crand() * 10.0, right, grenade->velocity);
 
 	grenade->avelocity[0] = -300.0 + 10 * crand();
-	grenade->avelocity[1] = 50 * crand();
-	grenade->avelocity[2] = 25 * crand();
+	grenade->avelocity[1] = 50.0 * crand();
+	grenade->avelocity[2] = 25.0 * crand();
 
 	grenade->move_type = MOVE_TYPE_TOSS;
 	grenade->clip_mask = MASK_SHOT;
@@ -730,7 +730,7 @@ void G_RailgunProjectile(edict_t *self, vec3_t start, vec3_t aimdir, int damage,
 	if(G_ImmediateWall(self, aimdir))
 		VectorCopy(self->s.origin, start);
 
-	VectorMA(start, 8192, aimdir, end);
+	VectorMA(start, 8192.0, aimdir, end);
 	VectorCopy(start, from);
 	ignore = self;
 

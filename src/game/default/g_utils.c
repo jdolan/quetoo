@@ -62,9 +62,9 @@ void G_SetupProjectile(edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, ve
 
 	VectorCopy(ent->s.origin, org);
 
-	VectorMA(org, 34.0, forward, org);
-	VectorMA(org, 10.0, right, org);
 	VectorMA(org, ent->view_height - 10.0, up, org);
+	VectorMA(org, 6.0, right, org);
+	VectorMA(org, 30.0, forward, org);
 }
 
 
