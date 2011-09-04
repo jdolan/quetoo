@@ -644,17 +644,17 @@ void Cl_AddEntities(cl_frame_t *frame){
 
 		if(s->effects & EF_CTF_BLUE){
 			R_AddLight(ent.origin, 80.0, ctf_blue_light);
-			VectorCopy(ctf_blue_light, ent.shell);
+			VectorScale(ctf_blue_light, 0.5, ent.shell);
 		}
 
 		if(s->effects & EF_CTF_RED){
 			R_AddLight(ent.origin, 80.0, ctf_red_light);
-			VectorCopy(ctf_red_light, ent.shell);
+			VectorScale(ctf_red_light, 0.5, ent.shell);
 		}
 
 		if(s->effects & EF_QUAD){
 			R_AddLight(ent.origin, 80.0, quad_light);
-			VectorCopy(quad_light, ent.shell);
+			VectorScale(quad_light, 0.5, ent.shell);
 		}
 
 		if(s->effects & EF_TELEPORTER)
