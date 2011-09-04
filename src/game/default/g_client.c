@@ -84,13 +84,13 @@ static void G_Obituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
 
 	if(attacker == self){
 		switch(mod){
-			case MOD_G_SPLASH:
+			case MOD_GRENADE_SPLASH:
 				message = "went pop";
 				break;
-			case MOD_R_SPLASH:
+			case MOD_ROCKET_SPLASH:
 				message = "needs glasses";
 				break;
-			case MOD_L_DISCHARGE:
+			case MOD_LIGHTNING_DISCHARGE:
 				message = "took a toaster bath";
 				break;
 			case MOD_BFG_BLAST:
@@ -123,7 +123,7 @@ static void G_Obituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
 				message = "was gunned down by";
 				message2 = "'s pea shooter";
 				break;
-			case MOD_SSHOTGUN:
+			case MOD_SUPER_SHOTGUN:
 				message = "was blown away by";
 				message2 = "'s super shotgun";
 				break;
@@ -134,7 +134,7 @@ static void G_Obituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
 				message = "was popped by";
 				message2 = "'s grenade";
 				break;
-			case MOD_G_SPLASH:
+			case MOD_GRENADE_SPLASH:
 				message = "was shredded by";
 				message2 = "'s shrapnel";
 				break;
@@ -142,7 +142,7 @@ static void G_Obituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
 				message = "was dry-anal-powerslammed by";
 				message2 = "'s rocket";
 				break;
-			case MOD_R_SPLASH:
+			case MOD_ROCKET_SPLASH:
 				message = "almost dodged";
 				message2 = "'s rocket";
 				break;
@@ -154,7 +154,7 @@ static void G_Obituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
 				message = "was tased by";
 				message2 = "'s lightning";
 				break;
-			case MOD_L_DISCHARGE:
+			case MOD_LIGHTNING_DISCHARGE:
 				message = "sipped";
 				message2 = "'s discharge";
 				break;
@@ -419,6 +419,7 @@ static qboolean G_GiveLevelLocals(g_client_t *client){
 
 	return true;
 }
+
 
 /*
  * G_InitClientLocals
@@ -725,8 +726,8 @@ static void G_ClientRespawn_(edict_t *ent){
 	ent->s.model4 = 0;
 	ent->s.client = ent - g_game.edicts - 1;
 
-	G_SetAnimation(ent, ANIM_TORSO_ATTACK2);
-	G_SetAnimation(ent, ANIM_LEGS_IDLE);
+	G_SetAnimation(ent, ANIM_TORSO_ATTACK2, true);
+	G_SetAnimation(ent, ANIM_LEGS_IDLE, true);
 
 	VectorCopy(spawn_origin, ent->s.origin);
 	VectorCopy(ent->s.origin, ent->s.old_origin);
@@ -1048,14 +1049,18 @@ void G_ClientDisconnect(edict_t *ent){
 }
 
 
-static edict_t *pm_passent;
+/**
+ * G_ClientMoveTrace
+ *
+ * Ignore ourselves, clipping to the correct mask based on our status.
+ */
+static trace_t G_ClientMoveTrace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
+	edict_t *self = g_level.current_entity;
 
-// pmove doesn't need to know about passent and contentmask
-static trace_t G_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
-	if(pm_passent->health > 0)
-		return gi.Trace(start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
+	if(g_level.current_entity->health > 0)
+		return gi.Trace(start, mins, maxs, end, self, MASK_PLAYERSOLID);
 	else
-		return gi.Trace(start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
+		return gi.Trace(start, mins, maxs, end, self, MASK_DEADSOLID);
 }
 
 
@@ -1064,7 +1069,7 @@ static trace_t G_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
  *
  * Expire any items which are time-sensitive.
  */
-static void G_InventoryThink(edict_t *ent){
+static void G_ClientInventoryThink(edict_t *ent){
 
 	if(ent->client->locals.inventory[quad_damage_index]){  // if they have quad
 
@@ -1080,58 +1085,6 @@ static void G_InventoryThink(edict_t *ent){
 	}
 
 	// other power-ups and things can be timed out here as well
-}
-
-
-/*
- * G_AnimationThink
- *
- * Sets the animation sequences for the specified entity.  This is called
- * towards the end of G_ClientThink, after our ground entity and water level have
- * been resolved.
- */
-static void G_AnimationThink(edict_t *ent){
-
-	if(ent->ground_entity){  // on the ground
-
-		if(ent->water_level < 2){  // not swimming
-			vec3_t velocity;
-			float speed;
-
-			VectorCopy(ent->velocity, velocity);
-			velocity[2] = 0.0;
-
-			speed = VectorLength(velocity);
-
-			if(ent->client->ps.pmove.pm_flags & PMF_DUCKED){  // ducked
-				if(speed < 1.0)
-					G_SetAnimation(ent, ANIM_LEGS_IDLECR);
-				else
-					G_SetAnimation(ent, ANIM_LEGS_WALKCR);
-			}
-			else {  // standing / walking / running
-				const entity_event_t e = ent->s.event;
-
-				if(e >= EV_CLIENT_LAND && e <= EV_CLIENT_FALL_FAR){  // just landed
-					G_SetAnimation(ent, ANIM_LEGS_LAND1);
-				}
-				else {
-					if(speed < 1.0)
-						G_SetAnimation(ent, ANIM_LEGS_IDLE);
-					else if(speed < 150.0)
-						G_SetAnimation(ent, ANIM_LEGS_WALK);
-					else
-						G_SetAnimation(ent, ANIM_LEGS_RUN);
-				}
-			}
-		}
-		else {
-			G_SetAnimation(ent, ANIM_LEGS_SWIM);
-		}
-	}
-	else {
-		G_SetAnimation(ent, ANIM_LEGS_JUMP1);
-	}
 }
 
 
@@ -1154,8 +1107,6 @@ void G_ClientThink(edict_t *ent, user_cmd_t *ucmd){
 		client->ps.pmove.pm_type = PM_FREEZE;
 		return;
 	}
-
-	pm_passent = ent;  // ignore ourselves on traces
 
 	if(client->chase_target){  // ensure chase is valid
 
@@ -1197,7 +1148,7 @@ void G_ClientThink(edict_t *ent, user_cmd_t *ucmd){
 
 		pm.cmd = *ucmd;
 
-		pm.trace = G_Trace;  // adds default params
+		pm.trace = G_ClientMoveTrace;  // adds default params
 		pm.pointcontents = gi.PointContents;
 
 		// perform a pmove
@@ -1278,7 +1229,7 @@ void G_ClientThink(edict_t *ent, user_cmd_t *ucmd){
 				client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 			}
 			else {
-				G_GetChaseTarget(ent);
+				G_ChaseTarget(ent);
 			}
 		}
 		else if(client->weapon_think_time < g_level.time){
@@ -1286,19 +1237,17 @@ void G_ClientThink(edict_t *ent, user_cmd_t *ucmd){
 		}
 	}
 
-	G_AnimationThink(ent);
-
 	// update chase camera if being followed
 	for(i = 1; i <= sv_max_clients->integer; i++){
 
 		other = g_game.edicts + i;
 
 		if(other->in_use && other->client->chase_target == ent){
-			G_UpdateChaseCam(other);
+			G_ChaseThink(other);
 		}
 	}
 
-	G_InventoryThink(ent);
+	G_ClientInventoryThink(ent);
 }
 
 

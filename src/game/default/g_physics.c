@@ -80,20 +80,21 @@ static void G_ClampVelocity(edict_t *ent){
  * Runs thinking code for this frame if necessary
  */
 static qboolean G_RunThink(edict_t *ent){
-	float thinktime;
+	float think_time;
 
-	thinktime = ent->next_think;
+	think_time = ent->next_think;
 
-	if(thinktime <= 0)
+	if(think_time <= 0)
 		return true;
 
-	if(thinktime > g_level.time + 0.001)
+	if(think_time > g_level.time + 0.001)
 		return true;
 
 	ent->next_think = 0;
 
 	if(!ent->think)
 		gi.Error("G_RunThink: No think function for ent.");
+
 	ent->think(ent);
 
 	return false;

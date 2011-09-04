@@ -263,7 +263,7 @@ static void G_WeaponPrevious_f(edict_t *ent){
 	if(cl->locals.spectator){
 
 		if(cl->chase_target)  // chase the previous player
-			G_ChasePrev(ent);
+			G_ChasePrevious(ent);
 
 		return;
 	}

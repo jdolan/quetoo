@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-void G_UpdateChaseCam(edict_t *ent){
+void G_ChaseThink(edict_t *ent){
 	const edict_t *targ;
 
 	targ = ent->client->chase_target;
@@ -78,9 +78,9 @@ void G_ChaseNext(edict_t *ent){
 
 
 /*
- * G_ChasePrev
+ * G_ChasePrevious
  */
-void G_ChasePrev(edict_t *ent){
+void G_ChasePrevious(edict_t *ent){
 	int i;
 	edict_t *e;
 
@@ -109,9 +109,11 @@ void G_ChasePrev(edict_t *ent){
 
 
 /*
- * G_GetChaseTarget
+ * G_ChaseTarget
+ *
+ * Finds the first available chase target and assigns it to the specified ent.
  */
-void G_GetChaseTarget(edict_t *ent){
+void G_ChaseTarget(edict_t *ent){
 	int i;
 	edict_t *other;
 
@@ -119,7 +121,7 @@ void G_GetChaseTarget(edict_t *ent){
 		other = g_game.edicts + i;
 		if(other->in_use && !other->client->locals.spectator){
 			ent->client->chase_target = other;
-			G_UpdateChaseCam(ent);
+			G_ChaseThink(ent);
 			return;
 		}
 	}

@@ -28,7 +28,7 @@ static g_client_t *current_client;
 /*
  * G_ClientDamage
  *
- * TODO: Move this to G_Pain?
+ * Inspect all damage received this frame and play a pain sound if appropriate.
  */
 static void G_ClientDamage(edict_t *player){
 	g_client_t *client;
@@ -63,66 +63,44 @@ static void G_ClientDamage(edict_t *player){
  * G_ClientFall
  */
 static void G_ClientFall(edict_t *ent){
-	float v, ov, delta;
-	int damage, event;
-	vec3_t dir;
 
-	if(ent->move_type == MOVE_TYPE_NO_CLIP)
+	if(!ent->ground_entity)
 		return;
 
 	if(ent->health < 1 || ent->water_level == 3)
 		return;
 
-	v = ent->velocity[2];
-	ov = ent->client->old_velocity[2];
-
-	if(ent->ground_entity)  // they are on the ground
-		delta = v - ov;
-	else if(ov < 0 && v > ov)  // they hit the ground and immediately jumped
-		delta = ov;
-	else
+	if(ent->client->fall_time > g_level.time)
 		return;
 
-	if(ent->water_level == 2)
-		delta *= 0.25;
-	if(ent->water_level == 1)
-		delta *= 0.5;
+	float fall = -ent->client->old_velocity[2];
 
-	// square it to magnify spread
-	delta *= delta;
-
-	// then reduce it to reasonable numbers
-	delta *= 0.0001;
-
-	if(delta < 1.0)
+	if(fall < 220.0)
 		return;
 
-	if(delta > 40.0){  // player will take damage
+	entity_event_t event = EV_CLIENT_LAND;
 
-		if(delta >= 65.0)
+	if(fall > 400.0){  // player will take damage
+		int damage = ((int)(fall * 0.01)) >> ent->water_level;
+		vec3_t dir;
+
+		if(fall > 450.0)
 			event = EV_CLIENT_FALL_FAR;
 		else
 			event = EV_CLIENT_FALL;
 
 		ent->pain_time = g_level.time;  // suppress pain sound
 
-		damage = (delta - 40) * 0.1;
-
-		if(damage < 1)
-			damage = 1;
-
 		VectorSet(dir, 0.0, 0.0, 1.0);
 
 		G_Damage(ent, NULL, NULL, dir, ent->s.origin,
 				vec3_origin, damage, 0, 0, MOD_FALLING);
 	}
-	else if(delta > 5.0)
-		event = EV_CLIENT_LAND;
-	else
-		event = EV_CLIENT_FOOTSTEP;
 
-	if(ent->s.event != EV_TELEPORT)  // don't override teleport events
+	if(ent->s.event != EV_TELEPORT){  // don't override teleport events
+		ent->client->fall_time = g_level.time + 0.3;
 		ent->s.event = event;
+	}
 }
 
 
@@ -206,13 +184,73 @@ static void G_ClientWaterLevel(void){
 
 
 /*
+ * G_ClientAnimation
+ *
+ * Sets the animation sequences for the specified entity.  This is called
+ * towards the end of each frame, after our ground entity and water level have
+ * been resolved.
+ */
+static void G_ClientAnimation(edict_t *ent){
+
+	if(ent->ground_entity){  // on the ground
+
+		if(ent->water_level < 2){  // not swimming
+			vec3_t velocity;
+			float speed;
+
+			VectorCopy(ent->velocity, velocity);
+			velocity[2] = 0.0;
+
+			speed = VectorNormalize(velocity);
+
+			if(ent->client->ps.pmove.pm_flags & PMF_DUCKED){  // ducked
+				if(speed < 1.0)
+					G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
+				else
+					G_SetAnimation(ent, ANIM_LEGS_WALKCR, false);
+			}
+			else {  // landing / standing / walking / running
+				const entity_event_t e = ent->s.event;
+
+				if(e >= EV_CLIENT_LAND && e <= EV_CLIENT_FALL_FAR){  // just landed
+					G_SetAnimation(ent, ANIM_LEGS_LAND1, false);
+				}
+				else if(speed < 1.0){
+					G_SetAnimation(ent, ANIM_LEGS_IDLE, false);
+				}
+				else {
+					vec3_t angles, forward;
+
+					VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
+					AngleVectors(angles, forward, NULL, NULL);
+
+					if(DotProduct(velocity, forward) < 0.0)
+						G_SetAnimation(ent, ANIM_LEGS_BACK, false);
+					else if(speed < 150.0)
+						G_SetAnimation(ent, ANIM_LEGS_WALK, false);
+					else
+						G_SetAnimation(ent, ANIM_LEGS_RUN, false);
+				}
+			}
+		}
+		else {
+			G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
+		}
+	}
+	else {
+		G_SetAnimation(ent, ANIM_LEGS_JUMP1, false);
+	}
+}
+
+
+/*
  * G_ClientEndFrame
  *
  * Called for each client at the end of the server frame.
  */
 void G_ClientEndFrame(edict_t *ent){
 	vec3_t forward, right, up;
-	float dot, xyspeed;
+	float dot, xy_speed;
 	int i;
 
 	current_player = ent;
@@ -256,23 +294,26 @@ void G_ClientEndFrame(edict_t *ent){
 	if(!ent->ground_entity)
 		ent->s.angles[ROLL] *= 0.25;
 
+	// detect hitting the floor
+	G_ClientFall(ent);
+
 	// check for footsteps
 	if(ent->ground_entity && !ent->s.event){
 
-		xyspeed = sqrt(ent->velocity[0] * ent->velocity[0] +
+		xy_speed = sqrt(ent->velocity[0] * ent->velocity[0] +
 				ent->velocity[1] * ent->velocity[1]);
 
-		if(xyspeed > 265.0 && ent->client->footstep_time < g_level.time){
+		if(xy_speed > 265.0 && ent->client->footstep_time < g_level.time){
 			ent->client->footstep_time = g_level.time + 0.3;
 			ent->s.event = EV_CLIENT_FOOTSTEP;
 		}
 	}
 
-	// detect hitting the floor
-	G_ClientFall(ent);
-
 	// apply all the damage taken this frame
 	G_ClientDamage(ent);
+
+	// update the player's animations
+	G_ClientAnimation(ent);
 
 	// set the stats for this client
 	if(ent->client->locals.spectator)

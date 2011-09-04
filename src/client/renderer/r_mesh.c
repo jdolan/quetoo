@@ -135,13 +135,13 @@ void R_ApplyMeshModelTag(r_entity_t *e){
 
 	Matrix4x4_Concat(&local, &e->parent->matrix, &e->matrix);
 
-	Matrix4x4_Interpolate(&lerped, &end->matrix, &start->matrix, e->parent->lerp);
+	Matrix4x4_Interpolate(&lerped, &end->matrix, &start->matrix, e->parent->back_lerp);
 	Matrix4x4_Normalize(&normalized, &lerped);
 
 	Matrix4x4_Concat(&e->matrix, &local, &normalized);
 
-	Com_Debug("%s: %3.2f %3.2f %3.2f\n", e->tag_name,
-			e->matrix.m[0][3], e->matrix.m[1][3], e->matrix.m[2][3]);
+	//Com_Debug("%s: %3.2f %3.2f %3.2f\n", e->tag_name,
+	//		e->matrix.m[0][3], e->matrix.m[1][3], e->matrix.m[2][3]);
 }
 
 

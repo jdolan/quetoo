@@ -396,6 +396,8 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 
 	int effects = s->effects;
 
+	ent->origin[2] -= 6.0;  // small hack for qforcer
+
 	// copy the specified entity to all body segments
 	head = upper = lower = *ent;
 

@@ -52,12 +52,19 @@ void G_ProjectSpawn(edict_t *ent){
 
 
 /*
- * G_ProjectSource
+ * G_SetupProjectile
+ *
+ * Determines the initial position and directional vectors of a projectile.
  */
-void G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result){
-	result[0] = point[0] + forward[0] * distance[0] + right[0] * distance[1];
-	result[1] = point[1] + forward[1] * distance[0] + right[1] * distance[1];
-	result[2] = point[2] + forward[2] * distance[0] + right[2] * distance[1] + distance[2];
+void G_SetupProjectile(edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org){
+
+	AngleVectors(ent->s.angles, forward, right, up);
+
+	VectorCopy(ent->s.origin, org);
+
+	VectorMA(org, 34.0, forward, org);
+	VectorMA(org, 10.0, right, org);
+	VectorMA(org, ent->view_height - 10.0, up, org);
 }
 
 
@@ -111,15 +118,21 @@ edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad){
 		from = g_game.edicts;
 	else
 		from++;
+
 	for(; from < &g_game.edicts[ge.num_edicts]; from++){
+
 		if(!from->in_use)
 			continue;
+
 		if(from->solid == SOLID_NOT)
 			continue;
+
 		for(j = 0; j < 3; j++)
-			eorg[j] = org[j] -(from->s.origin[j] +(from->mins[j] + from->maxs[j]) * 0.5);
+			eorg[j] = org[j] - (from->s.origin[j] +(from->mins[j] + from->maxs[j]) * 0.5);
+
 		if(VectorLength(eorg) > rad)
 			continue;
+
 		return from;
 	}
 
@@ -168,7 +181,7 @@ edict_t *G_PickTarget(char *target_name){
 
 
 
-static void Think_Delay(edict_t *ent){
+static void G_UseTargets_Delay(edict_t *ent){
 	G_UseTargets(ent, ent->activator);
 	G_FreeEdict(ent);
 }
@@ -197,7 +210,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 		t = G_Spawn();
 		t->class_name = "DelayedUse";
 		t->next_think = g_level.time + ent->delay;
-		t->think = Think_Delay;
+		t->think = G_UseTargets_Delay;
 		t->activator = activator;
 		if(!activator)
 			gi.Debug("Think_Delay with no activator\n");
@@ -676,15 +689,21 @@ qboolean G_IsStationary(edict_t *ent){
 /*
  * G_SetAnimation
  *
- * Assigns the specified animation to the correct member on the specified entity.
+ * Assigns the specified animation to the correct member on the specified
+ * entity. If requested, the current animation will be restarted.
  */
-void G_SetAnimation(edict_t *ent, entity_animation_t anim){
+void G_SetAnimation(edict_t *ent, entity_animation_t anim, qboolean restart){
 	byte *dest;
 
 	if(anim < ANIM_LEGS_WALKCR)
 		dest = &ent->s.animation1;
 	else
 		dest = &ent->s.animation2;
+
+	if(restart){
+		if(*dest == anim)
+			anim |= ANIM_TOGGLE_BIT;
+	}
 
 	*dest = anim;
 }

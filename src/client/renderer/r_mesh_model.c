@@ -244,6 +244,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 	d_md3_frame_t *inframe, *outframe;
 	d_md3_tag_t *intag;
 	r_md3_tag_t *outtag;
+	d_md3_orientation_t orient;
 	d_md3_mesh_t *inmesh;
 	r_md3_mesh_t *outmesh;
 	d_md3_texcoord_t *incoord, *outcoord;
@@ -317,8 +318,6 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 
 		for(i = 0; i < outmodel->num_frames; i++){
 			for(l = 0; l < outmodel->num_tags; l++, intag++, outtag++){
-				d_md3_orientation_t orient;
-
 				memcpy(outtag->name, intag->name, MD3_MAX_PATH);
 
 				for(j = 0; j < 3; j++){
@@ -328,10 +327,8 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer){
 					orient.axis[2][j] = LittleFloat(intag->orient.axis[2][j]);
 				}
 
-				Matrix4x4_CreateTranslate(&outtag->matrix,
-						orient.origin[0], orient.origin[1], orient.origin[2]);
-
-				// TODO - Add rotational components to matrix
+				Matrix4x4_FromVectors(&outtag->matrix,
+						orient.axis[0], orient.axis[1], orient.axis[2], orient.origin);
 			}
 		}
 	}

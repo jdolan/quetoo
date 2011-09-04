@@ -566,8 +566,7 @@ static void G_DropItemThink(edict_t *ent){
  */
 edict_t *G_DropItem(edict_t *ent, g_item_t *item){
 	edict_t *dropped;
-	vec3_t forward, right;
-	vec3_t offset;
+	vec3_t forward;
 	vec3_t v;
 	trace_t trace;
 
@@ -585,21 +584,18 @@ edict_t *G_DropItem(edict_t *ent, g_item_t *item){
 	dropped->touch = G_DropItemUntouchable;
 	dropped->owner = ent;
 
-	if(ent->client){
-		v[0] = v[2] = 0.0;  // randomize the direction we toss in
-		v[1] = ent->client->angles[1] + crand() * 45.0;
+	if(ent->client){  // randomize the direction we toss in
+		VectorSet(v, 0.0, ent->client->angles[1] + crand() * 45.0, 0.0);
+		AngleVectors(v, forward, NULL, NULL);
 
-		AngleVectors(v, forward, right, NULL);
-
-		VectorSet(offset, 24.0, 0.0, -16.0);
-		G_ProjectSource(ent->s.origin, offset, forward, right, dropped->s.origin);
+		VectorMA(ent->s.origin, 24.0, forward, dropped->s.origin);
 
 		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs,
 				dropped->s.origin, ent, CONTENTS_SOLID);
 
 		VectorCopy(trace.end, dropped->s.origin);
 	} else {
-		AngleVectors(ent->s.angles, forward, right, NULL);
+		AngleVectors(ent->s.angles, forward, NULL, NULL);
 
 		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs,
 				ent->s.origin, ent, CONTENTS_SOLID);

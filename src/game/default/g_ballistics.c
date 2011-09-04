@@ -283,7 +283,7 @@ static void G_GrenadeProjectile_Explode(edict_t *ent){
 
 	// hurt anything else nearby
 	G_RadiusDamage(ent, ent->owner, ent->enemy, ent->dmg, ent->knockback,
-			ent->dmg_radius, MOD_G_SPLASH);
+			ent->dmg_radius, MOD_GRENADE_SPLASH);
 
 	if(G_IsStationary(ent->ground_entity))
 		VectorMA(ent->s.origin, 16.0, ent->plane.normal, origin);
@@ -418,7 +418,7 @@ static void G_RocketProjectile_Touch(edict_t *ent, edict_t *other, c_plane_t *pl
 
 	// hurt anything else nearby
 	G_RadiusDamage(ent, ent->owner, other, ent->dmg, ent->knockback,
-			ent->dmg_radius, MOD_R_SPLASH);
+			ent->dmg_radius, MOD_ROCKET_SPLASH);
 
 	if(G_IsStructural(other, surf)){  // leave a burn mark
 		VectorMA(ent->s.origin, 2.0, plane->normal, origin);
@@ -583,7 +583,7 @@ static void G_LightningProjectile_Discharge(edict_t *self){
 				d = ent == self ? 999 : 50 * ent->water_level;
 
 				G_Damage(ent, self, self->owner, vec3_origin, ent->s.origin, vec3_origin,
-						d, 100, DAMAGE_NO_ARMOR, MOD_L_DISCHARGE);
+						d, 100, DAMAGE_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
 			}
 		}
 	}
@@ -614,7 +614,7 @@ static qboolean G_LightningProjectile_Expire(edict_t *self){
  * G_LightningProjectile_Think
  */
 static void G_LightningProjectile_Think(edict_t *self){
-	vec3_t forward, right, offset;
+	vec3_t forward, right, up;
 	vec3_t start, end;
 	vec3_t water_start;
 	trace_t tr;
@@ -626,9 +626,7 @@ static void G_LightningProjectile_Think(edict_t *self){
 	}
 
 	// re-calculate end points based on owner's movement
-	AngleVectors(self->owner->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, self->owner->view_height - 10.0);
-	G_ProjectSource(self->owner->s.origin, offset, forward, right, start);
+	G_SetupProjectile(self->owner, forward, right, up, start);
 
 	if(G_ImmediateWall(self->owner, forward))  // resolve start
 		VectorCopy(self->owner->s.origin, start);

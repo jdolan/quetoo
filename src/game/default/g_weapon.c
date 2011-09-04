@@ -213,7 +213,7 @@ static void G_FireWeapon(edict_t *ent, float interval, void (*fire)(edict_t *ent
 	}
 
 	// they've pressed their fire button, and have ammo, so fire
-	G_SetAnimation(ent, ANIM_TORSO_ATTACK1);
+	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
 	if(ent->client->locals.inventory[quad_damage_index]){  // quad sound
 
@@ -256,15 +256,11 @@ void G_WeaponThink(edict_t *ent){
  * G_FireShotgun
  */
 static void G_FireShotgun_(edict_t *ent){
-	vec3_t start, offset;
-	vec3_t forward, right;
+	vec3_t forward, right, up, org;
 
-	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
-	G_ProjectSource(ent->s.origin, offset, forward, right, start);
+	G_SetupProjectile(ent, forward, right, up, org);
 
-	G_ShotgunProjectiles(ent, start, forward, 6, 4, DEFAULT_SHOTGUN_HSPREAD,
-			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SHOTGUN_COUNT, MOD_SHOTGUN);
+	G_ShotgunProjectiles(ent, org, forward, 6, 4, 1000, 500, 12, MOD_SHOTGUN);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -282,28 +278,21 @@ void G_FireShotgun(edict_t *ent){
  * G_FireSuperShotgun
  */
 static void G_FireSuperShotgun_(edict_t *ent){
-	vec3_t start;
-	vec3_t forward, right;
-	vec3_t offset;
-	vec3_t v;
+	vec3_t forward, right, up, org;
 
-	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
-	G_ProjectSource(ent->s.origin, offset, forward, right, start);
+	ent->s.angles[YAW] -= 5.0;
 
-	v[PITCH] = ent->client->angles[PITCH];
-	v[YAW] = ent->client->angles[YAW] - 5;
-	v[ROLL] = ent->client->angles[ROLL];
-	AngleVectors(v, forward, NULL, NULL);
+	G_SetupProjectile(ent, forward, right, up, org);
 
-	G_ShotgunProjectiles(ent, start, forward, 4, 4, DEFAULT_SHOTGUN_HSPREAD,
-			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
+	G_ShotgunProjectiles(ent, org, forward, 4, 4, 1000, 500, 12, MOD_SUPER_SHOTGUN);
 
-	v[YAW] = ent->client->angles[YAW] + 5;
-	AngleVectors(v, forward, NULL, NULL);
+	ent->s.angles[YAW] += 10.0;
 
-	G_ShotgunProjectiles(ent, start, forward, 4, 4, DEFAULT_SHOTGUN_HSPREAD,
-			DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
+	G_SetupProjectile(ent, forward, right, up, org);
+
+	G_ShotgunProjectiles(ent, org, forward, 4, 4, 100, 500, 12, MOD_SUPER_SHOTGUN);
+
+	ent->s.angles[YAW] -= 5.0;
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -321,16 +310,11 @@ void G_FireSuperShotgun(edict_t *ent){
  * G_FireMachinegun
  */
 static void G_FireMachinegun_(edict_t *ent){
-	vec3_t start, offset;
-	vec3_t forward, right;
+	vec3_t forward, right, up, org;
 
-	// get start / end positions
-	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
-	G_ProjectSource(ent->s.origin, offset, forward, right, start);
+	G_SetupProjectile(ent, forward, right, up, org);
 
-	G_BulletProjectile(ent, start, forward, 8, 4, DEFAULT_BULLET_HSPREAD,
-			DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
+	G_BulletProjectile(ent, org, forward, 8, 4, 100, 200, MOD_MACHINEGUN);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -348,14 +332,11 @@ void G_FireMachinegun(edict_t *ent){
  * G_FireGrenadeLauncher
  */
 static void G_FireGrenadeLauncher_(edict_t *ent){
-	vec3_t start, offset;
-	vec3_t forward, right;
+	vec3_t forward, right, up, org;
 
-	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
-	AngleVectors(ent->client->angles, forward, right, NULL);
-	G_ProjectSource(ent->s.origin, offset, forward, right, start);
+	G_SetupProjectile(ent, forward, right, up, org);
 
-	G_GrenadeProjectile(ent, start, forward, 900, 100, 100, 185.0, 2.0);
+	G_GrenadeProjectile(ent, org, forward, 900, 100, 100, 185.0, 2.0);
 
 	gi.WriteByte(svc_muzzle_flash);
 	gi.WriteShort(ent - g_game.edicts);
@@ -372,14 +353,11 @@ void G_FireGrenadeLauncher(edict_t *ent){
  * G_FireRocketLauncher
  */
 static void G_FireRocketLauncher_(edict_t *ent){
-	vec3_t offset, start;
-	vec3_t forward, right;
+	vec3_t forward, right, up, org;
 
-	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
-	G_ProjectSource(ent->s.origin, offset, forward, right, start);
+	G_SetupProjectile(ent, forward, right, up, org);
 
-	G_RocketProjectile(ent, start, forward, 1250, 120, 120, 150.0);
+	G_RocketProjectile(ent, org, forward, 1250, 120, 120, 150.0);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -397,14 +375,11 @@ void G_FireRocketLauncher(edict_t *ent){
  * G_FireHyperblaster
  */
 static void G_FireHyperblaster_(edict_t *ent){
-	vec3_t forward, right;
-	vec3_t offset, start;
+	vec3_t forward, right, up, org;
 
-	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
-	G_ProjectSource(ent->s.origin, offset, forward, right, start);
+	G_SetupProjectile(ent, forward, right, up, org);
 
-	G_HyperblasterProjectile(ent, start, forward, 2000, 16, 6);
+	G_HyperblasterProjectile(ent, org, forward, 2000, 16, 6);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -422,14 +397,11 @@ void G_FireHyperblaster(edict_t *ent){
  * G_FireLightning
  */
 static void G_FireLightning_(edict_t *ent){
-	vec3_t start, offset;
-	vec3_t forward, right;
+	vec3_t forward, right, up, org;
 
-	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
-	G_ProjectSource(ent->s.origin, offset, forward, right, start);
+	G_SetupProjectile(ent, forward, right, up, org);
 
-	G_LightningProjectile(ent, start, forward, 10, 12);
+	G_LightningProjectile(ent, org, forward, 10, 12);
 
 	// if the client has just begun to attack, send the muzzle flash
 	if(ent->client->muzzle_flash_time < g_level.time){
@@ -451,14 +423,11 @@ void G_FireLightning(edict_t *ent){
  * G_FireRailgun
  */
 static void G_FireRailgun_(edict_t *ent){
-	vec3_t start, offset;
-	vec3_t forward, right;
+	vec3_t forward, right, up, org;
 
-	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
-	G_ProjectSource(ent->s.origin, offset, forward, right, start);
+	G_SetupProjectile(ent, forward, right, up, org);
 
-	G_RailgunProjectile(ent, start, forward, 120, 80);
+	G_RailgunProjectile(ent, org, forward, 120, 80);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);
@@ -476,14 +445,11 @@ void G_FireRailgun(edict_t *ent){
  * G_FireBfg
  */
 static void G_FireBfg_(edict_t *ent){
-	vec3_t offset, start;
-	vec3_t forward, right;
+	vec3_t forward, right, up, org;
 
-	AngleVectors(ent->client->angles, forward, right, NULL);
-	VectorSet(offset, 30.0, 6.0, ent->view_height - 10.0);
-	G_ProjectSource(ent->s.origin, offset, forward, right, start);
+	G_SetupProjectile(ent, forward, right, up, org);
 
-	G_BfgProjectiles(ent, start, forward, 800, 100, 100, 1024.0);
+	G_BfgProjectiles(ent, org, forward, 800, 100, 100, 1024.0);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzle_flash);

@@ -137,7 +137,7 @@ static int Cl_AnimateClientEntity_(const cl_entity_animation_t *a,
 	const int time = cl.time - a->time;
 	const int frame = time / frame_time;
 
-	*lerp = (time % frame_time) / frame_time;
+	*lerp = (time % frame_time) / (float)frame_time;
 
 	if(time > duration){  // to loop, or not to loop
 
@@ -160,35 +160,35 @@ static int Cl_AnimateClientEntity_(const cl_entity_animation_t *a,
  * indexes and interpolation fractions for the specified renderer entities.
  */
 void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower){
-	const entity_state_t *s = &e->current;
 	const r_md3_t *md3 = (r_md3_t *)upper->model->extra_data;
+	const entity_state_t *s = &e->current;
 
 	// set sane defaults, although we should never need them
 	upper->frame = upper->old_frame = lower->frame = lower->old_frame = 0;
 	upper->lerp = lower->lerp = 1.0;
 	upper->back_lerp = lower->back_lerp = 0.0;
 
-	if(s->animation1 > md3->num_animations){
+	if((s->animation1 & ~ANIM_TOGGLE_BIT) > md3->num_animations){
 		Com_Warn("Cl_AnimateClientEntity: Invalid animation1: %s: %d\n",
-				upper->model->name, s->animation1);
+				upper->model->name, s->animation1 & ~ANIM_TOGGLE_BIT);
 		return;
 	}
 
-	if(s->animation2 > md3->num_animations){
+	if((s->animation2 & ~ANIM_TOGGLE_BIT) > md3->num_animations){
 		Com_Warn("Cl_AnimateClientEntity: Invalid animation2: %s: %d\n",
-				upper->model->name, s->animation2);
+				upper->model->name, s->animation2 & ~ANIM_TOGGLE_BIT);
 		return;
 	}
 
-	const r_md3_animation_t *a1 = &md3->animations[s->animation1];
-	const r_md3_animation_t *a2 = &md3->animations[s->animation2];
+	const r_md3_animation_t *a1 = &md3->animations[s->animation1 & ~ANIM_TOGGLE_BIT];
+	const r_md3_animation_t *a2 = &md3->animations[s->animation2 & ~ANIM_TOGGLE_BIT];
 
 	int frame;
 	float lerp;
 
 	// do the upper body animation
 	if(s->animation1 != e->prev.animation1){
-		e->animation1.animation = s->animation1;
+		e->animation1.animation = s->animation1 & ~ANIM_TOGGLE_BIT;
 		e->animation1.time = cl.time;
 	}
 
@@ -213,7 +213,7 @@ void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower
 
 	// and then the legs
 	if(s->animation2 != e->prev.animation2){
-		e->animation2.animation = s->animation2;
+		e->animation2.animation = s->animation2 & ~ANIM_TOGGLE_BIT;
 		e->animation2.time = cl.time;
 	}
 

@@ -40,7 +40,7 @@
 
 // protocol bytes that can be directly added to messages
 // these must be kept in sync with the declarations in common.h
-#define svc_muzzle_flash		2
+#define svc_muzzle_flash	2
 #define svc_temp_entity		3
 #define svc_layout			4
 #define svc_sound			7
@@ -288,30 +288,30 @@ extern int lightning_fly_index;
 extern int quad_damage_index;
 
 // means of death
-#define MOD_UNKNOWN			0
-#define MOD_SHOTGUN			1
-#define MOD_SSHOTGUN		2
-#define MOD_MACHINEGUN		3
-#define MOD_GRENADE			4
-#define MOD_G_SPLASH		5
-#define MOD_ROCKET			6
-#define MOD_R_SPLASH		7
-#define MOD_HYPERBLASTER	8
-#define MOD_LIGHTNING		9
-#define MOD_L_DISCHARGE		10
-#define MOD_RAILGUN			11
-#define MOD_BFG_LASER		12
-#define MOD_BFG_BLAST		13
-#define MOD_WATER			14
-#define MOD_SLIME			15
-#define MOD_LAVA			16
-#define MOD_CRUSH			17
-#define MOD_TELEFRAG		18
-#define MOD_FALLING			19
-#define MOD_SUICIDE			20
-#define MOD_EXPLOSIVE		21
-#define MOD_TRIGGER_HURT	22
-#define MOD_FRIENDLY_FIRE	0x8000000
+#define MOD_UNKNOWN					0
+#define MOD_SHOTGUN					1
+#define MOD_SUPER_SHOTGUN			2
+#define MOD_MACHINEGUN				3
+#define MOD_GRENADE					4
+#define MOD_GRENADE_SPLASH			5
+#define MOD_ROCKET					6
+#define MOD_ROCKET_SPLASH			7
+#define MOD_HYPERBLASTER			8
+#define MOD_LIGHTNING				9
+#define MOD_LIGHTNING_DISCHARGE		10
+#define MOD_RAILGUN					11
+#define MOD_BFG_LASER				12
+#define MOD_BFG_BLAST				13
+#define MOD_WATER					14
+#define MOD_SLIME					15
+#define MOD_LAVA					16
+#define MOD_CRUSH					17
+#define MOD_TELEFRAG				18
+#define MOD_FALLING					19
+#define MOD_SUICIDE					20
+#define MOD_EXPLOSIVE				21
+#define MOD_TRIGGER_HURT			22
+#define MOD_FRIENDLY_FIRE			0x8000000
 
 extern int means_of_death;
 
@@ -420,80 +420,12 @@ extern MYSQL *mysql;
 extern char sql[512];
 #endif
 
-// g_cmds.c
-void G_ClientCommand(edict_t *ent);
-void G_Score_f(edict_t *ent);
-qboolean G_AddClientToTeam(edict_t *ent, char *team_name);
-
-// g_items.c
-extern g_item_t g_items[];
-
-#define ITEM_INDEX(x) ((x) - g_items)
-
-void G_PrecacheItem(g_item_t *it);
-void G_InitItems(void);
-void G_SetItemNames(void);
-g_item_t *G_FindItem(const char *pickup_name);
-g_item_t *G_FindItemByClassname(const char *class_name);
-edict_t *G_DropItem(edict_t *ent, g_item_t *item);
-void G_SetRespawn(edict_t *ent, float delay);
-void G_SpawnItem(edict_t *ent, g_item_t *item);
-void G_ResetFlag(edict_t *ent);
-g_item_t *G_ItemByIndex(int index);
-qboolean G_AddAmmo(edict_t *ent, g_item_t *item, int count);
-void G_TouchItem(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf);
-
-// g_utils.c
-qboolean G_KillBox(edict_t *ent);
-void G_ProjectSpawn(edict_t *ent);
-void G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result);
-edict_t *G_Find(edict_t *from, ptrdiff_t field, const char *match);
-edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad);
-edict_t *G_PickTarget(char *target_name);
-void G_UseTargets(edict_t *ent, edict_t *activator);
-void G_SetMovedir(vec3_t angles, vec3_t movedir);
-char *G_GameplayName(int g);
-int G_GameplayByName(char *c);
-g_team_t *G_TeamByName(char *c);
-g_team_t *G_OtherTeam(g_team_t *t);
-g_team_t *G_TeamForFlag(edict_t *ent);
-edict_t *G_FlagForTeam(g_team_t *t);
-int G_EffectForTeam(g_team_t *t);
-g_team_t *G_SmallestTeam(void);
-g_client_t *G_ClientByName(char *name);
-qboolean G_IsStationary(edict_t *ent);
-void G_SetAnimation(edict_t *ent, entity_animation_t anim);
-edict_t *G_Spawn(void);
-void G_InitEdict(edict_t *e);
-void G_FreeEdict(edict_t *e);
-void G_TouchTriggers(edict_t *ent);
-void G_TouchSolids(edict_t *ent);
-trace_t G_PushEntity(edict_t *ent, vec3_t push);
-char *G_CopyString(char *in);
-float *tv(float x, float y, float z);
-char *vtos(vec3_t v);
-
-// g_combat.c
-qboolean G_OnSameTeam(edict_t *ent1, edict_t *ent2);
-qboolean G_CanDamage(edict_t *targ, edict_t *inflictor);
-void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
-		vec3_t point, vec3_t normal, int damage, int knockback, int dflags, int mod);
-void G_RadiusDamage(edict_t *inflictor, edict_t *attacker, edict_t *ignore,
-		int damage, int knockback, float radius, int mod);
-
 // damage flags
 #define DAMAGE_RADIUS			0x00000001  // damage was indirect
 #define DAMAGE_NO_ARMOR			0x00000002  // armor does not protect from this damage
 #define DAMAGE_ENERGY			0x00000004  // damage is from an energy based weapon
 #define DAMAGE_BULLET			0x00000008  // damage is from a bullet (used for ricochets)
 #define DAMAGE_NO_PROTECTION	0x00000010  // armor and godmode have no effect
-
-#define DEFAULT_BULLET_HSPREAD	100
-#define DEFAULT_BULLET_VSPREAD	200
-#define DEFAULT_SHOTGUN_HSPREAD	1000
-#define DEFAULT_SHOTGUN_VSPREAD	500
-#define DEFAULT_SHOTGUN_COUNT	12
-#define DEFAULT_SSHOTGUN_COUNT	24
 
 // g_ballistics.c
 void G_BulletProjectile(edict_t *self, vec3_t start, vec3_t dir,
@@ -513,6 +445,12 @@ void G_RailgunProjectile(edict_t *self, vec3_t start, vec3_t dir,
 void G_BfgProjectiles(edict_t *self, vec3_t start, vec3_t dir,
 		int speed, int damage, int knockback, float damage_radius);
 
+// g_chase.c
+void G_ChaseThink(edict_t *ent);
+void G_ChaseNext(edict_t *ent);
+void G_ChasePrevious(edict_t *ent);
+void G_ChaseTarget(edict_t *ent);
+
 // g_client.c
 qboolean G_ClientConnect(edict_t *ent, char *user_info);
 void G_ClientUserInfoChanged(edict_t *ent, const char *user_info);
@@ -526,51 +464,18 @@ void G_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 void G_TossQuadDamage(edict_t *self);
 void G_TossFlag(edict_t *self);
 
-// g_view.c
-void G_ClientEndFrame(edict_t *ent);
-void G_EndClientFrames(void);
+// g_combat.c
+qboolean G_OnSameTeam(edict_t *ent1, edict_t *ent2);
+qboolean G_CanDamage(edict_t *targ, edict_t *inflictor);
+void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
+		vec3_t point, vec3_t normal, int damage, int knockback, int dflags, int mod);
+void G_RadiusDamage(edict_t *inflictor, edict_t *attacker, edict_t *ignore,
+		int damage, int knockback, float radius, int mod);
 
-// g_stats.c
-void G_ClientToIntermission(edict_t *client);
-void G_ClientStats(edict_t *ent);
-void G_ClientSpectatorStats(edict_t *ent);
-void G_ClientTeamsScoreboard(edict_t *client);
-void G_ClientScoreboard(edict_t *client);
-
-// g_weapon.c
-void G_ChangeWeapon(edict_t *ent);
-void G_WeaponThink(edict_t *ent);
-qboolean G_PickupWeapon(edict_t *ent, edict_t *other);
-void G_UseBestWeapon(g_client_t *client);
-void G_UseWeapon(edict_t *ent, g_item_t *inv);
-void G_DropWeapon(edict_t *ent, g_item_t *inv);
-void G_FireShotgun(edict_t *ent);
-void G_FireSuperShotgun(edict_t *ent);
-void G_FireMachinegun(edict_t *ent);
-void G_FireHyperblaster(edict_t *ent);
-void G_FireRocketLauncher(edict_t *ent);
-void G_FireGrenadeLauncher(edict_t *ent);
-void G_FireLightning(edict_t *ent);
-void G_FireRailgun(edict_t *ent);
-void G_FireBfg(edict_t *ent);
-
-// g_physics.c
-void G_RunEntity(edict_t *ent);
-
-// g_main.c
-void G_Init(void);
-void G_Shutdown(void);
-void G_ResetTeams(void);
-void G_ResetVote(void);
-
-// g_chase.c
-void G_UpdateChaseCam(edict_t *ent);
-void G_ChaseNext(edict_t *ent);
-void G_ChasePrev(edict_t *ent);
-void G_GetChaseTarget(edict_t *ent);
-
-// g_spawn.c
-void G_SpawnEntities(const char *name, const char *entities);
+// g_cmds.c
+void G_ClientCommand(edict_t *ent);
+void G_Score_f(edict_t *ent);
+qboolean G_AddClientToTeam(edict_t *ent, char *team_name);
 
 // g_entity_func.c
 void G_func_plat(edict_t *ent);
@@ -615,6 +520,94 @@ void G_trigger_relay(edict_t *ent);
 void G_trigger_push(edict_t *ent);
 void G_trigger_hurt(edict_t *ent);
 void G_trigger_exec(edict_t *ent);
+
+// g_items.c
+extern g_item_t g_items[];
+
+#define ITEM_INDEX(x) ((x) - g_items)
+
+void G_PrecacheItem(g_item_t *it);
+void G_InitItems(void);
+void G_SetItemNames(void);
+g_item_t *G_FindItem(const char *pickup_name);
+g_item_t *G_FindItemByClassname(const char *class_name);
+edict_t *G_DropItem(edict_t *ent, g_item_t *item);
+void G_SetRespawn(edict_t *ent, float delay);
+void G_SpawnItem(edict_t *ent, g_item_t *item);
+void G_ResetFlag(edict_t *ent);
+g_item_t *G_ItemByIndex(int index);
+qboolean G_AddAmmo(edict_t *ent, g_item_t *item, int count);
+void G_TouchItem(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf);
+
+// g_main.c
+void G_Init(void);
+void G_Shutdown(void);
+void G_ResetTeams(void);
+void G_ResetVote(void);
+
+// g_physics.c
+void G_RunEntity(edict_t *ent);
+
+// g_spawn.c
+void G_SpawnEntities(const char *name, const char *entities);
+
+// g_stats.c
+void G_ClientToIntermission(edict_t *client);
+void G_ClientStats(edict_t *ent);
+void G_ClientSpectatorStats(edict_t *ent);
+void G_ClientTeamsScoreboard(edict_t *client);
+void G_ClientScoreboard(edict_t *client);
+
+// g_utils.c
+qboolean G_KillBox(edict_t *ent);
+void G_ProjectSpawn(edict_t *ent);
+void G_SetupProjectile(edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org);
+edict_t *G_Find(edict_t *from, ptrdiff_t field, const char *match);
+edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad);
+edict_t *G_PickTarget(char *target_name);
+void G_UseTargets(edict_t *ent, edict_t *activator);
+void G_SetMovedir(vec3_t angles, vec3_t movedir);
+char *G_GameplayName(int g);
+int G_GameplayByName(char *c);
+g_team_t *G_TeamByName(char *c);
+g_team_t *G_OtherTeam(g_team_t *t);
+g_team_t *G_TeamForFlag(edict_t *ent);
+edict_t *G_FlagForTeam(g_team_t *t);
+int G_EffectForTeam(g_team_t *t);
+g_team_t *G_SmallestTeam(void);
+g_client_t *G_ClientByName(char *name);
+qboolean G_IsStationary(edict_t *ent);
+void G_SetAnimation(edict_t *ent, entity_animation_t anim, qboolean restart);
+edict_t *G_Spawn(void);
+void G_InitEdict(edict_t *e);
+void G_FreeEdict(edict_t *e);
+void G_TouchTriggers(edict_t *ent);
+void G_TouchSolids(edict_t *ent);
+trace_t G_PushEntity(edict_t *ent, vec3_t push);
+char *G_CopyString(char *in);
+float *tv(float x, float y, float z);
+char *vtos(vec3_t v);
+
+// g_view.c
+void G_ClientEndFrame(edict_t *ent);
+void G_EndClientFrames(void);
+
+// g_weapon.c
+void G_ChangeWeapon(edict_t *ent);
+void G_WeaponThink(edict_t *ent);
+qboolean G_PickupWeapon(edict_t *ent, edict_t *other);
+void G_UseBestWeapon(g_client_t *client);
+void G_UseWeapon(edict_t *ent, g_item_t *inv);
+void G_DropWeapon(edict_t *ent, g_item_t *inv);
+void G_FireShotgun(edict_t *ent);
+void G_FireSuperShotgun(edict_t *ent);
+void G_FireMachinegun(edict_t *ent);
+void G_FireHyperblaster(edict_t *ent);
+void G_FireRocketLauncher(edict_t *ent);
+void G_FireGrenadeLauncher(edict_t *ent);
+void G_FireLightning(edict_t *ent);
+void G_FireRailgun(edict_t *ent);
+void G_FireBfg(edict_t *ent);
 
 #define MAX_NET_NAME 64
 
@@ -700,7 +693,8 @@ struct g_client_s {
 	float sizzle_time;
 	int old_water_level;
 
-	float footstep_time;  // TODO: move to client
+	float fall_time;  // eligible for landing event when time > this
+	float footstep_time;  // play a footstep when time > this
 
 	float pickup_msg_time;  // display msg until time > this
 
