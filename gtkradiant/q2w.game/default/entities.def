@@ -48,10 +48,9 @@ When a button is touched, it moves some distance in the direction of it's angle,
 */
 
 
-/*QUAKED func_door (0 .5 .8) ? START_OPEN x CRUSHER NOMONSTER TOGGLE_FAST
-TOGGLE		wait in both the start and end states for a trigger event.
+/*QUAKED func_door (0 .5 .8) ? START_OPEN TOGGLE
 START_OPEN	the door to moves to its destination when spawned, and operate in reverse.  It is used to temporarily or permanently close off an area when triggered (not useful for touch or takedamage doors).
-NOMONSTER	monsters will not trigger this door
+TOGGLE		wait in both the start and end states for a trigger event.
 
 "message"	is printed when the door is touched if it is a trigger door and it hasn't been fired yet
 "angle"		determines the opening direction
@@ -61,57 +60,6 @@ NOMONSTER	monsters will not trigger this door
 "wait"		wait before returning (3 default, -1 = never return)
 "lip"		lip remaining at end of move (8 default)
 "dmg"		damage to inflict when blocked (2 default)
-"sounds"
-1)	silent
-2)	light
-3)	medium
-4)	heavy
-*/
-
-
-/*QUAKED func_door_rotating (0 .5 .8) ? START_OPEN REVERSE CRUSHER NOMONSTER TOGGLE X_AXIS Y_AXIS
-TOGGLE causes the door to wait in both the start and end states for a trigger event.
-
-START_OPEN	the door to moves to its destination when spawned, and operate in reverse.  It is used to temporarily or permanently close off an area when triggered (not useful for touch or takedamage doors).
-NOMONSTER	monsters will not trigger this door
-
-You need to have an origin brush as part of this entity.  The center of that brush will be
-the point around which it is rotated. It will rotate around the Z axis by default.  You can
-check either the X_AXIS or Y_AXIS box to change that.
-
-"distance" is how many degrees the door will be rotated.
-"speed" determines how fast the door moves; default value is 100.
-
-REVERSE will cause the door to rotate in the opposite direction.
-
-"message"	is printed when the door is touched if it is a trigger door and it hasn't been fired yet
-"angle"		determines the opening direction
-"targetname" if set, no touch field will be spawned and a remote button or trigger field activates the door.
-"health"	if set, door must be shot open
-"speed"		movement speed (100 default)
-"wait"		wait before returning (3 default, -1 = never return)
-"dmg"		damage to inflict when blocked (2 default)
-"sounds"
-1)	silent
-2)	light
-3)	medium
-4)	heavy
-*/
-
-
-/*QUAKED func_water (0 .5 .8) ? START_OPEN
-func_water is a moveable water brush.  It must be targeted to operate.  Use a non-water texture at your own risk.
-
-START_OPEN causes the water to move to its destination when spawned and operate in reverse.
-
-"angle"		determines the opening direction (up or down only)
-"speed"		movement speed (25 default)
-"wait"		wait before returning (-1 default, -1 = TOGGLE)
-"lip"		lip remaining at end of move (0 default)
-"sounds"	(yes, these need to be changed)
-0)	no sound
-1)	water
-2)	lava
 */
 
 

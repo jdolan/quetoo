@@ -34,19 +34,19 @@ spawn_t spawns[] = {
 	{"info_player_team1", G_info_player_team1},
 	{"info_player_team2", G_info_player_team2},
 	{"info_player_intermission", G_info_player_intermission},
+	{"info_null", G_info_null},
+	{"func_group", G_info_null},
+	{"info_notnull", G_info_notnull},
 
 	{"func_plat", G_func_plat},
 	{"func_button", G_func_button},
 	{"func_door", G_func_door},
 	{"func_door_secret", G_func_door_secret},
-	{"func_door_rotating", G_func_door_rotating},
 	{"func_rotating", G_func_rotating},
 	{"func_train", G_func_train},
-	{"func_water", G_func_water},
 	{"func_conveyor", G_func_conveyor},
 	{"func_areaportal", G_func_areaportal},
 	{"func_wall", G_func_wall},
-	{"func_object", G_func_object},
 	{"func_timer", G_func_timer},
 	{"func_killbox", G_func_killbox},
 
@@ -57,6 +57,7 @@ spawn_t spawns[] = {
 	{"trigger_push", G_trigger_push},
 	{"trigger_hurt", G_trigger_hurt},
 	{"trigger_exec", G_trigger_exec},
+
 	{"trigger_teleporter", G_misc_teleporter},
 
 	{"target_speaker", G_target_speaker},
@@ -65,10 +66,6 @@ spawn_t spawns[] = {
 	{"target_string", G_target_string},
 
 	{"worldspawn", G_worldspawn},
-
-	{"info_null", G_info_null},
-	{"func_group", G_info_null},
-	{"info_notnull", G_info_notnull},
 
 	{"misc_teleporter", G_misc_teleporter},
 	{"misc_teleporter_dest", G_misc_teleporter_dest},
@@ -155,7 +152,7 @@ static char *G_NewString(const char *string){
 
 // fields are needed for spawning from the entity string
 #define FFL_SPAWN_TEMP		1
-#define FFL_NO_SPAWN			2
+#define FFL_NO_SPAWN		2
 
 typedef enum g_field_type_s {
 	F_INT,
