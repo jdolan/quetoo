@@ -48,6 +48,7 @@ typedef struct cl_entity_animation_s {
 	int time;
 	int frame;
 	int old_frame;
+	float fraction;
 } cl_entity_animation_t;
 
 typedef struct cl_entity_s {

@@ -449,69 +449,33 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 }
 
 
-// we borrow a few animation frame defines for view weapon kick
-#define FRAME_attack1		 	46
-#define FRAME_attack8		 	53
-#define FRAME_crattak1			160
-#define FRAME_crattak8			167
-
-static const float weapon_kick_ramp[] = {
-	3.0, 10.0, 8.0, 6.5, 4.0, 3.0, 1.5, 0.0
-};
-
-
 /*
  * Cl_WeaponKick
  *
  * Calculates a pitch offset for the view weapon based on our player's
  * animation state.
- *
- * TODO: This is completely broken since adding Quake3 animations. Needs rework.
  */
-static float Cl_WeaponKick(r_entity_t *self){
-	float k1, k2;
-	int start_frame, end_frame, old_frame;
+static float Cl_WeaponKick(cl_entity_t *e){
 
-	start_frame = end_frame = old_frame = 0;
-
-	if(self->frame >= FRAME_attack1 && self->frame <= FRAME_attack8){
-		start_frame = FRAME_attack1;
-		end_frame = FRAME_attack8;
-	}
-	else if(self->frame >= FRAME_crattak1 && self->frame <= FRAME_crattak8){
-		start_frame = FRAME_crattak1;
-		end_frame = FRAME_crattak8;
-	}
-
-	if(!start_frame){  // we're not firing
+	if(e->animation1.animation != ANIM_TORSO_ATTACK1)
 		return 0.0;
-	}
 
-	old_frame = self->old_frame;
+	if(e->animation1.fraction > 1.0)
+		return 0.0;
 
-	if(old_frame < start_frame || old_frame > end_frame){
-		old_frame = start_frame;
-	}
-
-	k1 = weapon_kick_ramp[self->frame - start_frame];
-	k2 = weapon_kick_ramp[old_frame - start_frame];
-
-	return k1 * self->lerp + k2 * self->back_lerp;
+	return (e->animation1.fraction - 1.0) * -15.0;
 }
 
 
 /*
  * Cl_AddWeapon
  */
-static void Cl_AddWeapon(r_entity_t *self){
+static void Cl_AddWeapon(cl_entity_t *e, r_entity_t *self){
 	static r_entity_t ent;
 	static r_lighting_t lighting;
 	int w;
 
 	if(!cl_weapon->value)
-		return;
-
-	if(!(cl_add_entities->integer & 2))
 		return;
 
 	if(cl_third_person->value)
@@ -537,7 +501,7 @@ static void Cl_AddWeapon(r_entity_t *self){
 	VectorCopy(r_view.origin, ent.origin);
 	VectorCopy(r_view.angles, ent.angles);
 
-	ent.angles[PITCH] -= Cl_WeaponKick(self);
+	ent.angles[PITCH] -= Cl_WeaponKick(e);
 
 	VectorCopy(self->shell, ent.shell);
 
@@ -588,13 +552,10 @@ static const vec3_t bfg_light = {
  * cl_add_entities bit mask.
  */
 void Cl_AddEntities(cl_frame_t *frame){
-	r_entity_t self;
 	int i;
 
 	if(!cl_add_entities->value)
 		return;
-
-	memset(&self, 0, sizeof(self));
 
 	// resolve any models, animations, interpolations, rotations, bobbing, etc..
 	for(i = 0; i < frame->num_entities; i++){
@@ -715,10 +676,11 @@ void Cl_AddEntities(cl_frame_t *frame){
 
 		if(s->model1 == 0xff){  // add the client entities
 
-			if(s->number == cl.player_num + 1)
-				self = ent;
-
 			Cl_AddClientEntity(e, &ent);
+
+			if(s->number == cl.player_num + 1)
+				Cl_AddWeapon(e, &ent);
+
 			continue;
 		}
 
@@ -728,7 +690,4 @@ void Cl_AddEntities(cl_frame_t *frame){
 		// add to view list
 		R_AddEntity(&ent);
 	}
-
-	// lastly, add the view weapon
-	Cl_AddWeapon(&self);
 }

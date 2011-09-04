@@ -124,7 +124,7 @@ void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s){
  * Returns the appropriate frame number for the specified client animation, or
  * -1 if the current animation sequence is complete.
  */
-static int Cl_AnimateClientEntity_(const cl_entity_animation_t *a,
+static int Cl_AnimateClientEntity_(cl_entity_animation_t *a,
 		const r_md3_animation_t *anim, float *lerp){
 
 	if(!anim->num_frames || !anim->hz){  // bad animation sequence
@@ -136,6 +136,8 @@ static int Cl_AnimateClientEntity_(const cl_entity_animation_t *a,
 	const int duration = anim->num_frames * frame_time;
 	const int time = cl.time - a->time;
 	const int frame = time / frame_time;
+
+	a->fraction = time / (float)duration;
 
 	*lerp = (time % frame_time) / (float)frame_time;
 
