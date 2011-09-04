@@ -24,6 +24,8 @@
 
 #include <SDL_opengl.h>
 
+#include "common.h"
+
 #ifndef GLchar
 # define GLchar char
 #endif
@@ -100,5 +102,8 @@ extern void (APIENTRY *qglUniform1f)(GLint location, GLfloat f);
 extern void (APIENTRY *qglUniform3fv)(GLint location, int count, GLfloat *f);
 extern void (APIENTRY *qglUniform4fv)(GLint location, int count, GLfloat *f);
 extern GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
+
+void R_EnforceGlVersion(void);
+qboolean R_InitGlExtensions(void);
 
 #endif /* __R_GL_H__ */

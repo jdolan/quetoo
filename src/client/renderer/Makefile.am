@@ -24,6 +24,7 @@ librenderer_la_SOURCES = \
 	r_draw.c \
 	r_entity.c \
 	r_flare.c \
+	r_gl.c \
 	r_image.c \
 	r_light.c \
 	r_lighting.c \
