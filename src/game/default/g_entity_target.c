@@ -128,7 +128,7 @@ static void G_target_splash_think(edict_t *self){
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_SPARKS);
 	gi.WritePosition(self->s.origin);
-	gi.WriteDir(self->movedir);
+	gi.WriteDir(self->move_dir);
 	gi.Multicast(self->s.origin, MULTICAST_PVS);
 
 	self->next_think = g_level.time + (frand() * 3);
@@ -136,7 +136,7 @@ static void G_target_splash_think(edict_t *self){
 
 void G_target_splash(edict_t *self){
 
-	G_SetMovedir(self->s.angles, self->movedir);
+	G_SetMovedir(self->s.angles, self->move_dir);
 
 	self->solid = SOLID_NOT;
 	self->think = G_target_splash_think;

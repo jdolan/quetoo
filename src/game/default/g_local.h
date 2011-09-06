@@ -756,7 +756,7 @@ struct edict_s {
 	edict_t *target_ent;
 
 	float speed, accel, decel;
-	vec3_t movedir;
+	vec3_t move_dir;
 	vec3_t pos1, pos2;
 
 	vec3_t velocity;
@@ -812,8 +812,6 @@ struct edict_s {
 
 	int water_type;
 	int water_level;
-
-	vec3_t dest;  // projectile destination
 
 	int style;  // also used as areaportal number
 

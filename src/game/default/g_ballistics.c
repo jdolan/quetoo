@@ -434,10 +434,8 @@ static void G_RocketProjectile_Touch(edict_t *ent, edict_t *other, c_plane_t *pl
  */
 void G_RocketProjectile(edict_t *self, vec3_t start, vec3_t dir, int speed,
 		int damage, int knockback, float damage_radius){
-	edict_t *rocket;
-	vec3_t dest;
-	trace_t tr;
 	const vec3_t scale = {0.25, 0.25, 0.15};
+	edict_t *rocket;
 
 	if(G_ImmediateWall(self, dir))
 		VectorCopy(self->s.origin, start);
@@ -445,7 +443,7 @@ void G_RocketProjectile(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	rocket = G_Spawn();
 	VectorCopy(start, rocket->s.origin);
 	VectorCopy(start, rocket->s.old_origin);
-	VectorCopy(dir, rocket->movedir);
+	VectorCopy(dir, rocket->move_dir);
 	VectorAngles(dir, rocket->s.angles);
 	VectorScale(dir, speed, rocket->velocity);
 	rocket->move_type = MOVE_TYPE_FLY;
@@ -462,10 +460,6 @@ void G_RocketProjectile(edict_t *self, vec3_t start, vec3_t dir, int speed,
 	rocket->dmg_radius = damage_radius;
 	rocket->s.sound = rocket_fly_index;
 	rocket->class_name = "rocket";
-
-	VectorMA(start, 8192.0, dir, dest);
-	tr = gi.Trace(start, NULL, NULL, dest, self, MASK_SHOT);
-	VectorCopy(tr.end, rocket->dest);
 
 	G_PlayerProjectile(rocket, scale);
 
@@ -887,20 +881,20 @@ void G_BfgProjectiles(edict_t *self, vec3_t start, vec3_t dir, int speed, int da
 		VectorCopy(start, bfg->s.origin);
 
 		// start with the forward direction
-		VectorCopy(dir, bfg->movedir);
+		VectorCopy(dir, bfg->move_dir);
 
 		// and scatter randomly along the up and right vectors
 		VectorScale(right, crand() * 0.35, r);
 		VectorScale(up, crand() * 0.01, u);
 
-		VectorAdd(bfg->movedir, r, bfg->movedir);
-		VectorAdd(bfg->movedir, u, bfg->movedir);
+		VectorAdd(bfg->move_dir, r, bfg->move_dir);
+		VectorAdd(bfg->move_dir, u, bfg->move_dir);
 
 		// finalize the direction and resolve angles, velocity, ..
-		VectorAngles(bfg->movedir, bfg->s.angles);
+		VectorAngles(bfg->move_dir, bfg->s.angles);
 
 		s = speed + (0.2 * speed * crand());
-		VectorScale(bfg->movedir, s, bfg->velocity);
+		VectorScale(bfg->move_dir, s, bfg->velocity);
 
 		bfg->move_type = MOVE_TYPE_FLY;
 		bfg->clip_mask = MASK_SHOT;

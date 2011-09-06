@@ -275,10 +275,14 @@ static void G_MoveInfo_Init(edict_t *ent, vec3_t dest, void(*done)(edict_t*)){
 
 
 /*
- * G_func_plat
+ * G_func_plat_go_down
  */
 static void G_func_plat_go_down(edict_t *ent);
 
+
+/*
+ * G_func_plat_up
+ */
 static void G_func_plat_up(edict_t *ent){
 	if(!(ent->flags & FL_TEAMSLAVE)){
 		if(ent->move_info.sound_end)
@@ -291,6 +295,10 @@ static void G_func_plat_up(edict_t *ent){
 	ent->next_think = g_level.time + 3;
 }
 
+
+/*
+ * G_func_plat_down
+ */
 static void G_func_plat_down(edict_t *ent){
 	if(!(ent->flags & FL_TEAMSLAVE)){
 		if(ent->move_info.sound_end)
@@ -300,6 +308,10 @@ static void G_func_plat_down(edict_t *ent){
 	ent->move_info.state = STATE_BOTTOM;
 }
 
+
+/*
+ * G_func_plat_go_down
+ */
 static void G_func_plat_go_down(edict_t *ent){
 	if(!(ent->flags & FL_TEAMSLAVE)){
 		if(ent->move_info.sound_start)
@@ -310,6 +322,10 @@ static void G_func_plat_go_down(edict_t *ent){
 	G_MoveInfo_Init(ent, ent->move_info.end_origin, G_func_plat_down);
 }
 
+
+/*
+ * G_func_plat_go_up
+ */
 static void G_func_plat_go_up(edict_t *ent){
 	if(!(ent->flags & FL_TEAMSLAVE)){
 		if(ent->move_info.sound_start)
@@ -320,6 +336,10 @@ static void G_func_plat_go_up(edict_t *ent){
 	G_MoveInfo_Init(ent, ent->move_info.start_origin, G_func_plat_up);
 }
 
+
+/*
+ * G_func_plat_blocked
+ */
 static void G_func_plat_blocked(edict_t *self, edict_t *other){
 	if(!other->client)
 		return;
@@ -333,6 +353,9 @@ static void G_func_plat_blocked(edict_t *self, edict_t *other){
 }
 
 
+/*
+ * G_func_plat_use
+ */
 static void G_func_plat_use(edict_t *ent, edict_t *other, edict_t *activator){
 	if(ent->think)
 		return;  // already down
@@ -340,6 +363,9 @@ static void G_func_plat_use(edict_t *ent, edict_t *other, edict_t *activator){
 }
 
 
+/*
+ * G_func_plat_touch
+ */
 static void G_func_plat_touch(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(!other->client)
 		return;
@@ -354,7 +380,11 @@ static void G_func_plat_touch(edict_t *ent, edict_t *other, c_plane_t *plane, c_
 		ent->next_think = g_level.time + 1;  // the player is still on the plat, so delay going down
 }
 
-static void G_func_plat_spawn_inside_trigger(edict_t *ent){
+
+/*
+ * G_func_plat_create_trigger
+ */
+static void G_func_plat_create_trigger(edict_t *ent){
 	edict_t *trigger;
 	vec3_t tmin, tmax;
 
@@ -455,7 +485,7 @@ void G_func_plat(edict_t *ent){
 
 	ent->use = G_func_plat_use;
 
-	G_func_plat_spawn_inside_trigger(ent);  // the "start moving" trigger
+	G_func_plat_create_trigger(ent);  // the "start moving" trigger
 
 	if(ent->target_name){
 		ent->move_info.state = STATE_UP;
@@ -480,7 +510,42 @@ void G_func_plat(edict_t *ent){
 }
 
 
-/*QUAKED func_rotating(0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS TOUCH_PAIN STOP
+/*
+ * G_func_rotating_blocked
+ */
+static void G_func_rotating_blocked(edict_t *self, edict_t *other){
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
+}
+
+
+/*
+ * G_func_rotating_touch
+ */
+static void G_func_rotating_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+	if(self->avelocity[0] || self->avelocity[1] || self->avelocity[2])
+		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
+}
+
+
+/*
+ * G_func_rotating_use
+ */
+static void G_func_rotating_use(edict_t *self, edict_t *other, edict_t *activator){
+
+	if(!VectorCompare(self->avelocity, vec3_origin)){
+		self->s.sound = 0;
+		VectorClear(self->avelocity);
+		self->touch = NULL;
+	} else {
+		self->s.sound = self->move_info.sound_middle;
+		VectorScale(self->move_dir, self->speed, self->avelocity);
+		if(self->spawn_flags & 16)
+			self->touch = G_func_rotating_touch;
+	}
+}
+
+
+/*QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS TOUCH_PAIN STOP
 You need to have an origin brush as part of this entity.  The center of that brush will be
 the point around which it is rotated. It will rotate around the Z axis by default.  You can
 check either the X_AXIS or Y_AXIS box to change that.
@@ -491,48 +556,27 @@ check either the X_AXIS or Y_AXIS box to change that.
 REVERSE will cause the it to rotate in the opposite direction.
 STOP mean it will stop moving instead of pushing entities
 */
-
-static void G_func_rotating_blocked(edict_t *self, edict_t *other){
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
-}
-
-static void G_func_rotating_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
-	if(self->avelocity[0] || self->avelocity[1] || self->avelocity[2])
-		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
-}
-
-static void G_func_rotating_use(edict_t *self, edict_t *other, edict_t *activator){
-	if(!VectorCompare(self->avelocity, vec3_origin)){
-		self->s.sound = 0;
-		VectorClear(self->avelocity);
-		self->touch = NULL;
-	} else {
-		self->s.sound = self->move_info.sound_middle;
-		VectorScale(self->movedir, self->speed, self->avelocity);
-		if(self->spawn_flags & 16)
-			self->touch = G_func_rotating_touch;
-	}
-}
-
 void G_func_rotating(edict_t *ent){
+
 	ent->solid = SOLID_BSP;
+
 	if(ent->spawn_flags & 32)
 		ent->move_type = MOVE_TYPE_STOP;
 	else
 		ent->move_type = MOVE_TYPE_PUSH;
 
 	// set the axis of rotation
-	VectorClear(ent->movedir);
+	VectorClear(ent->move_dir);
 	if(ent->spawn_flags & 4)
-		ent->movedir[2] = 1.0;
+		ent->move_dir[2] = 1.0;
 	else if(ent->spawn_flags & 8)
-		ent->movedir[0] = 1.0;
+		ent->move_dir[0] = 1.0;
 	else // Z_AXIS
-		ent->movedir[1] = 1.0;
+		ent->move_dir[1] = 1.0;
 
 	// check for reverse rotation
 	if(ent->spawn_flags & 2)
-		VectorNegate(ent->movedir, ent->movedir);
+		VectorNegate(ent->move_dir, ent->move_dir);
 
 	if(!ent->speed)
 		ent->speed = 100;
@@ -551,34 +595,20 @@ void G_func_rotating(edict_t *ent){
 	gi.LinkEntity(ent);
 }
 
+
 /*
- *
- * BUTTONS
- *
+ * G_func_button_done
  */
-
-/*QUAKED func_button(0 .5 .8) ?
-When a button is touched, it moves some distance in the direction of it's angle, triggers all of it's targets, waits some time, then returns to it's original position where it can be triggered again.
-
-"angle"		determines the opening direction
-"target"	all entities with a matching targetname will be used
-"speed"		override the default 40 speed
-"wait"		override the default 1 second wait (-1 = never return)
-"lip"		override the default 4 pixel lip remaining at end of move
-"health"	if set, the button must be killed instead of touched
-"sounds"
-1) silent
-2) steam metal
-3) wooden clunk
-4) metallic click
-5) in-out
-*/
-
 static void G_func_button_done(edict_t *self){
 	self->move_info.state = STATE_BOTTOM;
 }
 
+
+/*
+ * G_func_button_reset
+ */
 static void G_func_button_reset(edict_t *self){
+
 	self->move_info.state = STATE_DOWN;
 
 	G_MoveInfo_Init(self, self->move_info.start_origin, G_func_button_done);
@@ -587,7 +617,12 @@ static void G_func_button_reset(edict_t *self){
 		self->take_damage = true;
 }
 
+
+/*
+ * G_func_button_wait
+ */
 static void G_func_button_wait(edict_t *self){
+
 	self->move_info.state = STATE_TOP;
 
 	G_UseTargets(self, self->activator);
@@ -598,7 +633,12 @@ static void G_func_button_wait(edict_t *self){
 	}
 }
 
+
+/*
+ * G_func_button_activate
+ */
 static void G_func_button_activate(edict_t *self){
+
 	if(self->move_info.state == STATE_UP || self->move_info.state == STATE_TOP)
 		 return;
 
@@ -610,12 +650,21 @@ static void G_func_button_activate(edict_t *self){
 	G_MoveInfo_Init(self, self->move_info.end_origin, G_func_button_wait);
 }
 
+
+/*
+ * G_func_button_use
+ */
 static void G_func_button_use(edict_t *self, edict_t *other, edict_t *activator){
 	self->activator = activator;
 	G_func_button_activate(self);
 }
 
+
+/*
+ * G_func_button_touch
+ */
 static void G_func_button_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+
 	if(!other->client)
 		  return;
 
@@ -633,11 +682,22 @@ static void G_func_button_die(edict_t *self, edict_t *inflictor, edict_t *attack
 	G_func_button_activate(self);
 }
 
+
+/*QUAKED func_button (0 .5 .8) ?
+When a button is touched, it moves some distance in the direction of it's angle, triggers all of it's targets, waits some time, then returns to it's original position where it can be triggered again.
+
+"angle"		determines the opening direction
+"target"	all entities with a matching targetname will be used
+"speed"		override the default 40 speed
+"wait"		override the default 1 second wait (-1 = never return)
+"lip"		override the default 4 pixel lip remaining at end of move
+"health"	if set, the button must be killed instead of touched
+*/
 void G_func_button(edict_t *ent){
 	vec3_t abs_movedir;
 	float dist;
 
-	G_SetMovedir(ent->s.angles, ent->movedir);
+	G_SetMovedir(ent->s.angles, ent->move_dir);
 	ent->move_type = MOVE_TYPE_STOP;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
@@ -658,11 +718,11 @@ void G_func_button(edict_t *ent){
 		  g_game.spawn.lip = 4;
 
 	VectorCopy(ent->s.origin, ent->pos1);
-	abs_movedir[0] = fabsf(ent->movedir[0]);
-	abs_movedir[1] = fabsf(ent->movedir[1]);
-	abs_movedir[2] = fabsf(ent->movedir[2]);
+	abs_movedir[0] = fabsf(ent->move_dir[0]);
+	abs_movedir[1] = fabsf(ent->move_dir[1]);
+	abs_movedir[2] = fabsf(ent->move_dir[2]);
 	dist = abs_movedir[0] * ent->size[0] + abs_movedir[1] * ent->size[1] + abs_movedir[2] * ent->size[2] - g_game.spawn.lip;
-	VectorMA(ent->pos1, dist, ent->movedir, ent->pos2);
+	VectorMA(ent->pos1, dist, ent->move_dir, ent->pos2);
 
 	ent->use = G_func_button_use;
 
@@ -691,19 +751,10 @@ void G_func_button(edict_t *ent){
 #define DOOR_START_OPEN		1
 #define DOOR_TOGGLE			2
 
-/*QUAKED func_door(0 .5 .8) ? START_OPEN TOGGLE
-START_OPEN	the door to moves to its destination when spawned, and operate in reverse.  It is used to temporarily or permanently close off an area when triggered(not useful for touch or takedamage doors).
-TOGGLE		wait in both the start and end states for a trigger event.
 
-"message"	is printed when the door is touched if it is a trigger door and it hasn't been fired yet
-"angle"		determines the opening direction
-"targetname" if set, no touch field will be spawned and a remote button or trigger field activates the door.
-"health"	if set, door must be shot open
-"speed"		movement speed(100 default)
-"wait"		wait before returning(3 default, -1 = never return)
-"lip"		lip remaining at end of move(8 default)
-"dmg"		damage to inflict when blocked(2 default)
-*/
+/*
+ * G_func_door_use_areaportals
+ */
 static void G_func_door_use_areaportals(edict_t *self, qboolean open){
 	edict_t *t = NULL;
 
@@ -719,6 +770,10 @@ static void G_func_door_use_areaportals(edict_t *self, qboolean open){
 
 static void G_func_door_go_down(edict_t *self);
 
+
+/*
+ * G_func_door_up
+ */
 static void G_func_door_up(edict_t *self){
 	if(!(self->flags & FL_TEAMSLAVE)){
 		if(self->move_info.sound_end)
@@ -736,6 +791,10 @@ static void G_func_door_up(edict_t *self){
 	}
 }
 
+
+/*
+ * G_func_door_down
+ */
 static void G_func_door_down(edict_t *self){
 	if(!(self->flags & FL_TEAMSLAVE)){
 		if(self->move_info.sound_end)
@@ -746,6 +805,10 @@ static void G_func_door_down(edict_t *self){
 	G_func_door_use_areaportals(self, false);
 }
 
+
+/*
+ * G_func_door_go_down
+ */
 static void G_func_door_go_down(edict_t *self){
 	if(!(self->flags & FL_TEAMSLAVE)){
 		if(self->move_info.sound_start)
@@ -761,6 +824,10 @@ static void G_func_door_go_down(edict_t *self){
 	G_MoveInfo_Init(self, self->move_info.start_origin, G_func_door_down);
 }
 
+
+/*
+ * G_func_door_go_up
+ */
 static void G_func_door_go_up(edict_t *self, edict_t *activator){
 	if(self->move_info.state == STATE_UP)
 		return;  // already going up
@@ -783,6 +850,10 @@ static void G_func_door_go_up(edict_t *self, edict_t *activator){
 	G_func_door_use_areaportals(self, true);
 }
 
+
+/*
+ * G_func_door_use
+ */
 static void G_func_door_use(edict_t *self, edict_t *other, edict_t *activator){
 	edict_t *ent;
 
@@ -809,6 +880,10 @@ static void G_func_door_use(edict_t *self, edict_t *other, edict_t *activator){
 	}
 }
 
+
+/*
+ * G_func_door_touch_trigger
+ */
 static void G_func_door_touch_trigger(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(other->health <= 0)
 		return;
@@ -824,6 +899,10 @@ static void G_func_door_touch_trigger(edict_t *self, edict_t *other, c_plane_t *
 	G_func_door_use(self->owner, other, other);
 }
 
+
+/*
+ * G_func_door_calc_move
+ */
 static void G_func_door_calc_move(edict_t *self){
 	edict_t *ent;
 	float min;
@@ -861,6 +940,10 @@ static void G_func_door_calc_move(edict_t *self){
 	}
 }
 
+
+/*
+ * G_func_door_create_trigger
+ */
 static void G_func_door_create_trigger(edict_t *ent){
 	edict_t *other;
 	vec3_t mins, maxs;
@@ -897,6 +980,10 @@ static void G_func_door_create_trigger(edict_t *ent){
 	G_func_door_calc_move(ent);
 }
 
+
+/*
+ * G_func_door_blocked
+ */
 static void G_func_door_blocked(edict_t *self, edict_t *other){
 	edict_t *ent;
 
@@ -918,6 +1005,10 @@ static void G_func_door_blocked(edict_t *self, edict_t *other){
 	}
 }
 
+
+/*
+ * G_func_door_die
+ */
 static void G_func_door_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
 	edict_t *ent;
 
@@ -929,6 +1020,10 @@ static void G_func_door_die(edict_t *self, edict_t *inflictor, edict_t *attacker
 	G_func_door_use(self->team_master, attacker, attacker);
 }
 
+
+/*
+ * G_func_door_touch
+ */
 static void G_func_door_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(!other->client)
 		return;
@@ -944,6 +1039,20 @@ static void G_func_door_touch(edict_t *self, edict_t *other, c_plane_t *plane, c
 	gi.Sound(other, gi.SoundIndex("misc/chat"), ATTN_NORM);
 }
 
+
+/*QUAKED func_door (0 .5 .8) ? START_OPEN TOGGLE
+START_OPEN	the door to moves to its destination when spawned, and operate in reverse.  It is used to temporarily or permanently close off an area when triggered(not useful for touch or takedamage doors).
+TOGGLE		wait in both the start and end states for a trigger event.
+
+"message"	is printed when the door is touched if it is a trigger door and it hasn't been fired yet
+"angle"		determines the opening direction
+"targetname" if set, no touch field will be spawned and a remote button or trigger field activates the door.
+"health"	if set, door must be shot open
+"speed"		movement speed(100 default)
+"wait"		wait before returning(3 default, -1 = never return)
+"lip"		lip remaining at end of move(8 default)
+"dmg"		damage to inflict when blocked(2 default)
+*/
 void G_func_door(edict_t *ent){
 	vec3_t abs_movedir;
 
@@ -952,7 +1061,7 @@ void G_func_door(edict_t *ent){
 		ent->move_info.sound_end = gi.SoundIndex("world/door_end");
 	}
 
-	G_SetMovedir(ent->s.angles, ent->movedir);
+	G_SetMovedir(ent->s.angles, ent->move_dir);
 	ent->move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
@@ -978,11 +1087,11 @@ void G_func_door(edict_t *ent){
 
 	// calculate second position
 	VectorCopy(ent->s.origin, ent->pos1);
-	abs_movedir[0] = fabsf(ent->movedir[0]);
-	abs_movedir[1] = fabsf(ent->movedir[1]);
-	abs_movedir[2] = fabsf(ent->movedir[2]);
+	abs_movedir[0] = fabsf(ent->move_dir[0]);
+	abs_movedir[1] = fabsf(ent->move_dir[1]);
+	abs_movedir[2] = fabsf(ent->move_dir[2]);
 	ent->move_info.distance = abs_movedir[0] * ent->size[0] + abs_movedir[1] * ent->size[1] + abs_movedir[2] * ent->size[2] - g_game.spawn.lip;
-	VectorMA(ent->pos1, ent->move_info.distance, ent->movedir, ent->pos2);
+	VectorMA(ent->pos1, ent->move_info.distance, ent->move_dir, ent->pos2);
 
 	// if it starts open, switch the positions
 	if(ent->spawn_flags & DOOR_START_OPEN){
@@ -1025,20 +1134,9 @@ void G_func_door(edict_t *ent){
 }
 
 
-/*QUAKED func_wall(0 .5 .8) ? TRIGGER_SPAWN TOGGLE START_ON
-This is just a solid wall if not inhibited
-
-TRIGGER_SPAWN	the wall will not be present until triggered
-				it will then blink in to existence; it will
-				kill anything that was in it's way
-
-TOGGLE			only valid for TRIGGER_SPAWN walls
-				this allows the wall to be turned on and off
-
-START_ON		only valid for TRIGGER_SPAWN walls
-				the wall will initially be present
-*/
-
+/*
+ * G_func_wall_use
+ */
 static void G_func_wall_use(edict_t *self, edict_t *other, edict_t *activator){
 	if(self->solid == SOLID_NOT){
 		self->solid = SOLID_BSP;
@@ -1054,6 +1152,20 @@ static void G_func_wall_use(edict_t *self, edict_t *other, edict_t *activator){
 		self->use = NULL;
 }
 
+
+/*QUAKED func_wall (0 .5 .8) ? TRIGGER_SPAWN TOGGLE START_ON
+This is just a solid wall if not inhibited
+
+TRIGGER_SPAWN	the wall will not be present until triggered
+				it will then blink in to existence; it will
+				kill anything that was in it's way
+
+TOGGLE			only valid for TRIGGER_SPAWN walls
+				this allows the wall to be turned on and off
+
+START_ON		only valid for TRIGGER_SPAWN walls
+				the wall will initially be present
+*/
 void G_func_wall(edict_t *self){
 	self->move_type = MOVE_TYPE_PUSH;
 	gi.SetModel(self, self->model);
@@ -1095,18 +1207,13 @@ void G_func_wall(edict_t *self){
 #define TRAIN_TOGGLE		2
 #define TRAIN_BLOCK_STOPS	4
 
-/*QUAKED func_train(0 .5 .8) ? START_ON TOGGLE BLOCK_STOPS
-Trains are moving platforms that players can ride.
-The targets origin specifies the min point of the train at each corner.
-The train spawns at the first target it is pointing at.
-If the train is the target of a button or trigger, it will not begin moving until activated.
-speed	default 100
-dmg		default	2
-noise	looping sound to play when the train is in motion
 
-*/
 static void G_func_train_next(edict_t *self);
 
+
+/*
+ * G_func_train_blocked
+ */
 static void G_func_train_blocked(edict_t *self, edict_t *other){
 	if(!other->client)
 		return;
@@ -1121,6 +1228,10 @@ static void G_func_train_blocked(edict_t *self, edict_t *other){
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
 
+
+/*
+ * G_func_train_wait
+ */
 static void G_func_train_wait(edict_t *self){
 	if(self->target_ent->path_target){
 		char *savetarget;
@@ -1157,9 +1268,12 @@ static void G_func_train_wait(edict_t *self){
 	} else {
 		G_func_train_next(self);
 	}
-
 }
 
+
+/*
+ * G_func_train_next
+ */
 static void G_func_train_next(edict_t *self){
 	edict_t *ent;
 	vec3_t dest;
@@ -1209,6 +1323,10 @@ again:
 	self->spawn_flags |= TRAIN_START_ON;
 }
 
+
+/*
+ * G_func_train_resume
+ */
 static void G_func_train_resume(edict_t *self){
 	edict_t *ent;
 	vec3_t dest;
@@ -1223,6 +1341,10 @@ static void G_func_train_resume(edict_t *self){
 	self->spawn_flags |= TRAIN_START_ON;
 }
 
+
+/*
+ * G_func_train_find
+ */
 static void G_func_train_find(edict_t *self){
 	edict_t *ent;
 
@@ -1251,6 +1373,10 @@ static void G_func_train_find(edict_t *self){
 	}
 }
 
+
+/*
+ * G_func_train_use
+ */
 static void G_func_train_use(edict_t *self, edict_t *other, edict_t *activator){
 	self->activator = activator;
 
@@ -1268,6 +1394,17 @@ static void G_func_train_use(edict_t *self, edict_t *other, edict_t *activator){
 	}
 }
 
+
+/*QUAKED func_train (0 .5 .8) ? START_ON TOGGLE BLOCK_STOPS
+Trains are moving platforms that players can ride.
+The targets origin specifies the min point of the train at each corner.
+The train spawns at the first target it is pointing at.
+If the train is the target of a button or trigger, it will not begin moving until activated.
+speed	default 100
+dmg		default	2
+noise	looping sound to play when the train is in motion
+
+*/
 void G_func_train(edict_t *self){
 	self->move_type = MOVE_TYPE_PUSH;
 
@@ -1306,25 +1443,18 @@ void G_func_train(edict_t *self){
 }
 
 
-/*QUAKED func_timer(0.3 0.1 0.6)(-8 -8 -8)(8 8 8) START_ON
-"wait"			base time between triggering all targets, default is 1
-"random"		wait variance, default is 0
-
-so, the basic time between firing is a random time between
-(wait - random) and(wait + random)
-
-"delay"			delay before first firing when turned on, default is 0
-
-"pausetime"		additional delay used only the very first time
-				and only if spawned with START_ON
-
-These can used but not touched.
-*/
+/*
+ * G_func_timer_think
+ */
 static void G_func_timer_think(edict_t *self){
 	G_UseTargets(self, self->activator);
 	self->next_think = g_level.time + self->wait + crand() * self->random;
 }
 
+
+/*
+ * G_func_timer_use
+ */
 static void G_func_timer_use(edict_t *self, edict_t *other, edict_t *activator){
 	self->activator = activator;
 
@@ -1341,6 +1471,21 @@ static void G_func_timer_use(edict_t *self, edict_t *other, edict_t *activator){
 		G_func_timer_think(self);
 }
 
+
+/*QUAKED func_timer (0.3 0.1 0.6) (-8 -8 -8) (8 8 8) START_ON
+"wait"			base time between triggering all targets, default is 1
+"random"		wait variance, default is 0
+
+so, the basic time between firing is a random time between
+(wait - random) and(wait + random)
+
+"delay"			delay before first firing when turned on, default is 0
+
+"pausetime"		additional delay used only the very first time
+				and only if spawned with START_ON
+
+These can used but not touched.
+*/
 void G_func_timer(edict_t *self){
 	if(!self->wait)
 		self->wait = 1.0;
@@ -1362,12 +1507,9 @@ void G_func_timer(edict_t *self){
 }
 
 
-/*QUAKED func_conveyor(0 .5 .8) ? START_ON TOGGLE
-Conveyors are stationary brushes that move what's on them.
-The brush should be have a surface with at least one current content enabled.
-speed	default 100
-*/
-
+/*
+ * G_func_conveyor_use
+ */
 static void G_func_conveyor_use(edict_t *self, edict_t *other, edict_t *activator){
 	if(self->spawn_flags & 1){
 		self->speed = 0;
@@ -1381,6 +1523,12 @@ static void G_func_conveyor_use(edict_t *self, edict_t *other, edict_t *activato
 		self->count = 0;
 }
 
+
+/*QUAKED func_conveyor (0 .5 .8) ? START_ON TOGGLE
+Conveyors are stationary brushes that move what's on them.
+The brush should be have a surface with at least one current content enabled.
+speed	default 100
+*/
 void G_func_conveyor(edict_t *self){
 	if(!self->speed)
 		self->speed = 100;
@@ -1398,161 +1546,17 @@ void G_func_conveyor(edict_t *self){
 }
 
 
-/*QUAKED G_func_door_secret(0 .5 .8) ? always_shoot 1st_left 1st_down
-A secret door.  Slide back and then to the side.
-
-open_once		doors never closes
-1st_left		1st move is left of arrow
-1st_down		1st move is down from arrow
-always_shoot	door is shootebale even if targeted
-
-"angle"		determines the direction
-"dmg"		damage to inflic when blocked(default 2)
-"wait"		how long to hold in the open position(default 5, -1 means hold)
-*/
-
-#define SECRET_ALWAYS_SHOOT	1
-#define SECRET_1ST_LEFT		2
-#define SECRET_1ST_DOWN		4
-
-static void G_func_door_secret_move1(edict_t *self);
-static void G_func_door_secret_move2(edict_t *self);
-static void G_func_door_secret_move3(edict_t *self);
-static void G_func_door_secret_move4(edict_t *self);
-static void G_func_door_secret_move5(edict_t *self);
-static void G_func_door_secret_move6(edict_t *self);
-static void G_func_door_secret_done(edict_t *self);
-
-static void G_func_door_secret_use(edict_t *self, edict_t *other, edict_t *activator){
-	// make sure we're not already moving
-	if(!VectorCompare(self->s.origin, vec3_origin))
-		return;
-
-	G_MoveInfo_Init(self, self->pos1, G_func_door_secret_move1);
-	G_func_door_use_areaportals(self, true);
-}
-
-static void G_func_door_secret_move1(edict_t *self){
-	self->next_think = g_level.time + 1.0;
-	self->think = G_func_door_secret_move2;
-}
-
-static void G_func_door_secret_move2(edict_t *self){
-	G_MoveInfo_Init(self, self->pos2, G_func_door_secret_move3);
-}
-
-static void G_func_door_secret_move3(edict_t *self){
-	if(self->wait == -1)
-		return;
-	self->next_think = g_level.time + self->wait;
-	self->think = G_func_door_secret_move4;
-}
-
-static void G_func_door_secret_move4(edict_t *self){
-	G_MoveInfo_Init(self, self->pos1, G_func_door_secret_move5);
-}
-
-static void G_func_door_secret_move5(edict_t *self){
-	self->next_think = g_level.time + 1.0;
-	self->think = G_func_door_secret_move6;
-}
-
-static void G_func_door_secret_move6(edict_t *self){
-	G_MoveInfo_Init(self, vec3_origin, G_func_door_secret_done);
-}
-
-static void G_func_door_secret_done(edict_t *self){
-	if(!(self->target_name) ||(self->spawn_flags & SECRET_ALWAYS_SHOOT)){
-		self->health = 0;
-		self->take_damage = true;
-	}
-	G_func_door_use_areaportals(self, false);
-}
-
-static void G_func_door_secret_blocked(edict_t *self, edict_t *other){
-	if(!other->client)
-		return;
-
-	if(g_level.time < self->touch_time)
-		return;
-
-	self->touch_time = g_level.time + 0.5;
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
-}
-
-static void G_func_door_secret_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
-	self->take_damage = false;
-	G_func_door_secret_use(self, attacker, attacker);
-}
-
-void G_func_door_secret(edict_t *ent){
-	vec3_t forward, right, up;
-	float side;
-	float width;
-	float length;
-
-	ent->move_info.sound_start = gi.SoundIndex("world/door_start");
-	ent->move_info.sound_end = gi.SoundIndex("world/door_end");
-
-	ent->move_type = MOVE_TYPE_PUSH;
-	ent->solid = SOLID_BSP;
-	gi.SetModel(ent, ent->model);
-
-	ent->blocked = G_func_door_secret_blocked;
-	ent->use = G_func_door_secret_use;
-
-	if(!(ent->target_name) ||(ent->spawn_flags & SECRET_ALWAYS_SHOOT)){
-		ent->health = 0;
-		ent->take_damage = true;
-		ent->die = G_func_door_secret_die;
-	}
-
-	if(!ent->dmg)
-		ent->dmg = 2;
-
-	if(!ent->wait)
-		ent->wait = 5;
-
-	ent->move_info.accel =
-		ent->move_info.decel =
-			ent->move_info.speed = 50;
-
-	// calculate positions
-	AngleVectors(ent->s.angles, forward, right, up);
-	VectorClear(ent->s.angles);
-	side = 1.0 -(ent->spawn_flags & SECRET_1ST_LEFT);
-	if(ent->spawn_flags & SECRET_1ST_DOWN)
-		width = fabsf(DotProduct(up, ent->size));
-	else
-		width = fabsf(DotProduct(right, ent->size));
-	length = fabsf(DotProduct(forward, ent->size));
-	if(ent->spawn_flags & SECRET_1ST_DOWN)
-		VectorMA(ent->s.origin, -1 * width, up, ent->pos1);
-	else
-		VectorMA(ent->s.origin, side * width, right, ent->pos1);
-	VectorMA(ent->pos1, length, forward, ent->pos2);
-
-	if(ent->health){
-		ent->take_damage = true;
-		ent->die = G_func_door_die;
-		ent->max_health = ent->health;
-	} else if(ent->target_name && ent->message){
-		gi.SoundIndex("misc/chat");
-		ent->touch = G_func_door_touch;
-	}
-
-	ent->class_name = "func_door";
-
-	gi.LinkEntity(ent);
-}
-
-/*QUAKED func_killbox(1 0 0) ?
-Kills everything inside when fired, regardless of protection.
-*/
+/*
+ * G_func_killbox_use
+ */
 static void G_func_killbox_use(edict_t *self, edict_t *other, edict_t *activator){
 	G_KillBox(self);
 }
 
+
+/*QUAKED func_killbox (1 0 0) ?
+Kills everything inside when fired, regardless of protection.
+*/
 void G_func_killbox(edict_t *ent){
 	gi.SetModel(ent, ent->model);
 	ent->use = G_func_killbox_use;

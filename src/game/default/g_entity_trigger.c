@@ -24,7 +24,7 @@
 static void InitTrigger(edict_t *self){
 
 	if(!VectorCompare(self->s.angles, vec3_origin))
-		G_SetMovedir(self->s.angles, self->movedir);
+		G_SetMovedir(self->s.angles, self->move_dir);
 
 	self->solid = SOLID_TRIGGER;
 	self->move_type = MOVE_TYPE_NONE;
@@ -75,11 +75,11 @@ static void trigger_multiple_touch(edict_t *self, edict_t *other, c_plane_t *pla
 	if(self->spawn_flags & 2)
 		return;
 
-	if(!VectorCompare(self->movedir, vec3_origin)){
+	if(!VectorCompare(self->move_dir, vec3_origin)){
 		vec3_t forward;
 
 		AngleVectors(other->s.angles, forward, NULL, NULL);
-		if(DotProduct(forward, self->movedir) < 0)
+		if(DotProduct(forward, self->move_dir) < 0)
 			return;
 	}
 
@@ -120,7 +120,7 @@ void G_trigger_multiple(edict_t *ent){
 	}
 
 	if(!VectorCompare(ent->s.angles, vec3_origin))
-		G_SetMovedir(ent->s.angles, ent->movedir);
+		G_SetMovedir(ent->s.angles, ent->move_dir);
 
 	gi.SetModel(ent, ent->model);
 	gi.LinkEntity(ent);
@@ -172,7 +172,7 @@ static void trigger_push_touch(edict_t *self, edict_t *other, c_plane_t *plane, 
 
 	if(!strcmp(other->class_name, "grenade") || other->health > 0){
 
-		VectorScale(self->movedir, self->speed * 10.0, other->velocity);
+		VectorScale(self->move_dir, self->speed * 10.0, other->velocity);
 
 		if(other->client){  // don't take falling damage immediately from this
 

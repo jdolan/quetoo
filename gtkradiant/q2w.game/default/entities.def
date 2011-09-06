@@ -17,7 +17,7 @@ Set "sounds" to one of the following:
 */
 
 
-/*QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS TOUCH_PAIN STOP_FAST
+/*QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS TOUCH_PAIN STOP
 You need to have an origin brush as part of this entity.  The center of that brush will be
 the point around which it is rotated. It will rotate around the Z axis by default.  You can
 check either the X_AXIS or Y_AXIS box to change that.
@@ -95,20 +95,6 @@ These can used but not touched.
 Conveyors are stationary brushes that move what's on them.
 The brush should be have a surface with at least one current content enabled.
 speed	default 100
-*/
-
-
-/*QUAKED func_door_secret (0 .5 .8) ? always_shoot 1st_left 1st_down
-A secret door.  Slide back and then to the side.
-
-open_once		doors never closes
-1st_left		1st move is left of arrow
-1st_down		1st move is down from arrow
-always_shoot	door is shootebale even if targeted
-
-"angle"		determines the direction
-"dmg"		damage to inflic when blocked (default 2)
-"wait"		how long to hold in the open position (default 5, -1 means hold)
 */
 
 
