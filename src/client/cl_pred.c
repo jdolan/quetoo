@@ -101,7 +101,7 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 				ent->origin, angles);
 
 		if(trace.start_solid || trace.fraction < tr->fraction){
-			trace.ent = (struct edict_s *)ent;
+			trace.ent = (struct g_edict_s *)ent;
 			*tr = trace;
 		}
 	}
@@ -117,7 +117,7 @@ static trace_t Cl_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
 	// check against world
 	t = Cm_BoxTrace(start, end, mins, maxs, 0, MASK_PLAYERSOLID);
 	if(t.fraction < 1.0)
-		t.ent = (struct edict_s *)1;
+		t.ent = (struct g_edict_s *)1;
 
 	// check all other solid models
 	Cl_ClipMoveToEntities(start, mins, maxs, end, &t);

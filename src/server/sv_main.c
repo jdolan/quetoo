@@ -26,7 +26,7 @@ sv_static_t svs;  // persistent server info
 sv_server_t sv;  // per-level server info
 
 sv_client_t *sv_client;  // current client
-edict_t *sv_player;  // current client edict
+g_edict_t *sv_player;  // current client edict
 
 cvar_t *sv_rcon_password;  // password for remote server commands
 
@@ -48,7 +48,7 @@ cvar_t *sv_udp_download;
  * or crashing.
  */
 void Sv_DropClient(sv_client_t *cl){
-	edict_t *ent;
+	g_edict_t *ent;
 
 	if(cl->state > cs_free){  // send the disconnect
 
@@ -650,7 +650,7 @@ static void Sv_ResetEntities(void){
 
 	for(i = 0; i < svs.game->num_edicts; i++){
 
-		edict_t *edict = EDICT_FOR_NUM(i);
+		g_edict_t *edict = EDICT_FOR_NUM(i);
 
 		// events only last for a single message
 		edict->s.event = 0;

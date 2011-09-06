@@ -24,8 +24,8 @@
 /*
  * G_misc_teleporter_touch
  */
-static void G_misc_teleporter_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
-	edict_t *dest;
+static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+	g_edict_t *dest;
 	float speed;
 	vec3_t forward;
 	int i;
@@ -82,7 +82,7 @@ static void G_misc_teleporter_touch(edict_t *self, edict_t *other, c_plane_t *pl
 /*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16)
 Stepping onto this disc will teleport players to the targeted misc_teleporter_dest object.
 */
-void G_misc_teleporter(edict_t *ent){
+void G_misc_teleporter(g_edict_t *ent){
 	vec3_t v;
 
 	if(!ent->target){
@@ -96,7 +96,7 @@ void G_misc_teleporter(edict_t *ent){
 
 	if(ent->model){  // model form, trigger_teleporter
 		gi.SetModel(ent, ent->model);
-		ent->sv_flags = SVF_NOCLIENT;
+		ent->sv_flags = SVF_NO_CLIENT;
 	}
 	else {  // or model-less form, misc_teleporter
 		VectorSet(ent->mins, -32.0, -32.0, -24.0);
@@ -121,7 +121,7 @@ void G_misc_teleporter(edict_t *ent){
 /*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
 Point teleporters at these.
 */
-void G_misc_teleporter_dest(edict_t *ent){
+void G_misc_teleporter_dest(g_edict_t *ent){
 	G_ProjectSpawn(ent);
 }
 

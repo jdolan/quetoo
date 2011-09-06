@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-static edict_t *current_player;
+static g_edict_t *current_player;
 static g_client_t *current_client;
 
 
@@ -30,7 +30,7 @@ static g_client_t *current_client;
  *
  * Inspect all damage received this frame and play a pain sound if appropriate.
  */
-static void G_ClientDamage(edict_t *player){
+static void G_ClientDamage(g_edict_t *player){
 	g_client_t *client;
 	int l;
 
@@ -62,7 +62,7 @@ static void G_ClientDamage(edict_t *player){
 /*
  * G_ClientFall
  */
-static void G_ClientFall(edict_t *ent){
+static void G_ClientFall(g_edict_t *ent){
 
 	if(!ent->ground_entity)
 		return;
@@ -190,7 +190,7 @@ static void G_ClientWaterLevel(void){
  * towards the end of each frame, after our ground entity and water level have
  * been resolved.
  */
-static void G_ClientAnimation(edict_t *ent){
+static void G_ClientAnimation(g_edict_t *ent){
 
 	if(ent->ground_entity){  // on the ground
 
@@ -248,7 +248,7 @@ static void G_ClientAnimation(edict_t *ent){
  *
  * Called for each client at the end of the server frame.
  */
-void G_ClientEndFrame(edict_t *ent){
+void G_ClientEndFrame(g_edict_t *ent){
 	vec3_t forward, right, up;
 	float dot, xy_speed;
 	int i;
@@ -340,7 +340,7 @@ void G_ClientEndFrame(edict_t *ent){
  */
 void G_EndClientFrames(void){
 	int i;
-	edict_t *ent;
+	g_edict_t *ent;
 
 	// finalize the player_state_t for this frame
 	for(i = 0; i < sv_max_clients->integer; i++){

@@ -21,8 +21,8 @@
 
 #include "g_local.h"
 
-void G_ChaseThink(edict_t *ent){
-	const edict_t *targ;
+void G_ChaseThink(g_edict_t *ent){
+	const g_edict_t *targ;
 
 	targ = ent->client->chase_target;
 
@@ -49,9 +49,9 @@ void G_ChaseThink(edict_t *ent){
 /*
  * G_ChaseNext
  */
-void G_ChaseNext(edict_t *ent){
+void G_ChaseNext(g_edict_t *ent){
 	int i;
-	edict_t *e;
+	g_edict_t *e;
 
 	if(!ent->client->chase_target)
 		return;
@@ -80,9 +80,9 @@ void G_ChaseNext(edict_t *ent){
 /*
  * G_ChasePrevious
  */
-void G_ChasePrevious(edict_t *ent){
+void G_ChasePrevious(g_edict_t *ent){
 	int i;
-	edict_t *e;
+	g_edict_t *e;
 
 	if(!ent->client->chase_target)
 		return;
@@ -113,9 +113,9 @@ void G_ChasePrevious(edict_t *ent){
  *
  * Finds the first available chase target and assigns it to the specified ent.
  */
-void G_ChaseTarget(edict_t *ent){
+void G_ChaseTarget(g_edict_t *ent){
 	int i;
-	edict_t *other;
+	g_edict_t *other;
 
 	for(i = 1; i <= sv_max_clients->integer; i++){
 		other = g_game.edicts + i;

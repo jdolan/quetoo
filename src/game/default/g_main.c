@@ -119,7 +119,7 @@ void G_ResetVote(void){
  * Reset all items in the level based on gameplay, ctf, etc.
  */
 static void G_ResetItems(void){
-	edict_t *ent;
+	g_edict_t *ent;
 	int i;
 
 	for(i = 1; i < ge.num_edicts; i++){  // reset items
@@ -140,12 +140,12 @@ static void G_ResetItems(void){
 		if(ent->item->type == ITEM_FLAG){  // flags only appear for ctf
 
 			if(g_level.ctf){
-				ent->sv_flags &= ~SVF_NOCLIENT;
+				ent->sv_flags &= ~SVF_NO_CLIENT;
 				ent->solid = SOLID_TRIGGER;
 				ent->next_think = g_level.time + 0.2;
 			}
 			else {
-				ent->sv_flags |= SVF_NOCLIENT;
+				ent->sv_flags |= SVF_NO_CLIENT;
 				ent->solid = SOLID_NOT;
 				ent->next_think = 0;
 			}
@@ -153,12 +153,12 @@ static void G_ResetItems(void){
 		else {  // everything else honors gameplay
 
 			if(g_level.gameplay){  // hide items
-				ent->sv_flags |= SVF_NOCLIENT;
+				ent->sv_flags |= SVF_NO_CLIENT;
 				ent->solid = SOLID_NOT;
 				ent->next_think = 0.0;
 			}
 			else {  // or unhide them
-				ent->sv_flags &= ~SVF_NOCLIENT;
+				ent->sv_flags &= ~SVF_NO_CLIENT;
 				ent->solid = SOLID_TRIGGER;
 				ent->next_think = g_level.time + 2.0 * gi.server_frame;
 			}
@@ -176,7 +176,7 @@ static void G_ResetItems(void){
  */
 static void G_RestartGame(qboolean teamz){
 	int i;
-	edict_t *ent;
+	g_edict_t *ent;
 	g_client_t *cl;
 
 	if(g_level.match_time)
@@ -258,7 +258,7 @@ static void G_MuteClient(char *name, qboolean mute){
  */
 static void G_BeginIntermission(const char *map){
 	int i;
-	edict_t *ent, *client;
+	g_edict_t *ent, *client;
 
 	if(g_level.intermission_time)
 		return;  // already activated
@@ -453,7 +453,7 @@ static void G_CheckRoundStart(void){
  */
 static void G_CheckRoundLimit(){
 	int i;
-	edict_t *ent;
+	g_edict_t *ent;
 	g_client_t *cl;
 
 	if(g_level.round_num >= g_level.round_limit){  // enforce round_limit
@@ -492,7 +492,7 @@ static void G_CheckRoundLimit(){
  */
 static void G_CheckRoundEnd(void){
 	int i, g, e, clients;
-	edict_t *winner;
+	g_edict_t *winner;
 	g_client_t *cl;
 
 	if(!g_level.rounds)
@@ -874,7 +874,7 @@ static void G_ExitLevel(void){
  */
 static void G_Frame(void){
 	int i;
-	edict_t *ent;
+	g_edict_t *ent;
 
 	g_level.frame_num++;
 	g_level.time = g_level.frame_num * gi.server_frame;
@@ -1209,7 +1209,7 @@ void G_Init(void){
 	G_InitItems();
 
 	// initialize entities and clients for this game
-	g_game.edicts = gi.TagMalloc(g_max_entities->integer * sizeof(edict_t), TAG_GAME);
+	g_game.edicts = gi.TagMalloc(g_max_entities->integer * sizeof(g_edict_t), TAG_GAME);
 	g_game.clients = gi.TagMalloc(sv_max_clients->integer * sizeof(g_client_t), TAG_GAME);
 
 	ge.edicts = g_game.edicts;
@@ -1278,7 +1278,7 @@ g_export_t *G_LoadGame(g_import_t *import){
 
 	ge.Frame = G_Frame;
 
-	ge.edict_size = sizeof(edict_t);
+	ge.edict_size = sizeof(g_edict_t);
 
 	return &ge;
 }

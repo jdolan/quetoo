@@ -26,7 +26,7 @@
  *
  * Returns true if ent1 and ent2 are on the same qmass mod team.
  */
-qboolean G_OnSameTeam(edict_t *ent1, edict_t *ent2){
+qboolean G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2){
 
 	if(!g_level.teams && !g_level.ctf)
 		return false;
@@ -44,7 +44,7 @@ qboolean G_OnSameTeam(edict_t *ent1, edict_t *ent2){
  * Returns true if the inflictor can directly damage the target.  Used for
  * explosions and melee attacks.
  */
-qboolean G_CanDamage(edict_t *targ, edict_t *inflictor){
+qboolean G_CanDamage(g_edict_t *targ, g_edict_t *inflictor){
 	vec3_t dest;
 	trace_t trace;
 
@@ -99,7 +99,7 @@ qboolean G_CanDamage(edict_t *targ, edict_t *inflictor){
 /*
  * G_Killed
  */
-static void G_Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
+static void G_Killed(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, int damage, vec3_t point){
 
 	if(targ->health < -999)
 		targ->health = -999;
@@ -131,7 +131,7 @@ static void G_SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage){
 /*
  * G_CheckArmor
  */
-static int G_CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage, int dflags){
+static int G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int damage, int dflags){
 	g_client_t *client;
 	int saved;
 
@@ -188,7 +188,7 @@ static int G_CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage, i
  * 	DAMAGE_BULLET			damage is from a bullet (used for ricochets)
  * 	DAMAGE_NO_PROTECTION	kills godmode, armor, everything
  */
-void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
+void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t dir,
 		vec3_t point, vec3_t normal, int damage, int knockback, int dflags, int mod){
 
 	g_client_t *client;
@@ -327,9 +327,9 @@ void G_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 /*
  * G_RadiusDamage
  */
-void G_RadiusDamage(edict_t *inflictor, edict_t *attacker, edict_t *ignore,
+void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore,
 		int damage, int knockback, float radius, int mod){
-	edict_t *ent;
+	g_edict_t *ent;
 	float d, k, dist;
 	vec3_t dir;
 

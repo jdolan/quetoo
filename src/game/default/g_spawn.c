@@ -23,10 +23,10 @@
 
 typedef struct {
 	char *name;
-	void (*spawn)(edict_t *ent);
+	void (*spawn)(g_edict_t *ent);
 } spawn_t;
 
-static void G_worldspawn(edict_t *ent);
+static void G_worldspawn(g_edict_t *ent);
 
 static spawn_t g_spawns[] = {
 	{"info_player_start", G_info_player_start},
@@ -77,7 +77,7 @@ static spawn_t g_spawns[] = {
  *
  * Finds the spawn function for the entity and calls it.
  */
-static void G_SpawnEntity(edict_t *ent){
+static void G_SpawnEntity(g_edict_t *ent){
 	spawn_t *s;
 	g_item_t *item;
 	g_override_t *over;
@@ -231,7 +231,7 @@ static const g_field_t fields[] = {
  *
  * Takes a key-value pair and sets the binary values in an edict.
  */
-static void G_ParseField(const char *key, const char *value, edict_t *ent){
+static void G_ParseField(const char *key, const char *value, g_edict_t *ent){
 	const g_field_t *f;
 	byte *b;
 	float v;
@@ -286,7 +286,7 @@ static void G_ParseField(const char *key, const char *value, edict_t *ent){
  * in said string.  The edict parameter should be a properly initialized
  * free edict.
  */
-static const char *G_ParseEdict(const char *data, edict_t *ent){
+static const char *G_ParseEdict(const char *data, g_edict_t *ent){
 	qboolean init;
 	char key[MAX_QPATH];
 	const char *tok;
@@ -340,7 +340,7 @@ static const char *G_ParseEdict(const char *data, edict_t *ent){
  * All but the last will have the teamchain field set to the next one
  */
 static void G_FindEdictTeams(void){
-	edict_t *e, *e2, *chain;
+	g_edict_t *e, *e2, *chain;
 	int i, j;
 	int c, c2;
 
@@ -385,7 +385,7 @@ static void G_FindEdictTeams(void){
  * parsing textual entity definitions out of an ent file.
  */
 void G_SpawnEntities(const char *name, const char *entities){
-	edict_t *ent;
+	g_edict_t *ent;
 	int inhibit;
 	char *com_token;
 	int i;
@@ -459,7 +459,7 @@ void G_SpawnEntities(const char *name, const char *entities){
 		G_SpawnEntity(ent);
 
 		if(g_level.gameplay && ent->item){  // now that we've spawned them, hide them
-			ent->sv_flags |= SVF_NOCLIENT;
+			ent->sv_flags |= SVF_NO_CLIENT;
 			ent->solid = SOLID_NOT;
 			ent->next_think = 0.0;
 		}
@@ -638,7 +638,7 @@ Only used for the world.
 "give"			comma-delimited items list
 "music"			comma-delimited track list
 */
-static void G_worldspawn(edict_t *ent){
+static void G_worldspawn(g_edict_t *ent){
 	int i;
 	g_map_list_elt_t *map;
 

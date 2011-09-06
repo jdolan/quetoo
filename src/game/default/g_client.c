@@ -27,7 +27,7 @@
  *
  * Make a tasteless death announcement.
  */
-static void G_Obituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
+static void G_Obituary(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker){
 	int ff, mod;
 	char *message, *message2;
 	g_client_t *killer;
@@ -205,7 +205,7 @@ static void G_Obituary(edict_t *self, edict_t *inflictor, edict_t *attacker){
 /*
  * G_TossWeapon
  */
-static void G_TossWeapon(edict_t *self){
+static void G_TossWeapon(g_edict_t *self){
 	g_item_t *item;
 
 	// don't drop weapon when falling into void
@@ -224,8 +224,8 @@ static void G_TossWeapon(edict_t *self){
 /*
  * G_TossQuadDamage
  */
-void G_TossQuadDamage(edict_t *self){
-	edict_t *quad;
+void G_TossQuadDamage(g_edict_t *self){
+	g_edict_t *quad;
 
 	if(!self->client->locals.inventory[quad_damage_index])
 		return;
@@ -243,9 +243,9 @@ void G_TossQuadDamage(edict_t *self){
 /*
  * G_TossFlag
  */
-void G_TossFlag(edict_t *self){
+void G_TossFlag(g_edict_t *self){
 	g_team_t *ot;
-	edict_t *of;
+	g_edict_t *of;
 	int index;
 
 	if(!(ot = G_OtherTeam(self->client->locals.team)))
@@ -274,7 +274,7 @@ void G_TossFlag(edict_t *self){
 /*
  * G_Pain
  */
-void G_Pain(edict_t *self, edict_t *other, int damage, int knockback){
+void G_Pain(g_edict_t *self, g_edict_t *other, int damage, int knockback){
 
 	if(other && other->client && other != self){  // play a hit sound
 		gi.Sound(other, gi.SoundIndex("misc/hit"), ATTN_STATIC);
@@ -285,7 +285,7 @@ void G_Pain(edict_t *self, edict_t *other, int damage, int knockback){
 /*
  * G_Die
  */
-void G_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
+void G_Die(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage, vec3_t point){
 
 	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
 
@@ -308,7 +308,7 @@ void G_Die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec
 
 	G_Score_f(self);  // show scores
 
-	self->sv_flags |= SVF_NOCLIENT;
+	self->sv_flags |= SVF_NO_CLIENT;
 
 	self->dead = true;
 	self->class_name = "dead";
@@ -493,8 +493,8 @@ static void G_InitClientLocals(g_client_t *client){
  *
  * Returns the distance to the nearest enemy from the given spot
  */
-static float G_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
-	edict_t *player;
+static float G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot){
+	g_edict_t *player;
 	float dist, best_dist;
 	vec3_t v;
 	int n;
@@ -535,8 +535,8 @@ static float G_EnemyRangeFromSpot(edict_t *ent, edict_t *spot){
 /*
  * P_SelectRandomSpawnPoint
  */
-static edict_t *G_SelectRandomSpawnPoint(edict_t *ent, const char *class_name){
-	edict_t *spot;
+static g_edict_t *G_SelectRandomSpawnPoint(g_edict_t *ent, const char *class_name){
+	g_edict_t *spot;
 	int count = 0;
 
 	spot = NULL;
@@ -559,8 +559,8 @@ static edict_t *G_SelectRandomSpawnPoint(edict_t *ent, const char *class_name){
 /*
  * P_SelectFarthestSpawnPoint
  */
-static edict_t *G_SelectFarthestSpawnPoint(edict_t *ent, const char *class_name){
-	edict_t *spot, *best_spot;
+static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent, const char *class_name){
+	g_edict_t *spot, *best_spot;
 	float dist, best_dist;
 
 	spot = best_spot = NULL;
@@ -590,7 +590,7 @@ static edict_t *G_SelectFarthestSpawnPoint(edict_t *ent, const char *class_name)
 /*
  * G_SelectDeathmatchSpawnPoint
  */
-static edict_t *G_SelectDeathmatchSpawnPoint(edict_t *ent){
+static g_edict_t *G_SelectDeathmatchSpawnPoint(g_edict_t *ent){
 
 	if(g_spawn_farthest->value)
 		return G_SelectFarthestSpawnPoint(ent, "info_player_deathmatch");
@@ -602,7 +602,7 @@ static edict_t *G_SelectDeathmatchSpawnPoint(edict_t *ent){
 /*
  * G_SelectCaptureSpawnPoint
  */
-static edict_t *G_SelectCaptureSpawnPoint(edict_t *ent){
+static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent){
 	char *c;
 
 	if(!ent->client->locals.team)
@@ -623,8 +623,8 @@ static edict_t *G_SelectCaptureSpawnPoint(edict_t *ent){
  *
  * Chooses a player start, deathmatch start, etc
  */
-static void G_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
-	edict_t *spot = NULL;
+static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles){
+	g_edict_t *spot = NULL;
 
 	if(g_level.teams || g_level.ctf)  // try teams/ctf spawns first if applicable
 		spot = G_SelectCaptureSpawnPoint(ent);
@@ -656,7 +656,7 @@ static void G_SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles){
  *
  * The grunt work of putting the client into the server on [re]spawn.
  */
-static void G_ClientRespawn_(edict_t *ent){
+static void G_ClientRespawn_(g_edict_t *ent){
 	vec3_t spawn_origin, spawn_angles, old_angles;
 	float height;
 	g_client_t *cl;
@@ -752,7 +752,7 @@ static void G_ClientRespawn_(edict_t *ent){
 
 		ent->move_type = MOVE_TYPE_NO_CLIP;
 		ent->solid = SOLID_NOT;
-		ent->sv_flags |= SVF_NOCLIENT;
+		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->take_damage = false;
 
 		gi.LinkEntity(ent);
@@ -787,7 +787,7 @@ static void G_ClientRespawn_(edict_t *ent){
  * In this case, voluntary means that the client has explicitly requested
  * a respawn by changing their spectator status.
  */
-void G_ClientRespawn(edict_t *ent, qboolean voluntary){
+void G_ClientRespawn(g_edict_t *ent, qboolean voluntary){
 
 	G_ClientRespawn_(ent);
 
@@ -818,7 +818,7 @@ void G_ClientRespawn(edict_t *ent, qboolean voluntary){
  * Called when a client has finished connecting, and is ready
  * to be placed into the game.  This will happen every level load.
  */
-void G_ClientBegin(edict_t *ent){
+void G_ClientBegin(g_edict_t *ent){
 	char welcome[256];
 
 	int player_num = ent - g_game.edicts - 1;
@@ -876,7 +876,7 @@ void G_ClientBegin(edict_t *ent){
 /*
  * G_ClientUserInfoChanged
  */
-void G_ClientUserInfoChanged(edict_t *ent, const char *user_info){
+void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info){
 	const char *s;
 	char *c;
 	char name[MAX_NET_NAME];
@@ -979,7 +979,7 @@ void G_ClientUserInfoChanged(edict_t *ent, const char *user_info){
  * and eventually get to G_Begin()
  * Changing levels will NOT cause this to be called again.
  */
-qboolean G_ClientConnect(edict_t *ent, char *user_info){
+qboolean G_ClientConnect(g_edict_t *ent, char *user_info){
 
 	// check password
 	const char *value = Info_ValueForKey(user_info, "password");
@@ -1015,7 +1015,7 @@ qboolean G_ClientConnect(edict_t *ent, char *user_info){
  *
  * Called when a player drops from the server.  Not be called between levels.
  */
-void G_ClientDisconnect(edict_t *ent){
+void G_ClientDisconnect(g_edict_t *ent){
 	int player_num;
 
 	if(!ent->client)
@@ -1055,7 +1055,7 @@ void G_ClientDisconnect(edict_t *ent){
  * Ignore ourselves, clipping to the correct mask based on our status.
  */
 static trace_t G_ClientMoveTrace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
-	edict_t *self = g_level.current_entity;
+	g_edict_t *self = g_level.current_entity;
 
 	if(g_level.current_entity->health > 0)
 		return gi.Trace(start, mins, maxs, end, self, MASK_PLAYERSOLID);
@@ -1069,7 +1069,7 @@ static trace_t G_ClientMoveTrace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t 
  *
  * Expire any items which are time-sensitive.
  */
-static void G_ClientInventoryThink(edict_t *ent){
+static void G_ClientInventoryThink(g_edict_t *ent){
 
 	if(ent->client->locals.inventory[quad_damage_index]){  // if they have quad
 
@@ -1094,9 +1094,9 @@ static void G_ClientInventoryThink(edict_t *ent){
  * This will be called once for each client frame, which will usually be a
  * couple times for each server frame.
  */
-void G_ClientThink(edict_t *ent, user_cmd_t *ucmd){
+void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd){
 	g_client_t *client;
-	edict_t *other;
+	g_edict_t *other;
 	int i, j;
 	pm_move_t pm;
 
@@ -1257,7 +1257,7 @@ void G_ClientThink(edict_t *ent, user_cmd_t *ucmd){
  * This will be called once for each server frame, before running
  * any other entities in the world.
  */
-void G_ClientBeginFrame(edict_t *ent){
+void G_ClientBeginFrame(g_edict_t *ent){
 	g_client_t *client;
 
 	if(g_level.intermission_time)

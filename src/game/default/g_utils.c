@@ -24,7 +24,7 @@
 /*
  * G_ProjectSpawn
  */
-void G_ProjectSpawn(edict_t *ent){
+void G_ProjectSpawn(g_edict_t *ent){
 	vec3_t mins, maxs, delta, forward;
 	float up, len0, len1, fwd;
 
@@ -56,7 +56,7 @@ void G_ProjectSpawn(edict_t *ent){
  *
  * Determines the initial position and directional vectors of a projectile.
  */
-void G_SetupProjectile(edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org){
+void G_SetupProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org){
 
 	AngleVectors(ent->s.angles, forward, right, up);
 
@@ -81,7 +81,7 @@ void G_SetupProjectile(edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, ve
  *   G_Find(NULL, FOFS(class_name), "info_player_deathmatch");
  *
  */
-edict_t *G_Find(edict_t *from, ptrdiff_t field, const char *match){
+g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match){
 	char *s;
 
 	if(!from)
@@ -110,7 +110,7 @@ edict_t *G_Find(edict_t *from, ptrdiff_t field, const char *match){
  *
  * G_FindRadius(origin, radius)
  */
-edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad){
+g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, float rad){
 	vec3_t eorg;
 	int j;
 
@@ -152,10 +152,10 @@ edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad){
  */
 #define MAXCHOICES	8
 
-edict_t *G_PickTarget(char *target_name){
-	edict_t *ent = NULL;
+g_edict_t *G_PickTarget(char *target_name){
+	g_edict_t *ent = NULL;
 	int num_choices = 0;
-	edict_t *choice[MAXCHOICES];
+	g_edict_t *choice[MAXCHOICES];
 
 	if(!target_name){
 		gi.Debug("G_PickTarget called with NULL targetname\n");
@@ -183,7 +183,7 @@ edict_t *G_PickTarget(char *target_name){
 /*
  * G_UseTargets_Delay
  */
-static void G_UseTargets_Delay(edict_t *ent){
+static void G_UseTargets_Delay(g_edict_t *ent){
 	G_UseTargets(ent, ent->activator);
 	G_FreeEdict(ent);
 }
@@ -196,8 +196,8 @@ static void G_UseTargets_Delay(edict_t *ent){
  * use functions. Set their activator to our activator. Print our message,
  * if set, to the activator.
  */
-void G_UseTargets(edict_t *ent, edict_t *activator){
-	edict_t *t;
+void G_UseTargets(g_edict_t *ent, g_edict_t *activator){
+	g_edict_t *t;
 
 	// check for a delay
 	if(ent->delay){
@@ -340,7 +340,7 @@ char *G_CopyString(char *in){
 /*
  * G_InitEdict
  */
-void G_InitEdict(edict_t *e){
+void G_InitEdict(g_edict_t *e){
 	e->in_use = true;
 	e->class_name = "noclass";
 	e->gravity = 1.0;
@@ -358,15 +358,13 @@ void G_InitEdict(edict_t *e){
  * instead of being removed and recreated, which can cause interpolated
  * angles and bad trails.
  */
-edict_t *G_Spawn(void){
+g_edict_t *G_Spawn(void){
 	int i;
-	edict_t *e;
+	g_edict_t *e;
 
 	e = &g_game.edicts[(int)sv_max_clients->integer + 1];
 	for(i = sv_max_clients->integer + 1; i < ge.num_edicts; i++, e++){
-		// the first couple seconds of server time can involve a lot of
-		// freeing and allocating, so relax the replacement policy
-		if(!e->in_use && (e->free_time < 2 || g_level.time - e->free_time > 0.5)){
+		if(!e->in_use){
 			G_InitEdict(e);
 			return e;
 		}
@@ -386,7 +384,7 @@ edict_t *G_Spawn(void){
  *
  * Marks the edict as free
  */
-void G_FreeEdict(edict_t *ed){
+void G_FreeEdict(g_edict_t *ed){
 	gi.UnlinkEntity(ed);  // unlink from world
 
 	if((ed - g_game.edicts) <= sv_max_clients->integer)
@@ -394,7 +392,6 @@ void G_FreeEdict(edict_t *ed){
 
 	memset(ed, 0, sizeof(*ed));
 	ed->class_name = "freed";
-	ed->free_time = g_level.time;
 	ed->in_use = false;
 }
 
@@ -402,9 +399,9 @@ void G_FreeEdict(edict_t *ed){
 /*
  * G_TouchTriggers
  */
-void G_TouchTriggers(edict_t *ent){
+void G_TouchTriggers(g_edict_t *ent){
 	int i, num;
-	edict_t *touch[MAX_EDICTS], *hit;
+	g_edict_t *touch[MAX_EDICTS], *hit;
 
 	num = gi.BoxEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_TRIGGERS);
 
@@ -431,9 +428,9 @@ void G_TouchTriggers(edict_t *ent){
  * Call after linking a new trigger in during gameplay
  * to force all entities it covers to immediately touch it
  */
-void G_TouchSolids(edict_t *ent){
+void G_TouchSolids(g_edict_t *ent){
 	int i, num;
-	edict_t *touch[MAX_EDICTS], *hit;
+	g_edict_t *touch[MAX_EDICTS], *hit;
 
 	num = gi.BoxEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_SOLID);
 
@@ -457,7 +454,7 @@ void G_TouchSolids(edict_t *ent){
  * Kills all entities that would touch the proposed new positioning
  * of ent.  Ent should be unlinked before calling this!
  */
-qboolean G_KillBox(edict_t *ent){
+qboolean G_KillBox(g_edict_t *ent){
 	trace_t tr;
 
 	while(true){
@@ -540,7 +537,7 @@ g_team_t *G_TeamByName(char *c){
 /*
  * G_TeamForFlag
  */
-g_team_t *G_TeamForFlag(edict_t *ent){
+g_team_t *G_TeamForFlag(g_edict_t *ent){
 
 	if(!g_level.ctf)
 		return NULL;
@@ -561,8 +558,8 @@ g_team_t *G_TeamForFlag(edict_t *ent){
 /*
  * G_FlagForTeam
  */
-edict_t *G_FlagForTeam(g_team_t *t){
-	edict_t *ent;
+g_edict_t *G_FlagForTeam(g_team_t *t){
+	g_edict_t *ent;
 	char class[32];
 	int i;
 
@@ -681,7 +678,7 @@ g_client_t *G_ClientByName(char *name){
 /*
  * G_IsStationary
  */
-qboolean G_IsStationary(edict_t *ent){
+qboolean G_IsStationary(g_edict_t *ent){
 
 	if(!ent)
 		return false;
@@ -696,7 +693,7 @@ qboolean G_IsStationary(edict_t *ent){
  * Assigns the specified animation to the correct member on the specified
  * entity. If requested, the current animation will be restarted.
  */
-void G_SetAnimation(edict_t *ent, entity_animation_t anim, qboolean restart){
+void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, qboolean restart){
 	byte *dest;
 
 	if(anim < ANIM_LEGS_WALKCR)

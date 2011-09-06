@@ -25,7 +25,7 @@
 #define GAME_API_VERSION 5
 
 // edict->sv_flags
-#define SVF_NOCLIENT 1  // don't send entity to clients
+#define SVF_NO_CLIENT 1  // don't send entity to clients
 
 // edict->solid values
 typedef enum {
@@ -45,18 +45,23 @@ typedef struct link_s {
 #define MAX_ENT_CLUSTERS 16
 
 typedef struct g_client_s g_client_t;  // typedef'ed here, defined below
-typedef struct edict_s edict_t;  // OR in game module
+typedef struct g_edict_s g_edict_t;  // OR in game module
 
 #ifndef GAME_INCLUDE
+
+/*
+ * This is the server's definition of the client and edict structures. The
+ * game module is free to add additional members to these structures, provided
+ * they communicate the actual size of them at runtime through the game export
+ * structure.
+ */
 
 struct g_client_s {
 	player_state_t ps;  // communicated by server to clients
 	int ping;
-	// the game dll can add anything it wants after
-	// this point in the structure
 };
 
-struct edict_s {
+struct g_edict_s {
 	entity_state_t s;
 	struct g_client_s *client;
 
@@ -71,14 +76,14 @@ struct edict_s {
 	int head_node;  // unused if num_clusters != -1
 	int area_num, area_num2;
 
-	int sv_flags;  // SVF_NOCLIENT, etc
+	int sv_flags;  // SVF_NO_CLIENT, etc
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
 	int clip_mask;
-	edict_t *owner;
+	g_edict_t *owner;
 
-	// the game dll can add anything it wants after
+	// the game can add anything it wants after
 	// this point in the structure
 };
 
@@ -93,8 +98,8 @@ typedef struct g_import_s {
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*BroadcastPrint)(int printlevel, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(edict_t *ent, int printlevel, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-	void (*ClientCenterPrint)(edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*ClientPrint)(g_edict_t *ent, int printlevel, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+	void (*ClientCenterPrint)(g_edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 	void (*Error)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
@@ -107,12 +112,12 @@ typedef struct g_import_s {
 	int (*SoundIndex)(const char *name);
 	int (*ImageIndex)(const char *name);
 
-	void (*SetModel)(edict_t *ent, const char *name);
-	void (*Sound)(edict_t *ent, int soundindex, int atten);
-	void (*PositionedSound)(vec3_t origin, edict_t *ent, int soundindex, int atten);
+	void (*SetModel)(g_edict_t *ent, const char *name);
+	void (*Sound)(g_edict_t *ent, int soundindex, int atten);
+	void (*PositionedSound)(vec3_t origin, g_edict_t *ent, int soundindex, int atten);
 
 	// collision detection
-	trace_t (*Trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, edict_t *passent, int contentmask);
+	trace_t (*Trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *passent, int contentmask);
 	int (*PointContents)(vec3_t point);
 	qboolean (*inPVS)(const vec3_t p1, const vec3_t p2);
 	qboolean (*inPHS)(const vec3_t p1, const vec3_t p2);
@@ -123,13 +128,13 @@ typedef struct g_import_s {
 	// an entity will never be sent to a client or used for collision
 	// if it is not passed to linkentity.  if the size, position, or
 	// solidity changes, it must be relinked.
-	void (*LinkEntity)(edict_t *ent);
-	void (*UnlinkEntity)(edict_t *ent);  // call before removing an interactive edict
-	int (*BoxEdicts)(vec3_t mins, vec3_t maxs, edict_t **list, int maxcount, int areatype);
+	void (*LinkEntity)(g_edict_t *ent);
+	void (*UnlinkEntity)(g_edict_t *ent);  // call before removing an interactive edict
+	int (*BoxEdicts)(vec3_t mins, vec3_t maxs, g_edict_t **list, int maxcount, int areatype);
 
 	// network messaging
 	void (*Multicast)(vec3_t origin, multicast_t to);
-	void (*Unicast)(edict_t *ent, qboolean reliable);
+	void (*Unicast)(g_edict_t *ent, qboolean reliable);
 	void (*WriteChar)(int c);
 	void (*WriteByte)(int c);
 	void (*WriteShort)(int c);
@@ -176,12 +181,12 @@ typedef struct g_export_s {
 	// each new level entered will cause a call to SpawnEntities
 	void (*SpawnEntities)(const char *name, const char *entities);
 
-	qboolean (*ClientConnect)(edict_t *ent, char *user_info);
-	void (*ClientBegin)(edict_t *ent);
-	void (*ClientUserInfoChanged)(edict_t *ent, const char *user_info);
-	void (*ClientDisconnect)(edict_t *ent);
-	void (*ClientCommand)(edict_t *ent);
-	void (*ClientThink)(edict_t *ent, user_cmd_t *cmd);
+	qboolean (*ClientConnect)(g_edict_t *ent, char *user_info);
+	void (*ClientBegin)(g_edict_t *ent);
+	void (*ClientUserInfoChanged)(g_edict_t *ent, const char *user_info);
+	void (*ClientDisconnect)(g_edict_t *ent);
+	void (*ClientCommand)(g_edict_t *ent);
+	void (*ClientThink)(g_edict_t *ent, user_cmd_t *cmd);
 
 	void (*Frame)(void);
 
@@ -191,7 +196,7 @@ typedef struct g_export_s {
 	// can vary in size from one game to another.
 	//
 	// The size will be fixed when ge->Init() is called
-	struct edict_s *edicts;
+	struct g_edict_s *edicts;
 	int edict_size;
 	int num_edicts;  // current number, <= max_edicts
 	int max_edicts;

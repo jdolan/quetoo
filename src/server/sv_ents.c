@@ -292,8 +292,8 @@ static void Sv_FatPVS(const vec3_t org){
 void Sv_BuildClientFrame(sv_client_t *client){
 	int e, i;
 	vec3_t org;
-	edict_t *ent;
-	edict_t *clent;
+	g_edict_t *ent;
+	g_edict_t *clent;
 	sv_frame_t *frame;
 	entity_state_t *state;
 	int l;
@@ -339,7 +339,7 @@ void Sv_BuildClientFrame(sv_client_t *client){
 		ent = EDICT_FOR_NUM(e);
 
 		// ignore ents without visible models
-		if(ent->sv_flags & SVF_NOCLIENT)
+		if(ent->sv_flags & SVF_NO_CLIENT)
 			continue;
 
 		// ignore ents without visible models unless they have an effect

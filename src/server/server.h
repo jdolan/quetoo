@@ -105,7 +105,7 @@ typedef struct sv_client_s {
 	int rate;
 	int surpress_count;  // number of messages rate suppressed
 
-	edict_t *edict;  // EDICT_FOR_NUM(client_num + 1)
+	g_edict_t *edict;  // EDICT_FOR_NUM(client_num + 1)
 	char name[32];  // extracted from user_info, high bits masked
 	int message_level;  // for filtering printed messages
 
@@ -180,7 +180,7 @@ typedef struct sv_static_s {
 extern sv_static_t svs;  // persistent server info
 
 // macros for resolving game entities on the server
-#define EDICT_FOR_NUM(n)( (edict_t *)((void *)svs.game->edicts + svs.game->edict_size * (n)) )
+#define EDICT_FOR_NUM(n)( (g_edict_t *)((void *)svs.game->edicts + svs.game->edict_size * (n)) )
 #define NUM_FOR_EDICT(e)( ((void *)(e) - (void *)svs.game->edicts) / svs.game->edict_size )
 
 // cvars
@@ -196,7 +196,7 @@ extern cvar_t *sv_udp_download;
 
 // current client / player edict
 extern sv_client_t *sv_client;
-extern edict_t *sv_player;
+extern g_edict_t *sv_player;
 
 // sv_main.c
 void Sv_Init(void);
@@ -226,11 +226,11 @@ extern char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
 void Sv_FlushRedirect(int target, char *outputbuf);
 void Sv_SendClientMessages(void);
-void Sv_Unicast(edict_t *ent, qboolean reliable);
+void Sv_Unicast(g_edict_t *ent, qboolean reliable);
 void Sv_Multicast(vec3_t origin, multicast_t to);
-void Sv_PositionedSound(vec3_t origin, edict_t *entity, int soundindex, int atten);
-void Sv_ClientPrint(edict_t *ent, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-void Sv_ClientCenterPrint(edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, int soundindex, int atten);
+void Sv_ClientPrint(g_edict_t *ent, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void Sv_ClientCenterPrint(g_edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Sv_BroadcastPrint(int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Sv_BroadcastCommand(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
@@ -252,18 +252,18 @@ void Sv_ShutdownGameProgs(void);
 void Sv_InitWorld(void);
 // called after the world model has been loaded, before linking any entities
 
-void Sv_UnlinkEdict(edict_t *ent);
+void Sv_UnlinkEdict(g_edict_t *ent);
 // call before removing an entity, and before trying to move one,
 // so it doesn't clip against itself
 
-void Sv_LinkEdict(edict_t *ent);
+void Sv_LinkEdict(g_edict_t *ent);
 // Needs to be called any time an entity changes origin, mins, maxs,
 // or solid.  Automatically unlinks if needed.
 // sets ent->v.abs_mins and ent->v.abs_maxs
 // sets ent->leaf_nums[] for pvs determination even if the entity
 // is not solid
 
-int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, edict_t **list, int maxcount, int areatype);
+int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, g_edict_t **list, int maxcount, int areatype);
 // fills in a table of edict pointers with edicts that have bounding boxes
 // that intersect the given area.  It is possible for a non-axial bmodel
 // to be returned that doesn't actually intersect the area on an exact
@@ -278,7 +278,7 @@ int Sv_PointContents(vec3_t p);
 // Quake 2 extends this to also check entities, to allow moving liquids
 
 
-trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, edict_t *passedict, int contentmask);
+trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *passedict, int contentmask);
 // mins and maxs are relative
 
 // if the entire move stays in a solid volume, trace.all_solid will be set,

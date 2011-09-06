@@ -52,7 +52,7 @@ void Sv_FlushRedirect(int target, char *outputbuf){
  *
  * Sends text across to be displayed if the level filter passes.
  */
-void Sv_ClientPrint(edict_t *ent, int level, const char *fmt, ...){
+void Sv_ClientPrint(g_edict_t *ent, int level, const char *fmt, ...){
 	sv_client_t *cl;
 	va_list	args;
 	char string[MAX_STRING_CHARS];
@@ -92,7 +92,7 @@ void Sv_ClientPrint(edict_t *ent, int level, const char *fmt, ...){
  * Center-print to a single client.  This is sent via Sv_Unicast so that it
  * is transmitted over the reliable channel; center-prints are important.
  */
-void Sv_ClientCenterPrint(edict_t *ent, const char *fmt, ...){
+void Sv_ClientCenterPrint(g_edict_t *ent, const char *fmt, ...){
 	char msg[1024];
 	va_list	args;
 	int n;
@@ -182,7 +182,7 @@ void Sv_BroadcastCommand(const char *fmt, ...){
  *
  * Sends the contents of the mutlicast buffer to a single client
  */
-void Sv_Unicast(edict_t *ent, qboolean reliable){
+void Sv_Unicast(g_edict_t *ent, qboolean reliable){
 	int n;
 	sv_client_t *cl;
 
@@ -302,7 +302,7 @@ void Sv_Multicast(vec3_t origin, multicast_t to){
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for bmodels.
  */
-void Sv_PositionedSound(vec3_t origin, edict_t *entity, int soundindex, int atten){
+void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, int soundindex, int atten){
 	int flags;
 	int i;
 	vec3_t org;
@@ -318,7 +318,7 @@ void Sv_PositionedSound(vec3_t origin, edict_t *entity, int soundindex, int atte
 
 	// the client doesn't know that bsp models have weird origins
 	// the origin can also be explicitly set
-	if((entity->sv_flags & SVF_NOCLIENT) || (entity->solid == SOLID_BSP) || origin)
+	if((entity->sv_flags & SVF_NO_CLIENT) || (entity->solid == SOLID_BSP) || origin)
 		flags |= S_ORIGIN;
 	else
 		flags |= S_ENTNUM;

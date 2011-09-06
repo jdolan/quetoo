@@ -77,7 +77,7 @@ static void Sv_Error(const char *fmt, ...){
  *
  * Also sets mins and maxs for inline bmodels
  */
-static void Sv_SetModel(edict_t *ent, const char *name){
+static void Sv_SetModel(g_edict_t *ent, const char *name){
 	int i;
 	c_model_t *mod;
 
@@ -227,7 +227,7 @@ static qboolean Sv_inPHS(const vec3_t p1, const vec3_t p2){
 /*
  * Sv_StartSound_
  */
-static void Sv_Sound(edict_t *ent, int soundindex, int atten){
+static void Sv_Sound(g_edict_t *ent, int soundindex, int atten){
 
 	if(!ent)
 		return;

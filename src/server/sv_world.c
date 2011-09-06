@@ -19,21 +19,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/*
- * world query functions
- */
-
 #include "server.h"
 
 /*
- *
  * ENTITY AREA CHECKING
  *
  * Note that this use of "area" is different from the BSP file use.
  */
 
 #define	STRUCT_FROM_LINK(l, t ,m) ((t *)((byte *)l - (ptrdiff_t)&(((t *)0)->m)))
-#define EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l, edict_t, area)
+#define EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l, g_edict_t, area)
 
 typedef struct sv_area_node_s {
 	int axis;  // -1 = leaf node
@@ -54,7 +49,7 @@ typedef struct sv_world_s {
 
 	float *area_mins, *area_maxs;
 
-	edict_t **area_edicts;
+	g_edict_t **area_edicts;
 
 	int num_area_edicts, max_area_edicts;
 	int area_type;
@@ -149,7 +144,7 @@ void Sv_InitWorld(void){
 /*
  * Sv_UnlinkEdict
  */
-void Sv_UnlinkEdict(edict_t *ent){
+void Sv_UnlinkEdict(g_edict_t *ent){
 
 	if(!ent->area.prev)
 		return;  // not linked in anywhere
@@ -164,7 +159,7 @@ void Sv_UnlinkEdict(edict_t *ent){
 /*
  * Sv_LinkEdict
  */
-void Sv_LinkEdict(edict_t *ent){
+void Sv_LinkEdict(g_edict_t *ent){
 	sv_area_node_t *node;
 	int leafs[MAX_TOTAL_ENT_LEAFS];
 	int clusters[MAX_TOTAL_ENT_LEAFS];
@@ -335,7 +330,7 @@ void Sv_LinkEdict(edict_t *ent){
  */
 static void Sv_AreaEdicts_r(sv_area_node_t *node){
 	link_t *l, *next, *start;
-	edict_t *check;
+	g_edict_t *check;
 
 	// touch linked edicts
 	if(sv_world.area_type == AREA_SOLID)
@@ -382,7 +377,7 @@ static void Sv_AreaEdicts_r(sv_area_node_t *node){
 /*
  * Sv_AreaEdicts
  */
-int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, edict_t **area_edicts,
+int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, g_edict_t **area_edicts,
 		int max_area_edicts, int area_type){
 
 	sv_world.area_mins = mins;
@@ -407,7 +402,7 @@ int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, edict_t **area_edicts,
  * Offset is filled in to contain the adjustment that must be added to the
  * testing object's origin to get a point to use with the returned hull.
  */
-static int Sv_HullForEntity(const edict_t *ent){
+static int Sv_HullForEntity(const g_edict_t *ent){
 	c_model_t *model;
 
 	// decide which clipping hull to use, based on the size
@@ -432,7 +427,7 @@ static int Sv_HullForEntity(const edict_t *ent){
  * contents as well as contents for any entities this point intersects.
  */
 int Sv_PointContents(vec3_t point){
-	edict_t *touched[MAX_EDICTS];
+	g_edict_t *touched[MAX_EDICTS];
 	int i, contents, num;
 
 	// get base contents from world
@@ -443,7 +438,7 @@ int Sv_PointContents(vec3_t point){
 
 	for(i = 0; i < num; i++){
 
-		const edict_t *touch = touched[i];
+		const g_edict_t *touch = touched[i];
 		const vec_t *angles;
 
 		// might intersect, so do an exact clip
@@ -467,7 +462,7 @@ typedef struct sv_move_s {
 	float *mins, *maxs;  // size of the moving object
 	float *start, *end;
 	trace_t trace;
-	edict_t *skip;
+	g_edict_t *skip;
 	int contentmask;
 } sv_trace_t;
 
@@ -479,7 +474,7 @@ typedef struct sv_move_s {
  * of ALL collision and interaction for the server.  Tread carefully.
  */
 static void Sv_ClipTraceToEntities(sv_trace_t *trace){
-	edict_t *touched[MAX_EDICTS];
+	g_edict_t *touched[MAX_EDICTS];
 	vec_t *angles;
 	trace_t tr;
 	int i, num, head_node;
@@ -490,7 +485,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace){
 	// then iterate them, determining if they have any bearing on our trace
 	for(i = 0; i < num; i++){
 
-		edict_t *touch = touched[i];
+		g_edict_t *touch = touched[i];
 
 		if(touch->solid == SOLID_NOT)  // can't actually touch us
 			continue;
@@ -565,7 +560,7 @@ static void Sv_TraceBounds(sv_trace_t *trace){
  * The skipped edict, and edicts owned by him, are explicitly not checked.
  * This prevents players from clipping against their own projectiles, etc.
  */
-trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, edict_t *skip, int contentmask){
+trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *skip, int contentmask){
 
 	sv_trace_t trace;
 

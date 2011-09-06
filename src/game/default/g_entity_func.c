@@ -25,7 +25,7 @@
 /*
  * G_func_areaportal_use
  */
-static void G_func_areaportal_use(edict_t *ent, edict_t *other, edict_t *activator){
+static void G_func_areaportal_use(g_edict_t *ent, g_edict_t *other, g_edict_t *activator){
 	ent->count ^= 1;  // toggle state
 	gi.SetAreaPortalState(ent->areaportal, ent->count);
 }
@@ -37,7 +37,7 @@ This is a non-visible object that divides the world into
 areas that are seperated when this portal is not activated.
 Usually enclosed in the middle of a door.
 */
-void G_func_areaportal(edict_t *ent){
+void G_func_areaportal(g_edict_t *ent){
 	ent->use = G_func_areaportal_use;
 	ent->count = 0;  // always start closed;
 }
@@ -52,7 +52,7 @@ void G_func_areaportal(edict_t *ent){
 /*
  * G_MoveInfo_Done
  */
-static void G_MoveInfo_Done(edict_t *ent){
+static void G_MoveInfo_Done(g_edict_t *ent){
 	VectorClear(ent->velocity);
 	ent->move_info.done(ent);
 }
@@ -60,7 +60,7 @@ static void G_MoveInfo_Done(edict_t *ent){
 /*
  * G_MoveInfo_End
  */
-static void G_MoveInfo_End(edict_t *ent){
+static void G_MoveInfo_End(g_edict_t *ent){
 
 	if(ent->move_info.remaining_distance == 0){
 		G_MoveInfo_Done(ent);
@@ -79,7 +79,7 @@ static void G_MoveInfo_End(edict_t *ent){
  * Starts a move with constant velocity. The entity will think again when it
  * has reached its destination.
  */
-static void G_MoveInfo_Constant(edict_t *ent){
+static void G_MoveInfo_Constant(g_edict_t *ent){
 	float frames;
 
 	if((ent->move_info.speed * gi.server_frame) >= ent->move_info.remaining_distance){
@@ -203,7 +203,7 @@ static void G_MoveInfo_Accelerate(g_move_info_t *move_info){
  * Sets up a non-constant move, i.e. one that will accelerate near the beginning
  * and decelerate towards the end.
  */
-static void G_MoveInfo_Accelerative(edict_t *ent){
+static void G_MoveInfo_Accelerative(g_edict_t *ent){
 
 	ent->move_info.remaining_distance -= ent->move_info.current_speed;
 
@@ -230,7 +230,7 @@ static void G_MoveInfo_Accelerative(edict_t *ent){
  * Sets up movement for the specified entity. Both constant and accelerative
  * movements are initiated through this function.
  */
-static void G_MoveInfo_Init(edict_t *ent, vec3_t dest, void(*done)(edict_t*)){
+static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest, void(*done)(g_edict_t*)){
 
 	VectorClear(ent->velocity);
 
@@ -257,13 +257,13 @@ static void G_MoveInfo_Init(edict_t *ent, vec3_t dest, void(*done)(edict_t*)){
 
 #define PLAT_LOW_TRIGGER	1
 
-static void G_func_plat_go_down(edict_t *ent);
+static void G_func_plat_go_down(g_edict_t *ent);
 
 
 /*
  * G_func_plat_up
  */
-static void G_func_plat_up(edict_t *ent){
+static void G_func_plat_up(g_edict_t *ent){
 	if(!(ent->flags & FL_TEAMSLAVE)){
 		if(ent->move_info.sound_end)
 			gi.Sound(ent, ent->move_info.sound_end, ATTN_IDLE);
@@ -279,7 +279,7 @@ static void G_func_plat_up(edict_t *ent){
 /*
  * G_func_plat_down
  */
-static void G_func_plat_down(edict_t *ent){
+static void G_func_plat_down(g_edict_t *ent){
 	if(!(ent->flags & FL_TEAMSLAVE)){
 		if(ent->move_info.sound_end)
 			gi.Sound(ent, ent->move_info.sound_end, ATTN_IDLE);
@@ -292,7 +292,7 @@ static void G_func_plat_down(edict_t *ent){
 /*
  * G_func_plat_go_down
  */
-static void G_func_plat_go_down(edict_t *ent){
+static void G_func_plat_go_down(g_edict_t *ent){
 	if(!(ent->flags & FL_TEAMSLAVE)){
 		if(ent->move_info.sound_start)
 			gi.Sound(ent, ent->move_info.sound_start, ATTN_IDLE);
@@ -306,7 +306,7 @@ static void G_func_plat_go_down(edict_t *ent){
 /*
  * G_func_plat_go_up
  */
-static void G_func_plat_go_up(edict_t *ent){
+static void G_func_plat_go_up(g_edict_t *ent){
 	if(!(ent->flags & FL_TEAMSLAVE)){
 		if(ent->move_info.sound_start)
 			gi.Sound(ent, ent->move_info.sound_start, ATTN_IDLE);
@@ -320,7 +320,7 @@ static void G_func_plat_go_up(edict_t *ent){
 /*
  * G_func_plat_blocked
  */
-static void G_func_plat_blocked(edict_t *self, edict_t *other){
+static void G_func_plat_blocked(g_edict_t *self, g_edict_t *other){
 	if(!other->client)
 		return;
 
@@ -336,7 +336,7 @@ static void G_func_plat_blocked(edict_t *self, edict_t *other){
 /*
  * G_func_plat_use
  */
-static void G_func_plat_use(edict_t *ent, edict_t *other, edict_t *activator){
+static void G_func_plat_use(g_edict_t *ent, g_edict_t *other, g_edict_t *activator){
 	if(ent->think)
 		return;  // already down
 	G_func_plat_go_down(ent);
@@ -346,7 +346,7 @@ static void G_func_plat_use(edict_t *ent, edict_t *other, edict_t *activator){
 /*
  * G_func_plat_touch
  */
-static void G_func_plat_touch(edict_t *ent, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(!other->client)
 		return;
 
@@ -364,8 +364,8 @@ static void G_func_plat_touch(edict_t *ent, edict_t *other, c_plane_t *plane, c_
 /*
  * G_func_plat_create_trigger
  */
-static void G_func_plat_create_trigger(edict_t *ent){
-	edict_t *trigger;
+static void G_func_plat_create_trigger(g_edict_t *ent){
+	g_edict_t *trigger;
 	vec3_t tmin, tmax;
 
 	// middle trigger
@@ -419,7 +419,7 @@ and become a normal plat.
 If the "height" key is set, that will determine the amount the plat moves,
 instead of being implicitly determined by the model's height.
 */
-void G_func_plat(edict_t *ent){
+void G_func_plat(g_edict_t *ent){
 	float f;
 
 	VectorClear(ent->s.angles);
@@ -493,7 +493,7 @@ void G_func_plat(edict_t *ent){
 /*
  * G_func_rotating_blocked
  */
-static void G_func_rotating_blocked(edict_t *self, edict_t *other){
+static void G_func_rotating_blocked(g_edict_t *self, g_edict_t *other){
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
 
@@ -501,7 +501,7 @@ static void G_func_rotating_blocked(edict_t *self, edict_t *other){
 /*
  * G_func_rotating_touch
  */
-static void G_func_rotating_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_func_rotating_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(self->avelocity[0] || self->avelocity[1] || self->avelocity[2])
 		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
@@ -510,7 +510,7 @@ static void G_func_rotating_touch(edict_t *self, edict_t *other, c_plane_t *plan
 /*
  * G_func_rotating_use
  */
-static void G_func_rotating_use(edict_t *self, edict_t *other, edict_t *activator){
+static void G_func_rotating_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 
 	if(!VectorCompare(self->avelocity, vec3_origin)){
 		self->s.sound = 0;
@@ -536,7 +536,7 @@ check either the X_AXIS or Y_AXIS box to change that.
 REVERSE will cause the it to rotate in the opposite direction.
 STOP mean it will stop moving instead of pushing entities
 */
-void G_func_rotating(edict_t *ent){
+void G_func_rotating(g_edict_t *ent){
 
 	ent->solid = SOLID_BSP;
 
@@ -579,7 +579,7 @@ void G_func_rotating(edict_t *ent){
 /*
  * G_func_button_done
  */
-static void G_func_button_done(edict_t *self){
+static void G_func_button_done(g_edict_t *self){
 	self->move_info.state = STATE_BOTTOM;
 }
 
@@ -587,7 +587,7 @@ static void G_func_button_done(edict_t *self){
 /*
  * G_func_button_reset
  */
-static void G_func_button_reset(edict_t *self){
+static void G_func_button_reset(g_edict_t *self){
 
 	self->move_info.state = STATE_DOWN;
 
@@ -601,7 +601,7 @@ static void G_func_button_reset(edict_t *self){
 /*
  * G_func_button_wait
  */
-static void G_func_button_wait(edict_t *self){
+static void G_func_button_wait(g_edict_t *self){
 
 	self->move_info.state = STATE_TOP;
 
@@ -617,7 +617,7 @@ static void G_func_button_wait(edict_t *self){
 /*
  * G_func_button_activate
  */
-static void G_func_button_activate(edict_t *self){
+static void G_func_button_activate(g_edict_t *self){
 
 	if(self->move_info.state == STATE_UP || self->move_info.state == STATE_TOP)
 		 return;
@@ -634,7 +634,7 @@ static void G_func_button_activate(edict_t *self){
 /*
  * G_func_button_use
  */
-static void G_func_button_use(edict_t *self, edict_t *other, edict_t *activator){
+static void G_func_button_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 	self->activator = activator;
 	G_func_button_activate(self);
 }
@@ -643,7 +643,7 @@ static void G_func_button_use(edict_t *self, edict_t *other, edict_t *activator)
 /*
  * G_func_button_touch
  */
-static void G_func_button_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_func_button_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(!other->client)
 		  return;
@@ -655,7 +655,7 @@ static void G_func_button_touch(edict_t *self, edict_t *other, c_plane_t *plane,
 	G_func_button_activate(self);
 }
 
-static void G_func_button_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
+static void G_func_button_die(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage, vec3_t point){
 	self->activator = attacker;
 	self->health = self->max_health;
 	self->take_damage = false;
@@ -673,7 +673,7 @@ When a button is touched, it moves some distance in the direction of it's angle,
 "lip"		override the default 4 pixel lip remaining at end of move
 "health"	if set, the button must be killed instead of touched
 */
-void G_func_button(edict_t *ent){
+void G_func_button(g_edict_t *ent){
 	vec3_t abs_move_dir;
 	float dist;
 
@@ -735,8 +735,8 @@ void G_func_button(edict_t *ent){
 /*
  * G_func_door_use_areaportals
  */
-static void G_func_door_use_areaportals(edict_t *self, qboolean open){
-	edict_t *t = NULL;
+static void G_func_door_use_areaportals(g_edict_t *self, qboolean open){
+	g_edict_t *t = NULL;
 
 	if(!self->target)
 		  return;
@@ -748,13 +748,13 @@ static void G_func_door_use_areaportals(edict_t *self, qboolean open){
 	}
 }
 
-static void G_func_door_go_down(edict_t *self);
+static void G_func_door_go_down(g_edict_t *self);
 
 
 /*
  * G_func_door_up
  */
-static void G_func_door_up(edict_t *self){
+static void G_func_door_up(g_edict_t *self){
 	if(!(self->flags & FL_TEAMSLAVE)){
 		if(self->move_info.sound_end)
 			gi.Sound(self, self->move_info.sound_end, ATTN_IDLE);
@@ -775,7 +775,7 @@ static void G_func_door_up(edict_t *self){
 /*
  * G_func_door_down
  */
-static void G_func_door_down(edict_t *self){
+static void G_func_door_down(g_edict_t *self){
 	if(!(self->flags & FL_TEAMSLAVE)){
 		if(self->move_info.sound_end)
 			gi.Sound(self, self->move_info.sound_end, ATTN_IDLE);
@@ -789,7 +789,7 @@ static void G_func_door_down(edict_t *self){
 /*
  * G_func_door_go_down
  */
-static void G_func_door_go_down(edict_t *self){
+static void G_func_door_go_down(g_edict_t *self){
 	if(!(self->flags & FL_TEAMSLAVE)){
 		if(self->move_info.sound_start)
 			gi.Sound(self, self->move_info.sound_start, ATTN_IDLE);
@@ -808,7 +808,7 @@ static void G_func_door_go_down(edict_t *self){
 /*
  * G_func_door_go_up
  */
-static void G_func_door_go_up(edict_t *self, edict_t *activator){
+static void G_func_door_go_up(g_edict_t *self, g_edict_t *activator){
 	if(self->move_info.state == STATE_UP)
 		return;  // already going up
 
@@ -834,8 +834,8 @@ static void G_func_door_go_up(edict_t *self, edict_t *activator){
 /*
  * G_func_door_use
  */
-static void G_func_door_use(edict_t *self, edict_t *other, edict_t *activator){
-	edict_t *ent;
+static void G_func_door_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
+	g_edict_t *ent;
 
 	if(self->flags & FL_TEAMSLAVE)
 		return;
@@ -864,7 +864,7 @@ static void G_func_door_use(edict_t *self, edict_t *other, edict_t *activator){
 /*
  * G_func_door_touch_trigger
  */
-static void G_func_door_touch_trigger(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_func_door_touch_trigger(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(other->health <= 0)
 		return;
 
@@ -883,8 +883,8 @@ static void G_func_door_touch_trigger(edict_t *self, edict_t *other, c_plane_t *
 /*
  * G_func_door_calc_move
  */
-static void G_func_door_calc_move(edict_t *self){
-	edict_t *ent;
+static void G_func_door_calc_move(g_edict_t *self){
+	g_edict_t *ent;
 	float min;
 	float time;
 	float newspeed;
@@ -924,8 +924,8 @@ static void G_func_door_calc_move(edict_t *self){
 /*
  * G_func_door_create_trigger
  */
-static void G_func_door_create_trigger(edict_t *ent){
-	edict_t *other;
+static void G_func_door_create_trigger(g_edict_t *ent){
+	g_edict_t *other;
 	vec3_t mins, maxs;
 
 	if(ent->flags & FL_TEAMSLAVE)
@@ -964,8 +964,8 @@ static void G_func_door_create_trigger(edict_t *ent){
 /*
  * G_func_door_blocked
  */
-static void G_func_door_blocked(edict_t *self, edict_t *other){
-	edict_t *ent;
+static void G_func_door_blocked(g_edict_t *self, g_edict_t *other){
+	g_edict_t *ent;
 
 	if(!other->client)
 		return;
@@ -989,8 +989,8 @@ static void G_func_door_blocked(edict_t *self, edict_t *other){
 /*
  * G_func_door_die
  */
-static void G_func_door_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point){
-	edict_t *ent;
+static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage, vec3_t point){
+	g_edict_t *ent;
 
 	for(ent = self->team_master; ent; ent = ent->team_chain){
 		ent->health = ent->max_health;
@@ -1004,7 +1004,7 @@ static void G_func_door_die(edict_t *self, edict_t *inflictor, edict_t *attacker
 /*
  * G_func_door_touch
  */
-static void G_func_door_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_func_door_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	if(!other->client)
 		return;
 
@@ -1033,7 +1033,7 @@ TOGGLE		wait in both the start and end states for a trigger event.
 "lip"		lip remaining at end of move(8 default)
 "dmg"		damage to inflict when blocked(2 default)
 */
-void G_func_door(edict_t *ent){
+void G_func_door(g_edict_t *ent){
 	vec3_t abs_move_dir;
 
 	if(ent->sounds != 1){
@@ -1117,14 +1117,14 @@ void G_func_door(edict_t *ent){
 /*
  * G_func_wall_use
  */
-static void G_func_wall_use(edict_t *self, edict_t *other, edict_t *activator){
+static void G_func_wall_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 	if(self->solid == SOLID_NOT){
 		self->solid = SOLID_BSP;
-		self->sv_flags &= ~SVF_NOCLIENT;
+		self->sv_flags &= ~SVF_NO_CLIENT;
 		G_KillBox(self);
 	} else {
 		self->solid = SOLID_NOT;
-		self->sv_flags |= SVF_NOCLIENT;
+		self->sv_flags |= SVF_NO_CLIENT;
 	}
 	gi.LinkEntity(self);
 
@@ -1146,7 +1146,7 @@ TOGGLE			only valid for TRIGGER_SPAWN walls
 START_ON		only valid for TRIGGER_SPAWN walls
 				the wall will initially be present
 */
-void G_func_wall(edict_t *self){
+void G_func_wall(g_edict_t *self){
 	self->move_type = MOVE_TYPE_PUSH;
 	gi.SetModel(self, self->model);
 
@@ -1177,7 +1177,7 @@ void G_func_wall(edict_t *self){
 		self->solid = SOLID_BSP;
 	} else {
 		self->solid = SOLID_NOT;
-		self->sv_flags |= SVF_NOCLIENT;
+		self->sv_flags |= SVF_NO_CLIENT;
 	}
 
 	gi.LinkEntity(self);
@@ -1194,7 +1194,7 @@ START_OPEN causes the water to move to its destination when spawned and operate 
 "wait"		wait before returning(-1 default, -1 = TOGGLE)
 "lip"		lip remaining at end of move(0 default)
 */
-void G_func_water(edict_t *self){
+void G_func_water(g_edict_t *self){
 	vec3_t abs_move_dir;
 
 	G_SetMoveDir(self->s.angles, self->move_dir);
@@ -1249,13 +1249,13 @@ void G_func_water(edict_t *self){
 #define TRAIN_BLOCK_STOPS	4
 
 
-static void G_func_train_next(edict_t *self);
+static void G_func_train_next(g_edict_t *self);
 
 
 /*
  * G_func_train_blocked
  */
-static void G_func_train_blocked(edict_t *self, edict_t *other){
+static void G_func_train_blocked(g_edict_t *self, g_edict_t *other){
 	if(!other->client)
 		return;
 
@@ -1273,10 +1273,10 @@ static void G_func_train_blocked(edict_t *self, edict_t *other){
 /*
  * G_func_train_wait
  */
-static void G_func_train_wait(edict_t *self){
+static void G_func_train_wait(g_edict_t *self){
 	if(self->target_ent->path_target){
 		char *savetarget;
-		edict_t *ent;
+		g_edict_t *ent;
 
 		ent = self->target_ent;
 		savetarget = ent->target;
@@ -1315,8 +1315,8 @@ static void G_func_train_wait(edict_t *self){
 /*
  * G_func_train_next
  */
-static void G_func_train_next(edict_t *self){
-	edict_t *ent;
+static void G_func_train_next(g_edict_t *self){
+	g_edict_t *ent;
 	vec3_t dest;
 	qboolean first;
 
@@ -1368,8 +1368,8 @@ again:
 /*
  * G_func_train_resume
  */
-static void G_func_train_resume(edict_t *self){
-	edict_t *ent;
+static void G_func_train_resume(g_edict_t *self){
+	g_edict_t *ent;
 	vec3_t dest;
 
 	ent = self->target_ent;
@@ -1386,8 +1386,8 @@ static void G_func_train_resume(edict_t *self){
 /*
  * G_func_train_find
  */
-static void G_func_train_find(edict_t *self){
-	edict_t *ent;
+static void G_func_train_find(g_edict_t *self){
+	g_edict_t *ent;
 
 	if(!self->target){
 		gi.Debug("train_find: no target\n");
@@ -1418,7 +1418,7 @@ static void G_func_train_find(edict_t *self){
 /*
  * G_func_train_use
  */
-static void G_func_train_use(edict_t *self, edict_t *other, edict_t *activator){
+static void G_func_train_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 	self->activator = activator;
 
 	if(self->spawn_flags & TRAIN_START_ON){
@@ -1446,7 +1446,7 @@ dmg		default	2
 noise	looping sound to play when the train is in motion
 
 */
-void G_func_train(edict_t *self){
+void G_func_train(g_edict_t *self){
 	self->move_type = MOVE_TYPE_PUSH;
 
 	VectorClear(self->s.angles);
@@ -1487,7 +1487,7 @@ void G_func_train(edict_t *self){
 /*
  * G_func_timer_think
  */
-static void G_func_timer_think(edict_t *self){
+static void G_func_timer_think(g_edict_t *self){
 	G_UseTargets(self, self->activator);
 	self->next_think = g_level.time + self->wait + crand() * self->random;
 }
@@ -1496,7 +1496,7 @@ static void G_func_timer_think(edict_t *self){
 /*
  * G_func_timer_use
  */
-static void G_func_timer_use(edict_t *self, edict_t *other, edict_t *activator){
+static void G_func_timer_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 	self->activator = activator;
 
 	// if on, turn it off
@@ -1527,7 +1527,7 @@ so, the basic time between firing is a random time between
 
 These can used but not touched.
 */
-void G_func_timer(edict_t *self){
+void G_func_timer(g_edict_t *self){
 	if(!self->wait)
 		self->wait = 1.0;
 
@@ -1544,14 +1544,14 @@ void G_func_timer(edict_t *self){
 		self->activator = self;
 	}
 
-	self->sv_flags = SVF_NOCLIENT;
+	self->sv_flags = SVF_NO_CLIENT;
 }
 
 
 /*
  * G_func_conveyor_use
  */
-static void G_func_conveyor_use(edict_t *self, edict_t *other, edict_t *activator){
+static void G_func_conveyor_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 	if(self->spawn_flags & 1){
 		self->speed = 0;
 		self->spawn_flags &= ~1;
@@ -1570,7 +1570,7 @@ Conveyors are stationary brushes that move what's on them.
 The brush should be have a surface with at least one current content enabled.
 speed	default 100
 */
-void G_func_conveyor(edict_t *self){
+void G_func_conveyor(g_edict_t *self){
 	if(!self->speed)
 		self->speed = 100;
 
@@ -1590,7 +1590,7 @@ void G_func_conveyor(edict_t *self){
 /*
  * G_func_killbox_use
  */
-static void G_func_killbox_use(edict_t *self, edict_t *other, edict_t *activator){
+static void G_func_killbox_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 	G_KillBox(self);
 }
 
@@ -1598,8 +1598,8 @@ static void G_func_killbox_use(edict_t *self, edict_t *other, edict_t *activator
 /*QUAKED func_killbox (1 0 0) ?
 Kills everything inside when fired, regardless of protection.
 */
-void G_func_killbox(edict_t *ent){
+void G_func_killbox(g_edict_t *ent){
 	gi.SetModel(ent, ent->model);
 	ent->use = G_func_killbox_use;
-	ent->sv_flags = SVF_NOCLIENT;
+	ent->sv_flags = SVF_NO_CLIENT;
 }

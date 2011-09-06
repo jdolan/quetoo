@@ -25,7 +25,7 @@
 /*
  * G_target_speaker_use
  */
-static void G_target_speaker_use(edict_t *ent, edict_t *other, edict_t *activator){
+static void G_target_speaker_use(g_edict_t *ent, g_edict_t *other, g_edict_t *activator){
 
 	if(ent->spawn_flags & 3){  // looping sound toggles
 		if(ent->s.sound)
@@ -53,7 +53,7 @@ Normal sounds play each time the target is used.  The reliable flag can be set f
 Looped sounds are always atten 3 / vol 1, and the use function toggles it on/off.
 Multiple identical looping sounds will just increase volume without any speed cost.
 */
-void G_target_speaker(edict_t *ent){
+void G_target_speaker(g_edict_t *ent){
 	char buffer[MAX_QPATH];
 
 	if(!g_game.spawn.noise){
@@ -86,7 +86,7 @@ void G_target_speaker(edict_t *ent){
 /*
  * G_target_explosion_explode
  */
-static void G_target_explosion_explode(edict_t *self){
+static void G_target_explosion_explode(g_edict_t *self){
 	float save;
 
 	gi.WriteByte(svc_temp_entity);
@@ -107,7 +107,7 @@ static void G_target_explosion_explode(edict_t *self){
 /*
  * G_target_explosion_use
  */
-static void G_target_explosion_use(edict_t *self, edict_t *other, edict_t *activator){
+static void G_target_explosion_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 	self->activator = activator;
 
 	if(!self->delay){
@@ -126,16 +126,16 @@ Spawns an explosion temporary entity when used.
 "delay"		wait this long before going off
 "dmg"		how much radius damage should be done, defaults to 0
 */
-void G_target_explosion(edict_t *ent){
+void G_target_explosion(g_edict_t *ent){
 	ent->use = G_target_explosion_use;
-	ent->sv_flags = SVF_NOCLIENT;
+	ent->sv_flags = SVF_NO_CLIENT;
 }
 
 
 /*
  * G_target_splash_think
  */
-static void G_target_splash_think(edict_t *self){
+static void G_target_splash_think(g_edict_t *self){
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_SPARKS);
@@ -150,7 +150,7 @@ static void G_target_splash_think(edict_t *self){
 /*QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8)
 Creates a particle splash effect.
 */
-void G_target_splash(edict_t *self){
+void G_target_splash(g_edict_t *self){
 
 	G_SetMoveDir(self->s.angles, self->move_dir);
 
@@ -164,7 +164,7 @@ void G_target_splash(edict_t *self){
 
 /*QUAKED target_string (0 0 1) (-8 -8 -8) (8 8 8)
  */
-void G_target_string(edict_t *self){
+void G_target_string(g_edict_t *self){
 
 	if(!self->message)
 		self->message = "";

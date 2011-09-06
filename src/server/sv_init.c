@@ -80,7 +80,7 @@ int Sv_ImageIndex(const char *name){
  * baseline will be transmitted
  */
 static void Sv_CreateBaseline(void){
-	edict_t *ent;
+	g_edict_t *ent;
 	int i;
 
 	for(i = 1; i < svs.game->num_edicts; i++){
@@ -244,7 +244,7 @@ static void Sv_InitClients(void){
 	// align the game entities with the server's clients
 	for(i = 0; i < sv_max_clients->integer; i++){
 
-		edict_t *edict = EDICT_FOR_NUM(i + 1);
+		g_edict_t *edict = EDICT_FOR_NUM(i + 1);
 		edict->s.number = i + 1;
 
 		// assign their edict

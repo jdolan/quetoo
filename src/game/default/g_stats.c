@@ -25,7 +25,7 @@
 /*
  * G_ClientToIntermission
  */
-void G_ClientToIntermission(edict_t *ent){
+void G_ClientToIntermission(g_edict_t *ent){
 	VectorCopy(g_level.intermission_origin, ent->s.origin);
 	ent->client->ps.pmove.origin[0] = g_level.intermission_origin[0] * 8;
 	ent->client->ps.pmove.origin[1] = g_level.intermission_origin[1] * 8;
@@ -104,7 +104,7 @@ static void G_ColoredName(char *dst, const char *src, int max_len, int max_size)
 /*
  * G_ClientTeamsScoreboard
  */
-void G_ClientTeamsScoreboard(edict_t *ent){
+void G_ClientTeamsScoreboard(g_edict_t *ent){
 	char entry[512];
 	char string[1300];
 	char net_name[MAX_NET_NAME];
@@ -120,7 +120,7 @@ void G_ClientTeamsScoreboard(edict_t *ent){
 	int minutes;
 	int x, y;
 	g_client_t *cl;
-	edict_t *cl_ent;
+	g_edict_t *cl_ent;
 	char *c;
 
 	good_count = evil_count = spec_count = total = 0;
@@ -267,7 +267,7 @@ void G_ClientTeamsScoreboard(edict_t *ent){
 /*
  * G_ClientScoreboard
  */
-void G_ClientScoreboard(edict_t *ent){
+void G_ClientScoreboard(g_edict_t *ent){
 	char entry[512];
 	char string[1300];
 	char net_name[MAX_NET_NAME];
@@ -279,7 +279,7 @@ void G_ClientScoreboard(edict_t *ent){
 	int minutes;
 	int x, y;
 	g_client_t *cl;
-	edict_t *cl_ent;
+	g_edict_t *cl_ent;
 
 	playercount = speccount = total = 0;
 
@@ -360,7 +360,7 @@ void G_ClientScoreboard(edict_t *ent){
 /*
  * G_ClientStats
  */
-void G_ClientStats(edict_t *ent){
+void G_ClientStats(g_edict_t *ent){
 	g_item_t *item;
 
 	// health
@@ -449,7 +449,7 @@ void G_ClientStats(edict_t *ent){
 /*
  * G_ClientSpectatorStats
  */
-void G_ClientSpectatorStats(edict_t *ent){
+void G_ClientSpectatorStats(g_edict_t *ent){
 	g_client_t *cl = ent->client;
 
 	if(!cl->chase_target){

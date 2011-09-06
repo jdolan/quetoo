@@ -27,13 +27,13 @@
  *
  * Give items to a client
  */
-static void G_Give_f(edict_t *ent){
+static void G_Give_f(g_edict_t *ent){
 	char *name;
 	g_item_t *it;
 	int index;
 	int i;
 	qboolean give_all;
-	edict_t *it_ent;
+	g_edict_t *it_ent;
 
 	if(sv_max_clients->integer > 1 && !g_cheats->value){
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
@@ -134,7 +134,7 @@ static void G_Give_f(edict_t *ent){
 /*
  * G_God_f
  */
-static void G_God_f(edict_t *ent){
+static void G_God_f(g_edict_t *ent){
 	char *msg;
 
 	if(sv_max_clients->integer > 1 && !g_cheats->value){
@@ -155,7 +155,7 @@ static void G_God_f(edict_t *ent){
 /*
  * G_NoClip_f
  */
-static void G_NoClip_f(edict_t *ent){
+static void G_NoClip_f(g_edict_t *ent){
 	char *msg;
 
 	if(sv_max_clients->integer > 1 && !g_cheats->value){
@@ -178,7 +178,7 @@ static void G_NoClip_f(edict_t *ent){
 /*
  * G_Use_f
  */
-static void G_Use_f(edict_t *ent){
+static void G_Use_f(g_edict_t *ent){
 	int index;
 	g_item_t *it;
 	char *s;
@@ -206,9 +206,9 @@ static void G_Use_f(edict_t *ent){
 /*
  * G_Drop_f
  */
-static void G_Drop_f(edict_t *ent){
+static void G_Drop_f(g_edict_t *ent){
 	int index;
-	edict_t *f;
+	g_edict_t *f;
 	g_item_t *it;
 	char *s;
 
@@ -252,7 +252,7 @@ static void G_Drop_f(edict_t *ent){
 /*
  * G_WeaponPrevious_f
  */
-static void G_WeaponPrevious_f(edict_t *ent){
+static void G_WeaponPrevious_f(g_edict_t *ent){
 	g_client_t *cl;
 	int i, index;
 	g_item_t *it;
@@ -292,7 +292,7 @@ static void G_WeaponPrevious_f(edict_t *ent){
 /*
  * G_WeaponNext_f
  */
-static void G_WeaponNext_f(edict_t *ent){
+static void G_WeaponNext_f(g_edict_t *ent){
 	g_client_t *cl;
 	int i, index;
 	g_item_t *it;
@@ -333,7 +333,7 @@ static void G_WeaponNext_f(edict_t *ent){
 /*
  * G_WeaponLast_f
  */
-static void G_WeaponLast_f(edict_t *ent){
+static void G_WeaponLast_f(g_edict_t *ent){
 	g_client_t *cl;
 	int index;
 	g_item_t *it;
@@ -358,7 +358,7 @@ static void G_WeaponLast_f(edict_t *ent){
 /*
  * G_Kill_f
  */
-static void G_Kill_f(edict_t *ent){
+static void G_Kill_f(g_edict_t *ent){
 
 	if((g_level.time - ent->client->respawn_time) < 1)
 		return;
@@ -381,12 +381,12 @@ static void G_Kill_f(edict_t *ent){
 /*
  * G_Say_f
  */
-static void G_Say_f(edict_t *ent){
+static void G_Say_f(g_edict_t *ent){
 	int i;
 	size_t len;
 	qboolean team, arg0;
 	char *c, text[256];
-	edict_t *other;
+	g_edict_t *other;
 	g_client_t *cl;
 
 	if(ent->client->muted){
@@ -488,11 +488,11 @@ static void G_Say_f(edict_t *ent){
 /*
  * G_PlayerList_f
  */
-static void G_PlayerList_f(edict_t *ent){
+static void G_PlayerList_f(g_edict_t *ent){
 	int i, seconds;
 	char st[80];
 	char text[1400];
-	edict_t *e2;
+	g_edict_t *e2;
 
 	memset(text, 0, sizeof(text));
 
@@ -551,7 +551,7 @@ static const char *vote_cmds[] = {
  * true if the command received help and may therefore be ignored, false
  * otherwise.
  */
-static qboolean Vote_Help(edict_t *ent){
+static qboolean Vote_Help(g_edict_t *ent){
 	int i, j, len;
 	char msg[1024];
 
@@ -645,7 +645,7 @@ static qboolean Vote_Help(edict_t *ent){
 /*
  * G_Vote_f
  */
-static void G_Vote_f(edict_t *ent){
+static void G_Vote_f(g_edict_t *ent){
 	char *c, vote[64];
 	int i;
 
@@ -718,7 +718,7 @@ static void G_Vote_f(edict_t *ent){
  *
  * Returns true if the client's team was changed, false otherwise.
  */
-qboolean G_AddClientToTeam(edict_t *ent, char *team_name){
+qboolean G_AddClientToTeam(g_edict_t *ent, char *team_name){
 	g_team_t *team;
 
 	if(g_level.match_time && g_level.match_time <= g_level.time){
@@ -751,7 +751,7 @@ qboolean G_AddClientToTeam(edict_t *ent, char *team_name){
 /*
  * G_AddClientToRound
  */
-static void G_AddClientToRound(edict_t *ent){
+static void G_AddClientToRound(g_edict_t *ent){
 	int score;  // keep score across rounds
 
 	if(g_level.round_time && g_level.round_time <= g_level.time){
@@ -779,7 +779,7 @@ static void G_AddClientToRound(edict_t *ent){
 /*
  * G_Team_f
  */
-static void G_Team_f(edict_t *ent){
+static void G_Team_f(g_edict_t *ent){
 
 	if((g_level.teams || g_level.ctf) && gi.Argc() != 2){
 		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <%s|%s>\n",
@@ -807,7 +807,7 @@ static void G_Team_f(edict_t *ent){
 /*
  * G_Teamname_f
  */
-static void G_Teamname_f(edict_t *ent){
+static void G_Teamname_f(g_edict_t *ent){
 	int cs;
 	char *s;
 	g_team_t *t;
@@ -849,7 +849,7 @@ static void G_Teamname_f(edict_t *ent){
 /*
  * G_Teamskin_f
  */
-static void G_Teamskin_f(edict_t *ent){
+static void G_Teamskin_f(g_edict_t *ent){
 	int i;
 	g_client_t *cl;
 	char *c, *s;
@@ -913,7 +913,7 @@ static void G_Teamskin_f(edict_t *ent){
  *
  * If match is enabled, all clients must issue ready for game to start.
  */
-static void G_Ready_f(edict_t *ent){
+static void G_Ready_f(g_edict_t *ent){
 	int i, g, e, clients;
 	g_client_t *cl;
 
@@ -977,7 +977,7 @@ static void G_Ready_f(edict_t *ent){
 /*
  * G_Unready_f
  */
-static void G_Unready_f(edict_t *ent){
+static void G_Unready_f(g_edict_t *ent){
 
 	if(!g_level.match){
 		gi.ClientPrint(ent, PRINT_HIGH, "Match is disabled\n");
@@ -1007,7 +1007,7 @@ static void G_Unready_f(edict_t *ent){
 /*
  * G_Spectate_f
  */
-static void G_Spectate_f(edict_t *ent){
+static void G_Spectate_f(g_edict_t *ent){
 	qboolean spectator;
 
 	// prevent spectator spamming
@@ -1052,7 +1052,7 @@ static void G_Spectate_f(edict_t *ent){
 /*
  * G_Score_f
  */
-void G_Score_f(edict_t *ent){
+void G_Score_f(g_edict_t *ent){
 
 	if(ent->client->show_scores){
 		ent->client->show_scores = false;
@@ -1072,7 +1072,7 @@ void G_Score_f(edict_t *ent){
 /*
  * G_Command
  */
-void G_ClientCommand(edict_t *ent){
+void G_ClientCommand(g_edict_t *ent){
 	char *cmd;
 
 	if(!ent->client)

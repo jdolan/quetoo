@@ -40,7 +40,7 @@
 /*
  * G_TestEntityPosition
  */
-static edict_t *G_TestEntityPosition(edict_t *ent){
+static g_edict_t *G_TestEntityPosition(g_edict_t *ent){
 	trace_t trace;
 	int mask;
 
@@ -62,7 +62,7 @@ static edict_t *G_TestEntityPosition(edict_t *ent){
 /*
  * G_ClampVelocity
  */
-static void G_ClampVelocity(edict_t *ent){
+static void G_ClampVelocity(g_edict_t *ent){
 	int i;
 
 	// bound velocity
@@ -79,7 +79,7 @@ static void G_ClampVelocity(edict_t *ent){
  *
  * Runs thinking code for this frame if necessary
  */
-static qboolean G_RunThink(edict_t *ent){
+static qboolean G_RunThink(g_edict_t *ent){
 	float think_time;
 
 	think_time = ent->next_think;
@@ -105,8 +105,8 @@ static qboolean G_RunThink(edict_t *ent){
  *
  * Two entities have touched, so run their touch functions
  */
-static void G_Impact(edict_t *e1, trace_t *trace){
-	edict_t *e2;
+static void G_Impact(g_edict_t *e1, trace_t *trace){
+	g_edict_t *e2;
 
 	e2 = trace->ent;
 
@@ -153,7 +153,7 @@ static int G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce
 /*
  * G_AddGravity
  */
-static void G_AddGravity(edict_t *ent){
+static void G_AddGravity(g_edict_t *ent){
 	float g = g_level.gravity;
 
 	if(ent->water_level)
@@ -175,7 +175,7 @@ static void G_AddGravity(edict_t *ent){
  *
  * Does not change the entity's velocity at all
  */
-trace_t G_PushEntity(edict_t *ent, vec3_t push){
+trace_t G_PushEntity(g_edict_t *ent, vec3_t push){
 	trace_t trace;
 	vec3_t start;
 	vec3_t end;
@@ -215,7 +215,7 @@ retry:
 
 
 typedef struct {
-	edict_t *ent;
+	g_edict_t *ent;
 	vec3_t origin;
 	vec3_t angles;
 	float deltayaw;
@@ -223,7 +223,7 @@ typedef struct {
 
 pushed_t pushed[MAX_EDICTS], *pushed_p;
 
-edict_t *obstacle;
+g_edict_t *obstacle;
 
 /*
  * G_Push
@@ -231,9 +231,9 @@ edict_t *obstacle;
  * Objects need to be moved back on a failed push,
  * otherwise riders would continue to slide.
  */
-static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
+static qboolean G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove){
 	int i, e;
-	edict_t *check, *block;
+	g_edict_t *check, *block;
 	vec3_t mins, maxs;
 	pushed_t *p;
 	vec3_t org, org2, move2, forward, right, up;
@@ -386,9 +386,9 @@ static qboolean G_Push(edict_t *pusher, vec3_t move, vec3_t amove){
  *
  * Bmodel objects don't interact with each other, but push all box objects
  */
-static void G_Physics_Pusher(edict_t *ent){
+static void G_Physics_Pusher(g_edict_t *ent){
 	vec3_t move, amove;
-	edict_t *part, *mv;
+	g_edict_t *part, *mv;
 
 	// if not a team captain, so movement will be handled elsewhere
 	if(ent->flags & FL_TEAMSLAVE)
@@ -440,7 +440,7 @@ static void G_Physics_Pusher(edict_t *ent){
  *
  * Non moving objects can only think
  */
-static void G_Physics_None(edict_t *ent){
+static void G_Physics_None(g_edict_t *ent){
 	// regular thinking
 	G_RunThink(ent);
 }
@@ -451,7 +451,7 @@ static void G_Physics_None(edict_t *ent){
  *
  * A moving object that doesn't obey physics
  */
-static void G_Physics_Noclip(edict_t *ent){
+static void G_Physics_Noclip(g_edict_t *ent){
 
 	if(!G_RunThink(ent))
 		return;
@@ -468,10 +468,10 @@ static void G_Physics_Noclip(edict_t *ent){
  *
  * Toss, bounce, and fly movement.  When on ground, do nothing.
  */
-static void G_Physics_Toss(edict_t *ent){
+static void G_Physics_Toss(g_edict_t *ent){
 	trace_t trace;
 	vec3_t org, move;
-	edict_t *slave;
+	g_edict_t *slave;
 	qboolean was_in_water;
 	qboolean is_in_water;
 
@@ -573,7 +573,7 @@ static void G_Physics_Toss(edict_t *ent){
 /*
  * G_RunEntity
  */
-void G_RunEntity(edict_t *ent){
+void G_RunEntity(g_edict_t *ent){
 
 	if(ent->pre_think)
 		ent->pre_think(ent);

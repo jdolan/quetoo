@@ -24,7 +24,7 @@
 /*
  * G_Trigger_Init
  */
-static void G_Trigger_Init(edict_t *self){
+static void G_Trigger_Init(g_edict_t *self){
 
 	if(!VectorCompare(self->s.angles, vec3_origin))
 		G_SetMoveDir(self->s.angles, self->move_dir);
@@ -32,7 +32,7 @@ static void G_Trigger_Init(edict_t *self){
 	self->solid = SOLID_TRIGGER;
 	self->move_type = MOVE_TYPE_NONE;
 	gi.SetModel(self, self->model);
-	self->sv_flags = SVF_NOCLIENT;
+	self->sv_flags = SVF_NO_CLIENT;
 }
 
 
@@ -41,7 +41,7 @@ static void G_Trigger_Init(edict_t *self){
  *
  * The wait time has passed, so set back up for another activation
  */
-static void G_trigger_multiple_wait(edict_t *ent){
+static void G_trigger_multiple_wait(g_edict_t *ent){
 	ent->next_think = 0;
 }
 
@@ -49,7 +49,7 @@ static void G_trigger_multiple_wait(edict_t *ent){
 /*
  * G_trigger_multiple_think
  */
-static void G_trigger_multiple_think(edict_t *ent){
+static void G_trigger_multiple_think(g_edict_t *ent){
 
 	if(ent->next_think)
 		return;  // already been triggered
@@ -71,7 +71,7 @@ static void G_trigger_multiple_think(edict_t *ent){
 /*
  * G_trigger_multiple_use
  */
-static void G_trigger_multiple_use(edict_t *ent, edict_t *other, edict_t *activator){
+static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other, g_edict_t *activator){
 
 	ent->activator = activator;
 
@@ -82,7 +82,7 @@ static void G_trigger_multiple_use(edict_t *ent, edict_t *other, edict_t *activa
 /*
  * G_trigger_multiple_touch
  */
-static void G_trigger_multiple_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(!other->client)
 		return;
@@ -105,7 +105,7 @@ static void G_trigger_multiple_touch(edict_t *self, edict_t *other, c_plane_t *p
 /*
  * G_trigger_multiple_enable
  */
-static void G_trigger_multiple_enable(edict_t *self, edict_t *other, edict_t *activator){
+static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 	self->solid = SOLID_TRIGGER;
 	self->use = G_trigger_multiple_use;
 	gi.LinkEntity(self);
@@ -118,7 +118,7 @@ If "delay" is set, the trigger waits some time after activating before firing.
 "wait" : Seconds between triggerings.(.2 default)
 set "message" to text string
 */
-void G_trigger_multiple(edict_t *ent){
+void G_trigger_multiple(g_edict_t *ent){
 
 	ent->noise_index = gi.SoundIndex("misc/chat");
 
@@ -126,7 +126,7 @@ void G_trigger_multiple(edict_t *ent){
 		ent->wait = 0.2;
 	ent->touch = G_trigger_multiple_touch;
 	ent->move_type = MOVE_TYPE_NONE;
-	ent->sv_flags |= SVF_NOCLIENT;
+	ent->sv_flags |= SVF_NO_CLIENT;
 
 
 	if(ent->spawn_flags & 4){
@@ -153,7 +153,7 @@ If TRIGGERED, this trigger must be triggered before it is live.
 
 "message"	string to be displayed when triggered
 */
-void G_trigger_once(edict_t *ent){
+void G_trigger_once(g_edict_t *ent){
 	ent->wait = -1;
 	G_trigger_multiple(ent);
 }
@@ -162,7 +162,7 @@ void G_trigger_once(edict_t *ent){
 /*
  * G_trigger_relay_use
  */
-static void G_trigger_relay_use(edict_t *self, edict_t *other, edict_t *activator){
+static void G_trigger_relay_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 	G_UseTargets(self, activator);
 }
 
@@ -170,7 +170,7 @@ static void G_trigger_relay_use(edict_t *self, edict_t *other, edict_t *activato
 /*QUAKED trigger_relay(.5 .5 .5)(-8 -8 -8)(8 8 8)
 This fixed size trigger cannot be touched, it can only be fired by other events.
 */
-void G_trigger_relay(edict_t *self){
+void G_trigger_relay(g_edict_t *self){
 	self->use = G_trigger_relay_use;
 }
 
@@ -178,7 +178,7 @@ void G_trigger_relay(edict_t *self){
 /*QUAKED trigger_always(.5 .5 .5)(-8 -8 -8)(8 8 8)
 This trigger will always fire.  It is activated by the world.
 */
-void G_trigger_always(edict_t *ent){
+void G_trigger_always(g_edict_t *ent){
 	// we must have some delay to make sure our use targets are present
 	if(ent->delay < 0.2)
 		ent->delay = 0.2;
@@ -194,7 +194,7 @@ void G_trigger_always(edict_t *ent){
 /*
  * G_trigger_push_touch
  */
-static void G_trigger_push_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(!strcmp(other->class_name, "grenade") || other->health > 0){
 
@@ -222,8 +222,8 @@ static void G_trigger_push_touch(edict_t *self, edict_t *other, c_plane_t *plane
 Pushes the player (jump pads)
 "speed"		defaults to 100
 */
-void G_trigger_push(edict_t *self){
-	edict_t *ent;
+void G_trigger_push(g_edict_t *self){
+	g_edict_t *ent;
 
 	G_Trigger_Init(self);
 
@@ -254,7 +254,7 @@ void G_trigger_push(edict_t *self){
 /*
  * G_trigger_hurt_use
  */
-static void G_trigger_hurt_use(edict_t *self, edict_t *other, edict_t *activator){
+static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 
 	if(self->solid == SOLID_NOT)
 		self->solid = SOLID_TRIGGER;
@@ -270,7 +270,7 @@ static void G_trigger_hurt_use(edict_t *self, edict_t *other, edict_t *activator
 /*
  * G_trigger_hurt_touch
  */
-static void G_trigger_hurt_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	int dflags;
 
 	if(!other->take_damage){  // deal with items that land on us
@@ -315,7 +315,7 @@ NO_PROTECTION	*nothing* stops the damage
 
 "dmg"			default 5 (whole numbers only)
 */
-void G_trigger_hurt(edict_t *self){
+void G_trigger_hurt(g_edict_t *self){
 
 	G_Trigger_Init(self);
 
@@ -339,7 +339,7 @@ void G_trigger_hurt(edict_t *self){
 /*
  * G_trigger_exec_touch
  */
-static void G_trigger_exec_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(self->timestamp > g_level.time)
 		return;
@@ -357,7 +357,7 @@ static void G_trigger_exec_touch(edict_t *self, edict_t *other, c_plane_t *plane
 /*
  * A trigger which executes a command or script when touched.
  */
-void G_trigger_exec(edict_t *self){
+void G_trigger_exec(g_edict_t *self){
 
 	if(!self->command && !self->script){
 		gi.Debug("%s does not have a command or script", self->class_name);

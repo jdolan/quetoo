@@ -383,7 +383,7 @@ typedef struct {
 	c_surface_t *surface;  // surface hit
 	int leaf_num;
 	int contents;  // contents on other side of surface hit
-	struct edict_s *ent;  // not set by CM_*() functions
+	struct g_edict_s *ent;  // not set by CM_*() functions
 } trace_t;
 
 // player bbox and view_height scaling
@@ -454,14 +454,14 @@ typedef struct {
 	user_cmd_t cmd;  // command (in)
 
 	int num_touch;  // results (out)
-	struct edict_s *touch_ents[MAXTOUCH];
+	struct g_edict_s *touch_ents[MAXTOUCH];
 
 	vec3_t angles;  // clamped
 	float view_height;
 
 	vec3_t mins, maxs;  // bounding box size
 
-	struct edict_s *ground_entity;
+	struct g_edict_s *ground_entity;
 
 	int water_type;
 	int water_level;
