@@ -35,13 +35,11 @@ spawn_t spawns[] = {
 	{"info_player_team2", G_info_player_team2},
 	{"info_player_intermission", G_info_player_intermission},
 	{"info_null", G_info_null},
-	{"func_group", G_info_null},
 	{"info_notnull", G_info_notnull},
 
 	{"func_plat", G_func_plat},
 	{"func_button", G_func_button},
 	{"func_door", G_func_door},
-	{"func_door_secret", G_func_door_secret},
 	{"func_rotating", G_func_rotating},
 	{"func_train", G_func_train},
 	{"func_conveyor", G_func_conveyor},

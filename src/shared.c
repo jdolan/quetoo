@@ -113,8 +113,9 @@ void VectorAngles(const vec3_t vector, vec3_t angles){
 	float pitch = atan2(vector[2], forward) * 180.0 / M_PI;
 	const float yaw = atan2(vector[1], vector[0]) * 180.0 / M_PI;
 
-	if(pitch < 0.0)  // TODO: is this necessary?
+	if(pitch < 0.0){
 		pitch += 360.0;
+	}
 
 	VectorSet(angles, -pitch, yaw, 0.0);
 }
