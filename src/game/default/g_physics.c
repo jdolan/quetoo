@@ -575,8 +575,8 @@ static void G_Physics_Toss(edict_t *ent){
  */
 void G_RunEntity(edict_t *ent){
 
-	if(ent->prethink)
-		ent->prethink(ent);
+	if(ent->pre_think)
+		ent->pre_think(ent);
 
 	switch((int)ent->move_type){
 		case MOVE_TYPE_PUSH:

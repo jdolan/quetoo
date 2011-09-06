@@ -28,7 +28,7 @@ typedef struct {
 
 static void G_worldspawn(edict_t *ent);
 
-spawn_t spawns[] = {
+static spawn_t g_spawns[] = {
 	{"info_player_start", G_info_player_start},
 	{"info_player_deathmatch", G_info_player_deathmatch},
 	{"info_player_team1", G_info_player_team1},
@@ -45,6 +45,7 @@ spawn_t spawns[] = {
 	{"func_conveyor", G_func_conveyor},
 	{"func_areaportal", G_func_areaportal},
 	{"func_wall", G_func_wall},
+	{"func_water", G_func_water},
 	{"func_timer", G_func_timer},
 	{"func_killbox", G_func_killbox},
 
@@ -55,7 +56,6 @@ spawn_t spawns[] = {
 	{"trigger_push", G_trigger_push},
 	{"trigger_hurt", G_trigger_hurt},
 	{"trigger_exec", G_trigger_exec},
-
 	{"trigger_teleporter", G_misc_teleporter},
 
 	{"target_speaker", G_target_speaker},
@@ -73,24 +73,26 @@ spawn_t spawns[] = {
 
 
 /*
- * G_CallSpawn
+ * G_SpawnEntity
  *
- * Finds the spawn function for the entity and calls it
+ * Finds the spawn function for the entity and calls it.
  */
-static void G_CallSpawn(edict_t *ent){
+static void G_SpawnEntity(edict_t *ent){
 	spawn_t *s;
 	g_item_t *item;
 	g_override_t *over;
 	int i;
 
 	if(!ent->class_name){
-		gi.Debug("G_CallSpawn: NULL classname\n");
+		gi.Debug("G_SpawnEntity: NULL classname\n");
 		return;
 	}
 
 	// check overrides
 	for(i = 0; i < g_game.num_overrides; i++){
+
 		over = &g_overrides[i];
+
 		if(!strcmp(ent->class_name, over->old)){  // found it
 			item = G_FindItemByClassname(over->new);
 			G_SpawnItem(ent, item);
@@ -100,8 +102,10 @@ static void G_CallSpawn(edict_t *ent){
 
 	// check item spawn functions
 	for(i = 0, item = g_items; i < g_game.num_items; i++, item++){
+
 		if(!item->class_name)
 			continue;
+
 		if(!strcmp(item->class_name, ent->class_name)){  // found it
 			G_SpawnItem(ent, item);
 			return;
@@ -109,7 +113,7 @@ static void G_CallSpawn(edict_t *ent){
 	}
 
 	// check normal spawn functions
-	for(s = spawns; s->name; s++){
+	for(s = g_spawns; s->name; s++){
 		if(!strcmp(s->name, ent->class_name)){  // found it
 			s->spawn(ent);
 			return;
@@ -157,10 +161,7 @@ typedef enum g_field_type_s {
 	F_FLOAT,
 	F_STRING,     // string on disk, pointer in memory, TAG_LEVEL
 	F_VECTOR,
-	F_ANGLEHACK,
-	F_EDICT,     // index on disk, pointer in memory
-	F_ITEM,     // index on disk, pointer in memory
-	F_FUNCTION
+	F_ANGLE
 } g_field_type_t;
 
 typedef struct g_field_s {
@@ -188,7 +189,7 @@ static const g_field_t fields[] = {
 	{"wait", FOFS(wait), F_FLOAT},
 	{"delay", FOFS(delay), F_FLOAT},
 	{"random", FOFS(random), F_FLOAT},
-	{"style", FOFS(style), F_INT},
+	{"areaportal", FOFS(areaportal), F_INT},
 	{"count", FOFS(count), F_INT},
 	{"health", FOFS(health), F_INT},
 	{"sounds", FOFS(sounds), F_INT},
@@ -197,26 +198,7 @@ static const g_field_t fields[] = {
 	{"attenuation", FOFS(attenuation), F_INT},
 	{"origin", FOFS(s.origin), F_VECTOR},
 	{"angles", FOFS(s.angles), F_VECTOR},
-	{"angle", FOFS(s.angles), F_ANGLEHACK},
-
-	{"enemy", FOFS(enemy), F_EDICT, FFL_NO_SPAWN},
-	{"activator", FOFS(activator), F_EDICT, FFL_NO_SPAWN},
-	{"ground_entity", FOFS(ground_entity), F_EDICT, FFL_NO_SPAWN},
-	{"teamchain", FOFS(team_chain), F_EDICT, FFL_NO_SPAWN},
-	{"teammaster", FOFS(team_master), F_EDICT, FFL_NO_SPAWN},
-	{"owner", FOFS(owner), F_EDICT, FFL_NO_SPAWN},
-	{"target_ent", FOFS(target_ent), F_EDICT, FFL_NO_SPAWN},
-	{"chain", FOFS(chain), F_EDICT, FFL_NO_SPAWN},
-
-	{"prethink", FOFS(prethink), F_FUNCTION, FFL_NO_SPAWN},
-	{"think", FOFS(think), F_FUNCTION, FFL_NO_SPAWN},
-	{"blocked", FOFS(blocked), F_FUNCTION, FFL_NO_SPAWN},
-	{"touch", FOFS(touch), F_FUNCTION, FFL_NO_SPAWN},
-	{"use", FOFS(use), F_FUNCTION, FFL_NO_SPAWN},
-	{"pain", FOFS(pain), F_FUNCTION, FFL_NO_SPAWN},
-	{"die", FOFS(die), F_FUNCTION, FFL_NO_SPAWN},
-
-	{"done", FOFS(move_info.done), F_FUNCTION, FFL_NO_SPAWN},
+	{"angle", FOFS(s.angles), F_ANGLE},
 
 	// temp spawn vars -- only valid when the spawn function is called
 	{"lip", SOFS(lip), F_INT, FFL_SPAWN_TEMP},
@@ -225,9 +207,6 @@ static const g_field_t fields[] = {
 	{"noise", SOFS(noise), F_STRING, FFL_SPAWN_TEMP},
 	{"pausetime", SOFS(pausetime), F_FLOAT, FFL_SPAWN_TEMP},
 	{"item", SOFS(item), F_STRING, FFL_SPAWN_TEMP},
-
-	// need for item field in edict struct, FFL_SPAWNTEMP item will be skipped on saves
-	{"item", FOFS(item), F_ITEM},
 
 	// world vars, we use strings to differentiate between 0 and unset
 	{"sky", SOFS(sky), F_STRING, FFL_SPAWN_TEMP},
@@ -283,7 +262,7 @@ static void G_ParseField(const char *key, const char *value, edict_t *ent){
 				case F_FLOAT:
 					*(float *)(b + f->ofs) = atof(value);
 					break;
-				case F_ANGLEHACK:
+				case F_ANGLE:
 					v = atof(value);
 					((float *)(b + f->ofs))[0] = 0;
 					((float *)(b + f->ofs))[1] = v;
@@ -477,7 +456,7 @@ void G_SpawnEntities(const char *name, const char *entities){
 		// retain the map-specified origin for respawns
 		VectorCopy(ent->s.origin, ent->map_origin);
 
-		G_CallSpawn(ent);
+		G_SpawnEntity(ent);
 
 		if(g_level.gameplay && ent->item){  // now that we've spawned them, hide them
 			ent->sv_flags |= SVF_NOCLIENT;

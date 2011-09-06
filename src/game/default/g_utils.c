@@ -180,7 +180,9 @@ edict_t *G_PickTarget(char *target_name){
 }
 
 
-
+/*
+ * G_UseTargets_Delay
+ */
 static void G_UseTargets_Delay(edict_t *ent){
 	G_UseTargets(ent, ent->activator);
 	G_FreeEdict(ent);
@@ -190,16 +192,9 @@ static void G_UseTargets_Delay(edict_t *ent){
 /*
  * G_UseTargets
  *
- * the global "activator" should be set to the entity that initiated the firing.
- *
- * If self.delay is set, a DelayedUse entity will be created that will actually
- * do the SUB_UseTargets after that many seconds have passed.
- *
- * Centerprints any self.message to the activator.
- *
- * Search for(string)targetname in all entities that
- * match(string)self.target and call their .use function
- *
+ * Search for all entities that the specified entity targets, and call their
+ * use functions. Set their activator to our activator. Print our message,
+ * if set, to the activator.
  */
 void G_UseTargets(edict_t *ent, edict_t *activator){
 	edict_t *t;
@@ -213,7 +208,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 		t->think = G_UseTargets_Delay;
 		t->activator = activator;
 		if(!activator)
-			gi.Debug("Think_Delay with no activator\n");
+			gi.Debug("G_UseTargets: No activator\n");
 		t->message = ent->message;
 		t->target = ent->target;
 		t->kill_target = ent->kill_target;
@@ -229,7 +224,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator){
 			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTN_NORM);
 	}
 
-	// kill killtargets
+	// kill kill_targets
 	if(ent->kill_target){
 		t = NULL;
 		while((t = G_Find(t, FOFS(target_name), ent->kill_target))){
@@ -309,24 +304,30 @@ char *vtos(vec3_t v){
 }
 
 
-vec3_t VEC_UP = {0, -1, 0};
-vec3_t MOVEDIR_UP = {0, 0, 1};
-vec3_t VEC_DOWN	= {0, -2, 0};
-vec3_t MOVEDIR_DOWN	= {0, 0, -1};
+/*
+ * G_SetMoveDir
+ */
+void G_SetMoveDir(vec3_t angles, vec3_t move_dir){
+	static vec3_t VEC_UP = {0, -1, 0};
+	static vec3_t MOVE_DIR_UP = {0, 0, 1};
+	static vec3_t VEC_DOWN	= {0, -2, 0};
+	static vec3_t MOVE_DIR_DOWN	= {0, 0, -1};
 
-void G_SetMovedir(vec3_t angles, vec3_t movedir){
 	if(VectorCompare(angles, VEC_UP)){
-		VectorCopy(MOVEDIR_UP, movedir);
+		VectorCopy(MOVE_DIR_UP, move_dir);
 	} else if(VectorCompare(angles, VEC_DOWN)){
-		VectorCopy(MOVEDIR_DOWN, movedir);
+		VectorCopy(MOVE_DIR_DOWN, move_dir);
 	} else {
-		AngleVectors(angles, movedir, NULL, NULL);
+		AngleVectors(angles, move_dir, NULL, NULL);
 	}
 
 	VectorClear(angles);
 }
 
 
+/*
+ * G_CopyString
+ */
 char *G_CopyString(char *in){
 	char *out;
 
@@ -336,6 +337,9 @@ char *G_CopyString(char *in){
 }
 
 
+/*
+ * G_InitEdict
+ */
 void G_InitEdict(edict_t *e){
 	e->in_use = true;
 	e->class_name = "noclass";

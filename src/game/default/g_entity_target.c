@@ -22,19 +22,9 @@
 #include "g_local.h"
 
 
-/*QUAKED target_speaker(1 0 0)(-8 -8 -8)(8 8 8) looped-on looped-off reliable
-"noise"		wav file to play
-"attenuation"
--1 = none, send to whole level
-1 = normal fighting sounds
-2 = idle sound level
-3 = ambient sound level
-
-Normal sounds play each time the target is used.  The reliable flag can be set for crucial voiceovers.
-
-Looped sounds are always atten 3 / vol 1, and the use function toggles it on/off.
-Multiple identical looping sounds will just increase volume without any speed cost.
-*/
+/*
+ * G_target_speaker_use
+ */
 static void G_target_speaker_use(edict_t *ent, edict_t *other, edict_t *activator){
 
 	if(ent->spawn_flags & 3){  // looping sound toggles
@@ -49,6 +39,20 @@ static void G_target_speaker_use(edict_t *ent, edict_t *other, edict_t *activato
 	}
 }
 
+
+/*QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) looped-on looped-off reliable
+"noise"		wav file to play
+"attenuation"
+-1 = none, send to whole level
+1 = normal fighting sounds
+2 = idle sound level
+3 = ambient sound level
+
+Normal sounds play each time the target is used.  The reliable flag can be set for crucial voiceovers.
+
+Looped sounds are always atten 3 / vol 1, and the use function toggles it on/off.
+Multiple identical looping sounds will just increase volume without any speed cost.
+*/
 void G_target_speaker(edict_t *ent){
 	char buffer[MAX_QPATH];
 
@@ -79,12 +83,9 @@ void G_target_speaker(edict_t *ent){
 }
 
 
-/*QUAKED target_explosion(1 0 0)(-8 -8 -8)(8 8 8)
-Spawns an explosion temporary entity when used.
-
-"delay"		wait this long before going off
-"dmg"		how much radius damage should be done, defaults to 0
-*/
+/*
+ * G_target_explosion_explode
+ */
 static void G_target_explosion_explode(edict_t *self){
 	float save;
 
@@ -102,6 +103,10 @@ static void G_target_explosion_explode(edict_t *self){
 	self->delay = save;
 }
 
+
+/*
+ * G_target_explosion_use
+ */
 static void G_target_explosion_use(edict_t *self, edict_t *other, edict_t *activator){
 	self->activator = activator;
 
@@ -114,15 +119,22 @@ static void G_target_explosion_use(edict_t *self, edict_t *other, edict_t *activ
 	self->next_think = g_level.time + self->delay;
 }
 
+
+/*QUAKED target_explosion (1 0 0) (-8 -8 -8) (8 8 8)
+Spawns an explosion temporary entity when used.
+
+"delay"		wait this long before going off
+"dmg"		how much radius damage should be done, defaults to 0
+*/
 void G_target_explosion(edict_t *ent){
 	ent->use = G_target_explosion_use;
 	ent->sv_flags = SVF_NOCLIENT;
 }
 
 
-/*QUAKED target_splash(1 0 0)(-8 -8 -8)(8 8 8)
-Creates a particle splash effect.
-*/
+/*
+ * G_target_splash_think
+ */
 static void G_target_splash_think(edict_t *self){
 
 	gi.WriteByte(svc_temp_entity);
@@ -134,9 +146,13 @@ static void G_target_splash_think(edict_t *self){
 	self->next_think = g_level.time + (frand() * 3);
 }
 
+
+/*QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8)
+Creates a particle splash effect.
+*/
 void G_target_splash(edict_t *self){
 
-	G_SetMovedir(self->s.angles, self->move_dir);
+	G_SetMoveDir(self->s.angles, self->move_dir);
 
 	self->solid = SOLID_NOT;
 	self->think = G_target_splash_think;
@@ -145,39 +161,13 @@ void G_target_splash(edict_t *self){
 	gi.LinkEntity(self);
 }
 
-/*QUAKED target_string(0 0 1)(-8 -8 -8)(8 8 8)
- *
- * TODO: gi.CenterPrint + think delay?
+
+/*QUAKED target_string (0 0 1) (-8 -8 -8) (8 8 8)
  */
-static void G_target_string_use(edict_t *self, edict_t *other, edict_t *activator){
-	/*edict_t *e;
-	int n, l;
-	char c;
-
-	l = strlen(self->message);
-	for(e = self->team_master; e; e = e->team_chain){
-		if(!e->count)
-			continue;
-		n = e->count - 1;
-		if(n > l){
-			e->s.frame1 = 12;
-			continue;
-		}
-
-		c = self->message[n];
-		if(c >= '0' && c <= '9')
-			e->s.frame1 = c - '0';
-		else if(c == '-')
-			e->s.frame1 = 10;
-		else if(c == ':')
-			e->s.frame1 = 11;
-		else
-			e->s.frame1 = 12;
-	}*/
-}
-
 void G_target_string(edict_t *self){
+
 	if(!self->message)
 		self->message = "";
-	self->use = G_target_string_use;
+
+	// the rest is handled by G_UseTargets
 }

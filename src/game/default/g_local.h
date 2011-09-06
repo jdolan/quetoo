@@ -486,6 +486,7 @@ void G_func_door_secret(edict_t *ent);
 void G_func_train(edict_t *ent);
 void G_func_conveyor(edict_t *self);
 void G_func_wall(edict_t *self);
+void G_func_water(edict_t *self);
 void G_func_timer(edict_t *self);
 void G_func_areaportal(edict_t *ent);
 void G_func_killbox(edict_t *ent);
@@ -563,7 +564,7 @@ edict_t *G_Find(edict_t *from, ptrdiff_t field, const char *match);
 edict_t *G_FindRadius(edict_t *from, vec3_t org, float rad);
 edict_t *G_PickTarget(char *target_name);
 void G_UseTargets(edict_t *ent, edict_t *activator);
-void G_SetMovedir(vec3_t angles, vec3_t movedir);
+void G_SetMoveDir(vec3_t angles, vec3_t movedir);
 char *G_GameplayName(int g);
 int G_GameplayByName(char *c);
 g_team_t *G_TeamByName(char *c);
@@ -766,7 +767,7 @@ struct edict_s {
 	float gravity;
 
 	float next_think;
-	void (*prethink)(edict_t *ent);
+	void (*pre_think)(edict_t *ent);
 	void (*think)(edict_t *self);
 	void (*blocked)(edict_t *self, edict_t *other);  // move to move_info?
 	void (*touch)(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf);
@@ -813,7 +814,7 @@ struct edict_s {
 	int water_type;
 	int water_level;
 
-	int style;  // also used as areaportal number
+	int areaportal;  // the area portal to toggle
 
 	g_item_t *item;  // for bonus items
 

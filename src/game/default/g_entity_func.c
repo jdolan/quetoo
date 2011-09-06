@@ -21,12 +21,17 @@
 
 #include "g_local.h"
 
+
+/*
+ * G_func_areaportal_use
+ */
 static void G_func_areaportal_use(edict_t *ent, edict_t *other, edict_t *activator){
 	ent->count ^= 1;  // toggle state
-	gi.SetAreaPortalState(ent->style, ent->count);
+	gi.SetAreaPortalState(ent->areaportal, ent->count);
 }
 
-/*QUAKED func_areaportal(0 0 0) ?
+
+/*QUAKED func_areaportal (0 0 0) ?
 
 This is a non-visible object that divides the world into
 areas that are seperated when this portal is not activated.
@@ -38,57 +43,33 @@ void G_func_areaportal(edict_t *ent){
 }
 
 
-/*
- * PLATS
- *
- * movement options:
- *
- * linear
- * smooth start, hard stop
- * smooth start, smooth stop
- *
- * start
- * end
- * acceleration
- * speed
- * deceleration
- * begin sound
- * end sound
- * target fired when reaching end
- * wait at end
- *
- * object characteristics that use move segments
- * ---------------------------------------------
- * move_type_push, or move_type_stop
- * action when touched
- * action when blocked
- * action when used
- * 	disabled?
- * auto trigger spawning
- */
-
-#define PLAT_LOW_TRIGGER	1
-
 #define STATE_TOP			0
 #define STATE_BOTTOM		1
 #define STATE_UP			2
 #define STATE_DOWN			3
 
-static void G_MoveInfoDone(edict_t *ent){
+
+/*
+ * G_MoveInfo_Done
+ */
+static void G_MoveInfo_Done(edict_t *ent){
 	VectorClear(ent->velocity);
 	ent->move_info.done(ent);
 }
 
+/*
+ * G_MoveInfo_End
+ */
 static void G_MoveInfo_End(edict_t *ent){
 
 	if(ent->move_info.remaining_distance == 0){
-		G_MoveInfoDone(ent);
+		G_MoveInfo_Done(ent);
 		return;
 	}
 
 	VectorScale(ent->move_info.dir, ent->move_info.remaining_distance / gi.server_frame, ent->velocity);
 
-	ent->think = G_MoveInfoDone;
+	ent->think = G_MoveInfo_Done;
 	ent->next_think = g_level.time + gi.server_frame;
 }
 
@@ -202,7 +183,7 @@ static void G_MoveInfo_Accelerate(g_move_info_t *move_info){
 		if((move_info->remaining_distance - move_info->current_speed) >= move_info->decel_distance)
 			return;
 
-		// during this move we will accelrate from current_speed to move_speed
+		// during this move we will accelerate from current_speed to move_speed
 		// and cross over the decel_distance; figure the average speed for the
 		// entire move
 		p1_distance = move_info->remaining_distance - move_info->decel_distance;
@@ -274,9 +255,8 @@ static void G_MoveInfo_Init(edict_t *ent, vec3_t dest, void(*done)(edict_t*)){
 }
 
 
-/*
- * G_func_plat_go_down
- */
+#define PLAT_LOW_TRIGGER	1
+
 static void G_func_plat_go_down(edict_t *ent);
 
 
@@ -424,7 +404,7 @@ static void G_func_plat_create_trigger(edict_t *ent){
 }
 
 
-/*QUAKED func_plat(0 .5 .8) ? PLAT_LOW_TRIGGER
+/*QUAKED func_plat (0 .5 .8) ? PLAT_LOW_TRIGGER
 
 Plats are always drawn in the extended position, so they will light correctly.
 
@@ -694,10 +674,10 @@ When a button is touched, it moves some distance in the direction of it's angle,
 "health"	if set, the button must be killed instead of touched
 */
 void G_func_button(edict_t *ent){
-	vec3_t abs_movedir;
+	vec3_t abs_move_dir;
 	float dist;
 
-	G_SetMovedir(ent->s.angles, ent->move_dir);
+	G_SetMoveDir(ent->s.angles, ent->move_dir);
 	ent->move_type = MOVE_TYPE_STOP;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
@@ -718,10 +698,10 @@ void G_func_button(edict_t *ent){
 		  g_game.spawn.lip = 4;
 
 	VectorCopy(ent->s.origin, ent->pos1);
-	abs_movedir[0] = fabsf(ent->move_dir[0]);
-	abs_movedir[1] = fabsf(ent->move_dir[1]);
-	abs_movedir[2] = fabsf(ent->move_dir[2]);
-	dist = abs_movedir[0] * ent->size[0] + abs_movedir[1] * ent->size[1] + abs_movedir[2] * ent->size[2] - g_game.spawn.lip;
+	abs_move_dir[0] = fabsf(ent->move_dir[0]);
+	abs_move_dir[1] = fabsf(ent->move_dir[1]);
+	abs_move_dir[2] = fabsf(ent->move_dir[2]);
+	dist = abs_move_dir[0] * ent->size[0] + abs_move_dir[1] * ent->size[1] + abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
 	VectorMA(ent->pos1, dist, ent->move_dir, ent->pos2);
 
 	ent->use = G_func_button_use;
@@ -763,7 +743,7 @@ static void G_func_door_use_areaportals(edict_t *self, qboolean open){
 
 	while((t = G_Find(t, FOFS(target_name), self->target))){
 		if(strcasecmp(t->class_name, "func_areaportal") == 0){
-		  gi.SetAreaPortalState(t->style, open);
+		  gi.SetAreaPortalState(t->areaportal, open);
 		}
 	}
 }
@@ -1054,14 +1034,14 @@ TOGGLE		wait in both the start and end states for a trigger event.
 "dmg"		damage to inflict when blocked(2 default)
 */
 void G_func_door(edict_t *ent){
-	vec3_t abs_movedir;
+	vec3_t abs_move_dir;
 
 	if(ent->sounds != 1){
 		ent->move_info.sound_start = gi.SoundIndex("world/door_start");
 		ent->move_info.sound_end = gi.SoundIndex("world/door_end");
 	}
 
-	G_SetMovedir(ent->s.angles, ent->move_dir);
+	G_SetMoveDir(ent->s.angles, ent->move_dir);
 	ent->move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
@@ -1087,10 +1067,10 @@ void G_func_door(edict_t *ent){
 
 	// calculate second position
 	VectorCopy(ent->s.origin, ent->pos1);
-	abs_movedir[0] = fabsf(ent->move_dir[0]);
-	abs_movedir[1] = fabsf(ent->move_dir[1]);
-	abs_movedir[2] = fabsf(ent->move_dir[2]);
-	ent->move_info.distance = abs_movedir[0] * ent->size[0] + abs_movedir[1] * ent->size[1] + abs_movedir[2] * ent->size[2] - g_game.spawn.lip;
+	abs_move_dir[0] = fabsf(ent->move_dir[0]);
+	abs_move_dir[1] = fabsf(ent->move_dir[1]);
+	abs_move_dir[2] = fabsf(ent->move_dir[2]);
+	ent->move_info.distance = abs_move_dir[0] * ent->size[0] + abs_move_dir[1] * ent->size[1] + abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
 	VectorMA(ent->pos1, ent->move_info.distance, ent->move_dir, ent->pos2);
 
 	// if it starts open, switch the positions
@@ -1199,8 +1179,69 @@ void G_func_wall(edict_t *self){
 		self->solid = SOLID_NOT;
 		self->sv_flags |= SVF_NOCLIENT;
 	}
+
 	gi.LinkEntity(self);
 }
+
+
+/*QUAKED func_water(0 .5 .8) ? START_OPEN
+func_water is a moveable water brush.  It must be targeted to operate.  Use a non-water texture at your own risk.
+
+START_OPEN causes the water to move to its destination when spawned and operate in reverse.
+
+"angle"		determines the opening direction(up or down only)
+"speed"		movement speed(25 default)
+"wait"		wait before returning(-1 default, -1 = TOGGLE)
+"lip"		lip remaining at end of move(0 default)
+*/
+void G_func_water(edict_t *self){
+	vec3_t abs_move_dir;
+
+	G_SetMoveDir(self->s.angles, self->move_dir);
+	self->move_type = MOVE_TYPE_PUSH;
+	self->solid = SOLID_BSP;
+	gi.SetModel(self, self->model);
+
+	// calculate second position
+	VectorCopy(self->s.origin, self->pos1);
+	abs_move_dir[0] = fabsf(self->move_dir[0]);
+	abs_move_dir[1] = fabsf(self->move_dir[1]);
+	abs_move_dir[2] = fabsf(self->move_dir[2]);
+	self->move_info.distance = abs_move_dir[0] * self->size[0] + abs_move_dir[1] * self->size[1] + abs_move_dir[2] * self->size[2] - g_game.spawn.lip;
+	VectorMA(self->pos1, self->move_info.distance, self->move_dir, self->pos2);
+
+	// if it starts open, switch the positions
+	if(self->spawn_flags & DOOR_START_OPEN){
+		VectorCopy(self->pos2, self->s.origin);
+		VectorCopy(self->pos1, self->pos2);
+		VectorCopy(self->s.origin, self->pos1);
+	}
+
+	VectorCopy(self->pos1, self->move_info.start_origin);
+	VectorCopy(self->s.angles, self->move_info.start_angles);
+	VectorCopy(self->pos2, self->move_info.end_origin);
+	VectorCopy(self->s.angles, self->move_info.end_angles);
+
+	self->move_info.state = STATE_BOTTOM;
+
+	if(!self->speed)
+		self->speed = 25;
+	self->move_info.accel = self->move_info.decel = self->move_info.speed = self->speed;
+
+	if(!self->wait)
+		self->wait = -1;
+	self->move_info.wait = self->wait;
+
+	self->use = G_func_door_use;
+
+	if(self->wait == -1)
+		self->spawn_flags |= DOOR_TOGGLE;
+
+	self->class_name = "func_door";
+
+	gi.LinkEntity(self);
+}
+
 
 
 #define TRAIN_START_ON		1

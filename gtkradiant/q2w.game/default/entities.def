@@ -39,12 +39,6 @@ When a button is touched, it moves some distance in the direction of it's angle,
 "wait"		override the default 1 second wait (-1 = never return)
 "lip"		override the default 4 pixel lip remaining at end of move
 "health"	if set, the button must be killed instead of touched
-"sounds"
-1) silent
-2) steam metal
-3) wooden clunk
-4) metallic click
-5) in-out
 */
 
 
@@ -305,8 +299,15 @@ START_ON		only valid for TRIGGER_SPAWN walls
 */
 
 
-/*QUAKED func_object (0 .5 .8) ? TRIGGER_SPAWN_FAST
-This is solid bmodel that will fall if it's support it removed.
+/*QUAKED func_water(0 .5 .8) ? START_OPEN
+func_water is a moveable water brush.  It must be targeted to operate.  Use a non-water texture at your own risk.
+
+START_OPEN causes the water to move to its destination when spawned and operate in reverse.
+
+"angle"		determines the opening direction(up or down only)
+"speed"		movement speed(25 default)
+"wait"		wait before returning(-1 default, -1 = TOGGLE)
+"lip"		lip remaining at end of move(0 default)
 */
 
 
@@ -468,7 +469,7 @@ A brush teleporter
 /*QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION SLOW
 Any entity that touches this will be hurt.
 
-It does dmg points of damage each server frame
+It does dmg points of damage every 100ms.
 
 SILENT			supresses playing the sound
 SLOW			changes the damage rate to once per second

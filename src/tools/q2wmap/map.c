@@ -809,7 +809,7 @@ static qboolean ParseMapEntity(void){
 		mapent->areaportal_num = c_areaportals;
 		// set the portal number as "style"
 		sprintf(str, "%i", c_areaportals);
-		SetKeyValue(mapent, "style", str);
+		SetKeyValue(mapent, "areaportal", str);
 		MoveBrushesToWorld(mapent);
 		return true;
 	}

@@ -21,6 +21,9 @@
 
 #include "g_local.h"
 
+/*
+ * G_misc_teleporter_touch
+ */
 static void G_misc_teleporter_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	edict_t *dest;
 	float speed;
@@ -76,7 +79,7 @@ static void G_misc_teleporter_touch(edict_t *self, edict_t *other, c_plane_t *pl
 }
 
 
-/*QUAKED misc_teleporter(1 0 0)(-32 -32 -24)(32 32 -16)
+/*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16)
 Stepping onto this disc will teleport players to the targeted misc_teleporter_dest object.
 */
 void G_misc_teleporter(edict_t *ent){
@@ -115,7 +118,7 @@ void G_misc_teleporter(edict_t *ent){
 }
 
 
-/*QUAKED misc_teleporter_dest(1 0 0)(-32 -32 -24)(32 32 -16)
+/*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
 Point teleporters at these.
 */
 void G_misc_teleporter_dest(edict_t *ent){

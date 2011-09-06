@@ -21,14 +21,16 @@
 
 #include "g_local.h"
 
-/*QUAKED info_null(0 0.5 0)(-4 -4 -4)(4 4 4)
+
+/*QUAKED info_null (0 0.5 0) (-4 -4 -4) (4 4 4)
 Used as a positional target for spotlights, etc.
 */
 void G_info_null(edict_t *self){
 	G_FreeEdict(self);
 }
 
-/*QUAKED info_notnull(0 0.5 0)(-4 -4 -4)(4 4 4)
+
+/*QUAKED info_notnull (0 0.5 0) (-4 -4 -4) (4 4 4)
 Used as a positional target for lightning.
 */
 void G_info_notnull(edict_t *self){
@@ -36,14 +38,16 @@ void G_info_notnull(edict_t *self){
 	VectorCopy(self->s.origin, self->abs_maxs);
 }
 
-/*QUAKED info_player_start(1 0 0)(-16 -16 -24)(16 16 32)
+
+/*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
 The normal starting point for a level.
 */
 void G_info_player_start(edict_t *self){
 	G_ProjectSpawn(self);
 }
 
-/*QUAKED info_player_intermission(1 0 1)(-16 -16 -24)(16 16 32)
+
+/*QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32)
 Level intermission point will be at one of these
 Use 'angles' instead of 'angle', so you can set pitch or roll as well as yaw.
 'pitch yaw roll'
@@ -52,21 +56,24 @@ void G_info_player_intermission(edict_t *self){
 	G_ProjectSpawn(self);
 }
 
-/*QUAKED info_player_deathmatch(1 0 1)(-16 -16 -24)(16 16 32)
+
+/*QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32)
 potential spawning position for deathmatch games
 */
 void G_info_player_deathmatch(edict_t *self){
 	G_ProjectSpawn(self);
 }
 
-/*QUAKED info_player_team1(1 0 1)(-16 -16 -24)(16 16 32)
+
+/*QUAKED info_player_team1 (1 0 1) (-16 -16 -24) (16 16 32)
 potential spawning position for team games
 */
 void G_info_player_team1(edict_t *self){
 	G_ProjectSpawn(self);
 }
 
-/*QUAKED info_player_team2(1 0 1)(-16 -16 -24)(16 16 32)
+
+/*QUAKED info_player_team2 (1 0 1) (-16 -16 -24) (16 16 32)
 potential spawning position for team games
 */
 void G_info_player_team2(edict_t *self){

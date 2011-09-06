@@ -21,10 +21,13 @@
 
 #include "g_local.h"
 
-static void InitTrigger(edict_t *self){
+/*
+ * G_Trigger_Init
+ */
+static void G_Trigger_Init(edict_t *self){
 
 	if(!VectorCompare(self->s.angles, vec3_origin))
-		G_SetMovedir(self->s.angles, self->move_dir);
+		G_SetMoveDir(self->s.angles, self->move_dir);
 
 	self->solid = SOLID_TRIGGER;
 	self->move_type = MOVE_TYPE_NONE;
@@ -33,16 +36,20 @@ static void InitTrigger(edict_t *self){
 }
 
 
-// the wait time has passed, so set back up for another activation
-static void trigger_multiple_wait(edict_t *ent){
+/*
+ * G_trigger_multiple_wait
+ *
+ * The wait time has passed, so set back up for another activation
+ */
+static void G_trigger_multiple_wait(edict_t *ent){
 	ent->next_think = 0;
 }
 
 
-// the trigger was just activated
-// ent->activator should be set to the activator so it can be held through a delay
-// so wait for the delay time before firing
-static void trigger_multiple_think(edict_t *ent){
+/*
+ * G_trigger_multiple_think
+ */
+static void G_trigger_multiple_think(edict_t *ent){
 
 	if(ent->next_think)
 		return;  // already been triggered
@@ -50,7 +57,7 @@ static void trigger_multiple_think(edict_t *ent){
 	G_UseTargets(ent, ent->activator);
 
 	if(ent->wait > 0){
-		ent->think = trigger_multiple_wait;
+		ent->think = G_trigger_multiple_wait;
 		ent->next_think = g_level.time + ent->wait;
 	} else {  // we can't just remove (self) here, because this is a touch function
 		// called while looping through area links...
@@ -60,14 +67,22 @@ static void trigger_multiple_think(edict_t *ent){
 	}
 }
 
-static void trigger_multiple_use(edict_t *ent, edict_t *other, edict_t *activator){
+
+/*
+ * G_trigger_multiple_use
+ */
+static void G_trigger_multiple_use(edict_t *ent, edict_t *other, edict_t *activator){
 
 	ent->activator = activator;
 
-	trigger_multiple_think(ent);
+	G_trigger_multiple_think(ent);
 }
 
-static void trigger_multiple_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+
+/*
+ * G_trigger_multiple_touch
+ */
+static void G_trigger_multiple_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(!other->client)
 		return;
@@ -84,12 +99,15 @@ static void trigger_multiple_touch(edict_t *self, edict_t *other, c_plane_t *pla
 	}
 
 	self->activator = other;
-	trigger_multiple_think(self);
+	G_trigger_multiple_think(self);
 }
 
-static void trigger_multiple_enable(edict_t *self, edict_t *other, edict_t *activator){
+/*
+ * G_trigger_multiple_enable
+ */
+static void G_trigger_multiple_enable(edict_t *self, edict_t *other, edict_t *activator){
 	self->solid = SOLID_TRIGGER;
-	self->use = trigger_multiple_use;
+	self->use = G_trigger_multiple_use;
 	gi.LinkEntity(self);
 }
 
@@ -106,21 +124,21 @@ void G_trigger_multiple(edict_t *ent){
 
 	if(!ent->wait)
 		ent->wait = 0.2;
-	ent->touch = trigger_multiple_touch;
+	ent->touch = G_trigger_multiple_touch;
 	ent->move_type = MOVE_TYPE_NONE;
 	ent->sv_flags |= SVF_NOCLIENT;
 
 
 	if(ent->spawn_flags & 4){
 		ent->solid = SOLID_NOT;
-		ent->use = trigger_multiple_enable;
+		ent->use = G_trigger_multiple_enable;
 	} else {
 		ent->solid = SOLID_TRIGGER;
-		ent->use = trigger_multiple_use;
+		ent->use = G_trigger_multiple_use;
 	}
 
 	if(!VectorCompare(ent->s.angles, vec3_origin))
-		G_SetMovedir(ent->s.angles, ent->move_dir);
+		G_SetMoveDir(ent->s.angles, ent->move_dir);
 
 	gi.SetModel(ent, ent->model);
 	gi.LinkEntity(ent);
@@ -141,15 +159,19 @@ void G_trigger_once(edict_t *ent){
 }
 
 
-/*QUAKED trigger_relay(.5 .5 .5)(-8 -8 -8)(8 8 8)
-This fixed size trigger cannot be touched, it can only be fired by other events.
-*/
-static void trigger_relay_use(edict_t *self, edict_t *other, edict_t *activator){
+/*
+ * G_trigger_relay_use
+ */
+static void G_trigger_relay_use(edict_t *self, edict_t *other, edict_t *activator){
 	G_UseTargets(self, activator);
 }
 
+
+/*QUAKED trigger_relay(.5 .5 .5)(-8 -8 -8)(8 8 8)
+This fixed size trigger cannot be touched, it can only be fired by other events.
+*/
 void G_trigger_relay(edict_t *self){
-	self->use = trigger_relay_use;
+	self->use = G_trigger_relay_use;
 }
 
 
@@ -168,7 +190,11 @@ void G_trigger_always(edict_t *ent){
 #define PUSH_ONCE 1
 #define PUSH_EFFECT 2
 
-static void trigger_push_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+
+/*
+ * G_trigger_push_touch
+ */
+static void G_trigger_push_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(!strcmp(other->class_name, "grenade") || other->health > 0){
 
@@ -199,9 +225,9 @@ Pushes the player (jump pads)
 void G_trigger_push(edict_t *self){
 	edict_t *ent;
 
-	InitTrigger(self);
+	G_Trigger_Init(self);
 
-	self->touch = trigger_push_touch;
+	self->touch = G_trigger_push_touch;
 
 	if(!self->speed)
 		self->speed = 100;
@@ -225,19 +251,10 @@ void G_trigger_push(edict_t *self){
 }
 
 
-/*QUAKED trigger_hurt(.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION SLOW
-Any entity that touches this will be hurt.
-
-It does dmg points of damage each server frame
-
-SILENT			supresses playing the sound
-SLOW			changes the damage rate to once per second
-NO_PROTECTION	*nothing* stops the damage
-
-"dmg"			default 5 (whole numbers only)
-
-*/
-static void trigger_hurt_use(edict_t *self, edict_t *other, edict_t *activator){
+/*
+ * G_trigger_hurt_use
+ */
+static void G_trigger_hurt_use(edict_t *self, edict_t *other, edict_t *activator){
 
 	if(self->solid == SOLID_NOT)
 		self->solid = SOLID_TRIGGER;
@@ -250,7 +267,10 @@ static void trigger_hurt_use(edict_t *self, edict_t *other, edict_t *activator){
 }
 
 
-static void trigger_hurt_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+/*
+ * G_trigger_hurt_touch
+ */
+static void G_trigger_hurt_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 	int dflags;
 
 	if(!other->take_damage){  // deal with items that land on us
@@ -283,11 +303,23 @@ static void trigger_hurt_touch(edict_t *self, edict_t *other, c_plane_t *plane, 
 			self->dmg, self->dmg, dflags, MOD_TRIGGER_HURT);
 }
 
+
+/*QUAKED trigger_hurt(.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION SLOW
+Any entity that touches this will be hurt.
+
+It does dmg points of damage evert 100ms.
+
+SILENT			supresses playing the sound
+SLOW			changes the damage rate to once per second
+NO_PROTECTION	*nothing* stops the damage
+
+"dmg"			default 5 (whole numbers only)
+*/
 void G_trigger_hurt(edict_t *self){
 
-	InitTrigger(self);
+	G_Trigger_Init(self);
 
-	self->touch = trigger_hurt_touch;
+	self->touch = G_trigger_hurt_touch;
 
 	if(!self->dmg)
 		self->dmg = 5;
@@ -298,13 +330,16 @@ void G_trigger_hurt(edict_t *self){
 		self->solid = SOLID_TRIGGER;
 
 	if(self->spawn_flags & 2)
-		self->use = trigger_hurt_use;
+		self->use = G_trigger_hurt_use;
 
 	gi.LinkEntity(self);
 }
 
 
-static void trigger_exec_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
+/*
+ * G_trigger_exec_touch
+ */
+static void G_trigger_exec_touch(edict_t *self, edict_t *other, c_plane_t *plane, c_surface_t *surf){
 
 	if(self->timestamp > g_level.time)
 		return;
@@ -318,6 +353,7 @@ static void trigger_exec_touch(edict_t *self, edict_t *other, c_plane_t *plane, 
 		gi.AddCommandString(va("exec %s\n", self->script));
 }
 
+
 /*
  * A trigger which executes a command or script when touched.
  */
@@ -329,9 +365,9 @@ void G_trigger_exec(edict_t *self){
 		return;
 	}
 
-	InitTrigger(self);
+	G_Trigger_Init(self);
 
-	self->touch = trigger_exec_touch;
+	self->touch = G_trigger_exec_touch;
 
 	gi.LinkEntity(self);
 }
