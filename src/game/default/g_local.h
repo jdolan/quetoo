@@ -641,8 +641,6 @@ typedef struct g_client_locals_s {
 	g_item_t *weapon;
 	g_item_t *last_weapon;
 
-	int weapon_frame;
-
 	qboolean spectator;  // client is a spectator
 	qboolean ready;  // ready
 
@@ -692,6 +690,9 @@ struct g_client_s {
 	int old_water_level;
 
 	float fall_time;  // eligible for landing event when time > this
+	float jump_time;  // eligible for jump when time > this
+	float pain_time;  // eligible for pain sound when time > this
+	float gasp_time;  // eligible for gasp sound when time > this
 	float footstep_time;  // play a footstep when time > this
 
 	float pickup_msg_time;  // display msg until time > this
@@ -774,10 +775,6 @@ struct g_edict_s {
 
 	float touch_time;
 	float push_time;
-	float jump_time;
-	float pain_time;
-	float gasp_time;
-	float drown_time;
 
 	int health;
 	int max_health;

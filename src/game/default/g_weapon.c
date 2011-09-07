@@ -203,9 +203,9 @@ static void G_FireWeapon(g_edict_t *ent, float interval, void (*fire)(g_edict_t 
 	// they are out of ammo
 	if(ent->client->ammo_index && n < m){
 
-		if(g_level.time >= ent->pain_time){  // play a click sound
+		if(g_level.time >= ent->client->pain_time){  // play a click sound
 			gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTN_NORM);
-			ent->pain_time = g_level.time + 1;
+			ent->client->pain_time = g_level.time + 1;
 		}
 
 		G_UseBestWeapon(ent->client);

@@ -484,7 +484,6 @@ static void G_InitClientLocals(g_client_t *client){
 	// clean up weapon state
 	client->locals.last_weapon = NULL;
 	client->new_weapon = NULL;
-	client->locals.weapon_frame = 0;
 }
 
 
@@ -693,9 +692,6 @@ static void G_ClientRespawn_(g_edict_t *ent){
 	ent->mass = 200.0;
 	ent->solid = SOLID_BOX;
 	ent->dead = false;
-	ent->jump_time = 0.0;
-	ent->gasp_time = 0.0;
-	ent->drown_time = g_level.time + 12.0;
 	ent->clip_mask = MASK_PLAYERSOLID;
 	ent->model = "players/qforcer/upper.md3";
 	ent->pain = G_Pain;
@@ -1172,10 +1168,10 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd){
 		// check for jump, play randomized sound
 		if(ent->ground_entity && !pm.ground_entity &&
 				(pm.cmd.up >= 10) && (pm.water_level == 0) &&
-				ent->jump_time < g_level.time - 0.2){
+				client->jump_time < g_level.time - 0.2){
 
 			ent->s.event = EV_CLIENT_JUMP;
-			ent->jump_time = g_level.time;
+			client->jump_time = g_level.time;
 		}
 
 		ent->view_height = pm.view_height;

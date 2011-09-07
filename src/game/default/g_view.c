@@ -30,27 +30,30 @@ static g_client_t *current_client;
  *
  * Inspect all damage received this frame and play a pain sound if appropriate.
  */
-static void G_ClientDamage(g_edict_t *player){
+static void G_ClientDamage(g_edict_t *ent){
 	g_client_t *client;
 	int l;
 
-	client = player->client;
+	client = ent->client;
 
 	if(client->damage_blood + client->damage_armor == 0)
 		return;  // didn't take any damage
 
 	// play an appropriate pain sound
-	if(g_level.time > player->pain_time){
-		player->pain_time = g_level.time + 0.7;
-		if(player->health < 25)
+	if(g_level.time > client->pain_time){
+
+		client->pain_time = g_level.time + 0.7;
+
+		if(ent->health < 25)
 			l = 25;
-		else if(player->health < 50)
+		else if(ent->health < 50)
 			l = 50;
-		else if(player->health < 75)
+		else if(ent->health < 75)
 			l = 75;
 		else
 			l = 100;
-		gi.Sound(player, gi.SoundIndex(va("*pain%i_1", l)), ATTN_NORM);
+
+		gi.Sound(ent, gi.SoundIndex(va("*pain%i_1", l)), ATTN_NORM);
 	}
 
 	// clear totals
@@ -89,7 +92,7 @@ static void G_ClientFall(g_edict_t *ent){
 		else
 			event = EV_CLIENT_FALL;
 
-		ent->pain_time = g_level.time;  // suppress pain sound
+		ent->client->pain_time = g_level.time;  // suppress pain sound
 
 		VectorSet(dir, 0.0, 0.0, 1.0);
 
@@ -111,7 +114,7 @@ static void G_ClientWaterLevel(void){
 	int water_level, old_water_level;
 
 	if(current_player->move_type == MOVE_TYPE_NO_CLIP){
-		current_player->drown_time = g_level.time + 12;  // don't need air
+		current_client->drown_time = g_level.time + 12;  // don't need air
 		return;
 	}
 
@@ -129,37 +132,37 @@ static void G_ClientWaterLevel(void){
 
 	// head just coming out of water
 	if(old_water_level == 3 && water_level != 3 &&
-			g_level.time - current_player->gasp_time > 2.0){
+			g_level.time - current_client->gasp_time > 2.0){
 
 		gi.Sound(current_player, gi.SoundIndex("*gasp_1"), ATTN_NORM);
-		current_player->gasp_time = g_level.time;
+		current_client->gasp_time = g_level.time;
 	}
 
 	// check for drowning
 	if(water_level != 3){  // take some air, push out drown time
-		current_player->drown_time = g_level.time + 12.0;
+		current_client->drown_time = g_level.time + 12.0;
+		current_player->dmg = 0;
 	}
 	else {  // we're under water
-		if(current_player->drown_time < g_level.time){  // drown
-			if(current_client->drown_time < g_level.time && current_player->health > 0){
-				current_client->drown_time = g_level.time + 1.0;
+		if(current_client->drown_time < g_level.time && current_player->health > 0){
+			current_client->drown_time = g_level.time + 1.0;
 
-				// take more damage the longer under water
-				current_player->dmg += 2;
-				if(current_player->dmg > 15)
-					current_player->dmg = 15;
+			// take more damage the longer under water
+			current_player->dmg += 2;
 
-				// play a gurp sound instead of a normal pain sound
-				if(current_player->health <= current_player->dmg)
-					gi.Sound(current_player, gi.SoundIndex("*drown_1"), ATTN_NORM);
-				else
-					gi.Sound(current_player, gi.SoundIndex("*gurp_1"), ATTN_NORM);
+			if(current_player->dmg > 15)
+				current_player->dmg = 15;
 
-				current_player->pain_time = g_level.time;
+			// play a gurp sound instead of a normal pain sound
+			if(current_player->health <= current_player->dmg)
+				gi.Sound(current_player, gi.SoundIndex("*drown_1"), ATTN_NORM);
+			else
+				gi.Sound(current_player, gi.SoundIndex("*gurp_1"), ATTN_NORM);
 
-				G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
-						vec3_origin, current_player->dmg, 0, DAMAGE_NO_ARMOR, MOD_WATER);
-			}
+			current_client->pain_time = g_level.time;
+
+			G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
+					vec3_origin, current_player->dmg, 0, DAMAGE_NO_ARMOR, MOD_WATER);
 		}
 	}
 
