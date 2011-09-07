@@ -197,13 +197,12 @@ void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower
 	frame = Cl_AnimateClientEntity_(&e->animation1, a1, &lerp);
 
 	if(frame != e->animation1.frame){
+		e->animation1.old_frame = e->animation1.frame;
 
 		if(frame == -1){  // revert to standing
-			e->animation1.old_frame = md3->animations[ANIM_TORSO_STAND1].first_frame;
-			e->animation1.frame = e->animation1.old_frame;
+			e->animation1.frame = md3->animations[ANIM_TORSO_STAND1].first_frame;
 		}
 		else {
-			e->animation1.old_frame = e->animation1.frame;
 			e->animation1.frame = frame;
 		}
 	}
@@ -222,13 +221,13 @@ void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower
 	frame = Cl_AnimateClientEntity_(&e->animation2, a2, &lerp);
 
 	if(frame != e->animation2.frame){
+		e->animation2.old_frame = e->animation2.frame;
 
 		if(frame == -1){  // revert to standing
-			e->animation2.old_frame = md3->animations[ANIM_LEGS_IDLE].first_frame;
-			e->animation2.frame = e->animation2.old_frame;
+			if(e->animation2.animation != ANIM_LEGS_JUMP1)
+				e->animation2.frame = md3->animations[ANIM_LEGS_IDLE].first_frame;
 		}
 		else {
-			e->animation2.old_frame = e->animation2.frame;
 			e->animation2.frame = frame;
 		}
 	}

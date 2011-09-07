@@ -1094,7 +1094,6 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd){
 	g_client_t *client;
 	g_edict_t *other;
 	int i, j;
-	pm_move_t pm;
 
 	g_level.current_entity = ent;
 	client = ent->client;
@@ -1122,6 +1121,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd){
 	}
 
 	if(!client->chase_target){  // set up for pmove
+		pm_move_t pm;
 
 		client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 
@@ -1169,6 +1169,8 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd){
 		if(ent->ground_entity && !pm.ground_entity &&
 				(pm.cmd.up >= 10) && (pm.water_level == 0) &&
 				client->jump_time < g_level.time - 0.2){
+
+			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
 			ent->s.event = EV_CLIENT_JUMP;
 			client->jump_time = g_level.time;

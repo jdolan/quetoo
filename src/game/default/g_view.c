@@ -111,16 +111,16 @@ static void G_ClientFall(g_edict_t *ent){
  * G_ClientWaterLevel
  */
 static void G_ClientWaterLevel(void){
-	int water_level, old_water_level;
 
 	if(current_player->move_type == MOVE_TYPE_NO_CLIP){
 		current_client->drown_time = g_level.time + 12;  // don't need air
 		return;
 	}
 
-	water_level = current_player->water_level;
-	old_water_level = current_client->old_water_level;
-	current_client->old_water_level = water_level;
+	const int water_level = current_player->water_level;
+	const int old_water_level = current_player->old_water_level;
+
+	current_player->old_water_level = water_level;
 
 	// if just entered a water volume, play a sound
 	if(!old_water_level && water_level)
@@ -241,7 +241,8 @@ static void G_ClientAnimation(g_edict_t *ent){
 		}
 	}
 	else {
-		G_SetAnimation(ent, ANIM_LEGS_JUMP1, false);
+		if((ent->s.animation2 & ~ANIM_TOGGLE_BIT) != ANIM_LEGS_JUMP1)
+			G_SetAnimation(ent, ANIM_LEGS_JUMP1, false);
 	}
 }
 

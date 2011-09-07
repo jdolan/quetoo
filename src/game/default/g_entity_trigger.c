@@ -218,7 +218,7 @@ static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_plane_t *p
 }
 
 
-/*QUAKED trigger_push(.5 .5 .5) ? PUSH_ONCE PUSH_EFFECT
+/*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE PUSH_EFFECT
 Pushes the player (jump pads)
 "speed"		defaults to 100
 */
@@ -304,7 +304,7 @@ static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_plane_t *p
 }
 
 
-/*QUAKED trigger_hurt(.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION SLOW
+/*QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION SLOW
 Any entity that touches this will be hurt.
 
 It does dmg points of damage evert 100ms.

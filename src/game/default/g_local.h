@@ -685,22 +685,19 @@ struct g_client_s {
 
 	vec3_t cmd_angles;  // angles sent over in the last command
 
-	float drown_time;
-	float sizzle_time;
-	int old_water_level;
-
+	float respawn_time;  // eligible for respawn when time > this
+	float drown_time;  // eligible for drowning damage when time > this
+	float sizzle_time;  // eligible for sizzle damage when time > this
 	float fall_time;  // eligible for landing event when time > this
 	float jump_time;  // eligible for jump when time > this
 	float pain_time;  // eligible for pain sound when time > this
 	float gasp_time;  // eligible for gasp sound when time > this
 	float footstep_time;  // play a footstep when time > this
 
-	float pickup_msg_time;  // display msg until time > this
+	float pickup_msg_time;  // display message until time > this
 
 	float chat_time;  // can chat when time > this
 	qboolean muted;
-
-	float respawn_time;  // can respawn when time > this
 
 	float quad_damage_time;  // has quad when time < this
 	float quad_attack_time;  // play attack sound when time > this
@@ -806,6 +803,7 @@ struct g_edict_s {
 	float random;
 
 	int water_type;
+	int old_water_level;
 	int water_level;
 
 	int areaportal;  // the area portal to toggle

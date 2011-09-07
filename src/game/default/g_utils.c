@@ -702,8 +702,9 @@ void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, qboolean restart){
 		dest = &ent->s.animation2;
 
 	if(restart){
-		if(*dest == anim)
+		if(*dest == anim){
 			anim |= ANIM_TOGGLE_BIT;
+		}
 	}
 
 	*dest = anim;
