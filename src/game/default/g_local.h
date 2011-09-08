@@ -64,8 +64,8 @@
 // edict->flags
 #define FL_FLY					0x00000001
 #define FL_SWIM					0x00000002  // implied immunity to drowning
-#define FL_GODMODE				0x00000004
-#define FL_TEAMSLAVE			0x00000008  // not the first on the team
+#define FL_GOD_MODE				0x00000004
+#define FL_TEAM_SLAVE			0x00000008  // not the first on the team
 #define FL_RESPAWN				0x80000000  // used for item respawning
 
 // memory tags to allow dynamic memory to be cleaned up
@@ -459,10 +459,6 @@ void G_ClientBegin(g_edict_t *ent);
 void G_ClientRespawn(g_edict_t *ent, qboolean voluntary);
 void G_ClientBeginFrame(g_edict_t *ent);
 void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd);
-void G_Pain(g_edict_t *self, g_edict_t *other, int damage, int knockback);
-void G_Die(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage, vec3_t point);
-void G_TossQuadDamage(g_edict_t *self);
-void G_TossFlag(g_edict_t *self);
 
 // g_combat.c
 qboolean G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2);
@@ -472,7 +468,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore,
 		int damage, int knockback, float radius, int mod);
 
-// g_cmds.c
+// g_commands.c
 void G_ClientCommand(g_edict_t *ent);
 void G_Score_f(g_edict_t *ent);
 qboolean G_AddClientToTeam(g_edict_t *ent, char *team_name);
@@ -530,9 +526,11 @@ void G_SetItemNames(void);
 g_item_t *G_FindItem(const char *pickup_name);
 g_item_t *G_FindItemByClassname(const char *class_name);
 g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item);
-void G_SetRespawn(g_edict_t *ent, float delay);
+void G_SetItemRespawn(g_edict_t *ent, float delay);
 void G_SpawnItem(g_edict_t *ent, g_item_t *item);
+void G_TossFlag(g_edict_t *self);
 void G_ResetFlag(g_edict_t *ent);
+void G_TossQuadDamage(g_edict_t *self);
 g_item_t *G_ItemByIndex(int index);
 qboolean G_AddAmmo(g_edict_t *ent, g_item_t *item, int count);
 void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf);
@@ -590,13 +588,14 @@ char *vtos(vec3_t v);
 void G_ClientEndFrame(g_edict_t *ent);
 void G_EndClientFrames(void);
 
-// g_weapon.c
+// g_weapons.c
 void G_ChangeWeapon(g_edict_t *ent);
 void G_WeaponThink(g_edict_t *ent);
 qboolean G_PickupWeapon(g_edict_t *ent, g_edict_t *other);
 void G_UseBestWeapon(g_client_t *client);
 void G_UseWeapon(g_edict_t *ent, g_item_t *inv);
 void G_DropWeapon(g_edict_t *ent, g_item_t *inv);
+void G_TossWeapon(g_edict_t *ent);
 void G_FireShotgun(g_edict_t *ent);
 void G_FireSuperShotgun(g_edict_t *ent);
 void G_FireMachinegun(g_edict_t *ent);

@@ -280,13 +280,13 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent){
 
 
 /*
- * G_ParseEdict
+ * G_ParseEntity
  *
  * Parses an edict out of the given string, returning the new position
  * in said string.  The edict parameter should be a properly initialized
  * free edict.
  */
-static const char *G_ParseEdict(const char *data, g_edict_t *ent){
+static const char *G_ParseEntity(const char *data, g_edict_t *ent){
 	qboolean init;
 	char key[MAX_QPATH];
 	const char *tok;
@@ -302,17 +302,17 @@ static const char *G_ParseEdict(const char *data, g_edict_t *ent){
 			break;
 
 		if(!data)
-			gi.Error("G_ParseEdict: EOF without closing brace.");
+			gi.Error("G_ParseEntity: EOF without closing brace.");
 
 		strncpy(key, tok, sizeof(key) - 1);
 
 		// parse value
 		tok = Com_Parse(&data);
 		if(!data)
-			gi.Error("G_ParseEdict: EOF in edict definition.");
+			gi.Error("G_ParseEntity: EOF in edict definition.");
 
 		if(tok[0] == '}')
-			gi.Error("G_ParseEdict: No edict definition.");
+			gi.Error("G_ParseEntity: No edict definition.");
 
 		init = true;
 
@@ -332,14 +332,14 @@ static const char *G_ParseEdict(const char *data, g_edict_t *ent){
 
 
 /*
- * G_FindEdictTeams
+ * G_InitEntityTeams
  *
  * Chain together all entities with a matching team field.
  *
  * All but the first will have the FL_TEAMSLAVE flag set.
  * All but the last will have the teamchain field set to the next one
  */
-static void G_FindEdictTeams(void){
+static void G_InitEntityTeams(void){
 	g_edict_t *e, *e2, *chain;
 	int i, j;
 	int c, c2;
@@ -351,7 +351,7 @@ static void G_FindEdictTeams(void){
 			continue;
 		if(!e->team)
 			continue;
-		if(e->flags & FL_TEAMSLAVE)
+		if(e->flags & FL_TEAM_SLAVE)
 			continue;
 		chain = e;
 		e->team_master = e;
@@ -362,14 +362,14 @@ static void G_FindEdictTeams(void){
 				continue;
 			if(!e2->team)
 				continue;
-			if(e2->flags & FL_TEAMSLAVE)
+			if(e2->flags & FL_TEAM_SLAVE)
 				continue;
 			if(!strcmp(e->team, e2->team)){
 				c2++;
 				chain->team_chain = e2;
 				e2->team_master = e;
 				chain = e2;
-				e2->flags |= FL_TEAMSLAVE;
+				e2->flags |= FL_TEAM_SLAVE;
 			}
 		}
 	}
@@ -420,7 +420,7 @@ void G_SpawnEntities(const char *name, const char *entities){
 		else
 			ent = G_Spawn();
 
-		entities = G_ParseEdict(entities, ent);
+		entities = G_ParseEntity(entities, ent);
 
 		// some ents don't belong in deathmatch
 		if(ent != g_game.edicts){
@@ -467,12 +467,12 @@ void G_SpawnEntities(const char *name, const char *entities){
 
 	gi.Debug("%i entities inhibited\n", inhibit);
 
+	G_InitEntityTeams();
+
 	// reset teams and votes
 	G_ResetTeams();
 
 	G_ResetVote();
-
-	G_FindEdictTeams();
 }
 
 

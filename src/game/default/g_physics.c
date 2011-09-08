@@ -391,7 +391,7 @@ static void G_Physics_Pusher(g_edict_t *ent){
 	g_edict_t *part, *mv;
 
 	// if not a team captain, so movement will be handled elsewhere
-	if(ent->flags & FL_TEAMSLAVE)
+	if(ent->flags & FL_TEAM_SLAVE)
 		return;
 
 	// make sure all team slaves can move before commiting
@@ -479,7 +479,7 @@ static void G_Physics_Toss(g_edict_t *ent){
 	G_RunThink(ent);
 
 	// if not a team captain, so movement will be handled elsewhere
-	if(ent->flags & FL_TEAMSLAVE)
+	if(ent->flags & FL_TEAM_SLAVE)
 		return;
 
 	// check for the ground entity going away

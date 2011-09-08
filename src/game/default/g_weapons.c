@@ -46,7 +46,7 @@ qboolean G_PickupWeapon(g_edict_t *ent, g_edict_t *other){
 
 	// setup respawn if it's not a dropped item
 	if(!(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetRespawn(ent, 5);
+		G_SetItemRespawn(ent, 5);
 
 	// add the weapon to inventory
 	other->client->locals.inventory[index]++;
@@ -173,6 +173,25 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item){
 
 	G_DropItem(ent, item);
 	ent->client->locals.inventory[index]--;
+}
+
+
+/*
+ * G_TossWeapon
+ */
+void G_TossWeapon(g_edict_t *ent){
+	g_item_t *item;
+
+	// don't drop weapon when falling into void
+	if(means_of_death == MOD_TRIGGER_HURT)
+		return;
+
+	item = ent->client->locals.weapon;
+
+	if(!ent->client->locals.inventory[ent->client->ammo_index])
+		return;  // don't drop when out of ammo
+
+	G_DropItem(ent, item);
 }
 
 

@@ -124,9 +124,9 @@ static void G_ItemRespawn(g_edict_t *ent){
 
 
 /*
- * G_SetRespawn
+ * G_SetItemRespawn
  */
-void G_SetRespawn(g_edict_t *ent, float delay){
+void G_SetItemRespawn(g_edict_t *ent, float delay){
 	ent->flags |= FL_RESPAWN;
 	ent->sv_flags |= SVF_NO_CLIENT;
 	ent->solid = SOLID_NOT;
@@ -145,7 +145,7 @@ static qboolean G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other){
 		other->health = other->max_health;
 
 	if(!(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetRespawn(ent, 30);
+		G_SetItemRespawn(ent, 30);
 
 	return true;
 }
@@ -166,11 +166,30 @@ static qboolean G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other){
 	}
 	else {
 		other->client->quad_damage_time = g_level.time + 30.0;
-		G_SetRespawn(ent, ent->item->quantity);
+		G_SetItemRespawn(ent, ent->item->quantity);
 	}
 
 	other->s.effects |= EF_QUAD;
 	return true;
+}
+
+
+/*
+ * G_TossQuadDamage
+ */
+void G_TossQuadDamage(g_edict_t *ent){
+	g_edict_t *quad;
+
+	if(!ent->client->locals.inventory[quad_damage_index])
+		return;
+
+	quad = G_DropItem(ent, G_FindItemByClassname("item_quad"));
+
+	if(quad)
+		quad->timestamp = ent->client->quad_damage_time;
+
+	ent->client->quad_damage_time = 0.0;
+	ent->client->locals.inventory[quad_damage_index] = 0;
 }
 
 
@@ -229,7 +248,7 @@ static qboolean G_PickupAmmo(g_edict_t *ent, g_edict_t *other){
 		return false;
 
 	if(!(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetRespawn(ent, 20);
+		G_SetItemRespawn(ent, 20);
 
 	return true;
 }
@@ -287,9 +306,9 @@ static qboolean G_PickupHealth(g_edict_t *ent, g_edict_t *other){
 		other->health = other->client->locals.health = h;
 
 		if(ent->count >= 50)  // respawn the item
-			G_SetRespawn(ent, 60);
+			G_SetItemRespawn(ent, 60);
 		else
-			G_SetRespawn(ent, 20);
+			G_SetItemRespawn(ent, 20);
 
 		return true;
 	}
@@ -320,19 +339,9 @@ static qboolean G_PickupArmor(g_edict_t *ent, g_edict_t *other){
 	}
 
 	if(taken && !(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetRespawn(ent, 20);
+		G_SetItemRespawn(ent, 20);
 
 	return taken;
-}
-
-
-/*
- * G_ClientDropFlag
- */
-static void G_DropFlag(g_edict_t *ent, g_item_t *item){
-
-	// this routine already exists for player deaths
-	G_TossFlag(ent);
 }
 
 
@@ -450,6 +459,45 @@ static qboolean G_PickupFlag(g_edict_t *ent, g_edict_t *other){
 
 
 /*
+ * G_TossFlag
+ */
+void G_TossFlag(g_edict_t *ent){
+	g_team_t *ot;
+	g_edict_t *of;
+	int index;
+
+	if(!(ot = G_OtherTeam(ent->client->locals.team)))
+		return;
+
+	if(!(of = G_FlagForTeam(ot)))
+		return;
+
+	index = ITEM_INDEX(of->item);
+
+	if(!ent->client->locals.inventory[index])
+		return;
+
+	ent->client->locals.inventory[index] = 0;
+
+	ent->s.model3 = 0;
+	ent->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
+
+	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
+			ent->client->locals.net_name, ot->name);
+
+	G_DropItem(ent, of->item);
+}
+
+
+/*
+ * G_DropFlag
+ */
+static void G_DropFlag(g_edict_t *ent, g_item_t *item){
+	G_TossFlag(ent);
+}
+
+
+/*
  * G_TouchItem
  */
 void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
@@ -562,7 +610,7 @@ static void G_DropItemThink(g_edict_t *ent){
  * G_DropItem
  *
  * Handles the mechanics of dropping items, but does not adjust the client's
- * inventory.  That is left to the caller.
+ * inventory. That is left to the caller.
  */
 g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item){
 	g_edict_t *dropped;
@@ -627,9 +675,9 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item){
 
 
 /*
- * G_ClientUseItem
+ * G_UseItem
  */
-static void G_ClientUseItem(g_edict_t *ent, g_edict_t *other, g_edict_t *activator){
+static void G_UseItem(g_edict_t *ent, g_edict_t *other, g_edict_t *activator){
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->use = NULL;
 
@@ -773,7 +821,7 @@ void G_SpawnItem(g_edict_t *ent, g_item_t *item){
 		gi.SetModel(ent, ent->item->model);
 
 	if(ent->team){
-		ent->flags &= ~FL_TEAMSLAVE;
+		ent->flags &= ~FL_TEAM_SLAVE;
 		ent->chain = ent->team_chain;
 		ent->team_chain = NULL;
 
@@ -801,7 +849,7 @@ void G_SpawnItem(g_edict_t *ent, g_item_t *item){
 	if(ent->spawn_flags & SF_ITEM_TRIGGER){
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->solid = SOLID_NOT;
-		ent->use = G_ClientUseItem;
+		ent->use = G_UseItem;
 	}
 }
 

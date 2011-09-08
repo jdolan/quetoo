@@ -23,11 +23,11 @@
 
 
 /*
- * G_Obituary
+ * G_ClientObituary
  *
  * Make a tasteless death announcement.
  */
-static void G_Obituary(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker){
+static void G_ClientObituary(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker){
 	int ff, mod;
 	char *message, *message2;
 	g_client_t *killer;
@@ -203,78 +203,12 @@ static void G_Obituary(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacke
 
 
 /*
- * G_TossWeapon
+ * G_ClientPain
+ *
+ * Pain effects and pain sounds are actually handled in G_ClientDamage. Here we
+ * simply inform our attacker that they injured us by playing a hit sound.
  */
-static void G_TossWeapon(g_edict_t *self){
-	g_item_t *item;
-
-	// don't drop weapon when falling into void
-	if(means_of_death == MOD_TRIGGER_HURT)
-		return;
-
-	item = self->client->locals.weapon;
-
-	if(!self->client->locals.inventory[self->client->ammo_index])
-		return;  // don't drop when out of ammo
-
-	G_DropItem(self, item);
-}
-
-
-/*
- * G_TossQuadDamage
- */
-void G_TossQuadDamage(g_edict_t *self){
-	g_edict_t *quad;
-
-	if(!self->client->locals.inventory[quad_damage_index])
-		return;
-
-	quad = G_DropItem(self, G_FindItemByClassname("item_quad"));
-
-	if(quad)
-		quad->timestamp = self->client->quad_damage_time;
-
-	self->client->quad_damage_time = 0.0;
-	self->client->locals.inventory[quad_damage_index] = 0;
-}
-
-
-/*
- * G_TossFlag
- */
-void G_TossFlag(g_edict_t *self){
-	g_team_t *ot;
-	g_edict_t *of;
-	int index;
-
-	if(!(ot = G_OtherTeam(self->client->locals.team)))
-		return;
-
-	if(!(of = G_FlagForTeam(ot)))
-		return;
-
-	index = ITEM_INDEX(of->item);
-
-	if(!self->client->locals.inventory[index])
-		return;
-
-	self->client->locals.inventory[index] = 0;
-
-	self->s.model3 = 0;
-	self->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
-
-	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
-			self->client->locals.net_name, ot->name);
-
-	G_DropItem(self, of->item);
-}
-
-
-/*
- * G_Pain
- */
-void G_Pain(g_edict_t *self, g_edict_t *other, int damage, int knockback){
+static void G_ClientPain(g_edict_t *self, g_edict_t *other, int damage, int knockback){
 
 	if(other && other->client && other != self){  // play a hit sound
 		gi.Sound(other, gi.SoundIndex("misc/hit"), ATTN_STATIC);
@@ -283,16 +217,20 @@ void G_Pain(g_edict_t *self, g_edict_t *other, int damage, int knockback){
 
 
 /*
- * G_Die
+ * G_ClientDie
+ *
+ * A client's health is less than or equal to zero. Render death effects, drop
+ * certain items we're holding and force the client into a temporary spectator
+ * state with the scoreboard shown.
  */
-void G_Die(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage, vec3_t point){
+static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage, vec3_t point){
 
 	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
 
 	self->client->respawn_time = g_level.time + 1.0;
 	self->client->ps.pmove.pm_type = PM_DEAD;
 
-	G_Obituary(self, inflictor, attacker);
+	G_ClientObituary(self, inflictor, attacker);
 
 	if(!g_level.gameplay && !g_level.warmup)  // drop weapon
 		G_TossWeapon(self);
@@ -694,8 +632,8 @@ static void G_ClientRespawn_(g_edict_t *ent){
 	ent->dead = false;
 	ent->clip_mask = MASK_PLAYERSOLID;
 	ent->model = "players/qforcer/upper.md3";
-	ent->pain = G_Pain;
-	ent->die = G_Die;
+	ent->pain = G_ClientPain;
+	ent->die = G_ClientDie;
 	ent->water_level = 0;
 	ent->water_type = 0;
 	ent->sv_flags = 0;
@@ -795,7 +733,7 @@ void G_ClientRespawn(g_edict_t *ent, qboolean voluntary){
 
 	ent->client->respawn_time = g_level.time;
 
-	if(!voluntary)  // dont announce involuntary spectator changes
+	if(!voluntary)  // don't announce involuntary spectator changes
 		return;
 
 	if(ent->client->locals.spectator)

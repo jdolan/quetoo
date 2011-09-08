@@ -273,7 +273,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	save = 0;
 
 	// check for godmode
-	if((targ->flags & FL_GODMODE) && !(dflags & DAMAGE_NO_PROTECTION)){
+	if((targ->flags & FL_GOD_MODE) && !(dflags & DAMAGE_NO_PROTECTION)){
 		take = 0;
 		save = damage;
 		G_SpawnDamage(TE_BLOOD, point, normal, save);
@@ -308,7 +308,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	}
 
 	if(client){
-		if(!(targ->flags & FL_GODMODE) && take)
+		if(!(targ->flags & FL_GOD_MODE) && take)
 			targ->pain(targ, attacker, take, knockback);
 	} else if(take){
 		if(targ->pain)

@@ -21,9 +21,6 @@
 
 #include "g_local.h"
 
-static g_edict_t *current_player;
-static g_client_t *current_client;
-
 
 /*
  * G_ClientDamage
@@ -110,75 +107,76 @@ static void G_ClientFall(g_edict_t *ent){
 /*
  * G_ClientWaterLevel
  */
-static void G_ClientWaterLevel(void){
+static void G_ClientWaterLevel(g_edict_t *ent){
+	g_client_t *client = ent->client;
 
-	if(current_player->move_type == MOVE_TYPE_NO_CLIP){
-		current_client->drown_time = g_level.time + 12;  // don't need air
+	if(ent->move_type == MOVE_TYPE_NO_CLIP){
+		client->drown_time = g_level.time + 12;  // don't need air
 		return;
 	}
 
-	const int water_level = current_player->water_level;
-	const int old_water_level = current_player->old_water_level;
+	const int water_level = ent->water_level;
+	const int old_water_level = ent->old_water_level;
 
-	current_player->old_water_level = water_level;
+	ent->old_water_level = water_level;
 
 	// if just entered a water volume, play a sound
 	if(!old_water_level && water_level)
-		gi.Sound(current_player, gi.SoundIndex("world/water_in"), ATTN_NORM);
+		gi.Sound(ent, gi.SoundIndex("world/water_in"), ATTN_NORM);
 
 	// completely exited the water
 	if(old_water_level && !water_level)
-		gi.Sound(current_player, gi.SoundIndex("world/water_out"), ATTN_NORM);
+		gi.Sound(ent, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
 	// head just coming out of water
 	if(old_water_level == 3 && water_level != 3 &&
-			g_level.time - current_client->gasp_time > 2.0){
+			g_level.time - client->gasp_time > 2.0){
 
-		gi.Sound(current_player, gi.SoundIndex("*gasp_1"), ATTN_NORM);
-		current_client->gasp_time = g_level.time;
+		gi.Sound(ent, gi.SoundIndex("*gasp_1"), ATTN_NORM);
+		client->gasp_time = g_level.time;
 	}
 
 	// check for drowning
 	if(water_level != 3){  // take some air, push out drown time
-		current_client->drown_time = g_level.time + 12.0;
-		current_player->dmg = 0;
+		client->drown_time = g_level.time + 12.0;
+		ent->dmg = 0;
 	}
 	else {  // we're under water
-		if(current_client->drown_time < g_level.time && current_player->health > 0){
-			current_client->drown_time = g_level.time + 1.0;
+		if(client->drown_time < g_level.time && ent->health > 0){
+			client->drown_time = g_level.time + 1.0;
 
 			// take more damage the longer under water
-			current_player->dmg += 2;
+			ent->dmg += 2;
 
-			if(current_player->dmg > 15)
-				current_player->dmg = 15;
+			if(ent->dmg > 15)
+				ent->dmg = 15;
 
 			// play a gurp sound instead of a normal pain sound
-			if(current_player->health <= current_player->dmg)
-				gi.Sound(current_player, gi.SoundIndex("*drown_1"), ATTN_NORM);
+			if(ent->health <= ent->dmg)
+				gi.Sound(ent, gi.SoundIndex("*drown_1"), ATTN_NORM);
 			else
-				gi.Sound(current_player, gi.SoundIndex("*gurp_1"), ATTN_NORM);
+				gi.Sound(ent, gi.SoundIndex("*gurp_1"), ATTN_NORM);
 
-			current_client->pain_time = g_level.time;
+			client->pain_time = g_level.time;
 
-			G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
-					vec3_origin, current_player->dmg, 0, DAMAGE_NO_ARMOR, MOD_WATER);
+			G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin,
+					vec3_origin, ent->dmg, 0, DAMAGE_NO_ARMOR, MOD_WATER);
 		}
 	}
 
 	// check for sizzle damage
-	if(water_level && (current_player->water_type & (CONTENTS_LAVA | CONTENTS_SLIME))){
-		if(current_client->sizzle_time <= g_level.time && current_player->health > 0){
+	if(water_level && (ent->water_type & (CONTENTS_LAVA | CONTENTS_SLIME))){
+		if(client->sizzle_time <= g_level.time && ent->health > 0){
 
-			current_client->sizzle_time = g_level.time + 0.1;
+			client->sizzle_time = g_level.time + 0.1;
 
-			if(current_player->water_type & CONTENTS_LAVA){
-				G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
+			if(ent->water_type & CONTENTS_LAVA){
+				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin,
 						vec3_origin, 2 * water_level, 0, 0, MOD_LAVA);
 			}
 
-			if(current_player->water_type & CONTENTS_SLIME){
-				G_Damage(current_player, NULL, NULL, vec3_origin, current_player->s.origin,
+			if(ent->water_type & CONTENTS_SLIME){
+				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin,
 						vec3_origin, 1 * water_level, 0, 0, MOD_SLIME);
 			}
 		}
@@ -257,8 +255,7 @@ void G_ClientEndFrame(g_edict_t *ent){
 	float dot, xy_speed;
 	int i;
 
-	current_player = ent;
-	current_client = ent->client;
+	g_client_t *client = ent->client;
 
 	// If the origin or velocity have changed since G_Think(),
 	// update the pmove values.  This will happen when the client
@@ -267,8 +264,8 @@ void G_ClientEndFrame(g_edict_t *ent){
 	// If it wasn't updated here, the view position would lag a frame
 	// behind the body position when pushed -- "sinking into plats"
 	for(i = 0; i < 3; i++){
-		current_client->ps.pmove.origin[i] = ent->s.origin[i] * 8.0;
-		current_client->ps.pmove.velocity[i] = ent->velocity[i] * 8.0;
+		client->ps.pmove.origin[i] = ent->s.origin[i] * 8.0;
+		client->ps.pmove.velocity[i] = ent->velocity[i] * 8.0;
 	}
 
 	// If the end of unit layout is displayed, don't give
@@ -279,7 +276,7 @@ void G_ClientEndFrame(g_edict_t *ent){
 	}
 
 	// check for water entry / exit, burn from lava, slime, etc
-	G_ClientWaterLevel();
+	G_ClientWaterLevel(ent);
 
 	// set model angles from view angles so other things in
 	// the world can tell which direction you are looking

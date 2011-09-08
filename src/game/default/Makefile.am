@@ -17,14 +17,14 @@ game_la_SOURCES = \
 	g_entity_misc.c \
 	g_entity_target.c \
 	g_entity_trigger.c \
+	g_entity.c \
 	g_items.c \
 	g_main.c \
 	g_physics.c \
-	g_spawn.c \
 	g_stats.c \
 	g_utils.c \
 	g_view.c \
-	g_weapon.c
+	g_weapons.c
 
 game_la_CFLAGS = \
 	@SO_CFLAGS@ \

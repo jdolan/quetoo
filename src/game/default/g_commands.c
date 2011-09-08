@@ -142,8 +142,8 @@ static void G_God_f(g_edict_t *ent){
 		return;
 	}
 
-	ent->flags ^= FL_GODMODE;
-	if(!(ent->flags & FL_GODMODE))
+	ent->flags ^= FL_GOD_MODE;
+	if(!(ent->flags & FL_GOD_MODE))
 		msg = "god OFF\n";
 	else
 		msg = "god ON\n";
@@ -369,12 +369,12 @@ static void G_Kill_f(g_edict_t *ent){
 	if(ent->dead)
 		return;
 
-	ent->flags &= ~FL_GODMODE;
+	ent->flags &= ~FL_GOD_MODE;
 	ent->health = 0;
 
 	means_of_death = MOD_SUICIDE;
 
-	G_Die(ent, ent, ent, 100000, vec3_origin);
+	ent->die(ent, ent, ent, 100000, vec3_origin);
 }
 
 

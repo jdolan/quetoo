@@ -241,7 +241,7 @@ static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest, void(*done)(g_edict_t*)
 
 	if(ent->move_info.speed == ent->move_info.accel &&
 			ent->move_info.speed == ent->move_info.decel){  // constant
-		if(g_level.current_entity == ((ent->flags & FL_TEAMSLAVE) ? ent->team_master : ent)){
+		if(g_level.current_entity == ((ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent)){
 			G_MoveInfo_Constant(ent);
 		} else {
 			ent->next_think = g_level.time + gi.server_frame;
@@ -264,7 +264,7 @@ static void G_func_plat_go_down(g_edict_t *ent);
  * G_func_plat_up
  */
 static void G_func_plat_up(g_edict_t *ent){
-	if(!(ent->flags & FL_TEAMSLAVE)){
+	if(!(ent->flags & FL_TEAM_SLAVE)){
 		if(ent->move_info.sound_end)
 			gi.Sound(ent, ent->move_info.sound_end, ATTN_IDLE);
 		ent->s.sound = 0;
@@ -280,7 +280,7 @@ static void G_func_plat_up(g_edict_t *ent){
  * G_func_plat_down
  */
 static void G_func_plat_down(g_edict_t *ent){
-	if(!(ent->flags & FL_TEAMSLAVE)){
+	if(!(ent->flags & FL_TEAM_SLAVE)){
 		if(ent->move_info.sound_end)
 			gi.Sound(ent, ent->move_info.sound_end, ATTN_IDLE);
 		ent->s.sound = 0;
@@ -293,7 +293,7 @@ static void G_func_plat_down(g_edict_t *ent){
  * G_func_plat_go_down
  */
 static void G_func_plat_go_down(g_edict_t *ent){
-	if(!(ent->flags & FL_TEAMSLAVE)){
+	if(!(ent->flags & FL_TEAM_SLAVE)){
 		if(ent->move_info.sound_start)
 			gi.Sound(ent, ent->move_info.sound_start, ATTN_IDLE);
 		ent->s.sound = ent->move_info.sound_middle;
@@ -307,7 +307,7 @@ static void G_func_plat_go_down(g_edict_t *ent){
  * G_func_plat_go_up
  */
 static void G_func_plat_go_up(g_edict_t *ent){
-	if(!(ent->flags & FL_TEAMSLAVE)){
+	if(!(ent->flags & FL_TEAM_SLAVE)){
 		if(ent->move_info.sound_start)
 			gi.Sound(ent, ent->move_info.sound_start, ATTN_IDLE);
 		ent->s.sound = ent->move_info.sound_middle;
@@ -624,7 +624,7 @@ static void G_func_button_activate(g_edict_t *self){
 
 	self->move_info.state = STATE_UP;
 
-	if(self->move_info.sound_start && !(self->flags & FL_TEAMSLAVE))
+	if(self->move_info.sound_start && !(self->flags & FL_TEAM_SLAVE))
 		  gi.Sound(self, self->move_info.sound_start, ATTN_IDLE);
 
 	G_MoveInfo_Init(self, self->move_info.end_origin, G_func_button_wait);
@@ -755,7 +755,7 @@ static void G_func_door_go_down(g_edict_t *self);
  * G_func_door_up
  */
 static void G_func_door_up(g_edict_t *self){
-	if(!(self->flags & FL_TEAMSLAVE)){
+	if(!(self->flags & FL_TEAM_SLAVE)){
 		if(self->move_info.sound_end)
 			gi.Sound(self, self->move_info.sound_end, ATTN_IDLE);
 		self->s.sound = 0;
@@ -776,7 +776,7 @@ static void G_func_door_up(g_edict_t *self){
  * G_func_door_down
  */
 static void G_func_door_down(g_edict_t *self){
-	if(!(self->flags & FL_TEAMSLAVE)){
+	if(!(self->flags & FL_TEAM_SLAVE)){
 		if(self->move_info.sound_end)
 			gi.Sound(self, self->move_info.sound_end, ATTN_IDLE);
 		self->s.sound = 0;
@@ -790,7 +790,7 @@ static void G_func_door_down(g_edict_t *self){
  * G_func_door_go_down
  */
 static void G_func_door_go_down(g_edict_t *self){
-	if(!(self->flags & FL_TEAMSLAVE)){
+	if(!(self->flags & FL_TEAM_SLAVE)){
 		if(self->move_info.sound_start)
 			gi.Sound(self, self->move_info.sound_start, ATTN_IDLE);
 		self->s.sound = self->move_info.sound_middle;
@@ -818,7 +818,7 @@ static void G_func_door_go_up(g_edict_t *self, g_edict_t *activator){
 		return;
 	}
 
-	if(!(self->flags & FL_TEAMSLAVE)){
+	if(!(self->flags & FL_TEAM_SLAVE)){
 		if(self->move_info.sound_start)
 			gi.Sound(self, self->move_info.sound_start, ATTN_IDLE);
 		self->s.sound = self->move_info.sound_middle;
@@ -837,7 +837,7 @@ static void G_func_door_go_up(g_edict_t *self, g_edict_t *activator){
 static void G_func_door_use(g_edict_t *self, g_edict_t *other, g_edict_t *activator){
 	g_edict_t *ent;
 
-	if(self->flags & FL_TEAMSLAVE)
+	if(self->flags & FL_TEAM_SLAVE)
 		return;
 
 	if(self->spawn_flags & DOOR_TOGGLE){
@@ -891,7 +891,7 @@ static void G_func_door_calc_move(g_edict_t *self){
 	float ratio;
 	float dist;
 
-	if(self->flags & FL_TEAMSLAVE)
+	if(self->flags & FL_TEAM_SLAVE)
 		return;  // only the team master does this
 
 	// find the smallest distance any member of the team will be moving
@@ -928,7 +928,7 @@ static void G_func_door_create_trigger(g_edict_t *ent){
 	g_edict_t *other;
 	vec3_t mins, maxs;
 
-	if(ent->flags & FL_TEAMSLAVE)
+	if(ent->flags & FL_TEAM_SLAVE)
 		return;  // only the team leader spawns a trigger
 
 	VectorCopy(ent->abs_mins, mins);
@@ -1301,7 +1301,7 @@ static void G_func_train_wait(g_edict_t *self){
 			self->next_think = 0;
 		}
 
-		if(!(self->flags & FL_TEAMSLAVE)){
+		if(!(self->flags & FL_TEAM_SLAVE)){
 			if(self->move_info.sound_end)
 				gi.Sound(self, self->move_info.sound_end, ATTN_IDLE);
 			self->s.sound = 0;
@@ -1350,7 +1350,7 @@ again:
 	self->move_info.wait = ent->wait;
 	self->target_ent = ent;
 
-	if(!(self->flags & FL_TEAMSLAVE)){
+	if(!(self->flags & FL_TEAM_SLAVE)){
 		if(self->move_info.sound_start)
 			gi.Sound(self, self->move_info.sound_start, ATTN_IDLE);
 		self->s.sound = self->move_info.sound_middle;
