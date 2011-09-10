@@ -90,6 +90,8 @@ void G_ChangeWeapon(g_edict_t *ent){
 	if(ent->health < 1)
 		return;
 
+	G_SetAnimation(ent, ANIM_TORSO_DROP, false);
+
 	// play a sound
 	gi.Sound(ent, gi.SoundIndex("weapons/common/switch"), ATTN_NORM);
 }
@@ -263,6 +265,12 @@ void G_WeaponThink(g_edict_t *ent){
 	if(ent->client->new_weapon){
 		G_ChangeWeapon(ent);
 		return;
+	}
+
+	// see if we should raise the weapon
+	if(ent->client->weapon_fire_time >= g_level.time){
+		if(G_IsAnimation(ent, ANIM_TORSO_DROP))
+			G_SetAnimation(ent, ANIM_TORSO_RAISE, false);
 	}
 
 	// call active weapon think routine

@@ -98,7 +98,7 @@ static void G_ClientFall(g_edict_t *ent){
 	}
 
 	if(ent->s.event != EV_TELEPORT){  // don't override teleport events
-		ent->client->fall_time = g_level.time + 0.3;
+		ent->client->fall_time = g_level.time + 0.2;
 		ent->s.event = event;
 	}
 }
@@ -196,54 +196,74 @@ static void G_ClientAnimation(g_edict_t *ent){
 	if(ent->sv_flags & SVF_NO_CLIENT)
 		return;
 
-	if(ent->ground_entity){  // on the ground
+	if(!ent->ground_entity){  // not on the ground
 
-		if(ent->water_level < 2){  // not swimming
-			vec3_t velocity;
-			float speed;
-
-			VectorCopy(ent->velocity, velocity);
-			velocity[2] = 0.0;
-
-			speed = VectorNormalize(velocity);
-
-			if(ent->client->ps.pmove.pm_flags & PMF_DUCKED){  // ducked
-				if(speed < 1.0)
-					G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
-				else
-					G_SetAnimation(ent, ANIM_LEGS_WALKCR, false);
-			}
-			else {  // landing / standing / walking / running
-				const entity_event_t e = ent->s.event;
-
-				if(e >= EV_CLIENT_LAND && e <= EV_CLIENT_FALL_FAR){  // just landed
-					G_SetAnimation(ent, ANIM_LEGS_LAND1, false);
-				}
-				else if(speed < 1.0){
-					G_SetAnimation(ent, ANIM_LEGS_IDLE, false);
-				}
-				else {
-					vec3_t angles, forward;
-
-					VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
-					AngleVectors(angles, forward, NULL, NULL);
-
-					if(DotProduct(velocity, forward) < 0.0)
-						G_SetAnimation(ent, ANIM_LEGS_BACK, false);
-					else if(speed < 200.0)
-						G_SetAnimation(ent, ANIM_LEGS_WALK, false);
-					else
-						G_SetAnimation(ent, ANIM_LEGS_RUN, false);
-				}
-			}
-		}
-		else {
+		if(ent->water_level == 3){  // swimming
 			G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
+			return;
 		}
-	}
-	else {
-		if(!G_IsAnimation(ent, ANIM_LEGS_JUMP1))
+
+		// jumping or falling
+
+		qboolean jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
+		jumping |= G_IsAnimation(ent, ANIM_LEGS_JUMP2);
+
+		if(!jumping)
 			G_SetAnimation(ent, ANIM_LEGS_JUMP1, false);
+
+		return;
+	}
+
+	// we're on the ground, determine our x/y speed
+
+	vec3_t velocity;
+	float speed;
+
+	VectorCopy(ent->velocity, velocity);
+	velocity[2] = 0.0;
+
+	speed = VectorNormalize(velocity);
+
+	if(ent->client->ps.pmove.pm_flags & PMF_DUCKED){  // ducked
+		if(speed < 1.0)
+			G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
+		else
+			G_SetAnimation(ent, ANIM_LEGS_WALKCR, false);
+
+		return;
+	}
+
+	const entity_event_t e = ent->s.event;
+	if(e >= EV_CLIENT_LAND && e <= EV_CLIENT_FALL_FAR){  // landing
+
+		if(G_IsAnimation(ent, ANIM_LEGS_JUMP2))
+			G_SetAnimation(ent, ANIM_LEGS_LAND2, false);
+		else
+			G_SetAnimation(ent, ANIM_LEGS_LAND1, false);
+
+		return;
+	}
+
+	if(ent->client->fall_time <= g_level.time){  // run or walk
+
+		if(speed < 1.0){
+			G_SetAnimation(ent, ANIM_LEGS_IDLE, false);
+			return;
+		}
+
+		vec3_t angles, forward;
+
+		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
+		AngleVectors(angles, forward, NULL, NULL);
+
+		if(DotProduct(velocity, forward) < 0.0)
+			G_SetAnimation(ent, ANIM_LEGS_BACK, false);
+		else if(speed < 200.0)
+			G_SetAnimation(ent, ANIM_LEGS_WALK, false);
+		else
+			G_SetAnimation(ent, ANIM_LEGS_RUN, false);
+
+		return;
 	}
 }
 

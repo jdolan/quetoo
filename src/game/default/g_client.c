@@ -322,10 +322,13 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attack
 
 	gi.LinkEntity(self);
 
-	gi.WriteByte(svc_temp_entity);
+	// TODO: If health is sufficiently low, emit a gib.
+	// TODO: We need a gib model ;)
+
+	/*gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_GIB);
 	gi.WritePosition(self->s.origin);
-	gi.Multicast(self->s.origin, MULTICAST_PVS);
+	gi.Multicast(self->s.origin, MULTICAST_PVS);*/
 }
 
 
@@ -717,7 +720,7 @@ static void G_ClientRespawn_(g_edict_t *ent){
 	ent->s.client = ent - g_game.edicts - 1;
 
 	G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
-	G_SetAnimation(ent, ANIM_LEGS_IDLE, true);
+	G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
 	VectorCopy(spawn_origin, ent->s.origin);
 	VectorCopy(ent->s.origin, ent->s.old_origin);
@@ -1164,7 +1167,21 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd){
 				(pm.cmd.up >= 10) && (pm.water_level == 0) &&
 				client->jump_time < g_level.time - 0.2){
 
-			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+			vec3_t angles, forward, velocity;
+			float speed;
+
+			VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
+			AngleVectors(angles, forward, NULL, NULL);
+
+			VectorCopy(ent->velocity, velocity);
+			velocity[2] = 0.0;
+
+			speed = VectorNormalize(velocity);
+
+			if(DotProduct(velocity, forward) < 0.0 && speed > 200.0)
+				G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
+			else
+				G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
 			ent->s.event = EV_CLIENT_JUMP;
 			client->jump_time = g_level.time;

@@ -176,6 +176,18 @@ static void G_NoClip_f(g_edict_t *ent){
 
 
 /*
+ * G_Wave_f
+ */
+static void G_Wave_f(g_edict_t *ent){
+
+	if(ent->flags & SVF_NO_CLIENT)
+		return;
+
+	G_SetAnimation(ent, ANIM_TORSO_GESTURE, true);
+}
+
+
+/*
  * G_Use_f
  */
 static void G_Use_f(g_edict_t *ent){
@@ -1117,6 +1129,8 @@ void G_ClientCommand(g_edict_t *ent){
 		G_God_f(ent);
 	else if(strcasecmp(cmd, "no_clip") == 0)
 		G_NoClip_f(ent);
+	else if(strcasecmp(cmd, "wave") == 0)
+		G_Wave_f(ent);
 	else if(strcasecmp(cmd, "weapon_previous") == 0)
 		G_WeaponPrevious_f(ent);
 	else if(strcasecmp(cmd, "weapon_next") == 0)
