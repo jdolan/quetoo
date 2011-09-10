@@ -119,39 +119,103 @@ void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s){
 
 
 /*
+ * Cl_NextAnimation
+ *
+ * Returns the next animation to advance to, defaulting to a no-op.
+ */
+static entity_animation_t Cl_NextAnimation(const entity_animation_t a){
+
+	switch(a){
+		case ANIM_BOTH_DEATH1:
+		case ANIM_BOTH_DEATH2:
+		case ANIM_BOTH_DEATH3:
+			return a + 1;
+
+		case ANIM_TORSO_GESTURE:
+		case ANIM_TORSO_ATTACK1:
+		case ANIM_TORSO_ATTACK2:
+		case ANIM_TORSO_DROP:
+		case ANIM_TORSO_RAISE:
+			return ANIM_TORSO_STAND1;
+
+		case ANIM_LEGS_LAND1:
+		case ANIM_LEGS_LAND2:
+			return ANIM_LEGS_IDLE;
+
+		default:
+			return a;
+	}
+}
+
+
+/*
  * Cl_AnimateClientEntity_
  *
- * Returns the appropriate frame number for the specified client animation, or
- * -1 if the current animation sequence is complete.
+ * Resolve the frames and interpolation fractions for the specified animation
+ * and entity. If a non-looping animation has completed, proceed to the next
+ * animation in the sequence.
  */
-static int Cl_AnimateClientEntity_(cl_entity_animation_t *a,
-		const r_md3_animation_t *anim, float *lerp){
+static void Cl_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a,
+		r_entity_t *e){
 
-	if(!anim->num_frames || !anim->hz){  // bad animation sequence
-		*lerp = 1.0;
-		return -1;
+	e->frame = e->old_frame = 0;
+	e->lerp = 1.0; e->back_lerp = 0.0;
+
+	if(a->animation > md3->num_animations){
+		Com_Warn("Cl_AnimateClientEntity: Invalid animation: %s: %d\n",
+				e->model->name, a->animation);
+		return;
+	}
+
+	const r_md3_animation_t *anim = &md3->animations[a->animation];
+
+	if(!anim->num_frames || !anim->hz){
+		Com_Warn("Cl_AnimateClientEntity_: Bad animation sequence: %s: %d\n",
+				e->model->name, a->animation);
+		return;
 	}
 
 	const int frame_time = 1000 / anim->hz;
-	const int duration = anim->num_frames * frame_time;
-	const int time = cl.time - a->time;
-	const int frame = time / frame_time;
+	const int animation_time = anim->num_frames * frame_time;
+	const int elapsed_time = cl.time - a->time;
+	int frame = elapsed_time / frame_time;
 
-	a->fraction = time / (float)duration;
-
-	*lerp = (time % frame_time) / (float)frame_time;
-
-	if(time > duration){  // to loop, or not to loop
+	if(elapsed_time >= animation_time){  // to loop, or not to loop
 
 		if(!anim->looped_frames){
-			*lerp = 1.0;
-			return -1;
+			const entity_animation_t next = Cl_NextAnimation(a->animation);
+
+			if(next == a->animation){  // no change, just stay put
+				e->frame = anim->first_frame + anim->num_frames - 1;
+				e->lerp = 1.0;
+				e->back_lerp = 0.0;
+				return;
+			}
+
+			a->animation = next;  // or move into the next animation
+			a->time = cl.time;
+
+			Cl_AnimateClientEntity_(md3, a, e);
+			return;
 		}
 
-		return anim->first_frame + (frame % anim->looped_frames);
+		frame = (frame - anim->num_frames) % anim->looped_frames;
 	}
 
-	return anim->first_frame + (frame % anim->num_frames);
+	frame = anim->first_frame + frame;
+
+	if(frame != a->frame){  // shuffle the frames
+		a->old_frame = a->frame;
+		a->frame = frame;
+	}
+
+	a->lerp = (elapsed_time % frame_time) / (float)frame_time;
+	a->fraction = elapsed_time / (float)animation_time;
+
+	e->frame = a->frame;
+	e->old_frame = a->old_frame;
+	e->lerp = a->lerp;
+	e->back_lerp = 1.0 - a->lerp;
 }
 
 
@@ -163,77 +227,22 @@ static int Cl_AnimateClientEntity_(cl_entity_animation_t *a,
  */
 void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower){
 	const r_md3_t *md3 = (r_md3_t *)upper->model->extra_data;
-	const entity_state_t *s = &e->current;
 
-	// set sane defaults, although we should never need them
-	upper->frame = upper->old_frame = lower->frame = lower->old_frame = 0;
-	upper->lerp = lower->lerp = 1.0;
-	upper->back_lerp = lower->back_lerp = 0.0;
-
-	if((s->animation1 & ~ANIM_TOGGLE_BIT) > md3->num_animations){
-		Com_Warn("Cl_AnimateClientEntity: Invalid animation1: %s: %d\n",
-				upper->model->name, s->animation1 & ~ANIM_TOGGLE_BIT);
-		return;
-	}
-
-	if((s->animation2 & ~ANIM_TOGGLE_BIT) > md3->num_animations){
-		Com_Warn("Cl_AnimateClientEntity: Invalid animation2: %s: %d\n",
-				upper->model->name, s->animation2 & ~ANIM_TOGGLE_BIT);
-		return;
-	}
-
-	const r_md3_animation_t *a1 = &md3->animations[s->animation1 & ~ANIM_TOGGLE_BIT];
-	const r_md3_animation_t *a2 = &md3->animations[s->animation2 & ~ANIM_TOGGLE_BIT];
-
-	int frame;
-	float lerp;
-
-	// do the upper body animation
-	if(s->animation1 != e->prev.animation1){
-		e->animation1.animation = s->animation1 & ~ANIM_TOGGLE_BIT;
+	// do the torso animation
+	if(e->current.animation1 != e->prev.animation1 || !e->animation1.time){
+		//Com_Debug("torso: %d -> %d\n", e->current.animation1, e->prev.animation1);
+		e->animation1.animation = e->current.animation1 & ~ANIM_TOGGLE_BIT;
 		e->animation1.time = cl.time;
 	}
 
-	frame = Cl_AnimateClientEntity_(&e->animation1, a1, &lerp);
-
-	if(frame != e->animation1.frame){
-		e->animation1.old_frame = e->animation1.frame;
-
-		if(frame == -1){  // revert to standing
-			e->animation1.frame = md3->animations[ANIM_TORSO_STAND1].first_frame;
-		}
-		else {
-			e->animation1.frame = frame;
-		}
-	}
-
-	upper->frame = e->animation1.frame;
-	upper->old_frame = e->animation1.old_frame;
-	upper->lerp = lerp;
-	upper->back_lerp = 1.0 - lerp;
+	Cl_AnimateClientEntity_(md3, &e->animation1, upper);
 
 	// and then the legs
-	if(s->animation2 != e->prev.animation2){
-		e->animation2.animation = s->animation2 & ~ANIM_TOGGLE_BIT;
+	if(e->current.animation2 != e->prev.animation2 || !e->animation2.time){
+		//Com_Debug("legs: %d -> %d\n", e->current.animation2, e->prev.animation2);
+		e->animation2.animation = e->current.animation2 & ~ANIM_TOGGLE_BIT;
 		e->animation2.time = cl.time;
 	}
 
-	frame = Cl_AnimateClientEntity_(&e->animation2, a2, &lerp);
-
-	if(frame != e->animation2.frame){
-		e->animation2.old_frame = e->animation2.frame;
-
-		if(frame == -1){  // revert to standing
-			if(e->animation2.animation != ANIM_LEGS_JUMP1)
-				e->animation2.frame = md3->animations[ANIM_LEGS_IDLE].first_frame;
-		}
-		else {
-			e->animation2.frame = frame;
-		}
-	}
-
-	lower->frame = e->animation2.frame;
-	lower->old_frame = e->animation2.old_frame;
-	lower->lerp = lerp;
-	lower->back_lerp = 1.0 - lerp;
+	Cl_AnimateClientEntity_(md3, &e->animation2, lower);
 }

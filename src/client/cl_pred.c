@@ -97,7 +97,7 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 		}
 
 		trace = Cm_TransformedBoxTrace(start, end,
-				mins, maxs, head_node, MASK_PLAYERSOLID,
+				mins, maxs, head_node, MASK_PLAYER_SOLID,
 				ent->origin, angles);
 
 		if(trace.start_solid || trace.fraction < tr->fraction){
@@ -115,7 +115,7 @@ static trace_t Cl_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
 	trace_t t;
 
 	// check against world
-	t = Cm_BoxTrace(start, end, mins, maxs, 0, MASK_PLAYERSOLID);
+	t = Cm_BoxTrace(start, end, mins, maxs, 0, MASK_PLAYER_SOLID);
 	if(t.fraction < 1.0)
 		t.ent = (struct g_edict_s *)1;
 

@@ -243,7 +243,7 @@ static int BrushContents(const map_brush_t * b){
 	}
 
 	// if any side is translucent, mark the contents and change solid to window
-	if(trans & (SURF_ALPHA_TEST | SURF_BLEND33 | SURF_BLEND66)){
+	if(trans & (SURF_ALPHA_TEST | SURF_BLEND_33 | SURF_BLEND_66)){
 		contents |= CONTENTS_TRANSLUCENT;
 		if(contents & CONTENTS_SOLID){
 			contents &= ~CONTENTS_SOLID;
@@ -459,7 +459,7 @@ static void SetImpliedFlags(side_t *side, const char *tex){
 	else if(!strcmp(tex, "common/hint"))
 		side->surf |= SURF_HINT;
 	else if(!strcmp(tex, "common/clip"))
-		side->contents |= CONTENTS_PLAYERCLIP;
+		side->contents |= CONTENTS_PLAYER_CLIP;
 	else if(!strcmp(tex, "common/ladder"))
 		side->contents |= CONTENTS_LADDER;
 
@@ -565,14 +565,14 @@ static void ParseBrush(entity_t *mapent){
 		SetImpliedFlags(side, td.name);
 
 		// translucent objects are automatically classified as detail
-		if(side->surf & (SURF_ALPHA_TEST | SURF_BLEND33 | SURF_BLEND66))
+		if(side->surf & (SURF_ALPHA_TEST | SURF_BLEND_33 | SURF_BLEND_66))
 			side->contents |= CONTENTS_DETAIL;
-		if(side->contents & (CONTENTS_PLAYERCLIP | CONTENTS_MONSTERCLIP))
+		if(side->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP))
 			side->contents |= CONTENTS_DETAIL;
 		if(fulldetail)
 			side->contents &= ~CONTENTS_DETAIL;
 		if(!(side->contents & ((LAST_VISIBLE_CONTENTS - 1)
-					| CONTENTS_PLAYERCLIP | CONTENTS_MONSTERCLIP | CONTENTS_MIST)))
+					| CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP | CONTENTS_MIST)))
 			side->contents |= CONTENTS_SOLID;
 
 		// hints and skips are never detail, and have no content
@@ -640,7 +640,7 @@ static void ParseBrush(entity_t *mapent){
 
 	// brushes that will not be visible at all will never be
 	// used as bsp splitters
-	if(b->contents & (CONTENTS_PLAYERCLIP | CONTENTS_MONSTERCLIP)){
+	if(b->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)){
 		c_clipbrushes++;
 		for(i = 0; i < b->num_sides; i++)
 			b->original_sides[i].texinfo = TEXINFO_NODE;

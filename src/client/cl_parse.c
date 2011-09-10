@@ -421,7 +421,7 @@ static qboolean Cl_IgnoreChatMessage(const char *msg){
  * Cl_ShowNet
  */
 static void Cl_ShowNet(const char *s){
-	if(cl_show_net_messages->value >= 2)
+	if(cl_show_net_messages->integer >= 2)
 		Com_Print("%3zd: %s\n", net_message.read - 1, s);
 }
 
@@ -435,9 +435,9 @@ void Cl_ParseServerMessage(void){
 	char *s;
 	int i;
 
-	if(cl_show_net_messages->value == 1)
+	if(cl_show_net_messages->integer == 1)
 		Com_Print(Q2W_SIZE_T" ", net_message.size);
-	else if(cl_show_net_messages->value >= 2)
+	else if(cl_show_net_messages->integer >= 2)
 		Com_Print("------------------\n");
 
 	bytes_this_second += net_message.size;
@@ -457,7 +457,7 @@ void Cl_ParseServerMessage(void){
 			break;
 		}
 
-		if(cl_show_net_messages->value >= 2 && svc_strings[cmd])
+		if(cl_show_net_messages->integer >= 2 && svc_strings[cmd])
 			Cl_ShowNet(svc_strings[cmd]);
 
 		switch(cmd){

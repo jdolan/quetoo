@@ -557,7 +557,7 @@ void G_ClientScoreboard(g_edict_t *client);
 // g_utils.c
 qboolean G_KillBox(g_edict_t *ent);
 void G_ProjectSpawn(g_edict_t *ent);
-void G_SetupProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org);
+void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org);
 g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match);
 g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, float rad);
 g_edict_t *G_PickTarget(char *target_name);
@@ -574,6 +574,7 @@ g_team_t *G_SmallestTeam(void);
 g_client_t *G_ClientByName(char *name);
 qboolean G_IsStationary(g_edict_t *ent);
 void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, qboolean restart);
+qboolean G_IsAnimation(g_edict_t *ent, entity_animation_t anim);
 g_edict_t *G_Spawn(void);
 void G_InitEdict(g_edict_t *e);
 void G_FreeEdict(g_edict_t *e);

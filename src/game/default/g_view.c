@@ -193,6 +193,9 @@ static void G_ClientWaterLevel(g_edict_t *ent){
  */
 static void G_ClientAnimation(g_edict_t *ent){
 
+	if(ent->sv_flags & SVF_NO_CLIENT)
+		return;
+
 	if(ent->ground_entity){  // on the ground
 
 		if(ent->water_level < 2){  // not swimming
@@ -227,7 +230,7 @@ static void G_ClientAnimation(g_edict_t *ent){
 
 					if(DotProduct(velocity, forward) < 0.0)
 						G_SetAnimation(ent, ANIM_LEGS_BACK, false);
-					else if(speed < 150.0)
+					else if(speed < 200.0)
 						G_SetAnimation(ent, ANIM_LEGS_WALK, false);
 					else
 						G_SetAnimation(ent, ANIM_LEGS_RUN, false);
@@ -239,7 +242,7 @@ static void G_ClientAnimation(g_edict_t *ent){
 		}
 	}
 	else {
-		if((ent->s.animation2 & ~ANIM_TOGGLE_BIT) != ANIM_LEGS_JUMP1)
+		if(!G_IsAnimation(ent, ANIM_LEGS_JUMP1))
 			G_SetAnimation(ent, ANIM_LEGS_JUMP1, false);
 	}
 }

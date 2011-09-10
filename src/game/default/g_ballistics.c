@@ -620,7 +620,7 @@ static void G_LightningProjectile_Think(g_edict_t *self){
 	}
 
 	// re-calculate end points based on owner's movement
-	G_SetupProjectile(self->owner, forward, right, up, start);
+	G_InitProjectile(self->owner, forward, right, up, start);
 
 	if(G_ImmediateWall(self->owner, forward))  // resolve start
 		VectorCopy(self->owner->s.origin, start);

@@ -277,7 +277,7 @@ void G_WeaponThink(g_edict_t *ent){
 static void G_FireShotgun_(g_edict_t *ent){
 	vec3_t forward, right, up, org;
 
-	G_SetupProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org);
 
 	G_ShotgunProjectiles(ent, org, forward, 6, 4, 1000, 500, 12, MOD_SHOTGUN);
 
@@ -301,13 +301,13 @@ static void G_FireSuperShotgun_(g_edict_t *ent){
 
 	ent->s.angles[YAW] -= 5.0;
 
-	G_SetupProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org);
 
 	G_ShotgunProjectiles(ent, org, forward, 4, 4, 1000, 500, 12, MOD_SUPER_SHOTGUN);
 
 	ent->s.angles[YAW] += 10.0;
 
-	G_SetupProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org);
 
 	G_ShotgunProjectiles(ent, org, forward, 4, 4, 100, 500, 12, MOD_SUPER_SHOTGUN);
 
@@ -331,7 +331,7 @@ void G_FireSuperShotgun(g_edict_t *ent){
 static void G_FireMachinegun_(g_edict_t *ent){
 	vec3_t forward, right, up, org;
 
-	G_SetupProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org);
 
 	G_BulletProjectile(ent, org, forward, 8, 4, 100, 200, MOD_MACHINEGUN);
 
@@ -353,7 +353,7 @@ void G_FireMachinegun(g_edict_t *ent){
 static void G_FireGrenadeLauncher_(g_edict_t *ent){
 	vec3_t forward, right, up, org;
 
-	G_SetupProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org);
 
 	G_GrenadeProjectile(ent, org, forward, 900, 100, 100, 185.0, 2.0);
 
@@ -374,7 +374,7 @@ void G_FireGrenadeLauncher(g_edict_t *ent){
 static void G_FireRocketLauncher_(g_edict_t *ent){
 	vec3_t forward, right, up, org;
 
-	G_SetupProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org);
 
 	G_RocketProjectile(ent, org, forward, 1250, 120, 120, 150.0);
 
@@ -396,7 +396,7 @@ void G_FireRocketLauncher(g_edict_t *ent){
 static void G_FireHyperblaster_(g_edict_t *ent){
 	vec3_t forward, right, up, org;
 
-	G_SetupProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org);
 
 	G_HyperblasterProjectile(ent, org, forward, 2000, 16, 6);
 
@@ -418,7 +418,7 @@ void G_FireHyperblaster(g_edict_t *ent){
 static void G_FireLightning_(g_edict_t *ent){
 	vec3_t forward, right, up, org;
 
-	G_SetupProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org);
 
 	G_LightningProjectile(ent, org, forward, 10, 12);
 
@@ -444,7 +444,7 @@ void G_FireLightning(g_edict_t *ent){
 static void G_FireRailgun_(g_edict_t *ent){
 	vec3_t forward, right, up, org;
 
-	G_SetupProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org);
 
 	G_RailgunProjectile(ent, org, forward, 120, 80);
 
@@ -466,7 +466,7 @@ void G_FireRailgun(g_edict_t *ent){
 static void G_FireBfg_(g_edict_t *ent){
 	vec3_t forward, right, up, org;
 
-	G_SetupProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org);
 
 	G_BfgProjectiles(ent, org, forward, 800, 100, 100, 1024.0);
 

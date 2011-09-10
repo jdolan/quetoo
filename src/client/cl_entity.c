@@ -52,6 +52,7 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from,
 		// duplicate the current state so interpolation works
 		ent->prev = *to;
 		VectorCopy(to->old_origin, ent->prev.origin);
+		ent->animation1.time = ent->animation2.time = 0;
 	}
 	else {  // shuffle the last state to previous
 		ent->prev = ent->current;
@@ -104,7 +105,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 		while(old_number < number){  // one or more entities from old_frame are unchanged
 
-			if(cl_show_net_messages->value == 3)
+			if(cl_show_net_messages->integer == 3)
 				Com_Print("   unchanged: %i\n", old_number);
 
 			Cl_DeltaEntity(new_frame, old_state, old_number, 0);
@@ -121,7 +122,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 		if(bits & U_REMOVE){  // the entity present in the old_frame, and is not in the current frame
 
-			if(cl_show_net_messages->value == 3)
+			if(cl_show_net_messages->integer == 3)
 				Com_Print("   remove: %i\n", number);
 
 			if(old_number != number)
@@ -140,7 +141,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 		if(old_number == number){  // delta from previous state
 
-			if(cl_show_net_messages->value == 3)
+			if(cl_show_net_messages->integer == 3)
 				Com_Print("   delta: %i\n", number);
 
 			Cl_DeltaEntity(new_frame, old_state, number, bits);
@@ -158,7 +159,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 		if(old_number > number){  // delta from baseline
 
-			if(cl_show_net_messages->value == 3)
+			if(cl_show_net_messages->integer == 3)
 				Com_Print("   baseline: %i\n", number);
 
 			Cl_DeltaEntity(new_frame, &cl.entities[number].baseline, number, bits);
@@ -169,7 +170,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 	// any remaining entities in the old frame are copied over
 	while(old_number != 0xffff){  // one or more entities from the old packet are unchanged
 
-		if(cl_show_net_messages->value == 3)
+		if(cl_show_net_messages->integer == 3)
 			Com_Print("   unchanged: %i\n", old_number);
 
 		Cl_DeltaEntity(new_frame, old_state, old_number, 0);
@@ -280,7 +281,7 @@ void Cl_ParseFrame(void){
 
 	cl.surpress_count = Msg_ReadByte(&net_message);
 
-	if(cl_show_net_messages->value == 3)
+	if(cl_show_net_messages->integer == 3)
 		Com_Print ("   frame:%i  delta:%i\n", cl.frame.server_frame, cl.frame.delta_frame);
 
 	if(cl.frame.delta_frame <= 0){  // uncompressed frame
@@ -573,12 +574,12 @@ void Cl_AddEntities(cl_frame_t *frame){
 		// beams have two origins, most entities have just one
 		if(s->effects & EF_BEAM){
 
-			// skin_num is overridden to specify owner of the beam
+			// client is overridden to specify owner of the beam
 			if((s->client == cl.player_num + 1) && !cl_third_person->value){
 				// we own this beam (lightning, grapple, etc..)
 				// project start position in front of view origin
 				VectorCopy(r_view.origin, start);
-				VectorMA(start, 24.0, r_view.forward, start);
+				VectorMA(start, 30.0, r_view.forward, start);
 				VectorMA(start, 6.0, r_view.right, start);
 				start[2] -= 10.0;
 			}

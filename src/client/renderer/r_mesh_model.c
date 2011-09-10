@@ -90,6 +90,12 @@ static void R_LoadMd3Animations(r_model_t *mod){
 			if(md3->num_animations >= ANIM_LEGS_WALKCR)
 				a->first_frame -= skip;
 
+			if(!a->num_frames)
+				Com_Warn("R_LoadMd3Animations: %s: No frames for %d\n", mod->name, md3->num_animations);
+
+			if(!a->hz)
+				Com_Warn("R_LoadMd3Animations: %s: No hz for %d\n", mod->name, md3->num_animations);
+
 			Com_Debug("R_LoadMd3Animations: Parsed %d: %d %d %d %d\n",
 					md3->num_animations, a->first_frame, a->num_frames,
 					a->looped_frames, a->hz);

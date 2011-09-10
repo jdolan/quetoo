@@ -56,7 +56,7 @@ void G_ProjectSpawn(g_edict_t *ent){
  *
  * Determines the initial position and directional vectors of a projectile.
  */
-void G_SetupProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org){
+void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org){
 
 	AngleVectors(ent->s.angles, forward, right, up);
 
@@ -362,7 +362,7 @@ g_edict_t *G_Spawn(void){
 	int i;
 	g_edict_t *e;
 
-	e = &g_game.edicts[(int)sv_max_clients->integer + 1];
+	e = &g_game.edicts[sv_max_clients->integer + 1];
 	for(i = sv_max_clients->integer + 1; i < ge.num_edicts; i++, e++){
 		if(!e->in_use){
 			G_InitEdict(e);
@@ -458,7 +458,7 @@ qboolean G_KillBox(g_edict_t *ent){
 	trace_t tr;
 
 	while(true){
-		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, NULL, MASK_PLAYERSOLID);
+		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, NULL, MASK_PLAYER_SOLID);
 		if(!tr.ent)
 			break;
 
@@ -688,18 +688,12 @@ qboolean G_IsStationary(g_edict_t *ent){
 
 
 /*
- * G_SetAnimation
+ * G_SetAnimation_
  *
- * Assigns the specified animation to the correct member on the specified
- * entity. If requested, the current animation will be restarted.
+ * Writes the specified animation byte, toggling the high bit to restart the
+ * sequence if desired and necessary.
  */
-void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, qboolean restart){
-	byte *dest;
-
-	if(anim < ANIM_LEGS_WALKCR)
-		dest = &ent->s.animation1;
-	else
-		dest = &ent->s.animation2;
+static void G_SetAnimation_(byte *dest, entity_animation_t anim, qboolean restart){
 
 	if(restart){
 		if(*dest == anim){
@@ -708,5 +702,47 @@ void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, qboolean restart){
 	}
 
 	*dest = anim;
+}
+
+
+/*
+ * G_SetAnimation
+ *
+ * Assigns the specified animation to the correct member(s) on the specified
+ * entity. If requested, the current animation will be restarted.
+ */
+void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, qboolean restart){
+
+	// certain sequences go to both torso and leg animations
+
+	if(anim < ANIM_TORSO_GESTURE){
+		G_SetAnimation_(&ent->s.animation1, anim, restart);
+		G_SetAnimation_(&ent->s.animation2, anim, restart);
+		return;
+	}
+
+	// while most go to one or the other
+
+	if(anim < ANIM_LEGS_WALKCR)
+		G_SetAnimation_(&ent->s.animation1, anim, restart);
+	else
+		G_SetAnimation_(&ent->s.animation2, anim, restart);
+}
+
+
+/*
+ * G_IsAnimation
+ *
+ * Returns true if the entity is currently using the specified animation.
+ */
+qboolean G_IsAnimation(g_edict_t *ent, entity_animation_t anim){
+	byte a;
+
+	if(anim < ANIM_LEGS_WALK)
+		a = ent->s.animation1;
+	else
+		a = ent->s.animation2;
+
+	return (a & ~ANIM_TOGGLE_BIT) == anim;
 }
 

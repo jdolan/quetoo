@@ -898,7 +898,7 @@ static void R_LoadBspSurfacesArrays_(r_model_t *mod){
 			continue;
 		}
 
-		if(surf->texinfo->flags & (SURF_BLEND33 | SURF_BLEND66)){
+		if(surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)){
 			if(surf->texinfo->flags & SURF_WARP)
 				mod->blend_warp_surfaces->count++;
 			else
@@ -942,7 +942,7 @@ static void R_LoadBspSurfacesArrays_(r_model_t *mod){
 			continue;
 		}
 
-		if(surf->texinfo->flags & (SURF_BLEND33 | SURF_BLEND66)){
+		if(surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)){
 			if(surf->texinfo->flags & SURF_WARP)
 				R_SurfaceToSurfaces(mod->blend_warp_surfaces, surf);
 			else

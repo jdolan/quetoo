@@ -360,7 +360,7 @@ static void G_WeaponLast_f(g_edict_t *ent){
  */
 static void G_Kill_f(g_edict_t *ent){
 
-	if((g_level.time - ent->client->respawn_time) < 1)
+	if((g_level.time - ent->client->respawn_time) < 1.0)
 		return;
 
 	if(ent->client->locals.spectator)

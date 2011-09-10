@@ -217,6 +217,62 @@ static void G_ClientPain(g_edict_t *self, g_edict_t *other, int damage, int knoc
 
 
 /*
+ * G_ClientCorpse_think
+ */
+static void G_ClientCorpse_think(g_edict_t *ent){
+	const float age = g_level.time - ent->timestamp;
+
+	if(age > 5.0){
+		G_FreeEdict(ent);
+		return;
+	}
+
+	if(age > 2.0 && ent->ground_entity){
+		ent->s.origin[2] -= 1.0;
+	}
+
+	ent->next_think = g_level.time + 0.1;
+}
+
+
+/*
+ * G_ClientCorpse
+ */
+static void G_ClientCorpse(g_edict_t *self){
+	const float f = frand();
+	g_edict_t *ent = G_Spawn();
+
+	ent->class_name = "corpse";
+	ent->move_type = MOVE_TYPE_TOSS;
+	ent->solid = SOLID_BOX;
+
+	VectorScale(PM_MINS, PM_SCALE, ent->mins);
+	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
+
+	VectorCopy(self->velocity, ent->velocity);
+
+	memcpy(&ent->s, &self->s, sizeof(ent->s));
+	ent->s.number = ent - g_game.edicts;
+
+	ent->s.model2 = 0;
+	ent->s.model3 = 0;
+	ent->s.model4 = 0;
+
+	if(f < 0.33)
+		G_SetAnimation(ent, ANIM_BOTH_DEATH1, true);
+	else if(f < 0.66)
+		G_SetAnimation(ent, ANIM_BOTH_DEATH2, true);
+	else
+		G_SetAnimation(ent, ANIM_BOTH_DEATH3, true);
+
+	ent->think = G_ClientCorpse_think;
+	ent->next_think = g_level.time + 1.0;
+
+	gi.LinkEntity(ent);
+}
+
+
+/*
  * G_ClientDie
  *
  * A client's health is less than or equal to zero. Render death effects, drop
@@ -224,6 +280,8 @@ static void G_ClientPain(g_edict_t *self, g_edict_t *other, int damage, int knoc
  * state with the scoreboard shown.
  */
 static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage, vec3_t point){
+
+	G_ClientCorpse(self);
 
 	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
 
@@ -625,13 +683,11 @@ static void G_ClientRespawn_(g_edict_t *ent){
 	ent->take_damage = true;
 	ent->move_type = MOVE_TYPE_WALK;
 	ent->view_height = ent->mins[2] + (height * 0.75);
-	ent->in_use = true;
 	ent->class_name = "player";
 	ent->mass = 200.0;
 	ent->solid = SOLID_BOX;
 	ent->dead = false;
-	ent->clip_mask = MASK_PLAYERSOLID;
-	ent->model = "players/qforcer/upper.md3";
+	ent->clip_mask = MASK_PLAYER_SOLID;
 	ent->pain = G_ClientPain;
 	ent->die = G_ClientDie;
 	ent->water_level = 0;
@@ -660,7 +716,7 @@ static void G_ClientRespawn_(g_edict_t *ent){
 	ent->s.model4 = 0;
 	ent->s.client = ent - g_game.edicts - 1;
 
-	G_SetAnimation(ent, ANIM_TORSO_ATTACK2, true);
+	G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
 	G_SetAnimation(ent, ANIM_LEGS_IDLE, true);
 
 	VectorCopy(spawn_origin, ent->s.origin);
@@ -992,9 +1048,9 @@ static trace_t G_ClientMoveTrace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t 
 	g_edict_t *self = g_level.current_entity;
 
 	if(g_level.current_entity->health > 0)
-		return gi.Trace(start, mins, maxs, end, self, MASK_PLAYERSOLID);
+		return gi.Trace(start, mins, maxs, end, self, MASK_PLAYER_SOLID);
 	else
-		return gi.Trace(start, mins, maxs, end, self, MASK_DEADSOLID);
+		return gi.Trace(start, mins, maxs, end, self, MASK_DEAD_SOLID);
 }
 
 
