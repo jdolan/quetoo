@@ -453,17 +453,33 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 /*
  * Cl_WeaponKick
  *
- * Calculates a kick amplitude based on our player's attack animation state.
+ * Calculates a kick offset and angles based on our player's animation state.
  */
-static float Cl_WeaponKick(cl_entity_t *e){
+static void Cl_WeaponKick(cl_entity_t *e, vec3_t offset, vec3_t angles){
+	const vec3_t drop_raise_offset = {-4.0, -4.0, -4.0};
+	const vec3_t drop_raise_angles = {25.0, -35.0, 2.0};
 
-	if(e->animation1.animation != ANIM_TORSO_ATTACK1)
-		return 0.0;
+	const vec3_t kick_offset = {-3.0, 0.0, 1.0};
+	const vec3_t kick_angles = {-12.0, 0.0, 0.0};
 
-	if(e->animation1.fraction > 1.0)
-		return 0.0;
+	VectorClear(offset);
+	VectorClear(angles);
 
-	return (e->animation1.fraction - 1.0);
+	if(e->animation1.animation == ANIM_TORSO_DROP){
+		VectorScale(drop_raise_offset, e->animation1.fraction, offset);
+		VectorScale(drop_raise_angles, e->animation1.fraction, angles);
+	}
+	else if(e->animation1.animation == ANIM_TORSO_RAISE){
+		VectorScale(drop_raise_offset, 1.0 - e->animation1.fraction, offset);
+		VectorScale(drop_raise_angles, 1.0 - e->animation1.fraction, angles);
+	}
+	else if(e->animation1.animation == ANIM_TORSO_ATTACK1){
+		VectorScale(kick_offset, 1.0 - e->animation1.fraction, offset);
+		VectorScale(kick_angles, 1.0 - e->animation1.fraction, angles);
+	}
+
+	VectorScale(offset, cl_bob->value, offset);
+	VectorScale(angles, cl_bob->value, angles);
 }
 
 
@@ -473,8 +489,8 @@ static float Cl_WeaponKick(cl_entity_t *e){
 static void Cl_AddWeapon(cl_entity_t *e, r_entity_t *self){
 	static r_entity_t ent;
 	static r_lighting_t lighting;
+	vec3_t offset, angles;
 	int w;
-	float kick;
 
 	if(!cl_weapon->value)
 		return;
@@ -495,23 +511,23 @@ static void Cl_AddWeapon(cl_entity_t *e, r_entity_t *self){
 	if(!w)  // no weapon, e.g. level intermission
 		return;
 
-	kick = Cl_WeaponKick(e);
-
 	memset(&ent, 0, sizeof(ent));
 
+	Cl_WeaponKick(e, offset, angles);
+
+	VectorCopy(r_view.origin, ent.origin);
+
+	VectorMA(ent.origin, offset[2], r_view.up, ent.origin);
+	VectorMA(ent.origin, offset[1], r_view.right, ent.origin);
+	VectorMA(ent.origin, offset[0], r_view.forward, ent.origin);
+
+	VectorAdd(r_view.angles, angles, ent.angles);
+
 	ent.effects = EF_WEAPON | EF_NO_SHADOW;
-
-	VectorMA(r_view.origin, kick * 4.0, r_view.forward, ent.origin);
-
-	VectorCopy(r_view.angles, ent.angles);
-	ent.angles[PITCH] -= kick * -15.0;
 
 	VectorCopy(self->shell, ent.shell);
 
 	ent.model = cl.model_draw[w];
-
-	if(!ent.model)  // for development
-		return;
 
 	ent.lerp = ent.scale = 1.0;
 
