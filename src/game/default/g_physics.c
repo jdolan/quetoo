@@ -370,7 +370,7 @@ static qboolean G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove){
 		return false;
 	}
 
-	//FIXME: is there a better way to handle this?
+	// FIXME: is there a better way to handle this?
 	// see if anything we moved has touched a trigger
 	for(p = pushed_p - 1; p >= pushed; p--){
 		if(p->ent->in_use && p->ent->client && p->ent->health > 0)

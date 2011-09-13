@@ -58,7 +58,7 @@ void G_ProjectSpawn(g_edict_t *ent){
  */
 void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org){
 
-	AngleVectors(ent->s.angles, forward, right, up);
+	AngleVectors(ent->client->angles, forward, right, up);
 
 	VectorCopy(ent->s.origin, org);
 
