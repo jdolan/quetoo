@@ -339,6 +339,7 @@ void R_ResetArrayState(void);
 void R_LoadBspLights(void);
 
 // r_bsp.c
+const char *R_WorldspawnValue(const char *key);
 qboolean R_CullBox(const vec3_t mins, const vec3_t maxs);
 qboolean R_CullBspModel(const r_entity_t *e);
 void R_DrawBspModel(const r_entity_t *e);
@@ -425,7 +426,6 @@ void R_CreateSurfaceLightmap(r_bsp_surface_t *surf);
 void R_EndBuildingLightmaps(void);
 
 // r_main.c
-const char *R_WorldspawnValue(const char *key);
 void R_Trace(const vec3_t start, const vec3_t end, float size, int mask);
 void R_Init(void);
 void R_Shutdown(void);

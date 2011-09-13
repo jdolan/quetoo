@@ -38,12 +38,9 @@ static int Thread_Run(void *p){
 
 	while(!thread_pool.shutdown){
 
-		if(t->function){  // invoke the user function
+		if(t->state == THREAD_RUN){  // invoke the user function
 
 			t->function(t->data);
-
-			t->function = NULL;
-			t->data = NULL;
 
 			t->state = THREAD_DONE;
 		}
@@ -75,7 +72,7 @@ thread_t *Thread_Create(void (function)(void *data), void *data){
 				t->function = function;
 				t->data = data;
 
-				t->state = THREAD_RUNNING;
+				t->state = THREAD_RUN;
 				break;
 			}
 		}
@@ -104,7 +101,7 @@ void Thread_Wait(thread_t *t){
 	if(!t)
 		return;
 
-	while(t->state == THREAD_RUNNING){
+	while(t->state == THREAD_RUN){
 		usleep(0);
 	}
 
@@ -121,10 +118,13 @@ void Thread_Shutdown(void){
 	thread_t *t;
 	int i;
 
+	if(!thread_pool.num_threads)
+		return;
+
 	thread_pool.shutdown = true;  // inform threads to quit
 
 	for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
-		SDL_WaitThread(t->thread, NULL);
+		SDL_KillThread(t->thread);
 	}
 
 	Z_Free(thread_pool.threads);
@@ -146,12 +146,22 @@ void Thread_Init(void){
 
 	threads = Cvar_Get("threads", "4", CVAR_ARCHIVE, "The number of threads (cores) to utilize");
 
+	if(threads->integer > MAX_THREADS)
+		Cvar_SetValue("threads", MAX_THREADS);
+	else if(threads->integer < 0)
+		Cvar_SetValue("threads", 0);
+
+	threads->modified = false;
+
 	thread_pool.num_threads = threads->integer;
-	thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
 
-	for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
-		t->thread = SDL_CreateThread(Thread_Run, t);
+	if(thread_pool.num_threads){
+		thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
+
+		for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
+			t->thread = SDL_CreateThread(Thread_Run, t);
+		}
+
+		thread_pool.mutex = SDL_CreateMutex();
 	}
-
-	thread_pool.mutex = SDL_CreateMutex();
 }

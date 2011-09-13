@@ -100,28 +100,6 @@ void (*R_DrawMeshModel)(const r_entity_t *e);
 
 
 /*
- * R_WorldspawnValue
- *
- * Parses values from the worldspawn entity definition.
- */
-const char *R_WorldspawnValue(const char *key){
-	const char *c, *v;
-
-	c = strstr(Cm_EntityString(), va("\"%s\"", key));
-
-	if(c){
-		v = Com_Parse(&c);  // parse the key itself
-		v = Com_Parse(&c);  // parse the value
-	}
-	else {
-		v = NULL;
-	}
-
-	return v;
-}
-
-
-/*
  * R_Trace
  *
  * Traces to world and BSP models.  If a BSP entity is hit, it is saved as
@@ -263,6 +241,8 @@ void R_DrawFrame(void){
 	// wait for the client to populate our lights array
 
 	Thread_Wait(r_view.thread);
+
+	r_view.update = false;
 
 	r_view.thread = Thread_Create(R_MarkLights, NULL);
 
@@ -421,8 +401,6 @@ void R_EndFrame(void){
 	R_FlushCapture();
 
 	SDL_GL_SwapBuffers();  // swap buffers
-
-	r_view.update = false;
 }
 
 

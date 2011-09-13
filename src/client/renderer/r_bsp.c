@@ -26,6 +26,28 @@ vec3_t r_bsp_model_org;  // relative to r_view.origin
 
 
 /*
+ * R_WorldspawnValue
+ *
+ * Parses values from the worldspawn entity definition.
+ */
+const char *R_WorldspawnValue(const char *key){
+	const char *c, *v;
+
+	c = strstr(Cm_EntityString(), va("\"%s\"", key));
+
+	if(c){
+		v = Com_Parse(&c);  // parse the key itself
+		v = Com_Parse(&c);  // parse the value
+	}
+	else {
+		v = NULL;
+	}
+
+	return v;
+}
+
+
+/*
  * R_CullBox
  *
  * Returns true if the specified bounding box is completely culled by the
@@ -77,9 +99,7 @@ qboolean R_CullBspModel(const r_entity_t *e){
  * R_DrawBspModelSurfaces
  */
 static void R_DrawBspModelSurfaces(const r_entity_t *e){
-	c_plane_t *plane;
 	r_bsp_surface_t *surf;
-	float dot;
 	int i;
 
 	// temporarily swap the view frame so that the surface drawing
@@ -91,8 +111,8 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e){
 	surf = &e->model->surfaces[e->model->first_model_surface];
 
 	for(i = 0; i < e->model->num_model_surfaces; i++, surf++){
-
-		plane = surf->plane;
+		const c_plane_t *plane = surf->plane;
+		float dot;
 
 		// find which side of the surf we are on
 		if(AXIAL(plane))

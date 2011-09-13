@@ -27,9 +27,11 @@
 
 #include "cvar.h"
 
+#define MAX_THREADS 16
+
 typedef enum thread_state_s {
 	THREAD_IDLE,
-	THREAD_RUNNING,
+	THREAD_RUN,
 	THREAD_DONE
 } thread_state_t;
 
@@ -39,8 +41,6 @@ typedef struct thread_s {
 	void (*function)(void *data);
 	void *data;
 } thread_t;
-
-#define MAX_THREADS 16
 
 typedef struct thread_pool_s {
 	thread_t *threads;

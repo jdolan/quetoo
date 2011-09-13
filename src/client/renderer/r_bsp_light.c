@@ -26,7 +26,8 @@
  *
  * Static light sources provide directional diffuse lighting for mesh models.
  * There are several radius scale factors for the types of light sources we
- * will encounter:
+ * will encounter. The goal is to normalize all light source intensities to
+ * that of standard "point" lights (light entities in the map editor).
  *
  * Surface light source radius is dependent upon surface area.  For the vast
  * majority of surface lights, this means an aggressive up-scale yields the
@@ -34,11 +35,7 @@
  *
  * Sky surfaces are also considered light sources when sun lighting was enabled
  * during the light compilation of the level.  Given that sky surface area is
- * typically quite large, we do not scale these as we do for "regular" surface
- * lights.
- *
- * Lastly, point lights are also scaled up so that they contribute to entity
- * lighting the vast majority of the time.
+ * typically quite large, their surface area coefficient actually scales down.
  */
 
 #define BSP_LIGHT_AMBIENT_SCALE 2.0
