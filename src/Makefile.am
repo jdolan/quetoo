@@ -23,6 +23,7 @@ noinst_HEADERS = \
 	pmove.h \
 	shared.h \
 	sys.h \
+	thread.h \
 	win32.h
 
 noinst_LTLIBRARIES = \
@@ -37,6 +38,7 @@ noinst_LTLIBRARIES = \
 	libpmove.la \
 	libshared.la \
 	libsys.la \
+	libthread.la \
 	libwin32.la
 
 libcmodel_la_SOURCES = \
@@ -138,6 +140,13 @@ libsys_la_SOURCES = \
 libsys_la_CFLAGS = \
 	-pipe \
 	@BASE_CFLAGS@
+
+libthread_la_SOURCES = \
+	thread.c
+libthread_la_CFLAGS = \
+	-pipe \
+	@BASE_CFLAGS@ \
+	@SDL_CFLAGS@
 
 if WINDOWS
 

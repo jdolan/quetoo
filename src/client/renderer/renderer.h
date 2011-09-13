@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "thread.h"
 #include "r_gl.h"
 #include "r_image.h"
 #include "r_matrix.h"
@@ -200,6 +201,8 @@ typedef struct r_view_s {
 
 	r_sustained_light_t sustained_lights[MAX_LIGHTS];
 
+	thread_t *thread;  // client thread which populates view
+
 	trace_t trace;  // occlusion testing
 	r_entity_t *trace_ent;
 
@@ -312,7 +315,6 @@ extern cvar_t *r_soften;
 extern cvar_t *r_specular;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_texture_mode;
-extern cvar_t *r_threads;
 extern cvar_t *r_vertex_buffers;
 extern cvar_t *r_warp;
 extern cvar_t *r_width;
@@ -391,7 +393,7 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs);
 void R_AddLight(const vec3_t origin, float radius, const vec3_t color);
 void R_AddSustainedLight(const vec3_t origin, float radius, const vec3_t color, float sustain);
 void R_ResetLights(void);
-void R_MarkLights(void);
+void R_MarkLights(void *data);
 void R_ShiftLights(const vec3_t offset);
 void R_EnableLights(int mask);
 void R_EnableLightsByRadius(const vec3_t p);
@@ -468,30 +470,5 @@ void R_DrawOpaqueSurfaces_pro(const r_bsp_surfaces_t *surfs);
 void R_DrawAlphaTestSurfaces_pro(const r_bsp_surfaces_t *surfs);
 void R_DrawBlendSurfaces_pro(const r_bsp_surfaces_t *surfs);
 void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs);
-
-// r_thread.c
-typedef enum {
-	THREAD_DEAD,
-	THREAD_IDLE,
-	THREAD_WAIT,
-	THREAD_RUN,
-} r_thread_state_t;
-
-typedef struct r_thread_s {
-	char name[32];
-	SDL_Thread *thread;
-	r_thread_state_t state;
-	int wait_count;
-} r_thread_t;
-
-extern r_thread_t r_thread_pool[2];
-
-#define r_bsp_thread r_thread_pool[0]
-#define r_capture_thread r_thread_pool[1]
-
-void R_WaitForThread(r_thread_t *t);
-void R_UpdateThreads(int mask);
-void R_ShutdownThreads(void);
-void R_InitThreads(void);
 
 #endif /*__RENDERER_H__*/

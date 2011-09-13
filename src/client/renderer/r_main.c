@@ -84,7 +84,6 @@ cvar_t *r_soften;
 cvar_t *r_specular;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
-cvar_t *r_threads;
 cvar_t *r_vertex_buffers;
 cvar_t *r_warp;
 cvar_t *r_width;
@@ -101,7 +100,7 @@ void (*R_DrawMeshModel)(const r_entity_t *e);
 
 
 /*
- * R_WordspawnValue
+ * R_WorldspawnValue
  *
  * Parses values from the worldspawn entity definition.
  */
@@ -257,22 +256,21 @@ void R_DrawFrame(void){
 
 	R_GetError();
 
-	if(r_bsp_thread.state > THREAD_DEAD){
-		R_WaitForThread(&r_bsp_thread);
-	}
-	else {
-		R_UpdateFrustum();
+	R_MarkLeafs();
 
-		R_MarkLeafs();
+	R_MarkSurfaces();
 
-		R_MarkSurfaces();
-	}
+	// wait for the client to populate our lights array
 
-	R_MarkLights();
+	Thread_Wait(r_view.thread);
+
+	r_view.thread = Thread_Create(R_MarkLights, NULL);
 
 	R_EnableFog(true);
 
 	R_DrawSkyBox();
+
+	Thread_Wait(r_view.thread);
 
 	R_DrawOpaqueSurfaces(r_world_model->opaque_surfaces);
 
@@ -405,12 +403,6 @@ void R_BeginFrame(void){
 		r_render_mode->modified = false;
 	}
 
-	// threads
-	if(r_threads->modified){
-		R_UpdateThreads(r_threads->integer);
-		r_threads->modified = false;
-	}
-
 	R_Clear();
 }
 
@@ -420,20 +412,13 @@ void R_BeginFrame(void){
  */
 void R_EndFrame(void){
 
-	if(r_capture_thread.state > THREAD_DEAD){
-		R_WaitForThread(&r_capture_thread);
+	R_UpdateCapture();
 
-		R_UpdateCapture();
-
-		r_capture_thread.state = THREAD_RUN;
-	}
-	else {
-		R_UpdateCapture();
-
-		R_FlushCapture();
-	}
+	R_FlushCapture();
 
 	SDL_GL_SwapBuffers();  // swap buffers
+
+	r_view.update = false;
 }
 
 
@@ -711,7 +696,6 @@ static void R_InitLocal(void){
 	r_specular = Cvar_Get("r_specular", "1.0", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects");
 	r_swap_interval = Cvar_Get("r_swap_interval", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization (v-sync)");
 	r_texture_mode = Cvar_Get("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE, "Specifies the active texture filtering mode");
-	r_threads = Cvar_Get("r_threads", "0", CVAR_ARCHIVE, "Controls the threaded renderer");
 	r_vertex_buffers = Cvar_Get("r_vertex_buffers", "1", CVAR_ARCHIVE, "Controls the use of vertex buffer objects (VBO)");
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
 	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
@@ -794,8 +778,6 @@ void R_Init(void){
 	if(!R_InitGlExtensions())
 		Com_Error(ERR_FATAL, "Failed to resolve required OpenGL extensions.");
 
-	R_InitThreads();
-
 	R_SetDefaultState();
 
 	R_InitPrograms();
@@ -837,8 +819,6 @@ void R_Shutdown(void){
 	R_ShutdownImages();
 
 	R_ShutdownPrograms();
-
-	R_ShutdownThreads();
 
 	R_ShutdownContext();
 }

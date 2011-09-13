@@ -40,8 +40,7 @@ librenderer_la_SOURCES = \
 	r_sky.c \
 	r_state.c \
 	r_surface.c \
-	r_surface_pro.c \
-	r_thread.c
+	r_surface_pro.c
 
 librenderer_la_CFLAGS = \
 	-I.. -I../.. \

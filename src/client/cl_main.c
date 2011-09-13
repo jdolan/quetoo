@@ -554,7 +554,7 @@ void Cl_ClearState(void){
 
 	R_InitView();
 
-	// wipe the entire cl structure
+	// wipe the entire cl_client_t structure
 	memset(&cl, 0, sizeof(cl));
 
 	Sb_Clear(&cls.netchan.message);
@@ -1169,7 +1169,7 @@ void Cl_Frame(int msec){
 		packet_frame = false;  // enforce a soft cap of 100pps
 
 	if(cls.state == ca_connected && cls.packet_delta < 50)
-		packet_frame = false;  // dont spam the server while downloading
+		packet_frame = false;  // don't flood the server while downloading
 
 	if(cls.state <= ca_disconnected && !Com_ServerState()){
 		usleep(1000);  // idle at console

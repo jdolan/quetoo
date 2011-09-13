@@ -101,7 +101,7 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
 	j = k = l = 0;
 	for(i = 0; i < surfs->count; i++){
 
-		r_bsp_surface_t *surf = surfs->surfaces[i];
+		const r_bsp_surface_t *surf = surfs->surfaces[i];
 		r_bsp_flare_t *f;
 
 		if(surf->frame != r_locals.frame)

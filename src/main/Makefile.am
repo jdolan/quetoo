@@ -49,6 +49,7 @@ quake2world_LDADD = \
 	${quake2world_DEPENDENCIES} \
 	../client/libclient.la \
 	../server/libserver.la \
+	../libthread.la \
 	@BASE_LIBS@ \
 	@CURL_LIBS@ \
 	@CURSES_LIBS@ \

@@ -23,9 +23,9 @@
 
 
 /*
- * Cl_ClearScene
+ * Cl_ClearView
  */
-static void Cl_ClearScene(void){
+static void Cl_ClearView(void){
 
 	// reset entity, light, particle and corona counts
 	r_view.num_entities = r_view.num_lights = 0;
@@ -215,13 +215,13 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops){
  * Cl_UpdateVelocity
  */
 static void Cl_UpdateVelocity(player_state_t *ps, player_state_t *ops){
-	vec3_t oldvel, newvel;
+	vec3_t old_vel, new_vel;
 
-	VectorCopy(ops->pmove.velocity, oldvel);
-	VectorCopy(ps->pmove.velocity, newvel);
+	VectorCopy(ops->pmove.velocity, old_vel);
+	VectorCopy(ps->pmove.velocity, new_vel);
 
 	// lerp it
-	VectorMix(oldvel, newvel, cl.lerp, r_view.velocity);
+	VectorMix(old_vel, new_vel, cl.lerp, r_view.velocity);
 
 	// convert back to float
 	VectorScale(r_view.velocity, 0.125, r_view.velocity);
@@ -333,6 +333,29 @@ static void Cl_UpdateBob(void){
 
 
 /*
+ * Cl_PopulateView
+ *
+ * Processes all entities, particles, emits, etc.. adding them to the view.
+ * This is all done in a separate thread while the main thread begins drawing
+ * the world.
+ */
+static void Cl_PopulateView(void *data){
+
+	// clear state from the previous frame
+	Cl_ClearView();
+
+	// add entities
+	Cl_AddEntities(&cl.frame);
+
+	// and particles
+	Cl_AddParticles();
+
+	// and client sided emits
+	Cl_AddEmits();
+}
+
+
+/*
  * Cl_UpdateView
  *
  * Updates the view_t for the renderer.  Origin, angles, etc are calculated.
@@ -378,6 +401,8 @@ void Cl_UpdateView(void){
 
 	Cl_UpdateViewsize();
 
+	R_UpdateFrustum();
+
 	// set time in seconds
 	r_view.time = cl.time * 0.001;
 
@@ -387,23 +412,8 @@ void Cl_UpdateView(void){
 	// set area bits to mark visible leafs
 	r_view.area_bits = cl.frame.area_bits;
 
-	// inform the bsp thread to start
-	if(r_bsp_thread.state > THREAD_DEAD)
-		r_bsp_thread.state = THREAD_RUN;
-
-	Cl_ClearScene();
-
-	// add entities
-	Cl_AddEntities(&cl.frame);
-
-	// and particles
-	Cl_AddParticles();
-
-	// and client sided ents
-	Cl_AddEmits();
-
-	// we're done
-	r_view.update = false;
+	// create the thread which populates the view
+	r_view.thread = Thread_Create(Cl_PopulateView, NULL);
 }
 
 

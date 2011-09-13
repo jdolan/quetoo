@@ -47,7 +47,8 @@ libclient_la_LIBADD = \
 	../libconsole.la \
 	../libcmodel.la \
 	../libnet.la \
-	../libpmove.la
+	../libpmove.la \
+	../libthread.la
 	
 else
 

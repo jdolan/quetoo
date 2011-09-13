@@ -31,6 +31,7 @@
 #include "sys.h"
 #include "renderer/renderer.h"
 #include "sound/sound.h"
+#include "thread.h"
 
 typedef struct cl_frame_s {
 	qboolean valid;  // cleared if delta parsing was invalid

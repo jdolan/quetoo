@@ -191,6 +191,8 @@ static void Init(int argc, char **argv){
 
 	Cbuf_AddEarlyCommands(true);
 
+	Thread_Init();
+
 #ifndef BUILD_CLIENT
 	dedicated = Cvar_Get("dedicated", "1", CVAR_NOSET, NULL);
 #else
@@ -198,7 +200,7 @@ static void Init(int argc, char **argv){
 #endif
 
 	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
-	show_trace = Cvar_Get("showtrace", "0", 0, "Print trace counts per frame");
+	show_trace = Cvar_Get("show_trace", "0", 0, "Print trace counts per frame");
 	time_demo = Cvar_Get("time_demo", "0", 0, "Benchmark and stress test");
 	time_scale = Cvar_Get("time_scale", "1.0", 0, "Controls time lapse");
 	verbose = Cvar_Get("verbose", "0", 0, "Print verbose information");
@@ -245,6 +247,8 @@ static void Shutdown(const char *msg){
 #ifdef BUILD_CLIENT
 	Cl_Shutdown();
 #endif
+
+	Thread_Shutdown();
 
 	Con_Shutdown();
 

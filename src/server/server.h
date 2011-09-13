@@ -28,6 +28,7 @@
 #include "net.h"
 #include "pmove.h"
 #include "sys.h"
+#include "thread.h"
 
 typedef enum {
 	ss_dead,   // no level loaded

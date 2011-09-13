@@ -168,7 +168,7 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t 
  * light source bit masks so that we know which light sources each surface
  * should receive.
  */
-void R_MarkLights(void){
+void R_MarkLights(void *data){
 	int i, j;
 
 	r_locals.light_frame++;
