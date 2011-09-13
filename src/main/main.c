@@ -262,6 +262,7 @@ static void Shutdown(const char *msg){
 static void Frame(int msec){
 	extern int c_traces, c_brush_traces;
 	extern int c_pointcontents;
+	extern cvar_t *threads;
 
 	if(setjmp(environment))
 		return;  // an ERR_DROP or ERR_NONE was thrown
@@ -279,6 +280,11 @@ static void Frame(int msec){
 #ifdef BUILD_CLIENT
 	Cl_Frame(msec);
 #endif
+
+	if(threads->modified){
+		Thread_Shutdown();
+		Thread_Init();
+	}
 }
 
 

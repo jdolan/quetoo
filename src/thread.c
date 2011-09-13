@@ -25,42 +25,6 @@ thread_pool_t thread_pool;
 
 cvar_t *threads;
 
-/*
- * Thread_Alloc
- *
- * Allocates a free thread_t, returning NULL if none are available.
- */
-static thread_t *Thread_Alloc(void){
-	thread_t *t;
-	int i;
-
-	SDL_mutexP(thread_pool.mutex);
-
-	for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
-		if(t->state == THREAD_IDLE){
-			t->state = THREAD_RUN;
-			break;
-		}
-	}
-
-	SDL_mutexV(thread_pool.mutex);
-
-	if(i == thread_pool.num_threads){
-		Com_Debug("Thread_Run: No threads available\n");
-		return NULL;
-	}
-
-	return t;
-}
-
-
-/*
- * Thread_Release
- */
-static void Thread_Release(thread_t *t){
-	memset(t, 0, sizeof(t));
-}
-
 
 /*
  * Thread_Run
@@ -72,9 +36,20 @@ static void Thread_Release(thread_t *t){
 static int Thread_Run(void *p){
 	thread_t *t = (thread_t *)p;
 
-	t->function(t->data);  // invoke the user function
+	while(!thread_pool.shutdown){
 
-	Thread_Release(t);  // mark ourselves as available
+		if(t->function){  // invoke the user function
+
+			t->function(t->data);
+
+			t->function = NULL;
+			t->data = NULL;
+
+			t->state = THREAD_DONE;
+		}
+
+		usleep(0);
+	}
 
 	return 0;
 }
@@ -83,48 +58,57 @@ static int Thread_Run(void *p){
 /*
  * Thread_Create
  *
- * Creates a new thread to run the specified function. Callers can use
- * Thread_Wait on the returned handle if they care when the thread finishes.
+ * Creates a new thread to run the specified function. Callers must use
+ * Thread_Wait on the returned handle to release the thread when it finishes.
  */
 thread_t *Thread_Create(void (function)(void *data), void *data){
-	static thread_t null_thread;
-	thread_t *t;
 
-	if(!(t = Thread_Alloc())){
-		function(data);
-		return &null_thread;
+	if(thread_pool.num_threads){
+		thread_t *t;
+		int i;
+
+		SDL_mutexP(thread_pool.mutex);
+
+		for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
+			if(t->state == THREAD_IDLE){
+
+				t->function = function;
+				t->data = data;
+
+				t->state = THREAD_RUNNING;
+				break;
+			}
+		}
+
+		SDL_mutexV(thread_pool.mutex);
+
+		if(i < thread_pool.num_threads)
+			return t;
 	}
 
-	t->function = function;
-	t->data = data;
+	Com_Debug("Thread_Create: No threads available\n");
 
-	t->thread = SDL_CreateThread(Thread_Run, t);
+	function(data);  // call the function in this thread
 
-	return t;
+	return NULL;
 }
 
 
 /*
  * Thread_Wait
+ *
+ * Wait for the specified thread to complete.
  */
 void Thread_Wait(thread_t *t){
 
-	if(t->state == THREAD_IDLE)
+	if(!t)
 		return;
 
-	SDL_WaitThread(t->thread, NULL);
-}
+	while(t->state == THREAD_RUNNING){
+		usleep(0);
+	}
 
-
-/*
- * Thread_Kill
- */
-static void Thread_Kill(thread_t *t){
-
-	if(t->state == THREAD_IDLE)
-		return;
-
-	SDL_KillThread(t->thread);
+	t->state = THREAD_IDLE;
 }
 
 
@@ -137,10 +121,10 @@ void Thread_Shutdown(void){
 	thread_t *t;
 	int i;
 
-	for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
+	thread_pool.shutdown = true;  // inform threads to quit
 
-		if(t->state > THREAD_IDLE)
-			Thread_Kill(t);
+	for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
+		SDL_WaitThread(t->thread, NULL);
 	}
 
 	Z_Free(thread_pool.threads);
@@ -155,12 +139,19 @@ void Thread_Shutdown(void){
  * Initializes the thread pool.  No threads are started here.
  */
 void Thread_Init(void){
+	thread_t *t;
+	int i;
 
 	memset(&thread_pool, 0, sizeof(thread_pool));
 
-	threads = Cvar_Get("threads", "4", CVAR_ARCHIVE | CVAR_LATCH, "The number of threads to initialize");
+	threads = Cvar_Get("threads", "4", CVAR_ARCHIVE, "The number of threads (cores) to utilize");
 
 	thread_pool.num_threads = threads->integer;
 	thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
+
+	for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
+		t->thread = SDL_CreateThread(Thread_Run, t);
+	}
+
 	thread_pool.mutex = SDL_CreateMutex();
 }

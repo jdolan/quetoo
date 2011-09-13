@@ -99,6 +99,7 @@ typedef struct r_entity_s {
 	vec3_t angles;
 
 	matrix4x4_t matrix;
+	qboolean culled;
 
 	struct r_model_s *model;
 
@@ -383,6 +384,7 @@ void R_DrawLines(void);
 const r_entity_t *R_AddEntity(const r_entity_t *e);
 void R_RotateForEntity(const r_entity_t *e);
 void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out);
+void R_CullEntities(void *data);
 void R_DrawEntities(void);
 
 // r_flare.c
@@ -446,6 +448,7 @@ extern vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];
 void R_ApplyMeshModelTag(r_entity_t *e);
 void R_ApplyMeshModelConfig(r_entity_t *e);
 qboolean R_CullMeshModel(const r_entity_t *e);
+void R_UpdateMeshModelLighting(const r_entity_t *e);
 void R_DrawMeshModel_default(const r_entity_t *e);
 
 // r_particle.c

@@ -34,70 +34,6 @@ r_entities_t r_entities;
 
 
 /*
- * R_SetMatrixForEntity
- *
- * Applies any configuration and tag alignment, populating the model-view
- * matrix for the entity in the process.
- */
-static void R_SetMatrixForEntity(r_entity_t *e){
-
-	if(e->parent){
-		vec3_t tmp;
-
-		if(!IS_MESH_MODEL(e->model)){
-			Com_Warn("R_SetMatrixForEntity: Invalid model for linked entity\n");
-			return;
-		}
-
-		VectorClear(e->origin);
-		VectorClear(e->angles);
-
-		R_ApplyMeshModelConfig(e);
-
-		Matrix4x4_CreateFromQuakeEntity(&e->matrix,
-				e->origin[0], e->origin[1], e->origin[2],
-				e->angles[0], e->angles[1], e->angles[2],
-				e->scale);
-
-		R_ApplyMeshModelTag(e);
-
-		Matrix4x4_ToVectors(&e->matrix, tmp, tmp, tmp, e->origin);
-		VectorCopy(e->parent->angles, e->angles);
-		return;
-	}
-
-	if(IS_MESH_MODEL(e->model)){
-		R_ApplyMeshModelConfig(e);
-	}
-
-	Matrix4x4_CreateFromQuakeEntity(&e->matrix,
-			e->origin[0], e->origin[1], e->origin[2],
-			e->angles[0], e->angles[1], e->angles[2],
-			e->scale);
-}
-
-
-/*
- * R_CullEntity
- *
- * Returns true if the specified entity is outside of the view frustum, false
- * otherwise. Delegates to the appropriate model-specific sub-routine.
- */
-static qboolean R_CullEntity(const r_entity_t *e){
-
-	if(!e->model)  // don't bother culling null models
-		return false;
-
-	if(e->model->type == mod_bsp_submodel)
-		return R_CullBspModel(e);
-
-	// mesh models
-
-	return R_CullMeshModel(e);
-}
-
-
-/*
  * R_EntityList
  *
  * Returns the appropriate entity list for the specified entity.
@@ -138,23 +74,11 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent){
 		return NULL;
 	}
 
-	if(ent->scale <= 0.0){
-		Com_Warn("R_AddEntity: Invalid scale\n");
-		return NULL;
-	}
-
 	// copy in to renderer array
 	e = &r_view.entities[r_view.num_entities++];
 	*e = *ent;
 
-	// calculate the transform matrix
-	R_SetMatrixForEntity(e);
-
-	if(R_CullEntity(e)){  // if culled, don't add to draw list
-		return e;
-	}
-
-	// otherwise, insert into the sorted draw list
+	// and insert into the sorted draw list
 	ents = R_EntityList(e);
 	in = *ents;
 
@@ -217,6 +141,95 @@ void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out){
 
 
 /*
+ * R_SetMatrixForEntity
+ *
+ * Applies any configuration and tag alignment, populating the model-view
+ * matrix for the entity in the process.
+ */
+static void R_SetMatrixForEntity(r_entity_t *e){
+
+	if(e->parent){
+		vec3_t tmp;
+
+		if(!IS_MESH_MODEL(e->model)){
+			Com_Warn("R_SetMatrixForEntity: Invalid model for linked entity\n");
+			return;
+		}
+
+		VectorClear(e->origin);
+		VectorClear(e->angles);
+
+		R_ApplyMeshModelConfig(e);
+
+		Matrix4x4_CreateFromQuakeEntity(&e->matrix,
+				e->origin[0], e->origin[1], e->origin[2],
+				e->angles[0], e->angles[1], e->angles[2],
+				e->scale);
+
+		R_ApplyMeshModelTag(e);
+
+		Matrix4x4_ToVectors(&e->matrix, tmp, tmp, tmp, e->origin);
+		VectorCopy(e->parent->angles, e->angles);
+		return;
+	}
+
+	if(IS_MESH_MODEL(e->model)){
+		R_ApplyMeshModelConfig(e);
+	}
+
+	Matrix4x4_CreateFromQuakeEntity(&e->matrix,
+			e->origin[0], e->origin[1], e->origin[2],
+			e->angles[0], e->angles[1], e->angles[2],
+			e->scale);
+}
+
+
+/*
+ * R_CullEntity
+ *
+ * Dispatches the appropriate sub-routine for frustum-culling the entity.
+ */
+static qboolean R_CullEntity(r_entity_t *e){
+
+	if(!e->model){
+		e->culled = false;
+	}
+	else if(e->model->type == mod_bsp_submodel){
+		e->culled = R_CullBspModel(e);
+	}
+	else {  // mesh model
+		e->culled = R_CullMeshModel(e);
+	}
+
+	return e->culled;
+}
+
+
+/*
+ * R_CullEntities
+ *
+ * Performs a frustum-cull of all entities. This is performed in a separate
+ * thread while the renderer draws the world. Entities which pass a frustum
+ * cull will also have their static lighting information updated.
+ */
+void R_CullEntities(void *data){
+	r_entity_t *e = r_view.entities;
+	int i;
+
+	for(i = 0, e = r_view.entities; i < r_view.num_entities; i++, e++){
+
+		R_SetMatrixForEntity(e);  // set the transform matrix
+
+		if(!R_CullEntity(e)){  // cull it
+
+			if(IS_MESH_MODEL(e->model))
+				R_UpdateMeshModelLighting(e);
+		}
+	}
+}
+
+
+/*
  * R_DrawBspEntities
  */
 static void R_DrawBspEntities(){
@@ -225,7 +238,8 @@ static void R_DrawBspEntities(){
 	e = r_entities.bsp;
 
 	while(e){
-		R_DrawBspModel(e);
+		if(!e->culled)
+			R_DrawBspModel(e);
 		e = e->next;
 	}
 }
@@ -240,7 +254,8 @@ static void R_DrawMeshEntities(r_entity_t *ents){
 	e = ents;
 
 	while(e){
-		R_DrawMeshModel(e);
+		if(!e->culled)
+			R_DrawMeshModel(e);
 		e = e->next;
 	}
 }

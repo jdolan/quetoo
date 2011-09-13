@@ -27,16 +27,17 @@
 
 #include "cvar.h"
 
-typedef enum {
+typedef enum thread_state_s {
 	THREAD_IDLE,
-	THREAD_RUN,
+	THREAD_RUNNING,
+	THREAD_DONE
 } thread_state_t;
 
 typedef struct thread_s {
 	thread_state_t state;
+	SDL_Thread *thread;
 	void (*function)(void *data);
 	void *data;
-	SDL_Thread *thread;
 } thread_t;
 
 #define MAX_THREADS 16
@@ -45,6 +46,7 @@ typedef struct thread_pool_s {
 	thread_t *threads;
 	int num_threads;
 	SDL_mutex *mutex;
+	qboolean shutdown;
 } thread_pool_t;
 
 extern thread_pool_t thread_pool;

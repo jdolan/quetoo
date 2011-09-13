@@ -272,6 +272,8 @@ void R_DrawFrame(void){
 
 	Thread_Wait(r_view.thread);
 
+	r_view.thread = Thread_Create(R_CullEntities, NULL);
+
 	R_DrawOpaqueSurfaces(r_world_model->opaque_surfaces);
 
 	R_DrawOpaqueWarpSurfaces(r_world_model->opaque_warp_surfaces);
@@ -289,6 +291,8 @@ void R_DrawFrame(void){
 	R_EnableBlend(false);
 
 	R_DrawBspNormals();
+
+	Thread_Wait(r_view.thread);
 
 	R_DrawEntities();
 

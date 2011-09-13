@@ -164,6 +164,32 @@ qboolean R_CullMeshModel(const r_entity_t *e){
 
 
 /*
+ * R_UpdateMeshModelLighting
+ *
+ * Updates static lighting information for the specified mesh entity.
+ */
+void R_UpdateMeshModelLighting(const r_entity_t *e){
+
+	if(e->lighting->state == LIGHTING_READY)
+		return;
+
+	if(e->effects & EF_WEAPON)
+		VectorCopy(r_view.origin, e->lighting->origin);
+	else
+		VectorCopy(e->origin, e->lighting->origin);
+
+	e->lighting->radius = e->scale * e->model->radius;
+
+	// calculate scaled bounding box in world space
+	VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
+	VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
+
+	//Com_Debug("Updating lighting for %s\n", e->model->name);
+	R_UpdateLighting(e->lighting);
+}
+
+
+/*
  * R_SetMeshColor_default
  */
 static void R_SetMeshColor_default(const r_entity_t *e){
@@ -473,23 +499,6 @@ void R_DrawMeshModel_default(const r_entity_t *e){
 	if(e->old_frame >= e->model->num_frames || e->old_frame < 0){
 		Com_Warn("R_DrawMeshModel %s: no such old_frame %d\n", e->model->name, e->old_frame);
 		return;
-	}
-
-	if(e->lighting->state != LIGHTING_READY){  // update static lighting info
-
-		if(e->effects & EF_WEAPON)
-			VectorCopy(r_view.origin, e->lighting->origin);
-		else
-			VectorCopy(e->origin, e->lighting->origin);
-
-		e->lighting->radius = e->scale * e->model->radius;
-
-		// calculate scaled bounding box in world space
-		VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
-		VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
-
-		//Com_Debug("Updating lighting for %s\n", e->model->name);
-		R_UpdateLighting(e->lighting);
 	}
 
 	R_SetMeshState_default(e);
