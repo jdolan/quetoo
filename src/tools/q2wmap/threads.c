@@ -23,9 +23,7 @@
 
 #include "q2wmap.h"
 
-#define	MAX_THREADS	8
-
-threadstate_t threadstate;
+thread_work_t thread_work;
 
 
 /*
@@ -39,24 +37,24 @@ static int GetThreadWork(void){
 
 	ThreadLock();
 
-	if(threadstate.workindex == threadstate.workcount){  // done
+	if(thread_work.index == thread_work.count){  // done
 		ThreadUnlock();
 		return -1;
 	}
 
 	// update work fraction and output progress if desired
-	f = 10 * threadstate.workindex / threadstate.workcount;
-	if(f != threadstate.workfrac){
-		threadstate.workfrac = f;
-		if(threadstate.progress && !(verbose || debug)){
+	f = 10 * thread_work.index / thread_work.count;
+	if(f != thread_work.fraction){
+		thread_work.fraction = f;
+		if(thread_work.progress && !(verbose || debug)){
 			Com_Print("%i...", f);
 			fflush(stdout);
 		}
 	}
 
 	// assign the next work iteration
-	r = threadstate.workindex;
-	threadstate.workindex++;
+	r = thread_work.index;
+	thread_work.index++;
 
 	ThreadUnlock();
 
@@ -74,7 +72,7 @@ static void(*WorkFunction)(int);
  * Shared work entry point by all threads.  Retrieve and perform
  * chunks of work iteratively until work is finished.
  */
-static int ThreadWork(void *p){
+static void ThreadWork(void *p){
 	int work;
 
 	while(true){
@@ -83,8 +81,6 @@ static int ThreadWork(void *p){
 			break;
 		WorkFunction(work);
 	}
-
-	return 0;
 }
 
 
@@ -118,21 +114,20 @@ void ThreadUnlock(void){
  * RunThreads
  */
 static void RunThreads(void){
-	SDL_Thread *threads[MAX_THREADS];
 	int i;
 
-	if(threadstate.numthreads == 1){
+	if(!thread_pool.num_threads){
 		ThreadWork(0);
 		return;
 	}
 
 	lock = SDL_CreateMutex();
 
-	for(i = 0; i < threadstate.numthreads; i++)
-		threads[i] = SDL_CreateThread(ThreadWork, NULL);
+	for(i = 0; i < thread_pool.num_threads; i++)
+		Thread_Create(ThreadWork, NULL);
 
-	for(i = 0; i < threadstate.numthreads; i++)
-		SDL_WaitThread(threads[i], NULL);
+	for(i = 0; i < thread_pool.num_threads; i++)
+		Thread_Wait(&thread_pool.threads[i]);
 
 	SDL_DestroyMutex(lock);
 	lock = NULL;
@@ -147,16 +142,10 @@ static void RunThreads(void){
 void RunThreadsOn(int workcount, qboolean progress, void(*func)(int)){
 	time_t start, end;
 
-	if(threadstate.numthreads < 1)  // ensure safe thread counts
-		threadstate.numthreads = 1;
-
-	if(threadstate.numthreads > MAX_THREADS)
-		threadstate.numthreads = MAX_THREADS;
-
-	threadstate.workindex = 0;
-	threadstate.workcount = workcount;
-	threadstate.workfrac = -1;
-	threadstate.progress = progress;
+	thread_work.index = 0;
+	thread_work.count = workcount;
+	thread_work.fraction = -1;
+	thread_work.progress = progress;
 
 	WorkFunction = func;
 
@@ -166,7 +155,7 @@ void RunThreadsOn(int workcount, qboolean progress, void(*func)(int)){
 
 	end = time(NULL);
 
-	if(threadstate.progress)
+	if(thread_work.progress)
 		Com_Print(" (%i seconds)\n", (int)(end - start));
 }
 

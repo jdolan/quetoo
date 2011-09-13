@@ -40,7 +40,6 @@ static void Cl_ClearView(void){
  * Cl_UpdateFov
  */
 static void Cl_UpdateFov(void){
-	float a, x;
 
 	if(!cl_fov->modified && !r_view.update)
 		return;
@@ -48,9 +47,9 @@ static void Cl_UpdateFov(void){
 	if(cl_fov->value < 10.0 || cl_fov->value > 179.0)
 		Cvar_Set("cl_fov", "100.0");
 
-	x = r_state.width / tan(cl_fov->value / 360.0 * M_PI);
+	const float x = r_state.width / tan(cl_fov->value / 360.0 * M_PI);
 
-	a = atan(r_state.height / x);
+	const float a = atan(r_state.height / x);
 
 	r_view.fov_x = cl_fov->value;
 

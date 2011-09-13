@@ -44,6 +44,7 @@ q2wmap_CFLAGS = \
 q2wmap_LDADD = \
 	../../libcmodel.la \
 	../../libimages.la \
+	../../libthread.la \
 	@BASE_LIBS@ \
 	@CURSES_LIBS@ \
 	@JPEG_LIBS@ \

@@ -24,6 +24,7 @@
 
 #include "files.h"
 #include "filesystem.h"
+#include "thread.h"
 
 int BSP_Main(void);
 int VIS_Main(void);
@@ -40,14 +41,14 @@ extern qboolean debug;
 extern qboolean legacy;
 
 // threads.c
-typedef struct threadstate_s {
-	int numthreads;  // spawned threads
-	int workindex;  // current work cycle
-	int workcount;  // total work cycles
-	int workfrac;  // last fraction of work completed (tenths)
+typedef struct thread_work_s {
+	int index;  // current work cycle
+	int count;  // total work cycles
+	int fraction;  // last fraction of work completed (tenths)
 	qboolean progress;  // are we reporting progress
-} threadstate_t;
-extern threadstate_t threadstate;
+} thread_work_t;
+
+extern thread_work_t thread_work;
 
 void ThreadLock(void);
 void ThreadUnlock(void);

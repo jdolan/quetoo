@@ -571,6 +571,11 @@ int main(int argc, char **argv){
 
 	Com_Print("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILDHOST);
 
+	if(argc < 2){  // print help and exit
+		PrintHelpMessage();
+		return 0;
+	}
+
 	// init core facilities
 	Z_Init();
 
@@ -581,14 +586,6 @@ int main(int argc, char **argv){
 	Cmd_Init();
 
 	Fs_Init();
-
-	// init thread state
-	memset(&threadstate, 0, sizeof(threadstate));
-
-	if(argc < 2){  // print help and exit
-		PrintHelpMessage();
-		return 0;
-	}
 
 	// general options
 	for(i = 1; i < argc; i++){
@@ -603,7 +600,7 @@ int main(int argc, char **argv){
 		}
 
 		if(!strcmp(argv[i], "-t") || !strcmp(argv[i], "-threads")){
-			threadstate.numthreads = atoi(argv[++i]);
+			Cvar_Set("threads", argv[i + 1]);
 			continue;
 		}
 
@@ -661,6 +658,8 @@ int main(int argc, char **argv){
 				"Please specify at least one of -bsp -vis -light -mat -pak.\n");
 	}
 
+	Thread_Init();
+
 	// ugly little hack to localize global paths to game paths
 	// for e.g. GtkRadiant
 	c = strstr(argv[argc - 1], "/maps/");
@@ -685,6 +684,8 @@ int main(int argc, char **argv){
 		MAT_Main();
 	if(do_pak)
 		PAK_Main();
+
+	Thread_Shutdown();
 
 	Z_Shutdown();
 

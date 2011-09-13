@@ -71,7 +71,7 @@ void FreeTree_r(node_t * node){
 	if(node->volume)
 		FreeBrush(node->volume);
 
-	if(threadstate.numthreads == 1)
+	if(!thread_pool.num_threads)
 		c_nodes--;
 	Z_Free(node);
 }

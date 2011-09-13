@@ -38,7 +38,7 @@ winding_t *AllocWinding(int points){
 	winding_t *w;
 	int s;
 
-	if(threadstate.numthreads == 1){
+	if(!thread_pool.num_threads){
 		c_winding_allocs++;
 		c_winding_points += points;
 		c_active_windings++;
@@ -60,7 +60,7 @@ void FreeWinding(winding_t *w){
 		Com_Error(ERR_FATAL, "FreeWinding: freed a freed winding\n");
 	*(unsigned *)w = 0xdeaddead;
 
-	if(threadstate.numthreads == 1)
+	if(!thread_pool.num_threads)
 		c_active_windings--;
 	Z_Free(w);
 }
@@ -94,7 +94,7 @@ void RemoveColinearPoints(winding_t *w){
 	if(nump == w->numpoints)
 		return;
 
-	if(threadstate.numthreads == 1)
+	if(!thread_pool.num_threads)
 		c_removed += w->numpoints - nump;
 	w->numpoints = nump;
 	memcpy(w->p, p, nump * sizeof(p[0]));

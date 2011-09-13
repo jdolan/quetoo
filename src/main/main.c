@@ -275,16 +275,16 @@ static void Frame(int msec){
 
 	Cbuf_Execute();
 
+	if(threads->modified){
+		Thread_Shutdown();
+		Thread_Init();
+	}
+
 	Sv_Frame(msec);
 
 #ifdef BUILD_CLIENT
 	Cl_Frame(msec);
 #endif
-
-	if(threads->modified){
-		Thread_Shutdown();
-		Thread_Init();
-	}
 }
 
 

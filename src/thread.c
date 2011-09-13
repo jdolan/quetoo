@@ -124,7 +124,7 @@ void Thread_Shutdown(void){
 	thread_pool.shutdown = true;  // inform threads to quit
 
 	for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
-		SDL_KillThread(t->thread);
+		SDL_WaitThread(t->thread, NULL);
 	}
 
 	Z_Free(thread_pool.threads);
@@ -136,7 +136,7 @@ void Thread_Shutdown(void){
 /*
  * Thread_Init
  *
- * Initializes the thread pool.  No threads are started here.
+ * Initializes the thread pool.
  */
 void Thread_Init(void){
 	thread_t *t;
@@ -144,18 +144,19 @@ void Thread_Init(void){
 
 	memset(&thread_pool, 0, sizeof(thread_pool));
 
-	threads = Cvar_Get("threads", "4", CVAR_ARCHIVE, "The number of threads (cores) to utilize");
+	threads = Cvar_Get("threads", "2", CVAR_ARCHIVE, "The number of threads (cores) to utilize");
 
 	if(threads->integer > MAX_THREADS)
 		Cvar_SetValue("threads", MAX_THREADS);
+
 	else if(threads->integer < 0)
 		Cvar_SetValue("threads", 0);
 
+	thread_pool.num_threads = threads->integer;
 	threads->modified = false;
 
-	thread_pool.num_threads = threads->integer;
-
 	if(thread_pool.num_threads){
+
 		thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
 
 		for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
@@ -163,5 +164,7 @@ void Thread_Init(void){
 		}
 
 		thread_pool.mutex = SDL_CreateMutex();
+
+		Com_Print("Running %d threads\n", thread_pool.num_threads);
 	}
 }

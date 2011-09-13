@@ -198,7 +198,7 @@ bsp_brush_t *AllocBrush(int num_sides){
 	c = (size_t)&(((bsp_brush_t *) 0)->sides[num_sides]);
 	bb = Z_Malloc(c);
 	memset(bb, 0, c);
-	if(threadstate.numthreads == 1)
+	if(!thread_pool.num_threads)
 		c_active_brushes++;
 	return bb;
 }
@@ -214,7 +214,7 @@ void FreeBrush(bsp_brush_t * brushes){
 		if(brushes->sides[i].winding)
 			FreeWinding(brushes->sides[i].winding);
 	Z_Free(brushes);
-	if(threadstate.numthreads == 1)
+	if(!thread_pool.num_threads)
 		c_active_brushes--;
 }
 
@@ -591,7 +591,7 @@ static side_t *SelectSplitSide(bsp_brush_t * brushes, node_t * node){
 		// other passes
 		if(bestside){
 			if(pass > 1){
-				if(threadstate.numthreads == 1)
+				if(!thread_pool.num_threads)
 					c_nonvis++;
 			}
 			if(pass > 0)
@@ -866,7 +866,7 @@ static node_t *BuildTree_r(node_t * node, bsp_brush_t * brushes){
 	int i;
 	bsp_brush_t *children[2];
 
-	if(threadstate.numthreads == 1)
+	if(!thread_pool.num_threads)
 		c_nodes++;
 
 	// find the best plane to use as a splitter

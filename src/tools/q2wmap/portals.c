@@ -33,7 +33,7 @@ static int c_peak_portals;
 static portal_t *AllocPortal(void){
 	portal_t *p;
 
-	if(threadstate.numthreads == 1)
+	if(!thread_pool.num_threads)
 		c_active_portals++;
 	if(c_active_portals > c_peak_portals)
 		c_peak_portals = c_active_portals;
@@ -47,7 +47,7 @@ static portal_t *AllocPortal(void){
 void FreePortal(portal_t * p){
 	if(p->winding)
 		FreeWinding(p->winding);
-	if(threadstate.numthreads == 1)
+	if(!thread_pool.num_threads)
 		c_active_portals--;
 	Z_Free(p);
 }
