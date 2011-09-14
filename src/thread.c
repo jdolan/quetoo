@@ -39,9 +39,7 @@ static int Thread_Run(void *p){
 	while(!thread_pool.shutdown){
 
 		if(t->state == THREAD_RUN){  // invoke the user function
-
 			t->function(t->data);
-
 			t->state = THREAD_DONE;
 		}
 
@@ -53,12 +51,12 @@ static int Thread_Run(void *p){
 
 
 /*
- * Thread_Create
+ * Thread_Create_
  *
  * Creates a new thread to run the specified function. Callers must use
- * Thread_Wait on the returned handle to release the thread when it finishes.
+ * Thread_Wait on the returned handle to release the thread when finished.
  */
-thread_t *Thread_Create(void (function)(void *data), void *data){
+thread_t *Thread_Create_(const char *name, void (function)(void *data), void *data){
 
 	if(thread_pool.num_threads){
 		thread_t *t;
@@ -68,6 +66,8 @@ thread_t *Thread_Create(void (function)(void *data), void *data){
 
 		for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
 			if(t->state == THREAD_IDLE){
+
+				strncpy(t->name, name, sizeof(t->name));
 
 				t->function = function;
 				t->data = data;
@@ -102,6 +102,7 @@ void Thread_Wait(thread_t *t){
 		return;
 
 	while(t->state == THREAD_RUN){
+		printf("waiting for %s\n", t->name);
 		usleep(0);
 	}
 

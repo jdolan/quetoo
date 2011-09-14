@@ -38,6 +38,7 @@ typedef enum thread_state_s {
 typedef struct thread_s {
 	thread_state_t state;
 	SDL_Thread *thread;
+	char name[64];
 	void (*function)(void *data);
 	void *data;
 } thread_t;
@@ -53,7 +54,8 @@ extern thread_pool_t thread_pool;
 
 extern cvar_t *threads;
 
-thread_t *Thread_Create(void (function)(void *data), void *data);
+thread_t *Thread_Create_(const char *name, void (function)(void *data), void *data);
+#define Thread_Create(f, d) Thread_Create(#f, f, d)
 void Thread_Wait(thread_t *t);
 void Thread_Shutdown(void);
 void Thread_Init(void);
