@@ -42,6 +42,7 @@ HOST_DEBUG_LIBS=""
 HOST_PROFILE_CFLAGS=""
 HOST_PROFILE_LIBS=""
 HOST_SO_CFLAGS=""
+DEFAULT_PREFIX="/usr/local"
 ICON=""
 
 AC_MSG_CHECKING([host type])
@@ -54,6 +55,7 @@ case "$host" in
 		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
+		DEFAULT_PREFIX="/opt/local"
 		AC_MSG_RESULT(apple)
 		;;
 	*bsd*)
@@ -67,6 +69,7 @@ case "$host" in
 		HOST_LIBS="-lws2_32 -lole32"
 		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
 		ICON="quake2world-icon.o"
+		DEFAULT_PREFIX=""
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
 			AC_MSG_ERROR([windres could not be found within your path.])
@@ -510,25 +513,28 @@ AC_SUBST(BASE_LDFLAGS)
 dnl ----------------------
 dnl Fill in path variables
 dnl ----------------------
-
-test "$prefix" = "NONE" && prefix=/usr/local
+test "$prefix" = "NONE" && prefix=$DEFAULT_PREFIX
 test "$exec_prefix" = "NONE" && exec_prefix=$prefix
 
-eval PKGLIBDIR="$libdir/$PACKAGE"
+if test "x${HOST_NAME}" = "xWINDOWS"; then
+	BINDIR=.
+	PKGLIBDIR=.
+	PKGDATADIR=.
+else
+	eval BINDIR="$bindir"
+	eval PKGLIBDIR="$prefix/lib/$PACKAGE"
+	eval PKGDATADIR="$prefix/share/$PACKAGE"
+fi
+
 AC_DEFINE_UNQUOTED(PKGLIBDIR, "$PKGLIBDIR",
 	[Define to path containing the shared modules.]
 )
 
-datarootdir=$prefix/share
-test "$datadir" = "NONE" && datadir=$datarootdir
-
-eval PKGDATADIR="$datadir/$PACKAGE"
 AC_DEFINE_UNQUOTED(PKGDATADIR, "$PKGDATADIR",
 	[Define to path containing the game data.]
 )
-AC_SUBST(PKGDATADIR)
 
-eval BINDIR="$bindir"
+AC_SUBST(PKGDATADIR)
 
 AM_CONDITIONAL(BUILD_CLIENT, test "x$BUILD_CLIENT" = xyes)
 AM_CONDITIONAL(BUILD_MASTER, test "x$BUILD_MASTER" = xyes)
