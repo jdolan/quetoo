@@ -213,7 +213,7 @@ r_model_t *R_LoadModel(const char *name){
 		return &r_inline_models[i];
 	}
 
-	Com_StripExtension(name, n);
+	StripExtension(name, n);
 
 	// search the currently loaded models
 	for(i = 0 , mod = r_models; i < r_num_models; i++, mod++){
@@ -238,7 +238,7 @@ r_model_t *R_LoadModel(const char *name){
 	format = r_model_formats;
 	for(i = 0; i < NUM_MODEL_FORMATS; i++, format++){
 
-		Com_StripExtension(name, n);
+		StripExtension(name, n);
 		strcat(n, format->name);
 
 		if(Fs_LoadFile(n, &buf) != -1)
@@ -250,7 +250,7 @@ r_model_t *R_LoadModel(const char *name){
 		return NULL;
 	}
 
-	Com_StripExtension(n, mod->name);
+	StripExtension(n, mod->name);
 
 	r_load_model = mod;
 	r_load_model->extra_data = R_HunkBegin();

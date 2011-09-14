@@ -296,7 +296,7 @@ static void Cl_ExecuteLayoutString(const char *s){
 	int index;
 	char *c;
 	char string[MAX_STRING_CHARS];
-	qboolean flash;
+	boolean_t flash;
 
 	if(cls.state != ca_active)
 		return;
@@ -310,41 +310,41 @@ static void Cl_ExecuteLayoutString(const char *s){
 	flash = (cl.time / 100) & 1;  // for flashing fields
 
 	while(s){
-		token = Com_Parse(&s);
+		token = ParseToken(&s);
 		if(!strcmp(token, "xl")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			x = atoi(token);
 			continue;
 		}
 		if(!strcmp(token, "xr")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			x = r_state.width + atoi(token);
 			continue;
 		}
 		if(!strcmp(token, "xv")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			x = r_state.width / 2 - 320 + atoi(token);
 			continue;
 		}
 
 		if(!strcmp(token, "yt")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			y = atoi(token);
 			continue;
 		}
 		if(!strcmp(token, "yb")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			y = r_state.height + atoi(token);
 			continue;
 		}
 		if(!strcmp(token, "yv")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			y = r_state.height / 2 - 240 + atoi(token);
 			continue;
 		}
 
 		if(!strcmp(token, "pic")){  // draw a pic from a stat number
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			value = cl.frame.ps.stats[atoi(token)];
 			if(value >= MAX_IMAGES)
 				Com_Warn("Cl_ExecuteLayoutString: pic %d >= MAX_IMAGES\n", value);
@@ -393,7 +393,7 @@ static void Cl_ExecuteLayoutString(const char *s){
 		}
 
 		if(!strcmp(token, "stat_string")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			index = atoi(token);
 			if(index < 0 || index >= MAX_CONFIG_STRINGS){
 				Com_Warn("Cl_ExecuteLayoutString: Invalid stat_string index: %i.\n", index);
@@ -412,35 +412,35 @@ static void Cl_ExecuteLayoutString(const char *s){
 		}
 
 		if(!strcmp(token, "cstring")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			Cl_DrawHUDString(token, x, y, 320, CON_COLOR_DEFAULT);
 			continue;
 		}
 
 		if(!strcmp(token, "string")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			R_DrawString(x, y, token, CON_COLOR_DEFAULT);
 			continue;
 		}
 
 		if(!strcmp(token, "cstring2")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			Cl_DrawHUDString(token, x, y, 320, CON_COLOR_ALT);
 			continue;
 		}
 
 		if(!strcmp(token, "string2")){
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			R_DrawString(x, y, token, COLOR_SCORES_HEADER);
 			continue;
 		}
 
 		if(!strcmp(token, "if")){  // conditional
-			token = Com_Parse(&s);
+			token = ParseToken(&s);
 			value = cl.frame.ps.stats[atoi(token)];
 			if(!value){  // skip to endif
 				while(s && strcmp(token, "endif")){
-					token = Com_Parse(&s);
+					token = ParseToken(&s);
 				}
 			}
 

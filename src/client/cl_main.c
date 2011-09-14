@@ -923,11 +923,11 @@ static void Cl_InitMenuFonts(const char *file_name){
 	buf = buffer;
 
 	do {
-		token = Com_Parse(&buf);
+		token = ParseToken(&buf);
 		if (!token || !buf)
 			break;
 		if (!strcmp(token, "font")) {
-			token = Com_Parse(&buf);
+			token = ParseToken(&buf);
 			MN_ParseFont(token, &buf);
 		}
 	} while (true);
@@ -950,11 +950,11 @@ static void Cl_InitMenu(const char *file_name){
 
 	buf = buffer;
 
-	token = Com_Parse(&buf);
+	token = ParseToken(&buf);
 	if (strcmp(token, "window"))
 		Com_Error(ERR_FATAL, "Failed to parse %s\n", file_name);
 
-	token = Com_Parse(&buf);
+	token = ParseToken(&buf);
 	MN_ParseMenu("window", token, &buf);
 
 	Fs_FreeFile(buffer);
@@ -1107,7 +1107,7 @@ static void Cl_WriteConfiguration(void){
  * Cl_Frame
  */
 void Cl_Frame(int msec){
-	qboolean packet_frame = true, render_frame = true;
+	boolean_t packet_frame = true, render_frame = true;
 	int ms;
 
 	if(dedicated->value)

@@ -381,7 +381,7 @@ static void G_Give(g_client_t *client, char *it, int quantity){
 /*
  * G_GiveLevelLocals
  */
-static qboolean G_GiveLevelLocals(g_client_t *client){
+static boolean_t G_GiveLevelLocals(g_client_t *client){
 	char buf[512], *it, *q;
 	int quantity;
 
@@ -397,7 +397,7 @@ static qboolean G_GiveLevelLocals(g_client_t *client){
 		if(!it)
 			break;
 
-		it = Com_TrimString(it);
+		it = Trim(it);
 
 		if(*it != '\0'){
 
@@ -780,7 +780,7 @@ static void G_ClientRespawn_(g_edict_t *ent){
  * In this case, voluntary means that the client has explicitly requested
  * a respawn by changing their spectator status.
  */
-void G_ClientRespawn(g_edict_t *ent, qboolean voluntary){
+void G_ClientRespawn(g_edict_t *ent, boolean_t voluntary){
 
 	G_ClientRespawn_(ent);
 
@@ -874,18 +874,18 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info){
 	char *c;
 	char name[MAX_NET_NAME];
 	int player_num, i;
-	qboolean color;
+	boolean_t color;
 	g_client_t *cl;
 
 	// check for malformed or illegal info strings
-	if(!Info_Validate(user_info)){
+	if(!ValidateUserInfo(user_info)){
 		user_info = "\\name\\newbie\\skin\\qforcer/enforcer";
 	}
 
 	cl = ent->client;
 
 	// set name, use a temp buffer to compute length and crutch up bad names
-	s = Info_ValueForKey(user_info, "name");
+	s = GetUserInfo(user_info, "name");
 
 	strncpy(name, s, sizeof(name) - 1);
 	name[sizeof(name) - 1] = 0;
@@ -929,7 +929,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info){
 #ifdef HAVE_MYSQL
 	if(mysql != NULL){  // escape name for safe db insertions
 
-		Com_StripColor(cl->locals.net_name, name);
+		StripColor(cl->locals.net_name, name);
 
 		mysql_real_escape_string(mysql, name, cl->locals.sql_name,
 				sizeof(cl->locals.sql_name));
@@ -940,7 +940,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info){
 	if((g_level.teams || g_level.ctf) && cl->locals.team)  // players must use team_skin to change
 		s = cl->locals.team->skin;
 	else
-		s = Info_ValueForKey(user_info, "skin");
+		s = GetUserInfo(user_info, "skin");
 
 	if(*s != '\0')  // something valid-ish was provided
 		strncpy(cl->locals.skin, s, sizeof(cl->locals.skin) - 1);
@@ -950,7 +950,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info){
 	}
 
 	// set color
-	s = Info_ValueForKey(user_info, "color");
+	s = GetUserInfo(user_info, "color");
 	cl->locals.color = ColorByName(s, 243);
 
 	player_num = ent - g_game.edicts - 1;
@@ -972,13 +972,13 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info){
  * and eventually get to G_Begin()
  * Changing levels will NOT cause this to be called again.
  */
-qboolean G_ClientConnect(g_edict_t *ent, char *user_info){
+boolean_t G_ClientConnect(g_edict_t *ent, char *user_info){
 
 	// check password
-	const char *value = Info_ValueForKey(user_info, "password");
+	const char *value = GetUserInfo(user_info, "password");
 	if(*password->string && strcmp(password->string, "none") &&
 			strcmp(password->string, value)){
-		Info_SetValueForKey(user_info, "rejmsg", "Password required or incorrect.");
+		SetUserInfo(user_info, "rejmsg", "Password required or incorrect.");
 		return false;
 	}
 
@@ -1047,7 +1047,7 @@ void G_ClientDisconnect(g_edict_t *ent){
  *
  * Ignore ourselves, clipping to the correct mask based on our status.
  */
-static trace_t G_ClientMoveTrace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
+static c_trace_t G_ClientMoveTrace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
 	g_edict_t *self = g_level.current_entity;
 
 	if(g_level.current_entity->health > 0)

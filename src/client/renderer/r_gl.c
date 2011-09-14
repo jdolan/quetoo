@@ -90,7 +90,7 @@ void R_EnforceGlVersion(void){
 /*
  * R_InitGlExtensions
  */
-qboolean R_InitGlExtensions(void){
+boolean_t R_InitGlExtensions(void){
 
 	// multitexture
 	if(strstr(r_config.extensions_string, "GL_ARB_multitexture")){

@@ -38,7 +38,7 @@ typedef struct {
 } consoledata_t;
 
 typedef struct {
-	qboolean initialized;
+	boolean_t initialized;
 	// console dimensions
 	int width;			// console printable width in characters
 	int height;			// console printable height in characters

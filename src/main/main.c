@@ -172,8 +172,6 @@ static void Init(int argc, char **argv){
 
 	Com_InitArgv(argc, argv);
 
-	Swap_Init();
-
 	Cbuf_Init();
 
 	Cmd_Init();
@@ -309,10 +307,6 @@ int main(int argc, char **argv){
 	setvbuf(stdout, NULL, _IONBF, 0);
 #endif
 
-	printf("Quake2World %s\n", VERSION);
-
-	Init(argc, argv);
-
 	signal(SIGHUP, Sys_Signal);
 	signal(SIGINT, Sys_Signal);
 	signal(SIGQUIT, Sys_Signal);
@@ -321,6 +315,10 @@ int main(int argc, char **argv){
 	signal(SIGFPE, Sys_Signal);
 	signal(SIGSEGV, Sys_Signal);
 	signal(SIGTERM, Sys_Signal);
+
+	printf("Quake2World %s\n", VERSION);
+
+	Init(argc, argv);
 
 	oldtime = Sys_Milliseconds();
 

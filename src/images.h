@@ -38,7 +38,7 @@ the provided SDL_Surface.
 
 Image formats are tried in the order they appear in TYPES.
 */
-qboolean Img_LoadImage(char *name, SDL_Surface **surf);
+boolean_t Img_LoadImage(char *name, SDL_Surface **surf);
 
 /*
 Img_LoadTypedImage
@@ -46,7 +46,7 @@ Img_LoadTypedImage
 Loads the specified image from the game filesystem and populates
 the provided SDL_Surface.
 */
-qboolean Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf);
+boolean_t Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf);
 
 /*
 Img_InitPalette

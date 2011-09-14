@@ -121,7 +121,7 @@ static inline void MN_InsertMenuIntoStack (menuNode_t *menu, int position)
  * @param[in] delete Delete the menu from the menu stack before adding it again
  * @return pointer to menuNode_t
  */
-static menuNode_t* MN_PushMenuDelete (const char *name, const char *parent, qboolean delete)
+static menuNode_t* MN_PushMenuDelete (const char *name, const char *parent, boolean_t delete)
 {
 	menuNode_t *menu;
 
@@ -315,7 +315,7 @@ static void MN_CloseAllMenu (void)
  * @todo Update the code: pushActive should be every time true
  * @todo Illustration about when/how we should use MN_InitStack http://ufoai.ninex.info/wiki/index.php/Image:MN_InitStack.jpg
  */
-void MN_InitStack (char* activeMenu, char* mainMenu, qboolean popAll, qboolean pushActive)
+void MN_InitStack (char* activeMenu, char* mainMenu, boolean_t popAll, boolean_t pushActive)
 {
 	if (popAll)
 		MN_PopMenu(qtrue);
@@ -332,7 +332,7 @@ void MN_InitStack (char* activeMenu, char* mainMenu, qboolean popAll, qboolean p
 /**
  * @brief Check if a named menu is on the stack if active menus
  */
-qboolean MN_IsMenuOnStack(const char* name)
+boolean_t MN_IsMenuOnStack(const char* name)
 {
 	return MN_GetMenuPositionFromStackByName(name) != -1;
 }
@@ -392,7 +392,7 @@ void MN_CloseMenu (const char* name)
  * @param[in] all If true pop all menus from stack
  * @sa MN_PopMenu_f
  */
-void MN_PopMenu (qboolean all)
+void MN_PopMenu (boolean_t all)
 {
 	menuNode_t *oldfirst = mn.menuStack[0];
 
@@ -495,7 +495,7 @@ const char* MN_GetActiveMenuName (void)
  * @brief Check if a point is over a menu from the stack
  * @sa IN_Parse
  */
-qboolean MN_IsPointOnMenu (int x, int y)
+boolean_t MN_IsPointOnMenu (int x, int y)
 {
 	const menuNode_t *hovered;
 

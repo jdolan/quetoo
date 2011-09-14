@@ -158,7 +158,7 @@ static void Svc_Info(void){
 				count++;
 		}
 
-		Com_StripColor(sv_hostname->string, hostname);
+		StripColor(sv_hostname->string, hostname);
 
 		snprintf(string, sizeof(string), "%-24.24s %-12.12s %02d/%02d\n",
 				hostname, sv.name, count, (int)sv_max_clients->integer);
@@ -226,7 +226,7 @@ static void Svc_GetChallenge(void){
  * A connection request that did not come from the master.
  */
 static void Svc_Connect(void){
-	char user_info[MAX_INFO_STRING];
+	char user_info[MAX_USER_INFO_STRING];
 	sv_client_t *cl, *client;
 	net_addr_t addr;
 	int version;
@@ -267,20 +267,20 @@ static void Svc_Connect(void){
 		return;
 	}
 
-	if(strlen(Info_ValueForKey(user_info, "ip"))){  // catch spoofed ips
+	if(strlen(GetUserInfo(user_info, "ip"))){  // catch spoofed ips
 		Com_Print("Illegal user_info contained ip from %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
 
-	if(!Info_Validate(user_info)){  // catch otherwise invalid user_info
+	if(!ValidateUserInfo(user_info)){  // catch otherwise invalid user_info
 		Com_Print("Invalid user_info from %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
 
 	// force the ip so the game can filter on it
-	Info_SetValueForKey(user_info, "ip", Net_NetaddrToString(addr));
+	SetUserInfo(user_info, "ip", Net_NetaddrToString(addr));
 
 	// enforce a valid challenge to avoid denial of service attack
 	for(i = 0; i < MAX_CHALLENGES; i++){
@@ -337,9 +337,9 @@ static void Svc_Connect(void){
 	// give the game a chance to reject this connection or modify the user_info
 	if(!(svs.game->ClientConnect(client->edict, user_info))){
 
-		if(*Info_ValueForKey(user_info, "rejmsg")){
+		if(*GetUserInfo(user_info, "rejmsg")){
 			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused.\n",
-					Info_ValueForKey(user_info, "rejmsg"));
+					GetUserInfo(user_info, "rejmsg"));
 		}
 		else {
 			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
@@ -370,7 +370,7 @@ static void Svc_Connect(void){
 /*
  * Sv_RconAuthenticate
  */
-static qboolean Sv_RconAuthenticate(void){
+static boolean_t Sv_RconAuthenticate(void){
 
 	// a password must be set for rcon to be available
 	if(*sv_rcon_password->string == '\0')
@@ -391,7 +391,7 @@ static qboolean Sv_RconAuthenticate(void){
  * redirect all output to the invoking client.
  */
 static void Svc_RemoteCommand(void){
-	const qboolean auth = Sv_RconAuthenticate();
+	const boolean_t auth = Sv_RconAuthenticate();
 
 	// first print to the server console
 	if(auth)
@@ -826,27 +826,27 @@ void Sv_UserInfoChanged(sv_client_t *cl){
 		return;
 	}
 
-	if(!Info_Validate(cl->user_info)){  // catch otherwise invalid user_info
+	if(!ValidateUserInfo(cl->user_info)){  // catch otherwise invalid user_info
 		Com_Print("Invalid user_info from %s\n", Sv_NetaddrToString(cl));
 		Sv_KickClient(cl, "Bad user info");
 		return;
 	}
 
-	val = Info_ValueForKey(cl->user_info, "skin");
+	val = GetUserInfo(cl->user_info, "skin");
 	if(strstr(val, ".."))  // catch malformed skins
-		Info_SetValueForKey(cl->user_info, "skin", "ichabod/ichabod");
+		SetUserInfo(cl->user_info, "skin", "ichabod/ichabod");
 
 	// call game code to allow overrides
 	svs.game->ClientUserInfoChanged(cl->edict, cl->user_info);
 
 	// name for C code, mask off high bit
-	strncpy(cl->name, Info_ValueForKey(cl->user_info, "name"), sizeof(cl->name) - 1);
+	strncpy(cl->name, GetUserInfo(cl->user_info, "name"), sizeof(cl->name) - 1);
 	for(i = 0; i < sizeof(cl->name); i++){
 		cl->name[i] &= 127;
 	}
 
 	// rate command
-	val = Info_ValueForKey(cl->user_info, "rate");
+	val = GetUserInfo(cl->user_info, "rate");
 	if(*val != '\0'){
 		cl->rate = atoi(val);
 
@@ -857,13 +857,13 @@ void Sv_UserInfoChanged(sv_client_t *cl){
 	}
 
 	// limit the print messages the client receives
-	val = Info_ValueForKey(cl->user_info, "message_level");
+	val = GetUserInfo(cl->user_info, "message_level");
 	if(*val != '\0'){
 		cl->message_level = atoi(val);
 	}
 
 	// start/stop sending view angles for demo recording
-	val = Info_ValueForKey(cl->user_info, "recording");
+	val = GetUserInfo(cl->user_info, "recording");
 	cl->recording = atoi(val) == 1;
 }
 

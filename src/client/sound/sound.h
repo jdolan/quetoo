@@ -26,7 +26,7 @@
 typedef struct s_sample_s {
 	char name[MAX_QPATH];
 	Mix_Chunk *chunk;
-	qboolean alias;
+	boolean_t alias;
 } s_sample_t;
 
 #define MAX_SAMPLES (MAX_SOUNDS * 2)  // max server side sounds, plus room for local samples
@@ -59,8 +59,8 @@ typedef struct s_env_s {
 
 	s_music_t *active_music;
 
-	qboolean initialized;
-	qboolean update;
+	boolean_t initialized;
+	boolean_t update;
 } s_env_t;
 
 extern s_env_t s_env;

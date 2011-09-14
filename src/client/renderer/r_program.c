@@ -246,7 +246,7 @@ static size_t R_PreprocessShader(const char *name, const char *in, char *out, si
 		if(!strncmp(in, "#include", 8)){  // includes
 			in += 8;
 
-			snprintf(path, sizeof(path), "shaders/%s", Com_Parse(&in));
+			snprintf(path, sizeof(path), "shaders/%s", ParseToken(&in));
 
 			if(Fs_LoadFile(path, &buf) == -1){
 				Com_Error(ERR_DROP, "R_PreprocessShader: "
@@ -263,7 +263,7 @@ static size_t R_PreprocessShader(const char *name, const char *in, char *out, si
 		if(!strncmp(in, "#if", 3)){  // conditionals
 			in += 3;
 
-			f = Cvar_GetValue(Com_Parse(&in));
+			f = Cvar_GetValue(ParseToken(&in));
 
 			while(*in){
 

@@ -58,14 +58,14 @@ void MN_InitMenus(void);
 /* menu stack */
 int MN_GetLastFullScreenWindow(void);
 struct menuNode_s* MN_PushMenu(const char *name, const char *parentName);
-void MN_InitStack(char* activeMenu, char* mainMenu, qboolean popAll, qboolean pushActive);
-void MN_PopMenu(qboolean all);
+void MN_InitStack(char* activeMenu, char* mainMenu, boolean_t popAll, boolean_t pushActive);
+void MN_PopMenu(boolean_t all);
 void MN_PopMenuWithEscKey(void);
 void MN_CloseMenu(const char* name);
 struct menuNode_s* MN_GetActiveMenu(void);
 int MN_CompleteWithMenu(const char *partial, const char **match);
-qboolean MN_IsMenuOnStack(const char* name);
-qboolean MN_IsPointOnMenu(int x, int y);
+boolean_t MN_IsMenuOnStack(const char* name);
+boolean_t MN_IsPointOnMenu(int x, int y);
 void MN_InvalidateStack(void);
 void MN_InsertMenu(struct menuNode_s* menu);
 

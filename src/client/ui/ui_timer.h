@@ -44,7 +44,7 @@ typedef struct menuTimer_s {
 
 	int delay;					/**< delay in millisecond between each call of */
 	void *userData;				/**< free to use data, not used by the core functions */
-	qboolean isRunning;			/**< true if the timer is running */
+	boolean_t isRunning;			/**< true if the timer is running */
 } menuTimer_t;
 
 menuTimer_t* MN_AllocTimer(struct menuNode_s *node, int firstDelay, timerCallback_t callback) __attribute__ ((warn_unused_result));

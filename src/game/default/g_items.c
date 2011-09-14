@@ -139,7 +139,7 @@ void G_SetItemRespawn(g_edict_t *ent, float delay){
 /*
  * G_PickupAdrenaline
  */
-static qboolean G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other){
+static boolean_t G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other){
 
 	if(other->health < other->max_health)
 		other->health = other->max_health;
@@ -154,7 +154,7 @@ static qboolean G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other){
 /*
  * G_PickupQuadDamage
  */
-static qboolean G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other){
+static boolean_t G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other){
 
 	if(other->client->locals.inventory[quad_damage_index])
 		return false;  // already have it
@@ -196,7 +196,7 @@ void G_TossQuadDamage(g_edict_t *ent){
 /*
  * G_AddAmmo
  */
-qboolean G_AddAmmo(g_edict_t *ent, g_item_t *item, int count){
+boolean_t G_AddAmmo(g_edict_t *ent, g_item_t *item, int count){
 	int index;
 	int max;
 
@@ -236,7 +236,7 @@ qboolean G_AddAmmo(g_edict_t *ent, g_item_t *item, int count){
 /*
  * G_PickupAmmo
  */
-static qboolean G_PickupAmmo(g_edict_t *ent, g_edict_t *other){
+static boolean_t G_PickupAmmo(g_edict_t *ent, g_edict_t *other){
 	int count;
 
 	if(ent->count)
@@ -279,9 +279,9 @@ static void G_DropAmmo(g_edict_t *ent, g_item_t *item){
 /*
  * G_PickupHealth
  */
-static qboolean G_PickupHealth(g_edict_t *ent, g_edict_t *other){
+static boolean_t G_PickupHealth(g_edict_t *ent, g_edict_t *other){
 	int h, max;
-	qboolean always_add, always_pickup;
+	boolean_t always_add, always_pickup;
 
 	always_add = ent->item->tag == HEALTH_SMALL;
 	always_pickup = ent->item->tag == HEALTH_SMALL || ent->item->tag == HEALTH_MEGA;
@@ -320,8 +320,8 @@ static qboolean G_PickupHealth(g_edict_t *ent, g_edict_t *other){
 /*
  * G_PickupArmor
  */
-static qboolean G_PickupArmor(g_edict_t *ent, g_edict_t *other){
-	qboolean taken = true;
+static boolean_t G_PickupArmor(g_edict_t *ent, g_edict_t *other){
+	boolean_t taken = true;
 
 	if(ent->item->tag == ARMOR_SHARD){  // take it, ignoring cap
 		other->client->locals.armor += ent->item->quantity;
@@ -377,7 +377,7 @@ void G_ResetFlag(g_edict_t *ent){
  * Return own flag, or capture on it if enemy's flag is in inventory.
  * Take the enemy's flag.
  */
-static qboolean G_PickupFlag(g_edict_t *ent, g_edict_t *other){
+static boolean_t G_PickupFlag(g_edict_t *ent, g_edict_t *other){
 	g_team_t *t, *ot;
 	g_edict_t *f, *of;
 	int index;
@@ -501,7 +501,7 @@ static void G_DropFlag(g_edict_t *ent, g_item_t *item){
  * G_TouchItem
  */
 void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
-	qboolean taken;
+	boolean_t taken;
 
 	if(!other->client)
 		return;
@@ -616,7 +616,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item){
 	g_edict_t *dropped;
 	vec3_t forward;
 	vec3_t v;
-	trace_t trace;
+	c_trace_t trace;
 
 	dropped = G_Spawn();
 
@@ -697,7 +697,7 @@ static void G_UseItem(g_edict_t *ent, g_edict_t *other, g_edict_t *activator){
  * G_DropToFloor
  */
 static void G_DropToFloor(g_edict_t *ent){
-	trace_t tr;
+	c_trace_t tr;
 	vec3_t dest;
 
 	VectorClear(ent->velocity);

@@ -189,7 +189,7 @@ static void R_SetMatrixForEntity(r_entity_t *e){
  *
  * Dispatches the appropriate sub-routine for frustum-culling the entity.
  */
-static qboolean R_CullEntity(r_entity_t *e){
+static boolean_t R_CullEntity(r_entity_t *e){
 
 	if(!e->model){
 		e->culled = false;

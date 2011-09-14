@@ -400,8 +400,6 @@ void Cl_UpdateView(void){
 
 	Cl_UpdateViewsize();
 
-	R_UpdateFrustum();
-
 	// set time in seconds
 	r_view.time = cl.time * 0.001;
 

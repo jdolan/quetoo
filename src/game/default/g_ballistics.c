@@ -48,8 +48,8 @@ static void G_PlayerProjectile(g_edict_t *ent, const vec3_t scale){
  *
  * Returns true if the entity is facing a wall at close proximity.
  */
-static qboolean G_ImmediateWall(g_edict_t *ent, vec3_t dir){
-	trace_t tr;
+static boolean_t G_ImmediateWall(g_edict_t *ent, vec3_t dir){
+	c_trace_t tr;
 	vec3_t end;
 
 	VectorMA(ent->s.origin, 30, dir, end);
@@ -64,7 +64,7 @@ static qboolean G_ImmediateWall(g_edict_t *ent, vec3_t dir){
  *
  * Returns true if the specified surface appears structural.
  */
-static qboolean G_IsStructural(g_edict_t *ent, c_surface_t *surf){
+static boolean_t G_IsStructural(g_edict_t *ent, c_surface_t *surf){
 
 	if(!ent || ent->client || ent->take_damage)
 		return false;  // we hit nothing, or something we damaged
@@ -82,7 +82,7 @@ static qboolean G_IsStructural(g_edict_t *ent, c_surface_t *surf){
  *
  * Used to add generic bubble trails to shots.
  */
-static void G_BubbleTrail(vec3_t start, trace_t *tr){
+static void G_BubbleTrail(vec3_t start, c_trace_t *tr){
 	vec3_t dir, pos;
 
 	if(VectorCompare(tr->end, start))
@@ -171,14 +171,14 @@ static void G_BurnMark(vec3_t org, c_plane_t *plane, c_surface_t *surf, byte sca
  */
 void G_BulletProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir,
 		int damage, int knockback, int hspread, int vspread, int mod){
-	trace_t tr;
+	c_trace_t tr;
 	vec3_t dir;
 	vec3_t forward, right, up;
 	vec3_t end;
 	float r;
 	float u;
 	vec3_t water_start;
-	qboolean water = false;
+	boolean_t water = false;
 	int content_mask = MASK_SHOT | MASK_WATER;
 
 	tr = gi.Trace(self->s.origin, NULL, NULL, start, self, MASK_SHOT);
@@ -592,7 +592,7 @@ static void G_LightningProjectile_Discharge(g_edict_t *self){
 /*
  * G_LightningProjectile_Expire
  */
-static qboolean G_LightningProjectile_Expire(g_edict_t *self){
+static boolean_t G_LightningProjectile_Expire(g_edict_t *self){
 
 	if(self->timestamp < g_level.time - 0.101)
 		return true;
@@ -611,7 +611,7 @@ static void G_LightningProjectile_Think(g_edict_t *self){
 	vec3_t forward, right, up;
 	vec3_t start, end;
 	vec3_t water_start;
-	trace_t tr;
+	c_trace_t tr;
 
 	if(G_LightningProjectile_Expire(self)){
 		self->owner->lightning = NULL;
@@ -714,11 +714,11 @@ void G_LightningProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir, int dam
 void G_RailgunProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir, int damage, int knockback){
 	vec3_t from;
 	vec3_t end;
-	trace_t tr;
+	c_trace_t tr;
 	g_edict_t *ignore;
 	vec3_t water_start;
 	byte color;
-	qboolean water = false;
+	boolean_t water = false;
 	int content_mask = MASK_SHOT | MASK_WATER;
 
 	if(G_ImmediateWall(self, aimdir))

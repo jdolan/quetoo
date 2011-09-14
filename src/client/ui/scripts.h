@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <assert.h>
 
 #define MAX_VAR 64
-#define qboolean unsigned char
+#define boolean_t unsigned char
 #define qfalse false
 #define qtrue true
 #define _(x) x
@@ -125,7 +125,7 @@ void FS_SkipBlock(const char **text);
 const char *Com_MacroExpandString(const char *text);
 
 #define R_Color(color) { if (color == NULL) glColor4ubv(color_white); else glColor4fv(color); }
-void R_FontTextSize(const char *fontID, const char *text, int maxWidth, int chop, int *width, int *height, int *lines, qboolean *isTruncated);
+void R_FontTextSize(const char *fontID, const char *text, int maxWidth, int chop, int *width, int *height, int *lines, boolean_t *isTruncated);
 
 #if defined _WIN32
 #	define Q_strcasecmp(a, b) _stricmp((a), (b))

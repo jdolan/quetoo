@@ -158,7 +158,7 @@ static void R_DrawSkySurface(int nump, vec3_t vecs){
 static void R_ClipSkySurface(int nump, vec3_t vecs, int stage){
 	const float *norm;
 	float *v;
-	qboolean front, back;
+	boolean_t front, back;
 	float d, e;
 	float dists[MAX_CLIP_VERTS];
 	int sides[MAX_CLIP_VERTS];
@@ -185,7 +185,7 @@ static void R_ClipSkySurface(int nump, vec3_t vecs, int stage){
 			back = true;
 			sides[i] = SIDE_BACK;
 		} else
-			sides[i] = SIDE_ON;
+			sides[i] = SIDE_BOTH;
 		dists[i] = d;
 	}
 
@@ -210,7 +210,7 @@ static void R_ClipSkySurface(int nump, vec3_t vecs, int stage){
 				VectorCopy(v, newv[1][newc[1]]);
 				newc[1]++;
 				break;
-			case SIDE_ON:
+			case SIDE_BOTH:
 				VectorCopy(v, newv[0][newc[0]]);
 				newc[0]++;
 				VectorCopy(v, newv[1][newc[1]]);
@@ -218,7 +218,7 @@ static void R_ClipSkySurface(int nump, vec3_t vecs, int stage){
 				break;
 		}
 
-		if(sides[i] == SIDE_ON || sides[i + 1] == SIDE_ON || sides[i + 1] == sides[i])
+		if(sides[i] == SIDE_BOTH || sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i])
 			continue;
 
 		d = dists[i] / (dists[i] - dists[i + 1]);

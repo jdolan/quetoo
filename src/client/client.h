@@ -34,7 +34,7 @@
 #include "thread.h"
 
 typedef struct cl_frame_s {
-	qboolean valid;  // cleared if delta parsing was invalid
+	boolean_t valid;  // cleared if delta parsing was invalid
 	int server_frame;
 	int server_time;  // server time the message is valid for (in milliseconds)
 	int delta_frame;
@@ -103,7 +103,7 @@ typedef struct cl_client_s {
 	vec3_t prediction_error;
 	short predicted_origins[CMD_BACKUP][3];  // for debug comparing against server
 
-	qboolean underwater;  // updated by client sided prediction
+	boolean_t underwater;  // updated by client sided prediction
 
 	cl_frame_t frame;  // received from server
 	cl_frame_t frames[UPDATE_BACKUP];  // for calculating delta compression
@@ -133,7 +133,7 @@ typedef struct cl_client_s {
 	int server_count;  // server identification for precache
 	int server_frame_rate;  // server frame rate (packets per second)
 
-	qboolean demo_server;  // we're viewing a demo
+	boolean_t demo_server;  // we're viewing a demo
 
 	char gamedir[MAX_QPATH];
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
@@ -174,29 +174,29 @@ typedef struct cl_key_state_s {
 	char lines[KEY_HISTORYSIZE][KEY_LINESIZE];
 	int pos;
 
-	qboolean insert;
+	boolean_t insert;
 
 	unsigned edit_line;
 	unsigned history_line;
 
 	char *binds[K_LAST];
-	qboolean down[K_LAST];
+	boolean_t down[K_LAST];
 } cl_key_state_t;
 
 typedef struct cl_mouse_state_s {
 	float x, y;
 	float old_x, old_y;
-	qboolean grabbed;
+	boolean_t grabbed;
 } cl_mouse_state_t;
 
 typedef struct cl_chat_state_s {
 	char buffer[KEY_LINESIZE];
 	size_t len;
-	qboolean team;
+	boolean_t team;
 } cl_chat_state_t;
 
 typedef struct cl_download_s {
-	qboolean http;
+	boolean_t http;
 	FILE *file;
 	char tempname[MAX_OSPATH];
 	char name[MAX_OSPATH];
@@ -247,7 +247,7 @@ typedef struct cl_static_s {
 	char download_url[MAX_OSPATH];  // for http downloads
 	cl_download_t download;  // current download (udp or http)
 
-	qboolean demo_waiting;  // don't begin recording until an uncompressed message is received
+	boolean_t demo_waiting;  // don't begin recording until an uncompressed message is received
 	char demo_path[MAX_OSPATH];
 	FILE *demo_file;
 
@@ -359,7 +359,7 @@ void Cl_AddEntities(cl_frame_t *frame);
 // cl_http.c
 void Cl_InitHttpDownload(void);
 void Cl_HttpDownloadCleanup(void);
-qboolean Cl_HttpDownload(void);
+boolean_t Cl_HttpDownload(void);
 void Cl_HttpDownloadThink(void);
 void Cl_ShutdownHttpDownload(void);
 
@@ -369,7 +369,7 @@ void Cl_HandleEvents(void);
 void Cl_Move(user_cmd_t *cmd);
 
 // cl_keys.c
-void Cl_KeyEvent(unsigned int ascii, unsigned short unicode, qboolean down, unsigned time);
+void Cl_KeyEvent(unsigned int ascii, unsigned short unicode, boolean_t down, unsigned time);
 char *Cl_EditLine(void);
 void Cl_WriteBindings(FILE *f);
 void Cl_InitKeys(void);
@@ -397,7 +397,7 @@ void Cl_WriteDemoMessage(void);
 // cl_parse.c
 extern char *svc_strings[256];
 
-qboolean Cl_CheckOrDownloadFile(const char *file_name);
+boolean_t Cl_CheckOrDownloadFile(const char *file_name);
 void Cl_ParseConfigString(void);
 void Cl_ParseClientInfo(int player);
 void Cl_ParseMuzzleFlash(void);

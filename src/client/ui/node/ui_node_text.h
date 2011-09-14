@@ -45,14 +45,14 @@ struct menuAction_s;
 struct menuNode_s;
 
 void MN_TextScrollBottom(const char* nodeName);
-qboolean MN_TextScroll(struct menuNode_s *node, int offset);
+boolean_t MN_TextScroll(struct menuNode_s *node, int offset);
 int MN_TextNodeGetLine(const struct menuNode_s *node, int x, int y);
 void MN_TextNodeSelectLine(struct menuNode_s *node, int num);
 
 void MN_RegisterTextNode(struct nodeBehaviour_s *behaviour);
 
 typedef struct {
-	qboolean scrollbar;			/**< if you want to add a scrollbar to a text node, set this to true */
+	boolean_t scrollbar;			/**< if you want to add a scrollbar to a text node, set this to true */
 	int textScroll;				/**< textfields - current scroll position */
 	int textLines;				/**< How many lines there are */
 	int textLineSelected;		/**< Which line is currenlty selected? This counts only visible lines). Add textScroll to this value to get total linecount. @sa selectedColor below.*/

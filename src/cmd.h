@@ -45,7 +45,7 @@ void Cbuf_InsertText(const char *text);
 // inserted at the beginning of the buffer, before any remaining unexecuted
 // commands.
 
-void Cbuf_AddEarlyCommands(qboolean clear);
+void Cbuf_AddEarlyCommands(boolean_t clear);
 // adds all the +set commands from the command line
 
 void Cbuf_AddLateCommands(void);
@@ -74,7 +74,7 @@ typedef void(*xcommand_t)(void);
 
 void Cmd_Init(void);
 
-qboolean Cmd_Exists(const char *cmd_name);
+boolean_t Cmd_Exists(const char *cmd_name);
 void Cmd_AddUserdata(const char *cmd_name, void *userdata);
 void* Cmd_GetUserdata(const char *cmd_name);
 void *Cmd_Userdata(void);

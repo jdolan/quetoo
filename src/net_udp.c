@@ -105,7 +105,7 @@ static void Net_SockaddrToNetaddr(const struct sockaddr_in *s, net_addr_t *a){
 /*
  * Net_CompareNetaddr
  */
-qboolean Net_CompareNetaddr(net_addr_t a, net_addr_t b){
+boolean_t Net_CompareNetaddr(net_addr_t a, net_addr_t b){
 
 	if(a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2]
 			&& a.ip[3] == b.ip[3] && a.port == b.port)
@@ -120,7 +120,7 @@ qboolean Net_CompareNetaddr(net_addr_t a, net_addr_t b){
  *
  * Similar to Net_CompareNetaddr, but omits port checks.
  */
-qboolean Net_CompareClientNetaddr(net_addr_t a, net_addr_t b){
+boolean_t Net_CompareClientNetaddr(net_addr_t a, net_addr_t b){
 
 	if(a.type != b.type)
 		return false;
@@ -156,7 +156,7 @@ char *Net_NetaddrToString(net_addr_t a){
  * 192.246.40.70
  * 192.246.40.70:28000
  */
-static qboolean Net_StringToSockaddr(const char *s, struct sockaddr *saddr){
+static boolean_t Net_StringToSockaddr(const char *s, struct sockaddr *saddr){
 	struct hostent *h;
 	char *colon;
 	char copy[128];
@@ -196,7 +196,7 @@ static qboolean Net_StringToSockaddr(const char *s, struct sockaddr *saddr){
  * 192.246.40.70
  * 192.246.40.70:28000
  */
-qboolean Net_StringToNetaddr(const char *s, net_addr_t *a){
+boolean_t Net_StringToNetaddr(const char *s, net_addr_t *a){
 	struct sockaddr_in saddr;
 
 	if(!strcmp(s, "localhost")){
@@ -217,7 +217,7 @@ qboolean Net_StringToNetaddr(const char *s, net_addr_t *a){
 /*
  * Net_IsLocalNetaddr
  */
-qboolean Net_IsLocalNetaddr(net_addr_t addr){
+boolean_t Net_IsLocalNetaddr(net_addr_t addr){
 	return Net_CompareNetaddr(addr, net_local_addr);
 }
 
@@ -225,7 +225,7 @@ qboolean Net_IsLocalNetaddr(net_addr_t addr){
 /*
  * Net_GetLocalPacket
  */
-static qboolean Net_GetLocalPacket(net_src_t source, net_addr_t *from, size_buf_t *message){
+static boolean_t Net_GetLocalPacket(net_src_t source, net_addr_t *from, size_buf_t *message){
 	int i;
 	loopback_t *loop;
 
@@ -268,7 +268,7 @@ static void Net_SendLocalPacket(net_src_t source, size_t length, void *data, net
 /*
  * Net_GetPacket
  */
-qboolean Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message){
+boolean_t Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message){
 	int ret, err;
 	struct sockaddr_in from_addr;
 	socklen_t from_len;
@@ -409,7 +409,7 @@ static int Net_Socket(const char *net_interface, unsigned short port){
 /*
  * Net_Config
  */
-void Net_Config(net_src_t source, qboolean up){
+void Net_Config(net_src_t source, boolean_t up){
 	unsigned short p = 0;
 
 	if(source == NS_SERVER){

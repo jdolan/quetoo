@@ -735,7 +735,7 @@ void G_func_button(g_edict_t *ent){
 /*
  * G_func_door_use_areaportals
  */
-static void G_func_door_use_areaportals(g_edict_t *self, qboolean open){
+static void G_func_door_use_areaportals(g_edict_t *self, boolean_t open){
 	g_edict_t *t = NULL;
 
 	if(!self->target)
@@ -1318,7 +1318,7 @@ static void G_func_train_wait(g_edict_t *self){
 static void G_func_train_next(g_edict_t *self){
 	g_edict_t *ent;
 	vec3_t dest;
-	qboolean first;
+	boolean_t first;
 
 	first = true;
 again:

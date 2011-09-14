@@ -31,7 +31,7 @@
 static void R_LoadMeshSkin(r_model_t *mod){
 	char skin[MAX_QPATH];
 
-	Com_Dirname(mod->name, skin);
+	Dirname(mod->name, skin);
 	strcat(skin, "skin");
 
 	mod->skin = R_LoadImage(skin, it_skin);
@@ -52,7 +52,7 @@ static void R_LoadMd3Animations(r_model_t *mod){
 
 	md3 = (r_md3_t *)mod->extra_data;
 
-	Com_Dirname(mod->name, path);
+	Dirname(mod->name, path);
 	strcat(path, "animation.cfg");
 
 	if(Fs_LoadFile(path, &buf) == -1){
@@ -68,7 +68,7 @@ static void R_LoadMd3Animations(r_model_t *mod){
 
 	while(true){
 
-		c = Com_Parse(&buffer);
+		c = ParseToken(&buffer);
 
 		if(*c == '\0')
 			break;
@@ -77,11 +77,11 @@ static void R_LoadMd3Animations(r_model_t *mod){
 			r_md3_animation_t *a = &md3->animations[md3->num_animations];
 
 			a->first_frame = atoi(c);
-			c = Com_Parse(&buffer);
+			c = ParseToken(&buffer);
 			a->num_frames = atoi(c);
-			c = Com_Parse(&buffer);
+			c = ParseToken(&buffer);
 			a->looped_frames = atoi(c);
-			c = Com_Parse(&buffer);
+			c = ParseToken(&buffer);
 			a->hz = atoi(c);
 
 			if(md3->num_animations == ANIM_LEGS_WALKCR)
@@ -127,19 +127,19 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path){
 
 	while(true){
 
-		c = Com_Parse(&buffer);
+		c = ParseToken(&buffer);
 
 		if(*c == '\0')
 			break;
 
 		if(!strcmp(c, "translate")){
-			sscanf(Com_Parse(&buffer), "%f %f %f", &config->translate[0],
+			sscanf(ParseToken(&buffer), "%f %f %f", &config->translate[0],
 					&config->translate[1], &config->translate[2]);
 			continue;
 		}
 
 		if(!strcmp(c, "scale")){
-			sscanf(Com_Parse(&buffer), "%f", &config->scale);
+			sscanf(ParseToken(&buffer), "%f", &config->scale);
 			continue;
 		}
 
@@ -170,7 +170,7 @@ static void R_LoadMeshConfigs(r_model_t *mod){
 
 	mod->world_config->scale = 1.0;
 
-	Com_Dirname(mod->name, path);
+	Dirname(mod->name, path);
 
 	R_LoadMeshConfig(mod->world_config, va("%sworld.cfg", path));
 
@@ -536,7 +536,7 @@ static int R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char *li
 
 	while(true){
 
-		const char *c = Com_Parse(&line);
+		const char *c = ParseToken(&line);
 
 		if(*c == '\0')  // done
 			break;
@@ -678,7 +678,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer){
 	char line[MAX_STRING_CHARS];
 	const char *c;
-	qboolean comment;
+	boolean_t comment;
 	int i;
 
 	c = buffer;
@@ -698,7 +698,7 @@ static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer){
 		if(*c == '\r' || *c == '\n'){  // end of line
 
 			if(i && !comment)
-				R_LoadObjModelLine(mod, obj, Com_Trim(line));
+				R_LoadObjModelLine(mod, obj, Trim(line));
 
 			c++;
 			comment = false;

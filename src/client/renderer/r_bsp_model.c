@@ -397,7 +397,7 @@ static void R_LoadBspSurfaces(const d_bsp_lump_t *l){
 		// and sidedness
 		side = LittleShort(in->side);
 		if(side){
-			out->flags |= MSURF_PLANEBACK;
+			out->flags |= MSURF_SIDE_BACK;
 			VectorNegate(out->plane->normal, out->normal);
 		}
 		else

@@ -205,7 +205,7 @@ static void G_ClientAnimation(g_edict_t *ent){
 
 		// jumping or falling
 
-		qboolean jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
+		boolean_t jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
 		jumping |= G_IsAnimation(ent, ANIM_LEGS_JUMP2);
 
 		if(!jumping)

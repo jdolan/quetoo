@@ -104,7 +104,7 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack, plane_t *split
 		else if(dot < -ON_EPSILON)
 			sides[i] = SIDE_BACK;
 		else {
-			sides[i] = SIDE_ON;
+			sides[i] = SIDE_BOTH;
 		}
 		counts[sides[i]]++;
 	}
@@ -132,7 +132,7 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack, plane_t *split
 			return in;				  // can't chop -- fall back to original
 		}
 
-		if(sides[i] == SIDE_ON){
+		if(sides[i] == SIDE_BOTH){
 			VectorCopy(p1, neww->points[neww->numpoints]);
 			neww->numpoints++;
 			continue;
@@ -143,7 +143,7 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack, plane_t *split
 			neww->numpoints++;
 		}
 
-		if(sides[i + 1] == SIDE_ON || sides[i + 1] == sides[i])
+		if(sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i])
 			continue;
 
 		if(neww->numpoints == MAX_POINTS_ON_FIXED_WINDING){
@@ -191,7 +191,7 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack, plane_t *split
  * ==============
  */
 static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
-                            winding_t * target, qboolean flipclip,
+                            winding_t * target, boolean_t flipclip,
                             pstack_t * stack){
 	int i, j, k, l;
 	plane_t plane;
@@ -199,7 +199,7 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 	float d;
 	vec_t length;
 	int counts[3];
-	qboolean fliptest;
+	boolean_t fliptest;
 
 	// check all combinations
 	for(i = 0; i < source->numpoints; i++){

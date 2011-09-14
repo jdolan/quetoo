@@ -35,7 +35,7 @@ const char *Com_EParse (const char **text, const char *errhead, const char *erri
 {
 	const char *token;
 
-	token = Com_Parse(text);
+	token = ParseToken(text);
 	if (!*text) {
 		if (errinfo)
 			Com_Print("%s \"%s\")\n", errhead, errinfo);
@@ -83,7 +83,7 @@ CASSERT(lengthof(longlines_names) == LONGLINES_LAST);
 /** @brief target sizes for buffer */
 static const size_t vt_sizes[] = {
 	0,	/* V_NULL */
-	sizeof(qboolean),	/* V_BOOL */
+	sizeof(boolean_t),	/* V_BOOL */
 	sizeof(char),	/* V_CHAR */
 	sizeof(int),	/* V_INT */
 	2 * sizeof(int),	/* V_INT2 */
@@ -102,7 +102,7 @@ CASSERT(lengthof(vt_sizes) == V_NUM_TYPES);
 /** @brief natural align for each targets */
 static const size_t vt_aligns[] = {
 	0,	/* V_NULL */
-	sizeof(qboolean),	/* V_BOOL */
+	sizeof(boolean_t),	/* V_BOOL */
 	sizeof(char),	/* V_CHAR */
 	sizeof(int),	/* V_INT */
 	sizeof(int),	/* V_INT2 */
@@ -186,7 +186,7 @@ int Com_ParseValue (void *base, const char *token, valueTypes_t type, int ofs, s
 			snprintf(parseErrorMessage, sizeof(parseErrorMessage), "Illegal bool statement '%s'", token);
 			return RESULT_ERROR;
 		}
-		*writedByte = ALIGN_NOTHING(sizeof(qboolean));
+		*writedByte = ALIGN_NOTHING(sizeof(boolean_t));
 		break;
 
 	case V_CHAR:
@@ -319,11 +319,11 @@ int Com_SetValue (void *base, const void *set, valueTypes_t type, int ofs, size_
 		return ALIGN_NOTHING(0);
 
 	case V_BOOL:
-		if (*(const qboolean *) set)
-			*(qboolean *)b = true;
+		if (*(const boolean_t *) set)
+			*(boolean_t *)b = true;
 		else
-			*(qboolean *)b = false;
-		return ALIGN_NOTHING(sizeof(qboolean));
+			*(boolean_t *)b = false;
+		return ALIGN_NOTHING(sizeof(boolean_t));
 
 	case V_CHAR:
 		*(char *) b = *(const char *) set;
@@ -517,7 +517,7 @@ void FS_SkipBlock (const char **text)
 	depth = 1;
 
 	do {
-		token = Com_Parse(text);
+		token = ParseToken(text);
 		if (*token == '{')
 			depth++;
 		else if (*token == '}')
@@ -535,7 +535,7 @@ void FS_SkipBlock (const char **text)
 const char *Com_MacroExpandString (const char *text)
 {
 	int i, j, count, len;
-	qboolean inquote;
+	boolean_t inquote;
 	const char *scan;
 	static char expanded[MAX_STRING_CHARS];
 	const char *token, *start, *cvarvalue;
@@ -569,7 +569,7 @@ const char *Com_MacroExpandString (const char *text)
 
 		/* scan out the complete macro and only parse the cvar name */
 		start = &scan[i + MACRO_CVAR_ID_LENGTH];
-		token = Com_Parse(&start);
+		token = ParseToken(&start);
 		if (!start)
 			continue;
 
@@ -612,7 +612,7 @@ const char *Com_MacroExpandString (const char *text)
 		return NULL;
 }
 
-void R_FontTextSize(const char *fontID, const char *text, int maxWidth, int chop, int *width, int *height, int *lines, qboolean *isTruncated)
+void R_FontTextSize(const char *fontID, const char *text, int maxWidth, int chop, int *width, int *height, int *lines, boolean_t *isTruncated)
 {
 
 }

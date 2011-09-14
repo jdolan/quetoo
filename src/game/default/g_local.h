@@ -130,7 +130,7 @@ typedef enum {
 
 typedef struct g_item_s {
 	char *class_name;  // spawning name
-	qboolean (*pickup)(struct g_edict_s *ent, struct g_edict_s *other);
+	boolean_t (*pickup)(struct g_edict_s *ent, struct g_edict_s *other);
 	void (*use)(struct g_edict_s *ent, struct g_item_s *item);
 	void (*drop)(struct g_edict_s *ent, struct g_item_s *item);
 	void (*weapon_think)(struct g_edict_s *ent);
@@ -260,13 +260,13 @@ typedef struct g_level_s {
 	vec3_t intermission_angle;
 	const char *changemap;
 
-	qboolean warmup;  // shared by match and round
+	boolean_t warmup;  // shared by match and round
 
-	qboolean start_match;
+	boolean_t start_match;
 	float match_time;  // time match started
 	int match_num;
 
-	qboolean start_round;
+	boolean_t start_round;
 	float round_time;  // time round started
 	int round_num;
 
@@ -452,17 +452,17 @@ void G_ChasePrevious(g_edict_t *ent);
 void G_ChaseTarget(g_edict_t *ent);
 
 // g_client.c
-qboolean G_ClientConnect(g_edict_t *ent, char *user_info);
+boolean_t G_ClientConnect(g_edict_t *ent, char *user_info);
 void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info);
 void G_ClientDisconnect(g_edict_t *ent);
 void G_ClientBegin(g_edict_t *ent);
-void G_ClientRespawn(g_edict_t *ent, qboolean voluntary);
+void G_ClientRespawn(g_edict_t *ent, boolean_t voluntary);
 void G_ClientBeginFrame(g_edict_t *ent);
 void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd);
 
 // g_combat.c
-qboolean G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2);
-qboolean G_CanDamage(g_edict_t *targ, g_edict_t *inflictor);
+boolean_t G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2);
+boolean_t G_CanDamage(g_edict_t *targ, g_edict_t *inflictor);
 void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t dir,
 		vec3_t point, vec3_t normal, int damage, int knockback, int dflags, int mod);
 void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore,
@@ -471,7 +471,7 @@ void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore
 // g_commands.c
 void G_ClientCommand(g_edict_t *ent);
 void G_Score_f(g_edict_t *ent);
-qboolean G_AddClientToTeam(g_edict_t *ent, char *team_name);
+boolean_t G_AddClientToTeam(g_edict_t *ent, char *team_name);
 
 // g_entity_func.c
 void G_func_plat(g_edict_t *ent);
@@ -532,7 +532,7 @@ void G_TossFlag(g_edict_t *self);
 void G_ResetFlag(g_edict_t *ent);
 void G_TossQuadDamage(g_edict_t *self);
 g_item_t *G_ItemByIndex(int index);
-qboolean G_AddAmmo(g_edict_t *ent, g_item_t *item, int count);
+boolean_t G_AddAmmo(g_edict_t *ent, g_item_t *item, int count);
 void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf);
 
 // g_main.c
@@ -555,7 +555,7 @@ void G_ClientTeamsScoreboard(g_edict_t *client);
 void G_ClientScoreboard(g_edict_t *client);
 
 // g_utils.c
-qboolean G_KillBox(g_edict_t *ent);
+boolean_t G_KillBox(g_edict_t *ent);
 void G_ProjectSpawn(g_edict_t *ent);
 void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org);
 g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match);
@@ -572,15 +572,15 @@ g_edict_t *G_FlagForTeam(g_team_t *t);
 int G_EffectForTeam(g_team_t *t);
 g_team_t *G_SmallestTeam(void);
 g_client_t *G_ClientByName(char *name);
-qboolean G_IsStationary(g_edict_t *ent);
-void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, qboolean restart);
-qboolean G_IsAnimation(g_edict_t *ent, entity_animation_t anim);
+boolean_t G_IsStationary(g_edict_t *ent);
+void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, boolean_t restart);
+boolean_t G_IsAnimation(g_edict_t *ent, entity_animation_t anim);
 g_edict_t *G_Spawn(void);
 void G_InitEdict(g_edict_t *e);
 void G_FreeEdict(g_edict_t *e);
 void G_TouchTriggers(g_edict_t *ent);
 void G_TouchSolids(g_edict_t *ent);
-trace_t G_PushEntity(g_edict_t *ent, vec3_t push);
+c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push);
 char *G_CopyString(char *in);
 float *tv(float x, float y, float z);
 char *vtos(vec3_t v);
@@ -592,7 +592,7 @@ void G_EndClientFrames(void);
 // g_weapons.c
 void G_ChangeWeapon(g_edict_t *ent);
 void G_WeaponThink(g_edict_t *ent);
-qboolean G_PickupWeapon(g_edict_t *ent, g_edict_t *other);
+boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other);
 void G_UseBestWeapon(g_client_t *client);
 void G_UseWeapon(g_edict_t *ent, g_item_t *inv);
 void G_DropWeapon(g_edict_t *ent, g_item_t *inv);
@@ -613,7 +613,7 @@ void G_FireBfg(g_edict_t *ent);
 typedef struct g_client_locals_s {
 	int first_frame;  // g_level.frame_num the client entered the game
 
-	char user_info[MAX_INFO_STRING];
+	char user_info[MAX_USER_INFO_STRING];
 	char net_name[MAX_NET_NAME];
 	char sql_name[20];
 	char skin[32];
@@ -641,8 +641,8 @@ typedef struct g_client_locals_s {
 	g_item_t *weapon;
 	g_item_t *last_weapon;
 
-	qboolean spectator;  // client is a spectator
-	qboolean ready;  // ready
+	boolean_t spectator;  // client is a spectator
+	boolean_t ready;  // ready
 
 	g_team_t *team;  // current team (good/evil)
 	g_vote_t vote;  // current vote (yes/no)
@@ -662,7 +662,7 @@ struct g_client_s {
 
 	g_client_locals_t locals;
 
-	qboolean show_scores;  // sets layout bit mask in player state
+	boolean_t show_scores;  // sets layout bit mask in player state
 
 	int ammo_index;
 
@@ -697,7 +697,7 @@ struct g_client_s {
 	float pickup_msg_time;  // display message until time > this
 
 	float chat_time;  // can chat when time > this
-	qboolean muted;
+	boolean_t muted;
 
 	float quad_damage_time;  // has quad when time < this
 	float quad_attack_time;  // play attack sound when time > this
@@ -709,7 +709,7 @@ struct g_edict_s {
 	entity_state_t s;
 	struct g_client_s *client;  // NULL if not a player
 
-	qboolean in_use;
+	boolean_t in_use;
 	int link_count;
 
 	link_t area;  // linked to a division node or leaf
@@ -775,10 +775,10 @@ struct g_edict_s {
 
 	int health;
 	int max_health;
-	qboolean dead;
+	boolean_t dead;
 
 	int view_height;  // height above origin where eyesight is determined
-	qboolean take_damage;
+	boolean_t take_damage;
 	int dmg;
 	int knockback;
 	float dmg_radius;

@@ -174,7 +174,7 @@ static void G_ResetItems(void){
  * For match games, this means cancel the match and force everyone
  * to ready again.  Teams are only reset when teamz is true.
  */
-static void G_RestartGame(qboolean teamz){
+static void G_RestartGame(boolean_t teamz){
 	int i;
 	g_edict_t *ent;
 	g_client_t *cl;
@@ -243,7 +243,7 @@ static void G_RestartGame(qboolean teamz){
 /*
  * G_MuteClient
  */
-static void G_MuteClient(char *name, qboolean mute){
+static void G_MuteClient(char *name, boolean_t mute){
 	g_client_t *cl;
 
 	if(!(cl = G_ClientByName(name)))
@@ -963,7 +963,7 @@ static void G_ParseMapList(const char *file_name){
 	const char *buffer;
 	int i, j, k, l;
 	const char *c;
-	qboolean map;
+	boolean_t map;
 	g_map_list_elt_t *elt;
 
 	G_InitMapList();
@@ -985,7 +985,7 @@ static void G_ParseMapList(const char *file_name){
 	map = false;
 	while(true){
 
-		c = Com_Parse(&buffer);
+		c = ParseToken(&buffer);
 
 		if(*c == '\0')
 			break;
@@ -999,87 +999,87 @@ static void G_ParseMapList(const char *file_name){
 		elt = &g_map_list.maps[i];
 
 		if(!strcmp(c, "name")){
-			strncpy(elt->name, Com_Parse(&buffer), 31);
+			strncpy(elt->name, ParseToken(&buffer), 31);
 			continue;
 		}
 
 		if(!strcmp(c, "title")){
-			strncpy(elt->title, Com_Parse(&buffer), 127);
+			strncpy(elt->title, ParseToken(&buffer), 127);
 			continue;
 		}
 
 		if(!strcmp(c, "sky")){
-			strncpy(elt->sky, Com_Parse(&buffer), 31);
+			strncpy(elt->sky, ParseToken(&buffer), 31);
 			continue;
 		}
 
 		if(!strcmp(c, "weather")){
-			strncpy(elt->weather, Com_Parse(&buffer), 63);
+			strncpy(elt->weather, ParseToken(&buffer), 63);
 			continue;
 		}
 
 		if(!strcmp(c, "gravity")){
-			elt->gravity = atoi(Com_Parse(&buffer));
+			elt->gravity = atoi(ParseToken(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "gameplay")){
-			elt->gameplay = G_GameplayByName(Com_Parse(&buffer));
+			elt->gameplay = G_GameplayByName(ParseToken(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "teams")){
-			elt->teams = atoi(Com_Parse(&buffer));
+			elt->teams = atoi(ParseToken(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "ctf")){
-			elt->ctf = atoi(Com_Parse(&buffer));
+			elt->ctf = atoi(ParseToken(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "match")){
-			elt->match = atoi(Com_Parse(&buffer));
+			elt->match = atoi(ParseToken(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "rounds")){
-			elt->rounds = atoi(Com_Parse(&buffer));
+			elt->rounds = atoi(ParseToken(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "frag_limit")){
-			elt->frag_limit = atoi(Com_Parse(&buffer));
+			elt->frag_limit = atoi(ParseToken(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "round_limit")){
-			elt->round_limit = atoi(Com_Parse(&buffer));
+			elt->round_limit = atoi(ParseToken(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "capture_limit")){
-			elt->capture_limit = atoi(Com_Parse(&buffer));
+			elt->capture_limit = atoi(ParseToken(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "time_limit")){
-			elt->time_limit = atof(Com_Parse(&buffer));
+			elt->time_limit = atof(ParseToken(&buffer));
 			continue;
 		}
 
 		if(!strcmp(c, "give")){
-			strncpy(elt->give, Com_Parse(&buffer), 1023);
+			strncpy(elt->give, ParseToken(&buffer), 1023);
 			continue;
 		}
 
 		if(!strcmp(c, "music")){
-			strncpy(elt->music, Com_Parse(&buffer), 1023);
+			strncpy(elt->music, ParseToken(&buffer), 1023);
 			continue;
 		}
 
 		if(!strcmp(c, "weight")){
-			elt->weight = atof(Com_Parse(&buffer));
+			elt->weight = atof(ParseToken(&buffer));
 			continue;
 		}
 

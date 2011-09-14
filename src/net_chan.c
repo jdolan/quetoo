@@ -162,15 +162,15 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, int qpor
  *
  * Returns true if the last reliable message has acked
  */
-qboolean Netchan_CanReliable(net_chan_t *chan){
+boolean_t Netchan_CanReliable(net_chan_t *chan){
 	if(chan->reliable_size)
 		return false;  // waiting for ack
 	return true;
 }
 
 
-qboolean Netchan_NeedReliable(net_chan_t *chan){
-	qboolean send_reliable;
+boolean_t Netchan_NeedReliable(net_chan_t *chan){
+	boolean_t send_reliable;
 
 	// if the remote side dropped the last reliable message, resend it
 	send_reliable = false;
@@ -199,7 +199,7 @@ qboolean Netchan_NeedReliable(net_chan_t *chan){
 void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data){
 	size_buf_t send;
 	byte send_buffer[MAX_MSG_SIZE];
-	qboolean send_reliable;
+	boolean_t send_reliable;
 	unsigned w1, w2;
 
 	// check for message overflow
@@ -274,7 +274,7 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data){
  * called when the current net_message is from remote_address
  * modifies net_message so that it points to the packet payload
  */
-qboolean Netchan_Process(net_chan_t *chan, size_buf_t *msg){
+boolean_t Netchan_Process(net_chan_t *chan, size_buf_t *msg){
 	unsigned sequence, sequence_ack;
 	unsigned reliable_ack, reliable_message;
 	int qport;

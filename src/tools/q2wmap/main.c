@@ -28,26 +28,26 @@ char map_name[MAX_OSPATH];
 char bsp_name[MAX_OSPATH];
 char outbase[MAX_OSPATH];
 
-qboolean verbose;
-qboolean debug;
-qboolean legacy;
+boolean_t verbose;
+boolean_t debug;
+boolean_t legacy;
 
 /** BSP */
-extern qboolean noprune;
-extern qboolean nodetail;
-extern qboolean fulldetail;
-extern qboolean onlyents;
-extern qboolean nomerge;
-extern qboolean nowater;
-extern qboolean nofill;
-extern qboolean nocsg;
-extern qboolean noweld;
-extern qboolean noshare;
-extern qboolean nosubdivide;
-extern qboolean notjunc;
-extern qboolean noopt;
-extern qboolean leaktest;
-extern qboolean verboseentities;
+extern boolean_t noprune;
+extern boolean_t nodetail;
+extern boolean_t fulldetail;
+extern boolean_t onlyents;
+extern boolean_t nomerge;
+extern boolean_t nowater;
+extern boolean_t nofill;
+extern boolean_t nocsg;
+extern boolean_t noweld;
+extern boolean_t noshare;
+extern boolean_t nosubdivide;
+extern boolean_t notjunc;
+extern boolean_t noopt;
+extern boolean_t leaktest;
+extern boolean_t verboseentities;
 
 extern int block_xl, block_xh, block_yl, block_yh;
 extern vec_t microvolume;
@@ -55,12 +55,12 @@ extern int subdivide_size;
 
 /** VIS */
 extern char inbase[32];
-extern qboolean fastvis;
-extern qboolean nosort;
+extern boolean_t fastvis;
+extern boolean_t nosort;
 extern int testlevel;
 
 /** LIGHT */
-extern qboolean extra_samples;
+extern boolean_t extra_samples;
 extern float brightness;
 extern float saturation;
 extern float contrast;
@@ -551,11 +551,11 @@ int main(int argc, char **argv){
 	time_t start, end;
 	int alt_argc;
 	char *c, **alt_argv;
-	qboolean do_bsp = false;
-	qboolean do_vis = false;
-	qboolean do_light = false;
-	qboolean do_mat = false;
-	qboolean do_pak = false;
+	boolean_t do_bsp = false;
+	boolean_t do_vis = false;
+	boolean_t do_light = false;
+	boolean_t do_mat = false;
+	boolean_t do_pak = false;
 
 	memset(&quake2world, 0, sizeof(quake2world));
 
@@ -578,8 +578,6 @@ int main(int argc, char **argv){
 
 	// init core facilities
 	Z_Init();
-
-	Swap_Init();
 
 	Cvar_Init();
 
@@ -665,7 +663,7 @@ int main(int argc, char **argv){
 	c = strstr(argv[argc - 1], "/maps/");
 	c = c ? c + 1 : argv[argc - 1];
 
-	Com_StripExtension(c, map_name);
+	StripExtension(c, map_name);
 	strcpy(bsp_name, map_name);
 	strcat(map_name, ".map");
 	strcat(bsp_name, ".bsp");

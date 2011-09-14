@@ -241,7 +241,7 @@ void MN_Draw (void)
 	menuNode_t *hoveredNode;
 	menuNode_t *menu;
 	int pos;
-	qboolean mouseMoved = qfalse;
+	boolean_t mouseMoved = qfalse;
 
 	MN_HandleTimers();
 

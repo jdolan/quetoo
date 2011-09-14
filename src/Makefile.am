@@ -37,6 +37,7 @@ noinst_LTLIBRARIES = \
 	libnet.la \
 	libpmove.la \
 	libshared.la \
+	libswap.la \
 	libsys.la \
 	libthread.la \
 	libwin32.la
@@ -79,6 +80,7 @@ libfilesystem_la_LIBADD = \
 	libhash.la \
 	libmem.la \
 	libshared.la \
+	libswap.la \
 	libsys.la \
 	libwin32.la
 
@@ -132,6 +134,12 @@ libpmove_la_CFLAGS = \
 libshared_la_SOURCES = \
 	shared.c
 libshared_la_CFLAGS = \
+	-pipe \
+	@BASE_CFLAGS@
+	
+libswap_la_SOURCES = \
+	swap.c
+libswap_la_CFLAGS = \
 	-pipe \
 	@BASE_CFLAGS@
 

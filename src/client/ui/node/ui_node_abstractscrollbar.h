@@ -38,7 +38,7 @@ typedef struct abstractScrollbarExtraData_s {
 	int viewsize;	/**< Visible size */
 	int fullsize;	/**< Full size allowed */
 	int lastdiff;	/**< Different of the pos from the last update. Its more an event property than a node property */
-	qboolean hideWhenUnused; /** Hide the scrollbar when we can't scroll anything */
+	boolean_t hideWhenUnused; /** Hide the scrollbar when we can't scroll anything */
 } abstractScrollbarExtraData_t;
 
 struct nodeBehaviour_s; /* prototype */

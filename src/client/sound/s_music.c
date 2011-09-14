@@ -50,7 +50,7 @@ static s_music_t *S_LoadMusic(const char *name){
 	i = 0;
 	while(MUSIC_TYPES[i]){
 
-		Com_StripExtension(music.name, music.name);
+		StripExtension(music.name, music.name);
 		strcat(music.name, MUSIC_TYPES[i++]);
 
 		if((len = Fs_LoadFile(music.name, &buf)) == -1)

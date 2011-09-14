@@ -213,12 +213,12 @@ typedef struct {
 
 // if a brush just barely pokes onto the other side,
 // let it slide by without chopping
-#define	PLANESIDE_EPSILON	0.001
+#define	SIDE_EPSILON	0.001
 
-#define	PSIDE_FRONT		1
-#define	PSIDE_BACK		2
-#define	PSIDE_BOTH		(PSIDE_FRONT|PSIDE_BACK)
-#define	PSIDE_FACING	4
+#define	SIDE_FRONT		1
+#define	SIDE_BACK		2
+#define	SIDE_BOTH		(SIDE_FRONT|SIDE_BACK)
+#define	SIDE_FACING	4
 
 // 0-2 are axial planes
 #define PLANE_X			0

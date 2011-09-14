@@ -55,7 +55,7 @@ void Cl_LoadLocations(void){
 	i = 0;
 
 	// load the locations file
-	c = Com_Basename(cl.config_strings[CS_MODELS + 1]);
+	c = Basename(cl.config_strings[CS_MODELS + 1]);
 	snprintf(file_name, sizeof(file_name), "locations/%s", c);
 	strcpy(file_name + strlen(file_name) - 3, "loc");
 

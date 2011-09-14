@@ -474,7 +474,7 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *uni
  * Cl_HandleEvent
  */
 static void Cl_HandleEvent(SDL_Event *event){
-	static qboolean first_key_event = true;
+	static boolean_t first_key_event = true;
 	unsigned int key;
 	unsigned short unicode;
 

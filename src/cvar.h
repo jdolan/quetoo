@@ -41,9 +41,9 @@ interface from being ambiguous.
 
 extern cvar_t *cvar_vars;
 
-void Cvar_LockCheatVars(qboolean lock);
+void Cvar_LockCheatVars(boolean_t lock);
 
-qboolean Cvar_Delete(const char *varName);
+boolean_t Cvar_Delete(const char *varName);
 
 cvar_t *Cvar_Get(const char *var_name, const char *value, int flags, const char *description);
 // creates the variable if it doesn't exist, or returns the existing one
@@ -75,19 +75,19 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]);
 
 cvar_t *Cvar_FindVar(const char *var_name);
 
-qboolean Cvar_PendingLatchedVars(void);
+boolean_t Cvar_PendingLatchedVars(void);
 // are there pending latch changes?
 
 void Cvar_UpdateLatchedVars(void);
 // any CVAR_LATCHED variables that have been set will now take effect
 
-qboolean Cvar_PendingVars(int flags);
+boolean_t Cvar_PendingVars(int flags);
 // are there pending changes?
 
 void Cvar_ClearVars(int flags);
 // clear modified booleans on vars
 
-qboolean Cvar_Command(void);
+boolean_t Cvar_Command(void);
 // called by Cmd_ExecuteString when Cmd_Argv(0) doesn't match a known
 // command.  Returns true if the command was a variable reference that
 // was handled.(print or change)
@@ -104,7 +104,7 @@ char *Cvar_UserInfo(void);
 char *Cvar_ServerInfo(void);
 // returns an info string containing all the CVAR_SERVERINFO cvars
 
-extern qboolean user_info_modified;
+extern boolean_t user_info_modified;
 // this is set each time a CVAR_USERINFO variable is changed
 // so that the client knows to send it to the server
 

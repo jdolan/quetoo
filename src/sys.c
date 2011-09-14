@@ -121,7 +121,7 @@ const char *Sys_FindFirst(const char *path){
 		return NULL;
 
 	while((d = readdir(fdir)) != NULL){
-		if(!*findpattern || Com_GlobMatch(findpattern, d->d_name)){
+		if(!*findpattern || GlobMatch(findpattern, d->d_name)){
 			sprintf(findpath, "%s/%s", findbase, d->d_name);
 			return findpath;
 		}
@@ -140,7 +140,7 @@ const char *Sys_FindNext(void){
 		return NULL;
 
 	while((d = readdir(fdir)) != NULL){
-		if(!*findpattern || Com_GlobMatch(findpattern, d->d_name)){
+		if(!*findpattern || GlobMatch(findpattern, d->d_name)){
 			sprintf(findpath, "%s/%s", findbase, d->d_name);
 			return findpath;
 		}

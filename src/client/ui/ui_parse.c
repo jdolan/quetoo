@@ -33,9 +33,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "node/ui_node_abstractnode.h"
 
 /** prototypes */
-static qboolean MN_ParseProperty(void* object, const value_t *property, const char* objectName, const char **text, const char **token);
+static boolean_t MN_ParseProperty(void* object, const value_t *property, const char* objectName, const char **text, const char **token);
 static menuAction_t *MN_ParseActionList(menuNode_t *menuNode, const char **text, const const char **token);
-static qboolean MN_ParseNode(menuNode_t * parent, const char **text, const char **token, const char *errhead);
+static boolean_t MN_ParseNode(menuNode_t * parent, const char **text, const char **token, const char *errhead);
 
 /** @brief valid node event actions */
 static const char *ea_strings[EA_NUM_EVENTACTION] = {
@@ -56,7 +56,7 @@ static const char *reserved_tokens[] = {
 	NULL
 };
 
-static qboolean MN_IsReservedToken (const char *name)
+static boolean_t MN_IsReservedToken (const char *name)
 {
 	const char **token = reserved_tokens;
 	while (*token) {
@@ -162,7 +162,7 @@ char* MN_AllocString (const char* string, int size)
 	return result;
 }
 
-static inline qboolean MN_ParseSetAction (menuNode_t *menuNode, menuAction_t *action, const char **text, const char **token, const char *errhead)
+static inline boolean_t MN_ParseSetAction (menuNode_t *menuNode, menuAction_t *action, const char **text, const char **token, const char *errhead)
 {
 	char cast[32] = "abstractnode";
 	const char *nodeName = *token + 1;
@@ -294,7 +294,7 @@ static menuAction_t *MN_ParseActionList (menuNode_t *menuNode, const char **text
 	menuAction_t *firstAction;
 	menuAction_t *lastAction;
 	menuAction_t *action;
-	qboolean result;
+	boolean_t result;
 	int i;
 
 	lastAction = NULL;
@@ -440,7 +440,7 @@ static menuAction_t *MN_ParseActionList (menuNode_t *menuNode, const char **text
 	return firstAction;
 }
 
-static qboolean MN_ParseExcludeRect (menuNode_t * node, const char **text, const char **token, const char *errhead)
+static boolean_t MN_ParseExcludeRect (menuNode_t * node, const char **text, const char **token, const char *errhead)
 {
 	excludeRect_t rect;
 
@@ -490,7 +490,7 @@ static qboolean MN_ParseExcludeRect (menuNode_t * node, const char **text, const
 	return qtrue;
 }
 
-static qboolean MN_ParseEventProperty (menuNode_t * node, const value_t *event, const char **text, const char **token, const char *errhead)
+static boolean_t MN_ParseEventProperty (menuNode_t * node, const value_t *event, const char **text, const char **token, const char *errhead)
 {
 	menuAction_t **action;
 
@@ -522,7 +522,7 @@ static qboolean MN_ParseEventProperty (menuNode_t * node, const value_t *event, 
  * @brief Parse a property value
  * @todo don't read the next token (need to change the script language)
  */
-static qboolean MN_ParseProperty (void* object, const value_t *property, const char* objectName, const char **text, const char **token)
+static boolean_t MN_ParseProperty (void* object, const value_t *property, const char* objectName, const char **text, const char **token)
 {
 	const char *errhead = "MN_ParseProperty: unexpected end of file (object";
 	size_t bytes;
@@ -693,7 +693,7 @@ static qboolean MN_ParseProperty (void* object, const value_t *property, const c
 	return qtrue;
 }
 
-static qboolean MN_ParseFunction (menuNode_t * node, const char **text, const char **token)
+static boolean_t MN_ParseFunction (menuNode_t * node, const char **text, const char **token)
 {
 	menuAction_t **action;
 	assert (node->behaviour->isFunction);
@@ -731,10 +731,10 @@ static qboolean MN_ParseFunction (menuNode_t * node, const char **text, const ch
  * }
  * @endcode
  */
-static qboolean MN_ParseNodeProperties (menuNode_t * node, const char **text, const char **token)
+static boolean_t MN_ParseNodeProperties (menuNode_t * node, const char **text, const char **token)
 {
 	const char *errhead = "MN_ParseNodeProperties: unexpected end of file (node";
-	qboolean nextTokenAlreadyRead = qfalse;
+	boolean_t nextTokenAlreadyRead = qfalse;
 
 	if (*token[0] != '{') {
 		nextTokenAlreadyRead = qtrue;
@@ -793,9 +793,9 @@ static qboolean MN_ParseNodeProperties (menuNode_t * node, const char **text, co
  * { { properties } nodes }
  * @endcode
  */
-static qboolean MN_ParseNodeBody (menuNode_t * node, const char **text, const char **token, const char *errhead)
+static boolean_t MN_ParseNodeBody (menuNode_t * node, const char **text, const char **token, const char *errhead)
 {
-	qboolean result = qtrue;
+	boolean_t result = qtrue;
 
 	if (*token[0] != '{') {
 		/* read the body block start */
@@ -875,11 +875,11 @@ static qboolean MN_ParseNodeBody (menuNode_t * node, const char **text, const ch
  * @node first token already read
  * @node dont read more than the need token (last right token is '}' of end of node)
  */
-static qboolean MN_ParseNode (menuNode_t * parent, const char **text, const char **token, const char *errhead)
+static boolean_t MN_ParseNode (menuNode_t * parent, const char **text, const char **token, const char *errhead)
 {
 	menuNode_t *node;
 	nodeBehaviour_t *behaviour;
-	qboolean result;
+	boolean_t result;
 
 	/* allow to begin with the identifier "node" before the behaviour name */
 	if (!Q_strcasecmp(*token, "node")) {
@@ -949,15 +949,15 @@ void MN_ParseIcon (const char *name, const char **text)
 	icon = MN_AllocIcon(name);
 
 	/* get it's body */
-	token = Com_Parse(text);
+	token = ParseToken(text);
 	assert(strcmp(token, "{") == 0);
 
 	/* read properties */
 	while (qtrue) {
 		const value_t *property;
-		qboolean result;
+		boolean_t result;
 
-		token = Com_Parse(text);
+		token = ParseToken(text);
 		if (*text == NULL)
 			return;
 
@@ -990,7 +990,7 @@ void MN_ParseMenu (const char *type, const char *name, const char **text)
 	menuNode_t *menu;
 	menuNode_t *node;
 	const char *token;
-	qboolean result;
+	boolean_t result;
 	int i;
 
 	if (strcmp(type, "window") != 0) {
@@ -1027,14 +1027,14 @@ void MN_ParseMenu (const char *type, const char *name, const char **text)
 	MN_InsertMenu(menu);
 
 	/* get it's body */
-	token = Com_Parse(text);
+	token = ParseToken(text);
 
 	/* does this menu inherit data from another menu? */
 	if (!strncmp(token, "extends", 7)) {
 		menuNode_t *superMenu;
 		menuNode_t *newNode;
 
-		token = Com_Parse(text);
+		token = ParseToken(text);
 		Com_Debug("MN_ParseMenus: %s \"%s\" inheriting node \"%s\"\n", type, name, token);
 		superMenu = MN_GetMenu(token);
 		if (!superMenu)
@@ -1065,7 +1065,7 @@ void MN_ParseMenu (const char *type, const char *name, const char **text)
 			}
 		}
 
-		token = Com_Parse(text);
+		token = ParseToken(text);
 	}
 
 	/* parse it's body */
@@ -1098,7 +1098,7 @@ const char *MN_GetReferenceString (const menuNode_t* const node, const char *ref
 			return text;
 
 		text = ref + 1;
-		token = Com_Parse(&text);
+		token = ParseToken(&text);
 		if (!text)
 			return NULL;
 		Q_strncpyz(ident, token, sizeof(ident));
@@ -1107,7 +1107,7 @@ const char *MN_GetReferenceString (const menuNode_t* const node, const char *ref
 			menuNode_t *refNode;
 			const value_t *val;
 
-			token = Com_Parse(&text);
+			token = ParseToken(&text);
 			if (!text)
 				return NULL;
 
@@ -1146,11 +1146,11 @@ float MN_GetReferenceFloat (const menuNode_t* const node, void *ref)
 
 		/* get the reference and the name */
 		text = (const char *) ref + 1;
-		token = Com_Parse(&text);
+		token = ParseToken(&text);
 		if (!text)
 			return 0.0;
 		Q_strncpyz(ident, token, sizeof(ident));
-		token = Com_Parse(&text);
+		token = ParseToken(&text);
 		if (!text)
 			return 0.0;
 

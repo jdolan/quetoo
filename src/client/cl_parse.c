@@ -47,7 +47,7 @@ char *svc_strings[256] = {
  * Returns true if the file exists, otherwise it attempts
  * to start a download from the server.
  */
-qboolean Cl_CheckOrDownloadFile(const char *file_name){
+boolean_t Cl_CheckOrDownloadFile(const char *file_name){
 	FILE *fp;
 	char name[MAX_OSPATH];
 	char cmd[MAX_STRING_CHARS];
@@ -81,7 +81,7 @@ qboolean Cl_CheckOrDownloadFile(const char *file_name){
 	strcpy(cls.download.name, file_name);
 
 	// udp downloads to a temp name, and only renames when done
-	Com_StripExtension(cls.download.name, cls.download.tempname);
+	StripExtension(cls.download.name, cls.download.tempname);
 	strcat(cls.download.tempname, ".tmp");
 
 	// attempt an http download if available
@@ -212,7 +212,7 @@ static void Cl_ParseDownload(void){
 /*
  * Cl_ParseServerData
  */
-static qboolean Cl_ParseServerData(void){
+static boolean_t Cl_ParseServerData(void){
 	extern cvar_t *fs_gamedirvar;
 	char *str;
 	int i;
@@ -401,7 +401,7 @@ static void Cl_ParseSound(void){
 /*
  * Cl_IgnoreChatMessage
  */
-static qboolean Cl_IgnoreChatMessage(const char *msg){
+static boolean_t Cl_IgnoreChatMessage(const char *msg){
 
 	const char *s = strtok(cl_ignore->string, " ");
 

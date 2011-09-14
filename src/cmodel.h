@@ -39,9 +39,9 @@ int Cm_HeadnodeForBox(const vec3_t mins, const vec3_t maxs);
 int Cm_PointContents(const vec3_t p, int head_node);
 int Cm_TransformedPointContents(const vec3_t p, int head_node, const vec3_t origin, const vec3_t angles);
 
-trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 		int head_node, int brush_mask);
-trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 		int head_node, int brush_mask, const vec3_t origin, const vec3_t angles);
 
 byte *Cm_ClusterPVS(int cluster);
@@ -57,10 +57,10 @@ int Cm_LeafContents(int leaf_num);
 int Cm_LeafCluster(int leaf_num);
 int Cm_LeafArea(int leaf_num);
 
-void Cm_SetAreaPortalState(int portal_num, qboolean open);
-qboolean Cm_AreasConnected(int area1, int area2);
+void Cm_SetAreaPortalState(int portal_num, boolean_t open);
+boolean_t Cm_AreasConnected(int area1, int area2);
 
 int Cm_WriteAreaBits(byte *buffer, int area);
-qboolean Cm_HeadnodeVisible(int head_node, byte *vis);
+boolean_t Cm_HeadnodeVisible(int head_node, byte *vis);
 
 #endif /* __CMODEL_H__ */

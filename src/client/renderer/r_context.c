@@ -41,7 +41,7 @@ static void R_SetIcon(void){
 /*
  * R_InitContext
  */
-qboolean R_InitContext(int width, int height, qboolean fullscreen){
+boolean_t R_InitContext(int width, int height, boolean_t fullscreen){
 	unsigned flags;
 	int i;
 	SDL_Surface *surface;

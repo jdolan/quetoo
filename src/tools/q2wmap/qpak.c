@@ -84,7 +84,7 @@ static void AddSound(const char *sound){
 	FILE *f;
 	int i;
 
-	Com_StripExtension(sound, snd);
+	StripExtension(sound, snd);
 
 	memset(path, 0, sizeof(path));
 
@@ -120,12 +120,12 @@ static const char *image_formats[NUM_IMAGE_FORMATS] = {"tga", "png", "jpg", "pcx
  * Attempts to add the specified image in any available format.  If required,
  * a warning will be issued should we fail to resolve the specified image.
  */
-static void AddImage(const char *image, qboolean required){
+static void AddImage(const char *image, boolean_t required){
 	char img[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
 	int i;
 
-	Com_StripExtension(image, img);
+	StripExtension(image, img);
 
 	memset(path, 0, sizeof(path));
 
@@ -169,7 +169,7 @@ static void AddModel(char *model){
 	if(model[0] == '*')  // bsp submodel
 		return;
 
-	Com_StripExtension(model, mod);
+	StripExtension(model, mod);
 
 	memset(path, 0, sizeof(path));
 
@@ -192,12 +192,12 @@ static void AddModel(char *model){
 		return;
 	}
 
-	Com_Dirname(model, path);
+	Dirname(model, path);
 	strcat(path, "skin");
 
 	AddImage(path, true);
 
-	Com_Dirname(model, path);
+	Dirname(model, path);
 	strcat(path, "world.cfg");
 
 	AddPath(path);
@@ -256,7 +256,7 @@ static void AddMaterials(void){
 	int i, num_frames;
 
 	// load the materials file
-	snprintf(path, sizeof(path), "materials/%s", Com_Basename(bsp_name));
+	snprintf(path, sizeof(path), "materials/%s", Basename(bsp_name));
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_LoadFile(path, (void **)(char *)&buffer)) < 1){
@@ -273,21 +273,21 @@ static void AddMaterials(void){
 
 	while(true){
 
-		c = Com_Parse(&buf);
+		c = ParseToken(&buf);
 
 		if(*c == '\0')
 			break;
 
 		// texture references should all be added
 		if(!strcmp(c, "texture")){
-			snprintf(texture, sizeof(texture), "textures/%s", Com_Parse(&buf));
+			snprintf(texture, sizeof(texture), "textures/%s", ParseToken(&buf));
 			AddImage(texture, true);
 			continue;
 		}
 
 		// as should normalmaps
 		if(!strcmp(c, "normalmap")){
-			snprintf(texture, sizeof(texture), "textures/%s", Com_Parse(&buf));
+			snprintf(texture, sizeof(texture), "textures/%s", ParseToken(&buf));
 			AddImage(texture, true);
 			continue;
 		}
@@ -295,7 +295,7 @@ static void AddMaterials(void){
 		// and custom envmaps
 		if(!strcmp(c, "envmap")){
 
-			c = Com_Parse(&buf);
+			c = ParseToken(&buf);
 			i = atoi(c);
 
 			if(i == 0 && strcmp(c, "0")){  // custom, add it
@@ -308,7 +308,7 @@ static void AddMaterials(void){
 		// and custom flares
 		if(!strcmp(c, "flare")){
 
-			c = Com_Parse(&buf);
+			c = ParseToken(&buf);
 			i = atoi(c);
 
 			if(i == 0 && strcmp(c, "0")){  // custom, add it
@@ -319,8 +319,8 @@ static void AddMaterials(void){
 		}
 
 		if(!strcmp(c, "anim")){
-			num_frames = atoi(Com_Parse(&buf));
-			Com_Parse(&buf);  // read fps
+			num_frames = atoi(ParseToken(&buf));
+			ParseToken(&buf);  // read fps
 			continue;
 		}
 
@@ -344,7 +344,7 @@ static void AddMaterials(void){
 static void AddLocation(void){
 	char base[MAX_QPATH];
 
-	Com_StripExtension(bsp_name, base);
+	StripExtension(bsp_name, base);
 	AddPath(va("%s.loc", base));
 }
 
@@ -356,7 +356,7 @@ static void AddDocumentation(void){
 	char base[MAX_OSPATH];
 	char *c;
 
-	Com_StripExtension(bsp_name, base);
+	StripExtension(bsp_name, base);
 
 	c = strstr(base, "maps/");
 	c = c ? c + 5 : base;
@@ -378,7 +378,7 @@ static pak_t *GetPakfile(void){
 	const char *c;
 	pak_t *pak;
 
-	Com_StripExtension(bsp_name, base);
+	StripExtension(bsp_name, base);
 
 	c = strstr(base, "maps/");
 	c = c ? c + 5 : base;

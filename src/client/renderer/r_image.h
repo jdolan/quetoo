@@ -59,7 +59,7 @@ extern int r_num_images;
 #define MAX_GL_DELUXEMAPS	256
 #define TEXNUM_DELUXEMAPS	(TEXNUM_LIGHTMAPS + MAX_GL_LIGHTMAPS)
 
-#define BACKFACE_EPSILON	0.01
+#define BACK_PLANE_EPSILON	0.01
 
 extern r_image_t *r_null_image;
 extern r_image_t *r_particle_image;

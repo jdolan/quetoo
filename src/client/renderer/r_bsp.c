@@ -36,8 +36,8 @@ const char *R_WorldspawnValue(const char *key){
 	c = strstr(Cm_EntityString(), va("\"%s\"", key));
 
 	if(c){
-		v = Com_Parse(&c);  // parse the key itself
-		v = Com_Parse(&c);  // parse the value
+		v = ParseToken(&c);  // parse the key itself
+		v = ParseToken(&c);  // parse the value
 	}
 	else {
 		v = NULL;
@@ -53,14 +53,14 @@ const char *R_WorldspawnValue(const char *key){
  * Returns true if the specified bounding box is completely culled by the
  * view frustum, false otherwise.
  */
-qboolean R_CullBox(const vec3_t mins, const vec3_t maxs){
+boolean_t R_CullBox(const vec3_t mins, const vec3_t maxs){
 	int i;
 
 	if(!r_cull->value)
 		return false;
 
 	for(i = 0; i < 4; i++){
-		if(BOX_ON_PLANE_SIDE(mins, maxs, &r_locals.frustum[i]) == SIDE_ON)
+		if(BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) == SIDE_BACK)
 			return true;
 	}
 
@@ -74,7 +74,7 @@ qboolean R_CullBox(const vec3_t mins, const vec3_t maxs){
  * Returns true if the specified entity is completely culled by the view
  * frustum, false otherwise.
  */
-qboolean R_CullBspModel(const r_entity_t *e){
+boolean_t R_CullBspModel(const r_entity_t *e){
 	vec3_t mins, maxs;
 	int i;
 
@@ -120,8 +120,8 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e){
 		else
 			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
 
-		if(((surf->flags & MSURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
-				(!(surf->flags & MSURF_PLANEBACK) && (dot > BACKFACE_EPSILON))){
+		if(((surf->flags & MSURF_SIDE_BACK) && (dot < -BACK_PLANE_EPSILON)) ||
+				(!(surf->flags & MSURF_SIDE_BACK) && (dot > BACK_PLANE_EPSILON))){
 			// visible, flag for rendering
 			surf->frame = r_locals.frame;
 			surf->back_frame = -1;
@@ -323,7 +323,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node){
 		sidebit = 0;
 	} else {
 		side = 1;
-		sidebit = MSURF_PLANEBACK;
+		sidebit = MSURF_SIDE_BACK;
 	}
 
 	// recurse down the children, front side first
@@ -336,7 +336,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node){
 
 		if(surf->vis_frame == r_locals.vis_frame){  // it's been marked
 
-			if((surf->flags & MSURF_PLANEBACK) != sidebit){  // but back-facing
+			if((surf->flags & MSURF_SIDE_BACK) != sidebit){  // but back-facing
 				surf->frame = -1;
 				surf->back_frame = r_locals.frame;
 			}
@@ -468,7 +468,7 @@ static byte *R_DecompressVis(const byte *in){
 /*
  * R_LeafInVis
  */
-static inline qboolean R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis){
+static inline boolean_t R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis){
 	int c;
 
 	if(!vis)

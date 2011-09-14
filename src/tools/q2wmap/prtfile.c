@@ -205,7 +205,7 @@ void WritePortalFile(tree_t *tree){
 	NumberLeafs_r(head_node);
 
 	// write the file
-	Com_StripExtension(map_name, file_name);
+	StripExtension(map_name, file_name);
 	strcat(file_name, ".prt");
 
 	if(Fs_OpenFile(file_name, &pf, FILE_WRITE) == -1)

@@ -287,7 +287,7 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent){
  * free edict.
  */
 static const char *G_ParseEntity(const char *data, g_edict_t *ent){
-	qboolean init;
+	boolean_t init;
 	char key[MAX_QPATH];
 	const char *tok;
 
@@ -297,7 +297,7 @@ static const char *G_ParseEntity(const char *data, g_edict_t *ent){
 	// go through all the dictionary pairs
 	while(true){
 		// parse key
-		tok = Com_Parse(&data);
+		tok = ParseToken(&data);
 		if(tok[0] == '}')
 			break;
 
@@ -307,7 +307,7 @@ static const char *G_ParseEntity(const char *data, g_edict_t *ent){
 		strncpy(key, tok, sizeof(key) - 1);
 
 		// parse value
-		tok = Com_Parse(&data);
+		tok = ParseToken(&data);
 		if(!data)
 			gi.Error("G_ParseEntity: EOF in edict definition.");
 
@@ -407,7 +407,7 @@ void G_SpawnEntities(const char *name, const char *entities){
 	// parse ents
 	while(true){
 		// parse the opening brace
-		com_token = Com_Parse(&entities);
+		com_token = ParseToken(&entities);
 
 		if(!entities)
 			break;
@@ -612,7 +612,7 @@ static void G_WorldspawnMusic(void){
 			break;
 
 		if(*t != '\0')
-			gi.ConfigString(CS_MUSICS + i++, Com_TrimString(t));
+			gi.ConfigString(CS_MUSICS + i++, Trim(t));
 
 		t = strtok(NULL, ",");
 	}

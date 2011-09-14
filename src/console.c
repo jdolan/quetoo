@@ -442,7 +442,7 @@ int Con_CompleteCommand(char *input_text, int *input_position){
 	if(matches == 1)
 		match = complete[0];
 	else
-		match = Com_CommonPrefix(complete, matches);
+		match = CommonPrefix(complete, matches);
 
 	if(!match || *match == '\0')
 		return false;

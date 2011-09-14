@@ -122,7 +122,7 @@ static void MN_ModifyWrap_f (void)
  */
 static void MN_Translate_f (void)
 {
-	qboolean next;
+	boolean_t next;
 	const char *current, *list;
 	char *orig, *trans;
 	char original[MAX_VAR], translation[MAX_VAR];

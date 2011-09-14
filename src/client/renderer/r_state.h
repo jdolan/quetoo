@@ -30,7 +30,7 @@ extern const float default_texcoords[];
 
 // texunits maintain multitexture state
 typedef struct r_texunit_s {
-	qboolean enabled;  // GL_TEXTURE_2D on / off
+	boolean_t enabled;  // GL_TEXTURE_2D on / off
 	GLenum texture;  // e.g. GL_TEXTURE0_ARB
 	GLint texnum;  // e.g 123
 	GLfloat texcoord_array[MAX_GL_ARRAY_LENGTH * 2];
@@ -50,12 +50,12 @@ typedef struct renderer_state_s {
 	int virtual_height, virtual_width;
 	float rx, ry;
 
-	qboolean fullscreen;
+	boolean_t fullscreen;
 
 	int red_bits, green_bits, blue_bits, alpha_bits;
 	int stencil_bits, depth_bits, double_buffer;
 
-	qboolean ortho;  // 2d vs 3d projection
+	boolean_t ortho;  // 2d vs 3d projection
 
 	GLfloat vertex_array_3d[MAX_GL_ARRAY_LENGTH * 3];  // default vertex arrays
 	GLshort vertex_array_2d[MAX_GL_ARRAY_LENGTH * 2];
@@ -64,7 +64,7 @@ typedef struct renderer_state_s {
 	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 3];
 
 	GLenum blend_src, blend_dest;  // blend function
-	qboolean blend_enabled;
+	boolean_t blend_enabled;
 
 	r_texunit_t texunits[MAX_GL_TEXUNITS];
 	r_texunit_t *active_texunit;
@@ -79,14 +79,14 @@ typedef struct renderer_state_s {
 
 	r_material_t *active_material;
 
-	qboolean color_array_enabled;
-	qboolean alpha_test_enabled;
-	qboolean stencil_test_enabled;
-	qboolean lighting_enabled;
-	qboolean bumpmap_enabled;
-	qboolean warp_enabled;
-	qboolean shell_enabled;
-	qboolean fog_enabled;
+	boolean_t color_array_enabled;
+	boolean_t alpha_test_enabled;
+	boolean_t stencil_test_enabled;
+	boolean_t lighting_enabled;
+	boolean_t bumpmap_enabled;
+	boolean_t warp_enabled;
+	boolean_t shell_enabled;
+	boolean_t fog_enabled;
 
 	r_rendermode_t rendermode;
 } renderer_state_t;
@@ -108,16 +108,16 @@ void R_BindArray(GLenum target, GLenum type, GLvoid *array);
 void R_BindDefaultArray(GLenum target);
 void R_BindBuffer(GLenum target, GLenum type, GLuint id);
 void R_BlendFunc(GLenum src, GLenum dest);
-void R_EnableBlend(qboolean enable);
-void R_EnableAlphaTest(qboolean enable);
-void R_EnableStencilTest(qboolean enable);
-void R_EnableTexture(r_texunit_t *texunit, qboolean enable);
-void R_EnableColorArray(qboolean enable);
-void R_EnableLighting(r_program_t *program, qboolean enable);
-void R_EnableBumpmap(r_material_t *material, qboolean enable);
-void R_EnableWarp(r_program_t *program, qboolean enable);
-void R_EnableShell(qboolean enable);
-void R_EnableFog(qboolean enable);
+void R_EnableBlend(boolean_t enable);
+void R_EnableAlphaTest(boolean_t enable);
+void R_EnableStencilTest(boolean_t enable);
+void R_EnableTexture(r_texunit_t *texunit, boolean_t enable);
+void R_EnableColorArray(boolean_t enable);
+void R_EnableLighting(r_program_t *program, boolean_t enable);
+void R_EnableBumpmap(r_material_t *material, boolean_t enable);
+void R_EnableWarp(r_program_t *program, boolean_t enable);
+void R_EnableShell(boolean_t enable);
+void R_EnableFog(boolean_t enable);
 void R_Setup3D(void);
 void R_Setup2D(void);
 void R_SetDefaultState(void);

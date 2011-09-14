@@ -31,8 +31,8 @@
 
 // sizebuf and net message facilities
 typedef struct size_buf_s {
-	qboolean allow_overflow;  // error if false and overflow occurs
-	qboolean overflowed;  // set to true when a write exceeds max_size
+	boolean_t allow_overflow;  // error if false and overflow occurs
+	boolean_t overflowed;  // set to true when a write exceeds max_size
 	byte *data;
 	size_t max_size;
 	size_t size;
@@ -56,7 +56,7 @@ void Msg_WriteAngle(size_buf_t *sb, float f);
 void Msg_WriteAngles(size_buf_t *sb, vec3_t angles);
 void Msg_WriteAngle16(size_buf_t *sb, float f);
 void Msg_WriteDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, qboolean force, qboolean newentity);
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, boolean_t force, boolean_t newentity);
 void Msg_WriteDir(size_buf_t *sb, vec3_t vector);
 
 void Msg_BeginReading(size_buf_t *sb);

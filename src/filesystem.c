@@ -197,10 +197,10 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 		}
 	}
 
-	if(Com_Mixedcase(file_name)) {  // try lowercase version
+	if(MixedCase(file_name)) {  // try lowercase version
 		char lower[MAX_QPATH];
 		strncpy(lower, file_name, sizeof(lower) - 1);
-		return Fs_OpenFile(Com_Lowercase(lower), file, mode);
+		return Fs_OpenFile(Lowercase(lower), file, mode);
 	}
 
 	//Com_Debug("Fs_OpenFile: can't find %s.\n", file_name);
@@ -391,7 +391,7 @@ const char *Fs_Gamedir(void){
 /*
  * Fs_FindFirst
  */
-const char *Fs_FindFirst(const char *path, qboolean absolute){
+const char *Fs_FindFirst(const char *path, boolean_t absolute){
 	const char *n;
 	char name[MAX_OSPATH];
 	const searchpath_t *s;
@@ -682,7 +682,7 @@ int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, con
 		h = fs_hash_table.bins[i];
 		while(h != NULL)
 		{
-			if(Com_GlobMatch(name, h->key) &&
+			if(GlobMatch(name, h->key) &&
 					!(dir == NULL && strchr(h->key, '/')))
 			{
 				// omit configs not in the root gamedir

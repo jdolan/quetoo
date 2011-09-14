@@ -27,7 +27,7 @@
 /*
  * Cl_ValidateClientInfo
  */
-static qboolean Cl_ValidateClientInfo(cl_client_info_t *ci){
+static boolean_t Cl_ValidateClientInfo(cl_client_info_t *ci){
 
 	if(!ci->head || !ci->upper || !ci->lower)
 		return false;

@@ -41,7 +41,7 @@
  * G_TestEntityPosition
  */
 static g_edict_t *G_TestEntityPosition(g_edict_t *ent){
-	trace_t trace;
+	c_trace_t trace;
 	int mask;
 
 	if(ent->clip_mask)
@@ -79,7 +79,7 @@ static void G_ClampVelocity(g_edict_t *ent){
  *
  * Runs thinking code for this frame if necessary
  */
-static qboolean G_RunThink(g_edict_t *ent){
+static boolean_t G_RunThink(g_edict_t *ent){
 	float think_time;
 
 	think_time = ent->next_think;
@@ -105,7 +105,7 @@ static qboolean G_RunThink(g_edict_t *ent){
  *
  * Two entities have touched, so run their touch functions
  */
-static void G_Impact(g_edict_t *e1, trace_t *trace){
+static void G_Impact(g_edict_t *e1, c_trace_t *trace){
 	g_edict_t *e2;
 
 	e2 = trace->ent;
@@ -175,8 +175,8 @@ static void G_AddGravity(g_edict_t *ent){
  *
  * Does not change the entity's velocity at all
  */
-trace_t G_PushEntity(g_edict_t *ent, vec3_t push){
-	trace_t trace;
+c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push){
+	c_trace_t trace;
 	vec3_t start;
 	vec3_t end;
 	int mask;
@@ -231,7 +231,7 @@ g_edict_t *obstacle;
  * Objects need to be moved back on a failed push,
  * otherwise riders would continue to slide.
  */
-static qboolean G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove){
+static boolean_t G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove){
 	int i, e;
 	g_edict_t *check, *block;
 	vec3_t mins, maxs;
@@ -469,11 +469,11 @@ static void G_Physics_Noclip(g_edict_t *ent){
  * Toss, bounce, and fly movement.  When on ground, do nothing.
  */
 static void G_Physics_Toss(g_edict_t *ent){
-	trace_t trace;
+	c_trace_t trace;
 	vec3_t org, move;
 	g_edict_t *slave;
-	qboolean was_in_water;
-	qboolean is_in_water;
+	boolean_t was_in_water;
+	boolean_t is_in_water;
 
 	// regular thinking
 	G_RunThink(ent);

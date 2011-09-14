@@ -70,7 +70,7 @@ struct menuNode_s;
 
 void MN_ExecuteEventActions(const struct menuNode_s* source, const menuAction_t* firstAction);
 void MN_ExecuteConFuncActions(const struct menuNode_s* source, const menuAction_t* firstAction);
-qboolean MN_IsInjectedString(const char *string);
+boolean_t MN_IsInjectedString(const char *string);
 void MN_FreeStringProperty(void* pointer);
 
 void MN_PoolAllocAction(menuAction_t** action, int type, const void *data);

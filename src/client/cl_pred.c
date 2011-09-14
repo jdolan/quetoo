@@ -59,9 +59,9 @@ void Cl_CheckPredictionError(void){
 /*
  * Cl_ClipMoveToEntities
  */
-static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, trace_t *tr){
+static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, c_trace_t *tr){
 	int i;
-	trace_t trace;
+	c_trace_t trace;
 	int head_node;
 	const float *angles;
 	vec3_t bmins, bmaxs;
@@ -111,8 +111,8 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t
 /*
  * Cl_Trace
  */
-static trace_t Cl_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
-	trace_t t;
+static c_trace_t Cl_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end){
+	c_trace_t t;
 
 	// check against world
 	t = Cm_BoxTrace(start, end, mins, maxs, 0, MASK_PLAYER_SOLID);

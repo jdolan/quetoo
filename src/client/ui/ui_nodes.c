@@ -108,7 +108,7 @@ const value_t *MN_GetPropertyFromBehaviour (const nodeBehaviour_t *behaviour, co
  * @sa V_SPECIAL_IF
  * @returns qfalse if the node is not drawn due to not meet if conditions
  */
-qboolean MN_CheckVisibility (menuNode_t *node)
+boolean_t MN_CheckVisibility (menuNode_t *node)
 {
 	if (!node->visibilityCondition)
 		return qtrue;
@@ -392,7 +392,7 @@ nodeBehaviour_t* MN_GetNodeBehaviour (const char* name)
  * @todo exclude rect is not safe cloned.
  * @todo actions are not cloned. It is be a problem if we use add/remove listener into a cloned node.
  */
-menuNode_t* MN_CloneNode (const menuNode_t* node, menuNode_t *newMenu, qboolean recursive)
+menuNode_t* MN_CloneNode (const menuNode_t* node, menuNode_t *newMenu, boolean_t recursive)
 {
 	menuNode_t* newNode = MN_AllocNode(node->behaviour->name);
 

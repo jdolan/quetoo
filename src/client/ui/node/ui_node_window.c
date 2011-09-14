@@ -66,7 +66,7 @@ static const vec4_t anamorphicBorder = {0, 0, 0, 1};
 /**
  * @brief Check if a window is fullscreen or not
  */
-qboolean MN_WindowIsFullScreen (menuNode_t* const node)
+boolean_t MN_WindowIsFullScreen (menuNode_t* const node)
 {
 	assert(MN_NodeInstanceOf(node, "window"));
 	return node->u.window.isFullScreen;
@@ -178,7 +178,7 @@ static void MN_WindowNodeDoStarLayout (menuNode_t *node)
 
 static void MN_WindowNodeDoLayout (menuNode_t *node)
 {
-	qboolean resized = qfalse;
+	boolean_t resized = qfalse;
 
 	if (!node->invalidated)
 		return;

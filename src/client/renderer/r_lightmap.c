@@ -78,7 +78,7 @@ static void R_UploadLightmapBlock(){
 /*
  * R_AllocLightmapBlock
  */
-static qboolean R_AllocLightmapBlock(int w, int h, int *x, int *y){
+static boolean_t R_AllocLightmapBlock(int w, int h, int *x, int *y){
 	int i, j;
 	int best;
 

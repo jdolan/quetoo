@@ -68,7 +68,7 @@ typedef struct memBlock_s {
 
 typedef struct memPool_s {
 	char name[MEM_MAX_POOLNAME];	/**< Name of pool */
-	qboolean inUse;					/**< Slot in use? */
+	boolean_t inUse;					/**< Slot in use? */
 
 	memBlock_t *blocks[MEM_HASH];	/**< Allocated blocks */
 
@@ -292,7 +292,7 @@ uint32_t _Mem_FreePool (struct memPool_s *pool, const char *fileName, const int 
 /**
  * @brief Optionally returns 0 filled memory allocated in a pool with a tag
  */
-void *_Mem_Alloc (size_t size, qboolean zeroFill, memPool_t *pool, const int tagNum, const char *fileName, const int fileLine)
+void *_Mem_Alloc (size_t size, boolean_t zeroFill, memPool_t *pool, const int tagNum, const char *fileName, const int fileLine)
 {
 	memBlock_t *mem;
 

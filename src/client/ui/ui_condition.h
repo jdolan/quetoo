@@ -76,8 +76,8 @@ typedef struct menuCondition_s {
 	const char *rightValue;
 } menuCondition_t;
 
-qboolean MN_CheckCondition(const struct menuNode_s *source, menuCondition_t *condition);
-qboolean MN_InitCondition(menuCondition_t *condition, const char *token);
+boolean_t MN_CheckCondition(const struct menuNode_s *source, menuCondition_t *condition);
+boolean_t MN_InitCondition(menuCondition_t *condition, const char *token);
 menuCondition_t *MN_AllocCondition(const char *description) __attribute__ ((warn_unused_result));
 
 #endif

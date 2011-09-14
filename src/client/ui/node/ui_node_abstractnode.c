@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * @param[in] behaviourName Behaviour name we check
  * @return True if the node inherits from the behaviour
  */
-qboolean MN_NodeInstanceOf (const menuNode_t *node, const char* behaviourName)
+boolean_t MN_NodeInstanceOf (const menuNode_t *node, const char* behaviourName)
 {
 	const nodeBehaviour_t *behaviour;
 	for (behaviour = node->behaviour; behaviour; behaviour = behaviour->super) {
@@ -319,7 +319,7 @@ void MN_SetNewNodePos (menuNode_t* node, int x, int y)
 /**
  * @brief Set node property
  */
-qboolean MN_NodeSetProperty (menuNode_t* node, const value_t *property, const char* value)
+boolean_t MN_NodeSetProperty (menuNode_t* node, const value_t *property, const char* value)
 {
 	byte* b = (byte*)node + property->ofs;
 	const int specialType = property->type & V_SPECIAL_TYPE;
@@ -417,7 +417,7 @@ float MN_GetFloatFromNodeProperty (const menuNode_t* node, const value_t* proper
 	} else if (property->type == V_INT) {
 		return *(const int*) b;
 	} else if (property->type == V_BOOL) {
-		return *(const qboolean *) b;
+		return *(const boolean_t *) b;
 	} else {
 #ifdef DEBUG
 		Com_Print("MN_GetFloatFromNodeProperty: Unimplemented float getter for property '%s@%s'. If it should return a float, request it.\n", MN_GetPath(node), property->string);

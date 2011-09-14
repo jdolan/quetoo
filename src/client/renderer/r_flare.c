@@ -81,7 +81,7 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
 	vec3_t view, verts[4];
 	vec3_t right, up, upright, downright;
 	float cos, dist, scale, alpha;
-	qboolean visible;
+	boolean_t visible;
 
 	if(!r_flares->value)
 		return;

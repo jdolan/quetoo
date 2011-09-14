@@ -27,7 +27,7 @@ cvar_t *cvar_vars;
 /*
  * Cvar_InfoValidate
  */
-static qboolean Cvar_InfoValidate(const char *s){
+static boolean_t Cvar_InfoValidate(const char *s){
 	if(strstr(s, "\\"))
 		return false;
 	if(strstr(s, "\""))
@@ -114,7 +114,7 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]){
  *
  * Function to remove the cvar and free the space
  */
-qboolean Cvar_Delete(const char *var_name){
+boolean_t Cvar_Delete(const char *var_name){
 	cvar_t *var, *prev = NULL;
 
 	for(var = cvar_vars; var; var = var->next){
@@ -211,7 +211,7 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags, const c
 /*
  * Cvar_Set_
  */
-static cvar_t *Cvar_Set_(const char *var_name, const char *value, qboolean force){
+static cvar_t *Cvar_Set_(const char *var_name, const char *value, boolean_t force){
 	cvar_t *var;
 
 	var = Cvar_FindVar(var_name);
@@ -367,7 +367,7 @@ void Cvar_Toggle(const char *var_name){
 /*
  * Cvar_PendingLatchedVars
  */
-qboolean Cvar_PendingLatchedVars(void){
+boolean_t Cvar_PendingLatchedVars(void){
 	cvar_t *var;
 
 	for(var = cvar_vars; var; var = var->next){
@@ -409,7 +409,7 @@ void Cvar_UpdateLatchedVars(void){
 /*
  * Cvar_PendingVars
  */
-qboolean Cvar_PendingVars(int flags){
+boolean_t Cvar_PendingVars(int flags){
 	cvar_t *var;
 
 	for(var = cvar_vars; var; var = var->next){
@@ -439,7 +439,7 @@ void Cvar_ClearVars(int flags){
  *
  * Handles variable inspection and changing from the console
  */
-qboolean Cvar_Command(void){
+boolean_t Cvar_Command(void){
 	cvar_t *v;
 
 	// check variables
@@ -573,7 +573,7 @@ static const cheatvar_t cheatvars[] = {
 /*
  * Cvar_LockCheatVars
  */
-void Cvar_LockCheatVars(qboolean lock){
+void Cvar_LockCheatVars(boolean_t lock){
 	const cheatvar_t *c;
 
 	c = cheatvars;
@@ -590,20 +590,20 @@ void Cvar_LockCheatVars(qboolean lock){
 }
 
 
-qboolean user_info_modified;
+boolean_t user_info_modified;
 
 /*
  * Cvar_BitInfo
  */
 static char *Cvar_BitInfo(int bit){
-	static char info[MAX_INFO_STRING];
+	static char info[MAX_USER_INFO_STRING];
 	const cvar_t *var;
 
 	info[0] = 0;
 
 	for(var = cvar_vars; var; var = var->next){
 		if(var->flags & bit)
-			Info_SetValueForKey(info, var->name, var->string);
+			SetUserInfo(info, var->name, var->string);
 	}
 
 	return info;

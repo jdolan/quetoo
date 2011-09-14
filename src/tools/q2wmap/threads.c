@@ -114,20 +114,21 @@ void ThreadUnlock(void){
  * RunThreads
  */
 static void RunThreads(void){
+	thread_t *t[64];
 	int i;
 
-	if(!thread_pool.num_threads){
+	if(!threads->integer){
 		ThreadWork(0);
 		return;
 	}
 
 	lock = SDL_CreateMutex();
 
-	for(i = 0; i < thread_pool.num_threads; i++)
-		Thread_Create(ThreadWork, NULL);
+	for(i = 0; i < threads->integer; i++)
+		t[i] = Thread_Create(ThreadWork, NULL);
 
-	for(i = 0; i < thread_pool.num_threads; i++)
-		Thread_Wait(&thread_pool.threads[i]);
+	for(i = 0; i < threads->integer; i++)
+		Thread_Wait(t[i]);
 
 	SDL_DestroyMutex(lock);
 	lock = NULL;
@@ -139,7 +140,7 @@ static void RunThreads(void){
  *
  * Entry point for all thread work requests.
  */
-void RunThreadsOn(int workcount, qboolean progress, void(*func)(int)){
+void RunThreadsOn(int workcount, boolean_t progress, void(*func)(int)){
 	time_t start, end;
 
 	thread_work.index = 0;

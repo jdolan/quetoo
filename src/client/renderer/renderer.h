@@ -99,7 +99,7 @@ typedef struct r_entity_s {
 	vec3_t angles;
 
 	matrix4x4_t matrix;
-	qboolean culled;
+	boolean_t culled;
 
 	struct r_model_s *model;
 
@@ -178,7 +178,7 @@ typedef struct r_view_s {
 	vec3_t right;
 	vec3_t up;
 
-	qboolean ground;  // client is on ground
+	boolean_t ground;  // client is on ground
 	float bob;
 
 	float time;
@@ -204,14 +204,14 @@ typedef struct r_view_s {
 
 	thread_t *thread;  // client thread which populates view
 
-	trace_t trace;  // occlusion testing
+	c_trace_t trace;  // occlusion testing
 	r_entity_t *trace_ent;
 
 	int bsp_polys;  // counters
 	int mesh_polys;
 
-	qboolean update;  // eligible for update from client
-	qboolean ready;  // eligible for rendering to the client
+	boolean_t update;  // eligible for update from client
+	boolean_t ready;  // eligible for rendering to the client
 } r_view_t;
 
 extern r_view_t r_view;
@@ -223,8 +223,8 @@ typedef struct r_config_s {
 	const char *version_string;
 	const char *extensions_string;
 
-	qboolean vbo;
-	qboolean shaders;
+	boolean_t vbo;
+	boolean_t shaders;
 
 	int max_texunits;
 } r_config_t;
@@ -340,8 +340,8 @@ void R_LoadBspLights(void);
 
 // r_bsp.c
 const char *R_WorldspawnValue(const char *key);
-qboolean R_CullBox(const vec3_t mins, const vec3_t maxs);
-qboolean R_CullBspModel(const r_entity_t *e);
+boolean_t R_CullBox(const vec3_t mins, const vec3_t maxs);
+boolean_t R_CullBspModel(const r_entity_t *e);
 void R_DrawBspModel(const r_entity_t *e);
 void R_DrawBspLights(void);
 void R_DrawBspNormals(void);
@@ -356,7 +356,7 @@ void R_InitCapture(void);
 void R_ShutdownCapture(void);
 
 // r_context.c
-qboolean R_InitContext(int width, int height, qboolean fullscreen);
+boolean_t R_InitContext(int width, int height, boolean_t fullscreen);
 void R_ShutdownContext(void);
 
 // r_corona.c
@@ -436,7 +436,7 @@ void R_EndFrame(void);
 void R_InitView(void);
 void R_LoadMedia(void);
 void R_Restart_f(void);
-qboolean R_SetMode(void);
+boolean_t R_SetMode(void);
 
 // r_material.c
 void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs);
@@ -447,7 +447,7 @@ extern vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3];
 extern vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];
 void R_ApplyMeshModelTag(r_entity_t *e);
 void R_ApplyMeshModelConfig(r_entity_t *e);
-qboolean R_CullMeshModel(const r_entity_t *e);
+boolean_t R_CullMeshModel(const r_entity_t *e);
 void R_UpdateMeshModelLighting(const r_entity_t *e);
 void R_DrawMeshModel_default(const r_entity_t *e);
 

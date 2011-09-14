@@ -51,7 +51,7 @@ static const char HIDECHAR = '*';	/**< use as a mask for password */
 /* global data */
 static char cvarValueBackup[MAX_CVAR_EDITING_LENGTH];
 static cvar_t *editedCvar = NULL;
-static qboolean isAborted = qfalse;
+static boolean_t isAborted = qfalse;
 
 /**
  * @brief callback from the keyboard
@@ -199,7 +199,7 @@ static void MN_TextEntryNodeEdit (menuNode_t *node, unsigned int key)
  * @brief Called when we press a key when the node got the focus
  * @return True, if we use the event
  */
-static qboolean MN_TextEntryNodeKeyPressed (menuNode_t *node, unsigned int key, unsigned short unicode)
+static boolean_t MN_TextEntryNodeKeyPressed (menuNode_t *node, unsigned int key, unsigned short unicode)
 {
 	switch (key) {
 	/* remove the last char */

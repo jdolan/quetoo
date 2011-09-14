@@ -32,8 +32,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * @brief extra_data for the textentry, to custom draw and behaviour
  */
 typedef struct textEntryExtraData_s {
-	qboolean isPassword;	/**< Display '*' instead of the real text */
-	qboolean clickOutAbort;	/**< If we click out an activated node, it abort the edition */
+	boolean_t isPassword;	/**< Display '*' instead of the real text */
+	boolean_t clickOutAbort;	/**< If we click out an activated node, it abort the edition */
 	struct menuAction_s *onAbort;
 } textEntryExtraData_t;
 

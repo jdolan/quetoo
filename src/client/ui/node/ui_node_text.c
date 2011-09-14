@@ -52,7 +52,7 @@ void MN_TextNodeSelectLine (menuNode_t *node, int num)
  * @param[in] offset Number of lines to scroll. Positive values scroll down, negative up.
  * @return Returns qtrue if scrolling was possible otherwise qfalse.
  */
-qboolean MN_TextScroll (menuNode_t *node, int offset)
+boolean_t MN_TextScroll (menuNode_t *node, int offset)
 {
 	int textScroll_new;
 
@@ -285,7 +285,7 @@ static void MN_TextNodeDrawText (menuNode_t* node, const char *text)
 			int y1 = y;
 			/* cut the image tag */
 			cur += strlen(TEXT_IMAGETAG);
-			token = Com_Parse((const char **)&cur);
+			token = ParseToken((const char **)&cur);
 			/** @todo fix scrolling images */
 			if (lines > EXTRADATA(node).textScroll)
 				y1 += (lines - EXTRADATA(node).textScroll) * node->u.text.lineHeight;
@@ -436,7 +436,7 @@ static void MN_TextNodeRightClick (menuNode_t * node, int x, int y)
 		MN_ExecuteEventActions(node, node->onRightClick);
 }
 
-static void MN_TextNodeMouseWheel (menuNode_t *node, qboolean down, int x, int y)
+static void MN_TextNodeMouseWheel (menuNode_t *node, boolean_t down, int x, int y)
 {
 	if (node->onWheelUp && node->onWheelDown) {
 		MN_ExecuteEventActions(node, (down ? node->onWheelDown : node->onWheelUp));

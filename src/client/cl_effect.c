@@ -341,7 +341,7 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
 void Cl_GibEffect(const vec3_t org, int count){
 	r_particle_t *p;
 	vec3_t o, v, tmp;
-	trace_t tr;
+	c_trace_t tr;
 	float dist;
 	int i, j;
 
@@ -616,7 +616,7 @@ void Cl_ExplosionEffect(const vec3_t org){
  */
 void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	r_particle_t *p;
-	qboolean stationary;
+	boolean_t stationary;
 	int j, c;
 
 	if(r_state.rendermode == rendermode_pro)
@@ -686,7 +686,7 @@ static const vec3_t shot_light = {
 void Cl_SmokeFlash(entity_state_t *ent){
 	r_particle_t *p;
 	vec3_t forward, right, org, org2;
-	trace_t tr;
+	c_trace_t tr;
 	float dist;
 	int j, c;
 
@@ -1120,7 +1120,7 @@ static const vec3_t energy_light = {
 void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
 	r_particle_t *p;
 	vec3_t forward, right, org, org2;
-	trace_t tr;
+	c_trace_t tr;
 	float dist;
 	int i, j, c;
 
@@ -1255,7 +1255,7 @@ void Cl_EntityEvent(entity_state_t *ent){
 static void Cl_WeatherEffects(void){
 	int j, k, max;
 	vec3_t start, end;
-	trace_t tr;
+	c_trace_t tr;
 	float ceiling;
 	r_particle_t *p;
 	s_sample_t *s;

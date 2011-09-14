@@ -23,21 +23,21 @@
 #include "qbsp.h"
 
 vec_t microvolume = 1.0;
-qboolean noprune;
-qboolean nodetail;
-qboolean fulldetail;
-qboolean onlyents;
-qboolean nomerge;
-qboolean nowater;
-qboolean nofill;
-qboolean nocsg;
-qboolean noweld;
-qboolean noshare;
-qboolean nosubdivide;
-qboolean notjunc;
-qboolean noopt;
-qboolean leaktest;
-qboolean verboseentities;
+boolean_t noprune;
+boolean_t nodetail;
+boolean_t fulldetail;
+boolean_t onlyents;
+boolean_t nomerge;
+boolean_t nowater;
+boolean_t nofill;
+boolean_t nocsg;
+boolean_t noweld;
+boolean_t noshare;
+boolean_t nosubdivide;
+boolean_t notjunc;
+boolean_t noopt;
+boolean_t leaktest;
+boolean_t verboseentities;
 
 int block_xl = -8, block_xh = 7, block_yl = -8, block_yh = 7;
 
@@ -146,8 +146,8 @@ static void ProcessBlock_Thread(int blocknum){
 static void ProcessWorldModel(void){
 	entity_t *e;
 	tree_t *tree;
-	qboolean leaked;
-	qboolean optimize;
+	boolean_t leaked;
+	boolean_t optimize;
 
 	e = &entities[entity_num];
 
@@ -308,7 +308,7 @@ int BSP_Main(void){
 
 	start = time(NULL);
 
-	Com_StripExtension(map_name, base);
+	StripExtension(map_name, base);
 
 	// clear the whole bsp structure
 	memset(&d_bsp, 0, sizeof(d_bsp));

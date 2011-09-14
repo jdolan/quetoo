@@ -107,6 +107,8 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
 
 /*
  * VectorAngles
+ *
+ * Derives Euler angles for the specified directional vector.
  */
 void VectorAngles(const vec3_t vector, vec3_t angles){
 	const float forward = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
@@ -123,6 +125,8 @@ void VectorAngles(const vec3_t vector, vec3_t angles){
 
 /*
  * AngleVectors
+ *
+ * Produces the forward, right and up directional vectors for the given angles.
  */
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up){
 	float angle;
@@ -268,6 +272,8 @@ void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]){
 
 /*
  * VectorLerp
+ *
+ * Produces the linear interpolation of the two vectors for the given fraction.
  */
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out){
 	int i;
@@ -279,6 +285,9 @@ void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out
 
 /*
  * AngleLerp
+ *
+ * Produces the linear interpolation of the two angles for the given fraction.
+ * Care is taken to keep the values between -180.0 and 180.0.
  */
 void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out){
 	vec3_t _from, _to;
@@ -304,19 +313,20 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 /*
  * BoxOnPlaneSide
  *
- * Returns 1, 2, or 1 + 2
+ * Returns the sidedness of the given bounding box relative to the specified
+ * plane. If the box straddles the plane, this function returns PSIDE_BOTH.
  */
-int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct cplane_s *p){
+int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct c_plane_s *p){
 	float dist1, dist2;
 	int sides;
 
 	// axial planes
 	if(AXIAL(p)){
-		if(p->dist - PLANESIDE_EPSILON <= emins[p->type])
-			return PSIDE_FRONT;
-		if(p->dist + PLANESIDE_EPSILON >= emaxs[p->type])
-			return PSIDE_BACK;
-		return PSIDE_BOTH;
+		if(p->dist - SIDE_EPSILON <= emins[p->type])
+			return SIDE_FRONT;
+		if(p->dist + SIDE_EPSILON >= emaxs[p->type])
+			return SIDE_BACK;
+		return SIDE_BOTH;
 	}
 
 	// general case
@@ -354,15 +364,15 @@ int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct cplane_s
 			dist2 = DotProduct(p->normal, emaxs);
 			break;
 		default:
-			dist1 = dist2 = 0;  // shut up compiler
+			dist1 = dist2 = 0.0;  // shut up compiler
 			break;
 	}
 
 	sides = 0;
 	if(dist1 >= p->dist)
-		sides = PSIDE_FRONT;
+		sides = SIDE_FRONT;
 	if(dist2 < p->dist)
-		sides |= PSIDE_BACK;
+		sides |= SIDE_BACK;
 
 	return sides;
 }
@@ -370,6 +380,8 @@ int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct cplane_s
 
 /*
  * ClearBounds
+ *
+ * Initializes the specified bounds so that they may be safely calculated.
  */
 void ClearBounds(vec3_t mins, vec3_t maxs){
 	mins[0] = mins[1] = mins[2] = 99999;
@@ -379,6 +391,8 @@ void ClearBounds(vec3_t mins, vec3_t maxs){
 
 /*
  * AddPointToBounds
+ *
+ * Useful for accumulating a bounding box over a series of points.
  */
 void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs){
 	int i;
@@ -394,8 +408,10 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs){
 
 /*
  * VectorCompare
+ *
+ * Returns true if the specified vectors are equal, false otherwise.
  */
-qboolean VectorCompare(const vec3_t v1, const vec3_t v2){
+boolean_t VectorCompare(const vec3_t v1, const vec3_t v2){
 
 	if(v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
 		return false;
@@ -406,12 +422,15 @@ qboolean VectorCompare(const vec3_t v1, const vec3_t v2){
 
 /*
  * VectorNearer
+ *
+ * Returns true if the first vector is closer to the point of interest, false
+ * otherwise.
  */
-qboolean VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t comp){
+boolean_t VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point){
 	vec3_t d1, d2;
 
-	VectorSubtract(comp, v1, d1);
-	VectorSubtract(comp, v2, d2);
+	VectorSubtract(point, v1, d1);
+	VectorSubtract(point, v2, d2);
 
 	return VectorLength(d1) < VectorLength(d2);
 }
@@ -419,6 +438,9 @@ qboolean VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t comp){
 
 /*
  * VectorNormalize
+ *
+ * Normalizes the specified vector to unit-length, returning the original
+ * vector's length.
  */
 vec_t VectorNormalize(vec3_t v){
 	float length, ilength;
@@ -450,6 +472,8 @@ void VectorMA(const vec3_t veca, const float scale, const vec3_t vecb, vec3_t ve
 
 /*
  * CrossProduct
+ *
+ * Calculates the cross-product of the specified vectors.
  */
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross){
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
@@ -460,6 +484,8 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross){
 
 /*
  * VectorLength
+ *
+ * Returns the length of the specified vector.
  */
 vec_t VectorLength(const vec3_t v){
 	return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
@@ -468,6 +494,8 @@ vec_t VectorLength(const vec3_t v){
 
 /*
  * VectorMix
+ *
+ * Combines a fraction of the second vector with the first.
  */
 void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out){
 	int i;
@@ -478,6 +506,9 @@ void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out){
 
 /*
  * ColorNormalize
+ *
+ * Clamps the components of the specified vector to 1.0, scaling the vector
+ * down if necessary.
  */
 vec_t ColorNormalize(const vec3_t in, vec3_t out){
 	vec_t max = 0.0;
@@ -540,9 +571,11 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness,
 
 
 /*
- * Com_Mixedcase
+ * MixedCase
+ *
+ * Returns true if the specified string has some upper case characters.
  */
-qboolean Com_Mixedcase(const char *s){
+boolean_t MixedCase(const char *s){
 	const char *c = s;
 	while(*c){
 		if(isupper(*c))
@@ -554,9 +587,11 @@ qboolean Com_Mixedcase(const char *s){
 
 
 /*
- * Com_Lowercase
+ * Lowercase
+ *
+ * Lowercases the specified string.
  */
-char *Com_Lowercase(char *s){
+char *Lowercase(char *s){
 	char *c = s;
 	while(*c){
 		*c = tolower(*c);
@@ -567,9 +602,11 @@ char *Com_Lowercase(char *s){
 
 
 /*
- * Com_Trim
+ * Trim
+ *
+ * Trims leading and trailing whitespace from the specified string.
  */
-char *Com_Trim(char *s){
+char *Trim(char *s){
 	char *left, *right;
 
 	left = s;
@@ -586,12 +623,14 @@ char *Com_Trim(char *s){
 }
 
 
-static char common_prefix[MAX_TOKEN_CHARS];
 
 /*
- * Com_CommonPrefix
+ * CommonPrefix
+ *
+ * Returns the longest common prefix the specified words share.
  */
-char *Com_CommonPrefix(const char *words[], int nwords){
+char *CommonPrefix(const char *words[], int nwords){
+	static char common_prefix[MAX_TOKEN_CHARS];
 	const char *w;
 	char c;
 	int i, j;
@@ -626,18 +665,20 @@ char *Com_CommonPrefix(const char *words[], int nwords){
 
 
 /*
- * Like glob_match, but match pattern against any final segment of text.
+ * GlobMatchStar
+ *
+ * Handles wildcard suffixes for GlobMatch.
  */
-int Com_GlobMatchStar(const char *pattern, const char *text){
+static boolean_t GlobMatchStar(const char *pattern, const char *text){
 	const char *p = pattern, *t = text;
 	register char c, c1;
 
 	while((c = *p++) == '?' || c == '*')
 		if(c == '?' && *t++ == '\0')
-			return 0;
+			return false;
 
 	if(c == '\0')
-		return 1;
+		return true;
 
 	if(c == '\\')
 		c1 = *p;
@@ -645,33 +686,35 @@ int Com_GlobMatchStar(const char *pattern, const char *text){
 		c1 = c;
 
 	while(true){
-		if((c == '[' || *t == c1) && Com_GlobMatch(p - 1, t))
-			return 1;
+		if((c == '[' || *t == c1) && GlobMatch(p - 1, t))
+			return true;
 		if(*t++ == '\0')
-			return 0;
+			return false;
 	}
 }
 
 
-/* Match the pattern against the text;
-   return 1 if it matches, 0 otherwise.
-
-   A match means the entire string TEXT is used up in matching.
-
-   In the pattern string, `*' matches any sequence of characters,
-   `?' matches any character, [SET] matches any character in the specified set,
-   [!SET] matches any character not in the specified set.
-
-   A set is composed of characters or ranges; a range looks like
-   character hyphen character(as in 0-9 or A-Z).
-   [0-9a-zA-Z_] is the set of characters allowed in C identifiers.
-   Any other character in the pattern must be matched exactly.
-
-   To suppress the special syntactic significance of any of `[]*?!-\',
-   and match the character exactly, precede it with a `\'.
-*/
-
-int Com_GlobMatch(const char *pattern, const char *text){
+/*
+ * GlobMatch
+ *
+ * Matches the pattern against specified text, returning true if the pattern
+ * matches, false otherwise.
+ *
+ * A match means the entire string TEXT is used up in matching.
+ *
+ * In the pattern string, `*' matches any sequence of characters,
+ * `?' matches any character, [SET] matches any character in the specified set,
+ * [!SET] matches any character not in the specified set.
+ *
+ * A set is composed of characters or ranges; a range looks like
+ * character hyphen character(as in 0-9 or A-Z).
+ * [0-9a-zA-Z_] is the set of characters allowed in C identifiers.
+ * Any other character in the pattern must be matched exactly.
+ *
+ * To suppress the special syntactic significance of any of `[]*?!-\',
+ * and match the character exactly, precede it with a `\'.
+ */
+boolean_t GlobMatch(const char *pattern, const char *text){
 	const char *p = pattern, *t = text;
 	register char c;
 
@@ -690,7 +733,7 @@ int Com_GlobMatch(const char *pattern, const char *text){
 				break;
 
 			case '*':
-				return Com_GlobMatchStar(p, t);
+				return GlobMatchStar(p, t);
 
 			case '[': {
 					register char c1 = *t++;
@@ -758,9 +801,11 @@ match:
 
 
 /*
- * Com_Basename
+ * Basename
+ *
+ * Returns the base name for the given file or path.
  */
-const char *Com_Basename(const char *path){
+const char *Basename(const char *path){
 	const char *last;
 
 	last = path;
@@ -774,9 +819,11 @@ const char *Com_Basename(const char *path){
 
 
 /*
- * Com_Dirname
+ * Dirname
+ *
+ * Returns the directory name for the given file or path name.
  */
-void Com_Dirname(const char *in, char *out){
+void Dirname(const char *in, char *out){
 	char *c;
 
 	if(!(c = strrchr(in, '/'))){
@@ -790,9 +837,11 @@ void Com_Dirname(const char *in, char *out){
 
 
 /*
- * Com_StripExtension
+ * StripExtension
+ *
+ * Removes any file extension(s) from the specified input string.
  */
-void Com_StripExtension(const char *in, char *out){
+void StripExtension(const char *in, char *out){
 	while(*in && *in != '.')
 		*out++ = *in++;
 	*out = 0;
@@ -800,9 +849,11 @@ void Com_StripExtension(const char *in, char *out){
 
 
 /*
- * Com_StripColor
+ * StripColor
+ *
+ * Strips color escape sequences from the specified input string.
  */
-void Com_StripColor(const char *in, char *out){
+void StripColor(const char *in, char *out){
 
 	while(*in){
 
@@ -819,140 +870,6 @@ void Com_StripColor(const char *in, char *out){
 		*out++ = *in++;
 	}
 	*out = 0;
-}
-
-
-/*
- * Com_TrimString
- */
-char *Com_TrimString(char *in){
-	char *c;
-
-	while(*in == ' ' || *in == '\t')
-		in++;
-
-	c = &in[strlen(in) - 1];
-
-	while(*c == ' ' || *c == '\t'){
-		*c = 0;
-		c--;
-	}
-
-	return in;
-}
-
-
-/*
- * BYTE ORDER FUNCTIONS
- */
-
-static qboolean bigendien;
-
-// can't just use function pointers, or dll linkage can
-// mess up when common is included in multiple places
-short (*_BigShort)(short l);
-short (*_LittleShort)(short l);
-int (*_BigLong)(int l);
-int (*_LittleLong)(int l);
-float (*_BigFloat)(float l);
-float (*_LittleFloat)(float l);
-
-short BigShort(short l){
-	return _BigShort(l);
-}
-short LittleShort(short l){
-	return _LittleShort(l);
-}
-int BigLong(int l){
-	return _BigLong(l);
-}
-int LittleLong(int l){
-	return _LittleLong(l);
-}
-float BigFloat(float l){
-	return _BigFloat(l);
-}
-float LittleFloat(float l){
-	return _LittleFloat(l);
-}
-
-static short ShortSwap(short l){
-	byte b1, b2;
-
-	b1 = l & 255;
-	b2 = (l >> 8) & 255;
-
-	return (b1 << 8) + b2;
-}
-
-static short ShortNoSwap(short l){
-	return l;
-}
-
-static int LongSwap(int l){
-	byte b1, b2, b3, b4;
-
-	b1 = l & 255;
-	b2 = (l >> 8) & 255;
-	b3 = (l >> 16) & 255;
-	b4 = (l >> 24) & 255;
-
-	return ((int)b1 << 24) + ((int)b2 << 16) + ((int)b3 << 8) + b4;
-}
-
-static int LongNoSwap(int l){
-	return l;
-}
-
-static float FloatSwap(float f){
-	union {
-		float f;
-		byte b[4];
-	} dat1, dat2;
-
-	dat1.f = f;
-	dat2.b[0] = dat1.b[3];
-	dat2.b[1] = dat1.b[2];
-	dat2.b[2] = dat1.b[1];
-	dat2.b[3] = dat1.b[0];
-	return dat2.f;
-}
-
-static float FloatNoSwap(float f){
-	return f;
-}
-
-/*
- * Swap_Init
- */
-void Swap_Init(void){
-
-	static union {
-		byte b[2];
-		unsigned short s;
-	} swaptest;
-
-	swaptest.b[0] = 1;
-	swaptest.b[1] = 0;
-
-	// set the byte swapping variables in a portable manner
-	if(swaptest.s == 1){
-		bigendien = false;
-		_BigShort = ShortSwap;
-		_LittleShort = ShortNoSwap;
-		_BigLong = LongSwap;
-		_LittleLong = LongNoSwap;
-		_BigFloat = FloatSwap;
-		_LittleFloat = FloatNoSwap;
-	} else {
-		bigendien = true;
-		_BigShort = ShortNoSwap;
-		_LittleShort = ShortSwap;
-		_BigLong = LongNoSwap;
-		_LittleLong = LongSwap;
-		_BigFloat = FloatNoSwap;
-		_LittleFloat = FloatSwap;
-	}
 }
 
 
@@ -975,21 +892,21 @@ char *va(const char *format, ...){
 }
 
 
-char com_token[MAX_TOKEN_CHARS];
-
 /*
- * Com_Parse
+ * ParseToken
  *
- * Parse a token out of a string
+ * Parse a token out of a string. Tokens are delimited by white space, and
+ * may be grouped by quotation marks.
  */
-char *Com_Parse(const char **data_p){
+char *ParseToken(const char **data_p){
+	static char token[MAX_TOKEN_CHARS];
 	int c;
 	int len;
 	const char *data;
 
 	data = *data_p;
 	len = 0;
-	com_token[0] = 0;
+	token[0] = 0;
 
 	if(!data){
 		*data_p = NULL;
@@ -1019,12 +936,12 @@ skipwhite:
 		while(true){
 			c = *data++;
 			if(c == '\"' || !c){
-				com_token[len] = 0;
+				token[len] = 0;
 				*data_p = data;
-				return com_token;
+				return token;
 			}
 			if(len < MAX_TOKEN_CHARS){
-				com_token[len] = c;
+				token[len] = c;
 				len++;
 			}
 		}
@@ -1033,7 +950,7 @@ skipwhite:
 	// parse a regular word
 	do {
 		if(len < MAX_TOKEN_CHARS){
-			com_token[len] = c;
+			token[len] = c;
 			len++;
 		}
 		data++;
@@ -1043,31 +960,27 @@ skipwhite:
 	if(len == MAX_TOKEN_CHARS){
 		len = 0;
 	}
-	com_token[len] = 0;
+	token[len] = 0;
 
 	*data_p = data;
-	return com_token;
+	return token;
 }
 
 
 /*
- * INFO STRINGS
- */
-
-/*
- * Info_ValueForKey
+ * GetUserInfo
  *
- * Searches the string for the given
- * key and returns the associated value, or an empty string.
+ * Searches the string for the given key and returns the associated value,
+ * or an empty string.
  */
-char *Info_ValueForKey(const char *s, const char *key){
+char *GetUserInfo(const char *s, const char *key){
 	char pkey[512];
 	static char value[2][512];  // use two buffers so compares
 	// work without stomping on each other
-	static int valueindex;
+	static int value_index;
 	char *o;
 
-	valueindex ^= 1;
+	value_index ^= 1;
 	if(*s == '\\')
 		s++;
 	while(true){
@@ -1080,7 +993,7 @@ char *Info_ValueForKey(const char *s, const char *key){
 		*o = 0;
 		s++;
 
-		o = value[valueindex];
+		o = value[value_index];
 
 		while(*s != '\\' && *s){
 			if(!*s)
@@ -1090,7 +1003,7 @@ char *Info_ValueForKey(const char *s, const char *key){
 		*o = 0;
 
 		if(!strcmp(key, pkey))
-			return value[valueindex];
+			return value[value_index];
 
 		if(!*s)
 			return "";
@@ -1100,9 +1013,9 @@ char *Info_ValueForKey(const char *s, const char *key){
 
 
 /*
- * Info_RemoveKey
+ * DeleteUserInfo
  */
-void Info_RemoveKey(char *s, const char *key){
+void DeleteUserInfo(char *s, const char *key){
 	char *start;
 	char pkey[512];
 	char value[512];
@@ -1145,12 +1058,12 @@ void Info_RemoveKey(char *s, const char *key){
 
 
 /*
- * Info_Validate
+ * ValidateUserInfo
  *
- * Some characters are illegal in info strings because they
- * can mess up the server's parsing
+ * Returns true if the specified user-info string appears valid, false
+ * otherwise.
  */
-qboolean Info_Validate(const char *s){
+boolean_t ValidateUserInfo(const char *s){
 	if(strstr(s, "\""))
 		return false;
 	if(strstr(s, ";"))
@@ -1160,12 +1073,12 @@ qboolean Info_Validate(const char *s){
 
 
 /*
- * Info_SetValueForKey
+ * SetUserInfo
  */
-void Info_SetValueForKey(char *s, const char *key, const char *value){
-	char newi[MAX_INFO_STRING], *v;
+void SetUserInfo(char *s, const char *key, const char *value){
+	char newi[MAX_USER_INFO_STRING], *v;
 	int c;
-	int max_size = MAX_INFO_STRING;
+	int max_size = MAX_USER_INFO_STRING;
 
 	if(strstr(key, "\\") || strstr(value, "\\")){
 		//Com_Print("Can't use keys or values with a \\\n");
@@ -1182,11 +1095,11 @@ void Info_SetValueForKey(char *s, const char *key, const char *value){
 		return;
 	}
 
-	if(strlen(key) > MAX_INFO_KEY - 1 || strlen(value) > MAX_INFO_KEY - 1){
+	if(strlen(key) > MAX_USER_INFO_KEY - 1 || strlen(value) > MAX_USER_INFO_VALUE - 1){
 		//Com_Print("Keys and values must be < 64 characters.\n");
 		return;
 	}
-	Info_RemoveKey(s, key);
+	DeleteUserInfo(s, key);
 	if(!value || *value == '\0')
 		return;
 

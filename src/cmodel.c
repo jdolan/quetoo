@@ -99,7 +99,7 @@ typedef struct c_bsp_s {
 
 	int flood_valid;
 
-	qboolean portal_open[MAX_BSP_AREA_PORTALS];
+	boolean_t portal_open[MAX_BSP_AREA_PORTALS];
 } c_bsp_t;
 
 static c_bsp_t cm_bsp;
@@ -823,7 +823,7 @@ static void Cm_BoxLeafnums_r(int nodenum, c_leaf_data_t *data) {
 
 		node = &cm_bsp.nodes[nodenum];
 		plane = node->plane;
-		s = BOX_ON_PLANE_SIDE(data->mins, data->maxs, plane);
+		s = BoxOnPlaneSide(data->mins, data->maxs, plane);
 		if(s == 1)
 			nodenum = node->children[0];
 		else if(s == 2)
@@ -921,9 +921,9 @@ typedef struct {
 	vec3_t mins, maxs;
 	vec3_t extents;
 
-	trace_t trace;
+	c_trace_t trace;
 	int contents;
-	qboolean is_point;  // optimized case
+	boolean_t is_point;  // optimized case
 	
 	int mailbox[16]; // used to avoid multiple intersection tests with brushes
 } c_trace_data_t;
@@ -932,9 +932,9 @@ typedef struct {
 /*
  * Cm_BrushAlreadyTested
  */
-static qboolean Cm_BrushAlreadyTested(int brush_num, c_trace_data_t *data) {
+static boolean_t Cm_BrushAlreadyTested(int brush_num, c_trace_data_t *data) {
 	int hash = brush_num & 15;
-	qboolean skip = (data->mailbox[hash] == brush_num);
+	boolean_t skip = (data->mailbox[hash] == brush_num);
 	data->mailbox[hash] = brush_num;
 	return skip;
 }
@@ -946,14 +946,14 @@ static qboolean Cm_BrushAlreadyTested(int brush_num, c_trace_data_t *data) {
  * true if the box was clipped, false otherwise.
  */
 static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
-			trace_t *trace, c_leaf_t *leaf, c_brush_t *brush, qboolean is_point){
+			c_trace_t *trace, c_leaf_t *leaf, c_brush_t *brush, boolean_t is_point){
 	int i, j;
 	c_plane_t *clip_plane;
 	float dist;
 	float enter_fraction, leave_fraction;
 	vec3_t ofs;
 	float d1, d2;
-	qboolean end_outside, start_outside;
+	boolean_t end_outside, start_outside;
 	c_brush_side_t *lead_side;
 
 	enter_fraction = -1;
@@ -1045,7 +1045,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
 /*
  * Cm_TestBoxInBrush
  */
-static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, trace_t *trace, c_brush_t *brush){
+static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *trace, c_brush_t *brush){
 	int i, j;
 	c_plane_t *plane;
 	float dist;
@@ -1249,7 +1249,7 @@ static void Cm_RecursiveHullCheck(int num, float p1f, float p2f, const vec3_t p1
 /*
  * Cm_BoxTrace
  */
-trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
+c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
 			const vec3_t mins, const vec3_t maxs, int head_node, int brush_mask){
 	int i, point_leafs[1024];
 
@@ -1327,16 +1327,16 @@ trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
  * Handles offsetting and rotation of the end points for moving and
  * rotating entities.
  */
-trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
+c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 		const vec3_t mins, const vec3_t maxs, int head_node, int brush_mask,
 		const vec3_t origin, const vec3_t angles){
 
-	trace_t trace;
+	c_trace_t trace;
 	vec3_t start_l, end_l;
 	vec3_t a;
 	vec3_t forward, right, up;
 	vec3_t temp;
-	qboolean rotated;
+	boolean_t rotated;
 
 	// subtract origin offset
 	VectorSubtract(start, origin, start_l);
@@ -1512,7 +1512,7 @@ static void Cm_FloodAreaConnections(void){
 /*
  * Cm_SetAreaPortalState
  */
-void Cm_SetAreaPortalState(int portal_num, qboolean open){
+void Cm_SetAreaPortalState(int portal_num, boolean_t open){
 	if(portal_num > cm_bsp.num_area_portals){
 		Com_Error(ERR_DROP, "Cm_SetAreaPortalState: portal_num > cm.num_area_portals.\n");
 	}
@@ -1525,7 +1525,7 @@ void Cm_SetAreaPortalState(int portal_num, qboolean open){
 /*
  * Cm_AreasConnected
  */
-qboolean Cm_AreasConnected(int area1, int area2){
+boolean_t Cm_AreasConnected(int area1, int area2){
 	if(map_noareas->value)
 		return true;
 
@@ -1574,7 +1574,7 @@ int Cm_WriteAreaBits(byte *buffer, int area){
  * Returns true if any leaf under head_node has a cluster that
  * is potentially visible
  */
-qboolean Cm_HeadnodeVisible(int node_num, byte *vis){
+boolean_t Cm_HeadnodeVisible(int node_num, byte *vis){
 	const c_node_t *node;
 
 	if(node_num < 0){  // at a leaf, check it

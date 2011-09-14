@@ -91,7 +91,7 @@ typedef struct sv_frame_s {
 typedef struct sv_client_s {
 	sv_client_state_t state;
 
-	char user_info[MAX_INFO_STRING];  // name, skin, etc
+	char user_info[MAX_USER_INFO_STRING];  // name, skin, etc
 
 	int last_frame;  // for delta compression
 	user_cmd_t last_cmd;  // for filling in big drops
@@ -123,7 +123,7 @@ typedef struct sv_client_s {
 
 	int last_message;  // svs.real_time when packet was last received
 
-	qboolean recording;  // client is currently recording a demo
+	boolean_t recording;  // client is currently recording a demo
 
 	net_chan_t netchan;
 } sv_client_t;
@@ -151,7 +151,7 @@ typedef struct sv_challenge_s {
 #define MAX_CHALLENGES 1024
 
 typedef struct sv_static_s {
-	qboolean initialized;  // sv_init has completed
+	boolean_t initialized;  // sv_init has completed
 	int real_time;  // always increasing, no clamping, etc
 
 	int spawn_count;  // incremented each level start, used to check late spawns
@@ -227,7 +227,7 @@ extern char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
 void Sv_FlushRedirect(int target, char *outputbuf);
 void Sv_SendClientMessages(void);
-void Sv_Unicast(g_edict_t *ent, qboolean reliable);
+void Sv_Unicast(g_edict_t *ent, boolean_t reliable);
 void Sv_Multicast(vec3_t origin, multicast_t to);
 void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, int soundindex, int atten);
 void Sv_ClientPrint(g_edict_t *ent, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
@@ -279,7 +279,7 @@ int Sv_PointContents(vec3_t p);
 // Quake 2 extends this to also check entities, to allow moving liquids
 
 
-trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *passedict, int contentmask);
+c_trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *passedict, int contentmask);
 // mins and maxs are relative
 
 // if the entire move stays in a solid volume, trace.all_solid will be set,

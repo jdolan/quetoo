@@ -76,7 +76,7 @@ static inline const char* MN_GenCommandReadProperty (const char* input, char* ou
  * It's also possible to do something like
  * @code cmd "set someCvar <min>/<max>"
  */
-static const char* MN_GenInjectedString (const menuNode_t* source, qboolean useCmdParam, const char* input, qboolean addNewLine)
+static const char* MN_GenInjectedString (const menuNode_t* source, boolean_t useCmdParam, const char* input, boolean_t addNewLine)
 {
 	static char cmd[256];
 	int length = sizeof(cmd) - (addNewLine ? 2 : 1);
@@ -174,7 +174,7 @@ static const char* MN_GenInjectedString (const menuNode_t* source, qboolean useC
 	return cmd;
 }
 
-static inline void MN_ExecuteSetAction (const menuNode_t* source, qboolean useCmdParam, const menuAction_t* action)
+static inline void MN_ExecuteSetAction (const menuNode_t* source, boolean_t useCmdParam, const menuAction_t* action)
 {
 	const char* path;
 	byte *value;
@@ -260,13 +260,13 @@ static inline void MN_ExecuteSetAction (const menuNode_t* source, qboolean useCm
 	}
 }
 
-static void MN_ExecuteInjectedActions(const menuNode_t* source, qboolean useCmdParam, const menuAction_t* firstAction);
+static void MN_ExecuteInjectedActions(const menuNode_t* source, boolean_t useCmdParam, const menuAction_t* firstAction);
 
 /**
  * @brief Execute an action from a source
  * @param[in] useCmdParam If true, inject every where its possible command line param
  */
-static void MN_ExecuteInjectedAction (const menuNode_t* source, qboolean useCmdParam, const menuAction_t* action)
+static void MN_ExecuteInjectedAction (const menuNode_t* source, boolean_t useCmdParam, const menuAction_t* action)
 {
 	switch (action->type.op) {
 	case EA_NULL:
@@ -305,7 +305,7 @@ static void MN_ExecuteInjectedAction (const menuNode_t* source, qboolean useCmdP
 	}
 }
 
-static void MN_ExecuteInjectedActions (const menuNode_t* source, qboolean useCmdParam, const menuAction_t* firstAction)
+static void MN_ExecuteInjectedActions (const menuNode_t* source, boolean_t useCmdParam, const menuAction_t* firstAction)
 {
 	static int callnumber = 0;
 	const menuAction_t *action;
@@ -336,7 +336,7 @@ void MN_ExecuteEventActions (const menuNode_t* source, const menuAction_t* first
  * @brief Test if a string use an injection syntax
  * @return True if we find in the string a syntaxe "<" {thing without space} ">"
  */
-qboolean MN_IsInjectedString (const char *string)
+boolean_t MN_IsInjectedString (const char *string)
 {
 	const char *c = string;
 	assert(string);

@@ -55,7 +55,7 @@ static s_sample_t *S_FindName(const char *name){
 	int i;
 
 	memset(basename, 0, sizeof(basename));
-	Com_StripExtension(name, basename);
+	StripExtension(name, basename);
 
 	// see if it's already loaded
 	for(i = 0; i < s_env.num_samples; i++){
@@ -113,7 +113,7 @@ static void S_LoadSampleChunk(s_sample_t *sample){
 	i = 0;
 	while(SAMPLE_TYPES[i]){
 
-		Com_StripExtension(path, path);
+		StripExtension(path, path);
 		strcat(path, SAMPLE_TYPES[i++]);
 
 		if((len = Fs_LoadFile(path, &buf)) == -1)
@@ -163,7 +163,7 @@ s_sample_t *S_LoadSample(const char *name){
 		return NULL;
 
 	strncpy(sample->name, name, sizeof(sample->name) - 1);
-	Com_StripExtension(sample->name, sample->name);
+	StripExtension(sample->name, sample->name);
 
 	S_LoadSampleChunk(sample);
 

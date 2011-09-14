@@ -324,7 +324,7 @@ int MN_DrawStringInBox (const menuNode_t *node, int align, int x, int y, int wid
 }
 
 int MN_DrawString (const char *fontID, int align, int x, int y, int absX, int absY, int maxWidth, int maxHeight,
-		int lineHeight, const char *c, int boxHeight, int scrollPos, int *curLine, qboolean increaseLine,
+		int lineHeight, const char *c, int boxHeight, int scrollPos, int *curLine, boolean_t increaseLine,
 		longlines_t method)
 {
 	const menuFont_t *font = MN_GetFontByID(fontID);

@@ -461,7 +461,7 @@ typedef struct sv_move_s {
 	vec3_t box_mins, box_maxs; // enclose the test object along entire move
 	float *mins, *maxs;  // size of the moving object
 	float *start, *end;
-	trace_t trace;
+	c_trace_t trace;
 	g_edict_t *skip;
 	int contentmask;
 } sv_trace_t;
@@ -476,7 +476,7 @@ typedef struct sv_move_s {
 static void Sv_ClipTraceToEntities(sv_trace_t *trace){
 	g_edict_t *touched[MAX_EDICTS];
 	vec_t *angles;
-	trace_t tr;
+	c_trace_t tr;
 	int i, num, head_node;
 
 	// first resolve the entities found within our desired trace
@@ -560,7 +560,7 @@ static void Sv_TraceBounds(sv_trace_t *trace){
  * The skipped edict, and edicts owned by him, are explicitly not checked.
  * This prevents players from clipping against their own projectiles, etc.
  */
-trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *skip, int contentmask){
+c_trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *skip, int contentmask){
 
 	sv_trace_t trace;
 

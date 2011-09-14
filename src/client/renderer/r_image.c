@@ -234,7 +234,7 @@ void R_Screenshot_f(void){
 	(*Img_Write)(file_name, buffer, r_state.width, r_state.height, quality);
 
 	Z_Free(buffer);
-	Com_Print("Saved %s\n", Com_Basename(file_name));
+	Com_Print("Saved %s\n", Basename(file_name));
 }
 
 
@@ -409,7 +409,7 @@ static int upload_width, upload_height;  // after power-of-two scale
  */
 static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color, r_image_type_t type){
 	unsigned *scaled;
-	qboolean mipmap;
+	boolean_t mipmap;
 
 	for(upload_width = 1; upload_width < width; upload_width <<= 1)
 		;
@@ -523,7 +523,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type){
 	if(!name || !name[0])
 		return r_null_image;
 
-	Com_StripExtension(name, n);
+	StripExtension(name, n);
 
 	// see if it's already loaded
 	for(i = 0, image = r_images; i < r_num_images; i++, image++){

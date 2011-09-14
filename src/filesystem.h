@@ -27,13 +27,14 @@
 #include "cvar.h"
 #include "hash.h"
 #include "pak.h"
+#include "swap.h"
 #include "sys.h"
 
 void Fs_Init(void);
 void Fs_SetGamedir(const char *dir);
 const char *Fs_Gamedir(void);
 const char *Fs_NextPath(const char *prev_path);
-const char *Fs_FindFirst(const char *path, qboolean absolute);
+const char *Fs_FindFirst(const char *path, boolean_t absolute);
 void Fs_ExecAutoexec(void);
 int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode);
 void Fs_CloseFile(FILE *f);

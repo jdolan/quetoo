@@ -117,8 +117,8 @@ static cl_key_state_t *ks = &cls.key_state;
  *
  * Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(unsigned key, unsigned short unicode, qboolean down, unsigned time){
-	qboolean numlock = ks->down[K_NUMLOCK];
+static void Cl_KeyConsole(unsigned key, unsigned short unicode, boolean_t down, unsigned time){
+	boolean_t numlock = ks->down[K_NUMLOCK];
 	int i;
 
 	if(!down)  // don't care
@@ -306,7 +306,7 @@ static void Cl_KeyConsole(unsigned key, unsigned short unicode, qboolean down, u
 /*
  * Cl_KeyGame
  */
-static void Cl_KeyGame(unsigned key, unsigned short unicode, qboolean down, unsigned time){
+static void Cl_KeyGame(unsigned key, unsigned short unicode, boolean_t down, unsigned time){
 	char cmd[MAX_STRING_CHARS];
 	char *kb;
 
@@ -339,7 +339,7 @@ static void Cl_KeyGame(unsigned key, unsigned short unicode, qboolean down, unsi
 /*
  * Cl_KeyMessage
  */
-static void Cl_KeyMessage(unsigned key, unsigned short unicode, qboolean down, unsigned time){
+static void Cl_KeyMessage(unsigned key, unsigned short unicode, boolean_t down, unsigned time){
 
 	if(!down)  // don't care
 		return;
@@ -382,7 +382,7 @@ static void Cl_KeyMessage(unsigned key, unsigned short unicode, qboolean down, u
 /*
  * Cl_KeyMenu
  */
-static void Cl_KeyMenu(unsigned key, unsigned short unicode, qboolean down, unsigned time){
+static void Cl_KeyMenu(unsigned key, unsigned short unicode, boolean_t down, unsigned time){
 
 	if(!down)
 		return;
@@ -663,7 +663,7 @@ void Cl_ShutdownKeys(void){
 /*
  * Cl_KeyEvent
  */
-void Cl_KeyEvent(unsigned key, unsigned short unicode, qboolean down, unsigned time){
+void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down, unsigned time){
 
 	if(key == K_ESCAPE && down){  // escape can cancel a few things
 

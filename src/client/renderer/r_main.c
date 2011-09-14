@@ -107,7 +107,7 @@ void (*R_DrawMeshModel)(const r_entity_t *e);
  */
 void R_Trace(const vec3_t start, const vec3_t end, float size, int mask){
 	vec3_t mins, maxs;
-	trace_t tr;
+	c_trace_t tr;
 	float frac;
 	int i;
 
@@ -234,9 +234,15 @@ void R_DrawFrame(void){
 
 	R_GetError();
 
+	R_UpdateFrustum();
+
 	R_MarkLeafs();
 
 	R_MarkSurfaces();
+
+	R_EnableFog(true);
+
+	R_DrawSkyBox();
 
 	// wait for the client to populate our lights array
 
@@ -244,15 +250,11 @@ void R_DrawFrame(void){
 
 	r_view.update = false;
 
-	r_view.thread = Thread_Create(R_MarkLights, NULL);
-
-	R_EnableFog(true);
-
-	R_DrawSkyBox();
-
-	Thread_Wait(r_view.thread);
+	// now dispatch another thread to cull the entities
 
 	r_view.thread = Thread_Create(R_CullEntities, NULL);
+
+	R_MarkLights(NULL);
 
 	R_DrawOpaqueSurfaces(r_world_model->opaque_surfaces);
 
@@ -703,7 +705,7 @@ static void R_InitLocal(void){
 /*
  * R_SetMode
  */
-qboolean R_SetMode(void){
+boolean_t R_SetMode(void){
 	int w, h;
 
 	if(r_fullscreen->value){

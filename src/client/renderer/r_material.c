@@ -137,7 +137,7 @@ static inline void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *s
  * scrolls, and stretches (rotate, translate, scale).
  */
 static inline void R_StageTextureMatrix(r_bsp_surface_t *surf, r_stage_t *stage){
-	static qboolean identity = true;
+	static boolean_t identity = true;
 	float s, t;
 
 	if(!(stage->flags & STAGE_TEXTURE_MATRIX)){
@@ -552,14 +552,14 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 	while(true){
 
-		const char *c = Com_Parse(buffer);
+		const char *c = ParseToken(buffer);
 
 		if(*c == '\0')
 			break;
 
 		if(!strcmp(c, "texture")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->image = R_LoadImage(va("textures/%s", c), it_material);
 
 			if(s->image == r_null_image){
@@ -573,7 +573,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "envmap")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			i = atoi(c);
 
 			if(i > -1 && i < NUM_ENVMAP_IMAGES)
@@ -592,7 +592,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "blend")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->blend.src = R_ConstByName(c);
 
 			if(s->blend.src == -1){
@@ -600,7 +600,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 				return -1;
 			}
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->blend.dest = R_ConstByName(c);
 
 			if(s->blend.dest == -1){
@@ -616,7 +616,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 			for(i = 0; i < 3; i++){
 
-				c = Com_Parse(buffer);
+				c = ParseToken(buffer);
 				s->color[i] = atof(c);
 
 				if(s->color[i] < 0.0 || s->color[i] > 1.0){
@@ -631,7 +631,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "pulse")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->pulse.hz = atof(c);
 
 			if(s->pulse.hz < 0.0){
@@ -645,7 +645,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "stretch")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->stretch.amp = atof(c);
 
 			if(s->stretch.amp < 0.0){
@@ -653,7 +653,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 				return -1;
 			}
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->stretch.hz = atof(c);
 
 			if(s->stretch.hz < 0.0){
@@ -667,7 +667,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "rotate")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->rotate.hz = atof(c);
 
 			if(s->rotate.hz < 0.0){
@@ -681,7 +681,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "scroll.s")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->scroll.s = atof(c);
 
 			s->flags |= STAGE_SCROLL_S;
@@ -690,7 +690,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "scroll.t")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->scroll.t = atof(c);
 
 			s->flags |= STAGE_SCROLL_T;
@@ -699,7 +699,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "scale.s")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->scale.s = atof(c);
 
 			s->flags |= STAGE_SCALE_S;
@@ -708,7 +708,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "scale.t")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->scale.t = atof(c);
 
 			s->flags |= STAGE_SCALE_T;
@@ -717,10 +717,10 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "terrain")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->terrain.floor = atof(c);
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->terrain.ceil = atof(c);
 
 			if(s->terrain.ceil < s->terrain.floor){
@@ -743,7 +743,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "dirtmap")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->dirt.intensity = atof(c);
 
 			if(s->dirt.intensity <= 0.0 || s->dirt.intensity > 1.0){
@@ -758,7 +758,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "anim")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->anim.num_frames = atoi(c);
 
 			if(s->anim.num_frames < 1 || s->anim.num_frames > MAX_ANIM_FRAMES){
@@ -767,7 +767,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 				return -1;
 			}
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			s->anim.fps = atof(c);
 
 			if(s->anim.fps <= 0.0){
@@ -789,7 +789,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer){
 
 		if(!strcmp(c, "flare")){
 
-			c = Com_Parse(buffer);
+			c = ParseToken(buffer);
 			i = atoi(c);
 
 			if(i > -1 && i < NUM_FLARE_IMAGES)
@@ -856,7 +856,7 @@ void R_LoadMaterials(const char *map){
 	void *buf;
 	const char *c;
 	const char *buffer;
-	qboolean inmaterial;
+	boolean_t inmaterial;
 	r_image_t *image;
 	r_material_t *m;
 	r_stage_t *s, *ss;
@@ -866,7 +866,7 @@ void R_LoadMaterials(const char *map){
 	R_ClearMaterials();
 
 	// load the materials file for parsing
-	snprintf(path, sizeof(path), "materials/%s", Com_Basename(map));
+	snprintf(path, sizeof(path), "materials/%s", Basename(map));
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_LoadFile(path, &buf)) < 1){
@@ -882,7 +882,7 @@ void R_LoadMaterials(const char *map){
 
 	while(true){
 
-		c = Com_Parse(&buffer);
+		c = ParseToken(&buffer);
 
 		if(*c == '\0')
 			break;
@@ -893,7 +893,7 @@ void R_LoadMaterials(const char *map){
 		}
 
 		if(!strcmp(c, "material")){
-			c = Com_Parse(&buffer);
+			c = ParseToken(&buffer);
 			image = R_LoadImage(va("textures/%s", c), it_world);
 
 			if(image == r_null_image){
@@ -910,7 +910,7 @@ void R_LoadMaterials(const char *map){
 		m = &image->material;
 
 		if(!strcmp(c, "normalmap")){
-			c = Com_Parse(&buffer);
+			c = ParseToken(&buffer);
 			image->normalmap = R_LoadImage(va("textures/%s", c), it_normalmap);
 
 			if(image->normalmap == r_null_image){
@@ -921,7 +921,7 @@ void R_LoadMaterials(const char *map){
 
 		if(!strcmp(c, "bump")){
 
-			m->bump = atof(Com_Parse(&buffer));
+			m->bump = atof(ParseToken(&buffer));
 
 			if(m->bump < 0.0){
 				Com_Warn("R_LoadMaterials: Invalid bump value for %s\n",
@@ -932,7 +932,7 @@ void R_LoadMaterials(const char *map){
 
 		if(!strcmp(c, "parallax")){
 
-			m->parallax = atof(Com_Parse(&buffer));
+			m->parallax = atof(ParseToken(&buffer));
 
 			if(m->parallax < 0.0){
 				Com_Warn("R_LoadMaterials: Invalid parallax value for %s\n",
@@ -943,7 +943,7 @@ void R_LoadMaterials(const char *map){
 
 		if(!strcmp(c, "hardness")){
 
-			m->hardness = atof(Com_Parse(&buffer));
+			m->hardness = atof(ParseToken(&buffer));
 
 			if(m->hardness < 0.0){
 				Com_Warn("R_LoadMaterials: Invalid hardness value for %s\n",
@@ -953,7 +953,7 @@ void R_LoadMaterials(const char *map){
 		}
 
 		if(!strcmp(c, "specular")){
-			m->specular = atof(Com_Parse(&buffer));
+			m->specular = atof(ParseToken(&buffer));
 
 			if(m->specular < 0.0){
 				Com_Warn("R_LoadMaterials: Invalid specular value for %s\n",

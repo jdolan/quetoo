@@ -36,14 +36,14 @@ struct nodeBehaviour_s;
 typedef struct {
 	int eventTime;
 	vec2_t noticePos; 				/**< the position where the cl.msgText messages are rendered */
-	qboolean dragButton;			/**< If true, we init the window with a header to move it */
-	qboolean closeButton;			/**< If true, we init the window with a header button to close it */
-	qboolean preventTypingEscape;	/**< If true, we can't use ESC button to close the window */
-	qboolean modal;					/**< If true, we can't click outside the window */
-	qboolean dropdown;				/**< very special property force the menu to close if we click outside */
-	qboolean isFullScreen;			/**< Internal data to allow fullscreen windows without the same size */
-	qboolean fill;					/**< If true, use all the screen space allowed */
-	qboolean starLayout;			/**< If true, do a star layout (move child into a corner according to his num) */
+	boolean_t dragButton;			/**< If true, we init the window with a header to move it */
+	boolean_t closeButton;			/**< If true, we init the window with a header button to close it */
+	boolean_t preventTypingEscape;	/**< If true, we can't use ESC button to close the window */
+	boolean_t modal;					/**< If true, we can't click outside the window */
+	boolean_t dropdown;				/**< very special property force the menu to close if we click outside */
+	boolean_t isFullScreen;			/**< Internal data to allow fullscreen windows without the same size */
+	boolean_t fill;					/**< If true, use all the screen space allowed */
+	boolean_t starLayout;			/**< If true, do a star layout (move child into a corner according to his num) */
 
 	struct menuNode_s *parent;	/**< to create child window */
 
@@ -60,6 +60,6 @@ typedef struct {
 
 void MN_RegisterWindowNode(struct nodeBehaviour_s *behaviour);
 
-qboolean MN_WindowIsFullScreen(struct menuNode_s* const menu);
+boolean_t MN_WindowIsFullScreen(struct menuNode_s* const menu);
 
 #endif

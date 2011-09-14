@@ -49,7 +49,7 @@ typedef struct cl_emit_s {
 	char sound[MAX_QPATH];  // sound name
 	s_sample_t *sample;  // sound sample
 	int atten;  // sound attenuation
-	qboolean loop;  // loop sound versus timed
+	boolean_t loop;  // loop sound versus timed
 	char model[MAX_QPATH];  // model name
 	r_model_t *mod;  // model
 	const r_bsp_leaf_t *leaf;  // for pvs culling
@@ -72,7 +72,7 @@ void Cl_LoadEmits(void){
 	const char *ents;
 	char class_name[128];
 	cl_emit_t *e;
-	qboolean entity, emit;
+	boolean_t entity, emit;
 
 	memset(&emits, 0, sizeof(emits));
 	num_emits = 0;
@@ -86,7 +86,7 @@ void Cl_LoadEmits(void){
 
 	while(true){
 
-		const char *c = Com_Parse(&ents);
+		const char *c = ParseToken(&ents);
 
 		if(*c == '\0')
 			break;
@@ -216,7 +216,7 @@ void Cl_LoadEmits(void){
 
 		if(!strcmp(c, "classname")){
 
-			c = Com_Parse(&ents);
+			c = ParseToken(&ents);
 			strncpy(class_name, c, sizeof(class_name) - 1);
 
 			if(!strcmp(c, "misc_emit") || !strcmp(c, "misc_model"))
@@ -226,76 +226,76 @@ void Cl_LoadEmits(void){
 		e = &emits[num_emits];
 
 		if(!strcmp(c, "flags")){
-			e->flags = atoi(Com_Parse(&ents));
+			e->flags = atoi(ParseToken(&ents));
 			continue;
 		}
 
 		if(!strcmp(c, "origin")){
-			sscanf(Com_Parse(&ents), "%f %f %f", &e->org[0], &e->org[1], &e->org[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &e->org[0], &e->org[1], &e->org[2]);
 			continue;
 		}
 
 		if(!strcmp(c, "angles")){  // resolve angles and directional vector
-			sscanf(Com_Parse(&ents), "%f %f %f", &e->angles[0], &e->angles[1], &e->angles[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &e->angles[0], &e->angles[1], &e->angles[2]);
 			AngleVectors(e->angles, e->dir, NULL, NULL);
 			continue;
 		}
 
 		if(!strcmp(c, "color")){  // resolve color as floats
-			sscanf(Com_Parse(&ents), "%f %f %f",
+			sscanf(ParseToken(&ents), "%f %f %f",
 					&e->color[0], &e->color[1], &e->color[2]);
 			continue;
 		}
 
 		if(!strcmp(c, "hz")){
-			e->hz = atof(Com_Parse(&ents));
+			e->hz = atof(ParseToken(&ents));
 			continue;
 		}
 
 		if(!strcmp(c, "drift")){
-			e->drift = atof(Com_Parse(&ents));
+			e->drift = atof(ParseToken(&ents));
 			continue;
 		}
 
 		if(!strcmp(c, "radius")){
-			e->radius = atof(Com_Parse(&ents));
+			e->radius = atof(ParseToken(&ents));
 			continue;
 		}
 
 		if(!strcmp(c, "flicker")){
-			e->flicker = atof(Com_Parse(&ents));
+			e->flicker = atof(ParseToken(&ents));
 			continue;
 		}
 
 		if(!strcmp(c, "scale")){
-			sscanf(Com_Parse(&ents), "%f", &e->scale);
+			sscanf(ParseToken(&ents), "%f", &e->scale);
 			continue;
 		}
 
 		if(!strcmp(c, "count")){
-			e->count = atoi(Com_Parse(&ents));
+			e->count = atoi(ParseToken(&ents));
 			continue;
 		}
 
 		if(!strcmp(c, "sound")){
-			snprintf(e->sound, sizeof(e->sound), "%s", Com_Parse(&ents));
+			snprintf(e->sound, sizeof(e->sound), "%s", ParseToken(&ents));
 			e->sample = S_LoadSample(e->sound);
 			continue;
 		}
 
 		if(!strcmp(c, "attenuation")){
-			e->atten = atoi(Com_Parse(&ents));
+			e->atten = atoi(ParseToken(&ents));
 			continue;
 		}
 
 		if(!strcmp(c, "model")){
-			strncpy(e->model, Com_Parse(&ents), sizeof(e->model));
+			strncpy(e->model, ParseToken(&ents), sizeof(e->model));
 			e->mod = R_LoadModel(e->model);
 			continue;
 		}
 
 		if(!strcmp(c, "velocity")){
-			sscanf(Com_Parse(&ents), "%f %f %f",
+			sscanf(ParseToken(&ents), "%f %f %f",
 					&e->vel[0], &e->vel[1], &e->vel[2]);
 			continue;
 		}

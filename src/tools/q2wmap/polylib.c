@@ -38,7 +38,7 @@ winding_t *AllocWinding(int points){
 	winding_t *w;
 	int s;
 
-	if(!thread_pool.num_threads){
+	if(!threads->integer){
 		c_winding_allocs++;
 		c_winding_points += points;
 		c_active_windings++;
@@ -60,7 +60,7 @@ void FreeWinding(winding_t *w){
 		Com_Error(ERR_FATAL, "FreeWinding: freed a freed winding\n");
 	*(unsigned *)w = 0xdeaddead;
 
-	if(!thread_pool.num_threads)
+	if(!threads->integer)
 		c_active_windings--;
 	Z_Free(w);
 }
@@ -94,8 +94,9 @@ void RemoveColinearPoints(winding_t *w){
 	if(nump == w->numpoints)
 		return;
 
-	if(!thread_pool.num_threads)
+	if(!threads->integer)
 		c_removed += w->numpoints - nump;
+
 	w->numpoints = nump;
 	memcpy(w->p, p, nump * sizeof(p[0]));
 }
@@ -293,7 +294,7 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 		else if(dot < -epsilon)
 			sides[i] = SIDE_BACK;
 		else {
-			sides[i] = SIDE_ON;
+			sides[i] = SIDE_BOTH;
 		}
 		counts[sides[i]]++;
 	}
@@ -320,7 +321,7 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 	for(i = 0; i < in->numpoints; i++){
 		const vec_t *p1 = in->p[i];
 
-		if(sides[i] == SIDE_ON){
+		if(sides[i] == SIDE_BOTH){
 			VectorCopy(p1, f->p[f->numpoints]);
 			f->numpoints++;
 			VectorCopy(p1, b->p[b->numpoints]);
@@ -337,7 +338,7 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 			b->numpoints++;
 		}
 
-		if(sides[i + 1] == SIDE_ON || sides[i + 1] == sides[i])
+		if(sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i])
 			continue;
 
 		// generate a split point
@@ -394,7 +395,7 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 		else if(dot < -epsilon)
 			sides[i] = SIDE_BACK;
 		else {
-			sides[i] = SIDE_ON;
+			sides[i] = SIDE_BOTH;
 		}
 		counts[sides[i]]++;
 	}
@@ -417,7 +418,7 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 	for(i = 0; i < in->numpoints; i++){
 		p1 = in->p[i];
 
-		if(sides[i] == SIDE_ON){
+		if(sides[i] == SIDE_BOTH){
 			VectorCopy(p1, f->p[f->numpoints]);
 			f->numpoints++;
 			continue;
@@ -428,7 +429,7 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 			f->numpoints++;
 		}
 
-		if(sides[i + 1] == SIDE_ON || sides[i + 1] == sides[i])
+		if(sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i])
 			continue;
 
 		// generate a split point

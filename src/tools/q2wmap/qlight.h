@@ -57,7 +57,7 @@ extern float entity_scale;
 
 extern vec3_t ambient;
 
-extern qboolean extra_samples;
+extern boolean_t extra_samples;
 
 void BuildLightmaps(void);
 
@@ -67,13 +67,13 @@ void BuildFacelights(int facenum);
 
 void FinalLightFace(int facenum);
 
-qboolean PvsForOrigin(const vec3_t org, byte *pvs);
+boolean_t PvsForOrigin(const vec3_t org, byte *pvs);
 
 void BuildLights(void);
 
 d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point);
 
-void Light_Trace(trace_t *trace, const vec3_t start, const vec3_t end, int mask);
+void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int mask);
 
 // patches.c
 void CalcTextureReflectivity(void);

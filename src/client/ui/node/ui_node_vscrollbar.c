@@ -118,7 +118,7 @@ static inline void MN_VScrollbarNodeDiff (menuNode_t *node, int value)
 	MN_VScrollbarNodeSet(node, EXTRADATA(node).pos + value);
 }
 
-static inline void MN_VScrollbarNodeAction(menuNode_t *node, int hoveredElement, qboolean allowCapture);
+static inline void MN_VScrollbarNodeAction(menuNode_t *node, int hoveredElement, boolean_t allowCapture);
 
 static void MN_VScrollbarNodeRepeat (menuNode_t *node, menuTimer_t *timer)
 {
@@ -130,7 +130,7 @@ static void MN_VScrollbarNodeRepeat (menuNode_t *node, menuTimer_t *timer)
 	}
 }
 
-static inline void MN_VScrollbarNodeAction (menuNode_t *node, int hoveredElement, qboolean allowCapture)
+static inline void MN_VScrollbarNodeAction (menuNode_t *node, int hoveredElement, boolean_t allowCapture)
 {
 	switch (hoveredElement) {
 	case 0:
@@ -253,7 +253,7 @@ static void MN_VScrollbarNodeCapturedMouseLost (menuNode_t *node)
 /**
  * @brief Called when the user wheel the mouse over the node
  */
-static void MN_VScrollbarNodeWheel (menuNode_t *node, qboolean down, int x, int y)
+static void MN_VScrollbarNodeWheel (menuNode_t *node, boolean_t down, int x, int y)
 {
 	const int diff = (down)?1:-1;
 

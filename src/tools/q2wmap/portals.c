@@ -33,7 +33,7 @@ static int c_peak_portals;
 static portal_t *AllocPortal(void){
 	portal_t *p;
 
-	if(!thread_pool.num_threads)
+	if(!threads->integer)
 		c_active_portals++;
 	if(c_active_portals > c_peak_portals)
 		c_peak_portals = c_active_portals;
@@ -47,7 +47,7 @@ static portal_t *AllocPortal(void){
 void FreePortal(portal_t * p){
 	if(p->winding)
 		FreeWinding(p->winding);
-	if(!thread_pool.num_threads)
+	if(!threads->integer)
 		c_active_portals--;
 	Z_Free(p);
 }
@@ -105,7 +105,7 @@ static int ClusterContents(const node_t * node){
  * not leafs, so all contents should be ored together
  * =============
  */
-qboolean Portal_VisFlood(const portal_t * p){
+boolean_t Portal_VisFlood(const portal_t * p){
 	int c1, c2;
 
 	if(!p->onnode)
@@ -143,7 +143,7 @@ qboolean Portal_VisFlood(const portal_t * p){
  * Flowing from side s to side !s
  * ===============
  */
-static qboolean Portal_EntityFlood(const portal_t * p, int s){
+static boolean_t Portal_EntityFlood(const portal_t * p, int s){
 	if(p->nodes[0]->plane_num != PLANENUM_LEAF
 	        || p->nodes[1]->plane_num != PLANENUM_LEAF)
 		Com_Error(ERR_FATAL, "Portal_EntityFlood: not a leaf\n");
@@ -547,7 +547,7 @@ static void FloodPortals_r(node_t * node, int dist){
 /*
  * PlaceOccupant
  */
-static qboolean PlaceOccupant(node_t * head_node, vec3_t origin, entity_t * occupant){
+static boolean_t PlaceOccupant(node_t * head_node, vec3_t origin, entity_t * occupant){
 	node_t *node;
 
 	// find the leaf to start in
@@ -576,11 +576,11 @@ static qboolean PlaceOccupant(node_t * head_node, vec3_t origin, entity_t * occu
  *
  * Marks all nodes that can be reached by entites
  */
-qboolean FloodEntities(tree_t *tree){
+boolean_t FloodEntities(tree_t *tree){
 	int i;
 	vec3_t origin;
 	const char *cl;
-	qboolean inside;
+	boolean_t inside;
 	node_t *head_node;
 
 	head_node = tree->head_node;

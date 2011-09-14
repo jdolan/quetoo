@@ -21,30 +21,18 @@
 
 #include "thread.h"
 
-thread_pool_t thread_pool;
-
 cvar_t *threads;
 
 
 /*
  * Thread_Run
  *
- * We wrap the user's function with our own. The function pointer and data to
- * manipulate are set on the thread_t itself, allowing us to simply take the
- * thread as a parameter here.
+ * Wrap the user's function in our own for introspection.
  */
-static int Thread_Run(void *p){
-	thread_t *t = (thread_t *)p;
+static int Thread_Run(void *data){
+	thread_t *t = (thread_t *)data;
 
-	while(!thread_pool.shutdown){
-
-		if(t->state == THREAD_RUN){  // invoke the user function
-			t->function(t->data);
-			t->state = THREAD_DONE;
-		}
-
-		usleep(0);
-	}
+	t->function(t->data);
 
 	return 0;
 }
@@ -58,36 +46,21 @@ static int Thread_Run(void *p){
  */
 thread_t *Thread_Create_(const char *name, void (function)(void *data), void *data){
 
-	if(thread_pool.num_threads){
-		thread_t *t;
-		int i;
-
-		SDL_mutexP(thread_pool.mutex);
-
-		for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
-			if(t->state == THREAD_IDLE){
-
-				strncpy(t->name, name, sizeof(t->name));
-
-				t->function = function;
-				t->data = data;
-
-				t->state = THREAD_RUN;
-				break;
-			}
-		}
-
-		SDL_mutexV(thread_pool.mutex);
-
-		if(i < thread_pool.num_threads)
-			return t;
+	if(!threads->integer){
+		function(data);
+		return NULL;
 	}
 
-	Com_Debug("Thread_Create: No threads available\n");
+	thread_t *t = Z_Malloc(sizeof(thread_t));
 
-	function(data);  // call the function in this thread
+	strncpy(t->name, name, sizeof(t->name));
 
-	return NULL;
+	t->function = function;
+	t->data = data;
+
+	t->thread = SDL_CreateThread(Thread_Run, t);
+
+	return t;
 }
 
 
@@ -101,71 +74,28 @@ void Thread_Wait(thread_t *t){
 	if(!t)
 		return;
 
-	while(t->state == THREAD_RUN){
-		printf("waiting for %s\n", t->name);
-		usleep(0);
-	}
+	//struct timeval start, end;
+	//gettimeofday(&start, NULL);
 
-	t->state = THREAD_IDLE;
-}
+	SDL_WaitThread(t->thread, NULL);
 
+	//gettimeofday(&end, NULL);
+	//printf("%s: %ld\n", end->tv_usec - start->tv_usec, t->name);
 
-/*
- * Thread_Shutdown
- *
- * Terminates any running threads, resetting the thread pool.
- */
-void Thread_Shutdown(void){
-	thread_t *t;
-	int i;
-
-	if(!thread_pool.num_threads)
-		return;
-
-	thread_pool.shutdown = true;  // inform threads to quit
-
-	for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
-		SDL_WaitThread(t->thread, NULL);
-	}
-
-	Z_Free(thread_pool.threads);
-
-	SDL_DestroyMutex(thread_pool.mutex);
+	Z_Free(t);
 }
 
 
 /*
  * Thread_Init
- *
- * Initializes the thread pool.
  */
 void Thread_Init(void){
-	thread_t *t;
-	int i;
-
-	memset(&thread_pool, 0, sizeof(thread_pool));
-
 	threads = Cvar_Get("threads", "2", CVAR_ARCHIVE, "The number of threads (cores) to utilize");
+}
 
-	if(threads->integer > MAX_THREADS)
-		Cvar_SetValue("threads", MAX_THREADS);
+/*
+ * Thread_Shutdown
+ */
+void Thread_Shutdown(void){
 
-	else if(threads->integer < 0)
-		Cvar_SetValue("threads", 0);
-
-	thread_pool.num_threads = threads->integer;
-	threads->modified = false;
-
-	if(thread_pool.num_threads){
-
-		thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
-
-		for(i = 0, t = thread_pool.threads; i < thread_pool.num_threads; i++, t++){
-			t->thread = SDL_CreateThread(Thread_Run, t);
-		}
-
-		thread_pool.mutex = SDL_CreateMutex();
-
-		Com_Print("Running %d threads\n", thread_pool.num_threads);
-	}
 }

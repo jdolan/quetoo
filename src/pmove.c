@@ -37,7 +37,7 @@ typedef struct {
 	int groundcontents;
 
 	vec3_t previous_origin;
-	qboolean ladder;
+	boolean_t ladder;
 } pml_t;
 
 pm_move_t *pm;
@@ -143,7 +143,7 @@ static void Pm_ClampVelocity(void){
  */
 static int Pm_StepSlideMove_(void){
 	vec3_t vel, dir, end, planes[MAX_CLIP_PLANES];
-	trace_t trace;
+	c_trace_t trace;
 	int i, j, k, num_planes;
 	float d, time;
 
@@ -161,7 +161,7 @@ static int Pm_StepSlideMove_(void){
 		trace = pm->trace(pml.origin, pm->mins, pm->maxs, end);
 
 		// store a reference to the entity for firing game events
-		if(pm->num_touch < MAXTOUCH && trace.ent){
+		if(pm->num_touch < MAX_TOUCH_ENTS && trace.ent){
 			pm->touch_ents[pm->num_touch] = trace.ent;
 			pm->num_touch++;
 		}
@@ -230,7 +230,7 @@ static void Pm_StepSlideMove(void){
 	vec3_t org, vel;
 	vec3_t neworg, newvel;
 	vec3_t up, down;
-	trace_t trace;
+	c_trace_t trace;
 	int i;
 
 	VectorCopy(pml.origin, org);
@@ -580,7 +580,7 @@ static void Pm_AirMove(void){
 static void Pm_CategorizePosition(void){
 	vec3_t point;
 	int cont;
-	trace_t trace;
+	c_trace_t trace;
 	int sample1;
 	int sample2;
 
@@ -617,7 +617,7 @@ static void Pm_CategorizePosition(void){
 	}
 
 	// save a reference to the entity touched for game events
-	if(pm->num_touch < MAXTOUCH && trace.ent){
+	if(pm->num_touch < MAX_TOUCH_ENTS && trace.ent){
 		pm->touch_ents[pm->num_touch] = trace.ent;
 		pm->num_touch++;
 	}
@@ -720,7 +720,7 @@ static void Pm_CheckSpecialMovement(void){
 	vec3_t spot;
 	int cont;
 	vec3_t flatforward;
-	trace_t trace;
+	c_trace_t trace;
 
 	if(pm->s.pm_time)
 		return;
@@ -791,7 +791,7 @@ static void Pm_WaterJumpMove(void){
  */
 static void Pm_CheckDuck(void){
 	float height;
-	trace_t trace;
+	c_trace_t trace;
 
 	VectorScale(PM_MINS, PM_SCALE, pm->mins);
 	VectorScale(PM_MAXS, PM_SCALE, pm->maxs);
@@ -821,8 +821,8 @@ static void Pm_CheckDuck(void){
 /*
  * Pm_GoodPosition
  */
-static qboolean Pm_GoodPosition(void){
-	trace_t trace;
+static boolean_t Pm_GoodPosition(void){
+	c_trace_t trace;
 	vec3_t pos;
 
 	if(pm->s.pm_type == PM_SPECTATOR)

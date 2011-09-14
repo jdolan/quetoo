@@ -70,7 +70,7 @@ static menuNode_t* capturedNode;
  * @sa Key_Event
  * @sa MN_FocusNextActionNode
  */
-static qboolean MN_FocusExecuteActionNode (void)
+static boolean_t MN_FocusExecuteActionNode (void)
 {
 #if 0	/**< @todo need a cleanup */
 	if (mouseSpace != MS_MENU)
@@ -116,7 +116,7 @@ static menuNode_t *MN_GetNextActionNode (menuNode_t* node)
  * @sa Key_Event
  * @sa MN_FocusExecuteActionNode
  */
-static qboolean MN_FocusNextActionNode (void)
+static boolean_t MN_FocusNextActionNode (void)
 {
 #if 0	/**< @todo need a cleanup */
 	menuNode_t* menu;
@@ -181,7 +181,7 @@ void MN_RequestFocus (menuNode_t* node)
 /**
  * @brief check if a node got the focus
  */
-qboolean MN_HasFocus (const menuNode_t* node)
+boolean_t MN_HasFocus (const menuNode_t* node)
 {
 	return node == focusNode;
 }
@@ -218,7 +218,7 @@ void MN_RemoveFocus (void)
  * @param[in] unicode translated meaning of keypress in unicode
  * @return qtrue, if we used the event
  */
-qboolean MN_KeyPressed (unsigned int key, unsigned short unicode)
+boolean_t MN_KeyPressed (unsigned int key, unsigned short unicode)
 {
 	/* translate event into the node with focus */
 	if (focusNode && focusNode->behaviour->keyPressed) {
@@ -311,7 +311,7 @@ void MN_InvalidateMouse (void)
 /**
  * @brief Call mouse move only if the mouse position change
  */
-qboolean MN_CheckMouseMove (void)
+boolean_t MN_CheckMouseMove (void)
 {
 	/* is hovered node no more draw */
 	if (hoveredNode && (hoveredNode->invis || !MN_CheckVisibility(hoveredNode)))
@@ -452,7 +452,7 @@ static void MN_MiddleClick (int x, int y)
  * @sa CL_ZoomInQuant
  * @sa CL_ZoomOutQuant
  */
-void MN_MouseWheel (qboolean down, int x, int y)
+void MN_MouseWheel (boolean_t down, int x, int y)
 {
 	/* send it to the captured mouse node */
 	if (capturedNode) {

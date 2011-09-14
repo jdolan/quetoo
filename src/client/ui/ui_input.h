@@ -29,19 +29,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 struct menuNode_s;
 
 /* mouse input */
-void MN_MouseWheel(qboolean down, int x, int y);
+void MN_MouseWheel(boolean_t down, int x, int y);
 void MN_MouseMove(int x, int y);
 void MN_MouseDown(int x, int y, int button);
 void MN_MouseUp(int x, int y, int button);
 void MN_InvalidateMouse(void);
-qboolean MN_CheckMouseMove(void);
+boolean_t MN_CheckMouseMove(void);
 struct menuNode_s *MN_GetHoveredNode(void);
 
 /* focus */
 void MN_RequestFocus(struct menuNode_s* node);
-qboolean MN_HasFocus(const struct menuNode_s* node);
+boolean_t MN_HasFocus(const struct menuNode_s* node);
 void MN_RemoveFocus(void);
-qboolean MN_KeyPressed(unsigned int key, unsigned short unicode);
+boolean_t MN_KeyPressed(unsigned int key, unsigned short unicode);
 
 /* mouse capture */
 struct menuNode_s* MN_GetMouseCapture(void);

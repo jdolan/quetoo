@@ -32,7 +32,7 @@ static void G_Give_f(g_edict_t *ent){
 	g_item_t *it;
 	int index;
 	int i;
-	qboolean give_all;
+	boolean_t give_all;
 	g_edict_t *it_ent;
 
 	if(sv_max_clients->integer > 1 && !g_cheats->value){
@@ -396,7 +396,7 @@ static void G_Kill_f(g_edict_t *ent){
 static void G_Say_f(g_edict_t *ent){
 	int i;
 	size_t len;
-	qboolean team, arg0;
+	boolean_t team, arg0;
 	char *c, text[256];
 	g_edict_t *other;
 	g_client_t *cl;
@@ -563,7 +563,7 @@ static const char *vote_cmds[] = {
  * true if the command received help and may therefore be ignored, false
  * otherwise.
  */
-static qboolean Vote_Help(g_edict_t *ent){
+static boolean_t Vote_Help(g_edict_t *ent){
 	int i, j, len;
 	char msg[1024];
 
@@ -730,7 +730,7 @@ static void G_Vote_f(g_edict_t *ent){
  *
  * Returns true if the client's team was changed, false otherwise.
  */
-qboolean G_AddClientToTeam(g_edict_t *ent, char *team_name){
+boolean_t G_AddClientToTeam(g_edict_t *ent, char *team_name){
 	g_team_t *team;
 
 	if(g_level.match_time && g_level.match_time <= g_level.time){
@@ -1020,7 +1020,7 @@ static void G_Unready_f(g_edict_t *ent){
  * G_Spectate_f
  */
 static void G_Spectate_f(g_edict_t *ent){
-	qboolean spectator;
+	boolean_t spectator;
 
 	// prevent spectator spamming
 	if(g_level.time - ent->client->respawn_time < 3.0)

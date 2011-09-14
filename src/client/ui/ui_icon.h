@@ -32,7 +32,7 @@ typedef struct menuIcon_s {
 	char* image;
 	vec2_t pos;
 	vec2_t size;
-	qboolean single;
+	boolean_t single;
 } menuIcon_t;
 
 extern const value_t mn_iconProperties[];

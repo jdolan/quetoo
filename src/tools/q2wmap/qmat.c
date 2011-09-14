@@ -78,7 +78,7 @@ int MAT_Main(void){
 
 	start = time(NULL);
 
-	snprintf(path, sizeof(path), "materials/%s", Com_Basename(bsp_name));
+	snprintf(path, sizeof(path), "materials/%s", Basename(bsp_name));
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_OpenFile(path, &f, FILE_READ)) > -1){

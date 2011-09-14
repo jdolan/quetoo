@@ -19,40 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __Q2WMAP_H__
-#define __Q2WMAP_H__
+#ifndef __SWAP_H__
+#define __SWAP_H__
 
-#include "files.h"
-#include "filesystem.h"
-#include "thread.h"
+#include "quake2world.h"
 
-int BSP_Main(void);
-int VIS_Main(void);
-int LIGHT_Main(void);
-int MAT_Main(void);
-int PAK_Main(void);
+#include <machine/endian.h>
 
-extern char map_name[MAX_OSPATH];
-extern char bsp_name[MAX_OSPATH];
-extern char outbase[MAX_OSPATH];
+extern short BigShort(short s);
+extern short LittleShort(short s);
+extern int BigLong(int l);
+extern int LittleLong(int l);
+extern float BigFloat(float f);
+extern float LittleFloat(float f);
 
-extern boolean_t verbose;
-extern boolean_t debug;
-extern boolean_t legacy;
-
-// threads.c
-typedef struct thread_work_s {
-	int index;  // current work cycle
-	int count;  // total work cycles
-	int fraction;  // last fraction of work completed (tenths)
-	boolean_t progress;  // are we reporting progress
-} thread_work_t;
-
-extern thread_work_t thread_work;
-
-void ThreadLock(void);
-void ThreadUnlock(void);
-void RunThreadsOn(int workcount, boolean_t progress, void(*func)(int));
-
-
-#endif /*__Q2WMAP_H__*/
+#endif /* __SWAP_H__ */

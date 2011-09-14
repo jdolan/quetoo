@@ -195,7 +195,7 @@ void R_LoadBspLights(void){
 	char class_name[128];
 	vec3_t org, tmp, color;
 	float radius;
-	qboolean entity, light;
+	boolean_t entity, light;
 	r_bsp_surface_t *surf;
 	r_bsp_light_t *l;
 	int i;
@@ -244,7 +244,7 @@ void R_LoadBspLights(void){
 
 	while(true){
 
-		const char *c = Com_Parse(&ents);
+		const char *c = ParseToken(&ents);
 
 		if(!strlen(c))
 			break;
@@ -273,7 +273,7 @@ void R_LoadBspLights(void){
 
 		if(!strcmp(c, "classname")){
 
-			c = Com_Parse(&ents);
+			c = ParseToken(&ents);
 			strncpy(class_name, c, sizeof(class_name) - 1);
 
 			if(!strncmp(c, "light", 5))  // light, light_spot, etc..
@@ -283,17 +283,17 @@ void R_LoadBspLights(void){
 		}
 
 		if(!strcmp(c, "origin")){
-			sscanf(Com_Parse(&ents), "%f %f %f", &org[0], &org[1], &org[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &org[0], &org[1], &org[2]);
 			continue;
 		}
 
 		if(!strcmp(c, "light")){
-			radius = atof(Com_Parse(&ents));
+			radius = atof(ParseToken(&ents));
 			continue;
 		}
 
 		if(!strcmp(c, "_color")){
-			sscanf(Com_Parse(&ents), "%f %f %f", &color[0], &color[1], &color[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &color[0], &color[1], &color[2]);
 			continue;
 		}
 	}

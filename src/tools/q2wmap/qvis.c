@@ -38,8 +38,8 @@ static int leaflongs;
 int portalbytes;
 int portallongs;
 
-qboolean fastvis;
-qboolean nosort;
+boolean_t fastvis;
+boolean_t nosort;
 
 int testlevel = 2;
 
@@ -448,7 +448,7 @@ int VIS_Main(void){
 	if(d_bsp.num_nodes == 0 || d_bsp.num_faces == 0)
 		Com_Error(ERR_FATAL, "Empty map\n");
 
-	Com_StripExtension(map_name, portal_file);
+	StripExtension(map_name, portal_file);
 	strcat(portal_file, ".prt");
 
 	LoadPortals(portal_file);

@@ -274,7 +274,7 @@ static void Sv_Download_f(void){
 	}
 
 	while(downloadable[i]){  // ensure download name is allowed
-		if(Com_GlobMatch(downloadable[i], name))
+		if(GlobMatch(downloadable[i], name))
 			break;
 		i++;
 	}

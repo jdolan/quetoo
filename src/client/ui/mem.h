@@ -61,7 +61,7 @@ uint32_t _Mem_DeletePool(struct memPool_s *pool, const char *fileName, const int
 uint32_t _Mem_Free(void *ptr, const char *fileName, const int fileLine);
 uint32_t _Mem_FreeTag(struct memPool_s *pool, const int tagNum, const char *fileName, const int fileLine);
 uint32_t _Mem_FreePool(struct memPool_s *pool, const char *fileName, const int fileLine);
-void* _Mem_Alloc(size_t size, qboolean zeroFill, struct memPool_s *pool, const int tagNum, const char *fileName, const int fileLine) __attribute__ ((malloc));
+void* _Mem_Alloc(size_t size, boolean_t zeroFill, struct memPool_s *pool, const int tagNum, const char *fileName, const int fileLine) __attribute__ ((malloc));
 void* _Mem_ReAlloc(void *ptr, size_t size, const char *fileName, const int fileLine);
 
 size_t Mem_Size(const void *ptr);

@@ -32,7 +32,7 @@ int num_patches;
 
 vec3_t face_offset[MAX_BSP_FACES];	// for rotating bmodels
 
-qboolean extra_samples;
+boolean_t extra_samples;
 
 vec3_t ambient;
 
@@ -77,7 +77,7 @@ d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point){
 /*
  * PvsForOrigin
  */
-qboolean PvsForOrigin(const vec3_t org, byte *pvs){
+boolean_t PvsForOrigin(const vec3_t org, byte *pvs){
 	d_bsp_leaf_t *leaf;
 
 	if(!d_bsp.vis_data_size){
@@ -100,7 +100,7 @@ static c_model_t *cmodels[MAX_BSP_MODELS];
 /*
  * Light_Trace
  */
-void Light_Trace(trace_t *trace, const vec3_t start, const vec3_t end, int mask){
+void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int mask){
 	float frac;
 	int i;
 
@@ -108,7 +108,7 @@ void Light_Trace(trace_t *trace, const vec3_t start, const vec3_t end, int mask)
 
 	// and any BSP submodels, too
 	for(i = 0; i < num_cmodels; i++){
-		const trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin,
+		const c_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin,
 				cmodels[i]->head_node, mask);
 
 		if(tr.fraction < frac){

@@ -44,7 +44,7 @@ CASSERT(lengthof(if_strings) == IF_SIZE);
 /**
  * @todo code the FLOAT/STRING type into the opcode; we should not check it like that
  */
-static inline qboolean MN_IsFloatOperator (menuConditionOpCodeType_t op)
+static inline boolean_t MN_IsFloatOperator (menuConditionOpCodeType_t op)
 {
 	return op == IF_EQ
 	 || op == IF_LE
@@ -117,7 +117,7 @@ static const char* MN_GetStringFromParam (const menuNode_t *source, const char* 
  * @brief Check the if conditions for a given node
  * @return True if the condition is qfalse if the node is not drawn
  */
-qboolean MN_CheckCondition (const menuNode_t *source, menuCondition_t *condition)
+boolean_t MN_CheckCondition (const menuNode_t *source, menuCondition_t *condition)
 {
 	if (MN_IsFloatOperator(condition->type.opCode)) {
 		const float value1 = MN_GetFloatFromParam(source, condition->leftValue, condition->type.left);
@@ -229,7 +229,7 @@ static inline void MN_SetParam (const char *string, menuConditionOpCodeType_t op
  * @param[in] token String describing a condition
  * @return True if the condition is initialized
  */
-qboolean MN_InitCondition (menuCondition_t *condition, const char *token)
+boolean_t MN_InitCondition (menuCondition_t *condition, const char *token)
 {
 	memset(condition, 0, sizeof(*condition));
 	if (!strstr(token, " ")) {
@@ -277,7 +277,7 @@ qboolean MN_InitCondition (menuCondition_t *condition, const char *token)
 menuCondition_t *MN_AllocCondition (const char *description)
 {
 	menuCondition_t condition;
-	qboolean result;
+	boolean_t result;
 
 	if (mn.numConditions >= MAX_MENUCONDITIONS)
 		Com_Error(ERR_FATAL, "MN_AllocCondition: Too many menu conditions");

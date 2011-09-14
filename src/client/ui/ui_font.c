@@ -69,7 +69,7 @@ void MN_ParseFont (const char *name, const char **text)
 	Com_Debug("...found font %s (%i)\n", font->name, numFonts);
 
 	/* get it's body */
-	token = Com_Parse(text);
+	token = ParseToken(text);
 
 	if (!*text || *token != '{') {
 		Com_Print("MN_ParseFont: font \"%s\" without body ignored\n", name);

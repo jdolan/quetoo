@@ -25,7 +25,7 @@
 /*
  * G_PickupWeapon
  */
-qboolean G_PickupWeapon(g_edict_t *ent, g_edict_t *other){
+boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other){
 	int index, ammoindex;
 	g_item_t *ammo;
 

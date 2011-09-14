@@ -61,12 +61,9 @@ typedef struct {
 	float alpha;
 } r_bsp_flare_t;
 
-#define SIDE_FRONT	0
-#define SIDE_BACK	1
-#define SIDE_ON		2
-
-#define MSURF_PLANEBACK	1
-#define MSURF_LIGHTMAP	2
+// m_surface_t flags
+#define MSURF_SIDE_BACK	1
+#define MSURF_LIGHTMAP		2
 
 typedef struct {
 	int vis_frame;  // PVS frame
