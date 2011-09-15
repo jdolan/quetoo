@@ -85,14 +85,14 @@ static void FreeStackWinding(const winding_t * w, pstack_t * stack){
 static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack, plane_t *split){
 	vec_t dists[128];
 	int sides[128];
-	int counts[3];
+	int counts[SIDE_BOTH + 1];
 	vec_t dot;
 	int i, j;
 	vec_t *p1, *p2;
 	vec3_t mid;
 	winding_t *neww;
 
-	counts[0] = counts[1] = counts[2] = 0;
+	memset(counts, 0, sizeof(counts));
 
 	// determine sides for each point
 	for(i = 0; i < in->numpoints; i++){
@@ -109,10 +109,10 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack, plane_t *split
 		counts[sides[i]]++;
 	}
 
-	if(!counts[1])
+	if(!counts[SIDE_BACK])
 		return in;					  // completely on front side
 
-	if(!counts[0]){
+	if(!counts[SIDE_FRONT]){
 		FreeStackWinding(in, stack);
 		return NULL;
 	}

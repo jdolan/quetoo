@@ -217,8 +217,8 @@ typedef struct {
 
 #define	SIDE_FRONT		1
 #define	SIDE_BACK		2
-#define	SIDE_BOTH		(SIDE_FRONT|SIDE_BACK)
-#define	SIDE_FACING	4
+#define	SIDE_BOTH		3
+#define	SIDE_FACING		4
 
 // 0-2 are axial planes
 #define PLANE_X			0

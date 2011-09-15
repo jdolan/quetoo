@@ -48,7 +48,7 @@ libclient_la_LIBADD = \
 	../libcmodel.la \
 	../libnet.la \
 	../libpmove.la \
-	../libthread.la
+	../libthreads.la
 	
 else
 

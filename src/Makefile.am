@@ -21,9 +21,10 @@ noinst_HEADERS = \
 	net.h \
 	pak.h \
 	pmove.h \
+	quake2world.h \
 	shared.h \
 	sys.h \
-	thread.h \
+	threads.h \
 	win32.h
 
 noinst_LTLIBRARIES = \
@@ -39,7 +40,7 @@ noinst_LTLIBRARIES = \
 	libshared.la \
 	libswap.la \
 	libsys.la \
-	libthread.la \
+	libthreads.la \
 	libwin32.la
 
 libcmodel_la_SOURCES = \
@@ -149,9 +150,9 @@ libsys_la_CFLAGS = \
 	-pipe \
 	@BASE_CFLAGS@
 
-libthread_la_SOURCES = \
-	thread.c
-libthread_la_CFLAGS = \
+libthreads_la_SOURCES = \
+	threads.c
+libthreads_la_CFLAGS = \
 	-pipe \
 	@BASE_CFLAGS@ \
 	@SDL_CFLAGS@

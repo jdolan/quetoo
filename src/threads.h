@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __THREAD_H__
-#define __THREAD_H__
+#ifndef __THREADS_H__
+#define __THREADS_H__
 
 #include <unistd.h>
 #include <SDL/SDL_thread.h>
@@ -42,4 +42,4 @@ void Thread_Wait(thread_t *t);
 void Thread_Init(void);
 void Thread_Shutdown(void);
 
-#endif /*__THREAD_H__ */
+#endif /*__THREADS_H__ */

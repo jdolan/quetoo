@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL/SDL_thread.h>
-
 #include "q2wmap.h"
 
 thread_work_t thread_work;

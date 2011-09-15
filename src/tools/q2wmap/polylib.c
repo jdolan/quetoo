@@ -274,7 +274,7 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
                         vec_t epsilon, winding_t **front, winding_t **back){
 	vec_t dists[MAX_POINTS_ON_WINDING+4];
 	int sides[MAX_POINTS_ON_WINDING+4];
-	int counts[3];
+	int counts[SIDE_BOTH + 1];
 	static vec_t dot;  // VC 4.2 optimizer bug if not static
 	int i, j;
 	const vec_t *p2;
@@ -282,7 +282,7 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 	winding_t *f, *b;
 	int maxpts;
 
-	counts[0] = counts[1] = counts[2] = 0;
+	memset(counts, 0, sizeof(counts));
 
 	// determine sides for each point
 	for(i = 0; i < in->numpoints; i++){
@@ -303,17 +303,16 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 
 	*front = *back = NULL;
 
-	if(!counts[0]){
+	if(!counts[SIDE_FRONT]){
 		*back = CopyWinding(in);
 		return;
 	}
-	if(!counts[1]){
+	if(!counts[SIDE_BACK]){
 		*front = CopyWinding(in);
 		return;
 	}
 
-	maxpts = in->numpoints+4;	// cant use counts[0]+2 because
-	// of fp grouping errors
+	maxpts = in->numpoints + 4;
 
 	*front = f = AllocWinding(maxpts);
 	*back = b = AllocWinding(maxpts);
@@ -372,9 +371,9 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
  */
 void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist, const vec_t epsilon){
 	winding_t *in;
-	vec_t dists[MAX_POINTS_ON_WINDING+4];
-	int sides[MAX_POINTS_ON_WINDING+4];
-	int counts[3];
+	vec_t dists[MAX_POINTS_ON_WINDING + 4];
+	int sides[MAX_POINTS_ON_WINDING + 4];
+	int counts[SIDE_BOTH + 1];
 	static vec_t dot;		// VC 4.2 optimizer bug if not static
 	int i, j;
 	vec_t *p1, *p2;
@@ -383,7 +382,8 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 	int maxpts;
 
 	in = *inout;
-	counts[0] = counts[1] = counts[2] = 0;
+
+	memset(counts, 0, sizeof(counts));
 
 	// determine sides for each point
 	for(i = 0; i < in->numpoints; i++){
@@ -402,16 +402,15 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 	sides[i] = sides[0];
 	dists[i] = dists[0];
 
-	if(!counts[0]){
+	if(!counts[SIDE_FRONT]){
 		FreeWinding(in);
 		*inout = NULL;
 		return;
 	}
-	if(!counts[1])
+	if(!counts[SIDE_BACK])
 		return;		// inout stays the same
 
-	maxpts = in->numpoints+4;	// cant use counts[0]+2 because
-	// of fp grouping errors
+	maxpts = in->numpoints + 4;
 
 	f = AllocWinding(maxpts);
 

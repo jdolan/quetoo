@@ -65,7 +65,7 @@ static node_t *BlockTree(int xl, int yl, int xh, int yh){
 		}
 		return node;
 	}
-	// create a seperator along the largest axis
+	// create a separator along the largest axis
 	node = AllocNode();
 
 	if(xh - xl > yh - yl){		 // split x axis
