@@ -19,48 +19,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "ui_local.h"
+#ifndef __UI_H__
+#define __UI_H__
 
+#include "quake2world.h"
 
-/*
- * Ui_CvarSet
- *
- * Callback enabling AntTweakBar to set cvar_t's.
- */
-static void TW_CALL Ui_CvarSet(const void *value, void *data){
-	cvar_t *var = (cvar_t *)data;
-	const char *val = (const char *)value;
+#include <SDL/SDL.h>
 
-	Cvar_Set(var->name, val);
-}
+boolean_t Ui_Event(SDL_Event *event);
+void Ui_Draw(void);
+void Ui_Init(void);
+void Ui_Shutdown(void);
 
-
-/*
- * Ui_CvarGet
- *
- * Callback allowing AntTweakBar to expose cvar_t's.
- */
-static void TW_CALL Ui_CvarGet(void *value, void *data){
-	cvar_t *var = (cvar_t *)data;
-	char *val = (char *)val;
-
-	strcpy(val, var->string);
-}
-
-
-/*
- * Ui_Cvar
- *
- * Exposes a cvar_t via the specified TwBar.
- */
-void Ui_Cvar(TwBar *bar, cvar_t *var){
-	TwAddVarCB(bar, var->name, TW_TYPE_CSSTRING(128), Ui_CvarSet, Ui_CvarGet, var, NULL);
-}
-
-
-/*
- * Ui_Command
- */
-void TW_CALL Ui_Command(void *data){
-	Cbuf_AddText((const char *)data);
-}
+#endif /* __UI_H__ */

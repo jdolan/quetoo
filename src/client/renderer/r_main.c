@@ -248,8 +248,6 @@ void R_DrawFrame(void){
 
 	Thread_Wait(r_view.thread);
 
-	r_view.update = false;
-
 	// now dispatch another thread to cull the entities
 
 	r_view.thread = Thread_Create(R_CullEntities, NULL);
@@ -348,6 +346,7 @@ static void R_Clear(void){
 	glClear(bits);
 }
 
+
 /*
  * R_BeginFrame
  */
@@ -400,7 +399,9 @@ void R_EndFrame(void){
 
 	R_UpdateCapture();
 
-	R_FlushCapture();
+	if(cls.state == ca_active && r_view.ready){
+		r_view.update = false;
+	}
 
 	SDL_GL_SwapBuffers();  // swap buffers
 }

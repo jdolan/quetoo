@@ -20,7 +20,6 @@
  */
 
 #include "client.h"
-#include "ui/ui_data.h"
 
 /*
  * Cl_AddServer
@@ -207,7 +206,7 @@ void Cl_ParseStatusMessage(void){
 		server = server->next;
 	}
 
-	MN_RegisterText(TEXT_LIST, cls.servers_text);
+	//MN_RegisterText(TEXT_LIST, cls.servers_text);
 }
 
 

@@ -231,6 +231,16 @@ else
 		[AC_MSG_ERROR([Could not find jpeglib.h, please install libjpeg])]
 	)
 	AC_SUBST(JPEG_LIBS)
+	
+	dnl ---------------------
+	dnl Check for AntTweakBar
+	dnl ---------------------
+	
+	AC_CHECK_HEADER(AntTweakBar.h,
+		ANTTWEAKBAR_LIBS="-lAntTweakBar",
+		[AC_MSG_ERROR([Could not find AntTweakBar.h, please install AntTweakBar])]
+	)
+	AC_SUBST(ANTTWEAKBAR_LIBS)
 
 	dnl --------------------------
 	dnl Check which tools to build
@@ -549,7 +559,6 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/client/Makefile
 	src/client/ui/Makefile
-	src/client/ui/node/Makefile
 	src/client/sound/Makefile
 	src/client/renderer/Makefile
 	src/game/Makefile

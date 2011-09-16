@@ -19,10 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL.h>
+#include <SDL/SDL.h>
 
 #include "client.h"
-#include "ui/ui_input.h"
 
 static cvar_t *cl_run;
 
@@ -478,6 +477,12 @@ static void Cl_HandleEvent(SDL_Event *event){
 	unsigned int key;
 	unsigned short unicode;
 
+	if(cls.key_state.dest == key_menu){  // let the ui handle events
+
+		if(Ui_Event(event))
+			return;
+	}
+
 	switch(event->type){
 		case SDL_MOUSEBUTTONUP:
 		case SDL_MOUSEBUTTONDOWN:
@@ -506,20 +511,6 @@ static void Cl_HandleEvent(SDL_Event *event){
 				default:
 					key = K_AUX1 + (event->button.button - 8) % 16;
 					break;
-			}
-
-			if(cls.key_state.dest == key_menu) {
-				int x, y;
-
-				x = cls.mouse_state.x / r_state.rx;
-				y = cls.mouse_state.y / r_state.ry;
-
-				if(event->type == SDL_MOUSEBUTTONUP)
-					MN_MouseUp(x, y, key);
-				else
-					MN_MouseDown(x, y, key);
-
-				break;
 			}
 
 			EVENT_ENQUEUE(key, key, (event->type == SDL_MOUSEBUTTONDOWN))

@@ -41,9 +41,9 @@ libclient_la_CFLAGS = \
 	@SDL_CFLAGS@
 	
 libclient_la_LIBADD = \
-	ui/node/libuinode.la \
-	sound/libsound.la \
 	renderer/librenderer.la \
+	sound/libsound.la \
+	ui/libui.la \
 	../libconsole.la \
 	../libcmodel.la \
 	../libnet.la \

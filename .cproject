@@ -33,6 +33,7 @@
 									<listOptionValue builtIn="false" value="/usr/include/linux"/>
 									<listOptionValue builtIn="false" value="/usr/include/mysql"/>
 									<listOptionValue builtIn="false" value="/usr/include/SDL"/>
+									<listOptionValue builtIn="false" value="/opt/local/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/quake2world}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/quake2world/src}&quot;"/>
 								</option>
@@ -61,9 +62,7 @@
 								<option id="gnu.cpp.link.option.shared.407857879" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.173243762" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug">
-								<option id="gnu.both.asm.option.include.paths.743074214" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/opt/local"/>
-								</option>
+								<option id="gnu.both.asm.option.include.paths.743074214" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1085993803" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
@@ -350,6 +349,9 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1958141652" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
 								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.exe.release.option.optimization.level.30022734" name="Optimization Level" superClass="gnu.c.compiler.exe.release.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.exe.release.option.debugging.level.1218656362" name="Debug Level" superClass="gnu.c.compiler.exe.release.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.include.paths.234134973" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/opt/local/include"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.942971179" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.1015807193" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release">

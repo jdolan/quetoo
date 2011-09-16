@@ -22,7 +22,6 @@
 #include <ctype.h>
 
 #include "client.h"
-#include "ui/ui_input.h"
 
 keyname_t keynames[] = {
 	{"TAB", K_TAB},
@@ -387,7 +386,7 @@ static void Cl_KeyMenu(unsigned key, unsigned short unicode, boolean_t down, uns
 	if(!down)
 		return;
 
-	MN_KeyPressed(key, unicode);
+	//MN_KeyPressed(key, unicode);
 }
 
 

@@ -23,44 +23,23 @@
 
 
 /*
- * Ui_CvarSet
+ * Ui_ToggleBar
  *
- * Callback enabling AntTweakBar to set cvar_t's.
+ * Toggles the visibility of the TwBar specified by name in data.
  */
-static void TW_CALL Ui_CvarSet(const void *value, void *data){
-	cvar_t *var = (cvar_t *)data;
-	const char *val = (const char *)value;
+void TW_CALL Ui_ToggleBar(void *data){
+	const char *name = (const char *)data;
+	TwBar *bar;
 
-	Cvar_Set(var->name, val);
-}
+	bar = TwGetBarByName(name);
 
+	if(!bar){
+		Com_Warn("Ui_ToggleBar: No TwBar: %s\n", name);
+		return;
+	}
 
-/*
- * Ui_CvarGet
- *
- * Callback allowing AntTweakBar to expose cvar_t's.
- */
-static void TW_CALL Ui_CvarGet(void *value, void *data){
-	cvar_t *var = (cvar_t *)data;
-	char *val = (char *)val;
+	int visible;
 
-	strcpy(val, var->string);
-}
-
-
-/*
- * Ui_Cvar
- *
- * Exposes a cvar_t via the specified TwBar.
- */
-void Ui_Cvar(TwBar *bar, cvar_t *var){
-	TwAddVarCB(bar, var->name, TW_TYPE_CSSTRING(128), Ui_CvarSet, Ui_CvarGet, var, NULL);
-}
-
-
-/*
- * Ui_Command
- */
-void TW_CALL Ui_Command(void *data){
-	Cbuf_AddText((const char *)data);
+	TwGetParam(bar, NULL, "visible", TW_TYPE_INT32, 1, &visible);
+	Com_Print("%s is %d\n", TwGetBarName(bar), visible);
 }

@@ -23,44 +23,13 @@
 
 
 /*
- * Ui_CvarSet
- *
- * Callback enabling AntTweakBar to set cvar_t's.
+ * Ui_Controls
  */
-static void TW_CALL Ui_CvarSet(const void *value, void *data){
-	cvar_t *var = (cvar_t *)data;
-	const char *val = (const char *)value;
+TwBar *Ui_Controls(void){
 
-	Cvar_Set(var->name, val);
-}
+	TwBar *bar = TwNewBar("Controls");
 
+	TwDefine("Controls visible=false");
 
-/*
- * Ui_CvarGet
- *
- * Callback allowing AntTweakBar to expose cvar_t's.
- */
-static void TW_CALL Ui_CvarGet(void *value, void *data){
-	cvar_t *var = (cvar_t *)data;
-	char *val = (char *)val;
-
-	strcpy(val, var->string);
-}
-
-
-/*
- * Ui_Cvar
- *
- * Exposes a cvar_t via the specified TwBar.
- */
-void Ui_Cvar(TwBar *bar, cvar_t *var){
-	TwAddVarCB(bar, var->name, TW_TYPE_CSSTRING(128), Ui_CvarSet, Ui_CvarGet, var, NULL);
-}
-
-
-/*
- * Ui_Command
- */
-void TW_CALL Ui_Command(void *data){
-	Cbuf_AddText((const char *)data);
+	return bar;
 }

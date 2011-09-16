@@ -351,7 +351,7 @@ void R_DrawPic(int x, int y, const char *name){
 void R_DrawCursor(int x, int y){
 
 	x -= (r_draw_cursor->width / 2.0);
-	y += (r_draw_cursor->height / 2.0);
+	y -= (r_draw_cursor->height / 2.0);
 
 	R_DrawScaledImage(x, y, 1.0, r_draw_cursor);
 }

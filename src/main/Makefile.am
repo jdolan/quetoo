@@ -29,6 +29,7 @@ quake2world_LDADD = \
 	../client/libclient.la \
 	../server/libserver.la \
 	@BASE_LIBS@ \
+	@ANTTWEAKBAR_LIBS@ \
 	@CURL_LIBS@ \
 	@CURSES_LIBS@ \
 	@JPEG_LIBS@ \
@@ -49,9 +50,7 @@ quake2world_LDADD = \
 	${quake2world_DEPENDENCIES} \
 	../client/libclient.la \
 	../server/libserver.la \
-	../libthread.la \
 	@BASE_LIBS@ \
-	@CURL_LIBS@ \
 	@CURSES_LIBS@ \
 	@SDL_LIBS@ \
 	-lm -lz

@@ -569,13 +569,12 @@ void R_Setup3D(void){
  */
 void R_Setup2D(void){
 
-	// set 2D virtual screen size
 	glViewport(0, 0, r_state.width, r_state.height);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glOrtho(0, r_state.width, r_state.height, 0, -99999, 99999);
+	glOrtho(0, r_state.width, r_state.height, 0, -1, 1);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

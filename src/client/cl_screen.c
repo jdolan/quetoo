@@ -20,7 +20,6 @@
  */
 
 #include "client.h"
-#include "ui/ui_draw.h"
 
 #define COLOR_HUD_STAT         CON_COLOR_DEFAULT
 #define COLOR_HUD_STAT_MED     CON_COLOR_YELLOW
@@ -659,15 +658,16 @@ static void Cl_DrawBlend(void){
 
 
 /*
- * Cl_DrawMenus
+ * Cl_DrawUi
  */
-static void Cl_DrawMenus(void){
+static void Cl_DrawUi(void){
 
 	if(cls.key_state.dest != key_menu)
 		return;
 
-	MN_Draw();
+	Ui_Draw();
 }
+
 
 /*
  * Cl_DrawCursor
@@ -682,6 +682,7 @@ static void Cl_DrawCursor(void){
 
 	R_DrawCursor(cls.mouse_state.x, cls.mouse_state.y);
 }
+
 
 /*
  * Cl_UpdateScreen
@@ -730,8 +731,6 @@ void Cl_UpdateScreen(void){
 		R_Setup2D();
 	}
 
-	Cl_DrawMenus();
-
 	Cl_DrawConsole();
 
 	R_DrawFills();  // draw all fills accumulated above
@@ -741,6 +740,8 @@ void Cl_UpdateScreen(void){
 	R_DrawChars();  // draw all chars accumulated above
 
 	Cl_DrawCursor();
+
+	Cl_DrawUi();
 
 	R_EndFrame();
 }

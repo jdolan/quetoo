@@ -29,54 +29,15 @@ typedef struct capture_buffer_s {
 
 static r_capture_buffer_t capture_buffer;
 
-/*
- * R_UpdateCapture
- *
- * Captures the current frame buffer to memory.  JPEG encoding is optionally
- * processed in a separate thread for performance reasons.  See below.
- */
-void R_UpdateCapture(void){
-	int time;
-
-	if(!r_capture->value)
-		return;
-
-	if(r_view.update || r_capture->modified){
-		r_capture->modified = false;
-
-		R_ShutdownCapture();
-
-		R_InitCapture();
-	}
-
-	time = Sys_Milliseconds();
-
-	// enforce the capture frame rate
-	if(time - capture_buffer.time < 1000.0 / r_capture_fps->value)
-		return;
-
-	glReadPixels(0, 0, r_state.width, r_state.height, GL_RGB, GL_UNSIGNED_BYTE, capture_buffer.buffer);
-
-	capture_buffer.time = time;
-	capture_buffer.frame++;
-}
-
 
 /*
  * R_FlushCapture
  *
  * Performs the JPEG file authoring for the most recently captured frame.
  */
-void R_FlushCapture(void){
-	static int last_frame;
+static void R_FlushCapture(void *data){
 	char path[MAX_OSPATH];
 	int q;
-
-	if(!r_capture->value)
-		return;
-
-	if(capture_buffer.frame == last_frame)
-		return;
 
 	snprintf(path, sizeof(path), "%s/capture/%010d.jpg", Fs_Gamedir(), capture_buffer.frame);
 
@@ -88,8 +49,44 @@ void R_FlushCapture(void){
 		q = 100;
 
 	Img_WriteJPEG(path, capture_buffer.buffer, r_state.width, r_state.height, q);
+}
 
-	last_frame = capture_buffer.frame;
+
+/*
+ * R_UpdateCapture
+ *
+ * Captures the current frame buffer to memory.  JPEG encoding is optionally
+ * processed in a separate thread for performance reasons.  See above.
+ */
+void R_UpdateCapture(void){
+	static thread_t *capture_thread;
+
+	if(!r_capture->value)
+		return;
+
+	if(r_view.time < capture_buffer.time)
+		capture_buffer.time = 0;
+
+	// enforce the capture frame rate
+	if(r_view.time - capture_buffer.time < 1000.0 / r_capture_fps->value)
+		return;
+
+	Thread_Wait(capture_thread);
+
+	if(r_view.update || r_capture->modified){
+		r_capture->modified = false;
+
+		R_ShutdownCapture();
+
+		R_InitCapture();
+	}
+
+	glReadPixels(0, 0, r_state.width, r_state.height, GL_RGB, GL_UNSIGNED_BYTE, capture_buffer.buffer);
+
+	capture_buffer.time = r_view.time;
+	capture_buffer.frame++;
+
+	capture_thread = Thread_Create(R_FlushCapture, NULL);
 }
 
 

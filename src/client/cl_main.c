@@ -22,9 +22,6 @@
 #include <unistd.h>
 
 #include "client.h"
-#include "ui/ui_main.h"
-#include "ui/ui_font.h"
-#include "ui/ui_parse.h"
 
 cvar_t *cl_add_entities;
 cvar_t *cl_add_particles;
@@ -909,80 +906,6 @@ static const char *Cl_GetUserName(void){
 
 
 /*
- * Cl_InitMenuFonts
- */
-static void Cl_InitMenuFonts(const char *file_name){
-	char *buffer;
-	const char *buf;
-	const char *token;
-
-	// load the file header
-	if(Fs_LoadFile(file_name, (void **)(char *)&buffer) == -1)
-		Com_Error(ERR_FATAL, "Failed to open %s\n", file_name);
-
-	buf = buffer;
-
-	do {
-		token = ParseToken(&buf);
-		if (!token || !buf)
-			break;
-		if (!strcmp(token, "font")) {
-			token = ParseToken(&buf);
-			MN_ParseFont(token, &buf);
-		}
-	} while (true);
-
-	Fs_FreeFile(buffer);
-}
-
-
-/*
- * Cl_InitMenu
- */
-static void Cl_InitMenu(const char *file_name){
-	char *buffer;
-	const char *buf;
-	const char *token;
-
-	// load the file header
-	if(Fs_LoadFile(file_name, (void **)(char *)&buffer) == -1)
-		Com_Error(ERR_FATAL, "Failed to open %s\n", file_name);
-
-	buf = buffer;
-
-	token = ParseToken(&buf);
-	if (strcmp(token, "window"))
-		Com_Error(ERR_FATAL, "Failed to parse %s\n", file_name);
-
-	token = ParseToken(&buf);
-	MN_ParseMenu("window", token, &buf);
-
-	Fs_FreeFile(buffer);
-}
-
-
-/*
- * Cl_InitMenus
- */
-static void Cl_InitMenus(void){
-
-	MN_Init();
-
-	Cl_InitMenuFonts("ui/fonts.ui");
-
-	Cl_InitMenu("ui/main.ui");
-	Cl_InitMenu("ui/editor.ui");
-	Cl_InitMenu("ui/game.ui");
-	Cl_InitMenu("ui/create.ui");
-	Cl_InitMenu("ui/options.ui");
-	Cl_InitMenu("ui/credits.ui");
-
-	Cbuf_AddText("mn_push main;");
-
-	cls.key_state.dest = key_menu;
-}
-
-/*
  * Cl_InitLocal
  */
 static void Cl_InitLocal(void){
@@ -1071,8 +994,6 @@ static void Cl_InitLocal(void){
 	Cmd_AddCommand("baselines", NULL, NULL);
 
 	Cmd_ForwardToServer = Cl_ForwardCmdToServer;
-
-	Cl_InitMenus();
 }
 
 
@@ -1260,6 +1181,10 @@ void Cl_Init(void){
 	Fs_ExecAutoexec();
 
 	Cl_ClearState();
+
+	Ui_Init();
+
+	cls.key_state.dest = key_menu;
 }
 
 
@@ -1273,8 +1198,6 @@ void Cl_Shutdown(void){
 
 	Cl_Disconnect();
 
-	MN_Shutdown();
-
 	Cl_ShutdownHttpDownload();
 
 	Cl_WriteConfiguration();
@@ -1283,9 +1206,11 @@ void Cl_Shutdown(void){
 
 	Cl_FreeServers();
 
-	S_Shutdown();
-
 	Cl_ShutdownKeys();
+
+	Ui_Shutdown();
+
+	S_Shutdown();
 
 	R_Shutdown();
 }

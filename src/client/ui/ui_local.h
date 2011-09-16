@@ -19,48 +19,36 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "ui_local.h"
+#ifndef __UI_LOCAL_H__
+#define __UI_LOCAL_H__
 
+#include "client.h"
 
-/*
- * Ui_CvarSet
- *
- * Callback enabling AntTweakBar to set cvar_t's.
- */
-static void TW_CALL Ui_CvarSet(const void *value, void *data){
-	cvar_t *var = (cvar_t *)data;
-	const char *val = (const char *)value;
+#include <AntTweakBar.h>
 
-	Cvar_Set(var->name, val);
-}
+typedef struct ui_s {
+	TwBar *root;
+	TwBar *servers;
+	TwBar *controls;
+	TwBar *player;
+} ui_t;
 
+extern ui_t ui;
 
-/*
- * Ui_CvarGet
- *
- * Callback allowing AntTweakBar to expose cvar_t's.
- */
-static void TW_CALL Ui_CvarGet(void *value, void *data){
-	cvar_t *var = (cvar_t *)data;
-	char *val = (char *)val;
+// ui_controls.c
+TwBar *Ui_Controls(void);
 
-	strcpy(val, var->string);
-}
+// ui_data.c
+void Ui_Cvar(TwBar *bar, cvar_t *var);
+void TW_CALL Ui_Command(void *data);
 
+// ui_misc.c
+void TW_CALL Ui_ToggleBar(void *data);
 
-/*
- * Ui_Cvar
- *
- * Exposes a cvar_t via the specified TwBar.
- */
-void Ui_Cvar(TwBar *bar, cvar_t *var){
-	TwAddVarCB(bar, var->name, TW_TYPE_CSSTRING(128), Ui_CvarSet, Ui_CvarGet, var, NULL);
-}
+// ui_player.c
+TwBar *Ui_Player(void);
 
+// ui_servers.c
+TwBar *Ui_Servers(void);
 
-/*
- * Ui_Command
- */
-void TW_CALL Ui_Command(void *data){
-	Cbuf_AddText((const char *)data);
-}
+#endif /* __UI_LOCAL_H__ */

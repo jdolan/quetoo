@@ -19,48 +19,39 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "ui_local.h"
-
+quake2world_t quake2world;
 
 /*
- * Ui_CvarSet
+ * Test_Init
  *
- * Callback enabling AntTweakBar to set cvar_t's.
+ * Bootstraps core subsystems for testing.
  */
-static void TW_CALL Ui_CvarSet(const void *value, void *data){
-	cvar_t *var = (cvar_t *)data;
-	const char *val = (const char *)value;
+void Test_Init(int argc, char **argv){
 
-	Cvar_Set(var->name, val);
+	memset(&quake2world, 0, sizeof(quake2world));
+
+	signal(SIGHUP, Sys_Signal);
+	signal(SIGINT, Sys_Signal);
+	signal(SIGQUIT, Sys_Signal);
+	signal(SIGILL, Sys_Signal);
+	signal(SIGABRT, Sys_Signal);
+	signal(SIGFPE, Sys_Signal);
+	signal(SIGSEGV, Sys_Signal);
+	signal(SIGTERM, Sys_Signal);
+
+	Z_Init();
+
+	Swap_Init();
+
+	Cvar_Init();
 }
 
-
 /*
- * Ui_CvarGet
+ * Test_Shutdown
  *
- * Callback allowing AntTweakBar to expose cvar_t's.
+ * Releases any testing resources.
  */
-static void TW_CALL Ui_CvarGet(void *value, void *data){
-	cvar_t *var = (cvar_t *)data;
-	char *val = (char *)val;
+void Test_Shutdown(){
 
-	strcpy(val, var->string);
-}
-
-
-/*
- * Ui_Cvar
- *
- * Exposes a cvar_t via the specified TwBar.
- */
-void Ui_Cvar(TwBar *bar, cvar_t *var){
-	TwAddVarCB(bar, var->name, TW_TYPE_CSSTRING(128), Ui_CvarSet, Ui_CvarGet, var, NULL);
-}
-
-
-/*
- * Ui_Command
- */
-void TW_CALL Ui_Command(void *data){
-	Cbuf_AddText((const char *)data);
+	Z_Shutdown();
 }

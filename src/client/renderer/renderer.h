@@ -351,7 +351,6 @@ void R_MarkLeafs(void);
 
 // r_capture.c
 void R_UpdateCapture(void);
-void R_FlushCapture(void);
 void R_InitCapture(void);
 void R_ShutdownCapture(void);
 
