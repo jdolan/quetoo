@@ -24,7 +24,11 @@
 
 #include "quake2world.h"
 
+#ifdef __MINGW32__
+#include <sys/param.h>
+#else
 #include <machine/endian.h>
+#endif
 
 extern short BigShort(short s);
 extern short LittleShort(short s);

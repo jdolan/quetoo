@@ -1,6 +1,6 @@
 #!/bin/sh
 #############################################################################
-# Copyright(c) 2007-2010 Quake2World.
+# Copyright(c) 2007-2011 Quake2World.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -23,14 +23,14 @@ set -e
 set -o errexit
 
 START=`pwd`
-
-rev=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 3`
-echo checked out $rev
+svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world
+rev=` svn info quake2world/ |grep evision|cut -d\  -f 2`
+echo checked out revision $rev
 
 cd $START/quake2world
 autoreconf -i --force
 ./configure --prefix=/tmp/quake2world
-make
+make -j 4
 make install
 cd src/game/default
 gcc -shared -o game.dll *.o ../../.libs/libshared.a
@@ -41,27 +41,23 @@ mkdir -p dist/quake2world/default
 cd dist/quake2world
 cp ../../updater/* .
 
-cp `find /mingw | grep .dll | grep libcurl-` .
-cp `find /mingw | grep .dll | grep libjpeg-` .
-cp `find /mingw | grep .dll | grep libogg-` .
-cp `find /mingw | grep .dll | grep libpng-` .
-cp `find /mingw | grep .dll | grep libvorbis-` .
-cp `find /mingw | grep .dll | grep libvorbisfile-` .
-cp `find /mingw | grep -v .dll.a | grep SDL.dll` .
-cp `find /mingw | grep -v .dll.a | grep SDL_image.dll` .
-cp `find /mingw | grep -v .dll.a | grep SDL_mixer.dll` .
-cp `find /mingw | grep .dll | grep zlib` .
-
 cp /tmp/quake2world/bin/pak.exe .
 cp /tmp/quake2world/bin/q2wmap.exe .
 cp /tmp/quake2world/bin/quake2world.exe .
 rm -Rf /tmp/quake2world
 cp $START/quake2world/src/game/default/game.dll ./default
+
+cd /mingw/bin
+cp AntTweakBar.dll libcurl-4.dll libpng15-15.dll pdcurses.dll \
+   SDL.dll libgcc_s_dw2-1.dll libvorbis-0.dll SDL_image.dll \
+   libjpeg-8.dll libvorbisfile-3.dll SDL_mixer.dll libogg-0.dll \
+   libz-1.dll $START/dist/quake2world
+
 cd $START/dist
-$START/7za a -tzip -mx=9 ../quake2world_rev"$rev"zip quake2world
+zip -9 -r ../quake2world_rev"$rev".zip quake2world
 
 cd $START
 scp -r dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32
 
-scp quake2world_rev"$rev"zip web@satgnu.net:www/satgnu.net/files
-ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world_rev"$rev"zip  /home/web/www/satgnu.net/files/quake2world-win32-snapshot.zip
+scp quake2world_rev"$rev".zip web@satgnu.net:www/satgnu.net/files
+ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world_rev"$rev".zip  /home/web/www/satgnu.net/files/quake2world-win32-snapshot.zip

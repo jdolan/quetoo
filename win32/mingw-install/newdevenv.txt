@@ -1,0 +1,18 @@
+cmd.exe /k mkdir "C:\q2wdevenv"
+
+
+#Download mingw-get and extract to C:\q2wdevenv
+
+
+cmd.exe /k cd "C:\q2wdevenv\bin"
+
+mingw-get install mingw-get 
+mingw-get install gcc g++ mingw32-make mingw32-gdb mingw32-zlib 
+mingw-get install mingw32-automake mingw32-libtool
+mingw-get install msys-base msys-patch msys-openssh
+mingw-get install msys-wget msys-zip msys-unzip
+
+
+cmd.exe /k C:\q2wdevenv\msys\1.0\postinstall\pi.bat
+
+cscript.exe q2wlnk.vbs
