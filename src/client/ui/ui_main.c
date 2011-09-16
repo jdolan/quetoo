@@ -68,6 +68,8 @@ static TwBar *Ui_Root(void){
 	TwAddButton(bar, "Player", Ui_ToggleBar, "Player", NULL);
 	TwAddButton(bar, "Quit", Ui_Command, "quit\n", NULL);
 
+	TwDefine("Quake2World size='200 200'");
+
 	return bar;
 }
 

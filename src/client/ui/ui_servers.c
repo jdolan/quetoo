@@ -21,6 +21,30 @@
 
 #include "ui_local.h"
 
+/*
+ *
+ */
+static TW_CALL void Ui_Servers_Connect(void *data){
+	cl_server_info_t *s = (cl_server_info_t *)data;
+
+	strcpy(cls.server_name, Net_NetaddrToString(s->addr));
+}
+
+/*
+ *
+ */
+static TW_CALL void Ui_Servers_Refresh(void *data){
+	TwBar *bar = (TwBar *)data;
+	cl_server_info_t *s = cls.servers;
+
+	Cl_Servers_f();
+
+	while(s){
+		TwAddButton(bar, s->info, Ui_Servers_Connect, s, NULL);
+		s = s->next;
+	}
+}
+
 
 /*
  * Ui_Servers
@@ -29,8 +53,9 @@ TwBar *Ui_Servers(void){
 
 	TwBar *bar = TwNewBar("Servers");
 
-	char *f = "false";
-	TwSetParam(bar, NULL, "visible", TW_TYPE_CSSTRING(6), 1, &f);
+	TwAddButton(bar, "Refresh", Ui_Servers_Refresh, bar, NULL);
+
+	TwDefine("Servers size='600 400' iconified=true");
 
 	return bar;
 }

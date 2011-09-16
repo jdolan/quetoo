@@ -110,14 +110,14 @@ typedef enum {
 	K_CTRL,
 	K_ALT,
 
-	K_LAST = 511  // to support as many chars as posible
-} keynum_t;
+	K_LAST = 511  // to support as many chars as possible
+} key_num_t;
 
 typedef struct keyname_s {
 	const char *name;
-	keynum_t keynum;
-} keyname_t;
+	key_num_t key_num;
+} key_name_t;
 
-extern keyname_t keynames[];
+extern key_name_t key_names[];
 
 #endif /* __CL_KEYS_H__ */

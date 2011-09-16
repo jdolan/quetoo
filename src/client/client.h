@@ -372,6 +372,7 @@ void Cl_Move(user_cmd_t *cmd);
 // cl_keys.c
 void Cl_KeyEvent(unsigned int ascii, unsigned short unicode, boolean_t down, unsigned time);
 char *Cl_EditLine(void);
+const char *Cl_KeyNumToString(int key_num);
 void Cl_WriteBindings(FILE *f);
 void Cl_InitKeys(void);
 void Cl_ShutdownKeys(void);

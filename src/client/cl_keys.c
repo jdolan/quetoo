@@ -23,7 +23,7 @@
 
 #include "client.h"
 
-keyname_t keynames[] = {
+key_name_t key_names[] = {
 	{"TAB", K_TAB},
 	{"ENTER", K_ENTER},
 	{"ESCAPE", K_ESCAPE},
@@ -379,26 +379,14 @@ static void Cl_KeyMessage(unsigned key, unsigned short unicode, boolean_t down, 
 
 
 /*
- * Cl_KeyMenu
- */
-static void Cl_KeyMenu(unsigned key, unsigned short unicode, boolean_t down, unsigned time){
-
-	if(!down)
-		return;
-
-	//MN_KeyPressed(key, unicode);
-}
-
-
-/*
- * Cl_StringToKeynum
+ * Cl_StringToKeyNum
  *
  * Returns a key number to be used to index ks->binds[] by looking at
  * the given string.  Single ascii characters return themselves, while
  * the K_* names are matched up.
  */
-static int Cl_StringToKeynum(const char *str){
-	keyname_t *kn;
+static int Cl_StringToKeyNum(const char *str){
+	key_name_t *kn;
 
 	if(!str || !str[0])
 		return -1;
@@ -406,9 +394,9 @@ static int Cl_StringToKeynum(const char *str){
 	if(!str[1])
 		return str[0];
 
-	for(kn = keynames; kn->name; kn++){
+	for(kn = key_names; kn->name; kn++){
 		if(!strcasecmp(str, kn->name))
-			return kn->keynum;
+			return kn->key_num;
 	}
 
 	return -1;
@@ -416,27 +404,27 @@ static int Cl_StringToKeynum(const char *str){
 
 
 /*
- * Cl_KeynumToString
+ * Cl_KeyNumToString
  *
- * Returns a string (either a single ascii char, or a K_* name) for the
- * given keynum.
+ * Returns a string (either a single ASCII char, or a K_* name) for the
+ * given key_num.
  * FIXME: handle quote special (general escape sequence?)
  */
-static const char *Cl_KeynumToString(int keynum){
-	keyname_t *kn;
+const char *Cl_KeyNumToString(int key_num){
+	key_name_t *kn;
 	static char s[2];
 
-	if(keynum == -1)
+	if(key_num == -1)
 		return "<KEY NOT FOUND>";
 
-	if(keynum > 32 && keynum < 127){  // printable ascii
-		s[0] = keynum;
+	if(key_num > 32 && key_num < 127){  // printable ASCII
+		s[0] = key_num;
 		s[1] = 0;
 		return s;
 	}
 
-	for(kn = keynames; kn->name; kn++)
-		if(keynum == kn->keynum)
+	for(kn = key_names; kn->name; kn++)
+		if(key_num == kn->key_num)
 			return kn->name;
 
 	return "<UNKNOWN KEYNUM>";
@@ -446,20 +434,20 @@ static const char *Cl_KeynumToString(int keynum){
 /*
  * Cl_Bind
  */
-static void Cl_Bind(int keynum, char *binding){
+static void Cl_Bind(int key_num, char *binding){
 
-	if(keynum == -1)
+	if(key_num == -1)
 		return;
 
 	// free old binding
-	if(ks->binds[keynum]){
-		Z_Free(ks->binds[keynum]);
-		ks->binds[keynum] = NULL;
+	if(ks->binds[key_num]){
+		Z_Free(ks->binds[key_num]);
+		ks->binds[key_num] = NULL;
 	}
 
 	// allocate for new binding and copy it in
-	ks->binds[keynum] = Z_Malloc(strlen(binding) + 1);
-	strcpy(ks->binds[keynum], binding);
+	ks->binds[key_num] = Z_Malloc(strlen(binding) + 1);
+	strcpy(ks->binds[key_num], binding);
 }
 
 
@@ -474,7 +462,7 @@ static void Cl_Unbind_f(void){
 		return;
 	}
 
-	b = Cl_StringToKeynum(Cmd_Argv(1));
+	b = Cl_StringToKeyNum(Cmd_Argv(1));
 	if(b == -1){
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
 		return;
@@ -509,7 +497,7 @@ static void Cl_Bind_f(void){
 		Com_Print("Usage: %s <key> [command] : attach a command to a key\n", Cmd_Argv(0));
 		return;
 	}
-	b = Cl_StringToKeynum(Cmd_Argv(1));
+	b = Cl_StringToKeyNum(Cmd_Argv(1));
 	if(b == -1){
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
 		return;
@@ -545,19 +533,19 @@ void Cl_WriteBindings(FILE *f){
 
 	for(i = K_FIRST; i < K_LAST; i++)
 		if(ks->binds[i] && ks->binds[i][0])
-			fprintf(f, "bind %s \"%s\"\n", Cl_KeynumToString(i), ks->binds[i]);
+			fprintf(f, "bind %s \"%s\"\n", Cl_KeyNumToString(i), ks->binds[i]);
 }
 
 
 /*
  * Cl_Bindlist_f
  */
-static void Cl_Bindlist_f(void){
+static void Cl_BindList_f(void){
 	int i;
 
 	for(i = K_FIRST; i < K_LAST; i++)
 		if(ks->binds[i] && ks->binds[i][0])
-			Com_Print("%s \"%s\"\n", Cl_KeynumToString(i), ks->binds[i]);
+			Com_Print("%s \"%s\"\n", Cl_KeyNumToString(i), ks->binds[i]);
 }
 
 
@@ -640,8 +628,8 @@ void Cl_InitKeys(void){
 	// register our functions
 	Cmd_AddCommand("bind", Cl_Bind_f, NULL);
 	Cmd_AddCommand("unbind", Cl_Unbind_f, NULL);
-	Cmd_AddCommand("unbindall", Cl_UnbindAll_f, NULL);
-	Cmd_AddCommand("bindlist", Cl_Bindlist_f, NULL);
+	Cmd_AddCommand("unbind_all", Cl_UnbindAll_f, NULL);
+	Cmd_AddCommand("bind_list", Cl_BindList_f, NULL);
 }
 
 
@@ -654,13 +642,15 @@ void Cl_ShutdownKeys(void){
 
 	Cmd_RemoveCommand("bind");
 	Cmd_RemoveCommand("unbind");
-	Cmd_RemoveCommand("unbindall");
-	Cmd_RemoveCommand("bindlist");
+	Cmd_RemoveCommand("unbind_all");
+	Cmd_RemoveCommand("bind_list");
 }
 
 
 /*
  * Cl_KeyEvent
+ *
+ * TODO: Ensure menu events are properly handled.
  */
 void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down, unsigned time){
 
@@ -723,9 +713,6 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down, unsigned 
 			break;
 		case key_message:
 			Cl_KeyMessage(key, unicode, down, time);
-			break;
-		case key_menu:
-			Cl_KeyMenu(key, unicode, down, time);
 			break;
 		case key_console:
 			Cl_KeyConsole(key, unicode, down, time);

@@ -39,8 +39,10 @@ extern ui_t ui;
 TwBar *Ui_Controls(void);
 
 // ui_data.c
-void Ui_Cvar(TwBar *bar, cvar_t *var);
+void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var);
+void Ui_CvarRange(TwBar *bar, const char *name, cvar_t *var, float min, float max);
 void TW_CALL Ui_Command(void *data);
+void Ui_Bind(TwBar *bar, const char *name, const char *bind);
 
 // ui_misc.c
 void TW_CALL Ui_ToggleBar(void *data);

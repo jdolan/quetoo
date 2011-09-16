@@ -23,14 +23,14 @@
 
 #include "client.h"
 
-static cvar_t *cl_run;
+cvar_t *cl_run;
 
-static cvar_t *m_sensitivity;
-static cvar_t *m_sensitivity_zoom;
-static cvar_t *m_interpolate;
-static cvar_t *m_invert;
-static cvar_t *m_yaw;
-static cvar_t *m_pitch;
+cvar_t *m_sensitivity;
+cvar_t *m_sensitivity_zoom;
+cvar_t *m_interpolate;
+cvar_t *m_invert;
+cvar_t *m_yaw;
+cvar_t *m_pitch;
 
 /* power of two please */
 #define MAX_KEYQ 64
