@@ -29,10 +29,10 @@ TwBar *Ui_Player(void){
 
 	TwBar *bar = TwNewBar("Player");
 
-	Ui_CvarText(bar, "Name", name);
-	Ui_CvarText(bar, "Effects color", color);
+	Ui_CvarText(bar, "Name", name, NULL);
+	Ui_CvarText(bar, "Effects color", color, NULL);
 
-	TwDefine("Player size='200 200' iconified=true");
+	TwDefine("Player size='200 200' alpha=200 iconified=true");
 
 	return bar;
 }

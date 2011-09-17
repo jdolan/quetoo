@@ -32,51 +32,41 @@ TwBar *Ui_Controls(void){
 
 	TwBar *bar = TwNewBar("Controls");
 
-	TwAddSeparator(bar, "Movement", NULL);
+	Ui_Bind(bar, "Forward", "+forward", "group=Movement");
+	Ui_Bind(bar, "Back", "+back", "group=Movement");
+	Ui_Bind(bar, "Move left", "+move_left", "group=Movement");
+	Ui_Bind(bar, "Move right", "+move_right", "group=Movement");
+	Ui_Bind(bar, "Turn left", "+left", "group=Movement");
+	Ui_Bind(bar, "Turn right", "+right", "group=Movement");
+	Ui_Bind(bar, "Center view", "center_view", "group=Movement");
+	Ui_Bind(bar, "Jump", "+move_up", "group=Movement");
+	Ui_Bind(bar, "Crouch", "+move_down", "group=Movement");
+	Ui_Bind(bar, "Run / walk", "+speed", "group=Movement");
 
-	Ui_Bind(bar, "Forward", "+forward");
-	Ui_Bind(bar, "Back", "+back");
-	Ui_Bind(bar, "Move left", "+move_left");
-	Ui_Bind(bar, "Move right", "+move_right");
-	Ui_Bind(bar, "Turn left", "+left");
-	Ui_Bind(bar, "Turn right", "+right");
-	Ui_Bind(bar, "Center view", "center_view");
-	Ui_Bind(bar, "Jump", "+move_up");
-	Ui_Bind(bar, "Crouch", "+move_down");
-	Ui_Bind(bar, "Run / walk", "+speed");
+	Ui_CvarDecimal(bar, "Sensitivity", m_sensitivity, "min=0 max=6 group=Mouse");
+	Ui_CvarInteger(bar, "Invert mouse", m_invert, "min=0 max=1 step=1 group=Mouse");
+	Ui_CvarInteger(bar, "Smooth mouse", m_interpolate, "min=0 max=1 step=1 group=Mouse");
 
-	TwAddSeparator(bar, "View", NULL);
+	Ui_Bind(bar, "Shotgun", "use shotgun", "group=Weapons");
+	Ui_Bind(bar, "Super shotgun", "use super shotgun", "group=Weapons");
+	Ui_Bind(bar, "Machinegun", "use machinegun", "group=Weapons");
+	Ui_Bind(bar, "Grenade launcher", "use grenade launcher", "group=Weapons");
+	Ui_Bind(bar, "Rocket launcher", "use rocket launcher", "group=Weapons");
+	Ui_Bind(bar, "Hyperblaster", "use hyperblaster", "group=Weapons");
+	Ui_Bind(bar, "Lightning", "use lightning", "group=Weapons");
+	Ui_Bind(bar, "Railgun", "use railgun", "group=Weapons");
+	Ui_Bind(bar, "BFG-10K", "use bfg10k", "group=Weapons");
 
-	Ui_CvarRange(bar, "Sensitivity", m_sensitivity, 0.0, 6.0);
-	Ui_CvarText(bar, "Invert mouse", m_invert);
-	Ui_CvarText(bar, "Smooth mouse", m_interpolate);
+	Ui_Bind(bar, "Next weapon", "weapon_next", "group=Combat");
+	Ui_Bind(bar, "Previous weapon", "weapon_prev", "group=Combat");
+	Ui_Bind(bar, "Attack", "+attack", "group=Combat");
+	Ui_Bind(bar, "Zoom", "+ZOOM", "group=Combat");
 
-	TwAddSeparator(bar, "Weapons", NULL);
+	Ui_Bind(bar, "Talk", "message_mode", "group=Communication");
+	Ui_Bind(bar, "Talk to team", "message_mode_2", "group=Communication");
+	Ui_Bind(bar, "Show scores", "score", "group=Communication");
 
-	Ui_Bind(bar, "Shotgun", "use shotgun");
-	Ui_Bind(bar, "Super shotgun", "use super shotgun");
-	Ui_Bind(bar, "Machinegun", "use machinegun");
-	Ui_Bind(bar, "Grenade launcher", "use grenade launcher");
-	Ui_Bind(bar, "Rocket launcher", "use rocket launcher");
-	Ui_Bind(bar, "Hyperblaster", "use hyperblaster");
-	Ui_Bind(bar, "Lightning", "use lightning");
-	Ui_Bind(bar, "Railgun", "use railgun");
-	Ui_Bind(bar, "BFG-10K", "use bfg10k");
-
-	TwAddSeparator(bar, "Combat", NULL);
-
-	Ui_Bind(bar, "Next weapon", "weapon_next");
-	Ui_Bind(bar, "Previous weapon", "weapon_prev");
-	Ui_Bind(bar, "Attack", "+attack");
-	Ui_Bind(bar, "Zoom", "+ZOOM");
-
-	TwAddSeparator(bar, "Communication", NULL);
-
-	Ui_Bind(bar, "Talk", "message_mode");
-	Ui_Bind(bar, "Talk to team", "message_mode_2");
-	Ui_Bind(bar, "Show scores", "score");
-
-	TwDefine("Controls size='250 550' iconified=true");
+	TwDefine("Controls size='250 550' alpha=200 iconified=true");
 
 	return bar;
 }

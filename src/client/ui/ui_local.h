@@ -31,6 +31,7 @@ typedef struct ui_s {
 	TwBar *servers;
 	TwBar *controls;
 	TwBar *player;
+	TwBar *system;
 } ui_t;
 
 extern ui_t ui;
@@ -39,10 +40,11 @@ extern ui_t ui;
 TwBar *Ui_Controls(void);
 
 // ui_data.c
-void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var);
-void Ui_CvarRange(TwBar *bar, const char *name, cvar_t *var, float min, float max);
+void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def);
+void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def);
+void Ui_CvarDecimal(TwBar *bar, const char *name, cvar_t *var, const char *def);
 void TW_CALL Ui_Command(void *data);
-void Ui_Bind(TwBar *bar, const char *name, const char *bind);
+void Ui_Bind(TwBar *bar, const char *name, const char *bind, const char *def);
 
 // ui_misc.c
 void TW_CALL Ui_ToggleBar(void *data);
@@ -53,5 +55,7 @@ TwBar *Ui_Player(void);
 // ui_servers.c
 void Ui_NewServer(void);
 TwBar *Ui_Servers(void);
+
+TwBar *Ui_System(void);
 
 #endif /* __UI_LOCAL_H__ */

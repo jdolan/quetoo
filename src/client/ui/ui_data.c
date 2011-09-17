@@ -25,7 +25,7 @@
 /*
  * Ui_CvarSetString
  *
- * Callback for setting a cvar_t's string.
+ * Callback setting a cvar_t's string.
  */
 static void TW_CALL Ui_CvarSetString(const void *value, void *data){
 	cvar_t *var = (cvar_t *)data;
@@ -38,7 +38,7 @@ static void TW_CALL Ui_CvarSetString(const void *value, void *data){
 /*
  * Ui_CvarGetString
  *
- * Callback for exposing a cvar_t's string.
+ * Callback exposing a cvar_t's string.
  */
 static void TW_CALL Ui_CvarGetString(void *value, void *data){
 	cvar_t *var = (cvar_t *)data;
@@ -49,9 +49,52 @@ static void TW_CALL Ui_CvarGetString(void *value, void *data){
 
 
 /*
+ * Ui_CvarText
+ *
+ * Exposes a cvar_t as a text input accepting strings.
+ */
+void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def){
+	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_CvarSetString, Ui_CvarGetString, var, def);
+}
+
+
+/*
+ * Ui_CvarSetInteger
+ *
+ * Callback setting a cvar_t's integer.
+ */
+static void TW_CALL Ui_CvarSetInteger(const void *value, void *data){
+	cvar_t *var = (cvar_t *)data;
+
+	Cvar_Set(var->name, va("%d", *(int *)value));
+}
+
+
+/*
+ * Ui_CvarGetInteger
+ *
+ * Callback exposing a cvar_t's integer.
+ */
+static void TW_CALL Ui_CvarGetInteger(void *value, void *data){
+	cvar_t *var = (cvar_t *)data;
+	*(int *)value = var->integer;
+}
+
+
+/*
+ * Ui_CvarInteger
+ *
+ * Exposes a cvar_t as a text input accepting integers.
+ */
+void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def){
+	TwAddVarCB(bar, name, TW_TYPE_INT32, Ui_CvarSetInteger, Ui_CvarGetInteger, var, def);
+}
+
+
+/*
  * Ui_CvarSetValue
  *
- * Callback for setting a cvar_t's value.
+ * Callback setting a cvar_t's value.
  */
 static void TW_CALL Ui_CvarSetValue(const void *value, void *data){
 	cvar_t *var = (cvar_t *)data;
@@ -63,7 +106,7 @@ static void TW_CALL Ui_CvarSetValue(const void *value, void *data){
 /*
  * Ui_CvarGetValue
  *
- * Callback for exposing a cvar_t's value.
+ * Callback exposing a cvar_t's value.
  */
 static void TW_CALL Ui_CvarGetValue(void *value, void *data){
 	cvar_t *var = (cvar_t *)data;
@@ -72,24 +115,12 @@ static void TW_CALL Ui_CvarGetValue(void *value, void *data){
 
 
 /*
- * Ui_CvarText
+ * Ui_CvarDecimal
  *
- * Exposes a cvar_t as a text input via the specified TwBar.
+ * Exposes a cvar_t as a text input accepting decimals.
  */
-void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var){
-	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_CvarSetString, Ui_CvarGetString, var, NULL);
-}
-
-
-/*
- * Ui_CvarRange
- */
-void Ui_CvarRange(TwBar *bar, const char *name, cvar_t *var, float min, float max){
-
-	const float step = (max - min) / 50.0;
-
-	TwAddVarCB(bar, name, TW_TYPE_FLOAT, Ui_CvarSetValue, Ui_CvarGetValue, var,
-			va("min=%f max=%f step=%1.1f", min, max, step));
+void Ui_CvarDecimal(TwBar *bar, const char *name, cvar_t *var, const char *def){
+	TwAddVarCB(bar, name, TW_TYPE_FLOAT, Ui_CvarSetValue, Ui_CvarGetValue, var, def);
 }
 
 
@@ -152,6 +183,6 @@ static void TW_CALL Ui_BindGet(void *value, void *data){
  *
  * Exposes a key binding via the specified TwBar.
  */
-void Ui_Bind(TwBar *bar, const char *name, const char *bind){
-	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_BindSet, Ui_BindGet, (void *)bind, NULL);
+void Ui_Bind(TwBar *bar, const char *name, const char *bind, const char *def){
+	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_BindSet, Ui_BindGet, (void *)bind, def);
 }

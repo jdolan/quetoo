@@ -13,7 +13,8 @@ libui_la_SOURCES = \
 	ui_main.c \
 	ui_misc.c \
 	ui_player.c \
-	ui_servers.c
+	ui_servers.c \
+	ui_system.c
 
 libui_la_CFLAGS = \
 	-I.. -I../.. \

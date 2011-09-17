@@ -66,9 +66,15 @@ static TwBar *Ui_Root(void){
 	TwAddButton(bar, "Servers", Ui_ToggleBar, "Servers", NULL);
 	TwAddButton(bar, "Controls", Ui_ToggleBar, "Controls", NULL);
 	TwAddButton(bar, "Player", Ui_ToggleBar, "Player", NULL);
+	TwAddButton(bar, "System", Ui_ToggleBar, "System", NULL);
+
+	TwAddSeparator(bar, NULL, NULL);
+
 	TwAddButton(bar, "Quit", Ui_Command, "quit\n", NULL);
 
-	TwDefine("Quake2World size='200 200'");
+	TwDefine("Quake2World size='200 200' alpha=200");
+
+	//TwDefine("GLOBAL fontsize=3");
 
 	return bar;
 }
@@ -87,6 +93,7 @@ void Ui_Init(void){
 	ui.servers = Ui_Servers();
 	ui.controls = Ui_Controls();
 	ui.player = Ui_Player();
+	ui.system = Ui_System();
 }
 
 
