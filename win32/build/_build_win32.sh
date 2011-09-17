@@ -30,7 +30,7 @@ echo checked out revision $rev
 cd $START/quake2world
 autoreconf -i --force
 ./configure --prefix=/tmp/quake2world
-make -j 4
+make
 make install
 cd src/game/default
 gcc -shared -o game.dll *.o ../../.libs/libshared.a
