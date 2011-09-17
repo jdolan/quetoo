@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{4464AC50-E719-4DB4-8C60-A3B628AAA71E}
 AppName=Quake2World Development Environment
-AppVerName=Quake2World Development Environment 1.2.1
+AppVerName=Quake2World Development Environment 2.0.0
 AppPublisher=Marcel Wysocki
 AppPublisherURL=http://www.satgnu.net
 AppSupportURL=http://www.satgnu.net
@@ -15,8 +15,8 @@ AppUpdatesURL=http://www.satgnu.net
 DefaultDirName=C:\q2wdevenv
 DefaultGroupName=Quake2World Development Environment
 AllowNoIcons=yes
-LicenseFile=C:\Dokumente und Einstellungen\Administrator\Desktop\LICENSE
-OutputBaseFilename=q2wdevenv_1.2
+LicenseFile=C:\LICENSE.txt
+OutputBaseFilename=q2wdevenv_2.0
 Compression=lzma
 SolidCompression=yes
 
@@ -28,7 +28,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\q2wdevenv\msys.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\q2wdevenv\msys\1.0\msys.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\q2wdevenv\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

@@ -1,7 +1,7 @@
-SOURCE=http://www.buraphalinux.org/download/bls2.3/dvd_source/source1/development/nasm/nasm-2.09.10.tar.bz2
+SOURCE=http://fossies.org/linux/misc/nasm-2.09.10.tar.gz
 wget -c $SOURCE
 
-tar xjf nasm-2.09.10.tar.bz2
+tar xzf nasm-2.09.10.tar.gz
 
 cd nasm-2.09.10
 
