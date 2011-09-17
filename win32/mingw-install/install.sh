@@ -1,6 +1,6 @@
 #!/bin/sh
 #############################################################################
-# Copyright(c) 2007-2010 Quake2World.
+# Copyright(c) 2007-2011 Quake2World.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
