@@ -21,6 +21,10 @@
 
 #include "ui_local.h"
 
+
+/*
+ * Ui_System
+ */
 TwBar *Ui_System(void){
 
 	TwBar *bar = TwNewBar("System");
@@ -41,6 +45,7 @@ TwBar *Ui_System(void){
 	TwAddSeparator(bar, NULL, "group=Video");
 
 	Ui_CvarInteger(bar, "Shaders", r_programs, "min=0 max=1 step=1 group=Video");
+	Ui_CvarInteger(bar, "Anisotropy", r_anisotropy, "min=0 max=1 step=1 group=Video");
 	Ui_CvarInteger(bar, "Anti-aliasing", r_multisample, "min=0 max=4 step=1 group=Video");
 
 	Ui_CvarDecimal(bar, "Volume", s_volume, "min=0.0 max=1.0 step=0.1 group=Audio");

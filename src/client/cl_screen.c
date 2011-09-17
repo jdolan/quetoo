@@ -658,18 +658,6 @@ static void Cl_DrawBlend(void){
 
 
 /*
- * Cl_DrawUi
- */
-static void Cl_DrawUi(void){
-
-	if(cls.key_state.dest != key_menu)
-		return;
-
-	Ui_Draw();
-}
-
-
-/*
  * Cl_DrawCursor
  */
 static void Cl_DrawCursor(void){
@@ -741,7 +729,7 @@ void Cl_UpdateScreen(void){
 
 	Cl_DrawCursor();
 
-	Cl_DrawUi();
+	Ui_Draw();
 
 	R_EndFrame();
 }

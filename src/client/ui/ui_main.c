@@ -48,7 +48,11 @@ void Ui_Draw(void){
 		h = r_state.height;
 
 		TwWindowSize(w, h);
+		TwDefine("GLOBAL fontsize=3");
 	}
+
+	if(cls.key_state.dest != key_menu)
+		return;
 
 	TwDraw();
 }
@@ -74,9 +78,18 @@ static TwBar *Ui_Root(void){
 
 	TwDefine("Quake2World size='200 200' alpha=200");
 
-	//TwDefine("GLOBAL fontsize=3");
-
 	return bar;
+}
+
+
+/*
+ * Ui_Restart_f
+ */
+static void Ui_Restart_f(void){
+
+	Ui_Shutdown();
+
+	Ui_Init();
 }
 
 
@@ -94,6 +107,8 @@ void Ui_Init(void){
 	ui.controls = Ui_Controls();
 	ui.player = Ui_Player();
 	ui.system = Ui_System();
+
+	Cmd_AddCommand("ui_restart", Ui_Restart_f, "Restarts the menus subsystem");
 }
 
 
@@ -103,4 +118,6 @@ void Ui_Init(void){
 void Ui_Shutdown(void){
 
 	TwTerminate();
+
+	Cmd_RemoveCommand("ui_restart");
 }

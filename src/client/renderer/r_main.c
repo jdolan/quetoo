@@ -743,6 +743,8 @@ static void R_InitConfig(void){
 
 /*
  * R_Init
+ *
+ * Creates the OpenGL context and initializes all GL state.
  */
 void R_Init(void){
 
