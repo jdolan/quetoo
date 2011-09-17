@@ -22,6 +22,9 @@ function BUILD
 {
 	rm -f _build.log
 	sh _build_win32.sh > _build.log 2>&1
+	
+  scp _build.log web@satgnu.net:www/satgnu.net/files
+
 
 	if [ $? != "0" ];then
 
