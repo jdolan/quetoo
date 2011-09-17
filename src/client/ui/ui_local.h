@@ -51,6 +51,7 @@ void TW_CALL Ui_ToggleBar(void *data);
 TwBar *Ui_Player(void);
 
 // ui_servers.c
+void Ui_NewServer(void);
 TwBar *Ui_Servers(void);
 
 #endif /* __UI_LOCAL_H__ */

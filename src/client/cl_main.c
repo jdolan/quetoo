@@ -461,7 +461,6 @@ static void Cl_CheckForResend(void){
  * Cl_Connect_f
  */
 static void Cl_Connect_f(void){
-	char *s;
 
 	if(Cmd_Argc() != 2){
 		Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
@@ -472,22 +471,9 @@ static void Cl_Connect_f(void){
 		Sv_ShutdownServer("Server quit.\n");
 	}
 
-	s = Cmd_Argv(1);
-
-	if(s[0] == '*'){  // resolve by server number
-		const cl_server_info_t *server = Cl_ServerForNum(atoi(s + 1));
-
-		if(!server){
-			Com_Warn("Cl_Connect_f: Invalid server: %s\n", Cmd_Argv(1));
-			return;
-		}
-
-		s = Net_NetaddrToString(server->addr);
-	}
-
 	Cl_Disconnect();
 
-	strncpy(cls.server_name, s, sizeof(cls.server_name) - 1);
+	strncpy(cls.server_name, Cmd_Argv(1), sizeof(cls.server_name) - 1);
 
 	cls.connect_time = -99999;  // fire immediately
 	cls.state = ca_connecting;

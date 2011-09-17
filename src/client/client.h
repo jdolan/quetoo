@@ -212,10 +212,13 @@ typedef enum {
 typedef struct cl_server_info_s {
 	net_addr_t addr;
 	cl_server_source_t source;
-	int pingtime;
+	char hostname[64];
+	char name[32];
+	char gameplay[32];
+	int clients;
+	int max_clients;
+	int ping_time;
 	int ping;
-	char info[MAX_MSG_SIZE];
-	int num;
 	struct cl_server_info_s *next;
 } cl_server_info_t;
 
@@ -422,7 +425,6 @@ void Cl_Servers_f(void);
 void Cl_ParseStatusMessage(void);
 void Cl_ParseServersList(void);
 void Cl_FreeServers(void);
-cl_server_info_t *Cl_ServerForNum(int num);
 
 // cl_tentity.c
 void Cl_LoadTempEntitySamples(void);

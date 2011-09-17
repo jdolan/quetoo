@@ -33,27 +33,9 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr){
 	cls.servers = s;
 
 	s->addr = *addr;
+	strcpy(s->hostname, Net_NetaddrToString(s->addr));
 
 	return s;
-}
-
-
-/*
- * Cl_NumServers
- */
-static int Cl_NumServers(void){
-	cl_server_info_t *s;
-	int i;
-
-	s = cls.servers;
-	i = 0;
-
-	while(s){
-		s = s->next;
-		i++;
-	}
-
-	return i;
 }
 
 
@@ -68,26 +50,6 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr){
 	while(s){
 
 		if(Net_CompareNetaddr(*addr, s->addr))
-			return s;
-
-		s = s->next;
-	}
-
-	return NULL;
-}
-
-
-/*
- * Cl_ServerForNum
- */
-cl_server_info_t *Cl_ServerForNum(int num){
-	cl_server_info_t *s;
-
-	s = cls.servers;
-
-	while(s){
-
-		if(s->num == num)
 			return s;
 
 		s = s->next;
@@ -115,49 +77,12 @@ void Cl_FreeServers(void){
 
 
 /*
- * Cl_ServerSourceName
- */
-static char *Cl_ServerSourceName(cl_server_source_t source){
-
-	switch(source){
-		case SERVER_SOURCE_INTERNET:
-			return "Internet";
-		case SERVER_SOURCE_USER:
-			return "User";
-		case SERVER_SOURCE_BCAST:
-			return "LAN";
-		default:
-			return "";
-	}
-}
-
-
-/*
- * Cl_ServerSourceColor
- */
-static int Cl_ServerSourceColor(cl_server_source_t source){
-
-	switch(source){
-		case SERVER_SOURCE_INTERNET:
-			return CON_COLOR_GREEN;
-		case SERVER_SOURCE_USER:
-			return CON_COLOR_BLUE;
-		case SERVER_SOURCE_BCAST:
-			return CON_COLOR_YELLOW;
-		default:
-			return CON_COLOR_DEFAULT;
-	}
-}
-
-
-/*
  * Cl_ParseStatusMessage
  */
 void Cl_ParseStatusMessage(void){
+	extern void Ui_NewServer(void);
 	cl_server_info_t *server;
-	char *c, line[128];
-	const char *source;
-	int i, color;
+	char info[MAX_MSG_SIZE];
 
 	server = Cl_ServerForNetaddr(&net_from);
 
@@ -166,47 +91,29 @@ void Cl_ParseStatusMessage(void){
 		server = Cl_AddServer(&net_from);
 
 		server->source = SERVER_SOURCE_BCAST;
-		server->pingtime = cls.broadcast_time;
+		server->ping_time = cls.broadcast_time;
 	}
 
-	strncpy(server->info, Msg_ReadString(&net_message), sizeof(server->info) - 1);
+	// try to parse the info string
+	strncpy(info, Msg_ReadString(&net_message), sizeof(info) - 1);
 
-	if((c = strstr(server->info, "\n")))
-		*c = '\0';
+	if(sscanf(info, "%s\r%s\r%s\r%d\r%d",
+			server->hostname, server->name, server->gameplay,
+			&server->clients, &server->max_clients) != 5){
 
-	server->ping = cls.real_time - server->pingtime;
+		strcpy(server->hostname, Net_NetaddrToString(server->addr));
+		server->name[0] = '\0';
+		server->gameplay[0] = '\0';
+		server->clients = 0;
+		server->max_clients = 0;
+	}
+
+	server->ping = cls.real_time - server->ping_time;
 
 	if(server->ping > 1000)  // clamp the ping
 		server->ping = 999;
 
-	// rebuild the servers text buffer
-	if(cls.servers_text)
-		Z_Free(cls.servers_text);
-
-	cls.servers_text = Z_Malloc(Cl_NumServers() * sizeof(line));
-
-	server = cls.servers;
-	i = 0;
-	while(server){
-
-		if (server->ping) {  // only include ones which responded
-
-			source = Cl_ServerSourceName(server->source);
-
-			color = Cl_ServerSourceColor(server->source);
-
-			snprintf(line, sizeof(line), "^%d%-8s ^7%-44s %3dms\n",
-					color, source, server->info, server->ping);
-
-			strcat(cls.servers_text, line);
-
-			server->num = i++;
-		}
-
-		server = server->next;
-	}
-
-	//MN_RegisterText(TEXT_LIST, cls.servers_text);
+	Ui_NewServer();
 }
 
 
@@ -239,7 +146,7 @@ void Cl_Ping_f(void){
 		server->source = SERVER_SOURCE_USER;
 	}
 
-	server->pingtime = cls.real_time;
+	server->ping_time = cls.real_time;
 	server->ping = 0;
 
 	Com_Print("Pinging %s\n", Net_NetaddrToString(server->addr));
@@ -262,7 +169,7 @@ static void Cl_SendBroadcast(void){
 	while(server){  // update old pingtimes
 
 		if(server->source == SERVER_SOURCE_BCAST){
-			server->pingtime = cls.broadcast_time;
+			server->ping_time = cls.broadcast_time;
 			server->ping = 0;
 		}
 
@@ -348,7 +255,7 @@ void Cl_ParseServersList(void){
 	while(server){
 
 		if(server->source == SERVER_SOURCE_INTERNET){
-			server->pingtime = cls.real_time;
+			server->ping_time = cls.real_time;
 			server->ping = 0;
 
 			Netchan_OutOfBandPrint(NS_CLIENT, server->addr, "info %i", PROTOCOL);

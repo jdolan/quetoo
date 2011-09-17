@@ -135,11 +135,10 @@ static void Svc_Ack(void){
 /*
  * Svc_Info
  *
- * Responds with short info for broadcast scans
+ * Responds with short info for broadcast scans.
  */
 static void Svc_Info(void){
-	char string[256];
-	char hostname[256];
+	char string[MAX_MSG_SIZE];
 	int i, count;
 	int prot;
 
@@ -158,10 +157,9 @@ static void Svc_Info(void){
 				count++;
 		}
 
-		StripColor(sv_hostname->string, hostname);
-
-		snprintf(string, sizeof(string), "%-24.24s %-12.12s %02d/%02d\n",
-				hostname, sv.name, count, (int)sv_max_clients->integer);
+		snprintf(string, sizeof(string), "%s\r%s\r%s\r%d\r%d",
+				sv_hostname->string, sv.name, Cvar_GetString("g_gameplay"),
+				count, sv_max_clients->integer);
 	}
 
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "info\n%s", string);
