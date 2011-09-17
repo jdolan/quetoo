@@ -22,6 +22,7 @@
 #ifndef __NET_H__
 #define __NET_H__
 
+#include "common.h"
 #include "cvar.h"
 
 #define MAX_MSG_SIZE 	1400  // max length of a message

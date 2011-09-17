@@ -22,7 +22,7 @@
 #ifndef __PAK_H__
 #define __PAK_H__
 
-#include "filesystem.h"
+#include "hash.h"
 
 #define ERR_OK   0
 #define ERR_DIR -1
@@ -36,19 +36,19 @@
 typedef struct {
 	char name[56];
 	int file_ofs, file_len;
-} pakentry_t;
+} pak_entry_t;
 
 typedef struct {
 	int ident;  // == IDPAKHEADER
-	int dirofs;
-	int dirlen;
-} pakheader_t;
+	int dir_ofs;
+	int dir_len;
+} pak_header_t;
 
 typedef struct pak_s {
 	char file_name[MAX_OSPATH];
 	FILE *handle;
-	int numentries;
-	pakentry_t *entries;
+	int num_entries;
+	pak_entry_t *entries;
 	hash_table_t hash_table;
 } pak_t;
 

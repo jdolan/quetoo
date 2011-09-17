@@ -26,12 +26,12 @@
 
 #define Z_MAGIC 0x1d1d
 
-typedef struct zhead_s {
-	struct zhead_s	*prev, *next;
+typedef struct z_head_s {
+	struct z_head_s	*prev, *next;
 	short magic;
 	short tag;  // for group free
 	size_t size;
-} zhead_t;
+} z_head_t;
 
 void Z_Init(void);
 void Z_Shutdown(void);

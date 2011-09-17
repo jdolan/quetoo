@@ -24,7 +24,6 @@
 
 #include "files.h"
 #include "filesystem.h"
-#include "threads.h"
 
 int BSP_Main(void);
 int VIS_Main(void);

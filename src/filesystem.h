@@ -25,7 +25,6 @@
 #include "common.h"
 #include "cmd.h"
 #include "cvar.h"
-#include "hash.h"
 #include "pak.h"
 #include "swap.h"
 #include "sys.h"

@@ -144,7 +144,7 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 	char path[MAX_OSPATH];
 	struct stat sbuf;
 	pak_t *pak;
-	pakentry_t *e;
+	pak_entry_t *e;
 
 	fs_last_pak = NULL;
 
@@ -181,7 +181,7 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode){
 	if((pak = (pak_t *)Hash_Get(&fs_hash_table, file_name))){
 
 		// find the entry within the pak file
-		if((e = (pakentry_t *)Hash_Get(&pak->hash_table, file_name))){
+		if((e = (pak_entry_t *)Hash_Get(&pak->hash_table, file_name))){
 
 			*file = fopen(pak->file_name, "rb");
 
@@ -284,10 +284,10 @@ void Fs_AddPakfile(const char *pakfile){
 	if(!(pak = Pak_ReadPakfile(pakfile)))
 		return;
 
-	for(i = 0; i < pak->numentries; i++)  // hash the entries to the pak
+	for(i = 0; i < pak->num_entries; i++)  // hash the entries to the pak
 		Hash_Put(&fs_hash_table, pak->entries[i].name, pak);
 
-	Com_Print("Added %s: %i files.\n", pakfile, pak->numentries);
+	Com_Print("Added %s: %i files.\n", pakfile, pak->num_entries);
 }
 
 

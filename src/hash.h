@@ -24,7 +24,7 @@
 
 #include "mem.h"
 
-// hash_table implementation
+// hash table implementation
 #define HASH_BINS 512
 
 typedef struct hash_entry_s {
@@ -98,7 +98,7 @@ void Hash_Clear(hash_table_t *table, const char *key);
 /*
 Hash_Free
 
-Free all hashentries associated with hash_table.  Does not free any of the
+Free all entries associated with hash table.  Does not free any of the
 values referenced by the entries.
 */
 void Hash_Free(hash_table_t *table);

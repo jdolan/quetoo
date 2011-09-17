@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "threads.h"
 #include "r_gl.h"
 #include "r_image.h"
 #include "r_matrix.h"

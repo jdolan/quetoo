@@ -20,6 +20,7 @@
  */
 
 #include "cvar.h"
+#include "filesystem.h"
 
 cvar_t *cvar_vars;
 

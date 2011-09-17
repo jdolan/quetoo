@@ -21,6 +21,8 @@
 
 #include "swap.h"
 
+#include <SDL/SDL.h>
+
 
 /*
  * SwapShort
@@ -73,7 +75,7 @@ static float SwapFloat(float f){
  * BigShort
  */
 short BigShort(short s){
-	if(BYTE_ORDER == LITTLE_ENDIAN)
+	if(SDL_BYTEORDER == SDL_LIL_ENDIAN)
 		return SwapShort(s);
 	return s;
 }
@@ -83,7 +85,7 @@ short BigShort(short s){
  * LittleShort
  */
 short LittleShort(short s){
-	if(BYTE_ORDER == BIG_ENDIAN)
+	if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
 		return SwapShort(s);
 	return s;
 }
@@ -93,7 +95,7 @@ short LittleShort(short s){
  * BigLong
  */
 int BigLong(int l){
-	if(BYTE_ORDER == LITTLE_ENDIAN)
+	if(SDL_BYTEORDER == SDL_LIL_ENDIAN)
 		return SwapLong(l);
 	return l;
 }
@@ -103,7 +105,7 @@ int BigLong(int l){
  * LittleLong
  */
 int LittleLong(int l){
-	if(BYTE_ORDER == BIG_ENDIAN)
+	if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
 		return SwapLong(l);
 	return l;
 }
@@ -113,7 +115,7 @@ int LittleLong(int l){
  * BigFloat
  */
 float BigFloat(float f){
-	if(BYTE_ORDER == LITTLE_ENDIAN)
+	if(SDL_BYTEORDER == SDL_LIL_ENDIAN)
 		return SwapFloat(f);
 	return f;
 }
@@ -122,7 +124,7 @@ float BigFloat(float f){
  * LittleFloat
  */
 float LittleFloat(float f){
-	if(BYTE_ORDER == BIG_ENDIAN)
+	if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
 		return SwapFloat(f);
 	return f;
 }

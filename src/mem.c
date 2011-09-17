@@ -21,13 +21,12 @@
 
 #include "mem.h"
 
-#ifdef HAVE_SDL
 #include <SDL/SDL_thread.h>
-static SDL_mutex *z_lock;
-#endif
 
-static zhead_t z_chain;
+
+static z_head_t z_chain;
 static size_t z_count, z_bytes;
+static SDL_mutex *z_lock;
 
 
 /*
@@ -37,9 +36,7 @@ void Z_Init(void){
 
 	z_chain.next = z_chain.prev = &z_chain;
 
-#ifdef HAVE_SDL
 	z_lock = SDL_CreateMutex();
-#endif
 }
 
 /*
@@ -49,9 +46,7 @@ void Z_Shutdown(void){
 
 	Z_FreeTags(-1);
 
-#ifdef HAVE_SDL
 	SDL_DestroyMutex(z_lock);
-#endif
 }
 
 
@@ -59,24 +54,20 @@ void Z_Shutdown(void){
  * Z_Free
  */
 void Z_Free(void *ptr){
-	zhead_t *z;
+	z_head_t *z;
 
-	z = ((zhead_t *)ptr) - 1;
+	z = ((z_head_t *)ptr) - 1;
 
 	if(z->magic != Z_MAGIC){
 		Com_Error(ERR_FATAL, "Z_Free: Bad magic for %p.\n", ptr);
 	}
 
-#ifdef HAVE_SDL
 	SDL_mutexP(z_lock);
-#endif
 
 	z->prev->next = z->next;
 	z->next->prev = z->prev;
 
-#ifdef HAVE_SDL
 	SDL_mutexV(z_lock);
-#endif
 
 	z_count--;
 	z_bytes -= z->size;
@@ -88,7 +79,7 @@ void Z_Free(void *ptr){
  * Z_FreeTags
  */
 void Z_FreeTags(int tag){
-	zhead_t *z, *next;
+	z_head_t *z, *next;
 
 	for(z = z_chain.next; z != &z_chain; z = next){
 		next = z->next;
@@ -102,9 +93,9 @@ void Z_FreeTags(int tag){
  * Z_TagMalloc
  */
 void *Z_TagMalloc(size_t size, int tag){
-	zhead_t *z;
+	z_head_t *z;
 
-	size = size + sizeof(zhead_t);
+	size = size + sizeof(z_head_t);
 	z = malloc(size);
 	if(!z){
 		Com_Error(ERR_FATAL, "Z_TagMalloc: Failed to allocate "Q2W_SIZE_T" bytes.\n", size);
@@ -118,18 +109,14 @@ void *Z_TagMalloc(size_t size, int tag){
 	z->tag = tag;
 	z->size = size;
 
-#ifdef HAVE_SDL
 	SDL_mutexP(z_lock);
-#endif
 
 	z->next = z_chain.next;
 	z->prev = &z_chain;
 	z_chain.next->prev = z;
 	z_chain.next = z;
 
-#ifdef HAVE_SDL
 	SDL_mutexV(z_lock);
-#endif
 
 	return (void *)(z + 1);
 }

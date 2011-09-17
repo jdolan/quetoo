@@ -23,6 +23,7 @@
 #define __COMMON_H__
 
 #include "shared.h"
+#include "threads.h"
 
 #define GAMEDIR	"default"
 

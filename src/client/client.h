@@ -26,12 +26,9 @@
 #include "cmodel.h"
 #include "console.h"
 #include "filesystem.h"
-#include "mem.h"
 #include "net.h"
-#include "sys.h"
 #include "renderer/renderer.h"
 #include "sound/sound.h"
-#include "threads.h"
 #include "ui/ui.h"
 
 typedef struct cl_frame_s {

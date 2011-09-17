@@ -22,7 +22,7 @@
 #ifndef __CVAR_H__
 #define __CVAR_H__
 
-#include "filesystem.h"
+#include "quake2world.h"
 
 /*
 
@@ -43,7 +43,7 @@ extern cvar_t *cvar_vars;
 
 void Cvar_LockCheatVars(boolean_t lock);
 
-boolean_t Cvar_Delete(const char *varName);
+boolean_t Cvar_Delete(const char *var_name);
 
 cvar_t *Cvar_Get(const char *var_name, const char *value, int flags, const char *description);
 // creates the variable if it doesn't exist, or returns the existing one

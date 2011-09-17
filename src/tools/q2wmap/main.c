@@ -569,7 +569,7 @@ int main(int argc, char **argv){
 	OpenWin32Console();		//	initialize the windows console
 #endif
 
-	Com_Print("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILDHOST);
+	Com_Print("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
 	if(argc < 2){  // print help and exit
 		PrintHelpMessage();

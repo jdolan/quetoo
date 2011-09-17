@@ -24,6 +24,7 @@
 #include <unistd.h>
 
 #include "pak.h"
+#include "filesystem.h"
 
 
 /*
@@ -33,7 +34,7 @@
  * hashed by name for fast finds.
  */
 pak_t *Pak_ReadPakfile(const char *pakfile){
-	pakheader_t header;
+	pak_header_t header;
 	int i;
 	pak_t *pak;
 
@@ -48,7 +49,7 @@ pak_t *Pak_ReadPakfile(const char *pakfile){
 
 	strcpy(pak->file_name, pakfile);
 
-	Fs_Read(&header, 1, sizeof(pakheader_t), pak->handle);
+	Fs_Read(&header, 1, sizeof(pak_header_t), pak->handle);
 	if(LittleLong(header.ident) != PAK_HEADER){
 		Com_Warn("Pak_ReadPakfile: %s is not a pak file.\n", pakfile);
 		Fs_CloseFile(pak->handle);
@@ -56,26 +57,26 @@ pak_t *Pak_ReadPakfile(const char *pakfile){
 		return NULL;
 	}
 
-	header.dirofs = LittleLong(header.dirofs);
-	header.dirlen = LittleLong(header.dirlen);
+	header.dir_ofs = LittleLong(header.dir_ofs);
+	header.dir_len = LittleLong(header.dir_len);
 
-	pak->numentries = header.dirlen / sizeof(pakentry_t);
-	if(pak->numentries > MAX_PAK_ENTRIES){
-		Com_Warn("Pak_ReadPakfile: %s has %i files.\n", pakfile, pak->numentries);
+	pak->num_entries = header.dir_len / sizeof(pak_entry_t);
+	if(pak->num_entries > MAX_PAK_ENTRIES){
+		Com_Warn("Pak_ReadPakfile: %s has %i files.\n", pakfile, pak->num_entries);
 		Fs_CloseFile(pak->handle);
 		Z_Free(pak);
 		return NULL;
 	}
 
-	pak->entries = (pakentry_t *)Z_Malloc(pak->numentries * sizeof(pakentry_t));
+	pak->entries = (pak_entry_t *)Z_Malloc(pak->num_entries * sizeof(pak_entry_t));
 
-	fseek(pak->handle, header.dirofs, SEEK_SET);
-	Fs_Read(pak->entries, 1, header.dirlen, pak->handle);
+	fseek(pak->handle, header.dir_ofs, SEEK_SET);
+	Fs_Read(pak->entries, 1, header.dir_len, pak->handle);
 
 	Hash_Init(&pak->hash_table);
 
 	// parse the directory
-	for(i = 0; i < pak->numentries; ++i){
+	for(i = 0; i < pak->num_entries; ++i){
 		pak->entries[i].file_ofs = LittleLong(pak->entries[i].file_ofs);
 		pak->entries[i].file_len = LittleLong(pak->entries[i].file_len);
 
@@ -162,7 +163,7 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, boolean_t test){
 		return;
 	}
 
-	for(i = 0; i < pak->numentries; i++){
+	for(i = 0; i < pak->num_entries; i++){
 
 		if(test){  // print contents and continue
 			printf("Contents %s (%d bytes).\n", pak->entries[i].name,
@@ -205,7 +206,7 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, boolean_t test){
 pak_t *Pak_CreatePakstream(char *pakfile){
 	FILE *f;
 	pak_t *pak;
-	pakheader_t header;
+	pak_header_t header;
 
 	if(!(f = fopen(pakfile, "wb"))){
 		fprintf(stderr, "Couldn't open %s.\n", pakfile);
@@ -215,9 +216,9 @@ pak_t *Pak_CreatePakstream(char *pakfile){
 
 	// allocate a new pak
 	pak = (pak_t *)Z_Malloc(sizeof(*pak));
-	pak->entries = (pakentry_t *)Z_Malloc(sizeof(pakentry_t) * MAX_PAK_ENTRIES);
+	pak->entries = (pak_entry_t *)Z_Malloc(sizeof(pak_entry_t) * MAX_PAK_ENTRIES);
 
-	pak->numentries = 0;
+	pak->num_entries = 0;
 
 	pak->handle = f;
 	strcpy(pak->file_name, pakfile);
@@ -236,20 +237,20 @@ pak_t *Pak_CreatePakstream(char *pakfile){
  * Finalizes and frees a newly created Pakfile archive.
  */
 void Pak_ClosePakstream(pak_t *pak){
-	pakheader_t header;
+	pak_header_t header;
 	int i;
 
 	header.ident = PAK_HEADER;
-	header.dirlen = pak->numentries * sizeof(pakentry_t);
-	header.dirofs = ftell(pak->handle);
+	header.dir_len = pak->num_entries * sizeof(pak_entry_t);
+	header.dir_ofs = ftell(pak->handle);
 
 	// write the directory (table of contents) of entries
-	for(i = 0; i < pak->numentries; i++)
-		Fs_Write(&pak->entries[i], sizeof(pakentry_t), 1, pak->handle);
+	for(i = 0; i < pak->num_entries; i++)
+		Fs_Write(&pak->entries[i], sizeof(pak_entry_t), 1, pak->handle);
 
 	// go back to the beginning to finalize header
 	fseek(pak->handle, 0, SEEK_SET);
-	Fs_Write(&header, sizeof(pakheader_t), 1, pak->handle);
+	Fs_Write(&header, sizeof(pak_header_t), 1, pak->handle);
 
 	Pak_FreePakfile(pak);
 }
@@ -263,7 +264,7 @@ void Pak_ClosePakstream(pak_t *pak){
 void Pak_AddEntry(pak_t *pak, char *name, int len, void *p){
 	char *c;
 
-	if(pak->numentries == MAX_PAK_ENTRIES){
+	if(pak->num_entries == MAX_PAK_ENTRIES){
 		fprintf(stderr, "Maximum pak entries (4096) reached.\n");
 		return;
 	}
@@ -272,17 +273,17 @@ void Pak_AddEntry(pak_t *pak, char *name, int len, void *p){
 	if(!strncmp(c, "./", 2))
 		c += 2;
 
-	memset(pak->entries[pak->numentries].name, 0, 56);
-	strncpy(pak->entries[pak->numentries].name, c, 55);
+	memset(pak->entries[pak->num_entries].name, 0, 56);
+	strncpy(pak->entries[pak->num_entries].name, c, 55);
 
-	pak->entries[pak->numentries].file_len = len;
-	pak->entries[pak->numentries].file_ofs = ftell(pak->handle);
+	pak->entries[pak->num_entries].file_len = len;
+	pak->entries[pak->num_entries].file_ofs = ftell(pak->handle);
 
 	Fs_Write(p, len, 1, pak->handle);
 
 	printf("Added %s (%d bytes).\n", c, len);
 
-	pak->numentries++;
+	pak->num_entries++;
 }
 
 

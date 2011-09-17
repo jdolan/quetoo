@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#ifndef __SYS_H__
+#define __SYS_H__
+
 #include <dirent.h>
 
 #ifndef _WIN32
@@ -40,12 +43,6 @@
 #include <execinfo.h>
 #define MAX_BACKTRACE_SYMBOLS 50
 #endif
-
-#ifdef HAVE_SDL
-#include <SDL/SDL.h>
-#endif
-
-#ifndef __SYS_H__
 
 int Sys_Milliseconds(void);
 
