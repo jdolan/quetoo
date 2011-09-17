@@ -92,6 +92,16 @@ void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def){
 
 
 /*
+ * Ui_CvarEnum
+ *
+ * Exposes a cvar_t as a select input with predefined numeric values.
+ */
+void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType en, const char *def){
+	TwAddVarCB(bar, name, en, Ui_CvarSetInteger, Ui_CvarGetInteger, var, def);
+}
+
+
+/*
  * Ui_CvarSetValue
  *
  * Callback setting a cvar_t's value.

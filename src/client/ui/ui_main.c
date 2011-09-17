@@ -48,7 +48,8 @@ void Ui_Draw(void){
 		h = r_state.height;
 
 		TwWindowSize(w, h);
-		TwDefine("GLOBAL fontsize=3");
+
+		TwDefine("GLOBAL fontsize=3");  // reload the font
 	}
 
 	if(cls.key_state.dest != key_menu)
@@ -64,7 +65,6 @@ void Ui_Draw(void){
  * Defines the root TwBar.
  */
 static TwBar *Ui_Root(void){
-
 	TwBar *bar = TwNewBar("Quake2World");
 
 	TwAddButton(bar, "Servers", Ui_ToggleBar, "Servers", NULL);
@@ -76,7 +76,7 @@ static TwBar *Ui_Root(void){
 
 	TwAddButton(bar, "Quit", Ui_Command, "quit\n", NULL);
 
-	TwDefine("Quake2World size='200 200' alpha=200");
+	TwDefine("Quake2World size='200 130' alpha=200 iconifiable=false");
 
 	return bar;
 }
@@ -97,10 +97,20 @@ static void Ui_Restart_f(void){
  * Ui_Init
  */
 void Ui_Init(void){
+	const TwEnumVal OffOrOn[] = {
+		{0, "Off"}, {1, "On"}
+	};
+
+	const TwEnumVal OffLowMediumHigh[] = {
+		{0, "Off"}, {1, "Low"}, {2, "Medium"}, {3, "High"}
+	};
 
 	memset(&ui, 0, sizeof(ui));
 
 	TwInit(TW_OPENGL, NULL);
+
+	ui.OffOrOn = TwDefineEnum("OnOrOff", OffOrOn, lengthof(OffOrOn));
+	ui.OffLowMediumHigh = TwDefineEnum("OffLowMediumHigh", OffLowMediumHigh, lengthof(OffLowMediumHigh));
 
 	ui.root = Ui_Root();
 	ui.servers = Ui_Servers();

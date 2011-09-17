@@ -38,11 +38,11 @@ void TW_CALL Ui_ToggleBar(void *data){
 		return;
 	}
 
-	int iconified;
+	int visible;
 
-	TwGetParam(bar, NULL, "iconified", TW_PARAM_INT32, 1, &iconified);
+	TwGetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
 
-	iconified = !iconified;
+	visible = !visible;
 
-	TwSetParam(bar, NULL, "iconified", TW_PARAM_INT32, 1, &iconified);
+	TwSetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
 }

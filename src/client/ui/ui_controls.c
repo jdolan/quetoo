@@ -44,8 +44,8 @@ TwBar *Ui_Controls(void){
 	Ui_Bind(bar, "Run / walk", "+speed", "group=Movement");
 
 	Ui_CvarDecimal(bar, "Sensitivity", m_sensitivity, "min=0 max=6 group=Mouse");
-	Ui_CvarInteger(bar, "Invert mouse", m_invert, "min=0 max=1 step=1 group=Mouse");
-	Ui_CvarInteger(bar, "Smooth mouse", m_interpolate, "min=0 max=1 step=1 group=Mouse");
+	Ui_CvarEnum(bar, "Invert mouse", m_invert, ui.OffOrOn, "group=Mouse");
+	Ui_CvarEnum(bar, "Smooth mouse", m_interpolate, ui.OffOrOn, "group=Mouse");
 
 	Ui_Bind(bar, "Shotgun", "use shotgun", "group=Weapons");
 	Ui_Bind(bar, "Super shotgun", "use super shotgun", "group=Weapons");
@@ -66,7 +66,7 @@ TwBar *Ui_Controls(void){
 	Ui_Bind(bar, "Talk to team", "message_mode_2", "group=Communication");
 	Ui_Bind(bar, "Show scores", "score", "group=Communication");
 
-	TwDefine("Controls size='250 550' alpha=200 iconified=true");
+	TwDefine("Controls size='250 550' alpha=200 iconifiable=false visible=false");
 
 	return bar;
 }
