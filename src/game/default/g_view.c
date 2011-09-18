@@ -80,11 +80,11 @@ static void G_ClientFall(g_edict_t *ent){
 
 	entity_event_t event = EV_CLIENT_LAND;
 
-	if(fall > 400.0){  // player will take damage
+	if(fall > 550.0){  // player will take damage
 		int damage = ((int)(fall * 0.01)) >> ent->water_level;
 		vec3_t dir;
 
-		if(fall > 450.0)
+		if(fall > 750.0)
 			event = EV_CLIENT_FALL_FAR;
 		else
 			event = EV_CLIENT_FALL;
