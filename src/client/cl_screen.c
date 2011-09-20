@@ -30,7 +30,7 @@
 
 #define NET_GRAPH_HEIGHT 64
 #define NET_GRAPH_WIDTH 128
-#define NET_GRAPH_Y 128
+#define NET_GRAPH_Y 0
 
 // net graph samples
 typedef struct {
@@ -135,13 +135,13 @@ static void Cl_DrawTeamBanner(void){
 		return;
 	}
 
-	R_DrawFill(0, r_state.height - 96, r_state.width, r_state.height, color, 0.15);
+	R_DrawFill(0, r_state.height - 64, r_state.width, r_state.height, color, 0.15);
 }
 
 
-char centerstring[MAX_STRING_CHARS];
+char center_string[MAX_STRING_CHARS];
 float centertime;
-int centerlines;
+int center_lines;
 
 /*
  * Cl_CenterPrint
@@ -149,16 +149,16 @@ int centerlines;
 void Cl_CenterPrint(char *str){
 	char *s;
 
-	strncpy(centerstring, str, sizeof(centerstring) - 1);
+	strncpy(center_string, str, sizeof(center_string) - 1);
 
 	centertime = cl.time + 5.0;
 
 	// count the number of lines for centering
-	centerlines = 1;
+	center_lines = 1;
 	s = str;
 	while(*s){
 		if(*s == '\n')
-			centerlines++;
+			center_lines++;
 		s++;
 	}
 
@@ -175,9 +175,9 @@ static void Cl_DrawCenterString(void){
 	const char *s;
 	int x, y, size, len;
 
-	s = centerstring;
+	s = center_string;
 
-	if(centerlines <= 4)
+	if(center_lines <= 4)
 		y = r_state.height * 0.35;
 	else
 		y = 48;
@@ -199,7 +199,7 @@ static void Cl_DrawCenterString(void){
 			len++;
 		}
 
-		x = (r_state.width - (len * 16)) / 2;
+		x = (r_state.width - (len * r_font_medium->char_width)) / 2;
 
 		// draw it
 		R_DrawSizedString(x, y, s, len, 999, CON_COLOR_DEFAULT);
@@ -572,6 +572,8 @@ static void Cl_DrawCounters(void){
 	if(!cl_counters->value)
 		return;
 
+	R_BindFont(r_font_small);
+
 	frames_this_second++;
 
 	if(quake2world.time - millis >= 1000){
@@ -591,10 +593,12 @@ static void Cl_DrawCounters(void){
 		bytes_this_second = 0;
 	}
 
-	R_DrawString(r_state.width - 112, r_state.height - 128, spd, COLOR_HUD_COUNTER);
-	R_DrawString(r_state.width - 112, r_state.height - 96, fps, COLOR_HUD_COUNTER);
-	R_DrawString(r_state.width - 112, r_state.height - 64, pps, COLOR_HUD_COUNTER);
-	R_DrawString(r_state.width - 112, r_state.height - 32, bps, COLOR_HUD_COUNTER);
+	R_DrawString(r_state.width - 56, r_state.height - 64, spd, COLOR_HUD_COUNTER);
+	R_DrawString(r_state.width - 56, r_state.height - 48, fps, COLOR_HUD_COUNTER);
+	R_DrawString(r_state.width - 56, r_state.height - 32, pps, COLOR_HUD_COUNTER);
+	R_DrawString(r_state.width - 56, r_state.height - 16, bps, COLOR_HUD_COUNTER);
+
+	R_BindFont(NULL);
 }
 
 

@@ -27,13 +27,18 @@
 // struct exposed to the client game by the engine
 typedef struct cgame_export_s {
 	void *(DrawPic)(int x, int y, float scale, const char *name);
-	int *(DrawString)
 
+	r_font_t font_small;
+	r_font_t font_medium;
+	r_font_t font_large;
+
+	void *(BindFont)(r_font_t *font);
+	int *(DrawString)(int x, int y, const char *s, int color);
 } cgame_export_t;
 
 // struct exposed to the engine by the client game
 typedef struct cgame_import_s {
-
+	void *(DrawHud)(cl_frame_t *frame);
 } cgame_import_t;
 
 #endif /* __CGAME_H__ */
