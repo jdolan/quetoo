@@ -166,7 +166,7 @@ void Sv_LinkEdict(g_edict_t *ent){
 	int num_leafs;
 	int i, j, k;
 	int area;
-	int topnode;
+	int top_node;
 
 	if(ent == svs.game->edicts)  // never bother with the world
 		return;
@@ -248,7 +248,7 @@ void Sv_LinkEdict(g_edict_t *ent){
 
 	// get all leafs, including solids
 	num_leafs = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs,
-			leafs, MAX_TOTAL_ENT_LEAFS, &topnode);
+			leafs, MAX_TOTAL_ENT_LEAFS, &top_node);
 
 	// set areas
 	for(i = 0; i < num_leafs; i++){
@@ -269,7 +269,7 @@ void Sv_LinkEdict(g_edict_t *ent){
 
 	if(num_leafs >= MAX_TOTAL_ENT_LEAFS){  // assume we missed some leafs, and mark by head_node
 		ent->num_clusters = -1;
-		ent->head_node = topnode;
+		ent->head_node = top_node;
 	} else {
 		ent->num_clusters = 0;
 		for(i = 0; i < num_leafs; i++){
@@ -284,7 +284,7 @@ void Sv_LinkEdict(g_edict_t *ent){
 			if(j == i){
 				if(ent->num_clusters == MAX_ENT_CLUSTERS){  // assume we missed some leafs, and mark by head_node
 					ent->num_clusters = -1;
-					ent->head_node = topnode;
+					ent->head_node = top_node;
 					break;
 				}
 

@@ -653,19 +653,19 @@ static void FloodAreas_r(node_t * node){
 
 		// if the current area has already touched this
 		// portal, we are done
-		if(e->portalareas[0] == c_areas || e->portalareas[1] == c_areas)
+		if(e->portal_areas[0] == c_areas || e->portal_areas[1] == c_areas)
 			return;
 
 		// note the current area as bounding the portal
-		if(e->portalareas[1]){
+		if(e->portal_areas[1]){
 			Com_Verbose("WARNING: areaportal entity %i touches > 2 areas\n",
 			           b->original->entity_num);
 			return;
 		}
-		if(e->portalareas[0])
-			e->portalareas[1] = c_areas;
+		if(e->portal_areas[0])
+			e->portal_areas[1] = c_areas;
 		else
-			e->portalareas[0] = c_areas;
+			e->portal_areas[0] = c_areas;
 
 		return;
 	}
@@ -744,8 +744,8 @@ static void SetAreaPortalAreas_r(node_t * node){
 
 		b = node->brushes;
 		e = &entities[b->original->entity_num];
-		node->area = e->portalareas[0];
-		if(!e->portalareas[1]){
+		node->area = e->portal_areas[0];
+		if(!e->portal_areas[1]){
 			Com_Verbose("WARNING: areaportal entity %i doesn't touch two areas\n",
 			           b->original->entity_num);
 			return;
@@ -772,18 +772,18 @@ void EmitAreaPortals(node_t * head_node){
 		for(j = 0; j < num_entities; j++){
 			const entity_t *e = &entities[j];
 
-			if(!e->areaportal_num)
+			if(!e->area_portal_num)
 				continue;
 
 			dp = &d_bsp.area_portals[d_bsp.num_area_portals];
 
-			if(e->portalareas[0] == i){
-				dp->portal_num = e->areaportal_num;
-				dp->other_area = e->portalareas[1];
+			if(e->portal_areas[0] == i){
+				dp->portal_num = e->area_portal_num;
+				dp->other_area = e->portal_areas[1];
 				d_bsp.num_area_portals++;
-			} else if(e->portalareas[1] == i){
-				dp->portal_num = e->areaportal_num;
-				dp->other_area = e->portalareas[0];
+			} else if(e->portal_areas[1] == i){
+				dp->portal_num = e->area_portal_num;
+				dp->other_area = e->portal_areas[0];
 				d_bsp.num_area_portals++;
 			}
 		}

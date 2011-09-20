@@ -105,13 +105,13 @@ typedef struct epair_s {
 
 typedef struct {
 	vec3_t origin;
-	int firstbrush;
+	int first_brush;
 	int num_brushes;
 	epair_t *epairs;
 
 	// only valid for func_areaportals
-	int areaportal_num;
-	int portalareas[2];
+	int area_portal_num;
+	int portal_areas[2];
 } entity_t;
 
 extern int num_entities;

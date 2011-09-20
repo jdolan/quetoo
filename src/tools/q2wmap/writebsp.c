@@ -424,7 +424,7 @@ void BeginModel(void){
 	// bound the brushes
 	e = &entities[entity_num];
 
-	start = e->firstbrush;
+	start = e->first_brush;
 	end = start + e->num_brushes;
 	ClearBounds(mins, maxs);
 

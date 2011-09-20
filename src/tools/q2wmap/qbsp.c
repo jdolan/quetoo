@@ -151,7 +151,7 @@ static void ProcessWorldModel(void){
 
 	e = &entities[entity_num];
 
-	brush_start = e->firstbrush;
+	brush_start = e->first_brush;
 	brush_end = brush_start + e->num_brushes;
 	leaked = false;
 
@@ -248,7 +248,7 @@ static void ProcessSubModel(void){
 
 	e = &entities[entity_num];
 
-	start = e->firstbrush;
+	start = e->first_brush;
 	end = start + e->num_brushes;
 
 	mins[0] = mins[1] = mins[2] = -MAX_WORLD_WIDTH;

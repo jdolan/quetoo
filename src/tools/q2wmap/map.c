@@ -39,10 +39,10 @@ static map_plane_t *plane_hash[PLANE_HASHES];
 
 vec3_t map_mins, map_maxs;
 
-static int c_boxbevels;
-static int c_edgebevels;
-static int c_areaportals;
-static int c_clipbrushes;
+static int c_box_bevels;
+static int c_edge_bevels;
+static int c_area_portals;
+static int c_clip_brushes;
 
 
 /*
@@ -298,7 +298,7 @@ static void AddBrushBevels(map_brush_t * b){
 				s->texinfo = b->original_sides[0].texinfo;
 				s->contents = b->original_sides[0].contents;
 				s->bevel = true;
-				c_boxbevels++;
+				c_box_bevels++;
 			}
 			// if the plane is not in it canonical order, swap it
 			if(i != order){
@@ -388,7 +388,7 @@ static void AddBrushBevels(map_brush_t * b){
 					s2->texinfo = b->original_sides[0].texinfo;
 					s2->contents = b->original_sides[0].contents;
 					s2->bevel = true;
-					c_edgebevels++;
+					c_edge_bevels++;
 					b->num_sides++;
 				}
 			}
@@ -497,7 +497,7 @@ static void ParseBrush(entity_t *mapent){
 	b = &map_brushes[num_map_brushes];
 	b->original_sides = &map_brush_sides[num_map_brush_sides];
 	b->entity_num = num_entities - 1;
-	b->brush_num = num_map_brushes - mapent->firstbrush;
+	b->brush_num = num_map_brushes - mapent->first_brush;
 
 	do {
 		if(!GetToken(true))
@@ -641,7 +641,7 @@ static void ParseBrush(entity_t *mapent){
 	// brushes that will not be visible at all will never be
 	// used as bsp splitters
 	if(b->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)){
-		c_clipbrushes++;
+		c_clip_brushes++;
 		for(i = 0; i < b->num_sides; i++)
 			b->original_sides[i].texinfo = TEXINFO_NODE;
 	}
@@ -704,7 +704,7 @@ static void MoveBrushesToWorld(entity_t *ent){
 	world_brushes = entities[0].num_brushes;
 
 	temp = Z_Malloc(new_brushes * sizeof(map_brush_t));
-	memcpy(temp, map_brushes + ent->firstbrush,
+	memcpy(temp, map_brushes + ent->first_brush,
 	       new_brushes * sizeof(map_brush_t));
 
 	// make space to move the brushes (overlapped copy)
@@ -718,7 +718,7 @@ static void MoveBrushesToWorld(entity_t *ent){
 	// fix up indexes
 	entities[0].num_brushes += new_brushes;
 	for(i = 1; i < num_entities; i++)
-		entities[i].firstbrush += new_brushes;
+		entities[i].first_brush += new_brushes;
 	Z_Free(temp);
 
 	ent->num_brushes = 0;
@@ -748,7 +748,7 @@ static boolean_t ParseMapEntity(void){
 	mapent = &entities[num_entities];
 	num_entities++;
 	memset(mapent, 0, sizeof(*mapent));
-	mapent->firstbrush = num_map_brushes;
+	mapent->first_brush = num_map_brushes;
 	mapent->num_brushes = 0;
 
 	do {
@@ -770,7 +770,7 @@ static boolean_t ParseMapEntity(void){
 	// if there was an origin brush, offset all of the planes and texinfo
 	if(mapent->origin[0] || mapent->origin[1] || mapent->origin[2]){
 		for(i = 0; i < mapent->num_brushes; i++){
-			b = &map_brushes[mapent->firstbrush + i];
+			b = &map_brushes[mapent->first_brush + i];
 			for(j = 0; j < b->num_sides; j++){
 
 				s = &b->original_sides[j];
@@ -805,10 +805,10 @@ static boolean_t ParseMapEntity(void){
 
 		b = &map_brushes[num_map_brushes - 1];
 		b->contents = CONTENTS_AREA_PORTAL;
-		c_areaportals++;
-		mapent->areaportal_num = c_areaportals;
+		c_area_portals++;
+		mapent->area_portal_num = c_area_portals;
 		// set the portal number as "style"
-		sprintf(str, "%i", c_areaportals);
+		sprintf(str, "%i", c_area_portals);
 		SetKeyValue(mapent, "areaportal", str);
 		MoveBrushesToWorld(mapent);
 		return true;
@@ -861,13 +861,13 @@ void LoadMapFile(const char *file_name){
 	}
 
 	Com_Verbose("%5i brushes\n", num_map_brushes);
-	Com_Verbose("%5i clip brushes\n", c_clipbrushes);
+	Com_Verbose("%5i clip brushes\n", c_clip_brushes);
 	Com_Verbose("%5i total sides\n", num_map_brush_sides);
-	Com_Verbose("%5i box bevels\n", c_boxbevels);
-	Com_Verbose("%5i edge bevels\n", c_edgebevels);
+	Com_Verbose("%5i box bevels\n", c_box_bevels);
+	Com_Verbose("%5i edge bevels\n", c_edge_bevels);
 	Com_Verbose("%5i entities\n", num_entities);
 	Com_Verbose("%5i planes\n", num_map_planes);
-	Com_Verbose("%5i area portals\n", c_areaportals);
+	Com_Verbose("%5i area portals\n", c_area_portals);
 	Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n",
 			map_mins[0], map_mins[1], map_mins[2], map_maxs[0], map_maxs[1], map_maxs[2]);
 }
