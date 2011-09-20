@@ -1141,8 +1141,8 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd){
 
 		pm.cmd = *ucmd;
 
-		pm.trace = G_ClientMoveTrace;  // adds default params
-		pm.pointcontents = gi.PointContents;
+		pm.Trace = G_ClientMoveTrace;  // adds default params
+		pm.PointContents = gi.PointContents;
 
 		// perform a pmove
 		gi.Pmove(&pm);

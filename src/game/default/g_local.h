@@ -806,7 +806,7 @@ struct g_edict_s {
 	int old_water_level;
 	int water_level;
 
-	int areaportal;  // the area portal to toggle
+	int area_portal;  // the area portal to toggle
 
 	g_item_t *item;  // for bonus items
 

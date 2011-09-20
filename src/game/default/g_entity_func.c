@@ -27,7 +27,7 @@
  */
 static void G_func_areaportal_use(g_edict_t *ent, g_edict_t *other, g_edict_t *activator){
 	ent->count ^= 1;  // toggle state
-	gi.SetAreaPortalState(ent->areaportal, ent->count);
+	gi.SetAreaPortalState(ent->area_portal, ent->count);
 }
 
 
@@ -743,7 +743,7 @@ static void G_func_door_use_areaportals(g_edict_t *self, boolean_t open){
 
 	while((t = G_Find(t, FOFS(target_name), self->target))){
 		if(strcasecmp(t->class_name, "func_areaportal") == 0){
-		  gi.SetAreaPortalState(t->areaportal, open);
+		  gi.SetAreaPortalState(t->area_portal, open);
 		}
 	}
 }

@@ -360,7 +360,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node){
  */
 void R_MarkSurfaces(void){
 	static vec3_t old_origin, old_angles;
-	static int old_vis_frame;
+	static short old_vis_frame;
 	static float old_fov;
 	vec3_t o, a;
 
@@ -379,7 +379,7 @@ void R_MarkSurfaces(void){
 
 	r_locals.frame++;
 
-	if(r_locals.frame > 0x7FFFFFFF)  // avoid overflows, negatives are reserved
+	if(r_locals.frame == 0x7fff)  // avoid overflows, negatives are reserved
 		r_locals.frame = 0;
 
 	VectorCopy(r_view.origin, old_origin);
@@ -508,7 +508,7 @@ void R_MarkLeafs(void){
 
 	r_locals.vis_frame++;
 
-	if(r_locals.vis_frame > 0x7FFFFFFF)  // avoid overflows, negatives are reserved
+	if(r_locals.vis_frame == 0x7fff)  // avoid overflows, negatives are reserved
 		r_locals.vis_frame = 0;
 
 	if(r_no_vis->value || !r_world_model->vis){  // mark everything

@@ -189,8 +189,8 @@ void Cl_PredictMovement(void){
 
 	// copy current state to pmove
 	memset(&pm, 0, sizeof(pm));
-	pm.trace = Cl_Trace;
-	pm.pointcontents = Cl_Pointcontents;
+	pm.Trace = Cl_Trace;
+	pm.PointContents = Cl_Pointcontents;
 	pm.s = cl.frame.ps.pmove;
 	pm.s.gravity = cl_gravity;
 

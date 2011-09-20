@@ -30,18 +30,18 @@ typedef struct {
 	vec3_t velocity;  // full float precision
 
 	vec3_t forward, right, up;
-	float frametime;
+	float frame_time;
 
-	c_surface_t *groundsurface;
-	c_plane_t groundplane;
-	int groundcontents;
+	c_surface_t *ground_surface;
+	c_plane_t ground_plane;
+	int ground_contents;
 
 	vec3_t previous_origin;
 	boolean_t ladder;
-} pml_t;
+} pm_locals_t;
 
 pm_move_t *pm;
-pml_t pml;
+pm_locals_t pml;
 
 
 #define PM_ACCEL_GROUND			10.0
@@ -123,7 +123,7 @@ static void Pm_ClampVelocity(void){
 	if(speed < PM_SPEED_MAX)  // or slower movement
 		return;
 
-	scale = (speed - (speed * pml.frametime * PM_FRICT_SPEED_CLAMP)) / speed;
+	scale = (speed - (speed * pml.frame_time * PM_FRICT_SPEED_CLAMP)) / speed;
 
 	pml.velocity[0] *= scale;
 	pml.velocity[1] *= scale;
@@ -150,7 +150,7 @@ static int Pm_StepSlideMove_(void){
 	VectorCopy(pml.velocity, vel);
 
 	num_planes = 0;
-	time = pml.frametime;
+	time = pml.frame_time;
 
 	for(k = 0; k < MAX_CLIP_PLANES; k++){
 
@@ -158,7 +158,7 @@ static int Pm_StepSlideMove_(void){
 		VectorMA(pml.origin, time, pml.velocity, end);
 
 		// trace to it
-		trace = pm->trace(pml.origin, pm->mins, pm->maxs, end);
+		trace = pm->Trace(pml.origin, pm->mins, pm->maxs, end);
 
 		// store a reference to the entity for firing game events
 		if(pm->num_touch < MAX_TOUCH_ENTS && trace.ent){
@@ -251,7 +251,7 @@ static void Pm_StepSlideMove(void){
 		VectorCopy(org, up);
 		up[2] += PM_STAIR_HEIGHT;
 
-		if(pm->trace(up, pm->mins, pm->maxs, up).all_solid)
+		if(pm->Trace(up, pm->mins, pm->maxs, up).all_solid)
 			break;  // it's not
 
 		// the upward position is available, try to step from there
@@ -268,7 +268,7 @@ static void Pm_StepSlideMove(void){
 	VectorCopy(pml.origin, down);
 	down[2] = org[2];
 
-	trace = pm->trace(pml.origin, pm->mins, pm->maxs, down);
+	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, down);
 	VectorCopy(trace.end, pml.origin);
 
 	// ensure that what we stepped upon was actually step-able
@@ -306,13 +306,13 @@ static void Pm_Friction(void){
 	drop = 0.0;
 
 	if(pm->s.pm_type == PM_SPECTATOR){  // spectator friction
-		drop = speed * PM_FRICT_SPECTATOR * pml.frametime;
+		drop = speed * PM_FRICT_SPECTATOR * pml.frame_time;
 	}
 	else {  // ladder, water, ground, and air friction
 
 		if(pml.ladder){
 			control = speed < PM_SPEED_STOP ? PM_SPEED_STOP : speed;
-			drop = control * PM_FRICT_LADDER * pml.frametime;
+			drop = control * PM_FRICT_LADDER * pml.frame_time;
 		}
 		else if(pm->ground_entity){
 
@@ -320,20 +320,20 @@ static void Pm_Friction(void){
 				friction = PM_FRICT_SPECTATOR;
 			}
 			else {  // this is our general case for slick or normal ground
-				if(pml.groundsurface && (pml.groundsurface->flags & SURF_SLICK))
+				if(pml.ground_surface && (pml.ground_surface->flags & SURF_SLICK))
 					friction = PM_FRICT_GROUND_SLICK;
 				else
 					friction = PM_FRICT_GROUND;
 			}
 
 			control = speed < PM_SPEED_STOP ? PM_SPEED_STOP : speed;
-			drop = control * friction * pml.frametime;
+			drop = control * friction * pml.frame_time;
 		}
 		else if(pm->water_level){  // water friction
-			drop = speed * PM_FRICT_WATER * pm->water_level * pml.frametime;
+			drop = speed * PM_FRICT_WATER * pm->water_level * pml.frame_time;
 		}
 		else {  // jumping or falling, add some friction
-			drop = speed * PM_FRICT_NO_GROUND * pml.frametime;
+			drop = speed * PM_FRICT_NO_GROUND * pml.frame_time;
 		}
 	}
 
@@ -364,7 +364,7 @@ static void Pm_Accelerate(vec3_t dir, float speed, float accel){
 	if(addspeed <= 0)
 		return;
 
-	accelspeed = accel * pml.frametime * speed;
+	accelspeed = accel * pml.frame_time * speed;
 
 	if(accelspeed > addspeed)
 		accelspeed = addspeed;
@@ -435,17 +435,17 @@ static void Pm_AddCurrents(vec3_t vel){
 	if(pm->ground_entity){
 		VectorClear(v);
 
-		if(pml.groundcontents & CONTENTS_CURRENT_0)
+		if(pml.ground_contents & CONTENTS_CURRENT_0)
 			v[0] += 1.0;
-		if(pml.groundcontents & CONTENTS_CURRENT_90)
+		if(pml.ground_contents & CONTENTS_CURRENT_90)
 			v[1] += 1.0;
-		if(pml.groundcontents & CONTENTS_CURRENT_180)
+		if(pml.ground_contents & CONTENTS_CURRENT_180)
 			v[0] -= 1.0;
-		if(pml.groundcontents & CONTENTS_CURRENT_270)
+		if(pml.ground_contents & CONTENTS_CURRENT_270)
 			v[1] -= 1.0;
-		if(pml.groundcontents & CONTENTS_CURRENT_UP)
+		if(pml.ground_contents & CONTENTS_CURRENT_UP)
 			v[2] += 1.0;
-		if(pml.groundcontents & CONTENTS_CURRENT_DOWN)
+		if(pml.ground_contents & CONTENTS_CURRENT_DOWN)
 			v[2] -= 1.0;
 
 		VectorMA(vel, PM_SPEED_CURRENT, v, vel);
@@ -493,10 +493,10 @@ static void Pm_WaterMove(void){
 		VectorCopy(pml.origin, tmp);
 		tmp[2] += pm->view_height - 6.0;
 
-		i = pm->pointcontents(tmp);
+		i = pm->PointContents(tmp);
 
 		if(!(i & MASK_WATER))  // add some gravity
-			pml.velocity[2] -= 2.0 * pm->s.gravity * pml.frametime;
+			pml.velocity[2] -= 2.0 * pm->s.gravity * pml.frame_time;
 	}
 }
 
@@ -540,11 +540,11 @@ static void Pm_AirMove(void){
 
 		if(!vel[2]){  // we're not being pushed down by a current
 			if(pml.velocity[2] > 0.0){
-				pml.velocity[2] -= pm->s.gravity * pml.frametime;
+				pml.velocity[2] -= pm->s.gravity * pml.frame_time;
 				if(pml.velocity[2] < 0.0)
 					pml.velocity[2] = 0.0;
 			} else {
-				pml.velocity[2] += pm->s.gravity * pml.frametime;
+				pml.velocity[2] += pm->s.gravity * pml.frame_time;
 				if(pml.velocity[2] > 0.0)
 					pml.velocity[2] = 0.0;
 			}
@@ -567,7 +567,7 @@ static void Pm_AirMove(void){
 		Pm_Accelerate(dir, speed, accel);
 
 		// add gravity
-		pml.velocity[2] -= pm->s.gravity * pml.frametime;
+		pml.velocity[2] -= pm->s.gravity * pml.frame_time;
 	}
 
 	Pm_StepSlideMove();
@@ -588,11 +588,11 @@ static void Pm_CategorizePosition(void){
 	VectorCopy(pml.origin, point);
 	point[2] -= 2.0;
 
-	trace = pm->trace(pml.origin, pm->mins, pm->maxs, point);
+	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, point);
 
-	pml.groundplane = trace.plane;
-	pml.groundsurface = trace.surface;
-	pml.groundcontents = trace.contents;
+	pml.ground_plane = trace.plane;
+	pml.ground_surface = trace.surface;
+	pml.ground_contents = trace.contents;
 
 	// if we did not hit anything, or we hit an upward pusher, or we hit a
 	// world surface that is too steep to stand on, then we have no ground
@@ -629,7 +629,7 @@ static void Pm_CategorizePosition(void){
 	sample1 = sample2 / 2.0;
 
 	point[2] = pml.origin[2] + pm->mins[2] + 1.0;
-	cont = pm->pointcontents(point);
+	cont = pm->PointContents(point);
 
 	if(cont & MASK_WATER){
 
@@ -638,7 +638,7 @@ static void Pm_CategorizePosition(void){
 
 		point[2] = pml.origin[2] + pm->mins[2] + sample1;
 
-		cont = pm->pointcontents(point);
+		cont = pm->PointContents(point);
 
 		if(cont & MASK_WATER){
 
@@ -646,7 +646,7 @@ static void Pm_CategorizePosition(void){
 
 			point[2] = pml.origin[2] + pm->mins[2] + sample2;
 
-			cont = pm->pointcontents(point);
+			cont = pm->PointContents(point);
 
 			if(cont & MASK_WATER)
 				pm->water_level = 3;
@@ -736,7 +736,7 @@ static void Pm_CheckSpecialMovement(void){
 	VectorMA(pml.origin, 1.0, flatforward, spot);
 	spot[2] += pm->view_height;
 
-	trace = pm->trace(pml.origin, pm->mins, pm->maxs, spot);
+	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, spot);
 
 	if((trace.fraction < 1.0) && (trace.contents & CONTENTS_LADDER))
 		pml.ladder = true;
@@ -748,13 +748,13 @@ static void Pm_CheckSpecialMovement(void){
 	VectorMA(pml.origin, 30.0, flatforward, spot);
 	spot[2] += pm->view_height;
 
-	cont = pm->pointcontents(spot);
+	cont = pm->PointContents(spot);
 
 	if(!(cont & CONTENTS_SOLID))
 		return;
 
 	spot[2] += PM_STAIR_HEIGHT;
-	cont = pm->pointcontents(spot);
+	cont = pm->PointContents(spot);
 
 	if(cont)
 		return;
@@ -773,7 +773,7 @@ static void Pm_CheckSpecialMovement(void){
  */
 static void Pm_WaterJumpMove(void){
 
-	pml.velocity[2] -= pm->s.gravity * pml.frametime;
+	pml.velocity[2] -= pm->s.gravity * pml.frame_time;
 
 	if(pml.velocity[2] < PM_SPEED_STAIRS){  // clear the timer
 		pm->s.pm_flags &= ~PMF_TIME_MASK;
@@ -805,7 +805,7 @@ static void Pm_CheckDuck(void){
 		pm->s.pm_flags |= PMF_DUCKED;
 	} else {  // stand up if possible
 		if(pm->s.pm_flags & PMF_DUCKED){  // try to stand up
-			trace = pm->trace(pml.origin, pm->mins, pm->maxs, pml.origin);
+			trace = pm->Trace(pml.origin, pm->mins, pm->maxs, pml.origin);
 			if(!trace.all_solid)
 				pm->s.pm_flags &= ~PMF_DUCKED;
 		}
@@ -830,7 +830,7 @@ static boolean_t Pm_GoodPosition(void){
 
 	VectorScale(pm->s.origin, 0.125, pos);
 
-	trace = pm->trace(pos, pm->mins, pm->maxs, pos);
+	trace = pm->Trace(pos, pm->mins, pm->maxs, pos);
 
 	return !trace.all_solid;
 }
@@ -958,7 +958,7 @@ static void Pm_SpectatorMove(){
 	Pm_Accelerate(dir, speed, PM_ACCEL_SPECTATOR);
 
 	// do the move
-	VectorMA(pml.origin, pml.frametime, pml.velocity, pml.origin);
+	VectorMA(pml.origin, pml.frame_time, pml.velocity, pml.origin);
 }
 
 
@@ -1013,7 +1013,7 @@ static void Pm_InitLocal(void){
 	VectorScale(pm->s.origin, 0.125, pml.origin);
 	VectorScale(pm->s.velocity, 0.125, pml.velocity);
 
-	pml.frametime = pm->cmd.msec * 0.001;
+	pml.frame_time = pm->cmd.msec * 0.001;
 }
 
 

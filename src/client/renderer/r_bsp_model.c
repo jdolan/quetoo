@@ -557,7 +557,7 @@ static void R_LoadBspLeafSurfaces(const d_bsp_lump_t *l){
 
 	for(i = 0; i < count; i++){
 
-		const unsigned short j = (unsigned short)LittleShort(in[i]);
+		const unsigned short j = LittleShort(in[i]);
 
 		if(j >= r_load_model->num_surfaces){
 			Com_Error(ERR_DROP, "R_LoadBspLeafSurfaces: Bad surface number: %d.", j);
@@ -617,16 +617,14 @@ static void R_LoadBspPlanes(const d_bsp_lump_t *l){
 	r_load_model->num_planes = count;
 
 	for(i = 0; i < count; i++, in++, out++){
-		int bits = 0;
+
 		for(j = 0; j < 3; j++){
 			out->normal[j] = LittleFloat(in->normal[j]);
-			if(out->normal[j] < 0)
-				bits |= 1 << j;
 		}
 
 		out->dist = LittleFloat(in->dist);
 		out->type = LittleLong(in->type);
-		out->sign_bits = bits;
+		out->sign_bits = SignBitsForPlane(out);
 	}
 }
 

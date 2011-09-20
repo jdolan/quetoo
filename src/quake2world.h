@@ -236,7 +236,6 @@ extern vec3_t vec3_origin;
 							 	 	 CONTENTS_CURRENT_270|CONTENTS_CURRENT_UP|CONTENTS_CURRENT_DOWN)
 
 // gi.BoxEdicts() can return a list of either solid or trigger entities
-// FIXME: eliminate AREA_ distinction?
 #define AREA_SOLID				1
 #define AREA_TRIGGERS			2
 
@@ -310,7 +309,7 @@ typedef enum {
 // prediction stays in sync, so no floats are used.
 // if any part of the game code modifies this struct, it
 // will result in a prediction error of some degree.
-typedef struct {
+typedef struct pm_move_state_s {
 	pm_type_t pm_type;
 
 	short origin[3];  // 12.3
@@ -354,8 +353,8 @@ typedef struct {
 	int water_level;
 
 	// callbacks to test the world
-	c_trace_t (*trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
-	int (*pointcontents)(vec3_t point);
+	c_trace_t (*Trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
+	int (*PointContents)(vec3_t point);
 } pm_move_t;
 
 // entity_state_t->effects

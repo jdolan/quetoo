@@ -189,7 +189,7 @@ static const g_field_t fields[] = {
 	{"wait", FOFS(wait), F_FLOAT},
 	{"delay", FOFS(delay), F_FLOAT},
 	{"random", FOFS(random), F_FLOAT},
-	{"areaportal", FOFS(areaportal), F_INT},
+	{"areaportal", FOFS(area_portal), F_INT},
 	{"count", FOFS(count), F_INT},
 	{"health", FOFS(health), F_INT},
 	{"sounds", FOFS(sounds), F_INT},

@@ -29,7 +29,7 @@ typedef struct {
 	vec3_t position;
 	vec3_t normal;
 	vec4_t color;
-	int surfaces;
+	unsigned short surfaces;
 } r_bsp_vertex_t;
 
 typedef struct {
@@ -66,16 +66,16 @@ typedef struct {
 #define MSURF_LIGHTMAP		2
 
 typedef struct {
-	int vis_frame;  // PVS frame
-	int frame;  // renderer frame
-	int back_frame;  // back-facing renderer frame
-	int light_frame;  // dynamic lighting frame
+	short vis_frame;  // PVS frame
+	short frame;  // renderer frame
+	short back_frame;  // back-facing renderer frame
+	short light_frame;  // dynamic lighting frame
 
 	c_plane_t *plane;
 	int flags;  // MSURF_ flags
 
-	unsigned int first_edge;  // look up in model->surf_edges, negative numbers
-	unsigned int num_edges;  // are backwards edges
+	int first_edge;  // look up in model->surf_edges, negative numbers
+	short num_edges;  // are backwards edges
 
 	vec3_t mins;
 	vec3_t maxs;
@@ -130,7 +130,7 @@ typedef struct {
 typedef struct r_bsp_node_s {
 	// common with leaf
 	int contents;  // -1, to differentiate from leafs
-	int vis_frame;  // node needs to be traversed if current
+	short vis_frame;  // node needs to be traversed if current
 
 	vec3_t mins;  // for bounded box culling
 	vec3_t maxs;
@@ -149,7 +149,7 @@ typedef struct r_bsp_node_s {
 typedef struct {
 	// common with node
 	int contents;  // will be a negative contents number
-	int vis_frame;  // node needs to be traversed if current
+	short vis_frame;  // node needs to be traversed if current
 
 	vec3_t mins;  // for bounding box culling
 	vec3_t maxs;
@@ -162,7 +162,7 @@ typedef struct {
 	short area;
 
 	r_bsp_surface_t **first_leaf_surface;
-	int num_leaf_surfaces;
+	short num_leaf_surfaces;
 } r_bsp_leaf_t;
 
 // static light sources
@@ -170,7 +170,7 @@ typedef struct {
 	vec3_t origin;
 	float radius;
 	vec3_t color;
-	int count;
+	short count;
 	const r_bsp_leaf_t *leaf;
 } r_bsp_light_t;
 

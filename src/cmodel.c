@@ -105,13 +105,13 @@ typedef struct c_bsp_s {
 static c_bsp_t cm_bsp;
 static d_bsp_vis_t *cm_vis = (d_bsp_vis_t *)cm_bsp.visibility;
 
-static cvar_t *map_noareas;
+static cvar_t *c_no_areas;
 
 static void Cm_InitBoxHull(void);
 static void Cm_FloodAreaConnections(void);
 
 
-int c_pointcontents;
+int c_point_contents;
 int c_traces, c_brush_traces;
 
 
@@ -328,16 +328,14 @@ static void Cm_LoadPlanes(const d_bsp_lump_t *l){
 	cm_bsp.num_planes = count;
 
 	for(i = 0; i < count; i++, in++, out++){
-		int bits = 0;
+
 		for(j = 0; j < 3; j++){
 			out->normal[j] = LittleFloat(in->normal[j]);
-			if(out->normal[j] < 0)
-				bits |= 1 << j;
 		}
 
 		out->dist = LittleFloat(in->dist);
 		out->type = LittleLong(in->type);
-		out->sign_bits = bits;
+		out->sign_bits = SignBitsForPlane(out);
 	}
 }
 
@@ -515,7 +513,7 @@ c_model_t *Cm_LoadBsp(const char *name, int *size){
 	void *buf;
 	int i;
 
-	map_noareas = Cvar_Get("map_noareas", "0", 0, NULL);
+	c_no_areas = Cvar_Get("c_no_areas", "0", 0, NULL);
 
 	memset(&cm_bsp, 0, sizeof(cm_bsp));
 
@@ -776,7 +774,7 @@ static int Cm_PointLeafnum_r(const vec3_t p, int num){
 			num = node->children[0];
 	}
 
-	c_pointcontents++;  // optimize counter, TOOD: atomic increment for thread-safety
+	c_point_contents++;  // optimize counter, TOOD: atomic increment for thread-safety
 
 	return -1 - num;
 }
@@ -837,6 +835,10 @@ static void Cm_BoxLeafnums_r(int nodenum, c_leaf_data_t *data) {
 	}
 }
 
+
+/*
+ * Cm_BoxLeafnums_head_node
+ */
 static int Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, int *list, int list_size, int head_node, int *top_node){
 	c_leaf_data_t data;
 	data.list = list;
@@ -855,6 +857,13 @@ static int Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, int *l
 	return data.count;
 }
 
+
+/*
+ * Cm_BoxLeafnums
+ *
+ * Populates the list of leafs the specified bounding box touches. Returns the
+ * length of the populated list.
+ */
 int Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int *list, int list_size, int *top_node){
 	return Cm_BoxLeafnums_head_node(mins, maxs, list, list_size, cm_bsp.models[0].head_node, top_node);
 }
@@ -1526,7 +1535,7 @@ void Cm_SetAreaPortalState(int portal_num, boolean_t open){
  * Cm_AreasConnected
  */
 boolean_t Cm_AreasConnected(int area1, int area2){
-	if(map_noareas->value)
+	if(c_no_areas->value)
 		return true;
 
 	if(area1 > cm_bsp.num_areas || area2 > cm_bsp.num_areas){
@@ -1551,7 +1560,7 @@ int Cm_WriteAreaBits(byte *buffer, int area){
 	int i;
 	const int bytes = (cm_bsp.num_areas + 7) >> 3;
 
-	if(map_noareas->value){  // for debugging, send everything
+	if(c_no_areas->value){  // for debugging, send everything
 		memset(buffer, 0xff, bytes);
 	}
 	else {

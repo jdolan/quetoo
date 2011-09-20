@@ -1,0 +1,1458 @@
+Index: src/cmodel.c
+===================================================================
+--- src/cmodel.c	(revision 1084)
++++ src/cmodel.c	(working copy)
+@@ -21,124 +21,124 @@
+ 
+ #include "cmodel.h"
+ 
+-typedef struct c_node_s {
+-	c_plane_t *plane;
++typedef struct c_bsp_node_s {
++	c_bsp_plane_t *plane;
+ 	int children[2];  // negative numbers are leafs
+-} c_node_t;
++} c_bsp_node_t;
+ 
+-typedef struct c_brush_side_s {
+-	c_plane_t *plane;
+-	c_surface_t *surface;
+-} c_brush_side_t;
++typedef struct c_bsp_brush_side_s {
++	c_bsp_plane_t *plane;
++	c_bsp_surface_t *surface;
++} c_bsp_brush_side_t;
+ 
+-typedef struct c_leaf_s {
++typedef struct c_bsp_leaf_s {
+ 	int contents;
+-	int cluster;
+-	int area;
++	short cluster;
++	unsigned short area;
+ 	unsigned short first_leaf_brush;
+ 	unsigned short num_leaf_brushes;
+-} c_leaf_t;
++} c_bsp_leaf_t;
+ 
+-typedef struct c_brush_s {
++typedef struct c_bsp_brush_s {
+ 	int contents;
+-	int num_sides;
+-	int first_brush_side;
+-} c_brush_t;
++	unsigned short first_brush_side;
++	unsigned short num_sides;
++} c_bsp_brush_t;
+ 
+-typedef struct c_area_s {
+-	int num_area_portals;
+-	int first_area_portal;
+-	int flood_num;  // if two areas have equal flood_nums, they are connected
+-	int flood_valid;
+-} c_area_t;
++typedef struct c_bsp_area_s {
++	unsigned num_area_portals;
++	unsigned first_area_portal;
++	unsigned short flood_num;  // if two areas have equal flood_nums, they are connected
++	unsigned short flood_valid;
++} c_bsp_area_t;
+ 
+ typedef struct c_bsp_s {
+ 	char name[MAX_QPATH];
+ 	byte *base;
+ 
+-	int num_brush_sides;
+-	c_brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
++	unsigned short num_brush_sides;
++	c_bsp_brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
+ 
+-	int num_surfaces;
+-	c_surface_t surfaces[MAX_BSP_TEXINFO];
++	unsigned short num_surfaces;
++	c_bsp_surface_t surfaces[MAX_BSP_TEXINFO];
+ 
+-	int num_planes;
+-	c_plane_t planes[MAX_BSP_PLANES + 6];  // extra for box hull
++	unsigned short num_planes;
++	c_bsp_plane_t planes[MAX_BSP_PLANES];
+ 
+-	int num_nodes;
+-	c_node_t nodes[MAX_BSP_NODES + 6];  // extra for box hull
++	unsigned short num_nodes;
++	c_bsp_node_t nodes[MAX_BSP_NODES];
+ 
+-	int num_leafs;
+-	c_leaf_t leafs[MAX_BSP_LEAFS];
+-	int empty_leaf, solid_leaf;
++	unsigned short num_leafs;
++	c_bsp_leaf_t leafs[MAX_BSP_LEAFS];
++	int empty_leaf;
+ 
+-	int num_leaf_brushes;
++	unsigned short num_leaf_brushes;
+ 	unsigned short leaf_brushes[MAX_BSP_LEAF_BRUSHES];
+ 
+-	int num_models;
+-	c_model_t models[MAX_BSP_MODELS];
++	unsigned short num_models;
++	c_bsp_model_t models[MAX_BSP_MODELS];
+ 
+-	int num_brushes;
+-	c_brush_t brushes[MAX_BSP_BRUSHES];
++	unsigned short num_brushes;
++	c_bsp_brush_t brushes[MAX_BSP_BRUSHES];
+ 
+-	int num_visibility;
++	unsigned num_visibility;
+ 	byte visibility[MAX_BSP_VISIBILITY];
+ 
+-	int entity_string_len;
++	unsigned entity_string_len;
+ 	char entity_string[MAX_BSP_ENT_STRING];
+ 
+-	int num_areas;
+-	c_area_t areas[MAX_BSP_AREAS];
++	unsigned short num_areas;
++	c_bsp_area_t areas[MAX_BSP_AREAS];
+ 
+-	int num_area_portals;
++	unsigned short num_area_portals;
+ 	d_bsp_area_portal_t area_portals[MAX_BSP_AREA_PORTALS];
+ 
+-	int num_clusters;
++	c_bsp_surface_t null_surface;
+ 
+-	c_surface_t null_surface;
++	unsigned short flood_valid;
+ 
+-	int flood_valid;
+-
+ 	boolean_t portal_open[MAX_BSP_AREA_PORTALS];
+ } c_bsp_t;
+ 
+-static c_bsp_t cm_bsp;
+-static d_bsp_vis_t *cm_vis = (d_bsp_vis_t *)cm_bsp.visibility;
++static c_bsp_t c_bsp;
++static d_bsp_vis_t *c_vis = (d_bsp_vis_t *)c_bsp.visibility;
+ 
+-static cvar_t *map_noareas;
++static cvar_t *c_no_areas;
+ 
+ static void Cm_InitBoxHull(void);
+ static void Cm_FloodAreaConnections(void);
+ 
++unsigned c_point_contents;
++unsigned c_traces, c_bsp_brush_traces;
+ 
+-int c_pointcontents;
+-int c_traces, c_brush_traces;
+ 
+-
+ /*
+  * Cm_LoadSubmodels
+  */
+ static void Cm_LoadSubmodels(const d_bsp_lump_t *l){
+ 	const d_bsp_model_t *in;
+-	int i, j, count;
++	unsigned short i, j, count;
+ 
+-	in = (const void *)(cm_bsp.base + l->file_ofs);
++	in = (const void *)(c_bsp.base + l->file_ofs);
++
+ 	if(l->file_len % sizeof(*in)){
+ 		Com_Error(ERR_DROP, "Cm_LoadSubmodels: Funny lump size.\n");
+ 	}
++
+ 	count = l->file_len / sizeof(*in);
+ 
+-	if(count < 1){
++	if(count == 0){
+ 		Com_Error(ERR_DROP, "Cm_LoadSubmodels: Map with no models.\n");
+ 	}
++
+ 	if(count > MAX_BSP_MODELS){
+ 		Com_Error(ERR_DROP, "Cm_LoadSubmodels: Map has too many models.\n");
+ 	}
+ 
+-	cm_bsp.num_models = count;
++	c_bsp.num_models = count;
+ 
+ 	for(i = 0; i < count; i++, in++){
+-		c_model_t *out = &cm_bsp.models[i];
++		c_bsp_model_t *out = &c_bsp.models[i];
+ 
+ 		for(j = 0; j < 3; j++){  // spread the mins / maxs by a pixel
+ 			out->mins[j] = LittleFloat(in->mins[j]) - 1;
+@@ -155,24 +155,28 @@
+  */
+ static void Cm_LoadSurfaces(const d_bsp_lump_t *l){
+ 	const d_bsp_texinfo_t *in;
+-	c_surface_t *out;
+-	int i, count;
++	c_bsp_surface_t *out;
++	unsigned short i, count;
+ 
+-	in = (const void *)(cm_bsp.base + l->file_ofs);
++	in = (const void *)(c_bsp.base + l->file_ofs);
++
+ 	if(l->file_len % sizeof(*in)){
+ 		Com_Error(ERR_DROP, "Cm_LoadSurfaces: Funny lump size.\n");
+-		return;
+ 	}
++
+ 	count = l->file_len / sizeof(*in);
+-	if(count < 1){
++
++	if(count == 0){
+ 		Com_Error(ERR_DROP, "Cm_LoadSurfaces: Map with no surfaces.\n");
+ 	}
++
+ 	if(count > MAX_BSP_TEXINFO){
+ 		Com_Error(ERR_DROP, "Cm_LoadSurfaces: Map has too many surfaces.\n");
+ 	}
+-	cm_bsp.num_surfaces = count;
+-	out = cm_bsp.surfaces;
+ 
++	c_bsp.num_surfaces = count;
++	out = c_bsp.surfaces;
++
+ 	for(i = 0; i < count; i++, in++, out++){
+ 		strncpy(out->name, in->texture, sizeof(out->name) - 1);
+ 		out->flags = LittleLong(in->flags);
+@@ -186,32 +190,34 @@
+  */
+ static void Cm_LoadNodes(const d_bsp_lump_t *l){
+ 	const d_bsp_node_t *in;
+-	int child;
+-	c_node_t *out;
+-	int i, j, count;
++	c_bsp_node_t *out;
++	unsigned short i, j;
++	unsigned count;
+ 
+-	in = (const void *)(cm_bsp.base + l->file_ofs);
++	in = (const void *)(c_bsp.base + l->file_ofs);
++
+ 	if(l->file_len % sizeof(*in)){
+ 		Com_Error(ERR_DROP, "Cm_LoadNodes: Funny lump size.\n");
+ 	}
++
+ 	count = l->file_len / sizeof(*in);
+ 
+-	if(count < 1){
++	if(count == 0){
+ 		Com_Error(ERR_DROP, "Cm_LoadNodes: Map has no nodes.\n");
+ 	}
++
+ 	if(count > MAX_BSP_NODES){
+ 		Com_Error(ERR_DROP, "Cm_LoadNodes: Map has too many nodes.\n");
+ 	}
+ 
+-	out = cm_bsp.nodes;
++	out = c_bsp.nodes;
+ 
+-	cm_bsp.num_nodes = count;
++	c_bsp.num_nodes = count;
+ 
+ 	for(i = 0; i < count; i++, out++, in++){
+-		out->plane = cm_bsp.planes + LittleLong(in->plane_num);
++		out->plane = c_bsp.planes + LittleLong(in->plane_num);
+ 		for(j = 0; j < 2; j++){
+-			child = LittleLong(in->children[j]);
+-			out->children[j] = child;
++			out->children[j] = LittleLong(in->children[j]);
+ 		}
+ 	}
+ }
+@@ -222,22 +228,25 @@
+  */
+ static void Cm_LoadBrushes(const d_bsp_lump_t *l){
+ 	const d_bsp_brush_t *in;
+-	c_brush_t *out;
+-	int i, count;
++	c_bsp_brush_t *out;
++	unsigned short i;
++	unsigned count;
+ 
+-	in = (const void *)(cm_bsp.base + l->file_ofs);
++	in = (const void *)(c_bsp.base + l->file_ofs);
++
+ 	if(l->file_len % sizeof(*in)){
+ 		Com_Error(ERR_DROP, "Cm_LoadBrushes: Funny lump size.\n");
+ 	}
++
+ 	count = l->file_len / sizeof(*in);
+ 
+ 	if(count > MAX_BSP_BRUSHES){
+ 		Com_Error(ERR_DROP, "Cm_LoadBrushes: Map has too many brushes.\n");
+ 	}
+ 
+-	out = cm_bsp.brushes;
++	out = c_bsp.brushes;
+ 
+-	cm_bsp.num_brushes = count;
++	c_bsp.num_brushes = count;
+ 
+ 	for(i = 0; i < count; i++, out++, in++){
+ 		out->first_brush_side = LittleLong(in->first_side);
+@@ -251,28 +260,29 @@
+  * Cm_LoadLeafs
+  */
+ static void Cm_LoadLeafs(const d_bsp_lump_t *l){
+-	int i;
+-	c_leaf_t *out;
++	unsigned short i;
++	unsigned count;
++	c_bsp_leaf_t *out;
+ 	const d_bsp_leaf_t *in;
+-	int count;
+ 
+-	in = (const void *)(cm_bsp.base + l->file_ofs);
++	in = (const void *)(c_bsp.base + l->file_ofs);
++
+ 	if(l->file_len % sizeof(*in)){
+ 		Com_Error(ERR_DROP, "Cm_LoadLeafs: Funny lump size.\n");
+ 	}
++
+ 	count = l->file_len / sizeof(*in);
+ 
+-	if(count < 1){
++	if(count == 0){
+ 		Com_Error(ERR_DROP, "Cm_LoadLeafs: Map with no leafs.\n");
+ 	}
+-	// need to save space for box planes
+-	if(count > MAX_BSP_PLANES){
+-		Com_Error(ERR_DROP, "Cm_LoadLeafs: Map has too many planes.\n");
++
++	if(count > MAX_BSP_LEAFS){
++		Com_Error(ERR_DROP, "Cm_LoadLeafs: Map has too many leafs.\n");
+ 	}
+ 
+-	out = cm_bsp.leafs;
+-	cm_bsp.num_leafs = count;
+-	cm_bsp.num_clusters = 0;
++	out = c_bsp.leafs;
++	c_bsp.num_leafs = count;
+ 
+ 	for(i = 0; i < count; i++, in++, out++){
+ 		out->contents = LittleLong(in->contents);
+@@ -280,23 +290,22 @@
+ 		out->area = LittleShort(in->area);
+ 		out->first_leaf_brush = LittleShort(in->first_leaf_brush);
+ 		out->num_leaf_brushes = LittleShort(in->num_leaf_brushes);
+-
+-		if(out->cluster >= cm_bsp.num_clusters)
+-			cm_bsp.num_clusters = out->cluster + 1;
+ 	}
+ 
+-	if(cm_bsp.leafs[0].contents != CONTENTS_SOLID){
++	if(c_bsp.leafs[0].contents != CONTENTS_SOLID){
+ 		Com_Error(ERR_DROP, "Cm_LoadLeafs: Map leaf 0 is not CONTENTS_SOLID.\n");
+ 	}
+-	cm_bsp.solid_leaf = 0;
+-	cm_bsp.empty_leaf = -1;
+-	for(i = 1; i < cm_bsp.num_leafs; i++){
+-		if(!cm_bsp.leafs[i].contents){
+-			cm_bsp.empty_leaf = i;
++
++	c_bsp.empty_leaf = -1;
++
++	for(i = 1; i < c_bsp.num_leafs; i++){
++		if(!c_bsp.leafs[i].contents){
++			c_bsp.empty_leaf = i;
+ 			break;
+ 		}
+ 	}
+-	if(cm_bsp.empty_leaf == -1)
++
++	if(c_bsp.empty_leaf == -1)
+ 		Com_Error(ERR_DROP, "Cm_LoadLeafs: Map does not have an empty leaf.\n");
+ }
+ 
+@@ -305,39 +314,41 @@
+  * Cm_LoadPlanes
+  */
+ static void Cm_LoadPlanes(const d_bsp_lump_t *l){
+-	int i, j;
+-	c_plane_t *out;
++	unsigned short i, j;
++	unsigned count;
++	c_bsp_plane_t *out;
+ 	const d_bsp_plane_t *in;
+-	int count;
+ 
+-	in = (const void *)(cm_bsp.base + l->file_ofs);
++	in = (const void *)(c_bsp.base + l->file_ofs);
++
+ 	if(l->file_len % sizeof(*in)){
+ 		Com_Error(ERR_DROP, "Cm_LoadPlanes: Funny lump size.\n");
+ 	}
++
+ 	count = l->file_len / sizeof(*in);
+ 
+-	if(count < 1){
++	if(count == 0){
+ 		Com_Error(ERR_DROP, "Cm_LoadPlanes: Map with no planes.\n");
+ 	}
+-	// need to save space for box planes
++
+ 	if(count > MAX_BSP_PLANES){
+ 		Com_Error(ERR_DROP, "Cm_LoadPlanes: Map has too many planes.\n");
+ 	}
+ 
+-	out = cm_bsp.planes;
+-	cm_bsp.num_planes = count;
++	out = c_bsp.planes;
++	c_bsp.num_planes = count;
+ 
+ 	for(i = 0; i < count; i++, in++, out++){
+-		int bits = 0;
++		byte sign_bits = 0;
+ 		for(j = 0; j < 3; j++){
+ 			out->normal[j] = LittleFloat(in->normal[j]);
+ 			if(out->normal[j] < 0)
+-				bits |= 1 << j;
++				sign_bits |= 1 << j;
+ 		}
+ 
+ 		out->dist = LittleFloat(in->dist);
+ 		out->type = LittleLong(in->type);
+-		out->sign_bits = bits;
++		out->sign_bits = sign_bits;
+ 	}
+ }
+ 
+@@ -346,27 +357,29 @@
+  * Cm_LoadLeafBrushes
+  */
+ static void Cm_LoadLeafBrushes(const d_bsp_lump_t *l){
+-	int i;
++	unsigned short i;
++	unsigned count;
+ 	unsigned short *out;
+ 	const unsigned short *in;
+-	int count;
+ 
+-	in = (const void *)(cm_bsp.base + l->file_ofs);
++	in = (const void *)(c_bsp.base + l->file_ofs);
++
+ 	if(l->file_len % sizeof(*in)){
+ 		Com_Error(ERR_DROP, "Cm_LoadLeafBrushes: Funny lump size.\n");
+ 	}
++
+ 	count = l->file_len / sizeof(*in);
+ 
+-	if(count < 1){
+-		Com_Error(ERR_DROP, "Cm_LoadLeafBrushes: Map with no planes.\n");
++	if(count == 0){
++		Com_Error(ERR_DROP, "Cm_LoadLeafBrushes: Map with no leaf brushes.\n");
+ 	}
+-	// need to save space for box planes
++
+ 	if(count > MAX_BSP_LEAF_BRUSHES){
+-		Com_Error(ERR_DROP, "Cm_LoadLeafBrushes: Map has too many leafbrushes.\n");
++		Com_Error(ERR_DROP, "Cm_LoadLeafBrushes: Map has too many leaf brushes.\n");
+ 	}
+ 
+-	out = cm_bsp.leaf_brushes;
+-	cm_bsp.num_leaf_brushes = count;
++	out = c_bsp.leaf_brushes;
++	c_bsp.num_leaf_brushes = count;
+ 
+ 	for(i = 0; i < count; i++, in++, out++)
+ 		*out = LittleShort(*in);
+@@ -377,34 +390,41 @@
+  * Cm_LoadBrushSides
+  */
+ static void Cm_LoadBrushSides(const d_bsp_lump_t *l){
+-	int i;
+-	c_brush_side_t *out;
++	unsigned short i, j;
++	unsigned count;
++	c_bsp_brush_side_t *out;
+ 	const d_bsp_brush_side_t *in;
+-	int count;
+-	int num;
+ 
+-	in = (const void *)(cm_bsp.base + l->file_ofs);
++	in = (const void *)(c_bsp.base + l->file_ofs);
++
+ 	if(l->file_len % sizeof(*in)){
+ 		Com_Error(ERR_DROP, "Cm_LoadBrushSides: Funny lump size.\n");
+ 	}
++
+ 	count = l->file_len / sizeof(*in);
+ 
+-	// need to save space for box planes
+ 	if(count > MAX_BSP_BRUSH_SIDES){
+ 		Com_Error(ERR_DROP, "Cm_LoadBrushSides: Map has too many planes.\n");
+ 	}
+ 
+-	out = cm_bsp.brush_sides;
+-	cm_bsp.num_brush_sides = count;
++	out = c_bsp.brush_sides;
++	c_bsp.num_brush_sides = count;
+ 
+ 	for(i = 0; i < count; i++, in++, out++){
+-		num = LittleShort(in->plane_num);
+-		out->plane = &cm_bsp.planes[num];
+-		num = LittleShort(in->surf_num);
+-		if(num >= cm_bsp.num_surfaces){
++
++		j = LittleShort(in->plane_num);
++
++		if(j >= c_bsp.num_planes)
++			Com_Error(ERR_DROP, "Cm_LoadBrushSides: Bad brush_side plane_num.\n");
++
++		out->plane = &c_bsp.planes[j];
++
++		j = LittleShort(in->surf_num);
++
++		if(j >= c_bsp.num_surfaces)
+ 			Com_Error(ERR_DROP, "Cm_LoadBrushSides: Bad brush_side surf_num.\n");
+-		}
+-		out->surface = &cm_bsp.surfaces[num];
++
++		out->surface = &c_bsp.surfaces[j];
+ 	}
+ }
+ 
+@@ -413,23 +433,24 @@
+  * Cm_LoadAreas
+  */
+ static void Cm_LoadAreas(const d_bsp_lump_t *l){
+-	int i;
+-	c_area_t *out;
++	unsigned short i, count;
++	c_bsp_area_t *out;
+ 	const d_bsp_area_t *in;
+-	int count;
+ 
+-	in = (const void *)(cm_bsp.base + l->file_ofs);
++	in = (const void *)(c_bsp.base + l->file_ofs);
++
+ 	if(l->file_len % sizeof(*in)){
+ 		Com_Error(ERR_DROP, "MOD_LoadAreas: Funny lump size.\n");
+ 	}
++
+ 	count = l->file_len / sizeof(*in);
+ 
+ 	if(count > MAX_BSP_AREAS){
+ 		Com_Error(ERR_DROP, "Cm_LoadAreas: Map has too many areas.\n");
+ 	}
+ 
+-	out = cm_bsp.areas;
+-	cm_bsp.num_areas = count;
++	out = c_bsp.areas;
++	c_bsp.num_areas = count;
+ 
+ 	for(i = 0; i < count; i++, in++, out++){
+ 		out->num_area_portals = LittleLong(in->num_area_portals);
+@@ -444,23 +465,24 @@
+  * Cm_LoadAreaPortals
+  */
+ static void Cm_LoadAreaPortals(const d_bsp_lump_t *l){
+-	int i;
++	unsigned short i, count;
+ 	d_bsp_area_portal_t *out;
+ 	const d_bsp_area_portal_t *in;
+-	int count;
+ 
+-	in = (const void *)(cm_bsp.base + l->file_ofs);
++	in = (const void *)(c_bsp.base + l->file_ofs);
++
+ 	if(l->file_len % sizeof(*in)){
+ 		Com_Error(ERR_DROP, "Cm_LoadAreaPortals: Funny lump size.\n");
+ 	}
++
+ 	count = l->file_len / sizeof(*in);
+ 
+ 	if(count > MAX_BSP_AREAS){
+ 		Com_Error(ERR_DROP, "Cm_LoadAreaPortals: Map has too many areas.\n");
+ 	}
+ 
+-	out = cm_bsp.area_portals;
+-	cm_bsp.num_area_portals = count;
++	out = c_bsp.area_portals;
++	c_bsp.num_area_portals = count;
+ 
+ 	for(i = 0; i < count; i++, in++, out++){
+ 		out->portal_num = LittleLong(in->portal_num);
+@@ -473,19 +495,21 @@
+  * Cm_LoadVisibility
+  */
+ static void Cm_LoadVisibility(const d_bsp_lump_t *l){
+-	int i;
++	unsigned i;
+ 
+-	cm_bsp.num_visibility = l->file_len;
++	c_bsp.num_visibility = l->file_len;
++
+ 	if(l->file_len > MAX_BSP_VISIBILITY){
+ 		Com_Error(ERR_DROP, "Cm_LoadVisibility: Map has too large visibility lump.\n");
+ 	}
+ 
+-	memcpy(cm_bsp.visibility, cm_bsp.base + l->file_ofs, l->file_len);
++	memcpy(c_bsp.visibility, c_bsp.base + l->file_ofs, l->file_len);
+ 
+-	cm_vis->num_clusters = LittleLong(cm_vis->num_clusters);
+-	for(i = 0; i < cm_vis->num_clusters; i++){
+-		cm_vis->bit_offsets[i][0] = LittleLong(cm_vis->bit_offsets[i][0]);
+-		cm_vis->bit_offsets[i][1] = LittleLong(cm_vis->bit_offsets[i][1]);
++	c_vis->num_clusters = LittleLong(c_vis->num_clusters);
++
++	for(i = 0; i < c_vis->num_clusters; i++){
++		c_vis->bit_offsets[i][0] = LittleLong(c_vis->bit_offsets[i][0]);
++		c_vis->bit_offsets[i][1] = LittleLong(c_vis->bit_offsets[i][1]);
+ 	}
+ }
+ 
+@@ -495,13 +519,13 @@
+  */
+ static void Cm_LoadEntityString(const d_bsp_lump_t *l){
+ 
+-	cm_bsp.entity_string_len = l->file_len;
++	c_bsp.entity_string_len = l->file_len;
+ 
+ 	if(l->file_len > MAX_BSP_ENT_STRING){
+ 		Com_Error(ERR_DROP, "Cm_LoadEntityString: Map has too large entity lump.\n");
+ 	}
+ 
+-	memcpy(cm_bsp.entity_string, cm_bsp.base + l->file_ofs, l->file_len);
++	memcpy(c_bsp.entity_string, c_bsp.base + l->file_ofs, l->file_len);
+ }
+ 
+ 
+@@ -510,20 +534,21 @@
+  *
+  * Loads in the BSP and all submodels for collision detection.
+  */
+-c_model_t *Cm_LoadBsp(const char *name, int *size){
++c_bsp_model_t *Cm_LoadBsp(const char *name, int *size){
+ 	d_bsp_header_t header;
+ 	void *buf;
+ 	int i;
+ 
+-	map_noareas = Cvar_Get("map_noareas", "0", 0, NULL);
++	c_no_areas = Cvar_Get("c_no_areas", "0", 0, NULL);
+ 
+-	memset(&cm_bsp, 0, sizeof(cm_bsp));
++	memset(&c_bsp, 0, sizeof(c_bsp));
+ 
+ 	// if we've been asked to load a demo, just clean up and return
+ 	if(!name){
+-		cm_bsp.num_leafs = cm_bsp.num_clusters = cm_bsp.num_areas = 1;
++		c_bsp.num_leafs = c_bsp.num_areas = 1;
++		c_vis->num_clusters = 1;
+ 		*size = 0;
+-		return &cm_bsp.models[0];
++		return &c_bsp.models[0];
+ 	}
+ 
+ 	// load the file
+@@ -533,6 +558,7 @@
+ 		Com_Error(ERR_DROP, "Cm_LoadMap: Couldn't load %s.\n", name);
+ 
+ 	header = *(d_bsp_header_t *)buf;
++
+ 	for(i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
+ 		((int *)&header)[i] = LittleLong(((int *)&header)[i]);
+ 
+@@ -542,9 +568,9 @@
+ 				name, header.version);
+ 	}
+ 
+-	strncpy(cm_bsp.name, name, sizeof(cm_bsp.name));
++	strncpy(c_bsp.name, name, sizeof(c_bsp.name));
+ 
+-	cm_bsp.base = (byte *)buf;
++	c_bsp.base = (byte *)buf;
+ 
+ 	// load into heap
+ 	Cm_LoadSurfaces(&header.lumps[LUMP_TEXINFO]);
+@@ -566,15 +592,15 @@
+ 
+ 	Cm_FloodAreaConnections();
+ 
+-	return &cm_bsp.models[0];
++	return &c_bsp.models[0];
+ }
+ 
+ 
+ /*
+  * Cm_Model
+  */
+-c_model_t *Cm_Model(const char *name){
+-	int num;
++c_bsp_model_t *Cm_Model(const char *name){
++	unsigned short num;
+ 
+ 	if(!name || name[0] != '*'){
+ 		Com_Error(ERR_DROP, "Cm_Model: Bad name.\n");
+@@ -582,27 +608,27 @@
+ 
+ 	num = atoi(name + 1);
+ 
+-	if(num < 1 || num >= cm_bsp.num_models){
++	if(num >= c_bsp.num_models){
+ 		Com_Error(ERR_DROP, "Cm_Model: Bad number: %d\n.", num);
+ 	}
+ 
+-	return &cm_bsp.models[num];
++	return &c_bsp.models[num];
+ }
+ 
+ 
+ /*
+  * Cm_NumClusters
+  */
+-int Cm_NumClusters(void){
+-	return cm_bsp.num_clusters;
++unsigned short Cm_NumClusters(void){
++	return c_vis->num_clusters;
+ }
+ 
+ 
+ /*
+  * Cm_NumModels
+  */
+-int Cm_NumModels(void){
+-	return cm_bsp.num_models;
++unsigned short Cm_NumModels(void){
++	return c_bsp.num_models;
+ }
+ 
+ 
+@@ -610,55 +636,55 @@
+  * Cm_EntityString
+  */
+ char *Cm_EntityString(void){
+-	return cm_bsp.entity_string;
++	return c_bsp.entity_string;
+ }
+ 
+ 
+ /*
+  * Cm_LeafContents
+  */
+-int Cm_LeafContents(int leaf_num){
++int Cm_LeafContents(unsigned short leaf_num){
+ 
+-	if(leaf_num < 0 || leaf_num >= cm_bsp.num_leafs){
++	if(leaf_num >= c_bsp.num_leafs){
+ 		Com_Error(ERR_DROP, "Cm_LeafContents: Bad number.\n");
+ 	}
+ 
+-	return cm_bsp.leafs[leaf_num].contents;
++	return c_bsp.leafs[leaf_num].contents;
+ }
+ 
+ 
+ /*
+  * Cm_LeafCluster
+  */
+-int Cm_LeafCluster(int leaf_num){
++short Cm_LeafCluster(unsigned short leaf_num){
+ 
+-	if(leaf_num < 0 || leaf_num >= cm_bsp.num_leafs){
++	if(leaf_num >= c_bsp.num_leafs){
+ 		Com_Error(ERR_DROP, "Cm_LeafCluster: Bad number.\n");
+ 	}
+ 
+-	return cm_bsp.leafs[leaf_num].cluster;
++	return c_bsp.leafs[leaf_num].cluster;
+ }
+ 
+ 
+ /*
+  * Cm_LeafArea
+  */
+-int Cm_LeafArea(int leaf_num){
++unsigned short Cm_LeafArea(unsigned short leaf_num){
+ 
+-	if(leaf_num < 0 || leaf_num >= cm_bsp.num_leafs){
++	if(leaf_num >= c_bsp.num_leafs){
+ 		Com_Error(ERR_DROP, "Cm_LeafArea: Bad number.\n");
+ 	}
+ 
+-	return cm_bsp.leafs[leaf_num].area;
++	return c_bsp.leafs[leaf_num].area;
+ }
+ 
+ 
+ // bounding box to bsp tree structure for tracing
+ typedef struct c_bounding_box_s {
+ 	int head_node;
+-	c_plane_t *planes;
+-	c_brush_t *brush;
+-	c_leaf_t *leaf;
++	c_bsp_plane_t *planes;
++	c_bsp_brush_t *brush;
++	c_bsp_leaf_t *leaf;
+ } c_bounding_box_t;
+ 
+ static c_bounding_box_t cm_box;
+@@ -671,49 +697,49 @@
+  * can just be stored out and get a proper clipping hull structure.
+  */
+ static void Cm_InitBoxHull(void){
+-	int i;
++	unsigned short i;
+ 
+-	cm_box.head_node = cm_bsp.num_nodes;
+-	cm_box.planes = &cm_bsp.planes[cm_bsp.num_planes];
+-	if(cm_bsp.num_nodes + 6 > MAX_BSP_NODES
+-			|| cm_bsp.num_brushes + 1 > MAX_BSP_BRUSHES
+-			|| cm_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES
+-			|| cm_bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES
+-			|| cm_bsp.num_planes + 12 > MAX_BSP_PLANES){
++	cm_box.head_node = c_bsp.num_nodes;
++	cm_box.planes = &c_bsp.planes[c_bsp.num_planes];
++	if((int)c_bsp.num_nodes + 6 > MAX_BSP_NODES
++			|| (int)c_bsp.num_brushes + 1 > MAX_BSP_BRUSHES
++			|| (int)c_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES
++			|| (int)c_bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES
++			|| (int)c_bsp.num_planes + 12 > MAX_BSP_PLANES){
+ 		Com_Error(ERR_DROP, "Cm_InitBoxHull: Not enough room for box tree.\n");
+ 	}
+ 
+-	cm_box.brush = &cm_bsp.brushes[cm_bsp.num_brushes];
++	cm_box.brush = &c_bsp.brushes[c_bsp.num_brushes];
+ 	cm_box.brush->num_sides = 6;
+-	cm_box.brush->first_brush_side = cm_bsp.num_brush_sides;
++	cm_box.brush->first_brush_side = c_bsp.num_brush_sides;
+ 	cm_box.brush->contents = CONTENTS_MONSTER;
+ 
+-	cm_box.leaf = &cm_bsp.leafs[cm_bsp.num_leafs];
++	cm_box.leaf = &c_bsp.leafs[c_bsp.num_leafs];
+ 	cm_box.leaf->contents = CONTENTS_MONSTER;
+-	cm_box.leaf->first_leaf_brush = cm_bsp.num_leaf_brushes;
++	cm_box.leaf->first_leaf_brush = c_bsp.num_leaf_brushes;
+ 	cm_box.leaf->num_leaf_brushes = 1;
+ 
+-	cm_bsp.leaf_brushes[cm_bsp.num_leaf_brushes] = cm_bsp.num_brushes;
++	c_bsp.leaf_brushes[c_bsp.num_leaf_brushes] = c_bsp.num_brushes;
+ 
+ 	for(i = 0; i < 6; i++){
+-		const int side = i & 1;
+-		c_node_t *c;
+-		c_plane_t *p;
+-		c_brush_side_t *s;
++		const unsigned short side = i & 1;
++		c_bsp_node_t *c;
++		c_bsp_plane_t *p;
++		c_bsp_brush_side_t *s;
+ 
+ 		// brush sides
+-		s = &cm_bsp.brush_sides[cm_bsp.num_brush_sides + i];
+-		s->plane = cm_bsp.planes + (cm_bsp.num_planes + i * 2 + side);
+-		s->surface = &cm_bsp.null_surface;
++		s = &c_bsp.brush_sides[c_bsp.num_brush_sides + i];
++		s->plane = c_bsp.planes + (c_bsp.num_planes + i * 2 + side);
++		s->surface = &c_bsp.null_surface;
+ 
+ 		// nodes
+-		c = &cm_bsp.nodes[cm_box.head_node + i];
+-		c->plane = cm_bsp.planes + (cm_bsp.num_planes + i * 2);
+-		c->children[side] = -1 - cm_bsp.empty_leaf;
++		c = &c_bsp.nodes[cm_box.head_node + i];
++		c->plane = c_bsp.planes + (c_bsp.num_planes + i * 2);
++		c->children[side] = -1 - c_bsp.empty_leaf;
+ 		if(i != 5)
+ 			c->children[side ^ 1] = cm_box.head_node + i + 1;
+ 		else
+-			c->children[side ^ 1] = -1 - cm_bsp.num_leafs;
++			c->children[side ^ 1] = -1 - c_bsp.num_leafs;
+ 
+ 		// planes
+ 		p = &cm_box.planes[i * 2];
+@@ -762,8 +788,8 @@
+ 
+ 	while(num >= 0){
+ 		float d;
+-		c_node_t *node = cm_bsp.nodes + num;
+-		c_plane_t *plane = node->plane;
++		c_bsp_node_t *node = c_bsp.nodes + num;
++		c_bsp_plane_t *plane = node->plane;
+ 
+ 		if(AXIAL(plane))
+ 			d = p[plane->type] - plane->dist;
+@@ -776,7 +802,7 @@
+ 			num = node->children[0];
+ 	}
+ 
+-	c_pointcontents++;  // optimize counter, TOOD: atomic increment for thread-safety
++	c_point_contents++;
+ 
+ 	return -1 - num;
+ }
+@@ -785,66 +811,81 @@
+ /*
+  * Cm_PointLeafnum
+  */
+-int Cm_PointLeafnum(const vec3_t p){
++unsigned short Cm_PointLeafnum(const vec3_t p){
+ 
+-	if(!cm_bsp.num_planes)
++	if(!c_bsp.num_planes)
+ 		return 0;  // sound may call this without map loaded
+ 
+-	return Cm_PointLeafnum_r(p, 0);
++	int l = Cm_PointLeafnum_r(p, 0);
++
++	if(l < 0 || l > c_bsp.num_leafs)
++		Com_Error(ERR_DROP, "Cm_PointLeafnum: Bad leaf_num\n");
++
++	return (unsigned short)l;
+ }
+ 
+ 
+ /*
+  * Cm_BoxLeafnums
+  *
+- * Fills in a list of all the leafs touched
++ * Fills in a list of all the leafs touched by a bounding box.
+  */
+- 
+-typedef struct c_leaf_data_s {
+-	int count, max_count;
+-	int *list;
++typedef struct c_bsp_leaf_data_s {
++	unsigned short count, max_count;
++	unsigned short *list;
+ 	const float *mins, *maxs;
+ 	int top_node;
+-} c_leaf_data_t;
++} c_bsp_leaf_data_t;
+ 
+-static void Cm_BoxLeafnums_r(int nodenum, c_leaf_data_t *data) {
+-	c_plane_t *plane;
+-	c_node_t *node;
+-	int s;
+ 
++/*
++ * Cm_BoxLeafnums_r
++ */
++static void Cm_BoxLeafnums_r(int node_num, c_bsp_leaf_data_t *data) {
++	c_bsp_plane_t *plane;
++	c_bsp_node_t *node;
++	byte s;
++
+ 	while(true){
+-		if(nodenum < 0){
++		if(node_num < 0){
+ 			if(data->count >= data->max_count){
+ 				return;
+ 			}
+-			data->list[data->count++] = -1 - nodenum;
++			data->list[data->count++] = -1 - node_num;
+ 			return;
+ 		}
+ 
+-		node = &cm_bsp.nodes[nodenum];
++		node = &c_bsp.nodes[node_num];
+ 		plane = node->plane;
+ 		s = BoxOnPlaneSide(data->mins, data->maxs, plane);
+-		if(s == 1)
+-			nodenum = node->children[0];
+-		else if(s == 2)
+-			nodenum = node->children[1];
++		if(s == SIDE_FRONT)
++			node_num = node->children[0];
++		else if(s == SIDE_BACK)
++			node_num = node->children[1];
+ 		else {  // go down both
+ 			if(data->top_node == -1)
+-				data->top_node = nodenum;
++				data->top_node = node_num;
+ 			Cm_BoxLeafnums_r(node->children[0], data);
+-			nodenum = node->children[1];
++			node_num = node->children[1];
+ 		}
+ 	}
+ }
+ 
+-static int Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, int *list, int list_size, int head_node, int *top_node){
+-	c_leaf_data_t data;
++
++/*
++ * Cm_BoxLeafnums_head_node
++ *
++ * Entry point for recursive box to leaf intersection check. This can be called
++ * with the head node of the entire world, or of just a sub-model.
++ */
++static unsigned short Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, unsigned short *list, unsigned short list_len, int head_node, int *top_node){
++	c_bsp_leaf_data_t data;
++
+ 	data.list = list;
+ 	data.count = 0;
+-	data.max_count = list_size;
++	data.max_count = list_len;
+ 	data.mins = mins;
+ 	data.maxs = maxs;
+-
+ 	data.top_node = -1;
+ 
+ 	Cm_BoxLeafnums_r(head_node, &data);
+@@ -855,8 +896,15 @@
+ 	return data.count;
+ }
+ 
+-int Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int *list, int list_size, int *top_node){
+-	return Cm_BoxLeafnums_head_node(mins, maxs, list, list_size, cm_bsp.models[0].head_node, top_node);
++
++/*
++ * Cm_BoxLeafnums
++ *
++ * Populates a list of leafs descending from the given node and touching the
++ * specified box. Returns the number of leafs touched.
++ */
++unsigned short Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, unsigned short *list, unsigned short list_len, int *top_node){
++	return Cm_BoxLeafnums_head_node(mins, maxs, list, list_len, c_bsp.models[0].head_node, top_node);
+ }
+ 
+ 
+@@ -864,14 +912,16 @@
+  * Cm_PointContents
+  */
+ int Cm_PointContents(const vec3_t p, int head_node){
+-	int l;
+ 
+-	if(!cm_bsp.num_nodes)  // map not loaded
++	if(!c_bsp.num_nodes)  // map not loaded
+ 		return 0;
+ 
+-	l = Cm_PointLeafnum_r(p, head_node);
++	int l = Cm_PointLeafnum_r(p, head_node);
+ 
+-	return cm_bsp.leafs[l].contents;
++	if(l < 0 || l > c_bsp.num_leafs)
++		Com_Error(ERR_DROP, "Cm_PointContents: Bad leaf_num.\n");
++
++	return c_bsp.leafs[l].contents;
+ }
+ 
+ 
+@@ -885,7 +935,7 @@
+ 	vec3_t p_l;
+ 	vec3_t temp;
+ 	vec3_t forward, right, up;
+-	int l;
++	unsigned short l;
+ 
+ 	// subtract origin offset
+ 	VectorSubtract(p, origin, p_l);
+@@ -901,9 +951,9 @@
+ 		p_l[2] = DotProduct(temp, up);
+ 	}
+ 
+-	l = Cm_PointLeafnum_r(p_l, head_node);
++	l = (unsigned short)Cm_PointLeafnum_r(p_l, head_node);
+ 
+-	return cm_bsp.leafs[l].contents;
++	return c_bsp.leafs[l].contents;
+ }
+ 
+ 
+@@ -939,6 +989,7 @@
+ 	return skip;
+ }
+ 
++
+ /*
+  * Cm_ClipBoxToBrush
+  *
+@@ -946,15 +997,15 @@
+  * true if the box was clipped, false otherwise.
+  */
+ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
+-			c_trace_t *trace, c_leaf_t *leaf, c_brush_t *brush, boolean_t is_point){
+-	int i, j;
+-	c_plane_t *clip_plane;
++			c_trace_t *trace, c_bsp_leaf_t *leaf, c_bsp_brush_t *brush, boolean_t is_point){
++	unsigned short i, j;
++	c_bsp_plane_t *clip_plane;
+ 	float dist;
+ 	float enter_fraction, leave_fraction;
+ 	vec3_t ofs;
+ 	float d1, d2;
+ 	boolean_t end_outside, start_outside;
+-	c_brush_side_t *lead_side;
++	c_bsp_brush_side_t *lead_side;
+ 
+ 	enter_fraction = -1;
+ 	leave_fraction = 1;
+@@ -963,14 +1014,14 @@
+ 	if(!brush->num_sides)
+ 		return;
+ 
+-	c_brush_traces++;
++	c_bsp_brush_traces++;
+ 
+ 	end_outside = start_outside = false;
+ 	lead_side = NULL;
+ 
+ 	for(i = 0; i < brush->num_sides; i++){
+-		c_brush_side_t *side = &cm_bsp.brush_sides[brush->first_brush_side + i];
+-		c_plane_t *plane = side->plane;
++		c_bsp_brush_side_t *side = &c_bsp.brush_sides[brush->first_brush_side + i];
++		c_bsp_plane_t *plane = side->plane;
+ 
+ 		// FIXME: special case for axial
+ 
+@@ -1025,7 +1076,7 @@
+ 		trace->start_solid = true;
+ 		if(!end_outside)
+ 			trace->all_solid = true;
+-		trace->leaf_num = leaf - cm_bsp.leafs;
++		trace->leaf_num = leaf - c_bsp.leafs;
+ 	}
+ 
+ 	if(enter_fraction < leave_fraction){  // pierced brush
+@@ -1036,7 +1087,7 @@
+ 			trace->plane = *clip_plane;
+ 			trace->surface = lead_side->surface;
+ 			trace->contents = brush->contents;
+-			trace->leaf_num = leaf - cm_bsp.leafs;
++			trace->leaf_num = leaf - c_bsp.leafs;
+ 		}
+ 	}
+ }
+@@ -1045,19 +1096,19 @@
+ /*
+  * Cm_TestBoxInBrush
+  */
+-static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *trace, c_brush_t *brush){
++static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *trace, c_bsp_brush_t *brush){
+ 	int i, j;
+-	c_plane_t *plane;
++	c_bsp_plane_t *plane;
+ 	float dist;
+ 	vec3_t offset;
+ 	float d1;
+-	c_brush_side_t *side;
++	c_bsp_brush_side_t *side;
+ 
+ 	if(!brush->num_sides)
+ 		return;
+ 
+ 	for(i = 0; i < brush->num_sides; i++){
+-		side = &cm_bsp.brush_sides[brush->first_brush_side + i];
++		side = &c_bsp.brush_sides[brush->first_brush_side + i];
+ 		plane = side->plane;
+ 
+ 		// FIXME: special case for axial
+@@ -1095,17 +1146,17 @@
+  */
+ static void Cm_TraceToLeaf(int leaf_num, c_trace_data_t *data){
+ 	int k;
+-	c_leaf_t *leaf;
++	c_bsp_leaf_t *leaf;
+ 
+-	leaf = &cm_bsp.leafs[leaf_num];
++	leaf = &c_bsp.leafs[leaf_num];
+ 
+ 	if(!(leaf->contents & data->contents))
+ 		return;
+ 
+ 	// trace line against all brushes in the leaf
+ 	for(k = 0; k < leaf->num_leaf_brushes; k++){
+-		const int brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + k];
+-		c_brush_t *b = &cm_bsp.brushes[brush_num];
++		const int brush_num = c_bsp.leaf_brushes[leaf->first_leaf_brush + k];
++		c_bsp_brush_t *b = &c_bsp.brushes[brush_num];
+ 
+ 		if(Cm_BrushAlreadyTested(brush_num, data))
+ 			continue; // already checked this brush in another leaf
+@@ -1125,18 +1176,18 @@
+ /*
+  * Cm_TestInLeaf
+  */
+-static void Cm_TestInLeaf(int leaf_num, c_trace_data_t *data) {
+-	int k;
+-	c_leaf_t *leaf;
++static void Cm_TestInLeaf(unsigned short leaf_num, c_trace_data_t *data) {
++	unsigned short k;
++	c_bsp_leaf_t *leaf;
+ 
+-	leaf = &cm_bsp.leafs[leaf_num];
++	leaf = &c_bsp.leafs[leaf_num];
+ 	if(!(leaf->contents & data->contents))
+ 		return;
+ 
+ 	// trace line against all brushes in the leaf
+ 	for(k = 0; k < leaf->num_leaf_brushes; k++){
+-		const int brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + k];
+-		c_brush_t *b = &cm_bsp.brushes[brush_num];
++		const unsigned short brush_num = c_bsp.leaf_brushes[leaf->first_leaf_brush + k];
++		c_bsp_brush_t *b = &c_bsp.brushes[brush_num];
+ 
+ 		if(Cm_BrushAlreadyTested(brush_num, data))
+ 			continue; // already checked this brush in another leaf
+@@ -1156,8 +1207,8 @@
+  * Cm_RecursiveHullCheck
+  */
+ static void Cm_RecursiveHullCheck(int num, float p1f, float p2f, const vec3_t p1, const vec3_t p2, c_trace_data_t *data) {
+-	const c_node_t *node;
+-	const c_plane_t *plane;
++	const c_bsp_node_t *node;
++	const c_bsp_plane_t *plane;
+ 	float t1, t2, offset;
+ 	float frac, frac2;
+ 	int i;
+@@ -1176,7 +1227,7 @@
+ 
+ 	// find the point distances to the seperating plane
+ 	// and the offset for the size of the box
+-	node = cm_bsp.nodes + num;
++	node = c_bsp.nodes + num;
+ 	plane = node->plane;
+ 
+ 	if(AXIAL(plane)){
+@@ -1246,12 +1297,13 @@
+ 	Cm_RecursiveHullCheck(node->children[side ^ 1], midf, p2f, mid, p2, data);
+ }
+ 
++
+ /*
+  * Cm_BoxTrace
+  */
+ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
+ 			const vec3_t mins, const vec3_t maxs, int head_node, int brush_mask){
+-	int i, point_leafs[1024];
++	unsigned short i, point_leafs[1024];
+ 
+ 	c_trace_data_t data;
+ 
+@@ -1260,9 +1312,9 @@
+ 	// fill in a default trace
+ 	memset(&data.trace, 0, sizeof(data.trace));
+ 	data.trace.fraction = 1.0;
+-	data.trace.surface = &cm_bsp.null_surface;
++	data.trace.surface = &c_bsp.null_surface;
+ 
+-	if(!cm_bsp.num_nodes)  // map not loaded
++	if(!c_bsp.num_nodes)  // map not loaded
+ 		return data.trace;
+ 
+ 	memset(&data.mailbox, 0xffffffff, sizeof(data.mailbox));
+@@ -1274,7 +1326,7 @@
+ 
+ 	// check for position test special case
+ 	if(VectorCompare(start, end)){
+-		int i, leafs;
++		unsigned short i, leafs;
+ 		vec3_t c1, c2;
+ 		int top_node;
+ 
+@@ -1285,8 +1337,7 @@
+ 			c2[i] += 1.0;
+ 		}
+ 
+-		leafs = Cm_BoxLeafnums_head_node(c1, c2, point_leafs,
+-				sizeof(point_leafs) / sizeof(int), head_node, &top_node); // NOTE: was * sizeof(int)
++		leafs = Cm_BoxLeafnums_head_node(c1, c2, point_leafs, lengthof(point_leafs), head_node, &top_node);
+ 
+ 		for(i = 0; i < leafs; i++){
+ 			Cm_TestInLeaf(point_leafs[i], &data);
+@@ -1400,10 +1451,10 @@
+ 	byte *out_p;
+ 	int row;
+ 
+-	row = (cm_bsp.num_clusters + 7) >> 3;
++	row = (c_vis->num_clusters + 7) >> 3;
+ 	out_p = out;
+ 
+-	if(!in || !cm_bsp.num_visibility){  // no vis info, so make all visible
++	if(!in || !c_bsp.num_visibility){  // no vis info, so make all visible
+ 		while(row){
+ 			*out_p++ = 0xff;
+ 			row--;
+@@ -1420,7 +1471,7 @@
+ 		c = in[1];
+ 		in += 2;
+ 		if((out_p - out) + c > row){
+-			c = row -(out_p - out);
++			c = row - (out_p - out);
+ 			Com_Warn("Cm_DecompressVis: Overrun.\n");
+ 		}
+ 		while(c){
+@@ -1434,13 +1485,13 @@
+ /*
+  * Cm_ClusterPVS
+  */
+-byte *Cm_ClusterPVS(int cluster){
++byte *Cm_ClusterPVS(short cluster){
+ 	static byte pvs_row[MAX_BSP_LEAFS / 8];
+ 
+ 	if(cluster == -1)
+-		memset(pvs_row, 0, (cm_bsp.num_clusters + 7) >> 3);
++		memset(pvs_row, 0, (c_vis->num_clusters + 7) >> 3);
+ 	else
+-		Cm_DecompressVis(cm_bsp.visibility + cm_vis->bit_offsets[cluster][DVIS_PVS], pvs_row);
++		Cm_DecompressVis(c_bsp.visibility + c_vis->bit_offsets[cluster][DVIS_PVS], pvs_row);
+ 
+ 	return pvs_row;
+ }
+@@ -1449,13 +1500,13 @@
+ /*
+  * Cm_ClusterPHS
+  */
+-byte *Cm_ClusterPHS(int cluster){
++byte *Cm_ClusterPHS(short cluster){
+ 	static byte phs_row[MAX_BSP_LEAFS / 8];
+ 
+ 	if(cluster == -1)
+-		memset(phs_row, 0, (cm_bsp.num_clusters + 7) >> 3);
++		memset(phs_row, 0, (c_vis->num_clusters + 7) >> 3);
+ 	else
+-		Cm_DecompressVis(cm_bsp.visibility + cm_vis->bit_offsets[cluster][DVIS_PHS], phs_row);
++		Cm_DecompressVis(c_bsp.visibility + c_vis->bit_offsets[cluster][DVIS_PHS], phs_row);
+ 
+ 	return phs_row;
+ }
+@@ -1467,22 +1518,22 @@
+  *
+  */
+ 
+-static void Cm_FloodArea(c_area_t *area, int flood_num){
++static void Cm_FloodArea(c_bsp_area_t *area, int flood_num){
+ 	int i;
+ 	const d_bsp_area_portal_t *p;
+ 
+-	if(area->flood_valid == cm_bsp.flood_valid){
++	if(area->flood_valid == c_bsp.flood_valid){
+ 		if(area->flood_num == flood_num)
+ 			return;
+ 		Com_Error(ERR_DROP, "Cm_FloodArea: Reflooded.\n");
+ 	}
+ 
+ 	area->flood_num = flood_num;
+-	area->flood_valid = cm_bsp.flood_valid;
+-	p = &cm_bsp.area_portals[area->first_area_portal];
++	area->flood_valid = c_bsp.flood_valid;
++	p = &c_bsp.area_portals[area->first_area_portal];
+ 	for(i = 0; i < area->num_area_portals; i++, p++){
+-		if(cm_bsp.portal_open[p->portal_num])
+-			Cm_FloodArea(&cm_bsp.areas[p->other_area], flood_num);
++		if(c_bsp.portal_open[p->portal_num])
++			Cm_FloodArea(&c_bsp.areas[p->other_area], flood_num);
+ 	}
+ }
+ 
+@@ -1491,17 +1542,16 @@
+  * Cm_FloodAreaConnections
+  */
+ static void Cm_FloodAreaConnections(void){
+-	int i;
+-	int flood_num;
++	unsigned short i, flood_num;
+ 
+ 	// all current floods are now invalid
+-	cm_bsp.flood_valid++;
++	c_bsp.flood_valid++;
+ 	flood_num = 0;
+ 
+ 	// area 0 is not used
+-	for(i = 1; i < cm_bsp.num_areas; i++){
+-		c_area_t *area = &cm_bsp.areas[i];
+-		if(area->flood_valid == cm_bsp.flood_valid)
++	for(i = 1; i < c_bsp.num_areas; i++){
++		c_bsp_area_t *area = &c_bsp.areas[i];
++		if(area->flood_valid == c_bsp.flood_valid)
+ 			continue;  // already flooded into
+ 		flood_num++;
+ 		Cm_FloodArea(area, flood_num);
+@@ -1512,12 +1562,13 @@
+ /*
+  * Cm_SetAreaPortalState
+  */
+-void Cm_SetAreaPortalState(int portal_num, boolean_t open){
+-	if(portal_num > cm_bsp.num_area_portals){
++void Cm_SetAreaPortalState(unsigned short portal_num, boolean_t open){
++
++	if(portal_num > c_bsp.num_area_portals){
+ 		Com_Error(ERR_DROP, "Cm_SetAreaPortalState: portal_num > cm.num_area_portals.\n");
+ 	}
+ 
+-	cm_bsp.portal_open[portal_num] = open;
++	c_bsp.portal_open[portal_num] = open;
+ 	Cm_FloodAreaConnections();
+ }
+ 
+@@ -1525,16 +1576,18 @@
+ /*
+  * Cm_AreasConnected
+  */
+-boolean_t Cm_AreasConnected(int area1, int area2){
+-	if(map_noareas->value)
++boolean_t Cm_AreasConnected(unsigned short area1, unsigned short area2){
++
++	if(c_no_areas->value)
+ 		return true;
+ 
+-	if(area1 > cm_bsp.num_areas || area2 > cm_bsp.num_areas){
++	if(area1 > c_bsp.num_areas || area2 > c_bsp.num_areas){
+ 		Com_Error(ERR_DROP, "Cm_AreasConnected: area > cm.num_areas.\n");
+ 	}
+ 
+-	if(cm_bsp.areas[area1].flood_num == cm_bsp.areas[area2].flood_num)
++	if(c_bsp.areas[area1].flood_num == c_bsp.areas[area2].flood_num)
+ 		return true;
++
+ 	return false;
+ }
+ 
+@@ -1547,20 +1600,20 @@
+  *
+  * This is used by the client view to cull visibility
+  */
+-int Cm_WriteAreaBits(byte *buffer, int area){
+-	int i;
+-	const int bytes = (cm_bsp.num_areas + 7) >> 3;
++unsigned Cm_WriteAreaBits(byte *buffer, unsigned short area){
++	unsigned short i;
++	const unsigned bytes = (c_bsp.num_areas + 7) >> 3;
+ 
+-	if(map_noareas->value){  // for debugging, send everything
++	if(c_no_areas->value){  // for debugging, send everything
+ 		memset(buffer, 0xff, bytes);
+ 	}
+ 	else {
+-		const int flood_num = cm_bsp.areas[area].flood_num;
++		const unsigned short flood_num = c_bsp.areas[area].flood_num;
+ 		memset(buffer, 0, bytes);
+ 
+-		for(i = 0; i < cm_bsp.num_areas; i++){
+-			if(cm_bsp.areas[i].flood_num == flood_num || !area)
+-				buffer[i >> 3] |= 1 <<(i & 7);
++		for(i = 0; i < c_bsp.num_areas; i++){
++			if(c_bsp.areas[i].flood_num == flood_num || !area)
++				buffer[i >> 3] |= 1 << (i & 7);
+ 		}
+ 	}
+ 
+@@ -1575,11 +1628,11 @@
+  * is potentially visible
+  */
+ boolean_t Cm_HeadnodeVisible(int node_num, byte *vis){
+-	const c_node_t *node;
++	const c_bsp_node_t *node;
+ 
+ 	if(node_num < 0){  // at a leaf, check it
+ 		const int leaf_num = -1 - node_num;
+-		const int cluster = cm_bsp.leafs[leaf_num].cluster;
++		const short cluster = c_bsp.leafs[leaf_num].cluster;
+ 
+ 		if(cluster == -1)
+ 			return false;
+@@ -1590,7 +1643,7 @@
+ 		return false;
+ 	}
+ 
+-	node = &cm_bsp.nodes[node_num];
++	node = &c_bsp.nodes[node_num];
+ 
+ 	if(Cm_HeadnodeVisible(node->children[0], vis))
+ 		return true;

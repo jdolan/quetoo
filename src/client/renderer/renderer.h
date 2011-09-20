@@ -245,12 +245,12 @@ typedef struct r_locals_s {
 	short cluster;  // PVS at origin
 	short old_cluster;
 
-	int vis_frame;  // PVS frame
+	short vis_frame;  // PVS frame
 
-	int frame;  // renderer frame
-	int back_frame;  // back-facing renderer frame
+	short frame;  // renderer frame
+	short back_frame;  // back-facing renderer frame
 
-	int light_frame;  // dynamic lighting frame
+	short light_frame;  // dynamic lighting frame
 
 	int active_light_mask;  // a bit mask into r_view.lights
 	int active_light_count;  // a count of active lights

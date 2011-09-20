@@ -148,22 +148,6 @@ void R_Trace(const vec3_t start, const vec3_t end, float size, int mask){
 
 
 /*
- * R_SignbisForPlane
- */
-static inline int R_SignbitsForPlane(const c_plane_t *plane){
-	int bits, j;
-
-	// for fast box on planeside test
-	bits = 0;
-	for(j = 0; j < 3; j++){
-		if(plane->normal[j] < 0)
-			bits |= 1 << j;
-	}
-	return bits;
-}
-
-
-/*
  * R_UpdateFrustum
  */
 void R_UpdateFrustum(void){
@@ -184,7 +168,7 @@ void R_UpdateFrustum(void){
 	for(i = 0; i < 4; i++){
 		r_locals.frustum[i].type = PLANE_ANYZ;
 		r_locals.frustum[i].dist = DotProduct(r_view.origin, r_locals.frustum[i].normal);
-		r_locals.frustum[i].sign_bits = R_SignbitsForPlane(&r_locals.frustum[i]);
+		r_locals.frustum[i].sign_bits = SignBitsForPlane(&r_locals.frustum[i]);
 	}
 }
 
