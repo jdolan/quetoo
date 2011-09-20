@@ -66,7 +66,10 @@ typedef struct r_draw_s {
 	r_image_t *cursor;
 
 	// registered fonts
+	int num_fonts;
 	r_font_t fonts[MAX_FONTS];
+
+	// active font
 	r_font_t *font;
 
 	// actual text colors as ABGR unsigned integers
@@ -81,6 +84,10 @@ typedef struct r_draw_s {
 } r_draw_t;
 
 r_draw_t r_draw;
+
+r_font_t *r_font_small;
+r_font_t *r_font_medium;
+r_font_t *r_font_large;
 
 
 /*
@@ -254,8 +261,7 @@ void R_DrawChar(int x, int y, char c, int color){
 	if(c == ' ')
 		return;  // small optimization for space
 
-	const int ca = (r_draw.font - r_draw.fonts) / sizeof(r_font_t);
-	r_char_arrays_t *chars = &r_draw.char_arrays[ca];
+	r_char_arrays_t *chars = &r_draw.char_arrays[r_draw.font - r_draw.fonts];
 
 	const int row = (int) c >> 4;
 	const int col = (int) c & 15;
@@ -309,7 +315,7 @@ void R_DrawChar(int x, int y, char c, int color){
 void R_DrawChars(void){
 	int i;
 
-	for(i = 0; i < MAX_FONTS; i++){
+	for(i = 0; i < r_draw.num_fonts; i++){
 		r_char_arrays_t *chars = &r_draw.char_arrays[i];
 
 		if(!chars->vert_index)
@@ -340,9 +346,6 @@ void R_DrawChars(void){
 
 	// restore draw color
 	glColor4ubv(color_white);
-
-	// and revert to the default font
-	R_BindFont(r_font_medium);
 }
 
 
@@ -501,14 +504,34 @@ void R_FreePics(void){
 /*
  * R_InitFont
  *
- * Initializes the specified font face.
+ * Initializes the specified bitmap font. The layout of the font is square,
+ * 2^n (e.g. 256x256, 512x512), and 8 rows by 16 columns. See below:
+ *
+ *
+ *  !"#$%&'()*+,-./
+ * 0123456789:;<=>?
+ * @ABCDEFGHIJKLMNO
+ * PQRSTUVWXYZ[\]^_
+ * 'abcdefghijklmno
+ * pqrstuvwxyz{|}"
  */
-static void R_InitFont(r_font_t *font, char *name){
+static r_font_t *R_InitFont(char *name){
+
+	if(r_draw.num_fonts == MAX_FONTS){
+		Com_Error(ERR_DROP, "R_InitFont: MAX_FONTS reached.\n");
+		return NULL;
+	}
+
+	r_font_t *font = &r_draw.fonts[r_draw.num_fonts++];
 
 	font->image = R_LoadImage(name, it_font);
 
 	font->char_width = font->image->width / 16;
 	font->char_height = font->image->height / 8;
+
+	Com_Debug("R_InitFont: %s (%dx%d)\n", name, font->char_width, font->char_height);
+
+	return font;
 }
 
 
@@ -521,11 +544,11 @@ void R_InitDraw(void){
 
 	r_draw.cursor = R_LoadImage("fonts/cursor", it_font);
 
-	R_InitFont(r_font_small, "fonts/small");
-	R_InitFont(r_font_medium, "fonts/medium");
-	R_InitFont(r_font_large, "fonts/large");
+	r_font_small = R_InitFont("fonts/small");
+	r_font_medium = R_InitFont("fonts/medium");
+	r_font_large = R_InitFont("fonts/large");
 
-	r_draw.font = r_font_medium;
+	R_BindFont(NULL);
 
 	// set ABGR color values
 	r_draw.colors[CON_COLOR_BLACK] 		= 0xff000000;

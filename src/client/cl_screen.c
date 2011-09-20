@@ -356,12 +356,14 @@ static void Cl_ExecuteLayoutString(const char *s){
 		if(!strcmp(token, "health")){  // health number
 			value = cl.frame.ps.stats[STAT_HEALTH];
 			if(value > 0){
+				R_BindFont(r_font_large);
 				if (value >= 80)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT);
 				else if (value >= 40)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT_MED);
 				else if (flash)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT_LOW);
+				R_BindFont(NULL);
 			}
 			continue;
 		}
@@ -370,10 +372,12 @@ static void Cl_ExecuteLayoutString(const char *s){
 			value = cl.frame.ps.stats[STAT_AMMO];
 			value2 = cl.frame.ps.stats[STAT_AMMO_LOW];
 			if(value > 0){
+				R_BindFont(r_font_large);
 				if (value >= value2)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT);
 				else if (flash)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT_LOW);
+				R_BindFont(NULL);
 			}
 			continue;
 		}
@@ -381,12 +385,14 @@ static void Cl_ExecuteLayoutString(const char *s){
 		if(!strcmp(token, "armor")){  // armor number
 			value = cl.frame.ps.stats[STAT_ARMOR];
 			if(value > 0){
+				R_BindFont(r_font_large);
 				if (value >= 80)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT);
 				else if (value >= 40)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT_MED);
 				else if (flash)
 					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT_LOW);
+				R_BindFont(NULL);
 			}
 			continue;
 		}

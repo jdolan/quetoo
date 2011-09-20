@@ -24,18 +24,18 @@
 
 #include "cmd.h"
 
-#define CON_TEXTSIZE 32768
-#define CON_MAXLINES 1024
-#define CON_NUMTIMES 4
+#define CON_TEXT_SIZE 32768
+#define CON_MAX_LINES 1024
+#define CON_NUM_NOTIFY 4
 #define CON_SCROLL 5
-#define CON_CURSORCHAR 0x0b
+#define CON_CURSOR_CHAR 0x0b
 
 // common console structures
 typedef struct {
 	// console data
-	char text[CON_TEXTSIZE]; 	// buffer to hold the console data
+	char text[CON_TEXT_SIZE]; 	// buffer to hold the console data
 	char *insert;			// where to add new text
-} consoledata_t;
+} console_data_t;
 
 typedef struct {
 	boolean_t initialized;
@@ -44,13 +44,13 @@ typedef struct {
 	int height;			// console printable height in characters
 
 	// console index
-	int linecolor[CON_MAXLINES];	// text color at the start of the line
-	char *linestart[CON_MAXLINES];	// an index to word-wrapped line starts
-	int lastline;			// last line of the console
+	int line_color[CON_MAX_LINES];	// text color at the start of the line
+	char *line_start[CON_MAX_LINES];	// an index to word-wrapped line starts
+	int last_line;			// last line of the console
 
 	int scroll;			// scroll position
 
-	float times[CON_NUMTIMES];  	// cls.real_time time the line was generated
+	float notify_times[CON_NUM_NOTIFY];  	// cls.real_time time the line was generated
 					// for transparent notify lines
 } console_t;
 

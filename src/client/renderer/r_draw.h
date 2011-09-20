@@ -34,12 +34,11 @@ typedef struct r_font_s {
 
 #define MAX_FONTS			3
 
-#define r_font_small  (&r_draw.fonts[0])
-#define r_font_medium (&r_draw.fonts[1])
-#define r_font_large  (&r_draw.fonts[2])
+extern r_font_t *r_font_small;
+extern r_font_t *r_font_medium;
+extern r_font_t *r_font_large;
 
 // r_draw.c
-
 void R_BindFont(r_font_t *font);
 int R_StringWidth(const char *s);
 int R_DrawString(int x, int y, const char *s, int color);

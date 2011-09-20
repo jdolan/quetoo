@@ -477,7 +477,7 @@ static void Cl_HandleEvent(SDL_Event *event){
 	unsigned int key;
 	unsigned short unicode;
 
-	if(cls.key_state.dest == key_menu){  // let the ui handle events
+	if(cls.key_state.dest == key_menu){  // let the menus handle events
 
 		if(Ui_Event(event))
 			return;
@@ -535,8 +535,8 @@ static void Cl_HandleEvent(SDL_Event *event){
 			break;
 
 		case SDL_VIDEORESIZE:
-			Cvar_SetValue("r_windowedwidth", event->resize.w);
-			Cvar_SetValue("r_windowedheight", event->resize.h);
+			Cvar_SetValue("r_windowed_width", event->resize.w);
+			Cvar_SetValue("r_windowed_height", event->resize.h);
 			Cmd_ExecuteString("r_restart");
 			break;
 	}

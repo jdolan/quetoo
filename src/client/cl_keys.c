@@ -239,8 +239,8 @@ static void Cl_KeyConsole(unsigned key, unsigned short unicode, boolean_t down, 
 
 	if(key == K_PGUP || (key == K_KP_PGUP && !numlock) || key == K_MWHEELUP){
 		cl_con.scroll += CON_SCROLL;
-		if(cl_con.scroll > cl_con.lastline)
-			cl_con.scroll = cl_con.lastline;
+		if(cl_con.scroll > cl_con.last_line)
+			cl_con.scroll = cl_con.last_line;
 		return;
 	}
 
@@ -258,7 +258,7 @@ static void Cl_KeyConsole(unsigned key, unsigned short unicode, boolean_t down, 
 
 	if(key == K_HOME || (key == K_KP_HOME && !numlock)){	// go to the start of line
 		if(ks->down[K_CTRL])	// go to the start of the console
-			cl_con.scroll = cl_con.lastline;
+			cl_con.scroll = cl_con.last_line;
 		else
 			ks->pos = 1;
 		return;
@@ -649,8 +649,6 @@ void Cl_ShutdownKeys(void){
 
 /*
  * Cl_KeyEvent
- *
- * TODO: Ensure menu events are properly handled.
  */
 void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down, unsigned time){
 
@@ -711,12 +709,16 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down, unsigned 
 		case key_game:
 			Cl_KeyGame(key, unicode, down, time);
 			break;
+		case key_menu:
+			// menus optionally handle events through Cl_HandleEvent
+			break;
 		case key_message:
 			Cl_KeyMessage(key, unicode, down, time);
 			break;
 		case key_console:
 			Cl_KeyConsole(key, unicode, down, time);
 			break;
+
 		default:
 			Com_Debug("Cl_KeyEvent: Bad cl_key_dest: %d.\n", ks->dest);
 			break;

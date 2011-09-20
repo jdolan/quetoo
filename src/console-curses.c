@@ -26,19 +26,19 @@
 static WINDOW *stdwin;	// ncurses standard window
 
 static char input[CURSES_HISTORYSIZE][CURSES_LINESIZE];
-static int historyline;
-static int inputline;
-static int inputpos;
+static int history_line;
+static int input_line;
+static int input_pos;
 
 console_t sv_con;
 
 cvar_t *con_curses;
 cvar_t *con_timeout;
 
-static char versionstring[32];
+static char version_string[32];
 
 static int curses_redraw;		// indicates what part needs to be drawn
-static int curses_lastupdate;		// number of milliseconds since last redraw
+static int curses_last_update;		// number of milliseconds since last redraw
 
 
 /*
@@ -73,7 +73,7 @@ static void Curses_DrawBackground(void){
 
 	// Draw the header
 	Curses_SetColor(CON_COLOR_ALT);
-	mvaddstr(0, 2, versionstring);
+	mvaddstr(0, 2, version_string);
 }
 
 
@@ -90,10 +90,10 @@ static void Curses_DrawInput(void){
 	for(x = 2; x < COLS - 1; x++)
 		mvaddstr(LINES-1, x," ");
 
-	mvaddnstr(LINES-1, 3, input[historyline], xPos);
+	mvaddnstr(LINES-1, 3, input[history_line], xPos);
 
 	// move the cursor to input position
-	wmove(stdwin, LINES-1, 3 + inputpos);
+	wmove(stdwin, LINES-1, 3 + input_pos);
 }
 
 
@@ -126,14 +126,14 @@ static void Curses_DrawConsole(void){
 	lines = sv_con.height + 1;
 
 	y = 1;
-	for(line = sv_con.lastline - sv_con.scroll - lines ; line < sv_con.lastline - sv_con.scroll; line++){
-		if(line >= 0 && *sv_con.linestart[line]) {
+	for(line = sv_con.last_line - sv_con.scroll - lines ; line < sv_con.last_line - sv_con.scroll; line++){
+		if(line >= 0 && *sv_con.line_start[line]) {
 			x = 1;
 			// color of the first character of the line
-			Curses_SetColor(sv_con.linecolor[line]);
+			Curses_SetColor(sv_con.line_color[line]);
 
-			pos = sv_con.linestart[line];
-			while(pos < sv_con.linestart[line + 1]){
+			pos = sv_con.line_start[line];
+			while(pos < sv_con.line_start[line + 1]){
 				if(IS_LEGACY_COLOR(pos)){
 					Curses_SetColor(CON_COLOR_ALT);
 				} else if(IS_COLOR(pos)){
@@ -153,9 +153,9 @@ static void Curses_DrawConsole(void){
 	}
 
 	// draw a scroll indicator
-	if(sv_con.lastline > 0){
+	if(sv_con.last_line > 0){
 		Curses_SetColor(CON_COLOR_ALT);
-		mvaddnstr(1 + ((sv_con.lastline-sv_con.scroll) * sv_con.height / sv_con.lastline) , w, "O", 1);
+		mvaddnstr(1 + ((sv_con.last_line-sv_con.scroll) * sv_con.height / sv_con.last_line) , w, "O", 1);
 	}
 
 	// reset drawing colors
@@ -188,7 +188,7 @@ static void Curses_Draw(void){
 	else
 		timeout = 20;
 
-	if(curses_lastupdate > timeout && curses_redraw){
+	if(curses_last_update > timeout && curses_redraw){
 		if((curses_redraw & 2) == 2){
 			// Refresh screen
 			Curses_DrawBackground();
@@ -202,7 +202,7 @@ static void Curses_Draw(void){
 		wrefresh(stdwin);
 
 		curses_redraw = 0;
-		curses_lastupdate = 0;
+		curses_last_update = 0;
 	}
 }
 
@@ -221,7 +221,7 @@ static void Curses_Resize(int sig){
 	refresh();
 
 	curses_redraw = 2;
-	curses_lastupdate = con_timeout->value * 2;
+	curses_last_update = con_timeout->value * 2;
 
 	Curses_Draw();
 }
@@ -243,80 +243,80 @@ void Curses_Frame(int msec){
 
 	while(key != ERR) {
 		if(key == KEY_BACKSPACE || key == 8 || key == 127){
-			if(input[historyline][0] != '\0' && inputpos > 0){
-				inputpos--;
-				key = inputpos;
-				while(input[historyline][key]){
-					input[historyline][key] = input[historyline][key + 1];
+			if(input[history_line][0] != '\0' && input_pos > 0){
+				input_pos--;
+				key = input_pos;
+				while(input[history_line][key]){
+					input[history_line][key] = input[history_line][key + 1];
 					key++;
 				}
 				curses_redraw |= 1;
 			}
 		} else if(key == KEY_STAB || key == 9){
-			if(Con_CompleteCommand(input[historyline], &inputpos)){
+			if(Con_CompleteCommand(input[history_line], &input_pos)){
 				curses_redraw |= 2;
 			}
 		} else if(key == KEY_LEFT){
-			if(input[historyline][0] != '\0' &&  inputpos > 0){
-				inputpos--;
+			if(input[history_line][0] != '\0' &&  input_pos > 0){
+				input_pos--;
 				curses_redraw |= 1;
 			}
 		} else if(key == KEY_HOME){
-			if(inputpos > 0){
-				inputpos = 0;
+			if(input_pos > 0){
+				input_pos = 0;
 				curses_redraw |= 1;
 			}
 		} else if(key == KEY_RIGHT){
-			if(input[historyline][0] != '\0' && inputpos < CURSES_LINESIZE - 1 && input[historyline][inputpos]){
-				inputpos++;
+			if(input[history_line][0] != '\0' && input_pos < CURSES_LINESIZE - 1 && input[history_line][input_pos]){
+				input_pos++;
 				curses_redraw |= 1;
 			}
 		} else if(key == KEY_END){
-			while(input[historyline][inputpos]){
-				inputpos++;
+			while(input[history_line][input_pos]){
+				input_pos++;
 			}
 			curses_redraw |= 1;
 		} else if(key == KEY_UP){
-			if(input[(historyline + CURSES_HISTORYSIZE - 1) % CURSES_HISTORYSIZE][0] != '\0') {
-				historyline = (historyline + CURSES_HISTORYSIZE - 1) % CURSES_HISTORYSIZE;
-				inputpos = 0;
-				while (input[historyline][inputpos])
-					inputpos++;
+			if(input[(history_line + CURSES_HISTORYSIZE - 1) % CURSES_HISTORYSIZE][0] != '\0') {
+				history_line = (history_line + CURSES_HISTORYSIZE - 1) % CURSES_HISTORYSIZE;
+				input_pos = 0;
+				while (input[history_line][input_pos])
+					input_pos++;
 				curses_redraw |= 1;
 			}
 
 		} else if (key == KEY_DOWN) {
-			if (historyline != inputline) {
-				historyline = (historyline + 1) % CURSES_HISTORYSIZE;
-				inputpos = 0;
-				while (input[historyline][inputpos])
-					inputpos++;
+			if (history_line != input_line) {
+				history_line = (history_line + 1) % CURSES_HISTORYSIZE;
+				input_pos = 0;
+				while (input[history_line][input_pos])
+					input_pos++;
 				curses_redraw |= 1;
 			}
 		} else if(key == KEY_ENTER || key == '\n') {
-			if(input[historyline][0] != '\0'){
-				if (input[historyline][0] == '\\' || input[historyline][0] == '/')
-					snprintf(buf, CURSES_LINESIZE - 2,"%s\n", input[historyline] + 1);
+			if(input[history_line][0] != '\0'){
+				if (input[history_line][0] == '\\' || input[history_line][0] == '/')
+					snprintf(buf, CURSES_LINESIZE - 2,"%s\n", input[history_line] + 1);
 				else
-					snprintf(buf, CURSES_LINESIZE - 1,"%s\n", input[historyline]);
-				Com_Print("]%s\n", input[historyline]);
+					snprintf(buf, CURSES_LINESIZE - 1,"%s\n", input[history_line]);
+				Com_Print("]%s\n", input[history_line]);
 				Cmd_ExecuteString(buf);
 
-				if (historyline == inputline)
-					inputline = (inputline + 1) % CURSES_HISTORYSIZE;
+				if (history_line == input_line)
+					input_line = (input_line + 1) % CURSES_HISTORYSIZE;
 
-				memset(input[inputline], 0, sizeof(input[inputline]));
-				historyline = inputline;
-				inputpos = 0;
+				memset(input[input_line], 0, sizeof(input[input_line]));
+				history_line = input_line;
+				input_pos = 0;
 
 				curses_redraw |= 2;
 			}
 		} else if(key == KEY_PPAGE){
-			if(sv_con.scroll < sv_con.lastline){
+			if(sv_con.scroll < sv_con.last_line){
 				// scroll up
 				sv_con.scroll += CON_SCROLL;
-				if(sv_con.scroll > sv_con.lastline)
-					sv_con.scroll = sv_con.lastline;
+				if(sv_con.scroll > sv_con.last_line)
+					sv_con.scroll = sv_con.last_line;
 				curses_redraw |= 2;
 			}
 		} else if(key == KEY_NPAGE){
@@ -327,27 +327,27 @@ void Curses_Frame(int msec){
 					sv_con.scroll = 0;
 				curses_redraw |= 2;
 			}
-		} else if(key >= 32 && key < 127 && inputpos < CURSES_LINESIZE - 1){
+		} else if(key >= 32 && key < 127 && input_pos < CURSES_LINESIZE - 1){
 			const char c = (const char) key;
 			// find the end of the line
-			key = inputpos;
-			while(input[historyline][key]){
+			key = input_pos;
+			while(input[history_line][key]){
 				key++;
 			}
 			if(key < CURSES_LINESIZE - 1){
-				while(key >= inputpos) {
-					input[historyline][key + 1] = input[historyline][key];
+				while(key >= input_pos) {
+					input[history_line][key + 1] = input[history_line][key];
 					key--;
 				}
 
-				input[historyline][inputpos++] = c;
+				input[history_line][input_pos++] = c;
 				curses_redraw |= 1;
 			}
 		}
 		key = wgetch(stdwin);
 	}
 
-	curses_lastupdate += msec;
+	curses_last_update += msec;
 	Curses_Draw();
 }
 
@@ -396,12 +396,12 @@ void Curses_Init(void){
 	}
 
 	// fill up the version string
-	snprintf(versionstring, sizeof(versionstring), " Quake2World %s ", VERSION);
+	snprintf(version_string, sizeof(version_string), " Quake2World %s ", VERSION);
 
 	// clear the input box
-	inputpos = 0;
-	inputline = 0;
-	historyline = 0;
+	input_pos = 0;
+	input_line = 0;
+	history_line = 0;
 	memset(input, 0, sizeof(input));
 
 #ifndef _WIN32
@@ -410,7 +410,7 @@ void Curses_Init(void){
 
 	refresh();
 
-	curses_lastupdate = con_timeout->value * 2;
+	curses_last_update = con_timeout->value * 2;
 
 	sv_con.initialized = true;
 

@@ -502,8 +502,8 @@ void G_SpawnEntities(const char *name, const char *entities){
 const char *g_layout =
 	// health
 	"if 0 "
-	"xv	32 "
-	"yb	-40 "
+	"xv	0 "
+	"yb	-60 "
 	"health "
 	"yb -64 "
 	"xv	96 "
@@ -512,8 +512,8 @@ const char *g_layout =
 
 	// ammo and weapon
 	"if 2 "
-	"xv	256 "
-	"yb -40 "
+	"xv	224 "
+	"yb -60 "
 	"ammo "
 	"yb -64 "
 	"xv	320 "
@@ -522,8 +522,8 @@ const char *g_layout =
 
 	// armor
 	"if 4 "
-	"xv	480 "
-	"yb -40 "
+	"xv	448 "
+	"yb -60 "
 	"armor "
 	"yb -64 "
 	"xv	544 "

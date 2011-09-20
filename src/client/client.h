@@ -316,7 +316,7 @@ extern console_t cl_con;
 void Cl_InitConsole(void);
 void Cl_DrawConsole(void);
 void Cl_DrawNotify(void);
-void Cl_UpdateNotify(int lastline);
+void Cl_UpdateNotify(int last_line);
 void Cl_ClearNotify(void);
 void Cl_ToggleConsole_f(void);
 

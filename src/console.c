@@ -27,11 +27,11 @@
 
 #include "console.h"
 
-consoledata_t condata;
+console_data_t console_data;
 
 #ifdef BUILD_CLIENT
 extern console_t cl_con;
-extern void Cl_UpdateNotify(int lastline);
+extern void Cl_UpdateNotify(int last_line);
 extern void Cl_ClearNotify(void);
 #endif
 
@@ -53,51 +53,51 @@ static void Con_Update(console_t *con, char *pos){
 	linelen = 0;
 	wordlen = 0;
 	curcolor = CON_COLOR_DEFAULT;
-	con->linestart[con->lastline] = pos;
-	con->linecolor[con->lastline] = curcolor;
+	con->line_start[con->last_line] = pos;
+	con->line_color[con->last_line] = curcolor;
 
 	if (con->width < 1)
 		return;
 
-	/* FIXME color at linestart is off by one line */
+	/* FIXME color at line_start is off by one line */
 	wordstart = pos;
 	while(*pos) {
 		if(*pos == '\n'){
-			while (wordlen > con->width && con->lastline < CON_MAXLINES - 2){
+			while (wordlen > con->width && con->last_line < CON_MAX_LINES - 2){
 				// force wordsplit
-				con->lastline++;
-				con->linestart[con->lastline] = wordstart;
-				con->linecolor[con->lastline] = curcolor;
+				con->last_line++;
+				con->line_start[con->last_line] = wordstart;
+				con->line_color[con->last_line] = curcolor;
 				wordstart = wordstart + (size_t) con->width;
 				wordlen -= con->width;
 			}
 			if(linelen + wordlen > con->width){
 				// force linebreak
-				con->lastline++;
-				con->linestart[con->lastline] = wordstart;
-				con->linecolor[con->lastline] = curcolor;
+				con->last_line++;
+				con->line_start[con->last_line] = wordstart;
+				con->line_color[con->last_line] = curcolor;
 			}
-			con->lastline++;
-			con->linestart[con->lastline] = pos + 1;
+			con->last_line++;
+			con->line_start[con->last_line] = pos + 1;
 			curcolor = CON_COLOR_DEFAULT;
-			con->linecolor[con->lastline] = curcolor;
+			con->line_color[con->last_line] = curcolor;
 			linelen = 0;
 			wordlen = 0;
 			wordstart = pos + 1;
 		} else if(*pos == ' '){
 			if(linelen + wordlen > con->width){
-				while (wordlen > con->width && con->lastline < CON_MAXLINES - 2 ){
+				while (wordlen > con->width && con->last_line < CON_MAX_LINES - 2 ){
 					// force wordsplit
-					con->lastline++;
-					con->linestart[con->lastline] = wordstart;
-					con->linecolor[con->lastline] = curcolor;
+					con->last_line++;
+					con->line_start[con->last_line] = wordstart;
+					con->line_color[con->last_line] = curcolor;
 					wordstart = wordstart + (size_t) con->width;
 					wordlen -= con->width;
 				}
 				// force linebreak
-				con->lastline++;
-				con->linestart[con->lastline] = wordstart;
-				con->linecolor[con->lastline] = curcolor;
+				con->last_line++;
+				con->line_start[con->last_line] = wordstart;
+				con->line_color[con->last_line] = curcolor;
 				linelen = wordlen + 1;
 				wordlen = 0;
 				wordstart = pos + 1;
@@ -117,17 +117,17 @@ static void Con_Update(console_t *con, char *pos){
 		pos++;
 
 		// handle line overflow
-		if (con->lastline >= CON_MAXLINES - 4){
-			for (i = 0; i < CON_MAXLINES - (CON_MAXLINES >> 2); i++){
-				con->linestart[i] = con->linestart[i + (CON_MAXLINES >> 2)];
-				con->linecolor[i] = con->linecolor[i + (CON_MAXLINES >> 2)];
+		if (con->last_line >= CON_MAX_LINES - 4){
+			for (i = 0; i < CON_MAX_LINES - (CON_MAX_LINES >> 2); i++){
+				con->line_start[i] = con->line_start[i + (CON_MAX_LINES >> 2)];
+				con->line_color[i] = con->line_color[i + (CON_MAX_LINES >> 2)];
 			}
-			con->lastline -= CON_MAXLINES >>2;
+			con->last_line -= CON_MAX_LINES >>2;
 		}
 	}
 
 	// sentinel
-	con->linestart[con->lastline + 1] = pos;
+	con->line_start[con->last_line + 1] = pos;
 }
 
 
@@ -137,7 +137,7 @@ static void Con_Update(console_t *con, char *pos){
  * Change the width of an index, parse the console data structure if needed
  */
 void Con_Resize(console_t *con, int width, int height){
-	if (!condata.insert)
+	if (!console_data.insert)
 		return;
 
 	if (con->height != height) {
@@ -150,8 +150,8 @@ void Con_Resize(console_t *con, int width, int height){
 
 	// update the requested index
 	con->width = width;
-	con->lastline = 0;
-	Con_Update(con, condata.text);
+	con->last_line = 0;
+	Con_Update(con, console_data.text);
 
 #ifdef BUILD_CLIENT
 	if (dedicated && !dedicated->value) {
@@ -169,20 +169,20 @@ void Con_Resize(console_t *con, int width, int height){
  * Clear the console data buffer
  */
 static void Con_Clear_f(void){
-	memset(condata.text, 0, sizeof(condata.text));
-	condata.insert = condata.text;
+	memset(console_data.text, 0, sizeof(console_data.text));
+	console_data.insert = console_data.text;
 
 #ifdef BUILD_CLIENT
 	if (dedicated && !dedicated->value) {
 		// update the index for the client console
-		cl_con.lastline = 0;
-		Con_Update(&cl_con, condata.insert);
+		cl_con.last_line = 0;
+		Con_Update(&cl_con, console_data.insert);
 	}
 #endif
 #ifdef HAVE_CURSES
 	// update the index for the server console
-	sv_con.lastline = 0;
-	Con_Update(&sv_con, condata.insert);
+	sv_con.last_line = 0;
+	Con_Update(&sv_con, console_data.insert);
 	// redraw the server console
 	Curses_Refresh();
 #endif
@@ -211,8 +211,8 @@ static void Con_Dump_f(void){
 	if(!f){
 		Com_Warn("Couldn't open %s.\n", name);
 	} else {
-		pos = condata.text;
-		while(pos < condata.insert){
+		pos = console_data.text;
+		while(pos < console_data.insert){
 			if(IS_COLOR(pos))
 				pos++;
 			else if(!IS_LEGACY_COLOR(pos))
@@ -320,54 +320,54 @@ static void Con_PrintStdOut(const char *text){
  */
 void Con_Print(const char *text){
 #ifdef BUILD_CLIENT
-	int lastline;
+	int last_line;
 #endif
 	// this can get called before the console is initialized
-	if (!condata.insert) {
-		memset(condata.text, 0, sizeof(condata.text));
-		condata.insert = condata.text;
+	if (!console_data.insert) {
+		memset(console_data.text, 0, sizeof(console_data.text));
+		console_data.insert = console_data.text;
 	}
 
 	// prevent overflow, text should still have a reasonable size
-	if (condata.insert + strlen(text)  >= condata.text + sizeof(condata.text) - 1){
-		memcpy(condata.text, condata.text + (sizeof(condata.text) >> 1), sizeof(condata.text) >> 1);
-		memset(condata.text + (sizeof(condata.text) >> 1) ,0 , sizeof(condata.text) >> 1);
-		condata.insert -= sizeof(condata.text) >> 1;
+	if (console_data.insert + strlen(text)  >= console_data.text + sizeof(console_data.text) - 1){
+		memcpy(console_data.text, console_data.text + (sizeof(console_data.text) >> 1), sizeof(console_data.text) >> 1);
+		memset(console_data.text + (sizeof(console_data.text) >> 1) ,0 , sizeof(console_data.text) >> 1);
+		console_data.insert -= sizeof(console_data.text) >> 1;
 #ifdef BUILD_CLIENT
 		if (dedicated && !dedicated->value) {
 			// update the index for the client console
-			cl_con.lastline = 0;
-			Con_Update(&cl_con, condata.text);
+			cl_con.last_line = 0;
+			Con_Update(&cl_con, console_data.text);
 		}
 #endif
 #ifdef HAVE_CURSES
 		// update the index for the server console
-		sv_con.lastline = 0;
-		Con_Update(&sv_con, condata.text);
+		sv_con.last_line = 0;
+		Con_Update(&sv_con, console_data.text);
 #endif
 	}
 
 	// copy the text into the console buffer
-	strcpy(condata.insert, text);
+	strcpy(console_data.insert, text);
 
 #ifdef BUILD_CLIENT
 	if (dedicated && !dedicated->value) {
-		lastline = cl_con.lastline;
+		last_line = cl_con.last_line;
 
 		// update the index for the client console
-		Con_Update(&cl_con, condata.insert);
+		Con_Update(&cl_con, console_data.insert);
 
 		// update client message notification times
-		Cl_UpdateNotify(lastline);
+		Cl_UpdateNotify(last_line);
 	}
 #endif
 
 #ifdef HAVE_CURSES
 	// update the index for the server console
-	Con_Update(&sv_con, condata.insert);
+	Con_Update(&sv_con, console_data.insert);
 #endif
 
-	condata.insert += strlen(text);
+	console_data.insert += strlen(text);
 
 #ifdef HAVE_CURSES
 	if (!con_curses->value){

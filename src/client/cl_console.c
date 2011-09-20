@@ -28,7 +28,7 @@
 
 console_t cl_con;
 
-static cvar_t *con_notifytime;
+static cvar_t *con_notify_time;
 static cvar_t *con_alpha;
 
 
@@ -58,11 +58,11 @@ void Cl_ToggleConsole_f(void){
  *
  * Update client message notification times
  */
-void Cl_UpdateNotify(int lastline){
+void Cl_UpdateNotify(int last_line){
 	int i;
 
-	for(i = lastline; i < cl_con.lastline; i++)
-		cl_con.times[i % CON_NUMTIMES] = cls.real_time;
+	for(i = last_line; i < cl_con.last_line; i++)
+		cl_con.notify_times[i % CON_NUM_NOTIFY] = cls.real_time;
 }
 
 
@@ -74,8 +74,8 @@ void Cl_UpdateNotify(int lastline){
 void Cl_ClearNotify(void){
 	int i;
 
-	for(i = 0; i < CON_NUMTIMES; i++)
-		cl_con.times[i] = 0;
+	for(i = 0; i < CON_NUM_NOTIFY; i++)
+		cl_con.notify_times[i] = 0;
 }
 
 
@@ -118,7 +118,7 @@ void Cl_InitConsole(void){
 
 	Cl_ClearNotify();
 
-	con_notifytime = Cvar_Get("con_notifytime", "3", CVAR_ARCHIVE, "Seconds to draw the last messages on the game top");
+	con_notify_time = Cvar_Get("con_notify_time", "3", CVAR_ARCHIVE, "Seconds to draw the last messages on the game top");
 	con_alpha = Cvar_Get("con_alpha", "0.3", CVAR_ARCHIVE, "Console alpha background [0.0-1.0]");
 
 	Cmd_AddCommand("toggle_console", Cl_ToggleConsole_f, "Toggle the console");
@@ -144,7 +144,7 @@ static void Cl_DrawInput(void){
 
 	// add the cursor frame
 	if((int)(cls.real_time >> 8) & 1){
-		text[cls.key_state.pos] = CON_CURSORCHAR;
+		text[cls.key_state.pos] = CON_CURSOR_CHAR;
 		if(y == cls.key_state.pos)
 			y++;
 	}
@@ -158,7 +158,7 @@ static void Cl_DrawInput(void){
 		text += 1 + cls.key_state.pos - cl_con.width;
 
 	// draw it
-	R_DrawBytes(0, cl_con.height << 5, text, cl_con.width, CON_COLOR_DEFAULT);
+	R_DrawBytes(0, cl_con.height * r_font_small->char_height, text, cl_con.width, CON_COLOR_DEFAULT);
 }
 
 
@@ -177,17 +177,20 @@ void Cl_DrawNotify(void){
 	if(cls.state != ca_active)
 		return;
 
-	for(i = cl_con.lastline - CON_NUMTIMES; i < cl_con.lastline; i++ ){
+	R_BindFont(r_font_small);
+
+	for(i = cl_con.last_line - CON_NUM_NOTIFY; i < cl_con.last_line; i++ ){
 		if(i < 0)
 			continue;
 
-		if(cl_con.times[i % CON_NUMTIMES] + con_notifytime->value * 1000 > cls.real_time){
-			R_DrawBytes(0, y, cl_con.linestart[i], cl_con.linestart[i + 1] - cl_con.linestart[i], cl_con.linecolor[i]);
-			y += 32;
+		if(cl_con.notify_times[i % CON_NUM_NOTIFY] + con_notify_time->value * 1000 > cls.real_time){
+			R_DrawBytes(0, y, cl_con.line_start[i], cl_con.line_start[i + 1] - cl_con.line_start[i], cl_con.line_color[i]);
+			y += r_font_small->char_height;
 		}
 	}
 
 	if(cls.key_state.dest == key_message){
+
 		if(cls.chat_state.team){
 			color = CON_COLOR_TEAMCHAT;
 			R_DrawString(0, y, "say_team", CON_COLOR_DEFAULT);
@@ -197,18 +200,21 @@ void Cl_DrawNotify(void){
 			R_DrawString(0, y, "say", CON_COLOR_DEFAULT);
 			skip = 5;
 		}
-		R_DrawChar((skip - 2) << 4 , y, ':', color);
+
+		R_DrawChar((skip - 2) * r_font_small->char_width, y, ':', color);
 
 		s = cls.chat_state.buffer;
 		// FIXME check the skipped part for color codes
-		if(cls.chat_state.len > (r_state.width >> 4) - (skip + 1))
-			s += cls.chat_state.len - ((r_state.width >> 4) - (skip + 1));
+		if(cls.chat_state.len > (r_state.width / r_font_small->char_width) - (skip + 1))
+			s += cls.chat_state.len - ((r_state.width / r_font_small->char_width) - (skip + 1));
 
-		len = R_DrawString(skip << 4, y, s, color);
+		len = R_DrawString(skip * r_font_small->char_width, y, s, color);
 
 		if((int)(cls.real_time >> 8) & 1)  // draw the cursor
-			R_DrawChar((len + skip) << 4, y, CON_CURSORCHAR, color);
+			R_DrawChar((len + skip) * r_font_small->char_width, y, CON_CURSOR_CHAR, color);
 	}
+
+	R_BindFont(NULL);
 }
 
 
@@ -225,7 +231,10 @@ void Cl_DrawConsole(void){
 	if(cls.key_state.dest != key_console)
 		return;
 
-	Con_Resize(&cl_con, r_state.width >> 4, (r_state.height >> 5) - 1);
+	R_BindFont(r_font_small);
+
+	Con_Resize(&cl_con, r_state.width / r_font_small->char_width,
+			(r_state.height / r_font_small->char_height) - 1);
 
 	// draw a background
 	if(cls.state == ca_active)
@@ -236,19 +245,19 @@ void Cl_DrawConsole(void){
 	// draw the text
 	lines = cl_con.height;
 	y = 0;
-	for(line = cl_con.lastline - cl_con.scroll - lines;
-			line < cl_con.lastline - cl_con.scroll; line++){
+	for(line = cl_con.last_line - cl_con.scroll - lines;
+			line < cl_con.last_line - cl_con.scroll; line++){
 
-		if(line >= 0 && cl_con.linestart[line][0] != '\0'){
-			R_DrawBytes(0, y, cl_con.linestart[line],
-					cl_con.linestart[line + 1] - cl_con.linestart[line], cl_con.linecolor[line]);
+		if(line >= 0 && cl_con.line_start[line][0] != '\0'){
+			R_DrawBytes(0, y, cl_con.line_start[line],
+					cl_con.line_start[line + 1] - cl_con.line_start[line], cl_con.line_color[line]);
 		}
-		y += 32;
+		y += r_font_small->char_height;
 	}
 
 	if(cls.state == ca_connected && cls.loading){  // draw loading progress
 		snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
-		R_DrawString(0, cl_con.height << 5, dl, CON_COLOR_INFO);
+		R_DrawString(0, cl_con.height * r_font_small->char_height, dl, CON_COLOR_INFO);
 	}
 	else if(cls.download.file){  // draw download progress
 
@@ -257,9 +266,11 @@ void Cl_DrawConsole(void){
 		snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
 				(cls.download.http ? "HTTP" : "UDP"), kb);
 
-		R_DrawString(0, cl_con.height << 5, dl, CON_COLOR_INFO);
+		R_DrawString(0, cl_con.height * r_font_small->char_height, dl, CON_COLOR_INFO);
 	}
 	else {  // draw the input prompt, user text, and cursor if desired
 		Cl_DrawInput();
 	}
+
+	R_BindFont(NULL);
 }
