@@ -519,7 +519,7 @@ void R_InitDraw(void){
 
 	memset(&r_draw, 0, sizeof(r_draw));
 
-	r_draw.cursor = R_LoadImage("pics/cursor", it_font);
+	r_draw.cursor = R_LoadImage("fonts/cursor", it_font);
 
 	R_InitFont(r_font_small, "fonts/small");
 	R_InitFont(r_font_medium, "fonts/medium");
