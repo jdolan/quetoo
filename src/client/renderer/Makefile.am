@@ -1,4 +1,5 @@
 noinst_HEADERS = \
+	r_draw.h \
 	r_gl.h \
 	r_image.h \
 	r_material.h \

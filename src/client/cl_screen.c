@@ -348,7 +348,7 @@ static void Cl_ExecuteLayoutString(const char *s){
 			if(value >= MAX_IMAGES)
 				Com_Warn("Cl_ExecuteLayoutString: pic %d >= MAX_IMAGES\n", value);
 			else if(cl.config_strings[CS_IMAGES + value]){
-				R_DrawPic(x, y, cl.config_strings[CS_IMAGES + value]);
+				R_DrawPic(x, y, 1.0, cl.config_strings[CS_IMAGES + value]);
 			}
 			continue;
 		}
@@ -522,7 +522,7 @@ static void Cl_DrawCrosshair(void){
 	w = (r_view.width - crosshair.width * cl_crosshair_scale->value) / 2;
 	h = (r_view.height - crosshair.height * cl_crosshair_scale->value) / 2;
 
-	R_DrawScaledPic(r_view.x + w, r_view.y + h, cl_crosshair_scale->value, crosshair.name);
+	R_DrawPic(r_view.x + w, r_view.y + h, cl_crosshair_scale->value, crosshair.name);
 
 	glColor4ubv(color_white);
 }

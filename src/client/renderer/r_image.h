@@ -26,7 +26,7 @@
 #include "r_material.h"
 
 typedef enum {
-	it_chars,
+	it_font,
 	it_effect,
 	it_world,
 	it_lightmap,

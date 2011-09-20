@@ -102,7 +102,7 @@ void R_TextureMode(const char *mode){
 		if(!image->texnum)
 			continue;
 
-		if(image->type == it_chars || image->type == it_pic || image->type == it_sky)
+		if(image->type == it_font || image->type == it_pic || image->type == it_sky)
 			continue;  // no mipmaps
 
 		R_BindTexture(image->texnum);
@@ -132,7 +132,7 @@ void R_ListImages_f(void){
 		texels += image->upload_width * image->upload_height;
 
 		switch(image->type){
-			case it_chars:
+			case it_font:
 				Com_Print("C");
 				break;
 			case it_effect:
@@ -427,7 +427,7 @@ static void R_UploadImage32(unsigned *data, int width, int height, vec3_t color,
 	if(upload_height < 1)
 		upload_height = 1;
 
-	mipmap = (type != it_chars && type != it_pic && type != it_sky);
+	mipmap = (type != it_font && type != it_pic && type != it_sky);
 
 	// some images need very little attention (pics, fonts, etc..)
 	if(!mipmap && upload_width == width && upload_height == height){

@@ -26,7 +26,7 @@
 #include <math.h>
 
 #include "r_gl.h"
-#include "r_image.h"
+#include "r_draw.h"
 #include "r_matrix.h"
 #include "r_model.h"
 #include "r_state.h"
@@ -360,24 +360,6 @@ void R_ShutdownContext(void);
 // r_corona.c
 void R_AddCorona(const vec3_t org, float radius, float flicker, const vec3_t color);
 void R_DrawCoronas(void);
-
-// r_draw.c
-void R_InitDraw(void);
-void R_FreePics(void);
-r_image_t *R_LoadPic(const char *name);
-void R_DrawScaledPic(int x, int y, float scale, const char *name);
-void R_DrawPic(int x, int y, const char *name);
-void R_DrawCursor(int x, int y);
-int R_StringWidth(const char *s);
-int R_DrawString(int x, int y, const char *s, int color);
-int R_DrawBytes(int x, int y, const char *s, size_t size, int color);
-int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int color);
-void R_DrawChar(int x, int y, char c, int color);
-void R_DrawChars(void);
-void R_DrawFill(int x, int y, int w, int h, int c, float a);
-void R_DrawFills(void);
-void R_DrawLine(int x1, int y1, int x2, int y2, int c, float a);
-void R_DrawLines(void);
 
 // r_entity.c
 const r_entity_t *R_AddEntity(const r_entity_t *e);
