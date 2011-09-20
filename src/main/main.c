@@ -258,7 +258,7 @@ static void Shutdown(const char *msg){
  * Frame
  */
 static void Frame(int msec){
-	extern int c_traces, c_brush_traces;
+	extern int c_traces, c_bsp_brush_traces;
 	extern int c_point_contents;
 	extern cvar_t *threads;
 
@@ -267,8 +267,8 @@ static void Frame(int msec){
 
 	if(show_trace->value){
 		Com_Print("%4i traces (%4i clips), %4i points\n", c_traces,
-				c_brush_traces, c_point_contents);
-		c_traces = c_brush_traces = c_point_contents = 0;
+				c_bsp_brush_traces, c_point_contents);
+		c_traces = c_bsp_brush_traces = c_point_contents = 0;
 	}
 
 	Cbuf_Execute();

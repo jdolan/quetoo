@@ -240,12 +240,12 @@ extern vec3_t vec3_origin;
 #define AREA_TRIGGERS			2
 
 // plane_t structure
-typedef struct c_plane_s {
+typedef struct c_bsp_plane_s {
 	vec3_t normal;
 	float dist;
 	int type;  // for fast side tests
 	int sign_bits;  // signx + (signy << 1) + (signz << 1)
-} c_plane_t;
+} c_bsp_plane_t;
 
 typedef struct c_model_s {
 	vec3_t mins, maxs;
@@ -253,11 +253,11 @@ typedef struct c_model_s {
 	int head_node;
 } c_model_t;
 
-typedef struct c_surface_s {
+typedef struct c_bsp_surface_s {
 	char name[32];
 	int flags;
 	int value;
-} c_surface_t;
+} c_bsp_surface_t;
 
 // a trace is returned when a box is swept through the world
 typedef struct c_trace_s {
@@ -265,8 +265,8 @@ typedef struct c_trace_s {
 	boolean_t start_solid;  // if true, the initial point was in a solid area
 	float fraction;  // time completed, 1.0 = didn't hit anything
 	vec3_t end;  // final position
-	c_plane_t plane;  // surface normal at impact
-	c_surface_t *surface;  // surface hit
+	c_bsp_plane_t plane;  // surface normal at impact
+	c_bsp_surface_t *surface;  // surface hit
 	int leaf_num;
 	int contents;  // contents on other side of surface hit
 	struct g_edict_s *ent;  // not set by CM_*() functions

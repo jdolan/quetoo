@@ -346,7 +346,7 @@ static void G_func_plat_use(g_edict_t *ent, g_edict_t *other, g_edict_t *activat
 /*
  * G_func_plat_touch
  */
-static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 	if(!other->client)
 		return;
 
@@ -501,7 +501,7 @@ static void G_func_rotating_blocked(g_edict_t *self, g_edict_t *other){
 /*
  * G_func_rotating_touch
  */
-static void G_func_rotating_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_func_rotating_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 	if(self->avelocity[0] || self->avelocity[1] || self->avelocity[2])
 		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
@@ -643,7 +643,7 @@ static void G_func_button_use(g_edict_t *self, g_edict_t *other, g_edict_t *acti
 /*
  * G_func_button_touch
  */
-static void G_func_button_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_func_button_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 
 	if(!other->client)
 		  return;
@@ -864,7 +864,7 @@ static void G_func_door_use(g_edict_t *self, g_edict_t *other, g_edict_t *activa
 /*
  * G_func_door_touch_trigger
  */
-static void G_func_door_touch_trigger(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_func_door_touch_trigger(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 	if(other->health <= 0)
 		return;
 
@@ -1004,7 +1004,7 @@ static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor, g_edict_t *at
 /*
  * G_func_door_touch
  */
-static void G_func_door_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_func_door_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 	if(!other->client)
 		return;
 

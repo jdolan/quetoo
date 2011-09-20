@@ -82,7 +82,7 @@ static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other, g_edict_t *
 /*
  * G_trigger_multiple_touch
  */
-static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 
 	if(!other->client)
 		return;
@@ -194,7 +194,7 @@ void G_trigger_always(g_edict_t *ent){
 /*
  * G_trigger_push_touch
  */
-static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 
 	if(!strcmp(other->class_name, "grenade") || other->health > 0){
 
@@ -270,7 +270,7 @@ static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other, g_edict_t *act
 /*
  * G_trigger_hurt_touch
  */
-static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 	int dflags;
 
 	if(!other->take_damage){  // deal with items that land on us
@@ -339,7 +339,7 @@ void G_trigger_hurt(g_edict_t *self){
 /*
  * G_trigger_exec_touch
  */
-static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 
 	if(self->timestamp > g_level.time)
 		return;

@@ -32,8 +32,8 @@ typedef struct {
 	vec3_t forward, right, up;
 	float frame_time;
 
-	c_surface_t *ground_surface;
-	c_plane_t ground_plane;
+	c_bsp_surface_t *ground_surface;
+	c_bsp_plane_t ground_plane;
 	int ground_contents;
 
 	vec3_t previous_origin;

@@ -533,7 +533,7 @@ void G_ResetFlag(g_edict_t *ent);
 void G_TossQuadDamage(g_edict_t *self);
 g_item_t *G_ItemByIndex(int index);
 boolean_t G_AddAmmo(g_edict_t *ent, g_item_t *item, int count);
-void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf);
+void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
 
 // g_main.c
 void G_Init(void);
@@ -765,7 +765,7 @@ struct g_edict_s {
 	void (*pre_think)(g_edict_t *ent);
 	void (*think)(g_edict_t *self);
 	void (*blocked)(g_edict_t *self, g_edict_t *other);  // move to move_info?
-	void (*touch)(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf);
+	void (*touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
 	void (*use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
 	void (*pain)(g_edict_t *self, g_edict_t *other, int damage, int knockback);
 	void (*die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage, vec3_t point);
@@ -810,8 +810,8 @@ struct g_edict_s {
 
 	g_item_t *item;  // for bonus items
 
-	c_plane_t plane;  // last touched
-	c_surface_t *surf;
+	c_bsp_plane_t plane;  // last touched
+	c_bsp_surface_t *surf;
 
 	vec3_t map_origin;  // where the map says we spawn
 };

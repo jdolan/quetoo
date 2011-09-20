@@ -48,8 +48,8 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out);
 void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out);
 
-byte SignBitsForPlane(const c_plane_t *plane);
-int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_plane_t *plane);
+byte SignBitsForPlane(const c_bsp_plane_t *plane);
+int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane_t *plane);
 
 void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal);
 void PerpendicularVector(vec3_t dst, const vec3_t src);

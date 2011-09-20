@@ -71,7 +71,7 @@ typedef struct {
 	short back_frame;  // back-facing renderer frame
 	short light_frame;  // dynamic lighting frame
 
-	c_plane_t *plane;
+	c_bsp_plane_t *plane;
 	int flags;  // MSURF_ flags
 
 	int first_edge;  // look up in model->surf_edges, negative numbers
@@ -139,7 +139,7 @@ typedef struct r_bsp_node_s {
 	struct r_model_s *model;
 
 	// node specific
-	c_plane_t *plane;
+	c_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
 	unsigned short first_surface;
@@ -291,7 +291,7 @@ typedef struct r_model_s {
 	r_bsp_submodel_t *submodels;
 
 	int num_planes;
-	c_plane_t *planes;
+	c_bsp_plane_t *planes;
 
 	int num_leafs;
 	r_bsp_leaf_t *leafs;

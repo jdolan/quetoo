@@ -601,7 +601,7 @@ static void R_LoadBspSurfaceEdges(const d_bsp_lump_t *l){
  */
 static void R_LoadBspPlanes(const d_bsp_lump_t *l){
 	int i, j;
-	c_plane_t *out;
+	c_bsp_plane_t *out;
 	const d_bsp_plane_t *in;
 	int count;
 

@@ -64,7 +64,7 @@ static boolean_t G_ImmediateWall(g_edict_t *ent, vec3_t dir){
  *
  * Returns true if the specified surface appears structural.
  */
-static boolean_t G_IsStructural(g_edict_t *ent, c_surface_t *surf){
+static boolean_t G_IsStructural(g_edict_t *ent, c_bsp_surface_t *surf){
 
 	if(!ent || ent->client || ent->take_damage)
 		return false;  // we hit nothing, or something we damaged
@@ -138,7 +138,7 @@ static void G_Tracer(vec3_t start, vec3_t end){
  *
  * Used to add impact marks on surfaces hit by bullets.
  */
-static void G_BulletMark(vec3_t org, c_plane_t *plane, c_surface_t *surf){
+static void G_BulletMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_BULLET);
@@ -154,7 +154,7 @@ static void G_BulletMark(vec3_t org, c_plane_t *plane, c_surface_t *surf){
  *
  * Used to add burn marks on surfaces hit by projectiles.
  */
-static void G_BurnMark(vec3_t org, c_plane_t *plane, c_surface_t *surf, byte scale){
+static void G_BurnMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf, byte scale){
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_BURN);
@@ -306,7 +306,7 @@ static void G_GrenadeProjectile_Explode(g_edict_t *ent){
 /*
  * G_GrenadeProjectile_Touch
  */
-static void G_GrenadeProjectile_Touch(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_GrenadeProjectile_Touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 
 	if(other == ent->owner)
 		return;
@@ -389,7 +389,7 @@ void G_GrenadeProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir, int speed
 /**
  * G_RocketProjectile_Touch
  */
-static void G_RocketProjectile_Touch(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_RocketProjectile_Touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 	vec3_t origin;
 
 	if(other == ent->owner)
@@ -470,7 +470,7 @@ void G_RocketProjectile(g_edict_t *self, vec3_t start, vec3_t dir, int speed,
 /*
  * G_HyperblasterProjectile_Touch
  */
-static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 	vec3_t origin;
 	vec3_t v;
 
@@ -801,7 +801,7 @@ void G_RailgunProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir, int damag
 /*
  * G_BfgProjectile_Touch
  */
-static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 	vec3_t origin;
 
 	if(other == self->owner)

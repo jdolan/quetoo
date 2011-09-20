@@ -500,7 +500,7 @@ static void G_DropFlag(g_edict_t *ent, g_item_t *item){
 /*
  * G_TouchItem
  */
-void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 	boolean_t taken;
 
 	if(!other->client)
@@ -550,7 +550,7 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t
 /*
  * G_DropItemUntouchable
  */
-static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, c_plane_t *plane, c_surface_t *surf){
+static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
 
 	if(other == ent->owner)  // prevent the dropper from picking it right back up
 		return;

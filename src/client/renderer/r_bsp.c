@@ -111,7 +111,7 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e){
 	surf = &e->model->surfaces[e->model->first_model_surface];
 
 	for(i = 0; i < e->model->num_model_surfaces; i++, surf++){
-		const c_plane_t *plane = surf->plane;
+		const c_bsp_plane_t *plane = surf->plane;
 		float dot;
 
 		// find which side of the surf we are on
@@ -279,7 +279,7 @@ void R_DrawBspNormals(void){
 static void R_MarkSurfaces_(r_bsp_node_t *node){
 	int i, side, sidebit;
 	r_bsp_surface_t *surf, **lsurf;
-	c_plane_t *plane;
+	c_bsp_plane_t *plane;
 	float dot;
 
 	if(node->contents == CONTENTS_SOLID)
@@ -397,7 +397,7 @@ void R_MarkSurfaces(void){
  */
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model){
 	const r_bsp_node_t *node;
-	const c_plane_t *plane;
+	const c_bsp_plane_t *plane;
 	float dot;
 
 	if(!model || !model->nodes){

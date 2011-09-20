@@ -257,7 +257,7 @@ typedef struct r_locals_s {
 
 	int trace_num;  // lighting traces
 
-	c_plane_t frustum[4];  // for box culling
+	c_bsp_plane_t frustum[4];  // for box culling
 } r_locals_t;
 
 extern r_locals_t r_locals;

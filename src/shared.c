@@ -316,7 +316,7 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
  * Returns a bit mask hinting at the sign of each normal vector component. This
  * is used as an optimization for the box-on-plane-side test.
  */
-byte SignBitsForPlane(const c_plane_t *plane){
+byte SignBitsForPlane(const c_bsp_plane_t *plane){
 	byte i, bits = 0;
 
 	for(i = 0; i < 3; i++){
@@ -334,7 +334,7 @@ byte SignBitsForPlane(const c_plane_t *plane){
  * Returns the sidedness of the given bounding box relative to the specified
  * plane. If the box straddles the plane, this function returns PSIDE_BOTH.
  */
-int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct c_plane_s *p){
+int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct c_bsp_plane_s *p){
 	float dist1, dist2;
 	int sides;
 
