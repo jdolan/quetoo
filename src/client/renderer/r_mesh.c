@@ -303,7 +303,7 @@ static void R_ResetMeshState_default(const r_entity_t *e){
 
 
 #define MESH_SHADOW_SCALE 1.5
-#define MESH_SHADOW_ALPHA 0.3
+#define MESH_SHADOW_ALPHA 0.15
 
 /*
  * R_RotateForMeshShadow_default
