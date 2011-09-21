@@ -255,8 +255,11 @@ void Cl_DrawConsole(void){
 		y += r_font_small->char_height;
 	}
 
-	if(cls.state == ca_connected && cls.loading){  // draw loading progress
+	// draw the loading string or the input prompt
+
+	if(cls.state >= ca_connected && cls.loading){  // draw loading progress
 		snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
+
 		R_DrawString(0, cl_con.height * r_font_small->char_height, dl, CON_COLOR_INFO);
 	}
 	else if(cls.download.file){  // draw download progress
