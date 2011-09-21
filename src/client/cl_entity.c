@@ -443,7 +443,7 @@ static void Cl_AddClientEntity(cl_entity_t *e, r_entity_t *ent){
 		Cl_AddLinkedEntity(head.parent, s->model2, "tag_weapon");
 
 	if(s->model3)
-		Cl_AddLinkedEntity(head.parent, s->model3, "tag_flag");
+		Cl_AddLinkedEntity(head.parent, s->model3, "tag_head");
 
 	if(s->model4)
 		Com_Warn("Cl_AddClientEntity: Unsupported model_index4\n");
