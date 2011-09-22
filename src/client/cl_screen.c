@@ -737,9 +737,9 @@ void Cl_UpdateScreen(void){
 
 	R_DrawChars();  // draw all chars accumulated above
 
-	Cl_DrawCursor();
-
 	Ui_Draw();
+
+	Cl_DrawCursor();
 
 	R_EndFrame();
 }
