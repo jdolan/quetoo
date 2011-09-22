@@ -211,7 +211,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	if(attacker->client &&
 			attacker->client->locals.inventory[quad_damage_index]){
 		damage = (int)(damage * QUAD_DAMAGE_FACTOR);
-		knockback = (int)( knockback * QUAD_KNOCKBACK_FACTOR);
+		knockback = (int)(knockback * QUAD_KNOCKBACK_FACTOR);
 	}
 
 	// friendly fire avoidance

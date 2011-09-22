@@ -94,7 +94,7 @@ static void G_ClientFall(g_edict_t *ent){
 		VectorSet(dir, 0.0, 0.0, 1.0);
 
 		G_Damage(ent, NULL, NULL, dir, ent->s.origin,
-				vec3_origin, damage, 0, 0, MOD_FALLING);
+				vec3_origin, damage, 0, DAMAGE_NO_ARMOR, MOD_FALLING);
 	}
 
 	if(ent->s.event != EV_TELEPORT){  // don't override teleport events
@@ -172,12 +172,12 @@ static void G_ClientWaterLevel(g_edict_t *ent){
 
 			if(ent->water_type & CONTENTS_LAVA){
 				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin,
-						vec3_origin, 2 * water_level, 0, 0, MOD_LAVA);
+						vec3_origin, 2 * water_level, 0, DAMAGE_NO_ARMOR, MOD_LAVA);
 			}
 
 			if(ent->water_type & CONTENTS_SLIME){
 				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin,
-						vec3_origin, 1 * water_level, 0, 0, MOD_SLIME);
+						vec3_origin, 1 * water_level, 0, DAMAGE_NO_ARMOR, MOD_SLIME);
 			}
 		}
 	}
@@ -195,6 +195,8 @@ static void G_ClientAnimation(g_edict_t *ent){
 
 	if(ent->sv_flags & SVF_NO_CLIENT)
 		return;
+
+	// check for falling
 
 	if(!ent->ground_entity){  // not on the ground
 
@@ -214,27 +216,11 @@ static void G_ClientAnimation(g_edict_t *ent){
 		return;
 	}
 
-	// we're on the ground, determine our x/y speed
-
-	vec3_t velocity;
-	float speed;
-
-	VectorCopy(ent->velocity, velocity);
-	velocity[2] = 0.0;
-
-	speed = VectorNormalize(velocity);
-
-	if(ent->client->ps.pmove.pm_flags & PMF_DUCKED){  // ducked
-		if(speed < 1.0)
-			G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
-		else
-			G_SetAnimation(ent, ANIM_LEGS_WALKCR, false);
-
-		return;
-	}
+	// check for landing
 
 	const entity_event_t e = ent->s.event;
-	if(e >= EV_CLIENT_LAND && e <= EV_CLIENT_FALL_FAR){  // landing
+
+	if(e >= EV_CLIENT_LAND && e <= EV_CLIENT_FALL_FAR){
 
 		if(G_IsAnimation(ent, ANIM_LEGS_JUMP2))
 			G_SetAnimation(ent, ANIM_LEGS_LAND2, false);
@@ -244,7 +230,25 @@ static void G_ClientAnimation(g_edict_t *ent){
 		return;
 	}
 
-	if(ent->client->fall_time <= g_level.time){  // run or walk
+	// duck, walk or run
+
+	if(ent->client->fall_time <= g_level.time){
+		vec3_t velocity;
+		float speed;
+
+		VectorCopy(ent->velocity, velocity);
+		velocity[2] = 0.0;
+
+		speed = VectorNormalize(velocity);
+
+		if(ent->client->ps.pmove.pm_flags & PMF_DUCKED){  // ducked
+			if(speed < 1.0)
+				G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
+			else
+				G_SetAnimation(ent, ANIM_LEGS_WALKCR, false);
+
+			return;
+		}
 
 		if(speed < 1.0){
 			G_SetAnimation(ent, ANIM_LEGS_IDLE, false);
@@ -256,7 +260,7 @@ static void G_ClientAnimation(g_edict_t *ent){
 		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
 		AngleVectors(angles, forward, NULL, NULL);
 
-		if(DotProduct(velocity, forward) < 0.0)
+		if(DotProduct(velocity, forward) < -0.1)
 			G_SetAnimation(ent, ANIM_LEGS_BACK, false);
 		else if(speed < 200.0)
 			G_SetAnimation(ent, ANIM_LEGS_WALK, false);

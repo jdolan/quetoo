@@ -297,7 +297,7 @@ static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 	if(self->spawn_flags & 8)
 		dflags = DAMAGE_NO_PROTECTION;
 	else
-		dflags = 0;
+		dflags = DAMAGE_NO_ARMOR;
 
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
 			self->dmg, self->dmg, dflags, MOD_TRIGGER_HURT);
