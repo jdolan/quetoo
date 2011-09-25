@@ -550,10 +550,12 @@ AC_CONFIG_FILES([
 	Makefile
 	doc/Makefile
 	src/Makefile
+	src/cgame/Makefile
+	src/cgame/default/Makefile
 	src/client/Makefile
-	src/client/ui/Makefile
-	src/client/sound/Makefile
 	src/client/renderer/Makefile
+	src/client/sound/Makefile
+	src/client/ui/Makefile
 	src/game/Makefile
 	src/game/default/Makefile
 	src/main/Makefile

@@ -202,7 +202,7 @@ void Com_InitArgv(int argc, char **argv);
 
 void Com_PrintInfo(const char *s);
 
-void Com_BeginRedirect(int target, char *buffer, int buffersize, void(*flush)(int, char*));
+void Com_BeginRedirect(int target, char *buffer, int buffersize, void (*flush)(int, char*));
 void Com_EndRedirect(void);
 void Com_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Error(err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));

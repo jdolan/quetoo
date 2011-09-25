@@ -666,7 +666,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down, unsigned 
 		}
 
 		// score
-		if(cl.frame.ps.stats[STAT_LAYOUTS]){
+		if(cl.frame.ps.stats[STAT_SCOREBOARD]){
 			Cbuf_AddText("score\n");
 			return;
 		}

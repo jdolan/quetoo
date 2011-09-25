@@ -20,7 +20,6 @@
  */
 
 #include "client.h"
-#include "hash.h"
 
 
 #define MAX_CHARS 2048  // per font
@@ -60,6 +59,18 @@ typedef struct r_line_arrays_s {
 	int color_index;
 } r_line_arrays_t;
 
+// each font has vertex arrays of characters to draw each frame
+typedef struct r_font_s {
+	char name[MAX_QPATH];
+
+	r_image_t *image;
+
+	int char_width;
+	int char_height;
+} r_font_t;
+
+#define MAX_FONTS 3
+
 // pull it all together in one structure
 typedef struct r_draw_s {
 
@@ -84,86 +95,6 @@ typedef struct r_draw_s {
 } r_draw_t;
 
 r_draw_t r_draw;
-
-r_font_t *r_font_small;
-r_font_t *r_font_medium;
-r_font_t *r_font_large;
-
-
-/*
- * R_BindFont
- */
-void R_BindFont(r_font_t *font){
-
-	if(!font){
-		r_draw.font = r_font_medium;
-		return;
-	}
-
-	r_draw.font = font;
-}
-
-
-/*
- * R_StringWidth
- */
-int R_StringWidth(const char *s){
-	return strlen(s) * r_draw.font->char_width;
-}
-
-
-/*
- * R_DrawString
- */
-int R_DrawString(int x, int y, const char *s, int color){
-	return R_DrawSizedString(x, y, s, 999, 999, color);
-}
-
-
-/*
- * R_DrawBytes
- */
-int R_DrawBytes(int x, int y, const char *s, size_t size, int color){
-	return R_DrawSizedString(x, y, s, size, size, color);
-}
-
-
-/*
- * R_DrawSizedString
- *
- * Draws at most len chars or size bytes of the specified string.  Color escape
- * sequences are not visible chars.  Returns the number of chars drawn.
- */
-int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int color){
-	int i, j;
-
-	i = j = 0;
-	while(*s && i < len && j < size){
-
-		if(IS_COLOR(s)){  // color escapes
-			color = *(s + 1) - '0';
-			j += 2;
-			s += 2;
-			continue;
-		}
-
-		if(IS_LEGACY_COLOR(s)){  // legacy colors
-			color = CON_COLOR_ALT;
-			j++;
-			s++;
-			continue;
-		}
-
-		R_DrawChar(x, y, *s, color);
-		x += r_draw.font->char_width;  // next char position in line
-
-		i++;
-		j++;
-		s++;
-	}
-
-	return i;
-}
 
 
 /*
@@ -247,6 +178,107 @@ void R_DrawCursor(int x, int y){
 	y -= (r_draw.cursor->height / 2.0);
 
 	R_DrawImage(x, y, 1.0, r_draw.cursor);
+}
+
+
+/*
+ * R_BindFont
+ *
+ * Binds the specified font, returning the character width and height.
+ */
+void R_BindFont(const char *name, int *cw, int *ch){
+
+	r_draw.font = &r_draw.fonts[1];  // medium is the default font
+
+	if(name){  // try to find it
+		int i;
+
+		for(i = 0; i < r_draw.num_fonts; i++){
+			if(!strcmp(name, r_draw.fonts[i].name)){
+				r_draw.font = &r_draw.fonts[i];
+				break;
+			}
+		}
+
+		if(i == r_draw.num_fonts){
+			Com_Warn("R_BindFont: Unknown font: %s\n", name);
+		}
+	}
+
+	if(cw)
+		*cw = r_draw.font->char_width;
+
+	if(ch)
+		*ch = r_draw.font->char_height;
+}
+
+
+/*
+ * R_StringWidth
+ *
+ * Return the width of the specified string in pixels. This will vary based
+ * on the currently bound font. Color escapes are omitted.
+ */
+int R_StringWidth(const char *s){
+	char stripped[MAX_STRING_CHARS];
+
+	StripColor(s, stripped);
+
+	return strlen(stripped) * r_draw.font->char_width;
+}
+
+
+/*
+ * R_DrawString
+ */
+int R_DrawString(int x, int y, const char *s, int color){
+	return R_DrawSizedString(x, y, s, 999, 999, color);
+}
+
+
+/*
+ * R_DrawBytes
+ */
+int R_DrawBytes(int x, int y, const char *s, size_t size, int color){
+	return R_DrawSizedString(x, y, s, size, size, color);
+}
+
+
+/*
+ * R_DrawSizedString
+ *
+ * Draws at most len chars or size bytes of the specified string.  Color escape
+ * sequences are not visible chars.  Returns the number of chars drawn.
+ */
+int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int color){
+	int i, j;
+
+	i = j = 0;
+	while(*s && i < len && j < size){
+
+		if(IS_COLOR(s)){  // color escapes
+			color = *(s + 1) - '0';
+			j += 2;
+			s += 2;
+			continue;
+		}
+
+		if(IS_LEGACY_COLOR(s)){  // legacy colors
+			color = CON_COLOR_ALT;
+			j++;
+			s++;
+			continue;
+		}
+
+		R_DrawChar(x, y, *s, color);
+		x += r_draw.font->char_width;  // next char position in line
+
+		i++;
+		j++;
+		s++;
+	}
+
+	return i;
 }
 
 
@@ -515,23 +547,23 @@ void R_FreePics(void){
  * 'abcdefghijklmno
  * pqrstuvwxyz{|}"
  */
-static r_font_t *R_InitFont(char *name){
+static void R_InitFont(char *name){
 
 	if(r_draw.num_fonts == MAX_FONTS){
 		Com_Error(ERR_DROP, "R_InitFont: MAX_FONTS reached.\n");
-		return NULL;
+		return;
 	}
 
 	r_font_t *font = &r_draw.fonts[r_draw.num_fonts++];
 
-	font->image = R_LoadImage(name, it_font);
+	strncpy(font->name, name, sizeof(font->name) - 1);
+
+	font->image = R_LoadImage(va("fonts/%s", name), it_font);
 
 	font->char_width = font->image->width / 16;
 	font->char_height = font->image->height / 8;
 
-	Com_Debug("R_InitFont: %s (%dx%d)\n", name, font->char_width, font->char_height);
-
-	return font;
+	Com_Debug("R_InitFont: %s (%dx%d)\n", font->name, font->char_width, font->char_height);
 }
 
 
@@ -544,11 +576,11 @@ void R_InitDraw(void){
 
 	r_draw.cursor = R_LoadImage("fonts/cursor", it_font);
 
-	r_font_small = R_InitFont("fonts/small");
-	r_font_medium = R_InitFont("fonts/medium");
-	r_font_large = R_InitFont("fonts/large");
+	R_InitFont("small");
+	R_InitFont("medium");
+	R_InitFont("large");
 
-	R_BindFont(NULL);
+	R_BindFont(NULL, NULL, NULL);
 
 	// set ABGR color values
 	r_draw.colors[CON_COLOR_BLACK] 		= 0xff000000;

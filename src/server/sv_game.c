@@ -27,7 +27,7 @@
  */
 static void Sv_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void Sv_Print(const char *fmt, ...){
-	char msg[1024];
+	char msg[MAX_STRING_CHARS];
 	va_list	args;
 
 	va_start(args, fmt);
@@ -43,7 +43,7 @@ static void Sv_Print(const char *fmt, ...){
  */
 static void Sv_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void Sv_Debug(const char *fmt, ...){
-	char msg[1024];
+	char msg[MAX_STRING_CHARS];
 	va_list	args;
 
 	va_start(args, fmt);
@@ -59,9 +59,9 @@ static void Sv_Debug(const char *fmt, ...){
  *
  * Abort the server with a game error
  */
-static void Sv_Error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+static void Sv_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 static void Sv_Error(const char *fmt, ...){
-	char msg[1024];
+	char msg[MAX_STRING_CHARS];
 	va_list	args;
 
 	va_start(args, fmt);
@@ -75,10 +75,9 @@ static void Sv_Error(const char *fmt, ...){
 /*
  * Sv_SetModel
  *
- * Also sets mins and maxs for inline bmodels
+ * Also sets mins and maxs for inline bsp models.
  */
 static void Sv_SetModel(g_edict_t *ent, const char *name){
-	int i;
 	c_model_t *mod;
 
 	if(!name){
@@ -86,10 +85,7 @@ static void Sv_SetModel(g_edict_t *ent, const char *name){
 		return;
 	}
 
-	i = Sv_ModelIndex(name);
-
-	//	ent->model = name;
-	ent->s.model1 = i;
+	ent->s.model1 = Sv_ModelIndex(name);
 
 	// if it is an inline model, get the size information for it
 	if(name[0] == '*'){
@@ -103,7 +99,6 @@ static void Sv_SetModel(g_edict_t *ent, const char *name){
 
 /*
  * Sv_ConfigString
- *
  */
 static void Sv_ConfigString(int index, const char *val){
 
@@ -236,6 +231,8 @@ static void Sv_Sound(g_edict_t *ent, int soundindex, int atten){
 }
 
 
+static void *game_handle;
+
 /*
  * Sv_ShutdownGameProgs
  *
@@ -248,9 +245,9 @@ void Sv_ShutdownGameProgs(void){
 		return;
 
 	svs.game->Shutdown();
-	svs.game= NULL;
+	svs.game = NULL;
 
-	Sys_UnloadGame();
+	Sys_CloseLibrary(&game_handle);
 }
 
 
@@ -336,11 +333,12 @@ void Sv_InitGameProgs(void){
 
 	import.AddCommandString = Cbuf_AddText;
 
-	svs.game = (g_export_t *)Sys_LoadGame(&import);
+	svs.game = (g_export_t *)Sys_LoadLibrary("game", &game_handle, "G_LoadGame", &import);
 
 	if(!svs.game){
 		Com_Error(ERR_DROP, "Sv_InitGameProgs: Failed to load game module.\n");
 	}
+
 	if(svs.game->api_version != GAME_API_VERSION){
 		Com_Error(ERR_DROP, "Sv_InitGameProgs: Game is version %i, not %i.\n",
 				svs.game->api_version, GAME_API_VERSION);

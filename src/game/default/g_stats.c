@@ -405,24 +405,25 @@ void G_ClientStats(g_edict_t *ent){
 
 	// weapon
 	if(ent->client->locals.weapon){
-		ent->client->ps.stats[STAT_WEAPICON] =
+		ent->client->ps.stats[STAT_WEAPON_ICON] =
 			gi.ImageIndex(ent->client->locals.weapon->icon);
 		ent->client->ps.stats[STAT_WEAPON] =
 			gi.ModelIndex(ent->client->locals.weapon->model);
 	}
 	else {
-		ent->client->ps.stats[STAT_WEAPICON] = 0;
+		ent->client->ps.stats[STAT_WEAPON_ICON] = 0;
 		ent->client->ps.stats[STAT_WEAPON] = 0;
 	}
 
-	// layouts
-	ent->client->ps.stats[STAT_LAYOUTS] = 0;
+	// scoreboard
+	ent->client->ps.stats[STAT_SCOREBOARD] = 0;
 
 	if(ent->client->locals.health <= 0 || g_level.intermission_time || ent->client->show_scores)
-		ent->client->ps.stats[STAT_LAYOUTS] |= 1;
+		ent->client->ps.stats[STAT_SCOREBOARD] |= 1;
 
-	// frags
+	// frags and captures
 	ent->client->ps.stats[STAT_FRAGS] = ent->client->locals.score;
+	ent->client->ps.stats[STAT_CAPTURES] = ent->client->locals.captures;
 
 	ent->client->ps.stats[STAT_SPECTATOR] = 0;
 
@@ -432,10 +433,10 @@ void G_ClientStats(g_edict_t *ent){
 
 	if((g_level.teams || g_level.ctf) && ent->client->locals.team){  // send team_name
 		if(ent->client->locals.team == &good)
-			ent->client->ps.stats[STAT_TEAMNAME] = CS_TEAM_GOOD;
-		else ent->client->ps.stats[STAT_TEAMNAME] = CS_TEAM_EVIL;
+			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_GOOD;
+		else ent->client->ps.stats[STAT_TEAM] = CS_TEAM_EVIL;
 	}
-	else ent->client->ps.stats[STAT_TEAMNAME] = 0;
+	else ent->client->ps.stats[STAT_TEAM] = 0;
 
 	ent->client->ps.stats[STAT_TIME] = CS_TIME;
 
@@ -443,6 +444,9 @@ void G_ClientStats(g_edict_t *ent){
 
 	if(g_level.match && g_level.match_time)  // match enabled but not started
 		ent->client->ps.stats[STAT_READY] = ent->client->locals.ready;
+
+	if(g_level.rounds)  // rounds enabled, show the round number
+		ent->client->ps.stats[STAT_ROUND] = g_level.round_num + 1;
 }
 
 
@@ -458,14 +462,14 @@ void G_ClientSpectatorStats(g_edict_t *ent){
 	}
 
 	// layouts are independent in spectator
-	cl->ps.stats[STAT_LAYOUTS] = 0;
+	cl->ps.stats[STAT_SCOREBOARD] = 0;
 
 	if(cl->locals.health <= 0 || g_level.intermission_time || cl->show_scores)
-		cl->ps.stats[STAT_LAYOUTS] |= 1;
+		cl->ps.stats[STAT_SCOREBOARD] |= 1;
 
 	if(cl->chase_target && cl->chase_target->in_use){
-		cl->ps.stats[STAT_CHASE] = CS_PLAYER_SKINS + (cl->chase_target - g_game.edicts) - 1;
 		memcpy(cl->ps.stats, cl->chase_target->client->ps.stats, sizeof(cl->ps.stats));
+		cl->ps.stats[STAT_CHASE] = CS_CLIENT_INFO + (cl->chase_target - g_game.edicts) - 1;
 	}
 	else
 		cl->ps.stats[STAT_CHASE] = 0;

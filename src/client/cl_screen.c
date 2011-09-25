@@ -21,13 +21,6 @@
 
 #include "client.h"
 
-#define COLOR_HUD_STAT         CON_COLOR_DEFAULT
-#define COLOR_HUD_STAT_MED     CON_COLOR_YELLOW
-#define COLOR_HUD_STAT_LOW     CON_COLOR_RED
-#define COLOR_HUD_STAT_STRING  CON_COLOR_DEFAULT
-#define COLOR_HUD_COUNTER      CON_COLOR_DEFAULT
-#define COLOR_SCORES_HEADER    CON_COLOR_ALT
-
 #define NET_GRAPH_HEIGHT 64
 #define NET_GRAPH_WIDTH 128
 #define NET_GRAPH_Y 0
@@ -116,32 +109,9 @@ static void Cl_DrawNetgraph(void){
 }
 
 
-/*
- * Cl_DrawTeamBanner
- */
-static void Cl_DrawTeamBanner(void){
-	int color;
-	const int team = cl.frame.ps.stats[STAT_TEAMNAME];
-
-	if(!team)
-		return;
-
-	if(team == CS_TEAM_GOOD)
-		color = 243;
-	else if(team == CS_TEAM_EVIL)
-		color = 242;
-	else {
-		Com_Warn("Cl_DrawTeamBanner: unknown team: %d.\n", team);
-		return;
-	}
-
-	R_DrawFill(0, r_state.height - 64, r_state.width, r_state.height, color, 0.15);
-}
-
-
-char center_string[MAX_STRING_CHARS];
-float centertime;
-int center_lines;
+static char center_string[MAX_STRING_CHARS];
+static float center_time;
+static int center_lines;
 
 /*
  * Cl_CenterPrint
@@ -151,7 +121,7 @@ void Cl_CenterPrint(char *str){
 
 	strncpy(center_string, str, sizeof(center_string) - 1);
 
-	centertime = cl.time + 5.0;
+	center_time = cl.time + 5.0;
 
 	// count the number of lines for centering
 	center_lines = 1;
@@ -173,14 +143,16 @@ void Cl_CenterPrint(char *str){
  */
 static void Cl_DrawCenterString(void){
 	const char *s;
-	int x, y, size, len;
+	int x, y, cw, ch, size, len;
+
+	R_BindFont(NULL, &cw, &ch);
 
 	s = center_string;
 
-	if(center_lines <= 4)
+	if(center_lines <= 4)  // FIXME: make this consistent
 		y = r_state.height * 0.35;
 	else
-		y = 48;
+		y = ch * 4;
 
 	do {
 		// scan the width of the line, ignoring color keys
@@ -199,7 +171,7 @@ static void Cl_DrawCenterString(void){
 			len++;
 		}
 
-		x = (r_state.width - (len * r_font_medium->char_width)) / 2;
+		x = (r_state.width - (len * cw)) / 2;
 
 		// draw it
 		R_DrawSizedString(x, y, s, len, 999, CON_COLOR_DEFAULT);
@@ -214,7 +186,7 @@ static void Cl_DrawCenterString(void){
 
 		s++;  // skip the \n
 
-		y += 32;
+		y += ch;
 	} while(true);
 }
 
@@ -224,7 +196,7 @@ static void Cl_DrawCenterString(void){
  */
 static void Cl_CheckDrawCenterString(void){
 
-	if(centertime <= cl.time)
+	if(center_time <= cl.time)
 		return;
 
 	Cl_DrawCenterString();
@@ -235,7 +207,7 @@ static void Cl_CheckDrawCenterString(void){
  * Cl_DrawRspeeds
  */
 static void Cl_DrawRspeeds(void){
-	char rspeeds[128];
+	char s[128];
 
 	if(!r_draw_poly_counts->value)
 		return;
@@ -243,215 +215,10 @@ static void Cl_DrawRspeeds(void){
 	if(cls.state != ca_active)
 		return;
 
-	sprintf(rspeeds, "%i bsp %i mesh %i lights %i parts",
+	snprintf(s, sizeof(s) - 1, "%i bsp %i mesh %i lights %i particles",
 			r_view.bsp_polys, r_view.mesh_polys, r_view.num_lights, r_view.num_particles);
 
-	R_DrawString(r_state.width - strlen(rspeeds) * 16, 0, rspeeds, CON_COLOR_YELLOW);
-}
-
-
-/*
- * Cl_DrawHUDString
- */
-static void Cl_DrawHUDString(const char *string, int x, int y, int centerwidth, int color){
-	int margin;
-	char line[MAX_STRING_CHARS];
-	int width;
-	int i;
-
-	margin = x;
-
-	while(*string){
-		// scan out one line of text from the string
-		width = 0;
-		while(*string && *string != '\n')
-			line[width++] = *string++;
-		line[width] = 0;
-
-		if(centerwidth)
-			x = margin + (centerwidth - width * 16) / 2;
-		else
-			x = margin;
-		for(i = 0; i < width; i++){
-			R_DrawChar(x, y, line[i] ,  color);
-			x += 16;
-		}
-		if(*string){
-			string++;  // skip the \n
-			x = margin;
-			y += 32;
-		}
-	}
-}
-
-
-/*
- * Cl_ExecuteLayoutString
- */
-static void Cl_ExecuteLayoutString(const char *s){
-	int x, y;
-	int value, value2;
-	const char *token;
-	int index;
-	char *c;
-	char string[MAX_STRING_CHARS];
-	boolean_t flash;
-
-	if(cls.state != ca_active)
-		return;
-
-	if(!cl_hud->value || !s[0])
-		return;
-
-	x = 0;
-	y = 0;
-
-	flash = (cl.time / 100) & 1;  // for flashing fields
-
-	while(s){
-		token = ParseToken(&s);
-		if(!strcmp(token, "xl")){
-			token = ParseToken(&s);
-			x = atoi(token);
-			continue;
-		}
-		if(!strcmp(token, "xr")){
-			token = ParseToken(&s);
-			x = r_state.width + atoi(token);
-			continue;
-		}
-		if(!strcmp(token, "xv")){
-			token = ParseToken(&s);
-			x = r_state.width / 2 - 320 + atoi(token);
-			continue;
-		}
-
-		if(!strcmp(token, "yt")){
-			token = ParseToken(&s);
-			y = atoi(token);
-			continue;
-		}
-		if(!strcmp(token, "yb")){
-			token = ParseToken(&s);
-			y = r_state.height + atoi(token);
-			continue;
-		}
-		if(!strcmp(token, "yv")){
-			token = ParseToken(&s);
-			y = r_state.height / 2 - 240 + atoi(token);
-			continue;
-		}
-
-		if(!strcmp(token, "pic")){  // draw a pic from a stat number
-			token = ParseToken(&s);
-			value = cl.frame.ps.stats[atoi(token)];
-			if(value >= MAX_IMAGES)
-				Com_Warn("Cl_ExecuteLayoutString: pic %d >= MAX_IMAGES\n", value);
-			else if(cl.config_strings[CS_IMAGES + value]){
-				R_DrawPic(x, y, 1.0, cl.config_strings[CS_IMAGES + value]);
-			}
-			continue;
-		}
-
-		if(!strcmp(token, "health")){  // health number
-			value = cl.frame.ps.stats[STAT_HEALTH];
-			if(value > 0){
-				R_BindFont(r_font_large);
-				if (value >= 80)
-					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT);
-				else if (value >= 40)
-					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT_MED);
-				else if (flash)
-					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT_LOW);
-				R_BindFont(NULL);
-			}
-			continue;
-		}
-
-		if(!strcmp(token, "ammo")){  // ammo number
-			value = cl.frame.ps.stats[STAT_AMMO];
-			value2 = cl.frame.ps.stats[STAT_AMMO_LOW];
-			if(value > 0){
-				R_BindFont(r_font_large);
-				if (value >= value2)
-					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT);
-				else if (flash)
-					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT_LOW);
-				R_BindFont(NULL);
-			}
-			continue;
-		}
-
-		if(!strcmp(token, "armor")){  // armor number
-			value = cl.frame.ps.stats[STAT_ARMOR];
-			if(value > 0){
-				R_BindFont(r_font_large);
-				if (value >= 80)
-					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT);
-				else if (value >= 40)
-					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT_MED);
-				else if (flash)
-					R_DrawString(x, y, va("%3i", value), COLOR_HUD_STAT_LOW);
-				R_BindFont(NULL);
-			}
-			continue;
-		}
-
-		if(!strcmp(token, "stat_string")){
-			token = ParseToken(&s);
-			index = atoi(token);
-			if(index < 0 || index >= MAX_CONFIG_STRINGS){
-				Com_Warn("Cl_ExecuteLayoutString: Invalid stat_string index: %i.\n", index);
-				continue;
-			}
-			index = cl.frame.ps.stats[index];
-			if(index < 0 || index >= MAX_CONFIG_STRINGS){
-				Com_Warn("Cl_ExecuteLayoutString: Bad stat_string index: %i.\n", index);
-				continue;
-			}
-			strncpy(string, cl.config_strings[index], sizeof(string) - 1);
-			if((c = strchr(string, '\\')))  // mute chasecam skins
-				*c = 0;
-			R_DrawString(x, y, string, CON_COLOR_DEFAULT);
-			continue;
-		}
-
-		if(!strcmp(token, "cstring")){
-			token = ParseToken(&s);
-			Cl_DrawHUDString(token, x, y, 320, CON_COLOR_DEFAULT);
-			continue;
-		}
-
-		if(!strcmp(token, "string")){
-			token = ParseToken(&s);
-			R_DrawString(x, y, token, CON_COLOR_DEFAULT);
-			continue;
-		}
-
-		if(!strcmp(token, "cstring2")){
-			token = ParseToken(&s);
-			Cl_DrawHUDString(token, x, y, 320, CON_COLOR_ALT);
-			continue;
-		}
-
-		if(!strcmp(token, "string2")){
-			token = ParseToken(&s);
-			R_DrawString(x, y, token, COLOR_SCORES_HEADER);
-			continue;
-		}
-
-		if(!strcmp(token, "if")){  // conditional
-			token = ParseToken(&s);
-			value = cl.frame.ps.stats[atoi(token)];
-			if(!value){  // skip to endif
-				while(s && strcmp(token, "endif")){
-					token = ParseToken(&s);
-				}
-			}
-
-			continue;
-		}
-	}
+	R_DrawString(r_state.width - strlen(s) * 16, 0, s, CON_COLOR_YELLOW);
 }
 
 
@@ -476,7 +243,7 @@ static void Cl_DrawCrosshair(void){
 	if(cls.state != ca_active)
 		return;  // not spawned yet
 
-	if(cl.frame.ps.stats[STAT_LAYOUTS])
+	if(cl.frame.ps.stats[STAT_SCOREBOARD])
 		return;  // scoreboard up
 
 	if(cl.frame.ps.stats[STAT_SPECTATOR])
@@ -534,31 +301,6 @@ static void Cl_DrawCrosshair(void){
 }
 
 
-/*
- * Cl_DrawStats
- *
- * The status bar is a small layout program based on the stats array
- */
-static void Cl_DrawStats(void){
-	Cl_ExecuteLayoutString(cl.config_strings[CS_LAYOUT]);
-}
-
-
-/*
- * Cl_DrawLayout
- */
-static void Cl_DrawLayout(void){
-
-	if(!cl.frame.ps.stats[STAT_LAYOUTS])
-		return;
-
-	if(cls.key_state.dest == key_console || cls.key_state.dest == key_menu)
-		return;
-
-	Cl_ExecuteLayoutString(cl.layout);
-}
-
-
 int frames_this_second = 0, packets_this_second = 0, bytes_this_second = 0;
 
 /*
@@ -567,12 +309,15 @@ int frames_this_second = 0, packets_this_second = 0, bytes_this_second = 0;
 static void Cl_DrawCounters(void){
 	static vec3_t velocity;
 	static char bps[8], pps[8], fps[8], spd[8];
-	static int millis;
+	static int millis, cw, ch;
 
 	if(!cl_counters->value)
 		return;
 
-	R_BindFont(r_font_small);
+	R_BindFont("small", &cw, &ch);
+
+	const int x = r_state.width - 7 * cw;
+	int y = r_state.height - 4 * ch;
 
 	frames_this_second++;
 
@@ -593,77 +338,18 @@ static void Cl_DrawCounters(void){
 		bytes_this_second = 0;
 	}
 
-	R_DrawString(r_state.width - 56, r_state.height - 64, spd, COLOR_HUD_COUNTER);
-	R_DrawString(r_state.width - 56, r_state.height - 48, fps, COLOR_HUD_COUNTER);
-	R_DrawString(r_state.width - 56, r_state.height - 32, pps, COLOR_HUD_COUNTER);
-	R_DrawString(r_state.width - 56, r_state.height - 16, bps, COLOR_HUD_COUNTER);
+	R_DrawString(x, y, spd, CON_COLOR_DEFAULT);
+	y += ch;
 
-	R_BindFont(NULL);
-}
+	R_DrawString(x, y, fps, CON_COLOR_DEFAULT);
+	y += ch;
 
+	R_DrawString(x, y, pps, CON_COLOR_DEFAULT);
+	y += ch;
 
-/*
- * Cl_DrawBlend
- */
-static void Cl_DrawBlend(void){
-	static int h, a, p;
-	static int last_blend_time;
-	static int color;
-	static float alpha;
-	int dh, da, dp;
-	float al, t;
+	R_DrawString(x, y, bps, CON_COLOR_DEFAULT);
 
-	if(!cl_blend->value)
-		return;
-
-	if(last_blend_time > cl.time)
-		last_blend_time = 0;
-
-	// determine if we've taken damage or picked up an item
-	dh = cl.frame.ps.stats[STAT_HEALTH];
-	da = cl.frame.ps.stats[STAT_ARMOR];
-	dp = cl.frame.ps.stats[STAT_PICKUP_STRING];
-
-	if(cl.frame.ps.pmove.pm_type == PM_NORMAL){
-
-		if(dp && (dp != p)){  // picked up an item
-			last_blend_time = cl.time;
-			color = 215;
-			alpha = 0.3;
-		}
-
-		if(da < a){  // took damage
-			last_blend_time = cl.time;
-			color = 240;
-			alpha = 0.3;
-		}
-
-		if(dh < h){  // took damage
-			last_blend_time = cl.time;
-			color = 240;
-			alpha = 0.3;
-		}
-	}
-
-	al = 0;
-	t = (float)(cl.time - last_blend_time) / 500.0;
-	al = cl_blend->value * (alpha - (t * alpha));
-
-	if(al < 0 || al > 1.0)
-		al = 0;
-
-	if(al < 0.3 && cl.underwater){  // underwater view
-		if(al < 0.15 * cl_blend->value)
-			color = 114;
-		al = 0.3 * cl_blend->value;
-	}
-
-	if(al > 0.0)
-		R_DrawFill(r_view.x, r_view.y, r_view.width, r_view.height, color, al);
-
-	h = dh;  // update our copies
-	a = da;
-	p = dp;
+	R_BindFont(NULL, NULL, NULL);
 }
 
 
@@ -704,25 +390,19 @@ void Cl_UpdateScreen(void){
 
 		if(cls.key_state.dest != key_console && cls.key_state.dest != key_menu){
 
-			Cl_DrawTeamBanner();
-
 			Cl_DrawNetgraph();
 
 			Cl_DrawCrosshair();
-
-			Cl_DrawStats();
-
-			Cl_DrawLayout();
 
 			Cl_CheckDrawCenterString();
 
 			Cl_DrawCounters();
 
-			Cl_DrawBlend();
-
 			Cl_DrawNotify();
 
 			Cl_DrawRspeeds();
+
+			cls.cgame->DrawHud(&cl.frame.ps);
 		}
 	}
 	else {

@@ -26,7 +26,6 @@
 cvar_t *cl_add_entities;
 cvar_t *cl_add_particles;
 cvar_t *cl_async;
-cvar_t *cl_blend;
 cvar_t *cl_bob;
 cvar_t *cl_chat_sound;
 cvar_t *cl_counters;
@@ -36,7 +35,6 @@ cvar_t *cl_crosshair_scale;
 cvar_t *cl_emits;
 cvar_t *cl_fov;
 cvar_t *cl_fov_zoom;
-cvar_t *cl_hud;
 cvar_t *cl_ignore;
 cvar_t *cl_max_fps;
 cvar_t *cl_max_pps;
@@ -68,319 +66,6 @@ cl_static_t cls;
 cl_client_t cl;
 
 extern void Sv_ShutdownServer(const char *msg);
-
-
-/*
- * Cl_WriteDemoHeader
- *
- * Writes serverdata, config_strings, and baselines once a non-delta
- * compressed frame arrives from the server.
- */
-static void Cl_WriteDemoHeader(void){
-	byte buffer[MAX_MSG_SIZE];
-	size_buf_t msg;
-	int i;
-	int len;
-	entity_state_t null_state;
-
-	// write out messages to hold the startup information
-	Sb_Init(&msg, buffer, sizeof(buffer));
-
-	// write the server data
-	Msg_WriteByte(&msg, svc_server_data);
-	Msg_WriteLong(&msg, PROTOCOL);
-	Msg_WriteLong(&msg, cl.server_count);
-	Msg_WriteLong(&msg, cl.server_frame_rate);
-	Msg_WriteByte(&msg, 1);  // demo_server byte
-	Msg_WriteString(&msg, cl.gamedir);
-	Msg_WriteShort(&msg, cl.player_num);
-	Msg_WriteString(&msg, cl.config_strings[CS_NAME]);
-
-	// and config_strings
-	for(i = 0; i < MAX_CONFIG_STRINGS; i++){
-		if(*cl.config_strings[i] != '\0'){
-			if(msg.size + strlen(cl.config_strings[i]) + 32 > msg.max_size){  // write it out
-				len = LittleLong(msg.size);
-				Fs_Write(&len, 4, 1, cls.demo_file);
-				Fs_Write(msg.data, msg.size, 1, cls.demo_file);
-				msg.size = 0;
-			}
-
-			Msg_WriteByte(&msg, svc_config_string);
-			Msg_WriteShort(&msg, i);
-			Msg_WriteString(&msg, cl.config_strings[i]);
-		}
-	}
-
-	// and baselines
-	for(i = 0; i < MAX_EDICTS; i++){
-		entity_state_t *ent = &cl.entities[i].baseline;
-		if(!ent->number)
-			continue;
-
-		if(msg.size + 64 > msg.max_size){  // write it out
-			len = LittleLong(msg.size);
-			Fs_Write(&len, 4, 1, cls.demo_file);
-			Fs_Write(msg.data, msg.size, 1, cls.demo_file);
-			msg.size = 0;
-		}
-
-		memset(&null_state, 0, sizeof(null_state));
-
-		Msg_WriteByte(&msg, svc_spawn_baseline);
-		Msg_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &msg, true, true);
-	}
-
-	Msg_WriteByte(&msg, svc_stuff_text);
-	Msg_WriteString(&msg, "precache 0\n");
-
-	// write it to the demo file
-
-	len = LittleLong(msg.size);
-	Fs_Write(&len, 4, 1, cls.demo_file);
-	Fs_Write(msg.data, msg.size, 1, cls.demo_file);
-
-	Com_Print("Recording to %s.\n", cls.demo_path);
-	// the rest of the demo file will be individual frames
-}
-
-
-/*
- * Cl_WriteDemoMessage
- *
- * Dumps the current net message, prefixed by the length.
- */
-void Cl_WriteDemoMessage(void){
-	int size;
-
-	if(!cls.demo_file)
-		return;
-
-	if(cls.demo_waiting)  // we have not yet received a non-delta frame
-		return;
-
-	if(!ftell(cls.demo_file))  // write header
-		Cl_WriteDemoHeader();
-
-	// the first eight bytes are just packet sequencing stuff
-	size = LittleLong(net_message.size - 8);
-	Fs_Write(&size, 4, 1, cls.demo_file);
-
-	// write the message payload
-	Fs_Write(net_message.data + 8, size, 1, cls.demo_file);
-}
-
-
-/*
- * Cl_Stop_f
- *
- * Stop recording a demo
- */
-static void Cl_Stop_f(void){
-	int size;
-
-	if(!cls.demo_file){
-		Com_Print("Not recording a demo.\n");
-		return;
-	}
-
-	// finish up
-	size = -1;
-	Fs_Write(&size, 4, 1, cls.demo_file);
-	Fs_CloseFile(cls.demo_file);
-
-	cls.demo_file = NULL;
-	Com_Print("Stopped demo.\n");
-
-	// inform server we're done recording
-	Cvar_ForceSet("recording", "0");
-}
-
-
-/*
- * Cl_Record_f
- *
- * record <demo name>
- *
- * Begin recording a demo from the current frame until `stop` is issued.
- */
-static void Cl_Record_f(void){
-
-	if(Cmd_Argc() != 2){
-		Com_Print("Usage: %s <demo name>\n", Cmd_Argv(0));
-		return;
-	}
-
-	if(cls.demo_file){
-		Com_Print("Already recording.\n");
-		return;
-	}
-
-	if(cls.state != ca_active){
-		Com_Print("You must be in a level to record.\n");
-		return;
-	}
-
-	// open the demo file
-	snprintf(cls.demo_path, sizeof(cls.demo_path), "%s/demos/%s.dem", Fs_Gamedir(), Cmd_Argv(1));
-
-	Fs_CreatePath(cls.demo_path);
-	cls.demo_file = fopen(cls.demo_path, "wb");
-	if(!cls.demo_file){
-		Com_Warn("Cl_Record_f: couldn't open %s.\n", cls.demo_path);
-		return;
-	}
-
-	// don't start saving messages until a non-delta compressed message is received
-	cls.demo_waiting = true;
-
-	// update user info var to inform server to send angles
-	Cvar_ForceSet("recording", "1");
-
-	Com_Print("Requesting demo support from server...\n");
-}
-
-
-/*
- * Cl_AdjustDemoPlayback
- *
- * Adjusts time scale by delta, clamping to reasonable limits.
- */
-static void Cl_AdjustDemoPlayback(float delta){
-	float f;
-
-	if(!cl.demo_server){
-		return;
-	}
-
-	f = time_scale->value + delta;
-
-	if(f >= 0.25 && f <= 4.0){
-		Cvar_Set("time_scale", va("%f", f));
-	}
-
-	Com_Print("Demo playback rate %d%%\n", (int)(time_scale->value * 100));
-}
-
-
-/*
- * Cl_FastForward_f
- */
-static void Cl_FastForward_f(void){
-	Cl_AdjustDemoPlayback(0.25);
-}
-
-
-/*
- * Cl_SlowMotion_f
- */
-static void Cl_SlowMotion_f(void){
-	Cl_AdjustDemoPlayback(-0.25);
-}
-
-
-// a copy of the last item we dropped, for %d
-static char last_dropped_item[MAX_TOKEN_CHARS];
-
-/*
- * Cl_ExpandVariable
- *
- * This is the client-specific sibling to Cvar_VariableString.
- */
-static const char *Cl_ExpandVariable(char v){
-	int i;
-
-	switch(v){
-
-		case 'l':  // client's location
-			return Cl_LocationHere();
-		case 'L':  // client's line of sight
-			return Cl_LocationThere();
-
-		case 'd':  // last dropped item
-			return last_dropped_item;
-
-		case 'h':  // health
-			if(!cl.frame.valid)
-				return "";
-			i = cl.frame.ps.stats[STAT_HEALTH];
-			return va("%d", i);
-
-		case 'a':  // armor
-			if(!cl.frame.valid)
-				return "";
-			i = cl.frame.ps.stats[STAT_ARMOR];
-			return va("%d", i);
-
-		default:
-			return "";
-	}
-}
-
-
-/*
- * Cl_ExpandVariables
- */
-static char *Cl_ExpandVariables(const char *text){
-	static char expanded[MAX_STRING_CHARS];
-	int i, j, len;
-
-	if(!text || !text[0])
-		return "";
-
-	memset(expanded, 0, sizeof(expanded));
-	len = strlen(text);
-
-	for(i = j = 0; i < len; i++){
-		if(text[i] == '%' && i < len - 1){  // expand %variables
-			const char *c = Cl_ExpandVariable(text[i + 1]);
-			strcat(expanded, c);
-			j += strlen(c);
-			i++;
-		}
-		else  // or just append normal chars
-			expanded[j++] = text[i];
-	}
-
-	return expanded;
-}
-
-
-/*
- * CL_ForwardCmdToServer
- *
- * Client implementation of Cmd_ForwardToServer.
- */
-static void Cl_ForwardCmdToServer(void){
-	const char *cmd, *args;
-
-	if(cls.state <= ca_disconnected){
-		Com_Print("Not connected.\n");
-		return;
-	}
-
-	cmd = Cmd_Argv(0);
-
-	if(*cmd == '-' || *cmd == '+'){
-		Com_Print("Unknown command \"%s\"\n", cmd);
-		return;
-	}
-
-	args = Cmd_Args();
-
-	if(!strcmp(cmd, "drop"))  // maintain last item dropped for 'say %d'
-		strncpy(last_dropped_item, args, sizeof(last_dropped_item) - 1);
-
-	if(!strcmp(cmd, "say") || !strcmp(cmd, "say_team"))
-		args = Cl_ExpandVariables(args);
-
-	Msg_WriteByte(&cls.netchan.message, clc_string);
-	Sb_Print(&cls.netchan.message, cmd);
-	if(Cmd_Argc() > 1){
-		Sb_Print(&cls.netchan.message, " ");
-		Sb_Print(&cls.netchan.message, args);
-	}
-}
 
 
 /*
@@ -857,6 +542,8 @@ void Cl_RequestNextDownload(void){
 		}
 	}
 
+	Cl_InitCgame();
+
 	Cl_LoadMedia();
 
 	Msg_WriteByte(&cls.netchan.message, clc_string);
@@ -900,7 +587,6 @@ static void Cl_InitLocal(void){
 	cl_add_entities = Cvar_Get("cl_add_entities", "3", 0, NULL);
 	cl_add_particles = Cvar_Get("cl_add_particles", "1", 0, NULL);
 	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE, NULL);
-	cl_blend = Cvar_Get("cl_blend", "1", CVAR_ARCHIVE, NULL);
 	cl_bob = Cvar_Get("cl_bob", "1", CVAR_ARCHIVE, NULL);
 	cl_chat_sound = Cvar_Get("cl_chat_sound", "misc/chat", 0, NULL);
 	cl_counters = Cvar_Get("cl_counters", "1", CVAR_ARCHIVE, NULL);
@@ -910,7 +596,6 @@ static void Cl_InitLocal(void){
 	cl_emits = Cvar_Get("cl_emits", "1", CVAR_ARCHIVE, NULL);
 	cl_fov = Cvar_Get("cl_fov", "100.0", CVAR_ARCHIVE, NULL);
 	cl_fov_zoom = Cvar_Get("cl_fov_zoom", "40.0", CVAR_ARCHIVE, NULL);
-	cl_hud = Cvar_Get("cl_hud", "1", CVAR_ARCHIVE, NULL);
 	cl_ignore = Cvar_Get("cl_ignore", "", 0, NULL);
 	cl_max_fps = Cvar_Get("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
 	cl_max_pps = Cvar_Get("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
@@ -979,6 +664,7 @@ static void Cl_InitLocal(void){
 	Cmd_AddCommand("config_strings", NULL, NULL);
 	Cmd_AddCommand("baselines", NULL, NULL);
 
+	// forward anything we don't handle locally to the server
 	Cmd_ForwardToServer = Cl_ForwardCmdToServer;
 }
 
@@ -1183,6 +869,8 @@ void Cl_Shutdown(void){
 		return;
 
 	Cl_Disconnect();
+
+	Cl_ShutdownCgame();
 
 	Cl_ShutdownHttpDownload();
 

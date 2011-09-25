@@ -648,8 +648,10 @@ static void Pm_CategorizePosition(void){
 
 			cont = pm->PointContents(point);
 
-			if(cont & MASK_WATER)
+			if(cont & MASK_WATER){
 				pm->water_level = 3;
+				pm->s.pm_flags |= PMF_UNDER_WATER;
+			}
 		}
 	}
 }

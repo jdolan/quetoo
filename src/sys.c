@@ -198,42 +198,32 @@ void Sys_OpenLibrary(const char *name, void **handle){
 }
 
 
-static void *game_lib;
-
 /*
- * Sys_LoadGame
+ * Sys_LoadLibrary
  *
- * Attempts to open and load the game module.  This is accomplished by
- * resolving a single symbol (G_LoadGame) from the game module.  This function
- * is then invoked to setup the rest of the server -> game interaction.
+ * Opens and loads the specified shared library. The function identified by
+ * entry_point is resolved and invoked with the specified parameters, its
+ * return value returned by this function.
  */
-void *Sys_LoadGame(void *params){
-	typedef g_export_t *g_loadgame_t(g_import_t *);
-	g_loadgame_t *G_LoadGame;
+void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params){
+	typedef void *entry_point_t(void *);
+	entry_point_t *EntryPoint;
 
-	if(game_lib){
-		Com_Warn("Sys_LoadGame: game already loaded, unloading...\n");
-		Sys_UnloadGame();
+	if(*handle){
+		Com_Warn("Sys_LoadLibrary: %s: handle already open\n", name);
+		Sys_CloseLibrary(handle);
 	}
 
-	Sys_OpenLibrary("game", &game_lib);
+	Sys_OpenLibrary(name, handle);
 
-	G_LoadGame = (g_loadgame_t *)dlsym(game_lib, "G_LoadGame");
+	EntryPoint = (entry_point_t *)dlsym(*handle, entry_point);
 
-	if(!G_LoadGame){
-		Sys_CloseLibrary(&game_lib);
-		return NULL;
+	if(!EntryPoint){
+		Sys_CloseLibrary(handle);
+		Com_Error(ERR_DROP, "Sys_LoadLibrary: %s: Failed to resolve %s\n", name, entry_point);
 	}
 
-	return G_LoadGame(params);
-}
-
-
-/*
- * Sys_UnloadGame
- */
-void Sys_UnloadGame(void){
-	Sys_CloseLibrary(&game_lib);
+	return EntryPoint(params);
 }
 
 

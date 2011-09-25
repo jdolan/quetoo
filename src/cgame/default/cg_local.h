@@ -19,26 +19,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CGAME_H__
-#define __CGAME_H__
+#ifndef __CG_LOCAL_H__
+#define __CG_LOCAL_H__
 
-#define CGAME_API_VERSION 1
+#include "cgame/cgame.h"
 
-// struct exposed to the client game by the engine
-typedef struct cgame_export_s {
-	void *(DrawPic)(int x, int y, float scale, const char *name);
+extern cvar_t *cg_blend;
+extern cvar_t *cg_hud;
 
-	r_font_t font_small;
-	r_font_t font_medium;
-	r_font_t font_large;
+extern cg_import_t cgi;
 
-	void *(BindFont)(r_font_t *font);
-	int *(DrawString)(int x, int y, const char *s, int color);
-} cgame_export_t;
+// cg_hud.c
+void Cg_DrawHud(player_state_t *ps);
 
-// struct exposed to the engine by the client game
-typedef struct cgame_import_s {
-	void *(DrawHud)(cl_frame_t *frame);
-} cgame_import_t;
+// cg_main.c
+cg_export_t *Cg_LoadCgame(cg_import_t *import);
 
-#endif /* __CGAME_H__ */
+#endif /* __CG_LOCAL_H__ */

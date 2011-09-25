@@ -476,118 +476,6 @@ void G_SpawnEntities(const char *name, const char *entities){
 }
 
 
-/*
- * // cursor positioning
- * xl <value>
- * xr <value>
- * yb <value>
- * yt <value>
- * xv <value>
- * yv <value>
- *
- * // drawing
- * statpic <name>
- * pic <stat>
- * num <fieldwidth> <stat>
- * string <stat>
- *
- * // control
- * if <stat>
- * ifeq <stat> <value>
- * ifbit <stat> <value>
- * endif
- *
- */
-
-const char *g_layout =
-	// health
-	"if 0 "
-	"xv	0 "
-	"yb	-60 "
-	"health "
-	"yb -64 "
-	"xv	96 "
-	"pic 0 "
-	"endif "
-
-	// ammo and weapon
-	"if 2 "
-	"xv	224 "
-	"yb -60 "
-	"ammo "
-	"yb -64 "
-	"xv	320 "
-	"pic 8 "
-	"endif "
-
-	// armor
-	"if 4 "
-	"xv	448 "
-	"yb -60 "
-	"armor "
-	"yb -64 "
-	"xv	544 "
-	"pic 4 "
-	"endif "
-
-	// picked up item
-	"if 6 "
-	"xr -320 "
-	"yt	2 "
-	"pic 6 "
-	"xr -256 "
-	"yt 18 "
-	"stat_string 7 "
-	"endif "
-
-	// spectator
-	"if 12 "
-	"xv 240 "
-	"yb -128 "
-	"string2 \"Spectating\" "
-	"endif "
-
-	// chasecam
-	"if 13 "
-	"xv 160 "
-	"yb -128 "
-	"string2 \"Chasing\" "
-	"xv 288 "
-	"stat_string 13 "
-	"endif "
-
-	// vote
-	"if 14 "
-	"xl 0 "
-	"yb -160 "
-	"string \"Vote: \" "
-	"xl 96 "
-	"stat_string 14 "
-	"endif "
-
-	// team
-	"if 15 "
-	"xr -240 "
-	"yb -256 "
-	"stat_string 15 "
-	"endif "
-
-	// match time / warmup
-	"if 16 "
-	"xr -96 "
-	"yb -288 "
-	"stat_string 16"
-	"endif "
-
-	// ready
-	"if 17 "
-	"xr -224 "
-	"yb -288 "
-	"string2 \"[Ready]\" "
-	"endif "
-	;
-
-
 /**
  * G_WorldspawnMusic
  */
@@ -700,6 +588,7 @@ static void G_worldspawn(g_edict_t *ent){
 		else  // or default to deathmatch
 			g_level.gameplay = DEATHMATCH;
 	}
+	gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
 	if(map && map->teams > -1)  // prefer maps.lst teams
 		g_level.teams = map->teams;
@@ -722,6 +611,9 @@ static void G_worldspawn(g_edict_t *ent){
 	if(g_level.teams && g_level.ctf)  // ctf overrides teams
 		g_level.teams = 0;
 
+	gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
+	gi.ConfigString(CS_CTF, va("%d", g_level.ctf));
+
 	if(map && map->match > -1)  // prefer maps.lst match
 		g_level.match = map->match;
 	else {  // or fall back on worldspawn
@@ -742,6 +634,9 @@ static void G_worldspawn(g_edict_t *ent){
 
 	if(g_level.match && g_level.rounds)  // rounds overrides match
 		g_level.match = 0;
+
+	gi.ConfigString(CS_MATCH, va("%d", g_level.match));
+	gi.ConfigString(CS_ROUNDS, va("%d", g_level.rounds));
 
 	if(map && map->frag_limit > -1)  // prefer maps.lst frag_limit
 		g_level.frag_limit = map->frag_limit;
@@ -798,12 +693,6 @@ static void G_worldspawn(g_edict_t *ent){
 	}
 
 	G_WorldspawnMusic();
-
-	// send sv_max_clients to clients
-	gi.ConfigString(CS_MAX_CLIENTS, va("%i", sv_max_clients->integer));
-
-	// status bar program
-	gi.ConfigString(CS_LAYOUT, g_layout);
 
 	G_PrecacheItem(G_FindItem("Shotgun"));
 	G_PrecacheItem(G_FindItem("Shuper Shotgun"));

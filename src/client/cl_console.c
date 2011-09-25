@@ -136,10 +136,12 @@ void Cl_InitConsole(void){
  * The input line scrolls horizontally if typing goes beyond the right edge
  */
 static void Cl_DrawInput(void){
-	int i, y;
-	char editlinecopy[KEY_LINESIZE], *text;
+	char edit_line_copy[KEY_LINESIZE], *text;
+	int i, y, ch;
 
-	text = strcpy(editlinecopy, Cl_EditLine());
+	R_BindFont("small", NULL, &ch);
+
+	text = strcpy(edit_line_copy, Cl_EditLine());
 	y = strlen(text);
 
 	// add the cursor frame
@@ -158,7 +160,7 @@ static void Cl_DrawInput(void){
 		text += 1 + cls.key_state.pos - cl_con.width;
 
 	// draw it
-	R_DrawBytes(0, cl_con.height * r_font_small->char_height, text, cl_con.width, CON_COLOR_DEFAULT);
+	R_DrawBytes(0, cl_con.height * ch, text, cl_con.width, CON_COLOR_DEFAULT);
 }
 
 
@@ -168,7 +170,7 @@ static void Cl_DrawInput(void){
  * Draws the last few lines of output transparently over the game top
  */
 void Cl_DrawNotify(void){
-	int i, y = 0;
+	int i, y, cw, ch;
 	char *s;
 	int skip;
 	int len;
@@ -177,7 +179,9 @@ void Cl_DrawNotify(void){
 	if(cls.state != ca_active)
 		return;
 
-	R_BindFont(r_font_small);
+	R_BindFont("small", &cw, &ch);
+
+	y = 0;
 
 	for(i = cl_con.last_line - CON_NUM_NOTIFY; i < cl_con.last_line; i++ ){
 		if(i < 0)
@@ -185,7 +189,7 @@ void Cl_DrawNotify(void){
 
 		if(cl_con.notify_times[i % CON_NUM_NOTIFY] + con_notify_time->value * 1000 > cls.real_time){
 			R_DrawBytes(0, y, cl_con.line_start[i], cl_con.line_start[i + 1] - cl_con.line_start[i], cl_con.line_color[i]);
-			y += r_font_small->char_height;
+			y += ch;
 		}
 	}
 
@@ -201,20 +205,20 @@ void Cl_DrawNotify(void){
 			skip = 5;
 		}
 
-		R_DrawChar((skip - 2) * r_font_small->char_width, y, ':', color);
+		R_DrawChar((skip - 2) * cw, y, ':', color);
 
 		s = cls.chat_state.buffer;
 		// FIXME check the skipped part for color codes
-		if(cls.chat_state.len > (r_state.width / r_font_small->char_width) - (skip + 1))
-			s += cls.chat_state.len - ((r_state.width / r_font_small->char_width) - (skip + 1));
+		if(cls.chat_state.len > (r_state.width / cw) - (skip + 1))
+			s += cls.chat_state.len - ((r_state.width / cw) - (skip + 1));
 
-		len = R_DrawString(skip * r_font_small->char_width, y, s, color);
+		len = R_DrawString(skip * cw, y, s, color);
 
 		if((int)(cls.real_time >> 8) & 1)  // draw the cursor
-			R_DrawChar((len + skip) * r_font_small->char_width, y, CON_CURSOR_CHAR, color);
+			R_DrawChar((len + skip) * cw, y, CON_CURSOR_CHAR, color);
 	}
 
-	R_BindFont(NULL);
+	R_BindFont(NULL, NULL, NULL);
 }
 
 
@@ -225,16 +229,15 @@ void Cl_DrawConsole(void){
 	int line;
 	int lines;
 	int kb;
-	int y;
+	int y, cw, ch;
 	char dl[MAX_STRING_CHARS];
 
 	if(cls.key_state.dest != key_console)
 		return;
 
-	R_BindFont(r_font_small);
+	R_BindFont("small", &cw, &ch);
 
-	Con_Resize(&cl_con, r_state.width / r_font_small->char_width,
-			(r_state.height / r_font_small->char_height) - 1);
+	Con_Resize(&cl_con, r_state.width / cw, (r_state.height / ch) - 1);
 
 	// draw a background
 	if(cls.state == ca_active)
@@ -252,7 +255,7 @@ void Cl_DrawConsole(void){
 			R_DrawBytes(0, y, cl_con.line_start[line],
 					cl_con.line_start[line + 1] - cl_con.line_start[line], cl_con.line_color[line]);
 		}
-		y += r_font_small->char_height;
+		y += ch;
 	}
 
 	// draw the loading string or the input prompt
@@ -260,7 +263,7 @@ void Cl_DrawConsole(void){
 	if(cls.state >= ca_connected && cls.loading){  // draw loading progress
 		snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
 
-		R_DrawString(0, cl_con.height * r_font_small->char_height, dl, CON_COLOR_INFO);
+		R_DrawString(0, cl_con.height * ch, dl, CON_COLOR_INFO);
 	}
 	else if(cls.download.file){  // draw download progress
 
@@ -269,11 +272,11 @@ void Cl_DrawConsole(void){
 		snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
 				(cls.download.http ? "HTTP" : "UDP"), kb);
 
-		R_DrawString(0, cl_con.height * r_font_small->char_height, dl, CON_COLOR_INFO);
+		R_DrawString(0, cl_con.height * ch, dl, CON_COLOR_INFO);
 	}
 	else {  // draw the input prompt, user text, and cursor if desired
 		Cl_DrawInput();
 	}
 
-	R_BindFont(NULL);
+	R_BindFont(NULL, NULL, NULL);
 }

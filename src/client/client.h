@@ -22,6 +22,7 @@
 #ifndef __CLIENT_H__
 #define __CLIENT_H__
 
+#include "cgame/cgame.h"
 #include "cl_keys.h"
 #include "cmodel.h"
 #include "console.h"
@@ -256,6 +257,8 @@ typedef struct cl_static_s {
 	char *servers_text;  // tabular data for servers menu
 
 	int broadcast_time;  // time when last broadcast ping was sent
+
+	cg_export_t *cgame;
 } cl_static_t;
 
 extern cl_static_t cls;
@@ -264,7 +267,6 @@ extern cl_static_t cls;
 extern cvar_t *cl_add_entities;
 extern cvar_t *cl_add_particles;
 extern cvar_t *cl_async;
-extern cvar_t *cl_blend;
 extern cvar_t *cl_bob;
 extern cvar_t *cl_chat_sound;
 extern cvar_t *cl_counters;
@@ -274,7 +276,6 @@ extern cvar_t *cl_crosshair_scale;
 extern cvar_t *cl_emits;
 extern cvar_t *cl_fov;
 extern cvar_t *cl_fov_zoom;
-extern cvar_t *cl_hud;
 extern cvar_t *cl_ignore;
 extern cvar_t *cl_max_fps;
 extern cvar_t *cl_max_pps;
@@ -320,6 +321,17 @@ void Cl_UpdateNotify(int last_line);
 void Cl_ClearNotify(void);
 void Cl_ToggleConsole_f(void);
 
+// cl_cgame.c
+void Cl_InitCgame(void);
+void Cl_ShutdownCgame(void);
+
+// cl_demo.c
+void Cl_WriteDemoMessage(void);
+void Cl_Record_f(void);
+void Cl_Stop_f(void);
+void Cl_FastForward_f(void);
+void Cl_SlowMotion_f(void);
+
 // cl_effect.c
 void Cl_LightningEffect(const vec3_t org);
 void Cl_LightningTrail(const vec3_t start, const vec3_t end);
@@ -356,6 +368,9 @@ void Cl_AddEmits(void);
 // cl_entity.c
 void Cl_ParseFrame(void);
 void Cl_AddEntities(cl_frame_t *frame);
+
+// cl_forward.c
+void Cl_ForwardCmdToServer(void);
 
 // cl_http.c
 void Cl_InitHttpDownload(void);
@@ -394,7 +409,6 @@ void Cl_Disconnect(void);
 void Cl_Reconnect_f(void);
 void Cl_LoadProgress(int percent);
 void Cl_RequestNextDownload(void);
-void Cl_WriteDemoMessage(void);
 
 // cl_parse.c
 extern char *svc_strings[256];

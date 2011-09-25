@@ -90,9 +90,9 @@ typedef byte boolean_t;
 #define MAX_MODELS			256   // these are sent over the net as bytes
 #define MAX_SOUNDS			256   // so they cannot be blindly increased
 #define MAX_MUSICS			8     // per level
-#define MAX_IMAGES			256
-#define MAX_ITEMS			256
-#define MAX_GENERAL			(MAX_CLIENTS * 2)  // general config strings
+#define MAX_IMAGES			256   // that the server knows about
+#define MAX_ITEMS			64    // pickup items
+#define MAX_GENERAL			256   // general config strings
 
 // print levels
 #define PRINT_LOW			0  // pickup messages
@@ -301,6 +301,7 @@ typedef enum {
 #define PMF_TIME_TELEPORT	0x40   // pm_time is non-moving time
 #define PMF_NO_PREDICTION	0x80   // temporarily disables prediction
 #define PMF_PUSHED			0x100  // disables stair checking and velocity clamp
+#define PMF_UNDER_WATER		0x200
 
 #define PMF_TIME_MASK		(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT)
 
@@ -432,22 +433,24 @@ typedef enum {
 #define STAT_HEALTH			1
 #define STAT_AMMO_ICON		2
 #define STAT_AMMO			3
-#define STAT_ARMOR_ICON		4
-#define STAT_ARMOR			5
-#define STAT_PICKUP_ICON	6
-#define STAT_PICKUP_STRING	7
-#define STAT_WEAPICON		8
-#define STAT_WEAPON			9
-#define STAT_LAYOUTS		10
-#define STAT_FRAGS			11
-#define STAT_SPECTATOR		12
-#define STAT_CHASE			13
-#define STAT_VOTE			14
-#define STAT_TEAMNAME		15
-#define STAT_TIME			16
-#define STAT_READY			17
-#define STAT_AMMO_LOW		18
-#define STAT_GENERAL		STAT_AMMO_LOW  // for mods to extend
+#define STAT_AMMO_LOW		4
+#define STAT_ARMOR_ICON		5
+#define STAT_ARMOR			6
+#define STAT_PICKUP_ICON	7
+#define STAT_PICKUP_STRING	8
+#define STAT_WEAPON_ICON	9
+#define STAT_WEAPON			10
+#define STAT_TEAM			11
+#define STAT_FRAGS			12
+#define STAT_CAPTURES		13
+#define STAT_SPECTATOR		14
+#define STAT_CHASE			15
+#define STAT_VOTE			16
+#define STAT_TIME			17
+#define STAT_ROUND			18
+#define STAT_READY			19
+#define STAT_SCOREBOARD		20
+#define STAT_GENERAL		STAT_SCOREBOARD  // for mods to extend
 #define MAX_STATS			32
 
 // -4096 up to +4096
@@ -455,30 +458,32 @@ typedef enum {
 
 /*
  * ConfigStrings are a general means of communication from the server to all
- * connected clients. Each ConfigString can be at most MAX_QPATH in length.
+ * connected clients. Each ConfigString can be at most MAX_STRING_CHARS in length.
  */
 #define CS_NAME				0
 #define CS_GRAVITY			1
 #define CS_SKY				2
 #define CS_WEATHER			3
 #define CS_PAK				4  // pak for current level
-#define CS_LAYOUT			5  // display program string
+#define CS_BSP_SIZE			5  // for catching incompatible maps
+#define CS_GAMEPLAY			6  // gameplay string
+#define CS_TEAMS			7
+#define CS_CTF				8
+#define CS_MATCH			9
+#define CS_ROUNDS			10
+#define CS_TEAM_GOOD		11  // team names
+#define CS_TEAM_EVIL		12
+#define CS_TIME				13  // level or match timer
+#define CS_ROUND			14
+#define CS_VOTE				15  // vote string\yes count\no count
 
-#define CS_MAX_CLIENTS		30
-#define CS_BSP_SIZE			31  // for catching incompatible maps
-
-#define CS_MODELS			32
+#define CS_MODELS			16
 #define CS_SOUNDS			(CS_MODELS + MAX_MODELS)
 #define CS_MUSICS			(CS_SOUNDS + MAX_SOUNDS)
 #define CS_IMAGES			(CS_MUSICS + MAX_MUSICS)
 #define CS_ITEMS			(CS_IMAGES + MAX_IMAGES)
-#define CS_PLAYER_SKINS		(CS_ITEMS + MAX_ITEMS)
-#define CS_GENERAL			(CS_PLAYER_SKINS + MAX_CLIENTS)
-
-#define CS_VOTE				(CS_GENERAL + 1)  // current vote
-#define CS_TEAM_GOOD		(CS_GENERAL + 2)  // team names
-#define CS_TEAM_EVIL		(CS_GENERAL + 3)
-#define CS_TIME				(CS_GENERAL + 4)  // level/match timer
+#define CS_CLIENT_INFO		(CS_ITEMS + MAX_ITEMS)
+#define CS_GENERAL			(CS_CLIENT_INFO + MAX_CLIENTS)
 
 #define MAX_CONFIG_STRINGS	(CS_GENERAL + MAX_GENERAL)
 

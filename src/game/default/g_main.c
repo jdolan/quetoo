@@ -750,7 +750,9 @@ static void G_CheckRules(void){
 
 	if(g_gameplay->modified){  // change gameplay, fix items, respawn clients
 		g_gameplay->modified = false;
+
 		g_level.gameplay = G_GameplayByName(g_gameplay->string);
+		gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
 		G_RestartGame(false);  // reset all clients
 
@@ -761,13 +763,15 @@ static void G_CheckRules(void){
 	if(g_gravity->modified){  // send gravity config string
 		g_gravity->modified = false;
 
-		gi.ConfigString(CS_GRAVITY, va("%d", g_gravity->integer));
 		g_level.gravity = g_gravity->integer;
+		gi.ConfigString(CS_GRAVITY, va("%d", g_level.gravity));
 	}
 
 	if(g_teams->modified){  // reset teams, scores
 		g_teams->modified = false;
+
 		g_level.teams = g_teams->integer;
+		gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
 
 		gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n",
 				g_level.teams ? "enabled" : "disabled");
@@ -777,7 +781,9 @@ static void G_CheckRules(void){
 
 	if(g_ctf->modified){  // reset teams, scores
 		g_ctf->modified = false;
+
 		g_level.ctf = g_ctf->integer;
+		gi.ConfigString(CS_CTF, va("%d", g_level.ctf));
 
 		gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n",
 				g_level.ctf ? "enabled" : "disabled");
@@ -787,7 +793,9 @@ static void G_CheckRules(void){
 
 	if(g_match->modified){  // reset scores
 		g_match->modified = false;
+
 		g_level.match = g_match->integer;
+		gi.ConfigString(CS_MATCH, va("%d", g_level.match));
 
 		g_level.warmup = g_level.match;  // toggle warmup
 
@@ -799,7 +807,9 @@ static void G_CheckRules(void){
 
 	if(g_rounds->modified){  // reset scores
 		g_rounds->modified = false;
+
 		g_level.rounds = g_rounds->integer;
+		gi.ConfigString(CS_ROUNDS, va("%d", g_level.rounds));
 
 		g_level.warmup = g_level.rounds;  // toggle warmup
 

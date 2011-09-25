@@ -24,41 +24,21 @@
 
 #include "r_image.h"
 
-// each font has its vertex arrays of characters to draw each frame
-typedef struct r_font_s {
-	r_image_t *image;
-
-	int char_width;
-	int char_height;
-} r_font_t;
-
-#define MAX_FONTS			3
-
-extern r_font_t *r_font_small;
-extern r_font_t *r_font_medium;
-extern r_font_t *r_font_large;
-
 // r_draw.c
-void R_BindFont(r_font_t *font);
+r_image_t *R_LoadPic(const char *name);
+void R_DrawPic(int x, int y, float scale, const char *name);
+void R_DrawCursor(int x, int y);
+void R_BindFont(const char *name, int *cw, int *ch);
 int R_StringWidth(const char *s);
 int R_DrawString(int x, int y, const char *s, int color);
 int R_DrawBytes(int x, int y, const char *s, size_t size, int color);
 int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int color);
-
-r_image_t *R_LoadPic(const char *name);
-
-void R_DrawPic(int x, int y, float scale, const char *name);
-void R_DrawCursor(int x, int y);
-
 void R_DrawChar(int x, int y, char c, int color);
 void R_DrawChars(void);
-
 void R_DrawFill(int x, int y, int w, int h, int c, float a);
 void R_DrawFills(void);
-
 void R_DrawLine(int x1, int y1, int x2, int y2, int c, float a);
 void R_DrawLines(void);
-
 void R_FreePics(void);
 void R_InitDraw(void);
 

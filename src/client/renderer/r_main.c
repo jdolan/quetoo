@@ -500,7 +500,7 @@ void R_LoadMedia(void){
 	// client models and skins
 	for(i = 0; i < MAX_CLIENTS; i++){
 
-		if(!cl.config_strings[CS_PLAYER_SKINS + i][0])
+		if(!cl.config_strings[CS_CLIENT_INFO + i][0])
 			continue;
 
 		Cl_ParseClientInfo(i);

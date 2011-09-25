@@ -912,7 +912,7 @@ static void G_Teamskin_f(g_edict_t *ent){
 		strncpy(cl->locals.skin, s, sizeof(cl->locals.skin) - 1);
 		cl->locals.skin[sizeof(cl->locals.skin) - 1] = 0;
 
-		gi.ConfigString(CS_PLAYER_SKINS + i, va("%s\\%s", cl->locals.net_name, cl->locals.skin));
+		gi.ConfigString(CS_CLIENT_INFO + i, va("%s\\%s", cl->locals.net_name, cl->locals.skin));
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_skin to %s\n",

@@ -1,5 +1,6 @@
 SUBDIRS = \
 	. \
+	cgame \
 	client \
 	server \
 	main \

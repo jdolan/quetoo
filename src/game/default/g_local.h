@@ -540,6 +540,7 @@ void G_Init(void);
 void G_Shutdown(void);
 void G_ResetTeams(void);
 void G_ResetVote(void);
+g_export_t *G_LoadGame(g_import_t *import);
 
 // g_physics.c
 void G_RunEntity(g_edict_t *ent);

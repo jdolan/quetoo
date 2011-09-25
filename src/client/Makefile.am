@@ -1,7 +1,7 @@
 SUBDIRS = \
-	ui \
 	renderer \
-	sound
+	sound \
+	ui
 
 noinst_HEADERS = \
 	cl_binds.h \
@@ -17,9 +17,12 @@ libclient_la_SOURCES = \
 	cl_client.c \
 	cl_cmd.c \
 	cl_console.c \
+	cl_cgame.c \
+	cl_demo.c \
 	cl_emit.c \
 	cl_entity.c \
 	cl_effect.c \
+	cl_forward.c \
 	cl_http.c \
 	cl_input.c \
 	cl_keys.c \

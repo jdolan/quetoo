@@ -294,7 +294,7 @@ void Cl_ParseClientInfo(int player){
 	const char *s;
 	cl_client_info_t *ci;
 
-	s = cl.config_strings[player + CS_PLAYER_SKINS];
+	s = cl.config_strings[player + CS_CLIENT_INFO];
 
 	ci = &cl.client_info[player];
 
@@ -348,9 +348,9 @@ void Cl_ParseConfigString(void){
 	} else if(i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES){
 		if(r_view.ready)
 			cl.image_precache[i - CS_IMAGES] = R_LoadPic(cl.config_strings[i]);
-	} else if(i >= CS_PLAYER_SKINS && i < CS_PLAYER_SKINS + MAX_CLIENTS){
+	} else if(i >= CS_CLIENT_INFO && i < CS_CLIENT_INFO + MAX_CLIENTS){
 		if(r_view.ready && strcmp(olds, s))
-			Cl_ParseClientInfo(i - CS_PLAYER_SKINS);
+			Cl_ParseClientInfo(i - CS_CLIENT_INFO);
 	}
 }
 

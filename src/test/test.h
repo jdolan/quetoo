@@ -19,17 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "test.h"
+#ifndef __TEST_H__
+#define __TEST_H__
 
-/*
- * TODO: Test thread execution and synchronization.
- */
-int main(int argc, char **argv){
-	thread_t *t;
+#include "common.h"
 
-	Test_Init();
+extern quake2world_t quake2world;
 
-	Test_Shutdown();
+void TestInit(void);
+void TestShutdown(void);
 
-	return 0;
-}
+#endif /* __TEST_H__ */

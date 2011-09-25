@@ -277,7 +277,7 @@ void R_DrawBspNormals(void){
  * Finally, the back-side child node is recursed.
  */
 static void R_MarkSurfaces_(r_bsp_node_t *node){
-	int i, side, sidebit;
+	int i, side, side_bit;
 	r_bsp_surface_t *surf, **lsurf;
 	c_bsp_plane_t *plane;
 	float dot;
@@ -320,10 +320,10 @@ static void R_MarkSurfaces_(r_bsp_node_t *node){
 
 	if(dot >= 0){
 		side = 0;
-		sidebit = 0;
+		side_bit = 0;
 	} else {
 		side = 1;
-		sidebit = MSURF_SIDE_BACK;
+		side_bit = MSURF_SIDE_BACK;
 	}
 
 	// recurse down the children, front side first
@@ -336,7 +336,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node){
 
 		if(surf->vis_frame == r_locals.vis_frame){  // it's been marked
 
-			if((surf->flags & MSURF_SIDE_BACK) != sidebit){  // but back-facing
+			if((surf->flags & MSURF_SIDE_BACK) != side_bit){  // but back-facing
 				surf->frame = -1;
 				surf->back_frame = r_locals.frame;
 			}

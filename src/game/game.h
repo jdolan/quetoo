@@ -22,7 +22,7 @@
 #ifndef __GAME_H__
 #define __GAME_H__
 
-#define GAME_API_VERSION 5
+#define GAME_API_VERSION 1
 
 // edict->sv_flags
 #define SVF_NO_CLIENT 1  // don't send entity to clients
@@ -101,7 +101,7 @@ typedef struct g_import_s {
 	void (*ClientPrint)(g_edict_t *ent, int printlevel, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 	void (*ClientCenterPrint)(g_edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
-	void (*Error)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
 	// config_strings are used to transmit arbitrary tokens such
 	// as model names, skin names, team names, and weather effects
@@ -156,7 +156,7 @@ typedef struct g_import_s {
 	int (*LoadFile)(const char *file_name, void **buffer);
 
 	// console variable interaction
-	cvar_t *(*Cvar)(const char *var_name, const char *value, int flags, const char *description);
+	cvar_t *(*Cvar)(const char *name, const char *value, int flags, const char *desc);
 
 	// command function parameter access
 	int (*Argc)(void);
@@ -201,8 +201,5 @@ typedef struct g_export_s {
 	int num_edicts;  // current number, <= max_edicts
 	int max_edicts;
 } g_export_t;
-
-// entry point in game module, called by the server
-g_export_t *G_LoadGame(g_import_t *import);
 
 #endif /* __GAME_H__ */

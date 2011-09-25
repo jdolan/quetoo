@@ -22,6 +22,8 @@
 #ifndef __SYS_H__
 #define __SYS_H__
 
+#include "filesystem.h"
+
 #include <dirent.h>
 
 #ifndef _WIN32
@@ -35,9 +37,6 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include "filesystem.h"
-#include "game/game.h"
 
 #ifdef HAVE_EXECINFO
 #include <execinfo.h>
@@ -53,11 +52,9 @@ const char *Sys_FindFirst(const char *path);
 const char *Sys_FindNext(void);
 void Sys_FindClose(void);
 
-void Sys_CloseLibrary(void **handle);
 void Sys_OpenLibrary(const char *name, void **handle);
-
-void *Sys_LoadGame(void *parms);
-void Sys_UnloadGame(void);
+void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params);
+void Sys_CloseLibrary(void **handle);
 
 void Sys_Quit(void);
 void Sys_Backtrace(void);

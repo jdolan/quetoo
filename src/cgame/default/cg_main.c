@@ -19,17 +19,48 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "test.h"
+#include "cg_local.h"
+
+cvar_t *cg_blend;
+cvar_t *cg_hud;
+
+cg_import_t cgi;
+
 
 /*
- * TODO: Test thread execution and synchronization.
+ * Cg_Init
  */
-int main(int argc, char **argv){
-	thread_t *t;
+static void Cg_Init(void){
 
-	Test_Init();
+	cg_blend = cgi.Cvar("cg_blend", "1.0", CVAR_ARCHIVE, "Controls the intensity of screen alpha-blending");
+	cg_hud = cgi.Cvar("cg_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
 
-	Test_Shutdown();
+	cgi.Print("Client game initialized");
+}
 
-	return 0;
+
+/*
+ * Cg_Shutdown
+ */
+static void Cg_Shutdown(void){
+	cgi.Print("Client game shutdown");
+}
+
+
+/*
+ * Cg_LoadCgame
+ */
+cg_export_t *Cg_LoadCgame(cg_import_t *import){
+	static cg_export_t cge;
+
+	cgi = *import;
+
+	cge.api_version = CGAME_API_VERSION;
+
+	cge.Init = Cg_Init;
+	cge.Shutdown = Cg_Shutdown;
+
+	cge.DrawHud = Cg_DrawHud;
+
+	return &cge;
 }

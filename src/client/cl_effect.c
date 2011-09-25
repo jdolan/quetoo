@@ -553,8 +553,8 @@ void Cl_ItemPickupEffect(const vec3_t org){
 	}
 
 	R_AddSustainedLight(org, 80.0, item_pickup_light, 1.0);
-
 }
+
 
 /*
  * Cl_ExplosionEffect
@@ -1415,7 +1415,7 @@ void Cl_AddParticles(void){
 r_particle_t *Cl_AllocParticle(void){
 	r_particle_t *p;
 
-	if(!free_particles)
+	if(!cl_add_particles->integer || !free_particles)
 		return NULL;
 
 	p = free_particles;

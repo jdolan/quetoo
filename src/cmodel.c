@@ -1069,7 +1069,7 @@ static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *tr
 
 		// general box case
 
-		// push the plane out apropriately for mins/maxs
+		// push the plane out appropriately for mins/maxs
 
 		// FIXME: use sign_bits into 8 way lookup for each mins/maxs
 		for(j = 0; j < 3; j++){
@@ -1329,7 +1329,7 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,
 /*
  * Cm_TransformedBoxTrace
  *
- * Handles offsetting and rotation of the end points for moving and
+ * Handles translation and rotation of the end points for moving and
  * rotating entities.
  */
 c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
