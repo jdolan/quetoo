@@ -19,28 +19,35 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_LOCAL_H__
-#define __CG_LOCAL_H__
+#include "cg_local.h"
 
-#include "cgame/cgame.h"
 
-extern cvar_t *cg_blend;
-extern cvar_t *cg_crosshair;
-//extern cvar_t *cg_crosshair_color;
-extern cvar_t *cg_crosshair_scale;
-extern cvar_t *cg_hud;
-extern cvar_t *cg_third_person;
+/*
+ * Cg_ThirdPerson
+ *
+ * Return the 3rd person offset. Negative values imply that the camera is in
+ * front of the player.
+ */
+float Cg_ThirdPerson(player_state_t *ps){
 
-extern cg_import_t cgi;
+	if(!ps->stats[STAT_CHASE]){  // chasing uses client side 3rd person
 
-// cg_hud.c
-void Cg_DrawHud(player_state_t *ps);
+		/*
+		 * Don't bother translating the origin when spectating, since we have
+		 * no visible player model to begin with.
+		 */
+		if(ps->pmove.pm_type == PM_SPECTATOR && !ps->stats[STAT_HEALTH])
+			return 0.0;
+	}
 
-// cg_main.c
-cg_export_t *Cg_LoadCgame(cg_import_t *import);
+	return cg_third_person->value;
+}
 
-// cg_view.c
-float Cg_ThirdPerson(player_state_t *ps);
-void Cg_UpdateView(player_state_t *ps);
 
-#endif /* __CG_LOCAL_H__ */
+/*
+ * Cg_UpdateView
+ */
+void Cg_UpdateView(player_state_t *ps){
+
+
+}

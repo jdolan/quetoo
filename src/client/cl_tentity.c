@@ -21,75 +21,28 @@
 
 #include "client.h"
 
-s_sample_t *cl_sample_bfg_hit;
-s_sample_t *cl_sample_hyperblaster_hit;
-s_sample_t *cl_sample_lightning_discharge;
-s_sample_t *cl_sample_explosion;
-s_sample_t *cl_sample_sparks;
-s_sample_t *cl_sample_machinegun_hit[3];
-
-/*
- * Cl_LoadTempEntitySamples
- */
-void Cl_LoadTempEntitySamples(void){
-	int i;
-	char name[MAX_QPATH];
-
-	cl_sample_bfg_hit = S_LoadSample("weapons/bfg/hit");
-	cl_sample_hyperblaster_hit = S_LoadSample("weapons/hyperblaster/hit");
-	cl_sample_lightning_discharge = S_LoadSample("weapons/lightning/discharge");
-	cl_sample_explosion = S_LoadSample("weapons/common/explosion");
-	cl_sample_sparks = S_LoadSample("world/sparks");
-
-	for(i = 0; i < 3; i++){
-		snprintf(name, sizeof(name), "weapons/machinegun/hit_%i", i + 1);
-		cl_sample_machinegun_hit[i] = S_LoadSample(name);
-	}
-}
-
-
-static const vec3_t sparks_light = {
-	0.7, 0.5, 0.5
-};
-static const vec3_t explosion_light = {
-	1.0, 0.5, 0.3
-};
-static const vec3_t hyperblaster_hit_light = {
-	0.4, 0.7, 1.0
-};
-static const vec3_t lightning_det_light = {
-	0.6, 0.6, 1.0
-};
-static const vec3_t bfg_hit_light = {
-	0.8, 1.0, 0.5
-};
 
 /*
  * Cl_ParseTempEntity
  */
 void Cl_ParseTempEntity(void){
-	static int last_ric_time;
-	int i, j, type;
-	vec3_t pos, pos2, dir, light;
+	vec3_t pos, pos2, dir;
+	int i, j;
 
-	type = Msg_ReadByte(&net_message);
+	const byte type = Msg_ReadByte(&net_message);
 
 	switch(type){
 
 		case TE_TRACER:
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadPos(&net_message, pos2);
-			Cl_BulletTrail(pos, pos2);
+			Cl_TracerEffect(pos, pos2);
 			break;
 
 		case TE_BULLET:  // bullet hitting wall
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadDir(&net_message, dir);
 			Cl_BulletEffect(pos, dir);
-			if(cl.time - last_ric_time > 300){
-				S_PlaySample(pos, -1, cl_sample_machinegun_hit[rand() % 3], ATTN_NORM);
-				last_ric_time = cl.time;
-			}
 			break;
 
 		case TE_BURN:   // burn mark on wall
@@ -105,7 +58,7 @@ void Cl_ParseTempEntity(void){
 			Cl_BloodEffect(pos, dir, 12);
 			break;
 
-		case TE_GIB:  // player death
+		case TE_GIB:  // player over-death
 			Msg_ReadPos(&net_message, pos);
 			Cl_GibEffect(pos, 12);
 			break;
@@ -114,21 +67,16 @@ void Cl_ParseTempEntity(void){
 			Msg_ReadPos(&net_message, pos);
 			Msg_ReadDir(&net_message, dir);
 			Cl_SparksEffect(pos, dir, 12);
-			S_PlaySample(pos, -1, cl_sample_sparks, ATTN_STATIC);
-			R_AddSustainedLight(pos, 80.0, sparks_light, 0.65);
 			break;
 
 		case TE_HYPERBLASTER:  // hyperblaster hitting wall
 			Msg_ReadPos(&net_message, pos);
-			S_PlaySample(pos, -1, cl_sample_hyperblaster_hit, ATTN_NORM);
-			R_AddSustainedLight(pos, 80.0, hyperblaster_hit_light, 0.25);
+			Cl_HyperblasterEffect(pos);
 			break;
 
-		case TE_LIGHTNING:  // lightning detonation in water
+		case TE_LIGHTNING:  // lightning discharge in water
 			Msg_ReadPos(&net_message, pos);
 			Cl_LightningEffect(pos);
-			S_PlaySample(pos, -1, cl_sample_lightning_discharge, ATTN_NORM);
-			R_AddSustainedLight(pos, 160.0, lightning_det_light, 0.75);
 			break;
 
 		case TE_RAIL:  // railgun effect
@@ -136,40 +84,26 @@ void Cl_ParseTempEntity(void){
 			Msg_ReadPos(&net_message, pos2);
 			i = Msg_ReadLong(&net_message);
 			j = Msg_ReadByte(&net_message);
-			Cl_RailTrail(pos, pos2, i, j);
-			Img_ColorFromPalette(j, light);
-			R_AddSustainedLight(pos, 100.0, light, 0.75);
-
-			if(!(i & SURF_SKY)){
-				VectorSubtract(pos2, pos, dir);
-				VectorNormalize(dir);
-				VectorMA(pos2, -12.0, dir, pos2);
-				R_AddSustainedLight(pos2, 120.0, light, 1.25);
-			}
+			Cl_RailEffect(pos, pos2, i, j);
 			break;
 
 		case TE_EXPLOSION:  // rocket and grenade explosions
 			Msg_ReadPos(&net_message, pos);
 			Cl_ExplosionEffect(pos);
-			S_PlaySample(pos, -1, cl_sample_explosion, ATTN_NORM);
-			R_AddSustainedLight(pos, 200.0, explosion_light, 1.0);
 			break;
 
 		case TE_BFG:  // bfg explosion
 			Msg_ReadPos(&net_message, pos);
-			Cl_BFGEffect(pos);
-			S_PlaySample(pos, -1, cl_sample_bfg_hit, ATTN_NORM);
-			R_AddSustainedLight(pos, 200.0, bfg_hit_light, 1.0);
+			Cl_BfgEffect(pos);
 			break;
 
 		case TE_BUBBLES:  // bubbles chasing projectiles in water
-			Msg_ReadPos(&net_message, pos);
 			Msg_ReadPos(&net_message, pos2);
 			Cl_BubbleTrail(pos, pos2, 1.0);
 			break;
 
 		default:
 			Com_Warn("Cl_ParseTempEntity: Unknown type: %d\n.", type);
-			break;
+			return;
 	}
 }

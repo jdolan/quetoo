@@ -25,8 +25,7 @@
 /*
  * R_AddCorona
  */
-void R_AddCorona(const vec3_t org, float radius, float flicker, const vec3_t color){
-	r_corona_t *c;
+void R_AddCorona(const r_corona_t *c){
 
 	if(!r_coronas->value)
 		return;
@@ -34,15 +33,10 @@ void R_AddCorona(const vec3_t org, float radius, float flicker, const vec3_t col
 	if(r_view.num_coronas == MAX_CORONAS)
 		return;
 
-	if(radius < 1.0)
+	if(c->radius < 1.0)
 		return;
 
-	c = &r_view.coronas[r_view.num_coronas++];
-
-	VectorCopy(org, c->org);
-	c->radius = radius;
-	c->flicker = flicker;
-	VectorCopy(color, c->color);
+	r_view.coronas[r_view.num_coronas++] = *c;
 }
 
 

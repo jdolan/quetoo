@@ -234,12 +234,12 @@ static void Sv_Sound(g_edict_t *ent, int soundindex, int atten){
 static void *game_handle;
 
 /*
- * Sv_ShutdownGameProgs
+ * Sv_ShutdownGame
  *
  * Called when either the entire server is being killed, or it is changing to a
  * different game directory.
  */
-void Sv_ShutdownGameProgs(void){
+void Sv_ShutdownGame(void){
 
 	if(!svs.game)
 		return;
@@ -252,7 +252,7 @@ void Sv_ShutdownGameProgs(void){
 
 
 /*
- * Sv_InitGameProgs
+ * Sv_InitGame
  *
  * Initializes the game module by exposing a subset of server functionality
  * through function pointers.  In return, the game module allocates memory for
@@ -263,11 +263,11 @@ void Sv_ShutdownGameProgs(void){
  * returns to us.  This distinction seems a bit backwards, but it was likely
  * deemed less confusing to "mod" authors back in the day.
  */
-void Sv_InitGameProgs(void){
+void Sv_InitGame(void){
 	g_import_t import;
 
 	if(svs.game){
-		Sv_ShutdownGameProgs();
+		Sv_ShutdownGame();
 	}
 
 	memset(&import, 0, sizeof(import));

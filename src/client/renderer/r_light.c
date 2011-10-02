@@ -25,8 +25,7 @@
 /*
  * R_AddLight
  */
-void R_AddLight(const vec3_t origin, float radius, const vec3_t color){
-	r_light_t *l;
+void R_AddLight(const r_light_t *l){
 
 	if(!r_lighting->value)
 		return;
@@ -34,39 +33,30 @@ void R_AddLight(const vec3_t origin, float radius, const vec3_t color){
 	if(r_view.num_lights == MAX_LIGHTS)
 		return;
 
-	l = &r_view.lights[r_view.num_lights++];
-
-	VectorCopy(origin, l->origin);
-	l->radius = radius;
-	VectorCopy(color, l->color);
+	r_view.lights[r_view.num_lights++] = *l;
 }
 
 
 /*
  * R_AddSustainedLight
  */
-void R_AddSustainedLight(const vec3_t origin, float radius, const vec3_t color, float sustain){
-	r_sustained_light_t *s;
+void R_AddSustainedLight(const r_sustained_light_t *s){
 	int i;
 
 	if(!r_lighting->value)
 		return;
 
-	s = r_view.sustained_lights;
-
-	for(i = 0; i < MAX_LIGHTS; i++, s++)
-		if(!s->sustain)
+	for(i = 0; i < MAX_LIGHTS; i++)
+		if(!r_view.sustained_lights[i].sustain)
 			break;
 
 	if(i == MAX_LIGHTS)
 		return;
 
-	VectorCopy(origin, s->light.origin);
-	s->light.radius = radius;
-	VectorCopy(color, s->light.color);
+	r_view.sustained_lights[i] = *s;
 
-	s->time = r_view.time;
-	s->sustain = r_view.time + sustain;
+	r_view.sustained_lights[i].time = r_view.time;
+	r_view.sustained_lights[i].sustain = r_view.time + s->sustain;
 }
 
 
@@ -74,8 +64,6 @@ void R_AddSustainedLight(const vec3_t origin, float radius, const vec3_t color, 
  * R_AddSustainedLights
  */
 static void R_AddSustainedLights(void){
-	vec3_t color;
-	float intensity;
 	r_sustained_light_t *s;
 	int i;
 
@@ -83,16 +71,19 @@ static void R_AddSustainedLights(void){
 	for(i = 0, s = r_view.sustained_lights; i < MAX_LIGHTS; i++, s++){
 
 		if(s->sustain <= r_view.time){  // clear it
-			s->sustain = 0;
+			s->sustain = 0.0;
 			continue;
 		}
 
-		intensity = (s->sustain - r_view.time) / (s->sustain - s->time);
-		VectorScale(s->light.color, intensity, color);
+		r_light_t l = s->light;
 
-		R_AddLight(s->light.origin, s->light.radius, color);
+		const float intensity = (s->sustain - r_view.time) / (s->sustain - s->time);
+		VectorScale(s->light.color, intensity, l.color);
+
+		R_AddLight(&l);
 	}
 }
+
 
 /*
  * R_ResetLights

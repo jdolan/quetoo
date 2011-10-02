@@ -256,8 +256,6 @@ void S_LoadSamples(void){
 
 	Cl_LoadEffectSamples();
 
-	Cl_LoadTempEntitySamples();
-
 	for(i = 1; i < MAX_SOUNDS; i++){
 
 		if(!cl.config_strings[CS_SOUNDS + i][0])

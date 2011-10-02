@@ -201,7 +201,14 @@ void R_DrawBspLights(void){
 
 	l = r_world_model->bsp_lights;
 	for(i = 0; i < r_world_model->num_bsp_lights; i++, l++){
-		R_AddCorona(l->origin, l->radius, 0, l->color);
+		r_corona_t c;
+
+		VectorCopy(l->origin, c.org);
+		c.radius = l->radius;
+		c.flicker = 0.0;
+		VectorCopy(l->color, c.color);
+
+		R_AddCorona(&c);
 	}
 }
 

@@ -285,7 +285,7 @@ void R_DrawFrame(void){
  */
 static void R_RenderMode(const char *mode){
 
-	r_state.rendermode = rendermode_default;
+	r_state.render_mode = render_mode_default;
 
 	R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_default;
 	R_DrawOpaqueWarpSurfaces = R_DrawOpaqueWarpSurfaces_default;
@@ -301,7 +301,7 @@ static void R_RenderMode(const char *mode){
 
 	if(!strcmp(mode, "pro")){
 
-		r_state.rendermode = rendermode_pro;
+		r_state.render_mode = render_mode_pro;
 
 		R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_pro;
 		R_DrawAlphaTestSurfaces = R_DrawAlphaTestSurfaces_pro;

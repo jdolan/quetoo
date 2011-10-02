@@ -245,8 +245,8 @@ void Sv_WriteFrameToClient(sv_client_t *client, size_buf_t *msg);
 void Sv_BuildClientFrame(sv_client_t *client);
 
 // sv_game.c
-void Sv_InitGameProgs(void);
-void Sv_ShutdownGameProgs(void);
+void Sv_InitGame(void);
+void Sv_ShutdownGame(void);
 
 // sv_world.c
 void Sv_InitWorld(void);

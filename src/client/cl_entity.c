@@ -538,28 +538,6 @@ static void Cl_AddWeapon(cl_entity_t *e, r_entity_t *self){
 }
 
 
-static const vec3_t rocket_light = {
-	1.0, 0.5, 0.3
-};
-static const vec3_t ctf_blue_light = {
-	0.3, 0.3, 1.0
-};
-static const vec3_t ctf_red_light = {
-	1.0, 0.3, 0.3
-};
-static const vec3_t quad_light = {
-	0.3, 0.7, 0.7
-};
-static const vec3_t hyperblaster_light = {
-	0.4, 0.7, 0.9
-};
-static const vec3_t lightning_light = {
-	0.6, 0.6, 1.0
-};
-static const vec3_t bfg_light = {
-	0.4, 1.0, 0.4
-};
-
 /*
  * Cl_AddEntities
  *
@@ -623,55 +601,60 @@ void Cl_AddEntities(cl_frame_t *frame){
 		}
 
 		// parse the effects bit mask
-		if(s->effects & (EF_ROCKET | EF_GRENADE)){
-			Cl_SmokeTrail(e->prev.origin, ent.origin, e);
+
+		if(s->effects & EF_GRENADE){
+			Cl_GrenadeTrail(e->prev.origin, ent.origin, e);
 		}
 
 		if(s->effects & EF_ROCKET){
-			R_AddCorona(ent.origin, 3.0, 0.25, rocket_light);
-			R_AddLight(ent.origin, 120.0, rocket_light);
+			Cl_RocketTrail(e->prev.origin, ent.origin, e);
 		}
 
 		if(s->effects & EF_HYPERBLASTER){
-			R_AddCorona(ent.origin, 12.0, 0.15, hyperblaster_light);
-			R_AddLight(ent.origin, 100.0, hyperblaster_light);
-
-			Cl_EnergyTrail(e, 8.0, 107);
+			Cl_HyperblasterTrail(e);
 		}
 
 		if(s->effects & EF_LIGHTNING){
-			vec3_t dir;
 			Cl_LightningTrail(start, end);
-
-			R_AddLight(start, 100.0, lightning_light);
-			VectorSubtract(end, start, dir);
-			VectorNormalize(dir);
-			VectorMA(end, -12.0, dir, end);
-			R_AddLight(end, 80.0 + (10.0 * crand()), lightning_light);
 		}
 
 		if(s->effects & EF_BFG){
-			R_AddCorona(ent.origin, 24.0, 0.05, bfg_light);
-			R_AddLight(ent.origin, 120.0, bfg_light);
-
-			Cl_EnergyTrail(e, 16.0, 206);
+			Cl_BfgTrail(e);
 		}
 
 		VectorClear(ent.shell);
 
 		if(s->effects & EF_CTF_BLUE){
-			R_AddLight(ent.origin, 80.0, ctf_blue_light);
-			VectorScale(ctf_blue_light, 0.5, ent.shell);
+			r_light_t ctf_blue_light = {
+				{0.0, 0.0, 0.0}, 80.0, {0.3, 0.3, 1.0}
+			};
+
+			VectorCopy(ent.origin, ctf_blue_light.origin);
+			R_AddLight(&ctf_blue_light);
+
+			VectorScale(ctf_blue_light.color, 0.5, ent.shell);
 		}
 
 		if(s->effects & EF_CTF_RED){
-			R_AddLight(ent.origin, 80.0, ctf_red_light);
-			VectorScale(ctf_red_light, 0.5, ent.shell);
+			r_light_t ctf_red_light = {
+				{0.0, 0.0, 0.0}, 80.0, {1.0, 0.3, 0.3}
+			};
+
+			VectorCopy(ent.origin, ctf_red_light.origin);
+			R_AddLight(&ctf_red_light);
+
+			VectorScale(ctf_red_light.color, 0.5, ent.shell);
 		}
 
 		if(s->effects & EF_QUAD){
-			R_AddLight(ent.origin, 80.0, quad_light);
-			VectorScale(quad_light, 0.5, ent.shell);
+			r_light_t quad_light = {
+				{0.0, 0.0, 0.0}, 80.0, {0.3, 0.7, 0.7}
+			};
+
+			VectorCopy(ent.origin, quad_light.origin);
+			R_AddLight(&quad_light);
+
+			VectorScale(quad_light.color, 0.5, ent.shell);
 		}
 
 		if(s->effects & EF_TELEPORTER)

@@ -98,6 +98,7 @@ void Cl_InitCgame(void){
 
 	import.time = &cl.time;
 
+	import.LoadPic = R_LoadPic;
 	import.DrawPic = R_DrawPic;
 	import.DrawFill = R_DrawFill;
 

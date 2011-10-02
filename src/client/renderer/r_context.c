@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL.h>
+#include <SDL/SDL.h>
 
 #include "renderer.h"
 
@@ -102,12 +102,6 @@ boolean_t R_InitContext(int width, int height, boolean_t fullscreen){
 	r_state.height = surface->h;
 
 	r_state.fullscreen = fullscreen;
-
-	r_state.virtual_width = surface->w;
-	r_state.virtual_height = surface->h;
-
-	r_state.rx = (float)r_state.width / r_state.virtual_width;
-	r_state.ry = (float)r_state.height / r_state.virtual_height;
 
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r_state.red_bits);
 	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &r_state.green_bits);

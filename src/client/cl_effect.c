@@ -23,19 +23,26 @@
 
 static s_sample_t *cl_sample_shotgun_fire;
 static s_sample_t *cl_sample_supershotgun_fire;
+static s_sample_t *cl_sample_machinegun_fire[4];
+static s_sample_t *cl_sample_machinegun_hit[3];
 static s_sample_t *cl_sample_grenadelauncher_fire;
 static s_sample_t *cl_sample_rocketlauncher_fire;
 static s_sample_t *cl_sample_hyperblaster_fire;
+static s_sample_t *cl_sample_hyperblaster_hit;
 static s_sample_t *cl_sample_lightning_fire;
 static s_sample_t *cl_sample_lightning_fly;
+static s_sample_t *cl_sample_lightning_discharge;
 static s_sample_t *cl_sample_railgun_fire;
 static s_sample_t *cl_sample_bfg_fire;
+static s_sample_t *cl_sample_bfg_hit;
+
+static s_sample_t *cl_sample_explosion;
 static s_sample_t *cl_sample_teleport;
 static s_sample_t *cl_sample_respawn;
+static s_sample_t *cl_sample_sparks;
 static s_sample_t *cl_sample_footsteps[4];
 static s_sample_t *cl_sample_rain;
 static s_sample_t *cl_sample_snow;
-static s_sample_t *cl_sample_machinegun_fire[4];
 
 
 /*
@@ -50,23 +57,34 @@ void Cl_LoadEffectSamples(void){
 	cl_sample_grenadelauncher_fire = S_LoadSample("weapons/grenadelauncher/fire");
 	cl_sample_rocketlauncher_fire = S_LoadSample("weapons/rocketlauncher/fire");
 	cl_sample_hyperblaster_fire = S_LoadSample("weapons/hyperblaster/fire");
+	cl_sample_hyperblaster_hit = S_LoadSample("weapons/hyperblaster/hit");
 	cl_sample_lightning_fire = S_LoadSample("weapons/lightning/fire");
 	cl_sample_lightning_fly = S_LoadSample("weapons/lightning/fly");
+	cl_sample_lightning_discharge = S_LoadSample("weapons/lightning/discharge");
 	cl_sample_railgun_fire = S_LoadSample("weapons/railgun/fire");
 	cl_sample_bfg_fire = S_LoadSample("weapons/bfg/fire");
+	cl_sample_bfg_hit = S_LoadSample("weapons/bfg/hit");
+
+	cl_sample_explosion = S_LoadSample("weapons/common/explosion");
 	cl_sample_teleport = S_LoadSample("world/teleport");
 	cl_sample_respawn = S_LoadSample("world/respawn");
+	cl_sample_sparks = S_LoadSample("world/sparks");
 	cl_sample_rain = S_LoadSample("world/rain");
 	cl_sample_snow = S_LoadSample("world/snow");
 
 	for(i = 0; i < 4; i++){
-		snprintf(name, sizeof(name), "#players/common/step_%i", i + 1);
-		cl_sample_footsteps[i] = S_LoadSample(name);
+		snprintf(name, sizeof(name), "weapons/machinegun/fire_%i", i + 1);
+		cl_sample_machinegun_fire[i] = S_LoadSample(name);
+	}
+
+	for(i = 0; i < 3; i++){
+		snprintf(name, sizeof(name), "weapons/machinegun/hit_%i", i + 1);
+		cl_sample_machinegun_hit[i] = S_LoadSample(name);
 	}
 
 	for(i = 0; i < 4; i++){
-		snprintf(name, sizeof(name), "weapons/machinegun/fire_%i", i + 1);
-		cl_sample_machinegun_fire[i] = S_LoadSample(name);
+		snprintf(name, sizeof(name), "#players/common/step_%i", i + 1);
+		cl_sample_footsteps[i] = S_LoadSample(name);
 	}
 }
 
@@ -183,9 +201,9 @@ static void Cl_ClearParticles(void){
 
 
 /*
- * Cl_BulletTrail
+ * Cl_TracerEffect
  */
-void Cl_BulletTrail(const vec3_t start, const vec3_t end){
+void Cl_TracerEffect(const vec3_t start, const vec3_t end){
 	r_particle_t *p;
 	float v;
 
@@ -213,15 +231,13 @@ void Cl_BulletTrail(const vec3_t start, const vec3_t end){
 }
 
 
-static const vec3_t bullet_light = {
-	0.5, 0.3, 0.2
-};
-
 /*
  * Cl_BulletEffect
  */
 void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
+	static int last_ric_time;
 	r_particle_t *p;
+	r_sustained_light_t s;
 	vec3_t v;
 
 	if(!(p = Cl_AllocParticle()))
@@ -267,8 +283,20 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 	p->alpha = 1.0;
 	p->alpha_vel = -1.0 / (0.7 + crand() * 0.1);
 
-	VectorAdd(org, dir, v);
-	R_AddSustainedLight(v, 20.0, bullet_light, 0.25);
+	VectorAdd(org, dir, s.light.origin);
+	s.light.radius = 20.0;
+	VectorSet(s.light.color, 0.5, 0.3, 0.2);
+	s.sustain = 0.25;
+
+	R_AddSustainedLight(&s);
+
+	if(cl.time < last_ric_time)
+		last_ric_time = 0;
+
+	if(cl.time - last_ric_time > 300){
+		S_PlaySample(org, -1, cl_sample_machinegun_hit[rand() % 3], ATTN_NORM);
+		last_ric_time = cl.time;
+	}
 }
 
 
@@ -399,8 +427,9 @@ void Cl_GibEffect(const vec3_t org, int count){
  * Cl_SparksEffect
  */
 void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
-	int i, j;
 	r_particle_t *p;
+	r_sustained_light_t s;
+	int i, j;
 
 	for(i = 0; i < count; i++){
 
@@ -428,6 +457,15 @@ void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 		p->alpha = 1.5;
 		p->alpha_vel = -1.0 / (0.5 + frand() * 0.3);
 	}
+
+	VectorCopy(org, s.light.origin);
+	s.light.radius = 80.0;
+	VectorSet(s.light.color, 0.7, 0.5, 0.5);
+	s.sustain = 0.65;
+
+	R_AddSustainedLight(&s);
+
+	S_PlaySample(org, -1, cl_sample_sparks, ATTN_STATIC);
 }
 
 
@@ -476,16 +514,13 @@ void Cl_LogoutEffect(const vec3_t org){
 }
 
 
-static const vec3_t item_respawn_light = {
-	0.9, 0.9, 0.9
-};
-
 /*
  * Cl_ItemRespawnEffect
  */
 void Cl_ItemRespawnEffect(const vec3_t org){
-	int i, j;
 	r_particle_t *p;
+	r_sustained_light_t s;
+	int i, j;
 
 	for(i = 0; i < 64; i++){
 
@@ -512,20 +547,22 @@ void Cl_ItemRespawnEffect(const vec3_t org){
 		p->alpha_vel = -1.5 + frand() * 0.5;
 	}
 
-	R_AddSustainedLight(org, 80.0, item_respawn_light, 1.0);
+	VectorCopy(org, s.light.origin);
+	s.light.radius = 80.0;
+	VectorSet(s.light.color, 0.9, 0.9, 0.9);
+	s.sustain = 1.0;
+
+	R_AddSustainedLight(&s);
 }
 
-
-static const vec3_t item_pickup_light = {
-	0.9, 1.0, 1.0
-};
 
 /*
  * Cl_ItemPickupEffect
  */
 void Cl_ItemPickupEffect(const vec3_t org){
-	int i, j;
 	r_particle_t *p;
+	r_sustained_light_t s;
+	int i, j;
 
 	for(i = 0; i < 32; i++){
 
@@ -552,7 +589,12 @@ void Cl_ItemPickupEffect(const vec3_t org){
 		p->alpha_vel = -1.5 + frand() * 0.5;
 	}
 
-	R_AddSustainedLight(org, 80.0, item_pickup_light, 1.0);
+	VectorCopy(org, s.light.origin);
+	s.light.radius = 80.0;
+	VectorSet(s.light.color, 0.9, 1.0, 1.0);
+	s.sustain = 1.0;
+
+	R_AddSustainedLight(&s);
 }
 
 
@@ -562,6 +604,7 @@ void Cl_ItemPickupEffect(const vec3_t org){
 void Cl_ExplosionEffect(const vec3_t org){
 	int i, j;
 	r_particle_t *p;
+	r_sustained_light_t s;
 
 	if(!(p = Cl_AllocParticle()))
 		return;
@@ -608,6 +651,15 @@ void Cl_ExplosionEffect(const vec3_t org){
 	for(j = 0; j < 3; j++){
 		p->vel[j] = crand();
 	}
+
+	VectorCopy(org, s.light.origin);
+	s.light.radius = 100.0;
+	VectorSet(s.light.color, 1.0, 0.5, 0.3);
+	s.sustain = 1.0;
+
+	R_AddSustainedLight(&s);
+
+	S_PlaySample(org, -1, cl_sample_explosion, ATTN_NORM);
 }
 
 
@@ -619,7 +671,7 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	boolean_t stationary;
 	int j, c;
 
-	if(r_state.rendermode == rendermode_pro)
+	if(r_state.render_mode == render_mode_pro)
 		return;
 
 	stationary = false;
@@ -676,15 +728,12 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 }
 
 
-static const vec3_t shot_light = {
-	0.8, 0.7, 0.5
-};
-
 /*
  * Cl_SmokeFlash
  */
 void Cl_SmokeFlash(entity_state_t *ent){
 	r_particle_t *p;
+	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
 	float dist;
@@ -708,7 +757,12 @@ void Cl_SmokeFlash(entity_state_t *ent){
 	dist = ent->solid == 8290 ? -2.0 : 20.0;
 	org[2] += dist;
 
-	R_AddSustainedLight(org, 80.0, shot_light, 0.3);
+	VectorCopy(org, s.light.origin);
+	s.light.radius = 80.0;
+	VectorSet(s.light.color, 0.8, 0.7, 0.5);
+	s.sustain = 0.3;
+
+	R_AddSustainedLight(&s);
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
@@ -846,159 +900,6 @@ void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
 }
 
 
-
-/*
- * Cl_LightningEffect
- */
-void Cl_LightningEffect(const vec3_t org){
-	vec3_t tmp;
-	int i, j;
-
-	for(i = 0; i < 40; i++){
-
-		VectorCopy(org, tmp);
-
-		for(j = 0; j < 3; j++)
-			tmp[j] = tmp[j] + (rand() % 96) - 48;
-
-		Cl_BubbleTrail(org, tmp, 4.0);
-	}
-}
-
-
-/*
- * Cl_LightningTrail
- */
-void Cl_LightningTrail(const vec3_t start, const vec3_t end){
-	r_particle_t *p;
-	vec3_t dir, delta, pos;
-	float dist;
-
-	S_LoopSample(start, cl_sample_lightning_fly);
-	S_LoopSample(end, cl_sample_lightning_fly);
-
-	VectorSubtract(start, end, dir);
-	dist = VectorNormalize(dir);
-
-	VectorScale(dir, -48.0, delta);
-
-	VectorSet(pos, crand() * 0.5, crand() * 0.5, crand() * 0.5);
-	VectorAdd(pos, start, pos);
-
-	while(dist > 0.0){
-
-		if(!(p = Cl_AllocParticle()))
-			return;
-
-		p->type = PARTICLE_BEAM;
-		p->image = r_lightning_image;
-
-		p->scale = 8.0;
-
-		VectorCopy(pos, p->org);
-
-		if(dist < 48.0)
-			VectorScale(dir, dist, delta);
-
-		VectorAdd(pos, delta, pos);
-
-		VectorCopy(pos, p->end);
-
-		p->alpha = 1.0;
-		p->alpha_vel = -50.0;
-
-		p->color = 12 + (rand() & 3);
-
-		p->scroll_s = -4.0;
-
-		dist -= 48.0;
-	}
-}
-
-/*
- * Cl_RailTrail
- */
-void Cl_RailTrail(const vec3_t start, const vec3_t end, int flags, int color){
-	vec3_t vec, move;
-	float len;
-	r_particle_t *p;
-	int i;
-
-	if(!(p = Cl_AllocParticle()))
-		return;
-
-	// draw the core with a beam
-	p->type = PARTICLE_BEAM;
-	p->image = r_beam_image;
-	p->scale = 3.0;
-
-	VectorCopy(start, p->org);
-	VectorCopy(end, p->end);
-
-	p->alpha = 0.75;
-	p->alpha_vel = -0.75;
-
-	// white cores for some colors, shifted for others
-	p->color = (color > 239 || color == 187 ? 216 : color + 6);
-
-	// and the spiral with normal parts
-	VectorCopy(start, move);
-
-	VectorSubtract(end, start, vec);
-	len = VectorNormalize(vec);
-
-	for(i = 0; i < len; i+= 24){
-
-		if(!(p = Cl_AllocParticle()))
-			return;
-
-		p->type = PARTICLE_ROLL;
-		p->roll = crand() * 300.0;
-
-		VectorMA(start, i, vec, p->org);
-
-		VectorSet(p->vel, 0.0, 0.0, 2.0);
-
-		p->image = r_rail_trail_image;
-
-		p->alpha = 1.0;
-		p->alpha_vel = -1.0;
-
-		p->scale = 3.0 + crand() * 0.3;
-		p->scale_vel = 8.0 + crand() * 0.3;
-
-		p->color = color;
-
-		// check for bubble trail
-		if(i && Cm_PointContents(move, r_world_model->first_node) &
-				(CONTENTS_SLIME | CONTENTS_WATER)){
-			Cl_BubbleTrail(move, p->org, 16.0);
-		}
-
-		VectorCopy(p->org, move);
-	}
-
-	// check for explosion effect on solids
-	if(flags & SURF_SKY)
-		return;
-
-	if(!(p = Cl_AllocParticle()))
-		return;
-
-	p->image = r_explosion_image;
-
-	p->scale = 1.0;
-	p->scale_vel = 400.0;
-
-	p->alpha = 2.0;
-	p->alpha_vel = -10.0;
-
-	p->color = color;
-
-	VectorCopy(end, p->org);
-}
-
-
 /*
  * Cl_BubbleTrail
  */
@@ -1110,15 +1011,12 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 }
 
 
-static const vec3_t energy_light = {
-	0.7, 0.9, 0.9
-};
-
 /*
  * Cl_EnergyFlash
  */
 void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
 	r_particle_t *p;
+	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
 	float dist;
@@ -1142,7 +1040,12 @@ void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
 	dist = ent->solid == 8290 ? -2.0 : 20.0;
 	org[2] += dist;
 
-	R_AddSustainedLight(org, 80.0, energy_light, 0.3);
+	VectorCopy(org, s.light.origin);
+	s.light.radius = 80.0;
+	VectorSet(s.light.color, 0.7, 0.9, 0.9);
+	s.sustain = 0.3;
+
+	R_AddSustainedLight(&s);
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
@@ -1175,10 +1078,295 @@ void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
 
 
 /*
- * Cl_BFGEffect
+ * Cl_GrenadeTrail
  */
-void Cl_BFGEffect(const vec3_t org){
+void Cl_GrenadeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
+	Cl_SmokeTrail(start, end, ent);
+}
+
+
+/*
+ * Cl_RocketTrail
+ */
+void Cl_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
+	r_corona_t c;
+	r_light_t l;
+
+	Cl_SmokeTrail(start, end, ent);
+
+	VectorCopy(end, c.org);
+	c.radius = 3.0;
+	c.flicker = 0.25;
+	VectorSet(c.color, 1.0, 0.5, 0.3);
+
+	R_AddCorona(&c);
+
+	VectorCopy(end, l.origin);
+	l.radius = 120.0;
+	VectorSet(l.color, 1.0, 0.5, 0.3);
+
+	R_AddLight(&l);
+}
+
+
+/*
+ * Cl_HyperblasterTrail
+ */
+void Cl_HyperblasterTrail(cl_entity_t *ent){
+	r_corona_t c;
+	r_light_t l;
+
+	Cl_EnergyTrail(ent, 8.0, 107);
+
+	VectorCopy(ent->current.origin, c.org);
+	c.radius = 12.0;
+	c.flicker = 0.15;
+	VectorSet(c.color, 0.4, 0.7, 1.0);
+
+	R_AddCorona(&c);
+
+	VectorCopy(ent->current.origin, l.origin);
+	l.radius = 100.0;
+	VectorSet(l.color, 0.4, 0.7, 1.0);
+
+	R_AddLight(&l);
+}
+
+
+/*
+ * Cl_HyperblasterEffect
+ */
+void Cl_HyperblasterEffect(const vec3_t org){
+	r_sustained_light_t s;
+
+	VectorCopy(org, s.light.origin);
+	s.light.radius = 80.0;
+	VectorSet(s.light.color, 0.4, 0.7, 1.0);
+	s.sustain = 0.25;
+
+	R_AddSustainedLight(&s);
+
+	S_PlaySample(org, -1, cl_sample_hyperblaster_hit, ATTN_NORM);
+}
+
+
+/*
+ * Cl_LightningEffect
+ */
+void Cl_LightningEffect(const vec3_t org){
+	r_sustained_light_t s;
+	vec3_t tmp;
+	int i, j;
+
+	for(i = 0; i < 40; i++){
+
+		VectorCopy(org, tmp);
+
+		for(j = 0; j < 3; j++)
+			tmp[j] = tmp[j] + (rand() % 96) - 48;
+
+		Cl_BubbleTrail(org, tmp, 4.0);
+	}
+
+	VectorCopy(org, s.light.origin);
+	s.light.radius = 160.0;
+	VectorSet(s.light.color, 0.6, 0.6, 1.0);
+	s.sustain = 0.75;
+
+	R_AddSustainedLight(&s);
+
+	S_PlaySample(org, -1, cl_sample_lightning_discharge, ATTN_NORM);
+}
+
+
+/*
+ * Cl_LightningTrail
+ */
+void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 	r_particle_t *p;
+	r_light_t l;
+	vec3_t dir, delta, pos;
+	float dist;
+
+	S_LoopSample(start, cl_sample_lightning_fly);
+	S_LoopSample(end, cl_sample_lightning_fly);
+
+	VectorSubtract(start, end, dir);
+	dist = VectorNormalize(dir);
+
+	VectorScale(dir, -48.0, delta);
+
+	VectorSet(pos, crand() * 0.5, crand() * 0.5, crand() * 0.5);
+	VectorAdd(pos, start, pos);
+
+	while(dist > 0.0){
+
+		if(!(p = Cl_AllocParticle()))
+			return;
+
+		p->type = PARTICLE_BEAM;
+		p->image = r_lightning_image;
+
+		p->scale = 8.0;
+
+		VectorCopy(pos, p->org);
+
+		if(dist < 48.0)
+			VectorScale(dir, dist, delta);
+
+		VectorAdd(pos, delta, pos);
+
+		VectorCopy(pos, p->end);
+
+		p->alpha = 1.0;
+		p->alpha_vel = -50.0;
+
+		p->color = 12 + (rand() & 3);
+
+		p->scroll_s = -4.0;
+
+		dist -= 48.0;
+	}
+
+	VectorCopy(start, l.origin);
+	l.radius = 90.0 + 10.0 * crand();
+	VectorSet(l.color, 0.6, 0.6, 1.0);
+
+	R_AddLight(&l);
+
+	VectorMA(end, 12.0, dir, l.origin);
+	R_AddLight(&l);
+}
+
+
+/*
+ * Cl_RailEffect
+ */
+void Cl_RailEffect(const vec3_t start, const vec3_t end, int flags, int color){
+	vec3_t vec, move;
+	float len;
+	r_particle_t *p;
+	r_sustained_light_t s;
+	int i;
+
+	VectorCopy(start, s.light.origin);
+	s.light.radius = 100.0;
+	Img_ColorFromPalette(color, s.light.color);
+	s.sustain = 0.75;
+
+	R_AddSustainedLight(&s);
+
+	if(!(p = Cl_AllocParticle()))
+		return;
+
+	// draw the core with a beam
+	p->type = PARTICLE_BEAM;
+	p->image = r_beam_image;
+	p->scale = 3.0;
+
+	VectorCopy(start, p->org);
+	VectorCopy(end, p->end);
+
+	p->alpha = 0.75;
+	p->alpha_vel = -0.75;
+
+	// white cores for some colors, shifted for others
+	p->color = (color > 239 || color == 187 ? 216 : color + 6);
+
+	// and the spiral with normal parts
+	VectorCopy(start, move);
+
+	VectorSubtract(end, start, vec);
+	len = VectorNormalize(vec);
+
+	for(i = 0; i < len; i+= 24){
+
+		if(!(p = Cl_AllocParticle()))
+			return;
+
+		p->type = PARTICLE_ROLL;
+		p->roll = crand() * 300.0;
+
+		VectorMA(start, i, vec, p->org);
+
+		VectorSet(p->vel, 0.0, 0.0, 2.0);
+
+		p->image = r_rail_trail_image;
+
+		p->alpha = 1.0;
+		p->alpha_vel = -1.0;
+
+		p->scale = 3.0 + crand() * 0.3;
+		p->scale_vel = 8.0 + crand() * 0.3;
+
+		p->color = color;
+
+		// check for bubble trail
+		if(i && Cm_PointContents(move, r_world_model->first_node) &
+				(CONTENTS_SLIME | CONTENTS_WATER)){
+			Cl_BubbleTrail(move, p->org, 16.0);
+		}
+
+		VectorCopy(p->org, move);
+	}
+
+	// check for explosion effect on solids
+	if(flags & SURF_SKY)
+		return;
+
+	if(!(p = Cl_AllocParticle()))
+		return;
+
+	p->image = r_explosion_image;
+
+	p->scale = 1.0;
+	p->scale_vel = 400.0;
+
+	p->alpha = 2.0;
+	p->alpha_vel = -10.0;
+
+	p->color = color;
+
+	VectorCopy(end, p->org);
+
+	VectorMA(end, -12.0, vec, s.light.origin);
+	s.light.radius = 120.0;
+	s.sustain = 1.25;
+
+	R_AddSustainedLight(&s);
+}
+
+
+/*
+ * Cl_BfgTrail
+ */
+void Cl_BfgTrail(cl_entity_t *ent){
+	r_corona_t c;
+	r_light_t l;
+
+	Cl_EnergyTrail(ent, 16.0, 206);
+
+	VectorCopy(ent->current.origin, c.org);
+	c.radius = 24.0;
+	c.flicker = 0.05;
+	VectorSet(c.color, 0.4, 1.0, 0.4);
+
+	R_AddCorona(&c);
+
+	VectorCopy(ent->current.origin, l.origin);
+	l.radius = 120.0;
+	VectorSet(l.color, 0.4, 1.0, 0.4);
+
+	R_AddLight(&l);
+}
+
+
+/*
+ * Cl_BfgEffect
+ */
+void Cl_BfgEffect(const vec3_t org){
+	r_particle_t *p;
+	r_sustained_light_t s;
 	int i;
 
 	for(i = 0; i < 4; i++){
@@ -1198,6 +1386,15 @@ void Cl_BFGEffect(const vec3_t org){
 
 		VectorCopy(org, p->org);
 	}
+
+	VectorCopy(org, s.light.origin);
+	s.light.radius = 200.0;
+	VectorSet(s.light.color, 0.8, 1.0, 0.5);
+	s.sustain = 1.0;
+
+	R_AddSustainedLight(&s);
+
+	S_PlaySample(org, -1, cl_sample_bfg_hit, ATTN_NORM);
 }
 
 

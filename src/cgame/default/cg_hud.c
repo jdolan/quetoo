@@ -35,6 +35,14 @@
 #define HUD_ARMOR_MED			40
 #define HUD_ARMOR_LOW			20
 
+typedef struct crosshair_s {
+	char name[16];
+	int width, height;
+	//byte color[4];
+} crosshair_t;
+
+static crosshair_t crosshair;
+
 
 /*
  * Cg_DrawIcon
@@ -354,6 +362,68 @@ static void Cg_DrawTeam(player_state_t *ps){
 
 
 /*
+ * Cg_DrawCrosshair
+ */
+static void Cg_DrawCrosshair(player_state_t *ps){
+	int x, y;
+
+	if(!cg_crosshair->value)
+		return;
+
+	if(ps->stats[STAT_SCOREBOARD])
+		return;  // scoreboard up
+
+	if(ps->stats[STAT_SPECTATOR])
+		return;  // spectating
+
+	if(ps->stats[STAT_CHASE])
+		return;  // chasecam
+
+	if(cg_third_person->value)
+		return;  // third person
+
+	if(cg_crosshair->modified){  // crosshair image
+		cg_crosshair->modified = false;
+
+		if(cg_crosshair->value < 0)
+			cg_crosshair->value = 1;
+
+		if(cg_crosshair->value > 100)
+			cg_crosshair->value = 100;
+
+		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cg_crosshair->integer);
+
+		cgi.LoadPic(crosshair.name, &crosshair.width, &crosshair.height);
+
+		if(!crosshair.width){
+			cgi.Print("Couldn't load pics/ch%d.\n", cg_crosshair->integer);
+			return;
+		}
+	}
+
+	if(!crosshair.width)  // not found
+		return;
+
+	/*if(cg_crosshair_color->modified){  // crosshair color
+		cg_crosshair_color->modified = false;
+
+		c = ColorByName(cg_crosshair_color->string, 14);
+		memcpy(&crosshair.color, &palette[c], sizeof(crosshair.color));
+	}
+
+	glColor4ubv(crosshair.color);*/
+
+	// calculate width and height based on crosshair image and scale
+	x = (*cgi.width - crosshair.width * cg_crosshair_scale->value) / 2;
+	y = (*cgi.height - crosshair.height * cg_crosshair_scale->value) / 2;
+
+	cgi.DrawPic(x, y, cg_crosshair_scale->value, crosshair.name);
+
+	//glColor4ubv(color_white);
+}
+
+
+/*
  * Cg_DrawBlend
  */
 static void Cg_DrawBlend(player_state_t *ps){
@@ -425,6 +495,9 @@ static void Cg_DrawBlend(player_state_t *ps){
  */
 void Cg_DrawHud(player_state_t *ps){
 
+	if(!cg_hud->integer)
+		return;
+
 	Cg_DrawVitals(ps);
 
 	Cg_DrawPickup(ps);
@@ -445,6 +518,7 @@ void Cg_DrawHud(player_state_t *ps){
 
 	Cg_DrawReady(ps);
 
+	Cg_DrawCrosshair(ps);
 
 	Cg_DrawBlend(ps);
 }

@@ -38,12 +38,15 @@ typedef struct cg_import_s {
 
 	char *(*ConfigString)(int index);
 
+	void (*Trace)(vec3_t start, vec3_t end, float radius, int masl);
+
 	// view parameters
 	int *width, *height;
 
 	// client time
 	int *time;
 
+	void (*LoadPic)(const char *name, int *w, int *h);
 	void (*DrawPic)(int x, int y, float scale, const char *name);
 	void (*DrawFill)(int x, int y, int w, int h, int c, float a);
 
@@ -58,6 +61,8 @@ typedef struct cg_export_s {
 
 	void (*Init)(void);
 	void (*Shutdown)(void);
+
+	float (*ThirdPerson)(player_state_t *ps);
 
 	void (*DrawHud)(player_state_t *ps);
 } cg_export_t;

@@ -39,16 +39,14 @@ typedef struct r_texunit_s {
 #define MAX_GL_TEXUNITS		4
 
 // rendermodes, set via r_rendermode
-typedef enum rendermode_s {
-	rendermode_default,
-	rendermode_pro
-} r_rendermode_t;
+typedef enum render_mode_s {
+	render_mode_default,
+	render_mode_pro
+} r_render_mode_t;
 
 // opengl state management
 typedef struct renderer_state_s {
 	int width, height;
-	int virtual_height, virtual_width;
-	float rx, ry;
 
 	boolean_t fullscreen;
 
@@ -88,7 +86,7 @@ typedef struct renderer_state_s {
 	boolean_t shell_enabled;
 	boolean_t fog_enabled;
 
-	r_rendermode_t rendermode;
+	r_render_mode_t render_mode;
 } renderer_state_t;
 
 extern renderer_state_t r_state;

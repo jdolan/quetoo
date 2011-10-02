@@ -142,7 +142,7 @@ void Cl_LoadEmits(void){
 					if(e->flags & EMIT_CORONA)
 						e->radius = 12.0;
 					else if(e->flags & EMIT_LIGHT)
-						e->radius = 1.5;
+						e->radius = 100.0;
 					else
 						e->radius = 1.0;
 				}
@@ -202,6 +202,9 @@ void Cl_LoadEmits(void){
 					else  // the default is to honor the hz parameter
 						e->loop = e->hz == 0.0;
 				}
+
+				if(e->flags & EMIT_SPARKS)  // don't combine sparks and light
+					e->flags &= ~EMIT_LIGHT;
 
 				Com_Debug("Added %d emit at %f %f %f\n", e->flags,
 						e->org[0], e->org[1], e->org[2]);
@@ -340,11 +343,25 @@ static void Cl_UpdateEmits(void){
 
 
 /*
+ * Cl_EmitLight
+ */
+static r_light_t *Cl_EmitLight(cl_emit_t *e){
+	static r_light_t l;
+
+	VectorCopy(e->org, l.origin);
+	l.radius = e->radius;
+	VectorCopy(e->color, l.color);
+
+	return &l;
+}
+
+
+/*
  * Cl_AddEmits
  */
 void Cl_AddEmits(void){
-	int i;
 	r_entity_t ent;
+	int i;
 
 	Cl_UpdateEmits();
 
@@ -378,8 +395,16 @@ void Cl_AddEmits(void){
 			R_AddEntity(&ent);
 		}
 
-		if(e->flags & EMIT_CORONA)
-			R_AddCorona(e->org, e->radius, e->flicker, e->color);
+		if(e->flags & EMIT_CORONA){
+			r_corona_t c;
+
+			VectorCopy(e->org, c.org);
+			c.radius = e->radius;
+			c.flicker = e->flicker;
+			VectorCopy(e->color, c.color);
+
+			R_AddCorona(&c);
+		}
 
 		// most emits are timed events, so simply continue if it's
 		// not time to fire our event yet
@@ -388,10 +413,19 @@ void Cl_AddEmits(void){
 			continue;
 
 		if(e->flags & EMIT_LIGHT){
-			if(e->hz > 0.0)  // add a self-sustaining light
-				R_AddSustainedLight(e->org, e->radius * 80.0, e->color, 0.65);
-			else
-				R_AddLight(e->org, e->radius * 80.0, e->color);
+			const r_light_t *l = Cl_EmitLight(e);
+
+			if(e->hz > 0.0){  // add a pulsating light
+				r_sustained_light_t s;
+
+				s.light = *l;
+				s.sustain = 0.65;
+
+				R_AddSustainedLight(&s);
+			}
+			else {
+				R_AddLight(l);
+			}
 		}
 
 		if(e->flags & EMIT_SPARKS)

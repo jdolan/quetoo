@@ -409,7 +409,7 @@ void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs){
 			if(!(s->flags & STAGE_RENDER))
 				continue;
 
-			if(r_state.rendermode == rendermode_pro){
+			if(r_state.render_mode == render_mode_pro){
 				// skip lighted stages in pro renderer
 				if(s->flags & STAGE_LIGHTING)
 					continue;

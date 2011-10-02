@@ -218,7 +218,7 @@ static void Sv_InitClients(void){
 
 	if(!svs.initialized || Cvar_PendingLatchedVars()){
 
-		Sv_ShutdownGameProgs();
+		Sv_ShutdownGame();
 
 		Sv_ShutdownClients();
 
@@ -235,7 +235,7 @@ static void Sv_InitClients(void){
 
 		svs.spawn_count = rand();
 
-		Sv_InitGameProgs();
+		Sv_InitGame();
 	}
 	else {
 		svs.spawn_count++;
@@ -400,7 +400,7 @@ void Sv_ShutdownServer(const char *msg){
 
 	Sv_ShutdownMessage(msg, false);
 
-	Sv_ShutdownGameProgs();
+	Sv_ShutdownGame();
 
 	Sv_ShutdownClients();
 

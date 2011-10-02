@@ -8,7 +8,8 @@ cgamelib_LTLIBRARIES = \
 
 cgame_la_SOURCES = \
 	cg_hud.c \
-	cg_main.c
+	cg_main.c \
+	cg_view.c
 
 cgame_la_CFLAGS = \
 	@SO_CFLAGS@ \

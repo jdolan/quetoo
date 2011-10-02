@@ -31,17 +31,17 @@
 #include "r_model.h"
 #include "r_state.h"
 
-#define PITCH 0
-#define YAW 1
-#define ROLL 2
+#define PITCH			0
+#define YAW				1
+#define ROLL			2
 
 #define WEATHER_NONE	0
 #define WEATHER_RAIN 	1
 #define WEATHER_SNOW 	2
 #define WEATHER_FOG 	4
 
-#define FOG_START	300.0
-#define FOG_END		2500.0
+#define FOG_START		300.0
+#define FOG_END			2500.0
 
 // lights are dynamic lighting sources
 typedef struct r_light_s {
@@ -358,7 +358,7 @@ boolean_t R_InitContext(int width, int height, boolean_t fullscreen);
 void R_ShutdownContext(void);
 
 // r_corona.c
-void R_AddCorona(const vec3_t org, float radius, float flicker, const vec3_t color);
+void R_AddCorona(const r_corona_t *c);
 void R_DrawCoronas(void);
 
 // r_entity.c
@@ -373,8 +373,8 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf);
 void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs);
 
 // r_light.c
-void R_AddLight(const vec3_t origin, float radius, const vec3_t color);
-void R_AddSustainedLight(const vec3_t origin, float radius, const vec3_t color, float sustain);
+void R_AddLight(const r_light_t *l);
+void R_AddSustainedLight(const r_sustained_light_t *s);
 void R_ResetLights(void);
 void R_MarkLights(void *data);
 void R_ShiftLights(const vec3_t offset);
