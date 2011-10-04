@@ -29,8 +29,9 @@ function BUILD
 	if [ $? != "0" ];then
 
 		echo "Build error"
-		mailsend.exe -d satgnu.net -smtp 10.0.2.2 -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@satgnu.net -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
+		#mailsend.exe -d satgnu.net -smtp 10.0.2.2 -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@satgnu.net -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
 	else
+    echo "build succeeded"
 		rm _build.log
 	fi
 }

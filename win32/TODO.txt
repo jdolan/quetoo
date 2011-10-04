@@ -1,0 +1,3 @@
+install msys-rsync in the devenv
+double check directx header stuff
+build 64bit mingw env
