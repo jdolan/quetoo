@@ -34,6 +34,9 @@ make
 make install
 cd src/game/default
 gcc -shared -o game.dll *.o ../../.libs/libshared.a
+cd $START/quake2world/src/cgame/default
+gcc -shared -o cgame.dll *.o ../../.libs/libshared.a
+
 
 cd $START
 rm -Rf quake2world_rev* dist
@@ -46,6 +49,7 @@ cp /tmp/quake2world/bin/q2wmap.exe .
 cp /tmp/quake2world/bin/quake2world.exe .
 rm -Rf /tmp/quake2world
 cp $START/quake2world/src/game/default/game.dll ./default
+cp $START/quake2world/src/cgame/default/cgame.dll ./default
 
 cd /mingw/bin
 cp AntTweakBar.dll libcurl-4.dll libpng15-15.dll pdcurses.dll \
@@ -57,7 +61,15 @@ cd $START/dist
 zip -9 -r ../quake2world_rev"$rev".zip quake2world
 
 cd $START
-scp -r dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32
+#scp -r dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32
+#scp quake2world_rev"$rev".zip web@satgnu.net:www/satgnu.net/files
 
-scp quake2world_rev"$rev".zip web@satgnu.net:www/satgnu.net/files
+while [ $? -ne 0 ]; do 
+  rsync -vrz --progress --inplace --rsh='ssh' dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32
+done
+
+while [ $? -ne 0 ]; do   
+  rsync -vrz --progress --inplace --rsh='ssh' quake2world_rev"$rev".zip web@satgnu.net:www/satgnu.net/files
+done
+
 ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world_rev"$rev".zip  /home/web/www/satgnu.net/files/quake2world-win32-snapshot.zip
