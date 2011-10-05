@@ -64,12 +64,18 @@ cd $START
 #scp -r dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32
 #scp quake2world_rev"$rev".zip web@satgnu.net:www/satgnu.net/files
 
-while [ $? -ne 0 ]; do 
+RC=1 
+while [[ RC -ne 0 ]]
+do
   rsync -vrz --progress --inplace --rsh='ssh' dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32
+  RC=$?
 done
 
-while [ $? -ne 0 ]; do   
+RC=1 
+while [[ RC -ne 0 ]]
+do
   rsync -vrz --progress --inplace --rsh='ssh' quake2world_rev"$rev".zip web@satgnu.net:www/satgnu.net/files
+  RC=$?
 done
 
 ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world_rev"$rev".zip  /home/web/www/satgnu.net/files/quake2world-win32-snapshot.zip
