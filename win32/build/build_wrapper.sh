@@ -38,7 +38,7 @@ function BUILD
 
 while true; do
 	CURREV=`svn info quake2world|grep Revision:|cut -d\  -f2`
-	NEWREV=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 3|cut -d\. -f1`
+	NEWREV=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 4|cut -d\. -f1`
 
 	if [ $CURREV != $NEWREV -o -e _build.log ];then
 		echo "Building" - `date`
