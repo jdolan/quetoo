@@ -277,6 +277,38 @@ static void Sv_Say_f(void){
 	Com_Print("%s\n", text);
 }
 
+/*
+ * Sv_Tell_f
+ */
+static void Sv_Tell_f(void){
+	sv_client_t *client;
+	int j;
+	char *p;
+	char text[1024];
+
+	if(Cmd_Argc() < 3)
+		return;
+
+	if(!Sv_SetPlayer())
+		return;
+
+	strcpy(text, "console^1:^7 ");
+	p = Cmd_Args();
+	p += strlen(Cmd_Argv(1)) + 1;
+	if(*p == '"'){
+		p++;
+		p[strlen(p) - 1] = 0;
+	}
+
+	strcat(text, p);
+
+	if(sv_client->state != cs_spawned)
+		return;
+
+	Sv_ClientPrint(sv_client->edict, PRINT_CHAT, "%s\n", text);
+
+	Com_Print("%s\n", text);
+}
 
 /*
  * Sv_Serverinfo_f
@@ -314,7 +346,6 @@ static void Sv_UserInfo_f(void){
 	Com_PrintInfo(sv_client->user_info);
 }
 
-
 /*
  * Sv_InitOperatorCommands
  */
@@ -331,7 +362,9 @@ void Sv_InitOperatorCommands(void){
 	Cmd_AddCommand("setmaster", Sv_SetMaster_f, "Set the masterserver for the dedicated server");
 	Cmd_AddCommand("heartbeat", Sv_Heartbeat_f, "Send a heartbeat to the masterserver");
 
-	if(dedicated->value)
+	if(dedicated->value) {
 		Cmd_AddCommand("say", Sv_Say_f, NULL);
+		Cmd_AddCommand("tell", Sv_Tell_f, "Sends a private message");
+        }
 }
 
