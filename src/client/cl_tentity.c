@@ -98,6 +98,7 @@ void Cl_ParseTempEntity(void){
 			break;
 
 		case TE_BUBBLES:  // bubbles chasing projectiles in water
+			Msg_ReadPos(&net_message, pos);
 			Msg_ReadPos(&net_message, pos2);
 			Cl_BubbleTrail(pos, pos2, 1.0);
 			break;
