@@ -625,6 +625,9 @@ static void Pm_CategorizePosition(void){
 	// get water_level, accounting for ducking
 	pm->water_level = pm->water_type = 0;
 
+	// unset the underwater flagm will reset if still underwater
+	pm->s.pm_flags &= ~PMF_UNDER_WATER;
+
 	sample2 = pm->view_height - pm->mins[2];
 	sample1 = sample2 / 2.0;
 
