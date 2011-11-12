@@ -157,7 +157,7 @@ static void Svc_Info(void){
 				count++;
 		}
 
-		snprintf(string, sizeof(string), "%s\r%s\r%s\r%d\r%d",
+		snprintf(string, sizeof(string), "%-63s\\%-31s\\%-31s\\%d\\%d",
 				sv_hostname->string, sv.name, Cvar_GetString("g_gameplay"),
 				count, sv_max_clients->integer);
 	}

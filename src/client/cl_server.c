@@ -96,8 +96,8 @@ void Cl_ParseStatusMessage(void){
 
 	// try to parse the info string
 	strncpy(info, Msg_ReadString(&net_message), sizeof(info) - 1);
-
-	if(sscanf(info, "%s\r%s\r%s\r%d\r%d",
+	info[sizeof(info) - 1] = '\0';
+	if(sscanf(info, "%63c\\%31c\\%31c\\%d\\%d",
 			server->hostname, server->name, server->gameplay,
 			&server->clients, &server->max_clients) != 5){
 
@@ -107,6 +107,9 @@ void Cl_ParseStatusMessage(void){
 		server->clients = 0;
 		server->max_clients = 0;
 	}
+	server->hostname[63] = '\0';
+	server->name[31] = '\0';
+	server->gameplay[31] = '\0';
 
 	server->ping = cls.real_time - server->ping_time;
 
