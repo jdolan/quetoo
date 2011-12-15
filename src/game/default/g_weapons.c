@@ -124,7 +124,12 @@ void G_UseBestWeapon(g_client_t *client){
 	}
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("rockets"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("rocket launcher"))]){
-		client->new_weapon = G_FindItem ("rocket launcher");
+		client->new_weapon = G_FindItem("rocket launcher");
+		return;
+	}
+	if(client->locals.inventory[ITEM_INDEX(G_FindItem("grenades"))]
+			&& client->locals.inventory[ITEM_INDEX(G_FindItem("grenade launcher"))]) {
+		client->new_weapon = G_FindItem("grenade launcher");
 		return;
 	}
 	if(client->locals.inventory[ITEM_INDEX(G_FindItem("bullets"))]
