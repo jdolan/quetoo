@@ -48,11 +48,9 @@ static void G_PlayerProjectile(g_edict_t *ent, const vec3_t scale){
  *
  * Returns true if the entity is facing a wall at close proximity.
  */
-static boolean_t G_ImmediateWall(g_edict_t *ent, vec3_t dir){
+static boolean_t G_ImmediateWall(g_edict_t *ent, vec3_t end){
 	c_trace_t tr;
-	vec3_t end;
 
-	VectorMA(ent->s.origin, 30, dir, end);
 	tr = gi.Trace(ent->s.origin, NULL, NULL, end, ent, MASK_SOLID);
 
 	return tr.fraction < 1.0;
@@ -338,12 +336,13 @@ void G_GrenadeProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir, int speed
 		int damage, int knockback, float damage_radius, float timer){
 	g_edict_t *grenade;
 	vec3_t dir;
-	vec3_t forward, right, up;
+	vec3_t forward, right, up, startBounds;
 	const vec3_t mins = {-3.0, -3.0, -3.0};
 	const vec3_t maxs = { 3.0,  3.0,  3.0};
 	const vec3_t scale = {0.3, 0.3, 0.3};
 
-	if(G_ImmediateWall(self, aimdir))
+	VectorMA(start, VectorLength(maxs), aimdir, startBounds);
+	if(G_ImmediateWall(self, startBounds))
 		VectorCopy(self->s.origin, start);
 
 	VectorAngles(aimdir, dir);
@@ -437,7 +436,7 @@ void G_RocketProjectile(g_edict_t *self, vec3_t start, vec3_t dir, int speed,
 	const vec3_t scale = {0.25, 0.25, 0.15};
 	g_edict_t *rocket;
 
-	if(G_ImmediateWall(self, dir))
+	if(G_ImmediateWall(self, start))
 		VectorCopy(self->s.origin, start);
 
 	rocket = G_Spawn();
@@ -524,7 +523,7 @@ void G_HyperblasterProjectile(g_edict_t *self, vec3_t start, vec3_t dir,
 	g_edict_t *bolt;
 	const vec3_t scale = {0.5, 0.5, 0.25};
 
-	if(G_ImmediateWall(self, dir))
+	if(G_ImmediateWall(self, start))
 		VectorCopy(self->s.origin, start);
 
 	bolt = G_Spawn();
@@ -622,7 +621,7 @@ static void G_LightningProjectile_Think(g_edict_t *self){
 	// re-calculate end points based on owner's movement
 	G_InitProjectile(self->owner, forward, right, up, start);
 
-	if(G_ImmediateWall(self->owner, forward))  // resolve start
+	if(G_ImmediateWall(self->owner, start))  // resolve start
 		VectorCopy(self->owner->s.origin, start);
 
 	if(gi.PointContents(start) & MASK_WATER){  // discharge and return
@@ -721,7 +720,7 @@ void G_RailgunProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir, int damag
 	boolean_t water = false;
 	int content_mask = MASK_SHOT | MASK_WATER;
 
-	if(G_ImmediateWall(self, aimdir))
+	if(G_ImmediateWall(self, start))
 		VectorCopy(self->s.origin, start);
 
 	VectorMA(start, 8192.0, aimdir, end);
@@ -868,7 +867,7 @@ void G_BfgProjectiles(g_edict_t *self, vec3_t start, vec3_t dir, int speed, int 
 	float s;
 	const vec3_t scale = {0.15, 0.15, 0.05};
 
-	if(G_ImmediateWall(self, dir))
+	if(G_ImmediateWall(self, start))
 		VectorCopy(self->s.origin, start);
 
 	// calculate up and right vectors
