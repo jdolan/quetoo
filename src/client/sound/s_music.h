@@ -19,25 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_LOCAL_H__
-#define __UI_LOCAL_H__
-
-#include "client.h"
+#ifndef __S_MUSIC_H__
+#define __S_MUSIC_H__
 
 
-#include "ui.h"
 
-typedef struct ui_s {
-	TwType OffOrOn;
-	TwType OffLowMediumHigh;
+#ifdef __S_LOCAL_H__
 
-	TwBar *root;
-	TwBar *servers;
-	TwBar *controls;
-	TwBar *player;
-	TwBar *system;
-} ui_t;
+void S_FrameMusic(void);
+void S_InitMusic(void);
+void S_LoadMusics(void);
+void S_ShutdownMusic(void);
 
-extern ui_t ui;
+#endif /* __S_LOCAL_H__ */
 
-#endif /* __UI_LOCAL_H__ */
+#endif /* __S_MUSIC_H__ */

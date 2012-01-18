@@ -19,25 +19,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_LOCAL_H__
-#define __UI_LOCAL_H__
+#ifndef __S_SAMPLE_H__
+#define __S_SAMPLE_H__
 
-#include "client.h"
+s_sample_t *S_LoadSample(const char *name);
+void S_LoadSamples(void);
 
+#ifdef __S_LOCAL_H__
 
-#include "ui.h"
+void S_FreeSamples(void);
+s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name);
 
-typedef struct ui_s {
-	TwType OffOrOn;
-	TwType OffLowMediumHigh;
+#endif /* __S_LOCAL_H__ */
 
-	TwBar *root;
-	TwBar *servers;
-	TwBar *controls;
-	TwBar *player;
-	TwBar *system;
-} ui_t;
-
-extern ui_t ui;
-
-#endif /* __UI_LOCAL_H__ */
+#endif /* __S_SAMPLE_H__ */

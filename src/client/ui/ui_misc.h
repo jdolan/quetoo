@@ -19,25 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_LOCAL_H__
-#define __UI_LOCAL_H__
+#ifndef __UI_MISC_H__
+#define __UI_MISC_H__
 
-#include "client.h"
+#ifdef __UI_LOCAL_H__
 
-
-#include "ui.h"
-
-typedef struct ui_s {
-	TwType OffOrOn;
-	TwType OffLowMediumHigh;
-
-	TwBar *root;
-	TwBar *servers;
-	TwBar *controls;
-	TwBar *player;
-	TwBar *system;
-} ui_t;
-
-extern ui_t ui;
+void TW_CALL Ui_ToggleBar(void *data);
 
 #endif /* __UI_LOCAL_H__ */
+
+#endif /* __UI_MISC_H__ */

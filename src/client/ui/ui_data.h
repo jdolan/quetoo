@@ -19,25 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_LOCAL_H__
-#define __UI_LOCAL_H__
+#ifndef __UI_DATA_H__
+#define __UI_DATA_H__
 
-#include "client.h"
+#ifdef __UI_LOCAL_H__
 
-
-#include "ui.h"
-
-typedef struct ui_s {
-	TwType OffOrOn;
-	TwType OffLowMediumHigh;
-
-	TwBar *root;
-	TwBar *servers;
-	TwBar *controls;
-	TwBar *player;
-	TwBar *system;
-} ui_t;
-
-extern ui_t ui;
+void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def);
+void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def);
+void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType en, const char *def);
+void Ui_CvarDecimal(TwBar *bar, const char *name, cvar_t *var, const char *def);
+void TW_CALL Ui_Command(void *data);
+void Ui_Bind(TwBar *bar, const char *name, const char *bind, const char *def);
 
 #endif /* __UI_LOCAL_H__ */
+
+#endif /* __UI_DATA_H__ */

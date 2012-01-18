@@ -19,25 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_LOCAL_H__
-#define __UI_LOCAL_H__
+#ifndef __S_LOCAL_H__
+#define __S_LOCAL_H__
 
-#include "client.h"
+#include <SDL/SDL_mixer.h>
+#include "sound.h"
 
-
-#include "ui.h"
-
-typedef struct ui_s {
-	TwType OffOrOn;
-	TwType OffLowMediumHigh;
-
-	TwBar *root;
-	TwBar *servers;
-	TwBar *controls;
-	TwBar *player;
-	TwBar *system;
-} ui_t;
-
-extern ui_t ui;
-
-#endif /* __UI_LOCAL_H__ */
+#endif /* __S_LOCAL_H__ */

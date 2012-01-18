@@ -1,4 +1,10 @@
 noinst_HEADERS = \
+	s_local.h \
+	s_main.h \
+	s_mix.h \
+	s_music.h \
+	s_sample.h \
+	s_types.h \
 	sound.h
 
 noinst_LTLIBRARIES = \

@@ -19,25 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_LOCAL_H__
-#define __UI_LOCAL_H__
+#ifndef __S_MIX_H__
+#define __S_MIX_H__
 
-#include "client.h"
+void S_LoopSample(const vec3_t org, s_sample_t *sample);
+void S_PlaySample(const vec3_t org, int ent_num, s_sample_t *sample, int atten);
+void S_StartLocalSample(const char *name);
 
+#ifdef __S_LOCAL_H__
 
-#include "ui.h"
+void S_FreeChannel(int c);
+void S_SpatializeChannel(s_channel_t *channel);
 
-typedef struct ui_s {
-	TwType OffOrOn;
-	TwType OffLowMediumHigh;
+#endif /* __S_LOCAL_H__ */
 
-	TwBar *root;
-	TwBar *servers;
-	TwBar *controls;
-	TwBar *player;
-	TwBar *system;
-} ui_t;
-
-extern ui_t ui;
-
-#endif /* __UI_LOCAL_H__ */
+#endif /* __S_MIX_H__ */

@@ -21,14 +21,15 @@
 
 #ifndef __UI_H__
 #define __UI_H__
+#include <AntTweakBar.h>
+#include "ui_controls.h"
+#include "ui_data.h"
+#include "ui_main.h"
+#include "ui_misc.h"
+#include "ui_player.h"
+#include "ui_servers.h"
+#include "ui_system.h"
 
 #include "quake2world.h"
-
-#include <SDL/SDL.h>
-
-boolean_t Ui_Event(SDL_Event *event);
-void Ui_Draw(void);
-void Ui_Init(void);
-void Ui_Shutdown(void);
 
 #endif /* __UI_H__ */

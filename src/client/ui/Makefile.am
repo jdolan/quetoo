@@ -1,6 +1,12 @@
 noinst_HEADERS = \
 	ui.h \
-	ui_local.h
+	ui_controls.h \
+	ui.data.h \
+	ui_local.h \
+	ui_main.h \
+	ui_player.h \
+	ui_servers.h \
+	ui_system.h
 
 noinst_LTLIBRARIES = \
 	libui.la
