@@ -22,9 +22,8 @@
 #ifndef __R_DRAW_H__
 #define __R_DRAW_H__
 
-#include "r_image.h"
+#include "r_types.h"
 
-// r_draw.c
 r_image_t *R_LoadPic(const char *name);
 void R_DrawPic(int x, int y, float scale, const char *name);
 void R_DrawCursor(int x, int y);
@@ -40,6 +39,9 @@ void R_DrawFills(void);
 void R_DrawLine(int x1, int y1, int x2, int y2, int c, float a);
 void R_DrawLines(void);
 void R_FreePics(void);
+
+#ifdef __R_LOCAL_H__
 void R_InitDraw(void);
+#endif /* __R_LOCAL_H__ */
 
 #endif /* __R_DRAW_H__ */

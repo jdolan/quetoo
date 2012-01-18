@@ -114,7 +114,7 @@ void Cl_InitConsole(void){
 
 	cl_con.width = -1;
 	// the last line of the console is reserved for input
-	Con_Resize(&cl_con, r_state.width >> 4, (r_state.height >> 5) - 1);
+	Con_Resize(&cl_con, r_context.width >> 4, (r_context.height >> 5) - 1);
 
 	Cl_ClearNotify();
 
@@ -209,8 +209,8 @@ void Cl_DrawNotify(void){
 
 		s = cls.chat_state.buffer;
 		// FIXME check the skipped part for color codes
-		if(cls.chat_state.len > (r_state.width / cw) - (skip + 1))
-			s += cls.chat_state.len - ((r_state.width / cw) - (skip + 1));
+		if(cls.chat_state.len > (r_context.width / cw) - (skip + 1))
+			s += cls.chat_state.len - ((r_context.width / cw) - (skip + 1));
 
 		len = R_DrawString(skip * cw, y, s, color);
 
@@ -237,13 +237,13 @@ void Cl_DrawConsole(void){
 
 	R_BindFont("small", &cw, &ch);
 
-	Con_Resize(&cl_con, r_state.width / cw, (r_state.height / ch) - 1);
+	Con_Resize(&cl_con, r_context.width / cw, (r_context.height / ch) - 1);
 
 	// draw a background
 	if(cls.state == ca_active)
-		R_DrawFill(0, 0, r_state.width, r_state.height, 5, con_alpha->value);
+		R_DrawFill(0, 0, r_context.width, r_context.height, 5, con_alpha->value);
 	else
-		R_DrawFill(0, 0, r_state.width, r_state.height, 0, 1.0);
+		R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
 
 	// draw the text
 	lines = cl_con.height;

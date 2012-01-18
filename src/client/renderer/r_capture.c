@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "renderer.h"
+#include "r_local.h"
 
 typedef struct capture_buffer_s {
 	byte *buffer;  // the buffer for RGB pixel data
@@ -48,7 +48,7 @@ static void R_FlushCapture(void *data){
 	else if(q > 100)
 		q = 100;
 
-	Img_WriteJPEG(path, capture_buffer.buffer, r_state.width, r_state.height, q);
+	Img_WriteJPEG(path, capture_buffer.buffer, r_context.width, r_context.height, q);
 }
 
 
@@ -81,7 +81,7 @@ void R_UpdateCapture(void){
 		R_InitCapture();
 	}
 
-	glReadPixels(0, 0, r_state.width, r_state.height, GL_RGB, GL_UNSIGNED_BYTE, capture_buffer.buffer);
+	glReadPixels(0, 0, r_context.width, r_context.height, GL_RGB, GL_UNSIGNED_BYTE, capture_buffer.buffer);
 
 	capture_buffer.time = r_view.time;
 	capture_buffer.frame++;
@@ -105,7 +105,7 @@ void R_InitCapture(void){
 	memset(&capture_buffer, 0, sizeof(capture_buffer));
 
 	// allocate the actual buffer
-	capture_buffer.buffer = Z_Malloc(r_state.width * r_state.height * 3);
+	capture_buffer.buffer = Z_Malloc(r_context.width * r_context.height * 3);
 }
 
 

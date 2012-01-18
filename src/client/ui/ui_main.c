@@ -42,10 +42,10 @@ boolean_t Ui_Event(SDL_Event *event){
 void Ui_Draw(void){
 	static int w, h;
 
-	if(w != r_state.width || h != r_state.height || r_view.update){
+	if(w != r_context.width || h != r_context.height || r_view.update){
 
-		w = r_state.width;
-		h = r_state.height;
+		w = r_context.width;
+		h = r_context.height;
 
 		TwWindowSize(w, h);
 

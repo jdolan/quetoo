@@ -21,7 +21,9 @@
 
 #include <SDL/SDL.h>
 
-#include "renderer.h"
+#include "r_local.h"
+
+r_context_t r_context;
 
 /*
  * R_SetIcon
@@ -98,19 +100,19 @@ boolean_t R_InitContext(int width, int height, boolean_t fullscreen){
 	if((surface = SDL_SetVideoMode(width, height, 0, flags)) == NULL)
 		return false;
 
-	r_state.width = surface->w;
-	r_state.height = surface->h;
+	r_context.width = surface->w;
+	r_context.height = surface->h;
 
-	r_state.fullscreen = fullscreen;
+	r_context.fullscreen = fullscreen;
 
-	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r_state.red_bits);
-	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &r_state.green_bits);
-	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &r_state.blue_bits);
-	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &r_state.alpha_bits);
+	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r_context.red_bits);
+	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &r_context.green_bits);
+	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &r_context.blue_bits);
+	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &r_context.alpha_bits);
 
-	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &r_state.stencil_bits);
-	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &r_state.depth_bits);
-	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_state.double_buffer);
+	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &r_context.stencil_bits);
+	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &r_context.depth_bits);
+	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_context.double_buffer);
 
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,
 			SDL_DEFAULT_REPEAT_INTERVAL);

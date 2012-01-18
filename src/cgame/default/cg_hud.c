@@ -37,8 +37,8 @@
 
 typedef struct crosshair_s {
 	char name[16];
-	int width, height;
-	//byte color[4];
+	r_image_t *image;
+	byte color[4];
 } crosshair_t;
 
 static crosshair_t crosshair;
@@ -365,7 +365,7 @@ static void Cg_DrawTeam(player_state_t *ps){
  * Cg_DrawCrosshair
  */
 static void Cg_DrawCrosshair(player_state_t *ps){
-	int x, y;
+	int x, y, c;
 
 	if(!cg_crosshair->value)
 		return;
@@ -393,33 +393,33 @@ static void Cg_DrawCrosshair(player_state_t *ps){
 
 		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cg_crosshair->integer);
 
-		cgi.LoadPic(crosshair.name, &crosshair.width, &crosshair.height);
+		crosshair.image = cgi.LoadPic(crosshair.name);
 
-		if(!crosshair.width){
+		if(crosshair.image->type == it_null){
 			cgi.Print("Couldn't load pics/ch%d.\n", cg_crosshair->integer);
 			return;
 		}
 	}
 
-	if(!crosshair.width)  // not found
+	if(!crosshair.image->type == it_null)  // not found
 		return;
 
-	/*if(cg_crosshair_color->modified){  // crosshair color
+	if(cg_crosshair_color->modified){  // crosshair color
 		cg_crosshair_color->modified = false;
 
 		c = ColorByName(cg_crosshair_color->string, 14);
-		memcpy(&crosshair.color, &palette[c], sizeof(crosshair.color));
+		memcpy(&crosshair.color, &cgi.palette[c], sizeof(crosshair.color));
 	}
 
-	glColor4ubv(crosshair.color);*/
+	glColor4ubv(crosshair.color);
 
 	// calculate width and height based on crosshair image and scale
-	x = (*cgi.width - crosshair.width * cg_crosshair_scale->value) / 2;
-	y = (*cgi.height - crosshair.height * cg_crosshair_scale->value) / 2;
+	x = (*cgi.width - crosshair.image->width * cg_crosshair_scale->value) / 2;
+	y = (*cgi.height - crosshair.image->height * cg_crosshair_scale->value) / 2;
 
 	cgi.DrawPic(x, y, cg_crosshair_scale->value, crosshair.name);
 
-	//glColor4ubv(color_white);
+	glColor4ubv(color_white);
 }
 
 

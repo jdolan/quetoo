@@ -19,9 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "renderer.h"
+#include "r_local.h"
 
-renderer_state_t r_state;
+r_state_t r_state;
 
 const float default_texcoords[] = {  // useful for particles, pics, etc..
 	0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0
@@ -532,7 +532,7 @@ void R_Setup3D(void){
 
 	aspect = (float)r_view.width / (float)r_view.height;
 
-	ymax = NEAR_Z * tan(r_view.fov_y * M_PI / 360.0);
+	ymax = NEAR_Z * tan(r_view.fov[1] * M_PI / 360.0);
 	ymin = -ymax;
 
 	xmin = ymin * aspect;
@@ -569,12 +569,12 @@ void R_Setup3D(void){
  */
 void R_Setup2D(void){
 
-	glViewport(0, 0, r_state.width, r_state.height);
+	glViewport(0, 0, r_context.width, r_context.height);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glOrtho(0, r_state.width, r_state.height, 0, -1, 1);
+	glOrtho(0, r_context.width, r_context.height, 0, -1, 1);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

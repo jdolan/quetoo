@@ -671,7 +671,7 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	boolean_t stationary;
 	int j, c;
 
-	if(r_state.render_mode == render_mode_pro)
+	if(r_view.render_mode == render_mode_pro)
 		return;
 
 	stationary = false;

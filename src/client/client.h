@@ -258,7 +258,7 @@ typedef struct cl_static_s {
 
 	int broadcast_time;  // time when last broadcast ping was sent
 
-	cg_export_t *cgame;
+	struct cg_export_s *cgame;
 } cl_static_t;
 
 extern cl_static_t cls;
@@ -283,6 +283,7 @@ extern cvar_t *cl_net_graph;
 extern cvar_t *cl_predict;
 extern cvar_t *cl_show_prediction_misses;
 extern cvar_t *cl_show_net_messages;
+extern cvar_t *cl_show_renderer_stats;
 extern cvar_t *cl_team_chat_sound;
 extern cvar_t *cl_third_person;
 extern cvar_t *cl_timeout;

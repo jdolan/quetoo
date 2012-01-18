@@ -93,10 +93,12 @@ void Cl_InitCgame(void){
 
 	import.ConfigString = Cl_ConfigString;
 
-	import.width = &r_state.width;
-	import.height = &r_state.height;
+	import.width = &r_context.width;
+	import.height = &r_context.height;
 
 	import.time = &cl.time;
+
+	import.palette = palette;
 
 	import.LoadPic = R_LoadPic;
 	import.DrawPic = R_DrawPic;

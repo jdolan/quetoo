@@ -22,7 +22,10 @@
 #ifndef __R_MATERIAL_H__
 #define __R_MATERIAL_H__
 
-// flags will persist on the stage structures but may also bubble
+#include "r_types.h"
+
+#ifdef __R_LOCAL_H__
+// stage flags will persist on the stage structures but may also bubble
 // up to the material flags to determine render eligibility
 #define STAGE_TEXTURE			(1 << 0)
 #define STAGE_ENVMAP			(1 << 1)
@@ -53,82 +56,8 @@
 		STAGE_SCALE_S | STAGE_SCALE_T \
 )
 
-// frame based animation, lerp between consecutive images
-#define MAX_ANIM_FRAMES 8
-
-typedef struct r_stage_blend_s {
-	GLenum src, dest;
-} r_stage_blend_t;
-
-typedef struct r_stage_pulse_s {
-	float hz, dhz;
-} r_stage_pulse_t;
-
-typedef struct r_stage_stretch_s {
-	float hz, dhz;
-	float amp, damp;
-} r_stage_stretch_t;
-
-typedef struct r_stage_rotate_s {
-	float hz, deg;
-} r_stage_rotate_t;
-
-typedef struct r_stage_scroll_s {
-	float s, t;
-	float ds, dt;
-} r_stage_scroll_t;
-
-typedef struct r_stage_scale_s {
-	float s, t;
-} r_stage_scale_t;
-
-typedef struct r_stage_terrain_s {
-	float floor, ceil;
-	float height;
-} r_stage_terrain_t;
-
-typedef struct r_stage_dirt_s {
-	float intensity;
-} r_stage_dirt_t;
-
-typedef struct r_stage_anim_s {
-	int num_frames;
-	struct r_image_s *images[MAX_ANIM_FRAMES];
-	float fps;
-	float dtime;
-	int dframe;
-} r_stage_anim_t;
-
-typedef struct r_stage_s {
-	unsigned flags;
-	struct r_image_s *image;
-	r_stage_blend_t blend;
-	vec3_t color;
-	r_stage_pulse_t pulse;
-	r_stage_stretch_t stretch;
-	r_stage_rotate_t rotate;
-	r_stage_scroll_t scroll;
-	r_stage_scale_t scale;
-	r_stage_terrain_t terrain;
-	r_stage_dirt_t dirt;
-	r_stage_anim_t anim;
-	struct r_stage_s *next;
-} r_stage_t;
-
-#define DEFAULT_BUMP 1.0
-#define DEFAULT_PARALLAX 1.0
-#define DEFAULT_HARDNESS 1.0
-#define DEFAULT_SPECULAR 1.0
-
-typedef struct r_material_s {
-	unsigned flags;
-	float time;
-	float bump;
-	float parallax;
-	float hardness;
-	float specular;
-	r_stage_t *stages;
-	int num_stages;
-} r_material_t;
+void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs);
+void R_LoadMaterials(const char *map);
+#endif /* __R_LOCAL_H__ */
 
 #endif /*__R_MATERIAL_H__*/

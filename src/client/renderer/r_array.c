@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "renderer.h"
+#include "r_local.h"
 
 
 /*
@@ -143,7 +143,7 @@ static void R_SetVertexBufferState(const r_model_t *mod, int mask){
 			R_BindBuffer(GL_NORMAL_ARRAY, GL_FLOAT, mod->normal_buffer);
 
 		if(r_bumpmap->value && mod->tangent_buffer &&
-				r_state.render_mode == render_mode_default){
+				r_view.render_mode == render_mode_default){
 
 			if(mask & R_ARRAY_TANGENT)
 				R_BindBuffer(GL_TANGENT_ARRAY, GL_FLOAT, mod->tangent_buffer);

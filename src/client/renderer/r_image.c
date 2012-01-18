@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "renderer.h"
+#include "r_local.h"
 
 r_image_t *r_null_image;  // use for bad textures
 r_image_t *r_particle_image;  // little dot for particles
@@ -219,9 +219,9 @@ void R_Screenshot_f(void){
 
 	last_shot = i;
 
-	buffer = Z_Malloc(r_state.width * r_state.height * 3);
+	buffer = Z_Malloc(r_context.width * r_context.height * 3);
 
-	glReadPixels(0, 0, r_state.width, r_state.height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+	glReadPixels(0, 0, r_context.width, r_context.height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
 	quality = r_screenshot_quality->value * 100;
 
@@ -231,7 +231,7 @@ void R_Screenshot_f(void){
 	if(quality > 100)
 		quality = 100;
 
-	(*Img_Write)(file_name, buffer, r_state.width, r_state.height, quality);
+	(*Img_Write)(file_name, buffer, r_context.width, r_context.height, quality);
 
 	Z_Free(buffer);
 	Com_Print("Saved %s\n", Basename(file_name));
@@ -640,7 +640,7 @@ void R_InitImages(void){
 
 	memset(&data, 255, sizeof(data));
 
-	r_null_image = R_UploadImage("***r_notexture***", (void *)data, 16, 16, it_effect);
+	r_null_image = R_UploadImage("***r_notexture***", (void *)data, 16, 16, it_null);
 
 	Img_InitPalette();
 

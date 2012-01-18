@@ -22,13 +22,13 @@
 #ifndef __R_GL_H__
 #define __R_GL_H__
 
-#include <SDL_opengl.h>
-
-#include "common.h"
+#include "r_types.h"
 
 #ifndef GLchar
 # define GLchar char
 #endif
+
+#ifdef __R_LOCAL_H__
 
 #ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
@@ -105,5 +105,7 @@ extern GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
 void R_EnforceGlVersion(void);
 boolean_t R_InitGlExtensions(void);
+
+#endif /* __R_LOCAL_H__ */
 
 #endif /* __R_GL_H__ */

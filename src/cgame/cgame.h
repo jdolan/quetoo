@@ -22,7 +22,7 @@
 #ifndef __CGAME_H__
 #define __CGAME_H__
 
-#include "shared.h"
+#include "client/renderer/renderer.h"
 
 #define CGAME_API_VERSION 1
 
@@ -46,7 +46,10 @@ typedef struct cg_import_s {
 	// client time
 	int *time;
 
-	void (*LoadPic)(const char *name, int *w, int *h);
+	// 256 color palette for particle and effect colors
+	unsigned *palette;
+
+	r_image_t *(*LoadPic)(const char *name);
 	void (*DrawPic)(int x, int y, float scale, const char *name);
 	void (*DrawFill)(int x, int y, int w, int h, int c, float a);
 

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "renderer.h"
+#include "r_local.h"
 
 vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3];  // vertexes are interpolated here temporarily
 vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];  // same for normal vectors
@@ -40,7 +40,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e){
 	if(e->effects & EF_WEAPON){
 
 		// adjust forward / back offset according to field of view
-		float f = (r_view.fov_x - 90.0) * 0.15;
+		float f = (r_view.fov[0] - 90.0) * 0.15;
 
 		// add bob on all 3 axis as well
 		float b = r_view.bob * 0.4;

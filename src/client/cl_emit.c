@@ -374,7 +374,7 @@ void Cl_AddEmits(void){
 
 		cl_emit_t *e = &emits[i];
 
-		if(e->leaf && (e->leaf->vis_frame != r_locals.vis_frame))
+		if(e->leaf && (!R_LeafInPvs(e->leaf)))
 			continue;  // culled
 
 		if((e->flags & EMIT_SOUND) && e->loop)  // add an ambient sound

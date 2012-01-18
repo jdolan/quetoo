@@ -574,8 +574,8 @@ static void Cl_MouseMove(int mx, int my){
 	// for active, connected players, add it to their move
 	if(cls.state == ca_active && cls.key_state.dest == key_game){
 
-		cls.mouse_state.x -= r_state.width / 2;  // first normalize to center
-		cls.mouse_state.y -= r_state.height / 2;
+		cls.mouse_state.x -= r_context.width / 2;  // first normalize to center
+		cls.mouse_state.y -= r_context.height / 2;
 
 		cls.mouse_state.x *= m_sensitivity->value;  // then amplify
 		cls.mouse_state.y *= m_sensitivity->value;
@@ -590,7 +590,7 @@ static void Cl_MouseMove(int mx, int my){
 
 	if(cls.key_state.dest != key_menu && cls.mouse_state.grabbed){
 		// warp the cursor back to the center of the screen
-		SDL_WarpMouse(r_state.width / 2, r_state.height / 2);
+		SDL_WarpMouse(r_context.width / 2, r_context.height / 2);
 	}
 }
 
@@ -619,7 +619,7 @@ void Cl_HandleEvents(void){
 	}
 
 	if(cls.key_state.dest == key_console || cls.key_state.dest == key_menu){
-		if(!r_state.fullscreen){
+		if(!r_context.fullscreen){
 			// allow cursor to move outside window on console or menu
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
 			cls.mouse_state.grabbed = false;
@@ -645,8 +645,8 @@ void Cl_HandleEvents(void){
 
 	if (throwaway) {
 		throwaway--;
-		mx = r_state.width / 2;
-		my = r_state.height / 2;
+		mx = r_context.width / 2;
+		my = r_context.height / 2;
 	}
 
 	Cl_MouseMove(mx, my);

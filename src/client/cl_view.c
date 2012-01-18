@@ -47,13 +47,13 @@ static void Cl_UpdateFov(void){
 	if(cl_fov->value < 10.0 || cl_fov->value > 179.0)
 		Cvar_Set("cl_fov", "100.0");
 
-	const float x = r_state.width / tan(cl_fov->value / 360.0 * M_PI);
+	const float x = r_context.width / tan(cl_fov->value / 360.0 * M_PI);
 
-	const float a = atan(r_state.height / x);
+	const float a = atan(r_context.height / x);
 
-	r_view.fov_x = cl_fov->value;
+	r_view.fov[0] = cl_fov->value;
 
-	r_view.fov_y = a * 360.0 / M_PI;
+	r_view.fov[1] = a * 360.0 / M_PI;
 
 	cl_fov->modified = false;
 }
@@ -75,11 +75,11 @@ static void Cl_UpdateViewsize(void){
 
 	size = cl_view_size->value;
 
-	r_view.width = r_state.width * size / 100.0;
-	r_view.height = r_state.height * size / 100.0;
+	r_view.width = r_context.width * size / 100.0;
+	r_view.height = r_context.height * size / 100.0;
 
-	r_view.x = (r_state.width - r_view.width) / 2.0;
-	r_view.y = (r_state.height - r_view.height) / 2.0;
+	r_view.x = (r_context.width - r_view.width) / 2.0;
+	r_view.y = (r_context.height - r_view.height) / 2.0;
 
 	cl_view_size->modified = false;
 }

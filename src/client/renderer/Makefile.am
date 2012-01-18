@@ -1,12 +1,33 @@
 noinst_HEADERS = \
+	r_array.h \
+	r_bsp_light.h \
+	r_bsp_model.h \
+	r_bsp.h \
+	r_capture.h \
+	r_context.h \
+	r_corona.h \
 	r_draw.h \
+	r_entity.h \
+	r_flare.h \
 	r_gl.h \
 	r_image.h \
+	r_light.h \
+	r_lighting.h \
+	r_lightmap.h \
+	r_local.h \
+	r_main.h \
 	r_material.h \
 	r_matrix.h \
+	r_mesh_model.h \
+	r_mesh.h \
 	r_model.h \
+	r_particle.h \
 	r_program.h \
+	r_sky.h \
 	r_state.h \
+	r_surface_pro.h \
+	r_surface.h \
+	r_types.h \
 	renderer.h
 
 noinst_LTLIBRARIES = \

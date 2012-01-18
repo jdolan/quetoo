@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "renderer.h"
-
+#include "r_local.h"
 
 vec3_t r_bsp_model_org;  // relative to r_view.origin
 
@@ -367,8 +366,8 @@ static void R_MarkSurfaces_(r_bsp_node_t *node){
  */
 void R_MarkSurfaces(void){
 	static vec3_t old_origin, old_angles;
+	static vec2_t old_fov;
 	static short old_vis_frame;
-	static float old_fov;
 	vec3_t o, a;
 
 	VectorSubtract(r_view.origin, old_origin, o);
@@ -377,12 +376,14 @@ void R_MarkSurfaces(void){
 	// only recurse after cluster change AND significant movement
 	if(r_optimize->value &&
 			(r_locals.vis_frame == old_vis_frame) &&  // same pvs
-			(r_view.fov_x == old_fov) &&  // same fov
+			(r_view.fov[0] == old_fov[0] && r_view.fov[1] == old_fov[1]) &&  // same fov
 			VectorLength(o) < 5.0 && VectorLength(a) < 2.0)  // little movement
 		return;
 
 	old_vis_frame = r_locals.vis_frame;
-	old_fov = r_view.fov_x;
+
+	old_fov[0] = r_view.fov[0];
+	old_fov[1] = r_view.fov[1];
 
 	r_locals.frame++;
 
@@ -551,4 +552,13 @@ void R_MarkLeafs(void){
 			node = node->parent;
 		}
 	}
+}
+
+/**
+ * R_LeafInPvs
+ *
+ * Returns true if the specified leaf is in the PVS for the current frame.
+ */
+boolean_t R_LeafInPvs(const r_bsp_leaf_t *leaf) {
+	return leaf->vis_frame == r_locals.vis_frame;
 }

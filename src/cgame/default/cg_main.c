@@ -23,7 +23,7 @@
 
 cvar_t *cg_blend;
 cvar_t *cg_crosshair;
-//cvar_t *cg_crosshair_color;
+cvar_t *cg_crosshair_color;
 cvar_t *cg_crosshair_scale;
 cvar_t *cg_hud;
 cvar_t *cg_third_person;
@@ -38,7 +38,7 @@ static void Cg_Init(void){
 
 	cg_blend = cgi.Cvar("cg_blend", "1.0", CVAR_ARCHIVE, "Controls the intensity of screen alpha-blending");
 	cg_crosshair = cgi.Cvar("cg_crosshair", "1", CVAR_ARCHIVE, NULL);
-	//cg_crosshair_color = cgi.Cvar("cg_crosshair_color", "default", CVAR_ARCHIVE, NULL);
+	cg_crosshair_color = cgi.Cvar("cg_crosshair_color", "default", CVAR_ARCHIVE, NULL);
 	cg_crosshair_scale = cgi.Cvar("cg_crosshair_scale", "1.0", CVAR_ARCHIVE, NULL);
 	cg_hud = cgi.Cvar("cg_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
 	cg_third_person = cgi.Cvar("cg_third_person", "0", CVAR_ARCHIVE, "Toggles the third person camera.");

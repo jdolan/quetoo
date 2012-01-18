@@ -22,6 +22,13 @@
 #ifndef __R_STATE_H__
 #define __R_STATE_H__
 
+#include "r_types.h"
+
+void R_Setup3D(void);
+void R_Setup2D(void);
+
+#ifdef __R_LOCAL_H__
+
 #include "r_program.h"
 
 // vertex arrays are used for many things
@@ -38,21 +45,8 @@ typedef struct r_texunit_s {
 
 #define MAX_GL_TEXUNITS		4
 
-// rendermodes, set via r_rendermode
-typedef enum render_mode_s {
-	render_mode_default,
-	render_mode_pro
-} r_render_mode_t;
-
 // opengl state management
-typedef struct renderer_state_s {
-	int width, height;
-
-	boolean_t fullscreen;
-
-	int red_bits, green_bits, blue_bits, alpha_bits;
-	int stencil_bits, depth_bits, double_buffer;
-
+typedef struct r_state_s {
 	boolean_t ortho;  // 2d vs 3d projection
 
 	GLfloat vertex_array_3d[MAX_GL_ARRAY_LENGTH * 3];  // default vertex arrays
@@ -85,11 +79,9 @@ typedef struct renderer_state_s {
 	boolean_t warp_enabled;
 	boolean_t shell_enabled;
 	boolean_t fog_enabled;
+} r_state_t;
 
-	r_render_mode_t render_mode;
-} renderer_state_t;
-
-extern renderer_state_t r_state;
+extern r_state_t r_state;
 
 // these are defined for convenience
 #define texunit_diffuse			r_state.texunits[0]
@@ -116,9 +108,9 @@ void R_EnableBumpmap(r_material_t *material, boolean_t enable);
 void R_EnableWarp(r_program_t *program, boolean_t enable);
 void R_EnableShell(boolean_t enable);
 void R_EnableFog(boolean_t enable);
-void R_Setup3D(void);
-void R_Setup2D(void);
 void R_SetDefaultState(void);
 void R_InitState(void);
+
+#endif /* __R_LOCAL_H__ */
 
 #endif /* __R_STATE_H__ */

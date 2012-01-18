@@ -22,6 +22,10 @@
 #ifndef __R_PROGRAM_H__
 #define __R_PROGRAM_H__
 
+#include "r_types.h"
+
+#ifdef __R_LOCAL_H__
+
 // glsl vertex and fragment shaders
 typedef struct r_shader_s {
 	GLenum type;
@@ -66,5 +70,7 @@ void R_EnableAttribute(const char *name);
 void R_DisableAttribute(const char *name);
 void R_ShutdownPrograms(void);
 void R_InitPrograms(void);
+
+#endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_H__ */

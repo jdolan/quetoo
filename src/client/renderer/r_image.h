@@ -22,44 +22,7 @@
 #ifndef __R_IMAGE_H__
 #define __R_IMAGE_H__
 
-#include "images.h"
-#include "r_material.h"
-
-typedef enum {
-	it_font,
-	it_effect,
-	it_world,
-	it_lightmap,
-	it_deluxemap,
-	it_normalmap,
-	it_material,
-	it_sky,
-	it_skin,
-	it_pic
-} r_image_type_t;
-
-typedef struct r_image_s {
-	char name[MAX_QPATH];  // game path, excluding extension
-	r_image_type_t type;
-	int width, height;  // source image
-	int upload_width, upload_height;  // after power of two
-	GLuint texnum;  // gl texture binding
-	r_material_t material;  // material definition
-	vec3_t color;  // average color
-	struct r_image_s *normalmap;  // normalmap texture
-} r_image_t;
-
-#define MAX_GL_TEXTURES		1024
-extern r_image_t r_images[MAX_GL_TEXTURES];
-extern int r_num_images;
-
-#define MAX_GL_LIGHTMAPS 	256
-#define TEXNUM_LIGHTMAPS 	MAX_GL_TEXTURES
-
-#define MAX_GL_DELUXEMAPS	256
-#define TEXNUM_DELUXEMAPS	(TEXNUM_LIGHTMAPS + MAX_GL_LIGHTMAPS)
-
-#define BACK_PLANE_EPSILON	0.01
+#include "r_types.h"
 
 extern r_image_t *r_null_image;
 extern r_image_t *r_particle_image;
@@ -89,11 +52,25 @@ extern r_image_t *r_flare_images[NUM_FLARE_IMAGES];
 
 extern r_image_t *r_warp_image;
 
-// r_image.c
+r_image_t *R_LoadImage(const char *name, r_image_type_t type);
+
+#ifdef __R_LOCAL_H__
+
+#define MAX_GL_TEXTURES		1024
+extern r_image_t r_images[MAX_GL_TEXTURES];
+extern int r_num_images;
+
+#define MAX_GL_LIGHTMAPS 	256
+#define TEXNUM_LIGHTMAPS 	MAX_GL_TEXTURES
+
+#define MAX_GL_DELUXEMAPS	256
+#define TEXNUM_DELUXEMAPS	(TEXNUM_LIGHTMAPS + MAX_GL_LIGHTMAPS)
+
+#define BACK_PLANE_EPSILON	0.01
+
 void R_SoftenTexture(byte *in, int width, int height, r_image_type_t type);
 void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type_t type);
 r_image_t *R_UploadImage(const char *name, void *data, int width, int height, r_image_type_t type);
-r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 void R_TextureMode(const char *mode);
 void R_ListImages_f(void);
 void R_Screenshot_f(void);
@@ -101,5 +78,7 @@ void R_InitImages(void);
 void R_FreeImage(r_image_t *image);
 void R_FreeImages(void);
 void R_ShutdownImages(void);
+
+#endif /* __R_LOCAL_H__ */
 
 #endif /* __R_IMAGE_H__ */

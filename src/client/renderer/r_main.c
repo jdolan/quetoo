@@ -25,6 +25,7 @@
 #include <dlfcn.h>
 #endif
 
+#include "r_local.h"
 #include "client.h"
 
 r_view_t r_view;
@@ -44,7 +45,6 @@ cvar_t *r_lock_vis;
 cvar_t *r_no_vis;
 cvar_t *r_draw_bsp_lights;
 cvar_t *r_draw_bsp_normals;
-cvar_t *r_draw_poly_counts;
 cvar_t *r_draw_wireframe;
 
 cvar_t *r_anisotropy;
@@ -157,13 +157,13 @@ void R_UpdateFrustum(void){
 		return;
 
 	// rotate r_view.forward right by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[0].normal, r_view.up, r_view.forward, -(90 - r_view.fov_x / 2));
+	RotatePointAroundVector(r_locals.frustum[0].normal, r_view.up, r_view.forward, -(90 - r_view.fov[0] / 2));
 	// rotate r_view.forward left by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[1].normal, r_view.up, r_view.forward, 90 - r_view.fov_x / 2);
+	RotatePointAroundVector(r_locals.frustum[1].normal, r_view.up, r_view.forward, 90 - r_view.fov[0] / 2);
 	// rotate r_view.forward up by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[2].normal, r_view.right, r_view.forward, 90 - r_view.fov_y / 2);
+	RotatePointAroundVector(r_locals.frustum[2].normal, r_view.right, r_view.forward, 90 - r_view.fov[1] / 2);
 	// rotate r_view.forward down by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[3].normal, r_view.right, r_view.forward, -(90 - r_view.fov_y / 2));
+	RotatePointAroundVector(r_locals.frustum[3].normal, r_view.right, r_view.forward, -(90 - r_view.fov[1] / 2));
 
 	for(i = 0; i < 4; i++){
 		r_locals.frustum[i].type = PLANE_ANYZ;
@@ -285,7 +285,7 @@ void R_DrawFrame(void){
  */
 static void R_RenderMode(const char *mode){
 
-	r_state.render_mode = render_mode_default;
+	r_view.render_mode = render_mode_default;
 
 	R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_default;
 	R_DrawOpaqueWarpSurfaces = R_DrawOpaqueWarpSurfaces_default;
@@ -301,7 +301,7 @@ static void R_RenderMode(const char *mode){
 
 	if(!strcmp(mode, "pro")){
 
-		r_state.render_mode = render_mode_pro;
+		r_view.render_mode = render_mode_pro;
 
 		R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_pro;
 		R_DrawAlphaTestSurfaces = R_DrawAlphaTestSurfaces_pro;
@@ -397,6 +397,9 @@ void R_EndFrame(void){
 void R_InitView(void) {
 
 	memset(&r_view, 0, sizeof(r_view));
+
+	R_RenderMode(r_render_mode->string);
+
 	memset(&r_locals, 0, sizeof(r_locals));
 }
 
@@ -561,6 +564,8 @@ static void R_Reload_f(void){
 }
 
 
+static boolean_t R_SetMode(void);
+
 /*
  * R_Restart_f
  *
@@ -624,7 +629,6 @@ static void R_InitLocal(void){
 	r_draw_bsp_normals = Cvar_Get("r_draw_bsp_normals", "0", 0, "Controls the rendering of surface normals (developer tool)");
 	r_draw_deluxemaps = Cvar_Get("r_draw_bsp_deluxemaps", "0", CVAR_R_PROGRAMS, "Controls the rendering of deluxemap textures (developer tool)");
 	r_draw_lightmaps = Cvar_Get("r_draw_bsp_lightmaps", "0", CVAR_R_PROGRAMS, "Controls the rendering of lightmap textures (developer tool)");
-	r_draw_poly_counts = Cvar_Get("r_draw_poly_counts", "0", 0, "Controls the rendering of polygon counts per frame (developer tool)");
 	r_draw_wireframe = Cvar_Get("r_draw_wireframe", "0", 0, "Controls the rendering of polygons as wireframe (developer tool)");
 
 	// settings and preferences
@@ -690,7 +694,7 @@ static void R_InitLocal(void){
 /*
  * R_SetMode
  */
-boolean_t R_SetMode(void){
+static boolean_t R_SetMode(void){
 	int w, h;
 
 	if(r_fullscreen->value){
@@ -761,9 +765,9 @@ void R_Init(void){
 
 	R_InitCapture();
 
-	Com_Print("Video initialized %dx%dx%dbpp %s.\n", r_state.width, r_state.height,
-			(r_state.red_bits + r_state.green_bits + r_state.blue_bits + r_state.alpha_bits),
-			(r_state.fullscreen ? "fullscreen" : "windowed"));
+	Com_Print("Video initialized %dx%dx%dbpp %s.\n", r_context.width, r_context.height,
+			(r_context.red_bits + r_context.green_bits + r_context.blue_bits + r_context.alpha_bits),
+			(r_context.fullscreen ? "fullscreen" : "windowed"));
 }
 
 

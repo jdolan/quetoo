@@ -88,8 +88,8 @@ static void Cl_DrawNetgraph(void){
 	if(!cl_net_graph->value)
 		return;
 
-	x = r_state.width - NET_GRAPH_WIDTH;
-	y = r_state.height - NET_GRAPH_Y - NET_GRAPH_HEIGHT;
+	x = r_context.width - NET_GRAPH_WIDTH;
+	y = r_context.height - NET_GRAPH_Y - NET_GRAPH_HEIGHT;
 
 	R_DrawFill(x, y, NET_GRAPH_WIDTH, NET_GRAPH_HEIGHT, 8, 0.2);
 
@@ -101,8 +101,8 @@ static void Cl_DrawNetgraph(void){
 		if(!h)
 			continue;
 
-		x = r_state.width - i;
-		y = r_state.height - NET_GRAPH_Y - h;
+		x = r_context.width - i;
+		y = r_context.height - NET_GRAPH_Y - h;
 
 		R_DrawFill(x, y, 1, h, net_graph_samples[j].color, 0.5);
 	}
@@ -150,7 +150,7 @@ static void Cl_DrawCenterString(void){
 	s = center_string;
 
 	if(center_lines <= 4)  // FIXME: make this consistent
-		y = r_state.height * 0.35;
+		y = r_context.height * 0.35;
 	else
 		y = ch * 4;
 
@@ -171,7 +171,7 @@ static void Cl_DrawCenterString(void){
 			len++;
 		}
 
-		x = (r_state.width - (len * cw)) / 2;
+		x = (r_context.width - (len * cw)) / 2;
 
 		// draw it
 		R_DrawSizedString(x, y, s, len, 999, CON_COLOR_DEFAULT);
@@ -204,12 +204,12 @@ static void Cl_CheckDrawCenterString(void){
 
 
 /*
- * Cl_DrawRspeeds
+ * Cl_DrawRendererStats
  */
-static void Cl_DrawRspeeds(void){
+static void Cl_DrawRendererStats(void){
 	char s[128];
 
-	if(!r_draw_poly_counts->value)
+	if(!cl_show_renderer_stats->value)
 		return;
 
 	if(cls.state != ca_active)
@@ -218,7 +218,7 @@ static void Cl_DrawRspeeds(void){
 	snprintf(s, sizeof(s) - 1, "%i bsp %i mesh %i lights %i particles",
 			r_view.bsp_polys, r_view.mesh_polys, r_view.num_lights, r_view.num_particles);
 
-	R_DrawString(r_state.width - strlen(s) * 16, 0, s, CON_COLOR_YELLOW);
+	R_DrawString(r_context.width - strlen(s) * 16, 0, s, CON_COLOR_YELLOW);
 }
 
 
@@ -316,8 +316,8 @@ static void Cl_DrawCounters(void){
 
 	R_BindFont("small", &cw, &ch);
 
-	const int x = r_state.width - 7 * cw;
-	int y = r_state.height - 4 * ch;
+	const int x = r_context.width - 7 * cw;
+	int y = r_context.height - 4 * ch;
 
 	frames_this_second++;
 
@@ -400,7 +400,7 @@ void Cl_UpdateScreen(void){
 
 			Cl_DrawNotify();
 
-			Cl_DrawRspeeds();
+			Cl_DrawRendererStats();
 
 			cls.cgame->DrawHud(&cl.frame.ps);
 		}
