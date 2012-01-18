@@ -22,10 +22,10 @@
 #ifndef __UI_MISC_H__
 #define __UI_MISC_H__
 
+#include "ui_types.h"
+
 #ifdef __UI_LOCAL_H__
-
 void TW_CALL Ui_ToggleBar(void *data);
-
 #endif /* __UI_LOCAL_H__ */
 
 #endif /* __UI_MISC_H__ */

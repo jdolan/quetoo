@@ -21,7 +21,6 @@
 
 #include "ui_local.h"
 
-
 /*
  * Ui_CvarSetString
  *

@@ -22,10 +22,10 @@
 #ifndef __UI_CONTROLS_H__
 #define __UI_CONTROLS_H__
 
+#include "ui_types.h"
+
 #ifdef __UI_LOCAL_H__
-
 TwBar *Ui_Controls(void);
-
 #endif /* __UI_LOCAL_H__ */
 
 #endif /* __UI_CONTROLS_H__ */

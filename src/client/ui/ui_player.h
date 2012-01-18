@@ -22,10 +22,10 @@
 #ifndef __UI_PLAYER_H__
 #define __UI_PLAYER_H__
 
+#include "ui_types.h"
+
 #ifdef __UI_LOCAL_H__
-
 TwBar *Ui_Player(void);
-
 #endif /* __UI_LOCAL_H__ */
 
 #endif /* __UI_PLAYER_H__ */

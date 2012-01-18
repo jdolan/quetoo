@@ -19,15 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_SERVERS_H__
-#define __UI_SERVERS_H__
+#ifndef __UI_TYPES_H__
+#define __UI_TYPES_H__
 
-#include "ui_types.h"
+#include <SDL/SDL.h>
 
-void Ui_NewServer(void);
+#include "client/client.h"
 
-#ifdef __UI_LOCAL_H__
-TwBar *Ui_Servers(void);
-#endif /* __UI_LOCAL_H__ */
-
-#endif /* __UI_SERVERS_H__ */
+#endif /* __UI_TYPES_H__ */

@@ -22,6 +22,8 @@
 #ifndef __UI_DATA_H__
 #define __UI_DATA_H__
 
+#include "ui_types.h"
+
 #ifdef __UI_LOCAL_H__
 
 void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def);

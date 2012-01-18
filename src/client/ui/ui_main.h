@@ -22,15 +22,27 @@
 #ifndef __UI_MAIN_H__
 #define __UI_MAIN_H__
 
-#include <SDL/SDL.h>
+#include "ui_types.h"
 
 void Ui_Draw(void);
 boolean_t Ui_Event(SDL_Event *event);
 void Ui_Init(void);
 void Ui_Shutdown(void);
 
-
 #ifdef __UI_LOCAL_H__
+
+typedef struct ui_s {
+	TwType OffOrOn;
+	TwType OffLowMediumHigh;
+
+	TwBar *root;
+	TwBar *servers;
+	TwBar *controls;
+	TwBar *player;
+	TwBar *system;
+} ui_t;
+
+extern ui_t ui;
 
 #endif /* __UI_LOCAL_H__ */
 
