@@ -85,6 +85,53 @@ void R_Restart_f(void);
 
 #ifdef __R_LOCAL_H__
 
+// private hardware configuration information
+typedef struct r_config_s {
+	const char *renderer_string;
+	const char *vendor_string;
+	const char *version_string;
+	const char *extensions_string;
+
+	boolean_t vbo;
+	boolean_t shaders;
+
+	int max_texunits;
+} r_config_t;
+
+extern r_config_t r_config;
+
+// private renderer structure
+typedef struct r_locals_s {
+
+	vec3_t ambient_light;  // from worldspawn entity
+
+	float sun_light;
+	vec3_t sun_color;
+
+	float brightness;
+	float saturation;
+	float contrast;
+
+	short cluster;  // PVS at origin
+	short old_cluster;
+
+	short vis_frame;  // PVS frame
+
+	short frame;  // renderer frame
+	short back_frame;  // back-facing renderer frame
+
+	short light_frame;  // dynamic lighting frame
+
+	int active_light_mask;  // a bit mask into r_view.lights
+	int active_light_count;  // a count of active lights
+
+	int trace_num;  // lighting traces
+
+	c_bsp_plane_t frustum[4];  // for box culling
+} r_locals_t;
+
+extern r_locals_t r_locals;
+
 // development tools
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;
@@ -95,9 +142,6 @@ extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_deluxemaps;
 extern cvar_t *r_draw_lightmaps;
 extern cvar_t *r_draw_wireframe;
-
-extern r_config_t r_config;
-extern r_locals_t r_locals;
 
 void R_UpdateFrustum(void);
 

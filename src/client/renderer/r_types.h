@@ -659,19 +659,6 @@ typedef struct r_view_s {
 	boolean_t ready;  // eligible for rendering to the client
 } r_view_t;
 
-// private hardware configuration information
-typedef struct r_config_s {
-	const char *renderer_string;
-	const char *vendor_string;
-	const char *version_string;
-	const char *extensions_string;
-
-	boolean_t vbo;
-	boolean_t shaders;
-
-	int max_texunits;
-} r_config_t;
-
 // gl context information
 typedef struct r_context_s {
 	int width, height;
@@ -681,35 +668,5 @@ typedef struct r_context_s {
 	int red_bits, green_bits, blue_bits, alpha_bits;
 	int stencil_bits, depth_bits, double_buffer;
 } r_context_t;
-
-// private renderer structure
-typedef struct r_locals_s {
-
-	vec3_t ambient_light;  // from worldspawn entity
-
-	float sun_light;
-	vec3_t sun_color;
-
-	float brightness;
-	float saturation;
-	float contrast;
-
-	short cluster;  // PVS at origin
-	short old_cluster;
-
-	short vis_frame;  // PVS frame
-
-	short frame;  // renderer frame
-	short back_frame;  // back-facing renderer frame
-
-	short light_frame;  // dynamic lighting frame
-
-	int active_light_mask;  // a bit mask into r_view.lights
-	int active_light_count;  // a count of active lights
-
-	int trace_num;  // lighting traces
-
-	c_bsp_plane_t frustum[4];  // for box culling
-} r_locals_t;
 
 #endif /* __R_TYPES_H__ */
