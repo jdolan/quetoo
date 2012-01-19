@@ -281,10 +281,8 @@ static void Sv_Say_f(void){
  * Sv_Tell_f
  */
 static void Sv_Tell_f(void){
-	sv_client_t *client;
-	int j;
-	char *p;
 	char text[1024];
+	char *p;
 
 	if(Cmd_Argc() < 3)
 		return;
