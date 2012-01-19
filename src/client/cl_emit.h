@@ -22,5 +22,12 @@
 #ifndef __CL_EMIT_H__
 #define __CL_EMIT_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+void Cl_LoadEmits(void);
+void Cl_AddEmits(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_EMIT_H__ */
 

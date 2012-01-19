@@ -22,5 +22,12 @@
 #ifndef __CL_CMD_H__
 #define __CL_CMD_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+void Cl_UpdateCmd(void);
+void Cl_SendCmd(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_CMD_H__ */
 

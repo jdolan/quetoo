@@ -22,5 +22,15 @@
 #ifndef __CL_LOC_H__
 #define __CL_LOC_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+void Cl_InitLocations(void);
+void Cl_ShutdownLocations(void);
+void Cl_LoadLocations(void);
+const char *Cl_LocationHere(void);
+const char *Cl_LocationThere(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_LOC_H__ */
 

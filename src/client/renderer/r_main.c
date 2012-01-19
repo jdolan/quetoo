@@ -498,28 +498,13 @@ void R_LoadMedia(void){
 
 	Cl_LoadProgress(75);
 
-	j = 0;
-
-	// client models and skins
-	for(i = 0; i < MAX_CLIENTS; i++){
-
-		if(!cl.config_strings[CS_CLIENT_INFO + i][0])
-			continue;
-
-		Cl_ParseClientInfo(i);
-
-		if(++j < 10)
-			Cl_LoadProgress(75 + j);
-	}
-	Cl_LoadProgress(85);
-
 	R_SetSky(cl.config_strings[CS_SKY]);
-	Cl_LoadProgress(90);
+	Cl_LoadProgress(77);
 
 	// weather and fog effects
 	R_ResolveWeather();
 
-	Cl_ClearNotify();
+	Cl_LoadProgress(79);
 
 	r_view.ready = r_view.update = true;
 }

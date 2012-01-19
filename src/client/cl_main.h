@@ -22,6 +22,8 @@
 #ifndef __CL_MAIN_H__
 #define __CL_MAIN_H__
 
+#include "cl_types.h"
+
 // settings and preferences
 extern cvar_t *cl_async;
 extern cvar_t *cl_bob;
@@ -52,6 +54,7 @@ extern cvar_t *password;
 extern cvar_t *rate;
 extern cvar_t *skin;
 
+void Cl_LoadProgress(int percent);
 void Cl_Disconnect(void);
 void Cl_Frame(int msec);
 void Cl_Init(void);
@@ -73,7 +76,6 @@ extern cvar_t *recording;
 
 void Cl_SendDisconnect(void);
 void Cl_Reconnect_f(void);
-void Cl_LoadProgress(int percent);
 void Cl_RequestNextDownload(void);
 
 #endif __CL_LOCAL_H__

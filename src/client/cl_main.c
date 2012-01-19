@@ -495,9 +495,15 @@ static void Cl_LoadMedia(void){
 
 	S_LoadMedia();
 
+	Cl_LoadClients();
+
+	Cl_LoadEffects();
+
 	Cl_LoadEmits();
 
 	Cl_LoadLocations();
+
+	Cl_ClearNotify();
 
 	cls.key_state.dest = key_game;
 

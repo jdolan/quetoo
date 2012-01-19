@@ -77,6 +77,8 @@ void Cl_LoadLocations(void){
 		i++;
 	}
 
+	Cl_LoadProgress(100);
+
 	Com_Print("Loaded %i locations.\n", numlocations);
 	Fs_CloseFile(f);
 }

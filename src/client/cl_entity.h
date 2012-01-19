@@ -22,5 +22,12 @@
 #ifndef __CL_ENTITY_H__
 #define __CL_ENTITY_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+void Cl_ParseFrame(void);
+void Cl_AddEntities(cl_frame_t *frame);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_ENTITY_H__ */
 

@@ -22,5 +22,17 @@
 #ifndef __CL_PARSE_H__
 #define __CL_PARSE_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+extern char *svc_strings[256];
+
+boolean_t Cl_CheckOrDownloadFile(const char *file_name);
+void Cl_ParseConfigString(void);
+void Cl_ParseMuzzleFlash(void);
+void Cl_ParseServerMessage(void);
+void Cl_Download_f(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_PARSE_H__ */
 

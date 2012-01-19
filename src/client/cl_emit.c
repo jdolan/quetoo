@@ -303,6 +303,8 @@ void Cl_LoadEmits(void){
 			continue;
 		}
 	}
+
+	Cl_LoadProgress(99);
 }
 
 

@@ -22,5 +22,9 @@
 #ifndef __CL_TENTITY_H__
 #define __CL_TENTITY_H__
 
+#ifdef __CL_LOCAL_H__
+void Cl_ParseTempEntity(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_TENTITY_H__ */
 

@@ -286,23 +286,6 @@ static void Cl_ParseBaseline(void){
 
 
 /*
- * Cl_ParseClientInfo
- *
- * Load the model and skin for a client.
- */
-void Cl_ParseClientInfo(int player){
-	const char *s;
-	cl_client_info_t *ci;
-
-	s = cl.config_strings[player + CS_CLIENT_INFO];
-
-	ci = &cl.client_info[player];
-
-	Cl_LoadClientInfo(ci, s);
-}
-
-
-/*
  * Cl_ParseGravity
  */
 static void Cl_ParseGravity(const char *gravity){
@@ -350,7 +333,7 @@ void Cl_ParseConfigString(void){
 			cl.image_precache[i - CS_IMAGES] = R_LoadPic(cl.config_strings[i]);
 	} else if(i >= CS_CLIENT_INFO && i < CS_CLIENT_INFO + MAX_CLIENTS){
 		if(r_view.ready && strcmp(olds, s))
-			Cl_ParseClientInfo(i - CS_CLIENT_INFO);
+			Cl_LoadClient(&cl.client_info[i - CS_CLIENT_INFO], s);
 	}
 }
 

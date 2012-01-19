@@ -22,5 +22,13 @@
 #ifndef __CL_CLIENT_H__
 #define __CL_CLIENT_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+void Cl_LoadClient(cl_client_info_t *ci, const char *s);
+void Cl_LoadClients(void);
+void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_CLIENT_H__ */
 

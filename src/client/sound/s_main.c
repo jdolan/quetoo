@@ -108,11 +108,11 @@ void S_LoadMedia(void){
 
 	S_LoadSamples();
 
-	Cl_LoadProgress(95);
+	Cl_LoadProgress(80);
 
 	S_LoadMusics();
 
-	Cl_LoadProgress(100);
+	Cl_LoadProgress(85);
 
 	s_env.update = true;
 }

@@ -22,5 +22,12 @@
 #ifndef __CL_CGAME_H__
 #define __CL_CGAME_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+void Cl_InitCgame(void);
+void Cl_ShutdownCgame(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_CGAME_H__ */
 

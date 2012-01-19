@@ -22,5 +22,15 @@
 #ifndef __CL_HTTP_H__
 #define __CL_HTTP_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+void Cl_InitHttpDownload(void);
+void Cl_HttpDownloadCleanup(void);
+boolean_t Cl_HttpDownload(void);
+void Cl_HttpDownloadThink(void);
+void Cl_ShutdownHttpDownload(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_HTTP_H__ */
 

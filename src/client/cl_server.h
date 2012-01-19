@@ -22,5 +22,16 @@
 #ifndef __CL_SERVER_H__
 #define __CL_SERVER_H__
 
+#include "cl_types.h"
+
+void Cl_Servers_f(void);
+
+#ifdef __CL_LOCAL_H__
+void Cl_Ping_f(void);
+void Cl_ParseStatusMessage(void);
+void Cl_ParseServersList(void);
+void Cl_FreeServers(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_SERVER_H__ */
 

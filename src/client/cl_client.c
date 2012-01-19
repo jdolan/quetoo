@@ -25,9 +25,9 @@
 
 
 /*
- * Cl_ValidateClientInfo
+ * Cl_ValidateClient
  */
-static boolean_t Cl_ValidateClientInfo(cl_client_info_t *ci){
+static boolean_t Cl_ValidateClient(cl_client_info_t *ci){
 
 	if(!ci->head || !ci->upper || !ci->lower)
 		return false;
@@ -42,9 +42,9 @@ static boolean_t Cl_ValidateClientInfo(cl_client_info_t *ci){
 
 
 /*
- * Cl_LoadClientInfo
+ * Cl_LoadClient
  */
-void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s){
+void Cl_LoadClient(cl_client_info_t *ci, const char *s){
 	char model_name[MAX_QPATH];
 	char skin_name[MAX_QPATH];
 	char path[MAX_QPATH];
@@ -67,7 +67,7 @@ void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s){
 	}
 
 	if(*ci->info == '\0' || i == -1){  // use default
-		Cl_LoadClientInfo(ci, DEFAULT_CLIENT_INFO);
+		Cl_LoadClient(ci, DEFAULT_CLIENT_INFO);
 		return;
 	}
 
@@ -84,7 +84,7 @@ void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s){
 		strcpy(skin_name, u + 1);
 	}
 	else {  // invalid
-		Cl_LoadClientInfo(ci, DEFAULT_CLIENT_INFO);
+		Cl_LoadClient(ci, DEFAULT_CLIENT_INFO);
 		return;
 	}
 
@@ -109,12 +109,36 @@ void Cl_LoadClientInfo(cl_client_info_t *ci, const char *s){
 	ci->lower_skin = R_LoadImage(path, it_skin);
 
 	// ensure we were able to load everything
-	if(!Cl_ValidateClientInfo(ci)){
-		Cl_LoadClientInfo(ci, DEFAULT_CLIENT_INFO);
+	if(!Cl_ValidateClient(ci)){
+		Cl_LoadClient(ci, DEFAULT_CLIENT_INFO);
 		return;
 	}
 
 	Com_Debug("Loaded cl_client_info_t: %s\n", ci->info);
+}
+
+/**
+ * Cl_LoadClients
+ *
+ * Load all client info strings from the server.
+ */
+void Cl_LoadClients(void) {
+	int i;
+
+	for(i = 0; i < MAX_CLIENTS; i++){
+		cl_client_info_t *ci = &cl.client_info[i];
+		const char *s = cl.config_strings[CS_CLIENT_INFO + i];
+
+		if(!*s)
+			continue;
+
+		Cl_LoadClient(ci, s);
+
+		if(i < 10)
+			Cl_LoadProgress(86 + i);
+	}
+
+	Cl_LoadProgress(96);
 }
 
 

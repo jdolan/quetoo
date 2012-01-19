@@ -103,6 +103,8 @@ extern r_config_t r_config;
 // private renderer structure
 typedef struct r_locals_s {
 
+	void (*progress_callback)(int);  // for loading media
+
 	vec3_t ambient_light;  // from worldspawn entity
 
 	float sun_light;

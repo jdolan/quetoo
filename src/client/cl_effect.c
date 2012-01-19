@@ -46,9 +46,9 @@ static s_sample_t *cl_sample_snow;
 
 
 /*
- * Cl_LoadEffectSamples
+ * Cl_LoadEffects
  */
-void Cl_LoadEffectSamples(void){
+void Cl_LoadEffects(void){
 	int i;
 	char name[MAX_QPATH];
 
@@ -72,6 +72,8 @@ void Cl_LoadEffectSamples(void){
 	cl_sample_rain = S_LoadSample("world/rain");
 	cl_sample_snow = S_LoadSample("world/snow");
 
+	Cl_LoadProgress(97);
+
 	for(i = 0; i < 4; i++){
 		snprintf(name, sizeof(name), "weapons/machinegun/fire_%i", i + 1);
 		cl_sample_machinegun_fire[i] = S_LoadSample(name);
@@ -86,6 +88,8 @@ void Cl_LoadEffectSamples(void){
 		snprintf(name, sizeof(name), "#players/common/step_%i", i + 1);
 		cl_sample_footsteps[i] = S_LoadSample(name);
 	}
+
+	Cl_LoadProgress(98);
 }
 
 

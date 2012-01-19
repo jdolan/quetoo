@@ -22,5 +22,13 @@
 #ifndef __CL_PRED_H__
 #define __CL_PRED_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+extern int cl_gravity;
+void Cl_PredictMovement(void);
+void Cl_CheckPredictionError(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_PRED_H__ */
 

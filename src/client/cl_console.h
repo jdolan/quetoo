@@ -22,5 +22,18 @@
 #ifndef __CL_CONSOLE_H__
 #define __CL_CONSOLE_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+extern console_t cl_con;
+
+void Cl_InitConsole(void);
+void Cl_DrawConsole(void);
+void Cl_DrawNotify(void);
+void Cl_UpdateNotify(int last_line);
+void Cl_ClearNotify(void);
+void Cl_ToggleConsole_f(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_CONSOLE_H__ */
 

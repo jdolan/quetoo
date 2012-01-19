@@ -22,5 +22,13 @@
 #ifndef __CL_INPUT_H__
 #define __CL_INPUT_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+void Cl_InitInput(void);
+void Cl_HandleEvents(void);
+void Cl_Move(user_cmd_t *cmd);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_INPUT_H__ */
 

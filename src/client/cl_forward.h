@@ -22,5 +22,11 @@
 #ifndef __CL_FORWARD_H__
 #define __CL_FORWARD_H__
 
+#include "cl_types.h"
+
+#ifdef __CL_LOCAL_H__
+void Cl_ForwardCmdToServer(void);
+#endif /* __CL_LOCAL_H__ */
+
 #endif /* __CL_FORWARD_H__ */
 
