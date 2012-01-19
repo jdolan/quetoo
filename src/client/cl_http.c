@@ -22,7 +22,7 @@
 #include <unistd.h>
 #include <curl/curl.h>
 
-#include "client.h"
+#include "cl_local.h"
 
 static CURLM *curlm;
 static CURL *curl;

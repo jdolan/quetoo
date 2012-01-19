@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "client.h"
+#include "cl_local.h"
 
 /*
  * Emits are client-sided entities for emitting lights, particles, coronas,
@@ -365,7 +365,7 @@ void Cl_AddEmits(void){
 
 	Cl_UpdateEmits();
 
-	if(!cl_emits->value)
+	if(!cl_add_emits->value)
 		return;
 
 	memset(&ent, 0, sizeof(ent));

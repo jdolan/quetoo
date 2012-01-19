@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "client.h"
+#include "cl_local.h"
 
 // a copy of the last item we dropped, for %d
 static char last_dropped_item[MAX_TOKEN_CHARS];

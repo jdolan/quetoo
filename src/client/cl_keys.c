@@ -21,7 +21,7 @@
 
 #include <ctype.h>
 
-#include "client.h"
+#include "cl_local.h"
 
 key_name_t key_names[] = {
 	{"TAB", K_TAB},

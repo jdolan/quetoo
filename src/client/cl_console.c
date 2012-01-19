@@ -24,7 +24,7 @@
  * Drawing functions for the client console
  */
 
-#include "client.h"
+#include "cl_local.h"
 
 console_t cl_con;
 

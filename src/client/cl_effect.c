@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "client.h"
+#include "cl_local.h"
 
 static s_sample_t *cl_sample_shotgun_fire;
 static s_sample_t *cl_sample_supershotgun_fire;

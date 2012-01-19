@@ -21,8 +21,9 @@
 
 #include <unistd.h>
 
-#include "client.h"
+#include "cl_local.h"
 
+cvar_t *cl_add_emits;
 cvar_t *cl_add_entities;
 cvar_t *cl_add_particles;
 cvar_t *cl_async;
@@ -32,7 +33,6 @@ cvar_t *cl_counters;
 cvar_t *cl_crosshair;
 cvar_t *cl_crosshair_color;
 cvar_t *cl_crosshair_scale;
-cvar_t *cl_emits;
 cvar_t *cl_fov;
 cvar_t *cl_fov_zoom;
 cvar_t *cl_ignore;
@@ -585,6 +585,7 @@ static const char *Cl_GetUserName(void){
 static void Cl_InitLocal(void){
 
 	// register our variables
+	cl_add_emits = Cvar_Get("cl_add_emits", "1", CVAR_ARCHIVE, NULL);
 	cl_add_entities = Cvar_Get("cl_add_entities", "3", 0, NULL);
 	cl_add_particles = Cvar_Get("cl_add_particles", "1", 0, NULL);
 	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE, NULL);
@@ -594,7 +595,6 @@ static void Cl_InitLocal(void){
 	cl_crosshair = Cvar_Get("cl_crosshair", "1", CVAR_ARCHIVE, NULL);
 	cl_crosshair_color = Cvar_Get("cl_crosshair_color", "default", CVAR_ARCHIVE, NULL);
 	cl_crosshair_scale = Cvar_Get("cl_crosshair_scale", "1.0", CVAR_ARCHIVE, NULL);
-	cl_emits = Cvar_Get("cl_emits", "1", CVAR_ARCHIVE, NULL);
 	cl_fov = Cvar_Get("cl_fov", "100.0", CVAR_ARCHIVE, NULL);
 	cl_fov_zoom = Cvar_Get("cl_fov_zoom", "40.0", CVAR_ARCHIVE, NULL);
 	cl_ignore = Cvar_Get("cl_ignore", "", 0, NULL);
