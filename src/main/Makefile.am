@@ -10,9 +10,6 @@ quake2world_SOURCES = \
 
 EXTRA_quake2world_SOURCES = \
 	quake2world-icon.rc
-
-quake2world_DEPENDENCIES = \
-	${ICON}
 	
 if BUILD_CLIENT
 
@@ -25,7 +22,6 @@ quake2world_CFLAGS = \
 	@SDL_CFLAGS@
 
 quake2world_LDADD = \
-	${quake2world_DEPENDENCIES} \
 	../client/libclient.la \
 	../server/libserver.la \
 	@BASE_LIBS@ \
@@ -35,6 +31,7 @@ quake2world_LDADD = \
 	@JPEG_LIBS@ \
 	@OPENGL_LIBS@ \
 	@SDL_LIBS@ \
+	${ICON} \
 	-lm -lz
 	
 else
