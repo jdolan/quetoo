@@ -5,7 +5,28 @@ SUBDIRS = \
 
 noinst_HEADERS = \
 	cl_binds.h \
+	cl_cgame.h \
+	cl_client.h \
+	cl_cmd.h \
+	cl_console.h \
+	cl_demo.h \
+	cl_effect.h \
+	cl_emit.h \
+	cl_entity.h \
+	cl_forward.h \
+	cl_http.h \
+	cl_input.h \
 	cl_keys.h \
+	cl_loc.h \
+	cl_local.h \
+	cl_main.h \
+	cl_parse.h \
+	cl_pred.h \
+	cl_screen.h \
+	cl_server.h \
+	cl_tentity.h \
+	cl_types.h \
+	cl_view.h \
 	client.h
 
 noinst_LTLIBRARIES = \
