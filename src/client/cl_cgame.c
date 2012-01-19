@@ -109,11 +109,11 @@ void Cl_InitCgame(void){
 	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
 
 	if(!cls.cgame){
-		Com_Error(ERR_DROP, "Failed to load cgame\n");
+		Com_Error(ERR_DROP, "Failed to load client game\n");
 	}
 
 	if(cls.cgame->api_version != CGAME_API_VERSION){
-		Com_Error(ERR_DROP, "Cgame has wrong version (%d)\n", cls.cgame->api_version);
+		Com_Error(ERR_DROP, "Client game has wrong version (%d)\n", cls.cgame->api_version);
 	}
 
 	cls.cgame->Init();

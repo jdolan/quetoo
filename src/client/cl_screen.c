@@ -222,85 +222,6 @@ static void Cl_DrawRendererStats(void){
 }
 
 
-typedef struct crosshair_s {
-	char name[16];
-	int width, height;
-	byte color[4];
-} crosshair_t;
-
-static crosshair_t crosshair;
-
-/*
- * Cl_DrawCrosshair
- */
-static void Cl_DrawCrosshair(void){
-	r_image_t *image;
-	int w, h, c;
-
-	if(!cl_crosshair->value)
-		return;
-
-	if(cls.state != ca_active)
-		return;  // not spawned yet
-
-	if(cl.frame.ps.stats[STAT_SCOREBOARD])
-		return;  // scoreboard up
-
-	if(cl.frame.ps.stats[STAT_SPECTATOR])
-		return;  // spectating
-
-	if(cl.frame.ps.stats[STAT_CHASE])
-		return;  // chasecam
-
-	if(cl_third_person->value)
-		return;  // third person
-
-	if(cl_crosshair->modified){  // crosshair image
-		cl_crosshair->modified = false;
-
-		crosshair.width = 0;
-
-		if(cl_crosshair->value < 0)
-			cl_crosshair->value = 1;
-
-		if(cl_crosshair->value > 100)
-			cl_crosshair->value = 100;
-
-		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cl_crosshair->integer);
-
-		image = R_LoadPic(crosshair.name);
-
-		if(image == r_null_image){
-			Com_Print("Couldn't load pics/ch%d.\n", cl_crosshair->integer);
-			return;
-		}
-
-		crosshair.width = image->width;
-		crosshair.height = image->height;
-	}
-
-	if(!crosshair.width)  // not found
-		return;
-
-	if(cl_crosshair_color->modified){  // crosshair color
-		cl_crosshair_color->modified = false;
-
-		c = ColorByName(cl_crosshair_color->string, 14);
-		memcpy(&crosshair.color, &palette[c], sizeof(crosshair.color));
-	}
-
-	glColor4ubv(crosshair.color);
-
-	// calculate width and height based on crosshair image and scale
-	w = (r_view.width - crosshair.width * cl_crosshair_scale->value) / 2;
-	h = (r_view.height - crosshair.height * cl_crosshair_scale->value) / 2;
-
-	R_DrawPic(r_view.x + w, r_view.y + h, cl_crosshair_scale->value, crosshair.name);
-
-	glColor4ubv(color_white);
-}
-
-
 int frames_this_second = 0, packets_this_second = 0, bytes_this_second = 0;
 
 /*
@@ -391,8 +312,6 @@ void Cl_UpdateScreen(void){
 		if(cls.key_state.dest != key_console && cls.key_state.dest != key_menu){
 
 			Cl_DrawNetgraph();
-
-			Cl_DrawCrosshair();
 
 			Cl_CheckDrawCenterString();
 

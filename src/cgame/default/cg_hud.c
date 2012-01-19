@@ -401,8 +401,9 @@ static void Cg_DrawCrosshair(player_state_t *ps){
 		}
 	}
 
-	if(!crosshair.image->type == it_null)  // not found
+	if(crosshair.image->type == it_null){  // not found
 		return;
+	}
 
 	if(cg_crosshair_color->modified){  // crosshair color
 		cg_crosshair_color->modified = false;
