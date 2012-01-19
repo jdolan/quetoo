@@ -20,8 +20,6 @@
  */
 
 #include "cl_local.h"
-#include "cgame/cgame.h"
-
 
 static void *cgame_handle;
 

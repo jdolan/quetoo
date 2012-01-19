@@ -19,12 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_LOCAL_H__
-#define __CG_LOCAL_H__
+#ifndef __CG_TYPES_H__
+#define __CG_TYPES_H__
 
-#include "cg_hud.h"
-#include "cg_main.h"
-#include "cg_types.h"
-#include "cg_view.h"
+#include "cgame/cgame.h"
 
-#endif /* __CG_LOCAL_H__ */
+#endif /* __CG_TYPES_H__ */
+

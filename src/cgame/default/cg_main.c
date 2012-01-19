@@ -36,6 +36,8 @@ cg_import_t cgi;
  */
 static void Cg_Init(void){
 
+	cgi.Print("  Client game initialization...\n");
+
 	cg_blend = cgi.Cvar("cg_blend", "1.0", CVAR_ARCHIVE, "Controls the intensity of screen alpha-blending");
 	cg_crosshair = cgi.Cvar("cg_crosshair", "1", CVAR_ARCHIVE, NULL);
 	cg_crosshair_color = cgi.Cvar("cg_crosshair_color", "default", CVAR_ARCHIVE, NULL);
@@ -43,7 +45,7 @@ static void Cg_Init(void){
 	cg_hud = cgi.Cvar("cg_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
 	cg_third_person = cgi.Cvar("cg_third_person", "0", CVAR_ARCHIVE, "Toggles the third person camera.");
 
-	cgi.Print("Client game initialized");
+	cgi.Print("  Client game initialized.\n");
 }
 
 
@@ -51,7 +53,7 @@ static void Cg_Init(void){
  * Cg_Shutdown
  */
 static void Cg_Shutdown(void){
-	cgi.Print("Client game shutdown");
+	cgi.Print("  Client game shutdown...\n");
 }
 
 

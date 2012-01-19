@@ -22,7 +22,7 @@
 #ifndef __CGAME_H__
 #define __CGAME_H__
 
-#include "client/renderer/renderer.h"
+#include "client/cl_types.h"
 
 #define CGAME_API_VERSION 1
 

@@ -382,7 +382,7 @@ static void Cg_DrawCrosshair(player_state_t *ps){
 	if(cg_third_person->value)
 		return;  // third person
 
-	if(cg_crosshair->modified){  // crosshair image
+	if(!*crosshair.name || cg_crosshair->modified){  // crosshair image
 		cg_crosshair->modified = false;
 
 		if(cg_crosshair->value < 0)

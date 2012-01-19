@@ -19,12 +19,25 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_LOCAL_H__
-#define __CG_LOCAL_H__
+#ifndef __CG_MAIN_H__
+#define __CG_MAIN_H__
 
-#include "cg_hud.h"
-#include "cg_main.h"
 #include "cg_types.h"
-#include "cg_view.h"
+
+#ifdef __CG_LOCAL_H__
+
+extern cvar_t *cg_blend;
+extern cvar_t *cg_crosshair;
+extern cvar_t *cg_crosshair_color;
+extern cvar_t *cg_crosshair_scale;
+extern cvar_t *cg_hud;
+extern cvar_t *cg_third_person;
+
+extern cg_import_t cgi;
+
+cg_export_t *Cg_LoadCgame(cg_import_t *import);
 
 #endif /* __CG_LOCAL_H__ */
+
+#endif /* __CG_MAIN_H__ */
+

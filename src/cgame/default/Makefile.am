@@ -1,7 +1,11 @@
 cgamelibdir=$(libdir)/@PACKAGE@/default
 
 noinst_HEADERS = \
-	cg_local.h
+	cg_hud.h \
+	cg_local.h \
+	cg_main.h \
+	cg_types.h \
+	cg_view.h
 
 cgamelib_LTLIBRARIES = \
 	cgame.la
