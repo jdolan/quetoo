@@ -58,6 +58,14 @@ static void Cg_Shutdown(void){
 
 
 /*
+ * Cg_UpdateMedia
+ */
+static void Cg_UpdateMedia(void){
+	cg_crosshair->modified = true;
+}
+
+
+/*
  * Cg_LoadCgame
  */
 cg_export_t *Cg_LoadCgame(cg_import_t *import){
@@ -69,6 +77,8 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import){
 
 	cge.Init = Cg_Init;
 	cge.Shutdown = Cg_Shutdown;
+
+	cge.UpdateMedia = Cg_UpdateMedia;
 
 	cge.DrawHud = Cg_DrawHud;
 

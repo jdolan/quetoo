@@ -68,7 +68,7 @@ static void Cg_DrawIcon(int x, int y, float scale, short icon){
 static void Cg_DrawVital(int x, short value, short icon, short med, short low){
 	const boolean_t flash = (*cgi.time / 100) & 1;
 
-	int y = *cgi.height - HUD_PIC_HEIGHT + 4;
+	int y = *cgi.y + *cgi.h - HUD_PIC_HEIGHT + 4;
 	int color = COLOR_HUD_STAT;
 
 	const char *string = va("%3d", value);
@@ -84,10 +84,11 @@ static void Cg_DrawVital(int x, short value, short icon, short med, short low){
 		color = COLOR_HUD_STAT_MED;
 	}
 
+	x += *cgi.x;
 	cgi.DrawString(x, y, string, color);
 
 	x += cgi.StringWidth(string);
-	y = *cgi.height - HUD_PIC_HEIGHT;
+	y = *cgi.y + *cgi.h - HUD_PIC_HEIGHT;
 
 	Cg_DrawIcon(x, y, 1.0, icon);
 }
@@ -109,7 +110,7 @@ static void Cg_DrawVitals(player_state_t *ps){
 		const short health = ps->stats[STAT_HEALTH];
 		const short health_icon = ps->stats[STAT_HEALTH_ICON];
 
-		x = *cgi.width * 0.25 - x_offset;
+		x = *cgi.w * 0.25 - x_offset;
 
 		Cg_DrawVital(x, health, health_icon, HUD_HEALTH_MED, HUD_HEALTH_LOW);
 	}
@@ -119,7 +120,7 @@ static void Cg_DrawVitals(player_state_t *ps){
 		const short ammo_low = ps->stats[STAT_AMMO_LOW];
 		const short ammo_icon = ps->stats[STAT_AMMO_ICON];
 
-		x = *cgi.width * 0.5 - x_offset;
+		x = *cgi.w * 0.5 - x_offset;
 
 		Cg_DrawVital(x, ammo, ammo_icon, -1, ammo_low);
 	}
@@ -128,7 +129,7 @@ static void Cg_DrawVitals(player_state_t *ps){
 		const short armor = ps->stats[STAT_ARMOR];
 		const short armor_icon = ps->stats[STAT_ARMOR_ICON];
 
-		x = *cgi.width * 0.75 - x_offset;
+		x = *cgi.w * 0.75 - x_offset;
 
 		Cg_DrawVital(x, armor, armor_icon, HUD_ARMOR_MED, HUD_ARMOR_LOW);
 	}
@@ -151,8 +152,8 @@ static void Cg_DrawPickup(player_state_t *ps){
 
 		const char *string = cgi.ConfigString(pickup);
 
-		x = *cgi.width - HUD_PIC_HEIGHT - cgi.StringWidth(string);
-		y = 0;
+		x = *cgi.x + *cgi.w - HUD_PIC_HEIGHT - cgi.StringWidth(string);
+		y = *cgi.y;
 
 		Cg_DrawIcon(x, y, 1.0, icon);
 
@@ -176,15 +177,15 @@ static void Cg_DrawFrags(player_state_t *ps){
 
 	cgi.BindFont("small", NULL, &ch);
 
-	x = *cgi.width - cgi.StringWidth("Frags");
-	y = HUD_PIC_HEIGHT;
+	x = *cgi.x + *cgi.w - cgi.StringWidth("Frags");
+	y = *cgi.y + HUD_PIC_HEIGHT;
 
 	cgi.DrawString(x, y, "Frags", CON_COLOR_GREEN);
 	y += ch;
 
 	cgi.BindFont("large", &cw, NULL);
 
-	x = *cgi.width - 3 * cw;
+	x = *cgi.x + *cgi.w - 3 * cw;
 
 	cgi.DrawString(x, y, va("%3d", frags), COLOR_HUD_STAT);
 
@@ -207,15 +208,15 @@ static void Cg_DrawCaptures(player_state_t *ps){
 
 	cgi.BindFont("small", NULL, &ch);
 
-	x = *cgi.width - cgi.StringWidth("Captures");
-	y = 2 * HUD_PIC_HEIGHT + ch;
+	x = *cgi.x + *cgi.w - cgi.StringWidth("Captures");
+	y = *cgi.y + 2 * HUD_PIC_HEIGHT + ch;
 
 	cgi.DrawString(x, y, "Captures", CON_COLOR_GREEN);
 	y += ch;
 
 	cgi.BindFont("large", &cw, NULL);
 
-	x = *cgi.width - 3 * cw;
+	x = *cgi.x + *cgi.w - 3 * cw;
 
 	cgi.DrawString(x, y, va("%3d", captures), COLOR_HUD_STAT);
 
@@ -234,8 +235,8 @@ static void Cg_DrawSpectator(player_state_t *ps){
 
 	cgi.BindFont("small", &cw, NULL);
 
-	x = *cgi.width - cgi.StringWidth("Spectating");
-	y = HUD_PIC_HEIGHT;
+	x = *cgi.w - cgi.StringWidth("Spectating");
+	y = *cgi.y + HUD_PIC_HEIGHT;
 
 	cgi.DrawString(x, y, "Spectating", CON_COLOR_GREEN);
 }
@@ -265,8 +266,8 @@ static void Cg_DrawChase(player_state_t *ps){
 	if((s = strchr(string, '\\')))
 		*s = '\0';
 
-	x = *cgi.width * 0.5 - cgi.StringWidth(string) / 2;
-	y = *cgi.height - HUD_PIC_HEIGHT - ch;
+	x = *cgi.x + *cgi.w * 0.5 - cgi.StringWidth(string) / 2;
+	y = *cgi.y + *cgi.h - HUD_PIC_HEIGHT - ch;
 
 	cgi.DrawString(x, y, string, CON_COLOR_GREEN);
 
@@ -288,8 +289,8 @@ static void Cg_DrawVote(player_state_t *ps){
 
 	snprintf(string, sizeof(string) - 1, "Vote: ^7%s", cgi.ConfigString(ps->stats[STAT_VOTE]));
 
-	x = 0;
-	y = *cgi.height - HUD_PIC_HEIGHT - ch;
+	x = *cgi.x;
+	y = *cgi.y + *cgi.h - HUD_PIC_HEIGHT - ch;
 
 	cgi.DrawString(x, y, string, CON_COLOR_GREEN);
 
@@ -306,8 +307,8 @@ static void Cg_DrawTime(player_state_t *ps){
 
 	cgi.BindFont("small", NULL, &ch);
 
-	x = *cgi.width - cgi.StringWidth(string);
-	y = HUD_PIC_HEIGHT * 2 + ch;
+	x = *cgi.x + *cgi.w - cgi.StringWidth(string);
+	y = *cgi.y + HUD_PIC_HEIGHT * 2 + ch;
 
 	if(atoi(cgi.ConfigString(CS_CTF)) > 0)
 		y += HUD_PIC_HEIGHT + ch;
@@ -329,8 +330,8 @@ static void Cg_DrawReady(player_state_t *ps){
 
 	cgi.BindFont("small", NULL, &ch);
 
-	x = *cgi.width - cgi.StringWidth("Ready");
-	y = HUD_PIC_HEIGHT * 2 + 2 * ch;
+	x = *cgi.x + *cgi.w - cgi.StringWidth("Ready");
+	y = *cgi.y + HUD_PIC_HEIGHT * 2 + 2 * ch;
 
 	cgi.DrawString(x, y, "Ready", CON_COLOR_GREEN);
 
@@ -343,7 +344,7 @@ static void Cg_DrawReady(player_state_t *ps){
  */
 static void Cg_DrawTeam(player_state_t *ps){
 	const int team = ps->stats[STAT_TEAM];
-	int color;
+	int x, y, color;
 
 	if(!team)
 		return;
@@ -357,7 +358,10 @@ static void Cg_DrawTeam(player_state_t *ps){
 		return;
 	}
 
-	cgi.DrawFill(0, *cgi.height - 64, *cgi.width, *cgi.height, color, 0.15);
+	x = *cgi.x;
+	y = *cgi.y + *cgi.h - 64;
+
+	cgi.DrawFill(x, y, *cgi.w, 64, color, 0.15);
 }
 
 
@@ -382,7 +386,7 @@ static void Cg_DrawCrosshair(player_state_t *ps){
 	if(cg_third_person->value)
 		return;  // third person
 
-	if(!*crosshair.name || cg_crosshair->modified){  // crosshair image
+	if(cg_crosshair->modified){  // crosshair image
 		cg_crosshair->modified = false;
 
 		if(cg_crosshair->value < 0)
@@ -481,7 +485,7 @@ static void Cg_DrawBlend(player_state_t *ps){
 	}
 
 	if(al > 0.0)
-		cgi.DrawFill(0, 0, *cgi.width, *cgi.height, color, al);
+		cgi.DrawFill(*cgi.x, *cgi.y, *cgi.w, *cgi.h, color, al);
 
 	h = dh;  // update our copies
 	a = da;

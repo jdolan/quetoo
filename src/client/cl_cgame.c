@@ -23,6 +23,7 @@
 
 static void *cgame_handle;
 
+
 /*
  * Cl_ShutdownCgame
  */
@@ -93,6 +94,11 @@ void Cl_InitCgame(void){
 
 	import.width = &r_context.width;
 	import.height = &r_context.height;
+
+	import.w = &r_view.width;
+	import.h = &r_view.height;
+	import.x = &r_view.x;
+	import.y = &r_view.y;
 
 	import.time = &cl.time;
 

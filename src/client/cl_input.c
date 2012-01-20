@@ -390,7 +390,6 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *uni
 				Cvar_Toggle("r_fullscreen");
 				Cbuf_AddText("r_restart");
 			}
-
 			break;
 
 		case SDLK_F12:

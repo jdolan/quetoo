@@ -38,10 +38,13 @@ typedef struct cg_import_s {
 
 	char *(*ConfigString)(int index);
 
-	void (*Trace)(vec3_t start, vec3_t end, float radius, int masl);
+	void (*Trace)(vec3_t start, vec3_t end, float radius, int mask);
 
-	// view parameters
+	// context parameters
 	int *width, *height;
+
+	// view parameteres
+	int *x, *y, *w, *h;
 
 	// client time
 	int *time;
@@ -64,6 +67,8 @@ typedef struct cg_export_s {
 
 	void (*Init)(void);
 	void (*Shutdown)(void);
+
+	void (*UpdateMedia)(void);
 
 	float (*ThirdPerson)(player_state_t *ps);
 

@@ -502,6 +502,8 @@ static void Cl_UpdateMedia(void){
 
 		Cl_LoadEmits();
 
+		cls.cgame->UpdateMedia();
+
 		cls.loading = 0;
 	}
 }
