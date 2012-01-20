@@ -22,7 +22,7 @@
 #include "r_local.h"
 #include "client.h"
 
-#define MAX_CHARS 2048  // per font
+#define MAX_CHARS 8192  // per font
 
 // characters are batched per frame and drawn in one shot
 // accumulate coordinates and colors as vertex arrays
