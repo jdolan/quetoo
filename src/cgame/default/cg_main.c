@@ -30,45 +30,46 @@ cvar_t *cg_third_person;
 
 cg_import_t cgi;
 
-
 /*
  * Cg_Init
  */
-static void Cg_Init(void){
+static void Cg_Init(void) {
 
 	cgi.Print("  Client game initialization...\n");
 
-	cg_blend = cgi.Cvar("cg_blend", "1.0", CVAR_ARCHIVE, "Controls the intensity of screen alpha-blending");
+	cg_blend = cgi.Cvar("cg_blend", "1.0", CVAR_ARCHIVE,
+			"Controls the intensity of screen alpha-blending");
 	cg_crosshair = cgi.Cvar("cg_crosshair", "1", CVAR_ARCHIVE, NULL);
-	cg_crosshair_color = cgi.Cvar("cg_crosshair_color", "default", CVAR_ARCHIVE, NULL);
-	cg_crosshair_scale = cgi.Cvar("cg_crosshair_scale", "1.0", CVAR_ARCHIVE, NULL);
-	cg_hud = cgi.Cvar("cg_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
-	cg_third_person = cgi.Cvar("cg_third_person", "0", CVAR_ARCHIVE, "Toggles the third person camera.");
+	cg_crosshair_color = cgi.Cvar("cg_crosshair_color", "default",
+			CVAR_ARCHIVE, NULL);
+	cg_crosshair_scale = cgi.Cvar("cg_crosshair_scale", "1.0", CVAR_ARCHIVE,
+			NULL);
+	cg_hud = cgi.Cvar("cg_hud", "1", CVAR_ARCHIVE,
+			"Render the Heads-Up-Display");
+	cg_third_person = cgi.Cvar("cg_third_person", "0", CVAR_ARCHIVE,
+			"Toggles the third person camera.");
 
 	cgi.Print("  Client game initialized.\n");
 }
 
-
 /*
  * Cg_Shutdown
  */
-static void Cg_Shutdown(void){
+static void Cg_Shutdown(void) {
 	cgi.Print("  Client game shutdown...\n");
 }
-
 
 /*
  * Cg_UpdateMedia
  */
-static void Cg_UpdateMedia(void){
+static void Cg_UpdateMedia(void) {
 	cg_crosshair->modified = true;
 }
-
 
 /*
  * Cg_LoadCgame
  */
-cg_export_t *Cg_LoadCgame(cg_import_t *import){
+cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	static cg_export_t cge;
 
 	cgi = *import;

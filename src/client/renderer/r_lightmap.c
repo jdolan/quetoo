@@ -29,13 +29,12 @@
 
 r_lightmaps_t r_lightmaps;
 
-
 /*
  * R_UploadLightmapBlock
  */
-static void R_UploadLightmapBlock(){
+static void R_UploadLightmapBlock() {
 
-	if(r_lightmaps.lightmap_texnum == MAX_GL_LIGHTMAPS){
+	if (r_lightmaps.lightmap_texnum == MAX_GL_LIGHTMAPS) {
 		Com_Warn("R_UploadLightmapBlock: MAX_GL_LIGHTMAPS reached.\n");
 		return;
 	}
@@ -46,13 +45,13 @@ static void R_UploadLightmapBlock(){
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, r_lightmaps.size, r_lightmaps.size,
-				0, GL_RGB, GL_UNSIGNED_BYTE, r_lightmaps.sample_buffer);
+			0, GL_RGB, GL_UNSIGNED_BYTE, r_lightmaps.sample_buffer);
 
 	r_lightmaps.lightmap_texnum++;
 
-	if(r_load_model->version == BSP_VERSION_){  // upload deluxe block as well
+	if (r_load_model->version == BSP_VERSION_) { // upload deluxe block as well
 
-		if(r_lightmaps.deluxemap_texnum == MAX_GL_DELUXEMAPS){
+		if (r_lightmaps.deluxemap_texnum == MAX_GL_DELUXEMAPS) {
 			Com_Warn("R_UploadLightmapBlock: MAX_GL_DELUXEMAPS reached.\n");
 			return;
 		}
@@ -62,8 +61,9 @@ static void R_UploadLightmapBlock(){
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, r_lightmaps.size, r_lightmaps.size,
-				0, GL_RGB, GL_UNSIGNED_BYTE, r_lightmaps.direction_buffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, r_lightmaps.size,
+				r_lightmaps.size, 0, GL_RGB, GL_UNSIGNED_BYTE,
+				r_lightmaps.direction_buffer);
 
 		r_lightmaps.deluxemap_texnum++;
 	}
@@ -74,45 +74,44 @@ static void R_UploadLightmapBlock(){
 	memset(r_lightmaps.direction_buffer, 0, r_lightmaps.size * r_lightmaps.size * 3);
 }
 
-
 /*
  * R_AllocLightmapBlock
  */
-static boolean_t R_AllocLightmapBlock(int w, int h, int *x, int *y){
+static boolean_t R_AllocLightmapBlock(int w, int h, int *x, int *y) {
 	int i, j;
 	int best;
 
 	best = r_lightmaps.size;
 
-	for(i = 0; i < r_lightmaps.size - w; i++){
+	for (i = 0; i < r_lightmaps.size - w; i++) {
 		int best2 = 0;
 
-		for(j = 0; j < w; j++){
-			if(r_lightmaps.allocated[i + j] >= best)
+		for (j = 0; j < w; j++) {
+			if (r_lightmaps.allocated[i + j] >= best)
 				break;
-			if(r_lightmaps.allocated[i + j] > best2)
+			if (r_lightmaps.allocated[i + j] > best2)
 				best2 = r_lightmaps.allocated[i + j];
 		}
-		if(j == w){  // this is a valid spot
+		if (j == w) { // this is a valid spot
 			*x = i;
 			*y = best = best2;
 		}
 	}
 
-	if(best + h > r_lightmaps.size)
+	if (best + h > r_lightmaps.size)
 		return false;
 
-	for(i = 0; i < w; i++)
+	for (i = 0; i < w; i++)
 		r_lightmaps.allocated[*x + i] = best + h;
 
 	return true;
 }
 
-
 /*
  * R_BuildDefaultLightmap
  */
-static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int stride){
+static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout,
+		byte *dout, int stride) {
 	int i, j;
 
 	const int smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
@@ -120,8 +119,8 @@ static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout
 
 	stride -= (smax * 3);
 
-	for(i = 0; i < tmax; i++, sout += stride, dout += stride){
-		for(j = 0; j < smax; j++){
+	for (i = 0; i < tmax; i++, sout += stride, dout += stride) {
+		for (j = 0; j < smax; j++) {
 
 			sout[0] = 255;
 			sout[1] = 255;
@@ -129,7 +128,7 @@ static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout
 
 			sout += 3;
 
-			if(r_load_model->version == BSP_VERSION_){
+			if (r_load_model->version == BSP_VERSION_) {
 				dout[0] = 127;
 				dout[1] = 127;
 				dout[2] = 255;
@@ -143,14 +142,14 @@ static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout
 	surf->color[3] = 1.0;
 }
 
-
 /*
  * R_BuildLightmap
  *
  * Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
  * writing processed lightmap and deluxemap RGBA to the specified destinations.
  */
-static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int stride){
+static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout,
+		int stride) {
 	int i, j;
 	byte *lightmap, *lm, *l, *deluxemap, *dm;
 
@@ -160,24 +159,24 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 	const int size = smax * tmax;
 	stride -= (smax * 3);
 
-	lightmap = (byte *)Z_Malloc(size * 3);
+	lightmap = (byte *) Z_Malloc(size * 3);
 	lm = lightmap;
 
 	deluxemap = dm = NULL;
 
-	if(r_load_model->version == BSP_VERSION_){
-		deluxemap = (byte *)Z_Malloc(size * 3);
+	if (r_load_model->version == BSP_VERSION_) {
+		deluxemap = (byte *) Z_Malloc(size * 3);
 		dm = deluxemap;
 	}
 
 	// convert the raw lightmap samples to RGBA for softening
-	for(i = j = 0; i < size; i++, lm += 3, dm += 3){
+	for (i = j = 0; i < size; i++, lm += 3, dm += 3) {
 		lm[0] = surf->samples[j++];
 		lm[1] = surf->samples[j++];
 		lm[2] = surf->samples[j++];
 
 		// read in directional samples for deluxe mapping as well
-		if(r_load_model->version == BSP_VERSION_){
+		if (r_load_model->version == BSP_VERSION_) {
 			dm[0] = surf->samples[j++];
 			dm[1] = surf->samples[j++];
 			dm[2] = surf->samples[j++];
@@ -187,19 +186,19 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 	// apply modulate, contrast, resolve average surface color, etc..
 	R_FilterTexture(lightmap, smax, tmax, surf->color, it_lightmap);
 
-	if(surf->texinfo->flags & (SURF_BLEND_33 | SURF_ALPHA_TEST))
+	if (surf->texinfo->flags & (SURF_BLEND_33 | SURF_ALPHA_TEST))
 		surf->color[3] = 0.25;
-	else if(surf->texinfo->flags & SURF_BLEND_66)
+	else if (surf->texinfo->flags & SURF_BLEND_66)
 		surf->color[3] = 0.50;
 	else
 		surf->color[3] = 1.0;
 
 	// soften it if it's sufficiently large
-	if(r_soften->value && size > 128){
-		for(i = 0; i < r_soften->value; i++){
+	if (r_soften->value && size > 128) {
+		for (i = 0; i < r_soften->value; i++) {
 			R_SoftenTexture(lightmap, smax, tmax, it_lightmap);
 
-			if(r_load_model->version == BSP_VERSION_)
+			if (r_load_model->version == BSP_VERSION_)
 				R_SoftenTexture(deluxemap, smax, tmax, it_deluxemap);
 		}
 	}
@@ -207,16 +206,16 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 	// the final lightmap is uploaded to the card via the strided lightmap
 	// block, and also cached on the surface for fast point lighting lookups
 
-	surf->lightmap = (byte *)R_HunkAlloc(size * 3);
+	surf->lightmap = (byte *) R_HunkAlloc(size * 3);
 	l = surf->lightmap;
 
 	lm = lightmap;
 
-	if(r_load_model->version == BSP_VERSION_)
+	if (r_load_model->version == BSP_VERSION_)
 		dm = deluxemap;
 
-	for(i = 0; i < tmax; i++, sout += stride, dout += stride){
-		for(j = 0; j < smax; j++){
+	for (i = 0; i < tmax; i++, sout += stride, dout += stride) {
+		for (j = 0; j < smax; j++) {
 
 			// copy the lightmap to the strided block
 			sout[0] = lm[0];
@@ -233,7 +232,7 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 			lm += 3;
 
 			// lastly copy the deluxemap to the strided block
-			if(r_load_model->version == BSP_VERSION_){
+			if (r_load_model->version == BSP_VERSION_) {
 				dout[0] = dm[0];
 				dout[1] = dm[1];
 				dout[2] = dm[2];
@@ -246,31 +245,31 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, int s
 
 	Z_Free(lightmap);
 
-	if(r_load_model->version == BSP_VERSION_)
+	if (r_load_model->version == BSP_VERSION_)
 		Z_Free(deluxemap);
 }
-
 
 /*
  * R_CreateSurfaceLightmap
  */
-void R_CreateSurfaceLightmap(r_bsp_surface_t *surf){
+void R_CreateSurfaceLightmap(r_bsp_surface_t *surf) {
 	int smax, tmax, stride;
 	byte *samples, *directions;
 
-	if(!(surf->flags & MSURF_LIGHTMAP))
+	if (!(surf->flags & MSURF_LIGHTMAP))
 		return;
 
 	smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
 	tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
 
-	if(!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)){
+	if (!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)) {
 
-		R_UploadLightmapBlock();  // upload the last block
+		R_UploadLightmapBlock(); // upload the last block
 
-		if(!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)){
-			Com_Error(ERR_DROP, "R_CreateSurfaceLightmap: Consecutive calls to "
-					"R_AllocLightmapBlock(%d,%d) failed.", smax, tmax);
+		if (!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)) {
+			Com_Error(ERR_DROP,
+					"R_CreateSurfaceLightmap: Consecutive calls to "
+						"R_AllocLightmapBlock(%d,%d) failed.", smax, tmax);
 		}
 	}
 
@@ -285,17 +284,16 @@ void R_CreateSurfaceLightmap(r_bsp_surface_t *surf){
 
 	stride = r_lightmaps.size * 3;
 
-	if(surf->samples)
+	if (surf->samples)
 		R_BuildLightmap(surf, samples, directions, stride);
 	else
 		R_BuildDefaultLightmap(surf, samples, directions, stride);
 }
 
-
 /*
  * R_BeginBuildingLightmaps
  */
-void R_BeginBuildingLightmaps(void){
+void R_BeginBuildingLightmaps(void) {
 	int max;
 
 	// users can tune lightmap size for their card
@@ -304,28 +302,28 @@ void R_BeginBuildingLightmaps(void){
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
 
 	// but clamp it to the card's capability to avoid errors
-	if(r_lightmaps.size < 256)
+	if (r_lightmaps.size < 256)
 		r_lightmaps.size = 256;
-	if(r_lightmaps.size > max)
+	if (r_lightmaps.size > max)
 		r_lightmaps.size = max;
 
-	r_lightmaps.allocated = (unsigned *)R_HunkAlloc(r_lightmaps.size * sizeof(unsigned));
+	r_lightmaps.allocated = (unsigned *) R_HunkAlloc(
+			r_lightmaps.size * sizeof(unsigned));
 
-	r_lightmaps.sample_buffer = (byte *)R_HunkAlloc(
+	r_lightmaps.sample_buffer = (byte *) R_HunkAlloc(
 			r_lightmaps.size * r_lightmaps.size * sizeof(unsigned));
 
-	r_lightmaps.direction_buffer = (byte *)R_HunkAlloc(
+	r_lightmaps.direction_buffer = (byte *) R_HunkAlloc(
 			r_lightmaps.size * r_lightmaps.size * sizeof(unsigned));
 
 	r_lightmaps.lightmap_texnum = TEXNUM_LIGHTMAPS;
 	r_lightmaps.deluxemap_texnum = TEXNUM_DELUXEMAPS;
 }
 
-
 /*
  * R_EndBuildingLightmaps
  */
-void R_EndBuildingLightmaps(void){
+void R_EndBuildingLightmaps(void) {
 
 	// upload the pending lightmap block
 	R_UploadLightmapBlock();

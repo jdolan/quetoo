@@ -23,49 +23,44 @@
 
 quake2world_t quake2world;
 
-
 /*
  * main
  */
-int main(int argc, char **argv){
-	char *pwd[] = {"."};
+int main(int argc, char **argv) {
+	char *pwd[] = { "." };
 	err = ERR_OK;
 
-	if(argc == 1 || !strcmp(argv[1], "--help")){  // print help
+	if (argc == 1 || !strcmp(argv[1], "--help")) { // print help
 		printf("Quake2World `pak' manipulates Quake2(tm) pak files.\n\n"
-				"Examples:\n"
-				"  pak -c file.pak foo bar	#create file.pak from foo and bar\n"
-				"  pak -x file.pak dest		#extract file.pak to dest\n"
-				"  pak -t file.pak		#list the contents of file.pak\n"
-		);
+			"Examples:\n"
+			"  pak -c file.pak foo bar	#create file.pak from foo and bar\n"
+			"  pak -x file.pak dest		#extract file.pak to dest\n"
+			"  pak -t file.pak		#list the contents of file.pak\n");
 		exit(0);
 	}
 
-   	if(argc < 3){  // bad options
+	if (argc < 3) { // bad options
 		fprintf(stderr, "%s: You must specify one of the options `-tcx'.\n"
-				"Try `%s --help' for more information.\n", argv[0], argv[0]);
+			"Try `%s --help' for more information.\n", argv[0], argv[0]);
 		exit(ERR_ARG);
 	}
 
-   	memset(&quake2world, 0, sizeof(quake2world));
+	memset(&quake2world, 0, sizeof(quake2world));
 
-   	Z_Init();
+	Z_Init();
 
-	if(!strcmp(argv[1], "-c")){  // create
-		if(argc - 3 == 0)  // special case when no dirs specified
+	if (!strcmp(argv[1], "-c")) { // create
+		if (argc - 3 == 0) // special case when no dirs specified
 			Pak_CreatePakfile(argv[2], 1, pwd);
 		else
 			Pak_CreatePakfile(argv[2], argc - 3, argv + 3);
-	}
-	else if(!strcmp(argv[1], "-x")){  // extract
+	} else if (!strcmp(argv[1], "-x")) { // extract
 		Pak_ExtractPakfile(argv[2], argc > 3 ? argv[3] : NULL, false);
-	}
-	else if(!strcmp(argv[1], "-t")){  // test
+	} else if (!strcmp(argv[1], "-t")) { // test
 		Pak_ExtractPakfile(argv[2], argc > 3 ? argv[3] : NULL, true);
-	}
-	else {
+	} else {
 		fprintf(stderr, "%s: Missing or unsupported option.\n"
-				"Try `%s --help' for more information.\n", argv[0], argv[0]);
+			"Try `%s --help' for more information.\n", argv[0], argv[0]);
 		exit(ERR_ARG);
 	}
 

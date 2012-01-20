@@ -21,36 +21,34 @@
 
 #include "r_local.h"
 
-
 /*
  * R_AddLight
  */
-void R_AddLight(const r_light_t *l){
+void R_AddLight(const r_light_t *l) {
 
-	if(!r_lighting->value)
+	if (!r_lighting->value)
 		return;
 
-	if(r_view.num_lights == MAX_LIGHTS)
+	if (r_view.num_lights == MAX_LIGHTS)
 		return;
 
 	r_view.lights[r_view.num_lights++] = *l;
 }
 
-
 /*
  * R_AddSustainedLight
  */
-void R_AddSustainedLight(const r_sustained_light_t *s){
+void R_AddSustainedLight(const r_sustained_light_t *s) {
 	int i;
 
-	if(!r_lighting->value)
+	if (!r_lighting->value)
 		return;
 
-	for(i = 0; i < MAX_LIGHTS; i++)
-		if(!r_view.sustained_lights[i].sustain)
+	for (i = 0; i < MAX_LIGHTS; i++)
+		if (!r_view.sustained_lights[i].sustain)
 			break;
 
-	if(i == MAX_LIGHTS)
+	if (i == MAX_LIGHTS)
 		return;
 
 	r_view.sustained_lights[i] = *s;
@@ -59,31 +57,30 @@ void R_AddSustainedLight(const r_sustained_light_t *s){
 	r_view.sustained_lights[i].sustain = r_view.time + s->sustain;
 }
 
-
 /*
  * R_AddSustainedLights
  */
-static void R_AddSustainedLights(void){
+static void R_AddSustainedLights(void) {
 	r_sustained_light_t *s;
 	int i;
 
 	// sustains must be recalculated every frame
-	for(i = 0, s = r_view.sustained_lights; i < MAX_LIGHTS; i++, s++){
+	for (i = 0, s = r_view.sustained_lights; i < MAX_LIGHTS; i++, s++) {
 
-		if(s->sustain <= r_view.time){  // clear it
+		if (s->sustain <= r_view.time) { // clear it
 			s->sustain = 0.0;
 			continue;
 		}
 
 		r_light_t l = s->light;
 
-		const float intensity = (s->sustain - r_view.time) / (s->sustain - s->time);
+		const float intensity = (s->sustain - r_view.time) / (s->sustain
+				- s->time);
 		VectorScale(s->light.color, intensity, l.color);
 
 		R_AddLight(&l);
 	}
 }
-
 
 /*
  * R_ResetLights
@@ -91,66 +88,65 @@ static void R_AddSustainedLights(void){
  * Resets hardware light source state.  Note that this is accomplished purely
  * client-side.  Our internal accounting lets us avoid GL state changes.
  */
-void R_ResetLights(void){
+void R_ResetLights(void) {
 
 	r_locals.active_light_mask = 0xffffffff;
 	r_locals.active_light_count = 0;
 }
-
 
 /*
  * R_MarkLights_
  *
  * Recursively populates light source bit masks for world surfaces.
  */
-static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t *node){
+static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit,
+		r_bsp_node_t *node) {
 	r_bsp_surface_t *surf;
 	vec3_t origin;
 	float dist;
 	int i;
 
-	if(node->contents != CONTENTS_NODE)  // leaf
+	if (node->contents != CONTENTS_NODE) // leaf
 		return;
 
-	if(node->vis_frame != r_locals.vis_frame)  // not visible
-		if(!node->model)  // and not a bsp submodel
+	if (node->vis_frame != r_locals.vis_frame) // not visible
+		if (!node->model) // and not a bsp submodel
 			return;
 
 	VectorSubtract(light->origin, trans, origin);
 
 	dist = DotProduct(origin, node->plane->normal) - node->plane->dist;
 
-	if(dist > light->radius){  // front only
+	if (dist > light->radius) { // front only
 		R_MarkLights_(light, trans, bit, node->children[0]);
 		return;
 	}
 
-	if(dist < -light->radius){  // back only
+	if (dist < -light->radius) { // back only
 		R_MarkLights_(light, trans, bit, node->children[1]);
 		return;
 	}
 
-	if(node->model)  // mark bsp submodel
+	if (node->model) // mark bsp submodel
 		node->model->lights |= bit;
 
 	// mark all surfaces in this node
 	surf = r_world_model->surfaces + node->first_surface;
 
-	for(i = 0; i < node->num_surfaces; i++, surf++){
+	for (i = 0; i < node->num_surfaces; i++, surf++) {
 
-		if(surf->light_frame != r_locals.light_frame){  // reset it
+		if (surf->light_frame != r_locals.light_frame) { // reset it
 			surf->light_frame = r_locals.light_frame;
 			surf->lights = 0;
 		}
 
-		surf->lights |= bit;  // add this light
+		surf->lights |= bit; // add this light
 	}
 
 	// now go down both sides
 	R_MarkLights_(light, trans, bit, node->children[0]);
 	R_MarkLights_(light, trans, bit, node->children[1]);
 }
-
 
 /*
  * R_MarkLights
@@ -159,18 +155,18 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t 
  * light source bit masks so that we know which light sources each surface
  * should receive.
  */
-void R_MarkLights(void *data){
+void R_MarkLights(void *data) {
 	int i, j;
 
 	r_locals.light_frame++;
 
-	if(r_locals.light_frame == 0x7fff)  // avoid overflows
+	if (r_locals.light_frame == 0x7fff) // avoid overflows
 		r_locals.light_frame = 0;
 
 	R_AddSustainedLights();
 
 	// flag all surfaces for each light source
-	for(i = 0; i < r_view.num_lights; i++){
+	for (i = 0; i < r_view.num_lights; i++) {
 
 		r_light_t *light = &r_view.lights[i];
 
@@ -178,18 +174,17 @@ void R_MarkLights(void *data){
 		R_MarkLights_(light, vec3_origin, 1 << i, r_world_model->nodes);
 
 		// and bsp entity surfaces
-		for(j = 0; j < r_view.num_entities; j++){
+		for (j = 0; j < r_view.num_entities; j++) {
 
 			r_entity_t *e = &r_view.entities[j];
 
-			if(e->model && e->model->type == mod_bsp_submodel){
+			if (e->model && e->model->type == mod_bsp_submodel) {
 				e->model->lights = 0;
 				R_MarkLights_(light, e->origin, 1 << i, e->model->nodes);
 			}
 		}
 	}
 }
-
 
 static vec3_t lights_offset;
 
@@ -198,10 +193,9 @@ static vec3_t lights_offset;
  *
  * Light sources must be translated for mod_bsp_submodel entities.
  */
-void R_ShiftLights(const vec3_t offset){
+void R_ShiftLights(const vec3_t offset) {
 	VectorCopy(offset, lights_offset);
 }
-
 
 /*
  * R_EnableLights
@@ -209,16 +203,16 @@ void R_ShiftLights(const vec3_t offset){
  * Enables the light sources indicated by the specified bit mask.  Care is
  * taken to avoid GL state changes whenever possible.
  */
-void R_EnableLights(int mask){
+void R_EnableLights(int mask) {
 	int count;
 
-	if(mask == r_locals.active_light_mask)  // no change
+	if (mask == r_locals.active_light_mask) // no change
 		return;
 
 	r_locals.active_light_mask = mask;
 	count = 0;
 
-	if(mask){  // enable up to MAX_ACTIVE_LIGHT sources
+	if (mask) { // enable up to MAX_ACTIVE_LIGHT sources
 		const r_light_t *l;
 		vec4_t position;
 		vec4_t diffuse;
@@ -226,12 +220,12 @@ void R_EnableLights(int mask){
 
 		position[3] = diffuse[3] = 1.0;
 
-		for(i = 0, l = r_view.lights; i < r_view.num_lights; i++, l++){
+		for (i = 0, l = r_view.lights; i < r_view.num_lights; i++, l++) {
 
-			if(count == MAX_ACTIVE_LIGHTS)
+			if (count == MAX_ACTIVE_LIGHTS)
 				break;
 
-			if(mask & (1 << i)){
+			if (mask & (1 << i)) {
 
 				VectorSubtract(l->origin, lights_offset, position);
 				glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
@@ -245,12 +239,11 @@ void R_EnableLights(int mask){
 		}
 	}
 
-	if(count < MAX_ACTIVE_LIGHTS)  // disable the next light as a stop
+	if (count < MAX_ACTIVE_LIGHTS) // disable the next light as a stop
 		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, 0.0);
 
 	r_locals.active_light_count = count;
 }
-
 
 /*
  * R_EnableLightsByRadius
@@ -259,18 +252,18 @@ void R_EnableLights(int mask){
  * mesh entities, as they are not addressed with the recursive BSP-related
  * functions above.
  */
-void R_EnableLightsByRadius(const vec3_t p){
+void R_EnableLightsByRadius(const vec3_t p) {
 	const r_light_t *l;
 	vec3_t delta;
 	int i, mask;
 
 	mask = 0;
 
-	for(i = 0, l = r_view.lights; i < r_view.num_lights; i++, l++){
+	for (i = 0, l = r_view.lights; i < r_view.num_lights; i++, l++) {
 
 		VectorSubtract(l->origin, p, delta);
 
-		if(VectorLength(delta) < l->radius)
+		if (VectorLength(delta) < l->radius)
 			mask |= (1 << i);
 	}
 

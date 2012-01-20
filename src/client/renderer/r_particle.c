@@ -21,18 +21,16 @@
 
 #include "r_local.h"
 
-
 /*
  * R_AddParticle
  */
-void R_AddParticle(r_particle_t *p){
+void R_AddParticle(r_particle_t *p) {
 
-	if(r_view.num_particles >= MAX_PARTICLES)
+	if (r_view.num_particles >= MAX_PARTICLES)
 		return;
 
 	r_view.particles[r_view.num_particles++] = *p;
 }
-
 
 typedef struct particle_state_s {
 	vec3_t weather_right;
@@ -43,26 +41,26 @@ typedef struct particle_state_s {
 
 static particle_state_t ps;
 
-
 /*
  * R_ParticleVerts
  */
-static void R_ParticleVerts(r_particle_t *p, GLfloat *out){
+static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
 	vec3_t v, up, right, upright, downright;
 	vec3_t *verts;
 	float scale;
 
-	verts = (vec3_t *)out;
+	verts = (vec3_t *) out;
 
-	scale =  // hack a scale up to keep particles from disappearing
-		(p->current_org[0] - r_view.origin[0]) * r_view.forward[0] +
-		(p->current_org[1] - r_view.origin[1]) * r_view.forward[1] +
-		(p->current_org[2] - r_view.origin[2]) * r_view.forward[2];
+	scale = // hack a scale up to keep particles from disappearing
+			(p->current_org[0] - r_view.origin[0]) * r_view.forward[0]
+					+ (p->current_org[1] - r_view.origin[1])
+							* r_view.forward[1] + (p->current_org[2]
+					- r_view.origin[2]) * r_view.forward[2];
 
-	if(scale > 20.0)  // use it
+	if (scale > 20.0) // use it
 		p->current_scale += scale * 0.002;
 
-	if(p->type == PARTICLE_BEAM){  // beams are lines with starts and ends
+	if (p->type == PARTICLE_BEAM) { // beams are lines with starts and ends
 		VectorSubtract(p->current_org, p->current_end, v);
 		VectorNormalize(v);
 		VectorCopy(v, up);
@@ -79,7 +77,7 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out){
 		return;
 	}
 
-	if(p->type == PARTICLE_DECAL){  // decals are aligned with surfaces
+	if (p->type == PARTICLE_DECAL) { // decals are aligned with surfaces
 		AngleVectors(p->dir, NULL, right, up);
 
 		VectorAdd(up, right, verts[0]);
@@ -96,22 +94,19 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out){
 
 	// all other particles are aligned with the client's view
 
-	if(p->type == PARTICLE_WEATHER){  // keep it vertical
+	if (p->type == PARTICLE_WEATHER) { // keep it vertical
 		VectorScale(ps.weather_right, p->current_scale, right);
 		VectorScale(ps.weather_up, p->current_scale, up);
-	}
-	else if(p->type == PARTICLE_SPLASH){  // keep it horizontal
+	} else if (p->type == PARTICLE_SPLASH) { // keep it horizontal
 
-		if(p->current_org[2] > r_view.origin[2]){  // it's above us
+		if (p->current_org[2] > r_view.origin[2]) { // it's above us
 			VectorScale(ps.splash_right[0], p->current_scale, right);
 			VectorScale(ps.splash_up[0], p->current_scale, up);
-		}
-		else {  // it's below us
+		} else { // it's below us
 			VectorScale(ps.splash_right[1], p->current_scale, right);
 			VectorScale(ps.splash_up[1], p->current_scale, up);
 		}
-	}
-	else if(p->type == PARTICLE_ROLL){  // roll it
+	} else if (p->type == PARTICLE_ROLL) { // roll it
 
 		VectorCopy(r_view.angles, p->dir);
 		p->dir[2] = p->roll * r_view.time;
@@ -120,8 +115,7 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out){
 
 		VectorScale(right, p->current_scale, right);
 		VectorScale(up, p->current_scale, up);
-	}
-	else {  // default particle alignment with view
+	} else { // default particle alignment with view
 		VectorScale(r_view.right, p->current_scale, right);
 		VectorScale(r_view.up, p->current_scale, up);
 	}
@@ -135,14 +129,13 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out){
 	VectorSubtract(p->current_org, upright, verts[3]);
 }
 
-
 /*
  * R_ParticleTexcoords
  */
-static void R_ParticleTexcoords(r_particle_t *p, GLfloat *out){
+static void R_ParticleTexcoords(r_particle_t *p, GLfloat *out) {
 	float s, t;
 
-	if(!p->scroll_s && !p->scroll_t){
+	if (!p->scroll_s && !p->scroll_t) {
 		memcpy(out, default_texcoords, sizeof(vec2_t) * 4);
 		return;
 	}
@@ -163,11 +156,10 @@ static void R_ParticleTexcoords(r_particle_t *p, GLfloat *out){
 	out[7] = 1.0 + t;
 }
 
-
 /*
  * R_ParticleColor
  */
-static void R_ParticleColor(r_particle_t *p, GLfloat *out){
+static void R_ParticleColor(r_particle_t *p, GLfloat *out) {
 	byte color[4];
 	int i, j;
 
@@ -175,7 +167,7 @@ static void R_ParticleColor(r_particle_t *p, GLfloat *out){
 	color[3] = p->current_alpha * 255.0;
 	j = 0;
 
-	for(i = 0; i < 4; i++){  // duplicate color data to all 4 verts
+	for (i = 0; i < 4; i++) { // duplicate color data to all 4 verts
 		out[j + 0] = color[0] / 255.0;
 		out[j + 1] = color[1] / 255.0;
 		out[j + 2] = color[2] / 255.0;
@@ -184,11 +176,10 @@ static void R_ParticleColor(r_particle_t *p, GLfloat *out){
 	}
 }
 
-
 /*
  * R_DrawParticles_
  */
-static void R_DrawParticles_(int mask){
+static void R_DrawParticles_(int mask) {
 	r_particle_t *p;
 	r_image_t *image;
 	int i, j, k, l;
@@ -197,15 +188,15 @@ static void R_DrawParticles_(int mask){
 
 	j = k = l = 0;
 
-	for(p = r_view.particles, i = 0; i < r_view.num_particles; i++, p++){
+	for (p = r_view.particles, i = 0; i < r_view.num_particles; i++, p++) {
 
-		if(!(p->type & mask))  // skip it
+		if (!(p->type & mask)) // skip it
 			continue;
 
 		// bind the particle's texture
-		if(p->image != image){
+		if (p->image != image) {
 
-			if(image)  // draw pending particles
+			if (image) // draw pending particles
 				glDrawArrays(GL_QUADS, 0, j / 3);
 
 			j = k = l = 0;
@@ -226,7 +217,7 @@ static void R_DrawParticles_(int mask){
 		l += sizeof(vec4_t) / sizeof(vec_t) * 4;
 	}
 
-	if(j)
+	if (j)
 		glDrawArrays(GL_QUADS, 0, j / 3);
 }
 
@@ -235,10 +226,10 @@ static void R_DrawParticles_(int mask){
 /*
  * R_DrawParticles
  */
-void R_DrawParticles(void){
+void R_DrawParticles(void) {
 	vec3_t v;
 
-	if(!r_view.num_particles)
+	if (!r_view.num_particles)
 		return;
 
 	R_EnableColorArray(true);
@@ -247,13 +238,13 @@ void R_DrawParticles(void){
 
 	VectorCopy(r_view.angles, v);
 
-	v[0] = 0;  // keep weather particles vertical by removing pitch
+	v[0] = 0; // keep weather particles vertical by removing pitch
 	AngleVectors(v, NULL, ps.weather_right, ps.weather_up);
 
-	v[0] = -90;  // and splash particles horizontal by setting it
+	v[0] = -90; // and splash particles horizontal by setting it
 	AngleVectors(v, NULL, ps.splash_right[0], ps.splash_up[0]);
 
-	v[0] = 90;  // even if they are below us
+	v[0] = 90; // even if they are below us
 	AngleVectors(v, NULL, ps.splash_right[1], ps.splash_up[1]);
 
 	R_DrawParticles_(PARTICLE_DECAL);

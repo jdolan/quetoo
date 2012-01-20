@@ -21,45 +21,42 @@
 
 #include "r_local.h"
 
-
 /*
  * R_SetSurfaceState_pro
  */
-static void R_SetSurfaceState_pro(const r_bsp_surface_t *surf){
+static void R_SetSurfaceState_pro(const r_bsp_surface_t *surf) {
 
-	if(r_state.lighting_enabled){
+	if (r_state.lighting_enabled) {
 
-		if(surf->light_frame == r_locals.light_frame)  // dynamic light sources
+		if (surf->light_frame == r_locals.light_frame) // dynamic light sources
 			R_EnableLights(surf->lights);
 		else
 			R_EnableLights(0);
 	}
 }
 
-
 /*
  * R_DrawSurface_pro
  */
-static void R_DrawSurface_pro(const r_bsp_surface_t *surf){
+static void R_DrawSurface_pro(const r_bsp_surface_t *surf) {
 
 	glDrawArrays(GL_POLYGON, surf->index, surf->num_edges);
 
 	r_view.bsp_polys++;
 }
 
-
 /*
  * R_DrawSurfaces_pro
  */
-static void R_DrawSurfaces_pro(const r_bsp_surfaces_t *surfs){
+static void R_DrawSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 	int i;
 
 	R_SetArrayState(r_world_model);
 
 	// draw the surfaces
-	for(i = 0; i < surfs->count; i++){
+	for (i = 0; i < surfs->count; i++) {
 
-		if(surfs->surfaces[i]->frame != r_locals.frame)
+		if (surfs->surfaces[i]->frame != r_locals.frame)
 			continue;
 
 		R_SetSurfaceState_pro(surfs->surfaces[i]);
@@ -68,13 +65,12 @@ static void R_DrawSurfaces_pro(const r_bsp_surfaces_t *surfs){
 	}
 }
 
-
 /*
  * R_DrawOpaqueSurfaces_pro
  */
-void R_DrawOpaqueSurfaces_pro(const r_bsp_surfaces_t *surfs){
+void R_DrawOpaqueSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 
-	if(!surfs->count)
+	if (!surfs->count)
 		return;
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -92,13 +88,12 @@ void R_DrawOpaqueSurfaces_pro(const r_bsp_surfaces_t *surfs){
 	R_EnableTexture(&texunit_diffuse, true);
 }
 
-
 /*
  * R_DrawAlphaTestSurfaces_pro
  */
-void R_DrawAlphaTestSurfaces_pro(const r_bsp_surfaces_t *surfs){
+void R_DrawAlphaTestSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 
-	if(!surfs->count)
+	if (!surfs->count)
 		return;
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -116,13 +111,12 @@ void R_DrawAlphaTestSurfaces_pro(const r_bsp_surfaces_t *surfs){
 	R_EnableTexture(&texunit_diffuse, true);
 }
 
-
 /*
  * R_DrawBlendSurfaces_pro
  */
-void R_DrawBlendSurfaces_pro(const r_bsp_surfaces_t *surfs){
+void R_DrawBlendSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 
-	if(!surfs->count)
+	if (!surfs->count)
 		return;
 
 	// blend is already enabled when this is called
@@ -138,14 +132,13 @@ void R_DrawBlendSurfaces_pro(const r_bsp_surfaces_t *surfs){
 	R_EnableTexture(&texunit_diffuse, true);
 }
 
-
 /*
  * R_DrawBackSurfaces_pro
  */
-void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs){
+void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 	int i;
 
-	if(!r_line_alpha->value || !surfs->count)
+	if (!r_line_alpha->value || !surfs->count)
 		return;
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -157,19 +150,19 @@ void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs){
 	glEnable(GL_POLYGON_OFFSET_LINE);
 	glPolygonOffset(1.0, -r_line_width->value * 2.0);
 
-	if(!r_multisample->value)
+	if (!r_multisample->value)
 		glEnable(GL_LINE_SMOOTH);
 
 	glLineWidth(r_line_width->value);
 	glColor4f(0.0, 0.0, 0.0, r_line_alpha->value);
 
 	// draw the surfaces
-	for(i = 0; i < surfs->count; i++){
+	for (i = 0; i < surfs->count; i++) {
 
-		if(surfs->surfaces[i]->back_frame != r_locals.frame)
+		if (surfs->surfaces[i]->back_frame != r_locals.frame)
 			continue;
 
-		if(surfs->surfaces[i]->texinfo->flags & (SURF_WARP | SURF_SKY))
+		if (surfs->surfaces[i]->texinfo->flags & (SURF_WARP | SURF_SKY))
 			continue;
 
 		R_DrawSurface_pro(surfs->surfaces[i]);
@@ -178,7 +171,7 @@ void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs){
 	glLineWidth(1.0);
 	glColor4ubv(color_white);
 
-	if(!r_multisample->value)
+	if (!r_multisample->value)
 		glDisable(GL_LINE_SMOOTH);
 
 	glPolygonOffset(0.0, 0.0);

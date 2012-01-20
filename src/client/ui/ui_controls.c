@@ -21,11 +21,10 @@
 
 #include "ui_local.h"
 
-
 /*
  * Ui_Controls
  */
-TwBar *Ui_Controls(void){
+TwBar *Ui_Controls(void) {
 	extern cvar_t *m_sensitivity;
 	extern cvar_t *m_invert;
 	extern cvar_t *m_interpolate;
@@ -66,7 +65,8 @@ TwBar *Ui_Controls(void){
 	Ui_Bind(bar, "Talk to team", "message_mode_2", "group=Communication");
 	Ui_Bind(bar, "Show scores", "score", "group=Communication");
 
-	TwDefine("Controls size='250 550' alpha=200 iconifiable=false visible=false");
+	TwDefine(
+			"Controls size='250 550' alpha=200 iconifiable=false visible=false");
 
 	return bar;
 }

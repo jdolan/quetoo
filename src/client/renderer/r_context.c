@@ -28,10 +28,10 @@ r_context_t r_context;
 /*
  * R_SetIcon
  */
-static void R_SetIcon(void){
+static void R_SetIcon(void) {
 	SDL_Surface *surf;
 
-	if(!Img_LoadImage("pics/icon", &surf))
+	if (!Img_LoadImage("pics/icon", &surf))
 		return;
 
 	SDL_WM_SetIcon(surf, NULL);
@@ -39,30 +39,29 @@ static void R_SetIcon(void){
 	SDL_FreeSurface(surf);
 }
 
-
 /*
  * R_InitContext
  */
-boolean_t R_InitContext(int width, int height, boolean_t fullscreen){
+boolean_t R_InitContext(int width, int height, boolean_t fullscreen) {
 	unsigned flags;
 	int i;
 	SDL_Surface *surface;
 
-	if(SDL_WasInit(SDL_INIT_EVERYTHING) == 0){
-		if(SDL_Init(SDL_INIT_VIDEO) < 0){
+	if (SDL_WasInit(SDL_INIT_EVERYTHING) == 0) {
+		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 			Com_Warn("R_InitContext: %s.\n", SDL_GetError());
 			return false;
 		}
-	} else if(SDL_WasInit(SDL_INIT_VIDEO) == 0){
-		if(SDL_InitSubSystem(SDL_INIT_VIDEO) < 0){
+	} else if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
+		if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
 			Com_Warn("R_InitContext: %s.\n", SDL_GetError());
 			return false;
 		}
 	}
 
-	if(width < 0)
+	if (width < 0)
 		width = 0;
-	if(height < 0)
+	if (height < 0)
 		height = 0;
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -76,28 +75,28 @@ boolean_t R_InitContext(int width, int height, boolean_t fullscreen){
 
 	i = r_multisample->integer;
 
-	if(i < 0)
+	if (i < 0)
 		i = 0;
 
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, i ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, i);
 
 	i = r_swap_interval->integer;
-	if(i < 0)
+	if (i < 0)
 		i = 0;
-	if(i > 2)
+	if (i > 2)
 		i = 2;
 
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, i);
 
 	flags = SDL_OPENGL;
 
-	if(fullscreen)
+	if (fullscreen)
 		flags |= SDL_FULLSCREEN;
 	else
 		flags |= SDL_RESIZABLE;
 
-	if((surface = SDL_SetVideoMode(width, height, 0, flags)) == NULL)
+	if ((surface = SDL_SetVideoMode(width, height, 0, flags)) == NULL)
 		return false;
 
 	r_context.width = surface->w;
@@ -114,14 +113,13 @@ boolean_t R_InitContext(int width, int height, boolean_t fullscreen){
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &r_context.depth_bits);
 	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_context.double_buffer);
 
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,
-			SDL_DEFAULT_REPEAT_INTERVAL);
+	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 
 	SDL_WM_SetCaption("Quake2World", "Quake2World");
 
 	// don't show SDL cursor because the game will draw one
 	SDL_ShowCursor(false);
-	
+
 	SDL_EnableUNICODE(1);
 
 	R_SetIcon();
@@ -129,12 +127,11 @@ boolean_t R_InitContext(int width, int height, boolean_t fullscreen){
 	return true;
 }
 
-
 /*
  * R_ShutdownContext
  */
-void R_ShutdownContext(void){
-	if(SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
+void R_ShutdownContext(void) {
+	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
 		SDL_Quit();
 	else
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);

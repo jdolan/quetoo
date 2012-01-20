@@ -21,21 +21,20 @@
 
 #include "r_local.h"
 
-
 /*
  * R_CreateSurfaceFlare
  */
-void R_CreateSurfaceFlare(r_bsp_surface_t *surf){
+void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
 	r_material_t *m;
 	const r_stage_t *s;
 	vec3_t span;
 
 	m = &surf->texinfo->image->material;
 
-	if(!(m->flags & STAGE_FLARE))  // surface is not flared
+	if (!(m->flags & STAGE_FLARE)) // surface is not flared
 		return;
 
-	surf->flare = (r_bsp_flare_t *)R_HunkAlloc(sizeof(*surf->flare));
+	surf->flare = (r_bsp_flare_t *) R_HunkAlloc(sizeof(*surf->flare));
 
 	// move the flare away from the surface, into the level
 	VectorMA(surf->center, 2, surf->normal, surf->flare->origin);
@@ -44,27 +43,26 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf){
 	VectorSubtract(surf->maxs, surf->mins, span);
 	surf->flare->radius = VectorLength(span);
 
-	s = m->stages;  // resolve the flare stage
-	while(s){
-		if(s->flags & STAGE_FLARE)
+	s = m->stages; // resolve the flare stage
+	while (s) {
+		if (s->flags & STAGE_FLARE)
 			break;
 		s = s->next;
 	}
 
 	// resolve flare color
-	if(s->flags & STAGE_COLOR)
+	if (s->flags & STAGE_COLOR)
 		VectorCopy(s->color, surf->flare->color);
 	else
 		VectorCopy(surf->color, surf->flare->color);
 
 	// and scaled radius
-	if(s->flags & (STAGE_SCALE_S | STAGE_SCALE_T))
+	if (s->flags & (STAGE_SCALE_S | STAGE_SCALE_T))
 		surf->flare->radius *= (s->scale.s ? s->scale.s : s->scale.t);
 
 	// and image
 	surf->flare->image = s->image;
 }
-
 
 /*
  * R_DrawFlareSurfaces
@@ -75,7 +73,7 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf){
  * trace.  Flares are also faded according to the angle of their surface to the
  * view origin.
  */
-void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
+void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 	const r_image_t *image;
 	int i, j, k, l, m;
 	vec3_t view, verts[4];
@@ -83,10 +81,10 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
 	float cos, dist, scale, alpha;
 	boolean_t visible;
 
-	if(!r_flares->value)
+	if (!r_flares->value)
 		return;
 
-	if(!surfs->count)
+	if (!surfs->count)
 		return;
 
 	R_EnableColorArray(true);
@@ -99,18 +97,18 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
 	R_BindTexture(image->texnum);
 
 	j = k = l = 0;
-	for(i = 0; i < surfs->count; i++){
+	for (i = 0; i < surfs->count; i++) {
 
 		const r_bsp_surface_t *surf = surfs->surfaces[i];
 		r_bsp_flare_t *f;
 
-		if(surf->frame != r_locals.frame)
+		if (surf->frame != r_locals.frame)
 			continue;
 
 		f = surf->flare;
 
 		// bind the flare's texture
-		if(f->image != image){
+		if (f->image != image) {
 
 			glDrawArrays(GL_QUADS, 0, l / 3);
 			j = k = l = 0;
@@ -120,19 +118,19 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
 		}
 
 		// periodically test visibility to ramp alpha
-		if(r_view.time - f->time > 0.02){
+		if (r_view.time - f->time > 0.02) {
 
-			if(r_view.time - f->time > 0.5)  // reset old flares
+			if (r_view.time - f->time > 0.5) // reset old flares
 				f->alpha = 0;
 
 			R_Trace(r_view.origin, f->origin, 0, MASK_SHOT);
 			visible = r_view.trace.fraction == 1.0;
 
-			f->alpha += (visible ? 0.03 : -0.15);  // ramp
+			f->alpha += (visible ? 0.03 : -0.15); // ramp
 
-			if(f->alpha > 1.0)  // clamp
+			if (f->alpha > 1.0) // clamp
 				f->alpha = 1.0;
-			else if(f->alpha < 0)
+			else if (f->alpha < 0)
 				f->alpha = 0.0;
 
 			f->time = r_view.time;
@@ -143,12 +141,12 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
 
 		// fade according to angle
 		cos = DotProduct(surf->normal, view);
-		if(cos > 0)
+		if (cos > 0)
 			continue;
 
 		alpha = 0.1 + -cos * r_flares->value;
 
-		if(alpha > 1.0)
+		if (alpha > 1.0)
 			alpha = 1.0;
 
 		alpha = f->alpha * alpha;
@@ -167,7 +165,7 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs){
 		VectorAdd(f->origin, downright, verts[2]);
 		VectorSubtract(f->origin, upright, verts[3]);
 
-		for(m = 0; m < 4; m++){  // duplicate color data to all 4 verts
+		for (m = 0; m < 4; m++) { // duplicate color data to all 4 verts
 			memcpy(&r_state.color_array[j], f->color, sizeof(vec3_t));
 			r_state.color_array[j + 3] = alpha;
 			j += 4;

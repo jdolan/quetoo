@@ -21,25 +21,24 @@
 
 #include "r_local.h"
 
-
 /*
  * R_SetSurfaceState_default
  */
-static void R_SetSurfaceState_default(const r_bsp_surface_t *surf){
+static void R_SetSurfaceState_default(const r_bsp_surface_t *surf) {
 	r_image_t *image;
 	float a;
 
-	if(r_state.blend_enabled){  // alpha blend
-		switch(surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)){
-			case SURF_BLEND_33:
-				a = 0.33;
-				break;
-			case SURF_BLEND_66:
-				a = 0.66;
-				break;
-			default:  // both flags mean use the texture's alpha channel
-				a = 1.0;
-				break;
+	if (r_state.blend_enabled) { // alpha blend
+		switch (surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
+		case SURF_BLEND_33:
+			a = 0.33;
+			break;
+		case SURF_BLEND_66:
+			a = 0.66;
+			break;
+		default: // both flags mean use the texture's alpha channel
+			a = 1.0;
+			break;
 		}
 
 		glColor4f(1.0, 1.0, 1.0, a);
@@ -47,57 +46,54 @@ static void R_SetSurfaceState_default(const r_bsp_surface_t *surf){
 
 	image = surf->texinfo->image;
 
-	if(texunit_diffuse.enabled)  // diffuse texture
+	if (texunit_diffuse.enabled) // diffuse texture
 		R_BindTexture(image->texnum);
 
-	if(texunit_lightmap.enabled)  // lightmap texture
+	if (texunit_lightmap.enabled) // lightmap texture
 		R_BindLightmapTexture(surf->lightmap_texnum);
 
-	if(r_state.lighting_enabled){  // hardware lighting
+	if (r_state.lighting_enabled) { // hardware lighting
 
-		if(r_bumpmap->value){  // bump mapping
+		if (r_bumpmap->value) { // bump mapping
 
-			if(image->normalmap){
+			if (image->normalmap) {
 				R_BindDeluxemapTexture(surf->deluxemap_texnum);
 				R_BindNormalmapTexture(image->normalmap->texnum);
 
 				R_EnableBumpmap(&image->material, true);
-			}
-			else
+			} else
 				R_EnableBumpmap(NULL, false);
 		}
 
-		if(surf->light_frame == r_locals.light_frame)  // dynamic light sources
+		if (surf->light_frame == r_locals.light_frame) // dynamic light sources
 			R_EnableLights(surf->lights);
 		else
 			R_EnableLights(0);
 	}
 }
 
-
 /*
  * R_DrawSurface_default
  */
-static void R_DrawSurface_default(const r_bsp_surface_t *surf){
+static void R_DrawSurface_default(const r_bsp_surface_t *surf) {
 
 	glDrawArrays(GL_POLYGON, surf->index, surf->num_edges);
 
 	r_view.bsp_polys++;
 }
 
-
 /*
  * R_DrawSurfaces_default
  */
-static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs){
+static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	int i;
 
 	R_SetArrayState(r_world_model);
 
 	// draw the surfaces
-	for(i = 0; i < surfs->count; i++){
+	for (i = 0; i < surfs->count; i++) {
 
-		if(surfs->surfaces[i]->frame != r_locals.frame)
+		if (surfs->surfaces[i]->frame != r_locals.frame)
 			continue;
 
 		R_SetSurfaceState_default(surfs->surfaces[i]);
@@ -106,9 +102,9 @@ static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs){
 	}
 
 	// reset state
-	if(r_state.lighting_enabled){
+	if (r_state.lighting_enabled) {
 
-		if(r_state.bumpmap_enabled)
+		if (r_state.bumpmap_enabled)
 			R_EnableBumpmap(NULL, false);
 
 		R_EnableLights(0);
@@ -117,11 +113,10 @@ static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs){
 	glColor4ubv(color_white);
 }
 
-
 /*
  * R_DrawSurfacesLines_default
  */
-static void R_DrawSurfacesLines_default(const r_bsp_surfaces_t *surfs){
+static void R_DrawSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 	int i;
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -132,9 +127,9 @@ static void R_DrawSurfacesLines_default(const r_bsp_surfaces_t *surfs){
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	for(i = 0; i < surfs->count; i++){
+	for (i = 0; i < surfs->count; i++) {
 
-		if(surfs->surfaces[i]->frame != r_locals.frame)
+		if (surfs->surfaces[i]->frame != r_locals.frame)
 			continue;
 
 		R_DrawSurface_default(surfs->surfaces[i]);
@@ -147,16 +142,15 @@ static void R_DrawSurfacesLines_default(const r_bsp_surfaces_t *surfs){
 	R_EnableTexture(&texunit_diffuse, true);
 }
 
-
 /*
  * R_DrawOpaqueSurfaces_default
  */
-void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs){
+void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	if(!surfs->count)
+	if (!surfs->count)
 		return;
 
-	if(r_draw_wireframe->value){  // surface outlines
+	if (r_draw_wireframe->value) { // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -172,16 +166,15 @@ void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs){
 	R_EnableTexture(&texunit_lightmap, false);
 }
 
-
 /*
  * R_DrawOpaqueWarpSurfaces_default
  */
-void R_DrawOpaqueWarpSurfaces_default(const r_bsp_surfaces_t *surfs){
+void R_DrawOpaqueWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	if(!surfs->count)
+	if (!surfs->count)
 		return;
 
-	if(r_draw_wireframe->value){  // surface outlines
+	if (r_draw_wireframe->value) { // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -193,16 +186,15 @@ void R_DrawOpaqueWarpSurfaces_default(const r_bsp_surfaces_t *surfs){
 	R_EnableWarp(NULL, false);
 }
 
-
 /*
  * R_DrawAlphaTestSurfaces_default
  */
-void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs){
+void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	if(!surfs->count)
+	if (!surfs->count)
 		return;
 
-	if(r_draw_wireframe->value){  // surface outlines
+	if (r_draw_wireframe->value) { // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -222,16 +214,15 @@ void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs){
 	R_EnableAlphaTest(false);
 }
 
-
 /*
  * R_DrawBlendSurfaces_default
  */
-void R_DrawBlendSurfaces_default(const r_bsp_surfaces_t *surfs){
+void R_DrawBlendSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	if(!surfs->count)
+	if (!surfs->count)
 		return;
 
-	if(r_draw_wireframe->value){  // surface outlines
+	if (r_draw_wireframe->value) { // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -245,16 +236,15 @@ void R_DrawBlendSurfaces_default(const r_bsp_surfaces_t *surfs){
 	R_EnableTexture(&texunit_lightmap, false);
 }
 
-
 /*
  * R_DrawBlendWarpSurfaces_default
  */
-void R_DrawBlendWarpSurfaces_default(const r_bsp_surfaces_t *surfs){
+void R_DrawBlendWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	if(!surfs->count)
+	if (!surfs->count)
 		return;
 
-	if(r_draw_wireframe->value){  // surface outlines
+	if (r_draw_wireframe->value) { // surface outlines
 		R_DrawSurfacesLines_default(surfs);
 		return;
 	}
@@ -266,10 +256,9 @@ void R_DrawBlendWarpSurfaces_default(const r_bsp_surfaces_t *surfs){
 	R_EnableWarp(NULL, false);
 }
 
-
 /*
  * R_DrawBackSurfaces_default
  */
-void R_DrawBackSurfaces_default(const r_bsp_surfaces_t *surfs){
+void R_DrawBackSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	// no-op
 }

@@ -21,21 +21,20 @@
 
 #include "qbsp.h"
 
-
 /*
  * LeakFile
  *
  * Finds the shortest possible chain of portals that leads from the 
  * outside leaf to a specifically occupied leaf.
  */
-void LeakFile(tree_t *tree){
-	vec3_t	mid;
+void LeakFile(tree_t *tree) {
+	vec3_t mid;
 	FILE *leakfile;
 	char file_name[MAX_OSPATH];
 	node_t *node;
 	int count;
 
-	if(!tree->outside_node.occupied)
+	if (!tree->outside_node.occupied)
 		return;
 
 	Com_Print("--- LeakFile ---\n");
@@ -44,12 +43,12 @@ void LeakFile(tree_t *tree){
 	StripExtension(map_name, file_name);
 	strcat(file_name, ".lin");
 
-	if(Fs_OpenFile(file_name, &leakfile, FILE_WRITE) == -1)
+	if (Fs_OpenFile(file_name, &leakfile, FILE_WRITE) == -1)
 		Com_Error(ERR_FATAL, "Couldn't open %s\n", file_name);
 
 	count = 0;
 	node = &tree->outside_node;
-	while(node->occupied > 1){
+	while (node->occupied > 1) {
 		int next;
 		portal_t *p, *nextportal = NULL;
 		node_t *nextnode = NULL;
@@ -57,10 +56,9 @@ void LeakFile(tree_t *tree){
 
 		// find the best portal exit
 		next = node->occupied;
-		for(p = node->portals; p; p = p->next[!s]){
+		for (p = node->portals; p; p = p->next[!s]) {
 			s = (p->nodes[0] == node);
-			if(p->nodes[s]->occupied
-			        && p->nodes[s]->occupied < next){
+			if (p->nodes[s]->occupied && p->nodes[s]->occupied < next) {
 				nextportal = p;
 				nextnode = p->nodes[s];
 				next = nextnode->occupied;

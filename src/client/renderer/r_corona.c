@@ -21,36 +21,34 @@
 
 #include "r_local.h"
 
-
 /*
  * R_AddCorona
  */
-void R_AddCorona(const r_corona_t *c){
+void R_AddCorona(const r_corona_t *c) {
 
-	if(!r_coronas->value)
+	if (!r_coronas->value)
 		return;
 
-	if(r_view.num_coronas == MAX_CORONAS)
+	if (r_view.num_coronas == MAX_CORONAS)
 		return;
 
-	if(c->radius < 1.0)
+	if (c->radius < 1.0)
 		return;
 
 	r_view.coronas[r_view.num_coronas++] = *c;
 }
 
-
 /*
  * R_DrawCoronas
  */
-void R_DrawCoronas(void){
+void R_DrawCoronas(void) {
 	int i, j, k;
 	vec3_t v;
 
-	if(!r_coronas->value)
+	if (!r_coronas->value)
 		return;
 
-	if(!r_view.num_coronas)
+	if (!r_view.num_coronas)
 		return;
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -61,7 +59,7 @@ void R_DrawCoronas(void){
 
 	R_BlendFunc(GL_ONE, GL_ONE);
 
-	for(k = 0; k < r_view.num_coronas; k++){
+	for (k = 0; k < r_view.num_coronas; k++) {
 		const r_corona_t *c = &r_view.coronas[k];
 		const float f = c->radius * c->flicker * sin(90.0 * r_view.time);
 		int num_verts, vert_index;
@@ -70,20 +68,21 @@ void R_DrawCoronas(void){
 		num_verts = 12 + c->radius / 8;
 
 		memcpy(&r_state.color_array[0], c->color, sizeof(vec3_t));
-		r_state.color_array[3] = 1.0f;  // set origin color
+		r_state.color_array[3] = 1.0f; // set origin color
 
 		// and the corner colors
 		memset(&r_state.color_array[4], 0, num_verts * 2 * sizeof(vec4_t));
 
 		memcpy(&r_state.vertex_array_3d[0], c->org, sizeof(vec3_t));
-		vert_index = 3;  // and the origin
+		vert_index = 3; // and the origin
 
-		for(i = num_verts; i >= 0; i--){  // now draw the corners
-			const float a = i / (float)num_verts * M_PI * 2;
+		for (i = num_verts; i >= 0; i--) { // now draw the corners
+			const float a = i / (float) num_verts * M_PI * 2;
 
-			for(j = 0; j < 3; j++)
-				v[j] = c->org[j] + r_view.right[j] * (float)cos(a) * (c->radius + f)
-					+ r_view.up[j] * (float)sin(a) * (c->radius + f);
+			for (j = 0; j < 3; j++)
+				v[j] = c->org[j] + r_view.right[j] * (float) cos(a)
+						* (c->radius + f) + r_view.up[j] * (float) sin(a)
+						* (c->radius + f);
 
 			memcpy(&r_state.vertex_array_3d[vert_index], v, sizeof(vec3_t));
 			vert_index += 3;

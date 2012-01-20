@@ -21,11 +21,10 @@
 
 #include "ui_local.h"
 
-
 /*
  * Ui_Player
  */
-TwBar *Ui_Player(void){
+TwBar *Ui_Player(void) {
 
 	TwBar *bar = TwNewBar("Player");
 
@@ -33,7 +32,8 @@ TwBar *Ui_Player(void){
 	Ui_CvarText(bar, "Model", skin, NULL);
 	Ui_CvarText(bar, "Effects color", color, NULL);
 
-	TwDefine("Player size='300 90' valueswidth=150 alpha=200 iconifiable=false visible=false");
+	TwDefine(
+			"Player size='300 90' valueswidth=150 alpha=200 iconifiable=false visible=false");
 
 	return bar;
 }

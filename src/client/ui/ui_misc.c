@@ -21,19 +21,18 @@
 
 #include "ui_local.h"
 
-
 /*
  * Ui_ToggleBar
  *
  * Toggles the visibility of the TwBar specified by name in data.
  */
-void TW_CALL Ui_ToggleBar(void *data){
-	const char *name = (const char *)data;
+void TW_CALL Ui_ToggleBar(void *data) {
+	const char *name = (const char *) data;
 	TwBar *bar;
 
 	bar = TwGetBarByName(name);
 
-	if(!bar){
+	if (!bar) {
 		Com_Warn("Ui_ToggleBar: No TwBar: %s\n", name);
 		return;
 	}

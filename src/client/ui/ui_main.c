@@ -23,48 +23,45 @@
 
 ui_t ui;
 
-
 /*
  * Ui_Event
  *
  * Handles input events, returning true if the event was swallowed by TwBar.
  */
-boolean_t Ui_Event(SDL_Event *event){
+boolean_t Ui_Event(SDL_Event *event) {
 	return TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
 }
-
 
 /*
  * Ui_Draw
  *
  * Draws any active TwBar components.
  */
-void Ui_Draw(void){
+void Ui_Draw(void) {
 	static int w, h;
 
-	if(w != r_context.width || h != r_context.height || r_view.update){
+	if (w != r_context.width || h != r_context.height || r_view.update) {
 
 		w = r_context.width;
 		h = r_context.height;
 
 		TwWindowSize(w, h);
 
-		TwDefine("GLOBAL fontsize=3");  // reload the font
+		TwDefine("GLOBAL fontsize=3"); // reload the font
 	}
 
-	if(cls.key_state.dest != key_menu)
+	if (cls.key_state.dest != key_menu)
 		return;
 
 	TwDraw();
 }
-
 
 /*
  * Ui_Root
  *
  * Defines the root TwBar.
  */
-static TwBar *Ui_Root(void){
+static TwBar *Ui_Root(void) {
 	TwBar *bar = TwNewBar("Quake2World");
 
 	TwAddButton(bar, "Servers", Ui_ToggleBar, "Servers", NULL);
@@ -81,36 +78,32 @@ static TwBar *Ui_Root(void){
 	return bar;
 }
 
-
 /*
  * Ui_Restart_f
  */
-static void Ui_Restart_f(void){
+static void Ui_Restart_f(void) {
 
 	Ui_Shutdown();
 
 	Ui_Init();
 }
 
-
 /*
  * Ui_Init
  */
-void Ui_Init(void){
-	const TwEnumVal OffOrOn[] = {
-		{0, "Off"}, {1, "On"}
-	};
+void Ui_Init(void) {
+	const TwEnumVal OffOrOn[] = { { 0, "Off" }, { 1, "On" } };
 
-	const TwEnumVal OffLowMediumHigh[] = {
-		{0, "Off"}, {1, "Low"}, {2, "Medium"}, {3, "High"}
-	};
+	const TwEnumVal OffLowMediumHigh[] = { { 0, "Off" }, { 1, "Low" }, { 2,
+			"Medium" }, { 3, "High" } };
 
 	memset(&ui, 0, sizeof(ui));
 
 	TwInit(TW_OPENGL, NULL);
 
 	ui.OffOrOn = TwDefineEnum("OnOrOff", OffOrOn, lengthof(OffOrOn));
-	ui.OffLowMediumHigh = TwDefineEnum("OffLowMediumHigh", OffLowMediumHigh, lengthof(OffLowMediumHigh));
+	ui.OffLowMediumHigh = TwDefineEnum("OffLowMediumHigh", OffLowMediumHigh,
+			lengthof(OffLowMediumHigh));
 
 	ui.root = Ui_Root();
 	ui.servers = Ui_Servers();
@@ -121,11 +114,10 @@ void Ui_Init(void){
 	Cmd_AddCommand("ui_restart", Ui_Restart_f, "Restarts the menus subsystem");
 }
 
-
 /*
  * Ui_Shutdown
  */
-void Ui_Shutdown(void){
+void Ui_Shutdown(void) {
 
 	TwTerminate();
 

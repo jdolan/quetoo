@@ -29,37 +29,35 @@ cvar_t *s_reverse;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
-
 /*
  * S_Stop
  */
-static void S_Stop(void){
+static void S_Stop(void) {
 
 	Mix_HaltChannel(-1);
 
 	memset(s_env.channels, 0, sizeof(s_env.channels));
 }
 
-
 /*
  * S_Frame
  */
-void S_Frame(void){
+void S_Frame(void) {
 	s_channel_t *ch;
 	int i, j;
 
-	if(!s_env.initialized)
+	if (!s_env.initialized)
 		return;
 
 	S_FrameMusic();
 
-	if(cls.state != ca_active){
-		if(Mix_Playing(-1) > 0)
+	if (cls.state != ca_active) {
+		if (Mix_Playing(-1) > 0)
 			S_Stop();
 		return;
 	}
 
-	if(s_reverse->modified){  // update reverse stereo
+	if (s_reverse->modified) { // update reverse stereo
 		Mix_SetReverseStereo(MIX_CHANNEL_POST, s_reverse->integer);
 		s_reverse->modified = false;
 	}
@@ -67,9 +65,9 @@ void S_Frame(void){
 	// update spatialization for current sounds
 	ch = s_env.channels;
 
-	for(i = 0; i < MAX_CHANNELS; i++, ch++){
+	for (i = 0; i < MAX_CHANNELS; i++, ch++) {
 
-		if(!ch->sample)
+		if (!ch->sample)
 			continue;
 
 		// reset channel's count for loop samples
@@ -79,35 +77,35 @@ void S_Frame(void){
 	}
 
 	// add new dynamic sounds
-	for(i = 0; i < cl.frame.num_entities; i++){
+	for (i = 0; i < cl.frame.num_entities; i++) {
 
 		const int e = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[e];
 
-		if(!ent->sound)
+		if (!ent->sound)
 			continue;
 
-		for(j = 0; j < MAX_CHANNELS; j++){
-			if(s_env.channels[j].ent_num == ent->number)
+		for (j = 0; j < MAX_CHANNELS; j++) {
+			if (s_env.channels[j].ent_num == ent->number)
 				break;
 		}
 
-		if(j == MAX_CHANNELS)
-			S_PlaySample(NULL, ent->number, cl.sound_precache[ent->sound], ATTN_NORM);
+		if (j == MAX_CHANNELS)
+			S_PlaySample(NULL, ent->number, cl.sound_precache[ent->sound],
+					ATTN_NORM);
 	}
 
-	if(cl.underwater)  // add under water sample if appropriate
+	if (cl.underwater) // add under water sample if appropriate
 		S_LoopSample(r_view.origin, S_LoadSample("world/under_water"));
 
 	// reset the update flag
 	s_env.update = false;
 }
 
-
 /*
  * S_LoadMedia
  */
-void S_LoadMedia(void){
+void S_LoadMedia(void) {
 
 	s_env.ready = false;
 
@@ -122,51 +120,47 @@ void S_LoadMedia(void){
 	s_env.update = s_env.ready = true;
 }
 
-
 /*
  * S_Play_f
  */
-static void S_Play_f(void){
+static void S_Play_f(void) {
 	int i;
 
 	i = 1;
-	while(i < Cmd_Argc()){
+	while (i < Cmd_Argc()) {
 		S_StartLocalSample(Cmd_Argv(i));
 		i++;
 	}
 }
 
-
 /*
  * S_Stop_f
  */
-static void S_Stop_f(void){
+static void S_Stop_f(void) {
 	S_Stop();
 }
-
 
 /*
  * S_List_f
  */
-static void S_List_f(void){
+static void S_List_f(void) {
 	s_sample_t *sample;
 	int i;
 
 	sample = s_env.samples;
-	for(i = 0; i < s_env.num_samples; i++, sample++){
+	for (i = 0; i < s_env.num_samples; i++, sample++) {
 
-		if(!sample->name[0])
+		if (!sample->name[0])
 			continue;
 
 		Com_Print("  %s\n", sample->name);
 	}
 }
 
-
 /*
  * S_Restart_f
  */
-static void S_Restart_f(void){
+static void S_Restart_f(void) {
 
 	S_Shutdown();
 
@@ -179,55 +173,57 @@ static void S_Restart_f(void){
 	cls.loading = 0;
 }
 
-
 /*
  * S_Init
  */
-void S_Init(void){
+void S_Init(void) {
 	int freq, channels;
 	unsigned short format;
 
 	memset(&s_env, 0, sizeof(s_env));
 
-	if(Cvar_GetValue("s_disable")){
+	if (Cvar_GetValue("s_disable")) {
 		Com_Warn("Sound disabled.\n");
 		return;
 	}
 
 	Com_Print("Sound initialization...\n");
 
-	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sampling rate in Hz.");
-	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
-	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
+	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE,
+			"Sound sampling rate in Hz.");
+	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE,
+			"Reverse left and right channels.");
+	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE,
+			"Global sound volume level.");
 
 	Cmd_AddCommand("s_restart", S_Restart_f, "Restart the sound subsystem");
 	Cmd_AddCommand("s_play", S_Play_f, NULL);
 	Cmd_AddCommand("s_stop", S_Stop_f, NULL);
 	Cmd_AddCommand("s_list", S_List_f, NULL);
 
-	if(SDL_WasInit(SDL_INIT_EVERYTHING) == 0){
-		if(SDL_Init(SDL_INIT_AUDIO) < 0){
+	if (SDL_WasInit(SDL_INIT_EVERYTHING) == 0) {
+		if (SDL_Init(SDL_INIT_AUDIO) < 0) {
 			Com_Warn("S_Init: %s.\n", SDL_GetError());
 			return;
 		}
-	} else if(SDL_WasInit(SDL_INIT_AUDIO) == 0){
-		if(SDL_InitSubSystem(SDL_INIT_AUDIO) < 0){
+	} else if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
+		if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
 			Com_Warn("S_Init: %s.\n", SDL_GetError());
 			return;
 		}
 	}
 
-	if(Mix_OpenAudio(s_rate->integer, MIX_DEFAULT_FORMAT, 2, 1024) == -1){
+	if (Mix_OpenAudio(s_rate->integer, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
 		Com_Warn("S_Init: %s\n", Mix_GetError());
 		return;
 	}
 
-	if(Mix_QuerySpec(&freq, &format, &channels) == 0){
+	if (Mix_QuerySpec(&freq, &format, &channels) == 0) {
 		Com_Warn("S_Init: %s\n", Mix_GetError());
 		return;
 	}
 
-	if(Mix_AllocateChannels(MAX_CHANNELS) != MAX_CHANNELS){
+	if (Mix_AllocateChannels(MAX_CHANNELS) != MAX_CHANNELS) {
 		Com_Warn("S_Init: %s\n", Mix_GetError());
 		return;
 	}
@@ -241,11 +237,10 @@ void S_Init(void){
 	S_InitMusic();
 }
 
-
 /*
  * S_Shutdown
  */
-void S_Shutdown(void){
+void S_Shutdown(void) {
 
 	S_ShutdownMusic();
 
@@ -257,7 +252,7 @@ void S_Shutdown(void){
 
 	Mix_CloseAudio();
 
-	if(SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_AUDIO)
+	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_AUDIO)
 		SDL_Quit();
 	else
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);

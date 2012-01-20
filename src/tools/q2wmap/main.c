@@ -69,30 +69,29 @@ extern float entity_scale;
 
 #ifdef _WIN32
 
-static HANDLE Console;							//windows console
-static FILE *output_file;						//file output
+static HANDLE Console; //windows console
+static FILE *output_file; //file output
 #define HORIZONTAL	45							//console size and buffer
 #define VERTICAL		70						//console size and buffer
-static int input_index_h, input_index_v;		//pdcurses print location
-static char title[64];							//window bar title (updates to show status)
+static int input_index_h, input_index_v; //pdcurses print location
+static char title[64]; //window bar title (updates to show status)
 
 #ifdef HAVE_CURSES
 #include <curses.h>
 
-
 /*
  * PDCursesInit
  */
-static void PDCursesInit(void){
-	stdscr = initscr();		// initialize the ncurses window
-	resize_term(HORIZONTAL, VERTICAL);	// resize the console
-	cbreak();					// disable input line buffering
-	noecho();					// don't show type characters
-	keypad(stdscr, TRUE);	// enable special keys
-	nodelay(stdscr, TRUE); 	// non-blocking input
-	curs_set(1);				// enable the cursor
+static void PDCursesInit(void) {
+	stdscr = initscr(); // initialize the ncurses window
+	resize_term(HORIZONTAL, VERTICAL); // resize the console
+	cbreak(); // disable input line buffering
+	noecho(); // don't show type characters
+	keypad(stdscr, TRUE); // enable special keys
+	nodelay(stdscr, TRUE); // non-blocking input
+	curs_set(1); // enable the cursor
 
-	if(has_colors() == TRUE){
+	if(has_colors() == TRUE) {
 		start_color();
 		// this is ncurses-specific
 		use_default_colors();
@@ -108,11 +107,10 @@ static void PDCursesInit(void){
 }
 #endif
 
-
 /*
  * OpenWin32Console
  */
-static void OpenWin32Console(void){
+static void OpenWin32Console(void) {
 	AllocConsole();
 	Console = CreateConsoleScreenBuffer(GENERIC_READ|GENERIC_WRITE, 0,0,CONSOLE_TEXTMODE_BUFFER,0);
 	SetConsoleActiveScreenBuffer(Console);
@@ -125,108 +123,104 @@ static void OpenWin32Console(void){
 	freopen("CON", "rt", stdin);
 
 	if((output_file = fopen ("bsp_output.txt","w")) == NULL)
-		Com_Error(ERR_FATAL, "Could not open bsp_compiler.txt\n");
+	Com_Error(ERR_FATAL, "Could not open bsp_compiler.txt\n");
 
-	input_index_h = 0;	// zero the index counters
-	input_index_v = 0;	// zero the index counters
+	input_index_h = 0; // zero the index counters
+	input_index_v = 0; // zero the index counters
 #ifdef HAVE_CURSES
-	PDCursesInit();		// initialize the pdcurses window
+	PDCursesInit(); // initialize the pdcurses window
 #endif
 }
-
 
 /*
  * CloseWin32Console
  */
-static void CloseWin32Console(void){
-	Fs_CloseFile(output_file);  // close the open file stream
+static void CloseWin32Console(void) {
+	Fs_CloseFile(output_file); // close the open file stream
 	CloseHandle(Console);
 	FreeConsole();
 }
 
-
 /*
  * Debug
  */
-static void Debug(const char *msg){
+static void Debug(const char *msg) {
 	unsigned long cChars;
 
 	if(!debug)
-		return;
+	return;
 
 	fprintf(output_file, "%s", msg);
 
 	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
 }
 
-
 /*
  * Error
  */
-static void Error(err_t err, const char *msg){
+static void Error(err_t err, const char *msg) {
 	const char *e = "************ ERROR ************\n";
 	unsigned long cChars;
 
 	fprintf(output_file, "%s", e);
-	fprintf(output_file, "%s", msg);  // output to a file
+	fprintf(output_file, "%s", msg); // output to a file
 
 	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), e, lstrlen(e), &cChars, NULL);
 	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
 
 #ifdef HAVE_CURSES
-	do {  // don't quit, leave compiler error on screen until a key is pressed
-	} while(getch() == ERR);
+	do { // don't quit, leave compiler error on screen until a key is pressed
+	}while(getch() == ERR);
 
-	endwin();  // shutdown pdcurses
+	endwin(); // shutdown pdcurses
 #endif
-	CloseWin32Console();  // close the console
+	CloseWin32Console(); // close the console
 
 	Z_Shutdown();
 	exit(1);
 }
 
-
 /*
  * Print
  */
-static void Print(const char *msg){
+static void Print(const char *msg) {
 	unsigned long cChars;
 
-	fprintf(output_file, "%s", msg);  // output to a file
+	fprintf(output_file, "%s", msg); // output to a file
 
 #ifdef HAVE_CURSES
-	if(verbose || debug){  // verbose and debug output doesn't need fancy output - use WriteConsole() instead
+	if(verbose || debug) { // verbose and debug output doesn't need fancy output - use WriteConsole() instead
 		WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
 	}
-	else {  // fancy colored pdcurses output for normal compiling
+	else { // fancy colored pdcurses output for normal compiling
 		char copymsg[2];
 		int n;
 
-		for(n = 0; n < lstrlen(msg); n++){  // process the entire string (msg)
-			if (msg[n] == '\n'){
-				input_index_h++;  // start a new line
-				input_index_v = 0;  // start at the beginning of the new line
+		for(n = 0; n < lstrlen(msg); n++) { // process the entire string (msg)
+			if (msg[n] == '\n') {
+				input_index_h++; // start a new line
+				input_index_v = 0; // start at the beginning of the new line
 			}
-			else {	// otherwise continue processing the current line
-				copymsg[0] = msg[n];  // copy a character
-				if(input_index_h == 0){  // highlight the first line (q2wmap version, date, mingw32 build)
-					attron(COLOR_PAIR(3));  // bright yellow
+			else { // otherwise continue processing the current line
+				copymsg[0] = msg[n]; // copy a character
+				if(input_index_h == 0) { // highlight the first line (q2wmap version, date, mingw32 build)
+					attron(COLOR_PAIR(3)); // bright yellow
 					attron(A_BOLD);
 				}
 				// highlight compiler progression (1... 2... 3... 4... 5... 6... 7... 8... 9... 10...)
 				else if(input_index_h == 4 || input_index_h == 5 || input_index_h == 11 || input_index_h == 12 ||
-					input_index_h == 21 || input_index_h == 22 || input_index_h == 23){
-					attron(COLOR_PAIR(1));	// bright red
+						input_index_h == 21 || input_index_h == 22 || input_index_h == 23) {
+					attron(COLOR_PAIR(1)); // bright red
 					attron(A_BOLD);
 				}
 				else
-					attroff(COLOR_PAIR(3));	 // turn off attributes
+				attroff(COLOR_PAIR(3)); // turn off attributes
 
 				// finally print our processed character on the console
 				mvwprintw(stdscr, input_index_h, input_index_v, copymsg);
 				refresh();
 
-				input_index_v++;  // advance to the next character position
+				input_index_v++; // advance to the next character position
 			}
 		}
 	}
@@ -235,26 +229,24 @@ static void Print(const char *msg){
 #endif /* HAVE_CURSES */
 }
 
-
 /*
  * Verbose
  */
-static void Verbose(const char *msg){
+static void Verbose(const char *msg) {
 	unsigned long cChars;
 
 	if(!verbose)
-		return;
+	return;
 
 	fprintf(output_file, "%s", msg);
 
 	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
 }
 
-
 /*
  * Warn
  */
-static void Warn(const char *msg){
+static void Warn(const char *msg) {
 	unsigned long cChars;
 	const char *w = "WARNING: ";
 
@@ -270,20 +262,19 @@ static void Warn(const char *msg){
 /*
  * Debug
  */
-static void Debug(const char *msg){
+static void Debug(const char *msg) {
 
-	if(!debug)
+	if (!debug)
 		return;
 
 	printf("%s", msg);
 }
 
-
 /*
  * Error
  */
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
-static void Error(err_t err, const char *msg){
+static void Error(err_t err, const char *msg) {
 
 	fprintf(stderr, "************ ERROR ************\n");
 	fprintf(stderr, "%s", msg);
@@ -292,31 +283,28 @@ static void Error(err_t err, const char *msg){
 	exit(1);
 }
 
-
 /*
  * Print
  */
-static void Print(const char *msg){
+static void Print(const char *msg) {
 	printf("%s", msg);
 }
-
 
 /*
  * Verbose
  */
-static void Verbose(const char *msg){
+static void Verbose(const char *msg) {
 
-	if(!verbose)
+	if (!verbose)
 		return;
 
 	printf("%s", msg);
 }
 
-
 /*
  * Warn
  */
-static void Warn(const char *msg){
+static void Warn(const char *msg) {
 
 	fprintf(stderr, "WARNING: ");
 	fprintf(stderr, "%s", msg);
@@ -324,81 +312,80 @@ static void Warn(const char *msg){
 
 #endif /* _WIN32 */
 
-
 /*
  * Check_BSP_Options
  */
-static int Check_BSP_Options(int argc, char **argv){
+static int Check_BSP_Options(int argc, char **argv) {
 	int i;
 
-	for(i = 1; i < argc; i++){
-		if(!strcmp(argv[i], "-noweld")){
+	for (i = 1; i < argc; i++) {
+		if (!strcmp(argv[i], "-noweld")) {
 			Com_Verbose("noweld = true\n");
 			noweld = true;
-		} else if(!strcmp(argv[i], "-nocsg")){
+		} else if (!strcmp(argv[i], "-nocsg")) {
 			Com_Verbose("nocsg = true\n");
 			nocsg = true;
-		} else if(!strcmp(argv[i], "-noshare")){
+		} else if (!strcmp(argv[i], "-noshare")) {
 			Com_Verbose("noshare = true\n");
 			noshare = true;
-		} else if(!strcmp(argv[i], "-notjunc")){
+		} else if (!strcmp(argv[i], "-notjunc")) {
 			Com_Verbose("notjunc = true\n");
 			notjunc = true;
-		} else if(!strcmp(argv[i], "-nowater")){
+		} else if (!strcmp(argv[i], "-nowater")) {
 			Com_Verbose("nowater = true\n");
 			nowater = true;
-		} else if(!strcmp(argv[i], "-noopt")){
+		} else if (!strcmp(argv[i], "-noopt")) {
 			Com_Verbose("noopt = true\n");
 			noopt = true;
-		} else if(!strcmp(argv[i], "-noprune")){
+		} else if (!strcmp(argv[i], "-noprune")) {
 			Com_Verbose("noprune = true\n");
 			noprune = true;
-		} else if(!strcmp(argv[i], "-nofill")){
+		} else if (!strcmp(argv[i], "-nofill")) {
 			Com_Verbose("nofill = true\n");
 			nofill = true;
-		} else if(!strcmp(argv[i], "-nomerge")){
+		} else if (!strcmp(argv[i], "-nomerge")) {
 			Com_Verbose("nomerge = true\n");
 			nomerge = true;
-		} else if(!strcmp(argv[i], "-nosubdivide")){
+		} else if (!strcmp(argv[i], "-nosubdivide")) {
 			Com_Verbose("nosubdivide = true\n");
 			nosubdivide = true;
-		} else if(!strcmp(argv[i], "-nodetail")){
+		} else if (!strcmp(argv[i], "-nodetail")) {
 			Com_Verbose("nodetail = true\n");
 			nodetail = true;
-		} else if(!strcmp(argv[i], "-fulldetail")){
+		} else if (!strcmp(argv[i], "-fulldetail")) {
 			Com_Verbose("fulldetail = true\n");
 			fulldetail = true;
-		} else if(!strcmp(argv[i], "-onlyents")){
+		} else if (!strcmp(argv[i], "-onlyents")) {
 			Com_Verbose("onlyents = true\n");
 			onlyents = true;
-		} else if(!strcmp(argv[i], "-micro")){
+		} else if (!strcmp(argv[i], "-micro")) {
 			microvolume = atof(argv[i + 1]);
 			Com_Verbose("microvolume = %f\n", microvolume);
 			i++;
-		} else if(!strcmp(argv[i], "-leaktest")){
+		} else if (!strcmp(argv[i], "-leaktest")) {
 			Com_Verbose("leaktest = true\n");
 			leaktest = true;
-		} else if(!strcmp(argv[i], "-verboseentities")){
+		} else if (!strcmp(argv[i], "-verboseentities")) {
 			Com_Verbose("verboseentities = true\n");
 			verboseentities = true;
-		} else if(!strcmp(argv[i], "-subdivide")){
+		} else if (!strcmp(argv[i], "-subdivide")) {
 			subdivide_size = atoi(argv[i + 1]);
 			Com_Verbose("subdivide_size = %d\n", subdivide_size);
 			i++;
-		} else if(!strcmp(argv[i], "-block")){
+		} else if (!strcmp(argv[i], "-block")) {
 			block_xl = block_xh = atoi(argv[i + 1]);
 			block_yl = block_yh = atoi(argv[i + 2]);
 			Com_Verbose("block: %i,%i\n", block_xl, block_yl);
 			i += 2;
-		} else if(!strcmp(argv[i], "-blocks")){
+		} else if (!strcmp(argv[i], "-blocks")) {
 			block_xl = atoi(argv[i + 1]);
 			block_yl = atoi(argv[i + 2]);
 			block_xh = atoi(argv[i + 3]);
 			block_yh = atoi(argv[i + 4]);
-			Com_Verbose("blocks: %i,%i to %i,%i\n",
-			           block_xl, block_yl, block_xh, block_yh);
+			Com_Verbose("blocks: %i,%i to %i,%i\n", block_xl, block_yl,
+					block_xh, block_yh);
 			i += 4;
-		} else if(!strcmp(argv[i], "-tmpout")){
+		} else if (!strcmp(argv[i], "-tmpout")) {
 			strcpy(outbase, "/tmp");
 		} else
 			break;
@@ -406,22 +393,21 @@ static int Check_BSP_Options(int argc, char **argv){
 	return 0;
 }
 
-
 /*
  * Check_VIS_Options
  */
-static int Check_VIS_Options(int argc, char **argv){
+static int Check_VIS_Options(int argc, char **argv) {
 	int i;
 
-	for(i = 1; i < argc; i++){
-		if(!strcmp(argv[i], "-fast")){
+	for (i = 1; i < argc; i++) {
+		if (!strcmp(argv[i], "-fast")) {
 			Com_Verbose("fastvis = true\n");
 			fastvis = true;
-		} else if(!strcmp(argv[i], "-level")){
+		} else if (!strcmp(argv[i], "-level")) {
 			testlevel = atoi(argv[i + 1]);
 			Com_Verbose("testlevel = %i\n", testlevel);
 			i++;
-		} else if(!strcmp(argv[i], "-nosort")){
+		} else if (!strcmp(argv[i], "-nosort")) {
 			Com_Verbose("nosort = true\n");
 			nosort = true;
 		} else
@@ -431,34 +417,33 @@ static int Check_VIS_Options(int argc, char **argv){
 	return 0;
 }
 
-
 /*
  * Check_LIGHT_Options
  */
-static int Check_LIGHT_Options(int argc, char **argv){
+static int Check_LIGHT_Options(int argc, char **argv) {
 	int i;
 
-	for(i = 1; i < argc; i++){
-		if(!strcmp(argv[i], "-extra")){
+	for (i = 1; i < argc; i++) {
+		if (!strcmp(argv[i], "-extra")) {
 			extra_samples = true;
 			Com_Verbose("extrasamples = true\n");
-		} else if(!strcmp(argv[i], "-brightness")){
+		} else if (!strcmp(argv[i], "-brightness")) {
 			brightness = atof(argv[i + 1]);
 			Com_Verbose("brightness at %f\n", brightness);
 			i++;
-		} else if(!strcmp(argv[i], "-saturation")){
+		} else if (!strcmp(argv[i], "-saturation")) {
 			saturation = atof(argv[i + 1]);
 			Com_Verbose("saturation at %f\n", saturation);
 			i++;
-		} else if(!strcmp(argv[i], "-contrast")){
+		} else if (!strcmp(argv[i], "-contrast")) {
 			contrast = atof(argv[i + 1]);
 			Com_Verbose("contrast at %f\n", contrast);
 			i++;
-		} else if(!strcmp(argv[i], "-surface")){
+		} else if (!strcmp(argv[i], "-surface")) {
 			surface_scale *= atof(argv[i + 1]);
 			Com_Verbose("surface light scale at %f\n", surface_scale);
 			i++;
-		} else if(!strcmp(argv[i], "-entity")){
+		} else if (!strcmp(argv[i], "-entity")) {
 			entity_scale *= atof(argv[i + 1]);
 			Com_Verbose("entity light scale at %f\n", entity_scale);
 			i++;
@@ -469,27 +454,24 @@ static int Check_LIGHT_Options(int argc, char **argv){
 	return 0;
 }
 
-
 /*
  * Check_PAK_Options
  */
-static int Check_PAK_Options(int argc, char **argv){
+static int Check_PAK_Options(int argc, char **argv) {
 	return 0;
 }
-
 
 /*
  * Check_MAT_Options
  */
-static int Check_MAT_Options(int argc, char **argv){
+static int Check_MAT_Options(int argc, char **argv) {
 	return 0;
 }
-
 
 /*
  * PrintHelpMessage
  */
-static void PrintHelpMessage(void){
+static void PrintHelpMessage(void) {
 	Print("General options\n");
 	Print("-v -verbose\n");
 	Print("-l -legacy            Compile a legacy Quake2 map\n");
@@ -500,7 +482,8 @@ static void PrintHelpMessage(void){
 	Print("-bsp               Binary space partitioning (BSPing) options:\n");
 	Print(" -block <int> <int>\n");
 	Print(" -blocks <int> <int> <int> <int>\n");
-	Print(" -fulldetail - don't treat details (and trans surfaces) as details\n");
+	Print(
+			" -fulldetail - don't treat details (and trans surfaces) as details\n");
 	Print(" -leaktest\n");
 	Print(" -micro <float>\n");
 	Print(" -nocsg\n");
@@ -515,7 +498,8 @@ static void PrintHelpMessage(void){
 	Print(" -nowater - skip water brushes in compilation\n");
 	Print(" -noweld\n");
 	Print(" -onlyents - modify existing bsp file with entities from map file\n");
-	Print(" -subdivide <int> -subdivide brushes for better light effects (but higher polycount)\n");
+	Print(
+			" -subdivide <int> -subdivide brushes for better light effects (but higher polycount)\n");
 	Print(" -tmpout\n");
 	Print(" -verboseentities - also be verbose about submodels (entities)\n");
 	Print("\n");
@@ -536,15 +520,15 @@ static void PrintHelpMessage(void){
 	Print("\n");
 	Print("Examples:\n");
 	Print("Standard full compile:\n q2wmap -bsp -vis -light maps/my.map\n");
-	Print("Fast vis, extra light, two threads:\n q2wmap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
+	Print(
+			"Fast vis, extra light, two threads:\n q2wmap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
 	Print("\n");
 }
-
 
 /*
  * main
  */
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
 	int i;
 	int r = 0;
 	int total_time;
@@ -566,12 +550,12 @@ int main(int argc, char **argv){
 	quake2world.Warn = Warn;
 
 #ifdef _WIN32
-	OpenWin32Console();		//	initialize the windows console
+	OpenWin32Console(); //	initialize the windows console
 #endif
 
 	Com_Print("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
-	if(argc < 2){  // print help and exit
+	if (argc < 2) { // print help and exit
 		PrintHelpMessage();
 		return 0;
 	}
@@ -586,74 +570,74 @@ int main(int argc, char **argv){
 	Fs_Init();
 
 	// general options
-	for(i = 1; i < argc; i++){
-		if(!strcmp(argv[i], "-v") || !strcmp(argv[i], "-verbose")){
+	for (i = 1; i < argc; i++) {
+		if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "-verbose")) {
 			verbose = true;
 			continue;
 		}
 
-		if(!strcmp(argv[i], "-d") || !strcmp(argv[i], "-debug")){
+		if (!strcmp(argv[i], "-d") || !strcmp(argv[i], "-debug")) {
 			debug = true;
 			continue;
 		}
 
-		if(!strcmp(argv[i], "-t") || !strcmp(argv[i], "-threads")){
+		if (!strcmp(argv[i], "-t") || !strcmp(argv[i], "-threads")) {
 			Cvar_Set("threads", argv[i + 1]);
 			continue;
 		}
 
-		if(!strcmp(argv[i], "-l") || !strcmp(argv[i], "-legacy")){
+		if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "-legacy")) {
 			legacy = true;
 			continue;
 		}
 	}
 
 	// read compiling options
-	for(i = 1; i < argc; i++){
-		if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help")){
+	for (i = 1; i < argc; i++) {
+		if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help")) {
 			PrintHelpMessage();
 			return 0;
 		}
 
-		if(!strcmp(argv[i], "-bsp")){
+		if (!strcmp(argv[i], "-bsp")) {
 			do_bsp = true;
 			alt_argc = argc - i;
-			alt_argv = (char **)(argv + i);
+			alt_argv = (char **) (argv + i);
 			Check_BSP_Options(alt_argc, alt_argv);
 		}
 
-		if(!strcmp(argv[i], "-vis")){
+		if (!strcmp(argv[i], "-vis")) {
 			do_vis = true;
 			alt_argc = argc - i;
-			alt_argv = (char **)(argv + i);
+			alt_argv = (char **) (argv + i);
 			Check_VIS_Options(alt_argc, alt_argv);
 		}
 
-		if(!strcmp(argv[i], "-light")){
+		if (!strcmp(argv[i], "-light")) {
 			do_light = true;
 			alt_argc = argc - i;
-			alt_argv = (char **)(argv + i);
+			alt_argv = (char **) (argv + i);
 			Check_LIGHT_Options(alt_argc, alt_argv);
 		}
 
-		if(!strcmp(argv[i], "-mat")){
+		if (!strcmp(argv[i], "-mat")) {
 			do_mat = true;
 			alt_argc = argc - i;
-			alt_argv = (char **)(argv + i);
+			alt_argv = (char **) (argv + i);
 			Check_MAT_Options(alt_argc, alt_argv);
 		}
 
-		if(!strcmp(argv[i], "-pak")){
+		if (!strcmp(argv[i], "-pak")) {
 			do_pak = true;
 			alt_argc = argc - i;
-			alt_argv = (char **)(argv + i);
+			alt_argv = (char **) (argv + i);
 			Check_PAK_Options(alt_argc, alt_argv);
 		}
 	}
 
-	if(!do_bsp && !do_vis && !do_light && !do_mat && !do_pak){
+	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_pak) {
 		Com_Error(ERR_FATAL, "No action specified.\n"
-				"Please specify at least one of -bsp -vis -light -mat -pak.\n");
+			"Please specify at least one of -bsp -vis -light -mat -pak.\n");
 	}
 
 	Thread_Init();
@@ -672,15 +656,15 @@ int main(int argc, char **argv){
 	start = time(NULL);
 	srand(0);
 
-	if(do_bsp)
+	if (do_bsp)
 		BSP_Main();
-	if(do_vis)
+	if (do_vis)
 		VIS_Main();
-	if(do_light)
+	if (do_light)
 		LIGHT_Main();
-	if(do_mat)
+	if (do_mat)
 		MAT_Main();
-	if(do_pak)
+	if (do_pak)
 		PAK_Main();
 
 	Thread_Shutdown();
@@ -689,9 +673,9 @@ int main(int argc, char **argv){
 
 	// emit time
 	end = time(NULL);
-	total_time = (int)(end - start);
+	total_time = (int) (end - start);
 	Com_Print("\nTotal Time: ");
-	if(total_time > 59)
+	if (total_time > 59)
 		Com_Print("%d Minutes ", total_time / 60);
 	Com_Print("%d Seconds\n", total_time % 60);
 
@@ -705,12 +689,12 @@ int main(int argc, char **argv){
 
 #ifdef HAVE_CURSES
 	do { // don't quit, leave output on screen until a key is pressed
-	} while(getch() == ERR);
+	}while(getch() == ERR);
 
-	endwin();  // shutdown pdcurses
+	endwin(); // shutdown pdcurses
 #endif
 
-	CloseWin32Console();  // close the console
+	CloseWin32Console(); // close the console
 #endif
 
 	// exit with error code
