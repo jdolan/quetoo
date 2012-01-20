@@ -535,7 +535,7 @@ static void Cl_HandleEvent(SDL_Event *event){
 		case SDL_VIDEORESIZE:
 			Cvar_SetValue("r_windowed_width", event->resize.w);
 			Cvar_SetValue("r_windowed_height", event->resize.h);
-			Cmd_ExecuteString("r_restart");
+			Cbuf_AddText("r_restart\n");
 			break;
 	}
 }
