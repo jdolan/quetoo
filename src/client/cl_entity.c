@@ -325,7 +325,7 @@ void Cl_ParseFrame(void){
 			VectorCopy(cl.frame.ps.angles, cl.predicted_angles);
 		}
 
-		Cl_EntityEvents(&cl.frame); // fire entity events
+		Cl_EntityEvents(&cl.frame);  // fire entity events
 
 		Cl_CheckPredictionError();
 	}

@@ -98,6 +98,9 @@ void S_Frame(void){
 
 	if(cl.underwater)  // add under water sample if appropriate
 		S_LoopSample(r_view.origin, S_LoadSample("world/under_water"));
+
+	// reset the update flag
+	s_env.update = false;
 }
 
 
@@ -105,6 +108,8 @@ void S_Frame(void){
  * S_LoadMedia
  */
 void S_LoadMedia(void){
+
+	s_env.ready = false;
 
 	S_LoadSamples();
 
@@ -114,7 +119,7 @@ void S_LoadMedia(void){
 
 	Cl_LoadProgress(85);
 
-	s_env.update = true;
+	s_env.update = s_env.ready = true;
 }
 
 
@@ -167,7 +172,11 @@ static void S_Restart_f(void){
 
 	S_Init();
 
+	cls.loading = 1;
+
 	S_LoadMedia();
+
+	cls.loading = 0;
 }
 
 

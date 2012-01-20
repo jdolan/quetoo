@@ -481,6 +481,32 @@ void Cl_LoadProgress(int percent){
 }
 
 
+/**
+ * Cl_UpdateMedia
+ *
+ * Reload stale media references on subsystem restarts.
+ */
+static void Cl_UpdateMedia(void){
+
+	if((r_view.update || s_env.update) &&
+			(cls.state == ca_active && !cls.loading)){
+
+		Com_Debug("Cl_UpdateMedia: %s %s\n",
+				r_view.update ? "view" : "", s_env.update ? "sound" : "");
+
+		cls.loading = 1;
+
+		Cl_LoadClients();
+
+		Cl_LoadEffects();
+
+		Cl_LoadEmits();
+
+		cls.loading = 0;
+	}
+}
+
+
 /*
  * Cl_LoadMedia
  */
@@ -771,6 +797,9 @@ void Cl_Frame(int msec){
 	}
 
 	if(render_frame){
+		// update any stale media references
+		Cl_UpdateMedia();
+
 		// fetch updates from server
 		Cl_ReadPackets();
 

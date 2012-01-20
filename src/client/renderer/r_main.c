@@ -383,7 +383,7 @@ void R_EndFrame(void){
 
 	R_UpdateCapture();
 
-	if(cls.state == ca_active && r_view.ready){
+	if(cls.state == ca_active && !cls.loading){
 		r_view.update = false;
 	}
 
@@ -457,11 +457,11 @@ void R_LoadMedia(void){
 	if(!cl.config_strings[CS_MODELS + 1][0])
 		return;  // no map loaded
 
-	Cl_LoadProgress(0);
-
 	R_InitView();
 
 	R_FreeImages();
+
+	Cl_LoadProgress(1);
 
 	strncpy(name, cl.config_strings[CS_MODELS + 1] + 5, sizeof(name) - 1);  // skip "maps/"
 	name[strlen(name) - 4] = 0;  // cut off ".bsp"
@@ -495,18 +495,17 @@ void R_LoadMedia(void){
 
 	for(i = 1; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++)
 		cl.image_precache[i] = R_LoadPic(cl.config_strings[CS_IMAGES + i]);
-
 	Cl_LoadProgress(75);
 
+	// sky environment map
 	R_SetSky(cl.config_strings[CS_SKY]);
 	Cl_LoadProgress(77);
 
 	// weather and fog effects
 	R_ResolveWeather();
-
 	Cl_LoadProgress(79);
 
-	r_view.ready = r_view.update = true;
+	r_view.update = r_view.update = true;
 }
 
 
@@ -529,11 +528,9 @@ static void R_Sky_f(void){
  */
 static void R_Reload_f(void){
 
-	r_view.ready = false;
-
 	cls.loading = 1;
 
-	R_DrawFill(0, 0, r_view.width, r_view.height, 0, 1.0);
+	R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
 
 	R_ShutdownImages();
 

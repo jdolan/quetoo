@@ -125,6 +125,8 @@ void Cl_LoadClient(cl_client_info_t *ci, const char *s){
 void Cl_LoadClients(void) {
 	int i;
 
+	Cl_LoadProgress(86);
+
 	for(i = 0; i < MAX_CLIENTS; i++){
 		cl_client_info_t *ci = &cl.client_info[i];
 		const char *s = cl.config_strings[CS_CLIENT_INFO + i];

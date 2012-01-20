@@ -52,6 +52,8 @@ void Cl_LoadEffects(void){
 	int i;
 	char name[MAX_QPATH];
 
+	Cl_LoadProgress(96);
+
 	cl_sample_shotgun_fire = S_LoadSample("weapons/shotgun/fire");
 	cl_sample_supershotgun_fire = S_LoadSample("weapons/supershotgun/fire");
 	cl_sample_grenadelauncher_fire = S_LoadSample("weapons/grenadelauncher/fire");

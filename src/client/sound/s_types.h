@@ -62,7 +62,9 @@ typedef struct s_env_s {
 	s_music_t *active_music;
 
 	boolean_t initialized;
-	boolean_t update;
+
+	boolean_t update;  // sound media has just been reloaded
+	boolean_t ready;  // sound system is ready for frames
 } s_env_t;
 
 #endif /* __S_TYPES_H__ */

@@ -309,42 +309,6 @@ void Cl_LoadEmits(void){
 
 
 /*
- * Cl_UpdateEmits
- *
- * Ensures emits hold references to valid media.
- */
-static void Cl_UpdateEmits(void){
-	int i;
-
-	if(r_view.update){  // resolve leafs, reload models
-
-		for(i = 0; i < num_emits; i++){
-
-			cl_emit_t *e = &emits[i];
-
-			e->leaf = R_LeafForPoint(e->org, r_world_model);
-
-			if(e->flags & EMIT_MODEL){
-				e->mod = R_LoadModel(e->model);
-				e->lighting.state = LIGHTING_INIT;
-			}
-		}
-	}
-
-	if(s_env.update){  // reload sounds
-
-		for(i = 0; i < num_emits; i++){
-
-			cl_emit_t *e = &emits[i];
-
-			if(e->flags & EMIT_SOUND)
-				e->sample = S_LoadSample(e->sound);
-		}
-	}
-}
-
-
-/*
  * Cl_EmitLight
  */
 static r_light_t *Cl_EmitLight(cl_emit_t *e){
@@ -364,8 +328,6 @@ static r_light_t *Cl_EmitLight(cl_emit_t *e){
 void Cl_AddEmits(void){
 	r_entity_t ent;
 	int i;
-
-	Cl_UpdateEmits();
 
 	if(!cl_add_emits->value)
 		return;

@@ -299,7 +299,7 @@ void Cl_UpdateScreen(void){
 
 	R_BeginFrame();
 
-	if(cls.state == ca_active && r_view.ready){
+	if(cls.state == ca_active && !cls.loading){
 
 		Cl_UpdateView();
 
