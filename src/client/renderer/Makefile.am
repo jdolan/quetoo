@@ -70,6 +70,7 @@ librenderer_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
+	
 librenderer_la_LIBADD = \
 	../../libimages.la
 

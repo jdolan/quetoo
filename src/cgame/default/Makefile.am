@@ -19,10 +19,14 @@ cgame_la_CFLAGS = \
 	@SO_CFLAGS@ \
 	-I../.. \
 	-pipe \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@OPENGL_CFLAGS@ \
+	@SDL_CFLAGS@
 
 cgame_la_LIBADD = \
-	../../libshared.la
+	../../libshared.la \
+	@OPENGL_LIBS@ \
+	@SDL_LIBS@
 
 cgame_la_LDFLAGS = \
 	-module \

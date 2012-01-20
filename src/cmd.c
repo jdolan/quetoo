@@ -83,6 +83,7 @@ void Cbuf_AddText(const char *text){
 		Com_Print("Cbuf_AddText: overflow\n");
 		return;
 	}
+
 	Sb_Write(&cmd_text, text, l);
 }
 

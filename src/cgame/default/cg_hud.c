@@ -43,6 +43,8 @@ typedef struct crosshair_s {
 
 static crosshair_t crosshair;
 
+byte color_white[4] = {255, 255, 255, 255};
+
 
 /*
  * Cg_DrawIcon
