@@ -388,7 +388,7 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *uni
 		case SDLK_F11:
 			if(event->type == SDL_KEYDOWN){
 				Cvar_Toggle("r_fullscreen");
-				R_Restart_f();
+				Cbuf_AddText("r_restart");
 			}
 
 			break;
