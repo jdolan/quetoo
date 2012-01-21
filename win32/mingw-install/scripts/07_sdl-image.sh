@@ -5,12 +5,6 @@ wget -c $SOURCE
 tar xzf SDL_image-1.2.11.tar.gz
 cd SDL_image-1.2.11
 
-#workaround for silly bug
-#cp ../libpng*/pnginfo.h .
-#cp ../libpng*/pngstruct.h .
-#patch -p0 < ../../scripts/sdl_image.diff
-
-
 ./configure --prefix=/mingw
 make -j 4
 make install
