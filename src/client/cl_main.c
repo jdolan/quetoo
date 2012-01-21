@@ -578,6 +578,8 @@ void Cl_RequestNextDownload(void){
 
 	Cl_LoadMedia();
 
+	cls.cgame->UpdateMedia();
+
 	Msg_WriteByte(&cls.netchan.message, clc_string);
 	Msg_WriteString(&cls.netchan.message, va("begin %i\n", precache_spawn_count));
 }

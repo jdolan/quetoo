@@ -64,6 +64,7 @@ static void Cg_Shutdown(void) {
  */
 static void Cg_UpdateMedia(void) {
 	cg_crosshair->modified = true;
+	cg_crosshair_color->modified = true;
 }
 
 /*
