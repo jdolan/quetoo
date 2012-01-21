@@ -110,7 +110,7 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]){
 }
 
 
-/**
+/*
  * Cvar_Delete
  *
  * Function to remove the cvar and free the space

@@ -1042,7 +1042,7 @@ void G_ClientDisconnect(g_edict_t *ent){
 }
 
 
-/**
+/*
  * G_ClientMoveTrace
  *
  * Ignore ourselves, clipping to the correct mask based on our status.

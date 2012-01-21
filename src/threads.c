@@ -70,20 +70,21 @@ thread_t *Thread_Create_(const char *name, void (function)(void *data), void *da
  *
  * Wait for the specified thread to complete.
  */
-void Thread_Wait(thread_t *t){
+void Thread_Wait(thread_t **t){
 
-	if(!t)
+	if(!*t)
 		return;
 
 	//struct timeval start, end;
 	//gettimeofday(&start, NULL);
 
-	SDL_WaitThread(t->thread, NULL);
+	SDL_WaitThread((*t)->thread, NULL);
 
 	//gettimeofday(&end, NULL);
 	//printf("%s: %ld\n", end->tv_usec - start->tv_usec, t->name);
 
-	Z_Free(t);
+	Z_Free(*t);
+	*t = NULL;
 }
 
 

@@ -28,7 +28,7 @@ static s_music_t default_music;
 
 static const char *MUSIC_TYPES[] = { ".ogg", NULL };
 
-/**
+/*
  * S_LoadMusic
  */
 static s_music_t *S_LoadMusic(const char *name) {
@@ -95,7 +95,7 @@ static void S_FreeMusic(s_music_t *music) {
 		Fs_FreeFile(music->buffer);
 }
 
-/**
+/*
  * S_FreeMusics
  */
 static void S_FreeMusics(void) {
@@ -110,7 +110,7 @@ static void S_FreeMusics(void) {
 	s_env.active_music = NULL;
 }
 
-/**
+/*
  * S_LoadMusics
  */
 void S_LoadMusics(void) {
@@ -160,7 +160,7 @@ void S_LoadMusics(void) {
 	Com_Print("Loaded %d tracks\n", s_env.num_musics);
 }
 
-/**
+/*
  * S_StopMusic
  */
 static void S_StopMusic(void) {
@@ -170,7 +170,7 @@ static void S_StopMusic(void) {
 	s_env.active_music = NULL;
 }
 
-/**
+/*
  * S_PlayMusic
  */
 static void S_PlayMusic(s_music_t *music) {
@@ -180,7 +180,7 @@ static void S_PlayMusic(s_music_t *music) {
 	s_env.active_music = music;
 }
 
-/**
+/*
  * S_NextMusic
  */
 static s_music_t *S_NextMusic(void) {
@@ -207,7 +207,7 @@ static s_music_t *S_NextMusic(void) {
 	return music;
 }
 
-/**
+/*
  * S_FrameMusic
  */
 void S_FrameMusic(void) {
@@ -249,7 +249,7 @@ void S_FrameMusic(void) {
 		S_PlayMusic(music);
 }
 
-/**
+/*
  * S_NextTrack_f
  */
 static void S_NextTrack_f(void) {
@@ -257,7 +257,7 @@ static void S_NextTrack_f(void) {
 	S_PlayMusic(S_NextMusic());
 }
 
-/**
+/*
  * S_InitMusic
  */
 void S_InitMusic(void) {
@@ -278,7 +278,7 @@ void S_InitMusic(void) {
 		memcpy(&default_music, music, sizeof(default_music));
 }
 
-/**
+/*
  * S_ShutdownMusic
  */
 void S_ShutdownMusic(void) {

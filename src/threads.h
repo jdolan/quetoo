@@ -38,7 +38,7 @@ extern cvar_t *threads;
 
 thread_t *Thread_Create_(const char *name, void (function)(void *data), void *data);
 #define Thread_Create(f, d) Thread_Create_(#f, f, d)
-void Thread_Wait(thread_t *t);
+void Thread_Wait(thread_t **t);
 void Thread_Init(void);
 void Thread_Shutdown(void);
 

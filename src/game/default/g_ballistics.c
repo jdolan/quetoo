@@ -385,7 +385,7 @@ void G_GrenadeProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir, int speed
 }
 
 
-/**
+/*
  * G_RocketProjectile_Touch
  */
 static void G_RocketProjectile_Touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){

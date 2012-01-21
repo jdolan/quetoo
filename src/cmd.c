@@ -517,7 +517,7 @@ void Cmd_AddUserdata(const char *cmd_name, void *userdata){
 	}
 }
 
-/**
+/*
  * Cmd_GetUserdata
  *
  * Fetches the userdata for a console command.

@@ -476,7 +476,7 @@ void G_SpawnEntities(const char *name, const char *entities){
 }
 
 
-/**
+/*
  * G_WorldspawnMusic
  */
 static void G_WorldspawnMusic(void){

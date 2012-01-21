@@ -32,7 +32,7 @@ boolean_t verbose;
 boolean_t debug;
 boolean_t legacy;
 
-/** BSP */
+/* BSP */
 extern boolean_t noprune;
 extern boolean_t nodetail;
 extern boolean_t fulldetail;
@@ -53,13 +53,13 @@ extern int block_xl, block_xh, block_yl, block_yh;
 extern vec_t microvolume;
 extern int subdivide_size;
 
-/** VIS */
+/* VIS */
 extern char inbase[32];
 extern boolean_t fastvis;
 extern boolean_t nosort;
 extern int testlevel;
 
-/** LIGHT */
+/* LIGHT */
 extern boolean_t extra_samples;
 extern float brightness;
 extern float saturation;

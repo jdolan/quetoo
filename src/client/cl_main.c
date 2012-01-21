@@ -481,7 +481,7 @@ void Cl_LoadProgress(int percent){
 }
 
 
-/**
+/*
  * Cl_UpdateMedia
  *
  * Reload stale media references on subsystem restarts.

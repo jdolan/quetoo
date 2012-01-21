@@ -70,7 +70,7 @@ void R_UpdateCapture(void) {
 	if (r_view.time - capture_buffer.time < 1000.0 / r_capture_fps->value)
 		return;
 
-	Thread_Wait(capture_thread);
+	Thread_Wait(&capture_thread);
 
 	if (r_view.update || r_capture->modified) {
 		r_capture->modified = false;

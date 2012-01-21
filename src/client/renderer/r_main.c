@@ -230,7 +230,7 @@ void R_DrawFrame(void){
 
 	// wait for the client to populate our lights array
 
-	Thread_Wait(r_view.thread);
+	Thread_Wait(&r_view.thread);
 
 	// now dispatch another thread to cull the entities
 
@@ -256,7 +256,7 @@ void R_DrawFrame(void){
 
 	R_DrawBspNormals();
 
-	Thread_Wait(r_view.thread);
+	Thread_Wait(&r_view.thread);
 
 	R_DrawEntities();
 
@@ -395,6 +395,8 @@ void R_EndFrame(void){
  * R_InitView
  */
 void R_InitView(void) {
+
+	Thread_Wait(&r_view.thread);
 
 	memset(&r_view, 0, sizeof(r_view));
 

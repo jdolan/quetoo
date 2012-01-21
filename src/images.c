@@ -273,7 +273,7 @@ void Img_ColorFromPalette(byte c, float *res){
 }
 
 
-/**
+/*
  * Img_fwrite
  *
  * Wraps fwrite, reading the return value to silence gcc.

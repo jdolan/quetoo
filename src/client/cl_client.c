@@ -117,7 +117,7 @@ void Cl_LoadClient(cl_client_info_t *ci, const char *s){
 	Com_Debug("Loaded cl_client_info_t: %s\n", ci->info);
 }
 
-/**
+/*
  * Cl_LoadClients
  *
  * Load all client info strings from the server.
