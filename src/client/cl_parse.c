@@ -302,7 +302,7 @@ static void Cl_ParseGravity(const char *gravity){
 void Cl_ParseConfigString(void){
 	int i;
 	char *s;
-	char olds[MAX_QPATH];
+	char olds[MAX_STRING_CHARS];
 
 	i = Msg_ReadShort(&net_message);
 	if(i < 0 || i >= MAX_CONFIG_STRINGS){
