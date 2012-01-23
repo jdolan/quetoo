@@ -212,7 +212,7 @@ static void Cl_ParseDownload(void){
 /*
  * Cl_ParseServerData
  */
-static boolean_t Cl_ParseServerData(void){
+static void Cl_ParseServerData(void){
 	extern cvar_t *fs_gamedirvar;
 	char *str;
 	int i;
@@ -261,10 +261,6 @@ static boolean_t Cl_ParseServerData(void){
 	// get the full level name
 	str = Msg_ReadString(&net_message);
 	Com_Print("\n"); Com_Print("%c%s\n", 2, str);
-
-	// need to prep view at next opportunity
-	r_view.ready = false;
-	return true;
 }
 
 
@@ -300,39 +296,34 @@ static void Cl_ParseGravity(const char *gravity){
  * Cl_ParseConfigString
  */
 void Cl_ParseConfigString(void){
-	int i;
-	char *s;
-	char olds[MAX_STRING_CHARS];
 
-	i = Msg_ReadShort(&net_message);
+	const int i = Msg_ReadShort(&net_message);
+
 	if(i < 0 || i >= MAX_CONFIG_STRINGS){
 		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
 	}
-	s = Msg_ReadString(&net_message);
 
-	strncpy(olds, cl.config_strings[i], sizeof(olds));
-	olds[sizeof(olds) - 1] = 0;
-
-	strcpy(cl.config_strings[i], s);
+	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
+	const char *s = cl.config_strings[i];
 
 	if(i == CS_GRAVITY)
-		Cl_ParseGravity(cl.config_strings[i]);
+		Cl_ParseGravity(s);
 	else if(i >= CS_MODELS && i < CS_MODELS + MAX_MODELS){
-		if(r_view.ready){
-			cl.model_draw[i - CS_MODELS] = R_LoadModel(cl.config_strings[i]);
+		if(cls.state == ca_active){
+			cl.model_draw[i - CS_MODELS] = R_LoadModel(s);
 			if(cl.config_strings[i][0] == '*')
-				cl.model_clip[i - CS_MODELS] = Cm_Model(cl.config_strings[i]);
+				cl.model_clip[i - CS_MODELS] = Cm_Model(s);
 			else
 				cl.model_clip[i - CS_MODELS] = NULL;
 		}
 	} else if(i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS){
-		if(r_view.ready)
-			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(cl.config_strings[i]);
+		if(cls.state == ca_active)
+			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(s);
 	} else if(i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES){
-		if(r_view.ready)
-			cl.image_precache[i - CS_IMAGES] = R_LoadPic(cl.config_strings[i]);
+		if(cls.state == ca_active)
+			cl.image_precache[i - CS_IMAGES] = R_LoadPic(s);
 	} else if(i >= CS_CLIENT_INFO && i < CS_CLIENT_INFO + MAX_CLIENTS){
-		if(r_view.ready && strcmp(olds, s))
+		if(cls.state == ca_active)
 			Cl_LoadClient(&cl.client_info[i - CS_CLIENT_INFO], s);
 	}
 }
@@ -492,9 +483,7 @@ void Cl_ParseServerMessage(void){
 				break;
 
 			case svc_server_data:
-				Cbuf_Execute();  // make sure any stuffed commands are done
-				if(!Cl_ParseServerData())
-					return;
+				Cl_ParseServerData();
 				break;
 
 			case svc_config_string:

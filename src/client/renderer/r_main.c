@@ -324,7 +324,11 @@ static void R_Clear(void){
 		bits |= GL_STENCIL_BUFFER_BIT;
 
 	// clear the color buffer if desired or necessary
-	if(r_clear->value || r_draw_wireframe->value || r_view.x || r_view.y || !r_view.ready)
+	if(r_clear->value || r_draw_wireframe->value || r_view.x || r_view.y)
+		bits |= GL_COLOR_BUFFER_BIT;
+
+	// or if the client is not fully loaded
+	if(cls.state != ca_active || cls.loading)
 		bits |= GL_COLOR_BUFFER_BIT;
 
 	glClear(bits);
@@ -507,7 +511,7 @@ void R_LoadMedia(void){
 	R_ResolveWeather();
 	Cl_LoadProgress(79);
 
-	r_view.update = r_view.ready = true;
+	r_view.update = true;
 }
 
 

@@ -317,7 +317,7 @@ int BSP_Main(void){
 	remove(va("%s.prt", base));
 	remove(va("%s.lin", base));
 
-	// if onlyents, just grab the entites and resave
+	// if onlyents, just grab the entities and re-save
 	if(onlyents){
 
 		LoadBSPFile(bsp_name);

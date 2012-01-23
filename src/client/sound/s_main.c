@@ -107,17 +107,15 @@ void S_Frame(void) {
  */
 void S_LoadMedia(void) {
 
-	s_env.ready = false;
+	Cl_LoadProgress(80);
 
 	S_LoadSamples();
 
-	Cl_LoadProgress(80);
+	Cl_LoadProgress(85);
 
 	S_LoadMusics();
 
-	Cl_LoadProgress(85);
-
-	s_env.update = s_env.ready = true;
+	s_env.update = true;
 }
 
 /*

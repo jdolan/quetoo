@@ -655,8 +655,7 @@ typedef struct r_view_s {
 	int bsp_polys;  // counters
 	int mesh_polys;
 
-	boolean_t update;  // eligible for update from client
-	boolean_t ready;  // eligible for rendering to the client
+	boolean_t update;  // inform the client of state changes
 } r_view_t;
 
 // gl context information

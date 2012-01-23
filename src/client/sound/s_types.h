@@ -63,8 +63,7 @@ typedef struct s_env_s {
 
 	boolean_t initialized;
 
-	boolean_t update;  // sound media has just been reloaded
-	boolean_t ready;  // sound system is ready for frames
+	boolean_t update;  // inform the client of state changes
 } s_env_t;
 
 #endif /* __S_TYPES_H__ */
