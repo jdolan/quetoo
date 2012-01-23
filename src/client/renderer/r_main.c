@@ -507,7 +507,7 @@ void R_LoadMedia(void){
 	R_ResolveWeather();
 	Cl_LoadProgress(79);
 
-	r_view.update = r_view.update = true;
+	r_view.update = r_view.ready = true;
 }
 
 
