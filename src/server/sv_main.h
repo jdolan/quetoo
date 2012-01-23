@@ -19,17 +19,35 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SERVER_H__
-#define __SERVER_H__
+#ifndef __SV_MAIN_H__
+#define __SV_MAIN_H__
 
-#include "sv_admin.h"
-#include "sv_client.h"
-#include "sv_entity.h"
-#include "sv_game.h"
-#include "sv_init.h"
-#include "sv_main.h"
-#include "sv_send.h"
 #include "sv_types.h"
-#include "sv_world.h"
 
-#endif /* __SERVER_H__ */
+void Sv_Init(void);
+void Sv_Shutdown(const char *msg);
+void Sv_Frame(int msec);
+
+#ifdef __SV_LOCAL_H__
+// cvars
+extern cvar_t *sv_rcon_password;
+extern cvar_t *sv_download_url;
+extern cvar_t *sv_enforce_time;
+extern cvar_t *sv_hostname;
+extern cvar_t *sv_max_clients;
+extern cvar_t *sv_framerate;
+extern cvar_t *sv_public;
+extern cvar_t *sv_timeout;
+extern cvar_t *sv_udp_download;
+
+// current client / player edict
+extern sv_client_t *sv_client;
+extern g_edict_t *sv_player;
+
+char *Sv_NetaddrToString(sv_client_t *cl);
+void Sv_KickClient(sv_client_t *cl, const char *msg);
+void Sv_DropClient(sv_client_t *cl);
+void Sv_UserInfoChanged(sv_client_t *cl);
+#endif /* __SV_LOCAL_H__ */
+
+#endif /* __SV_MAIN_H__ */

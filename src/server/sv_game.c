@@ -19,16 +19,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "server.h"
+#include "sv_local.h"
+#include "pmove.h"
 
 
 /*
  * Sv_Print
  */
 static void Sv_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-static void Sv_Print(const char *fmt, ...){
+static void Sv_Print(const char *fmt, ...) {
 	char msg[MAX_STRING_CHARS];
-	va_list	args;
+	va_list args;
 
 	va_start(args, fmt);
 	vsprintf(msg, fmt, args);
@@ -37,14 +38,13 @@ static void Sv_Print(const char *fmt, ...){
 	Com_Print("%s", msg);
 }
 
-
 /*
  * Sv_Debug
  */
 static void Sv_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-static void Sv_Debug(const char *fmt, ...){
+static void Sv_Debug(const char *fmt, ...) {
 	char msg[MAX_STRING_CHARS];
-	va_list	args;
+	va_list args;
 
 	va_start(args, fmt);
 	vsprintf(msg, fmt, args);
@@ -53,16 +53,15 @@ static void Sv_Debug(const char *fmt, ...){
 	Com_Debug("%s", msg);
 }
 
-
 /*
  * Sv_Error
  *
  * Abort the server with a game error
  */
 static void Sv_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
-static void Sv_Error(const char *fmt, ...){
+static void Sv_Error(const char *fmt, ...) {
 	char msg[MAX_STRING_CHARS];
-	va_list	args;
+	va_list args;
 
 	va_start(args, fmt);
 	vsprintf(msg, fmt, args);
@@ -71,24 +70,23 @@ static void Sv_Error(const char *fmt, ...){
 	Com_Error(ERR_DROP, "Game error: %s.\n", msg);
 }
 
-
 /*
  * Sv_SetModel
  *
  * Also sets mins and maxs for inline bsp models.
  */
-static void Sv_SetModel(g_edict_t *ent, const char *name){
+static void Sv_SetModel(g_edict_t *ent, const char *name) {
 	c_model_t *mod;
 
-	if(!name){
-		Com_Warn("Sv_SetModel %d: NULL.\n", (int)NUM_FOR_EDICT(ent));
+	if (!name) {
+		Com_Warn("Sv_SetModel %d: NULL.\n", (int) NUM_FOR_EDICT(ent));
 		return;
 	}
 
 	ent->s.model1 = Sv_ModelIndex(name);
 
 	// if it is an inline model, get the size information for it
-	if(name[0] == '*'){
+	if (name[0] == '*') {
 		mod = Cm_Model(name);
 		VectorCopy(mod->mins, ent->mins);
 		VectorCopy(mod->maxs, ent->maxs);
@@ -96,24 +94,23 @@ static void Sv_SetModel(g_edict_t *ent, const char *name){
 	}
 }
 
-
 /*
  * Sv_ConfigString
  */
-static void Sv_ConfigString(int index, const char *val){
+static void Sv_ConfigString(int index, const char *val) {
 
-	if(index < 0 || index >= MAX_CONFIG_STRINGS){
+	if (index < 0 || index >= MAX_CONFIG_STRINGS) {
 		Com_Warn("Sv_ConfigString: bad index %i.\n", index);
 		return;
 	}
 
-	if(!val)
+	if (!val)
 		val = "";
 
 	// change the string in sv.config_strings
 	strncpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
 
-	if(sv.state != ss_loading){  // send the update to everyone
+	if (sv.state != ss_loading) { // send the update to everyone
 		Sb_Clear(&sv.multicast);
 		Msg_WriteChar(&sv.multicast, svc_config_string);
 		Msg_WriteShort(&sv.multicast, index);
@@ -123,50 +120,48 @@ static void Sv_ConfigString(int index, const char *val){
 	}
 }
 
-
 /*
  * Message wrappers which target the multicast buffer.
  */
 
-static void Sv_WriteChar(int c){
+static void Sv_WriteChar(int c) {
 	Msg_WriteChar(&sv.multicast, c);
 }
 
-static void Sv_WriteByte(int c){
+static void Sv_WriteByte(int c) {
 	Msg_WriteByte(&sv.multicast, c);
 }
 
-static void Sv_WriteShort(int c){
+static void Sv_WriteShort(int c) {
 	Msg_WriteShort(&sv.multicast, c);
 }
 
-static void Sv_WriteLong(int c){
+static void Sv_WriteLong(int c) {
 	Msg_WriteLong(&sv.multicast, c);
 }
 
-static void Sv_WriteString(const char *s){
+static void Sv_WriteString(const char *s) {
 	Msg_WriteString(&sv.multicast, s);
 }
 
-static void Sv_WritePos(vec3_t pos){
+static void Sv_WritePos(vec3_t pos) {
 	Msg_WritePos(&sv.multicast, pos);
 }
 
-static void Sv_WriteDir(vec3_t dir){
+static void Sv_WriteDir(vec3_t dir) {
 	Msg_WriteDir(&sv.multicast, dir);
 }
 
-static void Sv_WriteAngle(float f){
+static void Sv_WriteAngle(float f) {
 	Msg_WriteAngle(&sv.multicast, f);
 }
-
 
 /*
  * Sv_inPVS
  *
  * Also checks portal_areas so that doors block sight
  */
-static boolean_t Sv_inPVS(const vec3_t p1, const vec3_t p2){
+static boolean_t Sv_inPVS(const vec3_t p1, const vec3_t p2) {
 	int leaf_num;
 	int cluster;
 	int area1, area2;
@@ -181,22 +176,21 @@ static boolean_t Sv_inPVS(const vec3_t p1, const vec3_t p2){
 	cluster = Cm_LeafCluster(leaf_num);
 	area2 = Cm_LeafArea(leaf_num);
 
-	if(mask &&(!(mask[cluster >> 3] &(1 <<(cluster&7)))))
+	if (mask && (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
 		return false;
 
-	if(!Cm_AreasConnected(area1, area2))
-		return false;  // a door blocks sight
+	if (!Cm_AreasConnected(area1, area2))
+		return false; // a door blocks sight
 
 	return true;
 }
-
 
 /*
  * Sv_inPHS
  *
  * Also checks portal_areas so that doors block sound
  */
-static boolean_t Sv_inPHS(const vec3_t p1, const vec3_t p2){
+static boolean_t Sv_inPHS(const vec3_t p1, const vec3_t p2) {
 	int leaf_num;
 	int cluster;
 	int area1, area2;
@@ -210,26 +204,24 @@ static boolean_t Sv_inPHS(const vec3_t p1, const vec3_t p2){
 	leaf_num = Cm_PointLeafnum(p2);
 	cluster = Cm_LeafCluster(leaf_num);
 	area2 = Cm_LeafArea(leaf_num);
-	if(mask &&(!(mask[cluster >> 3] &(1 <<(cluster&7)))))
-		return false;  // more than one bounce away
-	if(!Cm_AreasConnected(area1, area2))
-		return false;  // a door blocks hearing
+	if (mask && (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
+		return false; // more than one bounce away
+	if (!Cm_AreasConnected(area1, area2))
+		return false; // a door blocks hearing
 
 	return true;
 }
 
-
 /*
  * Sv_StartSound_
  */
-static void Sv_Sound(g_edict_t *ent, int soundindex, int atten){
+static void Sv_Sound(g_edict_t *ent, int soundindex, int atten) {
 
-	if(!ent)
+	if (!ent)
 		return;
 
 	Sv_PositionedSound(NULL, ent, soundindex, atten);
 }
-
 
 static void *game_handle;
 
@@ -239,9 +231,9 @@ static void *game_handle;
  * Called when either the entire server is being killed, or it is changing to a
  * different game directory.
  */
-void Sv_ShutdownGame(void){
+void Sv_ShutdownGame(void) {
 
-	if(!svs.game)
+	if (!svs.game)
 		return;
 
 	svs.game->Shutdown();
@@ -249,7 +241,6 @@ void Sv_ShutdownGame(void){
 
 	Sys_CloseLibrary(&game_handle);
 }
-
 
 /*
  * Sv_InitGame
@@ -263,10 +254,10 @@ void Sv_ShutdownGame(void){
  * returns to us.  This distinction seems a bit backwards, but it was likely
  * deemed less confusing to "mod" authors back in the day.
  */
-void Sv_InitGame(void){
+void Sv_InitGame(void) {
 	g_import_t import;
 
-	if(svs.game){
+	if (svs.game) {
 		Sv_ShutdownGame();
 	}
 
@@ -333,13 +324,14 @@ void Sv_InitGame(void){
 
 	import.AddCommandString = Cbuf_AddText;
 
-	svs.game = (g_export_t *)Sys_LoadLibrary("game", &game_handle, "G_LoadGame", &import);
+	svs.game = (g_export_t *) Sys_LoadLibrary("game", &game_handle,
+			"G_LoadGame", &import);
 
-	if(!svs.game){
+	if (!svs.game) {
 		Com_Error(ERR_DROP, "Sv_InitGameProgs: Failed to load game module.\n");
 	}
 
-	if(svs.game->api_version != GAME_API_VERSION){
+	if (svs.game->api_version != GAME_API_VERSION) {
 		Com_Error(ERR_DROP, "Sv_InitGameProgs: Game is version %i, not %i.\n",
 				svs.game->api_version, GAME_API_VERSION);
 	}

@@ -34,58 +34,55 @@ typedef struct {
 static net_graph_sample_t net_graph_samples[NET_GRAPH_WIDTH];
 static int num_net_graph_samples;
 
-
 /*
  * Cl_Netgraph
  */
-static void Cl_Netgraph(float value, int color){
+static void Cl_Netgraph(float value, int color) {
 
 	net_graph_samples[num_net_graph_samples].value = value;
 	net_graph_samples[num_net_graph_samples].color = color;
 
-	if(net_graph_samples[num_net_graph_samples].value > 1.0)
+	if (net_graph_samples[num_net_graph_samples].value > 1.0)
 		net_graph_samples[num_net_graph_samples].value = 1.0;
 
 	num_net_graph_samples++;
 
-	if(num_net_graph_samples == NET_GRAPH_WIDTH)
+	if (num_net_graph_samples == NET_GRAPH_WIDTH)
 		num_net_graph_samples = 0;
 }
-
 
 /*
  * Cl_AddNetgraph
  */
-void Cl_AddNetgraph(void){
+void Cl_AddNetgraph(void) {
 	int i;
 	int in;
 	int ping;
 
 	// we only need to do our accounting when asked to
-	if(!cl_net_graph->value)
+	if (!cl_net_graph->value)
 		return;
 
-	for(i = 0; i < cls.netchan.dropped; i++)
+	for (i = 0; i < cls.netchan.dropped; i++)
 		Cl_Netgraph(1.0, 0x40);
 
-	for(i = 0; i < cl.surpress_count; i++)
+	for (i = 0; i < cl.surpress_count; i++)
 		Cl_Netgraph(1.0, 0xdf);
 
 	// see what the latency was on this packet
 	in = cls.netchan.incoming_acknowledged & (CMD_BACKUP - 1);
 	ping = cls.real_time - cl.cmd_time[in];
 
-	Cl_Netgraph(ping / 300.0, 0xd0);  // 300ms is lagged out
+	Cl_Netgraph(ping / 300.0, 0xd0); // 300ms is lagged out
 }
-
 
 /*
  * Cl_DrawNetgraph
  */
-static void Cl_DrawNetgraph(void){
+static void Cl_DrawNetgraph(void) {
 	int i, j, x, y, h;
 
-	if(!cl_net_graph->value)
+	if (!cl_net_graph->value)
 		return;
 
 	x = r_context.width - NET_GRAPH_WIDTH;
@@ -93,12 +90,12 @@ static void Cl_DrawNetgraph(void){
 
 	R_DrawFill(x, y, NET_GRAPH_WIDTH, NET_GRAPH_HEIGHT, 8, 0.2);
 
-	for(i = 0; i < NET_GRAPH_WIDTH; i++){
+	for (i = 0; i < NET_GRAPH_WIDTH; i++) {
 
 		j = (num_net_graph_samples - i) & (NET_GRAPH_WIDTH - 1);
 		h = net_graph_samples[j].value * NET_GRAPH_HEIGHT;
 
-		if(!h)
+		if (!h)
 			continue;
 
 		x = r_context.width - i;
@@ -108,7 +105,6 @@ static void Cl_DrawNetgraph(void){
 	}
 }
 
-
 static char center_string[MAX_STRING_CHARS];
 static float center_time;
 static int center_lines;
@@ -116,7 +112,7 @@ static int center_lines;
 /*
  * Cl_CenterPrint
  */
-void Cl_CenterPrint(char *str){
+void Cl_CenterPrint(char *str) {
 	char *s;
 
 	strncpy(center_string, str, sizeof(center_string) - 1);
@@ -126,8 +122,8 @@ void Cl_CenterPrint(char *str){
 	// count the number of lines for centering
 	center_lines = 1;
 	s = str;
-	while(*s){
-		if(*s == '\n')
+	while (*s) {
+		if (*s == '\n')
 			center_lines++;
 		s++;
 	}
@@ -137,11 +133,10 @@ void Cl_CenterPrint(char *str){
 	Cl_ClearNotify();
 }
 
-
 /*
  * Cl_DrawCenterString
  */
-static void Cl_DrawCenterString(void){
+static void Cl_DrawCenterString(void) {
 	const char *s;
 	int x, y, cw, ch, size, len;
 
@@ -149,7 +144,7 @@ static void Cl_DrawCenterString(void){
 
 	s = center_string;
 
-	if(center_lines <= 4)  // FIXME: make this consistent
+	if (center_lines <= 4) // FIXME: make this consistent
 		y = r_context.height * 0.35;
 	else
 		y = ch * 4;
@@ -157,12 +152,12 @@ static void Cl_DrawCenterString(void){
 	do {
 		// scan the width of the line, ignoring color keys
 		len = size = 0;
-		while(true){
+		while (true) {
 
-			if(!s[size] || s[size] == '\n' || len >= 40)
+			if (!s[size] || s[size] == '\n' || len >= 40)
 				break;
 
-			if(IS_COLOR(&s[size])){
+			if (IS_COLOR(&s[size])) {
 				size += 2;
 				continue;
 			}
@@ -178,41 +173,39 @@ static void Cl_DrawCenterString(void){
 
 		// look for next line
 		s += size;
-		while(*s && *s != '\n')
+		while (*s && *s != '\n')
 			s++;
 
-		if(!*s)
+		if (!*s)
 			return;
 
-		s++;  // skip the \n
+		s++; // skip the \n
 
 		y += ch;
-	} while(true);
+	} while (true);
 }
-
 
 /*
  * Cl_CheckDrawCenterString
  */
-static void Cl_CheckDrawCenterString(void){
+static void Cl_CheckDrawCenterString(void) {
 
-	if(center_time <= cl.time)
+	if (center_time <= cl.time)
 		return;
 
 	Cl_DrawCenterString();
 }
 
-
 /*
  * Cl_DrawRendererStats
  */
-static void Cl_DrawRendererStats(void){
+static void Cl_DrawRendererStats(void) {
 	char s[128];
 
-	if(!cl_show_renderer_stats->value)
+	if (!cl_show_renderer_stats->value)
 		return;
 
-	if(cls.state != ca_active)
+	if (cls.state != ca_active)
 		return;
 
 	snprintf(s, sizeof(s) - 1, "%i bsp %i mesh %i lights %i particles",
@@ -221,18 +214,17 @@ static void Cl_DrawRendererStats(void){
 	R_DrawString(r_context.width - strlen(s) * 16, 0, s, CON_COLOR_YELLOW);
 }
 
-
 int frames_this_second = 0, packets_this_second = 0, bytes_this_second = 0;
 
 /*
  * Cl_DrawCounters
  */
-static void Cl_DrawCounters(void){
+static void Cl_DrawCounters(void) {
 	static vec3_t velocity;
 	static char bps[8], pps[8], fps[8], spd[8];
 	static int millis, cw, ch;
 
-	if(!cl_counters->value)
+	if (!cl_counters->value)
 		return;
 
 	R_BindFont("small", &cw, &ch);
@@ -242,7 +234,7 @@ static void Cl_DrawCounters(void){
 
 	frames_this_second++;
 
-	if(quake2world.time - millis >= 1000){
+	if (quake2world.time - millis >= 1000) {
 
 		VectorCopy(r_view.velocity, velocity);
 		velocity[2] = 0.0;
@@ -273,21 +265,19 @@ static void Cl_DrawCounters(void){
 	R_BindFont(NULL, NULL, NULL);
 }
 
-
 /*
  * Cl_DrawCursor
  */
-static void Cl_DrawCursor(void){
+static void Cl_DrawCursor(void) {
 
-	if(cls.key_state.dest != key_menu && cls.mouse_state.grabbed)
+	if (cls.key_state.dest != key_menu && cls.mouse_state.grabbed)
 		return;
 
-	if(!(SDL_GetAppState() & SDL_APPMOUSEFOCUS))
+	if (!(SDL_GetAppState() & SDL_APPMOUSEFOCUS))
 		return;
 
 	R_DrawCursor(cls.mouse_state.x, cls.mouse_state.y);
 }
-
 
 /*
  * Cl_UpdateScreen
@@ -295,11 +285,11 @@ static void Cl_DrawCursor(void){
  * This is called every frame, and can also be called explicitly to flush
  * text to the screen.
  */
-void Cl_UpdateScreen(void){
+void Cl_UpdateScreen(void) {
 
 	R_BeginFrame();
 
-	if(cls.state == ca_active && !cls.loading){
+	if (cls.state == ca_active && !cls.loading) {
 
 		Cl_UpdateView();
 
@@ -309,7 +299,7 @@ void Cl_UpdateScreen(void){
 
 		R_Setup2D();
 
-		if(cls.key_state.dest != key_console && cls.key_state.dest != key_menu){
+		if (cls.key_state.dest != key_console && cls.key_state.dest != key_menu) {
 
 			Cl_DrawNetgraph();
 
@@ -323,18 +313,17 @@ void Cl_UpdateScreen(void){
 
 			cls.cgame->DrawHud(&cl.frame.ps);
 		}
-	}
-	else {
+	} else {
 		R_Setup2D();
 	}
 
 	Cl_DrawConsole();
 
-	R_DrawFills();  // draw all fills accumulated above
+	R_DrawFills(); // draw all fills accumulated above
 
-	R_DrawLines();  // draw all lines accumulated above
+	R_DrawLines(); // draw all lines accumulated above
 
-	R_DrawChars();  // draw all chars accumulated above
+	R_DrawChars(); // draw all chars accumulated above
 
 	Ui_Draw();
 

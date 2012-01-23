@@ -37,30 +37,29 @@
 typedef struct cl_emit_s {
 	int flags;
 	vec3_t org;
-	vec3_t angles;  // for model orientation
-	vec3_t dir;  // for particle direction
-	vec3_t vel;  // for particle velocity
+	vec3_t angles; // for model orientation
+	vec3_t dir; // for particle direction
+	vec3_t vel; // for particle velocity
 	vec3_t color;
-	float hz, drift;  // how frequently and randomly we fire
-	float radius;  // flame and corona radius
+	float hz, drift; // how frequently and randomly we fire
+	float radius; // flame and corona radius
 	float flicker;
-	float scale;  // mesh model scale
-	int count;  // particle counts
-	char sound[MAX_QPATH];  // sound name
-	s_sample_t *sample;  // sound sample
-	int atten;  // sound attenuation
-	boolean_t loop;  // loop sound versus timed
-	char model[MAX_QPATH];  // model name
-	r_model_t *mod;  // model
-	const r_bsp_leaf_t *leaf;  // for pvs culling
-	r_lighting_t lighting;  // cached static lighting info
-	int time;  // when to fire next
+	float scale; // mesh model scale
+	int count; // particle counts
+	char sound[MAX_QPATH]; // sound name
+	s_sample_t *sample; // sound sample
+	int atten; // sound attenuation
+	boolean_t loop; // loop sound versus timed
+	char model[MAX_QPATH]; // model name
+	r_model_t *mod; // model
+	const r_bsp_leaf_t *leaf; // for pvs culling
+	r_lighting_t lighting; // cached static lighting info
+	int time; // when to fire next
 } cl_emit_t;
 
 #define MAX_EMITS 256
 static cl_emit_t emits[MAX_EMITS];
 static int num_emits = 0;
-
 
 /*
  * Cl_LoadEmits
@@ -68,7 +67,7 @@ static int num_emits = 0;
  * Parse misc_emits from the bsp after it has been loaded.  This must
  * be called after Cm_LoadMap, once per pre-cache routine.
  */
-void Cl_LoadEmits(void){
+void Cl_LoadEmits(void) {
 	const char *ents;
 	char class_name[128];
 	cl_emit_t *e;
@@ -84,222 +83,223 @@ void Cl_LoadEmits(void){
 
 	e = NULL;
 
-	while(true){
+	while (true) {
 
 		const char *c = ParseToken(&ents);
 
-		if(*c == '\0')
+		if (*c == '\0')
 			break;
 
-		if(*c == '{')
+		if (*c == '{')
 			entity = true;
 
-		if(!entity)  // skip any whitespace between ents
+		if (!entity) // skip any whitespace between ents
 			continue;
 
-		if(*c == '}'){
+		if (*c == '}') {
 			entity = false;
 
-			if(emit){
+			if (emit) {
 
 				// resolve the leaf so that the entity may be added only when in PVS
 				e->leaf = R_LeafForPoint(e->org, r_world_model);
 
 				// add default sounds and models
-				if(!e->sample){
+				if (!e->sample) {
 
-					if(e->flags & EMIT_SPARKS){
+					if (e->flags & EMIT_SPARKS) {
 						strcpy(e->sound, "world/sparks");
 						e->sample = S_LoadSample(e->sound);
 					}
 
-					else if(e->flags & EMIT_STEAM){  // steam hissing
+					else if (e->flags & EMIT_STEAM) { // steam hissing
 						strcpy(e->sound, "world/steam");
 						e->sample = S_LoadSample(e->sound);
 					}
 
-					else if(e->flags & EMIT_FLAME){  // fire crackling
+					else if (e->flags & EMIT_FLAME) { // fire crackling
 						strcpy(e->sound, "world/fire");
 						e->sample = S_LoadSample(e->sound);
 					}
 				}
 
 				// crutch up flags as a convenience
-				if(e->sample)
+				if (e->sample)
 					e->flags |= EMIT_SOUND;
 
-				if(e->mod)
+				if (e->mod)
 					e->flags |= EMIT_MODEL;
 
-				if(VectorCompare(e->color, vec3_origin))  // default color
+				if (VectorCompare(e->color, vec3_origin)) // default color
 					VectorSet(e->color, 1.0, 1.0, 1.0);
 
-				if(e->count <= 0)  // default particle count
+				if (e->count <= 0) // default particle count
 					e->count = 12;
 
-				if(e->radius <= 0.0){  // default light and corona radius
+				if (e->radius <= 0.0) { // default light and corona radius
 
-					if(e->flags & EMIT_CORONA)
+					if (e->flags & EMIT_CORONA)
 						e->radius = 12.0;
-					else if(e->flags & EMIT_LIGHT)
+					else if (e->flags & EMIT_LIGHT)
 						e->radius = 100.0;
 					else
 						e->radius = 1.0;
 				}
 
-				if(VectorCompare(e->vel, vec3_origin)){  // default velocity
+				if (VectorCompare(e->vel, vec3_origin)) { // default velocity
 
-					if(e->flags & EMIT_STEAM)
+					if (e->flags & EMIT_STEAM)
 						VectorSet(e->vel, 0.0, 0.0, 40.0);
 				}
 
-				if(e->flags & EMIT_SPARKS){  // default directional scale
+				if (e->flags & EMIT_SPARKS) { // default directional scale
 					VectorScale(e->dir, 30.0, e->dir);
 				}
 
-				if(e->scale <= 0.0){  // default mesh model scale
+				if (e->scale <= 0.0) { // default mesh model scale
 					e->scale = 1.0;
 				}
 
-				if(e->hz <= 0.0){  // default hz and drift
+				if (e->hz <= 0.0) { // default hz and drift
 
-					if(e->flags & EMIT_LIGHT){
-						if(e->hz == 0.0)  // -1.0 for constant light
+					if (e->flags & EMIT_LIGHT) {
+						if (e->hz == 0.0) // -1.0 for constant light
 							e->hz = 0.5;
-					}
-					else if(e->flags & EMIT_SPARKS)
+					} else if (e->flags & EMIT_SPARKS)
 						e->hz = 0.5;
-					else if(e->flags & EMIT_STEAM)
+					else if (e->flags & EMIT_STEAM)
 						e->hz = 20.0;
-					else if(e->flags & EMIT_FLAME)
+					else if (e->flags & EMIT_FLAME)
 						e->hz = 5.0;
-					else if(e->flags & EMIT_SOUND)
-						e->hz = 0.0;  // ambient
+					else if (e->flags & EMIT_SOUND)
+						e->hz = 0.0; // ambient
 					else
 						e->hz = 1.0;
 				}
 
-				if(e->drift <= 0.0){
+				if (e->drift <= 0.0) {
 
-					if(e->flags & (EMIT_LIGHT | EMIT_SPARKS))
+					if (e->flags & (EMIT_LIGHT | EMIT_SPARKS))
 						e->drift = 3.0;
 					else
 						e->drift = 0.01;
 				}
 
-				if(e->flags & EMIT_SOUND){  // resolve attenuation and looping
+				if (e->flags & EMIT_SOUND) { // resolve attenuation and looping
 
-					if(e->atten == -1)  // explicit -1 for global
+					if (e->atten == -1) // explicit -1 for global
 						e->atten = ATTN_NONE;
 					else {
-						if(e->atten == 0)  // default
+						if (e->atten == 0) // default
 							e->atten = DEFAULT_SOUND_ATTENUATION;
 					}
 
 					// flame and steam sounds are always looped
-					if(e->flags & (EMIT_FLAME | EMIT_STEAM))
+					if (e->flags & (EMIT_FLAME | EMIT_STEAM))
 						e->loop = true;
-					else  // the default is to honor the hz parameter
+					else
+						// the default is to honor the hz parameter
 						e->loop = e->hz == 0.0;
 				}
 
-				if(e->flags & EMIT_SPARKS)  // don't combine sparks and light
+				if (e->flags & EMIT_SPARKS) // don't combine sparks and light
 					e->flags &= ~EMIT_LIGHT;
 
-				Com_Debug("Added %d emit at %f %f %f\n", e->flags,
-						e->org[0], e->org[1], e->org[2]);
+				Com_Debug("Added %d emit at %f %f %f\n", e->flags, e->org[0],
+						e->org[1], e->org[2]);
 
 				num_emits++;
-			}
-			else
+			} else
 				memset(&emits[num_emits], 0, sizeof(cl_emit_t));
 
 			emit = false;
 		}
 
-		if(!strcmp(c, "classname")){
+		if (!strcmp(c, "classname")) {
 
 			c = ParseToken(&ents);
 			strncpy(class_name, c, sizeof(class_name) - 1);
 
-			if(!strcmp(c, "misc_emit") || !strcmp(c, "misc_model"))
+			if (!strcmp(c, "misc_emit") || !strcmp(c, "misc_model"))
 				emit = true;
 		}
 
 		e = &emits[num_emits];
 
-		if(!strcmp(c, "flags")){
+		if (!strcmp(c, "flags")) {
 			e->flags = atoi(ParseToken(&ents));
 			continue;
 		}
 
-		if(!strcmp(c, "origin")){
-			sscanf(ParseToken(&ents), "%f %f %f", &e->org[0], &e->org[1], &e->org[2]);
+		if (!strcmp(c, "origin")) {
+			sscanf(ParseToken(&ents), "%f %f %f", &e->org[0], &e->org[1],
+					&e->org[2]);
 			continue;
 		}
 
-		if(!strcmp(c, "angles")){  // resolve angles and directional vector
-			sscanf(ParseToken(&ents), "%f %f %f", &e->angles[0], &e->angles[1], &e->angles[2]);
+		if (!strcmp(c, "angles")) { // resolve angles and directional vector
+			sscanf(ParseToken(&ents), "%f %f %f", &e->angles[0], &e->angles[1],
+					&e->angles[2]);
 			AngleVectors(e->angles, e->dir, NULL, NULL);
 			continue;
 		}
 
-		if(!strcmp(c, "color")){  // resolve color as floats
-			sscanf(ParseToken(&ents), "%f %f %f",
-					&e->color[0], &e->color[1], &e->color[2]);
+		if (!strcmp(c, "color")) { // resolve color as floats
+			sscanf(ParseToken(&ents), "%f %f %f", &e->color[0], &e->color[1],
+					&e->color[2]);
 			continue;
 		}
 
-		if(!strcmp(c, "hz")){
+		if (!strcmp(c, "hz")) {
 			e->hz = atof(ParseToken(&ents));
 			continue;
 		}
 
-		if(!strcmp(c, "drift")){
+		if (!strcmp(c, "drift")) {
 			e->drift = atof(ParseToken(&ents));
 			continue;
 		}
 
-		if(!strcmp(c, "radius")){
+		if (!strcmp(c, "radius")) {
 			e->radius = atof(ParseToken(&ents));
 			continue;
 		}
 
-		if(!strcmp(c, "flicker")){
+		if (!strcmp(c, "flicker")) {
 			e->flicker = atof(ParseToken(&ents));
 			continue;
 		}
 
-		if(!strcmp(c, "scale")){
+		if (!strcmp(c, "scale")) {
 			sscanf(ParseToken(&ents), "%f", &e->scale);
 			continue;
 		}
 
-		if(!strcmp(c, "count")){
+		if (!strcmp(c, "count")) {
 			e->count = atoi(ParseToken(&ents));
 			continue;
 		}
 
-		if(!strcmp(c, "sound")){
+		if (!strcmp(c, "sound")) {
 			snprintf(e->sound, sizeof(e->sound), "%s", ParseToken(&ents));
 			e->sample = S_LoadSample(e->sound);
 			continue;
 		}
 
-		if(!strcmp(c, "attenuation")){
+		if (!strcmp(c, "attenuation")) {
 			e->atten = atoi(ParseToken(&ents));
 			continue;
 		}
 
-		if(!strcmp(c, "model")){
+		if (!strcmp(c, "model")) {
 			strncpy(e->model, ParseToken(&ents), sizeof(e->model));
 			e->mod = R_LoadModel(e->model);
 			continue;
 		}
 
-		if(!strcmp(c, "velocity")){
-			sscanf(ParseToken(&ents), "%f %f %f",
-					&e->vel[0], &e->vel[1], &e->vel[2]);
+		if (!strcmp(c, "velocity")) {
+			sscanf(ParseToken(&ents), "%f %f %f", &e->vel[0], &e->vel[1],
+					&e->vel[2]);
 			continue;
 		}
 	}
@@ -307,11 +307,10 @@ void Cl_LoadEmits(void){
 	Cl_LoadProgress(99);
 }
 
-
 /*
  * Cl_EmitLight
  */
-static r_light_t *Cl_EmitLight(cl_emit_t *e){
+static r_light_t *Cl_EmitLight(cl_emit_t *e) {
 	static r_light_t l;
 
 	VectorCopy(e->org, l.origin);
@@ -321,30 +320,29 @@ static r_light_t *Cl_EmitLight(cl_emit_t *e){
 	return &l;
 }
 
-
 /*
  * Cl_AddEmits
  */
-void Cl_AddEmits(void){
+void Cl_AddEmits(void) {
 	r_entity_t ent;
 	int i;
 
-	if(!cl_add_emits->value)
+	if (!cl_add_emits->value)
 		return;
 
 	memset(&ent, 0, sizeof(ent));
 
-	for(i = 0; i < num_emits; i++){
+	for (i = 0; i < num_emits; i++) {
 
 		cl_emit_t *e = &emits[i];
 
-		if(e->leaf && (!R_LeafInPvs(e->leaf)))
-			continue;  // culled
+		if (e->leaf && (!R_LeafInPvs(e->leaf)))
+			continue; // culled
 
-		if((e->flags & EMIT_SOUND) && e->loop)  // add an ambient sound
+		if ((e->flags & EMIT_SOUND) && e->loop) // add an ambient sound
 			S_LoopSample(e->org, e->sample);
 
-		if(e->flags & EMIT_MODEL){
+		if (e->flags & EMIT_MODEL) {
 			// fake a packet entity and add it to the view
 			VectorCopy(e->org, ent.origin);
 			VectorCopy(e->angles, ent.angles);
@@ -359,7 +357,7 @@ void Cl_AddEmits(void){
 			R_AddEntity(&ent);
 		}
 
-		if(e->flags & EMIT_CORONA){
+		if (e->flags & EMIT_CORONA) {
 			r_corona_t c;
 
 			VectorCopy(e->org, c.org);
@@ -373,39 +371,39 @@ void Cl_AddEmits(void){
 		// most emits are timed events, so simply continue if it's
 		// not time to fire our event yet
 
-		if(e->time && (e->time > cl.time))
+		if (e->time && (e->time > cl.time))
 			continue;
 
-		if(e->flags & EMIT_LIGHT){
+		if (e->flags & EMIT_LIGHT) {
 			const r_light_t *l = Cl_EmitLight(e);
 
-			if(e->hz > 0.0){  // add a pulsating light
+			if (e->hz > 0.0) { // add a pulsating light
 				r_sustained_light_t s;
 
 				s.light = *l;
 				s.sustain = 0.65;
 
 				R_AddSustainedLight(&s);
-			}
-			else {
+			} else {
 				R_AddLight(l);
 			}
 		}
 
-		if(e->flags & EMIT_SPARKS)
+		if (e->flags & EMIT_SPARKS)
 			Cl_SparksEffect(e->org, e->dir, e->count);
 
-		if(e->flags & EMIT_STEAM)
+		if (e->flags & EMIT_STEAM)
 			Cl_SteamTrail(e->org, e->vel, NULL);
 
-		if(e->flags & EMIT_FLAME)
+		if (e->flags & EMIT_FLAME)
 			Cl_FlameTrail(e->org, e->org, NULL);
 
-		if((e->flags & EMIT_SOUND) && !e->loop)
+		if ((e->flags & EMIT_SOUND) && !e->loop)
 			S_PlaySample(e->org, -1, e->sample, e->atten);
 
 		// lastly, update the time stamp for the next emission
-		if(e->hz > 0.0)
-			e->time = cl.time + (1000.0 / e->hz + (e->drift * frand() * 1000.0));
+		if (e->hz > 0.0)
+			e->time = cl.time
+					+ (1000.0 / e->hz + (e->drift * frand() * 1000.0));
 	}
 }

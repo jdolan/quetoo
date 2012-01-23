@@ -23,13 +23,12 @@
 
 static void *cgame_handle;
 
-
 /*
  * Cl_ShutdownCgame
  */
-void Cl_ShutdownCgame(void){
+void Cl_ShutdownCgame(void) {
 
-	if(!cls.cgame)
+	if (!cls.cgame)
 		return;
 
 	cls.cgame->Shutdown();
@@ -38,16 +37,15 @@ void Cl_ShutdownCgame(void){
 	Sys_CloseLibrary(&cgame_handle);
 }
 
-
 /*
  * Cl_Error
  *
  * Abort the server with a game error
  */
 static void Cl_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
-static void Cl_Error(const char *fmt, ...){
+static void Cl_Error(const char *fmt, ...) {
 	char msg[MAX_STRING_CHARS];
-	va_list	args;
+	va_list args;
 
 	va_start(args, fmt);
 	vsprintf(msg, fmt, args);
@@ -56,13 +54,12 @@ static void Cl_Error(const char *fmt, ...){
 	Com_Error(ERR_DROP, "Cgame error: %s.\n", msg);
 }
 
-
 /*
  * Cl_ConfigString
  */
-static char *Cl_ConfigString(int index){
+static char *Cl_ConfigString(int index) {
 
-	if(index < 0 || index > MAX_CONFIG_STRINGS){
+	if (index < 0 || index > MAX_CONFIG_STRINGS) {
 		Com_Warn("Cl_ConfigString: bad index %i.\n", index);
 		return "";
 	}
@@ -70,14 +67,13 @@ static char *Cl_ConfigString(int index){
 	return cl.config_strings[index];
 }
 
-
 /*
  * Cl_InitCgame
  */
-void Cl_InitCgame(void){
+void Cl_InitCgame(void) {
 	cg_import_t import;
 
-	if(cls.cgame){
+	if (cls.cgame) {
 		Cl_ShutdownCgame();
 	}
 
@@ -112,14 +108,16 @@ void Cl_InitCgame(void){
 	import.StringWidth = R_StringWidth;
 	import.DrawString = R_DrawString;
 
-	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
+	cls.cgame
+			= Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
 
-	if(!cls.cgame){
+	if (!cls.cgame) {
 		Com_Error(ERR_DROP, "Failed to load client game\n");
 	}
 
-	if(cls.cgame->api_version != CGAME_API_VERSION){
-		Com_Error(ERR_DROP, "Client game has wrong version (%d)\n", cls.cgame->api_version);
+	if (cls.cgame->api_version != CGAME_API_VERSION) {
+		Com_Error(ERR_DROP, "Client game has wrong version (%d)\n",
+				cls.cgame->api_version);
 	}
 
 	cls.cgame->Init();

@@ -44,11 +44,10 @@ static s_sample_t *cl_sample_footsteps[4];
 static s_sample_t *cl_sample_rain;
 static s_sample_t *cl_sample_snow;
 
-
 /*
  * Cl_LoadEffects
  */
-void Cl_LoadEffects(void){
+void Cl_LoadEffects(void) {
 	int i;
 	char name[MAX_QPATH];
 
@@ -56,7 +55,8 @@ void Cl_LoadEffects(void){
 
 	cl_sample_shotgun_fire = S_LoadSample("weapons/shotgun/fire");
 	cl_sample_supershotgun_fire = S_LoadSample("weapons/supershotgun/fire");
-	cl_sample_grenadelauncher_fire = S_LoadSample("weapons/grenadelauncher/fire");
+	cl_sample_grenadelauncher_fire = S_LoadSample(
+			"weapons/grenadelauncher/fire");
 	cl_sample_rocketlauncher_fire = S_LoadSample("weapons/rocketlauncher/fire");
 	cl_sample_hyperblaster_fire = S_LoadSample("weapons/hyperblaster/fire");
 	cl_sample_hyperblaster_hit = S_LoadSample("weapons/hyperblaster/hit");
@@ -76,17 +76,17 @@ void Cl_LoadEffects(void){
 
 	Cl_LoadProgress(97);
 
-	for(i = 0; i < 4; i++){
+	for (i = 0; i < 4; i++) {
 		snprintf(name, sizeof(name), "weapons/machinegun/fire_%i", i + 1);
 		cl_sample_machinegun_fire[i] = S_LoadSample(name);
 	}
 
-	for(i = 0; i < 3; i++){
+	for (i = 0; i < 3; i++) {
 		snprintf(name, sizeof(name), "weapons/machinegun/hit_%i", i + 1);
 		cl_sample_machinegun_hit[i] = S_LoadSample(name);
 	}
 
-	for(i = 0; i < 4; i++){
+	for (i = 0; i < 4; i++) {
 		snprintf(name, sizeof(name), "#players/common/step_%i", i + 1);
 		cl_sample_footsteps[i] = S_LoadSample(name);
 	}
@@ -94,69 +94,67 @@ void Cl_LoadEffects(void){
 	Cl_LoadProgress(98);
 }
 
-
 /*
  * Cl_ParseMuzzleFlash
  */
-void Cl_ParseMuzzleFlash(void){
+void Cl_ParseMuzzleFlash(void) {
 	int i, weapon;
 	cl_entity_t *cent;
 
 	i = Msg_ReadShort(&net_message);
-	if(i < 1 || i >= MAX_EDICTS){
+	if (i < 1 || i >= MAX_EDICTS) {
 		Com_Warn("Cl_ParseMuzzleFlash: Bad entity %d.\n", i);
-		Msg_ReadByte(&net_message);  // attempt to ignore cleanly
+		Msg_ReadByte(&net_message); // attempt to ignore cleanly
 		return;
 	}
 
 	weapon = Msg_ReadByte(&net_message);
 	cent = &cl.entities[i];
 
-	switch(weapon){
-		case MZ_SHOTGUN:
-			S_PlaySample(NULL, i, cl_sample_shotgun_fire, ATTN_NORM);
+	switch (weapon) {
+	case MZ_SHOTGUN:
+		S_PlaySample(NULL, i, cl_sample_shotgun_fire, ATTN_NORM);
+		Cl_SmokeFlash(&cent->current);
+		break;
+	case MZ_SSHOTGUN:
+		S_PlaySample(NULL, i, cl_sample_supershotgun_fire, ATTN_NORM);
+		Cl_SmokeFlash(&cent->current);
+		break;
+	case MZ_MACHINEGUN:
+		S_PlaySample(NULL, i, cl_sample_machinegun_fire[rand() % 4], ATTN_NORM);
+		if (rand() & 1)
 			Cl_SmokeFlash(&cent->current);
-			break;
-		case MZ_SSHOTGUN:
-			S_PlaySample(NULL, i, cl_sample_supershotgun_fire, ATTN_NORM);
-			Cl_SmokeFlash(&cent->current);
-			break;
-		case MZ_MACHINEGUN:
-			S_PlaySample(NULL, i, cl_sample_machinegun_fire[rand() % 4], ATTN_NORM);
-			if(rand() & 1)
-				Cl_SmokeFlash(&cent->current);
-			break;
-		case MZ_ROCKET:
-			S_PlaySample(NULL, i, cl_sample_rocketlauncher_fire, ATTN_NORM);
-			Cl_SmokeFlash(&cent->current);
-			break;
-		case MZ_GRENADE:
-			S_PlaySample(NULL, i, cl_sample_grenadelauncher_fire, ATTN_NORM);
-			Cl_SmokeFlash(&cent->current);
-			break;
-		case MZ_HYPERBLASTER:
-			S_PlaySample(NULL, i, cl_sample_hyperblaster_fire, ATTN_NORM);
-			Cl_EnergyFlash(&cent->current, 105, 8);
-			break;
-		case MZ_LIGHTNING:
-			S_PlaySample(NULL, i, cl_sample_lightning_fire, ATTN_NORM);
-			break;
-		case MZ_RAILGUN:
-			S_PlaySample(NULL, i, cl_sample_railgun_fire, ATTN_NORM);
-			break;
-		case MZ_BFG:
-			S_PlaySample(NULL, i, cl_sample_bfg_fire, ATTN_NORM);
-			Cl_EnergyFlash(&cent->current, 200, 64);
-			break;
-		case MZ_LOGOUT:
-			S_PlaySample(NULL, i, cl_sample_teleport, ATTN_NORM);
-			Cl_LogoutEffect(cent->current.origin);
-			break;
-		default:
-			break;
+		break;
+	case MZ_ROCKET:
+		S_PlaySample(NULL, i, cl_sample_rocketlauncher_fire, ATTN_NORM);
+		Cl_SmokeFlash(&cent->current);
+		break;
+	case MZ_GRENADE:
+		S_PlaySample(NULL, i, cl_sample_grenadelauncher_fire, ATTN_NORM);
+		Cl_SmokeFlash(&cent->current);
+		break;
+	case MZ_HYPERBLASTER:
+		S_PlaySample(NULL, i, cl_sample_hyperblaster_fire, ATTN_NORM);
+		Cl_EnergyFlash(&cent->current, 105, 8);
+		break;
+	case MZ_LIGHTNING:
+		S_PlaySample(NULL, i, cl_sample_lightning_fire, ATTN_NORM);
+		break;
+	case MZ_RAILGUN:
+		S_PlaySample(NULL, i, cl_sample_railgun_fire, ATTN_NORM);
+		break;
+	case MZ_BFG:
+		S_PlaySample(NULL, i, cl_sample_bfg_fire, ATTN_NORM);
+		Cl_EnergyFlash(&cent->current, 200, 64);
+		break;
+	case MZ_LOGOUT:
+		S_PlaySample(NULL, i, cl_sample_teleport, ATTN_NORM);
+		Cl_LogoutEffect(cent->current.origin);
+		break;
+	default:
+		break;
 	}
 }
-
 
 /*
  *
@@ -173,9 +171,9 @@ static int weather_particles;
 /*
  * Cl_ClearParticle
  */
-static void Cl_ClearParticle(r_particle_t *p){
+static void Cl_ClearParticle(r_particle_t *p) {
 
-	if(p->type == PARTICLE_WEATHER)
+	if (p->type == PARTICLE_WEATHER)
 		weather_particles--;
 
 	memset(p, 0, sizeof(r_particle_t));
@@ -192,10 +190,10 @@ static void Cl_ClearParticle(r_particle_t *p){
 /*
  * Cl_ClearParticles
  */
-static void Cl_ClearParticles(void){
+static void Cl_ClearParticles(void) {
 	int i;
 
-	for(i = 0; i < MAX_PARTICLES; i++){
+	for (i = 0; i < MAX_PARTICLES; i++) {
 		Cl_ClearParticle(&particles[i]);
 		particles[i].next = i < MAX_PARTICLES - 1 ? &particles[i + 1] : NULL;
 	}
@@ -204,15 +202,14 @@ static void Cl_ClearParticles(void){
 	active_particles = NULL;
 }
 
-
 /*
  * Cl_TracerEffect
  */
-void Cl_TracerEffect(const vec3_t start, const vec3_t end){
+void Cl_TracerEffect(const vec3_t start, const vec3_t end) {
 	r_particle_t *p;
 	float v;
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	p->type = PARTICLE_BEAM;
@@ -235,17 +232,16 @@ void Cl_TracerEffect(const vec3_t start, const vec3_t end){
 	p->color = 14;
 }
 
-
 /*
  * Cl_BulletEffect
  */
-void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
+void Cl_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static int last_ric_time;
 	r_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t v;
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	p->type = PARTICLE_DECAL;
@@ -266,14 +262,14 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 
 	p->blend = GL_ONE_MINUS_SRC_ALPHA;
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	VectorCopy(org, p->org);
 
 	VectorScale(dir, 200.0, p->vel);
 
-	if(p->vel[2] < 100.0)  // deflect up a bit
+	if (p->vel[2] < 100.0) // deflect up a bit
 		p->vel[2] = 100.0;
 
 	p->accel[2] -= 4.0 * PARTICLE_GRAVITY;
@@ -295,24 +291,23 @@ void Cl_BulletEffect(const vec3_t org, const vec3_t dir){
 
 	R_AddSustainedLight(&s);
 
-	if(cl.time < last_ric_time)
+	if (cl.time < last_ric_time)
 		last_ric_time = 0;
 
-	if(cl.time - last_ric_time > 300){
+	if (cl.time - last_ric_time > 300) {
 		S_PlaySample(org, -1, cl_sample_machinegun_hit[rand() % 3], ATTN_NORM);
 		last_ric_time = cl.time;
 	}
 }
 
-
 /*
  * Cl_BurnEffect
  */
-void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale){
+void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale) {
 	r_particle_t *p;
 	vec3_t v;
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	p->image = r_burn_image;
@@ -331,18 +326,17 @@ void Cl_BurnEffect(const vec3_t org, const vec3_t dir, int scale){
 	p->blend = GL_ONE_MINUS_SRC_ALPHA;
 }
 
-
 /*
  * Cl_BloodEffect
  */
-void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
+void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count) {
 	int i, j;
 	r_particle_t *p;
 	float d;
 
-	for(i = 0; i < count; i++){
+	for (i = 0; i < count; i++) {
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->color = 232 + (rand() & 7);
@@ -350,7 +344,7 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
 		p->scale = 6.0;
 
 		d = rand() & 31;
-		for(j = 0; j < 3; j++){
+		for (j = 0; j < 3; j++) {
 			p->org[j] = org[j] + ((rand() & 7) - 4.0) + d * dir[j];
 			p->vel[j] = crand() * 20.0;
 		}
@@ -364,14 +358,13 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count){
 	}
 }
 
-
 #define GIB_STREAM_DIST 180.0
 #define GIB_STREAM_COUNT 25
 
 /*
  * Cl_GibEffect
  */
-void Cl_GibEffect(const vec3_t org, int count){
+void Cl_GibEffect(const vec3_t org, int count) {
 	r_particle_t *p;
 	vec3_t o, v, tmp;
 	c_trace_t tr;
@@ -379,14 +372,14 @@ void Cl_GibEffect(const vec3_t org, int count){
 	int i, j;
 
 	// if a player has died underwater, emit some bubbles
-	if(Cm_PointContents(org, r_world_model->first_node) & MASK_WATER){
+	if (Cm_PointContents(org, r_world_model->first_node) & MASK_WATER) {
 		VectorCopy(org, tmp);
 		tmp[2] += 64.0;
 
 		Cl_BubbleTrail(org, tmp, 16.0);
 	}
 
-	for(i = 0; i < count; i++){
+	for (i = 0; i < count; i++) {
 
 		// set the origin and velocity for each gib stream
 		VectorSet(o, crand() * 8.0, crand() * 8.0, 8.0 + crand() * 12.0);
@@ -400,9 +393,9 @@ void Cl_GibEffect(const vec3_t org, int count){
 		tr = Cm_BoxTrace(o, tmp, vec3_origin, vec3_origin, 0, MASK_SHOT);
 		dist = GIB_STREAM_DIST * tr.fraction;
 
-		for(j = 1; j < GIB_STREAM_COUNT; j++){
+		for (j = 1; j < GIB_STREAM_COUNT; j++) {
 
-			if(!(p = Cl_AllocParticle()))
+			if (!(p = Cl_AllocParticle()))
 				return;
 
 			p->color = 232 + (rand() & 7);
@@ -427,18 +420,17 @@ void Cl_GibEffect(const vec3_t org, int count){
 	}
 }
 
-
 /*
  * Cl_SparksEffect
  */
-void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
+void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 	int i, j;
 
-	for(i = 0; i < count; i++){
+	for (i = 0; i < count; i++) {
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->image = r_spark_image;
@@ -448,7 +440,7 @@ void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 		VectorCopy(org, p->org);
 		VectorCopy(dir, p->vel);
 
-		for(j = 0; j < 3; j++){
+		for (j = 0; j < 3; j++) {
 			p->org[j] += crand() * 4.0;
 			p->vel[j] += crand() * 4.0;
 		}
@@ -473,17 +465,16 @@ void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count){
 	S_PlaySample(org, -1, cl_sample_sparks, ATTN_STATIC);
 }
 
-
 /*
  * Cl_TeleporterTrail
  */
-void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *cent){
+void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 	int i;
 	r_particle_t *p;
 
-	if(cent){  // honor a slightly randomized time interval
+	if (cent) { // honor a slightly randomized time interval
 
-		if(cent->time > cl.time)
+		if (cent->time > cl.time)
 			return;
 
 		S_PlaySample(NULL, cent->current.number, cl_sample_respawn, ATTN_IDLE);
@@ -491,9 +482,9 @@ void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *cent){
 		cent->time = cl.time + 1000 + (2000 * frand());
 	}
 
-	for(i = 0; i < 4; i++){
+	for (i = 0; i < 4; i++) {
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->type = PARTICLE_SPLASH;
@@ -510,38 +501,36 @@ void Cl_TeleporterTrail(const vec3_t org, cl_entity_t *cent){
 	}
 }
 
-
 /*
  * Cl_LogoutEffect
  */
-void Cl_LogoutEffect(const vec3_t org){
+void Cl_LogoutEffect(const vec3_t org) {
 	Cl_GibEffect(org, 12);
 }
-
 
 /*
  * Cl_ItemRespawnEffect
  */
-void Cl_ItemRespawnEffect(const vec3_t org){
+void Cl_ItemRespawnEffect(const vec3_t org) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 	int i, j;
 
-	for(i = 0; i < 64; i++){
+	for (i = 0; i < 64; i++) {
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->image = r_spark_image;
 		p->scale_vel = 3.0;
 
-		p->color = 110;  // white
+		p->color = 110; // white
 
 		p->org[0] = org[0] + crand() * 8.0;
 		p->org[1] = org[1] + crand() * 8.0;
 		p->org[2] = org[2] + 8 + frand() * 8.0;
 
-		for(j = 0; j < 2; j++)
+		for (j = 0; j < 2; j++)
 			p->vel[j] = crand() * 48.0;
 		p->vel[2] = frand() * 48.0;
 
@@ -560,30 +549,29 @@ void Cl_ItemRespawnEffect(const vec3_t org){
 	R_AddSustainedLight(&s);
 }
 
-
 /*
  * Cl_ItemPickupEffect
  */
-void Cl_ItemPickupEffect(const vec3_t org){
+void Cl_ItemPickupEffect(const vec3_t org) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 	int i, j;
 
-	for(i = 0; i < 32; i++){
+	for (i = 0; i < 32; i++) {
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->image = r_spark_image;
 		p->scale_vel = 3.0;
 
-		p->color = 110;  // white
+		p->color = 110; // white
 
 		p->org[0] = org[0] + crand() * 8.0;
 		p->org[1] = org[1] + crand() * 8.0;
 		p->org[2] = org[2] + 8 + crand() * 16.0;
 
-		for(j = 0; j < 2; j++)
+		for (j = 0; j < 2; j++)
 			p->vel[j] = crand() * 16.0;
 		p->vel[2] = frand() * 128.0;
 
@@ -602,16 +590,15 @@ void Cl_ItemPickupEffect(const vec3_t org){
 	R_AddSustainedLight(&s);
 }
 
-
 /*
  * Cl_ExplosionEffect
  */
-void Cl_ExplosionEffect(const vec3_t org){
+void Cl_ExplosionEffect(const vec3_t org) {
 	int i, j;
 	r_particle_t *p;
 	r_sustained_light_t s;
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	p->image = r_explosion_image;
@@ -626,12 +613,12 @@ void Cl_ExplosionEffect(const vec3_t org){
 
 	VectorCopy(org, p->org);
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	i = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(org, r_world_model->first_node) & i)
+	if (Cm_PointContents(org, r_world_model->first_node) & i)
 		return;
 
 	p->accel[2] = 20;
@@ -653,7 +640,7 @@ void Cl_ExplosionEffect(const vec3_t org){
 	VectorCopy(org, p->org);
 	p->org[2] += 10;
 
-	for(j = 0; j < 3; j++){
+	for (j = 0; j < 3; j++) {
 		p->vel[j] = crand();
 	}
 
@@ -667,29 +654,29 @@ void Cl_ExplosionEffect(const vec3_t org){
 	S_PlaySample(org, -1, cl_sample_explosion, ATTN_NORM);
 }
 
-
 /*
  * Cl_SmokeTrail
  */
-void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
+void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
 	boolean_t stationary;
 	int j, c;
 
-	if(r_view.render_mode == render_mode_pro)
+	if (r_view.render_mode == render_mode_pro)
 		return;
 
 	stationary = false;
 
-	if(ent){  // trails should be framerate independent
+	if (ent) { // trails should be framerate independent
 
-		if(ent->time > cl.time)
+		if (ent->time > cl.time)
 			return;
 
 		// trails diminish for stationary entities (grenades)
-		stationary = VectorCompare(ent->current.origin, ent->current.old_origin);
+		stationary
+				= VectorCompare(ent->current.origin, ent->current.old_origin);
 
-		if(stationary)
+		if (stationary)
 			ent->time = cl.time + 128;
 		else
 			ent->time = cl.time + 32;
@@ -697,12 +684,12 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(end, r_world_model->first_node) & c){
+	if (Cm_PointContents(end, r_world_model->first_node) & c) {
 		Cl_BubbleTrail(start, end, 16.0);
 		return;
 	}
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	p->accel[2] = 5.0;
@@ -719,24 +706,23 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	p->color = rand() & 7;
 	p->blend = GL_ONE;
 
-	for(j = 0; j < 3; j++){
+	for (j = 0; j < 3; j++) {
 		p->org[j] = end[j];
 		p->vel[j] = crand();
 	}
-	p->roll = crand() * 100.0;  // rotation
+	p->roll = crand() * 100.0; // rotation
 
 	// make smoke rise from grenades that have come to rest
-	if(ent && stationary){
+	if (ent && stationary) {
 		p->alpha_vel *= 0.65;
 		p->accel[2] = 20.0;
 	}
 }
 
-
 /*
  * Cl_SmokeFlash
  */
-void Cl_SmokeFlash(entity_state_t *ent){
+void Cl_SmokeFlash(entity_state_t *ent) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
@@ -751,7 +737,7 @@ void Cl_SmokeFlash(entity_state_t *ent){
 
 	tr = Cm_BoxTrace(ent->origin, org, vec3_origin, vec3_origin, 0, MASK_SHOT);
 
-	if(tr.fraction < 1.0){  // firing near a wall, back it up
+	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		VectorSubtract(ent->origin, tr.end, org);
 		VectorScale(org, 0.75, org);
 
@@ -771,13 +757,13 @@ void Cl_SmokeFlash(entity_state_t *ent){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(ent->origin, r_world_model->first_node) & c){
+	if (Cm_PointContents(ent->origin, r_world_model->first_node) & c) {
 		VectorMA(ent->origin, 40.0, forward, org2);
 		Cl_BubbleTrail(org, org2, 10.0);
 		return;
 	}
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	p->accel[2] = 5.0;
@@ -796,25 +782,24 @@ void Cl_SmokeFlash(entity_state_t *ent){
 
 	VectorCopy(org, p->org);
 
-	for(j = 0; j < 2; j++){
+	for (j = 0; j < 2; j++) {
 		p->vel[j] = crand();
 	}
 	p->vel[2] = 10.0;
 
-	p->roll = crand() * 100.0;  // rotation
+	p->roll = crand() * 100.0; // rotation
 }
-
 
 /*
  * Cl_FlameTrail
  */
-void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
+void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
 	int j, c;
 
-	if(ent){  // trails should be framerate independent
+	if (ent) { // trails should be framerate independent
 
-		if(ent->time > cl.time)
+		if (ent->time > cl.time)
 			return;
 
 		ent->time = cl.time + 8;
@@ -822,12 +807,12 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(end, r_world_model->first_node) & c){
+	if (Cm_PointContents(end, r_world_model->first_node) & c) {
 		Cl_BubbleTrail(start, end, 10.0);
 		return;
 	}
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	p->accel[2] = 15.0;
@@ -840,34 +825,33 @@ void Cl_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	p->alpha_vel = -1.0 / (2 + frand() * 0.3);
 	p->color = 220 + (rand() & 7);
 
-	for(j = 0; j < 3; j++){
+	for (j = 0; j < 3; j++) {
 		p->org[j] = end[j];
 		p->vel[j] = crand() * 1.5;
 	}
 
 	// make static flames rise
-	if(ent){
-		if(VectorCompare(ent->current.origin, ent->current.old_origin)){
+	if (ent) {
+		if (VectorCompare(ent->current.origin, ent->current.old_origin)) {
 			p->alpha_vel *= 0.65;
 			p->accel[2] = 20.0;
 		}
 	}
 }
 
-
 /*
  * Cl_SteamTrail
  */
-void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
+void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 	r_particle_t *p;
 	vec3_t end;
 	int j, c;
 
 	VectorAdd(org, vel, end);
 
-	if(ent){  // trails should be framerate independent
+	if (ent) { // trails should be framerate independent
 
-		if(ent->time > cl.time)
+		if (ent->time > cl.time)
 			return;
 
 		ent->time = cl.time + 8;
@@ -875,12 +859,12 @@ void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(org, r_world_model->first_node) & c){
+	if (Cm_PointContents(org, r_world_model->first_node) & c) {
 		Cl_BubbleTrail(org, end, 10.0);
 		return;
 	}
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	p->image = r_steam_image;
@@ -897,18 +881,17 @@ void Cl_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent){
 	VectorCopy(org, p->org);
 	VectorCopy(vel, p->vel);
 
-	for(j = 0; j < 3; j++){
+	for (j = 0; j < 3; j++) {
 		p->vel[j] += 2.0 * crand();
 	}
 
-	p->roll = crand() * 100.0;  // rotation
+	p->roll = crand() * 100.0; // rotation
 }
-
 
 /*
  * Cl_BubbleTrail
  */
-void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
+void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 	vec3_t move;
 	vec3_t vec;
 	float len, f;
@@ -922,9 +905,9 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
 	f = 24.0 / density;
 	VectorScale(vec, f, vec);
 
-	for(i = 0; i < len; i += f){
+	for (i = 0; i < len; i += f) {
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->image = r_bubble_image;
@@ -933,7 +916,7 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
 		p->alpha = 1.0;
 		p->alpha_vel = -1.0 / (1 + frand() * 0.2);
 		p->color = 4 + (rand() & 7);
-		for(j = 0; j < 3; j++){
+		for (j = 0; j < 3; j++) {
 			p->org[j] = move[j] + crand() * 2;
 			p->vel[j] = crand() * 5;
 		}
@@ -943,11 +926,10 @@ void Cl_BubbleTrail(const vec3_t start, const vec3_t end, float density){
 	}
 }
 
-
 /*
  * Cl_EnergyTrail
  */
-void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
+void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color) {
 	static vec3_t angles[NUM_APPROXIMATE_NORMALS];
 	int i, c;
 	r_particle_t *p;
@@ -958,14 +940,14 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 	vec3_t v;
 	float ltime;
 
-	if(!angles[0][0]){  // initialize our angular velocities
-		for(i = 0; i < NUM_APPROXIMATE_NORMALS * 3; i++)
+	if (!angles[0][0]) { // initialize our angular velocities
+		for (i = 0; i < NUM_APPROXIMATE_NORMALS * 3; i++)
 			angles[0][i] = (rand() & 255) * 0.01;
 	}
 
-	ltime = (float)cl.time / 300.0;
+	ltime = (float) cl.time / 300.0;
 
-	for(i = 0; i < NUM_APPROXIMATE_NORMALS; i+= 2){
+	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i += 2) {
 
 		angle = ltime * angles[i][0];
 		sy = sin(angle);
@@ -979,7 +961,7 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 		forward[1] = cp * sy;
 		forward[2] = -sp;
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->scale = 0.75;
@@ -987,10 +969,10 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 
 		dist = sin(ltime + i) * radius;
 
-		for(c = 0; c < 3; c++){
+		for (c = 0; c < 3; c++) {
 			// project the origin outward, adding in angular velocity
-			p->org[c] = ent->current.origin[c] +
-					(approximate_normals[i][c] * dist) + forward[c] * 16.0;
+			p->org[c] = ent->current.origin[c] + (approximate_normals[i][c]
+					* dist) + forward[c] * 16.0;
 		}
 
 		VectorSubtract(p->org, ent->current.origin, v);
@@ -1004,22 +986,21 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color){
 	}
 
 	// add a bubble trail if appropriate
-	if(ent->time > cl.time)
+	if (ent->time > cl.time)
 		return;
 
 	ent->time = cl.time + 8;
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(ent->current.origin, r_world_model->first_node) & c)
+	if (Cm_PointContents(ent->current.origin, r_world_model->first_node) & c)
 		Cl_BubbleTrail(ent->prev.origin, ent->current.origin, 1.0);
 }
-
 
 /*
  * Cl_EnergyFlash
  */
-void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
+void Cl_EnergyFlash(entity_state_t *ent, int color, int count) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
@@ -1034,7 +1015,7 @@ void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
 
 	tr = Cm_BoxTrace(ent->origin, org, vec3_origin, vec3_origin, 0, MASK_SHOT);
 
-	if(tr.fraction < 1.0){  // firing near a wall, back it up
+	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		VectorSubtract(ent->origin, tr.end, org);
 		VectorScale(org, 0.75, org);
 
@@ -1054,15 +1035,15 @@ void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 
-	if(Cm_PointContents(ent->origin, r_world_model->first_node) & c){
+	if (Cm_PointContents(ent->origin, r_world_model->first_node) & c) {
 		VectorMA(ent->origin, 40.0, forward, org2);
 		Cl_BubbleTrail(org, org2, 10.0);
 		return;
 	}
 
-	for(i = 0; i < count; i++){
+	for (i = 0; i < count; i++) {
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->accel[2] = -PARTICLE_GRAVITY;
@@ -1074,26 +1055,24 @@ void Cl_EnergyFlash(entity_state_t *ent, int color, int count){
 
 		p->color = color + (rand() & 15);
 
-		for(j = 0; j < 3; j++){
+		for (j = 0; j < 3; j++) {
 			p->org[j] = org[j] + 8.0 * crand();
 			p->vel[j] = 128.0 * crand();
 		}
 	}
 }
 
-
 /*
  * Cl_GrenadeTrail
  */
-void Cl_GrenadeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
+void Cl_GrenadeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	Cl_SmokeTrail(start, end, ent);
 }
-
 
 /*
  * Cl_RocketTrail
  */
-void Cl_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
+void Cl_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_corona_t c;
 	r_light_t l;
 
@@ -1113,11 +1092,10 @@ void Cl_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent){
 	R_AddLight(&l);
 }
 
-
 /*
  * Cl_HyperblasterTrail
  */
-void Cl_HyperblasterTrail(cl_entity_t *ent){
+void Cl_HyperblasterTrail(cl_entity_t *ent) {
 	r_corona_t c;
 	r_light_t l;
 
@@ -1137,11 +1115,10 @@ void Cl_HyperblasterTrail(cl_entity_t *ent){
 	R_AddLight(&l);
 }
 
-
 /*
  * Cl_HyperblasterEffect
  */
-void Cl_HyperblasterEffect(const vec3_t org){
+void Cl_HyperblasterEffect(const vec3_t org) {
 	r_sustained_light_t s;
 
 	VectorCopy(org, s.light.origin);
@@ -1154,20 +1131,19 @@ void Cl_HyperblasterEffect(const vec3_t org){
 	S_PlaySample(org, -1, cl_sample_hyperblaster_hit, ATTN_NORM);
 }
 
-
 /*
  * Cl_LightningEffect
  */
-void Cl_LightningEffect(const vec3_t org){
+void Cl_LightningEffect(const vec3_t org) {
 	r_sustained_light_t s;
 	vec3_t tmp;
 	int i, j;
 
-	for(i = 0; i < 40; i++){
+	for (i = 0; i < 40; i++) {
 
 		VectorCopy(org, tmp);
 
-		for(j = 0; j < 3; j++)
+		for (j = 0; j < 3; j++)
 			tmp[j] = tmp[j] + (rand() % 96) - 48;
 
 		Cl_BubbleTrail(org, tmp, 4.0);
@@ -1183,11 +1159,10 @@ void Cl_LightningEffect(const vec3_t org){
 	S_PlaySample(org, -1, cl_sample_lightning_discharge, ATTN_NORM);
 }
 
-
 /*
  * Cl_LightningTrail
  */
-void Cl_LightningTrail(const vec3_t start, const vec3_t end){
+void Cl_LightningTrail(const vec3_t start, const vec3_t end) {
 	r_particle_t *p;
 	r_light_t l;
 	vec3_t dir, delta, pos;
@@ -1204,9 +1179,9 @@ void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 	VectorSet(pos, crand() * 0.5, crand() * 0.5, crand() * 0.5);
 	VectorAdd(pos, start, pos);
 
-	while(dist > 0.0){
+	while (dist > 0.0) {
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->type = PARTICLE_BEAM;
@@ -1216,7 +1191,7 @@ void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 
 		VectorCopy(pos, p->org);
 
-		if(dist < 48.0)
+		if (dist < 48.0)
 			VectorScale(dir, dist, delta);
 
 		VectorAdd(pos, delta, pos);
@@ -1243,11 +1218,10 @@ void Cl_LightningTrail(const vec3_t start, const vec3_t end){
 	R_AddLight(&l);
 }
 
-
 /*
  * Cl_RailEffect
  */
-void Cl_RailEffect(const vec3_t start, const vec3_t end, int flags, int color){
+void Cl_RailEffect(const vec3_t start, const vec3_t end, int flags, int color) {
 	vec3_t vec, move;
 	float len;
 	r_particle_t *p;
@@ -1261,7 +1235,7 @@ void Cl_RailEffect(const vec3_t start, const vec3_t end, int flags, int color){
 
 	R_AddSustainedLight(&s);
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	// draw the core with a beam
@@ -1284,9 +1258,9 @@ void Cl_RailEffect(const vec3_t start, const vec3_t end, int flags, int color){
 	VectorSubtract(end, start, vec);
 	len = VectorNormalize(vec);
 
-	for(i = 0; i < len; i+= 24){
+	for (i = 0; i < len; i += 24) {
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->type = PARTICLE_ROLL;
@@ -1307,8 +1281,8 @@ void Cl_RailEffect(const vec3_t start, const vec3_t end, int flags, int color){
 		p->color = color;
 
 		// check for bubble trail
-		if(i && Cm_PointContents(move, r_world_model->first_node) &
-				(CONTENTS_SLIME | CONTENTS_WATER)){
+		if (i && Cm_PointContents(move, r_world_model->first_node)
+				& (CONTENTS_SLIME | CONTENTS_WATER)) {
 			Cl_BubbleTrail(move, p->org, 16.0);
 		}
 
@@ -1316,10 +1290,10 @@ void Cl_RailEffect(const vec3_t start, const vec3_t end, int flags, int color){
 	}
 
 	// check for explosion effect on solids
-	if(flags & SURF_SKY)
+	if (flags & SURF_SKY)
 		return;
 
-	if(!(p = Cl_AllocParticle()))
+	if (!(p = Cl_AllocParticle()))
 		return;
 
 	p->image = r_explosion_image;
@@ -1341,11 +1315,10 @@ void Cl_RailEffect(const vec3_t start, const vec3_t end, int flags, int color){
 	R_AddSustainedLight(&s);
 }
 
-
 /*
  * Cl_BfgTrail
  */
-void Cl_BfgTrail(cl_entity_t *ent){
+void Cl_BfgTrail(cl_entity_t *ent) {
 	r_corona_t c;
 	r_light_t l;
 
@@ -1365,18 +1338,17 @@ void Cl_BfgTrail(cl_entity_t *ent){
 	R_AddLight(&l);
 }
 
-
 /*
  * Cl_BfgEffect
  */
-void Cl_BfgEffect(const vec3_t org){
+void Cl_BfgEffect(const vec3_t org) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 	int i;
 
-	for(i = 0; i < 4; i++){
+	for (i = 0; i < 4; i++) {
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			return;
 
 		p->image = r_explosion_image;
@@ -1402,56 +1374,55 @@ void Cl_BfgEffect(const vec3_t org){
 	S_PlaySample(org, -1, cl_sample_bfg_hit, ATTN_NORM);
 }
 
-
 /*
  * Cl_TeleporterEffect
  */
-static void Cl_TeleporterEffect(const vec3_t org){
+static void Cl_TeleporterEffect(const vec3_t org) {
 	Cl_TeleporterTrail(org, NULL);
 }
-
 
 /*
  * Cl_EntityEvent
  */
-void Cl_EntityEvent(entity_state_t *ent){
-	switch(ent->event){
-		case EV_ITEM_RESPAWN:
-			S_PlaySample(NULL, ent->number, cl_sample_respawn, ATTN_IDLE);
-			Cl_ItemRespawnEffect(ent->origin);
-			break;
-		case EV_ITEM_PICKUP:
-			Cl_ItemPickupEffect(ent->origin);
-			break;
-		case EV_TELEPORT:
-			S_PlaySample(NULL, ent->number, cl_sample_teleport, ATTN_IDLE);
-			Cl_TeleporterEffect(ent->origin);
-			break;
-		case EV_CLIENT_JUMP:
-			S_PlaySample(NULL, ent->number, S_LoadSample(va("*jump_%d", rand() % 5 + 1)), ATTN_NORM);
-			break;
-		case EV_CLIENT_FOOTSTEP:
-			S_PlaySample(NULL, ent->number, cl_sample_footsteps[rand() & 3], ATTN_NORM);
-			break;
-		case EV_CLIENT_LAND:
-			S_PlaySample(NULL, ent->number, S_LoadSample("*land_1"), ATTN_NORM);
-			break;
-		case EV_CLIENT_FALL:
-			S_PlaySample(NULL, ent->number, S_LoadSample("*fall_2"), ATTN_NORM);
-			break;
-		case EV_CLIENT_FALL_FAR:
-			S_PlaySample(NULL, ent->number, S_LoadSample("*fall_1"), ATTN_NORM);
-			break;
-		default:
-			break;
+void Cl_EntityEvent(entity_state_t *ent) {
+	switch (ent->event) {
+	case EV_ITEM_RESPAWN:
+		S_PlaySample(NULL, ent->number, cl_sample_respawn, ATTN_IDLE);
+		Cl_ItemRespawnEffect(ent->origin);
+		break;
+	case EV_ITEM_PICKUP:
+		Cl_ItemPickupEffect(ent->origin);
+		break;
+	case EV_TELEPORT:
+		S_PlaySample(NULL, ent->number, cl_sample_teleport, ATTN_IDLE);
+		Cl_TeleporterEffect(ent->origin);
+		break;
+	case EV_CLIENT_JUMP:
+		S_PlaySample(NULL, ent->number,
+				S_LoadSample(va("*jump_%d", rand() % 5 + 1)), ATTN_NORM);
+		break;
+	case EV_CLIENT_FOOTSTEP:
+		S_PlaySample(NULL, ent->number, cl_sample_footsteps[rand() & 3],
+				ATTN_NORM);
+		break;
+	case EV_CLIENT_LAND:
+		S_PlaySample(NULL, ent->number, S_LoadSample("*land_1"), ATTN_NORM);
+		break;
+	case EV_CLIENT_FALL:
+		S_PlaySample(NULL, ent->number, S_LoadSample("*fall_2"), ATTN_NORM);
+		break;
+	case EV_CLIENT_FALL_FAR:
+		S_PlaySample(NULL, ent->number, S_LoadSample("*fall_1"), ATTN_NORM);
+		break;
+	default:
+		break;
 	}
 }
-
 
 /*
  * Cl_WeatherEffects
  */
-static void Cl_WeatherEffects(void){
+static void Cl_WeatherEffects(void) {
 	int j, k, max;
 	vec3_t start, end;
 	c_trace_t tr;
@@ -1459,19 +1430,19 @@ static void Cl_WeatherEffects(void){
 	r_particle_t *p;
 	s_sample_t *s;
 
-	if(!cl_weather->value)
+	if (!cl_weather->value)
 		return;
 
-	if(!(r_view.weather & (WEATHER_RAIN | WEATHER_SNOW)))
+	if (!(r_view.weather & (WEATHER_RAIN | WEATHER_SNOW)))
 		return;
 
-	p = NULL;  // so that we add the right amount
+	p = NULL; // so that we add the right amount
 
 	// never attempt to add more than a set amount per frame
 	max = 50 * cl_weather->value;
 
 	k = 0;
-	while(weather_particles < WEATHER_PARTICLES && k++ < max){
+	while (weather_particles < WEATHER_PARTICLES && k++ < max) {
 
 		VectorCopy(r_view.origin, start);
 		start[0] = start[0] + (rand() % 2048) - 1024;
@@ -1483,10 +1454,10 @@ static void Cl_WeatherEffects(void){
 		// trace up looking for sky
 		tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin, 0, MASK_SHOT);
 
-		if(!(tr.surface->flags & SURF_SKY))
+		if (!(tr.surface->flags & SURF_SKY))
 			continue;
 
-		if(!(p = Cl_AllocParticle()))
+		if (!(p = Cl_AllocParticle()))
 			break;
 
 		p->type = PARTICLE_WEATHER;
@@ -1504,31 +1475,30 @@ static void Cl_WeatherEffects(void){
 
 		tr = Cm_BoxTrace(p->org, end, vec3_origin, vec3_origin, 0, MASK_ALL);
 
-		if(!tr.surface)  // this shouldn't happen
+		if (!tr.surface) // this shouldn't happen
 			VectorCopy(start, p->end);
 		else
 			VectorCopy(tr.end, p->end);
 
 		// setup the particles
-		if(r_view.weather & WEATHER_RAIN){
+		if (r_view.weather & WEATHER_RAIN) {
 			p->image = r_rain_image;
 			p->vel[2] = -800;
 			p->alpha = 0.4;
 			p->color = 8;
 			p->scale = 6;
-		}
-		else if(r_view.weather & WEATHER_SNOW){
+		} else if (r_view.weather & WEATHER_SNOW) {
 			p->image = r_snow_image;
 			p->vel[2] = -120;
 			p->alpha = 0.6;
 			p->alpha_vel = frand() * -1;
 			p->color = 8;
 			p->scale = 1.5;
-		}
-		else  // undefined
+		} else
+			// undefined
 			continue;
 
-		for(j = 0; j < 2; j++){
+		for (j = 0; j < 2; j++) {
 			p->vel[j] = crand() * 2;
 			p->accel[j] = crand() * 2;
 		}
@@ -1536,30 +1506,29 @@ static void Cl_WeatherEffects(void){
 	}
 
 	// add an appropriate looping sound
-	if(r_view.weather & WEATHER_RAIN)
+	if (r_view.weather & WEATHER_RAIN)
 		s = cl_sample_rain;
-	else if(r_view.weather & WEATHER_SNOW)
+	else if (r_view.weather & WEATHER_SNOW)
 		s = cl_sample_snow;
 	else
 		s = NULL;
 
-	if(!s)
+	if (!s)
 		return;
 
 	S_LoopSample(r_view.origin, s);
 }
 
-
 /*
  * Cl_AddParticles
  */
-void Cl_AddParticles(void){
+void Cl_AddParticles(void) {
 	r_particle_t *p, *next;
 	r_particle_t *active, *tail;
 	float time;
 	int i;
 
-	if(!cl_add_particles->value)
+	if (!cl_add_particles->value)
 		return;
 
 	// add weather effects after all other effects for the frame
@@ -1568,7 +1537,7 @@ void Cl_AddParticles(void){
 	active = NULL;
 	tail = NULL;
 
-	for(p = active_particles; p; p = next){
+	for (p = active_particles; p; p = next) {
 		next = p->next;
 
 		time = (cl.time - p->time) * 0.001;
@@ -1577,27 +1546,29 @@ void Cl_AddParticles(void){
 		p->current_scale = p->scale + time * p->scale_vel;
 
 		// free up particles that have faded or shrunk
-		if(p->current_alpha <= 0 || p->current_scale <= 0){
+		if (p->current_alpha <= 0 || p->current_scale <= 0) {
 			Cl_ClearParticle(p);
 			continue;
 		}
 
-		if(p->current_alpha > 1.0)  // clamp alpha
+		if (p->current_alpha > 1.0) // clamp alpha
 			p->current_alpha = 1.0;
 
-		for(i = 0; i < 3; i++){  // update origin and end
-			p->current_org[i] = p->org[i] + p->vel[i] * time + p->accel[i] * time * time;
-			p->current_end[i] = p->end[i] + p->vel[i] * time + p->accel[i] * time * time;
+		for (i = 0; i < 3; i++) { // update origin and end
+			p->current_org[i] = p->org[i] + p->vel[i] * time + p->accel[i]
+					* time * time;
+			p->current_end[i] = p->end[i] + p->vel[i] * time + p->accel[i]
+					* time * time;
 		}
 
 		// free up weather particles that have hit the ground
-		if(p->type == PARTICLE_WEATHER && (p->current_org[2] <= p->end[2])){
+		if (p->type == PARTICLE_WEATHER && (p->current_org[2] <= p->end[2])) {
 			Cl_ClearParticle(p);
 			continue;
 		}
 
 		p->next = NULL;
-		if(!tail)
+		if (!tail)
 			active = tail = p;
 		else {
 			tail->next = p;
@@ -1610,14 +1581,13 @@ void Cl_AddParticles(void){
 	active_particles = active;
 }
 
-
 /*
  * Cl_AllocParticle
  */
-r_particle_t *Cl_AllocParticle(void){
+r_particle_t *Cl_AllocParticle(void) {
 	r_particle_t *p;
 
-	if(!cl_add_particles->integer || !free_particles)
+	if (!cl_add_particles->integer || !free_particles)
 		return NULL;
 
 	p = free_particles;
@@ -1629,10 +1599,9 @@ r_particle_t *Cl_AllocParticle(void){
 	return p;
 }
 
-
 /*
  * Cl_ClearEffects
  */
-void Cl_ClearEffects(void){
+void Cl_ClearEffects(void) {
 	Cl_ClearParticles();
 }

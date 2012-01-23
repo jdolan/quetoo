@@ -21,14 +21,13 @@
 
 #include "cl_local.h"
 
-
 /*
  * Cl_WriteDemoHeader
  *
  * Writes server_data, config_strings, and baselines once a non-delta
  * compressed frame arrives from the server.
  */
-static void Cl_WriteDemoHeader(void){
+static void Cl_WriteDemoHeader(void) {
 	byte buffer[MAX_MSG_SIZE];
 	size_buf_t msg;
 	int i;
@@ -43,15 +42,15 @@ static void Cl_WriteDemoHeader(void){
 	Msg_WriteLong(&msg, PROTOCOL);
 	Msg_WriteLong(&msg, cl.server_count);
 	Msg_WriteLong(&msg, cl.server_frame_rate);
-	Msg_WriteByte(&msg, 1);  // demo_server byte
+	Msg_WriteByte(&msg, 1); // demo_server byte
 	Msg_WriteString(&msg, cl.gamedir);
 	Msg_WriteShort(&msg, cl.player_num);
 	Msg_WriteString(&msg, cl.config_strings[CS_NAME]);
 
 	// and config_strings
-	for(i = 0; i < MAX_CONFIG_STRINGS; i++){
-		if(*cl.config_strings[i] != '\0'){
-			if(msg.size + strlen(cl.config_strings[i]) + 32 > msg.max_size){  // write it out
+	for (i = 0; i < MAX_CONFIG_STRINGS; i++) {
+		if (*cl.config_strings[i] != '\0') {
+			if (msg.size + strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
 				len = LittleLong(msg.size);
 				Fs_Write(&len, 4, 1, cls.demo_file);
 				Fs_Write(msg.data, msg.size, 1, cls.demo_file);
@@ -65,12 +64,12 @@ static void Cl_WriteDemoHeader(void){
 	}
 
 	// and baselines
-	for(i = 0; i < MAX_EDICTS; i++){
+	for (i = 0; i < MAX_EDICTS; i++) {
 		entity_state_t *ent = &cl.entities[i].baseline;
-		if(!ent->number)
+		if (!ent->number)
 			continue;
 
-		if(msg.size + 64 > msg.max_size){  // write it out
+		if (msg.size + 64 > msg.max_size) { // write it out
 			len = LittleLong(msg.size);
 			Fs_Write(&len, 4, 1, cls.demo_file);
 			Fs_Write(msg.data, msg.size, 1, cls.demo_file);
@@ -80,7 +79,8 @@ static void Cl_WriteDemoHeader(void){
 		memset(&null_state, 0, sizeof(null_state));
 
 		Msg_WriteByte(&msg, svc_spawn_baseline);
-		Msg_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &msg, true, true);
+		Msg_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &msg, true,
+				true);
 	}
 
 	Msg_WriteByte(&msg, svc_stuff_text);
@@ -96,22 +96,21 @@ static void Cl_WriteDemoHeader(void){
 	// the rest of the demo file will be individual frames
 }
 
-
 /*
  * Cl_WriteDemoMessage
  *
  * Dumps the current net message, prefixed by the length.
  */
-void Cl_WriteDemoMessage(void){
+void Cl_WriteDemoMessage(void) {
 	int size;
 
-	if(!cls.demo_file)
+	if (!cls.demo_file)
 		return;
 
-	if(cls.demo_waiting)  // we have not yet received a non-delta frame
+	if (cls.demo_waiting) // we have not yet received a non-delta frame
 		return;
 
-	if(!ftell(cls.demo_file))  // write header
+	if (!ftell(cls.demo_file)) // write header
 		Cl_WriteDemoHeader();
 
 	// the first eight bytes are just packet sequencing stuff
@@ -122,16 +121,15 @@ void Cl_WriteDemoMessage(void){
 	Fs_Write(net_message.data + 8, size, 1, cls.demo_file);
 }
 
-
 /*
  * Cl_Stop_f
  *
  * Stop recording a demo
  */
-void Cl_Stop_f(void){
+void Cl_Stop_f(void) {
 	int size;
 
-	if(!cls.demo_file){
+	if (!cls.demo_file) {
 		Com_Print("Not recording a demo.\n");
 		return;
 	}
@@ -148,7 +146,6 @@ void Cl_Stop_f(void){
 	Cvar_ForceSet("recording", "0");
 }
 
-
 /*
  * Cl_Record_f
  *
@@ -156,19 +153,19 @@ void Cl_Stop_f(void){
  *
  * Begin recording a demo from the current frame until `stop` is issued.
  */
-void Cl_Record_f(void){
+void Cl_Record_f(void) {
 
-	if(Cmd_Argc() != 2){
+	if (Cmd_Argc() != 2) {
 		Com_Print("Usage: %s <demo name>\n", Cmd_Argv(0));
 		return;
 	}
 
-	if(cls.demo_file){
+	if (cls.demo_file) {
 		Com_Print("Already recording.\n");
 		return;
 	}
 
-	if(cls.state != ca_active){
+	if (cls.state != ca_active) {
 		Com_Print("You must be in a level to record.\n");
 		return;
 	}
@@ -178,7 +175,7 @@ void Cl_Record_f(void){
 
 	Fs_CreatePath(cls.demo_path);
 	cls.demo_file = fopen(cls.demo_path, "wb");
-	if(!cls.demo_file){
+	if (!cls.demo_file) {
 		Com_Warn("Cl_Record_f: couldn't open %s.\n", cls.demo_path);
 		return;
 	}
@@ -192,7 +189,6 @@ void Cl_Record_f(void){
 	Com_Print("Requesting demo support from server...\n");
 }
 
-
 #define DEMO_PLAYBACK_STEP 1
 
 /*
@@ -200,34 +196,32 @@ void Cl_Record_f(void){
  *
  * Adjusts time scale by delta, clamping to reasonable limits.
  */
-static void Cl_AdjustDemoPlayback(float delta){
+static void Cl_AdjustDemoPlayback(float delta) {
 	float f;
 
-	if(!cl.demo_server){
+	if (!cl.demo_server) {
 		return;
 	}
 
 	f = time_scale->value + delta;
 
-	if(f >= DEMO_PLAYBACK_STEP && f <= 4.0){
+	if (f >= DEMO_PLAYBACK_STEP && f <= 4.0) {
 		Cvar_Set("time_scale", va("%f", f));
 	}
 
-	Com_Print("Demo playback rate %d%%\n", (int)(time_scale->value * 100));
+	Com_Print("Demo playback rate %d%%\n", (int) (time_scale->value * 100));
 }
-
 
 /*
  * Cl_FastForward_f
  */
-void Cl_FastForward_f(void){
+void Cl_FastForward_f(void) {
 	Cl_AdjustDemoPlayback(DEMO_PLAYBACK_STEP);
 }
-
 
 /*
  * Cl_SlowMotion_f
  */
-void Cl_SlowMotion_f(void){
+void Cl_SlowMotion_f(void) {
 	Cl_AdjustDemoPlayback(-DEMO_PLAYBACK_STEP);
 }

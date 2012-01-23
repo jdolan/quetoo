@@ -19,17 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SERVER_H__
-#define __SERVER_H__
+#ifndef __SV_ENTITY_H__
+#define __SV_ENTITY_H__
 
-#include "sv_admin.h"
-#include "sv_client.h"
-#include "sv_entity.h"
-#include "sv_game.h"
-#include "sv_init.h"
-#include "sv_main.h"
-#include "sv_send.h"
 #include "sv_types.h"
-#include "sv_world.h"
 
-#endif /* __SERVER_H__ */
+#ifdef __SV_LOCAL_H__
+void Sv_WriteFrameToClient(sv_client_t *client, size_buf_t *msg);
+void Sv_BuildClientFrame(sv_client_t *client);
+#endif /* __SV_LOCAL_H__ */
+
+#endif /* __SV_ENTITY_H__ */

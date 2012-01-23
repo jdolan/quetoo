@@ -19,17 +19,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SERVER_H__
-#define __SERVER_H__
+#ifndef __SV_WORLD_H__
+#define __SV_WORLD_H__
 
-#include "sv_admin.h"
-#include "sv_client.h"
-#include "sv_entity.h"
-#include "sv_game.h"
-#include "sv_init.h"
-#include "sv_main.h"
-#include "sv_send.h"
 #include "sv_types.h"
-#include "sv_world.h"
 
-#endif /* __SERVER_H__ */
+#ifdef __SV_LOCAL_H__
+void Sv_InitWorld(void);
+void Sv_LinkEdict(g_edict_t *ent);
+void Sv_UnlinkEdict(g_edict_t *ent);
+int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, g_edict_t **list, int maxcount, int areatype);
+int Sv_PointContents(vec3_t p);
+c_trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *passedict, int contentmask);
+
+#endif /* __SV_LOCAL_H__ */
+
+#endif /* __SV_WORLD_H__ */

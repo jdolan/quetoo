@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "server.h"
+#include "sv_local.h"
 
 /*
  * Sv_FindIndex
@@ -28,27 +28,27 @@
  * desired name.  If not found, the name can be optionally created and sent to
  * all connected clients.  This allows the game to lazily load assets.
  */
-static int Sv_FindIndex(const char *name, int start, int max, boolean_t create){
+static int Sv_FindIndex(const char *name, int start, int max, boolean_t create) {
 	int i;
 
-	if(!name || !name[0])
+	if (!name || !name[0])
 		return 0;
 
-	for(i = 1; i < max && sv.config_strings[start + i][0]; i++)
-		if(!strcmp(sv.config_strings[start + i], name))
+	for (i = 1; i < max && sv.config_strings[start + i][0]; i++)
+		if (!strcmp(sv.config_strings[start + i], name))
 			return i;
 
-	if(!create)
+	if (!create)
 		return 0;
 
-	if(i == max){
+	if (i == max) {
 		Com_Warn("Sv_FindIndex: max index reached.");
 		return 0;
 	}
 
 	strncpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
 
-	if(sv.state != ss_loading){  // send the update to everyone
+	if (sv.state != ss_loading) { // send the update to everyone
 		Sb_Clear(&sv.multicast);
 		Msg_WriteChar(&sv.multicast, svc_config_string);
 		Msg_WriteShort(&sv.multicast, start + i);
@@ -59,18 +59,17 @@ static int Sv_FindIndex(const char *name, int start, int max, boolean_t create){
 	return i;
 }
 
-int Sv_ModelIndex(const char *name){
+int Sv_ModelIndex(const char *name) {
 	return Sv_FindIndex(name, CS_MODELS, MAX_MODELS, true);
 }
 
-int Sv_SoundIndex(const char *name){
+int Sv_SoundIndex(const char *name) {
 	return Sv_FindIndex(name, CS_SOUNDS, MAX_SOUNDS, true);
 }
 
-int Sv_ImageIndex(const char *name){
+int Sv_ImageIndex(const char *name) {
 	return Sv_FindIndex(name, CS_IMAGES, MAX_IMAGES, true);
 }
-
 
 /*
  * Sv_CreateBaseline
@@ -79,18 +78,18 @@ int Sv_ImageIndex(const char *name){
  * to the clients -- only the fields that differ from the
  * baseline will be transmitted
  */
-static void Sv_CreateBaseline(void){
+static void Sv_CreateBaseline(void) {
 	g_edict_t *ent;
 	int i;
 
-	for(i = 1; i < svs.game->num_edicts; i++){
+	for (i = 1; i < svs.game->num_edicts; i++) {
 
 		ent = EDICT_FOR_NUM(i);
 
-		if(!ent->in_use)
+		if (!ent->in_use)
 			continue;
 
-		if(!ent->s.model1 && !ent->s.sound && !ent->s.effects)
+		if (!ent->s.model1 && !ent->s.sound && !ent->s.effects)
 			continue;
 
 		ent->s.number = i;
@@ -101,7 +100,6 @@ static void Sv_CreateBaseline(void){
 	}
 }
 
-
 /*
  * Sv_ShutdownMessage
  *
@@ -109,31 +107,31 @@ static void Sv_CreateBaseline(void){
  * is sent immediately, because the server could completely terminate after
  * returning from this function.
  */
-static void Sv_ShutdownMessage(const char *msg, boolean_t reconnect){
+static void Sv_ShutdownMessage(const char *msg, boolean_t reconnect) {
 	sv_client_t *cl;
 	int i;
 
-	if(!svs.initialized)
+	if (!svs.initialized)
 		return;
 
 	Sb_Clear(&net_message);
 
-	if(msg){  // send message
+	if (msg) { // send message
 		Msg_WriteByte(&net_message, svc_print);
 		Msg_WriteByte(&net_message, PRINT_HIGH);
 		Msg_WriteString(&net_message, msg);
 	}
 
-	if(reconnect)  // send reconnect
+	if (reconnect) // send reconnect
 		Msg_WriteByte(&net_message, svc_reconnect);
-	else  // or just disconnect
+	else
+		// or just disconnect
 		Msg_WriteByte(&net_message, svc_disconnect);
 
-	for(i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++)
-		if(cl->state >= cs_connected)
+	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++)
+		if (cl->state >= cs_connected)
 			Netchan_Transmit(&cl->netchan, net_message.size, net_message.data);
 }
-
 
 /*
  * Sv_ClearState
@@ -142,9 +140,9 @@ static void Sv_ShutdownMessage(const char *msg, boolean_t reconnect){
  */
 static void Sv_ClearState() {
 
-	if(svs.initialized){  // if we were intialized, cleanup
+	if (svs.initialized) { // if we were intialized, cleanup
 
-		if(sv.demo_file){
+		if (sv.demo_file) {
 			Fs_CloseFile(sv.demo_file);
 		}
 	}
@@ -156,44 +154,41 @@ static void Sv_ClearState() {
 	svs.last_heartbeat = -9999999;
 }
 
-
 /*
  * Sv_UpdateLatchedVars
  *
  * Applies any pending variable changes and clamps ones we really care about.
  */
-static void Sv_UpdateLatchedVars(void){
+static void Sv_UpdateLatchedVars(void) {
 
 	Cvar_UpdateLatchedVars();
 
-	if(sv_max_clients->integer < MIN_CLIENTS)
+	if (sv_max_clients->integer < MIN_CLIENTS)
 		sv_max_clients->integer = MIN_CLIENTS;
-	else if(sv_max_clients->integer > MAX_CLIENTS)
+	else if (sv_max_clients->integer > MAX_CLIENTS)
 		sv_max_clients->integer = MAX_CLIENTS;
 
-
-	if(sv_framerate->integer < SERVER_FRAME_RATE_MIN)
+	if (sv_framerate->integer < SERVER_FRAME_RATE_MIN)
 		sv_framerate->integer = SERVER_FRAME_RATE_MIN;
-	else if(sv_framerate->integer > SERVER_FRAME_RATE_MAX)
+	else if (sv_framerate->integer > SERVER_FRAME_RATE_MAX)
 		sv_framerate->integer = SERVER_FRAME_RATE_MAX;
 }
-
 
 /*
  * Sv_ShutdownClients
  *
  * Gracefully frees all resources allocated to svs.clients.
  */
-static void Sv_ShutdownClients(void){
+static void Sv_ShutdownClients(void) {
 	sv_client_t *cl;
 	int i;
 
-	if(!svs.initialized)
+	if (!svs.initialized)
 		return;
 
-	for(i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++){
+	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-		if(cl->download){
+		if (cl->download) {
 			Fs_FreeFile(cl->download);
 		}
 	}
@@ -205,7 +200,6 @@ static void Sv_ShutdownClients(void){
 	svs.entity_states = NULL;
 }
 
-
 /*
  * Sv_InitClients
  *
@@ -213,10 +207,10 @@ static void Sv_ShutdownClients(void){
  * we must allocate clients and edicts based on sizes the game module requests,
  * we refresh the game module
  */
-static void Sv_InitClients(void){
+static void Sv_InitClients(void) {
 	int i;
 
-	if(!svs.initialized || Cvar_PendingLatchedVars()){
+	if (!svs.initialized || Cvar_PendingLatchedVars()) {
 
 		Sv_ShutdownGame();
 
@@ -225,24 +219,26 @@ static void Sv_InitClients(void){
 		Sv_UpdateLatchedVars();
 
 		// initialize the clients array
-		svs.clients = Z_Malloc(sizeof(sv_client_t) * (int)sv_max_clients->integer);
+		svs.clients = Z_Malloc(
+				sizeof(sv_client_t) * (int) sv_max_clients->integer);
 
 		// and the entity states array
-		svs.num_entity_states = sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
-		svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
+		svs.num_entity_states = sv_max_clients->integer * UPDATE_BACKUP
+				* MAX_PACKET_ENTITIES;
+		svs.entity_states = Z_Malloc(
+				sizeof(entity_state_t) * svs.num_entity_states);
 
 		svs.frame_rate = sv_framerate->integer;
 
 		svs.spawn_count = rand();
 
 		Sv_InitGame();
-	}
-	else {
+	} else {
 		svs.spawn_count++;
 	}
 
 	// align the game entities with the server's clients
-	for(i = 0; i < sv_max_clients->integer; i++){
+	for (i = 0; i < sv_max_clients->integer; i++) {
 
 		g_edict_t *edict = EDICT_FOR_NUM(i + 1);
 		edict->s.number = i + 1;
@@ -251,7 +247,7 @@ static void Sv_InitClients(void){
 		svs.clients[i].edict = edict;
 
 		// reset state of spawned clients back to connected
-		if(svs.clients[i].state > cs_connected)
+		if (svs.clients[i].state > cs_connected)
 			svs.clients[i].state = cs_connected;
 
 		// invalidate last frame to force a baseline
@@ -260,7 +256,6 @@ static void Sv_InitClients(void){
 	}
 }
 
-
 /*
  * Sv_LoadMedia
  *
@@ -268,7 +263,7 @@ static void Sv_InitClients(void){
  * strings."  We hand off the entity string to the game module, which will
  * load the rest.
  */
-static void Sv_LoadMedia(const char *server, sv_state_t state){
+static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	extern char *fs_last_pak;
 	char demo[MAX_QPATH];
 	int i, mapsize;
@@ -276,7 +271,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state){
 	strcpy(sv.name, server);
 	strcpy(sv.config_strings[CS_NAME], server);
 
-	if(state == ss_demo){  // loading a demo
+	if (state == ss_demo) { // loading a demo
 		snprintf(demo, sizeof(demo), "demos/%s.dem", sv.name);
 
 		sv.models[1] = Cm_LoadBsp(NULL, &mapsize);
@@ -285,17 +280,16 @@ static void Sv_LoadMedia(const char *server, sv_state_t state){
 		svs.spawn_count = 0;
 
 		Com_Print("  Loaded demo %s.\n", sv.name);
-	}
-	else {  // loading a map
+	} else { // loading a map
 		snprintf(sv.config_strings[CS_MODELS + 1], MAX_QPATH, "maps/%s.bsp", sv.name);
 
 		sv.models[1] = Cm_LoadBsp(sv.config_strings[CS_MODELS + 1], &mapsize);
 
-		if(fs_last_pak){
+		if (fs_last_pak) {
 			strncpy(sv.config_strings[CS_PAK], fs_last_pak, MAX_QPATH);
 		}
 
-		for(i = 1; i < Cm_NumModels(); i++){
+		for (i = 1; i < Cm_NumModels(); i++) {
 
 			char *s = sv.config_strings[CS_MODELS + 1 + i];
 			snprintf(s, MAX_QPATH, "*%d", i);
@@ -312,13 +306,13 @@ static void Sv_LoadMedia(const char *server, sv_state_t state){
 
 		Sv_CreateBaseline();
 
-		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_edicts);
+		Com_Print("  Loaded map %s, %d entities.\n", sv.name,
+				svs.game->num_edicts);
 	}
 	snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", mapsize);
 
 	Cvar_FullSet("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NOSET);
 }
-
 
 /*
  * Sv_InitServer
@@ -328,7 +322,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state){
  * clearing state.  Special effort is made to ensure that a locally connected
  * client sees the reconnect message immediately.
  */
-void Sv_InitServer(const char *server, sv_state_t state){
+void Sv_InitServer(const char *server, sv_state_t state) {
 #ifdef BUILD_CLIENT
 	extern void Cl_Frame(int msec);
 #endif
@@ -340,14 +334,14 @@ void Sv_InitServer(const char *server, sv_state_t state){
 	Cbuf_CopyToDefer();
 
 	// ensure that the requested map or demo exists
-	if(state == ss_demo)
+	if (state == ss_demo)
 		snprintf(path, sizeof(path), "demos/%s.dem", server);
 	else
 		snprintf(path, sizeof(path), "maps/%s.bsp", server);
 
 	Fs_OpenFile(path, &file, FILE_READ);
 
-	if(!file){
+	if (!file) {
 		Com_Print("Couldn't open %s\n", path);
 		return;
 	}
@@ -386,13 +380,12 @@ void Sv_InitServer(const char *server, sv_state_t state){
 	svs.initialized = true;
 }
 
-
 /*
  * Sv_ShutdownServer
  *
  * Called with the game is shutting down.
  */
-void Sv_ShutdownServer(const char *msg){
+void Sv_ShutdownServer(const char *msg) {
 
 	Com_Debug("Sv_ShutdownServer: %s\n", msg);
 

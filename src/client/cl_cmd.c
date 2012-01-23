@@ -21,16 +21,15 @@
 
 #include "cl_local.h"
 
-
 /*
  * Cl_UpdateCmd
  *
  * Accumulate all movement for the current packet frame in a command.
  */
-void Cl_UpdateCmd(void){
+void Cl_UpdateCmd(void) {
 	user_cmd_t *cmd;
 
-	if(cls.state != ca_active)
+	if (cls.state != ca_active)
 		return;
 
 	cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
@@ -40,14 +39,13 @@ void Cl_UpdateCmd(void){
 	Cl_Move(cmd);
 }
 
-
 /*
  * Cl_InitCmd
  *
  * Initializes the next outgoing command so that it may accumulate movement
  * over the next packet frame.
  */
-static void Cl_InitCmd(void){
+static void Cl_InitCmd(void) {
 	user_cmd_t *cmd;
 
 	// the outgoing sequence has just been incremented, mask it off and
@@ -56,23 +54,21 @@ static void Cl_InitCmd(void){
 	memset(cmd, 0, sizeof(user_cmd_t));
 }
 
-
 /*
  * Cl_FinalizeCmd
  *
  * Calculate the true command duration and clamp it so that it may be sent.
  */
-static void Cl_FinalizeCmd(void){
+static void Cl_FinalizeCmd(void) {
 	user_cmd_t *cmd;
 
 	// resolve the cumulative command duration
 	cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
 	cmd->msec = cls.packet_delta;
 
-	if(cmd->msec > 250)  // clamp it to server max
+	if (cmd->msec > 250) // clamp it to server max
 		cmd->msec = 250;
 }
-
 
 /*
  * Cl_SendCmd
@@ -80,27 +76,28 @@ static void Cl_FinalizeCmd(void){
  * Pumps the command cycle, sending the most recently gathered movement
  * to the server.
  */
-void Cl_SendCmd(void){
+void Cl_SendCmd(void) {
 	extern int packets_this_second;
 	size_buf_t buf;
 	byte data[128];
 	user_cmd_t *cmd, *old_cmd;
 	user_cmd_t null_cmd;
 
-	if(cls.state <= ca_connecting)
+	if (cls.state <= ca_connecting)
 		return;
 
 	Sb_Init(&buf, data, sizeof(data));
 
-	if(cls.state == ca_connected){
+	if (cls.state == ca_connected) {
 		// send anything we have pending, or just don't timeout
-		if(cls.netchan.message.size || cls.real_time - cls.netchan.last_sent > 1000)
+		if (cls.netchan.message.size || cls.real_time - cls.netchan.last_sent
+				> 1000)
 			Netchan_Transmit(&cls.netchan, 0, buf.data);
 		return;
 	}
 
 	// send a user_info update if needed
-	if(user_info_modified){
+	if (user_info_modified) {
 		Msg_WriteByte(&cls.netchan.message, clc_user_info);
 		Msg_WriteString(&cls.netchan.message, Cvar_UserInfo());
 
@@ -115,8 +112,8 @@ void Cl_SendCmd(void){
 
 	// let the server know what the last frame we got was, so the next
 	// message can be delta compressed
-	if(!cl.frame.valid || cls.demo_waiting)
-		Msg_WriteLong(&buf, -1);  // no compression
+	if (!cl.frame.valid || cls.demo_waiting)
+		Msg_WriteLong(&buf, -1); // no compression
 	else
 		Msg_WriteLong(&buf, cl.frame.server_frame);
 

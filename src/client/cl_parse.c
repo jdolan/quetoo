@@ -21,25 +21,11 @@
 
 #include "cl_local.h"
 
-char *svc_strings[256] = {
-	"svc_bad",
-	"svc_nop",
-	"svc_muzzle_flash",
-	"svc_temp_entity",
-	"svc_layout",
-	"svc_disconnect",
-	"svc_reconnect",
-	"svc_sound",
-	"svc_print",
-	"svc_stuff_text",
-	"svc_server_data",
-	"svc_config_string",
-	"svc_spawn_baseline",
-	"svc_center_print",
-	"svc_download",
-	"svc_frame"
-};
-
+char *svc_strings[256] = { "svc_bad", "svc_nop", "svc_muzzle_flash",
+		"svc_temp_entity", "svc_layout", "svc_disconnect", "svc_reconnect",
+		"svc_sound", "svc_print", "svc_stuff_text", "svc_server_data",
+		"svc_config_string", "svc_spawn_baseline", "svc_center_print",
+		"svc_download", "svc_frame" };
 
 /*
  * Cl_CheckOrDownloadFile
@@ -47,32 +33,32 @@ char *svc_strings[256] = {
  * Returns true if the file exists, otherwise it attempts
  * to start a download from the server.
  */
-boolean_t Cl_CheckOrDownloadFile(const char *file_name){
+boolean_t Cl_CheckOrDownloadFile(const char *file_name) {
 	FILE *fp;
 	char name[MAX_OSPATH];
 	char cmd[MAX_STRING_CHARS];
 
-	if(cls.state == ca_disconnected){
+	if (cls.state == ca_disconnected) {
 		Com_Print("Not connected.\n");
 		return true;
 	}
 
-	if(file_name[0] == '/'){
+	if (file_name[0] == '/') {
 		Com_Warn("Refusing to download a path starting with /.\n");
 		return true;
 	}
-	if(strstr(file_name, "..")){
+	if (strstr(file_name, "..")) {
 		Com_Warn("Refusing to download a path with .. .\n");
 		return true;
 	}
-	if(strchr(file_name, ' ')){
+	if (strchr(file_name, ' ')) {
 		Com_Warn("Refusing to download a path with whitespace.\n");
 		return true;
 	}
 
 	Com_Debug("Checking for %s\n", file_name);
 
-	if(Fs_LoadFile(file_name, NULL) != -1){  // it exists, no need to download
+	if (Fs_LoadFile(file_name, NULL) != -1) { // it exists, no need to download
 		return true;
 	}
 
@@ -85,7 +71,7 @@ boolean_t Cl_CheckOrDownloadFile(const char *file_name){
 	strcat(cls.download.tempname, ".tmp");
 
 	// attempt an http download if available
-	if(cls.download_url[0] && Cl_HttpDownload())
+	if (cls.download_url[0] && Cl_HttpDownload())
 		return false;
 
 	// check to see if we already have a tmp for this file, if so, try to resume
@@ -93,7 +79,7 @@ boolean_t Cl_CheckOrDownloadFile(const char *file_name){
 	snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
 
 	fp = fopen(name, "r+b");
-	if(fp){ // a temp file exists, resume download
+	if (fp) { // a temp file exists, resume download
 		int len;
 		fseek(fp, 0, SEEK_END);
 		len = ftell(fp);
@@ -118,15 +104,14 @@ boolean_t Cl_CheckOrDownloadFile(const char *file_name){
 	return false;
 }
 
-
 /*
  * Cl_Download_f
  *
  * Manually request a download from the server.
  */
-void Cl_Download_f(void){
+void Cl_Download_f(void) {
 
-	if(Cmd_Argc() != 2){
+	if (Cmd_Argc() != 2) {
 		Com_Print("Usage: %s <file_name>\n", Cmd_Argv(0));
 		return;
 	}
@@ -134,22 +119,21 @@ void Cl_Download_f(void){
 	Cl_CheckOrDownloadFile(Cmd_Argv(1));
 }
 
-
 /*
  * Cl_ParseDownload
  *
  * A download message has been received from the server
  */
-static void Cl_ParseDownload(void){
+static void Cl_ParseDownload(void) {
 	int size, percent;
 	char name[MAX_OSPATH];
 
 	// read the data
 	size = Msg_ReadShort(&net_message);
 	percent = Msg_ReadByte(&net_message);
-	if(size < 0){
+	if (size < 0) {
 		Com_Debug("Server does not have this file.\n");
-		if(cls.download.file){
+		if (cls.download.file) {
 			// if here, we tried to resume a file but the server said no
 			Fs_CloseFile(cls.download.file);
 			cls.download.file = NULL;
@@ -159,12 +143,12 @@ static void Cl_ParseDownload(void){
 	}
 
 	// open the file if not opened yet
-	if(!cls.download.file){
+	if (!cls.download.file) {
 		snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
 
 		Fs_CreatePath(name);
 
-		if(!(cls.download.file = fopen(name, "wb"))){
+		if (!(cls.download.file = fopen(name, "wb"))) {
 			net_message.read += size;
 			Com_Warn("Failed to open %s.\n", name);
 			Cl_RequestNextDownload();
@@ -176,7 +160,7 @@ static void Cl_ParseDownload(void){
 
 	net_message.read += size;
 
-	if(percent != 100){
+	if (percent != 100) {
 		Msg_WriteByte(&cls.netchan.message, clc_string);
 		Sb_Print(&cls.netchan.message, "nextdl");
 	} else {
@@ -189,19 +173,18 @@ static void Cl_ParseDownload(void){
 		snprintf(oldn, sizeof(oldn), "%s/%s", Fs_Gamedir(), cls.download.tempname);
 		snprintf(newn, sizeof(newn), "%s/%s", Fs_Gamedir(), cls.download.name);
 
-		if(rename(oldn, newn))
+		if (rename(oldn, newn))
 			Com_Warn("Failed to rename %s to %s.\n", oldn, newn);
 
 		cls.download.file = NULL;
 
-		if(strstr(newn, ".pak"))  // append paks to searchpaths
+		if (strstr(newn, ".pak")) // append paks to searchpaths
 			Fs_AddPakfile(newn);
 
 		// get another file if needed
 		Cl_RequestNextDownload();
 	}
 }
-
 
 /*
  *
@@ -212,7 +195,7 @@ static void Cl_ParseDownload(void){
 /*
  * Cl_ParseServerData
  */
-static void Cl_ParseServerData(void){
+static void Cl_ParseServerData(void) {
 	extern cvar_t *fs_gamedirvar;
 	char *str;
 	int i;
@@ -227,8 +210,9 @@ static void Cl_ParseServerData(void){
 	i = Msg_ReadLong(&net_message);
 
 	// ensure protocol matches
-	if(i != PROTOCOL){
-		Com_Error(ERR_DROP, "Cl_ParseServerData: Server is using unknown protocol %d.\n", i);
+	if (i != PROTOCOL) {
+		Com_Error(ERR_DROP,
+				"Cl_ParseServerData: Server is using unknown protocol %d.\n", i);
 	}
 
 	// retrieve spawn count and packet rate
@@ -243,15 +227,16 @@ static void Cl_ParseServerData(void){
 	strncpy(cl.gamedir, str, sizeof(cl.gamedir) - 1);
 
 	// set gamedir
-	if((*str && (!*fs_gamedirvar->string || strcmp(fs_gamedirvar->string, str))) ||
-			(!*str && (*fs_gamedirvar->string))){
+	if ((*str
+			&& (!*fs_gamedirvar->string || strcmp(fs_gamedirvar->string, str)))
+			|| (!*str && (*fs_gamedirvar->string))) {
 
-		if(strcmp(fs_gamedirvar->string, str)){
-			if(cl.demo_server){
+		if (strcmp(fs_gamedirvar->string, str)) {
+			if (cl.demo_server) {
 				Cvar_ForceSet("game", str);
 				Fs_SetGamedir(str);
-			}
-			else Cvar_Set("game", str);
+			} else
+				Cvar_Set("game", str);
 		}
 	}
 
@@ -260,14 +245,14 @@ static void Cl_ParseServerData(void){
 
 	// get the full level name
 	str = Msg_ReadString(&net_message);
-	Com_Print("\n"); Com_Print("%c%s\n", 2, str);
+	Com_Print("\n");
+	Com_Print("%c%s\n", 2, str);
 }
-
 
 /*
  * Cl_ParseBaseline
  */
-static void Cl_ParseBaseline(void){
+static void Cl_ParseBaseline(void) {
 	entity_state_t *state;
 	entity_state_t null_state;
 
@@ -280,59 +265,56 @@ static void Cl_ParseBaseline(void){
 	Msg_ReadDeltaEntity(&null_state, state, &net_message, number, bits);
 }
 
-
 /*
  * Cl_ParseGravity
  */
-static void Cl_ParseGravity(const char *gravity){
+static void Cl_ParseGravity(const char *gravity) {
 	int g;
 
-	if((g = atoi(gravity)) > -1)
+	if ((g = atoi(gravity)) > -1)
 		cl_gravity = g;
 }
-
 
 /*
  * Cl_ParseConfigString
  */
-void Cl_ParseConfigString(void){
+void Cl_ParseConfigString(void) {
 
 	const int i = Msg_ReadShort(&net_message);
 
-	if(i < 0 || i >= MAX_CONFIG_STRINGS){
+	if (i < 0 || i >= MAX_CONFIG_STRINGS) {
 		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
 	}
 
 	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
 	const char *s = cl.config_strings[i];
 
-	if(i == CS_GRAVITY)
+	if (i == CS_GRAVITY)
 		Cl_ParseGravity(s);
-	else if(i >= CS_MODELS && i < CS_MODELS + MAX_MODELS){
-		if(cls.state == ca_active){
+	else if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
+		if (cls.state == ca_active) {
 			cl.model_draw[i - CS_MODELS] = R_LoadModel(s);
-			if(cl.config_strings[i][0] == '*')
+			if (cl.config_strings[i][0] == '*')
 				cl.model_clip[i - CS_MODELS] = Cm_Model(s);
 			else
 				cl.model_clip[i - CS_MODELS] = NULL;
 		}
-	} else if(i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS){
-		if(cls.state == ca_active)
+	} else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
+		if (cls.state == ca_active)
 			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(s);
-	} else if(i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES){
-		if(cls.state == ca_active)
+	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
+		if (cls.state == ca_active)
 			cl.image_precache[i - CS_IMAGES] = R_LoadPic(s);
-	} else if(i >= CS_CLIENT_INFO && i < CS_CLIENT_INFO + MAX_CLIENTS){
-		if(cls.state == ca_active)
+	} else if (i >= CS_CLIENT_INFO && i < CS_CLIENT_INFO + MAX_CLIENTS) {
+		if (cls.state == ca_active)
 			Cl_LoadClient(&cl.client_info[i - CS_CLIENT_INFO], s);
 	}
 }
 
-
 /*
  * Cl_ParseSound
  */
-static void Cl_ParseSound(void){
+static void Cl_ParseSound(void) {
 	vec3_t origin;
 	float *org;
 	int soundindex;
@@ -344,185 +326,184 @@ static void Cl_ParseSound(void){
 
 	soundindex = Msg_ReadByte(&net_message);
 
-	if(flags & S_ATTEN)
+	if (flags & S_ATTEN)
 		atten = Msg_ReadByte(&net_message);
 	else
 		atten = DEFAULT_SOUND_ATTENUATION;
 
-	if(flags & S_ENTNUM){  // entity relative
+	if (flags & S_ENTNUM) { // entity relative
 		ent_num = Msg_ReadShort(&net_message);
 
-		if(ent_num > MAX_EDICTS)
+		if (ent_num > MAX_EDICTS)
 			Com_Error(ERR_DROP, "Cl_ParseSound: ent_num = %d.\n", ent_num);
 	} else {
 		ent_num = -1;
 	}
 
-	if(flags & S_ORIGIN){  // positioned in space
+	if (flags & S_ORIGIN) { // positioned in space
 		Msg_ReadPos(&net_message, origin);
 
 		org = origin;
-	} else  // use ent_num
+	} else
+		// use ent_num
 		org = NULL;
 
-	if(!cl.sound_precache[soundindex])
+	if (!cl.sound_precache[soundindex])
 		return;
 
 	S_PlaySample(org, ent_num, cl.sound_precache[soundindex], atten);
 }
 
-
 /*
  * Cl_IgnoreChatMessage
  */
-static boolean_t Cl_IgnoreChatMessage(const char *msg){
+static boolean_t Cl_IgnoreChatMessage(const char *msg) {
 
 	const char *s = strtok(cl_ignore->string, " ");
 
-	if(*cl_ignore->string == '\0')
-		return false;  // nothing currently filtered
+	if (*cl_ignore->string == '\0')
+		return false; // nothing currently filtered
 
-	while(s){
-		if(strstr(msg, s))
+	while (s) {
+		if (strstr(msg, s))
 			return true;
 		s = strtok(NULL, " ");
 	}
-	return false;  // msg is okay
+	return false; // msg is okay
 }
-
 
 /*
  * Cl_ShowNet
  */
-static void Cl_ShowNet(const char *s){
-	if(cl_show_net_messages->integer >= 2)
+static void Cl_ShowNet(const char *s) {
+	if (cl_show_net_messages->integer >= 2)
 		Com_Print("%3zd: %s\n", net_message.read - 1, s);
 }
-
 
 /*
  * Cl_ParseServerMessage
  */
-void Cl_ParseServerMessage(void){
+void Cl_ParseServerMessage(void) {
 	extern int bytes_this_second;
 	int cmd, old_cmd;
 	char *s;
 	int i;
 
-	if(cl_show_net_messages->integer == 1)
+	if (cl_show_net_messages->integer == 1)
 		Com_Print(Q2W_SIZE_T" ", net_message.size);
-	else if(cl_show_net_messages->integer >= 2)
+	else if (cl_show_net_messages->integer >= 2)
 		Com_Print("------------------\n");
 
 	bytes_this_second += net_message.size;
 	cmd = 0;
 
 	// parse the message
-	while(true){
-		if(net_message.read > net_message.size){
+	while (true) {
+		if (net_message.read > net_message.size) {
 			Com_Error(ERR_DROP, "Cl_ParseServerMessage: Bad server message.\n");
 		}
 
 		old_cmd = cmd;
 		cmd = Msg_ReadByte(&net_message);
 
-		if(cmd == -1){
+		if (cmd == -1) {
 			Cl_ShowNet("END OF MESSAGE");
 			break;
 		}
 
-		if(cl_show_net_messages->integer >= 2 && svc_strings[cmd])
+		if (cl_show_net_messages->integer >= 2 && svc_strings[cmd])
 			Cl_ShowNet(svc_strings[cmd]);
 
-		switch(cmd){
-			case svc_nop:
-				break;
+		switch (cmd) {
+		case svc_nop:
+			break;
 
-			case svc_disconnect:
-				Com_Error(ERR_DROP, "Server disconnected.\n");
-				break;
+		case svc_disconnect:
+			Com_Error(ERR_DROP, "Server disconnected.\n");
+			break;
 
-			case svc_reconnect:
-				Com_Print("Server disconnected, reconnecting...\n");
-				// stop download
-				if(cls.download.file){
-					if(cls.download.http)  // clean up http downloads
-						Cl_HttpDownloadCleanup();
-					else  // or just stop legacy ones
-						Fs_CloseFile(cls.download.file);
-					cls.download.file = NULL;
-				}
-				cls.state = ca_connecting;
-				cls.connect_time = -99999;  // fire immediately
-				break;
+		case svc_reconnect:
+			Com_Print("Server disconnected, reconnecting...\n");
+			// stop download
+			if (cls.download.file) {
+				if (cls.download.http) // clean up http downloads
+					Cl_HttpDownloadCleanup();
+				else
+					// or just stop legacy ones
+					Fs_CloseFile(cls.download.file);
+				cls.download.file = NULL;
+			}
+			cls.state = ca_connecting;
+			cls.connect_time = -99999; // fire immediately
+			break;
 
-			case svc_print:
-				i = Msg_ReadByte(&net_message);
-				s = Msg_ReadString(&net_message);
-				if(i == PRINT_CHAT){
-					if(Cl_IgnoreChatMessage(s))  // filter /ignore'd chatters
-						break;
-					if(*cl_chat_sound->string)  // trigger chat sound
-						S_StartLocalSample(cl_chat_sound->string);
-				} else if(i == PRINT_TEAMCHAT){
-					if(Cl_IgnoreChatMessage(s))  // filter /ignore'd chatters
-						break;
-					if(*cl_team_chat_sound->string)  // trigger chat sound
-						S_StartLocalSample(cl_team_chat_sound->string);
-				}
-				Com_Print("%s", s);
-				break;
+		case svc_print:
+			i = Msg_ReadByte(&net_message);
+			s = Msg_ReadString(&net_message);
+			if (i == PRINT_CHAT) {
+				if (Cl_IgnoreChatMessage(s)) // filter /ignore'd chatters
+					break;
+				if (*cl_chat_sound->string) // trigger chat sound
+					S_StartLocalSample(cl_chat_sound->string);
+			} else if (i == PRINT_TEAMCHAT) {
+				if (Cl_IgnoreChatMessage(s)) // filter /ignore'd chatters
+					break;
+				if (*cl_team_chat_sound->string) // trigger chat sound
+					S_StartLocalSample(cl_team_chat_sound->string);
+			}
+			Com_Print("%s", s);
+			break;
 
-			case svc_center_print:
-				Cl_CenterPrint(Msg_ReadString(&net_message));
-				break;
+		case svc_center_print:
+			Cl_CenterPrint(Msg_ReadString(&net_message));
+			break;
 
-			case svc_stuff_text:
-				s = Msg_ReadString(&net_message);
-				Cbuf_AddText(s);
-				break;
+		case svc_stuff_text:
+			s = Msg_ReadString(&net_message);
+			Cbuf_AddText(s);
+			break;
 
-			case svc_server_data:
-				Cl_ParseServerData();
-				break;
+		case svc_server_data:
+			Cl_ParseServerData();
+			break;
 
-			case svc_config_string:
-				Cl_ParseConfigString();
-				break;
+		case svc_config_string:
+			Cl_ParseConfigString();
+			break;
 
-			case svc_sound:
-				Cl_ParseSound();
-				break;
+		case svc_sound:
+			Cl_ParseSound();
+			break;
 
-			case svc_spawn_baseline:
-				Cl_ParseBaseline();
-				break;
+		case svc_spawn_baseline:
+			Cl_ParseBaseline();
+			break;
 
-			case svc_temp_entity:
-				Cl_ParseTempEntity();
-				break;
+		case svc_temp_entity:
+			Cl_ParseTempEntity();
+			break;
 
-			case svc_muzzle_flash:
-				Cl_ParseMuzzleFlash();
-				break;
+		case svc_muzzle_flash:
+			Cl_ParseMuzzleFlash();
+			break;
 
-			case svc_download:
-				Cl_ParseDownload();
-				break;
+		case svc_download:
+			Cl_ParseDownload();
+			break;
 
-			case svc_frame:
-				Cl_ParseFrame();
-				break;
+		case svc_frame:
+			Cl_ParseFrame();
+			break;
 
-			case svc_layout:
-				s = Msg_ReadString(&net_message);
-				strncpy(cl.layout, s, sizeof(cl.layout) - 1);
-				break;
+		case svc_layout:
+			s = Msg_ReadString(&net_message);
+			strncpy(cl.layout, s, sizeof(cl.layout) - 1);
+			break;
 
-			default:
-				Com_Print("Cl_ParseServerMessage: Illegible server message\n"
-						"  %d: last command was %s\n", cmd, svc_strings[old_cmd]);
-				break;
+		default:
+			Com_Print("Cl_ParseServerMessage: Illegible server message\n"
+				"  %d: last command was %s\n", cmd, svc_strings[old_cmd]);
+			break;
 		}
 	}
 

@@ -36,7 +36,7 @@ int numlocations;
  *
  * Effectively clears all locations for the current level.
  */
-static void Cl_ClearLocations(void){
+static void Cl_ClearLocations(void) {
 	numlocations = 0;
 }
 
@@ -45,13 +45,13 @@ static void Cl_ClearLocations(void){
  *
  * Parse a .loc file for the current level.
  */
-void Cl_LoadLocations(void){
+void Cl_LoadLocations(void) {
 	const char *c;
 	char file_name[MAX_QPATH];
 	FILE *f;
 	int i;
 
-	Cl_ClearLocations();  // clear any resident locations
+	Cl_ClearLocations(); // clear any resident locations
 	i = 0;
 
 	// load the locations file
@@ -59,17 +59,15 @@ void Cl_LoadLocations(void){
 	snprintf(file_name, sizeof(file_name), "locations/%s", c);
 	strcpy(file_name + strlen(file_name) - 3, "loc");
 
-	if(Fs_OpenFile(file_name, &f, FILE_READ) == -1){
+	if (Fs_OpenFile(file_name, &f, FILE_READ) == -1) {
 		Com_Debug("Couldn't load %s\n", file_name);
 		return;
 	}
 
-	while(i < MAX_LOCATIONS){
+	while (i < MAX_LOCATIONS) {
 
-		const int err = fscanf(f, "%f %f %f %[^\n]",
-				&locations[i].loc[0], &locations[i].loc[1],
-				&locations[i].loc[2], locations[i].desc
-		);
+		const int err = fscanf(f, "%f %f %f %[^\n]", &locations[i].loc[0],
+				&locations[i].loc[1], &locations[i].loc[2], locations[i].desc);
 
 		numlocations = i;
 		if (err == EOF)
@@ -83,56 +81,53 @@ void Cl_LoadLocations(void){
 	Fs_CloseFile(f);
 }
 
-
 /*
  * Cl_SaveLocations_f
  *
  * Write locations for current level to file.
  */
-static void Cl_SaveLocations_f(void){
+static void Cl_SaveLocations_f(void) {
 	char file_name[MAX_QPATH];
 	FILE *f;
 	int i;
 
 	snprintf(file_name, sizeof(file_name), "%s/%s", Fs_Gamedir(), cl.config_strings[CS_MODELS + 1]);
-	strcpy(file_name + strlen(file_name) - 3, "loc");  // change to .loc
+	strcpy(file_name + strlen(file_name) - 3, "loc"); // change to .loc
 
-	if((f = fopen(file_name, "w")) == NULL){
+	if ((f = fopen(file_name, "w")) == NULL) {
 		Com_Warn("Cl_SaveLocations_f: Failed to write %s\n", file_name);
 		return;
 	}
 
-	for(i = 0; i < numlocations; i++){
-		fprintf(f, "%d %d %d %s\n",
-				(int)locations[i].loc[0], (int)locations[i].loc[1],
-				(int)locations[i].loc[2], locations[i].desc
-		);
+	for (i = 0; i < numlocations; i++) {
+		fprintf(f, "%d %d %d %s\n", (int) locations[i].loc[0],
+				(int) locations[i].loc[1], (int) locations[i].loc[2],
+				locations[i].desc);
 	}
 
 	Com_Print("Saved %d locations.\n", numlocations);
 	Fs_CloseFile(f);
 }
 
-
 /*
  * Cl_Location
  *
  * Returns the description of the location nearest nearto.
  */
-static const char *Cl_Location(const vec3_t nearto){
+static const char *Cl_Location(const vec3_t nearto) {
 	vec_t dist, mindist;
 	vec3_t v;
 	int i, j;
 
-	if(numlocations == 0)
+	if (numlocations == 0)
 		return "";
 
 	mindist = 999999;
 
-	for(i = 0, j = 0; i < numlocations; i++){  // find closest loc
+	for (i = 0, j = 0; i < numlocations; i++) { // find closest loc
 
 		VectorSubtract(nearto, locations[i].loc, v);
-		if((dist = VectorLength(v)) < mindist){  // closest yet
+		if ((dist = VectorLength(v)) < mindist) { // closest yet
 			mindist = dist;
 			j = i;
 		}
@@ -141,23 +136,21 @@ static const char *Cl_Location(const vec3_t nearto){
 	return locations[j].desc;
 }
 
-
 /*
  * Cl_LocationHere
  *
  * Returns the description of the location nearest the client.
  */
-const char *Cl_LocationHere(void){
+const char *Cl_LocationHere(void) {
 	return Cl_Location(r_view.origin);
 }
-
 
 /*
  * Cl_LocationThere
  *
  * Returns the description of the location nearest the client's crosshair.
  */
-const char *Cl_LocationThere(void){
+const char *Cl_LocationThere(void) {
 	vec3_t dest;
 
 	// project vector from view position and angle
@@ -169,15 +162,14 @@ const char *Cl_LocationThere(void){
 	return Cl_Location(r_view.trace.end);
 }
 
-
 /*
  * Cl_AddLocation
  *
  * Add a new location described by desc at nearto.
  */
-static void Cl_AddLocation(const vec3_t nearto, const char *desc){
+static void Cl_AddLocation(const vec3_t nearto, const char *desc) {
 
-	if(numlocations >= MAX_LOCATIONS)
+	if (numlocations >= MAX_LOCATIONS)
 		return;
 
 	VectorCopy(nearto, locations[numlocations].loc);
@@ -186,15 +178,14 @@ static void Cl_AddLocation(const vec3_t nearto, const char *desc){
 	numlocations++;
 }
 
-
 /*
  * Cl_AddLocation_f
  *
  * Command callback for adding locations in game.
  */
-static void Cl_AddLocation_f(void){
+static void Cl_AddLocation_f(void) {
 
-	if(Cmd_Argc() < 2){
+	if (Cmd_Argc() < 2) {
 		Com_Print("Usage: %s <description>\n", Cmd_Argv(0));
 		return;
 	}
@@ -202,20 +193,18 @@ static void Cl_AddLocation_f(void){
 	Cl_AddLocation(r_view.origin, Cmd_Args());
 }
 
-
 /*
  * Cl_InitLocations
  */
-void Cl_InitLocations(void){
+void Cl_InitLocations(void) {
 	Cmd_AddCommand("addloc", Cl_AddLocation_f, NULL);
 	Cmd_AddCommand("savelocs", Cl_SaveLocations_f, NULL);
 }
 
-
 /*
  * Cl_ShutdownLocations
  */
-void Cl_ShutdownLocations(void){
+void Cl_ShutdownLocations(void) {
 	Cmd_RemoveCommand("addloc");
 	Cmd_RemoveCommand("savelocs");
 }
