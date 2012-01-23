@@ -68,17 +68,15 @@ static void Debug(const char *msg) {
 /*
  * Error
  *
- * Callback for subsystem failures.  Depending on the code, we might simply
- * print a message, or shut the entire engine down and exit.
+ * Callback for subsystem failures. Depending on the severity, we may try to
+ * recover, or we may shut the entire engine down and exit.
  */
 static void Error(err_t err, const char *msg) {
-
-	Print(va("^1%s", msg));
 
 	switch (err) {
 	case ERR_NONE:
 	case ERR_DROP:
-
+		Print(va("^1%s\n", msg));
 		Sv_Shutdown(msg);
 
 #ifdef BUILD_CLIENT
@@ -86,14 +84,12 @@ static void Error(err_t err, const char *msg) {
 		cls.key_state.dest = key_console;
 #endif
 
-		longjmp(environment, -1);
+		longjmp(environment, 0);
 		break;
 
 	case ERR_FATAL:
 	default:
-
 		Shutdown((const char *) msg);
-
 		Sys_Error("%s", msg);
 		break;
 	}
@@ -253,9 +249,6 @@ static void Frame(int msec) {
 	extern int c_point_contents;
 	extern cvar_t *threads;
 
-	if (setjmp(environment))
-		return; // an ERR_DROP or ERR_NONE was thrown
-
 	if (show_trace->value) {
 		Com_Print("%4i traces (%4i clips), %4i points\n", c_traces,
 				c_bsp_brush_traces, c_point_contents);
@@ -282,7 +275,7 @@ static void Frame(int msec) {
  * The entry point of the program.
  */
 int main(int argc, char **argv) {
-	int oldtime, msec;
+	static int old_time;
 
 #ifdef _WIN32
 	// here the magic happens
@@ -310,10 +303,16 @@ int main(int argc, char **argv) {
 
 	Init(argc, argv);
 
-	oldtime = Sys_Milliseconds();
+	old_time = Sys_Milliseconds();
 
 	while (true) { // this is our main loop
 
+		if (setjmp(environment)) { // an ERR_DROP or ERR_NONE was thrown
+			Com_Debug("Error detected, recovering..\n");
+			continue;
+		}
+
+		old_time = quake2world.time;
 		quake2world.time = Sys_Milliseconds();
 
 		if (time_scale->modified) {
@@ -323,14 +322,13 @@ int main(int argc, char **argv) {
 				time_scale->value = 3.0;
 		}
 
-		msec = (quake2world.time - oldtime) * time_scale->value;
+		const int msec = (quake2world.time - old_time) * time_scale->value;
 
-		if (msec < 1) // 0ms frames are not okay
+		if (msec < 1) { // 0ms frames are not okay
 			continue;
+		}
 
 		Frame(msec);
-
-		oldtime = quake2world.time;
 	}
 
 	return 0;

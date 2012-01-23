@@ -231,7 +231,7 @@ void Cl_ClearState(void){
  * Cl_SendDisconnect
  *
  * Sends the disconnect command to the server (several times).  This is used
- * when the client actually wishes to disconnect or quit, or when an Http
+ * when the client actually wishes to disconnect or quit, or when an HTTP
  * download has begun.  This way, the client does not waste a server slot
  * (or just timeout) while downloading a level.
  */
@@ -252,7 +252,10 @@ void Cl_SendDisconnect(void){
 
 	Cl_ClearState();
 
+	cls.broadcast_time = 0;
 	cls.connect_time = 0;
+	cls.loading = 0;
+	cls.packet_delta = 9999;
 	cls.state = ca_disconnected;
 }
 
@@ -413,7 +416,7 @@ static void Cl_ConnectionlessPacket(void){
 	// challenge from the server we are connecting to
 	if(!strcmp(c, "challenge")){
 		if(cls.state != ca_connecting){
-			Com_Print("Dup challenge received.  Ignored.\n");
+			Com_Print("Duplicate challenge received.  Ignored.\n");
 			return;
 		}
 		cls.challenge = atoi(Cmd_Argv(1));
@@ -741,7 +744,7 @@ void Cl_Frame(int msec){
 	// update time reference
 	cls.real_time = quake2world.time;
 
-	// increment the server time asl well
+	// increment the server time as well
 	cl.time += msec;
 
 	cls.packet_delta += msec;

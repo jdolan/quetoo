@@ -162,8 +162,8 @@ void Cbuf_Execute(void){
 				break;
 		}
 
-		if(i > MAX_STRING_CHARS){  //length check each command
-			Com_Print("Command exceeded %i chars, discarded\n", MAX_STRING_CHARS);
+		if(i > MAX_STRING_CHARS){  // length check each command
+			Com_Warn("Command exceeded %i chars, discarded\n", MAX_STRING_CHARS);
 			return;
 		}
 

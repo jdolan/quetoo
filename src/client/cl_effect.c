@@ -195,11 +195,10 @@ static void Cl_ClearParticle(r_particle_t *p){
 static void Cl_ClearParticles(void){
 	int i;
 
-	for(i = 0; i < MAX_PARTICLES - 1; i++){
+	for(i = 0; i < MAX_PARTICLES; i++){
 		Cl_ClearParticle(&particles[i]);
-		particles[i].next = &particles[i + 1];
+		particles[i].next = i < MAX_PARTICLES - 1 ? &particles[i + 1] : NULL;
 	}
-	particles[MAX_PARTICLES - 1].next = NULL;
 
 	free_particles = &particles[0];
 	active_particles = NULL;
