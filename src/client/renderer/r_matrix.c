@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "renderer.h"
+#include "r_local.h"
 
 const matrix4x4_t identitymatrix =
 {
