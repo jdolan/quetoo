@@ -43,7 +43,7 @@ static void Cl_WriteDemoHeader(void) {
 	Msg_WriteLong(&msg, cl.server_count);
 	Msg_WriteLong(&msg, cl.server_frame_rate);
 	Msg_WriteByte(&msg, 1); // demo_server byte
-	Msg_WriteString(&msg, cl.gamedir);
+	Msg_WriteString(&msg, Cvar_GetString("game"));
 	Msg_WriteShort(&msg, cl.player_num);
 	Msg_WriteString(&msg, cl.config_strings[CS_NAME]);
 

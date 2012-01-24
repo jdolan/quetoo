@@ -128,7 +128,6 @@ typedef struct cl_client_s {
 
 	boolean_t demo_server;  // we're viewing a demo
 
-	char gamedir[MAX_QPATH];
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 
 	// locally derived information from server state

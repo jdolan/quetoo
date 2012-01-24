@@ -35,16 +35,16 @@
 
 static char fs_gamedir[MAX_OSPATH];
 
-static cvar_t *fs_basedir;
-cvar_t *fs_gamedirvar;
+static cvar_t *fs_base;
+cvar_t *fs_game;
 
-typedef struct searchpath_s {
+typedef struct search_path_s {
 	char path[MAX_OSPATH];
-	struct searchpath_s *next;
-} searchpath_t;
+	struct search_path_s *next;
+} search_path_t;
 
-static searchpath_t *fs_searchpaths;
-static searchpath_t *fs_base_searchpaths; // without gamedirs
+static search_path_t *fs_search_paths;
+static search_path_t *fs_base_search_paths; // without gamedirs
 
 static hash_table_t fs_hash_table; // pakfiles are pushed into a hash
 
@@ -135,7 +135,7 @@ char *fs_last_pak = NULL; // the server uses this to determine CS_PAK
  * opening filesystem resources directly.
  */
 int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
-	searchpath_t *search;
+	search_path_t *search;
 	char path[MAX_OSPATH];
 	struct stat sbuf;
 	pak_t *pak;
@@ -159,7 +159,7 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
 	}
 
 	// try the search paths
-	for (search = fs_searchpaths; search; search = search->next) {
+	for (search = fs_search_paths; search; search = search->next) {
 
 		snprintf(path, sizeof(path), "%s/%s", search->path, file_name);
 
@@ -282,16 +282,16 @@ void Fs_AddPakfile(const char *pakfile) {
 }
 
 /*
- * Fs_AddGameDirectory
+ * Fs_AddSearchPath
  *
  * Adds the directory to the head of the path, and loads all paks within it.
  */
-static void Fs_AddGameDirectory(const char *dir) {
-	searchpath_t *search;
+static void Fs_AddSearchPath(const char *dir) {
+	search_path_t *search;
 	const char *p;
 
-	// don't add the same searchpath twice
-	search = fs_searchpaths;
+	// don't add the same search_path twice
+	search = fs_search_paths;
 	while (search) {
 		if (!strcmp(search->path, dir))
 			return;
@@ -299,12 +299,12 @@ static void Fs_AddGameDirectory(const char *dir) {
 	}
 
 	// add the base directory to the search path
-	search = Z_Malloc(sizeof(searchpath_t));
+	search = Z_Malloc(sizeof(search_path_t));
 	strncpy(search->path, dir, sizeof(search->path) - 1);
 	search->path[sizeof(search->path) - 1] = 0;
 
-	search->next = fs_searchpaths;
-	fs_searchpaths = search;
+	search->next = fs_search_paths;
+	fs_search_paths = search;
 
 	p = Sys_FindFirst(va("%s/*.pak", dir));
 	while (p) {
@@ -347,9 +347,12 @@ static char *Fs_Homedir(void) {
 }
 
 /*
- * Fs_AddHomeAsGameDirectory
+ * Fs_AddUserSearchPath
+ *
+ * Adds the user-specific search path, setting fs_gamedir in the process. This
+ * is where all files produced by the game are written to.
  */
-static void Fs_AddHomeAsGameDirectory(const char *dir) {
+static void Fs_AddUserSearchPath(const char *dir) {
 	char gdir[MAX_OSPATH];
 
 	memset(homedir, 0, sizeof(homedir));
@@ -362,7 +365,7 @@ static void Fs_AddHomeAsGameDirectory(const char *dir) {
 	strncpy(fs_gamedir, gdir, sizeof(fs_gamedir) - 1);
 	fs_gamedir[sizeof(fs_gamedir) - 1] = 0;
 
-	Fs_AddGameDirectory(gdir);
+	Fs_AddSearchPath(gdir);
 }
 
 /*
@@ -380,10 +383,10 @@ const char *Fs_Gamedir(void) {
 const char *Fs_FindFirst(const char *path, boolean_t absolute) {
 	const char *n;
 	char name[MAX_OSPATH];
-	const searchpath_t *s;
+	const search_path_t *s;
 
 	// search through all the paths for path
-	for (s = fs_searchpaths; s != NULL; s = s->next) {
+	for (s = fs_search_paths; s != NULL; s = s->next) {
 
 		snprintf(name, sizeof(name), "%s/%s", s->path, path);
 		if ((n = Sys_FindFirst(name))) {
@@ -406,16 +409,16 @@ const char *Fs_FindFirst(const char *path, boolean_t absolute) {
  */
 void Fs_ExecAutoexec(void) {
 	char name[MAX_QPATH];
-	searchpath_t *s, *end;
+	search_path_t *s, *end;
 
 	// don't look in default if gamedir is set
-	if (fs_searchpaths == fs_base_searchpaths)
+	if (fs_search_paths == fs_base_search_paths)
 		end = NULL;
 	else
-		end = fs_base_searchpaths;
+		end = fs_base_search_paths;
 
 	// search through all the paths for an autoexec.cfg file
-	for (s = fs_searchpaths; s != end; s = s->next) {
+	for (s = fs_search_paths; s != end; s = s->next) {
 
 		snprintf(name, sizeof(name), "%s/autoexec.cfg", s->path);
 
@@ -432,23 +435,27 @@ void Fs_ExecAutoexec(void) {
 }
 
 /*
- * Fs_SetGamedir
+ * Fs_SetGame
  *
- * Sets the gamedir and path to a different directory.
+ * Sets the game path to a relative directory.
  */
-void Fs_SetGamedir(const char *dir) {
-	searchpath_t *s;
+void Fs_SetGame(const char *dir) {
+	search_path_t *s;
 	hash_entry_t *e;
 	pak_t *pak;
 	int i;
 
+	if (!dir || !*dir) {
+		dir = DEFAULT_GAME;
+	}
+
 	if (strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(dir, ":")) {
-		Com_Warn("Fs_SetGamedir: game should be a single directory name, not a path\n");
+		Com_Warn("Fs_SetGame: Game should be a directory name, not a path.\n");
 		return;
 	}
 
 	// free up any current game dir info
-	while (fs_searchpaths != fs_base_searchpaths) {
+	while (fs_search_paths != fs_base_search_paths) {
 
 		// free paks not living in base search paths
 		for (i = 0; i < HASH_BINS; i++) {
@@ -456,49 +463,26 @@ void Fs_SetGamedir(const char *dir) {
 			while (e) {
 				pak = (pak_t*) e->value;
 
-				if (!strstr(pak->file_name, fs_searchpaths->path))
+				if (!strstr(pak->file_name, fs_search_paths->path))
 					continue;
 
 				Hash_RemoveEntry(&fs_hash_table, e);
 				Pak_FreePakfile(pak);
 			}
 		}
-		s = fs_searchpaths->next;
-		Z_Free(fs_searchpaths);
-		fs_searchpaths = s;
+		s = fs_search_paths->next;
+		Z_Free(fs_search_paths);
+		fs_search_paths = s;
 	}
 
 	// now add new entries for
-	if (!strcmp(dir, GAMEDIR) || (*dir == 0)) {
-		Cvar_FullSet("gamedir", "", CVAR_SERVER_INFO | CVAR_NOSET);
+	if (!strcmp(dir, DEFAULT_GAME)) {
 		Cvar_FullSet("game", "", CVAR_LATCH | CVAR_SERVER_INFO);
 	} else {
-		Cvar_FullSet("gamedir", dir, CVAR_SERVER_INFO | CVAR_NOSET);
-		Fs_AddGameDirectory(va(PKGLIBDIR"/%s", dir));
-		Fs_AddGameDirectory(va(PKGDATADIR"/%s", dir));
-		Fs_AddHomeAsGameDirectory(dir);
+		Fs_AddSearchPath(va(PKGLIBDIR"/%s", dir));
+		Fs_AddSearchPath(va(PKGDATADIR"/%s", dir));
+		Fs_AddUserSearchPath(dir);
 	}
-}
-
-/*
- * Fs_NextPath
- *
- * Allows enumerating all of the directories in the search path
- */
-const char *Fs_NextPath(const char *prev_path) {
-	searchpath_t *s;
-	char *prev;
-
-	prev = NULL; // fs_gamedir is the first directory in the searchpath
-	for (s = fs_searchpaths; s; s = s->next) {
-		if (prev_path == NULL)
-			return s->path;
-		if (prev_path == prev)
-			return s->path;
-		prev = s->path;
-	}
-
-	return NULL;
 }
 
 #define GZIP_BUFFER (64 * 1024)
@@ -506,8 +490,8 @@ const char *Fs_NextPath(const char *prev_path) {
 /*
  * Fs_GunzipFile
  *
- * Deflates the specified file in place, removing the .gz suffix from the path.
- * The original deflated file is removed upon successful decompression.
+ * Inflates the specified file in place, removing the .gz suffix from the path.
+ * The original archive file is removed upon successful decompression.
  */
 void Fs_GunzipFile(const char *path) {
 	gzFile gz;
@@ -576,62 +560,60 @@ void Fs_GunzipFile(const char *path) {
 void Fs_Init(void) {
 	char bd[MAX_OSPATH];
 
-	fs_searchpaths = NULL;
+	fs_search_paths = NULL;
 
 	Hash_Init(&fs_hash_table);
 
 	// allow the game to run from outside the data tree
-	fs_basedir = Cvar_Get("fs_basedir", "", CVAR_NOSET, NULL);
+	fs_base = Cvar_Get("fs_base", "", CVAR_NOSET, NULL);
 
-	if (fs_basedir && strlen(fs_basedir->string)) { // something was specified
-		snprintf(bd, sizeof(bd), "%s/%s", fs_basedir->string, GAMEDIR);
-		Fs_AddGameDirectory(bd);
+	if (fs_base && strlen(fs_base->string)) { // something was specified
+		snprintf(bd, sizeof(bd), "%s/%s", fs_base->string, DEFAULT_GAME);
+		Fs_AddSearchPath(bd);
 	}
 
 	// add default to search path
-	Fs_AddGameDirectory(PKGLIBDIR"/"GAMEDIR);
-	Fs_AddGameDirectory(PKGDATADIR"/"GAMEDIR);
+	Fs_AddSearchPath(PKGLIBDIR"/"DEFAULT_GAME);
+	Fs_AddSearchPath(PKGDATADIR"/"DEFAULT_GAME);
 
 	// then add a '.quake2world/default' directory in home directory by default
-	Fs_AddHomeAsGameDirectory(GAMEDIR);
+	Fs_AddUserSearchPath(DEFAULT_GAME);
 
-	// any set gamedirs will be freed up to here
-	fs_base_searchpaths = fs_searchpaths;
+	// any set game paths will be freed up to here
+	fs_base_search_paths = fs_search_paths;
 
 	// check for game override
-	fs_gamedirvar = Cvar_Get("game", GAMEDIR, CVAR_LATCH | CVAR_SERVER_INFO, NULL);
+	fs_game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, NULL);
 
-	if (strcmp(fs_gamedirvar->string, GAMEDIR))
-		Fs_SetGamedir(fs_gamedirvar->string);
+	if (strcmp(fs_game->string, DEFAULT_GAME))
+		Fs_SetGame(fs_game->string);
 }
 
 /*
- * strcmp_wrapper
+ * strcmp_
  *
- * Wraps strcmp() so it can be used to sort strings in qsort()
+ * Wraps strcmp so it can be used to sort strings in qsort.
  */
-static int strcmp_wrapper(const void *a, const void *b) {
+static int strcmp_(const void *a, const void *b) {
 	return strcmp(*(char **) a, *(char **) b);
 }
-
-// temporarily store file names (not in paks) in an arbitrarily large buffer
-static char filelist[MAX_QPATH * 256];
 
 /*
  * Fs_CompleteFile
  */
 int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
 		const char *matches[]) {
-	int i = 0;
-	int m = 0;
-	char *fl = filelist;
+	static char file_list[MAX_QPATH * 256];
+	char *fl = file_list;
 	const char *n;
 	char name[MAX_OSPATH];
-	const searchpath_t *s;
+	const search_path_t *s;
 	const hash_entry_t *h;
+	int i = 0;
+	int m = 0;
 
 	// search through paths for matches
-	for (s = fs_searchpaths; s != NULL; s = s->next) {
+	for (s = fs_search_paths; s != NULL; s = s->next) {
 		snprintf(name, sizeof(name), "%s/%s%s*%s", s->path, dir, prefix, suffix);
 
 		if ((n = Sys_FindFirst(name)) == NULL) {
@@ -665,7 +647,7 @@ int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
 	}
 
 	// sort in alphabetical order
-	qsort(matches, m, sizeof(matches[0]), strcmp_wrapper);
+	qsort(matches, m, sizeof(matches[0]), strcmp_);
 
 	// print out list of matches (minus duplicates)
 	for (i = 0; i < m; i++) {

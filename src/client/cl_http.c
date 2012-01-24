@@ -33,17 +33,22 @@ typedef struct response_s {
 	char *text;
 } response_t;
 
-response_t responses[] = { { 400, "Bad request" }, { 401, "Unauthorized" }, {
-		403, "Forbidden" }, { 404, "Not found" }, { 500,
-		"Internal server error" }, { 0, NULL } };
+static response_t responses[] = {
+	{ 400, "Bad request" },
+	{ 401, "Unauthorized" },
+	{ 403, "Forbidden" },
+	{ 404, "Not found" },
+	{ 500, "Internal server error" },
+	{ 0, NULL }
+};
 
-char curlerr[MAX_STRING_CHARS]; // curl's error buffer
+static char curlerr[MAX_STRING_CHARS]; // curl's error buffer
 
-char url[MAX_OSPATH]; // remote url to fetch from
-char file[MAX_OSPATH]; // local path to save to
+static char url[MAX_OSPATH]; // remote url to fetch from
+static char file[MAX_OSPATH]; // local path to save to
 
-long status, length; // for current transfer
-boolean_t gzip, success;
+static long status, length; // for current transfer
+static boolean_t gzip, success;
 
 /*
  * Cl_HttpDownloadRecv
@@ -57,11 +62,10 @@ static size_t Cl_HttpDownloadRecv(void *buffer, size_t size, size_t nmemb,
  * Cl_HttpDownload
  *
  * Queue up an http download.  The url is resolved from cls.download_url and
- * the current gamedir.  We use cURL's multi interface, even tho we only ever
+ * the current game.  We use cURL's multi interface, even tho we only ever
  * perform one download at a time, because it is non-blocking.
  */
 boolean_t Cl_HttpDownload(void) {
-	char game[64];
 
 	if (!curlm)
 		return false;
@@ -84,17 +88,12 @@ boolean_t Cl_HttpDownload(void) {
 
 	cls.download.http = true;
 
-	memset(game, 0, sizeof(game)); // resolve gamedir
-	strncpy(game, Cvar_GetString("game"), sizeof(game) - 1);
-
-	if (*game == '\0') // use default if not set
-		strcpy(game, "default");
-
 	memset(url, 0, sizeof(url)); // construct url
+
 	if (gzip)
-		snprintf(url, sizeof(url), "%s/%s/%s.gz", cls.download_url, game, cls.download.name);
+		snprintf(url, sizeof(url), "%s/%s/%s.gz", cls.download_url, Fs_Gamedir(), cls.download.name);
 	else
-		snprintf(url, sizeof(url), "%s/%s/%s", cls.download_url, game, cls.download.name);
+		snprintf(url, sizeof(url), "%s/%s/%s", cls.download_url, Fs_Gamedir(), cls.download.name);
 
 	// set handle to default state
 	curl_easy_reset(curl);

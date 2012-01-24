@@ -196,7 +196,6 @@ static void Cl_ParseDownload(void) {
  * Cl_ParseServerData
  */
 static void Cl_ParseServerData(void) {
-	extern cvar_t *fs_gamedirvar;
 	char *str;
 	int i;
 
@@ -224,12 +223,9 @@ static void Cl_ParseServerData(void) {
 
 	// game directory
 	str = Msg_ReadString(&net_message);
-	strncpy(cl.gamedir, str, sizeof(cl.gamedir) - 1);
+	if (strcmp(Cvar_GetString("game"), str)) {
 
-	if (strcmp(fs_gamedirvar->string, str)) {
-
-		Cvar_ForceSet("game", str);
-		Fs_SetGamedir(str);
+		Fs_SetGame(str);
 
 		// reload the client game
 		Cl_InitCgame();

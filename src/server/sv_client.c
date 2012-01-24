@@ -28,7 +28,6 @@
  * This will be sent on the initial connection and upon each server load.
  */
 static void Sv_New_f(void) {
-	char *gamedir;
 	int player_num;
 
 	Com_Debug("New() from %s\n", Sv_NetaddrToString(sv_client));
@@ -44,16 +43,13 @@ static void Sv_New_f(void) {
 		return;
 	}
 
-	// serverdata required to make sure the protocol is right, and to set the gamedir
-	gamedir = Cvar_GetString("gamedir");
-
-	// send the serverdata
+	// send the server data
 	Msg_WriteByte(&sv_client->netchan.message, svc_server_data);
 	Msg_WriteLong(&sv_client->netchan.message, PROTOCOL);
 	Msg_WriteLong(&sv_client->netchan.message, svs.spawn_count);
 	Msg_WriteLong(&sv_client->netchan.message, svs.frame_rate);
 	Msg_WriteByte(&sv_client->netchan.message, 0);
-	Msg_WriteString(&sv_client->netchan.message, gamedir);
+	Msg_WriteString(&sv_client->netchan.message, Cvar_GetString("game"));
 
 	player_num = sv_client - svs.clients;
 	Msg_WriteShort(&sv_client->netchan.message, player_num);

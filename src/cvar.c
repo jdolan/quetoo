@@ -246,10 +246,6 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value,
 				var->string = Z_CopyString(value);
 				var->value = atof(var->string);
 				var->integer = atoi(var->string);
-				if (!strcmp(var->name, "game")) {
-					Fs_SetGamedir(var->string);
-					Fs_ExecAutoexec();
-				}
 			}
 			return var;
 		}
@@ -311,7 +307,7 @@ cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags) {
 	var->modified = true;
 
 	if (var->flags & CVAR_USER_INFO)
-		user_info_modified = true; // transmit at next oportunity
+		user_info_modified = true; // transmit at next opportunity
 
 	Z_Free(var->string); // free the old value string
 
@@ -389,7 +385,7 @@ void Cvar_UpdateLatchedVars(void) {
 
 		// a little hack here to add new game modules to the searchpath
 		if (!strcmp(var->name, "game")) {
-			Fs_SetGamedir(var->string);
+			Fs_SetGame(var->string);
 			Fs_ExecAutoexec();
 		}
 	}

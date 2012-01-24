@@ -25,10 +25,10 @@
 #include "shared.h"
 #include "threads.h"
 
-#define GAMEDIR	"default"
+#define DEFAULT_GAME	"default"
 
-#define MAX_PRINT_MSG 4096
-#define MAX_NUM_ARGVS 64
+#define MAX_PRINT_MSG	4096
+#define MAX_NUM_ARGVS	64
 
 // sizebuf and net message facilities
 typedef struct size_buf_s {

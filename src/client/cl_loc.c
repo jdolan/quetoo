@@ -28,8 +28,8 @@ typedef struct loc_s {
 
 #define MAX_LOCATIONS 1024
 
-loc_t locations[MAX_LOCATIONS];
-int numlocations;
+static loc_t locations[MAX_LOCATIONS];
+static int num_locations;
 
 /*
  * Cl_ClearLocations
@@ -37,7 +37,7 @@ int numlocations;
  * Effectively clears all locations for the current level.
  */
 static void Cl_ClearLocations(void) {
-	numlocations = 0;
+	num_locations = 0;
 }
 
 /*
@@ -69,7 +69,7 @@ void Cl_LoadLocations(void) {
 		const int err = fscanf(f, "%f %f %f %[^\n]", &locations[i].loc[0],
 				&locations[i].loc[1], &locations[i].loc[2], locations[i].desc);
 
-		numlocations = i;
+		num_locations = i;
 		if (err == EOF)
 			break;
 		i++;
@@ -77,7 +77,7 @@ void Cl_LoadLocations(void) {
 
 	Cl_LoadProgress(100);
 
-	Com_Print("Loaded %i locations.\n", numlocations);
+	Com_Print("Loaded %i locations.\n", num_locations);
 	Fs_CloseFile(f);
 }
 
@@ -99,13 +99,13 @@ static void Cl_SaveLocations_f(void) {
 		return;
 	}
 
-	for (i = 0; i < numlocations; i++) {
+	for (i = 0; i < num_locations; i++) {
 		fprintf(f, "%d %d %d %s\n", (int) locations[i].loc[0],
 				(int) locations[i].loc[1], (int) locations[i].loc[2],
 				locations[i].desc);
 	}
 
-	Com_Print("Saved %d locations.\n", numlocations);
+	Com_Print("Saved %d locations.\n", num_locations);
 	Fs_CloseFile(f);
 }
 
@@ -119,12 +119,12 @@ static const char *Cl_Location(const vec3_t nearto) {
 	vec3_t v;
 	int i, j;
 
-	if (numlocations == 0)
+	if (num_locations == 0)
 		return "";
 
 	mindist = 999999;
 
-	for (i = 0, j = 0; i < numlocations; i++) { // find closest loc
+	for (i = 0, j = 0; i < num_locations; i++) { // find closest loc
 
 		VectorSubtract(nearto, locations[i].loc, v);
 		if ((dist = VectorLength(v)) < mindist) { // closest yet
@@ -169,13 +169,13 @@ const char *Cl_LocationThere(void) {
  */
 static void Cl_AddLocation(const vec3_t nearto, const char *desc) {
 
-	if (numlocations >= MAX_LOCATIONS)
+	if (num_locations >= MAX_LOCATIONS)
 		return;
 
-	VectorCopy(nearto, locations[numlocations].loc);
-	strncpy(locations[numlocations].desc, desc, MAX_STRING_CHARS);
+	VectorCopy(nearto, locations[num_locations].loc);
+	strncpy(locations[num_locations].desc, desc, MAX_STRING_CHARS);
 
-	numlocations++;
+	num_locations++;
 }
 
 /*
