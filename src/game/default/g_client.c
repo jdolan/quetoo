@@ -244,7 +244,7 @@ static void G_ClientCorpse(g_edict_t *self){
 
 	ent->class_name = "corpse";
 	ent->move_type = MOVE_TYPE_TOSS;
-	ent->solid = SOLID_BOX;
+	ent->solid = SOLID_NOT;
 
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
 	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
