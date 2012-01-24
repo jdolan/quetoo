@@ -46,8 +46,6 @@ void Ui_Draw(void) {
 		h = r_context.height;
 
 		TwWindowSize(w, h);
-
-		TwDefine("GLOBAL fontsize=3"); // reload the font
 	}
 
 	if (cls.key_state.dest != key_menu)
