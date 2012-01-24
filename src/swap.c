@@ -23,11 +23,10 @@
 
 #include <SDL/SDL.h>
 
-
 /*
  * SwapShort
  */
-static short SwapShort(short l){
+static short SwapShort(short l) {
 
 	const byte b1 = l & 255;
 	const byte b2 = (l >> 8) & 255;
@@ -35,25 +34,23 @@ static short SwapShort(short l){
 	return (b1 << 8) + b2;
 }
 
-
 /*
  * SwapLong
  */
-static int SwapLong(int l){
+static int SwapLong(int l) {
 
 	const byte b1 = l & 255;
 	const byte b2 = (l >> 8) & 255;
 	const byte b3 = (l >> 16) & 255;
 	const byte b4 = (l >> 24) & 255;
 
-	return ((int)b1 << 24) + ((int)b2 << 16) + ((int)b3 << 8) + b4;
+	return ((int) b1 << 24) + ((int) b2 << 16) + ((int) b3 << 8) + b4;
 }
-
 
 /*
  * SwapFloat
  */
-static float SwapFloat(float f){
+static float SwapFloat(float f) {
 
 	union {
 		float f;
@@ -70,52 +67,47 @@ static float SwapFloat(float f){
 	return dat2.f;
 }
 
-
 /*
  * BigShort
  */
-short BigShort(short s){
-	if(SDL_BYTEORDER == SDL_LIL_ENDIAN)
+short BigShort(short s) {
+	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
 		return SwapShort(s);
 	return s;
 }
-
 
 /*
  * LittleShort
  */
-short LittleShort(short s){
-	if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+short LittleShort(short s) {
+	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 		return SwapShort(s);
 	return s;
 }
 
-
 /*
  * BigLong
  */
-int BigLong(int l){
-	if(SDL_BYTEORDER == SDL_LIL_ENDIAN)
+int BigLong(int l) {
+	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
 		return SwapLong(l);
 	return l;
 }
-
 
 /*
  * LittleLong
  */
-int LittleLong(int l){
-	if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+int LittleLong(int l) {
+	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 		return SwapLong(l);
 	return l;
 }
 
-
 /*
  * BigFloat
  */
-float BigFloat(float f){
-	if(SDL_BYTEORDER == SDL_LIL_ENDIAN)
+float BigFloat(float f) {
+	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
 		return SwapFloat(f);
 	return f;
 }
@@ -123,8 +115,8 @@ float BigFloat(float f){
 /*
  * LittleFloat
  */
-float LittleFloat(float f){
-	if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+float LittleFloat(float f) {
+	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 		return SwapFloat(f);
 	return f;
 }

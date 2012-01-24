@@ -24,13 +24,13 @@
 #ifdef BUILD_CLIENT
 
 /* Work-around for a conflict between windows.h and jpeglib.h.
-If ADDRESS_TAG_BIT is defined then BaseTsd.h has been included and
-INT32 has been defined with a typedef, so we must define XMD_H to
-prevent the jpeg header from defining it again.  */
+ If ADDRESS_TAG_BIT is defined then BaseTsd.h has been included and
+ INT32 has been defined with a typedef, so we must define XMD_H to
+ prevent the jpeg header from defining it again.  */
 
 /* And another one... jmorecfg.h defines the 'boolean' type as int,
-   which conflicts with the standard Windows 'boolean' definition as
-   unsigned char. Ref: http://www.asmail.be/msg0054688232.html */
+ which conflicts with the standard Windows 'boolean' definition as
+ unsigned char. Ref: http://www.asmail.be/msg0054688232.html */
 
 #if defined(_WIN32)
 /* typedef "boolean" as unsigned char to match rpcndr.h */
@@ -58,8 +58,8 @@ boolean_t palette_initialized = 0;
 typedef struct miptex_s {
 	char name[32];
 	unsigned width, height;
-	unsigned offsets[4];  // four mip maps stored
-	char animname[32];  // next frame in animation chain
+	unsigned offsets[4]; // four mip maps stored
+	char animname[32]; // next frame in animation chain
 	int flags;
 	int contents;
 	int value;
@@ -71,32 +71,27 @@ typedef struct miptex_s {
 #define BMASK 0x00ff0000
 #define AMASK 0xff000000
 
-SDL_PixelFormat format = {
-	NULL,  // palette
-	32,  // bits
-	4,  // bytes
-	0,  // rloss
-	0,  // gloss
-	0,  // bloss
-	0,  // aloss
-	0,  // rshift
-	8,  // gshift
-	16,  // bshift
-	24,  // ashift
-	RMASK,  // rmask
-	GMASK,  // gmask
-	BMASK,  // bmask
-	AMASK,  // amask
-	0,  // colorkey
-	1   // alpha
-};
-
+SDL_PixelFormat format = { NULL, // palette
+		32, // bits
+		4, // bytes
+		0, // rloss
+		0, // gloss
+		0, // bloss
+		0, // aloss
+		0, // rshift
+		8, // gshift
+		16, // bshift
+		24, // ashift
+		RMASK, // rmask
+		GMASK, // gmask
+		BMASK, // bmask
+		AMASK, // amask
+		0, // colorkey
+		1 // alpha
+		};
 
 // image formats, tried in this order
-char *IMAGE_TYPES[] = {
-	"tga", "png", "jpg", "wal", "pcx", NULL
-};
-
+char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
 
 /*
  * Img_LoadImage
@@ -106,18 +101,17 @@ char *IMAGE_TYPES[] = {
  *
  * Image formats are tried in the order they appear in TYPES.
  */
-boolean_t Img_LoadImage(char *name, SDL_Surface **surf){
+boolean_t Img_LoadImage(char *name, SDL_Surface **surf) {
 	int i;
 
 	i = 0;
-	while(IMAGE_TYPES[i]){
-		if(Img_LoadTypedImage(name, IMAGE_TYPES[i++], surf))
+	while (IMAGE_TYPES[i]) {
+		if (Img_LoadTypedImage(name, IMAGE_TYPES[i++], surf))
 			return true;
 	}
 
 	return false;
 }
-
 
 /*
  * Img_LoadWal
@@ -125,41 +119,41 @@ boolean_t Img_LoadImage(char *name, SDL_Surface **surf){
  * A helper which mangles a .wal file into an SDL_Surface suitable for
  * OpenGL uploads and other basic manipulations.
  */
-static boolean_t Img_LoadWal(char *path, SDL_Surface **surf){
+static boolean_t Img_LoadWal(char *path, SDL_Surface **surf) {
 	void *buf;
 	miptex_t *mt;
 	int i, size;
 	unsigned *p;
 	byte *b;
 
-	if(Fs_LoadFile(path, &buf) == -1)
+	if (Fs_LoadFile(path, &buf) == -1)
 		return false;
 
-	mt = (miptex_t *)buf;
+	mt = (miptex_t *) buf;
 
 	mt->width = LittleLong(mt->width);
 	mt->height = LittleLong(mt->height);
 
 	mt->offsets[0] = LittleLong(mt->offsets[0]);
 
-	if(!palette_initialized)  // lazy-load palette if necessary
+	if (!palette_initialized) // lazy-load palette if necessary
 		Img_InitPalette();
 
 	size = mt->width * mt->height;
-	p = (unsigned *)malloc(size * sizeof(unsigned));
+	p = (unsigned *) malloc(size * sizeof(unsigned));
 
-	b = (byte *)mt + mt->offsets[0];
+	b = (byte *) mt + mt->offsets[0];
 
-	for(i = 0; i < size; i++){  // convert to 32bpp RGBA via palette
-		if(b[i] == 255)  // transparent
+	for (i = 0; i < size; i++) { // convert to 32bpp RGBA via palette
+		if (b[i] == 255) // transparent
 			p[i] = 0;
 		else
 			p[i] = palette[b[i]];
 	}
 
 	// create the RGBA surface
-	if(!(*surf = SDL_CreateRGBSurfaceFrom((void *)p, mt->width, mt->height,
-			32, 0, RMASK, GMASK, BMASK, AMASK))){
+	if (!(*surf = SDL_CreateRGBSurfaceFrom((void *) p, mt->width, mt->height,
+			32, 0, RMASK, GMASK, BMASK, AMASK))) {
 
 		Fs_FreeFile(mt);
 		return false;
@@ -172,14 +166,13 @@ static boolean_t Img_LoadWal(char *path, SDL_Surface **surf){
 	return true;
 }
 
-
 /*
  * Img_LoadTypedImage
  *
  * Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
  */
-boolean_t Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf){
+boolean_t Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf) {
 	char path[MAX_QPATH];
 	void *buf;
 	int len;
@@ -188,18 +181,18 @@ boolean_t Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf){
 
 	snprintf(path, sizeof(path), "%s.%s", name, type);
 
-	if(!strcmp(type, "wal"))  // special case for .wal files
+	if (!strcmp(type, "wal")) // special case for .wal files
 		return Img_LoadWal(path, surf);
 
-	if((len = Fs_LoadFile(path, &buf)) == -1)
+	if ((len = Fs_LoadFile(path, &buf)) == -1)
 		return false;
 
-	if(!(rw = SDL_RWFromMem(buf, len))){
+	if (!(rw = SDL_RWFromMem(buf, len))) {
 		Fs_FreeFile(buf);
 		return false;
 	}
 
-	if(!(*surf = IMG_LoadTyped_RW(rw, 0, type))){
+	if (!(*surf = IMG_LoadTyped_RW(rw, 0, type))) {
 		SDL_FreeRW(rw);
 		Fs_FreeFile(buf);
 		return false;
@@ -208,10 +201,10 @@ boolean_t Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf){
 	SDL_FreeRW(rw);
 	Fs_FreeFile(buf);
 
-	if(strstr(path, PALETTE))  // dont convert the palette
+	if (strstr(path, PALETTE)) // dont convert the palette
 		return true;
 
-	if(!(s = SDL_ConvertSurface(*surf, &format, 0))){
+	if (!(s = SDL_ConvertSurface(*surf, &format, 0))) {
 		SDL_FreeSurface(*surf);
 		return false;
 	}
@@ -222,22 +215,21 @@ boolean_t Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf){
 	return true;
 }
 
-
 /*
  * Img_InitPalette
  *
  * Initializes the 8bit color palette required for .wal texture loading.
  */
-void Img_InitPalette(void){
+void Img_InitPalette(void) {
 	SDL_Surface *surf;
 	byte r, g, b;
 	unsigned v;
 	int i;
 
-	if(!Img_LoadTypedImage(PALETTE, "pcx", &surf))
+	if (!Img_LoadTypedImage(PALETTE, "pcx", &surf))
 		return;
 
-	for(i = 0; i < 256; i++){
+	for (i = 0; i < 256; i++) {
 		r = surf->format->palette->colors[i].r;
 		g = surf->format->palette->colors[i].g;
 		b = surf->format->palette->colors[i].b;
@@ -246,59 +238,58 @@ void Img_InitPalette(void){
 		palette[i] = LittleLong(v);
 	}
 
-	palette[255] &= LittleLong(0xffffff);  // 255 is transparent
+	palette[255] &= LittleLong(0xffffff); // 255 is transparent
 
 	SDL_FreeSurface(surf);
 
 	palette_initialized = true;
 }
 
-
 /*
  * Img_ColorFromPalette
  *
  * Returns RGB components of the specified color in the specified result array.
  */
-void Img_ColorFromPalette(byte c, float *res){
+void Img_ColorFromPalette(byte c, float *res) {
 	unsigned color;
 
-	if(!palette_initialized)  // lazy-load palette if necessary
+	if (!palette_initialized) // lazy-load palette if necessary
 		Img_InitPalette();
 
 	color = palette[c];
 
-	res[0] = (color >>  0 & 255) / 255.0;
-	res[1] = (color >>  8 & 255) / 255.0;
+	res[0] = (color >> 0 & 255) / 255.0;
+	res[1] = (color >> 8 & 255) / 255.0;
 	res[2] = (color >> 16 & 255) / 255.0;
 }
-
 
 /*
  * Img_fwrite
  *
  * Wraps fwrite, reading the return value to silence gcc.
  */
-static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream){
+static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb,
+		FILE *stream) {
 
-	if(fwrite(ptr, size, nmemb, stream) <= 0)
-	    Com_Print( "Failed to write\n");
+	if (fwrite(ptr, size, nmemb, stream) <= 0)
+		Com_Print("Failed to write\n");
 }
-
 
 /*
  * Img_WriteJPEG
  *
  * Write pixel data to a JPEG file.
  */
-void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quality){
+void Img_WriteJPEG(char *path, byte *img_data, int width, int height,
+		int quality) {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
-	FILE *outfile;	/* target file */
-	JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
-	int row_stride;	/* physical row width in image buffer */
+	FILE *outfile; /* target file */
+	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
+	int row_stride; /* physical row width in image buffer */
 
-	if(!(outfile = fopen(path, "wb"))){  // failed to open
-		Com_Print( "Failed to open to %s\n", path);
+	if (!(outfile = fopen(path, "wb"))) { // failed to open
+		Com_Print("Failed to open to %s\n", path);
 		return;
 	}
 
@@ -308,10 +299,10 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
 
 	jpeg_stdio_dest(&cinfo, outfile);
 
-	cinfo.image_width = width;		/* image width and height, in pixels */
+	cinfo.image_width = width; /* image width and height, in pixels */
 	cinfo.image_height = height;
-	cinfo.input_components = 3;		/* # of color components per pixel */
-	cinfo.in_color_space = JCS_RGB;	/* colorspace of input image */
+	cinfo.input_components = 3; /* # of color components per pixel */
+	cinfo.in_color_space = JCS_RGB; /* colorspace of input image */
 
 	jpeg_set_defaults(&cinfo);
 
@@ -319,11 +310,11 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
 
 	jpeg_start_compress(&cinfo, TRUE);
 
-	row_stride = width * 3;	/* JSAMPLEs per row in img_data */
+	row_stride = width * 3; /* JSAMPLEs per row in img_data */
 
 	while (cinfo.next_scanline < cinfo.image_height) {
-		row_pointer[0] = & img_data[
-			(cinfo.image_height-cinfo.next_scanline - 1) * row_stride];
+		row_pointer[0] = &img_data[(cinfo.image_height - cinfo.next_scanline
+				- 1) * row_stride];
 		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
 	}
 
@@ -334,7 +325,6 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
 	fclose(outfile);
 }
 
-
 #define TGA_CHANNELS 3
 
 /*
@@ -342,9 +332,10 @@ void Img_WriteJPEG (char *path, byte *img_data, int width, int height, int quali
  *
  * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
-void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unused){
+void Img_WriteTGARLE(char *path, byte *img_data, int width, int height,
+		int unused) {
 	FILE *tga_file;
-	const unsigned int channels = TGA_CHANNELS;  // 24-bit RGB
+	const unsigned int channels = TGA_CHANNELS; // 24-bit RGB
 	unsigned char header[18];
 	// write image data
 	// TGA has the R and B channels switched
@@ -357,8 +348,8 @@ void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unus
 	int y;
 	size_t x;
 
-	if(!(tga_file = fopen(path, "wb"))){  // failed to open
-		Com_Print( "Failed to open to %s\n", path);
+	if (!(tga_file = fopen(path, "wb"))) { // failed to open
+		Com_Print("Failed to open to %s\n", path);
 		return;
 	}
 
@@ -382,35 +373,37 @@ void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unus
 	header[17] = 0x20;
 
 	// write header
-	Img_fwrite((char *)header, 1, sizeof(header), tga_file);
+	Img_fwrite((char *) header, 1, sizeof(header), tga_file);
 
-	for(y = height - 1; y >= 0; y--){
-		for(x = 0; x < width; x++){
+	for (y = height - 1; y >= 0; y--) {
+		for (x = 0; x < width; x++) {
 			size_t index = y * width * channels + x * channels;
 			// TGA has it channels in a different order
 			pixel_data[0] = img_data[index + 2];
 			pixel_data[1] = img_data[index + 1];
 			pixel_data[2] = img_data[index];
 
-			if (block_length == 0){
+			if (block_length == 0) {
 				memcpy(block_data, pixel_data, channels);
 				block_length++;
 				compress = 0;
 			} else {
-				if(!compress){
+				if (!compress) {
 					// uncompressed block and pixel_data differs from the last pixel
-					if(memcmp(&block_data[(block_length - 1) * channels], pixel_data, channels) != 0){
+					if (memcmp(&block_data[(block_length - 1) * channels],
+							pixel_data, channels) != 0) {
 						// append pixel
 						memcpy(&block_data[block_length * channels], pixel_data, channels);
 
 						block_length++;
 					} else {
 						// uncompressed block and pixel data is identical
-						if(block_length > 1){
+						if (block_length > 1) {
 							// write the uncompressed block
 							rle_packet = block_length - 2;
 							Img_fwrite(&rle_packet, 1, 1, tga_file);
-							Img_fwrite(block_data, 1, (block_length - 1) * channels, tga_file);
+							Img_fwrite(block_data, 1,
+									(block_length - 1) * channels, tga_file);
 							block_length = 1;
 						}
 						memcpy(block_data, pixel_data, channels);
@@ -419,11 +412,11 @@ void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unus
 					}
 				} else {
 					// compressed block and pixel data is identical
-					if(memcmp(block_data, pixel_data, channels) == 0){
+					if (memcmp(block_data, pixel_data, channels) == 0) {
 						block_length++;
 					} else {
 						// compressed block and pixel data differs
-						if(block_length > 1){
+						if (block_length > 1) {
 							// write the compressed block
 							rle_packet = block_length + 127;
 							Img_fwrite(&rle_packet, 1, 1, tga_file);
@@ -437,9 +430,9 @@ void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unus
 				}
 			}
 
-			if(block_length == 128){
+			if (block_length == 128) {
 				rle_packet = block_length - 1;
-				if(!compress){
+				if (!compress) {
 					Img_fwrite(&rle_packet, 1, 1, tga_file);
 					Img_fwrite(block_data, 1, 128 * channels, tga_file);
 				} else {
@@ -455,7 +448,7 @@ void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unus
 	}
 
 	// write remaining bytes
-	if(block_length){
+	if (block_length) {
 		rle_packet = block_length - 1;
 		if (!compress) {
 			Img_fwrite(&rle_packet, 1, 1, tga_file);

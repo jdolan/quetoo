@@ -23,7 +23,7 @@
 
 #ifdef HAVE_CURSES
 
-static WINDOW *stdwin;	// ncurses standard window
+static WINDOW *stdwin; // ncurses standard window
 
 static char input[CURSES_HISTORYSIZE][CURSES_LINESIZE];
 static int history_line;
@@ -37,8 +37,8 @@ cvar_t *con_timeout;
 
 static char version_string[32];
 
-static int curses_redraw;		// indicates what part needs to be drawn
-static int curses_last_update;		// number of milliseconds since last redraw
+static int curses_redraw; // indicates what part needs to be drawn
+static int curses_last_update; // number of milliseconds since last redraw
 
 
 /*
@@ -46,7 +46,7 @@ static int curses_last_update;		// number of milliseconds since last redraw
  *
  * Set the curses drawing color
  */
-static void Curses_SetColor(int color){
+static void Curses_SetColor(int color) {
 	if (!has_colors())
 		return;
 
@@ -57,13 +57,12 @@ static void Curses_SetColor(int color){
 		attroff(A_BOLD);
 }
 
-
 /*
  * Curses_DrawBackground
  *
  * Clear and draw background objects
  */
-static void Curses_DrawBackground(void){
+static void Curses_DrawBackground(void) {
 	Curses_SetColor(CON_COLOR_DEFAULT);
 	bkgdset(' ');
 	clear();
@@ -76,26 +75,25 @@ static void Curses_DrawBackground(void){
 	mvaddstr(0, 2, version_string);
 }
 
-
 /*
  * Curses_DrawInput
  *
  * Draw the inputbox
  */
-static void Curses_DrawInput(void){
+static void Curses_DrawInput(void) {
 	int x;
-	const int xPos = COLS - 5 < CURSES_LINESIZE ? COLS - 5 : CURSES_LINESIZE - 1;
+	const int xPos = COLS - 5 < CURSES_LINESIZE ? COLS - 5 : CURSES_LINESIZE
+			- 1;
 
 	Curses_SetColor(CON_COLOR_ALT);
-	for(x = 2; x < COLS - 1; x++)
+	for (x = 2; x < COLS - 1; x++)
 		mvaddstr(LINES-1, x," ");
 
 	mvaddnstr(LINES-1, 3, input[history_line], xPos);
 
 	// move the cursor to input position
-	wmove(stdwin, LINES-1, 3 + input_pos);
+	wmove(stdwin, LINES - 1, 3 + input_pos);
 }
-
 
 /*
  * Curses_DrawConsole
@@ -104,20 +102,20 @@ static void Curses_DrawInput(void){
  * parse color codes and line breaks.
  *
  */
-static void Curses_DrawConsole(void){
-	int w,h;
+static void Curses_DrawConsole(void) {
+	int w, h;
 	int x, y;
 	int lines;
 	int line;
 	const char *pos;
 
-	if(!sv_con.initialized)
+	if (!sv_con.initialized)
 		return;
 
-	w = COLS-1;
-	h = LINES-1;
+	w = COLS - 1;
+	h = LINES - 1;
 
-	if(w < 3 && h < 3)
+	if (w < 3 && h < 3)
 		return;
 
 	Con_Resize(&sv_con, w - 1, h - 2);
@@ -126,23 +124,24 @@ static void Curses_DrawConsole(void){
 	lines = sv_con.height + 1;
 
 	y = 1;
-	for(line = sv_con.last_line - sv_con.scroll - lines ; line < sv_con.last_line - sv_con.scroll; line++){
-		if(line >= 0 && *sv_con.line_start[line]) {
+	for (line = sv_con.last_line - sv_con.scroll - lines; line
+			< sv_con.last_line - sv_con.scroll; line++) {
+		if (line >= 0 && *sv_con.line_start[line]) {
 			x = 1;
 			// color of the first character of the line
 			Curses_SetColor(sv_con.line_color[line]);
 
 			pos = sv_con.line_start[line];
-			while(pos < sv_con.line_start[line + 1]){
-				if(IS_LEGACY_COLOR(pos)){
+			while (pos < sv_con.line_start[line + 1]) {
+				if (IS_LEGACY_COLOR(pos)) {
 					Curses_SetColor(CON_COLOR_ALT);
-				} else if(IS_COLOR(pos)){
+				} else if (IS_COLOR(pos)) {
 					Curses_SetColor(*(pos + 1) - '0');
 					pos++;
-				} else if(pos[0] == '\n' || pos[0] == '\r'){
+				} else if (pos[0] == '\n' || pos[0] == '\r') {
 					// skip \r and \n
 					x++;
-				} else if(x < w){
+				} else if (x < w) {
 					mvaddnstr(y, x, pos, 1);
 					x++;
 				}
@@ -153,7 +152,7 @@ static void Curses_DrawConsole(void){
 	}
 
 	// draw a scroll indicator
-	if(sv_con.last_line > 0){
+	if (sv_con.last_line > 0) {
 		Curses_SetColor(CON_COLOR_ALT);
 		mvaddnstr(1 + ((sv_con.last_line-sv_con.scroll) * sv_con.height / sv_con.last_line) , w, "O", 1);
 	}
@@ -162,13 +161,12 @@ static void Curses_DrawConsole(void){
 	Curses_SetColor(CON_COLOR_DEFAULT);
 }
 
-
 /*
  * Curses_Refresh
  *
  * Mark the buffer for redraw
  */
-void Curses_Refresh(void){
+void Curses_Refresh(void) {
 	curses_redraw |= 2;
 }
 
@@ -177,24 +175,24 @@ void Curses_Refresh(void){
  *
  * Draw everything
  */
-static void Curses_Draw(void){
+static void Curses_Draw(void) {
 	int timeout;
 
-	if(!sv_con.initialized)
+	if (!sv_con.initialized)
 		return;
 
-	if(con_timeout && con_timeout->value)
+	if (con_timeout && con_timeout->value)
 		timeout = con_timeout->value;
 	else
 		timeout = 20;
 
-	if(curses_last_update > timeout && curses_redraw){
-		if((curses_redraw & 2) == 2){
+	if (curses_last_update > timeout && curses_redraw) {
+		if ((curses_redraw & 2) == 2) {
 			// Refresh screen
 			Curses_DrawBackground();
 			Curses_DrawConsole();
 			Curses_DrawInput();
-		} else if((curses_redraw & 1) == 1){
+		} else if ((curses_redraw & 1) == 1) {
 			// Refresh input only
 			Curses_DrawInput();
 		}
@@ -206,15 +204,14 @@ static void Curses_Draw(void){
 	}
 }
 
-
 /*
  * Curses_Resize
  *
  * Window resize signal handler
  */
-static void Curses_Resize(int sig){
+static void Curses_Resize(int sig) {
 
-	if(!sv_con.initialized)
+	if (!sv_con.initialized)
 		return;
 
 	endwin();
@@ -226,59 +223,61 @@ static void Curses_Resize(int sig){
 	Curses_Draw();
 }
 
-
 /*
  * Curses_Frame
  *
  * Handle curses input and redraw if necessary
  */
-void Curses_Frame(int msec){
+void Curses_Frame(int msec) {
 	int key;
 	char buf[CURSES_LINESIZE];
 
-	if(!sv_con.initialized)
+	if (!sv_con.initialized)
 		return;
 
 	key = wgetch(stdwin);
 
-	while(key != ERR) {
-		if(key == KEY_BACKSPACE || key == 8 || key == 127){
-			if(input[history_line][0] != '\0' && input_pos > 0){
+	while (key != ERR) {
+		if (key == KEY_BACKSPACE || key == 8 || key == 127) {
+			if (input[history_line][0] != '\0' && input_pos > 0) {
 				input_pos--;
 				key = input_pos;
-				while(input[history_line][key]){
+				while (input[history_line][key]) {
 					input[history_line][key] = input[history_line][key + 1];
 					key++;
 				}
 				curses_redraw |= 1;
 			}
-		} else if(key == KEY_STAB || key == 9){
-			if(Con_CompleteCommand(input[history_line], &input_pos)){
+		} else if (key == KEY_STAB || key == 9) {
+			if (Con_CompleteCommand(input[history_line], &input_pos)) {
 				curses_redraw |= 2;
 			}
-		} else if(key == KEY_LEFT){
-			if(input[history_line][0] != '\0' &&  input_pos > 0){
+		} else if (key == KEY_LEFT) {
+			if (input[history_line][0] != '\0' && input_pos > 0) {
 				input_pos--;
 				curses_redraw |= 1;
 			}
-		} else if(key == KEY_HOME){
-			if(input_pos > 0){
+		} else if (key == KEY_HOME) {
+			if (input_pos > 0) {
 				input_pos = 0;
 				curses_redraw |= 1;
 			}
-		} else if(key == KEY_RIGHT){
-			if(input[history_line][0] != '\0' && input_pos < CURSES_LINESIZE - 1 && input[history_line][input_pos]){
+		} else if (key == KEY_RIGHT) {
+			if (input[history_line][0] != '\0' && input_pos < CURSES_LINESIZE
+					- 1 && input[history_line][input_pos]) {
 				input_pos++;
 				curses_redraw |= 1;
 			}
-		} else if(key == KEY_END){
-			while(input[history_line][input_pos]){
+		} else if (key == KEY_END) {
+			while (input[history_line][input_pos]) {
 				input_pos++;
 			}
 			curses_redraw |= 1;
-		} else if(key == KEY_UP){
-			if(input[(history_line + CURSES_HISTORYSIZE - 1) % CURSES_HISTORYSIZE][0] != '\0') {
-				history_line = (history_line + CURSES_HISTORYSIZE - 1) % CURSES_HISTORYSIZE;
+		} else if (key == KEY_UP) {
+			if (input[(history_line + CURSES_HISTORYSIZE - 1)
+					% CURSES_HISTORYSIZE][0] != '\0') {
+				history_line = (history_line + CURSES_HISTORYSIZE - 1)
+						% CURSES_HISTORYSIZE;
 				input_pos = 0;
 				while (input[history_line][input_pos])
 					input_pos++;
@@ -293,9 +292,10 @@ void Curses_Frame(int msec){
 					input_pos++;
 				curses_redraw |= 1;
 			}
-		} else if(key == KEY_ENTER || key == '\n') {
-			if(input[history_line][0] != '\0'){
-				if (input[history_line][0] == '\\' || input[history_line][0] == '/')
+		} else if (key == KEY_ENTER || key == '\n') {
+			if (input[history_line][0] != '\0') {
+				if (input[history_line][0] == '\\' || input[history_line][0]
+						== '/')
 					snprintf(buf, CURSES_LINESIZE - 2,"%s\n", input[history_line] + 1);
 				else
 					snprintf(buf, CURSES_LINESIZE - 1,"%s\n", input[history_line]);
@@ -311,31 +311,31 @@ void Curses_Frame(int msec){
 
 				curses_redraw |= 2;
 			}
-		} else if(key == KEY_PPAGE){
-			if(sv_con.scroll < sv_con.last_line){
+		} else if (key == KEY_PPAGE) {
+			if (sv_con.scroll < sv_con.last_line) {
 				// scroll up
 				sv_con.scroll += CON_SCROLL;
-				if(sv_con.scroll > sv_con.last_line)
+				if (sv_con.scroll > sv_con.last_line)
 					sv_con.scroll = sv_con.last_line;
 				curses_redraw |= 2;
 			}
-		} else if(key == KEY_NPAGE){
-			if (sv_con.scroll > 0){
+		} else if (key == KEY_NPAGE) {
+			if (sv_con.scroll > 0) {
 				// scroll down
 				sv_con.scroll -= CON_SCROLL;
-				if(sv_con.scroll < 0)
+				if (sv_con.scroll < 0)
 					sv_con.scroll = 0;
 				curses_redraw |= 2;
 			}
-		} else if(key >= 32 && key < 127 && input_pos < CURSES_LINESIZE - 1){
+		} else if (key >= 32 && key < 127 && input_pos < CURSES_LINESIZE - 1) {
 			const char c = (const char) key;
 			// find the end of the line
 			key = input_pos;
-			while(input[history_line][key]){
+			while (input[history_line][key]) {
 				key++;
 			}
-			if(key < CURSES_LINESIZE - 1){
-				while(key >= input_pos) {
+			if (key < CURSES_LINESIZE - 1) {
+				while (key >= input_pos) {
 					input[history_line][key + 1] = input[history_line][key];
 					key--;
 				}
@@ -351,13 +351,12 @@ void Curses_Frame(int msec){
 	Curses_Draw();
 }
 
-
 /*
  * Curses_Init
  *
  * Initialize the curses console
  */
-void Curses_Init(void){
+void Curses_Init(void) {
 
 	memset(&sv_con, 0, sizeof(sv_con));
 
@@ -372,16 +371,16 @@ void Curses_Init(void){
 	if (!con_curses->value)
 		return;
 
-	stdwin = initscr();		// initialize the ncurses window
-	cbreak();			// disable input line buffering
-	noecho();			// don't show type characters
-	keypad(stdwin, TRUE);		// enable special keys
-	nodelay(stdwin, TRUE);		// non-blocking input
-	curs_set(1);			// enable the cursor
+	stdwin = initscr(); // initialize the ncurses window
+	cbreak(); // disable input line buffering
+	noecho(); // don't show type characters
+	keypad(stdwin, TRUE); // enable special keys
+	nodelay(stdwin, TRUE); // non-blocking input
+	curs_set(1); // enable the cursor
 
 	sv_con.scroll = 0;
 
-	if(has_colors() == TRUE){
+	if (has_colors() == TRUE) {
 		start_color();
 		// this is ncurses-specific
 		use_default_colors();
@@ -417,13 +416,12 @@ void Curses_Init(void){
 	Curses_Draw();
 }
 
-
 /*
  * Curses_Shutdown
  *
  * Shutdown the curses console
  */
-void Curses_Shutdown(void){
+void Curses_Shutdown(void) {
 	// shutdown ncurses
 	endwin();
 }

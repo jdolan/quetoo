@@ -24,20 +24,18 @@
 
 cvar_t *threads;
 
-
 /*
  * Thread_Run
  *
  * Wrap the user's function in our own for introspection.
  */
-static int Thread_Run(void *data){
-	thread_t *t = (thread_t *)data;
+static int Thread_Run(void *data) {
+	thread_t *t = (thread_t *) data;
 
 	t->function(t->data);
 
 	return 0;
 }
-
 
 /*
  * Thread_Create_
@@ -45,9 +43,10 @@ static int Thread_Run(void *data){
  * Creates a new thread to run the specified function. Callers must use
  * Thread_Wait on the returned handle to release the thread when finished.
  */
-thread_t *Thread_Create_(const char *name, void (function)(void *data), void *data){
+thread_t *Thread_Create_(const char *name, void( function)(void *data),
+		void *data) {
 
-	if(!threads->integer){
+	if (!threads->integer) {
 		function(data);
 		return NULL;
 	}
@@ -64,15 +63,14 @@ thread_t *Thread_Create_(const char *name, void (function)(void *data), void *da
 	return t;
 }
 
-
 /*
  * Thread_Wait
  *
  * Wait for the specified thread to complete.
  */
-void Thread_Wait(thread_t **t){
+void Thread_Wait(thread_t **t) {
 
-	if(!*t)
+	if (!*t)
 		return;
 
 	//struct timeval start, end;
@@ -87,17 +85,17 @@ void Thread_Wait(thread_t **t){
 	*t = NULL;
 }
 
-
 /*
  * Thread_Init
  */
-void Thread_Init(void){
-	threads = Cvar_Get("threads", "2", CVAR_ARCHIVE, "The number of threads (cores) to utilize");
+void Thread_Init(void) {
+	threads = Cvar_Get("threads", "2", CVAR_ARCHIVE,
+			"The number of threads (cores) to utilize");
 }
 
 /*
  * Thread_Shutdown
  */
-void Thread_Shutdown(void){
+void Thread_Shutdown(void) {
 
 }

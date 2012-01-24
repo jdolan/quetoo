@@ -21,36 +21,34 @@
 
 #include "hash.h"
 
-
 /*
  * Hash_Init
  *
  * Initializes the specified hash_table.
  */
-void Hash_Init(hash_table_t *table){
+void Hash_Init(hash_table_t *table) {
 
-	if(!table)
+	if (!table)
 		return;
 
 	memset(table, 0, sizeof(*table));
 }
-
 
 /*
  * Hash_Hashcode
  *
  * Generate a bin number (not a unique code) for the specified key.
  */
-unsigned Hash_Hashcode(const char *key){
+unsigned Hash_Hashcode(const char *key) {
 	unsigned code;
 	const char *c;
 
-	if(!key || !*key)
+	if (!key || !*key)
 		return -1;
 
 	code = 0;
 	c = key;
-	while(*c){
+	while (*c) {
 		code += *c;
 		c++;
 	}
@@ -58,17 +56,16 @@ unsigned Hash_Hashcode(const char *key){
 	return code & (HASH_BINS - 1);
 }
 
-
 /*
  * Hash_Put
  *
  * Insert the specified key-value pair to hash_table.
  */
-unsigned Hash_Put(hash_table_t *table, const char *key, void *value){
+unsigned Hash_Put(hash_table_t *table, const char *key, void *value) {
 	hash_entry_t *e;
 	unsigned code;
 
-	if(!key || !*key || !value)
+	if (!key || !*key || !value)
 		return -1;
 
 	e = Z_Malloc(sizeof(*e));
@@ -79,7 +76,7 @@ unsigned Hash_Put(hash_table_t *table, const char *key, void *value){
 
 	code = Hash_Hashcode(key);
 
-	if(!table->bins[code]){
+	if (!table->bins[code]) {
 		table->bins[code] = e;
 		return code;
 	}
@@ -90,27 +87,26 @@ unsigned Hash_Put(hash_table_t *table, const char *key, void *value){
 	return code;
 }
 
-
 /*
  * Hash_GetEntry
  *
  * Returns the first entry associated to the specified key.
  */
-hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key){
+hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key) {
 	hash_entry_t *e;
 	unsigned code;
 
 	code = Hash_Hashcode(key);
 
-	if(code == -1)
+	if (code == -1)
 		return NULL;
 
-	if(!table->bins[code])
+	if (!table->bins[code])
 		return NULL;
 
 	e = table->bins[code];
-	while(e){
-		if(!strcmp(e->key, key))
+	while (e) {
+		if (!strcmp(e->key, key))
 			return e;
 		e = e->next;
 	}
@@ -118,21 +114,19 @@ hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key){
 	return NULL;
 }
 
-
 /*
  * Hash_Get
  *
  * Return the first value hashed at key from hash_table.
  */
-void *Hash_Get(hash_table_t *table, const char *key){
+void *Hash_Get(hash_table_t *table, const char *key) {
 	hash_entry_t *e;
 
-	if((e = Hash_GetEntry(table, key)))
+	if ((e = Hash_GetEntry(table, key)))
 		return e->value;
 
 	return NULL;
 }
-
 
 /*
  * Hash_RemoveEntry
@@ -140,19 +134,19 @@ void *Hash_Get(hash_table_t *table, const char *key){
  * Removes the specified entry from the hash and frees it, returning its
  * value so that it may also be freed if desired.
  */
-void *Hash_RemoveEntry(hash_table_t *table, hash_entry_t *entry){
+void *Hash_RemoveEntry(hash_table_t *table, hash_entry_t *entry) {
 	unsigned code;
 	void *ret;
 
-	if(!table || !entry)
+	if (!table || !entry)
 		return NULL;
 
 	code = Hash_Hashcode(entry->key);
 
-	if(table->bins[code] == entry)  // fix the bin if we were the head
+	if (table->bins[code] == entry) // fix the bin if we were the head
 		table->bins[code] = entry->next;
 
-	if(entry->prev)
+	if (entry->prev)
 		entry->prev->next = entry->next;
 
 	ret = entry->value;
@@ -162,16 +156,15 @@ void *Hash_RemoveEntry(hash_table_t *table, hash_entry_t *entry){
 	return ret;
 }
 
-
 /*
  * Hash_Remove
  *
  * Removes the first entry associated to key from the specified hash.
  */
-void *Hash_Remove(hash_table_t *table, const char *key){
+void *Hash_Remove(hash_table_t *table, const char *key) {
 	hash_entry_t *e;
 
-	if((e = Hash_GetEntry(table, key)))
+	if ((e = Hash_GetEntry(table, key)))
 		return Hash_RemoveEntry(table, e);
 
 	return NULL;
@@ -182,13 +175,12 @@ void *Hash_Remove(hash_table_t *table, const char *key){
  *
  * Removes all entries associated to key from the specified hash.
  */
-void Hash_Clear(hash_table_t *table, const char *key){
+void Hash_Clear(hash_table_t *table, const char *key) {
 	hash_entry_t *e;
 
-	while((e = Hash_GetEntry(table, key)))
+	while ((e = Hash_GetEntry(table, key)))
 		Hash_RemoveEntry(table, e);
 }
-
 
 /*
  * Hash_Free
@@ -196,14 +188,14 @@ void Hash_Clear(hash_table_t *table, const char *key){
  * Free all entries associated with specified hash.  Does not free any of the
  * values referenced by the entries.
  */
-void Hash_Free(hash_table_t *table){
+void Hash_Free(hash_table_t *table) {
 	hash_entry_t *e, *f;
 	int i;
 
-	for(i = 0; i < HASH_BINS; i++){
+	for (i = 0; i < HASH_BINS; i++) {
 
 		e = table->bins[i];
-		while(e){
+		while (e) {
 			f = e->next;
 			Z_Free(e);
 			e = f;

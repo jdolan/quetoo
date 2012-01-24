@@ -21,16 +21,15 @@
 
 #include "sys.h"
 
-
 /*
  * Sys_Milliseconds
  */
-int Sys_Milliseconds(void){
+int Sys_Milliseconds(void) {
 	static int base, time;
 
 #ifdef _WIN32
 	if(!base)
-		base = timeGetTime() & 0xffff0000;
+	base = timeGetTime() & 0xffff0000;
 
 	time = timeGetTime() - base;
 #else
@@ -38,7 +37,7 @@ int Sys_Milliseconds(void){
 
 	gettimeofday(&tp, NULL);
 
-	if(!base)
+	if (!base)
 		base = tp.tv_sec;
 
 	time = (tp.tv_sec - base) * 1000 + tp.tv_usec / 1000;
@@ -47,11 +46,10 @@ int Sys_Milliseconds(void){
 	return time;
 }
 
-
 /*
  * Sys_GetCurrentUser
  */
-const char *Sys_GetCurrentUser(void){
+const char *Sys_GetCurrentUser(void) {
 	static char s_userName[64];
 #ifdef _WIN32
 	unsigned long size = sizeof(s_userName);
@@ -71,20 +69,18 @@ const char *Sys_GetCurrentUser(void){
 	return s_userName;
 }
 
-
 /*
  * Sys_Mkdir
  *
  * Create the specified directory path.
  */
-void Sys_Mkdir(const char *path){
+void Sys_Mkdir(const char *path) {
 #ifdef _WIN32
 	mkdir(path);
 #else
 	mkdir(path, 0777);
 #endif
 }
-
 
 static char findbase[MAX_OSPATH];
 static char findpath[MAX_OSPATH];
@@ -97,50 +93,49 @@ static DIR *fdir;
  * Returns the first full path name matched by the specified search path in
  * the Quake file system.  Wildcards are partially supported.
  */
-const char *Sys_FindFirst(const char *path){
+const char *Sys_FindFirst(const char *path) {
 	struct dirent *d;
 	char *p;
 
-	if(fdir){
+	if (fdir) {
 		Com_Debug("Sys_FindFirst without Sys_FindClose");
 		Sys_FindClose();
 	}
 
 	strcpy(findbase, path);
 
-	if((p = strrchr(findbase, '/')) != NULL){
+	if ((p = strrchr(findbase, '/')) != NULL) {
 		*p = 0;
 		strcpy(findpattern, p + 1);
 	} else
 		strcpy(findpattern, "*");
 
-	if(strcmp(findpattern, "*.*") == 0)
+	if (strcmp(findpattern, "*.*") == 0)
 		strcpy(findpattern, "*");
 
-	if((fdir = opendir(findbase)) == NULL)
+	if ((fdir = opendir(findbase)) == NULL)
 		return NULL;
 
-	while((d = readdir(fdir)) != NULL){
-		if(!*findpattern || GlobMatch(findpattern, d->d_name)){
+	while ((d = readdir(fdir)) != NULL) {
+		if (!*findpattern || GlobMatch(findpattern, d->d_name)) {
 			sprintf(findpath, "%s/%s", findbase, d->d_name);
 			return findpath;
 		}
 	}
 	return NULL;
 }
-
 
 /*
  * Sys_FindNext
  */
-const char *Sys_FindNext(void){
+const char *Sys_FindNext(void) {
 	struct dirent *d;
 
-	if(fdir == NULL)
+	if (fdir == NULL)
 		return NULL;
 
-	while((d = readdir(fdir)) != NULL){
-		if(!*findpattern || GlobMatch(findpattern, d->d_name)){
+	while ((d = readdir(fdir)) != NULL) {
+		if (!*findpattern || GlobMatch(findpattern, d->d_name)) {
 			sprintf(findpath, "%s/%s", findbase, d->d_name);
 			return findpath;
 		}
@@ -148,33 +143,30 @@ const char *Sys_FindNext(void){
 	return NULL;
 }
 
-
 /*
  * Sys_FindClose
  */
-void Sys_FindClose(void){
-	if(fdir != NULL)
+void Sys_FindClose(void) {
+	if (fdir != NULL)
 		closedir(fdir);
 	fdir = NULL;
 }
-
 
 /*
  * Sys_CloseLibrary
  *
  * Closes an open game module.
  */
-void Sys_CloseLibrary(void **handle){
-	if(*handle)
+void Sys_CloseLibrary(void **handle) {
+	if (*handle)
 		dlclose(*handle);
 	*handle = NULL;
 }
 
-
 /*
  * Sys_OpenLibrary
  */
-void Sys_OpenLibrary(const char *name, void **handle){
+void Sys_OpenLibrary(const char *name, void **handle) {
 	const char *path;
 
 	*handle = NULL;
@@ -185,18 +177,17 @@ void Sys_OpenLibrary(const char *name, void **handle){
 	path = Fs_FindFirst(va("%s.so", name), true);
 #endif
 
-	if(!path){
+	if (!path) {
 		Com_Error(ERR_DROP, "Sys_OpenLibrary: Couldn't find %s\n", name);
 	}
 
 	Com_Print("Trying %s...\n", path);
 
-	if((*handle = dlopen(path, RTLD_NOW)))
+	if ((*handle = dlopen(path, RTLD_NOW)))
 		return;
 
 	Com_Error(ERR_DROP, "Sys_OpenLibrary: %s\n", dlerror());
 }
-
 
 /*
  * Sys_LoadLibrary
@@ -205,44 +196,44 @@ void Sys_OpenLibrary(const char *name, void **handle){
  * entry_point is resolved and invoked with the specified parameters, its
  * return value returned by this function.
  */
-void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params){
+void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point,
+		void *params) {
 	typedef void *entry_point_t(void *);
 	entry_point_t *EntryPoint;
 
-	if(*handle){
+	if (*handle) {
 		Com_Warn("Sys_LoadLibrary: %s: handle already open\n", name);
 		Sys_CloseLibrary(handle);
 	}
 
 	Sys_OpenLibrary(name, handle);
 
-	EntryPoint = (entry_point_t *)dlsym(*handle, entry_point);
+	EntryPoint = (entry_point_t *) dlsym(*handle, entry_point);
 
-	if(!EntryPoint){
+	if (!EntryPoint) {
 		Sys_CloseLibrary(handle);
-		Com_Error(ERR_DROP, "Sys_LoadLibrary: %s: Failed to resolve %s\n", name, entry_point);
+		Com_Error(ERR_DROP, "Sys_LoadLibrary: %s: Failed to resolve %s\n",
+				name, entry_point);
 	}
 
 	return EntryPoint(params);
 }
-
 
 /*
  * Sys_Quit
  *
  * The final exit point of the program under normal exit conditions.
  */
-void Sys_Quit(void){
+void Sys_Quit(void) {
 	exit(0);
 }
-
 
 /*
  * Sys_Backtrace
  *
  * On platforms supporting it, print a backtrace.
  */
-void Sys_Backtrace(void){
+void Sys_Backtrace(void) {
 #ifdef HAVE_EXECINFO
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
 	int i;
@@ -254,11 +245,10 @@ void Sys_Backtrace(void){
 #endif
 }
 
-
 /*
  * The final exit point of the program under abnormal exit conditions.
  */
-void Sys_Error(const char *error, ...){
+void Sys_Error(const char *error, ...) {
 	va_list args;
 	char string[MAX_STRING_CHARS];
 
@@ -273,24 +263,23 @@ void Sys_Error(const char *error, ...){
 	exit(1);
 }
 
-
 /*
  * Sys_Signal
  *
  * Catch kernel interrupts and dispatch the appropriate exit routine.
  */
-void Sys_Signal(int s){
+void Sys_Signal(int s) {
 
-	switch(s){
-		case SIGHUP:
-		case SIGINT:
-		case SIGQUIT:
-		case SIGTERM:
-			Com_Print("Received signal %d, quitting...\n", s);
-			Sys_Quit();
-			break;
-		default:
-			Sys_Backtrace();
-			Sys_Error("Received signal %d.\n", s);
+	switch (s) {
+	case SIGHUP:
+	case SIGINT:
+	case SIGQUIT:
+	case SIGTERM:
+		Com_Print("Received signal %d, quitting...\n", s);
+		Sys_Quit();
+		break;
+	default:
+		Sys_Backtrace();
+		Sys_Error("Received signal %d.\n", s);
 	}
 }

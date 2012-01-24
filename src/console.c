@@ -37,13 +37,12 @@ extern void Cl_ClearNotify(void);
 
 cvar_t *ansi;
 
-
 /*
  * Con_Update
  *
  * Update a console index struct, start parsing at pos
  */
-static void Con_Update(console_t *con, char *pos){
+static void Con_Update(console_t *con, char *pos) {
 	char *wordstart;
 	int linelen;
 	int wordlen;
@@ -61,9 +60,9 @@ static void Con_Update(console_t *con, char *pos){
 
 	/* FIXME color at line_start is off by one line */
 	wordstart = pos;
-	while(*pos) {
-		if(*pos == '\n'){
-			while (wordlen > con->width && con->last_line < CON_MAX_LINES - 2){
+	while (*pos) {
+		if (*pos == '\n') {
+			while (wordlen > con->width && con->last_line < CON_MAX_LINES - 2) {
 				// force wordsplit
 				con->last_line++;
 				con->line_start[con->last_line] = wordstart;
@@ -71,7 +70,7 @@ static void Con_Update(console_t *con, char *pos){
 				wordstart = wordstart + (size_t) con->width;
 				wordlen -= con->width;
 			}
-			if(linelen + wordlen > con->width){
+			if (linelen + wordlen > con->width) {
 				// force linebreak
 				con->last_line++;
 				con->line_start[con->last_line] = wordstart;
@@ -84,9 +83,10 @@ static void Con_Update(console_t *con, char *pos){
 			linelen = 0;
 			wordlen = 0;
 			wordstart = pos + 1;
-		} else if(*pos == ' '){
-			if(linelen + wordlen > con->width){
-				while (wordlen > con->width && con->last_line < CON_MAX_LINES - 2 ){
+		} else if (*pos == ' ') {
+			if (linelen + wordlen > con->width) {
+				while (wordlen > con->width && con->last_line < CON_MAX_LINES
+						- 2) {
 					// force wordsplit
 					con->last_line++;
 					con->line_start[con->last_line] = wordstart;
@@ -106,10 +106,10 @@ static void Con_Update(console_t *con, char *pos){
 				wordlen = 0;
 				wordstart = pos + 1;
 			}
-		} else if(IS_COLOR(pos)) {
+		} else if (IS_COLOR(pos)) {
 			curcolor = (int) *(pos + 1) - '0';
 			pos++;
-		} else if(IS_LEGACY_COLOR(pos)) {
+		} else if (IS_LEGACY_COLOR(pos)) {
 			curcolor = CON_COLOR_ALT;
 		} else {
 			wordlen++;
@@ -117,12 +117,12 @@ static void Con_Update(console_t *con, char *pos){
 		pos++;
 
 		// handle line overflow
-		if (con->last_line >= CON_MAX_LINES - 4){
-			for (i = 0; i < CON_MAX_LINES - (CON_MAX_LINES >> 2); i++){
+		if (con->last_line >= CON_MAX_LINES - 4) {
+			for (i = 0; i < CON_MAX_LINES - (CON_MAX_LINES >> 2); i++) {
 				con->line_start[i] = con->line_start[i + (CON_MAX_LINES >> 2)];
 				con->line_color[i] = con->line_color[i + (CON_MAX_LINES >> 2)];
 			}
-			con->last_line -= CON_MAX_LINES >>2;
+			con->last_line -= CON_MAX_LINES >> 2;
 		}
 	}
 
@@ -130,13 +130,12 @@ static void Con_Update(console_t *con, char *pos){
 	con->line_start[con->last_line + 1] = pos;
 }
 
-
 /*
  * Con_Resize
  *
  * Change the width of an index, parse the console data structure if needed
  */
-void Con_Resize(console_t *con, int width, int height){
+void Con_Resize(console_t *con, int width, int height) {
 	if (!console_data.insert)
 		return;
 
@@ -162,13 +161,12 @@ void Con_Resize(console_t *con, int width, int height){
 #endif
 }
 
-
 /*
  * Con_Clear_f
  *
  * Clear the console data buffer
  */
-static void Con_Clear_f(void){
+static void Con_Clear_f(void) {
 	memset(console_data.text, 0, sizeof(console_data.text));
 	console_data.insert = console_data.text;
 
@@ -188,18 +186,17 @@ static void Con_Clear_f(void){
 #endif
 }
 
-
 /*
  * Con_Dump_f
  *
  * Save the console contents to a file
  */
-static void Con_Dump_f(void){
+static void Con_Dump_f(void) {
 	FILE *f;
 	char name[MAX_OSPATH];
 	char *pos;
 
-	if(Cmd_Argc() != 2){
+	if (Cmd_Argc() != 2) {
 		Com_Print("Usage: %s <file_name>\n", Cmd_Argv(0));
 		return;
 	}
@@ -208,14 +205,14 @@ static void Con_Dump_f(void){
 
 	Fs_CreatePath(name);
 	f = fopen(name, "w");
-	if(!f){
+	if (!f) {
 		Com_Warn("Couldn't open %s.\n", name);
 	} else {
 		pos = console_data.text;
-		while(pos < console_data.insert){
-			if(IS_COLOR(pos))
+		while (pos < console_data.insert) {
+			if (IS_COLOR(pos))
 				pos++;
-			else if(!IS_LEGACY_COLOR(pos))
+			else if (!IS_LEGACY_COLOR(pos))
 				if (fwrite(pos, 1, 1, f) <= 0)
 					Com_Warn("Failed to write console dump\n");
 			pos++;
@@ -225,30 +222,29 @@ static void Con_Dump_f(void){
 	}
 }
 
-
 /*
  * Con_PrintStdOut
  *
  * Print a color-coded string to stdout, remove color codes if requested
  */
-static void Con_PrintStdOut(const char *text){
+static void Con_PrintStdOut(const char *text) {
 	char buf[MAX_PRINT_MSG];
 	int bold, color;
 	int i;
 
 	// start the string with foreground color
 	memset(buf, 0, sizeof(buf));
-	if(ansi && ansi->value){
+	if (ansi && ansi->value) {
 		strcpy(buf, "\033[0;39m");
 		i = 7;
 	} else {
 		i = 0;
 	}
 
-	while(*text && i < sizeof(buf) - 8){
+	while (*text && i < sizeof(buf) - 8) {
 
-		if(IS_LEGACY_COLOR(text)){
-			if(ansi && ansi->value){
+		if (IS_LEGACY_COLOR(text)) {
+			if (ansi && ansi->value) {
 				strcpy(&buf[i], "\033[0;32m");
 				i += 7;
 			}
@@ -256,37 +252,37 @@ static void Con_PrintStdOut(const char *text){
 			continue;
 		}
 
-		if(IS_COLOR(text)){
-			if(ansi && ansi->value) {
+		if (IS_COLOR(text)) {
+			if (ansi && ansi->value) {
 				bold = 0;
 				color = 39;
-				switch(*(text + 1)) {
-					case '0': // black is mapped to bold
-						bold = 1;
-						break;
-					case '1': // red
-						color = 31;
-						break;
-					case '2': // green
-						color = 32;
-						break;
-					case '3': // yellow
-						bold = 1;
-						color = 33;
-						break;
-					case '4': // blue
-						color = 34;
-						break;
-					case '5': // cyan
-						color = 36;
-						break;
-					case '6': // magenta
-						color = 35;
-						break;
-					case '7': // white is mapped to foreground color
-						color = 39;
-					default:
-						break;
+				switch (*(text + 1)) {
+				case '0': // black is mapped to bold
+					bold = 1;
+					break;
+				case '1': // red
+					color = 31;
+					break;
+				case '2': // green
+					color = 32;
+					break;
+				case '3': // yellow
+					bold = 1;
+					color = 33;
+					break;
+				case '4': // blue
+					color = 34;
+					break;
+				case '5': // cyan
+					color = 36;
+					break;
+				case '6': // magenta
+					color = 35;
+					break;
+				case '7': // white is mapped to foreground color
+					color = 39;
+				default:
+					break;
 				}
 				snprintf(&buf[i], 8, "\033[%d;%dm", bold, color);
 				i += 7;
@@ -295,7 +291,7 @@ static void Con_PrintStdOut(const char *text){
 			continue;
 		}
 
-		if (*text == '\n' && ansi && ansi->value){
+		if (*text == '\n' && ansi && ansi->value) {
 			strcat(buf, "\033[0;39m");
 			i += 7;
 		}
@@ -304,21 +300,20 @@ static void Con_PrintStdOut(const char *text){
 		text++;
 	}
 
-	if(ansi && ansi->value) // restore foreground color
+	if (ansi && ansi->value) // restore foreground color
 		strcat(buf, "\033[0;39m");
 
 	// print to stdout
 	if (buf[0] != '\0')
-		fputs(buf,stdout);
+		fputs(buf, stdout);
 }
-
 
 /*
  * Con_Print
  *
  * Print a message to the console data buffer
  */
-void Con_Print(const char *text){
+void Con_Print(const char *text) {
 #ifdef BUILD_CLIENT
 	int last_line;
 #endif
@@ -329,7 +324,8 @@ void Con_Print(const char *text){
 	}
 
 	// prevent overflow, text should still have a reasonable size
-	if (console_data.insert + strlen(text)  >= console_data.text + sizeof(console_data.text) - 1){
+	if (console_data.insert + strlen(text) >= console_data.text
+			+ sizeof(console_data.text) - 1) {
 		memcpy(console_data.text, console_data.text + (sizeof(console_data.text) >> 1), sizeof(console_data.text) >> 1);
 		memset(console_data.text + (sizeof(console_data.text) >> 1) ,0 , sizeof(console_data.text) >> 1);
 		console_data.insert -= sizeof(console_data.text) >> 1;
@@ -370,7 +366,7 @@ void Con_Print(const char *text){
 	console_data.insert += strlen(text);
 
 #ifdef HAVE_CURSES
-	if (!con_curses->value){
+	if (!con_curses->value) {
 		// print output to stdout
 		Con_PrintStdOut(text);
 	} else {
@@ -383,7 +379,6 @@ void Con_Print(const char *text){
 #endif
 }
 
-
 #define MAX_COMPLETE_MATCHES 1024
 static const char *complete[MAX_COMPLETE_MATCHES];
 
@@ -394,66 +389,57 @@ static const char *complete[MAX_COMPLETE_MATCHES];
  *  append it.  If multiple matches are found, append the longest possible
  *  common prefix they all share.
  */
-int Con_CompleteCommand(char *input_text, int *input_position){
+int Con_CompleteCommand(char *input_text, int *input_position) {
 	const char *match, *partial;
 	const char *cmd = 0, *dir = 0, *ext = 0;
 	int matches;
 
 	partial = input_text;
-	if(*partial == '\\' || *partial == '/')
+	if (*partial == '\\' || *partial == '/')
 		partial++;
 
-	if(!*partial)
-		return false;  // lets start with at least something
+	if (!*partial)
+		return false; // lets start with at least something
 
 	memset(complete, 0, sizeof(complete));
 
-	if(strstr(partial, "map ") == partial)
-	{
+	if (strstr(partial, "map ") == partial) {
 		cmd = "map ";
 		dir = "maps/";
 		ext = ".bsp";
-	}
-	else if(strstr(partial, "demo ") == partial)
-	{
+	} else if (strstr(partial, "demo ") == partial) {
 		cmd = "demo ";
 		dir = "demos/";
 		ext = ".dem";
-	}
-	else if(strstr(partial, "exec ") == partial)
-	{
+	} else if (strstr(partial, "exec ") == partial) {
 		cmd = "exec ";
 		dir = "";
 		ext = ".cfg";
 	}
 
-	if(cmd)
-	{	// auto-complete parameters for a command
+	if (cmd) { // auto-complete parameters for a command
 		partial += strlen(cmd);
 		matches = Fs_CompleteFile(dir, partial, ext, &complete[0]);
-	}
-	else
-	{	// auto-complete a command or variable
+	} else { // auto-complete a command or variable
 		cmd = "";
 		matches = Cmd_CompleteCommand(partial, &complete[0]);
 		matches += Cvar_CompleteVar(partial, &complete[matches]);
 	}
 
-	if(matches == 1)
+	if (matches == 1)
 		match = complete[0];
 	else
 		match = CommonPrefix(complete, matches);
 
-	if(!match || *match == '\0')
+	if (!match || *match == '\0')
 		return false;
 
 	sprintf(input_text, "/%s%s", cmd, match);
 	if (ext && strstr(input_text, ext) != NULL)
-		*strstr(input_text, ext) = 0;	// lop off file extenion
+		*strstr(input_text, ext) = 0; // lop off file extenion
 	(*input_position) = strlen(input_text);
 
-	if(matches == 1 && *cmd == 0)
-	{	// append a trailing space for single matches
+	if (matches == 1 && *cmd == 0) { // append a trailing space for single matches
 		input_text[*input_position] = ' ';
 		(*input_position)++;
 	}
@@ -462,13 +448,12 @@ int Con_CompleteCommand(char *input_text, int *input_position){
 	return true;
 }
 
-
 /*
  * Con_Init
  *
  * Initialize the console subsystem
  */
-void Con_Init(void){
+void Con_Init(void) {
 
 #ifdef _WIN32
 	ansi = Cvar_Get("ansi", "0", CVAR_ARCHIVE, NULL);
@@ -484,13 +469,12 @@ void Con_Init(void){
 	Cmd_AddCommand("dumpconsole", Con_Dump_f, NULL);
 }
 
-
 /*
  * Con_Shutdown
  *
  * Shutdown the console subsystem
  */
-void Con_Shutdown(void){
+void Con_Shutdown(void) {
 #ifdef HAVE_CURSES
 	Curses_Shutdown();
 #endif

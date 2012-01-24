@@ -25,38 +25,38 @@
 #include "win32.h"
 
 // wrap dlfcn calls
-void *dlopen(const char *file_name, int flag){
+void *dlopen(const char *file_name, int flag) {
 	return LoadLibrary(file_name);
 }
 
-char *dlerror(void){
-	return "";  // FIXME
+char *dlerror(void) {
+	return ""; // FIXME
 }
 
-void *dlsym(void *handle, const char *symbol){
+void *dlsym(void *handle, const char *symbol) {
 	return GetProcAddress(handle, symbol);
 }
 
-void dlclose(void *handle){
+void dlclose(void *handle) {
 	FreeLibrary(handle);
 }
 
 // wrap ioctl for sockets
-int ioctl(int sockfd, int flags, void *null){
+int ioctl(int sockfd, int flags, void *null) {
 	return ioctlsocket(sockfd, flags, null);
 }
 
 #ifndef HAVE_STRCASESTR
-char *strcasestr (char *haystack, char *needle){
+char *strcasestr (char *haystack, char *needle) {
 	char *p, *startn = 0, *np = 0;
 
 	for (p = haystack; *p; p++) {
 		if (np) {
 			if (toupper(*p) == toupper(*np)) {
 				if (!*++np)
-					return startn;
+				return startn;
 			} else
-				np = 0;
+			np = 0;
 		} else if (toupper(*p) == toupper(*needle)) {
 			np = needle + 1;
 			startn = p;
