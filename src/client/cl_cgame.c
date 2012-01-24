@@ -31,8 +31,12 @@ void Cl_ShutdownCgame(void) {
 	if (!cls.cgame)
 		return;
 
+	Com_Print("Client game shutdown...\n");
+
 	cls.cgame->Shutdown();
 	cls.cgame = NULL;
+
+	Com_Print("Client game down.\n");
 
 	Sys_CloseLibrary(&cgame_handle);
 }
@@ -51,7 +55,7 @@ static void Cl_Error(const char *fmt, ...) {
 	vsprintf(msg, fmt, args);
 	va_end(args);
 
-	Com_Error(ERR_DROP, "Cgame error: %s.\n", msg);
+	Com_Error(ERR_DROP, "Client game error: %s.\n", msg);
 }
 
 /*
@@ -76,6 +80,8 @@ void Cl_InitCgame(void) {
 	if (cls.cgame) {
 		Cl_ShutdownCgame();
 	}
+
+	Com_Print("Client initialization...\n");
 
 	memset(&import, 0, sizeof(import));
 
@@ -108,8 +114,7 @@ void Cl_InitCgame(void) {
 	import.StringWidth = R_StringWidth;
 	import.DrawString = R_DrawString;
 
-	cls.cgame
-			= Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
+	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
 
 	if (!cls.cgame) {
 		Com_Error(ERR_DROP, "Failed to load client game\n");
@@ -121,4 +126,6 @@ void Cl_InitCgame(void) {
 	}
 
 	cls.cgame->Init();
+
+	Com_Print("Client initialized.\n");
 }

@@ -275,7 +275,7 @@ void Cl_Disconnect(void) {
 		cl.time_demo_frames = cl.time_demo_start = 0;
 	}
 
-	Cl_SendDisconnect(); // tell the server to disconnect
+	Cl_SendDisconnect(); // tell the server to deallocate us
 
 	if (cls.demo_file) { // stop demo recording
 		Cl_Stop_f();
@@ -478,8 +478,8 @@ void Cl_LoadProgress(int percent) {
  */
 static void Cl_UpdateMedia(void) {
 
-	if ((r_view.update || s_env.update) && (cls.state == ca_active
-			&& !cls.loading)) {
+	if ((r_view.update || s_env.update) &&
+			(cls.state == ca_active && !cls.loading)) {
 
 		Com_Debug("Cl_UpdateMedia: %s %s\n", r_view.update ? "view" : "",
 				s_env.update ? "sound" : "");
@@ -500,6 +500,10 @@ static void Cl_UpdateMedia(void) {
 
 /*
  * Cl_LoadMedia
+ *
+ * Load all game media through the relevant subsystems. This is called when
+ * spawning into a server. For incremental reloads on subsystem restarts,
+ * see Cl_UpdateMedia.
  */
 static void Cl_LoadMedia(void) {
 
@@ -517,6 +521,8 @@ static void Cl_LoadMedia(void) {
 
 	Cl_LoadLocations();
 
+	cls.cgame->UpdateMedia();
+
 	Cl_ClearNotify();
 
 	cls.key_state.dest = key_game;
@@ -531,7 +537,9 @@ static int precache_spawn_count;
  * Cl_RequestNextDownload
  *
  * Entry point for file downloads, or "precache" from server.  Attempt to
- * download .pak and .bsp from server.  Pak is preferred.
+ * download .pak and .bsp from server.  Pak is preferred. Once all precache
+ * checks are completed, we load media and ask the server to begin sending
+ * us frames.
  */
 void Cl_RequestNextDownload(void) {
 
@@ -562,11 +570,7 @@ void Cl_RequestNextDownload(void) {
 		}
 	}
 
-	Cl_InitCgame();
-
 	Cl_LoadMedia();
-
-	cls.cgame->UpdateMedia();
 
 	Msg_WriteByte(&cls.netchan.message, clc_string);
 	Msg_WriteString(&cls.netchan.message,
@@ -879,6 +883,8 @@ void Cl_Init(void) {
 	Cl_ClearState();
 
 	Ui_Init();
+
+	Cl_InitCgame();
 
 	cls.key_state.dest = key_menu;
 }

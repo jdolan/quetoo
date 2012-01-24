@@ -442,16 +442,15 @@ void Fs_SetGamedir(const char *dir) {
 	pak_t *pak;
 	int i;
 
-	if (strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(
-			dir, ":")) {
-		Com_Print("Gamedir should be a single directory name, not a path\n");
+	if (strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(dir, ":")) {
+		Com_Warn("Fs_SetGamedir: game should be a single directory name, not a path\n");
 		return;
 	}
 
 	// free up any current game dir info
 	while (fs_searchpaths != fs_base_searchpaths) {
 
-		// free paks not living in base searchpaths
+		// free paks not living in base search paths
 		for (i = 0; i < HASH_BINS; i++) {
 			e = fs_hash_table.bins[i];
 			while (e) {
@@ -600,9 +599,9 @@ void Fs_Init(void) {
 	fs_base_searchpaths = fs_searchpaths;
 
 	// check for game override
-	fs_gamedirvar = Cvar_Get("game", "", CVAR_LATCH | CVAR_SERVER_INFO, NULL);
+	fs_gamedirvar = Cvar_Get("game", GAMEDIR, CVAR_LATCH | CVAR_SERVER_INFO, NULL);
 
-	if (fs_gamedirvar && strlen(fs_gamedirvar->string))
+	if (strcmp(fs_gamedirvar->string, GAMEDIR))
 		Fs_SetGamedir(fs_gamedirvar->string);
 }
 

@@ -226,18 +226,13 @@ static void Cl_ParseServerData(void) {
 	str = Msg_ReadString(&net_message);
 	strncpy(cl.gamedir, str, sizeof(cl.gamedir) - 1);
 
-	// set gamedir
-	if ((*str
-			&& (!*fs_gamedirvar->string || strcmp(fs_gamedirvar->string, str)))
-			|| (!*str && (*fs_gamedirvar->string))) {
+	if (strcmp(fs_gamedirvar->string, str)) {
 
-		if (strcmp(fs_gamedirvar->string, str)) {
-			if (cl.demo_server) {
-				Cvar_ForceSet("game", str);
-				Fs_SetGamedir(str);
-			} else
-				Cvar_Set("game", str);
-		}
+		Cvar_ForceSet("game", str);
+		Fs_SetGamedir(str);
+
+		// reload the client game
+		Cl_InitCgame();
 	}
 
 	// parse player entity number

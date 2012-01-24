@@ -324,7 +324,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
  */
 void Sv_InitServer(const char *server, sv_state_t state) {
 #ifdef BUILD_CLIENT
-	extern void Cl_Frame(int msec);
+	extern void Cl_Disconnect(void);
 #endif
 	char path[MAX_QPATH];
 	FILE *file;
@@ -352,8 +352,8 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	Sv_ShutdownMessage("Server restarting...\n", true);
 
 #ifdef BUILD_CLIENT
-	// pump a frame through our client so that they reconnect
-	Cl_Frame(999);
+	// disconnect any local client, they'll immediately reconnect
+	Cl_Disconnect();
 #endif
 
 	// clear the sv_server_t structure
@@ -361,7 +361,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	Com_Print("Server initialization...\n");
 
-	// initialize the clients, loading the game progs if we need them
+	// initialize the clients, loading the game module if we need it
 	Sv_InitClients();
 
 	// load the map or demo and related media

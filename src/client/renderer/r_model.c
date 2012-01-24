@@ -331,16 +331,19 @@ static void R_FreeModels(void) {
  * Loads the specified level after resetting all model data.
  */
 void R_BeginLoading(const char *bsp_name, int bsp_size) {
-	int bs;
 
 	R_FreeModels(); // free all models
 
 	// load bsp for collision detection (prediction)
-	Cm_LoadBsp(bsp_name, &bs);
+	if (!Com_ServerState()) {
+		int bs;
 
-	if (bs != bsp_size) {
-		Com_Error(ERR_DROP, "Local map version differs from server: "
-			"%i != %i.", bs, bsp_size);
+		Cm_LoadBsp(bsp_name, &bs);
+
+		if (bs != bsp_size) {
+			Com_Error(ERR_DROP, "Local map version differs from server: "
+				"%i != %i.", bs, bsp_size);
+		}
 	}
 
 	// then load materials
