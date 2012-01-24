@@ -89,8 +89,8 @@ void Thread_Wait(thread_t **t) {
  * Thread_Init
  */
 void Thread_Init(void) {
-	threads = Cvar_Get("threads", "2", CVAR_ARCHIVE,
-			"The number of threads (cores) to utilize");
+	threads = Cvar_Get("threads", "1", CVAR_ARCHIVE,
+			"Enable or disable multicore processing.");
 }
 
 /*
