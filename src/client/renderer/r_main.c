@@ -557,43 +557,16 @@ static boolean_t R_SetMode(void);
 /*
  * R_Restart_f
  *
- * Restarts any "dirty" portions of the renderer subsystem.  On OSX and
- * Windows, this implies recreating the entire GL context, while Linux allows
- * us to only refresh the parts we need to.
+ * Restarts the renderer subsystem.  The OpenGL context is discarded and
+ * recreated. All media is reloaded.
  */
 void R_Restart_f(void){
-#if defined(__APPLE__) || defined(_WIN32)
+
 	R_Shutdown();
 
 	R_Init();
 
 	R_Reload_f();
-#else
-	// while on linux, we can avoid it for the general case
-	if(Cvar_PendingVars(CVAR_R_CONTEXT)){
-		R_Shutdown();
-
-		R_Init();
-
-		R_Reload_f();
-	}
-	else {
-		// reset the video mode
-		if(Cvar_PendingVars(CVAR_R_MODE))
-			R_SetMode();
-
-		// reload the shaders
-		if(Cvar_PendingVars(CVAR_R_PROGRAMS)){
-			R_ShutdownPrograms();
-
-			R_InitPrograms();
-		}
-
-		// reload all renderer media
-		if(Cvar_PendingVars(CVAR_R_IMAGES))
-			R_Reload_f();
-	}
-#endif
 
 	Cvar_ClearVars(CVAR_R_MASK);
 
