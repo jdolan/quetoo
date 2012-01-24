@@ -99,25 +99,12 @@ r_draw_t r_draw;
  * R_LoadPic
  */
 r_image_t *R_LoadPic(const char *name) {
-	int i;
 	r_image_t *image;
 
 	if ((image = Hash_Get(&r_draw.hash_table, name)))
 		return image;
 
-	for (i = 0; i < MAX_IMAGES; i++) {
-
-		if (!cl.image_precache[i])
-			break;
-
-		if (!strcmp(name, cl.image_precache[i]->name + 5))
-			return cl.image_precache[i];
-	}
-
 	image = R_LoadImage(va("pics/%s", name), it_pic);
-
-	if (i < MAX_IMAGES) // insert to precache
-		cl.image_precache[i] = image;
 
 	Hash_Put(&r_draw.hash_table, name, image);
 
