@@ -1,4 +1,5 @@
 SUFFIXES = .rc
+
 .rc.o:
 	@WINDRES@ $< -o $@
 
@@ -31,7 +32,7 @@ quake2world_LDADD = \
 	@JPEG_LIBS@ \
 	@OPENGL_LIBS@ \
 	@SDL_LIBS@ \
-	${ICON} \
+	@ICON@ \
 	-lm -lz
 	
 else
@@ -44,12 +45,12 @@ quake2world_CFLAGS = \
 	@SDL_CFLAGS@
 
 quake2world_LDADD = \
-	${quake2world_DEPENDENCIES} \
 	../client/libclient.la \
 	../server/libserver.la \
 	@BASE_LIBS@ \
 	@CURSES_LIBS@ \
 	@SDL_LIBS@ \
+	@ICON@ \
 	-lm -lz
 	
 endif
