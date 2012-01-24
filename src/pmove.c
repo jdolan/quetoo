@@ -277,6 +277,8 @@ static void Pm_StepSlideMove(void) {
 
 		if (pml.velocity[2] < 0.0) // clamp to positive velocity
 			pml.velocity[2] = 0.0;
+		if (pml.velocity[2] > newvel[2]) // but don't launch
+			pml.velocity[2] = newvel[2];
 	}
 }
 
@@ -568,7 +570,7 @@ static void Pm_CategorizePosition(void) {
 
 	// see if we're standing on something solid
 	VectorCopy(pml.origin, point);
-	point[2] -= 2.0;
+	point[2] -= 4.0;
 
 	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, point);
 
