@@ -570,7 +570,7 @@ static void Pm_CategorizePosition(void) {
 
 	// see if we're standing on something solid
 	VectorCopy(pml.origin, point);
-	point[2] -= 4.0;
+	point[2] -= 2.0;
 
 	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, point);
 
@@ -585,6 +585,7 @@ static void Pm_CategorizePosition(void) {
 
 		pm->s.pm_flags &= ~PMF_ON_GROUND;
 		pm->ground_entity = NULL;
+
 	} else {
 		pm->s.pm_flags |= PMF_ON_GROUND;
 		pm->ground_entity = trace.ent;
