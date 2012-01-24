@@ -43,7 +43,6 @@ HOST_PROFILE_CFLAGS=""
 HOST_PROFILE_LIBS=""
 HOST_SO_CFLAGS=""
 DEFAULT_PREFIX="/usr/local"
-ICON=""
 
 AC_MSG_CHECKING([host type])
 case "$host" in
@@ -68,7 +67,6 @@ case "$host" in
 		HOST_NAME="WINDOWS"
 		HOST_LIBS="-lws2_32 -lole32"
 		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
-		ICON="quake2world-icon.o"
 		DEFAULT_PREFIX=""
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
@@ -96,7 +94,6 @@ AC_SUBST(HOST_DEBUG_CFLAGS)
 AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(HOST_PROFILE_CFLAGS)
 AC_SUBST(HOST_PROFILE_LIBS)
-AC_SUBST(ICON)
 
 SO_CFLAGS="$SO_CFLAGS $HOST_SO_CFLAGS"
 AC_SUBST(SO_CFLAGS)

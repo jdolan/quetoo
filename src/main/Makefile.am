@@ -1,16 +1,20 @@
-SUFFIXES = .rc
-
-.rc.o:
-	@WINDRES@ $< -o $@
-
 bin_PROGRAMS = \
 	quake2world
 
 quake2world_SOURCES = \
 	main.c
 
-EXTRA_quake2world_SOURCES = \
+if WINDOWS
+
+SUFFIXES = .rc
+
+.rc.o:
+	@WINDRES@ $< -o $@
+
+quake2world_SOURCES += \
 	quake2world-icon.rc
+
+endif
 	
 if BUILD_CLIENT
 
@@ -32,7 +36,6 @@ quake2world_LDADD = \
 	@JPEG_LIBS@ \
 	@OPENGL_LIBS@ \
 	@SDL_LIBS@ \
-	@ICON@ \
 	-lm -lz
 	
 else
@@ -50,7 +53,6 @@ quake2world_LDADD = \
 	@BASE_LIBS@ \
 	@CURSES_LIBS@ \
 	@SDL_LIBS@ \
-	@ICON@ \
 	-lm -lz
 	
 endif
