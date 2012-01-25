@@ -92,8 +92,11 @@ static void G_BubbleTrail(vec3_t start, c_trace_t *tr){
 
 	if(gi.PointContents(pos) & MASK_WATER)
 		VectorCopy(pos, tr->end);
-	else
-		tr->end = gi.Trace(pos, NULL, NULL, start, tr->ent, MASK_WATER).end;
+	else {
+		const c_trace_t trace =
+				gi.Trace(pos, NULL, NULL, start, tr->ent, MASK_WATER);
+		VectorCopy(trace.end, tr->end);
+	}
 
 	VectorAdd(start, tr->end, pos);
 	VectorScale(pos, 0.5, pos);
