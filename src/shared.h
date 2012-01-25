@@ -64,7 +64,7 @@ int ColorByName(const char *s, int def);
 // string functions
 boolean_t GlobMatch(const char *pattern, const char *text);
 boolean_t MixedCase(const char *s);
-char *CommonPrefix(const char *words[], int nwords);
+char *CommonPrefix(const char *words[], unsigned int nwords);
 char *Lowercase(char *s);
 char *Trim(char *s);
 const char *Basename(const char *path);

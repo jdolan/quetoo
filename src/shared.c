@@ -636,11 +636,11 @@ char *Trim(char *s) {
  *
  * Returns the longest common prefix the specified words share.
  */
-char *CommonPrefix(const char *words[], int nwords) {
+char *CommonPrefix(const char *words[], unsigned int nwords) {
 	static char common_prefix[MAX_TOKEN_CHARS];
 	const char *w;
 	char c;
-	int i, j;
+	unsigned int i, j;
 
 	memset(common_prefix, 0, sizeof(common_prefix));
 
@@ -1072,7 +1072,7 @@ boolean_t ValidateUserInfo(const char *s) {
 void SetUserInfo(char *s, const char *key, const char *value) {
 	char newi[MAX_USER_INFO_STRING], *v;
 	int c;
-	int max_size = MAX_USER_INFO_STRING;
+	unsigned int max_size = MAX_USER_INFO_STRING;
 
 	if (strstr(key, "\\") || strstr(value, "\\")) {
 		//Com_Print("Can't use keys or values with a \\\n");
