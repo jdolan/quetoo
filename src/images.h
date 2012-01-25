@@ -74,7 +74,7 @@ Img_WriteTGARLE
 
 Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
 */
-void Img_WriteTGARLE(char *path, byte *img_data, int width, int height, int unused);
+void Img_WriteTGARLE(char *path, byte *img_data, int width, int height);
 
 #endif /* BUILD_CLIENT */
 #endif /*__IMAGES_H__*/

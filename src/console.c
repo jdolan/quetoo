@@ -230,7 +230,7 @@ static void Con_Dump_f(void) {
 static void Con_PrintStdOut(const char *text) {
 	char buf[MAX_PRINT_MSG];
 	int bold, color;
-	int i;
+	unsigned int i;
 
 	// start the string with foreground color
 	memset(buf, 0, sizeof(buf));

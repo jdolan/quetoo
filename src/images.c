@@ -332,8 +332,7 @@ void Img_WriteJPEG(char *path, byte *img_data, int width, int height,
  *
  * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
-void Img_WriteTGARLE(char *path, byte *img_data, int width, int height,
-		int unused) {
+void Img_WriteTGARLE(char *path, byte *img_data, int width, int height) {
 	FILE *tga_file;
 	const unsigned int channels = TGA_CHANNELS; // 24-bit RGB
 	unsigned char header[18];
@@ -345,8 +344,7 @@ void Img_WriteTGARLE(char *path, byte *img_data, int width, int height,
 	int compress = 0;
 	size_t block_length = 0;
 	char footer[26];
-	int y;
-	size_t x;
+	int x, y;
 
 	if (!(tga_file = fopen(path, "wb"))) { // failed to open
 		Com_Print("Failed to open to %s\n", path);
