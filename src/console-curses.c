@@ -211,8 +211,13 @@ static void Curses_Draw(void) {
  */
 static void Curses_Resize(int sig) {
 
-	if (!sv_con.initialized)
+	if (!sv_con.initialized) {
 		return;
+	}
+		
+	if (sig != SIGWINCH) {
+		return;
+	}
 
 	endwin();
 	refresh();
