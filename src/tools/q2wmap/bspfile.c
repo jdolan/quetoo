@@ -258,7 +258,7 @@ static int CopyLump(int lump, void *dest, int size) {
  * LoadBSPFile
  */
 void LoadBSPFile(char *file_name) {
-	int i;
+	unsigned int i;
 
 	// load the file header
 	if (Fs_LoadFile(file_name, (void **) (char *) &header) == -1)
@@ -329,7 +329,7 @@ void LoadBSPFile(char *file_name) {
  * Only loads the texinfo lump, so we can scan for textures.
  */
 void LoadBSPFileTexinfo(char *file_name) {
-	int i;
+	unsigned int i;
 	FILE *f;
 	int length, ofs;
 
