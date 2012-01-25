@@ -215,9 +215,9 @@ static void Curses_Resize(int sig) {
 		return;
 	}
 		
-	if (sig != SIGWINCH) {
+	/*if (sig != SIGWINCH) {
 		return;
-	}
+	}*/
 
 	endwin();
 	refresh();
