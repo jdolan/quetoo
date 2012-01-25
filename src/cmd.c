@@ -134,7 +134,7 @@ void Cbuf_InsertFromDefer(void) {
  * Cbuf_Execute
  */
 void Cbuf_Execute(void) {
-	int i;
+	unsigned int i;
 	char *text;
 	char line[MAX_STRING_CHARS];
 	int quotes;
@@ -224,13 +224,13 @@ void Cbuf_AddEarlyCommands(boolean_t clear) {
  * Commands lead with a + and continue until another +.
  */
 void Cbuf_AddLateCommands(void) {
-	int i, j, k;
+	unsigned int i, j, k;
 	char *c, text[MAX_STRING_CHARS];
 
 	j = 0;
 	memset(text, 0, sizeof(text));
 
-	for (i = 1; i < Com_Argc(); i++) {
+	for (i = 1; i < (unsigned)Com_Argc(); i++) {
 
 		c = Com_Argv(i);
 		k = strlen(c);
@@ -387,7 +387,7 @@ int Cmd_Argc(void) {
  * Cmd_Argv
  */
 char *Cmd_Argv(int arg) {
-	if ((unsigned) arg >= cmd_argc)
+	if (arg >= cmd_argc)
 		return cmd_null_string;
 	return cmd_argv[arg];
 }
@@ -407,7 +407,7 @@ char *Cmd_Args(void) {
  * Parses the given string into command line tokens.
  */
 void Cmd_TokenizeString(const char *text) {
-	int i, l, cmd_pointer;
+	int i, l;
 	char *com_token;
 
 	// clear the args from the last string
@@ -416,7 +416,6 @@ void Cmd_TokenizeString(const char *text) {
 
 	cmd_argc = 0;
 	cmd_args[0] = 0;
-	cmd_pointer = 0;
 
 	if (!text)
 		return;

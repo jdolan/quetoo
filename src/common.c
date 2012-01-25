@@ -24,7 +24,7 @@
 
 static int rd_target;
 static char *rd_buffer;
-static int rd_buffersize;
+static unsigned int rd_buffersize;
 static void (*rd_flush)(int target, char *buffer);
 
 /*
@@ -580,8 +580,9 @@ int Msg_ReadLong(size_buf_t *sb) {
  */
 char *Msg_ReadString(size_buf_t *sb) {
 	static char string[MAX_STRING_CHARS];
-	int l, c;
-
+	int c;
+	unsigned int l;
+	
 	l = 0;
 	do {
 		c = Msg_ReadChar(sb);
@@ -601,7 +602,8 @@ char *Msg_ReadString(size_buf_t *sb) {
  */
 char *Msg_ReadStringLine(size_buf_t *sb) {
 	static char string[MAX_STRING_CHARS];
-	int l, c;
+	int c;
+	unsigned int l;
 
 	l = 0;
 	do {
@@ -694,7 +696,7 @@ void Msg_ReadDeltaUsercmd(size_buf_t *sb, user_cmd_t *from, user_cmd_t *move) {
  * Msg_ReadData
  */
 void Msg_ReadData(size_buf_t *sb, void *data, size_t len) {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < len; i++) {
 		((byte *) data)[i] = Msg_ReadByte(sb);

@@ -498,7 +498,7 @@ void Fs_GunzipFile(const char *path) {
 	FILE *f;
 	char *c;
 	byte *buffer;
-	size_t r, w;
+	int r, w;
 	char p[MAX_OSPATH];
 
 	if (!path || *path == '\0')

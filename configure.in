@@ -35,8 +35,6 @@ HOST_NAME=""
 HOST_CFLAGS=""
 HOST_LDFLAGS=""
 HOST_LIBS=""
-HOST_WARN_CFLAGS=""
-HOST_WARN_LIBS=""
 HOST_DEBUG_CFLAGS=""
 HOST_DEBUG_LIBS=""
 HOST_PROFILE_CFLAGS=""
@@ -51,7 +49,6 @@ case "$host" in
 		HOST_CFLAGS="-I/opt/local/include"
 		HOST_LDFLAGS="-L/opt/local/lib"
 		HOST_LIBS="-ldl"
-		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		DEFAULT_PREFIX="/opt/local"
@@ -59,14 +56,12 @@ case "$host" in
 		;;
 	*bsd*)
 		HOST_NAME="BSD"
-		HOST_WARN_CFLAGS="-Wmissing-declarations"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		AC_MSG_RESULT(bsd)
 		;;
 	*-*-mingw*)
 		HOST_NAME="WINDOWS"
 		HOST_LIBS="-lws2_32 -lole32"
-		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
 		DEFAULT_PREFIX=""
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
@@ -78,7 +73,6 @@ case "$host" in
 	*)
 		HOST_NAME="LINUX"
 		HOST_LIBS="-ldl"
-		HOST_WARN_CFLAGS="-Wdeclaration-after-statement"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		AC_MSG_RESULT(linux)
@@ -88,8 +82,6 @@ esac
 AC_SUBST(HOST_NAME)
 AC_SUBST(HOST_CFLAGS)
 AC_SUBST(HOST_LIBS)
-AC_SUBST(HOST_WARN_CFLAGS)
-AC_SUBST(HOST_WARN_LIBS)
 AC_SUBST(HOST_DEBUG_CFLAGS)
 AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(HOST_PROFILE_CFLAGS)
@@ -98,7 +90,7 @@ AC_SUBST(HOST_PROFILE_LIBS)
 SO_CFLAGS="$SO_CFLAGS $HOST_SO_CFLAGS"
 AC_SUBST(SO_CFLAGS)
 
-CPPFLAGS="$CPPFLAGS $HOST_CFLAGS"
+CPPFLAGS="-std=c99 $CPPFLAGS $HOST_CFLAGS"
 AC_SUBST(CPPFLAGS)
 
 LDFLAGS="$LDFLAGS $HOST_LDFLAGS"
@@ -443,7 +435,7 @@ dnl -----------------
 
 AC_MSG_CHECKING(whether to abort on compiler warnings)
 
-WARN_CFLAGS="-Wall -Wmissing-prototypes -Wmissing-declarations $HOST_WARN_FLAGS"
+WARN_CFLAGS="-pedantic -W -Wall"
 
 AC_ARG_ENABLE(warn,
 	AS_HELP_STRING(

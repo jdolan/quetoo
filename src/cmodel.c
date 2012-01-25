@@ -495,7 +495,7 @@ static void Cm_LoadEntityString(const d_bsp_lump_t *l) {
 c_model_t *Cm_LoadBsp(const char *name, int *size) {
 	d_bsp_header_t header;
 	void *buf;
-	int i;
+	unsigned int i;
 
 	c_no_areas = Cvar_Get("c_no_areas", "0", 0, NULL);
 
