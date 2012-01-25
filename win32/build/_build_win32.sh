@@ -32,10 +32,10 @@ autoreconf -i --force
 ./configure --prefix=/tmp/quake2world
 make
 make install
-cd src/game/default
+cd $START/quake2world/src/game/default
 gcc -shared -o game.dll *.o ../../.libs/libshared.a
 cd $START/quake2world/src/cgame/default
-gcc -shared -o cgame.dll *.o ../../.libs/libshared.a
+gcc -shared -o cgame.dll *.o ../../.libs/libshared.a -lopengl32
 
 
 cd $START
@@ -52,10 +52,11 @@ cp $START/quake2world/src/game/default/game.dll ./default
 cp $START/quake2world/src/cgame/default/cgame.dll ./default
 
 cd /mingw/bin
-cp AntTweakBar.dll libcurl-4.dll libpng15-15.dll pdcurses.dll \
-   SDL.dll libgcc_s_dw2-1.dll libvorbis-0.dll SDL_image.dll \
-   libjpeg-8.dll libvorbisfile-3.dll SDL_mixer.dll libogg-0.dll \
-   libz-1.dll $START/dist/quake2world
+cp AntTweakBar.dll libcurl-4.dll libz-1.dll libpng15-15.dll \
+   libgcc_s_dw2-1.dll libjpeg-8.dll libpdcurses.dll  \
+   SDL.dll libvorbis-0.dll SDL_image.dll \
+   libvorbisfile-3.dll SDL_mixer.dll libogg-0.dll \
+    $START/dist/quake2world
 
 cd $START/dist
 zip -9 -r ../quake2world_rev"$rev".zip quake2world

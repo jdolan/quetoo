@@ -7,8 +7,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{011CCE1C-8593-4066-9EB4-F02669E3F651}
 AppName=Quake2World Development Environment
-AppVersion=2.0.0
-;AppVerName=Quake2World Development Environment 2.0.0
+AppVersion=2.1.0
+;AppVerName=Quake2World Development Environment 2.1.0
 AppPublisher=Marcel Wysocki
 AppPublisherURL=http://www.satgnu.net/
 AppSupportURL=http://www.satgnu.net/
@@ -16,8 +16,8 @@ AppUpdatesURL=http://www.satgnu.net/
 DefaultDirName=c:/q2wdevenv
 DefaultGroupName=Quake2World Development Environment
 AllowNoIcons=yes
-LicenseFile=C:\LICENSE.txt
-OutputBaseFilename=q2wdevenv_2.0
+LicenseFile=C:\q2wdevenv\LICENSE.txt
+OutputBaseFilename=q2wdevenv_2.1
 Compression=lzma
 SolidCompression=yes
 
