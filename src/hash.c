@@ -39,8 +39,8 @@ void Hash_Init(hash_table_t *table) {
  *
  * Generate a bin number (not a unique code) for the specified key.
  */
-unsigned Hash_Hashcode(const char *key) {
-	unsigned code;
+int Hash_Hashcode(const char *key) {
+	int code;
 	const char *c;
 
 	if (!key || !*key)
@@ -61,9 +61,9 @@ unsigned Hash_Hashcode(const char *key) {
  *
  * Insert the specified key-value pair to hash_table.
  */
-unsigned Hash_Put(hash_table_t *table, const char *key, void *value) {
+int Hash_Put(hash_table_t *table, const char *key, void *value) {
 	hash_entry_t *e;
-	unsigned code;
+	int code;
 
 	if (!key || !*key || !value)
 		return -1;
@@ -94,7 +94,7 @@ unsigned Hash_Put(hash_table_t *table, const char *key, void *value) {
  */
 hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key) {
 	hash_entry_t *e;
-	unsigned code;
+	int code;
 
 	code = Hash_Hashcode(key);
 
@@ -135,7 +135,7 @@ void *Hash_Get(hash_table_t *table, const char *key) {
  * value so that it may also be freed if desired.
  */
 void *Hash_RemoveEntry(hash_table_t *table, hash_entry_t *entry) {
-	unsigned code;
+	int code;
 	void *ret;
 
 	if (!table || !entry)
