@@ -484,7 +484,7 @@ static inline GLenum R_ConstByName(const char *c) {
 	// ...
 
 	Com_Warn("R_ConstByName: Failed to resolve: %s\n", c);
-	return GL_ZERO;
+	return GL_INVALID_ENUM;
 }
 
 /*
@@ -581,7 +581,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			s->blend.src = R_ConstByName(c);
 
-			if (!s->blend.src) {
+			if (s->blend.src == GL_INVALID_ENUM) {
 				Com_Warn("R_ParseStage: Failed to resolve blend src: %s\n", c);
 				return -1;
 			}
@@ -589,7 +589,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			s->blend.dest = R_ConstByName(c);
 
-			if (!s->blend.dest) {
+			if (s->blend.dest == GL_INVALID_ENUM) {
 				Com_Warn("R_ParseStage: Failed to resolve blend dest: %s\n", c);
 				return -1;
 			}

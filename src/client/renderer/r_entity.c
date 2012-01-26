@@ -202,7 +202,7 @@ static boolean_t R_CullEntity(r_entity_t *e) {
  */
 void R_CullEntities(void *data) {
 	r_entity_t *e = r_view.entities;
-	int i;
+	unsigned short i;
 
 	for (i = 0, e = r_view.entities; i < r_view.num_entities; i++, e++) {
 
