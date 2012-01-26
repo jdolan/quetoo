@@ -95,7 +95,7 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
 	memset(counts, 0, sizeof(counts));
 
 	// determine sides for each point
-	for (i = 0; i < in->numpoints; i++) {
+	for (i = 0; i < in->num_points; i++) {
 		dot = DotProduct(in->points[i], split->normal);
 		dot -= split->dist;
 		dists[i] = dot;
@@ -122,36 +122,36 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
 
 	neww = AllocStackWinding(stack);
 
-	neww->numpoints = 0;
+	neww->num_points = 0;
 
-	for (i = 0; i < in->numpoints; i++) {
+	for (i = 0; i < in->num_points; i++) {
 		p1 = in->points[i];
 
-		if (neww->numpoints == MAX_POINTS_ON_FIXED_WINDING) {
+		if (neww->num_points == MAX_POINTS_ON_FIXED_WINDING) {
 			FreeStackWinding(neww, stack);
 			return in; // can't chop -- fall back to original
 		}
 
 		if (sides[i] == SIDE_BOTH) {
-			VectorCopy(p1, neww->points[neww->numpoints]);
-			neww->numpoints++;
+			VectorCopy(p1, neww->points[neww->num_points]);
+			neww->num_points++;
 			continue;
 		}
 
 		if (sides[i] == SIDE_FRONT) {
-			VectorCopy(p1, neww->points[neww->numpoints]);
-			neww->numpoints++;
+			VectorCopy(p1, neww->points[neww->num_points]);
+			neww->num_points++;
 		}
 
 		if (sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i])
 			continue;
 
-		if (neww->numpoints == MAX_POINTS_ON_FIXED_WINDING) {
+		if (neww->num_points == MAX_POINTS_ON_FIXED_WINDING) {
 			FreeStackWinding(neww, stack);
 			return in; // can't chop -- fall back to original
 		}
 		// generate a split point
-		p2 = in->points[(i + 1) % in->numpoints];
+		p2 = in->points[(i + 1) % in->num_points];
 
 		dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (j = 0; j < 3; j++) { // avoid round off error when possible
@@ -163,8 +163,8 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
 				mid[j] = p1[j] + dot * (p2[j] - p1[j]);
 		}
 
-		VectorCopy(mid, neww->points[neww->numpoints]);
-		neww->numpoints++;
+		VectorCopy(mid, neww->points[neww->num_points]);
+		neww->num_points++;
 	}
 
 	// free the original winding
@@ -200,14 +200,14 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 	boolean_t fliptest;
 
 	// check all combinations
-	for (i = 0; i < source->numpoints; i++) {
-		l = (i + 1) % source->numpoints;
+	for (i = 0; i < source->num_points; i++) {
+		l = (i + 1) % source->num_points;
 		VectorSubtract(source->points[l], source->points[i], v1);
 
 		// fing a vertex of pass that makes a plane that puts all of the
 		// vertexes of pass on the front side and all of the vertexes of
 		// source on the back side
-		for (j = 0; j < pass->numpoints; j++) {
+		for (j = 0; j < pass->num_points; j++) {
 			VectorSubtract(pass->points[j], source->points[i], v2);
 
 			plane.normal[0] = v1[1] * v2[2] - v1[2] * v2[1];
@@ -236,7 +236,7 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 			//
 #if 1
 			fliptest = false;
-			for (k = 0; k < source->numpoints; k++) {
+			for (k = 0; k < source->num_points; k++) {
 				if (k == i || k == l)
 					continue;
 				d = DotProduct(source->points[k], plane.normal) - plane.dist;
@@ -250,7 +250,7 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 					break;
 				}
 			}
-			if (k == source->numpoints)
+			if (k == source->num_points)
 				continue; // planar with source portal
 #else
 			fliptest = flipclip;
@@ -268,7 +268,7 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 			// this is the seperating plane
 			//
 			counts[0] = counts[1] = counts[2] = 0;
-			for (k = 0; k < pass->numpoints; k++) {
+			for (k = 0; k < pass->num_points; k++) {
 				if (k == j)
 					continue;
 				d = DotProduct(pass->points[k], plane.normal) - plane.dist;
@@ -279,7 +279,7 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 				else
 					counts[2]++;
 			}
-			if (k != pass->numpoints)
+			if (k != pass->num_points)
 				continue; // points on negative side, not a seperating plane
 
 			if (!counts[0])
@@ -327,13 +327,13 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 	portal_t *p;
 	plane_t back_plane;
 	leaf_t *leaf;
-	int i, j;
+	unsigned int i, j;
 	long *test, *might, *vis, more;
 	int pnum;
 
 	thread->c_chains++;
 
-	leaf = &leafs[leaf_num];
+	leaf = &map_vis.leafs[leaf_num];
 
 	prevstack->next = &stack;
 
@@ -345,9 +345,9 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 	vis = (long *) thread->base->portalvis;
 
 	// check all portals for flowing into other leafs
-	for (i = 0; i < leaf->numportals; i++) {
+	for (i = 0; i < leaf->num_portals; i++) {
 		p = leaf->portals[i];
-		pnum = p - portals;
+		pnum = p - map_vis.portals;
 
 		if (!(prevstack->mightsee[pnum >> 3] & (1 << (pnum & 7)))) {
 			continue; // can't possibly see it
@@ -360,7 +360,7 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 		}
 
 		more = 0;
-		for (j = 0; j < portallongs; j++) {
+		for (j = 0; j < map_vis.portal_longs; j++) {
 			might[j] = ((long *) prevstack->mightsee)[j] & test[j];
 			more |= (might[j] & ~vis[j]);
 		}
@@ -449,14 +449,14 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
  */
 void PortalFlow(int portal_num) {
 	thread_data_t data;
-	int i;
+	unsigned int i;
 	portal_t *p;
 	int c_might, c_can;
 
-	p = sorted_portals[portal_num];
+	p = map_vis.sorted_portals[portal_num];
 	p->status = stat_working;
 
-	c_might = CountBits(p->portalflood, numportals * 2);
+	c_might = CountBits(p->portalflood, map_vis.num_portals * 2);
 
 	memset(&data, 0, sizeof(data));
 	data.base = p;
@@ -464,32 +464,32 @@ void PortalFlow(int portal_num) {
 	data.pstack_head.portal = p;
 	data.pstack_head.source = p->winding;
 	data.pstack_head.portalplane = p->plane;
-	for (i = 0; i < portallongs; i++)
+	for (i = 0; i < map_vis.portal_longs; i++)
 		((long *) data.pstack_head.mightsee)[i] = ((long *) p->portalflood)[i];
 	RecursiveLeafFlow(p->leaf, &data, &data.pstack_head);
 
 	p->status = stat_done;
 
-	c_can = CountBits(p->portalvis, numportals * 2);
+	c_can = CountBits(p->portalvis, map_vis.num_portals * 2);
 
 	Com_Debug("portal:%4i  mightsee:%4i  cansee:%4i (%i chains)\n",
-			(int) (p - portals), c_might, c_can, data.c_chains);
+			(int) (p - map_vis.portals), c_might, c_can, data.c_chains);
 }
 
 /*
  * SimpleFlood
  */
 static void SimpleFlood(portal_t * srcportal, int leaf_num) {
-	int i;
+	unsigned int i;
 	leaf_t *leaf;
 	portal_t *p;
 	int pnum;
 
-	leaf = &leafs[leaf_num];
+	leaf = &map_vis.leafs[leaf_num];
 
-	for (i = 0; i < leaf->numportals; i++) {
+	for (i = 0; i < leaf->num_portals; i++) {
 		p = leaf->portals[i];
-		pnum = p - portals;
+		pnum = p - map_vis.portals;
 		if (!(srcportal->portalfront[pnum >> 3] & (1 << (pnum & 7))))
 			continue;
 
@@ -511,36 +511,36 @@ void BasePortalVis(int portal_num) {
 	float d;
 	const winding_t *w;
 
-	p = portals + portal_num;
+	p = map_vis.portals + portal_num;
 
-	p->portalfront = Z_Malloc(portalbytes);
-	memset(p->portalfront, 0, portalbytes);
+	p->portalfront = Z_Malloc(map_vis.portal_bytes);
+	memset(p->portalfront, 0, map_vis.portal_bytes);
 
-	p->portalflood = Z_Malloc(portalbytes);
-	memset(p->portalflood, 0, portalbytes);
+	p->portalflood = Z_Malloc(map_vis.portal_bytes);
+	memset(p->portalflood, 0, map_vis.portal_bytes);
 
-	p->portalvis = Z_Malloc(portalbytes);
-	memset(p->portalvis, 0, portalbytes);
+	p->portalvis = Z_Malloc(map_vis.portal_bytes);
+	memset(p->portalvis, 0, map_vis.portal_bytes);
 
-	for (j = 0, tp = portals; j < numportals * 2; j++, tp++) {
+	for (j = 0, tp = map_vis.portals; j < map_vis.num_portals * 2; j++, tp++) {
 		if (j == portal_num)
 			continue;
 		w = tp->winding;
-		for (k = 0; k < w->numpoints; k++) {
+		for (k = 0; k < w->num_points; k++) {
 			d = DotProduct(w->points[k], p->plane.normal) - p->plane.dist;
 			if (d > ON_EPSILON)
 				break;
 		}
-		if (k == w->numpoints)
+		if (k == w->num_points)
 			continue; // no points on front
 
 		w = p->winding;
-		for (k = 0; k < w->numpoints; k++) {
+		for (k = 0; k < w->num_points; k++) {
 			d = DotProduct(w->points[k], tp->plane.normal) - tp->plane.dist;
 			if (d < -ON_EPSILON)
 				break;
 		}
-		if (k == w->numpoints)
+		if (k == w->num_points)
 			continue; // no points on front
 
 		p->portalfront[j >> 3] |= (1 << (j & 7));
@@ -548,5 +548,5 @@ void BasePortalVis(int portal_num) {
 
 	SimpleFlood(p, p->leaf);
 
-	p->nummightsee = CountBits(p->portalflood, numportals * 2);
+	p->nummightsee = CountBits(p->portalflood, map_vis.num_portals * 2);
 }

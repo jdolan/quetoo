@@ -40,7 +40,7 @@ typedef struct {
 
 typedef struct {
 	boolean_t original;  // don't free, it's part of the portal
-	int numpoints;
+	unsigned short num_points;
 	vec3_t points[MAX_POINTS_ON_FIXED_WINDING];  // variable sized
 } winding_t;
 
@@ -67,11 +67,10 @@ typedef struct {
 	int nummightsee;			// bit count on portalflood for sort
 } portal_t;
 
-typedef struct seperating_plane_s {
-	struct seperating_plane_s *next;
+typedef struct separating_plane_s {
+	struct separating_plane_s *next;
 	plane_t plane;				// from portal is on positive side
 } sep_t;
-
 
 typedef struct passage_s {
 	struct passage_s *next;
@@ -81,11 +80,10 @@ typedef struct passage_s {
 
 #define	MAX_PORTALS_ON_LEAF		128
 typedef struct leaf_s {
-	int numportals;
+	unsigned int num_portals;
 	passage_t *passages;
 	portal_t *portals[MAX_PORTALS_ON_LEAF];
 } leaf_t;
-
 
 typedef struct pstack_s {
 	byte mightsee[MAX_PORTALS / 8];	// bit string
@@ -107,27 +105,38 @@ typedef struct {
 	pstack_t pstack_head;
 } thread_data_t;
 
+typedef struct map_vis_s {
+	unsigned int num_portals;
+	unsigned int portal_clusters;
 
-extern int numportals;
-extern int portalclusters;
+	portal_t *portals;
+	portal_t *sorted_portals[MAX_BSP_PORTALS * 2];
 
-extern portal_t *portals;
-extern leaf_t *leafs;
+	leaf_t *leafs;
 
-extern int portallongs;
-extern int portalbytes;
+	size_t leaf_bytes; // (portal_clusters + 63) >> 3
+	size_t leaf_longs; // / sizeof(long)
+
+	size_t portal_bytes; // (portal_clusters + 63) >> 3
+	size_t portal_longs; // / sizeof(long)
+
+	size_t uncompressed_size;
+	byte *uncompressed;
+
+	byte *base;
+	byte *pointer;
+	byte *end;
+} map_vis_t;
+
+extern map_vis_t map_vis;
 
 extern int testlevel;
-
-extern byte *uncompressed;
 
 void LeafFlow(int leaf_num);
 
 void BasePortalVis(int portal_num);
 void BetterPortalVis(int portal_num);
 void PortalFlow(int portal_num);
-
-extern portal_t *sorted_portals[MAX_BSP_PORTALS * 2];
 
 int CountBits(const byte * bits, int numbits);
 
