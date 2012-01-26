@@ -46,7 +46,7 @@ static void Sv_SetMaster_f(void) {
 
 	for (i = 1; i < MAX_MASTERS; i++) {
 		addr = &svs.masters[i];
-		memset(addr, 0, sizeof(addr));
+		memset(addr, 0, sizeof(*addr));
 	}
 
 	// the first slot will always contain the default master
