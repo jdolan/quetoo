@@ -80,7 +80,7 @@ int Sv_ImageIndex(const char *name) {
  */
 static void Sv_CreateBaseline(void) {
 	g_edict_t *ent;
-	int i;
+	unsigned int i;
 
 	for (i = 1; i < svs.game->num_edicts; i++) {
 
@@ -252,7 +252,7 @@ static void Sv_InitClients(void) {
 
 		// invalidate last frame to force a baseline
 		svs.clients[i].last_frame = -1;
-		svs.clients[i].last_message = 0;
+		svs.clients[i].last_message = svs.real_time;
 	}
 }
 

@@ -54,12 +54,12 @@ typedef struct cl_emit_s {
 	r_model_t *mod; // model
 	const r_bsp_leaf_t *leaf; // for pvs culling
 	r_lighting_t lighting; // cached static lighting info
-	int time; // when to fire next
+	unsigned int time; // when to fire next
 } cl_emit_t;
 
 #define MAX_EMITS 256
 static cl_emit_t emits[MAX_EMITS];
-static int num_emits = 0;
+static unsigned short num_emits;
 
 /*
  * Cl_LoadEmits

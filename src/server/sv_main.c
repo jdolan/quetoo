@@ -81,14 +81,14 @@ void Sv_DropClient(sv_client_t *cl) {
 static const char *Sv_StatusString(void) {
 	char player[1024];
 	static char status[MAX_MSG_SIZE - 16];
-	int i;
 	sv_client_t *cl;
-	int statusLength;
-	int playerLength;
+	size_t status_len, player_len;
+	int i;
 
 	strcpy(status, Cvar_ServerInfo());
 	strcat(status, "\n");
-	statusLength = strlen(status);
+
+	status_len = strlen(status);
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
 
@@ -96,16 +96,16 @@ static const char *Sv_StatusString(void) {
 
 		if (cl->state == cs_connected || cl->state == cs_spawned) {
 
-			snprintf(player, sizeof(player), "%i %i \"%s\"\n",
+			snprintf(player, sizeof(player), "%d %u \"%s\"\n",
 					cl->edict->client->ps.stats[STAT_FRAGS], cl->ping, cl->name);
 
-			playerLength = strlen(player);
+			player_len = strlen(player);
 
-			if (statusLength + playerLength >= sizeof(status))
+			if (status_len + player_len >= sizeof(status))
 				break; // can't hold any more
 
-			strcpy(status + statusLength, player);
-			statusLength += playerLength;
+			strcpy(status + status_len, player);
+			status_len += player_len;
 		}
 	}
 
@@ -180,12 +180,11 @@ static void Svc_Ping(void) {
  * invalid connection IPs.  With a challenge, they must give a valid address.
  */
 static void Svc_GetChallenge(void) {
-	int i;
-	int oldest;
-	int oldestTime;
+	unsigned short i, oldest;
+	unsigned int oldest_time;
 
 	oldest = 0;
-	oldestTime = 0x7fffffff;
+	oldest_time = 0x7fffffff;
 
 	// see if we already have a challenge for this ip
 	for (i = 0; i < MAX_CHALLENGES; i++) {
@@ -193,8 +192,8 @@ static void Svc_GetChallenge(void) {
 		if (Net_CompareClientNetaddr(net_from, svs.challenges[i].addr))
 			break;
 
-		if (svs.challenges[i].time < oldestTime) {
-			oldestTime = svs.challenges[i].time;
+		if (svs.challenges[i].time < oldest_time) {
+			oldest_time = svs.challenges[i].time;
 			oldest = i;
 		}
 	}
@@ -222,8 +221,8 @@ static void Svc_Connect(void) {
 	sv_client_t *cl, *client;
 	net_addr_t addr;
 	int version;
-	int qport;
-	int challenge;
+	unsigned int qport;
+	unsigned int challenge;
 	int i;
 
 	Com_Debug("Svc_Connect()\n");
@@ -239,9 +238,9 @@ static void Svc_Connect(void) {
 		return;
 	}
 
-	qport = atoi(Cmd_Argv(2));
+	qport = strtoul(Cmd_Argv(2), NULL, 0);
 
-	challenge = atoi(Cmd_Argv(3));
+	challenge = strtoul(Cmd_Argv(3), NULL, 0);
 
 	//copy user_info, leave room for ip stuffing
 	strncpy(user_info, Cmd_Argv(4), sizeof(user_info) - 1 - 25);
@@ -504,7 +503,7 @@ static void Sv_UpdatePings(void) {
  * over the next interval, assume they are trying to cheat.
  */
 static void Sv_CheckCommandTimes(void) {
-	static int last_check_time = -9999;
+	static unsigned int last_check_time = -9999;
 	int i;
 
 	if (svs.real_time < last_check_time) { // wrap around from last level
@@ -529,7 +528,6 @@ static void Sv_CheckCommandTimes(void) {
 		if (sv_enforce_time->value) { // check them
 
 			if (abs(cl->cmd_msec) > CMD_MSEC_ALLOWABLE_DRIFT) { // irregular movement
-
 				cl->cmd_msec_errors++;
 
 				Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl),
@@ -543,7 +541,7 @@ static void Sv_CheckCommandTimes(void) {
 				}
 			} else { // normal movement
 
-				if (cl->cmd_msec_errors > 0) {
+				if (cl->cmd_msec_errors) {
 					cl->cmd_msec_errors--;
 				}
 			}
@@ -611,11 +609,15 @@ static void Sv_ReadPackets(void) {
  * Sv_CheckTimeouts
  */
 static void Sv_CheckTimeouts(void) {
-	int i;
 	sv_client_t *cl;
-	int timeout;
+	int i;
 
-	timeout = svs.real_time - 1000 * sv_timeout->value;
+	const unsigned int timeout = svs.real_time - 1000 * sv_timeout->value;
+
+	if (timeout > svs.real_time) {
+		// the server is just starting, don't bother
+		return;
+	}
 
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
@@ -624,6 +626,7 @@ static void Sv_CheckTimeouts(void) {
 
 		// enforce timeouts by dropping the client
 		if (cl->last_message < timeout) {
+			printf("what the hell: %u\n", cl->last_message);
 			Sv_BroadcastPrint(PRINT_HIGH, "%s timed out\n", cl->name);
 			Sv_DropClient(cl);
 		}
@@ -636,7 +639,7 @@ static void Sv_CheckTimeouts(void) {
  * Resets entity flags and other state which should only last one frame.
  */
 static void Sv_ResetEntities(void) {
-	int i;
+	unsigned int i;
 
 	if (sv.state != ss_game)
 		return;
@@ -800,7 +803,7 @@ char *Sv_NetaddrToString(sv_client_t *cl) {
  */
 void Sv_UserInfoChanged(sv_client_t *cl) {
 	char *val;
-	int i;
+	size_t i;
 
 	if (*cl->user_info == '\0') { // catch empty user_info
 		Com_Print("Empty user_info from %s\n", Sv_NetaddrToString(cl));
@@ -823,7 +826,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 
 	val = GetUserInfo(cl->user_info, "skin");
 	if (strstr(val, "..")) // catch malformed skins
-		SetUserInfo(cl->user_info, "skin", "ichabod/ichabod");
+		SetUserInfo(cl->user_info, "skin", "enforcer/qforcer");
 
 	// call game code to allow overrides
 	svs.game->ClientUserInfoChanged(cl->edict, cl->user_info);
@@ -859,8 +862,8 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 /*
  * Sv_Frame
  */
-void Sv_Frame(int msec) {
-	int frame_millis;
+void Sv_Frame(unsigned int msec) {
+	unsigned int frame_millis;
 
 	// if server is not active, do nothing
 	if (!svs.initialized)

@@ -290,12 +290,12 @@ boolean_t Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message)
 		return false;
 	}
 
-	if (ret == message->max_size) {
+	if ((unsigned)ret == message->max_size) {
 		Com_Warn("Oversize packet from %s\n", Net_NetaddrToString(*from));
 		return false;
 	}
 
-	message->size = ret;
+	message->size = (unsigned)ret;
 	return true;
 }
 

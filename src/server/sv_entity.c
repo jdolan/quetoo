@@ -290,13 +290,13 @@ static void Sv_FatPVS(const vec3_t org) {
  * copies off the playerstat and area_bits.
  */
 void Sv_BuildClientFrame(sv_client_t *client) {
-	int e, i;
+	unsigned int e;
 	vec3_t org;
 	g_edict_t *ent;
 	g_edict_t *clent;
 	sv_frame_t *frame;
 	entity_state_t *state;
-	int l;
+	int i, l;
 	int clientarea, clientcluster;
 	int leaf_num;
 	int c_fullsend;

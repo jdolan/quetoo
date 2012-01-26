@@ -140,7 +140,7 @@ void Netchan_OutOfBandPrint(int net_socket, net_addr_t addr,
  * called to open a channel to a remote system
  */
 void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr,
-		int qport) {
+		unsigned short qport) {
 	memset(chan, 0, sizeof(*chan));
 
 	chan->source = source;
@@ -165,6 +165,9 @@ boolean_t Netchan_CanReliable(net_chan_t *chan) {
 	return true;
 }
 
+/*
+ * Netchan_NeedReliable
+ */
 boolean_t Netchan_NeedReliable(net_chan_t *chan) {
 	boolean_t send_reliable;
 

@@ -182,7 +182,7 @@ typedef struct {
 #define LUMP_FACE_EDGES		12
 #define LUMP_MODELS			13
 #define LUMP_BRUSHES		14
-#define LUMP_BRUSH_SIDES		15
+#define LUMP_BRUSH_SIDES	15
 #define LUMP_POP			16
 #define LUMP_AREAS			17
 #define LUMP_AREA_PORTALS	18

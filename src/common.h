@@ -218,7 +218,7 @@ typedef struct quake2world_s {
 	int argc;
 	char *argv[MAX_NUM_ARGVS + 1];
 
-	int time;
+	unsigned int time;
 	int server_state;
 
 	void (*Debug)(const char *msg);

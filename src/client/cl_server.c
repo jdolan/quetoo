@@ -94,7 +94,7 @@ void Cl_ParseStatusMessage(void) {
 	// try to parse the info string
 	strncpy(info, Msg_ReadString(&net_message), sizeof(info) - 1);
 	info[sizeof(info) - 1] = '\0';
-	if (sscanf(info, "%63c\\%31c\\%31c\\%d\\%d", server->hostname,
+	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname,
 			server->name, server->gameplay, &server->clients,
 			&server->max_clients) != 5) {
 

@@ -197,9 +197,9 @@ typedef struct g_export_s {
 	//
 	// The size will be fixed when ge->Init() is called
 	struct g_edict_s *edicts;
-	int edict_size;
-	int num_edicts;  // current number, <= max_edicts
-	int max_edicts;
+	size_t edict_size;
+	unsigned int num_edicts;  // current number, <= max_edicts
+	unsigned int max_edicts;
 } g_export_t;
 
 #endif /* __GAME_H__ */

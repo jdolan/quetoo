@@ -236,7 +236,7 @@ void Cl_TracerEffect(const vec3_t start, const vec3_t end) {
  * Cl_BulletEffect
  */
 void Cl_BulletEffect(const vec3_t org, const vec3_t dir) {
-	static int last_ric_time;
+	static unsigned int last_ric_time;
 	r_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t v;

@@ -411,8 +411,8 @@ static void Sv_DemoCompleted(void) {
  * bandwidth estimation and should not be sent another packet
  */
 static boolean_t Sv_RateDrop(sv_client_t *c) {
-	int total;
-	int i;
+	unsigned int total;
+	unsigned short i;
 
 	// never drop over the loopback
 	if (c->netchan.remote_address.type == NA_LOCAL)
@@ -440,7 +440,7 @@ static boolean_t Sv_RateDrop(sv_client_t *c) {
  * returning the size of the frame in bytes.
  */
 static size_t Sv_GetDemoMessage(byte *buffer) {
-	size_t size;
+	int size;
 	size_t r;
 
 	r = Fs_Read(&size, 4, 1, sv.demo_file);
@@ -459,7 +459,7 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 	}
 
 	if (size > MAX_MSG_SIZE) { // corrupt demo file
-		Com_Warn("Sv_GetDemoMessage: %d > MAX_MSG_SIZE.\n", (int) size);
+		Com_Warn("Sv_GetDemoMessage: %d > MAX_MSG_SIZE.\n", size);
 		Sv_DemoCompleted();
 		return 0;
 	}

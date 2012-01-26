@@ -77,14 +77,14 @@ static void R_UploadLightmapBlock() {
 /*
  * R_AllocLightmapBlock
  */
-static boolean_t R_AllocLightmapBlock(int w, int h, int *x, int *y) {
-	int i, j;
-	int best;
+static boolean_t R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, unsigned int *x, unsigned int *y) {
+	size_t i, j;
+	unsigned int best;
 
 	best = r_lightmaps.size;
 
 	for (i = 0; i < r_lightmaps.size - w; i++) {
-		int best2 = 0;
+		unsigned int best2 = 0;
 
 		for (j = 0; j < w; j++) {
 			if (r_lightmaps.allocated[i + j] >= best)
@@ -253,10 +253,10 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout,
  * R_CreateSurfaceLightmap
  */
 void R_CreateSurfaceLightmap(r_bsp_surface_t *surf) {
-	int smax, tmax, stride;
+	unsigned int smax, tmax, stride;
 	byte *samples, *directions;
 
-	if (!(surf->flags & MSURF_LIGHTMAP))
+	if (!(surf->flags & R_SURF_LIGHTMAP))
 		return;
 
 	smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
@@ -304,17 +304,18 @@ void R_BeginBuildingLightmaps(void) {
 	// but clamp it to the card's capability to avoid errors
 	if (r_lightmaps.size < 256)
 		r_lightmaps.size = 256;
-	if (r_lightmaps.size > max)
-		r_lightmaps.size = max;
+
+	if (r_lightmaps.size > (size_t) max)
+		r_lightmaps.size = (size_t) max;
 
 	r_lightmaps.allocated = (unsigned *) R_HunkAlloc(
 			r_lightmaps.size * sizeof(unsigned));
 
 	r_lightmaps.sample_buffer = (byte *) R_HunkAlloc(
-			r_lightmaps.size * r_lightmaps.size * sizeof(unsigned));
+			r_lightmaps.size * r_lightmaps.size * sizeof(unsigned int));
 
 	r_lightmaps.direction_buffer = (byte *) R_HunkAlloc(
-			r_lightmaps.size * r_lightmaps.size * sizeof(unsigned));
+			r_lightmaps.size * r_lightmaps.size * sizeof(unsigned int));
 
 	r_lightmaps.lightmap_texnum = TEXNUM_LIGHTMAPS;
 	r_lightmaps.deluxemap_texnum = TEXNUM_DELUXEMAPS;

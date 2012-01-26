@@ -253,16 +253,17 @@ static size_t R_PreprocessShader(const char *name, const char *in, char *out,
 
 			while (*in) {
 
+				if (!len) {
+					Com_Error(ERR_DROP, "R_PreprocessShader: Overflow: %s",
+							name);
+				}
+
 				if (!strncmp(in, "#endif", 6)) {
 					in += 6;
 					break;
 				}
 
 				len--;
-				if (len < 0) {
-					Com_Error(ERR_DROP, "R_PreprocessShader: "
-						"Overflow: %s", name);
-				}
 
 				if (f) {
 					*out++ = *in++;
@@ -278,9 +279,11 @@ static size_t R_PreprocessShader(const char *name, const char *in, char *out,
 		}
 
 		// general case is to copy so long as the buffer has room
-		len--;
-		if (len < 0)
+		if (!len) {
 			Com_Error(ERR_DROP, "R_PreprocessShader: Overflow: %s", name);
+		}
+
+		len--;
 
 		*out++ = *in++;
 		i++;
@@ -296,10 +299,10 @@ static size_t R_PreprocessShader(const char *name, const char *in, char *out,
 static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	r_shader_t *sh;
 	char path[MAX_QPATH], *src[1], log[MAX_STRING_CHARS];
-	unsigned e, len, length[1];
+	unsigned e, length[1];
 	char *source;
 	void *buf;
-	int i;
+	int i, len;
 
 	snprintf(path, sizeof(path), "shaders/%s", name);
 

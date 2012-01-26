@@ -46,7 +46,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 	char path[MAX_QPATH];
 	const char *buffer, *c;
 	void *buf;
-	int skip;
+	unsigned short skip;
 
 	md3 = (r_md3_t *) mod->extra_data;
 
@@ -74,13 +74,13 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 		if (*c >= '0' && *c <= '9') {
 			r_md3_animation_t *a = &md3->animations[md3->num_animations];
 
-			a->first_frame = atoi(c);
+			a->first_frame = (unsigned short)strtoul(c, NULL, 0);
 			c = ParseToken(&buffer);
-			a->num_frames = atoi(c);
+			a->num_frames = (unsigned short)strtoul(c, NULL, 0);
 			c = ParseToken(&buffer);
-			a->looped_frames = atoi(c);
+			a->looped_frames = (unsigned short)strtoul(c, NULL, 0);
 			c = ParseToken(&buffer);
-			a->hz = atoi(c);
+			a->hz = (unsigned short)strtoul(c, NULL, 0);
 
 			if (md3->num_animations == ANIM_LEGS_WALKCR)
 				skip = a->first_frame

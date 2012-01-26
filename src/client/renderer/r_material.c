@@ -75,7 +75,7 @@ static void R_StageLighting(r_bsp_surface_t *surf, r_stage_t *stage) {
 
 	// if the surface has a lightmap, and the stage specifies lighting..
 
-	if (surf->flags & MSURF_LIGHTMAP && (stage->flags & (STAGE_LIGHTMAP
+	if (surf->flags & R_SURF_LIGHTMAP && (stage->flags & (STAGE_LIGHTMAP
 			| STAGE_LIGHTING))) {
 
 		R_EnableTexture(&texunit_lightmap, true);
@@ -354,7 +354,7 @@ static void R_DrawSurfaceStage(r_bsp_surface_t *surf, r_stage_t *stage) {
 void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs) {
 	r_material_t *m;
 	r_stage_t *s;
-	int i, j;
+	unsigned int i;
 
 	if (!r_materials->value || r_draw_wireframe->value)
 		return;
@@ -381,6 +381,7 @@ void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs) {
 	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
 
 	for (i = 0; i < surfs->count; i++) {
+		int j = -1;
 
 		r_bsp_surface_t *surf = surfs->surfaces[i];
 
@@ -391,7 +392,6 @@ void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs) {
 
 		R_UpdateMaterial(m);
 
-		j = -1;
 		for (s = m->stages; s; s = s->next, j--) {
 
 			if (!(s->flags & STAGE_RENDER))
@@ -581,7 +581,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			s->blend.src = R_ConstByName(c);
 
-			if (s->blend.src == -1) {
+			if (!s->blend.src) {
 				Com_Warn("R_ParseStage: Failed to resolve blend src: %s\n", c);
 				return -1;
 			}
@@ -589,7 +589,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			s->blend.dest = R_ConstByName(c);
 
-			if (s->blend.dest == -1) {
+			if (!s->blend.dest) {
 				Com_Warn("R_ParseStage: Failed to resolve blend dest: %s\n", c);
 				return -1;
 			}

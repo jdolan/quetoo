@@ -32,6 +32,8 @@
 #define YAW				1
 #define ROLL			2
 
+typedef unsigned short r_pixel_t;
+
 typedef struct r_stage_blend_s {
 	GLenum src, dest;
 } r_stage_blend_t;
@@ -71,15 +73,15 @@ typedef struct r_stage_dirt_s {
 #define MAX_ANIM_FRAMES 8
 
 typedef struct r_stage_anim_s {
-	int num_frames;
+	unsigned short num_frames;
 	struct r_image_s *images[MAX_ANIM_FRAMES];
 	float fps;
 	float dtime;
-	int dframe;
+	unsigned short dframe;
 } r_stage_anim_t;
 
 typedef struct r_stage_s {
-	unsigned flags;
+	unsigned int flags;
 	struct r_image_s *image;
 	r_stage_blend_t blend;
 	vec3_t color;
@@ -100,14 +102,14 @@ typedef struct r_stage_s {
 #define DEFAULT_SPECULAR 1.0
 
 typedef struct r_material_s {
-	unsigned flags;
+	unsigned int flags;
 	float time;
 	float bump;
 	float parallax;
 	float hardness;
 	float specular;
 	r_stage_t *stages;
-	int num_stages;
+	unsigned short num_stages;
 } r_material_t;
 
 // image types
@@ -129,8 +131,8 @@ typedef enum {
 typedef struct r_image_s {
 	char name[MAX_QPATH];  // game path, excluding extension
 	r_image_type_t type;
-	int width, height;  // source image
-	int upload_width, upload_height;  // after power of two
+	r_pixel_t width, height;  // source image
+	r_pixel_t upload_width, upload_height;  // after power of two
 	GLuint texnum;  // gl texture binding
 	r_material_t material;  // material definition
 	vec3_t color;  // average color
@@ -150,7 +152,7 @@ typedef struct {
 	vec3_t origin;  // for sounds or lights
 	float radius;
 	int head_node;
-	int first_face, num_faces;
+	unsigned short first_face, num_faces;
 } r_bsp_submodel_t;
 
 typedef struct {
@@ -159,7 +161,7 @@ typedef struct {
 
 typedef struct {
 	float vecs[2][4];
-	int flags;
+	unsigned int flags;
 	int value;
 	char name[32];
 	r_image_t *image;
@@ -174,9 +176,9 @@ typedef struct {
 	float alpha;
 } r_bsp_flare_t;
 
-// m_surface_t flags
-#define MSURF_SIDE_BACK	1
-#define MSURF_LIGHTMAP		2
+// r_bsp_surface_t flags
+#define R_SURF_SIDE_BACK	1
+#define R_SURF_LIGHTMAP		2
 
 typedef struct {
 	short vis_frame;  // PVS frame
@@ -185,10 +187,10 @@ typedef struct {
 	short light_frame;  // dynamic lighting frame
 
 	c_bsp_plane_t *plane;
-	int flags;  // MSURF_ flags
+	unsigned short flags;  // R_SURF flags
 
 	int first_edge;  // look up in model->surf_edges, negative numbers
-	short num_edges;  // are backwards edges
+	unsigned short num_edges;  // are backwards edges
 
 	vec3_t mins;
 	vec3_t maxs;
@@ -206,7 +208,7 @@ typedef struct {
 
 	r_bsp_flare_t *flare;
 
-	int light_s, light_t;  // lightmap texcoords
+	unsigned int light_s, light_t;  // lightmap texcoords
 	GLuint lightmap_texnum;
 	GLuint deluxemap_texnum;
 
@@ -215,14 +217,14 @@ typedef struct {
 
 	vec4_t color;
 
-	int lights;  // bit mask of enabled light sources
+	unsigned int lights;  // bit mask of enabled light sources
 } r_bsp_surface_t;
 
 // surfaces are assigned to arrays based on their primary rendering type
 // and then sorted by world texnum to reduce glBindTexture calls
 typedef struct {
 	r_bsp_surface_t **surfaces;
-	int count;
+	unsigned int count;
 } r_bsp_surfaces_t;
 
 #define sky_surfaces			sorted_surfaces[0]
@@ -305,21 +307,21 @@ typedef struct {
 
 	int flags;
 
-	int num_skins;
+	unsigned short num_skins;
 
-	int num_verts;
+	unsigned short num_verts;
 	r_md3_vertex_t *verts;
 	d_md3_texcoord_t *coords;
 
-	int num_tris;
-	unsigned *tris;
+	unsigned short num_tris;
+	unsigned int *tris;
 } r_md3_mesh_t;
 
 typedef struct {
-	int first_frame;
-	int num_frames;
-	int looped_frames;
-	int hz;
+	unsigned short first_frame;
+	unsigned short num_frames;
+	unsigned short looped_frames;
+	unsigned short hz;
 } r_md3_animation_t;
 
 typedef struct {
@@ -330,24 +332,24 @@ typedef struct {
 
 	int flags;
 
-	int num_frames;
+	unsigned short num_frames;
 	d_md3_frame_t *frames;
 
-	int num_tags;
+	unsigned short num_tags;
 	r_md3_tag_t *tags;
 
-	int num_meshes;
+	unsigned short num_meshes;
 	r_md3_mesh_t *meshes;
 
-	int num_animations;
+	unsigned short num_animations;
 	r_md3_animation_t *animations;
 } r_md3_t;
 
 // object model memory representation
 typedef struct {
-	int vert;
-	int normal;
-	int texcoord;
+	unsigned short vert;
+	unsigned short normal;
+	unsigned short texcoord;
 } r_obj_vert_t;
 
 typedef struct {
@@ -355,20 +357,20 @@ typedef struct {
 } r_obj_tri_t;
 
 typedef struct {
-	int num_verts;
-	int num_verts_parsed;
+	unsigned short num_verts;
+	unsigned short num_verts_parsed;
 	float *verts;
 
-	int num_normals;
-	int num_normals_parsed;
+	unsigned short num_normals;
+	unsigned short num_normals_parsed;
 	float *normals;
 
-	int num_texcoords;
-	int num_texcoords_parsed;
+	unsigned short num_texcoords;
+	unsigned short num_texcoords_parsed;
 	float *texcoords;
 
-	int num_tris;
-	int num_tris_parsed;
+	unsigned short num_tris;
+	unsigned short num_tris_parsed;
 	r_obj_tri_t *tris;
 } r_obj_t;
 
@@ -381,7 +383,7 @@ typedef enum {
 typedef struct {
 	vec3_t translate;
 	float scale;
-	int flags;  // EF_ALPHA_TEST, etc..
+	unsigned int flags;  // EF_ALPHA_TEST, etc..
 } r_mesh_config_t;
 
 typedef struct r_model_s {
@@ -390,65 +392,65 @@ typedef struct r_model_s {
 	r_model_type_t type;
 	int version;
 
-	int num_frames;
+	unsigned short num_frames;
 
-	int flags;
+	unsigned int flags;
 
 	vec3_t mins, maxs;
 	float radius;
 
 	// for bsp models
-	int num_submodels;
+	unsigned short num_submodels;
 	r_bsp_submodel_t *submodels;
 
-	int num_planes;
+	unsigned short num_planes;
 	c_bsp_plane_t *planes;
 
-	int num_leafs;
+	unsigned short num_leafs;
 	r_bsp_leaf_t *leafs;
 
-	int num_vertexes;
+	unsigned short num_vertexes;
 	r_bsp_vertex_t *vertexes;
 
-	int num_edges;
+	unsigned int num_edges;
 	r_bsp_edge_t *edges;
 
-	int num_nodes;
+	unsigned short num_nodes;
 	r_bsp_node_t *nodes;
-	int first_node;
+	unsigned short first_node;
 
-	int num_texinfo;
+	unsigned short num_texinfo;
 	r_bsp_texinfo_t *texinfo;
 
-	int num_surfaces;
+	unsigned short num_surfaces;
 	r_bsp_surface_t *surfaces;
 
-	int num_surface_edges;
+	unsigned int num_surface_edges;
 	int *surface_edges;
 
-	int num_leaf_surfaces;
+	unsigned short num_leaf_surfaces;
 	r_bsp_surface_t **leaf_surfaces;
 
-	int vis_size;
+	unsigned int vis_size;
 	d_bsp_vis_t *vis;
 
-	int lightmap_scale;
-	int lightmap_data_size;
+	unsigned short lightmap_scale;
+	unsigned int lightmap_data_size;
 	byte *lightmap_data;
 
-	int num_bsp_lights;
+	unsigned short num_bsp_lights;
 	r_bsp_light_t *bsp_lights;
 
 	// sorted surfaces arrays
 	r_bsp_surfaces_t *sorted_surfaces[NUM_SURFACES_ARRAYS];
 
-	int first_model_surface, num_model_surfaces;  // for submodels
-	int lights;  // bit mask of enabled light sources for submodels
+	unsigned short first_model_surface, num_model_surfaces;  // for submodels
+	unsigned int lights;  // bit mask of enabled light sources for submodels
 
 	// for mesh models
 	r_image_t *skin;
 
-	int num_verts;  // raw vertex primitive count, used to build arrays
+	GLuint num_verts;  // raw vertex primitive count, used to build arrays
 
 	GLfloat *verts;  // vertex arrays
 	GLfloat *texcoords;
@@ -468,7 +470,7 @@ typedef struct r_model_s {
 	r_mesh_config_t *view_config;
 	r_mesh_config_t *link_config;
 
-	int extra_data_size;
+	unsigned int extra_data_size;
 	void *extra_data;  // raw model data
 } r_model_t;
 
@@ -533,14 +535,14 @@ typedef struct r_entity_s {
 
 	struct r_model_s *model;
 
-	int frame, old_frame;  // frame-based animations
+	unsigned short frame, old_frame;  // frame-based animations
 	float lerp, back_lerp;
 
 	float scale;  // for mesh models
 
 	struct r_image_s *skin;  // NULL for default skin
 
-	int effects;  // e.g. EF_ROCKET, EF_WEAPON, ..
+	unsigned int effects;  // e.g. EF_ROCKET, EF_WEAPON, ..
 	vec3_t shell;  // shell color
 
 	r_lighting_t *lighting;  // static lighting information
@@ -560,8 +562,8 @@ typedef struct r_particle_s {
 	vec3_t dir;
 	float roll;
 	struct r_image_s *image;
-	int type;
-	int color;
+	unsigned short type;
+	unsigned int color;
 	float alpha;
 	float alpha_vel;
 	float current_alpha;
@@ -611,7 +613,7 @@ typedef enum render_mode_s {
 
 // read-write variables for renderer and client
 typedef struct r_view_s {
-	int x, y, width, height;  // in virtual screen coordinates
+	r_pixel_t x, y, width, height;  // in virtual screen coordinates
 	vec2_t fov;
 
 	vec3_t origin;  // client's view origin, angles, and velocity
@@ -630,19 +632,19 @@ typedef struct r_view_s {
 
 	r_render_mode_t render_mode;  // active renderer plugin
 
-	int weather;  // weather effects
+	byte weather;  // weather effects
 	vec4_t fog_color;
 
-	int num_entities;
+	unsigned short num_entities;
 	r_entity_t entities[MAX_ENTITIES];
 
-	int num_particles;
+	unsigned short num_particles;
 	r_particle_t particles[MAX_PARTICLES];
 
-	int num_coronas;
+	unsigned short num_coronas;
 	r_corona_t coronas[MAX_CORONAS];
 
-	int num_lights;
+	unsigned short num_lights;
 	r_light_t lights[MAX_LIGHTS];
 
 	r_sustained_light_t sustained_lights[MAX_LIGHTS];
@@ -652,15 +654,15 @@ typedef struct r_view_s {
 	c_trace_t trace;  // occlusion testing
 	r_entity_t *trace_ent;
 
-	int bsp_polys;  // counters
-	int mesh_polys;
+	unsigned int bsp_polys;  // counters
+	unsigned int mesh_polys;
 
 	boolean_t update;  // inform the client of state changes
 } r_view_t;
 
 // gl context information
 typedef struct r_context_s {
-	int width, height;
+	r_pixel_t width, height;
 
 	boolean_t fullscreen;
 

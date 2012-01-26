@@ -29,7 +29,7 @@ void R_AddSustainedLight(const r_sustained_light_t *s);
 
 #ifdef __R_LOCAL_H__
 void R_ResetLights(void);
-void R_MarkLights(void *data);
+void R_MarkLights(void);
 void R_ShiftLights(const vec3_t offset);
 void R_EnableLights(int mask);
 void R_EnableLightsByRadius(const vec3_t p);

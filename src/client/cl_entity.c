@@ -297,7 +297,7 @@ void Cl_ParseFrame(void) {
 		if (!old_frame->valid)
 			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta from invalid frame.\n");
 
-		if (old_frame->server_frame != cl.frame.delta_frame)
+		if (old_frame->server_frame != (unsigned int) cl.frame.delta_frame)
 			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta frame too old.\n");
 
 		else if (cl.entity_state - old_frame->entity_state

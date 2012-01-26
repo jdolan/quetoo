@@ -238,7 +238,7 @@ void R_DrawFrame(void) {
 
 	r_view.thread = Thread_Create(R_CullEntities, NULL);
 
-	R_MarkLights(NULL);
+	R_MarkLights();
 
 	R_DrawOpaqueSurfaces(r_world_model->opaque_surfaces);
 

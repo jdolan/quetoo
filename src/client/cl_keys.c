@@ -119,7 +119,7 @@ static cl_key_state_t *ks = &cls.key_state;
 static void Cl_KeyConsole(unsigned key, unsigned short unicode, boolean_t down,
 		unsigned time) {
 	boolean_t numlock = ks->down[K_NUMLOCK];
-	int i;
+	size_t i;
 
 	if (!down) // don't care
 		return;
@@ -192,7 +192,9 @@ static void Cl_KeyConsole(unsigned key, unsigned short unicode, boolean_t down,
 	}
 
 	if (key == K_RIGHTARROW || (key == K_KP_RIGHTARROW && !numlock)) { // move cursor right
-		if ((i = strlen(ks->lines[ks->edit_line])) == ks->pos)
+		i = strlen(ks->lines[ks->edit_line]);
+
+		if (i == ks->pos)
 			return; // no character to get
 
 		if (ks->down[K_CTRL]) { //by a whole word
@@ -412,12 +414,9 @@ static int Cl_StringToKeyNum(const char *str) {
  * given key_num.
  * FIXME: handle quote special (general escape sequence?)
  */
-const char *Cl_KeyNumToString(int key_num) {
+const char *Cl_KeyNumToString(unsigned short key_num) {
 	key_name_t *kn;
 	static char s[2];
-
-	if (key_num == -1)
-		return "<KEY NOT FOUND>";
 
 	if (key_num > 32 && key_num < 127) { // printable ASCII
 		s[0] = key_num;
@@ -527,7 +526,7 @@ static void Cl_Bind_f(void) {
  * Writes lines containing "bind key value"
  */
 void Cl_WriteBindings(FILE *f) {
-	int i;
+	unsigned short i;
 
 	for (i = K_FIRST; i < K_LAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
@@ -538,7 +537,7 @@ void Cl_WriteBindings(FILE *f) {
  * Cl_Bindlist_f
  */
 static void Cl_BindList_f(void) {
-	int i;
+	unsigned short i;
 
 	for (i = K_FIRST; i < K_LAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
@@ -551,7 +550,7 @@ static void Cl_BindList_f(void) {
 static void Cl_WriteHistory(void) {
 	FILE *f;
 	char path[MAX_OSPATH];
-	int i;
+	unsigned int i;
 
 	snprintf(path, sizeof(path), "%s/history", Fs_Gamedir());
 	f = fopen(path, "w");

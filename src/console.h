@@ -33,33 +33,33 @@
 // common console structures
 typedef struct {
 	// console data
-	char text[CON_TEXT_SIZE]; 	// buffer to hold the console data
-	char *insert;			// where to add new text
+	char text[CON_TEXT_SIZE]; // buffer to hold the console data
+	char *insert; // where to add new text
 } console_data_t;
 
 typedef struct {
 	boolean_t initialized;
 	// console dimensions
-	int width;			// console printable width in characters
-	int height;			// console printable height in characters
+	unsigned short width; // console printable width in characters
+	unsigned short height; // console printable height in characters
 
 	// console index
-	int line_color[CON_MAX_LINES];	// text color at the start of the line
-	char *line_start[CON_MAX_LINES];	// an index to word-wrapped line starts
-	int last_line;			// last line of the console
+	int line_color[CON_MAX_LINES]; // text color at the start of the line
+	char *line_start[CON_MAX_LINES]; // an index to word-wrapped line starts
+	int last_line; // last line of the console
 
-	int scroll;			// scroll position
+	int scroll; // scroll position
 
-	float notify_times[CON_NUM_NOTIFY];  	// cls.real_time time the line was generated
-					// for transparent notify lines
+	float notify_times[CON_NUM_NOTIFY]; // cls.real_time time the line was generated
+// for transparent notify lines
 } console_t;
 
 // common console functions
 void Con_Init(void);
 void Con_Shutdown(void);
 void Con_Print(const char *text);
-void Con_Resize(console_t *con, int width, int height);
-int Con_CompleteCommand(char *input_text, int *input_position);
+void Con_Resize(console_t *con, unsigned short width, unsigned short height);
+int Con_CompleteCommand(char *input_text, unsigned short *input_position);
 
 #ifdef HAVE_CURSES
 
@@ -69,7 +69,6 @@ int Con_CompleteCommand(char *input_text, int *input_position);
 #define CURSES_HISTORYSIZE 64
 #define CURSES_LINESIZE 1024
 #define CURSES_TIMEOUT 250	// 250 msec redraw timeout
-
 // structures for the server console
 extern console_t sv_con;
 extern cvar_t *con_curses;
@@ -77,7 +76,7 @@ extern cvar_t *con_timeout;
 
 void Curses_Init(void);
 void Curses_Shutdown(void);
-void Curses_Frame(int msec);
+void Curses_Frame(unsigned int msec);
 void Curses_Refresh(void);
 
 #endif /* HAVE_CURSES */

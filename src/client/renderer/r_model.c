@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 r_model_t r_models[MAX_MOD_KNOWN];
-int r_num_models;
+unsigned short r_num_models;
 
 r_model_t r_inline_models[MAX_BSP_MODELS];
 
@@ -188,7 +188,7 @@ r_model_t *R_LoadModel(const char *name) {
 	char n[MAX_QPATH];
 	void *buf;
 	vec3_t tmp;
-	int i;
+	unsigned short i;
 
 	if (!name || !name[0]) {
 		Com_Error(ERR_DROP, "R_LoadModel: NULL name.");

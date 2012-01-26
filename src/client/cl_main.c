@@ -464,7 +464,7 @@ static void Cl_ReadPackets(void) {
 /*
  * Cl_LoadProgress
  */
-void Cl_LoadProgress(int percent) {
+void Cl_LoadProgress(unsigned short percent) {
 
 	cls.loading = percent;
 
@@ -725,9 +725,9 @@ static void Cl_WriteConfiguration(void) {
 /*
  * Cl_Frame
  */
-void Cl_Frame(int msec) {
+void Cl_Frame(unsigned int msec) {
 	boolean_t packet_frame = true, render_frame = true;
-	int ms;
+	unsigned int ms;
 
 	if (dedicated->value)
 		return;

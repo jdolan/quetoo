@@ -39,7 +39,7 @@ extern const float default_texcoords[];
 typedef struct r_texunit_s {
 	boolean_t enabled;  // GL_TEXTURE_2D on / off
 	GLenum texture;  // e.g. GL_TEXTURE0_ARB
-	GLint texnum;  // e.g 123
+	GLuint texnum;  // e.g 123
 	GLfloat texcoord_array[MAX_GL_ARRAY_LENGTH * 2];
 } r_texunit_t;
 

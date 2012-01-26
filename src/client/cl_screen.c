@@ -55,9 +55,9 @@ static void Cl_Netgraph(float value, int color) {
  * Cl_AddNetgraph
  */
 void Cl_AddNetgraph(void) {
-	int i;
-	int in;
-	int ping;
+	unsigned int i;
+	unsigned int in;
+	unsigned int ping;
 
 	// we only need to do our accounting when asked to
 	if (!cl_net_graph->value)
@@ -138,7 +138,8 @@ void Cl_CenterPrint(char *str) {
  */
 static void Cl_DrawCenterString(void) {
 	const char *s;
-	int x, y, cw, ch, size, len;
+	r_pixel_t x, y, cw, ch;
+	size_t size, len;
 
 	R_BindFont(NULL, &cw, &ch);
 
@@ -222,7 +223,8 @@ int frames_this_second = 0, packets_this_second = 0, bytes_this_second = 0;
 static void Cl_DrawCounters(void) {
 	static vec3_t velocity;
 	static char bps[8], pps[8], fps[8], spd[8];
-	static int millis, cw, ch;
+	static int millis;
+	r_pixel_t cw, ch;
 
 	if (!cl_counters->value)
 		return;

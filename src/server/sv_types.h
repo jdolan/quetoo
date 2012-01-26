@@ -37,8 +37,8 @@ typedef enum {
 typedef struct sv_server_s {
 	sv_state_t state;  // precache commands are only valid during load
 
-	int time;  // always sv.frame_num * 1000 / sv_packetrate->value
-	int frame_num;
+	unsigned int time;  // always sv.frame_num * 1000 / sv_packetrate->value
+	unsigned int frame_num;
 
 	char name[MAX_QPATH];  // map name
 	struct c_model_s *models[MAX_MODELS];
@@ -67,9 +67,9 @@ typedef struct sv_frame_s {
 	int area_bytes;
 	byte area_bits[MAX_BSP_AREAS / 8];  // portal area visibility bits
 	player_state_t ps;
-	int num_entities;
-	int first_entity;  // index into svs.entity_states array
-	int sent_time;  // for ping calculations
+	unsigned short num_entities;
+	unsigned short first_entity;  // index into svs.entity_states array
+	unsigned int sent_time;  // for ping calculations
 } sv_frame_t;
 
 #define CLIENT_LATENCY_COUNTS 16  // frame latency, averaged to determine ping
@@ -93,15 +93,15 @@ typedef struct sv_client_s {
 	int last_frame;  // for delta compression
 	user_cmd_t last_cmd;  // for filling in big drops
 
-	int cmd_msec;  // for sv_enforcetime
-	int cmd_msec_errors;  // maintain how many problems we've seen
+	unsigned int cmd_msec;  // for sv_enforce_time
+	unsigned short cmd_msec_errors;  // maintain how many problems we've seen
 
-	int frame_latency[CLIENT_LATENCY_COUNTS];
-	int ping;
+	unsigned int frame_latency[CLIENT_LATENCY_COUNTS];
+	unsigned int ping;
 
-	int message_size[CLIENT_RATE_MESSAGES];  // used to rate drop packets
-	int rate;
-	int surpress_count;  // number of messages rate suppressed
+	unsigned int message_size[CLIENT_RATE_MESSAGES];  // used to rate drop packets
+	unsigned int rate;
+	unsigned int surpress_count;  // number of messages rate suppressed
 
 	g_edict_t *edict;  // EDICT_FOR_NUM(client_num + 1)
 	char name[32];  // extracted from user_info, high bits masked
@@ -115,10 +115,10 @@ typedef struct sv_client_s {
 	sv_frame_t frames[UPDATE_BACKUP];  // updates can be delta'd from here
 
 	byte *download;  // file being downloaded
-	int download_size;  // total bytes (can't use EOF because of paks)
-	int download_count;  // bytes sent
+	unsigned int download_size;  // total bytes (can't use EOF because of paks)
+	unsigned int download_count;  // bytes sent
 
-	int last_message;  // svs.real_time when packet was last received
+	unsigned int last_message;  // svs.real_time when packet was last received
 
 	boolean_t recording;  // client is currently recording a demo
 
@@ -139,8 +139,8 @@ typedef struct sv_client_s {
 // and must then re-use to acquire a client slot
 typedef struct sv_challenge_s {
 	net_addr_t addr;
-	int challenge;
-	int time;
+	unsigned int challenge;
+	unsigned int time;
 } sv_challenge_t;
 
 // MAX_CHALLENGES is made large to prevent a denial of service attack that
@@ -149,11 +149,11 @@ typedef struct sv_challenge_s {
 
 typedef struct sv_static_s {
 	boolean_t initialized;  // sv_init has completed
-	int real_time;  // always increasing, no clamping, etc
+	unsigned int real_time;  // always increasing, no clamping, etc
 
-	int spawn_count;  // incremented each level start, used to check late spawns
+	unsigned int spawn_count;  // incremented each level start, used to check late spawns
 
-	int frame_rate;  // configurable server frame rate
+	unsigned short frame_rate;  // configurable server frame rate
 
 	sv_client_t *clients;  // server-side client structures
 
@@ -163,12 +163,12 @@ typedef struct sv_static_s {
 	// the size of this array is based on the number of clients we might be
 	// asked to support at any point in time during the current game
 
-	int num_entity_states;  // sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES
-	int next_entity_state;  // next entity_state to use for newly spawned entities
+	unsigned int num_entity_states;  // sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES
+	unsigned int next_entity_state;  // next entity_state to use for newly spawned entities
 	entity_state_t *entity_states;  // entity states array used for delta compression
 
 	net_addr_t masters[MAX_MASTERS];
-	int last_heartbeat;
+	unsigned int last_heartbeat;
 
 	sv_challenge_t challenges[MAX_CHALLENGES];  // to prevent invalid IPs from connecting
 

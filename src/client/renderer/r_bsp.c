@@ -115,8 +115,8 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e) {
 		else
 			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
 
-		if (((surf->flags & MSURF_SIDE_BACK) && (dot < -BACK_PLANE_EPSILON))
-				|| (!(surf->flags & MSURF_SIDE_BACK) && (dot
+		if (((surf->flags & R_SURF_SIDE_BACK) && (dot < -BACK_PLANE_EPSILON))
+				|| (!(surf->flags & R_SURF_SIDE_BACK) && (dot
 						> BACK_PLANE_EPSILON))) {
 			// visible, flag for rendering
 			surf->frame = r_locals.frame;
@@ -322,7 +322,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node) {
 		side_bit = 0;
 	} else {
 		side = 1;
-		side_bit = MSURF_SIDE_BACK;
+		side_bit = R_SURF_SIDE_BACK;
 	}
 
 	// recurse down the children, front side first
@@ -335,7 +335,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node) {
 
 		if (surf->vis_frame == r_locals.vis_frame) { // it's been marked
 
-			if ((surf->flags & MSURF_SIDE_BACK) != side_bit) { // but back-facing
+			if ((surf->flags & R_SURF_SIDE_BACK) != side_bit) { // but back-facing
 				surf->frame = -1;
 				surf->back_frame = r_locals.frame;
 			} else { // draw it

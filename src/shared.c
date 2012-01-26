@@ -697,6 +697,8 @@ static boolean_t GlobMatchStar(const char *pattern, const char *text) {
 		if (*t++ == '\0')
 			return false;
 	}
+
+	return false;
 }
 
 /*
@@ -1006,6 +1008,8 @@ char *GetUserInfo(const char *s, const char *key) {
 			return "";
 		s++;
 	}
+
+	return "";
 }
 
 /*

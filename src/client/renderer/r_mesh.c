@@ -482,13 +482,13 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
  */
 void R_DrawMeshModel_default(const r_entity_t *e) {
 
-	if (e->frame >= e->model->num_frames || e->frame < 0) {
+	if (e->frame >= e->model->num_frames) {
 		Com_Warn("R_DrawMeshModel %s: no such frame %d\n", e->model->name,
 				e->frame);
 		return;
 	}
 
-	if (e->old_frame >= e->model->num_frames || e->old_frame < 0) {
+	if (e->old_frame >= e->model->num_frames) {
 		Com_Warn("R_DrawMeshModel %s: no such old_frame %d\n", e->model->name,
 				e->old_frame);
 		return;

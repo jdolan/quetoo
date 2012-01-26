@@ -315,7 +315,7 @@ int skytexorder[6] = { 0, 2, 1, 3, 4, 5 };
  */
 void R_DrawSkyBox(void) {
 	r_bsp_surfaces_t *surfs;
-	int i, j;
+	unsigned int i, j;
 
 	surfs = r_world_model->sky_surfaces;
 	j = 0;

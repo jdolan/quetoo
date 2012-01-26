@@ -51,9 +51,9 @@ extern cvar_t *password;
 extern cvar_t *rate;
 extern cvar_t *skin;
 
-void Cl_LoadProgress(int percent);
+void Cl_LoadProgress(unsigned short percent);
 void Cl_Disconnect(void);
-void Cl_Frame(int msec);
+void Cl_Frame(unsigned int msec);
 void Cl_Init(void);
 void Cl_Shutdown(void);
 

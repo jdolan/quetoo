@@ -41,24 +41,24 @@ typedef struct cg_import_s {
 	void (*Trace)(vec3_t start, vec3_t end, float radius, int mask);
 
 	// context parameters
-	int *width, *height;
+	r_pixel_t *width, *height;
 
 	// view parameteres
-	int *x, *y, *w, *h;
+	r_pixel_t *x, *y, *w, *h;
 
 	// client time
-	int *time;
+	unsigned int *time;
 
 	// 256 color palette for particle and effect colors
 	unsigned *palette;
 
 	r_image_t *(*LoadPic)(const char *name);
-	void (*DrawPic)(int x, int y, float scale, const char *name);
-	void (*DrawFill)(int x, int y, int w, int h, int c, float a);
+	void (*DrawPic)(r_pixel_t x, r_pixel_t y, float scale, const char *name);
+	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int c, float a);
 
-	void (*BindFont)(const char *name, int *cw, int *ch);
-	int (*StringWidth)(const char *s);
-	int (*DrawString)(int x, int y, const char *s, int color);
+	void (*BindFont)(const char *name, r_pixel_t *cw, r_pixel_t *ch);
+	r_pixel_t (*StringWidth)(const char *s);
+	size_t (*DrawString)(r_pixel_t x, r_pixel_t y, const char *s, int color);
 } cg_import_t;
 
 // exposed to the engine by the client game

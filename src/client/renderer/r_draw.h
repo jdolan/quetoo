@@ -25,18 +25,18 @@
 #include "r_types.h"
 
 r_image_t *R_LoadPic(const char *name);
-void R_DrawPic(int x, int y, float scale, const char *name);
-void R_DrawCursor(int x, int y);
-void R_BindFont(const char *name, int *cw, int *ch);
-int R_StringWidth(const char *s);
-int R_DrawString(int x, int y, const char *s, int color);
-int R_DrawBytes(int x, int y, const char *s, size_t size, int color);
-int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size, int color);
-void R_DrawChar(int x, int y, char c, int color);
+void R_DrawPic(r_pixel_t x, r_pixel_t y, float scale, const char *name);
+void R_DrawCursor(r_pixel_t x, r_pixel_t y);
+void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch);
+r_pixel_t R_StringWidth(const char *s);
+size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, int color);
+size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, int color);
+size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size, int color);
+void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int color);
 void R_DrawChars(void);
-void R_DrawFill(int x, int y, int w, int h, int c, float a);
+void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int c, float a);
 void R_DrawFills(void);
-void R_DrawLine(int x1, int y1, int x2, int y2, int c, float a);
+void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int c, float a);
 void R_DrawLines(void);
 void R_FreePics(void);
 

@@ -24,7 +24,7 @@
 
 #include "cl_types.h"
 
-const char *Cl_KeyNumToString(int key_num);
+const char *Cl_KeyNumToString(unsigned short key_num);
 
 #ifdef __CL_LOCAL_H__
 

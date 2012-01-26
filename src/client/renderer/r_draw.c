@@ -27,13 +27,13 @@
 // accumulate coordinates and colors as vertex arrays
 typedef struct r_char_arrays_s {
 	GLfloat texcoords[MAX_CHARS * 4 * 2];
-	int texcoord_index;
+	unsigned int texcoord_index;
 
 	GLshort verts[MAX_CHARS * 4 * 2];
-	int vert_index;
+	unsigned int vert_index;
 
 	GLbyte colors[MAX_CHARS * 4 * 4];
-	int color_index;
+	unsigned int color_index;
 } r_char_arrays_t;
 
 #define MAX_FILLS 512
@@ -41,10 +41,10 @@ typedef struct r_char_arrays_s {
 // fills (alpha-blended quads) are also batched per frame
 typedef struct r_fill_arrays_s {
 	GLshort verts[MAX_FILLS * 4 * 2];
-	int vert_index;
+	unsigned int vert_index;
 
 	GLbyte colors[MAX_FILLS * 4 * 4];
-	int color_index;
+	unsigned int color_index;
 } r_fill_arrays_t;
 
 #define MAX_LINES 512
@@ -52,10 +52,10 @@ typedef struct r_fill_arrays_s {
 // lines are batched per frame too
 typedef struct r_line_arrays_s {
 	GLshort verts[MAX_LINES * 2 * 2];
-	int vert_index;
+	unsigned int vert_index;
 
 	GLbyte colors[MAX_LINES * 2 * 4];
-	int color_index;
+	unsigned int color_index;
 } r_line_arrays_t;
 
 // each font has vertex arrays of characters to draw each frame
@@ -64,8 +64,8 @@ typedef struct r_font_s {
 
 	r_image_t *image;
 
-	int char_width;
-	int char_height;
+	r_pixel_t char_width;
+	r_pixel_t char_height;
 } r_font_t;
 
 #define MAX_FONTS 3
@@ -76,14 +76,14 @@ typedef struct r_draw_s {
 	r_image_t *cursor;
 
 	// registered fonts
-	int num_fonts;
+	unsigned short num_fonts;
 	r_font_t fonts[MAX_FONTS];
 
 	// active font
 	r_font_t *font;
 
 	// actual text colors as ABGR unsigned integers
-	unsigned colors[MAX_COLORS];
+	unsigned int colors[MAX_COLORS];
 
 	r_char_arrays_t char_arrays[MAX_FONTS];
 	r_fill_arrays_t fill_arrays;
@@ -114,7 +114,7 @@ r_image_t *R_LoadPic(const char *name) {
 /*
  * R_DrawImage
  */
-static void R_DrawImage(int x, int y, float scale, r_image_t *image) {
+static void R_DrawImage(r_pixel_t x, r_pixel_t y, float scale, r_image_t *image) {
 
 	R_BindTexture(image->texnum);
 
@@ -138,7 +138,7 @@ static void R_DrawImage(int x, int y, float scale, r_image_t *image) {
 /*
  * R_DrawPic
  */
-void R_DrawPic(int x, int y, float scale, const char *name) {
+void R_DrawPic(r_pixel_t x, r_pixel_t y, float scale, const char *name) {
 	r_image_t *pic;
 
 	pic = R_LoadPic(name);
@@ -154,7 +154,7 @@ void R_DrawPic(int x, int y, float scale, const char *name) {
 /*
  * R_DrawCursor
  */
-void R_DrawCursor(int x, int y) {
+void R_DrawCursor(r_pixel_t x, r_pixel_t y) {
 
 	x -= (r_draw.cursor->width / 2.0);
 	y -= (r_draw.cursor->height / 2.0);
@@ -167,12 +167,12 @@ void R_DrawCursor(int x, int y) {
  *
  * Binds the specified font, returning the character width and height.
  */
-void R_BindFont(const char *name, int *cw, int *ch) {
+void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 
 	r_draw.font = &r_draw.fonts[1]; // medium is the default font
 
 	if (name) { // try to find it
-		int i;
+		unsigned short i;
 
 		for (i = 0; i < r_draw.num_fonts; i++) {
 			if (!strcmp(name, r_draw.fonts[i].name)) {
@@ -199,7 +199,7 @@ void R_BindFont(const char *name, int *cw, int *ch) {
  * Return the width of the specified string in pixels. This will vary based
  * on the currently bound font. Color escapes are omitted.
  */
-int R_StringWidth(const char *s) {
+r_pixel_t R_StringWidth(const char *s) {
 	char stripped[MAX_STRING_CHARS];
 
 	StripColor(s, stripped);
@@ -210,14 +210,14 @@ int R_StringWidth(const char *s) {
 /*
  * R_DrawString
  */
-int R_DrawString(int x, int y, const char *s, int color) {
+size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, int color) {
 	return R_DrawSizedString(x, y, s, 999, 999, color);
 }
 
 /*
  * R_DrawBytes
  */
-int R_DrawBytes(int x, int y, const char *s, size_t size, int color) {
+size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, int color) {
 	return R_DrawSizedString(x, y, s, size, size, color);
 }
 
@@ -227,9 +227,9 @@ int R_DrawBytes(int x, int y, const char *s, size_t size, int color) {
  * Draws at most len chars or size bytes of the specified string.  Color escape
  * sequences are not visible chars.  Returns the number of chars drawn.
  */
-int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size,
+size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size,
 		int color) {
-	int i, j;
+	size_t i, j;
 
 	i = j = 0;
 	while (*s && i < len && j < size) {
@@ -262,24 +262,24 @@ int R_DrawSizedString(int x, int y, const char *s, size_t len, size_t size,
 /*
  * R_DrawChar
  */
-void R_DrawChar(int x, int y, char c, int color) {
+void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int color) {
 
-	if (y <= -r_draw.font->char_height)
-		return; // totally off screen
+	if (x > r_context.width || y > r_context.height)
+		return;
 
 	if (c == ' ')
 		return; // small optimization for space
 
 	r_char_arrays_t *chars = &r_draw.char_arrays[r_draw.font - r_draw.fonts];
 
-	const int row = (int) c >> 4;
-	const int col = (int) c & 15;
+	const unsigned int row = (unsigned int) c >> 4;
+	const unsigned int col = (unsigned int) c & 15;
 
 	const float frow = row * 0.1250;
 	const float fcol = col * 0.0625;
 
 	// resolve ABGR color
-	const unsigned *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];
+	const unsigned int *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];
 
 	memcpy(&chars->colors[chars->color_index + 0], abgr, 4);
 	memcpy(&chars->colors[chars->color_index + 4], abgr, 4);
@@ -321,7 +321,7 @@ void R_DrawChar(int x, int y, char c, int color) {
  * R_DrawChars
  */
 void R_DrawChars(void) {
-	int i;
+	unsigned short i;
 
 	for (i = 0; i < r_draw.num_fonts; i++) {
 		r_char_arrays_t *chars = &r_draw.char_arrays[i];
@@ -362,7 +362,7 @@ void R_DrawChars(void) {
  * The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
-void R_DrawFill(int x, int y, int w, int h, int c, float a) {
+void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int c, float a) {
 	byte color[4];
 
 	if (a > 1.0) {
@@ -433,7 +433,7 @@ void R_DrawFills(void) {
 /*
  * R_DrawLine
  */
-void R_DrawLine(int x1, int y1, int x2, int y2, int c, float a) {
+void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int c, float a) {
 	byte color[4];
 
 	if (a > 1.0) {

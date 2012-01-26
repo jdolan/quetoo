@@ -46,7 +46,7 @@ r_image_t *r_flare_images[NUM_FLARE_IMAGES]; // lense flares
 r_image_t *r_warp_image; // fragment program warping
 
 r_image_t r_images[MAX_GL_TEXTURES];
-int r_num_images;
+unsigned short r_num_images;
 
 GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 GLint r_filter_max = GL_LINEAR;
@@ -56,39 +56,39 @@ GLfloat r_filter_aniso = 1.0;
 
 typedef struct {
 	const char *name;
-	int minimize, maximize;
-} r_texturemode_t;
+	GLenum minimize, maximize;
+} r_texture_mode_t;
 
-r_texturemode_t r_texturemodes[] = {
-	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
-	{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
-	{"GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
-	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
-};
+r_texture_mode_t r_texture_modes[] = {
+		{ "GL_NEAREST", GL_NEAREST, GL_NEAREST }, { "GL_LINEAR", GL_LINEAR,
+				GL_LINEAR }, { "GL_NEAREST_MIPMAP_NEAREST",
+				GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
+		{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR }, {
+				"GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR,
+				GL_NEAREST }, { "GL_LINEAR_MIPMAP_LINEAR",
+				GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR } };
 
-#define NUM_GL_TEXTUREMODES (sizeof(r_texturemodes) / sizeof(r_texturemode_t))
+#define NUM_GL_TEXTURE_MODES (sizeof(r_texture_modes) / sizeof(r_texture_mode_t))
 
 /*
- * R_TextureMode
+ * R_texture_mode
  */
 void R_TextureMode(const char *mode) {
 	r_image_t *image;
-	int i;
+	unsigned short i;
 
-	for (i = 0; i < NUM_GL_TEXTUREMODES; i++) {
-		if (!strcasecmp(r_texturemodes[i].name, mode))
+	for (i = 0; i < NUM_GL_TEXTURE_MODES; i++) {
+		if (!strcasecmp(r_texture_modes[i].name, mode))
 			break;
 	}
 
-	if (i == NUM_GL_TEXTUREMODES) {
-		Com_Warn("R_TextureMode: Bad filter name.\n");
+	if (i == NUM_GL_TEXTURE_MODES) {
+		Com_Warn("R_texture_mode: Bad filter name.\n");
 		return;
 	}
 
-	r_filter_min = r_texturemodes[i].minimize;
-	r_filter_max = r_texturemodes[i].maximize;
+	r_filter_min = r_texture_modes[i].minimize;
+	r_filter_max = r_texture_modes[i].maximize;
 
 	if (r_anisotropy->value)
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_filter_aniso);
@@ -180,7 +180,7 @@ void R_Screenshot_f(void) {
 	byte *buffer;
 	FILE *f;
 
-	void (*Img_Write)(char *path, byte *img_data, int width, int height,
+	void (*Img_Write)(const char *path, byte *img_data, int width, int height,
 			int quality);
 
 	// use format specified in type cvar
@@ -212,7 +212,7 @@ void R_Screenshot_f(void) {
 	}
 
 	if (i == MAX_SCREENSHOTS) {
-		Com_Print("R_Screenshot_f: Couldn't create a file\n");
+		Com_Warn("R_Screenshot_f: Failed to create %s\n", file_name);
 		return;
 	}
 

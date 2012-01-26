@@ -492,8 +492,10 @@ void Cl_ParseServerMessage(void) {
 			break;
 
 		default:
-			Com_Print("Cl_ParseServerMessage: Illegible server message\n"
-				"  %d: last command was %s\n", cmd, svc_strings[old_cmd]);
+			Com_Error(ERR_DROP,
+					"Cl_ParseServerMessage: Illegible server message:\n"
+						"  %d: last command was %s\n", cmd,
+					svc_strings[old_cmd]);
 			break;
 		}
 	}

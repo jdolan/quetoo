@@ -58,7 +58,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 
 #define MAX_GL_TEXTURES		1024
 extern r_image_t r_images[MAX_GL_TEXTURES];
-extern int r_num_images;
+extern unsigned short r_num_images;
 
 #define MAX_GL_LIGHTMAPS 	256
 #define TEXNUM_LIGHTMAPS 	MAX_GL_TEXTURES

@@ -131,7 +131,8 @@ void Cl_InitConsole(void) {
  */
 static void Cl_DrawInput(void) {
 	char edit_line_copy[KEY_LINESIZE], *text;
-	int i, y, ch;
+	r_pixel_t ch;
+	size_t i, y;
 
 	R_BindFont("small", NULL, &ch);
 
@@ -139,7 +140,7 @@ static void Cl_DrawInput(void) {
 	y = strlen(text);
 
 	// add the cursor frame
-	if ((int) (cls.real_time >> 8) & 1) {
+	if ((unsigned int) (cls.real_time >> 8) & 1) {
 		text[cls.key_state.pos] = CON_CURSOR_CHAR;
 		if (y == cls.key_state.pos)
 			y++;
@@ -163,11 +164,8 @@ static void Cl_DrawInput(void) {
  * Draws the last few lines of output transparently over the game top
  */
 void Cl_DrawNotify(void) {
-	int i, y, cw, ch;
-	char *s;
-	int skip;
-	int len;
-	int color;
+	r_pixel_t y, cw, ch;
+	int i, color;
 
 	if (cls.state != ca_active)
 		return;
@@ -176,10 +174,9 @@ void Cl_DrawNotify(void) {
 
 	y = 0;
 
-	for (i = cl_con.last_line - CON_NUM_NOTIFY; i < cl_con.last_line; i++) {
+	for(i = cl_con.last_line - CON_NUM_NOTIFY; i < cl_con.last_line; i++) {
 		if (i < 0)
 			continue;
-
 		if (cl_con.notify_times[i % CON_NUM_NOTIFY] + con_notify_time->value
 				* 1000 > cls.real_time) {
 			R_DrawBytes(0, y, cl_con.line_start[i],
@@ -190,6 +187,9 @@ void Cl_DrawNotify(void) {
 	}
 
 	if (cls.key_state.dest == key_message) {
+		unsigned short skip;
+		size_t len;
+		char *s;
 
 		if (cls.chat_state.team) {
 			color = CON_COLOR_TEAMCHAT;
@@ -204,13 +204,9 @@ void Cl_DrawNotify(void) {
 		R_DrawChar((skip - 2) * cw, y, ':', color);
 
 		s = cls.chat_state.buffer;
-		// FIXME check the skipped part for color codes
-		if (cls.chat_state.len > (r_context.width / cw) - (skip + 1))
-			s += cls.chat_state.len - ((r_context.width / cw) - (skip + 1));
-
 		len = R_DrawString(skip * cw, y, s, color);
 
-		if ((int) (cls.real_time >> 8) & 1) // draw the cursor
+		if ((unsigned int) (cls.real_time >> 8) & 1) // draw the cursor
 			R_DrawChar((len + skip) * cw, y, CON_CURSOR_CHAR, color);
 	}
 
@@ -224,7 +220,7 @@ void Cl_DrawConsole(void) {
 	int line;
 	int lines;
 	int kb;
-	int y, cw, ch;
+	r_pixel_t y, cw, ch;
 	char dl[MAX_STRING_CHARS];
 
 	if (cls.key_state.dest != key_console)

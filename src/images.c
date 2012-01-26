@@ -50,7 +50,7 @@ typedef unsigned char boolean;
 
 // 8bit palette for wal images and particles
 #define PALETTE "pics/colormap"
-unsigned palette[256];
+unsigned int palette[256];
 //FIXME: use false instead of 0, silly workaround for silly bug
 boolean_t palette_initialized = 0;
 
@@ -60,7 +60,7 @@ typedef struct miptex_s {
 	unsigned width, height;
 	unsigned offsets[4]; // four mip maps stored
 	char animname[32]; // next frame in animation chain
-	int flags;
+	unsigned int flags;
 	int contents;
 	int value;
 } miptex_t;
@@ -91,7 +91,7 @@ SDL_PixelFormat format = { NULL, // palette
 		};
 
 // image formats, tried in this order
-char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
+const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
 
 /*
  * Img_LoadImage
@@ -101,7 +101,7 @@ char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
  *
  * Image formats are tried in the order they appear in TYPES.
  */
-boolean_t Img_LoadImage(char *name, SDL_Surface **surf) {
+boolean_t Img_LoadImage(const char *name, SDL_Surface **surf) {
 	int i;
 
 	i = 0;
@@ -119,7 +119,7 @@ boolean_t Img_LoadImage(char *name, SDL_Surface **surf) {
  * A helper which mangles a .wal file into an SDL_Surface suitable for
  * OpenGL uploads and other basic manipulations.
  */
-static boolean_t Img_LoadWal(char *path, SDL_Surface **surf) {
+static boolean_t Img_LoadWal(const char *path, SDL_Surface **surf) {
 	void *buf;
 	miptex_t *mt;
 	int i, size;
@@ -172,7 +172,7 @@ static boolean_t Img_LoadWal(char *path, SDL_Surface **surf) {
  * Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
  */
-boolean_t Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf) {
+boolean_t Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
 	char path[MAX_QPATH];
 	void *buf;
 	int len;
@@ -192,7 +192,7 @@ boolean_t Img_LoadTypedImage(char *name, char *type, SDL_Surface **surf) {
 		return false;
 	}
 
-	if (!(*surf = IMG_LoadTyped_RW(rw, 0, type))) {
+	if (!(*surf = IMG_LoadTyped_RW(rw, 0, (char *)type))) {
 		SDL_FreeRW(rw);
 		Fs_FreeFile(buf);
 		return false;
@@ -280,7 +280,7 @@ static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb,
  *
  * Write pixel data to a JPEG file.
  */
-void Img_WriteJPEG(char *path, byte *img_data, int width, int height,
+void Img_WriteJPEG(const char *path, byte *img_data, int width, int height,
 		int quality) {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -332,7 +332,7 @@ void Img_WriteJPEG(char *path, byte *img_data, int width, int height,
  *
  * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
-void Img_WriteTGARLE(char *path, byte *img_data, int width, int height) {
+void Img_WriteTGARLE(const char *path, byte *img_data, int width, int height, int quality) {
 	FILE *tga_file;
 	const unsigned int channels = TGA_CHANNELS; // 24-bit RGB
 	unsigned char header[18];

@@ -110,7 +110,7 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
  * Cl_UpdateDucking
  */
 static void Cl_UpdateDucking(void) {
-	static int ducktime, standtime;
+	static unsigned int ducktime, standtime;
 	vec3_t mins, maxs;
 	float height, view_height;
 

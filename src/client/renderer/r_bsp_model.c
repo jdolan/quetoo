@@ -43,18 +43,13 @@ static void R_LoadBspLightmaps(const d_bsp_lump_t *l) {
 		memcpy(r_load_model->lightmap_data, mod_base + l->file_ofs, l->file_len);
 	}
 
-	r_load_model->lightmap_scale = -1;
+	r_load_model->lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
 
 	// resolve lightmap scale
 	if ((c = R_WorldspawnValue("lightmap_scale"))) {
-
-		r_load_model->lightmap_scale = atoi(c);
-
+		r_load_model->lightmap_scale = strtoul(c, NULL, 0);
 		Com_Debug("Resolved lightmap_scale: %d\n", r_load_model->lightmap_scale);
 	}
-
-	if (r_load_model->lightmap_scale == -1) // ensure safe default
-		r_load_model->lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
 }
 
 /*
@@ -397,7 +392,7 @@ static void R_LoadBspSurfaces(const d_bsp_lump_t *l) {
 		// and sidedness
 		side = LittleShort(in->side);
 		if (side) {
-			out->flags |= MSURF_SIDE_BACK;
+			out->flags |= R_SURF_SIDE_BACK;
 			VectorNegate(out->plane->normal, out->normal);
 		} else
 			VectorCopy(out->plane->normal, out->normal);
@@ -411,7 +406,7 @@ static void R_LoadBspSurfaces(const d_bsp_lump_t *l) {
 		out->texinfo = r_load_model->texinfo + ti;
 
 		if (!(out->texinfo->flags & (SURF_WARP | SURF_SKY)))
-			out->flags |= MSURF_LIGHTMAP;
+			out->flags |= R_SURF_LIGHTMAP;
 
 		// and size, texcoords, etc
 		R_SetupBspSurface(out);
@@ -703,7 +698,7 @@ static void R_LoadBspVertexArrays(void) {
 			r_load_model->texcoords[texcoord_index + 0] = s;
 			r_load_model->texcoords[texcoord_index + 1] = t;
 
-			if (surf->flags & MSURF_LIGHTMAP) { // lightmap coordinates
+			if (surf->flags & R_SURF_LIGHTMAP) { // lightmap coordinates
 				s = DotProduct(point, sdir) + soff;
 				s -= surf->st_mins[0];
 				s += surf->light_s * r_load_model->lightmap_scale;
@@ -774,7 +769,7 @@ static r_bsp_surfaces_t *r_sorted_surfaces[MAX_GL_TEXTURES];
  * R_SortBspSurfacesArrays_
  */
 static void R_SortBspSurfacesArrays_(r_bsp_surfaces_t *surfs) {
-	int i, j;
+	unsigned int i, j;
 
 	for (i = 0; i < surfs->count; i++) {
 
@@ -989,7 +984,7 @@ static void R_LoadBspSurfacesArrays(void) {
 void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	extern void Cl_LoadProgress(int percent);
 	d_bsp_header_t *header;
-	int i, version;
+	unsigned int i, version;
 
 	if (r_world_model) {
 		Com_Error(ERR_DROP, "R_LoadBspModel: Loaded bsp model after world.");

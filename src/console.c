@@ -135,14 +135,12 @@ static void Con_Update(console_t *con, char *pos) {
  *
  * Change the width of an index, parse the console data structure if needed
  */
-void Con_Resize(console_t *con, int width, int height) {
+void Con_Resize(console_t *con, unsigned short width, unsigned short height) {
 	if (!console_data.insert)
 		return;
 
-	if (con->height != height) {
-		// FIXME check con->scroll
+	if (con->height != height)
 		con->height = height;
-	}
 
 	if (con->width == width)
 		return;
@@ -389,7 +387,7 @@ static const char *complete[MAX_COMPLETE_MATCHES];
  *  append it.  If multiple matches are found, append the longest possible
  *  common prefix they all share.
  */
-int Con_CompleteCommand(char *input_text, int *input_position) {
+int Con_CompleteCommand(char *input_text, unsigned short *input_position) {
 	const char *match, *partial;
 	const char *cmd = 0, *dir = 0, *ext = 0;
 	int matches;

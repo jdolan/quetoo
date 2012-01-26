@@ -67,7 +67,7 @@ static void Sv_New_f(void) {
  * Sv_ConfigStrings_f
  */
 static void Sv_ConfigStrings_f(void) {
-	int start;
+	unsigned int start;
 
 	Com_Debug("ConfigStrings() from %s\n", Sv_NetaddrToString(sv_client));
 
@@ -78,16 +78,16 @@ static void Sv_ConfigStrings_f(void) {
 	}
 
 	// handle the case of a level changing while a client was connecting
-	if (atoi(Cmd_Argv(1)) != svs.spawn_count) {
+	if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawn_count) {
 		Com_Debug("Sv_ConfigStrings_f: Stale spawn count from %s\n",
 				Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
 
-	start = atoi(Cmd_Argv(2));
+	start = strtoul(Cmd_Argv(2), NULL, 0);
 
-	if (start < 0 || start >= MAX_CONFIG_STRINGS) { // catch bad offsets
+	if (start >= MAX_CONFIG_STRINGS) { // catch bad offsets
 		Com_Warn("Sv_ConfigStrings_f: Bad config_string offset from %s\n",
 				Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
@@ -122,7 +122,7 @@ static void Sv_ConfigStrings_f(void) {
  * Sv_Baselines_f
  */
 static void Sv_Baselines_f(void) {
-	int start;
+	unsigned int start;
 	entity_state_t nullstate;
 	entity_state_t *base;
 
@@ -135,21 +135,14 @@ static void Sv_Baselines_f(void) {
 	}
 
 	// handle the case of a level changing while a client was connecting
-	if (atoi(Cmd_Argv(1)) != svs.spawn_count) {
+	if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawn_count) {
 		Com_Debug("Sv_Baselines_f: Stale spawn count from %s\n",
 				Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
 
-	start = atoi(Cmd_Argv(2));
-
-	if (start < 0) { // catch negative offset
-		Com_Warn("Sv_Baselines_f: Illegal offset from %s\n",
-				Sv_NetaddrToString(sv_client));
-		Sv_KickClient(sv_client, NULL);
-		return;
-	}
+	start = strtoul(Cmd_Argv(2), NULL, 0);
 
 	memset(&nullstate, 0, sizeof(nullstate));
 
@@ -195,7 +188,7 @@ static void Sv_Begin_f(void) {
 		return;
 
 	// handle the case of a level changing while a client was connecting
-	if (atoi(Cmd_Argv(1)) != svs.spawn_count) {
+	if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawn_count) {
 		Com_Debug("Sv_Begin_f: Stale spawn count from %s\n",
 				Sv_NetaddrToString(sv_client));
 		Sv_New_f();
@@ -250,8 +243,9 @@ static void Sv_NextDownload_f(void) {
 }
 
 // only these prefixes are valid downloads, all else are denied
-static const char *downloadable[] = { "*.pak", "maps/*", "sounds/*", "env/*",
-		"textures/*", NULL };
+static const char *downloadable[] = {
+	"*.pak", "maps/*", "sounds/*", "env/*", "textures/*", NULL
+};
 
 /*
  * Sv_Download_f
@@ -259,15 +253,15 @@ static const char *downloadable[] = { "*.pak", "maps/*", "sounds/*", "env/*",
 static void Sv_Download_f(void) {
 	const char *name;
 	void *buf;
-	int i = 0, offset = 0;
+	unsigned int i = 0, offset = 0;
 
 	name = Cmd_Argv(1);
 
 	if (Cmd_Argc() > 2)
-		offset = atoi(Cmd_Argv(2)); // downloaded offset
+		offset = strtoul(Cmd_Argv(2), NULL, 0); // downloaded offset
 
 	// catch illegal offset or file_names
-	if (offset < 0 || *name == '.' || *name == '/' || *name == '\\' || strstr(
+	if (*name == '.' || *name == '/' || *name == '\\' || strstr(
 			name, "..")) {
 		Com_Warn("Sv_Download_f: Malicious download (%s:%d) from %s\n", name,
 				offset, Sv_NetaddrToString(sv_client));

@@ -26,9 +26,9 @@
 static WINDOW *stdwin; // ncurses standard window
 
 static char input[CURSES_HISTORYSIZE][CURSES_LINESIZE];
-static int history_line;
-static int input_line;
-static int input_pos;
+static unsigned short history_line;
+static unsigned short input_line;
+static unsigned short input_pos;
 
 console_t sv_con;
 
@@ -233,7 +233,7 @@ static void Curses_Resize(int sig) {
  *
  * Handle curses input and redraw if necessary
  */
-void Curses_Frame(int msec) {
+void Curses_Frame(unsigned int msec) {
 	int key;
 	char buf[CURSES_LINESIZE];
 

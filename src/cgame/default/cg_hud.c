@@ -65,10 +65,10 @@ static void Cg_DrawIcon(int x, int y, float scale, short icon) {
  *
  * Draws the vital numeric and icon, flashing on low quantities.
  */
-static void Cg_DrawVital(int x, short value, short icon, short med, short low) {
+static void Cg_DrawVital(r_pixel_t x, short value, short icon, short med, short low) {
 	const boolean_t flash = (*cgi.time / 100) & 1;
 
-	int y = *cgi.y + *cgi.h - HUD_PIC_HEIGHT + 4;
+	r_pixel_t y = *cgi.y + *cgi.h - HUD_PIC_HEIGHT + 4;
 	int color = COLOR_HUD_STAT;
 
 	const char *string = va("%3d", value);
@@ -98,7 +98,7 @@ static void Cg_DrawVital(int x, short value, short icon, short med, short low) {
  * Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawVitals(player_state_t *ps) {
-	int x, cw, x_offset;
+	r_pixel_t x, cw, x_offset;
 
 	cgi.BindFont("large", &cw, NULL);
 
@@ -139,7 +139,7 @@ static void Cg_DrawVitals(player_state_t *ps) {
  * Cg_DrawPickup
  */
 static void Cg_DrawPickup(player_state_t *ps) {
-	int x, y, cw, ch;
+	r_pixel_t x, y, cw, ch;
 
 	cgi.BindFont(NULL, &cw, &ch);
 
@@ -166,7 +166,7 @@ static void Cg_DrawPickup(player_state_t *ps) {
  */
 static void Cg_DrawFrags(player_state_t *ps) {
 	const short frags = ps->stats[STAT_FRAGS];
-	int x, y, cw, ch;
+	r_pixel_t x, y, cw, ch;
 
 	if (ps->stats[STAT_SPECTATOR])
 		return;
@@ -193,7 +193,7 @@ static void Cg_DrawFrags(player_state_t *ps) {
  */
 static void Cg_DrawCaptures(player_state_t *ps) {
 	const short captures = ps->stats[STAT_CAPTURES];
-	int x, y, cw, ch;
+	r_pixel_t x, y, cw, ch;
 
 	if (ps->stats[STAT_SPECTATOR])
 		return;
@@ -222,7 +222,7 @@ static void Cg_DrawCaptures(player_state_t *ps) {
  * Cg_DrawSpectator
  */
 static void Cg_DrawSpectator(player_state_t *ps) {
-	int x, y, cw;
+	r_pixel_t x, y, cw;
 
 	if (!ps->stats[STAT_SPECTATOR])
 		return;
@@ -239,7 +239,7 @@ static void Cg_DrawSpectator(player_state_t *ps) {
  * Cg_DrawChase
  */
 static void Cg_DrawChase(player_state_t *ps) {
-	int x, y, ch;
+	r_pixel_t x, y, ch;
 	char string[MAX_USER_INFO_VALUE * 2], *s;
 
 	if (!ps->stats[STAT_CHASE])
@@ -271,7 +271,7 @@ static void Cg_DrawChase(player_state_t *ps) {
  * Cg_DrawVote
  */
 static void Cg_DrawVote(player_state_t *ps) {
-	int x, y, ch;
+	r_pixel_t x, y, ch;
 	char string[MAX_STRING_CHARS];
 
 	if (!ps->stats[STAT_VOTE])
@@ -293,7 +293,7 @@ static void Cg_DrawVote(player_state_t *ps) {
  * Cg_DrawTime
  */
 static void Cg_DrawTime(player_state_t *ps) {
-	int x, y, ch;
+	r_pixel_t x, y, ch;
 	char *string = cgi.ConfigString(CS_TIME);
 
 	cgi.BindFont("small", NULL, &ch);
@@ -313,7 +313,7 @@ static void Cg_DrawTime(player_state_t *ps) {
  * Cg_DrawReady
  */
 static void Cg_DrawReady(player_state_t *ps) {
-	int x, y, ch;
+	r_pixel_t x, y, ch;
 
 	if (!ps->stats[STAT_READY])
 		return;
@@ -332,8 +332,9 @@ static void Cg_DrawReady(player_state_t *ps) {
  * Cg_DrawTeamBanner
  */
 static void Cg_DrawTeam(player_state_t *ps) {
-	const int team = ps->stats[STAT_TEAM];
-	int x, y, color;
+	const short team = ps->stats[STAT_TEAM];
+	r_pixel_t x, y;
+	int color;
 
 	if (!team)
 		return;
@@ -357,7 +358,8 @@ static void Cg_DrawTeam(player_state_t *ps) {
  * Cg_DrawCrosshair
  */
 static void Cg_DrawCrosshair(player_state_t *ps) {
-	int x, y, c;
+	r_pixel_t x, y;
+	int color;
 
 	if (!cg_crosshair->value)
 		return;
@@ -400,8 +402,8 @@ static void Cg_DrawCrosshair(player_state_t *ps) {
 	if (cg_crosshair_color->modified) { // crosshair color
 		cg_crosshair_color->modified = false;
 
-		c = ColorByName(cg_crosshair_color->string, 14);
-		memcpy(&crosshair.color, &cgi.palette[c], sizeof(crosshair.color));
+		color = ColorByName(cg_crosshair_color->string, 14);
+		memcpy(&crosshair.color, &cgi.palette[color], sizeof(crosshair.color));
 	}
 
 	glColor4ubv(crosshair.color);
@@ -419,11 +421,11 @@ static void Cg_DrawCrosshair(player_state_t *ps) {
  * Cg_DrawBlend
  */
 static void Cg_DrawBlend(player_state_t *ps) {
-	static int h, a, p;
-	static int last_blend_time;
+	static short h, a, p;
+	static unsigned int last_blend_time;
 	static int color;
 	static float alpha;
-	int dh, da, dp;
+	short dh, da, dp;
 	float al, t;
 
 	if (!cg_blend->value)

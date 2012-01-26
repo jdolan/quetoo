@@ -166,9 +166,9 @@ static void TW_CALL Ui_BindSet(const void *value, void *data) {
 static void TW_CALL Ui_BindGet(void *value, void *data) {
 	char **binds = cls.key_state.binds;
 	char *bind = (char *) data;
-	int i;
+	unsigned short i;
 
-	for (i = 0; i < K_LAST; i++) {
+	for (i = K_FIRST; i < K_LAST; i++) {
 		if (binds[i] && !strcasecmp(bind, binds[i])) {
 			strcpy(value, Cl_KeyNumToString(i));
 			return;

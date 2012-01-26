@@ -26,16 +26,12 @@
 #include "cvar.h"
 
 #define MAX_MSG_SIZE 	1400  // max length of a message
-
 typedef enum {
-	NA_LOCAL,
-	NA_IP_BROADCAST,
-	NA_IP
+	NA_LOCAL, NA_IP_BROADCAST, NA_IP
 } net_adr_type_t;
 
 typedef enum {
-	NS_CLIENT,
-	NS_SERVER
+	NS_CLIENT, NS_SERVER
 } net_src_t;
 
 typedef struct {
@@ -59,39 +55,38 @@ char *Net_NetaddrToString(net_addr_t a);
 boolean_t Net_StringToNetaddr(const char *s, net_addr_t *a);
 void Net_Sleep(int msec);
 
-
 typedef struct {
 	boolean_t fatal_error;
 
 	net_src_t source;
 
-	int dropped;  // between last packet and previous
+	unsigned int dropped; // between last packet and previous
 
-	int last_received;  // for timeouts
-	int last_sent;  // for retransmits
+	unsigned int last_received; // for timeouts
+	unsigned int last_sent; // for retransmits
 
 	net_addr_t remote_address;
 
-	int qport;  // qport value to write when transmitting
+	unsigned short qport; // qport value to write when transmitting
 
 	// sequencing variables
-	int incoming_sequence;
-	int incoming_acknowledged;
-	int incoming_reliable_acknowledged;  // single bit
+	unsigned int incoming_sequence;
+	unsigned int incoming_acknowledged;
+	unsigned int incoming_reliable_acknowledged; // single bit
 
-	int incoming_reliable_sequence;  // single bit, maintained local
+	unsigned int incoming_reliable_sequence; // single bit, maintained local
 
-	int outgoing_sequence;
-	int reliable_sequence;  // single bit
-	int last_reliable_sequence;  // sequence number of last send
+	unsigned int outgoing_sequence;
+	unsigned int reliable_sequence; // single bit
+	unsigned int last_reliable_sequence; // sequence number of last send
 
 	// reliable staging and holding areas
-	size_buf_t message;  // writing buffer to send to server
-	byte message_buffer[MAX_MSG_SIZE - 16];  // leave space for header
+	size_buf_t message; // writing buffer to send to server
+	byte message_buffer[MAX_MSG_SIZE - 16]; // leave space for header
 
 	// message is copied to this buffer when it is first transfered
-	int reliable_size;
-	byte reliable_buffer[MAX_MSG_SIZE - 16];  // unacked reliable message
+	size_t reliable_size;
+	byte reliable_buffer[MAX_MSG_SIZE - 16]; // un-acked reliable message
 } net_chan_t;
 
 extern net_addr_t net_from;
@@ -99,10 +94,12 @@ extern size_buf_t net_message;
 extern byte net_message_buffer[MAX_MSG_SIZE];
 
 void Netchan_Init(void);
-void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t adr, int qport);
+void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t adr,
+		unsigned short qport);
 void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data);
 void Netchan_OutOfBand(int net_socket, net_addr_t adr, size_t size, byte *data);
-void Netchan_OutOfBandPrint(int net_socket, net_addr_t adr, const char *format, ...) __attribute__((format(printf, 3, 4)));
+void Netchan_OutOfBandPrint(int net_socket, net_addr_t adr, const char *format,
+		...) __attribute__((format(printf, 3, 4)));
 boolean_t Netchan_Process(net_chan_t *chan, size_buf_t *msg);
 boolean_t Netchan_CanReliable(net_chan_t *chan);
 boolean_t Netchan_NeedReliable(net_chan_t *chan);
