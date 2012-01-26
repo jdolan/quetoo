@@ -219,7 +219,7 @@ boolean_t Net_IsLocalNetaddr(net_addr_t addr) {
  */
 static boolean_t Net_GetLocalPacket(net_src_t source, net_addr_t *from,
 		size_buf_t *message) {
-	int i;
+	unsigned int i;
 	loopback_t *loop;
 
 	loop = &loopbacks[source];
@@ -242,9 +242,8 @@ static boolean_t Net_GetLocalPacket(net_src_t source, net_addr_t *from,
 /*
  * Net_SendLocalPacket
  */
-static void Net_SendLocalPacket(net_src_t source, size_t length, void *data,
-		net_addr_t to) {
-	int i;
+static void Net_SendLocalPacket(net_src_t source, size_t length, void *data) {
+	unsigned int i;
 	loopback_t *loop;
 
 	loop = &loopbacks[source ^ 1];
@@ -260,7 +259,8 @@ static void Net_SendLocalPacket(net_src_t source, size_t length, void *data,
  * Net_GetPacket
  */
 boolean_t Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
-	int ret, err;
+	ssize_t ret;
+	int err;
 	struct sockaddr_in from_addr;
 	socklen_t from_len;
 	char *s;
@@ -290,8 +290,8 @@ boolean_t Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message)
 		return false;
 	}
 
-	if ((unsigned)ret == message->max_size) {
-		Com_Warn("Oversize packet from %s\n", Net_NetaddrToString(*from));
+	if (ret == ((ssize_t) message->max_size)) {
+		Com_Warn("Oversized packet from %s\n", Net_NetaddrToString(*from));
 		return false;
 	}
 
@@ -307,7 +307,7 @@ void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
 	int sock, ret;
 
 	if (to.type == NA_LOCAL) {
-		Net_SendLocalPacket(source, size, data, to);
+		Net_SendLocalPacket(source, size, data);
 		return;
 	}
 
