@@ -178,7 +178,7 @@ typedef struct sv_static_s {
 extern sv_static_t svs;  // persistent server info
 
 // macros for resolving game entities on the server
-#define EDICT_FOR_NUM(n)( (g_edict_t *)((void *)svs.game->edicts + svs.game->edict_size * (n)) )
-#define NUM_FOR_EDICT(e)( ((void *)(e) - (void *)svs.game->edicts) / svs.game->edict_size )
+#define EDICT_FOR_NUM(n)( (g_edict_t *)((char *)svs.game->edicts + svs.game->edict_size * (n)) )
+#define NUM_FOR_EDICT(e)( ((char *)(e) - (char *)svs.game->edicts) / svs.game->edict_size )
 
 #endif /* __SV_TYPES_H__ */
