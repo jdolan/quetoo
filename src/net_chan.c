@@ -92,7 +92,7 @@ void Netchan_Init(void) {
 	net_showdrop = Cvar_Get("net_showdrop", "0", 0, NULL);
 
 	// assign a small random number for the qport
-	p = ((int) time(NULL)) & 255;
+	p = ((unsigned int) time(NULL)) & 255;
 	net_qport = Cvar_Get("net_qport", va("%d", p), CVAR_NOSET, NULL);
 }
 
@@ -140,7 +140,7 @@ void Netchan_OutOfBandPrint(int net_socket, net_addr_t addr,
  * called to open a channel to a remote system
  */
 void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr,
-		unsigned short qport) {
+		byte qport) {
 	memset(chan, 0, sizeof(*chan));
 
 	chan->source = source;
@@ -198,7 +198,7 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	size_buf_t send;
 	byte send_buffer[MAX_MSG_SIZE];
 	boolean_t send_reliable;
-	unsigned w1, w2;
+	unsigned int w1, w2;
 
 	// check for message overflow
 	if (chan->message.overflowed) {
@@ -269,9 +269,9 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
  * modifies net_message so that it points to the packet payload
  */
 boolean_t Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
-	unsigned sequence, sequence_ack;
-	unsigned reliable_ack, reliable_message;
-	int qport;
+	unsigned int sequence, sequence_ack;
+	unsigned int reliable_ack, reliable_message;
+	byte qport;
 
 	// get sequence numbers
 	Msg_BeginReading(msg);

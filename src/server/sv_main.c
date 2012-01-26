@@ -221,7 +221,7 @@ static void Svc_Connect(void) {
 	sv_client_t *cl, *client;
 	net_addr_t addr;
 	int version;
-	unsigned int qport;
+	byte qport;
 	unsigned int challenge;
 	int i;
 
@@ -238,7 +238,7 @@ static void Svc_Connect(void) {
 		return;
 	}
 
-	qport = strtoul(Cmd_Argv(2), NULL, 0);
+	qport = strtoul(Cmd_Argv(2), NULL, 0) & 0xff;
 
 	challenge = strtoul(Cmd_Argv(3), NULL, 0);
 
@@ -304,8 +304,8 @@ static void Svc_Connect(void) {
 			continue;
 
 		// the base address and either the qport or real port must match
-		if (Net_CompareClientNetaddr(addr, ch->remote_address) && (qport
-				== ch->qport || ch->remote_address.port == addr.port)) {
+		if (Net_CompareClientNetaddr(addr, ch->remote_address) &&
+				(qport == ch->qport || ch->remote_address.port == addr.port)) {
 			client = cl;
 			break;
 		}
@@ -557,7 +557,7 @@ static void Sv_CheckCommandTimes(void) {
 static void Sv_ReadPackets(void) {
 	int i;
 	sv_client_t *cl;
-	int qport;
+	byte qport;
 
 	while (Net_GetPacket(NS_SERVER, &net_from, &net_message)) {
 

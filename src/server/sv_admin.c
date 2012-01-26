@@ -193,7 +193,7 @@ static void Sv_Status_f(void) {
 	int i, j, l;
 	sv_client_t *cl;
 	char *s;
-	int ping;
+	unsigned int ping;
 
 	if (!svs.initialized) {
 		Com_Print("No server running.\n");
@@ -233,7 +233,7 @@ static void Sv_Status_f(void) {
 		for (j = 0; j < l; j++)
 			Com_Print(" ");
 
-		Com_Print("%5i", cl->netchan.qport);
+		Com_Print("%5i", (int)cl->netchan.qport);
 
 		Com_Print("\n");
 	}

@@ -72,7 +72,7 @@ extern void Sv_ShutdownServer(const char *msg);
  */
 static void Cl_SendConnect(void) {
 	net_addr_t addr;
-	int qport;
+	byte qport;
 
 	memset(&addr, 0, sizeof(addr));
 
@@ -85,7 +85,7 @@ static void Cl_SendConnect(void) {
 	if (addr.port == 0) // use default port
 		addr.port = BigShort(PORT_SERVER);
 
-	qport = (int) Cvar_GetValue("net_qport"); // has been set by netchan
+	qport = (byte) Cvar_GetValue("net_qport"); // has been set by netchan
 
 	Netchan_OutOfBandPrint(NS_CLIENT, addr, "connect %i %i %i \"%s\"\n",
 			PROTOCOL, qport, cls.challenge, Cvar_UserInfo());
@@ -345,7 +345,7 @@ void Cl_Reconnect_f(void) {
 static void Cl_ConnectionlessPacket(void) {
 	char *s;
 	char *c;
-	int qport;
+	byte qport;
 
 	Msg_BeginReading(&net_message);
 	Msg_ReadLong(&net_message); // skip the -1
@@ -366,7 +366,7 @@ static void Cl_ConnectionlessPacket(void) {
 			return;
 		}
 
-		qport = (int) Cvar_GetValue("net_qport");
+		qport = (byte) Cvar_GetValue("net_qport");
 		Netchan_Setup(NS_CLIENT, &cls.netchan, net_from, qport);
 		Msg_WriteChar(&cls.netchan.message, clc_string);
 		Msg_WriteString(&cls.netchan.message, "new");

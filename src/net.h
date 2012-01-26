@@ -45,7 +45,8 @@ void Net_Shutdown(void);
 
 void Net_Config(net_src_t source, boolean_t up);
 
-boolean_t Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message);
+boolean_t
+		Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message);
 void Net_SendPacket(net_src_t source, size_t length, void *data, net_addr_t to);
 
 boolean_t Net_CompareNetaddr(net_addr_t a, net_addr_t b);
@@ -67,7 +68,7 @@ typedef struct {
 
 	net_addr_t remote_address;
 
-	unsigned short qport; // qport value to write when transmitting
+	byte qport; // qport value to write when transmitting
 
 	// sequencing variables
 	unsigned int incoming_sequence;
@@ -94,11 +95,11 @@ extern size_buf_t net_message;
 extern byte net_message_buffer[MAX_MSG_SIZE];
 
 void Netchan_Init(void);
-void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t adr,
-		unsigned short qport);
+void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr,
+		byte qport);
 void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data);
-void Netchan_OutOfBand(int net_socket, net_addr_t adr, size_t size, byte *data);
-void Netchan_OutOfBandPrint(int net_socket, net_addr_t adr, const char *format,
+void Netchan_OutOfBand(int net_socket, net_addr_t addr, size_t size, byte *data);
+void Netchan_OutOfBandPrint(int net_socket, net_addr_t addr, const char *format,
 		...) __attribute__((format(printf, 3, 4)));
 boolean_t Netchan_Process(net_chan_t *chan, size_buf_t *msg);
 boolean_t Netchan_CanReliable(net_chan_t *chan);
