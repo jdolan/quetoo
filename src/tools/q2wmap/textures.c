@@ -53,17 +53,52 @@ static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv) {
 }
 
 /*
+ * FindTexinfo
+ *
+ * Resolve the texinfo with identical properties to the one specified, or
+ * allocate a new one.
+ */
+static int FindTexinfo(d_bsp_texinfo_t *tx) {
+	int i;
+	d_bsp_texinfo_t *tc = d_bsp.texinfo;
+
+	for (i = 0; i < d_bsp.num_texinfo; i++, tc++) {
+
+		if (tc->flags != tx->flags)
+			continue;
+
+		if (tc->value != tx->value)
+			continue;
+
+		if (strncmp(tc->texture, tx->texture, sizeof(tc->texture)))
+			continue;
+
+		if (memcmp((char *)(tc->vecs), (char *)(tx->vecs), sizeof(tx->vecs)))
+			continue;
+
+		return i;
+	}
+
+	if (i == MAX_BSP_TEXINFO) {
+		Com_Error(ERR_FATAL, "TexinfoForBrushTexture: MAX_BSP_TEXINFO");
+	}
+
+	*tc = *tx;
+	d_bsp.num_texinfo++;
+	return i;
+}
+
+/*
  * TexinfoForBrushTexture
  */
 int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt,
 		vec3_t origin) {
 	vec3_t vecs[2];
-	int sv, tv;
 	vec_t ang, sinv, cosv;
 	vec_t ns, nt;
-	d_bsp_texinfo_t tx, *tc;
-	int i, j;
-	float shift[2];
+	vec2_t shift;
+	d_bsp_texinfo_t tx;
+	int i, j, sv, tv;
 
 	if (!bt->name[0])
 		return 0;
@@ -131,30 +166,5 @@ int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt,
 	tx.value = bt->value;
 	tx.next_texinfo = 0;
 
-	// find the texinfo
-	tc = d_bsp.texinfo;
-	for (i = 0; i < d_bsp.num_texinfo; i++, tc++) {
-
-		if (tc->flags != tx.flags)
-			continue;
-
-		if (tc->value != tx.value)
-			continue;
-
-		if (strncmp(tc->texture, tx.texture, sizeof(tc->texture)))
-			continue;
-
-		if (memcmp((char *)(tc->vecs), (char *)(tx.vecs), sizeof(tx.vecs)))
-			continue;
-
-		return i;
-	}
-
-	if (i == MAX_BSP_TEXINFO) {
-		Com_Error(ERR_FATAL, "TexinfoForBrushTexture: MAX_BSP_TEXINFO");
-	}
-
-	*tc = tx;
-	d_bsp.num_texinfo++;
-	return i;
+	return FindTexinfo(&tx);
 }
