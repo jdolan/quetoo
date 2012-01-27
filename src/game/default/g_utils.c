@@ -359,7 +359,7 @@ void G_InitEdict(g_edict_t *e){
  * angles and bad trails.
  */
 g_edict_t *G_Spawn(void){
-	int i;
+	unsigned int i;
 	g_edict_t *e;
 
 	e = &g_game.edicts[sv_max_clients->integer + 1];
@@ -561,7 +561,7 @@ g_team_t *G_TeamForFlag(g_edict_t *ent){
 g_edict_t *G_FlagForTeam(g_team_t *t){
 	g_edict_t *ent;
 	char class[32];
-	int i;
+	unsigned int i;
 
 	if(!g_level.ctf)
 		return NULL;
@@ -571,7 +571,7 @@ g_edict_t *G_FlagForTeam(g_team_t *t){
 
 	strcpy(class, (t == &good ? "item_flag_team1" : "item_flag_team2"));
 
-	i = (int)sv_max_clients->integer + 1;
+	i = sv_max_clients->integer + 1;
 	while(i < ge.num_edicts){
 
 		ent = &ge.edicts[i++];
@@ -595,7 +595,7 @@ g_edict_t *G_FlagForTeam(g_team_t *t){
 /*
  * G_EffectForTeam
  */
-int G_EffectForTeam(g_team_t *t){
+unsigned int G_EffectForTeam(g_team_t *t){
 
 	if(!t)
 		return 0;

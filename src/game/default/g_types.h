@@ -305,8 +305,8 @@ typedef enum {
 typedef struct team_s {
 	char name[16];
 	char skin[32];
-	int score;
-	int captures;
+	short score;
+	short captures;
 	float name_time; // prevent change spamming
 	float skin_time;
 } g_team_t;

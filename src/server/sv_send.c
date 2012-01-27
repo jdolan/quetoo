@@ -298,11 +298,11 @@ void Sv_Multicast(vec3_t origin, multicast_t to) {
  */
 void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, unsigned short index,
 		unsigned short atten) {
-	int flags;
+	unsigned int flags;
 	int i;
 	vec3_t org;
 
-	if (atten < ATTN_NONE || atten > ATTN_STATIC) {
+	if (atten > ATTN_STATIC) {
 		Com_Warn("Sv_PositionedSound: attenuation %d.\n", atten);
 		atten = DEFAULT_SOUND_ATTENUATION;
 	}

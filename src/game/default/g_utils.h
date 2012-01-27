@@ -38,7 +38,7 @@ g_team_t *G_TeamByName(char *c);
 g_team_t *G_OtherTeam(g_team_t *t);
 g_team_t *G_TeamForFlag(g_edict_t *ent);
 g_edict_t *G_FlagForTeam(g_team_t *t);
-int G_EffectForTeam(g_team_t *t);
+unsigned int G_EffectForTeam(g_team_t *t);
 g_team_t *G_SmallestTeam(void);
 g_client_t *G_ClientByName(char *name);
 boolean_t G_IsStationary(g_edict_t *ent);

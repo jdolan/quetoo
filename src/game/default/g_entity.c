@@ -534,7 +534,7 @@ static void G_WorldspawnMusic(void) {
  "music"			comma-delimited track list
  */
 static void G_worldspawn(g_edict_t *ent) {
-	int i;
+	unsigned int i;
 	g_map_list_elt_t *map;
 
 	ent->move_type = MOVE_TYPE_PUSH;

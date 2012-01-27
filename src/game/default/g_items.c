@@ -24,16 +24,16 @@
 static void G_DropToFloor(g_edict_t *ent);
 
 // maintain indexes for frequently used models and sounds
-int grenade_index, grenade_hit_index;
-int rocket_index, rocket_fly_index;
-int lightning_fly_index;
-int quad_damage_index;
+unsigned short grenade_index, grenade_hit_index;
+unsigned short rocket_index, rocket_fly_index;
+unsigned short lightning_fly_index;
+unsigned short quad_damage_index;
 
 
 /*
  * G_ItemByIndex
  */
-g_item_t *G_ItemByIndex(int index){
+g_item_t *G_ItemByIndex(unsigned short index){
 
 	if(index == 0 || index >= g_game.num_items)
 		return NULL;
@@ -196,9 +196,9 @@ void G_TossQuadDamage(g_edict_t *ent){
 /*
  * G_AddAmmo
  */
-boolean_t G_AddAmmo(g_edict_t *ent, g_item_t *item, int count){
-	int index;
-	int max;
+boolean_t G_AddAmmo(g_edict_t *ent, g_item_t *item, short count){
+	unsigned short index;
+	short max;
 
 	if(item->tag == AMMO_SHELLS)
 		max = ent->client->locals.max_shells;
@@ -856,8 +856,8 @@ void G_SpawnItem(g_edict_t *ent, g_item_t *item){
 
 g_item_t g_items[] = {
 	{
-		NULL
-	},     // leave index 0 alone
+		NULL,
+	}, // leave index 0 alone
 
 	//
 	// ARMOR
@@ -1456,7 +1456,9 @@ g_item_t g_items[] = {
 	},
 
 	// end of list marker
-	{NULL}
+	{
+		NULL
+	}
 };
 
 

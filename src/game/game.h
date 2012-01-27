@@ -108,9 +108,9 @@ typedef struct g_import_s {
 	void (*ConfigString)(int num, const char *string);
 
 	// create config_strings and some internal server state
-	int (*ModelIndex)(const char *name);
-	int (*SoundIndex)(const char *name);
-	int (*ImageIndex)(const char *name);
+	unsigned short (*ModelIndex)(const char *name);
+	unsigned short (*SoundIndex)(const char *name);
+	unsigned short (*ImageIndex)(const char *name);
 
 	void (*SetModel)(g_edict_t *ent, const char *name);
 	void (*Sound)(g_edict_t *ent, unsigned short index, unsigned short atten);
@@ -198,8 +198,8 @@ typedef struct g_export_s {
 	// The size will be fixed when ge->Init() is called
 	struct g_edict_s *edicts;
 	size_t edict_size;
-	unsigned int num_edicts;  // current number, <= max_edicts
-	unsigned int max_edicts;
+	unsigned short num_edicts;  // current number, <= max_edicts
+	unsigned short max_edicts;
 } g_export_t;
 
 #endif /* __GAME_H__ */

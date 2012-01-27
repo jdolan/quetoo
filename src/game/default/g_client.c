@@ -28,7 +28,7 @@
  * Make a tasteless death announcement.
  */
 static void G_ClientObituary(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker){
-	int ff, mod;
+	unsigned int ff, mod;
 	char *message, *message2;
 	g_client_t *killer;
 

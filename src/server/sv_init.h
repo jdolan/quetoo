@@ -25,9 +25,9 @@
 #include "sv_types.h"
 
 #ifdef __SV_LOCAL_H__
-int Sv_ModelIndex(const char *name);
-int Sv_SoundIndex(const char *name);
-int Sv_ImageIndex(const char *name);
+unsigned short Sv_ModelIndex(const char *name);
+unsigned short Sv_SoundIndex(const char *name);
+unsigned short Sv_ImageIndex(const char *name);
 void Sv_ShutdownServer(const char *msg);
 void Sv_InitServer(const char *name, sv_state_t state);
 #endif /* __SV_LOCAL_H__ */

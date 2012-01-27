@@ -47,10 +47,10 @@ typedef struct g_map_list_elt_s {
 
 typedef struct g_map_list_s {
 	g_map_list_elt_t maps[MAX_MAP_LIST_ELTS];
-	int count, index;
+	unsigned int count, index;
 
 	// weighted random selection
-	int weighted_index[MAP_LIST_WEIGHT];
+	unsigned int weighted_index[MAP_LIST_WEIGHT];
 	float total_weight;
 } g_map_list_t;
 
@@ -61,12 +61,12 @@ extern g_level_t g_level;
 extern g_import_t gi;
 extern g_export_t ge;
 
-extern int grenade_index, grenade_hit_index;
-extern int rocket_index, rocket_fly_index;
-extern int lightning_fly_index;
-extern int quad_damage_index;
+extern unsigned short grenade_index, grenade_hit_index;
+extern unsigned short rocket_index, rocket_fly_index;
+extern unsigned short lightning_fly_index;
+extern unsigned short quad_damage_index;
 
-extern int means_of_death;
+extern unsigned int means_of_death;
 
 extern cvar_t *g_auto_join;
 extern cvar_t *g_capture_limit;

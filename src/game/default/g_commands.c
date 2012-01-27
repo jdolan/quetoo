@@ -659,7 +659,7 @@ static boolean_t Vote_Help(g_edict_t *ent){
  */
 static void G_Vote_f(g_edict_t *ent){
 	char *c, vote[64];
-	int i;
+	unsigned int i;
 
 	if(!g_voting->value){
 		gi.ClientPrint(ent, PRINT_HIGH, "Voting is not allowed");
