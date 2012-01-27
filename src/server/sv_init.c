@@ -312,7 +312,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	}
 	snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", mapsize);
 
-	Cvar_FullSet("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NOSET);
+	Cvar_FullSet("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET);
 }
 
 /*
@@ -367,9 +367,6 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	// load the map or demo and related media
 	Sv_LoadMedia(server, state);
-
-	// we unlock the "cheat" cvars if we're just running 1 client
-	Cvar_LockCheatVars(sv_max_clients->integer > 1);
 
 	sv.state = state;
 	Com_SetServerState(sv.state);

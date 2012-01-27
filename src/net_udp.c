@@ -433,8 +433,8 @@ void Net_Init(void) {
 	WSAStartup(v, &d);
 #endif
 
-	net_port = Cvar_Get("net_port", va("%i", PORT_SERVER), CVAR_NOSET, NULL);
-	net_ip = Cvar_Get("net_ip", "localhost", CVAR_NOSET, NULL);
+	net_port = Cvar_Get("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
+	net_ip = Cvar_Get("net_ip", "localhost", CVAR_NO_SET, NULL);
 }
 
 /*

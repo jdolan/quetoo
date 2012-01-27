@@ -1135,8 +1135,8 @@ void G_Init(void) {
 
 	memset(&g_game, 0, sizeof(g_game));
 
-	gi.Cvar("game_name", GAMEVERSION, CVAR_SERVER_INFO | CVAR_NOSET, NULL);
-	gi.Cvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NOSET, NULL);
+	gi.Cvar("game_name", GAMEVERSION, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	gi.Cvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, NULL);
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, NULL);
@@ -1169,7 +1169,7 @@ void G_Init(void) {
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "8",
 			CVAR_SERVER_INFO | CVAR_LATCH, NULL);
-	dedicated = gi.Cvar("dedicated", "0", CVAR_NOSET, NULL);
+	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
 
 	if (g_frag_log->value)
 		gi.OpenFile("frag_log.log", &frag_log, FILE_APPEND);

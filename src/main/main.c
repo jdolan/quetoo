@@ -181,22 +181,22 @@ static void Init(int argc, char **argv) {
 	Thread_Init();
 
 #ifndef BUILD_CLIENT
-	dedicated = Cvar_Get("dedicated", "1", CVAR_NOSET, NULL);
+	dedicated = Cvar_Get("dedicated", "1", CVAR_NO_SET, NULL);
 #else
-	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET, NULL);
+	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, NULL);
 #endif
 
 	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
 	show_trace = Cvar_Get("show_trace", "0", 0, "Print trace counts per frame");
-	time_demo = Cvar_Get("time_demo", "0", 0, "Benchmark and stress test");
-	time_scale = Cvar_Get("time_scale", "1.0", 0, "Controls time lapse");
-	verbose = Cvar_Get("verbose", "0", 0, "Print verbose information");
+	time_demo = Cvar_Get("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
+	time_scale = Cvar_Get("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
+	verbose = Cvar_Get("verbose", "0", 0, "Print verbose debugging information");
 
 	Con_Init();
 	quake2world.time = Sys_Milliseconds();
 
 	s = va("Quake2World %s %s %s", VERSION, __DATE__, BUILD_HOST);
-	Cvar_Get("version", s, CVAR_SERVER_INFO | CVAR_NOSET, NULL);
+	Cvar_Get("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	Cmd_AddCommand("quit", Quit_f, "Quit Quake2World");
 

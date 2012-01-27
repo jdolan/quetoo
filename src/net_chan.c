@@ -93,7 +93,7 @@ void Netchan_Init(void) {
 
 	// assign a small random number for the qport
 	p = ((unsigned int) time(NULL)) & 255;
-	net_qport = Cvar_Get("net_qport", va("%d", p), CVAR_NOSET, NULL);
+	net_qport = Cvar_Get("net_qport", va("%d", p), CVAR_NO_SET, NULL);
 }
 
 /*

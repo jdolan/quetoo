@@ -23,6 +23,7 @@
 #include "filesystem.h"
 
 cvar_t *cvar_vars;
+boolean_t user_info_modified;
 
 /*
  * Cvar_InfoValidate
@@ -52,7 +53,7 @@ cvar_t *Cvar_FindVar(const char *var_name) {
 }
 
 /*
- * Cvar_VariableValue
+ * Cvar_GetValue
  */
 float Cvar_GetValue(const char *var_name) {
 	cvar_t *var;
@@ -66,7 +67,7 @@ float Cvar_GetValue(const char *var_name) {
 }
 
 /*
- * Cvar_VariableString
+ * Cvar_GetString
  */
 char *Cvar_GetString(const char *var_name) {
 	cvar_t *var;
@@ -102,42 +103,6 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]) {
 	}
 
 	return m;
-}
-
-/*
- * Cvar_Delete
- *
- * Function to remove the cvar and free the space
- */
-boolean_t Cvar_Delete(const char *var_name) {
-	cvar_t *var, *prev = NULL;
-
-	for (var = cvar_vars; var; var = var->next) {
-		if (!strcmp(var_name, var->name)) {
-			if (var->flags & (CVAR_USER_INFO | CVAR_SERVER_INFO | CVAR_NOSET
-					| CVAR_LATCH)) {
-				Com_Print("Can't delete the cvar '%s' - it's a special cvar\n",
-						var_name);
-				return false;
-			}
-
-			if (prev)
-				prev->next = var->next;
-			else
-				cvar_vars = var->next;
-
-			Z_Free((void *) var->name);
-			Z_Free((void *) var->string);
-			if (var->latched_string)
-				Z_Free(var->latched_string);
-			Z_Free(var);
-
-			return true;
-		}
-		prev = var;
-	}
-	Com_Print("Cvar '%s' wasn't found\n", var_name);
-	return false;
 }
 
 /*
@@ -224,7 +189,13 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value,
 	}
 
 	if (!force) {
-		if (var->flags & CVAR_NOSET) {
+		if (var->flags & CVAR_LO_ONLY) {
+			if (!Com_ServerState() || Cvar_GetValue("sv_max_clients") > 1) {
+				Com_Print("%s is only available offline.\n", var_name);
+				return var;
+			}
+		}
+		if (var->flags & CVAR_NO_SET) {
 			Com_Print("%s is write protected.\n", var_name);
 			return var;
 		}
@@ -523,7 +494,7 @@ static void Cvar_List_f(void) {
 			Com_Print("S");
 		else
 			Com_Print(" ");
-		if (var->flags & CVAR_NOSET)
+		if (var->flags & CVAR_NO_SET)
 			Com_Print("-");
 		else if (var->flags & CVAR_LATCH)
 			Com_Print("L");
@@ -535,36 +506,6 @@ static void Cvar_List_f(void) {
 	}
 	Com_Print("%i cvars\n", i);
 }
-
-typedef struct {
-	const char *name;
-	const char *value;
-} cheatvar_t;
-
-static const cheatvar_t cheatvars[] = { { "r_draw_wireframe", "0" }, {
-		"time_demo", "0" }, { "time_scale", "1" }, { NULL, NULL } };
-
-/*
- * Cvar_LockCheatVars
- */
-void Cvar_LockCheatVars(boolean_t lock) {
-	const cheatvar_t *c;
-
-	c = cheatvars;
-	while (c->name) {
-
-		cvar_t *v = Cvar_Get(c->name, c->value, 0, NULL);
-
-		if (lock) // set to value and add NOSET flag
-			Cvar_FullSet(c->name, c->value, CVAR_NOSET);
-		else
-			// or simply remove NOSET
-			v->flags &= ~CVAR_NOSET;
-		c++;
-	}
-}
-
-boolean_t user_info_modified;
 
 /*
  * Cvar_BitInfo

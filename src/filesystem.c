@@ -565,7 +565,7 @@ void Fs_Init(void) {
 	Hash_Init(&fs_hash_table);
 
 	// allow the game to run from outside the data tree
-	fs_base = Cvar_Get("fs_base", "", CVAR_NOSET, NULL);
+	fs_base = Cvar_Get("fs_base", "", CVAR_NO_SET, NULL);
 
 	if (fs_base && strlen(fs_base->string)) { // something was specified
 		snprintf(bd, sizeof(bd), "%s/%s", fs_base->string, DEFAULT_GAME);

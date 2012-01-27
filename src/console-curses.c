@@ -366,9 +366,9 @@ void Curses_Init(void) {
 	memset(&sv_con, 0, sizeof(sv_con));
 
 	if (dedicated && dedicated->value) {
-		con_curses = Cvar_Get("con_curses", "1", CVAR_NOSET, NULL);
+		con_curses = Cvar_Get("con_curses", "1", CVAR_NO_SET, NULL);
 	} else {
-		con_curses = Cvar_Get("con_curses", "0", CVAR_NOSET, NULL);
+		con_curses = Cvar_Get("con_curses", "0", CVAR_NO_SET, NULL);
 	}
 
 	con_timeout = Cvar_Get("con_timeout", "20", CVAR_ARCHIVE, NULL);

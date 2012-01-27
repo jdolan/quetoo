@@ -75,11 +75,9 @@ typedef byte boolean_t;
 #define PITCH				0  // up / down
 #define YAW					1  // left / right
 #define ROLL				2  // tilt / lean
-
 #define MAX_STRING_CHARS	1024  // max length of a string passed to Cmd_TokenizeString
 #define MAX_STRING_TOKENS	128   // max tokens resulting from Cmd_TokenizeString
 #define MAX_TOKEN_CHARS		256   // max length of an individual token
-
 #define MAX_QPATH			64    // max length of a quake game pathname
 #define MAX_OSPATH			128   // max length of a filesystem pathname
 
@@ -102,17 +100,18 @@ typedef byte boolean_t;
 #define PRINT_TEAMCHAT		4  // teamchat messages
 
 // console variables
-#define CVAR_ARCHIVE		0x1  // set to cause it to be saved to vars.rc
+#define CVAR_ARCHIVE		0x1  // saved to quake2world.cfg
 #define CVAR_USER_INFO		0x2  // added to user_info when changed
-#define CVAR_SERVER_INFO	0x4  // added to serverinfo when changed
-#define CVAR_NOSET			0x8  // don't allow change from console at all
-#define CVAR_LATCH			0x10  // save changes until server restart
-#define CVAR_R_IMAGES		0x20  // effects image filtering
-#define CVAR_R_CONTEXT		0x40  // effects OpenGL context
-#define CVAR_R_PROGRAMS		0x80  // effects GLSL programs
-#define CVAR_R_MODE			0x100  // effects screen resolution
-#define CVAR_S_DEVICE		0x200  // effects sound device parameters
-#define CVAR_S_SAMPLES		0x400  // effects sound samples
+#define CVAR_SERVER_INFO	0x4  // added to server_info when changed
+#define CVAR_LO_ONLY		0x8  // don't allow change when connected
+#define CVAR_NO_SET			0x10  // don't allow change from console at all
+#define CVAR_LATCH			0x20  // save changes until server restart
+#define CVAR_R_IMAGES		0x40  // effects image filtering
+#define CVAR_R_CONTEXT		0x80  // effects OpenGL context
+#define CVAR_R_PROGRAMS		0x100  // effects GLSL programs
+#define CVAR_R_MODE			0x200  // effects screen resolution
+#define CVAR_S_DEVICE		0x400  // effects sound device parameters
+#define CVAR_S_SAMPLES		0x800  // effects sound samples
 
 #define CVAR_R_MASK			(CVAR_R_IMAGES | CVAR_R_CONTEXT | CVAR_R_PROGRAMS | CVAR_R_MODE)
 
@@ -122,9 +121,9 @@ typedef struct cvar_s {
 	const char *name;
 	const char *description;
 	char *string;
-	char *latched_string;  // for CVAR_LATCH vars
+	char *latched_string; // for CVAR_LATCH vars
 	int flags;
-	boolean_t modified;  // set each time the cvar is changed
+	boolean_t modified; // set each time the cvar is changed
 	float value;
 	int integer;
 	struct cvar_s *next;
@@ -132,9 +131,7 @@ typedef struct cvar_s {
 
 // file opening modes
 typedef enum {
-	FILE_READ,
-	FILE_WRITE,
-	FILE_APPEND
+	FILE_READ, FILE_WRITE, FILE_APPEND
 } file_mode_t;
 
 // destination class for gi.multicast()
@@ -198,7 +195,6 @@ extern vec3_t vec3_origin;
 #define CONTENTS_CURRENT_DOWN	0x800000
 
 #define CONTENTS_ORIGIN			0x1000000  // removed during bsp stage
-
 #define CONTENTS_MONSTER		0x2000000  // should never be on a brush, only in game
 #define CONTENTS_DEAD_MONSTER	0x4000000
 
@@ -222,7 +218,6 @@ extern vec3_t vec3_origin;
 #define SURF_SKIP				0x200  // completely skip, allowing non-closed brushes
 #define SURF_ALPHA_TEST			0x400  // alpha test (grates, foliage, etc..)
 #define SURF_PHONG				0x800  // phong interpolated lighting at compile time
-
 // content masks
 #define MASK_ALL				(-1)
 #define MASK_SOLID				(CONTENTS_SOLID|CONTENTS_WINDOW)
@@ -243,13 +238,13 @@ extern vec3_t vec3_origin;
 typedef struct c_bsp_plane_s {
 	vec3_t normal;
 	float dist;
-	int type;  // for fast side tests
-	int sign_bits;  // signx + (signy << 1) + (signz << 1)
+	int type; // for fast side tests
+	int sign_bits; // signx + (signy << 1) + (signz << 1)
 } c_bsp_plane_t;
 
 typedef struct c_model_s {
 	vec3_t mins, maxs;
-	vec3_t origin;  // for sounds or lights
+	vec3_t origin; // for sounds or lights
 	int head_node;
 } c_model_t;
 
@@ -261,15 +256,15 @@ typedef struct c_bsp_surface_s {
 
 // a trace is returned when a box is swept through the world
 typedef struct c_trace_s {
-	boolean_t all_solid;  // if true, plane is not valid
-	boolean_t start_solid;  // if true, the initial point was in a solid area
-	float fraction;  // time completed, 1.0 = didn't hit anything
-	vec3_t end;  // final position
-	c_bsp_plane_t plane;  // surface normal at impact
-	c_bsp_surface_t *surface;  // surface hit
+	boolean_t all_solid; // if true, plane is not valid
+	boolean_t start_solid; // if true, the initial point was in a solid area
+	float fraction; // time completed, 1.0 = didn't hit anything
+	vec3_t end; // final position
+	c_bsp_plane_t plane; // surface normal at impact
+	c_bsp_surface_t *surface; // surface hit
 	int leaf_num;
-	int contents;  // contents on other side of surface hit
-	struct g_edict_s *ent;  // not set by CM_*() functions
+	int contents; // contents on other side of surface hit
+	struct g_edict_s *ent; // not set by CM_*() functions
 } c_trace_t;
 
 // player bbox and view_height scaling
@@ -277,10 +272,8 @@ extern vec3_t PM_MINS;
 extern vec3_t PM_MAXS;
 
 #define PM_SCALE			1.2  // global player scale factor
-
 #define PM_STAIR_HEIGHT		16.0  // maximum stair height player can walk up
 #define PM_STAIR_NORMAL		0.7  // can't step up onto very steep slopes
-
 // pmove_state_t is the information necessary for client side movement prediction
 typedef enum {
 	// can accelerate and turn
@@ -313,13 +306,13 @@ typedef enum {
 typedef struct pm_move_state_s {
 	pm_type_t pm_type;
 
-	short origin[3];  // 12.3
-	short velocity[3];  // 12.3
-	short pm_flags;  // ducked, jump_held, etc
-	byte pm_time;  // each unit = 8 ms
+	short origin[3]; // 12.3
+	short velocity[3]; // 12.3
+	short pm_flags; // ducked, jump_held, etc
+	byte pm_time; // each unit = 8 ms
 	short gravity;
-	short delta_angles[3];  // add to command angles to get view direction
-	// changed by spawns, rotating objects, and teleporters
+	short delta_angles[3]; // add to command angles to get view direction
+// changed by spawns, rotating objects, and teleporters
 } pm_move_state_t;
 
 // button bits
@@ -336,17 +329,17 @@ typedef struct user_cmd_s {
 
 #define MAX_TOUCH_ENTS 32
 typedef struct {
-	pm_move_state_t s;  // state (in / out)
+	pm_move_state_t s; // state (in / out)
 
-	user_cmd_t cmd;  // command (in)
+	user_cmd_t cmd; // command (in)
 
-	int num_touch;  // results (out)
+	int num_touch; // results (out)
 	struct g_edict_s *touch_ents[MAX_TOUCH_ENTS];
 
-	vec3_t angles;  // clamped
+	vec3_t angles; // clamped
 	float view_height;
 
-	vec3_t mins, maxs;  // bounding box size
+	vec3_t mins, maxs; // bounding box size
 
 	struct g_edict_s *ground_entity;
 
@@ -375,7 +368,6 @@ typedef struct {
 #define EF_CTF_BLUE			(1 << 10)  // blue flag carrier
 #define EF_CTF_RED			(1 << 11)  // red flag carrier
 #define EF_BEAM				(1 << 12)  // overload old_origin for 2nd endpoint
-
 // small or full-bright entities can skip static and dynamic lighting
 #define EF_NO_LIGHTING		(EF_ROCKET)
 
@@ -385,7 +377,6 @@ typedef struct {
 #define EF_BLEND			(1 << 29)  // blend
 #define EF_NO_SHADOW		(1 << 30)  // no shadow
 #define EF_NO_DRAW			(1 << 31)  // no draw (but perhaps shadow)
-
 // muzzle flashes
 typedef enum {
 	MZ_SHOTGUN,
@@ -425,7 +416,6 @@ typedef enum {
 #define ATTN_NORM  			1
 #define ATTN_IDLE  			2
 #define ATTN_STATIC  		3  // diminish very rapidly with distance
-
 #define DEFAULT_SOUND_ATTENUATION	ATTN_NORM
 
 // player_state->stats[] indexes
@@ -476,7 +466,6 @@ typedef enum {
 #define CS_TIME				13  // level or match timer
 #define CS_ROUND			14
 #define CS_VOTE				15  // vote string\yes count\no count
-
 #define CS_MODELS			16
 #define CS_SOUNDS			(CS_MODELS + MAX_MODELS)
 #define CS_MUSICS			(CS_SOUNDS + MAX_SOUNDS)
@@ -528,7 +517,6 @@ typedef enum {
 } entity_animation_t;
 
 #define ANIM_TOGGLE_BIT 0x80  // used to restart the same animation
-
 /*
  * Entity events are instantaneous, transpiring at an entity's origin for
  * precisely one frame.
@@ -551,24 +539,24 @@ typedef enum {
  * from the scene as needed.
  */
 typedef struct entity_state_s {
-	unsigned short number;  // edict index
+	unsigned short number; // edict index
 
 	vec3_t origin;
-	vec3_t old_origin;  // for interpolating
+	vec3_t old_origin; // for interpolating
 
 	vec3_t angles;
 
-	byte animation1, animation2;  // animations (running, attacking, ..)
+	byte animation1, animation2; // animations (running, attacking, ..)
 
-	byte event;  // client side events (particles, lights, ..)
+	byte event; // client side events (particles, lights, ..)
 
-	unsigned short effects;  // particles, lights, etc..
+	unsigned short effects; // particles, lights, etc..
 
-	byte model1, model2, model3, model4;  // primary model, linked models
+	byte model1, model2, model3, model4; // primary model, linked models
 
-	byte client;  // client info index
+	byte client; // client info index
 
-	byte sound;  // looped sounds
+	byte sound; // looped sounds
 
 	/*
 	 * Encoded bounding box dimensions for mesh entities.  This facilitates
@@ -584,10 +572,9 @@ typedef struct entity_state_s {
  */
 typedef struct player_state_s {
 	pm_move_state_t pmove;
-	vec3_t angles;  // for fixed views like chase camera & demo recording
-	short stats[MAX_STATS];  // status bar updates
+	vec3_t angles; // for fixed views like chase camera & demo recording
+	short stats[MAX_STATS]; // status bar updates
 } player_state_t;
-
 
 /*
  * Colored text escape and code definitions.

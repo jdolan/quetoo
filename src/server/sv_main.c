@@ -952,7 +952,7 @@ void Sv_Init(void) {
 	sv_udp_download = Cvar_Get("sv_udp_download", "1", CVAR_ARCHIVE, NULL);
 
 	// set this so clients and server browsers can see it
-	Cvar_Get("sv_protocol", va("%i", PROTOCOL), CVAR_SERVER_INFO | CVAR_NOSET,
+	Cvar_Get("sv_protocol", va("%i", PROTOCOL), CVAR_SERVER_INFO | CVAR_NO_SET,
 			NULL);
 
 	Sv_InitCommands();

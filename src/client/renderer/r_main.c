@@ -571,24 +571,26 @@ static void R_InitLocal(void) {
 	// development tools
 	r_clear = Cvar_Get("r_clear", "0", 0,
 			"Controls screen clearing at each frame (developer tool)");
-	r_cull = Cvar_Get("r_cull", "1", 0,
+	r_cull = Cvar_Get("r_cull", "1", CVAR_LO_ONLY,
 			"Controls bounded box culling routines (developer tool)");
 	r_lock_vis
-			= Cvar_Get("r_lock_vis", "0", 0,
+			= Cvar_Get("r_lock_vis", "0", CVAR_LO_ONLY,
 					"Temporarily locks the PVS lookup for world surfaces (developer tool)");
 	r_no_vis
-			= Cvar_Get("r_no_vis", "0", 0,
+			= Cvar_Get("r_no_vis", "0", CVAR_LO_ONLY,
 					"Disables PVS refresh and lookup for world surfaces (developer tool)");
 	r_draw_bsp_lights
-			= Cvar_Get("r_draw_bsp_lights", "0", 0,
+			= Cvar_Get("r_draw_bsp_lights", "0", CVAR_LO_ONLY,
 					"Controls the rendering of static BSP light sources (developer tool)");
-	r_draw_bsp_normals = Cvar_Get("r_draw_bsp_normals", "0", 0,
+	r_draw_bsp_normals = Cvar_Get("r_draw_bsp_normals", "0", CVAR_LO_ONLY,
 			"Controls the rendering of surface normals (developer tool)");
-	r_draw_deluxemaps = Cvar_Get("r_draw_bsp_deluxemaps", "0", CVAR_R_PROGRAMS,
+	r_draw_deluxemaps = Cvar_Get("r_draw_bsp_deluxemaps", "0",
+			CVAR_LO_ONLY | CVAR_R_PROGRAMS,
 			"Controls the rendering of deluxemap textures (developer tool)");
-	r_draw_lightmaps = Cvar_Get("r_draw_bsp_lightmaps", "0", CVAR_R_PROGRAMS,
+	r_draw_lightmaps = Cvar_Get("r_draw_bsp_lightmaps", "0",
+			CVAR_LO_ONLY | CVAR_R_PROGRAMS,
 			"Controls the rendering of lightmap textures (developer tool)");
-	r_draw_wireframe = Cvar_Get("r_draw_wireframe", "0", 0,
+	r_draw_wireframe = Cvar_Get("r_draw_wireframe", "0", CVAR_LO_ONLY,
 			"Controls the rendering of polygons as wireframe (developer tool)");
 
 	// settings and preferences

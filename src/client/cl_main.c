@@ -476,8 +476,8 @@ void Cl_LoadProgress(unsigned short percent) {
  */
 static void Cl_UpdateMedia(void) {
 
-	if ((r_view.update || s_env.update) &&
-			(cls.state == ca_active && !cls.loading)) {
+	if ((r_view.update || s_env.update) && (cls.state == ca_active
+			&& !cls.loading)) {
 
 		Com_Debug("Cl_UpdateMedia: %s %s\n", r_view.update ? "view" : "",
 				s_env.update ? "sound" : "");
@@ -610,9 +610,9 @@ static const char *Cl_GetUserName(void) {
 static void Cl_InitLocal(void) {
 
 	// register our variables
-	cl_add_emits = Cvar_Get("cl_add_emits", "1", CVAR_ARCHIVE, NULL);
-	cl_add_entities = Cvar_Get("cl_add_entities", "3", 0, NULL);
-	cl_add_particles = Cvar_Get("cl_add_particles", "1", 0, NULL);
+	cl_add_emits = Cvar_Get("cl_add_emits", "1", CVAR_LO_ONLY, NULL);
+	cl_add_entities = Cvar_Get("cl_add_entities", "3", CVAR_LO_ONLY, NULL);
+	cl_add_particles = Cvar_Get("cl_add_particles", "1", CVAR_LO_ONLY, NULL);
 	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE, NULL);
 	cl_bob = Cvar_Get("cl_bob", "1", CVAR_ARCHIVE, NULL);
 	cl_chat_sound = Cvar_Get("cl_chat_sound", "misc/chat", 0, NULL);
@@ -624,10 +624,12 @@ static void Cl_InitLocal(void) {
 	cl_max_pps = Cvar_Get("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
 	cl_net_graph = Cvar_Get("cl_net_graph", "1", CVAR_ARCHIVE, NULL);
 	cl_predict = Cvar_Get("cl_predict", "1", 0, NULL);
-	cl_show_prediction_misses = Cvar_Get("cl_show_prediction_misses", "0", 0,
+	cl_show_prediction_misses = Cvar_Get("cl_show_prediction_misses", "0",
+			CVAR_LO_ONLY, NULL);
+	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", CVAR_LO_ONLY,
 			NULL);
-	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", 0, NULL);
-	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0", 0, NULL);
+	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0",
+			CVAR_LO_ONLY, NULL);
 	cl_team_chat_sound = Cvar_Get("cl_team_chat_sound", "misc/teamchat", 0,
 			NULL);
 	cl_third_person = Cvar_Get("cl_third_person", "0", CVAR_ARCHIVE,
@@ -651,7 +653,7 @@ static void Cl_InitLocal(void) {
 			CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	skin = Cvar_Get("skin", "qforcer/enforcer", CVAR_USER_INFO | CVAR_ARCHIVE,
 			NULL);
-	recording = Cvar_Get("recording", "0", CVAR_USER_INFO | CVAR_NOSET, NULL);
+	recording = Cvar_Get("recording", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
 
 	// register our commands
 	Cmd_AddCommand("ping", Cl_Ping_f, NULL);
