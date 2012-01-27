@@ -441,7 +441,7 @@ static void G_CheckRoundLimit() {
 	g_edict_t *ent;
 	g_client_t *cl;
 
-	if (g_level.round_num >= g_level.round_limit) { // enforce round_limit
+	if (g_level.round_num >= (unsigned int) g_level.round_limit) { // enforce round_limit
 		gi.BroadcastPrint(PRINT_HIGH, "Roundlimit hit\n");
 		G_EndLevel();
 		return;

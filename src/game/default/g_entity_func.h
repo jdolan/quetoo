@@ -24,7 +24,6 @@
 
 #ifdef __G_LOCAL_H__
 
-
 void G_func_areaportal(g_edict_t *ent);
 void G_func_button(g_edict_t *ent);
 void G_func_conveyor(g_edict_t *self);

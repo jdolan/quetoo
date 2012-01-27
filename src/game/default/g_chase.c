@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-void G_ChaseThink(g_edict_t *ent){
+void G_ChaseThink(g_edict_t *ent) {
 	const g_edict_t *targ;
 
 	targ = ent->client->chase_target;
@@ -33,7 +33,7 @@ void G_ChaseThink(g_edict_t *ent){
 	VectorCopy(targ->client->angles, ent->client->ps.angles);
 	VectorCopy(targ->client->angles, ent->client->angles);
 
-	if(targ->dead)  // drop view towards the floor
+	if (targ->dead) // drop view towards the floor
 		ent->client->ps.pmove.pm_flags |= PMF_DUCKED;
 
 	// disable the spectator's input
@@ -45,81 +45,78 @@ void G_ChaseThink(g_edict_t *ent){
 	gi.LinkEntity(ent);
 }
 
-
 /*
  * G_ChaseNext
  */
-void G_ChaseNext(g_edict_t *ent){
+void G_ChaseNext(g_edict_t *ent) {
 	int i;
 	g_edict_t *e;
 
-	if(!ent->client->chase_target)
+	if (!ent->client->chase_target)
 		return;
 
 	i = ent->client->chase_target - g_game.edicts;
 	do {
 		i++;
 
-		if(i > sv_max_clients->integer)
+		if (i > sv_max_clients->integer)
 			i = 1;
 
 		e = g_game.edicts + i;
 
-		if(!e->in_use)
+		if (!e->in_use)
 			continue;
 
-		if(!e->client->locals.spectator)
+		if (!e->client->locals.spectator)
 			break;
 
-	} while(e != ent->client->chase_target);
+	} while (e != ent->client->chase_target);
 
 	ent->client->chase_target = e;
 }
 
-
 /*
  * G_ChasePrevious
  */
-void G_ChasePrevious(g_edict_t *ent){
+void G_ChasePrevious(g_edict_t *ent) {
 	int i;
 	g_edict_t *e;
 
-	if(!ent->client->chase_target)
+	if (!ent->client->chase_target)
 		return;
 
 	i = ent->client->chase_target - g_game.edicts;
 	do {
 		i--;
 
-		if(i < 1)
+		if (i < 1)
 			i = sv_max_clients->integer;
 
 		e = g_game.edicts + i;
 
-		if(!e->in_use)
+		if (!e->in_use)
 			continue;
 
-		if(!e->client->locals.spectator)
+		if (!e->client->locals.spectator)
 			break;
 
-	} while(e != ent->client->chase_target);
+	} while (e != ent->client->chase_target);
 
 	ent->client->chase_target = e;
 }
-
 
 /*
  * G_ChaseTarget
  *
  * Finds the first available chase target and assigns it to the specified ent.
  */
-void G_ChaseTarget(g_edict_t *ent){
+void G_ChaseTarget(g_edict_t *ent) {
 	int i;
 	g_edict_t *other;
 
-	for(i = 1; i <= sv_max_clients->integer; i++){
+	for (i = 1; i <= sv_max_clients->integer; i++) {
 		other = g_game.edicts + i;
-		if(other->in_use && !other->client->locals.spectator){
+		if (other->in_use && !other->client->locals.spectator) {
 			ent->client->chase_target = other;
 			G_ChaseThink(ent);
 			return;

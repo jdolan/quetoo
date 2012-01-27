@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef G_BALLISTICS_H_
-#define G_BALLISTICS_H_
+#ifndef __G_BALLISTICS_H__
+#define __G_BALLISTICS_H__
 
 #ifdef __G_LOCAL_H__
 
@@ -43,4 +43,4 @@ void G_BfgProjectiles(g_edict_t *self, vec3_t start, vec3_t dir,
 
 #endif /* __G_LOCAL_H__ */
 
-#endif /* G_BALLISTICS_H_ */
+#endif /* __G_BALLISTICS_H__ */

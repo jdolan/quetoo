@@ -21,11 +21,10 @@
 
 #include "g_local.h"
 
-
 /*
  * G_PickupWeapon
  */
-boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other){
+boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	int index, ammoindex;
 	g_item_t *ammo;
 
@@ -35,37 +34,36 @@ boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other){
 	ammo = G_FindItem(ent->item->ammo);
 	ammoindex = ITEM_INDEX(ammo);
 
-	if(!(ent->spawn_flags & SF_ITEM_DROPPED) && other->client->locals.inventory[index]){
-		if(other->client->locals.inventory[ammoindex] >= ammo->quantity)
-			G_AddAmmo(other, ammo, ent->item->quantity);  // q3 style
+	if (!(ent->spawn_flags & SF_ITEM_DROPPED)
+			&& other->client->locals.inventory[index]) {
+		if (other->client->locals.inventory[ammoindex] >= ammo->quantity)
+			G_AddAmmo(other, ammo, ent->item->quantity); // q3 style
 		else
 			G_AddAmmo(other, ammo, ammo->quantity);
-	}
-	else
+	} else
 		G_AddAmmo(other, ammo, ammo->quantity);
 
 	// setup respawn if it's not a dropped item
-	if(!(ent->spawn_flags & SF_ITEM_DROPPED))
+	if (!(ent->spawn_flags & SF_ITEM_DROPPED))
 		G_SetItemRespawn(ent, 5);
 
 	// add the weapon to inventory
 	other->client->locals.inventory[index]++;
 
 	// auto-change if it's the first weapon we pick up
-	if(other->client->locals.weapon != ent->item &&
-			(other->client->locals.weapon == G_FindItem("Shotgun")))
+	if (other->client->locals.weapon != ent->item
+			&& (other->client->locals.weapon == G_FindItem("Shotgun")))
 		other->client->new_weapon = ent->item;
 
 	return true;
 }
-
 
 /*
  * G_ChangeWeapon
  *
  * The old weapon has been put away, so make the new one current
  */
-void G_ChangeWeapon(g_edict_t *ent){
+void G_ChangeWeapon(g_edict_t *ent) {
 
 	// change weapon
 	ent->client->locals.last_weapon = ent->client->locals.weapon;
@@ -76,18 +74,19 @@ void G_ChangeWeapon(g_edict_t *ent){
 	ent->client->weapon_fire_time = g_level.time + 0.4;
 
 	// resolve ammo
-	if(ent->client->locals.weapon && ent->client->locals.weapon->ammo)
-		ent->client->ammo_index = ITEM_INDEX(G_FindItem(ent->client->locals.weapon->ammo));
+	if (ent->client->locals.weapon && ent->client->locals.weapon->ammo)
+		ent->client->ammo_index
+				= ITEM_INDEX(G_FindItem(ent->client->locals.weapon->ammo));
 	else
 		ent->client->ammo_index = 0;
 
 	// set visible model
-	if(ent->client->locals.weapon)
+	if (ent->client->locals.weapon)
 		ent->s.model2 = gi.ModelIndex(ent->client->locals.weapon->model);
 	else
 		ent->s.model2 = 0;
 
-	if(ent->health < 1)
+	if (ent->health < 1)
 		return;
 
 	G_SetAnimation(ent, ANIM_TORSO_DROP, false);
@@ -96,84 +95,81 @@ void G_ChangeWeapon(g_edict_t *ent){
 	gi.Sound(ent, gi.SoundIndex("weapons/common/switch"), ATTN_NORM);
 }
 
-
 /*
  * G_UseBestWeapon
  */
-void G_UseBestWeapon(g_client_t *client){
+void G_UseBestWeapon(g_client_t *client) {
 
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("nukes"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("bfg10k"))]){
+	if (client->locals.inventory[ITEM_INDEX(G_FindItem("nukes"))]
+			&& client->locals.inventory[ITEM_INDEX(G_FindItem("bfg10k"))]) {
 		client->new_weapon = G_FindItem("bfg10k");
 		return;
 	}
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("slugs"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("railgun"))]){
+	if (client->locals.inventory[ITEM_INDEX(G_FindItem("slugs"))]
+			&& client->locals.inventory[ITEM_INDEX(G_FindItem("railgun"))]) {
 		client->new_weapon = G_FindItem("railgun");
 		return;
 	}
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("bolts"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("lightning"))]){
+	if (client->locals.inventory[ITEM_INDEX(G_FindItem("bolts"))]
+			&& client->locals.inventory[ITEM_INDEX(G_FindItem("lightning"))]) {
 		client->new_weapon = G_FindItem("lightning");
 		return;
 	}
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("cells"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("hyperblaster"))]){
+	if (client->locals.inventory[ITEM_INDEX(G_FindItem("cells"))]
+			&& client->locals.inventory[ITEM_INDEX(G_FindItem("hyperblaster"))]) {
 		client->new_weapon = G_FindItem("hyperblaster");
 		return;
 	}
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("rockets"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("rocket launcher"))]){
+	if (client->locals.inventory[ITEM_INDEX(G_FindItem("rockets"))]
+			&& client->locals.inventory[ITEM_INDEX(G_FindItem("rocket launcher"))]) {
 		client->new_weapon = G_FindItem("rocket launcher");
 		return;
 	}
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("grenades"))]
+	if (client->locals.inventory[ITEM_INDEX(G_FindItem("grenades"))]
 			&& client->locals.inventory[ITEM_INDEX(G_FindItem("grenade launcher"))]) {
 		client->new_weapon = G_FindItem("grenade launcher");
 		return;
 	}
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("bullets"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("machinegun"))]){
+	if (client->locals.inventory[ITEM_INDEX(G_FindItem("bullets"))]
+			&& client->locals.inventory[ITEM_INDEX(G_FindItem("machinegun"))]) {
 		client->new_weapon = G_FindItem("machinegun");
 		return;
 	}
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("shells"))] > 1
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("super shotgun"))]){
+	if (client->locals.inventory[ITEM_INDEX(G_FindItem("shells"))] > 1
+			&& client->locals.inventory[ITEM_INDEX(G_FindItem("super shotgun"))]) {
 		client->new_weapon = G_FindItem("super shotgun");
 		return;
 	}
-	if(client->locals.inventory[ITEM_INDEX(G_FindItem("shells"))]){
+	if (client->locals.inventory[ITEM_INDEX(G_FindItem("shells"))]) {
 		client->new_weapon = G_FindItem("shotgun");
 		return;
 	}
 }
 
-
 /*
  * G_UseWeapon
  */
-void G_UseWeapon(g_edict_t *ent, g_item_t *item){
+void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
 
 	// see if we're already using it
-	if(item == ent->client->locals.weapon)
+	if (item == ent->client->locals.weapon)
 		return;
 
 	// change to this weapon when down
 	ent->client->new_weapon = item;
 }
 
-
 /*
  * G_DropWeapon
  */
-void G_DropWeapon(g_edict_t *ent, g_item_t *item){
+void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 	int index;
 
 	index = ITEM_INDEX(item);
 
 	// see if we're already using it and we only have one
-	if((item == ent->client->locals.weapon || item == ent->client->new_weapon) &&
-			(ent->client->locals.inventory[index] == 1)){
+	if ((item == ent->client->locals.weapon || item == ent->client->new_weapon)
+			&& (ent->client->locals.inventory[index] == 1)) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop current weapon\n");
 		return;
 	}
@@ -182,42 +178,41 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item){
 	ent->client->locals.inventory[index]--;
 }
 
-
 /*
  * G_TossWeapon
  */
-void G_TossWeapon(g_edict_t *ent){
+void G_TossWeapon(g_edict_t *ent) {
 	g_item_t *item;
 
 	// don't drop weapon when falling into void
-	if(means_of_death == MOD_TRIGGER_HURT)
+	if (means_of_death == MOD_TRIGGER_HURT)
 		return;
 
 	item = ent->client->locals.weapon;
 
-	if(!ent->client->locals.inventory[ent->client->ammo_index])
-		return;  // don't drop when out of ammo
+	if (!ent->client->locals.inventory[ent->client->ammo_index])
+		return; // don't drop when out of ammo
 
 	G_DropItem(ent, item);
 }
 
-
 /*
  * G_FireWeapon
  */
-static void G_FireWeapon(g_edict_t *ent, float interval, void (*fire)(g_edict_t *ent)){
+static void G_FireWeapon(g_edict_t *ent, float interval,
+		void(*fire)(g_edict_t *ent)) {
 	int n, m;
 	int buttons;
 
 	buttons = (ent->client->latched_buttons | ent->client->buttons);
 
-	if(!(buttons & BUTTON_ATTACK))
+	if (!(buttons & BUTTON_ATTACK))
 		return;
 
 	ent->client->latched_buttons &= ~BUTTON_ATTACK;
 
 	// use small epsilon for low server_frame rates
-	if(ent->client->weapon_fire_time > g_level.time + 0.001)
+	if (ent->client->weapon_fire_time > g_level.time + 0.001)
 		return;
 
 	ent->client->weapon_fire_time = g_level.time + interval;
@@ -227,9 +222,9 @@ static void G_FireWeapon(g_edict_t *ent, float interval, void (*fire)(g_edict_t 
 	m = ent->client->locals.weapon->quantity;
 
 	// they are out of ammo
-	if(ent->client->ammo_index && n < m){
+	if (ent->client->ammo_index && n < m) {
 
-		if(g_level.time >= ent->client->pain_time){  // play a click sound
+		if (g_level.time >= ent->client->pain_time) { // play a click sound
 			gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTN_NORM);
 			ent->client->pain_time = g_level.time + 1;
 		}
@@ -241,53 +236,51 @@ static void G_FireWeapon(g_edict_t *ent, float interval, void (*fire)(g_edict_t 
 	// they've pressed their fire button, and have ammo, so fire
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
-	if(ent->client->locals.inventory[quad_damage_index]){  // quad sound
+	if (ent->client->locals.inventory[quad_damage_index]) { // quad sound
 
-		if(ent->client->quad_attack_time < g_level.time){
+		if (ent->client->quad_attack_time < g_level.time) {
 			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTN_NORM);
 
 			ent->client->quad_attack_time = g_level.time + 0.5;
 		}
 	}
 
-	fire(ent);  // fire the weapon
+	fire(ent); // fire the weapon
 
 	// and decrease their inventory
 	ent->client->locals.inventory[ent->client->ammo_index] -= m;
 }
 
-
 /*
  * G_WeaponThink
  */
-void G_WeaponThink(g_edict_t *ent){
+void G_WeaponThink(g_edict_t *ent) {
 
-	if(ent->health < 1)
+	if (ent->health < 1)
 		return;
 
 	ent->client->weapon_think_time = g_level.time;
 
-	if(ent->client->new_weapon){
+	if (ent->client->new_weapon) {
 		G_ChangeWeapon(ent);
 		return;
 	}
 
 	// see if we should raise the weapon
-	if(ent->client->weapon_fire_time >= g_level.time){
-		if(G_IsAnimation(ent, ANIM_TORSO_DROP))
+	if (ent->client->weapon_fire_time >= g_level.time) {
+		if (G_IsAnimation(ent, ANIM_TORSO_DROP))
 			G_SetAnimation(ent, ANIM_TORSO_RAISE, false);
 	}
 
 	// call active weapon think routine
-	if(ent->client->locals.weapon && ent->client->locals.weapon->weapon_think)
+	if (ent->client->locals.weapon && ent->client->locals.weapon->weapon_think)
 		ent->client->locals.weapon->weapon_think(ent);
 }
-
 
 /*
  * G_FireShotgun
  */
-static void G_FireShotgun_(g_edict_t *ent){
+static void G_FireShotgun_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
 	G_InitProjectile(ent, forward, right, up, org);
@@ -301,28 +294,29 @@ static void G_FireShotgun_(g_edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_FireShotgun(g_edict_t *ent){
+void G_FireShotgun(g_edict_t *ent) {
 	G_FireWeapon(ent, 0.65, G_FireShotgun_);
 }
-
 
 /*
  * G_FireSuperShotgun
  */
-static void G_FireSuperShotgun_(g_edict_t *ent){
+static void G_FireSuperShotgun_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
 	ent->s.angles[YAW] -= 5.0;
 
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_ShotgunProjectiles(ent, org, forward, 4, 4, 1000, 500, 12, MOD_SUPER_SHOTGUN);
+	G_ShotgunProjectiles(ent, org, forward, 4, 4, 1000, 500, 12,
+			MOD_SUPER_SHOTGUN);
 
 	ent->s.angles[YAW] += 10.0;
 
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_ShotgunProjectiles(ent, org, forward, 4, 4, 100, 500, 12, MOD_SUPER_SHOTGUN);
+	G_ShotgunProjectiles(ent, org, forward, 4, 4, 100, 500, 12,
+			MOD_SUPER_SHOTGUN);
 
 	ent->s.angles[YAW] -= 5.0;
 
@@ -333,15 +327,14 @@ static void G_FireSuperShotgun_(g_edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_FireSuperShotgun(g_edict_t *ent){
+void G_FireSuperShotgun(g_edict_t *ent) {
 	G_FireWeapon(ent, 0.85, G_FireSuperShotgun_);
 }
-
 
 /*
  * G_FireMachinegun
  */
-static void G_FireMachinegun_(g_edict_t *ent){
+static void G_FireMachinegun_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
 	G_InitProjectile(ent, forward, right, up, org);
@@ -355,15 +348,14 @@ static void G_FireMachinegun_(g_edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_FireMachinegun(g_edict_t *ent){
+void G_FireMachinegun(g_edict_t *ent) {
 	G_FireWeapon(ent, 0.04, G_FireMachinegun_);
 }
-
 
 /*
  * G_FireGrenadeLauncher
  */
-static void G_FireGrenadeLauncher_(g_edict_t *ent){
+static void G_FireGrenadeLauncher_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
 	G_InitProjectile(ent, forward, right, up, org);
@@ -376,15 +368,14 @@ static void G_FireGrenadeLauncher_(g_edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_FireGrenadeLauncher(g_edict_t *ent){
+void G_FireGrenadeLauncher(g_edict_t *ent) {
 	G_FireWeapon(ent, 0.6, G_FireGrenadeLauncher_);
 }
-
 
 /*
  * G_FireRocketLauncher
  */
-static void G_FireRocketLauncher_(g_edict_t *ent){
+static void G_FireRocketLauncher_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
 	G_InitProjectile(ent, forward, right, up, org);
@@ -398,15 +389,14 @@ static void G_FireRocketLauncher_(g_edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_FireRocketLauncher(g_edict_t *ent){
+void G_FireRocketLauncher(g_edict_t *ent) {
 	G_FireWeapon(ent, 0.8, G_FireRocketLauncher_);
 }
-
 
 /*
  * G_FireHyperblaster
  */
-static void G_FireHyperblaster_(g_edict_t *ent){
+static void G_FireHyperblaster_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
 	G_InitProjectile(ent, forward, right, up, org);
@@ -420,15 +410,14 @@ static void G_FireHyperblaster_(g_edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_FireHyperblaster(g_edict_t *ent){
+void G_FireHyperblaster(g_edict_t *ent) {
 	G_FireWeapon(ent, 0.1, G_FireHyperblaster_);
 }
-
 
 /*
  * G_FireLightning
  */
-static void G_FireLightning_(g_edict_t *ent){
+static void G_FireLightning_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
 	G_InitProjectile(ent, forward, right, up, org);
@@ -436,7 +425,7 @@ static void G_FireLightning_(g_edict_t *ent){
 	G_LightningProjectile(ent, org, forward, 10, 12);
 
 	// if the client has just begun to attack, send the muzzle flash
-	if(ent->client->muzzle_flash_time < g_level.time){
+	if (ent->client->muzzle_flash_time < g_level.time) {
 		gi.WriteByte(svc_muzzle_flash);
 		gi.WriteShort(ent - g_game.edicts);
 		gi.WriteByte(MZ_LIGHTNING);
@@ -446,15 +435,14 @@ static void G_FireLightning_(g_edict_t *ent){
 	}
 }
 
-void G_FireLightning(g_edict_t *ent){
+void G_FireLightning(g_edict_t *ent) {
 	G_FireWeapon(ent, 0.1, G_FireLightning_);
 }
-
 
 /*
  * G_FireRailgun
  */
-static void G_FireRailgun_(g_edict_t *ent){
+static void G_FireRailgun_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
 	G_InitProjectile(ent, forward, right, up, org);
@@ -468,15 +456,14 @@ static void G_FireRailgun_(g_edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_FireRailgun(g_edict_t *ent){
+void G_FireRailgun(g_edict_t *ent) {
 	G_FireWeapon(ent, 1.5, G_FireRailgun_);
 }
-
 
 /*
  * G_FireBfg
  */
-static void G_FireBfg_(g_edict_t *ent){
+static void G_FireBfg_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
 	G_InitProjectile(ent, forward, right, up, org);
@@ -490,6 +477,6 @@ static void G_FireBfg_(g_edict_t *ent){
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 }
 
-void G_FireBfg(g_edict_t *ent){
+void G_FireBfg(g_edict_t *ent) {
 	G_FireWeapon(ent, 2.0, G_FireBfg_);
 }

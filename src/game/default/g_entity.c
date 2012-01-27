@@ -71,29 +71,28 @@ static spawn_t g_spawns[] = {
 	{NULL, NULL}
 };
 
-
 /*
  * G_SpawnEntity
  *
  * Finds the spawn function for the entity and calls it.
  */
-static void G_SpawnEntity(g_edict_t *ent){
+static void G_SpawnEntity(g_edict_t *ent) {
 	spawn_t *s;
 	g_item_t *item;
 	g_override_t *over;
 	int i;
 
-	if(!ent->class_name){
+	if (!ent->class_name) {
 		gi.Debug("G_SpawnEntity: NULL classname\n");
 		return;
 	}
 
 	// check overrides
-	for(i = 0; i < g_game.num_overrides; i++){
+	for (i = 0; i < g_game.num_overrides; i++) {
 
 		over = &g_overrides[i];
 
-		if(!strcmp(ent->class_name, over->old)){  // found it
+		if (!strcmp(ent->class_name, over->old)) { // found it
 			item = G_FindItemByClassname(over->new);
 			G_SpawnItem(ent, item);
 			return;
@@ -101,20 +100,20 @@ static void G_SpawnEntity(g_edict_t *ent){
 	}
 
 	// check item spawn functions
-	for(i = 0, item = g_items; i < g_game.num_items; i++, item++){
+	for (i = 0, item = g_items; i < g_game.num_items; i++, item++) {
 
-		if(!item->class_name)
+		if (!item->class_name)
 			continue;
 
-		if(!strcmp(item->class_name, ent->class_name)){  // found it
+		if (!strcmp(item->class_name, ent->class_name)) { // found it
 			G_SpawnItem(ent, item);
 			return;
 		}
 	}
 
 	// check normal spawn functions
-	for(s = g_spawns; s->name; s++){
-		if(!strcmp(s->name, ent->class_name)){  // found it
+	for (s = g_spawns; s->name; s++) {
+		if (!strcmp(s->name, ent->class_name)) { // found it
 			s->spawn(ent);
 			return;
 		}
@@ -123,11 +122,10 @@ static void G_SpawnEntity(g_edict_t *ent){
 	gi.Debug("%s doesn't have a spawn function\n", ent->class_name);
 }
 
-
 /*
  * G_NewString
  */
-static char *G_NewString(const char *string){
+static char *G_NewString(const char *string) {
 	char *newb, *new_p;
 	int i, l;
 
@@ -137,10 +135,10 @@ static char *G_NewString(const char *string){
 
 	new_p = newb;
 
-	for(i = 0; i < l; i++){
-		if(string[i] == '\\' && i < l - 1){
+	for (i = 0; i < l; i++) {
+		if (string[i] == '\\' && i < l - 1) {
 			i++;
-			if(string[i] == 'n')
+			if (string[i] == 'n')
 				*new_p++ = '\n';
 			else
 				*new_p++ = '\\';

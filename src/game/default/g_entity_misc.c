@@ -24,18 +24,19 @@
 /*
  * G_misc_teleporter_touch
  */
-static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf){
+static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other,
+		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
 	g_edict_t *dest;
 	float speed;
 	vec3_t forward;
 	int i;
 
-	if(!other->client)
+	if (!other->client)
 		return;
 
 	dest = G_Find(NULL, FOFS(target_name), self->target);
 
-	if(!dest){
+	if (!dest) {
 		gi.Debug("G_teleporter_touch: Couldn't find destination.\n");
 		return;
 	}
@@ -52,7 +53,7 @@ static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 	speed = VectorLength(other->velocity);
 	VectorClear(other->velocity);
 
-	other->client->ps.pmove.pm_time = 20;  // hold time
+	other->client->ps.pmove.pm_time = 20; // hold time
 	other->client->ps.pmove.pm_flags |= PMF_TIME_TELEPORT;
 
 	// draw the teleport splash at source and on the player
@@ -60,9 +61,9 @@ static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 	other->s.event = EV_TELEPORT;
 
 	// set angles
-	for(i = 0; i < 3; i++){
-		other->client->ps.pmove.delta_angles[i] =
-			ANGLE2SHORT(dest->s.angles[i] - other->client->cmd_angles[i]);
+	for (i = 0; i < 3; i++) {
+		other->client->ps.pmove.delta_angles[i]
+				= ANGLE2SHORT(dest->s.angles[i] - other->client->cmd_angles[i]);
 	}
 
 	AngleVectors(dest->s.angles, forward, NULL, NULL);
@@ -73,19 +74,18 @@ static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 	VectorClear(other->client->angles);
 	VectorClear(other->s.angles);
 
-	G_KillBox(other);  // telefrag anyone in our spot
+	G_KillBox(other); // telefrag anyone in our spot
 
 	gi.LinkEntity(other);
 }
 
-
 /*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16)
-Stepping onto this disc will teleport players to the targeted misc_teleporter_dest object.
-*/
-void G_misc_teleporter(g_edict_t *ent){
+ Stepping onto this disc will teleport players to the targeted misc_teleporter_dest object.
+ */
+void G_misc_teleporter(g_edict_t *ent) {
 	vec3_t v;
 
-	if(!ent->target){
+	if (!ent->target) {
 		gi.Debug("G_misc_teleporter: No target specified.\n");
 		G_FreeEdict(ent);
 		return;
@@ -94,19 +94,18 @@ void G_misc_teleporter(g_edict_t *ent){
 	ent->solid = SOLID_TRIGGER;
 	ent->move_type = MOVE_TYPE_NONE;
 
-	if(ent->model){  // model form, trigger_teleporter
+	if (ent->model) { // model form, trigger_teleporter
 		gi.SetModel(ent, ent->model);
 		ent->sv_flags = SVF_NO_CLIENT;
-	}
-	else {  // or model-less form, misc_teleporter
+	} else { // or model-less form, misc_teleporter
 		VectorSet(ent->mins, -32.0, -32.0, -24.0);
-		VectorSet(ent->maxs,  32.0,  32.0, -16.0);
+		VectorSet(ent->maxs, 32.0, 32.0, -16.0);
 
 		VectorCopy(ent->s.origin, v);
 		v[2] -= 16.0;
 
 		// add effect if ent is not burried and effect is not inhibited
-		if(!gi.PointContents(v) && !(ent->spawn_flags & 4)){
+		if (!gi.PointContents(v) && !(ent->spawn_flags & 4)) {
 			ent->s.effects = EF_TELEPORTER;
 			ent->s.sound = gi.SoundIndex("world/teleport_hum");
 		}
@@ -117,11 +116,10 @@ void G_misc_teleporter(g_edict_t *ent){
 	gi.LinkEntity(ent);
 }
 
-
 /*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
-Point teleporters at these.
-*/
-void G_misc_teleporter_dest(g_edict_t *ent){
+ Point teleporters at these.
+ */
+void G_misc_teleporter_dest(g_edict_t *ent) {
 	G_ProjectSpawn(ent);
 }
 

@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef G_CHASE_H_
-#define G_CHASE_H_
+#ifndef __G_CHASE_H__
+#define __G_CHASE_H__
 
 #ifdef __G_LOCAL_H__
 
@@ -31,4 +31,4 @@ void G_ChaseTarget(g_edict_t *ent);
 
 #endif /* __G_LOCAL_H__ */
 
-#endif /* G_CHASE_H_ */
+#endif /* __G_CHASE_H__ */
