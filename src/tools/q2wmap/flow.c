@@ -30,9 +30,9 @@
  *   portal mightsee
  *
  *   for p2 = all other portals in leaf
- * 	get sperating planes
+ * 	get separating planes
  * 	for all portals that might be seen by p2
- * 		mark as unseen if not present in seperating plane
+ * 		mark as unseen if not present in separating plane
  * 	flood fill a new mightsee
  * 	save as passagemightsee
  *
@@ -40,12 +40,11 @@
  *   void CalcMightSee (leaf_t *leaf,
  */
 
-int CountBits(const byte * bits, int numbits) {
-	int i;
-	int c;
+size_t CountBits(const byte * bits, size_t max) {
+	size_t i, c;
 
 	c = 0;
-	for (i = 0; i < numbits; i++)
+	for (i = 0; i < max; i++)
 		if (bits[i >> 3] & (1 << (i & 7)))
 			c++;
 
@@ -342,7 +341,7 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 	stack.portal = NULL;
 
 	might = (long *) stack.mightsee;
-	vis = (long *) thread->base->portalvis;
+	vis = (long *) thread->base->vis;
 
 	// check all portals for flowing into other leafs
 	for (i = 0; i < leaf->num_portals; i++) {
@@ -354,9 +353,9 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 		}
 		// if the portal can't see anything we haven't already seen, skip it
 		if (p->status == stat_done) {
-			test = (long *) p->portalvis;
+			test = (long *) p->vis;
 		} else {
-			test = (long *) p->portalflood;
+			test = (long *) p->flood;
 		}
 
 		more = 0;
@@ -365,7 +364,7 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 			more |= (might[j] & ~vis[j]);
 		}
 
-		if (!more && (thread->base->portalvis[pnum >> 3] & (1 << (pnum & 7)))) { // can't see anything new
+		if (!more && (thread->base->vis[pnum >> 3] & (1 << (pnum & 7)))) { // can't see anything new
 			continue;
 		}
 		// get plane of portal, point normal into the neighbor leaf
@@ -418,7 +417,7 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 		if (!prevstack->pass) { // the second leaf can only be blocked if coplanar
 
 			// mark the portal as visible
-			thread->base->portalvis[pnum >> 3] |= (1 << (pnum & 7));
+			thread->base->vis[pnum >> 3] |= (1 << (pnum & 7));
 
 			RecursiveLeafFlow(p->leaf, thread, &stack);
 			continue;
@@ -435,7 +434,7 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 			continue;
 
 		// mark the portal as visible
-		thread->base->portalvis[pnum >> 3] |= (1 << (pnum & 7));
+		thread->base->vis[pnum >> 3] |= (1 << (pnum & 7));
 
 		// flow through it for real
 		RecursiveLeafFlow(p->leaf, thread, &stack);
@@ -445,18 +444,18 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 /*
  * PortalFlow
  *
- * generates the portalvis bit vector
+ * generates the vis bit vector
  */
-void PortalFlow(int portal_num) {
+void FinalVis(int portal_num) {
 	thread_data_t data;
 	unsigned int i;
 	portal_t *p;
-	int c_might, c_can;
+	size_t c_might, c_can;
 
 	p = map_vis.sorted_portals[portal_num];
 	p->status = stat_working;
 
-	c_might = CountBits(p->portalflood, map_vis.num_portals * 2);
+	c_might = CountBits(p->flood, map_vis.num_portals * 2);
 
 	memset(&data, 0, sizeof(data));
 	data.base = p;
@@ -465,12 +464,12 @@ void PortalFlow(int portal_num) {
 	data.pstack_head.source = p->winding;
 	data.pstack_head.portalplane = p->plane;
 	for (i = 0; i < map_vis.portal_longs; i++)
-		((long *) data.pstack_head.mightsee)[i] = ((long *) p->portalflood)[i];
+		((long *) data.pstack_head.mightsee)[i] = ((long *) p->flood)[i];
 	RecursiveLeafFlow(p->leaf, &data, &data.pstack_head);
 
 	p->status = stat_done;
 
-	c_can = CountBits(p->portalvis, map_vis.num_portals * 2);
+	c_can = CountBits(p->vis, map_vis.num_portals * 2);
 
 	Com_Debug("portal:%4i  mightsee:%4i  cansee:%4i (%i chains)\n",
 			(int) (p - map_vis.portals), c_might, c_can, data.c_chains);
@@ -479,7 +478,7 @@ void PortalFlow(int portal_num) {
 /*
  * SimpleFlood
  */
-static void SimpleFlood(portal_t * srcportal, int leaf_num) {
+static void SimpleFlood(portal_t *srcportal, int leaf_num) {
 	unsigned int i;
 	leaf_t *leaf;
 	portal_t *p;
@@ -490,47 +489,45 @@ static void SimpleFlood(portal_t * srcportal, int leaf_num) {
 	for (i = 0; i < leaf->num_portals; i++) {
 		p = leaf->portals[i];
 		pnum = p - map_vis.portals;
-		if (!(srcportal->portalfront[pnum >> 3] & (1 << (pnum & 7))))
+		if (!(srcportal->front[pnum >> 3] & (1 << (pnum & 7))))
 			continue;
 
-		if (srcportal->portalflood[pnum >> 3] & (1 << (pnum & 7)))
+		if (srcportal->flood[pnum >> 3] & (1 << (pnum & 7)))
 			continue;
 
-		srcportal->portalflood[pnum >> 3] |= (1 << (pnum & 7));
+		srcportal->flood[pnum >> 3] |= (1 << (pnum & 7));
 
 		SimpleFlood(srcportal, p->leaf);
 	}
 }
 
 /*
- * BasePortalVis
+ * BaseVis
  */
-void BasePortalVis(int portal_num) {
-	int j, k;
+void BaseVis(int portal_num) {
+	unsigned int j, k;
 	portal_t *tp, *p;
 	float d;
 	const winding_t *w;
 
 	p = map_vis.portals + portal_num;
 
-	p->portalfront = Z_Malloc(map_vis.portal_bytes);
-	memset(p->portalfront, 0, map_vis.portal_bytes);
-
-	p->portalflood = Z_Malloc(map_vis.portal_bytes);
-	memset(p->portalflood, 0, map_vis.portal_bytes);
-
-	p->portalvis = Z_Malloc(map_vis.portal_bytes);
-	memset(p->portalvis, 0, map_vis.portal_bytes);
+	p->front = Z_Malloc(map_vis.portal_bytes);
+	p->flood = Z_Malloc(map_vis.portal_bytes);
+	p->vis = Z_Malloc(map_vis.portal_bytes);
 
 	for (j = 0, tp = map_vis.portals; j < map_vis.num_portals * 2; j++, tp++) {
+
 		if (j == portal_num)
 			continue;
+
 		w = tp->winding;
 		for (k = 0; k < w->num_points; k++) {
 			d = DotProduct(w->points[k], p->plane.normal) - p->plane.dist;
 			if (d > ON_EPSILON)
 				break;
 		}
+
 		if (k == w->num_points)
 			continue; // no points on front
 
@@ -540,13 +537,14 @@ void BasePortalVis(int portal_num) {
 			if (d < -ON_EPSILON)
 				break;
 		}
+
 		if (k == w->num_points)
 			continue; // no points on front
 
-		p->portalfront[j >> 3] |= (1 << (j & 7));
+		p->front[j >> 3] |= (1 << (j & 7));
 	}
 
 	SimpleFlood(p, p->leaf);
 
-	p->nummightsee = CountBits(p->portalflood, map_vis.num_portals * 2);
+	p->num_might_see = CountBits(p->flood, map_vis.num_portals * 2);
 }

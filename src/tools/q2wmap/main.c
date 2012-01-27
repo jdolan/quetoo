@@ -57,7 +57,6 @@ extern int subdivide_size;
 extern char inbase[32];
 extern boolean_t fastvis;
 extern boolean_t nosort;
-extern int testlevel;
 
 /* LIGHT */
 extern boolean_t extra_samples;
@@ -403,10 +402,6 @@ static int Check_VIS_Options(int argc, char **argv) {
 		if (!strcmp(argv[i], "-fast")) {
 			Com_Verbose("fastvis = true\n");
 			fastvis = true;
-		} else if (!strcmp(argv[i], "-level")) {
-			testlevel = atoi(argv[i + 1]);
-			Com_Verbose("testlevel = %i\n", testlevel);
-			i++;
 		} else if (!strcmp(argv[i], "-nosort")) {
 			Com_Verbose("nosort = true\n");
 			nosort = true;
@@ -426,7 +421,7 @@ static int Check_LIGHT_Options(int argc, char **argv) {
 	for (i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-extra")) {
 			extra_samples = true;
-			Com_Verbose("extrasamples = true\n");
+			Com_Verbose("extra samples = true\n");
 		} else if (!strcmp(argv[i], "-brightness")) {
 			brightness = atof(argv[i + 1]);
 			Com_Verbose("brightness at %f\n", brightness);

@@ -49,33 +49,33 @@ winding_t *CopyWinding(winding_t * w);
 
 typedef enum {
 	stat_none, stat_working, stat_done
-} vstatus_t;
+} status_t;
 
 typedef struct {
-	plane_t plane;				// normal pointing into neighbor
-	int leaf;					// neighbor
+	plane_t plane;			// normal pointing into neighbor
+	int leaf;				// neighbor
 
-	vec3_t origin;				// for fast clip testing
+	vec3_t origin;			// for fast clip testing
 	float radius;
 
 	winding_t *winding;
-	vstatus_t status;
-	byte *portalfront;			// [portals], preliminary
-	byte *portalflood;			// [portals], intermediate
-	byte *portalvis;			// [portals], final
+	status_t status;
+	byte *front;			// [portals], preliminary
+	byte *flood;			// [portals], intermediate
+	byte *vis;				// [portals], final
 
-	int nummightsee;			// bit count on portalflood for sort
+	int num_might_see;		// bit count on flood for sort
 } portal_t;
 
 typedef struct separating_plane_s {
 	struct separating_plane_s *next;
 	plane_t plane;				// from portal is on positive side
-} sep_t;
+} separating_plane_t;
 
 typedef struct passage_s {
 	struct passage_s *next;
-	int from, to;				// leaf numbers
-	sep_t *planes;
+	unsigned int from, to;		// leaf numbers
+	separating_plane_t *planes;
 } passage_t;
 
 #define	MAX_PORTALS_ON_LEAF		128
@@ -130,14 +130,11 @@ typedef struct map_vis_s {
 
 extern map_vis_t map_vis;
 
-extern int testlevel;
-
 void LeafFlow(int leaf_num);
 
-void BasePortalVis(int portal_num);
-void BetterPortalVis(int portal_num);
-void PortalFlow(int portal_num);
+void BaseVis(int portal_num);
+void FinalVis(int portal_num);
 
-int CountBits(const byte * bits, int numbits);
+size_t CountBits(const byte *bits, size_t max);
 
 #endif /* __QVIS_H__ */

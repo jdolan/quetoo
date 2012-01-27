@@ -26,9 +26,7 @@ map_vis_t map_vis;
 boolean_t fastvis;
 boolean_t nosort;
 
-int testlevel = 2;
-
-static int totalvis;
+static int visibility_count;
 
 /*
  * PlaneFromWinding
@@ -65,9 +63,9 @@ static winding_t *NewWinding(unsigned short points) {
  * SortPortals_Compare
  */
 static int SortPortals_Compare(const void *a, const void *b) {
-	if ((*(portal_t **) a)->nummightsee == (*(portal_t **) b)->nummightsee)
+	if ((*(portal_t **) a)->num_might_see == (*(portal_t **) b)->num_might_see)
 		return 0;
-	if ((*(portal_t **) a)->nummightsee < (*(portal_t **) b)->nummightsee)
+	if ((*(portal_t **) a)->num_might_see < (*(portal_t **) b)->num_might_see)
 		return -1;
 	return 1;
 }
@@ -94,7 +92,7 @@ static void SortPortals(void) {
 /*
  * LeafVectorFromPortalVector
  */
-static int LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
+static size_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
 	unsigned int i;
 
 	memset(leafbits, 0, map_vis.leaf_bytes);
@@ -133,7 +131,7 @@ static void ClusterMerge(int leaf_num) {
 		if (p->status != stat_done)
 			Com_Error(ERR_FATAL, "portal not done\n");
 		for (j = 0; j < map_vis.portal_longs; j++)
-			((long *) portalvector)[j] |= ((long *) p->portalvis)[j];
+			((long *) portalvector)[j] |= ((long *) p->vis)[j];
 		pnum = p - map_vis.portals;
 		portalvector[pnum >> 3] |= 1 << (pnum & 7);
 	}
@@ -152,7 +150,7 @@ static void ClusterMerge(int leaf_num) {
 
 	// compress the bit string
 	Com_Debug("cluster %4i : %4i visible\n", leaf_num, numvis);
-	totalvis += numvis;
+	visibility_count += numvis;
 
 	i = CompressVis(uncompressed, compressed);
 
@@ -168,41 +166,32 @@ static void ClusterMerge(int leaf_num) {
 }
 
 /*
- * CalcPortalVis
- */
-static void CalcPortalVis(void) {
-	unsigned int i;
-
-	// fastvis just uses mightsee for a very loose bound
-	if (fastvis) {
-		for (i = 0; i < map_vis.num_portals * 2; i++) {
-			map_vis.portals[i].portalvis = map_vis.portals[i].portalflood;
-			map_vis.portals[i].status = stat_done;
-		}
-		return;
-	}
-
-	RunThreadsOn(map_vis.num_portals * 2, true, PortalFlow);
-}
-
-/*
  * CalcVis
  */
 static void CalcVis(void) {
 	unsigned int i;
 
-	RunThreadsOn(map_vis.num_portals * 2, true, BasePortalVis);
+	RunThreadsOn(map_vis.num_portals * 2, true, BaseVis);
 
 	SortPortals();
 
-	CalcPortalVis();
+	// fast vis just uses migh_tsee for a very loose bound
+	if (fastvis) {
+		for (i = 0; i < map_vis.num_portals * 2; i++) {
+			map_vis.portals[i].vis = map_vis.portals[i].flood;
+			map_vis.portals[i].status = stat_done;
+		}
+	}
+	else {
+		RunThreadsOn(map_vis.num_portals * 2, true, FinalVis);
+	}
 
 	// assemble the leaf vis lists by oring and compressing the portal lists
 	for (i = 0; i < map_vis.portal_clusters; i++)
 		ClusterMerge(i);
 
 	Com_Print("Average clusters visible: %i\n",
-			totalvis / map_vis.portal_clusters);
+			visibility_count / map_vis.portal_clusters);
 }
 
 /*
@@ -408,7 +397,7 @@ static void CalcPHS(void) {
 		map_vis.pointer += j;
 
 		if (map_vis.pointer > map_vis.end)
-			Com_Error(ERR_FATAL, "Vismap expansion overflow\n");
+			Com_Error(ERR_FATAL, "CalcPHS: overflow");
 
 		d_vis->bit_offsets[i][DVIS_PHS] = (byte *) dest - map_vis.base;
 
