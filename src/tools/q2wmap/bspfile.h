@@ -129,6 +129,6 @@ void GetVectorForKey(const entity_t *ent, const char *key, vec3_t vec);
 
 epair_t *ParseEpair(void);
 
-extern int subdivide_size;  // shared by qbsp and qrad
+extern int subdivide_size;  // shared by qbsp and light
 
 #endif /* __BSPFILE_H__ */

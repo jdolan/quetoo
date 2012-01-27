@@ -21,38 +21,18 @@
 
 #include "qbsp.h"
 
-
 /*
  * TextureAxisFromPlane
  */
-static const vec3_t base_axis[18] = {
-	  {0, 0, 1}
-	, {1, 0, 0}
-	, {0, -1, 0}
-	,					// floor
-	  {0, 0, -1}
-	, {1, 0, 0}
-	, {0, -1, 0}
-	,					// ceiling
-	  {1, 0, 0}
-	, {0, 1, 0}
-	, {0, 0, -1}
-	,					// west wall
-	  {-1, 0, 0}
-	, {0, 1, 0}
-	, {0, 0, -1}
-	,					// east wall
-	  {0, 1, 0}
-	, {1, 0, 0}
-	, {0, 0, -1}
-	,					// south wall
-	  {0, -1, 0}
-	, {1, 0, 0}
-	, {0, 0, -1}
-	,					// north wall
-};
+static const vec3_t base_axis[18] = { { 0, 0, 1 }, { 1, 0, 0 }, { 0, -1, 0 }, // floor
+		{ 0, 0, -1 }, { 1, 0, 0 }, { 0, -1, 0 }, // ceiling
+		{ 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, -1 }, // west wall
+		{ -1, 0, 0 }, { 0, 1, 0 }, { 0, 0, -1 }, // east wall
+		{ 0, 1, 0 }, { 1, 0, 0 }, { 0, 0, -1 }, // south wall
+		{ 0, -1, 0 }, { 1, 0, 0 }, { 0, 0, -1 }, // north wall
+		};
 
-static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv){
+static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv) {
 	int bestaxis;
 	vec_t dot, best;
 	int i;
@@ -60,9 +40,9 @@ static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv){
 	best = 0;
 	bestaxis = 0;
 
-	for(i = 0; i < 6; i++){
+	for (i = 0; i < 6; i++) {
 		dot = DotProduct(pln->normal, base_axis[i * 3]);
-		if(dot > best){
+		if (dot > best) {
 			best = dot;
 			bestaxis = i;
 		}
@@ -72,20 +52,20 @@ static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv){
 	VectorCopy(base_axis[bestaxis * 3 + 2], yv);
 }
 
-
 /*
  * TexinfoForBrushTexture
  */
-int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3_t origin){
+int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt,
+		vec3_t origin) {
 	vec3_t vecs[2];
 	int sv, tv;
 	vec_t ang, sinv, cosv;
 	vec_t ns, nt;
 	d_bsp_texinfo_t tx, *tc;
-	int i, j, k;
+	int i, j;
 	float shift[2];
 
-	if(!bt->name[0])
+	if (!bt->name[0])
 		return 0;
 
 	memset(&tx, 0, sizeof(tx));
@@ -96,22 +76,22 @@ int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3_t o
 	shift[0] = DotProduct(origin, vecs[0]);
 	shift[1] = DotProduct(origin, vecs[1]);
 
-	if(!bt->scale[0])
+	if (!bt->scale[0])
 		bt->scale[0] = 1.0;
-	if(!bt->scale[1])
+	if (!bt->scale[1])
 		bt->scale[1] = 1.0;
 
 	// rotate axis
-	if(bt->rotate == 0.0){
+	if (bt->rotate == 0.0) {
 		sinv = 0.0;
 		cosv = 1.0;
-	} else if(bt->rotate == 90.0){
+	} else if (bt->rotate == 90.0) {
 		sinv = 1.0;
 		cosv = 0.0;
-	} else if(bt->rotate == 180.0){
+	} else if (bt->rotate == 180.0) {
 		sinv = 0.0;
 		cosv = -1.0;
-	} else if(bt->rotate == 270.0){
+	} else if (bt->rotate == 270.0) {
 		sinv = -1.0;
 		cosv = 0.0;
 	} else {
@@ -120,29 +100,29 @@ int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3_t o
 		cosv = cos(ang);
 	}
 
-	if(vecs[0][0])
+	if (vecs[0][0])
 		sv = 0;
-	else if(vecs[0][1])
+	else if (vecs[0][1])
 		sv = 1;
 	else
 		sv = 2;
 
-	if(vecs[1][0])
+	if (vecs[1][0])
 		tv = 0;
-	else if(vecs[1][1])
+	else if (vecs[1][1])
 		tv = 1;
 	else
 		tv = 2;
 
-	for(i = 0; i < 2; i++){
+	for (i = 0; i < 2; i++) {
 		ns = cosv * vecs[i][sv] - sinv * vecs[i][tv];
 		nt = sinv * vecs[i][sv] + cosv * vecs[i][tv];
 		vecs[i][sv] = ns;
 		vecs[i][tv] = nt;
 	}
 
-	for(i = 0; i < 2; i++)
-		for(j = 0; j < 3; j++)
+	for (i = 0; i < 2; i++)
+		for (j = 0; j < 3; j++)
 			tx.vecs[i][j] = vecs[i][j] / bt->scale[i];
 
 	tx.vecs[0][3] = bt->shift[0] + shift[0];
@@ -153,29 +133,28 @@ int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3_t o
 
 	// find the texinfo
 	tc = d_bsp.texinfo;
-	for(i = 0; i < d_bsp.num_texinfo; i++, tc++){
+	for (i = 0; i < d_bsp.num_texinfo; i++, tc++) {
 
-		if(tc->flags != tx.flags)
+		if (tc->flags != tx.flags)
 			continue;
 
-		if(tc->value != tx.value)
+		if (tc->value != tx.value)
 			continue;
 
-		if(strcmp(tc->texture, tx.texture))
+		if (strncmp(tc->texture, tx.texture, sizeof(tc->texture)))
 			continue;
 
-		for(j = 0; j < 2; j++){
-			for(k = 0; k < 4; k++){
-				if(tc->vecs[j][k] != tx.vecs[j][k])
-					goto skip;
-			}
-		}
+		if (memcmp((char *)(tc->vecs), (char *)(tx.vecs), sizeof(tx.vecs)))
+			continue;
+
 		return i;
-skip:
-		;
 	}
-	*tc = tx;
 
+	if (i == MAX_BSP_TEXINFO) {
+		Com_Error(ERR_FATAL, "TexinfoForBrushTexture: MAX_BSP_TEXINFO");
+	}
+
+	*tc = tx;
 	d_bsp.num_texinfo++;
 	return i;
 }

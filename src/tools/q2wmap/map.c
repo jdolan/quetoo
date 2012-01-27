@@ -835,8 +835,6 @@ void LoadMapFile(const char *file_name) {
 	num_map_planes = 0;
 
 	num_entities = 0;
-	//d_bsp.num_texinfo = 0;
-
 	while (ParseMapEntity()) {
 	}
 

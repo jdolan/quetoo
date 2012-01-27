@@ -130,8 +130,6 @@ typedef struct map_vis_s {
 
 extern map_vis_t map_vis;
 
-void LeafFlow(int leaf_num);
-
 void BaseVis(int portal_num);
 void FinalVis(int portal_num);
 

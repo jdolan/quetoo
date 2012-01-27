@@ -430,6 +430,7 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 
 		stack.pass = ClipToSeperators(prevstack->pass, stack.source,
 				stack.pass, true, &stack);
+
 		if (!stack.pass)
 			continue;
 
@@ -442,9 +443,9 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 }
 
 /*
- * PortalFlow
+ * FinalVis
  *
- * generates the vis bit vector
+ * Generates the vis bit vector.
  */
 void FinalVis(int portal_num) {
 	thread_data_t data;
