@@ -31,6 +31,7 @@ quake2world_LDADD = \
 	../server/libserver.la \
 	@BASE_LIBS@ \
 	@ANTTWEAKBAR_LIBS@ \
+	-lstdc++ \
 	@CURL_LIBS@ \
 	@CURSES_LIBS@ \
 	@JPEG_LIBS@ \
