@@ -261,7 +261,7 @@ void Cl_SendDisconnect(void) {
  */
 void Cl_Disconnect(void) {
 
-	if (cls.state == ca_disconnected) {
+	if (cls.state <= ca_disconnected) {
 		return;
 	}
 
