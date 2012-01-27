@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef G_TYPES_H_
-#define G_TYPES_H_
+#ifndef __G_TYPES_H__
+#define __G_TYPES_H__
 
 #include "quake2world.h"
 
@@ -53,11 +53,9 @@
 #define FL_GOD_MODE				0x00000004
 #define FL_TEAM_SLAVE			0x00000008  // not the first on the team
 #define FL_RESPAWN				0x80000000  // used for item respawning
-
 // memory tags to allow dynamic memory to be cleaned up
 #define TAG_GAME	765  // clear when unloading the dll
 #define TAG_LEVEL	766  // clear when loading a new level
-
 // ammo types
 typedef enum {
 	AMMO_SHELLS,
@@ -72,68 +70,55 @@ typedef enum {
 
 // armor types
 typedef enum {
-	ARMOR_NONE,
-	ARMOR_JACKET,
-	ARMOR_COMBAT,
-	ARMOR_BODY,
-	ARMOR_SHARD
+	ARMOR_NONE, ARMOR_JACKET, ARMOR_COMBAT, ARMOR_BODY, ARMOR_SHARD
 } g_armor_t;
 
 // health types
 typedef enum {
-	HEALTH_NONE,
-	HEALTH_SMALL,
-	HEALTH_MEDIUM,
-	HEALTH_LARGE,
-	HEALTH_MEGA
+	HEALTH_NONE, HEALTH_SMALL, HEALTH_MEDIUM, HEALTH_LARGE, HEALTH_MEGA
 } g_health_t;
 
 // edict->move_type values
 typedef enum {
-	MOVE_TYPE_NONE,       // never moves
-	MOVE_TYPE_NO_CLIP,     // origin and angles change with no interaction
-	MOVE_TYPE_PUSH,       // no clip to world, push on box contact
-	MOVE_TYPE_STOP,       // no clip to world, stops on box contact
+	MOVE_TYPE_NONE, // never moves
+	MOVE_TYPE_NO_CLIP, // origin and angles change with no interaction
+	MOVE_TYPE_PUSH, // no clip to world, push on box contact
+	MOVE_TYPE_STOP, // no clip to world, stops on box contact
 
-	MOVE_TYPE_WALK,       // gravity
+	MOVE_TYPE_WALK, // gravity
 	MOVE_TYPE_FLY,
-	MOVE_TYPE_TOSS,       // gravity
+	MOVE_TYPE_TOSS,
+// gravity
 } g_move_type_t;
 
 // a synonym for readability
 #define MOVE_TYPE_THINK MOVE_TYPE_NONE
 
-
 // gitem_t->flags
 typedef enum {
-	ITEM_WEAPON,
-	ITEM_AMMO,
-	ITEM_ARMOR,
-	ITEM_FLAG,
-	ITEM_HEALTH,
-	ITEM_POWERUP
+	ITEM_WEAPON, ITEM_AMMO, ITEM_ARMOR, ITEM_FLAG, ITEM_HEALTH, ITEM_POWERUP
 } g_item_type_t;
 
 typedef struct g_item_s {
-	char *class_name;  // spawning name
+	char *class_name; // spawning name
 	boolean_t (*pickup)(struct g_edict_s *ent, struct g_edict_s *other);
 	void (*use)(struct g_edict_s *ent, struct g_item_s *item);
 	void (*drop)(struct g_edict_s *ent, struct g_item_s *item);
 	void (*weapon_think)(struct g_edict_s *ent);
 	char *pickup_sound;
 	char *model;
-	int effects;
+	unsigned int effects;
 
 	// client side info
 	char *icon;
-	char *pickup_name;  // for printing on pickup
+	char *pickup_name; // for printing on pickup
 
-	int quantity;  // for ammo how much, for weapons how much is used per shot
-	char *ammo;  // for weapons
-	g_item_type_t type;  // g_item_type_t, see above
-	int tag;  // type-specific flags
+	unsigned short quantity; // for ammo how much, for weapons how much is used per shot
+	char *ammo; // for weapons
+	g_item_type_t type; // g_item_type_t, see above
+	unsigned short tag; // type-specific flags
 
-	char *precaches;  // string of all models, sounds, and images this item will use
+	char *precaches; // string of all models, sounds, and images this item will use
 } g_item_t;
 
 // override quake2 items for legacy maps
@@ -143,7 +128,6 @@ typedef struct g_override_s {
 } g_override_t;
 
 extern g_override_t g_overrides[];
-
 
 // spawn_temp_t is only used to hold entity field values that
 // can be set from the editor, but aren't actually present
@@ -169,10 +153,16 @@ typedef struct g_spawn_temp_s {
 	int distance;
 	int height;
 	char *noise;
-	float pausetime;
+	float pause_time;
 	char *item;
 } g_spawn_temp_t;
 
+#define FOFS(x) (ptrdiff_t)&(((g_edict_t *)0)->x)
+#define SOFS(x) (ptrdiff_t)&(((g_spawn_temp_t *)0)->x)
+
+typedef enum {
+	STATE_TOP, STATE_BOTTOM, STATE_UP, STATE_DOWN
+} g_move_state_t;
 
 typedef struct g_move_info_s {
 	// fixed data
@@ -181,9 +171,9 @@ typedef struct g_move_info_s {
 	vec3_t end_origin;
 	vec3_t end_angles;
 
-	int sound_start;
-	int sound_middle;
-	int sound_end;
+	unsigned short sound_start;
+	unsigned short sound_middle;
+	unsigned short sound_end;
 
 	float accel;
 	float speed;
@@ -193,7 +183,7 @@ typedef struct g_move_info_s {
 	float wait;
 
 	// state data
-	int state;
+	g_move_state_t state;
 	vec3_t dir;
 	float current_speed;
 	float move_speed;
@@ -205,30 +195,26 @@ typedef struct g_move_info_s {
 
 // this structure is left intact through an entire game
 typedef struct g_locals_s {
-
-	g_edict_t *edicts;  // [g_max_entities]
-
-	g_client_t *clients;  // [sv_max_clients]
+	g_edict_t *edicts; // [g_max_entities]
+	g_client_t *clients; // [sv_max_clients]
 
 	g_spawn_temp_t spawn;
 
-	int num_items;
-	int num_overrides;
-
+	unsigned short num_items;
+	unsigned short num_overrides;
 } g_game_t;
 
 extern g_game_t g_game;
 
-
 // this structure is cleared as each map is entered
 typedef struct g_level_s {
-	int frame_num;
+	unsigned int frame_num;
 	float time;
 
-	char title[MAX_STRING_CHARS];  // the descriptive name (Stress Fractures, etc)
-	char name[MAX_QPATH];  // the server name (fractures, etc)
-	int gravity;  // defaults to 800
-	int gameplay;  // DEATHMATCH, INSTAGIB, ARENA
+	char title[MAX_STRING_CHARS]; // the descriptive name (Stress Fractures, etc)
+	char name[MAX_QPATH]; // the server name (fractures, etc)
+	int gravity; // defaults to 800
+	int gameplay; // DEATHMATCH, INSTAGIB, ARENA
 	int teams;
 	int ctf;
 	int match;
@@ -241,26 +227,26 @@ typedef struct g_level_s {
 	char music[MAX_STRING_CHARS];
 
 	// intermission state
-	float intermission_time;  // time intermission started
+	float intermission_time; // time intermission started
 	vec3_t intermission_origin;
 	vec3_t intermission_angle;
 	const char *changemap;
 
-	boolean_t warmup;  // shared by match and round
+	boolean_t warmup; // shared by match and round
 
 	boolean_t start_match;
-	float match_time;  // time match started
-	int match_num;
+	float match_time; // time match started
+	unsigned int match_num;
 
 	boolean_t start_round;
-	float round_time;  // time round started
-	int round_num;
+	float round_time; // time round started
+	unsigned int round_num;
 
-	char vote_cmd[64];  // current vote in question
-	int votes[3]; // current vote tallies
-	float votetime;  // time vote started
+	char vote_cmd[64]; // current vote in question
+	unsigned int votes[3]; // current vote tallies
+	float vote_time; // time vote started
 
-	g_edict_t *current_entity;  // entity running from G_RunFrame
+	g_edict_t *current_entity; // entity running from G_RunFrame
 } g_level_t;
 
 // means of death
@@ -297,7 +283,7 @@ typedef struct g_level_s {
 #define VOTE_MAJORITY 0.51
 
 typedef enum {
-	VOTE_NOOP, VOTE_YES, VOTE_NO
+	VOTE_NO_OP, VOTE_YES, VOTE_NO
 } g_vote_t;
 
 // gameplay modes
@@ -313,7 +299,6 @@ typedef enum {
 #define DAMAGE_ENERGY			0x00000004  // damage is from an energy based weapon
 #define DAMAGE_BULLET			0x00000008  // damage is from a bullet (used for ricochets)
 #define DAMAGE_NO_PROTECTION	0x00000010  // armor and godmode have no effect
-
 #define MAX_NET_NAME 64
 
 // teams
@@ -322,132 +307,131 @@ typedef struct team_s {
 	char skin[32];
 	int score;
 	int captures;
-	float name_time;  // prevent change spamming
+	float name_time; // prevent change spamming
 	float skin_time;
 } g_team_t;
 
 // client data that persists through respawns
 typedef struct g_client_locals_s {
-	int first_frame;  // g_level.frame_num the client entered the game
+	unsigned int first_frame; // g_level.frame_num the client entered the game
 
 	char user_info[MAX_USER_INFO_STRING];
 	char net_name[MAX_NET_NAME];
 	char sql_name[20];
 	char skin[32];
-	int score;
-	int captures;
+	short score;
+	short captures;
 
-	int health;
-	int max_health;
+	short health;
+	short max_health;
 
-	int armor;
-	int max_armor;
+	short armor;
+	short max_armor;
 
-	int inventory[MAX_ITEMS];
+	short inventory[MAX_ITEMS];
 
 	// ammo capacities
-	int max_shells;
-	int max_bullets;
-	int max_grenades;
-	int max_rockets;
-	int max_cells;
-	int max_bolts;
-	int max_slugs;
-	int max_nukes;
+	short max_shells;
+	short max_bullets;
+	short max_grenades;
+	short max_rockets;
+	short max_cells;
+	short max_bolts;
+	short max_slugs;
+	short max_nukes;
 
 	g_item_t *weapon;
 	g_item_t *last_weapon;
 
-	boolean_t spectator;  // client is a spectator
-	boolean_t ready;  // ready
+	boolean_t spectator; // client is a spectator
+	boolean_t ready; // ready
 
-	g_team_t *team;  // current team (good/evil)
-	g_vote_t vote;  // current vote (yes/no)
-	int match_num;  // most recent match
-	int round_num;  // most recent arena round
-	int color;  // weapon effect colors
+	g_team_t *team; // current team (good/evil)
+	g_vote_t vote; // current vote (yes/no)
+	unsigned int match_num; // most recent match
+	unsigned int round_num; // most recent arena round
+	int color; // weapon effect colors
 } g_client_locals_t;
-
 
 // this structure is cleared on each respawn
 struct g_client_s {
 	// known to server
-	player_state_t ps;  // communicated by server to clients
-	int ping;
+	player_state_t ps; // communicated by server to clients
+	unsigned int ping;
 
 	// private to game
 
 	g_client_locals_t locals;
 
-	boolean_t show_scores;  // sets layout bit mask in player state
+	boolean_t show_scores; // sets layout bit mask in player state
 
-	int ammo_index;
+	unsigned short ammo_index;
 
-	int buttons;
-	int old_buttons;
-	int latched_buttons;
+	unsigned int buttons;
+	unsigned int old_buttons;
+	unsigned int latched_buttons;
 
-	float weapon_think_time;  // time when the weapon think was called
-	float weapon_fire_time;  // can fire when time > this
-	float muzzle_flash_time;  // should send muzzle flash when time > this
+	float weapon_think_time; // time when the weapon think was called
+	float weapon_fire_time; // can fire when time > this
+	float muzzle_flash_time; // should send muzzle flash when time > this
 	g_item_t *new_weapon;
 
-	int damage_armor;  // damage absorbed by armor
-	int damage_blood;  // damage taken out of health
-	vec3_t damage_from;  // origin for vector calculation
+	int damage_armor; // damage absorbed by armor
+	int damage_blood; // damage taken out of health
+	vec3_t damage_from; // origin for vector calculation
 
-	vec3_t angles;  // aiming direction
+	vec3_t angles; // aiming direction
 	vec3_t old_angles;
 	vec3_t old_velocity;
 
-	vec3_t cmd_angles;  // angles sent over in the last command
+	vec3_t cmd_angles; // angles sent over in the last command
 
-	float respawn_time;  // eligible for respawn when time > this
-	float drown_time;  // eligible for drowning damage when time > this
-	float sizzle_time;  // eligible for sizzle damage when time > this
-	float fall_time;  // eligible for landing event when time > this
-	float jump_time;  // eligible for jump when time > this
-	float pain_time;  // eligible for pain sound when time > this
-	float gasp_time;  // eligible for gasp sound when time > this
-	float footstep_time;  // play a footstep when time > this
+	float respawn_time; // eligible for respawn when time > this
+	float drown_time; // eligible for drowning damage when time > this
+	float sizzle_time; // eligible for sizzle damage when time > this
+	float fall_time; // eligible for landing event when time > this
+	float jump_time; // eligible for jump when time > this
+	float pain_time; // eligible for pain sound when time > this
+	float gasp_time; // eligible for gasp sound when time > this
+	float footstep_time; // play a footstep when time > this
 
-	float pickup_msg_time;  // display message until time > this
+	float pickup_msg_time; // display message until time > this
 
-	float chat_time;  // can chat when time > this
+	float chat_time; // can chat when time > this
 	boolean_t muted;
 
-	float quad_damage_time;  // has quad when time < this
-	float quad_attack_time;  // play attack sound when time > this
+	float quad_damage_time; // has quad when time < this
+	float quad_attack_time; // play attack sound when time > this
 
-	g_edict_t *chase_target;  // player we are chasing
+	g_edict_t *chase_target; // player we are chasing
 };
 
 struct g_edict_s {
 	entity_state_t s;
-	struct g_client_s *client;  // NULL if not a player
+	struct g_client_s *client; // NULL if not a player
 
 	boolean_t in_use;
 	int link_count;
 
-	link_t area;  // linked to a division node or leaf
+	link_t area; // linked to a division node or leaf
 
-	int num_clusters;  // if -1, use head_node instead
+	int num_clusters; // if -1, use head_node instead
 	int cluster_nums[MAX_ENT_CLUSTERS];
-	int head_node;  // unused if num_clusters != -1
+	int head_node; // unused if num_clusters != -1
 	int area_num, area_num2;
 
-	int sv_flags;
+	unsigned  sv_flags;
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
-	int clip_mask;
+	unsigned int clip_mask;
 	g_edict_t *owner;
 
 	// DO NOT MODIFY ANYTHING ABOVE THIS, THE SERVER
 	// EXPECTS THE FIELDS IN THAT ORDER!
 
-	int spawn_flags;
-	int flags;
+	unsigned int spawn_flags;
+	unsigned int flags; // FL_GOD_MODE, etc..
 
 	char *class_name;
 	char *model;
@@ -481,25 +465,27 @@ struct g_edict_s {
 	float next_think;
 	void (*pre_think)(g_edict_t *ent);
 	void (*think)(g_edict_t *self);
-	void (*blocked)(g_edict_t *self, g_edict_t *other);  // move to move_info?
-	void (*touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
+	void (*blocked)(g_edict_t *self, g_edict_t *other); // move to move_info?
+	void (*touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
+			c_bsp_surface_t *surf);
 	void (*use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
 	void (*pain)(g_edict_t *self, g_edict_t *other, int damage, int knockback);
-	void (*die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage, vec3_t point);
+	void (*die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker,
+			int damage, vec3_t point);
 
 	float touch_time;
 	float push_time;
 
-	int health;
-	int max_health;
+	short health;
+	short max_health;
 	boolean_t dead;
 
-	int view_height;  // height above origin where eyesight is determined
+	short view_height; // height above origin where eyesight is determined
 	boolean_t take_damage;
-	int dmg;
-	int knockback;
+	short dmg;
+	short knockback;
 	float dmg_radius;
-	int sounds;  // make this a spawntemp var?
+	short sounds; // make this a spawntemp var?
 	int count;
 
 	g_edict_t *chain;
@@ -511,29 +497,26 @@ struct g_edict_s {
 	g_edict_t *team_master;
 	g_edict_t *lightning;
 
-	int noise_index;
-	int attenuation;
+	unsigned short noise_index;
+	short attenuation;
 
 	// timing variables
 	float wait;
-	float delay;  // before firing targets
+	float delay; // before firing targets
 	float random;
 
-	int water_type;
-	int old_water_level;
-	int water_level;
+	unsigned int water_type;
+	unsigned int old_water_level;
+	unsigned int water_level;
 
-	int area_portal;  // the area portal to toggle
+	int area_portal; // the area portal to toggle
 
-	g_item_t *item;  // for bonus items
+	g_item_t *item; // for bonus items
 
-	c_bsp_plane_t plane;  // last touched
+	c_bsp_plane_t plane; // last touched
 	c_bsp_surface_t *surf;
 
-	vec3_t map_origin;  // where the map says we spawn
+	vec3_t map_origin; // where the map says we spawn
 };
 
-#define FOFS(x)(ptrdiff_t)&(((g_edict_t *)0)->x)
-#define SOFS(x)(ptrdiff_t)&(((g_spawn_temp_t *)0)->x)
-
-#endif /* G_TYPES_H_ */
+#endif /* __G_TYPES_H__ */

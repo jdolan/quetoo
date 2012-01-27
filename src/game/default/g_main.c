@@ -102,7 +102,7 @@ void G_ResetVote(void){
 	for(i = 0; i < sv_max_clients->integer; i++){  //reset vote flags
 		if(!g_game.edicts[i + 1].in_use)
 			continue;
-		g_game.edicts[i + 1].client->locals.vote = VOTE_NOOP;
+		g_game.edicts[i + 1].client->locals.vote = VOTE_NO_OP;
 	}
 
 	gi.ConfigString(CS_VOTE, NULL);
@@ -110,7 +110,7 @@ void G_ResetVote(void){
 	g_level.votes[0] = g_level.votes[1] = g_level.votes[2] = 0;
 	g_level.vote_cmd[0] = 0;
 
-	g_level.votetime = 0;
+	g_level.vote_time = 0;
 }
 
 /*
@@ -317,10 +317,10 @@ static void G_CheckVote(void){
 	if(!g_voting->value)
 		return;
 
-	if(g_level.votetime == 0)
+	if(g_level.vote_time == 0)
 		return;
 
-	if(g_level.time - g_level.votetime > MAX_VOTE_TIME){
+	if(g_level.time - g_level.vote_time > MAX_VOTE_TIME){
 		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" expired\n", g_level.vote_cmd);
 		G_ResetVote();
 		return;

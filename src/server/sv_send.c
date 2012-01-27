@@ -285,7 +285,7 @@ void Sv_Multicast(vec3_t origin, multicast_t to) {
 }
 
 /*
- * Sv_StartSound
+ * Sv_PositionedSound
  *
  * FIXME: if entity isn't in PHS, they must be forced to be sent or
  * have the origin explicitly sent.
@@ -296,14 +296,14 @@ void Sv_Multicast(vec3_t origin, multicast_t to) {
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for bmodels.
  */
-void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, int soundindex,
-		int atten) {
+void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, unsigned short index,
+		unsigned short atten) {
 	int flags;
 	int i;
 	vec3_t org;
 
 	if (atten < ATTN_NONE || atten > ATTN_STATIC) {
-		Com_Warn("Sv_StartSound: attenuation %d.\n", atten);
+		Com_Warn("Sv_PositionedSound: attenuation %d.\n", atten);
 		atten = DEFAULT_SOUND_ATTENUATION;
 	}
 
@@ -334,7 +334,7 @@ void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, int soundindex,
 
 	Msg_WriteByte(&sv.multicast, svc_sound);
 	Msg_WriteByte(&sv.multicast, flags);
-	Msg_WriteByte(&sv.multicast, soundindex);
+	Msg_WriteByte(&sv.multicast, index);
 
 	if (flags & S_ATTEN)
 		Msg_WriteByte(&sv.multicast, atten);

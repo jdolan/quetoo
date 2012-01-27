@@ -988,7 +988,7 @@ boolean_t G_ClientConnect(g_edict_t *ent, char *user_info){
 	// clean up locals things which are not reset on spawns
 	ent->client->locals.score = 0;
 	ent->client->locals.team = NULL;
-	ent->client->locals.vote = VOTE_NOOP;
+	ent->client->locals.vote = VOTE_NO_OP;
 	ent->client->locals.spectator = false;
 	ent->client->locals.net_name[0] = 0;
 

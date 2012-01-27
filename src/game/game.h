@@ -76,11 +76,11 @@ struct g_edict_s {
 	int head_node;  // unused if num_clusters != -1
 	int area_num, area_num2;
 
-	int sv_flags;  // SVF_NO_CLIENT, etc
+	unsigned int sv_flags;  // SVF_NO_CLIENT, etc
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
-	int clip_mask;
+	unsigned int clip_mask;
 	g_edict_t *owner;
 
 	// the game can add anything it wants after
@@ -113,8 +113,8 @@ typedef struct g_import_s {
 	int (*ImageIndex)(const char *name);
 
 	void (*SetModel)(g_edict_t *ent, const char *name);
-	void (*Sound)(g_edict_t *ent, int soundindex, int atten);
-	void (*PositionedSound)(vec3_t origin, g_edict_t *ent, int soundindex, int atten);
+	void (*Sound)(g_edict_t *ent, unsigned short index, unsigned short atten);
+	void (*PositionedSound)(vec3_t origin, g_edict_t *ent, unsigned short index, unsigned short atten);
 
 	// collision detection
 	c_trace_t (*Trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *passent, int contentmask);

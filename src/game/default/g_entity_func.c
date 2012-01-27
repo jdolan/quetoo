@@ -42,13 +42,6 @@ void G_func_areaportal(g_edict_t *ent){
 	ent->count = 0;  // always start closed;
 }
 
-
-#define STATE_TOP			0
-#define STATE_BOTTOM		1
-#define STATE_UP			2
-#define STATE_DOWN			3
-
-
 /*
  * G_MoveInfo_Done
  */
@@ -1540,7 +1533,7 @@ void G_func_timer(g_edict_t *self){
 	}
 
 	if(self->spawn_flags & 1){
-		self->next_think = g_level.time + 1.0 + g_game.spawn.pausetime + self->delay + self->wait + crand() * self->random;
+		self->next_think = g_level.time + 1.0 + g_game.spawn.pause_time + self->delay + self->wait + crand() * self->random;
 		self->activator = self;
 	}
 

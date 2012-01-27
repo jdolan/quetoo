@@ -213,14 +213,14 @@ static boolean_t Sv_inPHS(const vec3_t p1, const vec3_t p2) {
 }
 
 /*
- * Sv_StartSound_
+ * Sv_Sound
  */
-static void Sv_Sound(g_edict_t *ent, int soundindex, int atten) {
+static void Sv_Sound(g_edict_t *ent, unsigned short index, unsigned short atten) {
 
 	if (!ent)
 		return;
 
-	Sv_PositionedSound(NULL, ent, soundindex, atten);
+	Sv_PositionedSound(NULL, ent, index, atten);
 }
 
 static void *game_handle;

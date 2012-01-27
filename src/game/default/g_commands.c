@@ -180,7 +180,7 @@ static void G_NoClip_f(g_edict_t *ent){
  */
 static void G_Wave_f(g_edict_t *ent){
 
-	if(ent->flags & SVF_NO_CLIENT)
+	if(ent->sv_flags & SVF_NO_CLIENT)
 		return;
 
 	G_SetAnimation(ent, ANIM_TORSO_GESTURE, true);
@@ -564,10 +564,10 @@ static const char *vote_cmds[] = {
  * otherwise.
  */
 static boolean_t Vote_Help(g_edict_t *ent){
-	int i, j, len;
+	size_t i, j, len;
 	char msg[1024];
 
-	if(!g_level.votetime){  // check for yes/no
+	if(!g_level.vote_time){  // check for yes/no
 		if(gi.Argc() == 1 && (!strcasecmp(gi.Argv(0), "yes") || !strcasecmp(gi.Argv(0), "no"))){
 			gi.ClientPrint(ent, PRINT_HIGH, "There is not a vote in progress\n");  // shorthand
 			return true;
@@ -674,7 +674,7 @@ static void G_Vote_f(g_edict_t *ent){
 		vote[sizeof(vote) - 1] = 0;
 	}
 
-	if(g_level.votetime){  // check for vote from client
+	if(g_level.vote_time){  // check for vote from client
 		if(ent->client->locals.vote){
 			gi.ClientPrint(ent, PRINT_HIGH, "You've already voted\n");
 			return;
@@ -711,7 +711,7 @@ static void G_Vote_f(g_edict_t *ent){
 
 	strncpy(g_level.vote_cmd, vote, sizeof(g_level.vote_cmd) - 1);
 	g_level.vote_cmd[sizeof(g_level.vote_cmd) - 1] = 0;
-	g_level.votetime = g_level.time;
+	g_level.vote_time = g_level.time;
 
 	ent->client->locals.vote = VOTE_YES;  // client has implicity voted
 	g_level.votes[VOTE_YES] = 1;

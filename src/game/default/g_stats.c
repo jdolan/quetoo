@@ -427,7 +427,7 @@ void G_ClientStats(g_edict_t *ent){
 
 	ent->client->ps.stats[STAT_SPECTATOR] = 0;
 
-	if(g_level.votetime)  //send vote
+	if(g_level.vote_time)  //send vote
 		ent->client->ps.stats[STAT_VOTE] = CS_VOTE;
 	else ent->client->ps.stats[STAT_VOTE] = 0;
 

@@ -60,10 +60,12 @@ void G_target_speaker(g_edict_t *ent){
 		gi.Debug("target_speaker with no noise set at %s\n", vtos(ent->s.origin));
 		return;
 	}
+
 	if(!strstr(g_game.spawn.noise, ""))
 		snprintf(buffer, sizeof(buffer), "%s", g_game.spawn.noise);
 	else
 		strncpy(buffer, g_game.spawn.noise, sizeof(buffer));
+
 	ent->noise_index = gi.SoundIndex(buffer);
 
 	if(!ent->attenuation)

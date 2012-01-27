@@ -38,7 +38,7 @@ void Sv_FlushRedirect(int target, char *outputbuf);
 void Sv_SendClientMessages(void);
 void Sv_Unicast(g_edict_t *ent, boolean_t reliable);
 void Sv_Multicast(vec3_t origin, multicast_t to);
-void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, int soundindex, int atten);
+void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, unsigned short index, unsigned short atten);
 void Sv_ClientPrint(g_edict_t *ent, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Sv_ClientCenterPrint(g_edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Sv_BroadcastPrint(int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
