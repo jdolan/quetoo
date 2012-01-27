@@ -1,7 +1,26 @@
 gamelibdir=$(libdir)/@PACKAGE@/default
 
 noinst_HEADERS = \
-	g_local.h
+	g_ballistics.h \
+	g_chase.h \
+	g_client.h \
+	g_combat.h \
+	g_commands.h \
+	g_entity_func.h \
+	g_entity_info.h \
+	g_entity_misc.h \
+	g_entity_target.h \
+	g_entity_trigger.h \
+	g_entity.h \
+	g_items.h \
+	g_local.h \
+	g_main.h \
+	g_physics.h \
+	g_stats.h \
+	g_types.h \
+	g_utils.h \
+	g_view.h \
+	g_weapons.h
 
 gamelib_LTLIBRARIES = \
 	game.la
