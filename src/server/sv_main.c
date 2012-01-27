@@ -626,7 +626,6 @@ static void Sv_CheckTimeouts(void) {
 
 		// enforce timeouts by dropping the client
 		if (cl->last_message < timeout) {
-			printf("what the hell: %u\n", cl->last_message);
 			Sv_BroadcastPrint(PRINT_HIGH, "%s timed out\n", cl->name);
 			Sv_DropClient(cl);
 		}
