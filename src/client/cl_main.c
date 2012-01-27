@@ -96,13 +96,13 @@ static void Cl_SendConnect(void) {
 /*
  * Cl_CheckForResend
  *
- * Resend a connect message if the last one has timed out.
+ * Re-send a connect message if the last one has timed out.
  */
 static void Cl_CheckForResend(void) {
 	net_addr_t addr;
 
 	// if the local server is running and we aren't then connect
-	if (Com_ServerState() && strcmp(cls.server_name, "localhost")) {
+	if (Com_WasInit(Q2W_SERVER) && strcmp(cls.server_name, "localhost")) {
 
 		if (cls.state > ca_disconnected) {
 			Cl_Disconnect();
@@ -114,7 +114,7 @@ static void Cl_CheckForResend(void) {
 		cls.connect_time = -99999;
 	}
 
-	// resend if we haven't received a reply yet
+	// re-send if we haven't received a reply yet
 	if (cls.state != ca_connecting)
 		return;
 
@@ -147,7 +147,7 @@ static void Cl_Connect_f(void) {
 		return;
 	}
 
-	if (Com_ServerState()) { // if running a local server, kill it
+	if (Com_WasInit(Q2W_SERVER)) { // if running a local server, kill it
 		Sv_ShutdownServer("Server quit.\n");
 	}
 
@@ -215,6 +215,7 @@ void Cl_ClearState(void) {
 
 	// wipe the entire cl_client_t structure
 	memset(&cl, 0, sizeof(cl));
+	Com_QuitSubsystem(Q2W_CLIENT);
 
 	Sb_Clear(&cls.netchan.message);
 }
@@ -230,7 +231,7 @@ void Cl_ClearState(void) {
 void Cl_SendDisconnect(void) {
 	byte final[16];
 
-	if (cls.state == ca_disconnected)
+	if (cls.state <= ca_disconnected)
 		return;
 
 	Com_Print("Disconnecting from %s...\n", cls.server_name);
@@ -259,9 +260,8 @@ void Cl_SendDisconnect(void) {
  */
 void Cl_Disconnect(void) {
 
-	if (cls.state <= ca_disconnected) {
+	if (cls.state <= ca_disconnected)
 		return;
-	}
 
 	if (time_demo->value) { // summarize time_demo results
 
@@ -301,7 +301,7 @@ void Cl_Disconnect(void) {
  */
 static void Cl_Disconnect_f(void) {
 
-	if (Com_ServerState()) { // if running a local server, kill it
+	if (Com_WasInit(Q2W_SERVER)) { // if running a local server, kill it
 		Sv_ShutdownServer("Disconnected.\n");
 	}
 
@@ -533,7 +533,6 @@ static void Cl_LoadMedia(void) {
 }
 
 static int precache_check; // for auto-download of precache items
-static int precache_spawn_count;
 
 /*
  * Cl_RequestNextDownload
@@ -572,21 +571,27 @@ void Cl_RequestNextDownload(void) {
 		}
 	}
 
+	// we're good to go, lock and load (literally)
+
+	Com_InitSubsystem(Q2W_CLIENT);
+	Cvar_ResetLocalVars();
+
 	Cl_LoadMedia();
 
 	Msg_WriteByte(&cls.netchan.message, clc_string);
-	Msg_WriteString(&cls.netchan.message,
-			va("begin %i\n", precache_spawn_count));
+	Msg_WriteString(&cls.netchan.message, va("begin %i\n", cls.spawn_count));
 }
 
 /*
  * Cl_Precache_f
  *
- * The server sends this command once serverdata has been parsed.
+ * The server sends this command just after server_data. Hang onto the spawn
+ * count and check for the media we'll need to enter the game.
  */
 static void Cl_Precache_f(void) {
 
-	precache_spawn_count = atoi(Cmd_Argv(1));
+	cls.spawn_count = strtoul(Cmd_Argv(1), NULL, 0);
+
 	precache_check = CS_PAK;
 
 	Cl_RequestNextDownload();
@@ -793,7 +798,7 @@ void Cl_Frame(unsigned int msec) {
 	if (cls.state == ca_connected && cls.packet_delta < 50)
 		packet_frame = false; // don't flood the server while downloading
 
-	if (cls.state <= ca_disconnected && !Com_ServerState()) {
+	if (cls.state <= ca_disconnected && !Com_WasInit(Q2W_SERVER)) {
 		usleep(1000); // idle at console
 	}
 

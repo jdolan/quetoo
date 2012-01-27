@@ -41,37 +41,36 @@ interface from being ambiguous.
 
 extern cvar_t *cvar_vars;
 
-void Cvar_LockCheatVars(boolean_t lock);
-
-cvar_t *Cvar_Get(const char *var_name, const char *value, int flags, const char *description);
+cvar_t *Cvar_Get(const char *name, const char *value, int flags, const char *description);
 // creates the variable if it doesn't exist, or returns the existing one
 // if it exists, the value will not be changed, but flags will be ORed in
 // that allows variables to be unarchived without needing bitflags
 
-cvar_t *Cvar_Set(const char *var_name, const char *value);
+cvar_t *Cvar_Set(const char *name, const char *value);
 // will create the variable if it doesn't exist
 
-cvar_t *Cvar_ForceSet(const char *var_name, const char *value);
+cvar_t *Cvar_ForceSet(const char *name, const char *value);
 // will set the variable even if NOSET or LATCH
 
-cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags);
+cvar_t *Cvar_FullSet(const char *name, const char *value, int flags);
 
-void Cvar_SetValue(const char *var_name, float value);
+void Cvar_SetValue(const char *name, float value);
 // expands value to a string and calls Cvar_Set
 
-void Cvar_Toggle(const char *var_name);
+void Cvar_Toggle(const char *name);
 // toggles value between 0 and 1
 
-float Cvar_GetValue(const char *var_name);
+float Cvar_GetValue(const char *name);
 // returns 0 if not defined or non numeric
 
-char *Cvar_GetString(const char *var_name);
+char *Cvar_GetString(const char *name);
 // returns an empty string if not defined
 
 int Cvar_CompleteVar(const char *partial, const char *matches[]);
 // attempts to match a partial variable name for command line completion
 
-cvar_t *Cvar_FindVar(const char *var_name);
+void Cvar_ResetLocalVars(void);
+// reset CVAR_LO_ONLY variables to their default values
 
 boolean_t Cvar_PendingLatchedVars(void);
 // are there pending latch changes?

@@ -22,7 +22,6 @@
 #include "sv_local.h"
 #include "pmove.h"
 
-
 /*
  * Sv_Print
  */
@@ -236,8 +235,13 @@ void Sv_ShutdownGame(void) {
 	if (!svs.game)
 		return;
 
+	Com_Print("Game shutdown...\n");
+
 	svs.game->Shutdown();
 	svs.game = NULL;
+
+	Com_Print("Game down.\n");
+	Com_QuitSubsystem(Q2W_GAME);
 
 	Sys_CloseLibrary(&game_handle);
 }
@@ -260,6 +264,8 @@ void Sv_InitGame(void) {
 	if (svs.game) {
 		Sv_ShutdownGame();
 	}
+
+	Com_Print("Game initialization...\n");
 
 	memset(&import, 0, sizeof(import));
 
@@ -328,13 +334,16 @@ void Sv_InitGame(void) {
 			"G_LoadGame", &import);
 
 	if (!svs.game) {
-		Com_Error(ERR_DROP, "Sv_InitGameProgs: Failed to load game module.\n");
+		Com_Error(ERR_DROP, "Sv_InitGame: Failed to load game module.\n");
 	}
 
 	if (svs.game->api_version != GAME_API_VERSION) {
-		Com_Error(ERR_DROP, "Sv_InitGameProgs: Game is version %i, not %i.\n",
+		Com_Error(ERR_DROP, "Sv_InitGame: Game is version %i, not %i.\n",
 				svs.game->api_version, GAME_API_VERSION);
 	}
 
 	svs.game->Init();
+
+	Com_Print("Game initialized, starting...\n");
+	Com_InitSubsystem(Q2W_GAME);
 }

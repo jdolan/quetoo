@@ -210,6 +210,12 @@ void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
+#define Q2W_SERVER		0x1
+#define Q2W_GAME		0x2
+#define Q2W_CLIENT		0x4
+#define Q2W_CGAME		0x8
+#define Q2W_Q2WMAP		0x10
+
 /*
  * Q2W engine globals.
  */
@@ -219,7 +225,7 @@ typedef struct quake2world_s {
 	char *argv[MAX_NUM_ARGVS + 1];
 
 	unsigned int time;
-	int server_state;
+	unsigned int subsystems;
 
 	void (*Debug)(const char *msg);
 	void (*Error)(err_t err, const char *msg) __attribute__((noreturn));
@@ -231,8 +237,9 @@ typedef struct quake2world_s {
 
 extern quake2world_t quake2world;
 
-int Com_ServerState(void);
-void Com_SetServerState(int state);
+unsigned int Com_WasInit(unsigned int s);
+void Com_InitSubsystem(unsigned int s);
+void Com_QuitSubsystem(unsigned int s);
 
 extern cvar_t *dedicated;
 extern cvar_t *time_demo;

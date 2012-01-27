@@ -335,7 +335,7 @@ void R_BeginLoading(const char *bsp_name, int bsp_size) {
 	R_FreeModels(); // free all models
 
 	// load bsp for collision detection (prediction)
-	if (!Com_ServerState()) {
+	if (!Com_WasInit(Q2W_SERVER)) {
 		int bs;
 
 		Cm_LoadBsp(bsp_name, &bs);

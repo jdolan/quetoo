@@ -37,6 +37,7 @@ void Cl_ShutdownCgame(void) {
 	cls.cgame = NULL;
 
 	Com_Print("Client game down.\n");
+	Com_QuitSubsystem(Q2W_CGAME);
 
 	Sys_CloseLibrary(&cgame_handle);
 }
@@ -128,4 +129,5 @@ void Cl_InitCgame(void) {
 	cls.cgame->Init();
 
 	Com_Print("Client initialized.\n");
+	Com_InitSubsystem(Q2W_CGAME);
 }

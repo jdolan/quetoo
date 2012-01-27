@@ -540,8 +540,6 @@ static void R_Reload_f(void) {
 	cls.loading = 0;
 }
 
-static boolean_t R_SetMode(void);
-
 /*
  * R_Restart_f
  *
@@ -696,23 +694,6 @@ static void R_InitLocal(void) {
 }
 
 /*
- * R_SetMode
- */
-static boolean_t R_SetMode(void) {
-	int w, h;
-
-	if (r_fullscreen->value) {
-		w = r_width->integer;
-		h = r_height->integer;
-	} else {
-		w = r_windowed_width->integer;
-		h = r_windowed_height->integer;
-	}
-
-	return R_InitContext(w, h, r_fullscreen->value);
-}
-
-/*
  * R_InitConfig
  */
 static void R_InitConfig(void) {
@@ -744,8 +725,8 @@ void R_Init(void) {
 	R_InitState();
 
 	// create the window and set up the context
-	if (!R_SetMode())
-		Com_Error(ERR_FATAL, "Failed to set video mode.");
+	if (!R_InitContext())
+		Com_Error(ERR_FATAL, "Failed to initialize context.");
 
 	R_InitConfig();
 

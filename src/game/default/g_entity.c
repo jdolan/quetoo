@@ -720,6 +720,7 @@ static void G_worldspawn(g_edict_t *ent) {
 	G_PrecacheItem(G_FindItem("Grenade Launcher"));
 	G_PrecacheItem(G_FindItem("Rocket Launcher"));
 	G_PrecacheItem(G_FindItem("Hyperblaster"));
+	G_PrecacheItem(G_FindItem("Lightning"));
 	G_PrecacheItem(G_FindItem("Railgun"));
 	G_PrecacheItem(G_FindItem("BFG10K"));
 

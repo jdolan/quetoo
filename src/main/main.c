@@ -215,7 +215,7 @@ static void Init(int argc, char **argv) {
 	Cbuf_AddLateCommands();
 
 	// dedicated server, nothing specified, use fractures.bsp
-	if (dedicated->value && !Com_ServerState()) {
+	if (dedicated->value && !Com_WasInit(Q2W_SERVER)) {
 		Cbuf_AddText("map torn\n");
 		Cbuf_Execute();
 	}

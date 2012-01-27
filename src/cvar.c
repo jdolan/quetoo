@@ -39,14 +39,14 @@ static boolean_t Cvar_InfoValidate(const char *s) {
 }
 
 /*
- * Cvar_FindVar
+ * Cvar_Get_
  */
-cvar_t *Cvar_FindVar(const char *var_name) {
+static cvar_t *Cvar_Get_(const char *name) {
 	cvar_t *var;
 
 	// TODO: hash table
 	for (var = cvar_vars; var; var = var->next)
-		if (!strcmp(var_name, var->name))
+		if (!strcmp(name, var->name))
 			return var;
 
 	return NULL;
@@ -55,10 +55,10 @@ cvar_t *Cvar_FindVar(const char *var_name) {
 /*
  * Cvar_GetValue
  */
-float Cvar_GetValue(const char *var_name) {
+float Cvar_GetValue(const char *name) {
 	cvar_t *var;
 
-	var = Cvar_FindVar(var_name);
+	var = Cvar_Get_(name);
 
 	if (!var)
 		return 0.0f;
@@ -69,10 +69,10 @@ float Cvar_GetValue(const char *var_name) {
 /*
  * Cvar_GetString
  */
-char *Cvar_GetString(const char *var_name) {
+char *Cvar_GetString(const char *name) {
 	cvar_t *var;
 
-	var = Cvar_FindVar(var_name);
+	var = Cvar_Get_(name);
 
 	if (!var)
 		return "";
@@ -111,18 +111,18 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]) {
  * If the variable already exists, the value will not be set. The flags,
  * however, are always OR'ed into the variable.
  */
-cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags,
+cvar_t *Cvar_Get(const char *name, const char *value, int flags,
 		const char *description) {
 	cvar_t *v, *var;
 
 	if (flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
-		if (!Cvar_InfoValidate(var_name)) {
-			Com_Print("Invalid variable name: %s\n", var_name);
+		if (!Cvar_InfoValidate(name)) {
+			Com_Print("Invalid variable name: %s\n", name);
 			return NULL;
 		}
 	}
 
-	var = Cvar_FindVar(var_name);
+	var = Cvar_Get_(name);
 	if (var) {
 		var->flags |= flags;
 		if (description)
@@ -130,19 +130,20 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags,
 		return var;
 	}
 
-	if (!var_value)
+	if (!value)
 		return NULL;
 
 	if (flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
-		if (!Cvar_InfoValidate(var_value)) {
-			Com_Print("Invalid variable value: %s\n", var_value);
+		if (!Cvar_InfoValidate(value)) {
+			Com_Print("Invalid variable value: %s\n", value);
 			return NULL;
 		}
 	}
 
 	var = Z_Malloc(sizeof(*var));
-	var->name = Z_CopyString(var_name);
-	var->string = Z_CopyString(var_value);
+	var->name = Z_CopyString(name);
+	var->default_value = Z_CopyString(value);
+	var->string = Z_CopyString(value);
 	var->modified = true;
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
@@ -172,13 +173,12 @@ cvar_t *Cvar_Get(const char *var_name, const char *var_value, int flags,
 /*
  * Cvar_Set_
  */
-static cvar_t *Cvar_Set_(const char *var_name, const char *value,
-		boolean_t force) {
+static cvar_t *Cvar_Set_(const char *name, const char *value, boolean_t force) {
 	cvar_t *var;
 
-	var = Cvar_FindVar(var_name);
+	var = Cvar_Get_(name);
 	if (!var) { // create it
-		return Cvar_Get(var_name, value, 0, NULL);
+		return Cvar_Get(name, value, 0, NULL);
 	}
 
 	if (var->flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
@@ -190,13 +190,14 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value,
 
 	if (!force) {
 		if (var->flags & CVAR_LO_ONLY) {
-			if (!Com_ServerState() || Cvar_GetValue("sv_max_clients") > 1) {
-				Com_Print("%s is only available offline.\n", var_name);
+			if ((Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER))
+					|| Cvar_GetValue("sv_max_clients") > 1.0) {
+				Com_Print("%s is only available offline.\n", name);
 				return var;
 			}
 		}
 		if (var->flags & CVAR_NO_SET) {
-			Com_Print("%s is write protected.\n", var_name);
+			Com_Print("%s is write protected.\n", name);
 			return var;
 		}
 
@@ -210,8 +211,8 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value,
 					return var;
 			}
 
-			if (Com_ServerState()) {
-				Com_Print("%s will be changed for next game.\n", var_name);
+			if (Com_WasInit(Q2W_SERVER)) {
+				Com_Print("%s will be changed for next game.\n", name);
 				var->latched_string = Z_CopyString(value);
 			} else {
 				var->string = Z_CopyString(value);
@@ -228,10 +229,10 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value,
 	}
 
 	if (var->flags & CVAR_R_MASK)
-		Com_Print("%s will be changed on ^3r_restart^7.\n", var_name);
+		Com_Print("%s will be changed on ^3r_restart^7.\n", name);
 
 	if (var->flags & CVAR_S_MASK)
-		Com_Print("%s will be changed on ^3s_restart^7.\n", var_name);
+		Com_Print("%s will be changed on ^3s_restart^7.\n", name);
 
 	if (!strcmp(value, var->string))
 		return var; // not changed
@@ -253,26 +254,26 @@ static cvar_t *Cvar_Set_(const char *var_name, const char *value,
 /*
  * Cvar_ForceSet
  */
-cvar_t *Cvar_ForceSet(const char *var_name, const char *value) {
-	return Cvar_Set_(var_name, value, true);
+cvar_t *Cvar_ForceSet(const char *name, const char *value) {
+	return Cvar_Set_(name, value, true);
 }
 
 /*
  * Cvar_Set
  */
-cvar_t *Cvar_Set(const char *var_name, const char *value) {
-	return Cvar_Set_(var_name, value, false);
+cvar_t *Cvar_Set(const char *name, const char *value) {
+	return Cvar_Set_(name, value, false);
 }
 
 /*
  * Cvar_FullSet
  */
-cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags) {
+cvar_t *Cvar_FullSet(const char *name, const char *value, int flags) {
 	cvar_t *var;
 
-	var = Cvar_FindVar(var_name);
+	var = Cvar_Get_(name);
 	if (!var) { // create it
-		return Cvar_Get(var_name, value, flags, NULL);
+		return Cvar_Get(name, value, flags, NULL);
 	}
 
 	var->modified = true;
@@ -284,6 +285,7 @@ cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags) {
 
 	var->string = Z_CopyString(value);
 	var->value = atof(var->string);
+	var->integer = atoi(var->string);
 	var->flags = flags;
 
 	return var;
@@ -292,7 +294,7 @@ cvar_t *Cvar_FullSet(const char *var_name, const char *value, int flags) {
 /*
  * Cvar_SetValue
  */
-void Cvar_SetValue(const char *var_name, float value) {
+void Cvar_SetValue(const char *name, float value) {
 	char val[32];
 
 	if (value == (int) value)
@@ -300,30 +302,53 @@ void Cvar_SetValue(const char *var_name, float value) {
 	else
 		snprintf(val, sizeof(val), "%f", value);
 
-	Cvar_Set(var_name, val);
+	Cvar_Set(name, val);
 }
 
 /*
  * Cvar_Toggle
  */
-void Cvar_Toggle(const char *var_name) {
+void Cvar_Toggle(const char *name) {
 	cvar_t *var;
 
-	var = Cvar_FindVar(var_name);
+	var = Cvar_Get_(name);
 
 	if (!var) {
-		Com_Print("\"%s\" is not set\n", var_name);
+		Com_Print("\"%s\" is not set\n", name);
 		return;
 	}
 
 	if (var->value)
-		Cvar_SetValue(var_name, 0.0);
+		Cvar_SetValue(name, 0.0);
 	else
-		Cvar_SetValue(var_name, 1.0);
+		Cvar_SetValue(name, 1.0);
+}
+
+/*
+ * Cvar_ResetLocalVars
+ *
+ * Reset CVAR_LO_ONLY to their default values.
+ */
+void Cvar_ResetLocalVars(void) {
+	cvar_t *var;
+
+	if ((Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER))
+			|| Cvar_GetValue("sv_max_clients") > 1.0) {
+
+		for (var = cvar_vars; var; var = var->next) {
+			if (var->flags & CVAR_LO_ONLY) {
+				if (var->default_value) {
+					Cvar_FullSet(var->name, var->default_value, var->flags);
+				}
+			}
+		}
+	}
 }
 
 /*
  * Cvar_PendingLatchedVars
+ *
+ * Returns true if there are any CVAR_LATCH variables pending.
  */
 boolean_t Cvar_PendingLatchedVars(void) {
 	cvar_t *var;
@@ -397,7 +422,7 @@ boolean_t Cvar_Command(void) {
 	cvar_t *v;
 
 	// check variables
-	v = Cvar_FindVar(Cmd_Argv(0));
+	v = Cvar_Get_(Cmd_Argv(0));
 	if (!v)
 		return false;
 

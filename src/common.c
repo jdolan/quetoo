@@ -155,17 +155,24 @@ void Com_Verbose(const char *fmt, ...) {
 }
 
 /*
- * Com_ServerState
+ * Com_Subsystem
  */
-int Com_ServerState(void) {
-	return quake2world.server_state;
+unsigned int Com_WasInit(unsigned int s) {
+	return quake2world.subsystems & s;
 }
 
 /*
- * Com_SetServerState
+ * Com_InitSubsystem
  */
-void Com_SetServerState(int state) {
-	quake2world.server_state = state;
+void Com_InitSubsystem(unsigned int s) {
+	quake2world.subsystems |= s;
+}
+
+/*
+ * Com_QuitSubsystem
+ */
+void Com_QuitSubsystem(unsigned int s) {
+	quake2world.subsystems &= ~s;
 }
 
 /*

@@ -120,9 +120,10 @@ typedef byte boolean_t;
 typedef struct cvar_s {
 	const char *name;
 	const char *description;
+	char *default_value;
 	char *string;
 	char *latched_string; // for CVAR_LATCH vars
-	int flags;
+	unsigned int flags;
 	boolean_t modified; // set each time the cvar is changed
 	float value;
 	int integer;

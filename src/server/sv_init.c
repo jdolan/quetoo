@@ -149,7 +149,7 @@ static void Sv_ClearState() {
 	}
 
 	memset(&sv, 0, sizeof(sv));
-	Com_SetServerState(sv.state);
+	Com_QuitSubsystem(Q2W_SERVER);
 
 	svs.real_time = 0;
 	svs.last_heartbeat = -9999999;
@@ -299,7 +299,6 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 		}
 
 		sv.state = ss_loading;
-		Com_SetServerState(sv.state);
 
 		Sv_InitWorld();
 
@@ -367,13 +366,12 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	// load the map or demo and related media
 	Sv_LoadMedia(server, state);
-
 	sv.state = state;
-	Com_SetServerState(sv.state);
 
 	Sb_Init(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
 	Com_Print("Server initialized.\n");
+	Com_InitSubsystem(Q2W_SERVER);
 
 	svs.initialized = true;
 }
@@ -381,7 +379,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 /*
  * Sv_ShutdownServer
  *
- * Called with the game is shutting down.
+ * Called when the game is shutting down.
  */
 void Sv_ShutdownServer(const char *msg) {
 
@@ -397,7 +395,7 @@ void Sv_ShutdownServer(const char *msg) {
 
 	Sv_ClearState();
 
-	Com_Print("Server down\n");
+	Com_Print("Server down.\n");
 
 	svs.initialized = false;
 }

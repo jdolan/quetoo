@@ -41,9 +41,12 @@ static void R_SetIcon(void) {
 
 /*
  * R_InitContext
+ *
+ * Initialize the OpenGL context, returning true on success, false on failure.
  */
-boolean_t R_InitContext(int width, int height, boolean_t fullscreen) {
-	unsigned flags;
+boolean_t R_InitContext(void) {
+	r_pixel_t w, h;
+	unsigned int flags;
 	int i;
 	SDL_Surface *surface;
 
@@ -58,11 +61,6 @@ boolean_t R_InitContext(int width, int height, boolean_t fullscreen) {
 			return false;
 		}
 	}
-
-	if (width < 0)
-		width = 0;
-	if (height < 0)
-		height = 0;
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -91,18 +89,25 @@ boolean_t R_InitContext(int width, int height, boolean_t fullscreen) {
 
 	flags = SDL_OPENGL;
 
-	if (fullscreen)
-		flags |= SDL_FULLSCREEN;
-	else
-		flags |= SDL_RESIZABLE;
+	if (r_fullscreen->integer) {
+		w = r_width->integer > 0 ? r_width->integer : 0;
+		h = r_height->integer > 0 ? r_height->integer : 0;
 
-	if ((surface = SDL_SetVideoMode(width, height, 0, flags)) == NULL)
+		flags |= SDL_FULLSCREEN;
+	} else {
+		w = r_windowed_width->integer > 0 ? r_windowed_width->integer : 0;
+		h = r_windowed_height->integer > 0 ? r_windowed_height->integer : 0;
+
+		flags |= SDL_RESIZABLE;
+	}
+
+	if ((surface = SDL_SetVideoMode(w, h, 0, flags)) == NULL)
 		return false;
 
 	r_context.width = surface->w;
 	r_context.height = surface->h;
 
-	r_context.fullscreen = fullscreen;
+	r_context.fullscreen = r_fullscreen->integer;
 
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r_context.red_bits);
 	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &r_context.green_bits);

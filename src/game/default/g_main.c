@@ -1218,10 +1218,11 @@ void G_Init(void) {
 }
 
 /*
- *  Frees tags and closes frag_log.  This is called when the
- *  game is unloaded (complements G_Init).
+ * Frees tags and closes frag_log.  This is called when the game is unloaded
+ * (complements G_Init).
  */
 void G_Shutdown(void) {
+
 	gi.Print("  Game shutdown...\n");
 
 	if (frag_log != NULL)
@@ -1232,7 +1233,7 @@ void G_Shutdown(void) {
 
 #ifdef HAVE_MYSQL
 	if(mysql != NULL)
-	mysql_close(mysql); // and db
+		mysql_close(mysql); // and db
 #endif
 
 	gi.FreeTags(TAG_LEVEL);

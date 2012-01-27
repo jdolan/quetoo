@@ -315,16 +315,17 @@ typedef struct cl_static_s {
 
 	unsigned int real_time;  // always increasing, no clamping, etc
 
-	unsigned int packet_delta;  // millis since last outgoing packet
-	unsigned int render_delta;  // millis since last renderer frame
+	unsigned int packet_delta;  // milliseconds since last outgoing packet
+	unsigned int render_delta;  // milliseconds since last renderer frame
 
 	// connection information
 	char server_name[MAX_OSPATH];  // name of server to connect to
-	float connect_time;  // for connection retransmits
+	unsigned int connect_time;  // for connection retransmits
 
 	net_chan_t netchan;  // network channel
 
 	unsigned int challenge;  // from the server to use for connecting
+	unsigned int spawn_count;
 
 	unsigned short loading;  // loading percentage indicator
 
