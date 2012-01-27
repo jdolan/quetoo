@@ -336,6 +336,22 @@ void Cl_ParseFrame(void) {
 }
 
 /*
+ * Cl_UpdateEntities
+ *
+ * Invalidate lighting caches on media load.
+ */
+void Cl_UpdateEntities(void) {
+	unsigned int i;
+
+	if (!r_view.update)
+		return;
+
+	for (i = 0; i < MAX_EDICTS; i++) {
+		cl.entities[i].lighting.state = LIGHTING_INIT;
+	}
+}
+
+/*
  * Cl_UpdateLighting
  */
 static void Cl_UpdateLighting(cl_entity_t *e, r_entity_t *ent) {
@@ -349,8 +365,7 @@ static void Cl_UpdateLighting(cl_entity_t *e, r_entity_t *ent) {
 	} else {
 		// but most are, so update their lighting if appropriate
 		if (ent->lighting->state == LIGHTING_READY) {
-			if (r_view.update || !VectorCompare(e->current.origin,
-					e->prev.origin)) {
+			if (!VectorCompare(e->current.origin, e->prev.origin)) {
 				ent->lighting->state = LIGHTING_DIRTY;
 			}
 		}

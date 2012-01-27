@@ -79,9 +79,7 @@ void R_Shutdown(void);
 void R_BeginFrame(void);
 void R_DrawFrame(void);
 void R_EndFrame(void);
-void R_InitView(void);
 void R_LoadMedia(void);
-void R_Restart_f(void);
 
 #ifdef __R_LOCAL_H__
 
@@ -103,8 +101,6 @@ extern r_config_t r_config;
 // private renderer structure
 typedef struct r_locals_s {
 
-	void (*progress_callback)(int);  // for loading media
-
 	vec3_t ambient_light;  // from worldspawn entity
 
 	float sun_light;
@@ -124,10 +120,8 @@ typedef struct r_locals_s {
 
 	short light_frame;  // dynamic lighting frame
 
-	int active_light_mask;  // a bit mask into r_view.lights
-	int active_light_count;  // a count of active lights
-
-	int trace_num;  // lighting traces
+	unsigned int active_light_mask;  // a bit mask into r_view.lights
+	unsigned int active_light_count;  // a count of active lights
 
 	c_bsp_plane_t frustum[4];  // for box culling
 } r_locals_t;

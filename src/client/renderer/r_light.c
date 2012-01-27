@@ -203,7 +203,7 @@ void R_ShiftLights(const vec3_t offset) {
  * Enables the light sources indicated by the specified bit mask.  Care is
  * taken to avoid GL state changes whenever possible.
  */
-void R_EnableLights(int mask) {
+void R_EnableLights(unsigned int mask) {
 	int count;
 
 	if (mask == r_locals.active_light_mask) // no change
@@ -255,7 +255,7 @@ void R_EnableLights(int mask) {
 void R_EnableLightsByRadius(const vec3_t p) {
 	const r_light_t *l;
 	vec3_t delta;
-	int i, mask;
+	unsigned int i, mask;
 
 	mask = 0;
 

@@ -110,11 +110,6 @@ void R_Trace(const vec3_t start, const vec3_t end, float size, int mask) {
 	float frac;
 	int i;
 
-	r_locals.trace_num++;
-
-	if (r_locals.trace_num < 0) // avoid overflows
-		r_locals.trace_num = 0;
-
 	VectorSet(mins, -size, -size, -size);
 	VectorSet(maxs, size, size, size);
 
@@ -394,10 +389,10 @@ void R_EndFrame(void) {
 
 /*
  * R_InitView
+ *
+ * Wipes the view structures after waiting for the view thread.
  */
-void R_InitView(void) {
-
-	Thread_Wait(&r_view.thread);
+static void R_InitView(void) {
 
 	memset(&r_view, 0, sizeof(r_view));
 
@@ -768,6 +763,8 @@ void R_Init(void) {
 	R_InitModels();
 
 	R_InitCapture();
+
+	R_InitView();
 
 	Com_Print(
 			"Video initialized %dx%dx%dbpp %s.\n",

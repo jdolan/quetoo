@@ -213,8 +213,6 @@ void Cl_ClearState(void) {
 
 	Cl_ClearEffects();
 
-	R_InitView();
-
 	// wipe the entire cl_client_t structure
 	memset(&cl, 0, sizeof(cl));
 
@@ -492,6 +490,8 @@ static void Cl_UpdateMedia(void) {
 
 		Cl_LoadEmits();
 
+		Cl_UpdateEntities();
+
 		cls.cgame->UpdateMedia();
 
 		cls.loading = 0;
@@ -518,6 +518,8 @@ static void Cl_LoadMedia(void) {
 	Cl_LoadEffects();
 
 	Cl_LoadEmits();
+
+	Cl_UpdateEntities();
 
 	Cl_LoadLocations();
 
@@ -800,9 +802,6 @@ void Cl_Frame(unsigned int msec) {
 		// fetch updates from server
 		Cl_ReadPackets();
 
-		// execute any pending console commands
-		Cbuf_Execute();
-
 		// fetch input from user
 		Cl_HandleEvents();
 
@@ -853,7 +852,6 @@ void Cl_Init(void) {
 	Cl_InitKeys();
 
 	Cbuf_AddText(DEFAULT_BINDS);
-	Cbuf_Execute();
 	Cbuf_AddText("exec quake2world.cfg\n");
 	Cbuf_Execute();
 

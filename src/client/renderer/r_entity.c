@@ -210,8 +210,9 @@ void R_CullEntities(void *data) {
 
 		if (!R_CullEntity(e)) { // cull it
 
-			if (IS_MESH_MODEL(e->model))
+			if (IS_MESH_MODEL(e->model)) {
 				R_UpdateMeshModelLighting(e);
+			}
 		}
 	}
 }

@@ -548,7 +548,7 @@ typedef struct r_entity_s {
 	r_lighting_t *lighting;  // static lighting information
 } r_entity_t;
 
-#define MAX_ENTITIES		512
+#define MAX_ENTITIES		(MAX_EDICTS * 2)
 
 typedef struct r_particle_s {
 	struct r_particle_s *next;
