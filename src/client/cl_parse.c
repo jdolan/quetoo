@@ -270,10 +270,9 @@ static void Cl_ParseGravity(const char *gravity) {
  * Cl_ParseConfigString
  */
 void Cl_ParseConfigString(void) {
+	const unsigned short i = (unsigned short)Msg_ReadShort(&net_message);
 
-	const int i = Msg_ReadShort(&net_message);
-
-	if (i < 0 || i >= MAX_CONFIG_STRINGS) {
+	if (i >= MAX_CONFIG_STRINGS) {
 		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
 	}
 

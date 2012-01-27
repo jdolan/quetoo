@@ -67,7 +67,7 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from,
  */
 static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame) {
 	entity_state_t *old_state = NULL;
-	int old_index;
+	unsigned int old_index;
 	unsigned short old_number;
 
 	new_frame->entity_state = cl.entity_state;
@@ -125,7 +125,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 				Com_Print("   remove: %i\n", number);
 
 			if (old_number != number)
-				Com_Warn("Cl_ParseEntities: U_REMOVE: old_number != number.\n");
+				Com_Warn("Cl_ParseEntities: U_REMOVE: %u != %u.\n", old_number, number);
 
 			old_index++;
 

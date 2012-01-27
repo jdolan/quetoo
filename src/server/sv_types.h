@@ -69,7 +69,7 @@ typedef struct sv_frame_s {
 	byte area_bits[MAX_BSP_AREAS / 8]; // portal area visibility bits
 	player_state_t ps;
 	unsigned short num_entities;
-	unsigned short first_entity; // index into svs.entity_states array
+	unsigned int first_entity; // index into svs.entity_states array
 	unsigned int sent_time; // for ping calculations
 } sv_frame_t;
 

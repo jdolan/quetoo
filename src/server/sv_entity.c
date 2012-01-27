@@ -34,9 +34,9 @@
  */
 static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 	entity_state_t *old_ent = NULL, *new_ent = NULL;
-	int old_index, new_index;
+	unsigned int old_index, new_index;
 	unsigned short old_num, new_num;
-	int from_num_entities;
+	unsigned short from_num_entities;
 
 	if (!from)
 		from_num_entities = 0;
