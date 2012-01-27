@@ -1,4 +1,3 @@
-if BUILD_CLIENT
 cgamelibdir=$(libdir)/@PACKAGE@/default
 
 noinst_HEADERS = \
@@ -33,4 +32,4 @@ cgame_la_LDFLAGS = \
 	-module \
 	-avoid-version \
 	-rpath $(cgamelibdir)
-endif
+
