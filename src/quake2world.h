@@ -65,8 +65,8 @@ typedef unsigned char byte;
 #endif
 
 #ifndef true
-static const byte true = 1;
-static const byte false = 0;
+#define true 1
+#define false 0
 #endif
 
 typedef byte boolean_t;
