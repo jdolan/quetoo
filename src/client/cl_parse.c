@@ -210,7 +210,7 @@ static void Cl_ParseServerData(void) {
 
 	// ensure protocol matches
 	if (i != PROTOCOL) {
-		Com_Error(err_drop,
+		Com_Error(ERR_DROP,
 				"Cl_ParseServerData: Server is using unknown protocol %d.\n", i);
 	}
 
@@ -273,7 +273,7 @@ void Cl_ParseConfigString(void) {
 	const unsigned short i = (unsigned short)Msg_ReadShort(&net_message);
 
 	if (i >= MAX_CONFIG_STRINGS) {
-		Com_Error(err_drop, "Cl_ParseConfigString: Invalid index %i.\n", i);
+		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
 	}
 
 	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
@@ -325,7 +325,7 @@ static void Cl_ParseSound(void) {
 		ent_num = Msg_ReadShort(&net_message);
 
 		if (ent_num > MAX_EDICTS)
-			Com_Error(err_drop, "Cl_ParseSound: ent_num = %d.\n", ent_num);
+			Com_Error(ERR_DROP, "Cl_ParseSound: ent_num = %d.\n", ent_num);
 	} else {
 		ent_num = -1;
 	}
@@ -390,7 +390,7 @@ void Cl_ParseServerMessage(void) {
 	// parse the message
 	while (true) {
 		if (net_message.read > net_message.size) {
-			Com_Error(err_drop, "Cl_ParseServerMessage: Bad server message.\n");
+			Com_Error(ERR_DROP, "Cl_ParseServerMessage: Bad server message.\n");
 		}
 
 		old_cmd = cmd;
@@ -409,7 +409,7 @@ void Cl_ParseServerMessage(void) {
 			break;
 
 		case SV_CMD_DISCONNECT:
-			Com_Error(err_drop, "Server disconnected.\n");
+			Com_Error(ERR_DROP, "Server disconnected.\n");
 			break;
 
 		case SV_CMD_RECONNECT:
@@ -491,7 +491,7 @@ void Cl_ParseServerMessage(void) {
 			break;
 
 		default:
-			Com_Error(err_drop,
+			Com_Error(ERR_DROP,
 					"Cl_ParseServerMessage: Illegible server message:\n"
 						"  %d: last command was %s\n", cmd,
 					svc_strings[old_cmd]);

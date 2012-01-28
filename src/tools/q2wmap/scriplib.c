@@ -47,14 +47,14 @@ static void AddScriptToStack(const char *file_name){
 
 	script++;
 	if(script == &scriptstack[MAX_INCLUDES])
-		Com_Error(err_fatal, "Script file exceeded MAX_INCLUDES\n");
+		Com_Error(ERR_FATAL, "Script file exceeded MAX_INCLUDES\n");
 
 	strcpy(script->file_name, file_name);
 
 	size = Fs_LoadFile(script->file_name, (void **)(char *)&script->buffer);
 
 	if(size == -1)
-		Com_Error(err_fatal, "Could not load %s\n", script->file_name);
+		Com_Error(ERR_FATAL, "Could not load %s\n", script->file_name);
 
 	Com_Verbose("Loading %s (%d bytes)\n", script->file_name, size);
 
@@ -83,7 +83,7 @@ void ParseFromMemory(char *buffer, int size){
 	script = scriptstack;
 	script++;
 	if(script == &scriptstack[MAX_INCLUDES])
-		Com_Error(err_fatal, "script file exceeded MAX_INCLUDES\n");
+		Com_Error(ERR_FATAL, "script file exceeded MAX_INCLUDES\n");
 	strcpy(script->file_name, "memory buffer");
 
 	script->buffer = buffer;
@@ -99,7 +99,7 @@ void ParseFromMemory(char *buffer, int size){
  */
 static boolean_t EndOfScript(boolean_t crossline){
 	if(!crossline)
-		Com_Error(err_fatal, "EndOfScript: Line %i is incomplete\n", scriptline);
+		Com_Error(ERR_FATAL, "EndOfScript: Line %i is incomplete\n", scriptline);
 
 	if(!strcmp(script->file_name, "memory buffer")){
 		endofscript = true;
@@ -134,7 +134,7 @@ skipspace:
 			return EndOfScript(crossline);
 		if(*script->script_p++ == '\n'){
 			if(!crossline)
-				Com_Error(err_fatal, "GetToken 0: Line %i is incomplete\n", scriptline);
+				Com_Error(ERR_FATAL, "GetToken 0: Line %i is incomplete\n", scriptline);
 			scriptline = script->line++;
 		}
 	}
@@ -146,7 +146,7 @@ skipspace:
 	if((script->script_p[0] == '/' && script->script_p[1] == '/') ||
 			script->script_p[0] == ';'){
 		if(!crossline)
-			Com_Error(err_fatal, "GetToken 1: Line %i is incomplete\n", scriptline);
+			Com_Error(ERR_FATAL, "GetToken 1: Line %i is incomplete\n", scriptline);
 		while(*script->script_p++ != '\n')
 			if(script->script_p >= script->end_p)
 				return EndOfScript(crossline);
@@ -156,7 +156,7 @@ skipspace:
 	// /* */ comments
 	if(script->script_p[0] == '/' && script->script_p[1] == '*'){
 		if(!crossline)
-			Com_Error(err_fatal, "GetToken 2: Line %i is incomplete\n", scriptline);
+			Com_Error(ERR_FATAL, "GetToken 2: Line %i is incomplete\n", scriptline);
 		script->script_p+=2;
 		while(script->script_p[0] != '*' && script->script_p[1] != '/'){
 			script->script_p++;
@@ -178,7 +178,7 @@ skipspace:
 			if(script->script_p == script->end_p)
 				break;
 			if(token_p == &token[MAXTOKEN])
-				Com_Error(err_fatal, "Token too large on line %i\n", scriptline);
+				Com_Error(ERR_FATAL, "Token too large on line %i\n", scriptline);
 		}
 		script->script_p++;
 	} else	// regular token
@@ -187,7 +187,7 @@ skipspace:
 			if(script->script_p == script->end_p)
 				break;
 			if(token_p == &token[MAXTOKEN])
-				Com_Error(err_fatal, "Token too large on line %i\n", scriptline);
+				Com_Error(ERR_FATAL, "Token too large on line %i\n", scriptline);
 		}
 
 	*token_p = 0;

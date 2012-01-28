@@ -80,7 +80,7 @@ static int FindTexinfo(d_bsp_texinfo_t *tx) {
 	}
 
 	if (i == MAX_BSP_TEXINFO) {
-		Com_Error(err_fatal, "TexinfoForBrushTexture: MAX_BSP_TEXINFO");
+		Com_Error(ERR_FATAL, "TexinfoForBrushTexture: MAX_BSP_TEXINFO");
 	}
 
 	*tc = *tx;

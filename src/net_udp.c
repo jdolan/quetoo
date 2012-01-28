@@ -320,7 +320,7 @@ void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
 		if (!sock)
 			return;
 	} else {
-		Com_Error(err_drop, "Net_SendPacket: Bad address type.\n");
+		Com_Error(ERR_DROP, "Net_SendPacket: Bad address type.\n");
 		return;
 	}
 
@@ -362,20 +362,20 @@ static int Net_Socket(const char *net_interface, unsigned short port) {
 	int i = 1;
 
 	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
-		Com_Error(err_fatal, "Net_Socket: socket: %s\n", Net_ErrorString());
+		Com_Error(ERR_FATAL, "Net_Socket: socket: %s\n", Net_ErrorString());
 		return 0;
 	}
 
 	// make it non-blocking
 	if (ioctl(sock, FIONBIO, (char *) &i) == -1) {
-		Com_Error(err_fatal, "Net_Socket: ioctl: %s\n", Net_ErrorString());
+		Com_Error(ERR_FATAL, "Net_Socket: ioctl: %s\n", Net_ErrorString());
 		return 0;
 	}
 
 	// make it broadcast capable
 	if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *) &i, sizeof(i))
 			== -1) {
-		Com_Error(err_fatal, "Net_Socket: setsockopt: %s\n", Net_ErrorString());
+		Com_Error(ERR_FATAL, "Net_Socket: setsockopt: %s\n", Net_ErrorString());
 		return 0;
 	}
 

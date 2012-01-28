@@ -78,7 +78,7 @@ void Com_Debug(const char *fmt, ...) {
  *
  * An error condition has occurred.  This function does not return.
  */
-void Com_Error(err_t err, const char *fmt, ...) {
+void Com_Error(error_t err, const char *fmt, ...) {
 	va_list args;
 	char msg[MAX_PRINT_MSG];
 
@@ -353,7 +353,7 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
 	b = Msg_ReadByte(sb);
 
 	if (b >= NUM_APPROXIMATE_NORMALS) {
-		Com_Error(err_drop, "Msg_ReadDir: out of range.\n");
+		Com_Error(ERR_DROP, "Msg_ReadDir: out of range.\n");
 	}
 
 	VectorCopy(approximate_normals[b], dir);
@@ -371,11 +371,11 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 	unsigned short bits = 0;
 
 	if (to->number <= 0) {
-		Com_Error(err_fatal, "Msg_WriteDeltaEntity: Unset entity number.\n");
+		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Unset entity number.\n");
 	}
 
 	if (to->number >= MAX_EDICTS) {
-		Com_Error(err_fatal,
+		Com_Error(ERR_FATAL,
 				"Msg_WriteDeltaEntity: Entity number >= MAX_EDICTS.\n");
 	}
 
@@ -735,12 +735,12 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 
 	if (buf->size + length > buf->max_size) {
 		if (!buf->allow_overflow) {
-			Com_Error(err_fatal,
+			Com_Error(ERR_FATAL,
 					"Sb_GetSpace: Overflow without allow_overflow set.\n");
 		}
 
 		if (length > buf->max_size) {
-			Com_Error(err_fatal,
+			Com_Error(ERR_FATAL,
 					"Sb_GetSpace: "Q2W_SIZE_T" is > full buffer size.\n",
 					length);
 		}

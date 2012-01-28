@@ -260,7 +260,7 @@ static void Sv_FatPVS(const vec3_t org) {
 
 	count = Cm_BoxLeafnums(mins, maxs, leafs, 64, NULL);
 	if (count < 1) {
-		Com_Error(err_fatal, "Sv_FatPVS: count < 1.\n");
+		Com_Error(ERR_FATAL, "Sv_FatPVS: count < 1.\n");
 	}
 
 	longs = (Cm_NumClusters() + 31) >> 5;

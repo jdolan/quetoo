@@ -93,10 +93,10 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 		const unsigned short bits = Msg_ReadShort(&net_message);
 
 		if (number >= MAX_EDICTS)
-			Com_Error(err_drop, "Cl_ParseEntities: bad number: %i.\n", number);
+			Com_Error(ERR_DROP, "Cl_ParseEntities: bad number: %i.\n", number);
 
 		if (net_message.read > net_message.size)
-			Com_Error(err_drop, "Cl_ParseEntities: end of message.\n");
+			Com_Error(ERR_DROP, "Cl_ParseEntities: end of message.\n");
 
 		if (!number)
 			break;
@@ -295,14 +295,14 @@ void Cl_ParseFrame(void) {
 		old_frame = &cl.frames[cl.frame.delta_frame & UPDATE_MASK];
 
 		if (!old_frame->valid)
-			Com_Error(err_drop, "Cl_ParseFrame: Delta from invalid frame.\n");
+			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta from invalid frame.\n");
 
 		if (old_frame->server_frame != (unsigned int) cl.frame.delta_frame)
-			Com_Error(err_drop, "Cl_ParseFrame: Delta frame too old.\n");
+			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta frame too old.\n");
 
 		else if (cl.entity_state - old_frame->entity_state
 				> ENTITY_STATE_BACKUP - UPDATE_BACKUP)
-			Com_Error(err_drop,
+			Com_Error(ERR_DROP,
 					"Cl_ParseFrame: Delta parse_entities too old.\n");
 
 		cl.frame.valid = true;

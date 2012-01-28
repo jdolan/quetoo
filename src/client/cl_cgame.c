@@ -56,7 +56,7 @@ static void Cl_Error(const char *fmt, ...) {
 	vsprintf(msg, fmt, args);
 	va_end(args);
 
-	Com_Error(err_drop, "Client game error: %s.\n", msg);
+	Com_Error(ERR_DROP, "Client game error: %s.\n", msg);
 }
 
 /*
@@ -118,11 +118,11 @@ void Cl_InitCgame(void) {
 	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
 
 	if (!cls.cgame) {
-		Com_Error(err_drop, "Failed to load client game\n");
+		Com_Error(ERR_DROP, "Failed to load client game\n");
 	}
 
 	if (cls.cgame->api_version != CGAME_API_VERSION) {
-		Com_Error(err_drop, "Client game has wrong version (%d)\n",
+		Com_Error(ERR_DROP, "Client game has wrong version (%d)\n",
 				cls.cgame->api_version);
 	}
 

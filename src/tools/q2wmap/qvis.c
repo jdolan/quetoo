@@ -50,7 +50,7 @@ static winding_t *NewWinding(unsigned short points) {
 	size_t size;
 
 	if (points > MAX_POINTS_ON_WINDING)
-		Com_Error(err_fatal, "NewWinding: %i points\n", points);
+		Com_Error(ERR_FATAL, "NewWinding: %i points\n", points);
 
 	size = (size_t) ((winding_t *) 0)->points[points];
 	w = Z_Malloc(size);
@@ -129,7 +129,7 @@ static void ClusterMerge(int leaf_num) {
 	for (i = 0; i < leaf->num_portals; i++) {
 		p = leaf->portals[i];
 		if (p->status != stat_done)
-			Com_Error(err_fatal, "portal not done\n");
+			Com_Error(ERR_FATAL, "portal not done\n");
 		for (j = 0; j < map_vis.portal_longs; j++)
 			((long *) portalvector)[j] |= ((long *) p->vis)[j];
 		pnum = p - map_vis.portals;
@@ -158,7 +158,7 @@ static void ClusterMerge(int leaf_num) {
 	map_vis.pointer += i;
 
 	if (map_vis.pointer > map_vis.end)
-		Com_Error(err_fatal, "Vismap expansion overflow\n");
+		Com_Error(ERR_FATAL, "Vismap expansion overflow\n");
 
 	d_vis->bit_offsets[leaf_num][DVIS_PVS] = dest - map_vis.base;
 
@@ -238,16 +238,16 @@ static void LoadPortals(const char *name) {
 	plane_t plane;
 
 	if (Fs_OpenFile(name, &f, FILE_READ) == -1)
-		Com_Error(err_fatal, "Could not open %s\n", name);
+		Com_Error(ERR_FATAL, "Could not open %s\n", name);
 
 	memset(&map_vis, 0, sizeof(map_vis));
 
 	if (fscanf(f, "%79s\n%u\n%u\n", magic, &map_vis.portal_clusters,
 			&map_vis.num_portals) != 3)
-		Com_Error(err_fatal, "LoadPortals: failed to read header\n");
+		Com_Error(ERR_FATAL, "LoadPortals: failed to read header\n");
 
 	if (strcmp(magic, PORTALFILE))
-		Com_Error(err_fatal, "LoadPortals: not a portal file\n");
+		Com_Error(ERR_FATAL, "LoadPortals: not a portal file\n");
 
 	Com_Verbose("Loading %4u portals, %4u clusters...\n", map_vis.num_portals,
 			map_vis.portal_clusters);
@@ -278,16 +278,16 @@ static void LoadPortals(const char *name) {
 		int j;
 
 		if (fscanf(f, "%i %i %i ", &num_points, &leaf_nums[0], &leaf_nums[1]) != 3) {
-			Com_Error(err_fatal, "LoadPortals: reading portal %i\n", i);
+			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
 		}
 
 		if (num_points > MAX_POINTS_ON_WINDING) {
-			Com_Error(err_fatal, "LoadPortals: portal %i has too many points\n", i);
+			Com_Error(ERR_FATAL, "LoadPortals: portal %i has too many points\n", i);
 		}
 
 		if ((unsigned) leaf_nums[0] > map_vis.portal_clusters
 				|| (unsigned) leaf_nums[1] > map_vis.portal_clusters) {
-			Com_Error(err_fatal, "LoadPortals: reading portal %i\n", i);
+			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
 		}
 
 		w = p->winding = NewWinding(num_points);
@@ -301,7 +301,7 @@ static void LoadPortals(const char *name) {
 			// scanf into double, then assign to vec_t
 			// so we don't care what size vec_t is
 			if (fscanf(f, "(%lf %lf %lf ) ", &v[0], &v[1], &v[2]) != 3)
-				Com_Error(err_fatal, "LoadPortals: reading portal %i\n", i);
+				Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
 			for (k = 0; k < 3; k++)
 				w->points[j][k] = v[k];
 		}
@@ -314,7 +314,7 @@ static void LoadPortals(const char *name) {
 		// create forward portal
 		l = &map_vis.leafs[leaf_nums[0]];
 		if (l->num_portals == MAX_PORTALS_ON_LEAF)
-			Com_Error(err_fatal, "Leaf with too many portals\n");
+			Com_Error(ERR_FATAL, "Leaf with too many portals\n");
 		l->portals[l->num_portals] = p;
 		l->num_portals++;
 
@@ -328,7 +328,7 @@ static void LoadPortals(const char *name) {
 		// create backwards portal
 		l = &map_vis.leafs[leaf_nums[1]];
 		if (l->num_portals == MAX_PORTALS_ON_LEAF)
-			Com_Error(err_fatal, "Leaf with too many portals\n");
+			Com_Error(ERR_FATAL, "Leaf with too many portals\n");
 		l->portals[l->num_portals] = p;
 		l->num_portals++;
 
@@ -378,7 +378,7 @@ static void CalcPHS(void) {
 				// OR this pvs row into the phs
 				index = ((j << 3) + k);
 				if (index >= map_vis.portal_clusters)
-					Com_Error(err_fatal, "Bad bit in PVS\n"); // pad bits should be 0
+					Com_Error(ERR_FATAL, "Bad bit in PVS\n"); // pad bits should be 0
 				src = (long *) (map_vis.uncompressed + index
 						* map_vis.leaf_bytes);
 				dest = (long *) uncompressed;
@@ -397,7 +397,7 @@ static void CalcPHS(void) {
 		map_vis.pointer += j;
 
 		if (map_vis.pointer > map_vis.end)
-			Com_Error(err_fatal, "CalcPHS: overflow");
+			Com_Error(ERR_FATAL, "CalcPHS: overflow");
 
 		d_vis->bit_offsets[i][DVIS_PHS] = (byte *) dest - map_vis.base;
 
@@ -429,7 +429,7 @@ int VIS_Main(void) {
 	LoadBSPFile(bsp_name);
 
 	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0)
-		Com_Error(err_fatal, "Empty map\n");
+		Com_Error(ERR_FATAL, "Empty map\n");
 
 	StripExtension(map_name, portal_file);
 	strcat(portal_file, ".prt");

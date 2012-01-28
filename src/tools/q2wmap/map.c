@@ -106,10 +106,10 @@ static int CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 	map_plane_t *p, temp;
 
 	if (VectorLength(normal) < 0.5)
-		Com_Error(err_fatal, "FloatPlane: bad normal\n");
+		Com_Error(ERR_FATAL, "FloatPlane: bad normal\n");
 	// create a new plane
 	if (num_map_planes + 2 > MAX_BSP_PLANES)
-		Com_Error(err_fatal, "MAX_BSP_PLANES\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_PLANES\n");
 
 	p = &map_planes[num_map_planes];
 	VectorCopy(normal, p->normal);
@@ -276,7 +276,7 @@ static void AddBrushBevels(map_brush_t * b) {
 
 			if (i == b->num_sides) { // add a new side
 				if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
-					Com_Error(err_fatal, "MAX_BSP_BRUSH_SIDES\n");
+					Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 				num_map_brush_sides++;
 				b->num_sides++;
 				VectorClear(normal);
@@ -373,7 +373,7 @@ static void AddBrushBevels(map_brush_t * b) {
 						continue; // wasn't part of the outer hull
 					// add this plane
 					if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
-						Com_Error(err_fatal, "MAX_BSP_BRUSH_SIDES\n");
+						Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 					num_map_brush_sides++;
 					s2 = &b->original_sides[b->num_sides];
 					s2->plane_num = FindFloatPlane(normal, dist);
@@ -482,7 +482,7 @@ static void ParseBrush(entity_t *mapent) {
 	vec3_t planepts[3];
 
 	if (num_map_brushes == MAX_BSP_BRUSHES)
-		Com_Error(err_fatal, "num_map_brushes == MAX_BSP_BRUSHES\n");
+		Com_Error(ERR_FATAL, "num_map_brushes == MAX_BSP_BRUSHES\n");
 
 	b = &map_brushes[num_map_brushes];
 	b->original_sides = &map_brush_sides[num_map_brush_sides];
@@ -496,7 +496,7 @@ static void ParseBrush(entity_t *mapent) {
 			break;
 
 		if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
-			Com_Error(err_fatal, "MAX_BSP_BRUSH_SIDES\n");
+			Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 		side = &map_brush_sides[num_map_brush_sides];
 
 		// read the three point plane definition
@@ -504,7 +504,7 @@ static void ParseBrush(entity_t *mapent) {
 			if (i != 0)
 				GetToken(true);
 			if (strcmp(token, "("))
-				Com_Error(err_fatal, "Parsing brush\n");
+				Com_Error(ERR_FATAL, "Parsing brush\n");
 
 			for (j = 0; j < 3; j++) {
 				GetToken(false);
@@ -513,7 +513,7 @@ static void ParseBrush(entity_t *mapent) {
 
 			GetToken(false);
 			if (strcmp(token, ")"))
-				Com_Error(err_fatal, "Parsing brush\n");
+				Com_Error(ERR_FATAL, "Parsing brush\n");
 		}
 
 		memset(&td, 0, sizeof(td));
@@ -522,7 +522,7 @@ static void ParseBrush(entity_t *mapent) {
 		GetToken(false);
 
 		if (strlen(token) > sizeof(td.name) - 1)
-			Com_Error(err_fatal, "Texture name \"%s\" is too long.\n", token);
+			Com_Error(ERR_FATAL, "Texture name \"%s\" is too long.\n", token);
 
 		strncpy(td.name, token, sizeof(td.name) - 1);
 
@@ -647,7 +647,7 @@ static void ParseBrush(entity_t *mapent) {
 
 		if (num_entities == 1) {
 			Com_Error(
-					err_fatal,
+					ERR_FATAL,
 					"Entity %i, Brush %i: origin brushes not allowed in world\n",
 					b->entity_num, b->brush_num);
 			return;
@@ -730,10 +730,10 @@ static boolean_t ParseMapEntity(void) {
 		return false;
 
 	if (strcmp(token, "{"))
-		Com_Error(err_fatal, "ParseMapEntity: { not found\n");
+		Com_Error(ERR_FATAL, "ParseMapEntity: { not found\n");
 
 	if (num_entities == MAX_BSP_ENTITIES)
-		Com_Error(err_fatal, "num_entities == MAX_BSP_ENTITIES\n");
+		Com_Error(ERR_FATAL, "num_entities == MAX_BSP_ENTITIES\n");
 
 	mapent = &entities[num_entities];
 	num_entities++;
@@ -743,7 +743,7 @@ static boolean_t ParseMapEntity(void) {
 
 	do {
 		if (!GetToken(true))
-			Com_Error(err_fatal, "ParseMapEntity: EOF without closing brace\n");
+			Com_Error(ERR_FATAL, "ParseMapEntity: EOF without closing brace\n");
 		if (!strcmp(token, "}"))
 			break;
 		if (!strcmp(token, "{"))
@@ -794,7 +794,7 @@ static boolean_t ParseMapEntity(void) {
 
 		if (mapent->num_brushes != 1)
 			Com_Error(
-					err_fatal,
+					ERR_FATAL,
 					"ParseMapEntity: %i func_areaportal can only be a single brush\n",
 					num_entities - 1);
 

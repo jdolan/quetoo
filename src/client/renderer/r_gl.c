@@ -71,21 +71,21 @@ void R_EnforceGlVersion(void) {
 		return;
 
 	if (maj < 1)
-		Com_Error(err_fatal, "OpenGL version %s is less than 1.2.1",
+		Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.2.1",
 				r_config.version_string);
 
 	if (min > 2)
 		return;
 
 	if (min < 2)
-		Com_Error(err_fatal, "OpenGL Version %s is less than 1.2.1",
+		Com_Error(ERR_FATAL, "OpenGL Version %s is less than 1.2.1",
 				r_config.version_string);
 
 	if (rel > 1)
 		return;
 
 	if (rel < 1)
-		Com_Error(err_fatal, "OpenGL version %s is less than 1.2.1",
+		Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.2.1",
 				r_config.version_string);
 }
 

@@ -139,7 +139,7 @@ static void CalcLightinfoExtents(light_info_t *l) {
 	}
 
 	if (l->tex_size[0] * l->tex_size[1] > MAX_BSP_LIGHTMAP)
-		Com_Error(err_fatal, "Surface too large to light (%dx%d)\n",
+		Com_Error(ERR_FATAL, "Surface too large to light (%dx%d)\n",
 				l->tex_size[0], l->tex_size[1]);
 }
 
@@ -566,7 +566,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 					light = (l->intensity * 0.5 - dist) * dot;
 				break;
 			default:
-				Com_Error(err_fatal, "Bad l->type\n");
+				Com_Error(ERR_FATAL, "Bad l->type\n");
 			}
 
 			if (light <= 0.0) // no light
@@ -641,7 +641,7 @@ static void FacesWithVert(int vert, int *faces, int *nfaces) {
 			if (v == vert) { // face references vert
 				faces[k++] = i;
 				if (k == MAX_VERT_FACES)
-					Com_Error(err_fatal, "MAX_VERT_FACES\n");
+					Com_Error(ERR_FATAL, "MAX_VERT_FACES\n");
 				break;
 			}
 		}
@@ -908,7 +908,7 @@ void FinalLightFace(int face_num) {
 		d_bsp.lightmap_data_size += fl->num_samples * 3;
 
 	if (d_bsp.lightmap_data_size > MAX_BSP_LIGHTING)
-		Com_Error(err_fatal, "MAX_BSP_LIGHTING\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_LIGHTING\n");
 
 	ThreadUnlock();
 

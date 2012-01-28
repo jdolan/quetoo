@@ -88,7 +88,7 @@ int MAT_Main(void){
 	else {  // do it
 
 		if((i = Fs_OpenFile(path, &f, FILE_WRITE)) == -1)
-			Com_Error(err_fatal, "Couldn't open %s for writing.\n", path);
+			Com_Error(ERR_FATAL, "Couldn't open %s for writing.\n", path);
 
 		LoadBSPFileTexinfo(bsp_name);
 

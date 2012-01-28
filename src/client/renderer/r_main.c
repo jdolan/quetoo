@@ -726,14 +726,14 @@ void R_Init(void) {
 
 	// create the window and set up the context
 	if (!R_InitContext())
-		Com_Error(err_fatal, "Failed to initialize context.");
+		Com_Error(ERR_FATAL, "Failed to initialize context.");
 
 	R_InitConfig();
 
 	R_EnforceGlVersion();
 
 	if (!R_InitGlExtensions())
-		Com_Error(err_fatal, "Failed to resolve required OpenGL extensions.");
+		Com_Error(ERR_FATAL, "Failed to resolve required OpenGL extensions.");
 
 	R_SetDefaultState();
 

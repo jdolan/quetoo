@@ -161,8 +161,7 @@ typedef enum {
 	SV_CMD_CENTER_PRINT,   // [string] to put in center of the screen
 	SV_CMD_DOWNLOAD,   // [short] size [size bytes]
 	SV_CMD_FRAME
-} svc_ops_t;
-
+} sv_cmd_t;
 
 // client to server
 typedef enum {
@@ -171,7 +170,7 @@ typedef enum {
 	CL_CMD_MOVE,  // [[usercmd_t]
 	CL_CMD_USER_INFO,  // [[user_info string]
 	CL_CMD_STRING  // [string] message
-} clc_ops_t;
+} cl_cmd_t;
 
 typedef float vec_t;
 typedef vec_t vec2_t[2];
