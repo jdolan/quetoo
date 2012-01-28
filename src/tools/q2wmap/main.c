@@ -157,7 +157,7 @@ static void Debug(const char *msg) {
 /*
  * Error
  */
-static void Error(error_t err, const char *msg) {
+static void Error(err_t err, const char *msg) {
 	const char *e = "************ ERROR ************\n";
 	unsigned long cChars;
 
@@ -272,8 +272,8 @@ static void Debug(const char *msg) {
 /*
  * Error
  */
-static void Error(error_t err, const char *msg) __attribute__((noreturn));
-static void Error(error_t err, const char *msg) {
+static void Error(err_t err, const char *msg) __attribute__((noreturn));
+static void Error(err_t err, const char *msg) {
 
 	fprintf(stderr, "************ ERROR ************\n");
 	fprintf(stderr, "%s", msg);

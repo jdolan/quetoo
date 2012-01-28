@@ -46,7 +46,7 @@ cvar_t *time_scale;
 cvar_t *verbose;
 
 static void Debug(const char *msg);
-static void Error(error_t err, const char *msg) __attribute__((noreturn));
+static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Print(const char *msg);
 static void Shutdown(const char *msg);
 static void Verbose(const char *msg);
@@ -71,7 +71,7 @@ static void Debug(const char *msg) {
  * Callback for subsystem failures. Depending on the severity, we may try to
  * recover, or we may shut the entire engine down and exit.
  */
-static void Error(error_t err, const char *msg) {
+static void Error(err_t err, const char *msg) {
 
 	switch (err) {
 	case ERR_NONE:

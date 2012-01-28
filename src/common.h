@@ -155,7 +155,7 @@ typedef enum {
 	ERR_NONE,
 	ERR_DROP,
 	ERR_FATAL
-} error_t;
+} err_t;
 
 int Com_Argc(void);
 char *Com_Argv(int arg);  // range and null checked
@@ -167,7 +167,7 @@ void Com_PrintInfo(const char *s);
 void Com_BeginRedirect(int target, char *buffer, int buffersize, void (*flush)(int, char*));
 void Com_EndRedirect(void);
 void Com_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Error(error_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+void Com_Error(err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
@@ -189,7 +189,7 @@ typedef struct quake2world_s {
 	unsigned int subsystems;
 
 	void (*Debug)(const char *msg);
-	void (*Error)(error_t err, const char *msg) __attribute__((noreturn));
+	void (*Error)(err_t err, const char *msg) __attribute__((noreturn));
 	void (*Print)(const char *msg);
 	void (*Verbose)(const char *msg);
 	void (*Warn)(const char *msg);

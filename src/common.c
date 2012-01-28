@@ -78,7 +78,7 @@ void Com_Debug(const char *fmt, ...) {
  *
  * An error condition has occurred.  This function does not return.
  */
-void Com_Error(error_t err, const char *fmt, ...) {
+void Com_Error(err_t err, const char *fmt, ...) {
 	va_list args;
 	char msg[MAX_PRINT_MSG];
 
