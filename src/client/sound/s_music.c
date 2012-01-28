@@ -232,7 +232,7 @@ void S_FrameMusic(void) {
 
 	music = &default_music;
 
-	if (cls.state == ca_active) { // try level-specific music
+	if (cls.state == CL_ACTIVE) { // try level-specific music
 
 		if (!Mix_PlayingMusic() || (s_env.active_music == &default_music)) {
 

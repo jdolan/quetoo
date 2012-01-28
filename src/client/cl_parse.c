@@ -38,7 +38,7 @@ boolean_t Cl_CheckOrDownloadFile(const char *file_name) {
 	char name[MAX_OSPATH];
 	char cmd[MAX_STRING_CHARS];
 
-	if (cls.state == ca_disconnected) {
+	if (cls.state == CL_DISCONNECTED) {
 		Com_Print("Not connected.\n");
 		return true;
 	}
@@ -90,14 +90,14 @@ boolean_t Cl_CheckOrDownloadFile(const char *file_name) {
 		Com_Debug("Resuming %s...\n", cls.download.name);
 
 		snprintf(cmd, sizeof(cmd), "download %s %i", cls.download.name, len);
-		Msg_WriteByte(&cls.netchan.message, clc_string);
+		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 		Msg_WriteString(&cls.netchan.message, cmd);
 	} else {
 		// or start if from the beginning
 		Com_Debug("Downloading %s...\n", cls.download.name);
 
 		snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
-		Msg_WriteByte(&cls.netchan.message, clc_string);
+		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 		Msg_WriteString(&cls.netchan.message, cmd);
 	}
 
@@ -161,7 +161,7 @@ static void Cl_ParseDownload(void) {
 	net_message.read += size;
 
 	if (percent != 100) {
-		Msg_WriteByte(&cls.netchan.message, clc_string);
+		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 		Sb_Print(&cls.netchan.message, "nextdl");
 	} else {
 		char oldn[MAX_OSPATH];
@@ -202,15 +202,15 @@ static void Cl_ParseServerData(void) {
 	// wipe the cl_client_t struct
 	Cl_ClearState();
 
-	cls.state = ca_connected;
-	cls.key_state.dest = key_console;
+	cls.state = CL_CONNECTED;
+	cls.key_state.dest = KEY_CONSOLE;
 
 	// parse protocol version number
 	i = Msg_ReadLong(&net_message);
 
 	// ensure protocol matches
 	if (i != PROTOCOL) {
-		Com_Error(ERR_DROP,
+		Com_Error(err_drop,
 				"Cl_ParseServerData: Server is using unknown protocol %d.\n", i);
 	}
 
@@ -273,7 +273,7 @@ void Cl_ParseConfigString(void) {
 	const unsigned short i = (unsigned short)Msg_ReadShort(&net_message);
 
 	if (i >= MAX_CONFIG_STRINGS) {
-		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
+		Com_Error(err_drop, "Cl_ParseConfigString: Invalid index %i.\n", i);
 	}
 
 	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
@@ -282,7 +282,7 @@ void Cl_ParseConfigString(void) {
 	if (i == CS_GRAVITY)
 		Cl_ParseGravity(s);
 	else if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
-		if (cls.state == ca_active) {
+		if (cls.state == CL_ACTIVE) {
 			cl.model_draw[i - CS_MODELS] = R_LoadModel(s);
 			if (cl.config_strings[i][0] == '*')
 				cl.model_clip[i - CS_MODELS] = Cm_Model(s);
@@ -290,13 +290,13 @@ void Cl_ParseConfigString(void) {
 				cl.model_clip[i - CS_MODELS] = NULL;
 		}
 	} else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
-		if (cls.state == ca_active)
+		if (cls.state == CL_ACTIVE)
 			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(s);
 	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
-		if (cls.state == ca_active)
+		if (cls.state == CL_ACTIVE)
 			cl.image_precache[i - CS_IMAGES] = R_LoadPic(s);
 	} else if (i >= CS_CLIENT_INFO && i < CS_CLIENT_INFO + MAX_CLIENTS) {
-		if (cls.state == ca_active)
+		if (cls.state == CL_ACTIVE)
 			Cl_LoadClient(&cl.client_info[i - CS_CLIENT_INFO], s);
 	}
 }
@@ -325,7 +325,7 @@ static void Cl_ParseSound(void) {
 		ent_num = Msg_ReadShort(&net_message);
 
 		if (ent_num > MAX_EDICTS)
-			Com_Error(ERR_DROP, "Cl_ParseSound: ent_num = %d.\n", ent_num);
+			Com_Error(err_drop, "Cl_ParseSound: ent_num = %d.\n", ent_num);
 	} else {
 		ent_num = -1;
 	}
@@ -390,7 +390,7 @@ void Cl_ParseServerMessage(void) {
 	// parse the message
 	while (true) {
 		if (net_message.read > net_message.size) {
-			Com_Error(ERR_DROP, "Cl_ParseServerMessage: Bad server message.\n");
+			Com_Error(err_drop, "Cl_ParseServerMessage: Bad server message.\n");
 		}
 
 		old_cmd = cmd;
@@ -405,14 +405,14 @@ void Cl_ParseServerMessage(void) {
 			Cl_ShowNet(svc_strings[cmd]);
 
 		switch (cmd) {
-		case svc_nop:
+		case SV_CMD_NO_OP:
 			break;
 
-		case svc_disconnect:
-			Com_Error(ERR_DROP, "Server disconnected.\n");
+		case SV_CMD_DISCONNECT:
+			Com_Error(err_drop, "Server disconnected.\n");
 			break;
 
-		case svc_reconnect:
+		case SV_CMD_RECONNECT:
 			Com_Print("Server disconnected, reconnecting...\n");
 			// stop download
 			if (cls.download.file) {
@@ -423,11 +423,11 @@ void Cl_ParseServerMessage(void) {
 					Fs_CloseFile(cls.download.file);
 				cls.download.file = NULL;
 			}
-			cls.state = ca_connecting;
+			cls.state = CL_CONNECTING;
 			cls.connect_time = -99999; // fire immediately
 			break;
 
-		case svc_print:
+		case SV_CMD_PRINT:
 			i = Msg_ReadByte(&net_message);
 			s = Msg_ReadString(&net_message);
 			if (i == PRINT_CHAT) {
@@ -444,54 +444,54 @@ void Cl_ParseServerMessage(void) {
 			Com_Print("%s", s);
 			break;
 
-		case svc_center_print:
+		case SV_CMD_CENTER_PRINT:
 			Cl_CenterPrint(Msg_ReadString(&net_message));
 			break;
 
-		case svc_stuff_text:
+		case SV_CMD_CBUF_TEXT:
 			s = Msg_ReadString(&net_message);
 			Cbuf_AddText(s);
 			break;
 
-		case svc_server_data:
+		case SV_CMD_SERVER_DATA:
 			Cl_ParseServerData();
 			break;
 
-		case svc_config_string:
+		case SV_CMD_CONFIG_STRING:
 			Cl_ParseConfigString();
 			break;
 
-		case svc_sound:
+		case SV_CMD_SOUND:
 			Cl_ParseSound();
 			break;
 
-		case svc_spawn_baseline:
+		case SV_CMD_ENTITY_BASELINE:
 			Cl_ParseBaseline();
 			break;
 
-		case svc_temp_entity:
+		case SV_CMD_TEMP_ENTITY:
 			Cl_ParseTempEntity();
 			break;
 
-		case svc_muzzle_flash:
+		case SV_CMD_MUZZLE_FLASH:
 			Cl_ParseMuzzleFlash();
 			break;
 
-		case svc_download:
+		case SV_CMD_DOWNLOAD:
 			Cl_ParseDownload();
 			break;
 
-		case svc_frame:
+		case SV_CMD_FRAME:
 			Cl_ParseFrame();
 			break;
 
-		case svc_layout:
+		case SV_CMD_LAYOUT:
 			s = Msg_ReadString(&net_message);
 			strncpy(cl.layout, s, sizeof(cl.layout) - 1);
 			break;
 
 		default:
-			Com_Error(ERR_DROP,
+			Com_Error(err_drop,
 					"Cl_ParseServerMessage: Illegible server message:\n"
 						"  %d: last command was %s\n", cmd,
 					svc_strings[old_cmd]);

@@ -468,7 +468,7 @@ static void Cl_HandleEvent(SDL_Event *event) {
 	unsigned int key;
 	unsigned short unicode;
 
-	if (cls.key_state.dest == key_menu) { // let the menus handle events
+	if (cls.key_state.dest == KEY_UI) { // let the menus handle events
 
 		if (Ui_Event(event))
 			return;
@@ -561,7 +561,7 @@ static void Cl_MouseMove(int mx, int my) {
 	cls.mouse_state.old_y = my;
 
 	// for active, connected players, add it to their move
-	if (cls.state == ca_active && cls.key_state.dest == key_game) {
+	if (cls.state == CL_ACTIVE && cls.key_state.dest == KEY_GAME) {
 
 		cls.mouse_state.x -= r_context.width / 2; // first normalize to center
 		cls.mouse_state.y -= r_context.height / 2;
@@ -577,7 +577,7 @@ static void Cl_MouseMove(int mx, int my) {
 		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
 	}
 
-	if (cls.key_state.dest != key_menu && cls.mouse_state.grabbed) {
+	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed) {
 		// warp the cursor back to the center of the screen
 		SDL_WarpMouse(r_context.width / 2, r_context.height / 2);
 	}
@@ -606,7 +606,7 @@ void Cl_HandleEvents(void) {
 			break;
 	}
 
-	if (cls.key_state.dest == key_console || cls.key_state.dest == key_menu) {
+	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI) {
 		if (!r_context.fullscreen) {
 			// allow cursor to move outside window on console or menu
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
@@ -621,7 +621,7 @@ void Cl_HandleEvents(void) {
 			// ignore crappy values after SDL grabs mouse
 			// http://bugzilla.libsdl.org/show_bug.cgi?id=341
 			throwaway = 2;
-		} else if (prev_key_dest == key_menu) {
+		} else if (prev_key_dest == KEY_UI) {
 			// ignore mouse position from menu
 			throwaway = 1;
 		}

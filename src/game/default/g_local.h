@@ -23,14 +23,7 @@
 #define __G_LOCAL_H__
 
 #include "shared.h"
-
-// define GAME_INCLUDE so that game.h does not define the
-// short, server-visible g_client_t and edict_t structures,
-// because we define the full size ones in this file
-#ifndef GAME_INCLUDE
-#define GAME_INCLUDE
 #include "game/game.h"
-#endif
 
 #ifdef HAVE_MYSQL
 #include <mysql.h>
@@ -40,8 +33,8 @@ extern char sql[512];
 
 #include "g_types.h"
 
-// the "gameversion" client command will print this plus compile date
-#define GAMEVERSION	"default"
+// this is the game name that we advertise to clients
+#define GAME_NAME "default"
 
 #include "g_ballistics.h"
 #include "g_chase.h"

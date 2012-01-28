@@ -146,18 +146,18 @@ extern cl_client_t cl;
 // number of server connections
 
 typedef enum {
-	ca_uninitialized,
-	ca_disconnected,    // not talking to a server
-	ca_connecting,   // sending request packets to the server
-	ca_connected,   // netchan_t established, waiting for svc_server_data
-	ca_active  // game views should be displayed
+	CL_UNINITIALIZED,
+	CL_DISCONNECTED,    // not talking to a server
+	CL_CONNECTING,   // sending request packets to the server
+	CL_CONNECTED,   // netchan_t established, waiting for svc_server_data
+	CL_ACTIVE  // game views should be displayed
 } cl_state_t;
 
 typedef enum {
-	key_game,
-	key_menu,
-	key_console,
-	key_message
+	KEY_GAME,
+	KEY_UI,
+	KEY_CONSOLE,
+	KEY_CHAT
 } cl_key_dest_t;
 
 #define KEY_HISTORYSIZE 64

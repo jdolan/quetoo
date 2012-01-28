@@ -49,13 +49,13 @@ cvar_t *sv_udp_download;
 void Sv_DropClient(sv_client_t *cl) {
 	g_edict_t *ent;
 
-	if (cl->state > cs_free) { // send the disconnect
+	if (cl->state > SV_CLIENT_FREE) { // send the disconnect
 
-		if (cl->state == cs_spawned) { // after informing the game module
+		if (cl->state == SV_CLIENT_ACTIVE) { // after informing the game module
 			svs.game->ClientDisconnect(cl->edict);
 		}
 
-		Msg_WriteByte(&cl->netchan.message, svc_disconnect);
+		Msg_WriteByte(&cl->netchan.message, SV_CMD_DISCONNECT);
 		Netchan_Transmit(&cl->netchan, cl->netchan.message.size,
 				cl->netchan.message.data);
 	}
@@ -94,7 +94,7 @@ static const char *Sv_StatusString(void) {
 
 		cl = &svs.clients[i];
 
-		if (cl->state == cs_connected || cl->state == cs_spawned) {
+		if (cl->state == SV_CLIENT_CONNECTED || cl->state == SV_CLIENT_ACTIVE) {
 
 			snprintf(player, sizeof(player), "%d %u \"%s\"\n",
 					cl->edict->client->ps.stats[STAT_FRAGS], cl->ping, cl->name);
@@ -149,7 +149,7 @@ static void Svc_Info(void) {
 		count = 0;
 
 		for (i = 0; i < sv_max_clients->integer; i++) {
-			if (svs.clients[i].state >= cs_connected)
+			if (svs.clients[i].state >= SV_CLIENT_CONNECTED)
 				count++;
 		}
 
@@ -300,7 +300,7 @@ static void Svc_Connect(void) {
 
 		const net_chan_t *ch = &cl->netchan;
 
-		if (cl->state == cs_free) // not in use, not interested
+		if (cl->state == SV_CLIENT_FREE) // not in use, not interested
 			continue;
 
 		// the base address and either the qport or real port must match
@@ -314,7 +314,7 @@ static void Svc_Connect(void) {
 	// otherwise, treat as a fresh connect to a new slot
 	if (!client) {
 		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
-			if (cl->state == cs_free) { // we have a free one
+			if (cl->state == SV_CLIENT_FREE) { // we have a free one
 				client = cl;
 				break;
 			}
@@ -360,7 +360,7 @@ static void Svc_Connect(void) {
 
 	client->last_message = svs.real_time; // don't timeout
 
-	client->state = cs_connected;
+	client->state = SV_CLIENT_CONNECTED;
 }
 
 /*
@@ -473,7 +473,7 @@ static void Sv_UpdatePings(void) {
 
 		cl = &svs.clients[i];
 
-		if (cl->state != cs_spawned)
+		if (cl->state != SV_CLIENT_ACTIVE)
 			continue;
 
 		total = count = 0;
@@ -521,7 +521,7 @@ static void Sv_CheckCommandTimes(void) {
 	for (i = 0; i < sv_max_clients->integer; i++) {
 		sv_client_t *cl = &svs.clients[i];
 
-		if (cl->state < cs_spawned) {
+		if (cl->state < SV_CLIENT_ACTIVE) {
 			continue;
 		}
 
@@ -579,7 +579,7 @@ static void Sv_ReadPackets(void) {
 		// check for packets from connected clients
 		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-			if (cl->state == cs_free)
+			if (cl->state == SV_CLIENT_FREE)
 				continue;
 
 			if (!Net_CompareClientNetaddr(net_from, cl->netchan.remote_address))
@@ -621,7 +621,7 @@ static void Sv_CheckTimeouts(void) {
 
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-		if (cl->state == cs_free)
+		if (cl->state == SV_CLIENT_FREE)
 			continue;
 
 		// enforce timeouts by dropping the client
@@ -640,7 +640,7 @@ static void Sv_CheckTimeouts(void) {
 static void Sv_ResetEntities(void) {
 	unsigned int i;
 
-	if (sv.state != ss_game)
+	if (sv.state != SV_ACTIVE_GAME)
 		return;
 
 	for (i = 0; i < svs.game->num_edicts; i++) {
@@ -669,7 +669,7 @@ static void Sv_RunGameFrame(void) {
 		svs.real_time = sv.time;
 	}
 
-	if (sv.state == ss_game) {
+	if (sv.state == SV_ACTIVE_GAME) {
 		svs.game->Frame();
 	}
 }
@@ -763,7 +763,7 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
 	if (!cl)
 		return;
 
-	if (cl->state < cs_connected)
+	if (cl->state < SV_CLIENT_CONNECTED)
 		return;
 
 	if (*cl->name == '\0') // force a name to kick

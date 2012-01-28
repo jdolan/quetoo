@@ -216,7 +216,7 @@ void Sv_WriteFrameToClient(sv_client_t *client, size_buf_t *msg) {
 		last_frame = client->last_frame;
 	}
 
-	Msg_WriteByte(msg, svc_frame);
+	Msg_WriteByte(msg, SV_CMD_FRAME);
 	Msg_WriteLong(msg, sv.frame_num);
 	Msg_WriteLong(msg, last_frame); // what we are delta'ing from
 	Msg_WriteByte(msg, client->surpress_count); // rate dropped packets
@@ -260,7 +260,7 @@ static void Sv_FatPVS(const vec3_t org) {
 
 	count = Cm_BoxLeafnums(mins, maxs, leafs, 64, NULL);
 	if (count < 1) {
-		Com_Error(ERR_FATAL, "Sv_FatPVS: count < 1.\n");
+		Com_Error(err_fatal, "Sv_FatPVS: count < 1.\n");
 	}
 
 	longs = (Cm_NumClusters() + 31) >> 5;

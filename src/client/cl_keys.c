@@ -144,7 +144,7 @@ static void Cl_KeyConsole(unsigned key, unsigned short unicode, boolean_t down,
 		ks->lines[ks->edit_line][0] = ']';
 		ks->pos = 1;
 
-		if (cls.state == ca_disconnected) // force an update, because the command
+		if (cls.state == CL_DISCONNECTED) // force an update, because the command
 			Cl_UpdateScreen(); // may take some time
 
 		return;
@@ -316,7 +316,7 @@ static void Cl_KeyGame(unsigned key, unsigned short unicode, boolean_t down,
 	char cmd[MAX_STRING_CHARS];
 	char *kb;
 
-	if (cls.state != ca_active) // not in game
+	if (cls.state != CL_ACTIVE) // not in game
 		return;
 
 	if (!ks->binds[key])
@@ -359,7 +359,7 @@ static void Cl_KeyMessage(unsigned key, unsigned short unicode, boolean_t down,
 			Cbuf_AddText("\"");
 		}
 
-		ks->dest = key_game;
+		ks->dest = KEY_GAME;
 		cls.chat_state.buffer[0] = 0;
 		cls.chat_state.len = 0;
 		return;
@@ -648,13 +648,13 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down,
 	if (key == K_ESCAPE && down) { // escape can cancel a few things
 
 		// message mode
-		if (ks->dest == key_message) {
+		if (ks->dest == KEY_CHAT) {
 
 			// we should always be in game here, but check to be safe
-			if (cls.state == ca_active)
-				ks->dest = key_game;
+			if (cls.state == CL_ACTIVE)
+				ks->dest = KEY_GAME;
 			else
-				ks->dest = key_menu;
+				ks->dest = KEY_UI;
 			return;
 		}
 
@@ -665,17 +665,17 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down,
 		}
 
 		// console
-		if (ks->dest == key_console) {
+		if (ks->dest == KEY_CONSOLE) {
 			Cl_ToggleConsole_f();
 			return;
 		}
 
 		// and menus
-		if (ks->dest == key_menu) {
+		if (ks->dest == KEY_UI) {
 
 			// if we're in the game, just hide the menus
-			if (cls.state == ca_active)
-				ks->dest = key_game;
+			if (cls.state == CL_ACTIVE)
+				ks->dest = KEY_GAME;
 			// otherwise, pop back from a child menu
 			else
 				Cbuf_AddText("mn_pop\n");
@@ -683,7 +683,7 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down,
 			return;
 		}
 
-		ks->dest = key_menu;
+		ks->dest = KEY_UI;
 		return;
 	}
 
@@ -699,16 +699,16 @@ void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down,
 		Cl_KeyGame(key, unicode, down, time);
 
 	switch (ks->dest) {
-	case key_game:
+	case KEY_GAME:
 		Cl_KeyGame(key, unicode, down, time);
 		break;
-	case key_menu:
-		// menus optionally handle events through Cl_HandleEvent
+	case KEY_UI:
+		// the UI optionally handle events through Cl_HandleEvent
 		break;
-	case key_message:
+	case KEY_CHAT:
 		Cl_KeyMessage(key, unicode, down, time);
 		break;
-	case key_console:
+	case KEY_CONSOLE:
 		Cl_KeyConsole(key, unicode, down, time);
 		break;
 

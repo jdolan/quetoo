@@ -235,7 +235,7 @@ static size_t R_PreprocessShader(const char *name, const char *in, char *out,
 			snprintf(path, sizeof(path), "shaders/%s", ParseToken(&in));
 
 			if (Fs_LoadFile(path, &buf) == -1) {
-				Com_Error(ERR_DROP, "R_PreprocessShader: "
+				Com_Error(err_drop, "R_PreprocessShader: "
 					"Failed to resolve #include: %s.\n", path);
 			}
 
@@ -254,7 +254,7 @@ static size_t R_PreprocessShader(const char *name, const char *in, char *out,
 			while (*in) {
 
 				if (!len) {
-					Com_Error(ERR_DROP, "R_PreprocessShader: Overflow: %s",
+					Com_Error(err_drop, "R_PreprocessShader: Overflow: %s",
 							name);
 				}
 
@@ -273,14 +273,14 @@ static size_t R_PreprocessShader(const char *name, const char *in, char *out,
 			}
 
 			if (!*in) {
-				Com_Error(ERR_DROP, "R_PreprocessShader: "
+				Com_Error(err_drop, "R_PreprocessShader: "
 					"Unterminated conditional: %s", name);
 			}
 		}
 
 		// general case is to copy so long as the buffer has room
 		if (!len) {
-			Com_Error(ERR_DROP, "R_PreprocessShader: Overflow: %s", name);
+			Com_Error(err_drop, "R_PreprocessShader: Overflow: %s", name);
 		}
 
 		len--;

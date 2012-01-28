@@ -77,7 +77,7 @@ static unsigned HashVec(const vec3_t vec) {
 	const int y = (4096 + (int) (vec[1] + 0.5)) >> 7;
 
 	if (x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE)
-		Com_Error(ERR_FATAL, "HashVec: point outside valid range\n");
+		Com_Error(err_fatal, "HashVec: point outside valid range\n");
 
 	return y * HASH_SIZE + x;
 }
@@ -116,7 +116,7 @@ static int GetVertexnum(const vec3_t in) {
 
 	// emit a vertex
 	if (d_bsp.num_vertexes == MAX_BSP_VERTS)
-		Com_Error(ERR_FATAL, "num_vertexes == MAX_BSP_VERTS\n");
+		Com_Error(err_fatal, "num_vertexes == MAX_BSP_VERTS\n");
 
 	d_bsp.vertexes[d_bsp.num_vertexes].point[0] = vert[0];
 	d_bsp.vertexes[d_bsp.num_vertexes].point[1] = vert[1];
@@ -231,7 +231,7 @@ static void EmitFaceVertexes(node_t *node, face_t *f) {
 	for (i = 0; i < w->numpoints; i++) {
 		if (noweld) { // make every point unique
 			if (d_bsp.num_vertexes == MAX_BSP_VERTS)
-				Com_Error(ERR_FATAL, "MAX_BSP_VERTS\n");
+				Com_Error(err_fatal, "MAX_BSP_VERTS\n");
 			superverts[i] = d_bsp.num_vertexes;
 			VectorCopy(w->p[i], d_bsp.vertexes[d_bsp.num_vertexes].point);
 			d_bsp.num_vertexes++;
@@ -324,7 +324,7 @@ static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert) {
 
 	// the edge p1 to p2 is now free of tjunctions
 	if (num_superverts >= MAX_SUPERVERTS)
-		Com_Error(ERR_FATAL, "MAX_SUPERVERTS\n");
+		Com_Error(err_fatal, "MAX_SUPERVERTS\n");
 	superverts[num_superverts] = p1;
 	num_superverts++;
 }
@@ -456,7 +456,7 @@ int GetEdge2(int v1, int v2, face_t * f) {
 	}
 	// emit an edge
 	if (d_bsp.num_edges >= MAX_BSP_EDGES)
-		Com_Error(ERR_FATAL, "num_edges == MAX_BSP_EDGES\n");
+		Com_Error(err_fatal, "num_edges == MAX_BSP_EDGES\n");
 	edge = &d_bsp.edges[d_bsp.num_edges];
 	edge->v[0] = v1;
 	edge->v[1] = v2;
@@ -685,7 +685,7 @@ static void SubdivideFace(node_t *node, face_t * f) {
 
 			ClipWindingEpsilon(w, temp, dist, ON_EPSILON, &frontw, &backw);
 			if (!frontw || !backw)
-				Com_Error(ERR_FATAL,
+				Com_Error(err_fatal,
 						"SubdivideFace: didn't split the polygon\n");
 
 			f->split[0] = NewFaceFromFace(f);

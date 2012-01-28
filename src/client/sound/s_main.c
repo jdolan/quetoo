@@ -51,7 +51,7 @@ void S_Frame(void) {
 
 	S_FrameMusic();
 
-	if (cls.state != ca_active) {
+	if (cls.state != CL_ACTIVE) {
 		if (Mix_Playing(-1) > 0)
 			S_Stop();
 		return;

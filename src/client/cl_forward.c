@@ -96,7 +96,7 @@ static char *Cl_ExpandVariables(const char *text) {
 void Cl_ForwardCmdToServer(void) {
 	const char *cmd, *args;
 
-	if (cls.state <= ca_disconnected) {
+	if (cls.state <= CL_DISCONNECTED) {
 		Com_Print("Not connected.\n");
 		return;
 	}
@@ -116,7 +116,7 @@ void Cl_ForwardCmdToServer(void) {
 	if (!strcmp(cmd, "say") || !strcmp(cmd, "say_team"))
 		args = Cl_ExpandVariables(args);
 
-	Msg_WriteByte(&cls.netchan.message, clc_string);
+	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 	Sb_Print(&cls.netchan.message, cmd);
 	if (Cmd_Argc() > 1) {
 		Sb_Print(&cls.netchan.message, " ");

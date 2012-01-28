@@ -104,18 +104,18 @@ static void Cl_CheckForResend(void) {
 	// if the local server is running and we aren't then connect
 	if (Com_WasInit(Q2W_SERVER) && strcmp(cls.server_name, "localhost")) {
 
-		if (cls.state > ca_disconnected) {
+		if (cls.state > CL_DISCONNECTED) {
 			Cl_Disconnect();
 		}
 
 		strncpy(cls.server_name, "localhost", sizeof(cls.server_name) - 1);
 
-		cls.state = ca_connecting;
+		cls.state = CL_CONNECTING;
 		cls.connect_time = -99999;
 	}
 
 	// re-send if we haven't received a reply yet
-	if (cls.state != ca_connecting)
+	if (cls.state != CL_CONNECTING)
 		return;
 
 	if (cls.real_time - cls.connect_time < 3000)
@@ -123,7 +123,7 @@ static void Cl_CheckForResend(void) {
 
 	if (!Net_StringToNetaddr(cls.server_name, &addr)) {
 		Com_Print("Bad server address\n");
-		cls.state = ca_disconnected;
+		cls.state = CL_DISCONNECTED;
 		return;
 	}
 
@@ -156,7 +156,7 @@ static void Cl_Connect_f(void) {
 	strncpy(cls.server_name, Cmd_Argv(1), sizeof(cls.server_name) - 1);
 
 	cls.connect_time = -99999; // fire immediately
-	cls.state = ca_connecting;
+	cls.state = CL_CONNECTING;
 }
 
 /*
@@ -191,7 +191,7 @@ static void Cl_Rcon_f(void) {
 		strcat(message, " ");
 	}
 
-	if (cls.state >= ca_connected)
+	if (cls.state >= CL_CONNECTED)
 		to = cls.netchan.remote_address;
 	else {
 		if (*rcon_address->string == '\0') {
@@ -231,13 +231,13 @@ void Cl_ClearState(void) {
 void Cl_SendDisconnect(void) {
 	byte final[16];
 
-	if (cls.state <= ca_disconnected)
+	if (cls.state <= CL_DISCONNECTED)
 		return;
 
 	Com_Print("Disconnecting from %s...\n", cls.server_name);
 
 	// send a disconnect message to the server
-	final[0] = clc_string;
+	final[0] = CL_CMD_STRING;
 	strcpy((char *)final + 1, "disconnect");
 	Netchan_Transmit(&cls.netchan, strlen((char *) final), final);
 	Netchan_Transmit(&cls.netchan, strlen((char *) final), final);
@@ -249,7 +249,7 @@ void Cl_SendDisconnect(void) {
 	cls.connect_time = 0;
 	cls.loading = 0;
 	cls.packet_delta = 9999;
-	cls.state = ca_disconnected;
+	cls.state = CL_DISCONNECTED;
 }
 
 /*
@@ -260,7 +260,7 @@ void Cl_SendDisconnect(void) {
  */
 void Cl_Disconnect(void) {
 
-	if (cls.state <= ca_disconnected)
+	if (cls.state <= CL_DISCONNECTED)
 		return;
 
 	if (time_demo->value) { // summarize time_demo results
@@ -293,7 +293,7 @@ void Cl_Disconnect(void) {
 
 	memset(cls.server_name, 0, sizeof(cls.server_name));
 
-	cls.key_state.dest = key_menu;
+	cls.key_state.dest = KEY_UI;
 }
 
 /*
@@ -318,7 +318,7 @@ void Cl_Reconnect_f(void) {
 
 	if (cls.server_name[0] != '\0') {
 
-		if (cls.state >= ca_connecting) {
+		if (cls.state >= CL_CONNECTING) {
 			char server_name[MAX_OSPATH];
 
 			strncpy(server_name, cls.server_name, sizeof(server_name) - 1);
@@ -329,7 +329,7 @@ void Cl_Reconnect_f(void) {
 		}
 
 		cls.connect_time = -99999; // fire immediately
-		cls.state = ca_connecting;
+		cls.state = CL_CONNECTING;
 	} else {
 		Com_Print("No server to reconnect to\n");
 	}
@@ -359,16 +359,16 @@ static void Cl_ConnectionlessPacket(void) {
 	// server connection
 	if (!strcmp(c, "client_connect")) {
 
-		if (cls.state == ca_connected) {
+		if (cls.state == CL_CONNECTED) {
 			Com_Print("Dup connect received.  Ignored.\n");
 			return;
 		}
 
 		qport = (byte) Cvar_GetValue("net_qport");
 		Netchan_Setup(NS_CLIENT, &cls.netchan, net_from, qport);
-		Msg_WriteChar(&cls.netchan.message, clc_string);
+		Msg_WriteChar(&cls.netchan.message, CL_CMD_STRING);
 		Msg_WriteString(&cls.netchan.message, "new");
-		cls.state = ca_connected;
+		cls.state = CL_CONNECTED;
 
 		memset(cls.download_url, 0, sizeof(cls.download_url));
 		if (Cmd_Argc() == 2) // http download url
@@ -403,7 +403,7 @@ static void Cl_ConnectionlessPacket(void) {
 
 	// challenge from the server we are connecting to
 	if (!strcmp(c, "challenge")) {
-		if (cls.state != ca_connecting) {
+		if (cls.state != CL_CONNECTING) {
 			Com_Print("Duplicate challenge received.  Ignored.\n");
 			return;
 		}
@@ -430,7 +430,7 @@ static void Cl_ReadPackets(void) {
 			continue;
 		}
 
-		if (cls.state <= ca_connecting)
+		if (cls.state <= CL_CONNECTING)
 			continue; // dump it if not connected
 
 		if (net_message.size < 8) {
@@ -452,7 +452,7 @@ static void Cl_ReadPackets(void) {
 	}
 
 	// check timeout
-	if (cls.state >= ca_connected && cls.real_time - cls.netchan.last_received
+	if (cls.state >= CL_CONNECTED && cls.real_time - cls.netchan.last_received
 			> cl_timeout->value * 1000) {
 		Com_Print("%s: Timed out.\n", Net_NetaddrToString(net_from));
 		Cl_Disconnect();
@@ -476,7 +476,7 @@ void Cl_LoadProgress(unsigned short percent) {
  */
 static void Cl_UpdateMedia(void) {
 
-	if ((r_view.update || s_env.update) && (cls.state == ca_active
+	if ((r_view.update || s_env.update) && (cls.state == CL_ACTIVE
 			&& !cls.loading)) {
 
 		Com_Debug("Cl_UpdateMedia: %s %s\n", r_view.update ? "view" : "",
@@ -527,7 +527,7 @@ static void Cl_LoadMedia(void) {
 
 	Cl_ClearNotify();
 
-	cls.key_state.dest = key_game;
+	cls.key_state.dest = KEY_GAME;
 
 	cls.loading = 0;
 }
@@ -544,7 +544,7 @@ static int precache_check; // for auto-download of precache items
  */
 void Cl_RequestNextDownload(void) {
 
-	if (cls.state < ca_connected)
+	if (cls.state < CL_CONNECTED)
 		return;
 
 	// check pak
@@ -578,7 +578,7 @@ void Cl_RequestNextDownload(void) {
 
 	Cl_LoadMedia();
 
-	Msg_WriteByte(&cls.netchan.message, clc_string);
+	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 	Msg_WriteString(&cls.netchan.message, va("begin %i\n", cls.spawn_count));
 }
 
@@ -714,7 +714,7 @@ static void Cl_WriteConfiguration(void) {
 	FILE *f;
 	char path[MAX_OSPATH];
 
-	if (cls.state == ca_uninitialized)
+	if (cls.state == CL_UNINITIALIZED)
 		return;
 
 	snprintf(path, sizeof(path), "%s/quake2world.cfg", Fs_Gamedir());
@@ -795,10 +795,10 @@ void Cl_Frame(unsigned int msec) {
 	if (!render_frame || cls.packet_delta < 10)
 		packet_frame = false; // enforce a soft cap of 100pps
 
-	if (cls.state == ca_connected && cls.packet_delta < 50)
+	if (cls.state == CL_CONNECTED && cls.packet_delta < 50)
 		packet_frame = false; // don't flood the server while downloading
 
-	if (cls.state <= ca_disconnected && !Com_WasInit(Q2W_SERVER)) {
+	if (cls.state <= CL_DISCONNECTED && !Com_WasInit(Q2W_SERVER)) {
 		usleep(1000); // idle at console
 	}
 
@@ -853,7 +853,7 @@ void Cl_Init(void) {
 	if (dedicated->value)
 		return; // nothing running on the client
 
-	cls.state = ca_disconnected;
+	cls.state = CL_DISCONNECTED;
 	cls.real_time = quake2world.time;
 
 	Cl_InitKeys();
@@ -891,7 +891,7 @@ void Cl_Init(void) {
 
 	Cl_InitCgame();
 
-	cls.key_state.dest = key_menu;
+	cls.key_state.dest = KEY_UI;
 }
 
 /*

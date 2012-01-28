@@ -91,7 +91,7 @@ void G_target_speaker(g_edict_t *ent) {
 static void G_target_explosion_explode(g_edict_t *self) {
 	float save;
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
 	gi.WritePosition(self->s.origin);
 	gi.Multicast(self->s.origin, MULTICAST_PHS);
@@ -137,7 +137,7 @@ void G_target_explosion(g_edict_t *ent) {
  */
 static void G_target_splash_think(g_edict_t *self) {
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_SPARKS);
 	gi.WritePosition(self->s.origin);
 	gi.WriteDir(self->move_dir);

@@ -74,20 +74,20 @@ static void Debug(const char *msg) {
 static void Error(err_t err, const char *msg) {
 
 	switch (err) {
-	case ERR_NONE:
-	case ERR_DROP:
+	case err_none:
+	case err_drop:
 		Print(va("^1%s\n", msg));
 		Sv_Shutdown(msg);
 
 #ifdef BUILD_CLIENT
 		Cl_Disconnect();
-		cls.key_state.dest = key_console;
+		cls.key_state.dest = KEY_CONSOLE;
 #endif
 
 		longjmp(environment, 0);
 		break;
 
-	case ERR_FATAL:
+	case err_fatal:
 	default:
 		Shutdown((const char *) msg);
 		Sys_Error("%s", msg);

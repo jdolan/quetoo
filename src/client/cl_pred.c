@@ -165,7 +165,7 @@ void Cl_PredictMovement(void) {
 	pm_move_t pm;
 	float step;
 
-	if (cls.state != ca_active)
+	if (cls.state != CL_ACTIVE)
 		return;
 
 	if (!cl_predict->value || (cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION)) {

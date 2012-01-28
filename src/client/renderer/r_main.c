@@ -323,7 +323,7 @@ static void R_Clear(void) {
 		bits |= GL_COLOR_BUFFER_BIT;
 
 	// or if the client is not fully loaded
-	if (cls.state != ca_active || cls.loading)
+	if (cls.state != CL_ACTIVE || cls.loading)
 		bits |= GL_COLOR_BUFFER_BIT;
 
 	glClear(bits);
@@ -380,7 +380,7 @@ void R_EndFrame(void) {
 
 	R_UpdateCapture();
 
-	if (cls.state == ca_active && !cls.loading) {
+	if (cls.state == CL_ACTIVE && !cls.loading) {
 		r_view.update = false;
 	}
 
@@ -613,13 +613,13 @@ static void R_InitLocal(void) {
 			"Controls the rendering of light source flares");
 	r_fog = Cvar_Get("r_fog", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS,
 			"Controls the rendering of fog effects");
-	r_fullscreen = Cvar_Get("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_MODE,
+	r_fullscreen = Cvar_Get("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls fullscreen mode");
 	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE,
 			"Controls video gamma (brightness)");
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE,
 			"Controls the hardness of bump-mapping effects");
-	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
+	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_hunk_mb = Cvar_Get("r_hunk_mb", "512", CVAR_R_CONTEXT,
 			"Memory size for the renderer hunk in megabytes");
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES,
@@ -669,11 +669,11 @@ static void R_InitLocal(void) {
 			"Controls the use of vertex buffer objects (VBO)");
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE,
 			"Controls warping surface effects (e.g. water)");
-	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_MODE, NULL);
+	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_height = Cvar_Get("r_windowed_height", "0",
-			CVAR_ARCHIVE | CVAR_R_MODE, NULL);
+			CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_width = Cvar_Get("r_windowed_width", "0",
-			CVAR_ARCHIVE | CVAR_R_MODE, NULL);
+			CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
 	// prevent unnecessary reloading for initial values
 	Cvar_ClearVars(CVAR_R_MASK);
@@ -726,14 +726,14 @@ void R_Init(void) {
 
 	// create the window and set up the context
 	if (!R_InitContext())
-		Com_Error(ERR_FATAL, "Failed to initialize context.");
+		Com_Error(err_fatal, "Failed to initialize context.");
 
 	R_InitConfig();
 
 	R_EnforceGlVersion();
 
 	if (!R_InitGlExtensions())
-		Com_Error(ERR_FATAL, "Failed to resolve required OpenGL extensions.");
+		Com_Error(err_fatal, "Failed to resolve required OpenGL extensions.");
 
 	R_SetDefaultState();
 

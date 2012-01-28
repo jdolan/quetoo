@@ -66,7 +66,7 @@ static void Sv_Error(const char *fmt, ...) {
 	vsprintf(msg, fmt, args);
 	va_end(args);
 
-	Com_Error(ERR_DROP, "Game error: %s.\n", msg);
+	Com_Error(err_drop, "Game error: %s.\n", msg);
 }
 
 /*
@@ -109,9 +109,9 @@ static void Sv_ConfigString(int index, const char *val) {
 	// change the string in sv.config_strings
 	strncpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
 
-	if (sv.state != ss_loading) { // send the update to everyone
+	if (sv.state != SV_LOADING) { // send the update to everyone
 		Sb_Clear(&sv.multicast);
-		Msg_WriteChar(&sv.multicast, svc_config_string);
+		Msg_WriteChar(&sv.multicast, SV_CMD_CONFIG_STRING);
 		Msg_WriteShort(&sv.multicast, index);
 		Msg_WriteString(&sv.multicast, val);
 
@@ -334,11 +334,11 @@ void Sv_InitGame(void) {
 			"G_LoadGame", &import);
 
 	if (!svs.game) {
-		Com_Error(ERR_DROP, "Sv_InitGame: Failed to load game module.\n");
+		Com_Error(err_drop, "Sv_InitGame: Failed to load game module.\n");
 	}
 
 	if (svs.game->api_version != GAME_API_VERSION) {
-		Com_Error(ERR_DROP, "Sv_InitGame: Game is version %i, not %i.\n",
+		Com_Error(err_drop, "Sv_InitGame: Game is version %i, not %i.\n",
 				svs.game->api_version, GAME_API_VERSION);
 	}
 

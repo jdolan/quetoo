@@ -62,7 +62,7 @@ static int FindPath(char *path){
 static void AddPath(char *path){
 
 	if(qpak.num_paths == MAX_PAK_ENTRIES){
-		Com_Error(ERR_FATAL, "MAX_PAK_ENTRIES exhausted\n");
+		Com_Error(err_fatal, "MAX_PAK_ENTRIES exhausted\n");
 		return;
 	}
 
@@ -386,7 +386,7 @@ static pak_t *GetPakfile(void){
 	snprintf(pakfile, sizeof(pakfile), "%s/map-%s-%d.pak", Fs_Gamedir(), c, getpid());
 
 	if(!(pak = Pak_CreatePakstream(pakfile)))
-		Com_Error(ERR_FATAL, "Failed to open %s\n", pakfile);
+		Com_Error(err_fatal, "Failed to open %s\n", pakfile);
 
 	return pak;
 }

@@ -36,7 +36,7 @@ void Sv_FlushRedirect(int target, char *outputbuf) {
 		Netchan_OutOfBandPrint(NS_SERVER, net_from, "print\n%s", outputbuf);
 		break;
 	case RD_CLIENT:
-		Msg_WriteByte(&sv_client->netchan.message, svc_print);
+		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_PRINT);
 		Msg_WriteByte(&sv_client->netchan.message, PRINT_HIGH);
 		Msg_WriteString(&sv_client->netchan.message, outputbuf);
 		break;
@@ -65,7 +65,7 @@ void Sv_ClientPrint(g_edict_t *ent, int level, const char *fmt, ...) {
 
 	cl = &svs.clients[n - 1];
 
-	if (cl->state != cs_spawned) {
+	if (cl->state != SV_CLIENT_ACTIVE) {
 		Com_Debug("Sv_ClientPrint: Issued to unspawned client.\n");
 		return;
 	}
@@ -79,7 +79,7 @@ void Sv_ClientPrint(g_edict_t *ent, int level, const char *fmt, ...) {
 	vsprintf(string, fmt, args);
 	va_end(args);
 
-	Msg_WriteByte(&cl->netchan.message, svc_print);
+	Msg_WriteByte(&cl->netchan.message, SV_CMD_PRINT);
 	Msg_WriteByte(&cl->netchan.message, level);
 	Msg_WriteString(&cl->netchan.message, string);
 }
@@ -105,7 +105,7 @@ void Sv_ClientCenterPrint(g_edict_t *ent, const char *fmt, ...) {
 	vsprintf(msg, fmt, args);
 	va_end(args);
 
-	Msg_WriteByte(&sv.multicast, svc_center_print);
+	Msg_WriteByte(&sv.multicast, SV_CMD_CENTER_PRINT);
 	Msg_WriteString(&sv.multicast, msg);
 
 	Sv_Unicast(ent, true);
@@ -143,10 +143,10 @@ void Sv_BroadcastPrint(int level, const char *fmt, ...) {
 		if (level < cl->message_level)
 			continue;
 
-		if (cl->state != cs_spawned)
+		if (cl->state != SV_CLIENT_ACTIVE)
 			continue;
 
-		Msg_WriteByte(&cl->netchan.message, svc_print);
+		Msg_WriteByte(&cl->netchan.message, SV_CMD_PRINT);
 		Msg_WriteByte(&cl->netchan.message, level);
 		Msg_WriteString(&cl->netchan.message, string);
 	}
@@ -167,7 +167,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 	vsprintf(string, fmt, args);
 	va_end(args);
 
-	Msg_WriteByte(&sv.multicast, svc_stuff_text);
+	Msg_WriteByte(&sv.multicast, SV_CMD_CBUF_TEXT);
 	Msg_WriteString(&sv.multicast, string);
 	Sv_Multicast(NULL, MULTICAST_ALL_R);
 }
@@ -258,10 +258,10 @@ void Sv_Multicast(vec3_t origin, multicast_t to) {
 	// send the data to all relevent clients
 	for (j = 0, client = svs.clients; j < sv_max_clients->integer; j++, client++) {
 
-		if (client->state == cs_free)
+		if (client->state == SV_CLIENT_FREE)
 			continue;
 
-		if (client->state != cs_spawned && !reliable)
+		if (client->state != SV_CLIENT_ACTIVE && !reliable)
 			continue;
 
 		if (mask) {
@@ -332,7 +332,7 @@ void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, unsigned short index,
 		}
 	}
 
-	Msg_WriteByte(&sv.multicast, svc_sound);
+	Msg_WriteByte(&sv.multicast, SV_CMD_SOUND);
 	Msg_WriteByte(&sv.multicast, flags);
 	Msg_WriteByte(&sv.multicast, index);
 
@@ -498,14 +498,14 @@ void Sv_SendClientMessages(void) {
 			Sv_DropClient(c);
 		}
 
-		if (sv.state == ss_demo) { // send the demo packet
+		if (sv.state == SV_ACTIVE_DEMO) { // send the demo packet
 			byte buffer[MAX_MSG_SIZE];
 			size_t size;
 
 			if ((size = Sv_GetDemoMessage(buffer))) {
 				Netchan_Transmit(&c->netchan, size, buffer);
 			}
-		} else if (c->state == cs_spawned) { // send the game packet
+		} else if (c->state == SV_CLIENT_ACTIVE) { // send the game packet
 
 			if (Sv_RateDrop(c)) // don't overrun bandwidth
 				continue;

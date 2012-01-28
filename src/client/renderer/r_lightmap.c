@@ -267,7 +267,7 @@ void R_CreateSurfaceLightmap(r_bsp_surface_t *surf) {
 		R_UploadLightmapBlock(); // upload the last block
 
 		if (!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)) {
-			Com_Error(ERR_DROP,
+			Com_Error(err_drop,
 					"R_CreateSurfaceLightmap: Consecutive calls to "
 						"R_AllocLightmapBlock(%d,%d) failed.", smax, tmax);
 		}

@@ -259,7 +259,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 			// but nothing should ever need more than that
 			if (ent->area_num && ent->area_num != area) {
 				if (ent->area_num2 && ent->area_num2 != area && sv.state
-						== ss_loading) {
+						== SV_LOADING) {
 					Com_Debug("Object touching 3 areas at %f %f %f\n",
 							ent->abs_mins[0], ent->abs_mins[1],
 							ent->abs_mins[2]);
@@ -416,7 +416,7 @@ static int Sv_HullForEntity(const g_edict_t *ent) {
 		model = sv.models[ent->s.model1];
 
 		if (!model)
-			Com_Error(ERR_FATAL, "Sv_HullForEntity: SOLID_BSP with no model.\n");
+			Com_Error(err_fatal, "Sv_HullForEntity: SOLID_BSP with no model.\n");
 
 		return model->head_node;
 	}

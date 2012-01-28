@@ -109,12 +109,10 @@ typedef byte boolean_t;
 #define CVAR_R_IMAGES		0x40  // effects image filtering
 #define CVAR_R_CONTEXT		0x80  // effects OpenGL context
 #define CVAR_R_PROGRAMS		0x100  // effects GLSL programs
-#define CVAR_R_MODE			0x200  // effects screen resolution
-#define CVAR_S_DEVICE		0x400  // effects sound device parameters
-#define CVAR_S_SAMPLES		0x800  // effects sound samples
+#define CVAR_S_DEVICE		0x200  // effects sound device parameters
+#define CVAR_S_SAMPLES		0x400  // effects sound samples
 
-#define CVAR_R_MASK			(CVAR_R_IMAGES | CVAR_R_CONTEXT | CVAR_R_PROGRAMS | CVAR_R_MODE)
-
+#define CVAR_R_MASK			(CVAR_R_IMAGES | CVAR_R_CONTEXT | CVAR_R_PROGRAMS | CVAR_R_CONTEXT)
 #define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_SAMPLES)
 
 typedef struct cvar_s {
@@ -144,6 +142,36 @@ typedef enum {
 	MULTICAST_PHS_R,
 	MULTICAST_PVS_R
 } multicast_t;
+
+// server to client
+typedef enum {
+	SV_CMD_BAD,
+	SV_CMD_NO_OP,
+	SV_CMD_MUZZLE_FLASH,
+	SV_CMD_TEMP_ENTITY,
+	SV_CMD_LAYOUT,
+	SV_CMD_DISCONNECT,
+	SV_CMD_RECONNECT,
+	SV_CMD_SOUND,   // <see code>
+	SV_CMD_PRINT,   // [byte] id [string] null terminated string
+	SV_CMD_CBUF_TEXT,   // [string] stuffed into client's console buffer, should be \n terminated
+	SV_CMD_SERVER_DATA,   // [long] protocol ...
+	SV_CMD_CONFIG_STRING,   // [short] [string]
+	SV_CMD_ENTITY_BASELINE,
+	SV_CMD_CENTER_PRINT,   // [string] to put in center of the screen
+	SV_CMD_DOWNLOAD,   // [short] size [size bytes]
+	SV_CMD_FRAME
+} svc_ops_t;
+
+
+// client to server
+typedef enum {
+	CL_CMD_BAD,
+	CL_CMD_NO_OP,
+	CL_CMD_MOVE,  // [[usercmd_t]
+	CL_CMD_USER_INFO,  // [[user_info string]
+	CL_CMD_STRING  // [string] message
+} clc_ops_t;
 
 typedef float vec_t;
 typedef vec_t vec2_t[2];
@@ -378,6 +406,7 @@ typedef struct {
 #define EF_BLEND			(1 << 29)  // blend
 #define EF_NO_SHADOW		(1 << 30)  // no shadow
 #define EF_NO_DRAW			(1 << 31)  // no draw (but perhaps shadow)
+
 // muzzle flashes
 typedef enum {
 	MZ_SHOTGUN,
@@ -392,9 +421,8 @@ typedef enum {
 	MZ_LOGOUT,
 } muzzle_flash_t;
 
-// temp entity events
 // Temp entity events are for things that happen
-// at a location seperate from any existing entity.
+// at a location separate from any existing entity.
 // Temporary entity messages are explicitly constructed
 // and broadcast.
 typedef enum {

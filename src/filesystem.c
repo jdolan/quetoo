@@ -215,7 +215,7 @@ void Fs_ReadFile(void *buffer, int len, FILE *f) {
 	read = Fs_Read(buffer, 1, len, f);
 
 	if (read != len) { // read failed, exit
-		Com_Error(ERR_DROP, "Fs_ReadFile: %d bytes read.\n", read);
+		Com_Error(err_drop, "Fs_ReadFile: %d bytes read.\n", read);
 	}
 }
 

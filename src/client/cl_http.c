@@ -175,7 +175,7 @@ void Cl_HttpDownloadCleanup() {
 			Com_Print("Failed to download %s via HTTP: %s.\n"
 				"Trying UDP...\n", cls.download.name, c);
 
-			Msg_WriteByte(&cls.netchan.message, clc_string);
+			Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 			Msg_WriteString(&cls.netchan.message,
 					va("download %s", cls.download.name));
 

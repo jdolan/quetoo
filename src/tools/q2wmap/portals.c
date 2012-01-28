@@ -143,7 +143,7 @@ boolean_t Portal_VisFlood(const portal_t * p) {
 static boolean_t Portal_EntityFlood(const portal_t * p, int s) {
 	if (p->nodes[0]->plane_num != PLANENUM_LEAF || p->nodes[1]->plane_num
 			!= PLANENUM_LEAF)
-		Com_Error(ERR_FATAL, "Portal_EntityFlood: not a leaf\n");
+		Com_Error(err_fatal, "Portal_EntityFlood: not a leaf\n");
 
 	// can never cross to a solid
 	if ((p->nodes[0]->contents & CONTENTS_SOLID) || (p->nodes[1]->contents
@@ -165,7 +165,7 @@ static int c_tinyportals;
  */
 static void AddPortalToNodes(portal_t * p, node_t * front, node_t * back) {
 	if (p->nodes[0] || p->nodes[1])
-		Com_Error(ERR_FATAL, "AddPortalToNode: already included\n");
+		Com_Error(err_fatal, "AddPortalToNode: already included\n");
 
 	p->nodes[0] = front;
 	p->next[0] = front->portals;
@@ -189,7 +189,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l) {
 	while (true) {
 		t = *pp;
 		if (!t)
-			Com_Error(ERR_FATAL, "RemovePortalFromNode: portal not in leaf\n");
+			Com_Error(err_fatal, "RemovePortalFromNode: portal not in leaf\n");
 
 		if (t == portal)
 			break;
@@ -199,7 +199,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l) {
 		else if (t->nodes[1] == l)
 			pp = &t->next[1];
 		else
-			Com_Error(ERR_FATAL,
+			Com_Error(err_fatal,
 					"RemovePortalFromNode: portal not bounding leaf\n");
 	}
 
@@ -339,7 +339,7 @@ void MakeNodePortal(node_t * node) {
 			VectorSubtract(vec3_origin, p->plane.normal, normal);
 			dist = -p->plane.dist;
 		} else
-			Com_Error(ERR_FATAL, "CutNodePortals_r: mislinked portal\n");
+			Com_Error(err_fatal, "CutNodePortals_r: mislinked portal\n");
 
 		ChopWindingInPlace(&w, normal, dist, 0.1);
 	}
@@ -388,7 +388,7 @@ void SplitNodePortals(node_t * node) {
 		else if (p->nodes[1] == node)
 			side = 1;
 		else
-			Com_Error(ERR_FATAL, "CutNodePortals_r: mislinked portal\n");
+			Com_Error(err_fatal, "CutNodePortals_r: mislinked portal\n");
 		next_portal = p->next[side];
 
 		other_node = p->nodes[!side];
@@ -748,7 +748,7 @@ void EmitAreaPortals(node_t * head_node) {
 	d_bsp_area_portal_t *dp;
 
 	if (c_areas > MAX_BSP_AREAS)
-		Com_Error(ERR_FATAL, "MAX_BSP_AREAS\n");
+		Com_Error(err_fatal, "MAX_BSP_AREAS\n");
 
 	d_bsp.num_areas = c_areas + 1;
 	d_bsp.num_area_portals = 1; // leave 0 as an error

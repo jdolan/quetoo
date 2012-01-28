@@ -125,7 +125,7 @@ static void G_Killed(g_edict_t *targ, g_edict_t *inflictor,
  */
 static void G_SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage) {
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(type);
 	gi.WritePosition(origin);
 	gi.WriteDir(normal);

@@ -38,7 +38,7 @@ static void Cl_WriteDemoHeader(void) {
 	Sb_Init(&msg, buffer, sizeof(buffer));
 
 	// write the server data
-	Msg_WriteByte(&msg, svc_server_data);
+	Msg_WriteByte(&msg, SV_CMD_SERVER_DATA);
 	Msg_WriteLong(&msg, PROTOCOL);
 	Msg_WriteLong(&msg, cl.server_count);
 	Msg_WriteLong(&msg, cl.server_frame_rate);
@@ -57,7 +57,7 @@ static void Cl_WriteDemoHeader(void) {
 				msg.size = 0;
 			}
 
-			Msg_WriteByte(&msg, svc_config_string);
+			Msg_WriteByte(&msg, SV_CMD_CONFIG_STRING);
 			Msg_WriteShort(&msg, i);
 			Msg_WriteString(&msg, cl.config_strings[i]);
 		}
@@ -78,12 +78,12 @@ static void Cl_WriteDemoHeader(void) {
 
 		memset(&null_state, 0, sizeof(null_state));
 
-		Msg_WriteByte(&msg, svc_spawn_baseline);
+		Msg_WriteByte(&msg, SV_CMD_ENTITY_BASELINE);
 		Msg_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &msg, true,
 				true);
 	}
 
-	Msg_WriteByte(&msg, svc_stuff_text);
+	Msg_WriteByte(&msg, SV_CMD_CBUF_TEXT);
 	Msg_WriteString(&msg, "precache 0\n");
 
 	// write it to the demo file
@@ -165,7 +165,7 @@ void Cl_Record_f(void) {
 		return;
 	}
 
-	if (cls.state != ca_active) {
+	if (cls.state != CL_ACTIVE) {
 		Com_Print("You must be in a level to record.\n");
 		return;
 	}

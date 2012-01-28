@@ -204,7 +204,7 @@ void WritePortalFile(tree_t *tree) {
 	strcat(file_name, ".prt");
 
 	if (Fs_OpenFile(file_name, &pf, FILE_WRITE) == -1)
-		Com_Error(ERR_FATAL, "Error opening %s\n", file_name);
+		Com_Error(err_fatal, "Error opening %s\n", file_name);
 
 	fprintf(pf, "%s\n", PORTALFILE);
 	fprintf(pf, "%i\n", num_visclusters);

@@ -1012,7 +1012,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
 			ent->client->locals.net_name);
 
 	// send effect
-	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_LOGOUT);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);

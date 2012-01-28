@@ -1135,7 +1135,7 @@ void G_Init(void) {
 
 	memset(&g_game, 0, sizeof(g_game));
 
-	gi.Cvar("game_name", GAMEVERSION, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	gi.Cvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 	gi.Cvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, NULL);

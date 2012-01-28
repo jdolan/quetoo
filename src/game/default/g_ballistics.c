@@ -98,7 +98,7 @@ static void G_BubbleTrail(vec3_t start, c_trace_t *tr) {
 	VectorAdd(start, tr->end, pos);
 	VectorScale(pos, 0.5, pos);
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BUBBLES);
 	gi.WritePosition(start);
 	gi.WritePosition(tr->end);
@@ -122,7 +122,7 @@ static void G_Tracer(vec3_t start, vec3_t end) {
 
 	VectorMA(end, -len + (frand() * 0.05 * len), dir, mid);
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_TRACER);
 	gi.WritePosition(mid);
 	gi.WritePosition(end);
@@ -137,7 +137,7 @@ static void G_Tracer(vec3_t start, vec3_t end) {
 static void G_BulletMark(vec3_t org, c_bsp_plane_t *plane,
 		c_bsp_surface_t *surf) {
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BULLET);
 	gi.WritePosition(org);
 	gi.WriteDir(plane->normal);
@@ -153,7 +153,7 @@ static void G_BulletMark(vec3_t org, c_bsp_plane_t *plane,
 static void G_BurnMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf,
 		byte scale) {
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BURN);
 	gi.WritePosition(org);
 	gi.WriteDir(plane->normal);
@@ -283,7 +283,7 @@ static void G_GrenadeProjectile_Explode(g_edict_t *ent) {
 	else
 		VectorCopy(ent->s.origin, origin);
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PHS);
@@ -399,7 +399,7 @@ static void G_RocketProjectile_Touch(g_edict_t *ent, g_edict_t *other,
 	else
 		VectorCopy(ent->s.origin, origin);
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PHS);
@@ -480,7 +480,7 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other,
 	else
 		VectorCopy(self->s.origin, origin);
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_HYPERBLASTER);
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PVS);
@@ -576,7 +576,7 @@ static void G_LightningProjectile_Discharge(g_edict_t *self) {
 	}
 
 	// send discharge event
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_LIGHTNING);
 	gi.WritePosition(self->s.origin);
 }
@@ -761,7 +761,7 @@ void G_RailgunProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir,
 	}
 
 	// send rail trail
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_RAIL);
 	gi.WritePosition(start);
 	gi.WritePosition(tr.end);
@@ -808,7 +808,7 @@ static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other,
 	else
 		VectorCopy(self->s.origin, origin);
 
-	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BFG);
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PVS);

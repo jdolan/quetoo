@@ -29,7 +29,7 @@
 void Cl_UpdateCmd(void) {
 	user_cmd_t *cmd;
 
-	if (cls.state != ca_active)
+	if (cls.state != CL_ACTIVE)
 		return;
 
 	cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
@@ -83,12 +83,12 @@ void Cl_SendCmd(void) {
 	user_cmd_t *cmd, *old_cmd;
 	user_cmd_t null_cmd;
 
-	if (cls.state <= ca_connecting)
+	if (cls.state <= CL_CONNECTING)
 		return;
 
 	Sb_Init(&buf, data, sizeof(data));
 
-	if (cls.state == ca_connected) {
+	if (cls.state == CL_CONNECTED) {
 		// send anything we have pending, or just don't timeout
 		if (cls.netchan.message.size || cls.real_time - cls.netchan.last_sent
 				> 1000)
@@ -98,7 +98,7 @@ void Cl_SendCmd(void) {
 
 	// send a user_info update if needed
 	if (user_info_modified) {
-		Msg_WriteByte(&cls.netchan.message, clc_user_info);
+		Msg_WriteByte(&cls.netchan.message, CL_CMD_USER_INFO);
 		Msg_WriteString(&cls.netchan.message, Cvar_UserInfo());
 
 		user_info_modified = false;
@@ -108,7 +108,7 @@ void Cl_SendCmd(void) {
 	Cl_FinalizeCmd();
 
 	// write it out
-	Msg_WriteByte(&buf, clc_move);
+	Msg_WriteByte(&buf, CL_CMD_MOVE);
 
 	// let the server know what the last frame we got was, so the next
 	// message can be delta compressed

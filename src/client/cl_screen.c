@@ -206,7 +206,7 @@ static void Cl_DrawRendererStats(void) {
 	if (!cl_show_renderer_stats->value)
 		return;
 
-	if (cls.state != ca_active)
+	if (cls.state != CL_ACTIVE)
 		return;
 
 	snprintf(s, sizeof(s) - 1, "%i bsp %i mesh %i lights %i particles",
@@ -272,7 +272,7 @@ static void Cl_DrawCounters(void) {
  */
 static void Cl_DrawCursor(void) {
 
-	if (cls.key_state.dest != key_menu && cls.mouse_state.grabbed)
+	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed)
 		return;
 
 	if (!(SDL_GetAppState() & SDL_APPMOUSEFOCUS))
@@ -291,7 +291,7 @@ void Cl_UpdateScreen(void) {
 
 	R_BeginFrame();
 
-	if (cls.state == ca_active && !cls.loading) {
+	if (cls.state == CL_ACTIVE && !cls.loading) {
 
 		Cl_UpdateView();
 
@@ -301,7 +301,7 @@ void Cl_UpdateScreen(void) {
 
 		R_Setup2D();
 
-		if (cls.key_state.dest != key_console && cls.key_state.dest != key_menu) {
+		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
 
 			Cl_DrawNetgraph();
 

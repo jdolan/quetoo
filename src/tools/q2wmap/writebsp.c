@@ -68,7 +68,7 @@ static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f){
 		return;  // degenerate face
 
 	if(face_num < 0 || face_num >= d_bsp.num_faces)
-		Com_Error(ERR_FATAL, "Bad leaf_face\n");
+		Com_Error(err_fatal, "Bad leaf_face\n");
 
 	for(i = leaf_p->first_leaf_face; i < d_bsp.num_leaf_faces; i++)
 		if(d_bsp.leaf_faces[i] == face_num)
@@ -76,7 +76,7 @@ static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f){
 
 	if(i == d_bsp.num_leaf_faces){
 		if(d_bsp.num_leaf_faces >= MAX_BSP_LEAF_FACES)
-			Com_Error(ERR_FATAL, "MAX_BSP_LEAF_FACES\n");
+			Com_Error(err_fatal, "MAX_BSP_LEAF_FACES\n");
 
 		d_bsp.leaf_faces[d_bsp.num_leaf_faces] = face_num;
 		d_bsp.num_leaf_faces++;
@@ -98,7 +98,7 @@ static void EmitLeaf(node_t *node){
 
 	// emit a leaf
 	if(d_bsp.num_leafs >= MAX_BSP_LEAFS)
-		Com_Error(ERR_FATAL, "MAX_BSP_LEAFS\n");
+		Com_Error(err_fatal, "MAX_BSP_LEAFS\n");
 
 	leaf_p = &d_bsp.leafs[d_bsp.num_leafs];
 	d_bsp.num_leafs++;
@@ -116,7 +116,7 @@ static void EmitLeaf(node_t *node){
 	for(b = node->brushes; b; b = b->next){
 
 		if(d_bsp.num_leaf_brushes >= MAX_BSP_LEAF_BRUSHES)
-			Com_Error(ERR_FATAL, "MAX_BSP_LEAF_BRUSHES\n");
+			Com_Error(err_fatal, "MAX_BSP_LEAF_BRUSHES\n");
 
 		brush_num = b->original - map_brushes;
 
@@ -173,7 +173,7 @@ static void EmitFace(face_t *f){
 	f->output_number = d_bsp.num_faces;
 
 	if(d_bsp.num_faces >= MAX_BSP_FACES)
-		Com_Error(ERR_FATAL, "num_faces == MAX_BSP_FACES\n");
+		Com_Error(err_fatal, "num_faces == MAX_BSP_FACES\n");
 
 	df = &d_bsp.faces[d_bsp.num_faces];
 	d_bsp.num_faces++;
@@ -191,7 +191,7 @@ static void EmitFace(face_t *f){
 		e = GetEdge2(f->vertexnums[i], f->vertexnums[(i + 1) % f->num_points], f);
 
 		if(d_bsp.num_face_edges >= MAX_BSP_FACE_EDGES)
-			Com_Error(ERR_FATAL, "num_surf_edges == MAX_BSP_FACE_EDGES\n");
+			Com_Error(err_fatal, "num_surf_edges == MAX_BSP_FACE_EDGES\n");
 
 		d_bsp.face_edges[d_bsp.num_face_edges] = e;
 		d_bsp.num_face_edges++;
@@ -214,7 +214,7 @@ static int EmitDrawNode_r(node_t * node){
 	}
 	// emit a node
 	if(d_bsp.num_nodes == MAX_BSP_NODES)
-		Com_Error(ERR_FATAL, "MAX_BSP_NODES\n");
+		Com_Error(err_fatal, "MAX_BSP_NODES\n");
 
 	n = &d_bsp.nodes[d_bsp.num_nodes];
 	d_bsp.num_nodes++;
@@ -223,7 +223,7 @@ static int EmitDrawNode_r(node_t * node){
 	VectorCopy(node->maxs, n->maxs);
 
 	if(node->plane_num & 1)
-		Com_Error(ERR_FATAL, "EmitDrawNode_r: odd plane_num\n");
+		Com_Error(err_fatal, "EmitDrawNode_r: odd plane_num\n");
 
 	n->plane_num = node->plane_num;
 	n->first_face = d_bsp.num_faces;
@@ -321,7 +321,7 @@ static void EmitBrushes(void){
 		for(j = 0; j < b->num_sides; j++){
 
 			if(d_bsp.num_brush_sides == MAX_BSP_BRUSH_SIDES)
-				Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+				Com_Error(err_fatal, "MAX_BSP_BRUSH_SIDES\n");
 
 			cp = &d_bsp.brush_sides[d_bsp.num_brush_sides];
 			d_bsp.num_brush_sides++;
@@ -350,7 +350,7 @@ static void EmitBrushes(void){
 
 				if(i == b->num_sides){
 					if(d_bsp.num_brush_sides >= MAX_BSP_BRUSH_SIDES)
-						Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+						Com_Error(err_fatal, "MAX_BSP_BRUSH_SIDES\n");
 
 					d_bsp.brush_sides[d_bsp.num_brush_sides].plane_num = plane_num;
 					d_bsp.brush_sides[d_bsp.num_brush_sides].surf_num =
@@ -414,7 +414,7 @@ void BeginModel(void){
 	vec3_t mins, maxs;
 
 	if(d_bsp.num_models == MAX_BSP_MODELS)
-		Com_Error(ERR_FATAL, "MAX_BSP_MODELS\n");
+		Com_Error(err_fatal, "MAX_BSP_MODELS\n");
 	mod = &d_bsp.models[d_bsp.num_models];
 
 	mod->first_face = d_bsp.num_faces;

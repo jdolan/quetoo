@@ -49,9 +49,9 @@ static unsigned short Sv_FindIndex(const char *name, unsigned short start,
 
 	strncpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
 
-	if (sv.state != ss_loading) { // send the update to everyone
+	if (sv.state != SV_LOADING) { // send the update to everyone
 		Sb_Clear(&sv.multicast);
-		Msg_WriteChar(&sv.multicast, svc_config_string);
+		Msg_WriteChar(&sv.multicast, SV_CMD_CONFIG_STRING);
 		Msg_WriteShort(&sv.multicast, start + i);
 		Msg_WriteString(&sv.multicast, name);
 		Sv_Multicast(vec3_origin, MULTICAST_ALL_R);
@@ -118,19 +118,19 @@ static void Sv_ShutdownMessage(const char *msg, boolean_t reconnect) {
 	Sb_Clear(&net_message);
 
 	if (msg) { // send message
-		Msg_WriteByte(&net_message, svc_print);
+		Msg_WriteByte(&net_message, SV_CMD_PRINT);
 		Msg_WriteByte(&net_message, PRINT_HIGH);
 		Msg_WriteString(&net_message, msg);
 	}
 
 	if (reconnect) // send reconnect
-		Msg_WriteByte(&net_message, svc_reconnect);
+		Msg_WriteByte(&net_message, SV_CMD_RECONNECT);
 	else
 		// or just disconnect
-		Msg_WriteByte(&net_message, svc_disconnect);
+		Msg_WriteByte(&net_message, SV_CMD_DISCONNECT);
 
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++)
-		if (cl->state >= cs_connected)
+		if (cl->state >= SV_CLIENT_CONNECTED)
 			Netchan_Transmit(&cl->netchan, net_message.size, net_message.data);
 }
 
@@ -248,8 +248,8 @@ static void Sv_InitClients(void) {
 		svs.clients[i].edict = edict;
 
 		// reset state of spawned clients back to connected
-		if (svs.clients[i].state > cs_connected)
-			svs.clients[i].state = cs_connected;
+		if (svs.clients[i].state > SV_CLIENT_CONNECTED)
+			svs.clients[i].state = SV_CLIENT_CONNECTED;
 
 		// invalidate last frame to force a baseline
 		svs.clients[i].last_frame = -1;
@@ -272,7 +272,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	strcpy(sv.name, server);
 	strcpy(sv.config_strings[CS_NAME], server);
 
-	if (state == ss_demo) { // loading a demo
+	if (state == SV_ACTIVE_DEMO) { // loading a demo
 		snprintf(demo, sizeof(demo), "demos/%s.dem", sv.name);
 
 		sv.models[1] = Cm_LoadBsp(NULL, &mapsize);
@@ -298,7 +298,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 			sv.models[i + 1] = Cm_Model(s);
 		}
 
-		sv.state = ss_loading;
+		sv.state = SV_LOADING;
 
 		Sv_InitWorld();
 
@@ -334,7 +334,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	Cbuf_CopyToDefer();
 
 	// ensure that the requested map or demo exists
-	if (state == ss_demo)
+	if (state == SV_ACTIVE_DEMO)
 		snprintf(path, sizeof(path), "demos/%s.dem", server);
 	else
 		snprintf(path, sizeof(path), "maps/%s.bsp", server);

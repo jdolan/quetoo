@@ -178,7 +178,7 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 #endif
 
 	if (!path) {
-		Com_Error(ERR_DROP, "Sys_OpenLibrary: Couldn't find %s\n", name);
+		Com_Error(err_drop, "Sys_OpenLibrary: Couldn't find %s\n", name);
 	}
 
 	Com_Print("Trying %s...\n", path);
@@ -186,7 +186,7 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 	if ((*handle = dlopen(path, RTLD_NOW)))
 		return;
 
-	Com_Error(ERR_DROP, "Sys_OpenLibrary: %s\n", dlerror());
+	Com_Error(err_drop, "Sys_OpenLibrary: %s\n", dlerror());
 }
 
 /*
@@ -212,7 +212,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point,
 
 	if (!EntryPoint) {
 		Sys_CloseLibrary(handle);
-		Com_Error(ERR_DROP, "Sys_LoadLibrary: %s: Failed to resolve %s\n",
+		Com_Error(err_drop, "Sys_LoadLibrary: %s: Failed to resolve %s\n",
 				name, entry_point);
 	}
 

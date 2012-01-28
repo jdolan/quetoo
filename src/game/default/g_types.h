@@ -24,14 +24,6 @@
 
 #include "quake2world.h"
 
-// protocol bytes that can be directly added to messages
-// these must be kept in sync with the declarations in common.h
-#define svc_muzzle_flash	2
-#define svc_temp_entity		3
-#define svc_layout			4
-#define svc_sound			7
-#define svc_stuff_text		9
-
 // edict->spawnflags
 #define SF_ITEM_TRIGGER			0x00000001
 #define SF_ITEM_NO_TOUCH		0x00000002
@@ -53,11 +45,14 @@
 #define FL_GOD_MODE				0x00000004
 #define FL_TEAM_SLAVE			0x00000008  // not the first on the team
 #define FL_RESPAWN				0x80000000  // used for item respawning
+
 // memory tags to allow dynamic memory to be cleaned up
 #define TAG_GAME	765  // clear when unloading the dll
 #define TAG_LEVEL	766  // clear when loading a new level
+
 // ammo types
 typedef enum {
+	AMMO_NONE,
 	AMMO_SHELLS,
 	AMMO_BULLETS,
 	AMMO_GRENADES,

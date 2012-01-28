@@ -48,7 +48,7 @@ void Ui_Draw(void) {
 		TwWindowSize(w, h);
 	}
 
-	if (cls.key_state.dest != key_menu)
+	if (cls.key_state.dest != KEY_UI)
 		return;
 
 	TwDraw();

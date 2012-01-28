@@ -56,7 +56,7 @@ void Z_Free(void *ptr) {
 	z = ((z_head_t *) ptr) - 1;
 
 	if (z->magic != Z_MAGIC) {
-		Com_Error(ERR_FATAL, "Z_Free: Bad magic for %p.\n", ptr);
+		Com_Error(err_fatal, "Z_Free: Bad magic for %p.\n", ptr);
 	}
 
 	SDL_mutexP(z_lock);
@@ -93,7 +93,7 @@ void *Z_TagMalloc(size_t size, int tag) {
 	size = size + sizeof(z_head_t);
 	z = malloc(size);
 	if (!z) {
-		Com_Error(ERR_FATAL,
+		Com_Error(err_fatal,
 				"Z_TagMalloc: Failed to allocate "Q2W_SIZE_T" bytes.\n", size);
 	}
 

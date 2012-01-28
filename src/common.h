@@ -104,38 +104,6 @@ PROTOCOL
 #define CLIENT_RATE_MAX 32768
 #define CLIENT_RATE 16384
 
-// server to client
-// the svc_strings[] array in cl_parse.c should mirror this
-enum svc_ops_e {
-	svc_bad,
-	svc_nop,
-	svc_muzzle_flash,
-	svc_temp_entity,
-	svc_layout,
-	svc_disconnect,
-	svc_reconnect,
-	svc_sound,   // <see code>
-	svc_print,   // [byte] id [string] null terminated string
-	svc_stuff_text,   // [string] stuffed into client's console buffer, should be \n terminated
-	svc_server_data,   // [long] protocol ...
-	svc_config_string,   // [short] [string]
-	svc_spawn_baseline,
-	svc_center_print,   // [string] to put in center of the screen
-	svc_download,   // [short] size [size bytes]
-	svc_frame
-};
-
-
-// client to server
-enum clc_ops_e {
-	clc_bad,
-	clc_nop,
-	clc_move,  // [[usercmd_t]
-	clc_user_info,  // [[user_info string]
-	clc_string  // [string] message
-};
-
-
 // player_state_t communication
 
 #define PS_M_TYPE			(1<<0)
@@ -183,16 +151,10 @@ enum clc_ops_e {
 #define NUM_APPROXIMATE_NORMALS 162
 extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
 
-/*
-
-MISC
-
-*/
-
-typedef enum {
-	ERR_FATAL,
-	ERR_DROP,
-	ERR_NONE
+typedef enum err_e {
+	err_fatal,
+	err_drop,
+	err_none
 } err_t;
 
 int Com_Argc(void);
@@ -210,15 +172,14 @@ void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
+// subsystems
 #define Q2W_SERVER		0x1
 #define Q2W_GAME		0x2
 #define Q2W_CLIENT		0x4
 #define Q2W_CGAME		0x8
 #define Q2W_Q2WMAP		0x10
 
-/*
- * Q2W engine globals.
- */
+// global engine struct
 typedef struct quake2world_s {
 
 	int argc;

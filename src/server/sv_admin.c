@@ -144,7 +144,7 @@ static void Sv_Demo_f(void) {
 	}
 
 	// start up the demo
-	Sv_InitServer(Cmd_Argv(1), ss_demo);
+	Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_DEMO);
 }
 
 /*
@@ -160,7 +160,7 @@ static void Sv_Map_f(void) {
 	}
 
 	// start up the map
-	Sv_InitServer(Cmd_Argv(1), ss_game);
+	Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_GAME);
 }
 
 /*
@@ -213,7 +213,7 @@ static void Sv_Status_f(void) {
 		Com_Print("%3i ", i);
 		Com_Print("%5i ", cl->edict->client->ps.stats[STAT_FRAGS]);
 
-		if (cl->state == cs_connected)
+		if (cl->state == SV_CLIENT_CONNECTED)
 			Com_Print("CNCT ");
 		else {
 			ping = cl->ping < 9999 ? cl->ping : 9999;
@@ -263,7 +263,7 @@ static void Sv_Say_f(void) {
 
 	for (j = 0, client = svs.clients; j < sv_max_clients->integer; j++, client++) {
 
-		if (client->state != cs_spawned)
+		if (client->state != SV_CLIENT_ACTIVE)
 			continue;
 
 		Sv_ClientPrint(client->edict, PRINT_CHAT, "%s\n", text);
@@ -295,7 +295,7 @@ static void Sv_Tell_f(void) {
 
 	strcat(text, p);
 
-	if (sv_client->state != cs_spawned)
+	if (sv_client->state != SV_CLIENT_ACTIVE)
 		return;
 
 	Sv_ClientPrint(sv_client->edict, PRINT_CHAT, "%s\n", text);

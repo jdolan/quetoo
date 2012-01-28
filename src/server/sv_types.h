@@ -28,10 +28,10 @@
 #include "net.h"
 
 typedef enum {
-	ss_dead, // no level loaded
-	ss_loading, // spawning level edicts
-	ss_game, // actively running
-	ss_demo
+	SV_UNINITIALIZED, // no level loaded
+	SV_LOADING, // spawning level edicts
+	SV_ACTIVE_GAME, // actively running
+	SV_ACTIVE_DEMO
 } sv_state_t;
 
 typedef struct sv_server_s {
@@ -58,10 +58,9 @@ typedef struct sv_server_s {
 extern sv_server_t sv; // local server
 
 typedef enum {
-	cs_free, // can be used for a new connection
-	cs_connected, // client is connecting, but has not yet spawned
-	cs_spawned
-// client is spawned
+	SV_CLIENT_FREE, // can be used for a new connection
+	SV_CLIENT_CONNECTED, // client is connecting, but has not yet spawned
+	SV_CLIENT_ACTIVE // client is spawned
 } sv_client_state_t;
 
 typedef struct sv_frame_s {

@@ -122,7 +122,7 @@ static void OpenWin32Console(void) {
 	freopen("CON", "rt", stdin);
 
 	if((output_file = fopen ("bsp_output.txt","w")) == NULL)
-	Com_Error(ERR_FATAL, "Could not open bsp_compiler.txt\n");
+	Com_Error(err_fatal, "Could not open bsp_compiler.txt\n");
 
 	input_index_h = 0; // zero the index counters
 	input_index_v = 0; // zero the index counters
@@ -631,7 +631,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_pak) {
-		Com_Error(ERR_FATAL, "No action specified.\n"
+		Com_Error(err_fatal, "No action specified.\n"
 			"Please specify at least one of -bsp -vis -light -mat -pak.\n");
 	}
 

@@ -162,7 +162,7 @@ static void R_ClipSkySurface(int nump, vec3_t vecs, int stage) {
 	int i, j;
 
 	if (nump > MAX_CLIP_VERTS - 2)
-		Com_Error(ERR_DROP, "R_ClipSkyPoly: MAX_CLIP_VERTS");
+		Com_Error(err_drop, "R_ClipSkyPoly: MAX_CLIP_VERTS");
 
 	if (stage == 6) { // fully clipped, so draw it
 		R_DrawSkySurface(nump, vecs);

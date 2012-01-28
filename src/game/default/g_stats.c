@@ -258,7 +258,7 @@ void G_ClientTeamsScoreboard(g_edict_t *ent) {
 
 	strcat(string, entry);
 
-	gi.WriteByte(svc_layout);
+	gi.WriteByte(SV_CMD_LAYOUT);
 	gi.WriteString(string);
 }
 
@@ -353,7 +353,7 @@ void G_ClientScoreboard(g_edict_t *ent) {
 			"xv 64 yv 0 string2 \"Name            Frags Ping Time\" ");
 	strcat(string, entry);
 
-	gi.WriteByte(svc_layout);
+	gi.WriteByte(SV_CMD_LAYOUT);
 	gi.WriteString(string);
 }
 

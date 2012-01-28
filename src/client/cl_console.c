@@ -40,14 +40,14 @@ void Cl_ToggleConsole_f(void) {
 
 	Cl_ClearNotify();
 
-	if (cls.key_state.dest == key_console) {
+	if (cls.key_state.dest == KEY_CONSOLE) {
 
-		if (cls.state == ca_active)
-			cls.key_state.dest = key_game;
+		if (cls.state == CL_ACTIVE)
+			cls.key_state.dest = KEY_GAME;
 		else
-			cls.key_state.dest = key_menu;
+			cls.key_state.dest = KEY_UI;
 	} else
-		cls.key_state.dest = key_console;
+		cls.key_state.dest = KEY_CONSOLE;
 }
 
 /*
@@ -83,7 +83,7 @@ static void Cl_MessageMode_f(void) {
 
 	cls.chat_state.team = false;
 
-	cls.key_state.dest = key_message;
+	cls.key_state.dest = KEY_CHAT;
 }
 
 /*
@@ -95,7 +95,7 @@ static void Cl_MessageMode2_f(void) {
 
 	cls.chat_state.team = true;
 
-	cls.key_state.dest = key_message;
+	cls.key_state.dest = KEY_CHAT;
 }
 
 /*
@@ -167,7 +167,7 @@ void Cl_DrawNotify(void) {
 	r_pixel_t y, cw, ch;
 	int i, color;
 
-	if (cls.state != ca_active)
+	if (cls.state != CL_ACTIVE)
 		return;
 
 	R_BindFont("small", &cw, &ch);
@@ -186,7 +186,7 @@ void Cl_DrawNotify(void) {
 		}
 	}
 
-	if (cls.key_state.dest == key_message) {
+	if (cls.key_state.dest == KEY_CHAT) {
 		unsigned short skip;
 		size_t len;
 		char *s;
@@ -223,7 +223,7 @@ void Cl_DrawConsole(void) {
 	r_pixel_t y, cw, ch;
 	char dl[MAX_STRING_CHARS];
 
-	if (cls.key_state.dest != key_console)
+	if (cls.key_state.dest != KEY_CONSOLE)
 		return;
 
 	R_BindFont("small", &cw, &ch);
@@ -231,7 +231,7 @@ void Cl_DrawConsole(void) {
 	Con_Resize(&cl_con, r_context.width / cw, (r_context.height / ch) - 1);
 
 	// draw a background
-	if (cls.state == ca_active)
+	if (cls.state == CL_ACTIVE)
 		R_DrawFill(0, 0, r_context.width, r_context.height, 5, con_alpha->value);
 	else
 		R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
@@ -252,7 +252,7 @@ void Cl_DrawConsole(void) {
 
 	// draw the loading string or the input prompt
 
-	if (cls.state >= ca_connected && cls.loading) { // draw loading progress
+	if (cls.state >= CL_CONNECTED && cls.loading) { // draw loading progress
 		snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
 
 		R_DrawString(0, cl_con.height * ch, dl, CON_COLOR_INFO);

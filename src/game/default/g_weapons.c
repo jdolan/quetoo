@@ -288,7 +288,7 @@ static void G_FireShotgun_(g_edict_t *ent) {
 	G_ShotgunProjectiles(ent, org, forward, 6, 4, 1000, 500, 12, MOD_SHOTGUN);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_SHOTGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
@@ -321,7 +321,7 @@ static void G_FireSuperShotgun_(g_edict_t *ent) {
 	ent->s.angles[YAW] -= 5.0;
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_SSHOTGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
@@ -342,7 +342,7 @@ static void G_FireMachinegun_(g_edict_t *ent) {
 	G_BulletProjectile(ent, org, forward, 8, 4, 100, 200, MOD_MACHINEGUN);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_MACHINEGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
@@ -362,7 +362,7 @@ static void G_FireGrenadeLauncher_(g_edict_t *ent) {
 
 	G_GrenadeProjectile(ent, org, forward, 900, 100, 100, 185.0, 2.0);
 
-	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_GRENADE);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
@@ -383,7 +383,7 @@ static void G_FireRocketLauncher_(g_edict_t *ent) {
 	G_RocketProjectile(ent, org, forward, 1250, 120, 120, 150.0);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_ROCKET);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
@@ -404,7 +404,7 @@ static void G_FireHyperblaster_(g_edict_t *ent) {
 	G_HyperblasterProjectile(ent, org, forward, 2000, 16, 6);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_HYPERBLASTER);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
@@ -426,7 +426,7 @@ static void G_FireLightning_(g_edict_t *ent) {
 
 	// if the client has just begun to attack, send the muzzle flash
 	if (ent->client->muzzle_flash_time < g_level.time) {
-		gi.WriteByte(svc_muzzle_flash);
+		gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 		gi.WriteShort(ent - g_game.edicts);
 		gi.WriteByte(MZ_LIGHTNING);
 		gi.Multicast(ent->s.origin, MULTICAST_PVS);
@@ -450,7 +450,7 @@ static void G_FireRailgun_(g_edict_t *ent) {
 	G_RailgunProjectile(ent, org, forward, 120, 80);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_RAILGUN);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
@@ -471,7 +471,7 @@ static void G_FireBfg_(g_edict_t *ent) {
 	G_BfgProjectiles(ent, org, forward, 800, 100, 100, 1024.0);
 
 	// send muzzle flash
-	gi.WriteByte(svc_muzzle_flash);
+	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_BFG);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);

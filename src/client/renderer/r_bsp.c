@@ -398,7 +398,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model) {
 	float dot;
 
 	if (!model || !model->nodes) {
-		Com_Error(ERR_DROP, "R_LeafForPoint: Bad model.");
+		Com_Error(err_drop, "R_LeafForPoint: Bad model.");
 	}
 
 	node = model->nodes;
@@ -420,7 +420,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model) {
 			node = node->children[1];
 	}
 
-	Com_Error(ERR_DROP, "R_LeafForPoint: NULL");
+	Com_Error(err_drop, "R_LeafForPoint: NULL");
 }
 
 /*

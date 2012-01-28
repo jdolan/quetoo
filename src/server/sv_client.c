@@ -32,19 +32,19 @@ static void Sv_New_f(void) {
 
 	Com_Debug("New() from %s\n", Sv_NetaddrToString(sv_client));
 
-	if (sv_client->state != cs_connected) {
+	if (sv_client->state != SV_CLIENT_CONNECTED) {
 		Com_Warn("Sv_New_f: %s already spawned\n",
 				Sv_NetaddrToString(sv_client));
 		return;
 	}
 
 	// demo servers will send the demo file's server info packet
-	if (sv.state == ss_demo) {
+	if (sv.state == SV_ACTIVE_DEMO) {
 		return;
 	}
 
 	// send the server data
-	Msg_WriteByte(&sv_client->netchan.message, svc_server_data);
+	Msg_WriteByte(&sv_client->netchan.message, SV_CMD_SERVER_DATA);
 	Msg_WriteLong(&sv_client->netchan.message, PROTOCOL);
 	Msg_WriteLong(&sv_client->netchan.message, svs.spawn_count);
 	Msg_WriteLong(&sv_client->netchan.message, svs.frame_rate);
@@ -58,7 +58,7 @@ static void Sv_New_f(void) {
 	Msg_WriteString(&sv_client->netchan.message, sv.config_strings[CS_NAME]);
 
 	// begin fetching config_strings
-	Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
+	Msg_WriteByte(&sv_client->netchan.message, SV_CMD_CBUF_TEXT);
 	Msg_WriteString(&sv_client->netchan.message,
 			va("config_strings %i 0\n", svs.spawn_count));
 }
@@ -71,7 +71,7 @@ static void Sv_ConfigStrings_f(void) {
 
 	Com_Debug("ConfigStrings() from %s\n", Sv_NetaddrToString(sv_client));
 
-	if (sv_client->state != cs_connected) {
+	if (sv_client->state != SV_CLIENT_CONNECTED) {
 		Com_Warn("Sv_ConfigStrings_f: %s already spawned\n",
 				Sv_NetaddrToString(sv_client));
 		return;
@@ -98,7 +98,7 @@ static void Sv_ConfigStrings_f(void) {
 	while (sv_client->netchan.message.size < MAX_MSG_SIZE / 2 && start
 			< MAX_CONFIG_STRINGS) {
 		if (sv.config_strings[start][0]) {
-			Msg_WriteByte(&sv_client->netchan.message, svc_config_string);
+			Msg_WriteByte(&sv_client->netchan.message, SV_CMD_CONFIG_STRING);
 			Msg_WriteShort(&sv_client->netchan.message, start);
 			Msg_WriteString(&sv_client->netchan.message,
 					sv.config_strings[start]);
@@ -108,11 +108,11 @@ static void Sv_ConfigStrings_f(void) {
 
 	// send next command
 	if (start == MAX_CONFIG_STRINGS) {
-		Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
+		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_CBUF_TEXT);
 		Msg_WriteString(&sv_client->netchan.message,
 				va("baselines %i 0\n", svs.spawn_count));
 	} else {
-		Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
+		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_CBUF_TEXT);
 		Msg_WriteString(&sv_client->netchan.message,
 				va("config_strings %i %i\n", svs.spawn_count, start));
 	}
@@ -128,7 +128,7 @@ static void Sv_Baselines_f(void) {
 
 	Com_Debug("Baselines() from %s\n", Sv_NetaddrToString(sv_client));
 
-	if (sv_client->state != cs_connected) {
+	if (sv_client->state != SV_CLIENT_CONNECTED) {
 		Com_Warn("Sv_Baselines_f: %s already spawned\n",
 				Sv_NetaddrToString(sv_client));
 		return;
@@ -151,7 +151,7 @@ static void Sv_Baselines_f(void) {
 			< MAX_EDICTS) {
 		base = &sv.baselines[start];
 		if (base->model1 || base->sound || base->effects) {
-			Msg_WriteByte(&sv_client->netchan.message, svc_spawn_baseline);
+			Msg_WriteByte(&sv_client->netchan.message, SV_CMD_ENTITY_BASELINE);
 			Msg_WriteDeltaEntity(&nullstate, base, &sv_client->netchan.message,
 					true, true);
 		}
@@ -160,11 +160,11 @@ static void Sv_Baselines_f(void) {
 
 	// send next command
 	if (start == MAX_EDICTS) {
-		Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
+		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_CBUF_TEXT);
 		Msg_WriteString(&sv_client->netchan.message,
 				va("precache %i\n", svs.spawn_count));
 	} else {
-		Msg_WriteByte(&sv_client->netchan.message, svc_stuff_text);
+		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_CBUF_TEXT);
 		Msg_WriteString(&sv_client->netchan.message,
 				va("baselines %i %i\n", svs.spawn_count, start));
 	}
@@ -177,14 +177,14 @@ static void Sv_Begin_f(void) {
 
 	Com_Debug("Begin() from %s\n", Sv_NetaddrToString(sv_client));
 
-	if (sv_client->state != cs_connected) { // catch duplicate spawns
+	if (sv_client->state != SV_CLIENT_CONNECTED) { // catch duplicate spawns
 		Com_Warn("Sv_Begin_f: Invalid Begin() from %s\n",
 				Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
 
-	if (sv.state == ss_demo)
+	if (sv.state == SV_ACTIVE_DEMO)
 		return;
 
 	// handle the case of a level changing while a client was connecting
@@ -195,7 +195,7 @@ static void Sv_Begin_f(void) {
 		return;
 	}
 
-	sv_client->state = cs_spawned;
+	sv_client->state = SV_CLIENT_ACTIVE;
 
 	// call the game begin function
 	svs.game->ClientBegin(sv_player);
@@ -221,7 +221,7 @@ static void Sv_NextDownload_f(void) {
 
 	Sb_Init(&msg, buf, MAX_MSG_SIZE);
 
-	Msg_WriteByte(&msg, svc_download);
+	Msg_WriteByte(&msg, SV_CMD_DOWNLOAD);
 	Msg_WriteShort(&msg, r);
 
 	sv_client->download_count += r;
@@ -283,7 +283,7 @@ static void Sv_Download_f(void) {
 	}
 
 	if (!sv_udp_download->value) { // lastly, ensure server wishes to allow
-		Msg_WriteByte(&sv_client->netchan.message, svc_download);
+		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_DOWNLOAD);
 		Msg_WriteShort(&sv_client->netchan.message, -1);
 		Msg_WriteByte(&sv_client->netchan.message, 0);
 		return;
@@ -302,7 +302,7 @@ static void Sv_Download_f(void) {
 	if (!sv_client->download) { // legal file name, but missing file
 		Com_Warn("Sv_Download_f: Couldn't download %s to %s\n", name,
 				Sv_NetaddrToString(sv_client));
-		Msg_WriteByte(&sv_client->netchan.message, svc_download);
+		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_DOWNLOAD);
 		Msg_WriteShort(&sv_client->netchan.message, -1);
 		Msg_WriteByte(&sv_client->netchan.message, 0);
 		return;
@@ -385,7 +385,7 @@ static void Sv_UserStringCommand(const char *s) {
 
 	if (!c->name) { // unmatched command
 
-		if (sv.state == ss_game) // maybe the game knows what to do with it
+		if (sv.state == SV_ACTIVE_GAME) // maybe the game knows what to do with it
 			svs.game->ClientCommand(sv_player);
 	}
 }
@@ -440,15 +440,15 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 			break;
 
 		switch (c) {
-		case clc_nop:
+		case CL_CMD_NO_OP:
 			break;
 
-		case clc_user_info:
+		case CL_CMD_USER_INFO:
 			strncpy(cl->user_info, Msg_ReadString(&net_message), sizeof(cl->user_info) - 1);
 			Sv_UserInfoChanged(cl);
 			break;
 
-		case clc_move:
+		case CL_CMD_MOVE:
 			if (++moves_issued > CMD_MAX_MOVES) {
 				return; // someone is trying to cheat
 			}
@@ -470,7 +470,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 
 			// don't start delta compression until the client is spawned
 			// TODO: should this be a little higher up?
-			if (cl->state != cs_spawned) {
+			if (cl->state != SV_CLIENT_ACTIVE) {
 				cl->last_frame = -1;
 				break;
 			}
@@ -500,7 +500,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 			cl->last_cmd = new_cmd;
 			break;
 
-		case clc_string:
+		case CL_CMD_STRING:
 			s = Msg_ReadString(&net_message);
 
 			// malicious users may try using too many string commands
@@ -514,7 +514,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 				return;
 			}
 
-			if (cl->state == cs_free)
+			if (cl->state == SV_CLIENT_FREE)
 				return; // disconnect command
 			break;
 
