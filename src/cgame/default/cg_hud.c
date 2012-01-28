@@ -364,7 +364,7 @@ static void Cg_DrawCrosshair(player_state_t *ps) {
 	if (!cg_crosshair->value)
 		return;
 
-	if (ps->stats[STAT_SCOREBOARD])
+	if (ps->stats[STAT_SCORES])
 		return; // scoreboard up
 
 	if (ps->stats[STAT_SPECTATOR])
@@ -467,7 +467,7 @@ static void Cg_DrawBlend(player_state_t *ps) {
 	if (al < 0 || al > 1.0)
 		al = 0;
 
-	if (al < 0.3 && ps->pmove.pm_flags & PMF_UNDER_WATER) {
+	if (al < 0.3 && (ps->pmove.pm_flags & PMF_UNDER_WATER)) {
 		if (al < 0.15 * cg_blend->value)
 			color = 114;
 		al = 0.3 * cg_blend->value;

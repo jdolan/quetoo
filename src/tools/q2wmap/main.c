@@ -54,7 +54,6 @@ extern vec_t microvolume;
 extern int subdivide_size;
 
 /* VIS */
-extern char inbase[32];
 extern boolean_t fastvis;
 extern boolean_t nosort;
 

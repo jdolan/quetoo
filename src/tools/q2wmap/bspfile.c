@@ -22,8 +22,6 @@
 #include "bspfile.h"
 #include "scriplib.h"
 
-void GetLeafNums(void);
-
 d_bsp_t d_bsp;
 d_bsp_vis_t *d_vis = (d_bsp_vis_t *) d_bsp.vis_data;
 

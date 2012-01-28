@@ -279,6 +279,7 @@ static void Con_PrintStdOut(const char *text) {
 					break;
 				case '7': // white is mapped to foreground color
 					color = 39;
+					break;
 				default:
 					break;
 				}

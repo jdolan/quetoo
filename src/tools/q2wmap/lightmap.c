@@ -567,6 +567,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 				break;
 			default:
 				Com_Error(ERR_FATAL, "Bad l->type\n");
+				break;
 			}
 
 			if (light <= 0.0) // no light

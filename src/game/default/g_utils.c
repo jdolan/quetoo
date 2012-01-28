@@ -512,10 +512,10 @@ g_team_t *G_TeamByName(char *c) {
 	if (!c || !*c)
 		return NULL;
 
-	if (!strcasecmp(good.name, c))
-		return &good;
-	if (!strcasecmp(evil.name, c))
-		return &evil;
+	if (!strcasecmp(g_team_good.name, c))
+		return &g_team_good;
+	if (!strcasecmp(g_team_evil.name, c))
+		return &g_team_evil;
 
 	return NULL;
 }
@@ -532,10 +532,10 @@ g_team_t *G_TeamForFlag(g_edict_t *ent) {
 		return NULL;
 
 	if (!strcmp(ent->class_name, "item_flag_team1"))
-		return &good;
+		return &g_team_good;
 
 	if (!strcmp(ent->class_name, "item_flag_team2"))
-		return &evil;
+		return &g_team_evil;
 
 	return NULL;
 }
@@ -551,10 +551,10 @@ g_edict_t *G_FlagForTeam(g_team_t *t) {
 	if (!g_level.ctf)
 		return NULL;
 
-	if (t != &good && t != &evil)
+	if (t != &g_team_good && t != &g_team_evil)
 		return NULL;
 
-	strcpy(class, (t == &good ? "item_flag_team1" : "item_flag_team2"));
+	strcpy(class, (t == &g_team_good ? "item_flag_team1" : "item_flag_team2"));
 
 	i = sv_max_clients->integer + 1;
 	while (i < ge.num_edicts) {
@@ -584,7 +584,7 @@ unsigned int G_EffectForTeam(g_team_t *t) {
 	if (!t)
 		return 0;
 
-	return (t == &good ? EF_CTF_BLUE : EF_CTF_RED);
+	return (t == &g_team_good ? EF_CTF_BLUE : EF_CTF_RED);
 }
 
 /*
@@ -595,11 +595,11 @@ g_team_t *G_OtherTeam(g_team_t *t) {
 	if (!t)
 		return NULL;
 
-	if (t == &good)
-		return &evil;
+	if (t == &g_team_good)
+		return &g_team_evil;
 
-	if (t == &evil)
-		return &good;
+	if (t == &g_team_evil)
+		return &g_team_good;
 
 	return NULL;
 }
@@ -619,13 +619,13 @@ g_team_t *G_SmallestTeam(void) {
 
 		cl = g_game.edicts[i + 1].client;
 
-		if (cl->locals.team == &good)
+		if (cl->locals.team == &g_team_good)
 			g++;
-		else if (cl->locals.team == &evil)
+		else if (cl->locals.team == &g_team_evil)
 			e++;
 	}
 
-	return g < e ? &good : &evil;
+	return g < e ? &g_team_good : &g_team_evil;
 }
 
 /*

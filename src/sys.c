@@ -281,5 +281,6 @@ void Sys_Signal(int s) {
 	default:
 		Sys_Backtrace();
 		Sys_Error("Received signal %d.\n", s);
+		break;
 	}
 }

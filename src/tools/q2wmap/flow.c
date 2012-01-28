@@ -473,7 +473,7 @@ void FinalVis(int portal_num) {
 	c_can = CountBits(p->vis, map_vis.num_portals * 2);
 
 	Com_Debug("portal:%4i  mightsee:%4i  cansee:%4i (%i chains)\n",
-			(int) (p - map_vis.portals), c_might, c_can, data.c_chains);
+			(int) (p - map_vis.portals), (int)c_might, (int)c_can, data.c_chains);
 }
 
 /*

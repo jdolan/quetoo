@@ -133,7 +133,7 @@ typedef enum {
 	FILE_READ, FILE_WRITE, FILE_APPEND
 } file_mode_t;
 
-// destination class for gi.multicast()
+// server multicast scope for entities and events
 typedef enum {
 	MULTICAST_ALL,
 	MULTICAST_PHS,
@@ -146,30 +146,28 @@ typedef enum {
 // server to client
 typedef enum {
 	SV_CMD_BAD,
-	SV_CMD_NO_OP,
-	SV_CMD_MUZZLE_FLASH,
-	SV_CMD_TEMP_ENTITY,
-	SV_CMD_LAYOUT,
+	SV_CMD_CBUF_TEXT, // [string] stuffed into client's console buffer, should be \n terminated
+	SV_CMD_CENTER_PRINT, // [string] to put in center of the screen
+	SV_CMD_CONFIG_STRING, // [short] [string]
 	SV_CMD_DISCONNECT,
-	SV_CMD_RECONNECT,
-	SV_CMD_SOUND,   // <see code>
-	SV_CMD_PRINT,   // [byte] id [string] null terminated string
-	SV_CMD_CBUF_TEXT,   // [string] stuffed into client's console buffer, should be \n terminated
-	SV_CMD_SERVER_DATA,   // [long] protocol ...
-	SV_CMD_CONFIG_STRING,   // [short] [string]
+	SV_CMD_DOWNLOAD, // [short] size [size bytes]
 	SV_CMD_ENTITY_BASELINE,
-	SV_CMD_CENTER_PRINT,   // [string] to put in center of the screen
-	SV_CMD_DOWNLOAD,   // [short] size [size bytes]
-	SV_CMD_FRAME
+	SV_CMD_FRAME,
+	SV_CMD_MUZZLE_FLASH,
+	SV_CMD_PRINT, // [byte] id [string] null terminated string
+	SV_CMD_RECONNECT,
+	SV_CMD_SCORES, // binary data rendered by the client game
+	SV_CMD_SERVER_DATA, // [long] protocol ...
+	SV_CMD_SOUND, // <see code>
+	SV_CMD_TEMP_ENTITY
 } sv_cmd_t;
 
 // client to server
 typedef enum {
 	CL_CMD_BAD,
-	CL_CMD_NO_OP,
-	CL_CMD_MOVE,  // [[usercmd_t]
-	CL_CMD_USER_INFO,  // [[user_info string]
-	CL_CMD_STRING  // [string] message
+	CL_CMD_MOVE, // [[usercmd_t]
+	CL_CMD_STRING, // [string] message
+	CL_CMD_USER_INFO // [[user_info string]
 } cl_cmd_t;
 
 typedef float vec_t;
@@ -467,8 +465,8 @@ typedef enum {
 #define STAT_TIME			17
 #define STAT_ROUND			18
 #define STAT_READY			19
-#define STAT_SCOREBOARD		20
-#define STAT_GENERAL		STAT_SCOREBOARD  // for mods to extend
+#define STAT_SCORES			20
+#define STAT_GENERAL		STAT_SCORES  // for mods to extend
 #define MAX_STATS			32
 
 // -4096 up to +4096

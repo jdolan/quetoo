@@ -597,7 +597,7 @@ static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent) {
 	if (!ent->client->locals.team)
 		return NULL;
 
-	c = ent->client->locals.team == &good ? "info_player_team1"
+	c = ent->client->locals.team == &g_team_good ? "info_player_team1"
 			: "info_player_team2";
 
 	if (g_spawn_farthest->value)
@@ -1276,7 +1276,7 @@ void G_ClientBeginFrame(g_edict_t *ent) {
 			client->locals.spectator = true;
 			G_ClientRespawn(ent, false);
 		} else if (g_level.time > client->respawn_time
-				&& client->latched_buttons & BUTTON_ATTACK) {
+				&& (client->latched_buttons & BUTTON_ATTACK)) {
 			G_ClientRespawn(ent, false); // all other respawns require a click from the player
 		}
 	}

@@ -771,7 +771,7 @@ static void G_Team_f(g_edict_t *ent) {
 
 	if ((g_level.teams || g_level.ctf) && gi.Argc() != 2) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <%s|%s>\n", gi.Argv(0),
-				good.name, evil.name);
+				g_team_good.name, g_team_evil.name);
 		return;
 	}
 
@@ -819,14 +819,14 @@ static void G_Teamname_f(g_edict_t *ent) {
 	if (*s != '\0') // something valid-ish was provided
 		strncpy(t->name, s, sizeof(t->name) - 1);
 	else
-		strcpy(t->name, (t == &good ? "Good" : "Evil"));
+		strcpy(t->name, (t == &g_team_good ? "Good" : "Evil"));
 
 	s = t->name;
 	s[sizeof(t->name) - 1] = 0;
 
 	t->name_time = g_level.time;
 
-	cs = t == &good ? CS_TEAM_GOOD : CS_TEAM_EVIL;
+	cs = t == &g_team_good ? CS_TEAM_GOOD : CS_TEAM_EVIL;
 	gi.ConfigString(cs, va("%15s", t->name));
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n",
@@ -939,7 +939,7 @@ static void G_Ready_f(g_edict_t *ent) {
 		clients++;
 
 		if (g_level.teams || g_level.ctf)
-			cl->locals.team == &good ? g++ : e++;
+			cl->locals.team == &g_team_good ? g++ : e++;
 	}
 
 	if (i != (int) sv_max_clients->integer) // someone isn't ready
@@ -1022,8 +1022,8 @@ static void G_Spectate_f(g_edict_t *ent) {
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
 			else { // or ask them to pick
 				gi.ClientPrint(ent, PRINT_HIGH,
-						"Use team <%s|%s> to join the game\n", good.name,
-						evil.name);
+						"Use team <%s|%s> to join the game\n", g_team_good.name,
+						g_team_evil.name);
 				return;
 			}
 		}
@@ -1040,20 +1040,7 @@ static void G_Spectate_f(g_edict_t *ent) {
  * G_Score_f
  */
 void G_Score_f(g_edict_t *ent) {
-
-	if (ent->client->show_scores) {
-		ent->client->show_scores = false;
-		return;
-	}
-
-	ent->client->show_scores = true;
-
-	if (g_level.teams || g_level.ctf)
-		G_ClientTeamsScoreboard(ent);
-	else
-		G_ClientScoreboard(ent);
-
-	gi.Unicast(ent, true);
+	ent->client->show_scores = !ent->client->show_scores;
 }
 
 /*

@@ -421,6 +421,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model) {
 	}
 
 	Com_Error(ERR_DROP, "R_LeafForPoint: NULL");
+	return NULL;
 }
 
 /*

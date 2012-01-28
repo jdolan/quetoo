@@ -75,7 +75,7 @@ static void R_StageLighting(r_bsp_surface_t *surf, r_stage_t *stage) {
 
 	// if the surface has a lightmap, and the stage specifies lighting..
 
-	if (surf->flags & R_SURF_LIGHTMAP && (stage->flags & (STAGE_LIGHTMAP
+	if ((surf->flags & R_SURF_LIGHTMAP) && (stage->flags & (STAGE_LIGHTMAP
 			| STAGE_LIGHTING))) {
 
 		R_EnableTexture(&texunit_lightmap, true);

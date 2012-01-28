@@ -197,7 +197,7 @@ void G_BulletProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir,
 		tr = gi.Trace(start, NULL, NULL, end, self, content_mask);
 
 		// see if we hit water
-		if (tr.contents & MASK_WATER && !water) {
+		if ((tr.contents & MASK_WATER) && !water) {
 
 			water = true;
 			VectorCopy(tr.end, water_start);
@@ -731,7 +731,7 @@ void G_RailgunProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir,
 	while (ignore) {
 		tr = gi.Trace(from, NULL, NULL, end, ignore, content_mask);
 
-		if (tr.contents & MASK_WATER && !water) {
+		if ((tr.contents & MASK_WATER) && !water) {
 
 			content_mask &= ~MASK_WATER;
 			water = true;
@@ -769,7 +769,7 @@ void G_RailgunProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir,
 
 	// use team colors, or client's color
 	if (g_level.teams || g_level.ctf) {
-		if (self->client->locals.team == &good)
+		if (self->client->locals.team == &g_team_good)
 			color = ColorByName("blue", 0);
 		else
 			color = ColorByName("red", 0);

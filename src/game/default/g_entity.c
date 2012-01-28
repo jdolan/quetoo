@@ -732,7 +732,7 @@ static void G_worldspawn(g_edict_t *ent) {
 	gi.SoundIndex("weapons/common/switch");
 
 	gi.ConfigString(CS_VOTE, "");
-	gi.ConfigString(CS_TEAM_GOOD, va("%15s", good.name));
-	gi.ConfigString(CS_TEAM_EVIL, va("%15s", evil.name));
+	gi.ConfigString(CS_TEAM_GOOD, va("%15s", g_team_good.name));
+	gi.ConfigString(CS_TEAM_EVIL, va("%15s", g_team_evil.name));
 }
 

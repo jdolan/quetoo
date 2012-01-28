@@ -584,5 +584,6 @@ void G_RunEntity(g_edict_t *ent) {
 		break;
 	default:
 		gi.Error("G_RunEntity: Bad move type %i.", (int) ent->move_type);
+		break;
 	}
 }

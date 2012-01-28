@@ -405,8 +405,6 @@ void Cl_ParseServerMessage(void) {
 			Cl_ShowNet(svc_strings[cmd]);
 
 		switch (cmd) {
-		case SV_CMD_NO_OP:
-			break;
 
 		case SV_CMD_DISCONNECT:
 			Com_Error(ERR_DROP, "Server disconnected.\n");
@@ -485,9 +483,11 @@ void Cl_ParseServerMessage(void) {
 			Cl_ParseFrame();
 			break;
 
-		case SV_CMD_LAYOUT:
+		case SV_CMD_SCORES:
 			s = Msg_ReadString(&net_message);
+			memset(cl.layout, 0, sizeof(cl.layout));
 			strncpy(cl.layout, s, sizeof(cl.layout) - 1);
+			printf("%d\n", (int)strlen(cl.layout));
 			break;
 
 		default:

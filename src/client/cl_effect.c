@@ -1281,8 +1281,8 @@ void Cl_RailEffect(const vec3_t start, const vec3_t end, int flags, int color) {
 		p->color = color;
 
 		// check for bubble trail
-		if (i && Cm_PointContents(move, r_world_model->first_node)
-				& (CONTENTS_SLIME | CONTENTS_WATER)) {
+		if (i && (Cm_PointContents(move, r_world_model->first_node)
+				& (CONTENTS_SLIME | CONTENTS_WATER)) ) {
 			Cl_BubbleTrail(move, p->org, 16.0);
 		}
 

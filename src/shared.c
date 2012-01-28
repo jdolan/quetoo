@@ -801,6 +801,7 @@ boolean_t GlobMatch(const char *pattern, const char *text) {
 		default:
 			if (c != *t++)
 				return 0;
+			break;
 		}
 
 	return *t == '\0';

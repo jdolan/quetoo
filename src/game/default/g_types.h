@@ -117,7 +117,7 @@ typedef struct g_item_s {
 } g_item_t;
 
 // override quake2 items for legacy maps
-typedef struct g_override_s {
+typedef struct {
 	char *old;
 	char *new;
 } g_override_t;
@@ -126,8 +126,8 @@ extern g_override_t g_overrides[];
 
 // spawn_temp_t is only used to hold entity field values that
 // can be set from the editor, but aren't actually present
-// in edict_t during gameplay
-typedef struct g_spawn_temp_s {
+// in g_edict_t at runtime
+typedef struct {
 	// world vars, we use strings to avoid ambiguity between 0 and unset
 	char *sky;
 	char *weather;
@@ -159,7 +159,7 @@ typedef enum {
 	STATE_TOP, STATE_BOTTOM, STATE_UP, STATE_DOWN
 } g_move_state_t;
 
-typedef struct g_move_info_s {
+typedef struct {
 	// fixed data
 	vec3_t start_origin;
 	vec3_t start_angles;
@@ -189,7 +189,7 @@ typedef struct g_move_info_s {
 } g_move_info_t;
 
 // this structure is left intact through an entire game
-typedef struct g_locals_s {
+typedef struct {
 	g_edict_t *edicts; // [g_max_entities]
 	g_client_t *clients; // [sv_max_clients]
 
@@ -202,7 +202,7 @@ typedef struct g_locals_s {
 extern g_game_t g_game;
 
 // this structure is cleared as each map is entered
-typedef struct g_level_s {
+typedef struct {
 	unsigned int frame_num;
 	float time;
 
@@ -297,7 +297,7 @@ typedef enum {
 #define MAX_NET_NAME 64
 
 // teams
-typedef struct team_s {
+typedef struct {
 	char name[16];
 	char skin[32];
 	short score;
@@ -307,7 +307,7 @@ typedef struct team_s {
 } g_team_t;
 
 // client data that persists through respawns
-typedef struct g_client_locals_s {
+typedef struct {
 	unsigned int first_frame; // g_level.frame_num the client entered the game
 
 	char user_info[MAX_USER_INFO_STRING];
@@ -347,6 +347,15 @@ typedef struct g_client_locals_s {
 	unsigned int round_num; // most recent arena round
 	int color; // weapon effect colors
 } g_client_locals_t;
+
+// scores are transmitted as binary to the client game module
+typedef struct {
+	unsigned short entity_num;
+	unsigned short ping;
+	byte team;
+	short score;
+	short captures;
+} g_client_score_t;
 
 // this structure is cleared on each respawn
 struct g_client_s {

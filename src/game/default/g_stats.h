@@ -24,7 +24,7 @@
 
 #ifdef __G_LOCAL_H__
 
-void G_ClientScoreboard(g_edict_t *client);
+void G_ClientScores(g_edict_t *client);
 void G_ClientSpectatorStats(g_edict_t *ent);
 void G_ClientStats(g_edict_t *ent);
 void G_ClientTeamsScoreboard(g_edict_t *client);

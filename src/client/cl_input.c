@@ -453,6 +453,7 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii,
 
 	default:
 		key = keysym;
+		break;
 	}
 
 	// if unicode is empty, use ascii instead

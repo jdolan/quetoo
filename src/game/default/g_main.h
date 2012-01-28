@@ -100,7 +100,7 @@ extern cvar_t *sv_max_clients;
 extern cvar_t *dedicated;
 
 
-extern g_team_t good, evil;
+extern g_team_t g_team_good, g_team_evil;
 
 // text file logging
 extern FILE *frag_log, *chat_log;

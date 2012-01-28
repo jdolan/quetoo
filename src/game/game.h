@@ -38,7 +38,6 @@ typedef enum {
 	SOLID_BSP  // bsp clip, touch on edge
 } solid_t;
 
-
 // link_t is only used for entity area links now
 typedef struct link_s {
 	struct link_s *prev, *next;

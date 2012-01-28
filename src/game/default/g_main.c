@@ -62,7 +62,7 @@ cvar_t *password;
 cvar_t *sv_max_clients;
 cvar_t *dedicated;
 
-g_team_t good, evil;
+g_team_t g_team_good, g_team_evil;
 
 g_map_list_t g_map_list;
 
@@ -78,17 +78,17 @@ FILE *frag_log, *chat_log, *f;
  */
 void G_ResetTeams(void) {
 
-	memset(&good, 0, sizeof(good));
-	memset(&evil, 0, sizeof(evil));
+	memset(&g_team_good, 0, sizeof(g_team_good));
+	memset(&g_team_evil, 0, sizeof(g_team_evil));
 
-	strcpy(good.name, "Good");
-	gi.ConfigString(CS_TEAM_GOOD, va("%15s", good.name));
+	strcpy(g_team_good.name, "Good");
+	gi.ConfigString(CS_TEAM_GOOD, va("%15s", g_team_good.name));
 
-	strcpy(evil.name, "Evil");
-	gi.ConfigString(CS_TEAM_EVIL, va("%15s", evil.name));
+	strcpy(g_team_evil.name, "Evil");
+	gi.ConfigString(CS_TEAM_EVIL, va("%15s", g_team_evil.name));
 
-	strcpy(good.skin, "qforcer/blue");
-	strcpy(evil.skin, "qforcer/red");
+	strcpy(g_team_good.skin, "qforcer/blue");
+	strcpy(g_team_evil.skin, "qforcer/red");
 }
 
 /*
@@ -226,8 +226,8 @@ static void G_RestartGame(boolean_t teamz) {
 	G_ResetItems();
 
 	g_level.match_time = g_level.round_time = 0;
-	good.score = evil.score = 0;
-	good.captures = evil.captures = 0;
+	g_team_good.score = g_team_evil.score = 0;
+	g_team_good.captures = g_team_evil.captures = 0;
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
 	gi.Sound(&g_game.edicts[0], gi.SoundIndex("world/teleport"), ATTN_NONE);
@@ -411,7 +411,7 @@ static void G_CheckRoundStart(void) {
 		clients++;
 
 		if (g_level.teams)
-			cl->locals.team == &good ? g++ : e++;
+			cl->locals.team == &g_team_good ? g++ : e++;
 	}
 
 	if (clients < 2) // need at least 2 clients to trigger countdown
@@ -500,7 +500,7 @@ static void G_CheckRoundEnd(void) {
 		winner = &g_game.edicts[j + 1];
 
 		if (g_level.teams)
-			cl->locals.team == &good ? g++ : e++;
+			cl->locals.team == &g_team_good ? g++ : e++;
 
 		clients++;
 	}
@@ -574,7 +574,7 @@ static void G_CheckMatchEnd(void) {
 			continue;
 
 		if (g_level.teams || g_level.ctf)
-			cl->locals.team == &good ? g++ : e++;
+			cl->locals.team == &g_team_good ? g++ : e++;
 
 		clients++;
 	}
@@ -605,7 +605,7 @@ static char *G_FormatTime(int secs) {
 	snprintf(formatted_time, sizeof(formatted_time), " %2d:%02d", m, s);
 
 	// highlight for countdowns
-	if (m == 0 && s < 30 && secs < last_secs && s & 1) {
+	if (m == 0 && s < 30 && secs < last_secs && (s & 1)) {
 		for (i = 0; i < 6; i++)
 			formatted_time[i] += 128;
 	}
@@ -706,8 +706,8 @@ static void G_CheckRules(void) {
 	if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
 
 		if (g_level.teams) { // check team scores
-			if (good.score >= g_level.frag_limit ||
-					evil.score >= g_level.frag_limit) {
+			if (g_team_good.score >= g_level.frag_limit ||
+					g_team_evil.score >= g_level.frag_limit) {
 				gi.BroadcastPrint(PRINT_HIGH, "Fraglimit hit\n");
 				G_EndLevel();
 				return;
@@ -729,7 +729,7 @@ static void G_CheckRules(void) {
 
 	if (g_level.ctf && g_level.capture_limit) { // check capture limit
 
-		if (good.captures >= g_level.capture_limit || evil.captures
+		if (g_team_good.captures >= g_level.capture_limit || g_team_evil.captures
 				>= g_level.capture_limit) {
 			gi.BroadcastPrint(PRINT_HIGH, "Capturelimit hit\n");
 			G_EndLevel();

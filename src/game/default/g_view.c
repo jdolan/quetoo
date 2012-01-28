@@ -303,6 +303,7 @@ void G_ClientEndFrame(g_edict_t *ent) {
 	// the player any normal movement attributes
 	if (g_level.intermission_time) {
 		G_ClientStats(ent);
+		G_ClientScores(ent);
 		return;
 	}
 
@@ -358,13 +359,8 @@ void G_ClientEndFrame(g_edict_t *ent) {
 	VectorCopy(ent->client->ps.angles, ent->client->old_angles);
 
 	// if the scoreboard is up, update it
-	if (ent->client->show_scores && !(g_level.frame_num % gi.frame_rate)) {
-		if (g_level.teams || g_level.ctf)
-			G_ClientTeamsScoreboard(ent);
-		else
-			G_ClientScoreboard(ent);
-		gi.Unicast(ent, false);
-	}
+	if (ent->client->show_scores)
+		G_ClientScores(ent);
 }
 
 /*

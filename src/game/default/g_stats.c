@@ -25,6 +25,7 @@
  * G_ClientToIntermission
  */
 void G_ClientToIntermission(g_edict_t *ent) {
+
 	VectorCopy(g_level.intermission_origin, ent->s.origin);
 	ent->client->ps.pmove.origin[0] = g_level.intermission_origin[0] * 8;
 	ent->client->ps.pmove.origin[1] = g_level.intermission_origin[1] * 8;
@@ -50,311 +51,77 @@ void G_ClientToIntermission(g_edict_t *ent) {
 	ent->client->ammo_index = 0;
 	ent->client->locals.armor = 0;
 	ent->client->pickup_msg_time = 0;
-
-	// add the layout
-	if (g_level.teams || g_level.ctf)
-		G_ClientTeamsScoreboard(ent);
-	else
-		G_ClientScoreboard(ent);
-
-	gi.Unicast(ent, true);
 }
 
 /*
- * G_ColoredName
+ * G_UpdateScores_
  *
- * Copies src to dest, padding it to the specified maximum length.
- * Color escape sequences do not contribute to length.
+ * Write the scores information for the specified client.
  */
-static void G_ColoredName(char *dst, const char *src, int max_len, int max_size) {
-	int c, l;
-	const char *s;
+static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
+	g_client_score_t s;
 
-	c = l = 0;
-	s = src;
+	memset(&s, 0, sizeof(s));
 
-	while (*s) {
+	s.entity_num = ent - g_game.edicts - 1;
+	s.ping = ent->client->ping;
 
-		if (c > max_size - 2) // prevent overflows
-			break;
-
-		if (IS_COLOR(s)) { // copy the color code, omitting length
-			dst[c++] = *s;
-			dst[c++] = *(s + 1);
-			s += 2;
-		} else { // copy the char, incrementing length
-			dst[c++] = *s;
-			l++;
-			s++;
-		}
+	if (ent->client->locals.spectator) {
+		s.team = 0xff;
+	} else if (ent->client->locals.team) {
+		s.team = ent->client->locals.team == &g_team_good ? 1 : 2;
 	}
 
-	while (l < max_len) { // pad with spaces
-		dst[c++] = ' ';
-		l++;
+	s.team = ent->client->locals.spectator;
+	s.score = ent->client->locals.score;
+	s.captures = ent->client->locals.captures;
+
+	printf("updated %zu bytes for %s\n", sizeof(s), ent->client->locals.net_name);
+	memcpy(*buf, &s, sizeof(s));
+	*buf += sizeof(s);
+}
+
+
+// all scores are dumped into this buffer several times per second
+static char scores_buffer[1024];
+
+/*
+ * G_UpdateScores
+ */
+static void G_UpdateScores(void) {
+	char *buf = scores_buffer;
+	int i;
+
+	if (g_level.frame_num % gi.frame_rate)
+		return;
+
+	memset(buf, 0, sizeof(buf));
+
+	for (i = 0; i < sv_max_clients->integer; i++) {
+		const g_edict_t *e = &g_game.edicts[i + 1];
+
+		if (!e->in_use)
+			continue;
+
+		G_UpdateScores_(e, &buf);
 	}
 
-	dst[c] = 0;
+	*++buf = '\0';
 }
 
 /*
- * G_ClientTeamsScoreboard
+ * G_ClientScores
+ *
+ * Assemble the binary scores data for the client.
  */
-void G_ClientTeamsScoreboard(g_edict_t *ent) {
-	char entry[512];
-	char string[1300];
-	char net_name[MAX_NET_NAME];
-	char net_name2[MAX_NET_NAME];
-	int stringlength;
-	int i, j, k, l;
-	int sorted[MAX_CLIENTS];
-	int sortedscores[MAX_CLIENTS];
-	char good_name[64], evil_name[64];
-	int good_count, evil_count, spec_count, total;
-	int good_ping, evil_ping;
-	int good_time, evil_time;
-	int minutes;
-	int x, y;
-	g_client_t *cl;
-	g_edict_t *cl_ent;
-	char *c;
+void G_ClientScores(g_edict_t *ent) {
 
-	good_count = evil_count = spec_count = total = 0;
-	good_ping = evil_ping = 0;
-	good_time = evil_time = 0;
+	G_UpdateScores();
+	printf("%d\n", (int)strlen(scores_buffer));
 
-	for (i = 0; i < sv_max_clients->integer; i++) { // sort the clients by score
-
-		cl_ent = g_game.edicts + 1 + i;
-		cl = cl_ent->client;
-
-		if (!cl_ent->in_use)
-			continue;
-
-		if (cl->locals.team == &good) { // head and score count each team
-			good_ping += cl->ping;
-			good_time += (g_level.frame_num - cl->locals.first_frame);
-			good_count++;
-		} else if (cl->locals.team == &evil) {
-			evil_ping += cl->ping;
-			evil_time += (g_level.frame_num - cl->locals.first_frame);
-			evil_count++;
-		} else
-			spec_count++;
-
-		for (j = 0; j < total; j++) {
-			if (cl->locals.score > sortedscores[j])
-				break;
-		}
-
-		for (k = total; k > j; k--) {
-			sorted[k] = sorted[k - 1];
-			sortedscores[k] = sortedscores[k - 1];
-		}
-
-		sorted[j] = i;
-		sortedscores[j] = cl->locals.score;
-		total++;
-	}
-
-	// normalize times to minutes
-	good_time = good_time / gi.frame_rate / 60;
-	evil_time = evil_time / gi.frame_rate / 60;
-
-	string[0] = stringlength = 0;
-	j = k = l = 0;
-
-	// build the scoreboard, resolve coordinates based on team
-	for (i = 0; i < total; i++) {
-		cl = &g_game.clients[sorted[i]];
-		cl_ent = g_game.edicts + 1 + sorted[i];
-
-		if (cl->locals.team == &good) { // good up top, evil below
-			x = 64;
-			y = 32 * j++ + 64;
-		} else if (cl->locals.team == &evil) {
-			x = 64;
-			y = 32 * k++ + 128 + (good_count * 32);
-		} else {
-			x = 128;
-			y = 32 * l++ + 192 + ((good_count + evil_count) * 32);
-		}
-
-		minutes = (g_level.frame_num - cl->locals.first_frame) / gi.frame_rate
-				/ 60;
-
-		G_ColoredName(net_name, cl->locals.net_name, 16, MAX_NET_NAME);
-
-		if (!cl->locals.team) { // spectators
-			// name[ping]
-			snprintf(entry, sizeof(entry),
-					"xv %i yv %i string \"%s[%i]\" ", x, y, cl->locals.net_name, cl->ping);
-		} else { // teamed players
-			if (g_level.ctf) { // name        captures score ping time
-				x = 0;
-				snprintf(entry, sizeof(entry),
-						"xv %i yv %i string \"%s    %4i  %4i %4i %4i\" ",
-						x, y, net_name, cl->locals.captures,
-						cl->locals.score, cl->ping, minutes
-				);
-			} else { // name        score ping time
-				snprintf(entry, sizeof(entry),
-						"xv %i yv %i string \"%s %4i %4i %4i\" ",
-						x, y, net_name, cl->locals.score, cl->ping, minutes
-				);
-			}
-		}
-
-		if (strlen(string) + strlen(entry) > 1024) // leave room for header
-			break;
-
-		strcat(string, entry);
-	}
-
-	y = (good_count * 32) + 96; // draw evil beneath good
-
-	good_count = good_count ? good_count : 1; // avoid divide by zero
-	evil_count = evil_count ? evil_count : 1;
-
-	snprintf(good_name, sizeof(good_name), "%s (%s", good.name, good.skin);
-	if ((c = strchr(good_name, '/'))) // trim to model name
-		*c = 0;
-	strcat(good_name, ")");
-	if (strlen(good_name) > 15)
-		good_name[15] = 0;
-
-	snprintf(evil_name, sizeof(evil_name), "%s (%s", evil.name, evil.skin);
-	if ((c = strchr(evil_name, '/'))) // trim to model name
-		*c = 0;
-	strcat(evil_name, ")");
-	if (strlen(evil_name) > 15)
-		evil_name[15] = 0;
-
-	// headers, team names, and team scores
-	G_ColoredName(net_name, good_name, 16, MAX_NET_NAME);
-	G_ColoredName(net_name2, evil_name, 16, MAX_NET_NAME);
-
-	if (g_level.ctf) {
-		snprintf(entry, sizeof(entry),
-				"xv 0 yv  0 string2 \"Name            Captures Frags Ping Time\" "
-				"xv 0 yv 32 string2 \"%s    %4i  %4i %4i %4i\" "
-				"xv 0 yv %i string2 \"%s    %4i  %4i %4i %4i\" ",
-
-				net_name, good.captures, good.score, good_ping / good_count, good_time / good_count,
-
-				y, net_name2, evil.captures, evil.score, evil_ping / evil_count, evil_time / evil_count
-		);
-	} else {
-		snprintf(entry, sizeof(entry),
-				"xv 64 yv  0 string2 \"Name            Frags Ping Time\" "
-				"xv 64 yv 32 string2 \"%s %4i %4i %4i\" "
-				"xv 64 yv %i string2 \"%s %4i %4i %4i\" ",
-
-				net_name, good.score, good_ping / good_count, good_time / good_count,
-
-				y, net_name2, evil.score, evil_ping / evil_count, evil_time / evil_count
-		);
-	}
-
-	strcat(string, entry);
-
-	gi.WriteByte(SV_CMD_LAYOUT);
-	gi.WriteString(string);
-}
-
-/*
- * G_ClientScoreboard
- */
-void G_ClientScoreboard(g_edict_t *ent) {
-	char entry[512];
-	char string[1300];
-	char net_name[MAX_NET_NAME];
-	int stringlength;
-	int i, j, k, l;
-	int sorted[MAX_CLIENTS];
-	int sortedscores[MAX_CLIENTS];
-	int playercount, speccount, total;
-	int minutes;
-	int x, y;
-	g_client_t *cl;
-	g_edict_t *cl_ent;
-
-	playercount = speccount = total = 0;
-
-	for (i = 0; i < sv_max_clients->integer; i++) { // sort the clients by score
-
-		cl_ent = g_game.edicts + 1 + i;
-		cl = cl_ent->client;
-
-		if (!cl_ent->in_use)
-			continue;
-
-		if (cl->locals.spectator)
-			speccount++;
-		else
-			playercount++;
-
-		for (j = 0; j < total; j++) {
-			if (cl->locals.score > sortedscores[j])
-				break;
-		}
-
-		for (k = total; k > j; k--) {
-			sorted[k] = sorted[k - 1];
-			sortedscores[k] = sortedscores[k - 1];
-		}
-
-		sorted[j] = i;
-		sortedscores[j] = cl->locals.score;
-		total++;
-	}
-
-	string[0] = stringlength = 0;
-	j = k = l = 0;
-
-	// build the scoreboard, resolve coords based on team
-	for (i = 0; i < total; i++) {
-		cl = &g_game.clients[sorted[i]];
-		cl_ent = g_game.edicts + 1 + sorted[i];
-
-		if (cl->locals.spectator) { // spectators below players
-			x = 128;
-			y = 32 * l++ + 64 + (playercount * 32);
-		} else {
-			x = 64;
-			y = 32 * j++ + 32;
-		}
-
-		minutes = (g_level.frame_num - cl->locals.first_frame) / gi.frame_rate
-				/ 60;
-
-		G_ColoredName(net_name, cl->locals.net_name, 16, MAX_NET_NAME);
-
-		if (cl->locals.spectator) { // spectators
-			// name[ping]
-			snprintf(entry, sizeof(entry),
-					"xv %i yv %i string \"%s[%i]\" ", x, y, cl->locals.net_name, cl->ping);
-		} else { //players
-			// name        score ping time
-			snprintf(entry, sizeof(entry),
-					"xv %i yv %i string \"%s %4i %4i %4i\" ",
-					x, y, net_name, cl->locals.score, cl->ping, minutes
-			);
-		}
-
-		if (strlen(string) + strlen(entry) > 1024) // leave room for header
-			break;
-
-		strcat(string, entry);
-	}
-
-	// append header
-	snprintf(entry, sizeof(entry),
-			"xv 64 yv 0 string2 \"Name            Frags Ping Time\" ");
-	strcat(string, entry);
-
-	gi.WriteByte(SV_CMD_LAYOUT);
-	gi.WriteString(string);
+	gi.WriteByte(SV_CMD_SCORES);
+	gi.WriteString(scores_buffer);
+	gi.Unicast(ent, false);
 }
 
 /*
@@ -415,11 +182,11 @@ void G_ClientStats(g_edict_t *ent) {
 	}
 
 	// scoreboard
-	ent->client->ps.stats[STAT_SCOREBOARD] = 0;
+	ent->client->ps.stats[STAT_SCORES] = 0;
 
 	if (ent->client->locals.health <= 0 || g_level.intermission_time
 			|| ent->client->show_scores)
-		ent->client->ps.stats[STAT_SCOREBOARD] |= 1;
+		ent->client->ps.stats[STAT_SCORES] |= 1;
 
 	// frags and captures
 	ent->client->ps.stats[STAT_FRAGS] = ent->client->locals.score;
@@ -433,7 +200,7 @@ void G_ClientStats(g_edict_t *ent) {
 		ent->client->ps.stats[STAT_VOTE] = 0;
 
 	if ((g_level.teams || g_level.ctf) && ent->client->locals.team) { // send team_name
-		if (ent->client->locals.team == &good)
+		if (ent->client->locals.team == &g_team_good)
 			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_GOOD;
 		else
 			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_EVIL;
@@ -463,10 +230,10 @@ void G_ClientSpectatorStats(g_edict_t *ent) {
 	}
 
 	// layouts are independent in spectator
-	cl->ps.stats[STAT_SCOREBOARD] = 0;
+	cl->ps.stats[STAT_SCORES] = 0;
 
 	if (cl->locals.health <= 0 || g_level.intermission_time || cl->show_scores)
-		cl->ps.stats[STAT_SCOREBOARD] |= 1;
+		cl->ps.stats[STAT_SCORES] |= 1;
 
 	if (cl->chase_target && cl->chase_target->in_use) {
 		memcpy(cl->ps.stats, cl->chase_target->client->ps.stats, sizeof(cl->ps.stats));

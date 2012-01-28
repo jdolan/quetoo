@@ -716,7 +716,7 @@ static void R_LoadBspVertexArrays(void) {
 			r_load_model->lmtexcoords[texcoord_index + 1] = t;
 
 			// normal vector
-			if (surf->texinfo->flags & SURF_PHONG && !VectorCompare(
+			if ((surf->texinfo->flags & SURF_PHONG) && !VectorCompare(
 					vert->normal, vec3_origin)) // phong shaded
 				normal = vert->normal;
 			else

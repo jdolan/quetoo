@@ -440,8 +440,6 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 			break;
 
 		switch (c) {
-		case CL_CMD_NO_OP:
-			break;
 
 		case CL_CMD_USER_INFO:
 			strncpy(cl->user_info, Msg_ReadString(&net_message), sizeof(cl->user_info) - 1);
