@@ -37,6 +37,7 @@ typedef struct cg_import_s {
 	cvar_t *(*Cvar)(const char *name, const char *value, int flags, const char *description);
 
 	char *(*ConfigString)(int index);
+	unsigned short *player_num;
 
 	// network messaging
 	void (*ReadData)(void *buf, size_t len);

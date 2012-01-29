@@ -134,6 +134,7 @@ void Cl_InitCgame(void) {
 	import.Cvar = Cvar_Get;
 
 	import.ConfigString = Cl_ConfigString;
+	import.player_num = &cl.player_num;
 
 	import.ReadData = Cl_ReadData;
 	import.ReadChar = Cl_ReadChar;

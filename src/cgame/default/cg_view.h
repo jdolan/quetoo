@@ -25,8 +25,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-float Cg_ThirdPerson(player_state_t *ps);
-void Cg_UpdateView(player_state_t *ps);
+void Cg_UpdateView(const player_state_t *ps);
 #endif /* __CG_LOCAL_H__ */
 
 #endif /* __CG_VIEW_H__ */

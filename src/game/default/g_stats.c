@@ -59,20 +59,29 @@ void G_ClientToIntermission(g_edict_t *ent) {
  * Write the scores information for the specified client.
  */
 static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
-	g_client_score_t s;
+	player_score_t s;
 
 	memset(&s, 0, sizeof(s));
 
-	s.entity_num = ent - g_game.edicts - 1;
+	s.player_num = ent - g_game.edicts - 1;
 	s.ping = ent->client->ping < 999 ? ent->client->ping : 999;
 
 	if (ent->client->persistent.spectator) {
 		s.team = 0xff;
+		s.color = 0;
 	} else if (ent->client->persistent.team) {
-		s.team = ent->client->persistent.team == &g_team_good ? 1 : 2;
+		if (ent->client->persistent.team == &g_team_good) {
+			s.team = CS_TEAM_GOOD;
+			s.color = ColorByName("blue", 0);
+		} else {
+			s.team = CS_TEAM_EVIL;
+			s.color = ColorByName("red", 0);
+		}
+	} else {
+		s.team = 0;
+		s.color = ent->client->persistent.color;
 	}
 
-	s.team = ent->client->persistent.spectator;
 	s.score = ent->client->persistent.score;
 	s.captures = ent->client->persistent.captures;
 
@@ -104,7 +113,7 @@ static unsigned int G_UpdateScores(void) {
 		j++;
 	}
 
-	return j * sizeof(g_client_score_t);
+	return j * sizeof(player_score_t);
 }
 
 /*

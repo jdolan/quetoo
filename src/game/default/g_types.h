@@ -24,20 +24,21 @@
 
 #include "quake2world.h"
 
-// the data types sent opaquely to the client game
+// server commands sent opaquely to the client game
 typedef enum {
 	SV_CMD_SCORES = SV_CMD_CGAME,
 	SV_CMD_FOOBAR
-} g_cgame_cmd_t;
+} g_sv_cmd_t;
 
 // scores are transmitted as binary to the client game module
 typedef struct {
-	unsigned short entity_num;
+	unsigned short player_num;
 	unsigned short ping;
 	byte team;
+	byte color;
 	short score;
 	short captures;
-} g_client_score_t;
+} player_score_t;
 
 #ifdef __G_LOCAL_H__
 

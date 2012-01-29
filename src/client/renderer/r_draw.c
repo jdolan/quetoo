@@ -104,7 +104,10 @@ r_image_t *R_LoadPic(const char *name) {
 	if ((image = Hash_Get(&r_draw.hash_table, name)))
 		return image;
 
-	image = R_LoadImage(va("pics/%s", name), it_pic);
+	if (*name == '#')
+		image = R_LoadImage(name + 1, it_pic);
+	else
+		image = R_LoadImage(va("pics/%s", name), it_pic);
 
 	Hash_Put(&r_draw.hash_table, name, image);
 

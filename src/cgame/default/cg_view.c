@@ -27,7 +27,7 @@
  * Return the 3rd person offset. Negative values imply that the camera is in
  * front of the player.
  */
-float Cg_ThirdPerson(player_state_t *ps) {
+static float Cg_ThirdPerson(const player_state_t *ps) {
 
 	if (!ps->stats[STAT_CHASE]) { // chasing uses client side 3rd person
 
@@ -45,6 +45,6 @@ float Cg_ThirdPerson(player_state_t *ps) {
 /*
  * Cg_UpdateView
  */
-void Cg_UpdateView(player_state_t *ps) {
+void Cg_UpdateView(const player_state_t *ps) {
 
 }

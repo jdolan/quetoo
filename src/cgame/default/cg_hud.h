@@ -25,7 +25,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_DrawHud(player_state_t *ps);
+void Cg_DrawHud(const player_state_t *ps);
 #endif /* __CG_LOCAL_H__ */
 
 #endif /* __CG_HUD_H__ */

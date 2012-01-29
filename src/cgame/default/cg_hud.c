@@ -50,7 +50,8 @@ byte color_white[4] = { 255, 255, 255, 255 };
  *
  * Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
-static void Cg_DrawIcon(int x, int y, float scale, short icon) {
+static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y,
+		const float scale, const unsigned short icon) {
 
 	if (icon >= MAX_IMAGES) {
 		cgi.Warn("Cg_DrawIcon: Invalid icon: %d\n", icon);
@@ -65,7 +66,8 @@ static void Cg_DrawIcon(int x, int y, float scale, short icon) {
  *
  * Draws the vital numeric and icon, flashing on low quantities.
  */
-static void Cg_DrawVital(r_pixel_t x, short value, short icon, short med, short low) {
+static void Cg_DrawVital(r_pixel_t x, const short value, const short icon,
+		short med, short low) {
 	const boolean_t flash = (*cgi.time / 100) & 1;
 
 	r_pixel_t y = *cgi.y + *cgi.h - HUD_PIC_HEIGHT + 4;
@@ -97,7 +99,7 @@ static void Cg_DrawVital(r_pixel_t x, short value, short icon, short med, short 
  *
  * Draws health, ammo and armor numerics and icons.
  */
-static void Cg_DrawVitals(player_state_t *ps) {
+static void Cg_DrawVitals(const player_state_t *ps) {
 	r_pixel_t x, cw, x_offset;
 
 	cgi.BindFont("large", &cw, NULL);
@@ -138,7 +140,7 @@ static void Cg_DrawVitals(player_state_t *ps) {
 /*
  * Cg_DrawPickup
  */
-static void Cg_DrawPickup(player_state_t *ps) {
+static void Cg_DrawPickup(const player_state_t *ps) {
 	r_pixel_t x, y, cw, ch;
 
 	cgi.BindFont(NULL, &cw, &ch);
@@ -164,7 +166,7 @@ static void Cg_DrawPickup(player_state_t *ps) {
 /*
  * Cg_DrawFrags
  */
-static void Cg_DrawFrags(player_state_t *ps) {
+static void Cg_DrawFrags(const player_state_t *ps) {
 	const short frags = ps->stats[STAT_FRAGS];
 	r_pixel_t x, y, cw, ch;
 
@@ -191,7 +193,7 @@ static void Cg_DrawFrags(player_state_t *ps) {
 /*
  * Cg_DrawCaptures
  */
-static void Cg_DrawCaptures(player_state_t *ps) {
+static void Cg_DrawCaptures(const player_state_t *ps) {
 	const short captures = ps->stats[STAT_CAPTURES];
 	r_pixel_t x, y, cw, ch;
 
@@ -221,7 +223,7 @@ static void Cg_DrawCaptures(player_state_t *ps) {
 /*
  * Cg_DrawSpectator
  */
-static void Cg_DrawSpectator(player_state_t *ps) {
+static void Cg_DrawSpectator(const player_state_t *ps) {
 	r_pixel_t x, y, cw;
 
 	if (!ps->stats[STAT_SPECTATOR])
@@ -238,7 +240,7 @@ static void Cg_DrawSpectator(player_state_t *ps) {
 /*
  * Cg_DrawChase
  */
-static void Cg_DrawChase(player_state_t *ps) {
+static void Cg_DrawChase(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
 	char string[MAX_USER_INFO_VALUE * 2], *s;
 
@@ -270,7 +272,7 @@ static void Cg_DrawChase(player_state_t *ps) {
 /*
  * Cg_DrawVote
  */
-static void Cg_DrawVote(player_state_t *ps) {
+static void Cg_DrawVote(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
 	char string[MAX_STRING_CHARS];
 
@@ -292,7 +294,7 @@ static void Cg_DrawVote(player_state_t *ps) {
 /*
  * Cg_DrawTime
  */
-static void Cg_DrawTime(player_state_t *ps) {
+static void Cg_DrawTime(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
 	char *string = cgi.ConfigString(CS_TIME);
 
@@ -312,7 +314,7 @@ static void Cg_DrawTime(player_state_t *ps) {
 /*
  * Cg_DrawReady
  */
-static void Cg_DrawReady(player_state_t *ps) {
+static void Cg_DrawReady(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
 
 	if (!ps->stats[STAT_READY])
@@ -331,7 +333,7 @@ static void Cg_DrawReady(player_state_t *ps) {
 /*
  * Cg_DrawTeamBanner
  */
-static void Cg_DrawTeam(player_state_t *ps) {
+static void Cg_DrawTeam(const player_state_t *ps) {
 	const short team = ps->stats[STAT_TEAM];
 	r_pixel_t x, y;
 	int color;
@@ -357,7 +359,7 @@ static void Cg_DrawTeam(player_state_t *ps) {
 /*
  * Cg_DrawCrosshair
  */
-static void Cg_DrawCrosshair(player_state_t *ps) {
+static void Cg_DrawCrosshair(const player_state_t *ps) {
 	r_pixel_t x, y;
 	int color;
 
@@ -420,7 +422,7 @@ static void Cg_DrawCrosshair(player_state_t *ps) {
 /*
  * Cg_DrawBlend
  */
-static void Cg_DrawBlend(player_state_t *ps) {
+static void Cg_DrawBlend(const player_state_t *ps) {
 	static short h, a, p;
 	static unsigned int last_blend_time;
 	static int color;
@@ -486,7 +488,7 @@ static void Cg_DrawBlend(player_state_t *ps) {
  *
  * Draws the HUD for the current frame.
  */
-void Cg_DrawHud(player_state_t *ps) {
+void Cg_DrawHud(const player_state_t *ps) {
 
 	if (!cg_hud->integer)
 		return;
