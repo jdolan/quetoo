@@ -71,7 +71,7 @@ void Cl_LoadClient(cl_client_info_t *ci, const char *s) {
 
 	// isolate the player's name
 	strncpy(ci->name, s, sizeof(ci->name));
-	ci->name[sizeof(ci->name) - 1] = 0;
+	ci->name[sizeof(ci->name) - 1] = '\0';
 
 	v = strchr(ci->name, '\\');
 	u = strchr(ci->name, '/');

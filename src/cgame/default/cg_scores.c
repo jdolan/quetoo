@@ -25,6 +25,19 @@ static g_client_score_t cg_scores[MAX_CLIENTS];
 static size_t cg_num_scores;
 
 /*
+ * Cg_ParseScores_Compare
+ *
+ * A comparator for sorting g_client_score_t.
+ */
+static int Cg_ParseScores_Compare(const void *a, const void *b) {
+	const g_client_score_t *s1 = (g_client_score_t *) a;
+	const g_client_score_t *s2 = (g_client_score_t *) b;
+
+	// TODO: teams, ctf, etc..
+	return s1->score - s2->score;
+}
+
+/*
  * Cg_ParseScores
  */
 void Cg_ParseScores(void) {
@@ -33,6 +46,9 @@ void Cg_ParseScores(void) {
 	cgi.ReadData((void *) cg_scores, len);
 
 	cg_num_scores = len / sizeof(g_client_score_t);
+
+	qsort((void *) cg_scores, cg_num_scores, sizeof(g_client_score_t),
+			Cg_ParseScores_Compare);
 }
 
 /*
@@ -54,8 +70,16 @@ void Cg_DrawScores(player_state_t *ps) {
 		const r_pixel_t x = 100;
 		const r_pixel_t y = 100 + i * ch;
 
-		snprintf(string, sizeof(string) - 1, "%d: %d frags %3dms",
-				s->entity_num, s->score, s->ping);
+		char name[MAX_STRING_CHARS], *icon;
+		char *info = cgi.ConfigString(CS_CLIENT_INFO + s->entity_num);
+
+		strncpy(name, info, sizeof(name) - 1);
+
+		icon = strchr(name, '\\') + 1;
+		*(icon - 1) = '\0';
+
+		snprintf(string, sizeof(string) - 1, "%s: %d frags %3dms",
+				name, s->score, s->ping);
 		cgi.DrawString(x, y, string, CON_COLOR_WHITE);
 	}
 }

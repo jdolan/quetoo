@@ -313,7 +313,7 @@ void Cl_UpdateScreen(void) {
 
 			Cl_DrawRendererStats();
 
-			cls.cgame->DrawHud(&cl.frame.ps);
+			cls.cgame->DrawFrame(&cl.frame.ps);
 		}
 	} else {
 		R_Setup2D();

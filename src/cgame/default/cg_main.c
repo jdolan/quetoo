@@ -85,6 +85,16 @@ static boolean_t Cg_ParseMessage(int cmd) {
 }
 
 /*
+ * Cg_DrawFrame
+ */
+static void Cg_DrawFrame(player_state_t *ps) {
+
+	Cg_DrawHud(ps);
+
+	Cg_DrawScores(ps);
+}
+
+/*
  * Cg_LoadCgame
  */
 cg_export_t *Cg_LoadCgame(cg_import_t *import) {
@@ -96,12 +106,9 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 
 	cge.Init = Cg_Init;
 	cge.Shutdown = Cg_Shutdown;
-
 	cge.UpdateMedia = Cg_UpdateMedia;
-
 	cge.ParseMessage = Cg_ParseMessage;
-
-	cge.DrawHud = Cg_DrawHud;
+	cge.DrawFrame = Cg_DrawFrame;
 
 	return &cge;
 }

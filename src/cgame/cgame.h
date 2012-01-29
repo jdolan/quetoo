@@ -88,7 +88,7 @@ typedef struct cg_export_s {
 
 	float (*ThirdPerson)(player_state_t *ps);
 
-	void (*DrawHud)(player_state_t *ps);
+	void (*DrawFrame)(player_state_t *ps);
 } cg_export_t;
 
 #endif /* __CGAME_H__ */
