@@ -143,7 +143,7 @@ typedef enum {
 	MULTICAST_PVS_R
 } multicast_t;
 
-// server to client
+// server to client communication
 typedef enum {
 	SV_CMD_BAD,
 	SV_CMD_CBUF_TEXT, // [string] stuffed into client's console buffer, should be \n terminated
@@ -156,11 +156,14 @@ typedef enum {
 	SV_CMD_MUZZLE_FLASH,
 	SV_CMD_PRINT, // [byte] id [string] null terminated string
 	SV_CMD_RECONNECT,
-	SV_CMD_SCORES, // binary data rendered by the client game
 	SV_CMD_SERVER_DATA, // [long] protocol ...
 	SV_CMD_SOUND, // <see code>
-	SV_CMD_TEMP_ENTITY
+	SV_CMD_TEMP_ENTITY,
 } sv_cmd_t;
+
+// additional command types can be defined and written by the game module
+// and handled directly by the client game
+#define SV_CMD_CGAME SV_CMD_TEMP_ENTITY + 1
 
 // client to server
 typedef enum {

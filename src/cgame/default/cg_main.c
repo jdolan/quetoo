@@ -68,6 +68,27 @@ static void Cg_UpdateMedia(void) {
 }
 
 /*
+ * Cg_ParseMessage
+ */
+static boolean_t Cg_ParseMessage(int cmd) {
+	byte buffer[MAX_STRING_CHARS];
+	int i;
+
+	switch (cmd) {
+	case SV_CMD_SCORES:
+		i = cgi.ReadShort();
+		cgi.ReadData(buffer, i);
+		printf("%d bytes\n", i);
+		return true;
+
+	default:
+		break;
+	}
+
+	return false;
+}
+
+/*
  * Cg_LoadCgame
  */
 cg_export_t *Cg_LoadCgame(cg_import_t *import) {
@@ -81,6 +102,8 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Shutdown = Cg_Shutdown;
 
 	cge.UpdateMedia = Cg_UpdateMedia;
+
+	cge.ParseMessage = Cg_ParseMessage;
 
 	cge.DrawHud = Cg_DrawHud;
 

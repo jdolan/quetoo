@@ -23,6 +23,7 @@
 #define __CG_TYPES_H__
 
 #include "cgame/cgame.h"
+#include "game/default/g_types.h"
 
 #endif /* __CG_TYPES_H__ */
 

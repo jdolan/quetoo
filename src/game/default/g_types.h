@@ -24,6 +24,23 @@
 
 #include "quake2world.h"
 
+// the data types sent opaquely to the client game
+typedef enum {
+	SV_CMD_SCORES = SV_CMD_CGAME,
+	SV_CMD_FOOBAR
+} g_cgame_cmd_t;
+
+// scores are transmitted as binary to the client game module
+typedef struct {
+	unsigned short entity_num;
+	unsigned short ping;
+	byte team;
+	short score;
+	short captures;
+} g_client_score_t;
+
+#ifdef __G_LOCAL_H__
+
 // edict->spawnflags
 #define SF_ITEM_TRIGGER			0x00000001
 #define SF_ITEM_NO_TOUCH		0x00000002
@@ -346,16 +363,7 @@ typedef struct {
 	unsigned int match_num; // most recent match
 	unsigned int round_num; // most recent arena round
 	int color; // weapon effect colors
-} g_client_locals_t;
-
-// scores are transmitted as binary to the client game module
-typedef struct {
-	unsigned short entity_num;
-	unsigned short ping;
-	byte team;
-	short score;
-	short captures;
-} g_client_score_t;
+} g_client_persistent_t;
 
 // this structure is cleared on each respawn
 struct g_client_s {
@@ -365,9 +373,10 @@ struct g_client_s {
 
 	// private to game
 
-	g_client_locals_t locals;
+	g_client_persistent_t persistent;
 
 	boolean_t show_scores; // sets layout bit mask in player state
+	float scores_time; // eligible for scores when time > this
 
 	unsigned short ammo_index;
 
@@ -522,5 +531,7 @@ struct g_edict_s {
 
 	vec3_t map_origin; // where the map says we spawn
 };
+
+#endif
 
 #endif /* __G_TYPES_H__ */

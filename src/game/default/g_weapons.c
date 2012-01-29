@@ -35,8 +35,8 @@ boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	ammoindex = ITEM_INDEX(ammo);
 
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED)
-			&& other->client->locals.inventory[index]) {
-		if (other->client->locals.inventory[ammoindex] >= ammo->quantity)
+			&& other->client->persistent.inventory[index]) {
+		if (other->client->persistent.inventory[ammoindex] >= ammo->quantity)
 			G_AddAmmo(other, ammo, ent->item->quantity); // q3 style
 		else
 			G_AddAmmo(other, ammo, ammo->quantity);
@@ -48,11 +48,11 @@ boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 		G_SetItemRespawn(ent, 5);
 
 	// add the weapon to inventory
-	other->client->locals.inventory[index]++;
+	other->client->persistent.inventory[index]++;
 
 	// auto-change if it's the first weapon we pick up
-	if (other->client->locals.weapon != ent->item
-			&& (other->client->locals.weapon == G_FindItem("Shotgun")))
+	if (other->client->persistent.weapon != ent->item
+			&& (other->client->persistent.weapon == G_FindItem("Shotgun")))
 		other->client->new_weapon = ent->item;
 
 	return true;
@@ -66,23 +66,23 @@ boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 void G_ChangeWeapon(g_edict_t *ent) {
 
 	// change weapon
-	ent->client->locals.last_weapon = ent->client->locals.weapon;
-	ent->client->locals.weapon = ent->client->new_weapon;
+	ent->client->persistent.last_weapon = ent->client->persistent.weapon;
+	ent->client->persistent.weapon = ent->client->new_weapon;
 	ent->client->new_weapon = NULL;
 
 	// update weapon state
 	ent->client->weapon_fire_time = g_level.time + 0.4;
 
 	// resolve ammo
-	if (ent->client->locals.weapon && ent->client->locals.weapon->ammo)
+	if (ent->client->persistent.weapon && ent->client->persistent.weapon->ammo)
 		ent->client->ammo_index
-				= ITEM_INDEX(G_FindItem(ent->client->locals.weapon->ammo));
+				= ITEM_INDEX(G_FindItem(ent->client->persistent.weapon->ammo));
 	else
 		ent->client->ammo_index = 0;
 
 	// set visible model
-	if (ent->client->locals.weapon)
-		ent->s.model2 = gi.ModelIndex(ent->client->locals.weapon->model);
+	if (ent->client->persistent.weapon)
+		ent->s.model2 = gi.ModelIndex(ent->client->persistent.weapon->model);
 	else
 		ent->s.model2 = 0;
 
@@ -100,47 +100,47 @@ void G_ChangeWeapon(g_edict_t *ent) {
  */
 void G_UseBestWeapon(g_client_t *client) {
 
-	if (client->locals.inventory[ITEM_INDEX(G_FindItem("nukes"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("bfg10k"))]) {
+	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("nukes"))]
+			&& client->persistent.inventory[ITEM_INDEX(G_FindItem("bfg10k"))]) {
 		client->new_weapon = G_FindItem("bfg10k");
 		return;
 	}
-	if (client->locals.inventory[ITEM_INDEX(G_FindItem("slugs"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("railgun"))]) {
+	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("slugs"))]
+			&& client->persistent.inventory[ITEM_INDEX(G_FindItem("railgun"))]) {
 		client->new_weapon = G_FindItem("railgun");
 		return;
 	}
-	if (client->locals.inventory[ITEM_INDEX(G_FindItem("bolts"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("lightning"))]) {
+	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("bolts"))]
+			&& client->persistent.inventory[ITEM_INDEX(G_FindItem("lightning"))]) {
 		client->new_weapon = G_FindItem("lightning");
 		return;
 	}
-	if (client->locals.inventory[ITEM_INDEX(G_FindItem("cells"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("hyperblaster"))]) {
+	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("cells"))]
+			&& client->persistent.inventory[ITEM_INDEX(G_FindItem("hyperblaster"))]) {
 		client->new_weapon = G_FindItem("hyperblaster");
 		return;
 	}
-	if (client->locals.inventory[ITEM_INDEX(G_FindItem("rockets"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("rocket launcher"))]) {
+	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("rockets"))]
+			&& client->persistent.inventory[ITEM_INDEX(G_FindItem("rocket launcher"))]) {
 		client->new_weapon = G_FindItem("rocket launcher");
 		return;
 	}
-	if (client->locals.inventory[ITEM_INDEX(G_FindItem("grenades"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("grenade launcher"))]) {
+	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("grenades"))]
+			&& client->persistent.inventory[ITEM_INDEX(G_FindItem("grenade launcher"))]) {
 		client->new_weapon = G_FindItem("grenade launcher");
 		return;
 	}
-	if (client->locals.inventory[ITEM_INDEX(G_FindItem("bullets"))]
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("machinegun"))]) {
+	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("bullets"))]
+			&& client->persistent.inventory[ITEM_INDEX(G_FindItem("machinegun"))]) {
 		client->new_weapon = G_FindItem("machinegun");
 		return;
 	}
-	if (client->locals.inventory[ITEM_INDEX(G_FindItem("shells"))] > 1
-			&& client->locals.inventory[ITEM_INDEX(G_FindItem("super shotgun"))]) {
+	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("shells"))] > 1
+			&& client->persistent.inventory[ITEM_INDEX(G_FindItem("super shotgun"))]) {
 		client->new_weapon = G_FindItem("super shotgun");
 		return;
 	}
-	if (client->locals.inventory[ITEM_INDEX(G_FindItem("shells"))]) {
+	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("shells"))]) {
 		client->new_weapon = G_FindItem("shotgun");
 		return;
 	}
@@ -152,7 +152,7 @@ void G_UseBestWeapon(g_client_t *client) {
 void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
 
 	// see if we're already using it
-	if (item == ent->client->locals.weapon)
+	if (item == ent->client->persistent.weapon)
 		return;
 
 	// change to this weapon when down
@@ -168,14 +168,14 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 	index = ITEM_INDEX(item);
 
 	// see if we're already using it and we only have one
-	if ((item == ent->client->locals.weapon || item == ent->client->new_weapon)
-			&& (ent->client->locals.inventory[index] == 1)) {
+	if ((item == ent->client->persistent.weapon || item == ent->client->new_weapon)
+			&& (ent->client->persistent.inventory[index] == 1)) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop current weapon\n");
 		return;
 	}
 
 	G_DropItem(ent, item);
-	ent->client->locals.inventory[index]--;
+	ent->client->persistent.inventory[index]--;
 }
 
 /*
@@ -188,9 +188,9 @@ void G_TossWeapon(g_edict_t *ent) {
 	if (means_of_death == MOD_TRIGGER_HURT)
 		return;
 
-	item = ent->client->locals.weapon;
+	item = ent->client->persistent.weapon;
 
-	if (!ent->client->locals.inventory[ent->client->ammo_index])
+	if (!ent->client->persistent.inventory[ent->client->ammo_index])
 		return; // don't drop when out of ammo
 
 	G_DropItem(ent, item);
@@ -218,8 +218,8 @@ static void G_FireWeapon(g_edict_t *ent, float interval,
 	ent->client->weapon_fire_time = g_level.time + interval;
 
 	// determine if ammo is required, and if the quantity is sufficient
-	n = ent->client->locals.inventory[ent->client->ammo_index];
-	m = ent->client->locals.weapon->quantity;
+	n = ent->client->persistent.inventory[ent->client->ammo_index];
+	m = ent->client->persistent.weapon->quantity;
 
 	// they are out of ammo
 	if (ent->client->ammo_index && n < m) {
@@ -236,7 +236,7 @@ static void G_FireWeapon(g_edict_t *ent, float interval,
 	// they've pressed their fire button, and have ammo, so fire
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
-	if (ent->client->locals.inventory[quad_damage_index]) { // quad sound
+	if (ent->client->persistent.inventory[quad_damage_index]) { // quad sound
 
 		if (ent->client->quad_attack_time < g_level.time) {
 			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTN_NORM);
@@ -248,7 +248,7 @@ static void G_FireWeapon(g_edict_t *ent, float interval,
 	fire(ent); // fire the weapon
 
 	// and decrease their inventory
-	ent->client->locals.inventory[ent->client->ammo_index] -= m;
+	ent->client->persistent.inventory[ent->client->ammo_index] -= m;
 }
 
 /*
@@ -273,8 +273,8 @@ void G_WeaponThink(g_edict_t *ent) {
 	}
 
 	// call active weapon think routine
-	if (ent->client->locals.weapon && ent->client->locals.weapon->weapon_think)
-		ent->client->locals.weapon->weapon_think(ent);
+	if (ent->client->persistent.weapon && ent->client->persistent.weapon->weapon_think)
+		ent->client->persistent.weapon->weapon_think(ent);
 }
 
 /*

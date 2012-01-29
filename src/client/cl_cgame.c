@@ -60,6 +60,46 @@ static void Cl_Error(const char *fmt, ...) {
 }
 
 /*
+ * Message parsing facilities.
+ */
+
+static void Cl_ReadData(void *data, size_t len) {
+	Msg_ReadData(&net_message, data, len);
+}
+
+static int Cl_ReadChar(void) {
+	return Msg_ReadChar(&net_message);
+}
+
+static int Cl_ReadByte(void) {
+	return Msg_ReadByte(&net_message);
+}
+
+static int Cl_ReadShort(void) {
+	return Msg_ReadShort(&net_message);
+}
+
+static int Cl_ReadLong(void) {
+	return Msg_ReadLong(&net_message);
+}
+
+static char *Cl_ReadString(void) {
+	return Msg_ReadString(&net_message);
+}
+
+static void Cl_ReadPosition(vec3_t pos) {
+	Msg_ReadPos(&net_message, pos);
+}
+
+static void Cl_ReadDir(vec3_t dir) {
+	Msg_ReadDir(&net_message, dir);
+}
+
+static float Cl_ReadAngle(void) {
+	return Msg_ReadAngle(&net_message);
+}
+
+/*
  * Cl_ConfigString
  */
 static char *Cl_ConfigString(int index) {
@@ -94,6 +134,16 @@ void Cl_InitCgame(void) {
 	import.Cvar = Cvar_Get;
 
 	import.ConfigString = Cl_ConfigString;
+
+	import.ReadData = Cl_ReadData;
+	import.ReadChar = Cl_ReadChar;
+	import.ReadByte = Cl_ReadByte;
+	import.ReadShort = Cl_ReadShort;
+	import.ReadLong = Cl_ReadLong;
+	import.ReadString = Cl_ReadString;
+	import.ReadPosition = Cl_ReadPosition;
+	import.ReadDir = Cl_ReadDir;
+	import.ReadAngle = Cl_ReadAngle;
 
 	import.width = &r_context.width;
 	import.height = &r_context.height;

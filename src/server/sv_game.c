@@ -123,6 +123,10 @@ static void Sv_ConfigString(int index, const char *val) {
  * Message wrappers which target the multicast buffer.
  */
 
+static void Sv_WriteData(void *data, size_t len) {
+	Msg_WriteData(&sv.multicast, data, len);
+}
+
 static void Sv_WriteChar(int c) {
 	Msg_WriteChar(&sv.multicast, c);
 }
@@ -304,6 +308,7 @@ void Sv_InitGame(void) {
 
 	import.Multicast = Sv_Multicast;
 	import.Unicast = Sv_Unicast;
+	import.WriteData = Sv_WriteData;
 	import.WriteChar = Sv_WriteChar;
 	import.WriteByte = Sv_WriteByte;
 	import.WriteShort = Sv_WriteShort;

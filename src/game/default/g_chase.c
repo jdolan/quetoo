@@ -67,7 +67,7 @@ void G_ChaseNext(g_edict_t *ent) {
 		if (!e->in_use)
 			continue;
 
-		if (!e->client->locals.spectator)
+		if (!e->client->persistent.spectator)
 			break;
 
 	} while (e != ent->client->chase_target);
@@ -97,7 +97,7 @@ void G_ChasePrevious(g_edict_t *ent) {
 		if (!e->in_use)
 			continue;
 
-		if (!e->client->locals.spectator)
+		if (!e->client->persistent.spectator)
 			break;
 
 	} while (e != ent->client->chase_target);
@@ -116,7 +116,7 @@ void G_ChaseTarget(g_edict_t *ent) {
 
 	for (i = 1; i <= sv_max_clients->integer; i++) {
 		other = g_game.edicts + i;
-		if (other->in_use && !other->client->locals.spectator) {
+		if (other->in_use && !other->client->persistent.spectator) {
 			ent->client->chase_target = other;
 			G_ChaseThink(ent);
 			return;

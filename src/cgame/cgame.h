@@ -38,6 +38,20 @@ typedef struct cg_import_s {
 
 	char *(*ConfigString)(int index);
 
+	// network messaging
+	void (*ReadData)(void *buf, size_t len);
+	int (*ReadChar)(void);
+	int (*ReadByte)(void);
+	int (*ReadShort)(void);
+	int (*ReadLong)(void);
+	char *(*ReadString)(void);
+	void (*ReadPosition)(vec3_t pos);
+	void (*ReadDir)(vec3_t dir);
+	float (*ReadAngle)(void);
+
+	// incoming server data stream
+	size_buf_t *net_message;
+
 	void (*Trace)(vec3_t start, vec3_t end, float radius, int mask);
 
 	// context parameters
@@ -69,6 +83,8 @@ typedef struct cg_export_s {
 	void (*Shutdown)(void);
 
 	void (*UpdateMedia)(void);
+
+	boolean_t (*ParseMessage)(int cmd);
 
 	float (*ThirdPerson)(player_state_t *ps);
 

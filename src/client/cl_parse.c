@@ -270,7 +270,7 @@ static void Cl_ParseGravity(const char *gravity) {
  * Cl_ParseConfigString
  */
 void Cl_ParseConfigString(void) {
-	const unsigned short i = (unsigned short)Msg_ReadShort(&net_message);
+	const unsigned short i = (unsigned short) Msg_ReadShort(&net_message);
 
 	if (i >= MAX_CONFIG_STRINGS) {
 		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
@@ -483,18 +483,14 @@ void Cl_ParseServerMessage(void) {
 			Cl_ParseFrame();
 			break;
 
-		case SV_CMD_SCORES:
-			s = Msg_ReadString(&net_message);
-			memset(cl.layout, 0, sizeof(cl.layout));
-			strncpy(cl.layout, s, sizeof(cl.layout) - 1);
-			printf("%d\n", (int)strlen(cl.layout));
-			break;
-
 		default:
-			Com_Error(ERR_DROP,
-					"Cl_ParseServerMessage: Illegible server message:\n"
-						"  %d: last command was %s\n", cmd,
-					svc_strings[old_cmd]);
+			// delegate to the client game module before failing
+			if (!cls.cgame->ParseMessage(cmd)) {
+				Com_Error(ERR_DROP,
+						"Cl_ParseServerMessage: Illegible server message:\n"
+							"  %d: last command was %s\n", cmd,
+						svc_strings[old_cmd]);
+			}
 			break;
 		}
 	}

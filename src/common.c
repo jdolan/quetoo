@@ -183,12 +183,19 @@ void Com_QuitSubsystem(unsigned int s) {
  */
 
 /*
+ * Msg_WriteData
+ */
+void Msg_WriteData(size_buf_t *sb, void *data, size_t len) {
+	Sb_Write(sb, data, len);
+}
+
+/*
  * Msg_WriteChar
  */
 void Msg_WriteChar(size_buf_t *sb, int c) {
 	byte *buf;
 
-	buf = Sb_Alloc(sb, 1);
+	buf = Sb_Alloc(sb, sizeof(char));
 	buf[0] = c;
 }
 
@@ -198,7 +205,7 @@ void Msg_WriteChar(size_buf_t *sb, int c) {
 void Msg_WriteByte(size_buf_t *sb, int c) {
 	byte *buf;
 
-	buf = Sb_Alloc(sb, 1);
+	buf = Sb_Alloc(sb, sizeof(byte));
 	buf[0] = c;
 }
 
@@ -208,7 +215,7 @@ void Msg_WriteByte(size_buf_t *sb, int c) {
 void Msg_WriteShort(size_buf_t *sb, int c) {
 	byte *buf;
 
-	buf = Sb_Alloc(sb, 2);
+	buf = Sb_Alloc(sb, sizeof(short));
 	buf[0] = c & 0xff;
 	buf[1] = c >> 8;
 }
@@ -219,7 +226,7 @@ void Msg_WriteShort(size_buf_t *sb, int c) {
 void Msg_WriteLong(size_buf_t *sb, int c) {
 	byte *buf;
 
-	buf = Sb_Alloc(sb, 4);
+	buf = Sb_Alloc(sb, sizeof(int));
 	buf[0] = c & 0xff;
 	buf[1] = (c >> 8) & 0xff;
 	buf[2] = (c >> 16) & 0xff;
@@ -517,6 +524,17 @@ void Msg_BeginReading(size_buf_t *msg) {
 }
 
 /*
+ * Msg_ReadData
+ */
+void Msg_ReadData(size_buf_t *sb, void *data, size_t len) {
+	unsigned int i;
+
+	for (i = 0; i < len; i++) {
+		((byte *) data)[i] = Msg_ReadByte(sb);
+	}
+}
+
+/*
  * Msg_ReadChar
  *
  * Returns -1 if no more characters are available.
@@ -700,17 +718,6 @@ void Msg_ReadDeltaUsercmd(size_buf_t *sb, user_cmd_t *from, user_cmd_t *move) {
 }
 
 /*
- * Msg_ReadData
- */
-void Msg_ReadData(size_buf_t *sb, void *data, size_t len) {
-	unsigned int i;
-
-	for (i = 0; i < len; i++) {
-		((byte *) data)[i] = Msg_ReadByte(sb);
-	}
-}
-
-/*
  * Sb_Init
  */
 void Sb_Init(size_buf_t *buf, byte *data, size_t length) {
@@ -759,8 +766,8 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 /*
  * Sb_Write
  */
-void Sb_Write(size_buf_t *buf, const void *data, size_t length) {
-	memcpy(Sb_Alloc(buf, length), data, length);
+void Sb_Write(size_buf_t *buf, const void *data, size_t len) {
+	memcpy(Sb_Alloc(buf, len), data, len);
 }
 
 /*

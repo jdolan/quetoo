@@ -148,10 +148,10 @@ static boolean_t G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
  */
 static boolean_t G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 
-	if (other->client->locals.inventory[quad_damage_index])
+	if (other->client->persistent.inventory[quad_damage_index])
 		return false; // already have it
 
-	other->client->locals.inventory[quad_damage_index] = 1;
+	other->client->persistent.inventory[quad_damage_index] = 1;
 
 	if (ent->spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
 		other->client->quad_damage_time = ent->next_think;
@@ -170,7 +170,7 @@ static boolean_t G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 void G_TossQuadDamage(g_edict_t *ent) {
 	g_edict_t *quad;
 
-	if (!ent->client->locals.inventory[quad_damage_index])
+	if (!ent->client->persistent.inventory[quad_damage_index])
 		return;
 
 	quad = G_DropItem(ent, G_FindItemByClassname("item_quad"));
@@ -179,7 +179,7 @@ void G_TossQuadDamage(g_edict_t *ent) {
 		quad->timestamp = ent->client->quad_damage_time;
 
 	ent->client->quad_damage_time = 0.0;
-	ent->client->locals.inventory[quad_damage_index] = 0;
+	ent->client->persistent.inventory[quad_damage_index] = 0;
 }
 
 /*
@@ -190,33 +190,33 @@ boolean_t G_AddAmmo(g_edict_t *ent, g_item_t *item, short count) {
 	short max;
 
 	if (item->tag == AMMO_SHELLS)
-		max = ent->client->locals.max_shells;
+		max = ent->client->persistent.max_shells;
 	else if (item->tag == AMMO_BULLETS)
-		max = ent->client->locals.max_bullets;
+		max = ent->client->persistent.max_bullets;
 	else if (item->tag == AMMO_GRENADES)
-		max = ent->client->locals.max_grenades;
+		max = ent->client->persistent.max_grenades;
 	else if (item->tag == AMMO_ROCKETS)
-		max = ent->client->locals.max_rockets;
+		max = ent->client->persistent.max_rockets;
 	else if (item->tag == AMMO_CELLS)
-		max = ent->client->locals.max_cells;
+		max = ent->client->persistent.max_cells;
 	else if (item->tag == AMMO_BOLTS)
-		max = ent->client->locals.max_bolts;
+		max = ent->client->persistent.max_bolts;
 	else if (item->tag == AMMO_SLUGS)
-		max = ent->client->locals.max_slugs;
+		max = ent->client->persistent.max_slugs;
 	else if (item->tag == AMMO_NUKES)
-		max = ent->client->locals.max_nukes;
+		max = ent->client->persistent.max_nukes;
 	else
 		return false;
 
 	index = ITEM_INDEX(item);
 
-	if (ent->client->locals.inventory[index] == max)
+	if (ent->client->persistent.inventory[index] == max)
 		return false;
 
-	ent->client->locals.inventory[index] += count;
+	ent->client->persistent.inventory[index] += count;
 
-	if (ent->client->locals.inventory[index] > max)
-		ent->client->locals.inventory[index] = max;
+	if (ent->client->persistent.inventory[index] > max)
+		ent->client->persistent.inventory[index] = max;
 
 	return true;
 }
@@ -254,12 +254,12 @@ static void G_DropAmmo(g_edict_t *ent, g_item_t *item) {
 	if (!dropped)
 		return;
 
-	if (ent->client->locals.inventory[index] >= item->quantity)
+	if (ent->client->persistent.inventory[index] >= item->quantity)
 		dropped->count = item->quantity;
 	else
-		dropped->count = ent->client->locals.inventory[index];
+		dropped->count = ent->client->persistent.inventory[index];
 
-	ent->client->locals.inventory[index] -= dropped->count;
+	ent->client->persistent.inventory[index] -= dropped->count;
 }
 
 /*
@@ -289,7 +289,7 @@ static boolean_t G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 		if (h > max) // and enforce it
 			h = max;
 
-		other->health = other->client->locals.health = h;
+		other->health = other->client->persistent.health = h;
 
 		if (ent->count >= 50) // respawn the item
 			G_SetItemRespawn(ent, 60);
@@ -309,14 +309,14 @@ static boolean_t G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
 	boolean_t taken = true;
 
 	if (ent->item->tag == ARMOR_SHARD) { // take it, ignoring cap
-		other->client->locals.armor += ent->item->quantity;
-	} else if (other->client->locals.armor < other->client->locals.max_armor) {
+		other->client->persistent.armor += ent->item->quantity;
+	} else if (other->client->persistent.armor < other->client->persistent.max_armor) {
 
 		// take it, but enforce cap
-		other->client->locals.armor += ent->item->quantity;
+		other->client->persistent.armor += ent->item->quantity;
 
-		if (other->client->locals.armor > other->client->locals.max_armor)
-			other->client->locals.armor = other->client->locals.max_armor;
+		if (other->client->persistent.armor > other->client->persistent.max_armor)
+			other->client->persistent.armor = other->client->persistent.max_armor;
 	} else { // don't take it
 		taken = false;
 	}
@@ -363,7 +363,7 @@ static boolean_t G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 	g_edict_t *f, *of;
 	int index;
 
-	if (!other->client->locals.team)
+	if (!other->client->persistent.team)
 		return false;
 
 	if (!(t = G_TeamForFlag(ent)))
@@ -378,7 +378,7 @@ static boolean_t G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 	if (!(of = G_FlagForTeam(ot)))
 		return false;
 
-	if (t == other->client->locals.team) { // our flag
+	if (t == other->client->persistent.team) { // our flag
 
 		if (ent->spawn_flags & SF_ITEM_DROPPED) { // return it if necessary
 
@@ -388,15 +388,15 @@ static boolean_t G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTN_NONE);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag\n",
-					other->client->locals.net_name, t->name);
+					other->client->persistent.net_name, t->name);
 
 			return true;
 		}
 
 		index = ITEM_INDEX(of->item);
-		if (other->client->locals.inventory[index]) { // capture
+		if (other->client->persistent.inventory[index]) { // capture
 
-			other->client->locals.inventory[index] = 0;
+			other->client->persistent.inventory[index] = 0;
 			other->s.effects &= ~G_EffectForTeam(ot);
 			other->s.model3 = 0;
 
@@ -406,10 +406,10 @@ static boolean_t G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 			gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTN_NONE);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
-					other->client->locals.net_name, ot->name);
+					other->client->persistent.net_name, ot->name);
 
 			t->captures++;
-			other->client->locals.captures++;
+			other->client->persistent.captures++;
 
 			return false;
 		}
@@ -424,7 +424,7 @@ static boolean_t G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 
 	// take it
 	index = ITEM_INDEX(f->item);
-	other->client->locals.inventory[index] = 1;
+	other->client->persistent.inventory[index] = 1;
 
 	// link the flag model to the player
 	other->s.model3 = gi.ModelIndex(f->item->model);
@@ -432,7 +432,7 @@ static boolean_t G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTN_NONE);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
-			other->client->locals.net_name, t->name);
+			other->client->persistent.net_name, t->name);
 
 	other->s.effects |= G_EffectForTeam(t);
 	return true;
@@ -446,7 +446,7 @@ void G_TossFlag(g_edict_t *ent) {
 	g_edict_t *of;
 	int index;
 
-	if (!(ot = G_OtherTeam(ent->client->locals.team)))
+	if (!(ot = G_OtherTeam(ent->client->persistent.team)))
 		return;
 
 	if (!(of = G_FlagForTeam(ot)))
@@ -454,16 +454,16 @@ void G_TossFlag(g_edict_t *ent) {
 
 	index = ITEM_INDEX(of->item);
 
-	if (!ent->client->locals.inventory[index])
+	if (!ent->client->persistent.inventory[index])
 		return;
 
-	ent->client->locals.inventory[index] = 0;
+	ent->client->persistent.inventory[index] = 0;
 
 	ent->s.model3 = 0;
 	ent->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
-			ent->client->locals.net_name, ot->name);
+			ent->client->persistent.net_name, ot->name);
 
 	G_DropItem(ent, of->item);
 }

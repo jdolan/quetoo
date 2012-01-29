@@ -47,9 +47,9 @@ void G_ClientToIntermission(g_edict_t *ent) {
 	ent->client->show_scores = true;
 
 	// hide the hud
-	ent->client->locals.weapon = NULL;
+	ent->client->persistent.weapon = NULL;
 	ent->client->ammo_index = 0;
-	ent->client->locals.armor = 0;
+	ent->client->persistent.armor = 0;
 	ent->client->pickup_msg_time = 0;
 }
 
@@ -64,36 +64,33 @@ static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 	memset(&s, 0, sizeof(s));
 
 	s.entity_num = ent - g_game.edicts - 1;
-	s.ping = ent->client->ping;
+	s.ping = ent->client->ping < 999 ? ent->client->ping : 999;
 
-	if (ent->client->locals.spectator) {
+	if (ent->client->persistent.spectator) {
 		s.team = 0xff;
-	} else if (ent->client->locals.team) {
-		s.team = ent->client->locals.team == &g_team_good ? 1 : 2;
+	} else if (ent->client->persistent.team) {
+		s.team = ent->client->persistent.team == &g_team_good ? 1 : 2;
 	}
 
-	s.team = ent->client->locals.spectator;
-	s.score = ent->client->locals.score;
-	s.captures = ent->client->locals.captures;
+	s.team = ent->client->persistent.spectator;
+	s.score = ent->client->persistent.score;
+	s.captures = ent->client->persistent.captures;
 
-	printf("updated %zu bytes for %s\n", sizeof(s), ent->client->locals.net_name);
 	memcpy(*buf, &s, sizeof(s));
 	*buf += sizeof(s);
 }
 
-
 // all scores are dumped into this buffer several times per second
-static char scores_buffer[1024];
+static char scores_buffer[MAX_STRING_CHARS];
 
 /*
  * G_UpdateScores
+ *
+ * Returns the size of the resulting scores buffer.
  */
-static void G_UpdateScores(void) {
+static unsigned int G_UpdateScores(void) {
 	char *buf = scores_buffer;
-	int i;
-
-	if (g_level.frame_num % gi.frame_rate)
-		return;
+	int i, j = 0;
 
 	memset(buf, 0, sizeof(buf));
 
@@ -104,9 +101,10 @@ static void G_UpdateScores(void) {
 			continue;
 
 		G_UpdateScores_(e, &buf);
+		j++;
 	}
 
-	*++buf = '\0';
+	return j * sizeof(g_client_score_t);
 }
 
 /*
@@ -115,13 +113,19 @@ static void G_UpdateScores(void) {
  * Assemble the binary scores data for the client.
  */
 void G_ClientScores(g_edict_t *ent) {
+	unsigned short length;
 
-	G_UpdateScores();
-	printf("%d\n", (int)strlen(scores_buffer));
+	if (ent->client->scores_time && (ent->client->scores_time < g_level.time))
+		return;
+
+	length = G_UpdateScores();
 
 	gi.WriteByte(SV_CMD_SCORES);
-	gi.WriteString(scores_buffer);
+	gi.WriteShort(length);
+	gi.WriteData(scores_buffer, length);
 	gi.Unicast(ent, false);
+
+	ent->client->scores_time = g_level.time + 0.5;
 }
 
 /*
@@ -131,7 +135,7 @@ void G_ClientStats(g_edict_t *ent) {
 	g_item_t *item;
 
 	// health
-	if (ent->client->locals.spectator || ent->dead) {
+	if (ent->client->persistent.spectator || ent->dead) {
 		ent->client->ps.stats[STAT_HEALTH_ICON] = 0;
 		ent->client->ps.stats[STAT_HEALTH] = 0;
 	} else {
@@ -147,22 +151,22 @@ void G_ClientStats(g_edict_t *ent) {
 		item = &g_items[ent->client->ammo_index];
 		ent->client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(item->icon);
 		ent->client->ps.stats[STAT_AMMO]
-				= ent->client->locals.inventory[ent->client->ammo_index];
+				= ent->client->persistent.inventory[ent->client->ammo_index];
 		ent->client->ps.stats[STAT_AMMO_LOW] = item->quantity;
 	}
 
 	// armor
-	if (ent->client->locals.armor >= 200)
+	if (ent->client->persistent.armor >= 200)
 		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_bodyarmor");
-	else if (ent->client->locals.armor >= 100)
+	else if (ent->client->persistent.armor >= 100)
 		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_combatarmor");
-	else if (ent->client->locals.armor >= 50)
+	else if (ent->client->persistent.armor >= 50)
 		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_jacketarmor");
-	else if (ent->client->locals.armor > 0)
+	else if (ent->client->persistent.armor > 0)
 		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_shard");
 	else
 		ent->client->ps.stats[STAT_ARMOR_ICON] = 0;
-	ent->client->ps.stats[STAT_ARMOR] = ent->client->locals.armor;
+	ent->client->ps.stats[STAT_ARMOR] = ent->client->persistent.armor;
 
 	// pickup message
 	if (g_level.time > ent->client->pickup_msg_time) {
@@ -171,11 +175,11 @@ void G_ClientStats(g_edict_t *ent) {
 	}
 
 	// weapon
-	if (ent->client->locals.weapon) {
+	if (ent->client->persistent.weapon) {
 		ent->client->ps.stats[STAT_WEAPON_ICON] = gi.ImageIndex(
-				ent->client->locals.weapon->icon);
+				ent->client->persistent.weapon->icon);
 		ent->client->ps.stats[STAT_WEAPON] = gi.ModelIndex(
-				ent->client->locals.weapon->model);
+				ent->client->persistent.weapon->model);
 	} else {
 		ent->client->ps.stats[STAT_WEAPON_ICON] = 0;
 		ent->client->ps.stats[STAT_WEAPON] = 0;
@@ -184,13 +188,13 @@ void G_ClientStats(g_edict_t *ent) {
 	// scoreboard
 	ent->client->ps.stats[STAT_SCORES] = 0;
 
-	if (ent->client->locals.health <= 0 || g_level.intermission_time
+	if (ent->client->persistent.health <= 0 || g_level.intermission_time
 			|| ent->client->show_scores)
 		ent->client->ps.stats[STAT_SCORES] |= 1;
 
 	// frags and captures
-	ent->client->ps.stats[STAT_FRAGS] = ent->client->locals.score;
-	ent->client->ps.stats[STAT_CAPTURES] = ent->client->locals.captures;
+	ent->client->ps.stats[STAT_FRAGS] = ent->client->persistent.score;
+	ent->client->ps.stats[STAT_CAPTURES] = ent->client->persistent.captures;
 
 	ent->client->ps.stats[STAT_SPECTATOR] = 0;
 
@@ -199,8 +203,8 @@ void G_ClientStats(g_edict_t *ent) {
 	else
 		ent->client->ps.stats[STAT_VOTE] = 0;
 
-	if ((g_level.teams || g_level.ctf) && ent->client->locals.team) { // send team_name
-		if (ent->client->locals.team == &g_team_good)
+	if ((g_level.teams || g_level.ctf) && ent->client->persistent.team) { // send team_name
+		if (ent->client->persistent.team == &g_team_good)
 			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_GOOD;
 		else
 			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_EVIL;
@@ -212,7 +216,7 @@ void G_ClientStats(g_edict_t *ent) {
 	ent->client->ps.stats[STAT_READY] = 0;
 
 	if (g_level.match && g_level.match_time) // match enabled but not started
-		ent->client->ps.stats[STAT_READY] = ent->client->locals.ready;
+		ent->client->ps.stats[STAT_READY] = ent->client->persistent.ready;
 
 	if (g_level.rounds) // rounds enabled, show the round number
 		ent->client->ps.stats[STAT_ROUND] = g_level.round_num + 1;
@@ -232,7 +236,8 @@ void G_ClientSpectatorStats(g_edict_t *ent) {
 	// layouts are independent in spectator
 	cl->ps.stats[STAT_SCORES] = 0;
 
-	if (cl->locals.health <= 0 || g_level.intermission_time || cl->show_scores)
+	if (cl->persistent.health <= 0 || g_level.intermission_time
+			|| cl->show_scores)
 		cl->ps.stats[STAT_SCORES] |= 1;
 
 	if (cl->chase_target && cl->chase_target->in_use) {

@@ -619,9 +619,9 @@ g_team_t *G_SmallestTeam(void) {
 
 		cl = g_game.edicts[i + 1].client;
 
-		if (cl->locals.team == &g_team_good)
+		if (cl->persistent.team == &g_team_good)
 			g++;
-		else if (cl->locals.team == &g_team_evil)
+		else if (cl->persistent.team == &g_team_evil)
 			e++;
 	}
 
@@ -646,7 +646,7 @@ g_client_t *G_ClientByName(char *name) {
 			continue;
 
 		cl = g_game.edicts[i + 1].client;
-		if ((j = strcmp(name, cl->locals.net_name)) < min) {
+		if ((j = strcmp(name, cl->persistent.net_name)) < min) {
 			ret = cl;
 			min = j;
 		}

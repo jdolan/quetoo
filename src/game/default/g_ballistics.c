@@ -769,12 +769,12 @@ void G_RailgunProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir,
 
 	// use team colors, or client's color
 	if (g_level.teams || g_level.ctf) {
-		if (self->client->locals.team == &g_team_good)
+		if (self->client->persistent.team == &g_team_good)
 			color = ColorByName("blue", 0);
 		else
 			color = ColorByName("red", 0);
 	} else
-		color = self->client->locals.color;
+		color = self->client->persistent.color;
 
 	gi.WriteByte(color);
 

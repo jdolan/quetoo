@@ -136,6 +136,7 @@ typedef struct g_import_s {
 	// network messaging
 	void (*Multicast)(vec3_t origin, multicast_t to);
 	void (*Unicast)(g_edict_t *ent, boolean_t reliable);
+	void (*WriteData)(void *data, size_t len);
 	void (*WriteChar)(int c);
 	void (*WriteByte)(int c);
 	void (*WriteShort)(int c);

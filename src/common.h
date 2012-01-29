@@ -43,9 +43,10 @@ typedef struct size_buf_s {
 void Sb_Init(size_buf_t *buf, byte *data, size_t length);
 void Sb_Clear(size_buf_t *buf);
 void *Sb_Alloc(size_buf_t *buf, size_t length);
-void Sb_Write(size_buf_t *buf, const void *data, size_t length);
+void Sb_Write(size_buf_t *buf, const void *data, size_t len);
 void Sb_Print(size_buf_t *buf, const char *data);
 
+void Msg_WriteData(size_buf_t *sb, void *data, size_t len);
 void Msg_WriteChar(size_buf_t *sb, int c);
 void Msg_WriteByte(size_buf_t *sb, int c);
 void Msg_WriteShort(size_buf_t *sb, int c);
@@ -61,6 +62,7 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *
 void Msg_WriteDir(size_buf_t *sb, vec3_t vector);
 
 void Msg_BeginReading(size_buf_t *sb);
+void Msg_ReadData(size_buf_t *sb, void *data, size_t len);
 int Msg_ReadChar(size_buf_t *sb);
 int Msg_ReadByte(size_buf_t *sb);
 int Msg_ReadShort(size_buf_t *sb);
@@ -75,7 +77,6 @@ float Msg_ReadAngle16(size_buf_t *sb);
 void Msg_ReadDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
 void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, unsigned short bits, unsigned short number);
 void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
-void Msg_ReadData(size_buf_t *sb, void *buffer, size_t size);
 
 
 /*

@@ -100,7 +100,7 @@ void G_ResetVote(void) {
 	for (i = 0; i < sv_max_clients->integer; i++) { //reset vote flags
 		if (!g_game.edicts[i + 1].in_use)
 			continue;
-		g_game.edicts[i + 1].client->locals.vote = VOTE_NO_OP;
+		g_game.edicts[i + 1].client->persistent.vote = VOTE_NO_OP;
 	}
 
 	gi.ConfigString(CS_VOTE, NULL);
@@ -187,36 +187,36 @@ static void G_RestartGame(boolean_t teamz) {
 		ent = &g_game.edicts[i + 1];
 		cl = ent->client;
 
-		cl->locals.ready = false; // back to warmup
-		cl->locals.score = 0;
-		cl->locals.captures = 0;
+		cl->persistent.ready = false; // back to warmup
+		cl->persistent.score = 0;
+		cl->persistent.captures = 0;
 
 		if (teamz) // reset teams
-			cl->locals.team = NULL;
+			cl->persistent.team = NULL;
 
 		// determine spectator or team affiliations
 
 		if (g_level.match) {
-			if (cl->locals.match_num == g_level.match_num)
-				cl->locals.spectator = false;
+			if (cl->persistent.match_num == g_level.match_num)
+				cl->persistent.spectator = false;
 			else
-				cl->locals.spectator = true;
+				cl->persistent.spectator = true;
 		}
 
 		else if (g_level.rounds) {
-			if (cl->locals.round_num == g_level.round_num)
-				cl->locals.spectator = false;
+			if (cl->persistent.round_num == g_level.round_num)
+				cl->persistent.spectator = false;
 			else
-				cl->locals.spectator = true;
+				cl->persistent.spectator = true;
 		}
 
 		if (g_level.teams || g_level.ctf) {
 
-			if (!cl->locals.team) {
+			if (!cl->persistent.team) {
 				if (g_auto_join->value)
 					G_AddClientToTeam(ent, G_SmallestTeam()->name);
 				else
-					cl->locals.spectator = true;
+					cl->persistent.spectator = true;
 			}
 		}
 
@@ -405,13 +405,13 @@ static void G_CheckRoundStart(void) {
 
 		cl = g_game.edicts[i + 1].client;
 
-		if (cl->locals.spectator)
+		if (cl->persistent.spectator)
 			continue;
 
 		clients++;
 
 		if (g_level.teams)
-			cl->locals.team == &g_team_good ? g++ : e++;
+			cl->persistent.team == &g_team_good ? g++ : e++;
 	}
 
 	if (clients < 2) // need at least 2 clients to trigger countdown
@@ -455,17 +455,17 @@ static void G_CheckRoundLimit() {
 		ent = &g_game.edicts[i + 1];
 		cl = ent->client;
 
-		if (cl->locals.round_num != g_level.round_num)
+		if (cl->persistent.round_num != g_level.round_num)
 			continue; // they were intentionally spectating, skip them
 
 		if (g_level.teams || g_level.ctf) { // rejoin a team
-			if (cl->locals.team)
-				G_AddClientToTeam(ent, cl->locals.team->name);
+			if (cl->persistent.team)
+				G_AddClientToTeam(ent, cl->persistent.team->name);
 			else
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
 		} else
 			// just rejoin the game
-			cl->locals.spectator = false;
+			cl->persistent.spectator = false;
 
 		G_ClientRespawn(ent, false);
 	}
@@ -494,13 +494,13 @@ static void G_CheckRoundEnd(void) {
 
 		cl = g_game.edicts[j + 1].client;
 
-		if (cl->locals.spectator) // true spectator, or dead
+		if (cl->persistent.spectator) // true spectator, or dead
 			continue;
 
 		winner = &g_game.edicts[j + 1];
 
 		if (g_level.teams)
-			cl->locals.team == &g_team_good ? g++ : e++;
+			cl->persistent.team == &g_team_good ? g++ : e++;
 
 		clients++;
 	}
@@ -530,7 +530,7 @@ static void G_CheckRoundEnd(void) {
 			continue;
 
 		if (g_level.teams || g_level.ctf) {
-			if (cl->locals.team != winner->client->locals.team)
+			if (cl->persistent.team != winner->client->persistent.team)
 				return;
 		} else {
 			if (g_game.edicts[i + 1].owner != winner)
@@ -542,8 +542,8 @@ static void G_CheckRoundEnd(void) {
 	gi.BroadcastPrint(
 			PRINT_HIGH,
 			"%s wins!\n",
-			(g_level.teams || g_level.ctf ? winner->client->locals.team->name
-					: winner->client->locals.net_name));
+			(g_level.teams || g_level.ctf ? winner->client->persistent.team->name
+					: winner->client->persistent.net_name));
 
 	g_level.round_time = 0;
 
@@ -570,11 +570,11 @@ static void G_CheckMatchEnd(void) {
 
 		cl = g_game.edicts[i + 1].client;
 
-		if (cl->locals.spectator)
+		if (cl->persistent.spectator)
 			continue;
 
 		if (g_level.teams || g_level.ctf)
-			cl->locals.team == &g_team_good ? g++ : e++;
+			cl->persistent.team == &g_team_good ? g++ : e++;
 
 		clients++;
 	}
@@ -718,7 +718,7 @@ static void G_CheckRules(void) {
 				if (!g_game.edicts[i + 1].in_use)
 					continue;
 
-				if (cl->locals.score >= g_level.frag_limit) {
+				if (cl->persistent.score >= g_level.frag_limit) {
 					gi.BroadcastPrint(PRINT_HIGH, "Fraglimit hit\n");
 					G_EndLevel();
 					return;

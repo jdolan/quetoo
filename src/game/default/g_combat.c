@@ -34,7 +34,7 @@ boolean_t G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
 	if (!ent1->client || !ent2->client)
 		return false;
 
-	return ent1->client->locals.team == ent2->client->locals.team;
+	return ent1->client->persistent.team == ent2->client->persistent.team;
 }
 
 /*
@@ -156,12 +156,12 @@ static int G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal,
 	if (dflags & DAMAGE_NO_ARMOR)
 		return 0;
 
-	if (damage > ent->client->locals.armor)
-		saved = ent->client->locals.armor;
+	if (damage > ent->client->persistent.armor)
+		saved = ent->client->persistent.armor;
 	else
 		saved = damage;
 
-	ent->client->locals.armor -= saved;
+	ent->client->persistent.armor -= saved;
 
 	G_SpawnDamage(TE_BLOOD, point, normal, saved);
 
@@ -214,7 +214,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker,
 
 	// quad damage affects both damage and knockback
 	if (attacker->client
-			&& attacker->client->locals.inventory[quad_damage_index]) {
+			&& attacker->client->persistent.inventory[quad_damage_index]) {
 		damage = (int) (damage * QUAD_DAMAGE_FACTOR);
 		knockback = (int) (knockback * QUAD_KNOCKBACK_FACTOR);
 	}

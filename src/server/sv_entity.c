@@ -224,7 +224,7 @@ void Sv_WriteFrameToClient(sv_client_t *client, size_buf_t *msg) {
 
 	// send over the area_bits
 	Msg_WriteByte(msg, frame->area_bytes);
-	Sb_Write(msg, frame->area_bits, frame->area_bytes);
+	Msg_WriteData(msg, frame->area_bits, frame->area_bytes);
 
 	// delta encode the playerstate
 	Sv_WritePlayerstateToClient(client, old_frame, frame, msg);

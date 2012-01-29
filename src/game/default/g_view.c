@@ -350,7 +350,7 @@ void G_ClientEndFrame(g_edict_t *ent) {
 	G_ClientAnimation(ent);
 
 	// set the stats for this client
-	if (ent->client->locals.spectator)
+	if (ent->client->persistent.spectator)
 		G_ClientSpectatorStats(ent);
 	else
 		G_ClientStats(ent);
