@@ -19,13 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_LOCAL_H__
-#define __CG_LOCAL_H__
+#ifndef __CG_SCORES_H__
+#define __CG_SCORES_H__
 
-#include "cg_hud.h"
-#include "cg_main.h"
-#include "cg_scores.h"
 #include "cg_types.h"
-#include "cg_view.h"
 
+#ifdef __CG_LOCAL_H__
+void Cg_ParseScores(void);
+void Cg_DrawScores(player_state_t *ps);
 #endif /* __CG_LOCAL_H__ */
+
+#endif /* __CG_SCORES_H__ */

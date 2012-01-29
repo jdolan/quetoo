@@ -71,14 +71,10 @@ static void Cg_UpdateMedia(void) {
  * Cg_ParseMessage
  */
 static boolean_t Cg_ParseMessage(int cmd) {
-	byte buffer[MAX_STRING_CHARS];
-	int i;
 
 	switch (cmd) {
 	case SV_CMD_SCORES:
-		i = cgi.ReadShort();
-		cgi.ReadData(buffer, i);
-		printf("%d bytes\n", i);
+		Cg_ParseScores();
 		return true;
 
 	default:

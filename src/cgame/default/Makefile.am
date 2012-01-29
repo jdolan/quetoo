@@ -4,6 +4,7 @@ noinst_HEADERS = \
 	cg_hud.h \
 	cg_local.h \
 	cg_main.h \
+	cg_scores.h \
 	cg_types.h \
 	cg_view.h
 
@@ -13,6 +14,7 @@ cgamelib_LTLIBRARIES = \
 cgame_la_SOURCES = \
 	cg_hud.c \
 	cg_main.c \
+	cg_scores.c \
 	cg_view.c
 
 cgame_la_CFLAGS = \

@@ -488,6 +488,8 @@ static void Cg_DrawBlend(player_state_t *ps) {
  */
 void Cg_DrawHud(player_state_t *ps) {
 
+	Cg_DrawScores(ps);
+
 	if (!cg_hud->integer)
 		return;
 
