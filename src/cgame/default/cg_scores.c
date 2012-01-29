@@ -71,8 +71,8 @@ void Cg_ParseScores(void) {
 		}
 		else {
 			if (teams) {
-				cg_scores[i].team = i % 1 ? CS_TEAM_GOOD : CS_TEAM_EVIL;
-				cg_scores[i].color = ColorByName(i % 1 ? "blue" : "red", 0);
+				cg_scores[i].team = i & 1 ? CS_TEAM_GOOD : CS_TEAM_EVIL;
+				cg_scores[i].color = ColorByName(i & 1 ? "blue" : "red", 0);
 			}
 			else {
 				cg_scores[i].team = 0;
@@ -167,45 +167,43 @@ void Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
  * Cg_DrawTeamScores
  */
 void Cg_DrawTeamScores(void) {
-	r_pixel_t x, y, cw, ch;
+	r_pixel_t x, y;
+	short rows;
 	size_t i;
-	short j, rows;
 
-	cgi.BindFont("small", &cw, &ch);
-
-	rows = (*cgi.h - (2 * SCORES_START_Y)) / ch;
+	rows = (*cgi.h - (2 * SCORES_START_Y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
 
-	x = *cgi.x + (*cgi.w / 2) - (SCORES_COL_WIDTH / 2);
+	x = (*cgi.width / 2) - SCORES_COL_WIDTH;
+	y = *cgi.y + SCORES_START_Y;
 
-	for (i = j = 0; i < cg_num_scores; i++) {
+	for (i = 0; i < cg_num_scores; i++) {
 		const player_score_t *s = &cg_scores[i];
 
 		if (s->team != CS_TEAM_GOOD)
 			continue;
 
-		if (j == rows)
+		if ((short) i == rows)
 			break;
 
-		y = *cgi.y + SCORES_START_Y + ch * j++;
-
 		Cg_DrawScore(x, y, s);
+		y += SCORES_ROW_HEIGHT;
 	}
 
-	x = *cgi.x + (*cgi.w / 2) - (SCORES_COL_WIDTH);
+	x += SCORES_COL_WIDTH;
+	y = *cgi.y + SCORES_START_Y;
 
-	for (i = j = 0; i < cg_num_scores; i++) {
+	for (i = 0; i < cg_num_scores; i++) {
 		const player_score_t *s = &cg_scores[i];
 
 		if (s->team != CS_TEAM_EVIL)
 			continue;
 
-		if (j == rows)
+		if ((short) i == rows)
 			break;
 
-		y = *cgi.y + SCORES_START_Y + ch * j++;
-
 		Cg_DrawScore(x, y, s);
+		y += SCORES_ROW_HEIGHT;
 	}
 }
 
