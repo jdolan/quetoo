@@ -512,9 +512,10 @@ g_team_t *G_TeamByName(char *c) {
 	if (!c || !*c)
 		return NULL;
 
-	if (!strcasecmp(g_team_good.name, c))
+	if (!StrColorCmp(g_team_good.name, c))
 		return &g_team_good;
-	if (!strcasecmp(g_team_evil.name, c))
+
+	if (!StrColorCmp(g_team_evil.name, c))
 		return &g_team_evil;
 
 	return NULL;

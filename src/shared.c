@@ -877,6 +877,20 @@ void StripColor(const char *in, char *out) {
 }
 
 /*
+ * StrColorCmp
+ *
+ * Performs a color- and case-insensitive string comparison.
+ */
+int StrColorCmp(const char *s1, const char *s2) {
+	char string1[MAX_STRING_CHARS], string2[MAX_STRING_CHARS];
+
+	StripColor(s1, string1);
+	StripColor(s2, string2);
+
+	return strcasecmp(string1, string2);
+}
+
+/*
  * va
  *
  * A shorthand sprintf into a temp buffer.

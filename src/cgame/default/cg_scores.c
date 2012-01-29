@@ -24,7 +24,7 @@
 #define SCORES_COL_WIDTH 240
 #define SCORES_ROW_HEIGHT 48
 #define SCORES_ICON_WIDTH 48
-#define SCORES_START_Y 64
+#define SCORES_START_Y 96
 
 static player_score_t cg_scores[MAX_CLIENTS];
 static size_t cg_num_scores;
@@ -55,7 +55,7 @@ void Cg_ParseScores(void) {
 
 	cg_num_scores = len / sizeof(player_score_t);
 
-	/*
+	/**/
 	// to test the scoreboard, uncomment this block
 	size_t i;
 	boolean_t teams = atoi(cgi.ConfigString(CS_TEAMS));
@@ -68,20 +68,18 @@ void Cg_ParseScores(void) {
 		if (i % 6 == 0) { // some spectators
 			cg_scores[i].team = 0xff;
 			cg_scores[i].color = 0;
-		}
-		else {
+		} else {
 			if (teams) {
 				cg_scores[i].team = i & 1 ? CS_TEAM_GOOD : CS_TEAM_EVIL;
 				cg_scores[i].color = ColorByName(i & 1 ? "blue" : "red", 0);
-			}
-			else {
+			} else {
 				cg_scores[i].team = 0;
 				cg_scores[i].color = (i + 16) * 3;
 			}
 		}
 	}
 	cg_num_scores = i;
-	*/
+	/**/
 
 	qsort((void *) cg_scores, cg_num_scores, sizeof(player_score_t),
 			Cg_ParseScores_Compare);
@@ -89,18 +87,36 @@ void Cg_ParseScores(void) {
 
 /*
  * Cg_DrawScoresHeader
+ *
+ * Returns the vertical screen coordinate where scores should be drawn.
  */
-void Cg_DrawScoresHeader(void) {
+r_pixel_t Cg_DrawScoresHeader(void) {
 	const char *s = cgi.ConfigString(CS_NAME);
 	const r_pixel_t sw = cgi.StringWidth(s);
-	r_pixel_t cw, ch;
+	r_pixel_t cw, ch, x, y;
 
 	cgi.BindFont("medium", &cw, &ch);
 
-	const r_pixel_t x = *cgi.x + (*cgi.w - sw) / 2;
-	const r_pixel_t y = *cgi.y + SCORES_START_Y - ch - 4;
+	y = *cgi.y + 64 - ch - 4;
 
+	// map title
+	x = *cgi.width / 2 - sw / 2;
 	cgi.DrawString(x, y, s, CON_COLOR_DEFAULT);
+
+	y += ch;
+
+	// team names
+	if (atoi(cgi.ConfigString(CS_TEAMS)) || atoi(cgi.ConfigString(CS_CTF))) {
+		r_pixel_t x = *cgi.width / 2 - SCORES_COL_WIDTH;
+
+		cgi.DrawString(x, y, cgi.ConfigString(CS_TEAM_GOOD), CON_COLOR_BLUE);
+		x += SCORES_COL_WIDTH;
+
+		cgi.DrawString(x, y, cgi.ConfigString(CS_TEAM_EVIL), CON_COLOR_RED);
+		y += ch;
+	}
+
+	return y;
 }
 
 /*
@@ -126,7 +142,7 @@ void Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 
 	// background
 	{
-		const float fa = s->player_num == *cgi.player_num ? 0.3 : 0.15;
+		const float fa = /*s->player_num == *cgi.player_num ? 0.3 :*/0.15;
 		const r_pixel_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
 		const r_pixel_t fh = SCORES_ROW_HEIGHT - 1;
 
@@ -166,7 +182,7 @@ void Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 /*
  * Cg_DrawTeamScores
  */
-void Cg_DrawTeamScores(void) {
+void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	r_pixel_t x, y;
 	short rows;
 	size_t i;
@@ -175,7 +191,7 @@ void Cg_DrawTeamScores(void) {
 	rows = rows < 3 ? 3 : rows;
 
 	x = (*cgi.width / 2) - SCORES_COL_WIDTH;
-	y = *cgi.y + SCORES_START_Y;
+	y = start_y;
 
 	for (i = 0; i < cg_num_scores; i++) {
 		const player_score_t *s = &cg_scores[i];
@@ -191,7 +207,7 @@ void Cg_DrawTeamScores(void) {
 	}
 
 	x += SCORES_COL_WIDTH;
-	y = *cgi.y + SCORES_START_Y;
+	y = start_y;
 
 	for (i = 0; i < cg_num_scores; i++) {
 		const player_score_t *s = &cg_scores[i];
@@ -208,25 +224,12 @@ void Cg_DrawTeamScores(void) {
 }
 
 /*
- * Cg_DrawScores
+ * Cg_DrawDmScores
  */
-void Cg_DrawScores(const player_state_t *ps) {
+static void Cg_DrawDmScores(const r_pixel_t start_y) {
 	short rows, cols;
 	r_pixel_t width;
 	size_t i;
-
-	if (!ps->stats[STAT_SCORES])
-		return;
-
-	if (!cg_num_scores)
-		return;
-
-	Cg_DrawScoresHeader();
-
-	if (atoi(cgi.ConfigString(CS_TEAMS)) || atoi(cgi.ConfigString(CS_CTF))) {
-		Cg_DrawTeamScores();
-		return;
-	}
 
 	rows = (*cgi.h - (2 * SCORES_START_Y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
@@ -243,9 +246,30 @@ void Cg_DrawScores(const player_state_t *ps) {
 		const short col = i / rows;
 
 		const r_pixel_t x = *cgi.width / 2 - width / 2 + col * SCORES_COL_WIDTH;
-		const r_pixel_t y = *cgi.y + SCORES_START_Y + (i % rows)
-				* SCORES_ROW_HEIGHT;
+		const r_pixel_t y = start_y + (i % rows) * SCORES_ROW_HEIGHT;
 
 		Cg_DrawScore(x, y, s);
+	}
+}
+
+/*
+ * Cg_DrawScores
+ */
+void Cg_DrawScores(const player_state_t *ps) {
+
+	if (!ps->stats[STAT_SCORES])
+		return;
+
+	if (!cg_num_scores)
+		return;
+
+	const r_pixel_t start_y = Cg_DrawScoresHeader();
+
+	if (atoi(cgi.ConfigString(CS_TEAMS))) {
+		Cg_DrawTeamScores(start_y);
+	} else if (atoi(cgi.ConfigString(CS_CTF))) {
+		Cg_DrawTeamScores(start_y);
+	} else {
+		Cg_DrawDmScores(start_y);
 	}
 }

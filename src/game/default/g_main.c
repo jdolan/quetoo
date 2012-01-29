@@ -82,10 +82,10 @@ void G_ResetTeams(void) {
 	memset(&g_team_evil, 0, sizeof(g_team_evil));
 
 	strcpy(g_team_good.name, "Good");
-	gi.ConfigString(CS_TEAM_GOOD, va("%15s", g_team_good.name));
+	gi.ConfigString(CS_TEAM_GOOD, g_team_good.name);
 
 	strcpy(g_team_evil.name, "Evil");
-	gi.ConfigString(CS_TEAM_EVIL, va("%15s", g_team_evil.name));
+	gi.ConfigString(CS_TEAM_EVIL, g_team_evil.name);
 
 	strcpy(g_team_good.skin, "qforcer/blue");
 	strcpy(g_team_evil.skin, "qforcer/red");

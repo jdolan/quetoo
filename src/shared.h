@@ -71,6 +71,7 @@ const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
 void StripExtension(const char *in, char *out);
 void StripColor(const char *in, char *out);
+int StrColorCmp(const char *s1, const char *s2);
 char *ParseToken(const char **data_p);
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 

@@ -827,7 +827,7 @@ static void G_Teamname_f(g_edict_t *ent) {
 	t->name_time = g_level.time;
 
 	cs = t == &g_team_good ? CS_TEAM_GOOD : CS_TEAM_EVIL;
-	gi.ConfigString(cs, va("%15s", t->name));
+	gi.ConfigString(cs, t->name);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n",
 			ent->client->persistent.net_name, t->name);
