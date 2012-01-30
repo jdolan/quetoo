@@ -96,6 +96,9 @@ static char scores_buffer[MAX_STRING_CHARS];
  * G_UpdateScores
  *
  * Returns the size of the resulting scores buffer.
+ *
+ * FIXME: Because we can only send the first 32 or so scores, we should sort
+ * the clients here before serializing them.
  */
 static unsigned int G_UpdateScores(void) {
 	char *buf = scores_buffer;
@@ -103,6 +106,7 @@ static unsigned int G_UpdateScores(void) {
 
 	memset(buf, 0, sizeof(buf));
 
+	// assemble the client scores
 	for (i = 0; i < sv_max_clients->integer; i++) {
 		const g_edict_t *e = &g_game.edicts[i + 1];
 
@@ -110,7 +114,29 @@ static unsigned int G_UpdateScores(void) {
 			continue;
 
 		G_UpdateScores_(e, &buf);
-		j++;
+
+		if (j++ == 32)
+			break;
+	}
+
+	// and optionally concatenate the team scores
+	if (g_teams->integer || g_ctf->integer) {
+		player_score_t s[2];
+
+		memset(s, 0, sizeof(s));
+
+		s[0].player_num = MAX_CLIENTS;
+		s[0].team = CS_TEAM_GOOD;
+		s[0].score = g_team_good.score;
+		s[0].captures = g_team_good.captures;
+
+		s[1].player_num = MAX_CLIENTS;
+		s[1].team = CS_TEAM_EVIL;
+		s[1].score = g_team_evil.score;
+		s[1].captures = g_team_evil.captures;
+
+		memcpy(buf, s, sizeof(s));
+		j += 2;
 	}
 
 	return j * sizeof(player_score_t);
