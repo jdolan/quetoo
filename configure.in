@@ -447,24 +447,41 @@ AC_ARG_ENABLE(warn,
 )
 AC_SUBST(WARN_CFLAGS)
 
+dnl ----------------------
+dnl Compiler optimizations
+dnl ----------------------
+
+AC_MSG_CHECKING(whether to include compiler optimizations)
+
+OPT_CFLAGS=""
+
+AC_ARG_ENABLE(optimizations,
+	AS_HELP_STRING(
+		[--enable-optimizations], [enable compiler optimizations]
+	),
+	AC_MSG_RESULT(yes)
+	OPT_CFLAGS="-O3 $OPT_CFLAGS",
+	AC_MSG_RESULT(no)
+)
+AC_SUBST(OPT_CFLAGS)
+
 dnl ---------------------
 dnl Debugging information
 dnl ---------------------
 
 AC_MSG_CHECKING(whether to include debugging information)
 
-DEBUG_CFLAGS="-g"
+DEBUG_CFLAGS=""
 DEBUG_LIBS=""
 
 AC_ARG_ENABLE(debug,
 	AS_HELP_STRING(
 		[--disable-debug], [don\'t include debugging information]
 	),
-	AC_MSG_RESULT(yes)
-	DEBUG_CFLAGS="$DEBUG_CFLAGS $HOST_DEBUG_CFLAGS"
-	DEBUG_LIBS="$DEBUG_LIBS $HOST_DEBUG_LIBS",
+	AC_MSG_RESULT(yes),
 	AC_MSG_RESULT(no)
-	DEBUG_CFLAGS="-O2"
+	DEBUG_CFLAGS="-g $DEBUG_CFLAGS $HOST_DEBUG_CFLAGS"
+	DEBUG_LIBS="$DEBUG_LIBS $HOST_DEBUG_LIBS"
 )
 AC_SUBST(DEBUG_CFLAGS)
 AC_SUBST(DEBUG_LIBS)
@@ -494,7 +511,7 @@ dnl ----------------------------------------
 dnl Consolidate our core flags and libraries
 dnl ----------------------------------------
 
-BASE_CFLAGS=`echo $CPPFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS`
+BASE_CFLAGS=`echo $CPPFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS`
 BASE_LIBS=`echo $HOST_LIBS $DEBUG_LIBS $PROFILE_LIBS $WARN_LIBS`
 BASE_LDFLAGS=`echo $LDFLAGS`
 
