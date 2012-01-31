@@ -298,6 +298,9 @@ static void Cg_DrawTime(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
 	char *string = cgi.ConfigString(CS_TIME);
 
+	if (!ps->stats[STAT_TIME])
+		return;
+
 	cgi.BindFont("small", NULL, &ch);
 
 	x = *cgi.x + *cgi.w - cgi.StringWidth(string);

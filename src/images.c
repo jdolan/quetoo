@@ -172,7 +172,8 @@ static boolean_t Img_LoadWal(const char *path, SDL_Surface **surf) {
  * Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
  */
-boolean_t Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
+boolean_t Img_LoadTypedImage(const char *name, const char *type,
+		SDL_Surface **surf) {
 	char path[MAX_QPATH];
 	void *buf;
 	int len;
@@ -192,7 +193,7 @@ boolean_t Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **s
 		return false;
 	}
 
-	if (!(*surf = IMG_LoadTyped_RW(rw, 0, (char *)type))) {
+	if (!(*surf = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
 		SDL_FreeRW(rw);
 		Fs_FreeFile(buf);
 		return false;
@@ -332,7 +333,8 @@ void Img_WriteJPEG(const char *path, byte *img_data, int width, int height,
  *
  * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
-void Img_WriteTGARLE(const char *path, byte *img_data, int width, int height, int quality) {
+void Img_WriteTGARLE(const char *path, byte *img_data, int width, int height,
+		int quality __attribute__((unused))) {
 	FILE *tga_file;
 	const unsigned int channels = TGA_CHANNELS; // 24-bit RGB
 	unsigned char header[18];

@@ -30,25 +30,26 @@ cvar_t *m_invert;
 cvar_t *m_yaw;
 cvar_t *m_pitch;
 
-/* power of two please */
-#define MAX_KEYQ 64
+// key strokes queued per frame, power of 2
+#define MAX_KEY_QUEUE 64
 
-struct {
+typedef struct {
 	unsigned int key;
 	unsigned short unicode;
-	int down;
-	int repeat;
-} keyq[MAX_KEYQ];
+	boolean_t down;
+} cl_key_queue_t;
 
-static int keyq_head = 0;
-static int keyq_tail = 0;
+cl_key_queue_t cl_key_queue[MAX_KEY_QUEUE];
+
+static int cl_key_queue_head = 0;
+static int cl_key_queue_tail = 0;
 
 #define EVENT_ENQUEUE(keyNum, keyUnicode, keyDown) \
 	if(keyNum > 0){ \
-		keyq[keyq_head].key = (keyNum); \
-		keyq[keyq_head].unicode = (keyUnicode); \
-		keyq[keyq_head].down = (keyDown); \
-		keyq_head = (keyq_head + 1) & (MAX_KEYQ - 1); \
+		cl_key_queue[cl_key_queue_head].key = (keyNum); \
+		cl_key_queue[cl_key_queue_head].unicode = (keyUnicode); \
+		cl_key_queue[cl_key_queue_head].down = (keyDown); \
+		cl_key_queue_head = (cl_key_queue_head + 1) & (MAX_KEY_QUEUE - 1); \
 	}
 
 /*
@@ -70,21 +71,21 @@ static int keyq_tail = 0;
 
 typedef struct {
 	int down[2]; // key nums holding it down
-	unsigned down_time; // msec timestamp
-	unsigned msec; // msec down this frame
-	int state;
-} kbutton_t;
+	unsigned int down_time; // msec timestamp
+	unsigned int msec; // msec down this frame
+	byte state;
+} cl_button_t;
 
-static kbutton_t in_left, in_right, in_forward, in_back;
-static kbutton_t in_look_up, in_look_down;
-static kbutton_t in_move_left, in_move_right;
-static kbutton_t in_speed, in_attack;
-static kbutton_t in_up, in_down;
+static cl_button_t in_left, in_right, in_forward, in_back;
+static cl_button_t in_look_up, in_look_down;
+static cl_button_t in_move_left, in_move_right;
+static cl_button_t in_speed, in_attack;
+static cl_button_t in_up, in_down;
 
 /*
  * Cl_KeyDown
  */
-static void Cl_KeyDown(kbutton_t *b) {
+static void Cl_KeyDown(cl_button_t *b) {
 	int k;
 	char *c;
 
@@ -121,7 +122,7 @@ static void Cl_KeyDown(kbutton_t *b) {
 /*
  * Cl_KeyUp
  */
-static void Cl_KeyUp(kbutton_t *b) {
+static void Cl_KeyUp(cl_button_t *b) {
 	int k;
 	char *c;
 	unsigned uptime;
@@ -239,7 +240,7 @@ static void Cl_CenterView_f(void) {
  *
  * Returns the fraction of the command interval for which the key was down.
  */
-static float Cl_KeyState(kbutton_t *key, int cmd_msec) {
+static float Cl_KeyState(cl_button_t *key, int cmd_msec) {
 	int msec;
 	float v;
 
@@ -639,10 +640,10 @@ void Cl_HandleEvents(void) {
 
 	Cl_MouseMove(mx, my);
 
-	while (keyq_head != keyq_tail) { // then check for keys
-		Cl_KeyEvent(keyq[keyq_tail].key, keyq[keyq_tail].unicode,
-				keyq[keyq_tail].down, cls.real_time);
-		keyq_tail = (keyq_tail + 1) & (MAX_KEYQ - 1);
+	while (cl_key_queue_head != cl_key_queue_tail) { // then check for keys
+		Cl_KeyEvent(cl_key_queue[cl_key_queue_tail].key, cl_key_queue[cl_key_queue_tail].unicode,
+				cl_key_queue[cl_key_queue_tail].down, cls.real_time);
+		cl_key_queue_tail = (cl_key_queue_tail + 1) & (MAX_KEY_QUEUE - 1);
 	}
 }
 

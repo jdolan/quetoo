@@ -226,11 +226,9 @@ void R_DrawFrame(void) {
 	R_DrawSkyBox();
 
 	// wait for the client to populate our lights array
-
 	Thread_Wait(&r_view.thread);
 
-	// now dispatch another thread to cull the entities
-
+	// now dispatch another thread to cull entities while we draw the world
 	r_view.thread = Thread_Create(R_CullEntities, NULL);
 
 	R_MarkLights();
@@ -253,6 +251,7 @@ void R_DrawFrame(void) {
 
 	R_DrawBspNormals();
 
+	// ensure the thread has finished culling entities
 	Thread_Wait(&r_view.thread);
 
 	R_DrawEntities();

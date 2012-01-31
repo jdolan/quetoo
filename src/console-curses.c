@@ -209,7 +209,7 @@ static void Curses_Draw(void) {
  *
  * Window resize signal handler
  */
-static void Curses_Resize(int sig) {
+static void Curses_Resize(int sig __attribute__((unused))) {
 
 	if (!sv_con.initialized) {
 		return;

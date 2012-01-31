@@ -34,7 +34,7 @@ static r_capture_buffer_t capture_buffer;
  *
  * Performs the JPEG file authoring for the most recently captured frame.
  */
-static void R_FlushCapture(void *data) {
+static void R_FlushCapture(void *data __attribute__((unused))) {
 	char path[MAX_OSPATH];
 	int q;
 

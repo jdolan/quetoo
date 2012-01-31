@@ -35,7 +35,7 @@ typedef struct key_name_s {
 
 extern key_name_t key_names[];
 
-void Cl_KeyEvent(unsigned int ascii, unsigned short unicode, boolean_t down, unsigned time);
+void Cl_KeyEvent(unsigned int key, unsigned short unicode, boolean_t down, unsigned time);
 char *Cl_EditLine(void);
 void Cl_WriteBindings(FILE *f);
 void Cl_InitKeys(void);

@@ -259,6 +259,6 @@ void R_DrawBlendWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
 /*
  * R_DrawBackSurfaces_default
  */
-void R_DrawBackSurfaces_default(const r_bsp_surfaces_t *surfs) {
+void R_DrawBackSurfaces_default(const r_bsp_surfaces_t *surfs __attribute__((unused))) {
 	// no-op
 }

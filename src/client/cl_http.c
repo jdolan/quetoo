@@ -54,7 +54,7 @@ static boolean_t gzip, success;
  * Cl_HttpDownloadRecv
  */
 static size_t Cl_HttpDownloadRecv(void *buffer, size_t size, size_t nmemb,
-		void *p) {
+		void *p __attribute__((unused))) {
 	return Fs_Write(buffer, size, nmemb, cls.download.file);
 }
 

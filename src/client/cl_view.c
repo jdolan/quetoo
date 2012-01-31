@@ -325,7 +325,7 @@ static void Cl_UpdateBob(void) {
  * This is all done in a separate thread while the main thread begins drawing
  * the world.
  */
-static void Cl_PopulateView(void *data) {
+static void Cl_PopulateView(void *data __attribute__((unused))) {
 
 	// clear state from the previous frame
 	Cl_ClearView();

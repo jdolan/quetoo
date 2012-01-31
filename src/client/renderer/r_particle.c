@@ -23,6 +23,9 @@
 
 /*
  * R_AddParticle
+ *
+ * TODO: We can add most of the particle "thinking" computations to this
+ * function, which should help threaded performance.
  */
 void R_AddParticle(r_particle_t *p) {
 
@@ -32,14 +35,14 @@ void R_AddParticle(r_particle_t *p) {
 	r_view.particles[r_view.num_particles++] = *p;
 }
 
-typedef struct particle_state_s {
+typedef struct r_particle_state_s {
 	vec3_t weather_right;
 	vec3_t weather_up;
 	vec3_t splash_right[2];
 	vec3_t splash_up[2];
-} particle_state_t;
+} r_particle_state_t;
 
-static particle_state_t ps;
+static r_particle_state_t r_particle_state;
 
 /*
  * R_ParticleVerts
@@ -95,16 +98,16 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
 	// all other particles are aligned with the client's view
 
 	if (p->type == PARTICLE_WEATHER) { // keep it vertical
-		VectorScale(ps.weather_right, p->current_scale, right);
-		VectorScale(ps.weather_up, p->current_scale, up);
+		VectorScale(r_particle_state.weather_right, p->current_scale, right);
+		VectorScale(r_particle_state.weather_up, p->current_scale, up);
 	} else if (p->type == PARTICLE_SPLASH) { // keep it horizontal
 
 		if (p->current_org[2] > r_view.origin[2]) { // it's above us
-			VectorScale(ps.splash_right[0], p->current_scale, right);
-			VectorScale(ps.splash_up[0], p->current_scale, up);
+			VectorScale(r_particle_state.splash_right[0], p->current_scale, right);
+			VectorScale(r_particle_state.splash_up[0], p->current_scale, up);
 		} else { // it's below us
-			VectorScale(ps.splash_right[1], p->current_scale, right);
-			VectorScale(ps.splash_up[1], p->current_scale, up);
+			VectorScale(r_particle_state.splash_right[1], p->current_scale, right);
+			VectorScale(r_particle_state.splash_up[1], p->current_scale, up);
 		}
 	} else if (p->type == PARTICLE_ROLL) { // roll it
 
@@ -239,13 +242,13 @@ void R_DrawParticles(void) {
 	VectorCopy(r_view.angles, v);
 
 	v[0] = 0; // keep weather particles vertical by removing pitch
-	AngleVectors(v, NULL, ps.weather_right, ps.weather_up);
+	AngleVectors(v, NULL, r_particle_state.weather_right, r_particle_state.weather_up);
 
 	v[0] = -90; // and splash particles horizontal by setting it
-	AngleVectors(v, NULL, ps.splash_right[0], ps.splash_up[0]);
+	AngleVectors(v, NULL, r_particle_state.splash_right[0], r_particle_state.splash_up[0]);
 
 	v[0] = 90; // even if they are below us
-	AngleVectors(v, NULL, ps.splash_right[1], ps.splash_up[1]);
+	AngleVectors(v, NULL, r_particle_state.splash_right[1], r_particle_state.splash_up[1]);
 
 	R_DrawParticles_(PARTICLE_DECAL);
 

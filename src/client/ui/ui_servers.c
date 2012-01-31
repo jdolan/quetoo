@@ -37,7 +37,7 @@ static TW_CALL void Ui_Servers_Connect(void *data) {
  *
  * Callback to refresh the servers list.
  */
-static TW_CALL void Ui_Servers_Refresh(void *data) {
+static TW_CALL void Ui_Servers_Refresh(void *data __attribute__((unused))) {
 	Cl_Servers_f();
 }
 

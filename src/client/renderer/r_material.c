@@ -121,7 +121,7 @@ static void R_StageLighting(r_bsp_surface_t *surf, r_stage_t *stage) {
 static inline void R_StageVertex(const r_bsp_surface_t *surf,
 		const r_stage_t *stage, const vec3_t in, vec3_t out) {
 
-	// TODO: vertex deforms
+	// TODO: vertex deformation
 	VectorCopy(in, out);
 }
 

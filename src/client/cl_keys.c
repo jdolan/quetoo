@@ -23,101 +23,56 @@
 
 #include "cl_local.h"
 
-key_name_t key_names[] = {
-	{"TAB", K_TAB},
-	{"ENTER", K_ENTER},
-	{"ESCAPE", K_ESCAPE},
-	{"SPACE", K_SPACE},
-	{"BACKSPACE", K_BACKSPACE},
-	{"UPARROW", K_UPARROW},
-	{"DOWNARROW", K_DOWNARROW},
-	{"LEFTARROW", K_LEFTARROW},
-	{"RIGHTARROW", K_RIGHTARROW},
+key_name_t key_names[] = { { "TAB", K_TAB }, { "ENTER", K_ENTER }, { "ESCAPE",
+		K_ESCAPE }, { "SPACE", K_SPACE }, { "BACKSPACE", K_BACKSPACE }, {
+		"UPARROW", K_UPARROW }, { "DOWNARROW", K_DOWNARROW }, { "LEFTARROW",
+		K_LEFTARROW }, { "RIGHTARROW", K_RIGHTARROW },
 
-	{"ALT", K_ALT},
-	{"CTRL", K_CTRL},
-	{"SHIFT", K_SHIFT},
+{ "ALT", K_ALT }, { "CTRL", K_CTRL }, { "SHIFT", K_SHIFT },
 
-	{"F1", K_F1},
-	{"F2", K_F2},
-	{"F3", K_F3},
-	{"F4", K_F4},
-	{"F5", K_F5},
-	{"F6", K_F6},
-	{"F7", K_F7},
-	{"F8", K_F8},
-	{"F9", K_F9},
-	{"F10", K_F10},
-	{"F11", K_F11},
-	{"F12", K_F12},
+{ "F1", K_F1 }, { "F2", K_F2 }, { "F3", K_F3 }, { "F4", K_F4 }, { "F5", K_F5 },
+		{ "F6", K_F6 }, { "F7", K_F7 }, { "F8", K_F8 }, { "F9", K_F9 }, {
+				"F10", K_F10 }, { "F11", K_F11 }, { "F12", K_F12 },
 
-	{"INS", K_INS},
-	{"DEL", K_DEL},
-	{"PGDN", K_PGDN},
-	{"PGUP", K_PGUP},
-	{"HOME", K_HOME},
-	{"END", K_END},
+		{ "INS", K_INS }, { "DEL", K_DEL }, { "PGDN", K_PGDN }, { "PGUP",
+				K_PGUP }, { "HOME", K_HOME }, { "END", K_END },
 
-	{"MOUSE1", K_MOUSE1},
-	{"MOUSE2", K_MOUSE2},
-	{"MOUSE3", K_MOUSE3},
-	{"MOUSE4", K_MOUSE4},
-	{"MOUSE5", K_MOUSE5},
+		{ "MOUSE1", K_MOUSE1 }, { "MOUSE2", K_MOUSE2 }, { "MOUSE3", K_MOUSE3 },
+		{ "MOUSE4", K_MOUSE4 }, { "MOUSE5", K_MOUSE5 },
 
-	{"AUX1", K_AUX1},
-	{"AUX2", K_AUX2},
-	{"AUX3", K_AUX3},
-	{"AUX4", K_AUX4},
-	{"AUX5", K_AUX5},
-	{"AUX6", K_AUX6},
-	{"AUX7", K_AUX7},
-	{"AUX8", K_AUX8},
-	{"AUX9", K_AUX9},
-	{"AUX10", K_AUX10},
-	{"AUX11", K_AUX11},
-	{"AUX12", K_AUX12},
-	{"AUX13", K_AUX13},
-	{"AUX14", K_AUX14},
-	{"AUX15", K_AUX15},
-	{"AUX16", K_AUX16},
+		{ "AUX1", K_AUX1 }, { "AUX2", K_AUX2 }, { "AUX3", K_AUX3 }, { "AUX4",
+				K_AUX4 }, { "AUX5", K_AUX5 }, { "AUX6", K_AUX6 }, { "AUX7",
+				K_AUX7 }, { "AUX8", K_AUX8 }, { "AUX9", K_AUX9 }, { "AUX10",
+				K_AUX10 }, { "AUX11", K_AUX11 }, { "AUX12", K_AUX12 }, {
+				"AUX13", K_AUX13 }, { "AUX14", K_AUX14 }, { "AUX15", K_AUX15 },
+		{ "AUX16", K_AUX16 },
 
+		{ "KP_HOME", K_KP_HOME }, { "KP_UPARROW", K_KP_UPARROW }, { "KP_PGUP",
+				K_KP_PGUP }, { "KP_LEFTARROW", K_KP_LEFTARROW }, { "KP_5",
+				K_KP_5 }, { "KP_RIGHTARROW", K_KP_RIGHTARROW }, { "KP_END",
+				K_KP_END }, { "KP_DOWNARROW", K_KP_DOWNARROW }, { "KP_PGDN",
+				K_KP_PGDN }, { "KP_ENTER", K_KP_ENTER },
+		{ "KP_INS", K_KP_INS }, { "KP_DEL", K_KP_DEL }, { "KP_SLASH",
+				K_KP_SLASH }, { "KP_MINUS", K_KP_MINUS }, { "KP_PLUS",
+				K_KP_PLUS },
 
-	{"KP_HOME", K_KP_HOME},
-	{"KP_UPARROW", K_KP_UPARROW},
-	{"KP_PGUP", K_KP_PGUP},
-	{"KP_LEFTARROW", K_KP_LEFTARROW},
-	{"KP_5", K_KP_5},
-	{"KP_RIGHTARROW", K_KP_RIGHTARROW},
-	{"KP_END", K_KP_END},
-	{"KP_DOWNARROW", K_KP_DOWNARROW},
-	{"KP_PGDN", K_KP_PGDN},
-	{"KP_ENTER", K_KP_ENTER},
-	{"KP_INS", K_KP_INS},
-	{"KP_DEL", K_KP_DEL},
-	{"KP_SLASH", K_KP_SLASH},
-	{"KP_MINUS", K_KP_MINUS},
-	{"KP_PLUS", K_KP_PLUS},
+		{ "MWHEELUP", K_MWHEELUP }, { "MWHEELDOWN", K_MWHEELDOWN },
 
-	{"MWHEELUP", K_MWHEELUP},
-	{"MWHEELDOWN", K_MWHEELDOWN},
+		{ "PAUSE", K_PAUSE },
 
-	{"PAUSE", K_PAUSE},
+		{ "SEMICOLON", ';' }, // because a raw semicolon separates commands
 
-	{"SEMICOLON", ';'},  // because a raw semicolon separates commands
-
-	{NULL, 0}
-};
+		{ NULL, 0 } };
 
 static cl_key_state_t *ks = &cls.key_state;
-
 
 /*
  * Cl_KeyConsole
  *
  * Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(unsigned key, unsigned short unicode, boolean_t down,
-		unsigned time) {
+static void Cl_KeyConsole(unsigned int key, unsigned short unicode, boolean_t down,
+		unsigned time __attribute__((unused))) {
 	boolean_t numlock = ks->down[K_NUMLOCK];
 	size_t i;
 
@@ -311,7 +266,8 @@ static void Cl_KeyConsole(unsigned key, unsigned short unicode, boolean_t down,
 /*
  * Cl_KeyGame
  */
-static void Cl_KeyGame(unsigned key, unsigned short unicode, boolean_t down,
+static void Cl_KeyGame(unsigned int key,
+		unsigned short unicode __attribute__((unused)), boolean_t down,
 		unsigned time) {
 	char cmd[MAX_STRING_CHARS];
 	char *kb;
@@ -343,8 +299,8 @@ static void Cl_KeyGame(unsigned key, unsigned short unicode, boolean_t down,
 /*
  * Cl_KeyMessage
  */
-static void Cl_KeyMessage(unsigned key, unsigned short unicode, boolean_t down,
-		unsigned time) {
+static void Cl_KeyMessage(unsigned int key, unsigned short unicode, boolean_t down,
+		unsigned time __attribute__((unused))) {
 
 	if (!down) // don't care
 		return;
@@ -642,7 +598,7 @@ void Cl_ShutdownKeys(void) {
 /*
  * Cl_KeyEvent
  */
-void Cl_KeyEvent(unsigned key, unsigned short unicode, boolean_t down,
+void Cl_KeyEvent(unsigned int key, unsigned short unicode, boolean_t down,
 		unsigned time) {
 
 	if (key == K_ESCAPE && down) { // escape can cancel a few things
