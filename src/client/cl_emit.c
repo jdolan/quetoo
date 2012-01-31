@@ -226,7 +226,7 @@ void Cl_LoadEmits(void) {
 
 		e = &emits[num_emits];
 
-		if (!strcmp(c, "flags")) {
+		if (!strcmp(c, "flags") || !strcmp(c, "spawnflags")) {
 			e->flags = atoi(ParseToken(&ents));
 			continue;
 		}
