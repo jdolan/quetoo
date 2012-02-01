@@ -451,7 +451,7 @@ dnl ----------------------
 dnl Compiler optimizations
 dnl ----------------------
 
-AC_MSG_CHECKING(whether to include compiler optimizations)
+AC_MSG_CHECKING(whether to enable compiler optimizations)
 
 OPT_CFLAGS=""
 
@@ -476,12 +476,12 @@ DEBUG_LIBS=""
 
 AC_ARG_ENABLE(debug,
 	AS_HELP_STRING(
-		[--disable-debug], [don\'t include debugging information]
+		[--enable-debug], [include debugging information]
 	),
-	AC_MSG_RESULT(yes),
-	AC_MSG_RESULT(no)
+	AC_MSG_RESULT(yes)
 	DEBUG_CFLAGS="-g $DEBUG_CFLAGS $HOST_DEBUG_CFLAGS"
-	DEBUG_LIBS="$DEBUG_LIBS $HOST_DEBUG_LIBS"
+	DEBUG_LIBS="$DEBUG_LIBS $HOST_DEBUG_LIBS",
+	AC_MSG_RESULT(no)
 )
 AC_SUBST(DEBUG_CFLAGS)
 AC_SUBST(DEBUG_LIBS)
@@ -493,7 +493,7 @@ dnl ---------------------
 AC_MSG_CHECKING(whether to include profiling information)
 
 PROFILE_CFLAGS=""
-DEBUG_LIBS=""
+PROFILE_LIBS=""
 
 AC_ARG_ENABLE(profile,
 	AS_HELP_STRING(
@@ -501,7 +501,7 @@ AC_ARG_ENABLE(profile,
 	),
 	AC_MSG_RESULT(yes)
 	PROFILE_CFLAGS="-pg $HOST_PROFILE_CFLAGS"
-	PROFILE_LIBS="$HOST_DEBUG_LIBS",
+	PROFILE_LIBS="$HOST_PROFILE_LIBS",
 	AC_MSG_RESULT(no)
 )
 AC_SUBST(PROFILE_CFLAGS)
@@ -511,9 +511,9 @@ dnl ----------------------------------------
 dnl Consolidate our core flags and libraries
 dnl ----------------------------------------
 
-BASE_CFLAGS=`echo $CPPFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS`
-BASE_LIBS=`echo $HOST_LIBS $DEBUG_LIBS $PROFILE_LIBS $WARN_LIBS`
-BASE_LDFLAGS=`echo $LDFLAGS`
+BASE_CFLAGS=$(echo $CPPFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
+BASE_LIBS=$(echo $HOST_LIBS $DEBUG_LIBS $PROFILE_LIBS $WARN_LIBS)
+BASE_LDFLAGS=$(echo $LDFLAGS)
 
 AC_SUBST(BASE_CFLAGS)
 AC_SUBST(BASE_LIBS)
