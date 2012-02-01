@@ -56,11 +56,11 @@ static void G_trigger_multiple_think(g_edict_t *ent) {
 
 	if (ent->wait > 0) {
 		ent->think = G_trigger_multiple_wait;
-		ent->next_think = g_level.time + ent->wait;
+		ent->next_think = g_level.time + ent->wait * 1000;
 	} else { // we can't just remove (self) here, because this is a touch function
 		// called while looping through area links...
 		ent->touch = NULL;
-		ent->next_think = g_level.time + gi.server_frame;
+		ent->next_think = g_level.time + gi.frame_millis;
 		ent->think = G_FreeEdict;
 	}
 }
@@ -200,7 +200,7 @@ static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other,
 			other->client->ps.pmove.pm_time = 10;
 
 			if (other->push_time < g_level.time) {
-				other->push_time = g_level.time + 1.5;
+				other->push_time = g_level.time + 1500;
 				gi.Sound(other, gi.SoundIndex("world/jumppad"), ATTN_NORM);
 			}
 		}
@@ -282,9 +282,9 @@ static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other,
 		return;
 
 	if (self->spawn_flags & 16)
-		self->timestamp = g_level.time + 1;
+		self->timestamp = g_level.time + 1000;
 	else
-		self->timestamp = g_level.time + 0.1;
+		self->timestamp = g_level.time + 100;
 
 	if (self->spawn_flags & 8)
 		dflags = DAMAGE_NO_PROTECTION;

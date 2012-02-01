@@ -118,7 +118,7 @@ static void G_target_explosion_use(g_edict_t *self, g_edict_t *other,
 	}
 
 	self->think = G_target_explosion_explode;
-	self->next_think = g_level.time + self->delay;
+	self->next_think = g_level.time + self->delay * 1000;
 }
 
 /*QUAKED target_explosion (1 0 0) (-8 -8 -8) (8 8 8)
@@ -143,7 +143,7 @@ static void G_target_splash_think(g_edict_t *self) {
 	gi.WriteDir(self->move_dir);
 	gi.Multicast(self->s.origin, MULTICAST_PVS);
 
-	self->next_think = g_level.time + (frand() * 3);
+	self->next_think = g_level.time + (frand() * 3000);
 }
 
 /*QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8)
@@ -155,7 +155,7 @@ void G_target_splash(g_edict_t *self) {
 
 	self->solid = SOLID_NOT;
 	self->think = G_target_splash_think;
-	self->next_think = g_level.time + (frand() * 3);
+	self->next_think = g_level.time + (frand() * 3000);
 
 	gi.LinkEntity(self);
 }

@@ -220,18 +220,18 @@ static void G_ClientPain(g_edict_t *self, g_edict_t *other, int damage,
  * G_ClientCorpse_think
  */
 static void G_ClientCorpse_think(g_edict_t *ent) {
-	const float age = g_level.time - ent->timestamp;
+	const unsigned int age = g_level.time - ent->timestamp;
 
-	if (age > 5.0) {
+	if (age > 5000) {
 		G_FreeEdict(ent);
 		return;
 	}
 
-	if (age > 2.0 && ent->ground_entity) {
+	if (age > 2000 && ent->ground_entity) {
 		ent->s.origin[2] -= 1.0;
 	}
 
-	ent->next_think = g_level.time + 0.1;
+	ent->next_think = g_level.time + 100;
 }
 
 /*
@@ -265,7 +265,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 		G_SetAnimation(ent, ANIM_BOTH_DEATH3, true);
 
 	ent->think = G_ClientCorpse_think;
-	ent->next_think = g_level.time + 1.0;
+	ent->next_think = g_level.time + 1000;
 
 	gi.LinkEntity(ent);
 }

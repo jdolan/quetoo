@@ -362,7 +362,7 @@ static void G_WeaponLast_f(g_edict_t *ent) {
  */
 static void G_Kill_f(g_edict_t *ent) {
 
-	if ((g_level.time - ent->client->respawn_time) < 1.0)
+	if ((g_level.time - ent->client->respawn_time) < 1000)
 		return;
 
 	if (ent->client->persistent.spectator)
@@ -455,7 +455,7 @@ static void G_Say_f(g_edict_t *ent) {
 		if (g_level.time < cl->chat_time)
 			return;
 
-		cl->chat_time = g_level.time + 1;
+		cl->chat_time = g_level.time + 1000;
 	}
 
 	for (i = 1; i <= sv_max_clients->integer; i++) { // print to clients
@@ -958,7 +958,7 @@ static void G_Ready_f(g_edict_t *ent) {
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Match starting in 10 seconds...\n");
-	g_level.match_time = g_level.time + 10.0;
+	g_level.match_time = g_level.time + 10000;
 
 	g_level.start_match = true;
 }
@@ -999,7 +999,7 @@ static void G_Spectate_f(g_edict_t *ent) {
 	boolean_t spectator;
 
 	// prevent spectator spamming
-	if (g_level.time - ent->client->respawn_time < 3.0)
+	if (g_level.time - ent->client->respawn_time < 3000)
 		return;
 
 	// prevent spectators from joining matches

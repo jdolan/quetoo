@@ -160,7 +160,7 @@ void G_ClientScores(g_edict_t *ent) {
 	gi.WriteData(scores_buffer, length);
 	gi.Unicast(ent, false);
 
-	ent->client->scores_time = g_level.time + 0.5;
+	ent->client->scores_time = g_level.time + 500;
 }
 
 /*

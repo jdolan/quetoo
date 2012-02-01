@@ -45,7 +45,7 @@ boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 
 	// setup respawn if it's not a dropped item
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetItemRespawn(ent, 5);
+		G_SetItemRespawn(ent, 5000);
 
 	// add the weapon to inventory
 	other->client->persistent.inventory[index]++;
@@ -71,7 +71,7 @@ void G_ChangeWeapon(g_edict_t *ent) {
 	ent->client->new_weapon = NULL;
 
 	// update weapon state
-	ent->client->weapon_fire_time = g_level.time + 0.4;
+	ent->client->weapon_fire_time = g_level.time + 400;
 
 	// resolve ammo
 	if (ent->client->persistent.weapon && ent->client->persistent.weapon->ammo)
@@ -199,7 +199,7 @@ void G_TossWeapon(g_edict_t *ent) {
 /*
  * G_FireWeapon
  */
-static void G_FireWeapon(g_edict_t *ent, float interval,
+static void G_FireWeapon(g_edict_t *ent, unsigned int interval,
 		void(*fire)(g_edict_t *ent)) {
 	int n, m;
 	int buttons;
@@ -212,7 +212,7 @@ static void G_FireWeapon(g_edict_t *ent, float interval,
 	ent->client->latched_buttons &= ~BUTTON_ATTACK;
 
 	// use small epsilon for low server_frame rates
-	if (ent->client->weapon_fire_time > g_level.time + 0.001)
+	if (ent->client->weapon_fire_time > g_level.time + 1)
 		return;
 
 	ent->client->weapon_fire_time = g_level.time + interval;
@@ -226,7 +226,7 @@ static void G_FireWeapon(g_edict_t *ent, float interval,
 
 		if (g_level.time >= ent->client->pain_time) { // play a click sound
 			gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTN_NORM);
-			ent->client->pain_time = g_level.time + 1;
+			ent->client->pain_time = g_level.time + 1000;
 		}
 
 		G_UseBestWeapon(ent->client);
@@ -241,7 +241,7 @@ static void G_FireWeapon(g_edict_t *ent, float interval,
 		if (ent->client->quad_attack_time < g_level.time) {
 			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTN_NORM);
 
-			ent->client->quad_attack_time = g_level.time + 0.5;
+			ent->client->quad_attack_time = g_level.time + 500;
 		}
 	}
 
@@ -295,7 +295,7 @@ static void G_FireShotgun_(g_edict_t *ent) {
 }
 
 void G_FireShotgun(g_edict_t *ent) {
-	G_FireWeapon(ent, 0.65, G_FireShotgun_);
+	G_FireWeapon(ent, 650, G_FireShotgun_);
 }
 
 /*
@@ -328,7 +328,7 @@ static void G_FireSuperShotgun_(g_edict_t *ent) {
 }
 
 void G_FireSuperShotgun(g_edict_t *ent) {
-	G_FireWeapon(ent, 0.85, G_FireSuperShotgun_);
+	G_FireWeapon(ent, 850, G_FireSuperShotgun_);
 }
 
 /*
@@ -349,7 +349,7 @@ static void G_FireMachinegun_(g_edict_t *ent) {
 }
 
 void G_FireMachinegun(g_edict_t *ent) {
-	G_FireWeapon(ent, 0.04, G_FireMachinegun_);
+	G_FireWeapon(ent, 40, G_FireMachinegun_);
 }
 
 /*
@@ -360,7 +360,7 @@ static void G_FireGrenadeLauncher_(g_edict_t *ent) {
 
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_GrenadeProjectile(ent, org, forward, 900, 100, 100, 185.0, 2.0);
+	G_GrenadeProjectile(ent, org, forward, 900, 100, 100, 185.0, 2000);
 
 	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
@@ -369,7 +369,7 @@ static void G_FireGrenadeLauncher_(g_edict_t *ent) {
 }
 
 void G_FireGrenadeLauncher(g_edict_t *ent) {
-	G_FireWeapon(ent, 0.6, G_FireGrenadeLauncher_);
+	G_FireWeapon(ent, 600, G_FireGrenadeLauncher_);
 }
 
 /*
@@ -390,7 +390,7 @@ static void G_FireRocketLauncher_(g_edict_t *ent) {
 }
 
 void G_FireRocketLauncher(g_edict_t *ent) {
-	G_FireWeapon(ent, 0.8, G_FireRocketLauncher_);
+	G_FireWeapon(ent, 800, G_FireRocketLauncher_);
 }
 
 /*
@@ -411,7 +411,7 @@ static void G_FireHyperblaster_(g_edict_t *ent) {
 }
 
 void G_FireHyperblaster(g_edict_t *ent) {
-	G_FireWeapon(ent, 0.1, G_FireHyperblaster_);
+	G_FireWeapon(ent, 100, G_FireHyperblaster_);
 }
 
 /*
@@ -431,12 +431,12 @@ static void G_FireLightning_(g_edict_t *ent) {
 		gi.WriteByte(MZ_LIGHTNING);
 		gi.Multicast(ent->s.origin, MULTICAST_PVS);
 
-		ent->client->muzzle_flash_time = g_level.time + 0.25;
+		ent->client->muzzle_flash_time = g_level.time + 250;
 	}
 }
 
 void G_FireLightning(g_edict_t *ent) {
-	G_FireWeapon(ent, 0.1, G_FireLightning_);
+	G_FireWeapon(ent, 100, G_FireLightning_);
 }
 
 /*
@@ -457,7 +457,7 @@ static void G_FireRailgun_(g_edict_t *ent) {
 }
 
 void G_FireRailgun(g_edict_t *ent) {
-	G_FireWeapon(ent, 1.5, G_FireRailgun_);
+	G_FireWeapon(ent, 1500, G_FireRailgun_);
 }
 
 /*
@@ -478,5 +478,5 @@ static void G_FireBfg_(g_edict_t *ent) {
 }
 
 void G_FireBfg(g_edict_t *ent) {
-	G_FireWeapon(ent, 2.0, G_FireBfg_);
+	G_FireWeapon(ent, 2000, G_FireBfg_);
 }

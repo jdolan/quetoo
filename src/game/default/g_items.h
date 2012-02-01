@@ -37,7 +37,7 @@ g_item_t *G_ItemByIndex(unsigned short index);
 void G_PrecacheItem(g_item_t *it);
 void G_ResetFlag(g_edict_t *ent);
 void G_SetItemNames(void);
-void G_SetItemRespawn(g_edict_t *ent, float delay);
+void G_SetItemRespawn(g_edict_t *ent, unsigned int delay);
 void G_SpawnItem(g_edict_t *ent, g_item_t *item);
 void G_TossFlag(g_edict_t *self);
 void G_TossQuadDamage(g_edict_t *self);

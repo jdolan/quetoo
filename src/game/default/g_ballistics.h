@@ -31,7 +31,7 @@ void G_ShotgunProjectiles(g_edict_t *self, vec3_t start, vec3_t dir,
 void G_HyperblasterProjectile(g_edict_t *self, vec3_t start, vec3_t dir,
 		int speed, int damage, int knockback);
 void G_GrenadeProjectile(g_edict_t *self, vec3_t start, vec3_t dir,
-		int speed, int damage, int knockback, float damage_radius, float timer);
+		int speed, int damage, int knockback, float damage_radius, unsigned int timer);
 void G_RocketProjectile(g_edict_t *self, vec3_t start, vec3_t dir,
 		int speed, int damage, int knockback, float damage_radius);
 void G_LightningProjectile(g_edict_t *self, vec3_t start, vec3_t dir,

@@ -93,8 +93,9 @@ struct g_edict_s {
 // functions provided by the main engine
 typedef struct g_import_s {
 
-	int frame_rate;  // server frames per second
-	float server_frame;  // seconds per frame
+	unsigned int frame_rate;  // server frames per second
+	unsigned int frame_millis;
+	float frame_seconds;  // seconds per frame
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));

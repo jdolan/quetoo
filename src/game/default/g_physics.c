@@ -86,7 +86,7 @@ static boolean_t G_RunThink(g_edict_t *ent) {
 	if (think_time <= 0)
 		return true;
 
-	if (think_time > g_level.time + 0.001)
+	if (think_time > g_level.time + 1)
 		return true;
 
 	ent->next_think = 0;
@@ -157,7 +157,7 @@ static void G_AddGravity(g_edict_t *ent) {
 	if (ent->water_level)
 		g *= 0.5;
 
-	ent->velocity[2] -= ent->gravity * g * gi.server_frame;
+	ent->velocity[2] -= ent->gravity * g * gi.frame_seconds;
 }
 
 /*
@@ -394,8 +394,8 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 		if (part->velocity[0] || part->velocity[1] || part->velocity[2]
 				|| part->avelocity[0] || part->avelocity[1]
 				|| part->avelocity[2]) { // object is moving
-			VectorScale(part->velocity, gi.server_frame, move);
-			VectorScale(part->avelocity, gi.server_frame, amove);
+			VectorScale(part->velocity, gi.frame_seconds, move);
+			VectorScale(part->avelocity, gi.frame_seconds, amove);
 
 			if (!G_Push(part, move, amove))
 				break; // move was blocked
@@ -409,7 +409,7 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 		// the move failed, bump all next_think times and back out moves
 		for (mv = ent; mv; mv = mv->team_chain) {
 			if (mv->next_think > 0)
-				mv->next_think += gi.server_frame;
+				mv->next_think += gi.frame_millis;
 		}
 
 		// if the pusher has a "blocked" function, call it
@@ -445,8 +445,8 @@ static void G_Physics_Noclip(g_edict_t *ent) {
 	if (!G_RunThink(ent))
 		return;
 
-	VectorMA(ent->s.angles, gi.server_frame, ent->avelocity, ent->s.angles);
-	VectorMA(ent->s.origin, gi.server_frame, ent->velocity, ent->s.origin);
+	VectorMA(ent->s.angles, gi.frame_seconds, ent->avelocity, ent->s.angles);
+	VectorMA(ent->s.origin, gi.frame_seconds, ent->velocity, ent->s.origin);
 
 	gi.LinkEntity(ent);
 }
@@ -492,11 +492,11 @@ static void G_Physics_Toss(g_edict_t *ent) {
 		G_AddGravity(ent);
 
 	// move angles
-	VectorMA(ent->s.angles, gi.server_frame, ent->avelocity, ent->s.angles);
+	VectorMA(ent->s.angles, gi.frame_seconds, ent->avelocity, ent->s.angles);
 
 	// move origin
 	VectorCopy(ent->s.origin, org);
-	VectorScale(ent->velocity, gi.server_frame, move);
+	VectorScale(ent->velocity, gi.frame_seconds, move);
 
 	// push through the world, interacting with triggers and other ents
 	trace = G_PushEntity(ent, move);

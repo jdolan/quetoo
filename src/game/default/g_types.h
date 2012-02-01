@@ -222,7 +222,7 @@ extern g_game_t g_game;
 // this structure is cleared as each map is entered
 typedef struct {
 	unsigned int frame_num;
-	float time;
+	unsigned int time;
 
 	char title[MAX_STRING_CHARS]; // the descriptive name (Stress Fractures, etc)
 	char name[MAX_QPATH]; // the server name (fractures, etc)
@@ -235,12 +235,12 @@ typedef struct {
 	int frag_limit;
 	int round_limit;
 	int capture_limit;
-	float time_limit;
+	unsigned int time_limit;
 	char give[MAX_STRING_CHARS];
 	char music[MAX_STRING_CHARS];
 
 	// intermission state
-	float intermission_time; // time intermission started
+	unsigned int intermission_time; // time intermission started
 	vec3_t intermission_origin;
 	vec3_t intermission_angle;
 	const char *changemap;
@@ -248,16 +248,16 @@ typedef struct {
 	boolean_t warmup; // shared by match and round
 
 	boolean_t start_match;
-	float match_time; // time match started
+	unsigned int match_time; // time match started
 	unsigned int match_num;
 
 	boolean_t start_round;
-	float round_time; // time round started
+	unsigned int round_time; // time round started
 	unsigned int round_num;
 
 	char vote_cmd[64]; // current vote in question
 	unsigned int votes[3]; // current vote tallies
-	float vote_time; // time vote started
+	unsigned int vote_time; // time vote started
 
 	g_edict_t *current_entity; // entity running from G_RunFrame
 } g_level_t;
@@ -320,8 +320,8 @@ typedef struct {
 	char skin[32];
 	short score;
 	short captures;
-	float name_time; // prevent change spamming
-	float skin_time;
+	unsigned int name_time; // prevent change spamming
+	unsigned int skin_time;
 } g_team_t;
 
 // client data that persists through respawns
@@ -377,7 +377,7 @@ struct g_client_s {
 	g_client_persistent_t persistent;
 
 	boolean_t show_scores; // sets layout bit mask in player state
-	float scores_time; // eligible for scores when time > this
+	unsigned int scores_time; // eligible for scores when time > this
 
 	unsigned short ammo_index;
 
@@ -385,9 +385,9 @@ struct g_client_s {
 	unsigned int old_buttons;
 	unsigned int latched_buttons;
 
-	float weapon_think_time; // time when the weapon think was called
-	float weapon_fire_time; // can fire when time > this
-	float muzzle_flash_time; // should send muzzle flash when time > this
+	unsigned int weapon_think_time; // time when the weapon think was called
+	unsigned int weapon_fire_time; // can fire when time > this
+	unsigned int muzzle_flash_time; // should send muzzle flash when time > this
 	g_item_t *new_weapon;
 
 	int damage_armor; // damage absorbed by armor
@@ -400,22 +400,22 @@ struct g_client_s {
 
 	vec3_t cmd_angles; // angles sent over in the last command
 
-	float respawn_time; // eligible for respawn when time > this
-	float drown_time; // eligible for drowning damage when time > this
-	float sizzle_time; // eligible for sizzle damage when time > this
-	float fall_time; // eligible for landing event when time > this
-	float jump_time; // eligible for jump when time > this
-	float pain_time; // eligible for pain sound when time > this
-	float gasp_time; // eligible for gasp sound when time > this
-	float footstep_time; // play a footstep when time > this
+	unsigned int respawn_time; // eligible for respawn when time > this
+	unsigned int drown_time; // eligible for drowning damage when time > this
+	unsigned int sizzle_time; // eligible for sizzle damage when time > this
+	unsigned int fall_time; // eligible for landing event when time > this
+	unsigned int jump_time; // eligible for jump when time > this
+	unsigned int pain_time; // eligible for pain sound when time > this
+	unsigned int gasp_time; // eligible for gasp sound when time > this
+	unsigned int footstep_time; // play a footstep when time > this
 
-	float pickup_msg_time; // display message until time > this
+	unsigned int pickup_msg_time; // display message until time > this
 
-	float chat_time; // can chat when time > this
+	unsigned int chat_time; // can chat when time > this
 	boolean_t muted;
 
-	float quad_damage_time; // has quad when time < this
-	float quad_attack_time; // play attack sound when time > this
+	unsigned int quad_damage_time; // has quad when time < this
+	unsigned int quad_attack_time; // play attack sound when time > this
 
 	g_edict_t *chase_target; // player we are chasing
 };
@@ -453,7 +453,7 @@ struct g_edict_s {
 	g_move_type_t move_type;
 	g_move_info_t move_info;
 
-	float timestamp;
+	unsigned int timestamp;
 
 	char *target;
 	char *target_name;
@@ -487,8 +487,8 @@ struct g_edict_s {
 	void (*die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker,
 			int damage, vec3_t point);
 
-	float touch_time;
-	float push_time;
+	unsigned int touch_time;
+	unsigned int push_time;
 
 	short health;
 	short max_health;

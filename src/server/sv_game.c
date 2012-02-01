@@ -274,7 +274,8 @@ void Sv_InitGame(void) {
 	memset(&import, 0, sizeof(import));
 
 	import.frame_rate = svs.frame_rate;
-	import.server_frame = 1.0 / svs.frame_rate;
+	import.frame_millis = 1000 / svs.frame_rate;
+	import.frame_seconds = 1.0 / svs.frame_rate;
 
 	import.Print = Sv_Print;
 	import.Debug = Sv_Debug;

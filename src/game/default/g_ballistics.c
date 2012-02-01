@@ -327,7 +327,7 @@ static void G_GrenadeProjectile_Touch(g_edict_t *ent, g_edict_t *other,
  * G_GrenadeProjectile
  */
 void G_GrenadeProjectile(g_edict_t *self, vec3_t start, vec3_t aimdir,
-		int speed, int damage, int knockback, float damage_radius, float timer) {
+		int speed, int damage, int knockback, float damage_radius, unsigned int timer) {
 	g_edict_t *grenade;
 	vec3_t dir;
 	vec3_t forward, right, up, startBounds;
@@ -445,7 +445,7 @@ void G_RocketProjectile(g_edict_t *self, vec3_t start, vec3_t dir, int speed,
 	rocket->s.model1 = rocket_index;
 	rocket->owner = self;
 	rocket->touch = G_RocketProjectile_Touch;
-	rocket->next_think = g_level.time + 8.0;
+	rocket->next_think = g_level.time + 8000;
 	rocket->think = G_FreeEdict;
 	rocket->dmg = damage;
 	rocket->knockback = knockback;
@@ -531,7 +531,7 @@ void G_HyperblasterProjectile(g_edict_t *self, vec3_t start, vec3_t dir,
 	bolt->s.effects = EF_HYPERBLASTER;
 	bolt->owner = self;
 	bolt->touch = G_HyperblasterProjectile_Touch;
-	bolt->next_think = g_level.time + 3.0;
+	bolt->next_think = g_level.time + 3000;
 	bolt->think = G_FreeEdict;
 	bolt->dmg = damage;
 	bolt->knockback = knockback;
@@ -586,7 +586,7 @@ static void G_LightningProjectile_Discharge(g_edict_t *self) {
  */
 static boolean_t G_LightningProjectile_Expire(g_edict_t *self) {
 
-	if (self->timestamp < g_level.time - 0.101)
+	if (self->timestamp < g_level.time - 101)
 		return true;
 
 	if (self->owner->dead)
@@ -663,7 +663,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 
 	gi.LinkEntity(self);
 
-	self->next_think = g_level.time + gi.server_frame;
+	self->next_think = g_level.time + gi.frame_millis;
 }
 
 /*
@@ -837,15 +837,15 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
 
 	// radius damage
 	G_RadiusDamage(self, self->owner, self->owner,
-			self->dmg * 10 * gi.server_frame,
-			self->knockback * 10 * gi.server_frame, self->dmg_radius,
+			self->dmg * 10 * gi.frame_seconds,
+			self->knockback * 10 * gi.frame_seconds, self->dmg_radius,
 			MOD_BFG_LASER);
 
 	// linear, clamped acceleration
 	if (VectorLength(self->velocity) < 1000.0)
-		VectorScale(self->velocity, 1.0 + (0.5 * gi.server_frame), self->velocity);
+		VectorScale(self->velocity, 1.0 + (0.5 * gi.frame_seconds), self->velocity);
 
-	self->next_think = g_level.time + gi.server_frame;
+	self->next_think = g_level.time + gi.frame_millis;
 }
 
 /*
@@ -894,7 +894,7 @@ void G_BfgProjectiles(g_edict_t *self, vec3_t start, vec3_t dir, int speed,
 		bfg->owner = self;
 		bfg->touch = G_BfgProjectile_Touch;
 		bfg->think = G_BfgProjectile_Think;
-		bfg->next_think = g_level.time + gi.server_frame;
+		bfg->next_think = g_level.time + gi.frame_millis;
 		bfg->dmg = damage;
 		bfg->knockback = knockback;
 		bfg->dmg_radius = damage_radius;

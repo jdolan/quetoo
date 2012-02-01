@@ -59,10 +59,10 @@ static void G_MoveInfo_End(g_edict_t *ent) {
 		return;
 	}
 
-	VectorScale(ent->move_info.dir, ent->move_info.remaining_distance / gi.server_frame, ent->velocity);
+	VectorScale(ent->move_info.dir, ent->move_info.remaining_distance / gi.frame_seconds, ent->velocity);
 
 	ent->think = G_MoveInfo_Done;
-	ent->next_think = g_level.time + gi.server_frame;
+	ent->next_think = g_level.time + gi.frame_millis;
 }
 
 /*
@@ -74,7 +74,7 @@ static void G_MoveInfo_End(g_edict_t *ent) {
 static void G_MoveInfo_Constant(g_edict_t *ent) {
 	float frames;
 
-	if ((ent->move_info.speed * gi.server_frame)
+	if ((ent->move_info.speed * gi.frame_seconds)
 			>= ent->move_info.remaining_distance) {
 		G_MoveInfo_End(ent);
 		return;
@@ -83,10 +83,10 @@ static void G_MoveInfo_Constant(g_edict_t *ent) {
 	VectorScale(ent->move_info.dir, ent->move_info.speed, ent->velocity);
 	frames = floor(
 			(ent->move_info.remaining_distance / ent->move_info.speed)
-					/ gi.server_frame);
+					/ gi.frame_seconds);
 	ent->move_info.remaining_distance -= frames * ent->move_info.speed
-			* gi.server_frame;
-	ent->next_think = g_level.time + (frames * gi.server_frame);
+			* gi.frame_seconds;
+	ent->next_think = g_level.time + (frames * gi.frame_millis);
 	ent->think = G_MoveInfo_End;
 }
 
@@ -222,7 +222,7 @@ static void G_MoveInfo_Accelerative(g_edict_t *ent) {
 	}
 
 	VectorScale(ent->move_info.dir, ent->move_info.current_speed * gi.frame_rate, ent->velocity);
-	ent->next_think = g_level.time + gi.server_frame;
+	ent->next_think = g_level.time + gi.frame_millis;
 	ent->think = G_MoveInfo_Accelerative;
 }
 
@@ -248,13 +248,13 @@ static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest,
 				== ((ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent)) {
 			G_MoveInfo_Constant(ent);
 		} else {
-			ent->next_think = g_level.time + gi.server_frame;
+			ent->next_think = g_level.time + gi.frame_millis;
 			ent->think = G_MoveInfo_Constant;
 		}
 	} else { // accelerative
 		ent->move_info.current_speed = 0;
 		ent->think = G_MoveInfo_Accelerative;
-		ent->next_think = g_level.time + gi.server_frame;
+		ent->next_think = g_level.time + gi.frame_millis;
 	}
 }
 
@@ -274,7 +274,7 @@ static void G_func_plat_up(g_edict_t *ent) {
 	ent->move_info.state = STATE_TOP;
 
 	ent->think = G_func_plat_go_down;
-	ent->next_think = g_level.time + 3;
+	ent->next_think = g_level.time + 3000;
 }
 
 /*
@@ -356,7 +356,7 @@ static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other,
 	if (ent->move_info.state == STATE_BOTTOM)
 		G_func_plat_go_up(ent);
 	else if (ent->move_info.state == STATE_TOP)
-		ent->next_think = g_level.time + 1; // the player is still on the plat, so delay going down
+		ent->next_think = g_level.time + 1000; // the player is still on the plat, so delay going down
 }
 
 /*
@@ -865,7 +865,7 @@ static void G_func_door_touch_trigger(g_edict_t *self, g_edict_t *other,
 	if (g_level.time < self->touch_time)
 		return;
 
-	self->touch_time = g_level.time + 1.0;
+	self->touch_time = g_level.time + 1000;
 
 	G_func_door_use(self->owner, other, other);
 }
@@ -1000,7 +1000,7 @@ static void G_func_door_touch(g_edict_t *self, g_edict_t *other,
 	if (g_level.time < self->touch_time)
 		return;
 
-	self->touch_time = g_level.time + 5.0;
+	self->touch_time = g_level.time + 5000;
 
 	if (self->message && strlen(self->message))
 		gi.ClientCenterPrint(other, "%s", self->message);
@@ -1095,7 +1095,7 @@ void G_func_door(g_edict_t *ent) {
 
 	gi.LinkEntity(ent);
 
-	ent->next_think = g_level.time + gi.server_frame;
+	ent->next_think = g_level.time + gi.frame_millis;
 	if (ent->health || ent->target_name)
 		ent->think = G_func_door_calc_move;
 	else
@@ -1251,7 +1251,7 @@ static void G_func_train_blocked(g_edict_t *self, g_edict_t *other) {
 	if (!self->dmg)
 		return;
 
-	self->touch_time = g_level.time + 0.5;
+	self->touch_time = g_level.time + 500;
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
 			self->dmg, 1, 0, MOD_CRUSH);
 }
@@ -1391,7 +1391,7 @@ static void G_func_train_find(g_edict_t *self) {
 		self->spawn_flags |= TRAIN_START_ON;
 
 	if (self->spawn_flags & TRAIN_START_ON) {
-		self->next_think = g_level.time + gi.server_frame;
+		self->next_think = g_level.time + gi.frame_millis;
 		self->think = G_func_train_next;
 		self->activator = self;
 	}
@@ -1458,7 +1458,7 @@ void G_func_train(g_edict_t *self) {
 	if (self->target) {
 		// start trains on the second frame, to make sure their targets have had
 		// a chance to spawn
-		self->next_think = g_level.time + gi.server_frame;
+		self->next_think = g_level.time + gi.frame_millis;
 		self->think = G_func_train_find;
 	} else {
 		gi.Debug("func_train without a target at %s\n", vtos(self->abs_mins));
@@ -1515,13 +1515,13 @@ void G_func_timer(g_edict_t *self) {
 	self->think = G_func_timer_think;
 
 	if (self->random >= self->wait) {
-		self->random = self->wait - gi.server_frame;
+		self->random = self->wait - gi.frame_seconds;
 		gi.Debug("func_timer at %s has random >= wait\n", vtos(self->s.origin));
 	}
 
 	if (self->spawn_flags & 1) {
-		self->next_think = g_level.time + 1.0 + g_game.spawn.pause_time
-				+ self->delay + self->wait + crand() * self->random;
+		self->next_think = g_level.time + 1000 + g_game.spawn.pause_time
+				+ self->delay + self->wait + crand() * (self->random * 1000);
 		self->activator = self;
 	}
 

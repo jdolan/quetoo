@@ -38,7 +38,7 @@ static void G_ClientDamage(g_edict_t *ent) {
 	// play an appropriate pain sound
 	if (g_level.time > client->pain_time) {
 
-		client->pain_time = g_level.time + 0.7;
+		client->pain_time = g_level.time + 700;
 
 		if (ent->health < 25)
 			l = 25;
@@ -96,7 +96,7 @@ static void G_ClientFall(g_edict_t *ent) {
 	}
 
 	if (ent->s.event != EV_TELEPORT) { // don't override teleport events
-		ent->client->fall_time = g_level.time + 0.2;
+		ent->client->fall_time = g_level.time + 200;
 		ent->s.event = event;
 	}
 }
@@ -108,7 +108,7 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 	g_client_t *client = ent->client;
 
 	if (ent->move_type == MOVE_TYPE_NO_CLIP) {
-		client->drown_time = g_level.time + 12; // don't need air
+		client->drown_time = g_level.time + 12000; // don't need air
 		return;
 	}
 
@@ -127,7 +127,7 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 
 	// head just coming out of water
 	if (old_water_level == 3 && water_level != 3 && g_level.time
-			- client->gasp_time > 2.0) {
+			- client->gasp_time > 2000) {
 
 		gi.Sound(ent, gi.SoundIndex("*gasp_1"), ATTN_NORM);
 		client->gasp_time = g_level.time;
@@ -135,11 +135,11 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 
 	// check for drowning
 	if (water_level != 3) { // take some air, push out drown time
-		client->drown_time = g_level.time + 12.0;
+		client->drown_time = g_level.time + 12000;
 		ent->dmg = 0;
 	} else { // we're under water
 		if (client->drown_time < g_level.time && ent->health > 0) {
-			client->drown_time = g_level.time + 1.0;
+			client->drown_time = g_level.time + 1000;
 
 			// take more damage the longer under water
 			ent->dmg += 2;
@@ -164,7 +164,7 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 	if (water_level && (ent->water_type & (CONTENTS_LAVA | CONTENTS_SLIME))) {
 		if (client->sizzle_time <= g_level.time && ent->health > 0) {
 
-			client->sizzle_time = g_level.time + 0.1;
+			client->sizzle_time = g_level.time + 100;
 
 			if (ent->water_type & CONTENTS_LAVA) {
 				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin,
@@ -338,7 +338,7 @@ void G_ClientEndFrame(g_edict_t *ent) {
 						* ent->velocity[1]);
 
 		if (xy_speed > 265.0 && ent->client->footstep_time < g_level.time) {
-			ent->client->footstep_time = g_level.time + 0.3;
+			ent->client->footstep_time = g_level.time + 300;
 			ent->s.event = EV_CLIENT_FOOTSTEP;
 		}
 	}

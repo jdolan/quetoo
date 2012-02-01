@@ -200,7 +200,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		// create a temp object to fire at a later time
 		t = G_Spawn();
 		t->class_name = "DelayedUse";
-		t->next_think = g_level.time + ent->delay;
+		t->next_think = g_level.time + ent->delay * 1000;
 		t->think = G_UseTargets_Delay;
 		t->activator = activator;
 		if (!activator)

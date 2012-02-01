@@ -140,7 +140,7 @@ static void G_ResetItems(void) {
 			if (g_level.ctf) {
 				ent->sv_flags &= ~SVF_NO_CLIENT;
 				ent->solid = SOLID_TRIGGER;
-				ent->next_think = g_level.time + 0.2;
+				ent->next_think = g_level.time + 200;
 			} else {
 				ent->sv_flags |= SVF_NO_CLIENT;
 				ent->solid = SOLID_NOT;
@@ -151,11 +151,11 @@ static void G_ResetItems(void) {
 			if (g_level.gameplay) { // hide items
 				ent->sv_flags |= SVF_NO_CLIENT;
 				ent->solid = SOLID_NOT;
-				ent->next_think = 0.0;
+				ent->next_think = 0;
 			} else { // or unhide them
 				ent->sv_flags &= ~SVF_NO_CLIENT;
 				ent->solid = SOLID_TRIGGER;
-				ent->next_think = g_level.time + 2.0 * gi.server_frame;
+				ent->next_think = g_level.time + 2000 * gi.frame_millis;
 			}
 		}
 	}
@@ -428,7 +428,7 @@ static void G_CheckRoundStart(void) {
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Round starting in 10 seconds...\n");
-	g_level.round_time = g_level.time + 10.0;
+	g_level.round_time = g_level.time + 10000;
 
 	g_level.start_round = true;
 }
@@ -701,7 +701,7 @@ static void G_CheckRules(void) {
 
 	if (g_level.frame_num % gi.frame_rate == 0) // send time updates once per second
 		gi.ConfigString(CS_TIME,
-				(g_level.warmup ? "Warmup" : G_FormatTime(seconds)));
+				(g_level.warmup ? "Warmup" : G_FormatTime(seconds/1000)));
 
 	if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
 
@@ -841,7 +841,7 @@ static void G_CheckRules(void) {
 
 	if (g_time_limit->modified) {
 		g_time_limit->modified = false;
-		g_level.time_limit = g_time_limit->value;
+		g_level.time_limit = g_time_limit->integer;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Timelimit has been changed to %d\n",
 				(int) g_level.time_limit);
@@ -873,7 +873,7 @@ static void G_Frame(void) {
 	g_edict_t *ent;
 
 	g_level.frame_num++;
-	g_level.time = g_level.frame_num * gi.server_frame;
+	g_level.time = g_level.frame_num * gi.frame_millis;
 
 	// check for level change after running intermission
 	if (g_level.intermission_time) {
@@ -1162,7 +1162,7 @@ void G_Init(void) {
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, NULL);
 	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, NULL);
-	g_time_limit = gi.Cvar("g_time_limit", "20", CVAR_SERVER_INFO, NULL);
+	g_time_limit = gi.Cvar("g_time_limit", "20000", CVAR_SERVER_INFO, NULL);
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
 
 	password = gi.Cvar("password", "", CVAR_USER_INFO, NULL);

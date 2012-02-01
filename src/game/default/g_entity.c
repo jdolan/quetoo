@@ -468,7 +468,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 		if (g_level.gameplay && ent->item) { // now that we've spawned them, hide them
 			ent->sv_flags |= SVF_NO_CLIENT;
 			ent->solid = SOLID_NOT;
-			ent->next_think = 0.0;
+			ent->next_think = 0;
 		}
 	}
 

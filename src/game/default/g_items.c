@@ -120,7 +120,7 @@ static void G_ItemRespawn(g_edict_t *ent) {
 /*
  * G_SetItemRespawn
  */
-void G_SetItemRespawn(g_edict_t *ent, float delay) {
+void G_SetItemRespawn(g_edict_t *ent, unsigned int delay) {
 	ent->flags |= FL_RESPAWN;
 	ent->sv_flags |= SVF_NO_CLIENT;
 	ent->solid = SOLID_NOT;
@@ -138,7 +138,7 @@ static boolean_t G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
 		other->health = other->max_health;
 
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetItemRespawn(ent, 30);
+		G_SetItemRespawn(ent, 30000);
 
 	return true;
 }
@@ -156,8 +156,8 @@ static boolean_t G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 	if (ent->spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
 		other->client->quad_damage_time = ent->next_think;
 	} else {
-		other->client->quad_damage_time = g_level.time + 30.0;
-		G_SetItemRespawn(ent, ent->item->quantity);
+		other->client->quad_damage_time = g_level.time + 30000;
+		G_SetItemRespawn(ent, ent->item->quantity * 1000);
 	}
 
 	other->s.effects |= EF_QUAD;
@@ -236,7 +236,7 @@ static boolean_t G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
 		return false;
 
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetItemRespawn(ent, 20);
+		G_SetItemRespawn(ent, 20000);
 
 	return true;
 }
@@ -292,9 +292,9 @@ static boolean_t G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 		other->health = other->client->persistent.health = h;
 
 		if (ent->count >= 50) // respawn the item
-			G_SetItemRespawn(ent, 60);
+			G_SetItemRespawn(ent, 60000);
 		else
-			G_SetItemRespawn(ent, 20);
+			G_SetItemRespawn(ent, 20000);
 
 		return true;
 	}
@@ -322,7 +322,7 @@ static boolean_t G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
 	}
 
 	if (taken && !(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetItemRespawn(ent, 20);
+		G_SetItemRespawn(ent, 20000);
 
 	return taken;
 }
@@ -543,10 +543,10 @@ static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other,
  */
 static void G_DropItemThink(g_edict_t *ent) {
 	int contents;
-	float f;
+	unsigned int i;
 
 	if (!ent->ground_entity) { // keep falling in valid space
-		ent->next_think = g_level.time + gi.server_frame;
+		ent->next_think = g_level.time + gi.frame_millis;
 		return;
 	}
 
@@ -571,19 +571,19 @@ static void G_DropItemThink(g_edict_t *ent) {
 		ent->think = G_FreeEdict;
 
 	if (ent->item->type == ITEM_POWERUP) // expire from last touch
-		f = ent->timestamp - g_level.time;
+		i = ent->timestamp - g_level.time;
 	else
 		// general case
-		f = 30.0;
+		i = 30000;
 
 	contents = gi.PointContents(ent->s.origin);
 
 	if (contents & CONTENTS_LAVA) // expire more quickly in lava
-		f *= 0.3;
+		i *= 300;
 	if (contents & CONTENTS_SLIME) // and slime
-		f *= 0.5;
+		i *= 500;
 
-	ent->next_think = g_level.time + f;
+	ent->next_think = g_level.time + i;
 }
 
 /*
@@ -646,7 +646,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item) {
 	dropped->velocity[2] = 200.0 + (frand() * 150.0);
 
 	dropped->think = G_DropItemThink;
-	dropped->next_think = g_level.time + gi.server_frame;
+	dropped->next_think = g_level.time + gi.frame_millis;
 
 	gi.LinkEntity(dropped);
 
@@ -790,7 +790,7 @@ void G_SpawnItem(g_edict_t *ent, g_item_t *item) {
 	ent->move_type = MOVE_TYPE_TOSS;
 	ent->touch = G_TouchItem;
 	ent->think = G_DropToFloor;
-	ent->next_think = g_level.time + 2 * gi.server_frame; // items start after other solids
+	ent->next_think = g_level.time + 2000 * gi.frame_millis; // items start after other solids
 
 	ent->item = item;
 	ent->s.effects = item->effects;
@@ -808,7 +808,7 @@ void G_SpawnItem(g_edict_t *ent, g_item_t *item) {
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->solid = SOLID_NOT;
 		if (ent == ent->team_master) {
-			ent->next_think = g_level.time + gi.server_frame;
+			ent->next_think = g_level.time + gi.frame_millis;
 			ent->think = G_ItemRespawn;
 		}
 	}
