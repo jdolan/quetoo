@@ -595,7 +595,7 @@ char *Cm_EntityString(void) {
 /*
  * Cm_LeafContents
  */
-int Cm_LeafContents(int leaf_num) {
+int Cm_LeafContents(const int leaf_num) {
 
 	if (leaf_num < 0 || leaf_num >= c_bsp.num_leafs) {
 		Com_Error(ERR_DROP, "Cm_LeafContents: Bad number.\n");
@@ -607,7 +607,7 @@ int Cm_LeafContents(int leaf_num) {
 /*
  * Cm_LeafCluster
  */
-int Cm_LeafCluster(int leaf_num) {
+int Cm_LeafCluster(const int leaf_num) {
 
 	if (leaf_num < 0 || leaf_num >= c_bsp.num_leafs) {
 		Com_Error(ERR_DROP, "Cm_LeafCluster: Bad number.\n");
@@ -619,7 +619,7 @@ int Cm_LeafCluster(int leaf_num) {
 /*
  * Cm_LeafArea
  */
-int Cm_LeafArea(int leaf_num) {
+int Cm_LeafArea(const int leaf_num) {
 
 	if (leaf_num < 0 || leaf_num >= c_bsp.num_leafs) {
 		Com_Error(ERR_DROP, "Cm_LeafArea: Bad number.\n");
@@ -1407,7 +1407,7 @@ static void Cm_DecompressVis(const byte *in, byte *out) {
 /*
  * Cm_ClusterPVS
  */
-byte *Cm_ClusterPVS(int cluster) {
+byte *Cm_ClusterPVS(const int cluster) {
 	static byte pvs_row[MAX_BSP_LEAFS / 8];
 
 	if (cluster == -1)
@@ -1423,7 +1423,7 @@ byte *Cm_ClusterPVS(int cluster) {
 /*
  * Cm_ClusterPHS
  */
-byte *Cm_ClusterPHS(int cluster) {
+byte *Cm_ClusterPHS(const int cluster) {
 	static byte phs_row[MAX_BSP_LEAFS / 8];
 
 	if (cluster == -1)
@@ -1485,7 +1485,7 @@ static void Cm_FloodAreaConnections(void) {
 /*
  * Cm_SetAreaPortalState
  */
-void Cm_SetAreaPortalState(int portal_num, boolean_t open) {
+void Cm_SetAreaPortalState(const int portal_num, const boolean_t open) {
 	if (portal_num > c_bsp.num_area_portals) {
 		Com_Error(ERR_DROP,
 				"Cm_SetAreaPortalState: portal_num > cm.num_area_portals.\n");
@@ -1544,7 +1544,7 @@ int Cm_WriteAreaBits(byte *buffer, int area) {
  * Returns true if any leaf under head_node has a cluster that
  * is potentially visible
  */
-boolean_t Cm_HeadnodeVisible(int node_num, byte *vis) {
+boolean_t Cm_HeadnodeVisible(const int node_num, const byte *vis) {
 	const c_bsp_node_t *node;
 
 	if (node_num < 0) { // at a leaf, check it

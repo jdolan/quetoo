@@ -234,19 +234,14 @@ void Sv_WriteFrameToClient(sv_client_t *client, size_buf_t *msg) {
 }
 
 /*
+ * Sv_ClientPVS
  *
- * Build a client frame structure
- *
+ * Resolve the visibility data for the bounding box around the client. The
+ * bounding box provides some leniency because the client's actual view origin
+ * is likely slightly different than what we think it is.
  */
-
-byte fatpvs[65536 / 8]; // 32767 is MAX_BSP_LEAFS
-
-/*
- * Sv_FatPVS
- *
- * The client will interpolate the view position, so we can't use a single PVS point.
- */
-static void Sv_FatPVS(const vec3_t org) {
+static byte *Sv_ClientPVS(const vec3_t org) {
+	static byte pvs[MAX_BSP_LEAFS >> 3];
 	int leafs[64];
 	int i, j, count;
 	int longs;
@@ -260,7 +255,7 @@ static void Sv_FatPVS(const vec3_t org) {
 
 	count = Cm_BoxLeafnums(mins, maxs, leafs, 64, NULL);
 	if (count < 1) {
-		Com_Error(ERR_FATAL, "Sv_FatPVS: count < 1.\n");
+		Com_Error(ERR_FATAL, "Sv_ClientPVS: count < 1.\n");
 	}
 
 	longs = (Cm_NumClusters() + 31) >> 5;
@@ -269,7 +264,8 @@ static void Sv_FatPVS(const vec3_t org) {
 	for (i = 0; i < count; i++)
 		leafs[i] = Cm_LeafCluster(leafs[i]);
 
-	memcpy(fatpvs, Cm_ClusterPVS(leafs[0]), longs << 2);
+	memcpy(pvs, Cm_ClusterPVS(leafs[0]), longs << 2);
+
 	// or in all the other leaf bits
 	for (i = 1; i < count; i++) {
 		for (j = 0; j < i; j++)
@@ -279,8 +275,10 @@ static void Sv_FatPVS(const vec3_t org) {
 			continue; // already have the cluster we want
 		src = Cm_ClusterPVS(leafs[i]);
 		for (j = 0; j < longs; j++)
-			((long *) fatpvs)[j] |= ((long *) src)[j];
+			((long *) pvs)[j] |= ((long *) src)[j];
 	}
+
+	return pvs;
 }
 
 /*
@@ -293,18 +291,17 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	unsigned int e;
 	vec3_t org;
 	g_edict_t *ent;
-	g_edict_t *clent;
+	g_edict_t *cent;
 	sv_frame_t *frame;
 	entity_state_t *state;
-	int i, l;
-	int clientarea, clientcluster;
-	int leaf_num;
-	int c_fullsend;
-	byte *clientphs;
-	byte *bitvector;
+	int i;
+	int area, cluster;
+	int leaf;
+	byte *phs;
+	byte *vis;
 
-	clent = client->edict;
-	if (!clent->client)
+	cent = client->edict;
+	if (!cent->client)
 		return; // not in game yet
 
 	// this is the frame we are creating
@@ -314,31 +311,30 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
 	// find the client's PVS
 	for (i = 0; i < 3; i++)
-		org[i] = clent->client->ps.pmove.origin[i] * 0.125;
+		org[i] = cent->client->ps.pmove.origin[i] * 0.125;
 
-	leaf_num = Cm_PointLeafnum(org);
-	clientarea = Cm_LeafArea(leaf_num);
-	clientcluster = Cm_LeafCluster(leaf_num);
+	leaf = Cm_PointLeafnum(org);
+	area = Cm_LeafArea(leaf);
+	cluster = Cm_LeafCluster(leaf);
 
 	// calculate the visible areas
-	frame->area_bytes = Cm_WriteAreaBits(frame->area_bits, clientarea);
+	frame->area_bytes = Cm_WriteAreaBits(frame->area_bits, area);
 
 	// grab the current player_state_t
-	frame->ps = clent->client->ps;
+	frame->ps = cent->client->ps;
 
-	Sv_FatPVS(org);
-	clientphs = Cm_ClusterPHS(clientcluster);
+	// resolve the visibility data
+	vis = Sv_ClientPVS(org);
+	phs = Cm_ClusterPHS(cluster);
 
-	// build up the list of visible entities
+	// build up the list of relevant entities
 	frame->num_entities = 0;
 	frame->first_entity = svs.next_entity_state;
-
-	c_fullsend = 0;
 
 	for (e = 1; e < svs.game->num_edicts; e++) {
 		ent = EDICT_FOR_NUM(e);
 
-		// ignore ents without visible models
+		// ignore ents that are local to the server
 		if (ent->sv_flags & SVF_NO_CLIENT)
 			continue;
 
@@ -347,46 +343,27 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 			continue;
 
 		// ignore if not touching a PVS leaf
-		if (ent != clent) {
+		if (ent != cent) {
 			// check area
-			if (!Cm_AreasConnected(clientarea, ent->area_num)) { // doors can legally straddle two areas, so
+			if (!Cm_AreasConnected(area, ent->area_num)) { // doors can occupy two areas, so
 				// we may need to check another one
-				if (!ent->area_num2 || !Cm_AreasConnected(clientarea,
-						ent->area_num2))
+				if (!ent->area_num2 || !Cm_AreasConnected(area, ent->area_num2))
 					continue; // blocked by a door
 			}
 
-			// FIXME: if an ent has a model and a sound, but isn't
-			// in the PVS, only the PHS, clear the model
-			if (ent->s.sound) {
-				bitvector = fatpvs; // clientphs;
-			} else {
-				bitvector = fatpvs;
-			}
+			const byte *vis_data = ent->s.sound ? phs : vis;
 
 			if (ent->num_clusters == -1) { // too many leafs for individual check, go by head_node
-				if (!Cm_HeadnodeVisible(ent->head_node, bitvector))
+				if (!Cm_HeadnodeVisible(ent->head_node, vis_data))
 					continue;
-				c_fullsend++;
 			} else { // check individual leafs
 				for (i = 0; i < ent->num_clusters; i++) {
-					l = ent->cluster_nums[i];
-					if (bitvector[l >> 3] & (1 << (l & 7)))
+					const int c = ent->cluster_nums[i];
+					if (vis_data[c >> 3] & (1 << (c & 7)))
 						break;
 				}
 				if (i == ent->num_clusters)
 					continue; // not visible
-			}
-
-			if (!ent->s.model1 && !ent->solid && !ent->s.effects) {
-				// don't send sounds if they will be attenuated away
-				vec3_t delta;
-				float len;
-
-				VectorSubtract(org, ent->s.origin, delta);
-				len = VectorLength(delta);
-				if (len > 600.0)
-					continue;
 			}
 		}
 
@@ -399,7 +376,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		}
 		*state = ent->s;
 
-		// don't mark players missiles as solid
+		// don't mark our own missiles as solid for prediction
 		if (ent->owner == client->edict)
 			state->solid = 0;
 
