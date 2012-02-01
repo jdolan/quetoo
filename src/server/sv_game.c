@@ -106,6 +106,11 @@ static void Sv_ConfigString(int index, const char *val) {
 	if (!val)
 		val = "";
 
+	// make sure it's actually changed
+	if (!strcmp(sv.config_strings[index], val)) {
+		return;
+	}
+
 	// change the string in sv.config_strings
 	strncpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
 
