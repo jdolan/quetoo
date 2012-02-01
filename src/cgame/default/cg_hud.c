@@ -296,7 +296,7 @@ static void Cg_DrawVote(const player_state_t *ps) {
  */
 static void Cg_DrawTime(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
-	char *string = cgi.ConfigString(CS_TIME);
+	const char *string = cgi.ConfigString(CS_TIME);
 
 	if (!ps->stats[STAT_TIME])
 		return;
@@ -494,6 +494,9 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 void Cg_DrawHud(const player_state_t *ps) {
 
 	if (!cg_hud->integer)
+		return;
+
+	if (!ps->stats[STAT_TIME]) // intermission
 		return;
 
 	Cg_DrawVitals(ps);

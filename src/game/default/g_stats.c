@@ -246,7 +246,10 @@ void G_ClientStats(g_edict_t *ent) {
 	} else
 		ent->client->ps.stats[STAT_TEAM] = 0;
 
-	ent->client->ps.stats[STAT_TIME] = CS_TIME;
+	if (g_level.intermission_time)
+		ent->client->ps.stats[STAT_TIME] = 0;
+	else
+		ent->client->ps.stats[STAT_TIME] = CS_TIME;
 
 	ent->client->ps.stats[STAT_READY] = 0;
 

@@ -595,22 +595,22 @@ static void G_CheckMatchEnd(void) {
 /*
  * G_FormatTime
  */
-static char *G_FormatTime(int secs) {
-	static char formatted_time[16];
-	static int last_secs = 999999;
-	int i;
-	const int m = secs / 60;
-	const int s = secs % 60;
-
-	snprintf(formatted_time, sizeof(formatted_time), " %2d:%02d", m, s);
+static char *G_FormatTime(unsigned int time) {
+	static char formatted_time[MAX_QPATH];
+	static unsigned int last_time = 0xffffffff;
+	const unsigned int m = (time / 1000) / 60;
+	const unsigned int s = (time / 1000) % 60;
+	char *c;
 
 	// highlight for countdowns
-	if (m == 0 && s < 30 && secs < last_secs && (s & 1)) {
-		for (i = 0; i < 6; i++)
-			formatted_time[i] += 128;
-	}
+	if (time < (30 * 1000) && time < last_time && (s & 1))
+		c = "^2";
+	else
+		c = "^7";
 
-	last_secs = secs;
+	snprintf(formatted_time, sizeof(formatted_time), "%s%2u:%02u", c, m, s);
+
+	last_time = time;
 
 	return formatted_time;
 }
@@ -619,7 +619,8 @@ static char *G_FormatTime(int secs) {
  * G_CheckRules
  */
 static void G_CheckRules(void) {
-	int i, seconds;
+	unsigned int time;
+	int i;
 	g_client_t *cl;
 
 	if (g_level.intermission_time)
@@ -633,7 +634,8 @@ static void G_CheckRules(void) {
 	g_level.warmup |= g_level.rounds && (!g_level.round_time
 			|| g_level.round_time > g_level.time);
 
-	if (g_level.start_match && g_level.time >= g_level.match_time) { // players have readied, begin match
+	if (g_level.start_match && g_level.time >= g_level.match_time) {
+		// players have readied, begin match
 		g_level.start_match = false;
 		g_level.warmup = false;
 
@@ -647,7 +649,8 @@ static void G_CheckRules(void) {
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
-	if (g_level.start_round && g_level.time >= g_level.round_time) { // pre-game expired, begin round
+	if (g_level.start_round && g_level.time >= g_level.round_time) {
+		// pre-game expired, begin round
 		g_level.start_round = false;
 		g_level.warmup = false;
 
@@ -661,54 +664,46 @@ static void G_CheckRules(void) {
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
-	seconds = g_level.time;
+	// check time limit and resolve CS_TIME
+	time = g_level.time;
 
 	if (g_level.rounds) {
 		if (g_level.round_time > g_level.time) // round about to start, show pre-game countdown
-			seconds = g_level.round_time - g_level.time;
+			time = g_level.round_time - g_level.time;
 		else if (g_level.round_time)
-			seconds = g_level.time - g_level.round_time; // round started, count up
+			time = g_level.time - g_level.round_time; // round started, count up
 		else
-			seconds = -1;
+			time = 0;
 	} else if (g_level.match) {
 		if (g_level.match_time > g_level.time) // match about to start, show pre-game countdown
-			seconds = g_level.match_time - g_level.time;
+			time = g_level.match_time - g_level.time;
 		else if (g_level.match_time) {
 			if (g_level.time_limit) // count down to time_limit
-				seconds = g_level.match_time + g_level.time_limit * 60
-						- g_level.time;
+				time = g_level.match_time + g_level.time_limit - g_level.time;
 			else
-				seconds = g_level.time - g_level.match_time; // count up
+				time = g_level.time - g_level.match_time; // count up
 		} else
-			seconds = -1;
+			time = 0;
 	}
 
 	if (g_level.time_limit) { // check time_limit
-		float t = g_level.time;
-
-		if (g_level.match) // for matches
-			t = g_level.time - g_level.match_time;
-		else if (g_level.rounds) // and for rounds
-			t = g_level.time - g_level.round_time;
-
-		if (t >= g_level.time_limit * 60) {
-			gi.BroadcastPrint(PRINT_HIGH, "Timelimit hit\n");
+		if (time >= g_level.time_limit) {
+			gi.BroadcastPrint(PRINT_HIGH, "Time limit hit\n");
 			G_EndLevel();
 			return;
 		}
-		seconds = g_level.time_limit * 60 - t; // count down
+		time = g_level.time_limit - g_level.time; // count down
 	}
 
 	if (g_level.frame_num % gi.frame_rate == 0) // send time updates once per second
-		gi.ConfigString(CS_TIME,
-				(g_level.warmup ? "Warmup" : G_FormatTime(seconds/1000)));
+		gi.ConfigString(CS_TIME, g_level.warmup ? "Warmup" : G_FormatTime(time));
 
 	if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
 
 		if (g_level.teams) { // check team scores
-			if (g_team_good.score >= g_level.frag_limit ||
-					g_team_evil.score >= g_level.frag_limit) {
-				gi.BroadcastPrint(PRINT_HIGH, "Fraglimit hit\n");
+			if (g_team_good.score >= g_level.frag_limit || g_team_evil.score
+					>= g_level.frag_limit) {
+				gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
 				G_EndLevel();
 				return;
 			}
@@ -719,7 +714,7 @@ static void G_CheckRules(void) {
 					continue;
 
 				if (cl->persistent.score >= g_level.frag_limit) {
-					gi.BroadcastPrint(PRINT_HIGH, "Fraglimit hit\n");
+					gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
 					G_EndLevel();
 					return;
 				}
@@ -729,9 +724,9 @@ static void G_CheckRules(void) {
 
 	if (g_level.ctf && g_level.capture_limit) { // check capture limit
 
-		if (g_team_good.captures >= g_level.capture_limit || g_team_evil.captures
-				>= g_level.capture_limit) {
-			gi.BroadcastPrint(PRINT_HIGH, "Capturelimit hit\n");
+		if (g_team_good.captures >= g_level.capture_limit
+				|| g_team_evil.captures >= g_level.capture_limit) {
+			gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
 			G_EndLevel();
 			return;
 		}
@@ -819,7 +814,7 @@ static void G_CheckRules(void) {
 		g_frag_limit->modified = false;
 		g_level.frag_limit = g_frag_limit->integer;
 
-		gi.BroadcastPrint(PRINT_HIGH, "Fraglimit has been changed to %d\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n",
 				g_level.frag_limit);
 	}
 
@@ -827,7 +822,7 @@ static void G_CheckRules(void) {
 		g_round_limit->modified = false;
 		g_level.round_limit = g_round_limit->integer;
 
-		gi.BroadcastPrint(PRINT_HIGH, "Roundlimit has been changed to %d\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Round limit has been changed to %d\n",
 				g_level.round_limit);
 	}
 
@@ -835,16 +830,16 @@ static void G_CheckRules(void) {
 		g_capture_limit->modified = false;
 		g_level.capture_limit = g_capture_limit->integer;
 
-		gi.BroadcastPrint(PRINT_HIGH, "Capturelimit has been changed to %d\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n",
 				g_level.capture_limit);
 	}
 
 	if (g_time_limit->modified) {
 		g_time_limit->modified = false;
-		g_level.time_limit = g_time_limit->integer;
+		g_level.time_limit = g_time_limit->value * 60 * 1000;
 
-		gi.BroadcastPrint(PRINT_HIGH, "Timelimit has been changed to %d\n",
-				(int) g_level.time_limit);
+		gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n",
+				g_time_limit->value);
 	}
 }
 
@@ -861,7 +856,7 @@ static void G_ExitLevel(void) {
 	G_EndClientFrames();
 }
 
-#define INTERMISSION 10.0  // intermission duration
+#define INTERMISSION (10.0 * 1000) // intermission duration
 /*
  * G_Frame
  *
@@ -1162,7 +1157,7 @@ void G_Init(void) {
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, NULL);
 	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, NULL);
-	g_time_limit = gi.Cvar("g_time_limit", "20000", CVAR_SERVER_INFO, NULL);
+	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, NULL);
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
 
 	password = gi.Cvar("password", "", CVAR_USER_INFO, NULL);
@@ -1233,7 +1228,7 @@ void G_Shutdown(void) {
 
 #ifdef HAVE_MYSQL
 	if(mysql != NULL)
-		mysql_close(mysql); // and db
+	mysql_close(mysql); // and db
 #endif
 
 	gi.FreeTags(TAG_LEVEL);

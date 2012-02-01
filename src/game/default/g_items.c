@@ -310,13 +310,16 @@ static boolean_t G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
 
 	if (ent->item->tag == ARMOR_SHARD) { // take it, ignoring cap
 		other->client->persistent.armor += ent->item->quantity;
-	} else if (other->client->persistent.armor < other->client->persistent.max_armor) {
+	} else if (other->client->persistent.armor
+			< other->client->persistent.max_armor) {
 
 		// take it, but enforce cap
 		other->client->persistent.armor += ent->item->quantity;
 
-		if (other->client->persistent.armor > other->client->persistent.max_armor)
-			other->client->persistent.armor = other->client->persistent.max_armor;
+		if (other->client->persistent.armor
+				> other->client->persistent.max_armor)
+			other->client->persistent.armor
+					= other->client->persistent.max_armor;
 	} else { // don't take it
 		taken = false;
 	}
