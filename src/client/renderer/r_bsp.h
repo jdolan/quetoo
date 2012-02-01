@@ -24,6 +24,7 @@
 
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model);
 boolean_t R_LeafInPvs(const r_bsp_leaf_t *leaf);
+boolean_t R_LeafInPhs(const r_bsp_leaf_t *leaf);
 
 #ifdef __R_LOCAL_H__
 const char *R_WorldspawnValue(const char *key);

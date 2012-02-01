@@ -94,14 +94,14 @@ typedef struct r_config_s {
 	boolean_t shaders;
 
 	int max_texunits;
-} r_config_t;
+}r_config_t;
 
 extern r_config_t r_config;
 
 // private renderer structure
 typedef struct r_locals_s {
 
-	vec3_t ambient_light;  // from worldspawn entity
+	vec3_t ambient_light; // from worldspawn entity
 
 	float sun_light;
 	vec3_t sun_color;
@@ -110,21 +110,24 @@ typedef struct r_locals_s {
 	float saturation;
 	float contrast;
 
-	short cluster;  // PVS at origin
+	short cluster; // visibility cluster at origin
 	short old_cluster;
 
-	short vis_frame;  // PVS frame
+	byte vis_data_pvs[MAX_BSP_LEAFS >> 3]; // decompressed PVS at origin
+	byte vis_data_phs[MAX_BSP_LEAFS >> 3]; // decompressed PHS at origin
 
-	short frame;  // renderer frame
-	short back_frame;  // back-facing renderer frame
+	short vis_frame; // PVS frame, negatives are special cases
 
-	short light_frame;  // dynamic lighting frame
+	short frame; // renderer frame, negatives are special cases
+	short back_frame; // back-facing renderer frame
 
-	unsigned int active_light_mask;  // a bit mask into r_view.lights
-	unsigned int active_light_count;  // a count of active lights
+	short light_frame; // dynamic lighting frame
 
-	c_bsp_plane_t frustum[4];  // for box culling
-} r_locals_t;
+	unsigned int active_light_mask; // a bit mask into r_view.lights
+	unsigned int active_light_count; // a count of active lights
+
+	c_bsp_plane_t frustum[4]; // for box culling
+}r_locals_t;
 
 extern r_locals_t r_locals;
 

@@ -23,7 +23,6 @@
 
 vec3_t r_bsp_model_org; // relative to r_view.origin
 
-
 /*
  * R_WorldspawnValue
  *
@@ -393,72 +392,11 @@ void R_MarkSurfaces(void) {
  * R_LeafForPoint
  */
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model) {
-	const r_bsp_node_t *node;
-	const c_bsp_plane_t *plane;
-	float dot;
 
-	if (!model || !model->nodes) {
-		Com_Error(ERR_DROP, "R_LeafForPoint: Bad model.");
-	}
+	if (!model)
+		model = r_world_model;
 
-	node = model->nodes;
-	while (true) {
-
-		if (node->contents != CONTENTS_NODE)
-			return (r_bsp_leaf_t *) node;
-
-		plane = node->plane;
-
-		if (AXIAL(plane))
-			dot = p[plane->type] - plane->dist;
-		else
-			dot = DotProduct(p, plane->normal) - plane->dist;
-
-		if (dot > 0)
-			node = node->children[0];
-		else
-			node = node->children[1];
-	}
-
-	Com_Error(ERR_DROP, "R_LeafForPoint: NULL");
-	return NULL;
-}
-
-/*
- * R_DecompressVis
- */
-static byte *R_DecompressVis(const byte *in) {
-	static byte decompressed[MAX_BSP_LEAFS / 8];
-	int c;
-	byte *out;
-	int row;
-
-	row = (r_world_model->vis->num_clusters + 7) >> 3;
-	out = decompressed;
-
-	if (!in) { // no vis info, so make all visible
-		while (row) {
-			*out++ = 0xff;
-			row--;
-		}
-		return decompressed;
-	}
-
-	do {
-		if (*in) {
-			*out++ = *in++;
-			continue;
-		}
-
-		c = in[1];
-		in += 2;
-		while (c) {
-			*out++ = 0;
-			c--;
-		}
-	} while (out - decompressed < row);
-
-	return decompressed;
+	return &model->leafs[Cm_PointLeafnum(p)];
 }
 
 /*
@@ -466,9 +404,6 @@ static byte *R_DecompressVis(const byte *in) {
  */
 static inline boolean_t R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
 	int c;
-
-	if (!vis)
-		return true;
 
 	if ((c = leaf->cluster) == -1)
 		return false;
@@ -485,7 +420,6 @@ static inline boolean_t R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
  * dot-product test in order to be marked as visible for the current frame.
  */
 void R_MarkLeafs(void) {
-	byte *vis;
 	r_bsp_leaf_t *leaf;
 	r_bsp_node_t *node;
 	int i;
@@ -494,7 +428,7 @@ void R_MarkLeafs(void) {
 		return;
 
 	// resolve current cluster
-	r_locals.cluster = R_LeafForPoint(r_view.origin, r_world_model)->cluster;
+	r_locals.cluster = R_LeafForPoint(r_view.origin, NULL)->cluster;
 
 	if (!r_no_vis->value && (r_locals.old_cluster == r_locals.cluster))
 		return;
@@ -506,7 +440,8 @@ void R_MarkLeafs(void) {
 	if (r_locals.vis_frame == 0x7fff) // avoid overflows, negatives are reserved
 		r_locals.vis_frame = 0;
 
-	if (r_no_vis->value || !r_world_model->vis) { // mark everything
+	// if we have no vis, mark everything and return
+	if (r_no_vis->value || !r_world_model->vis || r_locals.cluster == -1) {
 		for (i = 0; i < r_world_model->num_leafs; i++)
 			r_world_model->leafs[i].vis_frame = r_locals.vis_frame;
 		for (i = 0; i < r_world_model->num_nodes; i++)
@@ -515,20 +450,18 @@ void R_MarkLeafs(void) {
 	}
 
 	// resolve pvs for the current cluster
-	if (r_locals.cluster != -1)
-		vis
-				= R_DecompressVis(
-						(byte *) r_world_model->vis
-								+ r_world_model->vis->bit_offsets[r_locals.cluster][DVIS_PVS]);
-	else
-		vis = NULL;
+	byte *pvs = Cm_ClusterPVS(r_locals.cluster);
+	memcpy(r_locals.vis_data_pvs, pvs, sizeof(r_locals.vis_data_pvs));
+
+	byte *phs = Cm_ClusterPHS(r_locals.cluster);
+	memcpy(r_locals.vis_data_phs, phs, sizeof(r_locals.vis_data_phs));
 
 	// recurse up the bsp from the visible leafs, marking a path via the nodes
 	leaf = r_world_model->leafs;
 
 	for (i = 0; i < r_world_model->num_leafs; i++, leaf++) {
 
-		if (!R_LeafInVis(leaf, vis))
+		if (!R_LeafInVis(leaf, r_locals.vis_data_pvs))
 			continue;
 
 		node = (r_bsp_node_t *) leaf;
@@ -549,5 +482,14 @@ void R_MarkLeafs(void) {
  * Returns true if the specified leaf is in the PVS for the current frame.
  */
 boolean_t R_LeafInPvs(const r_bsp_leaf_t *leaf) {
-	return leaf->vis_frame == r_locals.vis_frame;
+	return R_LeafInVis(leaf, r_locals.vis_data_pvs);
+}
+
+/*
+ * R_LeafInPHS
+ *
+ * Returns true if the specified leaf is in the PHS for the current frame.
+ */
+boolean_t R_LeafInPhs(const r_bsp_leaf_t *leaf) {
+	return R_LeafInVis(leaf, r_locals.vis_data_phs);
 }

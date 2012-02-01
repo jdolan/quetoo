@@ -34,6 +34,9 @@
 #define EMIT_SOUND		0x20
 #define EMIT_MODEL		0x40
 
+// these emits are ONLY visible; they have no hearable component
+#define EMIT_VISIBLE (EMIT_LIGHT | EMIT_CORONA | EMIT_MODEL)
+
 typedef struct cl_emit_s {
 	int flags;
 	vec3_t org;
@@ -102,7 +105,7 @@ void Cl_LoadEmits(void) {
 			if (emit) {
 
 				// resolve the leaf so that the entity may be added only when in PVS
-				e->leaf = R_LeafForPoint(e->org, r_world_model);
+				e->leaf = R_LeafForPoint(e->org, NULL);
 
 				// add default sounds and models
 				if (!e->sample) {
@@ -321,6 +324,29 @@ static r_light_t *Cl_EmitLight(cl_emit_t *e) {
 }
 
 /*
+ * Cl_UpdateEmit
+ *
+ * Perform PVS and PHS filtering, returning a copy of the specified emit with
+ * the correct flags stripped away for this frame.
+ */
+cl_emit_t *Cl_UpdateEmit(cl_emit_t *e) {
+	static cl_emit_t em;
+
+	em = *e;
+
+	if (!R_LeafInPhs(e->leaf))
+		em.flags = 0;
+	else if (!R_LeafInPvs(e->leaf)) {
+		em.flags &= ~EMIT_VISIBLE;
+	}
+
+	if (em.flags && em.hz && em.time < cl.time) // update the time stamp
+		e->time = cl.time + (1000.0 / e->hz + (e->drift * frand() * 1000.0));
+
+	return &em;
+}
+
+/*
  * Cl_AddEmits
  */
 void Cl_AddEmits(void) {
@@ -334,16 +360,17 @@ void Cl_AddEmits(void) {
 
 	for (i = 0; i < num_emits; i++) {
 
-		cl_emit_t *e = &emits[i];
+		cl_emit_t *e = Cl_UpdateEmit(&emits[i]);
 
-		if (e->leaf && (!R_LeafInPvs(e->leaf)))
-			continue; // culled
+		// first add emits which fire every frame
 
-		if ((e->flags & EMIT_SOUND) && e->loop) // add an ambient sound
+		if (e->flags & EMIT_LIGHT && !e->hz)
+			R_AddLight(Cl_EmitLight(e));
+
+		if ((e->flags & EMIT_SOUND) && e->loop)
 			S_LoopSample(e->org, e->sample);
 
 		if (e->flags & EMIT_MODEL) {
-			// fake a packet entity and add it to the view
 			VectorCopy(e->org, ent.origin);
 			VectorCopy(e->angles, ent.angles);
 
@@ -368,25 +395,19 @@ void Cl_AddEmits(void) {
 			R_AddCorona(&c);
 		}
 
-		// most emits are timed events, so simply continue if it's
-		// not time to fire our event yet
+		// then add emits with timed events if they are due to run
 
-		if (e->time && (e->time > cl.time))
+		if (e->time > cl.time)
 			continue;
 
-		if (e->flags & EMIT_LIGHT) {
+		if (e->flags & EMIT_LIGHT && e->hz) {
 			const r_light_t *l = Cl_EmitLight(e);
+			r_sustained_light_t s;
 
-			if (e->hz > 0.0) { // add a pulsating light
-				r_sustained_light_t s;
+			s.light = *l;
+			s.sustain = 0.65;
 
-				s.light = *l;
-				s.sustain = 0.65;
-
-				R_AddSustainedLight(&s);
-			} else {
-				R_AddLight(l);
-			}
+			R_AddSustainedLight(&s);
 		}
 
 		if (e->flags & EMIT_SPARKS)
@@ -400,10 +421,5 @@ void Cl_AddEmits(void) {
 
 		if ((e->flags & EMIT_SOUND) && !e->loop)
 			S_PlaySample(e->org, -1, e->sample, e->atten);
-
-		// lastly, update the time stamp for the next emission
-		if (e->hz > 0.0)
-			e->time = cl.time
-					+ (1000.0 / e->hz + (e->drift * frand() * 1000.0));
 	}
 }

@@ -44,7 +44,7 @@ void S_FreeChannel(int c) {
 	memset(&s_env.channels[c], 0, sizeof(s_env.channels[0]));
 }
 
-#define SOUND_DISTANCE_SCALE 0.15
+#define SOUND_DISTANCE_SCALE 0.25
 
 /*
  * S_SpatializeChannel
