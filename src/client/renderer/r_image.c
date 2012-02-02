@@ -129,7 +129,7 @@ void R_ListImages_f(void) {
 		if (!image->texnum)
 			continue;
 
-		texels += image->upload_width * image->upload_height;
+		texels += image->width * image->height;
 
 		switch (image->type) {
 		case it_font:
@@ -161,8 +161,7 @@ void R_ListImages_f(void) {
 			break;
 		}
 
-		Com_Print(" %4ix%4i: %s\n", image->upload_width, image->upload_height,
-				image->name);
+		Com_Print(" %4ix%4i: %s\n", image->width, image->height, image->name);
 	}
 	Com_Print("Total texel count (not counting mipmaps or lightmaps): %i\n",
 			texels);
@@ -278,50 +277,6 @@ void R_SoftenTexture(byte *in, int width, int height, r_image_type_t type) {
 }
 
 /*
- * R_ScaleTexture
- */
-static void R_ScaleTexture(const unsigned *in, int inwidth, int inheight,
-		unsigned *out, int outwidth, int outheight) {
-	int i, j;
-	unsigned frac, fracstep;
-	unsigned p1[MAX_TEXTURE_SIZE], p2[MAX_TEXTURE_SIZE];
-
-	fracstep = inwidth * 0x10000 / outwidth;
-
-	frac = fracstep >> 2;
-	for (i = 0; i < outwidth; i++) {
-		p1[i] = 4 * (frac >> 16);
-		frac += fracstep;
-	}
-	frac = 3 * (fracstep >> 2);
-	for (i = 0; i < outwidth; i++) {
-		p2[i] = 4 * (frac >> 16);
-		frac += fracstep;
-	}
-
-	for (i = 0; i < outheight; i++, out += outwidth) {
-		const unsigned *inrow = in + inwidth * (int) ((i + 0.25) * inheight
-				/ outheight);
-		const unsigned *inrow2 = in + inwidth * (int) ((i + 0.75) * inheight
-				/ outheight);
-		for (j = 0; j < outwidth; j++) {
-			const byte *pix1 = (const byte *) inrow + p1[j];
-			const byte *pix2 = (const byte *) inrow + p2[j];
-			const byte *pix3 = (const byte *) inrow2 + p1[j];
-			const byte *pix4 = (const byte *) inrow2 + p2[j];
-			((byte *) (out + j))[0] = (pix1[0] + pix2[0] + pix3[0] + pix4[0])
-					>> 2;
-			((byte *) (out + j))[1] = (pix1[1] + pix2[1] + pix3[1] + pix4[1])
-					>> 2;
-			((byte *) (out + j))[2] = (pix1[2] + pix2[2] + pix3[2] + pix4[2])
-					>> 2;
-			((byte *) (out + j))[3] = (pix1[3] + pix2[3] + pix3[3] + pix4[3])
-					>> 2;
-		}
-	}
-}
-
-/*
  * R_FilterTexture
  *
  * Applies brightness and contrast to the specified image while optionally computing
@@ -406,73 +361,28 @@ void R_FilterTexture(byte *in, int width, int height, vec3_t color,
 	}
 }
 
-static int upload_width, upload_height; // after power-of-two scale
-
 /*
- * R_UploadImage32
+ * R_UploadImage_
  */
-static void R_UploadImage32(unsigned *data, int width, int height,
-		vec3_t color, r_image_type_t type) {
-	unsigned *scaled;
-	boolean_t mipmap;
+static void R_UploadImage_(byte *data, int width, int height, vec3_t color,
+		r_image_type_t type) {
 
-	for (upload_width = 1; upload_width < width; upload_width <<= 1)
-		;
-	for (upload_height = 1; upload_height < height; upload_height <<= 1)
-		;
+	R_FilterTexture(data, width, height, color, type);
 
-	// don't ever bother with > MAX_TEXTURE_SIZE textures
-	if (upload_width > MAX_TEXTURE_SIZE)
-		upload_width = MAX_TEXTURE_SIZE;
-	if (upload_height > MAX_TEXTURE_SIZE)
-		upload_height = MAX_TEXTURE_SIZE;
-
-	if (upload_width < 1)
-		upload_width = 1;
-	if (upload_height < 1)
-		upload_height = 1;
-
-	mipmap = (type != it_font && type != it_pic && type != it_sky);
-
-	// some images need very little attention (pics, fonts, etc..)
-	if (!mipmap && upload_width == width && upload_height == height) {
-
+	if (type == it_null || type == it_font || type == it_pic || type == it_sky) {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_max);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_max);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, upload_width, upload_height, 0,
-				GL_RGBA, GL_UNSIGNED_BYTE, data);
-		return;
-	}
-
-	scaled = data;
-
-	if (upload_width != width || upload_height != height) { // whereas others need to be scaled
-		scaled = (unsigned *) Z_Malloc(
-				upload_width * upload_height * sizeof(unsigned));
-		R_ScaleTexture(data, width, height, scaled, upload_width, upload_height);
-	}
-
-	if (type == it_effect || type == it_world || type == it_material || type
-			== it_skin) // and filtered
-		R_FilterTexture((byte *) scaled, upload_width, upload_height, color,
-				type);
-
-	if (mipmap) { // and mipmapped
+		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+	} else {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_max);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
 				r_filter_aniso);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-	} else {
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_max);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_max);
 	}
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, upload_width, upload_height, 0,
-			GL_RGBA, GL_UNSIGNED_BYTE, scaled);
 
-	if (scaled != data)
-		Z_Free(scaled);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+			GL_UNSIGNED_BYTE, data);
 }
 
 /*
@@ -480,7 +390,7 @@ static void R_UploadImage32(unsigned *data, int width, int height,
  *
  * This is also used as an entry point for the generated r_notexture.
  */
-r_image_t *R_UploadImage(const char *name, void *data, int width, int height,
+r_image_t *R_UploadImage(const char *name, byte *data, int width, int height,
 		r_image_type_t type) {
 	r_image_t *image;
 	int i;
@@ -507,10 +417,7 @@ r_image_t *R_UploadImage(const char *name, void *data, int width, int height,
 	image->texnum = i + 1;
 	R_BindTexture(image->texnum);
 
-	R_UploadImage32((unsigned *) data, width, height, image->color, type);
-
-	image->upload_width = upload_width; // after power of 2 and scales
-	image->upload_height = upload_height;
+	R_UploadImage_(data, width, height, image->color, type);
 
 	return image;
 }
@@ -634,20 +541,22 @@ static void R_InitWarpTexture(void) {
 		}
 	}
 
-	r_warp_image = R_UploadImage("***r_warptexture***", (void *) warp, 16, 16,
-			it_effect);
+	r_warp_image = R_UploadImage("r_warp_image", (byte *) warp, WARP_SIZE,
+			WARP_SIZE, it_effect);
 }
 
 /*
  * R_InitImages
  */
 void R_InitImages(void) {
-	unsigned data[256];
+	byte data[16 * 16 * 4];
 
-	memset(&data, 255, sizeof(data));
+	memset(r_images, 0, sizeof(r_images));
+	r_num_images = 0;
 
-	r_null_image = R_UploadImage("***r_notexture***", (void *) data, 16, 16,
-			it_null);
+	memset(&data, 0xff, sizeof(data));
+
+	r_null_image = R_UploadImage("r_null_image", data, 16, 16, it_null);
 
 	Img_InitPalette();
 

@@ -703,6 +703,7 @@ static void R_InitConfig(void) {
 	r_config.vendor_string = (char *) glGetString(GL_VENDOR);
 	r_config.version_string = (char *) glGetString(GL_VERSION);
 	r_config.extensions_string = (char *) glGetString(GL_EXTENSIONS);
+
 	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &r_config.max_texunits);
 
 	Com_Print("  Renderer: ^2%s^7\n", r_config.renderer_string);

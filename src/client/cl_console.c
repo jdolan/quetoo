@@ -105,7 +105,6 @@ void Cl_InitConsole(void) {
 
 	memset(&cl_con, 0, sizeof(console_t));
 
-	cl_con.width = -1;
 	// the last line of the console is reserved for input
 	Con_Resize(&cl_con, r_context.width >> 4, (r_context.height >> 5) - 1);
 

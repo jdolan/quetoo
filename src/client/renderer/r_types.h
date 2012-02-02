@@ -131,8 +131,7 @@ typedef enum {
 typedef struct r_image_s {
 	char name[MAX_QPATH];  // game path, excluding extension
 	r_image_type_t type;
-	r_pixel_t width, height;  // source image
-	r_pixel_t upload_width, upload_height;  // after power of two
+	r_pixel_t width, height;  // image dimensions
 	GLuint texnum;  // gl texture binding
 	r_material_t material;  // material definition
 	vec3_t color;  // average color
