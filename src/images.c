@@ -281,7 +281,7 @@ static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb,
  *
  * Write pixel data to a JPEG file.
  */
-void Img_WriteJPEG(const char *path, byte *img_data, int width, int height,
+void Img_WriteJPEG(const char *path, byte *data, int width, int height,
 		int quality) {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -314,7 +314,7 @@ void Img_WriteJPEG(const char *path, byte *img_data, int width, int height,
 	row_stride = width * 3; /* JSAMPLEs per row in img_data */
 
 	while (cinfo.next_scanline < cinfo.image_height) {
-		row_pointer[0] = &img_data[(cinfo.image_height - cinfo.next_scanline
+		row_pointer[0] = &data[(cinfo.image_height - cinfo.next_scanline
 				- 1) * row_stride];
 		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
 	}
@@ -333,7 +333,7 @@ void Img_WriteJPEG(const char *path, byte *img_data, int width, int height,
  *
  * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
-void Img_WriteTGARLE(const char *path, byte *img_data, int width, int height,
+void Img_WriteTGARLE(const char *path, byte *data, int width, int height,
 		int quality __attribute__((unused))) {
 	FILE *tga_file;
 	const unsigned int channels = TGA_CHANNELS; // 24-bit RGB
@@ -379,9 +379,9 @@ void Img_WriteTGARLE(const char *path, byte *img_data, int width, int height,
 		for (x = 0; x < width; x++) {
 			size_t index = y * width * channels + x * channels;
 			// TGA has it channels in a different order
-			pixel_data[0] = img_data[index + 2];
-			pixel_data[1] = img_data[index + 1];
-			pixel_data[2] = img_data[index];
+			pixel_data[0] = data[index + 2];
+			pixel_data[1] = data[index + 1];
+			pixel_data[2] = data[index];
 
 			if (block_length == 0) {
 				memcpy(block_data, pixel_data, channels);

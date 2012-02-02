@@ -48,25 +48,25 @@ r_image_t *r_warp_image; // fragment program warping
 r_image_t r_images[MAX_GL_TEXTURES];
 unsigned short r_num_images;
 
-GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
-GLint r_filter_max = GL_LINEAR;
-GLfloat r_filter_aniso = 1.0;
+static GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
+static GLint r_filter_max = GL_LINEAR;
+static GLfloat r_filter_aniso = 1.0;
 
-#define MAX_TEXTURE_SIZE 2048
+#define IS_MIPMAP(t) (t != it_null && t != it_font && t != it_sky && t != it_pic)
 
 typedef struct {
 	const char *name;
 	GLenum minimize, maximize;
 } r_texture_mode_t;
 
-r_texture_mode_t r_texture_modes[] = {
-		{ "GL_NEAREST", GL_NEAREST, GL_NEAREST }, { "GL_LINEAR", GL_LINEAR,
-				GL_LINEAR }, { "GL_NEAREST_MIPMAP_NEAREST",
-				GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
-		{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR }, {
-				"GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR,
-				GL_NEAREST }, { "GL_LINEAR_MIPMAP_LINEAR",
-				GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR } };
+static r_texture_mode_t r_texture_modes[] = {
+	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
+	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
+	{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
+	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
+	{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
+	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
+};
 
 #define NUM_GL_TEXTURE_MODES (sizeof(r_texture_modes) / sizeof(r_texture_mode_t))
 
@@ -101,9 +101,8 @@ void R_TextureMode(const char *mode) {
 		if (!image->texnum)
 			continue;
 
-		if (image->type == it_font || image->type == it_pic || image->type
-				== it_sky)
-			continue; // no mipmaps
+		if (!IS_MIPMAP(image->type))
+			continue;
 
 		R_BindTexture(image->texnum);
 
@@ -119,11 +118,10 @@ void R_TextureMode(const char *mode) {
  * R_ListImages_f
  */
 void R_ListImages_f(void) {
-	int i;
 	r_image_t *image;
-	int texels;
+	unsigned int texels = 0;
+	unsigned short i;
 
-	texels = 0;
 	for (i = 0, image = r_images; i < r_num_images; i++, image++) {
 
 		if (!image->texnum)
@@ -133,7 +131,7 @@ void R_ListImages_f(void) {
 
 		switch (image->type) {
 		case it_font:
-			Com_Print("C");
+			Com_Print("F");
 			break;
 		case it_effect:
 			Com_Print("E");
@@ -163,8 +161,7 @@ void R_ListImages_f(void) {
 
 		Com_Print(" %4ix%4i: %s\n", image->width, image->height, image->name);
 	}
-	Com_Print("Total texel count (not counting mipmaps or lightmaps): %i\n",
-			texels);
+	Com_Print("Total texel count (not counting lightmaps): %u\n", texels);
 }
 
 #define MAX_SCREENSHOTS 100
@@ -179,7 +176,7 @@ void R_Screenshot_f(void) {
 	byte *buffer;
 	FILE *f;
 
-	void (*Img_Write)(const char *path, byte *img_data, int width, int height,
+	void (*Img_Write)(const char *path, byte *data, int width, int height,
 			int quality);
 
 	// use format specified in type cvar
@@ -369,7 +366,7 @@ static void R_UploadImage_(byte *data, int width, int height, vec3_t color,
 
 	R_FilterTexture(data, width, height, color, type);
 
-	if (type == it_null || type == it_font || type == it_pic || type == it_sky) {
+	if (!IS_MIPMAP(type)) {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_max);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_max);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
