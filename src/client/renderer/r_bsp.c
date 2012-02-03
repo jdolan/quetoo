@@ -56,11 +56,11 @@ boolean_t R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		return false;
 
 	for (i = 0; i < 4; i++) {
-		if (BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) == SIDE_BACK)
-			return true;
+		if (BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK)
+			return false;
 	}
 
-	return false;
+	return true;
 }
 
 /*
