@@ -690,10 +690,10 @@ static void G_worldspawn(g_edict_t *ent) {
 
 	G_WorldspawnMusic();
 
+	G_PrecacheItem(G_FindItem("Blaster"));
 	G_PrecacheItem(G_FindItem("Shotgun"));
 	G_PrecacheItem(G_FindItem("Shuper Shotgun"));
 	G_PrecacheItem(G_FindItem("Machinegun"));
-	G_PrecacheItem(G_FindItem("Chaingun"));
 	G_PrecacheItem(G_FindItem("Grenade Launcher"));
 	G_PrecacheItem(G_FindItem("Rocket Launcher"));
 	G_PrecacheItem(G_FindItem("Hyperblaster"));

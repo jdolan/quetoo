@@ -118,7 +118,6 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *inflictor,
 		return;
 	}
 
-	self->enemy = attacker;
 	if (attacker && attacker->client) {
 		switch (mod) {
 		case MOD_SHOTGUN:
@@ -280,6 +279,8 @@ static void G_ClientCorpse(g_edict_t *self) {
 static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor,
 		g_edict_t *attacker, int damage, vec3_t point) {
 
+	self->enemy = attacker;
+
 	G_ClientCorpse(self);
 
 	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
@@ -335,7 +336,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor,
  *  specified quantity of ammo, while health and armor are set to
  *  the specified quantity.
  */
-static void G_Give(g_client_t *client, char *it, int quantity) {
+static void G_Give(g_client_t *client, char *it, short quantity) {
 	g_item_t *item;
 	int index;
 
@@ -359,13 +360,15 @@ static void G_Give(g_client_t *client, char *it, int quantity) {
 	if (item->type == ITEM_WEAPON) { // weapons receive quantity as ammo
 		client->persistent.inventory[index] = 1;
 
-		item = G_FindItem(item->ammo);
-		index = ITEM_INDEX(item);
+		if (item->ammo) {
+			item = G_FindItem(item->ammo);
+			index = ITEM_INDEX(item);
 
-		if (quantity > -1)
-			client->persistent.inventory[index] = quantity;
-		else
-			client->persistent.inventory[index] = item->quantity;
+			if (quantity > -1)
+				client->persistent.inventory[index] = quantity;
+			else
+				client->persistent.inventory[index] = item->quantity;
+		}
 	} else { // while other items receive quantity directly
 		if (quantity > -1)
 			client->persistent.inventory[index] = quantity;
@@ -415,9 +418,9 @@ static boolean_t G_GiveLevelLocals(g_client_t *client) {
 }
 
 /*
- * G_InitClientLocals
+ * G_InitClientPersistent
  */
-static void G_InitClientLocals(g_client_t *client) {
+static void G_InitClientPersistent(g_client_t *client) {
 	g_item_t *item;
 	int i;
 
@@ -463,8 +466,8 @@ static void G_InitClientLocals(g_client_t *client) {
 	}
 	// dm gets shotgun and 10 shots
 	else {
-		G_Give(client, "Shotgun", 10);
-		item = G_FindItem("Shotgun");
+		G_Give(client, "Blaster", 0);
+		item = G_FindItem("Blaster");
 	}
 
 	if (G_GiveLevelLocals(client)) { // use the best weapon we were given by level
@@ -649,7 +652,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	vec3_t spawn_origin, spawn_angles, old_angles;
 	float height;
 	g_client_t *cl;
-	g_client_persistent_t locals;
+	g_client_persistent_t persistent;
 	int i;
 
 	// find a spawn point
@@ -661,12 +664,12 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	VectorCopy(ent->client->cmd_angles, old_angles);
 
 	// reset inventory, health, etc
-	G_InitClientLocals(cl);
+	G_InitClientPersistent(cl);
 
 	// clear everything but locals
-	locals = cl->persistent;
+	persistent = cl->persistent;
 	memset(cl, 0, sizeof(*cl));
-	cl->persistent = locals;
+	cl->persistent = persistent;
 
 	// clear entity values
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
@@ -811,7 +814,7 @@ void G_ClientBegin(g_edict_t *ent) {
 
 	G_InitEdict(ent);
 
-	G_InitClientLocals(ent->client);
+	G_InitClientPersistent(ent->client);
 
 	VectorClear(ent->client->cmd_angles);
 	ent->client->persistent.first_frame = g_level.frame_num;
@@ -942,7 +945,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 
 	// set color
 	s = GetUserInfo(user_info, "color");
-	cl->persistent.color = ColorByName(s, 243);
+	cl->persistent.color = ColorByName(s, DEFAULT_WEAPON_EFFECT_COLOR);
 
 	player_num = ent - g_game.edicts - 1;
 

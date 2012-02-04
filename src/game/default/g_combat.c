@@ -101,26 +101,6 @@ boolean_t G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 }
 
 /*
- * G_Killed
- */
-static void G_Killed(g_edict_t *targ, g_edict_t *inflictor,
-		g_edict_t *attacker, int damage, vec3_t point) {
-
-	if (targ->health < -999)
-		targ->health = -999;
-
-	targ->enemy = attacker;
-
-	if (targ->move_type == MOVE_TYPE_PUSH || targ->move_type == MOVE_TYPE_STOP
-			|| targ->move_type == MOVE_TYPE_NONE) { // doors, triggers, etc
-		targ->die(targ, inflictor, attacker, damage, point);
-		return;
-	}
-
-	targ->die(targ, inflictor, attacker, damage, point);
-}
-
-/*
  * G_SpawnDamage
  */
 static void G_SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage) {
@@ -305,7 +285,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker,
 		targ->health = targ->health - take;
 
 		if (targ->health <= 0) {
-			G_Killed(targ, inflictor, attacker, take, point);
+			targ->die(targ, inflictor, attacker, take, point);
 			return;
 		}
 	}

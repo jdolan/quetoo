@@ -24,6 +24,7 @@
 
 static const char *DEFAULT_BINDS =
 
+"bind 1 use blaster\n"
 "bind 2 use shotgun\n"
 "bind 3 use super shotgun\n"
 "bind 4 use machinegun\n"

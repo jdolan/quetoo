@@ -51,7 +51,7 @@ void G_ProjectSpawn(g_edict_t *ent) {
 }
 
 /*
- * G_SetupProjectile
+ * G_InitProjectile
  *
  * Determines the initial position and directional vectors of a projectile.
  */

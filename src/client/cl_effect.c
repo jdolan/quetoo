@@ -21,6 +21,8 @@
 
 #include "cl_local.h"
 
+static s_sample_t *cl_sample_blaster_fire;
+static s_sample_t *cl_sample_blaster_hit;
 static s_sample_t *cl_sample_shotgun_fire;
 static s_sample_t *cl_sample_supershotgun_fire;
 static s_sample_t *cl_sample_machinegun_fire[4];
@@ -53,6 +55,8 @@ void Cl_LoadEffects(void) {
 
 	Cl_LoadProgress(96);
 
+	cl_sample_blaster_fire = S_LoadSample("weapons/blaster/fire");
+	cl_sample_blaster_hit = S_LoadSample("weapons/blaster/hit");
 	cl_sample_shotgun_fire = S_LoadSample("weapons/shotgun/fire");
 	cl_sample_supershotgun_fire = S_LoadSample("weapons/supershotgun/fire");
 	cl_sample_grenadelauncher_fire = S_LoadSample(
@@ -98,57 +102,63 @@ void Cl_LoadEffects(void) {
  * Cl_ParseMuzzleFlash
  */
 void Cl_ParseMuzzleFlash(void) {
-	int i, weapon;
-	cl_entity_t *cent;
+	int c;
 
-	i = Msg_ReadShort(&net_message);
-	if (i < 1 || i >= MAX_EDICTS) {
-		Com_Warn("Cl_ParseMuzzleFlash: Bad entity %d.\n", i);
+	const unsigned short ent_num = Msg_ReadShort(&net_message);
+
+	if (ent_num < 1 || ent_num >= MAX_EDICTS) {
+		Com_Warn("Cl_ParseMuzzleFlash: Bad entity %u.\n", ent_num);
 		Msg_ReadByte(&net_message); // attempt to ignore cleanly
 		return;
 	}
 
-	weapon = Msg_ReadByte(&net_message);
-	cent = &cl.entities[i];
+	const cl_entity_t *cent = &cl.entities[ent_num];
+	const byte flash = Msg_ReadByte(&net_message);
 
-	switch (weapon) {
+	switch (flash) {
+	case MZ_BLASTER:
+		c = Msg_ReadByte(&net_message);
+		S_PlaySample(NULL, ent_num, cl_sample_blaster_fire, ATTN_NORM);
+		Cl_EnergyFlash(&cent->current, c, 4);
+		break;
 	case MZ_SHOTGUN:
-		S_PlaySample(NULL, i, cl_sample_shotgun_fire, ATTN_NORM);
+		S_PlaySample(NULL, ent_num, cl_sample_shotgun_fire, ATTN_NORM);
 		Cl_SmokeFlash(&cent->current);
 		break;
 	case MZ_SSHOTGUN:
-		S_PlaySample(NULL, i, cl_sample_supershotgun_fire, ATTN_NORM);
+		S_PlaySample(NULL, ent_num, cl_sample_supershotgun_fire, ATTN_NORM);
 		Cl_SmokeFlash(&cent->current);
 		break;
 	case MZ_MACHINEGUN:
-		S_PlaySample(NULL, i, cl_sample_machinegun_fire[rand() % 4], ATTN_NORM);
+		S_PlaySample(NULL, ent_num, cl_sample_machinegun_fire[rand() % 4],
+				ATTN_NORM);
 		if (rand() & 1)
 			Cl_SmokeFlash(&cent->current);
 		break;
 	case MZ_ROCKET:
-		S_PlaySample(NULL, i, cl_sample_rocketlauncher_fire, ATTN_NORM);
+		S_PlaySample(NULL, ent_num, cl_sample_rocketlauncher_fire, ATTN_NORM);
 		Cl_SmokeFlash(&cent->current);
 		break;
 	case MZ_GRENADE:
-		S_PlaySample(NULL, i, cl_sample_grenadelauncher_fire, ATTN_NORM);
+		S_PlaySample(NULL, ent_num, cl_sample_grenadelauncher_fire, ATTN_NORM);
 		Cl_SmokeFlash(&cent->current);
 		break;
 	case MZ_HYPERBLASTER:
-		S_PlaySample(NULL, i, cl_sample_hyperblaster_fire, ATTN_NORM);
+		S_PlaySample(NULL, ent_num, cl_sample_hyperblaster_fire, ATTN_NORM);
 		Cl_EnergyFlash(&cent->current, 105, 8);
 		break;
 	case MZ_LIGHTNING:
-		S_PlaySample(NULL, i, cl_sample_lightning_fire, ATTN_NORM);
+		S_PlaySample(NULL, ent_num, cl_sample_lightning_fire, ATTN_NORM);
 		break;
 	case MZ_RAILGUN:
-		S_PlaySample(NULL, i, cl_sample_railgun_fire, ATTN_NORM);
+		S_PlaySample(NULL, ent_num, cl_sample_railgun_fire, ATTN_NORM);
 		break;
 	case MZ_BFG:
-		S_PlaySample(NULL, i, cl_sample_bfg_fire, ATTN_NORM);
+		S_PlaySample(NULL, ent_num, cl_sample_bfg_fire, ATTN_NORM);
 		Cl_EnergyFlash(&cent->current, 200, 64);
 		break;
 	case MZ_LOGOUT:
-		S_PlaySample(NULL, i, cl_sample_teleport, ATTN_NORM);
+		S_PlaySample(NULL, ent_num, cl_sample_teleport, ATTN_NORM);
 		Cl_LogoutEffect(cent->current.origin);
 		break;
 	default:
@@ -165,7 +175,7 @@ void Cl_ParseMuzzleFlash(void) {
 static r_particle_t *active_particles, *free_particles;
 r_particle_t particles[MAX_PARTICLES];
 
-#define WEATHER_PARTICLES 2048
+#define MAX_WEATHER_PARTICLES 2048
 static int weather_particles;
 
 /*
@@ -200,6 +210,124 @@ static void Cl_ClearParticles(void) {
 
 	free_particles = &particles[0];
 	active_particles = NULL;
+}
+
+/*
+ * Cl_BlasterEffect
+ */
+void Cl_BlasterEffect(const vec3_t org, const vec3_t dir, int color) {
+	r_particle_t *p;
+	r_sustained_light_t s;
+	int i, j;
+
+	for (i = 0; i < 16; i++) {
+
+		if (!(p = Cl_AllocParticle()))
+			break;
+
+		VectorCopy(org, p->org);
+
+		VectorScale(dir, 150.0, p->vel);
+
+		for (j = 0; j < 3; j++) {
+			p->vel[j] += crand() * 50.0;
+		}
+
+		if (p->vel[2] < 100.0) // deflect up a bit
+			p->vel[2] = 100.0;
+
+		p->accel[2] -= 2.0 * PARTICLE_GRAVITY;
+
+		p->image = r_spark_image;
+
+		p->color = color + (rand() & 7);
+
+		p->scale = 3.5;
+		p->scale_vel = -4.0;
+
+		p->alpha = 1.0;
+		p->alpha_vel = -1.0 / (0.7 + crand() * 0.1);
+	}
+
+	VectorAdd(org, dir, s.light.origin);
+	s.light.radius = 80.0;
+	VectorSet(s.light.color, 0.5, 0.3, 0.2);
+	s.sustain = 0.25;
+
+	R_AddSustainedLight(&s);
+
+	S_PlaySample(org, 0, cl_sample_blaster_hit, ATTN_NORM);
+}
+
+/*
+ * Cl_BlasterTrail
+ */
+void Cl_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
+	r_corona_t c;
+	r_light_t l;
+	vec3_t color;
+	int i;
+
+	if (ent->time < cl.time) {
+		r_particle_t *p;
+		vec3_t delta;
+		float d, dist;
+
+		d = 0;
+
+		VectorSubtract(end, start, delta);
+		dist = VectorNormalize(delta);
+
+		while (d < dist) {
+
+			if (!(p = Cl_AllocParticle())) {
+				break;
+			}
+
+			p->type = PARTICLE_NORMAL;
+
+			VectorMA(start, d, delta, p->org);
+			VectorScale(delta, 400.0, p->vel);
+
+			for (i = 0; i < 3; i++) {
+				p->org[i] += crand() * 0.5;
+				p->vel[i] += crand() * 5.0;
+			}
+
+			p->scale = 1.0;
+			p->scale_vel = 0.0;
+
+			p->alpha = 1.0;
+			p->alpha_vel = -4.0 + crand();
+
+			p->color = ent->current.client + (rand() & 7);
+			d += 1.0;
+		}
+
+		ent->time = cl.time + (1000 / cl.server_frame_rate);
+	}
+
+	Img_ColorFromPalette(ent->current.client, color);
+
+	VectorScale(color, 3.0, color);
+
+	for (i = 0; i < 3; i++) {
+		if (color[i] > 1.0)
+			color[i] = 1.0;
+	}
+
+	VectorCopy(end, c.origin);
+	c.radius = 3.0;
+	c.flicker = 0.5;
+	VectorCopy(color, c.color);
+
+	R_AddCorona(&c);
+
+	VectorCopy(end, l.origin);
+	l.radius = 60.0;
+	VectorCopy(color, l.color);
+
+	R_AddLight(&l);
 }
 
 /*
@@ -337,7 +465,7 @@ void Cl_BloodEffect(const vec3_t org, const vec3_t dir, int count) {
 	for (i = 0; i < count; i++) {
 
 		if (!(p = Cl_AllocParticle()))
-			return;
+			break;
 
 		p->color = 232 + (rand() & 7);
 		p->image = r_blood_image;
@@ -431,7 +559,7 @@ void Cl_SparksEffect(const vec3_t org, const vec3_t dir, int count) {
 	for (i = 0; i < count; i++) {
 
 		if (!(p = Cl_AllocParticle()))
-			return;
+			break;
 
 		p->image = r_spark_image;
 
@@ -519,7 +647,7 @@ void Cl_ItemRespawnEffect(const vec3_t org) {
 	for (i = 0; i < 64; i++) {
 
 		if (!(p = Cl_AllocParticle()))
-			return;
+			break;
 
 		p->image = r_spark_image;
 		p->scale_vel = 3.0;
@@ -722,7 +850,7 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 /*
  * Cl_SmokeFlash
  */
-void Cl_SmokeFlash(entity_state_t *ent) {
+void Cl_SmokeFlash(const entity_state_t *ent) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
@@ -1000,7 +1128,7 @@ void Cl_EnergyTrail(cl_entity_t *ent, float radius, int color) {
 /*
  * Cl_EnergyFlash
  */
-void Cl_EnergyFlash(entity_state_t *ent, int color, int count) {
+void Cl_EnergyFlash(const entity_state_t *ent, int color, int count) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
@@ -1078,7 +1206,7 @@ void Cl_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 
 	Cl_SmokeTrail(start, end, ent);
 
-	VectorCopy(end, c.org);
+	VectorCopy(end, c.origin);
 	c.radius = 3.0;
 	c.flicker = 0.25;
 	VectorSet(c.color, 1.0, 0.5, 0.3);
@@ -1101,7 +1229,7 @@ void Cl_HyperblasterTrail(cl_entity_t *ent) {
 
 	Cl_EnergyTrail(ent, 8.0, 107);
 
-	VectorCopy(ent->current.origin, c.org);
+	VectorCopy(ent->current.origin, c.origin);
 	c.radius = 12.0;
 	c.flicker = 0.15;
 	VectorSet(c.color, 0.4, 0.7, 1.0);
@@ -1282,7 +1410,7 @@ void Cl_RailEffect(const vec3_t start, const vec3_t end, int flags, int color) {
 
 		// check for bubble trail
 		if (i && (Cm_PointContents(move, r_world_model->first_node)
-				& (CONTENTS_SLIME | CONTENTS_WATER)) ) {
+				& (CONTENTS_SLIME | CONTENTS_WATER))) {
 			Cl_BubbleTrail(move, p->org, 16.0);
 		}
 
@@ -1324,7 +1452,7 @@ void Cl_BfgTrail(cl_entity_t *ent) {
 
 	Cl_EnergyTrail(ent, 16.0, 206);
 
-	VectorCopy(ent->current.origin, c.org);
+	VectorCopy(ent->current.origin, c.origin);
 	c.radius = 24.0;
 	c.flicker = 0.05;
 	VectorSet(c.color, 0.4, 1.0, 0.4);
@@ -1384,7 +1512,7 @@ static void Cl_TeleporterEffect(const vec3_t org) {
 /*
  * Cl_EntityEvent
  */
-void Cl_EntityEvent(entity_state_t *ent) {
+void Cl_EntityEvent(const entity_state_t *ent) {
 	switch (ent->event) {
 	case EV_ITEM_RESPAWN:
 		S_PlaySample(NULL, ent->number, cl_sample_respawn, ATTN_IDLE);
@@ -1442,7 +1570,7 @@ static void Cl_WeatherEffects(void) {
 	max = 50 * cl_weather->value;
 
 	k = 0;
-	while (weather_particles < WEATHER_PARTICLES && k++ < max) {
+	while (weather_particles < MAX_WEATHER_PARTICLES && k++ < max) {
 
 		VectorCopy(r_view.origin, start);
 		start[0] = start[0] + (rand() % 2048) - 1024;

@@ -52,7 +52,7 @@ boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 
 	// auto-change if it's the first weapon we pick up
 	if (other->client->persistent.weapon != ent->item
-			&& (other->client->persistent.weapon == G_FindItem("Shotgun")))
+			&& (other->client->persistent.weapon == G_FindItem("Blaster")))
 		other->client->new_weapon = ent->item;
 
 	return true;
@@ -140,10 +140,13 @@ void G_UseBestWeapon(g_client_t *client) {
 		client->new_weapon = G_FindItem("super shotgun");
 		return;
 	}
-	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("shells"))]) {
+	if (client->persistent.inventory[ITEM_INDEX(G_FindItem("shells"))]
+			&& client->persistent.inventory[ITEM_INDEX(G_FindItem("shotgun"))]) {
 		client->new_weapon = G_FindItem("shotgun");
 		return;
 	}
+
+	client->new_weapon = G_FindItem("blaster");
 }
 
 /*
@@ -168,7 +171,8 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 	index = ITEM_INDEX(item);
 
 	// see if we're already using it and we only have one
-	if ((item == ent->client->persistent.weapon || item == ent->client->new_weapon)
+	if ((item == ent->client->persistent.weapon || item
+			== ent->client->new_weapon)
 			&& (ent->client->persistent.inventory[index] == 1)) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop current weapon\n");
 		return;
@@ -218,7 +222,10 @@ static void G_FireWeapon(g_edict_t *ent, unsigned int interval,
 	ent->client->weapon_fire_time = g_level.time + interval;
 
 	// determine if ammo is required, and if the quantity is sufficient
-	n = ent->client->persistent.inventory[ent->client->ammo_index];
+	if (ent->client->ammo_index)
+		n = ent->client->persistent.inventory[ent->client->ammo_index];
+	else
+		n = 0;
 	m = ent->client->persistent.weapon->quantity;
 
 	// they are out of ammo
@@ -248,7 +255,8 @@ static void G_FireWeapon(g_edict_t *ent, unsigned int interval,
 	fire(ent); // fire the weapon
 
 	// and decrease their inventory
-	ent->client->persistent.inventory[ent->client->ammo_index] -= m;
+	if (ent->client->ammo_index)
+		ent->client->persistent.inventory[ent->client->ammo_index] -= m;
 }
 
 /*
@@ -273,8 +281,46 @@ void G_WeaponThink(g_edict_t *ent) {
 	}
 
 	// call active weapon think routine
-	if (ent->client->persistent.weapon && ent->client->persistent.weapon->weapon_think)
+	if (ent->client->persistent.weapon
+			&& ent->client->persistent.weapon->weapon_think)
 		ent->client->persistent.weapon->weapon_think(ent);
+}
+
+/*
+ * G_MuzzleFlash
+ */
+static void G_MuzzleFlash(g_edict_t *ent, muzzle_flash_t flash) {
+
+	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
+	gi.WriteShort(ent - g_game.edicts);
+	gi.WriteByte(flash);
+
+	if (flash == MZ_BLASTER) {
+		int color = DEFAULT_WEAPON_EFFECT_COLOR;
+		if (ent->client) {
+			color = ent->client->persistent.color;
+		}
+		gi.WriteByte(color);
+	}
+
+	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+}
+
+/*
+ * G_FireBlaster
+ */
+static void G_FireBlaster_(g_edict_t *ent) {
+	vec3_t forward, right, up, org;
+
+	G_InitProjectile(ent, forward, right, up, org);
+
+	G_BlasterProjectile(ent, org, forward, 1000, 8, 2);
+
+	G_MuzzleFlash(ent, MZ_BLASTER);
+}
+
+void G_FireBlaster(g_edict_t *ent) {
+	G_FireWeapon(ent, 500, G_FireBlaster_);
 }
 
 /*
@@ -287,11 +333,7 @@ static void G_FireShotgun_(g_edict_t *ent) {
 
 	G_ShotgunProjectiles(ent, org, forward, 6, 4, 1000, 500, 12, MOD_SHOTGUN);
 
-	// send muzzle flash
-	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.edicts);
-	gi.WriteByte(MZ_SHOTGUN);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	G_MuzzleFlash(ent, MZ_SHOTGUN);
 }
 
 void G_FireShotgun(g_edict_t *ent) {
@@ -313,18 +355,12 @@ static void G_FireSuperShotgun_(g_edict_t *ent) {
 
 	ent->s.angles[YAW] += 10.0;
 
-	G_InitProjectile(ent, forward, right, up, org);
-
-	G_ShotgunProjectiles(ent, org, forward, 4, 4, 100, 500, 12,
+	G_ShotgunProjectiles(ent, org, forward, 4, 4, 1000, 500, 12,
 			MOD_SUPER_SHOTGUN);
 
 	ent->s.angles[YAW] -= 5.0;
 
-	// send muzzle flash
-	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.edicts);
-	gi.WriteByte(MZ_SSHOTGUN);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	G_MuzzleFlash(ent, MZ_SSHOTGUN);
 }
 
 void G_FireSuperShotgun(g_edict_t *ent) {
@@ -341,11 +377,7 @@ static void G_FireMachinegun_(g_edict_t *ent) {
 
 	G_BulletProjectile(ent, org, forward, 8, 4, 100, 200, MOD_MACHINEGUN);
 
-	// send muzzle flash
-	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.edicts);
-	gi.WriteByte(MZ_MACHINEGUN);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	G_MuzzleFlash(ent, MZ_MACHINEGUN);
 }
 
 void G_FireMachinegun(g_edict_t *ent) {
@@ -362,10 +394,7 @@ static void G_FireGrenadeLauncher_(g_edict_t *ent) {
 
 	G_GrenadeProjectile(ent, org, forward, 900, 100, 100, 185.0, 2000);
 
-	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.edicts);
-	gi.WriteByte(MZ_GRENADE);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	G_MuzzleFlash(ent, MZ_GRENADE);
 }
 
 void G_FireGrenadeLauncher(g_edict_t *ent) {
@@ -382,11 +411,7 @@ static void G_FireRocketLauncher_(g_edict_t *ent) {
 
 	G_RocketProjectile(ent, org, forward, 1250, 120, 120, 150.0);
 
-	// send muzzle flash
-	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.edicts);
-	gi.WriteByte(MZ_ROCKET);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	G_MuzzleFlash(ent, MZ_ROCKET);
 }
 
 void G_FireRocketLauncher(g_edict_t *ent) {
@@ -403,11 +428,7 @@ static void G_FireHyperblaster_(g_edict_t *ent) {
 
 	G_HyperblasterProjectile(ent, org, forward, 2000, 16, 6);
 
-	// send muzzle flash
-	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.edicts);
-	gi.WriteByte(MZ_HYPERBLASTER);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 }
 
 void G_FireHyperblaster(g_edict_t *ent) {
@@ -424,15 +445,11 @@ static void G_FireLightning_(g_edict_t *ent) {
 
 	G_LightningProjectile(ent, org, forward, 10, 12);
 
-	// if the client has just begun to attack, send the muzzle flash
-	if (ent->client->muzzle_flash_time < g_level.time) {
-		gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-		gi.WriteShort(ent - g_game.edicts);
-		gi.WriteByte(MZ_LIGHTNING);
-		gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	if (ent->client->muzzle_flash_time > g_level.time)
+			return;
 
-		ent->client->muzzle_flash_time = g_level.time + 250;
-	}
+	G_MuzzleFlash(ent, MZ_LIGHTNING);
+	ent->client->muzzle_flash_time = g_level.time + 250;
 }
 
 void G_FireLightning(g_edict_t *ent) {
@@ -449,11 +466,7 @@ static void G_FireRailgun_(g_edict_t *ent) {
 
 	G_RailgunProjectile(ent, org, forward, 120, 80);
 
-	// send muzzle flash
-	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.edicts);
-	gi.WriteByte(MZ_RAILGUN);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	G_MuzzleFlash(ent, MZ_RAILGUN);
 }
 
 void G_FireRailgun(g_edict_t *ent) {
@@ -470,11 +483,7 @@ static void G_FireBfg_(g_edict_t *ent) {
 
 	G_BfgProjectiles(ent, org, forward, 800, 100, 100, 1024.0);
 
-	// send muzzle flash
-	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.edicts);
-	gi.WriteByte(MZ_BFG);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	G_MuzzleFlash(ent, MZ_BFG);
 }
 
 void G_FireBfg(g_edict_t *ent) {

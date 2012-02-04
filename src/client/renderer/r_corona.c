@@ -73,14 +73,14 @@ void R_DrawCoronas(void) {
 		// and the corner colors
 		memset(&r_state.color_array[4], 0, num_verts * 2 * sizeof(vec4_t));
 
-		memcpy(&r_state.vertex_array_3d[0], c->org, sizeof(vec3_t));
+		memcpy(&r_state.vertex_array_3d[0], c->origin, sizeof(vec3_t));
 		vert_index = 3; // and the origin
 
 		for (i = num_verts; i >= 0; i--) { // now draw the corners
 			const float a = i / (float) num_verts * M_PI * 2;
 
 			for (j = 0; j < 3; j++)
-				v[j] = c->org[j] + r_view.right[j] * (float) cos(a)
+				v[j] = c->origin[j] + r_view.right[j] * (float) cos(a)
 						* (c->radius + f) + r_view.up[j] * (float) sin(a)
 						* (c->radius + f);
 

@@ -885,6 +885,16 @@ g_item_t
 						// WEAPONS
 						//
 
+						/*QUAKED weapon_blaster(.3 .3 1)(-16 -16 -16)(16 16 16)
+						 */
+						{ "weapon_blaster", G_PickupWeapon, G_UseWeapon,
+								G_DropWeapon, G_FireBlaster,
+								"weapons/common/pickup.wav",
+								"models/weapons/blaster/tris.md3", EF_ROTATE
+										| EF_BOB | EF_PULSE, "w_blaster",
+								"Blaster", 0, NULL, ITEM_WEAPON, 0,
+								"weapons/blaster/fire.wav" },
+
 						/*QUAKED weapon_shotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
 						 */
 						{ "weapon_shotgun", G_PickupWeapon, G_UseWeapon,

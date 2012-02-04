@@ -84,7 +84,7 @@ void S_SpatializeChannel(s_channel_t *ch) {
 /*
  * S_PlaySample
  */
-void S_PlaySample(const vec3_t org, int ent_num, s_sample_t *sample, int atten) {
+void S_PlaySample(const vec3_t org, unsigned short ent_num, s_sample_t *sample, int atten) {
 	s_channel_t *ch;
 	int i;
 

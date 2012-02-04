@@ -32,6 +32,13 @@ void Cl_ParseTempEntity(void) {
 
 	switch (type) {
 
+	case TE_BLASTER:
+		Msg_ReadPos(&net_message, pos);
+		Msg_ReadPos(&net_message, dir);
+		i = Msg_ReadByte(&net_message);
+		Cl_BlasterEffect(pos, dir, i);
+		break;
+
 	case TE_TRACER:
 		Msg_ReadPos(&net_message, pos);
 		Msg_ReadPos(&net_message, pos2);

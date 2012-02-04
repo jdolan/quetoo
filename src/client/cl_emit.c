@@ -387,7 +387,7 @@ void Cl_AddEmits(void) {
 		if (e->flags & EMIT_CORONA) {
 			r_corona_t c;
 
-			VectorCopy(e->org, c.org);
+			VectorCopy(e->org, c.origin);
 			c.radius = e->radius;
 			c.flicker = e->flicker;
 			VectorCopy(e->color, c.color);

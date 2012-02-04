@@ -57,6 +57,7 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees);
 
 // color functions
+#define DEFAULT_WEAPON_EFFECT_COLOR 243
 vec_t ColorNormalize(const vec3_t in, vec3_t out);
 void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation, float contrast);
 int ColorByName(const char *s, int def);

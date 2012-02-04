@@ -195,7 +195,7 @@ void R_DrawBspLights(void) {
 	for (i = 0; i < r_world_model->num_bsp_lights; i++, l++) {
 		r_corona_t c;
 
-		VectorCopy(l->origin, c.org);
+		VectorCopy(l->origin, c.origin);
 		c.radius = l->radius;
 		c.flicker = 0.0;
 		VectorCopy(l->color, c.color);

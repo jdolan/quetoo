@@ -614,6 +614,10 @@ void Cl_AddEntities(cl_frame_t *frame) {
 
 		// parse the effects bit mask
 
+		if (s->effects & EF_BLASTER) {
+			Cl_BlasterTrail(e->prev.origin, ent.origin, e);
+		}
+
 		if (s->effects & EF_GRENADE) {
 			Cl_GrenadeTrail(e->prev.origin, ent.origin, e);
 		}

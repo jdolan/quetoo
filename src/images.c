@@ -71,24 +71,25 @@ typedef struct miptex_s {
 #define BMASK 0x00ff0000
 #define AMASK 0xff000000
 
-SDL_PixelFormat format = { NULL, // palette
-		32, // bits
-		4, // bytes
-		0, // rloss
-		0, // gloss
-		0, // bloss
-		0, // aloss
-		0, // rshift
-		8, // gshift
-		16, // bshift
-		24, // ashift
-		RMASK, // rmask
-		GMASK, // gmask
-		BMASK, // bmask
-		AMASK, // amask
-		0, // colorkey
-		1 // alpha
-		};
+SDL_PixelFormat format = {
+	NULL, // palette
+	32, // bits
+	4, // bytes
+	0, // rloss
+	0, // gloss
+	0, // bloss
+	0, // aloss
+	0, // rshift
+	8, // gshift
+	16, // bshift
+	24, // ashift
+	RMASK, // rmask
+	GMASK, // gmask
+	BMASK, // bmask
+	AMASK, // amask
+	0, // colorkey
+	1 // alpha
+};
 
 // image formats, tried in this order
 const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };

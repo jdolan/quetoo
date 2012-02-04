@@ -30,6 +30,7 @@ void G_UseBestWeapon(g_client_t *client);
 void G_UseWeapon(g_edict_t *ent, g_item_t *inv);
 void G_DropWeapon(g_edict_t *ent, g_item_t *inv);
 void G_TossWeapon(g_edict_t *ent);
+void G_FireBlaster(g_edict_t *ent);
 void G_FireShotgun(g_edict_t *ent);
 void G_FireSuperShotgun(g_edict_t *ent);
 void G_FireMachinegun(g_edict_t *ent);

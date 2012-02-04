@@ -588,7 +588,7 @@ typedef struct r_particle_s {
 
 // coronas are soft, alpha-blended, rounded polys
 typedef struct r_corona_s {
-	vec3_t org;
+	vec3_t origin;
 	float radius;
 	float flicker;
 	vec3_t color;

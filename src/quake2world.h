@@ -384,19 +384,20 @@ typedef struct {
 // handled on the client side (particles, lights, ..)
 // an entity that has effects will be sent to the client
 // even if it has a zero index model.
-#define EF_ROTATE			(1 << 0)  // rotate on z
-#define EF_BOB				(1 << 1)  // bob on z
-#define EF_PULSE			(1 << 2)  // pulsate lighting color
-#define EF_GRENADE			(1 << 3)  // smoke trail above water, bubble trail in water
-#define EF_ROCKET			(1 << 4)  // smoke trail above water, bubble trail in water
-#define EF_HYPERBLASTER		(1 << 5)  // bubble trail in water
-#define EF_LIGHTNING		(1 << 6)  // lightning bolt
-#define EF_BFG				(1 << 7)  // big particle snotball
-#define EF_TELEPORTER		(1 << 8)  // particle fountain
-#define EF_QUAD				(1 << 9)  // quad damage
-#define EF_CTF_BLUE			(1 << 10)  // blue flag carrier
-#define EF_CTF_RED			(1 << 11)  // red flag carrier
-#define EF_BEAM				(1 << 12)  // overload old_origin for 2nd endpoint
+#define EF_ROTATE			(1 << 0) // rotate on z
+#define EF_BOB				(1 << 1) // bob on z
+#define EF_PULSE			(1 << 2) // pulsate lighting color
+#define EF_BLASTER			(1 << 3) // particle trail above water, bubble trail in water
+#define EF_GRENADE			(1 << 4) // smoke trail above water, bubble trail in water
+#define EF_ROCKET			(1 << 5) // smoke trail above water, bubble trail in water
+#define EF_HYPERBLASTER		(1 << 6) // bubble trail in water
+#define EF_LIGHTNING		(1 << 7) // lightning bolt
+#define EF_BFG				(1 << 8) // big particle snotball
+#define EF_TELEPORTER		(1 << 9) // particle fountain
+#define EF_QUAD				(1 << 10) // quad damage
+#define EF_CTF_BLUE			(1 << 11) // blue flag carrier
+#define EF_CTF_RED			(1 << 12) // red flag carrier
+#define EF_BEAM				(1 << 13) // overload old_origin for 2nd endpoint
 // small or full-bright entities can skip static and dynamic lighting
 #define EF_NO_LIGHTING		(EF_ROCKET)
 
@@ -409,6 +410,7 @@ typedef struct {
 
 // muzzle flashes
 typedef enum {
+	MZ_BLASTER,
 	MZ_SHOTGUN,
 	MZ_SSHOTGUN,
 	MZ_MACHINEGUN,
@@ -426,6 +428,7 @@ typedef enum {
 // Temporary entity messages are explicitly constructed
 // and broadcast.
 typedef enum {
+	TE_BLASTER,
 	TE_TRACER,
 	TE_BULLET,
 	TE_BURN,
