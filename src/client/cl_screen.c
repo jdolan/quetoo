@@ -295,6 +295,8 @@ void Cl_UpdateScreen(void) {
 
 		Cl_UpdateView();
 
+		cls.cgame->UpdateView(&cl.frame);
+
 		R_Setup3D();
 
 		R_DrawFrame();
@@ -313,7 +315,7 @@ void Cl_UpdateScreen(void) {
 
 			Cl_DrawRendererStats();
 
-			cls.cgame->DrawFrame(&cl.frame.ps);
+			cls.cgame->DrawFrame(&cl.frame);
 		}
 	} else {
 		R_Setup2D();

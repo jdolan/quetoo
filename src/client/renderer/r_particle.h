@@ -24,7 +24,7 @@
 
 #include "r_types.h"
 
-void R_AddParticle(r_particle_t *p);
+void R_AddParticle(const r_particle_t *p);
 void R_DrawParticles(void);
 
 #ifdef __R_LOCAL_H__

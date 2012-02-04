@@ -146,17 +146,19 @@ void Cl_InitCgame(void) {
 	import.ReadDir = Cl_ReadDir;
 	import.ReadAngle = Cl_ReadAngle;
 
-	import.width = &r_context.width;
-	import.height = &r_context.height;
-
-	import.w = &r_view.width;
-	import.h = &r_view.height;
-	import.x = &r_view.x;
-	import.y = &r_view.y;
-
 	import.time = &cl.time;
 
+	import.context = &r_context;
+
+	import.view = &r_view;
+
 	import.palette = palette;
+
+	import.AddCorona = R_AddCorona;
+	import.AddEntity = R_AddEntity;
+	import.AddLight = R_AddLight;
+	import.AddParticle = R_AddParticle;
+	import.AddSustainedLight = R_AddSustainedLight;
 
 	import.LoadPic = R_LoadPic;
 	import.DrawPic = R_DrawPic;
@@ -166,7 +168,8 @@ void Cl_InitCgame(void) {
 	import.StringWidth = R_StringWidth;
 	import.DrawString = R_DrawString;
 
-	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
+	cls.cgame
+			= Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
 
 	if (!cls.cgame) {
 		Com_Error(ERR_DROP, "Failed to load client game\n");

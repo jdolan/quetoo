@@ -27,7 +27,7 @@
  * TODO: We can add most of the particle "thinking" computations to this
  * function, which should help threaded performance.
  */
-void R_AddParticle(r_particle_t *p) {
+void R_AddParticle(const r_particle_t *p) {
 
 	if (r_view.num_particles >= MAX_PARTICLES)
 		return;

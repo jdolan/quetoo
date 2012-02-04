@@ -105,10 +105,10 @@ r_pixel_t Cg_DrawScoresHeader(void) {
 
 	cgi.BindFont("medium", &cw, &ch);
 
-	y = *cgi.y + 64 - ch - 4;
+	y = cgi.view->y + 64 - ch - 4;
 
 	// map title
-	x = *cgi.width / 2 - sw / 2;
+	x = cgi.context->width / 2 - sw / 2;
 	cgi.DrawString(x, y, s, CON_COLOR_DEFAULT);
 
 	y += ch;
@@ -122,7 +122,7 @@ r_pixel_t Cg_DrawScoresHeader(void) {
 
 		cgi.BindFont("small", &cw, &ch);
 
-		x = *cgi.width / 2 - SCORES_COL_WIDTH + SCORES_ICON_WIDTH;
+		x = cgi.context->width / 2 - SCORES_COL_WIDTH + SCORES_ICON_WIDTH;
 		r_pixel_t sx = x + SCORES_COL_WIDTH - 3 * cw;
 
 		snprintf(string, sizeof(string) - 1, "%s^7 %d %s",
@@ -217,10 +217,10 @@ void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	short rows;
 	size_t i;
 
-	rows = (*cgi.h - (2 * start_y)) / SCORES_ROW_HEIGHT;
+	rows = (cgi.context->height - (2 * start_y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
 
-	x = (*cgi.width / 2) - SCORES_COL_WIDTH;
+	x = (cgi.context->width / 2) - SCORES_COL_WIDTH;
 	y = start_y;
 
 	for (i = 0; i < cg_num_scores; i++) {
@@ -261,7 +261,7 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
 	r_pixel_t width;
 	size_t i;
 
-	rows = (*cgi.h - (2 * start_y)) / SCORES_ROW_HEIGHT;
+	rows = (cgi.context->height - (2 * start_y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
 
 	cols = (rows < (short) cg_num_scores) ? 2 : 1;
@@ -275,7 +275,7 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
 
 		const short col = i / rows;
 
-		const r_pixel_t x = *cgi.width / 2 - width / 2 + col * SCORES_COL_WIDTH;
+		const r_pixel_t x = cgi.context->width / 2 - width / 2 + col * SCORES_COL_WIDTH;
 		const r_pixel_t y = start_y + (i % rows) * SCORES_ROW_HEIGHT;
 
 		Cg_DrawScore(x, y, s);

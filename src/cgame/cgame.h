@@ -55,11 +55,11 @@ typedef struct cg_import_s {
 
 	void (*Trace)(vec3_t start, vec3_t end, float radius, int mask);
 
-	// context parameters
-	r_pixel_t *width, *height;
+	// the GL context
+	r_context_t *context;
 
-	// view parameteres
-	r_pixel_t *x, *y, *w, *h;
+	// the public renderer structure
+	r_view_t *view;
 
 	// client time
 	unsigned int *time;
@@ -67,6 +67,14 @@ typedef struct cg_import_s {
 	// 256 color palette for particle and effect colors
 	unsigned *palette;
 
+	// scene building facilities
+	void (*AddCorona)(const r_corona_t *c);
+	const r_entity_t * (*AddEntity)(const r_entity_t *e);
+	void (*AddLight)(const r_light_t *l);
+	void (*AddParticle)(const r_particle_t *p);
+	void (*AddSustainedLight)(const r_sustained_light_t *s);
+
+	// 2D drawing facilities
 	r_image_t *(*LoadPic)(const char *name);
 	void (*DrawPic)(r_pixel_t x, r_pixel_t y, float scale, const char *name);
 	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int c, float a);
@@ -87,9 +95,9 @@ typedef struct cg_export_s {
 
 	boolean_t (*ParseMessage)(int cmd);
 
-	float (*ThirdPerson)(player_state_t *ps);
+	void (*UpdateView)(const cl_frame_t *frame);
 
-	void (*DrawFrame)(player_state_t *ps);
+	void (*DrawFrame)(const cl_frame_t *frame);
 } cg_export_t;
 
 #endif /* __CGAME_H__ */
