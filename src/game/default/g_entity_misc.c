@@ -25,7 +25,7 @@
  * G_misc_teleporter_touch
  */
 static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
 	g_edict_t *dest;
 	float speed;
 	vec3_t forward;

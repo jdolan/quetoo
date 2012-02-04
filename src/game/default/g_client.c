@@ -26,8 +26,7 @@
  *
  * Make a tasteless death announcement.
  */
-static void G_ClientObituary(g_edict_t *self, g_edict_t *inflictor,
-		g_edict_t *attacker) {
+static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 	unsigned int ff, mod;
 	char *message, *message2;
 	g_client_t *killer;
@@ -180,8 +179,9 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *inflictor,
 		if (message) {
 
 			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s %s\n",
-					(ff ? "^1TEAMKILL^7 " : ""), self->client->persistent.net_name,
-					message, attacker->client->persistent.net_name, message2);
+					(ff ? "^1TEAMKILL^7 " : ""),
+					self->client->persistent.net_name, message,
+					attacker->client->persistent.net_name, message2);
 
 			if (g_level.warmup)
 				return;
@@ -191,7 +191,8 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *inflictor,
 			else
 				attacker->client->persistent.score++;
 
-			if ((g_level.teams || g_level.ctf) && attacker->client->persistent.team) { // handle team scores too
+			if ((g_level.teams || g_level.ctf)
+					&& attacker->client->persistent.team) { // handle team scores too
 				if (ff)
 					attacker->client->persistent.team->score--;
 				else
@@ -277,7 +278,7 @@ static void G_ClientCorpse(g_edict_t *self) {
  * state with the scoreboard shown.
  */
 static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor,
-		g_edict_t *attacker, int damage, vec3_t point) {
+		g_edict_t *attacker, int damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
 
 	self->enemy = attacker;
 
@@ -288,7 +289,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor,
 	self->client->respawn_time = g_level.time + 1.0;
 	self->client->ps.pmove.pm_type = PM_DEAD;
 
-	G_ClientObituary(self, inflictor, attacker);
+	G_ClientObituary(self, attacker);
 
 	if (!g_level.gameplay && !g_level.warmup) // drop weapon
 		G_TossWeapon(self);
@@ -526,10 +527,9 @@ static float G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
 }
 
 /*
- * P_SelectRandomSpawnPoint
+ * G_SelectRandomSpawnPoint
  */
-static g_edict_t *G_SelectRandomSpawnPoint(g_edict_t *ent,
-		const char *class_name) {
+static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
 	g_edict_t *spot;
 	int count = 0;
 
@@ -550,7 +550,7 @@ static g_edict_t *G_SelectRandomSpawnPoint(g_edict_t *ent,
 }
 
 /*
- * P_SelectFarthestSpawnPoint
+ * G_SelectFarthestSpawnPoint
  */
 static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent,
 		const char *class_name) {
@@ -588,7 +588,7 @@ static g_edict_t *G_SelectDeathmatchSpawnPoint(g_edict_t *ent) {
 	if (g_spawn_farthest->value)
 		return G_SelectFarthestSpawnPoint(ent, "info_player_deathmatch");
 
-	return G_SelectRandomSpawnPoint(ent, "info_player_deathmatch");
+	return G_SelectRandomSpawnPoint("info_player_deathmatch");
 }
 
 /*
@@ -606,7 +606,7 @@ static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent) {
 	if (g_spawn_farthest->value)
 		return G_SelectFarthestSpawnPoint(ent, c);
 
-	return G_SelectRandomSpawnPoint(ent, c);
+	return G_SelectRandomSpawnPoint(c);
 }
 
 /*
@@ -780,7 +780,8 @@ void G_ClientRespawn(g_edict_t *ent, boolean_t voluntary) {
 	// clear scores and match/round on voluntary changes
 	if (ent->client->persistent.spectator && voluntary) {
 		ent->client->persistent.score = ent->client->persistent.captures = 0;
-		ent->client->persistent.match_num = ent->client->persistent.round_num = 0;
+		ent->client->persistent.match_num = ent->client->persistent.round_num
+				= 0;
 	}
 
 	ent->client->respawn_time = g_level.time;
@@ -793,7 +794,8 @@ void G_ClientRespawn(g_edict_t *ent, boolean_t voluntary) {
 				ent->client->persistent.net_name);
 	else if (ent->client->persistent.team)
 		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n",
-				ent->client->persistent.net_name, ent->client->persistent.team->name);
+				ent->client->persistent.net_name,
+				ent->client->persistent.team->name);
 	else
 		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n",
 				ent->client->persistent.net_name);
@@ -1268,7 +1270,8 @@ void G_ClientBeginFrame(g_edict_t *ent) {
 		client->ps.pmove.pm_flags &= ~PMF_PUSHED;
 
 	// run weapon think if it hasn't been done by a command
-	if (client->weapon_think_time < g_level.time && !client->persistent.spectator)
+	if (client->weapon_think_time < g_level.time
+			&& !client->persistent.spectator)
 		G_WeaponThink(ent);
 
 	if (ent->dead) { // check for respawn conditions

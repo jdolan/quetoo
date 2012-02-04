@@ -24,8 +24,8 @@
 /*
  * G_target_speaker_use
  */
-static void G_target_speaker_use(g_edict_t *ent, g_edict_t *other,
-		g_edict_t *activator) {
+static void G_target_speaker_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 
 	if (ent->spawn_flags & 3) { // looping sound toggles
 		if (ent->s.sound)
@@ -108,7 +108,7 @@ static void G_target_explosion_explode(g_edict_t *self) {
 /*
  * G_target_explosion_use
  */
-static void G_target_explosion_use(g_edict_t *self, g_edict_t *other,
+static void G_target_explosion_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
 		g_edict_t *activator) {
 	self->activator = activator;
 

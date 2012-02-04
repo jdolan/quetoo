@@ -739,7 +739,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 /*
  * G_LightningProjectile
  */
-void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir,
+void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
 		int damage, int knockback) {
 	g_edict_t *light;
 
@@ -748,7 +748,7 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir,
 	if (!light) { // ensure a valid lightning entity exists
 		light = G_Spawn();
 		VectorCopy(start, light->s.origin);
-		VectorCopy(start, light->s.old_origin);
+		VectorMA(start, 800.0, dir, light->s.old_origin);
 		light->solid = SOLID_NOT;
 		light->move_type = MOVE_TYPE_THINK;
 		light->owner = ent;

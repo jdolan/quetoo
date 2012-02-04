@@ -24,8 +24,8 @@
 /*
  * G_func_areaportal_use
  */
-static void G_func_areaportal_use(g_edict_t *ent, g_edict_t *other,
-		g_edict_t *activator) {
+static void G_func_areaportal_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 	ent->count ^= 1; // toggle state
 	gi.SetAreaPortalState(ent->area_portal, ent->count);
 }
@@ -334,10 +334,12 @@ static void G_func_plat_blocked(g_edict_t *self, g_edict_t *other) {
 /*
  * G_func_plat_use
  */
-static void G_func_plat_use(g_edict_t *ent, g_edict_t *other,
-		g_edict_t *activator) {
+static void G_func_plat_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
+
 	if (ent->think)
 		return; // already down
+
 	G_func_plat_go_down(ent);
 }
 
@@ -345,7 +347,8 @@ static void G_func_plat_use(g_edict_t *ent, g_edict_t *other,
  * G_func_plat_touch
  */
 static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+
 	if (!other->client)
 		return;
 
@@ -353,6 +356,7 @@ static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other,
 		return;
 
 	ent = ent->enemy; // now point at the plat, not the trigger
+
 	if (ent->move_info.state == STATE_BOTTOM)
 		G_func_plat_go_up(ent);
 	else if (ent->move_info.state == STATE_TOP)
@@ -499,17 +503,19 @@ static void G_func_rotating_blocked(g_edict_t *self, g_edict_t *other) {
  * G_func_rotating_touch
  */
 static void G_func_rotating_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
-	if (self->avelocity[0] || self->avelocity[1] || self->avelocity[2])
+		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+
+	if (!VectorCompare(self->avelocity, vec3_origin)) {
 		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
 				self->dmg, 1, 0, MOD_CRUSH);
+	}
 }
 
 /*
  * G_func_rotating_use
  */
-static void G_func_rotating_use(g_edict_t *self, g_edict_t *other,
-		g_edict_t *activator) {
+static void G_func_rotating_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 
 	if (!VectorCompare(self->avelocity, vec3_origin)) {
 		self->s.sound = 0;
@@ -628,7 +634,7 @@ static void G_func_button_activate(g_edict_t *self) {
 /*
  * G_func_button_use
  */
-static void G_func_button_use(g_edict_t *self, g_edict_t *other,
+static void G_func_button_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
 		g_edict_t *activator) {
 	self->activator = activator;
 	G_func_button_activate(self);
@@ -638,7 +644,7 @@ static void G_func_button_use(g_edict_t *self, g_edict_t *other,
  * G_func_button_touch
  */
 static void G_func_button_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;
@@ -650,8 +656,8 @@ static void G_func_button_touch(g_edict_t *self, g_edict_t *other,
 	G_func_button_activate(self);
 }
 
-static void G_func_button_die(g_edict_t *self, g_edict_t *inflictor,
-		g_edict_t *attacker, int damage, vec3_t point) {
+static void G_func_button_die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)),
+		g_edict_t *attacker, int damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
 	self->activator = attacker;
 	self->health = self->max_health;
 	self->take_damage = false;
@@ -823,7 +829,7 @@ static void G_func_door_go_up(g_edict_t *self, g_edict_t *activator) {
 /*
  * G_func_door_use
  */
-static void G_func_door_use(g_edict_t *self, g_edict_t *other,
+static void G_func_door_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
 		g_edict_t *activator) {
 	g_edict_t *ent;
 
@@ -855,7 +861,7 @@ static void G_func_door_use(g_edict_t *self, g_edict_t *other,
  * G_func_door_touch_trigger
  */
 static void G_func_door_touch_trigger(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
 	if (other->health <= 0)
 		return;
 
@@ -977,8 +983,8 @@ static void G_func_door_blocked(g_edict_t *self, g_edict_t *other) {
 /*
  * G_func_door_die
  */
-static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor,
-		g_edict_t *attacker, int damage, vec3_t point) {
+static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)),
+		g_edict_t *attacker, int damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
 	g_edict_t *ent;
 
 	for (ent = self->team_master; ent; ent = ent->team_chain) {
@@ -993,7 +999,7 @@ static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor,
  * G_func_door_touch
  */
 static void G_func_door_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
 	if (!other->client)
 		return;
 
@@ -1105,8 +1111,8 @@ void G_func_door(g_edict_t *ent) {
 /*
  * G_func_wall_use
  */
-static void G_func_wall_use(g_edict_t *self, g_edict_t *other,
-		g_edict_t *activator) {
+static void G_func_wall_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 	if (self->solid == SOLID_NOT) {
 		self->solid = SOLID_BSP;
 		self->sv_flags &= ~SVF_NO_CLIENT;
@@ -1400,7 +1406,7 @@ static void G_func_train_find(g_edict_t *self) {
 /*
  * G_func_train_use
  */
-static void G_func_train_use(g_edict_t *self, g_edict_t *other,
+static void G_func_train_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
 		g_edict_t *activator) {
 	self->activator = activator;
 
@@ -1476,7 +1482,7 @@ static void G_func_timer_think(g_edict_t *self) {
 /*
  * G_func_timer_use
  */
-static void G_func_timer_use(g_edict_t *self, g_edict_t *other,
+static void G_func_timer_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
 		g_edict_t *activator) {
 	self->activator = activator;
 
@@ -1488,7 +1494,7 @@ static void G_func_timer_use(g_edict_t *self, g_edict_t *other,
 
 	// turn it on
 	if (self->delay)
-		self->next_think = g_level.time + self->delay;
+		self->next_think = g_level.time + self->delay * 1000;
 	else
 		G_func_timer_think(self);
 }
@@ -1521,7 +1527,7 @@ void G_func_timer(g_edict_t *self) {
 
 	if (self->spawn_flags & 1) {
 		self->next_think = g_level.time + 1000 + g_game.spawn.pause_time
-				+ self->delay + self->wait + crand() * (self->random * 1000);
+				+ self->delay * 1000 + self->wait + crand() * (self->random * 1000);
 		self->activator = self;
 	}
 
@@ -1531,8 +1537,8 @@ void G_func_timer(g_edict_t *self) {
 /*
  * G_func_conveyor_use
  */
-static void G_func_conveyor_use(g_edict_t *self, g_edict_t *other,
-		g_edict_t *activator) {
+static void G_func_conveyor_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 	if (self->spawn_flags & 1) {
 		self->speed = 0;
 		self->spawn_flags &= ~1;
@@ -1569,8 +1575,8 @@ void G_func_conveyor(g_edict_t *self) {
 /*
  * G_func_killbox_use
  */
-static void G_func_killbox_use(g_edict_t *self, g_edict_t *other,
-		g_edict_t *activator) {
+static void G_func_killbox_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 	G_KillBox(self);
 }
 

@@ -474,15 +474,15 @@ void G_TossFlag(g_edict_t *ent) {
 /*
  * G_DropFlag
  */
-static void G_DropFlag(g_edict_t *ent, g_item_t *item) {
+static void G_DropFlag(g_edict_t *ent, g_item_t *item __attribute__((unused))) {
 	G_TossFlag(ent);
 }
 
 /*
  * G_TouchItem
  */
-void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane,
-		c_bsp_surface_t *surf) {
+void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf __attribute__((unused))) {
 	boolean_t taken;
 
 	if (!other->client)
@@ -659,7 +659,8 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item) {
 /*
  * G_UseItem
  */
-static void G_UseItem(g_edict_t *ent, g_edict_t *other, g_edict_t *activator) {
+static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->use = NULL;
 

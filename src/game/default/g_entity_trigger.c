@@ -68,7 +68,7 @@ static void G_trigger_multiple_think(g_edict_t *ent) {
 /*
  * G_trigger_multiple_use
  */
-static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other,
+static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
 		g_edict_t *activator) {
 
 	ent->activator = activator;
@@ -80,7 +80,7 @@ static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other,
  * G_trigger_multiple_touch
  */
 static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;
@@ -103,8 +103,8 @@ static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other,
 /*
  * G_trigger_multiple_enable
  */
-static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other,
-		g_edict_t *activator) {
+static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 	self->solid = SOLID_TRIGGER;
 	self->use = G_trigger_multiple_use;
 	gi.LinkEntity(self);
@@ -157,7 +157,7 @@ void G_trigger_once(g_edict_t *ent) {
 /*
  * G_trigger_relay_use
  */
-static void G_trigger_relay_use(g_edict_t *self, g_edict_t *other,
+static void G_trigger_relay_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
 		g_edict_t *activator) {
 	G_UseTargets(self, activator);
 }
@@ -187,7 +187,7 @@ void G_trigger_always(g_edict_t *ent) {
  * G_trigger_push_touch
  */
 static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!strcmp(other->class_name, "grenade") || other->health > 0) {
 
@@ -245,8 +245,8 @@ void G_trigger_push(g_edict_t *self) {
 /*
  * G_trigger_hurt_use
  */
-static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other,
-		g_edict_t *activator) {
+static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 
 	if (self->solid == SOLID_NOT)
 		self->solid = SOLID_TRIGGER;
@@ -262,7 +262,7 @@ static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other,
  * G_trigger_hurt_touch
  */
 static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
 	int dflags;
 
 	if (!other->take_damage) { // deal with items that land on us
@@ -329,13 +329,13 @@ void G_trigger_hurt(g_edict_t *self) {
 /*
  * G_trigger_exec_touch
  */
-static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (self->timestamp > g_level.time)
 		return;
 
-	self->timestamp = g_level.time + self->delay;
+	self->timestamp = g_level.time + self->delay * 1000;
 
 	if (self->command)
 		gi.AddCommandString(va("%s\n", self->command));
