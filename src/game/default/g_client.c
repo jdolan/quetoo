@@ -1102,7 +1102,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 
 			other = client->chase_target;
 
-			G_ChaseNext(ent);
+			G_ClientChaseNext(ent);
 
 			if (client->chase_target == other) { // no one to chase
 				client->chase_target = NULL;
@@ -1230,7 +1230,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 				client->chase_target = NULL;
 				client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 			} else {
-				G_ChaseTarget(ent);
+				G_ClientChaseTarget(ent);
 			}
 		} else if (client->weapon_think_time < g_level.time) {
 			G_WeaponThink(ent);
@@ -1243,7 +1243,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 		other = g_game.edicts + i;
 
 		if (other->in_use && other->client->chase_target == ent) {
-			G_ChaseThink(other);
+			G_ClientChaseThink(other);
 		}
 	}
 

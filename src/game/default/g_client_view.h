@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_VIEW_H__
-#define __G_VIEW_H__
+#ifndef __G_CLIENT_VIEW_H__
+#define __G_CLIENT_VIEW_H__
 
 #ifdef __G_LOCAL_H__
 
@@ -29,4 +29,4 @@ void G_EndClientFrames(void);
 
 #endif /* __G_LOCAL_H__ */
 
-#endif /* __G_VIEW_H__ */
+#endif /* __G_CLIENT_VIEW_H__ */

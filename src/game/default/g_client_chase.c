@@ -21,7 +21,10 @@
 
 #include "g_local.h"
 
-void G_ChaseThink(g_edict_t *ent) {
+/*
+ * G_ClientChaseThink
+ */
+void G_ClientChaseThink(g_edict_t *ent) {
 	const g_edict_t *targ;
 
 	targ = ent->client->chase_target;
@@ -46,9 +49,9 @@ void G_ChaseThink(g_edict_t *ent) {
 }
 
 /*
- * G_ChaseNext
+ * G_ClientChaseNext
  */
-void G_ChaseNext(g_edict_t *ent) {
+void G_ClientChaseNext(g_edict_t *ent) {
 	int i;
 	g_edict_t *e;
 
@@ -76,9 +79,9 @@ void G_ChaseNext(g_edict_t *ent) {
 }
 
 /*
- * G_ChasePrevious
+ * G_ClientChasePrevious
  */
-void G_ChasePrevious(g_edict_t *ent) {
+void G_ClientChasePrevious(g_edict_t *ent) {
 	int i;
 	g_edict_t *e;
 
@@ -106,11 +109,11 @@ void G_ChasePrevious(g_edict_t *ent) {
 }
 
 /*
- * G_ChaseTarget
+ * G_ClientChaseTarget
  *
  * Finds the first available chase target and assigns it to the specified ent.
  */
-void G_ChaseTarget(g_edict_t *ent) {
+void G_ClientChaseTarget(g_edict_t *ent) {
 	int i;
 	g_edict_t *other;
 
@@ -118,7 +121,7 @@ void G_ChaseTarget(g_edict_t *ent) {
 		other = g_game.edicts + i;
 		if (other->in_use && !other->client->persistent.spectator) {
 			ent->client->chase_target = other;
-			G_ChaseThink(ent);
+			G_ClientChaseThink(ent);
 			return;
 		}
 	}

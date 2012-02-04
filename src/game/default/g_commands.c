@@ -267,7 +267,7 @@ static void G_WeaponPrevious_f(g_edict_t *ent) {
 	if (cl->persistent.spectator) {
 
 		if (cl->chase_target) // chase the previous player
-			G_ChasePrevious(ent);
+			G_ClientChasePrevious(ent);
 
 		return;
 	}
@@ -307,7 +307,7 @@ static void G_WeaponNext_f(g_edict_t *ent) {
 	if (cl->persistent.spectator) {
 
 		if (cl->chase_target) // chase the next player
-			G_ChaseNext(ent);
+			G_ClientChaseNext(ent);
 
 		return;
 	}

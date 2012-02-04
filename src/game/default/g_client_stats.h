@@ -19,16 +19,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_CHASE_H__
-#define __G_CHASE_H__
+#ifndef __G_CLIENT_STATS_H__
+#define __G_CLIENT_STATS_H__
 
 #ifdef __G_LOCAL_H__
 
-void G_ChaseThink(g_edict_t *ent);
-void G_ChaseNext(g_edict_t *ent);
-void G_ChasePrevious(g_edict_t *ent);
-void G_ChaseTarget(g_edict_t *ent);
+void G_ClientScores(g_edict_t *client);
+void G_ClientSpectatorStats(g_edict_t *ent);
+void G_ClientStats(g_edict_t *ent);
+void G_ClientTeamsScoreboard(g_edict_t *client);
+void G_ClientToIntermission(g_edict_t *client);
 
 #endif /* __G_LOCAL_H__ */
 
-#endif /* __G_CHASE_H__ */
+#endif /* __G_CLIENT_STATS_H__ */

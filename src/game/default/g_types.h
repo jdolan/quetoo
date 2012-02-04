@@ -391,8 +391,8 @@ struct g_client_s {
 	unsigned int muzzle_flash_time; // should send muzzle flash when time > this
 	g_item_t *new_weapon;
 
-	int damage_armor; // damage absorbed by armor
-	int damage_blood; // damage taken out of health
+	short damage_armor; // damage absorbed by armor
+	short damage_blood; // damage taken out of health
 	vec3_t damage_from; // origin for vector calculation
 
 	vec3_t angles; // aiming direction

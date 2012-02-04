@@ -2,7 +2,9 @@ gamelibdir=$(libdir)/@PACKAGE@/default
 
 noinst_HEADERS = \
 	g_ballistics.h \
-	g_chase.h \
+	g_client_chase.h \
+	g_client_stats.h \
+	g_client_view.h \
 	g_client.h \
 	g_combat.h \
 	g_commands.h \
@@ -16,10 +18,8 @@ noinst_HEADERS = \
 	g_local.h \
 	g_main.h \
 	g_physics.h \
-	g_stats.h \
 	g_types.h \
 	g_utils.h \
-	g_view.h \
 	g_weapons.h
 
 gamelib_LTLIBRARIES = \
@@ -27,7 +27,9 @@ gamelib_LTLIBRARIES = \
 
 game_la_SOURCES = \
 	g_ballistics.c \
-	g_chase.c \
+	g_client_chase.c \
+	g_client_stats.c \
+	g_client_view.c \
 	g_client.c \
 	g_commands.c \
 	g_combat.c \
@@ -40,9 +42,7 @@ game_la_SOURCES = \
 	g_items.c \
 	g_main.c \
 	g_physics.c \
-	g_stats.c \
 	g_utils.c \
-	g_view.c \
 	g_weapons.c
 
 game_la_CFLAGS = \
