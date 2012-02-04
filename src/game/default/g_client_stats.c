@@ -115,12 +115,12 @@ static unsigned int G_UpdateScores(void) {
 
 		G_UpdateScores_(e, &buf);
 
-		if (j++ == 32)
+		if (++j == 64)
 			break;
 	}
 
 	// and optionally concatenate the team scores
-	if (g_teams->integer || g_ctf->integer) {
+	if (g_level.teams || g_level.ctf) {
 		player_score_t s[2];
 
 		memset(s, 0, sizeof(s));
