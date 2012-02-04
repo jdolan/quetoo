@@ -503,7 +503,7 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attrib
 				ent->item->icon);
 		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS
 				+ ITEM_INDEX(ent->item);
-		other->client->pickup_msg_time = g_level.time + 3.0;
+		other->client->pickup_msg_time = g_level.time + 3000;
 
 		if (ent->item->pickup_sound) { // play pickup sound
 			gi.Sound(other, gi.SoundIndex(ent->item->pickup_sound), ATTN_NORM);
@@ -659,8 +659,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item) {
 /*
  * G_UseItem
  */
-static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->use = NULL;
 
@@ -840,12 +839,6 @@ void G_SpawnItem(g_edict_t *ent, g_item_t *item) {
 g_item_t
 		g_items[] =
 				{
-						{ NULL, }, // leave index 0 alone
-
-						//
-						// ARMOR
-						//
-
 						/*QUAKED item_armor_body(.3 .3 1)(-16 -16 -16)(16 16 16)
 						 */
 						{ "item_armor_body", G_PickupArmor, NULL, NULL, NULL,
@@ -881,10 +874,6 @@ g_item_t
 										| EF_BOB | EF_PULSE, "i_shard",
 								"Armor Shard", 3, NULL, ITEM_ARMOR,
 								ARMOR_SHARD, "" },
-
-						//
-						// WEAPONS
-						//
 
 						/*QUAKED weapon_blaster(.3 .3 1)(-16 -16 -16)(16 16 16)
 						 */
@@ -992,10 +981,6 @@ g_item_t
 										| EF_BOB | EF_PULSE, "w_bfg", "BFG10K",
 								1, "Nukes", ITEM_WEAPON, 0,
 								"weapons/bfg/fire.wav weapons/bfg/hit.wav" },
-
-						//
-						// AMMO ITEMS
-						//
 
 						/*QUAKED ammo_shells(.3 .3 1)(-16 -16 -16)(16 16 16)
 						 */
