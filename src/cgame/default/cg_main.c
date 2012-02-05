@@ -74,6 +74,10 @@ static boolean_t Cg_ParseMessage(int cmd) {
 		Cg_ParseScores();
 		return true;
 
+	case SV_CMD_CENTER_PRINT:
+		Cg_ParseCenterPrint();
+		return true;
+
 	default:
 		break;
 	}

@@ -185,14 +185,14 @@ void Com_QuitSubsystem(unsigned int s) {
 /*
  * Msg_WriteData
  */
-void Msg_WriteData(size_buf_t *sb, void *data, size_t len) {
+void Msg_WriteData(size_buf_t *sb, const void *data, size_t len) {
 	Sb_Write(sb, data, len);
 }
 
 /*
  * Msg_WriteChar
  */
-void Msg_WriteChar(size_buf_t *sb, int c) {
+void Msg_WriteChar(size_buf_t *sb, const int c) {
 	byte *buf;
 
 	buf = Sb_Alloc(sb, sizeof(char));
@@ -202,7 +202,7 @@ void Msg_WriteChar(size_buf_t *sb, int c) {
 /*
  * Msg_WriteByte
  */
-void Msg_WriteByte(size_buf_t *sb, int c) {
+void Msg_WriteByte(size_buf_t *sb, const int c) {
 	byte *buf;
 
 	buf = Sb_Alloc(sb, sizeof(byte));
@@ -212,7 +212,7 @@ void Msg_WriteByte(size_buf_t *sb, int c) {
 /*
  * Msg_WriteShort
  */
-void Msg_WriteShort(size_buf_t *sb, int c) {
+void Msg_WriteShort(size_buf_t *sb, const int c) {
 	byte *buf;
 
 	buf = Sb_Alloc(sb, sizeof(short));
@@ -223,7 +223,7 @@ void Msg_WriteShort(size_buf_t *sb, int c) {
 /*
  * Msg_WriteLong
  */
-void Msg_WriteLong(size_buf_t *sb, int c) {
+void Msg_WriteLong(size_buf_t *sb, const int c) {
 	byte *buf;
 
 	buf = Sb_Alloc(sb, sizeof(int));
@@ -246,14 +246,14 @@ void Msg_WriteString(size_buf_t *sb, const char *s) {
 /*
  * Msg_WriteCoord
  */
-void Msg_WriteCoord(size_buf_t *sb, float f) {
+void Msg_WriteCoord(size_buf_t *sb, const float f) {
 	Msg_WriteShort(sb, (int) (f * 8.0));
 }
 
 /*
  * Msg_WritePos
  */
-void Msg_WritePos(size_buf_t *sb, vec3_t pos) {
+void Msg_WritePos(size_buf_t *sb, const vec3_t pos) {
 	Msg_WriteShort(sb, (int) (pos[0] * 8.0));
 	Msg_WriteShort(sb, (int) (pos[1] * 8.0));
 	Msg_WriteShort(sb, (int) (pos[2] * 8.0));
@@ -262,14 +262,14 @@ void Msg_WritePos(size_buf_t *sb, vec3_t pos) {
 /*
  * Msg_WriteAngle
  */
-void Msg_WriteAngle(size_buf_t *sb, float f) {
+void Msg_WriteAngle(size_buf_t *sb, const float f) {
 	Msg_WriteByte(sb, (int) (f * 255.0 / 360.0) & 255);
 }
 
 /*
  * Msg_WriteAngles
  */
-void Msg_WriteAngles(size_buf_t *sb, vec3_t angles) {
+void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles) {
 	Msg_WriteAngle(sb, angles[0]);
 	Msg_WriteAngle(sb, angles[1]);
 	Msg_WriteAngle(sb, angles[2]);
@@ -278,7 +278,7 @@ void Msg_WriteAngles(size_buf_t *sb, vec3_t angles) {
 /*
  * Msg_WriteAngle16
  */
-void Msg_WriteAngle16(size_buf_t *sb, float f) {
+void Msg_WriteAngle16(size_buf_t *sb, const float f) {
 	Msg_WriteShort(sb, ANGLE2SHORT(f));
 }
 
@@ -330,7 +330,7 @@ void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd) {
 /*
  * Msg_WriteDir
  */
-void Msg_WriteDir(size_buf_t *sb, vec3_t dir) {
+void Msg_WriteDir(size_buf_t *sb, const vec3_t dir) {
 	int i, best;
 	float d, bestd;
 
@@ -617,7 +617,7 @@ char *Msg_ReadString(size_buf_t *sb) {
 		l++;
 	} while (l < sizeof(string) - 1);
 
-	string[l] = 0;
+	string[l] = '\0';
 
 	return string;
 }

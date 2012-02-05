@@ -808,7 +808,7 @@ void G_ClientRespawn(g_edict_t *ent, boolean_t voluntary) {
  * to be placed into the game.  This will happen every level load.
  */
 void G_ClientBegin(g_edict_t *ent) {
-	char welcome[256];
+	char welcome[MAX_STRING_CHARS];
 
 	int player_num = ent - g_game.edicts - 1;
 
@@ -839,20 +839,21 @@ void G_ClientBegin(g_edict_t *ent) {
 	} else {
 		memset(welcome, 0, sizeof(welcome));
 
-		snprintf(welcome, sizeof(welcome),
-				"^2Welcome to ^7http://quake2world.net\n"
-				"^2Gameplay is ^1%s\n", G_GameplayName(g_level.gameplay));
+		sprintf(welcome, "^2Welcome to ^7http://quake2world.net\n"
+				"^2Gameplay is ^1%s", G_GameplayName(g_level.gameplay));
 
 		if (g_level.teams)
-			strncat(welcome, "^2Teams are enabled\n", sizeof(welcome));
+			strcat(welcome, "\n^2Teams are enabled");
 
 		if (g_level.ctf)
-			strncat(welcome, "^2CTF is enabled\n", sizeof(welcome));
+			strcat(welcome, "\n^2CTF is enabled");
 
 		if (g_voting->value)
-			strncat(welcome, "^2Voting is allowed\n", sizeof(welcome));
+			strcat(welcome, "\n^2Voting is allowed");
 
-		gi.ClientCenterPrint(ent, "%s", welcome);
+		gi.WriteByte(SV_CMD_CENTER_PRINT);
+		gi.WriteString(welcome);
+		gi.Unicast(ent, true);
 	}
 
 	// make sure all view stuff is valid

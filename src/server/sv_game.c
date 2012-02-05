@@ -96,10 +96,10 @@ static void Sv_SetModel(g_edict_t *ent, const char *name) {
 /*
  * Sv_ConfigString
  */
-static void Sv_ConfigString(int index, const char *val) {
+static void Sv_ConfigString(const unsigned short index, const char *val) {
 
-	if (index < 0 || index >= MAX_CONFIG_STRINGS) {
-		Com_Warn("Sv_ConfigString: bad index %i.\n", index);
+	if (index >= MAX_CONFIG_STRINGS) {
+		Com_Warn("Sv_ConfigString: bad index %u.\n", index);
 		return;
 	}
 
@@ -128,23 +128,23 @@ static void Sv_ConfigString(int index, const char *val) {
  * Message wrappers which target the multicast buffer.
  */
 
-static void Sv_WriteData(void *data, size_t len) {
+static void Sv_WriteData(const void *data, size_t len) {
 	Msg_WriteData(&sv.multicast, data, len);
 }
 
-static void Sv_WriteChar(int c) {
+static void Sv_WriteChar(const int c) {
 	Msg_WriteChar(&sv.multicast, c);
 }
 
-static void Sv_WriteByte(int c) {
+static void Sv_WriteByte(const int c) {
 	Msg_WriteByte(&sv.multicast, c);
 }
 
-static void Sv_WriteShort(int c) {
+static void Sv_WriteShort(const int c) {
 	Msg_WriteShort(&sv.multicast, c);
 }
 
-static void Sv_WriteLong(int c) {
+static void Sv_WriteLong(const int c) {
 	Msg_WriteLong(&sv.multicast, c);
 }
 
@@ -152,15 +152,15 @@ static void Sv_WriteString(const char *s) {
 	Msg_WriteString(&sv.multicast, s);
 }
 
-static void Sv_WritePos(vec3_t pos) {
+static void Sv_WritePos(const vec3_t pos) {
 	Msg_WritePos(&sv.multicast, pos);
 }
 
-static void Sv_WriteDir(vec3_t dir) {
+static void Sv_WriteDir(const vec3_t dir) {
 	Msg_WriteDir(&sv.multicast, dir);
 }
 
-static void Sv_WriteAngle(float f) {
+static void Sv_WriteAngle(const float f) {
 	Msg_WriteAngle(&sv.multicast, f);
 }
 
@@ -223,7 +223,8 @@ static boolean_t Sv_inPHS(const vec3_t p1, const vec3_t p2) {
 /*
  * Sv_Sound
  */
-static void Sv_Sound(g_edict_t *ent, unsigned short index, unsigned short atten) {
+static void Sv_Sound(const g_edict_t *ent, const unsigned short index,
+		const unsigned short atten) {
 
 	if (!ent)
 		return;
@@ -286,7 +287,6 @@ void Sv_InitGame(void) {
 	import.Debug = Sv_Debug;
 	import.BroadcastPrint = Sv_BroadcastPrint;
 	import.ClientPrint = Sv_ClientPrint;
-	import.ClientCenterPrint = Sv_ClientCenterPrint;
 
 	import.Error = Sv_Error;
 

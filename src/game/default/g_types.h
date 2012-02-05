@@ -24,10 +24,11 @@
 
 #include "quake2world.h"
 
-// server commands sent opaquely to the client game
+// server commands sent directly to the client game
 typedef enum {
 	SV_CMD_SCORES = SV_CMD_CGAME,
-	SV_CMD_FOOBAR
+	SV_CMD_CENTER_PRINT,
+	SV_CMD_FOOBAR // add custom commands here
 } g_sv_cmd_t;
 
 // scores are transmitted as binary to the client game module

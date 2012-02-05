@@ -213,7 +213,10 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 
 	// print the message
 	if ((ent->message) && activator->client) {
-		gi.ClientCenterPrint(activator, "%s", ent->message);
+		gi.WriteByte(SV_CMD_CENTER_PRINT);
+		gi.WriteString(ent->message);
+		gi.Unicast(activator, true);
+
 		if (ent->noise_index)
 			gi.Sound(activator, ent->noise_index, ATTN_NORM);
 		else

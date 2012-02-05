@@ -1008,8 +1008,11 @@ static void G_func_door_touch(g_edict_t *self, g_edict_t *other,
 
 	self->touch_time = g_level.time + 5000;
 
-	if (self->message && strlen(self->message))
-		gi.ClientCenterPrint(other, "%s", self->message);
+	if (self->message && strlen(self->message)) {
+		gi.WriteByte(SV_CMD_CENTER_PRINT);
+		gi.WriteString(self->message);
+		gi.Unicast(other, true);
+	}
 
 	gi.Sound(other, gi.SoundIndex("misc/chat"), ATTN_NORM);
 }

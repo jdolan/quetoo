@@ -29,19 +29,18 @@ typedef enum {
 	RD_NONE,
 	RD_CLIENT,
 	RD_PACKET
-} sv_redirect_t;
+}sv_redirect_t;
 
 #define SV_OUTPUTBUF_LENGTH	(MAX_MSG_SIZE - 16)
 extern char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
-void Sv_FlushRedirect(int target, char *outputbuf);
+void Sv_FlushRedirect(const int target, char *outputbuf);
 void Sv_SendClientMessages(void);
-void Sv_Unicast(g_edict_t *ent, boolean_t reliable);
-void Sv_Multicast(vec3_t origin, multicast_t to);
-void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, unsigned short index, unsigned short atten);
-void Sv_ClientPrint(g_edict_t *ent, int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-void Sv_ClientCenterPrint(g_edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-void Sv_BroadcastPrint(int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Sv_Unicast(const g_edict_t *ent, const boolean_t reliable);
+void Sv_Multicast(const vec3_t origin, multicast_t to);
+void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const unsigned short index, const unsigned short atten);
+void Sv_ClientPrint(const g_edict_t *ent, const int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void Sv_BroadcastPrint(const int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Sv_BroadcastCommand(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 #endif /* __SV_LOCAL_H__ */
 

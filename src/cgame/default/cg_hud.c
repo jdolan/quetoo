@@ -35,13 +35,22 @@
 #define HUD_ARMOR_MED			40
 #define HUD_ARMOR_LOW			20
 
-typedef struct crosshair_s {
+typedef struct cg_crosshair_s {
 	char name[16];
 	r_image_t *image;
 	byte color[4];
-} crosshair_t;
+} cg_crosshair_t;
 
-static crosshair_t crosshair;
+static cg_crosshair_t crosshair;
+
+#define CENTER_PRINT_LINES 8
+typedef struct cg_center_print_s {
+	char lines[CENTER_PRINT_LINES][MAX_STRING_CHARS];
+	unsigned short num_lines;
+	unsigned int time;
+} cg_center_print_t;
+
+static cg_center_print_t center_print;
 
 byte color_white[4] = { 255, 255, 255, 255 };
 
@@ -151,7 +160,8 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 
 		const char *string = cgi.ConfigString(pickup);
 
-		x = cgi.view->x + cgi.view->width - HUD_PIC_HEIGHT - cgi.StringWidth(string);
+		x = cgi.view->x + cgi.view->width - HUD_PIC_HEIGHT - cgi.StringWidth(
+				string);
 		y = cgi.view->y;
 
 		Cg_DrawIcon(x, y, 1.0, icon);
@@ -378,6 +388,9 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (ps->stats[STAT_CHASE])
 		return; // chasecam
 
+	if (center_print.time > *cgi.time)
+		return;
+
 	if (cg_crosshair->modified) { // crosshair image
 		cg_crosshair->modified = false;
 
@@ -411,12 +424,69 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	glColor4ubv(crosshair.color);
 
 	// calculate width and height based on crosshair image and scale
-	x = (cgi.context->width - crosshair.image->width * cg_crosshair_scale->value) / 2;
-	y = (cgi.context->height - crosshair.image->height * cg_crosshair_scale->value) / 2;
+	x = (cgi.context->width - crosshair.image->width
+			* cg_crosshair_scale->value) / 2;
+	y = (cgi.context->height - crosshair.image->height
+			* cg_crosshair_scale->value) / 2;
 
 	cgi.DrawPic(x, y, cg_crosshair_scale->value, crosshair.name);
 
 	glColor4ubv(color_white);
+}
+
+/*
+ * Cg_ParseCenterPrint
+ */
+void Cg_ParseCenterPrint(void) {
+	char *c, *out, *line;
+
+	memset(&center_print, 0, sizeof(center_print));
+
+	c = cgi.ReadString();
+
+	line = center_print.lines[0];
+	out = line;
+
+	while (*c && center_print.num_lines < CENTER_PRINT_LINES - 1) {
+
+		if (*c == '\n') {
+			line += MAX_STRING_CHARS;
+			out = line;
+			center_print.num_lines++;
+			c++;
+			continue;
+		}
+
+		*out++ = *c++;
+	}
+
+	center_print.num_lines++;
+	center_print.time = *cgi.time + 3000;
+}
+
+/*
+ * Cg_DrawCenterPrint
+ */
+static void Cg_DrawCenterPrint(const player_state_t *ps) {
+	r_pixel_t cw, ch, x, y;
+	char *line = center_print.lines[0];
+
+	if (ps->stats[STAT_SCORES])
+		return;
+
+	if (center_print.time < *cgi.time)
+		return;
+
+	cgi.BindFont(NULL, &cw, &ch);
+	y = (cgi.context->height - center_print.num_lines * ch) / 2;
+
+	while (*line) {
+		x = (cgi.context->width - cgi.StringWidth(line)) / 2;
+
+		cgi.DrawString(x, y, line, CON_COLOR_DEFAULT);
+		line += MAX_STRING_CHARS;
+		y += ch;
+	}
 }
 
 /*
@@ -518,6 +588,8 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawReady(ps);
 
 	Cg_DrawCrosshair(ps);
+
+	Cg_DrawCenterPrint(ps);
 
 	Cg_DrawBlend(ps);
 }

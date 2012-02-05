@@ -29,7 +29,7 @@ char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
  * Handles Com_Print output redirection, allowing the server to send output
  * from any command to a connected client or even a foreign one.
  */
-void Sv_FlushRedirect(int target, char *outputbuf) {
+void Sv_FlushRedirect(const int target, char *outputbuf) {
 
 	switch (target) {
 	case RD_PACKET:
@@ -51,7 +51,7 @@ void Sv_FlushRedirect(int target, char *outputbuf) {
  *
  * Sends text across to be displayed if the level filter passes.
  */
-void Sv_ClientPrint(g_edict_t *ent, int level, const char *fmt, ...) {
+void Sv_ClientPrint(const g_edict_t *ent, const int level, const char *fmt, ...) {
 	sv_client_t *cl;
 	va_list args;
 	char string[MAX_STRING_CHARS];
@@ -82,33 +82,6 @@ void Sv_ClientPrint(g_edict_t *ent, int level, const char *fmt, ...) {
 	Msg_WriteByte(&cl->netchan.message, SV_CMD_PRINT);
 	Msg_WriteByte(&cl->netchan.message, level);
 	Msg_WriteString(&cl->netchan.message, string);
-}
-
-/*
- * Sv_ClientCenterPrint
- *
- * Center-print to a single client.  This is sent via Sv_Unicast so that it
- * is transmitted over the reliable channel; center-prints are important.
- */
-void Sv_ClientCenterPrint(g_edict_t *ent, const char *fmt, ...) {
-	char msg[1024];
-	va_list args;
-	int n;
-
-	n = NUM_FOR_EDICT(ent);
-	if (n < 1 || n > sv_max_clients->integer) {
-		Com_Warn("Sv_ClientCenterPrint: ClientCenterPrintf to non-client.\n");
-		return;
-	}
-
-	va_start(args, fmt);
-	vsprintf(msg, fmt, args);
-	va_end(args);
-
-	Msg_WriteByte(&sv.multicast, SV_CMD_CENTER_PRINT);
-	Msg_WriteString(&sv.multicast, msg);
-
-	Sv_Unicast(ent, true);
 }
 
 /*
@@ -177,7 +150,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
  *
  * Sends the contents of the mutlicast buffer to a single client
  */
-void Sv_Unicast(g_edict_t *ent, boolean_t reliable) {
+void Sv_Unicast(const g_edict_t *ent, const boolean_t reliable) {
 	int n;
 	sv_client_t *cl;
 
@@ -208,7 +181,7 @@ void Sv_Unicast(g_edict_t *ent, boolean_t reliable) {
  * MULTICAST_PVS	send to clients potentially visible from org
  * MULTICAST_PHS	send to clients potentially hearable from org
  */
-void Sv_Multicast(vec3_t origin, multicast_t to) {
+void Sv_Multicast(const vec3_t origin, multicast_t to) {
 	sv_client_t *client;
 	byte *mask;
 	int leaf_num, cluster;
@@ -296,19 +269,21 @@ void Sv_Multicast(vec3_t origin, multicast_t to) {
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for bmodels.
  */
-void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, unsigned short index,
-		unsigned short atten) {
+void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity,
+		const unsigned short index, const unsigned short atten) {
 	unsigned int flags;
+	unsigned short at;
 	int i;
 	vec3_t org;
 
-	if (atten > ATTN_STATIC) {
-		Com_Warn("Sv_PositionedSound: attenuation %d.\n", atten);
-		atten = DEFAULT_SOUND_ATTENUATION;
+	at = atten;
+	if (at > ATTN_STATIC) {
+		Com_Warn("Sv_PositionedSound: attenuation %d.\n", at);
+		at = DEFAULT_SOUND_ATTENUATION;
 	}
 
 	flags = 0;
-	if (atten != DEFAULT_SOUND_ATTENUATION)
+	if (at != DEFAULT_SOUND_ATTENUATION)
 		flags |= S_ATTEN;
 
 	// the client doesn't know that bsp models have weird origins
@@ -337,7 +312,7 @@ void Sv_PositionedSound(vec3_t origin, g_edict_t *entity, unsigned short index,
 	Msg_WriteByte(&sv.multicast, index);
 
 	if (flags & S_ATTEN)
-		Msg_WriteByte(&sv.multicast, atten);
+		Msg_WriteByte(&sv.multicast, at);
 
 	if (flags & S_ENTNUM)
 		Msg_WriteShort(&sv.multicast, NUM_FOR_EDICT(entity));

@@ -105,98 +105,6 @@ static void Cl_DrawNetgraph(void) {
 	}
 }
 
-static char center_string[MAX_STRING_CHARS];
-static float center_time;
-static int center_lines;
-
-/*
- * Cl_CenterPrint
- */
-void Cl_CenterPrint(char *str) {
-	char *s;
-
-	strncpy(center_string, str, sizeof(center_string) - 1);
-
-	center_time = cl.time + 5.0;
-
-	// count the number of lines for centering
-	center_lines = 1;
-	s = str;
-	while (*s) {
-		if (*s == '\n')
-			center_lines++;
-		s++;
-	}
-
-	Com_Print("%s", str);
-
-	Cl_ClearNotify();
-}
-
-/*
- * Cl_DrawCenterString
- */
-static void Cl_DrawCenterString(void) {
-	const char *s;
-	r_pixel_t x, y, cw, ch;
-	size_t size, len;
-
-	R_BindFont(NULL, &cw, &ch);
-
-	s = center_string;
-
-	if (center_lines <= 4) // FIXME: make this consistent
-		y = r_context.height * 0.35;
-	else
-		y = ch * 4;
-
-	do {
-		// scan the width of the line, ignoring color keys
-		len = size = 0;
-		while (true) {
-
-			if (!s[size] || s[size] == '\n' || len >= 40)
-				break;
-
-			if (IS_COLOR(&s[size])) {
-				size += 2;
-				continue;
-			}
-
-			size++;
-			len++;
-		}
-
-		x = (r_context.width - (len * cw)) / 2;
-
-		// draw it
-		R_DrawSizedString(x, y, s, len, 999, CON_COLOR_DEFAULT);
-
-		// look for next line
-		s += size;
-		while (*s && *s != '\n')
-			s++;
-
-		if (!*s)
-			return;
-
-		s++; // skip the \n
-
-		y += ch;
-	} while (true);
-}
-
-/*
- * Cl_CheckDrawCenterString
- */
-static void Cl_CheckDrawCenterString(void) {
-
-	if (center_time <= cl.time)
-		return;
-
-	Cl_DrawCenterString();
-}
-
 /*
  * Cl_DrawRendererStats
  */
@@ -304,8 +212,6 @@ void Cl_UpdateScreen(void) {
 		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
 
 			Cl_DrawNetgraph();
-
-			Cl_CheckDrawCenterString();
 
 			Cl_DrawCounters();
 

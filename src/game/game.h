@@ -99,15 +99,14 @@ typedef struct g_import_s {
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*BroadcastPrint)(int printlevel, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(g_edict_t *ent, int printlevel, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-	void (*ClientCenterPrint)(g_edict_t *ent, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*BroadcastPrint)(const int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*ClientPrint)(const g_edict_t *ent, const int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
 	// config_strings are used to transmit arbitrary tokens such
 	// as model names, skin names, team names, and weather effects
-	void (*ConfigString)(int num, const char *string);
+	void (*ConfigString)(const unsigned short index, const char *string);
 
 	// create config_strings and some internal server state
 	unsigned short (*ModelIndex)(const char *name);
@@ -115,8 +114,8 @@ typedef struct g_import_s {
 	unsigned short (*ImageIndex)(const char *name);
 
 	void (*SetModel)(g_edict_t *ent, const char *name);
-	void (*Sound)(g_edict_t *ent, unsigned short index, unsigned short atten);
-	void (*PositionedSound)(vec3_t origin, g_edict_t *ent, unsigned short index, unsigned short atten);
+	void (*Sound)(const g_edict_t *ent, const unsigned short index, const unsigned short atten);
+	void (*PositionedSound)(const vec3_t origin, const g_edict_t *ent, const unsigned short index, const unsigned short atten);
 
 	// collision detection
 	c_trace_t (*Trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *passent, int contentmask);
@@ -135,17 +134,17 @@ typedef struct g_import_s {
 	int (*BoxEdicts)(vec3_t mins, vec3_t maxs, g_edict_t **list, int maxcount, int areatype);
 
 	// network messaging
-	void (*Multicast)(vec3_t origin, multicast_t to);
-	void (*Unicast)(g_edict_t *ent, boolean_t reliable);
-	void (*WriteData)(void *data, size_t len);
-	void (*WriteChar)(int c);
-	void (*WriteByte)(int c);
-	void (*WriteShort)(int c);
-	void (*WriteLong)(int c);
+	void (*Multicast)(const vec3_t origin, multicast_t to);
+	void (*Unicast)(const g_edict_t *ent, const boolean_t reliable);
+	void (*WriteData)(const void *data, size_t len);
+	void (*WriteChar)(const int c);
+	void (*WriteByte)(const int c);
+	void (*WriteShort)(const int c);
+	void (*WriteLong)(const int c);
 	void (*WriteString)(const char *s);
-	void (*WritePosition)(vec3_t pos);  // some fractional bits
-	void (*WriteDir)(vec3_t pos);  // single byte encoded, very coarse
-	void (*WriteAngle)(float f);
+	void (*WritePosition)(const vec3_t pos);  // some fractional bits
+	void (*WriteDir)(const vec3_t pos);  // single byte encoded, very coarse
+	void (*WriteAngle)(const float f);
 
 	// managed memory allocation
 	void *(*TagMalloc)(size_t size, int tag);

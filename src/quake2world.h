@@ -147,7 +147,6 @@ typedef enum {
 typedef enum {
 	SV_CMD_BAD,
 	SV_CMD_CBUF_TEXT, // [string] stuffed into client's console buffer, should be \n terminated
-	SV_CMD_CENTER_PRINT, // [string] to put in center of the screen
 	SV_CMD_CONFIG_STRING, // [short] [string]
 	SV_CMD_DISCONNECT,
 	SV_CMD_DOWNLOAD, // [short] size [size bytes]

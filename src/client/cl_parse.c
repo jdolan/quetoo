@@ -442,10 +442,6 @@ void Cl_ParseServerMessage(void) {
 			Com_Print("%s", s);
 			break;
 
-		case SV_CMD_CENTER_PRINT:
-			Cl_CenterPrint(Msg_ReadString(&net_message));
-			break;
-
 		case SV_CMD_CBUF_TEXT:
 			s = Msg_ReadString(&net_message);
 			Cbuf_AddText(s);
