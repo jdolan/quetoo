@@ -47,7 +47,7 @@ typedef struct sv_world_s {
 	sv_area_node_t area_nodes[AREA_NODES];
 	int num_area_nodes;
 
-	float *area_mins, *area_maxs;
+	const float *area_mins, *area_maxs;
 
 	g_edict_t **area_edicts;
 
@@ -356,7 +356,7 @@ static void Sv_AreaEdicts_r(sv_area_node_t *node) {
 			continue; // not touching
 
 		if (sv_world.num_area_edicts == sv_world.max_area_edicts) {
-			Com_Warn("Sv_AreaEdicts: MAXCOUNT\n");
+			Com_Warn("Sv_AreaEdicts: max_area_edicts reached\n");
 			return;
 		}
 
@@ -384,8 +384,8 @@ static void Sv_AreaEdicts_r(sv_area_node_t *node) {
  *
  * Returns the number of entities found.
  */
-int Sv_AreaEdicts(vec3_t mins, vec3_t maxs, g_edict_t **area_edicts,
-		int max_area_edicts, int area_type) {
+int Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs,
+		g_edict_t **area_edicts, const int max_area_edicts, const int area_type) {
 
 	sv_world.area_mins = mins;
 	sv_world.area_maxs = maxs;
@@ -431,7 +431,7 @@ static int Sv_HullForEntity(const g_edict_t *ent) {
  * Returns the contents mask for the specified point.  This includes world
  * contents as well as contents for any entities this point intersects.
  */
-int Sv_PointContents(vec3_t point) {
+int Sv_PointContents(const vec3_t point) {
 	g_edict_t *touched[MAX_EDICTS];
 	int i, contents, num;
 
@@ -462,13 +462,13 @@ int Sv_PointContents(vec3_t point) {
 }
 
 // an entity's movement, with allowed exceptions and other info
-typedef struct sv_move_s {
+typedef struct sv_trace_s {
 	vec3_t box_mins, box_maxs; // enclose the test object along entire move
-	float *mins, *maxs; // size of the moving object
-	float *start, *end;
+	const float *mins, *maxs; // size of the moving object
+	const float *start, *end;
 	c_trace_t trace;
-	g_edict_t *skip;
-	int contentmask;
+	const g_edict_t *skip;
+	int mask;
 } sv_trace_t;
 
 /*
@@ -523,7 +523,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 
 		// perform the trace against this particular entity
 		tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins,
-				trace->maxs, head_node, trace->contentmask, touch->s.origin,
+				trace->maxs, head_node, trace->mask, touch->s.origin,
 				angles);
 
 		// check for a full or partial intersection
@@ -564,8 +564,8 @@ static void Sv_TraceBounds(sv_trace_t *trace) {
  * The skipped edict, and edicts owned by him, are explicitly not checked.
  * This prevents players from clipping against their own projectiles, etc.
  */
-c_trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end,
-		g_edict_t *skip, int contentmask) {
+c_trace_t Sv_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs,
+		const vec3_t end, const g_edict_t *skip, int mask) {
 
 	sv_trace_t trace;
 
@@ -577,7 +577,7 @@ c_trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end,
 		maxs = vec3_origin;
 
 	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contentmask);
+	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, mask);
 	trace.trace.ent = svs.game->edicts;
 
 	if (trace.trace.fraction == 0)
@@ -588,7 +588,7 @@ c_trace_t Sv_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end,
 	trace.mins = mins;
 	trace.maxs = maxs;
 	trace.skip = skip;
-	trace.contentmask = contentmask;
+	trace.mask = mask;
 
 	// create the bounding box of the entire move
 	Sv_TraceBounds(&trace);

@@ -395,7 +395,7 @@ void G_TouchTriggers(g_edict_t *ent) {
 	int i, num;
 	g_edict_t *touch[MAX_EDICTS], *hit;
 
-	num = gi.BoxEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS,
+	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS,
 			AREA_TRIGGERS);
 
 	// be careful, it is possible to have an entity in this
@@ -424,7 +424,7 @@ void G_TouchSolids(g_edict_t *ent) {
 	int i, num;
 	g_edict_t *touch[MAX_EDICTS], *hit;
 
-	num = gi.BoxEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS,
+	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS,
 			AREA_SOLID);
 
 	// be careful, it is possible to have an entity in this

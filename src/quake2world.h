@@ -258,7 +258,7 @@ extern vec3_t vec3_origin;
 #define MASK_CURRENT			(CONTENTS_CURRENT_0|CONTENTS_CURRENT_90|CONTENTS_CURRENT_180|\
 							 	 	 CONTENTS_CURRENT_270|CONTENTS_CURRENT_UP|CONTENTS_CURRENT_DOWN)
 
-// gi.BoxEdicts() can return a list of either solid or trigger entities
+// gi.AreaEdicts() can return a list of either solid or trigger entities
 #define AREA_SOLID				1
 #define AREA_TRIGGERS			2
 

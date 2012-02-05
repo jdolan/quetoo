@@ -28,14 +28,14 @@
 
 // edict->sv_flags
 #define SVF_NO_CLIENT 1  // don't send entity to clients
-
 // edict->solid values
 typedef enum {
-	SOLID_NOT,   // no interaction with other objects
-	SOLID_TRIGGER,   // only touch when inside, after moving
-	SOLID_BOX,   // touch on edge
-	SOLID_MISSILE,  // touch on edge
-	SOLID_BSP  // bsp clip, touch on edge
+	SOLID_NOT, // no interaction with other objects
+	SOLID_TRIGGER, // only touch when inside, after moving
+	SOLID_BOX, // touch on edge
+	SOLID_MISSILE, // touch on edge
+	SOLID_BSP
+// bsp clip, touch on edge
 } solid_t;
 
 // link_t is only used for entity area links now
@@ -45,8 +45,8 @@ typedef struct link_s {
 
 #define MAX_ENT_CLUSTERS 16
 
-typedef struct g_client_s g_client_t;  // typedef'ed here, defined below
-typedef struct g_edict_s g_edict_t;  // OR in game module
+typedef struct g_client_s g_client_t; // typedef'ed here, defined below
+typedef struct g_edict_s g_edict_t; // OR in game module
 
 #ifndef __G_LOCAL_H__
 
@@ -58,7 +58,7 @@ typedef struct g_edict_s g_edict_t;  // OR in game module
  */
 
 struct g_client_s {
-	player_state_t ps;  // communicated by server to clients
+	player_state_t ps; // communicated by server to clients
 	int ping;
 };
 
@@ -70,22 +70,22 @@ struct g_edict_s {
 	int link_count;
 
 	// FIXME: move these fields to a server private sv_entity_t
-	link_t area;  // linked to a division node or leaf
+	link_t area; // linked to a division node or leaf
 
-	int num_clusters;  // if -1, use head_node instead
+	int num_clusters; // if -1, use head_node instead
 	int cluster_nums[MAX_ENT_CLUSTERS];
-	int head_node;  // unused if num_clusters != -1
+	int head_node; // unused if num_clusters != -1
 	int area_num, area_num2;
 
-	unsigned int sv_flags;  // SVF_NO_CLIENT, etc
+	unsigned int sv_flags; // SVF_NO_CLIENT, etc
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
 	unsigned int clip_mask;
 	g_edict_t *owner;
 
-	// the game can add anything it wants after
-	// this point in the structure
+// the game can add anything it wants after
+// this point in the structure
 };
 
 #endif  /* !__G_LOCAL_H__ */
@@ -93,14 +93,15 @@ struct g_edict_s {
 // functions provided by the main engine
 typedef struct g_import_s {
 
-	unsigned int frame_rate;  // server frames per second
+	unsigned int frame_rate; // server frames per second
 	unsigned int frame_millis;
-	float frame_seconds;  // seconds per frame
+	float frame_seconds; // seconds per frame
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*BroadcastPrint)(const int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(const g_edict_t *ent, const int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+	void (*ClientPrint)(const g_edict_t *ent, const int level, const char *fmt,
+			...) __attribute__((format(printf, 3, 4)));
 
 	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
@@ -114,24 +115,30 @@ typedef struct g_import_s {
 	unsigned short (*ImageIndex)(const char *name);
 
 	void (*SetModel)(g_edict_t *ent, const char *name);
-	void (*Sound)(const g_edict_t *ent, const unsigned short index, const unsigned short atten);
-	void (*PositionedSound)(const vec3_t origin, const g_edict_t *ent, const unsigned short index, const unsigned short atten);
+	void (*Sound)(const g_edict_t *ent, const unsigned short index,
+			const unsigned short atten);
+	void (*PositionedSound)(const vec3_t origin, const g_edict_t *ent,
+			const unsigned short index, const unsigned short atten);
 
 	// collision detection
-	c_trace_t (*Trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, g_edict_t *passent, int contentmask);
-	int (*PointContents)(vec3_t point);
+	c_trace_t (*Trace)(const vec3_t start, const vec3_t mins,
+			const vec3_t maxs, const vec3_t end, const g_edict_t *passent,
+			const int mask);
+	int (*PointContents)(const vec3_t point);
 	boolean_t (*inPVS)(const vec3_t p1, const vec3_t p2);
 	boolean_t (*inPHS)(const vec3_t p1, const vec3_t p2);
 	void (*SetAreaPortalState)(int portal_num, boolean_t open);
 	boolean_t (*AreasConnected)(int area1, int area2);
-	void (*Pmove)(pm_move_t *pmove);  // player movement code common with client prediction
+	void (*Pmove)(pm_move_t *pmove); // player movement code common with client prediction
 
 	// an entity will never be sent to a client or used for collision
 	// if it is not passed to linkentity.  if the size, position, or
 	// solidity changes, it must be relinked.
 	void (*LinkEntity)(g_edict_t *ent);
-	void (*UnlinkEntity)(g_edict_t *ent);  // call before removing an interactive edict
-	int (*BoxEdicts)(vec3_t mins, vec3_t maxs, g_edict_t **list, int maxcount, int areatype);
+	void (*UnlinkEntity)(g_edict_t *ent); // call before removing an interactive edict
+	int (*AreaEdicts)(const vec3_t mins, const vec3_t maxs,
+			g_edict_t **area_edicts, const int max_area_edicts,
+			const int area_type);
 
 	// network messaging
 	void (*Multicast)(const vec3_t origin, multicast_t to);
@@ -142,8 +149,8 @@ typedef struct g_import_s {
 	void (*WriteShort)(const int c);
 	void (*WriteLong)(const int c);
 	void (*WriteString)(const char *s);
-	void (*WritePosition)(const vec3_t pos);  // some fractional bits
-	void (*WriteDir)(const vec3_t pos);  // single byte encoded, very coarse
+	void (*WritePosition)(const vec3_t pos); // some fractional bits
+	void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
 	void (*WriteAngle)(const float f);
 
 	// managed memory allocation
@@ -158,12 +165,13 @@ typedef struct g_import_s {
 	int (*LoadFile)(const char *file_name, void **buffer);
 
 	// console variable interaction
-	cvar_t *(*Cvar)(const char *name, const char *value, int flags, const char *desc);
+	cvar_t *(*Cvar)(const char *name, const char *value, int flags,
+			const char *desc);
 
 	// command function parameter access
 	int (*Argc)(void);
 	char *(*Argv)(int n);
-	char *(*Args)(void);  // concatenation of all argv >= 1
+	char *(*Args)(void); // concatenation of all argv >= 1
 
 	// add commands to the server console as if they were typed in
 	// for map changing, etc
@@ -200,7 +208,7 @@ typedef struct g_export_s {
 	// The size will be fixed when ge->Init() is called
 	struct g_edict_s *edicts;
 	size_t edict_size;
-	unsigned short num_edicts;  // current number, <= max_edicts
+	unsigned short num_edicts; // current number, <= max_edicts
 	unsigned short max_edicts;
 } g_export_t;
 

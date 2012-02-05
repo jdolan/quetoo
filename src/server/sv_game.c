@@ -310,7 +310,7 @@ void Sv_InitGame(void) {
 
 	import.LinkEntity = Sv_LinkEdict;
 	import.UnlinkEntity = Sv_UnlinkEdict;
-	import.BoxEdicts = Sv_AreaEdicts;
+	import.AreaEdicts = Sv_AreaEdicts;
 
 	import.Multicast = Sv_Multicast;
 	import.Unicast = Sv_Unicast;
