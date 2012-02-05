@@ -378,9 +378,6 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (ps->stats[STAT_CHASE])
 		return; // chasecam
 
-	if (cg_third_person->value)
-		return; // third person
-
 	if (cg_crosshair->modified) { // crosshair image
 		cg_crosshair->modified = false;
 

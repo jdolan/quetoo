@@ -26,7 +26,6 @@ cvar_t *cg_crosshair;
 cvar_t *cg_crosshair_color;
 cvar_t *cg_crosshair_scale;
 cvar_t *cg_hud;
-cvar_t *cg_third_person;
 
 cg_import_t cgi;
 
@@ -46,8 +45,6 @@ static void Cg_Init(void) {
 			NULL);
 	cg_hud = cgi.Cvar("cg_hud", "1", CVAR_ARCHIVE,
 			"Render the Heads-Up-Display");
-	cg_third_person = cgi.Cvar("cg_third_person", "0", CVAR_ARCHIVE,
-			"Toggles the third person camera.");
 
 	cgi.Print("  Client game initialized.\n");
 }

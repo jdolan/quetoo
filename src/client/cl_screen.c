@@ -295,8 +295,6 @@ void Cl_UpdateScreen(void) {
 
 		Cl_UpdateView();
 
-		cls.cgame->UpdateView(&cl.frame);
-
 		R_Setup3D();
 
 		R_DrawFrame();

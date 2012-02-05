@@ -22,29 +22,11 @@
 #include "cg_local.h"
 
 /*
- * Cg_ThirdPerson
- *
- * Return the 3rd person offset. Negative values imply that the camera is in
- * front of the player.
- */
-static void Cg_ThirdPerson(const cl_frame_t *frame) {
-
-	if (!frame->ps.stats[STAT_CHASE]) { // chasing uses client side 3rd person
-
-		/*
-		 * Don't bother translating the origin when spectating, since we have
-		 * no visible player model to begin with.
-		 */
-		if (frame->ps.pmove.pm_type == PM_SPECTATOR
-				&& !frame->ps.stats[STAT_HEALTH])
-			return;
-	}
-
-}
-
-/*
  * Cg_UpdateView
  */
 void Cg_UpdateView(const cl_frame_t *frame) {
 
+	/*
+	 * TODO: Most of the client view population should be moved to here.
+	 */
 }

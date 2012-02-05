@@ -31,7 +31,6 @@ extern cvar_t *cg_crosshair;
 extern cvar_t *cg_crosshair_color;
 extern cvar_t *cg_crosshair_scale;
 extern cvar_t *cg_hud;
-extern cvar_t *cg_third_person;
 
 extern cg_import_t cgi;
 
