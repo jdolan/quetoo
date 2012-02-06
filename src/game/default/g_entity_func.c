@@ -33,7 +33,7 @@ static void G_func_areaportal_use(g_edict_t *ent, g_edict_t *other __attribute__
 /*QUAKED func_areaportal (0 0 0) ?
 
  This is a non-visible object that divides the world into
- areas that are seperated when this portal is not activated.
+ areas that are separated when this portal is not activated.
  Usually enclosed in the middle of a door.
  */
 void G_func_areaportal(g_edict_t *ent) {
@@ -1018,7 +1018,7 @@ static void G_func_door_touch(g_edict_t *self, g_edict_t *other,
 }
 
 /*QUAKED func_door (0 .5 .8) ? START_OPEN TOGGLE
- START_OPEN	the door to moves to its destination when spawned, and operate in reverse.  It is used to temporarily or permanently close off an area when triggered(not useful for touch or takedamage doors).
+ START_OPEN	the door to moves to its destination when spawned, and operate in reverse.  It is used to temporarily or permanently close off an area when triggered (not useful for touch or takedamage doors).
  TOGGLE		wait in both the start and end states for a trigger event.
 
  "message"	is printed when the door is touched if it is a trigger door and it hasn't been fired yet

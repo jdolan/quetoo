@@ -497,7 +497,8 @@ c_model_t *Cm_LoadBsp(const char *name, int *size) {
 	void *buf;
 	unsigned int i;
 
-	c_no_areas = Cvar_Get("c_no_areas", "0", 0, NULL);
+	c_no_areas = Cvar_Get("c_no_areas", "0", 0,
+			"Disable server-side visibility culling");
 
 	memset(&c_bsp, 0, sizeof(c_bsp));
 
@@ -1442,9 +1443,14 @@ byte *Cm_ClusterPHS(const int cluster) {
  *
  */
 
+/*
+ * Cm_FloodArea
+ *
+ * Recurse over the area portals, marking adjacent ones as flooded.
+ */
 static void Cm_FloodArea(c_bsp_area_t *area, int flood_num) {
-	int i;
 	const d_bsp_area_portal_t *p;
+	int i;
 
 	if (area->flood_valid == c_bsp.flood_valid) {
 		if (area->flood_num == flood_num)
@@ -1454,10 +1460,13 @@ static void Cm_FloodArea(c_bsp_area_t *area, int flood_num) {
 
 	area->flood_num = flood_num;
 	area->flood_valid = c_bsp.flood_valid;
+
 	p = &c_bsp.area_portals[area->first_area_portal];
+
 	for (i = 0; i < area->num_area_portals; i++, p++) {
-		if (c_bsp.portal_open[p->portal_num])
+		if (c_bsp.portal_open[p->portal_num]) {
 			Cm_FloodArea(&c_bsp.areas[p->other_area], flood_num);
+		}
 	}
 }
 
@@ -1475,10 +1484,11 @@ static void Cm_FloodAreaConnections(void) {
 	// area 0 is not used
 	for (i = 1; i < c_bsp.num_areas; i++) {
 		c_bsp_area_t *area = &c_bsp.areas[i];
+
 		if (area->flood_valid == c_bsp.flood_valid)
 			continue; // already flooded into
-		flood_num++;
-		Cm_FloodArea(area, flood_num);
+
+		Cm_FloodArea(area, ++flood_num);
 	}
 }
 
@@ -1488,7 +1498,7 @@ static void Cm_FloodAreaConnections(void) {
 void Cm_SetAreaPortalState(const int portal_num, const boolean_t open) {
 	if (portal_num > c_bsp.num_area_portals) {
 		Com_Error(ERR_DROP,
-				"Cm_SetAreaPortalState: portal_num > cm.num_area_portals.\n");
+				"Cm_SetAreaPortalState: portal_num > num_area_portals");
 	}
 
 	c_bsp.portal_open[portal_num] = open;
@@ -1499,6 +1509,7 @@ void Cm_SetAreaPortalState(const int portal_num, const boolean_t open) {
  * Cm_AreasConnected
  */
 boolean_t Cm_AreasConnected(int area1, int area2) {
+
 	if (c_no_areas->value)
 		return true;
 
@@ -1508,6 +1519,7 @@ boolean_t Cm_AreasConnected(int area1, int area2) {
 
 	if (c_bsp.areas[area1].flood_num == c_bsp.areas[area2].flood_num)
 		return true;
+
 	return false;
 }
 
@@ -1530,8 +1542,9 @@ int Cm_WriteAreaBits(byte *buffer, int area) {
 		memset(buffer, 0, bytes);
 
 		for (i = 0; i < c_bsp.num_areas; i++) {
-			if (c_bsp.areas[i].flood_num == flood_num || !area)
+			if (c_bsp.areas[i].flood_num == flood_num || !area) {
 				buffer[i >> 3] |= 1 << (i & 7);
+			}
 		}
 	}
 

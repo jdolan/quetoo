@@ -31,7 +31,7 @@ typedef struct cl_frame_s {
 	unsigned int server_frame;
 	unsigned int server_time;  // server time the message is valid for (in milliseconds)
 	int delta_frame; // negatives indicate no delta
-	byte area_bits[MAX_BSP_AREAS / 8];  // portal area visibility bits
+	byte area_bits[MAX_BSP_AREAS >> 3];  // portal area visibility bits
 	player_state_t ps;
 	unsigned short num_entities;
 	unsigned int entity_state;  // non-masked index into cl.entity_states array

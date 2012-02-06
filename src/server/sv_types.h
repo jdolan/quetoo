@@ -65,7 +65,7 @@ typedef enum {
 
 typedef struct sv_frame_s {
 	int area_bytes;
-	byte area_bits[MAX_BSP_AREAS / 8]; // portal area visibility bits
+	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
 	player_state_t ps;
 	unsigned short num_entities;
 	unsigned int first_entity; // index into svs.entity_states array
