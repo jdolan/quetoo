@@ -52,7 +52,7 @@ static GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 static GLint r_filter_max = GL_LINEAR;
 static GLfloat r_filter_aniso = 1.0;
 
-#define IS_MIPMAP(t) (t != it_null && t != it_font && t != it_sky && t != it_pic)
+#define IS_MIPMAP(t) (t == it_world || t == it_effect || t == it_material)
 
 typedef struct {
 	const char *name;
