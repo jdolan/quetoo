@@ -164,7 +164,7 @@ static void Cl_SendBroadcast(void) {
 
 	server = cls.servers;
 
-	while (server) { // update old pingtimes
+	while (server) { // update old ping times
 
 		if (server->source == SERVER_SOURCE_BCAST) {
 			server->ping_time = cls.broadcast_time;
@@ -174,8 +174,11 @@ static void Cl_SendBroadcast(void) {
 		server = server->next;
 	}
 
+	memset(&addr, 0, sizeof(addr));
+
 	addr.type = NA_IP_BROADCAST;
 	addr.port = (unsigned short) BigShort(PORT_SERVER);
+
 	Netchan_OutOfBandPrint(NS_CLIENT, addr, "info %i", PROTOCOL);
 }
 
