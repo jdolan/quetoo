@@ -207,9 +207,9 @@ static void R_GetError(void) {
 }
 
 /*
- * R_DrawFrame
+ * R_DrawScene
  */
-void R_DrawFrame(void) {
+void R_DrawScene(void) {
 
 	R_GetError();
 
@@ -724,8 +724,7 @@ void R_Init(void) {
 
 	R_EnforceGlVersion();
 
-	if (!R_InitGlExtensions())
-		Com_Error(ERR_FATAL, "Failed to resolve required OpenGL extensions.");
+	R_InitGlExtensions();
 
 	R_SetDefaultState();
 

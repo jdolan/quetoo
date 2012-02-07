@@ -205,7 +205,7 @@ void Cl_UpdateScreen(void) {
 
 		R_Setup3D();
 
-		R_DrawFrame();
+		R_DrawScene();
 
 		R_Setup2D();
 

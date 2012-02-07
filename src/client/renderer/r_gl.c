@@ -63,30 +63,32 @@ GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
  * R_EnforceGlVersion
  */
 void R_EnforceGlVersion(void) {
+	const char *s = r_config.version_string;
 	int maj, min;
 
-	sscanf(r_config.version_string, "%d.%d", &maj, &min);
+	sscanf(s, "%d.%d", &maj, &min);
 
-	if (maj < 2)
-		Com_Error(ERR_FATAL, "OpenGL version %s is less than 2.0",
-				r_config.version_string);
+	if (maj > 1)
+		return;
 
-	if (min < 0)
-		Com_Error(ERR_FATAL, "OpenGL Version %s is less than 2.0",
-				r_config.version_string);
+	if (min > 2)
+		return;
+
+	Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.3", s);
 }
 
 /*
  * R_InitGlExtensions
  */
-boolean_t R_InitGlExtensions(void) {
+void R_InitGlExtensions(void) {
 
 	// multitexture
 	if (strstr(r_config.extensions_string, "GL_ARB_multitexture")) {
 		qglActiveTexture = SDL_GL_GetProcAddress("glActiveTexture");
 		qglClientActiveTexture = SDL_GL_GetProcAddress("glClientActiveTexture");
 	} else
-		Com_Warn("R_InitGlExtensions: GL_ARB_multitexture not found.\n");
+		Com_Error(ERR_FATAL,
+				"R_InitGlExtensions: GL_ARB_multitexture not found.");
 
 	// vertex buffer objects
 	if (strstr(r_config.extensions_string, "GL_ARB_vertex_buffer_object")) {
@@ -128,10 +130,4 @@ boolean_t R_InitGlExtensions(void) {
 		qglVertexAttribPointer = SDL_GL_GetProcAddress("glVertexAttribPointer");
 	} else
 		Com_Warn("R_InitGlExtensions: GL_ARB_fragment_shader not found.\n");
-
-	// multitexture is the only one we absolutely need
-	if (!qglActiveTexture || !qglClientActiveTexture)
-		return false;
-
-	return true;
 }

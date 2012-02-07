@@ -104,7 +104,7 @@ extern void (APIENTRY *qglUniform4fv)(GLint location, int count, GLfloat *f);
 extern GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
 void R_EnforceGlVersion(void);
-boolean_t R_InitGlExtensions(void);
+void R_InitGlExtensions(void);
 
 #endif /* __R_LOCAL_H__ */
 

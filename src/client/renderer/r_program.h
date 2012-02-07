@@ -40,7 +40,7 @@ typedef struct r_shader_s {
 #define GL_ATTRIBUTE 2
 
 typedef struct r_progvar_s {
-	GLint type;
+	GLenum type;
 	char name[64];
 	GLint location;
 } r_progvar_t;

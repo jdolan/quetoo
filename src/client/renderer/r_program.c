@@ -44,7 +44,7 @@ void R_UseProgram(r_program_t *prog) {
 /*
  * R_ProgramVariable
  */
-static r_progvar_t *R_ProgramVariable(GLint type, const char *name) {
+static r_progvar_t *R_ProgramVariable(GLenum type, const char *name) {
 	r_progvar_t *v;
 	int i;
 

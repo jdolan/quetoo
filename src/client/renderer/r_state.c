@@ -273,7 +273,6 @@ void R_EnableTexture(r_texunit_t *texunit, boolean_t enable) {
 	R_SelectTexture(texunit);
 
 	if (enable) { // activate texture unit
-
 		glEnable(GL_TEXTURE_2D);
 
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -426,14 +425,10 @@ void R_EnableWarp(r_program_t *program, boolean_t enable) {
 	R_SelectTexture(&texunit_lightmap);
 
 	if (enable) {
-		glEnable(GL_TEXTURE_2D);
-
 		R_BindTexture(r_warp_image->texnum);
 
 		R_UseProgram(program);
 	} else {
-		glDisable(GL_TEXTURE_2D);
-
 		R_UseProgram(NULL);
 	}
 
