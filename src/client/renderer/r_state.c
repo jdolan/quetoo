@@ -23,10 +23,8 @@
 
 r_state_t r_state;
 
-const float default_texcoords[] = {  // useful for particles, pics, etc..
-	0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0
-};
-
+const float default_texcoords[] = { // useful for particles, pics, etc..
+		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 };
 
 /*
  * R_SelectTexture
@@ -39,7 +37,9 @@ void R_SelectTexture(r_texunit_t *texunit) {
 	r_state.active_texunit = texunit;
 
 	qglActiveTexture(texunit->texture);
-	qglClientActiveTexture(texunit->texture);
+
+	if (texunit == &texunit_diffuse || texunit == &texunit_lightmap)
+		qglClientActiveTexture(texunit->texture);
 }
 
 /*
@@ -61,7 +61,7 @@ void R_BindTexture(GLuint texnum) {
 void R_BindLightmapTexture(GLuint texnum) {
 
 	if (texnum == texunit_lightmap.texnum)
-		return; // small optimization to save state changes
+		return;
 
 	R_SelectTexture(&texunit_lightmap);
 
@@ -76,7 +76,7 @@ void R_BindLightmapTexture(GLuint texnum) {
 void R_BindDeluxemapTexture(GLuint texnum) {
 
 	if (texnum == texunit_deluxemap.texnum)
-		return; // small optimization to save state changes
+		return;
 
 	R_SelectTexture(&texunit_deluxemap);
 
@@ -91,9 +91,27 @@ void R_BindDeluxemapTexture(GLuint texnum) {
 void R_BindNormalmapTexture(GLuint texnum) {
 
 	if (texnum == texunit_normalmap.texnum)
-		return; // small optimization to save state changes
+		return;
 
 	R_SelectTexture(&texunit_normalmap);
+
+	R_BindTexture(texnum);
+
+	R_SelectTexture(&texunit_diffuse);
+}
+
+/*
+ * R_BindGlossmapTexture
+ */
+void R_BindGlossmapTexture(GLuint texnum) {
+
+	if (!texunit_glossmap.texture)
+		return;
+
+	if (texnum == texunit_glossmap.texnum)
+		return;
+
+	R_SelectTexture(&texunit_glossmap);
 
 	R_BindTexture(texnum);
 
@@ -259,14 +277,6 @@ void R_EnableTexture(r_texunit_t *texunit, boolean_t enable) {
 		glEnable(GL_TEXTURE_2D);
 
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-		if (texunit == &texunit_lightmap) {
-
-			if (r_draw_lightmaps->value)
-				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-			else
-				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		}
 	} else { // or deactivate it
 		glDisable(GL_TEXTURE_2D);
 
@@ -364,10 +374,10 @@ static inline void R_UseMaterial(r_material_t *material) {
 /*
  * R_EnableBumpmap
  *
- * Enables bumpmapping while updating program parameters to reflect the
- * specified material.
+ * Enables bump-mapping while updating program parameters to reflect the
+ * properties of the specified material.
  */
-void R_EnableBumpmap(r_material_t *material, boolean_t enable) {
+void R_EnableBumpmap(r_image_t *image, boolean_t enable) {
 
 	if (!r_state.lighting_enabled)
 		return;
@@ -375,7 +385,7 @@ void R_EnableBumpmap(r_material_t *material, boolean_t enable) {
 	if (!r_bumpmap->value)
 		return;
 
-	R_UseMaterial(material);
+	R_UseMaterial(image ? &image->material : NULL);
 
 	if (r_state.bumpmap_enabled == enable)
 		return;
@@ -384,11 +394,15 @@ void R_EnableBumpmap(r_material_t *material, boolean_t enable) {
 
 	if (enable) { // toggle state
 		R_EnableAttribute("TANGENT");
-
 		R_ProgramParameter1i("BUMPMAP", 1);
+
+		if (image && image->glossmap)
+			R_ProgramParameter1i("GLOSSMAP", 1);
+		else
+			R_ProgramParameter1i("GLOSSMAP", 0);
+
 	} else {
 		R_DisableAttribute("TANGENT");
-
 		R_ProgramParameter1i("BUMPMAP", 0);
 	}
 }
@@ -570,7 +584,6 @@ void R_Setup2D(void) {
  */
 void R_SetDefaultState(void) {
 	int i;
-	r_texunit_t *tex;
 
 	// setup vertex array pointers
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -586,16 +599,18 @@ void R_SetDefaultState(void) {
 
 	// setup texture units
 	for (i = 0; i < r_config.max_texunits && i < MAX_GL_TEXUNITS; i++) {
+		r_texunit_t *texunit = &r_state.texunits[i];
+		texunit->texture = GL_TEXTURE0_ARB + i;
 
-		tex = &r_state.texunits[i];
-		tex->texture = GL_TEXTURE0_ARB + i;
-
-		R_EnableTexture(tex, true);
+		R_EnableTexture(texunit, true);
 
 		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 
+		if (texunit == &texunit_lightmap)
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
 		if (i > 0) // turn them off for now
-			R_EnableTexture(tex, false);
+			R_EnableTexture(texunit, false);
 	}
 
 	R_SelectTexture(&texunit_diffuse);

@@ -49,7 +49,7 @@ static r_progvar_t *R_ProgramVariable(GLint type, const char *name) {
 	int i;
 
 	if (!r_state.active_program) {
-		Com_Warn("R_Uniform: No program bound.\n");
+		Com_Warn("R_ProgramVariable: No program bound.\n");
 		return NULL;
 	}
 
@@ -293,6 +293,7 @@ static size_t R_PreprocessShader(const char *name, const char *in, char *out,
 }
 
 #define SHADER_BUF_SIZE 16384
+
 /*
  * R_LoadShader
  */
@@ -430,22 +431,15 @@ static void R_InitWorldProgram(void) {
 	R_ProgramParameter1i("SAMPLER1", 1);
 	R_ProgramParameter1i("SAMPLER2", 2);
 	R_ProgramParameter1i("SAMPLER3", 3);
+	R_ProgramParameter1i("SAMPLER4", 4);
 
 	R_ProgramParameter1i("BUMPMAP", 0);
+	R_ProgramParameter1i("GLOSSMAP", 0);
 
 	R_ProgramParameter1f("BUMP", 1.0);
 	R_ProgramParameter1f("PARALLAX", 1.0);
 	R_ProgramParameter1f("HARDNESS", 1.0);
 	R_ProgramParameter1f("SPECULAR", 1.0);
-}
-
-/*
- * R_UseWorldProgram
- */
-static void R_UseWorldProgram(void) {
-
-	R_ProgramParameter1f("LIGHT_CLAMP_MIN", 0.0);
-	R_ProgramParameter1f("LIGHT_CLAMP_MAX", 4.0);
 }
 
 /*
@@ -456,15 +450,6 @@ static void R_InitMeshProgram(void) {
 	R_ProgramParameter1i("SAMPLER0", 0);
 
 	R_ProgramParameter1f("OFFSET", 0.0);
-}
-
-/*
- * R_UseMeshProgram
- */
-static void R_UseMeshProgram(void) {
-
-	R_ProgramParameter1f("LIGHT_CLAMP_MIN", -0.1);
-	R_ProgramParameter1f("LIGHT_CLAMP_MAX", 3.0);
 }
 
 /*
@@ -490,15 +475,6 @@ static void R_UseWarpProgram(void) {
 }
 
 /*
- * R_UseProProgram
- */
-static void R_UseProProgram(void) {
-
-	R_ProgramParameter1f("LIGHT_CLAMP_MIN", 0.0);
-	R_ProgramParameter1f("LIGHT_CLAMP_MAX", 4.0);
-}
-
-/*
  * R_InitPrograms
  */
 void R_InitPrograms(void) {
@@ -513,15 +489,13 @@ void R_InitPrograms(void) {
 	if (!r_programs->value)
 		return;
 
-	r_state.world_program = R_LoadProgram("world", R_InitWorldProgram,
-			R_UseWorldProgram);
+	r_state.world_program = R_LoadProgram("world", R_InitWorldProgram, NULL);
 
-	r_state.mesh_program = R_LoadProgram("mesh", R_InitMeshProgram,
-			R_UseMeshProgram);
+	r_state.mesh_program = R_LoadProgram("mesh", R_InitMeshProgram, NULL);
 
 	r_state.warp_program = R_LoadProgram("warp", R_InitWarpProgram,
 			R_UseWarpProgram);
 
-	r_state.pro_program = R_LoadProgram("pro", NULL, R_UseProProgram);
+	r_state.pro_program = R_LoadProgram("pro", NULL, NULL);
 }
 

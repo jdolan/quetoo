@@ -92,7 +92,7 @@ static void R_StageLighting(r_bsp_surface_t *surf, r_stage_t *stage) {
 					R_BindDeluxemapTexture(surf->deluxemap_texnum);
 					R_BindNormalmapTexture(stage->image->normalmap->texnum);
 
-					R_EnableBumpmap(&stage->image->material, true);
+					R_EnableBumpmap(stage->image, true);
 				} else {
 					if (r_state.bumpmap_enabled)
 						R_EnableBumpmap(NULL, false);

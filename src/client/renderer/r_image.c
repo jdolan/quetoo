@@ -52,7 +52,7 @@ static GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 static GLint r_filter_max = GL_LINEAR;
 static GLfloat r_filter_aniso = 1.0;
 
-#define IS_MIPMAP(t) (t == it_world || t == it_effect || t == it_material)
+#define IS_MIPMAP(t) (t == it_effect || t == it_world || t == it_normalmap || t == it_glossmap || t == it_material)
 
 typedef struct {
 	const char *name;
@@ -60,12 +60,12 @@ typedef struct {
 } r_texture_mode_t;
 
 static r_texture_mode_t r_texture_modes[] = {
-	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
-	{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
-	{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
-	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
+		{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
+		{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
+		{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
+		{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
+		{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
+		{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
 };
 
 #define NUM_GL_TEXTURE_MODES (sizeof(r_texture_modes) / sizeof(r_texture_mode_t))
@@ -131,31 +131,34 @@ void R_ListImages_f(void) {
 
 		switch (image->type) {
 		case it_font:
-			Com_Print("F");
+			Com_Print("Font      ");
 			break;
 		case it_effect:
-			Com_Print("E");
+			Com_Print("Effect    ");
 			break;
 		case it_world:
-			Com_Print("W");
+			Com_Print("World     ");
 			break;
 		case it_normalmap:
-			Com_Print("N");
+			Com_Print("Normalmap ");
+			break;
+		case it_glossmap:
+			Com_Print("Glossmap  ");
 			break;
 		case it_material:
-			Com_Print("M");
+			Com_Print("Material  ");
 			break;
 		case it_sky:
-			Com_Print("K");
+			Com_Print("Sky       ");
 			break;
 		case it_skin:
-			Com_Print("S");
+			Com_Print("Skin      ");
 			break;
 		case it_pic:
-			Com_Print("P");
+			Com_Print("Pic       ");
 			break;
 		default:
-			Com_Print(" ");
+			Com_Print("          ");
 			break;
 		}
 
@@ -288,6 +291,9 @@ void R_FilterTexture(byte *in, int width, int height, vec3_t color,
 	byte *p;
 	float brightness;
 
+	if (type == it_deluxemap || type == it_normalmap || type == it_glossmap)
+		return;
+
 	p = in;
 	c = width * height;
 
@@ -419,16 +425,12 @@ r_image_t *R_UploadImage(const char *name, byte *data, int width, int height,
 	return image;
 }
 
-static const char *nm_suffix[] = { // normalmap texture suffixes
-		"nm", "norm", "local", NULL };
-
 /*
  * R_LoadImage
  */
 r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	r_image_t *image;
 	char n[MAX_QPATH];
-	char nm[MAX_QPATH];
 	SDL_Surface *surf;
 	int i;
 
@@ -450,17 +452,34 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 		SDL_FreeSurface(surf);
 
-		if (type == it_world) { // load normalmap image
+		if (type == it_world) { // load normalmaps
+			const char *normalmap[] = { "nm", "norm", "local", NULL };
+			char map[MAX_QPATH];
 
-			for (i = 0; nm_suffix[i] != NULL; i++) {
+			for (i = 0; normalmap[i] != NULL; i++) {
 
-				snprintf(nm, sizeof(nm), "%s_%s", n, nm_suffix[i]);
-				image->normalmap = R_LoadImage(nm, it_normalmap);
+				snprintf(map, sizeof(map), "%s_%s", n, normalmap[i]);
+				image->normalmap = R_LoadImage(map, it_normalmap);
 
 				if (image->normalmap != r_null_image)
 					break;
 
 				image->normalmap = NULL;
+			}
+
+			if (image->normalmap) { // and if that succeeds, try glossmaps
+				const char *glossmap[] = { "s", "gloss", NULL };
+
+				for (i = 0; glossmap[i] != NULL; i++) {
+
+					snprintf(map, sizeof(map), "%s_%s", n, glossmap[i]);
+					image->glossmap = R_LoadImage(map, it_glossmap);
+
+					if (image->glossmap != r_null_image)
+						break;
+
+					image->glossmap = NULL;
+				}
 			}
 		}
 	} else {

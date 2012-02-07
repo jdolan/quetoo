@@ -43,7 +43,7 @@ typedef struct r_texunit_s {
 	GLfloat texcoord_array[MAX_GL_ARRAY_LENGTH * 2];
 } r_texunit_t;
 
-#define MAX_GL_TEXUNITS		4
+#define MAX_GL_TEXUNITS		8
 
 // opengl state management
 typedef struct r_state_s {
@@ -88,12 +88,14 @@ extern r_state_t r_state;
 #define texunit_lightmap		r_state.texunits[1]
 #define texunit_deluxemap		r_state.texunits[2]
 #define texunit_normalmap		r_state.texunits[3]
+#define texunit_glossmap		r_state.texunits[4]
 
 void R_SelectTexture(r_texunit_t *texunit);
 void R_BindTexture(GLuint texnum);
 void R_BindLightmapTexture(GLuint texnum);
 void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);
+void R_BindGlossmapTexture(GLuint texnum);
 void R_BindArray(GLenum target, GLenum type, GLvoid *array);
 void R_BindDefaultArray(GLenum target);
 void R_BindBuffer(GLenum target, GLenum type, GLuint id);
@@ -104,7 +106,7 @@ void R_EnableStencilTest(boolean_t enable);
 void R_EnableTexture(r_texunit_t *texunit, boolean_t enable);
 void R_EnableColorArray(boolean_t enable);
 void R_EnableLighting(r_program_t *program, boolean_t enable);
-void R_EnableBumpmap(r_material_t *material, boolean_t enable);
+void R_EnableBumpmap(r_image_t *image, boolean_t enable);
 void R_EnableWarp(r_program_t *program, boolean_t enable);
 void R_EnableShell(boolean_t enable);
 void R_EnableFog(boolean_t enable);

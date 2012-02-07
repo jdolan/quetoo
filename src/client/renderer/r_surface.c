@@ -60,7 +60,10 @@ static void R_SetSurfaceState_default(const r_bsp_surface_t *surf) {
 				R_BindDeluxemapTexture(surf->deluxemap_texnum);
 				R_BindNormalmapTexture(image->normalmap->texnum);
 
-				R_EnableBumpmap(&image->material, true);
+				if (image->glossmap)
+					R_BindGlossmapTexture(image->glossmap->texnum);
+
+				R_EnableBumpmap(image, true);
 			} else
 				R_EnableBumpmap(NULL, false);
 		}

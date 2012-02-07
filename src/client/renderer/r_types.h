@@ -121,6 +121,7 @@ typedef enum {
 	it_lightmap,
 	it_deluxemap,
 	it_normalmap,
+	it_glossmap,
 	it_material,
 	it_sky,
 	it_skin,
@@ -136,6 +137,7 @@ typedef struct r_image_s {
 	r_material_t material;  // material definition
 	vec3_t color;  // average color
 	struct r_image_s *normalmap;  // normalmap texture
+	struct r_image_s *glossmap; // glossmap texture
 } r_image_t;
 
 // bsp model memory representation
@@ -656,7 +658,7 @@ typedef struct r_view_s {
 	unsigned int bsp_polys;  // counters
 	unsigned int mesh_polys;
 
-	boolean_t update;  // inform the client of state changes
+	boolean_t update; // inform the client of state changes
 } r_view_t;
 
 // gl context information

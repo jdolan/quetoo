@@ -39,8 +39,6 @@ byte color_black[4] = { 0, 0, 0, 128 };
 
 cvar_t *r_clear;
 cvar_t *r_cull;
-cvar_t *r_draw_deluxemaps;
-cvar_t *r_draw_lightmaps;
 cvar_t *r_lock_vis;
 cvar_t *r_no_vis;
 cvar_t *r_draw_bsp_lights;
@@ -581,12 +579,6 @@ static void R_InitLocal(void) {
 					"Controls the rendering of static BSP light sources (developer tool)");
 	r_draw_bsp_normals = Cvar_Get("r_draw_bsp_normals", "0", CVAR_LO_ONLY,
 			"Controls the rendering of surface normals (developer tool)");
-	r_draw_deluxemaps = Cvar_Get("r_draw_bsp_deluxemaps", "0",
-			CVAR_LO_ONLY | CVAR_R_PROGRAMS,
-			"Controls the rendering of deluxemap textures (developer tool)");
-	r_draw_lightmaps = Cvar_Get("r_draw_bsp_lightmaps", "0",
-			CVAR_LO_ONLY | CVAR_R_PROGRAMS,
-			"Controls the rendering of lightmap textures (developer tool)");
 	r_draw_wireframe = Cvar_Get("r_draw_wireframe", "0", CVAR_LO_ONLY,
 			"Controls the rendering of polygons as wireframe (developer tool)");
 
@@ -704,7 +696,7 @@ static void R_InitConfig(void) {
 	r_config.version_string = (char *) glGetString(GL_VERSION);
 	r_config.extensions_string = (char *) glGetString(GL_EXTENSIONS);
 
-	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &r_config.max_texunits);
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
 
 	Com_Print("  Renderer: ^2%s^7\n", r_config.renderer_string);
 	Com_Print("  Vendor:   ^2%s^7\n", r_config.vendor_string);

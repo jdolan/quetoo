@@ -63,29 +63,16 @@ GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
  * R_EnforceGlVersion
  */
 void R_EnforceGlVersion(void) {
-	int maj, min, rel;
+	int maj, min;
 
-	sscanf(r_config.version_string, "%d.%d.%d ", &maj, &min, &rel);
+	sscanf(r_config.version_string, "%d.%d", &maj, &min);
 
-	if (maj > 1)
-		return;
-
-	if (maj < 1)
-		Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.2.1",
+	if (maj < 2)
+		Com_Error(ERR_FATAL, "OpenGL version %s is less than 2.0",
 				r_config.version_string);
 
-	if (min > 2)
-		return;
-
-	if (min < 2)
-		Com_Error(ERR_FATAL, "OpenGL Version %s is less than 1.2.1",
-				r_config.version_string);
-
-	if (rel > 1)
-		return;
-
-	if (rel < 1)
-		Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.2.1",
+	if (min < 0)
+		Com_Error(ERR_FATAL, "OpenGL Version %s is less than 2.0",
 				r_config.version_string);
 }
 
