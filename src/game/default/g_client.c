@@ -1044,9 +1044,9 @@ void G_ClientDisconnect(g_edict_t *ent) {
  *
  * Ignore ourselves, clipping to the correct mask based on our status.
  */
-static c_trace_t G_ClientMoveTrace(vec3_t start, vec3_t mins, vec3_t maxs,
-		vec3_t end) {
-	g_edict_t *self = g_level.current_entity;
+static c_trace_t G_ClientMoveTrace(const vec3_t start, const vec3_t mins,
+		const vec3_t maxs, const vec3_t end) {
+	const g_edict_t *self = g_level.current_entity;
 
 	if (g_level.current_entity->health > 0)
 		return gi.Trace(start, mins, maxs, end, self, MASK_PLAYER_SOLID);

@@ -59,8 +59,8 @@ void Cl_CheckPredictionError(void) {
 /*
  * Cl_ClipMoveToEntities
  */
-static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs,
-		vec3_t end, c_trace_t *tr) {
+static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins,
+		const vec3_t maxs, const vec3_t end, c_trace_t *tr) {
 	int i;
 	c_trace_t trace;
 	int head_node;
@@ -110,7 +110,8 @@ static void Cl_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs,
 /*
  * Cl_Trace
  */
-static c_trace_t Cl_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end) {
+static c_trace_t Cl_Trace(const vec3_t start, const vec3_t mins,
+		const vec3_t maxs, const vec3_t end) {
 	c_trace_t t;
 
 	// check against world
@@ -127,7 +128,7 @@ static c_trace_t Cl_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end) {
 /*
  * Cl_Pointcontents
  */
-static int Cl_Pointcontents(vec3_t point) {
+static int Cl_PointContents(const vec3_t point) {
 	int i;
 	c_model_t *model;
 	int contents;
@@ -188,7 +189,7 @@ void Cl_PredictMovement(void) {
 	// copy current state to pmove
 	memset(&pm, 0, sizeof(pm));
 	pm.Trace = Cl_Trace;
-	pm.PointContents = Cl_Pointcontents;
+	pm.PointContents = Cl_PointContents;
 	pm.s = cl.frame.ps.pmove;
 	pm.s.gravity = cl_gravity;
 

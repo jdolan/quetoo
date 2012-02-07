@@ -361,7 +361,7 @@ typedef struct {
 
 	user_cmd_t cmd; // command (in)
 
-	int num_touch; // results (out)
+	unsigned short num_touch; // results (out)
 	struct g_edict_s *touch_ents[MAX_TOUCH_ENTS];
 
 	vec3_t angles; // clamped
@@ -375,8 +375,8 @@ typedef struct {
 	int water_level;
 
 	// callbacks to test the world
-	c_trace_t (*Trace)(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
-	int (*PointContents)(vec3_t point);
+	c_trace_t (*Trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end);
+	int (*PointContents)(const vec3_t point);
 } pm_move_t;
 
 // entity_state_t->effects
