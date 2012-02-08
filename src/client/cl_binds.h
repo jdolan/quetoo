@@ -98,14 +98,14 @@ static const char *DEFAULT_BINDS =
 
 "alias SCREENSHOTS_OFF \""
 	"set cl_counters $c;"
-	"set cl_crosshair $ch;"
-	"set cl_hud $h;"
+	"set cg_crosshair $ch;"
+	"set cg_hud $h;"
 	"set cl_net_graph $n;"
 	"set cl_weapon $w;"
 	"bind F10 SCREENSHOTS"
 	"\"\n"
 
 "bind F10 SCREENSHOTS\n"
-"bind F11 toggle_fullscreen\n";
+"bind F11 r_toggle_fullscreen\n";
 
 #endif /* __CL_BINDS_H__ */
