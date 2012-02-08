@@ -30,6 +30,11 @@ echo checked out revision $rev
 cd $START/quake2world
 autoreconf -i --force
 ./configure --prefix=/tmp/quake2world
+
+cd src/tools/q2wmap
+sed -i 's:-O2::g' $(find . -name Makefile)
+cd $START/quake2world
+
 make
 make install
 cd $START/quake2world/src/game/default
