@@ -508,6 +508,7 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int speed,
 	VectorCopy(dir, rocket->move_dir);
 	VectorAngles(dir, rocket->s.angles);
 	VectorScale(dir, speed, rocket->velocity);
+	VectorSet(rocket->avelocity, 0.0, 0.0, 600.0);
 	rocket->move_type = MOVE_TYPE_FLY;
 	rocket->clip_mask = MASK_SHOT;
 	rocket->solid = SOLID_MISSILE;

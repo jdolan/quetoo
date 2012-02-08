@@ -273,7 +273,7 @@ void Cl_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 		vec3_t delta;
 		float d, dist;
 
-		d = 0;
+		d = 0.0;
 
 		VectorSubtract(end, start, delta);
 		dist = VectorNormalize(delta);
@@ -773,8 +773,8 @@ void Cl_ExplosionEffect(const vec3_t org) {
 	}
 
 	VectorCopy(org, s.light.origin);
-	s.light.radius = 100.0;
-	VectorSet(s.light.color, 1.0, 0.5, 0.3);
+	s.light.radius = 150.0;
+	VectorSet(s.light.color, 0.8, 0.4, 0.2);
 	s.sustain = 1.0;
 
 	R_AddSustainedLight(&s);
@@ -826,13 +826,12 @@ void Cl_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	p->type = PARTICLE_ROLL;
 
 	p->scale = 2.0;
-	p->scale_vel = 20.0;
+	p->scale_vel = 10 + 25.0 * frand();
 
 	p->alpha = 1.0;
-	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
+	p->alpha_vel = -1.0 / (1.0 + frand());
 
-	p->color = rand() & 7;
-	p->blend = GL_ONE;
+	p->color = 32 + (rand() & 7);
 
 	for (j = 0; j < 3; j++) {
 		p->org[j] = end[j];
@@ -1204,18 +1203,49 @@ void Cl_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_corona_t c;
 	r_light_t l;
 
+	const unsigned int old_time = ent->time;
+
 	Cl_SmokeTrail(start, end, ent);
+
+	if (old_time != ent->time) { // time to add new particles
+		r_particle_t *p;
+		vec3_t delta;
+		float d;
+
+		VectorSubtract(end, start, delta);
+		const float dist = VectorNormalize(delta);
+
+		d = 0.0;
+
+		while (d < dist) {
+
+			if (!(p = Cl_AllocParticle()))
+				break;
+
+			VectorMA(start, d, delta, p->org);
+
+			p->vel[0] = 24.0 * crand();
+			p->vel[1] = 24.0 * crand();
+			p->vel[2] = -PARTICLE_GRAVITY * 0.25;
+
+			p->alpha = 0.5 + crand() * 0.25;
+			p->alpha_vel = -1.0 + 0.25 * crand();
+
+			p->color = 0xe0 + (rand() & 7);
+			d += 2.0;
+		}
+	}
 
 	VectorCopy(end, c.origin);
 	c.radius = 3.0;
 	c.flicker = 0.25;
-	VectorSet(c.color, 1.0, 0.5, 0.3);
+	VectorSet(c.color, 0.8, 0.4, 0.2);
 
 	R_AddCorona(&c);
 
 	VectorCopy(end, l.origin);
-	l.radius = 120.0;
-	VectorSet(l.color, 1.0, 0.5, 0.3);
+	l.radius = 150.0;
+	VectorSet(l.color, 0.8, 0.4, 0.2);
 
 	R_AddLight(&l);
 }
