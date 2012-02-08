@@ -307,7 +307,7 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
  * pass, the shadow origin must transformed into model-view space.
  */
 static void R_RotateForMeshShadow_default(const r_entity_t *e) {
-	vec3_t origin;
+	vec3_t origin, offset;
 	float height, threshold, scale;
 
 	if (!e) {
@@ -315,7 +315,12 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 		return;
 	}
 
-	R_TransformForEntity(e, e->lighting->shadow_origin, origin);
+	if (e->parent) {
+		VectorSubtract(e->origin, e->parent->origin, offset);
+		offset[2] = 0.0;
+		VectorAdd(e->lighting->shadow_origin, offset, offset);
+	}
+	R_TransformForEntity(e, offset, origin);
 
 	height = -origin[2];
 
