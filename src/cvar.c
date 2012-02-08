@@ -115,9 +115,17 @@ cvar_t *Cvar_Get(const char *name, const char *value, int flags,
 		const char *description) {
 	cvar_t *v, *var;
 
+	if (!value)
+		return NULL;
+
+
 	if (flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
 		if (!Cvar_InfoValidate(name)) {
 			Com_Print("Invalid variable name: %s\n", name);
+			return NULL;
+		}
+		if (!Cvar_InfoValidate(value)) {
+			Com_Print("Invalid variable value: %s\n", value);
 			return NULL;
 		}
 	}
@@ -128,16 +136,6 @@ cvar_t *Cvar_Get(const char *name, const char *value, int flags,
 		if (description)
 			var->description = description;
 		return var;
-	}
-
-	if (!value)
-		return NULL;
-
-	if (flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
-		if (!Cvar_InfoValidate(value)) {
-			Com_Print("Invalid variable value: %s\n", value);
-			return NULL;
-		}
 	}
 
 	var = Z_Malloc(sizeof(*var));
