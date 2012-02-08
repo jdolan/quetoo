@@ -417,7 +417,8 @@ r_image_t *R_UploadImage(const char *name, byte *data, int width, int height,
 	image->height = height;
 	image->type = type;
 
-	image->texnum = i + 1;
+	glGenTextures(1, &(image->texnum));
+
 	R_BindTexture(image->texnum);
 
 	R_UploadImage_(data, width, height, image->color, type);
