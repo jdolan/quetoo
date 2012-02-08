@@ -559,6 +559,15 @@ void R_Restart_f(void) {
 }
 
 /*
+ * R_ToggleFullscreen_f
+ */
+static void R_ToggleFullscreen_f(void) {
+
+	Cvar_Toggle("r_fullscreen");
+	R_Restart_f();
+}
+
+/*
  * R_InitLocal
  */
 static void R_InitLocal(void) {
@@ -679,6 +688,8 @@ static void R_InitLocal(void) {
 	Cmd_AddCommand("r_screenshot", R_Screenshot_f, "Take a screenshot");
 
 	Cmd_AddCommand("r_sky", R_Sky_f, NULL);
+
+	Cmd_AddCommand("r_toggle_fullscreen", R_ToggleFullscreen_f, "Toggle fullscreen");
 
 	Cmd_AddCommand("r_reload", R_Reload_f, "Reloads all rendering media");
 	Cmd_AddCommand("r_restart", R_Restart_f, "Restart the rendering subsystem");
