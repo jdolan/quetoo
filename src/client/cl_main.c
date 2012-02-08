@@ -215,6 +215,7 @@ void Cl_ClearState(void) {
 
 	// wipe the entire cl_client_t structure
 	memset(&cl, 0, sizeof(cl));
+
 	Com_QuitSubsystem(Q2W_CLIENT);
 
 	Sb_Clear(&cls.netchan.message);
@@ -292,6 +293,8 @@ void Cl_Disconnect(void) {
 	}
 
 	memset(cls.server_name, 0, sizeof(cls.server_name));
+
+	Cl_InputReset();
 
 	cls.key_state.dest = KEY_UI;
 }

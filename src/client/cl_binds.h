@@ -105,6 +105,7 @@ static const char *DEFAULT_BINDS =
 	"bind F10 SCREENSHOTS"
 	"\"\n"
 
-"bind F10 SCREENSHOTS\n";
+"bind F10 SCREENSHOTS\n"
+"bind F11 toggle_fullscreen\n";
 
 #endif /* __CL_BINDS_H__ */

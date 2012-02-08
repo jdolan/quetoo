@@ -39,7 +39,7 @@ typedef struct {
 	boolean_t down;
 } cl_key_queue_t;
 
-cl_key_queue_t cl_key_queue[MAX_KEY_QUEUE];
+static cl_key_queue_t cl_key_queue[MAX_KEY_QUEUE];
 
 static int cl_key_queue_head = 0;
 static int cl_key_queue_tail = 0;
@@ -76,11 +76,19 @@ typedef struct {
 	byte state;
 } cl_button_t;
 
-static cl_button_t in_left, in_right, in_forward, in_back;
-static cl_button_t in_look_up, in_look_down;
-static cl_button_t in_move_left, in_move_right;
-static cl_button_t in_speed, in_attack;
-static cl_button_t in_up, in_down;
+static cl_button_t cl_buttons[12];
+#define in_left cl_buttons[0]
+#define in_right cl_buttons[1]
+#define in_forward cl_buttons[2]
+#define in_back cl_buttons[3]
+#define in_look_up cl_buttons[4]
+#define in_look_down cl_buttons[5]
+#define in_move_left cl_buttons[6]
+#define in_move_right cl_buttons[7]
+#define in_speed cl_buttons[8]
+#define in_attack cl_buttons[9]
+#define in_up cl_buttons[10]
+#define in_down cl_buttons[11]
 
 /*
  * Cl_KeyDown
@@ -382,10 +390,7 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii,
 		break;
 
 	case SDLK_F11:
-		if (event->type == SDL_KEYDOWN) {
-			Cvar_Toggle("r_fullscreen");
-			Cbuf_AddText("r_restart");
-		}
+		key = K_F11;
 		break;
 
 	case SDLK_F12:
@@ -766,4 +771,14 @@ void Cl_InitInput(void) {
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
 
 	cls.mouse_state.grabbed = true;
+}
+
+/*
+ * Cl_InputReset
+ */
+void Cl_InputReset() {
+	memset(cl_key_queue, 0, sizeof(cl_key_queue));
+	cl_key_queue_head = 0;
+	cl_key_queue_tail = 0;
+	memset(cl_buttons, 0, sizeof(cl_buttons));
 }
