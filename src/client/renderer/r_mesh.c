@@ -317,9 +317,13 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 
 	if (e->parent) {
 		VectorSubtract(e->origin, e->parent->origin, offset);
-		offset[2] = 0.0;
 		VectorAdd(e->lighting->shadow_origin, offset, offset);
+		offset[2] = e->lighting->shadow_origin[2];
 	}
+	else {
+		VectorCopy(e->lighting->shadow_origin, offset);
+	}
+
 	R_TransformForEntity(e, offset, origin);
 
 	height = -origin[2];
