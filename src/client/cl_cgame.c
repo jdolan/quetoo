@@ -150,6 +150,7 @@ void Cl_InitCgame(void) {
 	import.PointContents = R_PointContents;
 	import.Trace = R_Trace;
 
+	import.LeafForPoint = R_LeafForPoint;
 	import.LeafInPhs = R_LeafInPhs;
 	import.LeafInPvs = R_LeafInPvs;
 

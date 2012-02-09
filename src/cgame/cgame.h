@@ -58,6 +58,7 @@ typedef struct cg_import_s {
 	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, float radius, int mask);
 
 	// PVS and PHS
+	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_model_t *model);
 	boolean_t (*LeafInPhs)(const r_bsp_leaf_t *leaf);
 	boolean_t (*LeafInPvs)(const r_bsp_leaf_t *leaf);
 

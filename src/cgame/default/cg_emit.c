@@ -106,7 +106,7 @@ void Cg_LoadEmits(void) {
 			if (emit) {
 
 				// resolve the leaf so that the entity may be added only when in PVS
-				e->leaf = R_LeafForPoint(e->org, NULL);
+				e->leaf = cgi.LeafForPoint(e->org, NULL);
 
 				// add default sounds and models
 				if (!e->sample) {
