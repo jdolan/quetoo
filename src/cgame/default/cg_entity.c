@@ -97,12 +97,12 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	cgi.AddEntity(&head);
 
 	if (s->model2) {
-		const r_model_t *model = cgi.client->model_draw[s->model2];
+		r_model_t *model = cgi.client->model_draw[s->model2];
 		cgi.AddLinkedEntity(head.parent, model, "tag_weapon");
 	}
 
 	if (s->model3) {
-		const r_model_t *model = cgi.client->model_draw[s->model3];
+		r_model_t *model = cgi.client->model_draw[s->model3];
 		cgi.AddLinkedEntity(head.parent, model, "tag_head");
 	}
 

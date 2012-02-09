@@ -87,7 +87,7 @@ typedef struct cg_import_s {
 	// scene building facilities
 	void (*AddCorona)(const r_corona_t *c);
 	const r_entity_t *(*AddEntity)(const r_entity_t *ent);
-	const r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, const r_model_t *model,
+	const r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, r_model_t *model,
 			const char *tag_name);
 	void (*AddLight)(const r_light_t *l);
 	void (*AddParticle)(const r_particle_t *p);
