@@ -19,11 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cl_local.h"
+#include "cg_local.h"
 
 /*
  * Emits are client-sided entities for emitting lights, particles, coronas,
- * ambient sounds, etc.  They are run once per frame.
+ * ambient sounds, etc.  They are run once per frame, and culled by both
+ * PHS and PVS, depending on their flags.
  */
 
 #define EMIT_LIGHT		0x1
@@ -58,26 +59,26 @@ typedef struct cl_emit_s {
 	const r_bsp_leaf_t *leaf; // for pvs culling
 	r_lighting_t lighting; // cached static lighting info
 	unsigned int time; // when to fire next
-} cl_emit_t;
+} cg_emit_t;
 
 #define MAX_EMITS 256
-static cl_emit_t emits[MAX_EMITS];
-static unsigned short num_emits;
+static cg_emit_t cg_emits[MAX_EMITS];
+static unsigned short cg_num_emits;
 
 /*
- * Cl_LoadEmits
+ * Cg_LoadEmits
  *
  * Parse misc_emits from the bsp after it has been loaded.  This must
  * be called after Cm_LoadMap, once per pre-cache routine.
  */
-void Cl_LoadEmits(void) {
+void Cg_LoadEmits(void) {
 	const char *ents;
-	char class_name[128];
-	cl_emit_t *e;
+	char class_name[MAX_QPATH];
+	cg_emit_t *e;
 	boolean_t entity, emit;
 
-	memset(&emits, 0, sizeof(emits));
-	num_emits = 0;
+	memset(&cg_emits, 0, sizeof(cg_emits));
+	cg_num_emits = 0;
 
 	ents = Cm_EntityString();
 
@@ -208,12 +209,11 @@ void Cl_LoadEmits(void) {
 				if (e->flags & EMIT_SPARKS) // don't combine sparks and light
 					e->flags &= ~EMIT_LIGHT;
 
-				Com_Debug("Added %d emit at %f %f %f\n", e->flags, e->org[0],
-						e->org[1], e->org[2]);
+				Com_Debug("Added %d emit at %f %f %f\n", e->flags, e->org[0], e->org[1], e->org[2]);
 
-				num_emits++;
+				cg_num_emits++;
 			} else
-				memset(&emits[num_emits], 0, sizeof(cl_emit_t));
+				memset(&cg_emits[cg_num_emits], 0, sizeof(cg_emit_t));
 
 			emit = false;
 		}
@@ -227,7 +227,7 @@ void Cl_LoadEmits(void) {
 				emit = true;
 		}
 
-		e = &emits[num_emits];
+		e = &cg_emits[cg_num_emits];
 
 		if (!strcmp(c, "flags") || !strcmp(c, "spawnflags")) {
 			e->flags = atoi(ParseToken(&ents));
@@ -235,21 +235,18 @@ void Cl_LoadEmits(void) {
 		}
 
 		if (!strcmp(c, "origin")) {
-			sscanf(ParseToken(&ents), "%f %f %f", &e->org[0], &e->org[1],
-					&e->org[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &e->org[0], &e->org[1], &e->org[2]);
 			continue;
 		}
 
 		if (!strcmp(c, "angles")) { // resolve angles and directional vector
-			sscanf(ParseToken(&ents), "%f %f %f", &e->angles[0], &e->angles[1],
-					&e->angles[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &e->angles[0], &e->angles[1], &e->angles[2]);
 			AngleVectors(e->angles, e->dir, NULL, NULL);
 			continue;
 		}
 
 		if (!strcmp(c, "color")) { // resolve color as floats
-			sscanf(ParseToken(&ents), "%f %f %f", &e->color[0], &e->color[1],
-					&e->color[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &e->color[0], &e->color[1], &e->color[2]);
 			continue;
 		}
 
@@ -301,19 +298,16 @@ void Cl_LoadEmits(void) {
 		}
 
 		if (!strcmp(c, "velocity")) {
-			sscanf(ParseToken(&ents), "%f %f %f", &e->vel[0], &e->vel[1],
-					&e->vel[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &e->vel[0], &e->vel[1], &e->vel[2]);
 			continue;
 		}
 	}
-
-	Cl_LoadProgress(99);
 }
 
 /*
- * Cl_EmitLight
+ * Cg_EmitLight
  */
-static r_light_t *Cl_EmitLight(cl_emit_t *e) {
+static r_light_t *Cg_EmitLight(cg_emit_t *e) {
 	static r_light_t l;
 
 	VectorCopy(e->org, l.origin);
@@ -324,51 +318,53 @@ static r_light_t *Cl_EmitLight(cl_emit_t *e) {
 }
 
 /*
- * Cl_UpdateEmit
+ * Cg_UpdateEmit
  *
  * Perform PVS and PHS filtering, returning a copy of the specified emit with
  * the correct flags stripped away for this frame.
  */
-cl_emit_t *Cl_UpdateEmit(cl_emit_t *e) {
-	static cl_emit_t em;
+cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
+	static cg_emit_t em;
 
 	em = *e;
 
-	if (!R_LeafInPhs(e->leaf))
+	if (!cgi.LeafInPhs(e->leaf))
 		em.flags = 0;
-	else if (!R_LeafInPvs(e->leaf)) {
+	else if (!cgi.LeafInPvs(e->leaf)) {
 		em.flags &= ~EMIT_VISIBLE;
 	}
 
-	if (em.flags && em.hz && em.time < cl.time) // update the time stamp
-		e->time = cl.time + (1000.0 / e->hz + (e->drift * frand() * 1000.0));
+	if (em.flags && em.hz && em.time < cl.time) { // update the time stamp
+		const float drift = e->drift * frand() * 1000.0;
+		e->time = cgi.client->time + (1000.0 / e->hz) + drift;
+	}
 
 	return &em;
 }
 
 /*
- * Cl_AddEmits
+ * Cg_AddEmits
  */
-void Cl_AddEmits(void) {
+void Cg_AddEmits(void) {
 	r_entity_t ent;
 	int i;
 
-	if (!cl_add_emits->value)
+	if (!cg_add_emits->value)
 		return;
 
 	memset(&ent, 0, sizeof(ent));
 
-	for (i = 0; i < num_emits; i++) {
+	for (i = 0; i < cg_num_emits; i++) {
 
-		cl_emit_t *e = Cl_UpdateEmit(&emits[i]);
+		cg_emit_t *e = Cg_UpdateEmit(&cg_emits[i]);
 
 		// first add emits which fire every frame
 
 		if (e->flags & EMIT_LIGHT && !e->hz)
-			R_AddLight(Cl_EmitLight(e));
+			cgi.AddLight(Cg_EmitLight(e));
 
 		if ((e->flags & EMIT_SOUND) && e->loop)
-			S_LoopSample(e->org, e->sample);
+			cgi.LoopSample(e->org, e->sample);
 
 		if (e->flags & EMIT_MODEL) {
 			VectorCopy(e->org, ent.origin);
@@ -381,7 +377,7 @@ void Cl_AddEmits(void) {
 
 			ent.lighting = &e->lighting;
 
-			R_AddEntity(&ent);
+			cgi.AddEntity(&ent);
 		}
 
 		if (e->flags & EMIT_CORONA) {
@@ -392,7 +388,7 @@ void Cl_AddEmits(void) {
 			c.flicker = e->flicker;
 			VectorCopy(e->color, c.color);
 
-			R_AddCorona(&c);
+			cgi.AddCorona(&c);
 		}
 
 		// then add emits with timed events if they are due to run
@@ -401,25 +397,25 @@ void Cl_AddEmits(void) {
 			continue;
 
 		if (e->flags & EMIT_LIGHT && e->hz) {
-			const r_light_t *l = Cl_EmitLight(e);
+			const r_light_t *l = Cg_EmitLight(e);
 			r_sustained_light_t s;
 
 			s.light = *l;
 			s.sustain = 0.65;
 
-			R_AddSustainedLight(&s);
+			cgi.AddSustainedLight(&s);
 		}
 
 		if (e->flags & EMIT_SPARKS)
-			Cl_SparksEffect(e->org, e->dir, e->count);
+			Cg_SparksEffect(e->org, e->dir, e->count);
 
 		if (e->flags & EMIT_STEAM)
-			Cl_SteamTrail(e->org, e->vel, NULL);
+			Cg_SteamTrail(e->org, e->vel, NULL);
 
 		if (e->flags & EMIT_FLAME)
-			Cl_FlameTrail(e->org, e->org, NULL);
+			Cg_FlameTrail(e->org, e->org, NULL);
 
 		if ((e->flags & EMIT_SOUND) && !e->loop)
-			S_PlaySample(e->org, -1, e->sample, e->atten);
+			cgi.PlaySample(e->org, -1, e->sample, e->atten);
 	}
 }

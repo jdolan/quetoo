@@ -19,15 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_EMIT_H__
-#define __CL_EMIT_H__
+#ifndef __CG_MUZZLE_FLASH_H__
+#define __CG_MUZZLE_FLASH_H__
 
-#include "cl_types.h"
+#include "cg_types.h"
 
-#ifdef __CL_LOCAL_H__
-void Cl_LoadEmits(void);
-void Cl_AddEmits(void);
-#endif /* __CL_LOCAL_H__ */
+#ifdef __CG_LOCAL_H__
+void Cg_ParseMuzzleFlash(void);
+#endif /* __CG_LOCAL_H__ */
 
-#endif /* __CL_EMIT_H__ */
-
+#endif /* __CG_MUZZLE_FLASH_H__ */

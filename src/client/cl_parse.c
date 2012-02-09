@@ -21,11 +21,23 @@
 
 #include "cl_local.h"
 
-char *svc_strings[256] = { "svc_bad", "svc_nop", "svc_muzzle_flash",
-		"svc_temp_entity", "svc_layout", "svc_disconnect", "svc_reconnect",
-		"svc_sound", "svc_print", "svc_stuff_text", "svc_server_data",
-		"svc_config_string", "svc_spawn_baseline", "svc_center_print",
-		"svc_download", "svc_frame" };
+char *svc_strings[256] = {
+		"svc_bad",
+		"svc_nop",
+		"svc_muzzle_flash",
+		"svc_temp_entity",
+		"svc_layout",
+		"svc_disconnect",
+		"svc_reconnect",
+		"svc_sound",
+		"svc_print",
+		"svc_stuff_text",
+		"svc_server_data",
+		"svc_config_string",
+		"svc_spawn_baseline",
+		"svc_center_print",
+		"svc_download",
+		"svc_frame" };
 
 /*
  * Cl_CheckOrDownloadFile
@@ -120,6 +132,67 @@ void Cl_Download_f(void) {
 }
 
 /*
+ * Cl_ParseBaseline
+ */
+static void Cl_ParseBaseline(void) {
+	entity_state_t *state;
+	entity_state_t null_state;
+
+	const unsigned short number = Msg_ReadShort(&net_message);
+	const unsigned short bits = Msg_ReadShort(&net_message);
+
+	memset(&null_state, 0, sizeof(null_state));
+	state = &cl.entities[number].baseline;
+
+	Msg_ReadDeltaEntity(&null_state, state, &net_message, number, bits);
+}
+
+/*
+ * Cl_ParseGravity
+ */
+static void Cl_ParseGravity(const char *gravity) {
+	int g;
+
+	if ((g = atoi(gravity)) > -1)
+		cl_gravity = g;
+}
+
+/*
+ * Cl_ParseConfigString
+ */
+void Cl_ParseConfigString(void) {
+	const unsigned short i = (unsigned short) Msg_ReadShort(&net_message);
+
+	if (i >= MAX_CONFIG_STRINGS) {
+		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
+	}
+
+	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
+	const char *s = cl.config_strings[i];
+
+	if (i == CS_GRAVITY)
+		Cl_ParseGravity(s);
+	else if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
+		if (cls.state == CL_ACTIVE) {
+			cl.model_draw[i - CS_MODELS] = R_LoadModel(s);
+			if (cl.config_strings[i][0] == '*')
+				cl.model_clip[i - CS_MODELS] = Cm_Model(s);
+			else
+				cl.model_clip[i - CS_MODELS] = NULL;
+		}
+	} else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
+		if (cls.state == CL_ACTIVE)
+			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(s);
+	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
+		if (cls.state == CL_ACTIVE)
+			cl.image_precache[i - CS_IMAGES] = R_LoadPic(s);
+	} /*else if (i >= CS_CLIENT_INFO && i < CS_CLIENT_INFO + MAX_CLIENTS) {
+		if (cls.state == CL_ACTIVE)
+			Cl_LoadClient(&cl.client_info[i - CS_CLIENT_INFO], s);
+	}*/
+}
+
+/*
  * Cl_ParseDownload
  *
  * A download message has been received from the server
@@ -187,12 +260,6 @@ static void Cl_ParseDownload(void) {
 }
 
 /*
- *
- *   SERVER CONNECTING MESSAGES
- *
- */
-
-/*
  * Cl_ParseServerData
  */
 static void Cl_ParseServerData(void) {
@@ -238,67 +305,6 @@ static void Cl_ParseServerData(void) {
 	str = Msg_ReadString(&net_message);
 	Com_Print("\n");
 	Com_Print("%c%s\n", 2, str);
-}
-
-/*
- * Cl_ParseBaseline
- */
-static void Cl_ParseBaseline(void) {
-	entity_state_t *state;
-	entity_state_t null_state;
-
-	const unsigned short number = Msg_ReadShort(&net_message);
-	const unsigned short bits = Msg_ReadShort(&net_message);
-
-	memset(&null_state, 0, sizeof(null_state));
-	state = &cl.entities[number].baseline;
-
-	Msg_ReadDeltaEntity(&null_state, state, &net_message, number, bits);
-}
-
-/*
- * Cl_ParseGravity
- */
-static void Cl_ParseGravity(const char *gravity) {
-	int g;
-
-	if ((g = atoi(gravity)) > -1)
-		cl_gravity = g;
-}
-
-/*
- * Cl_ParseConfigString
- */
-void Cl_ParseConfigString(void) {
-	const unsigned short i = (unsigned short) Msg_ReadShort(&net_message);
-
-	if (i >= MAX_CONFIG_STRINGS) {
-		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
-	}
-
-	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
-	const char *s = cl.config_strings[i];
-
-	if (i == CS_GRAVITY)
-		Cl_ParseGravity(s);
-	else if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
-		if (cls.state == CL_ACTIVE) {
-			cl.model_draw[i - CS_MODELS] = R_LoadModel(s);
-			if (cl.config_strings[i][0] == '*')
-				cl.model_clip[i - CS_MODELS] = Cm_Model(s);
-			else
-				cl.model_clip[i - CS_MODELS] = NULL;
-		}
-	} else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
-		if (cls.state == CL_ACTIVE)
-			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(s);
-	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
-		if (cls.state == CL_ACTIVE)
-			cl.image_precache[i - CS_IMAGES] = R_LoadPic(s);
-	} else if (i >= CS_CLIENT_INFO && i < CS_CLIENT_INFO + MAX_CLIENTS) {
-		if (cls.state == CL_ACTIVE)
-			Cl_LoadClient(&cl.client_info[i - CS_CLIENT_INFO], s);
-	}
 }
 
 /*
@@ -406,23 +412,29 @@ void Cl_ParseServerMessage(void) {
 
 		switch (cmd) {
 
+		case SV_CMD_BASELINE:
+			Cl_ParseBaseline();
+			break;
+
+		case SV_CMD_CBUF_TEXT:
+			s = Msg_ReadString(&net_message);
+			Cbuf_AddText(s);
+			break;
+
+		case SV_CMD_CONFIG_STRING:
+			Cl_ParseConfigString();
+			break;
+
 		case SV_CMD_DISCONNECT:
 			Com_Error(ERR_DROP, "Server disconnected.\n");
 			break;
 
-		case SV_CMD_RECONNECT:
-			Com_Print("Server disconnected, reconnecting...\n");
-			// stop download
-			if (cls.download.file) {
-				if (cls.download.http) // clean up http downloads
-					Cl_HttpDownloadCleanup();
-				else
-					// or just stop legacy ones
-					Fs_CloseFile(cls.download.file);
-				cls.download.file = NULL;
-			}
-			cls.state = CL_CONNECTING;
-			cls.connect_time = -99999; // fire immediately
+		case SV_CMD_DOWNLOAD:
+			Cl_ParseDownload();
+			break;
+
+		case SV_CMD_FRAME:
+			Cl_ParseFrame();
 			break;
 
 		case SV_CMD_PRINT:
@@ -442,41 +454,27 @@ void Cl_ParseServerMessage(void) {
 			Com_Print("%s", s);
 			break;
 
-		case SV_CMD_CBUF_TEXT:
-			s = Msg_ReadString(&net_message);
-			Cbuf_AddText(s);
+		case SV_CMD_RECONNECT:
+			Com_Print("Server disconnected, reconnecting...\n");
+			// stop download
+			if (cls.download.file) {
+				if (cls.download.http) // clean up http downloads
+					Cl_HttpDownloadCleanup();
+				else
+					// or just stop legacy ones
+					Fs_CloseFile(cls.download.file);
+				cls.download.file = NULL;
+			}
+			cls.state = CL_CONNECTING;
+			cls.connect_time = -99999; // fire immediately
 			break;
 
 		case SV_CMD_SERVER_DATA:
 			Cl_ParseServerData();
 			break;
 
-		case SV_CMD_CONFIG_STRING:
-			Cl_ParseConfigString();
-			break;
-
 		case SV_CMD_SOUND:
 			Cl_ParseSound();
-			break;
-
-		case SV_CMD_ENTITY_BASELINE:
-			Cl_ParseBaseline();
-			break;
-
-		case SV_CMD_TEMP_ENTITY:
-			Cl_ParseTempEntity();
-			break;
-
-		case SV_CMD_MUZZLE_FLASH:
-			Cl_ParseMuzzleFlash();
-			break;
-
-		case SV_CMD_DOWNLOAD:
-			Cl_ParseDownload();
-			break;
-
-		case SV_CMD_FRAME:
-			Cl_ParseFrame();
 			break;
 
 		default:

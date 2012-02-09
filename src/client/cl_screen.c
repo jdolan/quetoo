@@ -134,7 +134,7 @@ static void Cl_DrawCounters(void) {
 	static int millis;
 	r_pixel_t cw, ch;
 
-	if (!cl_counters->value)
+	if (!cl_draw_counters->value)
 		return;
 
 	R_BindFont("small", &cw, &ch);

@@ -101,6 +101,35 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 }
 
 /*
+ * R_AddLinkedEntity
+ *
+ * Binds a linked model to its parent, and copies it into the view structure.
+ */
+const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
+		const char *tag_name) {
+
+	if (!parent) {
+		Com_Warn("R_AddLinkedEntity: NULL parent\n");
+		return NULL;
+	}
+
+	r_entity_t ent = *parent;
+
+	ent.parent = parent;
+	ent.tag_name = tag_name;
+
+	ent.model = model;
+	ent.skin = NULL;
+
+	ent.frame = ent.old_frame = 0;
+
+	ent.lerp = 1.0;
+	ent.back_lerp = 0.0;
+
+	return R_AddEntity(&ent);
+}
+
+/*
  * R_RotateForEntity
  *
  * Applies translation, rotation, and scale for the specified entity.
@@ -156,9 +185,8 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 
 		R_ApplyMeshModelConfig(e);
 
-		Matrix4x4_CreateFromQuakeEntity(&e->matrix, e->origin[0], e->origin[1],
-				e->origin[2], e->angles[0], e->angles[1], e->angles[2],
-				e->scale);
+		Matrix4x4_CreateFromQuakeEntity(&e->matrix, e->origin[0], e->origin[1], e->origin[2],
+				e->angles[0], e->angles[1], e->angles[2], e->scale);
 
 		R_ApplyMeshModelTag(e);
 
@@ -171,8 +199,8 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 		R_ApplyMeshModelConfig(e);
 	}
 
-	Matrix4x4_CreateFromQuakeEntity(&e->matrix, e->origin[0], e->origin[1],
-			e->origin[2], e->angles[0], e->angles[1], e->angles[2], e->scale);
+	Matrix4x4_CreateFromQuakeEntity(&e->matrix, e->origin[0], e->origin[1], e->origin[2],
+			e->angles[0], e->angles[1], e->angles[2], e->scale);
 }
 
 /*

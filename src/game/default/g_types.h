@@ -26,8 +26,10 @@
 
 // server commands sent directly to the client game
 typedef enum {
-	SV_CMD_SCORES = SV_CMD_CGAME,
-	SV_CMD_CENTER_PRINT,
+	SV_CMD_CENTER_PRINT = SV_CMD_CGAME,
+	SV_CMD_MUZZLE_FLASH,
+	SV_CMD_SCORES,
+	SV_CMD_TEMP_ENTITY,
 	SV_CMD_FOOBAR // add custom commands here
 } g_sv_cmd_t;
 

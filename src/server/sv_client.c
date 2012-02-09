@@ -151,7 +151,7 @@ static void Sv_Baselines_f(void) {
 			< MAX_EDICTS) {
 		base = &sv.baselines[start];
 		if (base->model1 || base->sound || base->effects) {
-			Msg_WriteByte(&sv_client->netchan.message, SV_CMD_ENTITY_BASELINE);
+			Msg_WriteByte(&sv_client->netchan.message, SV_CMD_BASELINE);
 			Msg_WriteDeltaEntity(&nullstate, base, &sv_client->netchan.message,
 					true, true);
 		}

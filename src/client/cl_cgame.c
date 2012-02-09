@@ -91,7 +91,7 @@ static void Cl_ReadPosition(vec3_t pos) {
 	Msg_ReadPos(&net_message, pos);
 }
 
-static void Cl_ReadDir(vec3_t dir) {
+static void Cl_ReadDirection(vec3_t dir) {
 	Msg_ReadDir(&net_message, dir);
 }
 
@@ -134,7 +134,6 @@ void Cl_InitCgame(void) {
 	import.Cvar = Cvar_Get;
 
 	import.ConfigString = Cl_ConfigString;
-	import.player_num = &cl.player_num;
 
 	import.ReadData = Cl_ReadData;
 	import.ReadChar = Cl_ReadChar;
@@ -143,24 +142,37 @@ void Cl_InitCgame(void) {
 	import.ReadLong = Cl_ReadLong;
 	import.ReadString = Cl_ReadString;
 	import.ReadPosition = Cl_ReadPosition;
-	import.ReadDir = Cl_ReadDir;
+	import.ReadDirection = Cl_ReadDirection;
 	import.ReadAngle = Cl_ReadAngle;
 
-	import.time = &cl.time;
+	import.client = &cl;
+
+	import.PointContents = R_PointContents;
+	import.Trace = R_Trace;
+
+	import.LeafInPhs = R_LeafInPhs;
+	import.LeafInPvs = R_LeafInPvs;
+
+	import.EntityString = Cm_EntityString;
+
+	import.LoadSample = S_LoadSample;
+	import.PlaySample = S_PlaySample;
+	import.LoopSample = S_LoopSample;
 
 	import.context = &r_context;
 
 	import.view = &r_view;
 
 	import.palette = palette;
+	import.LoadImage = R_LoadImage;
 
 	import.AddCorona = R_AddCorona;
 	import.AddEntity = R_AddEntity;
+	import.AddLinkedEntity = R_AddLinkedEntity;
 	import.AddLight = R_AddLight;
 	import.AddParticle = R_AddParticle;
 	import.AddSustainedLight = R_AddSustainedLight;
 
-	import.LoadPic = R_LoadPic;
 	import.DrawPic = R_DrawPic;
 	import.DrawFill = R_DrawFill;
 

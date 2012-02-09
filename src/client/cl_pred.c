@@ -108,9 +108,9 @@ static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins,
 }
 
 /*
- * Cl_Trace
+ * Cl_PredictMovement_Trace
  */
-static c_trace_t Cl_Trace(const vec3_t start, const vec3_t mins,
+static c_trace_t Cl_PredictMovement_Trace(const vec3_t start, const vec3_t mins,
 		const vec3_t maxs, const vec3_t end) {
 	c_trace_t t;
 
@@ -126,9 +126,9 @@ static c_trace_t Cl_Trace(const vec3_t start, const vec3_t mins,
 }
 
 /*
- * Cl_Pointcontents
+ * Cl_PredictMovement_PointContents
  */
-static int Cl_PointContents(const vec3_t point) {
+static int Cl_PredictMovement_PointContents(const vec3_t point) {
 	int i;
 	c_model_t *model;
 	int contents;
@@ -188,8 +188,8 @@ void Cl_PredictMovement(void) {
 
 	// copy current state to pmove
 	memset(&pm, 0, sizeof(pm));
-	pm.Trace = Cl_Trace;
-	pm.PointContents = Cl_PointContents;
+	pm.Trace = Cl_PredictMovement_Trace;
+	pm.PointContents = Cl_PredictMovement_PointContents;
 	pm.s = cl.frame.ps.pmove;
 	pm.s.gravity = cl_gravity;
 

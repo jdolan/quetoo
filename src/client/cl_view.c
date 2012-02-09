@@ -35,40 +35,18 @@ static void Cl_ClearView(void) {
 }
 
 /*
- * Cl_UpdateFov
+ * Cl_UpdateViewSize
  */
-static void Cl_UpdateFov(void) {
-
-	if (!cl_fov->modified && !r_view.update)
-		return;
-
-	if (cl_fov->value < 10.0 || cl_fov->value > 179.0)
-		Cvar_Set("cl_fov", "100.0");
-
-	const float x = r_context.width / tan(cl_fov->value / 360.0 * M_PI);
-
-	const float a = atan(r_context.height / x);
-
-	r_view.fov[0] = cl_fov->value;
-
-	r_view.fov[1] = a * 360.0 / M_PI;
-
-	cl_fov->modified = false;
-}
-
-/*
- * Cl_UpdateViewsize
- */
-static void Cl_UpdateViewsize(void) {
+static void Cl_UpdateViewSize(void) {
 	int size;
 
 	if (!cl_view_size->modified && !r_view.update)
 		return;
 
 	if (cl_view_size->value < 40.0)
-		Cvar_Set("cl_viewsize", "40.0");
+		Cvar_Set("cl_view_size", "40.0");
 	if (cl_view_size->value > 100.0)
-		Cvar_Set("cl_viewsize", "100.0");
+		Cvar_Set("cl_view_size", "100.0");
 
 	size = cl_view_size->value;
 
@@ -154,7 +132,7 @@ static void Cl_UpdateDucking(void) {
 static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 	int i, ms;
 
-	if (!cl.demo_server && !cl_third_person->value && cl_predict->value
+	if (!cl.demo_server && /*!cl_third_person->value &&*/ cl_predict->value
 			&& !(cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION)) {
 
 		// use client sided prediction
@@ -218,129 +196,6 @@ static void Cl_UpdateVelocity(player_state_t *ps, player_state_t *ops) {
 }
 
 /*
- * Cl_UpdateThirdperson
- */
-static void Cl_UpdateThirdperson(player_state_t *ps) {
-	vec3_t angles, forward, dest;
-	float dist;
-
-	if (!ps->stats[STAT_CHASE]) { // chasing uses client side 3rd person
-
-		// if we're spectating, don't translate the origin because we have
-		// no visible player model to begin with
-		if (ps->pmove.pm_type == PM_SPECTATOR && !ps->stats[STAT_HEALTH])
-			return;
-
-		if (!cl_third_person->value)
-			return;
-	}
-
-	// we're either chasing, or intentionally using 3rd person
-	VectorCopy(r_view.angles, angles);
-
-	if (cl_third_person->value < 0.0) // in front of the player
-		angles[1] += 180.0;
-
-	AngleVectors(angles, forward, NULL, NULL);
-
-	dist = cl_third_person->value;
-
-	if (!dist)
-		dist = 1.0;
-
-	dist = fabs(100.0 * dist);
-
-	// project the view origin back and up for 3rd person
-	VectorMA(r_view.origin, -dist, forward, dest);
-	dest[2] += 20.0;
-
-	// clip it to the world
-	R_Trace(r_view.origin, dest, 5.0, MASK_SHOT);
-	VectorCopy(r_view.trace.end, r_view.origin);
-
-	// adjust view angles to compensate for height offset
-	VectorMA(r_view.origin, 2048.0, forward, dest);
-	VectorSubtract(dest, r_view.origin, dest);
-
-	// copy angles back to view
-	VectorAngles(dest, r_view.angles);
-	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
-}
-
-/*
- * Cl_UpdateBob
- *
- * Calculate the view bob.  This is done using a running time counter and a
- * simple sin function.  The player's speed, as well as whether or not they
- * are on the ground, determine the bob frequency and amplitude.
- */
-static void Cl_UpdateBob(void) {
-	static float time, vtime;
-	float ftime, speed;
-	vec3_t velocity;
-
-	if (!cl_bob->value)
-		return;
-
-	if (cl_third_person->value)
-		return;
-
-	if (cl.frame.ps.pmove.pm_type != PM_NORMAL)
-		return;
-
-	VectorCopy(r_view.velocity, velocity);
-	velocity[2] = 0.0;
-
-	speed = VectorLength(velocity) / 450.0;
-
-	if (speed > 1.0)
-		speed = 1.0;
-
-	ftime = r_view.time - vtime;
-
-	if (ftime < 0.0) // clamp for level changes
-		ftime = 0.0;
-
-	ftime *= (1.0 + speed * 1.0 + speed);
-
-	if (!r_view.ground)
-		ftime *= 0.25;
-
-	time += ftime;
-	vtime = r_view.time;
-
-	r_view.bob = sin(3.5 * time) * (0.5 + speed) * (0.5 + speed);
-
-	r_view.bob *= cl_bob->value; // scale via cvar too
-
-	VectorMA(r_view.origin, -r_view.bob, r_view.forward, r_view.origin);
-	VectorMA(r_view.origin, r_view.bob, r_view.right, r_view.origin);
-	VectorMA(r_view.origin, r_view.bob, r_view.up, r_view.origin);
-}
-
-/*
- * Cl_PopulateView
- *
- * Processes all entities, particles, emits, etc.. adding them to the view.
- * This is all done in a separate thread while the main thread begins drawing
- * the world.
- */
-static void Cl_PopulateView(void *data __attribute__((unused))) {
-
-	// clear state from the previous frame
-	Cl_ClearView();
-
-	// add entities
-	Cl_AddEntities(&cl.frame);
-
-	// and particles
-	Cl_AddParticles();
-
-	// and client sided emits
-	Cl_AddEmits();
-}
-
-/*
  * Cl_UpdateView
  *
  * Updates the view_t for the renderer.  Origin, angles, etc are calculated.
@@ -372,19 +227,17 @@ void Cl_UpdateView(void) {
 			ops = ps; // don't lerp
 	}
 
+	Cl_ClearView();
+
 	Cl_UpdateOrigin(ps, ops);
 
 	Cl_UpdateAngles(ps, ops);
 
 	Cl_UpdateVelocity(ps, ops);
 
-	Cl_UpdateThirdperson(ps);
+	Cl_UpdateViewSize();
 
-	Cl_UpdateBob();
-
-	Cl_UpdateFov();
-
-	Cl_UpdateViewsize();
+	cls.cgame->UpdateView(&cl.frame);
 
 	// set time in seconds
 	r_view.time = cl.time * 0.001;
@@ -396,7 +249,7 @@ void Cl_UpdateView(void) {
 	r_view.area_bits = cl.frame.area_bits;
 
 	// create the thread which populates the view
-	r_view.thread = Thread_Create(Cl_PopulateView, NULL);
+	r_view.thread = Thread_Create(cls.cgame->PopulateView, NULL);
 }
 
 /*

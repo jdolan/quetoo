@@ -172,7 +172,7 @@ void Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 
 	// background
 	{
-		const float fa = s->player_num == *cgi.player_num ? 0.3 : 0.15;
+		const float fa = s->player_num == cgi.client->player_num ? 0.3 : 0.15;
 		const r_pixel_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
 		const r_pixel_t fh = SCORES_ROW_HEIGHT - 1;
 
@@ -275,7 +275,8 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
 
 		const short col = i / rows;
 
-		const r_pixel_t x = cgi.context->width / 2 - width / 2 + col * SCORES_COL_WIDTH;
+		const r_pixel_t x = cgi.context->width / 2 - width / 2 + col
+				* SCORES_COL_WIDTH;
 		const r_pixel_t y = start_y + (i % rows) * SCORES_ROW_HEIGHT;
 
 		Cg_DrawScore(x, y, s);

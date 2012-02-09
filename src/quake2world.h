@@ -146,23 +146,21 @@ typedef enum {
 // server to client communication
 typedef enum {
 	SV_CMD_BAD,
+	SV_CMD_BASELINE,
 	SV_CMD_CBUF_TEXT, // [string] stuffed into client's console buffer, should be \n terminated
 	SV_CMD_CONFIG_STRING, // [short] [string]
 	SV_CMD_DISCONNECT,
 	SV_CMD_DOWNLOAD, // [short] size [size bytes]
-	SV_CMD_ENTITY_BASELINE,
 	SV_CMD_FRAME,
-	SV_CMD_MUZZLE_FLASH,
 	SV_CMD_PRINT, // [byte] id [string] null terminated string
 	SV_CMD_RECONNECT,
 	SV_CMD_SERVER_DATA, // [long] protocol ...
 	SV_CMD_SOUND, // <see code>
-	SV_CMD_TEMP_ENTITY,
 } sv_cmd_t;
 
 // additional command types can be defined and written by the game module
 // and handled directly by the client game
-#define SV_CMD_CGAME SV_CMD_TEMP_ENTITY + 1
+#define SV_CMD_CGAME (SV_CMD_SOUND + 1)
 
 // client to server
 typedef enum {

@@ -19,12 +19,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_TENTITY_H__
-#define __CL_TENTITY_H__
+#ifndef __CG_ENTITY_EFFECT_H__
+#define __CG_ENTITY_EFFECT_H__
 
-#ifdef __CL_LOCAL_H__
-void Cl_ParseTempEntity(void);
-#endif /* __CL_LOCAL_H__ */
+#include "cg_types.h"
 
-#endif /* __CL_TENTITY_H__ */
+#ifdef __CG_LOCAL_H__
+void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density);
+void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent);
+void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent);
+void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent);
+void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent);
+void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int count);
+void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent);
+#endif /* __CG_LOCAL_H__ */
+
+#endif /* __CG_ENTITY_EFFECT_H__ */
 

@@ -25,24 +25,6 @@
 #include "r_types.h"
 
 extern r_image_t *r_null_image;
-extern r_image_t *r_particle_image;
-extern r_image_t *r_explosion_image;
-extern r_image_t *r_teleport_image;
-extern r_image_t *r_smoke_image;
-extern r_image_t *r_steam_image;
-extern r_image_t *r_bubble_image;
-extern r_image_t *r_rain_image;
-extern r_image_t *r_snow_image;
-extern r_image_t *r_beam_image;
-extern r_image_t *r_burn_image;
-extern r_image_t *r_blood_image;
-extern r_image_t *r_lightning_image;
-extern r_image_t *r_rail_trail_image;
-extern r_image_t *r_flame_image;
-extern r_image_t *r_spark_image;
-
-#define NUM_BULLET_IMAGES 3
-extern r_image_t *r_bullet_images[NUM_BULLET_IMAGES];
 
 #define NUM_ENVMAP_IMAGES 3
 extern r_image_t *r_envmap_images[NUM_ENVMAP_IMAGES];

@@ -59,8 +59,8 @@ byte color_white[4] = { 255, 255, 255, 255 };
  *
  * Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
-static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y,
-		const float scale, const unsigned short icon) {
+static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
+		const unsigned short icon) {
 
 	if (icon >= MAX_IMAGES) {
 		cgi.Warn("Cg_DrawIcon: Invalid icon: %d\n", icon);
@@ -75,9 +75,8 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y,
  *
  * Draws the vital numeric and icon, flashing on low quantities.
  */
-static void Cg_DrawVital(r_pixel_t x, const short value, const short icon,
-		short med, short low) {
-	const boolean_t flash = (*cgi.time / 100) & 1;
+static void Cg_DrawVital(r_pixel_t x, const short value, const short icon, short med, short low) {
+	const boolean_t flash = (cgi.client->time / 250) & 1;
 
 	r_pixel_t y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT + 4;
 	int color = COLOR_HUD_STAT;
@@ -160,8 +159,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 
 		const char *string = cgi.ConfigString(pickup);
 
-		x = cgi.view->x + cgi.view->width - HUD_PIC_HEIGHT - cgi.StringWidth(
-				string);
+		x = cgi.view->x + cgi.view->width - HUD_PIC_HEIGHT - cgi.StringWidth(string);
 		y = cgi.view->y;
 
 		Cg_DrawIcon(x, y, 1.0, icon);
@@ -388,7 +386,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (ps->stats[STAT_CHASE])
 		return; // chasecam
 
-	if (center_print.time > *cgi.time)
+	if (center_print.time > cgi.client->time)
 		return;
 
 	if (cg_crosshair->modified) { // crosshair image
@@ -402,7 +400,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cg_crosshair->integer);
 
-		crosshair.image = cgi.LoadPic(crosshair.name);
+		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_crosshair->integer), it_pic);
 
 		if (crosshair.image->type == it_null) {
 			cgi.Print("Couldn't load pics/ch%d.\n", cg_crosshair->integer);
@@ -424,10 +422,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	glColor4ubv(crosshair.color);
 
 	// calculate width and height based on crosshair image and scale
-	x = (cgi.context->width - crosshair.image->width
-			* cg_crosshair_scale->value) / 2;
-	y = (cgi.context->height - crosshair.image->height
-			* cg_crosshair_scale->value) / 2;
+	x = (cgi.context->width - crosshair.image->width * cg_crosshair_scale->value) / 2;
+	y = (cgi.context->height - crosshair.image->height * cg_crosshair_scale->value) / 2;
 
 	cgi.DrawPic(x, y, cg_crosshair_scale->value, crosshair.name);
 
@@ -461,7 +457,7 @@ void Cg_ParseCenterPrint(void) {
 	}
 
 	center_print.num_lines++;
-	center_print.time = *cgi.time + 3000;
+	center_print.time = cgi.client->time + 3000;
 }
 
 /*
@@ -474,7 +470,7 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 	if (ps->stats[STAT_SCORES])
 		return;
 
-	if (center_print.time < *cgi.time)
+	if (center_print.time < cgi.client->time)
 		return;
 
 	cgi.BindFont(NULL, &cw, &ch);
@@ -500,10 +496,10 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	short dh, da, dp;
 	float al, t;
 
-	if (!cg_blend->value)
+	if (!cg_draw_blend->value)
 		return;
 
-	if (last_blend_time > *cgi.time)
+	if (last_blend_time > cgi.client->time)
 		last_blend_time = 0;
 
 	// determine if we've taken damage or picked up an item
@@ -514,40 +510,39 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	if (ps->pmove.pm_type == PM_NORMAL) {
 
 		if (dp && (dp != p)) { // picked up an item
-			last_blend_time = *cgi.time;
+			last_blend_time = cgi.client->time;
 			color = 215;
 			alpha = 0.3;
 		}
 
 		if (da < a) { // took damage
-			last_blend_time = *cgi.time;
+			last_blend_time = cgi.client->time;
 			color = 240;
 			alpha = 0.3;
 		}
 
 		if (dh < h) { // took damage
-			last_blend_time = *cgi.time;
+			last_blend_time = cgi.client->time;
 			color = 240;
 			alpha = 0.3;
 		}
 	}
 
 	al = 0;
-	t = (float) (*cgi.time - last_blend_time) / 500.0;
-	al = cg_blend->value * (alpha - (t * alpha));
+	t = (float) (cgi.client->time - last_blend_time) / 500.0;
+	al = cg_draw_blend->value * (alpha - (t * alpha));
 
 	if (al < 0 || al > 1.0)
 		al = 0;
 
 	if (al < 0.3 && (ps->pmove.pm_flags & PMF_UNDER_WATER)) {
-		if (al < 0.15 * cg_blend->value)
+		if (al < 0.15 * cg_draw_blend->value)
 			color = 114;
-		al = 0.3 * cg_blend->value;
+		al = 0.3 * cg_draw_blend->value;
 	}
 
 	if (al > 0.0)
-		cgi.DrawFill(cgi.view->x, cgi.view->y, cgi.view->width,
-				cgi.view->height, color, al);
+		cgi.DrawFill(cgi.view->x, cgi.view->y, cgi.view->width, cgi.view->height, color, al);
 
 	h = dh; // update our copies
 	a = da;
@@ -561,7 +556,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
  */
 void Cg_DrawHud(const player_state_t *ps) {
 
-	if (!cg_hud->integer)
+	if (!cg_draw_hud->integer)
 		return;
 
 	if (!ps->stats[STAT_TIME]) // intermission

@@ -26,11 +26,20 @@
 
 #ifdef __CG_LOCAL_H__
 
-extern cvar_t *cg_blend;
-extern cvar_t *cg_crosshair;
+extern cvar_t *cg_add_emits;
+extern cvar_t *cg_add_entities;
+extern cvar_t *cg_add_particles;
+extern cvar_t *cg_add_weather;
+extern cvar_t *cg_bob;
 extern cvar_t *cg_crosshair_color;
 extern cvar_t *cg_crosshair_scale;
-extern cvar_t *cg_hud;
+extern cvar_t *cg_crosshair;
+extern cvar_t *cg_draw_blend;
+extern cvar_t *cg_draw_hud;
+extern cvar_t *cg_draw_weapon;
+extern cvar_t *cg_fov;
+extern cvar_t *cg_fov_zoom;
+extern cvar_t *cg_third_person;
 
 extern cg_import_t cgi;
 

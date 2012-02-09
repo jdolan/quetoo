@@ -22,9 +22,19 @@
 #ifndef __CG_LOCAL_H__
 #define __CG_LOCAL_H__
 
+#include "cg_client.h"
+#include "cg_effect.h"
+#include "cg_emit.h"
+#include "cg_entity.h"
+#include "cg_entity_effects.h"
+#include "cg_entity_event.h"
 #include "cg_hud.h"
 #include "cg_main.h"
+#include "cg_media.h"
+#include "cg_muzzle_flash.h"
+#include "cg_particle.h"
 #include "cg_scores.h"
+#include "cg_tentity.h"
 #include "cg_types.h"
 #include "cg_view.h"
 

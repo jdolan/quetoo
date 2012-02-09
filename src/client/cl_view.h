@@ -27,8 +27,6 @@
 #ifdef __CL_LOCAL_H__
 void Cl_InitView(void);
 void Cl_ClearState(void);
-void Cl_AddEntity(r_entity_t *ent);
-void Cl_AddParticle(r_particle_t *p);
 void Cl_UpdateView(void);
 #endif /* __CL_LOCAL_H__ */
 

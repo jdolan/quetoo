@@ -19,14 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cl_local.h"
+#include "cg_local.h"
 
 #define DEFAULT_CLIENT_INFO "newbie\\qforcer/enforcer"
 
 /*
- * Cl_ValidateClient
+ * Cg_ValidateClient
  */
-static boolean_t Cl_ValidateClient(cl_client_info_t *ci) {
+static boolean_t Cg_ValidateClient(cl_client_info_t *ci) {
 
 	if (!ci->head || !ci->upper || !ci->lower)
 		return false;
@@ -40,9 +40,9 @@ static boolean_t Cl_ValidateClient(cl_client_info_t *ci) {
 }
 
 /*
- * Cl_LoadClient
+ * Cg_LoadClient
  */
-void Cl_LoadClient(cl_client_info_t *ci, const char *s) {
+void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	char model_name[MAX_QPATH];
 	char skin_name[MAX_QPATH];
 	char path[MAX_QPATH];
@@ -65,7 +65,7 @@ void Cl_LoadClient(cl_client_info_t *ci, const char *s) {
 	}
 
 	if (*ci->info == '\0' || i == -1) { // use default
-		Cl_LoadClient(ci, DEFAULT_CLIENT_INFO);
+		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
 		return;
 	}
 
@@ -81,7 +81,7 @@ void Cl_LoadClient(cl_client_info_t *ci, const char *s) {
 		strcpy(model_name, v + 1);
 		strcpy(skin_name, u + 1);
 	} else { // invalid
-		Cl_LoadClient(ci, DEFAULT_CLIENT_INFO);
+		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
 		return;
 	}
 
@@ -106,8 +106,8 @@ void Cl_LoadClient(cl_client_info_t *ci, const char *s) {
 	ci->lower_skin = R_LoadImage(path, it_skin);
 
 	// ensure we were able to load everything
-	if (!Cl_ValidateClient(ci)) {
-		Cl_LoadClient(ci, DEFAULT_CLIENT_INFO);
+	if (!Cg_ValidateClient(ci)) {
+		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
 		return;
 	}
 
@@ -115,14 +115,12 @@ void Cl_LoadClient(cl_client_info_t *ci, const char *s) {
 }
 
 /*
- * Cl_LoadClients
+ * Cg_LoadClients
  *
  * Load all client info strings from the server.
  */
-void Cl_LoadClients(void) {
+void Cg_LoadClients(void) {
 	int i;
-
-	Cl_LoadProgress(86);
 
 	for (i = 0; i < MAX_CLIENTS; i++) {
 		cl_client_info_t *ci = &cl.client_info[i];
@@ -131,21 +129,16 @@ void Cl_LoadClients(void) {
 		if (!*s)
 			continue;
 
-		Cl_LoadClient(ci, s);
-
-		if (i < 10)
-			Cl_LoadProgress(86 + i);
+		Cg_LoadClient(ci, s);
 	}
-
-	Cl_LoadProgress(96);
 }
 
 /*
- * Cl_NextAnimation
+ * Cg_NextAnimation
  *
  * Returns the next animation to advance to, defaulting to a no-op.
  */
-static entity_animation_t Cl_NextAnimation(const entity_animation_t a) {
+static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 
 	switch (a) {
 	case ANIM_BOTH_DEATH1:
@@ -170,13 +163,13 @@ static entity_animation_t Cl_NextAnimation(const entity_animation_t a) {
 }
 
 /*
- * Cl_AnimateClientEntity_
+ * Cg_AnimateClientEntity_
  *
  * Resolve the frames and interpolation fractions for the specified animation
  * and entity. If a non-looping animation has completed, proceed to the next
  * animation in the sequence.
  */
-static void Cl_AnimateClientEntity_(const r_md3_t *md3,
+static void Cg_AnimateClientEntity_(const r_md3_t *md3,
 		cl_entity_animation_t *a, r_entity_t *e) {
 
 	e->frame = e->old_frame = 0;
@@ -184,7 +177,7 @@ static void Cl_AnimateClientEntity_(const r_md3_t *md3,
 	e->back_lerp = 0.0;
 
 	if (a->animation > md3->num_animations) {
-		Com_Warn("Cl_AnimateClientEntity: Invalid animation: %s: %d\n",
+		Com_Warn("Cg_AnimateClientEntity: Invalid animation: %s: %d\n",
 				e->model->name, a->animation);
 		return;
 	}
@@ -192,7 +185,7 @@ static void Cl_AnimateClientEntity_(const r_md3_t *md3,
 	const r_md3_animation_t *anim = &md3->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
-		Com_Warn("Cl_AnimateClientEntity_: Bad animation sequence: %s: %d\n",
+		Com_Warn("Cg_AnimateClientEntity_: Bad animation sequence: %s: %d\n",
 				e->model->name, a->animation);
 		return;
 	}
@@ -205,7 +198,7 @@ static void Cl_AnimateClientEntity_(const r_md3_t *md3,
 	if (elapsed_time >= animation_time) { // to loop, or not to loop
 
 		if (!anim->looped_frames) {
-			const entity_animation_t next = Cl_NextAnimation(a->animation);
+			const entity_animation_t next = Cg_NextAnimation(a->animation);
 
 			if (next == a->animation) { // no change, just stay put
 				e->frame = anim->first_frame + anim->num_frames - 1;
@@ -217,7 +210,7 @@ static void Cl_AnimateClientEntity_(const r_md3_t *md3,
 			a->animation = next; // or move into the next animation
 			a->time = cl.time;
 
-			Cl_AnimateClientEntity_(md3, a, e);
+			Cg_AnimateClientEntity_(md3, a, e);
 			return;
 		}
 
@@ -241,12 +234,12 @@ static void Cl_AnimateClientEntity_(const r_md3_t *md3,
 }
 
 /*
- * Cl_AnimateClientEntity
+ * Cg_AnimateClientEntity
  *
  * Runs the animation sequences for the specified entity, setting the frame
  * indexes and interpolation fractions for the specified renderer entities.
  */
-void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper,
+void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper,
 		r_entity_t *lower) {
 	const r_md3_t *md3 = (r_md3_t *) upper->model->extra_data;
 
@@ -257,7 +250,7 @@ void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper,
 		e->animation1.time = cl.time;
 	}
 
-	Cl_AnimateClientEntity_(md3, &e->animation1, upper);
+	Cg_AnimateClientEntity_(md3, &e->animation1, upper);
 
 	// and then the legs
 	if (e->current.animation2 != e->prev.animation2 || !e->animation2.time) {
@@ -266,5 +259,5 @@ void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper,
 		e->animation2.time = cl.time;
 	}
 
-	Cl_AnimateClientEntity_(md3, &e->animation2, lower);
+	Cg_AnimateClientEntity_(md3, &e->animation2, lower);
 }

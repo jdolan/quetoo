@@ -22,22 +22,6 @@
 #include "r_local.h"
 
 r_image_t *r_null_image; // use for bad textures
-r_image_t *r_particle_image; // little dot for particles
-r_image_t *r_explosion_image; // expanding explosion particle
-r_image_t *r_teleport_image; // teleport ring particle
-r_image_t *r_smoke_image; // smoke for rocket/grenade trails
-r_image_t *r_steam_image; // smoke for rocket/grenade trails
-r_image_t *r_bubble_image; // bubble trails under water
-r_image_t *r_rain_image; // atmospheric rain
-r_image_t *r_snow_image; // and snow effects
-r_image_t *r_beam_image; // rail trail beams
-r_image_t *r_burn_image; // burn marks from hyperblaster
-r_image_t *r_blood_image; // blood mist
-r_image_t *r_lightning_image; // lightning particles
-r_image_t *r_rail_trail_image; // rail spiral
-r_image_t *r_flame_image; // flames
-r_image_t *r_spark_image; // sparks
-r_image_t *r_bullet_images[NUM_BULLET_IMAGES]; // bullets hitting walls
 
 r_image_t *r_envmap_images[NUM_ENVMAP_IMAGES]; // generic environment map
 
@@ -492,33 +476,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 }
 
 /*
- * R_InitParticleTextures
- */
-static void R_InitParticleTextures(void) {
-	int i;
-
-	r_particle_image = R_LoadImage("particles/particle.tga", it_effect);
-	r_explosion_image = R_LoadImage("particles/explosion.tga", it_effect);
-	r_teleport_image = R_LoadImage("particles/teleport.tga", it_effect);
-	r_smoke_image = R_LoadImage("particles/smoke.tga", it_effect);
-	r_steam_image = R_LoadImage("particles/steam.tga", it_effect);
-	r_bubble_image = R_LoadImage("particles/bubble.tga", it_effect);
-	r_rain_image = R_LoadImage("particles/rain.tga", it_effect);
-	r_snow_image = R_LoadImage("particles/snow.tga", it_effect);
-	r_beam_image = R_LoadImage("particles/beam.tga", it_effect);
-	r_burn_image = R_LoadImage("particles/burn.tga", it_effect);
-	r_blood_image = R_LoadImage("particles/blood.tga", it_effect);
-	r_lightning_image = R_LoadImage("particles/lightning.tga", it_effect);
-	r_rail_trail_image = R_LoadImage("particles/railtrail.tga", it_effect);
-	r_flame_image = R_LoadImage("particles/flame.tga", it_effect);
-	r_spark_image = R_LoadImage("particles/spark.tga", it_effect);
-
-	for (i = 0; i < NUM_BULLET_IMAGES; i++)
-		r_bullet_images[i] = R_LoadImage(va("particles/bullet_%i.tga", i),
-				it_effect);
-}
-
-/*
  * R_InitEnvmapTextures
  */
 static void R_InitEnvmapTextures(void) {
@@ -576,8 +533,6 @@ void R_InitImages(void) {
 	r_null_image = R_UploadImage("r_null_image", data, 16, 16, it_null);
 
 	Img_InitPalette();
-
-	R_InitParticleTextures();
 
 	R_InitEnvmapTextures();
 

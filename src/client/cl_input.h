@@ -25,6 +25,7 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
+void Cl_ClearInput(void);
 void Cl_InitInput(void);
 void Cl_HandleEvents(void);
 void Cl_Move(user_cmd_t *cmd);

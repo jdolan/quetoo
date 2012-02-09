@@ -19,16 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_CLIENT_H__
-#define __CL_CLIENT_H__
+#ifndef __CG_PARTICLE_H__
+#define __CG_PARTICLE_H__
 
-#include "cl_types.h"
+#ifdef __CG_LOCAL_H__
+r_particle_t *Cg_AllocParticle(void);
+void Cg_FreeParticles(void);
+void Cg_AddParticles(void);
+#endif /* __CG_LOCAL_H__ */
 
-#ifdef __CL_LOCAL_H__
-void Cl_LoadClient(cl_client_info_t *ci, const char *s);
-void Cl_LoadClients(void);
-void Cl_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower);
-#endif /* __CL_LOCAL_H__ */
-
-#endif /* __CL_CLIENT_H__ */
-
+#endif /* __CG_PARTICLE_H__ */

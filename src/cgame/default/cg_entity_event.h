@@ -19,34 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#ifndef __CG_ENTITY_EVENT_H__
+#define __CG_ENTITY_EVENT_H__
 
-#include "cmodel.h"
-#include "console.h"
-#include "filesystem.h"
-#include "net.h"
-#include "cgame/cgame.h"
-#include "renderer/renderer.h"
-#include "sound/sound.h"
-#include "ui/ui.h"
+#include "cg_types.h"
 
-#include "cl_cgame.h"
-#include "cl_cmd.h"
-#include "cl_console.h"
-#include "cl_demo.h"
-#include "cl_entity.h"
-#include "cl_forward.h"
-#include "cl_http.h"
-#include "cl_input.h"
-#include "cl_keys.h"
-#include "cl_loc.h"
-#include "cl_main.h"
-#include "cl_parse.h"
-#include "cl_pred.h"
-#include "cl_screen.h"
-#include "cl_server.h"
-#include "cl_types.h"
-#include "cl_view.h"
+#ifdef __CG_LOCAL_H__
+void Cg_EntityEvent(cl_entity_t *e);
+#endif /* __CG_LOCAL_H__ */
 
-#endif /* __CLIENT_H__ */
+#endif /* __CG_ENTITY_EVENT_H__ */
+

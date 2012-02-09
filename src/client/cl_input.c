@@ -731,9 +731,23 @@ void Cl_Move(user_cmd_t *cmd) {
 }
 
 /*
+ * Cl_InputReset
+ */
+void Cl_ClearInput(void) {
+
+	memset(cl_key_queue, 0, sizeof(cl_key_queue));
+
+	cl_key_queue_head = 0;
+	cl_key_queue_tail = 0;
+
+	memset(cl_buttons, 0, sizeof(cl_buttons));
+}
+
+/*
  * Cl_InitInput
  */
 void Cl_InitInput(void) {
+
 	Cmd_AddCommand("center_view", Cl_CenterView_f, NULL);
 	Cmd_AddCommand("+move_up", Cl_Up_down_f, NULL);
 	Cmd_AddCommand("-move_up", Cl_Up_up_f, NULL);
@@ -770,15 +784,7 @@ void Cl_InitInput(void) {
 	m_pitch = Cvar_Get("m_pitch", "0.022", 0, NULL);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
 
-	cls.mouse_state.grabbed = true;
-}
+	Cl_ClearInput();
 
-/*
- * Cl_InputReset
- */
-void Cl_InputReset() {
-	memset(cl_key_queue, 0, sizeof(cl_key_queue));
-	cl_key_queue_head = 0;
-	cl_key_queue_tail = 0;
-	memset(cl_buttons, 0, sizeof(cl_buttons));
+	cls.mouse_state.grabbed = true;
 }

@@ -47,35 +47,53 @@ typedef struct cg_import_s {
 	int (*ReadLong)(void);
 	char *(*ReadString)(void);
 	void (*ReadPosition)(vec3_t pos);
-	void (*ReadDir)(vec3_t dir);
+	void (*ReadDirection)(vec3_t dir);
 	float (*ReadAngle)(void);
 
 	// incoming server data stream
 	size_buf_t *net_message;
 
-	void (*Trace)(vec3_t start, vec3_t end, float radius, int mask);
+	// collision
+	int (*PointContents)(const vec3_t point);
+	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, float radius, int mask);
 
-	// the GL context
+	// PVS and PHS
+	boolean_t (*LeafInPhs)(const r_bsp_leaf_t *leaf);
+	boolean_t (*LeafInPvs)(const r_bsp_leaf_t *leaf);
+
+	// entity string
+	char *(*EntityString)(void);
+
+	// public client structure
+	cl_client_t *client;
+
+	// sound
+	s_sample_t *(*LoadSample)(const char *name);
+	void (*PlaySample)(const vec3_t org, unsigned short ent_num, s_sample_t *sample, int atten);
+	void (*LoopSample)(const vec3_t org, s_sample_t *sample);
+
+	// OpenGL context
 	r_context_t *context;
 
-	// the public renderer structure
+	// public renderer structure
 	r_view_t *view;
-
-	// client time
-	unsigned int *time;
 
 	// 256 color palette for particle and effect colors
 	unsigned *palette;
 
+	// images
+	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
+
 	// scene building facilities
 	void (*AddCorona)(const r_corona_t *c);
-	const r_entity_t * (*AddEntity)(const r_entity_t *e);
+	const r_entity_t *(*AddEntity)(const r_entity_t *ent);
+	const r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, const r_model_t *model,
+			const char *tag_name);
 	void (*AddLight)(const r_light_t *l);
 	void (*AddParticle)(const r_particle_t *p);
 	void (*AddSustainedLight)(const r_sustained_light_t *s);
 
 	// 2D drawing facilities
-	r_image_t *(*LoadPic)(const char *name);
 	void (*DrawPic)(r_pixel_t x, r_pixel_t y, float scale, const char *name);
 	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int c, float a);
 
@@ -91,12 +109,12 @@ typedef struct cg_export_s {
 	void (*Init)(void);
 	void (*Shutdown)(void);
 
+	void (*ClearState)(void);
 	void (*UpdateMedia)(void);
 
 	boolean_t (*ParseMessage)(int cmd);
-
 	void (*UpdateView)(const cl_frame_t *frame);
-
+	void (*PopulateView)(const cl_frame_t *frame);
 	void (*DrawFrame)(const cl_frame_t *frame);
 } cg_export_t;
 

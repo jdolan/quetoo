@@ -23,15 +23,9 @@
 
 #include "cl_local.h"
 
-cvar_t *cl_add_emits;
-cvar_t *cl_add_entities;
-cvar_t *cl_add_particles;
 cvar_t *cl_async;
-cvar_t *cl_bob;
 cvar_t *cl_chat_sound;
-cvar_t *cl_counters;
-cvar_t *cl_fov;
-cvar_t *cl_fov_zoom;
+cvar_t *cl_draw_counters;
 cvar_t *cl_ignore;
 cvar_t *cl_max_fps;
 cvar_t *cl_max_pps;
@@ -41,11 +35,8 @@ cvar_t *cl_show_prediction_misses;
 cvar_t *cl_show_net_messages;
 cvar_t *cl_show_renderer_stats;
 cvar_t *cl_team_chat_sound;
-cvar_t *cl_third_person;
 cvar_t *cl_timeout;
 cvar_t *cl_view_size;
-cvar_t *cl_weapon;
-cvar_t *cl_weather;
 
 cvar_t *rcon_password;
 cvar_t *rcon_address;
@@ -211,7 +202,10 @@ static void Cl_Rcon_f(void) {
  */
 void Cl_ClearState(void) {
 
-	Cl_ClearEffects();
+	if (Com_WasInit(Q2W_CGAME))
+		cls.cgame->ClearState();
+
+	Cl_ClearInput();
 
 	// wipe the entire cl_client_t structure
 	memset(&cl, 0, sizeof(cl));
@@ -293,8 +287,6 @@ void Cl_Disconnect(void) {
 	}
 
 	memset(cls.server_name, 0, sizeof(cls.server_name));
-
-	Cl_InputReset();
 
 	cls.key_state.dest = KEY_UI;
 }
@@ -487,12 +479,6 @@ static void Cl_UpdateMedia(void) {
 
 		cls.loading = 1;
 
-		Cl_LoadClients();
-
-		Cl_LoadEffects();
-
-		Cl_LoadEmits();
-
 		Cl_UpdateEntities();
 
 		cls.cgame->UpdateMedia();
@@ -516,17 +502,11 @@ static void Cl_LoadMedia(void) {
 
 	S_LoadMedia();
 
-	Cl_LoadClients();
-
-	Cl_LoadEffects();
-
-	Cl_LoadEmits();
-
 	Cl_UpdateEntities();
 
-	Cl_LoadLocations();
-
 	cls.cgame->UpdateMedia();
+
+	Cl_LoadLocations();
 
 	Cl_ClearNotify();
 
@@ -618,15 +598,9 @@ static const char *Cl_GetUserName(void) {
 static void Cl_InitLocal(void) {
 
 	// register our variables
-	cl_add_emits = Cvar_Get("cl_add_emits", "1", CVAR_LO_ONLY, NULL);
-	cl_add_entities = Cvar_Get("cl_add_entities", "3", CVAR_LO_ONLY, NULL);
-	cl_add_particles = Cvar_Get("cl_add_particles", "1", CVAR_LO_ONLY, NULL);
 	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE, NULL);
-	cl_bob = Cvar_Get("cl_bob", "1", CVAR_ARCHIVE, NULL);
 	cl_chat_sound = Cvar_Get("cl_chat_sound", "misc/chat", 0, NULL);
-	cl_counters = Cvar_Get("cl_counters", "1", CVAR_ARCHIVE, NULL);
-	cl_fov = Cvar_Get("cl_fov", "100.0", CVAR_ARCHIVE, NULL);
-	cl_fov_zoom = Cvar_Get("cl_fov_zoom", "40.0", CVAR_ARCHIVE, NULL);
+	cl_draw_counters = Cvar_Get("cl_draw_counters", "1", CVAR_ARCHIVE, NULL);
 	cl_ignore = Cvar_Get("cl_ignore", "", 0, NULL);
 	cl_max_fps = Cvar_Get("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
 	cl_max_pps = Cvar_Get("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
@@ -640,12 +614,8 @@ static void Cl_InitLocal(void) {
 			CVAR_LO_ONLY, NULL);
 	cl_team_chat_sound = Cvar_Get("cl_team_chat_sound", "misc/teamchat", 0,
 			NULL);
-	cl_third_person = Cvar_Get("cl_third_person", "0", CVAR_ARCHIVE,
-			"Toggles the third person camera.");
 	cl_timeout = Cvar_Get("cl_timeout", "15.0", 0, NULL);
 	cl_view_size = Cvar_Get("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
-	cl_weapon = Cvar_Get("cl_weapon", "1", CVAR_ARCHIVE, NULL);
-	cl_weather = Cvar_Get("cl_weather", "1", CVAR_ARCHIVE, NULL);
 
 	rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
 	rcon_address = Cvar_Get("rcon_address", "", 0, NULL);
