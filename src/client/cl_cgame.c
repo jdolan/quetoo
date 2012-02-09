@@ -164,6 +164,8 @@ void Cl_InitCgame(void) {
 	import.view = &r_view;
 
 	import.palette = palette;
+	import.ColorFromPalette = Img_ColorFromPalette;
+
 	import.LoadImage = R_LoadImage;
 
 	import.AddCorona = R_AddCorona;

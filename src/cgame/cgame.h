@@ -80,6 +80,7 @@ typedef struct cg_import_s {
 
 	// 256 color palette for particle and effect colors
 	unsigned *palette;
+	void (*ColorFromPalette)(byte c, float *res);
 
 	// images
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);

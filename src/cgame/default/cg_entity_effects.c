@@ -69,7 +69,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 		ent->time = cl.time + (1000 / cl.server_frame_rate);
 	}
 
-	Img_ColorFromPalette(ent->current.client, color);
+	cgi.ColorFromPalette(ent->current.client, color);
 
 	VectorScale(color, 3.0, color);
 

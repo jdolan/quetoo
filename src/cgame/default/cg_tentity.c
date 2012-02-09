@@ -451,7 +451,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int flags, int c
 
 	VectorCopy(start, s.light.origin);
 	s.light.radius = 100.0;
-	Img_ColorFromPalette(color, s.light.color);
+	cgi.ColorFromPalette(color, s.light.color);
 	s.sustain = 0.75;
 
 	cgi.AddSustainedLight(&s);
