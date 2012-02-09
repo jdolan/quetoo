@@ -147,14 +147,14 @@ void Cl_InitCgame(void) {
 
 	import.client = &cl;
 
+	import.EntityString = Cm_EntityString;
+
 	import.PointContents = R_PointContents;
 	import.Trace = R_Trace;
 
 	import.LeafForPoint = R_LeafForPoint;
 	import.LeafInPhs = R_LeafInPhs;
 	import.LeafInPvs = R_LeafInPvs;
-
-	import.EntityString = Cm_EntityString;
 
 	import.LoadSample = S_LoadSample;
 	import.PlaySample = S_PlaySample;
@@ -168,6 +168,7 @@ void Cl_InitCgame(void) {
 	import.ColorFromPalette = Img_ColorFromPalette;
 
 	import.LoadImage = R_LoadImage;
+	import.LoadModel = R_LoadModel;
 
 	import.AddCorona = R_AddCorona;
 	import.AddEntity = R_AddEntity;

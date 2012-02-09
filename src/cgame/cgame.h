@@ -53,6 +53,12 @@ typedef struct cg_import_s {
 	// incoming server data stream
 	size_buf_t *net_message;
 
+	// public client structure
+	cl_client_t *client;
+
+	// entity string
+	char *(*EntityString)(void);
+
 	// collision
 	int (*PointContents)(const vec3_t point);
 	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, float radius, int mask);
@@ -61,12 +67,6 @@ typedef struct cg_import_s {
 	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_model_t *model);
 	boolean_t (*LeafInPhs)(const r_bsp_leaf_t *leaf);
 	boolean_t (*LeafInPvs)(const r_bsp_leaf_t *leaf);
-
-	// entity string
-	char *(*EntityString)(void);
-
-	// public client structure
-	cl_client_t *client;
 
 	// sound
 	s_sample_t *(*LoadSample)(const char *name);
@@ -83,8 +83,9 @@ typedef struct cg_import_s {
 	unsigned *palette;
 	void (*ColorFromPalette)(byte c, float *res);
 
-	// images
+	// images and models
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
+	r_model_t *(*LoadModel)(const char *name);
 
 	// scene building facilities
 	void (*AddCorona)(const r_corona_t *c);

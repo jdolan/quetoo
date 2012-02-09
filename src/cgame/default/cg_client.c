@@ -87,23 +87,23 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 	// load the models
 	snprintf(path, sizeof(path), "players/%s/head.md3", model_name);
-	ci->head = R_LoadModel(path);
+	ci->head = cgi.LoadModel(path);
 
 	snprintf(path, sizeof(path), "players/%s/upper.md3", model_name);
-	ci->upper = R_LoadModel(path);
+	ci->upper = cgi.LoadModel(path);
 
 	snprintf(path, sizeof(path), "players/%s/lower.md3", model_name);
-	ci->lower = R_LoadModel(path);
+	ci->lower = cgi.LoadModel(path);
 
 	// and the skins
 	snprintf(path, sizeof(path), "players/%s/%s_h.tga", model_name, skin_name);
-	ci->head_skin = R_LoadImage(path, it_skin);
+	ci->head_skin = cgi.LoadImage(path, it_skin);
 
 	snprintf(path, sizeof(path), "players/%s/%s_u.tga", model_name, skin_name);
-	ci->upper_skin = R_LoadImage(path, it_skin);
+	ci->upper_skin = cgi.LoadImage(path, it_skin);
 
 	snprintf(path, sizeof(path), "players/%s/%s_l.tga", model_name, skin_name);
-	ci->lower_skin = R_LoadImage(path, it_skin);
+	ci->lower_skin = cgi.LoadImage(path, it_skin);
 
 	// ensure we were able to load everything
 	if (!Cg_ValidateClient(ci)) {

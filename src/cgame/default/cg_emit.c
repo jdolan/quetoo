@@ -293,7 +293,7 @@ void Cg_LoadEmits(void) {
 
 		if (!strcmp(c, "model")) {
 			strncpy(e->model, ParseToken(&ents), sizeof(e->model));
-			e->mod = R_LoadModel(e->model);
+			e->mod = cgi.LoadModel(e->model);
 			continue;
 		}
 
