@@ -44,7 +44,7 @@ static void R_SetIcon(void) {
  *
  * Initialize the OpenGL context, returning true on success, false on failure.
  */
-boolean_t R_InitContext(void) {
+void R_InitContext(void) {
 	r_pixel_t w, h;
 	unsigned int flags;
 	int i;
@@ -101,8 +101,9 @@ boolean_t R_InitContext(void) {
 		flags |= SDL_RESIZABLE;
 	}
 
-	if ((surface = SDL_SetVideoMode(w, h, 0, flags)) == NULL)
-		return false;
+	if ((surface = SDL_SetVideoMode(w, h, 0, flags)) == NULL) {
+		Com_Error(ERR_FATAL, "R_SetContext: Failed to set video mode.");
+	}
 
 	r_context.width = surface->w;
 	r_context.height = surface->h;
@@ -128,8 +129,6 @@ boolean_t R_InitContext(void) {
 	SDL_EnableUNICODE(1);
 
 	R_SetIcon();
-
-	return true;
 }
 
 /*

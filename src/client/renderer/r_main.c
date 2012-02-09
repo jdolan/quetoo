@@ -734,9 +734,7 @@ void R_Init(void) {
 
 	R_InitState();
 
-	// create the window and set up the context
-	if (!R_InitContext())
-		Com_Error(ERR_FATAL, "Failed to initialize context.");
+	R_InitContext();
 
 	R_InitConfig();
 

@@ -602,6 +602,10 @@ void Cl_HandleEvents(void) {
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 		return;
 
+	// force a mouse grab when entering fullscreen
+	if (r_context.fullscreen && r_view.update)
+		cls.mouse_state.grabbed = false;
+
 	// handle key events
 	while (true) {
 

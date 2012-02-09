@@ -27,7 +27,7 @@
 extern r_context_t r_context;
 
 #ifdef __R_LOCAL_H__
-boolean_t R_InitContext(void);
+void R_InitContext(void);
 void R_ShutdownContext(void);
 #endif /* __R_LOCAL_H__ */
 

@@ -46,7 +46,7 @@ cgame_la_CFLAGS = \
 	@SDL_CFLAGS@
 
 cgame_la_LIBADD = \
-	../../libimages.la \
+	../../libshared.la \
 	@OPENGL_LIBS@ \
 	@SDL_LIBS@
 
