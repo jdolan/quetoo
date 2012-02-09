@@ -180,7 +180,7 @@ void Cg_ParseMuzzleFlash(void) {
 		return;
 	}
 
-	const cl_entity_t *cent = &cl.entities[ent_num];
+	const cl_entity_t *cent = &cgi.client->entities[ent_num];
 	const byte flash = cgi.ReadByte();
 
 	switch (flash) {

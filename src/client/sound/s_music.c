@@ -28,6 +28,9 @@ static s_music_t default_music;
 
 static const char *MUSIC_TYPES[] = { ".ogg", NULL };
 
+extern cl_client_t cl;
+extern cl_static_t cls;
+
 /*
  * S_LoadMusic
  */

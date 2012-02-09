@@ -96,6 +96,9 @@ void (*R_DrawBlendWarpSurfaces)(const r_bsp_surfaces_t *surfs);
 void (*R_DrawBackSurfaces)(const r_bsp_surfaces_t *surfs);
 void (*R_DrawMeshModel)(const r_entity_t *e);
 
+extern cl_client_t cl;
+extern cl_static_t cls;
+
 /*
  * R_PointContents
  *

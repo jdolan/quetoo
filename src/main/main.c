@@ -31,6 +31,7 @@
 #include "config.h"
 #ifdef BUILD_CLIENT
 #include "client/client.h"
+extern cl_static_t cls;
 #endif
 #include "server/server.h"
 

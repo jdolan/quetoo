@@ -334,7 +334,7 @@ cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 		em.flags &= ~EMIT_VISIBLE;
 	}
 
-	if (em.flags && em.hz && em.time < cl.time) { // update the time stamp
+	if (em.flags && em.hz && em.time < cgi.client->time) { // update the time stamp
 		const float drift = e->drift * frand() * 1000.0;
 		e->time = cgi.client->time + (1000.0 / e->hz) + drift;
 	}
@@ -393,7 +393,7 @@ void Cg_AddEmits(void) {
 
 		// then add emits with timed events if they are due to run
 
-		if (e->time > cl.time)
+		if (e->time > cgi.client->time)
 			continue;
 
 		if (e->flags & EMIT_LIGHT && e->hz) {

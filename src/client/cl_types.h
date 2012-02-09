@@ -140,8 +140,6 @@ typedef struct cl_client_s {
 	cl_client_info_t client_info[MAX_CLIENTS];
 } cl_client_t;
 
-extern cl_client_t cl;
-
 // the client_static_t structure is persistent through an arbitrary
 // number of server connections
 
@@ -343,7 +341,5 @@ typedef struct cl_static_s {
 
 	struct cg_export_s *cgame;
 } cl_static_t;
-
-extern cl_static_t cls;
 
 #endif /* __CL_TYPES_H__ */

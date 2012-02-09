@@ -62,6 +62,9 @@ extern cvar_t *rcon_address;
 
 extern cvar_t *recording;
 
+extern cl_client_t cl;
+extern cl_static_t cls;
+
 void Cl_SendDisconnect(void);
 void Cl_Reconnect_f(void);
 void Cl_RequestNextDownload(void);

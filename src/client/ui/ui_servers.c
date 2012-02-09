@@ -20,6 +20,9 @@
  */
 
 #include "ui_local.h"
+#include "client.h"
+
+extern cl_static_t cls;
 
 /*
  * Ui_Servers_Connect

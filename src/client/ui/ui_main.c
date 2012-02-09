@@ -20,8 +20,11 @@
  */
 
 #include "ui_local.h"
+#include "client.h"
 
 ui_t ui;
+
+extern cl_static_t cls;
 
 /*
  * Ui_Event

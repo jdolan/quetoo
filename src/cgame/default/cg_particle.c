@@ -38,7 +38,7 @@ r_particle_t *Cg_AllocParticle(void) {
 	p->next = cg_active_particles;
 	cg_active_particles = p;
 
-	p->time = cl.time;
+	p->time = cgi.client->time;
 	return p;
 }
 
@@ -99,7 +99,7 @@ void Cg_AddParticles(void) {
 	for (p = cg_active_particles; p; p = next) {
 		next = p->next;
 
-		time = (cl.time - p->time) * 0.001;
+		time = (cgi.client->time - p->time) * 0.001;
 
 		p->current_alpha = p->alpha + time * p->alpha_vel;
 		p->current_scale = p->scale + time * p->scale_vel;

@@ -40,6 +40,10 @@ extern cvar_t *sv_public;
 extern cvar_t *sv_timeout;
 extern cvar_t *sv_udp_download;
 
+// per-level and static server structs
+extern sv_server_t sv;
+extern sv_static_t svs;
+
 // current client / player edict
 extern sv_client_t *sv_client;
 extern g_edict_t *sv_player;

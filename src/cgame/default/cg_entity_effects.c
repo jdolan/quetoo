@@ -30,7 +30,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 	vec3_t color;
 	int i;
 
-	if (ent->time < cl.time) {
+	if (ent->time < cgi.client->time) {
 		r_particle_t *p;
 		vec3_t delta;
 		float d, dist;
@@ -66,7 +66,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 			d += 1.0;
 		}
 
-		ent->time = cl.time + (1000 / cl.server_frame_rate);
+		ent->time = cgi.client->time + 32;
 	}
 
 	cgi.ColorFromPalette(ent->current.client, color);
@@ -101,12 +101,12 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 
 	if (cent) { // honor a slightly randomized time interval
 
-		if (cent->time > cl.time)
+		if (cent->time > cgi.client->time)
 			return;
 
 		cgi.PlaySample(NULL, cent->current.number, cg_sample_respawn, ATTN_IDLE);
 
-		cent->time = cl.time + 1000 + (2000 * frand());
+		cent->time = cgi.client->time + 1000 + (2000 * frand());
 	}
 
 	for (i = 0; i < 4; i++) {
@@ -143,16 +143,16 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 
 	if (ent) { // trails should be framerate independent
 
-		if (ent->time > cl.time)
+		if (ent->time > cgi.client->time)
 			return;
 
 		// trails diminish for stationary entities (grenades)
 		stationary = VectorCompare(ent->current.origin, ent->current.old_origin);
 
 		if (stationary)
-			ent->time = cl.time + 128;
+			ent->time = cgi.client->time + 128;
 		else
-			ent->time = cl.time + 32;
+			ent->time = cgi.client->time + 32;
 	}
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
@@ -200,10 +200,10 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 
 	if (ent) { // trails should be framerate independent
 
-		if (ent->time > cl.time)
+		if (ent->time > cgi.client->time)
 			return;
 
-		ent->time = cl.time + 8;
+		ent->time = cgi.client->time + 8;
 	}
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
@@ -252,10 +252,10 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 
 	if (ent) { // trails should be framerate independent
 
-		if (ent->time > cl.time)
+		if (ent->time > cgi.client->time)
 			return;
 
-		ent->time = cl.time + 8;
+		ent->time = cgi.client->time + 8;
 	}
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
@@ -346,7 +346,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, float radius, int color) {
 			angles[0][i] = (rand() & 255) * 0.01;
 	}
 
-	ltime = (float) cl.time / 300.0;
+	ltime = (float) cgi.client->time / 300.0;
 
 	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i += 2) {
 
@@ -387,10 +387,10 @@ static void Cg_EnergyTrail(cl_entity_t *ent, float radius, int color) {
 	}
 
 	// add a bubble trail if appropriate
-	if (ent->time > cl.time)
+	if (ent->time > cgi.client->time)
 		return;
 
-	ent->time = cl.time + 8;
+	ent->time = cgi.client->time + 8;
 
 	c = CONTENTS_SLIME | CONTENTS_WATER;
 

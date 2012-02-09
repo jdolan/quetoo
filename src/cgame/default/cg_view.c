@@ -112,7 +112,7 @@ static void Cg_UpdateBob(void) {
 	if (cg_third_person->value)
 		return;
 
-	if (cl.frame.ps.pmove.pm_type != PM_NORMAL)
+	if (cgi.client->frame.ps.pmove.pm_type != PM_NORMAL)
 		return;
 
 	VectorCopy(cgi.view->velocity, velocity);

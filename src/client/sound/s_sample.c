@@ -22,6 +22,9 @@
 #include "s_local.h"
 #include "client.h"
 
+extern cl_client_t cl;
+extern cl_static_t cls;
+
 /*
  * S_AllocSample
  */

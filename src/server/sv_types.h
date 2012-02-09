@@ -55,8 +55,6 @@ typedef struct sv_server_s {
 	FILE *demo_file;
 } sv_server_t;
 
-extern sv_server_t sv; // local server
-
 typedef enum {
 	SV_CLIENT_FREE, // can be used for a new connection
 	SV_CLIENT_CONNECTED, // client is connecting, but has not yet spawned
@@ -172,8 +170,6 @@ typedef struct sv_static_s {
 
 	g_export_t *game;
 } sv_static_t;
-
-extern sv_static_t svs; // persistent server info
 
 // macros for resolving game entities on the server
 #define EDICT_FOR_NUM(n)( (g_edict_t *)((char *)svs.game->edicts + svs.game->edict_size * (n)) )

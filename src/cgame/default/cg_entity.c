@@ -53,7 +53,7 @@ static void Cg_UpdateLighting(cl_entity_t *e, r_entity_t *ent) {
  */
 static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	const entity_state_t *s = &e->current;
-	const cl_client_info_t *ci = &cl.client_info[s->client];
+	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
 	r_entity_t head, upper, lower;
 
 	int effects = s->effects;

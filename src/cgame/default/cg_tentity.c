@@ -157,12 +157,12 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddSustainedLight(&s);
 
-	if (cl.time < last_ric_time)
+	if (cgi.client->time < last_ric_time)
 		last_ric_time = 0;
 
-	if (cl.time - last_ric_time > 300) {
+	if (cgi.client->time - last_ric_time > 300) {
 		cgi.PlaySample(org, -1, cg_sample_machinegun_hit[rand() % 3], ATTN_NORM);
-		last_ric_time = cl.time;
+		last_ric_time = cgi.client->time;
 	}
 }
 

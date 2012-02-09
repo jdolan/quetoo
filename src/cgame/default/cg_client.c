@@ -123,8 +123,8 @@ void Cg_LoadClients(void) {
 	int i;
 
 	for (i = 0; i < MAX_CLIENTS; i++) {
-		cl_client_info_t *ci = &cl.client_info[i];
-		const char *s = cl.config_strings[CS_CLIENT_INFO + i];
+		cl_client_info_t *ci = &cgi.client->client_info[i];
+		const char *s = cgi.ConfigString(CS_CLIENT_INFO + i);
 
 		if (!*s)
 			continue;
@@ -192,7 +192,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3,
 
 	const int frame_time = 1000 / anim->hz;
 	const int animation_time = anim->num_frames * frame_time;
-	const int elapsed_time = cl.time - a->time;
+	const int elapsed_time = cgi.client->time - a->time;
 	int frame = elapsed_time / frame_time;
 
 	if (elapsed_time >= animation_time) { // to loop, or not to loop
@@ -208,7 +208,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3,
 			}
 
 			a->animation = next; // or move into the next animation
-			a->time = cl.time;
+			a->time = cgi.client->time;
 
 			Cg_AnimateClientEntity_(md3, a, e);
 			return;
@@ -247,7 +247,7 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper,
 	if (e->current.animation1 != e->prev.animation1 || !e->animation1.time) {
 		//Com_Debug("torso: %d -> %d\n", e->current.animation1, e->prev.animation1);
 		e->animation1.animation = e->current.animation1 & ~ANIM_TOGGLE_BIT;
-		e->animation1.time = cl.time;
+		e->animation1.time = cgi.client->time;
 	}
 
 	Cg_AnimateClientEntity_(md3, &e->animation1, upper);
@@ -256,7 +256,7 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper,
 	if (e->current.animation2 != e->prev.animation2 || !e->animation2.time) {
 		//Com_Debug("legs: %d -> %d\n", e->current.animation2, e->prev.animation2);
 		e->animation2.animation = e->current.animation2 & ~ANIM_TOGGLE_BIT;
-		e->animation2.time = cl.time;
+		e->animation2.time = cgi.client->time;
 	}
 
 	Cg_AnimateClientEntity_(md3, &e->animation2, lower);

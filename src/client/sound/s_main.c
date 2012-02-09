@@ -29,6 +29,9 @@ cvar_t *s_reverse;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
+extern cl_client_t cl;
+extern cl_static_t cls;
+
 /*
  * S_Stop
  */

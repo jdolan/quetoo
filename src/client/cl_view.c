@@ -249,7 +249,7 @@ void Cl_UpdateView(void) {
 	r_view.area_bits = cl.frame.area_bits;
 
 	// create the thread which populates the view
-	r_view.thread = Thread_Create(cls.cgame->PopulateView, NULL);
+	r_view.thread = Thread_Create(cls.cgame->PopulateView, &cl.frame);
 }
 
 /*
