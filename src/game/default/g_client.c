@@ -119,16 +119,19 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 
 	if (attacker && attacker->client) {
 		switch (mod) {
+		case MOD_BLASTER:
+			message = "was humilated by";
 		case MOD_SHOTGUN:
 			message = "was gunned down by";
-			message2 = "'s pea shooter";
+			message2 = "'s boomstick";
 			break;
 		case MOD_SUPER_SHOTGUN:
 			message = "was blown away by";
 			message2 = "'s super shotgun";
 			break;
 		case MOD_MACHINEGUN:
-			message = "was chewed up by";
+			message = "was perforated by";
+			message2 = "'s machinegun";
 			break;
 		case MOD_GRENADE:
 			message = "was popped by";
@@ -159,8 +162,8 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 			message2 = "'s discharge";
 			break;
 		case MOD_RAILGUN:
-			message = "was poked by";
-			message2 = "'s needledick";
+			message = "was skewered by";
+			message2 = "'s railgun";
 			break;
 		case MOD_BFG_LASER:
 			message = "saw the pretty lights from";
