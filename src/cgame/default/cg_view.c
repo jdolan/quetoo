@@ -30,7 +30,7 @@ static void Cg_UpdateFov(void) {
 		return;
 
 	if (cg_fov->value < 10.0 || cg_fov->value > 179.0)
-		Cvar_Set("cg_fov", "100.0");
+		cg_fov->value = 100.0;
 
 	const float x = cgi.context->width / tan(cg_fov->value / 360.0 * M_PI);
 
