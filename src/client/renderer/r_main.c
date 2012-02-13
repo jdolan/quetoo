@@ -577,7 +577,7 @@ static void R_InitLocal(void) {
 			"Controls anisotropic texture filtering");
 	r_brightness = Cvar_Get("r_brightness", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
 			"Controls texture brightness");
-	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_PROGRAMS,
+	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of bump-mapping effects");
 	r_capture = Cvar_Get("r_capture", "0", 0, "Toggle screen capturing to jpeg files");
 	r_capture_fps
@@ -590,8 +590,7 @@ static void R_InitLocal(void) {
 	r_draw_buffer = Cvar_Get("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
 	r_flares = Cvar_Get("r_flares", "1.0", CVAR_ARCHIVE,
 			"Controls the rendering of light source flares");
-	r_fog = Cvar_Get("r_fog", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS,
-			"Controls the rendering of fog effects");
+	r_fog = Cvar_Get("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");
 	r_fullscreen = Cvar_Get("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls fullscreen mode");
 	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE, "Controls video gamma (brightness)");
@@ -620,8 +619,7 @@ static void R_InitLocal(void) {
 			"Controls BSP recursion optimization strategy");
 	r_parallax = Cvar_Get("r_parallax", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of parallax mapping effects");
-	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE | CVAR_R_PROGRAMS,
-			"Controls GLSL shaders");
+	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE, "Controls GLSL shaders");
 	r_render_mode = Cvar_Get("r_render_mode", "default", CVAR_ARCHIVE,
 			"Specifies the active renderer plugin (default or pro)");
 	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,

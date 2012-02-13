@@ -106,7 +106,7 @@ void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_image_t *image) 
 
 	r_default_program_t *p = &r_default_program;
 
-	if (!image || !image->normalmap) {
+	if (!image || !image->normalmap || !r_bumpmap->value) {
 		R_DisableAttribute(&p->tangent);
 		R_ProgramParameter1i(&p->normalmap, 0);
 		return;
