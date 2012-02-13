@@ -110,8 +110,11 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 	Cg_TeleporterTrail(org, NULL);
 }
 
-/*
+/**
  * Cg_EntityEvent
+ *
+ * Process any event set on the given entity. These are only valid for a single
+ * frame, so we reset the event flag after processing it.
  */
 void Cg_EntityEvent(cl_entity_t *e) {
 

@@ -21,8 +21,11 @@
 
 #include "cg_local.h"
 
-/*
+/**
  * Cg_UpdateFov
+ *
+ * Update the field of view, which affects the view port as well as the culling
+ * frustum.
  */
 static void Cg_UpdateFov(void) {
 
@@ -43,58 +46,7 @@ static void Cg_UpdateFov(void) {
 	cg_fov->modified = false;
 }
 
-/*
- * Cg_UpdateThirdperson
- */
-static void Cg_UpdateThirdperson(const player_state_t *ps) {
-	vec3_t angles, forward, dest;
-	float dist;
-	c_trace_t tr;
-
-	if (!ps->stats[STAT_CHASE]) { // chasing uses client side 3rd person
-
-		// if we're spectating, don't translate the origin because we have
-		// no visible player model to begin with
-		if (ps->pmove.pm_type == PM_SPECTATOR && !ps->stats[STAT_HEALTH])
-			return;
-
-		if (!cg_third_person->value)
-			return;
-	}
-
-	// we're either chasing, or intentionally using 3rd person
-	VectorCopy(cgi.view->angles, angles);
-
-	if (cg_third_person->value < 0.0) // in front of the player
-		angles[1] += 180.0;
-
-	AngleVectors(angles, forward, NULL, NULL);
-
-	dist = cg_third_person->value;
-
-	if (!dist)
-		dist = 1.0;
-
-	dist = fabs(100.0 * dist);
-
-	// project the view origin back and up for 3rd person
-	VectorMA(cgi.view->origin, -dist, forward, dest);
-	dest[2] += 20.0;
-
-	// clip it to the world
-	tr = cgi.Trace(cgi.view->origin, dest, 5.0, MASK_SHOT);
-	VectorCopy(tr.end, cgi.view->origin);
-
-	// adjust view angles to compensate for height offset
-	VectorMA(cgi.view->origin, 2048.0, forward, dest);
-	VectorSubtract(dest, cgi.view->origin, dest);
-
-	// copy angles back to view
-	VectorAngles(dest, cgi.view->angles);
-	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
-}
-
-/*
+/**
  * Cg_UpdateBob
  *
  * Calculate the view bob.  This is done using a running time counter and a
@@ -145,28 +97,83 @@ static void Cg_UpdateBob(void) {
 	VectorMA(cgi.view->origin, cgi.view->bob, cgi.view->up, cgi.view->origin);
 }
 
-/*
+/**
+ * Cg_UpdateThirdperson
+ *
+ * Update the third person offset, if any. This is used as a client-side
+ * option, or as the default chase camera view.
+ */
+static void Cg_UpdateThirdperson(const player_state_t *ps) {
+	vec3_t angles, forward, dest;
+	float dist;
+	c_trace_t tr;
+
+	if (!ps->stats[STAT_CHASE]) { // chasing uses client side 3rd person
+
+		// if we're spectating, don't translate the origin because we have
+		// no visible player model to begin with
+		if (ps->pmove.pm_type == PM_SPECTATOR && !ps->stats[STAT_HEALTH])
+			return;
+
+		if (!cg_third_person->value)
+			return;
+	}
+
+	// we're either chasing, or opting to use 3rd person
+	VectorCopy(cgi.view->angles, angles);
+
+	if (cg_third_person->value < 0.0) // in front of the player
+		angles[1] += 180.0;
+
+	AngleVectors(angles, forward, NULL, NULL);
+
+	dist = cg_third_person->value;
+
+	if (!dist)
+		dist = 1.0;
+
+	dist = fabs(150.0 * dist);
+
+	// project the view origin back and up for 3rd person
+	VectorMA(cgi.view->origin, -dist, forward, dest);
+	dest[2] += 20.0;
+
+	// clip it to the world
+	tr = cgi.Trace(cgi.view->origin, dest, 5.0, MASK_SHOT);
+	VectorCopy(tr.end, cgi.view->origin);
+
+	// adjust view angles to compensate for height offset
+	VectorMA(cgi.view->origin, 2048.0, forward, dest);
+	VectorSubtract(dest, cgi.view->origin, dest);
+
+	// copy angles back to view
+	VectorAngles(dest, cgi.view->angles);
+	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
+}
+
+/**
  * Cg_UpdateView
  *
- * Updates the view_t for the renderer.  Origin, angles, etc are calculated.
- * Entities, particles, etc are then lerped and added and pulled through to
- * the renderer.
+ * Updates the view for the renderer. The camera origin, bob effect, and field
+ * of view are each augmented here. Other modifications can be made at your own
+ * risk. This is called once per frame by the engine to finalize the view so
+ * that rendering may begin.
  */
 void Cg_UpdateView(const cl_frame_t *frame) {
+
+	Cg_UpdateFov();
 
 	Cg_UpdateThirdperson(&frame->ps);
 
 	Cg_UpdateBob();
-
-	Cg_UpdateFov();
 }
 
-/*
+/**
  * Cg_PopulateView
  *
  * Processes all entities, particles, emits, etc.. adding them to the view.
- * This is all done in a separate thread while the main thread begins drawing
- * the world.
+ * This is called once per frame by the engine, after Cg_UpdateView, and is run
+ * in a separate thread while the renderer begins drawing the world.
  */
 void Cg_PopulateView(const cl_frame_t *frame) {
 

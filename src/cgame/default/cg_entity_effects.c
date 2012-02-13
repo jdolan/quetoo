@@ -564,11 +564,11 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 	cgi.AddLight(&l);
 }
 
-/*
+/**
  * Cg_EntityEffects
  *
- * Adds any effects present on the specified entity's state to the renderer
- * entity and / or to the current frame.
+ * Processes the specified entity's effects mask, augmenting the given renderer
+ * entity and adding additional effects such as particle trails to the view.
  */
 void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	vec3_t start, end;

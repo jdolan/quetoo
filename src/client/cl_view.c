@@ -79,8 +79,8 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 		cl.time = from->server_time;
 		cl.lerp = 0.0;
 	} else {
-		cl.lerp = (float) (cl.time - from->server_time)
-				/ (float) (cl.frame.server_time - from->server_time);
+		cl.lerp = (float) (cl.time - from->server_time) / (float) (cl.frame.server_time
+				- from->server_time);
 	}
 }
 
@@ -132,13 +132,12 @@ static void Cl_UpdateDucking(void) {
 static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 	int i, ms;
 
-	if (!cl.demo_server && /*!cl_third_person->value &&*/ cl_predict->value
+	if (!cl.demo_server && /*!cl_third_person->value &&*/cl_predict->value
 			&& !(cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION)) {
 
 		// use client sided prediction
 		for (i = 0; i < 3; i++)
-			r_view.origin[i] = cl.predicted_origin[i] - (1.0 - cl.lerp)
-					* cl.prediction_error[i];
+			r_view.origin[i] = cl.predicted_origin[i] - (1.0 - cl.lerp) * cl.prediction_error[i];
 
 		// lerp stairs over 50ms
 		ms = cls.real_time - cl.predicted_step_time;
@@ -147,8 +146,8 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 			r_view.origin[2] -= cl.predicted_step * (50 - ms) * 0.02;
 	} else { // just use interpolated values from frame
 		for (i = 0; i < 3; i++)
-			r_view.origin[i] = ops->pmove.origin[i] + cl.lerp
-					* (ps->pmove.origin[i] - ops->pmove.origin[i]);
+			r_view.origin[i] = ops->pmove.origin[i] + cl.lerp * (ps->pmove.origin[i]
+					- ops->pmove.origin[i]);
 
 		// scaled back to world coordinates
 		VectorScale(r_view.origin, 0.125, r_view.origin);
