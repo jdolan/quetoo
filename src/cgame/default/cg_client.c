@@ -111,7 +111,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		return;
 	}
 
-	Com_Debug("Loaded cl_client_info_t: %s\n", ci->info);
+	cgi.Debug("Loaded cl_client_info_t: %s\n", ci->info);
 }
 
 /*
@@ -124,7 +124,7 @@ void Cg_LoadClients(void) {
 
 	for (i = 0; i < MAX_CLIENTS; i++) {
 		cl_client_info_t *ci = &cgi.client->client_info[i];
-		const char *s = cgi.ConfigString(CS_CLIENT_INFO + i);
+		const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
 		if (!*s)
 			continue;
@@ -177,7 +177,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3,
 	e->back_lerp = 0.0;
 
 	if (a->animation > md3->num_animations) {
-		Com_Warn("Cg_AnimateClientEntity: Invalid animation: %s: %d\n",
+		cgi.Warn("Cg_AnimateClientEntity: Invalid animation: %s: %d\n",
 				e->model->name, a->animation);
 		return;
 	}
@@ -185,7 +185,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3,
 	const r_md3_animation_t *anim = &md3->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
-		Com_Warn("Cg_AnimateClientEntity_: Bad animation sequence: %s: %d\n",
+		cgi.Warn("Cg_AnimateClientEntity_: Bad animation sequence: %s: %d\n",
 				e->model->name, a->animation);
 		return;
 	}
@@ -245,7 +245,7 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper,
 
 	// do the torso animation
 	if (e->current.animation1 != e->prev.animation1 || !e->animation1.time) {
-		//Com_Debug("torso: %d -> %d\n", e->current.animation1, e->prev.animation1);
+		//cgi.Debug("torso: %d -> %d\n", e->current.animation1, e->prev.animation1);
 		e->animation1.animation = e->current.animation1 & ~ANIM_TOGGLE_BIT;
 		e->animation1.time = cgi.client->time;
 	}
@@ -254,7 +254,7 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper,
 
 	// and then the legs
 	if (e->current.animation2 != e->prev.animation2 || !e->animation2.time) {
-		//Com_Debug("legs: %d -> %d\n", e->current.animation2, e->prev.animation2);
+		//cgi.Debug("legs: %d -> %d\n", e->current.animation2, e->prev.animation2);
 		e->animation2.animation = e->current.animation2 & ~ANIM_TOGGLE_BIT;
 		e->animation2.time = cgi.client->time;
 	}

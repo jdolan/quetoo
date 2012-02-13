@@ -24,7 +24,7 @@
 
 #ifdef __CL_LOCAL_H__
 void Cl_CenterPrint(char *s);
-void Cl_AddNetgraph(void);
+void Cl_AddNetGraph(void);
 void Cl_UpdateScreen(void);
 #endif /* __CL_LOCAL_H__ */
 

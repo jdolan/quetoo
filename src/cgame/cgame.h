@@ -36,7 +36,7 @@ typedef struct cg_import_s {
 
 	cvar_t *(*Cvar)(const char *name, const char *value, int flags, const char *description);
 
-	char *(*ConfigString)(int index);
+	char *(*ConfigString)(unsigned short index);
 	unsigned short *player_num;
 
 	// network messaging
@@ -114,6 +114,7 @@ typedef struct cg_export_s {
 
 	void (*ClearState)(void);
 	void (*UpdateMedia)(void);
+	void (*UpdateConfigString)(unsigned short index);
 
 	boolean_t (*ParseMessage)(int cmd);
 	void (*UpdateView)(const cl_frame_t *frame);

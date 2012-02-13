@@ -25,6 +25,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
+void Cg_LoadClient(cl_client_info_t *ci, const char *s);
 void Cg_LoadClients(void);
 void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower);
 #endif /* __CG_LOCAL_H__ */

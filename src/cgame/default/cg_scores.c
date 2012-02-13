@@ -89,8 +89,7 @@ void Cg_ParseScores(void) {
 	 cg_num_scores = i;
 	 */
 
-	qsort((void *) cg_scores, cg_num_scores, sizeof(player_score_t),
-			Cg_ParseScores_Compare);
+	qsort((void *) cg_scores, cg_num_scores, sizeof(player_score_t), Cg_ParseScores_Compare);
 }
 
 /*
@@ -98,7 +97,7 @@ void Cg_ParseScores(void) {
  *
  * Returns the vertical screen coordinate where scores should be drawn.
  */
-r_pixel_t Cg_DrawScoresHeader(void) {
+static r_pixel_t Cg_DrawScoresHeader(void) {
 	const char *s = cgi.ConfigString(CS_NAME);
 	const r_pixel_t sw = cgi.StringWidth(s);
 	r_pixel_t cw, ch, x, y;
@@ -152,11 +151,11 @@ r_pixel_t Cg_DrawScoresHeader(void) {
 /*
  * Cg_DrawScore
  */
-void Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
+static void Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 	char name[MAX_STRING_CHARS], icon[MAX_QPATH], *skin;
 	r_pixel_t cw, ch;
 
-	char *info = cgi.ConfigString(CS_CLIENT_INFO + s->player_num);
+	char *info = cgi.ConfigString(CS_CLIENTS + s->player_num);
 
 	strncpy(name, info, sizeof(name) - 1);
 
@@ -212,7 +211,7 @@ void Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 /*
  * Cg_DrawTeamScores
  */
-void Cg_DrawTeamScores(const r_pixel_t start_y) {
+static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	r_pixel_t x, y;
 	short rows;
 	size_t i;
@@ -275,8 +274,7 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
 
 		const short col = i / rows;
 
-		const r_pixel_t x = cgi.context->width / 2 - width / 2 + col
-				* SCORES_COL_WIDTH;
+		const r_pixel_t x = cgi.context->width / 2 - width / 2 + col * SCORES_COL_WIDTH;
 		const r_pixel_t y = start_y + (i % rows) * SCORES_ROW_HEIGHT;
 
 		Cg_DrawScore(x, y, s);

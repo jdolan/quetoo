@@ -956,7 +956,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	player_num = ent - g_game.edicts - 1;
 
 	// combine name and skin into a config_string
-	gi.ConfigString(CS_CLIENT_INFO + player_num,
+	gi.ConfigString(CS_CLIENTS + player_num,
 			va("%s\\%s", cl->persistent.net_name, cl->persistent.skin));
 
 	// save off the user_info in case we want to check something later
@@ -1039,7 +1039,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
 	ent->class_name = "disconnected";
 
 	player_num = ent - g_game.edicts - 1;
-	gi.ConfigString(CS_CLIENT_INFO + player_num, "");
+	gi.ConfigString(CS_CLIENTS + player_num, "");
 }
 
 /*

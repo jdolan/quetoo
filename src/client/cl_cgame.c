@@ -102,9 +102,9 @@ static float Cl_ReadAngle(void) {
 /*
  * Cl_ConfigString
  */
-static char *Cl_ConfigString(int index) {
+static char *Cl_ConfigString(unsigned short index) {
 
-	if (index < 0 || index > MAX_CONFIG_STRINGS) {
+	if (index > MAX_CONFIG_STRINGS) {
 		Com_Warn("Cl_ConfigString: bad index %i.\n", index);
 		return "";
 	}
@@ -184,16 +184,14 @@ void Cl_InitCgame(void) {
 	import.StringWidth = R_StringWidth;
 	import.DrawString = R_DrawString;
 
-	cls.cgame
-			= Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
+	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
 
 	if (!cls.cgame) {
 		Com_Error(ERR_DROP, "Failed to load client game\n");
 	}
 
 	if (cls.cgame->api_version != CGAME_API_VERSION) {
-		Com_Error(ERR_DROP, "Client game has wrong version (%d)\n",
-				cls.cgame->api_version);
+		Com_Error(ERR_DROP, "Client game has wrong version (%d)\n", cls.cgame->api_version);
 	}
 
 	cls.cgame->Init();

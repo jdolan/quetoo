@@ -35,9 +35,9 @@ static net_graph_sample_t net_graph_samples[NET_GRAPH_WIDTH];
 static int num_net_graph_samples;
 
 /*
- * Cl_Netgraph
+ * Cl_NetGraph
  */
-static void Cl_Netgraph(float value, int color) {
+static void Cl_NetGraph(float value, int color) {
 
 	net_graph_samples[num_net_graph_samples].value = value;
 	net_graph_samples[num_net_graph_samples].color = color;
@@ -52,37 +52,37 @@ static void Cl_Netgraph(float value, int color) {
 }
 
 /*
- * Cl_AddNetgraph
+ * Cl_AddNetGraph
  */
-void Cl_AddNetgraph(void) {
+void Cl_AddNetGraph(void) {
 	unsigned int i;
 	unsigned int in;
 	unsigned int ping;
 
 	// we only need to do our accounting when asked to
-	if (!cl_net_graph->value)
+	if (!cl_draw_net_graph->value)
 		return;
 
 	for (i = 0; i < cls.netchan.dropped; i++)
-		Cl_Netgraph(1.0, 0x40);
+		Cl_NetGraph(1.0, 0x40);
 
 	for (i = 0; i < cl.surpress_count; i++)
-		Cl_Netgraph(1.0, 0xdf);
+		Cl_NetGraph(1.0, 0xdf);
 
 	// see what the latency was on this packet
 	in = cls.netchan.incoming_acknowledged & (CMD_BACKUP - 1);
 	ping = cls.real_time - cl.cmd_time[in];
 
-	Cl_Netgraph(ping / 300.0, 0xd0); // 300ms is lagged out
+	Cl_NetGraph(ping / 300.0, 0xd0); // 300ms is lagged out
 }
 
 /*
- * Cl_DrawNetgraph
+ * Cl_DrawNetGraph
  */
-static void Cl_DrawNetgraph(void) {
+static void Cl_DrawNetGraph(void) {
 	int i, j, x, y, h;
 
-	if (!cl_net_graph->value)
+	if (!cl_draw_net_graph->value)
 		return;
 
 	x = r_context.width - NET_GRAPH_WIDTH;
@@ -123,7 +123,7 @@ static void Cl_DrawRendererStats(void) {
 	R_DrawString(r_context.width - strlen(s) * 16, 0, s, CON_COLOR_YELLOW);
 }
 
-int frames_this_second = 0, packets_this_second = 0, bytes_this_second = 0;
+unsigned short frames_this_second = 0, packets_this_second = 0, bytes_this_second = 0;
 
 /*
  * Cl_DrawCounters
@@ -139,20 +139,20 @@ static void Cl_DrawCounters(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	const int x = r_context.width - 7 * cw;
-	int y = r_context.height - 4 * ch;
+	const r_pixel_t x = r_context.width - 7 * cw;
+	r_pixel_t y = r_context.height - 4 * ch;
 
 	frames_this_second++;
 
-	if (quake2world.time - millis >= 1000) {
+	if (cls.real_time - millis >= 1000) {
 
 		VectorCopy(r_view.velocity, velocity);
 		velocity[2] = 0.0;
 
 		snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
-		snprintf(fps, sizeof(fps), "%4dfps", frames_this_second);
-		snprintf(pps, sizeof(pps), "%4dpps", packets_this_second);
-		snprintf(bps, sizeof(bps), "%4dbps", bytes_this_second);
+		snprintf(fps, sizeof(fps), "%4ufps", frames_this_second);
+		snprintf(pps, sizeof(pps), "%4upps", packets_this_second);
+		snprintf(bps, sizeof(bps), "%4ubps", bytes_this_second);
 
 		millis = quake2world.time;
 
@@ -211,7 +211,7 @@ void Cl_UpdateScreen(void) {
 
 		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
 
-			Cl_DrawNetgraph();
+			Cl_DrawNetGraph();
 
 			Cl_DrawCounters();
 

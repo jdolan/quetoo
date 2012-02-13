@@ -20,7 +20,7 @@
  */
 
 #ifndef __G_UTILS_H__
-#define __G_UITLS_H__
+#define __G_UTILS_H__
 
 #ifdef __G_LOCAL_H__
 

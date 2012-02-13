@@ -660,7 +660,7 @@ void Cg_ParseTempEntity(void) {
 		break;
 
 	default:
-		Com_Warn("Cg_ParseTempEntity: Unknown type: %d\n.", type);
+		cgi.Warn("Cg_ParseTempEntity: Unknown type: %d\n.", type);
 		return;
 	}
 }

@@ -107,7 +107,7 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	}
 
 	if (s->model4)
-		Com_Warn("Cg_AddClientEntity: Unsupported model_index4\n");
+		cgi.Warn("Cg_AddClientEntity: Unsupported model_index4\n");
 }
 
 /**

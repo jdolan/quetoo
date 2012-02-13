@@ -26,10 +26,10 @@
 cvar_t *cl_async;
 cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;
+cvar_t *cl_draw_net_graph;
 cvar_t *cl_ignore;
 cvar_t *cl_max_fps;
 cvar_t *cl_max_pps;
-cvar_t *cl_net_graph;
 cvar_t *cl_predict;
 cvar_t *cl_show_prediction_misses;
 cvar_t *cl_show_net_messages;
@@ -601,10 +601,10 @@ static void Cl_InitLocal(void) {
 	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE, NULL);
 	cl_chat_sound = Cvar_Get("cl_chat_sound", "misc/chat", 0, NULL);
 	cl_draw_counters = Cvar_Get("cl_draw_counters", "1", CVAR_ARCHIVE, NULL);
+	cl_draw_net_graph = Cvar_Get("cl_draw_net_graph", "1", CVAR_ARCHIVE, NULL);
 	cl_ignore = Cvar_Get("cl_ignore", "", 0, NULL);
 	cl_max_fps = Cvar_Get("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
 	cl_max_pps = Cvar_Get("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
-	cl_net_graph = Cvar_Get("cl_net_graph", "1", CVAR_ARCHIVE, NULL);
 	cl_predict = Cvar_Get("cl_predict", "1", 0, NULL);
 	cl_show_prediction_misses = Cvar_Get("cl_show_prediction_misses", "0",
 			CVAR_LO_ONLY, NULL);

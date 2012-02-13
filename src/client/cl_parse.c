@@ -186,10 +186,9 @@ void Cl_ParseConfigString(void) {
 	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
 		if (cls.state == CL_ACTIVE)
 			cl.image_precache[i - CS_IMAGES] = R_LoadPic(s);
-	} /*else if (i >= CS_CLIENT_INFO && i < CS_CLIENT_INFO + MAX_CLIENTS) {
-		if (cls.state == CL_ACTIVE)
-			Cl_LoadClient(&cl.client_info[i - CS_CLIENT_INFO], s);
-	}*/
+	}
+
+	cls.cgame->UpdateConfigString(i);
 }
 
 /*
@@ -489,7 +488,7 @@ void Cl_ParseServerMessage(void) {
 		}
 	}
 
-	Cl_AddNetgraph();
+	Cl_AddNetGraph();
 
 	Cl_WriteDemoMessage();
 }

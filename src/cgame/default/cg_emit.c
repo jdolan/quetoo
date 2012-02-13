@@ -209,7 +209,7 @@ void Cg_LoadEmits(void) {
 				if (e->flags & EMIT_SPARKS) // don't combine sparks and light
 					e->flags &= ~EMIT_LIGHT;
 
-				Com_Debug("Added %d emit at %f %f %f\n", e->flags, e->org[0], e->org[1], e->org[2]);
+				cgi.Debug("Added %d emit at %f %f %f\n", e->flags, e->org[0], e->org[1], e->org[2]);
 
 				cg_num_emits++;
 			} else

@@ -888,7 +888,7 @@ static void G_Teamskin_f(g_edict_t *ent) {
 		strncpy(cl->persistent.skin, s, sizeof(cl->persistent.skin) - 1);
 		cl->persistent.skin[sizeof(cl->persistent.skin) - 1] = 0;
 
-		gi.ConfigString(CS_CLIENT_INFO + i,
+		gi.ConfigString(CS_CLIENTS + i,
 				va("%s\\%s", cl->persistent.net_name, cl->persistent.skin));
 	}
 

@@ -280,7 +280,7 @@ void G_ClientSpectatorStats(g_edict_t *ent) {
 
 	if (cl->chase_target && cl->chase_target->in_use) {
 		memcpy(cl->ps.stats, cl->chase_target->client->ps.stats, sizeof(cl->ps.stats));
-		cl->ps.stats[STAT_CHASE] = CS_CLIENT_INFO + (cl->chase_target
+		cl->ps.stats[STAT_CHASE] = CS_CLIENTS + (cl->chase_target
 				- g_game.edicts) - 1;
 	} else
 		cl->ps.stats[STAT_CHASE] = 0;

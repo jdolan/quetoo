@@ -27,7 +27,7 @@
 
 #include "console.h"
 
-console_data_t console_data;
+static console_data_t console_data;
 
 #ifdef BUILD_CLIENT
 extern console_t cl_con;
@@ -35,7 +35,7 @@ extern void Cl_UpdateNotify(int last_line);
 extern void Cl_ClearNotify(void);
 #endif
 
-cvar_t *ansi;
+static cvar_t *ansi;
 
 /*
  * Con_Update

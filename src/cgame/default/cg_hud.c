@@ -257,7 +257,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
 
 	const int c = ps->stats[STAT_CHASE];
 
-	if (c - CS_CLIENT_INFO >= MAX_CLIENTS) {
+	if (c - CS_CLIENTS >= MAX_CLIENTS) {
 		cgi.Warn("Cg_DrawChase: Invalid client info index: %d\n", c);
 		return;
 	}
