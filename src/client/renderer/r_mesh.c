@@ -23,7 +23,7 @@
 
 vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3]; // vertexes are interpolated here temporarily
 vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3]; // same for normal vectors
-
+vec4_t r_mesh_tangents[MD3_MAX_TRIANGLES * 3]; // and tangents
 
 /*
  * R_ApplyMeshModelConfig
@@ -81,8 +81,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
  *
  * Returns the desired tag structure, or NULL.
  */
-static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame,
-		const char *name) {
+static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const char *name) {
 
 	if (frame > mod->num_frames) {
 		Com_Warn("R_GetMeshModelTag: %s: Invalid frame: %d\n", mod->name, frame);
@@ -122,10 +121,9 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 
 	// interpolate the tag over the frames of the parent entity
 
-	const r_md3_tag_t *start = R_GetMeshModelTag(e->parent->model,
-			e->parent->old_frame, e->tag_name);
-	const r_md3_tag_t *end = R_GetMeshModelTag(e->parent->model,
-			e->parent->frame, e->tag_name);
+	const r_md3_tag_t *start = R_GetMeshModelTag(e->parent->model, e->parent->old_frame,
+			e->tag_name);
+	const r_md3_tag_t *end = R_GetMeshModelTag(e->parent->model, e->parent->frame, e->tag_name);
 
 	if (!start || !end) {
 		return;
@@ -135,8 +133,7 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 
 	Matrix4x4_Concat(&local, &e->parent->matrix, &e->matrix);
 
-	Matrix4x4_Interpolate(&lerped, &end->matrix, &start->matrix,
-			e->parent->back_lerp);
+	Matrix4x4_Interpolate(&lerped, &end->matrix, &start->matrix, e->parent->back_lerp);
 	Matrix4x4_Normalize(&normalized, &lerped);
 
 	Matrix4x4_Concat(&e->matrix, &local, &normalized);
@@ -163,11 +160,11 @@ boolean_t R_CullMeshModel(const r_entity_t *e) {
 }
 
 /*
- * R_UpdateMeshModelLighting
+ * R_UpdateMeshLighting
  *
  * Updates static lighting information for the specified mesh entity.
  */
-void R_UpdateMeshModelLighting(const r_entity_t *e) {
+void R_UpdateMeshLighting(const r_entity_t *e) {
 
 	if (e->lighting->state == LIGHTING_READY)
 		return;
@@ -233,50 +230,56 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
 	}
 
-	if (!(e->effects & EF_NO_DRAW)) { // setup state for diffuse render
+	if (!r_draw_wireframe->value) {
 
-		if (!r_draw_wireframe->value) {
-			if (e->skin) // resolve texture
-				R_BindTexture(e->skin->texnum);
-			else
-				R_BindTexture(e->model->skin->texnum);
+		if (!(e->effects & EF_NO_DRAW)) { // setup state for diffuse render
+			r_image_t *image = e->skin ? e->skin : e->model->skin;
+
+			R_BindTexture(image->texnum);
 
 			R_SetMeshColor_default(e);
-		}
 
-		// enable hardware light sources (dynamic and static)
-		if (r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)) {
+			// hardware lighting
+			if (r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)) {
 
-			R_EnableLightsByRadius(e->origin);
+				R_UseMaterial(NULL, image);
 
-			R_ApplyLighting(e->lighting);
+				R_EnableLightsByRadius(e->origin);
+
+				R_ApplyLighting(e->lighting);
 #if 0
-			if(e->effects & EF_WEAPON) {
-				r_entity_t ent;
-				int i;
+				if(e->effects & EF_WEAPON) {
+					r_entity_t ent;
+					int i;
 
-				for(i = 0; i < MAX_ACTIVE_LIGHTS; i++) {
-					const r_bsp_light_t *l = e->lighting->bsp_lights[i];
+					for(i = 0; i < MAX_ACTIVE_LIGHTS; i++) {
+						const r_bsp_light_t *l = e->lighting->bsp_lights[i];
 
-					if(!l)
-					break;
+						if(!l)
+						break;
 
-					memset(&ent, 0, sizeof(ent));
+						memset(&ent, 0, sizeof(ent));
 
-					ent.lerp = 1.0;
+						ent.lerp = 1.0;
 
-					VectorSet(ent.scale, 1.0, 1.0, 1.0);
-					VectorCopy(l->origin, ent.origin);
+						VectorSet(ent.scale, 1.0, 1.0, 1.0);
+						VectorCopy(l->origin, ent.origin);
 
-					R_AddEntity(&ent);
+						R_AddEntity(&ent);
+					}
 				}
-			}
 #endif
+			}
+		} else {
+			R_UseMaterial(NULL, NULL);
 		}
-
-		if (e->effects & EF_WEAPON) // prevent weapon from poking into walls
-			glDepthRange(0.0, 0.3);
 	}
+	else {
+		R_UseMaterial(NULL, NULL);
+	}
+
+	if (e->effects & EF_WEAPON) // prevent weapon from poking into walls
+		glDepthRange(0.0, 0.3);
 
 	// now rotate and translate to the ent's origin
 	R_RotateForEntity(e);
@@ -319,8 +322,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 		VectorSubtract(e->origin, e->parent->origin, offset);
 		VectorAdd(e->lighting->shadow_origin, offset, offset);
 		offset[2] = e->lighting->shadow_origin[2];
-	}
-	else {
+	} else {
 		VectorCopy(e->lighting->shadow_origin, offset);
 	}
 
@@ -411,7 +413,7 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
 	if (lighting)
-		R_EnableLighting(r_state.mesh_program, true);
+		R_EnableLighting(r_state.default_program, true);
 
 	R_EnableStencilTest(false);
 
@@ -445,8 +447,7 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 	vert_index = 0;
 
 	for (i = 0; i < 3; i++) // calculate the translation
-		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp
-				* frame->translate[i];
+		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
 
 	for (i = 0, mesh = md3->meshes; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
 
@@ -492,14 +493,12 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 void R_DrawMeshModel_default(const r_entity_t *e) {
 
 	if (e->frame >= e->model->num_frames) {
-		Com_Warn("R_DrawMeshModel %s: no such frame %d\n", e->model->name,
-				e->frame);
+		Com_Warn("R_DrawMeshModel %s: no such frame %d\n", e->model->name, e->frame);
 		return;
 	}
 
 	if (e->old_frame >= e->model->num_frames) {
-		Com_Warn("R_DrawMeshModel %s: no such old_frame %d\n", e->model->name,
-				e->old_frame);
+		Com_Warn("R_DrawMeshModel %s: no such old_frame %d\n", e->model->name, e->old_frame);
 		return;
 	}
 

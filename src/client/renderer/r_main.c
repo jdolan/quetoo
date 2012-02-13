@@ -194,48 +194,9 @@ void R_UpdateFrustum(void) {
 }
 
 /*
- * R_GetError
- */
-static void R_GetError(void) {
-	GLenum err;
-	char *s;
-
-	while (true) {
-
-		if ((err = glGetError()) == GL_NO_ERROR)
-			return;
-
-		switch (err) {
-		case GL_INVALID_ENUM:
-			s = "GL_INVALID_ENUM";
-			break;
-		case GL_INVALID_VALUE:
-			s = "GL_INVALID_VALUE";
-			break;
-		case GL_INVALID_OPERATION:
-			s = "GL_INVALID_OPERATION";
-			break;
-		case GL_STACK_OVERFLOW:
-			s = "GL_STACK_OVERFLOW";
-			break;
-		case GL_OUT_OF_MEMORY:
-			s = "GL_OUT_OF_MEMORY";
-			break;
-		default:
-			s = "Unkown error";
-			break;
-		}
-
-		Com_Warn("R_GetError: %s.\n", s);
-	}
-}
-
-/*
  * R_DrawScene
  */
 void R_DrawScene(void) {
-
-	R_GetError();
 
 	R_UpdateFrustum();
 
@@ -717,7 +678,8 @@ static void R_InitConfig(void) {
 	r_config.version_string = (char *) glGetString(GL_VERSION);
 	r_config.extensions_string = (char *) glGetString(GL_EXTENSIONS);
 
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
+	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &r_config.max_texunits);
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_teximage_units);
 
 	Com_Print("  Renderer: ^2%s^7\n", r_config.renderer_string);
 	Com_Print("  Vendor:   ^2%s^7\n", r_config.vendor_string);
@@ -792,4 +754,6 @@ void R_Shutdown(void) {
 	R_ShutdownPrograms();
 
 	R_ShutdownContext();
+
+	R_ShutdownState();
 }

@@ -24,6 +24,13 @@
 
 #include "r_types.h"
 
+#define R_ARRAY_VERTEX			0x1
+#define R_ARRAY_COLOR			0x2
+#define R_ARRAY_NORMAL			0x4
+#define R_ARRAY_TANGENT			0x8
+#define R_ARRAY_TEX_DIFFUSE		0x10
+#define R_ARRAY_TEX_LIGHTMAP	0x20
+
 #ifdef __R_LOCAL_H__
 void R_SetArrayState(const r_model_t *mod);
 void R_ResetArrayState(void);

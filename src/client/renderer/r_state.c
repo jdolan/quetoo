@@ -27,6 +27,47 @@ const float default_texcoords[] = { // useful for particles, pics, etc..
 		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 };
 
 /*
+ * R_GetError
+ */
+void R_GetError_(const char *function, const char *msg) {
+#if 1
+	GLenum err;
+	char *s;
+
+	while (true) {
+
+		if ((err = glGetError()) == GL_NO_ERROR)
+			return;
+
+		switch (err) {
+		case GL_INVALID_ENUM:
+			s = "GL_INVALID_ENUM";
+			break;
+		case GL_INVALID_VALUE:
+			s = "GL_INVALID_VALUE";
+			break;
+		case GL_INVALID_OPERATION:
+			s = "GL_INVALID_OPERATION";
+			break;
+		case GL_STACK_OVERFLOW:
+			s = "GL_STACK_OVERFLOW";
+			break;
+		case GL_OUT_OF_MEMORY:
+			s = "GL_OUT_OF_MEMORY";
+			break;
+		default:
+			s = "Unkown error";
+			break;
+		}
+
+		//Sys_Backtrace();
+
+		Com_Warn("R_GetError: %s: %s: %s.\n", s, function, msg);
+	}
+#endif
+}
+
+/*
  * R_SelectTexture
  */
 void R_SelectTexture(r_texunit_t *texunit) {
@@ -104,9 +145,6 @@ void R_BindNormalmapTexture(GLuint texnum) {
  * R_BindGlossmapTexture
  */
 void R_BindGlossmapTexture(GLuint texnum) {
-
-	if (!texunit_glossmap.texture)
-		return;
 
 	if (texnum == texunit_glossmap.texnum)
 		return;
@@ -193,6 +231,8 @@ void R_BindBuffer(GLenum target, GLenum type, GLuint id) {
 
 	if (type && id) // assign the array pointer as well
 		R_BindArray(target, type, NULL);
+
+	R_GetError(NULL);
 }
 
 /*
@@ -262,6 +302,9 @@ void R_EnableStencilTest(boolean_t enable) {
 
 /*
  * R_EnableTexture
+ *
+ * Enable the specified texture unit for multi-texture operations. This is not
+ * necessary for texture units only accessed by GLSL shaders.
  */
 void R_EnableTexture(r_texunit_t *texunit, boolean_t enable) {
 
@@ -332,78 +375,8 @@ void R_EnableLighting(r_program_t *program, boolean_t enable) {
 
 		R_UseProgram(NULL);
 	}
-}
 
-/*
- * R_UseMaterial
- */
-static inline void R_UseMaterial(r_material_t *material) {
-	static float last_b, last_p, last_s, last_h;
-	float b, p, s, h;
-
-	if (r_state.active_material == material)
-		return;
-
-	r_state.active_material = material;
-
-	if (!r_state.active_material)
-		return;
-
-	b = r_state.active_material->bump * r_bumpmap->value;
-	if (b != last_b)
-		R_ProgramParameter1f("BUMP", b);
-	last_b = b;
-
-	p = r_state.active_material->parallax * r_parallax->value;
-	if (p != last_p)
-		R_ProgramParameter1f("PARALLAX", p);
-	last_p = p;
-
-	h = r_state.active_material->hardness * r_hardness->value;
-	if (h != last_h)
-		R_ProgramParameter1f("HARDNESS", h);
-	last_h = h;
-
-	s = r_state.active_material->specular * r_specular->value;
-	if (s != last_s)
-		R_ProgramParameter1f("SPECULAR", s);
-	last_s = s;
-}
-
-/*
- * R_EnableBumpmap
- *
- * Enables bump-mapping while updating program parameters to reflect the
- * properties of the specified material.
- */
-void R_EnableBumpmap(r_image_t *image, boolean_t enable) {
-
-	if (!r_state.lighting_enabled)
-		return;
-
-	if (!r_bumpmap->value)
-		return;
-
-	R_UseMaterial(image ? &image->material : NULL);
-
-	if (r_state.bumpmap_enabled == enable)
-		return;
-
-	r_state.bumpmap_enabled = enable;
-
-	if (enable) { // toggle state
-		R_EnableAttribute("TANGENT");
-		R_ProgramParameter1i("BUMPMAP", 1);
-
-		if (image && image->glossmap)
-			R_ProgramParameter1i("GLOSSMAP", 1);
-		else
-			R_ProgramParameter1i("GLOSSMAP", 0);
-
-	} else {
-		R_DisableAttribute("TANGENT");
-		R_ProgramParameter1i("BUMPMAP", 0);
-	}
+	R_GetError(NULL);
 }
 
 /*
@@ -433,17 +406,23 @@ void R_EnableWarp(r_program_t *program, boolean_t enable) {
 	}
 
 	R_SelectTexture(&texunit_diffuse);
+
+	R_GetError(NULL);
 }
 
 /*
  * R_EnableColorShell
  */
 void R_EnableShell(boolean_t enable) {
+	r_uniform1f_t offset;
 
 	if (enable == r_state.shell_enabled)
 		return;
 
 	r_state.shell_enabled = enable;
+
+	if (r_state.lighting_enabled)
+		R_ProgramVariable(&offset, R_UNIFORM_FLOAT, "OFFSET");
 
 	if (enable) {
 		glEnable(GL_POLYGON_OFFSET_FILL);
@@ -452,8 +431,7 @@ void R_EnableShell(boolean_t enable) {
 		R_EnableBlend(true);
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-		if (r_state.lighting_enabled)
-			R_ProgramParameter1f("OFFSET", r_view.time / 3.0);
+		R_ProgramParameter1f(&offset, r_view.time / 3.0);
 	} else {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		R_EnableBlend(false);
@@ -461,9 +439,10 @@ void R_EnableShell(boolean_t enable) {
 		glPolygonOffset(0.0, 0.0);
 		glDisable(GL_POLYGON_OFFSET_FILL);
 
-		if (r_state.lighting_enabled)
-			R_ProgramParameter1f("OFFSET", 0.0);
+		R_ProgramParameter1f(&offset, 0.0);
 	}
+
+	R_GetError(NULL);
 }
 
 /*
@@ -490,6 +469,24 @@ void R_EnableFog(boolean_t enable) {
 		glFogf(GL_FOG_DENSITY, 0.0);
 		glDisable(GL_FOG);
 	}
+}
+
+/*
+ * R_UseMaterial
+ */
+void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image) {
+	const r_material_t *material = image ? &image->material : NULL;
+
+	if (!r_state.active_program)
+		return;
+
+	if (r_state.active_material == material)
+		return;
+
+	if (r_state.active_program->UseMaterial)
+		r_state.active_program->UseMaterial(surf, image);
+
+	R_GetError(image ? image->name : r_state.active_program->name);
 }
 
 #define NEAR_Z 4
@@ -593,19 +590,26 @@ void R_SetDefaultState(void) {
 	glDisableClientState(GL_NORMAL_ARRAY);
 
 	// setup texture units
-	for (i = 0; i < r_config.max_texunits && i < MAX_GL_TEXUNITS; i++) {
+	for (i = 0; i < MAX_GL_TEXUNITS; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
-		texunit->texture = GL_TEXTURE0_ARB + i;
 
-		R_EnableTexture(texunit, true);
+		if (i < r_config.max_teximage_units) {
+			texunit->texture = GL_TEXTURE0_ARB + i;
 
-		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+			if (i < r_config.max_texunits) {
+				texunit->texcoord_array = (float *) Z_Malloc(MAX_GL_ARRAY_LENGTH * 2);
 
-		if (texunit == &texunit_lightmap)
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+				R_EnableTexture(texunit, true);
 
-		if (i > 0) // turn them off for now
-			R_EnableTexture(texunit, false);
+				R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+
+				if (texunit == &texunit_lightmap)
+					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+				if (i > 0) // turn them off for now
+					R_EnableTexture(texunit, false);
+			}
+		}
 	}
 
 	R_SelectTexture(&texunit_diffuse);
@@ -625,6 +629,8 @@ void R_SetDefaultState(void) {
 
 	// alpha blend parameters
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	R_GetError(NULL);
 }
 
 /*
@@ -632,4 +638,18 @@ void R_SetDefaultState(void) {
  */
 void R_InitState(void) {
 	memset(&r_state, 0, sizeof(r_state));
+}
+
+/*
+ * R_ShutdownState
+ */
+void R_ShutdownState(void) {
+	int i;
+
+	for (i = 0; i < r_config.max_texunits; i++) {
+		r_texunit_t *texunit = &r_state.texunits[i];
+
+		if (texunit->texcoord_array)
+			Z_Free(texunit->texcoord_array);
+	}
 }

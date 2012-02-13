@@ -40,7 +40,7 @@ typedef struct r_texunit_s {
 	boolean_t enabled;  // GL_TEXTURE_2D on / off
 	GLenum texture;  // e.g. GL_TEXTURE0_ARB
 	GLuint texnum;  // e.g 123
-	GLfloat texcoord_array[MAX_GL_ARRAY_LENGTH * 2];
+	GLfloat *texcoord_array;
 } r_texunit_t;
 
 #define MAX_GL_TEXUNITS		8
@@ -63,8 +63,7 @@ typedef struct r_state_s {
 
 	r_shader_t shaders[MAX_SHADERS];
 	r_program_t programs[MAX_PROGRAMS];
-	r_program_t *world_program;
-	r_program_t *mesh_program;
+	r_program_t *default_program;
 	r_program_t *warp_program;
 	r_program_t *pro_program;
 	r_program_t *active_program;
@@ -75,7 +74,6 @@ typedef struct r_state_s {
 	boolean_t alpha_test_enabled;
 	boolean_t stencil_test_enabled;
 	boolean_t lighting_enabled;
-	boolean_t bumpmap_enabled;
 	boolean_t warp_enabled;
 	boolean_t shell_enabled;
 	boolean_t fog_enabled;
@@ -90,6 +88,8 @@ extern r_state_t r_state;
 #define texunit_normalmap		r_state.texunits[3]
 #define texunit_glossmap		r_state.texunits[4]
 
+#define R_GetError(msg) R_GetError_(__func__, msg)
+void R_GetError_(const char *function, const char *msg);
 void R_SelectTexture(r_texunit_t *texunit);
 void R_BindTexture(GLuint texnum);
 void R_BindLightmapTexture(GLuint texnum);
@@ -106,12 +106,13 @@ void R_EnableStencilTest(boolean_t enable);
 void R_EnableTexture(r_texunit_t *texunit, boolean_t enable);
 void R_EnableColorArray(boolean_t enable);
 void R_EnableLighting(r_program_t *program, boolean_t enable);
-void R_EnableBumpmap(r_image_t *image, boolean_t enable);
 void R_EnableWarp(r_program_t *program, boolean_t enable);
 void R_EnableShell(boolean_t enable);
 void R_EnableFog(boolean_t enable);
+void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image);
 void R_SetDefaultState(void);
 void R_InitState(void);
+void R_ShutdownState(void);
 
 #endif /* __R_LOCAL_H__ */
 

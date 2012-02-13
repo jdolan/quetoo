@@ -23,6 +23,8 @@ noinst_HEADERS = \
 	r_model.h \
 	r_particle.h \
 	r_program.h \
+	r_program_default.h \
+	r_program_warp.h \
 	r_sky.h \
 	r_state.h \
 	r_surface_pro.h \
@@ -59,6 +61,8 @@ librenderer_la_SOURCES = \
 	r_model.c \
 	r_particle.c \
 	r_program.c \
+	r_program_default.c \
+	r_program_warp.c \
 	r_sky.c \
 	r_state.c \
 	r_surface.c \

@@ -239,7 +239,7 @@ void R_CullEntities(void *data __attribute__((unused))) {
 		if (!R_CullEntity(e)) { // cull it
 
 			if (IS_MESH_MODEL(e->model)) {
-				R_UpdateMeshModelLighting(e);
+				R_UpdateMeshLighting(e);
 			}
 		}
 	}
@@ -283,7 +283,7 @@ static void R_DrawOpaqueMeshEntities() {
 	if (!r_entities.mesh)
 		return;
 
-	R_EnableLighting(r_state.mesh_program, true);
+	R_EnableLighting(r_state.default_program, true);
 
 	R_DrawMeshEntities(r_entities.mesh);
 
@@ -300,7 +300,7 @@ static void R_DrawAlphaTestMeshEntities() {
 
 	R_EnableAlphaTest(true);
 
-	R_EnableLighting(r_state.mesh_program, true);
+	R_EnableLighting(r_state.default_program, true);
 
 	R_DrawMeshEntities(r_entities.mesh_alpha_test);
 

@@ -42,8 +42,7 @@ static void R_UpdateMaterial(r_material_t *m) {
 			s->pulse.dhz = (sin(r_view.time * s->pulse.hz * 6.28) + 1.0) / 2.0;
 
 		if (s->flags & STAGE_STRETCH) {
-			s->stretch.dhz = (sin(r_view.time * s->stretch.hz * 6.28) + 1.0)
-					/ 2.0;
+			s->stretch.dhz = (sin(r_view.time * s->stretch.hz * 6.28) + 1.0) / 2.0;
 			s->stretch.damp = 1.5 - s->stretch.dhz * s->stretch.amp;
 		}
 
@@ -59,8 +58,7 @@ static void R_UpdateMaterial(r_material_t *m) {
 		if (s->flags & STAGE_ANIM) {
 			if (r_view.time >= s->anim.dtime) { // change frames
 				s->anim.dtime = r_view.time + (1.0 / s->anim.fps);
-				s->image
-						= s->anim.images[++s->anim.dframe % s->anim.num_frames];
+				s->image = s->anim.images[++s->anim.dframe % s->anim.num_frames];
 			}
 		}
 	}
@@ -75,28 +73,18 @@ static void R_StageLighting(r_bsp_surface_t *surf, r_stage_t *stage) {
 
 	// if the surface has a lightmap, and the stage specifies lighting..
 
-	if ((surf->flags & R_SURF_LIGHTMAP) && (stage->flags & (STAGE_LIGHTMAP
-			| STAGE_LIGHTING))) {
+	if ((surf->flags & R_SURF_LIGHTMAP) && (stage->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING))) {
 
 		R_EnableTexture(&texunit_lightmap, true);
 		R_BindLightmapTexture(surf->lightmap_texnum);
 
 		if (stage->flags & STAGE_LIGHTING) { // hardware lighting
 
-			R_EnableLighting(r_state.world_program, true);
+			R_EnableLighting(r_state.default_program, true);
 
 			if (r_state.lighting_enabled) {
 
-				if (r_bumpmap->value && stage->image->normalmap) {
-
-					R_BindDeluxemapTexture(surf->deluxemap_texnum);
-					R_BindNormalmapTexture(stage->image->normalmap->texnum);
-
-					R_EnableBumpmap(stage->image, true);
-				} else {
-					if (r_state.bumpmap_enabled)
-						R_EnableBumpmap(NULL, false);
-				}
+				R_UseMaterial(surf, stage->image);
 
 				if (surf->light_frame == r_locals.light_frame) // dynamic light sources
 					R_EnableLights(surf->lights);
@@ -118,8 +106,8 @@ static void R_StageLighting(r_bsp_surface_t *surf, r_stage_t *stage) {
  *
  * Generates a single vertex for the specified stage.
  */
-static inline void R_StageVertex(const r_bsp_surface_t *surf,
-		const r_stage_t *stage, const vec3_t in, vec3_t out) {
+static inline void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *stage,
+		const vec3_t in, vec3_t out) {
 
 	// TODO: vertex deformation
 	VectorCopy(in, out);
@@ -181,8 +169,8 @@ static inline void R_StageTextureMatrix(r_bsp_surface_t *surf, r_stage_t *stage)
  *
  * Generates a single texture coordinate for the specified stage and vertex.
  */
-static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v,
-		const vec2_t in, vec2_t out) {
+static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const vec2_t in,
+		vec2_t out) {
 
 	vec3_t tmp;
 
@@ -200,16 +188,30 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v,
 }
 
 #define NUM_DIRTMAP_ENTRIES 16
-static const float dirtmap[NUM_DIRTMAP_ENTRIES] = { 0.6, 0.5, 0.3, 0.4, 0.7,
-		0.3, 0.0, 0.4, 0.5, 0.2, 0.8, 0.5, 0.3, 0.2, 0.5, 0.3 };
+static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
+		0.6,
+		0.5,
+		0.3,
+		0.4,
+		0.7,
+		0.3,
+		0.0,
+		0.4,
+		0.5,
+		0.2,
+		0.8,
+		0.5,
+		0.3,
+		0.2,
+		0.5,
+		0.3 };
 
 /*
  * R_StageColor
  *
  * Generates a single color for the specified stage and vertex.
  */
-static inline void R_StageColor(const r_stage_t *stage, const vec3_t v,
-		vec4_t color) {
+static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t color) {
 
 	float a;
 
@@ -332,11 +334,8 @@ static void R_DrawSurfaceStage(r_bsp_surface_t *surf, r_stage_t *stage) {
 			const float *n = &r_world_model->normals[surf->index * 3 + i * 3];
 			VectorCopy(n, (&r_state.normal_array[i * 3]));
 
-			if (r_state.bumpmap_enabled) {
-				const float *t = &r_world_model->tangents[surf->index * 4 + i
-						* 4];
-				VectorCopy(t, (&r_state.tangent_array[i * 4]));
-			}
+			const float *t = &r_world_model->tangents[surf->index * 4 + i * 4];
+			VectorCopy(t, (&r_state.tangent_array[i * 4]));
 		}
 	}
 
@@ -364,7 +363,7 @@ void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(&texunit_lightmap, true);
 
-	R_EnableLighting(r_state.world_program, true);
+	R_EnableLighting(r_state.default_program, true);
 
 	R_EnableColorArray(true);
 
@@ -427,7 +426,7 @@ void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs) {
 
 	R_EnableLights(0);
 
-	R_EnableBumpmap(NULL, false);
+	R_UseMaterial(NULL, NULL);
 
 	R_EnableLighting(NULL, false);
 
@@ -503,9 +502,7 @@ static int R_LoadAnimImages(r_stage_t *s) {
 	j = strlen(name);
 
 	if ((i = atoi(&name[j - 1])) < 0) {
-		Com_Warn(
-				"R_LoadAnimImages: Texture name does not end in numeric: %s\n",
-				name);
+		Com_Warn("R_LoadAnimImages: Texture name does not end in numeric: %s\n", name);
 		return -1;
 	}
 
@@ -718,8 +715,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->terrain.height = s->terrain.ceil - s->terrain.floor;
 
 			if (s->terrain.height == 0.0) {
-				Com_Warn(
-						"R_ParseStage: Zero height terrain specified for %s\n",
+				Com_Warn("R_ParseStage: Zero height terrain specified for %s\n",
 						(s->image ? s->image->name : "NULL"));
 				return -1;
 			}
@@ -749,8 +745,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->anim.num_frames = atoi(c);
 
 			if (s->anim.num_frames < 1 || s->anim.num_frames > MAX_ANIM_FRAMES) {
-				Com_Warn(
-						"R_ParseStage: Invalid number of anim frames for %s\n",
+				Com_Warn("R_ParseStage: Invalid number of anim frames for %s\n",
 						(s->image ? s->image->name : "NULL"));
 				return -1;
 			}
@@ -811,12 +806,10 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 				"  terrain.floor: %5f\n"
 				"  terrain.ceil: %5f\n"
 				"  anim.num_frames: %d\n"
-				"  anim.fps: %3f\n", s->flags,
-					(s->image ? s->image->name : "NULL"), s->blend.src,
-					s->blend.dest, s->color[0], s->color[1], s->color[2],
-					s->pulse.hz, s->stretch.amp, s->stretch.hz, s->rotate.hz,
-					s->scroll.s, s->scroll.t, s->scale.s, s->scale.t,
-					s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
+				"  anim.fps: %3f\n", s->flags, (s->image ? s->image->name : "NULL"), s->blend.src,
+					s->blend.dest, s->color[0], s->color[1], s->color[2], s->pulse.hz,
+					s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
+					s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
 					s->anim.fps);
 
 			// a texture, or envmap means render it
@@ -842,7 +835,7 @@ void R_LoadMaterials(const char *map) {
 	void *buf;
 	const char *c;
 	const char *buffer;
-	boolean_t inmaterial;
+	boolean_t in_material;
 	r_image_t *image;
 	r_material_t *m;
 	r_stage_t *s, *ss;
@@ -862,7 +855,7 @@ void R_LoadMaterials(const char *map) {
 
 	buffer = (char *) buf;
 
-	inmaterial = false;
+	in_material = false;
 	image = NULL;
 	m = NULL;
 
@@ -873,8 +866,8 @@ void R_LoadMaterials(const char *map) {
 		if (*c == '\0')
 			break;
 
-		if (*c == '{' && !inmaterial) {
-			inmaterial = true;
+		if (*c == '{' && !in_material) {
+			in_material = true;
 			continue;
 		}
 
@@ -900,9 +893,18 @@ void R_LoadMaterials(const char *map) {
 			image->normalmap = R_LoadImage(va("textures/%s", c), it_normalmap);
 
 			if (image->normalmap == r_null_image) {
-				Com_Warn("R_LoadMaterials: Failed to resolve normalmap: %s\n",
-						c);
+				Com_Warn("R_LoadMaterials: Failed to resolve normalmap: %s\n", c);
 				image->normalmap = NULL;
+			}
+		}
+
+		if (!strcmp(c, "glossmap")) {
+			c = ParseToken(&buffer);
+			image->glossmap = R_LoadImage(va("textures/%s", c), it_glossmap);
+
+			if (image->glossmap == r_null_image) {
+				Com_Warn("R_LoadMaterials: Failed to resolve glossmap: %s\n", c);
+				image->glossmap = NULL;
 			}
 		}
 
@@ -911,8 +913,7 @@ void R_LoadMaterials(const char *map) {
 			m->bump = atof(ParseToken(&buffer));
 
 			if (m->bump < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid bump value for %s\n",
-						image->name);
+				Com_Warn("R_LoadMaterials: Invalid bump value for %s\n", image->name);
 				m->bump = DEFAULT_BUMP;
 			}
 		}
@@ -922,8 +923,7 @@ void R_LoadMaterials(const char *map) {
 			m->parallax = atof(ParseToken(&buffer));
 
 			if (m->parallax < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid parallax value for %s\n",
-						image->name);
+				Com_Warn("R_LoadMaterials: Invalid parallax value for %s\n", image->name);
 				m->parallax = DEFAULT_PARALLAX;
 			}
 		}
@@ -933,8 +933,7 @@ void R_LoadMaterials(const char *map) {
 			m->hardness = atof(ParseToken(&buffer));
 
 			if (m->hardness < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid hardness value for %s\n",
-						image->name);
+				Com_Warn("R_LoadMaterials: Invalid hardness value for %s\n", image->name);
 				m->hardness = DEFAULT_HARDNESS;
 			}
 		}
@@ -943,13 +942,12 @@ void R_LoadMaterials(const char *map) {
 			m->specular = atof(ParseToken(&buffer));
 
 			if (m->specular < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid specular value for %s\n",
-						image->name);
+				Com_Warn("R_LoadMaterials: Invalid specular value for %s\n", image->name);
 				m->specular = DEFAULT_SPECULAR;
 			}
 		}
 
-		if (*c == '{' && inmaterial) {
+		if (*c == '{' && in_material) {
 
 			s = (r_stage_t *) Z_Malloc(sizeof(*s));
 
@@ -981,10 +979,9 @@ void R_LoadMaterials(const char *map) {
 			continue;
 		}
 
-		if (*c == '}' && inmaterial) {
-			Com_Debug("Parsed material %s with %d stages\n", image->name,
-					m->num_stages);
-			inmaterial = false;
+		if (*c == '}' && in_material) {
+			Com_Debug("Parsed material %s with %d stages\n", image->name, m->num_stages);
+			in_material = false;
 			image = NULL;
 		}
 	}

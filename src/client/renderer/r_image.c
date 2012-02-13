@@ -407,6 +407,8 @@ r_image_t *R_UploadImage(const char *name, byte *data, int width, int height,
 
 	R_UploadImage_(data, width, height, image->color, type);
 
+	R_GetError(image->name);
+
 	return image;
 }
 
@@ -437,7 +439,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 		SDL_FreeSurface(surf);
 
-		if (type == it_world) { // load normalmaps
+		if (type == it_world || type == it_skin) { // load normalmaps
 			const char *normalmap[] = { "nm", "norm", "local", NULL };
 			char map[MAX_QPATH];
 

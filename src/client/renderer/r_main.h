@@ -95,6 +95,7 @@ typedef struct r_config_s {
 	boolean_t shaders;
 
 	int max_texunits;
+	int max_teximage_units;
 }r_config_t;
 
 extern r_config_t r_config;

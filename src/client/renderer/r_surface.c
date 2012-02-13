@@ -54,19 +54,7 @@ static void R_SetSurfaceState_default(const r_bsp_surface_t *surf) {
 
 	if (r_state.lighting_enabled) { // hardware lighting
 
-		if (r_bumpmap->value) { // bump mapping
-
-			if (image->normalmap) {
-				R_BindDeluxemapTexture(surf->deluxemap_texnum);
-				R_BindNormalmapTexture(image->normalmap->texnum);
-
-				if (image->glossmap)
-					R_BindGlossmapTexture(image->glossmap->texnum);
-
-				R_EnableBumpmap(image, true);
-			} else
-				R_EnableBumpmap(NULL, false);
-		}
+		R_UseMaterial(surf, image);
 
 		if (surf->light_frame == r_locals.light_frame) // dynamic light sources
 			R_EnableLights(surf->lights);
@@ -107,8 +95,7 @@ static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	// reset state
 	if (r_state.lighting_enabled) {
 
-		if (r_state.bumpmap_enabled)
-			R_EnableBumpmap(NULL, false);
+		R_UseMaterial(NULL, NULL);
 
 		R_EnableLights(0);
 	}
@@ -160,7 +147,7 @@ void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(&texunit_lightmap, true);
 
-	R_EnableLighting(r_state.world_program, true);
+	R_EnableLighting(r_state.default_program, true);
 
 	R_DrawSurfaces_default(surfs);
 
@@ -206,7 +193,7 @@ void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(&texunit_lightmap, true);
 
-	R_EnableLighting(r_state.world_program, true);
+	R_EnableLighting(r_state.default_program, true);
 
 	R_DrawSurfaces_default(surfs);
 

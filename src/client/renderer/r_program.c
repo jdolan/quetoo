@@ -34,143 +34,152 @@ void R_UseProgram(r_program_t *prog) {
 	if (prog) {
 		qglUseProgram(prog->id);
 
-		if (prog->use) // invoke use function
-			prog->use();
+		if (prog->Use) // invoke use function
+			prog->Use();
 	} else {
 		qglUseProgram(0);
 	}
+
+	R_GetError(NULL);
 }
 
 /*
  * R_ProgramVariable
  */
-static r_progvar_t *R_ProgramVariable(GLenum type, const char *name) {
-	r_progvar_t *v;
-	int i;
+void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name) {
+
+	memset(variable, 0, sizeof(*variable));
+	variable->location = -1;
 
 	if (!r_state.active_program) {
-		Com_Warn("R_ProgramVariable: No program bound.\n");
-		return NULL;
+		Com_Warn("R_ProgramVariable: No program currently bound\n");
+		return;
 	}
 
-	// find the variable
-	for (i = 0; i < MAX_PROGRAM_VARS; i++) {
-
-		v = &r_state.active_program->vars[i];
-
-		if (!v->location)
-			break;
-
-		if (v->type == type && !strcmp(v->name, name))
-			return v;
+	switch (type) {
+	case R_ATTRIBUTE:
+		variable->location = qglGetAttribLocation(r_state.active_program->id, name);
+		break;
+	default:
+		variable->location = qglGetUniformLocation(r_state.active_program->id, name);
+		break;
 	}
 
-	if (i == MAX_PROGRAM_VARS) {
-		Com_Warn("R_ProgramVariable: MAX_PROGRAM_VARS reached.\n");
-		return NULL;
-	}
-
-	// or query for it
-	if (type == GL_UNIFORM)
-		v->location = qglGetUniformLocation(r_state.active_program->id, name);
-	else
-		v->location = qglGetAttribLocation(r_state.active_program->id, name);
-
-	if (v->location == -1) {
-		Com_Warn("R_ProgramVariable: Could not find %s in program %s.\n", name,
+	if (variable->location == -1) {
+		Com_Warn("R_ProgramVariable: Failed to resolve variable %s in program %s\n", name,
 				r_state.active_program->name);
-		v->location = 0;
-		return NULL;
+		return;
 	}
 
-	v->type = type;
-	strncpy(v->name, name, sizeof(v->name));
-
-	return v;
+	variable->type = type;
+	strncpy(variable->name, name, sizeof(variable->name));
+	memset(&variable->value, 0xff, sizeof(variable->value));
 }
 
 /*
  * R_ProgramParameter1i
  */
-void R_ProgramParameter1i(const char *name, GLint value) {
-	r_progvar_t *v;
+void R_ProgramParameter1i(r_uniform1i_t *variable, GLint value) {
 
-	if (!(v = R_ProgramVariable(GL_UNIFORM, name)))
+	if (!variable || variable->location == -1) {
+		Com_Warn("R_ProgramParameter1i: NULL or invalid variable\n");
+		return;
+	}
+
+	if (variable->value.i == value)
 		return;
 
-	qglUniform1i(v->location, value);
+	qglUniform1i(variable->location, value);
+	variable->value.i = value;
+
+	R_GetError(variable->name);
 }
 
 /*
  * R_ProgramParameter1f
  */
-void R_ProgramParameter1f(const char *name, GLfloat value) {
-	r_progvar_t *v;
+void R_ProgramParameter1f(r_uniform1f_t *variable, GLfloat value) {
 
-	if (!(v = R_ProgramVariable(GL_UNIFORM, name)))
+	if (!variable || variable->location == -1) {
+		Com_Warn("R_ProgramParameter1f: NULL or invalid variable\n");
+		return;
+	}
+
+	if (variable->value.f == value)
 		return;
 
-	qglUniform1f(v->location, value);
+	qglUniform1f(variable->location, value);
+	variable->value.f = value;
+
+	R_GetError(variable->name);
 }
 
 /*
  * R_ProgramParameter3fv
  */
-void R_ProgramParameter3fv(const char *name, GLfloat *value) {
-	r_progvar_t *v;
+void R_ProgramParameter3fv(r_uniform3fv_t *variable, GLfloat *value) {
 
-	if (!(v = R_ProgramVariable(GL_UNIFORM, name)))
+	if (!variable || variable->location == -1) {
+		Com_Warn("R_ProgramParameter3fv: NULL or invalid variable\n");
+		return;
+	}
+
+	if (VectorCompare(variable->value.vec3, value))
 		return;
 
-	qglUniform3fv(v->location, 1, value);
-}
+	qglUniform3fv(variable->location, 1, value);
+	VectorCopy(value, variable->value.vec3);
 
-/*
- * R_ProgramParameter4fv
- */
-void R_ProgramParameter4fv(const char *name, GLfloat *value) {
-	r_progvar_t *v;
-
-	if (!(v = R_ProgramVariable(GL_UNIFORM, name)))
-		return;
-
-	qglUniform4fv(v->location, 1, value);
+	R_GetError(variable->name);
 }
 
 /*
  * R_AttributePointer
  */
 void R_AttributePointer(const char *name, GLuint size, GLvoid *array) {
-	r_progvar_t *v;
+	r_attribute_t attribute;
 
-	if (!(v = R_ProgramVariable(GL_ATTRIBUTE, name)))
-		return;
+	R_ProgramVariable(&attribute, R_ATTRIBUTE, name);
 
-	qglVertexAttribPointer(v->location, size, GL_FLOAT, GL_FALSE, 0, array);
+	qglVertexAttribPointer(attribute.location, size, GL_FLOAT, GL_FALSE, 0, array);
+
+	R_GetError(name);
 }
 
 /*
  * R_EnableAttribute
  */
-void R_EnableAttribute(const char *name) {
-	r_progvar_t *v;
+void R_EnableAttribute(r_attribute_t *attribute) {
 
-	if (!(v = R_ProgramVariable(GL_ATTRIBUTE, name)))
+	if (!attribute || attribute->location == -1) {
+		Com_Warn("R_EnableAttribute: NULL or invalid attribute\n");
 		return;
+	}
 
-	qglEnableVertexAttribArray(v->location);
+	if (attribute->value.i != 1) {
+		qglEnableVertexAttribArray(attribute->location);
+		attribute->value.i = 1;
+	}
+
+	R_GetError(attribute->name);
 }
 
 /*
  * R_DisableAttribute
  */
-void R_DisableAttribute(const char *name) {
-	r_progvar_t *v;
+void R_DisableAttribute(r_attribute_t *attribute) {
 
-	if (!(v = R_ProgramVariable(GL_ATTRIBUTE, name)))
+	if (!attribute || attribute->location == -1) {
+		Com_Warn("R_DisableAttribute: NULL or invalid attribute\n");
 		return;
+	}
 
-	qglDisableVertexAttribArray(v->location);
+	if (attribute->value.i != 0) {
+		qglDisableVertexAttribArray(attribute->location);
+		attribute->value.i = 0;
+	}
+
+	R_GetError(attribute->name);
 }
 
 /*
@@ -194,6 +203,8 @@ static void R_ShutdownProgram(r_program_t *prog) {
 
 	qglDeleteProgram(prog->id);
 
+	R_GetError(prog->name);
+
 	memset(prog, 0, sizeof(r_program_t));
 }
 
@@ -216,92 +227,12 @@ void R_ShutdownPrograms(void) {
 }
 
 /*
- * R_PreprocessShader
- */
-static size_t R_PreprocessShader(const char *name, const char *in, char *out,
-		size_t len) {
-	size_t plen;
-	char path[MAX_QPATH];
-	void *buf;
-	float f;
-	int i;
-
-	i = 0;
-	while (*in) {
-
-		if (!strncmp(in, "#include", 8)) { // includes
-			in += 8;
-
-			snprintf(path, sizeof(path), "shaders/%s", ParseToken(&in));
-
-			if (Fs_LoadFile(path, &buf) == -1) {
-				Com_Error(ERR_DROP, "R_PreprocessShader: "
-					"Failed to resolve #include: %s.\n", path);
-			}
-
-			plen = R_PreprocessShader(name, (const char *) buf, out, len);
-			len -= plen;
-			out += plen;
-
-			Fs_FreeFile(buf);
-		}
-
-		if (!strncmp(in, "#if", 3)) { // conditionals
-			in += 3;
-
-			f = Cvar_GetValue(ParseToken(&in));
-
-			while (*in) {
-
-				if (!len) {
-					Com_Error(ERR_DROP, "R_PreprocessShader: Overflow: %s",
-							name);
-				}
-
-				if (!strncmp(in, "#endif", 6)) {
-					in += 6;
-					break;
-				}
-
-				len--;
-
-				if (f) {
-					*out++ = *in++;
-					i++;
-				} else
-					in++;
-			}
-
-			if (!*in) {
-				Com_Error(ERR_DROP, "R_PreprocessShader: "
-					"Unterminated conditional: %s", name);
-			}
-		}
-
-		// general case is to copy so long as the buffer has room
-		if (!len) {
-			Com_Error(ERR_DROP, "R_PreprocessShader: Overflow: %s", name);
-		}
-
-		len--;
-
-		*out++ = *in++;
-		i++;
-	}
-
-	return i;
-}
-
-#define SHADER_BUF_SIZE 16384
-
-/*
  * R_LoadShader
  */
 static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	r_shader_t *sh;
 	char path[MAX_QPATH], *src[1], log[MAX_STRING_CHARS];
 	unsigned e, length[1];
-	char *source;
 	void *buf;
 	int i, len;
 
@@ -312,13 +243,8 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 		return NULL;
 	}
 
-	source = Z_Malloc(SHADER_BUF_SIZE);
-
-	R_PreprocessShader(name, (const char *) buf, source, SHADER_BUF_SIZE);
-	Fs_FreeFile(buf);
-
-	src[0] = source;
-	length[0] = strlen(source);
+	src[0] = (char *) buf;
+	length[0] = len;
 
 	for (i = 0; i < MAX_SHADERS; i++) {
 		sh = &r_state.shaders[i];
@@ -329,7 +255,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 
 	if (i == MAX_SHADERS) {
 		Com_Warn("R_LoadShader: MAX_SHADERS reached.\n");
-		Z_Free(source);
+		Fs_FreeFile(buf);
 		return NULL;
 	}
 
@@ -355,18 +281,19 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 		qglDeleteShader(sh->id);
 		memset(sh, 0, sizeof(*sh));
 
-		Z_Free(source);
+		Fs_FreeFile(buf);
 		return NULL;
 	}
 
-	Z_Free(source);
+	Fs_FreeFile(buf);
 	return sh;
 }
 
 /*
  * R_LoadProgram
  */
-static r_program_t *R_LoadProgram(const char *name, void *init, void *use) {
+static r_program_t *R_LoadProgram(const char *name, void(*Init)(void)) {
+
 	r_program_t *prog;
 	char log[MAX_STRING_CHARS];
 	unsigned e;
@@ -407,71 +334,19 @@ static r_program_t *R_LoadProgram(const char *name, void *init, void *use) {
 		return NULL;
 	}
 
-	prog->init = init;
+	prog->Init = Init;
 
-	if (prog->init) { // invoke initialization function
+	if (prog->Init) { // invoke initialization function
 		R_UseProgram(prog);
 
-		prog->init();
+		prog->Init();
 
 		R_UseProgram(NULL);
 	}
 
-	prog->use = use;
+	R_GetError(prog->name);
 
 	return prog;
-}
-
-/*
- * R_InitWorldProgram
- */
-static void R_InitWorldProgram(void) {
-
-	R_ProgramParameter1i("SAMPLER0", 0);
-	R_ProgramParameter1i("SAMPLER1", 1);
-	R_ProgramParameter1i("SAMPLER2", 2);
-	R_ProgramParameter1i("SAMPLER3", 3);
-	R_ProgramParameter1i("SAMPLER4", 4);
-
-	R_ProgramParameter1i("BUMPMAP", 0);
-	R_ProgramParameter1i("GLOSSMAP", 0);
-
-	R_ProgramParameter1f("BUMP", 1.0);
-	R_ProgramParameter1f("PARALLAX", 1.0);
-	R_ProgramParameter1f("HARDNESS", 1.0);
-	R_ProgramParameter1f("SPECULAR", 1.0);
-}
-
-/*
- * R_InitMeshProgram
- */
-static void R_InitMeshProgram(void) {
-
-	R_ProgramParameter1i("SAMPLER0", 0);
-
-	R_ProgramParameter1f("OFFSET", 0.0);
-}
-
-/*
- * R_InitWarpProgram
- */
-static void R_InitWarpProgram(void) {
-	static vec4_t offset;
-
-	R_ProgramParameter1i("SAMPLER0", 0);
-	R_ProgramParameter1i("SAMPLER1", 1);
-
-	R_ProgramParameter4fv("OFFSET", offset);
-}
-
-/*
- * R_UseWarpProgram
- */
-static void R_UseWarpProgram(void) {
-	static vec4_t offset;
-
-	offset[0] = offset[1] = r_view.time / 8.0;
-	R_ProgramParameter4fv("OFFSET", offset);
 }
 
 /*
@@ -489,13 +364,16 @@ void R_InitPrograms(void) {
 	if (!r_programs->value)
 		return;
 
-	r_state.world_program = R_LoadProgram("world", R_InitWorldProgram, NULL);
+	r_state.default_program = R_LoadProgram("default", R_InitProgram_default);
+	r_state.default_program->Use = R_UseProgram_default;
+	r_state.default_program->UseMaterial = R_UseMaterial_default;
+	r_state.default_program->arrays_mask = 0xff;
 
-	r_state.mesh_program = R_LoadProgram("mesh", R_InitMeshProgram, NULL);
+	r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp);
+	r_state.warp_program->Use = R_UseProgram_warp;
+	r_state.warp_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_TEX_DIFFUSE;
 
-	r_state.warp_program = R_LoadProgram("warp", R_InitWarpProgram,
-			R_UseWarpProgram);
-
-	r_state.pro_program = R_LoadProgram("pro", NULL, NULL);
+	r_state.pro_program = R_LoadProgram("pro", NULL);
+	r_state.pro_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_COLOR | R_ARRAY_NORMAL;
 }
 

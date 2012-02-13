@@ -100,21 +100,21 @@ void R_AllocVertexArrays(r_model_t *mod) {
 	t = mod->num_verts * 4 * sizeof(GLfloat);
 	c = mod->num_verts * 4 * sizeof(GLfloat);
 
-	// allocate the arrays, static models get verts and normals
+	// allocate the arrays, static models get verts, normals and tangents
 	if (mod->num_frames < 2) {
 		mod->verts = (GLfloat *) R_HunkAlloc(v);
 		mod->normals = (GLfloat *) R_HunkAlloc(v);
+		mod->tangents = (GLfloat *) R_HunkAlloc(t);
 	}
 
-	// all models get texcoords
+	// all models get texcoords and tangents
 	mod->texcoords = (GLfloat *) R_HunkAlloc(st);
 
 	if (mod->type != mod_bsp)
 		return;
 
-	// and bsp models get lightmap texcoords, tangents, and colors
+	// and bsp models get lightmap texcoords and colors
 	mod->lmtexcoords = (GLfloat *) R_HunkAlloc(st);
-	mod->tangents = (GLfloat *) R_HunkAlloc(t);
 	mod->colors = (GLfloat *) R_HunkAlloc(c);
 }
 
@@ -148,6 +148,10 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 	qglBindBuffer(GL_ARRAY_BUFFER, mod->normal_buffer);
 	qglBufferData(GL_ARRAY_BUFFER, v, mod->normals, GL_STATIC_DRAW);
 
+	qglGenBuffers(1, &mod->tangent_buffer);
+	qglBindBuffer(GL_ARRAY_BUFFER, mod->tangent_buffer);
+	qglBufferData(GL_ARRAY_BUFFER, t, mod->tangents, GL_STATIC_DRAW);
+
 	qglBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	if (mod->type != mod_bsp)
@@ -157,10 +161,6 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 	qglGenBuffers(1, &mod->lmtexcoord_buffer);
 	qglBindBuffer(GL_ARRAY_BUFFER, mod->lmtexcoord_buffer);
 	qglBufferData(GL_ARRAY_BUFFER, st, mod->lmtexcoords, GL_STATIC_DRAW);
-
-	qglGenBuffers(1, &mod->tangent_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->tangent_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, t, mod->tangents, GL_STATIC_DRAW);
 
 	qglGenBuffers(1, &mod->color_buffer);
 	qglBindBuffer(GL_ARRAY_BUFFER, mod->color_buffer);
@@ -174,8 +174,10 @@ typedef struct r_model_format_s {
 	void (*load)(r_model_t *mod, void *buffer);
 } r_model_format_t;
 
-static r_model_format_t r_model_formats[] = { { ".obj", R_LoadObjModel }, {
-		".md3", R_LoadMd3Model }, { ".bsp", R_LoadBspModel } };
+static r_model_format_t r_model_formats[] = {
+		{ ".obj", R_LoadObjModel },
+		{ ".md3", R_LoadMd3Model },
+		{ ".bsp", R_LoadBspModel } };
 
 #define NUM_MODEL_FORMATS (sizeof(r_model_formats) / sizeof(r_model_format_t))
 
@@ -288,8 +290,7 @@ void R_ListModels_f(void) {
  * R_HunkStats_f
  */
 void R_HunkStats_f(void) {
-	Com_Print("Hunk usage: %.2f / %.2f MB\n", r_hunk.offset / 1024.0 / 1024.0,
-			r_hunk_mb->value);
+	Com_Print("Hunk usage: %.2f / %.2f MB\n", r_hunk.offset / 1024.0 / 1024.0, r_hunk_mb->value);
 }
 
 /*

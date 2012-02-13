@@ -26,27 +26,22 @@
  * should call R_SetArrayState or R_ResetArrayState somewhat early-on.
  */
 
-#define R_ARRAY_VERTEX			0x1
-#define R_ARRAY_COLOR			0x2
-#define R_ARRAY_NORMAL			0x4
-#define R_ARRAY_TANGENT			0x8
-#define R_ARRAY_TEX_DIFFUSE		0x10
-#define R_ARRAY_TEX_LIGHTMAP	0x20
-
 typedef struct r_array_state_s {
 	const r_model_t *model;
-	int arrays;
+	unsigned int arrays;
 } r_array_state_t;
 
 static r_array_state_t r_array_state;
 
 /*
+ * R_ArrayMask
+ *
  * Returns a bitmask representing the arrays which should be enabled according
  * to r_state.  This function is consulted to determine whether or not array
  * bindings are up to date.
  */
 static int R_ArraysMask(void) {
-	int mask;
+	unsigned int mask;
 
 	mask = R_ARRAY_VERTEX;
 
@@ -72,7 +67,7 @@ static int R_ArraysMask(void) {
 /*
  * R_SetVertexArrayState
  */
-static void R_SetVertexArrayState(const r_model_t *mod, int mask) {
+static void R_SetVertexArrayState(const r_model_t *mod, unsigned int mask) {
 
 	// vertex array
 	if (mask & R_ARRAY_VERTEX)
@@ -90,9 +85,9 @@ static void R_SetVertexArrayState(const r_model_t *mod, int mask) {
 		if (mask & R_ARRAY_NORMAL)
 			R_BindArray(GL_NORMAL_ARRAY, GL_FLOAT, mod->normals);
 
-		if (r_bumpmap->value && r_state.active_program == r_state.world_program) {
+		if (r_bumpmap->value) {
 
-			if (mask & R_ARRAY_TANGENT)
+			if (mask & R_ARRAY_TANGENT && mod->tangents)
 				R_BindArray(GL_TANGENT_ARRAY, GL_FLOAT, mod->tangents);
 		}
 	}
@@ -119,7 +114,7 @@ static void R_SetVertexArrayState(const r_model_t *mod, int mask) {
 /*
  * R_SetVertexBufferState
  */
-static void R_SetVertexBufferState(const r_model_t *mod, int mask) {
+static void R_SetVertexBufferState(const r_model_t *mod, unsigned int mask) {
 
 	// vertex array
 	if (mask & R_ARRAY_VERTEX)
@@ -137,10 +132,12 @@ static void R_SetVertexBufferState(const r_model_t *mod, int mask) {
 		if (mask & R_ARRAY_NORMAL)
 			R_BindBuffer(GL_NORMAL_ARRAY, GL_FLOAT, mod->normal_buffer);
 
-		if (r_bumpmap->value && mod->tangent_buffer && r_view.render_mode
-				== render_mode_default) {
+		if (r_bumpmap->value) {
 
-			if (mask & R_ARRAY_TANGENT)
+			if (r_state.active_program == r_state.pro_program)
+				printf("%u\n", mask);
+
+			if ((mask & R_ARRAY_TANGENT) && mod->tangent_buffer)
 				R_BindBuffer(GL_TANGENT_ARRAY, GL_FLOAT, mod->tangent_buffer);
 		}
 	}
@@ -157,8 +154,7 @@ static void R_SetVertexBufferState(const r_model_t *mod, int mask) {
 		if (mask & R_ARRAY_TEX_LIGHTMAP) {
 			R_SelectTexture(&texunit_lightmap);
 
-			R_BindBuffer(GL_TEXTURE_COORD_ARRAY, GL_FLOAT,
-					mod->lmtexcoord_buffer);
+			R_BindBuffer(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->lmtexcoord_buffer);
 
 			R_SelectTexture(&texunit_diffuse);
 		}
@@ -169,7 +165,7 @@ static void R_SetVertexBufferState(const r_model_t *mod, int mask) {
  * R_SetArrayState
  */
 void R_SetArrayState(const r_model_t *mod) {
-	int arrays, mask;
+	unsigned int arrays, mask;
 
 	if (r_vertex_buffers->modified) { // force a full re-bind
 		r_array_state.model = NULL;
@@ -182,7 +178,7 @@ void R_SetArrayState(const r_model_t *mod) {
 
 	if (r_array_state.model == mod) { // try to save some binds
 
-		const int xor = r_array_state.arrays ^ arrays;
+		const unsigned int xor = r_array_state.arrays ^ arrays;
 
 		if (!xor) // no changes, we're done
 			return;
@@ -190,6 +186,9 @@ void R_SetArrayState(const r_model_t *mod) {
 		// resolve what's left to turn on
 		mask = arrays & xor;
 	}
+
+	if (r_state.active_program) // cull anything the program doesn't use
+		mask &= r_state.active_program->arrays_mask;
 
 	if (r_vertex_buffers->value && qglGenBuffers) // use vbo
 		R_SetVertexBufferState(mod, mask);
@@ -205,7 +204,7 @@ void R_SetArrayState(const r_model_t *mod) {
  * R_ResetArrayState
  */
 void R_ResetArrayState(void) {
-	int arrays, mask;
+	unsigned int arrays, mask;
 
 	mask = 0xffff, arrays = R_ArraysMask(); // resolve the desired arrays mask
 
@@ -237,7 +236,7 @@ void R_ResetArrayState(void) {
 		if (mask & R_ARRAY_NORMAL)
 			R_BindDefaultArray(GL_NORMAL_ARRAY);
 
-		if (r_bumpmap->value && r_state.active_program == r_state.world_program) {
+		if (r_bumpmap->value) {
 
 			if (mask & R_ARRAY_TANGENT)
 				R_BindDefaultArray(GL_TANGENT_ARRAY);

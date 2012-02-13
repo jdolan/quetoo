@@ -31,21 +31,37 @@ typedef struct r_shader_s {
 	GLenum type;
 	GLuint id;
 	char name[MAX_QPATH];
-} r_shader_t;
+}r_shader_t;
 
 #define MAX_SHADERS 16
 
 // program variables
-#define GL_UNIFORM 1
-#define GL_ATTRIBUTE 2
+#define R_ATTRIBUTE 		0x1
+#define R_UNIFORM_INT 		0x2
+#define R_UNIFORM_FLOAT		0x4
+#define R_UNIFORM_VECTOR	0x8
+#define R_SAMPLER_2D		0x10
 
-typedef struct r_progvar_s {
+typedef union r_variable_value_u {
+	GLint i;
+	GLfloat f;
+	vec3_t vec3;
+} r_variable_value_t;
+
+typedef struct r_variable_s {
 	GLenum type;
 	char name[64];
 	GLint location;
-} r_progvar_t;
+	r_variable_value_t value;
+}r_variable_t;
 
-#define MAX_PROGRAM_VARS 14
+typedef r_variable_t r_attribute_t;
+typedef r_variable_t r_uniform1i_t;
+typedef r_variable_t r_uniform1f_t;
+typedef r_variable_t r_uniform3fv_t;
+typedef r_variable_t r_sampler2d_t;
+
+#define MAX_PROGRAM_VARIABLES 32
 
 // and glsl programs
 typedef struct r_program_s {
@@ -53,21 +69,22 @@ typedef struct r_program_s {
 	char name[64];
 	r_shader_t *v;
 	r_shader_t *f;
-	r_progvar_t vars[MAX_PROGRAM_VARS];
-	void (*init)(void);
-	void (*use)(void);
-} r_program_t;
+	unsigned int arrays_mask;
+	void (*Init)(void);
+	void (*Use)(void);
+	void (*UseMaterial)(const r_bsp_surface_t *surf, const r_image_t *image);
+}r_program_t;
 
 #define MAX_PROGRAMS 8
 
 void R_UseProgram(r_program_t *prog);
-void R_ProgramParameter1i(const char *name, GLint value);
-void R_ProgramParameter1f(const char *name, GLfloat value);
-void R_ProgramParameter3fv(const char *name, GLfloat *value);
-void R_ProgramParameter4fv(const char *name, GLfloat *value);
+void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name);
+void R_ProgramParameter1i(r_uniform1i_t *variable, GLint value);
+void R_ProgramParameter1f(r_uniform1f_t *variable, GLfloat value);
+void R_ProgramParameter3fv(r_uniform3fv_t *variable, GLfloat *value);
 void R_AttributePointer(const char *name, GLuint size, GLvoid *array);
-void R_EnableAttribute(const char *name);
-void R_DisableAttribute(const char *name);
+void R_EnableAttribute(r_attribute_t *attribute);
+void R_DisableAttribute(r_attribute_t *attribute);
 void R_ShutdownPrograms(void);
 void R_InitPrograms(void);
 
