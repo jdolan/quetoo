@@ -797,6 +797,8 @@ void Cl_InitInput(void) {
  * Cl_ShutdownInput
  */
 void Cl_ShutdownInput(void) {
-	if(cls.mouse_state.grabbed)
+	if(cls.mouse_state.grabbed) {
 		SDL_WM_GrabInput(SDL_GRAB_OFF);
+		cls.mouse_state.grabbed = false;
+	}
 }
