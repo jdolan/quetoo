@@ -887,6 +887,8 @@ void Cl_Shutdown(void) {
 
 	Cl_FreeServers();
 
+	Cl_ShutdownInput();
+
 	Cl_ShutdownKeys();
 
 	Ui_Shutdown();

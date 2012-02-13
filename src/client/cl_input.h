@@ -29,6 +29,7 @@ void Cl_ClearInput(void);
 void Cl_InitInput(void);
 void Cl_HandleEvents(void);
 void Cl_Move(user_cmd_t *cmd);
+void Cl_ShutdownInput(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_INPUT_H__ */
