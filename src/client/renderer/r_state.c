@@ -21,6 +21,8 @@
 
 #include "r_local.h"
 
+static cvar_t *r_get_error;
+
 r_state_t r_state;
 
 const float default_texcoords[] = { // useful for particles, pics, etc..
@@ -30,9 +32,11 @@ const float default_texcoords[] = { // useful for particles, pics, etc..
  * R_GetError
  */
 void R_GetError_(const char *function, const char *msg) {
-#if 1
 	GLenum err;
 	char *s;
+
+	if (!r_get_error->value)
+		return;
 
 	while (true) {
 
@@ -60,11 +64,10 @@ void R_GetError_(const char *function, const char *msg) {
 			break;
 		}
 
-		//Sys_Backtrace();
+		Sys_Backtrace();
 
 		Com_Warn("R_GetError: %s: %s: %s.\n", s, function, msg);
 	}
-#endif
 }
 
 /*
@@ -637,7 +640,10 @@ void R_SetDefaultState(void) {
  * R_InitState
  */
 void R_InitState(void) {
+
 	memset(&r_state, 0, sizeof(r_state));
+
+	r_get_error = Cvar_Get("r_get_error", "0", 0, NULL);
 }
 
 /*
