@@ -600,7 +600,7 @@ void R_SetDefaultState(void) {
 			texunit->texture = GL_TEXTURE0_ARB + i;
 
 			if (i < r_config.max_texunits) {
-				texunit->texcoord_array = (float *) Z_Malloc(MAX_GL_ARRAY_LENGTH * 2);
+				texunit->texcoord_array = (float *) Z_Malloc(MAX_GL_ARRAY_LENGTH * 2 * sizeof(float));
 
 				R_EnableTexture(texunit, true);
 
