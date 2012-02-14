@@ -618,7 +618,7 @@ static void R_LoadObjModelTangents(r_obj_t *obj) {
 			const float *normal = &obj->normals[(v->normal - 1) * 3];
 			float *tangent = &obj->tangents[(v->vert - 1) * 4];
 
-			TangentVectors(normal, tan1[i], tan2[i], tangent, bitangent);
+			TangentVectors(normal, tan1[v->vert - 1], tan2[v->vert - 1], tangent, bitangent);
 		}
 	}
 
@@ -632,13 +632,13 @@ static void R_LoadObjModelTangents(r_obj_t *obj) {
 static void R_LoadObjModelVertexArrays(r_model_t *mod) {
 	const r_obj_t *obj;
 	const r_obj_tri_t *t;
-	int i, j, vert_index, texcoord_index;
+	int i, j, vert_index, tangent_index, texcoord_index;
 
 	R_AllocVertexArrays(mod);
 
 	obj = (r_obj_t *) mod->extra_data;
 
-	vert_index = texcoord_index = 0;
+	vert_index = tangent_index = texcoord_index = 0;
 
 	t = obj->tris;
 
@@ -651,6 +651,9 @@ static void R_LoadObjModelVertexArrays(r_model_t *mod) {
 			VectorCopy((&obj->verts[(v->vert - 1) * 3]),
 					(&mod->verts[vert_index + j * 3]));
 
+			Vector4Copy((&obj->tangents[(v->vert - 1) * 4]),
+					(&mod->tangents[tangent_index + j * 4]));
+
 			if (v->normal) {
 				VectorCopy((&obj->normals[(v->normal - 1) * 3]),
 						(&mod->normals[vert_index + j * 3]));
@@ -662,8 +665,9 @@ static void R_LoadObjModelVertexArrays(r_model_t *mod) {
 			}
 		}
 
-		texcoord_index += 6;
 		vert_index += 9;
+		tangent_index += 12;
+		texcoord_index += 6;
 	}
 }
 
