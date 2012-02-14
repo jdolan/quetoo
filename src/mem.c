@@ -27,8 +27,11 @@ static z_head_t z_chain;
 static size_t z_count, z_bytes;
 static SDL_mutex *z_lock;
 
-/*
+/**
  * Z_Init
+ *
+ * Initializes the managed memory subsystem. This should be one of the first
+ * subsystems initialized by Quake2World.
  */
 void Z_Init(void) {
 
@@ -39,16 +42,37 @@ void Z_Init(void) {
 
 /*
  * Z_Shutdown
+ *
+ * Shuts down the managed memory subsystem. This should be one of the last
+ * subsystems brought down by Quake2World.
  */
 void Z_Shutdown(void) {
 
-	Z_FreeTags(-1);
+	Z_FreeTag(-1);
 
 	SDL_DestroyMutex(z_lock);
 }
 
 /*
+ * Z_Free_
+ *
+ * Performs the actual grunt work of freeing managed memory.
+ */
+static void Z_Free_(z_head_t *z) {
+
+	z->prev->next = z->next;
+	z->next->prev = z->prev;
+
+	z_count--;
+	z_bytes -= z->size;
+
+	free(z);
+}
+
+/**
  * Z_Free
+ *
+ * Free an allocation of managed memory.
  */
 void Z_Free(void *ptr) {
 	z_head_t *z;
@@ -61,44 +85,44 @@ void Z_Free(void *ptr) {
 
 	SDL_mutexP(z_lock);
 
-	z->prev->next = z->next;
-	z->next->prev = z->prev;
+	Z_Free_(z);
 
 	SDL_mutexV(z_lock);
-
-	z_count--;
-	z_bytes -= z->size;
-	free(z);
 }
 
-/*
- * Z_FreeTags
+/**
+ * Z_FreeTag
+ *
+ * Free all managed items allocated with the specified tag.
  */
-void Z_FreeTags(int tag) {
+void Z_FreeTag(short tag) {
 	z_head_t *z, *next;
+
+	SDL_mutexP(z_lock);
 
 	for (z = z_chain.next; z != &z_chain; z = next) {
 		next = z->next;
 		if (-1 == tag || z->tag == tag)
-			Z_Free((void *) (z + 1));
+			Z_Free_(z);
 	}
+
+	SDL_mutexV(z_lock);
 }
 
-/*
+/**
  * Z_TagMalloc
+ *
+ * Allocates and initializes a block of managed memory for the specified tag.
+ * Tags allow related objects to be freed in bulk e.g. when a subsystem quits.
  */
-void *Z_TagMalloc(size_t size, int tag) {
+void *Z_TagMalloc(size_t size, short tag) {
 	z_head_t *z;
 
 	size = size + sizeof(z_head_t);
 	z = malloc(size);
 	if (!z) {
-		Com_Error(ERR_FATAL,
-				"Z_TagMalloc: Failed to allocate "Q2W_SIZE_T" bytes.\n", size);
+		Com_Error(ERR_FATAL, "Z_TagMalloc: Failed to allocate "Q2W_SIZE_T" bytes.\n", size);
 	}
-
-	z_count++;
-	z_bytes += size;
 
 	memset(z, 0, size);
 	z->magic = Z_MAGIC;
@@ -112,20 +136,29 @@ void *Z_TagMalloc(size_t size, int tag) {
 	z_chain.next->prev = z;
 	z_chain.next = z;
 
+	z_count++;
+	z_bytes += size;
+
 	SDL_mutexV(z_lock);
 
 	return (void *) (z + 1);
 }
 
-/*
+/**
  * Z_Malloc
+ *
+ * Allocates and initializes a block of managed memory. Free the memory via
+ * Z_Free when done. As a fallback, all managed memory is freed by the engine
+ * on exit.
  */
 void *Z_Malloc(size_t size) {
 	return Z_TagMalloc(size, 0);
 }
 
-/*
+/**
  * Z_CopyString
+ *
+ * Allocates and returns a copy of the specified string.
  */
 char *Z_CopyString(const char *in) {
 	char *out;

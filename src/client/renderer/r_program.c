@@ -217,6 +217,8 @@ void R_ShutdownPrograms(void) {
 	if (!qglDeleteProgram)
 		return;
 
+	R_UseProgram(NULL);
+
 	for (i = 0; i < MAX_PROGRAMS; i++) {
 
 		if (!r_state.programs[i].id)
@@ -264,8 +266,10 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	sh->type = type;
 
 	sh->id = qglCreateShader(sh->type);
-	if (!sh->id)
+	if (!sh->id) {
+		Fs_FreeFile(buf);
 		return NULL;
+	}
 
 	// upload the shader source
 	qglShaderSource(sh->id, 1, src, length);
@@ -293,7 +297,6 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
  * R_LoadProgram
  */
 static r_program_t *R_LoadProgram(const char *name, void(*Init)(void)) {
-
 	r_program_t *prog;
 	char log[MAX_STRING_CHARS];
 	unsigned e;

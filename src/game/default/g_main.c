@@ -1102,7 +1102,7 @@ static void G_ParseMapList(const char *file_name) {
 	g_map_list.count = i;
 	g_map_list.index = 0;
 
-	gi.TagFree(buf);
+	gi.Free(buf);
 
 	// thou shalt not divide by zero
 	if (!g_map_list.total_weight)
@@ -1193,9 +1193,9 @@ void G_Init(void) {
 	G_InitItems();
 
 	// initialize entities and clients for this game
-	g_game.edicts = gi.TagMalloc(g_max_entities->integer * sizeof(g_edict_t),
+	g_game.edicts = gi.Malloc(g_max_entities->integer * sizeof(g_edict_t),
 			TAG_GAME);
-	g_game.clients = gi.TagMalloc(sv_max_clients->integer * sizeof(g_client_t),
+	g_game.clients = gi.Malloc(sv_max_clients->integer * sizeof(g_client_t),
 			TAG_GAME);
 
 	ge.edicts = g_game.edicts;
@@ -1231,8 +1231,8 @@ void G_Shutdown(void) {
 	mysql_close(mysql); // and db
 #endif
 
-	gi.FreeTags(TAG_LEVEL);
-	gi.FreeTags(TAG_GAME);
+	gi.FreeTag(TAG_LEVEL);
+	gi.FreeTag(TAG_GAME);
 }
 
 /*

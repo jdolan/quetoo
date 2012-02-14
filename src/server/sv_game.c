@@ -324,9 +324,9 @@ void Sv_InitGame(void) {
 	import.WriteDir = Sv_WriteDir;
 	import.WriteAngle = Sv_WriteAngle;
 
-	import.TagMalloc = Z_TagMalloc;
-	import.TagFree = Z_Free;
-	import.FreeTags = Z_FreeTags;
+	import.Malloc = Z_TagMalloc;
+	import.Free = Z_Free;
+	import.FreeTag = Z_FreeTag;
 
 	import.Gamedir = Fs_Gamedir;
 	import.OpenFile = Fs_OpenFile;

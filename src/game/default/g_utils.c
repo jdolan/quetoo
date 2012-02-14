@@ -327,7 +327,7 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 char *G_CopyString(char *in) {
 	char *out;
 
-	out = gi.TagMalloc(strlen(in) + 1, TAG_LEVEL);
+	out = gi.Malloc(strlen(in) + 1, TAG_LEVEL);
 	strcpy(out, in);
 	return out;
 }

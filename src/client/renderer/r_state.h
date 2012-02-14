@@ -110,7 +110,6 @@ void R_EnableWarp(r_program_t *program, boolean_t enable);
 void R_EnableShell(boolean_t enable);
 void R_EnableFog(boolean_t enable);
 void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image);
-void R_SetDefaultState(void);
 void R_InitState(void);
 void R_ShutdownState(void);
 

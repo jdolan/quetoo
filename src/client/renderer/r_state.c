@@ -474,16 +474,15 @@ void R_EnableFog(boolean_t enable) {
 	}
 }
 
-/*
+/**
  * R_UseMaterial
+ *
+ * Setup the GLSL shaders for the specified surface and primary material. If no
+ * shader is bound, this function simply returns.
  */
 void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image) {
-	const r_material_t *material = image ? &image->material : NULL;
 
 	if (!r_state.active_program)
-		return;
-
-	if (r_state.active_material == material)
 		return;
 
 	if (r_state.active_program->UseMaterial)
@@ -495,8 +494,11 @@ void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image) {
 #define NEAR_Z 4
 #define FAR_Z 16384
 
-/*
+/**
  * R_Setup3D
+ *
+ * Prepare OpenGL for drawing the 3D scene. Update the view-port definition
+ * and load our projection and model-view matrices.
  */
 void R_Setup3D(void) {
 	float xmin, xmax, ymin, ymax;
@@ -544,8 +546,11 @@ void R_Setup3D(void) {
 	glEnable(GL_DEPTH_TEST);
 }
 
-/*
+/**
  * R_Setup2D
+ *
+ * Prepare OpenGL for drawing the 2D overlay. Update the view-port definition
+ * and reset the project and model-view matrices.
  */
 void R_Setup2D(void) {
 
@@ -572,13 +577,18 @@ void R_Setup2D(void) {
 	glDisable(GL_DEPTH_TEST);
 }
 
-/*
- * R_SetDEfaultState
+/**
+ * R_InitState
  *
- * Sets OpenGL state parameters to appropiate defaults.
+ * Initializes the OpenGL state cache and sets OpenGL state parameters to
+ * appropriate defaults.
  */
-void R_SetDefaultState(void) {
+void R_InitState(void) {
 	int i;
+
+	r_get_error = Cvar_Get("r_get_error", "1", 0, NULL);
+
+	memset(&r_state, 0, sizeof(r_state));
 
 	// setup vertex array pointers
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -600,7 +610,8 @@ void R_SetDefaultState(void) {
 			texunit->texture = GL_TEXTURE0_ARB + i;
 
 			if (i < r_config.max_texunits) {
-				texunit->texcoord_array = (float *) Z_Malloc(MAX_GL_ARRAY_LENGTH * 2 * sizeof(float));
+				texunit->texcoord_array = (float *) Z_Malloc(
+						MAX_GL_ARRAY_LENGTH * 2 * sizeof(float));
 
 				R_EnableTexture(texunit, true);
 
@@ -637,16 +648,6 @@ void R_SetDefaultState(void) {
 }
 
 /*
- * R_InitState
- */
-void R_InitState(void) {
-
-	memset(&r_state, 0, sizeof(r_state));
-
-	r_get_error = Cvar_Get("r_get_error", "0", 0, NULL);
-}
-
-/*
  * R_ShutdownState
  */
 void R_ShutdownState(void) {
@@ -658,4 +659,6 @@ void R_ShutdownState(void) {
 		if (texunit->texcoord_array)
 			Z_Free(texunit->texcoord_array);
 	}
+
+	memset(&r_state, 0, sizeof(r_state));
 }

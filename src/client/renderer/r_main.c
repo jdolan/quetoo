@@ -695,8 +695,6 @@ void R_Init(void) {
 
 	R_InitLocal();
 
-	R_InitState();
-
 	R_InitContext();
 
 	R_InitConfig();
@@ -705,7 +703,7 @@ void R_Init(void) {
 
 	R_InitGlExtensions();
 
-	R_SetDefaultState();
+	R_InitState();
 
 	R_InitPrograms();
 
@@ -745,11 +743,11 @@ void R_Shutdown(void) {
 
 	R_ShutdownCapture();
 
+	R_ShutdownPrograms();
+
 	R_ShutdownModels();
 
 	R_ShutdownImages();
-
-	R_ShutdownPrograms();
 
 	R_ShutdownContext();
 

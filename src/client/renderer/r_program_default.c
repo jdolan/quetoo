@@ -114,12 +114,18 @@ void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_image_t *image) 
 
 	R_EnableAttribute(&p->tangent);
 
+	// first deal with the surface
 	if (surf) {
 		R_BindDeluxemapTexture(surf->deluxemap_texnum);
 		R_ProgramParameter1i(&p->deluxemap, 1);
-	}
-	else
+	} else
 		R_ProgramParameter1i(&p->deluxemap, 0);
+
+	// then the material
+	const r_material_t *material = image ? &image->material : NULL;
+
+	if (r_state.active_material == material)
+		return;
 
 	R_BindNormalmapTexture(image->normalmap->texnum);
 	R_ProgramParameter1i(&p->normalmap, 1);
@@ -127,11 +133,9 @@ void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_image_t *image) 
 	if (image->glossmap) {
 		R_BindGlossmapTexture(image->glossmap->texnum);
 		R_ProgramParameter1i(&p->glossmap, 1);
-	}
-	else
+	} else
 		R_ProgramParameter1i(&p->glossmap, 0);
 
-	const r_material_t *material = image ? &image->material : NULL;
 
 	R_ProgramParameter1f(&p->bump, material->bump * r_bumpmap->value);
 	R_ProgramParameter1f(&p->parallax, material->parallax * r_parallax->value);
