@@ -134,9 +134,6 @@ static void R_SetVertexBufferState(const r_model_t *mod, unsigned int mask) {
 
 		if (r_bumpmap->value) {
 
-			if (r_state.active_program == r_state.pro_program)
-				printf("%u\n", mask);
-
 			if ((mask & R_ARRAY_TANGENT) && mod->tangent_buffer)
 				R_BindBuffer(GL_TANGENT_ARRAY, GL_FLOAT, mod->tangent_buffer);
 		}
