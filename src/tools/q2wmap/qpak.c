@@ -292,6 +292,12 @@ static void AddMaterials(void){
 			continue;
 		}
 
+		if (!strcmp(c, "glossmap")) {
+			snprintf(texture, sizeof(texture), "textures/%s", ParseToken(&buf));
+			AddImage(texture, true);
+			continue;
+		}
+
 		// and custom envmaps
 		if(!strcmp(c, "envmap")){
 
@@ -418,12 +424,14 @@ int PAK_Main(void){
 
 	LoadBSPFile(bsp_name);
 
-	// add the textures and normalmaps
+	// add the textures, normalmaps and glossmaps
 	for(i = 0; i < d_bsp.num_texinfo; i++){
 		AddImage(va("textures/%s", d_bsp.texinfo[i].texture), true);
 		AddImage(va("textures/%s_nm", d_bsp.texinfo[i].texture), false);
 		AddImage(va("textures/%s_norm", d_bsp.texinfo[i].texture), false);
 		AddImage(va("textures/%s_local", d_bsp.texinfo[i].texture), false);
+		AddImage(va("textures%s_s", d_bsp.texinfo[i].texture), false);
+		AddImage(va("textures%s_gloss", d_bsp.texinfo[i].texture), false);
 	}
 
 	// and the materials
