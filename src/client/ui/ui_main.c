@@ -26,7 +26,7 @@ ui_t ui;
 
 extern cl_static_t cls;
 
-/*
+/**
  * Ui_Event
  *
  * Handles input events, returning true if the event was swallowed by TwBar.
@@ -35,7 +35,7 @@ boolean_t Ui_Event(SDL_Event *event) {
 	return TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
 }
 
-/*
+/**
  * Ui_Draw
  *
  * Draws any active TwBar components.
@@ -57,7 +57,7 @@ void Ui_Draw(void) {
 	TwDraw();
 }
 
-/*
+/**
  * Ui_Root
  *
  * Defines the root TwBar.
@@ -95,8 +95,11 @@ static void Ui_Restart_f(void) {
 void Ui_Init(void) {
 	const TwEnumVal OffOrOn[] = { { 0, "Off" }, { 1, "On" } };
 
-	const TwEnumVal OffLowMediumHigh[] = { { 0, "Off" }, { 1, "Low" }, { 2,
-			"Medium" }, { 3, "High" } };
+	const TwEnumVal OffLowMediumHigh[] = {
+			{ 0, "Off" },
+			{ 1, "Low" },
+			{ 2, "Medium" },
+			{ 3, "High" } };
 
 	memset(&ui, 0, sizeof(ui));
 

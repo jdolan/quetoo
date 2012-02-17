@@ -33,7 +33,7 @@ r_image_t r_images[MAX_GL_TEXTURES];
 unsigned short r_num_images;
 
 static GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
-static GLint r_filter_max = GL_LINEAR;
+static GLint r_filter_mag = GL_LINEAR;
 static GLfloat r_filter_aniso = 1.0;
 
 #define IS_MIPMAP(t) (t == it_effect || t == it_world || t == it_normalmap || t == it_glossmap || t == it_material)
@@ -43,14 +43,16 @@ typedef struct {
 	GLenum minimize, maximize;
 } r_texture_mode_t;
 
-static r_texture_mode_t r_texture_modes[] = {
-		{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
-		{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
-		{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
-		{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
-		{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
-		{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
-};
+static r_texture_mode_t r_texture_modes[] = { { "GL_NEAREST", GL_NEAREST, GL_NEAREST }, {
+		"GL_LINEAR",
+		GL_LINEAR,
+		GL_LINEAR }, { "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST }, {
+		"GL_LINEAR_MIPMAP_NEAREST",
+		GL_LINEAR_MIPMAP_NEAREST,
+		GL_LINEAR }, { "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST }, {
+		"GL_LINEAR_MIPMAP_LINEAR",
+		GL_LINEAR_MIPMAP_LINEAR,
+		GL_LINEAR } };
 
 #define NUM_GL_TEXTURE_MODES (sizeof(r_texture_modes) / sizeof(r_texture_mode_t))
 
@@ -72,7 +74,7 @@ void R_TextureMode(const char *mode) {
 	}
 
 	r_filter_min = r_texture_modes[i].minimize;
-	r_filter_max = r_texture_modes[i].maximize;
+	r_filter_mag = r_texture_modes[i].maximize;
 
 	if (r_anisotropy->value)
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_filter_aniso);
@@ -91,10 +93,9 @@ void R_TextureMode(const char *mode) {
 		R_BindTexture(image->texnum);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_max);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-				r_filter_aniso);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_filter_aniso);
 	}
 }
 
@@ -163,18 +164,15 @@ void R_Screenshot_f(void) {
 	byte *buffer;
 	FILE *f;
 
-	void (*Img_Write)(const char *path, byte *data, int width, int height,
-			int quality);
+	void (*Img_Write)(const char *path, byte *data, int width, int height, int quality);
 
 	// use format specified in type cvar
-	if (!strcmp(r_screenshot_type->string, "jpeg") || !strcmp(
-			r_screenshot_type->string, "jpg")) {
+	if (!strcmp(r_screenshot_type->string, "jpeg") || !strcmp(r_screenshot_type->string, "jpg")) {
 		Img_Write = &Img_WriteJPEG;
 	} else if (!strcmp(r_screenshot_type->string, "tga")) {
 		Img_Write = &Img_WriteTGARLE;
 	} else {
-		Com_Warn("R_Screenshot_f: Type \"%s\" not supported.\n",
-				r_screenshot_type->string);
+		Com_Warn("R_Screenshot_f: Type \"%s\" not supported.\n", r_screenshot_type->string);
 		return;
 	}
 
@@ -203,8 +201,7 @@ void R_Screenshot_f(void) {
 
 	buffer = Z_Malloc(r_context.width * r_context.height * 3);
 
-	glReadPixels(0, 0, r_context.width, r_context.height, GL_RGB,
-			GL_UNSIGNED_BYTE, buffer);
+	glReadPixels(0, 0, r_context.width, r_context.height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
 	quality = r_screenshot_quality->value * 100;
 
@@ -267,8 +264,7 @@ void R_SoftenTexture(byte *in, int width, int height, r_image_type_t type) {
  * the image's average color.  Also handles image inversion and monochrome.  This is
  * all munged into one function to reduce loops on level load.
  */
-void R_FilterTexture(byte *in, int width, int height, vec3_t color,
-		r_image_type_t type) {
+void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type_t type) {
 	vec3_t temp;
 	int i, j, c, bpp, mask;
 	unsigned col[3];
@@ -302,8 +298,7 @@ void R_FilterTexture(byte *in, int width, int height, vec3_t color,
 		VectorScale(p, 1.0 / 255.0, temp); // convert to float
 
 		// apply brightness, saturation and contrast
-		ColorFilter(temp, temp, brightness, r_saturation->value,
-				r_contrast->value);
+		ColorFilter(temp, temp, brightness, r_saturation->value, r_contrast->value);
 
 		for (j = 0; j < 3; j++) {
 
@@ -351,25 +346,22 @@ void R_FilterTexture(byte *in, int width, int height, vec3_t color,
 /*
  * R_UploadImage_
  */
-static void R_UploadImage_(byte *data, int width, int height, vec3_t color,
-		r_image_type_t type) {
+static void R_UploadImage_(byte *data, int width, int height, vec3_t color, r_image_type_t type) {
 
 	R_FilterTexture(data, width, height, color, type);
 
 	if (!IS_MIPMAP(type)) {
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_max);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_max);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_mag);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 	} else {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_max);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-				r_filter_aniso);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_filter_aniso);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-			GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
 /*
@@ -377,8 +369,7 @@ static void R_UploadImage_(byte *data, int width, int height, vec3_t color,
  *
  * This is also used as an entry point for the generated r_notexture.
  */
-r_image_t *R_UploadImage(const char *name, byte *data, int width, int height,
-		r_image_type_t type) {
+r_image_t *R_UploadImage(const char *name, byte *data, int width, int height, r_image_type_t type) {
 	r_image_t *image;
 	int i;
 
@@ -484,8 +475,7 @@ static void R_InitEnvmapTextures(void) {
 	int i;
 
 	for (i = 0; i < NUM_ENVMAP_IMAGES; i++)
-		r_envmap_images[i] = R_LoadImage(va("envmaps/envmap_%i.tga", i),
-				it_effect);
+		r_envmap_images[i] = R_LoadImage(va("envmaps/envmap_%i.tga", i), it_effect);
 }
 
 /*
@@ -495,8 +485,7 @@ static void R_InitFlareTextures(void) {
 	int i;
 
 	for (i = 0; i < NUM_FLARE_IMAGES; i++)
-		r_flare_images[i]
-				= R_LoadImage(va("flares/flare_%i.tga", i), it_effect);
+		r_flare_images[i] = R_LoadImage(va("flares/flare_%i.tga", i), it_effect);
 }
 
 #define WARP_SIZE 16
@@ -517,8 +506,7 @@ static void R_InitWarpTexture(void) {
 		}
 	}
 
-	r_warp_image = R_UploadImage("r_warp_image", (byte *) warp, WARP_SIZE,
-			WARP_SIZE, it_effect);
+	r_warp_image = R_UploadImage("r_warp_image", (byte *) warp, WARP_SIZE, WARP_SIZE, it_effect);
 }
 
 /*

@@ -136,7 +136,6 @@ void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_image_t *image) 
 	} else
 		R_ProgramParameter1i(&p->glossmap, 0);
 
-
 	R_ProgramParameter1f(&p->bump, material->bump * r_bumpmap->value);
 	R_ProgramParameter1f(&p->parallax, material->parallax * r_parallax->value);
 	R_ProgramParameter1f(&p->hardness, material->hardness * r_hardness->value);
