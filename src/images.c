@@ -30,11 +30,11 @@
 
 /* And another one... jmorecfg.h defines the 'boolean' type as int,
  which conflicts with the standard Windows 'boolean' definition as
- unsigned char. Ref: http://www.asmail.be/msg0054688232.html */
+ byte. Ref: http://www.asmail.be/msg0054688232.html */
 
 #if defined(_WIN32)
-/* typedef "boolean" as unsigned char to match rpcndr.h */
-typedef unsigned char boolean;
+/* typedef "boolean" as byte to match rpcndr.h */
+typedef byte boolean;
 #define HAVE_BOOLEAN    /* prevent jmorecfg.h from typedef-ing it as int */
 #endif
 
@@ -57,8 +57,8 @@ boolean_t palette_initialized = 0;
 // .wal file header for loading legacy .wal textures
 typedef struct miptex_s {
 	char name[32];
-	unsigned width, height;
-	unsigned offsets[4]; // four mip maps stored
+	unsigned int width, height;
+	unsigned int offsets[4]; // four mip maps stored
 	char animname[32]; // next frame in animation chain
 	unsigned int flags;
 	int contents;
@@ -94,7 +94,7 @@ SDL_PixelFormat format = {
 // image formats, tried in this order
 const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
 
-/*
+/**
  * Img_LoadImage
  *
  * Loads the specified image from the game filesystem and populates
@@ -114,7 +114,7 @@ boolean_t Img_LoadImage(const char *name, SDL_Surface **surf) {
 	return false;
 }
 
-/*
+/**
  * Img_LoadWal
  *
  * A helper which mangles a .wal file into an SDL_Surface suitable for
@@ -167,7 +167,7 @@ static boolean_t Img_LoadWal(const char *path, SDL_Surface **surf) {
 	return true;
 }
 
-/*
+/**
  * Img_LoadTypedImage
  *
  * Loads the specified image from the game filesystem and populates
@@ -217,7 +217,7 @@ boolean_t Img_LoadTypedImage(const char *name, const char *type,
 	return true;
 }
 
-/*
+/**
  * Img_InitPalette
  *
  * Initializes the 8bit color palette required for .wal texture loading.
@@ -247,7 +247,7 @@ void Img_InitPalette(void) {
 	palette_initialized = true;
 }
 
-/*
+/**
  * Img_ColorFromPalette
  *
  * Returns RGB components of the specified color in the specified result array.
@@ -265,7 +265,7 @@ void Img_ColorFromPalette(byte c, float *res) {
 	res[2] = (color >> 16 & 255) / 255.0;
 }
 
-/*
+/**
  * Img_fwrite
  *
  * Wraps fwrite, reading the return value to silence gcc.
@@ -277,7 +277,7 @@ static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb,
 		Com_Print("Failed to write\n");
 }
 
-/*
+/**
  * Img_WriteJPEG
  *
  * Write pixel data to a JPEG file.
@@ -329,7 +329,7 @@ void Img_WriteJPEG(const char *path, byte *data, int width, int height,
 
 #define TGA_CHANNELS 3
 
-/*
+/**
  * Img_WriteTGARLE
  *
  * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
@@ -338,12 +338,12 @@ void Img_WriteTGARLE(const char *path, byte *data, int width, int height,
 		int quality __attribute__((unused))) {
 	FILE *tga_file;
 	const unsigned int channels = TGA_CHANNELS; // 24-bit RGB
-	unsigned char header[18];
+	byte header[18];
 	// write image data
 	// TGA has the R and B channels switched
-	unsigned char pixel_data[TGA_CHANNELS];
-	unsigned char block_data[TGA_CHANNELS * 128];
-	unsigned char rle_packet;
+	byte pixel_data[TGA_CHANNELS];
+	byte block_data[TGA_CHANNELS * 128];
+	byte rle_packet;
 	int compress = 0;
 	size_t block_length = 0;
 	char footer[26];

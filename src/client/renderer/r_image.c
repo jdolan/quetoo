@@ -43,16 +43,14 @@ typedef struct {
 	GLenum minimize, maximize;
 } r_texture_mode_t;
 
-static r_texture_mode_t r_texture_modes[] = { { "GL_NEAREST", GL_NEAREST, GL_NEAREST }, {
-		"GL_LINEAR",
-		GL_LINEAR,
-		GL_LINEAR }, { "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST }, {
-		"GL_LINEAR_MIPMAP_NEAREST",
-		GL_LINEAR_MIPMAP_NEAREST,
-		GL_LINEAR }, { "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST }, {
-		"GL_LINEAR_MIPMAP_LINEAR",
-		GL_LINEAR_MIPMAP_LINEAR,
-		GL_LINEAR } };
+static r_texture_mode_t r_texture_modes[] = {
+		{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
+		{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
+		{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
+		{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
+		{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
+		{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
+};
 
 #define NUM_GL_TEXTURE_MODES (sizeof(r_texture_modes) / sizeof(r_texture_mode_t))
 
@@ -351,12 +349,12 @@ static void R_UploadImage_(byte *data, int width, int height, vec3_t color, r_im
 	R_FilterTexture(data, width, height, color, type);
 
 	if (!IS_MIPMAP(type)) {
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_mag);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 	} else {
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_filter_aniso);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 	}
