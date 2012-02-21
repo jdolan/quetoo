@@ -21,13 +21,7 @@
 
 #include "sv_local.h"
 
-/*
- *
- * Encode a client frame onto the network channel
- *
- */
-
-/*
+/**
  * Sv_EmitEntities
  *
  * Writes a delta update of an entity_state_t list to the message.
@@ -233,7 +227,7 @@ void Sv_WriteFrameToClient(sv_client_t *client, size_buf_t *msg) {
 	Sv_EmitEntities(old_frame, frame, msg);
 }
 
-/*
+/**
  * Sv_ClientPVS
  *
  * Resolve the visibility data for the bounding box around the client. The
@@ -249,8 +243,8 @@ static byte *Sv_ClientPVS(const vec3_t org) {
 	vec3_t mins, maxs;
 
 	for (i = 0; i < 3; i++) {
-		mins[i] = org[i] - 8;
-		maxs[i] = org[i] + 8;
+		mins[i] = org[i] - 32.0;
+		maxs[i] = org[i] + 32.0;
 	}
 
 	count = Cm_BoxLeafnums(mins, maxs, leafs, 64, NULL);
