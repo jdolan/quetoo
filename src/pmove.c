@@ -783,8 +783,6 @@ static void Pm_CheckDuck(void) {
 	VectorScale(PM_MINS, PM_SCALE, pm->mins);
 	VectorScale(PM_MAXS, PM_SCALE, pm->maxs);
 
-	//VectorClear(pml.view_offset);
-
 	height = pm->maxs[2] - pm->mins[2];
 
 	if (pm->s.pm_type == PM_DEAD) {
@@ -802,18 +800,23 @@ static void Pm_CheckDuck(void) {
 	if (pm->s.pm_flags & PMF_DUCKED) { // ducked, reduce height
 		const float target = pm->mins[2] + height * 0.375;
 
-		if (pml.view_offset[2] > target) {
+		if (pml.view_offset[2] > target) // go down
 			pml.view_offset[2] -= pml.time * PM_SPEED_DUCK_STAND;
-		}
-		else {
+
+		if (pml.view_offset[2] <= target) {
+			pml.view_offset[2] = target;
+
+			// change the bounding box to reflect ducking
 			pm->maxs[2] = pm->maxs[2] + pm->mins[2] / 2.0;
 		}
 	} else {
 		const float target = pm->mins[2] + height * 0.75;
 
-		if (pml.view_offset[2] < target) {
+		if (pml.view_offset[2] < target) // go up
 			pml.view_offset[2] += pml.time * PM_SPEED_DUCK_STAND;
-		}
+
+		if (pml.view_offset[2] > target)
+			pml.view_offset[2] = target;
 	}
 }
 
