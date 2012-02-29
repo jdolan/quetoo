@@ -1022,7 +1022,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
 	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
 	gi.WriteByte(MZ_LOGOUT);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	gi.Multicast(ent->s.origin, MULTICAST_ALL);
 
 	gi.UnlinkEntity(ent);
 

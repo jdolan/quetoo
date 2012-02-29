@@ -354,7 +354,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 					continue; // blocked by a door
 			}
 
-			const byte *vis_data = ent->s.sound ? phs : vis;
+			const byte *vis_data = ent->s.sound || ent->s.event ? phs : vis;
 
 			if (ent->num_clusters == -1) { // too many leafs for individual check, go by head_node
 				if (!Cm_HeadnodeVisible(ent->head_node, vis_data))

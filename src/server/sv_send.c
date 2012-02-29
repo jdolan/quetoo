@@ -238,7 +238,14 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 			continue;
 
 		if (mask) {
-			leaf_num = Cm_PointLeafnum(client->edict->s.origin);
+			pm_state_t *pm = &client->edict->client->ps.pmove;
+			vec3_t org;
+
+			VectorCopy(pm->origin, org);
+			VectorAdd(org, pm->view_offset, org);
+			VectorScale(org, 0.125, org);
+
+			leaf_num = Cm_PointLeafnum(org);
 			cluster = Cm_LeafCluster(leaf_num);
 			area2 = Cm_LeafArea(leaf_num);
 			if (!Cm_AreasConnected(area1, area2))

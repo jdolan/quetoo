@@ -303,7 +303,7 @@ static void G_MuzzleFlash(g_edict_t *ent, muzzle_flash_t flash) {
 		gi.WriteByte(color);
 	}
 
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	gi.Multicast(ent->s.origin, MULTICAST_PHS);
 }
 
 /*

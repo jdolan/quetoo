@@ -102,7 +102,7 @@ static void G_BubbleTrail(vec3_t start, c_trace_t *tr) {
 	gi.WriteByte(TE_BUBBLES);
 	gi.WritePosition(start);
 	gi.WritePosition(tr->end);
-	gi.Multicast(pos, MULTICAST_PVS);
+	gi.Multicast(pos, MULTICAST_PHS);
 }
 
 /*
@@ -126,7 +126,7 @@ static void G_Tracer(vec3_t start, vec3_t end) {
 	gi.WriteByte(TE_TRACER);
 	gi.WritePosition(mid);
 	gi.WritePosition(end);
-	gi.Multicast(mid, MULTICAST_PVS);
+	gi.Multicast(mid, MULTICAST_PHS);
 }
 
 /*
@@ -142,7 +142,7 @@ static void G_BulletMark(vec3_t org, c_bsp_plane_t *plane,
 	gi.WritePosition(org);
 	gi.WriteDir(plane->normal);
 
-	gi.Multicast(org, MULTICAST_PVS);
+	gi.Multicast(org, MULTICAST_PHS);
 }
 
 /*
@@ -159,7 +159,7 @@ static void G_BurnMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf _
 	gi.WriteDir(plane->normal);
 	gi.WriteByte(scale);
 
-	gi.Multicast(org, MULTICAST_PVS);
+	gi.Multicast(org, MULTICAST_PHS);
 }
 
 /*
@@ -554,7 +554,7 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other,
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_HYPERBLASTER);
 	gi.WritePosition(origin);
-	gi.Multicast(origin, MULTICAST_PVS);
+	gi.Multicast(origin, MULTICAST_PHS);
 
 	if (other->take_damage) {
 		G_Damage(other, self, self->owner, self->velocity, self->s.origin,
@@ -882,7 +882,7 @@ static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other,
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BFG);
 	gi.WritePosition(origin);
-	gi.Multicast(origin, MULTICAST_PVS);
+	gi.Multicast(origin, MULTICAST_PHS);
 
 	if (other->take_damage) // hurt what we hit
 		G_Damage(other, self, self->owner, self->velocity, self->s.origin,

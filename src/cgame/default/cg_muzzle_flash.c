@@ -226,7 +226,7 @@ void Cg_ParseMuzzleFlash(void) {
 		Cg_EnergyFlash(&cent->current, 200, 64);
 		break;
 	case MZ_LOGOUT:
-		cgi.PlaySample(NULL, ent_num, cg_sample_teleport, ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_teleport, ATTN_NONE);
 		Cg_LogoutFlash(cent->current.origin);
 		break;
 	default:
