@@ -54,7 +54,7 @@ static cg_center_print_t center_print;
 
 byte color_white[4] = { 255, 255, 255, 255 };
 
-/*
+/**
  * Cg_DrawIcon
  *
  * Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
@@ -70,7 +70,7 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
 	cgi.DrawPic(x, y, scale, cgi.ConfigString(CS_IMAGES + icon));
 }
 
-/*
+/**
  * Cg_DrawVital
  *
  * Draws the vital numeric and icon, flashing on low quantities.
@@ -549,7 +549,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	p = dp;
 }
 
-/*
+/**
  * Cg_DrawHud
  *
  * Draws the HUD for the current frame.

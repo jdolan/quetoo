@@ -315,12 +315,11 @@ static void Fs_AddSearchPath(const char *dir) {
 	Sys_FindClose();
 }
 
-static char homedir[MAX_OSPATH];
-
 /*
  * Fs_Homedir
  */
 static char *Fs_Homedir(void) {
+	static char homedir[MAX_OSPATH];
 #ifdef _WIN32
 	void *handle;
 	FARPROC GetFolderPath;
@@ -329,14 +328,14 @@ static char *Fs_Homedir(void) {
 
 	if((handle = dlopen("shfolder.dll", 0))) {
 		if((GetFolderPath = dlsym(handle, "SHGetFolderPathA")))
-		GetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, homedir);
+			GetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, homedir);
 		dlclose(handle);
 	}
 
 	if(*homedir != '\0') // append our directory name
-	strcat(homedir, "/My Games/Quake2World");
+		strcat(homedir, "/My Games/Quake2World");
 	else // or simply use ./
-	strcat(homedir, PKGDATADIR);
+		strcat(homedir, PKGDATADIR);
 #else
 	memset(homedir, 0, sizeof(homedir));
 
@@ -355,7 +354,6 @@ static char *Fs_Homedir(void) {
 static void Fs_AddUserSearchPath(const char *dir) {
 	char gdir[MAX_OSPATH];
 
-	memset(homedir, 0, sizeof(homedir));
 	snprintf(gdir, sizeof(gdir), "%s/%s", Fs_Homedir(), dir);
 
 	Com_Print("Using %s for writing.\n", gdir);

@@ -677,12 +677,10 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	// clear entity values
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
 	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
-	height = ent->maxs[2] - ent->mins[2];
 
 	ent->ground_entity = NULL;
 	ent->take_damage = true;
 	ent->move_type = MOVE_TYPE_WALK;
-	ent->view_height = ent->mins[2] + (height * 0.75);
 	ent->class_name = "player";
 	ent->mass = 200.0;
 	ent->solid = SOLID_BOX;
@@ -1186,7 +1184,6 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 			client->jump_time = g_level.time;
 		}
 
-		ent->view_height = pm.view_height;
 		ent->water_level = pm.water_level;
 		ent->water_type = pm.water_type;
 		ent->ground_entity = pm.ground_entity;

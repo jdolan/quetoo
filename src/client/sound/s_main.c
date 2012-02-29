@@ -98,7 +98,7 @@ void S_Frame(void) {
 					ATTN_NORM);
 	}
 
-	if (cl.underwater) // add under water sample if appropriate
+	if (r_view.contents & CONTENTS_WATER) // add under water sample
 		S_LoopSample(r_view.origin, S_LoadSample("world/under_water"));
 
 	// reset the update flag

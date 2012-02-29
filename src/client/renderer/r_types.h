@@ -626,6 +626,7 @@ typedef struct r_view_s {
 	vec3_t up;
 
 	boolean_t ground; // client is on ground
+	unsigned int contents; // view origin contents mask
 	float bob;
 
 	float time;

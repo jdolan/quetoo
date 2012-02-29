@@ -50,21 +50,42 @@ void G_ProjectSpawn(g_edict_t *ent) {
 	VectorMA(ent->s.origin, fwd, forward, ent->s.origin);
 }
 
-/*
+/**
  * G_InitProjectile
  *
  * Determines the initial position and directional vectors of a projectile.
  */
-void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up,
-		vec3_t org) {
+void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
+	c_trace_t tr;
+	vec3_t view, end;
+	int i;
 
-	AngleVectors(ent->client->angles, forward, right, up);
-
+	// use the entity angles to project the origin flash
+	AngleVectors(ent->s.angles, forward, right, up);
 	VectorCopy(ent->s.origin, org);
 
-	VectorMA(org, ent->view_height - 10.0, up, org);
-	VectorMA(org, 6.0, right, org);
-	VectorMA(org, 30.0, forward, org);
+	const float u = ent->client->ps.pmove.pm_flags & PMF_DUCKED ? 0.0 : 12.0;
+
+	VectorMA(org, u, up, org);
+	VectorMA(org, 9.0, right, org);
+	VectorMA(org, 24.0, forward, org);
+
+	// but return the actual aim direction
+	AngleVectors(ent->client->angles, forward, right, up);
+
+	// corrected for the offset above
+	VectorScale(ent->client->ps.pmove.origin, 0.125, view);
+	for (i = 0; i < 3; i++)
+		view[i] += ent->client->ps.pmove.view_offset[i] * 0.125;
+
+	VectorMA(view, 8192.0, forward, end);
+	tr = gi.Trace(view, vec3_origin, vec3_origin, end, ent, MASK_SHOT);
+
+	VectorSubtract(tr.end, org, forward);
+	VectorNormalize(forward);
+
+	PerpendicularVector(right, forward);
+	CrossProduct(right, forward, up);
 }
 
 /*
@@ -126,8 +147,7 @@ g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, float rad) {
 			continue;
 
 		for (j = 0; j < 3; j++)
-			eorg[j] = org[j] - (from->s.origin[j] + (from->mins[j]
-					+ from->maxs[j]) * 0.5);
+			eorg[j] = org[j] - (from->s.origin[j] + (from->mins[j] + from->maxs[j]) * 0.5);
 
 		if (VectorLength(eorg) > rad)
 			continue;
@@ -240,9 +260,8 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		t = NULL;
 		while ((t = G_Find(t, FOFS(target_name), ent->target))) {
 			// doors fire area portals in a specific way
-			if (!strcasecmp(t->class_name, "func_areaportal") && (!strcasecmp(
-					ent->class_name, "func_door") || !strcasecmp(
-					ent->class_name, "func_door_rotating")))
+			if (!strcasecmp(t->class_name, "func_areaportal") && (!strcasecmp(ent->class_name,
+					"func_door") || !strcasecmp(ent->class_name, "func_door_rotating")))
 				continue;
 
 			if (t == ent) {
@@ -395,8 +414,7 @@ void G_TouchTriggers(g_edict_t *ent) {
 	int i, num;
 	g_edict_t *touch[MAX_EDICTS], *hit;
 
-	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS,
-			AREA_TRIGGERS);
+	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_TRIGGERS);
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it (killtriggered)
@@ -424,8 +442,7 @@ void G_TouchSolids(g_edict_t *ent) {
 	int i, num;
 	g_edict_t *touch[MAX_EDICTS], *hit;
 
-	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS,
-			AREA_SOLID);
+	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_SOLID);
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it(killtriggered)
@@ -450,14 +467,13 @@ boolean_t G_KillBox(g_edict_t *ent) {
 	c_trace_t tr;
 
 	while (true) {
-		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, NULL,
-				MASK_PLAYER_SOLID);
+		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, NULL, MASK_PLAYER_SOLID);
 		if (!tr.ent)
 			break;
 
 		// nail it
-		G_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin,
-				100000, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
+		G_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin, 100000, 0,
+				DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
 
 		// if we didn't kill it, fail
 		if (tr.ent->solid)
@@ -676,8 +692,7 @@ boolean_t G_IsStationary(g_edict_t *ent) {
  * Writes the specified animation byte, toggling the high bit to restart the
  * sequence if desired and necessary.
  */
-static void G_SetAnimation_(byte *dest, entity_animation_t anim,
-		boolean_t restart) {
+static void G_SetAnimation_(byte *dest, entity_animation_t anim, boolean_t restart) {
 
 	if (restart) {
 		if (*dest == anim) {

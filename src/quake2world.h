@@ -328,17 +328,17 @@ typedef enum {
 // prediction stays in sync, so no floats are used.
 // if any part of the game code modifies this struct, it
 // will result in a prediction error of some degree.
-typedef struct pm_move_state_s {
+typedef struct pm_state_s {
 	pm_type_t pm_type;
-
 	short origin[3]; // 12.3
 	short velocity[3]; // 12.3
 	short pm_flags; // ducked, jump_held, etc
 	byte pm_time; // each unit = 8 ms
 	short gravity;
+	short view_offset[3]; // 12.3
 	short delta_angles[3]; // add to command angles to get view direction
-// changed by spawns, rotating objects, and teleporters
-} pm_move_state_t;
+	// changed by spawns, rotating objects, and teleporters
+} pm_state_t;
 
 // button bits
 #define BUTTON_ATTACK		1
@@ -354,7 +354,7 @@ typedef struct user_cmd_s {
 
 #define MAX_TOUCH_ENTS 32
 typedef struct {
-	pm_move_state_t s; // state (in / out)
+	pm_state_t s; // state (in / out)
 
 	user_cmd_t cmd; // command (in)
 
@@ -362,8 +362,6 @@ typedef struct {
 	struct g_edict_s *touch_ents[MAX_TOUCH_ENTS];
 
 	vec3_t angles; // clamped
-	float view_height;
-
 	vec3_t mins, maxs; // bounding box size
 
 	struct g_edict_s *ground_entity;
@@ -599,7 +597,7 @@ typedef struct entity_state_s {
  * movement, as well as the player's statistics (inventory, health, etc.).
  */
 typedef struct player_state_s {
-	pm_move_state_t pmove;
+	pm_state_t pmove;
 	vec3_t angles; // for fixed views like chase camera & demo recording
 	short stats[MAX_STATS]; // status bar updates
 } player_state_t;

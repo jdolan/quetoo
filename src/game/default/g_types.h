@@ -498,7 +498,6 @@ struct g_edict_s {
 	short max_health;
 	boolean_t dead;
 
-	short view_height; // height above origin where eyesight is determined
 	boolean_t take_damage;
 	short dmg;
 	short knockback;

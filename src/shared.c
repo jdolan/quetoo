@@ -262,7 +262,7 @@ void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]) {
 			* in2[2][2];
 }
 
-/*
+/**
  * VectorLerp
  *
  * Produces the linear interpolation of the two vectors for the given fraction.
@@ -275,7 +275,7 @@ void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac,
 		out[i] = from[i] + frac * (to[i] - from[i]);
 }
 
-/*
+/**
  * AngleLerp
  *
  * Produces the linear interpolation of the two angles for the given fraction.
@@ -301,8 +301,8 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 	VectorLerp(_from, _to, frac, out);
 }
 
-/*
- * R_SignBitsForPlane
+/**
+ * SignBitsForPlane
  *
  * Returns a bit mask hinting at the sign of each normal vector component. This
  * is used as an optimization for the box-on-plane-side test.
@@ -318,7 +318,7 @@ byte SignBitsForPlane(const c_bsp_plane_t *plane) {
 	return bits;
 }
 
-/*
+/**
  * BoxOnPlaneSide
  *
  * Returns the sidedness of the given bounding box relative to the specified
@@ -398,17 +398,17 @@ int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs,
 	return sides;
 }
 
-/*
+/**
  * ClearBounds
  *
  * Initializes the specified bounds so that they may be safely calculated.
  */
 void ClearBounds(vec3_t mins, vec3_t maxs) {
-	mins[0] = mins[1] = mins[2] = 99999;
-	maxs[0] = maxs[1] = maxs[2] = -99999;
+	mins[0] = mins[1] = mins[2] = 99999.0;
+	maxs[0] = maxs[1] = maxs[2] = -99999.0;
 }
 
-/*
+/**
  * AddPointToBounds
  *
  * Useful for accumulating a bounding box over a series of points.
@@ -424,7 +424,7 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 	}
 }
 
-/*
+/**
  * VectorCompare
  *
  * Returns true if the specified vectors are equal, false otherwise.
@@ -437,7 +437,7 @@ boolean_t VectorCompare(const vec3_t v1, const vec3_t v2) {
 	return true;
 }
 
-/*
+/**
  * VectorNearer
  *
  * Returns true if the first vector is closer to the point of interest, false
@@ -452,7 +452,7 @@ boolean_t VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
 	return VectorLength(d1) < VectorLength(d2);
 }
 
-/*
+/**
  * VectorNormalize
  *
  * Normalizes the specified vector to unit-length, returning the original
@@ -473,7 +473,7 @@ vec_t VectorNormalize(vec3_t v) {
 	return length;
 }
 
-/*
+/**
  * VectorMA
  *
  * Scales vecb and adds it to veca to produce vecc.  Useful for projection.
@@ -485,7 +485,7 @@ void VectorMA(const vec3_t veca, const float scale, const vec3_t vecb,
 	vecc[2] = veca[2] + scale * vecb[2];
 }
 
-/*
+/**
  * CrossProduct
  *
  * Calculates the cross-product of the specified vectors.
@@ -496,7 +496,7 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross) {
 	cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
 }
 
-/*
+/**
  * VectorLength
  *
  * Returns the length of the specified vector.
@@ -505,7 +505,7 @@ vec_t VectorLength(const vec3_t v) {
 	return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 }
 
-/*
+/**
  * VectorMix
  *
  * Combines a fraction of the second vector with the first.
@@ -517,7 +517,7 @@ void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out) {
 		out[i] = v1[i] * (1.0 - mix) + v2[i] * mix;
 }
 
-/*
+/**
  * ColorNormalize
  *
  * Clamps the components of the specified vector to 1.0, scaling the vector

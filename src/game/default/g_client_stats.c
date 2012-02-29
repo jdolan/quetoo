@@ -33,7 +33,7 @@ void G_ClientToIntermission(g_edict_t *ent) {
 	VectorCopy(g_level.intermission_angle, ent->client->ps.angles);
 	ent->client->ps.pmove.pm_type = PM_FREEZE;
 
-	ent->view_height = 0;
+	VectorClear(ent->client->ps.pmove.view_offset);
 	ent->s.model1 = 0;
 	ent->s.model2 = 0;
 	ent->s.model3 = 0;

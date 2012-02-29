@@ -1443,7 +1443,7 @@ byte *Cm_ClusterPHS(const int cluster) {
  *
  */
 
-/*
+/**
  * Cm_FloodArea
  *
  * Recurse over the area portals, marking adjacent ones as flooded.
@@ -1492,8 +1492,12 @@ static void Cm_FloodAreaConnections(void) {
 	}
 }
 
-/*
+/**
  * Cm_SetAreaPortalState
+ *
+ * Sets the state of the specified area portal and re-floods all area
+ * connections, updating their flood counts such that Cm_WriteAreaBits
+ * will return the correct information.
  */
 void Cm_SetAreaPortalState(const int portal_num, const boolean_t open) {
 	if (portal_num > c_bsp.num_area_portals) {
@@ -1505,8 +1509,10 @@ void Cm_SetAreaPortalState(const int portal_num, const boolean_t open) {
 	Cm_FloodAreaConnections();
 }
 
-/*
+/**
  * Cm_AreasConnected
+ *
+ * Returns true if the specified areas are connected.
  */
 boolean_t Cm_AreasConnected(int area1, int area2) {
 
@@ -1523,15 +1529,15 @@ boolean_t Cm_AreasConnected(int area1, int area2) {
 	return false;
 }
 
-/*
+/**
  * Cm_WriteAreaBits
  *
- * Writes a length byte followed by a bit vector of all the areas
- * that are in the same flood as the area parameter
+ * Writes a bit vector of all the areas that are in the same flood as the
+ * specified area. Returns the length of the bit vector in bytes.
  *
- * This is used by the client view to cull visibility
+ * This is used by the client view to cull visibility.
  */
-int Cm_WriteAreaBits(byte *buffer, int area) {
+int Cm_WriteAreaBits(byte *buffer, const int area) {
 	int i;
 	const int bytes = (c_bsp.num_areas + 7) >> 3;
 
@@ -1551,11 +1557,11 @@ int Cm_WriteAreaBits(byte *buffer, int area) {
 	return bytes;
 }
 
-/*
+/**
  * Cm_HeadnodeVisible
  *
  * Returns true if any leaf under head_node has a cluster that
- * is potentially visible
+ * is potentially visible.
  */
 boolean_t Cm_HeadnodeVisible(const int node_num, const byte *vis) {
 	const c_bsp_node_t *node;

@@ -43,16 +43,14 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 		if (new_index >= to->num_entities)
 			new_num = 0xffff;
 		else {
-			new_ent = &svs.entity_states[(to->first_entity + new_index)
-					% svs.num_entity_states];
+			new_ent = &svs.entity_states[(to->first_entity + new_index) % svs.num_entity_states];
 			new_num = new_ent->number;
 		}
 
 		if (old_index >= from_num_entities)
 			old_num = 0xffff;
 		else {
-			old_ent = &svs.entity_states[(from->first_entity + old_index)
-					% svs.num_entity_states];
+			old_ent = &svs.entity_states[(from->first_entity + old_index) % svs.num_entity_states];
 			old_num = old_ent->number;
 		}
 
@@ -65,8 +63,7 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 		}
 
 		if (new_num < old_num) { // this is a new entity, send it from the baseline
-			Msg_WriteDeltaEntity(&sv.baselines[new_num], new_ent, msg, true,
-					true);
+			Msg_WriteDeltaEntity(&sv.baselines[new_num], new_ent, msg, true, true);
 			new_index++;
 			continue;
 		}
@@ -88,8 +85,8 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 /*
  * Sv_WritePlayerstateToClient
  */
-static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from,
-		sv_frame_t *to, size_buf_t *msg) {
+static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from, sv_frame_t *to,
+		size_buf_t *msg) {
 	int i;
 	byte bits;
 	player_state_t *ps, *ops;
@@ -109,14 +106,12 @@ static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from,
 	if (ps->pmove.pm_type != ops->pmove.pm_type)
 		bits |= PS_M_TYPE;
 
-	if (ps->pmove.origin[0] != ops->pmove.origin[0] || ps->pmove.origin[1]
-			!= ops->pmove.origin[1] || ps->pmove.origin[2]
-			!= ops->pmove.origin[2])
+	if (ps->pmove.origin[0] != ops->pmove.origin[0] || ps->pmove.origin[1] != ops->pmove.origin[1]
+			|| ps->pmove.origin[2] != ops->pmove.origin[2])
 		bits |= PS_M_ORIGIN;
 
-	if (ps->pmove.velocity[0] != ops->pmove.velocity[0]
-			|| ps->pmove.velocity[1] != ops->pmove.velocity[1]
-			|| ps->pmove.velocity[2] != ops->pmove.velocity[2])
+	if (ps->pmove.velocity[0] != ops->pmove.velocity[0] || ps->pmove.velocity[1]
+			!= ops->pmove.velocity[1] || ps->pmove.velocity[2] != ops->pmove.velocity[2])
 		bits |= PS_M_VELOCITY;
 
 	if (ps->pmove.pm_time != ops->pmove.pm_time)
@@ -125,14 +120,18 @@ static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from,
 	if (ps->pmove.pm_flags != ops->pmove.pm_flags)
 		bits |= PS_M_FLAGS;
 
-	if (ps->pmove.delta_angles[0] != ops->pmove.delta_angles[0]
-			|| ps->pmove.delta_angles[1] != ops->pmove.delta_angles[1]
-			|| ps->pmove.delta_angles[2] != ops->pmove.delta_angles[2])
+	if (ps->pmove.view_offset[0] != ops->pmove.view_offset[0] || ops->pmove.view_offset[1]
+			!= ps->pmove.view_offset[1] || ops->pmove.view_offset[2] != ps->pmove.view_offset[2])
+		bits |= PS_M_VIEW_OFFSET;
+
+	if (ps->pmove.delta_angles[0] != ops->pmove.delta_angles[0] || ps->pmove.delta_angles[1]
+			!= ops->pmove.delta_angles[1] || ps->pmove.delta_angles[2]
+			!= ops->pmove.delta_angles[2])
 		bits |= PS_M_DELTA_ANGLES;
 
-	if (ps->pmove.pm_type == PM_FREEZE && // send for chasecammers
-			(ps->angles[0] != ops->angles[0] || ps->angles[1] != ops->angles[1]
-					|| ps->angles[2] != ops->angles[2]))
+	if (ps->pmove.pm_type == PM_FREEZE && // send for chase camera
+			(ps->angles[0] != ops->angles[0] || ps->angles[1] != ops->angles[1] || ps->angles[2]
+					!= ops->angles[2]))
 		bits |= PS_VIEW_ANGLES;
 
 	if (client->recording) // or anyone recording a demo
@@ -162,6 +161,12 @@ static void Sv_WritePlayerstateToClient(sv_client_t *client, sv_frame_t *from,
 
 	if (bits & PS_M_FLAGS)
 		Msg_WriteShort(msg, ps->pmove.pm_flags);
+
+	if (bits & PS_M_VIEW_OFFSET) {
+		Msg_WriteShort(msg, ps->pmove.view_offset[0]);
+		Msg_WriteShort(msg, ps->pmove.view_offset[1]);
+		Msg_WriteShort(msg, ps->pmove.view_offset[2]);
+	}
 
 	if (bits & PS_M_DELTA_ANGLES) {
 		Msg_WriteShort(msg, ps->pmove.delta_angles[0]);
@@ -243,8 +248,8 @@ static byte *Sv_ClientPVS(const vec3_t org) {
 	vec3_t mins, maxs;
 
 	for (i = 0; i < 3; i++) {
-		mins[i] = org[i] - 32.0;
-		maxs[i] = org[i] + 32.0;
+		mins[i] = org[i] - 16.0;
+		maxs[i] = org[i] + 16.0;
 	}
 
 	count = Cm_BoxLeafnums(mins, maxs, leafs, 64, NULL);
@@ -286,6 +291,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	vec3_t org;
 	g_edict_t *ent;
 	g_edict_t *cent;
+	pm_state_t *pm;
 	sv_frame_t *frame;
 	entity_state_t *state;
 	int i;
@@ -304,8 +310,11 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	frame->sent_time = svs.real_time; // save it for ping calc later
 
 	// find the client's PVS
+	pm = &cent->client->ps.pmove;
+
+	VectorScale(pm->origin, 0.125, org);
 	for (i = 0; i < 3; i++)
-		org[i] = cent->client->ps.pmove.origin[i] * 0.125;
+		org[i] += pm->view_offset[i] * 0.125;
 
 	leaf = Cm_PointLeafnum(org);
 	area = Cm_LeafArea(leaf);
@@ -362,8 +371,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		}
 
 		// add it to the circular entity_state_t array
-		state = &svs.entity_states[svs.next_entity_state
-				% svs.num_entity_states];
+		state = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
 		if (ent->s.number != e) {
 			Com_Warn("Sv_BuildClientFrame: Fixing ent->s.number.\n");
 			ent->s.number = e;

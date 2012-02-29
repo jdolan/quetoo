@@ -46,10 +46,9 @@ void Cl_CheckPredictionError(void) {
 	if (VectorLength(fdelta) > 256.0) { // assume a teleport or something
 		VectorClear(cl.prediction_error);
 	} else { // save the prediction error for interpolation
-		if (cl_show_prediction_misses->value && (delta[0] || delta[1]
-				|| delta[2]))
-			Com_Print("Prediction miss on %i: %3.2f %3.2f %3.2f\n",
-					cl.frame.server_frame, fdelta[0], fdelta[1], fdelta[2]);
+		if (cl_show_prediction_misses->value && (delta[0] || delta[1] || delta[2]))
+			Com_Debug("Prediction miss on %i: %3.2f %3.2f %3.2f\n", cl.frame.server_frame,
+					fdelta[0], fdelta[1], fdelta[2]);
 
 		VectorCopy(cl.frame.ps.pmove.origin, cl.predicted_origins[frame]);
 		VectorCopy(fdelta, cl.prediction_error);
@@ -59,8 +58,8 @@ void Cl_CheckPredictionError(void) {
 /*
  * Cl_ClipMoveToEntities
  */
-static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins,
-		const vec3_t maxs, const vec3_t end, c_trace_t *tr) {
+static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const vec3_t maxs,
+		const vec3_t end, c_trace_t *tr) {
 	int i;
 	c_trace_t trace;
 	int head_node;
@@ -97,8 +96,8 @@ static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins,
 			angles = vec3_origin; // boxes don't rotate
 		}
 
-		trace = Cm_TransformedBoxTrace(start, end, mins, maxs, head_node,
-				MASK_PLAYER_SOLID, ent->origin, angles);
+		trace = Cm_TransformedBoxTrace(start, end, mins, maxs, head_node, MASK_PLAYER_SOLID,
+				ent->origin, angles);
 
 		if (trace.start_solid || trace.fraction < tr->fraction) {
 			trace.ent = (struct g_edict_s *) ent;
@@ -110,8 +109,8 @@ static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins,
 /*
  * Cl_PredictMovement_Trace
  */
-static c_trace_t Cl_PredictMovement_Trace(const vec3_t start, const vec3_t mins,
-		const vec3_t maxs, const vec3_t end) {
+static c_trace_t Cl_PredictMovement_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs,
+		const vec3_t end) {
 	c_trace_t t;
 
 	// check against world
@@ -146,8 +145,7 @@ static int Cl_PredictMovement_PointContents(const vec3_t point) {
 		if (!model)
 			continue;
 
-		contents |= Cm_TransformedPointContents(point, model->head_node,
-				ent->origin, ent->angles);
+		contents |= Cm_TransformedPointContents(point, model->head_node, ent->origin, ent->angles);
 	}
 
 	return contents;
@@ -171,8 +169,7 @@ void Cl_PredictMovement(void) {
 
 	if (!cl_predict->value || (cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION)) {
 		for (i = 0; i < 3; i++) { // just set angles
-			cl.predicted_angles[i] = cl.angles[i]
-					+ SHORT2ANGLE(cl.frame.ps.pmove.delta_angles[i]);
+			cl.predicted_angles[i] = cl.angles[i] + SHORT2ANGLE(cl.frame.ps.pmove.delta_angles[i]);
 		}
 		return;
 	}
@@ -217,7 +214,6 @@ void Cl_PredictMovement(void) {
 
 	// copy results out for rendering
 	VectorScale(pm.s.origin, 0.125, cl.predicted_origin);
+	VectorScale(pm.s.view_offset, 0.125, cl.predicted_offset);
 	VectorCopy(pm.angles, cl.predicted_angles);
-
-	cl.underwater = pm.water_level > 2;
 }

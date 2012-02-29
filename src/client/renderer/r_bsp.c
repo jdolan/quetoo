@@ -114,9 +114,8 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e) {
 		else
 			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
 
-		if (((surf->flags & R_SURF_SIDE_BACK) && (dot < -BACK_PLANE_EPSILON))
-				|| (!(surf->flags & R_SURF_SIDE_BACK) && (dot
-						> BACK_PLANE_EPSILON))) {
+		if (((surf->flags & R_SURF_SIDE_BACK) && (dot < -BACK_PLANE_EPSILON)) || (!(surf->flags
+				& R_SURF_SIDE_BACK) && (dot > BACK_PLANE_EPSILON))) {
 			// visible, flag for rendering
 			surf->frame = r_locals.frame;
 			surf->back_frame = -1;
@@ -235,8 +234,7 @@ void R_DrawBspNormals(void) {
 		if (surf->texinfo->flags & (SURF_SKY | SURF_WARP))
 			continue; // don't care
 
-		if ((r_draw_bsp_normals->integer & 2) && !(surf->texinfo->flags
-				& SURF_PHONG))
+		if ((r_draw_bsp_normals->integer & 2) && !(surf->texinfo->flags & SURF_PHONG))
 			continue; // don't care
 
 		if (k > MAX_GL_ARRAY_LENGTH - 512) { // avoid overflows, draw in batches
@@ -411,7 +409,35 @@ static inline boolean_t R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
 	return vis[c >> 3] & (1 << (c & 7));
 }
 
-/*
+/**
+ * R_CrossingContents
+ *
+ * Returns the cluster of any opaque contents transitions the view origin is
+ * currently spanning. This allows us to bit-wise-OR in the PVS data from
+ * another cluster. Returns -1 if no transition is taking place.
+ */
+static short R_CrossingContents(void) {
+	const r_bsp_leaf_t *leaf;
+	vec3_t org;
+
+	VectorCopy(r_view.origin, org);
+
+	org[2] -= 16.0;
+	leaf = R_LeafForPoint(org, NULL);
+
+	if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
+		return leaf->cluster;
+
+	org[2] += 32.0;
+	leaf = R_LeafForPoint(org, NULL);
+
+	if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
+		return leaf->cluster;
+
+	return (short) -1;
+}
+
+/**
  * R_MarkLeafs
  *
  * Mark the leafs that are in the PVS for the current cluster, creating the
@@ -422,6 +448,7 @@ static inline boolean_t R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
 void R_MarkLeafs(void) {
 	r_bsp_leaf_t *leaf;
 	r_bsp_node_t *node;
+	short cluster;
 	int i;
 
 	if (r_lock_vis->value)
@@ -450,10 +477,19 @@ void R_MarkLeafs(void) {
 	}
 
 	// resolve pvs for the current cluster
-	byte *pvs = Cm_ClusterPVS(r_locals.cluster);
+	const byte *pvs = Cm_ClusterPVS(r_locals.cluster);
 	memcpy(r_locals.vis_data_pvs, pvs, sizeof(r_locals.vis_data_pvs));
 
-	byte *phs = Cm_ClusterPHS(r_locals.cluster);
+	// check above or below the origin in case we are crossing opaque contents
+	if ((cluster = R_CrossingContents()) != -1) {
+		pvs = Cm_ClusterPVS(cluster);
+
+		for (i = 0; i < MAX_BSP_LEAFS >> 3; i++) {
+			r_locals.vis_data_pvs[i] |= pvs[i];
+		}
+	}
+
+	const byte *phs = Cm_ClusterPHS(r_locals.cluster);
 	memcpy(r_locals.vis_data_phs, phs, sizeof(r_locals.vis_data_phs));
 
 	// recurse up the bsp from the visible leafs, marking a path via the nodes

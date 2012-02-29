@@ -112,8 +112,9 @@ PROTOCOL
 #define PS_M_VELOCITY		(1<<2)
 #define PS_M_TIME			(1<<3)
 #define PS_M_FLAGS			(1<<4)
-#define PS_M_DELTA_ANGLES	(1<<5)
-#define PS_VIEW_ANGLES		(1<<6)
+#define PS_M_VIEW_OFFSET	(1<<5)
+#define PS_M_DELTA_ANGLES	(1<<6)
+#define PS_VIEW_ANGLES		(1<<7)
 
 // user_cmd_t communication
 

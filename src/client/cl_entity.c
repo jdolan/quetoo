@@ -237,6 +237,12 @@ static void Cl_ParsePlayerstate(const cl_frame_t *old_frame,
 	if (bits & PS_M_FLAGS)
 		ps->pmove.pm_flags = Msg_ReadShort(&net_message);
 
+	if (bits & PS_M_VIEW_OFFSET) {
+		ps->pmove.view_offset[0] = Msg_ReadShort(&net_message);
+		ps->pmove.view_offset[1] = Msg_ReadShort(&net_message);
+		ps->pmove.view_offset[2] = Msg_ReadShort(&net_message);
+	}
+
 	if (bits & PS_M_DELTA_ANGLES) {
 		ps->pmove.delta_angles[0] = Msg_ReadShort(&net_message);
 		ps->pmove.delta_angles[1] = Msg_ReadShort(&net_message);

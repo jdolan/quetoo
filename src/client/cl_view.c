@@ -84,45 +84,7 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 	}
 }
 
-/*
- * Cl_UpdateDucking
- */
-static void Cl_UpdateDucking(void) {
-	static unsigned int ducktime, standtime;
-	vec3_t mins, maxs;
-	float height, view_height;
-
-	VectorScale(PM_MINS, PM_SCALE, mins);
-	VectorScale(PM_MAXS, PM_SCALE, maxs);
-
-	height = maxs[2] - mins[2];
-	view_height = mins[2] + (height * 0.75);
-
-	if (cl.frame.ps.pmove.pm_flags & PMF_DUCKED) {
-
-		if (standtime > ducktime) // go back down
-			ducktime = cls.real_time + (cls.real_time - standtime);
-		else if (!ducktime) // or just start to duck
-			ducktime = cls.real_time + 200;
-
-		if (ducktime > cls.real_time)
-			r_view.origin[2] += (ducktime - cls.real_time) * view_height / 200;
-
-		return;
-	}
-
-	if (ducktime > standtime) // currently ducked, but able to begin standing
-		standtime = cls.real_time;
-
-	if (cls.real_time - standtime <= 200) { // rise
-		r_view.origin[2] += (cls.real_time - standtime) * view_height / 200;
-	} else { // cancel ducking, add normal height
-		ducktime = standtime = 0;
-		r_view.origin[2] += view_height;
-	}
-}
-
-/*
+/**
  * Cl_UpdateOrigin
  *
  * The origin is typically calculated using client sided prediction, provided
@@ -136,8 +98,10 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 			&& !(cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION)) {
 
 		// use client sided prediction
-		for (i = 0; i < 3; i++)
-			r_view.origin[i] = cl.predicted_origin[i] - (1.0 - cl.lerp) * cl.prediction_error[i];
+		for (i = 0; i < 3; i++) {
+			r_view.origin[i] = cl.predicted_origin[i] + cl.predicted_offset[i];
+			r_view.origin[i] -= (1.0 - cl.lerp) * cl.prediction_error[i];
+		}
 
 		// lerp stairs over 50ms
 		ms = cls.real_time - cl.predicted_step_time;
@@ -145,19 +109,22 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 		if (ms < 50) // small step
 			r_view.origin[2] -= cl.predicted_step * (50 - ms) * 0.02;
 	} else { // just use interpolated values from frame
-		for (i = 0; i < 3; i++)
+		for (i = 0; i < 3; i++) {
 			r_view.origin[i] = ops->pmove.origin[i] + cl.lerp * (ps->pmove.origin[i]
 					- ops->pmove.origin[i]);
+			r_view.origin[i] += ops->pmove.view_offset[i] + cl.lerp * (ps->pmove.view_offset[i]
+					- ops->pmove.view_offset[i]);
+		}
 
 		// scaled back to world coordinates
 		VectorScale(r_view.origin, 0.125, r_view.origin);
 	}
 
-	// add any ducking
-	Cl_UpdateDucking();
+	// update the contents mask for e.g. under-water effects
+	r_view.contents = R_PointContents(r_view.origin);
 }
 
-/*
+/**
  * Cl_UpdateAngles
  *
  * The angles are typically fetched directly from input, unless the client is
@@ -194,12 +161,11 @@ static void Cl_UpdateVelocity(player_state_t *ps, player_state_t *ops) {
 	VectorScale(r_view.velocity, 0.125, r_view.velocity);
 }
 
-/*
+/**
  * Cl_UpdateView
  *
- * Updates the view_t for the renderer.  Origin, angles, etc are calculated.
- * Entities, particles, etc are then lerped and added and pulled through to
- * the renderer.
+ * Updates the r_view_t for the renderer. Origin, angles, etc are calculated.
+ * Scene population is then delegated to the client game.
  */
 void Cl_UpdateView(void) {
 	cl_frame_t *prev;
