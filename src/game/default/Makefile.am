@@ -46,9 +46,8 @@ game_la_SOURCES = \
 	g_weapons.c
 
 game_la_CFLAGS = \
-	@SO_CFLAGS@ \
 	-I../.. \
-	-pipe \
+	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@MYSQL_CFLAGS@
 

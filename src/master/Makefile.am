@@ -8,7 +8,6 @@ q2wmaster_SOURCES = \
 
 q2wmaster_CFLAGS = \
 	-I.. \
-	-pipe \
 	@BASE_CFLAGS@
 
 q2wmaster_LDADD = \

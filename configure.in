@@ -24,8 +24,8 @@ dnl ---------------
 dnl Check for tools
 dnl ---------------
 
-AC_PROG_CC
 AC_PROG_CXX
+AC_PROG_CC
 AC_PROG_LIBTOOL
 
 dnl ---------------
@@ -33,6 +33,7 @@ dnl Check host type
 dnl ---------------
 
 HOST_NAME=""
+HOST_CXXFLAGS=""
 HOST_CFLAGS=""
 HOST_LDFLAGS=""
 HOST_LIBS=""
@@ -66,7 +67,7 @@ case "$host" in
 		DEFAULT_PREFIX=""
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
-			AC_MSG_ERROR([windres could not be found within your path.])
+			AC_MSG_ERROR([windres could not be found, please install windres])
 		fi
 		AC_SUBST(WINDRES)
 		AC_MSG_RESULT(windows)
@@ -81,6 +82,7 @@ case "$host" in
 esac
 
 AC_SUBST(HOST_NAME)
+AC_SUBST(HOST_CXXFLAGS)
 AC_SUBST(HOST_CFLAGS)
 AC_SUBST(HOST_LIBS)
 AC_SUBST(HOST_DEBUG_CFLAGS)
@@ -88,7 +90,10 @@ AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(HOST_PROFILE_CFLAGS)
 AC_SUBST(HOST_PROFILE_LIBS)
 
-CFLAGS="-std=c99 $CFLAGS $HOST_CFLAGS"
+CXXFLAGS="-pipe $CXXFLAGS $HOST_CXXFLAGS"
+AC_SUBST(CXXFLAGS)
+
+CFLAGS="-std=c99 -pipe $CFLAGS $HOST_CFLAGS"
 AC_SUBST(CFLAGS)
 
 SO_CFLAGS="$SO_CFLAGS $HOST_SO_CFLAGS"
@@ -190,23 +195,31 @@ else
 	dnl ----------------------------------------
 	dnl Sort out AntTweakBar flags and libraries
 	dnl ----------------------------------------
+	HOST_ANTTWEAKBAR_CXXFLAGS=""
 	HOST_ANTTWEAKBAR_CFLAGS=""
 	HOST_ANTTWEAKBAR_LIBS=""
 	
 	case "$host" in
 		*-apple-*)
+			HOST_ANTTWEAKBAR_CXXFLAGS="-D_MACOSX -ObjC++"
 			HOST_ANTTWEAKBAR_CFLAGS="-D_MACOSX"
 			;;
 		*-*-mingw*)
+			HOST_ANTTWEAKBAR_CXXFLAGS="-D_WINDOWS"
 			HOST_ANTTWEAKBAR_CFLAGS="-D_WINDOWS"
 			;;
 		*)
+			HOST_ANTTWEAKBAR_CXXFLAGS="-D_UNIX"
 			HOST_ANTTWEAKBAR_CFLAGS="-D_UNIX"
 			;;
 	esac
 	
+	AC_SUBST(HOST_ANTTWEAKBAR_CXXFLAGS)
 	AC_SUBST(HOST_ANTTWEAKBAR_CFLAGS)
 	AC_SUBST(HOST_ANTTWEAKBAR_LIBS)
+	
+	ANTTWEAKBAR_CXXFLAGS="$ANTTWEAKBAR_CXXFLAGS $HOST_ANTTWEAKBAR_CXXFLAGS"
+	AC_SUBST(ANTTWEAKBAR_CXXFLAGS)
 
 	ANTTWEAKBAR_CFLAGS="$ANTTWEAKBAR_CFLAGS $HOST_ANTTWEAKBAR_CFLAGS"
 	AC_SUBST(ANTTWEAKBAR_CFLAGS)
@@ -529,10 +542,12 @@ dnl ----------------------------------------
 dnl Consolidate our core flags and libraries
 dnl ----------------------------------------
 
+BASE_CXXFLAGS=$(echo $CXXFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
 BASE_CFLAGS=$(echo $CFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
 BASE_LIBS=$(echo $HOST_LIBS $DEBUG_LIBS $PROFILE_LIBS $WARN_LIBS)
 BASE_LDFLAGS=$(echo $LDFLAGS)
 
+AC_SUBST(BASE_CXXFLAGS)
 AC_SUBST(BASE_CFLAGS)
 AC_SUBST(BASE_LIBS)
 AC_SUBST(BASE_LDFLAGS)
@@ -602,7 +617,8 @@ Quake2World $VERSION: Automatic configuration OK.
   Configuration summary:
     Platform: .......... $host
     Compiler: .......... $CC
-    Flags: ............. $BASE_CFLAGS
+    C++ Flags: ......... $BASE_CXXFLAGS
+    C Flags: ........... $BASE_CFLAGS
     Libraries: ......... $BASE_LIBS
     Linking: ........... $BASE_LDFLAGS
 

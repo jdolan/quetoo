@@ -6,7 +6,6 @@ pak_SOURCES = \
 
 pak_CFLAGS = \
 	-I../.. \
-	-pipe \
 	@BASE_CFLAGS@ \
 	@SDL_CFLAGS@
 

@@ -38,9 +38,8 @@ cgame_la_SOURCES = \
 	cg_view.c
 
 cgame_la_CFLAGS = \
-	@SO_CFLAGS@ \
 	-I../.. \
-	-pipe \
+	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@

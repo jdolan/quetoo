@@ -26,7 +26,6 @@ libserver_la_SOURCES = \
 
 libserver_la_CFLAGS = \
 	-I.. \
-	-pipe \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@
 

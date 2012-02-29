@@ -37,7 +37,6 @@ q2wmap_SOURCES = \
 
 q2wmap_CFLAGS = \
 	-I../.. \
-	-pipe \
 	@BASE_CFLAGS@ \
 	@SDL_CFLAGS@
 

@@ -70,7 +70,6 @@ librenderer_la_SOURCES = \
 
 librenderer_la_CFLAGS = \
 	-I.. -I../.. \
-	-pipe \
 	@BASE_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@

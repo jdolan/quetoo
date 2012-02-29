@@ -50,7 +50,6 @@ libclient_la_SOURCES = \
 
 libclient_la_CFLAGS = \
 	-I.. \
-	-pipe \
 	@BASE_CFLAGS@ \
 	@CURL_CFLAGS@ \
 	@OPENGL_CFLAGS@ \

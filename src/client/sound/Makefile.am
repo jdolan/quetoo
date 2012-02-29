@@ -20,7 +20,6 @@ libsound_la_SOURCES = \
 
 libsound_la_CFLAGS = \
 	-I.. -I../.. \
-	-pipe \
 	@BASE_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@

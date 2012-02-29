@@ -1,3 +1,8 @@
+noinst_LTLIBRARIES = \
+	libanttweakbar.la
+	
+if BUILD_CLIENT
+
 noinst_HEADERS = \
 	AntPerfTimer.h \
 	LoadOGL.h \
@@ -12,11 +17,6 @@ noinst_HEADERS = \
 	TwPrecomp.h \
 	resource.h
 
-noinst_LTLIBRARIES = \
-	libanttweakbar.la
-	
-if BUILD_CLIENT
-
 libanttweakbar_la_SOURCES = \
 	LoadOGL.cpp \
 	TwBar.cpp \
@@ -28,18 +28,32 @@ libanttweakbar_la_SOURCES = \
 	TwMgr.cpp \
 	TwOpenGL.cpp \
 	TwPrecomp.cpp
+	
+if WINDOWS
+
+noinst_HEADERS += \
+	d3d10vs2003.h \
+	TwDirect3D10.h \
+	TwDirect3D11.h \
+	TwDirect3D9.h
+
+libanttweakbar_la_SOURCES += \
+	TwDirect3D10.cpp \
+	TwDirect3D11.cpp \
+	TwDirect3D9.cpp
+
+endif
 
 libanttweakbar_la_CXXFLAGS = \
 	-I../include \
-	-pipe \
-	-ObjC++ \
-	@ANTTWEAKBAR_CFLAGS@ \
+	@BASE_CXXFLAGS@ \
+	@ANTTWEAKBAR_CXXFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
 	
 libanttweakbar_la_CFLAGS = \
 	-I../include \
-	-pipe \
+	@BASE_CFLAGS@ \
 	@ANTTWEAKBAR_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@

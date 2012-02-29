@@ -20,7 +20,6 @@ if BUILD_CLIENT
 
 quake2world_CFLAGS = \
 	-I.. \
-	-pipe \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
@@ -42,7 +41,6 @@ else
 
 quake2world_CFLAGS = \
 	-I.. \
-	-pipe \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@SDL_CFLAGS@
