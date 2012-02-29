@@ -22,7 +22,7 @@
 #ifndef __UI_H__
 #define __UI_H__
 
-#include <AntTweakBar.h>
+#include "deps/AntTweakBar/include/AntTweakBar.h"
 
 #include "ui_controls.h"
 #include "ui_data.h"

@@ -27,17 +27,16 @@ quake2world_CFLAGS = \
 	@SDL_CFLAGS@
 
 quake2world_LDADD = \
+	../../deps/anttweakbar/src/libanttweakbar.la \
 	../client/libclient.la \
 	../server/libserver.la \
 	@BASE_LIBS@ \
-	@ANTTWEAKBAR_LIBS@ \
-	-lstdc++ \
 	@CURL_LIBS@ \
 	@CURSES_LIBS@ \
 	@JPEG_LIBS@ \
 	@OPENGL_LIBS@ \
 	@SDL_LIBS@ \
-	-lm -lz
+	-lm -lz -lstdc++
 	
 else
 

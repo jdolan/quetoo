@@ -25,6 +25,7 @@ dnl Check for tools
 dnl ---------------
 
 AC_PROG_CC
+AC_PROG_CXX
 AC_PROG_LIBTOOL
 
 dnl ---------------
@@ -87,11 +88,11 @@ AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(HOST_PROFILE_CFLAGS)
 AC_SUBST(HOST_PROFILE_LIBS)
 
+CFLAGS="-std=c99 $CFLAGS $HOST_CFLAGS"
+AC_SUBST(CFLAGS)
+
 SO_CFLAGS="$SO_CFLAGS $HOST_SO_CFLAGS"
 AC_SUBST(SO_CFLAGS)
-
-CPPFLAGS="-std=c99 $CPPFLAGS $HOST_CFLAGS"
-AC_SUBST(CPPFLAGS)
 
 LDFLAGS="$LDFLAGS $HOST_LDFLAGS"
 AC_SUBST(LDFLAGS)
@@ -132,8 +133,31 @@ else
 
 	AC_DEFINE(BUILD_CLIENT, 1, [Define to 1 to build a client.])
 	
+	dnl ------------------------------------------
+	dnl Check for SDL_opengl, SDL_image, SDL_mixer
+	dnl ------------------------------------------
+
+	save_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+	
+	AC_CHECK_HEADER(SDL/SDL_opengl.h,,
+		[AC_MSG_ERROR([Could not find SDL_opengl.h, please install libsdl])]
+	)
+
+	AC_CHECK_HEADER(SDL/SDL_image.h,
+		SDL_LIBS="$SDL_LIBS -lSDL_image",
+		[AC_MSG_ERROR([Could not find SDL_image.h, please install libsdl-image])]
+	)
+
+	AC_CHECK_HEADER(SDL/SDL_mixer.h,
+		SDL_LIBS="$SDL_LIBS -lSDL_mixer",
+		[AC_MSG_ERROR([Could not find SDL_mixer.h, please install libsdl-mixer])]
+	)
+	
+	CPPFLAGS="$save_CPPFLAGS"
+	
 	dnl -----------------------------------
-	dnl Sort out OpenGL flags and libraries
+	dnl Sort out OpenGL an flags and libraries
 	dnl -----------------------------------
 	
 	HOST_OPENGL_CFLAGS=""
@@ -162,29 +186,33 @@ else
 	
 	OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
 	AC_SUBST(OPENGL_LIBS)
-
-	dnl ------------------------------------------
-	dnl Check for SDL_opengl, SDL_image, SDL_mixer
-	dnl ------------------------------------------
-
-	save_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
 	
-	AC_CHECK_HEADER(SDL/SDL_opengl.h,,
-		[AC_MSG_ERROR([Could not find SDL_opengl.h, please install libsdl])]
-	)
+	dnl ----------------------------------------
+	dnl Sort out AntTweakBar flags and libraries
+	dnl ----------------------------------------
+	HOST_ANTTWEAKBAR_CFLAGS=""
+	HOST_ANTTWEAKBAR_LIBS=""
+	
+	case "$host" in
+		*-apple-*)
+			HOST_ANTTWEAKBAR_CFLAGS="-D_MACOSX"
+			;;
+		*-*-mingw*)
+			HOST_ANTTWEAKBAR_CFLAGS="-D_WINDOWS"
+			;;
+		*)
+			HOST_ANTTWEAKBAR_CFLAGS="-D_UNIX"
+			;;
+	esac
+	
+	AC_SUBST(HOST_ANTTWEAKBAR_CFLAGS)
+	AC_SUBST(HOST_ANTTWEAKBAR_LIBS)
 
-	AC_CHECK_HEADER(SDL/SDL_image.h,
-		SDL_LIBS="$SDL_LIBS -lSDL_image",
-		[AC_MSG_ERROR([Could not find SDL_image.h, please install libsdl-image])]
-	)
-
-	AC_CHECK_HEADER(SDL/SDL_mixer.h,
-		SDL_LIBS="$SDL_LIBS -lSDL_mixer",
-		[AC_MSG_ERROR([Could not find SDL_mixer.h, please install libsdl-mixer])]
-	)
-
-	CPPFLAGS="$save_CPPFLAGS"
+	ANTTWEAKBAR_CFLAGS="$ANTTWEAKBAR_CFLAGS $HOST_ANTTWEAKBAR_CFLAGS"
+	AC_SUBST(ANTTWEAKBAR_CFLAGS)
+	
+	ANTTWEAKBAR_LIBS="$ANTTWEAKBAR_LIBS $HOST_ANTTWEAKBAR_LIBS"
+	AC_SUBST(ANTTWEAKBAR_LIBS)
 	
 	dnl --------------
 	dnl Check for cURL
@@ -210,16 +238,6 @@ else
 		[AC_MSG_ERROR([Could not find jpeglib.h, please install libjpeg])]
 	)
 	AC_SUBST(JPEG_LIBS)
-	
-	dnl ---------------------
-	dnl Check for AntTweakBar
-	dnl ---------------------
-	
-	AC_CHECK_HEADER(AntTweakBar.h,
-		ANTTWEAKBAR_LIBS="-lAntTweakBar",
-		[AC_MSG_ERROR([Could not find AntTweakBar.h, please install AntTweakBar])]
-	)
-	AC_SUBST(ANTTWEAKBAR_LIBS)
 
 	dnl --------------------------
 	dnl Check which tools to build
@@ -511,7 +529,7 @@ dnl ----------------------------------------
 dnl Consolidate our core flags and libraries
 dnl ----------------------------------------
 
-BASE_CFLAGS=$(echo $CPPFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
+BASE_CFLAGS=$(echo $CFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
 BASE_LIBS=$(echo $HOST_LIBS $DEBUG_LIBS $PROFILE_LIBS $WARN_LIBS)
 BASE_LDFLAGS=$(echo $LDFLAGS)
 
@@ -554,6 +572,10 @@ dnl -----------------------------------------------------------
 
 AC_CONFIG_FILES([
 	Makefile
+	deps/Makefile
+	deps/AntTweakBar/Makefile
+	deps/AntTweakBar/include/Makefile
+	deps/AntTweakBar/src/Makefile
 	doc/Makefile
 	src/Makefile
 	src/cgame/Makefile

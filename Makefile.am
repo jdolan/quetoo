@@ -1,8 +1,9 @@
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = \
-	src \
-	doc
+	deps \
+	doc \
+	src
 
 RSYNC_REPOSITORY = \
 	rsync://jdolan.dyndns.org/quake2world
