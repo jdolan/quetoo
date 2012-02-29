@@ -32,14 +32,9 @@ libanttweakbar_la_SOURCES = \
 if WINDOWS
 
 noinst_HEADERS += \
-	d3d10vs2003.h \
-	TwDirect3D10.h \
-	TwDirect3D11.h \
 	TwDirect3D9.h
 
 libanttweakbar_la_SOURCES += \
-	TwDirect3D10.cpp \
-	TwDirect3D11.cpp \
 	TwDirect3D9.cpp
 
 endif
@@ -61,7 +56,7 @@ libanttweakbar_la_CFLAGS = \
 else
 
 libanttweakbar_la_SOURCES = \
-	../../src/null.c
+	../../../src/null.c
 
 libanttweakbar_la_CFLAGS = \
 	-D__LIBTOOL_LIBRARY__=libanttweakbar_la
