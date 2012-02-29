@@ -26,7 +26,6 @@ quake2world_CFLAGS = \
 	@SDL_CFLAGS@
 
 quake2world_LDADD = \
-	../../deps/AntTweakBar/src/libanttweakbar.la \
 	../client/libclient.la \
 	../server/libserver.la \
 	@BASE_LIBS@ \
