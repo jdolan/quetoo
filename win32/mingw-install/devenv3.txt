@@ -1,0 +1,27 @@
+mingw-get install mingw-developer-toolkit msys-zip msys-unzip msys-wget
+
+mingw-get remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
+mingw-get remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
+mingw-get remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
+
+cd ..
+del /Q share\doc\MinGW\*
+del bin\mingw-get.exe
+rmdir /S /Q libexec var include lib share\gettext share\locale share\doc
+
+
+mkdir mingw32 mingw64 autotools
+move bin autotools
+move share autotools
+
+
+
+copy /y nul mingw32\PLACEHOLDER
+copy /y nul mingw64\PLACEHOLDER
+
+#extract rubenvb gcc package
+
+xcopy autotools\* mingw32 /E
+
+
+
