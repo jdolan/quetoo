@@ -71,7 +71,7 @@ static pm_locals_t pml;
 #define PM_SPEED_STAIRS			20.0
 #define PM_SPEED_STOP			40.0
 #define PM_SPEED_WATER			200.0
-#define PM_SPEED_WATER_DOWN		20.0
+#define PM_SPEED_WATER_DOWN		60.0
 
 #define CLIP_BACKOFF 1.001
 #define STOP_EPSILON 0.1
@@ -453,14 +453,16 @@ static void Pm_WaterMove(void) {
 
 	VectorCopy(pml.origin, org);
 
-	// user intentions
-	for (i = 0; i < 3; i++)
+	// user intentions in X/Y
+	for (i = 0; i < 3; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.side;
+	}
 
-	if (!pm->cmd.forward && !pm->cmd.side && !pm->cmd.up)
-		vel[2] -= PM_SPEED_WATER_DOWN; // sink
-	else
-		vel[2] += pm->cmd.up;
+	// always factoring in upward movement
+	VectorMA(vel, pm->cmd.up, pml.up, vel);
+
+	// plus constant sinking
+	vel[2] -= PM_SPEED_WATER_DOWN;
 
 	Pm_AddCurrents(vel);
 
@@ -478,14 +480,22 @@ static void Pm_WaterMove(void) {
 	Pm_StepSlideMove();
 
 	// we've swam upward, let's not go water skiing
-	if (!pm->ground_entity && !pml.ladder && pml.velocity[2] > 0.0) {
-		vec3_t tmp;
+	if (!pm->ground_entity && !pml.ladder && pm->water_level < 3) {
+		float gravity = 0.0;
+		vec3_t down;
 
-		VectorAdd(pml.origin, pml.view_offset, tmp);
-		i = pm->PointContents(tmp);
+		VectorAdd(pml.origin, pml.view_offset, down);
 
-		if (!(i & MASK_WATER)) // add some gravity
-			pml.velocity[2] -= pm->s.gravity * pml.time;
+		while (true) {
+			down[2] -= 1.0;
+
+			if (pm->PointContents(down) & MASK_WATER)
+				break;
+
+			gravity += 0.5;
+		}
+
+		pml.velocity[2] -= gravity * pm->s.gravity * pml.time;
 	}
 }
 
@@ -564,10 +574,8 @@ static void Pm_AirMove(void) {
  */
 static void Pm_CategorizePosition(void) {
 	vec3_t point;
-	int cont;
+	int contents;
 	c_trace_t trace;
-	int sample1;
-	int sample2;
 
 	// see if we're standing on something solid
 	VectorCopy(pml.origin, point);
@@ -614,30 +622,27 @@ static void Pm_CategorizePosition(void) {
 	// clear the underwater bit, reset if still underwater
 	pm->s.pm_flags &= ~PMF_UNDER_WATER;
 
-	sample2 = pml.view_offset[2] - pm->mins[2];
-	sample1 = sample2 / 2.0;
-
 	point[2] = pml.origin[2] + pm->mins[2] + 1.0;
-	cont = pm->PointContents(point);
+	contents = pm->PointContents(point);
 
-	if (cont & MASK_WATER) {
+	if (contents & MASK_WATER) {
 
-		pm->water_type = cont;
+		pm->water_type = contents;
 		pm->water_level = 1;
 
-		point[2] = pml.origin[2] + pm->mins[2] + sample1;
+		point[2] = pml.origin[2];
 
-		cont = pm->PointContents(point);
+		contents = pm->PointContents(point);
 
-		if (cont & MASK_WATER) {
+		if (contents & MASK_WATER) {
 
 			pm->water_level = 2;
 
-			point[2] = pml.origin[2] + pm->mins[2] + sample2;
+			point[2] = pml.origin[2] + pml.view_offset[2] - 1.0;
 
-			cont = pm->PointContents(point);
+			contents = pm->PointContents(point);
 
-			if (cont & MASK_WATER) {
+			if (contents & MASK_WATER) {
 				pm->water_level = 3;
 				pm->s.pm_flags |= PMF_UNDER_WATER;
 			}
@@ -673,14 +678,12 @@ static void Pm_CheckJump(void) {
 		pm->ground_entity = NULL;
 
 		if (pml.velocity[2] <= -PM_SPEED_JUMP)
-			return;
+			return; // falling in water, can't jump yet
 
 		if (pm->water_type == CONTENTS_WATER)
-			pml.velocity[2] = PM_SPEED_JUMP / 3.0;
-		else if (pm->water_type == CONTENTS_SLIME)
-			pml.velocity[2] = PM_SPEED_JUMP / 4.0;
+			pml.velocity[2] = PM_SPEED_JUMP / 1.5;
 		else
-			pml.velocity[2] = PM_SPEED_JUMP / 5.0;
+			pml.velocity[2] = PM_SPEED_JUMP / 2.5;
 		return;
 	}
 
@@ -731,7 +734,7 @@ static void Pm_CheckSpecialMovement(void) {
 		pml.ladder = true;
 
 	// check for water jump
-	if (pm->water_level != 2 || pm->cmd.up <= 0 || pm->cmd.forward <= 0)
+	if (pm->water_level > 2 || pm->cmd.up <= 0 || pm->cmd.forward <= 0)
 		return;
 
 	VectorMA(pml.origin, 30.0, forward_flat, spot);
