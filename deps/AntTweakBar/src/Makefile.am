@@ -28,16 +28,6 @@ libanttweakbar_la_SOURCES = \
 	TwMgr.cpp \
 	TwOpenGL.cpp \
 	TwPrecomp.cpp
-	
-if WINDOWS
-
-noinst_HEADERS += \
-	TwDirect3D9.h
-
-libanttweakbar_la_SOURCES += \
-	TwDirect3D9.cpp
-
-endif
 
 libanttweakbar_la_CXXFLAGS = \
 	-I../include \
