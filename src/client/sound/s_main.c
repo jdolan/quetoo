@@ -94,11 +94,10 @@ void S_Frame(void) {
 		}
 
 		if (j == MAX_CHANNELS)
-			S_PlaySample(NULL, ent->number, cl.sound_precache[ent->sound],
-					ATTN_NORM);
+			S_PlaySample(NULL, ent->number, cl.sound_precache[ent->sound], ATTN_NORM);
 	}
 
-	if (r_view.contents & CONTENTS_WATER) // add under water sample
+	if (r_view.contents & MASK_WATER) // add under water sample
 		S_LoopSample(r_view.origin, S_LoadSample("world/under_water"));
 
 	// reset the update flag
@@ -190,12 +189,11 @@ void S_Init(void) {
 
 	Com_Print("Sound initialization...\n");
 
-	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE,
-			"Sound sampling rate in Hz.");
-	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE,
-			"Reverse left and right channels.");
-	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE,
-			"Global sound volume level.");
+	s_rate
+			= Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE,
+					"Sound sampling rate in Hz.");
+	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
+	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
 
 	Cmd_AddCommand("s_restart", S_Restart_f, "Restart the sound subsystem");
 	Cmd_AddCommand("s_play", S_Play_f, NULL);

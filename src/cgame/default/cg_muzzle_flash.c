@@ -30,7 +30,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int color, int count) {
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
 	float dist;
-	int i, j, c;
+	int i, j;
 
 	// project the particles just in front of the entity
 	AngleVectors(ent->angles, forward, right, NULL);
@@ -57,9 +57,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int color, int count) {
 
 	cgi.AddSustainedLight(&s);
 
-	c = CONTENTS_SLIME | CONTENTS_WATER;
-
-	if (cgi.PointContents(ent->origin) & c) {
+	if (cgi.PointContents(ent->origin) & MASK_WATER) {
 		VectorMA(ent->origin, 40.0, forward, org2);
 		Cg_BubbleTrail(org, org2, 10.0);
 		return;
@@ -95,7 +93,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
 	float dist;
-	int j, c;
+	int j;
 
 	// project the puff just in front of the entity
 	AngleVectors(ent->angles, forward, right, NULL);
@@ -122,9 +120,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 
 	cgi.AddSustainedLight(&s);
 
-	c = CONTENTS_SLIME | CONTENTS_WATER;
-
-	if (cgi.PointContents(ent->origin) & c) {
+	if (cgi.PointContents(ent->origin) & MASK_WATER) {
 		VectorMA(ent->origin, 40.0, forward, org2);
 		Cg_BubbleTrail(org, org2, 10.0);
 		return;

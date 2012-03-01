@@ -134,7 +134,7 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
 	boolean_t stationary;
-	int j, c;
+	int j;
 
 	if (cgi.view->render_mode == render_mode_pro)
 		return;
@@ -155,9 +155,7 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 			ent->time = cgi.client->time + 32;
 	}
 
-	c = CONTENTS_SLIME | CONTENTS_WATER;
-
-	if (cgi.PointContents(end) & c) {
+	if (cgi.PointContents(end) & MASK_WATER) {
 		Cg_BubbleTrail(start, end, 16.0);
 		return;
 	}
@@ -196,7 +194,7 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
  */
 void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
-	int j, c;
+	int j;
 
 	if (ent) { // trails should be framerate independent
 
@@ -206,9 +204,7 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 		ent->time = cgi.client->time + 8;
 	}
 
-	c = CONTENTS_SLIME | CONTENTS_WATER;
-
-	if (cgi.PointContents(end) & c) {
+	if (cgi.PointContents(end) & MASK_WATER) {
 		Cg_BubbleTrail(start, end, 10.0);
 		return;
 	}
@@ -246,7 +242,7 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 	r_particle_t *p;
 	vec3_t end;
-	int j, c;
+	int j;
 
 	VectorAdd(org, vel, end);
 
@@ -258,9 +254,7 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 		ent->time = cgi.client->time + 8;
 	}
 
-	c = CONTENTS_SLIME | CONTENTS_WATER;
-
-	if (cgi.PointContents(org) & c) {
+	if (cgi.PointContents(org) & MASK_WATER) {
 		Cg_BubbleTrail(org, end, 10.0);
 		return;
 	}
@@ -392,9 +386,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, float radius, int color) {
 
 	ent->time = cgi.client->time + 8;
 
-	c = CONTENTS_SLIME | CONTENTS_WATER;
-
-	if (cgi.PointContents(ent->current.origin) & c)
+	if (cgi.PointContents(ent->current.origin) & MASK_WATER)
 		Cg_BubbleTrail(ent->prev.origin, ent->current.origin, 1.0);
 }
 

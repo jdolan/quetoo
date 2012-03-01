@@ -335,7 +335,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int count) {
  * Cg_ExplosionEffect
  */
 static void Cg_ExplosionEffect(const vec3_t org) {
-	int i, j;
+	int j;
 	r_particle_t *p;
 	r_sustained_light_t s;
 
@@ -357,9 +357,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	if (!(p = Cg_AllocParticle()))
 		return;
 
-	i = CONTENTS_SLIME | CONTENTS_WATER;
-
-	if (cgi.PointContents(org) & i)
+	if (cgi.PointContents(org) & MASK_WATER)
 		return;
 
 	p->accel[2] = 20;
@@ -502,7 +500,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int flags, int c
 		p->color = color;
 
 		// check for bubble trail
-		if (i && (cgi.PointContents(move) & (CONTENTS_SLIME | CONTENTS_WATER))) {
+		if (i && (cgi.PointContents(move) & MASK_WATER)) {
 			Cg_BubbleTrail(move, p->org, 16.0);
 		}
 
