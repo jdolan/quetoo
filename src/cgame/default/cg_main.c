@@ -73,7 +73,7 @@ static void Cg_Init(void) {
 	cg_fov = Cvar_Get("cg_fov", "100.0", CVAR_ARCHIVE, NULL);
 	cg_fov_zoom = Cvar_Get("cg_fov_zoom", "40.0", CVAR_ARCHIVE, NULL);
 
-	cg_third_person = cgi.Cvar("cg_third_person", "0.0", 0, "Activate third person perspective.");
+	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE, "Activate third person perspective.");
 
 	cgi.Print("  Client game initialized.\n");
 }
