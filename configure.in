@@ -201,16 +201,18 @@ else
 	
 	case "$host" in
 		*-apple-*)
-			HOST_ANTTWEAKBAR_CXXFLAGS="-D_MACOSX -ObjC++"
-			HOST_ANTTWEAKBAR_CFLAGS="-D_MACOSX"
+			HOST_ANTTWEAKBAR_CXXFLAGS="-D_MACOSX -I/usr/X11R6/include -ObjC++"
+			HOST_ANTTWEAKBAR_CFLAGS="-D_MACOSX -I/usr/X11R6/include"
+			HOST_ANTTWEAKBAR_LIBS="-framework GLUT -framework AppKit"
 			;;
 		*-*-mingw*)
 			HOST_ANTTWEAKBAR_CXXFLAGS="-D_WINDOWS -fpermissive"
 			HOST_ANTTWEAKBAR_CFLAGS="-D_WINDOWS -fpermissive"
 			;;
 		*)
-			HOST_ANTTWEAKBAR_CXXFLAGS="-D_UNIX"
-			HOST_ANTTWEAKBAR_CFLAGS="-D_UNIX"
+			HOST_ANTTWEAKBAR_CXXFLAGS="-D_UNIX -I/usr/X11R6/include"
+			HOST_ANTTWEAKBAR_CFLAGS="-D_UNIX -I/usr/X11R6/include"
+			HOST_ANTTWEAKBAR_LIBS="-lX11 -lXext"
 			;;
 	esac
 	
