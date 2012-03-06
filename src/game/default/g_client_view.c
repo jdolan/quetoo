@@ -91,8 +91,8 @@ static void G_ClientFall(g_edict_t *ent) {
 
 		VectorSet(dir, 0.0, 0.0, 1.0);
 
-		G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0,
-				DAMAGE_NO_ARMOR, MOD_FALLING);
+		G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0, DAMAGE_NO_ARMOR,
+				MOD_FALLING);
 	}
 
 	if (ent->s.event != EV_TELEPORT) { // don't override teleport events
@@ -126,8 +126,7 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 		gi.Sound(ent, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
 	// head just coming out of water
-	if (old_water_level == 3 && water_level != 3 && g_level.time
-			- client->gasp_time > 2000) {
+	if (old_water_level == 3 && water_level != 3 && g_level.time - client->gasp_time > 2000) {
 
 		gi.Sound(ent, gi.SoundIndex("*gasp_1"), ATTN_NORM);
 		client->gasp_time = g_level.time;
@@ -155,8 +154,8 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 
 			client->pain_time = g_level.time;
 
-			G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin,
-					ent->dmg, 0, DAMAGE_NO_ARMOR, MOD_WATER);
+			G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, ent->dmg, 0,
+					DAMAGE_NO_ARMOR, MOD_WATER);
 		}
 	}
 
@@ -167,15 +166,13 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 			client->sizzle_time = g_level.time + 100;
 
 			if (ent->water_type & CONTENTS_LAVA) {
-				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin,
-						vec3_origin, 2 * water_level, 0, DAMAGE_NO_ARMOR,
-						MOD_LAVA);
+				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 2 * water_level,
+						0, DAMAGE_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (ent->water_type & CONTENTS_SLIME) {
-				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin,
-						vec3_origin, 1 * water_level, 0, DAMAGE_NO_ARMOR,
-						MOD_SLIME);
+				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 1 * water_level,
+						0, DAMAGE_NO_ARMOR, MOD_SLIME);
 			}
 		}
 	}
@@ -205,10 +202,19 @@ static void G_ClientAnimation(g_edict_t *ent) {
 		}
 
 		VectorCopy(ent->s.origin, point);
-		point[2] -= 8.0;
 
-		trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent,
-				MASK_PLAYER_SOLID);
+		const unsigned int jump = g_level.time - ent->client->jump_time;
+
+		if (jump <= 400)
+			point[2] += 4.0;
+		else if (ent->velocity[2] < 0.0)
+			point[2] -= 32.0;
+		else if (ent->velocity[2] < 30.0)
+			point[2] -= 16.0;
+		else
+			point[2] -= 1.0;
+
+		trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_PLAYER_SOLID);
 		if (trace.fraction == 1.0) {
 
 			boolean_t jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
@@ -333,9 +339,7 @@ void G_ClientEndFrame(g_edict_t *ent) {
 	// check for footsteps
 	if (ent->ground_entity && !ent->s.event) {
 
-		xy_speed = sqrt(
-				ent->velocity[0] * ent->velocity[0] + ent->velocity[1]
-						* ent->velocity[1]);
+		xy_speed = sqrt(ent->velocity[0] * ent->velocity[0] + ent->velocity[1] * ent->velocity[1]);
 
 		if (xy_speed > 265.0 && ent->client->footstep_time < g_level.time) {
 			ent->client->footstep_time = g_level.time + 300;
