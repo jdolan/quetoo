@@ -24,8 +24,7 @@
 /*
  * G_func_areaportal_use
  */
-static void G_func_areaportal_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_func_areaportal_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	ent->count ^= 1; // toggle state
 	gi.SetAreaPortalState(ent->area_portal, ent->count);
 }
@@ -65,7 +64,7 @@ static void G_MoveInfo_End(g_edict_t *ent) {
 	ent->next_think = g_level.time + gi.frame_millis;
 }
 
-/*
+/**
  * G_MoveInfo_Constant
  *
  * Starts a move with constant velocity. The entity will think again when it
@@ -74,25 +73,21 @@ static void G_MoveInfo_End(g_edict_t *ent) {
 static void G_MoveInfo_Constant(g_edict_t *ent) {
 	float frames;
 
-	if ((ent->move_info.speed * gi.frame_seconds)
-			>= ent->move_info.remaining_distance) {
+	if ((ent->move_info.speed * gi.frame_seconds) >= ent->move_info.remaining_distance) {
 		G_MoveInfo_End(ent);
 		return;
 	}
 
 	VectorScale(ent->move_info.dir, ent->move_info.speed, ent->velocity);
-	frames = floor(
-			(ent->move_info.remaining_distance / ent->move_info.speed)
-					/ gi.frame_seconds);
-	ent->move_info.remaining_distance -= frames * ent->move_info.speed
-			* gi.frame_seconds;
+	frames = floor((ent->move_info.remaining_distance / ent->move_info.speed) / gi.frame_seconds);
+	ent->move_info.remaining_distance -= frames * ent->move_info.speed * gi.frame_seconds;
 	ent->next_think = g_level.time + (frames * gi.frame_millis);
 	ent->think = G_MoveInfo_End;
 }
 
 #define AccelerationDistance(target, rate) (target * ((target / rate) + 1) / 2)
 
-/*
+/**
  * G_MoveInfo_UpdateAcceleration
  *
  * Updates the acceleration parameters for the specified move. This determines
@@ -115,18 +110,16 @@ static void G_MoveInfo_UpdateAcceleration(g_move_info_t *move_info) {
 	if ((move_info->remaining_distance - accel_dist - decel_dist) < 0) {
 		float f;
 
-		f = (move_info->accel + move_info->decel) / (move_info->accel
-				* move_info->decel);
-		move_info->move_speed = (-2 + sqrt(
-				4 - 4 * f * (-2 * move_info->remaining_distance))) / (2 * f);
-		decel_dist
-				= AccelerationDistance(move_info->move_speed, move_info->decel);
+		f = (move_info->accel + move_info->decel) / (move_info->accel * move_info->decel);
+		move_info->move_speed = (-2 + sqrt(4 - 4 * f * (-2 * move_info->remaining_distance))) / (2
+				* f);
+		decel_dist = AccelerationDistance(move_info->move_speed, move_info->decel);
 	}
 
 	move_info->decel_distance = decel_dist;
 }
 
-/*
+/**
  * G_MoveInfo_Accelerate
  *
  * Applies any acceleration / deceleration based on the distance remaining.
@@ -148,20 +141,17 @@ static void G_MoveInfo_Accelerate(g_move_info_t *move_info) {
 
 	// are we at full speed and need to start decelerating during this move?
 	if (move_info->current_speed == move_info->move_speed)
-		if ((move_info->remaining_distance - move_info->current_speed)
-				< move_info->decel_distance) {
+		if ((move_info->remaining_distance - move_info->current_speed) < move_info->decel_distance) {
 			float p1_distance;
 			float p2_distance;
 			float distance;
 
-			p1_distance = move_info->remaining_distance
-					- move_info->decel_distance;
-			p2_distance = move_info->move_speed * (1.0 - (p1_distance
-					/ move_info->move_speed));
+			p1_distance = move_info->remaining_distance - move_info->decel_distance;
+			p2_distance = move_info->move_speed * (1.0 - (p1_distance / move_info->move_speed));
 			distance = p1_distance + p2_distance;
 			move_info->current_speed = move_info->move_speed;
-			move_info->next_speed = move_info->move_speed - move_info->decel
-					* (p2_distance / distance);
+			move_info->next_speed = move_info->move_speed - move_info->decel * (p2_distance
+					/ distance);
 			return;
 		}
 
@@ -181,8 +171,7 @@ static void G_MoveInfo_Accelerate(g_move_info_t *move_info) {
 			move_info->current_speed = move_info->speed;
 
 		// are we accelerating throughout this entire move?
-		if ((move_info->remaining_distance - move_info->current_speed)
-				>= move_info->decel_distance)
+		if ((move_info->remaining_distance - move_info->current_speed) >= move_info->decel_distance)
 			return;
 
 		// during this move we will accelerate from current_speed to move_speed
@@ -192,15 +181,14 @@ static void G_MoveInfo_Accelerate(g_move_info_t *move_info) {
 		p1_speed = (old_speed + move_info->move_speed) / 2.0;
 		p2_distance = move_info->move_speed * (1.0 - (p1_distance / p1_speed));
 		distance = p1_distance + p2_distance;
-		move_info->current_speed = (p1_speed * (p1_distance / distance))
-				+ (move_info->move_speed * (p2_distance / distance));
-		move_info->next_speed = move_info->move_speed - move_info->decel
-				* (p2_distance / distance);
+		move_info->current_speed = (p1_speed * (p1_distance / distance)) + (move_info->move_speed
+				* (p2_distance / distance));
+		move_info->next_speed = move_info->move_speed - move_info->decel * (p2_distance / distance);
 		return;
 	}
 }
 
-/*
+/**
  * G_MoveInfo_Accelerative
  *
  * Sets up a non-constant move, i.e. one that will accelerate near the beginning
@@ -226,14 +214,13 @@ static void G_MoveInfo_Accelerative(g_edict_t *ent) {
 	ent->think = G_MoveInfo_Accelerative;
 }
 
-/*
+/**
  * G_MoveInfo_Init
  *
  * Sets up movement for the specified entity. Both constant and accelerative
  * movements are initiated through this function.
  */
-static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest,
-		void(*done)(g_edict_t*)) {
+static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest, void(*done)(g_edict_t*)) {
 
 	VectorClear(ent->velocity);
 
@@ -244,8 +231,7 @@ static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest,
 
 	if (ent->move_info.speed == ent->move_info.accel && ent->move_info.speed
 			== ent->move_info.decel) { // constant
-		if (g_level.current_entity
-				== ((ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent)) {
+		if (g_level.current_entity == ((ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent)) {
 			G_MoveInfo_Constant(ent);
 		} else {
 			ent->next_think = g_level.time + gi.frame_millis;
@@ -322,8 +308,8 @@ static void G_func_plat_blocked(g_edict_t *self, g_edict_t *other) {
 	if (!other->client)
 		return;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
-			self->dmg, 1, 0, MOD_CRUSH);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0,
+			MOD_CRUSH);
 
 	if (self->move_info.state == STATE_UP)
 		G_func_plat_go_down(self);
@@ -334,8 +320,7 @@ static void G_func_plat_blocked(g_edict_t *self, g_edict_t *other) {
 /*
  * G_func_plat_use
  */
-static void G_func_plat_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_func_plat_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
 	if (ent->think)
 		return; // already down
@@ -346,8 +331,8 @@ static void G_func_plat_use(g_edict_t *ent, g_edict_t *other __attribute__((unus
 /*
  * G_func_plat_touch
  */
-static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other,
-		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;
@@ -495,27 +480,26 @@ void G_func_plat(g_edict_t *ent) {
  * G_func_rotating_blocked
  */
 static void G_func_rotating_blocked(g_edict_t *self, g_edict_t *other) {
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
-			self->dmg, 1, 0, MOD_CRUSH);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0,
+			MOD_CRUSH);
 }
 
 /*
  * G_func_rotating_touch
  */
-static void G_func_rotating_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_func_rotating_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!VectorCompare(self->avelocity, vec3_origin)) {
-		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
-				self->dmg, 1, 0, MOD_CRUSH);
+		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0,
+				MOD_CRUSH);
 	}
 }
 
 /*
  * G_func_rotating_use
  */
-static void G_func_rotating_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_func_rotating_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
 	if (!VectorCompare(self->avelocity, vec3_origin)) {
 		self->s.sound = 0;
@@ -634,8 +618,7 @@ static void G_func_button_activate(g_edict_t *self) {
 /*
  * G_func_button_use
  */
-static void G_func_button_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator) {
+static void G_func_button_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	self->activator = activator;
 	G_func_button_activate(self);
 }
@@ -643,8 +626,8 @@ static void G_func_button_use(g_edict_t *self, g_edict_t *other __attribute__((u
 /*
  * G_func_button_touch
  */
-static void G_func_button_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_func_button_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;
@@ -656,8 +639,8 @@ static void G_func_button_touch(g_edict_t *self, g_edict_t *other,
 	G_func_button_activate(self);
 }
 
-static void G_func_button_die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)),
-		g_edict_t *attacker, int damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
+static void G_func_button_die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker,
+		int damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
 	self->activator = attacker;
 	self->health = self->max_health;
 	self->take_damage = false;
@@ -702,8 +685,8 @@ void G_func_button(g_edict_t *ent) {
 	abs_move_dir[0] = fabsf(ent->move_dir[0]);
 	abs_move_dir[1] = fabsf(ent->move_dir[1]);
 	abs_move_dir[2] = fabsf(ent->move_dir[2]);
-	dist = abs_move_dir[0] * ent->size[0] + abs_move_dir[1] * ent->size[1]
-			+ abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
+	dist = abs_move_dir[0] * ent->size[0] + abs_move_dir[1] * ent->size[1] + abs_move_dir[2]
+			* ent->size[2] - g_game.spawn.lip;
 	VectorMA(ent->pos1, dist, ent->move_dir, ent->pos2);
 
 	ent->use = G_func_button_use;
@@ -829,16 +812,14 @@ static void G_func_door_go_up(g_edict_t *self, g_edict_t *activator) {
 /*
  * G_func_door_use
  */
-static void G_func_door_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator) {
+static void G_func_door_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	g_edict_t *ent;
 
 	if (self->flags & FL_TEAM_SLAVE)
 		return;
 
 	if (self->spawn_flags & DOOR_TOGGLE) {
-		if (self->move_info.state == STATE_UP || self->move_info.state
-				== STATE_TOP) {
+		if (self->move_info.state == STATE_UP || self->move_info.state == STATE_TOP) {
 			// trigger all paired doors
 			for (ent = self; ent; ent = ent->team_chain) {
 				ent->message = NULL;
@@ -860,8 +841,8 @@ static void G_func_door_use(g_edict_t *self, g_edict_t *other __attribute__((unu
 /*
  * G_func_door_touch_trigger
  */
-static void G_func_door_touch_trigger(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_func_door_touch_trigger(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf __attribute__((unused))) {
 	if (other->health <= 0)
 		return;
 
@@ -964,8 +945,8 @@ static void G_func_door_blocked(g_edict_t *self, g_edict_t *other) {
 	if (!other->client)
 		return;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
-			self->dmg, 1, 0, MOD_CRUSH);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0,
+			MOD_CRUSH);
 
 	// if a door has a negative wait, it would never come back if blocked,
 	// so let it just squash the object to death real fast
@@ -983,8 +964,8 @@ static void G_func_door_blocked(g_edict_t *self, g_edict_t *other) {
 /*
  * G_func_door_die
  */
-static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)),
-		g_edict_t *attacker, int damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
+static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int damage __attribute__((unused)),
+		vec3_t point __attribute__((unused))) {
 	g_edict_t *ent;
 
 	for (ent = self->team_master; ent; ent = ent->team_chain) {
@@ -998,8 +979,8 @@ static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor __attribute__(
 /*
  * G_func_door_touch
  */
-static void G_func_door_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_func_door_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf __attribute__((unused))) {
 	if (!other->client)
 		return;
 
@@ -1067,8 +1048,8 @@ void G_func_door(g_edict_t *ent) {
 	abs_move_dir[0] = fabsf(ent->move_dir[0]);
 	abs_move_dir[1] = fabsf(ent->move_dir[1]);
 	abs_move_dir[2] = fabsf(ent->move_dir[2]);
-	ent->move_info.distance = abs_move_dir[0] * ent->size[0] + abs_move_dir[1]
-			* ent->size[1] + abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
+	ent->move_info.distance = abs_move_dir[0] * ent->size[0] + abs_move_dir[1] * ent->size[1]
+			+ abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
 	VectorMA(ent->pos1, ent->move_info.distance, ent->move_dir, ent->pos2);
 
 	// if it starts open, switch the positions
@@ -1114,8 +1095,7 @@ void G_func_door(g_edict_t *ent) {
 /*
  * G_func_wall_use
  */
-static void G_func_wall_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_func_wall_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	if (self->solid == SOLID_NOT) {
 		self->solid = SOLID_BSP;
 		self->sv_flags &= ~SVF_NO_CLIENT;
@@ -1203,9 +1183,8 @@ void G_func_water(g_edict_t *self) {
 	abs_move_dir[0] = fabsf(self->move_dir[0]);
 	abs_move_dir[1] = fabsf(self->move_dir[1]);
 	abs_move_dir[2] = fabsf(self->move_dir[2]);
-	self->move_info.distance = abs_move_dir[0] * self->size[0]
-			+ abs_move_dir[1] * self->size[1] + abs_move_dir[2] * self->size[2]
-			- g_game.spawn.lip;
+	self->move_info.distance = abs_move_dir[0] * self->size[0] + abs_move_dir[1] * self->size[1]
+			+ abs_move_dir[2] * self->size[2] - g_game.spawn.lip;
 	VectorMA(self->pos1, self->move_info.distance, self->move_dir, self->pos2);
 
 	// if it starts open, switch the positions
@@ -1224,8 +1203,7 @@ void G_func_water(g_edict_t *self) {
 
 	if (!self->speed)
 		self->speed = 25;
-	self->move_info.accel = self->move_info.decel = self->move_info.speed
-			= self->speed;
+	self->move_info.accel = self->move_info.decel = self->move_info.speed = self->speed;
 
 	if (!self->wait)
 		self->wait = -1;
@@ -1261,8 +1239,8 @@ static void G_func_train_blocked(g_edict_t *self, g_edict_t *other) {
 		return;
 
 	self->touch_time = g_level.time + 500;
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
-			self->dmg, 1, 0, MOD_CRUSH);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0,
+			MOD_CRUSH);
 }
 
 /*
@@ -1329,8 +1307,8 @@ static void G_func_train_next(g_edict_t *self) {
 	// check for a teleport path_corner
 	if (ent->spawn_flags & 1) {
 		if (!first) {
-			gi.Debug("connected teleport path_corners, see %s at %s\n",
-					ent->class_name, vtos(ent->s.origin));
+			gi.Debug("connected teleport path_corners, see %s at %s\n", ent->class_name,
+					vtos(ent->s.origin));
 			return;
 		}
 		first = false;
@@ -1409,8 +1387,7 @@ static void G_func_train_find(g_edict_t *self) {
 /*
  * G_func_train_use
  */
-static void G_func_train_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator) {
+static void G_func_train_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	self->activator = activator;
 
 	if (self->spawn_flags & TRAIN_START_ON) {
@@ -1485,8 +1462,7 @@ static void G_func_timer_think(g_edict_t *self) {
 /*
  * G_func_timer_use
  */
-static void G_func_timer_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator) {
+static void G_func_timer_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	self->activator = activator;
 
 	// if on, turn it off
@@ -1529,8 +1505,8 @@ void G_func_timer(g_edict_t *self) {
 	}
 
 	if (self->spawn_flags & 1) {
-		self->next_think = g_level.time + 1000 + g_game.spawn.pause_time
-				+ self->delay * 1000 + self->wait + crand() * (self->random * 1000);
+		self->next_think = g_level.time + 1000 + g_game.spawn.pause_time + self->delay * 1000
+				+ self->wait + crand() * (self->random * 1000);
 		self->activator = self;
 	}
 
@@ -1540,8 +1516,7 @@ void G_func_timer(g_edict_t *self) {
 /*
  * G_func_conveyor_use
  */
-static void G_func_conveyor_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_func_conveyor_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	if (self->spawn_flags & 1) {
 		self->speed = 0;
 		self->spawn_flags &= ~1;
@@ -1578,8 +1553,7 @@ void G_func_conveyor(g_edict_t *self) {
 /*
  * G_func_killbox_use
  */
-static void G_func_killbox_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_func_killbox_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	G_KillBox(self);
 }
 

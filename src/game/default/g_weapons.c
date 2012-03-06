@@ -34,8 +34,7 @@ boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	ammo = G_FindItem(ent->item->ammo);
 	ammoindex = ITEM_INDEX(ammo);
 
-	if (!(ent->spawn_flags & SF_ITEM_DROPPED)
-			&& other->client->persistent.inventory[index]) {
+	if (!(ent->spawn_flags & SF_ITEM_DROPPED) && other->client->persistent.inventory[index]) {
 		if (other->client->persistent.inventory[ammoindex] >= ammo->quantity)
 			G_AddAmmo(other, ammo, ent->item->quantity); // q3 style
 		else
@@ -51,14 +50,14 @@ boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	other->client->persistent.inventory[index]++;
 
 	// auto-change if it's the first weapon we pick up
-	if (other->client->persistent.weapon != ent->item
-			&& (other->client->persistent.weapon == G_FindItem("Blaster")))
+	if (other->client->persistent.weapon != ent->item && (other->client->persistent.weapon
+			== G_FindItem("Blaster")))
 		other->client->new_weapon = ent->item;
 
 	return true;
 }
 
-/*
+/**
  * G_ChangeWeapon
  *
  * The old weapon has been put away, so make the new one current
@@ -75,8 +74,7 @@ void G_ChangeWeapon(g_edict_t *ent) {
 
 	// resolve ammo
 	if (ent->client->persistent.weapon && ent->client->persistent.weapon->ammo)
-		ent->client->ammo_index
-				= ITEM_INDEX(G_FindItem(ent->client->persistent.weapon->ammo));
+		ent->client->ammo_index = ITEM_INDEX(G_FindItem(ent->client->persistent.weapon->ammo));
 	else
 		ent->client->ammo_index = 0;
 
@@ -171,8 +169,7 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 	index = ITEM_INDEX(item);
 
 	// see if we're already using it and we only have one
-	if ((item == ent->client->persistent.weapon || item
-			== ent->client->new_weapon)
+	if ((item == ent->client->persistent.weapon || item == ent->client->new_weapon)
 			&& (ent->client->persistent.inventory[index] == 1)) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop current weapon\n");
 		return;
@@ -203,8 +200,7 @@ void G_TossWeapon(g_edict_t *ent) {
 /*
  * G_FireWeapon
  */
-static void G_FireWeapon(g_edict_t *ent, unsigned int interval,
-		void(*fire)(g_edict_t *ent)) {
+static void G_FireWeapon(g_edict_t *ent, unsigned int interval, void(*fire)(g_edict_t *ent)) {
 	int n, m;
 	int buttons;
 
@@ -281,8 +277,7 @@ void G_WeaponThink(g_edict_t *ent) {
 	}
 
 	// call active weapon think routine
-	if (ent->client->persistent.weapon
-			&& ent->client->persistent.weapon->weapon_think)
+	if (ent->client->persistent.weapon && ent->client->persistent.weapon->weapon_think)
 		ent->client->persistent.weapon->weapon_think(ent);
 }
 
@@ -350,13 +345,11 @@ static void G_FireSuperShotgun_(g_edict_t *ent) {
 
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_ShotgunProjectiles(ent, org, forward, 4, 4, 1000, 500, 12,
-			MOD_SUPER_SHOTGUN);
+	G_ShotgunProjectiles(ent, org, forward, 4, 4, 1000, 500, 12, MOD_SUPER_SHOTGUN);
 
 	ent->s.angles[YAW] += 10.0;
 
-	G_ShotgunProjectiles(ent, org, forward, 4, 4, 1000, 500, 12,
-			MOD_SUPER_SHOTGUN);
+	G_ShotgunProjectiles(ent, org, forward, 4, 4, 1000, 500, 12, MOD_SUPER_SHOTGUN);
 
 	ent->s.angles[YAW] -= 5.0;
 
@@ -446,7 +439,7 @@ static void G_FireLightning_(g_edict_t *ent) {
 	G_LightningProjectile(ent, org, forward, 10, 12);
 
 	if (ent->client->muzzle_flash_time > g_level.time)
-			return;
+		return;
 
 	G_MuzzleFlash(ent, MZ_LIGHTNING);
 	ent->client->muzzle_flash_time = g_level.time + 250;

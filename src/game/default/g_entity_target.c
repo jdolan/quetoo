@@ -24,8 +24,7 @@
 /*
  * G_target_speaker_use
  */
-static void G_target_speaker_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_target_speaker_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
 	if (ent->spawn_flags & 3) { // looping sound toggles
 		if (ent->s.sound)
@@ -35,8 +34,7 @@ static void G_target_speaker_use(g_edict_t *ent, g_edict_t *other __attribute__(
 	} else { // normal sound
 		// use a positioned_sound, because this entity won't normally be
 		// sent to any clients because it is invisible
-		gi.PositionedSound(ent->s.origin, ent, ent->noise_index,
-				ent->attenuation);
+		gi.PositionedSound(ent->s.origin, ent, ent->noise_index, ent->attenuation);
 	}
 }
 
@@ -57,8 +55,7 @@ void G_target_speaker(g_edict_t *ent) {
 	char buffer[MAX_QPATH];
 
 	if (!g_game.spawn.noise) {
-		gi.Debug("target_speaker with no noise set at %s\n",
-				vtos(ent->s.origin));
+		gi.Debug("target_speaker with no noise set at %s\n", vtos(ent->s.origin));
 		return;
 	}
 
@@ -96,8 +93,7 @@ static void G_target_explosion_explode(g_edict_t *self) {
 	gi.WritePosition(self->s.origin);
 	gi.Multicast(self->s.origin, MULTICAST_PHS);
 
-	G_RadiusDamage(self, self->activator, NULL, self->dmg, self->dmg,
-			self->dmg + 40, MOD_EXPLOSIVE);
+	G_RadiusDamage(self, self->activator, NULL, self->dmg, self->dmg, self->dmg + 40, MOD_EXPLOSIVE);
 
 	save = self->delay;
 	self->delay = 0;
@@ -108,8 +104,7 @@ static void G_target_explosion_explode(g_edict_t *self) {
 /*
  * G_target_explosion_use
  */
-static void G_target_explosion_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator) {
+static void G_target_explosion_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	self->activator = activator;
 
 	if (!self->delay) {

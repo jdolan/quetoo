@@ -42,7 +42,6 @@ g_item_t *G_ItemByIndex(unsigned short index) {
 
 /*
  * G_FindItemByClassname
- *
  */
 g_item_t *G_FindItemByClassname(const char *class_name) {
 	int i;
@@ -270,8 +269,7 @@ static boolean_t G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 	boolean_t always_add, always_pickup;
 
 	always_add = ent->item->tag == HEALTH_SMALL;
-	always_pickup = ent->item->tag == HEALTH_SMALL || ent->item->tag
-			== HEALTH_MEGA;
+	always_pickup = ent->item->tag == HEALTH_SMALL || ent->item->tag == HEALTH_MEGA;
 
 	if (other->health < other->max_health || always_add || always_pickup) {
 
@@ -310,16 +308,13 @@ static boolean_t G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
 
 	if (ent->item->tag == ARMOR_SHARD) { // take it, ignoring cap
 		other->client->persistent.armor += ent->item->quantity;
-	} else if (other->client->persistent.armor
-			< other->client->persistent.max_armor) {
+	} else if (other->client->persistent.armor < other->client->persistent.max_armor) {
 
 		// take it, but enforce cap
 		other->client->persistent.armor += ent->item->quantity;
 
-		if (other->client->persistent.armor
-				> other->client->persistent.max_armor)
-			other->client->persistent.armor
-					= other->client->persistent.max_armor;
+		if (other->client->persistent.armor > other->client->persistent.max_armor)
+			other->client->persistent.armor = other->client->persistent.max_armor;
 	} else { // don't take it
 		taken = false;
 	}
@@ -330,7 +325,7 @@ static boolean_t G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
 	return taken;
 }
 
-/*
+/**
  * G_ResetFlag
  *
  * A dropped flag has been idle for 30 seconds, return it.
@@ -355,7 +350,7 @@ void G_ResetFlag(g_edict_t *ent) {
 	G_FreeEdict(ent);
 }
 
-/*
+/**
  * G_PickupFlag
  *
  * Return own flag, or capture on it if enemy's flag is in inventory.
@@ -434,8 +429,8 @@ static boolean_t G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTN_NONE);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
-			other->client->persistent.net_name, t->name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n", other->client->persistent.net_name,
+			t->name);
 
 	other->s.effects |= G_EffectForTeam(t);
 	return true;
@@ -465,8 +460,8 @@ void G_TossFlag(g_edict_t *ent) {
 	ent->s.model3 = 0;
 	ent->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
-			ent->client->persistent.net_name, ot->name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n", ent->client->persistent.net_name,
+			ot->name);
 
 	G_DropItem(ent, of->item);
 }
@@ -481,8 +476,7 @@ static void G_DropFlag(g_edict_t *ent, g_item_t *item __attribute__((unused))) {
 /*
  * G_TouchItem
  */
-void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
 	boolean_t taken;
 
 	if (!other->client)
@@ -499,10 +493,8 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attrib
 
 	if ((taken = ent->item->pickup(ent, other))) {
 		// show icon and name on status bar
-		other->client->ps.stats[STAT_PICKUP_ICON] = gi.ImageIndex(
-				ent->item->icon);
-		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS
-				+ ITEM_INDEX(ent->item);
+		other->client->ps.stats[STAT_PICKUP_ICON] = gi.ImageIndex(ent->item->icon);
+		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ITEM_INDEX(ent->item);
 		other->client->pickup_msg_time = g_level.time + 3000;
 
 		if (ent->item->pickup_sound) { // play pickup sound
@@ -532,8 +524,8 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attrib
 /*
  * G_DropItemUntouchable
  */
-static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other,
-		c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane,
+		c_bsp_surface_t *surf) {
 
 	if (other == ent->owner) // prevent the dropper from picking it right back up
 		return;
@@ -589,7 +581,7 @@ static void G_DropItemThink(g_edict_t *ent) {
 	ent->next_think = g_level.time + i;
 }
 
-/*
+/**
  * G_DropItem
  *
  * Handles the mechanics of dropping items, but does not adjust the client's
@@ -621,15 +613,15 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item) {
 
 		VectorMA(ent->s.origin, 24.0, forward, dropped->s.origin);
 
-		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs,
-				dropped->s.origin, ent, CONTENTS_SOLID);
+		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs, dropped->s.origin, ent,
+				CONTENTS_SOLID);
 
 		VectorCopy(trace.end, dropped->s.origin);
 	} else {
 		AngleVectors(ent->s.angles, forward, NULL, NULL);
 
-		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs,
-				ent->s.origin, ent, CONTENTS_SOLID);
+		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs, ent->s.origin, ent,
+				CONTENTS_SOLID);
 
 		VectorCopy(ent->s.origin, dropped->s.origin);
 	}
@@ -690,11 +682,9 @@ static void G_DropToFloor(g_edict_t *ent) {
 		VectorCopy(ent->s.origin, dest);
 		dest[2] -= 8192;
 
-		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, dest, ent,
-				MASK_SOLID);
+		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
 		if (tr.start_solid) {
-			gi.Debug("G_DropToFloor: %s start_solid at %s\n", ent->class_name,
-					vtos(ent->s.origin));
+			gi.Debug("G_DropToFloor: %s start_solid at %s\n", ent->class_name, vtos(ent->s.origin));
 			G_FreeEdict(ent);
 			return;
 		}
@@ -706,7 +696,7 @@ static void G_DropToFloor(g_edict_t *ent) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * G_PrecacheItem
  *
  * Precaches all data needed for a given item.
@@ -748,8 +738,7 @@ void G_PrecacheItem(g_item_t *it) {
 
 		len = s - start;
 		if (len >= MAX_QPATH || len < 5)
-			gi.Error("G_PrecacheItem: %s has bad precache string.",
-					it->class_name);
+			gi.Error("G_PrecacheItem: %s has bad precache string.", it->class_name);
 		memcpy(data, start, len);
 		data[len] = 0;
 		if (*s)
@@ -760,16 +749,14 @@ void G_PrecacheItem(g_item_t *it) {
 			gi.ModelIndex(data);
 		else if (!strcmp(data + len - 3, "wav"))
 			gi.SoundIndex(data);
-		else if (!strcmp(data + len - 3, "tga") || !strcmp(data + len - 3,
-				"png"))
+		else if (!strcmp(data + len - 3, "tga") || !strcmp(data + len - 3, "png"))
 			gi.ImageIndex(data);
 		else
-			gi.Error("G_PrecacheItem: %s has unknown data type.",
-					it->class_name);
+			gi.Error("G_PrecacheItem: %s has unknown data type.", it->class_name);
 	}
 }
 
-/*
+/**
  * G_SpawnItem
  *
  * Sets the clipping size and plants the object on the floor.
@@ -782,8 +769,8 @@ void G_SpawnItem(g_edict_t *ent, g_item_t *item) {
 	G_PrecacheItem(item);
 
 	if (ent->spawn_flags) {
-		gi.Debug("%s at %s has spawnflags %d\n", ent->class_name,
-				vtos(ent->s.origin), ent->spawn_flags);
+		gi.Debug("%s at %s has spawnflags %d\n", ent->class_name, vtos(ent->s.origin),
+				ent->spawn_flags);
 	}
 
 	VectorSet(ent->mins, -15, -15, -15);
@@ -817,8 +804,8 @@ void G_SpawnItem(g_edict_t *ent, g_item_t *item) {
 	}
 
 	// hide flags unless ctf is enabled
-	if (!g_level.ctf && (!strcmp(ent->class_name, "item_flag_team1")
-			|| !strcmp(ent->class_name, "item_flag_team2"))) {
+	if (!g_level.ctf && (!strcmp(ent->class_name, "item_flag_team1") || !strcmp(ent->class_name,
+			"item_flag_team2"))) {
 
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->solid = SOLID_NOT;
@@ -836,297 +823,590 @@ void G_SpawnItem(g_edict_t *ent, g_item_t *item) {
 	}
 }
 
-g_item_t
-		g_items[] =
-				{
-						/*QUAKED item_armor_body(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "item_armor_body", G_PickupArmor, NULL, NULL, NULL,
-								"armor/body/pickup.wav",
-								"models/armor/body/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "i_bodyarmor",
-								"Body Armor", 200, NULL, ITEM_ARMOR,
-								ARMOR_BODY, "" },
+g_item_t g_items[] = {
+/*QUAKED item_armor_body(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"item_armor_body",
+		G_PickupArmor,
+		NULL,
+		NULL,
+		NULL,
+		"armor/body/pickup.wav",
+		"models/armor/body/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"i_bodyarmor",
+		"Body Armor",
+		200,
+		NULL,
+		ITEM_ARMOR,
+		ARMOR_BODY,
+		"" },
 
-						/*QUAKED item_armor_combat(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "item_armor_combat", G_PickupArmor, NULL, NULL, NULL,
-								"armor/combat/pickup.wav",
-								"models/armor/combat/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "i_combatarmor",
-								"Combat Armor", 100, NULL, ITEM_ARMOR,
-								ARMOR_COMBAT, "" },
+/*QUAKED item_armor_combat(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"item_armor_combat",
+		G_PickupArmor,
+		NULL,
+		NULL,
+		NULL,
+		"armor/combat/pickup.wav",
+		"models/armor/combat/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"i_combatarmor",
+		"Combat Armor",
+		100,
+		NULL,
+		ITEM_ARMOR,
+		ARMOR_COMBAT,
+		"" },
 
-						/*QUAKED item_armor_jacket(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "item_armor_jacket", G_PickupArmor, NULL, NULL, NULL,
-								"armor/jacket/pickup.wav",
-								"models/armor/jacket/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "i_jacketarmor",
-								"Jacket Armor", 50, NULL, ITEM_ARMOR,
-								ARMOR_JACKET, "" },
+/*QUAKED item_armor_jacket(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"item_armor_jacket",
+		G_PickupArmor,
+		NULL,
+		NULL,
+		NULL,
+		"armor/jacket/pickup.wav",
+		"models/armor/jacket/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"i_jacketarmor",
+		"Jacket Armor",
+		50,
+		NULL,
+		ITEM_ARMOR,
+		ARMOR_JACKET,
+		"" },
 
-						/*QUAKED item_armor_shard(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "item_armor_shard", G_PickupArmor, NULL, NULL, NULL,
-								"armor/shard/pickup.wav",
-								"models/armor/shard/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "i_shard",
-								"Armor Shard", 3, NULL, ITEM_ARMOR,
-								ARMOR_SHARD, "" },
+/*QUAKED item_armor_shard(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"item_armor_shard",
+		G_PickupArmor,
+		NULL,
+		NULL,
+		NULL,
+		"armor/shard/pickup.wav",
+		"models/armor/shard/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"i_shard",
+		"Armor Shard",
+		3,
+		NULL,
+		ITEM_ARMOR,
+		ARMOR_SHARD,
+		"" },
 
-						/*QUAKED weapon_blaster(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "weapon_blaster", G_PickupWeapon, G_UseWeapon,
-								G_DropWeapon, G_FireBlaster,
-								"weapons/common/pickup.wav",
-								"models/weapons/blaster/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "w_blaster",
-								"Blaster", 0, NULL, ITEM_WEAPON, 0,
-								"weapons/blaster/fire.wav" },
+/*QUAKED weapon_blaster(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"weapon_blaster",
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_FireBlaster,
+		"weapons/common/pickup.wav",
+		"models/weapons/blaster/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"w_blaster",
+		"Blaster",
+		0,
+		NULL,
+		ITEM_WEAPON,
+		0,
+		"weapons/blaster/fire.wav" },
 
-						/*QUAKED weapon_shotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "weapon_shotgun", G_PickupWeapon, G_UseWeapon,
-								G_DropWeapon, G_FireShotgun,
-								"weapons/common/pickup.wav",
-								"models/weapons/shotgun/tris.obj", EF_ROTATE
-										| EF_BOB | EF_PULSE, "w_shotgun",
-								"Shotgun", 1, "Shells", ITEM_WEAPON, 0,
-								"weapons/shotgun/fire.wav" },
+/*QUAKED weapon_shotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"weapon_shotgun",
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_FireShotgun,
+		"weapons/common/pickup.wav",
+		"models/weapons/shotgun/tris.obj",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"w_shotgun",
+		"Shotgun",
+		1,
+		"Shells",
+		ITEM_WEAPON,
+		0,
+		"weapons/shotgun/fire.wav" },
 
-						/*QUAKED weapon_supershotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "weapon_supershotgun", G_PickupWeapon, G_UseWeapon,
-								G_DropWeapon, G_FireSuperShotgun,
-								"weapons/common/pickup.wav",
-								"models/weapons/supershotgun/tris.obj",
-								EF_ROTATE | EF_BOB | EF_PULSE, "w_sshotgun",
-								"Super Shotgun", 2, "Shells", ITEM_WEAPON, 0,
-								"weapons/supershotgun/fire.wav" },
+/*QUAKED weapon_supershotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"weapon_supershotgun",
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_FireSuperShotgun,
+		"weapons/common/pickup.wav",
+		"models/weapons/supershotgun/tris.obj",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"w_sshotgun",
+		"Super Shotgun",
+		2,
+		"Shells",
+		ITEM_WEAPON,
+		0,
+		"weapons/supershotgun/fire.wav" },
 
-						/*QUAKED weapon_machinegun(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "weapon_machinegun", G_PickupWeapon, G_UseWeapon,
-								G_DropWeapon, G_FireMachinegun,
-								"weapons/common/pickup.wav",
-								"models/weapons/machinegun/tris.obj", EF_ROTATE
-										| EF_BOB | EF_PULSE, "w_machinegun",
-								"Machinegun", 1, "Bullets", ITEM_WEAPON, 0,
-								"weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
-									"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav" },
+/*QUAKED weapon_machinegun(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"weapon_machinegun",
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_FireMachinegun,
+		"weapons/common/pickup.wav",
+		"models/weapons/machinegun/tris.obj",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"w_machinegun",
+		"Machinegun",
+		1,
+		"Bullets",
+		ITEM_WEAPON,
+		0,
+		"weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
+			"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav" },
 
-						/*QUAKED weapon_grenadelauncher(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "weapon_grenadelauncher", G_PickupWeapon,
-								G_UseWeapon, G_DropWeapon,
-								G_FireGrenadeLauncher,
-								"weapons/common/pickup.wav",
-								"models/weapons/grenadelauncher/tris.obj",
-								EF_ROTATE | EF_BOB | EF_PULSE, "w_glauncher",
-								"Grenade Launcher", 1, "Grenades", ITEM_WEAPON,
-								0,
-								"models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav" },
+/*QUAKED weapon_grenadelauncher(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"weapon_grenadelauncher",
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_FireGrenadeLauncher,
+		"weapons/common/pickup.wav",
+		"models/weapons/grenadelauncher/tris.obj",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"w_glauncher",
+		"Grenade Launcher",
+		1,
+		"Grenades",
+		ITEM_WEAPON,
+		0,
+		"models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav" },
 
-						/*QUAKED weapon_rocketlauncher(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "weapon_rocketlauncher", G_PickupWeapon, G_UseWeapon,
-								G_DropWeapon, G_FireRocketLauncher,
-								"weapons/common/pickup.wav",
-								"models/weapons/rocketlauncher/tris.md3",
-								EF_ROTATE | EF_BOB | EF_PULSE, "w_rlauncher",
-								"Rocket Launcher", 1, "Rockets", ITEM_WEAPON,
-								0,
-								"models/objects/rocket/tris.md3 objects/rocket/fly.wav "
-									"weapons/rocketlauncher/fire.wav" },
+/*QUAKED weapon_rocketlauncher(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"weapon_rocketlauncher",
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_FireRocketLauncher,
+		"weapons/common/pickup.wav",
+		"models/weapons/rocketlauncher/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"w_rlauncher",
+		"Rocket Launcher",
+		1,
+		"Rockets",
+		ITEM_WEAPON,
+		0,
+		"models/objects/rocket/tris.md3 objects/rocket/fly.wav "
+			"weapons/rocketlauncher/fire.wav" },
 
-						/*QUAKED weapon_hyperblaster(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "weapon_hyperblaster", G_PickupWeapon, G_UseWeapon,
-								G_DropWeapon, G_FireHyperblaster,
-								"weapons/common/pickup.wav",
-								"models/weapons/hyperblaster/tris.md3",
-								EF_ROTATE | EF_BOB | EF_PULSE,
-								"w_hyperblaster", "Hyperblaster", 1, "Cells",
-								ITEM_WEAPON, 0,
-								"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav" },
+/*QUAKED weapon_hyperblaster(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"weapon_hyperblaster",
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_FireHyperblaster,
+		"weapons/common/pickup.wav",
+		"models/weapons/hyperblaster/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"w_hyperblaster",
+		"Hyperblaster",
+		1,
+		"Cells",
+		ITEM_WEAPON,
+		0,
+		"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav" },
 
-						/*QUAKED weapon_lightning(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "weapon_lightning", G_PickupWeapon, G_UseWeapon,
-								G_DropWeapon, G_FireLightning,
-								"weapons/common/pickup.wav",
-								"models/weapons/lightning/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "w_lightning",
-								"Lightning", 1, "Bolts", ITEM_WEAPON, 0,
-								"weapons/lightning/fire.wav weapons/lightning/fly.wav "
-									"weapons/lightning/discharge.wav" },
+/*QUAKED weapon_lightning(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"weapon_lightning",
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_FireLightning,
+		"weapons/common/pickup.wav",
+		"models/weapons/lightning/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"w_lightning",
+		"Lightning",
+		1,
+		"Bolts",
+		ITEM_WEAPON,
+		0,
+		"weapons/lightning/fire.wav weapons/lightning/fly.wav "
+			"weapons/lightning/discharge.wav" },
 
-						/*QUAKED weapon_railgun(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "weapon_railgun", G_PickupWeapon, G_UseWeapon,
-								G_DropWeapon, G_FireRailgun,
-								"weapons/common/pickup.wav",
-								"models/weapons/railgun/tris.obj", EF_ROTATE
-										| EF_BOB | EF_PULSE, "w_railgun",
-								"Railgun", 1, "Slugs", ITEM_WEAPON, 0,
-								"weapons/railgun/fire.wav" },
+/*QUAKED weapon_railgun(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"weapon_railgun",
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_FireRailgun,
+		"weapons/common/pickup.wav",
+		"models/weapons/railgun/tris.obj",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"w_railgun",
+		"Railgun",
+		1,
+		"Slugs",
+		ITEM_WEAPON,
+		0,
+		"weapons/railgun/fire.wav" },
 
-						/*QUAKED weapon_bfg(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "weapon_bfg", G_PickupWeapon, G_UseWeapon,
-								G_DropWeapon, G_FireBfg,
-								"weapons/common/pickup.wav",
-								"models/weapons/bfg/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "w_bfg", "BFG10K",
-								1, "Nukes", ITEM_WEAPON, 0,
-								"weapons/bfg/fire.wav weapons/bfg/hit.wav" },
+/*QUAKED weapon_bfg(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"weapon_bfg",
+		G_PickupWeapon,
+		G_UseWeapon,
+		G_DropWeapon,
+		G_FireBfg,
+		"weapons/common/pickup.wav",
+		"models/weapons/bfg/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"w_bfg",
+		"BFG10K",
+		1,
+		"Nukes",
+		ITEM_WEAPON,
+		0,
+		"weapons/bfg/fire.wav weapons/bfg/hit.wav" },
 
-						/*QUAKED ammo_shells(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "ammo_shells", G_PickupAmmo, NULL, G_DropAmmo, NULL,
-								"ammo/common/pickup.wav",
-								"models/ammo/shells/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "a_shells",
-								"Shells", 10, NULL, ITEM_AMMO, AMMO_SHELLS, "" },
+/*QUAKED ammo_shells(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"ammo_shells",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/shells/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_shells",
+		"Shells",
+		10,
+		NULL,
+		ITEM_AMMO,
+		AMMO_SHELLS,
+		"" },
 
-						/*QUAKED ammo_bullets(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "ammo_bullets", G_PickupAmmo, NULL, G_DropAmmo, NULL,
-								"ammo/common/pickup.wav",
-								"models/ammo/bullets/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "a_bullets",
-								"Bullets", 50, NULL, ITEM_AMMO, AMMO_BULLETS,
-								"" },
+/*QUAKED ammo_bullets(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"ammo_bullets",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/bullets/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_bullets",
+		"Bullets",
+		50,
+		NULL,
+		ITEM_AMMO,
+		AMMO_BULLETS,
+		"" },
 
-						/*QUAKED ammo_grenades(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "ammo_grenades", G_PickupAmmo, NULL, G_DropAmmo,
-								NULL, "ammo/common/pickup.wav",
-								"models/ammo/grenades/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "a_grenades",
-								"Grenades", 10, "grenades", ITEM_AMMO,
-								AMMO_GRENADES, "" },
+/*QUAKED ammo_grenades(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"ammo_grenades",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/grenades/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_grenades",
+		"Grenades",
+		10,
+		"grenades",
+		ITEM_AMMO,
+		AMMO_GRENADES,
+		"" },
 
-						/*QUAKED ammo_rockets(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "ammo_rockets", G_PickupAmmo, NULL, G_DropAmmo, NULL,
-								"ammo/common/pickup.wav",
-								"models/ammo/rockets/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "a_rockets",
-								"Rockets", 10, NULL, ITEM_AMMO, AMMO_ROCKETS,
-								"" },
+/*QUAKED ammo_rockets(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"ammo_rockets",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/rockets/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_rockets",
+		"Rockets",
+		10,
+		NULL,
+		ITEM_AMMO,
+		AMMO_ROCKETS,
+		"" },
 
-						/*QUAKED ammo_cells(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "ammo_cells", G_PickupAmmo, NULL, G_DropAmmo, NULL,
-								"ammo/common/pickup.wav",
-								"models/ammo/cells/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "a_cells",
-								"Cells", 50, NULL, ITEM_AMMO, AMMO_CELLS, "" },
+/*QUAKED ammo_cells(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"ammo_cells",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/cells/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_cells",
+		"Cells",
+		50,
+		NULL,
+		ITEM_AMMO,
+		AMMO_CELLS,
+		"" },
 
-						/*QUAKED ammo_bolts(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "ammo_bolts", G_PickupAmmo, NULL, G_DropAmmo, NULL,
-								"ammo/common/pickup.wav",
-								"models/ammo/bolts/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "a_bolts",
-								"Bolts", 25, NULL, ITEM_AMMO, AMMO_BOLTS, "" },
+/*QUAKED ammo_bolts(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"ammo_bolts",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/bolts/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_bolts",
+		"Bolts",
+		25,
+		NULL,
+		ITEM_AMMO,
+		AMMO_BOLTS,
+		"" },
 
-						/*QUAKED ammo_slugs(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "ammo_slugs", G_PickupAmmo, NULL, G_DropAmmo, NULL,
-								"ammo/common/pickup.wav",
-								"models/ammo/slugs/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "a_slugs",
-								"Slugs", 10, NULL, ITEM_AMMO, AMMO_SLUGS, "" },
+/*QUAKED ammo_slugs(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"ammo_slugs",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/slugs/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_slugs",
+		"Slugs",
+		10,
+		NULL,
+		ITEM_AMMO,
+		AMMO_SLUGS,
+		"" },
 
-						/*QUAKED ammo_nukes(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "ammo_nukes", G_PickupAmmo, NULL, G_DropAmmo, NULL,
-								"ammo/common/pickup.wav",
-								"models/ammo/nukes/tris.md3", EF_ROTATE
-										| EF_BOB | EF_PULSE, "a_nukes",
-								"Nukes", 2, NULL, ITEM_AMMO, AMMO_NUKES, "" },
+/*QUAKED ammo_nukes(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"ammo_nukes",
+		G_PickupAmmo,
+		NULL,
+		G_DropAmmo,
+		NULL,
+		"ammo/common/pickup.wav",
+		"models/ammo/nukes/tris.md3",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"a_nukes",
+		"Nukes",
+		2,
+		NULL,
+		ITEM_AMMO,
+		AMMO_NUKES,
+		"" },
 
-						/*QUAKED item_adrenaline(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 gives +1 to maximum health
-						 */
-						{ "item_adrenaline", G_PickupAdrenaline, NULL, NULL,
-								NULL, "adren/pickup.wav",
-								"models/powerups/adren/tris.obj", EF_ROTATE
-										| EF_PULSE, "p_adrenaline",
-								"Adrenaline", 0, NULL, 0, 0, "" },
+/*QUAKED item_adrenaline(.3 .3 1)(-16 -16 -16)(16 16 16)
+ gives +1 to maximum health
+ */
+{
+		"item_adrenaline",
+		G_PickupAdrenaline,
+		NULL,
+		NULL,
+		NULL,
+		"adren/pickup.wav",
+		"models/powerups/adren/tris.obj",
+		EF_ROTATE | EF_PULSE,
+		"p_adrenaline",
+		"Adrenaline",
+		0,
+		NULL,
+		0,
+		0,
+		"" },
 
-						/*QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
-						 */
-						{ "item_health_small", G_PickupHealth, NULL, NULL,
-								NULL, "health/small/pickup.wav",
-								"models/health/small/tris.obj", EF_ROTATE
-										| EF_BOB | EF_PULSE, "i_health",
-								"Small Health", 3, NULL, ITEM_HEALTH,
-								HEALTH_SMALL, "" },
+/*QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
+ */
+{
+		"item_health_small",
+		G_PickupHealth,
+		NULL,
+		NULL,
+		NULL,
+		"health/small/pickup.wav",
+		"models/health/small/tris.obj",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"i_health",
+		"Small Health",
+		3,
+		NULL,
+		ITEM_HEALTH,
+		HEALTH_SMALL,
+		"" },
 
-						/*QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
-						 */
-						{ "item_health", G_PickupHealth, NULL, NULL, NULL,
-								"health/medium/pickup.wav",
-								"models/health/medium/tris.obj", EF_ROTATE
-										| EF_BOB | EF_PULSE, "i_health",
-								"Medium Health", 15, NULL, ITEM_HEALTH,
-								HEALTH_MEDIUM, "" },
+/*QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
+ */
+{
+		"item_health",
+		G_PickupHealth,
+		NULL,
+		NULL,
+		NULL,
+		"health/medium/pickup.wav",
+		"models/health/medium/tris.obj",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"i_health",
+		"Medium Health",
+		15,
+		NULL,
+		ITEM_HEALTH,
+		HEALTH_MEDIUM,
+		"" },
 
-						/*QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
-						 */
-						{ "item_health_large", G_PickupHealth, NULL, NULL,
-								NULL, "health/large/pickup.wav",
-								"models/health/large/tris.obj", EF_ROTATE
-										| EF_BOB | EF_PULSE, "i_health",
-								"Large Health", 25, NULL, ITEM_HEALTH,
-								HEALTH_LARGE, "" },
+/*QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
+ */
+{
+		"item_health_large",
+		G_PickupHealth,
+		NULL,
+		NULL,
+		NULL,
+		"health/large/pickup.wav",
+		"models/health/large/tris.obj",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"i_health",
+		"Large Health",
+		25,
+		NULL,
+		ITEM_HEALTH,
+		HEALTH_LARGE,
+		"" },
 
-						/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
-						 */
-						{ "item_health_mega", G_PickupHealth, NULL, NULL, NULL,
-								"health/mega/pickup.wav",
-								"models/health/mega/tris.obj", EF_ROTATE
-										| EF_BOB | EF_PULSE, "i_health",
-								"Mega Health", 75, NULL, ITEM_HEALTH,
-								HEALTH_MEGA, "" },
+/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
+ */
+{
+		"item_health_mega",
+		G_PickupHealth,
+		NULL,
+		NULL,
+		NULL,
+		"health/mega/pickup.wav",
+		"models/health/mega/tris.obj",
+		EF_ROTATE | EF_BOB | EF_PULSE,
+		"i_health",
+		"Mega Health",
+		75,
+		NULL,
+		ITEM_HEALTH,
+		HEALTH_MEGA,
+		"" },
 
-						/*QUAKED item_flag_team1(1 0.2 0)(-16 -16 -24)(16 16 32)
-						 */
-						{ "item_flag_team1", G_PickupFlag, NULL, G_DropFlag,
-								NULL, NULL, "models/ctf/flag1/tris.md3", EF_BOB
-										| EF_ROTATE, "i_flag1", "Flag", 0,
-								NULL, ITEM_FLAG, 0,
-								"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
+/*QUAKED item_flag_team1(1 0.2 0)(-16 -16 -24)(16 16 32)
+ */
+{
+		"item_flag_team1",
+		G_PickupFlag,
+		NULL,
+		G_DropFlag,
+		NULL,
+		NULL,
+		"models/ctf/flag1/tris.md3",
+		EF_BOB | EF_ROTATE,
+		"i_flag1",
+		"Flag",
+		0,
+		NULL,
+		ITEM_FLAG,
+		0,
+		"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
 
-						/*QUAKED item_flag_team2(1 0.2 0)(-16 -16 -24)(16 16 32)
-						 */
-						{ "item_flag_team2", G_PickupFlag, NULL, G_DropFlag,
-								NULL, NULL, "models/ctf/flag2/tris.md3", EF_BOB
-										| EF_ROTATE, "i_flag2", "Flag", 0,
-								NULL, ITEM_FLAG, 0,
-								"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
+/*QUAKED item_flag_team2(1 0.2 0)(-16 -16 -24)(16 16 32)
+ */
+{
+		"item_flag_team2",
+		G_PickupFlag,
+		NULL,
+		G_DropFlag,
+		NULL,
+		NULL,
+		"models/ctf/flag2/tris.md3",
+		EF_BOB | EF_ROTATE,
+		"i_flag2",
+		"Flag",
+		0,
+		NULL,
+		ITEM_FLAG,
+		0,
+		"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
 
-						/*QUAKED item_quad(.3 .3 1)(-16 -16 -16)(16 16 16)
-						 */
-						{ "item_quad", G_PickupQuadDamage, NULL, NULL, NULL,
-								"quad/pickup.wav",
-								"models/powerups/quad/tris.md3", EF_BOB
-										| EF_ROTATE, "i_quad", "Quad Damage",
-								60, NULL, ITEM_POWERUP, 0,
-								"quad/attack.wav quad/expire.wav" },
+/*QUAKED item_quad(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
+		"item_quad",
+		G_PickupQuadDamage,
+		NULL,
+		NULL,
+		NULL,
+		"quad/pickup.wav",
+		"models/powerups/quad/tris.md3",
+		EF_BOB | EF_ROTATE,
+		"i_quad",
+		"Quad Damage",
+		60,
+		NULL,
+		ITEM_POWERUP,
+		0,
+		"quad/attack.wav quad/expire.wav" },
 
-						// end of list marker
-						{ NULL } };
+// end of list marker
+		{ NULL } };
 
 // override quake2 items for legacy maps
 g_override_t g_overrides[] = { { "weapon_chaingun", "weapon_machinegun" }, {
-		"item_invulnerability", "item_quad" }, { "item_power_shield",
-		"item_armor_combat" }, { "item_power_screen", "item_armor_jacket" }, {
-		NULL } };
+		"item_invulnerability",
+		"item_quad" }, { "item_power_shield", "item_armor_combat" }, {
+		"item_power_screen",
+		"item_armor_jacket" }, { NULL } };
 
 /*
  * G_InitItems
@@ -1136,10 +1416,10 @@ void G_InitItems(void) {
 	g_game.num_overrides = sizeof(g_overrides) / sizeof(g_overrides[0]) - 1;
 }
 
-/*
+/**
  * G_SetItemNames
  *
- * Called by worldspawn
+ * Called by worldspawn.
  */
 void G_SetItemNames(void) {
 	int i, j;

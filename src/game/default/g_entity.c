@@ -277,7 +277,7 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 	//gi.Debug("%s is not a field\n", key);
 }
 
-/*
+/**
  * G_ParseEntity
  *
  * Parses an edict out of the given string, returning the new position
@@ -328,7 +328,7 @@ static const char *G_ParseEntity(const char *data, g_edict_t *ent) {
 	return data;
 }
 
-/*
+/**
  * G_InitEntityTeams
  *
  * Chain together all entities with a matching team field.
@@ -383,7 +383,7 @@ static void G_InitEntityTeams(void) {
 	gi.Debug("%i teams with %i entities\n", c, c2);
 }
 
-/*
+/**
  * G_SpawnEntities
  *
  * Creates a server's entity / program execution context by

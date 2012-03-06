@@ -47,8 +47,7 @@ static g_edict_t *G_TestEntityPosition(g_edict_t *ent) {
 		mask = ent->clip_mask;
 	else
 		mask = MASK_SOLID;
-	trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, ent,
-			mask);
+	trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, ent, mask);
 
 	if (trace.start_solid)
 		return g_game.edicts;
@@ -73,7 +72,7 @@ static void G_ClampVelocity(g_edict_t *ent) {
 	}
 }
 
-/*
+/**
  * G_RunThink
  *
  * Runs thinking code for this frame if necessary
@@ -99,7 +98,7 @@ static boolean_t G_RunThink(g_edict_t *ent) {
 	return false;
 }
 
-/*
+/**
  * G_Impact
  *
  * Two entities have touched, so run their touch functions
@@ -118,14 +117,13 @@ static void G_Impact(g_edict_t *e1, c_trace_t *trace) {
 
 #define STOP_EPSILON	0.1
 
-/*
+/**
  * G_ClipVelocity
  *
  * Slide off of the impacting object
  * returns the blocked flags (1 = floor, 2 = step / wall)
  */
-static int G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out,
-		float overbounce) {
+static int G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce) {
 	float backoff;
 	float change;
 	int i, blocked;
@@ -166,7 +164,7 @@ static void G_AddGravity(g_edict_t *ent) {
  *
  */
 
-/*
+/**
  * G_PushEntity
  *
  * Does not change the entity's velocity at all
@@ -219,7 +217,7 @@ pushed_t pushed[MAX_EDICTS], *pushed_p;
 
 g_edict_t *obstacle;
 
-/*
+/**
  * G_Push
  *
  * Objects need to be moved back on a failed push,
@@ -274,9 +272,8 @@ static boolean_t G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 		if (!check->in_use)
 			continue;
 
-		if (check->move_type == MOVE_TYPE_PUSH || check->move_type
-				== MOVE_TYPE_STOP || check->move_type == MOVE_TYPE_NONE
-				|| check->move_type == MOVE_TYPE_NO_CLIP)
+		if (check->move_type == MOVE_TYPE_PUSH || check->move_type == MOVE_TYPE_STOP
+				|| check->move_type == MOVE_TYPE_NONE || check->move_type == MOVE_TYPE_NO_CLIP)
 			continue;
 
 		if (!check->area.prev)
@@ -291,9 +288,8 @@ static boolean_t G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 
 			// see if the ent needs to be tested
 			if (check->abs_mins[0] >= maxs[0] || check->abs_mins[1] >= maxs[1]
-					|| check->abs_mins[2] >= maxs[2] || check->abs_maxs[0]
-					<= mins[0] || check->abs_maxs[1] <= mins[1]
-					|| check->abs_maxs[2] <= mins[2])
+					|| check->abs_mins[2] >= maxs[2] || check->abs_maxs[0] <= mins[0]
+					|| check->abs_maxs[1] <= mins[1] || check->abs_maxs[2] <= mins[2])
 				continue;
 
 			// see if the ent's bbox is inside the pusher's final position
@@ -301,8 +297,7 @@ static boolean_t G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 				continue;
 		}
 
-		if ((pusher->move_type == MOVE_TYPE_PUSH) || (check->ground_entity
-				== pusher)) {
+		if ((pusher->move_type == MOVE_TYPE_PUSH) || (check->ground_entity == pusher)) {
 			// move this entity
 			pushed_p->ent = check;
 			VectorCopy(check->s.origin, pushed_p->origin);
@@ -372,7 +367,7 @@ static boolean_t G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	return true;
 }
 
-/*
+/**
  * G_Physics_Pusher
  *
  * Bmodel objects don't interact with each other, but push all box objects
@@ -391,9 +386,8 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 	// retry:
 	pushed_p = pushed;
 	for (part = ent; part; part = part->team_chain) {
-		if (part->velocity[0] || part->velocity[1] || part->velocity[2]
-				|| part->avelocity[0] || part->avelocity[1]
-				|| part->avelocity[2]) { // object is moving
+		if (part->velocity[0] || part->velocity[1] || part->velocity[2] || part->avelocity[0]
+				|| part->avelocity[1] || part->avelocity[2]) { // object is moving
 			VectorScale(part->velocity, gi.frame_seconds, move);
 			VectorScale(part->avelocity, gi.frame_seconds, amove);
 
@@ -425,7 +419,7 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 	}
 }
 
-/*
+/**
  * G_Physics_None
  *
  * Non moving objects can only think
@@ -435,7 +429,7 @@ static void G_Physics_None(g_edict_t *ent) {
 	G_RunThink(ent);
 }
 
-/*
+/**
  * G_Physics_Noclip
  *
  * A moving object that doesn't obey physics
@@ -451,7 +445,7 @@ static void G_Physics_Noclip(g_edict_t *ent) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * G_Physics_Toss
  *
  * Toss, bounce, and fly movement.  When on ground, do nothing.
@@ -507,8 +501,7 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	if (trace.fraction < 1.0) { // move was blocked
 
 		// if it was a floor, we might bounce or come to rest
-		if (G_ClipVelocity(ent->velocity, trace.plane.normal, ent->velocity,
-				1.3) == 1) {
+		if (G_ClipVelocity(ent->velocity, trace.plane.normal, ent->velocity, 1.3) == 1) {
 
 			VectorSubtract(ent->s.origin, org, move);
 
@@ -545,12 +538,11 @@ static void G_Physics_Toss(g_edict_t *ent) {
 		ent->water_level = 0;
 
 	if (!was_in_water && is_in_water) {
-		gi.PositionedSound(ent->s.origin, g_game.edicts,
-				gi.SoundIndex("world/water_in"), ATTN_NORM);
+		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
 		VectorScale(ent->velocity, 0.5, ent->velocity);
 	} else if (was_in_water && !is_in_water)
-		gi.PositionedSound(ent->s.origin, g_game.edicts,
-				gi.SoundIndex("world/water_out"), ATTN_NORM);
+		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_out"),
+				ATTN_NORM);
 
 	// move teamslaves
 	for (slave = ent->team_chain; slave; slave = slave->team_chain) {

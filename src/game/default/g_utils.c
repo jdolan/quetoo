@@ -88,7 +88,7 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	CrossProduct(right, forward, up);
 }
 
-/*
+/**
  * G_Find
  *
  * Searches all active entities for the next one that holds the matching string
@@ -122,7 +122,7 @@ g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {
 	return NULL;
 }
 
-/*
+/**
  * G_FindRadius
  *
  * Returns entities that have origins within a spherical area
@@ -158,7 +158,7 @@ g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, float rad) {
 	return NULL;
 }
 
-/*
+/**
  * G_PickTarget
  *
  * Searches all active entities for the next one that holds
@@ -205,7 +205,7 @@ static void G_UseTargets_Delay(g_edict_t *ent) {
 	G_FreeEdict(ent);
 }
 
-/*
+/**
  * G_UseTargets
  *
  * Search for all entities that the specified entity targets, and call their
@@ -278,7 +278,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 	}
 }
 
-/*
+/**
  * tv
  *
  * This is just a convenience function
@@ -289,7 +289,7 @@ float *tv(float x, float y, float z) {
 	static vec3_t vecs[8];
 	float *v;
 
-	// use an array so that multiple tempvectors won't collide
+	// use an array so that multiple temp vectors won't collide
 	// for a while
 	v = vecs[index];
 	index = (index + 1) & 7;
@@ -301,7 +301,7 @@ float *tv(float x, float y, float z) {
 	return v;
 }
 
-/*
+/**
  * vtos
  *
  * A convenience function for printing vectors.
@@ -362,7 +362,7 @@ void G_InitEdict(g_edict_t *e) {
 	e->s.number = e - g_game.edicts;
 }
 
-/*
+/**
  * G_Spawn
  *
  * Either finds a free edict, or allocates a new one.
@@ -391,7 +391,7 @@ g_edict_t *G_Spawn(void) {
 	return e;
 }
 
-/*
+/**
  * G_FreeEdict
  *
  * Marks the edict as free
@@ -432,7 +432,7 @@ void G_TouchTriggers(g_edict_t *ent) {
 	}
 }
 
-/*
+/**
  * G_TouchSolids
  *
  * Call after linking a new trigger in during gameplay
@@ -457,7 +457,7 @@ void G_TouchSolids(g_edict_t *ent) {
 	}
 }
 
-/*
+/**
  * G_KillBox
  *
  * Kills all entities that would touch the proposed new positioning
@@ -686,7 +686,7 @@ boolean_t G_IsStationary(g_edict_t *ent) {
 	return VectorCompare(vec3_origin, ent->velocity);
 }
 
-/*
+/**
  * G_SetAnimation_
  *
  * Writes the specified animation byte, toggling the high bit to restart the
@@ -703,7 +703,7 @@ static void G_SetAnimation_(byte *dest, entity_animation_t anim, boolean_t resta
 	*dest = anim;
 }
 
-/*
+/**
  * G_SetAnimation
  *
  * Assigns the specified animation to the correct member(s) on the specified

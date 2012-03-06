@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-/*
+/**
  * G_ClientObituary
  *
  * Make a tasteless death announcement.
@@ -103,8 +103,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 	}
 
 	if (message) { // suicide
-		gi.BroadcastPrint(PRINT_MEDIUM, "%s %s.\n",
-				self->client->persistent.net_name, message);
+		gi.BroadcastPrint(PRINT_MEDIUM, "%s %s.\n", self->client->persistent.net_name, message);
 
 		if (g_level.warmup)
 			return;
@@ -181,8 +180,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 
 		if (message) {
 
-			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s %s\n",
-					(ff ? "^1TEAMKILL^7 " : ""),
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s %s\n", (ff ? "^1TEAMKILL^7 " : ""),
 					self->client->persistent.net_name, message,
 					attacker->client->persistent.net_name, message2);
 
@@ -194,8 +192,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 			else
 				attacker->client->persistent.score++;
 
-			if ((g_level.teams || g_level.ctf)
-					&& attacker->client->persistent.team) { // handle team scores too
+			if ((g_level.teams || g_level.ctf) && attacker->client->persistent.team) { // handle team scores too
 				if (ff)
 					attacker->client->persistent.team->score--;
 				else
@@ -205,14 +202,13 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 	}
 }
 
-/*
+/**
  * G_ClientPain
  *
  * Pain effects and pain sounds are actually handled in G_ClientDamage. Here we
  * simply inform our attacker that they injured us by playing a hit sound.
  */
-static void G_ClientPain(g_edict_t *self, g_edict_t *other, int damage,
-		int knockback) {
+static void G_ClientPain(g_edict_t *self, g_edict_t *other, int damage, int knockback) {
 
 	if (other && other->client && other != self) { // play a hit sound
 		gi.Sound(other, gi.SoundIndex("misc/hit"), ATTN_STATIC);
@@ -273,15 +269,15 @@ static void G_ClientCorpse(g_edict_t *self) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * G_ClientDie
  *
  * A client's health is less than or equal to zero. Render death effects, drop
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
-static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor,
-		g_edict_t *attacker, int damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
+static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage __attribute__((unused)),
+		vec3_t point __attribute__((unused))) {
 
 	self->enemy = attacker;
 
@@ -335,10 +331,12 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor,
 	 gi.Multicast(self->s.origin, MULTICAST_PVS);*/
 }
 
-/*
- *  Stocks client's inventory with specified item.  Weapons receive
- *  specified quantity of ammo, while health and armor are set to
- *  the specified quantity.
+/**
+ * G_Give
+ *
+ * Stocks client's inventory with specified item.  Weapons receive
+ * specified quantity of ammo, while health and armor are set to
+ * the specified quantity.
  */
 static void G_Give(g_client_t *client, char *it, short quantity) {
 	g_item_t *item;
@@ -381,7 +379,7 @@ static void G_Give(g_client_t *client, char *it, short quantity) {
 	}
 }
 
-/*
+/**
  * G_GiveLevelLocals
  */
 static boolean_t G_GiveLevelLocals(g_client_t *client) {
@@ -486,7 +484,7 @@ static void G_InitClientPersistent(g_client_t *client) {
 	client->new_weapon = NULL;
 }
 
-/*
+/**
  * G_EnemyRangeFromSpot
  *
  * Returns the distance to the nearest enemy from the given spot
@@ -555,8 +553,7 @@ static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
 /*
  * G_SelectFarthestSpawnPoint
  */
-static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent,
-		const char *class_name) {
+static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent, const char *class_name) {
 	g_edict_t *spot, *best_spot;
 	float dist, best_dist;
 
@@ -603,8 +600,7 @@ static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent) {
 	if (!ent->client->persistent.team)
 		return NULL;
 
-	c = ent->client->persistent.team == &g_team_good ? "info_player_team1"
-			: "info_player_team2";
+	c = ent->client->persistent.team == &g_team_good ? "info_player_team1" : "info_player_team2";
 
 	if (g_spawn_farthest->value)
 		return G_SelectFarthestSpawnPoint(ent, c);
@@ -612,7 +608,7 @@ static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent) {
 	return G_SelectRandomSpawnPoint(c);
 }
 
-/*
+/**
  * G_SelectSpawnPoint
  *
  * Chooses a player start, deathmatch start, etc
@@ -628,15 +624,13 @@ static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
 
 	// and lastly fall back on single player start
 	if (!spot) {
-		while ((spot = G_Find(spot, FOFS(class_name), "info_player_start"))
-				!= NULL) {
+		while ((spot = G_Find(spot, FOFS(class_name), "info_player_start")) != NULL) {
 			if (!spot->target_name) // hopefully without a target
 				break;
 		}
 
 		if (!spot) { // last resort, find any
-			if ((spot = G_Find(spot, FOFS(class_name), "info_player_start"))
-					== NULL)
+			if ((spot = G_Find(spot, FOFS(class_name), "info_player_start")) == NULL)
 				gi.Error("P_SelectSpawnPoint: Couldn't find spawn point.");
 		}
 	}
@@ -646,7 +640,7 @@ static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
 	VectorCopy(spot->s.angles, angles);
 }
 
-/*
+/**
  * G_ClientRespawn_
  *
  * The grunt work of putting the client into the server on [re]spawn.
@@ -722,8 +716,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 
 	// set the delta angle of the spawn point
 	for (i = 0; i < 3; i++) {
-		cl->ps.pmove.delta_angles[i]
-				= ANGLE2SHORT(spawn_angles[i] - old_angles[i]);
+		cl->ps.pmove.delta_angles[i] = ANGLE2SHORT(spawn_angles[i] - old_angles[i]);
 	}
 
 	VectorClear(cl->cmd_angles);
@@ -768,7 +761,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	G_ChangeWeapon(ent);
 }
 
-/*
+/**
  * G_ClientRespawn
  *
  * In this case, voluntary means that the client has explicitly requested
@@ -781,8 +774,7 @@ void G_ClientRespawn(g_edict_t *ent, boolean_t voluntary) {
 	// clear scores and match/round on voluntary changes
 	if (ent->client->persistent.spectator && voluntary) {
 		ent->client->persistent.score = ent->client->persistent.captures = 0;
-		ent->client->persistent.match_num = ent->client->persistent.round_num
-				= 0;
+		ent->client->persistent.match_num = ent->client->persistent.round_num = 0;
 	}
 
 	ent->client->respawn_time = g_level.time;
@@ -791,18 +783,15 @@ void G_ClientRespawn(g_edict_t *ent, boolean_t voluntary) {
 		return;
 
 	if (ent->client->persistent.spectator)
-		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n",
-				ent->client->persistent.net_name);
+		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n", ent->client->persistent.net_name);
 	else if (ent->client->persistent.team)
-		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n",
-				ent->client->persistent.net_name,
+		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", ent->client->persistent.net_name,
 				ent->client->persistent.team->name);
 	else
-		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n",
-				ent->client->persistent.net_name);
+		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->persistent.net_name);
 }
 
-/*
+/**
  * G_ClientBegin
  *
  * Called when a client has finished connecting, and is ready
@@ -917,8 +906,8 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	if (strncmp(cl->persistent.net_name, name, sizeof(cl->persistent.net_name))) {
 
 		if (*cl->persistent.net_name != '\0')
-			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n",
-					cl->persistent.net_name, name);
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->persistent.net_name,
+					name);
 
 		strncpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name) - 1);
 		cl->persistent.net_name[sizeof(cl->persistent.net_name) - 1] = 0;
@@ -961,7 +950,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	strncpy(ent->client->persistent.user_info, user_info, sizeof(ent->client->persistent.user_info) - 1);
 }
 
-/*
+/**
  * G_ClientConnect
  *
  * Called when a player begins connecting to the server.
@@ -974,8 +963,7 @@ boolean_t G_ClientConnect(g_edict_t *ent, char *user_info) {
 
 	// check password
 	const char *value = GetUserInfo(user_info, "password");
-	if (*password->string && strcmp(password->string, "none") && strcmp(
-			password->string, value)) {
+	if (*password->string && strcmp(password->string, "none") && strcmp(password->string, value)) {
 		SetUserInfo(user_info, "rejmsg", "Password required or incorrect.");
 		return false;
 	}
@@ -994,14 +982,13 @@ boolean_t G_ClientConnect(g_edict_t *ent, char *user_info) {
 	G_ClientUserInfoChanged(ent, user_info);
 
 	if (sv_max_clients->integer > 1)
-		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n",
-				ent->client->persistent.net_name);
+		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->persistent.net_name);
 
 	ent->sv_flags = 0; // make sure we start with known default
 	return true;
 }
 
-/*
+/**
  * G_ClientDisconnect
  *
  * Called when a player drops from the server.  Not be called between levels.
@@ -1015,8 +1002,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
 	G_TossQuadDamage(ent);
 	G_TossFlag(ent);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n",
-			ent->client->persistent.net_name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->persistent.net_name);
 
 	// send effect
 	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
@@ -1040,13 +1026,13 @@ void G_ClientDisconnect(g_edict_t *ent) {
 	gi.ConfigString(CS_CLIENTS + player_num, "");
 }
 
-/*
+/**
  * G_ClientMoveTrace
  *
  * Ignore ourselves, clipping to the correct mask based on our status.
  */
-static c_trace_t G_ClientMoveTrace(const vec3_t start, const vec3_t mins,
-		const vec3_t maxs, const vec3_t end) {
+static c_trace_t G_ClientMoveTrace(const vec3_t start, const vec3_t mins, const vec3_t maxs,
+		const vec3_t end) {
 	const g_edict_t *self = g_level.current_entity;
 
 	if (g_level.current_entity->health > 0)
@@ -1055,7 +1041,7 @@ static c_trace_t G_ClientMoveTrace(const vec3_t start, const vec3_t mins,
 		return gi.Trace(start, mins, maxs, end, self, MASK_DEAD_SOLID);
 }
 
-/*
+/**
  * G_InventoryThink
  *
  * Expire any items which are time-sensitive.
@@ -1078,7 +1064,7 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
 	// other power-ups and things can be timed out here as well
 }
 
-/*
+/**
  * G_ClientThink
  *
  * This will be called once for each client frame, which will usually be a
@@ -1101,8 +1087,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 
 		client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
 
-		if (!client->chase_target->in_use
-				|| client->chase_target->client->persistent.spectator) {
+		if (!client->chase_target->in_use || client->chase_target->client->persistent.spectator) {
 
 			other = client->chase_target;
 
@@ -1160,9 +1145,8 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 		client->cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
 
 		// check for jump, play randomized sound
-		if (ent->ground_entity && !pm.ground_entity && (pm.cmd.up >= 10)
-				&& (pm.water_level == 0) && client->jump_time < g_level.time
-				- 0.2) {
+		if (ent->ground_entity && !pm.ground_entity && (pm.cmd.up >= 10) && (pm.water_level == 0)
+				&& client->jump_time < g_level.time - 0.2) {
 
 			vec3_t angles, forward, velocity;
 			float speed;
@@ -1253,7 +1237,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 	G_ClientInventoryThink(ent);
 }
 
-/*
+/**
  * G_ClientBeginFrame
  *
  * This will be called once for each server frame, before running
@@ -1271,19 +1255,16 @@ void G_ClientBeginFrame(g_edict_t *ent) {
 		client->ps.pmove.pm_flags &= ~PMF_PUSHED;
 
 	// run weapon think if it hasn't been done by a command
-	if (client->weapon_think_time < g_level.time
-			&& !client->persistent.spectator)
+	if (client->weapon_think_time < g_level.time && !client->persistent.spectator)
 		G_WeaponThink(ent);
 
 	if (ent->dead) { // check for respawn conditions
 
 		// rounds mode implies last-man-standing, force to spectator immediately if round underway
-		if (g_level.rounds && g_level.round_time && g_level.time
-				>= g_level.round_time) {
+		if (g_level.rounds && g_level.round_time && g_level.time >= g_level.round_time) {
 			client->persistent.spectator = true;
 			G_ClientRespawn(ent, false);
-		} else if (g_level.time > client->respawn_time
-				&& (client->latched_buttons & BUTTON_ATTACK)) {
+		} else if (g_level.time > client->respawn_time && (client->latched_buttons & BUTTON_ATTACK)) {
 			G_ClientRespawn(ent, false); // all other respawns require a click from the player
 		}
 	}

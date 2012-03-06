@@ -35,7 +35,7 @@ static void G_Trigger_Init(g_edict_t *self) {
 	self->sv_flags = SVF_NO_CLIENT;
 }
 
-/*
+/**
  * G_trigger_multiple_wait
  *
  * The wait time has passed, so set back up for another activation
@@ -68,8 +68,7 @@ static void G_trigger_multiple_think(g_edict_t *ent) {
 /*
  * G_trigger_multiple_use
  */
-static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator) {
+static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 
 	ent->activator = activator;
 
@@ -79,8 +78,8 @@ static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other __attribute_
 /*
  * G_trigger_multiple_touch
  */
-static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;
@@ -103,8 +102,7 @@ static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other,
 /*
  * G_trigger_multiple_enable
  */
-static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	self->solid = SOLID_TRIGGER;
 	self->use = G_trigger_multiple_use;
 	gi.LinkEntity(self);
@@ -157,8 +155,7 @@ void G_trigger_once(g_edict_t *ent) {
 /*
  * G_trigger_relay_use
  */
-static void G_trigger_relay_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator) {
+static void G_trigger_relay_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	G_UseTargets(self, activator);
 }
 
@@ -186,8 +183,8 @@ void G_trigger_always(g_edict_t *ent) {
 /*
  * G_trigger_push_touch
  */
-static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!strcmp(other->class_name, "grenade") || other->health > 0) {
 
@@ -245,8 +242,7 @@ void G_trigger_push(g_edict_t *self) {
 /*
  * G_trigger_hurt_use
  */
-static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
 	if (self->solid == SOLID_NOT)
 		self->solid = SOLID_TRIGGER;
@@ -261,8 +257,8 @@ static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((
 /*
  * G_trigger_hurt_touch
  */
-static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other,
-		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf __attribute__((unused))) {
 	int dflags;
 
 	if (!other->take_damage) { // deal with items that land on us
@@ -291,8 +287,8 @@ static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other,
 	else
 		dflags = DAMAGE_NO_ARMOR;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
-			self->dmg, self->dmg, dflags, MOD_TRIGGER_HURT);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, self->dmg,
+			dflags, MOD_TRIGGER_HURT);
 }
 
 /*QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION SLOW
@@ -329,8 +325,8 @@ void G_trigger_hurt(g_edict_t *self) {
 /*
  * G_trigger_exec_touch
  */
-static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other __attribute__((unused)), c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (self->timestamp > g_level.time)
 		return;
@@ -344,7 +340,9 @@ static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other __attribute__
 		gi.AddCommandString(va("exec %s\n", self->script));
 }
 
-/*
+/**
+ * G_trigger_exec
+ *
  * A trigger which executes a command or script when touched.
  */
 void G_trigger_exec(g_edict_t *self) {

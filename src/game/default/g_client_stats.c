@@ -53,7 +53,7 @@ void G_ClientToIntermission(g_edict_t *ent) {
 	ent->client->pickup_msg_time = 0;
 }
 
-/*
+/**
  * G_UpdateScores_
  *
  * Write the scores information for the specified client.
@@ -92,7 +92,7 @@ static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 // all scores are dumped into this buffer several times per second
 static char scores_buffer[MAX_STRING_CHARS];
 
-/*
+/**
  * G_UpdateScores
  *
  * Returns the size of the resulting scores buffer.
@@ -142,7 +142,7 @@ static unsigned int G_UpdateScores(void) {
 	return j * sizeof(player_score_t);
 }
 
-/*
+/**
  * G_ClientScores
  *
  * Assemble the binary scores data for the client.
@@ -213,8 +213,7 @@ void G_ClientStats(g_edict_t *ent) {
 	if (ent->client->persistent.weapon) {
 		ent->client->ps.stats[STAT_WEAPON_ICON] = gi.ImageIndex(
 				ent->client->persistent.weapon->icon);
-		ent->client->ps.stats[STAT_WEAPON] = gi.ModelIndex(
-				ent->client->persistent.weapon->model);
+		ent->client->ps.stats[STAT_WEAPON] = gi.ModelIndex(ent->client->persistent.weapon->model);
 	} else {
 		ent->client->ps.stats[STAT_WEAPON_ICON] = 0;
 		ent->client->ps.stats[STAT_WEAPON] = 0;
@@ -274,14 +273,12 @@ void G_ClientSpectatorStats(g_edict_t *ent) {
 	// layouts are independent in spectator
 	cl->ps.stats[STAT_SCORES] = 0;
 
-	if (cl->persistent.health <= 0 || g_level.intermission_time
-			|| cl->show_scores)
+	if (cl->persistent.health <= 0 || g_level.intermission_time || cl->show_scores)
 		cl->ps.stats[STAT_SCORES] |= 1;
 
 	if (cl->chase_target && cl->chase_target->in_use) {
 		memcpy(cl->ps.stats, cl->chase_target->client->ps.stats, sizeof(cl->ps.stats));
-		cl->ps.stats[STAT_CHASE] = CS_CLIENTS + (cl->chase_target
-				- g_game.edicts) - 1;
+		cl->ps.stats[STAT_CHASE] = CS_CLIENTS + (cl->chase_target - g_game.edicts) - 1;
 	} else
 		cl->ps.stats[STAT_CHASE] = 0;
 }

@@ -111,7 +111,7 @@ void G_ResetVote(void) {
 	g_level.vote_time = 0;
 }
 
-/*
+/**
  * G_ResetItems
  *
  * Reset all items in the level based on gameplay, ctf, etc.
@@ -161,7 +161,7 @@ static void G_ResetItems(void) {
 	}
 }
 
-/*
+/**
  * G_RestartGame
  *
  * For normal games, this just means reset scores and respawn.
@@ -345,7 +345,7 @@ static void G_CheckVote(void) {
 	}
 }
 
-/*
+/**
  * G_EndLevel
  *
  * The time limit, frag limit, etc.. has been exceeded.
@@ -357,8 +357,7 @@ static void G_EndLevel(void) {
 	if (g_map_list.count > 0) {
 
 		if (g_random_map->value) { // random weighted selection
-			g_map_list.index = g_map_list.weighted_index[rand()
-					% MAP_LIST_WEIGHT];
+			g_map_list.index = g_map_list.weighted_index[rand() % MAP_LIST_WEIGHT];
 		} else { // incremental, so long as wieght is not 0
 
 			i = g_map_list.index;
@@ -422,8 +421,7 @@ static void G_CheckRoundStart(void) {
 
 	if ((int) g_level.teams == 2 && (g != e)) { // balanced teams required
 		if (g_level.frame_num % 100 == 0)
-			gi.BroadcastPrint(PRINT_HIGH,
-					"Teams must be balanced for round to start\n");
+			gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for round to start\n");
 		return;
 	}
 
@@ -627,12 +625,10 @@ static void G_CheckRules(void) {
 		return;
 
 	// match mode, no match, or countdown underway
-	g_level.warmup = g_level.match && (!g_level.match_time
-			|| g_level.match_time > g_level.time);
+	g_level.warmup = g_level.match && (!g_level.match_time || g_level.match_time > g_level.time);
 
 	// arena mode, no round, or countdown underway
-	g_level.warmup |= g_level.rounds && (!g_level.round_time
-			|| g_level.round_time > g_level.time);
+	g_level.warmup |= g_level.rounds && (!g_level.round_time || g_level.round_time > g_level.time);
 
 	if (g_level.start_match && g_level.time >= g_level.match_time) {
 		// players have readied, begin match
@@ -701,8 +697,7 @@ static void G_CheckRules(void) {
 	if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
 
 		if (g_level.teams) { // check team scores
-			if (g_team_good.score >= g_level.frag_limit || g_team_evil.score
-					>= g_level.frag_limit) {
+			if (g_team_good.score >= g_level.frag_limit || g_team_evil.score >= g_level.frag_limit) {
 				gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
 				G_EndLevel();
 				return;
@@ -724,8 +719,8 @@ static void G_CheckRules(void) {
 
 	if (g_level.ctf && g_level.capture_limit) { // check capture limit
 
-		if (g_team_good.captures >= g_level.capture_limit
-				|| g_team_evil.captures >= g_level.capture_limit) {
+		if (g_team_good.captures >= g_level.capture_limit || g_team_evil.captures
+				>= g_level.capture_limit) {
 			gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
 			G_EndLevel();
 			return;
@@ -769,8 +764,7 @@ static void G_CheckRules(void) {
 		g_level.ctf = g_ctf->integer;
 		gi.ConfigString(CS_CTF, va("%d", g_level.ctf));
 
-		gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n",
-				g_level.ctf ? "enabled" : "disabled");
+		gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n", g_level.ctf ? "enabled" : "disabled");
 
 		G_RestartGame(true);
 	}
@@ -783,8 +777,7 @@ static void G_CheckRules(void) {
 
 		g_level.warmup = g_level.match; // toggle warmup
 
-		gi.BroadcastPrint(PRINT_HIGH, "Match has been %s\n",
-				g_level.match ? "enabled" : "disabled");
+		gi.BroadcastPrint(PRINT_HIGH, "Match has been %s\n", g_level.match ? "enabled" : "disabled");
 
 		G_RestartGame(false);
 	}
@@ -814,16 +807,14 @@ static void G_CheckRules(void) {
 		g_frag_limit->modified = false;
 		g_level.frag_limit = g_frag_limit->integer;
 
-		gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n",
-				g_level.frag_limit);
+		gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n", g_level.frag_limit);
 	}
 
 	if (g_round_limit->modified) {
 		g_round_limit->modified = false;
 		g_level.round_limit = g_round_limit->integer;
 
-		gi.BroadcastPrint(PRINT_HIGH, "Round limit has been changed to %d\n",
-				g_level.round_limit);
+		gi.BroadcastPrint(PRINT_HIGH, "Round limit has been changed to %d\n", g_level.round_limit);
 	}
 
 	if (g_capture_limit->modified) {
@@ -838,8 +829,7 @@ static void G_CheckRules(void) {
 		g_time_limit->modified = false;
 		g_level.time_limit = g_time_limit->value * 60 * 1000;
 
-		gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n",
-				g_time_limit->value);
+		gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", g_time_limit->value);
 	}
 }
 
@@ -857,7 +847,7 @@ static void G_ExitLevel(void) {
 }
 
 #define INTERMISSION (10.0 * 1000) // intermission duration
-/*
+/**
  * G_Frame
  *
  * The main game module "think" function, called once per server frame.
@@ -942,7 +932,7 @@ static void G_InitMapList(void) {
 	}
 }
 
-/*
+/**
  * G_ParseMapList
  *
  * Populates a g_map_list_t from a text file.  See default/maps.lst
@@ -1119,7 +1109,7 @@ static void G_ParseMapList(const char *file_name) {
 	}
 }
 
-/*
+/**
  * G_Init
  *
  * This will be called when the game module is first loaded.
@@ -1150,8 +1140,7 @@ void G_Init(void) {
 	g_mysql_host = gi.Cvar("g_mysql_host", "localhost", 0, NULL);
 	g_mysql_password = gi.Cvar("g_mysql_password", "", 0, NULL);
 	g_mysql_user = gi.Cvar("g_mysql_user", "quake2world", 0, NULL);
-	g_player_projectile = gi.Cvar("g_player_projectile", "1", CVAR_SERVER_INFO,
-			NULL);
+	g_player_projectile = gi.Cvar("g_player_projectile", "1", CVAR_SERVER_INFO, NULL);
 	g_random_map = gi.Cvar("g_random_map", "0", 0, NULL);
 	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, NULL);
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, NULL);
@@ -1162,8 +1151,7 @@ void G_Init(void) {
 
 	password = gi.Cvar("password", "", CVAR_USER_INFO, NULL);
 
-	sv_max_clients = gi.Cvar("sv_max_clients", "8",
-			CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+	sv_max_clients = gi.Cvar("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
 
 	if (g_frag_log->value)
@@ -1193,26 +1181,25 @@ void G_Init(void) {
 	G_InitItems();
 
 	// initialize entities and clients for this game
-	g_game.edicts = gi.Malloc(g_max_entities->integer * sizeof(g_edict_t),
-			TAG_GAME);
-	g_game.clients = gi.Malloc(sv_max_clients->integer * sizeof(g_client_t),
-			TAG_GAME);
+	g_game.edicts = gi.Malloc(g_max_entities->integer * sizeof(g_edict_t), TAG_GAME);
+	g_game.clients = gi.Malloc(sv_max_clients->integer * sizeof(g_client_t), TAG_GAME);
 
 	ge.edicts = g_game.edicts;
 	ge.max_edicts = g_max_entities->integer;
 	ge.num_edicts = sv_max_clients->integer + 1;
 
 	// set these to false to avoid spurious game restarts and alerts on init
-	g_gameplay->modified = g_teams->modified = g_match->modified
-			= g_rounds->modified = g_ctf->modified = g_cheats->modified
-					= g_frag_limit->modified = g_round_limit->modified
-							= g_capture_limit->modified
-									= g_time_limit->modified = false;
+	g_gameplay->modified = g_teams->modified = g_match->modified = g_rounds->modified
+			= g_ctf->modified = g_cheats->modified = g_frag_limit->modified
+					= g_round_limit->modified = g_capture_limit->modified = g_time_limit->modified
+							= false;
 
 	gi.Print("  Game initialized.\n");
 }
 
-/*
+/**
+ * G_Shutdown
+ *
  * Frees tags and closes frag_log.  This is called when the game is unloaded
  * (complements G_Init).
  */
@@ -1235,7 +1222,7 @@ void G_Shutdown(void) {
 	gi.FreeTag(TAG_GAME);
 }
 
-/*
+/**
  * G_LoadGame
  *
  * This is the entry point responsible for aligning the server and game module.

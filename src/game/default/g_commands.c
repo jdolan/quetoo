@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-/*
+/**
  * G_Give_f
  *
  * Give items to a client
@@ -189,6 +189,9 @@ static void G_Use_f(g_edict_t *ent) {
 	g_item_t *it;
 	char *s;
 
+	if (ent->dead)
+		return;
+
 	s = gi.Args();
 	it = G_FindItem(s);
 	if (!it) {
@@ -219,6 +222,9 @@ static void G_Drop_f(g_edict_t *ent) {
 
 	// we dont drop in instagib or arena
 	if (g_level.gameplay)
+		return;
+
+	if (ent->dead)
 		return;
 
 	s = gi.Args();
@@ -391,8 +397,7 @@ static void G_Say_f(g_edict_t *ent) {
 	g_client_t *cl;
 
 	if (ent->client->muted) {
-		gi.ClientPrint(ent, PRINT_HIGH,
-				"You have been muted.  You're probably an asshole.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "You have been muted.  You're probably an asshole.\n");
 		return;
 	}
 
@@ -501,8 +506,7 @@ static void G_PlayerList_f(g_edict_t *ent) {
 		if (!e2->in_use)
 			continue;
 
-		seconds = (g_level.frame_num - e2->client->persistent.first_frame)
-				/ gi.frame_rate;
+		seconds = (g_level.frame_num - e2->client->persistent.first_frame) / gi.frame_rate;
 
 		snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n",
 				(seconds / 60),
@@ -523,12 +527,26 @@ static void G_PlayerList_f(g_edict_t *ent) {
 	gi.ClientPrint(ent, PRINT_HIGH, "%s", text);
 }
 
-static const char *vote_cmds[] = { "g_capture_limit", "g_ctf", "g_frag_limit",
-		"g_friendly_fire", "g_gameplay", "g_match", "g_round_limit",
-		"g_rounds", "g_spawn_farthest", "g_teams", "g_time_limit", "kick",
-		"map", "mute", "restart", "unmute", NULL };
+static const char *vote_cmds[] = {
+		"g_capture_limit",
+		"g_ctf",
+		"g_frag_limit",
+		"g_friendly_fire",
+		"g_gameplay",
+		"g_match",
+		"g_round_limit",
+		"g_rounds",
+		"g_spawn_farthest",
+		"g_teams",
+		"g_time_limit",
+		"kick",
+		"map",
+		"mute",
+		"restart",
+		"unmute",
+		NULL };
 
-/*
+/**
  * Vote_Help
  *
  * Inspects the vote command and issues help if applicable.  Returns
@@ -540,13 +558,11 @@ static boolean_t Vote_Help(g_edict_t *ent) {
 	char msg[1024];
 
 	if (!g_level.vote_time) { // check for yes/no
-		if (gi.Argc() == 1 && (!strcasecmp(gi.Argv(0), "yes") || !strcasecmp(
-				gi.Argv(0), "no"))) {
+		if (gi.Argc() == 1 && (!strcasecmp(gi.Argv(0), "yes") || !strcasecmp(gi.Argv(0), "no"))) {
 			gi.ClientPrint(ent, PRINT_HIGH, "There is not a vote in progress\n"); // shorthand
 			return true;
 		}
-		if (gi.Argc() == 2 && (!strcasecmp(gi.Argv(1), "yes") || !strcasecmp(
-				gi.Argv(1), "no"))) {
+		if (gi.Argc() == 2 && (!strcasecmp(gi.Argv(1), "yes") || !strcasecmp(gi.Argv(1), "no"))) {
 			gi.ClientPrint(ent, PRINT_HIGH, "There is not a vote in progress\n"); // explicit
 			return true;
 		}
@@ -576,8 +592,7 @@ static boolean_t Vote_Help(g_edict_t *ent) {
 	}
 
 	if (!vote_cmds[i]) { // inform client if it is not
-		gi.ClientPrint(ent, PRINT_HIGH, "Voting on \"%s\" is not supported\n",
-				gi.Argv(1));
+		gi.ClientPrint(ent, PRINT_HIGH, "Voting on \"%s\" is not supported\n", gi.Argv(1));
 		return true;
 	}
 
@@ -621,8 +636,7 @@ static boolean_t Vote_Help(g_edict_t *ent) {
 	}
 
 	if (gi.Argc() == 2) { // general catch for invalid commands
-		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <command args>\n",
-				gi.Argv(0));
+		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <command args>\n", gi.Argv(0));
 		return true;
 	}
 
@@ -659,16 +673,14 @@ static void G_Vote_f(g_edict_t *ent) {
 		else if (strcasecmp(vote, "no") == 0)
 			ent->client->persistent.vote = VOTE_NO;
 		else { // only yes and no are valid during a vote
-			gi.ClientPrint(ent, PRINT_HIGH,
-					"A vote \"%s\" is already in progress\n", g_level.vote_cmd);
+			gi.ClientPrint(ent, PRINT_HIGH, "A vote \"%s\" is already in progress\n",
+					g_level.vote_cmd);
 			return;
 		}
 
 		g_level.votes[ent->client->persistent.vote]++;
-		gi.BroadcastPrint(PRINT_HIGH,
-				"Voting results \"%s\":\n  %d Yes     %d No\n",
-				g_level.vote_cmd, g_level.votes[VOTE_YES],
-				g_level.votes[VOTE_NO]);
+		gi.BroadcastPrint(PRINT_HIGH, "Voting results \"%s\":\n  %d Yes     %d No\n",
+				g_level.vote_cmd, g_level.votes[VOTE_YES], g_level.votes[VOTE_NO]);
 		return;
 	}
 
@@ -682,8 +694,7 @@ static void G_Vote_f(g_edict_t *ent) {
 		}
 
 		if (i == g_map_list.count) { // inform client if it is not
-			gi.ClientPrint(ent, PRINT_HIGH, "Map \"%s\" is not available\n",
-					gi.Argv(2));
+			gi.ClientPrint(ent, PRINT_HIGH, "Map \"%s\" is not available\n", gi.Argv(2));
 			return;
 		}
 	}
@@ -699,11 +710,11 @@ static void G_Vote_f(g_edict_t *ent) {
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s has called a vote:\n"
 		"  %s\n"
-		"To vote, press F1 for yes or F2 for no\n",
-			ent->client->persistent.net_name, g_level.vote_cmd);
+		"To vote, press F1 for yes or F2 for no\n", ent->client->persistent.net_name,
+			g_level.vote_cmd);
 }
 
-/*
+/**
  * G_AddClientToTeam
  *
  * Returns true if the client's team was changed, false otherwise.
@@ -717,8 +728,7 @@ boolean_t G_AddClientToTeam(g_edict_t *ent, char *team_name) {
 	}
 
 	if (!(team = G_TeamByName(team_name))) { // resolve team
-		gi.ClientPrint(ent, PRINT_HIGH, "Team \"%s\" doesn't exist\n",
-				team_name);
+		gi.ClientPrint(ent, PRINT_HIGH, "Team \"%s\" doesn't exist\n", team_name);
 		return false;
 	}
 
@@ -770,8 +780,8 @@ static void G_AddClientToRound(g_edict_t *ent) {
 static void G_Team_f(g_edict_t *ent) {
 
 	if ((g_level.teams || g_level.ctf) && gi.Argc() != 2) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <%s|%s>\n", gi.Argv(0),
-				g_team_good.name, g_team_evil.name);
+		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <%s|%s>\n", gi.Argv(0), g_team_good.name,
+				g_team_evil.name);
 		return;
 	}
 
@@ -829,8 +839,8 @@ static void G_Teamname_f(g_edict_t *ent) {
 	cs = t == &g_team_good ? CS_TEAM_GOOD : CS_TEAM_EVIL;
 	gi.ConfigString(cs, t->name);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n",
-			ent->client->persistent.net_name, t->name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n", ent->client->persistent.net_name,
+			t->name);
 }
 
 /*
@@ -888,15 +898,14 @@ static void G_Teamskin_f(g_edict_t *ent) {
 		strncpy(cl->persistent.skin, s, sizeof(cl->persistent.skin) - 1);
 		cl->persistent.skin[sizeof(cl->persistent.skin) - 1] = 0;
 
-		gi.ConfigString(CS_CLIENTS + i,
-				va("%s\\%s", cl->persistent.net_name, cl->persistent.skin));
+		gi.ConfigString(CS_CLIENTS + i, va("%s\\%s", cl->persistent.net_name, cl->persistent.skin));
 	}
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_skin to %s\n",
-			ent->client->persistent.net_name, t->skin);
+	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_skin to %s\n", ent->client->persistent.net_name,
+			t->skin);
 }
 
-/*
+/**
  * G_Ready_f
  *
  * If match is enabled, all clients must issue ready for game to start.
@@ -952,8 +961,7 @@ static void G_Ready_f(g_edict_t *ent) {
 		return;
 
 	if (((int) g_level.teams == 2 || (int) g_level.ctf == 2) && (g != e)) { // balanced teams required
-		gi.BroadcastPrint(PRINT_HIGH,
-				"Teams must be balanced for match to start\n");
+		gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for match to start\n");
 		return;
 	}
 
@@ -1021,9 +1029,8 @@ static void G_Spectate_f(g_edict_t *ent) {
 			if (g_auto_join->value) // assign them to a team
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
 			else { // or ask them to pick
-				gi.ClientPrint(ent, PRINT_HIGH,
-						"Use team <%s|%s> to join the game\n", g_team_good.name,
-						g_team_evil.name);
+				gi.ClientPrint(ent, PRINT_HIGH, "Use team <%s|%s> to join the game\n",
+						g_team_good.name, g_team_evil.name);
 				return;
 			}
 		}
@@ -1103,8 +1110,8 @@ void G_ClientCommand(g_edict_t *ent) {
 		G_Kill_f(ent);
 	else if (strcasecmp(cmd, "player_list") == 0)
 		G_PlayerList_f(ent);
-	else if (strcasecmp(cmd, "vote") == 0 || strcasecmp(cmd, "yes") == 0
-			|| strcasecmp(cmd, "no") == 0)
+	else if (strcasecmp(cmd, "vote") == 0 || strcasecmp(cmd, "yes") == 0 || strcasecmp(cmd, "no")
+			== 0)
 		G_Vote_f(ent);
 	else
 		// anything that doesn't match a command will be a chat
