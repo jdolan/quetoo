@@ -33,7 +33,14 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 	if (ent->time < cgi.client->time) {
 		r_particle_t *p;
 		vec3_t delta;
-		float d, dist;
+		float d, dist, step;
+
+		step = 1.0;
+
+		if (cgi.PointContents(end) & MASK_WATER) {
+			Cg_BubbleTrail(start, end, 12.0);
+			step = 2.0;
+		}
 
 		d = 0.0;
 
@@ -63,7 +70,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 			p->alpha_vel = -4.0 + crand();
 
 			p->color = ent->current.client + (rand() & 7);
-			d += 1.0;
+			d += step;
 		}
 
 		ent->time = cgi.client->time + 32;
@@ -156,7 +163,7 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	}
 
 	if (cgi.PointContents(end) & MASK_WATER) {
-		Cg_BubbleTrail(start, end, 16.0);
+		Cg_BubbleTrail(start, end, 24.0);
 		return;
 	}
 
