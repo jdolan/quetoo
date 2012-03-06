@@ -110,6 +110,7 @@ void G_Shutdown(void);
 void G_ResetTeams(void);
 void G_ResetVote(void);
 g_export_t *G_LoadGame(g_import_t *import);
+const char *G_SelectNextmap(void);
 
 #endif /* __G_LOCAL_H__ */
 

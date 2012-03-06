@@ -351,36 +351,7 @@ static void G_CheckVote(void) {
  * The time limit, frag limit, etc.. has been exceeded.
  */
 static void G_EndLevel(void) {
-	unsigned int i;
-
-	// try maplist
-	if (g_map_list.count > 0) {
-
-		if (g_random_map->value) { // random weighted selection
-			g_map_list.index = g_map_list.weighted_index[rand() % MAP_LIST_WEIGHT];
-		} else { // incremental, so long as wieght is not 0
-
-			i = g_map_list.index;
-
-			while (true) {
-				g_map_list.index = (g_map_list.index + 1) % g_map_list.count;
-
-				if (!g_map_list.maps[g_map_list.index].weight)
-					continue;
-
-				if (g_map_list.index == i) // wrapped around, all weights were 0
-					break;
-
-				break;
-			}
-		}
-
-		G_BeginIntermission(g_map_list.maps[g_map_list.index].name);
-		return;
-	}
-
-	// or stay on current level
-	G_BeginIntermission(g_level.name);
+	G_BeginIntermission(G_SelectNextmap());
 }
 
 /*
@@ -1107,6 +1078,30 @@ static void G_ParseMapList(const char *file_name) {
 		for (j = 0; j < k; j++)
 			g_map_list.weighted_index[l++] = i;
 	}
+}
+
+/*
+ * G_SelectNextmap
+ */
+const char *G_SelectNextmap(void) {
+	unsigned int i = 0;
+	if (g_map_list.count > 0) {
+		if (g_random_map->value) { // random weighted selection
+			g_map_list.index = g_map_list.weighted_index[rand() % MAP_LIST_WEIGHT];
+		} else { // incremental, so long as weight is not 0
+			i = g_map_list.index;
+			while (true) {
+				g_map_list.index = (g_map_list.index + 1) % g_map_list.count;
+				if (!g_map_list.maps[g_map_list.index].weight)
+					 continue;
+				if (g_map_list.index == i) // wrapped around, all weights were 0
+					break;
+				break;
+				}
+			}
+		return g_map_list.maps[g_map_list.index].name;
+	}
+	return g_level.name;
 }
 
 /**

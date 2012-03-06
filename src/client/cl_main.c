@@ -657,6 +657,7 @@ static void Cl_InitLocal(void) {
 	Cmd_AddCommand("info", NULL, NULL);
 	Cmd_AddCommand("give", NULL, NULL);
 	Cmd_AddCommand("god", NULL, NULL);
+	Cmd_AddCommand("nextmap", NULL, NULL);
 	Cmd_AddCommand("no_clip", NULL, NULL);
 	Cmd_AddCommand("weapon_next", NULL, NULL);
 	Cmd_AddCommand("weapon_previous", NULL, NULL);
