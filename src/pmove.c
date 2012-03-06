@@ -774,7 +774,7 @@ static void Pm_WaterJumpMove(void) {
 	Pm_StepSlideMove();
 }
 
-/*
+/**
  * Pm_CheckDuck
  *
  * Sets mins, maxs, and view offset.
@@ -847,7 +847,7 @@ static boolean_t Pm_GoodPosition(void) {
  * precision of the network channel and in a valid position.
  */
 static void Pm_SnapPosition(void) {
-	static int jitterbits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
+	static int jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
 	int i, j, bits, sign[3];
 	short base[3];
 
@@ -876,7 +876,7 @@ static void Pm_SnapPosition(void) {
 	// try all combinations
 	for (j = 0; j < 8; j++) {
 
-		bits = jitterbits[j];
+		bits = jitter_bits[j];
 
 		VectorCopy(base, pm->s.origin);
 
@@ -1018,7 +1018,7 @@ static void Pm_InitLocal(void) {
 	pml.time = pm->cmd.msec * 0.001;
 }
 
-/*
+/**
  * Pmove
  *
  * Can be called by either the server or the client to update prediction.

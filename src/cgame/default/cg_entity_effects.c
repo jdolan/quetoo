@@ -35,11 +35,11 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 		vec3_t delta;
 		float d, dist, step;
 
-		step = 1.0;
+		step = 0.5;
 
 		if (cgi.PointContents(end) & MASK_WATER) {
 			Cg_BubbleTrail(start, end, 12.0);
-			step = 2.0;
+			step = 1.5;
 		}
 
 		d = 0.0;
