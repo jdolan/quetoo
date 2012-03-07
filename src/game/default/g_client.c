@@ -948,6 +948,12 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 
 	// save off the user_info in case we want to check something later
 	strncpy(ent->client->persistent.user_info, user_info, sizeof(ent->client->persistent.user_info) - 1);
+
+	s = GetUserInfo(user_info, "active");
+	if(strcmp(s, "0") == 0)
+		ent->s.effects = ent->s.effects | EF_INACTIVE;
+	else
+		ent->s.effects &= ~(EF_INACTIVE);
 }
 
 /**

@@ -42,6 +42,7 @@ cvar_t *rcon_password;
 cvar_t *rcon_address;
 
 // user info
+cvar_t *active;
 cvar_t *color;
 cvar_t *message_level;
 cvar_t *name;
@@ -78,8 +79,8 @@ static void Cl_SendConnect(void) {
 
 	qport = (byte) Cvar_GetValue("net_qport"); // has been set by netchan
 
-	Netchan_OutOfBandPrint(NS_CLIENT, addr, "connect %i %i %i \"%s\"\n",
-			PROTOCOL, qport, cls.challenge, Cvar_UserInfo());
+	Netchan_OutOfBandPrint(NS_CLIENT, addr, "connect %i %i %i \"%s\"\n", PROTOCOL, qport,
+			cls.challenge, Cvar_UserInfo());
 
 	user_info_modified = false;
 }
@@ -233,7 +234,7 @@ void Cl_SendDisconnect(void) {
 
 	// send a disconnect message to the server
 	final[0] = CL_CMD_STRING;
-	strcpy((char *)final + 1, "disconnect");
+	strcpy((char *) final + 1, "disconnect");
 	Netchan_Transmit(&cls.netchan, strlen((char *) final), final);
 	Netchan_Transmit(&cls.netchan, strlen((char *) final), final);
 	Netchan_Transmit(&cls.netchan, strlen((char *) final), final);
@@ -262,8 +263,8 @@ void Cl_Disconnect(void) {
 
 		const float s = (cls.real_time - cl.time_demo_start) / 1000.0;
 
-		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames,
-				s, cl.time_demo_frames / s);
+		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
+				cl.time_demo_frames / s);
 
 		cl.time_demo_frames = cl.time_demo_start = 0;
 	}
@@ -435,8 +436,7 @@ static void Cl_ReadPackets(void) {
 
 		// packet from server
 		if (!Net_CompareNetaddr(net_from, cls.netchan.remote_address)) {
-			Com_Debug("%s: Sequenced packet without connection.\n",
-					Net_NetaddrToString(net_from));
+			Com_Debug("%s: Sequenced packet without connection.\n", Net_NetaddrToString(net_from));
 			continue;
 		}
 
@@ -447,8 +447,8 @@ static void Cl_ReadPackets(void) {
 	}
 
 	// check timeout
-	if (cls.state >= CL_CONNECTED && cls.real_time - cls.netchan.last_received
-			> cl_timeout->value * 1000) {
+	if (cls.state >= CL_CONNECTED
+			&& cls.real_time - cls.netchan.last_received > cl_timeout->value * 1000) {
 		Com_Print("%s: Timed out.\n", Net_NetaddrToString(net_from));
 		Cl_Disconnect();
 	}
@@ -471,8 +471,7 @@ void Cl_LoadProgress(unsigned short percent) {
  */
 static void Cl_UpdateMedia(void) {
 
-	if ((r_view.update || s_env.update) && (cls.state == CL_ACTIVE
-			&& !cls.loading)) {
+	if ((r_view.update || s_env.update) && (cls.state == CL_ACTIVE && !cls.loading)) {
 
 		Com_Debug("Cl_UpdateMedia: %s %s\n", r_view.update ? "view" : "",
 				s_env.update ? "sound" : "");
@@ -606,14 +605,10 @@ static void Cl_InitLocal(void) {
 	cl_max_fps = Cvar_Get("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
 	cl_max_pps = Cvar_Get("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
 	cl_predict = Cvar_Get("cl_predict", "1", 0, NULL);
-	cl_show_prediction_misses = Cvar_Get("cl_show_prediction_misses", "0",
-			CVAR_LO_ONLY, NULL);
-	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", CVAR_LO_ONLY,
-			NULL);
-	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0",
-			CVAR_LO_ONLY, NULL);
-	cl_team_chat_sound = Cvar_Get("cl_team_chat_sound", "misc/teamchat", 0,
-			NULL);
+	cl_show_prediction_misses = Cvar_Get("cl_show_prediction_misses", "0", CVAR_LO_ONLY, NULL);
+	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
+	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
+	cl_team_chat_sound = Cvar_Get("cl_team_chat_sound", "misc/teamchat", 0, NULL);
 	cl_timeout = Cvar_Get("cl_timeout", "15.0", 0, NULL);
 	cl_view_size = Cvar_Get("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
 
@@ -621,16 +616,13 @@ static void Cl_InitLocal(void) {
 	rcon_address = Cvar_Get("rcon_address", "", 0, NULL);
 
 	// user info
+	active = Cvar_Get("active", "1", CVAR_USER_INFO | CVAR_NO_SET, NULL);
 	color = Cvar_Get("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	message_level = Cvar_Get("message_level", "0",
-			CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	name = Cvar_Get("name", Cl_GetUserName(), CVAR_USER_INFO | CVAR_ARCHIVE,
-			NULL);
+	message_level = Cvar_Get("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	name = Cvar_Get("name", Cl_GetUserName(), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
-	rate = Cvar_Get("rate", va("%d", CLIENT_RATE),
-			CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	skin = Cvar_Get("skin", "qforcer/enforcer", CVAR_USER_INFO | CVAR_ARCHIVE,
-			NULL);
+	rate = Cvar_Get("rate", va("%d", CLIENT_RATE), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	skin = Cvar_Get("skin", "qforcer/enforcer", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	recording = Cvar_Get("recording", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
 
 	// register our commands

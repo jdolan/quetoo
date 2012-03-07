@@ -65,6 +65,7 @@ extern r_image_t *cg_particle_lightning;
 extern r_image_t *cg_particle_rail_trail;
 extern r_image_t *cg_particle_flame;
 extern r_image_t *cg_particle_spark;
+extern r_image_t *cg_particle_inactive;
 extern r_image_t *cg_particle_bullet[3];
 
 void Cg_UpdateMedia(void);

@@ -563,6 +563,26 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 	cgi.AddLight(&l);
 }
 
+/*
+ * Cg_InactiveTrail
+ */
+void Cg_InactiveTrail(const vec3_t start) {
+	r_particle_t *p;
+
+	if (!(p = Cg_AllocParticle()))
+		return;
+
+	p->image = cg_particle_inactive;
+	p->type = PARTICLE_NORMAL;
+
+	p->alpha = 1.0;
+	p->alpha_vel = -99999999.0;
+	p->color = 11;
+	VectorCopy(start, p->org);
+	p->org[2] += 50;
+	p->scale = 10.0;
+}
+
 /**
  * Cg_EntityEffects
  *
@@ -669,5 +689,9 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 
 	if (s->effects & EF_TELEPORTER) {
 		Cg_TeleporterTrail(ent->origin, e);
+	}
+
+	if (s->effects & EF_INACTIVE) {
+			Cg_InactiveTrail(ent->origin);
 	}
 }

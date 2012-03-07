@@ -61,6 +61,7 @@ r_image_t *cg_particle_lightning;
 r_image_t *cg_particle_rail_trail;
 r_image_t *cg_particle_flame;
 r_image_t *cg_particle_spark;
+r_image_t *cg_particle_inactive;
 r_image_t *cg_particle_bullet[3];
 
 /*
@@ -124,6 +125,7 @@ void Cg_UpdateMedia(void) {
 	cg_particle_rail_trail = cgi.LoadImage("particles/railtrail.tga", it_effect);
 	cg_particle_flame = cgi.LoadImage("particles/flame.tga", it_effect);
 	cg_particle_spark = cgi.LoadImage("particles/spark.tga", it_effect);
+	cg_particle_inactive = cgi.LoadImage("particles/inactive.tga", it_effect);
 
 	for (i = 0; i < 3; i++) {
 		snprintf(name, sizeof(name), "particles/bullet_%i", i);

@@ -672,6 +672,13 @@ void Cl_KeyEvent(unsigned int key, unsigned short unicode, boolean_t down,
 		Com_Debug("Cl_KeyEvent: Bad cl_key_dest: %d.\n", ks->dest);
 		break;
 	}
+
+	if(ks->dest == KEY_GAME && !(active->integer)) {
+		Cvar_FullSet("active", "1", CVAR_USER_INFO | CVAR_NO_SET);
+	}
+	else if((ks->dest == KEY_UI || ks->dest == KEY_CHAT || ks->dest == KEY_CONSOLE) && active->integer) {
+		Cvar_FullSet("active", "0", CVAR_USER_INFO | CVAR_NO_SET);
+	}
 }
 
 /*

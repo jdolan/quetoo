@@ -38,6 +38,7 @@ extern cvar_t *cl_timeout;
 extern cvar_t *cl_view_size;
 
 // user_info
+extern cvar_t *active;
 extern cvar_t *color;
 extern cvar_t *message_level;
 extern cvar_t *name;
