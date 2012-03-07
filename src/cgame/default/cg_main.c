@@ -70,8 +70,8 @@ static void Cg_Init(void) {
 	cg_draw_weapon = cgi.Cvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
 			"Toggle drawing of the weapon model.");
 
-	cg_fov = Cvar_Get("cg_fov", "100.0", CVAR_ARCHIVE, NULL);
-	cg_fov_zoom = Cvar_Get("cg_fov_zoom", "40.0", CVAR_ARCHIVE, NULL);
+	cg_fov = cgi.Cvar("cg_fov", "100.0", CVAR_ARCHIVE, NULL);
+	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "40.0", CVAR_ARCHIVE, NULL);
 
 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE, "Activate third person perspective.");
 
