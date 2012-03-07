@@ -45,8 +45,8 @@
 #if defined(_WIN32) || defined(_WIN64)
 #   define TW_CALL          __stdcall
 #   define TW_CDECL_CALL    __cdecl
-#   define TW_EXPORT_API    __declspec(dllexport)
-#   define TW_IMPORT_API    __declspec(dllimport)
+#   define TW_EXPORT_API
+#   define TW_IMPORT_API
 #else
 #   define TW_CALL
 #   define TW_CDECL_CALL
