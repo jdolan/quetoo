@@ -424,7 +424,7 @@ void R_EnableShell(boolean_t enable) {
 
 	r_state.shell_enabled = enable;
 
-	if (r_state.lighting_enabled)
+	if (r_state.active_program)
 		R_ProgramVariable(&offset, R_UNIFORM_FLOAT, "OFFSET");
 
 	if (enable) {

@@ -30,6 +30,8 @@ typedef struct r_default_program_s {
 	r_uniform1i_t normalmap;
 	r_uniform1i_t glossmap;
 
+	r_uniform1f_t offset;
+
 	r_uniform1f_t bump;
 	r_uniform1f_t parallax;
 	r_uniform1f_t hardness;
@@ -57,6 +59,8 @@ void R_InitProgram_default(void) {
 	R_ProgramVariable(&p->deluxemap, R_UNIFORM_INT, "DELUXEMAP");
 	R_ProgramVariable(&p->normalmap, R_UNIFORM_INT, "NORMALMAP");
 	R_ProgramVariable(&p->glossmap, R_UNIFORM_INT, "GLOSSMAP");
+
+	R_ProgramVariable(&p->offset, R_UNIFORM_FLOAT, "OFFSET");
 
 	R_ProgramVariable(&p->bump, R_UNIFORM_FLOAT, "BUMP");
 	R_ProgramVariable(&p->parallax, R_UNIFORM_FLOAT, "PARALLAX");
