@@ -31,8 +31,8 @@ static boolean_t Cg_ValidateClient(cl_client_info_t *ci) {
 	if (!ci->head || !ci->upper || !ci->lower)
 		return false;
 
-	if (ci->head_skin == r_null_image || ci->upper_skin == r_null_image
-			|| ci->lower_skin == r_null_image) {
+	if (ci->head_skin->type == it_null || ci->upper_skin->type == it_null || ci->lower_skin->type
+			== it_null) {
 		return false;
 	}
 
@@ -169,24 +169,23 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
  * and entity. If a non-looping animation has completed, proceed to the next
  * animation in the sequence.
  */
-static void Cg_AnimateClientEntity_(const r_md3_t *md3,
-		cl_entity_animation_t *a, r_entity_t *e) {
+static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e) {
 
 	e->frame = e->old_frame = 0;
 	e->lerp = 1.0;
 	e->back_lerp = 0.0;
 
 	if (a->animation > md3->num_animations) {
-		cgi.Warn("Cg_AnimateClientEntity: Invalid animation: %s: %d\n",
-				e->model->name, a->animation);
+		cgi.Warn("Cg_AnimateClientEntity: Invalid animation: %s: %d\n", e->model->name,
+				a->animation);
 		return;
 	}
 
 	const r_md3_animation_t *anim = &md3->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
-		cgi.Warn("Cg_AnimateClientEntity_: Bad animation sequence: %s: %d\n",
-				e->model->name, a->animation);
+		cgi.Warn("Cg_AnimateClientEntity_: Bad animation sequence: %s: %d\n", e->model->name,
+				a->animation);
 		return;
 	}
 
@@ -239,8 +238,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3,
  * Runs the animation sequences for the specified entity, setting the frame
  * indexes and interpolation fractions for the specified renderer entities.
  */
-void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper,
-		r_entity_t *lower) {
+void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower) {
 	const r_md3_t *md3 = (r_md3_t *) upper->model->extra_data;
 
 	// do the torso animation

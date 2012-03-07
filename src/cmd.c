@@ -230,7 +230,7 @@ void Cbuf_AddLateCommands(void) {
 	j = 0;
 	memset(text, 0, sizeof(text));
 
-	for (i = 1; i < (unsigned)Com_Argc(); i++) {
+	for (i = 1; i < (unsigned) Com_Argc(); i++) {
 
 		c = Com_Argv(i);
 		k = strlen(c);
@@ -268,8 +268,7 @@ static void Cmd_Exec_f(void) {
 	char cfg[MAX_QPATH];
 
 	if (Cmd_Argc() != 2) {
-		Com_Print("Usage: %s <file_name> : execute a script file\n",
-				Cmd_Argv(0));
+		Com_Print("Usage: %s <file_name> : execute a script file\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -360,10 +359,10 @@ static void Cmd_Alias_f(void) {
 typedef struct cmd_function_s {
 	struct cmd_function_s *next;
 	const char *name;
-	xcommand_t function;
+	cmd_function_t function;
 	const char *description;
 	void *userdata;
-} cmd_function_t;
+} cmd_command_t;
 
 static int cmd_argc;
 static char *cmd_argv[MAX_STRING_TOKENS];
@@ -371,9 +370,9 @@ static char *cmd_null_string = "";
 static char cmd_args[MAX_STRING_CHARS];
 static void *cmd_userdata;
 
-static cmd_function_t *cmd_functions; // possible commands to execute
+static cmd_command_t *cmd_commands; // possible commands to execute
 
-static hash_table_t cmd_hash_table; // hashed for fast lookups
+static hash_table_t cmd_hash; // hashed for fast lookups
 
 
 /*
@@ -471,11 +470,11 @@ void Cmd_TokenizeString(const char *text) {
 /*
  * Cmd_Exists
  */
-boolean_t Cmd_Exists(const char *cmd_name) {
-	cmd_function_t *cmd;
+boolean_t Cmd_Exists(const char *name) {
+	cmd_command_t *cmd;
 
-	for (cmd = cmd_functions; cmd; cmd = cmd->next) {
-		if (!strcmp(cmd_name, cmd->name)) {
+	for (cmd = cmd_commands; cmd; cmd = cmd->next) {
+		if (!strcmp(name, cmd->name)) {
 			return true;
 		}
 	}
@@ -485,14 +484,14 @@ boolean_t Cmd_Exists(const char *cmd_name) {
 /*
  * Cmd_AddUserdata
  */
-void Cmd_AddUserdata(const char *cmd_name, void *userdata) {
-	cmd_function_t *cmd;
+void Cmd_AddUserdata(const char *name, void *userdata) {
+	cmd_command_t *cmd;
 
-	if (!cmd_name || !cmd_name[0])
+	if (!name || !name[0])
 		return;
 
-	for (cmd = cmd_functions; cmd; cmd = cmd->next) {
-		if (!strcmp(cmd_name, cmd->name)) {
+	for (cmd = cmd_commands; cmd; cmd = cmd->next) {
+		if (!strcmp(name, cmd->name)) {
 			cmd->userdata = userdata;
 			return;
 		}
@@ -504,25 +503,25 @@ void Cmd_AddUserdata(const char *cmd_name, void *userdata) {
  *
  * Fetches the userdata for a console command.
  *
- * @param[in] cmd_name The name the command we want to add edit
+ * @param[in] name The name the command we want to add edit
  * @return @c NULL if no userdata was set or the command wasn't found, the userdata
  * pointer if it was found and set
  * @sa Cmd_AddCommand
  * @sa Cmd_CompleteCommandParameters
  * @sa Cmd_AddUserdata
  */
-void* Cmd_GetUserdata(const char *cmd_name) {
-	cmd_function_t *cmd;
+void* Cmd_GetUserdata(const char *name) {
+	cmd_command_t *cmd;
 
-	if (!cmd_name || !cmd_name[0]) {
+	if (!name || !name[0]) {
 		Com_Print("Cmd_GetUserdata: Invalide parameter\n");
 		return NULL;
 	}
 
-	if ((cmd = Hash_Get(&cmd_hash_table, cmd_name)))
+	if ((cmd = Hash_Get(&cmd_hash, name)))
 		return cmd->userdata;
 
-	Com_Print("Cmd_GetUserdata: '%s' not found\n", cmd_name);
+	Com_Print("Cmd_GetUserdata: '%s' not found\n", name);
 	return NULL;
 }
 
@@ -536,36 +535,35 @@ void *Cmd_Userdata(void) {
 /*
  * Cmd_AddCommand
  */
-void Cmd_AddCommand(const char *cmd_name, xcommand_t function,
-		const char *description) {
-	cmd_function_t *c, *cmd;
+void Cmd_AddCommand(const char *name, cmd_function_t function, const char *description) {
+	cmd_command_t *c, *cmd;
 
 	// fail if the command is a variable name
-	if (Cvar_GetString(cmd_name)[0]) {
-		Com_Debug("Cmd_AddCommand: %s already defined as a var\n", cmd_name);
+	if (Cvar_GetString(name)[0]) {
+		Com_Debug("Cmd_AddCommand: %s already defined as a var\n", name);
 		return;
 	}
 
-	if (Cmd_Exists(cmd_name)) {
-		Com_Debug("Cmd_AddCommand: %s already defined\n", cmd_name);
+	if (Cmd_Exists(name)) {
+		Com_Debug("Cmd_AddCommand: %s already defined\n", name);
 		return;
 	}
 
 	cmd = Z_Malloc(sizeof(*cmd));
-	cmd->name = cmd_name;
+	cmd->name = name;
 	cmd->function = function;
 	cmd->description = description;
 
 	// hash the command
-	Hash_Put(&cmd_hash_table, cmd_name, cmd);
+	Hash_Put(&cmd_hash, name, cmd);
 
 	// and add it to the chain
-	if (!cmd_functions) {
-		cmd_functions = cmd;
+	if (!cmd_commands) {
+		cmd_commands = cmd;
 		return;
 	}
 
-	c = cmd_functions;
+	c = cmd_commands;
 	while (c->next) {
 		if (strcmp(cmd->name, c->next->name) < 0) { // insert it
 			cmd->next = c->next;
@@ -581,19 +579,19 @@ void Cmd_AddCommand(const char *cmd_name, xcommand_t function,
 /*
  * Cmd_RemoveCommand
  */
-void Cmd_RemoveCommand(const char *cmd_name) {
-	cmd_function_t *cmd, **back;
+void Cmd_RemoveCommand(const char *name) {
+	cmd_command_t *cmd, **back;
 
-	Hash_Remove(&cmd_hash_table, cmd_name);
+	Hash_Remove(&cmd_hash, name);
 
-	back = &cmd_functions;
+	back = &cmd_commands;
 	while (true) {
 		cmd = *back;
 		if (!cmd) {
-			Com_Debug("Cmd_RemoveCommand: %s not added\n", cmd_name);
+			Com_Debug("Cmd_RemoveCommand: %s not added\n", name);
 			return;
 		}
-		if (!strcmp(cmd_name, cmd->name)) {
+		if (!strcmp(name, cmd->name)) {
 			*back = cmd->next;
 			Z_Free(cmd);
 			return;
@@ -606,7 +604,7 @@ void Cmd_RemoveCommand(const char *cmd_name) {
  * Cmd_CompleteCommand
  */
 int Cmd_CompleteCommand(const char *partial, const char *matches[]) {
-	cmd_function_t *cmd;
+	cmd_command_t *cmd;
 	cmd_alias_t *a;
 	int len;
 	int m;
@@ -615,7 +613,7 @@ int Cmd_CompleteCommand(const char *partial, const char *matches[]) {
 	m = 0;
 
 	// check for partial matches in commands
-	for (cmd = cmd_functions; cmd; cmd = cmd->next) {
+	for (cmd = cmd_commands; cmd; cmd = cmd->next) {
 		if (!strncmp(partial, cmd->name, len)) {
 			Com_Print("^1%s^7\n", cmd->name);
 			if (cmd->description)
@@ -643,7 +641,7 @@ int Cmd_CompleteCommand(const char *partial, const char *matches[]) {
  * A complete command line has been parsed, so try to execute it
  */
 void Cmd_ExecuteString(const char *text) {
-	cmd_function_t *cmd;
+	cmd_command_t *cmd;
 	cmd_alias_t *a;
 
 	Cmd_TokenizeString(text);
@@ -652,7 +650,7 @@ void Cmd_ExecuteString(const char *text) {
 	if (!Cmd_Argc())
 		return; // no tokens
 
-	if ((cmd = Hash_Get(&cmd_hash_table, cmd_argv[0]))) {
+	if ((cmd = Hash_Get(&cmd_hash, cmd_argv[0]))) {
 		if (cmd->function) {
 			cmd_userdata = cmd->userdata;
 			cmd->function();
@@ -686,11 +684,11 @@ void Cmd_ExecuteString(const char *text) {
  * Cmd_List_f
  */
 static void Cmd_List_f(void) {
-	cmd_function_t *cmd;
+	cmd_command_t *cmd;
 	int i;
 
 	i = 0;
-	for (cmd = cmd_functions; cmd; cmd = cmd->next, i++) {
+	for (cmd = cmd_commands; cmd; cmd = cmd->next, i++) {
 		Com_Print("%s\n", cmd->name);
 		if (cmd->description)
 			Com_Print("   ^2%s\n", cmd->description);
@@ -703,7 +701,7 @@ static void Cmd_List_f(void) {
  */
 void Cmd_Init(void) {
 
-	Hash_Init(&cmd_hash_table);
+	Hash_Init(&cmd_hash);
 
 	Cmd_AddCommand("cmd_list", Cmd_List_f, NULL);
 	Cmd_AddCommand("exec", Cmd_Exec_f, NULL);

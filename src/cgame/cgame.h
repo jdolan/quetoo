@@ -35,11 +35,10 @@ typedef struct cg_import_s {
 	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
 	cvar_t *(*Cvar)(const char *name, const char *value, int flags, const char *description);
-	void (*AddCommand)(const char *cmd_name, xcommand_t function, const char *description);
-	void (*RemoveCommand)(const char *cmd_name);
+	void (*AddCommand)(const char *name, cmd_function_t function, const char *description);
+	void (*RemoveCommand)(const char *name);
 
 	char *(*ConfigString)(unsigned short index);
-	unsigned short *player_num;
 
 	// network messaging
 	void (*ReadData)(void *buf, size_t len);

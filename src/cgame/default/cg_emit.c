@@ -80,7 +80,7 @@ void Cg_LoadEmits(void) {
 	memset(&cg_emits, 0, sizeof(cg_emits));
 	cg_num_emits = 0;
 
-	ents = Cm_EntityString();
+	ents = cgi.EntityString();
 
 	memset(class_name, 0, sizeof(class_name));
 	entity = emit = false;
@@ -113,17 +113,17 @@ void Cg_LoadEmits(void) {
 
 					if (e->flags & EMIT_SPARKS) {
 						strcpy(e->sound, "world/sparks");
-						e->sample = S_LoadSample(e->sound);
+						e->sample = cgi.LoadSample(e->sound);
 					}
 
 					else if (e->flags & EMIT_STEAM) { // steam hissing
 						strcpy(e->sound, "world/steam");
-						e->sample = S_LoadSample(e->sound);
+						e->sample = cgi.LoadSample(e->sound);
 					}
 
 					else if (e->flags & EMIT_FLAME) { // fire crackling
 						strcpy(e->sound, "world/fire");
-						e->sample = S_LoadSample(e->sound);
+						e->sample = cgi.LoadSample(e->sound);
 					}
 				}
 
@@ -282,7 +282,7 @@ void Cg_LoadEmits(void) {
 
 		if (!strcmp(c, "sound")) {
 			snprintf(e->sound, sizeof(e->sound), "%s", ParseToken(&ents));
-			e->sample = S_LoadSample(e->sound);
+			e->sample = cgi.LoadSample(e->sound);
 			continue;
 		}
 

@@ -26,12 +26,12 @@
 
 /*
 
-Any number of commands can be added in a frame, from several different sources.
-Most commands come from either keybindings or console line input, but remote
-servers can also send across commands and entire text files can be execed.
+ Any number of commands can be added in a frame, from several different sources.
+ Most commands come from either keybindings or console line input, but remote
+ servers can also send across commands and entire text files can be execed.
 
-The + command line options are also added to the command buffer.
-*/
+ The + command line options are also added to the command buffer.
+ */
 
 void Cbuf_Init(void);
 // allocates an initial text buffer that will grow as needed
@@ -65,27 +65,27 @@ void Cbuf_InsertFromDefer(void);
 
 /*
 
-Command execution takes a null terminated string, breaks it into tokens,
-then searches for a command or variable that matches the first token.
+ Command execution takes a null terminated string, breaks it into tokens,
+ then searches for a command or variable that matches the first token.
 
-*/
+ */
 
-typedef void(*xcommand_t)(void);
+typedef void(*cmd_function_t)(void);
 
 void Cmd_Init(void);
 
-boolean_t Cmd_Exists(const char *cmd_name);
-void Cmd_AddUserdata(const char *cmd_name, void *userdata);
-void* Cmd_GetUserdata(const char *cmd_name);
+boolean_t Cmd_Exists(const char *name);
+void Cmd_AddUserdata(const char *name, void *userdata);
+void* Cmd_GetUserdata(const char *name);
 void *Cmd_Userdata(void);
 
-void Cmd_AddCommand(const char *cmd_name, xcommand_t function, const char *description);
+void Cmd_AddCommand(const char *name, cmd_function_t function, const char *description);
 // called by the init functions of other parts of the program to
 // register commands and functions to call for them.
-// The cmd_name is referenced later, so it should not be in temp memory
+// The name is referenced later, so it should not be in temp memory
 // if function is NULL, the command will be forwarded to the server
 // as a clc_string_cmd instead of executed locally
-void Cmd_RemoveCommand(const char *cmd_name);
+void Cmd_RemoveCommand(const char *name);
 
 int Cmd_CompleteCommand(const char *partial, const char *matches[]);
 // attempts to match a partial command for automatic command line completion

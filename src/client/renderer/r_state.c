@@ -434,7 +434,8 @@ void R_EnableShell(boolean_t enable) {
 		R_EnableBlend(true);
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-		R_ProgramParameter1f(&offset, r_view.time / 3.0);
+		if (r_state.active_program)
+			R_ProgramParameter1f(&offset, r_view.time / 3.0);
 	} else {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		R_EnableBlend(false);
@@ -442,7 +443,8 @@ void R_EnableShell(boolean_t enable) {
 		glPolygonOffset(0.0, 0.0);
 		glDisable(GL_POLYGON_OFFSET_FILL);
 
-		R_ProgramParameter1f(&offset, 0.0);
+		if (r_state.active_program)
+			R_ProgramParameter1f(&offset, 0.0);
 	}
 
 	R_GetError(NULL);

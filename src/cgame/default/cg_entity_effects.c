@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "common-anorms.h"
 
 /*
  * Cg_BlasterTrail
