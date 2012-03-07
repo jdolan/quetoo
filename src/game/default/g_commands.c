@@ -1103,8 +1103,6 @@ void G_ClientCommand(g_edict_t *ent) {
 		G_Give_f(ent);
 	else if (strcasecmp(cmd, "god") == 0)
 		G_God_f(ent);
-	else if (strcasecmp(cmd, "nextmap") == 0)
-		G_Nextmap_f(ent);
 	else if (strcasecmp(cmd, "no_clip") == 0)
 		G_NoClip_f(ent);
 	else if (strcasecmp(cmd, "wave") == 0)

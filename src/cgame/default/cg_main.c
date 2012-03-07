@@ -94,7 +94,6 @@ static void Cg_Shutdown(void) {
 	cgi.RemoveCommand("info");
 	cgi.RemoveCommand("give");
 	cgi.RemoveCommand("god");
-	cgi.RemoveCommand("next_map");
 	cgi.RemoveCommand("no_clip");
 	cgi.RemoveCommand("weapon_next");
 	cgi.RemoveCommand("weapon_previous");
@@ -211,7 +210,6 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cgi.AddCommand("info", NULL, NULL);
 	cgi.AddCommand("give", NULL, NULL);
 	cgi.AddCommand("god", NULL, NULL);
-	cgi.AddCommand("next_map", NULL, NULL);
 	cgi.AddCommand("no_clip", NULL, NULL);
 	cgi.AddCommand("weapon_next", NULL, NULL);
 	cgi.AddCommand("weapon_previous", NULL, NULL);
