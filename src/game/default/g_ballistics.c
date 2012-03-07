@@ -76,7 +76,7 @@ static boolean_t G_IsStructural(g_edict_t *ent, c_bsp_surface_t *surf) {
  *
  * Used to add generic bubble trails to shots.
  */
-static void G_BubbleTrail(vec3_t start, c_trace_t *tr) {
+static void G_BubbleTrail(const vec3_t start, c_trace_t *tr) {
 	vec3_t dir, pos;
 
 	if (VectorCompare(tr->end, start))
@@ -124,7 +124,15 @@ static void G_Tracer(vec3_t start, vec3_t end) {
 	gi.WriteByte(TE_TRACER);
 	gi.WritePosition(mid);
 	gi.WritePosition(end);
-	gi.Multicast(mid, MULTICAST_PHS);
+	gi.Multicast(start, MULTICAST_PHS);
+
+	if (!gi.inPHS(start, end)) { // send to both PHS's
+		gi.WriteByte(SV_CMD_TEMP_ENTITY);
+		gi.WriteByte(TE_TRACER);
+		gi.WritePosition(mid);
+		gi.WritePosition(end);
+		gi.Multicast(end, MULTICAST_PHS);
+	}
 }
 
 /**
@@ -238,48 +246,19 @@ void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage,
 	vec3_t end;
 	float r;
 	float u;
-	vec3_t water_start;
-	boolean_t water = false;
-	int content_mask = MASK_SHOT | MASK_WATER;
 
 	tr = gi.Trace(ent->s.origin, NULL, NULL, start, ent, MASK_SHOT);
-	if (!(tr.fraction < 1.0)) {
+	if (tr.fraction == 1.0) {
 		VectorAngles(aimdir, dir);
 		AngleVectors(dir, forward, right, up);
 
 		r = crand() * hspread;
 		u = crand() * vspread;
-		VectorMA(start, 8192, forward, end);
+		VectorMA(start, 8192.0, forward, end);
 		VectorMA(end, r, right, end);
 		VectorMA(end, u, up, end);
 
-		if (gi.PointContents(start) & MASK_WATER) {
-			water = true;
-			VectorCopy(start, water_start);
-			content_mask &= ~MASK_WATER;
-		}
-
-		tr = gi.Trace(start, NULL, NULL, end, ent, content_mask);
-
-		// see if we hit water
-		if ((tr.contents & MASK_WATER) && !water) {
-
-			water = true;
-			VectorCopy(tr.end, water_start);
-
-			// change bullet's course when it enters water
-			VectorSubtract(end, start, dir);
-			VectorAngles(dir, dir);
-			AngleVectors(dir, forward, right, up);
-			r = crand() * hspread * 2;
-			u = crand() * vspread * 2;
-			VectorMA(water_start, 8192, forward, end);
-			VectorMA(end, r, right, end);
-			VectorMA(end, u, up, end);
-
-			// re-trace ignoring water this time
-			tr = gi.Trace(water_start, NULL, NULL, end, ent, MASK_SHOT);
-		}
+		tr = gi.Trace(start, NULL, NULL, end, ent, MASK_SHOT);
 	}
 
 	// send trails and marks
@@ -293,13 +272,11 @@ void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage,
 				G_BulletMark(tr.end, &tr.plane, tr.surface);
 			}
 		}
-	}
 
-	if (water) {
-		G_BubbleTrail(water_start, &tr);
-		G_Tracer(start, water_start);
-	} else {
 		G_Tracer(start, tr.end);
+
+		if ((gi.PointContents(start) & MASK_WATER) || (gi.PointContents(tr.end) & MASK_WATER))
+			G_BubbleTrail(start, &tr);
 	}
 }
 
@@ -818,13 +795,6 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage
 		VectorCopy(tr.end, from);
 	}
 
-	// send rail trail
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_RAIL);
-	gi.WritePosition(start);
-	gi.WritePosition(tr.end);
-	gi.WriteLong(tr.surface->flags);
-
 	// use team colors, or client's color
 	if (g_level.teams || g_level.ctf) {
 		if (ent->client->persistent.team == &g_team_good)
@@ -834,13 +804,30 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage
 	} else
 		color = ent->client->persistent.color;
 
+	// send rail trail
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(TE_RAIL);
+	gi.WritePosition(start);
+	gi.WritePosition(tr.end);
+	gi.WriteLong(tr.surface->flags);
 	gi.WriteByte(color);
 
-	gi.Multicast(ent->s.origin, MULTICAST_PHS);
+	gi.Multicast(start, MULTICAST_PHS);
+
+	if (!gi.inPHS(start, tr.end)) { // send to both PHS's
+		gi.WriteByte(SV_CMD_TEMP_ENTITY);
+		gi.WriteByte(TE_RAIL);
+		gi.WritePosition(start);
+		gi.WritePosition(tr.end);
+		gi.WriteLong(tr.surface->flags);
+		gi.WriteByte(color);
+
+		gi.Multicast(tr.end, MULTICAST_PHS);
+	}
 
 	// calculate position of burn mark
 	if (G_IsStructural(tr.ent, tr.surface)) {
-		VectorMA(tr.end, -1, aimdir, tr.end);
+		VectorMA(tr.end, -1.0, aimdir, tr.end);
 		G_BurnMark(tr.end, &tr.plane, tr.surface, 6);
 	}
 }
