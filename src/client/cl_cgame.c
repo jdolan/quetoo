@@ -132,6 +132,8 @@ void Cl_InitCgame(void) {
 	import.Error = Cl_Error;
 
 	import.Cvar = Cvar_Get;
+	import.AddCommand = Cmd_AddCommand;
+	import.RemoveCommand = Cmd_RemoveCommand;
 
 	import.ConfigString = Cl_ConfigString;
 

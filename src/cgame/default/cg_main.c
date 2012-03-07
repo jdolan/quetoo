@@ -84,6 +84,34 @@ static void Cg_Init(void) {
  * Called when switching game directories or quitting.
  */
 static void Cg_Shutdown(void) {
+
+	cgi.RemoveCommand("wave");
+	cgi.RemoveCommand("kill");
+	cgi.RemoveCommand("use");
+	cgi.RemoveCommand("drop");
+	cgi.RemoveCommand("say");
+	cgi.RemoveCommand("say_team");
+	cgi.RemoveCommand("info");
+	cgi.RemoveCommand("give");
+	cgi.RemoveCommand("god");
+	cgi.RemoveCommand("next_map");
+	cgi.RemoveCommand("no_clip");
+	cgi.RemoveCommand("weapon_next");
+	cgi.RemoveCommand("weapon_previous");
+	cgi.RemoveCommand("weapon_last");
+	cgi.RemoveCommand("vote");
+	cgi.RemoveCommand("team");
+	cgi.RemoveCommand("team_name");
+	cgi.RemoveCommand("team_skin");
+	cgi.RemoveCommand("spectate");
+	cgi.RemoveCommand("join");
+	cgi.RemoveCommand("score");
+	cgi.RemoveCommand("ready");
+	cgi.RemoveCommand("unready");
+	cgi.RemoveCommand("player_list");
+	cgi.RemoveCommand("config_strings");
+	cgi.RemoveCommand("baselines");
+
 	cgi.Print("  Client game shutdown...\n");
 }
 
@@ -172,6 +200,34 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.UpdateView = Cg_UpdateView;
 	cge.PopulateView = Cg_PopulateView;
 	cge.DrawFrame = Cg_DrawFrame;
+
+	// forward to server commands
+	cgi.AddCommand("wave", NULL, NULL);
+	cgi.AddCommand("kill", NULL, NULL);
+	cgi.AddCommand("use", NULL, NULL);
+	cgi.AddCommand("drop", NULL, NULL);
+	cgi.AddCommand("say", NULL, NULL);
+	cgi.AddCommand("say_team", NULL, NULL);
+	cgi.AddCommand("info", NULL, NULL);
+	cgi.AddCommand("give", NULL, NULL);
+	cgi.AddCommand("god", NULL, NULL);
+	cgi.AddCommand("next_map", NULL, NULL);
+	cgi.AddCommand("no_clip", NULL, NULL);
+	cgi.AddCommand("weapon_next", NULL, NULL);
+	cgi.AddCommand("weapon_previous", NULL, NULL);
+	cgi.AddCommand("weapon_last", NULL, NULL);
+	cgi.AddCommand("vote", NULL, NULL);
+	cgi.AddCommand("team", NULL, NULL);
+	cgi.AddCommand("team_name", NULL, NULL);
+	cgi.AddCommand("team_skin", NULL, NULL);
+	cgi.AddCommand("spectate", NULL, NULL);
+	cgi.AddCommand("join", NULL, NULL);
+	cgi.AddCommand("score", NULL, NULL);
+	cgi.AddCommand("ready", NULL, NULL);
+	cgi.AddCommand("unready", NULL, NULL);
+	cgi.AddCommand("player_list", NULL, NULL);
+	cgi.AddCommand("config_strings", NULL, NULL);
+	cgi.AddCommand("baselines", NULL, NULL);
 
 	return &cge;
 }

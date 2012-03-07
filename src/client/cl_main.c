@@ -647,34 +647,6 @@ static void Cl_InitLocal(void) {
 	Cmd_AddCommand("precache", Cl_Precache_f, NULL);
 	Cmd_AddCommand("download", Cl_Download_f, NULL);
 
-	// forward to server commands
-	Cmd_AddCommand("wave", NULL, NULL);
-	Cmd_AddCommand("kill", NULL, NULL);
-	Cmd_AddCommand("use", NULL, NULL);
-	Cmd_AddCommand("drop", NULL, NULL);
-	Cmd_AddCommand("say", NULL, NULL);
-	Cmd_AddCommand("say_team", NULL, NULL);
-	Cmd_AddCommand("info", NULL, NULL);
-	Cmd_AddCommand("give", NULL, NULL);
-	Cmd_AddCommand("god", NULL, NULL);
-	Cmd_AddCommand("nextmap", NULL, NULL);
-	Cmd_AddCommand("no_clip", NULL, NULL);
-	Cmd_AddCommand("weapon_next", NULL, NULL);
-	Cmd_AddCommand("weapon_previous", NULL, NULL);
-	Cmd_AddCommand("weapon_last", NULL, NULL);
-	Cmd_AddCommand("vote", NULL, NULL);
-	Cmd_AddCommand("team", NULL, NULL);
-	Cmd_AddCommand("team_name", NULL, NULL);
-	Cmd_AddCommand("team_skin", NULL, NULL);
-	Cmd_AddCommand("spectate", NULL, NULL);
-	Cmd_AddCommand("join", NULL, NULL);
-	Cmd_AddCommand("score", NULL, NULL);
-	Cmd_AddCommand("ready", NULL, NULL);
-	Cmd_AddCommand("unready", NULL, NULL);
-	Cmd_AddCommand("player_list", NULL, NULL);
-	Cmd_AddCommand("config_strings", NULL, NULL);
-	Cmd_AddCommand("baselines", NULL, NULL);
-
 	// forward anything we don't handle locally to the server
 	Cmd_ForwardToServer = Cl_ForwardCmdToServer;
 }
