@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,13 +64,6 @@
 #ifndef byte
 typedef unsigned char byte;
 #endif
-
-#ifndef true
-#define true 1
-#define false 0
-#endif
-
-typedef byte boolean_t;
 
 // angle indexes
 #define PITCH				0  // up / down
@@ -117,7 +111,7 @@ typedef struct cvar_s {
 	char *string;
 	char *latched_string; // for CVAR_LATCH vars
 	unsigned int flags;
-	boolean_t modified; // set each time the cvar is changed
+	bool modified; // set each time the cvar is changed
 	float value;
 	int integer;
 	struct cvar_s *next;
@@ -271,8 +265,8 @@ typedef struct c_bsp_surface_s {
 
 // a trace is returned when a box is swept through the world
 typedef struct c_trace_s {
-	boolean_t all_solid; // if true, plane is not valid
-	boolean_t start_solid; // if true, the initial point was in a solid area
+	bool all_solid; // if true, plane is not valid
+	bool start_solid; // if true, the initial point was in a solid area
 	float fraction; // time completed, 1.0 = didn't hit anything
 	vec3_t end; // final position
 	c_bsp_plane_t plane; // surface normal at impact

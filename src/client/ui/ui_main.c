@@ -31,7 +31,7 @@ extern cl_static_t cls;
  *
  * Handles input events, returning true if the event was swallowed by TwBar.
  */
-boolean_t Ui_Event(SDL_Event *event) {
+bool Ui_Event(SDL_Event *event) {
 	return TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
 }
 

@@ -378,7 +378,7 @@ const char *Fs_Gamedir(void) {
 /*
  * Fs_FindFirst
  */
-const char *Fs_FindFirst(const char *path, boolean_t absolute) {
+const char *Fs_FindFirst(const char *path, bool absolute) {
 	const char *n;
 	char name[MAX_OSPATH];
 	const search_path_t *s;

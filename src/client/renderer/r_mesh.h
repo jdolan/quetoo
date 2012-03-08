@@ -32,7 +32,7 @@ extern vec4_t r_mesh_tangents[MD3_MAX_TRIANGLES * 3];
 
 void R_ApplyMeshModelTag(r_entity_t *e);
 void R_ApplyMeshModelConfig(r_entity_t *e);
-boolean_t R_CullMeshModel(const r_entity_t *e);
+bool R_CullMeshModel(const r_entity_t *e);
 void R_UpdateMeshLighting(const r_entity_t *e);
 void R_DrawMeshModel_default(const r_entity_t *e);
 #endif /* __R_LOCAL_H__ */

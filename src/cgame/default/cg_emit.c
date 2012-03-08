@@ -53,7 +53,7 @@ typedef struct cl_emit_s {
 	char sound[MAX_QPATH]; // sound name
 	s_sample_t *sample; // sound sample
 	int atten; // sound attenuation
-	boolean_t loop; // loop sound versus timed
+	bool loop; // loop sound versus timed
 	char model[MAX_QPATH]; // model name
 	r_model_t *mod; // model
 	const r_bsp_leaf_t *leaf; // for pvs culling
@@ -75,7 +75,7 @@ void Cg_LoadEmits(void) {
 	const char *ents;
 	char class_name[MAX_QPATH];
 	cg_emit_t *e;
-	boolean_t entity, emit;
+	bool entity, emit;
 
 	memset(&cg_emits, 0, sizeof(cg_emits));
 	cg_num_emits = 0;

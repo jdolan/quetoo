@@ -673,7 +673,7 @@ static void Cl_WriteConfiguration(void) {
  * Cl_Frame
  */
 void Cl_Frame(unsigned int msec) {
-	boolean_t packet_frame = true, render_frame = true;
+	bool packet_frame = true, render_frame = true;
 	unsigned int ms;
 
 	if (dedicated->value)

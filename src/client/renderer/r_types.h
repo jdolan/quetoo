@@ -534,7 +534,7 @@ typedef struct r_entity_s {
 	vec3_t angles;
 
 	matrix4x4_t matrix;
-	boolean_t culled;
+	bool culled;
 
 	struct r_model_s *model;
 
@@ -625,7 +625,7 @@ typedef struct r_view_s {
 	vec3_t right;
 	vec3_t up;
 
-	boolean_t ground; // client is on ground
+	bool ground; // client is on ground
 	unsigned int contents; // view origin contents mask
 	float bob;
 
@@ -660,14 +660,14 @@ typedef struct r_view_s {
 	unsigned int bsp_polys; // counters
 	unsigned int mesh_polys;
 
-	boolean_t update; // inform the client of state changes
+	bool update; // inform the client of state changes
 } r_view_t;
 
 // gl context information
 typedef struct r_context_s {
 	r_pixel_t width, height;
 
-	boolean_t fullscreen;
+	bool fullscreen;
 
 	int red_bits, green_bits, blue_bits, alpha_bits;
 	int stencil_bits, depth_bits, double_buffer;

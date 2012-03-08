@@ -66,7 +66,7 @@ struct g_edict_s {
 	entity_state_t s;
 	struct g_client_s *client;
 
-	boolean_t in_use;
+	bool in_use;
 	int link_count;
 
 	// FIXME: move these fields to a server private sv_entity_t
@@ -125,10 +125,10 @@ typedef struct g_import_s {
 			const vec3_t maxs, const vec3_t end, const g_edict_t *passent,
 			const int mask);
 	int (*PointContents)(const vec3_t point);
-	boolean_t (*inPVS)(const vec3_t p1, const vec3_t p2);
-	boolean_t (*inPHS)(const vec3_t p1, const vec3_t p2);
-	void (*SetAreaPortalState)(int portal_num, boolean_t open);
-	boolean_t (*AreasConnected)(int area1, int area2);
+	bool (*inPVS)(const vec3_t p1, const vec3_t p2);
+	bool (*inPHS)(const vec3_t p1, const vec3_t p2);
+	void (*SetAreaPortalState)(int portal_num, bool open);
+	bool (*AreasConnected)(int area1, int area2);
 	void (*Pmove)(pm_move_t *pmove); // player movement code common with client prediction
 
 	// an entity will never be sent to a client or used for collision
@@ -142,7 +142,7 @@ typedef struct g_import_s {
 
 	// network messaging
 	void (*Multicast)(const vec3_t origin, multicast_t to);
-	void (*Unicast)(const g_edict_t *ent, const boolean_t reliable);
+	void (*Unicast)(const g_edict_t *ent, const bool reliable);
 	void (*WriteData)(const void *data, size_t len);
 	void (*WriteChar)(const int c);
 	void (*WriteByte)(const int c);
@@ -191,7 +191,7 @@ typedef struct g_export_s {
 	// each new level entered will cause a call to SpawnEntities
 	void (*SpawnEntities)(const char *name, const char *entities);
 
-	boolean_t (*ClientConnect)(g_edict_t *ent, char *user_info);
+	bool (*ClientConnect)(g_edict_t *ent, char *user_info);
 	void (*ClientBegin)(g_edict_t *ent);
 	void (*ClientUserInfoChanged)(g_edict_t *ent, const char *user_info);
 	void (*ClientDisconnect)(g_edict_t *ent);

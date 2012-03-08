@@ -23,13 +23,13 @@
 #define __R_BSP_H__
 
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model);
-boolean_t R_LeafInPvs(const r_bsp_leaf_t *leaf);
-boolean_t R_LeafInPhs(const r_bsp_leaf_t *leaf);
+bool R_LeafInPvs(const r_bsp_leaf_t *leaf);
+bool R_LeafInPhs(const r_bsp_leaf_t *leaf);
 
 #ifdef __R_LOCAL_H__
 const char *R_WorldspawnValue(const char *key);
-boolean_t R_CullBox(const vec3_t mins, const vec3_t maxs);
-boolean_t R_CullBspModel(const r_entity_t *e);
+bool R_CullBox(const vec3_t mins, const vec3_t maxs);
+bool R_CullBspModel(const r_entity_t *e);
 void R_DrawBspModel(const r_entity_t *e);
 void R_DrawBspLights(void);
 void R_DrawBspNormals(void);

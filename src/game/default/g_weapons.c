@@ -24,7 +24,7 @@
 /*
  * G_PickupWeapon
  */
-boolean_t G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
+bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	int index, ammoindex;
 	g_item_t *ammo;
 
@@ -440,7 +440,7 @@ void G_FireHyperblaster(g_edict_t *ent) {
 static void G_FireLightning_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
-	const boolean_t muzzle_flash = !ent->lightning;
+	const bool muzzle_flash = !ent->lightning;
 
 	G_InitProjectile(ent, forward, right, up, org);
 

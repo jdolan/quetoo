@@ -49,7 +49,7 @@ const char *R_WorldspawnValue(const char *key) {
  * Returns true if the specified bounding box is completely culled by the
  * view frustum, false otherwise.
  */
-boolean_t R_CullBox(const vec3_t mins, const vec3_t maxs) {
+bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 	int i;
 
 	if (!r_cull->value)
@@ -69,7 +69,7 @@ boolean_t R_CullBox(const vec3_t mins, const vec3_t maxs) {
  * Returns true if the specified entity is completely culled by the view
  * frustum, false otherwise.
  */
-boolean_t R_CullBspModel(const r_entity_t *e) {
+bool R_CullBspModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 	int i;
 
@@ -400,7 +400,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model) {
 /*
  * R_LeafInVis
  */
-static inline boolean_t R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
+static inline bool R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
 	int c;
 
 	if ((c = leaf->cluster) == -1)
@@ -517,7 +517,7 @@ void R_MarkLeafs(void) {
  *
  * Returns true if the specified leaf is in the PVS for the current frame.
  */
-boolean_t R_LeafInPvs(const r_bsp_leaf_t *leaf) {
+bool R_LeafInPvs(const r_bsp_leaf_t *leaf) {
 	return R_LeafInVis(leaf, r_locals.vis_data_pvs);
 }
 
@@ -526,6 +526,6 @@ boolean_t R_LeafInPvs(const r_bsp_leaf_t *leaf) {
  *
  * Returns true if the specified leaf is in the PHS for the current frame.
  */
-boolean_t R_LeafInPhs(const r_bsp_leaf_t *leaf) {
+bool R_LeafInPhs(const r_bsp_leaf_t *leaf) {
 	return R_LeafInVis(leaf, r_locals.vis_data_phs);
 }

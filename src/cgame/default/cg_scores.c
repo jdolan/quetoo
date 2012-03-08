@@ -28,8 +28,8 @@
 static player_score_t cg_scores[MAX_CLIENTS];
 static size_t cg_num_scores;
 
-static boolean_t cg_scores_teams;
-static boolean_t cg_scores_ctf;
+static bool cg_scores_teams;
+static bool cg_scores_ctf;
 
 /*
  * Cg_ParseScores_Compare

@@ -23,12 +23,12 @@
 #include "filesystem.h"
 
 cvar_t *cvar_vars;
-boolean_t user_info_modified;
+bool user_info_modified;
 
 /*
  * Cvar_InfoValidate
  */
-static boolean_t Cvar_InfoValidate(const char *s) {
+static bool Cvar_InfoValidate(const char *s) {
 	if (strstr(s, "\\"))
 		return false;
 	if (strstr(s, "\""))
@@ -171,7 +171,7 @@ cvar_t *Cvar_Get(const char *name, const char *value, int flags,
 /*
  * Cvar_Set_
  */
-static cvar_t *Cvar_Set_(const char *name, const char *value, boolean_t force) {
+static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 	cvar_t *var;
 
 	var = Cvar_Get_(name);
@@ -348,7 +348,7 @@ void Cvar_ResetLocalVars(void) {
  *
  * Returns true if there are any CVAR_LATCH variables pending.
  */
-boolean_t Cvar_PendingLatchedVars(void) {
+bool Cvar_PendingLatchedVars(void) {
 	cvar_t *var;
 
 	for (var = cvar_vars; var; var = var->next) {
@@ -388,7 +388,7 @@ void Cvar_UpdateLatchedVars(void) {
 /*
  * Cvar_PendingVars
  */
-boolean_t Cvar_PendingVars(int flags) {
+bool Cvar_PendingVars(int flags) {
 	cvar_t *var;
 
 	for (var = cvar_vars; var; var = var->next) {
@@ -416,7 +416,7 @@ void Cvar_ClearVars(int flags) {
  *
  * Handles variable inspection and changing from the console
  */
-boolean_t Cvar_Command(void) {
+bool Cvar_Command(void) {
 	cvar_t *v;
 
 	// check variables

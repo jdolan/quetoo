@@ -117,7 +117,7 @@ typedef struct sv_client_s {
 
 	unsigned int last_message; // svs.real_time when packet was last received
 
-	boolean_t recording; // client is currently recording a demo
+	bool recording; // client is currently recording a demo
 
 	net_chan_t netchan;
 } sv_client_t;
@@ -144,7 +144,7 @@ typedef struct sv_challenge_s {
 #define MAX_CHALLENGES 1024
 
 typedef struct sv_static_s {
-	boolean_t initialized; // sv_init has completed
+	bool initialized; // sv_init has completed
 	unsigned int real_time; // always increasing, no clamping, etc
 
 	unsigned int spawn_count; // incremented each level start, used to check late spawns

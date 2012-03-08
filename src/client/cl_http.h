@@ -27,7 +27,7 @@
 #ifdef __CL_LOCAL_H__
 void Cl_InitHttpDownload(void);
 void Cl_HttpDownloadCleanup(void);
-boolean_t Cl_HttpDownload(void);
+bool Cl_HttpDownload(void);
 void Cl_HttpDownloadThink(void);
 void Cl_ShutdownHttpDownload(void);
 #endif /* __CL_LOCAL_H__ */

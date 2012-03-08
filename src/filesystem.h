@@ -32,7 +32,7 @@
 void Fs_Init(void);
 void Fs_SetGame(const char *dir);
 const char *Fs_Gamedir(void);
-const char *Fs_FindFirst(const char *path, boolean_t absolute);
+const char *Fs_FindFirst(const char *path, bool absolute);
 void Fs_ExecAutoexec(void);
 int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode);
 void Fs_CloseFile(FILE *f);

@@ -490,7 +490,7 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2,
 	int i, j, k, l;
 	vec3_t normal, delta;
 	vec_t dot;
-	boolean_t keep1, keep2;
+	bool keep1, keep2;
 
 	// find a common edge
 	p1 = p2 = NULL;
@@ -530,7 +530,7 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2,
 	dot = DotProduct(delta, normal);
 	if (dot > CONTINUOUS_EPSILON)
 		return NULL; // not a convex polygon
-	keep1 = (boolean_t) (dot < -CONTINUOUS_EPSILON);
+	keep1 = (bool) (dot < -CONTINUOUS_EPSILON);
 
 	back = f1->p[(i + 2) % f1->numpoints];
 	VectorSubtract(back, p2, delta);
@@ -542,7 +542,7 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2,
 	dot = DotProduct(delta, normal);
 	if (dot > CONTINUOUS_EPSILON)
 		return NULL; // not a convex polygon
-	keep2 = (boolean_t) (dot < -CONTINUOUS_EPSILON);
+	keep2 = (bool) (dot < -CONTINUOUS_EPSILON);
 
 	// build the new polygon
 	newf = AllocWinding(f1->numpoints + f2->numpoints);

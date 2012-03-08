@@ -112,7 +112,7 @@ static winding_t *WindingFromFace(const d_bsp_face_t * f) {
 /*
  * HasLight
  */
-static inline boolean_t HasLight(const d_bsp_face_t *f) {
+static inline bool HasLight(const d_bsp_face_t *f) {
 	const d_bsp_texinfo_t *tex;
 
 	tex = &d_bsp.texinfo[f->texinfo];
@@ -122,7 +122,7 @@ static inline boolean_t HasLight(const d_bsp_face_t *f) {
 /*
  * IsSky
  */
-static inline boolean_t IsSky(const d_bsp_face_t * f) {
+static inline bool IsSky(const d_bsp_face_t * f) {
 	const d_bsp_texinfo_t *tex;
 
 	tex = &d_bsp.texinfo[f->texinfo];

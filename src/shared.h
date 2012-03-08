@@ -31,8 +31,8 @@ float crand(void);  // -1 to 1
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
 
-boolean_t VectorCompare(const vec3_t v1, const vec3_t v2);
-boolean_t VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t comp);
+bool VectorCompare(const vec3_t v1, const vec3_t v2);
+bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t comp);
 
 vec_t VectorNormalize(vec3_t v);  // returns vector length
 vec_t VectorLength(const vec3_t v);
@@ -63,8 +63,8 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
 int ColorByName(const char *s, int def);
 
 // string functions
-boolean_t GlobMatch(const char *pattern, const char *text);
-boolean_t MixedCase(const char *s);
+bool GlobMatch(const char *pattern, const char *text);
+bool MixedCase(const char *s);
 char *CommonPrefix(const char *words[], unsigned int nwords);
 char *Lowercase(char *s);
 char *Trim(char *s);
@@ -84,6 +84,6 @@ char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *GetUserInfo(const char *s, const char *key);
 void DeleteUserInfo(char *s, const char *key);
 void SetUserInfo(char *s, const char *key, const char *value);
-boolean_t ValidateUserInfo(const char *s);
+bool ValidateUserInfo(const char *s);
 
 #endif /* __SHARED_H__ */

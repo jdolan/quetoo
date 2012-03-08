@@ -131,7 +131,7 @@ void G_SetItemRespawn(g_edict_t *ent, unsigned int delay) {
 /*
  * G_PickupAdrenaline
  */
-static boolean_t G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
+static bool G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
 
 	if (other->health < other->max_health)
 		other->health = other->max_health;
@@ -145,7 +145,7 @@ static boolean_t G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
 /*
  * G_PickupQuadDamage
  */
-static boolean_t G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
+static bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 
 	if (other->client->persistent.inventory[quad_damage_index])
 		return false; // already have it
@@ -184,7 +184,7 @@ void G_TossQuadDamage(g_edict_t *ent) {
 /*
  * G_AddAmmo
  */
-boolean_t G_AddAmmo(g_edict_t *ent, g_item_t *item, short count) {
+bool G_AddAmmo(g_edict_t *ent, g_item_t *item, short count) {
 	unsigned short index;
 	short max;
 
@@ -223,7 +223,7 @@ boolean_t G_AddAmmo(g_edict_t *ent, g_item_t *item, short count) {
 /*
  * G_PickupAmmo
  */
-static boolean_t G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
+static bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
 	int count;
 
 	if (ent->count)
@@ -264,9 +264,9 @@ static void G_DropAmmo(g_edict_t *ent, g_item_t *item) {
 /*
  * G_PickupHealth
  */
-static boolean_t G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
+static bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 	int h, max;
-	boolean_t always_add, always_pickup;
+	bool always_add, always_pickup;
 
 	always_add = ent->item->tag == HEALTH_SMALL;
 	always_pickup = ent->item->tag == HEALTH_SMALL || ent->item->tag == HEALTH_MEGA;
@@ -303,8 +303,8 @@ static boolean_t G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 /*
  * G_PickupArmor
  */
-static boolean_t G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
-	boolean_t taken = true;
+static bool G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
+	bool taken = true;
 
 	if (ent->item->tag == ARMOR_SHARD) { // take it, ignoring cap
 		other->client->persistent.armor += ent->item->quantity;
@@ -356,7 +356,7 @@ void G_ResetFlag(g_edict_t *ent) {
  * Return own flag, or capture on it if enemy's flag is in inventory.
  * Take the enemy's flag.
  */
-static boolean_t G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
+static bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 	g_team_t *t, *ot;
 	g_edict_t *f, *of;
 	int index;
@@ -477,7 +477,7 @@ static void G_DropFlag(g_edict_t *ent, g_item_t *item __attribute__((unused))) {
  * G_TouchItem
  */
 void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
-	boolean_t taken;
+	bool taken;
 
 	if (!other->client)
 		return;

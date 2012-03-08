@@ -71,9 +71,9 @@ static cl_key_state_t *ks = &cls.key_state;
  *
  * Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(unsigned int key, unsigned short unicode, boolean_t down,
+static void Cl_KeyConsole(unsigned int key, unsigned short unicode, bool down,
 		unsigned time __attribute__((unused))) {
-	boolean_t numlock = ks->down[K_NUMLOCK];
+	bool numlock = ks->down[K_NUMLOCK];
 	size_t i;
 
 	if (!down) // don't care
@@ -267,7 +267,7 @@ static void Cl_KeyConsole(unsigned int key, unsigned short unicode, boolean_t do
  * Cl_KeyGame
  */
 static void Cl_KeyGame(unsigned int key,
-		unsigned short unicode __attribute__((unused)), boolean_t down,
+		unsigned short unicode __attribute__((unused)), bool down,
 		unsigned time) {
 	char cmd[MAX_STRING_CHARS];
 	char *kb;
@@ -299,7 +299,7 @@ static void Cl_KeyGame(unsigned int key,
 /*
  * Cl_KeyMessage
  */
-static void Cl_KeyMessage(unsigned int key, unsigned short unicode, boolean_t down,
+static void Cl_KeyMessage(unsigned int key, unsigned short unicode, bool down,
 		unsigned time __attribute__((unused))) {
 
 	if (!down) // don't care
@@ -598,7 +598,7 @@ void Cl_ShutdownKeys(void) {
 /*
  * Cl_KeyEvent
  */
-void Cl_KeyEvent(unsigned int key, unsigned short unicode, boolean_t down,
+void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down,
 		unsigned time) {
 
 	if (key == K_ESCAPE && down) { // escape can cancel a few things

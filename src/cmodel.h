@@ -57,10 +57,10 @@ int Cm_LeafContents(const int leaf_num);
 int Cm_LeafCluster(const int leaf_num);
 int Cm_LeafArea(const int leaf_num);
 
-void Cm_SetAreaPortalState(const int portal_num, const boolean_t open);
-boolean_t Cm_AreasConnected(const int area1, const int area2);
+void Cm_SetAreaPortalState(const int portal_num, const bool open);
+bool Cm_AreasConnected(const int area1, const int area2);
 
 int Cm_WriteAreaBits(byte *buffer, const int area);
-boolean_t Cm_HeadnodeVisible(const int head_node, const byte *vis);
+bool Cm_HeadnodeVisible(const int head_node, const byte *vis);
 
 #endif /* __CMODEL_H__ */

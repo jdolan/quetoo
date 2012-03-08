@@ -40,7 +40,7 @@ typedef struct {
 	int ground_contents;
 
 	vec3_t previous_origin;
-	boolean_t ladder;
+	bool ladder;
 } pm_locals_t;
 
 static pm_locals_t pml;
@@ -829,7 +829,7 @@ static void Pm_CheckDuck(void) {
 /*
  * Pm_GoodPosition
  */
-static boolean_t Pm_GoodPosition(void) {
+static bool Pm_GoodPosition(void) {
 	c_trace_t trace;
 	vec3_t pos;
 

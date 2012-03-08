@@ -31,7 +31,7 @@ extern char token[MAXTOKEN];
 void LoadScriptFile(const char *file_name);
 void ParseFromMemory(char *buffer, int size);
 
-boolean_t GetToken(boolean_t crossline);
-boolean_t TokenAvailable(void);
+bool GetToken(bool crossline);
+bool TokenAvailable(void);
 
 #endif /* __SCRIPLIB_H__ */

@@ -141,7 +141,7 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
  */
 void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
-	boolean_t stationary;
+	bool stationary;
 	int j;
 
 	if (cgi.view->render_mode == render_mode_pro)

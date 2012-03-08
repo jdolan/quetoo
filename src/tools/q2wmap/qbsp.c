@@ -23,21 +23,21 @@
 #include "qbsp.h"
 
 vec_t microvolume = 1.0;
-boolean_t noprune;
-boolean_t nodetail;
-boolean_t fulldetail;
-boolean_t onlyents;
-boolean_t nomerge;
-boolean_t nowater;
-boolean_t nofill;
-boolean_t nocsg;
-boolean_t noweld;
-boolean_t noshare;
-boolean_t nosubdivide;
-boolean_t notjunc;
-boolean_t noopt;
-boolean_t leaktest;
-boolean_t verboseentities;
+bool noprune;
+bool nodetail;
+bool fulldetail;
+bool onlyents;
+bool nomerge;
+bool nowater;
+bool nofill;
+bool nocsg;
+bool noweld;
+bool noshare;
+bool nosubdivide;
+bool notjunc;
+bool noopt;
+bool leaktest;
+bool verboseentities;
 
 int block_xl = -8, block_xh = 7, block_yl = -8, block_yh = 7;
 
@@ -146,8 +146,8 @@ static void ProcessBlock_Thread(int blocknum){
 static void ProcessWorldModel(void){
 	entity_t *e;
 	tree_t *tree;
-	boolean_t leaked;
-	boolean_t optimize;
+	bool leaked;
+	bool optimize;
 
 	e = &entities[entity_num];
 

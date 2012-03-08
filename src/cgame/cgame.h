@@ -66,8 +66,8 @@ typedef struct cg_import_s {
 
 	// PVS and PHS
 	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_model_t *model);
-	boolean_t (*LeafInPhs)(const r_bsp_leaf_t *leaf);
-	boolean_t (*LeafInPvs)(const r_bsp_leaf_t *leaf);
+	bool (*LeafInPhs)(const r_bsp_leaf_t *leaf);
+	bool (*LeafInPvs)(const r_bsp_leaf_t *leaf);
 
 	// sound
 	s_sample_t *(*LoadSample)(const char *name);
@@ -117,7 +117,7 @@ typedef struct cg_export_s {
 	void (*UpdateMedia)(void);
 	void (*UpdateConfigString)(unsigned short index);
 
-	boolean_t (*ParseMessage)(int cmd);
+	bool (*ParseMessage)(int cmd);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*PopulateView)(const cl_frame_t *frame);
 	void (*DrawFrame)(const cl_frame_t *frame);

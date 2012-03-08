@@ -224,7 +224,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 		trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_PLAYER_SOLID);
 		if (trace.fraction == 1.0) {
 
-			boolean_t jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
+			bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
 			jumping |= G_IsAnimation(ent, ANIM_LEGS_JUMP2);
 
 			if (!jumping)

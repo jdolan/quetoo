@@ -45,7 +45,7 @@ char *svc_strings[256] = {
  * Returns true if the file exists, otherwise it attempts
  * to start a download from the server.
  */
-boolean_t Cl_CheckOrDownloadFile(const char *file_name) {
+bool Cl_CheckOrDownloadFile(const char *file_name) {
 	FILE *fp;
 	char name[MAX_OSPATH];
 	char cmd[MAX_STRING_CHARS];
@@ -352,7 +352,7 @@ static void Cl_ParseSound(void) {
 /*
  * Cl_IgnoreChatMessage
  */
-static boolean_t Cl_IgnoreChatMessage(const char *msg) {
+static bool Cl_IgnoreChatMessage(const char *msg) {
 
 	const char *s = strtok(cl_ignore->string, " ");
 

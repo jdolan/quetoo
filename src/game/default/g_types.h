@@ -117,7 +117,7 @@ typedef enum {
 
 typedef struct g_item_s {
 	char *class_name; // spawning name
-	boolean_t (*pickup)(struct g_edict_s *ent, struct g_edict_s *other);
+	bool (*pickup)(struct g_edict_s *ent, struct g_edict_s *other);
 	void (*use)(struct g_edict_s *ent, struct g_item_s *item);
 	void (*drop)(struct g_edict_s *ent, struct g_item_s *item);
 	void (*weapon_think)(struct g_edict_s *ent);
@@ -248,13 +248,13 @@ typedef struct {
 	vec3_t intermission_angle;
 	const char *changemap;
 
-	boolean_t warmup; // shared by match and round
+	bool warmup; // shared by match and round
 
-	boolean_t start_match;
+	bool start_match;
 	unsigned int match_time; // time match started
 	unsigned int match_num;
 
-	boolean_t start_round;
+	bool start_round;
 	unsigned int round_time; // time round started
 	unsigned int round_num;
 
@@ -360,8 +360,8 @@ typedef struct {
 	g_item_t *weapon;
 	g_item_t *last_weapon;
 
-	boolean_t spectator; // client is a spectator
-	boolean_t ready; // ready
+	bool spectator; // client is a spectator
+	bool ready; // ready
 
 	g_team_t *team; // current team (good/evil)
 	g_vote_t vote; // current vote (yes/no)
@@ -380,7 +380,7 @@ struct g_client_s {
 
 	g_client_persistent_t persistent;
 
-	boolean_t show_scores; // sets layout bit mask in player state
+	bool show_scores; // sets layout bit mask in player state
 	unsigned int scores_time; // eligible for scores when time > this
 
 	unsigned short ammo_index;
@@ -414,7 +414,7 @@ struct g_client_s {
 	unsigned int pickup_msg_time; // display message until time > this
 
 	unsigned int chat_time; // can chat when time > this
-	boolean_t muted;
+	bool muted;
 
 	unsigned int quad_damage_time; // has quad when time < this
 	unsigned int quad_attack_time; // play attack sound when time > this
@@ -426,7 +426,7 @@ struct g_edict_s {
 	entity_state_t s;
 	struct g_client_s *client; // NULL if not a player
 
-	boolean_t in_use;
+	bool in_use;
 	int link_count;
 
 	link_t area; // linked to a division node or leaf
@@ -494,9 +494,9 @@ struct g_edict_s {
 
 	short health;
 	short max_health;
-	boolean_t dead;
+	bool dead;
 
-	boolean_t take_damage;
+	bool take_damage;
 	short dmg;
 	short knockback;
 	float dmg_radius;

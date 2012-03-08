@@ -31,7 +31,7 @@ typedef struct cmd_alias_s {
 
 static cmd_alias_t *cmd_alias;
 
-static boolean_t cmd_wait;
+static bool cmd_wait;
 
 #define ALIAS_LOOP_COUNT 16
 static int alias_count; // for detecting runaway loops
@@ -198,7 +198,7 @@ void Cbuf_Execute(void) {
  *
  * Other commands are added late, after all initialization is complete.
  */
-void Cbuf_AddEarlyCommands(boolean_t clear) {
+void Cbuf_AddEarlyCommands(bool clear) {
 	int i;
 	char *s;
 
@@ -470,7 +470,7 @@ void Cmd_TokenizeString(const char *text) {
 /*
  * Cmd_Exists
  */
-boolean_t Cmd_Exists(const char *name) {
+bool Cmd_Exists(const char *name) {
 	cmd_command_t *cmd;
 
 	for (cmd = cmd_commands; cmd; cmd = cmd->next) {

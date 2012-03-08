@@ -39,7 +39,7 @@ typedef struct {
 #define	MAX_POINTS_ON_FIXED_WINDING	12
 
 typedef struct {
-	boolean_t original;  // don't free, it's part of the portal
+	bool original;  // don't free, it's part of the portal
 	unsigned short num_points;
 	vec3_t points[MAX_POINTS_ON_FIXED_WINDING];  // variable sized
 } winding_t;

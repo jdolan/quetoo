@@ -28,37 +28,37 @@ char map_name[MAX_OSPATH];
 char bsp_name[MAX_OSPATH];
 char outbase[MAX_OSPATH];
 
-boolean_t verbose;
-boolean_t debug;
-boolean_t legacy;
+bool verbose;
+bool debug;
+bool legacy;
 
 /* BSP */
-extern boolean_t noprune;
-extern boolean_t nodetail;
-extern boolean_t fulldetail;
-extern boolean_t onlyents;
-extern boolean_t nomerge;
-extern boolean_t nowater;
-extern boolean_t nofill;
-extern boolean_t nocsg;
-extern boolean_t noweld;
-extern boolean_t noshare;
-extern boolean_t nosubdivide;
-extern boolean_t notjunc;
-extern boolean_t noopt;
-extern boolean_t leaktest;
-extern boolean_t verboseentities;
+extern bool noprune;
+extern bool nodetail;
+extern bool fulldetail;
+extern bool onlyents;
+extern bool nomerge;
+extern bool nowater;
+extern bool nofill;
+extern bool nocsg;
+extern bool noweld;
+extern bool noshare;
+extern bool nosubdivide;
+extern bool notjunc;
+extern bool noopt;
+extern bool leaktest;
+extern bool verboseentities;
 
 extern int block_xl, block_xh, block_yl, block_yh;
 extern vec_t microvolume;
 extern int subdivide_size;
 
 /* VIS */
-extern boolean_t fastvis;
-extern boolean_t nosort;
+extern bool fastvis;
+extern bool nosort;
 
 /* LIGHT */
-extern boolean_t extra_samples;
+extern bool extra_samples;
 extern float brightness;
 extern float saturation;
 extern float contrast;
@@ -529,11 +529,11 @@ int main(int argc, char **argv) {
 	time_t start, end;
 	int alt_argc;
 	char *c, **alt_argv;
-	boolean_t do_bsp = false;
-	boolean_t do_vis = false;
-	boolean_t do_light = false;
-	boolean_t do_mat = false;
-	boolean_t do_pak = false;
+	bool do_bsp = false;
+	bool do_vis = false;
+	bool do_light = false;
+	bool do_mat = false;
+	bool do_pak = false;
 
 	memset(&quake2world, 0, sizeof(quake2world));
 

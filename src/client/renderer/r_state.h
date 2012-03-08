@@ -37,7 +37,7 @@ extern const float default_texcoords[];
 
 // texunits maintain multitexture state
 typedef struct r_texunit_s {
-	boolean_t enabled;  // GL_TEXTURE_2D on / off
+	bool enabled;  // GL_TEXTURE_2D on / off
 	GLenum texture;  // e.g. GL_TEXTURE0_ARB
 	GLuint texnum;  // e.g 123
 	GLfloat *texcoord_array;
@@ -47,7 +47,7 @@ typedef struct r_texunit_s {
 
 // opengl state management
 typedef struct r_state_s {
-	boolean_t ortho;  // 2d vs 3d projection
+	bool ortho;  // 2d vs 3d projection
 
 	GLfloat vertex_array_3d[MAX_GL_ARRAY_LENGTH * 3];  // default vertex arrays
 	GLshort vertex_array_2d[MAX_GL_ARRAY_LENGTH * 2];
@@ -56,7 +56,7 @@ typedef struct r_state_s {
 	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 3];
 
 	GLenum blend_src, blend_dest;  // blend function
-	boolean_t blend_enabled;
+	bool blend_enabled;
 
 	r_texunit_t texunits[MAX_GL_TEXUNITS];
 	r_texunit_t *active_texunit;
@@ -70,13 +70,13 @@ typedef struct r_state_s {
 
 	r_material_t *active_material;
 
-	boolean_t color_array_enabled;
-	boolean_t alpha_test_enabled;
-	boolean_t stencil_test_enabled;
-	boolean_t lighting_enabled;
-	boolean_t warp_enabled;
-	boolean_t shell_enabled;
-	boolean_t fog_enabled;
+	bool color_array_enabled;
+	bool alpha_test_enabled;
+	bool stencil_test_enabled;
+	bool lighting_enabled;
+	bool warp_enabled;
+	bool shell_enabled;
+	bool fog_enabled;
 } r_state_t;
 
 extern r_state_t r_state;
@@ -100,15 +100,15 @@ void R_BindArray(GLenum target, GLenum type, GLvoid *array);
 void R_BindDefaultArray(GLenum target);
 void R_BindBuffer(GLenum target, GLenum type, GLuint id);
 void R_BlendFunc(GLenum src, GLenum dest);
-void R_EnableBlend(boolean_t enable);
-void R_EnableAlphaTest(boolean_t enable);
-void R_EnableStencilTest(boolean_t enable);
-void R_EnableTexture(r_texunit_t *texunit, boolean_t enable);
-void R_EnableColorArray(boolean_t enable);
-void R_EnableLighting(r_program_t *program, boolean_t enable);
-void R_EnableWarp(r_program_t *program, boolean_t enable);
-void R_EnableShell(boolean_t enable);
-void R_EnableFog(boolean_t enable);
+void R_EnableBlend(bool enable);
+void R_EnableAlphaTest(bool enable);
+void R_EnableStencilTest(bool enable);
+void R_EnableTexture(r_texunit_t *texunit, bool enable);
+void R_EnableColorArray(bool enable);
+void R_EnableLighting(r_program_t *program, bool enable);
+void R_EnableWarp(r_program_t *program, bool enable);
+void R_EnableShell(bool enable);
+void R_EnableFog(bool enable);
 void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image);
 void R_InitState(void);
 void R_ShutdownState(void);

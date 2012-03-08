@@ -52,7 +52,7 @@ typedef byte boolean;
 #define PALETTE "pics/colormap"
 unsigned int palette[256];
 //FIXME: use false instead of 0, silly workaround for silly bug
-boolean_t palette_initialized = 0;
+bool palette_initialized = 0;
 
 // .wal file header for loading legacy .wal textures
 typedef struct miptex_s {
@@ -102,7 +102,7 @@ const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
  *
  * Image formats are tried in the order they appear in TYPES.
  */
-boolean_t Img_LoadImage(const char *name, SDL_Surface **surf) {
+bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 	int i;
 
 	i = 0;
@@ -120,7 +120,7 @@ boolean_t Img_LoadImage(const char *name, SDL_Surface **surf) {
  * A helper which mangles a .wal file into an SDL_Surface suitable for
  * OpenGL uploads and other basic manipulations.
  */
-static boolean_t Img_LoadWal(const char *path, SDL_Surface **surf) {
+static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	void *buf;
 	miptex_t *mt;
 	int i, size;
@@ -173,7 +173,7 @@ static boolean_t Img_LoadWal(const char *path, SDL_Surface **surf) {
  * Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
  */
-boolean_t Img_LoadTypedImage(const char *name, const char *type,
+bool Img_LoadTypedImage(const char *name, const char *type,
 		SDL_Surface **surf) {
 	char path[MAX_QPATH];
 	void *buf;

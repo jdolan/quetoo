@@ -86,7 +86,7 @@ static void Sv_Heartbeat_f(void) {
  *
  * Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
  */
-static boolean_t Sv_SetPlayer(void) {
+static bool Sv_SetPlayer(void) {
 	sv_client_t *cl;
 	int i;
 	int idnum;

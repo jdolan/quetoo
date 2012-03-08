@@ -38,7 +38,7 @@ typedef struct {
 } console_data_t;
 
 typedef struct {
-	boolean_t initialized;
+	bool initialized;
 	// console dimensions
 	unsigned short width; // console printable width in characters
 	unsigned short height; // console printable height in characters

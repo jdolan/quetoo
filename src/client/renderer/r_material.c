@@ -120,7 +120,7 @@ static inline void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *s
  * scrolls, and stretches (rotate, translate, scale).
  */
 static inline void R_StageTextureMatrix(r_bsp_surface_t *surf, r_stage_t *stage) {
-	static boolean_t identity = true;
+	static bool identity = true;
 	float s, t;
 
 	if (!(stage->flags & STAGE_TEXTURE_MATRIX)) {
@@ -835,7 +835,7 @@ void R_LoadMaterials(const char *map) {
 	void *buf;
 	const char *c;
 	const char *buffer;
-	boolean_t in_material;
+	bool in_material;
 	r_image_t *image;
 	r_material_t *m;
 	r_stage_t *s, *ss;

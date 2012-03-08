@@ -153,7 +153,7 @@ static void R_DrawSkySurface(int nump, vec3_t vecs) {
 static void R_ClipSkySurface(int nump, vec3_t vecs, int stage) {
 	const float *norm;
 	float *v;
-	boolean_t front, back;
+	bool front, back;
 	float d, e;
 	float dists[MAX_CLIP_VERTS];
 	int sides[MAX_CLIP_VERTS];

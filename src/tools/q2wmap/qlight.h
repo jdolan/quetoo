@@ -57,7 +57,7 @@ extern float entity_scale;
 
 extern vec3_t ambient;
 
-extern boolean_t extra_samples;
+extern bool extra_samples;
 
 void BuildLightmaps(void);
 
@@ -67,7 +67,7 @@ void BuildFacelights(int facenum);
 
 void FinalLightFace(int facenum);
 
-boolean_t PvsForOrigin(const vec3_t org, byte *pvs);
+bool PvsForOrigin(const vec3_t org, byte *pvs);
 
 void BuildLights(void);
 

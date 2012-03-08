@@ -27,7 +27,7 @@
 #include "ui/ui_types.h"
 
 typedef struct cl_frame_s {
-	boolean_t valid; // cleared if delta parsing was invalid
+	bool valid; // cleared if delta parsing was invalid
 	unsigned int server_frame;
 	unsigned int server_time; // server time the message is valid for (in milliseconds)
 	int delta_frame; // negatives indicate no delta
@@ -125,7 +125,7 @@ typedef struct cl_client_s {
 	unsigned int server_count; // server identification for precache
 	unsigned short server_frame_rate; // server frame rate (packets per second)
 
-	boolean_t demo_server; // we're viewing a demo
+	bool demo_server; // we're viewing a demo
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 
@@ -250,29 +250,29 @@ typedef struct cl_key_state_s {
 	char lines[KEY_HISTORYSIZE][KEY_LINESIZE];
 	unsigned short pos;
 
-	boolean_t insert;
+	bool insert;
 
 	unsigned int edit_line;
 	unsigned int history_line;
 
 	char *binds[K_LAST];
-	boolean_t down[K_LAST];
+	bool down[K_LAST];
 } cl_key_state_t;
 
 typedef struct cl_mouse_state_s {
 	float x, y;
 	float old_x, old_y;
-	boolean_t grabbed;
+	bool grabbed;
 } cl_mouse_state_t;
 
 typedef struct cl_chat_state_s {
 	char buffer[KEY_LINESIZE];
 	size_t len;
-	boolean_t team;
+	bool team;
 } cl_chat_state_t;
 
 typedef struct cl_download_s {
-	boolean_t http;
+	bool http;
 	FILE *file;
 	char tempname[MAX_OSPATH];
 	char name[MAX_OSPATH];
@@ -325,7 +325,7 @@ typedef struct cl_static_s {
 	char download_url[MAX_OSPATH]; // for http downloads
 	cl_download_t download; // current download (udp or http)
 
-	boolean_t demo_waiting; // don't begin recording until an uncompressed message is received
+	bool demo_waiting; // don't begin recording until an uncompressed message is received
 	char demo_path[MAX_OSPATH];
 	FILE *demo_file;
 

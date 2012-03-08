@@ -36,7 +36,7 @@ cvar_t *m_pitch;
 typedef struct {
 	unsigned int key;
 	unsigned short unicode;
-	boolean_t down;
+	bool down;
 } cl_key_queue_t;
 
 static cl_key_queue_t cl_key_queue[MAX_KEY_QUEUE];
@@ -471,7 +471,7 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii,
  * Cl_HandleEvent
  */
 static void Cl_HandleEvent(SDL_Event *event) {
-	static boolean_t first_key_event = true;
+	static bool first_key_event = true;
 	unsigned int key;
 	unsigned short unicode;
 

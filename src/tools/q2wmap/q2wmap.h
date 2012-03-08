@@ -35,23 +35,23 @@ extern char map_name[MAX_OSPATH];
 extern char bsp_name[MAX_OSPATH];
 extern char outbase[MAX_OSPATH];
 
-extern boolean_t verbose;
-extern boolean_t debug;
-extern boolean_t legacy;
+extern bool verbose;
+extern bool debug;
+extern bool legacy;
 
 // threads.c
 typedef struct thread_work_s {
 	int index;  // current work cycle
 	int count;  // total work cycles
 	int fraction;  // last fraction of work completed (tenths)
-	boolean_t progress;  // are we reporting progress
+	bool progress;  // are we reporting progress
 } thread_work_t;
 
 extern thread_work_t thread_work;
 
 void ThreadLock(void);
 void ThreadUnlock(void);
-void RunThreadsOn(int workcount, boolean_t progress, void(*func)(int));
+void RunThreadsOn(int workcount, bool progress, void(*func)(int));
 
 
 #endif /*__Q2WMAP_H__*/

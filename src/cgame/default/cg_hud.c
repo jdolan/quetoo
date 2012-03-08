@@ -76,7 +76,7 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
  * Draws the vital numeric and icon, flashing on low quantities.
  */
 static void Cg_DrawVital(r_pixel_t x, const short value, const short icon, short med, short low) {
-	const boolean_t flash = (cgi.client->time / 250) & 1;
+	const bool flash = (cgi.client->time / 250) & 1;
 
 	r_pixel_t y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT + 4;
 	int color = COLOR_HUD_STAT;

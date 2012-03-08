@@ -29,7 +29,7 @@
  * all connected clients.  This allows the game to lazily load assets.
  */
 static unsigned short Sv_FindIndex(const char *name, unsigned short start,
-		unsigned short max, boolean_t create) {
+		unsigned short max, bool create) {
 	unsigned short i;
 
 	if (!name || !name[0])
@@ -108,7 +108,7 @@ static void Sv_CreateBaseline(void) {
  * is sent immediately, because the server could completely terminate after
  * returning from this function.
  */
-static void Sv_ShutdownMessage(const char *msg, boolean_t reconnect) {
+static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
 	sv_client_t *cl;
 	int i;
 

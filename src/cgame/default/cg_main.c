@@ -119,7 +119,7 @@ static void Cg_Shutdown(void) {
  *
  * Parse a single server command, returning true on success.
  */
-static boolean_t Cg_ParseMessage(int cmd) {
+static bool Cg_ParseMessage(int cmd) {
 
 	switch (cmd) {
 	case SV_CMD_TEMP_ENTITY:

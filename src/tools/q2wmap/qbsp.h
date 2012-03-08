@@ -53,9 +53,9 @@ typedef struct side_s {
 	struct side_s *original;	// bsp_brush_t sides will reference the brush_t sides
 	int contents;				// from miptex
 	int surf;					// from miptex
-	boolean_t visible;			// choose visble planes first
-	boolean_t tested;			// this plane already checked as a split
-	boolean_t bevel;				// don't ever use for bsp splitting
+	bool visible;			// choose visble planes first
+	bool tested;			// this plane already checked as a split
+	bool bevel;				// don't ever use for bsp splitting
 } side_t;
 
 typedef struct brush_s {
@@ -113,7 +113,7 @@ typedef struct node_s {
 	bsp_brush_t *volume;		// one for each leaf/node
 
 	// nodes only
-	boolean_t detail_seperator;	// a detail brush caused the split
+	bool detail_seperator;	// a detail brush caused the split
 	side_t *side;				 // the side that created the node
 	struct node_s *children[2];
 	face_t *faces;
@@ -135,7 +135,7 @@ typedef struct portal_s {
 	struct portal_s *next[2];
 	winding_t *winding;
 
-	boolean_t sidefound;			  // false if ->side hasn't been checked
+	bool sidefound;			  // false if ->side hasn't been checked
 	side_t *side;				  // NULL = non-visible
 	face_t *face[2];			  // output face in bsp file
 } portal_t;
@@ -156,21 +156,21 @@ extern map_brush_t map_brushes[MAX_BSP_BRUSHES];
 
 extern vec3_t map_mins, map_maxs;
 
-extern boolean_t noprune;
-extern boolean_t nodetail;
-extern boolean_t fulldetail;
-extern boolean_t nomerge;
-extern boolean_t nosubdivide;
-extern boolean_t nowater;
-extern boolean_t noweld;
-extern boolean_t noshare;
-extern boolean_t notjunc;
+extern bool noprune;
+extern bool nodetail;
+extern bool fulldetail;
+extern bool nomerge;
+extern bool nosubdivide;
+extern bool nowater;
+extern bool noweld;
+extern bool noshare;
+extern bool notjunc;
 
 extern vec_t microvolume;
 
 void LoadMapFile(const char *file_name);
 int FindFloatPlane(vec3_t normal, vec_t dist);
-boolean_t WindingIsTiny(const winding_t * w);
+bool WindingIsTiny(const winding_t * w);
 
 // textures.c
 int FindMiptex(char *name);
@@ -180,7 +180,7 @@ int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3_t o
 void FindGCD(int *v);
 
 map_brush_t *Brush_LoadEntity(entity_t * ent);
-boolean_t MakeBrushPlanes(map_brush_t * b);
+bool MakeBrushPlanes(map_brush_t * b);
 int FindIntPlane(int *inormal, int *iorigin);
 void CreateBrush(int brush_num);
 
@@ -192,7 +192,7 @@ bsp_brush_t *ChopBrushes(bsp_brush_t * head);
 void WriteBrushMap(char *name, bsp_brush_t * list);
 
 // brushbsp.c
-void WriteBrushList(char *name, bsp_brush_t * brush, boolean_t onlyvis);
+void WriteBrushList(char *name, bsp_brush_t * brush, bool onlyvis);
 
 bsp_brush_t *CopyBrush(bsp_brush_t * brush);
 
@@ -215,10 +215,10 @@ void MakeHeadnodePortals(tree_t * tree);
 void MakeNodePortal(node_t * node);
 void SplitNodePortals(node_t * node);
 
-boolean_t Portal_VisFlood(const portal_t * p);
+bool Portal_VisFlood(const portal_t * p);
 void RemovePortalFromNode(portal_t * portal, node_t * l);
 
-boolean_t FloodEntities(tree_t * tree);
+bool FloodEntities(tree_t * tree);
 void FillOutside(node_t * head_node);
 void FloodAreas(tree_t * tree);
 void MarkVisibleSides(tree_t * tree, int start, int end);

@@ -103,7 +103,7 @@ static int ClusterContents(const node_t * node) {
  * not leafs, so all contents should be ored together
  * =============
  */
-boolean_t Portal_VisFlood(const portal_t * p) {
+bool Portal_VisFlood(const portal_t * p) {
 	int c1, c2;
 
 	if (!p->onnode)
@@ -140,7 +140,7 @@ boolean_t Portal_VisFlood(const portal_t * p) {
  * Flowing from side s to side !s
  * ===============
  */
-static boolean_t Portal_EntityFlood(const portal_t * p, int s) {
+static bool Portal_EntityFlood(const portal_t * p, int s) {
 	if (p->nodes[0]->plane_num != PLANENUM_LEAF || p->nodes[1]->plane_num
 			!= PLANENUM_LEAF)
 		Com_Error(ERR_FATAL, "Portal_EntityFlood: not a leaf\n");
@@ -536,7 +536,7 @@ static void FloodPortals_r(node_t * node, int dist) {
 /*
  * PlaceOccupant
  */
-static boolean_t PlaceOccupant(node_t * head_node, vec3_t origin,
+static bool PlaceOccupant(node_t * head_node, vec3_t origin,
 		entity_t * occupant) {
 	node_t *node;
 
@@ -565,11 +565,11 @@ static boolean_t PlaceOccupant(node_t * head_node, vec3_t origin,
  *
  * Marks all nodes that can be reached by entites
  */
-boolean_t FloodEntities(tree_t *tree) {
+bool FloodEntities(tree_t *tree) {
 	int i;
 	vec3_t origin;
 	const char *cl;
-	boolean_t inside;
+	bool inside;
 	node_t *head_node;
 
 	head_node = tree->head_node;

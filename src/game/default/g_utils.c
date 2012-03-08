@@ -463,7 +463,7 @@ void G_TouchSolids(g_edict_t *ent) {
  * Kills all entities that would touch the proposed new positioning
  * of ent.  Ent should be unlinked before calling this!
  */
-boolean_t G_KillBox(g_edict_t *ent) {
+bool G_KillBox(g_edict_t *ent) {
 	c_trace_t tr;
 
 	while (true) {
@@ -678,7 +678,7 @@ g_client_t *G_ClientByName(char *name) {
 /*
  * G_IsStationary
  */
-boolean_t G_IsStationary(g_edict_t *ent) {
+bool G_IsStationary(g_edict_t *ent) {
 
 	if (!ent)
 		return false;
@@ -692,7 +692,7 @@ boolean_t G_IsStationary(g_edict_t *ent) {
  * Writes the specified animation byte, toggling the high bit to restart the
  * sequence if desired and necessary.
  */
-static void G_SetAnimation_(byte *dest, entity_animation_t anim, boolean_t restart) {
+static void G_SetAnimation_(byte *dest, entity_animation_t anim, bool restart) {
 
 	if (restart) {
 		if (*dest == anim) {
@@ -709,7 +709,7 @@ static void G_SetAnimation_(byte *dest, entity_animation_t anim, boolean_t resta
  * Assigns the specified animation to the correct member(s) on the specified
  * entity. If requested, the current animation will be restarted.
  */
-void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, boolean_t restart) {
+void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, bool restart) {
 
 	// certain sequences go to both torso and leg animations
 
@@ -732,7 +732,7 @@ void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, boolean_t restart) 
  *
  * Returns true if the entity is currently using the specified animation.
  */
-boolean_t G_IsAnimation(g_edict_t *ent, entity_animation_t anim) {
+bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim) {
 	byte a;
 
 	if (anim < ANIM_LEGS_WALK)

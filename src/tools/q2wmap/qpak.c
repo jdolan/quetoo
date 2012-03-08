@@ -120,7 +120,7 @@ static const char *image_formats[NUM_IMAGE_FORMATS] = {"tga", "png", "jpg", "pcx
  * Attempts to add the specified image in any available format.  If required,
  * a warning will be issued should we fail to resolve the specified image.
  */
-static void AddImage(const char *image, boolean_t required){
+static void AddImage(const char *image, bool required){
 	char img[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
 	int i;

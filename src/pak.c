@@ -143,7 +143,7 @@ static void Pak_MakePath(char *path) {
  *
  * A convenience function for deserializing a Pakfile to the filesystem.
  */
-void Pak_ExtractPakfile(const char *pakfile, char *dir, boolean_t test) {
+void Pak_ExtractPakfile(const char *pakfile, char *dir, bool test) {
 	pak_t *pak;
 	FILE *f;
 	void *p;

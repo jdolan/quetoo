@@ -77,7 +77,7 @@ static void R_UploadLightmapBlock() {
 /*
  * R_AllocLightmapBlock
  */
-static boolean_t R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, unsigned int *x, unsigned int *y) {
+static bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, unsigned int *x, unsigned int *y) {
 	size_t i, j;
 	unsigned int best;
 

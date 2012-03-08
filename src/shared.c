@@ -429,7 +429,7 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
  *
  * Returns true if the specified vectors are equal, false otherwise.
  */
-boolean_t VectorCompare(const vec3_t v1, const vec3_t v2) {
+bool VectorCompare(const vec3_t v1, const vec3_t v2) {
 
 	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
 		return false;
@@ -443,7 +443,7 @@ boolean_t VectorCompare(const vec3_t v1, const vec3_t v2) {
  * Returns true if the first vector is closer to the point of interest, false
  * otherwise.
  */
-boolean_t VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
+bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
 	vec3_t d1, d2;
 
 	VectorSubtract(point, v1, d1);
@@ -586,7 +586,7 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness,
  *
  * Returns true if the specified string has some upper case characters.
  */
-boolean_t MixedCase(const char *s) {
+bool MixedCase(const char *s) {
 	const char *c = s;
 	while (*c) {
 		if (isupper(*c))
@@ -675,7 +675,7 @@ char *CommonPrefix(const char *words[], unsigned int nwords) {
  *
  * Handles wildcard suffixes for GlobMatch.
  */
-static boolean_t GlobMatchStar(const char *pattern, const char *text) {
+static bool GlobMatchStar(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
 	register char c, c1;
 
@@ -721,7 +721,7 @@ static boolean_t GlobMatchStar(const char *pattern, const char *text) {
  * To suppress the special syntactic significance of any of `[]*?!-\',
  * and match the character exactly, precede it with a `\'.
  */
-boolean_t GlobMatch(const char *pattern, const char *text) {
+bool GlobMatch(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
 	register char c;
 
@@ -1077,7 +1077,7 @@ void DeleteUserInfo(char *s, const char *key) {
  * Returns true if the specified user-info string appears valid, false
  * otherwise.
  */
-boolean_t ValidateUserInfo(const char *s) {
+bool ValidateUserInfo(const char *s) {
 	if (strstr(s, "\""))
 		return false;
 	if (strstr(s, ";"))

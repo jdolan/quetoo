@@ -91,8 +91,8 @@ typedef struct r_config_s {
 	const char *version_string;
 	const char *extensions_string;
 
-	boolean_t vbo;
-	boolean_t shaders;
+	bool vbo;
+	bool shaders;
 
 	int max_texunits;
 	int max_teximage_units;

@@ -188,7 +188,7 @@ void R_LoadBspLights(void) {
 	char class_name[128];
 	vec3_t org, tmp, color;
 	float radius;
-	boolean_t entity, light;
+	bool entity, light;
 	r_bsp_surface_t *surf;
 	r_bsp_light_t *l;
 	int i;

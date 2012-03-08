@@ -46,7 +46,7 @@ static void G_PlayerProjectile(g_edict_t *ent, const vec3_t scale) {
  *
  * Returns true if the entity is facing a wall at close proximity.
  */
-static boolean_t G_ImmediateWall(g_edict_t *ent, vec3_t end) {
+static bool G_ImmediateWall(g_edict_t *ent, vec3_t end) {
 	c_trace_t tr;
 
 	tr = gi.Trace(ent->s.origin, NULL, NULL, end, ent, MASK_SOLID);
@@ -59,7 +59,7 @@ static boolean_t G_ImmediateWall(g_edict_t *ent, vec3_t end) {
  *
  * Returns true if the specified surface appears structural.
  */
-static boolean_t G_IsStructural(g_edict_t *ent, c_bsp_surface_t *surf) {
+static bool G_IsStructural(g_edict_t *ent, c_bsp_surface_t *surf) {
 
 	if (!ent || ent->client || ent->take_damage)
 		return false; // we hit nothing, or something we damaged
@@ -630,7 +630,7 @@ static void G_LightningProjectile_Discharge(g_edict_t *self) {
 /*
  * G_LightningProjectile_Expire
  */
-static boolean_t G_LightningProjectile_Expire(g_edict_t *self) {
+static bool G_LightningProjectile_Expire(g_edict_t *self) {
 
 	if (self->timestamp < g_level.time - 101)
 		return true;
@@ -752,7 +752,7 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage
 	g_edict_t *ignore;
 	vec3_t water_start;
 	byte color;
-	boolean_t water = false;
+	bool water = false;
 	int content_mask = MASK_SHOT | MASK_WATER;
 
 	if (G_ImmediateWall(ent, start))

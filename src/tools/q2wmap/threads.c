@@ -138,7 +138,7 @@ static void RunThreads(void){
  *
  * Entry point for all thread work requests.
  */
-void RunThreadsOn(int workcount, boolean_t progress, void(*func)(int)){
+void RunThreadsOn(int workcount, bool progress, void(*func)(int)){
 	time_t start, end;
 
 	thread_work.index = 0;

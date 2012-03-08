@@ -48,7 +48,7 @@ static char url[MAX_OSPATH]; // remote url to fetch from
 static char file[MAX_OSPATH]; // local path to save to
 
 static long status, length; // for current transfer
-static boolean_t gzip, success;
+static bool gzip, success;
 
 /*
  * Cl_HttpDownloadRecv
@@ -65,7 +65,7 @@ static size_t Cl_HttpDownloadRecv(void *buffer, size_t size, size_t nmemb,
  * the current game.  We use cURL's multi interface, even tho we only ever
  * perform one download at a time, because it is non-blocking.
  */
-boolean_t Cl_HttpDownload(void) {
+bool Cl_HttpDownload(void) {
 
 	if (!curlm)
 		return false;

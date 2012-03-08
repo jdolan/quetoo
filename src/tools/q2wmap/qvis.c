@@ -23,8 +23,8 @@
 
 map_vis_t map_vis;
 
-boolean_t fastvis;
-boolean_t nosort;
+bool fastvis;
+bool nosort;
 
 static int visibility_count;
 

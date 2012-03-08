@@ -373,7 +373,7 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
  * Can delta from either a baseline or a previous packet_entity
  */
 void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
-		size_buf_t *msg, boolean_t force, boolean_t is_new) {
+		size_buf_t *msg, bool force, bool is_new) {
 
 	unsigned short bits = 0;
 

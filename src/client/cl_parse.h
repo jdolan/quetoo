@@ -27,7 +27,7 @@
 #ifdef __CL_LOCAL_H__
 extern char *svc_strings[256];
 
-boolean_t Cl_CheckOrDownloadFile(const char *file_name);
+bool Cl_CheckOrDownloadFile(const char *file_name);
 void Cl_ParseConfigString(void);
 void Cl_ParseMuzzleFlash(void);
 void Cl_ParseServerMessage(void);

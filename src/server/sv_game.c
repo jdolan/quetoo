@@ -169,7 +169,7 @@ static void Sv_WriteAngle(const float f) {
  *
  * Also checks portal_areas so that doors block sight
  */
-static boolean_t Sv_inPVS(const vec3_t p1, const vec3_t p2) {
+static bool Sv_inPVS(const vec3_t p1, const vec3_t p2) {
 	int leaf_num;
 	int cluster;
 	int area1, area2;
@@ -198,7 +198,7 @@ static boolean_t Sv_inPVS(const vec3_t p1, const vec3_t p2) {
  *
  * Also checks portal_areas so that doors block sound
  */
-static boolean_t Sv_inPHS(const vec3_t p1, const vec3_t p2) {
+static bool Sv_inPHS(const vec3_t p1, const vec3_t p2) {
 	int leaf_num;
 	int cluster;
 	int area1, area2;

@@ -72,19 +72,19 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]);
 void Cvar_ResetLocalVars(void);
 // reset CVAR_LO_ONLY variables to their default values
 
-boolean_t Cvar_PendingLatchedVars(void);
+bool Cvar_PendingLatchedVars(void);
 // are there pending latch changes?
 
 void Cvar_UpdateLatchedVars(void);
 // any CVAR_LATCHED variables that have been set will now take effect
 
-boolean_t Cvar_PendingVars(int flags);
+bool Cvar_PendingVars(int flags);
 // are there pending changes?
 
 void Cvar_ClearVars(int flags);
 // clear modified booleans on vars
 
-boolean_t Cvar_Command(void);
+bool Cvar_Command(void);
 // called by Cmd_ExecuteString when Cmd_Argv(0) doesn't match a known
 // command.  Returns true if the command was a variable reference that
 // was handled.(print or change)
@@ -101,7 +101,7 @@ char *Cvar_UserInfo(void);
 char *Cvar_ServerInfo(void);
 // returns an info string containing all the CVAR_SERVERINFO cvars
 
-extern boolean_t user_info_modified;
+extern bool user_info_modified;
 // this is set each time a CVAR_USERINFO variable is changed
 // so that the client knows to send it to the server
 

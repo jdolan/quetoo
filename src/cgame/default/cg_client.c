@@ -26,7 +26,7 @@
 /*
  * Cg_ValidateClient
  */
-static boolean_t Cg_ValidateClient(cl_client_info_t *ci) {
+static bool Cg_ValidateClient(cl_client_info_t *ci) {
 
 	if (!ci->head || !ci->upper || !ci->lower)
 		return false;
