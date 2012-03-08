@@ -210,7 +210,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
  * Pain effects and pain sounds are actually handled in G_ClientDamage. Here we
  * simply inform our attacker that they injured us by playing a hit sound.
  */
-static void G_ClientPain(g_edict_t *self, g_edict_t *other, int damage, int knockback) {
+static void G_ClientPain(g_edict_t *self, g_edict_t *other, int damage __attribute__((unused)), int knockback __attribute__((unused))) {
 
 	if (other && other->client && other != self) { // play a hit sound
 		gi.Sound(other, gi.SoundIndex("misc/hit"), ATTN_STATIC);
@@ -278,7 +278,7 @@ static void G_ClientCorpse(g_edict_t *self) {
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
-static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int damage __attribute__((unused)),
+static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int damage __attribute__((unused)),
 		vec3_t point __attribute__((unused))) {
 
 	self->enemy = attacker;
@@ -649,7 +649,6 @@ static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
  */
 static void G_ClientRespawn_(g_edict_t *ent) {
 	vec3_t spawn_origin, spawn_angles, old_angles;
-	float height;
 	g_client_t *cl;
 	g_client_persistent_t persistent;
 	int i;
@@ -952,7 +951,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	strncpy(ent->client->persistent.user_info, user_info, sizeof(ent->client->persistent.user_info) - 1);
 
 	s = GetUserInfo(user_info, "active");
-	if(strcmp(s, "0") == 0)
+	if (strcmp(s, "0") == 0)
 		ent->s.effects = ent->s.effects | EF_INACTIVE;
 	else
 		ent->s.effects &= ~(EF_INACTIVE);
@@ -1154,7 +1153,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 
 		// check for jump, play randomized sound
 		if (ent->ground_entity && !pm.ground_entity && (pm.cmd.up >= 10) && (pm.water_level == 0)
-				&& client->jump_time < g_level.time - 0.2) {
+				&& client->jump_time < g_level.time - 200) {
 
 			vec3_t angles, forward, velocity;
 			float speed;
@@ -1171,6 +1170,13 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 				G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 			else
 				G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+
+			ent->s.event = EV_CLIENT_JUMP;
+			client->jump_time = g_level.time;
+		}
+		// check for ladder, play a randomized sound
+		else if ((pm.s.pm_flags & PMF_ON_LADDER) && fabs(ent->velocity[2]) >= 20.0
+				&& client->jump_time < g_level.time - 400) {
 
 			ent->s.event = EV_CLIENT_JUMP;
 			client->jump_time = g_level.time;

@@ -718,6 +718,7 @@ static void Pm_CheckSpecialMovement(void) {
 		return;
 
 	pml.ladder = false;
+	pm->s.pm_flags &= ~PMF_ON_LADDER;
 
 	// check for ladder
 	VectorCopy(pml.forward, forward_flat);
@@ -730,8 +731,10 @@ static void Pm_CheckSpecialMovement(void) {
 
 	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, spot);
 
-	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_LADDER))
+	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_LADDER)) {
 		pml.ladder = true;
+		pm->s.pm_flags |= PMF_ON_LADDER;
+	}
 
 	// check for water jump
 	if (pm->water_level > 2 || pm->cmd.up <= 0 || pm->cmd.forward <= 0)

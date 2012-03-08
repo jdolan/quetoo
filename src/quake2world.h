@@ -80,7 +80,6 @@ typedef byte boolean_t;
 #define MAX_TOKEN_CHARS		256   // max length of an individual token
 #define MAX_QPATH			64    // max length of a quake game pathname
 #define MAX_OSPATH			128   // max length of a filesystem pathname
-
 // per-level limits
 #define MIN_CLIENTS			1     // duh
 #define MAX_CLIENTS			256   // absolute limit
@@ -91,14 +90,12 @@ typedef byte boolean_t;
 #define MAX_IMAGES			256   // that the server knows about
 #define MAX_ITEMS			64    // pickup items
 #define MAX_GENERAL			256   // general config strings
-
 // print levels
 #define PRINT_LOW			0  // pickup messages
 #define PRINT_MEDIUM		1  // death messages
 #define PRINT_HIGH			2  // critical messages
 #define PRINT_CHAT			3  // chat messages
 #define PRINT_TEAMCHAT		4  // teamchat messages
-
 // console variables
 #define CVAR_ARCHIVE		0x1  // saved to quake2world.cfg
 #define CVAR_USER_INFO		0x2  // added to user_info when changed
@@ -110,7 +107,6 @@ typedef byte boolean_t;
 #define CVAR_R_IMAGES		0x80  // effects image filtering
 #define CVAR_S_DEVICE		0x100  // effects sound device parameters
 #define CVAR_S_SAMPLES		0x200  // effects sound samples
-
 #define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_IMAGES)
 #define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_SAMPLES)
 
@@ -134,19 +130,12 @@ typedef enum {
 
 // server multicast scope for entities and events
 typedef enum {
-	MULTICAST_ALL,
-	MULTICAST_PHS,
-	MULTICAST_PVS,
-	MULTICAST_ALL_R,
-	MULTICAST_PHS_R,
-	MULTICAST_PVS_R
+	MULTICAST_ALL, MULTICAST_PHS, MULTICAST_PVS, MULTICAST_ALL_R, MULTICAST_PHS_R, MULTICAST_PVS_R
 } multicast_t;
 
 // server to client communication
 typedef enum {
-	SV_CMD_BAD,
-	SV_CMD_BASELINE,
-	SV_CMD_CBUF_TEXT, // [string] stuffed into client's console buffer, should be \n terminated
+	SV_CMD_BAD, SV_CMD_BASELINE, SV_CMD_CBUF_TEXT, // [string] stuffed into client's console buffer, should be \n terminated
 	SV_CMD_CONFIG_STRING, // [short] [string]
 	SV_CMD_DISCONNECT,
 	SV_CMD_DOWNLOAD, // [short] size [size bytes]
@@ -154,7 +143,8 @@ typedef enum {
 	SV_CMD_PRINT, // [byte] id [string] null terminated string
 	SV_CMD_RECONNECT,
 	SV_CMD_SERVER_DATA, // [long] protocol ...
-	SV_CMD_SOUND, // <see code>
+	SV_CMD_SOUND,
+// <see code>
 } sv_cmd_t;
 
 // additional command types can be defined and written by the game module
@@ -163,10 +153,10 @@ typedef enum {
 
 // client to server
 typedef enum {
-	CL_CMD_BAD,
-	CL_CMD_MOVE, // [[usercmd_t]
+	CL_CMD_BAD, CL_CMD_MOVE, // [[usercmd_t]
 	CL_CMD_STRING, // [string] message
-	CL_CMD_USER_INFO // [[user_info string]
+	CL_CMD_USER_INFO
+// [[user_info string]
 } cl_cmd_t;
 
 typedef float vec_t;
@@ -314,12 +304,13 @@ typedef enum {
 #define PMF_JUMP_HELD		0x2
 #define PMF_ON_GROUND		0x4
 #define PMF_ON_STAIRS		0x8
-#define PMF_TIME_WATERJUMP	0x10   // pm_time is time before control
-#define PMF_TIME_LAND		0x20   // pm_time is time before rejump
-#define PMF_TIME_TELEPORT	0x40   // pm_time is non-moving time
-#define PMF_NO_PREDICTION	0x80   // temporarily disables prediction
-#define PMF_PUSHED			0x100  // disables stair checking and velocity clamp
-#define PMF_UNDER_WATER		0x200
+#define PMF_ON_LADDER		0x10
+#define PMF_TIME_WATERJUMP	0x20 // pm_time is time before control
+#define PMF_TIME_LAND		0x40 // pm_time is time before rejump
+#define PMF_TIME_TELEPORT	0x80 // pm_time is non-moving time
+#define PMF_NO_PREDICTION	0x100 // temporarily disables prediction
+#define PMF_PUSHED			0x200 // disables stair checking and velocity clamp
+#define PMF_UNDER_WATER		0x400
 
 #define PMF_TIME_MASK		(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT)
 
@@ -332,12 +323,12 @@ typedef struct pm_state_s {
 	pm_type_t pm_type;
 	short origin[3]; // 12.3
 	short velocity[3]; // 12.3
-	short pm_flags; // ducked, jump_held, etc
+	unsigned short pm_flags; // ducked, jump_held, etc
 	byte pm_time; // each unit = 8 ms
 	short gravity;
 	short view_offset[3]; // 12.3
 	short delta_angles[3]; // add to command angles to get view direction
-	// changed by spawns, rotating objects, and teleporters
+// changed by spawns, rotating objects, and teleporters
 } pm_state_t;
 
 // button bits
@@ -402,7 +393,6 @@ typedef struct {
 #define EF_BLEND			(1 << 29)  // blend
 #define EF_NO_SHADOW		(1 << 30)  // no shadow
 #define EF_NO_DRAW			(1 << 31)  // no draw (but perhaps shadow)
-
 // muzzle flashes
 typedef enum {
 	MZ_BLASTER,
