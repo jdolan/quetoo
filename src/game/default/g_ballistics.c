@@ -142,6 +142,9 @@ static void G_Tracer(vec3_t start, vec3_t end) {
  */
 static void G_BulletMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
 
+	if (surf->flags & SURF_ALPHA_TEST)
+		return;
+
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BULLET);
 	gi.WritePosition(org);
@@ -356,7 +359,11 @@ static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 	}
 
 	if (!other->take_damage) { // bounce
-		gi.Sound(self, grenade_hit_index, ATTN_NORM);
+		if (g_level.time - self->touch_time > 200) {
+			VectorScale(self->velocity, 1.25, self->velocity);
+			gi.Sound(self, grenade_hit_index, ATTN_NORM);
+			self->touch_time = g_level.time;
+		}
 		return;
 	}
 
