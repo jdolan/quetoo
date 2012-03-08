@@ -24,8 +24,7 @@ move share autotools
 xcopy autotools\* mingw32 /E
 xcopy autotools\* mingw64 /E
 
-echo export CFLAGS=-I/mingw/include >> msys\1.0\etc\profile
-
+msys\1.0\bin\sh.exe -c "echo export CFLAGS=-I/mingw/include >> /etc/profile"
 
 #extract rubenvb gcc package
 # mingw64: 
