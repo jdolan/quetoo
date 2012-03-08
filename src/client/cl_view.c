@@ -136,8 +136,10 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
 	if (cl.frame.ps.pmove.pm_type <= PM_DEAD) { // use predicted (input) values
 		VectorCopy(cl.predicted_angles, r_view.angles);
 
-		if (cl.frame.ps.pmove.pm_type == PM_DEAD) // look only on x axis
+		if (cl.frame.ps.pmove.pm_type == PM_DEAD) { // look only on x axis
 			r_view.angles[0] = r_view.angles[2] = 0.0;
+			r_view.angles[2] = 30.0;
+		}
 	} else { // for demos and chasing, lerp between states without prediction
 		AngleLerp(ops->angles, ps->angles, cl.lerp, r_view.angles);
 	}
