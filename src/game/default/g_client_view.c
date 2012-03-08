@@ -28,7 +28,6 @@
  */
 static void G_ClientDamage(g_edict_t *ent) {
 	g_client_t *client;
-	int l;
 
 	client = ent->client;
 
@@ -37,6 +36,8 @@ static void G_ClientDamage(g_edict_t *ent) {
 
 	// play an appropriate pain sound
 	if (g_level.time > client->pain_time) {
+		vec3_t org;
+		int l;
 
 		client->pain_time = g_level.time + 700;
 
@@ -49,7 +50,10 @@ static void G_ClientDamage(g_edict_t *ent) {
 		else
 			l = 100;
 
-		gi.Sound(ent, gi.SoundIndex(va("*pain%i_1", l)), ATTN_NORM);
+		VectorAdd(client->ps.pmove.origin, client->ps.pmove.view_offset, org);
+		VectorScale(org, 0.125, org);
+
+		gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), ATTN_NORM);
 	}
 
 	// clear totals
@@ -166,7 +170,7 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 	if (water_level && (ent->water_type & (CONTENTS_LAVA | CONTENTS_SLIME))) {
 		if (client->sizzle_time <= g_level.time && ent->health > 0) {
 
-			client->sizzle_time = g_level.time + 100;
+			client->sizzle_time = g_level.time + 200;
 
 			if (ent->water_type & CONTENTS_LAVA) {
 				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 2 * water_level,

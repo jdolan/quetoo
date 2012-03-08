@@ -102,11 +102,15 @@ boolean_t G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
  */
 static void G_SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage) {
 
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(type);
-	gi.WritePosition(origin);
-	gi.WriteDir(normal);
-	gi.Multicast(origin, MULTICAST_PVS);
+	while (damage > 0) {
+		gi.WriteByte(SV_CMD_TEMP_ENTITY);
+		gi.WriteByte(type);
+		gi.WritePosition(origin);
+		gi.WriteDir(normal);
+		gi.Multicast(origin, MULTICAST_PVS);
+
+		damage -= 50;
+	}
 }
 
 /*
@@ -248,7 +252,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	take = damage;
 	save = 0;
 
-	// check for godmode
+	// check for god mode
 	if ((targ->flags & FL_GOD_MODE) && !(dflags & DAMAGE_NO_PROTECTION)) {
 		take = 0;
 		save = damage;
