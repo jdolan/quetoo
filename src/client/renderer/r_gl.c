@@ -27,8 +27,7 @@ void (APIENTRY *qglClientActiveTexture)(GLenum texture);
 void (APIENTRY *qglGenBuffers)(GLuint count, GLuint *id);
 void (APIENTRY *qglDeleteBuffers)(GLuint count, GLuint *id);
 void (APIENTRY *qglBindBuffer)(GLenum target, GLuint id);
-void (APIENTRY *qglBufferData)(GLenum target, GLsizei size, const GLvoid *data,
-		GLenum usage);
+void (APIENTRY *qglBufferData)(GLenum target, GLsizei size, const GLvoid *data, GLenum usage);
 
 void (APIENTRY *qglEnableVertexAttribArray)(GLuint index);
 void (APIENTRY *qglDisableVertexAttribArray)(GLuint index);
@@ -37,12 +36,10 @@ void (APIENTRY *qglVertexAttribPointer)(GLuint index, GLint size, GLenum type,
 
 GLuint (APIENTRY *qglCreateShader)(GLenum type);
 void (APIENTRY *qglDeleteShader)(GLuint id);
-void (APIENTRY *qglShaderSource)(GLuint id, GLuint count, GLchar **sources,
-		GLuint *len);
+void (APIENTRY *qglShaderSource)(GLuint id, GLuint count, GLchar **sources, GLuint *len);
 void (APIENTRY *qglCompileShader)(GLuint id);
 void (APIENTRY *qglGetShaderiv)(GLuint id, GLenum field, GLuint *dest);
-void (APIENTRY *qglGetShaderInfoLog)(GLuint id, GLuint maxlen, GLuint *len,
-		GLchar *dest);
+void (APIENTRY *qglGetShaderInfoLog)(GLuint id, GLuint maxlen, GLuint *len, GLchar *dest);
 GLuint (APIENTRY *qglCreateProgram)(void);
 void (APIENTRY *qglDeleteProgram)(GLuint id);
 void (APIENTRY *qglAttachShader)(GLuint prog, GLuint shader);
@@ -50,8 +47,7 @@ void (APIENTRY *qglDetachShader)(GLuint prog, GLuint shader);
 void (APIENTRY *qglLinkProgram)(GLuint id);
 void (APIENTRY *qglUseProgram)(GLuint id);
 void (APIENTRY *qglGetProgramiv)(GLuint id, GLenum field, GLuint *dest);
-void (APIENTRY *qglGetProgramInfoLog)(GLuint id, GLuint maxlen, GLuint *len,
-		GLchar *dest);
+void (APIENTRY *qglGetProgramInfoLog)(GLuint id, GLuint maxlen, GLuint *len, GLchar *dest);
 GLint (APIENTRY *qglGetUniformLocation)(GLuint id, const GLchar *name);
 void (APIENTRY *qglUniform1i)(GLint location, GLint i);
 void (APIENTRY *qglUniform1f)(GLint location, GLfloat f);
@@ -87,8 +83,7 @@ void R_InitGlExtensions(void) {
 		qglActiveTexture = SDL_GL_GetProcAddress("glActiveTexture");
 		qglClientActiveTexture = SDL_GL_GetProcAddress("glClientActiveTexture");
 	} else
-		Com_Error(ERR_FATAL,
-				"R_InitGlExtensions: GL_ARB_multitexture not found.");
+		Com_Error(ERR_FATAL, "R_InitGlExtensions: GL_ARB_multitexture not found.");
 
 	// vertex buffer objects
 	if (strstr(r_config.extensions_string, "GL_ARB_vertex_buffer_object")) {
@@ -123,10 +118,8 @@ void R_InitGlExtensions(void) {
 		qglGetAttribLocation = SDL_GL_GetProcAddress("glGetAttribLocation");
 
 		// vertex attribute arrays
-		qglEnableVertexAttribArray = SDL_GL_GetProcAddress(
-				"glEnableVertexAttribArray");
-		qglDisableVertexAttribArray = SDL_GL_GetProcAddress(
-				"glDisableVertexAttribArray");
+		qglEnableVertexAttribArray = SDL_GL_GetProcAddress("glEnableVertexAttribArray");
+		qglDisableVertexAttribArray = SDL_GL_GetProcAddress("glDisableVertexAttribArray");
 		qglVertexAttribPointer = SDL_GL_GetProcAddress("glVertexAttribPointer");
 	} else
 		Com_Warn("R_InitGlExtensions: GL_ARB_fragment_shader not found.\n");
