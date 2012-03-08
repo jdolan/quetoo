@@ -34,16 +34,4 @@ sh $n
 cd $TMP
 done
 
-#copy DLLs
-cd $START
-rm -Rf DLLs
-mkdir DLLs
-
-
-#cd /mingw/bin
-#cp AntTweakBar.dll libcurl-4.dll libpng15-15.dll pdcurses.dll \
-#   SDL.dll libgcc_s_dw2-1.dll libvorbis-0.dll SDL_image.dll \
-#   libjpeg-8.dll libvorbisfile-3.dll SDL_mixer.dll libogg-0.dll \
-#   libz-1.dll $START/DLLs
-
 echo "DONE!"

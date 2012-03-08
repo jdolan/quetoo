@@ -1,3 +1,8 @@
+cmd.exe /k mkdir "C:\q2wdevenv"
+
+# Download mingw-get and extract to C:\q2wdevenv
+# http://sourceforge.net/projects/mingw/files/Installer/mingw-get/
+
 mingw-get install mingw-developer-toolkit msys-zip msys-unzip msys-wget
 
 mingw-get remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
@@ -16,12 +21,18 @@ move share autotools
 
 
 
-copy /y nul mingw32\PLACEHOLDER
-copy /y nul mingw64\PLACEHOLDER
+xcopy autotools\* mingw32 /E
+xcopy autotools\* mingw64 /E
+
 
 #extract rubenvb gcc package
+# mingw64: 
+# http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/rubenvb/
+# mingw32: 
+# http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/rubenvb/
 
-xcopy autotools\* mingw32 /E
+cd msys\1.0\postinstall
+pi.bat
 
-
+cscript.exe q2wlnk.vbs
 
