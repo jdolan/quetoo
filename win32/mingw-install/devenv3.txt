@@ -24,6 +24,8 @@ move share autotools
 xcopy autotools\* mingw32 /E
 xcopy autotools\* mingw64 /E
 
+echo export CFLAGS=-I/mingw/include >> msys\1.0\etc\profile
+
 
 #extract rubenvb gcc package
 # mingw64: 
@@ -35,4 +37,5 @@ cd msys\1.0\postinstall
 pi.bat
 
 cscript.exe q2wlnk.vbs
+
 
