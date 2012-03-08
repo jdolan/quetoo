@@ -287,7 +287,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 
 	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
 
-	self->client->respawn_time = g_level.time + 1.0;
+	self->client->respawn_time = g_level.time + 1000;
 	self->client->ps.pmove.pm_type = PM_DEAD;
 
 	G_ClientObituary(self, attacker);
