@@ -32,7 +32,6 @@ typedef struct thread_s {
 	char name[64];
 	void (*function)(void *data);
 	void *data;
-	void *next;
 } thread_t;
 
 extern cvar_t *threads;
