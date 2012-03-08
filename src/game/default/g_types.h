@@ -296,7 +296,7 @@ typedef struct {
 #define MAP_LIST_WEIGHT 16384
 
 // voting
-#define MAX_VOTE_TIME 60.0
+#define MAX_VOTE_TIME 60000
 #define VOTE_MAJORITY 0.51
 
 typedef enum {
