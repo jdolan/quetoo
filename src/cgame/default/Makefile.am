@@ -14,7 +14,7 @@ noinst_HEADERS = \
 	cg_muzzle_flash.h \
 	cg_particle.h \
 	cg_scores.h \
-	cg_tentity.h \
+	cg_temp_entity.h \
 	cg_types.h \
 	cg_view.h
 
@@ -34,7 +34,7 @@ cgame_la_SOURCES = \
 	cg_muzzle_flash.c \
 	cg_particle.c \
 	cg_scores.c \
-	cg_tentity.c \
+	cg_temp_entity.c \
 	cg_view.c
 
 cgame_la_CFLAGS = \

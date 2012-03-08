@@ -30,7 +30,6 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent);
 void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent);
 void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent);
 void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent);
-void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int count);
 void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent);
 #endif /* __CG_LOCAL_H__ */
 

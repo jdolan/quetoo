@@ -339,48 +339,67 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 
-	if (!(p = Cg_AllocParticle()))
-		return;
+	if ((p = Cg_AllocParticle())) {
+		p->image = cg_particle_explosion;
 
-	p->image = cg_particle_explosion;
+		p->scale = 1.0;
+		p->scale_vel = 600.0;
 
-	p->scale = 1.0;
-	p->scale_vel = 600.0;
+		p->alpha = 1.0;
+		p->alpha_vel = -4.0;
 
-	p->alpha = 1.0;
-	p->alpha_vel = -4.0;
+		p->color = 224;
 
-	p->color = 224;
+		VectorCopy(org, p->org);
+	}
 
-	VectorCopy(org, p->org);
+	if (!(cgi.PointContents(org) & MASK_WATER)) {
 
-	if (!(p = Cg_AllocParticle()))
-		return;
+		if ((p = Cg_AllocParticle())) {
+			p->image = cg_particle_smoke;
 
-	if (cgi.PointContents(org) & MASK_WATER)
-		return;
+			p->type = PARTICLE_ROLL;
+			p->roll = crand() * 100.0;
 
-	p->accel[2] = 20;
+			p->scale = 12.0;
+			p->scale_vel = 40.0;
 
-	p->image = cg_particle_smoke;
+			p->alpha = 1.0;
+			p->alpha_vel = -1.0 / (1 + frand() * 0.6);
 
-	p->type = PARTICLE_ROLL;
-	p->roll = crand() * 100.0;
+			p->color = rand() & 7;
+			p->blend = GL_ONE;
 
-	p->scale = 12.0;
-	p->scale_vel = 40.0;
+			VectorCopy(org, p->org);
+			p->org[2] += 10;
 
-	p->alpha = 1.0;
-	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
+			for (j = 0; j < 3; j++) {
+				p->vel[j] = crand();
+			}
 
-	p->color = rand() & 7;
-	p->blend = GL_ONE;
+			p->accel[2] = 20;
+		}
+	}
 
-	VectorCopy(org, p->org);
-	p->org[2] += 10;
+	for (j = 0; j < 128; j++) {
 
-	for (j = 0; j < 3; j++) {
-		p->vel[j] = crand();
+		if (!(p = Cg_AllocParticle()))
+			break;
+
+		p->org[0] = org[0] + (rand() % 32) - 16;
+		p->org[1] = org[1] + (rand() % 32) - 16;
+		p->org[2] = org[2] + (rand() % 32) - 16;
+
+		p->vel[0] = (rand() % 512) - 256;
+		p->vel[1] = (rand() % 512) - 256;
+		p->vel[2] = (rand() % 512) - 256;
+
+		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY);
+
+		p->alpha = 0.5 + crand() * 0.25;
+		p->alpha_vel = -1.0 + 0.25 * crand();
+
+		p->color = 0xe0 + (rand() & 7);
 	}
 
 	VectorCopy(org, s.light.origin);
@@ -544,7 +563,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	for (i = 0; i < 4; i++) {
 
 		if (!(p = Cg_AllocParticle()))
-			return;
+			break;
 
 		p->image = cg_particle_explosion;
 
@@ -554,9 +573,32 @@ static void Cg_BfgEffect(const vec3_t org) {
 		p->alpha = 1.0;
 		p->alpha_vel = -3.0;
 
-		p->color = 201;
+		p->color = 200 + rand() % 3;
 
 		VectorCopy(org, p->org);
+	}
+
+	for (i = 0; i < 96; i++) {
+
+		if (!(p = Cg_AllocParticle()))
+			break;
+
+		p->scale = 4.0;
+
+		p->org[0] = org[0] + (rand() % 48) - 24;
+		p->org[1] = org[1] + (rand() % 48) - 24;
+		p->org[2] = org[2] + (rand() % 48) - 24;
+
+		p->vel[0] = (rand() % 768) - 384;
+		p->vel[1] = (rand() % 768) - 384;
+		p->vel[2] = (rand() % 768) - 384;
+
+		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY);
+
+		p->alpha = 0.5 + crand() * 0.25;
+		p->alpha_vel = -1.0 + 0.25 * crand();
+
+		p->color = 200 + rand() % 3;
 	}
 
 	VectorCopy(org, s.light.origin);

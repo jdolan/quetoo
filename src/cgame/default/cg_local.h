@@ -34,7 +34,7 @@
 #include "cg_muzzle_flash.h"
 #include "cg_particle.h"
 #include "cg_scores.h"
-#include "cg_tentity.h"
+#include "cg_temp_entity.h"
 #include "cg_types.h"
 #include "cg_view.h"
 

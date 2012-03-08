@@ -179,7 +179,7 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	p->scale = 2.0;
 	p->scale_vel = 10 + 25.0 * frand();
 
-	p->alpha = 1.0;
+	p->alpha = 1.5;
 	p->alpha_vel = -1.0 / (1.0 + frand());
 
 	p->color = 32 + (rand() & 7);
@@ -276,8 +276,8 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 	p->scale = 8.0;
 	p->scale_vel = 20.0;
 
-	p->alpha = 0.75;
-	p->alpha_vel = -1.0 / (1 + frand() * 0.6);
+	p->alpha = 0.3;
+	p->alpha_vel = -1.0 / (5.0 + frand() * 0.5);
 
 	p->color = 6 + (rand() & 7);
 
@@ -433,9 +433,9 @@ static void Cg_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *en
 
 			VectorMA(start, d, delta, p->org);
 
-			p->vel[0] = 24.0 * crand();
-			p->vel[1] = 24.0 * crand();
-			p->vel[2] = -PARTICLE_GRAVITY * 0.25;
+			p->vel[0] = 32.0 * crand();
+			p->vel[1] = 32.0 * crand();
+			p->vel[2] = -PARTICLE_GRAVITY * 0.25 * frand();
 
 			p->alpha = 0.5 + crand() * 0.25;
 			p->alpha_vel = -1.0 + 0.25 * crand();
