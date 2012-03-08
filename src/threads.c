@@ -24,6 +24,9 @@
 
 cvar_t *threads;
 
+static thread_t *head = NULL;
+static SDL_mutex *poolLock;
+
 /*
  * Thread_Run
  *
@@ -33,6 +36,12 @@ static int Thread_Run(void *data) {
 	thread_t *t = (thread_t *) data;
 
 	t->function(t->data);
+	//Com_Print("thread %s end\n", t->name);
+	//return the thread to the pool
+	SDL_mutexP(poolLock);
+	t->next = head;
+	head = t;
+	SDL_mutexV(poolLock);
 
 	return 0;
 }
@@ -45,21 +54,32 @@ static int Thread_Run(void *data) {
  */
 thread_t *Thread_Create_(const char *name, void( function)(void *data),
 		void *data) {
+	thread_t *t;
 
 	if (!threads->integer) {
 		function(data);
 		return NULL;
 	}
 
-	thread_t *t = Z_Malloc(sizeof(thread_t));
+
+	SDL_mutexP(poolLock);
+	//if(head == NULL) {
+		t = Z_Malloc(sizeof(thread_t));
+
+	//}
+	//else {
+	//	t = head;
+	//	head = head->next;
+	//}
+	SDL_mutexV(poolLock);
 
 	strncpy(t->name, name, sizeof(t->name));
 
 	t->function = function;
 	t->data = data;
 
+	t->next = NULL;
 	t->thread = SDL_CreateThread(Thread_Run, t);
-
 	return t;
 }
 
@@ -81,8 +101,8 @@ void Thread_Wait(thread_t **t) {
 	//gettimeofday(&end, NULL);
 	//printf("%s: %ld\n", end->tv_usec - start->tv_usec, t->name);
 
-	Z_Free(*t);
-	*t = NULL;
+	//Z_Free(*t);
+	//*t = NULL;
 }
 
 /*
@@ -91,6 +111,12 @@ void Thread_Wait(thread_t **t) {
 void Thread_Init(void) {
 	threads = Cvar_Get("threads", "1", CVAR_ARCHIVE,
 			"Enable or disable multicore processing.");
+
+	poolLock = SDL_CreateMutex();
+	if(poolLock == NULL) {
+		Com_Print("Failed to start threads");
+		Cvar_FullSet("threads", "0", CVAR_NO_SET | CVAR_ARCHIVE);
+	}
 }
 
 /*

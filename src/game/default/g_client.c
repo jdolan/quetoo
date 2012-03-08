@@ -120,6 +120,8 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 		switch (mod) {
 		case MOD_BLASTER:
 			message = "was humilated by";
+			message2 = "'s pea shooter";
+			break;
 		case MOD_SHOTGUN:
 			message = "was gunned down by";
 			message2 = "'s boomstick";
