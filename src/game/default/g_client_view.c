@@ -125,11 +125,14 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 	if (old_water_level && !water_level)
 		gi.Sound(ent, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
-	// head just coming out of water
-	if (old_water_level == 3 && water_level != 3 && g_level.time - client->gasp_time > 2000) {
+	// head just coming out of water, play a gasp if we were down for a while
+	if (old_water_level == 3 && water_level != 3 && (client->drown_time - g_level.time) < 8000) {
+		vec3_t org;
 
-		gi.Sound(ent, gi.SoundIndex("*gasp_1"), ATTN_NORM);
-		client->gasp_time = g_level.time;
+		VectorAdd(client->ps.pmove.origin, client->ps.pmove.view_offset, org);
+		VectorScale(org, 0.125, org);
+
+		gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), ATTN_NORM);
 	}
 
 	// check for drowning

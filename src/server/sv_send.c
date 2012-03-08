@@ -255,8 +255,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 		}
 
 		if (reliable)
-			Sb_Write(&client->netchan.message, sv.multicast.data,
-					sv.multicast.size);
+			Sb_Write(&client->netchan.message, sv.multicast.data, sv.multicast.size);
 		else
 			Sb_Write(&client->datagram, sv.multicast.data, sv.multicast.size);
 	}
@@ -276,8 +275,8 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for bmodels.
  */
-void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity,
-		const unsigned short index, const unsigned short atten) {
+void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const unsigned short index,
+		const unsigned short atten) {
 	unsigned int flags;
 	unsigned short at;
 	int i;
@@ -295,8 +294,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity,
 
 	// the client doesn't know that bsp models have weird origins
 	// the origin can also be explicitly set
-	if ((entity->sv_flags & SVF_NO_CLIENT) || (entity->solid == SOLID_BSP)
-			|| origin)
+	if ((entity->sv_flags & SVF_NO_CLIENT) || (entity->solid == SOLID_BSP) || origin)
 		flags |= S_ORIGIN;
 	else
 		flags |= S_ENTNUM;
@@ -307,8 +305,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity,
 	else {
 		if (entity->solid == SOLID_BSP) {
 			for (i = 0; i < 3; i++)
-				org[i] = entity->s.origin[i] + 0.5 * (entity->mins[i]
-						+ entity->maxs[i]);
+				org[i] = entity->s.origin[i] + 0.5 * (entity->mins[i] + entity->maxs[i]);
 		} else {
 			VectorCopy(entity->s.origin, org);
 		}
@@ -494,8 +491,7 @@ void Sv_SendClientMessages(void) {
 
 			Sv_SendClientDatagram(c);
 		} else { // just update reliable if needed
-			if (c->netchan.message.size || quake2world.time
-					- c->netchan.last_sent > 1000)
+			if (c->netchan.message.size || quake2world.time - c->netchan.last_sent > 1000)
 				Netchan_Transmit(&c->netchan, 0, NULL);
 		}
 	}

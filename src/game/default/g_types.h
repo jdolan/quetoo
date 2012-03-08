@@ -410,7 +410,6 @@ struct g_client_s {
 	unsigned int fall_time; // eligible for landing event when time > this
 	unsigned int jump_time; // eligible for jump when time > this
 	unsigned int pain_time; // eligible for pain sound when time > this
-	unsigned int gasp_time; // eligible for gasp sound when time > this
 	unsigned int footstep_time; // play a footstep when time > this
 
 	unsigned int pickup_msg_time; // display message until time > this
