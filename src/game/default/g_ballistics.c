@@ -720,6 +720,7 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int damage,
 
 	if (!light) { // ensure a valid lightning entity exists
 		light = G_Spawn();
+
 		VectorCopy(start, light->s.origin);
 		VectorMA(start, 800.0, dir, light->s.old_origin);
 		light->solid = SOLID_NOT;

@@ -440,15 +440,14 @@ void G_FireHyperblaster(g_edict_t *ent) {
 static void G_FireLightning_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
+	const boolean_t muzzle_flash = !ent->lightning;
+
 	G_InitProjectile(ent, forward, right, up, org);
 
 	G_LightningProjectile(ent, org, forward, 10, 12);
 
-	if (ent->client->muzzle_flash_time > g_level.time)
-		return;
-
-	G_MuzzleFlash(ent, MZ_LIGHTNING);
-	ent->client->muzzle_flash_time = g_level.time + 250;
+	if (muzzle_flash)
+		G_MuzzleFlash(ent, MZ_LIGHTNING);
 }
 
 void G_FireLightning(g_edict_t *ent) {

@@ -391,7 +391,6 @@ struct g_client_s {
 
 	unsigned int weapon_think_time; // time when the weapon think was called
 	unsigned int weapon_fire_time; // can fire when time > this
-	unsigned int muzzle_flash_time; // should send muzzle flash when time > this
 	g_item_t *new_weapon;
 
 	short damage_armor; // damage absorbed by armor
