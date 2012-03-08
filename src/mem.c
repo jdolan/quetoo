@@ -35,7 +35,7 @@ static SDL_mutex *z_lock;
  */
 void Z_Init(void) {
 
-	srandom(getpid());
+	srand(getpid());
 
 	z_chain.next = z_chain.prev = &z_chain;
 
