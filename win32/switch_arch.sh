@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ -z `mount |grep x86_64` ]; then
-  sed -i 's/mingw-x86 /mingw-x86_64 /g' /etc/fstab
+if [ -z `mount |grep 64` ]; then
+  sed -i 's/mingw32 /mingw64 /g' /etc/fstab
 else
-  sed -i 's/mingw-x86_64 /mingw-x86 /g' /etc/fstab
+  sed -i 's/mingw64 /mingw32 /g' /etc/fstab
 fi
 	
