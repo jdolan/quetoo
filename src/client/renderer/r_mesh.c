@@ -40,7 +40,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 	if (e->effects & EF_WEAPON) {
 
 		// adjust forward / back offset according to field of view
-		float f = (r_view.fov[0] - 90.0) * 0.15;
+		float f = pow((180.0 - r_view.fov[0]), 3) * 0.00001;
 
 		// add bob on all 3 axis as well
 		float b = r_view.bob * 0.4;

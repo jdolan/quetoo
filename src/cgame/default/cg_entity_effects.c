@@ -612,7 +612,7 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 			VectorCopy(cgi.view->origin, start);
 			VectorMA(start, 30.0, cgi.view->forward, start);
 			VectorMA(start, 6.0, cgi.view->right, start);
-			start[2] -= 10.0;
+			start[2] -= 8.0;
 		}
 
 		VectorLerp(e->prev.old_origin, e->current.old_origin, lerp, end);

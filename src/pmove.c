@@ -804,12 +804,12 @@ static void Pm_CheckDuck(void) {
 	}
 
 	if (pm->s.pm_flags & PMF_DUCKED) { // ducked, reduce height
-		const float target = pm->mins[2] + height * 0.375;
+		const float target = pm->mins[2] + height * 0.5;
 
 		if (pml.view_offset[2] > target) // go down
 			pml.view_offset[2] -= pml.time * PM_SPEED_DUCK_STAND;
 
-		if (pml.view_offset[2] <= target) {
+		if (pml.view_offset[2] < target) {
 			pml.view_offset[2] = target;
 
 			// change the bounding box to reflect ducking

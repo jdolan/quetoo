@@ -58,25 +58,20 @@ void G_ProjectSpawn(g_edict_t *ent) {
 void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
 	c_trace_t tr;
 	vec3_t view, end;
-	int i;
 
-	// use the entity angles to project the origin flash
-	AngleVectors(ent->s.angles, forward, right, up);
+	// use the client's view angles to project the origin flash
+	AngleVectors(ent->client->angles, forward, right, up);
 	VectorCopy(ent->s.origin, org);
 
-	const float u = ent->client->ps.pmove.pm_flags & PMF_DUCKED ? 0.0 : 12.0;
+	const float u = ent->client->ps.pmove.pm_flags & PMF_DUCKED ? 0.0 : 14.0;
 
 	VectorMA(org, u, up, org);
-	VectorMA(org, 9.0, right, org);
-	VectorMA(org, 24.0, forward, org);
+	VectorMA(org, 8.0, right, org);
+	VectorMA(org, 28.0, forward, org);
 
-	// but return the actual aim direction
-	AngleVectors(ent->client->angles, forward, right, up);
-
-	// corrected for the offset above
-	VectorScale(ent->client->ps.pmove.origin, 0.125, view);
-	for (i = 0; i < 3; i++)
-		view[i] += ent->client->ps.pmove.view_offset[i] * 0.125;
+	// correct the destination of the shot for the offset produced above
+	VectorAdd(ent->client->ps.pmove.origin, ent->client->ps.pmove.view_offset, view);
+	VectorScale(view, 0.125, view);
 
 	VectorMA(view, 8192.0, forward, end);
 	tr = gi.Trace(view, vec3_origin, vec3_origin, end, ent, MASK_SHOT);
