@@ -1,6 +1,6 @@
 #!/bin/sh
 #############################################################################
-# Copyright(c) 2007-2011 Quake2World.
+# Copyright(c) 2007-2012 Quake2World.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -79,8 +79,8 @@ zip -9 -r ../quake2world_rev"$rev"-"$CURRENTARCH".zip quake2world
 
 cd $START
 
-../_rsync_retry.sh -vrzhP --timeout=10 --chmod=755 --delete --inplace --rsh='ssh' dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32/"$CURRENTARCH"
-../_rsync_retry.sh -vrzhP --timeout=10 --chmod=755 --delete --inplace --rsh='ssh' dist/quake2world/* web@satgnu.net:www/satgnu.net/files/quake2world/"$CURRENTARCH"
+../_rsync_retry.sh -vrzhP --timeout=10 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32/"$CURRENTARCH"
+../_rsync_retry.sh -vrzhP --timeout=10 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' dist/quake2world/* web@satgnu.net:www/satgnu.net/files/quake2world/"$CURRENTARCH"
 
-../_rsync_retry.sh -vrzhP --timeout=10 --chmod=755 --delete --inplace --rsh='ssh' quake2world_rev"$rev"-"$CURRENTARCH".zip web@satgnu.net:www/satgnu.net/files/quake2world-"$CURRENTARCH"-snapshot.zip
+../_rsync_retry.sh -vrzhP --timeout=10 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' quake2world_rev"$rev"-"$CURRENTARCH".zip web@satgnu.net:www/satgnu.net/files/quake2world-"$CURRENTARCH"-snapshot.zip
 ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world-"$CURRENTARCH"-snapshot.zip /home/web/www/satgnu.net/files/quake2world_rev"$rev"-"$CURRENTARCH".zip  
