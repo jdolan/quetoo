@@ -5,8 +5,8 @@ echo Please be patient, this may take a while.
 rem This solves the rsync file permissions problem on Vista/Windows 7
 set CYGWIN=nontsec
 
-rsync.exe -rzhP --exclude=rsync.exe --exclude=cygwin1.dll rsync://jdolan.dyndns.org/quake2world-win32 .
-rsync.exe --delete -rz --progress rsync://jdolan.dyndns.org/quake2world temp
+rsync.exe --delete -rzhP --exclude=rsync.exe --exclude=cygwin1.dll rsync://jdolan.dyndns.org/quake2world-win32 .
+rsync.exe --delete -rzhP rsync://jdolan.dyndns.org/quake2world temp
 xcopy temp\default default /E /Y >nul
 echo Update complete!
 echo Make sure to run this file on a regular basis!

@@ -30,13 +30,11 @@ function BUILD
 	
 	gcc -v >> _build.log 2>&1
 	sh _build_win32.sh >> _build.log 2>&1
-	
-	#sh ../switch_arch.sh
+	sh ../switch_arch.sh
 	
 	#gcc -v >> _build.log 2>&1
 	#sh _build_win32.sh >> _build.log 2>&1
-	
-	#sh ../switch_arch.sh
+	sh ../switch_arch.sh
 
 
 	if [ $? != "0" ];then
@@ -44,15 +42,15 @@ function BUILD
 		scp _build.log web@satgnu.net:www/satgnu.net/files
 		mailsend.exe -d jdolan.dyndns.org -smtp jdolan.dyndns.org -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@jdolan.dyndns.org -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
 	else
-    echo "build succeeded"
+		echo "Build succeeded"
     	scp _build.log web@satgnu.net:www/satgnu.net/files
 		rm _build.log
 	fi
 }
 
 while true; do
-	CURREV=`svn info			 $CURRENTARCH/quake2world|grep Revision:|cut -d\  -f2`
-	NEWREV=`svn info svn://jdolan.dyndns.org/quake2world |grep Revision:|cut -d\  -f2`
+	CURREV=`svn info			$CURRENTARCH/quake2world|grep Revision:|cut -d\  -f2`
+	NEWREV=`svn info svn://jdolan.dyndns.org/quake2world|grep Revision:|cut -d\  -f2`
 
 	echo $CURREV $NEWREV
 
