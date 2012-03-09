@@ -23,7 +23,9 @@ set -e
 set -o errexit
 
 CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
+if [ ! -d $CURRENTARCH ];then
 mkdir -f $CURRENTARCH
+fi
 cd $CURRENTARCH
 START=`pwd`
 svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world
