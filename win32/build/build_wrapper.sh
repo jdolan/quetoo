@@ -18,27 +18,29 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #############################################################################
 
+CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2`
+
+
 function BUILD
 {
 	rm -f _build.log
 	sh _build_win32.sh > _build.log 2>&1
-	
-  scp _build.log web@satgnu.net:www/satgnu.net/files
-
 
 	if [ $? != "0" ];then
-
 		echo "Build error"
+		scp _build.log web@satgnu.net:www/satgnu.net/files
+
 		#mailsend.exe -d satgnu.net -smtp 10.0.2.2 -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@satgnu.net -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
 	else
     echo "build succeeded"
+    	scp _build.log web@satgnu.net:www/satgnu.net/files
 		rm _build.log
 	fi
 }
 
 while true; do
-	CURREV=`svn info quake2world|grep Revision:|cut -d\  -f2`
-	NEWREV=`svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world |grep "evision"|cut -d\  -f 4|cut -d\. -f1`
+	CURREV=`svn info $CURRENTARCH/quake2world|grep Revision:|cut -d\  -f2`
+	NEWREV=`svn info svn://jdolan.dyndns.org/quake2world/trunk |grep Revision:|cut -d\  -f2`
 
   echo $CURREV $NEWREV
 
