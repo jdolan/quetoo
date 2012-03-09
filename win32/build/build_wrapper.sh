@@ -29,7 +29,7 @@ function BUILD
 	if [ $? != "0" ];then
 		echo "Build error"
 		scp _build.log web@satgnu.net:www/satgnu.net/files
-		#mailsend.exe -d satgnu.net -smtp 10.0.2.2 -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@satgnu.net -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
+		mailsend.exe -d jdolan.dyndns.org -smtp jdolan.dyndns.org -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@jdolan.dyndns.org -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
 	else
     echo "build succeeded"
     	scp _build.log web@satgnu.net:www/satgnu.net/files
