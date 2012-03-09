@@ -22,6 +22,9 @@
 set -e
 set -o errexit
 
+CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2`
+mkdir $CURRENTARCH
+cd $CURRENTARCH
 START=`pwd`
 svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world
 rev=` svn info quake2world/ |grep evision|cut -d\  -f 2`
@@ -31,9 +34,9 @@ cd $START/quake2world
 autoreconf -i --force
 ./configure --prefix=/tmp/quake2world
 
-cd src/tools/q2wmap
-sed -i 's:-O2::g' $(find . -name Makefile)
 cd $START/quake2world
+sed -i 's:-O2:-O0:g' $(find . -name Makefile)
+
 
 make
 make install
@@ -47,7 +50,7 @@ cd $START
 rm -Rf quake2world_rev* dist
 mkdir -p dist/quake2world/default
 cd dist/quake2world
-cp ../../updater/* .
+cp ../../../updater/* .
 
 cp /tmp/quake2world/bin/pak.exe .
 cp /tmp/quake2world/bin/q2wmap.exe .
