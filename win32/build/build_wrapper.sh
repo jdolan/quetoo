@@ -24,7 +24,11 @@ CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
 function BUILD
 {
 	rm -f _build.log
-	sh _build_win32.sh > _build.log 2>&1
+	gcc -v >> _build.log 2>&1
+	sh _build_win32.sh >> _build.log 2>&1
+	#sh ../switch_arch.sh
+	#sh _build_win32.sh >> _build.log 2>&1
+
 
 	if [ $? != "0" ];then
 		echo "Build error"
