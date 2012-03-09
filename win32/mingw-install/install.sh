@@ -22,8 +22,13 @@
 set -e
 set -o errexit
 
+CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
+if [ -z $CURRENTARCH ]; then
+  echo "/mingw is not mounted or gcc not installed"
+fi
+
 START=`pwd`
-TMP=$START/`gcc -v 2>&1|grep Target|cut -d\  -f2`
+TMP=$START/$CURRENTARCH
 
 mkdir $TMP
 cd $TMP

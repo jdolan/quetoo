@@ -38,9 +38,12 @@ svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world
 rev=` svn info quake2world/ |grep evision|cut -d\  -f 2`
 echo checked out revision $rev
 
+PREFIX=/tmp/quake2world-$CURRENTARCH
+
+
 cd $START/quake2world
 autoreconf -i --force
-./configure --prefix=/tmp/quake2world
+./configure --prefix=$PREFIX
 
 cd $START/quake2world
 sed -i 's:-O2:-O0:g' $(find . -name Makefile)
@@ -61,10 +64,10 @@ cd dist/quake2world
 cp ../../../updater/* .
 sed -i 's/-win32 .$/-win32\/'$CURRENTARCH' ./g' Update.bat
 
-cp /tmp/quake2world/bin/pak.exe .
-cp /tmp/quake2world/bin/q2wmap.exe .
-cp /tmp/quake2world/bin/quake2world.exe .
-rm -Rf /tmp/quake2world
+cp $PREFIX/bin/pak.exe .
+cp $PREFIX/bin/q2wmap.exe .
+cp $PREFIX/bin/quake2world.exe .
+rm -Rf $PREFIX
 cp $START/quake2world/src/game/default/game.dll ./default
 cp $START/quake2world/src/cgame/default/cgame.dll ./default
 
