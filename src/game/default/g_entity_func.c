@@ -465,7 +465,7 @@ void G_func_plat(g_edict_t *ent) {
 	ent->move_info.speed = ent->speed;
 	ent->move_info.accel = ent->accel;
 	ent->move_info.decel = ent->decel;
-	ent->move_info.wait = ent->wait;
+	ent->move_info.wait = ent->wait * 1000;	//this appears to be compltely optimized out by GCC
 	VectorCopy(ent->pos1, ent->move_info.start_origin);
 	VectorCopy(ent->s.angles, ent->move_info.start_angles);
 	VectorCopy(ent->pos2, ent->move_info.end_origin);
@@ -594,7 +594,7 @@ static void G_func_button_wait(g_edict_t *self) {
 	G_UseTargets(self, self->activator);
 
 	if (self->move_info.wait >= 0) {
-		self->next_think = g_level.time + self->move_info.wait;
+		self->next_think = g_level.time + self->move_info.wait * 1000;
 		self->think = G_func_button_reset;
 	}
 }
@@ -703,7 +703,7 @@ void G_func_button(g_edict_t *ent) {
 	ent->move_info.speed = ent->speed;
 	ent->move_info.accel = ent->accel;
 	ent->move_info.decel = ent->decel;
-	ent->move_info.wait = ent->wait;
+	ent->move_info.wait = ent->wait * 1000;
 	VectorCopy(ent->pos1, ent->move_info.start_origin);
 	VectorCopy(ent->s.angles, ent->move_info.start_angles);
 	VectorCopy(ent->pos2, ent->move_info.end_origin);
@@ -749,7 +749,7 @@ static void G_func_door_up(g_edict_t *self) {
 
 	if (self->move_info.wait >= 0) {
 		self->think = G_func_door_go_down;
-		self->next_think = g_level.time + self->move_info.wait;
+		self->next_think = g_level.time + self->move_info.wait * 1000;
 	}
 }
 
@@ -793,7 +793,7 @@ static void G_func_door_go_up(g_edict_t *self, g_edict_t *activator) {
 
 	if (self->move_info.state == STATE_TOP) { // reset top wait time
 		if (self->move_info.wait >= 0)
-			self->next_think = g_level.time + self->move_info.wait;
+			self->next_think = g_level.time + self->move_info.wait * 1000;
 		return;
 	}
 
@@ -1073,7 +1073,7 @@ void G_func_door(g_edict_t *ent) {
 	ent->move_info.speed = ent->speed;
 	ent->move_info.accel = ent->accel;
 	ent->move_info.decel = ent->decel;
-	ent->move_info.wait = ent->wait;
+	ent->move_info.wait = ent->wait * 1000;
 	VectorCopy(ent->pos1, ent->move_info.start_origin);
 	VectorCopy(ent->s.angles, ent->move_info.start_angles);
 	VectorCopy(ent->pos2, ent->move_info.end_origin);
@@ -1207,7 +1207,7 @@ void G_func_water(g_edict_t *self) {
 
 	if (!self->wait)
 		self->wait = -1;
-	self->move_info.wait = self->wait;
+	self->move_info.wait = self->wait * 1000;
 
 	self->use = G_func_door_use;
 
@@ -1319,7 +1319,7 @@ static void G_func_train_next(g_edict_t *self) {
 		goto again;
 	}
 
-	self->move_info.wait = ent->wait;
+	self->move_info.wait = ent->wait * 1000;
 	self->target_ent = ent;
 
 	if (!(self->flags & FL_TEAM_SLAVE)) {
@@ -1506,7 +1506,7 @@ void G_func_timer(g_edict_t *self) {
 
 	if (self->spawn_flags & 1) {
 		self->next_think = g_level.time + 1000 + g_game.spawn.pause_time + self->delay * 1000
-				+ self->wait + crand() * (self->random * 1000);
+				+ self->wait * 1000 + crand() * (self->random * 1000);
 		self->activator = self;
 	}
 
