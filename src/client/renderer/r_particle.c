@@ -224,8 +224,6 @@ static void R_DrawParticles_(int mask) {
 		glDrawArrays(GL_QUADS, 0, j / 3);
 }
 
-#define PARTICLE_MASK (PARTICLE_NORMAL | PARTICLE_ROLL | PARTICLE_BUBBLE | \
-					   PARTICLE_BEAM | PARTICLE_WEATHER | PARTICLE_SPLASH)
 /*
  * R_DrawParticles
  */
@@ -250,9 +248,7 @@ void R_DrawParticles(void) {
 	v[0] = 90; // even if they are below us
 	AngleVectors(v, NULL, r_particle_state.splash_right[1], r_particle_state.splash_up[1]);
 
-	R_DrawParticles_(PARTICLE_DECAL);
-
-	R_DrawParticles_(PARTICLE_MASK);
+	R_DrawParticles_(0xff);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
