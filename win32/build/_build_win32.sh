@@ -22,7 +22,7 @@
 set -e
 set -o errexit
 
-CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2`
+CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
 mkdir $CURRENTARCH
 cd $CURRENTARCH
 START=`pwd`
@@ -65,16 +65,12 @@ cd /mingw/bin
 cp $LIBS $START/dist/quake2world
 
 cd $START/dist
-zip -9 -r ../quake2world_rev"$rev".zip quake2world
+zip -9 -r ../quake2world_rev"$rev"-"$CURRENTARCH".zip quake2world
 
 cd $START
-#scp -r dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32
-#scp quake2world_rev"$rev".zip web@satgnu.net:www/satgnu.net/files
 
-_rsync_retry.sh -vrz --progress --inplace --rsh='ssh' dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32
-_rsync_retry.sh -vrz --progress --delete --inplace --rsh='ssh' dist/quake2world/* web@satgnu.net:www/satgnu.net/files/quake2world
-_rsync_retry.sh -vrz --progress --inplace --rsh='ssh' quake2world_rev"$rev".zip web@satgnu.net:www/satgnu.net/files
+_rsync_retry.sh -vrz --progress --inplace --rsh='ssh' dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32/"$CURRENTARCH"
+_rsync_retry.sh -vrz --progress --delete --inplace --rsh='ssh' dist/quake2world/* web@satgnu.net:www/satgnu.net/files/quake2world-"$CURRENTARCH"
+_rsync_retry.sh -vrz --progress --inplace --rsh='ssh' quake2world_rev"$rev"-"$CURRENTARCH".zip web@satgnu.net:www/satgnu.net/files
 
-#ssh web@satgnu.net zip -9 -r /home/web/www/satgnu.net/files/quake2world_rev"$rev".zip  /home/web/www/satgnu.net/files/quake2world
-
-ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world_rev"$rev".zip  /home/web/www/satgnu.net/files/quake2world-win32-snapshot.zip
+ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world_rev"$rev"-"$CURRENTARCH".zip  /home/web/www/satgnu.net/files/quake2world-"$CURRENTARCH"-snapshot.zip

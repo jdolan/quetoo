@@ -29,7 +29,6 @@ function BUILD
 	if [ $? != "0" ];then
 		echo "Build error"
 		scp _build.log web@satgnu.net:www/satgnu.net/files
-
 		#mailsend.exe -d satgnu.net -smtp 10.0.2.2 -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@satgnu.net -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
 	else
     echo "build succeeded"
@@ -39,10 +38,10 @@ function BUILD
 }
 
 while true; do
-	CURREV=`svn info $CURRENTARCH/quake2world|grep Revision:|cut -d\  -f2`
-	NEWREV=`svn info svn://jdolan.dyndns.org/quake2world/trunk |grep Revision:|cut -d\  -f2`
+	CURREV=`svn info			 $CURRENTARCH/quake2world|grep Revision:|cut -d\  -f2`
+	NEWREV=`svn info svn://jdolan.dyndns.org/quake2world |grep Revision:|cut -d\  -f2`
 
-  echo $CURREV $NEWREV
+	echo $CURREV $NEWREV
 
 	if [ $CURREV != $NEWREV -o -e _build.log ];then
 		echo "Building" - `date`
