@@ -60,7 +60,7 @@ rm -Rf quake2world_rev* dist
 mkdir -p dist/quake2world/default
 cd dist/quake2world
 cp ../../../updater/* .
-sed -i 's/-win32 .$/-win32\/'$CURRENTARCH' ./g' Update.bat
+sed -i 's/-win32 .$/-win32\/'$CURRENTARCH'\/\* ./g' Update.bat
 
 cp $PREFIX/bin/pak.exe .
 cp $PREFIX/bin/q2wmap.exe .
