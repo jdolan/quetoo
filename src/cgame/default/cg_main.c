@@ -32,6 +32,9 @@ cvar_t *cg_crosshair;
 cvar_t *cg_draw_blend;
 cvar_t *cg_draw_hud;
 cvar_t *cg_draw_weapon;
+cvar_t *cg_draw_weapon_x;
+cvar_t *cg_draw_weapon_y;
+cvar_t *cg_draw_weapon_z;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
 cvar_t *cg_third_person;
@@ -67,13 +70,22 @@ static void Cg_Init(void) {
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of screen alpha-blending");
 	cg_draw_hud = cgi.Cvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
+
 	cg_draw_weapon = cgi.Cvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
 			"Toggle drawing of the weapon model.");
+
+	cg_draw_weapon_x = cgi.Cvar("cg_draw_weapon_x", "0.0", CVAR_ARCHIVE,
+			"The x offset for drawing the weapon model.");
+	cg_draw_weapon_y = cgi.Cvar("cg_draw_weapon_y", "0.0", CVAR_ARCHIVE,
+			"The y offset for drawing the weapon model.");
+	cg_draw_weapon_z = cgi.Cvar("cg_draw_weapon_z", "0.0", CVAR_ARCHIVE,
+			"The z offset for drawing the weapon model.");
 
 	cg_fov = cgi.Cvar("cg_fov", "100.0", CVAR_ARCHIVE, NULL);
 	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "40.0", CVAR_ARCHIVE, NULL);
 
-	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE, "Activate third person perspective.");
+	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE,
+			"Activate third person perspective.");
 
 	cgi.Print("  Client game initialized.\n");
 }

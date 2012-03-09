@@ -39,15 +39,12 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 	// translation is applied differently for view weapons
 	if (e->effects & EF_WEAPON) {
 
-		// adjust forward / back offset according to field of view
-		float f = pow((180.0 - r_view.fov[0]), 3) * 0.00001;
-
-		// add bob on all 3 axis as well
+		// apply weapon bob on all 3 axis
 		float b = r_view.bob * 0.4;
 
 		c = e->model->view_config;
 
-		VectorMA(e->origin, c->translate[0] + f + b, r_view.forward, e->origin);
+		VectorMA(e->origin, c->translate[0] + b, r_view.forward, e->origin);
 		VectorMA(e->origin, 6.0, r_view.right, e->origin);
 
 		b = r_view.bob * 0.25;
