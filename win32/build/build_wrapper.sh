@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #############################################################################
 
-CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2`
+CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
 
 
 function BUILD
