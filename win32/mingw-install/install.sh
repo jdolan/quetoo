@@ -23,7 +23,7 @@ set -e
 set -o errexit
 
 START=`pwd`
-TMP=$START/tmp
+TMP=$START/`gcc -v 2>&1|grep Target|cut -d\  -f2`
 
 mkdir $TMP
 cd $TMP
