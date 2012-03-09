@@ -56,12 +56,10 @@ rm -Rf /tmp/quake2world
 cp $START/quake2world/src/game/default/game.dll ./default
 cp $START/quake2world/src/cgame/default/cgame.dll ./default
 
+LIBS=`ldd.exe -R quake2world.exe |grep mingw|cut -d\= -f 1|sed 's/ //g'|sed 's/\t//g'`
+
 cd /mingw/bin
-cp AntTweakBar.dll libcurl-4.dll libz-1.dll libpng15-15.dll \
-   libgcc_s_dw2-1.dll libjpeg-8.dll libpdcurses.dll  \
-   SDL.dll libvorbis-0.dll SDL_image.dll \
-   libvorbisfile-3.dll SDL_mixer.dll libogg-0.dll \
-    $START/dist/quake2world
+cp $LIBS $START/dist/quake2world
 
 cd $START/dist
 zip -9 -r ../quake2world_rev"$rev".zip quake2world
