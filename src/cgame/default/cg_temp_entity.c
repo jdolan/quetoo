@@ -106,49 +106,54 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t v;
+	int j;
 
-	if (!(p = Cg_AllocParticle()))
-		return;
+	if ((p = Cg_AllocParticle())) {
+		p->type = PARTICLE_DECAL;
 
-	p->type = PARTICLE_DECAL;
-	VectorAdd(org, dir, p->org);
+		VectorAdd(org, dir, p->org);
 
-	VectorScale(dir, -1.0, v);
-	VectorAngles(v, p->dir);
-	p->dir[ROLL] = rand() % 360;
+		VectorScale(dir, -1.0, v);
+		VectorAngles(v, p->dir);
+		p->dir[ROLL] = rand() % 360;
 
-	p->image = cg_particle_bullet[rand() & 2];
+		p->image = cg_particle_bullet[rand() & 2];
 
-	p->color = 0 + (rand() & 1);
+		p->color = 0 + (rand() & 1);
 
-	p->scale = 1.5;
+		p->scale = 1.5;
 
-	p->alpha = 2.0;
-	p->alpha_vel = -1.0 / (2.0 + frand() * 0.3);
+		p->alpha = 2.0;
 
-	p->blend = GL_ONE_MINUS_SRC_ALPHA;
+		p->alpha_vel = -1.0 / (2.0 + frand() * 0.3);
 
-	if (!(p = Cg_AllocParticle()))
-		return;
+		p->blend = GL_ONE_MINUS_SRC_ALPHA;
+	}
 
-	VectorCopy(org, p->org);
+	if ((p = Cg_AllocParticle())) {
+		VectorCopy(org, p->org);
 
-	VectorScale(dir, 200.0, p->vel);
+		VectorScale(dir, 200.0, p->vel);
 
-	if (p->vel[2] < 100.0) // deflect up a bit
-		p->vel[2] = 100.0;
+		for (j = 0; j < 3; j++) {
+			p->vel[j] += crand() * 75.0;
+		}
 
-	p->accel[2] -= 4.0 * PARTICLE_GRAVITY;
+		if (p->vel[2] < 100.0) // deflect up a bit
+			p->vel[2] = 100.0;
 
-	p->image = cg_particle_spark;
+		p->accel[2] = -3.0 * PARTICLE_GRAVITY;
 
-	p->color = 221 + (rand() & 7);
+		p->image = cg_particle_spark;
 
-	p->scale = 1.5;
-	p->scale_vel = -4.0;
+		p->color = 221 + (rand() & 7);
 
-	p->alpha = 1.0;
-	p->alpha_vel = -1.0 / (0.7 + crand() * 0.1);
+		p->scale = 2.0;
+		p->scale_vel = -3.0;
+
+		p->alpha = 1.0;
+		p->alpha_vel = -1.0 / (0.6 + crand() * 0.1);
+	}
 
 	VectorAdd(org, dir, s.light.origin);
 	s.light.radius = 20.0;
