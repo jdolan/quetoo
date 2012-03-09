@@ -32,22 +32,20 @@ if [ ! -d $CURRENTARCH ];then
 	mkdir $CURRENTARCH
 fi
 
+PREFIX=/tmp/quake2world-$CURRENTARCH
+
+
 cd $CURRENTARCH
 START=`pwd`
 svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world
 rev=` svn info quake2world/ |grep evision|cut -d\  -f 2`
 echo checked out revision $rev
 
-PREFIX=/tmp/quake2world-$CURRENTARCH
-
 
 cd $START/quake2world
 autoreconf -i --force
 ./configure --prefix=$PREFIX
-
-cd $START/quake2world
 sed -i 's:-O2:-O0:g' $(find . -name Makefile)
-
 
 make
 make install
