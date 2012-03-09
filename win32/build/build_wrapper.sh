@@ -27,9 +27,13 @@ fi
 function BUILD
 {
 	rm -f _build.log
+	
 	gcc -v >> _build.log 2>&1
 	sh _build_win32.sh >> _build.log 2>&1
+	
 	#sh ../switch_arch.sh
+	
+	#gcc -v >> _build.log 2>&1
 	#sh _build_win32.sh >> _build.log 2>&1
 
 
