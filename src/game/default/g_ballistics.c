@@ -548,7 +548,7 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_
 				G_Damage(self->owner, self, self->owner, vec3_origin, self->s.origin,
 						plane->normal, self->dmg * 0.06, 0, DAMAGE_ENERGY, MOD_HYPERBLASTER);
 
-				self->owner->velocity[2] += 70.0;
+				self->owner->velocity[2] += 80.0;
 			}
 		}
 	}
@@ -578,7 +578,7 @@ void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int spee
 	bolt->s.effects = EF_HYPERBLASTER;
 	bolt->owner = ent;
 	bolt->touch = G_HyperblasterProjectile_Touch;
-	bolt->next_think = g_level.time + 3000;
+	bolt->next_think = g_level.time + 6000;
 	bolt->think = G_FreeEdict;
 	bolt->dmg = damage;
 	bolt->knockback = knockback;

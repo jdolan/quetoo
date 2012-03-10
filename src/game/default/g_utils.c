@@ -69,6 +69,10 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	VectorMA(org, 8.0, right, org);
 	VectorMA(org, 28.0, forward, org);
 
+	// check that we're at a valid origin
+	if (gi.PointContents(org) & MASK_PLAYER_SOLID)
+		return;
+
 	// correct the destination of the shot for the offset produced above
 	VectorAdd(ent->client->ps.pmove.origin, ent->client->ps.pmove.view_offset, view);
 	VectorScale(view, 0.125, view);
