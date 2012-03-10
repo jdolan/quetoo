@@ -25,6 +25,8 @@ xcopy autotools\* mingw32 /E
 xcopy autotools\* mingw64 /E
 
 msys\1.0\bin\sh.exe -c "echo export CPPFLAGS=-I/mingw/include >> /etc/profile"
+msys\1.0\bin\sh.exe -c "echo export LDFLAGS="-L/mingw/lib" >> /etc/profile"
+
 
 #extract rubenvb gcc package
 # mingw64: 

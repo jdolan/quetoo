@@ -25,21 +25,26 @@ set -o errexit
 
 CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
 
-if [ -z $CURRENTARCH ]; then
-  echo "/mingw is not mounted or gcc not installed"
+function SWITCH
+{
+	if [ -z $CURRENTARCH ]; then
+	  echo "/mingw is not mounted or gcc not installed"
+	elif [ $CURRENTARCH == "i686" ]; then
+	  echo "Current toolchain:" $CURRENTARCH
+	  echo "Switching to 64bit toolchain"
+	  sed -i 's/mingw32/mingw64/g' /etc/fstab
+	  echo -n "New toolchain:"; gcc -v 2>&1|grep Target|cut -d\  -f2
+	  
+	elif [ $CURRENTARCH == "x86_64" ]; then
+	  echo "Current toolchain:" $CURRENTARCH
+	  echo "Switching to 32bit toolchain"
+	  sed -i 's/mingw64/mingw32/g' /etc/fstab
+	  echo -n "New toolchain:"; gcc -v 2>&1|grep Target|cut -d\  -f2
+	fi
+}
 
-elif [ $CURRENTARCH == "i686" ]; then
-  echo "Current toolchain:" $CURRENTARCH
-  echo "Switching to 64bit toolchain"
-  sed -i 's/mingw32/mingw64/g' /etc/fstab
-  echo -n "New toolchain:"; gcc -v 2>&1|grep Target|cut -d\  -f2
-  
-elif [ $CURRENTARCH == "x86_64" ]; then
-  echo "Current toolchain:" $CURRENTARCH
-  echo "Switching to 32bit toolchain"
-  sed -i 's/mingw64/mingw32/g' /etc/fstab
-  echo -n "New toolchain:"; gcc -v 2>&1|grep Target|cut -d\  -f2
-
-
-fi
-
+#workaround for sed not being able to write to /etc/fstab at the given moment
+while [ $CURRENTARCH == `gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1` ]; do
+	SWITCH
+	sleep 5
+done
