@@ -26,6 +26,7 @@ xcopy autotools\* mingw64 /E
 
 msys\1.0\bin\sh.exe -c "echo export CPPFLAGS=-I/mingw/include >> /etc/profile"
 msys\1.0\bin\sh.exe -c "echo export LDFLAGS="-L/mingw/lib" >> /etc/profile"
+msys\1.0\bin\sh.exe -c "mount c:/q2wdevenv/mingw32 /mingw"
 
 
 #extract rubenvb gcc package
@@ -34,6 +35,4 @@ msys\1.0\bin\sh.exe -c "echo export LDFLAGS="-L/mingw/lib" >> /etc/profile"
 # mingw32: 
 # http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/rubenvb/
 
-cd msys\1.0\postinstall
-pi.bat
 
