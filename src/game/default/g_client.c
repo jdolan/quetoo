@@ -965,8 +965,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
  * If the client is allowed, the connection process will continue
  * and eventually get to G_Begin()
  * Changing levels will NOT cause this to be called again.
- */
-bool G_ClientConnect(g_edict_t *ent, char *user_info) {
+ */bool G_ClientConnect(g_edict_t *ent, char *user_info) {
 
 	// check password
 	const char *value = GetUserInfo(user_info, "password");
@@ -1155,7 +1154,8 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 		if (ent->ground_entity && !pm.ground_entity && (pm.cmd.up >= 10) && (pm.water_level == 0)
 				&& client->jump_time < g_level.time - 200) {
 
-			vec3_t angles, forward, velocity;
+			vec3_t angles, forward, velocity, point;
+			c_trace_t tr;
 			float speed;
 
 			VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
@@ -1166,7 +1166,11 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 
 			speed = VectorNormalize(velocity);
 
-			if (DotProduct(velocity, forward) < 0.0 && speed > 200.0)
+			VectorMA(ent->s.origin, speed * 0.4, velocity, point);
+
+			tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_PLAYER_SOLID);
+
+			if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && speed > 200.0)
 				G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 			else
 				G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
