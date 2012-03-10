@@ -37,6 +37,3 @@ msys\1.0\bin\sh.exe -c "echo export LDFLAGS="-L/mingw/lib" >> /etc/profile"
 cd msys\1.0\postinstall
 pi.bat
 
-cscript.exe q2wlnk.vbs
-
-
