@@ -23,7 +23,7 @@
 
 #define UPDATE_THRESHOLD 0.02
 
-/*
+/**
  * R_UpdateMaterial
  *
  * Materials "think" every few milliseconds to advance animations.
@@ -64,7 +64,7 @@ static void R_UpdateMaterial(r_material_t *m) {
 	}
 }
 
-/*
+/**
  * R_StageLighting
  *
  * Manages state for stages supporting static, dynamic, and per-pixel lighting.
@@ -101,7 +101,7 @@ static void R_StageLighting(r_bsp_surface_t *surf, r_stage_t *stage) {
 	}
 }
 
-/*
+/**
  * R_StageVertex
  *
  * Generates a single vertex for the specified stage.
@@ -113,7 +113,7 @@ static inline void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *s
 	VectorCopy(in, out);
 }
 
-/*
+/**
  * R_StageTextureMatrix
  *
  * Manages texture matrix manipulations for stages supporting rotations,
@@ -164,7 +164,7 @@ static inline void R_StageTextureMatrix(r_bsp_surface_t *surf, r_stage_t *stage)
 	identity = false;
 }
 
-/*
+/**
  * R_StageTexCoord
  *
  * Generates a single texture coordinate for the specified stage and vertex.
@@ -206,7 +206,7 @@ static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
 		0.5,
 		0.3 };
 
-/*
+/**
  * R_StageColor
  *
  * Generates a single color for the specified stage and vertex.
@@ -248,7 +248,7 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t c
 	}
 }
 
-/*
+/**
  * R_SetSurfaceStageState
  *
  * Manages all state for the specified surface and stage.
@@ -302,7 +302,7 @@ static void R_SetSurfaceStageState(r_bsp_surface_t *surf, r_stage_t *stage) {
 	}
 }
 
-/*
+/**
  * R_DrawSurfaceStage
  *
  * Render the specified stage for the surface.  Resolve vertex attributes via
@@ -342,7 +342,7 @@ static void R_DrawSurfaceStage(r_bsp_surface_t *surf, r_stage_t *stage) {
 	glDrawArrays(GL_POLYGON, 0, i);
 }
 
-/*
+/**
  * R_DrawMaterialSurfaces
  *
  * Iterates the specified surfaces list, updating materials as they are
