@@ -31,11 +31,11 @@ function BUILD
 	
 	gcc -v >> _build.log 2>&1
 	sh _build_win32.sh >> _build.log 2>&1
-	sh ../switch_arch.sh
+	sh ../switch_arch.sh >> _build.log 2>&1
 	
-	#gcc -v >> _build.log 2>&1
-	#sh _build_win32.sh >> _build.log 2>&1
-	sh ../switch_arch.sh
+	gcc -v >> _build.log 2>&1
+	sh _build_win32.sh >> _build.log 2>&1
+	sh ../switch_arch.sh >> _build.log 2>&1
 
 
 	if [ $? != "0" ];then

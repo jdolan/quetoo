@@ -45,7 +45,7 @@ echo checked out revision $rev
 cd $START/quake2world
 autoreconf -i --force
 ./configure --prefix=$PREFIX
-sed -i 's:-O2:-O0:g' $(find . -name Makefile)
+#sed -i 's:-O2:-O0:g' $(find . -name Makefile)
 
 make
 make install
