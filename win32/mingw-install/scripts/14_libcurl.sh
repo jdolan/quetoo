@@ -5,6 +5,10 @@ wget -c $SOURCE
 
 tar xzf `ls curl-*.tar.gz`
 cd curl-*
-./configure --prefix=/mingw --without-ssl
-make -j 4
+./configure --prefix=/mingw --enable-shared --enable-static --disable-ldap \
+--disable-rtsp --disable-dict --disable-telnet --disable-pop3 \
+--disable-imap --disable-smtp --disable-gopher --without-ssl
+
+make -j 4 
 make install
+
