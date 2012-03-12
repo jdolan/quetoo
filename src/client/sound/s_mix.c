@@ -94,13 +94,10 @@ void S_PlaySample(const vec3_t org, unsigned short ent_num, s_sample_t *sample, 
 	if (!s_env.initialized)
 		return;
 
-	if (!sample)
-		return;
-
-	if (sample->name[0] == '*')
+	if (sample && sample->name[0] == '*') // resolve the model-specific sample
 		sample = S_LoadModelSample(&cl.entities[ent_num].current, sample->name);
 
-	if (!sample->chunk)
+	if (!sample || !sample->chunk)
 		return;
 
 	if ((i = S_AllocChannel()) == -1)

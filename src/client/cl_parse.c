@@ -21,31 +21,25 @@
 
 #include "cl_local.h"
 
-char *svc_strings[256] = {
-		"svc_bad",
-		"svc_nop",
-		"svc_muzzle_flash",
-		"svc_temp_entity",
-		"svc_layout",
-		"svc_disconnect",
-		"svc_reconnect",
-		"svc_sound",
-		"svc_print",
-		"svc_stuff_text",
-		"svc_server_data",
-		"svc_config_string",
-		"svc_spawn_baseline",
-		"svc_center_print",
-		"svc_download",
-		"svc_frame" };
+static char *sv_cmd_names[256] = {
+		"SV_CMD_BAD",
+		"SV_CMD_BASELINE",
+		"SV_CMD_CBUF_TEXT",
+		"SV_CMD_CONFIG_STRING",
+		"SV_CMD_DISCONNECT",
+		"SV_CMD_DOWNLOAD",
+		"SV_CMD_FRAME",
+		"SV_CMD_PRINT",
+		"SV_CMD_RECONNECT",
+		"SV_CMD_SERVER_DATA",
+		"SV_CMD_SOUND" };
 
-/*
+/**
  * Cl_CheckOrDownloadFile
  *
  * Returns true if the file exists, otherwise it attempts
  * to start a download from the server.
- */
-bool Cl_CheckOrDownloadFile(const char *file_name) {
+ */bool Cl_CheckOrDownloadFile(const char *file_name) {
 	FILE *fp;
 	char name[MAX_OSPATH];
 	char cmd[MAX_STRING_CHARS];
@@ -116,7 +110,7 @@ bool Cl_CheckOrDownloadFile(const char *file_name) {
 	return false;
 }
 
-/*
+/**
  * Cl_Download_f
  *
  * Manually request a download from the server.
@@ -191,10 +185,10 @@ void Cl_ParseConfigString(void) {
 	cls.cgame->UpdateConfigString(i);
 }
 
-/*
+/**
  * Cl_ParseDownload
  *
- * A download message has been received from the server
+ * A download message has been received from the server.
  */
 static void Cl_ParseDownload(void) {
 	int size, percent;
@@ -276,8 +270,7 @@ static void Cl_ParseServerData(void) {
 
 	// ensure protocol matches
 	if (i != PROTOCOL) {
-		Com_Error(ERR_DROP,
-				"Cl_ParseServerData: Server is using unknown protocol %d.\n", i);
+		Com_Error(ERR_DROP, "Cl_ParseServerData: Server is using unknown protocol %d.\n", i);
 	}
 
 	// retrieve spawn count and packet rate
@@ -312,14 +305,15 @@ static void Cl_ParseServerData(void) {
 static void Cl_ParseSound(void) {
 	vec3_t origin;
 	float *org;
-	int soundindex;
-	int ent_num;
+	unsigned short index;
+	unsigned short ent_num;
 	int atten;
 	int flags;
 
 	flags = Msg_ReadByte(&net_message);
 
-	soundindex = Msg_ReadByte(&net_message);
+	if ((index = Msg_ReadByte(&net_message)) > MAX_SOUNDS)
+		Com_Error(ERR_DROP, "Cl_ParseSound: %d > MAX_SOUNDS.\n", index);
 
 	if (flags & S_ATTEN)
 		atten = Msg_ReadByte(&net_message);
@@ -332,7 +326,7 @@ static void Cl_ParseSound(void) {
 		if (ent_num > MAX_EDICTS)
 			Com_Error(ERR_DROP, "Cl_ParseSound: ent_num = %d.\n", ent_num);
 	} else {
-		ent_num = -1;
+		ent_num = 0;
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
@@ -343,10 +337,10 @@ static void Cl_ParseSound(void) {
 		// use ent_num
 		org = NULL;
 
-	if (!cl.sound_precache[soundindex])
+	if (!cl.sound_precache[index])
 		return;
 
-	S_PlaySample(org, ent_num, cl.sound_precache[soundindex], atten);
+	S_PlaySample(org, ent_num, cl.sound_precache[index], atten);
 }
 
 /*
@@ -406,8 +400,8 @@ void Cl_ParseServerMessage(void) {
 			break;
 		}
 
-		if (cl_show_net_messages->integer >= 2 && svc_strings[cmd])
-			Cl_ShowNet(svc_strings[cmd]);
+		if (cl_show_net_messages->integer >= 2 && sv_cmd_names[cmd])
+			Cl_ShowNet(sv_cmd_names[cmd]);
 
 		switch (cmd) {
 
@@ -479,10 +473,8 @@ void Cl_ParseServerMessage(void) {
 		default:
 			// delegate to the client game module before failing
 			if (!cls.cgame->ParseMessage(cmd)) {
-				Com_Error(ERR_DROP,
-						"Cl_ParseServerMessage: Illegible server message:\n"
-							"  %d: last command was %s\n", cmd,
-						svc_strings[old_cmd]);
+				Com_Error(ERR_DROP, "Cl_ParseServerMessage: Illegible server message:\n"
+					"  %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
 			}
 			break;
 		}

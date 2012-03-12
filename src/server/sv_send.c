@@ -23,7 +23,7 @@
 
 char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
-/*
+/**
  * Sv_FlushRedirect
  *
  * Handles Com_Print output redirection, allowing the server to send output
@@ -46,7 +46,7 @@ void Sv_FlushRedirect(const int target, char *outputbuf) {
 	}
 }
 
-/*
+/**
  * Sv_ClientPrint
  *
  * Sends text across to be displayed if the level filter passes.
@@ -282,13 +282,14 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const unsi
 	int i;
 	vec3_t org;
 
+	flags = 0;
+
 	at = atten;
 	if (at > ATTN_STATIC) {
 		Com_Warn("Sv_PositionedSound: attenuation %d.\n", at);
 		at = DEFAULT_SOUND_ATTENUATION;
 	}
 
-	flags = 0;
 	if (at != DEFAULT_SOUND_ATTENUATION)
 		flags |= S_ATTEN;
 
@@ -296,7 +297,8 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const unsi
 	// the origin can also be explicitly set
 	if ((entity->sv_flags & SVF_NO_CLIENT) || (entity->solid == SOLID_BSP) || origin)
 		flags |= S_ORIGIN;
-	else
+
+	if (!(entity->sv_flags & SVF_NO_CLIENT) && NUM_FOR_EDICT(entity))
 		flags |= S_ENTNUM;
 
 	// use the entity origin unless it is a bsp model or explicitly specified

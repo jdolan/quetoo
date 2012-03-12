@@ -186,6 +186,11 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 	// determine what model the client is using
 	memset(model, 0, sizeof(model));
 
+	if (ent->number - 1 >= MAX_CLIENTS) {
+		Com_Warn("S_LoadModelSample: Invalid client entity: %d\n", ent->number - 1);
+		return NULL;
+	}
+
 	n = CS_CLIENTS + ent->number - 1;
 	if (cl.config_strings[n][0]) {
 		p = strchr(cl.config_strings[n], '\\');
