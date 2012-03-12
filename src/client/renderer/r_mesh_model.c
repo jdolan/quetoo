@@ -350,7 +350,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	version = LittleLong(inmodel->version);
 	if (version != MD3_VERSION) {
 		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has wrong version number "
-			"(%i should be %i)", mod->name, version, MD3_VERSION);
+			"(%i should be %i)\n", mod->name, version, MD3_VERSION);
 	}
 
 	mod->type = mod_md3;
@@ -368,19 +368,19 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	outmodel->num_meshes = LittleLong(inmodel->num_meshes);
 
 	if (outmodel->num_frames < 1) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has no frames.", mod->name);
+		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has no frames.\n", mod->name);
 	}
 
 	if (outmodel->num_frames > MD3_MAX_FRAMES) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many frames.", mod->name);
+		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many frames.\n", mod->name);
 	}
 
 	if (outmodel->num_tags > MD3_MAX_TAGS) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many tags.", mod->name);
+		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many tags.\n", mod->name);
 	}
 
 	if (outmodel->num_meshes > MD3_MAX_MESHES) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many meshes.", mod->name);
+		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many meshes.\n", mod->name);
 	}
 
 	// load the frames
@@ -445,17 +445,17 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		outmesh->num_verts = LittleLong(inmesh->num_verts);
 
 		if (outmesh->num_skins > MD3_MAX_SHADERS) {
-			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many skins.", mod->name,
+			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many skins.\n", mod->name,
 					outmesh->name);
 		}
 
 		if (outmesh->num_tris > MD3_MAX_TRIANGLES) {
-			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many triangles.", mod->name,
+			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many triangles.\n", mod->name,
 					outmesh->name);
 		}
 
 		if (outmesh->num_verts > MD3_MAX_VERTS) {
-			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many vertexes.", mod->name,
+			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many vertexes.\n", mod->name,
 					outmesh->name);
 		}
 
@@ -728,7 +728,7 @@ static int R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char *li
 			break;
 
 		if (i == MAX_OBJ_FACE_VERTS) {
-			Com_Error(ERR_DROP, "R_LoadObjModelFace: too many vertexes: %s.", mod->name);
+			Com_Error(ERR_DROP, "R_LoadObjModelFace: too many vertexes: %s.\n", mod->name);
 		}
 
 		if (!obj->tris) { // simply count verts
@@ -780,7 +780,7 @@ static int R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char *li
 	tris = i - 2; // number of triangles from parsed verts
 
 	if (tris < 1)
-		Com_Error(ERR_DROP, "R_LoadObjModelFace: too few vertexes: %s.", mod->name);
+		Com_Error(ERR_DROP, "R_LoadObjModelFace: too few vertexes: %s.\n", mod->name);
 
 	R_LoadObjModelTris(obj, verts, tris); // break verts up into tris
 
@@ -804,7 +804,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 			float *f = obj->verts + obj->num_verts_parsed * 3;
 
 			if (sscanf(line + 2, "%f %f %f", &f[0], &f[2], &f[1]) != 3)
-				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed vertex for %s: %s.", mod->name,
+				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed vertex for %s: %s.\n", mod->name,
 						line);
 
 			obj->num_verts_parsed++;
@@ -817,7 +817,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 			float *f = obj->normals + obj->num_normals_parsed * 3;
 
 			if (sscanf(line + 3, "%f %f %f", &f[0], &f[1], &f[2]) != 3)
-				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed normal for %s: %s.", mod->name,
+				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed normal for %s: %s\n.", mod->name,
 						line);
 
 			obj->num_normals_parsed++;
@@ -831,7 +831,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 			float *f = obj->texcoords + obj->num_texcoords_parsed * 2;
 
 			if (sscanf(line + 3, "%f %f", &f[0], &f[1]) != 2)
-				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed texcoord for %s: %s.",
+				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed texcoord for %s: %s.\n",
 						mod->name, line);
 
 			f[1] = -f[1];

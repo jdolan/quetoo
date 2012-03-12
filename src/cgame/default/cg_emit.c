@@ -396,7 +396,7 @@ void Cg_AddEmits(void) {
 		if (e->time > cgi.client->time)
 			continue;
 
-		if (e->flags & EMIT_LIGHT && e->hz) {
+		if ((e->flags & EMIT_LIGHT) && e->hz) {
 			const r_light_t *l = Cg_EmitLight(e);
 			r_sustained_light_t s;
 

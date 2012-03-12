@@ -58,7 +58,7 @@ void *R_HunkAlloc(size_t size) {
 	byte *b;
 
 	if (r_hunk.offset + size > r_hunk.size) {
-		Com_Error(ERR_DROP, "R_HunkAlloc: Overflow.");
+		Com_Error(ERR_DROP, "R_HunkAlloc: Overflow.\n");
 	}
 
 	b = r_hunk.base + r_hunk.offset;
@@ -193,14 +193,14 @@ r_model_t *R_LoadModel(const char *name) {
 	unsigned short i;
 
 	if (!name || !name[0]) {
-		Com_Error(ERR_DROP, "R_LoadModel: NULL name.");
+		Com_Error(ERR_DROP, "R_LoadModel: NULL name.\n");
 	}
 
 	// inline models are fetched from a separate array
 	if (name[0] == '*') {
 		i = atoi(name + 1);
 		if (i < 1 || !r_world_model || i >= r_world_model->num_submodels) {
-			Com_Error(ERR_DROP, "R_LoadModel: Bad inline model number.");
+			Com_Error(ERR_DROP, "R_LoadModel: Bad inline model number.\n");
 		}
 		return &r_inline_models[i];
 	}
@@ -221,7 +221,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 	if (i == r_num_models) {
 		if (r_num_models == MAX_MOD_KNOWN) {
-			Com_Error(ERR_DROP, "R_LoadModel: MAX_MOD_KNOWN reached.");
+			Com_Error(ERR_DROP, "R_LoadModel: MAX_MOD_KNOWN reached.\n");
 		}
 		r_num_models++;
 	}
@@ -343,7 +343,7 @@ void R_BeginLoading(const char *bsp_name, int bsp_size) {
 
 		if (bs != bsp_size) {
 			Com_Error(ERR_DROP, "Local map version differs from server: "
-				"%i != %i.", bs, bsp_size);
+				"%i != %i.\n", bs, bsp_size);
 		}
 	}
 
@@ -363,7 +363,7 @@ void R_InitModels(void) {
 	r_hunk.size = (size_t) r_hunk_mb->value * 1024 * 1024;
 
 	if (!(r_hunk.base = Z_Malloc(r_hunk.size))) { // malloc the new one
-		Com_Error(ERR_FATAL, "R_HunkInit: Unable to allocate hunk.");
+		Com_Error(ERR_FATAL, "R_HunkInit: Unable to allocate hunk.\n");
 	}
 
 	r_hunk.offset = 0;

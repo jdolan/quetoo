@@ -70,7 +70,7 @@ void R_EnforceGlVersion(void) {
 	if (min > 2)
 		return;
 
-	Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.3", s);
+	Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.3\n", s);
 }
 
 /*
@@ -83,7 +83,7 @@ void R_InitGlExtensions(void) {
 		qglActiveTexture = SDL_GL_GetProcAddress("glActiveTexture");
 		qglClientActiveTexture = SDL_GL_GetProcAddress("glClientActiveTexture");
 	} else
-		Com_Error(ERR_FATAL, "R_InitGlExtensions: GL_ARB_multitexture not found.");
+		Com_Error(ERR_FATAL, "R_InitGlExtensions: GL_ARB_multitexture not found.\n");
 
 	// vertex buffer objects
 	if (strstr(r_config.extensions_string, "GL_ARB_vertex_buffer_object")) {

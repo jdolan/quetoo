@@ -104,7 +104,7 @@ void R_InitContext(void) {
 			Com_Warn("R_InitContext: Failed to set video mode: %s\n", SDL_GetError());
 			return;
 		}
-		Com_Error(ERR_FATAL, "R_InitContext: Failed to set video mode: %s", SDL_GetError());
+		Com_Error(ERR_FATAL, "R_InitContext: Failed to set video mode: %s\n", SDL_GetError());
 	}
 
 	r_context.width = surface->w;
