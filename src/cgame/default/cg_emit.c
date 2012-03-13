@@ -335,7 +335,7 @@ cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 	}
 
 	if (em.flags && em.hz && em.time < cgi.client->time) { // update the time stamp
-		const float drift = e->drift * randomf() * 1000.0;
+		const float drift = e->drift * Randomf() * 1000.0;
 		e->time = cgi.client->time + (1000.0 / e->hz) + drift;
 	}
 

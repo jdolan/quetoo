@@ -497,10 +497,10 @@ static void R_InitWarpTexture(void) {
 
 	for (i = 0; i < WARP_SIZE; i++) {
 		for (j = 0; j < WARP_SIZE; j++) {
-			warp[i][j][0] = random() % 255;
-			warp[i][j][1] = random() % 255;
-			warp[i][j][2] = random() % 48;
-			warp[i][j][3] = random() % 48;
+			warp[i][j][0] = Random() % 255;
+			warp[i][j][1] = Random() % 255;
+			warp[i][j][2] = Random() % 48;
+			warp[i][j][3] = Random() % 48;
 		}
 	}
 

@@ -1456,7 +1456,7 @@ void G_func_train(g_edict_t *self) {
  */
 static void G_func_timer_think(g_edict_t *self) {
 	G_UseTargets(self, self->activator);
-	self->next_think = g_level.time + self->wait + randomc() * self->random;
+	self->next_think = g_level.time + self->wait + Randomc() * self->random;
 }
 
 /*
@@ -1506,7 +1506,7 @@ void G_func_timer(g_edict_t *self) {
 
 	if (self->spawn_flags & 1) {
 		self->next_think = g_level.time + 1000 + g_game.spawn.pause_time + self->delay * 1000
-				+ self->wait * 1000 + randomc() * (self->random * 1000);
+				+ self->wait * 1000 + Randomc() * (self->random * 1000);
 		self->activator = self;
 	}
 

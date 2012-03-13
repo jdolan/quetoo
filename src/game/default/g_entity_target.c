@@ -138,7 +138,7 @@ static void G_target_splash_think(g_edict_t *self) {
 	gi.WriteDir(self->move_dir);
 	gi.Multicast(self->s.origin, MULTICAST_PVS);
 
-	self->next_think = g_level.time + (randomf() * 3000);
+	self->next_think = g_level.time + (Randomf() * 3000);
 }
 
 /*QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8)
@@ -150,7 +150,7 @@ void G_target_splash(g_edict_t *self) {
 
 	self->solid = SOLID_NOT;
 	self->think = G_target_splash_think;
-	self->next_think = g_level.time + (randomf() * 3000);
+	self->next_think = g_level.time + (Randomf() * 3000);
 
 	gi.LinkEntity(self);
 }

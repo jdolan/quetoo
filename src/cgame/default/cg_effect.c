@@ -50,8 +50,8 @@ void Cg_WeatherEffects(void) {
 	while (cg_num_weather_particles < MAX_WEATHER_PARTICLES && k++ < max) {
 
 		VectorCopy(cgi.view->origin, start);
-		start[0] = start[0] + (random() % 2048) - 1024;
-		start[1] = start[1] + (random() % 2048) - 1024;
+		start[0] = start[0] + (Random() % 2048) - 1024;
+		start[1] = start[1] + (Random() % 2048) - 1024;
 
 		VectorCopy(start, end);
 		end[2] += 8192;
@@ -69,7 +69,7 @@ void Cg_WeatherEffects(void) {
 
 		// drop down somewhere between sky and player
 		ceiling = tr.end[2] > start[2] + 1024 ? start[2] + 1024 : tr.end[2];
-		tr.end[2] = tr.end[2] - ((ceiling - start[2]) * randomf());
+		tr.end[2] = tr.end[2] - ((ceiling - start[2]) * Randomf());
 
 		VectorCopy(tr.end, p->org);
 		p->org[2] -= 1;
@@ -96,7 +96,7 @@ void Cg_WeatherEffects(void) {
 			p->image = cg_particle_snow;
 			p->vel[2] = -120;
 			p->alpha = 0.6;
-			p->alpha_vel = randomf() * -1;
+			p->alpha_vel = Randomf() * -1;
 			p->color = 8;
 			p->scale = 1.5;
 		} else
@@ -104,8 +104,8 @@ void Cg_WeatherEffects(void) {
 			continue;
 
 		for (j = 0; j < 2; j++) {
-			p->vel[j] = randomc() * 2;
-			p->accel[j] = randomc() * 2;
+			p->vel[j] = Randomc() * 2;
+			p->accel[j] = Randomc() * 2;
 		}
 		cg_num_weather_particles++;
 	}

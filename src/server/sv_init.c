@@ -231,7 +231,7 @@ static void Sv_InitClients(void) {
 
 		svs.frame_rate = sv_framerate->integer;
 
-		svs.spawn_count = random();
+		svs.spawn_count = Random();
 
 		Sv_InitGame();
 	} else {

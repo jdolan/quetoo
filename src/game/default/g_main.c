@@ -1087,7 +1087,7 @@ const char *G_SelectNextmap(void) {
 	unsigned int i = 0;
 	if (g_map_list.count > 0) {
 		if (g_random_map->value) { // random weighted selection
-			g_map_list.index = g_map_list.weighted_index[random() % MAP_LIST_WEIGHT];
+			g_map_list.index = g_map_list.weighted_index[Random() % MAP_LIST_WEIGHT];
 		} else { // incremental, so long as weight is not 0
 			i = g_map_list.index;
 			while (true) {

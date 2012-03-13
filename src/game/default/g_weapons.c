@@ -383,8 +383,8 @@ void G_FireMachinegun(g_edict_t *ent) {
 static void G_FireGrenadeLauncher_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
-	const int dmg = 110 + randomc() * 30.0;
-	const int knockback = 90 + randomf() * 20.0;
+	const int dmg = 110 + Randomc() * 30.0;
+	const int knockback = 90 + Randomf() * 20.0;
 
 	G_InitProjectile(ent, forward, right, up, org);
 
@@ -403,8 +403,8 @@ void G_FireGrenadeLauncher(g_edict_t *ent) {
 static void G_FireRocketLauncher_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
-	const int dmg = 100 + randomf() * 20.0;
-	const int knockback = 100 + randomf() * 20.0;
+	const int dmg = 100 + Randomf() * 20.0;
+	const int knockback = 100 + Randomf() * 20.0;
 
 	G_InitProjectile(ent, forward, right, up, org);
 

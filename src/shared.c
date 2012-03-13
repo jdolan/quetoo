@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <unistd.h>
+
 #include "shared.h"
 #include "files.h"
 
@@ -27,29 +29,65 @@ vec3_t vec3_origin = { 0.0, 0.0, 0.0 };
 vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
 vec3_t PM_MAXS = { 16.0, 16.0, 40.0 };
 
-/*
- * frand
+/**
+ * Random
  *
- * Returns a float between 0.0 and 1.0.
+ * Returns a pseudo-random positive integer.
  */
-float randomf(void) {
-	return (random() & 32767) * (1.0 / 32767);
+int Random(void) {
+
+	static union {
+		byte bytes[8];
+		unsigned int integers[2];
+	} state;
+
+	static size_t offset;
+
+	if (!state.integers[0]) {
+		state.integers[0] = (unsigned int)time(NULL);
+		state.integers[1] = getpid();
+	}
+
+	union {
+		byte bytes[4];
+		unsigned int integer;
+	} r;
+
+	size_t i = 0;
+
+	while (i < sizeof(r)) {
+		byte *b = &state.bytes[offset % sizeof(state)];
+
+		r.bytes[i++] = offset = *b;
+
+		*b += 1;
+	}
+
+	return r.integer & 0x7fffffff;
 }
 
-/*
- * crand
+/**
+ * Randomf
  *
- * Returns a float between -1.0 and 1.0.
+ * Returns a pseudo-random float between 0.0 and 1.0.
  */
-float randomc(void) {
-	return (random() & 32767) * (2.0 / 32767) - 1.0;
+float Randomf(void) {
+	return (Random() & 32767) * (1.0 / 32767);
+}
+
+/**
+ * Randomc
+ *
+ * Returns a pseudo-random float between -1.0 and 1.0.
+ */
+float Randomc(void) {
+	return (Random() & 32767) * (2.0 / 32767) - 1.0;
 }
 
 /*
  * RotatePointAroundVector
  */
-void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point,
-		float degrees) {
+void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees) {
 	float m[3][3];
 	float im[3][3];
 	float zrot[3][3];
@@ -98,8 +136,7 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point,
 	ConcatRotations(tmpmat, im, rot);
 
 	for (i = 0; i < 3; i++) {
-		dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2]
-				* point[2];
+		dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
 	}
 }
 
@@ -211,8 +248,8 @@ void PerpendicularVector(vec3_t dst, const vec3_t src) {
  * Projects the normalized directional vectors on to the normal's plane.
  * The fourth component of the resulting tangent vector represents sidedness.
  */
-void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir,
-		vec4_t tangent, vec3_t bitangent) {
+void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent,
+		vec3_t bitangent) {
 
 	vec3_t s, t;
 
@@ -242,24 +279,15 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir,
  * ConcatRotations
  */
 void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]) {
-	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] + in1[0][2]
-			* in2[2][0];
-	out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] + in1[0][2]
-			* in2[2][1];
-	out[0][2] = in1[0][0] * in2[0][2] + in1[0][1] * in2[1][2] + in1[0][2]
-			* in2[2][2];
-	out[1][0] = in1[1][0] * in2[0][0] + in1[1][1] * in2[1][0] + in1[1][2]
-			* in2[2][0];
-	out[1][1] = in1[1][0] * in2[0][1] + in1[1][1] * in2[1][1] + in1[1][2]
-			* in2[2][1];
-	out[1][2] = in1[1][0] * in2[0][2] + in1[1][1] * in2[1][2] + in1[1][2]
-			* in2[2][2];
-	out[2][0] = in1[2][0] * in2[0][0] + in1[2][1] * in2[1][0] + in1[2][2]
-			* in2[2][0];
-	out[2][1] = in1[2][0] * in2[0][1] + in1[2][1] * in2[1][1] + in1[2][2]
-			* in2[2][1];
-	out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] + in1[2][2]
-			* in2[2][2];
+	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] + in1[0][2] * in2[2][0];
+	out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] + in1[0][2] * in2[2][1];
+	out[0][2] = in1[0][0] * in2[0][2] + in1[0][1] * in2[1][2] + in1[0][2] * in2[2][2];
+	out[1][0] = in1[1][0] * in2[0][0] + in1[1][1] * in2[1][0] + in1[1][2] * in2[2][0];
+	out[1][1] = in1[1][0] * in2[0][1] + in1[1][1] * in2[1][1] + in1[1][2] * in2[2][1];
+	out[1][2] = in1[1][0] * in2[0][2] + in1[1][1] * in2[1][2] + in1[1][2] * in2[2][2];
+	out[2][0] = in1[2][0] * in2[0][0] + in1[2][1] * in2[1][0] + in1[2][2] * in2[2][0];
+	out[2][1] = in1[2][0] * in2[0][1] + in1[2][1] * in2[1][1] + in1[2][2] * in2[2][1];
+	out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] + in1[2][2] * in2[2][2];
 }
 
 /**
@@ -267,8 +295,7 @@ void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]) {
  *
  * Produces the linear interpolation of the two vectors for the given fraction.
  */
-void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac,
-		vec3_t out) {
+void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
 	int i;
 
 	for (i = 0; i < 3; i++)
@@ -324,8 +351,7 @@ byte SignBitsForPlane(const c_bsp_plane_t *plane) {
  * Returns the sidedness of the given bounding box relative to the specified
  * plane. If the box straddles the plane, this function returns PSIDE_BOTH.
  */
-int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs,
-		const struct c_bsp_plane_s *p) {
+int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct c_bsp_plane_s *p) {
 	float dist1, dist2;
 	int sides;
 
@@ -345,40 +371,28 @@ int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs,
 		dist2 = DotProduct(p->normal, emins);
 		break;
 	case 1:
-		dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1]
-				+ p->normal[2] * emaxs[2];
-		dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1]
-				+ p->normal[2] * emins[2];
+		dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
+		dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
 		break;
 	case 2:
-		dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1]
-				+ p->normal[2] * emaxs[2];
-		dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1]
-				+ p->normal[2] * emins[2];
+		dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
+		dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
 		break;
 	case 3:
-		dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1]
-				+ p->normal[2] * emaxs[2];
-		dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1]
-				+ p->normal[2] * emins[2];
+		dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
+		dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
 		break;
 	case 4:
-		dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1]
-				+ p->normal[2] * emins[2];
-		dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1]
-				+ p->normal[2] * emaxs[2];
+		dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
+		dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
 		break;
 	case 5:
-		dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1]
-				+ p->normal[2] * emins[2];
-		dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1]
-				+ p->normal[2] * emaxs[2];
+		dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
+		dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
 		break;
 	case 6:
-		dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1]
-				+ p->normal[2] * emins[2];
-		dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1]
-				+ p->normal[2] * emaxs[2];
+		dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
+		dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
 		break;
 	case 7:
 		dist1 = DotProduct(p->normal, emins);
@@ -428,8 +442,7 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
  * VectorCompare
  *
  * Returns true if the specified vectors are equal, false otherwise.
- */
-bool VectorCompare(const vec3_t v1, const vec3_t v2) {
+ */bool VectorCompare(const vec3_t v1, const vec3_t v2) {
 
 	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
 		return false;
@@ -442,8 +455,7 @@ bool VectorCompare(const vec3_t v1, const vec3_t v2) {
  *
  * Returns true if the first vector is closer to the point of interest, false
  * otherwise.
- */
-bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
+ */bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
 	vec3_t d1, d2;
 
 	VectorSubtract(point, v1, d1);
@@ -478,8 +490,7 @@ vec_t VectorNormalize(vec3_t v) {
  *
  * Scales vecb and adds it to veca to produce vecc.  Useful for projection.
  */
-void VectorMA(const vec3_t veca, const float scale, const vec3_t vecb,
-		vec3_t vecc) {
+void VectorMA(const vec3_t veca, const float scale, const vec3_t vecb, vec3_t vecc) {
 	vecc[0] = veca[0] + scale * vecb[0];
 	vecc[1] = veca[1] + scale * vecb[1];
 	vecc[2] = veca[2] + scale * vecb[2];
@@ -549,8 +560,7 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out) {
  *
  * Applies brightness, saturation and contrast to the specified input color.
  */
-void ColorFilter(const vec3_t in, vec3_t out, float brightness,
-		float saturation, float contrast) {
+void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation, float contrast) {
 	const vec3_t luminosity = { 0.2125, 0.7154, 0.0721 };
 	vec3_t intensity;
 	float d;
@@ -585,8 +595,7 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness,
  * MixedCase
  *
  * Returns true if the specified string has some upper case characters.
- */
-bool MixedCase(const char *s) {
+ */bool MixedCase(const char *s) {
 	const char *c = s;
 	while (*c) {
 		if (isupper(*c))
@@ -720,8 +729,7 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
  *
  * To suppress the special syntactic significance of any of `[]*?!-\',
  * and match the character exactly, precede it with a `\'.
- */
-bool GlobMatch(const char *pattern, const char *text) {
+ */bool GlobMatch(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
 	register char c;
 
@@ -1076,8 +1084,7 @@ void DeleteUserInfo(char *s, const char *key) {
  *
  * Returns true if the specified user-info string appears valid, false
  * otherwise.
- */
-bool ValidateUserInfo(const char *s) {
+ */bool ValidateUserInfo(const char *s) {
 	if (strstr(s, "\""))
 		return false;
 	if (strstr(s, ";"))
@@ -1108,8 +1115,7 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 		return;
 	}
 
-	if (strlen(key) > MAX_USER_INFO_KEY - 1 || strlen(value)
-			> MAX_USER_INFO_VALUE - 1) {
+	if (strlen(key) > MAX_USER_INFO_KEY - 1 || strlen(value) > MAX_USER_INFO_VALUE - 1) {
 		//Com_Print("Keys and values must be < 64 characters.\n");
 		return;
 	}

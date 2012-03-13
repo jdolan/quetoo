@@ -34,9 +34,6 @@ static SDL_mutex *z_lock;
  * subsystems initialized by Quake2World.
  */
 void Z_Init(void) {
-	static byte random_state[256];
-
-	initstate(time(NULL), (void *)random_state, sizeof(random_state));
 
 	z_chain.next = z_chain.prev = &z_chain;
 
