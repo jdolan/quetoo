@@ -95,6 +95,7 @@ typedef struct cl_client_s {
 	vec3_t predicted_offset;
 	vec3_t predicted_angles;
 	vec3_t prediction_error;
+	struct g_edict_s *predicted_ground_entity;
 	short predicted_origins[CMD_BACKUP][3]; // for debug comparing against server
 
 	cl_frame_t frame; // received from server

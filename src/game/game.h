@@ -34,8 +34,7 @@ typedef enum {
 	SOLID_TRIGGER, // only touch when inside, after moving
 	SOLID_BOX, // touch on edge
 	SOLID_MISSILE, // touch on edge
-	SOLID_BSP
-// bsp clip, touch on edge
+	SOLID_BSP // bsp clip, touch on edge
 } solid_t;
 
 // link_t is only used for entity area links now

@@ -153,7 +153,7 @@ static int Cl_PredictMovement_PointContents(const vec3_t point) {
 
 int cl_gravity;
 
-/*
+/**
  * Cl_PredictMovement
  *
  * Run the latest movement command through the player movement code locally,
@@ -185,10 +185,13 @@ void Cl_PredictMovement(void) {
 
 	// copy current state to pmove
 	memset(&pm, 0, sizeof(pm));
-	pm.Trace = Cl_PredictMovement_Trace;
-	pm.PointContents = Cl_PredictMovement_PointContents;
 	pm.s = cl.frame.ps.pmove;
 	pm.s.gravity = cl_gravity;
+
+	pm.ground_entity = cl.predicted_ground_entity;
+
+	pm.Trace = Cl_PredictMovement_Trace;
+	pm.PointContents = Cl_PredictMovement_PointContents;
 
 	// run frames
 	while (++ack <= current) {
@@ -207,7 +210,7 @@ void Cl_PredictMovement(void) {
 
 	step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
 
-	if ((pm.s.pm_flags & PMF_ON_STAIRS) && step > 4.0) { // save for stair lerping
+	if ((pm.s.pm_flags & PMF_ON_STAIRS) && step > 4.0) { // save for stair interpolation
 		cl.predicted_step_time = cls.real_time;
 		cl.predicted_step = step;
 	}
@@ -216,4 +219,5 @@ void Cl_PredictMovement(void) {
 	VectorScale(pm.s.origin, 0.125, cl.predicted_origin);
 	VectorScale(pm.s.view_offset, 0.125, cl.predicted_offset);
 	VectorCopy(pm.angles, cl.predicted_angles);
+	cl.predicted_ground_entity = pm.ground_entity;
 }

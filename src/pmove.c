@@ -61,6 +61,7 @@ static pm_locals_t pml;
 #define PM_SPEED_CURRENT		100.0
 #define PM_SPEED_DUCKED			150.0
 #define PM_SPEED_DUCK_STAND		225.0
+#define PM_SPEED_LAND			300.0
 #define PM_SPEED_FALL			600.0
 #define PM_SPEED_JUMP			275.0
 #define PM_SPEED_JUMP_WATER		400.0
@@ -226,7 +227,7 @@ static int Pm_StepSlideMove_(void) {
  */
 static void Pm_StepSlideMove(void) {
 	vec3_t org, vel;
-	vec3_t neworg, newvel;
+	vec3_t new_org, new_vel;
 	vec3_t up, down;
 	c_trace_t trace;
 	int i;
@@ -240,8 +241,8 @@ static void Pm_StepSlideMove(void) {
 	// something blocked us, try to step over it with a few discrete steps
 
 	// save the first move in case stepping fails
-	VectorCopy(pml.origin, neworg);
-	VectorCopy(pml.velocity, newvel);
+	VectorCopy(pml.origin, new_org);
+	VectorCopy(pml.velocity, new_vel);
 
 	for (i = 0; i < 3; i++) {
 
@@ -249,7 +250,7 @@ static void Pm_StepSlideMove(void) {
 		VectorCopy(org, up);
 		up[2] += PM_STAIR_HEIGHT;
 
-		if (pm->Trace(up, pm->mins, pm->maxs, up).all_solid)
+		if (pm->Trace(org, pm->mins, pm->maxs, up).fraction < 1.0)
 			break; // it's not
 
 		// the upward position is available, try to step from there
@@ -271,17 +272,17 @@ static void Pm_StepSlideMove(void) {
 
 	// ensure that what we stepped upon was actually step-able
 	if (trace.plane.normal[2] < PM_STAIR_NORMAL) {
-		VectorCopy(neworg, pml.origin);
-		VectorCopy(newvel, pml.velocity);
+		VectorCopy(new_org, pml.origin);
+		VectorCopy(new_vel, pml.velocity);
 	} else { // the step was successful
 
-		if (pml.origin[2] - neworg[2] > 4.0) // we are in fact on stairs
+		if (pml.origin[2] - new_org[2] > 4.0) // we are in fact on stairs
 			pm->s.pm_flags |= PMF_ON_STAIRS;
 
 		if (pml.velocity[2] < 0.0) // clamp to positive velocity
 			pml.velocity[2] = 0.0;
-		if (pml.velocity[2] > newvel[2]) // but don't launch
-			pml.velocity[2] = newvel[2];
+		if (pml.velocity[2] > new_vel[2]) // but don't launch
+			pml.velocity[2] = new_vel[2];
 	}
 }
 
@@ -579,7 +580,7 @@ static void Pm_CategorizePosition(void) {
 
 	// see if we're standing on something solid
 	VectorCopy(pml.origin, point);
-	point[2] -= 2.0;
+	point[2] += fmin(0.0, pml.velocity[2] * pml.time) - 1.0;
 
 	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, point);
 
@@ -589,25 +590,26 @@ static void Pm_CategorizePosition(void) {
 
 	// if we did not hit anything, or we hit an upward pusher, or we hit a
 	// world surface that is too steep to stand on, then we have no ground
-	if (!trace.ent || ((pm->s.pm_flags & PMF_PUSHED) && pm->s.pm_time) || trace.plane.normal[2]
-			< PM_STAIR_NORMAL) {
-
+	if (!trace.ent || trace.plane.normal[2] < PM_STAIR_NORMAL) {
 		pm->s.pm_flags &= ~PMF_ON_GROUND;
 		pm->ground_entity = NULL;
-
 	} else {
+		if (!pm->ground_entity) { // landing hard disables jumping briefly
+			if (pml.velocity[2] < -PM_SPEED_LAND || pm->s.pm_flags & PMF_PUSHED) {
+				pm->s.pm_flags |= PMF_TIME_LAND;
+				pm->s.pm_time = 32;
+
+				if (pml.velocity[2] <= -PM_SPEED_FALL) {
+					pm->s.pm_time = 96;
+				}
+			}
+		}
+
 		pm->s.pm_flags |= PMF_ON_GROUND;
 		pm->ground_entity = trace.ent;
 
-		// falling a significant distance disables jumping for a moment
-		if (pml.velocity[2] < -PM_SPEED_FALL) {
-			pm->s.pm_flags |= PMF_TIME_LAND;
-			pm->s.pm_time = 10;
-		}
-
-		// hitting the world means we're done being pushed
-		if ((int) ((intptr_t) trace.ent) == 1)
-			pm->s.pm_flags &= ~PMF_PUSHED;
+		// hitting the ground means we're done being pushed
+		pm->s.pm_flags &= ~PMF_PUSHED;
 	}
 
 	// save a reference to the entity touched for game events
@@ -689,10 +691,6 @@ static void Pm_CheckJump(void) {
 
 	// indicate that jump is currently held
 	pm->s.pm_flags |= PMF_JUMP_HELD;
-
-	// disable jumping very briefly
-	pm->s.pm_flags |= PMF_TIME_LAND;
-	pm->s.pm_time = 2;
 
 	// clear the ground indicators
 	pm->s.pm_flags &= ~PMF_ON_GROUND;
@@ -977,7 +975,6 @@ static void Pm_Init(void) {
 	VectorClear(pm->angles);
 
 	pm->num_touch = 0;
-	pm->ground_entity = NULL;
 	pm->water_type = pm->water_level = 0;
 
 	// reset stair climbing flag on every move

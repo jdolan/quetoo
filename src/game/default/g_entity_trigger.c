@@ -191,15 +191,13 @@ static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 		VectorScale(self->move_dir, self->speed * 10.0, other->velocity);
 
 		if (other->client) { // don't take falling damage immediately from this
-
-			VectorCopy(other->velocity, other->client->old_velocity);
-			other->client->ps.pmove.pm_flags |= (PMF_PUSHED | PMF_TIME_LAND);
+			other->client->ps.pmove.pm_flags |= PMF_PUSHED;
 			other->client->ps.pmove.pm_time = 10;
+		}
 
-			if (other->push_time < g_level.time) {
-				other->push_time = g_level.time + 1500;
-				gi.Sound(other, gi.SoundIndex("world/jumppad"), ATTN_NORM);
-			}
+		if (other->push_time < g_level.time) {
+			other->push_time = g_level.time + 1500;
+			gi.Sound(other, gi.SoundIndex("world/jumppad"), ATTN_NORM);
 		}
 	}
 

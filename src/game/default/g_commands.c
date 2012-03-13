@@ -29,7 +29,7 @@
 static void G_Give_f(g_edict_t *ent) {
 	char *name;
 	g_item_t *it;
-	int index;
+	int index, quantity;
 	int i;
 	bool give_all;
 	g_edict_t *it_ent;
@@ -41,6 +41,14 @@ static void G_Give_f(g_edict_t *ent) {
 
 	name = gi.Args();
 
+	if (gi.Argc() == 3) {
+		quantity = atoi(gi.Argv(2));
+
+		if (quantity > 9999)
+			quantity = 9999;
+	} else
+		quantity = 9999;
+
 	if (strcasecmp(name, "all") == 0)
 		give_all = true;
 	else
@@ -48,7 +56,7 @@ static void G_Give_f(g_edict_t *ent) {
 
 	if (give_all || strcasecmp(gi.Argv(1), "health") == 0) {
 		if (gi.Argc() == 3)
-			ent->health = atoi(gi.Argv(2));
+			ent->health = quantity;
 		else
 			ent->health = ent->max_health;
 		if (!give_all)
@@ -75,7 +83,7 @@ static void G_Give_f(g_edict_t *ent) {
 				continue;
 			if (it->type != ITEM_AMMO)
 				continue;
-			G_AddAmmo(ent, it, 1000);
+			G_AddAmmo(ent, it, quantity);
 		}
 		if (!give_all)
 			return;
@@ -83,7 +91,7 @@ static void G_Give_f(g_edict_t *ent) {
 
 	if (give_all || strcasecmp(name, "armor") == 0) {
 		if (gi.Argc() == 3)
-			ent->client->persistent.armor = atoi(gi.Argv(2));
+			ent->client->persistent.armor = quantity;
 		else
 			ent->client->persistent.armor = ent->client->persistent.max_armor;
 
@@ -113,7 +121,7 @@ static void G_Give_f(g_edict_t *ent) {
 		index = ITEM_INDEX(it);
 
 		if (gi.Argc() == 3)
-			ent->client->persistent.inventory[index] = atoi(gi.Argv(2));
+			ent->client->persistent.inventory[index] = quantity;
 		else
 			ent->client->persistent.inventory[index] += it->quantity;
 	} else { // or spawn and touch whatever they asked for
@@ -725,8 +733,7 @@ static void G_Vote_f(g_edict_t *ent) {
  * G_AddClientToTeam
  *
  * Returns true if the client's team was changed, false otherwise.
- */
-bool G_AddClientToTeam(g_edict_t *ent, char *team_name) {
+ */bool G_AddClientToTeam(g_edict_t *ent, char *team_name) {
 	g_team_t *team;
 
 	if (g_level.match_time && g_level.match_time <= g_level.time) {

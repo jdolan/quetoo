@@ -1076,7 +1076,7 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
  * This will be called once for each client frame, which will usually be a
  * couple times for each server frame.
  */
-void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
+void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 	g_client_t *client;
 	g_edict_t *other;
 	int i, j;
@@ -1108,6 +1108,11 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 	if (!client->chase_target) { // set up for pmove
 		pm_move_t pm;
 
+		vec3_t old_velocity;
+		VectorCopy(ent->velocity, old_velocity);
+
+		const unsigned short old_pm_flags = ent->client->ps.pmove.pm_flags;
+
 		client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 
 		if (ent->move_type == MOVE_TYPE_NO_CLIP)
@@ -1127,9 +1132,10 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 			pm.s.velocity[i] = ent->velocity[i] * 8.0;
 		}
 
-		pm.cmd = *ucmd;
+		pm.cmd = *cmd;
+		pm.ground_entity = ent->ground_entity;
 
-		pm.Trace = G_ClientMoveTrace; // adds default params
+		pm.Trace = G_ClientMoveTrace;
 		pm.PointContents = gi.PointContents;
 
 		// perform a pmove
@@ -1146,11 +1152,11 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 		VectorCopy(pm.mins, ent->mins);
 		VectorCopy(pm.maxs, ent->maxs);
 
-		client->cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);
-		client->cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
-		client->cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
+		client->cmd_angles[0] = SHORT2ANGLE(cmd->angles[0]);
+		client->cmd_angles[1] = SHORT2ANGLE(cmd->angles[1]);
+		client->cmd_angles[2] = SHORT2ANGLE(cmd->angles[2]);
 
-		// check for jump, play randomized sound
+		// check for jump
 		if (ent->ground_entity && !pm.ground_entity && (pm.cmd.up >= 10) && (pm.water_level == 0)
 				&& client->jump_time < g_level.time - 200) {
 
@@ -1177,6 +1183,44 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 
 			ent->s.event = EV_CLIENT_JUMP;
 			client->jump_time = g_level.time;
+		}
+		// check for landing
+		else if ((pm.s.pm_flags & PMF_TIME_LAND) && client->land_time < g_level.time - 200) {
+
+			const float fall = -old_velocity[2];
+			entity_event_t event = EV_NONE;
+
+			if (fall >= 300.0 || old_pm_flags & PMF_PUSHED) {
+				event = EV_CLIENT_LAND;
+
+				if (fall >= 600.0) { // player will take damage
+					int damage = ((int) ((fall - 600.0) * 0.05)) >> ent->water_level;
+
+					if (damage < 1)
+						damage = 1;
+
+					if (fall > 750.0)
+						event = EV_CLIENT_FALL_FAR;
+					else
+						event = EV_CLIENT_FALL;
+
+					client->pain_time = g_level.time; // suppress pain sound
+
+					vec3_t dir;
+					VectorSet(dir, 0.0, 0.0, 1.0);
+
+					G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0,
+							DAMAGE_NO_ARMOR, MOD_FALLING);
+				}
+
+				if (G_IsAnimation(ent, ANIM_LEGS_JUMP2))
+					G_SetAnimation(ent, ANIM_LEGS_LAND2, false);
+				else
+					G_SetAnimation(ent, ANIM_LEGS_LAND1, false);
+			}
+
+			ent->s.event = event;
+			client->land_time = g_level.time;
 		}
 		// check for ladder, play a randomized sound
 		else if ((pm.s.pm_flags & PMF_ON_LADDER) && fabs(ent->velocity[2]) >= 20.0
@@ -1222,7 +1266,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd) {
 	}
 
 	client->old_buttons = client->buttons;
-	client->buttons = ucmd->buttons;
+	client->buttons = cmd->buttons;
 	client->latched_buttons |= client->buttons & ~client->old_buttons;
 
 	// fire weapon if requested

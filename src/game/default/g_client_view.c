@@ -62,50 +62,6 @@ static void G_ClientDamage(g_edict_t *ent) {
 }
 
 /*
- * G_ClientFall
- */
-static void G_ClientFall(g_edict_t *ent) {
-
-	if (!ent->ground_entity)
-		return;
-
-	if (ent->health < 1 || ent->water_level == 3)
-		return;
-
-	if (ent->client->fall_time > g_level.time)
-		return;
-
-	float fall = -ent->client->old_velocity[2];
-
-	if (fall < 220.0)
-		return;
-
-	entity_event_t event = EV_CLIENT_LAND;
-
-	if (fall > 550.0) { // player will take damage
-		int damage = ((int) (fall * 0.01)) >> ent->water_level;
-		vec3_t dir;
-
-		if (fall > 750.0)
-			event = EV_CLIENT_FALL_FAR;
-		else
-			event = EV_CLIENT_FALL;
-
-		ent->client->pain_time = g_level.time; // suppress pain sound
-
-		VectorSet(dir, 0.0, 0.0, 1.0);
-
-		G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0, DAMAGE_NO_ARMOR,
-				MOD_FALLING);
-	}
-
-	if (ent->s.event != EV_TELEPORT) { // don't override teleport events
-		ent->client->fall_time = g_level.time + 200;
-		ent->s.event = event;
-	}
-}
-
-/*
  * G_ClientWaterLevel
  */
 static void G_ClientWaterLevel(g_edict_t *ent) {
@@ -234,23 +190,9 @@ static void G_ClientAnimation(g_edict_t *ent) {
 		return;
 	}
 
-	// check for landing
-
-	const entity_event_t e = ent->s.event;
-
-	if (e >= EV_CLIENT_LAND && e <= EV_CLIENT_FALL_FAR) {
-
-		if (G_IsAnimation(ent, ANIM_LEGS_JUMP2))
-			G_SetAnimation(ent, ANIM_LEGS_LAND2, false);
-		else
-			G_SetAnimation(ent, ANIM_LEGS_LAND1, false);
-
-		return;
-	}
-
 	// duck, walk or run
 
-	if (ent->client->fall_time <= g_level.time) {
+	if (g_level.time - 200 > ent->client->land_time) {
 		vec3_t velocity;
 		float speed;
 
@@ -340,9 +282,6 @@ void G_ClientEndFrame(g_edict_t *ent) {
 	if (!ent->ground_entity)
 		ent->s.angles[ROLL] *= 0.25;
 
-	// detect hitting the floor
-	G_ClientFall(ent);
-
 	// check for footsteps
 	if (ent->ground_entity && !ent->s.event) {
 
@@ -365,9 +304,6 @@ void G_ClientEndFrame(g_edict_t *ent) {
 		G_ClientSpectatorStats(ent);
 	else
 		G_ClientStats(ent);
-
-	VectorCopy(ent->velocity, ent->client->old_velocity);
-	VectorCopy(ent->client->ps.angles, ent->client->old_angles);
 
 	// if the scoreboard is up, update it
 	if (ent->client->show_scores)

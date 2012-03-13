@@ -398,15 +398,12 @@ struct g_client_s {
 	vec3_t damage_from; // origin for vector calculation
 
 	vec3_t angles; // aiming direction
-	vec3_t old_angles;
-	vec3_t old_velocity;
-
 	vec3_t cmd_angles; // angles sent over in the last command
 
 	unsigned int respawn_time; // eligible for respawn when time > this
 	unsigned int drown_time; // eligible for drowning damage when time > this
 	unsigned int sizzle_time; // eligible for sizzle damage when time > this
-	unsigned int fall_time; // eligible for landing event when time > this
+	unsigned int land_time; // eligible for landing event when time > this
 	unsigned int jump_time; // eligible for jump when time > this
 	unsigned int pain_time; // eligible for pain sound when time > this
 	unsigned int footstep_time; // play a footstep when time > this
