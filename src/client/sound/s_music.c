@@ -117,7 +117,7 @@ static void S_FreeMusics(void) {
  * S_LoadMusics
  */
 void S_LoadMusics(void) {
-	char shuffle[MAX_MUSICS * MAX_QPATH];
+	char temp[MAX_QPATH];
 	s_music_t *music;
 	int i;
 
@@ -125,26 +125,21 @@ void S_LoadMusics(void) {
 
 	// if no music is provided, use the default tracks
 	if (!cl.config_strings[CS_MUSICS + 1][0]) {
-
-		memset(shuffle, 0, sizeof(shuffle));
-		i = 1;
+		// fill in the list of music with valid values
+		for(i = 1; i < MAX_MUSICS + 1; i++) {
+			char *s = cl.config_strings[CS_MUSICS + i];
+			sprintf(s, "track%d", i);
+		}
 
 		// shuffle the order of the default tracks to keep it fresh
-		while (i < MAX_MUSICS + 1) {
+		for (i  = 1; i < MAX_MUSICS + 1; i++) {
+			const int j = Random() % MAX_MUSICS + 1;
+			strncpy(temp, cl.config_strings[CS_MUSICS + i], MAX_QPATH);
+			strncpy(cl.config_strings[CS_MUSICS + i], cl.config_strings[CS_MUSICS + j], MAX_QPATH);
+			strncpy(cl.config_strings[CS_MUSICS + j], temp, MAX_QPATH);
 
-			char *s = cl.config_strings[CS_MUSICS + i];
-			const int j = Random() % MAX_MUSICS;
-
-			sprintf(s, "track%d", j);
-
-			if (strstr(shuffle, va("%s|", s)))
-				continue;
-
-			strcat(shuffle, s);
-			strcat(shuffle, "|");
-
-			i++;
 		}
+
 	}
 
 	for (i = 1; i < MAX_MUSICS + 1; i++) {
