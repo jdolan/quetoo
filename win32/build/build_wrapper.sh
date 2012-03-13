@@ -28,9 +28,11 @@ fi
 
 function BUILD
 {
+	rm -f _build-*.log
+	sh ../switch_arch.sh
+	
 	CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
-	rm -f _build-"$CURRENTARCH".log
-	sh ../switch_arch.sh >> _build-"$CURRENTARCH".log 2>&1
+
 	gcc -v >> _build-"$CURRENTARCH".log 2>&1
 	sh _build_win32.sh >> _build-"$CURRENTARCH".log 2>&1
 	
