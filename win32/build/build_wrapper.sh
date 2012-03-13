@@ -19,20 +19,18 @@
 #############################################################################
 
 
-CURRENT_ARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
 
-if [ -z $CURRENT_ARCH ]; then
+if [ -e /mingw/bin/gcc ]; then
   echo "/mingw is not mounted or gcc not installed"
+  exit 1
 fi
 
 
 function BUILD
 {
-	rm -f _build-*.log
-	sh ../switch_arch.sh
-	
 	CURRENT_ARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
-
+	rm -f _build-$CURRENT_ARCH.log
+	
 	gcc -v >> _build-"$CURRENT_ARCH".log 2>&1
 	sh _build_win32.sh >> _build-"$CURRENT_ARCH".log 2>&1
 	
@@ -47,6 +45,8 @@ function BUILD
     	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log web@satgnu.net:www/satgnu.net/files
 		rm _build-"$CURRENT_ARCH".log
 	fi
+	
+	sh ../switch_arch.sh
 }
 
 while true; do
