@@ -55,7 +55,7 @@ while true; do
 
 	echo $CURREV $NEWREV
 
-	if [ $CURREV != $NEWREV -o -e *.log ];then
+	if [ -e _build-i686.log -o -e _build-x86_64.log -o $CURREV != $NEWREV ];then
 		echo "Building" - `date`
 		BUILD
 		BUILD
