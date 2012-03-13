@@ -404,11 +404,12 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		p->alpha = 0.5 + randomc() * 0.25;
 		p->alpha_vel = -1.0 + 0.25 * randomc();
 
+		p->scale = 2.0;
 		p->color = 0xe0 + (random() & 7);
 	}
 
 	VectorCopy(org, s.light.origin);
-	s.light.radius = 150.0;
+	s.light.radius = 200.0;
 	VectorSet(s.light.color, 0.8, 0.4, 0.2);
 	s.sustain = 1.0;
 
