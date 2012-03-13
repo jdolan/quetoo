@@ -34,18 +34,21 @@ vec3_t PM_MAXS = { 16.0, 16.0, 40.0 };
  *
  * Returns a pseudo-random positive integer.
  *
- * Uses a Linear Congruence Generator, values kindly borrowed from glibc look up the rules
- * required for the constants before just replacing them, performance is dictated by the selection
+ * Uses a Linear Congruence Generator, values kindly borrowed from glibc.
+ * Look up the rules required for the constants before just replacing them;
+ * performance is dictated by the selection.
  */
 int Random(void) {
 
 	static unsigned int state = 0;
-	static unsigned short uninitalized = 1;
-	if(uninitalized) {
-		state = (unsigned)time(NULL);
-		uninitalized = 0;
+	static bool uninitalized = true;
+
+	if (uninitalized) {
+		state = (unsigned int) time(NULL);
+		uninitalized = false;
 	}
-	state = (1103515245*state + 12345);
+
+	state = (1103515245 * state + 12345);
 	return state & 0x7fffffff;
 }
 
