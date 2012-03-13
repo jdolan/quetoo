@@ -30,20 +30,21 @@ function CHECK_BUILD
 	if [ $? != "0" ];then
 		echo "Build error"
     	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build.log web@satgnu.net:www/satgnu.net/files
-		mailsend.exe -d jdolan.dyndns.org -smtp jdolan.dyndns.org -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@jdolan.dyndns.org -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
+		mailsend.exe -d jdolan.dyndns.org -smtp jdolan.dyndns.org -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@jdolan.dyndns.org -sub "Build FAILED r$NEWREV" +cc +bc < _build-"$CURRENTARCH".log
 	else
 		echo "Build succeeded"
     	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build.log web@satgnu.net:www/satgnu.net/files
-		rm _build.log
+		rm _build-"$CURRENTARCH".log
 	fi
 }
 
 function BUILD
 {
-	rm -f _build.log
-	sh ../switch_arch.sh >> _build.log 2>&1
-	gcc -v >> _build.log 2>&1
-	sh _build_win32.sh >> _build.log 2>&1
+	CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
+	rm -f _build-"$CURRENTARCH".log
+	sh ../switch_arch.sh >> _build-"$CURRENTARCH".log 2>&1
+	gcc -v >> _build-"$CURRENTARCH".log 2>&1
+	sh _build_win32.sh >> _build-"$CURRENTARCH".log 2>&1
 	sync
 	CHECK_BUILD
 }
@@ -54,7 +55,7 @@ while true; do
 
 	echo $CURREV $NEWREV
 
-	if [ $CURREV != $NEWREV -o -e _build.log ];then
+	if [ $CURREV != $NEWREV -o -e *.log ];then
 		echo "Building" - `date`
 		BUILD
 		BUILD
