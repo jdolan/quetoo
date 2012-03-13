@@ -186,7 +186,7 @@ void G_trigger_always(g_edict_t *ent) {
 static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
 
-	if (!strcmp(other->class_name, "grenade") || other->health > 0) {
+	if (other->health > 0) {
 
 		VectorScale(self->move_dir, self->speed * 10.0, other->velocity);
 

@@ -153,6 +153,14 @@ static void G_ClientAnimation(g_edict_t *ent) {
 	if (ent->sv_flags & SVF_NO_CLIENT)
 		return;
 
+	// no-clippers do not animate
+
+	if (ent->move_type == MOVE_TYPE_NO_CLIP) {
+		G_SetAnimation(ent, ANIM_TORSO_STAND1, false);
+		G_SetAnimation(ent, ANIM_LEGS_JUMP1, false);
+		return;
+	}
+
 	// check for falling
 
 	if (!ent->ground_entity) { // not on the ground
@@ -283,7 +291,7 @@ void G_ClientEndFrame(g_edict_t *ent) {
 		ent->s.angles[ROLL] *= 0.25;
 
 	// check for footsteps
-	if (ent->ground_entity && !ent->s.event) {
+	if (ent->ground_entity && ent->move_type == MOVE_TYPE_WALK && !ent->s.event) {
 
 		xy_speed = sqrt(ent->velocity[0] * ent->velocity[0] + ent->velocity[1] * ent->velocity[1]);
 
