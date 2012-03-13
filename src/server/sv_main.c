@@ -56,8 +56,7 @@ void Sv_DropClient(sv_client_t *cl) {
 		}
 
 		Msg_WriteByte(&cl->netchan.message, SV_CMD_DISCONNECT);
-		Netchan_Transmit(&cl->netchan, cl->netchan.message.size,
-				cl->netchan.message.data);
+		Netchan_Transmit(&cl->netchan, cl->netchan.message.size, cl->netchan.message.data);
 	}
 
 	if (cl->download) {
@@ -207,8 +206,7 @@ static void Svc_GetChallenge(void) {
 	}
 
 	// send it back
-	Netchan_OutOfBandPrint(NS_SERVER, net_from, "challenge %i",
-			svs.challenges[i].challenge);
+	Netchan_OutOfBandPrint(NS_SERVER, net_from, "challenge %i", svs.challenges[i].challenge);
 }
 
 /*
@@ -233,8 +231,7 @@ static void Svc_Connect(void) {
 
 	// resolve protocol
 	if (version != PROTOCOL) {
-		Netchan_OutOfBandPrint(NS_SERVER, addr,
-				"print\nServer is version %d.\n", PROTOCOL);
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL);
 		return;
 	}
 
@@ -253,15 +250,13 @@ static void Svc_Connect(void) {
 	}
 
 	if (strchr(user_info, '\xFF')) { // catch end of message in string exploit
-		Com_Print("Illegal user_info contained xFF from %s\n",
-				Net_NetaddrToString(addr));
+		Com_Print("Illegal user_info contained xFF from %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
 
 	if (strlen(GetUserInfo(user_info, "ip"))) { // catch spoofed ips
-		Com_Print("Illegal user_info contained ip from %s\n",
-				Net_NetaddrToString(addr));
+		Com_Print("Illegal user_info contained ip from %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		return;
 	}
@@ -287,8 +282,7 @@ static void Svc_Connect(void) {
 		}
 	}
 	if (i == MAX_CHALLENGES) {
-		Netchan_OutOfBandPrint(NS_SERVER, addr,
-				"print\nNo challenge for address.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nNo challenge for address.\n");
 		return;
 	}
 
@@ -304,8 +298,8 @@ static void Svc_Connect(void) {
 			continue;
 
 		// the base address and either the qport or real port must match
-		if (Net_CompareClientNetaddr(addr, ch->remote_address) &&
-				(qport == ch->qport || ch->remote_address.port == addr.port)) {
+		if (Net_CompareClientNetaddr(addr, ch->remote_address) && (qport == ch->qport
+				|| ch->remote_address.port == addr.port)) {
 			client = cl;
 			break;
 		}
@@ -332,12 +326,10 @@ static void Svc_Connect(void) {
 	if (!(svs.game->ClientConnect(client->edict, user_info))) {
 
 		if (*GetUserInfo(user_info, "rejmsg")) {
-			Netchan_OutOfBandPrint(NS_SERVER, addr,
-					"print\n%s\nConnection refused.\n",
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused.\n",
 					GetUserInfo(user_info, "rejmsg"));
 		} else {
-			Netchan_OutOfBandPrint(NS_SERVER, addr,
-					"print\nConnection refused.\n");
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
 		}
 
 		Com_Debug("Game rejected a connection.\n");
@@ -349,13 +341,11 @@ static void Svc_Connect(void) {
 	Sv_UserInfoChanged(client);
 
 	// send the connect packet to the client
-	Netchan_OutOfBandPrint(NS_SERVER, addr, "client_connect %s",
-			sv_download_url->string);
+	Netchan_OutOfBandPrint(NS_SERVER, addr, "client_connect %s", sv_download_url->string);
 
 	Netchan_Setup(NS_SERVER, &client->netchan, addr, qport);
 
-	Sb_Init(&client->datagram, client->datagram_buf,
-			sizeof(client->datagram_buf));
+	Sb_Init(&client->datagram, client->datagram_buf, sizeof(client->datagram_buf));
 	client->datagram.allow_overflow = true;
 
 	client->last_message = svs.real_time; // don't timeout
@@ -390,15 +380,12 @@ static void Svc_RemoteCommand(void) {
 
 	// first print to the server console
 	if (auth)
-		Com_Print("Rcon from %s:\n%s\n", Net_NetaddrToString(net_from),
-				net_message.data + 4);
+		Com_Print("Rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
 	else
-		Com_Print("Bad rcon from %s:\n%s\n", Net_NetaddrToString(net_from),
-				net_message.data + 4);
+		Com_Print("Bad rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
 
 	// then redirect the remaining output back to the client
-	Com_BeginRedirect(RD_PACKET, sv_outputbuf, SV_OUTPUTBUF_LENGTH,
-			Sv_FlushRedirect);
+	Com_BeginRedirect(RD_PACKET, sv_outputbuf, SV_OUTPUTBUF_LENGTH, Sv_FlushRedirect);
 
 	if (auth) {
 		char remaining[MAX_STRING_CHARS];
@@ -455,8 +442,7 @@ static void Sv_ConnectionlessPacket(void) {
 	else if (!strcmp(c, "rcon"))
 		Svc_RemoteCommand();
 	else
-		Com_Print("Bad connectionless packet from %s:\n%s\n",
-				Net_NetaddrToString(net_from), s);
+		Com_Print("Bad connectionless packet from %s:\n%s\n", Net_NetaddrToString(net_from), s);
 }
 
 /*
@@ -530,8 +516,7 @@ static void Sv_CheckCommandTimes(void) {
 			if (abs(cl->cmd_msec) > CMD_MSEC_ALLOWABLE_DRIFT) { // irregular movement
 				cl->cmd_msec_errors++;
 
-				Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl),
-						cl->cmd_msec);
+				Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmd_msec);
 
 				if (cl->cmd_msec_errors >= sv_enforce_time->value) {
 					Com_Warn("Sv_CheckCommandTimes: Too many errors from %s\n",
@@ -664,8 +649,7 @@ static void Sv_RunGameFrame(void) {
 	sv.time = sv.frame_num * 1000 / svs.frame_rate;
 
 	if (sv.time < svs.real_time) {
-		Com_Debug("Sv_RunGameFrame: High clamp: %dms\n",
-				svs.real_time - sv.time);
+		Com_Debug("Sv_RunGameFrame: High clamp: %dms\n", svs.real_time - sv.time);
 		svs.real_time = sv.time;
 	}
 
@@ -722,10 +706,8 @@ static void Sv_HeartbeatMasters(void) {
 	// send to each master server
 	for (i = 0; i < MAX_MASTERS; i++) {
 		if (svs.masters[i].port) {
-			Com_Print("Sending heartbeat to %s\n",
-					Net_NetaddrToString(svs.masters[i]));
-			Netchan_OutOfBandPrint(NS_SERVER, svs.masters[i], "heartbeat\n%s",
-					string);
+			Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(svs.masters[i]));
+			Netchan_OutOfBandPrint(NS_SERVER, svs.masters[i], "heartbeat\n%s", string);
 		}
 	}
 }
@@ -747,8 +729,7 @@ static void Sv_ShutdownMasters(void) {
 	// send to group master
 	for (i = 0; i < MAX_MASTERS; i++) {
 		if (svs.masters[i].port) {
-			Com_Print("Sending shutdown to %s\n",
-					Net_NetaddrToString(svs.masters[i]));
+			Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(svs.masters[i]));
 			Netchan_OutOfBandPrint(NS_SERVER, svs.masters[i], "shutdown");
 		}
 	}
@@ -811,8 +792,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 	}
 
 	if (strchr(cl->user_info, '\xFF')) { // catch end of message exploit
-		Com_Print("Illegal user_info contained xFF from %s\n",
-				Sv_NetaddrToString(cl));
+		Com_Print("Illegal user_info contained xFF from %s\n", Sv_NetaddrToString(cl));
 		Sv_KickClient(cl, "Bad user info");
 		return;
 	}
@@ -862,7 +842,6 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
  * Sv_Frame
  */
 void Sv_Frame(unsigned int msec) {
-	unsigned int frame_millis;
 
 	// if server is not active, do nothing
 	if (!svs.initialized)
@@ -880,15 +859,14 @@ void Sv_Frame(unsigned int msec) {
 	// get packets from clients
 	Sv_ReadPackets();
 
-	frame_millis = 1000 / svs.frame_rate;
+	const unsigned int frame_millis = 1000 / svs.frame_rate;
 
 	// keep the game module's time in sync with reality
 	if (!time_demo->value && svs.real_time < sv.time) {
 
 		// if the server has fallen far behind the game, try to catch up
 		if (sv.time - svs.real_time > frame_millis) {
-			Com_Debug("Sv_Frame: Low clamp: %dms.\n",
-					(sv.time - svs.real_time - frame_millis));
+			Com_Debug("Sv_Frame: Low clamp: %dms.\n", (sv.time - svs.real_time - frame_millis));
 			svs.real_time = sv.time - frame_millis;
 		} else { // wait until its time to run the next frame
 			Net_Sleep(sv.time - svs.real_time);
@@ -931,19 +909,15 @@ void Sv_Init(void) {
 	sv_rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
 
 	sv_download_url = Cvar_Get("sv_download_url", "", CVAR_SERVER_INFO, NULL);
-	sv_enforce_time = Cvar_Get("sv_enforce_time",
-			va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, NULL);
+	sv_enforce_time = Cvar_Get("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, NULL);
 
-	sv_hostname = Cvar_Get("sv_hostname", "Quake2World",
-			CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
+	sv_hostname = Cvar_Get("sv_hostname", "Quake2World", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
 	sv_public = Cvar_Get("sv_public", "0", 0, NULL);
 
 	if (dedicated->value)
-		sv_max_clients = Cvar_Get("sv_max_clients", "8",
-				CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+		sv_max_clients = Cvar_Get("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	else
-		sv_max_clients = Cvar_Get("sv_max_clients", "1",
-				CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+		sv_max_clients = Cvar_Get("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 
 	sv_framerate = Cvar_Get("sv_framerate", va("%d", SERVER_FRAME_RATE),
 			CVAR_SERVER_INFO | CVAR_LATCH, NULL);
@@ -951,8 +925,7 @@ void Sv_Init(void) {
 	sv_udp_download = Cvar_Get("sv_udp_download", "1", CVAR_ARCHIVE, NULL);
 
 	// set this so clients and server browsers can see it
-	Cvar_Get("sv_protocol", va("%i", PROTOCOL), CVAR_SERVER_INFO | CVAR_NO_SET,
-			NULL);
+	Cvar_Get("sv_protocol", va("%i", PROTOCOL), CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	Sv_InitCommands();
 
