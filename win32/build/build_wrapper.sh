@@ -41,15 +41,10 @@ function CHECK_BUILD
 function BUILD
 {
 	rm -f _build.log
-	
 	sh ../switch_arch.sh >> _build.log 2>&1
 	gcc -v >> _build.log 2>&1
 	sh _build_win32.sh >> _build.log 2>&1
-	CHECK_BUILD
-
-	sh ../switch_arch.sh >> _build.log 2>&1	
-	gcc -v >> _build.log 2>&1
-	sh _build_win32.sh >> _build.log 2>&1
+	sync
 	CHECK_BUILD
 }
 
@@ -61,6 +56,7 @@ while true; do
 
 	if [ $CURREV != $NEWREV -o -e _build.log ];then
 		echo "Building" - `date`
+		BUILD
 		BUILD
 		echo "Building done" - `date`
 	else
