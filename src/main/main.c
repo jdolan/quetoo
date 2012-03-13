@@ -276,7 +276,8 @@ static void Frame(unsigned int msec) {
  * The entry point of the program.
  */
 int main(int argc, char **argv) {
-	static int old_time;
+	static unsigned int old_time;
+	unsigned int msec;
 
 #ifdef _WIN32
 	// here the magic happens
@@ -304,7 +305,7 @@ int main(int argc, char **argv) {
 
 	Init(argc, argv);
 
-	old_time = Sys_Milliseconds();
+	quake2world.time = Sys_Milliseconds();
 
 	while (true) { // this is our main loop
 
@@ -313,9 +314,6 @@ int main(int argc, char **argv) {
 			continue;
 		}
 
-		old_time = quake2world.time;
-		quake2world.time = Sys_Milliseconds();
-
 		if (time_scale->modified) {
 			if (time_scale->value < 0.1)
 				time_scale->value = 0.1;
@@ -323,12 +321,13 @@ int main(int argc, char **argv) {
 				time_scale->value = 3.0;
 		}
 
-		const int msec = (quake2world.time - old_time) * time_scale->value;
+		old_time = quake2world.time;
 
-		if (msec < 1) { // 0ms frames are not okay
-			quake2world.time = old_time;
-			continue;
+		do {
+			quake2world.time = Sys_Milliseconds();
+			msec = (quake2world.time - old_time) * time_scale->value;
 		}
+		while (msec < 1);
 
 		Frame(msec);
 	}
