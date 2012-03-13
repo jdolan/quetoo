@@ -535,9 +535,17 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	if (al < 0 || al > 1.0)
 		al = 0;
 
-	if (al < 0.3 && (ps->pmove.pm_flags & PMF_UNDER_WATER)) {
-		if (al < 0.15 * cg_draw_blend->value)
-			color = 114;
+	const int contents = cgi.PointContents(cgi.view->origin);
+
+	if (al < 0.3 * cg_draw_blend->value && (contents & MASK_WATER)) {
+		if (al < 0.15 * cg_draw_blend->value) {
+			if (contents & CONTENTS_LAVA)
+				color = 71;
+			else if (contents & CONTENTS_SLIME)
+				color = 201;
+			else
+				color = 114;
+		}
 		al = 0.3 * cg_draw_blend->value;
 	}
 
