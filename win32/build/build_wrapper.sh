@@ -25,19 +25,8 @@ if [ -z $CURRENTARCH ]; then
   echo "/mingw is not mounted or gcc not installed"
 fi
 
-function BUILD
+function CHECK_BUILD
 {
-	rm -f _build.log
-	
-	gcc -v >> _build.log 2>&1
-	sh _build_win32.sh >> _build.log 2>&1
-	sh ../switch_arch.sh >> _build.log 2>&1
-	
-	gcc -v >> _build.log 2>&1
-	sh _build_win32.sh >> _build.log 2>&1
-	sh ../switch_arch.sh >> _build.log 2>&1
-
-
 	if [ $? != "0" ];then
 		echo "Build error"
     	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build.log web@satgnu.net:www/satgnu.net/files
@@ -47,6 +36,21 @@ function BUILD
     	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build.log web@satgnu.net:www/satgnu.net/files
 		rm _build.log
 	fi
+}
+
+function BUILD
+{
+	rm -f _build.log
+	
+	sh ../switch_arch.sh >> _build.log 2>&1
+	gcc -v >> _build.log 2>&1
+	sh _build_win32.sh >> _build.log 2>&1
+	CHECK_BUILD
+
+	sh ../switch_arch.sh >> _build.log 2>&1	
+	gcc -v >> _build.log 2>&1
+	sh _build_win32.sh >> _build.log 2>&1
+	CHECK_BUILD
 }
 
 while true; do
