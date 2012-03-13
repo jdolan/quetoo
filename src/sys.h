@@ -43,7 +43,7 @@
 #define MAX_BACKTRACE_SYMBOLS 50
 #endif
 
-int Sys_Milliseconds(void);
+unsigned int Sys_Milliseconds(void);
 
 const char *Sys_GetCurrentUser(void);
 

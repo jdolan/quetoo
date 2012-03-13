@@ -24,8 +24,8 @@
 /*
  * Sys_Milliseconds
  */
-int Sys_Milliseconds(void) {
-	static int base, time;
+unsigned int Sys_Milliseconds(void) {
+	static unsigned int base, time;
 
 #ifdef _WIN32
 	if(!base)
@@ -50,26 +50,26 @@ int Sys_Milliseconds(void) {
  * Sys_GetCurrentUser
  */
 const char *Sys_GetCurrentUser(void) {
-	static char s_userName[64];
+	static char user[64];
 #ifdef _WIN32
-	unsigned long size = sizeof(s_userName);
+	unsigned long size = sizeof(user);
 
-	if (!GetUserName(s_userName, &size))
-		s_userName[0] = '\0';
+	if (!GetUserName(user, &size))
+		user[0] = '\0';
 #else
 	struct passwd *p;
 
 	if ((p = getpwuid(getuid())) == NULL)
-		s_userName[0] = '\0';
+		user[0] = '\0';
 	else {
-		strncpy(s_userName, p->pw_name, sizeof(s_userName));
-		s_userName[sizeof(s_userName) - 1] = '\0';
+		strncpy(user, p->pw_name, sizeof(user));
+		user[sizeof(user) - 1] = '\0';
 	}
 #endif
-	return s_userName;
+	return user;
 }
 
-/*
+/**
  * Sys_Mkdir
  *
  * Create the specified directory path.
@@ -87,7 +87,7 @@ static char findpath[MAX_OSPATH];
 static char findpattern[MAX_OSPATH];
 static DIR *fdir;
 
-/*
+/**
  * Sys_FindFirst
  *
  * Returns the first full path name matched by the specified search path in
@@ -152,7 +152,7 @@ void Sys_FindClose(void) {
 	fdir = NULL;
 }
 
-/*
+/**
  * Sys_CloseLibrary
  *
  * Closes an open game module.
@@ -189,7 +189,7 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 	Com_Error(ERR_DROP, "Sys_OpenLibrary: %s\n", dlerror());
 }
 
-/*
+/**
  * Sys_LoadLibrary
  *
  * Opens and loads the specified shared library. The function identified by
@@ -219,7 +219,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point,
 	return EntryPoint(params);
 }
 
-/*
+/**
  * Sys_Quit
  *
  * The final exit point of the program under normal exit conditions.
@@ -228,7 +228,7 @@ void Sys_Quit(void) {
 	exit(0);
 }
 
-/*
+/**
  * Sys_Backtrace
  *
  * On platforms supporting it, print a backtrace.
@@ -245,7 +245,9 @@ void Sys_Backtrace(void) {
 #endif
 }
 
-/*
+/**
+ * Sys_Error
+ *
  * The final exit point of the program under abnormal exit conditions.
  */
 void Sys_Error(const char *error, ...) {
@@ -263,7 +265,7 @@ void Sys_Error(const char *error, ...) {
 	exit(1);
 }
 
-/*
+/**
  * Sys_Signal
  *
  * Catch kernel interrupts and dispatch the appropriate exit routine.
