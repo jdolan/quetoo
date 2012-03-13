@@ -39,7 +39,7 @@ cvar_t *sv_public;
 cvar_t *sv_timeout;
 cvar_t *sv_udp_download;
 
-/*
+/**
  * Sv_DropClient
  *
  * Called when the player is totally leaving the server, either willingly
@@ -72,7 +72,7 @@ void Sv_DropClient(sv_client_t *cl) {
 	cl->last_frame = -1;
 }
 
-/*
+/**
  * Sv_StatusString
  *
  * Returns a string fit for heartbeats and status replies.
@@ -111,7 +111,7 @@ static const char *Sv_StatusString(void) {
 	return status;
 }
 
-/*
+/**
  * Svc_Status
  *
  * Responds with all the info that qplug or qspy can see
@@ -127,7 +127,7 @@ static void Svc_Ack(void) {
 	Com_Print("Ping acknowledge from %s\n", Net_NetaddrToString(net_from));
 }
 
-/*
+/**
  * Svc_Info
  *
  * Responds with short info for broadcast scans.
@@ -160,16 +160,16 @@ static void Svc_Info(void) {
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "info\n%s", string);
 }
 
-/*
+/**
  * Svc_Ping
  *
- * Just responds with an acknowledgement
+ * Just responds with an acknowledgment.
  */
 static void Svc_Ping(void) {
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "ack");
 }
 
-/*
+/**
  * Svc_GetChallenge
  *
  * Returns a challenge number that can be used in a subsequent client_connect
@@ -209,7 +209,7 @@ static void Svc_GetChallenge(void) {
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "challenge %i", svs.challenges[i].challenge);
 }
 
-/*
+/**
  * Svc_Connect
  *
  * A connection request that did not come from the master.
@@ -369,7 +369,7 @@ static bool Sv_RconAuthenticate(void) {
 	return true;
 }
 
-/*
+/**
  * Svc_RemoteCommand
  *
  * A client issued an rcon command.  Shift down the remaining args and
@@ -406,7 +406,7 @@ static void Svc_RemoteCommand(void) {
 	Com_EndRedirect();
 }
 
-/*
+/**
  * Sv_ConnectionlessPacket
  *
  * A connectionless packet has four leading 0xff bytes to distinguish it from
@@ -445,7 +445,7 @@ static void Sv_ConnectionlessPacket(void) {
 		Com_Print("Bad connectionless packet from %s:\n%s\n", Net_NetaddrToString(net_from), s);
 }
 
-/*
+/**
  * Sv_UpdatePings
  *
  * Updates the "ping" times for all spawned clients.
@@ -480,7 +480,7 @@ static void Sv_UpdatePings(void) {
 	}
 }
 
-/*
+/**
  * Sv_CheckCommandTimes
  *
  * Once per second, gives all clients an allotment of 1000 milliseconds
@@ -617,7 +617,7 @@ static void Sv_CheckTimeouts(void) {
 	}
 }
 
-/*
+/**
  * Sv_ResetEntities
  *
  * Resets entity flags and other state which should only last one frame.
@@ -637,7 +637,7 @@ static void Sv_ResetEntities(void) {
 	}
 }
 
-/*
+/**
  * Sv_RunGameFrame
  *
  * Updates the game module's time and runs its frame function once per
@@ -672,7 +672,7 @@ static void Sv_InitMasters(void) {
 
 #define HEARTBEAT_SECONDS 300
 
-/*
+/**
  * Sv_HeartbeatMasters
  *
  * Sends heartbeat messages to master servers every 300s.
@@ -712,7 +712,7 @@ static void Sv_HeartbeatMasters(void) {
 	}
 }
 
-/*
+/**
  * Sv_ShutdownMasters
  *
  * Informs master servers that this server is halting.
@@ -764,7 +764,7 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
 	Sv_BroadcastPrint(PRINT_HIGH, "%s was kicked%s\n", name, buf);
 }
 
-/*
+/**
  * Sv_NetaddrToString
  *
  * A convenience function for printing out client addresses.
@@ -776,7 +776,7 @@ char *Sv_NetaddrToString(sv_client_t *cl) {
 #define MIN_RATE 8000
 #define DEFAULT_RATE 20000
 
-/*
+/**
  * Sv_UserInfoChanged
  *
  * Enforces safe user_info data before passing onto game module.
@@ -897,7 +897,7 @@ void Sv_Frame(unsigned int msec) {
 #endif
 }
 
-/*
+/**
  * Sv_Init
  *
  * Only called at Quake2World startup, not for each game.
@@ -936,7 +936,7 @@ void Sv_Init(void) {
 	Net_Config(NS_SERVER, true);
 }
 
-/*
+/**
  * Sv_Shutdown
  *
  * Called when server is shutting down due to error or an explicit `quit`.

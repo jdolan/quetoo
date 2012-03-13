@@ -154,7 +154,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 	cgi.BindFont(NULL, &cw, &ch);
 
 	if (ps->stats[STAT_PICKUP_ICON] > 0) {
-		const short icon = ps->stats[STAT_PICKUP_ICON];
+		const short icon = ps->stats[(STAT_PICKUP_ICON & ~STAT_TOGGLE_BIT)];
 		const short pickup = ps->stats[STAT_PICKUP_STRING];
 
 		const char *string = cgi.ConfigString(pickup);
@@ -505,7 +505,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	// determine if we've taken damage or picked up an item
 	dh = ps->stats[STAT_HEALTH];
 	da = ps->stats[STAT_ARMOR];
-	dp = ps->stats[STAT_PICKUP_STRING];
+	dp = ps->stats[STAT_PICKUP_ICON];
 
 	if (ps->pmove.pm_type == PM_NORMAL) {
 

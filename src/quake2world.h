@@ -452,8 +452,10 @@ typedef enum {
 #define STAT_ROUND			18
 #define STAT_READY			19
 #define STAT_SCORES			20
-#define STAT_GENERAL		STAT_SCORES  // for mods to extend
+#define STAT_GENERAL		STAT_SCORES // for mods to extend
 #define MAX_STATS			32
+
+#define STAT_TOGGLE_BIT		0x8000 // used to force a stats field update
 
 // -4096 up to +4096
 #define MAX_WORLD_WIDTH		4096
@@ -466,18 +468,18 @@ typedef enum {
 #define CS_GRAVITY			1
 #define CS_SKY				2
 #define CS_WEATHER			3
-#define CS_PAK				4  // pak for current level
-#define CS_BSP_SIZE			5  // for catching incompatible maps
-#define CS_GAMEPLAY			6  // gameplay string
+#define CS_PAK				4 // pak for current level
+#define CS_BSP_SIZE			5 // for catching incompatible maps
+#define CS_GAMEPLAY			6 // gameplay string
 #define CS_TEAMS			7
 #define CS_CTF				8
 #define CS_MATCH			9
 #define CS_ROUNDS			10
-#define CS_TEAM_GOOD		11  // team names
+#define CS_TEAM_GOOD		11 // team names
 #define CS_TEAM_EVIL		12
-#define CS_TIME				13  // level or match timer
+#define CS_TIME				13 // level or match timer
 #define CS_ROUND			14
-#define CS_VOTE				15  // vote string\yes count\no count
+#define CS_VOTE				15 // vote string\yes count\no count
 #define CS_MODELS			16
 #define CS_SOUNDS			(CS_MODELS + MAX_MODELS)
 #define CS_MUSICS			(CS_SOUNDS + MAX_SOUNDS)

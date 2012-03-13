@@ -493,8 +493,14 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attrib
 
 	if ((taken = ent->item->pickup(ent, other))) {
 		// show icon and name on status bar
-		other->client->ps.stats[STAT_PICKUP_ICON] = gi.ImageIndex(ent->item->icon);
+		unsigned short icon = gi.ImageIndex(ent->item->icon);
+
+		if (other->client->ps.stats[STAT_PICKUP_ICON] == icon)
+			icon |= STAT_TOGGLE_BIT;
+
+		other->client->ps.stats[STAT_PICKUP_ICON] = icon;
 		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ITEM_INDEX(ent->item);
+
 		other->client->pickup_msg_time = g_level.time + 3000;
 
 		if (ent->item->pickup_sound) { // play pickup sound
