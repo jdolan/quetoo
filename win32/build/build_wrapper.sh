@@ -53,7 +53,7 @@ while true; do
 	CURRENT_REVISION=`svn info svn://jdolan.dyndns.org/quake2world|grep Revision:|cut -d\  -f2`
 	
 	
-	if [ -e i686/quake2world -o -e x86_64/quake2world ]; then
+	if [ -e $CURRENT_ARCH/quake2world ]; then
 		LAST_REVISION=`svn info	$CURRENT_ARCH/quake2world|grep Revision:|cut -d\  -f2`
 	else
 		LAST_REVISION="0"
