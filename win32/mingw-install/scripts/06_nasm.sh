@@ -1,4 +1,4 @@
-SOURCE=http://fossies.org/linux/misc/nasm-2.10rc9.tar.gz
+SOURCE=http://www.nasm.us/pub/nasm/releasebuilds/2.10/nasm-2.10.tar.gz
 wget -c $SOURCE
 
 tar xzf `ls nasm-*.tar.gz`
