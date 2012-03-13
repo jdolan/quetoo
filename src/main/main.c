@@ -245,7 +245,7 @@ static void Shutdown(const char *msg) {
 /*
  * Frame
  */
-static void Frame(int msec) {
+static void Frame(unsigned int msec) {
 	extern int c_traces, c_bsp_brush_traces;
 	extern int c_point_contents;
 	extern cvar_t *threads;
@@ -326,6 +326,7 @@ int main(int argc, char **argv) {
 		const int msec = (quake2world.time - old_time) * time_scale->value;
 
 		if (msec < 1) { // 0ms frames are not okay
+			quake2world.time = old_time;
 			continue;
 		}
 
