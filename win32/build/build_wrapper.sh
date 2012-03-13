@@ -25,18 +25,6 @@ if [ -z $CURRENTARCH ]; then
   echo "/mingw is not mounted or gcc not installed"
 fi
 
-function CHECK_BUILD
-{
-	if [ $? != "0" ];then
-		echo "Build error"
-    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENTARCH".log web@satgnu.net:www/satgnu.net/files
-		mailsend.exe -d jdolan.dyndns.org -smtp jdolan.dyndns.org -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@jdolan.dyndns.org -sub "Build FAILED svn-$NEWREV on $CURRENTARCH" +cc +bc < _build-"$CURRENTARCH".log
-	else
-		echo "Build succeeded"
-    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENTARCH".log web@satgnu.net:www/satgnu.net/files
-		rm _build-"$CURRENTARCH".log
-	fi
-}
 
 function BUILD
 {
@@ -45,8 +33,18 @@ function BUILD
 	sh ../switch_arch.sh >> _build-"$CURRENTARCH".log 2>&1
 	gcc -v >> _build-"$CURRENTARCH".log 2>&1
 	sh _build_win32.sh >> _build-"$CURRENTARCH".log 2>&1
-	sync
-	CHECK_BUILD
+	
+	if [ $? != "0" ];then
+		echo "Build error"
+		sync
+    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENTARCH".log web@satgnu.net:www/satgnu.net/files
+		mailsend.exe -d jdolan.dyndns.org -smtp jdolan.dyndns.org -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@jdolan.dyndns.org -sub "Build FAILED svn-$NEWREV on $CURRENTARCH" +cc +bc < _build-"$CURRENTARCH".log
+	else
+		echo "Build succeeded"
+		sync
+    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENTARCH".log web@satgnu.net:www/satgnu.net/files
+		rm _build-"$CURRENTARCH".log
+	fi
 }
 
 while true; do
