@@ -38,8 +38,8 @@ PREFIX=/tmp/quake2world-$CURRENTARCH
 cd $CURRENTARCH
 START=`pwd`
 svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world
-rev=` svn info quake2world/ |grep evision|cut -d\  -f 2`
-echo checked out revision $rev
+REVISION=` svn info quake2world/ |grep evision|cut -d\  -f 2`
+echo checked out revision $REVISION
 
 
 cd $START/quake2world
@@ -75,12 +75,12 @@ cd /mingw/bin
 cp $LIBS $START/dist/quake2world
 
 cd $START/dist
-zip -9 -r ../quake2world-"$CURRENTARCH"-svn"$rev".zip quake2world
+zip -9 -r ../quake2world-"$CURRENTARCH"-svn"$REVISION".zip quake2world
 
 cd $START
 
 ../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32/"$CURRENTARCH"
 ../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' dist/quake2world/* web@satgnu.net:www/satgnu.net/files/quake2world/"$CURRENTARCH"
 
-../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' quake2world-"$CURRENTARCH"-svn"$rev".zip web@satgnu.net:www/satgnu.net/files/quake2world-"$CURRENTARCH"-snapshot.zip
-ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world-"$CURRENTARCH"-snapshot.zip /home/web/www/satgnu.net/files/quake2world-"$CURRENTARCH"-svn"$rev".zip
+../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' quake2world-"$CURRENTARCH"-svn"$REVISION".zip web@satgnu.net:www/satgnu.net/files/quake2world-"$CURRENTARCH"-snapshot.zip
+ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world-"$CURRENTARCH"-snapshot.zip /home/web/www/satgnu.net/files/quake2world-"$CURRENTARCH"-svn"$REVISION".zip
