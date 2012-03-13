@@ -40,11 +40,11 @@ function BUILD
 
 	if [ $? != "0" ];then
 		echo "Build error"
-		scp _build.log web@satgnu.net:www/satgnu.net/files
+    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build.log web@satgnu.net:www/satgnu.net/files
 		mailsend.exe -d jdolan.dyndns.org -smtp jdolan.dyndns.org -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@jdolan.dyndns.org -sub "Build FAILED r$NEWREV" +cc +bc < _build.log
 	else
 		echo "Build succeeded"
-    	scp _build.log web@satgnu.net:www/satgnu.net/files
+    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build.log web@satgnu.net:www/satgnu.net/files
 		rm _build.log
 	fi
 }
