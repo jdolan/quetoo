@@ -465,7 +465,7 @@ void G_func_plat(g_edict_t *ent) {
 	ent->move_info.speed = ent->speed;
 	ent->move_info.accel = ent->accel;
 	ent->move_info.decel = ent->decel;
-	ent->move_info.wait = ent->wait * 1000;	//this appears to be compltely optimized out by GCC
+	ent->move_info.wait = ent->wait * 1000; //this appears to be compltely optimized out by GCC
 	VectorCopy(ent->pos1, ent->move_info.start_origin);
 	VectorCopy(ent->s.angles, ent->move_info.start_angles);
 	VectorCopy(ent->pos2, ent->move_info.end_origin);
@@ -1456,7 +1456,7 @@ void G_func_train(g_edict_t *self) {
  */
 static void G_func_timer_think(g_edict_t *self) {
 	G_UseTargets(self, self->activator);
-	self->next_think = g_level.time + self->wait + crand() * self->random;
+	self->next_think = g_level.time + self->wait + randomc() * self->random;
 }
 
 /*
@@ -1506,7 +1506,7 @@ void G_func_timer(g_edict_t *self) {
 
 	if (self->spawn_flags & 1) {
 		self->next_think = g_level.time + 1000 + g_game.spawn.pause_time + self->delay * 1000
-				+ self->wait * 1000 + crand() * (self->random * 1000);
+				+ self->wait * 1000 + randomc() * (self->random * 1000);
 		self->activator = self;
 	}
 

@@ -239,7 +239,7 @@ static void G_ClientCorpse_think(g_edict_t *ent) {
  * G_ClientCorpse
  */
 static void G_ClientCorpse(g_edict_t *self) {
-	const float f = frand();
+	const float f = randomf();
 	g_edict_t *ent = G_Spawn();
 
 	ent->class_name = "corpse";
@@ -544,7 +544,7 @@ static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
 	if (!count)
 		return NULL;
 
-	count = rand() % count;
+	count = random() % count;
 
 	while (count-- >= 0)
 		spot = G_Find(spot, FOFS(class_name), class_name);
@@ -849,8 +849,6 @@ void G_ClientBegin(g_edict_t *ent) {
 
 	// make sure all view stuff is valid
 	G_ClientEndFrame(ent);
-
-	srand(time(NULL)); // set random seed
 }
 
 /*

@@ -97,7 +97,7 @@ static void G_ItemRespawn(g_edict_t *ent) {
 		for (count = 0, ent = master; ent; ent = ent->chain, count++)
 			;
 
-		choice = rand() % count;
+		choice = random() % count;
 
 		for (count = 0, ent = master; count < choice; ent = ent->chain, count++)
 			;
@@ -614,7 +614,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item) {
 	dropped->owner = ent;
 
 	if (ent->client) { // randomize the direction we toss in
-		VectorSet(v, 0.0, ent->client->angles[1] + crand() * 45.0, 0.0);
+		VectorSet(v, 0.0, ent->client->angles[1] + randomc() * 45.0, 0.0);
 		AngleVectors(v, forward, NULL, NULL);
 
 		VectorMA(ent->s.origin, 24.0, forward, dropped->s.origin);
@@ -644,7 +644,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item) {
 	}
 
 	VectorScale(forward, 100.0, dropped->velocity);
-	dropped->velocity[2] = 200.0 + (frand() * 150.0);
+	dropped->velocity[2] = 200.0 + (randomf() * 150.0);
 
 	dropped->think = G_DropItemThink;
 	dropped->next_think = g_level.time + gi.frame_millis;

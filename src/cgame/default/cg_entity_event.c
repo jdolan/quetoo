@@ -39,19 +39,19 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 
 		p->color = 110; // white
 
-		p->org[0] = org[0] + crand() * 8.0;
-		p->org[1] = org[1] + crand() * 8.0;
-		p->org[2] = org[2] + 8 + frand() * 8.0;
+		p->org[0] = org[0] + randomc() * 8.0;
+		p->org[1] = org[1] + randomc() * 8.0;
+		p->org[2] = org[2] + 8 + randomf() * 8.0;
 
 		for (j = 0; j < 2; j++)
-			p->vel[j] = crand() * 48.0;
-		p->vel[2] = frand() * 48.0;
+			p->vel[j] = randomc() * 48.0;
+		p->vel[2] = randomf() * 48.0;
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
 
 		p->alpha = 1.0;
-		p->alpha_vel = -1.5 + frand() * 0.5;
+		p->alpha_vel = -1.5 + randomf() * 0.5;
 	}
 
 	VectorCopy(org, s.light.origin);
@@ -80,19 +80,19 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 
 		p->color = 110; // white
 
-		p->org[0] = org[0] + crand() * 8.0;
-		p->org[1] = org[1] + crand() * 8.0;
-		p->org[2] = org[2] + 8 + crand() * 16.0;
+		p->org[0] = org[0] + randomc() * 8.0;
+		p->org[1] = org[1] + randomc() * 8.0;
+		p->org[2] = org[2] + 8 + randomc() * 16.0;
 
 		for (j = 0; j < 2; j++)
-			p->vel[j] = crand() * 16.0;
-		p->vel[2] = frand() * 128.0;
+			p->vel[j] = randomc() * 16.0;
+		p->vel[2] = randomf() * 128.0;
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = PARTICLE_GRAVITY * 0.2;
 
 		p->alpha = 1.0;
-		p->alpha_vel = -1.5 + frand() * 0.5;
+		p->alpha_vel = -1.5 + randomf() * 0.5;
 	}
 
 	VectorCopy(org, s.light.origin);
@@ -133,10 +133,10 @@ void Cg_EntityEvent(cl_entity_t *e) {
 		Cg_TeleporterEffect(s->origin);
 		break;
 	case EV_CLIENT_JUMP:
-		cgi.PlaySample(NULL, s->number, cgi.LoadSample(va("*jump_%d", rand() % 5 + 1)), ATTN_NORM);
+		cgi.PlaySample(NULL, s->number, cgi.LoadSample(va("*jump_%d", random() % 5 + 1)), ATTN_NORM);
 		break;
 	case EV_CLIENT_FOOTSTEP:
-		cgi.PlaySample(NULL, s->number, cg_sample_footsteps[rand() & 3], ATTN_NORM);
+		cgi.PlaySample(NULL, s->number, cg_sample_footsteps[random() & 3], ATTN_NORM);
 		break;
 	case EV_CLIENT_LAND:
 		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*land_1"), ATTN_NORM);

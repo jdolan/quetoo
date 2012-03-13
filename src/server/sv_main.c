@@ -199,7 +199,7 @@ static void Svc_GetChallenge(void) {
 
 	if (i == MAX_CHALLENGES) {
 		// overwrite the oldest
-		svs.challenges[oldest].challenge = rand() & 0x7fff;
+		svs.challenges[oldest].challenge = random() & 0x7fff;
 		svs.challenges[oldest].addr = net_from;
 		svs.challenges[oldest].time = quake2world.time;
 		i = oldest;
@@ -851,7 +851,7 @@ void Sv_Frame(unsigned int msec) {
 	svs.real_time += msec;
 
 	// keep the random time dependent
-	rand();
+	random();
 
 	// check timeouts
 	Sv_CheckTimeouts();

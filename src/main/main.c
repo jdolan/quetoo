@@ -270,7 +270,7 @@ static void Frame(unsigned int msec) {
 #endif
 }
 
-/*
+/**
  * main
  *
  * The entry point of the program.

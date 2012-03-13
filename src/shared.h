@@ -25,8 +25,8 @@
 #include "quake2world.h"
 
 // math and trigonometry functions
-float frand(void);  // 0 to 1
-float crand(void);  // -1 to 1
+float randomf(void);  // 0 to 1
+float randomc(void);  // -1 to 1
 
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);

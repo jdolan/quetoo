@@ -193,7 +193,7 @@ g_edict_t *G_PickTarget(char *target_name) {
 		return NULL;
 	}
 
-	return choice[rand() % num_choices];
+	return choice[random() % num_choices];
 }
 
 /*

@@ -133,7 +133,7 @@ void S_LoadMusics(void) {
 		while (i < MAX_MUSICS + 1) {
 
 			char *s = cl.config_strings[CS_MUSICS + i];
-			const int j = rand() % MAX_MUSICS;
+			const int j = random() % MAX_MUSICS;
 
 			sprintf(s, "track%d", j);
 

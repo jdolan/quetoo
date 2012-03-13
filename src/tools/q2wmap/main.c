@@ -648,7 +648,6 @@ int main(int argc, char **argv) {
 
 	// start timer
 	start = time(NULL);
-	srand(0);
 
 	if (do_bsp)
 		BSP_Main();

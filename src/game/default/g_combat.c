@@ -124,7 +124,7 @@ static int G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int damage,
 		return 0;
 
 	if (damage < 2) // sometimes protect very small damage
-		damage = rand() & 1;
+		damage = random() & 1;
 	else
 		damage *= 0.80; // mostly protect large damage
 

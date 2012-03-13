@@ -32,8 +32,8 @@ vec3_t PM_MAXS = { 16.0, 16.0, 40.0 };
  *
  * Returns a float between 0.0 and 1.0.
  */
-float frand(void) {
-	return (rand() & 32767) * (1.0 / 32767);
+float randomf(void) {
+	return (random() & 32767) * (1.0 / 32767);
 }
 
 /*
@@ -41,8 +41,8 @@ float frand(void) {
  *
  * Returns a float between -1.0 and 1.0.
  */
-float crand(void) {
-	return (rand() & 32767) * (2.0 / 32767) - 1.0;
+float randomc(void) {
+	return (random() & 32767) * (2.0 / 32767) - 1.0;
 }
 
 /*

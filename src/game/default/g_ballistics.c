@@ -118,7 +118,7 @@ static void G_Tracer(vec3_t start, vec3_t end) {
 	if (len < 128.0)
 		return;
 
-	VectorMA(end, -len + (frand() * 0.05 * len), dir, mid);
+	VectorMA(end, -len + (randomf() * 0.05 * len), dir, mid);
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_TRACER);
@@ -255,8 +255,8 @@ void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage,
 		VectorAngles(aimdir, dir);
 		AngleVectors(dir, forward, right, up);
 
-		r = crand() * hspread;
-		u = crand() * vspread;
+		r = randomc() * hspread;
+		u = randomc() * vspread;
 		VectorMA(start, 8192.0, forward, end);
 		VectorMA(end, r, right, end);
 		VectorMA(end, u, up, end);
@@ -397,12 +397,12 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int speed,
 	grenade->s.angles[PITCH] += 90.0;
 
 	VectorScale(aimdir, speed, grenade->velocity);
-	VectorMA(grenade->velocity, 200.0 + crand() * 10.0, up, grenade->velocity);
-	VectorMA(grenade->velocity, crand() * 10.0, right, grenade->velocity);
+	VectorMA(grenade->velocity, 200.0 + randomc() * 10.0, up, grenade->velocity);
+	VectorMA(grenade->velocity, randomc() * 10.0, right, grenade->velocity);
 
-	grenade->avelocity[0] = -300.0 + 10 * crand();
-	grenade->avelocity[1] = 50.0 * crand();
-	grenade->avelocity[2] = 25.0 * crand();
+	grenade->avelocity[0] = -300.0 + 10 * randomc();
+	grenade->avelocity[1] = 50.0 * randomc();
+	grenade->avelocity[2] = 25.0 * randomc();
 
 	grenade->move_type = MOVE_TYPE_TOSS;
 	grenade->clip_mask = MASK_SHOT;
@@ -925,8 +925,8 @@ void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int speed, int d
 		VectorCopy(dir, bfg->move_dir);
 
 		// and scatter randomly along the up and right vectors
-		VectorScale(right, crand() * 0.35, r);
-		VectorScale(up, crand() * 0.01, u);
+		VectorScale(right, randomc() * 0.35, r);
+		VectorScale(up, randomc() * 0.01, u);
 
 		VectorAdd(bfg->move_dir, r, bfg->move_dir);
 		VectorAdd(bfg->move_dir, u, bfg->move_dir);
@@ -934,7 +934,7 @@ void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int speed, int d
 		// finalize the direction and resolve angles, velocity, ..
 		VectorAngles(bfg->move_dir, bfg->s.angles);
 
-		s = speed + (0.2 * speed * crand());
+		s = speed + (0.2 * speed * randomc());
 		VectorScale(bfg->move_dir, s, bfg->velocity);
 
 		bfg->move_type = MOVE_TYPE_FLY;

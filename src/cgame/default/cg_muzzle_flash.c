@@ -75,11 +75,11 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int color, int count) {
 
 		p->scale_vel = 4.0;
 
-		p->color = color + (rand() & 15);
+		p->color = color + (random() & 15);
 
 		for (j = 0; j < 3; j++) {
-			p->org[j] = org[j] + 8.0 * crand();
-			p->vel[j] = 128.0 * crand();
+			p->org[j] = org[j] + 8.0 * randomc();
+			p->vel[j] = 128.0 * randomc();
 		}
 	}
 }
@@ -140,17 +140,17 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	p->alpha = 0.8;
 	p->alpha_vel = -1.0;
 
-	p->color = rand() & 7;
+	p->color = random() & 7;
 	p->blend = GL_ONE;
 
 	VectorCopy(org, p->org);
 
 	for (j = 0; j < 2; j++) {
-		p->vel[j] = crand();
+		p->vel[j] = randomc();
 	}
 	p->vel[2] = 10.0;
 
-	p->roll = crand() * 100.0; // rotation
+	p->roll = randomc() * 100.0; // rotation
 }
 
 /*
@@ -194,9 +194,9 @@ void Cg_ParseMuzzleFlash(void) {
 		Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_MACHINEGUN:
-		cgi.PlaySample(NULL, ent_num, cg_sample_machinegun_fire[rand() % 4],
+		cgi.PlaySample(NULL, ent_num, cg_sample_machinegun_fire[random() % 4],
 				ATTN_NORM);
-		if (rand() & 1)
+		if (random() & 1)
 			Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_ROCKET:
