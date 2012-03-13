@@ -56,7 +56,7 @@ gcc -shared -o cgame.dll *.o ../../.libs/libshared.a -lopengl32
 
 
 cd $START
-rm -Rf quake2world_rev* dist
+rm -Rf *.zip dist
 mkdir -p dist/quake2world/default
 cd dist/quake2world
 cp ../../../updater/* .
