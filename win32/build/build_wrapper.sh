@@ -19,9 +19,9 @@
 #############################################################################
 
 
-CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
+CURRENT_ARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
 
-if [ -z $CURRENTARCH ]; then
+if [ -z $CURRENT_ARCH ]; then
   echo "/mingw is not mounted or gcc not installed"
 fi
 
@@ -31,37 +31,43 @@ function BUILD
 	rm -f _build-*.log
 	sh ../switch_arch.sh
 	
-	CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
+	CURRENT_ARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
 
-	gcc -v >> _build-"$CURRENTARCH".log 2>&1
-	sh _build_win32.sh >> _build-"$CURRENTARCH".log 2>&1
+	gcc -v >> _build-"$CURRENT_ARCH".log 2>&1
+	sh _build_win32.sh >> _build-"$CURRENT_ARCH".log 2>&1
 	
 	if [ $? != "0" ];then
 		echo "Build error"
 		sync
-    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENTARCH".log web@satgnu.net:www/satgnu.net/files
-		mailsend.exe -d jdolan.dyndns.org -smtp jdolan.dyndns.org -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@jdolan.dyndns.org -sub "Build FAILED $CURRENTARCH-svn$NEWREV-" +cc +bc -a "_build-$CURRENTARCH.log,text/plain"
+    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log web@satgnu.net:www/satgnu.net/files
+		mailsend.exe -d jdolan.dyndns.org -smtp jdolan.dyndns.org -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@jdolan.dyndns.org -sub "Build FAILED $CURRENT_ARCH-svn$CURRENT_REVISION-" +cc +bc -a "_build-$CURRENT_ARCH.log,text/plain"
 	else
 		echo "Build succeeded"
 		sync
-    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENTARCH".log web@satgnu.net:www/satgnu.net/files
-		rm _build-"$CURRENTARCH".log
+    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log web@satgnu.net:www/satgnu.net/files
+		rm _build-"$CURRENT_ARCH".log
 	fi
 }
 
 while true; do
-	CURREV=`svn info			$CURRENTARCH/quake2world|grep Revision:|cut -d\  -f2`
-	NEWREV=`svn info svn://jdolan.dyndns.org/quake2world|grep Revision:|cut -d\  -f2`
-
-	echo $CURREV $NEWREV
-
-	if [ -e _build-i686.log -o -e _build-x86_64.log -o $CURREV != $NEWREV ];then
-		echo "Building" - `date`
-		BUILD
-		BUILD
-		echo "Building done" - `date`
+	CURRENT_REVISION=`svn info svn://jdolan.dyndns.org/quake2world|grep Revision:|cut -d\  -f2`
+	
+	
+	if [ -e i686/quake2world -o -e x86_64/quake2world ]; then
+		LAST_REVISION=`svn info	$CURRENT_ARCH/quake2world|grep Revision:|cut -d\  -f2`
 	else
-		echo "Nothing has changed and no previsouly failed build." - `date`
+		LAST_REVISION="0"
+	fi
+		
+	echo $LAST_REVISION $CURRENT_REVISION
+
+	if [ -e _build-i686.log -o -e _build-x86_64.log -o $LAST_REVISION != $CURRENT_REVISION ]; then
+		echo "Building......" - `date`
+		BUILD
+		BUILD
+		echo "Building done." - `date`
+	else
+		echo "No new revision and no previous failed build." - `date`
 	fi
 
 	sleep 3h

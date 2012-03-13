@@ -22,24 +22,24 @@
 set -e
 set -o errexit
 
-CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
+CURRENT_ARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
 
-if [ -z $CURRENTARCH ]; then
+if [ -z $CURRENT_ARCH ]; then
   echo "/mingw is not mounted or gcc not installed"
 fi
 
-if [ ! -d $CURRENTARCH ];then
-	mkdir $CURRENTARCH
+if [ ! -d $CURRENT_ARCH ];then
+	mkdir $CURRENT_ARCH
 fi
 
-PREFIX=/tmp/quake2world-$CURRENTARCH
+PREFIX=/tmp/quake2world-$CURRENT_ARCH
 
 
-cd $CURRENTARCH
+cd $CURRENT_ARCH
 START=`pwd`
 svn co svn://jdolan.dyndns.org/quake2world/trunk quake2world
-REVISION=` svn info quake2world/ |grep evision|cut -d\  -f 2`
-echo checked out revision $REVISION
+CURRENT_REVISION=` svn info quake2world/ |grep evision|cut -d\  -f 2`
+echo checked out CURRENT_REVISION $CURRENT_REVISION
 
 
 cd $START/quake2world
@@ -60,7 +60,7 @@ rm -Rf *.zip dist
 mkdir -p dist/quake2world/default
 cd dist/quake2world
 cp ../../../updater/* .
-sed -i 's/-win32 .$/-win32\/'$CURRENTARCH'\/\* ./g' Update.bat
+sed -i 's/-win32 .$/-win32\/'$CURRENT_ARCH'\/\* ./g' Update.bat
 
 cp $PREFIX/bin/pak.exe .
 cp $PREFIX/bin/q2wmap.exe .
@@ -75,12 +75,12 @@ cd /mingw/bin
 cp $LIBS $START/dist/quake2world
 
 cd $START/dist
-zip -9 -r ../quake2world-"$CURRENTARCH"-svn"$REVISION".zip quake2world
+zip -9 -r ../quake2world-"$CURRENT_ARCH"-svn"$CURRENT_REVISION".zip quake2world
 
 cd $START
 
-../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32/"$CURRENTARCH"
-../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' dist/quake2world/* web@satgnu.net:www/satgnu.net/files/quake2world/"$CURRENTARCH"
+../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32/"$CURRENT_ARCH"
+../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' dist/quake2world/* web@satgnu.net:www/satgnu.net/files/quake2world/"$CURRENT_ARCH"
 
-../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' quake2world-"$CURRENTARCH"-svn"$REVISION".zip web@satgnu.net:www/satgnu.net/files/quake2world-"$CURRENTARCH"-snapshot.zip
-ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world-"$CURRENTARCH"-snapshot.zip /home/web/www/satgnu.net/files/quake2world-"$CURRENTARCH"-svn"$REVISION".zip
+../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' quake2world-"$CURRENT_ARCH"-svn"$CURRENT_REVISION".zip web@satgnu.net:www/satgnu.net/files/quake2world-"$CURRENT_ARCH"-snapshot.zip
+ssh web@satgnu.net ln -f /home/web/www/satgnu.net/files/quake2world-"$CURRENT_ARCH"-snapshot.zip /home/web/www/satgnu.net/files/quake2world-"$CURRENT_ARCH"-svn"$CURRENT_REVISION".zip
