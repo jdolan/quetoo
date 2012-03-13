@@ -332,7 +332,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 /*
  * Cg_EnergyTrail
  */
-static void Cg_EnergyTrail(cl_entity_t *ent, float radius, int color) {
+static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int color) {
 	static vec3_t angles[NUM_APPROXIMATE_NORMALS];
 	int i, c;
 	r_particle_t *p;
@@ -374,11 +374,10 @@ static void Cg_EnergyTrail(cl_entity_t *ent, float radius, int color) {
 
 		for (c = 0; c < 3; c++) {
 			// project the origin outward, adding in angular velocity
-			p->org[c] = ent->current.origin[c] + (approximate_normals[i][c] * dist) + forward[c]
-					* 16.0;
+			p->org[c] = org[c] + (approximate_normals[i][c] * dist) + forward[c] * 16.0;
 		}
 
-		VectorSubtract(p->org, ent->current.origin, v);
+		VectorSubtract(p->org, org, v);
 		dist = VectorLength(v) / (3.0 * radius);
 		p->color = color + dist * 7.0;
 
@@ -394,7 +393,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, float radius, int color) {
 
 	ent->time = cgi.client->time + 8;
 
-	if (cgi.PointContents(ent->current.origin) & MASK_WATER)
+	if (cgi.PointContents(org) & MASK_WATER)
 		Cg_BubbleTrail(ent->prev.origin, ent->current.origin, 1.0);
 }
 
@@ -462,20 +461,20 @@ static void Cg_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *en
 /*
  * Cg_HyperblasterTrail
  */
-static void Cg_HyperblasterTrail(cl_entity_t *ent) {
+static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
 	r_corona_t c;
 	r_light_t l;
 
-	Cg_EnergyTrail(ent, 8.0, 107);
+	Cg_EnergyTrail(ent, org, 8.0, 107);
 
-	VectorCopy(ent->current.origin, c.origin);
+	VectorCopy(org, c.origin);
 	c.radius = 12.0;
 	c.flicker = 0.15;
 	VectorSet(c.color, 0.4, 0.7, 1.0);
 
 	cgi.AddCorona(&c);
 
-	VectorCopy(ent->current.origin, l.origin);
+	VectorCopy(org, l.origin);
 	l.radius = 100.0;
 	VectorSet(l.color, 0.4, 0.7, 1.0);
 
@@ -544,20 +543,20 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end) {
 /*
  * Cg_BfgTrail
  */
-static void Cg_BfgTrail(cl_entity_t *ent) {
+static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 	r_corona_t c;
 	r_light_t l;
 
-	Cg_EnergyTrail(ent, 16.0, 206);
+	Cg_EnergyTrail(ent, org, 16.0, 206);
 
-	VectorCopy(ent->current.origin, c.origin);
+	VectorCopy(org, c.origin);
 	c.radius = 24.0;
 	c.flicker = 0.05;
 	VectorSet(c.color, 0.4, 1.0, 0.4);
 
 	cgi.AddCorona(&c);
 
-	VectorCopy(ent->current.origin, l.origin);
+	VectorCopy(org, l.origin);
 	l.radius = 120.0;
 	VectorSet(l.color, 0.4, 1.0, 0.4);
 
@@ -648,7 +647,7 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	}
 
 	if (s->effects & EF_HYPERBLASTER) {
-		Cg_HyperblasterTrail(e);
+		Cg_HyperblasterTrail(e, ent->origin);
 	}
 
 	if (s->effects & EF_LIGHTNING) {
@@ -656,7 +655,7 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	}
 
 	if (s->effects & EF_BFG) {
-		Cg_BfgTrail(e);
+		Cg_BfgTrail(e, ent->origin);
 	}
 
 	VectorClear(ent->shell);
@@ -693,6 +692,6 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	}
 
 	if (s->effects & EF_INACTIVE) {
-			Cg_InactiveTrail(ent->origin);
+		Cg_InactiveTrail(ent->origin);
 	}
 }
