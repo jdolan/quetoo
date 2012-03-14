@@ -1172,12 +1172,14 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 
 			VectorMA(ent->s.origin, speed * 0.4, velocity, point);
 
+			const bool restart = g_level.time - client->jump_time > 400;
+
 			tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_PLAYER_SOLID);
 
 			if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && speed > 200.0)
-				G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
+				G_SetAnimation(ent, ANIM_LEGS_JUMP2, restart);
 			else
-				G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+				G_SetAnimation(ent, ANIM_LEGS_JUMP1, restart);
 
 			ent->s.event = EV_CLIENT_JUMP;
 			client->jump_time = g_level.time;

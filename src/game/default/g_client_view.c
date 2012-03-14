@@ -164,36 +164,18 @@ static void G_ClientAnimation(g_edict_t *ent) {
 	// check for falling
 
 	if (!ent->ground_entity) { // not on the ground
-		vec3_t point;
-		c_trace_t trace;
 
 		if (ent->water_level == 3) { // swimming
 			G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
 			return;
 		}
 
-		VectorCopy(ent->s.origin, point);
 
-		const unsigned int jump = g_level.time - ent->client->jump_time;
+		bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
+		jumping |= G_IsAnimation(ent, ANIM_LEGS_JUMP2);
 
-		if (jump <= 400)
-			point[2] += 4.0;
-		else if (ent->velocity[2] < 0.0)
-			point[2] -= 32.0;
-		else if (ent->velocity[2] < 30.0)
-			point[2] -= 16.0;
-		else
-			point[2] -= 1.0;
-
-		trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_PLAYER_SOLID);
-		if (trace.fraction == 1.0) {
-
-			bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
-			jumping |= G_IsAnimation(ent, ANIM_LEGS_JUMP2);
-
-			if (!jumping)
-				G_SetAnimation(ent, ANIM_LEGS_JUMP1, false);
-		}
+		if (!jumping)
+			G_SetAnimation(ent, ANIM_LEGS_JUMP1, false);
 
 		return;
 	}

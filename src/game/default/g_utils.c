@@ -461,8 +461,7 @@ void G_TouchSolids(g_edict_t *ent) {
  *
  * Kills all entities that would touch the proposed new positioning
  * of ent.  Ent should be unlinked before calling this!
- */
-bool G_KillBox(g_edict_t *ent) {
+ */bool G_KillBox(g_edict_t *ent) {
 	c_trace_t tr;
 
 	while (true) {
@@ -676,8 +675,7 @@ g_client_t *G_ClientByName(char *name) {
 
 /*
  * G_IsStationary
- */
-bool G_IsStationary(g_edict_t *ent) {
+ */bool G_IsStationary(g_edict_t *ent) {
 
 	if (!ent)
 		return false;
@@ -718,20 +716,26 @@ void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, bool restart) {
 		return;
 	}
 
-	// while most go to one or the other
+	// while most go to one or the other, and are throttled
 
-	if (anim < ANIM_LEGS_WALKCR)
-		G_SetAnimation_(&ent->s.animation1, anim, restart);
-	else
-		G_SetAnimation_(&ent->s.animation2, anim, restart);
+	if (anim < ANIM_LEGS_WALKCR) {
+		if (restart || ent->client->animation1_time < g_level.time) {
+			G_SetAnimation_(&ent->s.animation1, anim, restart);
+			ent->client->animation1_time = g_level.time + 100;
+		}
+	} else {
+		if (restart || ent->client->animation2_time < g_level.time) {
+			G_SetAnimation_(&ent->s.animation2, anim, restart);
+			ent->client->animation2_time = g_level.time + 100;
+		}
+	}
 }
 
 /*
  * G_IsAnimation
  *
  * Returns true if the entity is currently using the specified animation.
- */
-bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim) {
+ */bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim) {
 	byte a;
 
 	if (anim < ANIM_LEGS_WALK)

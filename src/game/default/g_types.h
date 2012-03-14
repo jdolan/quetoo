@@ -30,7 +30,8 @@ typedef enum {
 	SV_CMD_MUZZLE_FLASH,
 	SV_CMD_SCORES,
 	SV_CMD_TEMP_ENTITY,
-	SV_CMD_FOOBAR // add custom commands here
+	SV_CMD_FOOBAR
+// add custom commands here
 } g_sv_cmd_t;
 
 // scores are transmitted as binary to the client game module
@@ -66,11 +67,9 @@ typedef struct {
 #define FL_GOD_MODE				0x00000004
 #define FL_TEAM_SLAVE			0x00000008  // not the first on the team
 #define FL_RESPAWN				0x80000000  // used for item respawning
-
 // memory tags to allow dynamic memory to be cleaned up
 #define TAG_GAME	765  // clear when unloading the dll
 #define TAG_LEVEL	766  // clear when loading a new level
-
 // ammo types
 typedef enum {
 	AMMO_NONE,
@@ -82,17 +81,17 @@ typedef enum {
 	AMMO_BOLTS,
 	AMMO_SLUGS,
 	AMMO_NUKES
-} g_ammo_t;
+}g_ammo_t;
 
 // armor types
 typedef enum {
 	ARMOR_NONE, ARMOR_JACKET, ARMOR_COMBAT, ARMOR_BODY, ARMOR_SHARD
-} g_armor_t;
+}g_armor_t;
 
 // health types
 typedef enum {
 	HEALTH_NONE, HEALTH_SMALL, HEALTH_MEDIUM, HEALTH_LARGE, HEALTH_MEGA
-} g_health_t;
+}g_health_t;
 
 // edict->move_type values
 typedef enum {
@@ -104,8 +103,8 @@ typedef enum {
 	MOVE_TYPE_WALK, // gravity
 	MOVE_TYPE_FLY,
 	MOVE_TYPE_TOSS,
-// gravity
-} g_move_type_t;
+	// gravity
+}g_move_type_t;
 
 // a synonym for readability
 #define MOVE_TYPE_THINK MOVE_TYPE_NONE
@@ -113,7 +112,7 @@ typedef enum {
 // gitem_t->flags
 typedef enum {
 	ITEM_WEAPON, ITEM_AMMO, ITEM_ARMOR, ITEM_FLAG, ITEM_HEALTH, ITEM_POWERUP
-} g_item_type_t;
+}g_item_type_t;
 
 typedef struct g_item_s {
 	char *class_name; // spawning name
@@ -135,13 +134,13 @@ typedef struct g_item_s {
 	unsigned short tag; // type-specific flags
 
 	char *precaches; // string of all models, sounds, and images this item will use
-} g_item_t;
+}g_item_t;
 
 // override quake2 items for legacy maps
 typedef struct {
 	char *old;
 	char *new;
-} g_override_t;
+}g_override_t;
 
 extern g_override_t g_overrides[];
 
@@ -171,14 +170,14 @@ typedef struct {
 	char *noise;
 	float pause_time;
 	char *item;
-} g_spawn_temp_t;
+}g_spawn_temp_t;
 
 #define FOFS(x) (ptrdiff_t)&(((g_edict_t *)0)->x)
 #define SOFS(x) (ptrdiff_t)&(((g_spawn_temp_t *)0)->x)
 
 typedef enum {
 	STATE_TOP, STATE_BOTTOM, STATE_UP, STATE_DOWN
-} g_move_state_t;
+}g_move_state_t;
 
 typedef struct {
 	// fixed data
@@ -207,7 +206,7 @@ typedef struct {
 	float remaining_distance;
 	float decel_distance;
 	void (*done)(g_edict_t *);
-} g_move_info_t;
+}g_move_info_t;
 
 // this structure is left intact through an entire game
 typedef struct {
@@ -218,7 +217,7 @@ typedef struct {
 
 	unsigned short num_items;
 	unsigned short num_overrides;
-} g_game_t;
+}g_game_t;
 
 extern g_game_t g_game;
 
@@ -263,7 +262,7 @@ typedef struct {
 	unsigned int vote_time; // time vote started
 
 	g_edict_t *current_entity; // entity running from G_RunFrame
-} g_level_t;
+}g_level_t;
 
 // means of death
 #define MOD_UNKNOWN					0
@@ -301,12 +300,12 @@ typedef struct {
 
 typedef enum {
 	VOTE_NO_OP, VOTE_YES, VOTE_NO
-} g_vote_t;
+}g_vote_t;
 
 // gameplay modes
 typedef enum {
 	DEATHMATCH, INSTAGIB, ARENA
-} g_gameplay_t;
+}g_gameplay_t;
 
 #define TEAM_CHANGE_TIME 5.0
 
@@ -326,7 +325,7 @@ typedef struct {
 	short captures;
 	unsigned int name_time; // prevent change spamming
 	unsigned int skin_time;
-} g_team_t;
+}g_team_t;
 
 // client data that persists through respawns
 typedef struct {
@@ -368,7 +367,7 @@ typedef struct {
 	unsigned int match_num; // most recent match
 	unsigned int round_num; // most recent arena round
 	int color; // weapon effect colors
-} g_client_persistent_t;
+}g_client_persistent_t;
 
 // this structure is cleared on each respawn
 struct g_client_s {
@@ -407,6 +406,8 @@ struct g_client_s {
 	unsigned int jump_time; // eligible for jump when time > this
 	unsigned int pain_time; // eligible for pain sound when time > this
 	unsigned int footstep_time; // play a footstep when time > this
+	unsigned int animation1_time; // eligible for animation update when time > this
+	unsigned int animation2_time; // eligible for animation update when time > this
 
 	unsigned int pickup_msg_time; // display message until time > this
 
