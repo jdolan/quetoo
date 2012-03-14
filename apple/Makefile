@@ -34,16 +34,14 @@ LIBS = \
 	libxcb.1.dylib \
 	libz.1.dylib
 
+all: quake2world $(LIBS)
+
 quake2world: ../src/main/quake2world
 	install ../src/main/quake2world ${MACOS}/quake2world
 
-.PHONY: force
-
-%.dylib: force
+%.dylib:
 	install /opt/local/lib/$*.dylib $(MACOS)/$*.dylib
 	install_name_tool -change /opt/local/lib/$*.dylib @executable_path/$*.dylib $(MACOS)/quake2world
-
-all: quake2world $(LIBS)
 
 clean:
 	rm -f $(MACOS)/quake2world
