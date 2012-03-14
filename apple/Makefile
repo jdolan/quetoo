@@ -37,7 +37,9 @@ LIBS = \
 quake2world: ../src/main/quake2world
 	install ../src/main/quake2world ${MACOS}/quake2world
 
-%.dylib:
+.PHONY: force
+
+%.dylib: force
 	install /opt/local/lib/$*.dylib $(MACOS)/$*.dylib
 	install_name_tool -change /opt/local/lib/$*.dylib @executable_path/$*.dylib $(MACOS)/quake2world
 
