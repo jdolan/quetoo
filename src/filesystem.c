@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
 #ifdef _WIN32
 #include <windows.h>
 
@@ -105,7 +108,7 @@ static int Fs_FileLength(FILE *f) {
 	return end;
 }
 
-/*
+/**
  * Fs_CreatePath
  *
  * Creates any directories needed to store the given path.
@@ -127,7 +130,7 @@ void Fs_CreatePath(const char *path) {
 
 char *fs_last_pak = NULL; // the server uses this to determine CS_PAK
 
-/*
+/**
  * Fs_OpenFile
  *
  * Attempts to open the specified file on the search path.  Returns filesize
@@ -204,10 +207,10 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
 	return -1;
 }
 
-/*
+/**
  * Fs_ReadFile
  *
- * Properly handles partial reads
+ * Properly handles partial reads.
  */
 void Fs_ReadFile(void *buffer, int len, FILE *f) {
 	int read;
@@ -219,11 +222,11 @@ void Fs_ReadFile(void *buffer, int len, FILE *f) {
 	}
 }
 
-/*
+/**
  * Fs_LoadFile
  *
- * Filename are relative to the quake search path
- * A NULL buffer will just return the file length without loading.
+ * Filename are relative to the quake search path. A NULL buffer will just
+ * return the file length without loading.
  */
 int Fs_LoadFile(const char *file_name, void **buffer) {
 	FILE *h;
@@ -281,7 +284,7 @@ void Fs_AddPakfile(const char *pakfile) {
 	Com_Print("Added %s: %i files.\n", pakfile, pak->num_entries);
 }
 
-/*
+/**
  * Fs_AddSearchPath
  *
  * Adds the directory to the head of the path, and loads all paks within it.
@@ -290,13 +293,15 @@ static void Fs_AddSearchPath(const char *dir) {
 	search_path_t *search;
 	const char *p;
 
-	// don't add the same search_path twice
+	// don't add the same search path twice
 	search = fs_search_paths;
 	while (search) {
 		if (!strcmp(search->path, dir))
 			return;
 		search = search->next;
 	}
+
+	Com_Print("Adding path %s..\n", dir);
 
 	// add the base directory to the search path
 	search = Z_Malloc(sizeof(search_path_t));
@@ -328,14 +333,14 @@ static char *Fs_Homedir(void) {
 
 	if((handle = dlopen("shfolder.dll", 0))) {
 		if((GetFolderPath = dlsym(handle, "SHGetFolderPathA")))
-			GetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, homedir);
+		GetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, homedir);
 		dlclose(handle);
 	}
 
 	if(*homedir != '\0') // append our directory name
-		strcat(homedir, "/My Games/Quake2World");
+	strcat(homedir, "/My Games/Quake2World");
 	else // or simply use ./
-		strcat(homedir, PKGDATADIR);
+	strcat(homedir, PKGDATADIR);
 #else
 	memset(homedir, 0, sizeof(homedir));
 
@@ -345,7 +350,7 @@ static char *Fs_Homedir(void) {
 	return homedir;
 }
 
-/*
+/**
  * Fs_AddUserSearchPath
  *
  * Adds the user-specific search path, setting fs_gamedir in the process. This
@@ -366,7 +371,7 @@ static void Fs_AddUserSearchPath(const char *dir) {
 	Fs_AddSearchPath(gdir);
 }
 
-/*
+/**
  * Fs_Gamedir
  *
  * Called to find where to write a file (demos, screenshots, etc)
@@ -398,7 +403,7 @@ const char *Fs_FindFirst(const char *path, bool absolute) {
 	return NULL;
 }
 
-/*
+/**
  * Fs_ExecAutoexec
  *
  * Execs the local autoexec.cfg for the current gamedir.  This is
@@ -432,7 +437,7 @@ void Fs_ExecAutoexec(void) {
 	Cbuf_Execute(); // execute it
 }
 
-/*
+/**
  * Fs_SetGame
  *
  * Sets the game path to a relative directory.
@@ -485,7 +490,7 @@ void Fs_SetGame(const char *dir) {
 
 #define GZIP_BUFFER (64 * 1024)
 
-/*
+/**
  * Fs_GunzipFile
  *
  * Inflates the specified file in place, removing the .gz suffix from the path.
@@ -556,25 +561,39 @@ void Fs_GunzipFile(const char *path) {
  * Fs_Init
  */
 void Fs_Init(void) {
-	char bd[MAX_OSPATH];
+	char dir[MAX_OSPATH], *base = "";
 
 	fs_search_paths = NULL;
 
 	Hash_Init(&fs_hash_table);
 
-	// allow the game to run from outside the data tree
-	fs_base = Cvar_Get("fs_base", "", CVAR_NO_SET, NULL);
+#ifdef __APPLE__
+	// try loading the game data from Contents/Resources
+	char path[MAX_OSPATH], *c;
+	unsigned int i;
 
-	if (fs_base && strlen(fs_base->string)) { // something was specified
-		snprintf(bd, sizeof(bd), "%s/%s", fs_base->string, DEFAULT_GAME);
-		Fs_AddSearchPath(bd);
+	_NSGetExecutablePath(path, &i);
+	Dirname(path, path);
+
+	if ((c = strstr(path, "Quake2World.app"))) {
+		strcpy(c + strlen("Quake2World.app/Contents"), "/Resources");
+		base = path;
+	}
+#endif
+
+	// allow the game to run from outside the data tree
+	fs_base = Cvar_Get("fs_base", base, CVAR_NO_SET, NULL);
+
+	if (strlen(fs_base->string)) { // something was specified
+		snprintf(dir, sizeof(dir), "%s/%s", fs_base->string, DEFAULT_GAME);
+		Fs_AddSearchPath(dir);
 	}
 
 	// add default to search path
 	Fs_AddSearchPath(PKGLIBDIR"/"DEFAULT_GAME);
 	Fs_AddSearchPath(PKGDATADIR"/"DEFAULT_GAME);
 
-	// then add a '.quake2world/default' directory in home directory by default
+	// then add a '.quake2world/default' directory in home directory
 	Fs_AddUserSearchPath(DEFAULT_GAME);
 
 	// any set game paths will be freed up to here
@@ -587,7 +606,7 @@ void Fs_Init(void) {
 		Fs_SetGame(fs_game->string);
 }
 
-/*
+/**
  * strcmp_
  *
  * Wraps strcmp so it can be used to sort strings in qsort.
@@ -599,8 +618,7 @@ static int strcmp_(const void *a, const void *b) {
 /*
  * Fs_CompleteFile
  */
-int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
-		const char *matches[]) {
+int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[]) {
 	static char file_list[MAX_QPATH * 256];
 	char *fl = file_list;
 	const char *n;
@@ -634,8 +652,7 @@ int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
 	for (i = 0; i < HASH_BINS; i++) {
 		h = fs_hash_table.bins[i];
 		while (h != NULL) {
-			if (GlobMatch(name, h->key)
-					&& !(dir == NULL && strchr(h->key, '/'))) {
+			if (GlobMatch(name, h->key) && !(dir == NULL && strchr(h->key, '/'))) {
 				// omit configs not in the root gamedir
 				matches[m] = h->key + strlen(dir);
 				m++;
