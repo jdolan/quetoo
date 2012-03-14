@@ -20,7 +20,7 @@
 
 
 
-if [ -e /mingw/bin/gcc ]; then
+if [ -e /mingw/bin/gcc.exe ]; then
   echo "/mingw is not mounted or gcc not installed"
   exit 1
 fi
