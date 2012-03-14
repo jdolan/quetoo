@@ -50,6 +50,7 @@ function BUILD
 }
 
 while true; do
+	CURRENT_ARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
 	CURRENT_REVISION=`svn info svn://jdolan.dyndns.org/quake2world|grep Revision:|cut -d\  -f2`
 	
 	
