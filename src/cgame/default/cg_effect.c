@@ -54,7 +54,7 @@ void Cg_WeatherEffects(void) {
 		start[1] = start[1] + (Random() % 2048) - 1024;
 
 		VectorCopy(start, end);
-		end[2] += 8192;
+		end[2] += 8192.0;
 
 		// trace up looking for sky
 		tr = cgi.Trace(start, end, 0.0, MASK_SHOT);

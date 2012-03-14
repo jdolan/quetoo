@@ -67,10 +67,12 @@ static void Cg_UpdateBob(void) {
 	if (cgi.client->frame.ps.pmove.pm_type != PM_NORMAL)
 		return;
 
+	const bool ducked = cgi.client->frame.ps.pmove.pm_flags & PMF_DUCKED;
+
 	VectorCopy(cgi.view->velocity, velocity);
 	velocity[2] = 0.0;
 
-	speed = VectorLength(velocity) / 450.0;
+	speed = VectorLength(velocity) / (ducked ? 150 : 450.0);
 
 	if (speed > 1.0)
 		speed = 1.0;
