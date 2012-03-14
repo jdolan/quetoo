@@ -12,10 +12,5 @@
   <string>BETA</string>
   <key>CFBundleIconFile</key>
   <string>quake2world.icns</string>
-  <key>LSEnvironment</key>
-  <dict>
-    <key>APPLE_APPLICATION_BUNDLE</key>
-    <string>TRUE</string>
-  </dict>
 </dict>
 </plist>
