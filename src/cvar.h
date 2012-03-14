@@ -41,7 +41,7 @@ interface from being ambiguous.
 
 extern cvar_t *cvar_vars;
 
-cvar_t *Cvar_Get(const char *name, const char *value, int flags, const char *description);
+cvar_t *Cvar_Get(const char *name, const char *value, unsigned int flags, const char *description);
 // creates the variable if it doesn't exist, or returns the existing one
 // if it exists, the value will not be changed, but flags will be ORed in
 // that allows variables to be unarchived without needing bitflags
@@ -52,7 +52,7 @@ cvar_t *Cvar_Set(const char *name, const char *value);
 cvar_t *Cvar_ForceSet(const char *name, const char *value);
 // will set the variable even if NOSET or LATCH
 
-cvar_t *Cvar_FullSet(const char *name, const char *value, int flags);
+cvar_t *Cvar_FullSet(const char *name, const char *value, unsigned int flags);
 
 void Cvar_SetValue(const char *name, float value);
 // expands value to a string and calls Cvar_Set
@@ -78,10 +78,10 @@ bool Cvar_PendingLatchedVars(void);
 void Cvar_UpdateLatchedVars(void);
 // any CVAR_LATCHED variables that have been set will now take effect
 
-bool Cvar_PendingVars(int flags);
+bool Cvar_PendingVars(unsigned int flags);
 // are there pending changes?
 
-void Cvar_ClearVars(int flags);
+void Cvar_ClearVars(unsigned int flags);
 // clear modified booleans on vars
 
 bool Cvar_Command(void);

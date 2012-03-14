@@ -111,13 +111,11 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]) {
  * If the variable already exists, the value will not be set. The flags,
  * however, are always OR'ed into the variable.
  */
-cvar_t *Cvar_Get(const char *name, const char *value, int flags,
-		const char *description) {
+cvar_t *Cvar_Get(const char *name, const char *value, unsigned int flags, const char *description) {
 	cvar_t *v, *var;
 
 	if (!value)
 		return NULL;
-
 
 	if (flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
 		if (!Cvar_InfoValidate(name)) {
@@ -188,8 +186,8 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 
 	if (!force) {
 		if (var->flags & CVAR_LO_ONLY) {
-			if ((Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER))
-					|| Cvar_GetValue("sv_max_clients") > 1.0) {
+			if ((Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER)) || Cvar_GetValue(
+					"sv_max_clients") > 1.0) {
 				Com_Print("%s is only available offline.\n", name);
 				return var;
 			}
@@ -266,7 +264,7 @@ cvar_t *Cvar_Set(const char *name, const char *value) {
 /*
  * Cvar_FullSet
  */
-cvar_t *Cvar_FullSet(const char *name, const char *value, int flags) {
+cvar_t *Cvar_FullSet(const char *name, const char *value, unsigned int flags) {
 	cvar_t *var;
 
 	var = Cvar_Get_(name);
@@ -330,8 +328,8 @@ void Cvar_Toggle(const char *name) {
 void Cvar_ResetLocalVars(void) {
 	cvar_t *var;
 
-	if ((Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER))
-			|| Cvar_GetValue("sv_max_clients") > 1.0) {
+	if ((Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER)) || Cvar_GetValue("sv_max_clients")
+			> 1.0) {
 
 		for (var = cvar_vars; var; var = var->next) {
 			if (var->flags & CVAR_LO_ONLY) {
@@ -347,8 +345,7 @@ void Cvar_ResetLocalVars(void) {
  * Cvar_PendingLatchedVars
  *
  * Returns true if there are any CVAR_LATCH variables pending.
- */
-bool Cvar_PendingLatchedVars(void) {
+ */bool Cvar_PendingLatchedVars(void) {
 	cvar_t *var;
 
 	for (var = cvar_vars; var; var = var->next) {
@@ -387,8 +384,7 @@ void Cvar_UpdateLatchedVars(void) {
 
 /*
  * Cvar_PendingVars
- */
-bool Cvar_PendingVars(int flags) {
+ */bool Cvar_PendingVars(unsigned int flags) {
 	cvar_t *var;
 
 	for (var = cvar_vars; var; var = var->next) {
@@ -402,7 +398,7 @@ bool Cvar_PendingVars(int flags) {
 /*
  * Cvar_ClearVars
  */
-void Cvar_ClearVars(int flags) {
+void Cvar_ClearVars(unsigned int flags) {
 	cvar_t *var;
 
 	for (var = cvar_vars; var; var = var->next) {
@@ -415,8 +411,7 @@ void Cvar_ClearVars(int flags) {
  * Cvar_Command
  *
  * Handles variable inspection and changing from the console
- */
-bool Cvar_Command(void) {
+ */bool Cvar_Command(void) {
 	cvar_t *v;
 
 	// check variables
@@ -440,7 +435,7 @@ bool Cvar_Command(void) {
  * Allows setting and defining of arbitrary cvars from console
  */
 static void Cvar_Set_f(void) {
-	int flags;
+	unsigned int flags;
 	const int c = Cmd_Argc();
 
 	if (c != 3 && c != 4) {
