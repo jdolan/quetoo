@@ -1,48 +1,31 @@
-# Makefile for Quake2World.app
+# Makefile for Quake2World.app, requires http://macdylibbundler.sourceforge.net/
 
 APP = Quake2World.app
+LIBRARIES = $(APP)/Contents/Libraries
 MACOS = $(APP)/Contents/MacOS
 RESOURCES = $(APP)/Contents/Resources
 
-# These are derived by otool -L and some grep.
-LIBS = \
-	libFLAC.8.dylib \
-	libSDL-1.2.0.dylib \
-	libSDL_image-1.2.0.dylib \
-	libSDL_mixer-1.2.0.dylib \
-	libX11.6.dylib \
-	libXau.6.dylib \
-	libXdmcp.6.dylib \
-	libXext.6.dylib \
-	libXrandr.2.dylib \
-	libXrender.1.dylib \
-	libcrypto.1.0.0.dylib \
-	libcurl.4.dylib \
-	libiconv.2.dylib \
-	libidn.11.dylib \
-	libintl.8.dylib \
-	libjpeg.8.dylib \
-	libmikmod.3.dylib \
-	libncurses.5.dylib \
-	libogg.0.dylib \
-	libpng14.14.dylib \
-	libsmpeg-0.4.0.dylib \
-	libssl.1.0.0.dylib \
-	libtiff.3.dylib \
-	libvorbis.0.dylib \
-	libvorbisfile.3.dylib \
-	libxcb.1.dylib \
-	libz.1.dylib
+all: install bundle
 
-all: quake2world $(LIBS)
+install:
+	install ../src/tools/pak/pak $(MACOS)/pak
+	install ../src/tools/q2wmap/q2wmap $(MACOS)/q2wmap
+	install ../src/main/quake2world $(MACOS)/quake2world
+	install ../src/cgame/default/.libs/cgame.so $(MACOS)/default/cgame.so
+	install ../src/game/default/.libs/game.so $(MACOS)/default/game.so
 
-quake2world: ../src/main/quake2world
-	install ../src/main/quake2world ${MACOS}/quake2world
-
-%.dylib:
-	install /opt/local/lib/$*.dylib $(MACOS)/$*.dylib
-	install_name_tool -change /opt/local/lib/$*.dylib @executable_path/$*.dylib $(MACOS)/quake2world
-
+bundle: install
+	dylibbundler -b \
+		-x $(MACOS)/pak \
+		-x $(MACOS)/q2wmap \
+		-x $(MACOS)/quake2world \
+		-x $(MACOS)/default/cgame.so \
+		-x $(MACOS)/default/game.so \
+	-d $(LIBRARIES) -of -p @executable_path/../Libraries
+	
 clean:
+	rm -f $(MACOS)/pak
+	rm -f $(MACOS)/q2wmap
 	rm -f $(MACOS)/quake2world
-	rm -f $(MACOS)/*.dylib
+	rm -f $(MACOS)/default/*.so
+	rm -f $(LIBRARIES)/*.dylib
