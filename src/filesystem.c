@@ -561,33 +561,35 @@ void Fs_GunzipFile(const char *path) {
  * Fs_Init
  */
 void Fs_Init(void) {
-	char dir[MAX_OSPATH], *base = "";
+	char dir[MAX_OSPATH];
 
 	fs_search_paths = NULL;
 
 	Hash_Init(&fs_hash_table);
 
-#ifdef __APPLE__
-	// try loading the game data from Contents/Resources
-	char path[MAX_OSPATH], *c;
-	unsigned int i;
-
-	_NSGetExecutablePath(path, &i);
-	Dirname(path, path);
-
-	if ((c = strstr(path, "Quake2World.app"))) {
-		strcpy(c + strlen("Quake2World.app/Contents"), "/Resources");
-		base = path;
-	}
-#endif
-
 	// allow the game to run from outside the data tree
-	fs_base = Cvar_Get("fs_base", base, CVAR_NO_SET, NULL);
+	fs_base = Cvar_Get("fs_base", "", CVAR_NO_SET, NULL);
 
 	if (strlen(fs_base->string)) { // something was specified
 		snprintf(dir, sizeof(dir), "%s/%s", fs_base->string, DEFAULT_GAME);
 		Fs_AddSearchPath(dir);
 	}
+
+#ifdef __APPLE__
+	// add Contents/MacOS and Contents/Resources to the search path
+	char path[MAX_OSPATH], *c;
+	unsigned int i;
+
+	_NSGetExecutablePath(path, &i);
+
+	if ((c = strstr(path, "Quake2World.app"))) {
+		strcpy(c + strlen("Quake2World.app/Contents"), "/MacOS/"DEFAULT_GAME);
+		Fs_AddSearchPath(path);
+
+		strcpy(c + strlen("Quake2World.app/Contents"), "/Resources/"DEFAULT_GAME);
+		Fs_AddSearchPath(path);
+	}
+#endif
 
 	// add default to search path
 	Fs_AddSearchPath(PKGLIBDIR"/"DEFAULT_GAME);
