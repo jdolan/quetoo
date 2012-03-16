@@ -71,25 +71,24 @@ typedef struct miptex_s {
 #define BMASK 0x00ff0000
 #define AMASK 0xff000000
 
-SDL_PixelFormat format = {
-	NULL, // palette
-	32, // bits
-	4, // bytes
-	0, // rloss
-	0, // gloss
-	0, // bloss
-	0, // aloss
-	0, // rshift
-	8, // gshift
-	16, // bshift
-	24, // ashift
-	RMASK, // rmask
-	GMASK, // gmask
-	BMASK, // bmask
-	AMASK, // amask
-	0, // colorkey
-	1 // alpha
-};
+SDL_PixelFormat format = { NULL, // palette
+		32, // bits
+		4, // bytes
+		0, // rloss
+		0, // gloss
+		0, // bloss
+		0, // aloss
+		0, // rshift
+		8, // gshift
+		16, // bshift
+		24, // ashift
+		RMASK, // rmask
+		GMASK, // gmask
+		BMASK, // bmask
+		AMASK, // amask
+		0, // colorkey
+		1 // alpha
+		};
 
 // image formats, tried in this order
 const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
@@ -101,8 +100,7 @@ const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
  * the provided SDL_Surface.
  *
  * Image formats are tried in the order they appear in TYPES.
- */
-bool Img_LoadImage(const char *name, SDL_Surface **surf) {
+ */bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 	int i;
 
 	i = 0;
@@ -153,8 +151,8 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	}
 
 	// create the RGBA surface
-	if (!(*surf = SDL_CreateRGBSurfaceFrom((void *) p, mt->width, mt->height,
-			32, 0, RMASK, GMASK, BMASK, AMASK))) {
+	if (!(*surf = SDL_CreateRGBSurfaceFrom((void *) p, mt->width, mt->height, 32, 0, RMASK, GMASK,
+			BMASK, AMASK))) {
 
 		Fs_FreeFile(mt);
 		return false;
@@ -172,9 +170,7 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
  *
  * Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
- */
-bool Img_LoadTypedImage(const char *name, const char *type,
-		SDL_Surface **surf) {
+ */bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
 	char path[MAX_QPATH];
 	void *buf;
 	int len;
@@ -270,8 +266,7 @@ void Img_ColorFromPalette(byte c, float *res) {
  *
  * Wraps fwrite, reading the return value to silence gcc.
  */
-static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb,
-		FILE *stream) {
+static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 
 	if (fwrite(ptr, size, nmemb, stream) <= 0)
 		Com_Print("Failed to write\n");
@@ -282,8 +277,7 @@ static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb,
  *
  * Write pixel data to a JPEG file.
  */
-void Img_WriteJPEG(const char *path, byte *data, int width, int height,
-		int quality) {
+void Img_WriteJPEG(const char *path, byte *data, int width, int height, int quality) {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	FILE *outfile; /* target file */
@@ -315,8 +309,7 @@ void Img_WriteJPEG(const char *path, byte *data, int width, int height,
 	row_stride = width * 3; /* JSAMPLEs per row in img_data */
 
 	while (cinfo.next_scanline < cinfo.image_height) {
-		row_pointer[0] = &data[(cinfo.image_height - cinfo.next_scanline
-				- 1) * row_stride];
+		row_pointer[0] = &data[(cinfo.image_height - cinfo.next_scanline - 1) * row_stride];
 		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
 	}
 
@@ -334,8 +327,7 @@ void Img_WriteJPEG(const char *path, byte *data, int width, int height,
  *
  * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
-void Img_WriteTGARLE(const char *path, byte *data, int width, int height,
-		int quality __attribute__((unused))) {
+void Img_WriteTGARLE(const char *path, byte *data, int width, int height, int quality __attribute__((unused))) {
 	FILE *tga_file;
 	const unsigned int channels = TGA_CHANNELS; // 24-bit RGB
 	byte header[18];
@@ -391,8 +383,8 @@ void Img_WriteTGARLE(const char *path, byte *data, int width, int height,
 			} else {
 				if (!compress) {
 					// uncompressed block and pixel_data differs from the last pixel
-					if (memcmp(&block_data[(block_length - 1) * channels],
-							pixel_data, channels) != 0) {
+					if (memcmp(&block_data[(block_length - 1) * channels], pixel_data, channels)
+							!= 0) {
 						// append pixel
 						memcpy(&block_data[block_length * channels], pixel_data, channels);
 
@@ -403,8 +395,7 @@ void Img_WriteTGARLE(const char *path, byte *data, int width, int height,
 							// write the uncompressed block
 							rle_packet = block_length - 2;
 							Img_fwrite(&rle_packet, 1, 1, tga_file);
-							Img_fwrite(block_data, 1,
-									(block_length - 1) * channels, tga_file);
+							Img_fwrite(block_data, 1, (block_length - 1) * channels, tga_file);
 							block_length = 1;
 						}
 						memcpy(block_data, pixel_data, channels);
