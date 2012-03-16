@@ -316,21 +316,6 @@ static void R_Clear(void) {
  */
 void R_BeginFrame(void) {
 
-	// gamma control
-	if (r_gamma->modified) {
-		float g = r_gamma->value;
-
-		if (g < 0.1)
-			g = 0.1;
-		else if (g > 3.0)
-			g = 3.0;
-
-		SDL_SetGamma(g, g, g);
-
-		Cvar_SetValue("r_gamma", g);
-		r_gamma->modified = false;
-	}
-
 	// draw buffer stuff
 	if (r_draw_buffer->modified) {
 		if (!strcasecmp(r_draw_buffer->string, "GL_FRONT"))
@@ -593,7 +578,7 @@ static void R_InitLocal(void) {
 	r_fog = Cvar_Get("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");
 	r_fullscreen = Cvar_Get("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls fullscreen mode");
-	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE, "Controls video gamma (brightness)");
+	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls video gamma (brightness)");
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE,
 			"Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);

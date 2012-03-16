@@ -39,7 +39,7 @@ static void R_SetIcon(void) {
 	SDL_FreeSurface(surf);
 }
 
-/*
+/**
  * R_InitContext
  *
  * Initialize the OpenGL context, returning true on success, false on failure.
@@ -48,6 +48,7 @@ void R_InitContext(void) {
 	r_pixel_t w, h;
 	unsigned int flags;
 	int i;
+	float f;
 	SDL_Surface *surface;
 
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == 0) {
@@ -84,6 +85,15 @@ void R_InitContext(void) {
 		i = 2;
 
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, i);
+
+	f = r_gamma->value;
+
+	if (f < 0.1)
+		f = 0.1;
+	else if (f > 3.0)
+		f = 3.0;
+
+	SDL_SetGamma(f, f, f);
 
 	flags = SDL_OPENGL;
 

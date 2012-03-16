@@ -362,7 +362,7 @@ static void R_UploadImage_(byte *data, int width, int height, vec3_t color, r_im
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
-/*
+/**
  * R_UploadImage
  *
  * This is also used as an entry point for the generated r_notexture.
