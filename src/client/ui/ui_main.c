@@ -30,8 +30,7 @@ extern cl_static_t cls;
  * Ui_Event
  *
  * Handles input events, returning true if the event was swallowed by TwBar.
- */
-bool Ui_Event(SDL_Event *event) {
+ */bool Ui_Event(SDL_Event *event) {
 	return TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
 }
 
@@ -74,7 +73,7 @@ static TwBar *Ui_Root(void) {
 
 	TwAddButton(bar, "Quit", Ui_Command, "quit\n", NULL);
 
-	TwDefine("Quake2World size='200 130' alpha=200 iconifiable=false");
+	TwDefine("Quake2World size='240 150' alpha=200 iconifiable=false alwaystop=true");
 
 	return bar;
 }
@@ -108,6 +107,8 @@ void Ui_Init(void) {
 	ui.OffOrOn = TwDefineEnum("OnOrOff", OffOrOn, lengthof(OffOrOn));
 	ui.OffLowMediumHigh = TwDefineEnum("OffLowMediumHigh", OffLowMediumHigh,
 			lengthof(OffLowMediumHigh));
+
+	TwDefine("GLOBAL fontresizable=false");
 
 	ui.root = Ui_Root();
 	ui.servers = Ui_Servers();

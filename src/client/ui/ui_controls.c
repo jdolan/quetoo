@@ -65,8 +65,7 @@ TwBar *Ui_Controls(void) {
 	Ui_Bind(bar, "Talk to team", "message_mode_2", "group=Communication");
 	Ui_Bind(bar, "Show scores", "score", "group=Communication");
 
-	TwDefine(
-			"Controls size='250 550' alpha=200 iconifiable=false visible=false");
+	TwDefine("Controls size='400 600' alpha=200 iconifiable=false visible=false");
 
 	return bar;
 }

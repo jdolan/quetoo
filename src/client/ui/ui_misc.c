@@ -21,12 +21,52 @@
 
 #include "ui_local.h"
 
-/*
+/**
  * Ui_ToggleBar
  *
  * Toggles the visibility of the TwBar specified by name in data.
  */
 void TW_CALL Ui_ToggleBar(void *data) {
+	const char *name = (const char *) data;
+	TwBar *bar;
+	int i, visible = 0;
+
+	// first hide all other bars except the root bar
+	for (i = 0; i < TwGetBarCount(); i++) {
+
+		bar = TwGetBarByIndex(i);
+		const char *n = TwGetBarName(bar);
+
+		if (strcmp(n, name) && strcmp(n, "Quake2World")) {
+			TwSetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
+		}
+	}
+
+	// then toggle the one we're interested in
+	bar = TwGetBarByName(name);
+
+	if (!bar) {
+		Com_Warn("Ui_ToggleBar: No TwBar: %s\n", name);
+		return;
+	}
+
+	TwGetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
+
+	visible = !visible;
+
+	TwSetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
+
+	if (visible) {
+		Ui_CenterBar((void *)name);
+	}
+}
+
+/**
+ * Ui_CenterBar
+ *
+ * Centers the TwBar by the specified name.
+ */
+void TW_CALL Ui_CenterBar(void *data) {
 	const char *name = (const char *) data;
 	TwBar *bar;
 
@@ -37,11 +77,11 @@ void TW_CALL Ui_ToggleBar(void *data) {
 		return;
 	}
 
-	int visible;
+	double size[2], position[2];
+	TwGetParam(bar, NULL, "size", TW_PARAM_DOUBLE, 2, size);
 
-	TwGetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
+	position[0] = (r_context.width - size[0]) / 2.0;
+	position[1] = (r_context.height - size[1]) / 2.0;
 
-	visible = !visible;
-
-	TwSetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
+	TwSetParam(bar, NULL, "position", TW_PARAM_DOUBLE, 2, position);
 }

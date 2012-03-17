@@ -32,8 +32,7 @@ TwBar *Ui_Player(void) {
 	Ui_CvarText(bar, "Model", skin, NULL);
 	Ui_CvarText(bar, "Effects color", color, NULL);
 
-	TwDefine(
-			"Player size='300 90' valueswidth=150 alpha=200 iconifiable=false visible=false");
+	TwDefine("Player size='350 120' valueswidth=175 alpha=200 iconifiable=false visible=false");
 
 	return bar;
 }

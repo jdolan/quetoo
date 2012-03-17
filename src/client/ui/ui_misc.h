@@ -26,6 +26,7 @@
 
 #ifdef __UI_LOCAL_H__
 void TW_CALL Ui_ToggleBar(void *data);
+void TW_CALL Ui_CenterBar(void *data);
 #endif /* __UI_LOCAL_H__ */
 
 #endif /* __UI_MISC_H__ */

@@ -94,7 +94,7 @@ TwBar *Ui_Servers(void) {
 	TwAddSeparator(bar, NULL, NULL);
 	TwAddButton(bar, "Refresh", Ui_Servers_Refresh, bar, NULL);
 
-	TwDefine("Servers size='540 300' alpha=200 iconifiable=false visible=false");
+	TwDefine("Servers size='800 400' alpha=200 iconifiable=false visible=false");
 
 	Cbuf_AddText("servers\n");
 
