@@ -216,18 +216,19 @@ extern vec3_t vec3_origin;
 #define CONTENTS_NODE			-1
 
 // surface flags
-#define SURF_LIGHT				0x1  // value will hold the light strength
-#define SURF_SLICK				0x2  // effects game physics
-#define SURF_SKY				0x4  // don't draw, but add to skybox
-#define SURF_WARP				0x8  // turbulent water warp
-#define SURF_BLEND_33			0x10  // 0.33 alpha blending
-#define SURF_BLEND_66			0x20  // 0.66 alpha blending
-#define SURF_FLOWING			0x40  // scroll towards angle, no longer supported
-#define SURF_NO_DRAW			0x80  // don't bother referencing the texture
-#define SURF_HINT				0x100  // make a primary bsp splitter
-#define SURF_SKIP				0x200  // completely skip, allowing non-closed brushes
-#define SURF_ALPHA_TEST			0x400  // alpha test (grates, foliage, etc..)
-#define SURF_PHONG				0x800  // phong interpolated lighting at compile time
+#define SURF_LIGHT				0x1 // value will hold the light strength
+#define SURF_SLICK				0x2 // effects game physics
+#define SURF_SKY				0x4 // don't draw, but add to skybox
+#define SURF_WARP				0x8 // turbulent water warp
+#define SURF_BLEND_33			0x10 // 0.33 alpha blending
+#define SURF_BLEND_66			0x20 // 0.66 alpha blending
+#define SURF_FLOWING			0x40 // scroll towards angle, no longer supported
+#define SURF_NO_DRAW			0x80 // don't bother referencing the texture
+#define SURF_HINT				0x100 // make a primary bsp splitter
+#define SURF_SKIP				0x200 // completely skip, allowing non-closed brushes
+#define SURF_ALPHA_TEST			0x400 // alpha test (grates, foliage, etc..)
+#define SURF_PHONG				0x800 // phong interpolated lighting at compile time
+#define SURF_MATERIAL			0x1000 // retain the geometry, but don't draw diffuse pass
 // content masks
 #define MASK_ALL				(-1)
 #define MASK_SOLID				(CONTENTS_SOLID|CONTENTS_WINDOW)

@@ -56,6 +56,9 @@ static void R_DrawSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 	// draw the surfaces
 	for (i = 0; i < surfs->count; i++) {
 
+		if (surfs->surfaces[i]->texinfo->flags & SURF_MATERIAL)
+			continue;
+
 		if (surfs->surfaces[i]->frame != r_locals.frame)
 			continue;
 

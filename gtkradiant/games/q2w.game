@@ -39,6 +39,7 @@
   surf10="skip"
   surf11="alphatest"
   surf12="phong"
+  surf13="material"
   cont1="solid"
   cont2="window"
   cont3="aux"
