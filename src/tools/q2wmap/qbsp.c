@@ -147,7 +147,7 @@ static void ProcessWorldModel(void){
 	entity_t *e;
 	tree_t *tree;
 	bool leaked;
-	bool optimize;
+	int optimize;
 
 	e = &entities[entity_num];
 
@@ -174,7 +174,7 @@ static void ProcessWorldModel(void){
 	if(block_yh > 3)
 		block_yh = 3;
 
-	for(optimize = false; optimize <= true; optimize++){
+	for(optimize = 0; optimize <= 1; optimize++){
 		Com_Verbose("--------------------------------------------\n");
 
 		RunThreadsOn((block_xh - block_xl + 1) * (block_yh - block_yl + 1),
