@@ -152,7 +152,7 @@ static void Sv_ClearState() {
 	Com_QuitSubsystem(Q2W_SERVER);
 
 	svs.real_time = 0;
-	svs.last_heartbeat = -9999999;
+	svs.next_heartbeat = 0;
 }
 
 /*

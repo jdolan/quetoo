@@ -690,15 +690,10 @@ static void Sv_HeartbeatMasters(void) {
 	if (!svs.initialized) // we're not up yet
 		return;
 
-	if (svs.last_heartbeat > svs.real_time) // catch wraps
-		svs.last_heartbeat = svs.real_time;
+	if (svs.next_heartbeat > svs.real_time)
+		return; // not time to send yet
 
-	if (svs.last_heartbeat) { // if we've sent one, wait a while
-		if (svs.real_time - svs.last_heartbeat < HEARTBEAT_SECONDS * 1000)
-			return; // not time to send yet
-	}
-
-	svs.last_heartbeat = svs.real_time;
+	svs.next_heartbeat = svs.real_time + HEARTBEAT_SECONDS * 1000;
 
 	// send the same string that we would give for a status command
 	string = Sv_StatusString();

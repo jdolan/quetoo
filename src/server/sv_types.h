@@ -164,7 +164,7 @@ typedef struct sv_static_s {
 	entity_state_t *entity_states; // entity states array used for delta compression
 
 	net_addr_t masters[MAX_MASTERS];
-	unsigned int last_heartbeat;
+	unsigned int next_heartbeat;
 
 	sv_challenge_t challenges[MAX_CHALLENGES]; // to prevent invalid IPs from connecting
 

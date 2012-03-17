@@ -71,14 +71,14 @@ static void Sv_SetMaster_f(void) {
 		slot++;
 	}
 
-	svs.last_heartbeat = -9999999;
+	svs.next_heartbeat = 0;
 }
 
 /*
  * Sv_Heartbeat_f
  */
 static void Sv_Heartbeat_f(void) {
-	svs.last_heartbeat = -9999999;
+	svs.next_heartbeat = 0;
 }
 
 /*
