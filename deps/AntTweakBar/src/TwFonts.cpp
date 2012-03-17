@@ -3918,12 +3918,15 @@ static const unsigned char s_Font2AA[] =
     0,0,0
 };
 
+// Quake2World font
+#include "res/FontQuake2World.h"
 
 void TwGenerateDefaultFonts()
 {
     g_DefaultSmallFont = TwGenerateFont(s_Font0, FONT0_BM_W, FONT0_BM_H);
     assert(g_DefaultSmallFont && g_DefaultSmallFont->m_NbCharRead==224);
-    g_DefaultNormalFont = TwGenerateFont(s_Font1AA, FONT1AA_BM_W, FONT1AA_BM_H);
+    //g_DefaultNormalFont = TwGenerateFont(s_Font1AA, FONT1AA_BM_W, FONT1AA_BM_H);
+    g_DefaultNormalFont = TwGenerateFont(s_FontQ2WAA, FONTQ2WAA_BM_W, FONTQ2WAA_BM_H);
     assert(g_DefaultNormalFont && g_DefaultNormalFont->m_NbCharRead==224);
     g_DefaultLargeFont = TwGenerateFont(s_Font2AA, FONT2AA_BM_W, FONT2AA_BM_H);
     assert(g_DefaultLargeFont && g_DefaultLargeFont->m_NbCharRead==224);
