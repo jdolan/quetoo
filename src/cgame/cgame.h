@@ -34,7 +34,7 @@ typedef struct cg_import_s {
 	void (*Warn)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
-	cvar_t *(*Cvar)(const char *name, const char *value, int flags, const char *description);
+	cvar_t *(*Cvar)(const char *name, const char *value, unsigned int flags, const char *description);
 	void (*AddCommand)(const char *name, cmd_function_t function, const char *description);
 	void (*RemoveCommand)(const char *name);
 
