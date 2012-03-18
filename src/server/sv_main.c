@@ -114,7 +114,7 @@ static const char *Sv_StatusString(void) {
 /**
  * Svc_Status
  *
- * Responds with all the info that qplug or qspy can see
+ * Responds with all the info that qplug or qspy can see.
  */
 static void Svc_Status(void) {
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "print\n%s", Sv_StatusString());
@@ -152,9 +152,8 @@ static void Svc_Info(void) {
 				count++;
 		}
 
-		snprintf(string, sizeof(string), "%-63s\\%-31s\\%-31s\\%d\\%d",
-				sv_hostname->string, sv.name, Cvar_GetString("g_gameplay"),
-				count, sv_max_clients->integer);
+		snprintf(string, sizeof(string), "%-63s\\%-31s\\%-31s\\%d\\%d", sv_hostname->string,
+				sv.name, svs.game->GameName(), count, sv_max_clients->integer);
 	}
 
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "info\n%s", string);

@@ -34,7 +34,8 @@ typedef enum {
 	SOLID_TRIGGER, // only touch when inside, after moving
 	SOLID_BOX, // touch on edge
 	SOLID_MISSILE, // touch on edge
-	SOLID_BSP // bsp clip, touch on edge
+	SOLID_BSP
+// bsp clip, touch on edge
 } solid_t;
 
 // link_t is only used for entity area links now
@@ -99,8 +100,7 @@ typedef struct g_import_s {
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*BroadcastPrint)(const int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(const g_edict_t *ent, const int level, const char *fmt,
-			...) __attribute__((format(printf, 3, 4)));
+	void (*ClientPrint)(const g_edict_t *ent, const int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
@@ -114,15 +114,13 @@ typedef struct g_import_s {
 	unsigned short (*ImageIndex)(const char *name);
 
 	void (*SetModel)(g_edict_t *ent, const char *name);
-	void (*Sound)(const g_edict_t *ent, const unsigned short index,
+	void (*Sound)(const g_edict_t *ent, const unsigned short index, const unsigned short atten);
+	void (*PositionedSound)(const vec3_t origin, const g_edict_t *ent, const unsigned short index,
 			const unsigned short atten);
-	void (*PositionedSound)(const vec3_t origin, const g_edict_t *ent,
-			const unsigned short index, const unsigned short atten);
 
 	// collision detection
-	c_trace_t (*Trace)(const vec3_t start, const vec3_t mins,
-			const vec3_t maxs, const vec3_t end, const g_edict_t *passent,
-			const int mask);
+	c_trace_t (*Trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+			const g_edict_t *passent, const int mask);
 	int (*PointContents)(const vec3_t point);
 	bool (*inPVS)(const vec3_t p1, const vec3_t p2);
 	bool (*inPHS)(const vec3_t p1, const vec3_t p2);
@@ -135,9 +133,8 @@ typedef struct g_import_s {
 	// solidity changes, it must be relinked.
 	void (*LinkEntity)(g_edict_t *ent);
 	void (*UnlinkEntity)(g_edict_t *ent); // call before removing an interactive edict
-	int (*AreaEdicts)(const vec3_t mins, const vec3_t maxs,
-			g_edict_t **area_edicts, const int max_area_edicts,
-			const int area_type);
+	int (*AreaEdicts)(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
+			const int max_area_edicts, const int area_type);
 
 	// network messaging
 	void (*Multicast)(const vec3_t origin, multicast_t to);
@@ -164,8 +161,7 @@ typedef struct g_import_s {
 	int (*LoadFile)(const char *file_name, void **buffer);
 
 	// console variable interaction
-	cvar_t *(*Cvar)(const char *name, const char *value, int flags,
-			const char *desc);
+	cvar_t *(*Cvar)(const char *name, const char *value, unsigned int flags, const char *desc);
 
 	// command function parameter access
 	int (*Argc)(void);
@@ -198,6 +194,8 @@ typedef struct g_export_s {
 	void (*ClientThink)(g_edict_t *ent, user_cmd_t *cmd);
 
 	void (*Frame)(void);
+
+	const char *(*GameName)(void);
 
 	// global variables shared between game and server
 

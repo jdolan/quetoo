@@ -1105,6 +1105,26 @@ const char *G_SelectNextmap(void) {
 }
 
 /**
+ * G_GameName
+ *
+ * Returns the game name advertised by the server in info strings.
+ */
+const char *G_GameName(void) {
+	static char name[64];
+
+	sprintf(name, "%s", G_GameplayName(g_level.gameplay));
+
+	if (g_level.ctf) {
+		strcat(name, " / CTF");
+	}
+	else if (g_level.teams) {
+		strcat(name, " / TDM");
+	}
+
+	return name;
+}
+
+/**
  * G_Init
  *
  * This will be called when the game module is first loaded.
@@ -1246,6 +1266,8 @@ g_export_t *G_LoadGame(g_import_t *import) {
 	ge.ClientCommand = G_ClientCommand;
 
 	ge.Frame = G_Frame;
+
+	ge.GameName = G_GameName;
 
 	ge.edict_size = sizeof(g_edict_t);
 

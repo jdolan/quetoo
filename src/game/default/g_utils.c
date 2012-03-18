@@ -444,7 +444,7 @@ void G_TouchSolids(g_edict_t *ent) {
 	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_SOLID);
 
 	// be careful, it is possible to have an entity in this
-	// list removed before we get to it(killtriggered)
+	// list removed before we get to it (kill triggered)
 	for (i = 0; i < num; i++) {
 		hit = touch[i];
 		if (!hit->in_use)
@@ -460,8 +460,9 @@ void G_TouchSolids(g_edict_t *ent) {
  * G_KillBox
  *
  * Kills all entities that would touch the proposed new positioning
- * of ent.  Ent should be unlinked before calling this!
- */bool G_KillBox(g_edict_t *ent) {
+ * of ent. Ent should be unlinked before calling this!
+ */
+bool G_KillBox(g_edict_t *ent) {
 	c_trace_t tr;
 
 	while (true) {
@@ -470,7 +471,7 @@ void G_TouchSolids(g_edict_t *ent) {
 			break;
 
 		// nail it
-		G_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin, 100000, 0,
+		G_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin, 9999, 0,
 				DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
 
 		// if we didn't kill it, fail
