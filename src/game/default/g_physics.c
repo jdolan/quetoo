@@ -158,6 +158,20 @@ static void G_AddGravity(g_edict_t *ent) {
 	ent->velocity[2] -= ent->gravity * g * gi.frame_seconds;
 }
 
+/**
+ * G_AddFlying
+ *
+ * Add a bit of randomness to flying object velocity.
+ */
+static void G_AddFlying(g_edict_t *ent) {
+	vec3_t right, up;
+
+	AngleVectors(ent->s.angles, NULL, right, up);
+
+	VectorMA(ent->velocity, Randomc() * 5.0, right, ent->velocity);
+	VectorMA(ent->velocity, Randomc() * 5.0, up, ent->velocity);
+}
+
 /*
  *
  * PUSHMOVE
@@ -482,7 +496,9 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	G_ClampVelocity(ent);
 
 	// add gravity
-	if (ent->move_type != MOVE_TYPE_FLY)
+	if (ent->move_type == MOVE_TYPE_FLY)
+		G_AddFlying(ent);
+	else
 		G_AddGravity(ent);
 
 	// move angles
