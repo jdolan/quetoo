@@ -166,6 +166,9 @@ static void G_AddGravity(g_edict_t *ent) {
 static void G_AddFlying(g_edict_t *ent) {
 	vec3_t right, up;
 
+	if (ent->solid != SOLID_MISSILE)
+		return;
+
 	AngleVectors(ent->s.angles, NULL, right, up);
 
 	VectorMA(ent->velocity, Randomc() * 5.0, right, ent->velocity);
