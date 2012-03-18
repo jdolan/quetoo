@@ -60,7 +60,7 @@ void Ui_NewServer(void) {
 
 		memset(button, 0, sizeof(button));
 
-		snprintf(button, sizeof(button) - 1, "%-48.48s %-16.16s %-16.16s %02d/%02d %5d",
+		snprintf(button, sizeof(button) - 1, "%-40.40s %-16.16s %-24.24s %02d/%02d %5d",
 				s->hostname, s->name, s->gameplay, s->clients, s->max_clients, s->ping);
 		switch (s->source) {
 		case SERVER_SOURCE_BCAST:
@@ -94,7 +94,7 @@ TwBar *Ui_Servers(void) {
 	TwAddSeparator(bar, NULL, NULL);
 	TwAddButton(bar, "Refresh", Ui_Servers_Refresh, bar, NULL);
 
-	TwDefine("Servers size='800 400' alpha=200 iconifiable=false visible=false");
+	TwDefine("Servers size='850 400' alpha=200 iconifiable=false visible=false");
 
 	Cbuf_AddText("servers\n");
 

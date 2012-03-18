@@ -61,7 +61,7 @@ TwBar *Ui_System(void) {
 
 	TwAddButton(bar, "Apply", Ui_Command, "r_restart; s_restart", NULL);
 
-	TwDefine("System size='300 420' iconifiable=false visible=false");
+	TwDefine("System size='400 420' alpha=200 iconifiable=false valueswidth=100 visible=false");
 
 	return bar;
 }

@@ -30,8 +30,19 @@ extern cl_static_t cls;
  * Ui_Event
  *
  * Handles input events, returning true if the event was swallowed by TwBar.
- */bool Ui_Event(SDL_Event *event) {
-	return TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+ */
+bool Ui_Event(SDL_Event *event) {
+	bool handled;
+
+	if (!(handled = TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))) {
+
+		if (event->key.keysym.sym == SDLK_ESCAPE) {
+			//Ui_ToggleBar("*");
+			handled = true;
+		}
+	}
+
+	return handled;
 }
 
 /**

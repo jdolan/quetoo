@@ -35,12 +35,19 @@ void TW_CALL Ui_ToggleBar(void *data) {
 	for (i = 0; i < TwGetBarCount(); i++) {
 
 		bar = TwGetBarByIndex(i);
+
+		if (bar == ui.root)
+			continue;
+
 		const char *n = TwGetBarName(bar);
 
-		if (strcmp(n, name) && strcmp(n, "Quake2World")) {
+		if (strcmp(n, name)) {
 			TwSetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
 		}
 	}
+
+	if (!strcmp(name, "*")) // special case for hiding all bars
+		return;
 
 	// then toggle the one we're interested in
 	bar = TwGetBarByName(name);
@@ -57,7 +64,7 @@ void TW_CALL Ui_ToggleBar(void *data) {
 	TwSetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
 
 	if (visible) {
-		Ui_CenterBar((void *)name);
+		Ui_CenterBar((void *) name);
 	}
 }
 
