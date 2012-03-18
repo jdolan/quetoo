@@ -378,13 +378,14 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int speed,
 		int knockback, float damage_radius, unsigned int timer) {
 	g_edict_t *grenade;
 	vec3_t dir;
-	vec3_t forward, right, up, startBounds;
+	vec3_t forward, right, up, start_bounds;
 	const vec3_t mins = { -3.0, -3.0, -3.0 };
 	const vec3_t maxs = { 3.0, 3.0, 3.0 };
 	const vec3_t scale = { 0.3, 0.3, 0.3 };
 
-	VectorMA(start, VectorLength(maxs), aimdir, startBounds);
-	if (G_ImmediateWall(ent, startBounds))
+	VectorMA(start, VectorLength(maxs), aimdir, start_bounds);
+
+	if (G_ImmediateWall(ent, start_bounds))
 		VectorCopy(ent->s.origin, start);
 
 	VectorAngles(aimdir, dir);
@@ -398,7 +399,7 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int speed,
 
 	VectorScale(aimdir, speed, grenade->velocity);
 	VectorMA(grenade->velocity, 200.0 + Randomc() * 10.0, up, grenade->velocity);
-	VectorMA(grenade->velocity, Randomc() * 10.0, right, grenade->velocity);
+	VectorMA(grenade->velocity, Randomc() * 30.0, right, grenade->velocity);
 
 	grenade->avelocity[0] = -300.0 + 10 * Randomc();
 	grenade->avelocity[1] = 50.0 * Randomc();
