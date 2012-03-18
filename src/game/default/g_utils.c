@@ -83,8 +83,8 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	VectorSubtract(tr.end, org, forward);
 	VectorNormalize(forward);
 
-	PerpendicularVector(right, forward);
-	CrossProduct(right, forward, up);
+	VectorAngles(forward, view);
+	AngleVectors(view, NULL, right, up);
 }
 
 /**
