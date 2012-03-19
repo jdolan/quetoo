@@ -347,7 +347,10 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	if ((p = Cg_AllocParticle())) {
 		p->image = cg_particle_explosion;
 
-		p->scale = 1.0;
+		p->type = PARTICLE_ROLL;
+		p->roll = Randomc() * 100.0;
+
+		p->scale = 6.0;
 		p->scale_vel = 600.0;
 
 		p->alpha = 1.0;
@@ -573,7 +576,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 		p->image = cg_particle_explosion;
 
-		p->scale = 1.0;
+		p->scale = 4.0;
 		p->scale_vel = 200.0 * (i + 1);
 
 		p->alpha = 1.0;
