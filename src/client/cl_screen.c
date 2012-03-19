@@ -189,7 +189,7 @@ static void Cl_DrawCursor(void) {
 	R_DrawCursor(cls.mouse_state.x, cls.mouse_state.y);
 }
 
-/*
+/**
  * Cl_UpdateScreen
  *
  * This is called every frame, and can also be called explicitly to flush

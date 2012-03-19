@@ -82,8 +82,7 @@ static void Curses_DrawBackground(void) {
  */
 static void Curses_DrawInput(void) {
 	int x;
-	const int xPos = COLS - 5 < CURSES_LINESIZE ? COLS - 5 : CURSES_LINESIZE
-			- 1;
+	const int xPos = COLS - 5 < CURSES_LINESIZE ? COLS - 5 : CURSES_LINESIZE - 1;
 
 	Curses_SetColor(CON_COLOR_ALT);
 	for (x = 2; x < COLS - 1; x++)
@@ -124,8 +123,7 @@ static void Curses_DrawConsole(void) {
 	lines = sv_con.height + 1;
 
 	y = 1;
-	for (line = sv_con.last_line - sv_con.scroll - lines; line
-			< sv_con.last_line - sv_con.scroll; line++) {
+	for (line = sv_con.last_line - sv_con.scroll - lines; line < sv_con.last_line - sv_con.scroll; line++) {
 		if (line >= 0 && *sv_con.line_start[line]) {
 			x = 1;
 			// color of the first character of the line
@@ -214,10 +212,10 @@ static void Curses_Resize(int sig __attribute__((unused))) {
 	if (!sv_con.initialized) {
 		return;
 	}
-		
+
 	/*if (sig != SIGWINCH) {
-		return;
-	}*/
+	 return;
+	 }*/
 
 	endwin();
 	refresh();
@@ -268,8 +266,8 @@ void Curses_Frame(unsigned int msec) {
 				curses_redraw |= 1;
 			}
 		} else if (key == KEY_RIGHT) {
-			if (input[history_line][0] != '\0' && input_pos < CURSES_LINESIZE
-					- 1 && input[history_line][input_pos]) {
+			if (input[history_line][0] != '\0' && input_pos < CURSES_LINESIZE - 1
+					&& input[history_line][input_pos]) {
 				input_pos++;
 				curses_redraw |= 1;
 			}
@@ -279,10 +277,8 @@ void Curses_Frame(unsigned int msec) {
 			}
 			curses_redraw |= 1;
 		} else if (key == KEY_UP) {
-			if (input[(history_line + CURSES_HISTORYSIZE - 1)
-					% CURSES_HISTORYSIZE][0] != '\0') {
-				history_line = (history_line + CURSES_HISTORYSIZE - 1)
-						% CURSES_HISTORYSIZE;
+			if (input[(history_line + CURSES_HISTORYSIZE - 1) % CURSES_HISTORYSIZE][0] != '\0') {
+				history_line = (history_line + CURSES_HISTORYSIZE - 1) % CURSES_HISTORYSIZE;
 				input_pos = 0;
 				while (input[history_line][input_pos])
 					input_pos++;
@@ -299,8 +295,7 @@ void Curses_Frame(unsigned int msec) {
 			}
 		} else if (key == KEY_ENTER || key == '\n') {
 			if (input[history_line][0] != '\0') {
-				if (input[history_line][0] == '\\' || input[history_line][0]
-						== '/')
+				if (input[history_line][0] == '\\' || input[history_line][0] == '/')
 					snprintf(buf, CURSES_LINESIZE - 2,"%s\n", input[history_line] + 1);
 				else
 					snprintf(buf, CURSES_LINESIZE - 1,"%s\n", input[history_line]);

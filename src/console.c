@@ -85,8 +85,7 @@ static void Con_Update(console_t *con, char *pos) {
 			wordstart = pos + 1;
 		} else if (*pos == ' ') {
 			if (linelen + wordlen > con->width) {
-				while (wordlen > con->width && con->last_line < CON_MAX_LINES
-						- 2) {
+				while (wordlen > con->width && con->last_line < CON_MAX_LINES - 2) {
 					// force wordsplit
 					con->last_line++;
 					con->line_start[con->last_line] = wordstart;
@@ -323,8 +322,7 @@ void Con_Print(const char *text) {
 	}
 
 	// prevent overflow, text should still have a reasonable size
-	if (console_data.insert + strlen(text) >= console_data.text
-			+ sizeof(console_data.text) - 1) {
+	if (console_data.insert + strlen(text) >= console_data.text + sizeof(console_data.text) - 1) {
 		memcpy(console_data.text, console_data.text + (sizeof(console_data.text) >> 1), sizeof(console_data.text) >> 1);
 		memset(console_data.text + (sizeof(console_data.text) >> 1) ,0 , sizeof(console_data.text) >> 1);
 		console_data.insert -= sizeof(console_data.text) >> 1;

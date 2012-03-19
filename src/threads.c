@@ -24,7 +24,7 @@
 
 cvar_t *threads;
 
-/*
+/**
  * Thread_Run
  *
  * Wrap the user's function in our own for introspection.
@@ -37,14 +37,13 @@ static int Thread_Run(void *data) {
 	return 0;
 }
 
-/*
+/**
  * Thread_Create_
  *
  * Creates a new thread to run the specified function. Callers must use
  * Thread_Wait on the returned handle to release the thread when finished.
  */
-thread_t *Thread_Create_(const char *name, void( function)(void *data),
-		void *data) {
+thread_t *Thread_Create_(const char *name, void( function)(void *data), void *data) {
 
 	if (!threads->integer) {
 		function(data);
@@ -63,7 +62,7 @@ thread_t *Thread_Create_(const char *name, void( function)(void *data),
 	return t;
 }
 
-/*
+/**
  * Thread_Wait
  *
  * Wait for the specified thread to complete.
@@ -89,8 +88,7 @@ void Thread_Wait(thread_t **t) {
  * Thread_Init
  */
 void Thread_Init(void) {
-	threads = Cvar_Get("threads", "1", CVAR_ARCHIVE,
-			"Enable or disable multicore processing.");
+	threads = Cvar_Get("threads", "1", CVAR_ARCHIVE, "Enable or disable multicore processing.");
 }
 
 /*

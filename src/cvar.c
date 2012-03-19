@@ -105,7 +105,7 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]) {
 	return m;
 }
 
-/*
+/**
  * Cvar_Get
  *
  * If the variable already exists, the value will not be set. The flags,
@@ -320,7 +320,7 @@ void Cvar_Toggle(const char *name) {
 		Cvar_SetValue(name, 1.0);
 }
 
-/*
+/**
  * Cvar_ResetLocalVars
  *
  * Reset CVAR_LO_ONLY to their default values.
@@ -341,11 +341,12 @@ void Cvar_ResetLocalVars(void) {
 	}
 }
 
-/*
+/**
  * Cvar_PendingLatchedVars
  *
  * Returns true if there are any CVAR_LATCH variables pending.
- */bool Cvar_PendingLatchedVars(void) {
+ */
+bool Cvar_PendingLatchedVars(void) {
 	cvar_t *var;
 
 	for (var = cvar_vars; var; var = var->next) {
@@ -356,7 +357,7 @@ void Cvar_ResetLocalVars(void) {
 	return false;
 }
 
-/*
+/**
  * Cvar_UpdateLatchedVars
  *
  * Apply any pending latched changes.
@@ -384,7 +385,8 @@ void Cvar_UpdateLatchedVars(void) {
 
 /*
  * Cvar_PendingVars
- */bool Cvar_PendingVars(unsigned int flags) {
+ */
+bool Cvar_PendingVars(unsigned int flags) {
 	cvar_t *var;
 
 	for (var = cvar_vars; var; var = var->next) {
@@ -407,11 +409,12 @@ void Cvar_ClearVars(unsigned int flags) {
 	}
 }
 
-/*
+/**
  * Cvar_Command
  *
  * Handles variable inspection and changing from the console
- */bool Cvar_Command(void) {
+ */
+bool Cvar_Command(void) {
 	cvar_t *v;
 
 	// check variables
@@ -429,7 +432,7 @@ void Cvar_ClearVars(unsigned int flags) {
 	return true;
 }
 
-/*
+/**
  * Cvar_Set_f
  *
  * Allows setting and defining of arbitrary cvars from console
@@ -457,10 +460,10 @@ static void Cvar_Set_f(void) {
 		Cvar_Set(Cmd_Argv(1), Cmd_Argv(2));
 }
 
-/*
+/**
  * Cvar_Toggle_f
  *
- * Allows toggling of arbitrary cvars from console
+ * Allows toggling of arbitrary cvars from console.
  */
 static void Cvar_Toggle_f(void) {
 	if (Cmd_Argc() != 2) {
@@ -470,7 +473,7 @@ static void Cvar_Toggle_f(void) {
 	Cvar_Toggle(Cmd_Argv(1));
 }
 
-/*
+/**
  * Cvar_WriteVariables
  *
  * Appends lines containing "set variable value" for all variables
@@ -552,12 +555,11 @@ char *Cvar_ServerInfo(void) {
 	return Cvar_BitInfo(CVAR_SERVER_INFO);
 }
 
-/*
+/**
  * Cvar_Init
- *
- * Reads in all archived cvars
  */
 void Cvar_Init(void) {
+
 	Cmd_AddCommand("set", Cvar_Set_f, NULL);
 	Cmd_AddCommand("toggle", Cvar_Toggle_f, NULL);
 	Cmd_AddCommand("cvar_list", Cvar_List_f, NULL);

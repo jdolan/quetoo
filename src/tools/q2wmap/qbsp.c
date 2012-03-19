@@ -45,22 +45,21 @@ int entity_num;
 
 static node_t *block_nodes[10][10];
 
-
 /*
  * BlockTree
  */
-static node_t *BlockTree(int xl, int yl, int xh, int yh){
+static node_t *BlockTree(int xl, int yl, int xh, int yh) {
 	node_t *node;
 	vec3_t normal;
 	float dist;
 	int mid;
 
-	if(xl == xh && yl == yh){
+	if (xl == xh && yl == yh) {
 		node = block_nodes[xl + 5][yl + 5];
-		if(!node){					 // return an empty leaf
+		if (!node) { // return an empty leaf
 			node = AllocNode();
 			node->plane_num = PLANENUM_LEAF;
-			node->contents = 0;	  //CONTENTS_SOLID;
+			node->contents = 0; //CONTENTS_SOLID;
 			return node;
 		}
 		return node;
@@ -68,7 +67,7 @@ static node_t *BlockTree(int xl, int yl, int xh, int yh){
 	// create a separator along the largest axis
 	node = AllocNode();
 
-	if(xh - xl > yh - yl){		 // split x axis
+	if (xh - xl > yh - yl) { // split x axis
 		mid = xl + (xh - xl) / 2 + 1;
 		normal[0] = 1;
 		normal[1] = 0;
@@ -91,12 +90,11 @@ static node_t *BlockTree(int xl, int yl, int xh, int yh){
 	return node;
 }
 
-
 /*
  * ProcessBlock_Thread
  */
 static int brush_start, brush_end;
-static void ProcessBlock_Thread(int blocknum){
+static void ProcessBlock_Thread(int blocknum) {
 	int xblock, yblock;
 	vec3_t mins, maxs;
 	bsp_brush_t *brushes;
@@ -106,8 +104,7 @@ static void ProcessBlock_Thread(int blocknum){
 	yblock = block_yl + blocknum / (block_xh - block_xl + 1);
 	xblock = block_xl + blocknum % (block_xh - block_xl + 1);
 
-	Com_Verbose("############### block %2i,%2i ###############\n",
-	            xblock, yblock);
+	Com_Verbose("############### block %2i,%2i ###############\n", xblock, yblock);
 
 	mins[0] = xblock * 1024;
 	mins[1] = yblock * 1024;
@@ -120,7 +117,7 @@ static void ProcessBlock_Thread(int blocknum){
 
 	// the makelist and chopbrushes could be cached between the passes...
 	brushes = MakeBspBrushList(brush_start, brush_end, mins, maxs);
-	if(!brushes){
+	if (!brushes) {
 		node = AllocNode();
 		node->plane_num = PLANENUM_LEAF;
 		node->contents = CONTENTS_SOLID;
@@ -129,8 +126,7 @@ static void ProcessBlock_Thread(int blocknum){
 		return;
 	}
 
-
-	if(!nocsg)
+	if (!nocsg)
 		brushes = ChopBrushes(brushes);
 
 	tree = BrushBSP(brushes, mins, maxs);
@@ -139,11 +135,10 @@ static void ProcessBlock_Thread(int blocknum){
 	block_nodes[xblock + 5][yblock + 5] = tree->head_node;
 }
 
-
 /*
  * ProcessWorldModel
  */
-static void ProcessWorldModel(void){
+static void ProcessWorldModel(void) {
 	entity_t *e;
 	tree_t *tree;
 	bool leaked;
@@ -156,29 +151,29 @@ static void ProcessWorldModel(void){
 	leaked = false;
 
 	// perform per-block operations
-	if(block_xh * 1024 > map_maxs[0])
+	if (block_xh * 1024 > map_maxs[0])
 		block_xh = floor(map_maxs[0] / 1024.0);
-	if((block_xl + 1) * 1024 < map_mins[0])
+	if ((block_xl + 1) * 1024 < map_mins[0])
 		block_xl = floor(map_mins[0] / 1024.0);
-	if(block_yh * 1024 > map_maxs[1])
+	if (block_yh * 1024 > map_maxs[1])
 		block_yh = floor(map_maxs[1] / 1024.0);
-	if((block_yl + 1) * 1024 < map_mins[1])
+	if ((block_yl + 1) * 1024 < map_mins[1])
 		block_yl = floor(map_mins[1] / 1024.0);
 
-	if(block_xl < -4)
+	if (block_xl < -4)
 		block_xl = -4;
-	if(block_yl < -4)
+	if (block_yl < -4)
 		block_yl = -4;
-	if(block_xh > 3)
+	if (block_xh > 3)
 		block_xh = 3;
-	if(block_yh > 3)
+	if (block_yh > 3)
 		block_yh = 3;
 
-	for(optimize = 0; optimize <= 1; optimize++){
+	for (optimize = 0; optimize <= 1; optimize++) {
 		Com_Verbose("--------------------------------------------\n");
 
-		RunThreadsOn((block_xh - block_xl + 1) * (block_yh - block_yl + 1),
-				!verbose, ProcessBlock_Thread);
+		RunThreadsOn((block_xh - block_xl + 1) * (block_yh - block_yl + 1), !verbose,
+				ProcessBlock_Thread);
 
 		// build the division tree
 		// oversizing the blocks guarantees that all the boundaries
@@ -200,22 +195,22 @@ static void ProcessWorldModel(void){
 		// perform the global operations
 		MakeTreePortals(tree);
 
-		if(FloodEntities(tree))
+		if (FloodEntities(tree))
 			FillOutside(tree->head_node);
 		else {
 			leaked = true;
 			LeakFile(tree);
 
-			if(leaktest){
+			if (leaktest) {
 				Com_Error(ERR_FATAL, "--- MAP LEAKED, ABORTING LEAKTEST ---\n");
 			}
 			Com_Verbose("**** leaked ****\n");
 		}
 
 		MarkVisibleSides(tree, brush_start, brush_end);
-		if(noopt || leaked)
+		if (noopt || leaked)
 			break;
-		if(!optimize){
+		if (!optimize) {
 			FreeTree(tree);
 		}
 	}
@@ -224,22 +219,21 @@ static void ProcessWorldModel(void){
 	MakeFaces(tree->head_node);
 	FixTjuncs(tree->head_node);
 
-	if(!noprune)
+	if (!noprune)
 		PruneNodes(tree->head_node);
 
 	WriteBSP(tree->head_node);
 
-	if(!leaked)
+	if (!leaked)
 		WritePortalFile(tree);
 
 	FreeTree(tree);
 }
 
-
 /*
  * ProcessSubModel
  */
-static void ProcessSubModel(void){
+static void ProcessSubModel(void) {
 	entity_t *e;
 	int start, end;
 	tree_t *tree;
@@ -254,7 +248,7 @@ static void ProcessSubModel(void){
 	mins[0] = mins[1] = mins[2] = -MAX_WORLD_WIDTH;
 	maxs[0] = maxs[1] = maxs[2] = MAX_WORLD_WIDTH;
 	list = MakeBspBrushList(start, end, mins, maxs);
-	if(!nocsg)
+	if (!nocsg)
 		list = ChopBrushes(list);
 	tree = BrushBSP(list, mins, maxs);
 	MakeTreePortals(tree);
@@ -265,21 +259,19 @@ static void ProcessSubModel(void){
 	FreeTree(tree);
 }
 
-
 /*
  * ProcessModels
  */
-static void ProcessModels(void){
+static void ProcessModels(void) {
 	BeginBSPFile();
 
-	for(entity_num = 0; entity_num < num_entities; entity_num++){
-		if(!entities[entity_num].num_brushes)
+	for (entity_num = 0; entity_num < num_entities; entity_num++) {
+		if (!entities[entity_num].num_brushes)
 			continue;
 
-		Com_Verbose("############### model %i ###############\n",
-		            d_bsp.num_models);
+		Com_Verbose("############### model %i ###############\n", d_bsp.num_models);
 		BeginModel();
-		if(entity_num == 0)
+		if (entity_num == 0)
 			ProcessWorldModel();
 		else
 			ProcessSubModel();
@@ -289,20 +281,19 @@ static void ProcessModels(void){
 	EndBSPFile();
 }
 
-
 /*
  * BSP_Main
  */
-int BSP_Main(void){
+int BSP_Main(void) {
 	time_t start, end;
 	char base[MAX_OSPATH];
 	int total_bsp_time;
 
-	#ifdef _WIN32
-		char title[MAX_OSPATH];
-		sprintf(title, "Q2WMap [Compiling BSP]");
-		SetConsoleTitle(title);
-	#endif
+#ifdef _WIN32
+	char title[MAX_OSPATH];
+	sprintf(title, "Q2WMap [Compiling BSP]");
+	SetConsoleTitle(title);
+#endif
 
 	Com_Print("\n----- BSP -----\n\n");
 
@@ -318,7 +309,7 @@ int BSP_Main(void){
 	remove(va("%s.lin", base));
 
 	// if onlyents, just grab the entities and re-save
-	if(onlyents){
+	if (onlyents) {
 
 		LoadBSPFile(bsp_name);
 		num_entities = 0;
@@ -338,9 +329,9 @@ int BSP_Main(void){
 	}
 
 	end = time(NULL);
-	total_bsp_time = (int)(end - start);
+	total_bsp_time = (int) (end - start);
 	Com_Print("\nBSP Time: ");
-	if(total_bsp_time > 59)
+	if (total_bsp_time > 59)
 		Com_Print("%d Minutes ", total_bsp_time / 60);
 	Com_Print("%d Seconds\n", total_bsp_time % 60);
 

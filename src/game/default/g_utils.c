@@ -676,7 +676,8 @@ g_client_t *G_ClientByName(char *name) {
 
 /*
  * G_IsStationary
- */bool G_IsStationary(g_edict_t *ent) {
+ */
+bool G_IsStationary(g_edict_t *ent) {
 
 	if (!ent)
 		return false;
@@ -736,7 +737,8 @@ void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, bool restart) {
  * G_IsAnimation
  *
  * Returns true if the entity is currently using the specified animation.
- */bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim) {
+ */
+bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim) {
 	byte a;
 
 	if (anim < ANIM_LEGS_WALK)

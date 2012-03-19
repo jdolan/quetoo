@@ -165,7 +165,7 @@ void R_DrawCursor(r_pixel_t x, r_pixel_t y) {
 	R_DrawImage(x, y, 1.0, r_draw.cursor);
 }
 
-/*
+/**
  * R_BindFont
  *
  * Binds the specified font, returning the character width and height.
@@ -196,7 +196,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 		*ch = r_draw.font->char_height;
 }
 
-/*
+/**
  * R_StringWidth
  *
  * Return the width of the specified string in pixels. This will vary based
@@ -224,7 +224,7 @@ size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, int col
 	return R_DrawSizedString(x, y, s, size, size, color);
 }
 
-/*
+/**
  * R_DrawSizedString
  *
  * Draws at most len chars or size bytes of the specified string.  Color escape
@@ -534,8 +534,7 @@ static void R_InitFont(char *name) {
 	font->char_width = font->image->width / 16;
 	font->char_height = font->image->height / 8;
 
-	Com_Debug("R_InitFont: %s (%dx%d)\n", font->name, font->char_width,
-			font->char_height);
+	Com_Debug("R_InitFont: %s (%dx%d)\n", font->name, font->char_width, font->char_height);
 }
 
 /*
@@ -545,13 +544,13 @@ void R_InitDraw(void) {
 
 	memset(&r_draw, 0, sizeof(r_draw));
 
-	r_draw.cursor = R_LoadImage("fonts/cursor", it_font);
-
 	R_InitFont("small");
 	R_InitFont("medium");
 	R_InitFont("large");
 
 	R_BindFont(NULL, NULL, NULL);
+
+	r_draw.cursor = R_LoadImage("fonts/cursor", it_font);
 
 	// set ABGR color values
 	r_draw.colors[CON_COLOR_BLACK] = 0xff000000;

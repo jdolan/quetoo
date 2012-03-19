@@ -428,7 +428,8 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
  * VectorCompare
  *
  * Returns true if the specified vectors are equal, false otherwise.
- */bool VectorCompare(const vec3_t v1, const vec3_t v2) {
+ */
+bool VectorCompare(const vec3_t v1, const vec3_t v2) {
 
 	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
 		return false;
@@ -441,7 +442,8 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
  *
  * Returns true if the first vector is closer to the point of interest, false
  * otherwise.
- */bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
+ */
+bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
 	vec3_t d1, d2;
 
 	VectorSubtract(point, v1, d1);
@@ -541,7 +543,7 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 	return max;
 }
 
-/*
+/**
  * ColorFilter
  *
  * Applies brightness, saturation and contrast to the specified input color.
@@ -577,11 +579,12 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
 	ColorNormalize(out, out);
 }
 
-/*
+/**
  * MixedCase
  *
  * Returns true if the specified string has some upper case characters.
- */bool MixedCase(const char *s) {
+ */
+bool MixedCase(const char *s) {
 	const char *c = s;
 	while (*c) {
 		if (isupper(*c))
@@ -591,7 +594,7 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
 	return false;
 }
 
-/*
+/**
  * Lowercase
  *
  * Lowercases the specified string.
@@ -605,7 +608,7 @@ char *Lowercase(char *s) {
 	return s;
 }
 
-/*
+/**
  * Trim
  *
  * Trims leading and trailing whitespace from the specified string.
@@ -626,7 +629,7 @@ char *Trim(char *s) {
 	return left;
 }
 
-/*
+/**
  * CommonPrefix
  *
  * Returns the longest common prefix the specified words share.
@@ -665,7 +668,7 @@ char *CommonPrefix(const char *words[], unsigned int nwords) {
 	return common_prefix;
 }
 
-/*
+/**
  * GlobMatchStar
  *
  * Handles wildcard suffixes for GlobMatch.
@@ -696,7 +699,7 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
 	return false;
 }
 
-/*
+/**
  * GlobMatch
  *
  * Matches the pattern against specified text, returning true if the pattern
@@ -715,7 +718,8 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
  *
  * To suppress the special syntactic significance of any of `[]*?!-\',
  * and match the character exactly, precede it with a `\'.
- */bool GlobMatch(const char *pattern, const char *text) {
+ */
+bool GlobMatch(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
 	register char c;
 
@@ -801,7 +805,7 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
 	return *t == '\0';
 }
 
-/*
+/**
  * Basename
  *
  * Returns the base name for the given file or path.
@@ -818,7 +822,7 @@ const char *Basename(const char *path) {
 	return last;
 }
 
-/*
+/**
  * Dirname
  *
  * Returns the directory name for the given file or path name.
@@ -835,7 +839,7 @@ void Dirname(const char *in, char *out) {
 	out[(c - in) + 1] = 0;
 }
 
-/*
+/**
  * StripExtension
  *
  * Removes any file extension(s) from the specified input string.
@@ -846,7 +850,7 @@ void StripExtension(const char *in, char *out) {
 	*out = 0;
 }
 
-/*
+/**
  * StripColor
  *
  * Strips color escape sequences from the specified input string.
@@ -870,7 +874,7 @@ void StripColor(const char *in, char *out) {
 	*out = 0;
 }
 
-/*
+/**
  * StrColorCmp
  *
  * Performs a color- and case-insensitive string comparison.
@@ -884,10 +888,10 @@ int StrColorCmp(const char *s1, const char *s2) {
 	return strcasecmp(string1, string2);
 }
 
-/*
+/**
  * va
  *
- * A shorthand sprintf into a temp buffer.
+ * A shorthand sprintf into a statically allocated buffer.
  */
 char *va(const char *format, ...) {
 	va_list args;
@@ -902,7 +906,7 @@ char *va(const char *format, ...) {
 	return string;
 }
 
-/*
+/**
  * ParseToken
  *
  * Parse a token out of a string. Tokens are delimited by white space, and
@@ -975,7 +979,7 @@ char *ParseToken(const char **data_p) {
 	return token;
 }
 
-/*
+/**
  * GetUserInfo
  *
  * Searches the string for the given key and returns the associated value,
@@ -1065,12 +1069,13 @@ void DeleteUserInfo(char *s, const char *key) {
 	}
 }
 
-/*
+/**
  * ValidateUserInfo
  *
  * Returns true if the specified user-info string appears valid, false
  * otherwise.
- */bool ValidateUserInfo(const char *s) {
+ */
+bool ValidateUserInfo(const char *s) {
 	if (strstr(s, "\""))
 		return false;
 	if (strstr(s, ";"))

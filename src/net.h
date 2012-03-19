@@ -45,8 +45,7 @@ void Net_Shutdown(void);
 
 void Net_Config(net_src_t source, bool up);
 
-bool
-		Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message);
+bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message);
 void Net_SendPacket(net_src_t source, size_t length, void *data, net_addr_t to);
 
 bool Net_CompareNetaddr(net_addr_t a, net_addr_t b);
@@ -54,7 +53,7 @@ bool Net_CompareClientNetaddr(net_addr_t a, net_addr_t b);
 bool Net_IsLocalNetaddr(net_addr_t adr);
 char *Net_NetaddrToString(net_addr_t a);
 bool Net_StringToNetaddr(const char *s, net_addr_t *a);
-void Net_Sleep(int msec);
+void Net_Sleep(unsigned int msec);
 
 typedef struct {
 	bool fatal_error;
@@ -95,12 +94,10 @@ extern size_buf_t net_message;
 extern byte net_message_buffer[MAX_MSG_SIZE];
 
 void Netchan_Init(void);
-void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr,
-		byte qport);
+void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, byte qport);
 void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data);
 void Netchan_OutOfBand(int net_socket, net_addr_t addr, size_t size, byte *data);
-void Netchan_OutOfBandPrint(int net_socket, net_addr_t addr, const char *format,
-		...) __attribute__((format(printf, 3, 4)));
+void Netchan_OutOfBandPrint(int net_socket, net_addr_t addr, const char *format, ...) __attribute__((format(printf, 3, 4)));
 bool Netchan_Process(net_chan_t *chan, size_buf_t *msg);
 bool Netchan_CanReliable(net_chan_t *chan);
 bool Netchan_NeedReliable(net_chan_t *chan);

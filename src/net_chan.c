@@ -83,7 +83,6 @@ byte net_message_buffer[MAX_MSG_SIZE];
 
 /*
  * Netchan_Init
- *
  */
 void Netchan_Init(void) {
 	byte p;
@@ -96,7 +95,7 @@ void Netchan_Init(void) {
 	net_qport = Cvar_Get("net_qport", va("%d", p), CVAR_NO_SET, NULL);
 }
 
-/*
+/**
  * Netchan_OutOfBand
  *
  * Sends an out-of-band datagram
@@ -115,13 +114,12 @@ void Netchan_OutOfBand(int net_socket, net_addr_t addr, size_t size, byte *data)
 	Net_SendPacket(net_socket, send.size, send.data, addr);
 }
 
-/*
+/**
  * Netchan_OutOfBandPrint
  *
  * Sends a text message in an out-of-band datagram
  */
-void Netchan_OutOfBandPrint(int net_socket, net_addr_t addr,
-		const char *format, ...) {
+void Netchan_OutOfBandPrint(int net_socket, net_addr_t addr, const char *format, ...) {
 	va_list args;
 	char string[MAX_MSG_SIZE - 4];
 
@@ -134,13 +132,12 @@ void Netchan_OutOfBandPrint(int net_socket, net_addr_t addr,
 	Netchan_OutOfBand(net_socket, addr, strlen(string), (byte *) string);
 }
 
-/*
+/**
  * Netchan_Setup
  *
- * called to open a channel to a remote system
+ * Called to open a channel to a remote system.
  */
-void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr,
-		byte qport) {
+void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, byte qport) {
 	memset(chan, 0, sizeof(*chan));
 
 	chan->source = source;
@@ -154,10 +151,10 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr,
 	chan->message.allow_overflow = true;
 }
 
-/*
+/**
  * Netchan_CanReliable
  *
- * Returns true if the last reliable message has acked
+ * Returns true if the last reliable message has acked.
  */
 bool Netchan_CanReliable(net_chan_t *chan) {
 	if (chan->reliable_size)
@@ -186,11 +183,11 @@ bool Netchan_NeedReliable(net_chan_t *chan) {
 	return send_reliable;
 }
 
-/*
+/**
  * Netchan_Transmit
  *
  * Tries to send an unreliable message to a connection, and handles the
- * transmition / retransmition of the reliable messages.
+ * transmission / retransmission of the reliable messages.
  *
  * A 0 size will still generate a packet and deal with the reliable messages.
  */
@@ -203,8 +200,7 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	// check for message overflow
 	if (chan->message.overflowed) {
 		chan->fatal_error = true;
-		Com_Print("%s:Outgoing message overflow\n",
-				Net_NetaddrToString(chan->remote_address));
+		Com_Print("%s:Outgoing message overflow\n", Net_NetaddrToString(chan->remote_address));
 		return;
 	}
 
@@ -221,8 +217,7 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	Sb_Init(&send, send_buffer, sizeof(send_buffer));
 
 	w1 = (chan->outgoing_sequence & ~(1 << 31)) | (send_reliable << 31);
-	w2 = (chan->incoming_sequence & ~(1 << 31))
-			| (chan->incoming_reliable_sequence << 31);
+	w2 = (chan->incoming_sequence & ~(1 << 31)) | (chan->incoming_reliable_sequence << 31);
 
 	chan->outgoing_sequence++;
 	chan->last_sent = quake2world.time;
@@ -251,9 +246,8 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 
 	if (net_showpackets->value) {
 		if (send_reliable)
-			Com_Print("send "Q2W_SIZE_T" : s=%i reliable=%i ack=%i rack=%i\n",
-					send.size, chan->outgoing_sequence - 1,
-					chan->reliable_sequence, chan->incoming_sequence,
+			Com_Print("send "Q2W_SIZE_T" : s=%i reliable=%i ack=%i rack=%i\n", send.size,
+					chan->outgoing_sequence - 1, chan->reliable_sequence, chan->incoming_sequence,
 					chan->incoming_reliable_sequence);
 		else
 			Com_Print("send "Q2W_SIZE_T" : s=%i ack=%i rack=%i\n", send.size,
@@ -262,10 +256,10 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	}
 }
 
-/*
+/**
  * Netchan_Process
  *
- * called when the current net_message is from remote_address
+ * Called when the current net_message is from remote_address
  * modifies net_message so that it points to the packet payload
  */
 bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
@@ -291,20 +285,18 @@ bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
 
 	if (net_showpackets->value) {
 		if (reliable_message)
-			Com_Print("recv "Q2W_SIZE_T" : s=%i reliable=%i ack=%i rack=%i\n",
-					msg->size, sequence, chan->incoming_reliable_sequence ^ 1,
-					sequence_ack, reliable_ack);
+			Com_Print("recv "Q2W_SIZE_T" : s=%i reliable=%i ack=%i rack=%i\n", msg->size, sequence,
+					chan->incoming_reliable_sequence ^ 1, sequence_ack, reliable_ack);
 		else
-			Com_Print("recv "Q2W_SIZE_T" : s=%i ack=%i rack=%i\n", msg->size,
-					sequence, sequence_ack, reliable_ack);
+			Com_Print("recv "Q2W_SIZE_T" : s=%i ack=%i rack=%i\n", msg->size, sequence,
+					sequence_ack, reliable_ack);
 	}
 
 	// discard stale or duplicated packets
 	if (sequence <= chan->incoming_sequence) {
 		if (net_showdrop->value)
 			Com_Print("%s:Out of order packet %i at %i\n",
-					Net_NetaddrToString(chan->remote_address), sequence,
-					chan->incoming_sequence);
+					Net_NetaddrToString(chan->remote_address), sequence, chan->incoming_sequence);
 		return false;
 	}
 
@@ -312,9 +304,8 @@ bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
 	chan->dropped = sequence - (chan->incoming_sequence + 1);
 	if (chan->dropped > 0) {
 		if (net_showdrop->value)
-			Com_Print("%s:Dropped %i packets at %i\n",
-					Net_NetaddrToString(chan->remote_address), chan->dropped,
-					sequence);
+			Com_Print("%s:Dropped %i packets at %i\n", Net_NetaddrToString(chan->remote_address),
+					chan->dropped, sequence);
 	}
 
 	// if the current outgoing reliable message has been acknowledged

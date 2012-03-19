@@ -733,7 +733,8 @@ static void G_Vote_f(g_edict_t *ent) {
  * G_AddClientToTeam
  *
  * Returns true if the client's team was changed, false otherwise.
- */bool G_AddClientToTeam(g_edict_t *ent, char *team_name) {
+ */
+bool G_AddClientToTeam(g_edict_t *ent, char *team_name) {
 	g_team_t *team;
 
 	if (g_level.match_time && g_level.match_time <= g_level.time) {

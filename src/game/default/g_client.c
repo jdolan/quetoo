@@ -963,7 +963,8 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
  * If the client is allowed, the connection process will continue
  * and eventually get to G_Begin()
  * Changing levels will NOT cause this to be called again.
- */bool G_ClientConnect(g_edict_t *ent, char *user_info) {
+ */
+bool G_ClientConnect(g_edict_t *ent, char *user_info) {
 
 	// check password
 	const char *value = GetUserInfo(user_info, "password");

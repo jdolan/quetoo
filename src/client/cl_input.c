@@ -148,7 +148,7 @@ static void Cl_KeyUp(cl_button_t *b) {
 	else if (b->down[1] == k)
 		b->down[1] = 0;
 	else
-		return; // key up without coresponding down
+		return; // key up without corresponding down
 
 	if (b->down[0] || b->down[1])
 		return; // some other key is still holding it down
@@ -273,8 +273,7 @@ static float Cl_KeyState(cl_button_t *key, int cmd_msec) {
 /*
  * Cl_KeyMap
  */
-static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii,
-		unsigned short *unicode) {
+static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *unicode) {
 	int key = 0;
 	const unsigned int keysym = event->key.keysym.sym;
 
@@ -602,10 +601,6 @@ void Cl_HandleEvents(void) {
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 		return;
 
-	// force a mouse grab when entering fullscreen
-	if (r_context.fullscreen && r_view.update)
-		cls.mouse_state.grabbed = false;
-
 	// handle key events
 	while (true) {
 
@@ -616,6 +611,10 @@ void Cl_HandleEvents(void) {
 		else
 			break;
 	}
+
+	// force a mouse grab when entering fullscreen
+	if (r_context.fullscreen && r_view.update)
+		cls.mouse_state.grabbed = false;
 
 	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI) {
 		if (!r_context.fullscreen) {
@@ -680,8 +679,12 @@ static void Cl_ClampPitch(void) {
 		cl.angles[PITCH] = -89.0 - pitch;
 }
 
-/*
+/**
  * Cl_Move
+ *
+ * Accumulate this frame's movement-related inputs and assemble a movement
+ * command to send to the server. This may be called several times for each
+ * command that is transmitted if the client is running asynchronously.
  */
 void Cl_Move(user_cmd_t *cmd) {
 	float mod;
@@ -781,8 +784,7 @@ void Cl_InitInput(void) {
 	cl_run = Cvar_Get("cl_run", "1", CVAR_ARCHIVE, NULL);
 
 	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
-	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE,
-			NULL);
+	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
 	m_interpolate = Cvar_Get("m_interpolate", "0", CVAR_ARCHIVE, NULL);
 	m_invert = Cvar_Get("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
 	m_pitch = Cvar_Get("m_pitch", "0.022", 0, NULL);

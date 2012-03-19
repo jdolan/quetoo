@@ -26,7 +26,7 @@
 #include "pak.h"
 #include "filesystem.h"
 
-/*
+/**
  * Pak_ReadPakfile
  *
  * Return a populated Pakfile from the specified path, with entries
@@ -61,15 +61,13 @@ pak_t *Pak_ReadPakfile(const char *pakfile) {
 
 	pak->num_entries = header.dir_len / sizeof(pak_entry_t);
 	if (pak->num_entries > MAX_PAK_ENTRIES) {
-		Com_Warn("Pak_ReadPakfile: %s has %i files.\n", pakfile,
-				pak->num_entries);
+		Com_Warn("Pak_ReadPakfile: %s has %i files.\n", pakfile, pak->num_entries);
 		Fs_CloseFile(pak->handle);
 		Z_Free(pak);
 		return NULL;
 	}
 
-	pak->entries = (pak_entry_t *) Z_Malloc(
-			pak->num_entries * sizeof(pak_entry_t));
+	pak->entries = (pak_entry_t *) Z_Malloc(pak->num_entries * sizeof(pak_entry_t));
 
 	fseek(pak->handle, header.dir_ofs, SEEK_SET);
 	Fs_Read(pak->entries, 1, header.dir_len, pak->handle);
@@ -87,7 +85,7 @@ pak_t *Pak_ReadPakfile(const char *pakfile) {
 	return pak;
 }
 
-/*
+/**
  * Pak_FreePakfile
  *
  * Frees and closes any resources allocated to read the specified Pakfile.
@@ -116,7 +114,7 @@ void Pak_FreePakfile(pak_t *pak) {
 
 int err;
 
-/*
+/**
  * Pak_MakePath
  *
  * This is basically a combination of Fs_CreatePath and Sys_Mkdir,
@@ -138,7 +136,7 @@ static void Pak_MakePath(char *path) {
 	}
 }
 
-/*
+/**
  * Pak_ExtractPakfile
  *
  * A convenience function for deserializing a Pakfile to the filesystem.
@@ -163,8 +161,7 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, bool test) {
 	for (i = 0; i < pak->num_entries; i++) {
 
 		if (test) { // print contents and continue
-			printf("Contents %s (%d bytes).\n", pak->entries[i].name,
-					pak->entries[i].file_len);
+			printf("Contents %s (%d bytes).\n", pak->entries[i].name, pak->entries[i].file_len);
 			continue;
 		}
 
@@ -187,14 +184,13 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, bool test) {
 		Fs_CloseFile(f);
 		Z_Free(p);
 
-		printf("Extracted %s (%d bytes).\n", pak->entries[i].name,
-				pak->entries[i].file_len);
+		printf("Extracted %s (%d bytes).\n", pak->entries[i].name, pak->entries[i].file_len);
 	}
 
 	Pak_FreePakfile(pak);
 }
 
-/*
+/**
  * Pak_CreatePakstream
  *
  * Allocate a new Pakfile for creating a new archive from arbitrary resources.
@@ -212,8 +208,7 @@ pak_t *Pak_CreatePakstream(char *pakfile) {
 
 	// allocate a new pak
 	pak = (pak_t *) Z_Malloc(sizeof(*pak));
-	pak->entries = (pak_entry_t *) Z_Malloc(
-			sizeof(pak_entry_t) * MAX_PAK_ENTRIES);
+	pak->entries = (pak_entry_t *) Z_Malloc(sizeof(pak_entry_t) * MAX_PAK_ENTRIES);
 
 	pak->num_entries = 0;
 
@@ -227,7 +222,7 @@ pak_t *Pak_CreatePakstream(char *pakfile) {
 	return pak;
 }
 
-/*
+/**
  * Pak_ClosePakstream
  *
  * Finalizes and frees a newly created Pakfile archive.
@@ -251,7 +246,7 @@ void Pak_ClosePakstream(pak_t *pak) {
 	Pak_FreePakfile(pak);
 }
 
-/*
+/**
  * Pak_AddEntry
  *
  * Add an entry to the specified Pakfile stream.
@@ -337,7 +332,7 @@ static void Pak_RecursiveAdd(pak_t *pak, const char *dir) {
 	closedir(d);
 }
 
-/*
+/**
  * Pak_CreatePakfile
  *
  * A convenience function for creating Pakfile archives from the filesystem tree.

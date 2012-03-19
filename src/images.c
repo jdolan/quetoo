@@ -100,7 +100,8 @@ const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
  * the provided SDL_Surface.
  *
  * Image formats are tried in the order they appear in TYPES.
- */bool Img_LoadImage(const char *name, SDL_Surface **surf) {
+ */
+bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 	int i;
 
 	i = 0;
@@ -170,7 +171,8 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
  *
  * Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
- */bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
+ */
+bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
 	char path[MAX_QPATH];
 	void *buf;
 	int len;

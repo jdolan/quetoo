@@ -55,7 +55,7 @@ const char *Sys_GetCurrentUser(void) {
 	unsigned long size = sizeof(user);
 
 	if (!GetUserName(user, &size))
-		user[0] = '\0';
+	user[0] = '\0';
 #else
 	struct passwd *p;
 
@@ -196,8 +196,7 @@ void Sys_OpenLibrary(const char *name, void **handle) {
  * entry_point is resolved and invoked with the specified parameters, its
  * return value returned by this function.
  */
-void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point,
-		void *params) {
+void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params) {
 	typedef void *entry_point_t(void *);
 	entry_point_t *EntryPoint;
 
@@ -212,8 +211,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point,
 
 	if (!EntryPoint) {
 		Sys_CloseLibrary(handle);
-		Com_Error(ERR_DROP, "Sys_LoadLibrary: %s: Failed to resolve %s\n",
-				name, entry_point);
+		Com_Error(ERR_DROP, "Sys_LoadLibrary: %s: Failed to resolve %s\n", name, entry_point);
 	}
 
 	return EntryPoint(params);
