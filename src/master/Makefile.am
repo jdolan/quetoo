@@ -11,6 +11,9 @@ q2wmaster_CFLAGS = \
 	@BASE_CFLAGS@
 
 q2wmaster_LDADD = \
-	@BASE_LIBS@
+	../libfilesystem.la \
+	@BASE_LIBS@ \
+	@SDL_LIBS@ \
+	-lz
 
 endif

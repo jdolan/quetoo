@@ -29,7 +29,10 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "common.h"
+#include "filesystem.h"
+#include "net.h"
+
+quake2world_t quake2world;
 
 typedef struct server_s {
 	struct server_s *prev;
@@ -47,28 +50,13 @@ static server_t servers;
 int sock;
 
 /*
- * Ms_Print
- */
-static void Ms_Print(const char *msg, ...) {
-	va_list args;
-	char text[1024];
-
-	va_start(args, msg);
-	vsnprintf(text, sizeof(text), msg, args);
-	va_end(args);
-
-	text[sizeof(text) - 1] = 0;
-	printf("%s", text);
-}
-
-/*
  * Ms_Shutdown
  */
 static void Ms_Shutdown(void) {
 	server_t *server = &servers;
 	server_t *old = NULL;
 
-	Ms_Print("Master server shutting down.\n");
+	Com_Print("Master server shutting down.\n");
 
 	while (server->next) {
 		if (old)
@@ -91,8 +79,8 @@ static server_t *Ms_GetServer(struct sockaddr_in *from) {
 
 		server = server->next;
 
-		if (*(int *) &from->sin_addr == *(int *) &server->ip.sin_addr
-				&& from->sin_port == server->port) {
+		if (*(int *) &from->sin_addr == *(int *) &server->ip.sin_addr && from->sin_port
+				== server->port) {
 			return server;
 		}
 	}
@@ -114,6 +102,45 @@ static void Ms_DropServer(server_t *server) {
 	free(server);
 }
 
+/**
+ * Ms_BlacklistServer
+ *
+ * Returns true if the specified server has been blacklisted, false otherwise.
+ * The format of the blacklist file is one-IP-per-line, with wildcards. Ex:
+ *
+ * // This guy is a joker
+ * 66.182.58.*
+ *
+ * Ensure that the file is new-line terminated for all rules to be evaluated.
+ */
+static bool Ms_BlacklistServer(struct sockaddr_in *from) {
+	void *buf;
+	int len;
+
+	if ((len = Fs_LoadFile("servers-blacklist", &buf)) == -1) {
+		return false;
+	}
+
+	char *c = (char *) buf;
+	char *ip = inet_ntoa(from->sin_addr);
+
+	while ((c - (char *) buf) < len) {
+		char line[256];
+
+		sscanf(c, "%s\n", line);
+
+		if (strncmp(line, "//", 2)) {
+			if (GlobMatch(line, ip)) {
+				return true;
+			}
+		}
+
+		c += strlen(line) + 1;
+	}
+
+	return false;
+}
+
 /*
  * Ms_AddServer
  */
@@ -123,7 +150,12 @@ static void Ms_AddServer(struct sockaddr_in *from) {
 	int preserved_heartbeats = 0;
 
 	if (Ms_GetServer(from)) {
-		Ms_Print("Duplicate ping from %s\n", inet_ntoa(from->sin_addr));
+		Com_Print("Duplicate ping from %s\n", inet_ntoa(from->sin_addr));
+		return;
+	}
+
+	if (Ms_BlacklistServer(from)) {
+		Com_Print("Server %s has been blacklisted\n", inet_ntoa(from->sin_addr));
 		return;
 	}
 
@@ -142,15 +174,14 @@ static void Ms_AddServer(struct sockaddr_in *from) {
 	server->port = from->sin_port;
 	server->queued_pings = server->last_ping = server->validated = 0;
 
-	Ms_Print("Server %s registered\n", inet_ntoa(from->sin_addr));
+	Com_Print("Server %s registered\n", inet_ntoa(from->sin_addr));
 
 	// send an ack
 	addr.sin_addr = server->ip.sin_addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = server->port;
 	memset(&addr.sin_zero, 0, sizeof(addr.sin_zero));
-	sendto(sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr*) &addr,
-			sizeof(addr));
+	sendto(sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr*) &addr, sizeof(addr));
 }
 
 /*
@@ -162,12 +193,11 @@ static void Ms_RemoveServer(struct sockaddr_in *from, server_t *server) {
 		server = Ms_GetServer(from);
 
 	if (!server) {
-		Ms_Print("Shutdown from unregistered server %s\n",
-				inet_ntoa(from->sin_addr));
+		Com_Print("Shutdown from unregistered server %s\n", inet_ntoa(from->sin_addr));
 		return;
 	}
 
-	Ms_Print("Shutdown from %s\n", inet_ntoa(from->sin_addr));
+	Com_Print("Shutdown from %s\n", inet_ntoa(from->sin_addr));
 	Ms_DropServer(server);
 }
 
@@ -186,7 +216,7 @@ static void Ms_RunFrame(void) {
 			server = old->prev;
 
 			if (old->queued_pings > 6) {
-				Ms_Print("Server %s timed out.\n", inet_ntoa(old->ip.sin_addr));
+				Com_Print("Server %s timed out.\n", inet_ntoa(old->ip.sin_addr));
 				Ms_DropServer(old);
 				continue;
 			}
@@ -200,9 +230,9 @@ static void Ms_RunFrame(void) {
 				memset(&addr.sin_zero, 0, sizeof(addr.sin_zero));
 				server->queued_pings++;
 				server->last_ping = curtime;
-				Ms_Print("Pinging %s\n", inet_ntoa(server->ip.sin_addr));
-				sendto(sock, "\xFF\xFF\xFF\xFF" "ping", 8, 0,
-						(struct sockaddr *) &addr, sizeof(addr));
+				Com_Print("Pinging %s\n", inet_ntoa(server->ip.sin_addr));
+				sendto(sock, "\xFF\xFF\xFF\xFF" "ping", 8, 0, (struct sockaddr *) &addr,
+						sizeof(addr));
 			}
 		}
 	}
@@ -232,11 +262,10 @@ static void Ms_SendServersList(struct sockaddr_in *from) {
 		}
 	}
 
-	if ((sendto(sock, buff, buflen, 0, (struct sockaddr *) from, sizeof(*from)))
-			== -1)
-		Ms_Print("Socket error on send: %d.\n", strerror(errno));
+	if ((sendto(sock, buff, buflen, 0, (struct sockaddr *) from, sizeof(*from))) == -1)
+		Com_Print("Socket error on send: %s.\n", strerror(errno));
 	else
-		Ms_Print("Sent server list to %s\n", inet_ntoa(from->sin_addr));
+		Com_Print("Sent server list to %s\n", inet_ntoa(from->sin_addr));
 }
 
 /*
@@ -248,8 +277,7 @@ static void Ms_Ack(struct sockaddr_in *from) {
 	if (!(server = Ms_GetServer(from)))
 		return;
 
-	Ms_Print("Ack from %s (%d).\n", inet_ntoa(server->ip.sin_addr),
-			server->queued_pings);
+	Com_Print("Ack from %s (%d).\n", inet_ntoa(server->ip.sin_addr), server->queued_pings);
 
 	server->last_heartbeat = time(0);
 	server->queued_pings = 0;
@@ -260,7 +288,7 @@ static void Ms_Ack(struct sockaddr_in *from) {
 /*
  * Ms_Heartbeat
  */
-static void Ms_Heartbeat(struct sockaddr_in *from, char *data) {
+static void Ms_Heartbeat(struct sockaddr_in *from) {
 	server_t *server;
 	struct sockaddr_in addr;
 
@@ -273,10 +301,9 @@ static void Ms_Heartbeat(struct sockaddr_in *from, char *data) {
 		server->validated = 1;
 		server->last_heartbeat = time(0);
 
-		Ms_Print("Heartbeat from %s.\n", inet_ntoa(server->ip.sin_addr));
+		Com_Print("Heartbeat from %s.\n", inet_ntoa(server->ip.sin_addr));
 
-		sendto(sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr*) &addr,
-				sizeof(addr));
+		sendto(sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr*) &addr, sizeof(addr));
 		return;
 	}
 
@@ -298,9 +325,8 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 
 	if (!strncasecmp(cmd, "ping", 4)) {
 		Ms_AddServer(from);
-	} else if (!strncasecmp(cmd, "heartbeat", 9) || !strncasecmp(cmd, "print",
-			5)) {
-		Ms_Heartbeat(from, line);
+	} else if (!strncasecmp(cmd, "heartbeat", 9) || !strncasecmp(cmd, "print", 5)) {
+		Ms_Heartbeat(from);
 	} else if (!strncasecmp(cmd, "ack", 3)) {
 		Ms_Ack(from);
 	} else if (!strncasecmp(cmd, "shutdown", 8)) {
@@ -308,8 +334,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 	} else if (!strncasecmp(cmd, "getservers", 10) || !strncasecmp(cmd, "y", 1)) {
 		Ms_SendServersList(from);
 	} else {
-		Ms_Print("Unknown command from %s: '%s'", inet_ntoa(from->sin_addr),
-				cmd);
+		Com_Print("Unknown command from %s: '%s'", inet_ntoa(from->sin_addr), cmd);
 	}
 }
 
@@ -318,7 +343,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
  */
 static void Ms_HandleSignal(int sig) {
 
-	Ms_Print("Received signal %d, exiting...\n", sig);
+	Com_Print("Received signal %d, exiting...\n", sig);
 
 	Ms_Shutdown();
 
@@ -328,7 +353,7 @@ static void Ms_HandleSignal(int sig) {
 /*
  * main
  */
-int main(int argc, char **argv) {
+int main(int argc __attribute__((unused)), char **argv __attribute__((unused))) {
 	struct sockaddr_in address, from;
 	struct timeval delay;
 	socklen_t fromlen;
@@ -336,7 +361,18 @@ int main(int argc, char **argv) {
 	char buffer[16384];
 	int len;
 
-	Ms_Print("Quake2World Master Server %s\n", VERSION);
+	memset(&quake2world, 0, sizeof(quake2world));
+
+	Com_Print("Quake2World Master Server %s\n", VERSION);
+
+	// init core facilities
+	Z_Init();
+
+	Cvar_Init();
+
+	Cmd_Init();
+
+	Fs_Init();
 
 	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -347,13 +383,13 @@ int main(int argc, char **argv) {
 	address.sin_addr.s_addr = INADDR_ANY;
 
 	if ((bind(sock, (struct sockaddr *) &address, sizeof(address))) == -1) {
-		Ms_Print("Failed to bind port %i\n", PORT_MASTER);
+		Com_Print("Failed to bind port %i\n", PORT_MASTER);
 		return 1;
 	}
 
 	memset(&servers, 0, sizeof(servers));
 
-	Ms_Print("Listening on %i\n", PORT_MASTER);
+	Com_Print("Listening on %i\n", PORT_MASTER);
 
 	signal(SIGHUP, Ms_HandleSignal);
 	signal(SIGINT, Ms_HandleSignal);
@@ -378,19 +414,19 @@ int main(int argc, char **argv) {
 				fromlen = sizeof(from);
 				memset(buffer, 0, sizeof(buffer));
 
-				len = recvfrom(sock, buffer, sizeof(buffer), 0,
-						(struct sockaddr *) &from, &fromlen);
+				len
+						= recvfrom(sock, buffer, sizeof(buffer), 0, (struct sockaddr *) &from,
+								&fromlen);
 
 				if (len > 0) {
 					if (len > 4)
 						Ms_ParseMessage(&from, buffer);
 					else
-						Ms_Print("Invalid packet from %s:%d\n",
-								inet_ntoa(from.sin_addr), ntohs(from.sin_port));
+						Com_Print("Invalid packet from %s:%d\n", inet_ntoa(from.sin_addr),
+								ntohs(from.sin_port));
 				} else {
-					Ms_Print("Socket error from %s:%d (%d)\n",
-							inet_ntoa(from.sin_addr), ntohs(from.sin_port),
-							strerror(errno));
+					Com_Print("Socket error from %s:%d (%s)\n", inet_ntoa(from.sin_addr),
+							ntohs(from.sin_port), strerror(errno));
 				}
 			}
 		}
