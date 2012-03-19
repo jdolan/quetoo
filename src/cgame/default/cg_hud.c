@@ -374,7 +374,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	r_pixel_t x, y;
 	int color;
 
-	if (!cg_crosshair->value)
+	if (!cg_draw_crosshair->value)
 		return;
 
 	if (ps->stats[STAT_SCORES])
@@ -389,21 +389,21 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (center_print.time > cgi.client->time)
 		return;
 
-	if (cg_crosshair->modified) { // crosshair image
-		cg_crosshair->modified = false;
+	if (cg_draw_crosshair->modified) { // crosshair image
+		cg_draw_crosshair->modified = false;
 
-		if (cg_crosshair->value < 0)
-			cg_crosshair->value = 1;
+		if (cg_draw_crosshair->value < 0)
+			cg_draw_crosshair->value = 1;
 
-		if (cg_crosshair->value > 100)
-			cg_crosshair->value = 100;
+		if (cg_draw_crosshair->value > 100)
+			cg_draw_crosshair->value = 100;
 
-		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cg_crosshair->integer);
+		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cg_draw_crosshair->integer);
 
-		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_crosshair->integer), it_pic);
+		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), it_pic);
 
 		if (crosshair.image->type == it_null) {
-			cgi.Print("Couldn't load pics/ch%d.\n", cg_crosshair->integer);
+			cgi.Print("Couldn't load pics/ch%d.\n", cg_draw_crosshair->integer);
 			return;
 		}
 	}
@@ -412,20 +412,20 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		return;
 	}
 
-	if (cg_crosshair_color->modified) { // crosshair color
-		cg_crosshair_color->modified = false;
+	if (cg_draw_crosshair_color->modified) { // crosshair color
+		cg_draw_crosshair_color->modified = false;
 
-		color = ColorByName(cg_crosshair_color->string, 14);
+		color = ColorByName(cg_draw_crosshair_color->string, 14);
 		memcpy(&crosshair.color, &cgi.palette[color], sizeof(crosshair.color));
 	}
 
 	glColor4ubv(crosshair.color);
 
 	// calculate width and height based on crosshair image and scale
-	x = (cgi.context->width - crosshair.image->width * cg_crosshair_scale->value) / 2;
-	y = (cgi.context->height - crosshair.image->height * cg_crosshair_scale->value) / 2;
+	x = (cgi.context->width - crosshair.image->width * cg_draw_crosshair_scale->value) / 2;
+	y = (cgi.context->height - crosshair.image->height * cg_draw_crosshair_scale->value) / 2;
 
-	cgi.DrawPic(x, y, cg_crosshair_scale->value, crosshair.name);
+	cgi.DrawPic(x, y, cg_draw_crosshair_scale->value, crosshair.name);
 
 	glColor4ubv(color_white);
 }

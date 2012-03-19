@@ -132,8 +132,8 @@ void Cg_UpdateMedia(void) {
 		cg_particle_bullet[i] = cgi.LoadImage(name, it_effect);
 	}
 
-	cg_crosshair->modified = true;
-	cg_crosshair_color->modified = true;
+	cg_draw_crosshair->modified = true;
+	cg_draw_crosshair_color->modified = true;
 
 	Cg_LoadEmits();
 

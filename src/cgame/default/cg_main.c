@@ -26,10 +26,10 @@ cvar_t *cg_add_entities;
 cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
-cvar_t *cg_crosshair_color;
-cvar_t *cg_crosshair_scale;
-cvar_t *cg_crosshair;
 cvar_t *cg_draw_blend;
+cvar_t *cg_draw_crosshair_color;
+cvar_t *cg_draw_crosshair_scale;
+cvar_t *cg_draw_crosshair;
 cvar_t *cg_draw_hud;
 cvar_t *cg_draw_weapon;
 cvar_t *cg_draw_weapon_x;
@@ -61,14 +61,15 @@ static void Cg_Init(void) {
 
 	cg_bob = cgi.Cvar("cg_bob", "1.0", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
 
-	cg_crosshair = cgi.Cvar("cg_crosshair", "1", CVAR_ARCHIVE, NULL);
-	cg_crosshair_color = cgi.Cvar("cg_crosshair_color", "default", CVAR_ARCHIVE,
-			"Specifies the crosshair color.");
-	cg_crosshair_scale = cgi.Cvar("cg_crosshair_scale", "1.0", CVAR_ARCHIVE,
-			"Controls the crosshair scale (size).");
-
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of screen alpha-blending");
+
+	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE, NULL);
+	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
+			"Specifies the crosshair color.");
+	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
+			"Controls the crosshair scale (size).");
+
 	cg_draw_hud = cgi.Cvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
 
 	cg_draw_weapon = cgi.Cvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
