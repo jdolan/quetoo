@@ -254,6 +254,8 @@ static void G_ClientCorpse(g_edict_t *self) {
 	memcpy(&ent->s, &self->s, sizeof(ent->s));
 	ent->s.number = ent - g_game.edicts;
 
+	ent->s.effects = 0;
+
 	ent->s.model2 = 0;
 	ent->s.model3 = 0;
 	ent->s.model4 = 0;
