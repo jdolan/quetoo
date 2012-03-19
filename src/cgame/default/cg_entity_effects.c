@@ -484,23 +484,33 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
 /*
  * Cg_LightningTrail
  */
-static void Cg_LightningTrail(const vec3_t start, const vec3_t end) {
+static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
 	r_light_t l;
-	vec3_t dir, delta, pos;
-	float dist;
+	vec3_t dir, delta, pos, vel;
+	float dist, offset;
+	int i;
+
+	VectorCopy(start, l.origin);
+	l.radius = 90.0 + 10.0 * Randomc();
+	VectorSet(l.color, 0.6, 0.6, 1.0);
+	cgi.AddLight(&l);
 
 	cgi.LoopSample(start, cg_sample_lightning_fly);
-	cgi.LoopSample(end, cg_sample_lightning_fly);
 
 	VectorSubtract(start, end, dir);
 	dist = VectorNormalize(dir);
 
+	if (dist > 256.0) {
+		cgi.LoopSample(end, cg_sample_lightning_fly);
+	}
+
 	VectorScale(dir, -48.0, delta);
+	VectorCopy(start, pos);
 
-	VectorSet(pos, Randomc() * 0.5, Randomc() * 0.5, Randomc() * 0.5);
-	VectorAdd(pos, start, pos);
+	VectorSubtract(ent->current.origin, ent->prev.origin, vel);
 
+	i = 0;
 	while (dist > 0.0) {
 
 		if (!(p = Cg_AllocParticle()))
@@ -513,12 +523,19 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end) {
 
 		VectorCopy(pos, p->org);
 
-		if (dist < 48.0)
+		if (dist <= 48.0) {
 			VectorScale(dir, dist, delta);
+			offset = 0.0;
+		} else {
+			offset = fabs(8.0 * sin(dist));
+		}
 
 		VectorAdd(pos, delta, pos);
+		pos[2] += (++i & 1) ? offset : -offset;
 
 		VectorCopy(pos, p->end);
+
+		VectorCopy(vel, p->vel);
 
 		p->alpha = 1.0;
 		p->alpha_vel = -9999.0;
@@ -528,15 +545,16 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end) {
 		p->scroll_s = -4.0;
 
 		dist -= 48.0;
+
+		if (dist > 12.0) {
+			VectorCopy(p->end, l.origin);
+			l.radius = 90.0 + 10.0 * Randomc();
+			cgi.AddLight(&l);
+		}
 	}
 
-	VectorCopy(start, l.origin);
-	l.radius = 90.0 + 10.0 * Randomc();
-	VectorSet(l.color, 0.6, 0.6, 1.0);
-
-	cgi.AddLight(&l);
-
 	VectorMA(end, 12.0, dir, l.origin);
+	l.radius = 90.0 + 10.0 * Randomc();
 	cgi.AddLight(&l);
 }
 
@@ -651,7 +669,7 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	}
 
 	if (s->effects & EF_LIGHTNING) {
-		Cg_LightningTrail(start, end);
+		Cg_LightningTrail(start, end, e);
 	}
 
 	if (s->effects & EF_BFG) {

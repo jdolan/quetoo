@@ -671,6 +671,9 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 	}
 
 	VectorMA(start, 800.0, forward, end); // resolve end
+	VectorMA(end, 10.0 * sin(g_level.time / 4.0), up, end);
+	VectorMA(end, 10.0 * Randomc(), right, end);
+
 	tr = gi.Trace(start, NULL, NULL, end, self, MASK_SHOT | MASK_WATER);
 
 	if (tr.contents & MASK_WATER) { // entered water, play sound, leave trail
