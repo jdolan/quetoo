@@ -156,6 +156,15 @@ void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
 	if (item == ent->client->persistent.weapon)
 		return;
 
+	if (item->ammo) { // ensure we have ammo
+		int index = ITEM_INDEX(G_FindItem(item->ammo));
+
+		if (!ent->client->persistent.inventory[index]) {
+			gi.ClientPrint(ent, PRINT_HIGH, "Not enough ammo for %s\n", item->pickup_name);
+			return;
+		}
+	}
+
 	// change to this weapon when down
 	ent->client->new_weapon = item;
 }
