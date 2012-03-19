@@ -470,7 +470,7 @@ static void G_FireRailgun_(g_edict_t *ent) {
 }
 
 void G_FireRailgun(g_edict_t *ent) {
-	G_FireWeapon(ent, 1500, G_FireRailgun_);
+	G_FireWeapon(ent, 1800, G_FireRailgun_);
 }
 
 /*
