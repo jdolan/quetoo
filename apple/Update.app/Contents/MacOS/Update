@@ -1,0 +1,2 @@
+#!/bin/bash
+open $(dirname "$0")/update.command
