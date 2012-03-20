@@ -73,7 +73,7 @@ typedef unsigned char byte;
 #define MAX_STRING_TOKENS	128   // max tokens resulting from Cmd_TokenizeString
 #define MAX_TOKEN_CHARS		256   // max length of an individual token
 #define MAX_QPATH			64    // max length of a quake game pathname
-#define MAX_OSPATH			128   // max length of a filesystem pathname
+#define MAX_OSPATH			256   // max length of a filesystem pathname
 // per-level limits
 #define MIN_CLIENTS			1     // duh
 #define MAX_CLIENTS			256   // absolute limit
