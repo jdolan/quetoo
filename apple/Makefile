@@ -6,7 +6,7 @@ DATA = ../../../quake2world-data/trunk
 LIBRARIES = $(APP)/Contents/Libraries
 MACOS = $(APP)/Contents/MacOS
 RESOURCES = $(APP)/Contents/Resources
-DMG = $(TARGET)/Quake2World.dmg
+DMG = $(TARGET)/Quake2World-BETA.dmg
 VOLUME_NAME = "Quake2World BETA"
 
 all: bundle image
