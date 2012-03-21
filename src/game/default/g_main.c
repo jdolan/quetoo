@@ -1159,7 +1159,7 @@ void G_Init(void) {
 	g_random_map = gi.Cvar("g_random_map", "0", 0, NULL);
 	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, NULL);
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, NULL);
-	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
+	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, NULL);
 	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, NULL);
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
