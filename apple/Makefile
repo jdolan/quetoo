@@ -10,14 +10,12 @@ RESOURCES = $(QUAKE2WORLD)/Contents/Resources
 RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-apple/x86_64
 DMG = $(TARGET)/Quake2World-BETA.dmg
 VOLUME_NAME = "Quake2World BETA"
+ICON=$(shell echo $')
 
 all: bundle
 
 pre-install:
-	install -d $(QUAKE2WORLD)
-	svn export --force Quake2World.app $(QUAKE2WORLD)
-	install -d $(UPDATE)
-	svn export --force Update.app $(UPDATE)
+	svn export --force Quake2World target/Quake2World
 
 install: pre-install
 	install ../src/tools/pak/pak $(BINARIES)/pak
@@ -42,6 +40,7 @@ release:
 	scp -r $(BINARIES) $(LIBRARIES) $(RSYNC_REPOSITORY)
 
 image:
+	./set-icon.sh icon.icns $(TARGET)/Quake2World
 	ln -f -s /Applications $(TARGET)/Applications
 	hdiutil create $(DMG) -srcfolder $(TARGET) -volname $(VOLUME_NAME) 
 
