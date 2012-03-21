@@ -1,9 +1,0 @@
-quake2world for Debian
-----------------------
-
-Straight forward compilation of upstream sources.
-
-Package installs to /usr/local/ which is a violation of debian policy.
-Once code base forks to stable, this will be corrected.
-
- -- Stanley Pinchak <stanley.pinchak@gmail.com>  Sat, 21 Apr 2007 18:30:43 -0400
