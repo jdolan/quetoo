@@ -6,7 +6,7 @@ Set MINGW_X86_64_URL="http://downloads.sourceforge.net/project/mingw-w64/Toolcha
 
 
 mkdir %TARGETDIR%
-cscript setup.vbs %TARGETDIR%
+cscript wget7z.vbs %TARGETDIR%
 cd %TARGETDIR%
 
 wget -c %MINGW_GET_URL%
