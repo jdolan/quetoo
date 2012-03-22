@@ -580,14 +580,18 @@ void Fs_Init(void) {
 	char path[MAX_OSPATH], *c;
 	unsigned int i;
 
-	_NSGetExecutablePath(path, &i);
+	if (_NSGetExecutablePath(path, &i) > -1) {
 
-	if ((c = strstr(path, "Quake2World.app"))) {
-		strcpy(c + strlen("Quake2World.app/Contents/"), "MacOS/"DEFAULT_GAME);
-		Fs_AddSearchPath(path);
+		if ((c = strstr(path, "Quake2World.app"))) {
+			strcpy(c + strlen("Quake2World.app/Contents/"), "MacOS/"DEFAULT_GAME);
+			Fs_AddSearchPath(path);
 
-		strcpy(c + strlen("Quake2World.app/Contents/"), "Resources/"DEFAULT_GAME);
-		Fs_AddSearchPath(path);
+			strcpy(c + strlen("Quake2World.app/Contents/"), "Resources/"DEFAULT_GAME);
+			Fs_AddSearchPath(path);
+		}
+	}
+	else {
+		Com_Warn("Fs_Init: Failed to resolve executable path\n");
 	}
 #elif __LINUX__
 	// add ./default and ./bin/default to the search path
