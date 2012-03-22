@@ -19,7 +19,7 @@ install: pre-install
 	install ../src/tools/q2wmap/q2wmap $(BINARIES)/q2wmap
 	install ../src/main/quake2world $(BINARIES)/quake2world
 	install ../src/cgame/default/.libs/cgame.so $(BINARIES)/default/cgame.so
-	install ../src/cgame/default/.libs/game.so $(BINARIES)/default/game.so
+	install ../src/game/default/.libs/game.so $(BINARIES)/default/game.so
 
 install-data:
 	svn export --force $(DATA)/target $(RESOURCES)
