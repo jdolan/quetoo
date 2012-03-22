@@ -26,6 +26,8 @@ install-data:
 
 bundle: install
 	# This is perhaps where we would bundle up all of our libs
+	# To get the executables to load the libs from our lib folder, we should
+	# compile with --rpath=\$ORIGIN../libs. See http://www.scons.org/wiki/UsingOrigin
 
 release:
 	scp -r $(BINARIES) $(LIBRARIES) $(RSYNC_REPOSITORY)

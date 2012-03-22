@@ -9,7 +9,7 @@ echo
 
 LINUX=rsync://quake2world.net/quake2world-linux/x86_64
 rsync -rzhP --delete $LINUX/bin/ ${QUAKE2WORLD_HOME}/bin
-rsync -rzhP --delete $APPLE/lib/ ${QUAKE2WORLD_HOME}/lib
+rsync -rzhP --delete $LINUX/lib/ ${QUAKE2WORLD_HOME}/lib
 
 DATA=rsync://quake2world.net/quake2world/default/
 rsync -rzhP --delete $DATA ${QUAKE2WORLD_HOME}/default
