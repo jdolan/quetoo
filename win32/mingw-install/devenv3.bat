@@ -9,6 +9,9 @@ mkdir %TARGETDIR%
 cscript wget7z.vbs %TARGETDIR%
 cd %TARGETDIR%
 
+IF NOT EXIST wget.exe GOTO DLERR
+IF NOT EXIST 7za.exe GOTO DLERR
+
 wget -c %MINGW_GET_URL%
 7za x *.zip
 del *.zip
@@ -46,6 +49,9 @@ wget -c %MINGW_I686_URL% %MINGW_X86_64_URL%
 
 rem #Cleanup
 del *.exe *7z
-
+pause
 msys\1.0\msys.bat
+
+:DLERR
+echo Error downloading files
 pause
