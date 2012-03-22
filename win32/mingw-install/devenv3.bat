@@ -1,8 +1,19 @@
-cmd.exe /k mkdir "C:\q2wdevenv"
+@echo off
+Set TARGETDIR="C:\q2wdevenv"
+Set MINGW_GET_URL="http://downloads.sourceforge.net/project/mingw/Installer/mingw-get/mingw-get-0.4-alpha-1/mingw-get-0.4-mingw32-alpha-1-bin.zip"
+Set MINGW_I686_URL="http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/rubenvb/4.7.0-3/i686-w64-mingw32-gcc-4.7.0-3_rubenvb.7z"
+Set MINGW_X86_64_URL="http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/rubenvb/4.7.0-3/x86_64-w64-mingw32-gcc-4.7.0-3_rubenvb.7z"
 
-# Download mingw-get and extract to C:\q2wdevenv
-# http://sourceforge.net/projects/mingw/files/Installer/mingw-get/
 
+mkdir %TARGETDIR%
+cscript setup.vbs %TARGETDIR%
+cd %TARGETDIR%
+
+wget -c %MINGW_GET_URL%
+7za x *.zip
+del *.zip
+
+cd bin
 mingw-get install mingw-developer-toolkit msys-zip msys-unzip msys-wget
 
 mingw-get remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
@@ -26,13 +37,15 @@ xcopy autotools\* mingw64 /E
 
 msys\1.0\bin\sh.exe -c "echo export CPPFLAGS=-I/mingw/include >> /etc/profile"
 msys\1.0\bin\sh.exe -c "echo export LDFLAGS="-L/mingw/lib" >> /etc/profile"
-msys\1.0\bin\sh.exe -c "mount c:/q2wdevenv/mingw32 /mingw"
+msys\1.0\bin\sh.exe -c "echo "%TARGETDIR%"\\\mingw32 /mingw > /etc/fstab"
 
 
-#extract rubenvb gcc package
-# mingw64: 
-# http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/rubenvb/
-# mingw32: 
-# http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/rubenvb/
+rem #Downloading and installing gcc
+wget -c %MINGW_I686_URL% %MINGW_X86_64_URL%
+7za x *.7z
 
+rem #Cleanup
+del *.exe *7z
 
+msys\1.0\msys.bat
+pause
