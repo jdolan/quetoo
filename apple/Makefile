@@ -15,7 +15,8 @@ ICON=$(shell echo $')
 all: bundle
 
 pre-install:
-	svn export --force Quake2World target/Quake2World
+	install -d $(TARGET)
+	svn export --force Quake2World $(TARGET)/Quake2World
 
 install: pre-install
 	install ../src/tools/pak/pak $(BINARIES)/pak
