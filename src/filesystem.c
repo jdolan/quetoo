@@ -583,11 +583,28 @@ void Fs_Init(void) {
 	_NSGetExecutablePath(path, &i);
 
 	if ((c = strstr(path, "Quake2World.app"))) {
-		strcpy(c + strlen("Quake2World.app/Contents"), "/MacOS/"DEFAULT_GAME);
+		strcpy(c + strlen("Quake2World.app/Contents/"), "MacOS/"DEFAULT_GAME);
 		Fs_AddSearchPath(path);
 
-		strcpy(c + strlen("Quake2World.app/Contents"), "/Resources/"DEFAULT_GAME);
+		strcpy(c + strlen("Quake2World.app/Contents/"), "Resources/"DEFAULT_GAME);
 		Fs_AddSearchPath(path);
+	}
+#elif __LINUX__
+	// add ./default and ./bin/default to the search path
+	char path[MAX_OSPATH], *c;
+
+	if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path)) > -1) {
+
+		if ((c = strstr(path, "quake2world/bin/quake2world"))) {
+			strcpy(c + strlen("quake2world/bin/"), DEFAULT_GAME);
+			Fs_AddSearchPath(path);
+
+			strcpy(c + strlen("quake2world/"), DEFAULT_GAME);
+			Fs_AddSearchPath(path);
+		}
+	}
+	else {
+		Com_Warn("Fs_Init: Failed to read /proc/%d/exe\n", getpid());
 	}
 #endif
 
