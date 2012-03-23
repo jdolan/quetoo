@@ -4,6 +4,6 @@ wget -c $SOURCE
 
 tar xzf `ls libvorbis-*.tar.gz`
 cd libvorbis-*
-LDFLAGS='-mwindows' ./configure --prefix=/mingw
+LDFLAGS='-mwindows' ./configure --prefix=/mingw/local
 make LIBS='-logg' -j 4
 make install

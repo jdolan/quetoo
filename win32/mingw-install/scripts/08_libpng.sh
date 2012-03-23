@@ -8,10 +8,6 @@ tar xzf `ls libpng-*.tar.gz`
 
 cd libpng-*
 
-
-export CPPFLAGS="-I/mingw/include"
-export LDFLAGS="-L/mingw/lib"
-
-./configure --prefix=/mingw
+./configure --prefix=/mingw/local
 make -j 4
 make install

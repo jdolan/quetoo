@@ -5,9 +5,6 @@ wget -c $SOURCE
 tar xzf `ls SDL_image-*.tar.gz`
 cd SDL_image-*
 
-export CPPFLAGS="-I/mingw/include"
-export LDFLAGS="-L/mingw/lib"
-
-./configure --prefix=/mingw
+./configure --prefix=/mingw/local
 make -j 4
 make install

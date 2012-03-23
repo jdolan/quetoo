@@ -6,6 +6,6 @@ tar xzf `ls expat-*.tar.gz`
 
 
 cd expat-*
-./configure --prefix=/mingw
+./configure --prefix=/mingw/local
 make -j 4
 make install

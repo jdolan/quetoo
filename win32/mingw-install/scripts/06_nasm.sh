@@ -5,6 +5,6 @@ tar xzf `ls nasm-*.tar.gz`
 
 cd nasm-*
 
-./configure --prefix=/mingw
+./configure --prefix=/mingw/local
 make -j 4
 make install

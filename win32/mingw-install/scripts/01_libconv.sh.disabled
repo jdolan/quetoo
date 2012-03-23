@@ -6,6 +6,6 @@ tar xzf `ls libiconv-*.tar.gz`
 
 
 cd libiconv-*
-./configure --prefix=/mingw
+./configure --prefix=/mingw/local
 make -j 4
 make install

@@ -4,7 +4,7 @@ tar xzf `ls PDCurses-*.tar.gz`
 cd PDCurses-*
 make -f gccwin32.mak DLL=Y
 
-cp -iv pdcurses.dll /mingw/bin
-cp -iv pdcurses.a /mingw/lib/libpdcurses.a
+cp -iv pdcurses.dll /mingw/local/bin
+cp -iv pdcurses.a /mingw/local/lib/libpdcurses.a
 cd ..
-cp -iv curses.h panel.h /mingw/include
+cp -iv curses.h panel.h /mingw/local/include

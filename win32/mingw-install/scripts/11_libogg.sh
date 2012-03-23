@@ -4,6 +4,6 @@ wget -c $SOURCE
 
 tar xzf `ls libogg-*.tar.gz`
 cd libogg-*
-LDFLAGS='-mwindows' ./configure --prefix=/mingw
+LDFLAGS='-mwindows' ./configure --prefix=/mingw/local
 make -j 4
 make install

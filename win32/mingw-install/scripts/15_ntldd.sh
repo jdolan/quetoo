@@ -6,4 +6,4 @@ mv master ntldd-git.tar.gz
 tar xzf `ls ntldd-*.tar.gz`
 cd *ntldd*
 sh makeldd.sh 
-cp ntldd.exe /mingw/bin/ldd.exe
+cp ntldd.exe /mingw/local/bin/ldd.exe

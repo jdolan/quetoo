@@ -5,8 +5,8 @@ wget -c $SOURCE
 tar xzf `ls SDL-*.tar.gz`
 cd SDL-*
 
-./configure --prefix=/mingw
+./configure --prefix=/mingw/local
 make -j 4
 make install
 #evil workaround
-rm /mingw/lib/libSDLmain.la
+rm /mingw/local/lib/libSDLmain.la

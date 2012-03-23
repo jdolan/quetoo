@@ -6,6 +6,6 @@ tar xzf `ls libtool-*.tar.gz`
 
 
 cd libtool-*
-./configure --prefix=/mingw
+./configure --prefix=/mingw/local
 make -j 4
 make install
