@@ -25,7 +25,10 @@ set -o errexit
 CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
 if [ -z $CURRENTARCH ]; then
   echo "/mingw is not mounted or gcc not installed"
+  exit 1
 fi
+
+rm -Rf /mingw/local
 
 START=`pwd`
 TMP=$START/$CURRENTARCH
