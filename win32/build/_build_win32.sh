@@ -69,10 +69,11 @@ rm -Rf $PREFIX
 cp $START/quake2world/src/game/default/game.dll ./default
 cp $START/quake2world/src/cgame/default/cgame.dll ./default
 
-LIBS=`ldd.exe -R quake2world.exe |grep mingw|cut -d\= -f 1|sed 's/ //g'|sed 's/\t//g'`
+LIBS=`ldd.exe -R quake2world.exe |grep mingw|cut -d\: -f 2|cut -d\  -f1|cut -d\\ -f4-0|sed 's@\\@/@g' | sed 's/.*mingw[0-9][0-9]\/\(.*\)/\1/'`
 
-cd /mingw/bin
+cd /mingw
 cp $LIBS $START/dist/quake2world
+
 
 cd $START/dist
 zip -9 -r ../quake2world-"$CURRENT_ARCH"-svn"$CURRENT_REVISION".zip quake2world
