@@ -38,9 +38,11 @@ move share autotools
 xcopy autotools\* mingw32 /E
 xcopy autotools\* mingw64 /E
 
-msys\1.0\bin\sh.exe -c "echo export CPPFLAGS=\'-I/mingw/include -I/mingw/local/include\' >> /etc/profile"
-msys\1.0\bin\sh.exe -c "echo export LDFLAGS=\'-L/mingw/lib -L/mingw/local/lib\' >> /etc/profile"
-msys\1.0\bin\sh.exe -c "echo export PATH=\'/mingw/local/bin:$PATH\' >> /etc/profile"
+msys\1.0\bin\sh.exe -c "echo export CPPFLAGS=\"-I/mingw/include -I/mingw/local/include\" >> /etc/profile"
+msys\1.0\bin\sh.exe -c "echo export LDFLAGS=\"-L/mingw/lib -L/mingw/local/lib\" >> /etc/profile"
+msys\1.0\bin\sh.exe -c "echo export PATH=\"/mingw/local/bin:$PATH\" >> /etc/profile"
+msys\1.0\bin\sh.exe -c "echo export ACLOCAL=\"aclocal -I /mingw/local/share/aclocal\" >> /etc/profile"
+
 
 msys\1.0\bin\sh.exe -c "echo "%TARGETDIR%"\\\mingw32 /mingw > /etc/fstab"
 
