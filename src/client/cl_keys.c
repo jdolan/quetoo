@@ -23,40 +23,82 @@
 
 #include "cl_local.h"
 
-key_name_t key_names[] = { { "TAB", K_TAB }, { "ENTER", K_ENTER }, { "ESCAPE",
-		K_ESCAPE }, { "SPACE", K_SPACE }, { "BACKSPACE", K_BACKSPACE }, {
-		"UPARROW", K_UPARROW }, { "DOWNARROW", K_DOWNARROW }, { "LEFTARROW",
-		K_LEFTARROW }, { "RIGHTARROW", K_RIGHTARROW },
+key_name_t key_names[] = {
+		{ "TAB", K_TAB },
+		{ "ENTER", K_ENTER },
+		{ "ESCAPE", K_ESCAPE },
+		{ "SPACE", K_SPACE },
+		{ "BACKSPACE", K_BACKSPACE },
+		{ "UPARROW", K_UPARROW },
+		{ "DOWNARROW", K_DOWNARROW },
+		{ "LEFTARROW", K_LEFTARROW },
+		{ "RIGHTARROW", K_RIGHTARROW },
 
-{ "ALT", K_ALT }, { "CTRL", K_CTRL }, { "SHIFT", K_SHIFT },
+		{ "ALT", K_ALT },
+		{ "CTRL", K_CTRL },
+		{ "SHIFT", K_SHIFT },
 
-{ "F1", K_F1 }, { "F2", K_F2 }, { "F3", K_F3 }, { "F4", K_F4 }, { "F5", K_F5 },
-		{ "F6", K_F6 }, { "F7", K_F7 }, { "F8", K_F8 }, { "F9", K_F9 }, {
-				"F10", K_F10 }, { "F11", K_F11 }, { "F12", K_F12 },
+		{ "F1", K_F1 },
+		{ "F2", K_F2 },
+		{ "F3", K_F3 },
+		{ "F4", K_F4 },
+		{ "F5", K_F5 },
+		{ "F6", K_F6 },
+		{ "F7", K_F7 },
+		{ "F8", K_F8 },
+		{ "F9", K_F9 },
+		{ "F10", K_F10 },
+		{ "F11", K_F11 },
+		{ "F12", K_F12 },
 
-		{ "INS", K_INS }, { "DEL", K_DEL }, { "PGDN", K_PGDN }, { "PGUP",
-				K_PGUP }, { "HOME", K_HOME }, { "END", K_END },
+		{ "INS", K_INS },
+		{ "DEL", K_DEL },
+		{ "PGDN", K_PGDN },
+		{ "PGUP", K_PGUP },
+		{ "HOME", K_HOME },
+		{ "END", K_END },
 
-		{ "MOUSE1", K_MOUSE1 }, { "MOUSE2", K_MOUSE2 }, { "MOUSE3", K_MOUSE3 },
-		{ "MOUSE4", K_MOUSE4 }, { "MOUSE5", K_MOUSE5 },
+		{ "MOUSE1", K_MOUSE1 },
+		{ "MOUSE2", K_MOUSE2 },
+		{ "MOUSE3", K_MOUSE3 },
+		{ "MOUSE4", K_MOUSE4 },
+		{ "MOUSE5", K_MOUSE5 },
 
-		{ "AUX1", K_AUX1 }, { "AUX2", K_AUX2 }, { "AUX3", K_AUX3 }, { "AUX4",
-				K_AUX4 }, { "AUX5", K_AUX5 }, { "AUX6", K_AUX6 }, { "AUX7",
-				K_AUX7 }, { "AUX8", K_AUX8 }, { "AUX9", K_AUX9 }, { "AUX10",
-				K_AUX10 }, { "AUX11", K_AUX11 }, { "AUX12", K_AUX12 }, {
-				"AUX13", K_AUX13 }, { "AUX14", K_AUX14 }, { "AUX15", K_AUX15 },
+		{ "AUX1", K_AUX1 },
+		{ "AUX2", K_AUX2 },
+		{ "AUX3", K_AUX3 },
+		{ "AUX4", K_AUX4 },
+		{ "AUX5", K_AUX5 },
+		{ "AUX6", K_AUX6 },
+		{ "AUX7", K_AUX7 },
+		{ "AUX8", K_AUX8 },
+		{ "AUX9", K_AUX9 },
+		{ "AUX10", K_AUX10 },
+		{ "AUX11", K_AUX11 },
+		{ "AUX12", K_AUX12 },
+		{ "AUX13", K_AUX13 },
+		{ "AUX14", K_AUX14 },
+		{ "AUX15", K_AUX15 },
 		{ "AUX16", K_AUX16 },
 
-		{ "KP_HOME", K_KP_HOME }, { "KP_UPARROW", K_KP_UPARROW }, { "KP_PGUP",
-				K_KP_PGUP }, { "KP_LEFTARROW", K_KP_LEFTARROW }, { "KP_5",
-				K_KP_5 }, { "KP_RIGHTARROW", K_KP_RIGHTARROW }, { "KP_END",
-				K_KP_END }, { "KP_DOWNARROW", K_KP_DOWNARROW }, { "KP_PGDN",
-				K_KP_PGDN }, { "KP_ENTER", K_KP_ENTER },
-		{ "KP_INS", K_KP_INS }, { "KP_DEL", K_KP_DEL }, { "KP_SLASH",
-				K_KP_SLASH }, { "KP_MINUS", K_KP_MINUS }, { "KP_PLUS",
-				K_KP_PLUS },
+		{ "KP_HOME", K_KP_HOME },
+		{ "KP_UPARROW", K_KP_UPARROW },
+		{ "KP_PGUP", K_KP_PGUP },
+		{ "KP_LEFTARROW", K_KP_LEFTARROW },
+		{ "KP_5", K_KP_5 },
+		{ "KP_RIGHTARROW", K_KP_RIGHTARROW },
+		{ "KP_END", K_KP_END },
+		{ "KP_DOWNARROW", K_KP_DOWNARROW },
+		{ "KP_PGDN", K_KP_PGDN },
+		{ "KP_ENTER", K_KP_ENTER },
+		{ "KP_INS", K_KP_INS },
+		{ "KP_DEL", K_KP_DEL },
+		{ "KP_SLASH", K_KP_SLASH },
+		{ "KP_MINUS", K_KP_MINUS },
+		{ "KP_PLUS", K_KP_PLUS },
 
-		{ "MWHEELUP", K_MWHEELUP }, { "MWHEELDOWN", K_MWHEELDOWN },
+		{ "MWHEELUP", K_MWHEELUP },
+		{ "MWHEELDOWN", K_MWHEELDOWN },
 
 		{ "PAUSE", K_PAUSE },
 
@@ -71,8 +113,7 @@ static cl_key_state_t *ks = &cls.key_state;
  *
  * Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(unsigned int key, unsigned short unicode, bool down,
-		unsigned time __attribute__((unused))) {
+static void Cl_KeyConsole(unsigned int key, unsigned short unicode, bool down, unsigned time __attribute__((unused))) {
 	bool numlock = ks->down[K_NUMLOCK];
 	size_t i;
 
@@ -82,8 +123,7 @@ static void Cl_KeyConsole(unsigned int key, unsigned short unicode, bool down,
 	// submit buffer on enter
 	if (key == K_ENTER || key == K_KP_ENTER) {
 
-		if (ks->lines[ks->edit_line][1] == '\\' || ks->lines[ks->edit_line][1]
-				== '/')
+		if (ks->lines[ks->edit_line][1] == '\\' || ks->lines[ks->edit_line][1] == '/')
 			Cbuf_AddText(ks->lines[ks->edit_line] + 2); // skip the /
 		else
 			Cbuf_AddText(ks->lines[ks->edit_line] + 1); // valid command
@@ -168,10 +208,8 @@ static void Cl_KeyConsole(unsigned int key, unsigned short unicode, bool down,
 
 	if (key == K_UPARROW || (key == K_KP_UPARROW && !numlock)) { // iterate history back
 		do {
-			ks->history_line = (ks->history_line + KEY_HISTORYSIZE - 1)
-					% KEY_HISTORYSIZE;
-		} while (ks->history_line != ks->edit_line
-				&& !ks->lines[ks->history_line][1]);
+			ks->history_line = (ks->history_line + KEY_HISTORYSIZE - 1) % KEY_HISTORYSIZE;
+		} while (ks->history_line != ks->edit_line && !ks->lines[ks->history_line][1]);
 
 		if (ks->history_line == ks->edit_line)
 			ks->history_line = (ks->edit_line + 1) % KEY_HISTORYSIZE;
@@ -186,8 +224,7 @@ static void Cl_KeyConsole(unsigned int key, unsigned short unicode, bool down,
 			return;
 		do {
 			ks->history_line = (ks->history_line + 1) % KEY_HISTORYSIZE;
-		} while (ks->history_line != ks->edit_line
-				&& !ks->lines[ks->history_line][1]);
+		} while (ks->history_line != ks->edit_line && !ks->lines[ks->history_line][1]);
 
 		if (ks->history_line == ks->edit_line) {
 			strcpy(ks->lines[ks->edit_line], "]");
@@ -266,9 +303,7 @@ static void Cl_KeyConsole(unsigned int key, unsigned short unicode, bool down,
 /*
  * Cl_KeyGame
  */
-static void Cl_KeyGame(unsigned int key,
-		unsigned short unicode __attribute__((unused)), bool down,
-		unsigned time) {
+static void Cl_KeyGame(unsigned int key, unsigned short unicode __attribute__((unused)), bool down, unsigned time) {
 	char cmd[MAX_STRING_CHARS];
 	char *kb;
 
@@ -299,8 +334,7 @@ static void Cl_KeyGame(unsigned int key,
 /*
  * Cl_KeyMessage
  */
-static void Cl_KeyMessage(unsigned int key, unsigned short unicode, bool down,
-		unsigned time __attribute__((unused))) {
+static void Cl_KeyMessage(unsigned int key, unsigned short unicode, bool down, unsigned time __attribute__((unused))) {
 
 	if (!down) // don't care
 		return;
@@ -447,8 +481,7 @@ static void Cl_Bind_f(void) {
 	c = Cmd_Argc();
 
 	if (c < 2) {
-		Com_Print("Usage: %s <key> [command] : attach a command to a key\n",
-				Cmd_Argv(0));
+		Com_Print("Usage: %s <key> [command] : attach a command to a key\n", Cmd_Argv(0));
 		return;
 	}
 	b = Cl_StringToKeyNum(Cmd_Argv(1));
@@ -515,8 +548,8 @@ static void Cl_WriteHistory(void) {
 		return;
 	}
 
-	for (i = (ks->edit_line + 1) % KEY_HISTORYSIZE; i != ks->edit_line; i = (i
-			+ 1) % KEY_HISTORYSIZE) {
+	for (i = (ks->edit_line + 1) % KEY_HISTORYSIZE; i != ks->edit_line; i = (i + 1)
+			% KEY_HISTORYSIZE) {
 		if (ks->lines[i][1]) {
 			fprintf(f, "%s\n", ks->lines[i] + 1);
 		}
@@ -598,8 +631,7 @@ void Cl_ShutdownKeys(void) {
 /*
  * Cl_KeyEvent
  */
-void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down,
-		unsigned time) {
+void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned time) {
 
 	if (key == K_ESCAPE && down) { // escape can cancel a few things
 
@@ -673,10 +705,10 @@ void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down,
 		break;
 	}
 
-	if(ks->dest == KEY_GAME && !(active->integer)) {
+	if (ks->dest == KEY_GAME && !(active->integer)) {
 		Cvar_FullSet("active", "1", CVAR_USER_INFO | CVAR_NO_SET);
-	}
-	else if((ks->dest == KEY_UI || ks->dest == KEY_CHAT || ks->dest == KEY_CONSOLE) && active->integer) {
+	} else if ((ks->dest == KEY_UI || ks->dest == KEY_CHAT || ks->dest == KEY_CONSOLE)
+			&& active->integer) {
 		Cvar_FullSet("active", "0", CVAR_USER_INFO | CVAR_NO_SET);
 	}
 }

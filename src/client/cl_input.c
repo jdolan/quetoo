@@ -22,13 +22,18 @@
 #include "cl_local.h"
 
 cvar_t *cl_run;
+static cvar_t *cl_forward_speed;
+static cvar_t *cl_pitch_speed;
+static cvar_t *cl_right_speed;
+static cvar_t *cl_up_speed;
+static cvar_t *cl_yaw_speed;
 
-cvar_t *m_sensitivity;
-cvar_t *m_sensitivity_zoom;
 cvar_t *m_interpolate;
 cvar_t *m_invert;
-cvar_t *m_yaw;
 cvar_t *m_pitch;
+cvar_t *m_sensitivity_zoom;
+cvar_t *m_sensitivity;
+cvar_t *m_yaw;
 
 // key strokes queued per frame, power of 2
 #define MAX_KEY_QUEUE 64
@@ -248,8 +253,8 @@ static void Cl_CenterView_f(void) {
  *
  * Returns the fraction of the command interval for which the key was down.
  */
-static float Cl_KeyState(cl_button_t *key, int cmd_msec) {
-	int msec;
+static float Cl_KeyState(cl_button_t *key, unsigned int cmd_msec) {
+	unsigned int msec;
 	float v;
 
 	msec = key->msec;
@@ -687,35 +692,30 @@ static void Cl_ClampPitch(void) {
  * command that is transmitted if the client is running asynchronously.
  */
 void Cl_Move(user_cmd_t *cmd) {
-	float mod;
 	int i;
 
-	if (cmd->msec < 1)
-		cmd->msec = 1;
-
-	mod = 500.0;
+	if (cmd->msec < 1) // save key states for next move
+		return;
 
 	// keyboard move forward / back
-	cmd->forward += mod * Cl_KeyState(&in_forward, cmd->msec);
-	cmd->forward -= mod * Cl_KeyState(&in_back, cmd->msec);
+	cmd->forward += cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_forward, cmd->msec);
+	cmd->forward -= cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_back, cmd->msec);
 
 	// keyboard strafe left / right
-	cmd->side += mod * Cl_KeyState(&in_move_right, cmd->msec);
-	cmd->side -= mod * Cl_KeyState(&in_move_left, cmd->msec);
+	cmd->right += cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_right, cmd->msec);
+	cmd->right -= cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_left, cmd->msec);
 
 	// keyboard jump / crouch
-	cmd->up += mod * Cl_KeyState(&in_up, cmd->msec);
-	cmd->up -= mod * Cl_KeyState(&in_down, cmd->msec);
-
-	mod = 2.0; // reduce sensitivity for turning
+	cmd->up += cl_up_speed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
+	cmd->up -= cl_up_speed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
 
 	// keyboard turn left / right
-	cl.angles[YAW] -= mod * Cl_KeyState(&in_right, cmd->msec);
-	cl.angles[YAW] += mod * Cl_KeyState(&in_left, cmd->msec);
+	cl.angles[YAW] -= cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_right, cmd->msec);
+	cl.angles[YAW] += cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_left, cmd->msec);
 
 	// keyboard look up / down
-	cl.angles[PITCH] -= mod * Cl_KeyState(&in_look_up, cmd->msec);
-	cl.angles[PITCH] += mod * Cl_KeyState(&in_look_down, cmd->msec);
+	cl.angles[PITCH] -= cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_up, cmd->msec);
+	cl.angles[PITCH] += cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_down, cmd->msec);
 
 	Cl_ClampPitch(); // clamp, accounting for frame delta angles
 
@@ -782,12 +782,17 @@ void Cl_InitInput(void) {
 	Cmd_AddCommand("-attack", Cl_Attack_up_f, NULL);
 
 	cl_run = Cvar_Get("cl_run", "1", CVAR_ARCHIVE, NULL);
+	cl_forward_speed = Cvar_Get("cl_forward_speed", "100.0", 0, NULL);
+	cl_pitch_speed = Cvar_Get("cl_pitch_speed", "0.15", 0, NULL);
+	cl_right_speed = Cvar_Get("cl_right_speed", "100.0", 0, NULL);
+	cl_up_speed = Cvar_Get("cl_up_speed", "100.0", 0, NULL);
+	cl_yaw_speed = Cvar_Get("cl_yaw_speed", "0.2", 0, NULL);
 
-	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
-	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
 	m_interpolate = Cvar_Get("m_interpolate", "0", CVAR_ARCHIVE, NULL);
 	m_invert = Cvar_Get("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
 	m_pitch = Cvar_Get("m_pitch", "0.022", 0, NULL);
+	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
+	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
 
 	Cl_ClearInput();

@@ -627,7 +627,7 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 			// we own this beam (lightning, grapple, etc..)
 			// project start position in front of view origin
 			VectorCopy(cgi.view->origin, start);
-			VectorMA(start, 30.0, cgi.view->forward, start);
+			VectorMA(start, 22.0, cgi.view->forward, start);
 			VectorMA(start, 6.0, cgi.view->right, start);
 			start[2] -= 8.0;
 		}

@@ -82,10 +82,10 @@ void Sys_Mkdir(const char *path) {
 #endif
 }
 
-static char findbase[MAX_OSPATH];
-static char findpath[MAX_OSPATH];
-static char findpattern[MAX_OSPATH];
-static DIR *fdir;
+static char find_base[MAX_OSPATH];
+static char find_path[MAX_OSPATH];
+static char find_pattern[MAX_OSPATH];
+static DIR *find_dir;
 
 /**
  * Sys_FindFirst
@@ -97,29 +97,29 @@ const char *Sys_FindFirst(const char *path) {
 	struct dirent *d;
 	char *p;
 
-	if (fdir) {
-		Com_Debug("Sys_FindFirst without Sys_FindClose");
+	if (find_dir) {
+		Com_Debug("Sys_FindFirst without Sys_FindClose\n");
 		Sys_FindClose();
 	}
 
-	strcpy(findbase, path);
+	strcpy(find_base, path);
 
-	if ((p = strrchr(findbase, '/')) != NULL) {
+	if ((p = strrchr(find_base, '/')) != NULL) {
 		*p = 0;
-		strcpy(findpattern, p + 1);
+		strcpy(find_pattern, p + 1);
 	} else
-		strcpy(findpattern, "*");
+		strcpy(find_pattern, "*");
 
-	if (strcmp(findpattern, "*.*") == 0)
-		strcpy(findpattern, "*");
+	if (strcmp(find_pattern, "*.*") == 0)
+		strcpy(find_pattern, "*");
 
-	if ((fdir = opendir(findbase)) == NULL)
+	if ((find_dir = opendir(find_base)) == NULL)
 		return NULL;
 
-	while ((d = readdir(fdir)) != NULL) {
-		if (!*findpattern || GlobMatch(findpattern, d->d_name)) {
-			sprintf(findpath, "%s/%s", findbase, d->d_name);
-			return findpath;
+	while ((d = readdir(find_dir)) != NULL) {
+		if (!*find_pattern || GlobMatch(find_pattern, d->d_name)) {
+			snprintf(find_path, sizeof(find_path), "%s/%s", find_base, d->d_name);
+			return find_path;
 		}
 	}
 	return NULL;
@@ -131,13 +131,13 @@ const char *Sys_FindFirst(const char *path) {
 const char *Sys_FindNext(void) {
 	struct dirent *d;
 
-	if (fdir == NULL)
+	if (find_dir == NULL)
 		return NULL;
 
-	while ((d = readdir(fdir)) != NULL) {
-		if (!*findpattern || GlobMatch(findpattern, d->d_name)) {
-			sprintf(findpath, "%s/%s", findbase, d->d_name);
-			return findpath;
+	while ((d = readdir(find_dir)) != NULL) {
+		if (!*find_pattern || GlobMatch(find_pattern, d->d_name)) {
+			sprintf(find_path, "%s/%s", find_base, d->d_name);
+			return find_path;
 		}
 	}
 	return NULL;
@@ -147,9 +147,9 @@ const char *Sys_FindNext(void) {
  * Sys_FindClose
  */
 void Sys_FindClose(void) {
-	if (fdir != NULL)
-		closedir(fdir);
-	fdir = NULL;
+	if (find_dir != NULL)
+		closedir(find_dir);
+	find_dir = NULL;
 }
 
 /**

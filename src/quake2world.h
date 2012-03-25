@@ -297,16 +297,17 @@ typedef enum {
 
 // pmove->pm_flags
 #define PMF_DUCKED			0x1
-#define PMF_JUMP_HELD		0x2
-#define PMF_ON_GROUND		0x4
-#define PMF_ON_STAIRS		0x8
-#define PMF_ON_LADDER		0x10
-#define PMF_TIME_WATERJUMP	0x20 // pm_time is time before control
-#define PMF_TIME_LAND		0x40 // pm_time is time before rejump
-#define PMF_TIME_TELEPORT	0x80 // pm_time is non-moving time
-#define PMF_NO_PREDICTION	0x100 // temporarily disables prediction
-#define PMF_PUSHED			0x200 // disables stair checking and velocity clamp
-#define PMF_UNDER_WATER		0x400
+#define PMF_JUMPED			0x2
+#define PMF_JUMP_HELD		0x4
+#define PMF_ON_GROUND		0x8
+#define PMF_ON_STAIRS		0x10
+#define PMF_ON_LADDER		0x20
+#define PMF_TIME_WATERJUMP	0x40 // pm_time is time before control
+#define PMF_TIME_LAND		0x80 // pm_time is time before rejump
+#define PMF_TIME_TELEPORT	0x100 // pm_time is non-moving time
+#define PMF_NO_PREDICTION	0x200 // temporarily disables prediction
+#define PMF_PUSHED			0x400 // disables stair checking and velocity clamp
+#define PMF_UNDER_WATER		0x800
 
 #define PMF_TIME_MASK		(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT)
 
@@ -336,7 +337,7 @@ typedef struct user_cmd_s {
 	byte msec;
 	byte buttons;
 	short angles[3];
-	short forward, side, up;
+	short forward, right, up;
 } user_cmd_t;
 
 #define MAX_TOUCH_ENTS 32

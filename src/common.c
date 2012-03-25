@@ -298,8 +298,8 @@ void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd) {
 		bits |= CMD_ANGLE3;
 	if (cmd->forward != from->forward)
 		bits |= CMD_FORWARD;
-	if (cmd->side != from->side)
-		bits |= CMD_SIDE;
+	if (cmd->right != from->right)
+		bits |= CMD_RIGHT;
 	if (cmd->up != from->up)
 		bits |= CMD_UP;
 	if (cmd->buttons != from->buttons)
@@ -316,8 +316,8 @@ void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd) {
 
 	if (bits & CMD_FORWARD)
 		Msg_WriteShort(buf, cmd->forward);
-	if (bits & CMD_SIDE)
-		Msg_WriteShort(buf, cmd->side);
+	if (bits & CMD_RIGHT)
+		Msg_WriteShort(buf, cmd->right);
 	if (bits & CMD_UP)
 		Msg_WriteShort(buf, cmd->up);
 
@@ -704,8 +704,8 @@ void Msg_ReadDeltaUsercmd(size_buf_t *sb, user_cmd_t *from, user_cmd_t *move) {
 	// read movement
 	if (bits & CMD_FORWARD)
 		move->forward = Msg_ReadShort(sb);
-	if (bits & CMD_SIDE)
-		move->side = Msg_ReadShort(sb);
+	if (bits & CMD_RIGHT)
+		move->right = Msg_ReadShort(sb);
 	if (bits & CMD_UP)
 		move->up = Msg_ReadShort(sb);
 

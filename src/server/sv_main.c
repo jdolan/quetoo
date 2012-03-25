@@ -844,9 +844,6 @@ void Sv_Frame(unsigned int msec) {
 	// update time reference
 	svs.real_time += msec;
 
-	// keep the random time dependent
-	Random();
-
 	// check timeouts
 	Sv_CheckTimeouts();
 

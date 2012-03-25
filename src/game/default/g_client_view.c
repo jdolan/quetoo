@@ -141,7 +141,7 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 	}
 }
 
-/*
+/**
  * G_ClientAnimation
  *
  * Sets the animation sequences for the specified entity.  This is called
@@ -180,9 +180,9 @@ static void G_ClientAnimation(g_edict_t *ent) {
 		return;
 	}
 
-	// duck, walk or run
+	// duck, walk or run after landing
 
-	if (g_level.time - 200 > ent->client->land_time) {
+	if (g_level.time - 380 > ent->client->land_time) {
 		vec3_t velocity;
 		float speed;
 
@@ -221,7 +221,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 	}
 }
 
-/*
+/**
  * G_ClientEndFrame
  *
  * Called for each client at the end of the server frame.

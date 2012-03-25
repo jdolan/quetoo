@@ -21,25 +21,34 @@
 
 #include "cl_local.h"
 
-/*
+/**
  * Cl_UpdateCmd
  *
- * Accumulate all movement for the current packet frame in a command.
+ * Accumulates all movement for the current packet frame in a command. This
+ * may be called multiple times per packet frame.
  */
 void Cl_UpdateCmd(void) {
+	static unsigned int last_move;
 	user_cmd_t *cmd;
 
 	if (cls.state != CL_ACTIVE)
 		return;
 
 	cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
-	cmd->msec = cls.packet_delta;
+
+	// determine the interval for just this move
+	if (cls.real_time - last_move > 255) {
+		cmd->msec = 255;
+	} else {
+		cmd->msec = cls.real_time - last_move;
+	}
 
 	// get movement from input devices
 	Cl_Move(cmd);
+	last_move = cls.real_time;
 }
 
-/*
+/**
  * Cl_InitCmd
  *
  * Initializes the next outgoing command so that it may accumulate movement
@@ -54,23 +63,20 @@ static void Cl_InitCmd(void) {
 	memset(cmd, 0, sizeof(user_cmd_t));
 }
 
-/*
+/**
  * Cl_FinalizeCmd
  *
  * Calculate the true command duration and clamp it so that it may be sent.
  */
 static void Cl_FinalizeCmd(void) {
-	user_cmd_t *cmd;
+	user_cmd_t *cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
+	const unsigned int msec = cls.packet_delta;
 
-	// resolve the cumulative command duration
-	cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
-	cmd->msec = cls.packet_delta;
-
-	if (cmd->msec > 250) // clamp it to server max
-		cmd->msec = 250;
+	cmd->msec = msec > 255 ? 255 : msec;
+	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->msec, cmd->forward, cmd->right, cmd->up);
 }
 
-/*
+/**
  * Cl_SendCmd
  *
  * Pumps the command cycle, sending the most recently gathered movement
@@ -90,8 +96,7 @@ void Cl_SendCmd(void) {
 
 	if (cls.state == CL_CONNECTED) {
 		// send anything we have pending, or just don't timeout
-		if (cls.netchan.message.size || cls.real_time - cls.netchan.last_sent
-				> 1000)
+		if (cls.netchan.message.size || cls.real_time - cls.netchan.last_sent > 1000)
 			Netchan_Transmit(&cls.netchan, 0, buf.data);
 		return;
 	}

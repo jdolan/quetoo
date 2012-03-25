@@ -122,7 +122,7 @@ PROTOCOL
 #define CMD_ANGLE2 	(1<<1)
 #define CMD_ANGLE3 	(1<<2)
 #define CMD_FORWARD	(1<<3)
-#define CMD_SIDE	(1<<4)
+#define CMD_RIGHT	(1<<4)
 #define CMD_UP		(1<<5)
 #define CMD_BUTTONS	(1<<6)
 

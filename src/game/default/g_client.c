@@ -696,6 +696,8 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	VectorClear(ent->velocity);
 	ent->velocity[2] = 150.0;
 
+	ent->client->land_time = g_level.time;
+
 	// clear player state values
 	memset(&ent->client->ps, 0, sizeof(cl->ps));
 
@@ -965,8 +967,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
  * If the client is allowed, the connection process will continue
  * and eventually get to G_Begin()
  * Changing levels will NOT cause this to be called again.
- */
-bool G_ClientConnect(g_edict_t *ent, char *user_info) {
+ */bool G_ClientConnect(g_edict_t *ent, char *user_info) {
 
 	// check password
 	const char *value = GetUserInfo(user_info, "password");
@@ -1109,10 +1110,10 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 	if (!client->chase_target) { // set up for pmove
 		pm_move_t pm;
 
-		vec3_t old_velocity;
+		vec3_t old_velocity, velocity;
 		VectorCopy(ent->velocity, old_velocity);
 
-		const unsigned short old_pm_flags = ent->client->ps.pmove.pm_flags;
+		const unsigned short old_pm_flags = client->ps.pmove.pm_flags;
 
 		client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 
@@ -1157,44 +1158,41 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 		client->cmd_angles[1] = SHORT2ANGLE(cmd->angles[1]);
 		client->cmd_angles[2] = SHORT2ANGLE(cmd->angles[2]);
 
-		// check for jump
-		if (ent->ground_entity && !pm.ground_entity && (pm.cmd.up >= 10) && (pm.water_level == 0)
-				&& client->jump_time < g_level.time - 200) {
+		VectorCopy(ent->velocity, velocity);
+		velocity[2] = 0.0;
 
-			vec3_t angles, forward, velocity, point;
+		const float speed = VectorNormalize(velocity);
+
+		// check for jump
+		if ((pm.s.pm_flags & PMF_JUMPED) && (pm.water_level < 3) && client->jump_time
+				< g_level.time - 200) {
+
+			vec3_t angles, forward, point;
 			c_trace_t tr;
-			float speed;
 
 			VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
 			AngleVectors(angles, forward, NULL, NULL);
 
-			VectorCopy(ent->velocity, velocity);
-			velocity[2] = 0.0;
-
-			speed = VectorNormalize(velocity);
-
 			VectorMA(ent->s.origin, speed * 0.4, velocity, point);
 
-			const bool restart = g_level.time - client->jump_time > 400;
-
+			// trace towards our jump destination to see if we have room to backflip
 			tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_PLAYER_SOLID);
 
 			if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && speed > 200.0)
-				G_SetAnimation(ent, ANIM_LEGS_JUMP2, restart);
+				G_SetAnimation(ent, ANIM_LEGS_JUMP2, false);
 			else
-				G_SetAnimation(ent, ANIM_LEGS_JUMP1, restart);
+				G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
 			ent->s.event = EV_CLIENT_JUMP;
 			client->jump_time = g_level.time;
 		}
 		// check for landing
-		else if ((pm.s.pm_flags & PMF_TIME_LAND) && client->land_time < g_level.time - 200) {
+		else if ((pm.s.pm_flags & PMF_TIME_LAND) && client->land_time < g_level.time - 1000) {
 
 			const float fall = -old_velocity[2];
-			entity_event_t event = EV_NONE;
 
-			if (fall >= 300.0 || old_pm_flags & PMF_PUSHED) {
-				event = EV_CLIENT_LAND;
+			if (speed < 1.0 || fall >= 300.0 || old_pm_flags & PMF_PUSHED) {
+				entity_event_t event = EV_CLIENT_LAND;
 
 				if (fall >= 600.0) { // player will take damage
 					int damage = ((int) ((fall - 600.0) * 0.05)) >> ent->water_level;
@@ -1220,10 +1218,10 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 					G_SetAnimation(ent, ANIM_LEGS_LAND2, false);
 				else
 					G_SetAnimation(ent, ANIM_LEGS_LAND1, false);
-			}
 
-			ent->s.event = event;
-			client->land_time = g_level.time;
+				ent->s.event = event;
+				client->land_time = g_level.time;
+			}
 		}
 		// check for ladder, play a randomized sound
 		else if ((pm.s.pm_flags & PMF_ON_LADDER) && fabs(ent->velocity[2]) >= 20.0

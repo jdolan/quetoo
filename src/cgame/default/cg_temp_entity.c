@@ -545,9 +545,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int flags, int c
 	p->image = cg_particle_explosion;
 
 	p->scale = 1.0;
-	p->scale_vel = 400.0;
+	p->scale_vel = 800.0;
 
-	p->alpha = 2.0;
+	p->alpha = 1.25;
 	p->alpha_vel = -10.0;
 
 	p->color = color;
