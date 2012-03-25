@@ -51,7 +51,7 @@ static pm_locals_t pml;
 
 #define PM_FRICT_GROUND			10.0
 #define PM_FRICT_GROUND_SLICK	2.0
-#define PM_FRICT_LADDER			12.0
+#define PM_FRICT_LADDER			16.0
 #define PM_FRICT_NO_GROUND		0.4
 #define PM_FRICT_SPECTATOR		3.0
 #define PM_FRICT_SPEED_CLAMP	0.5
@@ -63,7 +63,7 @@ static pm_locals_t pml;
 #define PM_SPEED_FALL			600.0
 #define PM_SPEED_JUMP			275.0
 #define PM_SPEED_JUMP_WATER		375.0
-#define PM_SPEED_LADDER			240.0
+#define PM_SPEED_LADDER			125.0
 #define PM_SPEED_LAND			300.0
 #define PM_SPEED_MAX			450.0
 #define PM_SPEED_RUN			300.0
@@ -675,7 +675,6 @@ static void Pm_CheckSpecialMovement(void) {
 
 	VectorNormalize(forward_flat);
 
-	// TODO: project further maybe? q2dm3 ladder?
 	VectorMA(pml.origin, 1.0, forward_flat, spot);
 	spot[2] += pml.view_offset[2];
 
@@ -750,19 +749,6 @@ static void Pm_LadderMove(void) {
 		speed = PM_SPEED_LADDER;
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_GROUND);
-
-	// FIXME: This can't possibly be right
-	if (!vel[2]) { // we're not being pushed down by a current
-		if (pml.velocity[2] > 0.0) {
-			pml.velocity[2] -= pm->s.gravity * pml.time;
-			if (pml.velocity[2] < 0.0)
-				pml.velocity[2] = 0.0;
-		} else {
-			pml.velocity[2] += pm->s.gravity * pml.time;
-			if (pml.velocity[2] > 0.0)
-				pml.velocity[2] = 0.0;
-		}
-	}
 
 	Pm_StepSlideMove();
 }
