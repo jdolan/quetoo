@@ -55,14 +55,14 @@ static pm_locals_t pml;
 #define PM_FRICT_NO_GROUND		0.4
 #define PM_FRICT_SPECTATOR		3.0
 #define PM_FRICT_SPEED_CLAMP	0.5
-#define PM_FRICT_WATER			2.0
+#define PM_FRICT_WATER			1.5
 
 #define PM_SPEED_CURRENT		100.0
 #define PM_SPEED_DUCK_STAND		225.0
 #define PM_SPEED_DUCKED			150.0
 #define PM_SPEED_FALL			600.0
 #define PM_SPEED_JUMP			275.0
-#define PM_SPEED_JUMP_WATER		350.0
+#define PM_SPEED_JUMP_WATER		375.0
 #define PM_SPEED_LADDER			240.0
 #define PM_SPEED_LAND			300.0
 #define PM_SPEED_MAX			450.0
@@ -71,9 +71,12 @@ static pm_locals_t pml;
 #define PM_SPEED_STAIRS			30.0
 #define PM_SPEED_STOP			40.0
 #define PM_SPEED_WATER			175.0
-#define PM_SPEED_WATER_DOWN		60.0
+#define PM_SPEED_WATER_SINK		30.0
+#define PM_SPEED_WATER_BREACH	110.0
 
-#define CLIP_BACKOFF 1.05
+#define CLIP_BOUNCE 1.05
+#define CLIP_BOUNCE_WATER 0.95
+
 #define STOP_EPSILON 0.1
 
 /**
@@ -82,16 +85,16 @@ static pm_locals_t pml;
  * Slide off of the impacted plane.
  */
 static void Pm_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out) {
-	float backoff;
-	float change;
+	float bounce, backoff, change;
 	int i;
 
-	backoff = DotProduct(in, normal) * CLIP_BACKOFF;
+	bounce = pm->water_level > 1 ? CLIP_BOUNCE_WATER : CLIP_BOUNCE;
+	backoff = DotProduct(in, normal) * bounce;
 
 	if (backoff < 0.0)
-		backoff *= CLIP_BACKOFF;
+		backoff *= bounce;
 	else
-		backoff /= CLIP_BACKOFF;
+		backoff /= bounce;
 
 	for (i = 0; i < 3; i++) {
 
@@ -212,14 +215,14 @@ static void Pm_StepSlideMove(void) {
 
 	if (!Pm_StepSlideMove_()) { // nothing blocked us, try to step down
 
-		if (pm->s.pm_flags & PMF_ON_GROUND && pm->cmd.up < 1) {
+		if ((pm->s.pm_flags & PMF_ON_GROUND) && pm->cmd.up < 1) {
 
 			VectorCopy(pml.origin, down);
 			down[2] -= (PM_STAIR_HEIGHT + STOP_EPSILON);
 
 			trace = pm->Trace(pml.origin, pm->mins, pm->maxs, down);
 
-			if (trace.fraction < 1.0) {
+			if (trace.fraction > STOP_EPSILON && trace.fraction < 1.0) {
 				VectorCopy(trace.end, pml.origin);
 
 				if (clipped_org[2] - pml.origin[2] >= 4.0) // we are in fact on stairs
@@ -233,7 +236,7 @@ static void Pm_StepSlideMove(void) {
 	if (!(pm->s.pm_flags & PMF_ON_GROUND))
 		return;
 
-	//Com_Debug("%d step up\n", quake2world.time);
+	Com_Debug("%d step up\n", quake2world.time);
 
 	// something blocked us, try to step up
 
@@ -457,11 +460,11 @@ static void Pm_CategorizePosition(void) {
 	// see if we're standing on something solid
 	VectorCopy(pml.origin, point);
 
-	// if the client wishes to jump, seek ground eagerly
-	if (pm->cmd.up > 0 && !(pm->s.pm_flags & (PMF_JUMP_HELD | PMF_TIME_LAND))) {
+	// if the client wishes to double-jump, seek ground eagerly
+	if (pml.velocity[2] >= 0.0 && pm->cmd.up > 0 && !(pm->s.pm_flags & PMF_JUMP_HELD)) {
 		point[2] -= 2.0;
 	} else { // otherwise, seek ground just beneath next origin
-		point[2] += pml.velocity[2] * pml.time - 1.0;
+		point[2] += pml.velocity[2] * pml.time - 2.0;
 	}
 
 	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, point);
@@ -526,7 +529,7 @@ static void Pm_CategorizePosition(void) {
 
 			pm->water_level = 2;
 
-			point[2] = pml.origin[2] + pml.view_offset[2] - 1.0;
+			point[2] = pml.origin[2] + pml.view_offset[2] + 1.0;
 
 			contents = pm->PointContents(point);
 
@@ -574,7 +577,7 @@ static void Pm_CheckDuck(void) {
 			pml.view_offset[2] = target;
 
 		// change the bounding box to reflect ducking and jumping
-		pm->maxs[2] = pm->maxs[2] + pm->mins[2] / 2.0;
+		pm->maxs[2] = pm->maxs[2] + pm->mins[2] * 0.5;
 	} else {
 		const float target = pm->mins[2] + height * 0.75;
 
@@ -692,7 +695,7 @@ static void Pm_CheckSpecialMovement(void) {
 
 	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_SOLID)) {
 
-		spot[2] += pm->s.view_offset[2];
+		spot[2] += pml.view_offset[2];
 
 		if (pm->PointContents(spot))
 			return;
@@ -703,6 +706,8 @@ static void Pm_CheckSpecialMovement(void) {
 
 		pm->s.pm_flags |= PMF_TIME_WATERJUMP;
 		pm->s.pm_time = 255;
+
+		Com_Debug("%d water jump\n", quake2world.time);
 	}
 }
 
@@ -770,10 +775,9 @@ static void Pm_WaterMove(void) {
 	float speed;
 	int i;
 
-	//Com_Debug("%d water\n", quake2world.time);
+	Com_Debug("%d water\n", quake2world.time);
 
 	// first slow down if we've hit the water at a high velocity
-	// this is separate from Pm_ClampVelocity because we include Z
 	VectorCopy(pml.velocity, vel);
 	speed = VectorLength(vel);
 
@@ -781,15 +785,22 @@ static void Pm_WaterMove(void) {
 		VectorScale(pml.velocity, PM_SPEED_WATER / speed, pml.velocity);
 	}
 
-	// user intentions in X/Y/Z
+	// add gravity as we break the surface
+	pml.velocity[2] -= (pm->s.gravity / pm->water_level) * pml.time;
+
+	// user intentions in X/Y
 	for (i = 0; i < 3; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 
-	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) { // sink
-		vel[2] -= PM_SPEED_WATER_DOWN;
-	} else { // or swim up/down
-		vel[2] += pm->cmd.up;
+	// constant sinking
+	vel[2] = pm->cmd.up - PM_SPEED_WATER_SINK;
+
+	// and clamped for water skiers
+	if (pm->water_level == 2 && pm->cmd.up > 0) {
+		if (vel[2] > PM_SPEED_WATER_BREACH) {
+			vel[2] = PM_SPEED_WATER_BREACH;
+		}
 	}
 
 	Pm_AddCurrents(vel);
@@ -813,7 +824,7 @@ static void Pm_AirMove(void) {
 	float speed, accel;
 	int i;
 
-	//Com_Debug("%d air\n", quake2world.time);
+	Com_Debug("%d air\n", quake2world.time);
 
 	// add gravity
 	pml.velocity[2] -= pm->s.gravity * pml.time;
