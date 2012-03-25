@@ -62,7 +62,7 @@ static pm_locals_t pml;
 #define PM_SPEED_DUCKED			150.0
 #define PM_SPEED_FALL			600.0
 #define PM_SPEED_JUMP			275.0
-#define PM_SPEED_JUMP_WATER		375.0
+#define PM_SPEED_JUMP_WATER		350.0
 #define PM_SPEED_LADDER			240.0
 #define PM_SPEED_LAND			300.0
 #define PM_SPEED_MAX			450.0
@@ -658,9 +658,7 @@ static bool Pm_CheckPush(void) {
  * Pm_CheckSpecialMovement
  */
 static void Pm_CheckSpecialMovement(void) {
-	vec3_t spot;
-	int cont;
-	vec3_t forward_flat;
+	vec3_t forward_flat, spot;
 	c_trace_t trace;
 
 	if (pm->s.pm_time)
@@ -685,29 +683,27 @@ static void Pm_CheckSpecialMovement(void) {
 	}
 
 	// check for water jump
-	if (pm->water_level != 2 || pm->cmd.up < 1 || pm->cmd.forward < 1)
+	if (pm->water_level != 2 || (pm->cmd.up < 1 && pm->cmd.forward < 1))
 		return;
 
 	VectorMA(pml.origin, 30.0, forward_flat, spot);
-	VectorAdd(spot, pml.view_offset, spot);
 
-	cont = pm->PointContents(spot);
+	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, spot);
 
-	if (!(cont & CONTENTS_SOLID))
-		return;
+	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_SOLID)) {
 
-	spot[2] += PM_STAIR_HEIGHT;
-	cont = pm->PointContents(spot);
+		spot[2] += pm->s.view_offset[2];
 
-	if (cont)
-		return;
+		if (pm->PointContents(spot))
+			return;
 
-	// jump out of water
-	VectorScale(forward_flat, 100.0, pml.velocity);
-	pml.velocity[2] = PM_SPEED_JUMP_WATER;
+		// jump out of water
+		VectorScale(forward_flat, PM_SPEED_RUN, pml.velocity);
+		pml.velocity[2] = PM_SPEED_JUMP_WATER;
 
-	pm->s.pm_flags |= PMF_TIME_WATERJUMP;
-	pm->s.pm_time = 255;
+		pm->s.pm_flags |= PMF_TIME_WATERJUMP;
+		pm->s.pm_time = 255;
+	}
 }
 
 /*
