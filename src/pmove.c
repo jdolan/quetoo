@@ -52,7 +52,7 @@ static pm_locals_t pml;
 #define PM_FRICT_GROUND			10.0
 #define PM_FRICT_GROUND_SLICK	2.0
 #define PM_FRICT_LADDER			16.0
-#define PM_FRICT_NO_GROUND		0.4
+#define PM_FRICT_NO_GROUND		0.2
 #define PM_FRICT_SPECTATOR		3.0
 #define PM_FRICT_SPEED_CLAMP	0.5
 #define PM_FRICT_WATER			2.5
@@ -61,7 +61,7 @@ static pm_locals_t pml;
 #define PM_SPEED_DUCK_STAND		225.0
 #define PM_SPEED_DUCKED			150.0
 #define PM_SPEED_FALL			600.0
-#define PM_SPEED_JUMP			275.0
+#define PM_SPEED_JUMP			265.0
 #define PM_SPEED_LADDER			125.0
 #define PM_SPEED_LAND			300.0
 #define PM_SPEED_MAX			450.0
@@ -229,12 +229,12 @@ static void Pm_StepSlideMove(void) {
 		return;
 	}
 
-	if (!(pm->s.pm_flags & (PMF_ON_GROUND | PMF_TIME_WATERJUMP)))
+	// something blocked us; in order to step up, we must be on the ground,
+	// jumping upward, or just beginning to fall
+	if (!(pm->s.pm_flags & PMF_ON_GROUND) && pml.velocity[2] < -PM_SPEED_STAIRS)
 		return;
 
 	//Com_Debug("%d step up\n", quake2world.time);
-
-	// something blocked us, try to step up
 
 	// save the clipped results in case stepping fails
 	VectorCopy(pml.origin, clipped_org);
