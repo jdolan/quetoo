@@ -27,8 +27,8 @@
  * Parses deltas from the given base and adds the resulting entity
  * to the current frame.
  */
-static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from,
-		unsigned short number, unsigned short bits) {
+static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, unsigned short number,
+		unsigned short bits) {
 
 	cl_entity_t *ent;
 	entity_state_t *to;
@@ -82,8 +82,8 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 		if (old_index >= old_frame->num_entities)
 			old_number = 0xffff;
 		else {
-			old_state = &cl.entity_states[(old_frame->entity_state + old_index)
-					& ENTITY_STATE_MASK];
+			old_state
+					= &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
 			old_number = old_state->number;
 		}
 	}
@@ -113,8 +113,8 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 			if (old_index >= old_frame->num_entities)
 				old_number = 0xffff;
 			else {
-				old_state = &cl.entity_states[(old_frame->entity_state
-						+ old_index) & ENTITY_STATE_MASK];
+				old_state = &cl.entity_states[(old_frame->entity_state + old_index)
+						& ENTITY_STATE_MASK];
 				old_number = old_state->number;
 			}
 		}
@@ -125,16 +125,15 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 				Com_Print("   remove: %i\n", number);
 
 			if (old_number != number)
-				Com_Warn("Cl_ParseEntities: U_REMOVE: %u != %u.\n", old_number,
-						number);
+				Com_Warn("Cl_ParseEntities: U_REMOVE: %u != %u.\n", old_number, number);
 
 			old_index++;
 
 			if (old_index >= old_frame->num_entities)
 				old_number = 0xffff;
 			else {
-				old_state = &cl.entity_states[(old_frame->entity_state
-						+ old_index) & ENTITY_STATE_MASK];
+				old_state = &cl.entity_states[(old_frame->entity_state + old_index)
+						& ENTITY_STATE_MASK];
 				old_number = old_state->number;
 			}
 			continue;
@@ -152,8 +151,8 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 			if (old_index >= old_frame->num_entities)
 				old_number = 0xffff;
 			else {
-				old_state = &cl.entity_states[(old_frame->entity_state
-						+ old_index) & ENTITY_STATE_MASK];
+				old_state = &cl.entity_states[(old_frame->entity_state + old_index)
+						& ENTITY_STATE_MASK];
 				old_number = old_state->number;
 			}
 			continue;
@@ -164,8 +163,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   baseline: %i\n", number);
 
-			Cl_DeltaEntity(new_frame, &cl.entities[number].baseline, number,
-					bits);
+			Cl_DeltaEntity(new_frame, &cl.entities[number].baseline, number, bits);
 			continue;
 		}
 	}
@@ -183,8 +181,8 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 		if (old_index >= old_frame->num_entities)
 			old_number = 0xffff;
 		else {
-			old_state = &cl.entity_states[(old_frame->entity_state + old_index)
-					& ENTITY_STATE_MASK];
+			old_state
+					= &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
 			old_number = old_state->number;
 		}
 	}
@@ -193,8 +191,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 /*
  * Cl_ParsePlayerstate
  */
-static void Cl_ParsePlayerstate(const cl_frame_t *old_frame,
-		cl_frame_t *new_frame) {
+static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_frame) {
 	player_state_t *ps;
 	byte bits;
 	int i;
@@ -249,7 +246,7 @@ static void Cl_ParsePlayerstate(const cl_frame_t *old_frame,
 		ps->pmove.delta_angles[2] = Msg_ReadShort(&net_message);
 	}
 
-	if (bits & PS_VIEW_ANGLES) { // demo, chasecam, recording
+	if (bits & PS_VIEW_ANGLES) { // demo, chase camera, recording
 		ps->angles[0] = Msg_ReadAngle16(&net_message);
 		ps->angles[1] = Msg_ReadAngle16(&net_message);
 		ps->angles[2] = Msg_ReadAngle16(&net_message);
@@ -279,8 +276,7 @@ void Cl_ParseFrame(void) {
 	cl.surpress_count = Msg_ReadByte(&net_message);
 
 	if (cl_show_net_messages->integer == 3)
-		Com_Print("   frame:%i  delta:%i\n", cl.frame.server_frame,
-				cl.frame.delta_frame);
+		Com_Print("   frame:%i  delta:%i\n", cl.frame.server_frame, cl.frame.delta_frame);
 
 	if (cl.frame.delta_frame <= 0) { // uncompressed frame
 		old_frame = NULL;
@@ -295,10 +291,8 @@ void Cl_ParseFrame(void) {
 		if (old_frame->server_frame != (unsigned int) cl.frame.delta_frame)
 			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta frame too old.\n");
 
-		else if (cl.entity_state - old_frame->entity_state
-				> ENTITY_STATE_BACKUP - UPDATE_BACKUP)
-			Com_Error(ERR_DROP,
-					"Cl_ParseFrame: Delta parse_entities too old.\n");
+		else if (cl.entity_state - old_frame->entity_state > ENTITY_STATE_BACKUP - UPDATE_BACKUP)
+			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta parse_entities too old.\n");
 
 		cl.frame.valid = true;
 	}
@@ -319,7 +313,7 @@ void Cl_ParseFrame(void) {
 			cls.state = CL_ACTIVE;
 
 			VectorCopy(cl.frame.ps.pmove.origin, cl.predicted_origin);
-			VectorScale(cl.predicted_origin, (1.0 / 8.0), cl.predicted_origin);
+			VectorScale(cl.predicted_origin, 0.125, cl.predicted_origin);
 
 			VectorCopy(cl.frame.ps.angles, cl.predicted_angles);
 		}

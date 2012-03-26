@@ -416,7 +416,7 @@ void G_TouchTriggers(g_edict_t *ent) {
 	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_TRIGGERS);
 
 	// be careful, it is possible to have an entity in this
-	// list removed before we get to it (killtriggered)
+	// list removed before we get to it (kill-triggered)
 	for (i = 0; i < num; i++) {
 
 		hit = touch[i];
@@ -447,10 +447,13 @@ void G_TouchSolids(g_edict_t *ent) {
 	// list removed before we get to it (kill triggered)
 	for (i = 0; i < num; i++) {
 		hit = touch[i];
+
 		if (!hit->in_use)
 			continue;
+
 		if (ent->touch)
 			ent->touch(hit, ent, NULL, NULL);
+
 		if (!ent->in_use)
 			break;
 	}

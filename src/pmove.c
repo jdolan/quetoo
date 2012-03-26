@@ -1078,7 +1078,9 @@ static void Pm_Init(void) {
 	pm->water_type = pm->water_level = 0;
 
 	// reset flags that we test each move
-	pm->s.pm_flags &= ~(PMF_DUCKED | PMF_JUMPED | PMF_ON_STAIRS | PMF_ON_LADDER | PMF_UNDER_WATER);
+	pm->s.pm_flags &= ~(PMF_DUCKED | PMF_JUMPED);
+	pm->s.pm_flags &= ~(PMF_ON_GROUND | PMF_ON_STAIRS | PMF_ON_LADDER);
+	pm->s.pm_flags &= ~(PMF_UNDER_WATER);
 
 	if (pm->cmd.up < 1) { // jump key released
 		pm->s.pm_flags &= ~PMF_JUMP_HELD;
