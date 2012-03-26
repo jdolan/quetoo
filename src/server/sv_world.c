@@ -210,8 +210,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 		ent->s.solid = 0;
 
 	// set the absolute bounding box
-	if (ent->solid == SOLID_BSP && (ent->s.angles[0] || ent->s.angles[1]
-			|| ent->s.angles[2])) { // expand for rotation
+	if (ent->solid == SOLID_BSP && (ent->s.angles[0] || ent->s.angles[1] || ent->s.angles[2])) { // expand for rotation
 		float max, v;
 		int i;
 
@@ -248,8 +247,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	ent->area_num2 = 0;
 
 	// get all leafs, including solids
-	num_leafs = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs,
-			MAX_TOTAL_ENT_LEAFS, &top_node);
+	num_leafs = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, MAX_TOTAL_ENT_LEAFS, &top_node);
 
 	// set areas
 	for (i = 0; i < num_leafs; i++) {
@@ -258,11 +256,9 @@ void Sv_LinkEdict(g_edict_t *ent) {
 		if (area) { // doors may legally occupy two areas,
 			// but nothing should ever need more than that
 			if (ent->area_num && ent->area_num != area) {
-				if (ent->area_num2 && ent->area_num2 != area && sv.state
-						== SV_LOADING) {
-					Com_Debug("Object touching 3 areas at %f %f %f\n",
-							ent->abs_mins[0], ent->abs_mins[1],
-							ent->abs_mins[2]);
+				if (ent->area_num2 && ent->area_num2 != area && sv.state == SV_LOADING) {
+					Com_Debug("Object touching 3 areas at %f %f %f\n", ent->abs_mins[0],
+							ent->abs_mins[1], ent->abs_mins[2]);
 				}
 				ent->area_num2 = area;
 			} else
@@ -348,11 +344,9 @@ static void Sv_AreaEdicts_r(sv_area_node_t *node) {
 			continue; // skip it
 
 		if (check->abs_mins[0] > sv_world.area_maxs[0] || check->abs_mins[1]
-				> sv_world.area_maxs[1] || check->abs_mins[2]
-				> sv_world.area_maxs[2] || check->abs_maxs[0]
-				< sv_world.area_mins[0] || check->abs_maxs[1]
-				< sv_world.area_mins[1] || check->abs_maxs[2]
-				< sv_world.area_mins[2])
+				> sv_world.area_maxs[1] || check->abs_mins[2] > sv_world.area_maxs[2]
+				|| check->abs_maxs[0] < sv_world.area_mins[0] || check->abs_maxs[1]
+				< sv_world.area_mins[1] || check->abs_maxs[2] < sv_world.area_mins[2])
 			continue; // not touching
 
 		if (sv_world.num_area_edicts == sv_world.max_area_edicts) {
@@ -384,8 +378,8 @@ static void Sv_AreaEdicts_r(sv_area_node_t *node) {
  *
  * Returns the number of entities found.
  */
-int Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs,
-		g_edict_t **area_edicts, const int max_area_edicts, const int area_type) {
+int Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
+		const int max_area_edicts, const int area_type) {
 
 	sv_world.area_mins = mins;
 	sv_world.area_maxs = maxs;
@@ -425,7 +419,7 @@ static int Sv_HullForEntity(const g_edict_t *ent) {
 	return Cm_HeadnodeForBox(ent->mins, ent->maxs);
 }
 
-/*
+/**
  * Sv_PointContents
  *
  * Returns the contents mask for the specified point.  This includes world
@@ -454,8 +448,7 @@ int Sv_PointContents(const vec3_t point) {
 		else
 			angles = vec3_origin;
 
-		contents |= Cm_TransformedPointContents(point, head_node,
-				touch->s.origin, angles);
+		contents |= Cm_TransformedPointContents(point, head_node, touch->s.origin, angles);
 	}
 
 	return contents;
@@ -484,8 +477,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	int i, num, head_node;
 
 	// first resolve the entities found within our desired trace
-	num = Sv_AreaEdicts(trace->box_mins, trace->box_maxs, touched, MAX_EDICTS,
-			AREA_SOLID);
+	num = Sv_AreaEdicts(trace->box_mins, trace->box_maxs, touched, MAX_EDICTS, AREA_SOLID);
 
 	// then iterate them, determining if they have any bearing on our trace
 	for (i = 0; i < num; i++) {
@@ -522,13 +514,11 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 			angles = vec3_origin;
 
 		// perform the trace against this particular entity
-		tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins,
-				trace->maxs, head_node, trace->mask, touch->s.origin,
-				angles);
+		tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs, head_node,
+				trace->mask, touch->s.origin, angles);
 
 		// check for a full or partial intersection
-		if (tr.all_solid || tr.start_solid || tr.fraction
-				< trace->trace.fraction) {
+		if (tr.all_solid || tr.start_solid || tr.fraction < trace->trace.fraction) {
 
 			trace->trace = tr;
 			trace->trace.ent = touch;
@@ -564,8 +554,8 @@ static void Sv_TraceBounds(sv_trace_t *trace) {
  * The skipped edict, and edicts owned by him, are explicitly not checked.
  * This prevents players from clipping against their own projectiles, etc.
  */
-c_trace_t Sv_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs,
-		const vec3_t end, const g_edict_t *skip, int mask) {
+c_trace_t Sv_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+		const g_edict_t *skip, int mask) {
 
 	sv_trace_t trace;
 
