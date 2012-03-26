@@ -269,6 +269,7 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	VectorSubtract(vec3_origin, amove, org);
 	AngleVectors(org, forward, right, up);
 
+
 	// save the pusher's original position
 	g_pushed_p->ent = pusher;
 	VectorCopy(pusher->s.origin, g_pushed_p->origin);
@@ -324,7 +325,7 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 			// try moving the contacted entity
 			VectorAdd(check->s.origin, move, check->s.origin);
 			if (check->client) { // rotate the client
-				check->client->ps.pmove.delta_angles[YAW] += amove[YAW];
+				check->client->ps.pmove.delta_angles[YAW] += ANGLE2SHORT(amove[YAW]);
 			}
 
 			// figure movement due to the pusher's move
@@ -396,7 +397,7 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 	if (ent->flags & FL_TEAM_SLAVE)
 		return;
 
-	// make sure all team slaves can move before commiting
+	// make sure all team slaves can move before committing
 	// any moves or calling any think functions
 	// if the move is blocked, all moved objects will be backed out
 	// retry:
