@@ -121,8 +121,6 @@ typedef struct cl_client_s {
 	// tracked view angles to account for spawn and teleport direction changes
 	vec3_t angles;
 
-	char layout[MAX_STRING_CHARS]; // general 2D overlay
-
 	unsigned int server_count; // server identification for precache
 	unsigned short server_frame_rate; // server frame rate (packets per second)
 
