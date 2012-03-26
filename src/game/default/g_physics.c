@@ -227,10 +227,10 @@ typedef struct {
 	g_edict_t *ent;
 	vec3_t origin;
 	vec3_t angles;
-	float deltayaw;
-} pushed_t;
+	float delta_yaw;
+} g_pushed_t;
 
-pushed_t pushed[MAX_EDICTS], *pushed_p;
+g_pushed_t g_pushed[MAX_EDICTS], *g_pushed_p;
 
 g_edict_t *obstacle;
 
@@ -244,7 +244,7 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	int i, e;
 	g_edict_t *check, *block;
 	vec3_t mins, maxs;
-	pushed_t *p;
+	g_pushed_t *p;
 	vec3_t org, org2, move2, forward, right, up;
 
 	// clamp the move to 1/8 units, so the position will
@@ -270,12 +270,12 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	AngleVectors(org, forward, right, up);
 
 	// save the pusher's original position
-	pushed_p->ent = pusher;
-	VectorCopy(pusher->s.origin, pushed_p->origin);
-	VectorCopy(pusher->s.angles, pushed_p->angles);
+	g_pushed_p->ent = pusher;
+	VectorCopy(pusher->s.origin, g_pushed_p->origin);
+	VectorCopy(pusher->s.angles, g_pushed_p->angles);
 	if (pusher->client)
-		pushed_p->deltayaw = pusher->client->ps.pmove.delta_angles[YAW];
-	pushed_p++;
+		g_pushed_p->delta_yaw = pusher->client->ps.pmove.delta_angles[YAW];
+	g_pushed_p++;
 
 	// move the pusher to it's final position
 	VectorAdd(pusher->s.origin, move, pusher->s.origin);
@@ -316,15 +316,14 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 
 		if ((pusher->move_type == MOVE_TYPE_PUSH) || (check->ground_entity == pusher)) {
 			// move this entity
-			pushed_p->ent = check;
-			VectorCopy(check->s.origin, pushed_p->origin);
-			VectorCopy(check->s.angles, pushed_p->angles);
-			pushed_p++;
+			g_pushed_p->ent = check;
+			VectorCopy(check->s.origin, g_pushed_p->origin);
+			VectorCopy(check->s.angles, g_pushed_p->angles);
+			g_pushed_p++;
 
 			// try moving the contacted entity
 			VectorAdd(check->s.origin, move, check->s.origin);
-			if (check->client) { // disable stair prediction
-				check->client->ps.pmove.pm_flags |= PMF_PUSHED;
+			if (check->client) { // rotate the client
 				check->client->ps.pmove.delta_angles[YAW] += amove[YAW];
 			}
 
@@ -352,7 +351,7 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 			VectorSubtract(check->s.origin, move, check->s.origin);
 			block = G_TestEntityPosition(check);
 			if (!block) {
-				pushed_p--;
+				g_pushed_p--;
 				continue;
 			}
 		}
@@ -363,11 +362,11 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 		// move back any entities we already moved
 		// go backwards, so if the same entity was pushed
 		// twice, it goes back to the original position
-		for (p = pushed_p - 1; p >= pushed; p--) {
+		for (p = g_pushed_p - 1; p >= g_pushed; p--) {
 			VectorCopy(p->origin, p->ent->s.origin);
 			VectorCopy(p->angles, p->ent->s.angles);
 			if (p->ent->client) {
-				p->ent->client->ps.pmove.delta_angles[YAW] = p->deltayaw;
+				p->ent->client->ps.pmove.delta_angles[YAW] = p->delta_yaw;
 			}
 			gi.LinkEntity(p->ent);
 		}
@@ -376,7 +375,7 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 
 	// FIXME: is there a better way to handle this?
 	// see if anything we moved has touched a trigger
-	for (p = pushed_p - 1; p >= pushed; p--) {
+	for (p = g_pushed_p - 1; p >= g_pushed; p--) {
 		if (p->ent->in_use && p->ent->client && p->ent->health > 0)
 			G_TouchTriggers(p->ent);
 	}
@@ -401,7 +400,7 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 	// any moves or calling any think functions
 	// if the move is blocked, all moved objects will be backed out
 	// retry:
-	pushed_p = pushed;
+	g_pushed_p = g_pushed;
 	for (part = ent; part; part = part->team_chain) {
 		if (part->velocity[0] || part->velocity[1] || part->velocity[2] || part->avelocity[0]
 				|| part->avelocity[1] || part->avelocity[2]) { // object is moving
@@ -413,7 +412,7 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 		}
 	}
 
-	if (pushed_p > &pushed[MAX_EDICTS])
+	if (g_pushed_p > &g_pushed[MAX_EDICTS])
 		gi.Error("G_Physics_Pusher: MAX_EDICTS exceeded.");
 
 	if (part) {
