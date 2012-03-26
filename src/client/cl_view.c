@@ -132,15 +132,38 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
  */
 static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
 
-	// if not running a demo or chasing, add the local angle movement
-	if (cl.frame.ps.pmove.pm_type <= PM_DEAD) { // use predicted (input) values
-		VectorCopy(cl.predicted_angles, r_view.angles);
+	// if not running a demo or chasing, use the predicted (input + delta) angles
+	if (cl.frame.ps.pmove.pm_type <= PM_DEAD) {
+
+		// interpolate small changes in delta angles
+		short *od = ops->pmove.delta_angles;
+		short *cd = ps->pmove.delta_angles;
+
+		vec3_t old_delta, current_delta, delta;
+
+		VectorSet(old_delta, SHORT2ANGLE(od[0]), SHORT2ANGLE(od[1]), SHORT2ANGLE(od[2]));
+		VectorSet(current_delta, SHORT2ANGLE(cd[0]), SHORT2ANGLE(cd[1]), SHORT2ANGLE(cd[2]));
+
+		VectorSubtract(current_delta, old_delta, delta);
+		float f = VectorLength(delta);
+
+		if (f > 0.0 && f < 15.0) {
+			VectorLerp(old_delta, current_delta, cl.lerp, delta);
+		} else {
+			VectorCopy(current_delta, delta);
+		}
+
+		// the predicted angles include the raw frame delta, so back them out
+		VectorSubtract(cl.predicted_angles, current_delta, r_view.angles);
+
+		// and add the interpolated delta back in
+		VectorAdd(r_view.angles, delta, r_view.angles);
 
 		if (cl.frame.ps.pmove.pm_type == PM_DEAD) { // look only on x axis
 			r_view.angles[0] = r_view.angles[2] = 0.0;
 			r_view.angles[2] = 30.0;
 		}
-	} else { // for demos and chasing, lerp between states without prediction
+	} else { // for demos and chasing, simply interpolate between server states
 		AngleLerp(ops->angles, ps->angles, cl.lerp, r_view.angles);
 	}
 
