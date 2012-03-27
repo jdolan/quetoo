@@ -169,15 +169,7 @@ static void R_LoadBspSubmodels(const d_bsp_lump_t *l) {
 		}
 		out->radius = R_RadiusFromBounds(out->mins, out->maxs);
 
-		const int head_node = LittleLong(in->head_node);
-
-		// FIXME: Some (old) maps have invalid sub-model head nodes
-		if (head_node < 0 || head_node >= r_load_model->num_nodes) {
-			Com_Warn("R_LoadBspSubmodels: Invalid head_node for %d: %d\n", i, head_node);
-			continue;
-		}
-
-		out->head_node = head_node;
+		out->head_node = LittleLong(in->head_node);
 
 		out->first_face = LittleLong(in->first_face);
 		out->num_faces = LittleLong(in->num_faces);
@@ -187,7 +179,7 @@ static void R_LoadBspSubmodels(const d_bsp_lump_t *l) {
 /**
  * R_SetupBspSubmodel
  *
- * Recurses the specified submodel nodes, assigning the model so that it can
+ * Recurses the specified sub-model nodes, assigning the model so that it can
  * be quickly resolved during traces and dynamic light processing.
  */
 static void R_SetupBspSubmodel(r_bsp_node_t *node, r_model_t *model) {
@@ -204,8 +196,8 @@ static void R_SetupBspSubmodel(r_bsp_node_t *node, r_model_t *model) {
 /**
  * R_SetupBspSubmodels
  *
- * The submodels have been loaded into memory, but are not yet
- * represented as model_t.  Convert them.
+ * The sub-models have been loaded into memory, but are not yet
+ * represented as r_model_t. Convert them.
  */
 static void R_SetupBspSubmodels(void) {
 	int i;
@@ -225,10 +217,17 @@ static void R_SetupBspSubmodels(void) {
 		VectorCopy(sub->mins, mod->mins);
 		mod->radius = sub->radius;
 
-		mod->first_node = sub->head_node;
-		mod->nodes = &r_load_model->nodes[mod->first_node];
+		// Some (old) maps have invalid sub-model head nodes
+		if (sub->head_node < 0 || sub->head_node >= r_load_model->num_nodes) {
+			Com_Warn("R_LoadBspSubmodels: Invalid head_node for %d: %d\n", i, sub->head_node);
+			mod->first_node = 0;
+			mod->nodes = NULL;
+		} else {
+			mod->first_node = sub->head_node;
+			mod->nodes = &r_load_model->nodes[mod->first_node];
 
-		R_SetupBspSubmodel(mod->nodes, mod);
+			R_SetupBspSubmodel(mod->nodes, mod);
+		}
 
 		mod->first_model_surface = sub->first_face;
 		mod->num_model_surfaces = sub->num_faces;

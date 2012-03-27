@@ -147,7 +147,7 @@ c_trace_t R_Trace(const vec3_t start, const vec3_t end, float radius, int mask) 
 		r_entity_t *ent = &r_view.entities[i];
 		const r_model_t *m = ent->model;
 
-		if (!m || m->type != mod_bsp_submodel)
+		if (!m || m->type != mod_bsp_submodel || !m->nodes)
 			continue;
 
 		tr = Cm_TransformedBoxTrace(start, end, mins, maxs, m->first_node, mask, ent->origin,

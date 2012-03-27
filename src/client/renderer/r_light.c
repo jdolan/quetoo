@@ -74,15 +74,14 @@ static void R_AddSustainedLights(void) {
 
 		r_light_t l = s->light;
 
-		const float intensity = (s->sustain - r_view.time) / (s->sustain
-				- s->time);
+		const float intensity = (s->sustain - r_view.time) / (s->sustain - s->time);
 		VectorScale(s->light.color, intensity, l.color);
 
 		R_AddLight(&l);
 	}
 }
 
-/*
+/**
  * R_ResetLights
  *
  * Resets hardware light source state.  Note that this is accomplished purely
@@ -94,13 +93,12 @@ void R_ResetLights(void) {
 	r_locals.active_light_count = 0;
 }
 
-/*
+/**
  * R_MarkLights_
  *
  * Recursively populates light source bit masks for world surfaces.
  */
-static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit,
-		r_bsp_node_t *node) {
+static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t *node) {
 	r_bsp_surface_t *surf;
 	vec3_t origin;
 	float dist;
@@ -148,7 +146,7 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit,
 	R_MarkLights_(light, trans, bit, node->children[1]);
 }
 
-/*
+/**
  * R_MarkLights
  *
  * Iterates the world surfaces (and those of BSP sub-models), populating the
@@ -176,11 +174,12 @@ void R_MarkLights(void) {
 		// and bsp entity surfaces
 		for (j = 0; j < r_view.num_entities; j++) {
 
-			r_entity_t *e = &r_view.entities[j];
+			r_entity_t *ent = &r_view.entities[j];
+			r_model_t *mod = ent->model;
 
-			if (e->model && e->model->type == mod_bsp_submodel) {
-				e->model->lights = 0;
-				R_MarkLights_(light, e->origin, 1 << i, e->model->nodes);
+			if (mod && mod->type == mod_bsp_submodel && mod->nodes) {
+				mod->lights = 0;
+				R_MarkLights_(light, ent->origin, 1 << i, mod->nodes);
 			}
 		}
 	}

@@ -152,7 +152,7 @@ typedef struct {
 	vec3_t mins, maxs;
 	vec3_t origin; // for sounds or lights
 	float radius;
-	unsigned short head_node;
+	int head_node;
 	unsigned short first_face, num_faces;
 } r_bsp_submodel_t;
 
