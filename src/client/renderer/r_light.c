@@ -187,7 +187,7 @@ void R_MarkLights(void) {
 
 static vec3_t lights_offset;
 
-/*
+/**
  * R_ShiftLights
  *
  * Light sources must be translated for mod_bsp_submodel entities.
@@ -196,7 +196,7 @@ void R_ShiftLights(const vec3_t offset) {
 	VectorCopy(offset, lights_offset);
 }
 
-/*
+/**
  * R_EnableLights
  *
  * Enables the light sources indicated by the specified bit mask.  Care is
@@ -244,7 +244,7 @@ void R_EnableLights(unsigned int mask) {
 	r_locals.active_light_count = count;
 }
 
-/*
+/**
  * R_EnableLightsByRadius
  *
  * Enables light sources within range of the specified point.  This is used by

@@ -643,6 +643,7 @@ void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned t
 			}
 
 			Cl_Disconnect();
+			// FIXME: Black screen after this, recoverable by toggling console
 			return;
 		}
 

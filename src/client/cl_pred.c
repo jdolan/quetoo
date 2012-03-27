@@ -210,7 +210,7 @@ void Cl_PredictMovement(void) {
 
 	step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
 
-	if ((pm.s.pm_flags & PMF_ON_STAIRS) && (step > 4.0 || step < -4.0)) { // save for stair interpolation
+	if ((pm.s.pm_flags & PMF_ON_STAIRS) && (step >= 4.0 || step <= -4.0)) { // save for stair interpolation
 		cl.predicted_step_time = cls.real_time;
 		cl.predicted_step = step;
 	}

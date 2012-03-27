@@ -269,7 +269,6 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	VectorSubtract(vec3_origin, amove, org);
 	AngleVectors(org, forward, right, up);
 
-
 	// save the pusher's original position
 	g_pushed_p->ent = pusher;
 	VectorCopy(pusher->s.origin, g_pushed_p->origin);
