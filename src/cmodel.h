@@ -51,7 +51,7 @@ int Cm_PointLeafnum(const vec3_t p);
 
 // call with top_node set to the head_node, returns with top_node
 // set to the first node that splits the box
-int Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int *list, int list_size, int *top_node);
+int Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int *list, size_t len, int *top_node);
 
 int Cm_LeafContents(const int leaf_num);
 int Cm_LeafCluster(const int leaf_num);

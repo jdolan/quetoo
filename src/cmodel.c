@@ -765,38 +765,38 @@ int Cm_PointLeafnum(const vec3_t p) {
  */
 
 typedef struct c_bsp_leaf_data_s {
-	int count, max_count;
+	size_t len, max_len;
 	int *list;
 	const float *mins, *maxs;
 	int top_node;
 } c_bsp_leaf_data_t;
 
-static void Cm_BoxLeafnums_r(int nodenum, c_bsp_leaf_data_t *data) {
+static void Cm_BoxLeafnums_r(int node_num, c_bsp_leaf_data_t *data) {
 	c_bsp_plane_t *plane;
 	c_bsp_node_t *node;
 	int s;
 
 	while (true) {
-		if (nodenum < 0) {
-			if (data->count >= data->max_count) {
+		if (node_num < 0) {
+			if (data->len >= data->max_len) {
 				return;
 			}
-			data->list[data->count++] = -1 - nodenum;
+			data->list[data->len++] = -1 - node_num;
 			return;
 		}
 
-		node = &c_bsp.nodes[nodenum];
+		node = &c_bsp.nodes[node_num];
 		plane = node->plane;
 		s = BoxOnPlaneSide(data->mins, data->maxs, plane);
 		if (s == 1)
-			nodenum = node->children[0];
+			node_num = node->children[0];
 		else if (s == 2)
-			nodenum = node->children[1];
+			node_num = node->children[1];
 		else { // go down both
 			if (data->top_node == -1)
-				data->top_node = nodenum;
+				data->top_node = node_num;
 			Cm_BoxLeafnums_r(node->children[0], data);
-			nodenum = node->children[1];
+			node_num = node->children[1];
 		}
 	}
 }
@@ -804,12 +804,12 @@ static void Cm_BoxLeafnums_r(int nodenum, c_bsp_leaf_data_t *data) {
 /*
  * Cm_BoxLeafnums_head_node
  */
-static int Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, int *list, int list_size,
+static int Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, int *list, size_t len,
 		int head_node, int *top_node) {
 	c_bsp_leaf_data_t data;
 	data.list = list;
-	data.count = 0;
-	data.max_count = list_size;
+	data.len = 0;
+	data.max_len = len;
 	data.mins = mins;
 	data.maxs = maxs;
 
@@ -820,7 +820,7 @@ static int Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, int *l
 	if (top_node)
 		*top_node = data.top_node;
 
-	return data.count;
+	return data.len;
 }
 
 /*
@@ -829,9 +829,9 @@ static int Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, int *l
  * Populates the list of leafs the specified bounding box touches. Returns the
  * length of the populated list.
  */
-int Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int *list, int list_size, int *top_node) {
-	return Cm_BoxLeafnums_head_node(mins, maxs, list, list_size, c_bsp.models[0].head_node,
-			top_node);
+int Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int *list, size_t len, int *top_node) {
+	const int head_node = c_bsp.models[0].head_node;
+	return Cm_BoxLeafnums_head_node(mins, maxs, list, len, head_node, top_node);
 }
 
 /*
@@ -1497,8 +1497,7 @@ void Cm_SetAreaPortalState(const int portal_num, const bool open) {
  * Cm_AreasConnected
  *
  * Returns true if the specified areas are connected.
- */
-bool Cm_AreasConnected(int area1, int area2) {
+ */bool Cm_AreasConnected(int area1, int area2) {
 
 	if (c_no_areas->value)
 		return true;
@@ -1546,8 +1545,7 @@ int Cm_WriteAreaBits(byte *buffer, const int area) {
  *
  * Returns true if any leaf under head_node has a cluster that
  * is potentially visible.
- */
-bool Cm_HeadnodeVisible(const int node_num, const byte *vis) {
+ */bool Cm_HeadnodeVisible(const int node_num, const byte *vis) {
 	const c_bsp_node_t *node;
 
 	if (node_num < 0) { // at a leaf, check it
