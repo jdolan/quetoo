@@ -2025,7 +2025,7 @@ int ANT_CALL TwDraw()
     // For multi-thread savety
     if( !TwFreeAsyncDrawing() )
         return 0;
-
+/*
     // Create cursors
     #if defined(ANT_WINDOWS) || defined(ANT_OSX)
         if( !g_TwMgr->m_CursorsCreated )
@@ -2037,7 +2037,7 @@ int ANT_CALL TwDraw()
             g_TwMgr->m_CurrentXWindow = glXGetCurrentDrawable();
         if( g_TwMgr->m_CurrentXDisplay && !g_TwMgr->m_CursorsCreated )
             g_TwMgr->CreateCursors();
-    #endif
+    #endif*/
 
     // Autorepeat TW_MOUSE_PRESSED
     double CurrTime = g_TwMgr->m_Timer.GetTime();
