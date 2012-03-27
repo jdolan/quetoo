@@ -23,7 +23,7 @@
 
 vec3_t r_bsp_model_org; // relative to r_view.origin
 
-/*
+/**
  * R_WorldspawnValue
  *
  * Parses values from the worldspawn entity definition.
@@ -43,7 +43,7 @@ const char *R_WorldspawnValue(const char *key) {
 	return v;
 }
 
-/*
+/**
  * R_CullBox
  *
  * Returns true if the specified bounding box is completely culled by the
@@ -63,7 +63,7 @@ bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 	return true;
 }
 
-/*
+/**
  * R_CullBspModel
  *
  * Returns true if the specified entity is completely culled by the view
@@ -178,7 +178,7 @@ void R_DrawBspModel(const r_entity_t *e) {
 	R_ShiftLights(vec3_origin);
 }
 
-/*
+/**
  * R_DrawBspLights
  *
  * Developer tool for viewing static BSP light sources.
