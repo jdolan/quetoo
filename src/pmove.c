@@ -70,7 +70,7 @@ static pm_locals_t pml;
 #define PM_SPEED_STAIRS			30.0
 #define PM_SPEED_STOP			80.0
 #define PM_SPEED_WATER			150.0
-#define PM_SPEED_WATER_JUMP		350.0
+#define PM_SPEED_WATER_JUMP		450.0
 #define PM_SPEED_WATER_SINK		100.0
 
 #define PM_CLIP_WALL 1.05
@@ -764,14 +764,31 @@ static void Pm_LadderMove(void) {
  * Pm_WaterJumpMove
  */
 static void Pm_WaterJumpMove(void) {
+	vec3_t forward;
 
 	//Com_Debug("%d water jump move\n", quake2world.time);
 
 	Pm_Friction();
 
+	// add gravity
 	pml.velocity[2] -= pm->s.gravity * pml.time;
 
-	if (pml.velocity[2] < PM_SPEED_STAIRS) { // clear the timer
+	// check for a usable spot directly in front of us
+	VectorCopy(pml.forward, forward);
+	forward[2] = 0.0;
+
+	VectorNormalize(forward);
+	VectorMA(pml.origin, 30.0, forward, forward);
+
+	// if we've reached a usable spot, clamp the jump to avoid launching
+	if (pm->Trace(pml.origin, pm->mins, pm->maxs, forward).fraction == 1.0) {
+		if (pml.velocity[2] > PM_SPEED_JUMP) {
+			pml.velocity[2] = PM_SPEED_JUMP;
+		}
+	}
+
+	// if we're falling back down, clear the timer to regain control
+	if (pml.velocity[2] < PM_SPEED_STAIRS) {
 		pm->s.pm_flags &= ~PMF_TIME_MASK;
 		pm->s.pm_time = 0;
 	}
