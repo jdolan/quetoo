@@ -221,16 +221,18 @@ static void Pm_StepSlideMove(void) {
 			if (trace.fraction > STOP_EPSILON && trace.fraction < 1.0) {
 				VectorCopy(trace.end, pml.origin);
 
-				if (clipped_org[2] - pml.origin[2] >= 4.0) // we are in fact on stairs
+				if (org[2] - pml.origin[2] >= 4.0) { // we are in fact on stairs
 					pm->s.pm_flags |= PMF_ON_STAIRS;
+				}
 			}
 		}
 
 		return;
 	}
 
-	// something blocked us; in order to step up, we must be on the ground,
-	// jumping upward, or just beginning to fall
+	// something blocked us, try to step over it
+
+	// in order to step up, we must be on the ground or jumping upward
 	if (!(pm->s.pm_flags & PMF_ON_GROUND) && pml.velocity[2] < -PM_SPEED_STAIRS)
 		return;
 
