@@ -47,15 +47,15 @@ static pm_locals_t pml;
 #define PM_ACCEL_GROUND			10.0
 #define PM_ACCEL_NO_GROUND		1.2
 #define PM_ACCEL_SPECTATOR		4.5
-#define PM_ACCEL_WATER			4.0
+#define PM_ACCEL_WATER			3.5
 
 #define PM_FRICT_GROUND			10.0
 #define PM_FRICT_GROUND_SLICK	2.0
-#define PM_FRICT_LADDER			16.0
+#define PM_FRICT_LADDER			12.0
 #define PM_FRICT_NO_GROUND		0.2
 #define PM_FRICT_SPECTATOR		3.0
 #define PM_FRICT_SPEED_CLAMP	0.5
-#define PM_FRICT_WATER			2.5
+#define PM_FRICT_WATER			1.5
 
 #define PM_SPEED_CURRENT		100.0
 #define PM_SPEED_DUCK_STAND		225.0
@@ -68,11 +68,10 @@ static pm_locals_t pml;
 #define PM_SPEED_RUN			300.0
 #define PM_SPEED_SPECTATOR		350.0
 #define PM_SPEED_STAIRS			30.0
-#define PM_SPEED_STOP			40.0
+#define PM_SPEED_STOP			80.0
 #define PM_SPEED_WATER			150.0
-#define PM_SPEED_WATER_BREACH	110.0
 #define PM_SPEED_WATER_JUMP		350.0
-#define PM_SPEED_WATER_SINK		30.0
+#define PM_SPEED_WATER_SINK		100.0
 
 #define PM_CLIP_WALL 1.05
 #define PM_CLIP_FLOOR 1.001
@@ -235,6 +234,9 @@ static void Pm_StepSlideMove(void) {
 	if (!(pm->s.pm_flags & PMF_ON_GROUND) && pml.velocity[2] < -PM_SPEED_STAIRS)
 		return;
 
+	if (pm->s.pm_flags & PMF_ON_LADDER) // don't bother stepping up on ladders
+		return;
+
 	//Com_Debug("%d step up\n", quake2world.time);
 
 	// save the clipped results in case stepping fails
@@ -291,7 +293,7 @@ static void Pm_StepSlideMove(void) {
  * Handles friction against user intentions, and based on contents.
  */
 static void Pm_Friction(void) {
-	float scale, drop;
+	float scale, friction;
 
 	const float speed = VectorLength(pml.velocity);
 
@@ -302,37 +304,34 @@ static void Pm_Friction(void) {
 
 	const float control = speed < PM_SPEED_STOP ? PM_SPEED_STOP : speed;
 
-	drop = 0.0;
+	friction = 0.0;
 
 	if (pm->s.pm_type == PM_SPECTATOR) { // spectator friction
-		drop = PM_FRICT_SPECTATOR;
-	} else { // ground, water, air and friction
-
-		if (pm->ground_entity) {
-			if (pml.ground_surface && (pml.ground_surface->flags & SURF_SLICK)) {
-				drop += PM_FRICT_GROUND_SLICK;
-			} else {
-				drop += PM_FRICT_GROUND;
-			}
-		} else if (pm->water_level) {
-			if (pm->ground_entity) {
-				drop += PM_FRICT_WATER * pm->water_level;
-			} else {
-				drop += PM_FRICT_WATER * 3;
-			}
-		} else {
-			drop += PM_FRICT_NO_GROUND;
-		}
-
+		friction = PM_FRICT_SPECTATOR;
+	} else { // ladder, ground, water, air and friction
 		if (pm->s.pm_flags & PMF_ON_LADDER) {
-			drop += PM_FRICT_LADDER;
+			friction = PM_FRICT_LADDER;
+		} else {
+			if (pm->ground_entity) {
+				if (pml.ground_surface && (pml.ground_surface->flags & SURF_SLICK)) {
+					friction = PM_FRICT_GROUND_SLICK;
+				} else {
+					friction = PM_FRICT_GROUND;
+				}
+			}
+
+			if (pm->water_level) {
+				friction += PM_FRICT_WATER * pm->water_level;
+			} else if (!friction) {
+				friction += PM_FRICT_NO_GROUND;
+			}
 		}
 	}
 
-	drop *= control * pml.time;
+	friction *= control * pml.time;
 
 	// scale the velocity
-	scale = speed - drop;
+	scale = speed - friction;
 
 	if (scale < 2.0) {
 		VectorClear(pml.velocity);
@@ -341,12 +340,7 @@ static void Pm_Friction(void) {
 
 	scale /= speed;
 
-	pml.velocity[0] *= scale;
-	pml.velocity[1] *= scale;
-
-	if (pm->water_level > 1 || pm->s.pm_type == PM_SPECTATOR) {
-		pml.velocity[2] *= scale;
-	}
+	VectorScale(pml.velocity, scale, pml.velocity);
 }
 
 /**
@@ -377,33 +371,6 @@ static void Pm_Accelerate(vec3_t dir, float speed, float accel) {
 static void Pm_AddCurrents(vec3_t vel) {
 	vec3_t v;
 	float s;
-
-	// account for ladders
-	if ((pm->s.pm_flags & PMF_ON_LADDER) && fabsf(pml.velocity[2]) <= PM_SPEED_LADDER) {
-		if ((pm->angles[PITCH] <= -15) && (pm->cmd.forward > 0))
-			vel[2] = PM_SPEED_LADDER;
-		else if ((pm->angles[PITCH] >= 15) && (pm->cmd.forward > 0))
-			vel[2] = -PM_SPEED_LADDER;
-		else if (pm->cmd.up > 0)
-			vel[2] = PM_SPEED_LADDER;
-		else if (pm->cmd.up < 0)
-			vel[2] = -PM_SPEED_LADDER;
-		else
-			vel[2] = 0.0;
-
-		s = PM_SPEED_LADDER / 8.0;
-
-		// limit horizontal speed when on a ladder
-		if (vel[0] < -s)
-			vel[0] = -s;
-		else if (vel[0] > s)
-			vel[0] = s;
-
-		if (vel[1] < -s)
-			vel[1] = -s;
-		else if (vel[1] > s)
-			vel[1] = s;
-	}
 
 	// add water currents
 	if (pm->water_type & MASK_CURRENT) {
@@ -663,19 +630,19 @@ static bool Pm_CheckPush(void) {
  * Check for ladder interaction.
  */
 static bool Pm_CheckLadder(void) {
-	vec3_t forward_flat, spot;
+	vec3_t forward, spot;
 	c_trace_t trace;
 
 	if (pm->s.pm_time)
 		return false;
 
 	// check for ladder
-	VectorCopy(pml.forward, forward_flat);
-	forward_flat[2] = 0.0;
+	VectorCopy(pml.forward, forward);
+	forward[2] = 0.0;
 
-	VectorNormalize(forward_flat);
+	VectorNormalize(forward);
 
-	VectorMA(pml.origin, 1.0, forward_flat, spot);
+	VectorMA(pml.origin, 1.0, forward, spot);
 	spot[2] += pml.view_offset[2];
 
 	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, spot);
@@ -737,10 +704,46 @@ static void Pm_LadderMove(void) {
 	float speed;
 	int i;
 
-	// user intentions in X/Y/Z
-	for (i = 0; i < 3; i++) {
-		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right + pml.up[i]
-				* pm->cmd.up;
+	//Com_Debug("%d ladder move\n", quake2world.time);
+
+	Pm_Friction();
+
+	// user intentions in X/Y
+	for (i = 0; i < 2; i++) {
+		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
+	}
+
+	vel[2] = 0.0;
+
+	// handle Z intentions differently
+	if (fabsf(pml.velocity[2]) < PM_SPEED_LADDER) {
+
+		if ((pm->angles[PITCH] <= -15.0) && (pm->cmd.forward > 0)) {
+			vel[2] = PM_SPEED_LADDER;
+		} else if ((pm->angles[PITCH] >= 15.0) && (pm->cmd.forward > 0)) {
+			vel[2] = -PM_SPEED_LADDER;
+		} else if (pm->cmd.up > 0) {
+			vel[2] = PM_SPEED_LADDER;
+		} else if (pm->cmd.up < 0) {
+			vel[2] = -PM_SPEED_LADDER;
+		} else {
+			vel[2] = 0.0;
+		}
+
+		const float s = PM_SPEED_LADDER * 0.125;
+
+		// limit horizontal speed when on a ladder
+		if (vel[0] < -s) {
+			vel[0] = -s;
+		} else if (vel[0] > s) {
+			vel[0] = s;
+		}
+
+		if (vel[1] < -s) {
+			vel[1] = -s;
+		} else if (vel[1] > s) {
+			vel[1] = s;
+		}
 	}
 
 	Pm_AddCurrents(vel);
@@ -793,7 +796,7 @@ static void Pm_WaterMove(void) {
 
 	Pm_Friction();
 
-	// first slow down if we've hit the water at a high velocity
+	// slow down if we've hit the water at a high velocity
 	VectorCopy(pml.velocity, vel);
 	speed = VectorLength(vel);
 
@@ -801,19 +804,20 @@ static void Pm_WaterMove(void) {
 		VectorScale(pml.velocity, PM_SPEED_WATER / speed, pml.velocity);
 	}
 
-	// add gravity as we break the surface
-	pml.velocity[2] -= (pm->s.gravity / pm->water_level) * pml.time;
-
 	// user intentions in X/Y
 	for (i = 0; i < 3; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 
-	// constant sinking
-	vel[2] = pm->cmd.up - PM_SPEED_WATER_SINK;
+	// handle Z differently
+	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
+		vel[2] += -PM_SPEED_WATER_SINK;
+	} else {
+		vel[2] += pm->cmd.up;
+	}
 
 	// and disabled water skiing
-	if (pm->water_level == 2 && vel[2] > 0 && pml.velocity[2] > -PM_SPEED_WATER_SINK) {
+	if (pm->water_level == 2 && pml.velocity[2] > 0.0 && vel[2] > 0.0) {
 		vec3_t view;
 
 		VectorAdd(pml.origin, pml.view_offset, view);
@@ -821,7 +825,7 @@ static void Pm_WaterMove(void) {
 
 		if (!(pm->PointContents(view) & CONTENTS_WATER)) {
 			pml.velocity[2] = 0.0;
-			vel[2] = -PM_SPEED_WATER_SINK;
+			vel[2] = 0.0;
 		}
 	}
 
@@ -948,8 +952,7 @@ static void Pm_WalkMove(void) {
 
 	Pm_ClipVelocity(pml.velocity, pml.ground_plane.normal, pml.velocity, PM_CLIP_FLOOR);
 
-	if (!pml.velocity[0] && !pml.velocity[1]) { // don't bounce like a 'tard
-		pml.velocity[2] = 0.0;
+	if (!pml.velocity[0] && !pml.velocity[1]) { // don't bother stepping
 		return;
 	}
 
