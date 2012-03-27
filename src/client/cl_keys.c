@@ -632,8 +632,19 @@ void Cl_ShutdownKeys(void) {
  * Cl_KeyEvent
  */
 void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned time) {
+	extern void Sv_ShutdownServer(const char *msg);
 
 	if (key == K_ESCAPE && down) { // escape can cancel a few things
+
+		// connecting to a server
+		if (cls.loading) {
+			if (Com_WasInit(Q2W_SERVER)) { // if running a local server, kill it
+				Sv_ShutdownServer("Server aborted.\n");
+			}
+
+			Cl_Disconnect();
+			return;
+		}
 
 		// message mode
 		if (ks->dest == KEY_CHAT) {
@@ -662,11 +673,9 @@ void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned t
 		if (ks->dest == KEY_UI) {
 
 			// if we're in the game, just hide the menus
-			if (cls.state == CL_ACTIVE)
+			if (cls.state == CL_ACTIVE) {
 				ks->dest = KEY_GAME;
-			// otherwise, pop back from a child menu
-			else
-				Cbuf_AddText("mn_pop\n");
+			}
 
 			return;
 		}
@@ -677,7 +686,9 @@ void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned t
 
 	// tilde always toggles the console
 	if ((unicode == '`' || unicode == '~') && down) {
-		Cl_ToggleConsole_f();
+		if (!cls.loading) {
+			Cl_ToggleConsole_f();
+		}
 		return;
 	}
 

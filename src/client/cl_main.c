@@ -461,6 +461,8 @@ void Cl_LoadProgress(unsigned short percent) {
 
 	cls.loading = percent;
 
+	Cl_HandleEvents();
+
 	Cl_UpdateScreen();
 }
 

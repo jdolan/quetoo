@@ -50,10 +50,10 @@ void Cl_ToggleConsole_f(void) {
 		cls.key_state.dest = KEY_CONSOLE;
 }
 
-/*
+/**
  * Cl_UpdateNotify
  *
- * Update client message notification times
+ * Update client message notification times.
  */
 void Cl_UpdateNotify(int last_line) {
 	int i;
@@ -65,7 +65,7 @@ void Cl_UpdateNotify(int last_line) {
 /*
  * Cl_ClearNotify
  *
- * Clear client message notification times
+ * Clear client message notification times.
  */
 void Cl_ClearNotify(void) {
 	int i;
