@@ -472,6 +472,8 @@ static void Pm_CategorizePosition(void) {
 			//Com_Debug("%d landed\n", quake2world.time);
 		}
 
+		VectorCopy(trace.end, pml.origin);
+
 		pm->s.pm_flags |= PMF_ON_GROUND;
 		pm->ground_entity = trace.ent;
 	}
