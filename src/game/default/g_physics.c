@@ -227,7 +227,7 @@ typedef struct {
 	g_edict_t *ent;
 	vec3_t origin;
 	vec3_t angles;
-	float delta_yaw;
+	short delta_yaw;
 } g_pushed_t;
 
 g_pushed_t g_pushed[MAX_EDICTS], *g_pushed_p;
