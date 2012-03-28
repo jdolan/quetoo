@@ -1097,8 +1097,6 @@ static void Pm_SpectatorMove() {
 
 	Pm_Friction();
 
-	VectorSet(pml.view_offset, 0.0, 0.0, 0.0);
-
 	// user intentions on X/Y/Z
 	for (i = 0; i < 3; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right + pml.up[i]
