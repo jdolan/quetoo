@@ -149,6 +149,8 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
  * been resolved.
  */
 static void G_ClientAnimation(g_edict_t *ent) {
+	vec3_t velocity;
+	float speed;
 
 	if (ent->sv_flags & SVF_NO_CLIENT)
 		return;
@@ -161,15 +163,19 @@ static void G_ClientAnimation(g_edict_t *ent) {
 		return;
 	}
 
+	VectorCopy(ent->velocity, velocity);
+	velocity[2] = 0.0;
+
+	speed = VectorNormalize(velocity);
+
 	// check for falling
 
 	if (!ent->ground_entity) { // not on the ground
 
-		if (ent->water_level == 3) { // swimming
+		if (ent->water_level == 3 && speed > 30.0) { // swimming
 			G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
 			return;
 		}
-
 
 		bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
 		jumping |= G_IsAnimation(ent, ANIM_LEGS_JUMP2);
@@ -182,14 +188,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 
 	// duck, walk or run after landing
 
-	if (g_level.time - 380 > ent->client->land_time) {
-		vec3_t velocity;
-		float speed;
-
-		VectorCopy(ent->velocity, velocity);
-		velocity[2] = 0.0;
-
-		speed = VectorNormalize(velocity);
+	if (g_level.time - 50 > ent->client->ground_time) {
 
 		if (ent->client->ps.pmove.pm_flags & PMF_DUCKED) { // ducked
 			if (speed < 1.0)

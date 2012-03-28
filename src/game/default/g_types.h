@@ -400,6 +400,7 @@ struct g_client_s {
 	vec3_t cmd_angles; // angles sent over in the last command
 
 	unsigned int respawn_time; // eligible for respawn when time > this
+	unsigned int ground_time; // last touched ground whence
 	unsigned int drown_time; // eligible for drowning damage when time > this
 	unsigned int sizzle_time; // eligible for sizzle damage when time > this
 	unsigned int land_time; // eligible for landing event when time > this

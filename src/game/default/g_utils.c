@@ -724,14 +724,14 @@ void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, bool restart) {
 	// while most go to one or the other, and are throttled
 
 	if (anim < ANIM_LEGS_WALKCR) {
-		if (restart || ent->client->animation1_time < g_level.time) {
+		if (restart || ent->client->animation1_time <= g_level.time) {
 			G_SetAnimation_(&ent->s.animation1, anim, restart);
-			ent->client->animation1_time = g_level.time + 100;
+			ent->client->animation1_time = g_level.time + 250;
 		}
 	} else {
-		if (restart || ent->client->animation2_time < g_level.time) {
+		if (restart || ent->client->animation2_time <= g_level.time) {
 			G_SetAnimation_(&ent->s.animation2, anim, restart);
-			ent->client->animation2_time = g_level.time + 100;
+			ent->client->animation2_time = g_level.time + 250;
 		}
 	}
 }

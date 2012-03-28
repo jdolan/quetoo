@@ -694,7 +694,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->max_health = ent->client->persistent.max_health;
 
 	VectorClear(ent->velocity);
-	ent->velocity[2] = 150.0;
+	ent->velocity[2] = 250.0;
 
 	ent->client->land_time = g_level.time;
 
@@ -705,7 +705,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	cl->ps.pmove.origin[1] = spawn_origin[1] * 8.0;
 	cl->ps.pmove.origin[2] = spawn_origin[2] * 8.0;
 
-	VectorSet(cl->ps.pmove.view_offset, 0, 0, (ent->maxs[2] - ent->mins[2]) * 0.75 * 8.0);
+	VectorSet(cl->ps.pmove.view_offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.75 * 8.0);
 
 	// clear entity state values
 	ent->s.effects = 0;
@@ -1052,6 +1052,177 @@ static c_trace_t G_ClientMoveTrace(const vec3_t start, const vec3_t mins, const 
 }
 
 /**
+ * G_ClientMove
+ *
+ * Process the movement command, calling Pmove and acting on the results.
+ */
+static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
+	vec3_t old_velocity, velocity;
+	pm_move_t pm;
+	int i, j;
+
+	g_client_t *client = ent->client;
+
+	client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+
+	if (ent->move_type == MOVE_TYPE_NO_CLIP)
+		client->ps.pmove.pm_type = PM_SPECTATOR;
+	else if (ent->s.model1 != 255 || ent->dead)
+		client->ps.pmove.pm_type = PM_DEAD;
+	else
+		client->ps.pmove.pm_type = PM_NORMAL;
+
+	client->ps.pmove.gravity = g_level.gravity;
+
+	memset(&pm, 0, sizeof(pm));
+	pm.s = client->ps.pmove;
+
+	for (i = 0; i < 3; i++) {
+		pm.s.origin[i] = ent->s.origin[i] * 8.0;
+		pm.s.velocity[i] = ent->velocity[i] * 8.0;
+	}
+
+	pm.cmd = *cmd;
+	pm.ground_entity = ent->ground_entity;
+
+	pm.Trace = G_ClientMoveTrace;
+	pm.PointContents = gi.PointContents;
+
+	// perform a pmove
+	gi.Pmove(&pm);
+
+	// save results of pmove
+	client->ps.pmove = pm.s;
+
+	VectorCopy(ent->velocity, old_velocity);
+
+	for (i = 0; i < 3; i++) {
+		ent->s.origin[i] = pm.s.origin[i] * 0.125;
+		ent->velocity[i] = pm.s.velocity[i] * 0.125;
+	}
+
+	VectorCopy(pm.mins, ent->mins);
+	VectorCopy(pm.maxs, ent->maxs);
+
+	client->cmd_angles[0] = SHORT2ANGLE(cmd->angles[0]);
+	client->cmd_angles[1] = SHORT2ANGLE(cmd->angles[1]);
+	client->cmd_angles[2] = SHORT2ANGLE(cmd->angles[2]);
+
+	VectorCopy(ent->velocity, velocity);
+	velocity[2] = 0.0;
+
+	const float speed = VectorNormalize(velocity);
+
+	// check for jump
+	if ((pm.s.pm_flags & PMF_JUMPED) && client->jump_time < g_level.time - 200) {
+
+		vec3_t angles, forward, point;
+		c_trace_t tr;
+
+		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
+		AngleVectors(angles, forward, NULL, NULL);
+
+		VectorMA(ent->s.origin, speed * 0.4, velocity, point);
+
+		// trace towards our jump destination to see if we have room to backflip
+		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_PLAYER_SOLID);
+
+		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && speed > 200.0)
+			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
+		else
+			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+
+		ent->s.event = EV_CLIENT_JUMP;
+		client->jump_time = g_level.time;
+	}
+	// check for landing
+	else if ((pm.s.pm_flags & PMF_TIME_LAND) && g_level.time - client->land_time > 1000) {
+
+		const float fall = -old_velocity[2];
+
+		entity_event_t event = EV_CLIENT_LAND;
+
+		if (fall >= 600.0) { // player will take damage
+			int damage = ((int) ((fall - 600.0) * 0.05)) >> ent->water_level;
+
+			if (damage < 1)
+				damage = 1;
+
+			if (fall > 750.0)
+				event = EV_CLIENT_FALL_FAR;
+			else
+				event = EV_CLIENT_FALL;
+
+			client->pain_time = g_level.time; // suppress pain sound
+
+			vec3_t dir;
+			VectorSet(dir, 0.0, 0.0, 1.0);
+
+			G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0, DAMAGE_NO_ARMOR,
+					MOD_FALLING);
+		}
+
+		if (G_IsAnimation(ent, ANIM_LEGS_JUMP2))
+			G_SetAnimation(ent, ANIM_LEGS_LAND2, false);
+		else
+			G_SetAnimation(ent, ANIM_LEGS_LAND1, false);
+
+		ent->s.event = event;
+		client->land_time = g_level.time;
+	}
+	// check for ladder, play a randomized sound
+	else if ((pm.s.pm_flags & PMF_ON_LADDER) && client->jump_time < g_level.time - 400) {
+
+		if (fabs(ent->velocity[2]) > 20.0) {
+			ent->s.event = EV_CLIENT_JUMP;
+			client->jump_time = g_level.time;
+		}
+	}
+
+	// detect hitting the ground to help with animation blending
+	if (pm.ground_entity && !ent->ground_entity) {
+		client->ground_time = g_level.time;
+	}
+
+	// copy ground and water state back into entity
+	ent->ground_entity = pm.ground_entity;
+	ent->water_level = pm.water_level;
+	ent->water_type = pm.water_type;
+
+	// and update the link count
+	if (ent->ground_entity) {
+		ent->ground_entity_link_count = ent->ground_entity->link_count;
+	}
+
+	VectorCopy(pm.angles, client->angles);
+	VectorCopy(pm.angles, client->ps.angles);
+
+	gi.LinkEntity(ent);
+
+	// touch jump pads, hurt brushes, etc..
+	if (ent->move_type != MOVE_TYPE_NO_CLIP && ent->health > 0)
+		G_TouchTriggers(ent);
+
+	// touch other objects
+	for (i = 0; i < pm.num_touch; i++) {
+
+		g_edict_t *other = pm.touch_ents[i];
+
+		for (j = 0; j < i; j++)
+			if (pm.touch_ents[j] == other)
+				break;
+
+		if (j != i)
+			continue; // duplicated
+
+		if (!other->touch)
+			continue;
+
+		other->touch(other, ent, NULL, NULL);
+	}
+}
+
+/**
  * G_InventoryThink
  *
  * Expire any items which are time-sensitive.
@@ -1082,8 +1253,7 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
  */
 void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 	g_client_t *client;
-	g_edict_t *other;
-	int i, j;
+	int i;
 
 	g_level.current_entity = ent;
 	client = ent->client;
@@ -1099,7 +1269,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 
 		if (!client->chase_target->in_use || client->chase_target->client->persistent.spectator) {
 
-			other = client->chase_target;
+			g_edict_t *other = client->chase_target;
 
 			G_ClientChaseNext(ent);
 
@@ -1109,163 +1279,8 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 		}
 	}
 
-	if (!client->chase_target) { // set up for pmove
-		pm_move_t pm;
-
-		vec3_t old_velocity, velocity;
-		VectorCopy(ent->velocity, old_velocity);
-
-		const unsigned short old_pm_flags = client->ps.pmove.pm_flags;
-
-		client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
-
-		if (ent->move_type == MOVE_TYPE_NO_CLIP)
-			client->ps.pmove.pm_type = PM_SPECTATOR;
-		else if (ent->s.model1 != 255 || ent->dead)
-			client->ps.pmove.pm_type = PM_DEAD;
-		else
-			client->ps.pmove.pm_type = PM_NORMAL;
-
-		client->ps.pmove.gravity = g_level.gravity;
-
-		memset(&pm, 0, sizeof(pm));
-		pm.s = client->ps.pmove;
-
-		for (i = 0; i < 3; i++) {
-			pm.s.origin[i] = ent->s.origin[i] * 8.0;
-			pm.s.velocity[i] = ent->velocity[i] * 8.0;
-		}
-
-		pm.cmd = *cmd;
-		pm.ground_entity = ent->ground_entity;
-
-		pm.Trace = G_ClientMoveTrace;
-		pm.PointContents = gi.PointContents;
-
-		// perform a pmove
-		gi.Pmove(&pm);
-
-		// save results of pmove
-		client->ps.pmove = pm.s;
-
-		for (i = 0; i < 3; i++) {
-			ent->s.origin[i] = pm.s.origin[i] * 0.125;
-			ent->velocity[i] = pm.s.velocity[i] * 0.125;
-		}
-
-		VectorCopy(pm.mins, ent->mins);
-		VectorCopy(pm.maxs, ent->maxs);
-
-		client->cmd_angles[0] = SHORT2ANGLE(cmd->angles[0]);
-		client->cmd_angles[1] = SHORT2ANGLE(cmd->angles[1]);
-		client->cmd_angles[2] = SHORT2ANGLE(cmd->angles[2]);
-
-		VectorCopy(ent->velocity, velocity);
-		velocity[2] = 0.0;
-
-		const float speed = VectorNormalize(velocity);
-
-		// check for jump
-		if ((pm.s.pm_flags & PMF_JUMPED) && (pm.water_level < 3) && client->jump_time
-				< g_level.time - 200) {
-
-			vec3_t angles, forward, point;
-			c_trace_t tr;
-
-			VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
-			AngleVectors(angles, forward, NULL, NULL);
-
-			VectorMA(ent->s.origin, speed * 0.4, velocity, point);
-
-			// trace towards our jump destination to see if we have room to backflip
-			tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_PLAYER_SOLID);
-
-			if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && speed > 200.0)
-				G_SetAnimation(ent, ANIM_LEGS_JUMP2, false);
-			else
-				G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
-
-			ent->s.event = EV_CLIENT_JUMP;
-			client->jump_time = g_level.time;
-		}
-		// check for landing
-		else if ((pm.s.pm_flags & PMF_TIME_LAND) && client->land_time < g_level.time - 1000) {
-
-			const float fall = -old_velocity[2];
-
-			if (speed < 1.0 || fall >= 300.0 || old_pm_flags & PMF_PUSHED) {
-				entity_event_t event = EV_CLIENT_LAND;
-
-				if (fall >= 600.0) { // player will take damage
-					int damage = ((int) ((fall - 600.0) * 0.05)) >> ent->water_level;
-
-					if (damage < 1)
-						damage = 1;
-
-					if (fall > 750.0)
-						event = EV_CLIENT_FALL_FAR;
-					else
-						event = EV_CLIENT_FALL;
-
-					client->pain_time = g_level.time; // suppress pain sound
-
-					vec3_t dir;
-					VectorSet(dir, 0.0, 0.0, 1.0);
-
-					G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0,
-							DAMAGE_NO_ARMOR, MOD_FALLING);
-				}
-
-				if (G_IsAnimation(ent, ANIM_LEGS_JUMP2))
-					G_SetAnimation(ent, ANIM_LEGS_LAND2, false);
-				else
-					G_SetAnimation(ent, ANIM_LEGS_LAND1, false);
-
-				ent->s.event = event;
-				client->land_time = g_level.time;
-			}
-		}
-		// check for ladder, play a randomized sound
-		else if ((pm.s.pm_flags & PMF_ON_LADDER) && fabs(ent->velocity[2]) >= 20.0
-				&& client->jump_time < g_level.time - 400) {
-
-			ent->s.event = EV_CLIENT_JUMP;
-			client->jump_time = g_level.time;
-		}
-
-		ent->water_level = pm.water_level;
-		ent->water_type = pm.water_type;
-		ent->ground_entity = pm.ground_entity;
-
-		if (ent->ground_entity)
-			ent->ground_entity_link_count = ent->ground_entity->link_count;
-
-		VectorCopy(pm.angles, client->angles);
-		VectorCopy(pm.angles, client->ps.angles);
-
-		gi.LinkEntity(ent);
-
-		// touch jump pads, hurt brushes, etc..
-		if (ent->move_type != MOVE_TYPE_NO_CLIP && ent->health > 0)
-			G_TouchTriggers(ent);
-
-		// touch other objects
-		for (i = 0; i < pm.num_touch; i++) {
-
-			other = pm.touch_ents[i];
-
-			for (j = 0; j < i; j++)
-				if (pm.touch_ents[j] == other)
-					break;
-
-			if (j != i)
-				continue; // duplicated
-
-			if (!other->touch)
-				continue;
-
-			other->touch(other, ent, NULL, NULL);
-		}
+	if (!client->chase_target) { // move through the world
+		G_ClientMove(ent, cmd);
 	}
 
 	client->old_buttons = client->buttons;
@@ -1292,7 +1307,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 	// update chase camera if being followed
 	for (i = 1; i <= sv_max_clients->integer; i++) {
 
-		other = g_game.edicts + i;
+		g_edict_t *other = g_game.edicts + i;
 
 		if (other->in_use && other->client->chase_target == ent) {
 			G_ClientChaseThink(other);
