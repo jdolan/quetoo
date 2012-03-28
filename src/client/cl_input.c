@@ -654,8 +654,10 @@ void Cl_HandleEvents(void) {
 	Cl_MouseMove(mx, my);
 
 	while (cl_key_queue_head != cl_key_queue_tail) { // then check for keys
-		Cl_KeyEvent(cl_key_queue[cl_key_queue_tail].key, cl_key_queue[cl_key_queue_tail].unicode,
-				cl_key_queue[cl_key_queue_tail].down, cls.real_time);
+		cl_key_queue_t *k = &cl_key_queue[cl_key_queue_tail];
+
+		Cl_KeyEvent(k->key, k->unicode, k->down, cls.real_time);
+
 		cl_key_queue_tail = (cl_key_queue_tail + 1) & (MAX_KEY_QUEUE - 1);
 	}
 }

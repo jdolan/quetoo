@@ -108,7 +108,7 @@ key_name_t key_names[] = {
 
 static cl_key_state_t *ks = &cls.key_state;
 
-/*
+/**
  * Cl_KeyConsole
  *
  * Interactive line editing and console scrollback.
