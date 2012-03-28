@@ -307,8 +307,13 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 
 	f = 24.0 / density;
 	VectorScale(vec, f, vec);
+	VectorSubtract(move, vec, move);
 
 	for (i = 0; i < len; i += f) {
+		VectorAdd(move, vec, move);
+
+		if(!(cgi.PointContents(move) & MASK_WATER))
+			continue;
 
 		if (!(p = Cg_AllocParticle()))
 			return;
@@ -325,7 +330,6 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 		}
 		p->vel[2] += 6;
 
-		VectorAdd(move, vec, move);
 	}
 }
 
