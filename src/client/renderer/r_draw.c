@@ -551,6 +551,7 @@ void R_InitDraw(void) {
 	R_BindFont(NULL, NULL, NULL);
 
 	r_draw.cursor = R_LoadImage("fonts/cursor", it_font);
+	R_DrawFill(0, 0, r_context.width, r_context.height, 5, 1);
 
 	// set ABGR color values
 	r_draw.colors[CON_COLOR_BLACK] = 0xff000000;
