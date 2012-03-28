@@ -36,10 +36,7 @@ bool Ui_Event(SDL_Event *event) {
 
 	if (!(handled = TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))) {
 
-		if (event->key.keysym.sym == SDLK_ESCAPE) {
-			//Ui_ToggleBar("*");
-			handled = true;
-		}
+		// TODO: We may add handling for binding special keys (SPACE, ALT, ..) here.
 	}
 
 	return handled;
