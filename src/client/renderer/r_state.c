@@ -622,13 +622,12 @@ void R_InitState(void) {
 				if (texunit == &texunit_lightmap)
 					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-				if (i > 0) // turn them off for now
-					R_EnableTexture(texunit, false);
+				R_EnableTexture(texunit, false);
 			}
 		}
 	}
 
-	R_SelectTexture(&texunit_diffuse);
+	R_EnableTexture(&texunit_diffuse, true);
 
 	// alpha test parameters
 	glAlphaFunc(GL_GREATER, 0.25);
