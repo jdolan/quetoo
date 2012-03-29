@@ -1016,7 +1016,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
 
 	// send effect
 	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.edicts);
+	gi.WriteShort(ent->s.number);
 	gi.WriteByte(MZ_LOGOUT);
 	gi.Multicast(ent->s.origin, MULTICAST_ALL);
 
@@ -1024,13 +1024,13 @@ void G_ClientDisconnect(g_edict_t *ent) {
 
 	ent->client->persistent.user_info[0] = 0;
 
+	ent->class_name = "disconnected";
 	ent->in_use = false;
 	ent->solid = SOLID_NOT;
-	ent->s.model1 = 0;
-	ent->s.model2 = 0;
-	ent->s.model3 = 0;
-	ent->s.model4 = 0;
-	ent->class_name = "disconnected";
+	ent->sv_flags = SVF_NO_CLIENT;
+
+	memset(&ent->s, 0, sizeof(ent->s));
+	ent->s.number = ent - g_game.edicts;
 
 	player_num = ent - g_game.edicts - 1;
 	gi.ConfigString(CS_CLIENTS + player_num, "");
