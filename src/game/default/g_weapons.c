@@ -379,7 +379,7 @@ static void G_FireMachinegun_(g_edict_t *ent) {
 
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_BulletProjectile(ent, org, forward, 8, 4, 100, 200, MOD_MACHINEGUN);
+	G_BulletProjectile(ent, org, forward, 4, 4, 100, 200, MOD_MACHINEGUN);
 
 	G_MuzzleFlash(ent, MZ_MACHINEGUN);
 }
@@ -455,7 +455,7 @@ static void G_FireLightning_(g_edict_t *ent) {
 
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_LightningProjectile(ent, org, forward, 10, 12);
+	G_LightningProjectile(ent, org, forward, 12, 12);
 
 	if (muzzle_flash)
 		G_MuzzleFlash(ent, MZ_LIGHTNING);
