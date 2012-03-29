@@ -822,7 +822,8 @@ static void Pm_WaterMove(void) {
 	speed = VectorLength(vel);
 
 	if (speed > PM_SPEED_WATER) {
-		VectorScale(pml.velocity, PM_SPEED_WATER / speed, pml.velocity);
+		// use additional friction rather than a hard clamp
+		Pm_Friction();
 	}
 
 	// user intentions in X/Y
