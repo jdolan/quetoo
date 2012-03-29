@@ -151,11 +151,15 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 /*
  * Cg_DrawScore
  */
-static void Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
+static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 	char name[MAX_STRING_CHARS], icon[MAX_QPATH], *skin;
 	r_pixel_t cw, ch;
 
 	char *info = cgi.ConfigString(CS_CLIENTS + s->player_num);
+
+	if (!strlen(info) || !strchr(info, '\\')) {
+		return false;
+	}
 
 	strncpy(name, info, sizeof(name) - 1);
 
@@ -193,7 +197,7 @@ static void Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 	// spectating
 	if (s->team == 0xff) {
 		cgi.DrawString(x, y, "spectating", CON_COLOR_DEFAULT);
-		return;
+		return true;
 	}
 
 	// frags
@@ -202,10 +206,10 @@ static void Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 
 	// captures
 	if (!cg_scores_ctf)
-		return;
+		return true;
 
 	cgi.DrawString(x, y, va("%d captures", s->captures), CON_COLOR_DEFAULT);
-
+	return true;
 }
 
 /*
@@ -231,8 +235,9 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 		if ((short) i == rows)
 			break;
 
-		Cg_DrawScore(x, y, s);
-		y += SCORES_ROW_HEIGHT;
+		if (Cg_DrawScore(x, y, s)) {
+			y += SCORES_ROW_HEIGHT;
+		}
 	}
 
 	x += SCORES_COL_WIDTH;
@@ -247,8 +252,9 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 		if ((short) i == rows)
 			break;
 
-		Cg_DrawScore(x, y, s);
-		y += SCORES_ROW_HEIGHT;
+		if (Cg_DrawScore(x, y, s)) {
+			y += SCORES_ROW_HEIGHT;
+		}
 	}
 }
 
@@ -266,8 +272,8 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
 	cols = (rows < (short) cg_num_scores) ? 2 : 1;
 	width = cols * SCORES_COL_WIDTH;
 
-	for (i = 0; i < cg_num_scores; i++) {
-		const player_score_t *s = &cg_scores[i];
+	const player_score_t *s = cg_scores;
+	for (i = 0; i < cg_num_scores; i++, s++) {
 
 		if ((short) i == (cols * rows)) // screen is full
 			break;
@@ -277,7 +283,9 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
 		const r_pixel_t x = cgi.context->width / 2 - width / 2 + col * SCORES_COL_WIDTH;
 		const r_pixel_t y = start_y + (i % rows) * SCORES_ROW_HEIGHT;
 
-		Cg_DrawScore(x, y, s);
+		if (!Cg_DrawScore(x, y, s)) {
+			i--;
+		}
 	}
 }
 
