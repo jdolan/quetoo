@@ -150,7 +150,7 @@ static unsigned int G_UpdateScores(void) {
 void G_ClientScores(g_edict_t *ent) {
 	unsigned short length;
 
-	if (ent->client->scores_time && (ent->client->scores_time < g_level.time))
+	if (!ent->client->show_scores && (ent->client->scores_time > g_level.time))
 		return;
 
 	length = G_UpdateScores();
