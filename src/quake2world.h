@@ -382,7 +382,7 @@ typedef struct {
 #define EF_BEAM				(1 << 13) // overload old_origin for 2nd endpoint
 #define EF_INACTIVE			(1 << 14) // inactive icon for when input is not going to game
 // small or full-bright entities can skip static and dynamic lighting
-#define EF_NO_LIGHTING		(EF_ROCKET)
+#define EF_NO_LIGHTING		(0)
 
 // the 16 high bits are never transmitted, they're for the renderer only
 #define EF_WEAPON			(1 << 27)  // view weapon

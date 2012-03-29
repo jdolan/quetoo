@@ -33,7 +33,7 @@ static void Cg_UpdateLighting(cl_entity_t *e, r_entity_t *ent) {
 	ent->lighting = &e->lighting;
 
 	if (e->current.effects & EF_NO_LIGHTING) {
-		// some entities are never lit, like rockets
+		// some entities are never lit
 		ent->lighting->state = LIGHTING_READY;
 	} else {
 		// but most are, so update their lighting if appropriate
