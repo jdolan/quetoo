@@ -306,21 +306,21 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int count) {
 
 		p->image = cg_particle_spark;
 
-		p->color = 0xe0 + (Random() & 7);
+		p->color = 0xd7 + (i % 14);
 
 		VectorCopy(org, p->org);
 		VectorCopy(dir, p->vel);
 
 		for (j = 0; j < 3; j++) {
 			p->org[j] += Randomc() * 4.0;
-			p->vel[j] += Randomc() * 4.0;
+			p->vel[j] += Randomc() * 20.0;
 		}
 
-		p->accel[0] = p->accel[1] = 0;
+		p->accel[0] = Randomc() * 16.0;
+		p->accel[1] = Randomc() * 16.0;
 		p->accel[2] = -PARTICLE_GRAVITY;
 
 		p->scale = 2.5;
-		p->scale_vel = -4.0;
 
 		p->alpha = 1.5;
 		p->alpha_vel = -1.0 / (0.5 + Randomf() * 0.3);

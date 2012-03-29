@@ -157,7 +157,7 @@ void Cg_LoadEmits(void) {
 				}
 
 				if (e->flags & EMIT_SPARKS) { // default directional scale
-					VectorScale(e->dir, 30.0, e->dir);
+					VectorScale(e->dir, 40.0, e->dir);
 				}
 
 				if (e->scale <= 0.0) { // default mesh model scale
