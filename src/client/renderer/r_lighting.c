@@ -59,27 +59,28 @@ static int R_UpdateBspLightReferences(r_lighting_t *lighting) {
 		float intensity;
 
 		// is the light source within the PVS this frame
-		if (lighting->state == LIGHTING_DIRTY && l->leaf->vis_frame
-				!= r_locals.vis_frame)
+		if (lighting->state == LIGHTING_DIRTY && l->leaf->vis_frame != r_locals.vis_frame)
 			continue;
 
 		// is it within range of the entity
 		VectorSubtract(l->origin, lighting->origin, dir);
-		intensity = (l->radius + lighting->radius - VectorNormalize(dir))
-				/ l->radius;
+		intensity = (l->radius + lighting->radius - VectorNormalize(dir)) / l->radius;
 
 		if (intensity <= 0.0)
 			continue;
 
-		// is it visible to the entity; trace to corners of bounding box
-		R_Trace(l->origin, lighting->mins, 0.0, CONTENTS_SOLID);
+		// is it visible to the entity; trace to origin and corners of bounding box
+		R_Trace(l->origin, lighting->origin, 0.0, MASK_SOLID);
 
-		if (r_view.trace.fraction < 0.9) {
+		if (r_view.trace.fraction < 1.0) {
+			R_Trace(l->origin, lighting->mins, 0.0, MASK_SOLID);
 
-			R_Trace(l->origin, lighting->maxs, 0.0, CONTENTS_SOLID);
+			if (r_view.trace.fraction < 1.0) {
+				R_Trace(l->origin, lighting->maxs, 0.0, MASK_SOLID);
 
-			if (r_view.trace.fraction < 0.9) {
-				continue;
+				if (r_view.trace.fraction < 1.0) {
+					continue;
+				}
 			}
 		}
 
@@ -91,16 +92,14 @@ static int R_UpdateBspLightReferences(r_lighting_t *lighting) {
 		r->intensity = intensity;
 
 		if (j == LIGHTING_MAX_BSP_LIGHT_REFS) {
-			Com_Debug(
-					"R_UpdateBspLightReferences: LIGHTING_MAX_BSP_LIGHT_REFS\n");
+			Com_Debug("R_UpdateBspLightReferences: LIGHTING_MAX_BSP_LIGHT_REFS\n");
 			break;
 		}
 	}
 
 	if (j) {
 		// sort them by intensity
-		qsort((void *) light_refs, j, sizeof(r_bsp_light_ref_t),
-				R_UpdateBspLightReferences_Compare);
+		qsort((void *) light_refs, j, sizeof(r_bsp_light_ref_t), R_UpdateBspLightReferences_Compare);
 
 		if (j > MAX_ACTIVE_LIGHTS)
 			j = MAX_ACTIVE_LIGHTS;
@@ -135,7 +134,7 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 		r_bsp_light_ref_t *r = &lighting->bsp_light_refs[j];
 
 		// only consider light sources above us
-		if (r->bsp_light->origin[2] > lighting->mins[2]) {
+		if (r->bsp_light->origin[2] > lighting->origin[2]) {
 			const float scale = LIGHTING_MAX_SHADOW_DISTANCE * r->intensity;
 			vec3_t dir;
 
@@ -149,8 +148,7 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 
 		// factor in the light source color
 		if (!r_lighting->value) {
-			VectorMA(lighting->color, r->intensity, r->bsp_light->color,
-					lighting->color);
+			VectorMA(lighting->color, r->intensity, r->bsp_light->color, lighting->color);
 		}
 	}
 
@@ -198,8 +196,7 @@ void R_ApplyLighting(const r_lighting_t *lighting) {
 		VectorScale(r_locals.ambient_light, r_lighting->value, diffuse);
 		glLightfv(GL_LIGHT0 + count, GL_DIFFUSE, diffuse);
 
-		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION,
-				LIGHTING_AMBIENT_ATTENUATION);
+		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, LIGHTING_AMBIENT_ATTENUATION);
 		count++;
 
 		i = 0;
@@ -215,8 +212,7 @@ void R_ApplyLighting(const r_lighting_t *lighting) {
 			VectorScale(r->bsp_light->color, r_lighting->value, diffuse);
 			glLightfv(GL_LIGHT0 + count, GL_DIFFUSE, diffuse);
 
-			glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION,
-					r->bsp_light->radius);
+			glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, r->bsp_light->radius);
 
 			count++;
 			i++;
