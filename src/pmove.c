@@ -47,7 +47,7 @@ static pm_locals_t pml;
 #define PM_ACCEL_GROUND			10.0
 #define PM_ACCEL_NO_GROUND		1.2
 #define PM_ACCEL_SPECTATOR		4.5
-#define PM_ACCEL_WATER			3.5
+#define PM_ACCEL_WATER			2.9
 
 #define PM_FRICT_GROUND			10.0
 #define PM_FRICT_GROUND_SLICK	2.0
@@ -55,7 +55,7 @@ static pm_locals_t pml;
 #define PM_FRICT_NO_GROUND		0.2
 #define PM_FRICT_SPECTATOR		3.0
 #define PM_FRICT_SPEED_CLAMP	0.5
-#define PM_FRICT_WATER			1.5
+#define PM_FRICT_WATER			1.0
 
 #define PM_SPEED_CURRENT		100.0
 #define PM_SPEED_DUCK_STAND		225.0
@@ -69,7 +69,7 @@ static pm_locals_t pml;
 #define PM_SPEED_SPECTATOR		350.0
 #define PM_SPEED_STAIRS			30.0
 #define PM_SPEED_STOP			80.0
-#define PM_SPEED_WATER			150.0
+#define PM_SPEED_WATER			125.0
 #define PM_SPEED_WATER_JUMP		450.0
 #define PM_SPEED_WATER_SINK		100.0
 
