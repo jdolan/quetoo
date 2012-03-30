@@ -57,7 +57,7 @@ TwBar *Ui_Controls(void) {
 	Ui_Bind(bar, "BFG-10K", "use bfg10k", "group=Weapons");
 
 	Ui_Bind(bar, "Next weapon", "weapon_next", "group=Combat");
-	Ui_Bind(bar, "Previous weapon", "weapon_prev", "group=Combat");
+	Ui_Bind(bar, "Previous weapon", "weapon_previous", "group=Combat");
 	Ui_Bind(bar, "Attack", "+attack", "group=Combat");
 	Ui_Bind(bar, "Zoom", "+ZOOM", "group=Combat");
 
