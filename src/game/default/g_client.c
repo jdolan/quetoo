@@ -694,7 +694,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->max_health = ent->client->persistent.max_health;
 
 	VectorClear(ent->velocity);
-	ent->velocity[2] = 250.0;
+	ent->velocity[2] = 200.0;
 
 	ent->client->land_time = g_level.time;
 
