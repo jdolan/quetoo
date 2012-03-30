@@ -546,6 +546,8 @@ typedef enum {
 	EV_CLIENT_FALL,
 	EV_CLIENT_FALL_FAR,
 	EV_CLIENT_JUMP,
+	EV_CLIENT_GURP,
+	EV_CLIENT_DROWN,
 	EV_TELEPORT
 } entity_event_t;
 

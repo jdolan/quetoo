@@ -111,6 +111,44 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 }
 
 /**
+ * Cg_GurpEffect
+ *
+ * A player is gasping for air under water.
+ */
+static void Cg_GurpEffect(cl_entity_t *e) {
+	vec3_t start, end;
+
+	cgi.PlaySample(NULL, e->current.number, cgi.LoadSample("*gurp_1"), ATTN_NORM);
+
+	VectorCopy(e->current.origin, start);
+	start[2] += 16.0;
+
+	VectorCopy(start, end);
+	end[2] += 16.0;
+
+	Cg_BubbleTrail(start, end, 32.0);
+}
+
+/**
+ * Cg_DrownEffect
+ *
+ * A player has drowned.
+ */
+static void Cg_DrownEffect(cl_entity_t *e) {
+	vec3_t start, end;
+
+	cgi.PlaySample(NULL, e->current.number, cgi.LoadSample("*drown_1"), ATTN_NORM);
+
+	VectorCopy(e->current.origin, start);
+	start[2] += 16.0;
+
+	VectorCopy(start, end);
+	end[2] += 16.0;
+
+	Cg_BubbleTrail(start, end, 32.0);
+}
+
+/**
  * Cg_EntityEvent
  *
  * Process any event set on the given entity. These are only valid for a single
@@ -146,6 +184,12 @@ void Cg_EntityEvent(cl_entity_t *e) {
 		break;
 	case EV_CLIENT_FALL_FAR:
 		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*fall_1"), ATTN_NORM);
+		break;
+	case EV_CLIENT_GURP:
+		Cg_GurpEffect(e);
+		break;
+	case EV_CLIENT_DROWN:
+		Cg_DrownEffect(e);
 		break;
 	default:
 		break;

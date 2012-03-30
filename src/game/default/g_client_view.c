@@ -111,12 +111,14 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 
 			// play a gurp sound instead of a normal pain sound
 			if (ent->health <= ent->dmg)
-				gi.Sound(ent, gi.SoundIndex("*drown_1"), ATTN_NORM);
+				ent->s.event = EV_CLIENT_DROWN;
 			else
-				gi.Sound(ent, gi.SoundIndex("*gurp_1"), ATTN_NORM);
+				ent->s.event = EV_CLIENT_GURP;
 
+			// suppress normal pain sound
 			client->pain_time = g_level.time;
 
+			// and apply the damage
 			G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, ent->dmg, 0,
 					DAMAGE_NO_ARMOR, MOD_WATER);
 		}

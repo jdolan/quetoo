@@ -295,21 +295,20 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
  * Cg_BubbleTrail
  */
 void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
-	vec3_t move;
-	vec3_t vec;
-	float len, f;
-	int i, j;
 	r_particle_t *p;
+	vec3_t vec, move;
+	float i, len, delta;
+	int j;
 
 	VectorCopy(start, move);
 	VectorSubtract(end, start, vec);
 	len = VectorNormalize(vec);
 
-	f = 24.0 / density;
-	VectorScale(vec, f, vec);
+	delta = 16.0 / density;
+	VectorScale(vec, delta, vec);
 	VectorSubtract(move, vec, move);
 
-	for (i = 0; i < len; i += f) {
+	for (i = 0.0; i < len; i += delta) {
 		VectorAdd(move, vec, move);
 
 		if(!(cgi.PointContents(move) & MASK_WATER))
@@ -322,14 +321,19 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 		p->type = PARTICLE_BUBBLE;
 
 		p->alpha = 1.0;
-		p->alpha_vel = -1.0 / (1 + Randomf() * 0.2);
-		p->color = 4 + (Random() & 7);
-		for (j = 0; j < 3; j++) {
-			p->org[j] = move[j] + Randomc() * 2;
-			p->vel[j] = Randomc() * 5;
-		}
-		p->vel[2] += 6;
+		p->alpha_vel = -0.2 - Randomf() * 0.2;
 
+		p->scale = 1.5;
+		p->scale_vel = -0.4 - Randomf() * 0.2;
+
+		p->color = 6 + (Random() & 3);
+
+		for (j = 0; j < 3; j++) {
+			p->org[j] = move[j] + Randomc() * 2.0;
+			p->vel[j] = Randomc() * 5.0;
+		}
+		p->vel[2] += 6.0;
+		p->accel[2] = 10.0;
 	}
 }
 
@@ -398,7 +402,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 	ent->time = cgi.client->time + 8;
 
 	if (cgi.PointContents(org) & MASK_WATER)
-		Cg_BubbleTrail(ent->prev.origin, ent->current.origin, 1.0);
+		Cg_BubbleTrail(ent->prev.origin, ent->current.origin, radius / 4.0);
 }
 
 /*
