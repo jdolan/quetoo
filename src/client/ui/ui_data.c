@@ -54,8 +54,7 @@ static void TW_CALL Ui_CvarGetString(void *value, void *data) {
  * Exposes a cvar_t as a text input accepting strings.
  */
 void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def) {
-	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_CvarSetString,
-			Ui_CvarGetString, var, def);
+	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_CvarSetString, Ui_CvarGetString, var, def);
 }
 
 /*
@@ -85,8 +84,7 @@ static void TW_CALL Ui_CvarGetInteger(void *value, void *data) {
  * Exposes a cvar_t as a text input accepting integers.
  */
 void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def) {
-	TwAddVarCB(bar, name, TW_TYPE_INT32, Ui_CvarSetInteger, Ui_CvarGetInteger,
-			var, def);
+	TwAddVarCB(bar, name, TW_TYPE_INT32, Ui_CvarSetInteger, Ui_CvarGetInteger, var, def);
 }
 
 /*
@@ -94,8 +92,7 @@ void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def) 
  *
  * Exposes a cvar_t as a select input with predefined numeric values.
  */
-void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType en,
-		const char *def) {
+void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType en, const char *def) {
 	TwAddVarCB(bar, name, en, Ui_CvarSetInteger, Ui_CvarGetInteger, var, def);
 }
 
@@ -126,8 +123,7 @@ static void TW_CALL Ui_CvarGetValue(void *value, void *data) {
  * Exposes a cvar_t as a text input accepting decimals.
  */
 void Ui_CvarDecimal(TwBar *bar, const char *name, cvar_t *var, const char *def) {
-	TwAddVarCB(bar, name, TW_TYPE_FLOAT, Ui_CvarSetValue, Ui_CvarGetValue, var,
-			def);
+	TwAddVarCB(bar, name, TW_TYPE_FLOAT, Ui_CvarSetValue, Ui_CvarGetValue, var, def);
 }
 
 /*
@@ -187,6 +183,5 @@ static void TW_CALL Ui_BindGet(void *value, void *data) {
  * Exposes a key binding via the specified TwBar.
  */
 void Ui_Bind(TwBar *bar, const char *name, const char *bind, const char *def) {
-	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_BindSet, Ui_BindGet,
-			(void *) bind, def);
+	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_BindSet, Ui_BindGet, (void *) bind, def);
 }
