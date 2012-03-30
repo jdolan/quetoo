@@ -49,7 +49,7 @@ case "$host" in
 	*-apple-*)
 		HOST_NAME="APPLE"
 		HOST_CFLAGS="-I/opt/local/include"
-		HOST_LDFLAGS="-L/opt/local/lib"
+		HOST_LDFLAGS="-L/opt/local/lib -headerpad_max_install_names"
 		HOST_LIBS="-ldl"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
