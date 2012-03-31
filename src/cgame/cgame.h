@@ -26,6 +26,9 @@
 
 #define CGAME_API_VERSION 1
 
+#define TAG_CGAME 800
+#define TAG_CGAME_MEDIA 801
+
 // exposed to the client game by the engine
 typedef struct cg_import_s {
 
@@ -34,9 +37,16 @@ typedef struct cg_import_s {
 	void (*Warn)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
+	void *(*Alloc)(size_t size, short tag);
+	void (*Free)(void *p);
+	void (*FreeTag)(short tag);
+
 	cvar_t *(*Cvar)(const char *name, const char *value, unsigned int flags, const char *description);
 	void (*AddCommand)(const char *name, cmd_function_t function, const char *description);
 	void (*RemoveCommand)(const char *name);
+
+	int (*LoadFile)(const char *path, void **buffer);
+	void (*FreeFile)(void *buffer);
 
 	char *(*ConfigString)(unsigned short index);
 

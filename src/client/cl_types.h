@@ -61,15 +61,20 @@ typedef struct cl_entity_s {
 	r_lighting_t lighting; // cached static lighting info
 } cl_entity_t;
 
-typedef struct client_info_s {
-	char info[MAX_QPATH];
-	char name[MAX_QPATH];
+typedef struct cl_client_info_s {
+	char info[MAX_QPATH]; // the full info string, e.g. newbie\qforcer/blue
+	char name[MAX_QPATH]; // the player name, e.g. newbie
+	char model[MAX_QPATH]; // the model name, e.g. qforcer
+	char skin[MAX_QPATH]; // the skin name, e.g. blue
+
 	r_model_t *head;
+	r_image_t *head_skins[MD3_MAX_MESHES];
+
 	r_model_t *upper;
+	r_image_t *upper_skins[MD3_MAX_MESHES];
+
 	r_model_t *lower;
-	r_image_t *head_skin;
-	r_image_t *upper_skin;
-	r_image_t *lower_skin;
+	r_image_t *lower_skins[MD3_MAX_MESHES];
 } cl_client_info_t;
 
 #define CMD_BACKUP 128  // allow a lot of command backups for very fast systems

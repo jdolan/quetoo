@@ -23,32 +23,124 @@
 
 #define DEFAULT_CLIENT_INFO "newbie\\qforcer/enforcer"
 
-/*
+/**
+ * Cg_LoadClientSkin
+ *
+ * Parses a single line of a .skin definition file. Note that, unlike Quake3,
+ * our skin paths start with players/, not models/players/.
+ */
+static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line) {
+	int i;
+
+	if (strstr(line, "tag_"))
+		return;
+
+	char *image_name, *mesh_name = line;
+
+	if ((image_name = strchr(mesh_name, ','))) {
+		*image_name++ = '\0';
+
+		while (isspace(*image_name)) {
+			image_name++;
+		}
+	} else {
+		return;
+	}
+
+	const r_md3_mesh_t *mesh = md3->meshes;
+	for (i = 0; i < md3->num_meshes; i++, mesh++) {
+
+		if (!strcasecmp(mesh_name, mesh->name)) {
+			skins[i] = cgi.LoadImage(image_name, it_skin);
+			break;
+		}
+	}
+}
+
+/**
+ * Cg_LoadClientSkins
+ *
+ * Parses the appropriate .skin file, resolving skins for each mesh within the
+ * model. If a skin can not be resolved for any mesh, the entire skins array is
+ * invalidated so that the default will be loaded.
+ */
+static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const char *skin) {
+	char path[MAX_QPATH], line[MAX_STRING_CHARS];
+	char *buffer;
+	int i, j, len;
+
+	// load the skin definition file
+	snprintf(path, sizeof(path) - 1, "%s_%s.skin", mod->name, skin);
+
+	if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
+		cgi.Debug("Cg_LoadClientSkins: %s not found\n", path);
+
+		skins[0] = NULL;
+		return;
+	}
+
+	const r_md3_t *md3 = (r_md3_t *) mod->extra_data;
+
+	i = j = 0;
+	memset(line, 0, sizeof(line));
+
+	// parse the skin definition file line-by-line
+	while (i < len) {
+		const char c = buffer[i++];
+		line[j++] = c;
+
+		if (c == '\n' || c == '\r' || i == len) {
+
+			Cg_LoadClientSkin(skins, md3, line);
+
+			j = 0;
+			memset(line, 0, sizeof(line));
+		}
+	}
+
+	// ensure that a skin was resolved for each mesh, nullifying if not
+
+	const r_md3_mesh_t *mesh = md3->meshes;
+	for (i = 0; i < md3->num_meshes; i++, mesh++) {
+
+		if (skins[i]->type == it_null) {
+			cgi.Debug("Cg_LoadClientSkins: %s: %s has no skin\n", path, mesh->name);
+
+			skins[0] = NULL;
+			break;
+		}
+	}
+}
+
+/**
  * Cg_ValidateClient
+ *
+ * Ensures that models and skins were resolved for the specified client info.
  */
 static bool Cg_ValidateClient(cl_client_info_t *ci) {
 
 	if (!ci->head || !ci->upper || !ci->lower)
 		return false;
 
-	if (ci->head_skin->type == it_null || ci->upper_skin->type == it_null || ci->lower_skin->type
-			== it_null) {
+	if (!ci->head_skins[0] || !ci->upper_skins[0] || !ci->lower_skins[0])
 		return false;
-	}
 
 	return true;
 }
 
-/*
+/**
  * Cg_LoadClient
+ *
+ * Resolves the player name, model and skins for the specified user info string.
+ * If validation fails, we fall back on the DEFAULT_CLIENT_INFO constant.
  */
 void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
-	char model_name[MAX_QPATH];
-	char skin_name[MAX_QPATH];
 	char path[MAX_QPATH];
 	const char *t;
 	char *u, *v;
 	int i;
+
+	cgi.Debug("Cg_LoadClient: %s\n", s);
 
 	// copy the entire string
 	strncpy(ci->info, s, sizeof(ci->info));
@@ -73,48 +165,46 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	strncpy(ci->name, s, sizeof(ci->name));
 	ci->name[sizeof(ci->name) - 1] = '\0';
 
-	v = strchr(ci->name, '\\');
-	u = strchr(ci->name, '/');
+	if ((v = strchr(ci->name, '\\'))) { // check for name\model/skin
 
-	if (v && u && (v < u)) { // valid
-		*v = *u = 0;
-		strcpy(model_name, v + 1);
-		strcpy(skin_name, u + 1);
-	} else { // invalid
-		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
-		return;
+		if ((u = strchr(v, '/'))) { // it's well-formed
+			*v = *u = '\0';
+
+			strcpy(ci->model, v + 1);
+			strcpy(ci->skin, u + 1);
+		}
 	}
 
-	// load the models
-	snprintf(path, sizeof(path), "players/%s/head.md3", model_name);
-	ci->head = cgi.LoadModel(path);
+	if (v && u) { // load the models
+		snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
+		if ((ci->head = cgi.LoadModel(path))) {
+			Cg_LoadClientSkins(ci->head, ci->head_skins, ci->skin);
+		}
 
-	snprintf(path, sizeof(path), "players/%s/upper.md3", model_name);
-	ci->upper = cgi.LoadModel(path);
+		snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
+		if ((ci->upper = cgi.LoadModel(path))) {
+			Cg_LoadClientSkins(ci->upper, ci->upper_skins, ci->skin);
+		}
 
-	snprintf(path, sizeof(path), "players/%s/lower.md3", model_name);
-	ci->lower = cgi.LoadModel(path);
-
-	// and the skins
-	snprintf(path, sizeof(path), "players/%s/%s_h.tga", model_name, skin_name);
-	ci->head_skin = cgi.LoadImage(path, it_skin);
-
-	snprintf(path, sizeof(path), "players/%s/%s_u.tga", model_name, skin_name);
-	ci->upper_skin = cgi.LoadImage(path, it_skin);
-
-	snprintf(path, sizeof(path), "players/%s/%s_l.tga", model_name, skin_name);
-	ci->lower_skin = cgi.LoadImage(path, it_skin);
+		snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
+		if ((ci->lower = cgi.LoadModel(path))) {
+			Cg_LoadClientSkins(ci->lower, ci->lower_skins, ci->skin);
+		}
+	}
 
 	// ensure we were able to load everything
 	if (!Cg_ValidateClient(ci)) {
-		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
-		return;
-	}
 
-	cgi.Debug("Loaded cl_client_info_t: %s\n", ci->info);
+		if (!strcmp(s, DEFAULT_CLIENT_INFO)) {
+			cgi.Error("Cg_LoadClient: Failed to load default client info\n");
+		}
+
+		// and if we weren't, use the default
+		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
+	}
 }
 
-/*
+/**
  * Cg_LoadClients
  *
  * Load all client info strings from the server.
@@ -133,7 +223,7 @@ void Cg_LoadClients(void) {
 	}
 }
 
-/*
+/**
  * Cg_NextAnimation
  *
  * Returns the next animation to advance to, defaulting to a no-op.
@@ -162,7 +252,7 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 	}
 }
 
-/*
+/**
  * Cg_AnimateClientEntity_
  *
  * Resolve the frames and interpolation fractions for the specified animation
@@ -232,7 +322,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 	e->back_lerp = 1.0 - a->lerp;
 }
 
-/*
+/**
  * Cg_AnimateClientEntity
  *
  * Runs the animation sequences for the specified entity, setting the frame

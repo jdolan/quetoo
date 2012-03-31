@@ -1233,7 +1233,7 @@ void G_Shutdown(void) {
 	mysql_close(mysql); // and db
 #endif
 
-	gi.FreeTag(TAG_LEVEL);
+	gi.FreeTag(TAG_GAME_LEVEL);
 	gi.FreeTag(TAG_GAME);
 }
 

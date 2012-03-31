@@ -70,8 +70,11 @@ void R_GetError_(const char *function, const char *msg) {
 	}
 }
 
-/*
+/**
  * R_SelectTexture
+ *
+ * Set the active texture unit. If the diffuse or lightmap texture units are
+ * selected, set the client state to allow binding of texture coordinates.
  */
 void R_SelectTexture(r_texunit_t *texunit) {
 
@@ -86,8 +89,10 @@ void R_SelectTexture(r_texunit_t *texunit) {
 		qglClientActiveTexture(texunit->texture);
 }
 
-/*
+/**
  * R_BindTexture
+ *
+ * Bind the specified texture for the active texture unit.
  */
 void R_BindTexture(GLuint texnum) {
 

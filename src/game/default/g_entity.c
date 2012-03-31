@@ -130,7 +130,7 @@ static char *G_NewString(const char *string) {
 
 	l = strlen(string) + 1;
 
-	newb = gi.Malloc(l, TAG_LEVEL);
+	newb = gi.Malloc(l, TAG_GAME_LEVEL);
 
 	new_p = newb;
 
@@ -395,7 +395,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	char *com_token;
 	int i;
 
-	gi.FreeTag(TAG_LEVEL);
+	gi.FreeTag(TAG_GAME_LEVEL);
 
 	memset(&g_level, 0, sizeof(g_level));
 	memset(g_game.edicts, 0, g_max_entities->value * sizeof(g_game.edicts[0]));

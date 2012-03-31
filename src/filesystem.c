@@ -228,7 +228,7 @@ void Fs_ReadFile(void *buffer, int len, FILE *f) {
  * Filename are relative to the quake search path. A NULL buffer will just
  * return the file length without loading.
  */
-int Fs_LoadFile(const char *file_name, void **buffer) {
+int Fs_LoadFile(const char *path, void **buffer) {
 	FILE *h;
 	byte *buf;
 	int len;
@@ -236,7 +236,7 @@ int Fs_LoadFile(const char *file_name, void **buffer) {
 	buf = NULL; // quiet compiler warning
 
 	// look for it in the filesystem or pak files
-	len = Fs_OpenFile(file_name, &h, FILE_READ);
+	len = Fs_OpenFile(path, &h, FILE_READ);
 	if (!h) {
 		if (buffer)
 			*buffer = NULL;

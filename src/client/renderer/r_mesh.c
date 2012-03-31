@@ -141,8 +141,7 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 
 /*
  * R_CullMeshModel
- */
-bool R_CullMeshModel(const r_entity_t *e) {
+ */bool R_CullMeshModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 
 	if (e->effects & EF_WEAPON) // never cull the weapon
@@ -230,7 +229,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	if (!r_draw_wireframe->value) {
 
 		if (!(e->effects & EF_NO_DRAW)) { // setup state for diffuse render
-			r_image_t *image = e->skin ? e->skin : e->model->skin;
+			r_image_t *image = e->skins[0] ? e->skins[0] : e->model->skin;
 
 			R_BindTexture(image->texnum);
 
@@ -270,8 +269,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 		} else {
 			R_UseMaterial(NULL, NULL);
 		}
-	}
-	else {
+	} else {
 		R_UseMaterial(NULL, NULL);
 	}
 
@@ -484,6 +482,27 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 	}
 }
 
+/**
+ * R_DrawMeshParts_default
+ *
+ * Draw the diffuse pass of each mesh segment for the specified model.
+ */
+static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
+	r_md3_mesh_t *mesh = md3->meshes;
+	int i, offset = 0;
+
+	for (i = 0; i < md3->num_meshes; i++, mesh++) {
+
+		const r_image_t *image = e->skins[i] ? e->skins[i] : e->model->skin;
+
+		R_BindTexture(image->texnum);
+
+		glDrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
+
+		offset += mesh->num_tris * 3;
+	}
+}
+
 /*
  * R_DrawMeshModel_default
  */
@@ -507,7 +526,11 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 
 	if (!(e->effects & EF_NO_DRAW)) { // draw the model
 
-		glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+		if (e->model->type == mod_md3) {
+			R_DrawMeshParts_default(e, (const r_md3_t *) e->model->extra_data);
+		} else {
+			glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+		}
 
 		R_DrawMeshShell_default(e); // draw any shell effects
 	}

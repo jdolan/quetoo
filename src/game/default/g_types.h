@@ -67,9 +67,11 @@ typedef struct {
 #define FL_GOD_MODE				0x00000004
 #define FL_TEAM_SLAVE			0x00000008  // not the first on the team
 #define FL_RESPAWN				0x80000000  // used for item respawning
+
 // memory tags to allow dynamic memory to be cleaned up
-#define TAG_GAME	765  // clear when unloading the dll
-#define TAG_LEVEL	766  // clear when loading a new level
+#define TAG_GAME 700 // clear when unloading the dll
+#define TAG_GAME_LEVEL 701 // clear when loading a new level
+
 // ammo types
 typedef enum {
 	AMMO_NONE,

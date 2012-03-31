@@ -58,19 +58,19 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 
 	int effects = s->effects;
 
-	ent->origin[2] -= 6.0; // small hack for qforcer
+	ent->origin[2] -= 6.0; // small hack for PM_SCALE
 
 	// copy the specified entity to all body segments
 	head = upper = lower = *ent;
 
 	head.model = ci->head;
-	head.skin = ci->head_skin;
+	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
 
 	upper.model = ci->upper;
-	upper.skin = ci->upper_skin;
+	memcpy(upper.skins, ci->upper_skins, sizeof(upper.skins));
 
 	lower.model = ci->lower;
-	lower.skin = ci->lower_skin;
+	memcpy(lower.skins, ci->lower_skins, sizeof(lower.skins));
 
 	Cg_AnimateClientEntity(e, &upper, &lower);
 

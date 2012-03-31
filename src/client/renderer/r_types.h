@@ -543,7 +543,8 @@ typedef struct r_entity_s {
 
 	float scale; // for mesh models
 
-	struct r_image_s *skin; // NULL for default skin
+	r_image_t *skins[MD3_MAX_MESHES]; // NULL for default skin
+	unsigned short num_skins;
 
 	unsigned int effects; // e.g. EF_ROCKET, EF_WEAPON, ..
 	vec3_t shell; // shell color

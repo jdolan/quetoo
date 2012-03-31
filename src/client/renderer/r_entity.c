@@ -119,7 +119,9 @@ const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, r_model_t *model,
 	ent.tag_name = tag_name;
 
 	ent.model = model;
-	ent.skin = NULL;
+
+	memset(ent.skins, 0, sizeof(ent.skins));
+	ent.num_skins = 0;
 
 	ent.frame = ent.old_frame = 0;
 
