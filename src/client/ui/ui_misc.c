@@ -31,13 +31,10 @@ void TW_CALL Ui_ToggleBar(void *data) {
 	TwBar *bar;
 	int i, visible = 0;
 
-	// first hide all other bars except the root bar
+	// first hide all other bars
 	for (i = 0; i < TwGetBarCount(); i++) {
 
 		bar = TwGetBarByIndex(i);
-
-		if (bar == ui.root)
-			continue;
 
 		const char *n = TwGetBarName(bar);
 

@@ -36,7 +36,16 @@ bool Ui_Event(SDL_Event *event) {
 
 	if (!(handled = TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))) {
 
-		// TODO: We may add handling for binding special keys (SPACE, ALT, ..) here.
+		if (event->key.keysym.sym == SDLK_ESCAPE && event->type == SDL_KEYDOWN) {
+
+			int visible;
+			TwGetParam(ui.root, NULL, "visible", TW_PARAM_INT32, 1, &visible);
+
+			if (!visible) {
+				Ui_ToggleBar("Quake2World");
+				handled = true;
+			}
+		}
 	}
 
 	return handled;
@@ -81,7 +90,9 @@ static TwBar *Ui_Root(void) {
 
 	TwAddButton(bar, "Quit", Ui_Command, "quit\n", NULL);
 
-	TwDefine("Quake2World size='240 150' alpha=200 iconifiable=false alwaystop=true");
+	TwDefine("Quake2World size='240 150' alpha=200 iconifiable=false");
+
+	Ui_CenterBar("Quake2World");
 
 	return bar;
 }
