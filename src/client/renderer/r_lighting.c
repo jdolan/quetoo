@@ -70,13 +70,13 @@ static int R_UpdateBspLightReferences(r_lighting_t *lighting) {
 			continue;
 
 		// is it visible to the entity; trace to origin and corners of bounding box
-		R_Trace(l->origin, lighting->origin, 0.0, MASK_SOLID);
+		R_Trace(l->origin, lighting->origin, 0.0, CONTENTS_SOLID);
 
 		if (r_view.trace.fraction < 1.0) {
-			R_Trace(l->origin, lighting->mins, 0.0, MASK_SOLID);
+			R_Trace(l->origin, lighting->mins, 0.0, CONTENTS_SOLID);
 
 			if (r_view.trace.fraction < 1.0) {
-				R_Trace(l->origin, lighting->maxs, 0.0, MASK_SOLID);
+				R_Trace(l->origin, lighting->maxs, 0.0, CONTENTS_SOLID);
 
 				if (r_view.trace.fraction < 1.0) {
 					continue;
