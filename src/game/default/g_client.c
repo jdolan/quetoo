@@ -60,25 +60,25 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 
 	switch (mod) {
 	case MOD_SUICIDE:
-		message = "sucks at life";
+		message = "gave up";
 		break;
 	case MOD_FALLING:
 		message = "challenged gravity";
 		break;
 	case MOD_CRUSH:
-		message = "likes it tight";
+		message = "was squished";
 		break;
 	case MOD_WATER:
-		message = "took a drink";
+		message = "sank like a rock";
 		break;
 	case MOD_SLIME:
-		message = "got slimed";
+		message = "melted";
 		break;
 	case MOD_LAVA:
 		message = "did a back flip into the lava";
 		break;
 	case MOD_TRIGGER_HURT:
-		message = "sucks at life";
+		message = "was in the wrong place";
 		break;
 	}
 
@@ -120,11 +120,11 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 		switch (mod) {
 		case MOD_BLASTER:
 			message = "was humilated by";
-			message2 = "'s pea shooter";
+			message2 = "'s blaster";
 			break;
 		case MOD_SHOTGUN:
 			message = "was gunned down by";
-			message2 = "'s boomstick";
+			message2 = "'s shotgun";
 			break;
 		case MOD_SUPER_SHOTGUN:
 			message = "was blown away by";
@@ -143,7 +143,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 			message2 = "'s shrapnel";
 			break;
 		case MOD_ROCKET:
-			message = "was dry-anal-powerslammed by";
+			message = "ate";
 			message2 = "'s rocket";
 			break;
 		case MOD_ROCKET_SPLASH:
@@ -159,12 +159,11 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 			message2 = "'s lightning";
 			break;
 		case MOD_LIGHTNING_DISCHARGE:
-			message = "sipped";
+			message = "was electrocuted by";
 			message2 = "'s discharge";
 			break;
 		case MOD_RAILGUN:
-			message = "was skewered by";
-			message2 = "'s railgun";
+			message = "was railed by";
 			break;
 		case MOD_BFG_LASER:
 			message = "saw the pretty lights from";
