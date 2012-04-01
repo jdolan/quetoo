@@ -130,6 +130,7 @@ typedef struct cl_client_s {
 	unsigned short server_frame_rate; // server frame rate (packets per second)
 
 	bool demo_server; // we're viewing a demo
+	bool third_person; // we're using a 3rd person camera
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 

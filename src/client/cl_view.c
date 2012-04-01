@@ -94,8 +94,8 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 	int i, ms;
 
-	if (!cl.demo_server && /*!cl_third_person->value &&*/cl_predict->value
-			&& !(cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION)) {
+	if (!cl.demo_server && !cl.third_person && cl_predict->value && !(cl.frame.ps.pmove.pm_flags
+			& PMF_NO_PREDICTION)) {
 
 		// use client sided prediction
 		for (i = 0; i < 3; i++) {

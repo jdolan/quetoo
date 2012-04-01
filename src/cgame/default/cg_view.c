@@ -121,6 +121,8 @@ static void Cg_UpdateThirdperson(const player_state_t *ps) {
 			return;
 	}
 
+	cgi.client->third_person = true;
+
 	// we're either chasing, or opting to use 3rd person
 	VectorCopy(cgi.view->angles, angles);
 
