@@ -174,7 +174,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 
 	if (!ent->ground_entity) { // not on the ground
 
-		if (ent->water_level == 3 && speed > 30.0) { // swimming
+		if (ent->water_level == 3 && speed > 10.0) { // swimming
 			G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
 			return;
 		}
@@ -190,7 +190,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 
 	// duck, walk or run after landing
 
-	if (g_level.time - 50 > ent->client->ground_time) {
+	if (g_level.time - 400 > ent->client->land_time && g_level.time - 50 > ent->client->ground_time) {
 
 		if (ent->client->ps.pmove.pm_flags & PMF_DUCKED) { // ducked
 			if (speed < 1.0)
@@ -201,7 +201,9 @@ static void G_ClientAnimation(g_edict_t *ent) {
 			return;
 		}
 
-		if (speed < 1.0) {
+		user_cmd_t *cmd = &ent->client->cmd;
+
+		if (speed < 1.0 && !cmd->forward && !cmd->right && !cmd->up) {
 			G_SetAnimation(ent, ANIM_LEGS_IDLE, false);
 			return;
 		}
@@ -278,8 +280,8 @@ void G_ClientEndFrame(g_edict_t *ent) {
 
 		xy_speed = sqrt(ent->velocity[0] * ent->velocity[0] + ent->velocity[1] * ent->velocity[1]);
 
-		if (xy_speed > 265.0 && ent->client->footstep_time < g_level.time) {
-			ent->client->footstep_time = g_level.time + 300;
+		if (xy_speed > 250.0 && ent->client->footstep_time < g_level.time) {
+			ent->client->footstep_time = g_level.time + 275;
 			ent->s.event = EV_CLIENT_FOOTSTEP;
 		}
 	}

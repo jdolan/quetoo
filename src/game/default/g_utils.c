@@ -726,12 +726,12 @@ void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, bool restart) {
 	if (anim < ANIM_LEGS_WALKCR) {
 		if (restart || ent->client->animation1_time <= g_level.time) {
 			G_SetAnimation_(&ent->s.animation1, anim, restart);
-			ent->client->animation1_time = g_level.time + 250;
+			ent->client->animation1_time = g_level.time + 50;
 		}
 	} else {
 		if (restart || ent->client->animation2_time <= g_level.time) {
 			G_SetAnimation_(&ent->s.animation2, anim, restart);
-			ent->client->animation2_time = g_level.time + 250;
+			ent->client->animation2_time = g_level.time + 50;
 		}
 	}
 }

@@ -379,6 +379,8 @@ struct g_client_s {
 
 	// private to game
 
+	user_cmd_t cmd;
+
 	g_client_persistent_t persistent;
 
 	bool show_scores; // sets layout bit mask in player state
