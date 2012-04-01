@@ -1113,7 +1113,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	const float speed = VectorNormalize(velocity);
 
 	// check for jump
-	if ((pm.s.pm_flags & PMF_JUMPED) && client->jump_time < g_level.time - 200) {
+	if ((pm.s.pm_flags & PMF_JUMPED) && client->jump_time < g_level.time - 100) {
 
 		vec3_t angles, forward, point;
 		c_trace_t tr;
@@ -1162,9 +1162,9 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 		}
 
 		if (G_IsAnimation(ent, ANIM_LEGS_JUMP2))
-			G_SetAnimation(ent, ANIM_LEGS_LAND2, false);
+			G_SetAnimation(ent, ANIM_LEGS_LAND2, true);
 		else
-			G_SetAnimation(ent, ANIM_LEGS_LAND1, false);
+			G_SetAnimation(ent, ANIM_LEGS_LAND1, true);
 
 		ent->s.event = event;
 		client->land_time = g_level.time;
