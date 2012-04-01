@@ -52,7 +52,7 @@ static pm_locals_t pml;
 #define PM_FRICT_GROUND			10.0
 #define PM_FRICT_GROUND_SLICK	2.0
 #define PM_FRICT_LADDER			12.0
-#define PM_FRICT_NO_GROUND		0.2
+#define PM_FRICT_NO_GROUND		0.1
 #define PM_FRICT_SPECTATOR		3.0
 #define PM_FRICT_SPEED_CLAMP	0.5
 #define PM_FRICT_WATER			1.0
@@ -62,7 +62,7 @@ static pm_locals_t pml;
 #define PM_SPEED_DUCKED			150.0
 #define PM_SPEED_FALL			450.0
 #define PM_SPEED_FALL_FAR		600.0
-#define PM_SPEED_JUMP			265.0
+#define PM_SPEED_JUMP			275.0
 #define PM_SPEED_LADDER			125.0
 #define PM_SPEED_LAND			300.0
 #define PM_SPEED_MAX			450.0
