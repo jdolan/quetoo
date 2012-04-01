@@ -60,7 +60,8 @@ static pm_locals_t pml;
 #define PM_SPEED_CURRENT		100.0
 #define PM_SPEED_DUCK_STAND		225.0
 #define PM_SPEED_DUCKED			150.0
-#define PM_SPEED_FALL			600.0
+#define PM_SPEED_FALL			450.0
+#define PM_SPEED_FALL_FAR		600.0
 #define PM_SPEED_JUMP			265.0
 #define PM_SPEED_LADDER			125.0
 #define PM_SPEED_LAND			300.0
@@ -460,10 +461,14 @@ static void Pm_CategorizePosition(void) {
 			// landing hard disables jumping briefly
 			if (pml.velocity[2] <= -PM_SPEED_LAND) {
 				pm->s.pm_flags |= PMF_TIME_LAND;
-				pm->s.pm_time = 16;
+				pm->s.pm_time = 1;
 
 				if (pml.velocity[2] <= -PM_SPEED_FALL) {
-					pm->s.pm_time = 64;
+					pm->s.pm_time = 16;
+
+					if (pml.velocity[2] <= -PM_SPEED_FALL_FAR) {
+						pm->s.pm_time = 64;
+					}
 				}
 			}
 
