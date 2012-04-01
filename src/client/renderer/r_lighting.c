@@ -169,7 +169,7 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 	lighting->state = LIGHTING_READY; // mark it clean
 }
 
-#define LIGHTING_AMBIENT_ATTENUATION 300.0
+#define LIGHTING_AMBIENT_ATTENUATION 250.0
 
 /*
  * R_ApplyLighting
