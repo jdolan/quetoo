@@ -194,8 +194,13 @@ void Cg_LoadEmits(void) {
 					if (e->atten == -1) // explicit -1 for global
 						e->atten = ATTN_NONE;
 					else {
-						if (e->atten == 0) // default
-							e->atten = DEFAULT_SOUND_ATTENUATION;
+						if (e->atten == 0) { // default
+							if (e->flags & EMIT_SPARKS) {
+								e->atten = ATTN_STATIC;
+							} else {
+								e->atten = DEFAULT_SOUND_ATTENUATION;
+							}
+						}
 					}
 
 					// flame and steam sounds are always looped
