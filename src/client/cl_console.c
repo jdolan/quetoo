@@ -36,7 +36,8 @@ static cvar_t *con_alpha;
  */
 void Cl_ToggleConsole_f(void) {
 
-	if (cls.loading) { // wait until we've loaded
+	if (cls.state == CL_CONNECTING || cls.state == CL_CONNECTED) {
+		// wait until we've loaded
 		return;
 	}
 

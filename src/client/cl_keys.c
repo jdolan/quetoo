@@ -124,15 +124,7 @@ static bool Cl_KeySystem(unsigned int key, unsigned short unicode __attribute__(
 
 		// connecting to a server
 		if (cls.state == CL_CONNECTING || cls.state == CL_CONNECTED) {
-			extern void Sv_ShutdownServer(const char *msg);
-
-			if (Com_WasInit(Q2W_SERVER)) { // if running a local server, kill it
-				Sv_ShutdownServer("Server aborted.\n");
-			}
-
-			Cl_Disconnect();
-			// FIXME: Black screen after this, recoverable by toggling console
-			return true;
+			Com_Error(ERR_DROP, "Connection aborted by user\n");
 		}
 
 		// message mode
