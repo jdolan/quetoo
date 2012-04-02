@@ -135,7 +135,7 @@ void Ui_Init(void) {
 	ui.player = Ui_Player();
 	ui.system = Ui_System();
 
-	Cmd_AddCommand("ui_restart", Ui_Restart_f, "Restarts the menus subsystem");
+	Cmd_AddCommand("ui_restart", Ui_Restart_f, 0, "Restarts the menus subsystem");
 }
 
 /*

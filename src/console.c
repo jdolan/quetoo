@@ -462,8 +462,8 @@ void Con_Init(void) {
 	Curses_Init();
 #endif
 
-	Cmd_AddCommand("clearconsole", Con_Clear_f, NULL);
-	Cmd_AddCommand("dumpconsole", Con_Dump_f, NULL);
+	Cmd_AddCommand("clear_console", Con_Clear_f, 0, NULL);
+	Cmd_AddCommand("dump_console", Con_Dump_f, 0, NULL);
 }
 
 /*
@@ -475,4 +475,7 @@ void Con_Shutdown(void) {
 #ifdef HAVE_CURSES
 	Curses_Shutdown();
 #endif
+
+	Cmd_RemoveCommand("clear_console");
+	Cmd_RemoveCommand("dump_console");
 }

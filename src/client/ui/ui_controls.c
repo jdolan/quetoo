@@ -65,7 +65,11 @@ TwBar *Ui_Controls(void) {
 	Ui_Bind(bar, "Talk to team", "message_mode_2", "group=Communication");
 	Ui_Bind(bar, "Show scores", "score", "group=Communication");
 
-	TwDefine("Controls size='400 600' alpha=200 iconifiable=false valueswidth=100 visible=false");
+	Ui_Bind(bar, "Toggle console", "toggle_console", "group=System");
+	Ui_Bind(bar, "Toggle fullscreen", "r_toggle_fullscreen", "group=System");
+	Ui_Bind(bar, "Take screenshot", "r_screenshot", "group=System");
+
+	TwDefine("Controls size='400 660' alpha=200 iconifiable=false valueswidth=100 visible=false");
 
 	return bar;
 }

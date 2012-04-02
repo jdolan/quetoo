@@ -264,7 +264,7 @@ void S_InitMusic(void) {
 	s_music_volume = Cvar_Get("s_music_volume", "0.25", CVAR_ARCHIVE,
 			"Music volume level.");
 
-	Cmd_AddCommand("s_next_track", S_NextTrack_f, "Play the next music track.");
+	Cmd_AddCommand("s_next_track", S_NextTrack_f, 0, "Play the next music track.");
 
 	S_FreeMusics();
 

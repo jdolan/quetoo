@@ -199,7 +199,7 @@ static void Init(int argc, char **argv) {
 	s = va("Quake2World %s %s %s", VERSION, __DATE__, BUILD_HOST);
 	Cvar_Get("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
-	Cmd_AddCommand("quit", Quit_f, "Quit Quake2World");
+	Cmd_AddCommand("quit", Quit_f, 0, "Quit Quake2World");
 
 	Net_Init();
 	Netchan_Init();

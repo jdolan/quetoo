@@ -66,41 +66,43 @@ typedef unsigned char byte;
 #endif
 
 // angle indexes
-#define PITCH				0  // up / down
-#define YAW					1  // left / right
-#define ROLL				2  // tilt / lean
-#define MAX_STRING_CHARS	1024  // max length of a string passed to Cmd_TokenizeString
-#define MAX_STRING_TOKENS	128   // max tokens resulting from Cmd_TokenizeString
-#define MAX_TOKEN_CHARS		256   // max length of an individual token
-#define MAX_QPATH			64    // max length of a quake game pathname
-#define MAX_OSPATH			256   // max length of a filesystem pathname
+#define PITCH				0 // up / down
+#define YAW					1 // left / right
+#define ROLL				2 // tilt / lean
+#define MAX_STRING_CHARS	1024 // max length of a string passed to Cmd_TokenizeString
+#define MAX_STRING_TOKENS	128 // max tokens resulting from Cmd_TokenizeString
+#define MAX_TOKEN_CHARS		256 // max length of an individual token
+#define MAX_QPATH			64 // max length of a quake game pathname
+#define MAX_OSPATH			256 // max length of a filesystem pathname
 // per-level limits
-#define MIN_CLIENTS			1     // duh
-#define MAX_CLIENTS			256   // absolute limit
-#define MAX_EDICTS			1024  // must change protocol to increase more
-#define MAX_MODELS			256   // these are sent over the net as bytes
-#define MAX_SOUNDS			256   // so they cannot be blindly increased
-#define MAX_MUSICS			8     // per level
-#define MAX_IMAGES			256   // that the server knows about
-#define MAX_ITEMS			64    // pickup items
-#define MAX_GENERAL			256   // general config strings
+#define MIN_CLIENTS			1 // duh
+#define MAX_CLIENTS			256 // absolute limit
+#define MAX_EDICTS			1024 // must change protocol to increase more
+#define MAX_MODELS			256 // these are sent over the net as bytes
+#define MAX_SOUNDS			256 // so they cannot be blindly increased
+#define MAX_MUSICS			8 // per level
+#define MAX_IMAGES			256 // that the server knows about
+#define MAX_ITEMS			64 // pickup items
+#define MAX_GENERAL			256 // general config strings
 // print levels
-#define PRINT_LOW			0  // pickup messages
-#define PRINT_MEDIUM		1  // death messages
-#define PRINT_HIGH			2  // critical messages
-#define PRINT_CHAT			3  // chat messages
-#define PRINT_TEAMCHAT		4  // teamchat messages
+#define PRINT_LOW			0 // pickup messages
+#define PRINT_MEDIUM		1 // death messages
+#define PRINT_HIGH			2 // critical messages
+#define PRINT_CHAT			3 // chat messages
+#define PRINT_TEAMCHAT		4 // teamchat messages
+// console commands
+#define CMD_SYSTEM			0x1 // always execute, even if not connected
 // console variables
-#define CVAR_ARCHIVE		0x1  // saved to quake2world.cfg
-#define CVAR_USER_INFO		0x2  // added to user_info when changed
-#define CVAR_SERVER_INFO	0x4  // added to server_info when changed
-#define CVAR_LO_ONLY		0x8  // don't allow change when connected
-#define CVAR_NO_SET			0x10  // don't allow change from console at all
-#define CVAR_LATCH			0x20  // save changes until server restart
-#define CVAR_R_CONTEXT		0x40  // effects OpenGL context
-#define CVAR_R_IMAGES		0x80  // effects image filtering
-#define CVAR_S_DEVICE		0x100  // effects sound device parameters
-#define CVAR_S_SAMPLES		0x200  // effects sound samples
+#define CVAR_ARCHIVE		0x1 // saved to quake2world.cfg
+#define CVAR_USER_INFO		0x2 // added to user_info when changed
+#define CVAR_SERVER_INFO	0x4 // added to server_info when changed
+#define CVAR_LO_ONLY		0x8 // don't allow change when connected
+#define CVAR_NO_SET			0x10 // don't allow change from console at all
+#define CVAR_LATCH			0x20 // save changes until server restart
+#define CVAR_R_CONTEXT		0x40 // effects OpenGL context
+#define CVAR_R_IMAGES		0x80 // effects image filtering
+#define CVAR_S_DEVICE		0x100 // effects sound device parameters
+#define CVAR_S_SAMPLES		0x200 // effects sound samples
 #define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_IMAGES)
 #define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_SAMPLES)
 

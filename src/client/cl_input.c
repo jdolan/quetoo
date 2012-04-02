@@ -757,31 +757,31 @@ void Cl_ClearInput(void) {
  */
 void Cl_InitInput(void) {
 
-	Cmd_AddCommand("center_view", Cl_CenterView_f, NULL);
-	Cmd_AddCommand("+move_up", Cl_Up_down_f, NULL);
-	Cmd_AddCommand("-move_up", Cl_Up_up_f, NULL);
-	Cmd_AddCommand("+move_down", Cl_Down_down_f, NULL);
-	Cmd_AddCommand("-move_down", Cl_Down_up_f, NULL);
-	Cmd_AddCommand("+left", Cl_Left_down_f, NULL);
-	Cmd_AddCommand("-left", Cl_Left_up_f, NULL);
-	Cmd_AddCommand("+right", Cl_Right_down_f, NULL);
-	Cmd_AddCommand("-right", Cl_Right_up_f, NULL);
-	Cmd_AddCommand("+forward", Cl_Forward_down_f, NULL);
-	Cmd_AddCommand("-forward", Cl_Forward_up_f, NULL);
-	Cmd_AddCommand("+back", Cl_Back_down_f, NULL);
-	Cmd_AddCommand("-back", Cl_Back_up_f, NULL);
-	Cmd_AddCommand("+look_up", Cl_LookUp_down_f, NULL);
-	Cmd_AddCommand("-look_up", Cl_LookUp_up_f, NULL);
-	Cmd_AddCommand("+look_down", Cl_LookDown_down_f, NULL);
-	Cmd_AddCommand("-look_down", Cl_LookDown_up_f, NULL);
-	Cmd_AddCommand("+move_left", Cl_MoveLeft_down_f, NULL);
-	Cmd_AddCommand("-move_left", Cl_MoveLeft_up_f, NULL);
-	Cmd_AddCommand("+move_right", Cl_MoveRight_down_f, NULL);
-	Cmd_AddCommand("-move_right", Cl_MoveRight_up_f, NULL);
-	Cmd_AddCommand("+speed", Cl_Speed_down_f, NULL);
-	Cmd_AddCommand("-speed", Cl_Speed_up_f, NULL);
-	Cmd_AddCommand("+attack", Cl_Attack_down_f, NULL);
-	Cmd_AddCommand("-attack", Cl_Attack_up_f, NULL);
+	Cmd_AddCommand("center_view", Cl_CenterView_f, 0, NULL);
+	Cmd_AddCommand("+move_up", Cl_Up_down_f, 0, NULL);
+	Cmd_AddCommand("-move_up", Cl_Up_up_f, 0, NULL);
+	Cmd_AddCommand("+move_down", Cl_Down_down_f, 0, NULL);
+	Cmd_AddCommand("-move_down", Cl_Down_up_f, 0, NULL);
+	Cmd_AddCommand("+left", Cl_Left_down_f, 0, NULL);
+	Cmd_AddCommand("-left", Cl_Left_up_f, 0, NULL);
+	Cmd_AddCommand("+right", Cl_Right_down_f, 0, NULL);
+	Cmd_AddCommand("-right", Cl_Right_up_f, 0, NULL);
+	Cmd_AddCommand("+forward", Cl_Forward_down_f, 0, NULL);
+	Cmd_AddCommand("-forward", Cl_Forward_up_f, 0, NULL);
+	Cmd_AddCommand("+back", Cl_Back_down_f, 0, NULL);
+	Cmd_AddCommand("-back", Cl_Back_up_f, 0, NULL);
+	Cmd_AddCommand("+look_up", Cl_LookUp_down_f, 0, NULL);
+	Cmd_AddCommand("-look_up", Cl_LookUp_up_f, 0, NULL);
+	Cmd_AddCommand("+look_down", Cl_LookDown_down_f, 0, NULL);
+	Cmd_AddCommand("-look_down", Cl_LookDown_up_f, 0, NULL);
+	Cmd_AddCommand("+move_left", Cl_MoveLeft_down_f, 0, NULL);
+	Cmd_AddCommand("-move_left", Cl_MoveLeft_up_f, 0, NULL);
+	Cmd_AddCommand("+move_right", Cl_MoveRight_down_f, 0, NULL);
+	Cmd_AddCommand("-move_right", Cl_MoveRight_up_f, 0, NULL);
+	Cmd_AddCommand("+speed", Cl_Speed_down_f, 0, NULL);
+	Cmd_AddCommand("-speed", Cl_Speed_up_f, 0, NULL);
+	Cmd_AddCommand("+attack", Cl_Attack_down_f, 0, NULL);
+	Cmd_AddCommand("-attack", Cl_Attack_up_f, 0, NULL);
 
 	cl_run = Cvar_Get("cl_run", "1", CVAR_ARCHIVE, NULL);
 	cl_forward_speed = Cvar_Get("cl_forward_speed", "100.0", 0, NULL);

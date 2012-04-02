@@ -36,6 +36,10 @@ static cvar_t *con_alpha;
  */
 void Cl_ToggleConsole_f(void) {
 
+	if (cls.loading) { // wait until we've loaded
+		return;
+	}
+
 	Cl_ClearTyping();
 
 	Cl_ClearNotify();
@@ -112,13 +116,12 @@ void Cl_InitConsole(void) {
 
 	con_notify_time = Cvar_Get("con_notify_time", "3", CVAR_ARCHIVE,
 			"Seconds to draw the last messages on the game top");
-	con_alpha = Cvar_Get("con_alpha", "0.3", CVAR_ARCHIVE,
-			"Console alpha background [0.0-1.0]");
+	con_alpha = Cvar_Get("con_alpha", "0.3", CVAR_ARCHIVE, "Console alpha background [0.0-1.0]");
 
-	Cmd_AddCommand("toggle_console", Cl_ToggleConsole_f, "Toggle the console");
+	Cmd_AddCommand("toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM, "Toggle the console");
 
-	Cmd_AddCommand("message_mode", Cl_MessageMode_f, "Activate chat");
-	Cmd_AddCommand("message_mode_2", Cl_MessageMode2_f, "Activate team chat");
+	Cmd_AddCommand("message_mode", Cl_MessageMode_f, 0, "Activate chat");
+	Cmd_AddCommand("message_mode_2", Cl_MessageMode2_f, 0, "Activate team chat");
 
 	Com_Print("Console initialized.\n");
 }
@@ -173,14 +176,12 @@ void Cl_DrawNotify(void) {
 
 	y = 0;
 
-	for(i = cl_con.last_line - CON_NUM_NOTIFY; i < cl_con.last_line; i++) {
+	for (i = cl_con.last_line - CON_NUM_NOTIFY; i < cl_con.last_line; i++) {
 		if (i < 0)
 			continue;
-		if (cl_con.notify_times[i % CON_NUM_NOTIFY] + con_notify_time->value
-				* 1000 > cls.real_time) {
+		if (cl_con.notify_times[i % CON_NUM_NOTIFY] + con_notify_time->value * 1000 > cls.real_time) {
 			R_DrawBytes(0, y, cl_con.line_start[i],
-					cl_con.line_start[i + 1] - cl_con.line_start[i],
-					cl_con.line_color[i]);
+					cl_con.line_start[i + 1] - cl_con.line_start[i], cl_con.line_color[i]);
 			y += ch;
 		}
 	}
@@ -238,13 +239,11 @@ void Cl_DrawConsole(void) {
 	// draw the text
 	lines = cl_con.height;
 	y = 0;
-	for (line = cl_con.last_line - cl_con.scroll - lines; line
-			< cl_con.last_line - cl_con.scroll; line++) {
+	for (line = cl_con.last_line - cl_con.scroll - lines; line < cl_con.last_line - cl_con.scroll; line++) {
 
 		if (line >= 0 && cl_con.line_start[line][0] != '\0') {
 			R_DrawBytes(0, y, cl_con.line_start[line],
-					cl_con.line_start[line + 1] - cl_con.line_start[line],
-					cl_con.line_color[line]);
+					cl_con.line_start[line + 1] - cl_con.line_start[line], cl_con.line_color[line]);
 		}
 		y += ch;
 	}

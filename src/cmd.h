@@ -72,14 +72,20 @@ void Cbuf_InsertFromDefer(void);
 
 typedef void(*cmd_function_t)(void);
 
+typedef struct cmd_function_s {
+	const char *name;
+	cmd_function_t function;
+	unsigned int flags;
+	const char *description;
+	struct cmd_function_s *next;
+} cmd_t;
+
 void Cmd_Init(void);
 
-bool Cmd_Exists(const char *name);
-void Cmd_AddUserdata(const char *name, void *userdata);
-void* Cmd_GetUserdata(const char *name);
-void *Cmd_Userdata(void);
+cmd_t *Cmd_Get(const char *name);
 
-void Cmd_AddCommand(const char *name, cmd_function_t function, const char *description);
+void Cmd_AddCommand(const char *name, cmd_function_t function, unsigned int flags,
+		const char *description);
 // called by the init functions of other parts of the program to
 // register commands and functions to call for them.
 // The name is referenced later, so it should not be in temp memory

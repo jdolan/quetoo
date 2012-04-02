@@ -561,7 +561,7 @@ char *Cvar_ServerInfo(void) {
  */
 void Cvar_Init(void) {
 
-	Cmd_AddCommand("set", Cvar_Set_f, NULL);
-	Cmd_AddCommand("toggle", Cvar_Toggle_f, NULL);
-	Cmd_AddCommand("cvar_list", Cvar_List_f, NULL);
+	Cmd_AddCommand("set", Cvar_Set_f, 0, NULL);
+	Cmd_AddCommand("toggle", Cvar_Toggle_f, 0, NULL);
+	Cmd_AddCommand("cvar_list", Cvar_List_f, 0, NULL);
 }

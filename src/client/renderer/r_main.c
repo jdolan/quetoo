@@ -578,7 +578,8 @@ static void R_InitLocal(void) {
 	r_fog = Cvar_Get("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");
 	r_fullscreen = Cvar_Get("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls fullscreen mode");
-	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls video gamma (brightness)");
+	r_gamma = Cvar_Get("r_gamma", "1.0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
+			"Controls video gamma (brightness)");
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE,
 			"Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
@@ -633,20 +634,20 @@ static void R_InitLocal(void) {
 	// prevent unnecessary reloading for initial values
 	Cvar_ClearVars(CVAR_R_MASK);
 
-	Cmd_AddCommand("r_list_models", R_ListModels_f,
+	Cmd_AddCommand("r_list_models", R_ListModels_f, 0,
 			"Print information about all the loaded models to the game console");
-	Cmd_AddCommand("r_hunk_stats", R_HunkStats_f, "Renderer memory usage information");
+	Cmd_AddCommand("r_hunk_stats", R_HunkStats_f, 0, "Renderer memory usage information");
 
-	Cmd_AddCommand("r_list_images", R_ListImages_f,
+	Cmd_AddCommand("r_list_images", R_ListImages_f, 0,
 			"Print information about all the loaded images to the game console");
-	Cmd_AddCommand("r_screenshot", R_Screenshot_f, "Take a screenshot");
+	Cmd_AddCommand("r_screenshot", R_Screenshot_f, CMD_SYSTEM, "Take a screenshot");
 
-	Cmd_AddCommand("r_sky", R_Sky_f, NULL);
+	Cmd_AddCommand("r_sky", R_Sky_f, 0, NULL);
 
-	Cmd_AddCommand("r_toggle_fullscreen", R_ToggleFullscreen_f, "Toggle fullscreen");
+	Cmd_AddCommand("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM, "Toggle fullscreen");
 
-	Cmd_AddCommand("r_reload", R_Reload_f, "Reloads all rendering media");
-	Cmd_AddCommand("r_restart", R_Restart_f, "Restart the rendering subsystem");
+	Cmd_AddCommand("r_reload", R_Reload_f, 0, "Reloads all rendering media");
+	Cmd_AddCommand("r_restart", R_Restart_f, 0, "Restart the rendering subsystem");
 }
 
 /*

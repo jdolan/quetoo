@@ -260,6 +260,6 @@ static void Cl_ViewSizeDown_f(void) {
  * Cl_InitView
  */
 void Cl_InitView(void) {
-	Cmd_AddCommand("view_size_up", Cl_ViewSizeUp_f, NULL);
-	Cmd_AddCommand("view_size_down", Cl_ViewSizeDown_f, NULL);
+	Cmd_AddCommand("view_size_up", Cl_ViewSizeUp_f, 0, NULL);
+	Cmd_AddCommand("view_size_down", Cl_ViewSizeDown_f, 0, NULL);
 }

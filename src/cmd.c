@@ -285,7 +285,7 @@ static void Cmd_Exec_f(void) {
 	Fs_FreeFile(buf);
 }
 
-/*
+/**
  * Cmd_Echo_f
  *
  * Just prints the rest of the line to the console
@@ -298,7 +298,7 @@ static void Cmd_Echo_f(void) {
 	Com_Print("\n");
 }
 
-/*
+/**
  * Cmd_Alias_f
  *
  * Creates a new command that executes a command string (possibly ; seperated)
@@ -356,21 +356,12 @@ static void Cmd_Alias_f(void) {
  *
  */
 
-typedef struct cmd_function_s {
-	struct cmd_function_s *next;
-	const char *name;
-	cmd_function_t function;
-	const char *description;
-	void *userdata;
-} cmd_command_t;
-
 static int cmd_argc;
 static char *cmd_argv[MAX_STRING_TOKENS];
 static char *cmd_null_string = "";
 static char cmd_args[MAX_STRING_CHARS];
-static void *cmd_userdata;
 
-static cmd_command_t *cmd_commands; // possible commands to execute
+static cmd_t *cmd_commands; // possible commands to execute
 
 static hash_table_t cmd_hash; // hashed for fast lookups
 
@@ -468,75 +459,25 @@ void Cmd_TokenizeString(const char *text) {
 }
 
 /*
- * Cmd_Exists
+ * Cmd_Get
  */
-bool Cmd_Exists(const char *name) {
-	cmd_command_t *cmd;
+cmd_t *Cmd_Get(const char *name) {
+	cmd_t *cmd;
 
 	for (cmd = cmd_commands; cmd; cmd = cmd->next) {
 		if (!strcmp(name, cmd->name)) {
-			return true;
+			return cmd;
 		}
 	}
-	return false;
-}
-
-/*
- * Cmd_AddUserdata
- */
-void Cmd_AddUserdata(const char *name, void *userdata) {
-	cmd_command_t *cmd;
-
-	if (!name || !name[0])
-		return;
-
-	for (cmd = cmd_commands; cmd; cmd = cmd->next) {
-		if (!strcmp(name, cmd->name)) {
-			cmd->userdata = userdata;
-			return;
-		}
-	}
-}
-
-/*
- * Cmd_GetUserdata
- *
- * Fetches the userdata for a console command.
- *
- * @param[in] name The name the command we want to add edit
- * @return @c NULL if no userdata was set or the command wasn't found, the userdata
- * pointer if it was found and set
- * @sa Cmd_AddCommand
- * @sa Cmd_CompleteCommandParameters
- * @sa Cmd_AddUserdata
- */
-void* Cmd_GetUserdata(const char *name) {
-	cmd_command_t *cmd;
-
-	if (!name || !name[0]) {
-		Com_Print("Cmd_GetUserdata: Invalide parameter\n");
-		return NULL;
-	}
-
-	if ((cmd = Hash_Get(&cmd_hash, name)))
-		return cmd->userdata;
-
-	Com_Print("Cmd_GetUserdata: '%s' not found\n", name);
 	return NULL;
-}
-
-/*
- * Cmd_Userdata
- */
-void *Cmd_Userdata(void) {
-	return cmd_userdata;
 }
 
 /*
  * Cmd_AddCommand
  */
-void Cmd_AddCommand(const char *name, cmd_function_t function, const char *description) {
-	cmd_command_t *c, *cmd;
+void Cmd_AddCommand(const char *name, cmd_function_t function, unsigned int flags,
+		const char *description) {
+	cmd_t *c, *cmd;
 
 	// fail if the command is a variable name
 	if (Cvar_GetString(name)[0]) {
@@ -544,7 +485,7 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, const char *descr
 		return;
 	}
 
-	if (Cmd_Exists(name)) {
+	if (Cmd_Get(name)) {
 		Com_Debug("Cmd_AddCommand: %s already defined\n", name);
 		return;
 	}
@@ -552,6 +493,7 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, const char *descr
 	cmd = Z_Malloc(sizeof(*cmd));
 	cmd->name = name;
 	cmd->function = function;
+	cmd->flags = flags;
 	cmd->description = description;
 
 	// hash the command
@@ -580,7 +522,7 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, const char *descr
  * Cmd_RemoveCommand
  */
 void Cmd_RemoveCommand(const char *name) {
-	cmd_command_t *cmd, **back;
+	cmd_t *cmd, **back;
 
 	Hash_Remove(&cmd_hash, name);
 
@@ -604,7 +546,7 @@ void Cmd_RemoveCommand(const char *name) {
  * Cmd_CompleteCommand
  */
 int Cmd_CompleteCommand(const char *partial, const char *matches[]) {
-	cmd_command_t *cmd;
+	cmd_t *cmd;
 	cmd_alias_t *a;
 	int len;
 	int m;
@@ -641,7 +583,7 @@ int Cmd_CompleteCommand(const char *partial, const char *matches[]) {
  * A complete command line has been parsed, so try to execute it
  */
 void Cmd_ExecuteString(const char *text) {
-	cmd_command_t *cmd;
+	cmd_t *cmd;
 	cmd_alias_t *a;
 
 	Cmd_TokenizeString(text);
@@ -652,7 +594,6 @@ void Cmd_ExecuteString(const char *text) {
 
 	if ((cmd = Hash_Get(&cmd_hash, cmd_argv[0]))) {
 		if (cmd->function) {
-			cmd_userdata = cmd->userdata;
 			cmd->function();
 		} else if (!Cvar_GetValue("dedicated") && Cmd_ForwardToServer)
 			Cmd_ForwardToServer();
@@ -684,7 +625,7 @@ void Cmd_ExecuteString(const char *text) {
  * Cmd_List_f
  */
 static void Cmd_List_f(void) {
-	cmd_command_t *cmd;
+	cmd_t *cmd;
 	int i;
 
 	i = 0;
@@ -703,11 +644,11 @@ void Cmd_Init(void) {
 
 	Hash_Init(&cmd_hash);
 
-	Cmd_AddCommand("cmd_list", Cmd_List_f, NULL);
-	Cmd_AddCommand("exec", Cmd_Exec_f, NULL);
-	Cmd_AddCommand("echo", Cmd_Echo_f, NULL);
-	Cmd_AddCommand("alias", Cmd_Alias_f, NULL);
-	Cmd_AddCommand("wait", Cmd_Wait_f, NULL);
+	Cmd_AddCommand("cmd_list", Cmd_List_f, 0, NULL);
+	Cmd_AddCommand("exec", Cmd_Exec_f, 0, NULL);
+	Cmd_AddCommand("echo", Cmd_Echo_f, 0, NULL);
+	Cmd_AddCommand("alias", Cmd_Alias_f, 0, NULL);
+	Cmd_AddCommand("wait", Cmd_Wait_f, 0, NULL);
 }
 
 /*

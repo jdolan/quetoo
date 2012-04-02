@@ -201,10 +201,8 @@ static void Sv_Status_f(void) {
 	}
 
 	Com_Print("map: %s\n", sv.name);
-	Com_Print(
-			"num score ping name            lastmsg address               qport \n");
-	Com_Print(
-			"--- ----- ---- --------------- ------- --------------------- ------\n");
+	Com_Print("num score ping name            lastmsg address               qport \n");
+	Com_Print("--- ----- ---- --------------- ------- --------------------- ------\n");
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
 		if (!cl->state)
@@ -233,7 +231,7 @@ static void Sv_Status_f(void) {
 		for (j = 0; j < l; j++)
 			Com_Print(" ");
 
-		Com_Print("%5i", (int)cl->netchan.qport);
+		Com_Print("%5i", (int) cl->netchan.qport);
 
 		Com_Print("\n");
 	}
@@ -304,9 +302,9 @@ static void Sv_Tell_f(void) {
 }
 
 /*
- * Sv_Serverinfo_f
+ * Sv_ServerInfo_f
  */
-static void Sv_Serverinfo_f(void) {
+static void Sv_ServerInfo_f(void) {
 
 	if (!svs.initialized) {
 		Com_Print("No server running.\n");
@@ -343,25 +341,20 @@ static void Sv_UserInfo_f(void) {
  */
 void Sv_InitCommands(void) {
 
-	Cmd_AddCommand("kick", Sv_Kick_f, "Kick a specific user");
-	Cmd_AddCommand("status", Sv_Status_f,
-			"Print some server status information");
-	Cmd_AddCommand("serverinfo", Sv_Serverinfo_f, "Print server info settings");
-	Cmd_AddCommand("userinfo", Sv_UserInfo_f,
-			"Print information for a given user");
+	Cmd_AddCommand("kick", Sv_Kick_f, 0, "Kick a specific user");
+	Cmd_AddCommand("status", Sv_Status_f, 0, "Print server status information");
+	Cmd_AddCommand("server_info", Sv_ServerInfo_f, 0, "Print server info settings");
+	Cmd_AddCommand("user_info", Sv_UserInfo_f, 0, "Print information for a given user");
 
-	Cmd_AddCommand("demo", Sv_Demo_f,
-			"Start playback of the specified demo file");
-	Cmd_AddCommand("map", Sv_Map_f, "Start a server for the specified map");
+	Cmd_AddCommand("demo", Sv_Demo_f, 0, "Start playback of the specified demo file");
+	Cmd_AddCommand("map", Sv_Map_f, 0, "Start a server for the specified map");
 
-	Cmd_AddCommand("set_master", Sv_SetMaster_f,
-			"Set the master server for the dedicated server");
-	Cmd_AddCommand("heartbeat", Sv_Heartbeat_f,
-			"Send a heartbeat to the master server");
+	Cmd_AddCommand("set_master", Sv_SetMaster_f, 0, "Set the master server for the dedicated server");
+	Cmd_AddCommand("heartbeat", Sv_Heartbeat_f, 0, "Send a heartbeat to the master server");
 
 	if (dedicated->value) {
-		Cmd_AddCommand("say", Sv_Say_f, NULL);
-		Cmd_AddCommand("tell", Sv_Tell_f, "Send a private message");
+		Cmd_AddCommand("say", Sv_Say_f, 0, "Send a global chat message");
+		Cmd_AddCommand("tell", Sv_Tell_f, 0, "Send a private chat message");
 	}
 }
 

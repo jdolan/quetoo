@@ -109,6 +109,82 @@ key_name_t key_names[] = {
 static cl_key_state_t *ks = &cls.key_state;
 
 /**
+ * Cl_KeySystem
+ *
+ * Execute any system-level binds, regardless of key state. This enables e.g.
+ * toggling of the console, toggling fullscreen, etc.
+ */
+static bool Cl_KeySystem(unsigned int key, unsigned short unicode __attribute__((unused)), bool down, unsigned int time __attribute__((unused))) {
+
+	if (!down) { // don't care
+		return false;
+	}
+
+	if (key == K_ESCAPE) { // escape can cancel a few things
+
+		// connecting to a server
+		if (cls.state == CL_CONNECTING || cls.state == CL_CONNECTED) {
+			extern void Sv_ShutdownServer(const char *msg);
+
+			if (Com_WasInit(Q2W_SERVER)) { // if running a local server, kill it
+				Sv_ShutdownServer("Server aborted.\n");
+			}
+
+			Cl_Disconnect();
+			// FIXME: Black screen after this, recoverable by toggling console
+			return true;
+		}
+
+		// message mode
+		if (ks->dest == KEY_CHAT) {
+			ks->dest = KEY_GAME;
+			return true;
+		}
+
+		// score
+		if (cl.frame.ps.stats[STAT_SCORES]) {
+			Cbuf_AddText("score\n");
+			return true;
+		}
+
+		// console
+		if (ks->dest == KEY_CONSOLE) {
+			Cl_ToggleConsole_f();
+			return true;
+		}
+
+		// and menus
+		if (ks->dest == KEY_UI) {
+
+			// if we're in the game, just hide the menus
+			if (cls.state == CL_ACTIVE) {
+				ks->dest = KEY_GAME;
+			}
+
+			return true;
+		}
+
+		ks->dest = KEY_UI;
+		return true;
+	}
+
+	// for everything other than ESC, check for system-level command binds
+
+	if (ks->binds[key]) {
+		cmd_t *cmd;
+
+		if ((cmd = Cmd_Get(ks->binds[key]))) {
+			if (cmd->flags & CMD_SYSTEM) {
+				cmd->function();
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/**
  * Cl_KeyConsole
  *
  * Interactive line editing and console scrollback.
@@ -303,7 +379,7 @@ static void Cl_KeyConsole(unsigned int key, unsigned short unicode, bool down, u
 /*
  * Cl_KeyGame
  */
-static void Cl_KeyGame(unsigned int key, unsigned short unicode __attribute__((unused)), bool down, unsigned time) {
+static void Cl_KeyGame(unsigned int key, unsigned short unicode __attribute__((unused)), bool down, unsigned int time) {
 	char cmd[MAX_STRING_CHARS];
 	char *kb;
 
@@ -609,10 +685,10 @@ void Cl_InitKeys(void) {
 	Cl_ReadHistory();
 
 	// register our functions
-	Cmd_AddCommand("bind", Cl_Bind_f, NULL);
-	Cmd_AddCommand("unbind", Cl_Unbind_f, NULL);
-	Cmd_AddCommand("unbind_all", Cl_UnbindAll_f, NULL);
-	Cmd_AddCommand("bind_list", Cl_BindList_f, NULL);
+	Cmd_AddCommand("bind", Cl_Bind_f, 0, NULL);
+	Cmd_AddCommand("unbind", Cl_Unbind_f, 0, NULL);
+	Cmd_AddCommand("unbind_all", Cl_UnbindAll_f, 0, NULL);
+	Cmd_AddCommand("bind_list", Cl_BindList_f, 0, NULL);
 }
 
 /*
@@ -632,70 +708,14 @@ void Cl_ShutdownKeys(void) {
  * Cl_KeyEvent
  */
 void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned time) {
-	extern void Sv_ShutdownServer(const char *msg);
 
-	if (key == K_ESCAPE && down) { // escape can cancel a few things
-
-		// connecting to a server
-		if (cls.loading) {
-			if (Com_WasInit(Q2W_SERVER)) { // if running a local server, kill it
-				Sv_ShutdownServer("Server aborted.\n");
-			}
-
-			Cl_Disconnect();
-			// FIXME: Black screen after this, recoverable by toggling console
-			return;
-		}
-
-		// message mode
-		if (ks->dest == KEY_CHAT) {
-
-			// we should always be in game here, but check to be safe
-			if (cls.state == CL_ACTIVE)
-				ks->dest = KEY_GAME;
-			else
-				ks->dest = KEY_UI;
-			return;
-		}
-
-		// score
-		if (cl.frame.ps.stats[STAT_SCORES]) {
-			Cbuf_AddText("score\n");
-			return;
-		}
-
-		// console
-		if (ks->dest == KEY_CONSOLE) {
-			Cl_ToggleConsole_f();
-			return;
-		}
-
-		// and menus
-		if (ks->dest == KEY_UI) {
-
-			// if we're in the game, just hide the menus
-			if (cls.state == CL_ACTIVE) {
-				ks->dest = KEY_GAME;
-			}
-
-			return;
-		}
-
-		ks->dest = KEY_UI;
-		return;
-	}
-
-	// tilde always toggles the console
-	if ((unicode == '`' || unicode == '~') && down) {
-		if (!cls.loading) {
-			Cl_ToggleConsole_f();
-		}
+	if (Cl_KeySystem(key, unicode, down, time)) {
 		return;
 	}
 
 	ks->down[key] = down;
 
-	if (!down) // always send up events to release button binds
+	if (!down) // FIXME always send up events to release button binds
 		Cl_KeyGame(key, unicode, down, time);
 
 	switch (ks->dest) {
@@ -703,7 +723,7 @@ void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned t
 		Cl_KeyGame(key, unicode, down, time);
 		break;
 	case KEY_UI:
-		// the UI optionally handle events through Cl_HandleEvent
+		// handled by Ui_Event, called from Cl_HandleEvent
 		break;
 	case KEY_CHAT:
 		Cl_KeyMessage(key, unicode, down, time);

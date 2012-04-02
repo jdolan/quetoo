@@ -628,18 +628,18 @@ static void Cl_InitLocal(void) {
 	recording = Cvar_Get("recording", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
 
 	// register our commands
-	Cmd_AddCommand("ping", Cl_Ping_f, NULL);
-	Cmd_AddCommand("servers", Cl_Servers_f, NULL);
-	Cmd_AddCommand("record", Cl_Record_f, NULL);
-	Cmd_AddCommand("fast_forward", Cl_FastForward_f, NULL);
-	Cmd_AddCommand("slow_motion", Cl_SlowMotion_f, NULL);
-	Cmd_AddCommand("stop", Cl_Stop_f, NULL);
-	Cmd_AddCommand("connect", Cl_Connect_f, NULL);
-	Cmd_AddCommand("reconnect", Cl_Reconnect_f, NULL);
-	Cmd_AddCommand("disconnect", Cl_Disconnect_f, NULL);
-	Cmd_AddCommand("rcon", Cl_Rcon_f, NULL);
-	Cmd_AddCommand("precache", Cl_Precache_f, NULL);
-	Cmd_AddCommand("download", Cl_Download_f, NULL);
+	Cmd_AddCommand("ping", Cl_Ping_f, 0, NULL);
+	Cmd_AddCommand("servers", Cl_Servers_f, 0, NULL);
+	Cmd_AddCommand("record", Cl_Record_f, 0, NULL);
+	Cmd_AddCommand("fast_forward", Cl_FastForward_f, 0, NULL);
+	Cmd_AddCommand("slow_motion", Cl_SlowMotion_f, 0, NULL);
+	Cmd_AddCommand("stop", Cl_Stop_f, 0, NULL);
+	Cmd_AddCommand("connect", Cl_Connect_f, 0, NULL);
+	Cmd_AddCommand("reconnect", Cl_Reconnect_f, 0, NULL);
+	Cmd_AddCommand("disconnect", Cl_Disconnect_f, 0, NULL);
+	Cmd_AddCommand("rcon", Cl_Rcon_f, 0, NULL);
+	Cmd_AddCommand("precache", Cl_Precache_f, 0, NULL);
+	Cmd_AddCommand("download", Cl_Download_f, 0, NULL);
 
 	// forward anything we don't handle locally to the server
 	Cmd_ForwardToServer = Cl_ForwardCmdToServer;

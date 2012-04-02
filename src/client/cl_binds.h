@@ -23,8 +23,9 @@
 #define __CL_BINDS_H__
 
 static const char *DEFAULT_BINDS =
-
-"bind 1 use blaster\n"
+	"bind ` toggle_console\n"
+	"bind F8 toggle_console\n"
+	"bind 1 use blaster\n"
 	"bind 2 use shotgun\n"
 	"bind 3 use super shotgun\n"
 	"bind 4 use machinegun\n"
@@ -50,12 +51,10 @@ static const char *DEFAULT_BINDS =
 	"bind SHIFT +speed\n"
 	"bind CTRL +attack\n"
 
+	"bind TAB score\n"
 	"bind x score\n"
 	"bind t message_mode\n"
 	"bind y message_mode_2\n"
-
-	"bind TAB score\n"
-	"bind F12 r_screenshot\n"
 
 	"bind MOUSE1 +attack\n"
 	"bind MOUSE2 +move_up\n"
@@ -106,6 +105,7 @@ static const char *DEFAULT_BINDS =
 	"\"\n"
 
 	"bind F10 SCREENSHOTS\n"
-	"bind F11 r_toggle_fullscreen\n";
+	"bind F11 r_toggle_fullscreen\n"
+	"bind F12 r_screenshot\n";
 
 #endif /* __CL_BINDS_H__ */

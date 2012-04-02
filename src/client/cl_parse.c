@@ -37,8 +37,8 @@ static char *sv_cmd_names[256] = {
 /**
  * Cl_CheckOrDownloadFile
  *
- * Returns true if the file exists, otherwise it attempts
- * to start a download from the server.
+ * Returns true if the file exists, otherwise it attempts to start a download
+ * from the server.
  */
 bool Cl_CheckOrDownloadFile(const char *file_name) {
 	FILE *fp;

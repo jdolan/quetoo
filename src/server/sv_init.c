@@ -28,8 +28,8 @@
  * desired name.  If not found, the name can be optionally created and sent to
  * all connected clients.  This allows the game to lazily load assets.
  */
-static unsigned short Sv_FindIndex(const char *name, unsigned short start,
-		unsigned short max, bool create) {
+static unsigned short Sv_FindIndex(const char *name, unsigned short start, unsigned short max,
+		bool create) {
 	unsigned short i;
 
 	if (!name || !name[0])
@@ -220,14 +220,11 @@ static void Sv_InitClients(void) {
 		Sv_UpdateLatchedVars();
 
 		// initialize the clients array
-		svs.clients = Z_Malloc(
-				sizeof(sv_client_t) * (int) sv_max_clients->integer);
+		svs.clients = Z_Malloc(sizeof(sv_client_t) * (int) sv_max_clients->integer);
 
 		// and the entity states array
-		svs.num_entity_states = sv_max_clients->integer * UPDATE_BACKUP
-				* MAX_PACKET_ENTITIES;
-		svs.entity_states = Z_Malloc(
-				sizeof(entity_state_t) * svs.num_entity_states);
+		svs.num_entity_states = sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
+		svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
 
 		svs.frame_rate = sv_framerate->integer;
 
@@ -306,8 +303,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		Sv_CreateBaseline();
 
-		Com_Print("  Loaded map %s, %d entities.\n", sv.name,
-				svs.game->num_edicts);
+		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_edicts);
 	}
 	snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", mapsize);
 

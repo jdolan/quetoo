@@ -197,14 +197,14 @@ static void Cl_AddLocation_f(void) {
  * Cl_InitLocations
  */
 void Cl_InitLocations(void) {
-	Cmd_AddCommand("addloc", Cl_AddLocation_f, NULL);
-	Cmd_AddCommand("savelocs", Cl_SaveLocations_f, NULL);
+	Cmd_AddCommand("add_loc", Cl_AddLocation_f, 0, NULL);
+	Cmd_AddCommand("save_locs", Cl_SaveLocations_f, 0, NULL);
 }
 
 /*
  * Cl_ShutdownLocations
  */
 void Cl_ShutdownLocations(void) {
-	Cmd_RemoveCommand("addloc");
-	Cmd_RemoveCommand("savelocs");
+	Cmd_RemoveCommand("add_loc");
+	Cmd_RemoveCommand("save_locs");
 }
