@@ -82,7 +82,11 @@ static void Error(err_t err, const char *msg) {
 
 #ifdef BUILD_CLIENT
 		Cl_Disconnect();
-		cls.key_state.dest = KEY_CONSOLE;
+		if (err == ERR_NONE) {
+			cls.key_state.dest = KEY_UI;
+		} else {
+			cls.key_state.dest = KEY_CONSOLE;
+		}
 #endif
 
 		longjmp(environment, 0);
@@ -251,8 +255,8 @@ static void Frame(unsigned int msec) {
 	extern cvar_t *threads;
 
 	if (show_trace->value) {
-		Com_Print("%4i traces (%4i clips), %4i points\n", c_traces,
-				c_bsp_brush_traces, c_point_contents);
+		Com_Print("%4i traces (%4i clips), %4i points\n", c_traces, c_bsp_brush_traces,
+				c_point_contents);
 		c_traces = c_bsp_brush_traces = c_point_contents = 0;
 	}
 
@@ -326,8 +330,7 @@ int main(int argc, char **argv) {
 		do {
 			quake2world.time = Sys_Milliseconds();
 			msec = (quake2world.time - old_time) * time_scale->value;
-		}
-		while (msec < 1);
+		} while (msec < 1);
 
 		Frame(msec);
 	}

@@ -124,7 +124,7 @@ static bool Cl_KeySystem(unsigned int key, unsigned short unicode __attribute__(
 
 		// connecting to a server
 		if (cls.state == CL_CONNECTING || cls.state == CL_CONNECTED) {
-			Com_Error(ERR_DROP, "Connection aborted by user\n");
+			Com_Error(ERR_NONE, "Connection aborted by user\n");
 		}
 
 		// message mode
