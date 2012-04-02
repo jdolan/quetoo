@@ -374,8 +374,9 @@ void Cvar_UpdateLatchedVars(void) {
 		var->string = var->latched_string;
 		var->latched_string = NULL;
 		var->value = atof(var->string);
+		var->integer = atoi(var->string);
 
-		// a little hack here to add new game modules to the searchpath
+		// a little hack here to add new game modules to the search path
 		if (!strcmp(var->name, "game")) {
 			Fs_SetGame(var->string);
 			Fs_ExecAutoexec();
