@@ -148,7 +148,7 @@ static void G_ResetItems(void) {
 			}
 		} else { // everything else honors gameplay
 
-			if (g_level.gameplay) { // hide items
+			if (g_level.gameplay > 1) { // hide items
 				ent->sv_flags |= SVF_NO_CLIENT;
 				ent->solid = SOLID_NOT;
 				ent->next_think = 0;
@@ -895,7 +895,8 @@ static void G_InitMapList(void) {
 
 	for (i = 0; i < MAX_MAP_LIST_ELTS; i++) {
 		g_map_list_elt_t *map = &g_map_list.maps[i];
-		map->gravity = map->gameplay = -1;
+		map->gravity = -1;
+		map->gameplay = 0;
 		map->teams = map->ctf = map->match = -1;
 		map->frag_limit = map->round_limit = map->capture_limit = -1;
 		map->time_limit = -1;

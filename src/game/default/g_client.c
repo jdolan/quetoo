@@ -293,13 +293,13 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 
 	G_ClientObituary(self, attacker);
 
-	if (!g_level.gameplay && !g_level.warmup) // drop weapon
+	if (g_level.gameplay > 1 && !g_level.warmup) // drop weapon
 		G_TossWeapon(self);
 
 	self->client->new_weapon = NULL; // reset weapon state
 	G_ChangeWeapon(self);
 
-	if (!g_level.gameplay && !g_level.warmup) // drop quad
+	if (g_level.gameplay > 1 && !g_level.warmup) // drop quad
 		G_TossQuadDamage(self);
 
 	if (g_level.ctf && !g_level.warmup) // drop flag in ctf

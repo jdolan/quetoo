@@ -306,7 +306,7 @@ typedef enum {
 
 // gameplay modes
 typedef enum {
-	DEATHMATCH, INSTAGIB, ARENA
+	DEFAULT, DEATHMATCH, INSTAGIB, ARENA
 }g_gameplay_t;
 
 #define TEAM_CHANGE_TIME 5.0

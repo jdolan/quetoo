@@ -490,6 +490,8 @@ bool G_KillBox(g_edict_t *ent) {
  */
 char *G_GameplayName(int g) {
 	switch (g) {
+	case DEATHMATCH:
+		return "DEATHMATCH";
 	case INSTAGIB:
 		return "INSTAGIB";
 	case ARENA:
@@ -509,10 +511,12 @@ int G_GameplayByName(char *c) {
 
 	switch (*c) { // hack for numeric matches, atoi wont cut it
 	case '0':
-		return DEATHMATCH;
+		return DEFAULT;
 	case '1':
-		return INSTAGIB;
+		return DEATHMATCH;
 	case '2':
+		return INSTAGIB;
+	case '3':
 		return ARENA;
 	default:
 		break;
@@ -522,7 +526,9 @@ int G_GameplayByName(char *c) {
 		return INSTAGIB;
 	if (strstr(Lowercase(c), "arena"))
 		return ARENA;
-	return DEATHMATCH;
+	if (strstr(Lowercase(c), "deathmatch") || strstr(Lowercase(c), "dm"))
+		return DEATHMATCH;
+	return DEFAULT;
 }
 
 /*

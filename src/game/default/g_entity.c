@@ -463,7 +463,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 		G_SpawnEntity(ent);
 
-		if (g_level.gameplay && ent->item) { // now that we've spawned them, hide them
+		if (g_level.gameplay > 1 && ent->item) { // now that we've spawned them, hide them
 			ent->sv_flags |= SVF_NO_CLIENT;
 			ent->solid = SOLID_NOT;
 			ent->next_think = 0;
@@ -587,9 +587,11 @@ static void G_worldspawn(g_edict_t *ent) {
 	}
 	gi.ConfigString(CS_GRAVITY, va("%d", g_level.gravity));
 
-	if (map && map->gameplay > -1) // prefer maps.lst gameplay
+	if(g_gameplay->integer > 0) { // perfer g_gameplay
+		g_level.gameplay = g_gameplay->integer;
+	} else if (map && map->gameplay > -1) { // then maps.lst gameplay
 		g_level.gameplay = map->gameplay;
-	else { // or fall back on worldspawn
+	} else { // or fall back on worldspawn
 		if (g_game.spawn.gameplay && *g_game.spawn.gameplay)
 			g_level.gameplay = G_GameplayByName(g_game.spawn.gameplay);
 		else

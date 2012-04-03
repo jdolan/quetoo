@@ -236,7 +236,7 @@ static void G_Drop_f(g_edict_t *ent) {
 	char *s;
 
 	// we dont drop in instagib or arena
-	if (g_level.gameplay)
+	if (g_level.gameplay > 1)
 		return;
 
 	if (ent->dead)
