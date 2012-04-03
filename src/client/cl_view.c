@@ -103,11 +103,11 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 			r_view.origin[i] -= (1.0 - cl.lerp) * cl.prediction_error[i];
 		}
 
-		// lerp stairs over 50ms
+		// lerp stairs over 100ms
 		ms = cls.real_time - cl.predicted_step_time;
 
-		if (ms < 50) // small step
-			r_view.origin[2] -= cl.predicted_step * (50 - ms) * 0.02;
+		if (ms < 100) // small step
+			r_view.origin[2] -= cl.predicted_step * ((100 - ms) / 100.0);
 	} else { // just use interpolated values from frame
 		for (i = 0; i < 3; i++) {
 			r_view.origin[i] = ops->pmove.origin[i] + cl.lerp * (ps->pmove.origin[i]
