@@ -26,7 +26,7 @@
 
 bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor);
 void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t dir,
-		vec3_t point, vec3_t normal, int damage, int knockback, int dflags, int mod);
+		vec3_t point, vec3_t normal, short damage, short knockback, int dflags, int mod);
 bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2);
 void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore,
 		int damage, int knockback, float radius, int mod);

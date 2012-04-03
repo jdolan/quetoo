@@ -173,12 +173,12 @@ static int G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int damage,
  * 	DAMAGE_NO_PROTECTION	kills godmode, armor, everything
  */
 void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t dir, vec3_t point,
-		vec3_t normal, int damage, int knockback, int dflags, int mod) {
+		vec3_t normal, short damage, short knockback, int dflags, int mod) {
 
 	g_client_t *client;
-	int take;
-	int save;
-	int asave;
+	short take;
+	short save;
+	short asave;
 	int te_sparks;
 	float scale;
 

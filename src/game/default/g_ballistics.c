@@ -799,7 +799,7 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage
 
 		if ((tr.ent != ent) && (tr.ent->take_damage)) {
 			if (tr.ent->client && ((int) g_level.gameplay == INSTAGIB))
-				damage = 9999; // be sure to cause a kill
+				damage = 1000; // be sure to cause a kill
 			G_Damage(tr.ent, ent, ent, aimdir, tr.end, tr.plane.normal, damage, knockback, 0,
 					MOD_RAILGUN);
 		}
