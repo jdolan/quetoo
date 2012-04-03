@@ -118,7 +118,11 @@ static void Cg_UpdateKick(const player_state_t *ps) {
 		return;
 	}
 
-	if (kick_time < cgi.client->time) {
+	// clamp the kick time to our working bounds
+
+	if (kick_time > cgi.client->time + KICK_TIME) {
+		kick_time = cgi.client->time;
+	} else if (kick_time < cgi.client->time) {
 		kick_time = cgi.client->time;
 	}
 
