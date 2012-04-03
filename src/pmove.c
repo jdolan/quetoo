@@ -257,14 +257,13 @@ static void Pm_StepSlideMove(void) {
 
 	trace = pm->Trace(org, pm->mins, pm->maxs, up);
 
-	if (trace.fraction == 0.0) // it's not
+	if (trace.all_solid) { // it's not
 		return;
+	}
 
 	// an upward position is available, try to step from there
 	VectorCopy(trace.end, pml.origin);
-
 	VectorCopy(vel, pml.velocity);
-	pml.velocity[2] += PM_SPEED_STAIRS;
 
 	Pm_StepSlideMove_(); // step up
 
@@ -272,21 +271,17 @@ static void Pm_StepSlideMove(void) {
 	down[2] = clipped_org[2];
 
 	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, down);
-	VectorCopy(trace.end, pml.origin);
 
-	// ensure that what we stepped upon was actually step-able
-	if (trace.plane.normal[2] < PM_STAIR_NORMAL) {
-		VectorCopy(clipped_org, pml.origin);
-		VectorCopy(clipped_vel, pml.velocity);
-	} else { // the step was successful
-		if (pml.origin[2] - clipped_org[2] >= 4.0) // we are in fact on stairs
-			pm->s.pm_flags |= PMF_ON_STAIRS;
+	if (!trace.all_solid) {
+		VectorCopy(trace.end, pml.origin);
+	}
 
-		if (pml.velocity[2] < 0.0) // clamp to positive velocity
-			pml.velocity[2] = 0.0;
+	if (trace.fraction < 1.0 && pm->cmd.up < 1) {
+		Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_FLOOR);
+	}
 
-		if (pml.velocity[2] > clipped_vel[2]) // but don't launch
-			pml.velocity[2] = clipped_vel[2];
+	if (pml.origin[2] - clipped_org[2] >= 4.0) { // we are in fact on stairs
+		pm->s.pm_flags |= PMF_ON_STAIRS;
 	}
 }
 
