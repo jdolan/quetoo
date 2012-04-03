@@ -276,8 +276,12 @@ static void Pm_StepSlideMove(void) {
 		VectorCopy(trace.end, pml.origin);
 	}
 
-	if (trace.fraction < 1.0 && pm->cmd.up < 1) {
+	if (trace.fraction < 1.0 && pm->cmd.up < 1) { // clip to the new floor
 		Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_FLOOR);
+
+		if (pml.velocity[2] < vel[2]) { // but don't slow down on Z
+			pml.velocity[2] = vel[2];
+		}
 	}
 
 	if (pml.origin[2] - clipped_org[2] >= 4.0) { // we are in fact on stairs
