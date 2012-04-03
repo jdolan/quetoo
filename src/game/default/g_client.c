@@ -181,7 +181,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 
 		if (message) {
 
-			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s %s\n", (ff ? "^1TEAMKILL^7 " : ""),
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s%s\n", (ff ? "^1TEAMKILL^7 " : ""),
 					self->client->persistent.net_name, message,
 					attacker->client->persistent.net_name, message2);
 

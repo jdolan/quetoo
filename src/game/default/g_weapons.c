@@ -318,7 +318,7 @@ static void G_FireBlaster_(g_edict_t *ent) {
 
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_BlasterProjectile(ent, org, forward, 1000, 8, 2);
+	G_BlasterProjectile(ent, org, forward, 1000, 15, 2);
 
 	G_MuzzleFlash(ent, MZ_BLASTER);
 }
