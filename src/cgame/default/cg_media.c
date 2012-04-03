@@ -58,7 +58,6 @@ r_image_t *cg_particle_beam;
 r_image_t *cg_particle_burn;
 r_image_t *cg_particle_blood;
 r_image_t *cg_particle_lightning;
-r_image_t *cg_particle_rail_trail;
 r_image_t *cg_particle_flame;
 r_image_t *cg_particle_spark;
 r_image_t *cg_particle_inactive;
@@ -122,7 +121,6 @@ void Cg_UpdateMedia(void) {
 	cg_particle_burn = cgi.LoadImage("particles/burn.tga", it_effect);
 	cg_particle_blood = cgi.LoadImage("particles/blood.tga", it_effect);
 	cg_particle_lightning = cgi.LoadImage("particles/lightning.tga", it_effect);
-	cg_particle_rail_trail = cgi.LoadImage("particles/railtrail.tga", it_effect);
 	cg_particle_flame = cgi.LoadImage("particles/flame.tga", it_effect);
 	cg_particle_spark = cgi.LoadImage("particles/spark.tga", it_effect);
 	cg_particle_inactive = cgi.LoadImage("particles/inactive.tga", it_effect);

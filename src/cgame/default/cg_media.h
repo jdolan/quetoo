@@ -62,7 +62,6 @@ extern r_image_t *cg_particle_beam;
 extern r_image_t *cg_particle_burn;
 extern r_image_t *cg_particle_blood;
 extern r_image_t *cg_particle_lightning;
-extern r_image_t *cg_particle_rail_trail;
 extern r_image_t *cg_particle_flame;
 extern r_image_t *cg_particle_spark;
 extern r_image_t *cg_particle_inactive;

@@ -469,7 +469,7 @@ static void Cg_LightningEffect(const vec3_t org) {
  * Cg_RailEffect
  */
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, int flags, int color) {
-	vec3_t vec, move;
+	vec3_t vec, right, up, point;
 	float len;
 	r_particle_t *p;
 	r_sustained_light_t s;
@@ -478,7 +478,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int flags, int c
 	VectorCopy(start, s.light.origin);
 	s.light.radius = 100.0;
 	cgi.ColorFromPalette(color, s.light.color);
-	s.sustain = 0.75;
+	s.sustain = 0.5;
 
 	cgi.AddSustainedLight(&s);
 
@@ -494,45 +494,52 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int flags, int c
 	VectorCopy(end, p->end);
 
 	p->alpha = 0.75;
-	p->alpha_vel = -0.75;
+	p->alpha_vel = -1.0;
 
 	// white cores for some colors, shifted for others
 	p->color = (color > 239 || color == 187 ? 216 : color + 6);
 
 	// and the spiral with normal parts
-	VectorCopy(start, move);
+	VectorCopy(start, point);
 
 	VectorSubtract(end, start, vec);
 	len = VectorNormalize(vec);
 
-	for (i = 0; i < len; i += 24) {
+	VectorSet(right, vec[2], -vec[0], vec[1]);
+	CrossProduct(vec, right, up);
+
+	for (i = 0; i < len; i++) {
 
 		if (!(p = Cg_AllocParticle()))
 			return;
 
-		p->type = PARTICLE_ROLL;
-		p->roll = Randomc() * 300.0;
+		VectorAdd(point, vec, point);
 
-		VectorMA(start, i, vec, p->org);
+		VectorCopy(point, p->org);
 
-		VectorSet(p->vel, 0.0, 0.0, 2.0);
+		VectorScale(vec, 2.0, p->vel);
 
-		p->image = cg_particle_rail_trail;
+		VectorMA(p->org, cos(i * 0.1) * 6.0, right, p->org);
+		VectorMA(p->org, sin(i * 0.1) * 6.0, up, p->org);
 
 		p->alpha = 1.0;
-		p->alpha_vel = -1.0;
+		p->alpha_vel = -2.0 + i / len;
 
-		p->scale = 3.0 + Randomc() * 0.3;
-		p->scale_vel = 8.0 + Randomc() * 0.3;
+		p->scale = 1.5 + Randomc() * 0.2;
+		p->scale_vel = 2.0 + Randomc() * 0.2;
 
 		p->color = color;
 
 		// check for bubble trail
-		if (i && (cgi.PointContents(move) & MASK_WATER)) {
-			Cg_BubbleTrail(move, p->org, 16.0);
+		if (i % 24 == 0 && (cgi.PointContents(point) & MASK_WATER)) {
+			Cg_BubbleTrail(point, p->org, 16.0);
 		}
 
-		VectorCopy(p->org, move);
+		// add sustained lights
+		if (i > 0 && i < len - 64.0 && i % 64 == 0) {
+			VectorCopy(point, s.light.origin);
+			cgi.AddSustainedLight(&s);
+		}
 	}
 
 	// check for explosion effect on solids
