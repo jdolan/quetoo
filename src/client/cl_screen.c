@@ -146,7 +146,7 @@ static void Cl_DrawCounters(void) {
 
 	if (cls.real_time - millis >= 1000) {
 
-		VectorCopy(r_view.velocity, velocity);
+		VectorScale(cl.frame.ps.pmove.velocity, 0.125, velocity);
 		velocity[2] = 0.0;
 
 		snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
@@ -205,7 +205,7 @@ void Cl_UpdateScreen(void) {
 
 		R_Setup3D();
 
-		R_DrawScene();
+		R_DrawView();
 
 		R_Setup2D();
 

@@ -214,31 +214,31 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.DrawFrame = Cg_DrawFrame;
 
 	// forward to server commands
-	cgi.AddCommand("wave", NULL, NULL);
-	cgi.AddCommand("kill", NULL, NULL);
-	cgi.AddCommand("use", NULL, NULL);
-	cgi.AddCommand("drop", NULL, NULL);
-	cgi.AddCommand("say", NULL, NULL);
-	cgi.AddCommand("say_team", NULL, NULL);
-	cgi.AddCommand("info", NULL, NULL);
-	cgi.AddCommand("give", NULL, NULL);
-	cgi.AddCommand("god", NULL, NULL);
-	cgi.AddCommand("no_clip", NULL, NULL);
-	cgi.AddCommand("weapon_next", NULL, NULL);
-	cgi.AddCommand("weapon_previous", NULL, NULL);
-	cgi.AddCommand("weapon_last", NULL, NULL);
-	cgi.AddCommand("vote", NULL, NULL);
-	cgi.AddCommand("team", NULL, NULL);
-	cgi.AddCommand("team_name", NULL, NULL);
-	cgi.AddCommand("team_skin", NULL, NULL);
-	cgi.AddCommand("spectate", NULL, NULL);
-	cgi.AddCommand("join", NULL, NULL);
-	cgi.AddCommand("score", NULL, NULL);
-	cgi.AddCommand("ready", NULL, NULL);
-	cgi.AddCommand("unready", NULL, NULL);
-	cgi.AddCommand("player_list", NULL, NULL);
-	cgi.AddCommand("config_strings", NULL, NULL);
-	cgi.AddCommand("baselines", NULL, NULL);
+	cgi.AddCommand("wave", NULL, 0, NULL);
+	cgi.AddCommand("kill", NULL, 0, NULL);
+	cgi.AddCommand("use", NULL, 0, NULL);
+	cgi.AddCommand("drop", NULL, 0, NULL);
+	cgi.AddCommand("say", NULL, 0, NULL);
+	cgi.AddCommand("say_team", NULL, 0, NULL);
+	cgi.AddCommand("info", NULL, 0, NULL);
+	cgi.AddCommand("give", NULL, 0, NULL);
+	cgi.AddCommand("god", NULL, 0, NULL);
+	cgi.AddCommand("no_clip", NULL, 0, NULL);
+	cgi.AddCommand("weapon_next", NULL, 0, NULL);
+	cgi.AddCommand("weapon_previous", NULL, 0, NULL);
+	cgi.AddCommand("weapon_last", NULL, 0, NULL);
+	cgi.AddCommand("vote", NULL, 0, NULL);
+	cgi.AddCommand("team", NULL, 0, NULL);
+	cgi.AddCommand("team_name", NULL, 0, NULL);
+	cgi.AddCommand("team_skin", NULL, 0, NULL);
+	cgi.AddCommand("spectate", NULL, 0, NULL);
+	cgi.AddCommand("join", NULL, 0, NULL);
+	cgi.AddCommand("score", NULL, 0, NULL);
+	cgi.AddCommand("ready", NULL, 0, NULL);
+	cgi.AddCommand("unready", NULL, 0, NULL);
+	cgi.AddCommand("player_list", NULL, 0, NULL);
+	cgi.AddCommand("config_strings", NULL, 0, NULL);
+	cgi.AddCommand("baselines", NULL, 0, NULL);
 
 	return &cge;
 }

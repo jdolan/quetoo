@@ -170,22 +170,6 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
 	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
 }
 
-/*
- * Cl_UpdateVelocity
- */
-static void Cl_UpdateVelocity(player_state_t *ps, player_state_t *ops) {
-	vec3_t old_vel, new_vel;
-
-	VectorCopy(ops->pmove.velocity, old_vel);
-	VectorCopy(ps->pmove.velocity, new_vel);
-
-	// lerp it
-	VectorMix(old_vel, new_vel, cl.lerp, r_view.velocity);
-
-	// convert back to float
-	VectorScale(r_view.velocity, 0.125, r_view.velocity);
-}
-
 /**
  * Cl_UpdateView
  *
@@ -214,7 +198,7 @@ void Cl_UpdateView(void) {
 	if (ps != ops) { // see if we've teleported
 		VectorSubtract(ps->pmove.origin, ops->pmove.origin, delta);
 		if (VectorLength(delta) > 256.0 * 8.0)
-			ops = ps; // don't lerp
+			ops = ps; // don't interpolate
 	}
 
 	Cl_ClearView();
@@ -223,17 +207,12 @@ void Cl_UpdateView(void) {
 
 	Cl_UpdateAngles(ps, ops);
 
-	Cl_UpdateVelocity(ps, ops);
-
 	Cl_UpdateViewSize();
 
 	cls.cgame->UpdateView(&cl.frame);
 
 	// set time in seconds
 	r_view.time = cl.time * 0.001;
-
-	// inform the renderer if the client is on the ground
-	r_view.ground = ps->pmove.pm_flags & PMF_ON_GROUND;
 
 	// set area bits to mark visible leafs
 	r_view.area_bits = cl.frame.area_bits;

@@ -78,7 +78,7 @@ c_trace_t R_Trace(const vec3_t start, const vec3_t end, float radius, int mask);
 void R_Init(void);
 void R_Shutdown(void);
 void R_BeginFrame(void);
-void R_DrawScene(void);
+void R_DrawView(void);
 void R_EndFrame(void);
 void R_LoadMedia(void);
 

@@ -193,10 +193,12 @@ void R_UpdateFrustum(void) {
 	}
 }
 
-/*
- * R_DrawScene
+/**
+ * R_DrawView
+ *
+ * Main entry point for drawing the scene (world and entities).
  */
-void R_DrawScene(void) {
+void R_DrawView(void) {
 
 	R_UpdateFrustum();
 

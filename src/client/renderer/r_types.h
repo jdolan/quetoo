@@ -619,14 +619,12 @@ typedef struct r_view_s {
 	r_pixel_t x, y, width, height; // in virtual screen coordinates
 	vec2_t fov;
 
-	vec3_t origin; // client's view origin, angles, and velocity
+	vec3_t origin; // client's view origin, angles, and vectors
 	vec3_t angles;
-	vec3_t velocity;
 	vec3_t forward;
 	vec3_t right;
 	vec3_t up;
 
-	bool ground; // client is on ground
 	unsigned int contents; // view origin contents mask
 	float bob;
 

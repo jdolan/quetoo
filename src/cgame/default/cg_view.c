@@ -46,58 +46,6 @@ static void Cg_UpdateFov(void) {
 	cg_fov->modified = false;
 }
 
-/**
- * Cg_UpdateBob
- *
- * Calculate the view bob.  This is done using a running time counter and a
- * simple sin function.  The player's speed, as well as whether or not they
- * are on the ground, determine the bob frequency and amplitude.
- */
-static void Cg_UpdateBob(void) {
-	static float time, vtime;
-	float ftime, speed;
-	vec3_t velocity;
-
-	if (!cg_bob->value)
-		return;
-
-	if (cg_third_person->value)
-		return;
-
-	if (cgi.client->frame.ps.pmove.pm_type != PM_NORMAL)
-		return;
-
-	const bool ducked = cgi.client->frame.ps.pmove.pm_flags & PMF_DUCKED;
-
-	VectorCopy(cgi.view->velocity, velocity);
-	velocity[2] = 0.0;
-
-	speed = VectorLength(velocity) / (ducked ? 150 : 450.0);
-
-	if (speed > 1.0)
-		speed = 1.0;
-
-	ftime = cgi.view->time - vtime;
-
-	if (ftime < 0.0) // clamp for level changes
-		ftime = 0.0;
-
-	ftime *= (1.0 + speed * 1.0 + speed);
-
-	if (!cgi.view->ground)
-		ftime *= 0.25;
-
-	time += ftime;
-	vtime = cgi.view->time;
-
-	cgi.view->bob = sin(3.5 * time) * (0.5 + speed) * (0.5 + speed);
-
-	cgi.view->bob *= cg_bob->value; // scale via cvar too
-
-	VectorMA(cgi.view->origin, -cgi.view->bob, cgi.view->forward, cgi.view->origin);
-	VectorMA(cgi.view->origin, cgi.view->bob, cgi.view->right, cgi.view->origin);
-	VectorMA(cgi.view->origin, cgi.view->bob, cgi.view->up, cgi.view->origin);
-}
 
 /**
  * Cg_UpdateThirdperson
@@ -155,6 +103,103 @@ static void Cg_UpdateThirdperson(const player_state_t *ps) {
 	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
 }
 
+#define KICK_TIME 300
+
+/**
+ * Cg_UpdateKick
+ *
+ * Calculate the view kick.
+ */
+static void Cg_UpdateKick(const player_state_t *ps) {
+	static unsigned int kick_time;
+	static float kick;
+
+	if (ps->pmove.pm_type == PM_FREEZE) {
+		return;
+	}
+
+	if (kick_time < cgi.client->time) {
+		kick_time = cgi.client->time;
+	}
+
+	// add falling kick
+
+	const cl_entity_t *ent = &cgi.client->entities[cgi.client->player_num + 1];
+
+	switch (ent->current.event) {
+
+	case EV_CLIENT_LAND:
+		kick = 2.5;
+		kick_time += KICK_TIME;
+		break;
+	case EV_CLIENT_FALL:
+		kick = 5.0;
+		kick_time += KICK_TIME;
+		break;
+	case EV_CLIENT_FALL_FAR:
+		kick = 10.0;
+		kick_time += KICK_TIME;
+		break;
+	default:
+		break;
+	}
+
+	cgi.view->angles[PITCH] += kick * ((kick_time - cgi.client->time) / (float) KICK_TIME);
+}
+
+/**
+ * Cg_UpdateBob
+ *
+ * Calculate the view bob.  This is done using a running time counter and a
+ * simple sin function.  The player's speed, as well as whether or not they
+ * are on the ground, determine the bob frequency and amplitude.
+ */
+static void Cg_UpdateBob(const player_state_t *ps) {
+	static float time, vtime;
+	float ftime, speed;
+	vec3_t velocity;
+
+	if (!cg_bob->value)
+		return;
+
+	if (cg_third_person->value)
+		return;
+
+	if (cgi.client->frame.ps.pmove.pm_type != PM_NORMAL)
+		return;
+
+	const bool ducked = cgi.client->frame.ps.pmove.pm_flags & PMF_DUCKED;
+
+	VectorScale(ps->pmove.velocity, 0.125, velocity);
+	velocity[2] = 0.0;
+
+	speed = VectorLength(velocity) / (ducked ? 150 : 450.0);
+
+	if (speed > 1.0)
+		speed = 1.0;
+
+	ftime = cgi.view->time - vtime;
+
+	if (ftime < 0.0) // clamp for level changes
+		ftime = 0.0;
+
+	ftime *= (1.0 + speed * 1.0 + speed);
+
+	if (!(ps->pmove.pm_flags & PMF_ON_GROUND))
+		ftime *= 0.25;
+
+	time += ftime;
+	vtime = cgi.view->time;
+
+	cgi.view->bob = sin(3.5 * time) * (0.5 + speed) * (0.5 + speed);
+
+	cgi.view->bob *= cg_bob->value; // scale via cvar too
+
+	VectorMA(cgi.view->origin, -cgi.view->bob, cgi.view->forward, cgi.view->origin);
+	VectorMA(cgi.view->origin, cgi.view->bob, cgi.view->right, cgi.view->origin);
+	VectorMA(cgi.view->origin, cgi.view->bob, cgi.view->up, cgi.view->origin);
+}
+
 /**
  * Cg_UpdateView
  *
@@ -169,7 +214,9 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 
 	Cg_UpdateThirdperson(&frame->ps);
 
-	Cg_UpdateBob();
+	Cg_UpdateKick(&frame->ps);
+
+	Cg_UpdateBob(&frame->ps);
 }
 
 /**
