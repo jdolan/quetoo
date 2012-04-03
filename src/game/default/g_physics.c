@@ -497,12 +497,6 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	// enforce max velocity values
 	G_ClampVelocity(ent);
 
-	// add gravity
-	if (ent->move_type == MOVE_TYPE_FLY)
-		G_AddFlying(ent);
-	else
-		G_AddGravity(ent);
-
 	// move angles
 	VectorMA(ent->s.angles, gi.frame_seconds, ent->avelocity, ent->s.angles);
 
@@ -555,9 +549,15 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	else
 		ent->water_level = 0;
 
+	// add gravity
+	if (ent->move_type == MOVE_TYPE_FLY)
+		G_AddFlying(ent);
+	else
+		G_AddGravity(ent);
+
 	if (!was_in_water && is_in_water) {
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
-		VectorScale(ent->velocity, 0.5, ent->velocity);
+		VectorScale(ent->velocity, 0.66, ent->velocity);
 	} else if (was_in_water && !is_in_water)
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_out"),
 				ATTN_NORM);
