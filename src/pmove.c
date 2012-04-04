@@ -688,9 +688,11 @@ static bool Pm_CheckWaterJump(void) {
 
 	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_SOLID)) {
 
-		point[2] += PM_STAIR_HEIGHT;
+		point[2] += PM_STAIR_HEIGHT + pm->maxs[2] - pm->mins[2];
 
-		if (pm->PointContents(point))
+		trace = pm->Trace(point, pm->mins, pm->maxs, point);
+
+		if (trace.start_solid)
 			return false;
 
 		// jump out of water
