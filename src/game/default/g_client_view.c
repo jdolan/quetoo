@@ -174,9 +174,11 @@ static void G_ClientAnimation(g_edict_t *ent) {
 
 	if (!ent->ground_entity) { // not on the ground
 
-		if (ent->water_level == 3 && speed > 10.0) { // swimming
-			G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
-			return;
+		if (g_level.time - ent->client->jump_time > 400) {
+			if (ent->water_level == 3 && speed > 10.0) { // swimming
+				G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
+				return;
+			}
 		}
 
 		bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);

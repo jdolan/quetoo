@@ -1131,7 +1131,10 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 		else
 			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
-		ent->s.event = EV_CLIENT_JUMP;
+		if (pm.water_level < 3) {
+			ent->s.event = EV_CLIENT_JUMP;
+		}
+
 		client->jump_time = g_level.time;
 	}
 	// check for landing
