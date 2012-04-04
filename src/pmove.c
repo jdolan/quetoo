@@ -47,7 +47,7 @@ static pm_locals_t pml;
 #define PM_ACCEL_GROUND			10.0
 #define PM_ACCEL_NO_GROUND		1.2
 #define PM_ACCEL_SPECTATOR		4.5
-#define PM_ACCEL_WATER			2.9
+#define PM_ACCEL_WATER			4.0
 
 #define PM_FRICT_GROUND			10.0
 #define PM_FRICT_GROUND_SLICK	2.0
@@ -69,10 +69,10 @@ static pm_locals_t pml;
 #define PM_SPEED_RUN			300.0
 #define PM_SPEED_SPECTATOR		350.0
 #define PM_SPEED_STAIRS			30.0
-#define PM_SPEED_STOP			80.0
+#define PM_SPEED_STOP			100.0
 #define PM_SPEED_WATER			125.0
 #define PM_SPEED_WATER_JUMP		450.0
-#define PM_SPEED_WATER_SINK		100.0
+#define PM_SPEED_WATER_SINK		50.0
 
 #define PM_CLIP_WALL 1.05
 #define PM_CLIP_FLOOR 1.001
@@ -324,8 +324,10 @@ static void Pm_Friction(void) {
 
 			if (pm->water_level) {
 				friction += PM_FRICT_WATER * pm->water_level;
-			} else if (!friction) {
-				friction += PM_FRICT_NO_GROUND;
+			}
+
+			if (!friction) {
+				friction = PM_FRICT_NO_GROUND;
 			}
 		}
 	}
@@ -595,9 +597,9 @@ static bool Pm_CheckJump(void) {
 	jump = PM_SPEED_JUMP;
 
 	if (pm->water_level > 1) {
-		jump *= 0.75;
+		jump *= 0.66;
 		if (pm->water_level > 2) {
-			jump *= 0.75;
+			jump *= 0.66;
 		}
 	}
 
@@ -825,25 +827,27 @@ static void Pm_WaterMove(void) {
 	VectorCopy(pml.velocity, vel);
 	speed = VectorLength(vel);
 
-	if (speed > PM_SPEED_WATER) {
-		// use additional friction rather than a hard clamp
+	if (speed > PM_SPEED_WATER) { // use additional friction rather than a hard clamp
 		Pm_Friction();
 	}
 
-	// user intentions in X/Y
+	// and sink if idle
+	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
+		if (pml.velocity[2] > -PM_SPEED_WATER_SINK) {
+			pml.velocity[2] -= pm->s.gravity * 0.55 * pml.time;
+		}
+	}
+
+	// user intentions on X/Y
 	for (i = 0; i < 3; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 
 	// handle Z differently
-	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
-		vel[2] += -PM_SPEED_WATER_SINK;
-	} else {
-		vel[2] += pm->cmd.up;
-	}
+	vel[2] += pm->cmd.up;
 
-	// and disabled water skiing
-	if (pm->water_level == 2 && pml.velocity[2] > 0.0 && vel[2] > 0.0) {
+	// disable water skiing
+	if (pm->water_level == 2 && pml.velocity[2] >= 0.0 && vel[2] > 0.0) {
 		vec3_t view;
 
 		VectorAdd(pml.origin, pml.view_offset, view);
@@ -960,7 +964,7 @@ static void Pm_WalkMove(void) {
 	max_speed = (pm->s.pm_flags & PMF_DUCKED) ? PM_SPEED_DUCKED : PM_SPEED_RUN;
 
 	// accounting for water level
-	max_speed = (pm->water_level > 1) ? max_speed / (1.25 * pm->water_level) : max_speed;
+	max_speed = (pm->water_level > 1) ? max_speed / (pm->water_level * 0.66): max_speed;
 
 	// and accounting for speed modulus
 	max_speed = (pm->cmd.buttons & BUTTON_WALK) ? max_speed * 0.66 : max_speed;
