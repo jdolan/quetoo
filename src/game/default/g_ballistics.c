@@ -840,7 +840,7 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage
 	// calculate position of burn mark
 	if (G_IsStructural(tr.ent, tr.surface)) {
 		VectorMA(tr.end, -1.0, aimdir, tr.end);
-		G_BurnMark(tr.end, &tr.plane, tr.surface, 6);
+		G_BurnMark(tr.end, &tr.plane, tr.surface, 12);
 	}
 }
 

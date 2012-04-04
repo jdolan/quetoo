@@ -589,7 +589,7 @@ static void G_worldspawn(g_edict_t *ent) {
 
 	if(g_gameplay->integer > 0) { // perfer g_gameplay
 		g_level.gameplay = g_gameplay->integer;
-	} else if (map && map->gameplay > -1) { // then maps.lst gameplay
+	} else if(map && map->gameplay > -1) { // then maps.lst gameplay
 		g_level.gameplay = map->gameplay;
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.gameplay && *g_game.spawn.gameplay)
@@ -598,6 +598,8 @@ static void G_worldspawn(g_edict_t *ent) {
 			// or default to deathmatch
 			g_level.gameplay = DEATHMATCH;
 	}
+	if(g_level.gameplay == DEFAULT)
+		g_level.gameplay = DEATHMATCH;
 	gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
 	if (map && map->teams > -1) // prefer maps.lst teams

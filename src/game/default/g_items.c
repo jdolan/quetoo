@@ -209,10 +209,43 @@ bool G_AddAmmo(g_edict_t *ent, g_item_t *item, short count) {
 
 	index = ITEM_INDEX(item);
 
-	if (ent->client->persistent.inventory[index] == max)
+	ent->client->persistent.inventory[index] += count;
+
+	if (ent->client->persistent.inventory[index] > max)
+		ent->client->persistent.inventory[index] = max;
+
+	return true;
+}
+
+/*
+ *  * G_SetAmmo
+ *   */
+bool G_SetAmmo(g_edict_t *ent, g_item_t *item, short count) {
+	unsigned short index;
+	short max;
+
+	if (item->tag == AMMO_SHELLS)
+		max = ent->client->persistent.max_shells;
+	else if (item->tag == AMMO_BULLETS)
+		max = ent->client->persistent.max_bullets;
+	else if (item->tag == AMMO_GRENADES)
+		max = ent->client->persistent.max_grenades;
+	else if (item->tag == AMMO_ROCKETS)
+		max = ent->client->persistent.max_rockets;
+	else if (item->tag == AMMO_CELLS)
+		max = ent->client->persistent.max_cells;
+	else if (item->tag == AMMO_BOLTS)
+		max = ent->client->persistent.max_bolts;
+	else if (item->tag == AMMO_SLUGS)
+		max = ent->client->persistent.max_slugs;
+	else if (item->tag == AMMO_NUKES)
+		max = ent->client->persistent.max_nukes;
+	else
 		return false;
 
-	ent->client->persistent.inventory[index] += count;
+	index = ITEM_INDEX(item);
+
+	ent->client->persistent.inventory[index] = count;
 
 	if (ent->client->persistent.inventory[index] > max)
 		ent->client->persistent.inventory[index] = max;

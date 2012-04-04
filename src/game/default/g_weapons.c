@@ -25,7 +25,7 @@
  * G_PickupWeapon
  */
 bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
-	int index, ammoindex;
+	int index, ammoindex, delta;
 	g_item_t *ammo;
 
 	index = ITEM_INDEX(ent->item);
@@ -35,10 +35,12 @@ bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	ammoindex = ITEM_INDEX(ammo);
 
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED) && other->client->persistent.inventory[index]) {
-		if (other->client->persistent.inventory[ammoindex] >= ammo->quantity)
-			G_AddAmmo(other, ammo, ent->item->quantity); // q3 style
-		else
-			G_AddAmmo(other, ammo, ammo->quantity);
+		delta = ammo->quantity - other->client->persistent.inventory[ammoindex];
+		if (delta <= 0) {
+			G_AddAmmo(other, ammo, ammo->quantity / 2);
+		} else {
+			G_SetAmmo(other, ammo, ammo->quantity + (ammo->quantity - delta) / 2);
+		}
 	} else
 		G_AddAmmo(other, ammo, ammo->quantity);
 
