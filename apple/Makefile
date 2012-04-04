@@ -4,7 +4,7 @@ DATA = ../../../quake2world-data/trunk
 TARGET = target
 QUAKE2WORLD = $(TARGET)/Quake2World/Quake2World.app
 UPDATE = $(TARGET)/Quake2World/Update.app
-LIBRARIES = $(QUAKE2WORLD)/Contents/Libraries
+LIBRARIES = $(QUAKE2WORLD)/Contents/lib
 BINARIES = $(QUAKE2WORLD)/Contents/MacOS
 RESOURCES = $(QUAKE2WORLD)/Contents/Resources
 RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-apple/x86_64
@@ -35,7 +35,7 @@ bundle: install
 		-x $(BINARIES)/quake2world \
 		-x $(BINARIES)/default/cgame.so \
 		-x $(BINARIES)/default/game.so \
-	-d $(LIBRARIES) -of -p @executable_path/../Libraries
+	-d $(LIBRARIES) -of -p @executable_path/../lib
 
 release:
 	scp -r $(BINARIES) $(LIBRARIES) $(RSYNC_REPOSITORY)
