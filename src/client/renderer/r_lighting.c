@@ -23,7 +23,7 @@
 
 #define LIGHTING_MAX_BSP_LIGHT_REFS 64
 
-/*
+/**
  * R_UpdateBspLightReferences_Compare
  *
  * A comparator for sorting r_bsp_light_ref_t elements via quick sort.
@@ -35,7 +35,7 @@ static int R_UpdateBspLightReferences_Compare(const void *l1, const void *l2) {
 	return (int) (_l2->intensity - _l1->intensity);
 }
 
-/*
+/**
  * R_UpdateBspLightReferences
  *
  * Resolves the strongest static light sources, populating the light references
@@ -111,7 +111,7 @@ static int R_UpdateBspLightReferences(r_lighting_t *lighting) {
 	return j;
 }
 
-/*
+/**
  * R_UpdateLighting
  *
  * Resolves static lighting information for the specified point, including
@@ -169,9 +169,9 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 	lighting->state = LIGHTING_READY; // mark it clean
 }
 
-#define LIGHTING_AMBIENT_ATTENUATION 250.0
+#define LIGHTING_AMBIENT_ATTENUATION 150.0
 
-/*
+/**
  * R_ApplyLighting
  *
  * Populates the remaining hardware light sources with static BSP lighting

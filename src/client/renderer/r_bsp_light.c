@@ -38,7 +38,6 @@
  * typically quite large, their surface area coefficient actually scales down.
  */
 
-#define BSP_LIGHT_AMBIENT_SCALE 2.0
 #define BSP_LIGHT_SURFACE_RADIUS_SCALE 2.0
 #define BSP_LIGHT_SURFACE_SKY_RADIUS_SCALE 0.25
 #define BSP_LIGHT_POINT_RADIUS_SCALE 1.0
@@ -57,13 +56,13 @@ static void R_ResolveBspLightParameters(void) {
 		sscanf(c, "%f %f %f", &r_locals.ambient_light[0],
 				&r_locals.ambient_light[1], &r_locals.ambient_light[2]);
 
-		VectorScale(r_locals.ambient_light, BSP_LIGHT_AMBIENT_SCALE, r_locals.ambient_light);
+		VectorScale(r_locals.ambient_light, r_modulate->value, r_locals.ambient_light);
 
 		Com_Debug("Resolved ambient_light: %1.2f %1.2f %1.2f\n",
 				r_locals.ambient_light[0], r_locals.ambient_light[1],
 				r_locals.ambient_light[2]);
 	} else { // ensure sane default
-		VectorSet(r_locals.ambient_light, 0.1, 0.1, 0.1);
+		VectorSet(r_locals.ambient_light, 0.15, 0.15, 0.15);
 	}
 
 	// resolve sun light
