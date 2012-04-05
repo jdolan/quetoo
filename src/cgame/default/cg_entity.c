@@ -56,6 +56,11 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
 	r_entity_t head, upper, lower;
 
+	if (!ci->head || !ci->upper || !ci->lower) {
+		Com_Debug("Cg_AddClientEntity: Invalid client info: %d\n", s->client);
+		return;
+	}
+
 	int effects = s->effects;
 
 	ent->origin[2] -= 6.0; // small hack for PM_SCALE
