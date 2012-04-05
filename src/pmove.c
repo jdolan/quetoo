@@ -84,7 +84,7 @@ static pm_locals_t pml;
  *
  * Slide off of the impacted plane.
  */
-static void Pm_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, vec_t bounce) {
+static void Pm_ClipVelocity(vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
 	float backoff, change;
 	int i;
 
@@ -698,7 +698,7 @@ static bool Pm_CheckWaterJump(void) {
 		// jump out of water
 		pml.velocity[2] = PM_SPEED_WATER_JUMP;
 
-		pm->s.pm_flags |= PMF_TIME_WATERJUMP;
+		pm->s.pm_flags |= PMF_TIME_WATERJUMP | PMF_JUMP_HELD;
 		pm->s.pm_time = 255;
 
 		//Com_Debug("%d water jump\n", quake2world.time);
@@ -966,7 +966,7 @@ static void Pm_WalkMove(void) {
 	max_speed = (pm->s.pm_flags & PMF_DUCKED) ? PM_SPEED_DUCKED : PM_SPEED_RUN;
 
 	// accounting for water level
-	max_speed = (pm->water_level > 1) ? max_speed / (pm->water_level * 0.66): max_speed;
+	max_speed = (pm->water_level > 1) ? max_speed / (pm->water_level * 0.66) : max_speed;
 
 	// and accounting for speed modulus
 	max_speed = (pm->cmd.buttons & BUTTON_WALK) ? max_speed * 0.66 : max_speed;

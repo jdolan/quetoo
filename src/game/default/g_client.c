@@ -1137,8 +1137,16 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 
 		client->jump_time = g_level.time;
 	}
+	// check for water jump
+	else if ((pm.s.pm_flags & PMF_TIME_WATERJUMP) && client->jump_time < g_level.time - 2000) {
+
+		G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+
+		ent->s.event = EV_CLIENT_JUMP;
+		client->jump_time = g_level.time;
+	}
 	// check for landing
-	else if ((pm.s.pm_flags & PMF_TIME_LAND) && g_level.time - client->land_time > 1000) {
+	else if ((pm.s.pm_flags & PMF_TIME_LAND) && client->land_time < g_level.time - 1000) {
 
 		const float fall = -old_velocity[2];
 
