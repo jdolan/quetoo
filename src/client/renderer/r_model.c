@@ -238,7 +238,11 @@ r_model_t *R_LoadModel(const char *name) {
 	}
 
 	if (i == NUM_MODEL_FORMATS) { // not found
-		Com_Warn("R_LoadModel: Failed to load %s.\n", name);
+		if (strstr(name, "players/")) {
+			Com_Debug("R_LoadModel: Failed to load player %s.\n", name);
+		} else {
+			Com_Warn("R_LoadModel: Failed to load %s.\n", name);
+		}
 		return NULL;
 	}
 
