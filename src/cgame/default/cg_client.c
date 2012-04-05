@@ -212,6 +212,8 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 void Cg_LoadClients(void) {
 	int i;
 
+	memset(cgi.client->client_info, 0, sizeof(cgi.client->client_info));
+
 	for (i = 0; i < MAX_CLIENTS; i++) {
 		cl_client_info_t *ci = &cgi.client->client_info[i];
 		const char *s = cgi.ConfigString(CS_CLIENTS + i);
