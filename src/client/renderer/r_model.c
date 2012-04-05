@@ -326,7 +326,7 @@ static void R_FreeModels(void) {
 	r_hunk.offset = 0;
 }
 
-/*
+/**
  * R_BeginLoading
  *
  * Loads the specified level after resetting all model data.
@@ -336,7 +336,7 @@ void R_BeginLoading(const char *bsp_name, int bsp_size) {
 	R_FreeModels(); // free all models
 
 	// load bsp for collision detection (prediction)
-	if (!Com_WasInit(Q2W_SERVER)) {
+	if (!Com_WasInit(Q2W_SERVER) || !Cm_NumModels()) {
 		int bs;
 
 		Cm_LoadBsp(bsp_name, &bs);
