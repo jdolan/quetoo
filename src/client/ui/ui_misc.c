@@ -84,8 +84,8 @@ void TW_CALL Ui_CenterBar(void *data) {
 	double size[2], position[2];
 	TwGetParam(bar, NULL, "size", TW_PARAM_DOUBLE, 2, size);
 
-	position[0] = (r_context.width - size[0]) / 2.0;
-	position[1] = (r_context.height - size[1]) / 2.0;
+	position[0] = (r_pixel_t) ((r_context.width - size[0]) / 2.0);
+	position[1] = (r_pixel_t) ((r_context.height - size[1]) / 2.0);
 
 	Com_Debug("Ui_CenterBar: %s: %4f, %4f\n", name, position[0], position[1]);
 
