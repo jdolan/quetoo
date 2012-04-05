@@ -57,7 +57,7 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	r_entity_t head, upper, lower;
 
 	if (!ci->head || !ci->upper || !ci->lower) {
-		Com_Debug("Cg_AddClientEntity: Invalid client info: %d\n", s->client);
+		cgi.Debug("Cg_AddClientEntity: Invalid client info: %d\n", s->client);
 		return;
 	}
 
