@@ -25,7 +25,7 @@
 #include "ui_types.h"
 
 #ifdef __UI_LOCAL_H__
-void TW_CALL Ui_ToggleBar(void *data);
+void TW_CALL Ui_ShowBar(void *data);
 void TW_CALL Ui_CenterBar(void *data);
 #endif /* __UI_LOCAL_H__ */
 

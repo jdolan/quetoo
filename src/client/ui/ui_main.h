@@ -40,6 +40,8 @@ typedef struct ui_s {
 	TwBar *controls;
 	TwBar *player;
 	TwBar *system;
+
+	TwBar *top;
 } ui_t;
 
 extern ui_t ui;

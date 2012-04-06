@@ -22,47 +22,28 @@
 #include "ui_local.h"
 
 /**
- * Ui_ToggleBar
+ * Ui_ShowBar
  *
- * Toggles the visibility of the TwBar specified by name in data.
+ * Displays the TwBar specified by name in data, hiding all others.
  */
-void TW_CALL Ui_ToggleBar(void *data) {
+void TW_CALL Ui_ShowBar(void *data) {
 	const char *name = (const char *) data;
-	TwBar *bar;
-	int i, visible = 0;
+	int hidden = 0, visible = 1;
 
-	// first hide all other bars
-	for (i = 0; i < TwGetBarCount(); i++) {
+	Com_Debug("Ui_ShowBar: %s\n", name);
 
-		bar = TwGetBarByIndex(i);
-
-		const char *n = TwGetBarName(bar);
-
-		if (strcmp(n, name)) {
-			TwSetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
-		}
+	if (ui.top) {
+		TwSetParam(ui.top, NULL, "visible", TW_PARAM_INT32, 1, &hidden);
 	}
 
-	if (!strcmp(name, "*")) // special case for hiding all bars
-		return;
+	ui.top = TwGetBarByName(name);
 
-	// then toggle the one we're interested in
-	bar = TwGetBarByName(name);
-
-	if (!bar) {
-		Com_Warn("Ui_ToggleBar: No TwBar: %s\n", name);
-		return;
+	if (ui.top) {
+		TwSetParam(ui.top, NULL, "visible", TW_PARAM_INT32, 1, &visible);
 	}
 
-	TwGetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
-
-	visible = !visible;
-
-	TwSetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
-
-	if (visible) {
-		Ui_CenterBar((void *) name);
-	}
+	// then center the visible bar
+	Ui_CenterBar((void *) name);
 }
 
 /**
@@ -72,22 +53,17 @@ void TW_CALL Ui_ToggleBar(void *data) {
  */
 void TW_CALL Ui_CenterBar(void *data) {
 	const char *name = (const char *) data;
-	TwBar *bar;
+	TwBar *bar = TwGetBarByName(name);
 
-	bar = TwGetBarByName(name);
+	if (bar) {
+		double size[2], position[2];
+		TwGetParam(bar, NULL, "size", TW_PARAM_DOUBLE, 2, size);
 
-	if (!bar) {
-		Com_Warn("Ui_ToggleBar: No TwBar: %s\n", name);
-		return;
+		position[0] = (r_pixel_t) ((r_context.width - size[0]) / 2.0);
+		position[1] = (r_pixel_t) ((r_context.height - size[1]) / 2.0);
+
+		Com_Debug("Ui_CenterBar: %s: %4f, %4f\n", name, position[0], position[1]);
+
+		TwSetParam(bar, NULL, "position", TW_PARAM_DOUBLE, 2, position);
 	}
-
-	double size[2], position[2];
-	TwGetParam(bar, NULL, "size", TW_PARAM_DOUBLE, 2, size);
-
-	position[0] = (r_pixel_t) ((r_context.width - size[0]) / 2.0);
-	position[1] = (r_pixel_t) ((r_context.height - size[1]) / 2.0);
-
-	Com_Debug("Ui_CenterBar: %s: %4f, %4f\n", name, position[0], position[1]);
-
-	TwSetParam(bar, NULL, "position", TW_PARAM_DOUBLE, 2, position);
 }

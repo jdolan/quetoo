@@ -30,8 +30,7 @@ extern cl_static_t cls;
  * Ui_Event
  *
  * Handles input events, returning true if the event was swallowed by TwBar.
- */
-bool Ui_Event(SDL_Event *event) {
+ */bool Ui_Event(SDL_Event *event) {
 	bool handled;
 
 	if (!(handled = TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))) {
@@ -42,7 +41,7 @@ bool Ui_Event(SDL_Event *event) {
 			TwGetParam(ui.root, NULL, "visible", TW_PARAM_INT32, 1, &visible);
 
 			if (!visible) {
-				Ui_ToggleBar("Quake2World");
+				Ui_ShowBar("Quake2World");
 				handled = true;
 			}
 		}
@@ -65,6 +64,10 @@ void Ui_Draw(void) {
 		h = r_context.height;
 
 		TwWindowSize(w, h);
+
+		if (ui.top) {
+			Ui_CenterBar((void *) TwGetBarName(ui.top));
+		}
 	}
 
 	if (cls.key_state.dest != KEY_UI)
@@ -81,10 +84,10 @@ void Ui_Draw(void) {
 static TwBar *Ui_Root(void) {
 	TwBar *bar = TwNewBar("Quake2World");
 
-	TwAddButton(bar, "Servers", Ui_ToggleBar, "Servers", NULL);
-	TwAddButton(bar, "Controls", Ui_ToggleBar, "Controls", NULL);
-	TwAddButton(bar, "Player", Ui_ToggleBar, "Player", NULL);
-	TwAddButton(bar, "System", Ui_ToggleBar, "System", NULL);
+	TwAddButton(bar, "Servers", Ui_ShowBar, "Servers", NULL);
+	TwAddButton(bar, "Controls", Ui_ShowBar, "Controls", NULL);
+	TwAddButton(bar, "Player", Ui_ShowBar, "Player", NULL);
+	TwAddButton(bar, "System", Ui_ShowBar, "System", NULL);
 
 	TwAddSeparator(bar, NULL, NULL);
 
@@ -92,7 +95,7 @@ static TwBar *Ui_Root(void) {
 
 	TwDefine("Quake2World size='240 150' alpha=200 iconifiable=false");
 
-	Ui_CenterBar("Quake2World");
+	Ui_ShowBar("Quake2World");
 
 	return bar;
 }
@@ -134,6 +137,8 @@ void Ui_Init(void) {
 	ui.controls = Ui_Controls();
 	ui.player = Ui_Player();
 	ui.system = Ui_System();
+
+	Ui_ShowBar("Quake2World");
 
 	Cmd_AddCommand("ui_restart", Ui_Restart_f, 0, "Restarts the menus subsystem");
 }
