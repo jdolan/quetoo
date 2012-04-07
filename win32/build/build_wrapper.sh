@@ -46,7 +46,6 @@ function BUILD
 		rm _build-"$CURRENT_ARCH".log
 	fi
 	
-	sh ../switch_arch.sh
 }
 
 while true; do
@@ -65,7 +64,9 @@ while true; do
 	if [ -e _build-i686.log -o -e _build-x86_64.log -o $LAST_REVISION != $CURRENT_REVISION ]; then
 		echo "Building......" - `date`
 		BUILD
+		sh ../switch_arch.sh
 		BUILD
+		sh ../switch_arch.sh
 		echo "Building done." - `date`
 	else
 		echo "No new revision and no previous failed build." - `date`
