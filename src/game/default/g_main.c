@@ -36,6 +36,7 @@ cvar_t *g_capture_limit;
 cvar_t *g_chat_log;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
+cvar_t *g_dead_chat;
 cvar_t *g_frag_limit;
 cvar_t *g_frag_log;
 cvar_t *g_friendly_fire;
@@ -1145,6 +1146,7 @@ void G_Init(void) {
 	g_chat_log = gi.Cvar("g_chat_log", "0", 0, NULL);
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, NULL);
+	g_dead_chat = gi.Cvar("g_dead_chat", "1", CVAR_SERVER_INFO, NULL);
 	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, NULL);
 	g_frag_log = gi.Cvar("g_frag_log", "0", 0, NULL);
 	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, NULL);

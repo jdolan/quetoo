@@ -416,6 +416,11 @@ static void G_Say_f(g_edict_t *ent) {
 		return;
 	}
 
+	if( ent->health <= 0 && !g_dead_chat->integer) {
+		gi.ClientPrint(ent, PRINT_HIGH, "You must be alive to talk.\n");
+		return;
+	}
+
 	memset(text, 0, sizeof(text));
 
 	c = gi.Argv(0);

@@ -73,6 +73,7 @@ extern cvar_t *g_capture_limit;
 extern cvar_t *g_chat_log;
 extern cvar_t *g_cheats;
 extern cvar_t *g_ctf;
+extern cvar_t *g_dead_chat;
 extern cvar_t *g_frag_limit;
 extern cvar_t *g_frag_log;
 extern cvar_t *g_friendly_fire;
