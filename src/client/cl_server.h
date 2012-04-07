@@ -27,10 +27,11 @@
 void Cl_Servers_f(void);
 
 #ifdef __CL_LOCAL_H__
+void Cl_FreeServers(void);
 void Cl_Ping_f(void);
 void Cl_ParseStatusMessage(void);
 void Cl_ParseServersList(void);
-void Cl_FreeServers(void);
+void Cl_Servers_List_f(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_SERVER_H__ */

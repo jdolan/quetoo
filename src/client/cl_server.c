@@ -265,9 +265,9 @@ void Cl_ParseServersList(void) {
 }
 
 /*
- * Cl_PrintServers
+ * Cl_Servers_List
  */
-void Cl_PrintServers_f(void) {
+void Cl_Servers_List_f(void) {
 	cl_server_info_t *server;
 	char server_info[192];
 
