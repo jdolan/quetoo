@@ -70,7 +70,7 @@ void Cbuf_InsertFromDefer(void);
 
  */
 
-typedef void(*cmd_function_t)(void);
+typedef void (*cmd_function_t)(void);
 
 typedef struct cmd_function_s {
 	const char *name;

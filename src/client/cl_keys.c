@@ -167,7 +167,7 @@ static bool Cl_KeySystem(unsigned int key, unsigned short unicode __attribute__(
 
 		if ((cmd = Cmd_Get(ks->binds[key]))) {
 			if (cmd->flags & CMD_SYSTEM) {
-				cmd->function();
+				Cbuf_AddText(ks->binds[key]);
 				return true;
 			}
 		}
@@ -701,6 +701,7 @@ void Cl_ShutdownKeys(void) {
  */
 void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned time) {
 
+	// check for system commands first, swallowing such events
 	if (Cl_KeySystem(key, unicode, down, time)) {
 		return;
 	}

@@ -508,7 +508,7 @@ static void R_Reload_f(void) {
 	cls.loading = 0;
 }
 
-/*
+/**
  * R_Restart_f
  *
  * Restarts the renderer subsystem.  The OpenGL context is discarded and
@@ -535,6 +535,7 @@ void R_Restart_f(void) {
 static void R_ToggleFullscreen_f(void) {
 
 	Cvar_Toggle("r_fullscreen");
+
 	R_Restart_f();
 }
 
@@ -672,7 +673,7 @@ static void R_InitConfig(void) {
 	Com_Print("  Version:  ^2%s^7\n", r_config.version_string);
 }
 
-/*
+/**
  * R_Init
  *
  * Creates the OpenGL context and initializes all GL state.
@@ -725,6 +726,8 @@ void R_Shutdown(void) {
 	Cmd_RemoveCommand("r_screenshot");
 
 	Cmd_RemoveCommand("r_sky");
+
+	Cmd_RemoveCommand("r_toggle_fullscreen");
 
 	Cmd_RemoveCommand("r_reload");
 	Cmd_RemoveCommand("r_restart");
