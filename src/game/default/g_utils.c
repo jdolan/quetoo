@@ -356,7 +356,6 @@ char *G_CopyString(char *in) {
 void G_InitEdict(g_edict_t *e) {
 	e->in_use = true;
 	e->class_name = "noclass";
-	e->gravity = 1.0;
 	e->timestamp = g_level.time;
 	e->s.number = e - g_game.edicts;
 }

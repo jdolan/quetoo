@@ -479,7 +479,6 @@ struct g_edict_s {
 	vec3_t avelocity;
 
 	float mass;
-	float gravity;
 
 	float next_think;
 	void (*pre_think)(g_edict_t *ent);

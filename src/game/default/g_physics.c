@@ -155,7 +155,7 @@ static void G_AddGravity(g_edict_t *ent) {
 	if (ent->water_level)
 		g *= 0.5;
 
-	ent->velocity[2] -= ent->gravity * g * gi.frame_seconds;
+	ent->velocity[2] -= g * gi.frame_seconds;
 }
 
 /**
