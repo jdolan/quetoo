@@ -27,6 +27,8 @@
  * Returns true if ent1 and ent2 are on the same qmass mod team.
  */
 bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
+	if (ent1->client->persistent.spectator && ent2->client->persistent.spectator)
+		return true;
 
 	if (!g_level.teams && !g_level.ctf)
 		return false;

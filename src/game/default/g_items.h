@@ -39,6 +39,7 @@ void G_ResetFlag(g_edict_t *ent);
 void G_SetItemNames(void);
 void G_SetItemRespawn(g_edict_t *ent, unsigned int delay);
 void G_SpawnItem(g_edict_t *ent, g_item_t *item);
+bool G_SetAmmo(g_edict_t *ent, g_item_t *item, short count);
 void G_TossFlag(g_edict_t *self);
 void G_TossQuadDamage(g_edict_t *self);
 void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
