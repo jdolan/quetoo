@@ -428,33 +428,37 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 		SDL_FreeSurface(surf);
 
-		if (type == it_world || type == it_skin) { // load normalmaps
-			const char *normalmap[] = { "nm", "norm", "local", NULL };
-			char map[MAX_QPATH];
+		if (type == it_world || type == it_skin) {
 
-			for (i = 0; normalmap[i] != NULL; i++) {
+			if (r_programs->value && r_bumpmap->value) { // load the normalmap
 
-				snprintf(map, sizeof(map), "%s_%s", n, normalmap[i]);
-				image->normalmap = R_LoadImage(map, it_normalmap);
+				const char *normalmap[] = { "nm", "norm", "local", NULL };
+				char map[MAX_QPATH];
 
-				if (image->normalmap != r_null_image)
-					break;
+				for (i = 0; normalmap[i] != NULL; i++) {
 
-				image->normalmap = NULL;
-			}
+					snprintf(map, sizeof(map), "%s_%s", n, normalmap[i]);
+					image->normalmap = R_LoadImage(map, it_normalmap);
 
-			if (image->normalmap) { // and if that succeeds, try glossmaps
-				const char *glossmap[] = { "s", "gloss", NULL };
-
-				for (i = 0; glossmap[i] != NULL; i++) {
-
-					snprintf(map, sizeof(map), "%s_%s", n, glossmap[i]);
-					image->glossmap = R_LoadImage(map, it_glossmap);
-
-					if (image->glossmap != r_null_image)
+					if (image->normalmap != r_null_image)
 						break;
 
-					image->glossmap = NULL;
+					image->normalmap = NULL;
+				}
+
+				if (image->normalmap) { // and if that succeeds, try glossmap
+					const char *glossmap[] = { "s", "gloss", NULL };
+
+					for (i = 0; glossmap[i] != NULL; i++) {
+
+						snprintf(map, sizeof(map), "%s_%s", n, glossmap[i]);
+						image->glossmap = R_LoadImage(map, it_glossmap);
+
+						if (image->glossmap != r_null_image)
+							break;
+
+						image->glossmap = NULL;
+					}
 				}
 			}
 		}

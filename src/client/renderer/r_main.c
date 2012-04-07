@@ -565,7 +565,7 @@ static void R_InitLocal(void) {
 			"Controls anisotropic texture filtering");
 	r_brightness = Cvar_Get("r_brightness", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
 			"Controls texture brightness");
-	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE,
+	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
 			"Controls the intensity of bump-mapping effects");
 	r_capture = Cvar_Get("r_capture", "0", 0, "Toggle screen capturing to jpeg files");
 	r_capture_fps

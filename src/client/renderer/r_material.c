@@ -888,7 +888,7 @@ void R_LoadMaterials(const char *map) {
 
 		m = &image->material;
 
-		if (!strcmp(c, "normalmap")) {
+		if (!strcmp(c, "normalmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			image->normalmap = R_LoadImage(va("textures/%s", c), it_normalmap);
 
@@ -898,7 +898,7 @@ void R_LoadMaterials(const char *map) {
 			}
 		}
 
-		if (!strcmp(c, "glossmap")) {
+		if (!strcmp(c, "glossmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			image->glossmap = R_LoadImage(va("textures/%s", c), it_glossmap);
 
