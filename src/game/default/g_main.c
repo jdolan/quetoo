@@ -53,6 +53,7 @@ cvar_t *g_random_map;
 cvar_t *g_round_limit;
 cvar_t *g_rounds;
 cvar_t *g_spawn_farthest;
+cvar_t *g_show_attacker_stats;
 cvar_t *g_teams;
 cvar_t *g_time_limit;
 cvar_t *g_voting;
@@ -1160,6 +1161,7 @@ void G_Init(void) {
 	g_random_map = gi.Cvar("g_random_map", "0", 0, NULL);
 	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, NULL);
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, NULL);
+	g_show_attacker_stats = gi.Cvar("g_show_attacker_stats", "1", CVAR_SERVER_INFO, NULL);
 	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, NULL);
 	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, NULL);

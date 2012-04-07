@@ -185,6 +185,12 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 					self->client->persistent.net_name, message,
 					attacker->client->persistent.net_name, message2);
 
+			if(g_show_attacker_stats->integer) {
+				gi.ClientPrint(self, PRINT_HIGH, "%s had %d health and %d armor\n",
+					attacker->client->persistent.net_name,
+					attacker->health, attacker->client->persistent.armor);
+			}
+
 			if (g_level.warmup)
 				return;
 

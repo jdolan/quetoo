@@ -89,6 +89,7 @@ extern cvar_t *g_player_projectile;
 extern cvar_t *g_random_map;
 extern cvar_t *g_round_limit;
 extern cvar_t *g_rounds;
+extern cvar_t *g_show_attacker_stats;
 extern cvar_t *g_spawn_farthest;
 extern cvar_t *g_teams;
 extern cvar_t *g_time_limit;
