@@ -256,6 +256,7 @@ typedef struct cl_key_state_s {
 	unsigned short pos;
 
 	bool insert;
+	bool repeat;
 
 	unsigned int edit_line;
 	unsigned int history_line;

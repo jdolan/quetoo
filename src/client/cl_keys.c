@@ -375,9 +375,6 @@ static void Cl_KeyGame(unsigned int key, unsigned short unicode __attribute__((u
 	char cmd[MAX_STRING_CHARS];
 	char *kb;
 
-	if (cls.state != CL_ACTIVE) // not in game
-		return;
-
 	if (!ks->binds[key])
 		return;
 
@@ -395,8 +392,9 @@ static void Cl_KeyGame(unsigned int key, unsigned short unicode __attribute__((u
 		}
 	}
 
-	if (cmd[0]) // send the command
+	if (cmd[0]) { // send the command
 		Cbuf_AddText(cmd);
+	}
 }
 
 /*
@@ -668,7 +666,7 @@ void Cl_InitKeys(void) {
 
 	for (i = 0; i < KEY_HISTORYSIZE; i++) {
 		ks->lines[i][0] = ']';
-		ks->lines[i][1] = 0;
+		ks->lines[i][1] = '\0';
 	}
 
 	ks->pos = 1;
@@ -707,9 +705,6 @@ void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned t
 	}
 
 	ks->down[key] = down;
-
-	if (!down) // FIXME always send up events to release button binds
-		Cl_KeyGame(key, unicode, down, time);
 
 	switch (ks->dest) {
 	case KEY_GAME:

@@ -131,8 +131,6 @@ void R_InitContext(void) {
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &r_context.depth_bits);
 	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_context.double_buffer);
 
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-
 	SDL_WM_SetCaption("Quake2World", "Quake2World");
 
 	// don't show SDL cursor because the game will draw one

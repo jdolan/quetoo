@@ -599,14 +599,44 @@ static void Cl_MouseMove(int mx, int my) {
  */
 void Cl_HandleEvents(void) {
 	static cl_key_dest_t prev_key_dest;
-	static int throwaway = 0;
 	SDL_Event event;
 	int mx, my;
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 		return;
 
-	// handle key events
+	// set key repeat based on key destination
+	if (cls.key_state.dest == KEY_GAME) {
+		if (cls.key_state.repeat) {
+			SDL_EnableKeyRepeat(0, 0);
+			cls.key_state.repeat = false;
+		}
+	} else {
+		if (!cls.key_state.repeat) {
+			SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+			cls.key_state.repeat = true;
+		}
+	}
+
+	// send key-up events to previous destination before handling new events
+	if (prev_key_dest != cls.key_state.dest) {
+		cl_key_dest_t dest = cls.key_state.dest;
+		cls.key_state.dest = prev_key_dest;
+
+		unsigned int i;
+
+		for (i = 0; i < K_LAST; i++) {
+			if (cls.key_state.down[i]) {
+				if (cls.key_state.binds[i] && cls.key_state.binds[i][0] == '+') {
+					Cl_KeyEvent(i, i, false, cls.real_time);
+				}
+			}
+		}
+
+		cls.key_state.dest = dest;
+	}
+
+	// handle new key events
 	while (true) {
 
 		memset(&event, 0, sizeof(event));
@@ -617,9 +647,14 @@ void Cl_HandleEvents(void) {
 			break;
 	}
 
-	// force a mouse grab when entering fullscreen
-	if (r_context.fullscreen && r_view.update)
+	// ignore mouse position after SDL re-grabs mouse
+	// http://bugzilla.libsdl.org/show_bug.cgi?id=341
+	bool invalid_mouse_state = false;
+
+	// force a mouse grab when changing video modes
+	if (r_view.update) {
 		cls.mouse_state.grabbed = false;
+	}
 
 	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI) {
 		if (!r_context.fullscreen) {
@@ -628,25 +663,18 @@ void Cl_HandleEvents(void) {
 			cls.mouse_state.grabbed = false;
 		}
 	} else {
-		if (!cls.mouse_state.grabbed) {
-			// grab the cursor for everything else
+		if (!cls.mouse_state.grabbed) { // grab the cursor for everything else
 			SDL_WM_GrabInput(SDL_GRAB_ON);
 			cls.mouse_state.grabbed = true;
-
-			// ignore crappy values after SDL grabs mouse
-			// http://bugzilla.libsdl.org/show_bug.cgi?id=341
-			throwaway = 2;
-		} else if (prev_key_dest == KEY_UI) {
-			// ignore mouse position from menu
-			throwaway = 1;
+			invalid_mouse_state = true;
 		}
 	}
+
 	prev_key_dest = cls.key_state.dest;
 
 	SDL_GetMouseState(&mx, &my);
 
-	if (throwaway) {
-		throwaway--;
+	if (invalid_mouse_state) {
 		mx = r_context.width / 2;
 		my = r_context.height / 2;
 	}
