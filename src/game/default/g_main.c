@@ -50,6 +50,7 @@ cvar_t *g_mysql_password;
 cvar_t *g_mysql_user;
 cvar_t *g_player_projectile;
 cvar_t *g_random_map;
+cvar_t *g_respawn_protection;
 cvar_t *g_round_limit;
 cvar_t *g_rounds;
 cvar_t *g_spawn_farthest;
@@ -1160,6 +1161,7 @@ void G_Init(void) {
 	g_mysql_user = gi.Cvar("g_mysql_user", "quake2world", 0, NULL);
 	g_player_projectile = gi.Cvar("g_player_projectile", "1", CVAR_SERVER_INFO, NULL);
 	g_random_map = gi.Cvar("g_random_map", "0", 0, NULL);
+	g_respawn_protection = gi.Cvar("g_respawn_protection", "0", 0, NULL);
 	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, NULL);
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, NULL);
 	g_show_attacker_stats = gi.Cvar("g_show_attacker_stats", "1", CVAR_SERVER_INFO, NULL);

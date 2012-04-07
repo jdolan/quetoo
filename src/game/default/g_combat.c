@@ -187,6 +187,9 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	if (!targ->take_damage)
 		return;
 
+	if (targ != attacker && (unsigned int)(g_respawn_protection->value * 1000) + targ->client->respawn_time > g_level.time)
+		return;
+
 	if (!inflictor) // use world
 		inflictor = &g_game.edicts[0];
 

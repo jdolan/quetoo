@@ -87,6 +87,7 @@ extern cvar_t *g_mysql_password;
 extern cvar_t *g_mysql_user;
 extern cvar_t *g_player_projectile;
 extern cvar_t *g_random_map;
+extern cvar_t *g_respawn_protection;
 extern cvar_t *g_round_limit;
 extern cvar_t *g_rounds;
 extern cvar_t *g_show_attacker_stats;
