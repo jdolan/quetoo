@@ -632,6 +632,7 @@ static void Cl_InitLocal(void) {
 	Cmd_AddCommand("servers", Cl_Servers_f, 0, NULL);
 	Cmd_AddCommand("record", Cl_Record_f, 0, NULL);
 	Cmd_AddCommand("fast_forward", Cl_FastForward_f, 0, NULL);
+	Cmd_AddCommand("print_servers", Cl_PrintServers_f, 0, NULL);
 	Cmd_AddCommand("slow_motion", Cl_SlowMotion_f, 0, NULL);
 	Cmd_AddCommand("stop", Cl_Stop_f, 0, NULL);
 	Cmd_AddCommand("connect", Cl_Connect_f, 0, NULL);
