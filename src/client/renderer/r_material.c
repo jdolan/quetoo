@@ -563,10 +563,10 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			i = atoi(c);
 
-			if (i > -1 && i < NUM_ENVMAP_IMAGES) {
-				s->image = r_envmap_images[i];
-			} else if (*c == '#') {
+			if (*c == '#') {
 				s->image = R_LoadImage(++c, it_material);
+			} else if (*c == '0' || (i > 0 && i < NUM_ENVMAP_IMAGES)) {
+				s->image = r_envmap_images[i];
 			} else {
 				s->image = R_LoadImage(va("envmaps/%s", c), it_material);
 			}
@@ -782,10 +782,10 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			i = atoi(c);
 
-			if (i > -1 && i < NUM_FLARE_IMAGES) {
-				s->image = r_flare_images[i];
-			} else if (*c == '#') {
+			if (*c == '#') {
 				s->image = R_LoadImage(++c, it_material);
+			} else if (*c == '0' || (i > 0 && i < NUM_FLARE_IMAGES)) {
+				s->image = r_flare_images[i];
 			} else {
 				s->image = R_LoadImage(va("flares/%s", c), it_material);
 			}

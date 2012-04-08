@@ -36,32 +36,30 @@ typedef struct qpak_s {
 
 static qpak_t qpak;
 
-
-/*
+/**
  * FindPath
  *
  * Returns the index of the specified path if it exists, or -1 otherwise.
  */
-static int FindPath(char *path){
+static int FindPath(char *path) {
 	int i;
 
-	for(i = 0; i < qpak.num_paths; i++)
-		if(!strncmp(qpak.paths[i], path, MAX_QPATH))
+	for (i = 0; i < qpak.num_paths; i++)
+		if (!strncmp(qpak.paths[i], path, MAX_QPATH))
 			return i;
 
 	return -1;
 }
 
-
-/*
+/**
  * AddPath
  *
  * Adds the specified path to the resource list, after ensuring that it is
  * unique.
  */
-static void AddPath(char *path){
+static void AddPath(const char *path) {
 
-	if(qpak.num_paths == MAX_PAK_ENTRIES){
+	if (qpak.num_paths == MAX_PAK_ENTRIES) {
 		Com_Error(ERR_FATAL, "MAX_PAK_ENTRIES exhausted\n");
 		return;
 	}
@@ -70,16 +68,15 @@ static void AddPath(char *path){
 	strncpy(qpak.paths[qpak.num_paths++], path, MAX_QPATH);
 }
 
-
 #define NUM_SAMPLE_FORMATS 2
-static const char *sample_formats[NUM_SAMPLE_FORMATS] = {"ogg", "wav"};
+static const char *sample_formats[NUM_SAMPLE_FORMATS] = { "ogg", "wav" };
 
-/*
+/**
  * AddSound
  *
  * Attempts to add the specified sound in any available format.
  */
-static void AddSound(const char *sound){
+static void AddSound(const char *sound) {
 	char snd[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
 	int i;
@@ -88,21 +85,21 @@ static void AddSound(const char *sound){
 
 	memset(path, 0, sizeof(path));
 
-	for(i = 0; i < NUM_SAMPLE_FORMATS; i++){
+	for (i = 0; i < NUM_SAMPLE_FORMATS; i++) {
 
 		snprintf(path, sizeof(path) - 5, "sounds/%s.%s", snd, sample_formats[i]);
 
-		if(FindPath(path) != -1)
+		if (FindPath(path) != -1)
 			return;
 
-		if(Fs_OpenFile(path, &f, FILE_READ) > 0){
+		if (Fs_OpenFile(path, &f, FILE_READ) > 0) {
 			AddPath(path);
 			Fs_CloseFile(f);
 			break;
 		}
 	}
 
-	if(i == NUM_SAMPLE_FORMATS){
+	if (i == NUM_SAMPLE_FORMATS) {
 		Com_Warn("Couldn't load sound %s\n", sound);
 		return;
 	}
@@ -110,17 +107,16 @@ static void AddSound(const char *sound){
 	qpak.num_sounds++;
 }
 
-
 #define NUM_IMAGE_FORMATS 5
-static const char *image_formats[NUM_IMAGE_FORMATS] = {"tga", "png", "jpg", "pcx", "wal"};
+static const char *image_formats[NUM_IMAGE_FORMATS] = { "tga", "png", "jpg", "pcx", "wal" };
 
-/*
+/**
  * AddImage
  *
  * Attempts to add the specified image in any available format.  If required,
  * a warning will be issued should we fail to resolve the specified image.
  */
-static void AddImage(const char *image, bool required){
+static void AddImage(const char *image, bool required) {
 	char img[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
 	int i;
@@ -129,22 +125,22 @@ static void AddImage(const char *image, bool required){
 
 	memset(path, 0, sizeof(path));
 
-	for(i = 0; i < NUM_IMAGE_FORMATS; i++){
+	for (i = 0; i < NUM_IMAGE_FORMATS; i++) {
 
 		snprintf(path, sizeof(path), "%s.%s", img, image_formats[i]);
 
-		if(FindPath(path) != -1)
+		if (FindPath(path) != -1)
 			return;
 
-		if(Fs_OpenFile(path, &f, FILE_READ) > 0){
+		if (Fs_OpenFile(path, &f, FILE_READ) > 0) {
 			AddPath(path);
 			Fs_CloseFile(f);
 			break;
 		}
 	}
 
-	if(i == NUM_IMAGE_FORMATS){
-		if(required)
+	if (i == NUM_IMAGE_FORMATS) {
+		if (required)
 			Com_Warn("Couldn't load image %s\n", img);
 		return;
 	}
@@ -152,42 +148,191 @@ static void AddImage(const char *image, bool required){
 	qpak.num_images++;
 }
 
-
-#define NUM_MODEL_FORMATS 2
-static char *model_formats[NUM_MODEL_FORMATS] = {"md3", "obj"};
+static char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
 /*
+ * AddSky
+ */
+static void AddSky(char *sky) {
+	int i;
+
+	for (i = 0; i < 6; i++)
+		AddImage(va("env/%s%s", sky, suf[i]), true);
+}
+
+/*
+ * AddAnimation
+ */
+static void AddAnimation(char *name, int count) {
+	int i, j, k;
+
+	Com_Debug("Adding %d frames for %s\n", count, name);
+
+	j = strlen(name);
+
+	if ((i = atoi(&name[j - 1])) < 0)
+		return;
+
+	name[j - 1] = 0;
+
+	for (k = 1, i = i + 1; k < count; k++, i++) {
+		const char *c = va("%s%d", name, i);
+		AddImage(c, true);
+	}
+}
+
+/**
+ * AddMaterials
+ *
+ * Adds all resources specified by the materials file, and the materials
+ * file itself. See src/r_material.c for materials reference.
+ */
+static void AddMaterials(const char *path) {
+	char *buffer;
+	const char *buf;
+	const char *c;
+	char texture[MAX_QPATH];
+	int i, num_frames;
+
+	// load the materials file
+	if ((i = Fs_LoadFile(path, (void **) (char *) &buffer)) < 1) {
+		Com_Warn("Couldn't load materials %s\n", path);
+		return;
+	}
+
+	AddPath(path); // add the materials file itself
+
+	buf = buffer;
+
+	num_frames = 0;
+	memset(texture, 0, sizeof(texture));
+
+	while (true) {
+
+		c = ParseToken(&buf);
+
+		if (*c == '\0')
+			break;
+
+		// texture references should all be added
+		if (!strcmp(c, "texture")) {
+			c = ParseToken(&buf);
+			if (*c == '#') {
+				strncpy(texture, ++c, sizeof(texture - 1));
+			} else {
+				snprintf(texture, sizeof(texture), "textures/%s", c);
+			}
+			AddImage(texture, true);
+			continue;
+		}
+
+		// as should normalmaps
+		if (!strcmp(c, "normalmap")) {
+			c = ParseToken(&buf);
+			if (*c == '#') {
+				strncpy(texture, ++c, sizeof(texture - 1));
+			} else {
+				snprintf(texture, sizeof(texture), "textures/%s", c);
+			}
+			AddImage(texture, true);
+			continue;
+		}
+
+		if (!strcmp(c, "glossmap")) {
+			c = ParseToken(&buf);
+			if (*c == '#') {
+				strncpy(texture, ++c, sizeof(texture - 1));
+			} else {
+				snprintf(texture, sizeof(texture), "textures/%s", c);
+			}
+			AddImage(texture, true);
+			continue;
+		}
+
+		// and custom envmaps
+		if (!strcmp(c, "envmap")) {
+
+			c = ParseToken(&buf);
+			i = atoi(c);
+
+			if (*c == '#') {
+				strncpy(texture, ++c, sizeof(texture - 1));
+			} else if (i == 0 && strcmp(c, "0")) {
+				snprintf(texture, sizeof(texture), "envmaps/%s", c);
+			}
+			AddImage(texture, true);
+			continue;
+		}
+
+		// and custom flares
+		if (!strcmp(c, "flare")) {
+
+			c = ParseToken(&buf);
+			i = atoi(c);
+
+			if (*c == '#') {
+				strncpy(texture, ++c, sizeof(texture - 1));
+			} else if (i == 0 && strcmp(c, "0")) {
+				snprintf(texture, sizeof(texture), "flares/%s", c);
+			}
+			AddImage(texture, true);
+			continue;
+		}
+
+		if (!strcmp(c, "anim")) {
+			num_frames = atoi(ParseToken(&buf));
+			ParseToken(&buf); // read fps
+			continue;
+		}
+
+		if (*c == '}') {
+
+			if (num_frames) // add animation frames
+				AddAnimation(texture, num_frames);
+
+			num_frames = 0;
+			continue;
+		}
+	}
+
+	Fs_FreeFile(buffer);
+}
+
+#define NUM_MODEL_FORMATS 2
+static char *model_formats[NUM_MODEL_FORMATS] = { "md3", "obj" };
+
+/**
  * AddModel
  *
  * Attempts to add the specified mesh model.
  */
-static void AddModel(char *model){
+static void AddModel(char *model) {
 	char mod[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
 	int i;
 
-	if(model[0] == '*')  // bsp submodel
+	if (model[0] == '*') // bsp submodel
 		return;
 
 	StripExtension(model, mod);
 
 	memset(path, 0, sizeof(path));
 
-	for(i = 0; i < NUM_MODEL_FORMATS; i++){
+	for (i = 0; i < NUM_MODEL_FORMATS; i++) {
 
 		snprintf(path, sizeof(path), "%s.%s", mod, model_formats[i]);
 
-		if(FindPath(path) != -1)
+		if (FindPath(path) != -1)
 			return;
 
-		if(Fs_OpenFile(path, &f, FILE_READ) > 0){
+		if (Fs_OpenFile(path, &f, FILE_READ) > 0) {
 			AddPath(path);
 			Fs_CloseFile(f);
 			break;
 		}
 	}
 
-	if(i == NUM_MODEL_FORMATS){
+	if (i == NUM_MODEL_FORMATS) {
 		Com_Warn("Couldn't load model %s\n", mod);
 		return;
 	}
@@ -202,163 +347,28 @@ static void AddModel(char *model){
 
 	AddPath(path);
 
+	strncpy(mod, path, sizeof(mod) - 1);
+	strcat(path, ".mat");
+
+	AddMaterials(path);
+
 	qpak.num_models++;
 }
-
-
-static char *suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
-
-/*
- * AddSky
- */
-static void AddSky(char *sky){
-	int i;
-
-	for(i = 0; i < 6; i++)
-		AddImage(va("env/%s%s", sky, suf[i]), true);
-}
-
-
-/*
- * AddAnimation
- */
-static void AddAnimation(char *name, int count){
-	int i, j, k;
-
-	Com_Debug("Adding %d frames for %s\n", count, name);
-
-	j = strlen(name);
-
-	if((i = atoi(&name[j - 1])) < 0)
-		return;
-
-	name[j - 1] = 0;
-
-	for(k = 1, i = i + 1; k < count; k++, i++){
-		const char *c = va("%s%d", name, i);
-		AddImage(c, true);
-	}
-}
-
-
-/*
- * AddMaterials
- *
- * Adds all resources specified by the materials file, and the materials
- * file itself.  See src/r_material.c for materials reference.
- */
-static void AddMaterials(void){
-	char path[MAX_QPATH];
-	char *buffer;
-	const char *buf;
-	const char *c;
-	char texture[MAX_QPATH];
-	int i, num_frames;
-
-	// load the materials file
-	snprintf(path, sizeof(path), "materials/%s", Basename(bsp_name));
-	strcpy(path + strlen(path) - 3, "mat");
-
-	if((i = Fs_LoadFile(path, (void **)(char *)&buffer)) < 1){
-		Com_Warn("Couldn't load materials %s\n", path);
-		return;
-	}
-
-	AddPath(path);  // add the materials file itself
-
-	buf = buffer;
-
-	num_frames = 0;
-	memset(texture, 0, sizeof(texture));
-
-	while(true){
-
-		c = ParseToken(&buf);
-
-		if(*c == '\0')
-			break;
-
-		// texture references should all be added
-		if(!strcmp(c, "texture")){
-			snprintf(texture, sizeof(texture), "textures/%s", ParseToken(&buf));
-			AddImage(texture, true);
-			continue;
-		}
-
-		// as should normalmaps
-		if(!strcmp(c, "normalmap")){
-			snprintf(texture, sizeof(texture), "textures/%s", ParseToken(&buf));
-			AddImage(texture, true);
-			continue;
-		}
-
-		if (!strcmp(c, "glossmap")) {
-			snprintf(texture, sizeof(texture), "textures/%s", ParseToken(&buf));
-			AddImage(texture, true);
-			continue;
-		}
-
-		// and custom envmaps
-		if(!strcmp(c, "envmap")){
-
-			c = ParseToken(&buf);
-			i = atoi(c);
-
-			if(i == 0 && strcmp(c, "0")){  // custom, add it
-				snprintf(texture, sizeof(texture), "envmaps/%s", c);
-				AddImage(texture, true);
-			}
-			continue;
-		}
-
-		// and custom flares
-		if(!strcmp(c, "flare")){
-
-			c = ParseToken(&buf);
-			i = atoi(c);
-
-			if(i == 0 && strcmp(c, "0")){  // custom, add it
-				snprintf(texture, sizeof(texture), "flares/%s", c);
-				AddImage(texture, true);
-			}
-			continue;
-		}
-
-		if(!strcmp(c, "anim")){
-			num_frames = atoi(ParseToken(&buf));
-			ParseToken(&buf);  // read fps
-			continue;
-		}
-
-		if(*c == '}'){
-
-			if(num_frames)  // add animation frames
-				AddAnimation(texture, num_frames);
-
-			num_frames = 0;
-			continue;
-		}
-	}
-
-	Fs_FreeFile(buffer);
-}
-
 
 /*
  * AddLocation
  */
-static void AddLocation(void){
+static void AddLocation(void) {
 	char base[MAX_QPATH];
 
 	StripExtension(bsp_name, base);
 	AddPath(va("%s.loc", base));
 }
 
-
 /*
  * AddDocumentation
  */
-static void AddDocumentation(void){
+static void AddDocumentation(void) {
 	char base[MAX_OSPATH];
 	char *c;
 
@@ -370,15 +380,14 @@ static void AddDocumentation(void){
 	AddPath(va("docs/map-%s.txt", c));
 }
 
-
-/*
+/**
  * GetPakfile
  *
  * Returns a suitable pakfile name for the current bsp name, e.g.
  *
  * maps/my.bsp -> map-my.pak.
  */
-static pak_t *GetPakfile(void){
+static pak_t *GetPakfile(void) {
 	char base[MAX_OSPATH];
 	char pakfile[MAX_OSPATH];
 	const char *c;
@@ -391,32 +400,32 @@ static pak_t *GetPakfile(void){
 
 	snprintf(pakfile, sizeof(pakfile), "%s/map-%s-%d.pak", Fs_Gamedir(), c, getpid());
 
-	if(!(pak = Pak_CreatePakstream(pakfile)))
+	if (!(pak = Pak_CreatePakstream(pakfile)))
 		Com_Error(ERR_FATAL, "Failed to open %s\n", pakfile);
 
 	return pak;
 }
 
-
-/*
+/**
  * PAK_Main
  *
  * Loads the specified BSP file, resolves all resources referenced by it,
  * and generates a new pak archive for the project.  This is a very inefficient
  * but straightforward implementation.
  */
-int PAK_Main(void){
+int PAK_Main(void) {
 	time_t start, end;
 	int i, total_pak_time;
 	epair_t *e;
+	char materials[MAX_QPATH];
 	pak_t *pak;
 	void *p;
 
-	#ifdef _WIN32
-		char title[MAX_OSPATH];
-		sprintf(title, "Q2WMap [Compiling PAK]");
-		SetConsoleTitle(title);
-	#endif
+#ifdef _WIN32
+	char title[MAX_OSPATH];
+	sprintf(title, "Q2WMap [Compiling PAK]");
+	SetConsoleTitle(title);
+#endif
 
 	Com_Print("\n----- PAK -----\n\n");
 
@@ -425,7 +434,7 @@ int PAK_Main(void){
 	LoadBSPFile(bsp_name);
 
 	// add the textures, normalmaps and glossmaps
-	for(i = 0; i < d_bsp.num_texinfo; i++){
+	for (i = 0; i < d_bsp.num_texinfo; i++) {
 		AddImage(va("textures/%s", d_bsp.texinfo[i].texture), true);
 		AddImage(va("textures/%s_nm", d_bsp.texinfo[i].texture), false);
 		AddImage(va("textures/%s_norm", d_bsp.texinfo[i].texture), false);
@@ -435,20 +444,21 @@ int PAK_Main(void){
 	}
 
 	// and the materials
-	AddMaterials();
+	StripExtension(map_name, materials);
+	AddMaterials(va("materials/%s.mat", Basename(materials)));
 
 	// and the sounds, models, sky, ..
 	ParseEntities();
 
-	for(i = 0; i < num_entities; i++){
+	for (i = 0; i < num_entities; i++) {
 		e = entities[i].epairs;
-		while(e){
+		while (e) {
 
-			if(!strncmp(e->key, "noise", 5) || !strncmp(e->key, "sound", 5))
+			if (!strncmp(e->key, "noise", 5) || !strncmp(e->key, "sound", 5))
 				AddSound(e->value);
-			else if(!strncmp(e->key, "model", 5))
+			else if (!strncmp(e->key, "model", 5))
 				AddModel(e->value);
-			else if(!strncmp(e->key, "sky", 3))
+			else if (!strncmp(e->key, "sky", 3))
 				AddSky(e->value);
 
 			e = e->next;
@@ -470,11 +480,11 @@ int PAK_Main(void){
 	pak = GetPakfile();
 	Com_Print("Paking %d resources to %s...\n", qpak.num_paths, pak->file_name);
 
-	for(i = 0; i < qpak.num_paths; i++){
+	for (i = 0; i < qpak.num_paths; i++) {
 
-		const int j = Fs_LoadFile(qpak.paths[i], (void **)(char *)&p);
+		const int j = Fs_LoadFile(qpak.paths[i], (void **) (char *) &p);
 
-		if(j == -1){
+		if (j == -1) {
 			Com_Print("Couldn't open %s\n", qpak.paths[i]);
 			continue;
 		}
@@ -486,12 +496,11 @@ int PAK_Main(void){
 	Pak_ClosePakstream(pak);
 
 	end = time(NULL);
-	total_pak_time = (int)(end - start);
+	total_pak_time = (int) (end - start);
 	Com_Print("\nPAK Time: ");
-	if(total_pak_time > 59)
+	if (total_pak_time > 59)
 		Com_Print("%d Minutes ", total_pak_time / 60);
 	Com_Print("%d Seconds\n", total_pak_time % 60);
 
 	return 0;
 }
-
