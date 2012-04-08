@@ -286,7 +286,7 @@ static void R_LoadBspTexinfo(const d_bsp_lump_t *l) {
 		out->value = LittleLong(in->value);
 
 		strncpy(out->name, in->texture, sizeof(in->texture));
-		out->image = R_LoadImage(va("textures/%s", out->name), it_world);
+		out->image = R_LoadImage(va("textures/%s", out->name), it_diffuse);
 	}
 }
 

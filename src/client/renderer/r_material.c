@@ -434,9 +434,9 @@ void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_ClearMaterials
+ * R_FreeMaterials
  */
-static void R_ClearMaterials(void) {
+void R_FreeMaterials(void) {
 	int i;
 
 	// clear previously loaded materials
@@ -543,7 +543,11 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!strcmp(c, "texture")) {
 
 			c = ParseToken(buffer);
-			s->image = R_LoadImage(va("textures/%s", c), it_material);
+			if (*c == '#') {
+				s->image = R_LoadImage(++c, it_material);
+			} else {
+				s->image = R_LoadImage(va("textures/%s", c), it_material);
+			}
 
 			if (s->image == r_null_image) {
 				Com_Warn("R_ParseStage: Failed to resolve texture: %s\n", c);
@@ -559,10 +563,13 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			i = atoi(c);
 
-			if (i > -1 && i < NUM_ENVMAP_IMAGES)
+			if (i > -1 && i < NUM_ENVMAP_IMAGES) {
 				s->image = r_envmap_images[i];
-			else
+			} else if (*c == '#') {
+				s->image = R_LoadImage(++c, it_material);
+			} else {
 				s->image = R_LoadImage(va("envmaps/%s", c), it_material);
+			}
 
 			if (s->image == r_null_image) {
 				Com_Warn("R_ParseStage: Failed to resolve envmap: %s\n", c);
@@ -775,10 +782,13 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			i = atoi(c);
 
-			if (i > -1 && i < NUM_FLARE_IMAGES)
+			if (i > -1 && i < NUM_FLARE_IMAGES) {
 				s->image = r_flare_images[i];
-			else
+			} else if (*c == '#') {
+				s->image = R_LoadImage(++c, it_material);
+			} else {
 				s->image = R_LoadImage(va("flares/%s", c), it_material);
+			}
 
 			if (s->image == r_null_image) {
 				Com_Warn("R_ParseStage: Failed to resolve flare: %s\n", c);
@@ -830,7 +840,7 @@ static int R_ParseStage(r_stage_t *s, const char **buffer) {
 /*
  * R_LoadMaterials
  */
-void R_LoadMaterials(const char *map) {
+void R_LoadMaterials(const r_model_t *mod) {
 	char path[MAX_QPATH];
 	void *buf;
 	const char *c;
@@ -841,15 +851,19 @@ void R_LoadMaterials(const char *map) {
 	r_stage_t *s, *ss;
 	int i;
 
-	// clear previously loaded materials
-	R_ClearMaterials();
+	memset(path, 0, sizeof(path));
 
 	// load the materials file for parsing
-	snprintf(path, sizeof(path), "materials/%s", Basename(map));
-	strcpy(path + strlen(path) - 3, "mat");
+	if (mod->type == mod_bsp) {
+		snprintf(path, sizeof(path), "materials/%s", Basename(mod->name));
+	} else {
+		snprintf(path, sizeof(path), "%s", mod->name);
+	}
+
+	strcat(path, ".mat");
 
 	if ((i = Fs_LoadFile(path, &buf)) < 1) {
-		Com_Debug("Couldn't load %s\n", path);
+		Com_Debug("R_LoadMaterials: Couldn't load %s\n", path);
 		return;
 	}
 
@@ -873,7 +887,11 @@ void R_LoadMaterials(const char *map) {
 
 		if (!strcmp(c, "material")) {
 			c = ParseToken(&buffer);
-			image = R_LoadImage(va("textures/%s", c), it_world);
+			if (*c == '#') {
+				image = R_LoadImage(++c, it_diffuse);
+			} else {
+				image = R_LoadImage(va("textures/%s", c), it_diffuse);
+			}
 
 			if (image == r_null_image) {
 				Com_Warn("R_LoadMaterials: Failed to resolve texture: %s\n", c);
@@ -890,7 +908,11 @@ void R_LoadMaterials(const char *map) {
 
 		if (!strcmp(c, "normalmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
-			image->normalmap = R_LoadImage(va("textures/%s", c), it_normalmap);
+			if (*c == '#') {
+				image->normalmap = R_LoadImage(++c, it_normalmap);
+			} else {
+				image->normalmap = R_LoadImage(va("textures/%s", c), it_normalmap);
+			}
 
 			if (image->normalmap == r_null_image) {
 				Com_Warn("R_LoadMaterials: Failed to resolve normalmap: %s\n", c);
@@ -900,7 +922,11 @@ void R_LoadMaterials(const char *map) {
 
 		if (!strcmp(c, "glossmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
-			image->glossmap = R_LoadImage(va("textures/%s", c), it_glossmap);
+			if (*c == '#') {
+				image->glossmap = R_LoadImage(++c, it_glossmap);
+			} else {
+				image->glossmap = R_LoadImage(va("textures/%s", c), it_glossmap);
+			}
 
 			if (image->glossmap == r_null_image) {
 				Com_Warn("R_LoadMaterials: Failed to resolve glossmap: %s\n", c);

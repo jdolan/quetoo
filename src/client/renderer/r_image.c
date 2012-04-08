@@ -36,7 +36,7 @@ static GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 static GLint r_filter_mag = GL_LINEAR;
 static GLfloat r_filter_aniso = 1.0;
 
-#define IS_MIPMAP(t) (t == it_effect || t == it_world || t == it_normalmap || t == it_glossmap || t == it_material)
+#define IS_MIPMAP(t) (t == it_effect || t == it_diffuse || t == it_normalmap || t == it_glossmap || t == it_material)
 
 typedef struct {
 	const char *name;
@@ -119,8 +119,8 @@ void R_ListImages_f(void) {
 		case it_effect:
 			Com_Print("Effect    ");
 			break;
-		case it_world:
-			Com_Print("World     ");
+		case it_diffuse:
+			Com_Print("Diffuse   ");
 			break;
 		case it_normalmap:
 			Com_Print("Normalmap ");
@@ -133,9 +133,6 @@ void R_ListImages_f(void) {
 			break;
 		case it_sky:
 			Com_Print("Sky       ");
-			break;
-		case it_skin:
-			Com_Print("Skin      ");
 			break;
 		case it_pic:
 			Com_Print("Pic       ");
@@ -278,7 +275,7 @@ void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type
 	bpp = mask = 0; // monochrome / invert
 	brightness = r_brightness->value;
 
-	if (type == it_world || type == it_effect || type == it_material) {
+	if (type == it_diffuse || type == it_effect || type == it_material) {
 		bpp = 4;
 		mask = 1;
 	} else if (type == it_lightmap) {
@@ -428,7 +425,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 		SDL_FreeSurface(surf);
 
-		if (type == it_world || type == it_skin) {
+		if (type == it_diffuse) {
 
 			if (r_programs->value && r_bumpmap->value) { // load the normalmap
 
@@ -557,7 +554,7 @@ void R_FreeImages(void) {
 		if (!image->texnum)
 			continue;
 
-		if (image->type < it_world)
+		if (image->type < it_diffuse)
 			continue; // keep it
 
 		R_FreeImage(image);

@@ -51,7 +51,7 @@ static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line)
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (!strcasecmp(mesh_name, mesh->name)) {
-			skins[i] = cgi.LoadImage(image_name, it_skin);
+			skins[i] = cgi.LoadImage(image_name, it_diffuse);
 			break;
 		}
 	}

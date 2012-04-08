@@ -33,7 +33,7 @@ static void R_LoadMeshSkin(r_model_t *mod) {
 	Dirname(mod->name, skin);
 	strcat(skin, "skin");
 
-	mod->skin = R_LoadImage(skin, it_skin);
+	mod->skin = R_LoadImage(skin, it_diffuse);
 }
 
 /*

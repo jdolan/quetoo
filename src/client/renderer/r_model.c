@@ -170,14 +170,15 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 }
 
 typedef struct r_model_format_s {
+	r_model_type_t type;
 	const char *name;
 	void (*load)(r_model_t *mod, void *buffer);
 } r_model_format_t;
 
 static r_model_format_t r_model_formats[] = {
-		{ ".obj", R_LoadObjModel },
-		{ ".md3", R_LoadMd3Model },
-		{ ".bsp", R_LoadBspModel } };
+		{ mod_obj, ".obj", R_LoadObjModel },
+		{ mod_md3, ".md3", R_LoadMd3Model },
+		{ mod_bsp, ".bsp", R_LoadBspModel } };
 
 #define NUM_MODEL_FORMATS (sizeof(r_model_formats) / sizeof(r_model_format_t))
 
@@ -247,13 +248,20 @@ r_model_t *R_LoadModel(const char *name) {
 	}
 
 	StripExtension(n, mod->name);
+	mod->type = format->type;
+
+	// load the materials first, so that we can resolve surfaces lists
+	R_LoadMaterials(mod);
 
 	r_load_model = mod;
+
 	r_load_model->extra_data = R_HunkBegin();
 
 	format->load(mod, buf);
 
 	r_load_model->extra_data_size = R_HunkEnd(r_load_model->extra_data);
+
+	Fs_FreeFile(buf);
 
 	// assemble vertex buffer objects from static arrays
 	R_LoadVertexBuffers(mod);
@@ -261,8 +269,6 @@ r_model_t *R_LoadModel(const char *name) {
 	// calculate an approximate radius from the bounding box
 	VectorSubtract(mod->maxs, mod->mins, tmp);
 	mod->radius = VectorLength(tmp) / 2.0;
-
-	Fs_FreeFile(buf);
 
 	return mod;
 }
@@ -303,6 +309,8 @@ void R_HunkStats_f(void) {
 static void R_FreeModels(void) {
 	int i;
 
+	R_FreeMaterials(); // first free materials
+
 	for (i = 0; i < r_num_models; i++) {
 		r_model_t *mod = &r_models[i];
 
@@ -340,7 +348,7 @@ void R_BeginLoading(const char *bsp_name, int bsp_size) {
 	R_FreeModels(); // free all models
 
 	// load bsp for collision detection (prediction)
-	if (!Com_WasInit(Q2W_SERVER) || !Cm_NumModels()) {
+	if (!Cm_NumModels()) {
 		int bs;
 
 		Cm_LoadBsp(bsp_name, &bs);
@@ -351,10 +359,7 @@ void R_BeginLoading(const char *bsp_name, int bsp_size) {
 		}
 	}
 
-	// then load materials
-	R_LoadMaterials(bsp_name);
-
-	// finally load the bsp for rendering (surface arrays)
+	// and then load the bsp for rendering (surface arrays)
 	r_world_model = R_LoadModel(bsp_name);
 }
 

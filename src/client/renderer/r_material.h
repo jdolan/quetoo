@@ -57,7 +57,8 @@
 )
 
 void R_DrawMaterialSurfaces(r_bsp_surfaces_t *surfs);
-void R_LoadMaterials(const char *map);
+void R_FreeMaterials(void);
+void R_LoadMaterials(const r_model_t *mod);
 #endif /* __R_LOCAL_H__ */
 
 #endif /*__R_MATERIAL_H__*/

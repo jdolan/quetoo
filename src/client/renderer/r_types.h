@@ -117,14 +117,13 @@ typedef enum {
 	it_null,
 	it_font,
 	it_effect,
-	it_world,
+	it_diffuse,
 	it_lightmap,
 	it_deluxemap,
 	it_normalmap,
 	it_glossmap,
 	it_material,
 	it_sky,
-	it_skin,
 	it_pic
 } r_image_type_t;
 
