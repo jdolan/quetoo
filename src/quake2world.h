@@ -383,6 +383,7 @@ typedef struct {
 #define EF_CTF_RED			(1 << 12) // red flag carrier
 #define EF_BEAM				(1 << 13) // overload old_origin for 2nd endpoint
 #define EF_INACTIVE			(1 << 14) // inactive icon for when input is not going to game
+#define EF_RESPAWN			(1 << 15) // respawn protection
 // small or full-bright entities can skip static and dynamic lighting
 #define EF_NO_LIGHTING		(0)
 

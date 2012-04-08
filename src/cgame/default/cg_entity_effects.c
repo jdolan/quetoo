@@ -713,6 +713,15 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 		VectorScale(l.color, 0.5, ent->shell);
 	}
 
+	if (s->effects & EF_RESPAWN) {
+		 r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 1.0, 1.0, 0.0 } };
+
+		VectorCopy(ent->origin, l.origin);
+		cgi.AddLight(&l);
+
+		VectorScale(l.color, 0.5, ent->shell);
+	}
+
 	if (s->effects & EF_TELEPORTER) {
 		Cg_TeleporterTrail(ent->origin, e);
 	}

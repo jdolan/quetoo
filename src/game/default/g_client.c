@@ -790,6 +790,7 @@ void G_ClientRespawn(g_edict_t *ent, bool voluntary) {
 	}
 
 	ent->client->respawn_time = g_level.time;
+	ent->client->respawn_protection_time = g_level.time + g_respawn_protection->value * 1000;
 
 	if (!voluntary) // don't announce involuntary spectator changes
 		return;
@@ -1259,6 +1260,11 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
 	}
 
 	// other power-ups and things can be timed out here as well
+
+	if (ent->client->respawn_protection_time > g_level.time)
+		ent->s.effects |= EF_RESPAWN;
+	else
+		ent->s.effects &= ~EF_RESPAWN;
 }
 
 /**
