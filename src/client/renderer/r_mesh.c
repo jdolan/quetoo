@@ -213,6 +213,9 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 	glColor4fv(color);
 }
 
+// maintain a pointer to the active material
+static r_image_t *r_mesh_material;
+
 /*
  * R_SetMeshState_default
  */
@@ -229,16 +232,16 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	if (!r_draw_wireframe->value) {
 
 		if (!(e->effects & EF_NO_DRAW)) { // setup state for diffuse render
-			r_image_t *image = e->skins[0] ? e->skins[0] : e->model->skin;
+			r_mesh_material = e->skins[0] ? e->skins[0] : e->model->skin;
 
-			R_BindTexture(image->texnum);
+			R_BindTexture(r_mesh_material->texnum);
 
 			R_SetMeshColor_default(e);
 
 			// hardware lighting
 			if (r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)) {
 
-				R_UseMaterial(NULL, image);
+				R_UseMaterial(NULL, r_mesh_material);
 
 				R_EnableLightsByRadius(e->origin);
 
@@ -370,6 +373,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
  * information, or with a lighting point above our view, are not drawn.
  */
 static void R_DrawMeshShadow_default(const r_entity_t *e) {
+	const bool blend = r_state.blend_enabled;
 	const bool lighting = r_state.lighting_enabled;
 
 	if (!r_shadows->value)
@@ -394,7 +398,8 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	glColor4f(0.0, 0.0, 0.0, r_shadows->value * MESH_SHADOW_ALPHA);
 
-	R_EnableBlend(true);
+	if (!blend)
+		R_EnableBlend(true);
 
 	R_RotateForMeshShadow_default(e);
 
@@ -416,7 +421,8 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_RotateForMeshShadow_default(NULL);
 
-	R_EnableBlend(false);
+	if (!blend)
+		R_EnableBlend(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
 
@@ -493,11 +499,17 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
-		const r_image_t *image = e->skins[i] ? e->skins[i] : e->model->skin;
+		if (i > 0) { // update the diffuse state for the current mesh
+			r_mesh_material = e->skins[i] ? e->skins[i] : e->model->skin;
 
-		R_BindTexture(image->texnum);
+			R_BindTexture(r_mesh_material->texnum);
+
+			R_UseMaterial(NULL, r_mesh_material);
+		}
 
 		glDrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
+
+		R_DrawMeshMaterial(&r_mesh_material->material, offset, mesh->num_tris * 3);
 
 		offset += mesh->num_tris * 3;
 	}
@@ -526,10 +538,12 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 
 	if (!(e->effects & EF_NO_DRAW)) { // draw the model
 
-		if (e->model->type == mod_md3) {
+		if (e->model->type == mod_md3 && !r_draw_wireframe->value) {
 			R_DrawMeshParts_default(e, (const r_md3_t *) e->model->extra_data);
 		} else {
 			glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+
+			R_DrawMeshMaterial(&r_mesh_material->material, 0, e->model->num_verts);
 		}
 
 		R_DrawMeshShell_default(e); // draw any shell effects

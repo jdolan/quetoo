@@ -886,7 +886,7 @@ static void R_LoadBspSurfacesArrays_(r_model_t *mod) {
 				mod->opaque_surfaces->count++;
 		}
 
-		if (surf->texinfo->image->material.flags & STAGE_RENDER)
+		if (surf->texinfo->image->material.flags & STAGE_DIFFUSE)
 			mod->material_surfaces->count++;
 
 		if (surf->texinfo->image->material.flags & STAGE_FLARE)
@@ -930,7 +930,7 @@ static void R_LoadBspSurfacesArrays_(r_model_t *mod) {
 				R_SurfaceToSurfaces(mod->opaque_surfaces, surf);
 		}
 
-		if (surf->texinfo->image->material.flags & STAGE_RENDER)
+		if (surf->texinfo->image->material.flags & STAGE_DIFFUSE)
 			R_SurfaceToSurfaces(mod->material_surfaces, surf);
 
 		if (surf->texinfo->image->material.flags & STAGE_FLARE)
