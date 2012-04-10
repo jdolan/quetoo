@@ -315,7 +315,7 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
  * Render the specified stage for the surface.  Resolve vertex attributes via
  * helper functions, outputting to the default vertex arrays.
  */
-static void R_DrawSurfaceStage(r_bsp_surface_t *surf, r_stage_t *stage) {
+static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *stage) {
 	int i;
 
 	for (i = 0; i < surf->num_edges; i++) {
