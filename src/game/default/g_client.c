@@ -710,7 +710,9 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	cl->ps.pmove.origin[1] = spawn_origin[1] * 8.0;
 	cl->ps.pmove.origin[2] = spawn_origin[2] * 8.0;
 
-	VectorSet(cl->ps.pmove.view_offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.75 * 8.0);
+	// project eyes to top-front of head
+	VectorSet(cl->ps.pmove.view_offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.75);
+	VectorScale(cl->ps.pmove.view_offset, 8.0, cl->ps.pmove.view_offset);
 
 	// clear entity state values
 	ent->s.effects = 0;
