@@ -578,7 +578,7 @@ void Fs_Init(void) {
 #ifdef __APPLE__
 	// add Contents/MacOS and Contents/Resources to the search path
 	char path[MAX_OSPATH], *c;
-	unsigned int i;
+	unsigned int i = sizeof(path);
 
 	if (_NSGetExecutablePath(path, &i) > -1) {
 
