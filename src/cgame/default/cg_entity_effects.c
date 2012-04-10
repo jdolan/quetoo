@@ -311,7 +311,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 	for (i = 0.0; i < len; i += delta) {
 		VectorAdd(move, vec, move);
 
-		if(!(cgi.PointContents(move) & MASK_WATER))
+		if (!(cgi.PointContents(move) & MASK_WATER))
 			continue;
 
 		if (!(p = Cg_AllocParticle()))
@@ -714,10 +714,10 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	}
 
 	if (s->effects & EF_RESPAWN) {
-		 r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 1.0, 1.0, 0.0 } };
+		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 1.0, 1.0, 0.0 } };
 
-		VectorCopy(ent->origin, l.origin);
-		cgi.AddLight(&l);
+		//VectorCopy(ent->origin, l.origin);
+		//cgi.AddLight(&l);
 
 		VectorScale(l.color, 0.5, ent->shell);
 	}
