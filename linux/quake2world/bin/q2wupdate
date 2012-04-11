@@ -13,6 +13,20 @@ rsync -rzhP --delete $LINUX/lib/ ${QUAKE2WORLD_HOME}/lib || exit 1
 DATA=rsync://quake2world.net/quake2world/default/
 rsync -rzhP --delete $DATA ${QUAKE2WORLD_HOME}/share/default || exit 1
 
+
+#Update icon paths
+pushd `dirname $0` > /dev/null
+SCRIPTPATH=`pwd`
+popd > /dev/null
+cd $SCRIPTPATH
+grep -v Icon ../Quake2World.desktop > ../Quake2World.desktop.tmp
+echo "Icon=$SCRIPTPATH/../share/quake2world.png" >> ../Quake2World.desktop.tmp
+mv ../Quake2World.desktop.tmp ../Quake2World.desktop
+grep -v Icon ../Update.desktop > ../Update.desktop.tmp
+echo "Icon=$SCRIPTPATH/../share/update.png" >> ../Update.desktop.tmp
+mv ../Update.desktop.tmp ../Update.desktop
+
+
 echo
 echo "Update complete."
 echo
