@@ -3,6 +3,8 @@ bin_PROGRAMS = \
 
 quake2world_SOURCES = \
 	main.c
+	
+if BUILD_CLIENT
 
 quake2world_CFLAGS = \
 	-I.. \
