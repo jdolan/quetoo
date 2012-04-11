@@ -1,0 +1,32 @@
+101 ICON quake2world.ico
+
+VS_VERSION_INFO VERSIONINFO
+FILEFLAGSMASK 0x17L
+#ifdef DEBUG
+	FILEFLAGS 0x3L
+#else
+	FILEFLAGS 0x2L
+#endif
+FILEOS 0x4L
+FILETYPE 0x1L
+FILESUBTYPE 0x0L
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "040004b0"
+		BEGIN
+			VALUE "Comments", "http://quake2world.net"
+			VALUE "CompanyName", "Quake2World Team"
+			VALUE "FileDescription", "Quake2World"
+			VALUE "InternalName", "q2w"
+			VALUE "LegalCopyright", "Copyright (C) 2006-2012"
+			VALUE "OriginalFilename", "quake2world.exe"
+			VALUE "ProductName", "Quake2world"
+			VALUE "ProductVersion", "Release"
+		END
+	END
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", 0x400, 1200
+	END
+END
