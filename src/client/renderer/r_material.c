@@ -452,7 +452,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	if (!r_materials->value || r_draw_wireframe->value)
 		return;
 
-	if (!m->flags & STAGE_DIFFUSE)
+	if (!(m->flags & STAGE_DIFFUSE))
 		return;
 
 	R_UpdateMaterial(m);
