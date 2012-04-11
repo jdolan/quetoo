@@ -12,7 +12,7 @@ rsync -rzhP --delete $LINUX/bin/ ${QUAKE2WORLD_HOME}/bin || exit 1
 rsync -rzhP --delete $LINUX/lib/ ${QUAKE2WORLD_HOME}/lib || exit 1
 
 DATA=rsync://quake2world.net/quake2world/default/
-rsync -rzhP --delete $DATA ${QUAKE2WORLD_HOME}/default || exit 1
+rsync -rzhP --delete $DATA ${QUAKE2WORLD_HOME}/share/default || exit 1
 
 echo
 echo "Update complete."

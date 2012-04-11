@@ -594,16 +594,20 @@ void Fs_Init(void) {
 		Com_Warn("Fs_Init: Failed to resolve executable path\n");
 	}
 #elif __LINUX__
-	// add ./default and ./bin/default to the search path
+	// add ./lib/default and ./share/default to the search path
 	char path[MAX_OSPATH], *c;
+
+	memset(path, 0, sizeof(path));
 
 	if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path)) > -1) {
 
-		if ((c = strstr(path, "quake2world/bin/quake2world"))) {
-			strcpy(c + strlen("quake2world/bin/"), DEFAULT_GAME);
+		Com_Debug("Fs_Init: Resolved executable path %s\n", path);
+
+		if ((c = strstr(path, "quake2world/bin"))) {
+			strcpy(c + strlen("quake2world/"), "lib/"DEFAULT_GAME);
 			Fs_AddSearchPath(path);
 
-			strcpy(c + strlen("quake2world/"), DEFAULT_GAME);
+			strcpy(c + strlen("quake2world/"), "share/"DEFAULT_GAME);
 			Fs_AddSearchPath(path);
 		}
 	}

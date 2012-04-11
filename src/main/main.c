@@ -60,7 +60,7 @@ static void Warn(const char *msg);
  */
 static void Debug(const char *msg) {
 
-	if (!debug->value)
+	if (debug && !debug->value)
 		return;
 
 	Print(msg);
@@ -120,7 +120,7 @@ static void Print(const char *msg) {
  */
 static void Verbose(const char *msg) {
 
-	if (!verbose->value)
+	if (verbose && !verbose->value)
 		return;
 
 	Print(msg);
