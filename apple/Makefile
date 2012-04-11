@@ -10,7 +10,7 @@ RESOURCES = $(QUAKE2WORLD)/Contents/Resources
 RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-apple/x86_64
 DMG = $(TARGET)/Quake2World-BETA.dmg
 VOLUME_NAME = "Quake2World BETA"
-ICON=$(shell echo $')
+HTTP_REPOSITORY = quake2world.net:/var/www/quake2world/files
 
 all: bundle
 
@@ -37,13 +37,16 @@ bundle: install
 		-x $(BINARIES)/default/game.so \
 	-d $(LIBRARIES) -of -p @executable_path/../lib
 
-release:
+release: bundle
 	scp -r $(BINARIES) $(LIBRARIES) $(RSYNC_REPOSITORY)
 
-image:
+image: bundle
 	./set-icon.sh icon.icns $(TARGET)/Quake2World
 	ln -f -s /Applications $(TARGET)/Applications
-	hdiutil create $(DMG) -srcfolder $(TARGET) -volname $(VOLUME_NAME) 
+	hdiutil create $(DMG) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
+
+release-image: image
+	scp $(DMG) $(HTTP_REPOSITORY)
 
 clean:
 	rm -rf $(TARGET)/*

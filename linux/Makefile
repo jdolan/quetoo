@@ -7,6 +7,7 @@ LIBRARIES = $(QUAKE2WORLD)/lib
 BINARIES = $(QUAKE2WORLD)/bin
 RESOURCES = $(QUAKE2WORLD)/share
 RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-linux/x86_64
+TGZ = $(TARGET)/quake2world-BETA-x86_64.tar.gz
 HTTP_REPOSITORY = quake2world.net:/var/www/quake2world/files
 
 all: install
@@ -29,10 +30,10 @@ release: install
 	scp -r $(BINARIES) $(LIBRARIES) $(RSYNC_REPOSITORY)
 
 image: install
-	tar -czvf $(TARGET)/quake2world-BETA-x86_64.tar.gz -C $(TARGET) quake2world
+	tar -czvf $(TGZ) -C $(TARGET) quake2world
 
 release-image: image
-	scp $(TARGET)/quake2world-BETA-x86_64.tar.gz $(HTTP_REPOSITORY)
+	scp $(TGZ) $(HTTP_REPOSITORY)
 
 clean:
 	rm -rf $(TARGET)/*
