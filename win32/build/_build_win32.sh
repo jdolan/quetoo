@@ -59,8 +59,7 @@ cd $START
 rm -Rf *.zip dist
 mkdir -p dist/quake2world/default
 cd dist/quake2world
-cp ../../../updater/* .
-sed -i 's/-win32 .$/-win32\/'$CURRENT_ARCH'\/\* ./g' Update.bat
+cp ../../../updater/$CURRENT_ARCH/Update.exe .
 
 cp $PREFIX/bin/pak.exe .
 cp $PREFIX/bin/q2wmap.exe .
