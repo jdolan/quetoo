@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Quake2world
+Comment=Quake2world kicks ass!
+Exec=bin/quake2world
+Icon=share/quake2world.png
+Terminal=false
+Type=Application
+Categories=Games;
+StartupNotify=true
+
+
+
