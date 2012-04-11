@@ -1,7 +1,6 @@
 #!/bin/bash
 
-QUAKE2WORLD_HOME=$(dirname "$0")
-QUAKE2WORLD_HOME=$(dirname $QUAKE2WORLD_HOME)
+QUAKE2WORLD_HOME=$(dirname "$0")/../
 
 echo
 echo "Updating $QUAKE2WORLD_HOME.."
