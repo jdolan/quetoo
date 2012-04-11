@@ -42,12 +42,24 @@ CURRENT_REVISION=` svn info quake2world/ |grep evision|cut -d\  -f 2`
 echo checked out CURRENT_REVISION $CURRENT_REVISION
 
 
+cd $START/quake2world/win32/build/icons
+windres.exe -i quake2world-icon.rc -o quake2world-icon.o
+
 cd $START/quake2world
 autoreconf -i --force
 ./configure --prefix=$PREFIX
 #sed -i 's:-O2:-O0:g' $(find . -name Makefile)
 
 make
+
+# start icon 
+cd $START/quake2world/src/main
+make clean
+BUILDLINE=`make 2>&1 |grep "/libtool"`
+$BUILDLINE $START/quake2world/win32/build/icons/quake2world-icon.o
+cd $START/quake2world
+# end icon
+
 make install
 cd $START/quake2world/src/game/default
 gcc -shared -o game.dll *.o ../../.libs/libshared.a

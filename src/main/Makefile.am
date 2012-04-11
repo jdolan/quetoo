@@ -4,20 +4,6 @@ bin_PROGRAMS = \
 quake2world_SOURCES = \
 	main.c
 
-if WINDOWS
-
-SUFFIXES = .rc
-
-.rc.o:
-	@WINDRES@ $< -o $@
-
-quake2world_SOURCES += \
-	quake2world-icon.rc
-
-endif
-	
-if BUILD_CLIENT
-
 quake2world_CFLAGS = \
 	-I.. \
 	@BASE_CFLAGS@ \
