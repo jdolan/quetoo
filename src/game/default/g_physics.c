@@ -150,12 +150,18 @@ static int G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce
  * G_AddGravity
  */
 static void G_AddGravity(g_edict_t *ent) {
-	float g = g_level.gravity;
-
-	if (ent->water_level)
-		g *= 0.5;
-
-	ent->velocity[2] -= g * gi.frame_seconds;
+	if (ent->water_level) {
+		//clamp all lateral velocity slowly to 0
+		ent->velocity[0] -= 0.99 * ent->velocity[0] * gi.frame_seconds;
+		ent->velocity[1] -= 0.99 * ent->velocity[1] * gi.frame_seconds;
+		//clamp sink rate
+		if(ent->velocity[2] < -100.0)
+			ent->velocity[2] += 0.5 * g_level.gravity * gi.frame_seconds;
+		else
+			ent->velocity[2] -= 0.5 * g_level.gravity * gi.frame_seconds;
+	}
+	else
+		ent->velocity[2] -= g_level.gravity * gi.frame_seconds;
 }
 
 /**
