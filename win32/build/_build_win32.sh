@@ -72,8 +72,8 @@ rm -Rf *.zip dist
 mkdir -p dist/quake2world/default
 cd dist/quake2world
 cp ../../../updater/bin/Update.exe .
-echo "[Update.exe]" > arch.cfg
-echo "arch=$CURRENT_ARCH" >> arch.cfg
+echo "[Update.exe]" > update.cfg
+echo "arch=$CURRENT_ARCH" >> update.cfg
 
 cp $PREFIX/bin/pak.exe .
 cp $PREFIX/bin/q2wmap.exe .
