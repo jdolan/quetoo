@@ -374,7 +374,6 @@ static void Cl_ShowNet(const char *s) {
  * Cl_ParseServerMessage
  */
 void Cl_ParseServerMessage(void) {
-	extern int bytes_this_second;
 	int cmd, old_cmd;
 	char *s;
 	int i;
@@ -384,7 +383,7 @@ void Cl_ParseServerMessage(void) {
 	else if (cl_show_net_messages->integer >= 2)
 		Com_Print("------------------\n");
 
-	bytes_this_second += net_message.size;
+	cl.byte_counter += net_message.size;
 	cmd = 0;
 
 	// parse the message

@@ -90,6 +90,10 @@ typedef struct cl_client_s {
 	unsigned int time_demo_frames;
 	unsigned int time_demo_start;
 
+	unsigned int frame_counter;
+	unsigned int packet_counter;
+	unsigned int byte_counter;
+
 	user_cmd_t cmds[CMD_BACKUP]; // each message will send several old cmds
 	unsigned int cmd_time[CMD_BACKUP]; // time sent, for calculating pings
 

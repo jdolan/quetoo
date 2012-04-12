@@ -123,15 +123,13 @@ static void Cl_DrawRendererStats(void) {
 	R_DrawString(r_context.width - strlen(s) * 16, 0, s, CON_COLOR_YELLOW);
 }
 
-unsigned short frames_this_second = 0, packets_this_second = 0, bytes_this_second = 0;
-
 /*
  * Cl_DrawCounters
  */
 static void Cl_DrawCounters(void) {
 	static vec3_t velocity;
 	static char bps[8], pps[8], fps[8], spd[8];
-	static int millis;
+	static int last_draw_time;
 	r_pixel_t cw, ch;
 
 	if (!cl_draw_counters->value)
@@ -142,23 +140,23 @@ static void Cl_DrawCounters(void) {
 	const r_pixel_t x = r_context.width - 7 * cw;
 	r_pixel_t y = r_context.height - 4 * ch;
 
-	frames_this_second++;
+	cl.frame_counter++;
 
-	if (cls.real_time - millis >= 1000) {
+	if (cls.real_time - last_draw_time >= 200) {
 
 		VectorScale(cl.frame.ps.pmove.velocity, 0.125, velocity);
 		velocity[2] = 0.0;
 
 		snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
-		snprintf(fps, sizeof(fps), "%4ufps", frames_this_second);
-		snprintf(pps, sizeof(pps), "%4upps", packets_this_second);
-		snprintf(bps, sizeof(bps), "%4ubps", bytes_this_second);
+		snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter * 5);
+		snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter * 5);
+		snprintf(bps, sizeof(bps), "%4ubps", cl.byte_counter * 5);
 
-		millis = quake2world.time;
+		last_draw_time = quake2world.time;
 
-		frames_this_second = 0;
-		packets_this_second = 0;
-		bytes_this_second = 0;
+		cl.frame_counter = 0;
+		cl.packet_counter = 0;
+		cl.byte_counter = 0;
 	}
 
 	R_DrawString(x, y, spd, CON_COLOR_DEFAULT);

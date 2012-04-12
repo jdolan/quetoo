@@ -83,7 +83,6 @@ static void Cl_FinalizeCmd(void) {
  * to the server.
  */
 void Cl_SendCmd(void) {
-	extern int packets_this_second;
 	size_buf_t buf;
 	byte data[128];
 	user_cmd_t *cmd, *old_cmd;
@@ -143,7 +142,7 @@ void Cl_SendCmd(void) {
 	// deliver the message
 	Netchan_Transmit(&cls.netchan, buf.size, buf.data);
 
-	packets_this_second++;
+	cl.packet_counter++;
 
 	// initialize the next command
 	Cl_InitCmd();
