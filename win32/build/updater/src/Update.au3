@@ -2,7 +2,7 @@ Local $file = FileOpen("arch.cfg", 0)
 
 ; Check if file opened for reading OK
 If $file = -1 Then
-    MsgBox(0, "Error", "Unable to open file.")
+    MsgBox(0, "Error", "Unable to find arch.cfg.")
     Exit
 EndIf
 FileClose($file)
