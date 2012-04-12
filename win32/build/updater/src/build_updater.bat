@@ -1,0 +1,1 @@
+"%ProgramFiles(x86)%\AutoIt3\Aut2Exe\Aut2exe.exe" /in Update.au3 /out ..\bin\Update.exe /icon ..\..\icons\Update.ico

@@ -71,7 +71,7 @@ cd $START
 rm -Rf *.zip dist
 mkdir -p dist/quake2world/default
 cd dist/quake2world
-cp ../../../updater/$CURRENT_ARCH/Update.exe .
+cp ../../../updater/bin/Update.exe .
 echo $CURRENT_ARCH > arch.cfg
 
 cp $PREFIX/bin/pak.exe .

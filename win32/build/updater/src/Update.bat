@@ -10,7 +10,6 @@ rem should use --delete here too
 rsync.exe -rzhP rsync://jdolan.dyndns.org/quake2world/default/ default
 rsync.exe -rzhP --delete rsync://jdolan.dyndns.org/quake2world-win32/%ARCHITECTURE%/default/*.dll default
 
-del cygwin1.dll arch
 echo Update complete!
 echo Make sure to run this file on a regular basis!
 pause
