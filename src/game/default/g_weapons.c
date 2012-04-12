@@ -72,7 +72,9 @@ void G_ChangeWeapon(g_edict_t *ent) {
 	ent->client->new_weapon = NULL;
 
 	// update weapon state
-	ent->client->weapon_fire_time = g_level.time + 400;
+	if (ent->client->weapon_fire_time < g_level.time + 400) {
+		ent->client->weapon_fire_time = g_level.time + 400;
+	}
 
 	// resolve ammo
 	if (ent->client->persistent.weapon && ent->client->persistent.weapon->ammo)
