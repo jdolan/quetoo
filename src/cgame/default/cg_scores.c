@@ -219,6 +219,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	r_pixel_t x, y;
 	short rows;
 	size_t i;
+	int j = 0;
 
 	rows = (cgi.context->height - (2 * start_y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
@@ -254,6 +255,28 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 
 		if (Cg_DrawScore(x, y, s)) {
 			y += SCORES_ROW_HEIGHT;
+		}
+	}
+
+	x -=SCORES_COL_WIDTH;
+	y = start_y;
+
+	for (i = 0; i < cg_num_scores; i++) {
+		const player_score_t *s = &cg_scores[i];
+
+		if (s->team != 0xFF)
+			continue;
+
+		if ((short) i == rows)
+			break;
+
+		if (Cg_DrawScore(x, y, s)) {
+			if(j++ % 2) {
+				x -= SCORES_COL_WIDTH;
+				y += SCORES_ROW_HEIGHT;
+			}
+			else
+				x += SCORES_COL_WIDTH;
 		}
 	}
 }
