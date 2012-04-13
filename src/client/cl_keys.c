@@ -495,7 +495,7 @@ static void Cl_Bind(int key_num, char *binding) {
 	if (key_num == -1)
 		return;
 
-	// free old binding
+	// free the old binding
 	if (ks->binds[key_num]) {
 		Z_Free(ks->binds[key_num]);
 		ks->binds[key_num] = NULL;
@@ -542,14 +542,14 @@ static void Cl_UnbindAll_f(void) {
  */
 static void Cl_Bind_f(void) {
 	int i, c, b;
-	char cmd[1024];
+	char cmd[MAX_STRING_CHARS];
 
 	c = Cmd_Argc();
-
 	if (c < 2) {
-		Com_Print("Usage: %s <key> [command] : attach a command to a key\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <key> [command] : bind a command to a key\n", Cmd_Argv(0));
 		return;
 	}
+
 	b = Cl_StringToKeyNum(Cmd_Argv(1));
 	if (b == -1) {
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
@@ -572,10 +572,16 @@ static void Cl_Bind_f(void) {
 			strcat(cmd, " ");
 	}
 
+	// check for compound bindings
+	if (strchr(cmd, ';')) {
+		Com_Print("Complex bind \"%s\" ignored; use 'alias' instead\n", cmd);
+		return;
+	}
+
 	Cl_Bind(b, cmd);
 }
 
-/*
+/**
  * Cl_WriteBindings
  *
  * Writes lines containing "bind key value"
@@ -733,7 +739,7 @@ void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned t
 	}
 }
 
-/*
+/**
  * Cl_ClearTyping
  *
  * Clears the current input line.

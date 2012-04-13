@@ -356,105 +356,102 @@ static void Cmd_Alias_f(void) {
  *
  */
 
-static int cmd_argc;
-static char *cmd_argv[MAX_STRING_TOKENS];
-static char *cmd_null_string = "";
-static char cmd_args[MAX_STRING_CHARS];
+typedef struct cmd_state_s {
+	int argc;
+	char argv[MAX_STRING_TOKENS][MAX_TOKEN_CHARS];
+	char args[MAX_STRING_CHARS];
+} cmd_state_t;
 
+static cmd_state_t cmd_state;
 static cmd_t *cmd_commands; // possible commands to execute
 
 static hash_table_t cmd_hash; // hashed for fast lookups
-
 
 /*
  * Cmd_Argc
  */
 int Cmd_Argc(void) {
-	return cmd_argc;
+	return cmd_state.argc;
 }
 
 /*
  * Cmd_Argv
  */
 char *Cmd_Argv(int arg) {
-	if (arg >= cmd_argc)
-		return cmd_null_string;
-	return cmd_argv[arg];
+	if (arg >= cmd_state.argc)
+		return "";
+	return cmd_state.argv[arg];
 }
 
-/*
+/**
  * Cmd_Args
  *
- * Returns a single string containing argv(1) to argv(argc()-1)
+ * Returns a single string containing all command arguments.
  */
 char *Cmd_Args(void) {
-	return cmd_args;
+	return cmd_state.args;
 }
 
-/*
+/**
  * Cmd_TokenizeString
  *
  * Parses the given string into command line tokens.
  */
 void Cmd_TokenizeString(const char *text) {
-	int i, l;
-	char *com_token;
+	char *c;
 
-	// clear the args from the last string
-	for (i = 0; i < cmd_argc; i++)
-		Z_Free(cmd_argv[i]);
-
-	cmd_argc = 0;
-	cmd_args[0] = 0;
+	// clear the command state from the last string
+	memset(&cmd_state, 0, sizeof(cmd_state));
 
 	if (!text)
 		return;
 
+	// prevent overflows
+	if (strlen(text) >= MAX_STRING_CHARS) {
+		Com_Warn("Cmd_TokenizeString: MAX_STRING_CHARS exceeded\n");
+		return;
+	}
+
 	while (true) {
-		// skip whitespace up to a \n
-		while (*text && *text <= ' ' && *text != '\n') {
-			text++;
-		}
-
-		if (*text == '\n') { // a newline seperates commands in the buffer
-			text++;
-			break;
-		}
-
-		if (!*text)
+		// stop after we've exhausted our token buffer
+		if (cmd_state.argc == MAX_STRING_TOKENS) {
+			Com_Warn("Cmd_TokenizeString: MAX_STRING_TOKENS exceeded\n");
 			return;
+		}
 
-		// set cmd_args to everything after the first arg
-		if (cmd_argc == 1) {
+		// skip whitespace up to a \n
+		while (*text <= ' ') {
+			if (!*text || *text == '\n')
+				return;
+			text++;
+		}
 
-			strncpy(cmd_args, text, MAX_STRING_CHARS);
-
-			if ((l = strlen(cmd_args) - 1) == MAX_STRING_CHARS - 1)
-				return; // catch maliciously long tokens
+		// set cmd_state.args to everything after the command name
+		if (cmd_state.argc == 1) {
+			strncpy(cmd_state.args, text, MAX_STRING_CHARS - 1);
 
 			// strip off any trailing whitespace
-			for (; l >= 0; l--)
-				if (cmd_args[l] <= ' ')
-					cmd_args[l] = 0;
-				else
-					break;
+			size_t l = strlen(cmd_state.args);
+			c = &cmd_state.args[l - 1];
+
+			while (*c <= ' ') {
+				*c-- = '\0';
+			}
 		}
 
-		com_token = ParseToken(&text);
-		if (!text)
+		c = ParseToken(&text);
+
+		if (*c == '\0') { // we're done
 			return;
-
-		if (*com_token == '$' && strcmp(cmd_argv[0], "alias")) // expand cvar values
-			com_token = Cvar_GetString(com_token + 1);
-
-		if (cmd_argc < MAX_STRING_TOKENS) {
-			if ((l = strlen(com_token)) == MAX_STRING_CHARS)
-				return; // catch maliciously long tokens
-
-			cmd_argv[cmd_argc] = Z_Malloc(l + 1);
-			strcpy(cmd_argv[cmd_argc], com_token);
-			cmd_argc++;
 		}
+
+		// expand console variables
+		if (*c == '$' && strcmp(cmd_state.argv[0], "alias")) {
+			c = Cvar_GetString(c + 1);
+		}
+
+		strncpy(cmd_state.argv[cmd_state.argc], c, MAX_TOKEN_CHARS - 1);
+		cmd_state.argc++;
 	}
 }
 
@@ -592,7 +589,7 @@ void Cmd_ExecuteString(const char *text) {
 	if (!Cmd_Argc())
 		return; // no tokens
 
-	if ((cmd = Hash_Get(&cmd_hash, cmd_argv[0]))) {
+	if ((cmd = Hash_Get(&cmd_hash, cmd_state.argv[0]))) {
 		if (cmd->function) {
 			cmd->function();
 		} else if (!Cvar_GetValue("dedicated") && Cmd_ForwardToServer)
@@ -602,7 +599,7 @@ void Cmd_ExecuteString(const char *text) {
 
 	// check alias
 	for (a = cmd_alias; a; a = a->next) {
-		if (!strcasecmp(cmd_argv[0], a->name)) {
+		if (!strcasecmp(cmd_state.argv[0], a->name)) {
 			if (++alias_count == ALIAS_LOOP_COUNT) {
 				Com_Warn("ALIAS_LOOP_COUNT reached.\n");
 				return;

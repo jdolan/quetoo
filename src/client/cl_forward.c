@@ -86,7 +86,7 @@ static char *Cl_ExpandVariables(const char *text) {
 	return expanded;
 }
 
-/*
+/**
  * CL_ForwardCmdToServer
  *
  * Client implementation of Cmd_ForwardToServer. Any commands not recognized
@@ -94,21 +94,14 @@ static char *Cl_ExpandVariables(const char *text) {
  * expansion so that players can use macros for locations, weapons, etc.
  */
 void Cl_ForwardCmdToServer(void) {
-	const char *cmd, *args;
 
 	if (cls.state <= CL_DISCONNECTED) {
 		Com_Print("Not connected.\n");
 		return;
 	}
 
-	cmd = Cmd_Argv(0);
-
-	if (*cmd == '-' || *cmd == '+') {
-		Com_Print("Unknown command \"%s\"\n", cmd);
-		return;
-	}
-
-	args = Cmd_Args();
+	const char *cmd = Cmd_Argv(0);
+	char *args = Cmd_Args();
 
 	if (!strcmp(cmd, "drop")) // maintain last item dropped for 'say %d'
 		strncpy(last_dropped_item, args, sizeof(last_dropped_item) - 1);
@@ -117,9 +110,7 @@ void Cl_ForwardCmdToServer(void) {
 		args = Cl_ExpandVariables(args);
 
 	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-	Sb_Print(&cls.netchan.message, cmd);
-	if (Cmd_Argc() > 1) {
-		Sb_Print(&cls.netchan.message, " ");
-		Sb_Print(&cls.netchan.message, args);
-	}
+	Sb_Print(&cls.netchan.message, va("%s %s", cmd, args));
+
+	//Com_Debug("Forwarding '%s %s'\n", cmd, args);
 }
