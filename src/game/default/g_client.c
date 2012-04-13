@@ -690,7 +690,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->clip_mask = MASK_PLAYER_SOLID;
 	ent->pain = G_ClientPain;
 	ent->die = G_ClientDie;
-	ent->water_level = 0;
+	ent->water_level = ent->old_water_level = 0;
 	ent->water_type = 0;
 	ent->sv_flags = 0;
 
