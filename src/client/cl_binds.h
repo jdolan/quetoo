@@ -49,7 +49,6 @@ static const char *DEFAULT_BINDS =
 	"bind RIGHTARROW +right\n"
 	"bind HOME center_view\n"
 	"bind SHIFT +speed\n"
-	"bind CTRL +attack\n"
 
 	"bind TAB score\n"
 	"bind x score\n"

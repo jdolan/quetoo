@@ -80,7 +80,7 @@ typedef struct sv_frame_s {
 
 #define CMD_MSEC_CHECK_INTERVAL 1000
 #define CMD_MSEC_ALLOWABLE_DRIFT  150
-#define CMD_MSEC_MAX_DRIFT_ERRORS  10
+#define CMD_MSEC_MAX_DRIFT_ERRORS  20
 
 typedef struct sv_client_s {
 	sv_client_state_t state;
@@ -128,7 +128,7 @@ typedef struct sv_client_s {
 #define SERVER_FRAME_RATE 30
 
 // clients will be dropped after no activity in so many seconds
-#define SERVER_TIMEOUT 30
+#define SERVER_TIMEOUT 60
 
 #define MAX_MASTERS	8  // max recipients for heartbeat packets
 // challenges are a request for a connection; a handshake the client receives
