@@ -45,8 +45,12 @@ bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 		G_AddAmmo(other, ammo, ammo->quantity);
 
 	// setup respawn if it's not a dropped item
-	if (!(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetItemRespawn(ent, 5000);
+	if (!(ent->spawn_flags & SF_ITEM_DROPPED)) {
+		if(strcmp(ent->item->pickup_name, "BFG10K"))
+			G_SetItemRespawn(ent, 5000);
+		else
+			G_SetItemRespawn(ent, 30000);
+	}
 
 	// add the weapon to inventory
 	other->client->persistent.inventory[index]++;
