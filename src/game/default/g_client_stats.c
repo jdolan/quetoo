@@ -220,6 +220,12 @@ void G_ClientStats(g_edict_t *ent) {
 		ent->client->ps.stats[STAT_WEAPON] = 0;
 	}
 
+	// damage inflicted
+	ent->client->ps.stats[STAT_DAMAGE_INFLICT] = ent->client->damage_inflicted;
+	if (ent->client->damage_inflicted) {
+		ent->client->damage_inflicted = 0;
+	}
+
 	// scoreboard
 	ent->client->ps.stats[STAT_SCORES] = 0;
 

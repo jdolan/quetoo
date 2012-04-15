@@ -45,24 +45,25 @@ typedef struct {
 static pm_locals_t pml;
 
 #define PM_ACCEL_GROUND			10.0
-#define PM_ACCEL_NO_GROUND		1.0
+#define PM_ACCEL_NO_GROUND		1.33
 #define PM_ACCEL_SPECTATOR		4.5
 #define PM_ACCEL_WATER			4.0
 
-#define PM_FRICT_GROUND			10.0
+#define PM_FRICT_GROUND			8.0
 #define PM_FRICT_GROUND_SLICK	2.0
 #define PM_FRICT_LADDER			12.0
-#define PM_FRICT_NO_GROUND		0.1
+#define PM_FRICT_NO_GROUND		0.125
 #define PM_FRICT_SPECTATOR		3.0
-#define PM_FRICT_SPEED_CLAMP	0.2
+#define PM_FRICT_SPEED_CLAMP	0.1
 #define PM_FRICT_WATER			1.0
 
 #define PM_SPEED_CURRENT		100.0
+#define PM_SPEED_DOUBLE_JUMP	75.0
 #define PM_SPEED_DUCK_STAND		225.0
 #define PM_SPEED_DUCKED			150.0
 #define PM_SPEED_FALL			450.0
 #define PM_SPEED_FALL_FAR		600.0
-#define PM_SPEED_JUMP			275.0
+#define PM_SPEED_JUMP			265.0
 #define PM_SPEED_LADDER			125.0
 #define PM_SPEED_LAND			300.0
 #define PM_SPEED_MAX			450.0
@@ -74,10 +75,12 @@ static pm_locals_t pml;
 #define PM_SPEED_WATER_JUMP		450.0
 #define PM_SPEED_WATER_SINK		50.0
 
-#define PM_CLIP_WALL 1.05
-#define PM_CLIP_FLOOR 1.001
+#define PM_GRAVITY_WATER		0.55
 
-#define STOP_EPSILON 0.1
+#define PM_CLIP_WALL			1.005
+#define PM_CLIP_FLOOR			1.01
+
+#define PM_STOP_EPSILON			0.1
 
 /**
  * Pm_ClipVelocity
@@ -100,7 +103,7 @@ static void Pm_ClipVelocity(vec3_t in, const vec3_t normal, vec3_t out, vec_t bo
 		change = normal[i] * backoff;
 		out[i] = in[i] - change;
 
-		if (out[i] < STOP_EPSILON && out[i] > -STOP_EPSILON)
+		if (out[i] < PM_STOP_EPSILON && out[i] > -PM_STOP_EPSILON)
 			out[i] = 0.0;
 	}
 }
@@ -215,11 +218,11 @@ static void Pm_StepSlideMove(void) {
 		if ((pm->s.pm_flags & PMF_ON_GROUND) && pm->cmd.up < 1) {
 
 			VectorCopy(pml.origin, down);
-			down[2] -= (PM_STAIR_HEIGHT + STOP_EPSILON);
+			down[2] -= (PM_STAIR_HEIGHT + PM_STOP_EPSILON);
 
 			trace = pm->Trace(pml.origin, pm->mins, pm->maxs, down);
 
-			if (trace.fraction > STOP_EPSILON && trace.fraction < 1.0) {
+			if (trace.fraction > PM_STOP_EPSILON && trace.fraction < 1.0) {
 				VectorCopy(trace.end, pml.origin);
 
 				if (org[2] - pml.origin[2] >= 4.0) { // we are in fact on stairs
@@ -251,7 +254,7 @@ static void Pm_StepSlideMove(void) {
 	up[2] += PM_STAIR_HEIGHT;
 
 	// reaching even higher if trying to climb out of the water
-	if (pm->s.pm_flags & PMF_TIME_WATERJUMP) {
+	if (pm->s.pm_flags & PMF_TIME_WATER_JUMP) {
 		up[2] += PM_STAIR_HEIGHT;
 	}
 
@@ -279,8 +282,8 @@ static void Pm_StepSlideMove(void) {
 	if (trace.fraction < 1.0 && pm->cmd.up < 1) { // clip to the new floor
 		Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_FLOOR);
 
-		if (pml.velocity[2] < vel[2]) { // but don't slow down on Z
-			pml.velocity[2] = vel[2];
+		if (pml.velocity[2] < vel[2] - PM_SPEED_STAIRS) { // but don't slow down on Z
+			pml.velocity[2] = vel[2] - PM_SPEED_STAIRS;
 		}
 	}
 
@@ -442,7 +445,7 @@ static void Pm_CategorizePosition(void) {
 		if (pm->ground_entity) { // try to stay on the ground rather than float away
 			point[2] -= PM_STAIR_HEIGHT * 0.25;
 		} else {
-			point[2] -= STOP_EPSILON;
+			point[2] -= PM_STOP_EPSILON;
 		}
 	}
 
@@ -471,6 +474,9 @@ static void Pm_CategorizePosition(void) {
 						pm->s.pm_time = 64;
 					}
 				}
+			} else if (pml.velocity[2] > 0.0) {
+				pm->s.pm_flags |= PMF_TIME_DOUBLE_JUMP;
+				pm->s.pm_time = 8;
 			}
 
 			// we're done being pushed
@@ -596,6 +602,12 @@ static bool Pm_CheckJump(void) {
 	// finally, do the jump
 	jump = PM_SPEED_JUMP;
 
+	// adding the double jump if eligible
+	if (pm->s.pm_flags & PMF_TIME_DOUBLE_JUMP) {
+		jump += PM_SPEED_DOUBLE_JUMP;
+		//Com_Debug("%d double_jump %3.2f\n", quake2world.time, jump);
+	}
+
 	if (pm->water_level > 1) {
 		jump *= 0.66;
 		if (pm->water_level > 2) {
@@ -698,7 +710,7 @@ static bool Pm_CheckWaterJump(void) {
 		// jump out of water
 		pml.velocity[2] = PM_SPEED_WATER_JUMP;
 
-		pm->s.pm_flags |= PMF_TIME_WATERJUMP | PMF_JUMP_HELD;
+		pm->s.pm_flags |= PMF_TIME_WATER_JUMP | PMF_JUMP_HELD;
 		pm->s.pm_time = 255;
 
 		//Com_Debug("%d water jump\n", quake2world.time);
@@ -836,7 +848,7 @@ static void Pm_WaterMove(void) {
 	// and sink if idle
 	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
 		if (pml.velocity[2] > -PM_SPEED_WATER_SINK) {
-			pml.velocity[2] -= pm->s.gravity * 0.55 * pml.time;
+			pml.velocity[2] -= pm->s.gravity * PM_GRAVITY_WATER * pml.time;
 		}
 	}
 
@@ -845,7 +857,7 @@ static void Pm_WaterMove(void) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 
-	// handle Z differently
+	// handle Z independently
 	vel[2] += pm->cmd.up;
 
 	// disable water skiing
@@ -1198,13 +1210,14 @@ void Pmove(pm_move_t *pmove) {
 
 	Pm_InitLocal();
 
-	Pm_ClampAngles();
+	if (pm->s.pm_type == PM_SPECTATOR) { // fly around without world interaction
 
-	if (pm->s.pm_type == PM_SPECTATOR) { // fly around
+		Pm_ClampAngles();
 
 		Pm_SpectatorMove();
 
 		Pm_SnapPosition();
+
 		return;
 	}
 
@@ -1218,12 +1231,15 @@ void Pmove(pm_move_t *pmove) {
 	// set ground_entity, water_type, and water_level
 	Pm_CategorizePosition();
 
+	// clamp angles based on current position
+	Pm_ClampAngles();
+
 	// set ladder interaction, valid for all other states
 	Pm_CheckLadder();
 
 	if (pm->s.pm_flags & PMF_TIME_TELEPORT) {
 		// pause in place briefly
-	} else if (pm->s.pm_flags & PMF_TIME_WATERJUMP) {
+	} else if (pm->s.pm_flags & PMF_TIME_WATER_JUMP) {
 		Pm_WaterJumpMove();
 	} else if (pm->s.pm_flags & PMF_ON_LADDER) {
 		Pm_LadderMove();

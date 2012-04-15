@@ -557,6 +557,30 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	p = dp;
 }
 
+/*
+ * Cg_DrawDamageInflicted
+ */
+static void Cg_DrawDamageInflicted(const player_state_t *ps) {
+
+	if (ps->stats[STAT_DAMAGE_INFLICT]) {
+		static unsigned int last_damage_time;
+
+		// wrap timer around level changes
+		if (last_damage_time > cgi.client->time) {
+			last_damage_time = 0;
+		}
+
+		// play the hit sound
+		if (cgi.client->time - last_damage_time > 50) {
+			cgi.PlaySample(cgi.view->origin, 0, cg_sample_hit, ATTN_NONE);
+			last_damage_time = cgi.client->time;
+		}
+
+		// TODO: It would be cool to play different sounds based on the amount
+		// of damage inflicted; announcer statements would be bad-ass too.
+	}
+}
+
 /**
  * Cg_DrawHud
  *
@@ -595,4 +619,6 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawCenterPrint(ps);
 
 	Cg_DrawBlend(ps);
+
+	Cg_DrawDamageInflicted(ps);
 }

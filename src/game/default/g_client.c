@@ -209,19 +209,6 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 	}
 }
 
-/**
- * G_ClientPain
- *
- * Pain effects and pain sounds are actually handled in G_ClientDamage. Here we
- * simply inform our attacker that they injured us by playing a hit sound.
- */
-static void G_ClientPain(g_edict_t *self, g_edict_t *other, int damage __attribute__((unused)), int knockback __attribute__((unused))) {
-
-	if (other && other->client && other != self) { // play a hit sound
-		gi.Sound(other, gi.SoundIndex("misc/hit"), ATTN_STATIC);
-	}
-}
-
 /*
  * G_ClientCorpse_think
  */
@@ -688,7 +675,6 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->solid = SOLID_BOX;
 	ent->dead = false;
 	ent->clip_mask = MASK_PLAYER_SOLID;
-	ent->pain = G_ClientPain;
 	ent->die = G_ClientDie;
 	ent->water_level = ent->old_water_level = 0;
 	ent->water_type = 0;
@@ -1147,7 +1133,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 		client->jump_time = g_level.time;
 	}
 	// check for water jump
-	else if ((pm.s.pm_flags & PMF_TIME_WATERJUMP) && client->jump_time < g_level.time - 2000) {
+	else if ((pm.s.pm_flags & PMF_TIME_WATER_JUMP) && client->jump_time < g_level.time - 2000) {
 
 		G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 

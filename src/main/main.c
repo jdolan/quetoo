@@ -60,7 +60,7 @@ static void Warn(const char *msg);
  */
 static void Debug(const char *msg) {
 
-	if (debug && !debug->value)
+	if (debug && !debug->integer)
 		return;
 
 	Print(msg);
@@ -120,7 +120,7 @@ static void Print(const char *msg) {
  */
 static void Verbose(const char *msg) {
 
-	if (verbose && !verbose->value)
+	if (verbose && !verbose->integer)
 		return;
 
 	Print(msg);

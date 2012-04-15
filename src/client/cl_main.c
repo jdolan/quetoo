@@ -31,7 +31,6 @@ cvar_t *cl_ignore;
 cvar_t *cl_max_fps;
 cvar_t *cl_max_pps;
 cvar_t *cl_predict;
-cvar_t *cl_show_prediction_misses;
 cvar_t *cl_show_net_messages;
 cvar_t *cl_show_renderer_stats;
 cvar_t *cl_team_chat_sound;
@@ -607,7 +606,6 @@ static void Cl_InitLocal(void) {
 	cl_max_fps = Cvar_Get("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
 	cl_max_pps = Cvar_Get("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
 	cl_predict = Cvar_Get("cl_predict", "1", 0, NULL);
-	cl_show_prediction_misses = Cvar_Get("cl_show_prediction_misses", "0", CVAR_LO_ONLY, NULL);
 	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
 	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
 	cl_team_chat_sound = Cvar_Get("cl_team_chat_sound", "misc/teamchat", 0, NULL);

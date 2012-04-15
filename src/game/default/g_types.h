@@ -400,6 +400,8 @@ struct g_client_s {
 	short damage_blood; // damage taken out of health
 	vec3_t damage_from; // origin for vector calculation
 
+	short damage_inflicted; // damage done to other clients
+
 	vec3_t angles; // aiming direction
 	vec3_t cmd_angles; // angles sent over in the last command
 

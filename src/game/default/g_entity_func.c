@@ -305,6 +305,7 @@ static void G_func_plat_go_up(g_edict_t *ent) {
  * G_func_plat_blocked
  */
 static void G_func_plat_blocked(g_edict_t *self, g_edict_t *other) {
+
 	if (!other->client)
 		return;
 

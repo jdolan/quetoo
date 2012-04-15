@@ -49,6 +49,7 @@ extern s_sample_t *cg_sample_sparks;
 extern s_sample_t *cg_sample_footsteps[4];
 extern s_sample_t *cg_sample_rain;
 extern s_sample_t *cg_sample_snow;
+extern s_sample_t *cg_sample_hit;
 
 extern r_image_t *cg_particle_normal;
 extern r_image_t *cg_particle_explosion;

@@ -54,7 +54,6 @@ void Cl_Shutdown(void);
 
 #ifdef __CL_LOCAL_H__
 
-extern cvar_t *cl_show_prediction_misses;
 extern cvar_t *cl_show_net_messages;
 extern cvar_t *cl_show_renderer_stats;
 

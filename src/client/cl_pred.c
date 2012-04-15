@@ -46,9 +46,10 @@ void Cl_CheckPredictionError(void) {
 	if (VectorLength(fdelta) > 256.0) { // assume a teleport or something
 		VectorClear(cl.prediction_error);
 	} else { // save the prediction error for interpolation
-		if (cl_show_prediction_misses->value && (delta[0] || delta[1] || delta[2]))
-			Com_Debug("Prediction miss on %i: %3.2f %3.2f %3.2f\n", cl.frame.server_frame,
+		if (delta[0] || delta[1] || delta[2]) {
+			Com_Debug("Cl_Predict: Miss on %i: %3.2f %3.2f %3.2f\n", cl.frame.server_frame,
 					fdelta[0], fdelta[1], fdelta[2]);
+		}
 
 		VectorCopy(cl.frame.ps.pmove.origin, cl.predicted_origins[frame]);
 		VectorCopy(fdelta, cl.prediction_error);

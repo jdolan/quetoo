@@ -298,20 +298,22 @@ typedef enum {
 } pm_type_t;
 
 // pmove->pm_flags
-#define PMF_DUCKED			0x1
-#define PMF_JUMPED			0x2
-#define PMF_JUMP_HELD		0x4
-#define PMF_ON_GROUND		0x8
-#define PMF_ON_STAIRS		0x10
-#define PMF_ON_LADDER		0x20
-#define PMF_TIME_WATERJUMP	0x40 // pm_time is time before control
-#define PMF_TIME_LAND		0x80 // pm_time is time before rejump
-#define PMF_TIME_TELEPORT	0x100 // pm_time is non-moving time
-#define PMF_NO_PREDICTION	0x200 // temporarily disables prediction
-#define PMF_PUSHED			0x400 // disables stair checking and velocity clamp
-#define PMF_UNDER_WATER		0x800
+#define PMF_DUCKED				0x1
+#define PMF_JUMPED				0x2
+#define PMF_JUMP_HELD			0x4
+#define PMF_ON_GROUND			0x8
+#define PMF_ON_STAIRS			0x10
+#define PMF_ON_LADDER			0x20
+#define PMF_TIME_DOUBLE_JUMP	0x40
+#define PMF_TIME_WATER_JUMP		0x80 // pm_time is time before control
+#define PMF_TIME_LAND			0x100 // pm_time is time before rejump
+#define PMF_TIME_TELEPORT		0x200 // pm_time is non-moving time
+#define PMF_NO_PREDICTION		0x400 // temporarily disables prediction
+#define PMF_PUSHED				0x800 // disables stair checking and velocity clamp
+#define PMF_UNDER_WATER			0x1000
 
-#define PMF_TIME_MASK		(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT)
+#define PMF_TIME_MASK		(PMF_TIME_DOUBLE_JUMP | PMF_TIME_WATER_JUMP | \
+		PMF_TIME_LAND | PMF_TIME_TELEPORT)
 
 // this structure needs to be communicated bit-accurate
 // from the server to the client to guarantee that
@@ -457,7 +459,8 @@ typedef enum {
 #define STAT_ROUND			18
 #define STAT_READY			19
 #define STAT_SCORES			20
-#define STAT_GENERAL		STAT_SCORES // for mods to extend
+#define STAT_DAMAGE_INFLICT	21
+#define STAT_GENERAL		STAT_DAMAGE_INFLICT // for mods to extend
 #define MAX_STATS			32
 
 #define STAT_TOGGLE_BIT		0x8000 // used to force a stats field update

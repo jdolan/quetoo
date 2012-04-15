@@ -27,6 +27,10 @@
  * Returns true if ent1 and ent2 are on the same qmass mod team.
  */
 bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
+
+	if (!ent1->client || !ent2->client)
+		return false;
+
 	if (ent1->client->persistent.spectator && ent2->client->persistent.spectator)
 		return true;
 
@@ -228,9 +232,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	VectorNormalize(dir);
 
 	// calculate velocity change due to knockback
-	if (knockback && (targ->move_type != MOVE_TYPE_NONE) && (targ->move_type != MOVE_TYPE_TOSS)
-			&& (targ->move_type != MOVE_TYPE_PUSH) && (targ->move_type != MOVE_TYPE_STOP)) {
-
+	if (knockback && (targ->move_type == MOVE_TYPE_WALK)) {
 		vec3_t kvel;
 		float mass;
 
@@ -287,24 +289,28 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 		targ->health = targ->health - take;
 
 		if (targ->health <= 0) {
-			targ->die(targ, inflictor, attacker, take, point);
+			if (targ->die) {
+				targ->die(targ, inflictor, attacker, take, point);
+			} else {
+				gi.Debug("G_Damage: No die function for %s\n", targ->class_name);
+			}
 			return;
 		}
 	}
 
-	if (client) {
-		if (!(targ->flags & FL_GOD_MODE) && take)
-			targ->pain(targ, attacker, take, knockback);
-	} else if (take) {
-		if (targ->pain)
-			targ->pain(targ, attacker, take, knockback);
-	}
+	// invoke the pain callback
+	if ((take || knockback) && targ->pain)
+		targ->pain(targ, attacker, take, knockback);
 
 	// add to the damage inflicted on a player this frame
 	if (client) {
 		client->damage_armor += asave;
 		client->damage_blood += take;
 		VectorCopy(point, client->damage_from);
+
+		if (attacker->client) {
+			attacker->client->damage_inflicted += take;
+		}
 	}
 }
 
