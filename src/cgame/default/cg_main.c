@@ -27,17 +27,21 @@ cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
 cvar_t *cg_draw_blend;
+cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_scale;
 cvar_t *cg_draw_crosshair;
 cvar_t *cg_draw_frags;
 cvar_t *cg_draw_hud;
+cvar_t *cg_draw_pickup;
+cvar_t *cg_draw_time;
+cvar_t *cg_draw_teambar;
 cvar_t *cg_draw_weapon;
 cvar_t *cg_draw_weapon_x;
 cvar_t *cg_draw_weapon_y;
 cvar_t *cg_draw_weapon_z;
-cvar_t *cg_draw_time;
-cvar_t *cg_draw_teambar;
+cvar_t *cg_draw_vitals;
+cvar_t *cg_draw_vote;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
 cvar_t *cg_third_person;
@@ -66,7 +70,7 @@ static void Cg_Init(void) {
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of screen alpha-blending");
-
+	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE, "Draw the number of captures");
 	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE, NULL);
 	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
 			"Specifies the crosshair color.");
@@ -75,6 +79,7 @@ static void Cg_Init(void) {
 
 	cg_draw_frags = cgi.Cvar("cg_draw_frags", "1", CVAR_ARCHIVE, "Draw the number of frags");
 	cg_draw_hud = cgi.Cvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
+	cg_draw_pickup = cgi.Cvar("cg_draw_pickup", "1", CVAR_ARCHIVE, "Draw the current pickup");
 	cg_draw_time = cgi.Cvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
 	cg_draw_teambar = cgi.Cvar("cg_draw_teambar", "1", CVAR_ARCHIVE, "Draw the teambanner");
 
@@ -87,6 +92,8 @@ static void Cg_Init(void) {
 			"The y offset for drawing the weapon model.");
 	cg_draw_weapon_z = cgi.Cvar("cg_draw_weapon_z", "0.0", CVAR_ARCHIVE,
 			"The z offset for drawing the weapon model.");
+	cg_draw_vitals = cgi.Cvar("cg_draw_vitals", "1", CVAR_ARCHIVE, "Draw the vitals (health, armor, ammo");
+	cg_draw_vote = cgi.Cvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
 
 	cg_fov = cgi.Cvar("cg_fov", "100.0", CVAR_ARCHIVE, NULL);
 	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "40.0", CVAR_ARCHIVE, NULL);

@@ -110,6 +110,9 @@ static void Cg_DrawVital(r_pixel_t x, const short value, const short icon, short
 static void Cg_DrawVitals(const player_state_t *ps) {
 	r_pixel_t x, cw, x_offset;
 
+	if(!cg_draw_vitals->integer)
+		return;
+
 	cgi.BindFont("large", &cw, NULL);
 
 	x_offset = 3 * cw;
@@ -150,6 +153,9 @@ static void Cg_DrawVitals(const player_state_t *ps) {
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
 	r_pixel_t x, y, cw, ch;
+
+	if(!cg_draw_pickup->integer)
+		return;
 
 	cgi.BindFont(NULL, &cw, &ch);
 
@@ -207,6 +213,9 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 static void Cg_DrawCaptures(const player_state_t *ps) {
 	const short captures = ps->stats[STAT_CAPTURES];
 	r_pixel_t x, y, cw, ch;
+
+	if(!cg_draw_captures->integer)
+		return;
 
 	if (ps->stats[STAT_SPECTATOR])
 		return;
@@ -286,6 +295,9 @@ static void Cg_DrawChase(const player_state_t *ps) {
 static void Cg_DrawVote(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
 	char string[MAX_STRING_CHARS];
+
+	if(!cg_draw_vote->integer)
+		return;
 
 	if (!ps->stats[STAT_VOTE])
 		return;
