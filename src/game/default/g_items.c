@@ -67,6 +67,9 @@ g_item_t *G_FindItem(const char *pickup_name) {
 	int i;
 	g_item_t *it;
 
+	if(!pickup_name)
+		return NULL;
+
 	it = g_items;
 
 	for (i = 0; i < g_game.num_items; i++, it++) {
@@ -271,27 +274,6 @@ static bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
 		G_SetItemRespawn(ent, 20000);
 
 	return true;
-}
-
-/*
- * G_DropAmmo
- */
-static void G_DropAmmo(g_edict_t *ent, g_item_t *item) {
-	g_edict_t *dropped;
-	int index;
-
-	index = ITEM_INDEX(item);
-	dropped = G_DropItem(ent, item);
-
-	if (!dropped)
-		return;
-
-	if (ent->client->persistent.inventory[index] >= item->quantity)
-		dropped->count = item->quantity;
-	else
-		dropped->count = ent->client->persistent.inventory[index];
-
-	ent->client->persistent.inventory[index] -= dropped->count;
 }
 
 /*
@@ -945,7 +927,7 @@ g_item_t g_items[] = {
 		"weapon_blaster",
 		G_PickupWeapon,
 		G_UseWeapon,
-		G_DropWeapon,
+		NULL,
 		G_FireBlaster,
 		"weapons/common/pickup.wav",
 		"models/weapons/blaster/tris.md3",
@@ -1138,7 +1120,7 @@ g_item_t g_items[] = {
 		"ammo_shells",
 		G_PickupAmmo,
 		NULL,
-		G_DropAmmo,
+		NULL,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/shells/tris.md3",
@@ -1157,7 +1139,7 @@ g_item_t g_items[] = {
 		"ammo_bullets",
 		G_PickupAmmo,
 		NULL,
-		G_DropAmmo,
+		NULL,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/bullets/tris.md3",
@@ -1176,7 +1158,7 @@ g_item_t g_items[] = {
 		"ammo_grenades",
 		G_PickupAmmo,
 		NULL,
-		G_DropAmmo,
+		NULL,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/grenades/tris.md3",
@@ -1195,7 +1177,7 @@ g_item_t g_items[] = {
 		"ammo_rockets",
 		G_PickupAmmo,
 		NULL,
-		G_DropAmmo,
+		NULL,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/rockets/tris.md3",
@@ -1214,7 +1196,7 @@ g_item_t g_items[] = {
 		"ammo_cells",
 		G_PickupAmmo,
 		NULL,
-		G_DropAmmo,
+		NULL,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/cells/tris.md3",
@@ -1233,7 +1215,7 @@ g_item_t g_items[] = {
 		"ammo_bolts",
 		G_PickupAmmo,
 		NULL,
-		G_DropAmmo,
+		NULL,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/bolts/tris.md3",
@@ -1252,7 +1234,7 @@ g_item_t g_items[] = {
 		"ammo_slugs",
 		G_PickupAmmo,
 		NULL,
-		G_DropAmmo,
+		NULL,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/slugs/tris.md3",
@@ -1271,7 +1253,7 @@ g_item_t g_items[] = {
 		"ammo_nukes",
 		G_PickupAmmo,
 		NULL,
-		G_DropAmmo,
+		NULL,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/nukes/tris.md3",

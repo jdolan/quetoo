@@ -32,17 +32,19 @@ bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 
 	// add ammo
 	ammo = G_FindItem(ent->item->ammo);
-	ammoindex = ITEM_INDEX(ammo);
+	if(ammo) {
+		ammoindex = ITEM_INDEX(ammo);
 
-	if (!(ent->spawn_flags & SF_ITEM_DROPPED) && other->client->persistent.inventory[index]) {
-		delta = ammo->quantity - other->client->persistent.inventory[ammoindex];
-		if (delta <= 0) {
-			G_AddAmmo(other, ammo, ammo->quantity / 2);
-		} else {
-			G_SetAmmo(other, ammo, ammo->quantity + (ammo->quantity - delta) / 2);
-		}
-	} else
-		G_AddAmmo(other, ammo, ammo->quantity);
+		if (!(ent->spawn_flags & SF_ITEM_DROPPED) && other->client->persistent.inventory[index]) {
+			delta = ammo->quantity - other->client->persistent.inventory[ammoindex];
+			if (delta <= 0) {
+				G_AddAmmo(other, ammo, ammo->quantity / 2);
+			} else {
+				G_SetAmmo(other, ammo, ammo->quantity + (ammo->quantity - delta) / 2);
+			}
+		} else
+			G_AddAmmo(other, ammo, ammo->quantity);
+	}
 
 	// setup respawn if it's not a dropped item
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED)) {
