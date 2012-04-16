@@ -628,7 +628,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item) {
 	dropped->touch = G_DropItemUntouchable;
 	dropped->owner = ent;
 
-	if (ent->client) { // randomize the direction we toss in
+	if (ent->client && ent->health <= 0) { // randomize the direction we toss in
 		VectorSet(v, 0.0, ent->client->angles[1] + Randomc() * 45.0, 0.0);
 		AngleVectors(v, forward, NULL, NULL);
 
