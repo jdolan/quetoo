@@ -197,6 +197,29 @@ static void Cl_Rcon_f(void) {
 	Net_SendPacket(NS_CLIENT, strlen(message) + 1, message, to);
 }
 
+/**
+ * CL_ForwardCmdToServer
+ *
+ * Client implementation of Cmd_ForwardToServer. Any commands not recognized
+ * locally by the client will be sent to the server. Some will undergo parameter
+ * expansion so that players can use macros for locations, weapons, etc.
+ */
+static void Cl_ForwardCmdToServer(void) {
+
+	if (cls.state <= CL_DISCONNECTED) {
+		Com_Print("Not connected.\n");
+		return;
+	}
+
+	const char *cmd = Cmd_Argv(0);
+	char *args = Cmd_Args();
+
+	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
+	Sb_Print(&cls.netchan.message, va("%s %s", cmd, args));
+
+	//Com_Debug("Forwarding '%s %s'\n", cmd, args);
+}
+
 /*
  * Cl_ClearState
  */
