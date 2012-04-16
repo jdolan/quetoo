@@ -30,11 +30,14 @@ cvar_t *cg_draw_blend;
 cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_scale;
 cvar_t *cg_draw_crosshair;
+cvar_t *cg_draw_frags;
 cvar_t *cg_draw_hud;
 cvar_t *cg_draw_weapon;
 cvar_t *cg_draw_weapon_x;
 cvar_t *cg_draw_weapon_y;
 cvar_t *cg_draw_weapon_z;
+cvar_t *cg_draw_time;
+cvar_t *cg_draw_teambar;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
 cvar_t *cg_third_person;
@@ -70,7 +73,10 @@ static void Cg_Init(void) {
 	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
 			"Controls the crosshair scale (size).");
 
+	cg_draw_frags = cgi.Cvar("cg_draw_frags", "1", CVAR_ARCHIVE, "Draw the number of frags");
 	cg_draw_hud = cgi.Cvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
+	cg_draw_time = cgi.Cvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
+	cg_draw_teambar = cgi.Cvar("cg_draw_teambar", "1", CVAR_ARCHIVE, "Draw the teambanner");
 
 	cg_draw_weapon = cgi.Cvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
 			"Toggle drawing of the weapon model.");

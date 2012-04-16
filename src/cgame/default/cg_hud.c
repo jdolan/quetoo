@@ -181,6 +181,9 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 	if (ps->stats[STAT_SPECTATOR])
 		return;
 
+	if (!cg_draw_frags->integer)
+		return;
+
 	cgi.BindFont("small", NULL, &ch);
 
 	x = cgi.view->x + cgi.view->width - cgi.StringWidth("Frags");
@@ -309,6 +312,9 @@ static void Cg_DrawTime(const player_state_t *ps) {
 	if (!ps->stats[STAT_TIME])
 		return;
 
+	if (!cg_draw_time->integer)
+		return;
+
 	cgi.BindFont("small", NULL, &ch);
 
 	x = cgi.view->x + cgi.view->width - cgi.StringWidth(string);
@@ -350,6 +356,9 @@ static void Cg_DrawTeam(const player_state_t *ps) {
 	int color;
 
 	if (!team)
+		return;
+
+	if(!cg_draw_teambar->integer)
 		return;
 
 	if (team == CS_TEAM_GOOD)
