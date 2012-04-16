@@ -21,71 +21,6 @@
 
 #include "cl_local.h"
 
-// a copy of the last item we dropped, for %d
-static char last_dropped_item[MAX_TOKEN_CHARS];
-
-/*
- * Cl_ExpandVariable
- *
- * This is the client-specific sibling to Cvar_VariableString.
- */
-static const char *Cl_ExpandVariable(char v) {
-	int i;
-
-	switch (v) {
-
-	case 'l': // client's location
-		return Cl_LocationHere();
-	case 'L': // client's line of sight
-		return Cl_LocationThere();
-
-	case 'd': // last dropped item
-		return last_dropped_item;
-
-	case 'h': // health
-		if (!cl.frame.valid)
-			return "";
-		i = cl.frame.ps.stats[STAT_HEALTH];
-		return va("%d", i);
-
-	case 'a': // armor
-		if (!cl.frame.valid)
-			return "";
-		i = cl.frame.ps.stats[STAT_ARMOR];
-		return va("%d", i);
-
-	default:
-		return "";
-	}
-}
-
-/*
- * Cl_ExpandVariables
- */
-static char *Cl_ExpandVariables(const char *text) {
-	static char expanded[MAX_STRING_CHARS];
-	int i, j, len;
-
-	if (!text || !text[0])
-		return "";
-
-	memset(expanded, 0, sizeof(expanded));
-	len = strlen(text);
-
-	for (i = j = 0; i < len; i++) {
-		if (text[i] == '%' && i < len - 1) { // expand %variables
-			const char *c = Cl_ExpandVariable(text[i + 1]);
-			strcat(expanded, c);
-			j += strlen(c);
-			i++;
-		} else
-			// or just append normal chars
-			expanded[j++] = text[i];
-	}
-
-	return expanded;
-}
-
 /**
  * CL_ForwardCmdToServer
  *
@@ -102,12 +37,6 @@ void Cl_ForwardCmdToServer(void) {
 
 	const char *cmd = Cmd_Argv(0);
 	char *args = Cmd_Args();
-
-	if (!strcmp(cmd, "drop")) // maintain last item dropped for 'say %d'
-		strncpy(last_dropped_item, args, sizeof(last_dropped_item) - 1);
-
-	if (!strcmp(cmd, "say") || !strcmp(cmd, "say_team"))
-		args = Cl_ExpandVariables(args);
 
 	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 	Sb_Print(&cls.netchan.message, va("%s %s", cmd, args));

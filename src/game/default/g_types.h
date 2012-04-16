@@ -426,6 +426,8 @@ struct g_client_s {
 	unsigned int quad_attack_time; // play attack sound when time > this
 
 	g_edict_t *chase_target; // player we are chasing
+
+	g_item_t *last_dropped; //last dropped item, used for variable expansion
 };
 
 struct g_edict_s {

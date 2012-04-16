@@ -271,6 +271,7 @@ static void G_Drop_f(g_edict_t *ent) {
 		return;
 	}
 
+	ent->client->last_dropped = it;
 	it->drop(ent, it);
 }
 
@@ -400,6 +401,62 @@ static void G_Kill_f(g_edict_t *ent) {
 	ent->die(ent, ent, ent, 100000, vec3_origin);
 }
 
+
+/*
+ * G_ExpandVariable
+ *
+ * This is the client-specific sibling to Cvar_VariableString.
+ */
+static const char *G_ExpandVariable(g_edict_t *ent, char v) {
+	int i;
+
+	switch (v) {
+
+	case 'd': // last dropped item
+		if(ent->client->last_dropped)
+			return ent->client->last_dropped->pickup_name;
+		return "";
+
+	case 'h': // health
+		i = ent->client->ps.stats[STAT_HEALTH];
+		return va("%d", i);
+
+	case 'a': // armor
+		i = ent->client->ps.stats[STAT_ARMOR];
+		return va("%d", i);
+
+	default:
+		return "";
+	}
+}
+
+/*
+ * G_ExpandVariables
+ */
+static char *G_ExpandVariables(g_edict_t *ent, const char *text) {
+	static char expanded[MAX_STRING_CHARS];
+	int i, j, len;
+
+	if (!text || !text[0])
+		return "";
+
+	memset(expanded, 0, sizeof(expanded));
+	len = strlen(text);
+
+	for (i = j = 0; i < len; i++) {
+		if (text[i] == '%' && i < len - 1) { // expand %variables
+			const char *c = G_ExpandVariable(ent, text[i + 1]);
+			strcat(expanded, c);
+			j += strlen(c);
+			i++;
+		} else
+			// or just append normal chars
+			expanded[j++] = text[i];
+	}
+
+	return expanded;
+}
+
 /*
  * G_Say_f
  */
@@ -444,6 +501,8 @@ static void G_Say_f(g_edict_t *ent) {
 
 	i = sizeof(text) - strlen(text) - 2;
 	c = gi.Args();
+
+	c = G_ExpandVariables(ent, c);
 
 	if (arg0) { // not say or say_team, just arbitrary chat from the console
 		strncat(text, gi.Argv(0), i);

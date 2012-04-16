@@ -14,7 +14,6 @@ noinst_HEADERS = \
 	cl_http.h \
 	cl_input.h \
 	cl_keys.h \
-	cl_loc.h \
 	cl_local.h \
 	cl_main.h \
 	cl_parse.h \
@@ -40,7 +39,6 @@ libclient_la_SOURCES = \
 	cl_http.c \
 	cl_input.c \
 	cl_keys.c \
-	cl_loc.c \
 	cl_main.c \
 	cl_parse.c \
 	cl_pred.c \

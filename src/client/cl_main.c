@@ -506,8 +506,6 @@ static void Cl_LoadMedia(void) {
 
 	cls.cgame->UpdateMedia();
 
-	Cl_LoadLocations();
-
 	Cl_ClearNotify();
 
 	cls.key_state.dest = KEY_GAME;
@@ -820,8 +818,6 @@ void Cl_Init(void) {
 
 	Cl_InitHttpDownload();
 
-	Cl_InitLocations();
-
 	Fs_ExecAutoexec();
 
 	Cl_ClearState();
@@ -848,8 +844,6 @@ void Cl_Shutdown(void) {
 	Cl_ShutdownHttpDownload();
 
 	Cl_WriteConfiguration();
-
-	Cl_ShutdownLocations();
 
 	Cl_FreeServers();
 

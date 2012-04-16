@@ -40,7 +40,6 @@
 #include "cl_http.h"
 #include "cl_input.h"
 #include "cl_keys.h"
-#include "cl_loc.h"
 #include "cl_main.h"
 #include "cl_parse.h"
 #include "cl_pred.h"
