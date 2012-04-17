@@ -587,8 +587,8 @@ static void G_worldspawn(g_edict_t *ent) {
 	}
 	gi.ConfigString(CS_GRAVITY, va("%d", g_level.gravity));
 
-	if(g_gameplay->integer > 0) { // perfer g_gameplay
-		g_level.gameplay = g_gameplay->integer;
+	if(strcmp(g_gameplay->string, "default")) { // perfer g_gameplay
+		g_level.gameplay = G_GameplayByName(g_gameplay->string);
 	} else if(map && map->gameplay > -1) { // then maps.lst gameplay
 		g_level.gameplay = map->gameplay;
 	} else { // or fall back on worldspawn
