@@ -651,6 +651,14 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item) {
 		VectorCopy(ent->s.origin, dropped->s.origin);
 	}
 
+	if (item->type == ITEM_WEAPON) {
+		g_item_t *ammo = G_FindItem(item->ammo);
+		if(ammo)
+			dropped->health = ammo->quantity;
+		else
+			dropped->health = 0;
+	}
+
 	// we're in a bad spot, forget it
 	if (trace.start_solid) {
 
@@ -826,6 +834,14 @@ void G_SpawnItem(g_edict_t *ent, g_item_t *item) {
 			ent->next_think = g_level.time + gi.frame_millis;
 			ent->think = G_ItemRespawn;
 		}
+	}
+
+	if (ent->item->type == ITEM_WEAPON) {
+		g_item_t *ammo = G_FindItem(ent->item->ammo);
+		if(ammo)
+			ent->health = ammo->quantity;
+		else
+			ent->health = 0;
 	}
 
 	// hide flags unless ctf is enabled

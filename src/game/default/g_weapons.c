@@ -29,22 +29,14 @@ bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	g_item_t *ammo;
 
 	index = ITEM_INDEX(ent->item);
-
-	// add ammo
 	ammo = G_FindItem(ent->item->ammo);
-	if(ammo) {
-		ammoindex = ITEM_INDEX(ammo);
+	ammoindex = ITEM_INDEX(ammo);
 
-		if (!(ent->spawn_flags & SF_ITEM_DROPPED) && other->client->persistent.inventory[index]) {
-			delta = ammo->quantity - other->client->persistent.inventory[ammoindex];
-			if (delta <= 0) {
-				G_AddAmmo(other, ammo, ammo->quantity / 2);
-			} else {
-				G_SetAmmo(other, ammo, ammo->quantity + (ammo->quantity - delta) / 2);
-			}
-		} else
-			G_AddAmmo(other, ammo, ammo->quantity);
-	}
+	delta = ent->health - other->client->persistent.inventory[ammoindex];
+	if (delta <= 0)
+		G_AddAmmo(other, ammo, ent->health / 2);
+	else
+		G_SetAmmo(other, ammo, ent->health + other->client->persistent.inventory[ammoindex]/ 2);
 
 	// setup respawn if it's not a dropped item
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED)) {
@@ -183,7 +175,8 @@ void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
  * G_DropWeapon
  */
 void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
-	int index;
+	int index, ammo_index;
+	g_edict_t *dropped;
 	g_item_t *ammo;
 
 	index = ITEM_INDEX(item);
@@ -195,17 +188,31 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 		return;
 	}
 
-	G_DropItem(ent, item);
 	ammo = G_FindItem(item->ammo);
-	G_AddAmmo(ent, ammo, -1 * ammo->quantity);
+	ammo_index = ITEM_INDEX(ammo);
+	if(ent->client->persistent.inventory[ammo_index] <= 0) {
+		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop a weapon without ammo\n");
+		return;
+	}
+
+
+	dropped = G_DropItem(ent, item);
 	ent->client->persistent.inventory[index]--;
+
+	//now adjust dropped ammo quantity to reflect what we actually had avalible
+	if(ent->client->persistent.inventory[ammo_index] < ammo->quantity)
+		dropped->health = ent->client->persistent.inventory[ammo_index];
+	G_AddAmmo(ent, ammo, -1 * ammo->quantity);
+
 }
 
 /*
  * G_TossWeapon
  */
 void G_TossWeapon(g_edict_t *ent) {
+	g_edict_t *dropped;
 	g_item_t *item;
+	short ammo;
 
 	// don't drop weapon when falling into void
 	if (means_of_death == MOD_TRIGGER_HURT)
@@ -213,10 +220,14 @@ void G_TossWeapon(g_edict_t *ent) {
 
 	item = ent->client->persistent.weapon;
 
-	if (!ent->client->persistent.inventory[ent->client->ammo_index])
+	ammo = ent->client->persistent.inventory[ent->client->ammo_index];
+
+	if (!ammo)
 		return; // don't drop when out of ammo
 
-	G_DropItem(ent, item);
+	dropped = G_DropItem(ent, item);
+	if(dropped->health > ammo)
+		dropped->health = ammo;
 }
 
 /*
