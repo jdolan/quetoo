@@ -184,6 +184,7 @@ void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
  */
 void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 	int index;
+	g_item_t *ammo;
 
 	index = ITEM_INDEX(item);
 
@@ -195,6 +196,8 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 	}
 
 	G_DropItem(ent, item);
+	ammo = G_FindItem(item->ammo);
+	G_AddAmmo(ent, ammo, -1 * ammo->quantity);
 	ent->client->persistent.inventory[index]--;
 }
 

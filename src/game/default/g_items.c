@@ -216,6 +216,8 @@ bool G_AddAmmo(g_edict_t *ent, g_item_t *item, short count) {
 
 	if (ent->client->persistent.inventory[index] > max)
 		ent->client->persistent.inventory[index] = max;
+	else if (ent->client->persistent.inventory[index] < 0)
+		ent->client->persistent.inventory[index] = 0;
 
 	return true;
 }
@@ -252,6 +254,8 @@ bool G_SetAmmo(g_edict_t *ent, g_item_t *item, short count) {
 
 	if (ent->client->persistent.inventory[index] > max)
 		ent->client->persistent.inventory[index] = max;
+	else if (ent->client->persistent.inventory[index] < 0)
+			ent->client->persistent.inventory[index] = 0;
 
 	return true;
 }

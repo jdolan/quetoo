@@ -457,6 +457,7 @@ static void G_InitClientPersistent(g_client_t *client) {
 		G_Give(client, "Machinegun", 200);
 		G_Give(client, "Super Shotgun", 80);
 		G_Give(client, "Shotgun", 80);
+		G_Give(client, "Blaster", 0);
 
 		G_Give(client, "Armor", 200);
 
