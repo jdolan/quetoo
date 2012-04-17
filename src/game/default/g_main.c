@@ -608,6 +608,7 @@ static void G_CheckRules(void) {
 		// players have readied, begin match
 		g_level.start_match = false;
 		g_level.warmup = false;
+		g_level.time_limit = (g_time_limit->value * 60 * 1000) + g_level.time;
 
 		for (i = 0; i < sv_max_clients->integer; i++) {
 			if (!g_game.edicts[i + 1].in_use)
@@ -649,7 +650,7 @@ static void G_CheckRules(void) {
 			time = g_level.match_time - g_level.time;
 		else if (g_level.match_time) {
 			if (g_level.time_limit) // count down to time_limit
-				time = g_level.match_time + g_level.time_limit - g_level.time;
+				time = g_level.time_limit - g_level.time;
 			else
 				time = g_level.time - g_level.match_time; // count up
 		} else
