@@ -692,9 +692,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	// clear player state values
 	memset(&ent->client->ps, 0, sizeof(cl->ps));
 
-	cl->ps.pm_state.origin[0] = spawn_origin[0] * 8.0;
-	cl->ps.pm_state.origin[1] = spawn_origin[1] * 8.0;
-	cl->ps.pm_state.origin[2] = spawn_origin[2] * 8.0;
+	PackPosition(spawn_origin, cl->ps.pm_state.origin);
 
 	// project eyes to top-front of head
 	VectorSet(cl->ps.pm_state.view_offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.75);
