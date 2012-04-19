@@ -335,7 +335,7 @@ typedef struct cl_static_s {
 	char download_url[MAX_OSPATH]; // for http downloads
 	cl_download_t download; // current download (udp or http)
 
-	char demo_path[MAX_OSPATH]; // demo recording
+	char demo_path[MAX_OSPATH];
 	FILE *demo_file;
 
 	cl_server_info_t *servers; // list of servers from all sources

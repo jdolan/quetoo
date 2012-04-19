@@ -89,7 +89,7 @@ static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 
 	if (!VectorCompare(self->move_dir, vec3_origin)) {
 
-		if (DotProduct(other->client->forward, self->move_dir) < 0)
+		if (DotProduct(other->client->forward, self->move_dir) < 0.0)
 			return;
 	}
 

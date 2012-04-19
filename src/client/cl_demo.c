@@ -92,7 +92,7 @@ static void Cl_WriteDemoHeader(void) {
 	Fs_Write(&len, 4, 1, cls.demo_file);
 	Fs_Write(msg.data, msg.size, 1, cls.demo_file);
 
-	Com_Print("Recording to %s.\n", cls.demo_path);
+	Com_Debug("Cl_WriteDemoHeader: demo started\n");
 	// the rest of the demo file will be individual frames
 }
 
@@ -107,8 +107,10 @@ void Cl_WriteDemoMessage(void) {
 	if (!cls.demo_file)
 		return;
 
-	if (!ftell(cls.demo_file)) // write header
+	// if we received an uncompressed frame, write the demo header
+	if (cl.frame.delta_frame < 1 && !ftell(cls.demo_file)) {
 		Cl_WriteDemoHeader();
+	}
 
 	// the first eight bytes are just packet sequencing stuff
 	size = LittleLong(net_message.size - 8);
