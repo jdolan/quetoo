@@ -1031,7 +1031,7 @@ void G_func_door(g_edict_t *ent) {
 	if (!ent->speed)
 		ent->speed = 100.0;
 
-	//ent->speed *= 2.0;
+	ent->speed *= 2.0;
 
 	if (!ent->accel)
 		ent->accel = ent->speed;
