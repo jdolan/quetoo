@@ -428,8 +428,7 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
  * VectorCompare
  *
  * Returns true if the specified vectors are equal, false otherwise.
- */
-bool VectorCompare(const vec3_t v1, const vec3_t v2) {
+ */bool VectorCompare(const vec3_t v1, const vec3_t v2) {
 
 	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
 		return false;
@@ -442,8 +441,7 @@ bool VectorCompare(const vec3_t v1, const vec3_t v2) {
  *
  * Returns true if the first vector is closer to the point of interest, false
  * otherwise.
- */
-bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
+ */bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
 	vec3_t d1, d2;
 
 	VectorSubtract(point, v1, d1);
@@ -517,6 +515,81 @@ void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out) {
 }
 
 /**
+ * PackPosition
+ *
+ * Packs the specified floating point coordinates to the short array in out
+ * for network transmission.
+ */
+void PackPosition(const vec3_t in, short *out) {
+	VectorScale(in, 8.0, out);
+}
+
+/**
+ * UnpackPosition
+ *
+ * Unpacks the compressed coordinates to 32 bit floating point in out.
+ */
+void UnpackPosition(const short *in, vec3_t out) {
+	VectorScale(in, 0.125, out);
+}
+
+/**
+ * PackAngles
+ *
+ * Packs the specified floating point Euler angles to the short array in out
+ * for network transmission.
+ */
+void PackAngles(const vec3_t in, short *out) {
+	int i;
+
+	for (i = 0; i < 3; i++) {
+		out[i] = ANGLE2SHORT(in[i]);
+	}
+}
+
+/**
+ * UnpackAngles
+ *
+ * Unpacks the compressed angles to Euler 32 bit floating point in out.
+ */
+void UnpackAngles(const short *in, vec3_t out) {
+	int i;
+
+	for (i = 0; i < 3; i++) {
+		out[i] = SHORT2ANGLE(in[i]);
+	}
+}
+
+/**
+ * ClampAngles
+ *
+ * Circularly clamps the specified angles between 0.0 and 360.0. Pitch is
+ * clamped to not exceed 90' up or down.
+ */
+void ClampAngles(vec3_t angles) {
+	int i;
+
+	// first wrap all angles to 0.0 - 360.0
+	for (i = 0; i < 3; i++) {
+
+		while (angles[i] > 360.0) {
+			angles[i] -= 360.0;
+		}
+
+		while (angles[i] < 0.0) {
+			angles[i] += 360.0;
+		}
+	}
+
+	// clamp pitch to prevent the player from looking up or down more than 90'
+	if (angles[PITCH] > 89.0 && angles[PITCH] < 180.0) {
+		angles[PITCH] = 89.0;
+	} else if (angles[PITCH] < 271.0 && angles[PITCH] >= 180.0) {
+		angles[PITCH] = 271.0;
+	}
+}
+
+/**
  * ColorNormalize
  *
  * Clamps the components of the specified vector to 1.0, scaling the vector
@@ -583,8 +656,7 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
  * MixedCase
  *
  * Returns true if the specified string has some upper case characters.
- */
-bool MixedCase(const char *s) {
+ */bool MixedCase(const char *s) {
 	const char *c = s;
 	while (*c) {
 		if (isupper(*c))
@@ -718,8 +790,7 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
  *
  * To suppress the special syntactic significance of any of `[]*?!-\',
  * and match the character exactly, precede it with a `\'.
- */
-bool GlobMatch(const char *pattern, const char *text) {
+ */bool GlobMatch(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
 	register char c;
 
@@ -1074,8 +1145,7 @@ void DeleteUserInfo(char *s, const char *key) {
  *
  * Returns true if the specified user-info string appears valid, false
  * otherwise.
- */
-bool ValidateUserInfo(const char *s) {
+ */bool ValidateUserInfo(const char *s) {
 	if (strstr(s, "\""))
 		return false;
 	if (strstr(s, ";"))

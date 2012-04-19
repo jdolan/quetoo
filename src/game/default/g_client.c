@@ -185,10 +185,10 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 					self->client->persistent.net_name, message,
 					attacker->client->persistent.net_name, message2);
 
-			if(g_show_attacker_stats->integer) {
+			if (g_show_attacker_stats->integer) {
 				gi.ClientPrint(self, PRINT_HIGH, "%s had %d health and %d armor\n",
-					attacker->client->persistent.net_name,
-					attacker->health, attacker->client->persistent.armor);
+						attacker->client->persistent.net_name, attacker->health,
+						attacker->client->persistent.armor);
 			}
 
 			if (g_level.warmup)
@@ -282,7 +282,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
 
 	self->client->respawn_time = g_level.time + 1000;
-	self->client->ps.pmove.pm_type = PM_DEAD;
+	self->client->ps.pm_state.pm_type = PM_DEAD;
 
 	G_ClientObituary(self, attacker);
 
@@ -646,7 +646,6 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	vec3_t spawn_origin, spawn_angles, old_angles;
 	g_client_t *cl;
 	g_client_persistent_t persistent;
-	int i;
 
 	// find a spawn point
 	G_SelectSpawnPoint(ent, spawn_origin, spawn_angles);
@@ -693,13 +692,13 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	// clear player state values
 	memset(&ent->client->ps, 0, sizeof(cl->ps));
 
-	cl->ps.pmove.origin[0] = spawn_origin[0] * 8.0;
-	cl->ps.pmove.origin[1] = spawn_origin[1] * 8.0;
-	cl->ps.pmove.origin[2] = spawn_origin[2] * 8.0;
+	cl->ps.pm_state.origin[0] = spawn_origin[0] * 8.0;
+	cl->ps.pm_state.origin[1] = spawn_origin[1] * 8.0;
+	cl->ps.pm_state.origin[2] = spawn_origin[2] * 8.0;
 
 	// project eyes to top-front of head
-	VectorSet(cl->ps.pmove.view_offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.75);
-	VectorScale(cl->ps.pmove.view_offset, 8.0, cl->ps.pmove.view_offset);
+	VectorSet(cl->ps.pm_state.view_offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.75);
+	VectorScale(cl->ps.pm_state.view_offset, 8.0, cl->ps.pm_state.view_offset);
 
 	// clear entity state values
 	ent->s.effects = 0;
@@ -716,9 +715,8 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	VectorCopy(ent->s.origin, ent->s.old_origin);
 
 	// set the delta angle of the spawn point
-	for (i = 0; i < 3; i++) {
-		cl->ps.pmove.delta_angles[i] = ANGLE2SHORT(spawn_angles[i] - old_angles[i]);
-	}
+	VectorSubtract(spawn_angles, old_angles, old_angles);
+	PackAngles(old_angles, cl->ps.pm_state.delta_angles);
 
 	VectorClear(cl->cmd_angles);
 	VectorClear(cl->angles);
@@ -742,11 +740,11 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	}
 
 	// or spawn a player
-	ent->s.event = EV_TELEPORT;
+	ent->s.event = EV_CLIENT_TELEPORT;
 
 	// hold in place briefly
-	cl->ps.pmove.pm_flags = PMF_TIME_TELEPORT;
-	cl->ps.pmove.pm_time = 20;
+	cl->ps.pm_state.pm_flags = PMF_TIME_TELEPORT;
+	cl->ps.pm_state.pm_time = 20;
 
 	cl->persistent.match_num = g_level.match_num;
 	cl->persistent.round_num = g_level.round_num;
@@ -1058,24 +1056,27 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 
 	g_client_t *client = ent->client;
 
-	client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+	// save the raw angles sent over in the command
+	UnpackAngles(cmd->angles, client->cmd_angles);
+
+	// try to re-enable client side prediction each frame
+	client->ps.pm_state.pm_flags &= ~PMF_NO_PREDICTION;
 
 	if (ent->move_type == MOVE_TYPE_NO_CLIP)
-		client->ps.pmove.pm_type = PM_SPECTATOR;
+		client->ps.pm_state.pm_type = PM_SPECTATOR;
 	else if (ent->s.model1 != 255 || ent->dead)
-		client->ps.pmove.pm_type = PM_DEAD;
+		client->ps.pm_state.pm_type = PM_DEAD;
 	else
-		client->ps.pmove.pm_type = PM_NORMAL;
+		client->ps.pm_state.pm_type = PM_NORMAL;
 
-	client->ps.pmove.gravity = g_level.gravity;
+	// copy the current gravity in
+	client->ps.pm_state.gravity = g_level.gravity;
 
 	memset(&pm, 0, sizeof(pm));
-	pm.s = client->ps.pmove;
+	pm.s = client->ps.pm_state;
 
-	for (i = 0; i < 3; i++) {
-		pm.s.origin[i] = ent->s.origin[i] * 8.0;
-		pm.s.velocity[i] = ent->velocity[i] * 8.0;
-	}
+	PackPosition(ent->s.origin, pm.s.origin);
+	PackPosition(ent->velocity, pm.s.velocity);
 
 	pm.cmd = *cmd;
 	pm.ground_entity = ent->ground_entity;
@@ -1087,42 +1088,42 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	gi.Pmove(&pm);
 
 	// save results of pmove
-	client->ps.pmove = pm.s;
+	client->ps.pm_state = pm.s;
 
 	VectorCopy(ent->velocity, old_velocity);
 
-	for (i = 0; i < 3; i++) {
-		ent->s.origin[i] = pm.s.origin[i] * 0.125;
-		ent->velocity[i] = pm.s.velocity[i] * 0.125;
-	}
+	UnpackPosition(pm.s.origin, ent->s.origin);
+	UnpackPosition(pm.s.velocity, ent->velocity);
 
 	VectorCopy(pm.mins, ent->mins);
 	VectorCopy(pm.maxs, ent->maxs);
 
-	client->cmd_angles[0] = SHORT2ANGLE(cmd->angles[0]);
-	client->cmd_angles[1] = SHORT2ANGLE(cmd->angles[1]);
-	client->cmd_angles[2] = SHORT2ANGLE(cmd->angles[2]);
+	// copy the clamped angles out
+	VectorCopy(pm.angles, client->angles);
 
+	// update the directional vectors based on new view angles
+	AngleVectors(client->angles, client->forward, client->right, client->up);
+
+	// update the horizontal speed scalar basd on new velocity
 	VectorCopy(ent->velocity, velocity);
 	velocity[2] = 0.0;
 
-	const float speed = VectorNormalize(velocity);
+	client->speed = VectorNormalize(velocity);
 
 	// check for jump
 	if ((pm.s.pm_flags & PMF_JUMPED) && client->jump_time < g_level.time - 100) {
-
 		vec3_t angles, forward, point;
 		c_trace_t tr;
 
 		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
 		AngleVectors(angles, forward, NULL, NULL);
 
-		VectorMA(ent->s.origin, speed * 0.4, velocity, point);
+		VectorMA(ent->s.origin, client->speed * 0.4, velocity, point);
 
 		// trace towards our jump destination to see if we have room to backflip
 		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_PLAYER_SOLID);
 
-		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && speed > 200.0)
+		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && client->speed > 200.0)
 			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 		else
 			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
@@ -1143,7 +1144,6 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	}
 	// check for landing
 	else if ((pm.s.pm_flags & PMF_TIME_LAND) && client->land_time < g_level.time - 1000) {
-
 		const float fall = -old_velocity[2];
 
 		entity_event_t event = EV_CLIENT_LAND;
@@ -1200,9 +1200,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 		ent->ground_entity_link_count = ent->ground_entity->link_count;
 	}
 
-	VectorCopy(pm.angles, client->angles);
-	VectorCopy(pm.angles, client->ps.angles);
-
+	// and finally link them back in to collide with others below
 	gi.LinkEntity(ent);
 
 	// touch jump pads, hurt brushes, etc..
@@ -1272,13 +1270,13 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 	client->cmd = *cmd;
 
 	if (g_level.intermission_time) {
-		client->ps.pmove.pm_type = PM_FREEZE;
+		client->ps.pm_state.pm_type = PM_FREEZE;
 		return;
 	}
 
 	if (client->chase_target) { // ensure chase is valid
 
-		client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
+		client->ps.pm_state.pm_flags |= PMF_NO_PREDICTION;
 
 		if (!client->chase_target->in_use || client->chase_target->client->persistent.spectator) {
 
@@ -1308,7 +1306,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 
 			if (client->chase_target) { // toggle chase camera
 				client->chase_target = NULL;
-				client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+				client->ps.pm_state.pm_flags &= ~PMF_NO_PREDICTION;
 			} else {
 				G_ClientChaseTarget(ent);
 			}
@@ -1345,7 +1343,7 @@ void G_ClientBeginFrame(g_edict_t *ent) {
 	client = ent->client;
 
 	if (ent->ground_entity) // let this be reset each frame as needed
-		client->ps.pmove.pm_flags &= ~PMF_PUSHED;
+		client->ps.pm_state.pm_flags &= ~PMF_PUSHED;
 
 	// run weapon think if it hasn't been done by a command
 	if (client->weapon_think_time < g_level.time && !client->persistent.spectator)

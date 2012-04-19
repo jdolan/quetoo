@@ -56,7 +56,6 @@ void Msg_WriteCoord(size_buf_t *sb, const float f);
 void Msg_WritePos(size_buf_t *sb, const vec3_t pos);
 void Msg_WriteAngle(size_buf_t *sb, const float f);
 void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles);
-void Msg_WriteAngle16(size_buf_t *sb, const float f);
 void Msg_WriteDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
 void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, bool force, bool newentity);
 void Msg_WriteDir(size_buf_t *sb, const vec3_t dir);
@@ -73,7 +72,6 @@ float Msg_ReadCoord(size_buf_t *sb);
 void Msg_ReadPos(size_buf_t *sb, vec3_t pos);
 float Msg_ReadAngle(size_buf_t *sb);
 void Msg_ReadAngles(size_buf_t *sb, vec3_t angles);
-float Msg_ReadAngle16(size_buf_t *sb);
 void Msg_ReadDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
 void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, unsigned short bits, unsigned short number);
 void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
@@ -86,7 +84,7 @@ PROTOCOL
 */
 
 
-#define PROTOCOL 13  // unlucky
+#define PROTOCOL 14  // change this when netcode changes
 
 #define IP_MASTER "67.228.69.114"  // tastyspleen.net
 
@@ -110,11 +108,13 @@ PROTOCOL
 #define PS_M_TYPE			(1<<0)
 #define PS_M_ORIGIN			(1<<1)
 #define PS_M_VELOCITY		(1<<2)
-#define PS_M_TIME			(1<<3)
-#define PS_M_FLAGS			(1<<4)
-#define PS_M_VIEW_OFFSET	(1<<5)
-#define PS_M_DELTA_ANGLES	(1<<6)
-#define PS_VIEW_ANGLES		(1<<7)
+#define PS_M_FLAGS			(1<<3)
+#define PS_M_TIME			(1<<4)
+#define PS_M_GRAVITY		(1<<5)
+#define PS_M_VIEW_OFFSET	(1<<6)
+#define PS_M_VIEW_ANGLES	(1<<7)
+#define PS_M_KICK_ANGLES	(1<<8)
+#define PS_M_DELTA_ANGLES	(1<<9)
 
 // user_cmd_t communication
 

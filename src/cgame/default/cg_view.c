@@ -46,7 +46,6 @@ static void Cg_UpdateFov(void) {
 	cg_fov->modified = false;
 }
 
-
 /**
  * Cg_UpdateThirdperson
  *
@@ -62,7 +61,7 @@ static void Cg_UpdateThirdperson(const player_state_t *ps) {
 
 		// if we're spectating, don't translate the origin because we have
 		// no visible player model to begin with
-		if (ps->pmove.pm_type == PM_SPECTATOR && !ps->stats[STAT_HEALTH])
+		if (ps->pm_state.pm_type == PM_SPECTATOR && !ps->stats[STAT_HEALTH])
 			return;
 
 		if (!cg_third_person->value)
@@ -103,54 +102,6 @@ static void Cg_UpdateThirdperson(const player_state_t *ps) {
 	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
 }
 
-#define KICK_TIME 300
-
-/**
- * Cg_UpdateKick
- *
- * Calculate the view kick.
- */
-static void Cg_UpdateKick(const player_state_t *ps) {
-	static unsigned int kick_time;
-	static float kick;
-
-	if (ps->pmove.pm_type == PM_FREEZE) {
-		return;
-	}
-
-	// clamp the kick time to our working bounds
-
-	if (kick_time > cgi.client->time + KICK_TIME) {
-		kick_time = cgi.client->time;
-	} else if (kick_time < cgi.client->time) {
-		kick_time = cgi.client->time;
-	}
-
-	// add falling kick
-
-	const cl_entity_t *ent = &cgi.client->entities[cgi.client->player_num + 1];
-
-	switch (ent->current.event) {
-
-	case EV_CLIENT_LAND:
-		kick = 2.5;
-		kick_time += KICK_TIME;
-		break;
-	case EV_CLIENT_FALL:
-		kick = 5.0;
-		kick_time += KICK_TIME;
-		break;
-	case EV_CLIENT_FALL_FAR:
-		kick = 10.0;
-		kick_time += KICK_TIME;
-		break;
-	default:
-		break;
-	}
-
-	cgi.view->angles[PITCH] += kick * ((kick_time - cgi.client->time) / (float) KICK_TIME);
-}
-
 /**
  * Cg_UpdateBob
  *
@@ -169,12 +120,12 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	if (cg_third_person->value)
 		return;
 
-	if (cgi.client->frame.ps.pmove.pm_type != PM_NORMAL)
+	if (cgi.client->frame.ps.pm_state.pm_type != PM_NORMAL)
 		return;
 
-	const bool ducked = cgi.client->frame.ps.pmove.pm_flags & PMF_DUCKED;
+	const bool ducked = cgi.client->frame.ps.pm_state.pm_flags & PMF_DUCKED;
 
-	VectorScale(ps->pmove.velocity, 0.125, velocity);
+	VectorScale(ps->pm_state.velocity, 0.125, velocity);
 	velocity[2] = 0.0;
 
 	speed = VectorLength(velocity) / (ducked ? 150 : 450.0);
@@ -189,7 +140,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 
 	ftime *= (1.0 + speed * 1.0 + speed);
 
-	if (!(ps->pmove.pm_flags & PMF_ON_GROUND))
+	if (!(ps->pm_state.pm_flags & PMF_ON_GROUND))
 		ftime *= 0.25;
 
 	time += ftime;
@@ -217,8 +168,6 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_UpdateFov();
 
 	Cg_UpdateThirdperson(&frame->ps);
-
-	Cg_UpdateKick(&frame->ps);
 
 	Cg_UpdateBob(&frame->ps);
 }

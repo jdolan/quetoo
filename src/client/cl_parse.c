@@ -143,16 +143,6 @@ static void Cl_ParseBaseline(void) {
 }
 
 /*
- * Cl_ParseGravity
- */
-static void Cl_ParseGravity(const char *gravity) {
-	int g;
-
-	if ((g = atoi(gravity)) > -1)
-		cl_gravity = g;
-}
-
-/*
  * Cl_ParseConfigString
  */
 void Cl_ParseConfigString(void) {
@@ -165,22 +155,23 @@ void Cl_ParseConfigString(void) {
 	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
 	const char *s = cl.config_strings[i];
 
-	if (i == CS_GRAVITY)
-		Cl_ParseGravity(s);
-	else if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
+	if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
 		if (cls.state == CL_ACTIVE) {
 			cl.model_draw[i - CS_MODELS] = R_LoadModel(s);
-			if (cl.config_strings[i][0] == '*')
+			if (cl.config_strings[i][0] == '*') {
 				cl.model_clip[i - CS_MODELS] = Cm_Model(s);
-			else
+			} else {
 				cl.model_clip[i - CS_MODELS] = NULL;
+			}
 		}
 	} else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
-		if (cls.state == CL_ACTIVE)
+		if (cls.state == CL_ACTIVE) {
 			cl.sound_precache[i - CS_SOUNDS] = S_LoadSample(s);
+		}
 	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
-		if (cls.state == CL_ACTIVE)
+		if (cls.state == CL_ACTIVE) {
 			cl.image_precache[i - CS_IMAGES] = R_LoadPic(s);
+		}
 	}
 
 	cls.cgame->UpdateConfigString(i);

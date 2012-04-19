@@ -27,13 +27,13 @@
 void G_ClientToIntermission(g_edict_t *ent) {
 
 	VectorCopy(g_level.intermission_origin, ent->s.origin);
-	ent->client->ps.pmove.origin[0] = g_level.intermission_origin[0] * 8;
-	ent->client->ps.pmove.origin[1] = g_level.intermission_origin[1] * 8;
-	ent->client->ps.pmove.origin[2] = g_level.intermission_origin[2] * 8;
-	VectorCopy(g_level.intermission_angle, ent->client->ps.angles);
-	ent->client->ps.pmove.pm_type = PM_FREEZE;
 
-	VectorClear(ent->client->ps.pmove.view_offset);
+	PackPosition(g_level.intermission_origin, ent->client->ps.pm_state.origin);
+	PackAngles(g_level.intermission_angle, ent->client->ps.pm_state.view_angles);
+
+	VectorClear(ent->client->ps.pm_state.view_offset);
+
+	ent->client->ps.pm_state.pm_type = PM_FREEZE;
 
 	ent->s.model1 = 0;
 	ent->s.model2 = 0;
@@ -72,10 +72,10 @@ static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 		s.color = 0;
 	} else if (ent->client->persistent.team) {
 		if (ent->client->persistent.team == &g_team_good) {
-			s.team = CS_TEAM_GOOD;
+			s.team = 1;
 			s.color = ColorByName("blue", 0);
 		} else {
-			s.team = CS_TEAM_EVIL;
+			s.team = 2;
 			s.color = ColorByName("red", 0);
 		}
 	} else {
@@ -127,12 +127,12 @@ static unsigned int G_UpdateScores(void) {
 		memset(s, 0, sizeof(s));
 
 		s[0].player_num = MAX_CLIENTS;
-		s[0].team = CS_TEAM_GOOD;
+		s[0].team = 1;
 		s[0].score = g_team_good.score;
 		s[0].captures = g_team_good.captures;
 
 		s[1].player_num = MAX_CLIENTS;
-		s[1].team = CS_TEAM_EVIL;
+		s[1].team = 2;
 		s[1].score = g_team_evil.score;
 		s[1].captures = g_team_evil.captures;
 

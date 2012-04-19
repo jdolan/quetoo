@@ -228,10 +228,11 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int speed, in
 	blast->class_name = "blaster";
 
 	// set the color, overloading the client byte
-	if (ent->client)
+	if (ent->client) {
 		blast->s.client = ent->client->persistent.color;
-	else
+	} else {
 		blast->s.client = DEFAULT_WEAPON_EFFECT_COLOR;
+	}
 
 	G_PlayerProjectile(blast, scale);
 

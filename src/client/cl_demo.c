@@ -107,9 +107,6 @@ void Cl_WriteDemoMessage(void) {
 	if (!cls.demo_file)
 		return;
 
-	if (cls.demo_waiting) // we have not yet received a non-delta frame
-		return;
-
 	if (!ftell(cls.demo_file)) // write header
 		Cl_WriteDemoHeader();
 
@@ -141,9 +138,6 @@ void Cl_Stop_f(void) {
 
 	cls.demo_file = NULL;
 	Com_Print("Stopped demo.\n");
-
-	// inform server we're done recording
-	Cvar_ForceSet("recording", "0");
 }
 
 /*
@@ -180,13 +174,7 @@ void Cl_Record_f(void) {
 		return;
 	}
 
-	// don't start saving messages until a non-delta compressed message is received
-	cls.demo_waiting = true;
-
-	// update user info var to inform server to send angles
-	Cvar_ForceSet("recording", "1");
-
-	Com_Print("Requesting demo support from server...\n");
+	Com_Print("Recording to %s\n", cls.demo_path);
 }
 
 #define DEMO_PLAYBACK_STEP 1

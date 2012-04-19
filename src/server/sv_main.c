@@ -826,10 +826,6 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 	if (*val != '\0') {
 		cl->message_level = atoi(val);
 	}
-
-	// start/stop sending view angles for demo recording
-	val = GetUserInfo(cl->user_info, "recording");
-	cl->recording = atoi(val) == 1;
 }
 
 /*

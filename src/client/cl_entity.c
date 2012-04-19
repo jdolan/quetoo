@@ -42,7 +42,7 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, unsigned sho
 	Msg_ReadDeltaEntity(from, to, &net_message, number, bits);
 
 	// some data changes will force no interpolation
-	if (to->event == EV_TELEPORT) {
+	if (to->event == EV_CLIENT_TELEPORT) {
 		ent->server_frame = -99999;
 	}
 
@@ -188,14 +188,17 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 	}
 }
 
-/*
+/**
  * Cl_ParsePlayerstate
+ *
+ * Parse the player_state_t for the current frame from the server, using delta
+ * compression for all fields where possible.
  */
 static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_frame) {
 	player_state_t *ps;
-	byte bits;
+	unsigned short pm_state_bits;
 	int i;
-	int statbits;
+	unsigned int stat_bits;
 
 	ps = &new_frame->ps;
 
@@ -206,57 +209,67 @@ static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_fra
 		// or start clean
 		memset(ps, 0, sizeof(*ps));
 
-	bits = Msg_ReadByte(&net_message);
+	pm_state_bits = Msg_ReadShort(&net_message);
 
-	// parse the pmove_state_t
+	// parse the pm_state_t
 
-	if (bits & PS_M_TYPE)
-		ps->pmove.pm_type = Msg_ReadByte(&net_message);
+	if (pm_state_bits & PS_M_TYPE)
+		ps->pm_state.pm_type = Msg_ReadByte(&net_message);
 
 	if (cl.demo_server)
-		ps->pmove.pm_type = PM_FREEZE;
+		ps->pm_state.pm_type = PM_FREEZE;
 
-	if (bits & PS_M_ORIGIN) {
-		ps->pmove.origin[0] = Msg_ReadShort(&net_message);
-		ps->pmove.origin[1] = Msg_ReadShort(&net_message);
-		ps->pmove.origin[2] = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_M_ORIGIN) {
+		ps->pm_state.origin[0] = Msg_ReadShort(&net_message);
+		ps->pm_state.origin[1] = Msg_ReadShort(&net_message);
+		ps->pm_state.origin[2] = Msg_ReadShort(&net_message);
 	}
 
-	if (bits & PS_M_VELOCITY) {
-		ps->pmove.velocity[0] = Msg_ReadShort(&net_message);
-		ps->pmove.velocity[1] = Msg_ReadShort(&net_message);
-		ps->pmove.velocity[2] = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_M_VELOCITY) {
+		ps->pm_state.velocity[0] = Msg_ReadShort(&net_message);
+		ps->pm_state.velocity[1] = Msg_ReadShort(&net_message);
+		ps->pm_state.velocity[2] = Msg_ReadShort(&net_message);
 	}
 
-	if (bits & PS_M_TIME)
-		ps->pmove.pm_time = Msg_ReadByte(&net_message);
+	if (pm_state_bits & PS_M_FLAGS)
+		ps->pm_state.pm_flags = Msg_ReadShort(&net_message);
 
-	if (bits & PS_M_FLAGS)
-		ps->pmove.pm_flags = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_M_TIME)
+		ps->pm_state.pm_time = Msg_ReadByte(&net_message);
 
-	if (bits & PS_M_VIEW_OFFSET) {
-		ps->pmove.view_offset[0] = Msg_ReadShort(&net_message);
-		ps->pmove.view_offset[1] = Msg_ReadShort(&net_message);
-		ps->pmove.view_offset[2] = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_M_GRAVITY)
+		ps->pm_state.gravity = Msg_ReadShort(&net_message);
+
+	if (pm_state_bits & PS_M_VIEW_OFFSET) {
+		ps->pm_state.view_offset[0] = Msg_ReadShort(&net_message);
+		ps->pm_state.view_offset[1] = Msg_ReadShort(&net_message);
+		ps->pm_state.view_offset[2] = Msg_ReadShort(&net_message);
 	}
 
-	if (bits & PS_M_DELTA_ANGLES) {
-		ps->pmove.delta_angles[0] = Msg_ReadShort(&net_message);
-		ps->pmove.delta_angles[1] = Msg_ReadShort(&net_message);
-		ps->pmove.delta_angles[2] = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_M_VIEW_ANGLES) {
+		ps->pm_state.view_angles[0] = Msg_ReadShort(&net_message);
+		ps->pm_state.view_angles[1] = Msg_ReadShort(&net_message);
+		ps->pm_state.view_angles[2] = Msg_ReadShort(&net_message);
 	}
 
-	if (bits & PS_VIEW_ANGLES) { // demo, chase camera, recording
-		ps->angles[0] = Msg_ReadAngle16(&net_message);
-		ps->angles[1] = Msg_ReadAngle16(&net_message);
-		ps->angles[2] = Msg_ReadAngle16(&net_message);
+	if (pm_state_bits & PS_M_KICK_ANGLES) {
+		ps->pm_state.kick_angles[0] = Msg_ReadShort(&net_message);
+		ps->pm_state.kick_angles[1] = Msg_ReadShort(&net_message);
+		ps->pm_state.kick_angles[2] = Msg_ReadShort(&net_message);
+	}
+
+	if (pm_state_bits & PS_M_DELTA_ANGLES) {
+		ps->pm_state.delta_angles[0] = Msg_ReadShort(&net_message);
+		ps->pm_state.delta_angles[1] = Msg_ReadShort(&net_message);
+		ps->pm_state.delta_angles[2] = Msg_ReadShort(&net_message);
 	}
 
 	// parse stats
-	statbits = Msg_ReadLong(&net_message);
+
+	stat_bits = Msg_ReadLong(&net_message);
 
 	for (i = 0; i < MAX_STATS; i++) {
-		if (statbits & (1 << i))
+		if (stat_bits & (1 << i))
 			ps->stats[i] = Msg_ReadShort(&net_message);
 	}
 }
@@ -280,7 +293,6 @@ void Cl_ParseFrame(void) {
 
 	if (cl.frame.delta_frame <= 0) { // uncompressed frame
 		old_frame = NULL;
-		cls.demo_waiting = false;
 		cl.frame.valid = true;
 	} else { // delta compressed frame
 		old_frame = &cl.frames[cl.frame.delta_frame & UPDATE_MASK];
@@ -312,10 +324,8 @@ void Cl_ParseFrame(void) {
 		if (cls.state != CL_ACTIVE) {
 			cls.state = CL_ACTIVE;
 
-			VectorCopy(cl.frame.ps.pmove.origin, cl.predicted_origin);
-			VectorScale(cl.predicted_origin, 0.125, cl.predicted_origin);
-
-			VectorCopy(cl.frame.ps.angles, cl.predicted_angles);
+			UnpackPosition(cl.frame.ps.pm_state.origin, cl.predicted_origin);
+			UnpackAngles(cl.frame.ps.pm_state.view_angles, cl.predicted_angles);
 		}
 
 		Cl_CheckPredictionError();

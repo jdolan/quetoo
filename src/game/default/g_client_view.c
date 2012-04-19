@@ -50,7 +50,7 @@ static void G_ClientDamage(g_edict_t *ent) {
 		else
 			l = 100;
 
-		VectorAdd(client->ps.pmove.origin, client->ps.pmove.view_offset, org);
+		VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
 		VectorScale(org, 0.125, org);
 
 		gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), ATTN_NORM);
@@ -89,7 +89,7 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 	if (old_water_level == 3 && water_level != 3 && (client->drown_time - g_level.time) < 8000) {
 		vec3_t org;
 
-		VectorAdd(client->ps.pmove.origin, client->ps.pmove.view_offset, org);
+		VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
 		VectorScale(org, 0.125, org);
 
 		gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), ATTN_NORM);
@@ -144,6 +144,130 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
 }
 
 /**
+ * G_ClientWorldAngles
+ *
+ * Set the angles of the client's world model, after clamping them to sane
+ * values.
+ */
+static void G_ClientWorldAngles(g_edict_t *ent) {
+
+	ent->s.angles[PITCH] = ent->client->angles[PITCH] / 3.0;
+	ent->s.angles[YAW] = ent->client->angles[YAW];
+
+	// set roll based on lateral velocity and ground entity
+	const float dot = DotProduct(ent->velocity, ent->client->right);
+
+	ent->s.angles[ROLL] = ent->ground_entity ? dot * 0.025 : dot * 0.005;
+
+	// check for footsteps
+	if (ent->ground_entity && ent->move_type == MOVE_TYPE_WALK && !ent->s.event) {
+
+		if (ent->client->speed > 250.0 && ent->client->footstep_time < g_level.time) {
+			ent->client->footstep_time = g_level.time + 275;
+			ent->s.event = EV_CLIENT_FOOTSTEP;
+		}
+	}
+}
+
+/**
+ * G_ClientDamageKick
+ *
+ * Adds view kick in the specified direction to the specified client.
+ */
+void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const short kick) {
+	vec3_t old_kick_angles, kick_angles;
+
+	UnpackAngles(ent->client->ps.pm_state.kick_angles, old_kick_angles);
+
+	VectorClear(kick_angles);
+	kick_angles[PITCH] = -DotProduct(dir, ent->client->forward) * kick * 0.3;
+	kick_angles[ROLL] = DotProduct(dir, ent->client->right) * kick * 0.3;
+
+	VectorAdd(old_kick_angles, kick_angles, kick_angles);
+	PackAngles(kick_angles, ent->client->ps.pm_state.kick_angles);
+}
+
+/**
+ * G_ClientWeaponKick
+ *
+ * A convenience function for adding view kick from firing weapons.
+ */
+void G_ClientWeaponKick(g_edict_t *ent, const short kick) {
+	vec3_t dir;
+
+	VectorScale(ent->client->forward, -1.0, dir);
+
+	G_ClientDamageKick(ent, dir, kick);
+}
+
+/**
+ * G_ClientKickAngles
+ *
+ * Sets the kick value based on recent events such as falling. Firing of
+ * weapons may also set the kick value, and we factor that in here as well.
+ */
+static void G_ClientKickAngles(g_edict_t *ent) {
+
+	if (ent->sv_flags & SVF_NO_CLIENT)
+		return;
+
+	short *kick_angles = ent->client->ps.pm_state.kick_angles;
+
+	// add in any event-based feedback
+
+	switch (ent->s.event) {
+	case EV_CLIENT_LAND:
+		kick_angles[PITCH] += ANGLE2SHORT(2.5);
+		break;
+	case EV_CLIENT_JUMP:
+		kick_angles[PITCH] -= ANGLE2SHORT(0.5);
+		break;
+	case EV_CLIENT_FALL:
+		kick_angles[PITCH] += ANGLE2SHORT(5.0);
+		break;
+	case EV_CLIENT_FALL_FAR:
+		kick_angles[PITCH] += ANGLE2SHORT(10.0);
+		break;
+	default:
+		break;
+	}
+
+	// now interpolate the kick angles towards neutral over time
+
+	vec3_t kick;
+	UnpackAngles(kick_angles, kick);
+
+	// we recover from kick at a rate proportionate to the kick itself
+	float delta = VectorLength(kick);
+
+	if (delta < 2.0) {
+		delta = 2.0;
+	}
+
+	delta = delta * delta * delta * gi.frame_seconds;
+
+	int i;
+	for (i = 0; i < 3; i++) {
+
+		// interpolate towards 0.0
+		if (kick[i] > 0.0) {
+			kick[i] -= delta;
+		} else if (kick[i] < 0.0) {
+			kick[i] += delta;
+		} else {
+			continue;
+		}
+
+		// clear angles smaller than our epsilon to avoid oscillations
+		if (fabs(kick[i]) < delta) {
+			kick[i] = 0.0;
+		}
+	}
+
+	PackAngles(kick, kick_angles);
+}
+
+/**
  * G_ClientAnimation
  *
  * Sets the animation sequences for the specified entity.  This is called
@@ -151,8 +275,6 @@ static void G_ClientWaterLevel(g_edict_t *ent) {
  * been resolved.
  */
 static void G_ClientAnimation(g_edict_t *ent) {
-	vec3_t velocity;
-	float speed;
 
 	if (ent->sv_flags & SVF_NO_CLIENT)
 		return;
@@ -165,17 +287,12 @@ static void G_ClientAnimation(g_edict_t *ent) {
 		return;
 	}
 
-	VectorCopy(ent->velocity, velocity);
-	velocity[2] = 0.0;
-
-	speed = VectorNormalize(velocity);
-
 	// check for falling
 
 	if (!ent->ground_entity) { // not on the ground
 
 		if (g_level.time - ent->client->jump_time > 400) {
-			if (ent->water_level == 3 && speed > 10.0) { // swimming
+			if (ent->water_level == 3 && ent->client->speed > 10.0) { // swimming
 				G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
 				return;
 			}
@@ -194,8 +311,8 @@ static void G_ClientAnimation(g_edict_t *ent) {
 
 	if (g_level.time - 400 > ent->client->land_time && g_level.time - 50 > ent->client->ground_time) {
 
-		if (ent->client->ps.pmove.pm_flags & PMF_DUCKED) { // ducked
-			if (speed < 1.0)
+		if (ent->client->ps.pm_state.pm_flags & PMF_DUCKED) { // ducked
+			if (ent->client->speed < 1.0)
 				G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
 			else
 				G_SetAnimation(ent, ANIM_LEGS_WALKCR, false);
@@ -205,7 +322,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 
 		user_cmd_t *cmd = &ent->client->cmd;
 
-		if (speed < 1.0 && !cmd->forward && !cmd->right && !cmd->up) {
+		if (ent->client->speed < 1.0 && !cmd->forward && !cmd->right && !cmd->up) {
 			G_SetAnimation(ent, ANIM_LEGS_IDLE, false);
 			return;
 		}
@@ -215,9 +332,9 @@ static void G_ClientAnimation(g_edict_t *ent) {
 		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
 		AngleVectors(angles, forward, NULL, NULL);
 
-		if (DotProduct(velocity, forward) < -0.1)
+		if (DotProduct(ent->velocity, forward) < -0.1)
 			G_SetAnimation(ent, ANIM_LEGS_BACK, false);
-		else if (speed < 200.0)
+		else if (ent->client->speed < 200.0)
 			G_SetAnimation(ent, ANIM_LEGS_WALK, false);
 		else
 			G_SetAnimation(ent, ANIM_LEGS_RUN, false);
@@ -232,25 +349,22 @@ static void G_ClientAnimation(g_edict_t *ent) {
  * Called for each client at the end of the server frame.
  */
 void G_ClientEndFrame(g_edict_t *ent) {
-	vec3_t forward, right, up;
-	float dot, xy_speed;
 	int i;
 
 	g_client_t *client = ent->client;
 
-	// If the origin or velocity have changed since G_Think(),
-	// update the pmove values.  This will happen when the client
-	// is pushed by a bmodel or kicked by an explosion.
+	// If the origin or velocity have changed since G_ClientThink(),
+	// update the pmove values. This will happen when the client
+	// is pushed by a bsp model or kicked by an explosion.
 	//
 	// If it wasn't updated here, the view position would lag a frame
 	// behind the body position when pushed -- "sinking into plats"
 	for (i = 0; i < 3; i++) {
-		client->ps.pmove.origin[i] = ent->s.origin[i] * 8.0;
-		client->ps.pmove.velocity[i] = ent->velocity[i] * 8.0;
+		client->ps.pm_state.origin[i] = ent->s.origin[i] * 8.0;
+		client->ps.pm_state.velocity[i] = ent->velocity[i] * 8.0;
 	}
 
-	// If the end of unit layout is displayed, don't give
-	// the player any normal movement attributes
+	// If in intermission, just set stats and scores and return
 	if (g_level.intermission_time) {
 		G_ClientStats(ent);
 		G_ClientScores(ent);
@@ -260,36 +374,14 @@ void G_ClientEndFrame(g_edict_t *ent) {
 	// check for water entry / exit, burn from lava, slime, etc
 	G_ClientWaterLevel(ent);
 
-	// set model angles from view angles so other things in
-	// the world can tell which direction you are looking
-	if (ent->client->angles[PITCH] > 180.0)
-		ent->s.angles[PITCH] = (-360.0 + ent->client->angles[PITCH]) / 3.0;
-	else
-		ent->s.angles[PITCH] = ent->client->angles[PITCH] / 3.0;
-	ent->s.angles[YAW] = ent->client->angles[YAW];
-
-	// set roll based on lateral velocity
-	AngleVectors(ent->client->angles, forward, right, up);
-	dot = DotProduct(ent->velocity, right);
-	ent->s.angles[ROLL] = dot * 0.025;
-
-	// less roll when in the air
-	if (!ent->ground_entity)
-		ent->s.angles[ROLL] *= 0.25;
-
-	// check for footsteps
-	if (ent->ground_entity && ent->move_type == MOVE_TYPE_WALK && !ent->s.event) {
-
-		xy_speed = sqrt(ent->velocity[0] * ent->velocity[0] + ent->velocity[1] * ent->velocity[1]);
-
-		if (xy_speed > 250.0 && ent->client->footstep_time < g_level.time) {
-			ent->client->footstep_time = g_level.time + 275;
-			ent->s.event = EV_CLIENT_FOOTSTEP;
-		}
-	}
-
 	// apply all the damage taken this frame
 	G_ClientDamage(ent);
+
+	// set the kick angle for the view
+	G_ClientKickAngles(ent);
+
+	// and the angles on the world model
+	G_ClientWorldAngles(ent);
 
 	// update the player's animations
 	G_ClientAnimation(ent);

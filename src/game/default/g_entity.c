@@ -585,7 +585,6 @@ static void G_worldspawn(g_edict_t *ent) {
 			// or default to 800
 			g_level.gravity = 800;
 	}
-	gi.ConfigString(CS_GRAVITY, va("%d", g_level.gravity));
 
 	if(strcmp(g_gameplay->string, "default")) { // perfer g_gameplay
 		g_level.gameplay = G_GameplayByName(g_gameplay->string);

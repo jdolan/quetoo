@@ -230,7 +230,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	for (i = 0; i < cg_num_scores; i++) {
 		const player_score_t *s = &cg_scores[i];
 
-		if (s->team != CS_TEAM_GOOD)
+		if (s->team != 1)
 			continue;
 
 		if ((short) i == rows)
@@ -247,7 +247,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	for (i = 0; i < cg_num_scores; i++) {
 		const player_score_t *s = &cg_scores[i];
 
-		if (s->team != CS_TEAM_EVIL)
+		if (s->team != 2)
 			continue;
 
 		if ((short) i == rows)

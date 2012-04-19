@@ -126,7 +126,7 @@ typedef struct g_import_s {
 	bool (*inPHS)(const vec3_t p1, const vec3_t p2);
 	void (*SetAreaPortalState)(int portal_num, bool open);
 	bool (*AreasConnected)(int area1, int area2);
-	void (*Pmove)(pm_move_t *pmove); // player movement code common with client prediction
+	void (*Pmove)(pm_move_t *pm_state); // player movement code common with client prediction
 
 	// an entity will never be sent to a client or used for collision
 	// if it is not passed to linkentity.  if the size, position, or

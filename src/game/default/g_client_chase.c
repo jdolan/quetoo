@@ -33,17 +33,18 @@ void G_ClientChaseThink(g_edict_t *ent) {
 	VectorCopy(targ->s.origin, ent->s.origin);
 
 	// and angles
-	VectorCopy(targ->client->angles, ent->client->ps.angles);
 	VectorCopy(targ->client->angles, ent->client->angles);
+	PackAngles(targ->client->angles, ent->client->ps.pm_state.view_angles);
 
-	if (targ->dead) // drop view towards the floor
-		ent->client->ps.pmove.pm_flags |= PMF_DUCKED;
+	if (targ->dead) { // drop view towards the floor
+		ent->client->ps.pm_state.pm_flags |= PMF_DUCKED;
+	}
 
 	// disable the spectator's input
-	ent->client->ps.pmove.pm_type = PM_FREEZE;
+	ent->client->ps.pm_state.pm_type = PM_FREEZE;
 
 	// disable client prediction
-	ent->client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
+	ent->client->ps.pm_state.pm_flags |= PMF_NO_PREDICTION;
 
 	gi.LinkEntity(ent);
 }

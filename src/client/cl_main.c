@@ -49,8 +49,6 @@ cvar_t *password;
 cvar_t *rate;
 cvar_t *skin;
 
-cvar_t *recording;
-
 cl_static_t cls;
 cl_client_t cl;
 
@@ -644,7 +642,6 @@ static void Cl_InitLocal(void) {
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
 	rate = Cvar_Get("rate", va("%d", CLIENT_RATE), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	skin = Cvar_Get("skin", "qforcer/enforcer", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	recording = Cvar_Get("recording", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
 
 	// register our commands
 	Cmd_AddCommand("ping", Cl_Ping_f, 0, NULL);

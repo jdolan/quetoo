@@ -116,9 +116,6 @@ typedef struct sv_client_s {
 	unsigned int download_count; // bytes sent
 
 	unsigned int last_message; // svs.real_time when packet was last received
-
-	bool recording; // client is currently recording a demo
-
 	net_chan_t netchan;
 } sv_client_t;
 

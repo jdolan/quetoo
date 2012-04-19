@@ -71,16 +71,24 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 	}
 
 	if (cl.time > cl.frame.server_time) {
-		Com_Debug("Cl_UpdateViewValues: High clamp.\n");
+		Com_Debug("Cl_UpdateLerp: High clamp\n");
 		cl.time = cl.frame.server_time;
 		cl.lerp = 1.0;
 	} else if (cl.time < from->server_time) {
-		Com_Debug("Cl_UpdateViewValues: Low clamp.\n");
+		Com_Debug("Cl_UpdateLerp: Low clamp\n");
 		cl.time = from->server_time;
 		cl.lerp = 0.0;
 	} else {
-		cl.lerp = (float) (cl.time - from->server_time) / (float) (cl.frame.server_time
-				- from->server_time);
+		const float delta = cl.time - from->server_time;
+		const float interval = cl.frame.server_time - from->server_time;
+
+		if (interval <= 0.0) {
+			Com_Debug("Cl_UpdateLerp: Bad clamp\n");
+			cl.lerp = 1.0;
+			return;
+		}
+
+		cl.lerp = delta / interval;
 	}
 }
 
@@ -92,10 +100,9 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
  * another player.
  */
 static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
-	int i, ms;
 
-	if (!cl.demo_server && !cl.third_person && cl_predict->value && !(cl.frame.ps.pmove.pm_flags
-			& PMF_NO_PREDICTION)) {
+	if (Cl_UsePrediction()) {
+		int i;
 
 		// use client sided prediction
 		for (i = 0; i < 3; i++) {
@@ -104,20 +111,25 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 		}
 
 		// lerp stairs over 100ms
-		ms = cls.real_time - cl.predicted_step_time;
-
-		if (ms < 100) // small step
+		const unsigned int ms = cls.real_time - cl.predicted_step_time;
+		if (ms < 100) { // small step
 			r_view.origin[2] -= cl.predicted_step * ((100 - ms) / 100.0);
-	} else { // just use interpolated values from frame
-		for (i = 0; i < 3; i++) {
-			r_view.origin[i] = ops->pmove.origin[i] + cl.lerp * (ps->pmove.origin[i]
-					- ops->pmove.origin[i]);
-			r_view.origin[i] += ops->pmove.view_offset[i] + cl.lerp * (ps->pmove.view_offset[i]
-					- ops->pmove.view_offset[i]);
 		}
+	} else { // just use interpolated values from frame
+		vec3_t old_origin, current_origin, origin;
+		vec3_t old_offset, current_offset, offset;
 
-		// scaled back to world coordinates
-		VectorScale(r_view.origin, 0.125, r_view.origin);
+		UnpackPosition(ops->pm_state.origin, old_origin);
+		UnpackPosition(ps->pm_state.origin, current_origin);
+
+		VectorLerp(old_origin, current_origin, cl.lerp, origin);
+
+		UnpackPosition(ops->pm_state.view_offset, old_offset);
+		UnpackPosition(ps->pm_state.view_offset, current_offset);
+
+		VectorLerp(old_offset, current_offset, cl.lerp, offset);
+
+		VectorAdd(origin, offset, r_view.origin);
 	}
 
 	// update the contents mask for e.g. under-water effects
@@ -127,46 +139,56 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 /**
  * Cl_UpdateAngles
  *
- * The angles are typically fetched directly from input, unless the client is
- * watching a demo or chasing someone.
+ * The angles are typically fetched from input, after factoring in client-side
+ * prediction, unless the client is watching a demo or chase camera.
  */
 static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
+	vec3_t old_angles, new_angles, angles;
 
-	// if not running a demo or chasing, use the predicted (input + delta) angles
-	if (cl.frame.ps.pmove.pm_type <= PM_DEAD) {
+	// start with the predicted angles, or interpolate the server states
+	if (Cl_UsePrediction()) {
+		VectorCopy(cl.predicted_angles, r_view.angles);
+	} else {
+		UnpackAngles(ops->pm_state.view_angles, old_angles);
+		UnpackAngles(ps->pm_state.view_angles, new_angles);
 
-		// interpolate small changes in delta angles
-		short *od = ops->pmove.delta_angles;
-		short *cd = ps->pmove.delta_angles;
-
-		vec3_t old_delta, current_delta, delta;
-
-		VectorSet(old_delta, SHORT2ANGLE(od[0]), SHORT2ANGLE(od[1]), SHORT2ANGLE(od[2]));
-		VectorSet(current_delta, SHORT2ANGLE(cd[0]), SHORT2ANGLE(cd[1]), SHORT2ANGLE(cd[2]));
-
-		VectorSubtract(current_delta, old_delta, delta);
-		float f = VectorLength(delta);
-
-		if (f > 0.0 && f < 15.0) {
-			VectorLerp(old_delta, current_delta, cl.lerp, delta);
-		} else {
-			VectorCopy(current_delta, delta);
-		}
-
-		// the predicted angles include the raw frame delta, so back them out
-		VectorSubtract(cl.predicted_angles, current_delta, r_view.angles);
-
-		// and add the interpolated delta back in
-		VectorAdd(r_view.angles, delta, r_view.angles);
-
-		if (cl.frame.ps.pmove.pm_type == PM_DEAD) { // look only on x axis
-			r_view.angles[0] = r_view.angles[2] = 0.0;
-			r_view.angles[2] = 30.0;
-		}
-	} else { // for demos and chasing, simply interpolate between server states
-		AngleLerp(ops->angles, ps->angles, cl.lerp, r_view.angles);
+		AngleLerp(old_angles, new_angles, cl.lerp, r_view.angles);
 	}
 
+	// add in the kick angles
+	UnpackAngles(ops->pm_state.kick_angles, old_angles);
+	UnpackAngles(ps->pm_state.kick_angles, new_angles);
+
+	AngleLerp(old_angles, new_angles, cl.lerp, angles);
+	VectorAdd(r_view.angles, angles, r_view.angles);
+
+	// and lastly the delta angles
+	UnpackAngles(ops->pm_state.delta_angles, old_angles);
+	UnpackAngles(ps->pm_state.delta_angles, new_angles);
+
+	VectorCopy(new_angles, angles);
+
+	// check for small delta angles, and interpolate them
+	if (!VectorCompare(new_angles, new_angles)) {
+
+		VectorSubtract(old_angles, new_angles, angles);
+		float f = VectorLength(angles);
+
+		if (f < 15.0) {
+			AngleLerp(old_angles, new_angles, cl.lerp, angles);
+		}
+	}
+
+	VectorAdd(r_view.angles, angles, r_view.angles);
+
+	ClampAngles(r_view.angles);
+
+	/*if (cl.frame.ps.pm_state.pm_type == PM_DEAD) { // look only on x axis
+		r_view.angles[0] = r_view.angles[2] = 0.0;
+		r_view.angles[2] = 30.0;
+	}*/
+
+	// and finally set the view directional vectors
 	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
 }
 
@@ -179,7 +201,6 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
 void Cl_UpdateView(void) {
 	cl_frame_t *prev;
 	player_state_t *ps, *ops;
-	vec3_t delta;
 
 	if (!cl.frame.valid && !r_view.update)
 		return; // not a valid frame, and no forced update
@@ -196,9 +217,16 @@ void Cl_UpdateView(void) {
 	ops = &prev->ps;
 
 	if (ps != ops) { // see if we've teleported
-		VectorSubtract(ps->pmove.origin, ops->pmove.origin, delta);
-		if (VectorLength(delta) > 256.0 * 8.0)
+		vec3_t org, old_org, delta;
+
+		UnpackPosition(ps->pm_state.origin, org);
+		UnpackPosition(ops->pm_state.origin, old_org);
+
+		VectorSubtract(org, old_org, delta);
+
+		if (VectorLength(delta) > 256.0) {
 			ops = ps; // don't interpolate
+		}
 	}
 
 	Cl_ClearView();

@@ -23,6 +23,28 @@
 #include "game/game.h"
 #include "pmove.h"
 
+/**
+ * Cl_UsePrediction
+ *
+ * Returns true if client side prediction should be used.
+ */
+bool Cl_UsePrediction(void) {
+
+	if (!cl_predict->value)
+		return false;
+
+	if (cls.state != CL_ACTIVE)
+		return false;
+
+	if (cl.demo_server || cl.third_person)
+		return false;
+
+	if (cl.frame.ps.pm_state.pm_flags & PMF_NO_PREDICTION)
+		return false;
+
+	return true;
+}
+
 /*
  * Cl_CheckPredictionError
  */
@@ -31,7 +53,7 @@ void Cl_CheckPredictionError(void) {
 	short delta[3];
 	vec3_t fdelta;
 
-	if (!cl_predict->value || (cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION))
+	if (!cl_predict->value || (cl.frame.ps.pm_state.pm_flags & PMF_NO_PREDICTION))
 		return;
 
 	// calculate the last usercmd_t we sent that the server has processed
@@ -39,7 +61,7 @@ void Cl_CheckPredictionError(void) {
 	frame &= CMD_MASK;
 
 	// compare what the server returned with what we had predicted it to be
-	VectorSubtract(cl.frame.ps.pmove.origin, cl.predicted_origins[frame], delta);
+	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame], delta);
 
 	VectorScale(delta, 0.125, fdelta); // denormalize back to floats
 
@@ -51,7 +73,7 @@ void Cl_CheckPredictionError(void) {
 					fdelta[0], fdelta[1], fdelta[2]);
 		}
 
-		VectorCopy(cl.frame.ps.pmove.origin, cl.predicted_origins[frame]);
+		VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame]);
 		VectorCopy(fdelta, cl.prediction_error);
 	}
 }
@@ -152,8 +174,6 @@ static int Cl_PredictMovement_PointContents(const vec3_t point) {
 	return contents;
 }
 
-int cl_gravity;
-
 /**
  * Cl_PredictMovement
  *
@@ -161,22 +181,13 @@ int cl_gravity;
  * using the resulting origin and angles to reduce perceived latency.
  */
 void Cl_PredictMovement(void) {
-	int i, ack, current;
 	pm_move_t pm;
-	float step;
 
-	if (cls.state != CL_ACTIVE)
+	if (!Cl_UsePrediction())
 		return;
 
-	if (!cl_predict->value || (cl.frame.ps.pmove.pm_flags & PMF_NO_PREDICTION)) {
-		for (i = 0; i < 3; i++) { // just set angles
-			cl.predicted_angles[i] = cl.angles[i] + SHORT2ANGLE(cl.frame.ps.pmove.delta_angles[i]);
-		}
-		return;
-	}
-
-	ack = cls.netchan.incoming_acknowledged;
-	current = cls.netchan.outgoing_sequence;
+	const unsigned int current = cls.netchan.outgoing_sequence;
+	unsigned int ack = cls.netchan.incoming_acknowledged;
 
 	// if we are too far out of date, just freeze
 	if (current - ack >= CMD_BACKUP) {
@@ -186,8 +197,7 @@ void Cl_PredictMovement(void) {
 
 	// copy current state to pmove
 	memset(&pm, 0, sizeof(pm));
-	pm.s = cl.frame.ps.pmove;
-	pm.s.gravity = cl_gravity;
+	pm.s = cl.frame.ps.pm_state;
 
 	pm.ground_entity = cl.predicted_ground_entity;
 
@@ -196,7 +206,7 @@ void Cl_PredictMovement(void) {
 
 	// run frames
 	while (++ack <= current) {
-		const int frame = ack & CMD_MASK;
+		const unsigned int frame = ack & CMD_MASK;
 		const user_cmd_t *cmd = &cl.cmds[frame];
 
 		if (!cmd->msec)
@@ -209,7 +219,7 @@ void Cl_PredictMovement(void) {
 		VectorCopy(pm.s.origin, cl.predicted_origins[frame]);
 	}
 
-	step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
+	const float step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
 
 	if ((pm.s.pm_flags & PMF_ON_STAIRS) && (step >= 4.0 || step <= -4.0)) { // save for stair interpolation
 		cl.predicted_step_time = cls.real_time;
@@ -217,8 +227,10 @@ void Cl_PredictMovement(void) {
 	}
 
 	// copy results out for rendering
-	VectorScale(pm.s.origin, 0.125, cl.predicted_origin);
-	VectorScale(pm.s.view_offset, 0.125, cl.predicted_offset);
-	VectorCopy(pm.angles, cl.predicted_angles);
+	UnpackPosition(pm.s.origin, cl.predicted_origin);
+	UnpackPosition(pm.s.view_offset, cl.predicted_offset);
+
+	UnpackAngles(pm.cmd.angles, cl.predicted_angles);
+
 	cl.predicted_ground_entity = pm.ground_entity;
 }

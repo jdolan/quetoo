@@ -121,12 +121,19 @@ typedef struct cvar_s {
 
 // file opening modes
 typedef enum {
-	FILE_READ, FILE_WRITE, FILE_APPEND
+	FILE_READ,
+	FILE_WRITE,
+	FILE_APPEND
 } file_mode_t;
 
 // server multicast scope for entities and events
 typedef enum {
-	MULTICAST_ALL, MULTICAST_PHS, MULTICAST_PVS, MULTICAST_ALL_R, MULTICAST_PHS_R, MULTICAST_PVS_R
+	MULTICAST_ALL,
+	MULTICAST_PHS,
+	MULTICAST_PVS,
+	MULTICAST_ALL_R,
+	MULTICAST_PHS_R,
+	MULTICAST_PVS_R
 } multicast_t;
 
 // server to client communication
@@ -150,7 +157,8 @@ typedef enum {
 
 // client to server
 typedef enum {
-	CL_CMD_BAD, CL_CMD_MOVE, // [[usercmd_t]
+	CL_CMD_BAD,
+	CL_CMD_MOVE, // [[usercmd_t]
 	CL_CMD_STRING, // [string] message
 	CL_CMD_USER_INFO
 // [[user_info string]
@@ -322,14 +330,15 @@ typedef enum {
 // will result in a prediction error of some degree.
 typedef struct pm_state_s {
 	pm_type_t pm_type;
-	short origin[3]; // 12.3
-	short velocity[3]; // 12.3
+	short origin[3];
+	short velocity[3];
 	unsigned short pm_flags; // ducked, jump_held, etc
-	byte pm_time; // each unit = 8 ms
+	byte pm_time; // each unit = 8 milliseconds
 	short gravity;
-	short view_offset[3]; // 12.3
-	short delta_angles[3]; // add to command angles to get view direction
-// changed by spawns, rotating objects, and teleporters
+	short view_offset[3]; // add to origin to resolve eyes
+	short view_angles[3]; // base view angles
+	short kick_angles[3]; // offset for kick
+	short delta_angles[3]; // offset for spawns, pushers, etc.
 } pm_state_t;
 
 // button bits
@@ -353,7 +362,7 @@ typedef struct {
 	unsigned short num_touch; // results (out)
 	struct g_edict_s *touch_ents[MAX_TOUCH_ENTS];
 
-	vec3_t angles; // clamped
+	vec3_t angles; // clamped, and including kick and delta
 	vec3_t mins, maxs; // bounding box size
 
 	struct g_edict_s *ground_entity;
@@ -464,7 +473,6 @@ typedef enum {
 #define MAX_STATS			32
 
 #define STAT_TOGGLE_BIT		0x8000 // used to force a stats field update
-
 // -4096 up to +4096
 #define MAX_WORLD_WIDTH		4096
 
@@ -472,23 +480,12 @@ typedef enum {
  * ConfigStrings are a general means of communication from the server to all
  * connected clients. Each ConfigString can be at most MAX_STRING_CHARS in length.
  */
-#define CS_NAME				0
-#define CS_GRAVITY			1
-#define CS_SKY				2
-#define CS_WEATHER			3
-#define CS_PAK				4 // pak for current level
-#define CS_BSP_SIZE			5 // for catching incompatible maps
-#define CS_GAMEPLAY			6 // gameplay string
-#define CS_TEAMS			7
-#define CS_CTF				8
-#define CS_MATCH			9
-#define CS_ROUNDS			10
-#define CS_TEAM_GOOD		11 // team names
-#define CS_TEAM_EVIL		12
-#define CS_TIME				13 // level or match timer
-#define CS_ROUND			14
-#define CS_VOTE				15 // vote string\yes count\no count
-#define CS_MODELS			16
+#define CS_NAME				0 // the name (message) of the current level
+#define CS_SKY				1 // the sky box
+#define CS_WEATHER			2 // the weather string
+#define CS_PAK				3 // pak name for current level
+#define CS_BSP_SIZE			4 // for catching incompatible maps
+#define CS_MODELS			5 // bsp, bsp sub-models, and mesh models
 #define CS_SOUNDS			(CS_MODELS + MAX_MODELS)
 #define CS_MUSICS			(CS_SOUNDS + MAX_SOUNDS)
 #define CS_IMAGES			(CS_MUSICS + MAX_MUSICS)
@@ -545,16 +542,16 @@ typedef enum {
  */
 typedef enum {
 	EV_NONE,
-	EV_ITEM_RESPAWN,
-	EV_ITEM_PICKUP,
-	EV_CLIENT_FOOTSTEP,
-	EV_CLIENT_LAND,
+	EV_CLIENT_DROWN,
 	EV_CLIENT_FALL,
 	EV_CLIENT_FALL_FAR,
-	EV_CLIENT_JUMP,
+	EV_CLIENT_FOOTSTEP,
 	EV_CLIENT_GURP,
-	EV_CLIENT_DROWN,
-	EV_TELEPORT
+	EV_CLIENT_JUMP,
+	EV_CLIENT_LAND,
+	EV_CLIENT_TELEPORT,
+	EV_ITEM_RESPAWN,
+	EV_ITEM_PICKUP,
 } entity_event_t;
 
 /*
@@ -595,8 +592,7 @@ typedef struct entity_state_s {
  * movement, as well as the player's statistics (inventory, health, etc.).
  */
 typedef struct player_state_s {
-	pm_state_t pmove;
-	vec3_t angles; // for fixed views like chase camera & demo recording
+	pm_state_t pm_state; // movement and contents state
 	short stats[MAX_STATS]; // status bar updates
 } player_state_t;
 

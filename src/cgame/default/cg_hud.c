@@ -528,7 +528,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	da = ps->stats[STAT_ARMOR];
 	dp = ps->stats[STAT_PICKUP_ICON];
 
-	if (ps->pmove.pm_type == PM_NORMAL) {
+	if (ps->pm_state.pm_type == PM_NORMAL) {
 
 		if (dp && (dp != p)) { // picked up an item
 			last_blend_time = cgi.client->time;

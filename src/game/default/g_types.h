@@ -44,6 +44,18 @@ typedef struct {
 	short captures;
 } player_score_t;
 
+// ConfigStrings that are local to the game and client game
+#define CS_GAMEPLAY			(CS_GENERAL + 0) // gameplay string
+#define CS_TEAMS			(CS_GENERAL + 1) // are teams enabled?
+#define CS_CTF				(CS_GENERAL + 2) // is capture enabled?
+#define CS_MATCH			(CS_GENERAL + 3) // is match mode enabled?
+#define CS_ROUNDS			(CS_GENERAL + 4) // are rounds enabled?
+#define CS_TEAM_GOOD		(CS_GENERAL + 5) // good team name
+#define CS_TEAM_EVIL		(CS_GENERAL + 6) // evil team name
+#define CS_TIME				(CS_GENERAL + 7) // level or match timer
+#define CS_ROUND			(CS_GENERAL + 8) // round number
+#define CS_VOTE				(CS_GENERAL + 9) // vote string\yes count\no count
+
 #ifdef __G_LOCAL_H__
 
 // edict->spawnflags
@@ -402,7 +414,9 @@ struct g_client_s {
 
 	short damage_inflicted; // damage done to other clients
 
+	float speed; // x/y speed after moving
 	vec3_t angles; // aiming direction
+	vec3_t forward, right, up; // aiming direction vectors
 	vec3_t cmd_angles; // angles sent over in the last command
 
 	unsigned int respawn_time; // eligible for respawn when time > this
@@ -427,7 +441,7 @@ struct g_client_s {
 
 	g_edict_t *chase_target; // player we are chasing
 
-	g_item_t *last_dropped; //last dropped item, used for variable expansion
+	g_item_t *last_dropped; // last dropped item, used for variable expansion
 };
 
 struct g_edict_s {

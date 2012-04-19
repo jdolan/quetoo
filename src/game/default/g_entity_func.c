@@ -865,7 +865,7 @@ static void G_func_door_calc_move(g_edict_t *self) {
 	g_edict_t *ent;
 	float min;
 	float time;
-	float newspeed;
+	float new_speed;
 	float ratio;
 	float dist;
 
@@ -884,17 +884,17 @@ static void G_func_door_calc_move(g_edict_t *self) {
 
 	// adjust speeds so they will all complete at the same time
 	for (ent = self; ent; ent = ent->team_chain) {
-		newspeed = fabsf(ent->move_info.distance) / time;
-		ratio = newspeed / ent->move_info.speed;
+		new_speed = fabsf(ent->move_info.distance) / time;
+		ratio = new_speed / ent->move_info.speed;
 		if (ent->move_info.accel == ent->move_info.speed)
-			ent->move_info.accel = newspeed;
+			ent->move_info.accel = new_speed;
 		else
 			ent->move_info.accel *= ratio;
 		if (ent->move_info.decel == ent->move_info.speed)
-			ent->move_info.decel = newspeed;
+			ent->move_info.decel = new_speed;
 		else
 			ent->move_info.decel *= ratio;
-		ent->move_info.speed = newspeed;
+		ent->move_info.speed = new_speed;
 	}
 }
 
@@ -1029,8 +1029,9 @@ void G_func_door(g_edict_t *ent) {
 	ent->use = G_func_door_use;
 
 	if (!ent->speed)
-		ent->speed = 100;
-	ent->speed *= 2;
+		ent->speed = 100.0;
+
+	//ent->speed *= 2.0;
 
 	if (!ent->accel)
 		ent->accel = ent->speed;
@@ -1315,7 +1316,7 @@ static void G_func_train_next(g_edict_t *self) {
 		first = false;
 		VectorSubtract(ent->s.origin, self->mins, self->s.origin);
 		VectorCopy(self->s.origin, self->s.old_origin);
-		self->s.event = EV_TELEPORT;
+		self->s.event = EV_CLIENT_TELEPORT;
 		gi.LinkEntity(self);
 		goto again;
 	}

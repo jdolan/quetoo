@@ -714,11 +714,10 @@ static void G_CheckRules(void) {
 				G_GameplayName(g_level.gameplay));
 	}
 
-	if (g_gravity->modified) { // send gravity config string
+	if (g_gravity->modified) { // set gravity, G_ClientMove will read it
 		g_gravity->modified = false;
 
 		g_level.gravity = g_gravity->integer;
-		gi.ConfigString(CS_GRAVITY, va("%d", g_level.gravity));
 	}
 
 	if (g_teams->modified) { // reset teams, scores

@@ -238,7 +238,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 			continue;
 
 		if (mask) {
-			pm_state_t *pm = &client->edict->client->ps.pmove;
+			pm_state_t *pm = &client->edict->client->ps.pm_state;
 			vec3_t org;
 
 			VectorCopy(pm->origin, org);
@@ -352,7 +352,7 @@ static bool Sv_SendClientDatagram(sv_client_t *client) {
 
 	// send over all the relevant entity_state_t
 	// and the player_state_t
-	Sv_WriteFrameToClient(client, &msg);
+	Sv_WriteFrame(client, &msg);
 
 	// copy the accumulated multicast datagram
 	// for this client out to the message

@@ -280,7 +280,7 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	VectorCopy(pusher->s.origin, g_pushed_p->origin);
 	VectorCopy(pusher->s.angles, g_pushed_p->angles);
 	if (pusher->client)
-		g_pushed_p->delta_yaw = pusher->client->ps.pmove.delta_angles[YAW];
+		g_pushed_p->delta_yaw = pusher->client->ps.pm_state.delta_angles[YAW];
 	g_pushed_p++;
 
 	// move the pusher to it's final position
@@ -330,7 +330,7 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 			// try moving the contacted entity
 			VectorAdd(check->s.origin, move, check->s.origin);
 			if (check->client) { // rotate the client
-				check->client->ps.pmove.delta_angles[YAW] += ANGLE2SHORT(amove[YAW]);
+				check->client->ps.pm_state.delta_angles[YAW] += ANGLE2SHORT(amove[YAW]);
 			}
 
 			// figure movement due to the pusher's move
@@ -372,7 +372,7 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 			VectorCopy(p->origin, p->ent->s.origin);
 			VectorCopy(p->angles, p->ent->s.angles);
 			if (p->ent->client) {
-				p->ent->client->ps.pmove.delta_angles[YAW] = p->delta_yaw;
+				p->ent->client->ps.pm_state.delta_angles[YAW] = p->delta_yaw;
 			}
 			gi.LinkEntity(p->ent);
 		}

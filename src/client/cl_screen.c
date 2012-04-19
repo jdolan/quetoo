@@ -144,7 +144,7 @@ static void Cl_DrawCounters(void) {
 
 	if (cls.real_time - last_draw_time >= 200) {
 
-		VectorScale(cl.frame.ps.pmove.velocity, 0.125, velocity);
+		VectorScale(cl.frame.ps.pm_state.velocity, 0.125, velocity);
 		velocity[2] = 0.0;
 
 		snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));

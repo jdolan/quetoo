@@ -233,7 +233,7 @@ void G_TossWeapon(g_edict_t *ent) {
 /*
  * G_FireWeapon
  */
-static void G_FireWeapon(g_edict_t *ent, unsigned int interval, void(*fire)(g_edict_t *ent)) {
+static void G_FireWeapon(g_edict_t *ent, unsigned int interval, void (*fire)(g_edict_t *ent)) {
 	int n, m;
 	int buttons;
 
@@ -276,7 +276,6 @@ static void G_FireWeapon(g_edict_t *ent, unsigned int interval, void(*fire)(g_ed
 
 		if (ent->client->quad_attack_time < g_level.time) {
 			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTN_NORM);
-
 			ent->client->quad_attack_time = g_level.time + 500;
 		}
 	}
@@ -345,6 +344,8 @@ static void G_FireBlaster_(g_edict_t *ent) {
 	G_BlasterProjectile(ent, org, forward, 1000, 15, 2);
 
 	G_MuzzleFlash(ent, MZ_BLASTER);
+
+	G_ClientWeaponKick(ent, -3);
 }
 
 void G_FireBlaster(g_edict_t *ent) {
@@ -362,6 +363,8 @@ static void G_FireShotgun_(g_edict_t *ent) {
 	G_ShotgunProjectiles(ent, org, forward, 6, 4, 750, 350, 12, MOD_SHOTGUN);
 
 	G_MuzzleFlash(ent, MZ_SHOTGUN);
+
+	G_ClientWeaponKick(ent, -6);
 }
 
 void G_FireShotgun(g_edict_t *ent) {
@@ -389,6 +392,8 @@ static void G_FireSuperShotgun_(g_edict_t *ent) {
 	ent->client->angles[YAW] -= 5.0;
 
 	G_MuzzleFlash(ent, MZ_SSHOTGUN);
+
+	G_ClientWeaponKick(ent, -8);
 }
 
 void G_FireSuperShotgun(g_edict_t *ent) {
@@ -406,10 +411,12 @@ static void G_FireMachinegun_(g_edict_t *ent) {
 	G_BulletProjectile(ent, org, forward, 4, 4, 100, 200, MOD_MACHINEGUN);
 
 	G_MuzzleFlash(ent, MZ_MACHINEGUN);
+
+	G_ClientWeaponKick(ent, -4);
 }
 
 void G_FireMachinegun(g_edict_t *ent) {
-	G_FireWeapon(ent, 40, G_FireMachinegun_);
+	G_FireWeapon(ent, 50, G_FireMachinegun_);
 }
 
 /*
@@ -426,6 +433,8 @@ static void G_FireGrenadeLauncher_(g_edict_t *ent) {
 	G_GrenadeProjectile(ent, org, forward, 700, dmg, knockback, 185.0, 2000);
 
 	G_MuzzleFlash(ent, MZ_GRENADE);
+
+	G_ClientWeaponKick(ent, -8);
 }
 
 void G_FireGrenadeLauncher(g_edict_t *ent) {
@@ -446,6 +455,8 @@ static void G_FireRocketLauncher_(g_edict_t *ent) {
 	G_RocketProjectile(ent, org, forward, 900, dmg, knockback, 150.0);
 
 	G_MuzzleFlash(ent, MZ_ROCKET);
+
+	G_ClientWeaponKick(ent, -10);
 }
 
 void G_FireRocketLauncher(g_edict_t *ent) {
@@ -463,6 +474,8 @@ static void G_FireHyperblaster_(g_edict_t *ent) {
 	G_HyperblasterProjectile(ent, org, forward, 1400, 16, 6);
 
 	G_MuzzleFlash(ent, MZ_HYPERBLASTER);
+
+	G_ClientWeaponKick(ent, -6);
 }
 
 void G_FireHyperblaster(g_edict_t *ent) {
@@ -481,8 +494,11 @@ static void G_FireLightning_(g_edict_t *ent) {
 
 	G_LightningProjectile(ent, org, forward, 12, 12);
 
-	if (muzzle_flash)
+	if (muzzle_flash) {
 		G_MuzzleFlash(ent, MZ_LIGHTNING);
+	}
+
+	G_ClientWeaponKick(ent, -4);
 }
 
 void G_FireLightning(g_edict_t *ent) {
@@ -500,6 +516,8 @@ static void G_FireRailgun_(g_edict_t *ent) {
 	G_RailgunProjectile(ent, org, forward, 120, 80);
 
 	G_MuzzleFlash(ent, MZ_RAILGUN);
+
+	G_ClientWeaponKick(ent, -6);
 }
 
 void G_FireRailgun(g_edict_t *ent) {
@@ -517,6 +535,8 @@ static void G_FireBfg_(g_edict_t *ent) {
 	G_BfgProjectiles(ent, org, forward, 600, 100, 100, 256.0);
 
 	G_MuzzleFlash(ent, MZ_BFG);
+
+	G_ClientWeaponKick(ent, -24);
 }
 
 void G_FireBfg(g_edict_t *ent) {

@@ -694,19 +694,18 @@ void Cl_HandleEvents(void) {
  * Cl_ClampPitch
  */
 static void Cl_ClampPitch(void) {
-	float pitch;
+	const pm_state_t *s = &cl.frame.ps.pm_state;
 
-	// add frame's delta angles to our local input movement
-	// wrapping where appropriate
-	pitch = SHORT2ANGLE(cl.frame.ps.pmove.delta_angles[PITCH]);
+	// ensure our pitch is valid
+	float pitch = SHORT2ANGLE(s->delta_angles[PITCH] + s->kick_angles[PITCH]);
 
 	if (pitch > 180.0)
 		pitch -= 360.0;
 
 	if (cl.angles[PITCH] + pitch < -360.0)
-		cl.angles[PITCH] += 360.0;
+		cl.angles[PITCH] += 360.0; // wrapped
 	if (cl.angles[PITCH] + pitch > 360.0)
-		cl.angles[PITCH] -= 360.0;
+		cl.angles[PITCH] -= 360.0; // wrapped
 
 	if (cl.angles[PITCH] + pitch > 89.0)
 		cl.angles[PITCH] = 89.0 - pitch;
@@ -722,7 +721,6 @@ static void Cl_ClampPitch(void) {
  * command that is transmitted if the client is running asynchronously.
  */
 void Cl_Move(user_cmd_t *cmd) {
-	int i;
 
 	if (cmd->msec < 1) // save key states for next move
 		return;
@@ -749,8 +747,8 @@ void Cl_Move(user_cmd_t *cmd) {
 
 	Cl_ClampPitch(); // clamp, accounting for frame delta angles
 
-	for (i = 0; i < 3; i++) // pack the angles into the command
-		cmd->angles[i] = ANGLE2SHORT(cl.angles[i]);
+	// pack the angles into the command
+	PackAngles(cl.angles, cmd->angles);
 
 	// set any button hits that occurred since last frame
 	if (in_attack.state & 3)

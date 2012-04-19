@@ -25,7 +25,7 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
-extern int cl_gravity;
+bool Cl_UsePrediction(void);
 void Cl_PredictMovement(void);
 void Cl_CheckPredictionError(void);
 #endif /* __CL_LOCAL_H__ */

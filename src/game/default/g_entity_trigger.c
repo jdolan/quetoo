@@ -88,10 +88,8 @@ static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 		return;
 
 	if (!VectorCompare(self->move_dir, vec3_origin)) {
-		vec3_t forward;
 
-		AngleVectors(other->s.angles, forward, NULL, NULL);
-		if (DotProduct(forward, self->move_dir) < 0)
+		if (DotProduct(other->client->forward, self->move_dir) < 0)
 			return;
 	}
 
@@ -191,7 +189,7 @@ static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 		VectorScale(self->move_dir, self->speed * 10.0, other->velocity);
 
 		if (other->client) { // don't take falling damage immediately from this
-			other->client->ps.pmove.pm_flags |= PMF_PUSHED;
+			other->client->ps.pm_state.pm_flags |= PMF_PUSHED;
 		}
 
 		if (other->push_time < g_level.time) {

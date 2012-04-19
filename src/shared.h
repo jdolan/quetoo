@@ -57,6 +57,12 @@ void PerpendicularVector(vec3_t dst, const vec3_t src);
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent, vec3_t bitangent);
 void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees);
 
+void PackPosition(const vec3_t in, short *out);
+void UnpackPosition(const short *in, vec3_t out);
+void PackAngles(const vec3_t in, short *out);
+void UnpackAngles(const short *in, vec3_t out);
+void ClampAngles(vec3_t angles);
+
 // color functions
 #define DEFAULT_WEAPON_EFFECT_COLOR 243
 vec_t ColorNormalize(const vec3_t in, vec3_t out);

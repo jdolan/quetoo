@@ -27,9 +27,7 @@
 static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
 	g_edict_t *dest;
-	float speed;
-	vec3_t forward;
-	int i;
+	vec3_t forward, delta_angles;
 
 	if (!other->client)
 		return;
@@ -48,26 +46,22 @@ static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 	VectorCopy(dest->s.origin, other->s.old_origin);
 	other->s.origin[2] += 10.0;
 
-	// clear the velocity and hold them in place briefly
-	other->velocity[2] = 0.0;
-	speed = VectorLength(other->velocity);
-	VectorClear(other->velocity);
+	// overwrite velocity and hold them in place briefly
+	other->client->ps.pm_state.pm_flags &= ~PMF_TIME_MASK;
+	other->client->ps.pm_state.pm_flags = PMF_TIME_TELEPORT;
 
-	other->client->ps.pmove.pm_time = 20; // hold time
-	other->client->ps.pmove.pm_flags |= PMF_TIME_TELEPORT;
+	other->client->ps.pm_state.pm_time = 20;
 
 	// draw the teleport splash at source and on the player
-	self->s.event = EV_TELEPORT;
-	other->s.event = EV_TELEPORT;
+	self->s.event = EV_CLIENT_TELEPORT;
+	other->s.event = EV_CLIENT_TELEPORT;
 
-	// set angles
-	for (i = 0; i < 3; i++) {
-		other->client->ps.pmove.delta_angles[i]
-				= ANGLE2SHORT(dest->s.angles[i] - other->client->cmd_angles[i]);
-	}
+	// set delta angles
+	VectorSubtract(dest->s.angles, other->client->cmd_angles, delta_angles);
+	PackAngles(delta_angles, other->client->ps.pm_state.delta_angles);
 
 	AngleVectors(dest->s.angles, forward, NULL, NULL);
-	VectorScale(forward, speed, other->velocity);
+	VectorScale(forward, other->client->speed, other->velocity);
 	other->velocity[2] = 150.0;
 
 	VectorClear(other->client->cmd_angles);

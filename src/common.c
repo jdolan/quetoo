@@ -276,13 +276,6 @@ void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles) {
 }
 
 /*
- * Msg_WriteAngle16
- */
-void Msg_WriteAngle16(size_buf_t *sb, const float f) {
-	Msg_WriteShort(sb, ANGLE2SHORT(f));
-}
-
-/*
  * Msg_WriteDeltaUsercmd
  */
 void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd) {
@@ -674,13 +667,6 @@ void Msg_ReadAngles(size_buf_t *sb, vec3_t angles) {
 	angles[0] = Msg_ReadAngle(sb);
 	angles[1] = Msg_ReadAngle(sb);
 	angles[2] = Msg_ReadAngle(sb);
-}
-
-/*
- * Msg_ReadAngle16
- */
-float Msg_ReadAngle16(size_buf_t *sb) {
-	return SHORT2ANGLE(Msg_ReadShort(sb));
 }
 
 /*

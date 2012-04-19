@@ -159,25 +159,8 @@ void Cg_EntityEvent(cl_entity_t *e) {
 	entity_state_t *s = &e->current;
 
 	switch (s->event) {
-	case EV_ITEM_RESPAWN:
-		cgi.PlaySample(NULL, s->number, cg_sample_respawn, ATTN_IDLE);
-		Cg_ItemRespawnEffect(s->origin);
-		break;
-	case EV_ITEM_PICKUP:
-		Cg_ItemPickupEffect(s->origin);
-		break;
-	case EV_TELEPORT:
-		cgi.PlaySample(NULL, s->number, cg_sample_teleport, ATTN_IDLE);
-		Cg_TeleporterEffect(s->origin);
-		break;
-	case EV_CLIENT_JUMP:
-		cgi.PlaySample(NULL, s->number, cgi.LoadSample(va("*jump_%d", Random() % 5 + 1)), ATTN_NORM);
-		break;
-	case EV_CLIENT_FOOTSTEP:
-		cgi.PlaySample(NULL, s->number, cg_sample_footsteps[Random() & 3], ATTN_NORM);
-		break;
-	case EV_CLIENT_LAND:
-		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*land_1"), ATTN_NORM);
+	case EV_CLIENT_DROWN:
+		Cg_DrownEffect(e);
 		break;
 	case EV_CLIENT_FALL:
 		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*fall_2"), ATTN_NORM);
@@ -185,12 +168,31 @@ void Cg_EntityEvent(cl_entity_t *e) {
 	case EV_CLIENT_FALL_FAR:
 		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*fall_1"), ATTN_NORM);
 		break;
+	case EV_CLIENT_FOOTSTEP:
+		cgi.PlaySample(NULL, s->number, cg_sample_footsteps[Random() & 3], ATTN_NORM);
+		break;
 	case EV_CLIENT_GURP:
 		Cg_GurpEffect(e);
 		break;
-	case EV_CLIENT_DROWN:
-		Cg_DrownEffect(e);
+	case EV_CLIENT_LAND:
+		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*land_1"), ATTN_NORM);
 		break;
+	case EV_CLIENT_JUMP:
+		cgi.PlaySample(NULL, s->number, cgi.LoadSample(va("*jump_%d", Random() % 5 + 1)), ATTN_NORM);
+		break;
+	case EV_CLIENT_TELEPORT:
+		cgi.PlaySample(NULL, s->number, cg_sample_teleport, ATTN_IDLE);
+		Cg_TeleporterEffect(s->origin);
+		break;
+
+	case EV_ITEM_RESPAWN:
+		cgi.PlaySample(NULL, s->number, cg_sample_respawn, ATTN_IDLE);
+		Cg_ItemRespawnEffect(s->origin);
+		break;
+	case EV_ITEM_PICKUP:
+		Cg_ItemPickupEffect(s->origin);
+		break;
+
 	default:
 		break;
 	}

@@ -26,10 +26,9 @@
  */
 void G_ProjectSpawn(g_edict_t *ent) {
 	vec3_t mins, maxs, delta, forward;
-	float up, len0, len1, fwd;
 
 	// up
-	up = ceilf(fabs(PM_SCALE * PM_MINS[2] - PM_MINS[2]));
+	const float up = ceilf(fabs(PM_SCALE * PM_MINS[2] - PM_MINS[2]));
 	ent->s.origin[2] += up;
 
 	// forward, find the old x/y size
@@ -38,13 +37,13 @@ void G_ProjectSpawn(g_edict_t *ent) {
 	mins[2] = maxs[2] = 0.0;
 
 	VectorSubtract(maxs, mins, delta);
-	len0 = VectorLength(delta);
+	const float len0 = VectorLength(delta);
 
 	// and the new x/y size
 	VectorScale(delta, PM_SCALE, delta);
-	len1 = VectorLength(delta);
+	const float len1 = VectorLength(delta);
 
-	fwd = ceilf(len1 - len0);
+	const float fwd = ceilf(len1 - len0);
 
 	AngleVectors(ent->s.angles, forward, NULL, NULL);
 	VectorMA(ent->s.origin, fwd, forward, ent->s.origin);
@@ -60,10 +59,12 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	vec3_t view, end;
 
 	// use the client's view angles to project the origin flash
-	AngleVectors(ent->client->angles, forward, right, up);
+	VectorCopy(ent->client->forward, forward);
+	VectorCopy(ent->client->right, right);
+	VectorCopy(ent->client->up, up);
 	VectorCopy(ent->s.origin, org);
 
-	const float u = ent->client->ps.pmove.pm_flags & PMF_DUCKED ? 0.0 : 14.0;
+	const float u = ent->client->ps.pm_state.pm_flags & PMF_DUCKED ? 0.0 : 14.0;
 
 	VectorMA(org, u, up, org);
 	VectorMA(org, 8.0, right, org);
@@ -74,8 +75,8 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 		return;
 
 	// correct the destination of the shot for the offset produced above
-	VectorAdd(ent->client->ps.pmove.origin, ent->client->ps.pmove.view_offset, view);
-	VectorScale(view, 0.125, view);
+	UnpackPosition(ent->client->ps.pm_state.view_offset, view);
+	VectorAdd(ent->s.origin, view, view);
 
 	VectorMA(view, 8192.0, forward, end);
 	tr = gi.Trace(view, vec3_origin, vec3_origin, end, ent, MASK_SHOT);

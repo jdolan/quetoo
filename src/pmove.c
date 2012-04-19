@@ -39,7 +39,7 @@ typedef struct {
 	c_bsp_plane_t ground_plane;
 	int ground_contents;
 
-	vec3_t previous_origin;
+	short previous_origin[3];
 } pm_locals_t;
 
 static pm_locals_t pml;
@@ -1035,12 +1035,12 @@ static void Pm_SnapPosition(void) {
 	short base[3];
 
 	// snap velocity to eights
-	for (i = 0; i < 3; i++)
-		pm->s.velocity[i] = (int) (pml.velocity[i] * 8.0);
+	PackPosition(pml.velocity, pm->s.velocity);
 
-	for (i = 0; i < 3; i++) { // resolve signedness
+	// snap the origin, but be prepared to try nearby locations
+	for (i = 0; i < 3; i++) {
 
-		if (pml.origin[i] >= 0)
+		if (pml.origin[i] >= 0.0)
 			sign[i] = 1;
 		else
 			sign[i] = -1;
@@ -1051,8 +1051,7 @@ static void Pm_SnapPosition(void) {
 			sign[i] = 0;
 	}
 
-	for (i = 0; i < 3; i++)
-		pm->s.view_offset[i] = (int) (pml.view_offset[i] * 8.0);
+	PackPosition(pml.view_offset, pm->s.view_offset);
 
 	VectorCopy(pm->s.origin, base);
 
@@ -1085,20 +1084,21 @@ static void Pm_ClampAngles(void) {
 	vec3_t angles;
 	int i;
 
-	// circularly clamp the angles with deltas
+	// copy the command angles into the outgoing state
+	VectorCopy(pm->cmd.angles, pm->s.view_angles);
+
+	// circularly clamp the angles with kick and deltas
 	for (i = 0; i < 3; i++) {
-		pm->angles[i] = SHORT2ANGLE(pm->cmd.angles[i] + pm->s.delta_angles[i]);
 
-		if (pm->angles[i] > 360.0)
-			pm->angles[i] -= 360.0;
+		const short c = pm->cmd.angles[i];
+		const short k = pm->s.kick_angles[i];
+		const short d = pm->s.delta_angles[i];
 
-		if (pm->angles[i] < 0)
-			pm->angles[i] += 360.0;
+		pm->angles[i] = SHORT2ANGLE(c + k + d);
 	}
 
-	// make sure that looking up allows you to walk in the right direction
-	if (pm->angles[PITCH] > 271.0)
-		pm->angles[PITCH] -= 360.0;
+	// clamp angles to prevent the player from looking up or down more than 90'
+	ClampAngles(pm->angles);
 
 	// update the local angles responsible for velocity calculations
 	VectorCopy(pm->angles, angles);
@@ -1107,6 +1107,7 @@ static void Pm_ClampAngles(void) {
 	if (pm->water_level < 3 && !(pm->s.pm_flags & PMF_ON_LADDER))
 		angles[PITCH] = 0.0;
 
+	// finally calculate the directional vectors for this move
 	AngleVectors(angles, pml.forward, pml.right, pml.up);
 }
 
@@ -1191,9 +1192,9 @@ static void Pm_InitLocal(void) {
 	VectorCopy(pm->s.origin, pml.previous_origin);
 
 	// convert origin and velocity to float values
-	VectorScale(pm->s.origin, 0.125, pml.origin);
-	VectorScale(pm->s.velocity, 0.125, pml.velocity);
-	VectorScale(pm->s.view_offset, 0.125, pml.view_offset);
+	UnpackPosition(pm->s.origin, pml.origin);
+	UnpackPosition(pm->s.velocity, pml.velocity);
+	UnpackPosition(pm->s.view_offset, pml.view_offset);
 
 	pml.time = pm->cmd.msec * 0.001;
 }
