@@ -171,6 +171,9 @@ static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 	// icon
 	cgi.DrawPic(x, y, 0.33, icon);
 
+	if (atoi(cgi.ConfigString(CS_CTF)) && s->flags & SCORES_FLAG)
+		cgi.DrawPic(x, y, 0.66, "i_quad");
+
 	x += SCORES_ICON_WIDTH;
 
 	// background
@@ -202,6 +205,12 @@ static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 
 	// frags
 	cgi.DrawString(x, y, va("%d frags", s->score), CON_COLOR_DEFAULT);
+
+	// ready/not ready
+	if (atoi(cgi.ConfigString(CS_MATCH))) {
+		if (s->flags & SCORES_NOTREADY)
+			cgi.DrawString(x + cw * 14, y, "not ready", CON_COLOR_DEFAULT);
+	}
 	y += ch;
 
 	// captures

@@ -70,17 +70,27 @@ static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 	if (ent->client->persistent.spectator) {
 		s.team = 0xff;
 		s.color = 0;
-	} else if (ent->client->persistent.team) {
-		if (ent->client->persistent.team == &g_team_good) {
-			s.team = 1;
-			s.color = ColorByName("blue", 0);
-		} else {
-			s.team = 2;
-			s.color = ColorByName("red", 0);
-		}
 	} else {
-		s.team = 0;
-		s.color = ent->client->persistent.color;
+		if (g_level.match) {
+			if (!ent->client->persistent.ready)
+				s.flags |= SCORES_NOTREADY;
+		}
+		if (g_level.ctf) {
+			if (ent->s.effects & (EF_CTF_BLUE | EF_CTF_RED))
+				s.flags |= SCORES_FLAG;
+		}
+		if (ent->client->persistent.team) {
+			if (ent->client->persistent.team == &g_team_good) {
+				s.team = 1;
+				s.color = ColorByName("blue", 0);
+			} else {
+				s.team = 2;
+				s.color = ColorByName("red", 0);
+			}
+		} else {
+			s.team = 0;
+			s.color = ent->client->persistent.color;
+		}
 	}
 
 	s.score = ent->client->persistent.score;

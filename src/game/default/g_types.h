@@ -42,7 +42,12 @@ typedef struct {
 	byte color;
 	short score;
 	short captures;
+	byte flags;
 } player_score_t;
+
+//scores flags
+#define SCORES_NOTREADY			(1 << 0)
+#define SCORES_FLAG			(1 << 1)
 
 // ConfigStrings that are local to the game and client game
 #define CS_GAMEPLAY			(CS_GENERAL + 0) // gameplay string
