@@ -27,6 +27,8 @@ mingw-get remove --recursive libltdl libintl libiconv libgettextpo libexpat libp
 cd ..
 del /Q share\doc\MinGW\*
 del bin\mingw-get.exe
+del /Q libexec\mingw-get\*
+rmdir /S /Q libexec\mingw-get
 rmdir /S /Q libexec var include lib share\gettext share\locale share\doc
 
 
