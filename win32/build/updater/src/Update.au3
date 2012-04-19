@@ -1,4 +1,4 @@
-Local $version_self = 1
+Local $version_self = 2
 
 Local $file = FileOpen("update.cfg", 0)
 
@@ -16,7 +16,7 @@ Local $delete_local_data = IniRead("update.cfg", "Update.exe", "delete_local_dat
 
 If $version_self < $version_current Then
   ;download new version
-  InetGet("http://satgnu.net/files/quake2world/i686/Update.exe", @ScriptDir & "\Update.exe.new")
+  InetGet("http://satgnu.net/files/quake2world/" & $architecture & "/Update.exe", @ScriptDir & "\Update.exe.new")
   FileMove(@ScriptFullPath, @ScriptDir & "\OLDUpdate.exe")
   FileMove(@ScriptDir & "\Update.exe.new", @ScriptFullPath)
   Run(@ScriptName)
@@ -50,18 +50,3 @@ FileDelete("cygwin1.dll")
 FileDelete("rsync.exe")
 
 MsgBox(4096, "Update.exe", "Update complete.")
-
-
-Func UpdateCheck($UpdatedVersionPath)
-FileDelete(@ScriptDir & "\OLD.exe")
-$CurrentVersion = FileGetVersion(@ScriptFullPath)
-$LastVersion = FileGetVersion($UpdatedVersionPath & @ScriptName)
-If $CurrentVersion < $LastVersion Then
-  TrayTip("Updater", "Updating. . .", "", 2)
-  FileCopy($UpdatedVersionPath & @ScriptName, @ScriptDir & "\NEW.exe")
-  FileMove(@ScriptFullPath, @ScriptDir & "\OLD.exe")
-  FileMove(@ScriptDir & "\NEW.exe", @ScriptFullPath)
-  Run(@ScriptName)
-  Exit
-EndIf
-EndFunc   ;==>UpdateCheck
