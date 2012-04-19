@@ -8,6 +8,8 @@ EndIf
 FileClose($file)
 
 Local $architecture = IniRead("update.cfg", "Update.exe", "arch", "i686")
+Local $delete_local_data = IniRead("update.cfg", "Update.exe", "delete_local_data", "false")
+
 
 opt("ExpandVarStrings",1)
 
@@ -18,8 +20,13 @@ EnvSet ( "CYGWIN" , "nontsec" )
 EnvSet ( "CYGWIN" , "nontsec" )
 
 
-RunWait("rsync.exe -rzhP --delete --exclude=rsync.exe --exclude=cygwin1.dll --exclude=Update.exe --exclude=default rsync://jdolan.dyndns.org/quake2world-win32/$architecture$/ .")
-RunWait("rsync.exe -rzhP rsync://jdolan.dyndns.org/quake2world/default/ default")
+RunWait("rsync.exe -rzhP --delete --exclude=rsync.exe --exclude=cygwin1.dll --exclude=default rsync://jdolan.dyndns.org/quake2world-win32/$architecture$/ .")
+If $delete_local_data = "true" Then
+   RunWait("rsync.exe -rzhP --delete rsync://jdolan.dyndns.org/quake2world/default/ default")
+Else
+   RunWait("rsync.exe -rzhP rsync://jdolan.dyndns.org/quake2world/default/ default")
+EndIf
+
 RunWait("rsync.exe -rzhP --delete rsync://jdolan.dyndns.org/quake2world-win32/$architecture$/default/*.dll default")
 
 
@@ -30,7 +37,3 @@ FileDelete("cygwin1.dll")
 FileDelete("rsync.exe")
 
 MsgBox(4096, "Update.exe", "Update complete.")
-
-
-
-

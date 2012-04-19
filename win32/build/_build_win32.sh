@@ -74,6 +74,8 @@ cd dist/quake2world
 cp ../../../updater/bin/Update.exe .
 echo "[Update.exe]" > update.cfg
 echo "arch=$CURRENT_ARCH" >> update.cfg
+echo "delete_local_data=false" >> update.cfg
+
 
 cp $PREFIX/bin/pak.exe .
 cp $PREFIX/bin/q2wmap.exe .
