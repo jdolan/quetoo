@@ -1,7 +1,7 @@
 ' THIS IS THE HORROR!!!!!!!'
 ' incvoke with cscript setup.vbs c:\WHATEVER
 
-WGETURL = "http://dl.dropbox.com/u/33728474/wget-1.13.4/wget.exe"
+WGETURL = "http://osspack32.googlecode.com/files/wget.exe"
 SZIPURL = "http://www.mirrorservice.org/sites/download.sourceforge.net/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip"
 
 TARGET = WScript.Arguments.Item(0)
