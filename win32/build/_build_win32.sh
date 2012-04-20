@@ -74,8 +74,9 @@ cd dist/quake2world
 cp ../../../updater/bin/Update.exe .
 echo "[Update.exe]" > update.cfg
 echo "arch=$CURRENT_ARCH" >> update.cfg
-echo "delete_local_data=false" >> update.cfg
-echo "version=2" >> update.cfg
+echo "keep_local_data=true" >> update.cfg
+echo "keep_update_config=false" >> update.cfg
+echo "version=3" >> update.cfg
 
 
 cp $PREFIX/bin/pak.exe .
