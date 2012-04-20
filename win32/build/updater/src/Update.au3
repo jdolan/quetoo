@@ -1,4 +1,4 @@
-Local $version_self = 2
+Local $version_self = 3
 
 ; Check if update.cfg exists
 Local $file = FileOpen("update.cfg", 0)
@@ -57,6 +57,6 @@ Func _CheckUpdate()
 EndFunc   ;==>_CheckUpdate
 
 Func _selfupdate($delay = 3000)
-   InetGet("http://satgnu.net/files/quake2world/$architecture$/Update.exe", @ScriptDir & "\Update.exe.new", 1)
-   Run(@ComSpec & " /c ping 0.0.0.1 -n 1 -w " & $delay & ' & move "' & @ScriptName & '" "' & @ScriptName & '.old" & move "' & @ScriptName & '.new" "' & @ScriptName & '" & start "Title" "' & @ScriptName & '"', @ScriptDir, @SW_HIDE)
+   InetGet("http://satgnu.net/files/quake2world/" & $architecture & "/Update.exe", @ScriptDir & "\Update.exe.new", 1)
+   Run(@ComSpec & " /c ping 0.0.0.1 -n 2 -w " & $delay & ' & move "' & @ScriptName & '" "' & @ScriptName & '.old" & move "' & @ScriptName & '.new" "' & @ScriptName & '" & start "Title" "' & @ScriptName & '"', @ScriptDir, @SW_HIDE)
 EndFunc   ;==>_selfupdate
