@@ -76,7 +76,8 @@ echo "[Update.exe]" > update.cfg
 echo "arch=$CURRENT_ARCH" >> update.cfg
 echo "keep_local_data=true" >> update.cfg
 echo "keep_update_config=false" >> update.cfg
-echo "version=5" >> update.cfg
+updater_version=`cat ../../../updater/src/Update.au3 |grep "version_self ="|cut -d\= -f2|sed 's\ \\g'`
+echo "version=$updater_version" >> update.cfg
 
 
 cp $PREFIX/bin/pak.exe .
