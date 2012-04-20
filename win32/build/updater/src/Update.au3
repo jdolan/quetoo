@@ -1,4 +1,4 @@
-Local $version_self = 4
+Local $version_self = 5
 
 ; Check if update.cfg exists
 Local $file = FileOpen("update.cfg", 0)
@@ -12,11 +12,6 @@ Local $version_current = IniRead("update.cfg", "Update.exe", "version", "0")
 Local $architecture = IniRead("update.cfg", "Update.exe", "arch", "i686")
 Local $keep_local_data = IniRead("update.cfg", "Update.exe", "keep_local_data", "true")
 Local $keep_update_config = IniRead("update.cfg", "Update.exe", "keep_update_config", "false")
-
-If _CheckUpdate() Then
-   _selfupdate()
-   Exit
-EndIf
 
 
 opt("ExpandVarStrings",1)
@@ -48,6 +43,11 @@ RunWait("rsync.exe -rzhP --delete rsync://jdolan.dyndns.org/quake2world-win32/$a
 
 FileDelete("cygwin1.dll")
 FileDelete("rsync.exe")
+
+If _CheckUpdate() Then
+   _selfupdate()
+   Exit
+EndIf
 
 MsgBox(4096, "Update.exe", "Update complete.")
 
