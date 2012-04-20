@@ -1,5 +1,4 @@
 Local $version_self = 2
-MsgBox(1, "version", $version_self)
 
 ; Check if update.cfg exists
 Local $file = FileOpen("update.cfg", 0)
