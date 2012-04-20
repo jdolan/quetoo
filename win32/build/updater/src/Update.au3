@@ -1,4 +1,4 @@
-Local $version_self = 6
+Local $version_self = 7
 
 ; Check if update.cfg exists
 Local $file = FileOpen("update.cfg", 0)
@@ -32,6 +32,11 @@ Else
    RunWait("rsync.exe -rzhP --delete --exclude=rsync.exe --exclude=cygwin1.dll --exclude=default --exclude=Update.exe --exclude=update.cfg rsync://jdolan.dyndns.org/quake2world-win32/$architecture$/ .")
 EndIf
 
+If _CheckUpdate() Then
+   _selfupdate()
+   Exit
+EndIf
+
 If $keep_local_data = "false" Then
    RunWait("rsync.exe -rzhP --delete rsync://jdolan.dyndns.org/quake2world/default/ default")
 Else
@@ -44,10 +49,7 @@ RunWait("rsync.exe -rzhP --delete rsync://jdolan.dyndns.org/quake2world-win32/$a
 FileDelete("cygwin1.dll")
 FileDelete("rsync.exe")
 
-If _CheckUpdate() Then
-   _selfupdate()
-   Exit
-EndIf
+
 
 MsgBox(4096, "Update.exe", "Update complete.")
 
