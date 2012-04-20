@@ -14,7 +14,7 @@ Local $keep_local_data = IniRead("update.cfg", "Update.exe", "keep_local_data", 
 Local $keep_update_config = IniRead("update.cfg", "Update.exe", "keep_update_config", "false")
 
 If _CheckUpdate() Then
-   _selfupdate(3000)
+   _selfupdate()
    Exit
 EndIf
 
@@ -56,8 +56,7 @@ Func _CheckUpdate()
    Return ($version_self < $version_current)
 EndFunc   ;==>_CheckUpdate
 
-Func _selfupdate($delay)
-     InetGet("http://satgnu.net/files/quake2world/$architecture$/Update.exe", @ScriptDir & "\Update.exe.new", 1)
-	 Sleep($delay)
-    Run(@ComSpec & " /c move " & @ScriptName & '" "' & @ScriptName & '.old" & move "' & @ScriptName & '.new" "' & @ScriptName & '" & start "Title" "' & @ScriptName & '"', @ScriptDir, @SW_HIDE)
+Func _selfupdate($delay = 3000)
+   InetGet("http://satgnu.net/files/quake2world/$architecture$/Update.exe", @ScriptDir & "\Update.exe.new", 1)
+   Run(@ComSpec & " /c ping 0.0.0.1 -n 1 -w " & $delay & ' & move "' & @ScriptName & '" "' & @ScriptName & '.old" & move "' & @ScriptName & '.new" "' & @ScriptName & '" & start "Title" "' & @ScriptName & '"', @ScriptDir, @SW_HIDE)
 EndFunc   ;==>_selfupdate
