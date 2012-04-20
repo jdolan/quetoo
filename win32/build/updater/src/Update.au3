@@ -8,7 +8,6 @@ If $file = -1 Then
 EndIf
 FileClose($file)
 
-Local $version_current = IniRead("update.cfg", "Update.exe", "version", "0")
 Local $architecture = IniRead("update.cfg", "Update.exe", "arch", "i686")
 Local $keep_local_data = IniRead("update.cfg", "Update.exe", "keep_local_data", "true")
 Local $keep_update_config = IniRead("update.cfg", "Update.exe", "keep_update_config", "false")
@@ -55,7 +54,7 @@ MsgBox(4096, "Update.exe", "Update complete.")
 
 
 Func _CheckUpdate()
-   Return ($version_self < $version_current)
+   Return ($version_self < IniRead("update.cfg", "Update.exe", "version", "0"))
 EndFunc   ;==>_CheckUpdate
 
 Func _selfupdate($delay = 3000)
