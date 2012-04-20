@@ -582,10 +582,10 @@ void ClampAngles(vec3_t angles) {
 	}
 
 	// clamp pitch to prevent the player from looking up or down more than 90'
-	if (angles[PITCH] > 89.0 && angles[PITCH] < 180.0) {
-		angles[PITCH] = 89.0;
-	} else if (angles[PITCH] < 271.0 && angles[PITCH] >= 180.0) {
-		angles[PITCH] = 271.0;
+	if (angles[PITCH] > 90.0 && angles[PITCH] < 270.0) {
+		angles[PITCH] = 90.0;
+	} else if (angles[PITCH] < 360.0 && angles[PITCH] >= 270.0) {
+		angles[PITCH] -= 360.0;
 	}
 }
 
