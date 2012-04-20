@@ -76,7 +76,7 @@ echo "[Update.exe]" > update.cfg
 echo "arch=$CURRENT_ARCH" >> update.cfg
 echo "keep_local_data=true" >> update.cfg
 echo "keep_update_config=false" >> update.cfg
-echo "version=3" >> update.cfg
+echo "version=4" >> update.cfg
 
 
 cp $PREFIX/bin/pak.exe .
