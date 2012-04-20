@@ -1,4 +1,4 @@
-Local $version_self = 8
+Local $version_self = 9
 
 ; Check if update.cfg exists
 Local $file = FileOpen("update.cfg", 0)
