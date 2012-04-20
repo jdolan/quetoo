@@ -1,4 +1,4 @@
-Local $version_self = 9
+Local $version_self = 10
 
 ; Check if update.cfg exists
 Local $file = FileOpen("update.cfg", 0)
@@ -31,6 +31,8 @@ Else
    RunWait("rsync.exe -rzhP --delete --exclude=rsync.exe --exclude=cygwin1.dll --exclude=default --exclude=Update.exe --exclude=update.cfg rsync://jdolan.dyndns.org/quake2world-win32/$architecture$/ .")
 EndIf
 
+;wait some time for rsync to finish writing the new update.cfg
+Sleep(3000)
 If _CheckUpdate() Then
    _selfupdate()
    Exit
