@@ -68,6 +68,7 @@ extern unsigned short quad_damage_index;
 
 extern unsigned int means_of_death;
 
+extern cvar_t *g_ammo_respawn_time;
 extern cvar_t *g_auto_join;
 extern cvar_t *g_capture_limit;
 extern cvar_t *g_chat_log;
@@ -96,6 +97,7 @@ extern cvar_t *g_spectator_chat;
 extern cvar_t *g_teams;
 extern cvar_t *g_time_limit;
 extern cvar_t *g_voting;
+extern cvar_t *g_weapon_respawn_time;
 
 extern cvar_t *password;
 

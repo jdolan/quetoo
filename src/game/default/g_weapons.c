@@ -23,8 +23,7 @@
 
 /*
  * G_PickupWeapon
- */
-bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
+ */bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	int index, ammoindex, delta;
 	g_item_t *ammo;
 
@@ -36,14 +35,14 @@ bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	if (delta <= 0)
 		G_AddAmmo(other, ammo, ent->health / 2);
 	else
-		G_SetAmmo(other, ammo, ent->health + other->client->persistent.inventory[ammoindex]/ 2);
+		G_SetAmmo(other, ammo, ent->health + other->client->persistent.inventory[ammoindex] / 2);
 
 	// setup respawn if it's not a dropped item
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED)) {
-		if(strcmp(ent->item->pickup_name, "BFG10K"))
-			G_SetItemRespawn(ent, 5000);
+		if (!strcmp(ent->item->pickup_name, "BFG10K"))
+			G_SetItemRespawn(ent, g_weapon_respawn_time->value * 3 * 1000);
 		else
-			G_SetItemRespawn(ent, 30000);
+			G_SetItemRespawn(ent, g_weapon_respawn_time->value * 1000);
 	}
 
 	// add the weapon to inventory
@@ -190,17 +189,16 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 
 	ammo = G_FindItem(item->ammo);
 	ammo_index = ITEM_INDEX(ammo);
-	if(ent->client->persistent.inventory[ammo_index] <= 0) {
+	if (ent->client->persistent.inventory[ammo_index] <= 0) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop a weapon without ammo\n");
 		return;
 	}
-
 
 	dropped = G_DropItem(ent, item);
 	ent->client->persistent.inventory[index]--;
 
 	//now adjust dropped ammo quantity to reflect what we actually had avalible
-	if(ent->client->persistent.inventory[ammo_index] < ammo->quantity)
+	if (ent->client->persistent.inventory[ammo_index] < ammo->quantity)
 		dropped->health = ent->client->persistent.inventory[ammo_index];
 	G_AddAmmo(ent, ammo, -1 * ammo->quantity);
 
@@ -226,14 +224,14 @@ void G_TossWeapon(g_edict_t *ent) {
 		return; // don't drop when out of ammo
 
 	dropped = G_DropItem(ent, item);
-	if(dropped->health > ammo)
+	if (dropped->health > ammo)
 		dropped->health = ammo;
 }
 
 /*
  * G_FireWeapon
  */
-static void G_FireWeapon(g_edict_t *ent, unsigned int interval, void (*fire)(g_edict_t *ent)) {
+static void G_FireWeapon(g_edict_t *ent, unsigned int interval, void(*fire)(g_edict_t *ent)) {
 	int n, m;
 	int buttons;
 

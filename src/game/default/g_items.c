@@ -123,11 +123,13 @@ static void G_ItemRespawn(g_edict_t *ent) {
  * G_SetItemRespawn
  */
 void G_SetItemRespawn(g_edict_t *ent, unsigned int delay) {
+
 	ent->flags |= FL_RESPAWN;
 	ent->sv_flags |= SVF_NO_CLIENT;
 	ent->solid = SOLID_NOT;
 	ent->next_think = g_level.time + delay;
 	ent->think = G_ItemRespawn;
+
 	gi.LinkEntity(ent);
 }
 
@@ -140,7 +142,7 @@ static bool G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
 		other->health = other->max_health;
 
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetItemRespawn(ent, 30000);
+		G_SetItemRespawn(ent, 60000);
 
 	return true;
 }
@@ -158,8 +160,8 @@ static bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 	if (ent->spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
 		other->client->quad_damage_time = ent->next_think;
 	} else {
-		other->client->quad_damage_time = g_level.time + 30000;
-		G_SetItemRespawn(ent, ent->item->quantity * 1000);
+		other->client->quad_damage_time = g_level.time + 20000;
+		G_SetItemRespawn(ent, 90000);
 	}
 
 	other->s.effects |= EF_QUAD;
@@ -275,7 +277,7 @@ static bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
 		return false;
 
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED))
-		G_SetItemRespawn(ent, 20000);
+		G_SetItemRespawn(ent, g_ammo_respawn_time->value * 1000);
 
 	return true;
 }
@@ -308,7 +310,9 @@ static bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 
 		other->health = other->client->persistent.health = h;
 
-		if (ent->count >= 50) // respawn the item
+		if (ent->count >= 75) // respawn the item
+			G_SetItemRespawn(ent, 90000);
+		else if (ent->count >= 50)
 			G_SetItemRespawn(ent, 60000);
 		else
 			G_SetItemRespawn(ent, 20000);
@@ -1433,7 +1437,7 @@ g_item_t g_items[] = {
 		EF_BOB | EF_ROTATE,
 		"i_quad",
 		"Quad Damage",
-		60,
+		0,
 		NULL,
 		ITEM_POWERUP,
 		0,
@@ -1443,11 +1447,13 @@ g_item_t g_items[] = {
 		{ NULL } };
 
 // override quake2 items for legacy maps
-g_override_t g_overrides[] = { { "weapon_chaingun", "weapon_machinegun" }, {
-		"item_invulnerability",
-		"item_quad" }, { "item_power_shield", "item_armor_combat" }, {
-		"item_power_screen",
-		"item_armor_jacket" }, { NULL } };
+g_override_t g_overrides[] = {
+	{ "weapon_chaingun", "weapon_machinegun" },
+	{ "item_invulnerability", "item_quad" },
+	{ "item_power_shield", "item_armor_combat" },
+	{ "item_power_screen", "item_armor_jacket" },
+	{ NULL }
+};
 
 /*
  * G_InitItems

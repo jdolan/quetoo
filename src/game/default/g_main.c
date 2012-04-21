@@ -31,6 +31,7 @@ g_level_t g_level;
 
 unsigned int means_of_death;
 
+cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
 cvar_t *g_capture_limit;
 cvar_t *g_chat_log;
@@ -59,6 +60,7 @@ cvar_t *g_show_attacker_stats;
 cvar_t *g_teams;
 cvar_t *g_time_limit;
 cvar_t *g_voting;
+cvar_t *g_weapon_respawn_time;
 
 cvar_t *password;
 
@@ -1142,6 +1144,7 @@ void G_Init(void) {
 	gi.Cvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 	gi.Cvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
+	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds");
 	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, "Automatically assigns players to teams");
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
 	g_chat_log = gi.Cvar("g_chat_log", "0", 0, NULL);
@@ -1170,6 +1173,7 @@ void G_Init(void) {
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
 	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
+	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
 
 	password = gi.Cvar("password", "", CVAR_USER_INFO, "The server password");
 
