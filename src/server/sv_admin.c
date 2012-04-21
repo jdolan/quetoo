@@ -201,15 +201,14 @@ static void Sv_Status_f(void) {
 	}
 
 	Com_Print("map: %s\n", sv.name);
-	Com_Print("num score ping name            lastmsg address               qport \n");
-	Com_Print("--- ----- ---- --------------- ------- --------------------- ------\n");
+	Com_Print("num ping name            lastmsg address               qport \n");
+	Com_Print("--- ---- --------------- ------- --------------------- ------\n");
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
 		if (!cl->state)
 			continue;
 
 		Com_Print("%3i ", i);
-		Com_Print("%5i ", cl->edict->client->ps.stats[STAT_FRAGS]);
 
 		if (cl->state == SV_CLIENT_CONNECTED)
 			Com_Print("CNCT ");

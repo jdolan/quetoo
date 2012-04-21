@@ -133,12 +133,6 @@ static bool Cl_KeySystem(unsigned int key, unsigned short unicode __attribute__(
 			return true;
 		}
 
-		// score
-		if (cl.frame.ps.stats[STAT_SCORES]) {
-			Cbuf_AddText("score\n");
-			return true;
-		}
-
 		// console
 		if (ks->dest == KEY_CONSOLE) {
 			Cl_ToggleConsole_f();

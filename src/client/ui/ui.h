@@ -31,5 +31,6 @@
 #include "ui_player.h"
 #include "ui_servers.h"
 #include "ui_system.h"
+#include "ui_types.h"
 
 #endif /* __UI_H__ */

@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_PRED_H__
-#define __CL_PRED_H__
+#ifndef __CL_PREDICT_H__
+#define __CL_PREDICT_H__
 
 #include "cl_types.h"
 
@@ -30,5 +30,5 @@ void Cl_PredictMovement(void);
 void Cl_CheckPredictionError(void);
 #endif /* __CL_LOCAL_H__ */
 
-#endif /* __CL_PRED_H__ */
+#endif /* __CL_PREDICT_H__ */
 

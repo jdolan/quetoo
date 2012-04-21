@@ -61,6 +61,33 @@ typedef struct {
 #define CS_ROUND			(CS_GENERAL + 8) // round number
 #define CS_VOTE				(CS_GENERAL + 9) // vote string\yes count\no count
 
+// player_state->stats[] indexes
+#define STAT_HEALTH_ICON	0
+#define STAT_HEALTH			1
+#define STAT_AMMO_ICON		2
+#define STAT_AMMO			3
+#define STAT_AMMO_LOW		4
+#define STAT_ARMOR_ICON		5
+#define STAT_ARMOR			6
+#define STAT_PICKUP_ICON	7
+#define STAT_PICKUP_STRING	8
+#define STAT_WEAPON_ICON	9
+#define STAT_WEAPON			10
+#define STAT_TEAM			11
+#define STAT_FRAGS			12
+#define STAT_CAPTURES		13
+#define STAT_SPECTATOR		14
+#define STAT_CHASE			15
+#define STAT_VOTE			16
+#define STAT_TIME			17
+#define STAT_ROUND			18
+#define STAT_READY			19
+#define STAT_SCORES			20
+#define STAT_DAMAGE_INFLICT	21
+#define STAT_GENERAL		STAT_DAMAGE_INFLICT // for mods to extend
+
+#define STAT_TOGGLE_BIT		0x8000 // used to force a stats field update
+
 #ifdef __G_LOCAL_H__
 
 // edict->spawnflags

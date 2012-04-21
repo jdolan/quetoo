@@ -22,6 +22,8 @@
 #ifndef __SV_TYPES_H__
 #define __SV_TYPES_H__
 
+#ifdef __SV_LOCAL_H__
+
 #include "common.h"
 #include "cmodel.h"
 #include "game/game.h"
@@ -171,5 +173,7 @@ typedef struct sv_static_s {
 // macros for resolving game entities on the server
 #define EDICT_FOR_NUM(n)( (g_edict_t *)((char *)svs.game->edicts + svs.game->edict_size * (n)) )
 #define NUM_FOR_EDICT(e)( ((char *)(e) - (char *)svs.game->edicts) / svs.game->edict_size )
+
+#endif /* __SV_LOCAL_H__ */
 
 #endif /* __SV_TYPES_H__ */
