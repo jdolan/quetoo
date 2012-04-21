@@ -146,7 +146,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	time += ftime;
 	vtime = cgi.view->time;
 
-	cgi.view->bob = sin(3.5 * time) * (0.5 + speed) * (0.5 + speed);
+	cgi.view->bob = sin(4.5 * time) * (0.5 + speed) * (0.5 + speed);
 
 	cgi.view->bob *= cg_bob->value; // scale via cvar too
 
