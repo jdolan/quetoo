@@ -690,7 +690,7 @@ static bool Pm_CheckWaterJump(void) {
 	if (pm->s.pm_time || pm->water_level != 2)
 		return false;
 
-	if (pm->cmd.up < 1 || pm->cmd.forward < 1)
+	if (pm->cmd.up < 1 && pm->cmd.forward < 1)
 		return false;
 
 	VectorAdd(pml.origin, pml.view_offset, point);
