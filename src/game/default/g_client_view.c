@@ -31,26 +31,28 @@ static void G_ClientDamage(g_edict_t *ent) {
 
 	client = ent->client;
 
-	// play an appropriate pain sound
-	if (g_level.time > client->pain_time) {
-		vec3_t org;
-		int l;
+	if (client->damage_health || client->damage_armor) {
+		// play an appropriate pain sound
+		if (g_level.time > client->pain_time) {
+			vec3_t org;
+			int l;
 
-		client->pain_time = g_level.time + 700;
+			client->pain_time = g_level.time + 700;
 
-		if (ent->health < 25)
-			l = 25;
-		else if (ent->health < 50)
-			l = 50;
-		else if (ent->health < 75)
-			l = 75;
-		else
-			l = 100;
+			if (ent->health < 25)
+				l = 25;
+			else if (ent->health < 50)
+				l = 50;
+			else if (ent->health < 75)
+				l = 75;
+			else
+				l = 100;
 
-		VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
-		VectorScale(org, 0.125, org);
+			VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
+			VectorScale(org, 0.125, org);
 
-		gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), ATTN_NORM);
+			gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), ATTN_NORM);
+		}
 	}
 
 	// clear totals

@@ -308,7 +308,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 		client->damage_health += take;
 		VectorCopy(point, client->damage_from);
 
-		if (attacker->client) {
+		if (attacker->client && attacker->client != client) {
 			attacker->client->damage_inflicted += take;
 		}
 	}
