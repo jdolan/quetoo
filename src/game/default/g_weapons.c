@@ -375,19 +375,19 @@ void G_FireShotgun(g_edict_t *ent) {
 static void G_FireSuperShotgun_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
-	ent->client->angles[YAW] -= 5.0;
+	ent->client->angles[YAW] -= 6.0;
 
 	G_InitProjectile(ent, forward, right, up, org);
 
 	G_ShotgunProjectiles(ent, org, forward, 6, 4, 1000, 500, 12, MOD_SUPER_SHOTGUN);
 
-	ent->client->angles[YAW] += 10.0;
+	ent->client->angles[YAW] += 12.0;
 
 	G_InitProjectile(ent, forward, right, up, org);
 
 	G_ShotgunProjectiles(ent, org, forward, 4, 4, 1000, 500, 12, MOD_SUPER_SHOTGUN);
 
-	ent->client->angles[YAW] -= 5.0;
+	ent->client->angles[YAW] -= 6.0;
 
 	G_MuzzleFlash(ent, MZ_SSHOTGUN);
 
@@ -406,7 +406,7 @@ static void G_FireMachinegun_(g_edict_t *ent) {
 
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_BulletProjectile(ent, org, forward, 4, 4, 100, 200, MOD_MACHINEGUN);
+	G_BulletProjectile(ent, org, forward, 6, 6, 100, 200, MOD_MACHINEGUN);
 
 	G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
@@ -414,7 +414,7 @@ static void G_FireMachinegun_(g_edict_t *ent) {
 }
 
 void G_FireMachinegun(g_edict_t *ent) {
-	G_FireWeapon(ent, 50, G_FireMachinegun_);
+	G_FireWeapon(ent, 75, G_FireMachinegun_);
 }
 
 /*
