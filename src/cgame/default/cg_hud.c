@@ -510,11 +510,10 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
  * Cg_DrawBlend
  */
 static void Cg_DrawBlend(const player_state_t *ps) {
-	static short h, a, p;
+	static short pickup;
 	static unsigned int last_blend_time;
 	static int color;
 	static float alpha;
-	short dh, da, dp;
 	float al, t;
 
 	if (!cg_draw_blend->value)
@@ -524,42 +523,37 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		last_blend_time = 0;
 
 	// determine if we've taken damage or picked up an item
-	dh = ps->stats[STAT_HEALTH];
-	da = ps->stats[STAT_ARMOR];
-	dp = ps->stats[STAT_PICKUP_ICON];
+	const short d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
+	const short p = ps->stats[STAT_PICKUP_ICON];
 
 	if (ps->pm_state.pm_type == PM_NORMAL) {
 
-		if (dp && (dp != p)) { // picked up an item
+		if (p && (p != pickup)) { // picked up an item
 			last_blend_time = cgi.client->time;
 			color = 215;
 			alpha = 0.3;
 		}
 
-		if (da < a) { // took damage
-			last_blend_time = cgi.client->time;
-			color = 240;
-			alpha = 0.3;
-		}
+		pickup = p;
 
-		if (dh < h) { // took damage
+		if (d) { // took damage
 			last_blend_time = cgi.client->time;
 			color = 240;
 			alpha = 0.3;
 		}
 	}
 
-	al = 0;
+	al = 0.0;
 	t = (float) (cgi.client->time - last_blend_time) / 500.0;
 	al = cg_draw_blend->value * (alpha - (t * alpha));
 
-	if (al < 0 || al > 1.0)
-		al = 0;
+	if (al < 0.0 || al > 1.0)
+		al = 0.0;
 
-	const int contents = cgi.PointContents(cgi.view->origin);
+	const int contents = cgi.view->contents;
 
 	if (al < 0.3 * cg_draw_blend->value && (contents & MASK_WATER)) {
-		if (al < 0.15 * cg_draw_blend->value) {
+		if (al < 0.15 * cg_draw_blend->value) { // don't override damage or pickup blend
 			if (contents & CONTENTS_LAVA)
 				color = 71;
 			else if (contents & CONTENTS_SLIME)
@@ -572,10 +566,6 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if (al > 0.0)
 		cgi.DrawFill(cgi.view->x, cgi.view->y, cgi.view->width, cgi.view->height, color, al);
-
-	h = dh; // update our copies
-	a = da;
-	p = dp;
 }
 
 /*

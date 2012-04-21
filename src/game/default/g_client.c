@@ -298,7 +298,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 	if (g_level.ctf && !g_level.warmup) // drop flag in ctf
 		G_TossFlag(self);
 
-	G_Score_f(self); // show scores
+	self->client->show_scores = true; // show scores
 
 	self->sv_flags |= SVF_NO_CLIENT;
 
@@ -330,7 +330,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 /**
  * G_Give
  *
- * Stocks client's inventory with specified item.  Weapons receive
+ * Stocks client's inventory with specified item. Weapons receive
  * specified quantity of ammo, while health and armor are set to
  * the specified quantity.
  */

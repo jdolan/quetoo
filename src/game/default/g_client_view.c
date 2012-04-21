@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-/*
+/**
  * G_ClientDamage
  *
  * Inspect all damage received this frame and play a pain sound if appropriate.
@@ -30,9 +30,6 @@ static void G_ClientDamage(g_edict_t *ent) {
 	g_client_t *client;
 
 	client = ent->client;
-
-	if (client->damage_blood + client->damage_armor == 0)
-		return; // didn't take any damage
 
 	// play an appropriate pain sound
 	if (g_level.time > client->pain_time) {
@@ -57,14 +54,17 @@ static void G_ClientDamage(g_edict_t *ent) {
 	}
 
 	// clear totals
-	client->damage_blood = 0;
+	client->damage_health = 0;
 	client->damage_armor = 0;
+	client->damage_inflicted = 0;
 }
 
-/*
- * G_ClientWaterLevel
+/**
+ * G_ClientWaterInteraction
+ *
+ * Handles water entry and exit
  */
-static void G_ClientWaterLevel(g_edict_t *ent) {
+static void G_ClientWaterInteraction(g_edict_t *ent) {
 	g_client_t *client = ent->client;
 
 	if (ent->move_type == MOVE_TYPE_NO_CLIP) {
@@ -349,7 +349,6 @@ static void G_ClientAnimation(g_edict_t *ent) {
  * Called for each client at the end of the server frame.
  */
 void G_ClientEndFrame(g_edict_t *ent) {
-	int i;
 
 	g_client_t *client = ent->client;
 
@@ -359,10 +358,8 @@ void G_ClientEndFrame(g_edict_t *ent) {
 	//
 	// If it wasn't updated here, the view position would lag a frame
 	// behind the body position when pushed -- "sinking into plats"
-	for (i = 0; i < 3; i++) {
-		client->ps.pm_state.origin[i] = ent->s.origin[i] * 8.0;
-		client->ps.pm_state.velocity[i] = ent->velocity[i] * 8.0;
-	}
+	PackPosition(ent->s.origin, client->ps.pm_state.origin);
+	PackPosition(ent->velocity, client->ps.pm_state.velocity);
 
 	// If in intermission, just set stats and scores and return
 	if (g_level.intermission_time) {
@@ -371,8 +368,14 @@ void G_ClientEndFrame(g_edict_t *ent) {
 		return;
 	}
 
+	// set the stats for this client
+	if (ent->client->persistent.spectator)
+		G_ClientSpectatorStats(ent);
+	else
+		G_ClientStats(ent);
+
 	// check for water entry / exit, burn from lava, slime, etc
-	G_ClientWaterLevel(ent);
+	G_ClientWaterInteraction(ent);
 
 	// apply all the damage taken this frame
 	G_ClientDamage(ent);
@@ -385,12 +388,6 @@ void G_ClientEndFrame(g_edict_t *ent) {
 
 	// update the player's animations
 	G_ClientAnimation(ent);
-
-	// set the stats for this client
-	if (ent->client->persistent.spectator)
-		G_ClientSpectatorStats(ent);
-	else
-		G_ClientStats(ent);
 
 	// if the scoreboard is up, update it
 	if (ent->client->show_scores)

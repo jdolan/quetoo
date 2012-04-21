@@ -180,15 +180,6 @@ void G_ClientScores(g_edict_t *ent) {
 void G_ClientStats(g_edict_t *ent) {
 	g_item_t *item;
 
-	// health
-	if (ent->client->persistent.spectator || ent->dead) {
-		ent->client->ps.stats[STAT_HEALTH_ICON] = 0;
-		ent->client->ps.stats[STAT_HEALTH] = 0;
-	} else {
-		ent->client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("i_health");
-		ent->client->ps.stats[STAT_HEALTH] = ent->health;
-	}
-
 	// ammo
 	if (!ent->client->ammo_index) {
 		ent->client->ps.stats[STAT_AMMO_ICON] = 0;
@@ -214,11 +205,68 @@ void G_ClientStats(g_edict_t *ent) {
 		ent->client->ps.stats[STAT_ARMOR_ICON] = 0;
 	ent->client->ps.stats[STAT_ARMOR] = ent->client->persistent.armor;
 
+	// captures
+	ent->client->ps.stats[STAT_CAPTURES] = ent->client->persistent.captures;
+
+	// damage received and inflicted
+	ent->client->ps.stats[STAT_DAMAGE_ARMOR] = ent->client->damage_armor;
+	ent->client->ps.stats[STAT_DAMAGE_HEALTH] = ent->client->damage_health;
+	ent->client->ps.stats[STAT_DAMAGE_INFLICT] = ent->client->damage_inflicted;
+
+	// frags
+	ent->client->ps.stats[STAT_FRAGS] = ent->client->persistent.score;
+
+	// health
+	if (ent->client->persistent.spectator || ent->dead) {
+		ent->client->ps.stats[STAT_HEALTH_ICON] = 0;
+		ent->client->ps.stats[STAT_HEALTH] = 0;
+	} else {
+		ent->client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("i_health");
+		ent->client->ps.stats[STAT_HEALTH] = ent->health;
+	}
+
 	// pickup message
 	if (g_level.time > ent->client->pickup_msg_time) {
 		ent->client->ps.stats[STAT_PICKUP_ICON] = 0;
 		ent->client->ps.stats[STAT_PICKUP_STRING] = 0;
 	}
+
+	// ready
+	ent->client->ps.stats[STAT_READY] = 0;
+	if (g_level.match && g_level.match_time)
+		ent->client->ps.stats[STAT_READY] = ent->client->persistent.ready;
+
+	// rounds
+	if (g_level.rounds)
+		ent->client->ps.stats[STAT_ROUND] = g_level.round_num + 1;
+
+	// scores
+	ent->client->ps.stats[STAT_SCORES] = 0;
+	if (g_level.intermission_time || ent->client->show_scores)
+		ent->client->ps.stats[STAT_SCORES] |= 1;
+
+	// spectator
+	ent->client->ps.stats[STAT_SPECTATOR] = 0;
+
+	if ((g_level.teams || g_level.ctf) && ent->client->persistent.team) { // send team_name
+		if (ent->client->persistent.team == &g_team_good)
+			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_GOOD;
+		else
+			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_EVIL;
+	} else
+		ent->client->ps.stats[STAT_TEAM] = 0;
+
+	// time
+	if (g_level.intermission_time)
+		ent->client->ps.stats[STAT_TIME] = 0;
+	else
+		ent->client->ps.stats[STAT_TIME] = CS_TIME;
+
+	// vote
+	if (g_level.vote_time)
+		ent->client->ps.stats[STAT_VOTE] = CS_VOTE;
+	else
+		ent->client->ps.stats[STAT_VOTE] = 0;
 
 	// weapon
 	if (ent->client->persistent.weapon) {
@@ -230,50 +278,6 @@ void G_ClientStats(g_edict_t *ent) {
 		ent->client->ps.stats[STAT_WEAPON] = 0;
 	}
 
-	// damage inflicted
-	ent->client->ps.stats[STAT_DAMAGE_INFLICT] = ent->client->damage_inflicted;
-	if (ent->client->damage_inflicted) {
-		ent->client->damage_inflicted = 0;
-	}
-
-	// scoreboard
-	ent->client->ps.stats[STAT_SCORES] = 0;
-
-	if (ent->client->persistent.health <= 0 || g_level.intermission_time
-			|| ent->client->show_scores)
-		ent->client->ps.stats[STAT_SCORES] |= 1;
-
-	// frags and captures
-	ent->client->ps.stats[STAT_FRAGS] = ent->client->persistent.score;
-	ent->client->ps.stats[STAT_CAPTURES] = ent->client->persistent.captures;
-
-	ent->client->ps.stats[STAT_SPECTATOR] = 0;
-
-	if (g_level.vote_time) //send vote
-		ent->client->ps.stats[STAT_VOTE] = CS_VOTE;
-	else
-		ent->client->ps.stats[STAT_VOTE] = 0;
-
-	if ((g_level.teams || g_level.ctf) && ent->client->persistent.team) { // send team_name
-		if (ent->client->persistent.team == &g_team_good)
-			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_GOOD;
-		else
-			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_EVIL;
-	} else
-		ent->client->ps.stats[STAT_TEAM] = 0;
-
-	if (g_level.intermission_time)
-		ent->client->ps.stats[STAT_TIME] = 0;
-	else
-		ent->client->ps.stats[STAT_TIME] = CS_TIME;
-
-	ent->client->ps.stats[STAT_READY] = 0;
-
-	if (g_level.match && g_level.match_time) // match enabled but not started
-		ent->client->ps.stats[STAT_READY] = ent->client->persistent.ready;
-
-	if (g_level.rounds) // rounds enabled, show the round number
-		ent->client->ps.stats[STAT_ROUND] = g_level.round_num + 1;
 }
 
 /*

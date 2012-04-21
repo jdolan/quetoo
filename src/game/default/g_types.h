@@ -62,29 +62,31 @@ typedef struct {
 #define CS_VOTE				(CS_GENERAL + 9) // vote string\yes count\no count
 
 // player_state->stats[] indexes
-#define STAT_HEALTH_ICON	0
-#define STAT_HEALTH			1
-#define STAT_AMMO_ICON		2
-#define STAT_AMMO			3
-#define STAT_AMMO_LOW		4
-#define STAT_ARMOR_ICON		5
-#define STAT_ARMOR			6
-#define STAT_PICKUP_ICON	7
-#define STAT_PICKUP_STRING	8
-#define STAT_WEAPON_ICON	9
-#define STAT_WEAPON			10
-#define STAT_TEAM			11
-#define STAT_FRAGS			12
-#define STAT_CAPTURES		13
-#define STAT_SPECTATOR		14
-#define STAT_CHASE			15
-#define STAT_VOTE			16
-#define STAT_TIME			17
-#define STAT_ROUND			18
-#define STAT_READY			19
-#define STAT_SCORES			20
-#define STAT_DAMAGE_INFLICT	21
-#define STAT_GENERAL		STAT_DAMAGE_INFLICT // for mods to extend
+#define STAT_AMMO			0
+#define STAT_AMMO_ICON		1
+#define STAT_AMMO_LOW		2
+#define STAT_ARMOR			3
+#define STAT_ARMOR_ICON		4
+#define STAT_CAPTURES		5
+#define STAT_CHASE			6
+#define STAT_DAMAGE_ARMOR	7
+#define STAT_DAMAGE_HEALTH	8
+#define STAT_DAMAGE_INFLICT	9
+#define STAT_FRAGS			10
+#define STAT_HEALTH			11
+#define STAT_HEALTH_ICON	12
+#define STAT_PICKUP_ICON	13
+#define STAT_PICKUP_STRING	14
+#define STAT_READY			15
+#define STAT_ROUND			16
+#define STAT_SCORES			17
+#define STAT_SPECTATOR		18
+#define STAT_TEAM			19
+#define STAT_TIME			20
+#define STAT_VOTE			21
+#define STAT_WEAPON			22
+#define STAT_WEAPON_ICON	23
+// mods may define new STATs, up to 31
 
 #define STAT_TOGGLE_BIT		0x8000 // used to force a stats field update
 
@@ -441,9 +443,8 @@ struct g_client_s {
 	g_item_t *new_weapon;
 
 	short damage_armor; // damage absorbed by armor
-	short damage_blood; // damage taken out of health
-	vec3_t damage_from; // origin for vector calculation
-
+	short damage_health; // damage taken out of health
+	vec3_t damage_from; // origin for kick calculation
 	short damage_inflicted; // damage done to other clients
 
 	float speed; // x/y speed after moving

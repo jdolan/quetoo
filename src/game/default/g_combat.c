@@ -305,7 +305,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	// add to the damage inflicted on a player this frame
 	if (client) {
 		client->damage_armor += asave;
-		client->damage_blood += take;
+		client->damage_health += take;
 		VectorCopy(point, client->damage_from);
 
 		if (attacker->client) {
