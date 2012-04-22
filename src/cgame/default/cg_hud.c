@@ -184,7 +184,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 	const short frags = ps->stats[STAT_FRAGS];
 	r_pixel_t x, y, cw, ch;
 
-	if (ps->stats[STAT_SPECTATOR])
+	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
 		return;
 
 	if (!cg_draw_frags->integer)
@@ -217,7 +217,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 	if(!cg_draw_captures->integer)
 		return;
 
-	if (ps->stats[STAT_SPECTATOR])
+	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
 		return;
 
 	if (atoi(cgi.ConfigString(CS_CTF)) < 1)
@@ -246,7 +246,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 static void Cg_DrawSpectator(const player_state_t *ps) {
 	r_pixel_t x, y, cw;
 
-	if (!ps->stats[STAT_SPECTATOR])
+	if (!ps->stats[STAT_SPECTATOR] || ps->stats[STAT_CHASE])
 		return;
 
 	cgi.BindFont("small", &cw, NULL);
@@ -401,7 +401,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (ps->stats[STAT_SCORES])
 		return; // scoreboard up
 
-	if (ps->stats[STAT_SPECTATOR])
+	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
 		return; // spectating
 
 	if (center_print.time > cgi.client->time)

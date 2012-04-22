@@ -50,8 +50,8 @@ void G_ClientChaseThink(g_edict_t *ent) {
 	// and angles
 	VectorCopy(targ->client->angles, ent->client->angles);
 
-	// and player movement state
-	memcpy(&ent->client->ps.pm_state, &targ->client->ps.pm_state, sizeof(pm_state_t));
+	// and player state
+	memcpy(&ent->client->ps, &targ->client->ps, sizeof(player_state_t));
 
 	// add in delta angles in case we've switched targets
 	VectorAdd(ent->client->ps.pm_state.delta_angles, delta, ent->client->ps.pm_state.delta_angles);
@@ -125,7 +125,7 @@ void G_ClientChasePrevious(g_edict_t *ent) {
 	ent->client->chase_target = e;
 }
 
-/*
+/**
  * G_ClientChaseTarget
  *
  * Finds the first available chase target and assigns it to the specified ent.

@@ -174,108 +174,108 @@ void G_ClientScores(g_edict_t *ent) {
 	ent->client->scores_time = g_level.time + 500;
 }
 
-/*
+/**
  * G_ClientStats
+ *
+ * Writes the stats array of the player state structure. The client's HUD is
+ * largely derived from this information.
  */
 void G_ClientStats(g_edict_t *ent) {
-	g_item_t *item;
+
+	g_client_t *client = ent->client;
+	const g_client_persistent_t *persistent = &client->persistent;
 
 	// ammo
-	if (!ent->client->ammo_index) {
-		ent->client->ps.stats[STAT_AMMO_ICON] = 0;
-		ent->client->ps.stats[STAT_AMMO] = 0;
+	if (!client->ammo_index) {
+		client->ps.stats[STAT_AMMO_ICON] = 0;
+		client->ps.stats[STAT_AMMO] = 0;
 	} else {
-		item = &g_items[ent->client->ammo_index];
-		ent->client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(item->icon);
-		ent->client->ps.stats[STAT_AMMO]
-				= ent->client->persistent.inventory[ent->client->ammo_index];
-		ent->client->ps.stats[STAT_AMMO_LOW] = item->quantity;
+		const g_item_t *item = &g_items[client->ammo_index];
+		client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(item->icon);
+		client->ps.stats[STAT_AMMO] = persistent->inventory[client->ammo_index];
+		client->ps.stats[STAT_AMMO_LOW] = item->quantity;
 	}
 
 	// armor
-	if (ent->client->persistent.armor >= 200)
-		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_bodyarmor");
-	else if (ent->client->persistent.armor >= 100)
-		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_combatarmor");
-	else if (ent->client->persistent.armor >= 50)
-		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_jacketarmor");
-	else if (ent->client->persistent.armor > 0)
-		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_shard");
+	if (persistent->armor >= 200)
+		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_bodyarmor");
+	else if (persistent->armor >= 100)
+		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_combatarmor");
+	else if (persistent->armor >= 50)
+		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_jacketarmor");
+	else if (persistent->armor > 0)
+		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_shard");
 	else
-		ent->client->ps.stats[STAT_ARMOR_ICON] = 0;
-	ent->client->ps.stats[STAT_ARMOR] = ent->client->persistent.armor;
+		client->ps.stats[STAT_ARMOR_ICON] = 0;
+	client->ps.stats[STAT_ARMOR] = persistent->armor;
 
 	// captures
-	ent->client->ps.stats[STAT_CAPTURES] = ent->client->persistent.captures;
+	client->ps.stats[STAT_CAPTURES] = persistent->captures;
 
 	// damage received and inflicted
-	ent->client->ps.stats[STAT_DAMAGE_ARMOR] = ent->client->damage_armor;
-	ent->client->ps.stats[STAT_DAMAGE_HEALTH] = ent->client->damage_health;
-	ent->client->ps.stats[STAT_DAMAGE_INFLICT] = ent->client->damage_inflicted;
+	client->ps.stats[STAT_DAMAGE_ARMOR] = client->damage_armor;
+	client->ps.stats[STAT_DAMAGE_HEALTH] = client->damage_health;
+	client->ps.stats[STAT_DAMAGE_INFLICT] = client->damage_inflicted;
 
 	// frags
-	ent->client->ps.stats[STAT_FRAGS] = ent->client->persistent.score;
+	client->ps.stats[STAT_FRAGS] = persistent->score;
 
 	// health
-	if (ent->client->persistent.spectator || ent->dead) {
-		ent->client->ps.stats[STAT_HEALTH_ICON] = 0;
-		ent->client->ps.stats[STAT_HEALTH] = 0;
+	if (persistent->spectator || ent->dead) {
+		client->ps.stats[STAT_HEALTH_ICON] = 0;
+		client->ps.stats[STAT_HEALTH] = 0;
 	} else {
-		ent->client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("i_health");
-		ent->client->ps.stats[STAT_HEALTH] = ent->health;
+		client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("i_health");
+		client->ps.stats[STAT_HEALTH] = ent->health;
 	}
 
 	// pickup message
-	if (g_level.time > ent->client->pickup_msg_time) {
-		ent->client->ps.stats[STAT_PICKUP_ICON] = 0;
-		ent->client->ps.stats[STAT_PICKUP_STRING] = 0;
+	if (g_level.time > client->pickup_msg_time) {
+		client->ps.stats[STAT_PICKUP_ICON] = 0;
+		client->ps.stats[STAT_PICKUP_STRING] = 0;
 	}
 
 	// ready
-	ent->client->ps.stats[STAT_READY] = 0;
+	client->ps.stats[STAT_READY] = 0;
 	if (g_level.match && g_level.match_time)
-		ent->client->ps.stats[STAT_READY] = ent->client->persistent.ready;
+		client->ps.stats[STAT_READY] = persistent->ready;
 
 	// rounds
 	if (g_level.rounds)
-		ent->client->ps.stats[STAT_ROUND] = g_level.round_num + 1;
+		client->ps.stats[STAT_ROUND] = g_level.round_num + 1;
 
 	// scores
-	ent->client->ps.stats[STAT_SCORES] = 0;
-	if (g_level.intermission_time || ent->client->show_scores)
-		ent->client->ps.stats[STAT_SCORES] |= 1;
+	client->ps.stats[STAT_SCORES] = 0;
+	if (g_level.intermission_time || client->show_scores)
+		client->ps.stats[STAT_SCORES] |= 1;
 
-	// spectator
-	ent->client->ps.stats[STAT_SPECTATOR] = 0;
-
-	if ((g_level.teams || g_level.ctf) && ent->client->persistent.team) { // send team_name
-		if (ent->client->persistent.team == &g_team_good)
-			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_GOOD;
+	if ((g_level.teams || g_level.ctf) && persistent->team) { // send team_name
+		if (persistent->team == &g_team_good)
+			client->ps.stats[STAT_TEAM] = CS_TEAM_GOOD;
 		else
-			ent->client->ps.stats[STAT_TEAM] = CS_TEAM_EVIL;
+			client->ps.stats[STAT_TEAM] = CS_TEAM_EVIL;
 	} else
-		ent->client->ps.stats[STAT_TEAM] = 0;
+		client->ps.stats[STAT_TEAM] = 0;
 
 	// time
 	if (g_level.intermission_time)
-		ent->client->ps.stats[STAT_TIME] = 0;
+		client->ps.stats[STAT_TIME] = 0;
 	else
-		ent->client->ps.stats[STAT_TIME] = CS_TIME;
+		client->ps.stats[STAT_TIME] = CS_TIME;
 
 	// vote
 	if (g_level.vote_time)
-		ent->client->ps.stats[STAT_VOTE] = CS_VOTE;
+		client->ps.stats[STAT_VOTE] = CS_VOTE;
 	else
-		ent->client->ps.stats[STAT_VOTE] = 0;
+		client->ps.stats[STAT_VOTE] = 0;
 
 	// weapon
-	if (ent->client->persistent.weapon) {
-		ent->client->ps.stats[STAT_WEAPON_ICON] = gi.ImageIndex(
-				ent->client->persistent.weapon->icon);
-		ent->client->ps.stats[STAT_WEAPON] = gi.ModelIndex(ent->client->persistent.weapon->model);
+	if (persistent->weapon) {
+		client->ps.stats[STAT_WEAPON_ICON] = gi.ImageIndex(persistent->weapon->icon);
+		client->ps.stats[STAT_WEAPON] = gi.ModelIndex(persistent->weapon->model);
 	} else {
-		ent->client->ps.stats[STAT_WEAPON_ICON] = 0;
-		ent->client->ps.stats[STAT_WEAPON] = 0;
+		client->ps.stats[STAT_WEAPON_ICON] = 0;
+		client->ps.stats[STAT_WEAPON] = 0;
 	}
 
 }
@@ -284,23 +284,23 @@ void G_ClientStats(g_edict_t *ent) {
  * G_ClientSpectatorStats
  */
 void G_ClientSpectatorStats(g_edict_t *ent) {
-	g_client_t *cl = ent->client;
+	g_client_t *client = ent->client;
 
-	if (!cl->chase_target) {
+	client->ps.stats[STAT_SPECTATOR] = 1;
+
+	// chase camera inherits stats from their chase target
+	if (client->chase_target && client->chase_target->in_use) {
+		client->ps.stats[STAT_CHASE] = CS_CLIENTS + (client->chase_target - g_game.edicts) - 1;
+
+		// scores are independent of chase camera target
+		if (g_level.intermission_time || client->show_scores)
+			client->ps.stats[STAT_SCORES] = 1;
+		else {
+			client->ps.stats[STAT_SCORES] = 0;
+		}
+	} else {
 		G_ClientStats(ent);
-		cl->ps.stats[STAT_SPECTATOR] = 1;
+		client->ps.stats[STAT_CHASE] = 0;
 	}
-
-	// layouts are independent in spectator
-	cl->ps.stats[STAT_SCORES] = 0;
-
-	if (cl->persistent.health <= 0 || g_level.intermission_time || cl->show_scores)
-		cl->ps.stats[STAT_SCORES] |= 1;
-
-	if (cl->chase_target && cl->chase_target->in_use) {
-		memcpy(cl->ps.stats, cl->chase_target->client->ps.stats, sizeof(cl->ps.stats));
-		cl->ps.stats[STAT_CHASE] = CS_CLIENTS + (cl->chase_target - g_game.edicts) - 1;
-	} else
-		cl->ps.stats[STAT_CHASE] = 0;
 }
 
