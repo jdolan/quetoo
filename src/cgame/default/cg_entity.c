@@ -80,7 +80,7 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	Cg_AnimateClientEntity(e, &upper, &lower);
 
 	// don't draw ourselves unless third person is set
-	if (s->number == cgi.client->player_num + 1) {
+	if (IS_SELF(e)) {
 
 		if (!cg_third_person->value) {
 			effects |= EF_NO_DRAW;
@@ -163,14 +163,11 @@ static void Cg_AddWeapon(cl_entity_t *e, r_entity_t *self) {
 	if (cg_third_person->value)
 		return;
 
-	if (!ps->stats[STAT_HEALTH])
+	if (ps->stats[STAT_HEALTH] <= 0)
 		return; // deadz0r
 
 	if (ps->stats[STAT_SPECTATOR])
 		return; // spectating
-
-	if (ps->stats[STAT_CHASE])
-		return; // chase camera
 
 	if (!ps->stats[STAT_WEAPON])
 		return; // no weapon, e.g. level intermission

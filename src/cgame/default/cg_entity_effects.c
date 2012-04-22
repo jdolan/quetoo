@@ -631,7 +631,7 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	if (s->effects & EF_BEAM) {
 
 		// client is overridden to specify owner of the beam
-		if ((e->current.client == cgi.client->player_num + 1) && !cg_third_person->value) {
+		if (IS_SELF(e) && !cg_third_person->value) {
 			// we own this beam (lightning, grapple, etc..)
 			// project start position in front of view origin
 			VectorCopy(cgi.view->origin, start);

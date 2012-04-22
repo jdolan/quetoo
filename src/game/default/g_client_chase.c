@@ -25,20 +25,36 @@
  * G_ClientChaseThink
  */
 void G_ClientChaseThink(g_edict_t *ent) {
-	const g_edict_t *targ;
+	short delta[3];
 
-	targ = ent->client->chase_target;
+	g_edict_t *targ = ent->client->chase_target;
+
+	// calculate delta angles if switching targets
+	if (targ != ent->client->old_chase_target) {
+		vec3_t d;
+
+		VectorSubtract(ent->client->angles, targ->client->angles, d);
+		PackAngles(d, delta);
+
+		ent->client->old_chase_target = targ;
+	} else {
+		VectorClear(delta);
+	}
 
 	// copy origin
 	VectorCopy(targ->s.origin, ent->s.origin);
 
+	// velocity
+	VectorCopy(targ->velocity, ent->velocity);
+
 	// and angles
 	VectorCopy(targ->client->angles, ent->client->angles);
-	PackAngles(targ->client->angles, ent->client->ps.pm_state.view_angles);
 
-	if (targ->dead) { // drop view towards the floor
-		ent->client->ps.pm_state.pm_flags |= PMF_DUCKED;
-	}
+	// and player movement state
+	memcpy(&ent->client->ps.pm_state, &targ->client->ps.pm_state, sizeof(pm_state_t));
+
+	// add in delta angles in case we've switched targets
+	VectorAdd(ent->client->ps.pm_state.delta_angles, delta, ent->client->ps.pm_state.delta_angles);
 
 	// disable the spectator's input
 	ent->client->ps.pm_state.pm_type = PM_FREEZE;

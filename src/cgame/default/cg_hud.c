@@ -404,9 +404,6 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (ps->stats[STAT_SPECTATOR])
 		return; // spectating
 
-	if (ps->stats[STAT_CHASE])
-		return; // chasecam
-
 	if (center_print.time > cgi.client->time)
 		return;
 
@@ -506,15 +503,16 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 	}
 }
 
-/*
+/**
  * Cg_DrawBlend
+ *
+ * Draw a full-screen blend effect based on world interaction.
  */
 static void Cg_DrawBlend(const player_state_t *ps) {
 	static short pickup;
 	static unsigned int last_blend_time;
 	static int color;
 	static float alpha;
-	float al, t;
 
 	if (!cg_draw_blend->value)
 		return;
@@ -522,34 +520,33 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	if (last_blend_time > cgi.client->time)
 		last_blend_time = 0;
 
-	// determine if we've taken damage or picked up an item
-	const short d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
+	// determine if we've picked up an item
 	const short p = ps->stats[STAT_PICKUP_ICON];
 
-	if (ps->pm_state.pm_type == PM_NORMAL) {
+	if (p && (p != pickup)) {
+		last_blend_time = cgi.client->time;
+		color = 215;
+		alpha = 0.3;
+	}
+	pickup = p;
 
-		if (p && (p != pickup)) { // picked up an item
-			last_blend_time = cgi.client->time;
-			color = 215;
-			alpha = 0.3;
-		}
+	// or taken damage
+	const short d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
 
-		pickup = p;
-
-		if (d) { // took damage
-			last_blend_time = cgi.client->time;
-			color = 240;
-			alpha = 0.3;
-		}
+	if (d) {
+		last_blend_time = cgi.client->time;
+		color = 240;
+		alpha = 0.3;
 	}
 
-	al = 0.0;
-	t = (float) (cgi.client->time - last_blend_time) / 500.0;
-	al = cg_draw_blend->value * (alpha - (t * alpha));
+	// determine the current blend color based on the above events
+	float t = (float) (cgi.client->time - last_blend_time) / 500.0;
+	float al = cg_draw_blend->value * (alpha - (t * alpha));
 
 	if (al < 0.0 || al > 1.0)
 		al = 0.0;
 
+	// and finally, determine supplementary blend based on view origin conents
 	const int contents = cgi.view->contents;
 
 	if (al < 0.3 * cg_draw_blend->value && (contents & MASK_WATER)) {
@@ -564,8 +561,10 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		al = 0.3 * cg_draw_blend->value;
 	}
 
-	if (al > 0.0)
+	// if we have a blend, draw it
+	if (al > 0.0) {
 		cgi.DrawFill(cgi.view->x, cgi.view->y, cgi.view->width, cgi.view->height, color, al);
+	}
 }
 
 /*

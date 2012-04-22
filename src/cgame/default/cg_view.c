@@ -57,20 +57,11 @@ static void Cg_UpdateThirdperson(const player_state_t *ps) {
 	float dist;
 	c_trace_t tr;
 
-	if (!ps->stats[STAT_CHASE]) { // chasing uses client side 3rd person
-
-		// if we're spectating, don't translate the origin because we have
-		// no visible player model to begin with
-		if (ps->pm_state.pm_type == PM_SPECTATOR && !ps->stats[STAT_HEALTH])
+	if (!cg_third_person->value)
 			return;
-
-		if (!cg_third_person->value)
-			return;
-	}
 
 	cgi.client->third_person = true;
 
-	// we're either chasing, or opting to use 3rd person
 	VectorCopy(cgi.view->angles, angles);
 
 	if (cg_third_person->value < 0.0) // in front of the player
@@ -105,8 +96,8 @@ static void Cg_UpdateThirdperson(const player_state_t *ps) {
 /**
  * Cg_UpdateBob
  *
- * Calculate the view bob.  This is done using a running time counter and a
- * simple sin function.  The player's speed, as well as whether or not they
+ * Calculate the view bob. This is done using a running time counter and a
+ * simple sin function. The player's speed, as well as whether or not they
  * are on the ground, determine the bob frequency and amplitude.
  */
 static void Cg_UpdateBob(const player_state_t *ps) {
@@ -120,12 +111,16 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	if (cg_third_person->value)
 		return;
 
-	if (cgi.client->frame.ps.pm_state.pm_type != PM_NORMAL)
-		return;
+	if (ps->pm_state.pm_type != PM_NORMAL) {
 
-	const bool ducked = cgi.client->frame.ps.pm_state.pm_flags & PMF_DUCKED;
+		// if we're frozen and not chasing, don't bob
+		if (!ps->stats[STAT_CHASE])
+			return;
+	}
 
-	VectorScale(ps->pm_state.velocity, 0.125, velocity);
+	const bool ducked = ps->pm_state.pm_flags & PMF_DUCKED;
+
+	UnpackPosition(ps->pm_state.velocity, velocity);
 	velocity[2] = 0.0;
 
 	speed = VectorLength(velocity) / (ducked ? 150 : 450.0);

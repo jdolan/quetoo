@@ -1303,7 +1303,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 			client->latched_buttons = 0;
 
 			if (client->chase_target) { // toggle chase camera
-				client->chase_target = NULL;
+				client->chase_target = client->old_chase_target = NULL;
 				client->ps.pm_state.pm_flags &= ~PMF_NO_PREDICTION;
 			} else {
 				G_ClientChaseTarget(ent);

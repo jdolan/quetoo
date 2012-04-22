@@ -1030,11 +1030,11 @@ static bool Pm_GoodPosition(void) {
  * precision of the network channel and in a valid position.
  */
 static void Pm_SnapPosition(void) {
-	static int jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
-	int i, j, bits, sign[3];
-	short base[3];
+	static const short jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
+	short sign[3], base[3];
+	size_t i, j;
 
-	// snap velocity to eights
+	// pack velocity for network transmission
 	PackPosition(pml.velocity, pm->s.velocity);
 
 	// snap the origin, but be prepared to try nearby locations
@@ -1051,20 +1051,21 @@ static void Pm_SnapPosition(void) {
 			sign[i] = 0;
 	}
 
+	// pack view offset for network transmission
 	PackPosition(pml.view_offset, pm->s.view_offset);
 
 	VectorCopy(pm->s.origin, base);
 
 	// try all combinations
-	for (j = 0; j < 8; j++) {
+	for (j = 0; j < lengthof(jitter_bits); j++) {
 
-		bits = jitter_bits[j];
+		const short bit = jitter_bits[j];
 
 		VectorCopy(base, pm->s.origin);
 
 		for (i = 0; i < 3; i++) { // shift the origin
 
-			if (bits & (1 << i))
+			if (bit & (1 << i))
 				pm->s.origin[i] += sign[i];
 		}
 
