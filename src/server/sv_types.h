@@ -22,12 +22,12 @@
 #ifndef __SV_TYPES_H__
 #define __SV_TYPES_H__
 
-#ifdef __SV_LOCAL_H__
-
 #include "common.h"
 #include "cmodel.h"
 #include "game/game.h"
 #include "net.h"
+
+#ifdef __SV_LOCAL_H__
 
 typedef enum {
 	SV_UNINITIALIZED, // no level loaded
