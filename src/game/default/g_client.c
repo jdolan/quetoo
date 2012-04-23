@@ -685,18 +685,24 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->max_health = ent->client->persistent.max_health;
 
 	VectorClear(ent->velocity);
-	ent->velocity[2] = 200.0;
+	if (!ent->client->persistent.spectator) {
+		ent->velocity[2] = 200.0;
+	}
 
-	ent->client->land_time = g_level.time;
+	cl->land_time = g_level.time;
 
 	// clear player state values
-	memset(&ent->client->ps, 0, sizeof(cl->ps));
+	memset(&cl->ps, 0, sizeof(cl->ps));
 
 	PackPosition(spawn_origin, cl->ps.pm_state.origin);
 
-	// project eyes to top-front of head
-	VectorSet(cl->ps.pm_state.view_offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.75);
-	VectorScale(cl->ps.pm_state.view_offset, 8.0, cl->ps.pm_state.view_offset);
+	if (cl->persistent.spectator) {
+		VectorClear(cl->ps.pm_state.view_offset);
+	} else { // project eyes to top-front of head
+		vec3_t offset;
+		VectorSet(offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.75);
+		PackPosition(offset, cl->ps.pm_state.view_offset);
+	}
 
 	// clear entity state values
 	ent->s.effects = 0;
