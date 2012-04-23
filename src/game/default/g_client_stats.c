@@ -29,7 +29,9 @@ void G_ClientToIntermission(g_edict_t *ent) {
 	VectorCopy(g_level.intermission_origin, ent->s.origin);
 
 	PackPosition(g_level.intermission_origin, ent->client->ps.pm_state.origin);
-	PackAngles(g_level.intermission_angle, ent->client->ps.pm_state.view_angles);
+
+	VectorClear(ent->client->ps.pm_state.view_angles);
+	PackAngles(g_level.intermission_angle, ent->client->ps.pm_state.delta_angles);
 
 	VectorClear(ent->client->ps.pm_state.view_offset);
 

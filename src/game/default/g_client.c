@@ -1262,15 +1262,13 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 	g_client_t *client;
 	int i;
 
+	if (g_level.intermission_time)
+		return;
+
 	g_level.current_entity = ent;
 	client = ent->client;
 
 	client->cmd = *cmd;
-
-	if (g_level.intermission_time) {
-		client->ps.pm_state.pm_type = PM_FREEZE;
-		return;
-	}
 
 	if (client->chase_target) { // ensure chase is valid
 

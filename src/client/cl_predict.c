@@ -42,6 +42,9 @@ bool Cl_UsePrediction(void) {
 	if (cl.frame.ps.pm_state.pm_flags & PMF_NO_PREDICTION)
 		return false;
 
+	if (cl.frame.ps.pm_state.pm_type == PM_FREEZE)
+		return false;
+
 	return true;
 }
 
