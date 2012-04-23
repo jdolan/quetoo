@@ -183,10 +183,10 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
 
 	ClampAngles(r_view.angles);
 
-	/*if (cl.frame.ps.pm_state.pm_type == PM_DEAD) { // look only on x axis
-		r_view.angles[0] = r_view.angles[2] = 0.0;
-		r_view.angles[2] = 30.0;
-	}*/
+	if (cl.frame.ps.pm_state.pm_type == PM_DEAD) { // look only on x axis
+		r_view.angles[0] = 0.0;
+		r_view.angles[2] = 45.0;
+	}
 
 	// and finally set the view directional vectors
 	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
