@@ -469,7 +469,7 @@ static void G_FireHyperblaster_(g_edict_t *ent) {
 
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_HyperblasterProjectile(ent, org, forward, 1400, 16, 6);
+	G_HyperblasterProjectile(ent, org, forward, 1400, 12, 6);
 
 	G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 
@@ -490,7 +490,7 @@ static void G_FireLightning_(g_edict_t *ent) {
 
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_LightningProjectile(ent, org, forward, 12, 12);
+	G_LightningProjectile(ent, org, forward, 16, 12);
 
 	if (muzzle_flash) {
 		G_MuzzleFlash(ent, MZ_LIGHTNING);
