@@ -225,8 +225,8 @@ bool G_AddAmmo(g_edict_t *ent, g_item_t *item, short count) {
 }
 
 /*
- *  * G_SetAmmo
- *   */
+ * G_SetAmmo
+ */
 bool G_SetAmmo(g_edict_t *ent, g_item_t *item, short count) {
 	unsigned short index;
 	short max;
@@ -287,10 +287,9 @@ static bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
  */
 static bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 	int h, max;
-	bool always_add, always_pickup;
 
-	always_add = ent->item->tag == HEALTH_SMALL;
-	always_pickup = ent->item->tag == HEALTH_SMALL || ent->item->tag == HEALTH_MEGA;
+	const bool always_add = ent->item->tag == HEALTH_SMALL;
+	const bool always_pickup = ent->item->tag == HEALTH_SMALL || ent->item->tag == HEALTH_MEGA;
 
 	if (other->health < other->max_health || always_add || always_pickup) {
 
@@ -303,7 +302,7 @@ static bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 			else
 				max = 200;
 		} else if (always_add)
-			max = 99999;
+			max = 9999;
 
 		if (h > max) // and enforce it
 			h = max;
