@@ -375,14 +375,14 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 		if (!(p = Cg_AllocParticle()))
 			return;
 
-		p->scale = 0.75;
+		p->scale = 0.15 * radius;
 		p->scale_vel = 800.0;
 
 		dist = sin(ltime + i) * radius;
 
 		for (c = 0; c < 3; c++) {
 			// project the origin outward, adding in angular velocity
-			p->org[c] = org[c] + (approximate_normals[i][c] * dist) + forward[c] * 16.0;
+			p->org[c] = org[c] + (approximate_normals[i][c] * dist) + forward[c] * radius;
 		}
 
 		VectorSubtract(p->org, org, v);
@@ -473,10 +473,10 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
 	r_corona_t c;
 	r_light_t l;
 
-	Cg_EnergyTrail(ent, org, 8.0, 107);
+	Cg_EnergyTrail(ent, org, 6.0, 107);
 
 	VectorCopy(org, c.origin);
-	c.radius = 12.0;
+	c.radius = 10.0;
 	c.flicker = 0.15;
 	VectorSet(c.color, 0.4, 0.7, 1.0);
 
@@ -573,7 +573,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 	r_corona_t c;
 	r_light_t l;
 
-	Cg_EnergyTrail(ent, org, 16.0, 206);
+	Cg_EnergyTrail(ent, org, 24.0, 206);
 
 	VectorCopy(org, c.origin);
 	c.radius = 24.0;
