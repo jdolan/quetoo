@@ -41,6 +41,7 @@ cvar_t *cg_draw_weapon_x;
 cvar_t *cg_draw_weapon_y;
 cvar_t *cg_draw_weapon_z;
 cvar_t *cg_draw_vitals;
+cvar_t *cg_draw_vitals_pulse;
 cvar_t *cg_draw_vote;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
@@ -93,6 +94,7 @@ static void Cg_Init(void) {
 	cg_draw_weapon_z = cgi.Cvar("cg_draw_weapon_z", "0.0", CVAR_ARCHIVE,
 			"The z offset for drawing the weapon model.");
 	cg_draw_vitals = cgi.Cvar("cg_draw_vitals", "1", CVAR_ARCHIVE, "Draw the vitals (health, armor, ammo");
+	cg_draw_vitals_pulse = cgi.Cvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE, "Pulse the vitals when low");
 	cg_draw_vote = cgi.Cvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
 
 	cg_fov = cgi.Cvar("cg_fov", "100.0", CVAR_ARCHIVE, NULL);
