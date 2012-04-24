@@ -833,8 +833,7 @@ void G_ClientBegin(g_edict_t *ent) {
 	} else {
 		memset(welcome, 0, sizeof(welcome));
 
-		sprintf(welcome, "^2Welcome to ^7http://quake2world.net\n"
-				"^2Gameplay is ^1%s", G_GameplayName(g_level.gameplay));
+		sprintf(welcome, "^2Welcome to ^7%s\n^2MOTD: ^7%s\n^2Gameplay is ^1%s", sv_hostname->string, g_motd->string, G_GameplayName(g_level.gameplay));
 
 		if (g_level.teams)
 			strcat(welcome, "\n^2Teams are enabled");
@@ -844,6 +843,8 @@ void G_ClientBegin(g_edict_t *ent) {
 
 		if (g_voting->value)
 			strcat(welcome, "\n^2Voting is allowed");
+
+		welcome[sizeof(welcome) -1] = '\0';
 
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(welcome);

@@ -44,6 +44,7 @@ cvar_t *g_gameplay;
 cvar_t *g_gravity;
 cvar_t *g_match;
 cvar_t *g_max_entities;
+cvar_t *g_motd;
 cvar_t *g_mysql;
 cvar_t *g_mysql_db;
 cvar_t *g_mysql_host;
@@ -65,6 +66,7 @@ cvar_t *g_weapon_respawn_time;
 cvar_t *password;
 
 cvar_t *sv_max_clients;
+cvar_t *sv_hostname;
 cvar_t *dedicated;
 
 g_team_t g_team_good, g_team_evil;
@@ -1157,6 +1159,7 @@ void G_Init(void) {
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
+	g_motd = gi.Cvar("g_motd", "quake2world.net", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");
 	g_mysql = gi.Cvar("g_mysql", "0", 0, NULL);
 	g_mysql_db = gi.Cvar("g_mysql_db", "quake2world", 0, NULL);
 	g_mysql_host = gi.Cvar("g_mysql_host", "localhost", 0, NULL);
@@ -1178,6 +1181,7 @@ void G_Init(void) {
 	password = gi.Cvar("password", "", CVAR_USER_INFO, "The server password");
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+	sv_hostname = gi.Cvar("sv_hostname", "Quake2World", CVAR_SERVER_INFO, NULL);
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
 
 	if (g_frag_log->value)

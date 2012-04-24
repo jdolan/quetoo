@@ -81,6 +81,7 @@ extern cvar_t *g_gameplay;
 extern cvar_t *g_gravity;
 extern cvar_t *g_match;
 extern cvar_t *g_max_entities;
+extern cvar_t *g_motd;
 extern cvar_t *g_mysql;
 extern cvar_t *g_mysql_db;
 extern cvar_t *g_mysql_host;
@@ -102,6 +103,7 @@ extern cvar_t *g_weapon_respawn_time;
 extern cvar_t *password;
 
 extern cvar_t *sv_max_clients;
+extern cvar_t *sv_hostname;
 extern cvar_t *dedicated;
 
 
