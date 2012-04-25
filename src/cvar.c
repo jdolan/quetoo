@@ -144,7 +144,8 @@ cvar_t *Cvar_Get(const char *name, const char *value, unsigned int flags, const 
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
 	var->flags = flags;
-	var->description = description;
+	if (description)
+		var->description = Z_CopyString(description);
 
 	// link the variable in
 	if (!cvar_vars) {
