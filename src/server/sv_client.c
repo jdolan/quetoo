@@ -379,7 +379,7 @@ static void Sv_UserStringCommand(const char *s) {
  */
 static void Sv_ClientThink(sv_client_t *cl, user_cmd_t *cmd) {
 
-	cl->cmd_msec -= cmd->msec;
+	cl->cmd_msec += cmd->msec;
 
 	svs.game->ClientThink(cl->edict, cmd);
 }

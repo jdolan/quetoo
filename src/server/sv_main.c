@@ -506,7 +506,7 @@ static void Sv_CheckCommandTimes(void) {
 
 		if (sv_enforce_time->value) { // check them
 
-			if (abs(cl->cmd_msec) > CMD_MSEC_ALLOWABLE_DRIFT) { // irregular movement
+			if (cl->cmd_msec > CMD_MSEC_ALLOWABLE_DRIFT) { // irregular movement
 				cl->cmd_msec_errors++;
 
 				Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmd_msec);
@@ -525,7 +525,7 @@ static void Sv_CheckCommandTimes(void) {
 			}
 		}
 
-		cl->cmd_msec = CMD_MSEC_CHECK_INTERVAL; // reset for next cycle
+		cl->cmd_msec = 0; // reset for next cycle
 	}
 }
 

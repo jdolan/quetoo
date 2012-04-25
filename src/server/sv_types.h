@@ -81,8 +81,8 @@ typedef struct sv_frame_s {
  */
 
 #define CMD_MSEC_CHECK_INTERVAL 1000
-#define CMD_MSEC_ALLOWABLE_DRIFT  150
-#define CMD_MSEC_MAX_DRIFT_ERRORS  20
+#define CMD_MSEC_ALLOWABLE_DRIFT  CMD_MSEC_CHECK_INTERVAL + 150
+#define CMD_MSEC_MAX_DRIFT_ERRORS  10
 
 typedef struct sv_client_s {
 	sv_client_state_t state;
