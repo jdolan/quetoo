@@ -343,7 +343,7 @@ static void G_FireBlaster_(g_edict_t *ent) {
 
 	G_MuzzleFlash(ent, MZ_BLASTER);
 
-	G_ClientWeaponKick(ent, -3);
+	G_ClientWeaponKick(ent, 0.08);
 }
 
 void G_FireBlaster(g_edict_t *ent) {
@@ -362,7 +362,7 @@ static void G_FireShotgun_(g_edict_t *ent) {
 
 	G_MuzzleFlash(ent, MZ_SHOTGUN);
 
-	G_ClientWeaponKick(ent, -6);
+	G_ClientWeaponKick(ent, 0.15);
 }
 
 void G_FireShotgun(g_edict_t *ent) {
@@ -391,7 +391,7 @@ static void G_FireSuperShotgun_(g_edict_t *ent) {
 
 	G_MuzzleFlash(ent, MZ_SSHOTGUN);
 
-	G_ClientWeaponKick(ent, -8);
+	G_ClientWeaponKick(ent, 0.2);
 }
 
 void G_FireSuperShotgun(g_edict_t *ent) {
@@ -410,7 +410,7 @@ static void G_FireMachinegun_(g_edict_t *ent) {
 
 	G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
-	G_ClientWeaponKick(ent, -4);
+	G_ClientWeaponKick(ent, 0.125);
 }
 
 void G_FireMachinegun(g_edict_t *ent) {
@@ -432,7 +432,7 @@ static void G_FireGrenadeLauncher_(g_edict_t *ent) {
 
 	G_MuzzleFlash(ent, MZ_GRENADE);
 
-	G_ClientWeaponKick(ent, -8);
+	G_ClientWeaponKick(ent, 0.225);
 }
 
 void G_FireGrenadeLauncher(g_edict_t *ent) {
@@ -454,7 +454,7 @@ static void G_FireRocketLauncher_(g_edict_t *ent) {
 
 	G_MuzzleFlash(ent, MZ_ROCKET);
 
-	G_ClientWeaponKick(ent, -10);
+	G_ClientWeaponKick(ent, 0.275);
 }
 
 void G_FireRocketLauncher(g_edict_t *ent) {
@@ -473,7 +473,7 @@ static void G_FireHyperblaster_(g_edict_t *ent) {
 
 	G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 
-	G_ClientWeaponKick(ent, -6);
+	G_ClientWeaponKick(ent, 0.15);
 }
 
 void G_FireHyperblaster(g_edict_t *ent) {
@@ -496,7 +496,7 @@ static void G_FireLightning_(g_edict_t *ent) {
 		G_MuzzleFlash(ent, MZ_LIGHTNING);
 	}
 
-	G_ClientWeaponKick(ent, -4);
+	G_ClientWeaponKick(ent, 0.15);
 }
 
 void G_FireLightning(g_edict_t *ent) {
@@ -515,7 +515,7 @@ static void G_FireRailgun_(g_edict_t *ent) {
 
 	G_MuzzleFlash(ent, MZ_RAILGUN);
 
-	G_ClientWeaponKick(ent, -6);
+	G_ClientWeaponKick(ent, 0.3);
 }
 
 void G_FireRailgun(g_edict_t *ent) {
@@ -534,7 +534,7 @@ static void G_FireBfg_(g_edict_t *ent) {
 
 	G_MuzzleFlash(ent, MZ_BFG);
 
-	G_ClientWeaponKick(ent, -24);
+	G_ClientWeaponKick(ent, 0.5);
 }
 
 void G_FireBfg(g_edict_t *ent) {

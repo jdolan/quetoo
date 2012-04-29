@@ -171,19 +171,23 @@ static void G_ClientWorldAngles(g_edict_t *ent) {
 	}
 }
 
+#define KICK_SCALE 15.0
+
 /**
  * G_ClientDamageKick
  *
  * Adds view kick in the specified direction to the specified client.
  */
-void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const short kick) {
+void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const float kick) {
 	vec3_t old_kick_angles, kick_angles;
 
 	UnpackAngles(ent->client->ps.pm_state.kick_angles, old_kick_angles);
 
 	VectorClear(kick_angles);
-	kick_angles[PITCH] = -DotProduct(dir, ent->client->forward) * kick * 0.3;
-	kick_angles[ROLL] = DotProduct(dir, ent->client->right) * kick * 0.3;
+	kick_angles[PITCH] = DotProduct(dir, ent->client->forward) * kick * KICK_SCALE;
+	kick_angles[ROLL] = DotProduct(dir, ent->client->right) * kick * KICK_SCALE;
+
+	//gi.Print("kicked %s from %s at %1.2f\n", vtos(kick_angles), vtos(dir), kick);
 
 	VectorAdd(old_kick_angles, kick_angles, kick_angles);
 	PackAngles(kick_angles, ent->client->ps.pm_state.kick_angles);
@@ -194,7 +198,7 @@ void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const short kick) {
  *
  * A convenience function for adding view kick from firing weapons.
  */
-void G_ClientWeaponKick(g_edict_t *ent, const short kick) {
+void G_ClientWeaponKick(g_edict_t *ent, const float kick) {
 	vec3_t dir;
 
 	VectorScale(ent->client->forward, -1.0, dir);
@@ -210,9 +214,6 @@ void G_ClientWeaponKick(g_edict_t *ent, const short kick) {
  */
 static void G_ClientKickAngles(g_edict_t *ent) {
 
-	if (ent->sv_flags & SVF_NO_CLIENT)
-		return;
-
 	short *kick_angles = ent->client->ps.pm_state.kick_angles;
 
 	// add in any event-based feedback
@@ -222,7 +223,7 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 		kick_angles[PITCH] += ANGLE2SHORT(2.5);
 		break;
 	case EV_CLIENT_JUMP:
-		kick_angles[PITCH] -= ANGLE2SHORT(0.5);
+		kick_angles[PITCH] -= ANGLE2SHORT(1.5);
 		break;
 	case EV_CLIENT_FALL:
 		kick_angles[PITCH] += ANGLE2SHORT(5.0);
@@ -239,31 +240,26 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 	vec3_t kick;
 	UnpackAngles(kick_angles, kick);
 
-	// we recover from kick at a rate proportionate to the kick itself
+	// we recover from kick at a rate based to the kick itself
 	float delta = VectorLength(kick);
 
-	if (delta < 2.0) {
-		delta = 2.0;
-	}
+	if (!delta) // no kick, we're done
+		return;
 
-	delta = delta * delta * delta * gi.frame_seconds;
+	delta = 0.5 + delta * delta * gi.frame_seconds;
 
 	int i;
 	for (i = 0; i < 3; i++) {
 
-		// interpolate towards 0.0
-		if (kick[i] > 0.0) {
+		// clear angles smaller than our delta to avoid oscillations
+		if (fabs(kick[i]) <= delta) {
+			kick[i] = 0.0;
+		} else if (kick[i] > 0.0) {
 			kick[i] -= delta;
-		} else if (kick[i] < 0.0) {
-			kick[i] += delta;
 		} else {
-			continue;
+			kick[i] += delta;
 		}
 
-		// clear angles smaller than our epsilon to avoid oscillations
-		if (fabs(kick[i]) < delta) {
-			kick[i] = 0.0;
-		}
 	}
 
 	PackAngles(kick, kick_angles);

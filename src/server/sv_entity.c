@@ -131,12 +131,12 @@ static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, size_buf_t *ms
 
 	if (ps->pm_state.view_angles[0] != ops->pm_state.view_angles[0] || ps->pm_state.view_angles[1]
 			!= ops->pm_state.view_angles[1] || ps->pm_state.view_angles[2]
-			!= ps->pm_state.view_angles[2])
+			!= ops->pm_state.view_angles[2])
 		pm_state_bits |= PS_M_VIEW_ANGLES;
 
 	if (ps->pm_state.kick_angles[0] != ops->pm_state.kick_angles[0] || ps->pm_state.kick_angles[1]
 			!= ops->pm_state.kick_angles[1] || ps->pm_state.kick_angles[2]
-			!= ps->pm_state.kick_angles[2])
+			!= ops->pm_state.kick_angles[2])
 		pm_state_bits |= PS_M_KICK_ANGLES;
 
 	if (ps->pm_state.delta_angles[0] != ops->pm_state.delta_angles[0]

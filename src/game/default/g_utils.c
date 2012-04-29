@@ -291,8 +291,7 @@ float *tv(float x, float y, float z) {
 
 	// use an array so that multiple temp vectors won't collide
 	// for a while
-	v = vecs[index];
-	index = (index + 1) & 7;
+	v = vecs[index++ % 8];
 
 	v[0] = x;
 	v[1] = y;
@@ -306,16 +305,15 @@ float *tv(float x, float y, float z) {
  *
  * A convenience function for printing vectors.
  */
-char *vtos(vec3_t v) {
-	static int index;
+char *vtos(const vec3_t v) {
+	static unsigned int index;
 	static char str[8][32];
 	char *s;
 
 	// use an array so that multiple vtos won't collide
-	s = str[index];
-	index = (index + 1) & 7;
+	s = str[index++ % 8];
 
-	snprintf(s, 32, "(%i %i %i)", (int)v[0],(int)v[1],(int)v[2]);
+	snprintf(s, 32, "(%3.2f %3.2f %3.2f)", v[0], v[1], v[2]);
 
 	return s;
 }

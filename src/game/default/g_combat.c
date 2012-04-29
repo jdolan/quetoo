@@ -306,7 +306,14 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	if (client) {
 		client->damage_armor += asave;
 		client->damage_health += take;
-		VectorCopy(point, client->damage_from);
+
+		float kick = (asave + take) / 30.0;
+
+		if (kick > 1.0) {
+			kick = 1.0;
+		}
+
+		G_ClientDamageKick(targ, dir, kick);
 
 		if (attacker->client && attacker->client != client) {
 			attacker->client->damage_inflicted += take;
@@ -334,7 +341,7 @@ void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore
 			continue;
 
 		VectorSubtract(ent->s.origin, inflictor->s.origin, dir);
-		dist = VectorLength(dir);
+		dist = VectorNormalize(dir);
 
 		d = damage - 0.5 * dist;
 		k = knockback - 0.5 * dist;
@@ -344,7 +351,7 @@ void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore
 
 		if (ent == attacker) { // reduce self damage
 			if (mod == MOD_BFG_BLAST)
-				d = d * 0.15;
+				d = d * 0.25;
 			else
 				d = d * 0.5;
 		}

@@ -444,7 +444,6 @@ struct g_client_s {
 
 	short damage_armor; // damage absorbed by armor
 	short damage_health; // damage taken out of health
-	vec3_t damage_from; // origin for kick calculation
 	short damage_inflicted; // damage done to other clients
 
 	float speed; // x/y speed after moving
