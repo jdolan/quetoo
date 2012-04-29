@@ -213,38 +213,46 @@ void G_ClientWeaponKick(g_edict_t *ent, const float kick) {
  * weapons may also set the kick value, and we factor that in here as well.
  */
 static void G_ClientKickAngles(g_edict_t *ent) {
-
 	short *kick_angles = ent->client->ps.pm_state.kick_angles;
+
+	vec3_t kick;
+	UnpackAngles(kick_angles, kick);
 
 	// add in any event-based feedback
 
 	switch (ent->s.event) {
 	case EV_CLIENT_LAND:
-		kick_angles[PITCH] += ANGLE2SHORT(2.5);
+		kick[PITCH] += 2.5;
 		break;
 	case EV_CLIENT_JUMP:
-		kick_angles[PITCH] -= ANGLE2SHORT(1.5);
+		kick[PITCH] -= 1.5;
 		break;
 	case EV_CLIENT_FALL:
-		kick_angles[PITCH] += ANGLE2SHORT(5.0);
+		kick[PITCH] += 5.0;
 		break;
 	case EV_CLIENT_FALL_FAR:
-		kick_angles[PITCH] += ANGLE2SHORT(10.0);
+		kick[PITCH] += 10.0;
 		break;
 	default:
 		break;
 	}
 
+	// and any velocity-based feedback
+
+	float forward = DotProduct(ent->velocity, ent->client->forward);
+	kick[PITCH] += forward / 500.0;
+
+	float right = DotProduct(ent->velocity, ent->client->right);
+	kick[ROLL] += right / 500.0;
+
 	// now interpolate the kick angles towards neutral over time
 
-	vec3_t kick;
-	UnpackAngles(kick_angles, kick);
-
-	// we recover from kick at a rate based to the kick itself
 	float delta = VectorLength(kick);
 
 	if (!delta) // no kick, we're done
 		return;
+
+	// we recover from kick at a rate based to the kick itself
 
 	delta = 0.5 + delta * delta * gi.frame_seconds;
 
