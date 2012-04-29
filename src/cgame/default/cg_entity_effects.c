@@ -141,26 +141,17 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
  */
 void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
-	bool stationary;
 	int j;
 
 	if (cgi.view->render_mode == render_mode_pro)
 		return;
-
-	stationary = false;
 
 	if (ent) { // trails should be framerate independent
 
 		if (ent->time > cgi.client->time)
 			return;
 
-		// trails diminish for stationary entities (grenades)
-		stationary = VectorCompare(ent->current.origin, ent->current.old_origin);
-
-		if (stationary)
-			ent->time = cgi.client->time + 128;
-		else
-			ent->time = cgi.client->time + 32;
+		ent->time = cgi.client->time + 32;
 	}
 
 	if (cgi.PointContents(end) & MASK_WATER) {
@@ -188,13 +179,8 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 		p->org[j] = end[j];
 		p->vel[j] = Randomc();
 	}
-	p->roll = Randomc() * 100.0; // rotation
 
-	// make smoke rise from grenades that have come to rest
-	if (ent && stationary) {
-		p->alpha_vel *= 0.65;
-		p->accel[2] = 20.0;
-	}
+	p->roll = Randomc() * 100.0; // rotation
 }
 
 /*
@@ -408,8 +394,11 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 /*
  * Cg_GrenadeTrail
  */
-static void Cg_GrenadeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
-	Cg_SmokeTrail(start, end, ent);
+static void Cg_GrenadeTrail(const vec3_t start, const vec3_t end) {
+
+	if (cgi.PointContents(end) & MASK_WATER) {
+		Cg_BubbleTrail(start, end, 24.0);
+	}
 }
 
 /*
@@ -665,7 +654,7 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	}
 
 	if (s->effects & EF_GRENADE) {
-		Cg_GrenadeTrail(start, end, e);
+		Cg_GrenadeTrail(start, end);
 	}
 
 	if (s->effects & EF_ROCKET) {
@@ -718,7 +707,6 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 
 		//VectorCopy(ent->origin, l.origin);
 		//cgi.AddLight(&l);
-
 		VectorScale(l.color, 0.5, ent->shell);
 	}
 
