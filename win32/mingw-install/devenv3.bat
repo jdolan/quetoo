@@ -60,7 +60,7 @@ xcopy autotools\* mingw32 /E
 xcopy autotools\* mingw64 /E
 
 
-#Cleanup
+rem #Cleanup
 del *.exe *7z
 pause
 msys\1.0\msys.bat
