@@ -1,4 +1,4 @@
-SOURCE=http://zlib.net/zlib-1.2.6.tar.gz
+SOURCE=http://zlib.net/zlib-1.2.7.tar.gz
 
 wget -c $SOURCE 
 
