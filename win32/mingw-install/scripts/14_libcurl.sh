@@ -1,5 +1,5 @@
 #compile libcurl
-SOURCE=http://curl.haxx.se/download/curl-7.24.0.tar.gz
+SOURCE=http://curl.haxx.se/download/curl-7.25.0.tar.gz
 
 wget -c $SOURCE 
 

@@ -1,5 +1,5 @@
 #compile libpng (sdl_image dep)
-SOURCE=http://downloads.sourceforge.net/libpng/libpng-1.5.9.tar.gz
+SOURCE=http://downloads.sourceforge.net/libpng/libpng-1.5.10.tar.gz
 
 wget -c $SOURCE 
 
