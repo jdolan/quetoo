@@ -30,16 +30,15 @@ del bin\mingw-get.exe
 del /Q libexec\mingw-get\*
 rmdir /S /Q libexec\mingw-get
 rmdir /S /Q libexec var include lib share\gettext share\locale share\doc
+rmdir /S /Q libexec\mingw-get
+rmdir /S /Q libexec
 
 
-mkdir mingw32 mingw64 autotools
+
+mkdir autotools
 move bin autotools
 move share autotools
 
-
-
-xcopy autotools\* mingw32 /E
-xcopy autotools\* mingw64 /E
 
 msys\1.0\bin\sh.exe -c "echo export CPPFLAGS=\'-I/mingw/include -I/mingw/local/include\' >> /etc/profile"
 msys\1.0\bin\sh.exe -c "echo export LDFLAGS=\'-L/mingw/lib -L/mingw/local/lib\' >> /etc/profile"
@@ -53,9 +52,15 @@ msys\1.0\bin\sh.exe -c "echo "%TARGETDIR%"\\\mingw32 /mingw > /etc/fstab"
 
 rem #Downloading and installing gcc
 wget -c %MINGW_I686_URL% %MINGW_X86_64_URL%
-7za x *.7z
+7za x x86_64*.7z
+move mingw32 mingw64
+7za x i686*.7z
 
-rem #Cleanup
+xcopy autotools\* mingw32 /E
+xcopy autotools\* mingw64 /E
+
+
+#Cleanup
 del *.exe *7z
 pause
 msys\1.0\msys.bat
