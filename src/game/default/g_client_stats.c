@@ -117,8 +117,6 @@ static unsigned int G_UpdateScores(void) {
 	char *buf = scores_buffer;
 	int i, j = 0;
 
-	memset(buf, 0, sizeof(buf));
-
 	// assemble the client scores
 	for (i = 0; i < sv_max_clients->integer; i++) {
 		const g_edict_t *e = &g_game.edicts[i + 1];
