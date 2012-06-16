@@ -707,8 +707,11 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 	float best_dist, *best_normal;
 	int i;
 
-	best_dist = 9999.0;
+	best_dist = 0x7fffffff;
 	best_normal = NULL;
+
+	if(l->face->num_edges < 3)
+		Com_Error(ERR_FATAL, "Attempted to calculate a normal for a degenerate vertex\n");
 
 	// calculate the distance to each vertex
 	for (i = 0; i < l->face->num_edges; i++) {
@@ -727,7 +730,7 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 
 		dist = VectorLength(delta);
 
-		if (dist < best_dist) {
+		if (dist <= best_dist) {
 			best_dist = dist;
 			best_normal = d_bsp.normals[v].normal;
 		}

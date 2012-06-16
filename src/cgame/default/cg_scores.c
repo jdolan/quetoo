@@ -134,7 +134,6 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 		s = cg_scores_teams ? score->score : score->captures;
 
 		x += SCORES_COL_WIDTH;
-		sx += SCORES_COL_WIDTH;
 
 		snprintf(string, sizeof(string) - 1, "%s^7 %d %s",
 				cgi.ConfigString(CS_TEAM_EVIL), s,
