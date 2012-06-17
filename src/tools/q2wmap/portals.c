@@ -325,9 +325,6 @@ void MakeNodePortal(node_t * node) {
 
 	w = BaseWindingForNode(node);
 
-	side = 0;
-	dist = 0;
-
 	// clip the portal by all the other portals in the node
 	for (p = node->portals; p && w; p = p->next[side]) {
 		if (p->nodes[0] == node) {
@@ -379,8 +376,6 @@ void SplitNodePortals(node_t * node) {
 	plane = &map_planes[node->plane_num];
 	f = node->children[0];
 	b = node->children[1];
-
-	side = 0;
 
 	for (p = node->portals; p; p = next_portal) {
 		if (p->nodes[0] == node)

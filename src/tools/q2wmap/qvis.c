@@ -190,8 +190,11 @@ static void CalcVis(void) {
 	for (i = 0; i < map_vis.portal_clusters; i++)
 		ClusterMerge(i);
 
-	Com_Print("Average clusters visible: %i\n",
+	if(map_vis.portal_clusters)
+		Com_Print("Average clusters visible: %i\n",
 			visibility_count / map_vis.portal_clusters);
+	else
+		Com_Print("Average clusters visible: 0\n");
 }
 
 /*
@@ -381,7 +384,6 @@ static void CalcPHS(void) {
 					Com_Error(ERR_FATAL, "Bad bit in PVS\n"); // pad bits should be 0
 				src = (long *) (map_vis.uncompressed + index
 						* map_vis.leaf_bytes);
-				dest = (long *) uncompressed;
 				for (l = 0; l < map_vis.leaf_longs; l++)
 					((long *) uncompressed)[l] |= src[l];
 			}
@@ -404,8 +406,11 @@ static void CalcPHS(void) {
 		memcpy(dest, compressed, j);
 	}
 
-	Com_Print("Average clusters hearable: %i\n",
+	if(map_vis.portal_clusters)
+		Com_Print("Average clusters hearable: %i\n",
 			count / map_vis.portal_clusters);
+	else
+		Com_Print("Average clusters hearable: 0\n");
 }
 
 /*

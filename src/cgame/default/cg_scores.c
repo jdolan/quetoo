@@ -122,7 +122,6 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 		cgi.BindFont("small", &cw, &ch);
 
 		x = cgi.context->width / 2 - SCORES_COL_WIDTH + SCORES_ICON_WIDTH;
-		r_pixel_t sx = x + SCORES_COL_WIDTH - 3 * cw;
 
 		snprintf(string, sizeof(string) - 1, "%s^7 %d %s",
 				cgi.ConfigString(CS_TEAM_GOOD), s,
