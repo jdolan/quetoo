@@ -100,7 +100,7 @@ static void Cl_CheckForResend(void) {
 		strncpy(cls.server_name, "localhost", sizeof(cls.server_name) - 1);
 
 		cls.state = CL_CONNECTING;
-		cls.connect_time = -99999;
+		cls.connect_time = 0;
 	}
 
 	// re-send if we haven't received a reply yet
@@ -144,8 +144,8 @@ static void Cl_Connect_f(void) {
 
 	strncpy(cls.server_name, Cmd_Argv(1), sizeof(cls.server_name) - 1);
 
-	cls.connect_time = -99999; // fire immediately
 	cls.state = CL_CONNECTING;
+	cls.connect_time = 0; // fire immediately
 }
 
 /*
@@ -344,7 +344,7 @@ void Cl_Reconnect_f(void) {
 			strncpy(cls.server_name, server_name, sizeof(cls.server_name) - 1);
 		}
 
-		cls.connect_time = -99999; // fire immediately
+		cls.connect_time = 0; // fire immediately
 		cls.state = CL_CONNECTING;
 	} else {
 		Com_Print("No server to reconnect to\n");

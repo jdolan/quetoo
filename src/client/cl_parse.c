@@ -450,7 +450,7 @@ void Cl_ParseServerMessage(void) {
 				cls.download.file = NULL;
 			}
 			cls.state = CL_CONNECTING;
-			cls.connect_time = -99999; // fire immediately
+			cls.connect_time = 0; // fire immediately
 			break;
 
 		case SV_CMD_SERVER_DATA:
