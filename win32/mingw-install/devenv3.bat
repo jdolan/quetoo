@@ -1,8 +1,8 @@
 @echo off
 Set TARGETDIR="C:\q2wdevenv"
 Set MINGW_GET_URL="http://downloads.sourceforge.net/project/mingw/Installer/mingw-get/mingw-get-0.5-beta-20120426-1/mingw-get-0.5-mingw32-beta-20120426-1-bin.zip"
-Set MINGW_I686_URL="http://downloads.sourceforge.net/project/mingw-w64/Toolchains targetting Win32/Personal Builds/rubenvb/release/i686-w64-mingw32-gcc-4.7.0-release-win32_rubenvb.7z"
-Set MINGW_X86_64_URL="http://downloads.sourceforge.net/project/mingw-w64/Toolchains targetting Win64/Personal Builds/rubenvb/release/x86_64-w64-mingw32-gcc-4.7.0-release-win64_rubenvb.7z"
+Set MINGW_I686_URL="http://downloads.sourceforge.net/project/mingw-w64/Toolchains targetting Win32/Personal Builds/rubenvb/release/i686-w64-mingw32-gcc-4.7.1-release-win32_rubenvb.7z"
+Set MINGW_X86_64_URL="http://downloads.sourceforge.net/project/mingw-w64/Toolchains targetting Win64/Personal Builds/rubenvb/release/x86_64-w64-mingw32-gcc-4.7.1-release-win64_rubenvb.7z"
 
 
 
