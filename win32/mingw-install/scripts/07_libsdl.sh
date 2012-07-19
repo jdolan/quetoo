@@ -1,9 +1,11 @@
-SOURCE=http://www.libsdl.org/release/SDL-1.2.15.tar.gz
+PKGNAME="SDL"
+PKGVER="1.2.15"
+
+SOURCE=http://www.libsdl.org/release/${PKGNAME}-${PKGVER}.tar.gz
 wget -c $SOURCE
 
-
-tar xzf `ls SDL-*.tar.gz`
-cd SDL-*
+tar xzf ${PKGNAME}-${PKGVER}.tar.gz
+cd ${PKGNAME}-${PKGVER}
 
 ./configure --prefix=/mingw/local
 make -j 4

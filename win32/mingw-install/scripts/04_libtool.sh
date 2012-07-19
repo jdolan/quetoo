@@ -1,11 +1,12 @@
-SOURCE=http://ftpmirror.gnu.org/libtool/libtool-2.4.2.tar.gz
+PKGNAME="libtool"
+PKGVER="2.4.2"
 
+SOURCE=http://ftpmirror.gnu.org/${PKGNAME}/${PKGNAME}-${PKGVER}.tar.gz
 wget -c $SOURCE 
 
-tar xzf `ls libtool-*.tar.gz`
+tar xzf ${PKGNAME}-${PKGVER}.tar.gz
+cd ${PKGNAME}-${PKGVER}
 
-
-cd libtool-*
 ./configure --prefix=/mingw/local
 make -j 4
 make install

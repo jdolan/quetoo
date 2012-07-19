@@ -1,9 +1,11 @@
-SOURCE=http://www.nasm.us/pub/nasm/releasebuilds/2.10/nasm-2.10.tar.gz
+PKGNAME="nasm"
+PKGVER="2.10.01"
+
+SOURCE=http://www.nasm.us/pub/${PKGNAME}/releasebuilds/${PKGVER}/${PKGNAME}-${PKGVER}.tar.gz
 wget -c $SOURCE
 
-tar xzf `ls nasm-*.tar.gz`
-
-cd nasm-*
+tar xzf ${PKGNAME}-${PKGVER}.tar.gz
+cd ${PKGNAME}-${PKGVER}
 
 ./configure --prefix=/mingw/local
 make -j 4

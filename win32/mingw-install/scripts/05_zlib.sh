@@ -1,12 +1,11 @@
-SOURCE=http://zlib.net/zlib-1.2.7.tar.gz
+PKGNAME="zlib"
+PKGVER="1.2.7"
 
+SOURCE=http://zlib.net/${PKGNAME}-${PKGVER}.tar.gz
 wget -c $SOURCE 
 
-tar xzf `ls zlib-*.tar.gz`
-
-
-cd zlib-*
-
+tar xzf ${PKGNAME}-${PKGVER}.tar.gz
+cd ${PKGNAME}-${PKGVER}
 
 export BINARY_PATH="/mingw/local/bin"
 export INCLUDE_PATH="/mingw/local/include"

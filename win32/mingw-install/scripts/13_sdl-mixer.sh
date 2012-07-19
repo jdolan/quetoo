@@ -1,9 +1,11 @@
-SOURCE=http://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-1.2.12.tar.gz
+PKGNAME="SDL_mixer"
+PKGVER="1.2.12"
 
+SOURCE=http://www.libsdl.org/projects/${PKGNAME}/release/${PKGNAME}-${PKGVER}.tar.gz
 wget -c $SOURCE
 
-tar xzf `ls SDL_mixer-*.tar.gz`
-cd SDL_mixer-*
+tar xzf ${PKGNAME}-${PKGVER}.tar.gz
+cd ${PKGNAME}-${PKGVER}
 
 ./configure --prefix=/mingw/local
 make -j 4

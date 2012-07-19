@@ -1,8 +1,12 @@
-SOURCE=http://www.ijg.org/files/jpegsrc.v8d.tar.gz
+PKGNAME="jpegsrc"
+PKGVER="v8d"
 
-wget -c $SOURCE 
-tar xzf `ls jpegsrc.*.tar.gz`
+SOURCE=http://www.ijg.org/files/${PKGNAME}.${PKGVER}.tar.gz
+wget -c $SOURCE
+
+tar xzf ${PKGNAME}.${PKGVER}.tar.gz
 cd jpeg-*
+
 ./configure --prefix=/mingw/local --enable-shared --enable-static
 make -j 4
 make install

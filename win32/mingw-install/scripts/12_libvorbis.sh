@@ -1,9 +1,12 @@
-#compile libvorbis (sdl_mixer dep)
-SOURCE=http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.2.tar.gz
-wget -c $SOURCE
+PKGNAME="libvorbis"
+PKGVER="1.3.3"
 
-tar xzf `ls libvorbis-*.tar.gz`
-cd libvorbis-*
+SOURCE=http://downloads.xiph.org/releases/vorbis/${PKGNAME}-${PKGVER}.tar.gz
+wget -c $SOURCE 
+
+tar xzf ${PKGNAME}-${PKGVER}.tar.gz
+cd ${PKGNAME}-${PKGVER}
+
 LDFLAGS='-mwindows' ./configure --prefix=/mingw/local
 make LIBS='-logg' -j 4
 make install
