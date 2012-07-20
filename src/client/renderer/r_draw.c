@@ -96,6 +96,13 @@ typedef struct r_draw_s {
 r_draw_t r_draw;
 
 /*
+ * R_Color
+ */
+void R_Color(vec4_t color) {
+	glColor4fv(color);
+}
+
+/*
  * R_LoadPic
  */
 r_image_t *R_LoadPic(const char *name) {
