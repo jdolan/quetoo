@@ -24,6 +24,9 @@
 
 #include "r_types.h"
 
+void R_Color(vec4_t color);
+void R_GetColor(GLfloat *color);
+
 void R_Setup3D(void);
 void R_Setup2D(void);
 
@@ -54,6 +57,8 @@ typedef struct r_state_s {
 	GLfloat color_array[MAX_GL_ARRAY_LENGTH * 4];
 	GLfloat normal_array[MAX_GL_ARRAY_LENGTH * 3];
 	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 3];
+
+	vec4_t color; // current color
 
 	GLenum blend_src, blend_dest;  // blend function
 	bool blend_enabled;

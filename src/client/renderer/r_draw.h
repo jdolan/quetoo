@@ -24,7 +24,6 @@
 
 #include "r_types.h"
 
-void R_Color(vec4_t color);
 r_image_t *R_LoadPic(const char *name);
 void R_DrawPic(r_pixel_t x, r_pixel_t y, float scale, const char *name);
 void R_DrawCursor(r_pixel_t x, r_pixel_t y);

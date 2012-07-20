@@ -70,6 +70,26 @@ void R_GetError_(const char *function, const char *msg) {
 	}
 }
 
+/*
+ * R_Color
+ */
+void R_Color(vec4_t color) {
+
+	if (VectorCompare(color, r_state.color) && color[3] == r_state.color[3]) {
+		return;
+	}
+
+	glColor4fv(color);
+	Vector4Copy(color, r_state.color);
+}
+
+/*
+ * R_GetColor
+ */
+void R_GetColor(GLfloat *color) {
+	Vector4Copy(r_state.color, color);
+}
+
 /**
  * R_SelectTexture
  *
