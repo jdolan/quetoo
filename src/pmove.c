@@ -91,7 +91,7 @@ static void Pm_ClipVelocity(vec3_t in, const vec3_t normal, vec3_t out, vec_t bo
 	float backoff, change;
 	int i;
 
-	backoff = DotProduct(in, normal) * bounce;
+	backoff = DotProduct(in, normal);
 
 	if (backoff < 0.0)
 		backoff *= bounce;
