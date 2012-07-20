@@ -32,7 +32,7 @@
 #define YAW				1
 #define ROLL			2
 
-typedef unsigned short r_pixel_t;
+typedef short r_pixel_t;
 
 typedef struct r_stage_blend_s {
 	GLenum src, dest;
