@@ -34,8 +34,7 @@ r_locals_t r_locals;
 
 r_config_t r_config;
 
-byte color_white[4] = { 255, 255, 255, 255 };
-byte color_black[4] = { 0, 0, 0, 128 };
+const byte color_white[4] = { 255, 255, 255, 255 };
 
 cvar_t *r_clear;
 cvar_t *r_cull;

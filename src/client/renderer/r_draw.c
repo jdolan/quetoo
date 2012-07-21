@@ -356,7 +356,7 @@ void R_DrawChars(void) {
 	R_EnableColorArray(false);
 
 	// restore draw color
-	glColor4ubv(color_white);
+	R_Colorb(color_white);
 }
 
 /*

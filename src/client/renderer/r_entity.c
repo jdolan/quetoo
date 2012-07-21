@@ -396,7 +396,7 @@ void R_DrawEntities(void) {
 		R_EnableTexture(&texunit_diffuse, true);
 	}
 
-	glColor4ubv(color_white);
+	R_Colorb(color_white);
 
 	R_DrawBspEntities();
 

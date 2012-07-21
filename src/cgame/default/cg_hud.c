@@ -52,7 +52,7 @@ typedef struct cg_center_print_s {
 
 static cg_center_print_t center_print;
 
-byte color_white[4] = { 255, 255, 255, 255 };
+const byte color_white[4] = { 255, 255, 255, 255 };
 
 /**
  * Cg_DrawIcon
@@ -78,7 +78,6 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
 static void Cg_DrawVital(r_pixel_t x, const short value, const short icon, short med, short low) {
 	r_pixel_t y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT + 4;
 	int color = COLOR_HUD_STAT;
-
 
 	if (value < low) {
 
@@ -436,7 +435,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		memcpy(&crosshair.color, &cgi.palette[color], sizeof(crosshair.color));
 	}
 
-	glColor4ubv(crosshair.color);
+	cgi.Colorb(crosshair.color);
 
 	// calculate width and height based on crosshair image and scale
 	x = (cgi.context->width - crosshair.image->width * cg_draw_crosshair_scale->value) / 2;
@@ -444,7 +443,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 	cgi.DrawPic(x, y, cg_draw_crosshair_scale->value, crosshair.name);
 
-	glColor4ubv(color_white);
+	cgi.Colorb(color_white);
 }
 
 /*

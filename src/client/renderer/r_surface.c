@@ -26,22 +26,23 @@
  */
 static void R_SetSurfaceState_default(const r_bsp_surface_t *surf) {
 	r_image_t *image;
-	float a;
 
 	if (r_state.blend_enabled) { // alpha blend
+		vec4_t color = { 1.0, 1.0, 1.0, 1.0 };
+
 		switch (surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
 		case SURF_BLEND_33:
-			a = 0.33;
+			color[3] = 0.33;
 			break;
 		case SURF_BLEND_66:
-			a = 0.66;
+			color[3] = 0.66;
 			break;
 		default: // both flags mean use the texture's alpha channel
-			a = 1.0;
+			color[3] = 1.0;
 			break;
 		}
 
-		glColor4f(1.0, 1.0, 1.0, a);
+		R_Colorf(color);
 	}
 
 	image = surf->texinfo->image;
@@ -103,7 +104,7 @@ static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		R_EnableLights(0);
 	}
 
-	glColor4ubv(color_white);
+	R_Colorb(color_white);
 }
 
 /*

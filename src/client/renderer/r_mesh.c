@@ -210,7 +210,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 	if (f > 1.0) // scale it back to 1.0
 		VectorScale(color, 1.0 / f, color);
 
-	glColor4fv(color);
+	R_Colorf(color);
 }
 
 // maintain a pointer to the active material
@@ -349,11 +349,15 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
  * are simply re-drawn using a small depth offset.
  */
 static void R_DrawMeshShell_default(const r_entity_t *e) {
+	vec4_t shell;
 
 	if (VectorCompare(e->shell, vec3_origin))
 		return;
 
-	glColor3fv(e->shell);
+	VectorCopy(e->shell, shell);
+	shell[3] = 1.0;
+
+	R_Colorf(shell);
 
 	R_BindTexture(r_envmap_images[2]->texnum);
 
@@ -363,7 +367,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
 
 	R_EnableShell(false);
 
-	glColor4ubv(color_white);
+	R_Colorb(color_white);
 }
 
 /*
@@ -375,6 +379,8 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
 static void R_DrawMeshShadow_default(const r_entity_t *e) {
 	const bool blend = r_state.blend_enabled;
 	const bool lighting = r_state.lighting_enabled;
+
+	const vec4_t color = { 0.0, 0.0, 0.0, r_shadows->value * MESH_SHADOW_ALPHA };
 
 	if (!r_shadows->value)
 		return;
@@ -396,7 +402,7 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	glColor4f(0.0, 0.0, 0.0, r_shadows->value * MESH_SHADOW_ALPHA);
+	R_Colorf(color);
 
 	if (!blend)
 		R_EnableBlend(true);
@@ -426,7 +432,7 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableTexture(&texunit_diffuse, true);
 
-	glColor4ubv(color_white);
+	R_Colorb(color_white);
 }
 
 /*

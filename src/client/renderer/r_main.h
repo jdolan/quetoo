@@ -68,8 +68,7 @@ extern cvar_t *r_width;
 extern cvar_t *r_windowed_height;
 extern cvar_t *r_windowed_width;
 
-extern byte color_white[4];
-extern byte color_black[4];
+extern const byte color_white[4];
 
 extern r_view_t r_view;
 

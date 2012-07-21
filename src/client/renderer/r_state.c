@@ -71,23 +71,17 @@ void R_GetError_(const char *function, const char *msg) {
 }
 
 /*
- * R_Color
+ * R_Colorf
  */
-void R_Color(vec4_t color) {
-
-	if (VectorCompare(color, r_state.color) && color[3] == r_state.color[3]) {
-		return;
-	}
-
+void R_Colorf(const vec4_t color) {
 	glColor4fv(color);
-	Vector4Copy(color, r_state.color);
 }
 
 /*
- * R_GetColor
+ * R_Colorb
  */
-void R_GetColor(GLfloat *color) {
-	Vector4Copy(r_state.color, color);
+void R_Colorb(const byte color[4]) {
+	glColor4ubv(color);
 }
 
 /**

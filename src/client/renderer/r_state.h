@@ -24,9 +24,8 @@
 
 #include "r_types.h"
 
-void R_Color(vec4_t color);
-void R_GetColor(GLfloat *color);
-
+void R_Colorf(const vec4_t color);
+void R_Colorb(const byte color[4]);
 void R_Setup3D(void);
 void R_Setup2D(void);
 
@@ -50,17 +49,15 @@ typedef struct r_texunit_s {
 
 // opengl state management
 typedef struct r_state_s {
-	bool ortho;  // 2d vs 3d projection
+	bool ortho; // 2d vs 3d projection
 
-	GLfloat vertex_array_3d[MAX_GL_ARRAY_LENGTH * 3];  // default vertex arrays
+	GLfloat vertex_array_3d[MAX_GL_ARRAY_LENGTH * 3]; // default vertex arrays
 	GLshort vertex_array_2d[MAX_GL_ARRAY_LENGTH * 2];
 	GLfloat color_array[MAX_GL_ARRAY_LENGTH * 4];
 	GLfloat normal_array[MAX_GL_ARRAY_LENGTH * 3];
 	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 3];
 
-	vec4_t color; // current color
-
-	GLenum blend_src, blend_dest;  // blend function
+	GLenum blend_src, blend_dest; // blend function
 	bool blend_enabled;
 
 	r_texunit_t texunits[MAX_GL_TEXUNITS];

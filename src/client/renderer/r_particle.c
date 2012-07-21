@@ -254,6 +254,6 @@ void R_DrawParticles(void) {
 
 	R_EnableColorArray(false);
 
-	glColor4ubv(color_white);
+	R_Colorb(color_white);
 }
 

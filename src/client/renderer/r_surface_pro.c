@@ -144,6 +144,8 @@ void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 	if (!r_line_alpha->value || !surfs->count)
 		return;
 
+	const vec4_t color = { 0.0, 0.0, 0.0, r_line_alpha->value };
+
 	R_EnableTexture(&texunit_diffuse, false);
 
 	R_SetArrayState(r_world_model);
@@ -157,7 +159,7 @@ void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 		glEnable(GL_LINE_SMOOTH);
 
 	glLineWidth(r_line_width->value);
-	glColor4f(0.0, 0.0, 0.0, r_line_alpha->value);
+	R_Colorf(color);
 
 	// draw the surfaces
 	for (i = 0; i < surfs->count; i++) {
@@ -172,7 +174,7 @@ void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 	}
 
 	glLineWidth(1.0);
-	glColor4ubv(color_white);
+	R_Colorb(color_white);
 
 	if (!r_multisample->value)
 		glDisable(GL_LINE_SMOOTH);

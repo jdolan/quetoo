@@ -175,7 +175,9 @@ void Cl_InitCgame(void) {
 
 	import.palette = palette;
 	import.ColorFromPalette = Img_ColorFromPalette;
-	import.Color = R_Color;
+
+	import.Colorf = R_Colorf;
+	import.Colorb = R_Colorb;
 
 	import.LoadImage = R_LoadImage;
 	import.LoadModel = R_LoadModel;

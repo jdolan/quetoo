@@ -215,6 +215,8 @@ void R_DrawBspNormals(void) {
 	vec3_t end;
 	int i, j, k;
 
+	vec4_t red = { 1.0, 0.0, 0.0, 1.0 };
+
 	if (!r_draw_bsp_normals->value)
 		return;
 
@@ -222,7 +224,7 @@ void R_DrawBspNormals(void) {
 
 	R_ResetArrayState(); // default arrays
 
-	glColor3f(1.0, 0.0, 0.0);
+	R_Colorf(red);
 
 	k = 0;
 	surf = r_world_model->surfaces;
@@ -258,7 +260,7 @@ void R_DrawBspNormals(void) {
 
 	R_EnableTexture(&texunit_diffuse, true);
 
-	glColor4ubv(color_white);
+	R_Colorb(color_white);
 }
 
 /*
