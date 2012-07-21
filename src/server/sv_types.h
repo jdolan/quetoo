@@ -39,8 +39,8 @@ typedef enum {
 typedef struct sv_server_s {
 	sv_state_t state; // precache commands are only valid during load
 
-	unsigned int time; // always sv.frame_num * 1000 / sv_packetrate->value
-	unsigned int frame_num;
+	uint32_t time; // always sv.frame_num * 1000 / sv_packetrate->value
+	uint32_t frame_num;
 
 	char name[MAX_QPATH]; // map name
 	struct c_model_s *models[MAX_MODELS];
@@ -64,12 +64,12 @@ typedef enum {
 } sv_client_state_t;
 
 typedef struct sv_frame_s {
-	int area_bytes;
+	int32_t area_bytes;
 	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
 	player_state_t ps;
-	unsigned short num_entities;
-	unsigned int first_entity; // index into svs.entity_states array
-	unsigned int sent_time; // for ping calculations
+	uint16_t num_entities;
+	uint32_t first_entity; // index into svs.entity_states array
+	uint32_t sent_time; // for ping calculations
 } sv_frame_t;
 
 #define CLIENT_LATENCY_COUNTS 16  // frame latency, averaged to determine ping
@@ -89,22 +89,22 @@ typedef struct sv_client_s {
 
 	char user_info[MAX_USER_INFO_STRING]; // name, skin, etc
 
-	int last_frame; // for delta compression
+	int32_t last_frame; // for delta compression
 	user_cmd_t last_cmd; // for filling in big drops
 
-	unsigned int cmd_msec; // for sv_enforce_time
-	unsigned short cmd_msec_errors; // maintain how many problems we've seen
+	uint32_t cmd_msec; // for sv_enforce_time
+	uint16_t cmd_msec_errors; // maintain how many problems we've seen
 
-	unsigned int frame_latency[CLIENT_LATENCY_COUNTS];
-	unsigned int ping;
+	uint32_t frame_latency[CLIENT_LATENCY_COUNTS];
+	uint32_t ping;
 
-	unsigned int message_size[CLIENT_RATE_MESSAGES]; // used to rate drop packets
-	unsigned int rate;
-	unsigned int surpress_count; // number of messages rate suppressed
+	uint32_t message_size[CLIENT_RATE_MESSAGES]; // used to rate drop packets
+	uint32_t rate;
+	uint32_t surpress_count; // number of messages rate suppressed
 
 	g_edict_t *edict; // EDICT_FOR_NUM(client_num + 1)
 	char name[32]; // extracted from user_info, high bits masked
-	int message_level; // for filtering printed messages
+	int32_t message_level; // for filtering printed messages
 
 	// the datagram is written to by sound calls, prints, temp ents, etc.
 	// it can be overflowed without consequence.
@@ -114,10 +114,10 @@ typedef struct sv_client_s {
 	sv_frame_t frames[UPDATE_BACKUP]; // updates can be delta'd from here
 
 	byte *download; // file being downloaded
-	unsigned int download_size; // total bytes (can't use EOF because of paks)
-	unsigned int download_count; // bytes sent
+	uint32_t download_size; // total bytes (can't use EOF because of paks)
+	uint32_t download_count; // bytes sent
 
-	unsigned int last_message; // svs.real_time when packet was last received
+	uint32_t last_message; // svs.real_time when packet was last received
 	net_chan_t netchan;
 } sv_client_t;
 
@@ -134,8 +134,8 @@ typedef struct sv_client_s {
 // and must then re-use to acquire a client slot
 typedef struct sv_challenge_s {
 	net_addr_t addr;
-	unsigned int challenge;
-	unsigned int time;
+	uint32_t challenge;
+	uint32_t time;
 } sv_challenge_t;
 
 // MAX_CHALLENGES is made large to prevent a denial of service attack that
@@ -144,11 +144,11 @@ typedef struct sv_challenge_s {
 
 typedef struct sv_static_s {
 	bool initialized; // sv_init has completed
-	unsigned int real_time; // always increasing, no clamping, etc
+	uint32_t real_time; // always increasing, no clamping, etc
 
-	unsigned int spawn_count; // incremented each level start, used to check late spawns
+	uint32_t spawn_count; // incremented each level start, used to check late spawns
 
-	unsigned short frame_rate; // configurable server frame rate
+	uint16_t frame_rate; // configurable server frame rate
 
 	sv_client_t *clients; // server-side client structures
 
@@ -156,14 +156,14 @@ typedef struct sv_static_s {
 	// delta compression from frame to frame
 
 	// the size of this array is based on the number of clients we might be
-	// asked to support at any point in time during the current game
+	// asked to support at any point32_t in time during the current game
 
-	unsigned int num_entity_states; // sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES
-	unsigned int next_entity_state; // next entity_state to use for newly spawned entities
+	uint32_t num_entity_states; // sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES
+	uint32_t next_entity_state; // next entity_state to use for newly spawned entities
 	entity_state_t *entity_states; // entity states array used for delta compression
 
 	net_addr_t masters[MAX_MASTERS];
-	unsigned int next_heartbeat;
+	uint32_t next_heartbeat;
 
 	sv_challenge_t challenges[MAX_CHALLENGES]; // to prevent invalid IPs from connecting
 

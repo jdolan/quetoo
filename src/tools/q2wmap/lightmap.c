@@ -21,14 +21,14 @@
 
 #include "qlight.h"
 
-static int lightmap_scale;
+static int32_t lightmap_scale;
 
 // light_info_t is a temporary bucket for lighting calculations
 typedef struct light_info_s {
 	vec_t face_dist;
 	vec3_t face_normal;
 
-	int num_sample_points;
+	int32_t num_sample_points;
 	vec3_t *sample_points;
 
 	vec3_t model_org; // for bsp submodels
@@ -39,7 +39,7 @@ typedef struct light_info_s {
 
 	vec2_t exact_mins, exact_maxs;
 
-	int tex_mins[2], tex_size[2];
+	int32_t tex_mins[2], tex_size[2];
 	d_bsp_face_t *face;
 } light_info_t;
 
@@ -61,7 +61,7 @@ static face_extents_t face_extents[MAX_BSP_FACES];
  */
 static void BuildFaceExtents(void) {
 	const d_bsp_vertex_t *v;
-	int i, j, k;
+	int32_t i, j, k;
 
 	for (k = 0; k < d_bsp.num_faces; k++) {
 
@@ -83,7 +83,7 @@ static void BuildFaceExtents(void) {
 		st_maxs[0] = st_maxs[1] = -999999;
 
 		for (i = 0; i < s->num_edges; i++) {
-			const int e = d_bsp.face_edges[s->first_edge + i];
+			const int32_t e = d_bsp.face_edges[s->first_edge + i];
 			if (e >= 0)
 				v = d_bsp.vertexes + d_bsp.edges[e].v[0];
 			else
@@ -120,7 +120,7 @@ static void CalcLightinfoExtents(light_info_t *l) {
 	const d_bsp_face_t *s;
 	float *st_mins, *st_maxs;
 	vec2_t lm_mins, lm_maxs;
-	int i;
+	int32_t i;
 
 	s = l->face;
 
@@ -150,7 +150,7 @@ static void CalcLightinfoExtents(light_info_t *l) {
  */
 static void CalcLightinfoVectors(light_info_t *l) {
 	const d_bsp_texinfo_t *tex;
-	int i;
+	int32_t i;
 	vec3_t tex_normal;
 	vec_t dist_scale;
 	vec_t dist;
@@ -218,8 +218,8 @@ static void CalcLightinfoVectors(light_info_t *l) {
  * to get the world xyz value of the sample point
  */
 static void CalcPoints(light_info_t *l, float sofs, float tofs) {
-	int s, t, j;
-	int w, h, step;
+	int32_t s, t, j;
+	int32_t w, h, step;
 	vec_t starts, startt;
 	vec_t *surf;
 
@@ -246,7 +246,7 @@ static void CalcPoints(light_info_t *l, float sofs, float tofs) {
 }
 
 typedef struct { // buckets for sample accumulation
-	int num_samples;
+	int32_t num_samples;
 	float *origins;
 	float *samples;
 	float *directions;
@@ -266,7 +266,7 @@ typedef struct light_s { // a light source
 } light_t;
 
 static light_t *lights[MAX_BSP_LEAFS];
-static int num_lights;
+static int32_t num_lights;
 
 // sunlight, borrowed from ufo2map
 typedef struct sun_s {
@@ -282,7 +282,7 @@ static sun_t sun;
  * FindTargetEntity
  */
 static entity_t *FindTargetEntity(const char *target) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < num_entities; i++) {
 		const char *n = ValueForKey(&entities[i], "targetname");
@@ -300,10 +300,10 @@ static entity_t *FindTargetEntity(const char *target) {
  * BuildLights
  */
 void BuildLights(void) {
-	int i;
+	int32_t i;
 	light_t *l;
 	const d_bsp_leaf_t *leaf;
-	int cluster;
+	int32_t cluster;
 	const char *target;
 	vec3_t dest;
 	const char *color;
@@ -389,7 +389,7 @@ void BuildLights(void) {
 
 			l->stopdot = cos(l->stopdot / 180.0 * M_PI);
 
-			if (target[0]) { // point towards target
+			if (target[0]) { // point32_t towards target
 				entity_t *e2 = FindTargetEntity(target);
 				if (!e2) {
 					Com_Warn("light at (%i %i %i) has missing target\n",
@@ -400,7 +400,7 @@ void BuildLights(void) {
 					VectorSubtract(dest, l->origin, l->normal);
 					VectorNormalize(l->normal);
 				}
-			} else { // point down angle
+			} else { // point32_t down angle
 				const float angle = FloatForKey(e, "angle");
 				if (angle == ANGLE_UP) {
 					l->normal[0] = l->normal[1] = 0.0;
@@ -529,7 +529,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 	float dot, dot2;
 	float dist;
 	c_trace_t trace;
-	int i;
+	int32_t i;
 
 	// iterate over lights, which are in buckets by cluster
 	for (i = 0; i < d_vis->num_clusters; i++) {
@@ -597,7 +597,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
  *
  * Move the incoming sample position towards the surface center and along the
  * surface normal to reduce false-positive traces.  Test the PVS at the new
- * position, returning true if the new point is valid, false otherwise.
+ * position, returning true if the new point32_t is valid, false otherwise.
  */
 static bool NudgeSamplePosition(const vec3_t in, const vec3_t normal,
 		const vec3_t center, vec3_t out, byte *pvs) {
@@ -624,8 +624,8 @@ static bool NudgeSamplePosition(const vec3_t in, const vec3_t normal,
  * Populate faces with indexes of all d_bsp_face_t's referencing the specified edge.
  * The number of d_bsp_face_t's referencing edge is returned in nfaces.
  */
-static void FacesWithVert(int vert, int *faces, int *nfaces) {
-	int i, j, k;
+static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
+	int32_t i, j, k;
 
 	k = 0;
 	for (i = 0; i < d_bsp.num_faces; i++) {
@@ -636,8 +636,8 @@ static void FacesWithVert(int vert, int *faces, int *nfaces) {
 
 		for (j = 0; j < face->num_edges; j++) {
 
-			const int e = d_bsp.face_edges[face->first_edge + j];
-			const int v = e >= 0 ? d_bsp.edges[e].v[0] : d_bsp.edges[-e].v[1];
+			const int32_t e = d_bsp.face_edges[face->first_edge + j];
+			const int32_t v = e >= 0 ? d_bsp.edges[e].v[0] : d_bsp.edges[-e].v[1];
 
 			if (v == vert) { // face references vert
 				faces[k++] = i;
@@ -658,11 +658,11 @@ static void FacesWithVert(int vert, int *faces, int *nfaces) {
  * average of their normals.
  */
 void BuildVertexNormals(void) {
-	int vert_faces[MAX_VERT_FACES];
-	int num_vert_faces;
+	int32_t vert_faces[MAX_VERT_FACES];
+	int32_t num_vert_faces;
 	vec3_t norm, delta;
 	float scale;
-	int i, j;
+	int32_t i, j;
 
 	BuildFaceExtents();
 
@@ -705,7 +705,7 @@ void BuildVertexNormals(void) {
  */
 static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal) {
 	float best_dist, *best_normal;
-	int i;
+	int32_t i;
 
 	best_dist = 0x7fffffff;
 	best_normal = NULL;
@@ -715,8 +715,8 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 
 	// calculate the distance to each vertex
 	for (i = 0; i < l->face->num_edges; i++) {
-		const int e = d_bsp.face_edges[l->face->first_edge + i];
-		unsigned short v;
+		const int32_t e = d_bsp.face_edges[l->face->first_edge + i];
+		uint16_t v;
 
 		vec3_t delta;
 		float dist;
@@ -747,7 +747,7 @@ static const float sampleofs[MAX_SAMPLES][2] = { { 0.0, 0.0 },
 /*
  * BuildFacelights
  */
-void BuildFacelights(int face_num) {
+void BuildFacelights(int32_t face_num) {
 	d_bsp_face_t *face;
 	d_bsp_plane_t *plane;
 	d_bsp_texinfo_t *tex;
@@ -758,8 +758,8 @@ void BuildFacelights(int face_num) {
 	vec4_t tangent;
 	light_info_t l[MAX_SAMPLES];
 	face_light_t *fl;
-	int num_samples;
-	int i, j;
+	int32_t num_samples;
+	int32_t i, j;
 
 	if (face_num >= MAX_BSP_FACES) {
 		Com_Verbose("MAX_BSP_FACES hit\n");
@@ -886,9 +886,9 @@ void BuildFacelights(int face_num) {
  * Add the indirect lighting on top of the direct lighting and save into
  * final map format.
  */
-void FinalLightFace(int face_num) {
+void FinalLightFace(int32_t face_num) {
 	d_bsp_face_t *f;
-	int j, k;
+	int32_t j, k;
 	vec3_t temp;
 	vec3_t dir;
 	face_light_t *fl;

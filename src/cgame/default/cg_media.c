@@ -70,7 +70,7 @@ r_image_t *cg_particle_bullet[3];
  * Updates all media references for the client game.
  */
 void Cg_UpdateMedia(void) {
-	int i;
+	int32_t i;
 	char name[MAX_QPATH];
 
 	cg_sample_blaster_fire = cgi.LoadSample("weapons/blaster/fire");

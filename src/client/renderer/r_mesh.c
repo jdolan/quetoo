@@ -34,7 +34,7 @@ vec4_t r_mesh_tangents[MD3_MAX_TRIANGLES * 3]; // and tangents
 void R_ApplyMeshModelConfig(r_entity_t *e) {
 	const r_mesh_config_t *c;
 	vec3_t translate;
-	int i;
+	int32_t i;
 
 	// translation is applied differently for view weapons
 	if (e->effects & EF_WEAPON) {
@@ -78,7 +78,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
  *
  * Returns the desired tag structure, or NULL.
  */
-static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const char *name) {
+static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const char *name) {
 
 	if (frame > mod->num_frames) {
 		Com_Warn("R_GetMeshModelTag: %s: Invalid frame: %d\n", mod->name, frame);
@@ -87,7 +87,7 @@ static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int frame, const cha
 
 	const r_md3_t *md3 = (r_md3_t *) mod->extra_data;
 	const r_md3_tag_t *tag = &md3->tags[frame * md3->num_tags];
-	int i;
+	int32_t i;
 
 	for (i = 0; i < md3->num_tags; i++, tag++) {
 		if (!strcmp(name, tag->name)) {
@@ -186,7 +186,7 @@ void R_UpdateMeshLighting(const r_entity_t *e) {
 static void R_SetMeshColor_default(const r_entity_t *e) {
 	vec4_t color;
 	float f;
-	int i;
+	int32_t i;
 
 	VectorCopy(e->lighting->color, color);
 
@@ -249,7 +249,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 #if 0
 				if(e->effects & EF_WEAPON) {
 					r_entity_t ent;
-					int i;
+					int32_t i;
 
 					for(i = 0; i < MAX_ACTIVE_LIGHTS; i++) {
 						const r_bsp_light_t *l = e->lighting->bsp_lights[i];
@@ -374,7 +374,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
  * R_DrawMeshShadow_default
  *
  * Re-draws the mesh using the stencil test.  Meshes with stale lighting
- * information, or with a lighting point above our view, are not drawn.
+ * information, or with a lighting point32_t above our view, are not drawn.
  */
 static void R_DrawMeshShadow_default(const r_entity_t *e) {
 	const bool blend = r_state.blend_enabled;
@@ -443,8 +443,8 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 	const d_md3_frame_t *frame, *old_frame;
 	const r_md3_mesh_t *mesh;
 	vec3_t trans;
-	int vert_index;
-	int i, j;
+	int32_t vert_index;
+	int32_t i, j;
 
 	md3 = (r_md3_t *) e->model->extra_data;
 
@@ -501,7 +501,7 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
  */
 static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 	r_md3_mesh_t *mesh = md3->meshes;
-	int i, offset = 0;
+	int32_t i, offset = 0;
 
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 

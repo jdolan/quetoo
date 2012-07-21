@@ -27,11 +27,11 @@
 // assets are accumulated in this structure
 typedef struct qpak_s {
 	char paths[MAX_PAK_ENTRIES][MAX_QPATH];
-	int num_paths;
+	int32_t num_paths;
 
-	int num_images;
-	int num_models;
-	int num_sounds;
+	int32_t num_images;
+	int32_t num_models;
+	int32_t num_sounds;
 } qpak_t;
 
 static qpak_t qpak;
@@ -41,8 +41,8 @@ static qpak_t qpak;
  *
  * Returns the index of the specified path if it exists, or -1 otherwise.
  */
-static int FindPath(char *path) {
-	int i;
+static int32_t FindPath(char *path) {
+	int32_t i;
 
 	for (i = 0; i < qpak.num_paths; i++)
 		if (!strncmp(qpak.paths[i], path, MAX_QPATH))
@@ -79,7 +79,7 @@ static const char *sample_formats[NUM_SAMPLE_FORMATS] = { "ogg", "wav" };
 static void AddSound(const char *sound) {
 	char snd[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
-	int i;
+	int32_t i;
 
 	StripExtension(sound, snd);
 
@@ -119,7 +119,7 @@ static const char *image_formats[NUM_IMAGE_FORMATS] = { "tga", "png", "jpg", "pc
 static void AddImage(const char *image, bool required) {
 	char img[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
-	int i;
+	int32_t i;
 
 	StripExtension(image, img);
 
@@ -154,7 +154,7 @@ static char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
  * AddSky
  */
 static void AddSky(char *sky) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 6; i++)
 		AddImage(va("env/%s%s", sky, suf[i]), true);
@@ -163,8 +163,8 @@ static void AddSky(char *sky) {
 /*
  * AddAnimation
  */
-static void AddAnimation(char *name, int count) {
-	int i, j, k;
+static void AddAnimation(char *name, int32_t count) {
+	int32_t i, j, k;
 
 	Com_Debug("Adding %d frames for %s\n", count, name);
 
@@ -192,7 +192,7 @@ static void AddMaterials(const char *path) {
 	const char *buf;
 	const char *c;
 	char texture[MAX_QPATH];
-	int i, num_frames;
+	int32_t i, num_frames;
 
 	// load the materials file
 	if ((i = Fs_LoadFile(path, (void **) (char *) &buffer)) < 1) {
@@ -309,7 +309,7 @@ static char *model_formats[NUM_MODEL_FORMATS] = { "md3", "obj" };
 static void AddModel(char *model) {
 	char mod[MAX_QPATH], path[MAX_QPATH];
 	FILE *f;
-	int i;
+	int32_t i;
 
 	if (model[0] == '*') // bsp submodel
 		return;
@@ -413,9 +413,9 @@ static pak_t *GetPakfile(void) {
  * and generates a new pak archive for the project.  This is a very inefficient
  * but straightforward implementation.
  */
-int PAK_Main(void) {
+int32_t PAK_Main(void) {
 	time_t start, end;
-	int i, total_pak_time;
+	int32_t i, total_pak_time;
 	epair_t *e;
 	char materials[MAX_QPATH];
 	pak_t *pak;
@@ -482,7 +482,7 @@ int PAK_Main(void) {
 
 	for (i = 0; i < qpak.num_paths; i++) {
 
-		const int j = Fs_LoadFile(qpak.paths[i], (void **) (char *) &p);
+		const int32_t j = Fs_LoadFile(qpak.paths[i], (void **) (char *) &p);
 
 		if (j == -1) {
 			Com_Print("Couldn't open %s\n", qpak.paths[i]);

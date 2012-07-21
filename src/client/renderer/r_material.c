@@ -241,7 +241,7 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t c
 	} else if (stage->flags & STAGE_DIRTMAP) {
 
 		// resolve dirtmap based on vertex position
-		const int index = (int) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
+		const int32_t index = (int) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
 		if (stage->flags & STAGE_COLOR) // honor stage color
 			VectorCopy(stage->color, color);
 		else
@@ -316,7 +316,7 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
  * helper functions, outputting to the default vertex arrays.
  */
 static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *stage) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < surf->num_edges; i++) {
 
@@ -360,7 +360,7 @@ static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *sta
 void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 	r_material_t *m;
 	r_stage_t *s;
-	unsigned int i;
+	uint32_t i;
 
 	if (!r_materials->value || r_draw_wireframe->value)
 		return;
@@ -498,7 +498,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
  * R_FreeMaterials
  */
 void R_FreeMaterials(void) {
-	int i;
+	int32_t i;
 
 	// clear previously loaded materials
 	for (i = 0; i < MAX_GL_TEXTURES; i++) {
@@ -550,9 +550,9 @@ static inline GLenum R_ConstByName(const char *c) {
 /*
  * R_LoadAnimImages
  */
-static int R_LoadAnimImages(r_stage_t *s) {
+static int32_t R_LoadAnimImages(r_stage_t *s) {
 	char name[MAX_QPATH];
-	int i, j, k;
+	int32_t i, j, k;
 
 	if (!s->image) {
 		Com_Warn("R_LoadAnimImages: Texture not defined in anim stage.\n");
@@ -591,8 +591,8 @@ static int R_LoadAnimImages(r_stage_t *s) {
 /*
  * R_ParseStage
  */
-static int R_ParseStage(r_stage_t *s, const char **buffer) {
-	int i;
+static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
+	int32_t i;
 
 	while (true) {
 
@@ -910,7 +910,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 	r_image_t *image;
 	r_material_t *m;
 	r_stage_t *s, *ss;
-	int i;
+	int32_t i;
 
 	memset(path, 0, sizeof(path));
 

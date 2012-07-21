@@ -28,9 +28,9 @@
 void Sv_InitWorld(void);
 void Sv_LinkEdict(g_edict_t *ent);
 void Sv_UnlinkEdict(g_edict_t *ent);
-int Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts, int max_area_edicts, int area_type);
-int Sv_PointContents(const vec3_t p);
-c_trace_t Sv_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, const g_edict_t *skip, const int mask);
+int32_t Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts, int32_t max_area_edicts, int32_t area_type);
+int32_t Sv_PointContents(const vec3_t p);
+c_trace_t Sv_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, const g_edict_t *skip, const int32_t mask);
 
 #endif /* __SV_LOCAL_H__ */
 

@@ -36,12 +36,12 @@ typedef enum {
 
 // scores are transmitted as binary to the client game module
 typedef struct {
-	unsigned short player_num;
-	unsigned short ping;
+	uint16_t player_num;
+	uint16_t ping;
 	byte team;
 	byte color;
-	short score;
-	short captures;
+	int16_t score;
+	int16_t captures;
 	byte flags;
 } player_score_t;
 
@@ -170,16 +170,16 @@ typedef struct g_item_s {
 	void (*weapon_think)(struct g_edict_s *ent);
 	char *pickup_sound;
 	char *model;
-	unsigned int effects;
+	uint32_t effects;
 
 	// client side info
 	char *icon;
 	char *pickup_name; // for printing on pickup
 
-	unsigned short quantity; // for ammo how much, for weapons how much is used per shot
+	uint16_t quantity; // for ammo how much, for weapons how much is used per shot
 	char *ammo; // for weapons
 	g_item_type_t type; // g_item_type_t, see above
-	unsigned short tag; // type-specific flags
+	uint16_t tag; // type-specific flags
 
 	char *precaches; // string of all models, sounds, and images this item will use
 }g_item_t;
@@ -212,9 +212,9 @@ typedef struct {
 	char *give;
 	char *music;
 
-	int lip;
-	int distance;
-	int height;
+	int32_t lip;
+	int32_t distance;
+	int32_t height;
 	char *noise;
 	float pause_time;
 	char *item;
@@ -234,9 +234,9 @@ typedef struct {
 	vec3_t end_origin;
 	vec3_t end_angles;
 
-	unsigned short sound_start;
-	unsigned short sound_middle;
-	unsigned short sound_end;
+	uint16_t sound_start;
+	uint16_t sound_middle;
+	uint16_t sound_end;
 
 	float accel;
 	float speed;
@@ -263,34 +263,34 @@ typedef struct {
 
 	g_spawn_temp_t spawn;
 
-	unsigned short num_items;
-	unsigned short num_overrides;
+	uint16_t num_items;
+	uint16_t num_overrides;
 }g_game_t;
 
 extern g_game_t g_game;
 
 // this structure is cleared as each map is entered
 typedef struct {
-	unsigned int frame_num;
-	unsigned int time;
+	uint32_t frame_num;
+	uint32_t time;
 
 	char title[MAX_STRING_CHARS]; // the descriptive name (Stress Fractures, etc)
 	char name[MAX_QPATH]; // the server name (fractures, etc)
-	int gravity; // defaults to 800
-	int gameplay; // DEATHMATCH, INSTAGIB, ARENA
-	int teams;
-	int ctf;
-	int match;
-	int rounds;
-	int frag_limit;
-	int round_limit;
-	int capture_limit;
-	unsigned int time_limit;
+	int32_t gravity; // defaults to 800
+	int32_t gameplay; // DEATHMATCH, INSTAGIB, ARENA
+	int32_t teams;
+	int32_t ctf;
+	int32_t match;
+	int32_t rounds;
+	int32_t frag_limit;
+	int32_t round_limit;
+	int32_t capture_limit;
+	uint32_t time_limit;
 	char give[MAX_STRING_CHARS];
 	char music[MAX_STRING_CHARS];
 
 	// intermission state
-	unsigned int intermission_time; // time intermission started
+	uint32_t intermission_time; // time intermission started
 	vec3_t intermission_origin;
 	vec3_t intermission_angle;
 	const char *changemap;
@@ -298,16 +298,16 @@ typedef struct {
 	bool warmup; // shared by match and round
 
 	bool start_match;
-	unsigned int match_time; // time match started
-	unsigned int match_num;
+	uint32_t match_time; // time match started
+	uint32_t match_num;
 
 	bool start_round;
-	unsigned int round_time; // time round started
-	unsigned int round_num;
+	uint32_t round_time; // time round started
+	uint32_t round_num;
 
 	char vote_cmd[64]; // current vote in question
-	unsigned int votes[3]; // current vote tallies
-	unsigned int vote_time; // time vote started
+	uint32_t votes[3]; // current vote tallies
+	uint32_t vote_time; // time vote started
 
 	g_edict_t *current_entity; // entity running from G_RunFrame
 }g_level_t;
@@ -369,40 +369,40 @@ typedef enum {
 typedef struct {
 	char name[16];
 	char skin[32];
-	short score;
-	short captures;
-	unsigned int name_time; // prevent change spamming
-	unsigned int skin_time;
+	int16_t score;
+	int16_t captures;
+	uint32_t name_time; // prevent change spamming
+	uint32_t skin_time;
 }g_team_t;
 
 // client data that persists through respawns
 typedef struct {
-	unsigned int first_frame; // g_level.frame_num the client entered the game
+	uint32_t first_frame; // g_level.frame_num the client entered the game
 
 	char user_info[MAX_USER_INFO_STRING];
 	char net_name[MAX_NET_NAME];
 	char sql_name[20];
 	char skin[32];
-	short score;
-	short captures;
+	int16_t score;
+	int16_t captures;
 
-	short health;
-	short max_health;
+	int16_t health;
+	int16_t max_health;
 
-	short armor;
-	short max_armor;
+	int16_t armor;
+	int16_t max_armor;
 
-	short inventory[MAX_ITEMS];
+	int16_t inventory[MAX_ITEMS];
 
 	// ammo capacities
-	short max_shells;
-	short max_bullets;
-	short max_grenades;
-	short max_rockets;
-	short max_cells;
-	short max_bolts;
-	short max_slugs;
-	short max_nukes;
+	int16_t max_shells;
+	int16_t max_bullets;
+	int16_t max_grenades;
+	int16_t max_rockets;
+	int16_t max_cells;
+	int16_t max_bolts;
+	int16_t max_slugs;
+	int16_t max_nukes;
 
 	g_item_t *weapon;
 	g_item_t *last_weapon;
@@ -412,16 +412,16 @@ typedef struct {
 
 	g_team_t *team; // current team (good/evil)
 	g_vote_t vote; // current vote (yes/no)
-	unsigned int match_num; // most recent match
-	unsigned int round_num; // most recent arena round
-	int color; // weapon effect colors
+	uint32_t match_num; // most recent match
+	uint32_t round_num; // most recent arena round
+	int32_t color; // weapon effect colors
 }g_client_persistent_t;
 
 // this structure is cleared on each respawn
 struct g_client_s {
 	// known to server
 	player_state_t ps; // communicated by server to clients
-	unsigned int ping;
+	uint32_t ping;
 
 	// private to game
 
@@ -430,46 +430,46 @@ struct g_client_s {
 	g_client_persistent_t persistent;
 
 	bool show_scores; // sets layout bit mask in player state
-	unsigned int scores_time; // eligible for scores when time > this
+	uint32_t scores_time; // eligible for scores when time > this
 
-	unsigned short ammo_index;
+	uint16_t ammo_index;
 
-	unsigned int buttons;
-	unsigned int old_buttons;
-	unsigned int latched_buttons;
+	uint32_t buttons;
+	uint32_t old_buttons;
+	uint32_t latched_buttons;
 
-	unsigned int weapon_think_time; // time when the weapon think was called
-	unsigned int weapon_fire_time; // can fire when time > this
+	uint32_t weapon_think_time; // time when the weapon think was called
+	uint32_t weapon_fire_time; // can fire when time > this
 	g_item_t *new_weapon;
 
-	short damage_armor; // damage absorbed by armor
-	short damage_health; // damage taken out of health
-	short damage_inflicted; // damage done to other clients
+	int16_t damage_armor; // damage absorbed by armor
+	int16_t damage_health; // damage taken out of health
+	int16_t damage_inflicted; // damage done to other clients
 
 	float speed; // x/y speed after moving
 	vec3_t angles; // aiming direction
 	vec3_t forward, right, up; // aiming direction vectors
 	vec3_t cmd_angles; // angles sent over in the last command
 
-	unsigned int respawn_time; // eligible for respawn when time > this
-	unsigned int respawn_protection_time; // respawn protected till this time
-	unsigned int ground_time; // last touched ground whence
-	unsigned int drown_time; // eligible for drowning damage when time > this
-	unsigned int sizzle_time; // eligible for sizzle damage when time > this
-	unsigned int land_time; // eligible for landing event when time > this
-	unsigned int jump_time; // eligible for jump when time > this
-	unsigned int pain_time; // eligible for pain sound when time > this
-	unsigned int footstep_time; // play a footstep when time > this
-	unsigned int animation1_time; // eligible for animation update when time > this
-	unsigned int animation2_time; // eligible for animation update when time > this
+	uint32_t respawn_time; // eligible for respawn when time > this
+	uint32_t respawn_protection_time; // respawn protected till this time
+	uint32_t ground_time; // last touched ground whence
+	uint32_t drown_time; // eligible for drowning damage when time > this
+	uint32_t sizzle_time; // eligible for sizzle damage when time > this
+	uint32_t land_time; // eligible for landing event when time > this
+	uint32_t jump_time; // eligible for jump when time > this
+	uint32_t pain_time; // eligible for pain sound when time > this
+	uint32_t footstep_time; // play a footstep when time > this
+	uint32_t animation1_time; // eligible for animation update when time > this
+	uint32_t animation2_time; // eligible for animation update when time > this
 
-	unsigned int pickup_msg_time; // display message until time > this
+	uint32_t pickup_msg_time; // display message until time > this
 
-	unsigned int chat_time; // can chat when time > this
+	uint32_t chat_time; // can chat when time > this
 	bool muted;
 
-	unsigned int quad_damage_time; // has quad when time < this
-	unsigned int quad_attack_time; // play attack sound when time > this
+	uint32_t quad_damage_time; // has quad when time < this
+	uint32_t quad_attack_time; // play attack sound when time > this
 
 	g_edict_t *chase_target; // player we are chasing
 	g_edict_t *old_chase_target; // player we were chasing
@@ -482,27 +482,27 @@ struct g_edict_s {
 	struct g_client_s *client; // NULL if not a player
 
 	bool in_use;
-	int link_count;
+	int32_t link_count;
 
 	link_t area; // linked to a division node or leaf
 
-	int num_clusters; // if -1, use head_node instead
-	int cluster_nums[MAX_ENT_CLUSTERS];
-	int head_node; // unused if num_clusters != -1
-	int area_num, area_num2;
+	int32_t num_clusters; // if -1, use head_node instead
+	int32_t cluster_nums[MAX_ENT_CLUSTERS];
+	int32_t head_node; // unused if num_clusters != -1
+	int32_t area_num, area_num2;
 
 	unsigned sv_flags;
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
-	unsigned int clip_mask;
+	uint32_t clip_mask;
 	g_edict_t *owner;
 
 	// DO NOT MODIFY ANYTHING ABOVE THIS, THE SERVER
 	// EXPECTS THE FIELDS IN THAT ORDER!
 
-	unsigned int spawn_flags;
-	unsigned int flags; // FL_GOD_MODE, etc..
+	uint32_t spawn_flags;
+	uint32_t flags; // FL_GOD_MODE, etc..
 
 	char *class_name;
 	char *model;
@@ -510,7 +510,7 @@ struct g_edict_s {
 	g_move_type_t move_type;
 	g_move_info_t move_info;
 
-	unsigned int timestamp;
+	uint32_t timestamp;
 
 	char *target;
 	char *target_name;
@@ -539,46 +539,46 @@ struct g_edict_s {
 	void (*touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
 			c_bsp_surface_t *surf);
 	void (*use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
-	void (*pain)(g_edict_t *self, g_edict_t *other, int damage, int knockback);
+	void (*pain)(g_edict_t *self, g_edict_t *other, int32_t damage, int32_t knockback);
 	void (*die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker,
-			int damage, vec3_t point);
+			int32_t damage, vec3_t point);
 
-	unsigned int touch_time;
-	unsigned int push_time;
+	uint32_t touch_time;
+	uint32_t push_time;
 
-	short health;
-	short max_health;
+	int16_t health;
+	int16_t max_health;
 	bool dead;
 
 	bool take_damage;
-	short dmg;
-	short knockback;
+	int16_t dmg;
+	int16_t knockback;
 	float dmg_radius;
-	short sounds; // make this a spawntemp var?
-	int count;
+	int16_t sounds; // make this a spawntemp var?
+	int32_t count;
 
 	g_edict_t *chain;
 	g_edict_t *enemy;
 	g_edict_t *activator;
 	g_edict_t *ground_entity;
-	int ground_entity_link_count;
+	int32_t ground_entity_link_count;
 	g_edict_t *team_chain;
 	g_edict_t *team_master;
 	g_edict_t *lightning;
 
-	unsigned short noise_index;
-	short attenuation;
+	uint16_t noise_index;
+	int16_t attenuation;
 
 	// timing variables
 	float wait;
 	float delay; // before firing targets
 	float random;
 
-	unsigned int water_type;
-	unsigned int old_water_level;
-	unsigned int water_level;
+	uint32_t water_type;
+	uint32_t old_water_level;
+	uint32_t water_level;
 
-	int area_portal; // the area portal to toggle
+	int32_t area_portal; // the area portal to toggle
 
 	g_item_t *item; // for bonus items
 

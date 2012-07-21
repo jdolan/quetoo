@@ -23,12 +23,12 @@
 #define __S_MIX_H__
 
 void S_LoopSample(const vec3_t org, s_sample_t *sample);
-void S_PlaySample(const vec3_t org, unsigned short ent_num, s_sample_t *sample, int atten);
+void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_t atten);
 void S_StartLocalSample(const char *name);
 
 #ifdef __S_LOCAL_H__
 
-void S_FreeChannel(int c);
+void S_FreeChannel(int32_t c);
 void S_SpatializeChannel(s_channel_t *channel);
 
 #endif /* __S_LOCAL_H__ */

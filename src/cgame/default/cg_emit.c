@@ -39,7 +39,7 @@
 #define EMIT_VISIBLE (EMIT_LIGHT | EMIT_CORONA | EMIT_MODEL)
 
 typedef struct cl_emit_s {
-	int flags;
+	int32_t flags;
 	vec3_t org;
 	vec3_t angles; // for model orientation
 	vec3_t dir; // for particle direction
@@ -49,21 +49,21 @@ typedef struct cl_emit_s {
 	float radius; // flame and corona radius
 	float flicker;
 	float scale; // mesh model scale
-	int count; // particle counts
+	int32_t count; // particle counts
 	char sound[MAX_QPATH]; // sound name
 	s_sample_t *sample; // sound sample
-	int atten; // sound attenuation
+	int32_t atten; // sound attenuation
 	bool loop; // loop sound versus timed
 	char model[MAX_QPATH]; // model name
 	r_model_t *mod; // model
 	const r_bsp_leaf_t *leaf; // for pvs culling
 	r_lighting_t lighting; // cached static lighting info
-	unsigned int time; // when to fire next
+	uint32_t time; // when to fire next
 } cg_emit_t;
 
 #define MAX_EMITS 256
 static cg_emit_t cg_emits[MAX_EMITS];
-static unsigned short cg_num_emits;
+static uint16_t cg_num_emits;
 
 /*
  * Cg_LoadEmits
@@ -352,7 +352,7 @@ cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
  */
 void Cg_AddEmits(void) {
 	r_entity_t ent;
-	int i;
+	int32_t i;
 
 	if (!cg_add_emits->value)
 		return;

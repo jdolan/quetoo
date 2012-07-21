@@ -35,19 +35,19 @@
 
 typedef struct {
 	char name[56];
-	int file_ofs, file_len;
+	int32_t file_ofs, file_len;
 } pak_entry_t;
 
 typedef struct {
-	int ident;  // == IDPAKHEADER
-	int dir_ofs;
-	int dir_len;
+	int32_t ident;  // == IDPAKHEADER
+	int32_t dir_ofs;
+	int32_t dir_len;
 } pak_header_t;
 
 typedef struct pak_s {
 	char file_name[MAX_OSPATH];
 	FILE *handle;
-	int num_entries;
+	int32_t num_entries;
 	pak_entry_t *entries;
 	hash_table_t hash_table;
 } pak_t;
@@ -95,15 +95,15 @@ Pak_AddEntry
 
 Add an entry to the specified Pakfile stream.
 */
-void Pak_AddEntry(pak_t *pak, char *name, int len, void *p);
+void Pak_AddEntry(pak_t *pak, char *name, int32_t len, void *p);
 
 /*
 Pak_CreatePakfile
 
 A convenience function for creating Pakfile archives from the filesystem tree.
 */
-void Pak_CreatePakfile(char *pakfile, int numdirs, char **dirs);
+void Pak_CreatePakfile(char *pakfile, int32_t numdirs, char **dirs);
 
-extern int err;
+extern int32_t err;
 
 #endif /*__PAK_H__*/

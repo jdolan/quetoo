@@ -43,7 +43,7 @@
 #define MAX_BACKTRACE_SYMBOLS 50
 #endif
 
-unsigned int Sys_Milliseconds(void);
+uint32_t Sys_Milliseconds(void);
 
 const char *Sys_GetCurrentUser(void);
 
@@ -59,6 +59,6 @@ void Sys_CloseLibrary(void **handle);
 void Sys_Quit(void);
 void Sys_Backtrace(void);
 void Sys_Error(const char *error, ...) __attribute__((noreturn, format(printf, 1, 2)));
-void Sys_Signal(int s);
+void Sys_Signal(int32_t s);
 
 #endif /* __SYS_H__ */

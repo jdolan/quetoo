@@ -29,7 +29,7 @@ static vec3_t texture_reflectivity[MAX_BSP_TEXINFO];
  */
 void CalcTextureReflectivity(void) {
 	char path[MAX_OSPATH];
-	int i, j, texels;
+	int32_t i, j, texels;
 	unsigned color[3];
 	SDL_Surface *surf;
 
@@ -85,16 +85,16 @@ void CalcTextureReflectivity(void) {
  * WindingFromFace
  */
 static winding_t *WindingFromFace(const d_bsp_face_t * f) {
-	int i;
+	int32_t i;
 	d_bsp_vertex_t *dv;
-	int v;
+	int32_t v;
 	winding_t *w;
 
 	w = AllocWinding(f->num_edges);
 	w->numpoints = f->num_edges;
 
 	for (i = 0; i < f->num_edges; i++) {
-		const int se = d_bsp.face_edges[f->first_edge + i];
+		const int32_t se = d_bsp.face_edges[f->first_edge + i];
 		if (se < 0)
 			v = d_bsp.edges[-se].v[1];
 		else
@@ -145,7 +145,7 @@ static inline void EmissiveLight(patch_t *patch) {
 /*
  * BuildPatch
  */
-static void BuildPatch(int fn, winding_t *w) {
+static void BuildPatch(int32_t fn, winding_t *w) {
 	patch_t *patch;
 	d_bsp_plane_t *plane;
 
@@ -180,8 +180,8 @@ static void BuildPatch(int fn, winding_t *w) {
 /*
  * EntityForModel
  */
-static entity_t *EntityForModel(int num) {
-	int i;
+static entity_t *EntityForModel(int32_t num) {
+	int32_t i;
 	char name[16];
 
 	snprintf(name, sizeof(name), "*%i", num);
@@ -205,7 +205,7 @@ static entity_t *EntityForModel(int num) {
  * may be computed along them.
  */
 void BuildPatches(void) {
-	int i, j, k;
+	int32_t i, j, k;
 	winding_t *w;
 	vec3_t origin;
 
@@ -220,7 +220,7 @@ void BuildPatches(void) {
 
 		for (j = 0; j < mod->num_faces; j++) {
 
-			const int facenum = mod->first_face + j;
+			const int32_t facenum = mod->first_face + j;
 			d_bsp_face_t *f = &d_bsp.faces[facenum];
 
 			VectorCopy(origin, face_offset[facenum]);
@@ -279,7 +279,7 @@ static void SubdividePatch(patch_t *patch) {
 	vec3_t mins, maxs;
 	vec3_t split;
 	vec_t dist;
-	int i;
+	int32_t i;
 	patch_t *newp;
 
 	w = patch->winding;
@@ -322,7 +322,7 @@ static void SubdividePatch(patch_t *patch) {
  * Iterate all of the head face patches, subdividing them as necessary.
  */
 void SubdividePatches(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < MAX_BSP_FACES; i++) {
 
@@ -341,7 +341,7 @@ void SubdividePatches(void) {
  * After light sources have been created, patches may be freed.
  */
 void FreePatches(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < MAX_BSP_FACES; i++) {
 

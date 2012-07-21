@@ -38,13 +38,13 @@ vec3_t PM_MAXS = { 16.0, 16.0, 40.0 };
  * Look up the rules required for the constants before just replacing them;
  * performance is dictated by the selection.
  */
-int Random(void) {
+int32_t Random(void) {
 
-	static unsigned int state = 0;
+	static uint32_t state = 0;
 	static bool uninitalized = true;
 
 	if (uninitalized) {
-		state = (unsigned int) time(NULL);
+		state = (uint32_t) time(NULL);
 		uninitalized = false;
 	}
 
@@ -79,7 +79,7 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
 	float zrot[3][3];
 	float tmpmat[3][3];
 	float rot[3][3];
-	int i;
+	int32_t i;
 	vec3_t vr, vu, vf;
 
 	vf[0] = dir[0];
@@ -206,8 +206,8 @@ void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal) {
  * Assumes src vector is normalized.
  */
 void PerpendicularVector(vec3_t dst, const vec3_t src) {
-	int pos;
-	int i;
+	int32_t pos;
+	int32_t i;
 	float minelem = 1.0F;
 	vec3_t tempvec;
 
@@ -221,7 +221,7 @@ void PerpendicularVector(vec3_t dst, const vec3_t src) {
 	tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
 	tempvec[pos] = 1.0F;
 
-	// project the point onto the plane defined by src
+	// project the point32_t onto the plane defined by src
 	ProjectPointOnPlane(dst, tempvec, src);
 
 	// normalize the result
@@ -282,7 +282,7 @@ void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]) {
  * Produces the linear interpolation of the two vectors for the given fraction.
  */
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 3; i++)
 		out[i] = from[i] + frac * (to[i] - from[i]);
@@ -296,7 +296,7 @@ void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out
  */
 void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
 	vec3_t _from, _to;
-	int i;
+	int32_t i;
 
 	// copy the vectors to safely clamp this lerp
 	VectorCopy(from, _from);
@@ -337,9 +337,9 @@ byte SignBitsForPlane(const c_bsp_plane_t *plane) {
  * Returns the sidedness of the given bounding box relative to the specified
  * plane. If the box straddles the plane, this function returns PSIDE_BOTH.
  */
-int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct c_bsp_plane_s *p) {
+int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct c_bsp_plane_s *p) {
 	float dist1, dist2;
-	int sides;
+	int32_t sides;
 
 	// axial planes
 	if (AXIAL(p)) {
@@ -414,7 +414,7 @@ void ClearBounds(vec3_t mins, vec3_t maxs) {
  * Useful for accumulating a bounding box over a series of points.
  */
 void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 3; i++) {
 		if (point[i] < mins[i])
@@ -439,7 +439,7 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 /**
  * VectorNearer
  *
- * Returns true if the first vector is closer to the point of interest, false
+ * Returns true if the first vector is closer to the point32_t of interest, false
  * otherwise.
  */bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
 	vec3_t d1, d2;
@@ -508,7 +508,7 @@ vec_t VectorLength(const vec3_t v) {
  * Combines a fraction of the second vector with the first.
  */
 void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 3; i++)
 		out[i] = v1[i] * (1.0 - mix) + v2[i] * mix;
@@ -517,30 +517,30 @@ void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out) {
 /**
  * PackPosition
  *
- * Packs the specified floating point coordinates to the short array in out
+ * Packs the specified floating point32_t coordinates to the int16_t array in out
  * for network transmission.
  */
-void PackPosition(const vec3_t in, short *out) {
+void PackPosition(const vec3_t in, int16_t *out) {
 	VectorScale(in, 8.0, out);
 }
 
 /**
  * UnpackPosition
  *
- * Unpacks the compressed coordinates to 32 bit floating point in out.
+ * Unpacks the compressed coordinates to 32 bit floating point32_t in out.
  */
-void UnpackPosition(const short *in, vec3_t out) {
+void UnpackPosition(const int16_t *in, vec3_t out) {
 	VectorScale(in, 0.125, out);
 }
 
 /**
  * PackAngles
  *
- * Packs the specified floating point Euler angles to the short array in out
+ * Packs the specified floating point32_t Euler angles to the int16_t array in out
  * for network transmission.
  */
-void PackAngles(const vec3_t in, short *out) {
-	int i;
+void PackAngles(const vec3_t in, int16_t *out) {
+	int32_t i;
 
 	for (i = 0; i < 3; i++) {
 		out[i] = ANGLE2SHORT(in[i]);
@@ -550,10 +550,10 @@ void PackAngles(const vec3_t in, short *out) {
 /**
  * UnpackAngles
  *
- * Unpacks the compressed angles to Euler 32 bit floating point in out.
+ * Unpacks the compressed angles to Euler 32 bit floating point32_t in out.
  */
-void UnpackAngles(const short *in, vec3_t out) {
-	int i;
+void UnpackAngles(const int16_t *in, vec3_t out) {
+	int32_t i;
 
 	for (i = 0; i < 3; i++) {
 		out[i] = SHORT2ANGLE(in[i]);
@@ -567,7 +567,7 @@ void UnpackAngles(const short *in, vec3_t out) {
  * clamped to not exceed 90' up or down.
  */
 void ClampAngles(vec3_t angles) {
-	int i;
+	int32_t i;
 
 	// first wrap all angles to 0.0 - 360.0
 	for (i = 0; i < 3; i++) {
@@ -597,7 +597,7 @@ void ClampAngles(vec3_t angles) {
  */
 vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 	vec_t max = 0.0;
-	int i;
+	int32_t i;
 
 	VectorCopy(in, out);
 
@@ -625,7 +625,7 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
 	const vec3_t luminosity = { 0.2125, 0.7154, 0.0721 };
 	vec3_t intensity;
 	float d;
-	int i;
+	int32_t i;
 
 	// apply global scale factor
 	VectorScale(in, brightness, out);
@@ -706,11 +706,11 @@ char *Trim(char *s) {
  *
  * Returns the longest common prefix the specified words share.
  */
-char *CommonPrefix(const char *words[], unsigned int nwords) {
+char *CommonPrefix(const char *words[], uint32_t nwords) {
 	static char common_prefix[MAX_TOKEN_CHARS];
 	const char *w;
 	char c;
-	unsigned int i, j;
+	uint32_t i, j;
 
 	memset(common_prefix, 0, sizeof(common_prefix));
 
@@ -813,7 +813,7 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
 
 		case '[': {
 			register char c1 = *t++;
-			int invert;
+			int32_t invert;
 
 			if (!c1)
 				return (0);
@@ -950,7 +950,7 @@ void StripColor(const char *in, char *out) {
  *
  * Performs a color- and case-insensitive string comparison.
  */
-int StrColorCmp(const char *s1, const char *s2) {
+int32_t StrColorCmp(const char *s1, const char *s2) {
 	char string1[MAX_STRING_CHARS], string2[MAX_STRING_CHARS];
 
 	StripColor(s1, string1);
@@ -985,8 +985,8 @@ char *va(const char *format, ...) {
  */
 char *ParseToken(const char **data_p) {
 	static char token[MAX_TOKEN_CHARS];
-	int c;
-	int len;
+	int32_t c;
+	int32_t len;
 	const char *data;
 
 	data = *data_p;
@@ -1060,7 +1060,7 @@ char *GetUserInfo(const char *s, const char *key) {
 	char pkey[512];
 	static char value[2][512]; // use two buffers so compares
 	// work without stomping on each other
-	static int value_index;
+	static int32_t value_index;
 	char *o;
 
 	value_index ^= 1;
@@ -1158,8 +1158,8 @@ void DeleteUserInfo(char *s, const char *key) {
  */
 void SetUserInfo(char *s, const char *key, const char *value) {
 	char newi[MAX_USER_INFO_STRING], *v;
-	int c;
-	unsigned int max_size = MAX_USER_INFO_STRING;
+	int32_t c;
+	uint32_t max_size = MAX_USER_INFO_STRING;
 
 	if (strstr(key, "\\") || strstr(value, "\\")) {
 		//Com_Print("Can't use keys or values with a \\\n");
@@ -1206,8 +1206,8 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 /*
  * ColorByName
  */
-int ColorByName(const char *s, int def) {
-	int i;
+int32_t ColorByName(const char *s, int32_t def) {
+	int32_t i;
 
 	if (!s || *s == '\0')
 		return def;

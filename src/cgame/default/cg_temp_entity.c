@@ -24,10 +24,10 @@
 /*
  * Cg_BlasterEffect
  */
-static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int color) {
+static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) {
 	r_particle_t *p;
 	r_sustained_light_t s;
-	int i, j;
+	int32_t i, j;
 
 	for (i = 0; i < 16; i++) {
 
@@ -102,11 +102,11 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
  * Cg_BulletEffect
  */
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
-	static unsigned int last_ric_time;
+	static uint32_t last_ric_time;
 	r_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t v;
-	int j;
+	int32_t j;
 
 	if ((p = Cg_AllocParticle())) {
 		p->type = PARTICLE_DECAL;
@@ -174,7 +174,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 /*
  * Cg_BurnEffect
  */
-static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int scale) {
+static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
 	r_particle_t *p;
 	vec3_t v;
 
@@ -200,8 +200,8 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int scale) {
 /*
  * Cg_BloodEffect
  */
-static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int count) {
-	int i, j;
+static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
+	int32_t i, j;
 	r_particle_t *p;
 	float d;
 
@@ -235,12 +235,12 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int count) {
 /*
  * Cg_GibEffect
  */
-void Cg_GibEffect(const vec3_t org, int count) {
+void Cg_GibEffect(const vec3_t org, int32_t count) {
 	r_particle_t *p;
 	vec3_t o, v, tmp;
 	c_trace_t tr;
 	float dist;
-	int i, j;
+	int32_t i, j;
 
 	// if a player has died underwater, emit some bubbles
 	if (cgi.PointContents(org) & MASK_WATER) {
@@ -294,10 +294,10 @@ void Cg_GibEffect(const vec3_t org, int count) {
 /*
  * Cg_SparksEffect
  */
-void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int count) {
+void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	r_particle_t *p;
 	r_sustained_light_t s;
-	int i, j;
+	int32_t i, j;
 
 	for (i = 0; i < count; i++) {
 
@@ -340,7 +340,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int count) {
  * Cg_ExplosionEffect
  */
 static void Cg_ExplosionEffect(const vec3_t org) {
-	int j;
+	int32_t j;
 	r_particle_t *p;
 	r_sustained_light_t s;
 
@@ -443,7 +443,7 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 static void Cg_LightningEffect(const vec3_t org) {
 	r_sustained_light_t s;
 	vec3_t tmp;
-	int i, j;
+	int32_t i, j;
 
 	for (i = 0; i < 40; i++) {
 
@@ -468,12 +468,12 @@ static void Cg_LightningEffect(const vec3_t org) {
 /*
  * Cg_RailEffect
  */
-static void Cg_RailEffect(const vec3_t start, const vec3_t end, int flags, int color) {
+static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, int32_t color) {
 	vec3_t vec, right, up, point;
 	float len;
 	r_particle_t *p;
 	r_sustained_light_t s;
-	int i;
+	int32_t i;
 
 	VectorCopy(start, s.light.origin);
 	s.light.radius = 100.0;
@@ -574,7 +574,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int flags, int c
 static void Cg_BfgEffect(const vec3_t org) {
 	r_particle_t *p;
 	r_sustained_light_t s;
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 4; i++) {
 
@@ -632,7 +632,7 @@ static void Cg_BfgEffect(const vec3_t org) {
  */
 void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;
-	int i, j;
+	int32_t i, j;
 
 	const byte type = cgi.ReadByte();
 

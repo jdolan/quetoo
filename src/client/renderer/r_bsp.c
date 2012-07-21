@@ -50,7 +50,7 @@ const char *R_WorldspawnValue(const char *key) {
  * view frustum, false otherwise.
  */
 bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
-	int i;
+	int32_t i;
 
 	if (!r_cull->value)
 		return false;
@@ -71,7 +71,7 @@ bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
  */
 bool R_CullBspModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
-	int i;
+	int32_t i;
 
 	if (!e->model->num_model_surfaces) // no surfaces
 		return true;
@@ -94,12 +94,12 @@ bool R_CullBspModel(const r_entity_t *e) {
  */
 static void R_DrawBspModelSurfaces(const r_entity_t *e) {
 	r_bsp_surface_t *surf;
-	int i;
+	int32_t i;
 
 	// temporarily swap the view frame so that the surface drawing
 	// routines pickup only the bsp model's surfaces
 
-	const int f = r_locals.frame;
+	const int32_t f = r_locals.frame;
 	r_locals.frame = -2;
 
 	surf = &e->model->surfaces[e->model->first_model_surface];
@@ -185,7 +185,7 @@ void R_DrawBspModel(const r_entity_t *e) {
  */
 void R_DrawBspLights(void) {
 	r_bsp_light_t *l;
-	int i;
+	int32_t i;
 
 	if (!r_draw_bsp_lights->value)
 		return;
@@ -213,7 +213,7 @@ void R_DrawBspNormals(void) {
 	r_bsp_surface_t *surf;
 	GLfloat *vertex, *normal;
 	vec3_t end;
-	int i, j, k;
+	int32_t i, j, k;
 
 	vec4_t red = { 1.0, 0.0, 0.0, 1.0 };
 
@@ -275,7 +275,7 @@ void R_DrawBspNormals(void) {
  * Finally, the back-side child node is recursed.
  */
 static void R_MarkSurfaces_(r_bsp_node_t *node) {
-	int i, side, side_bit;
+	int32_t i, side, side_bit;
 	r_bsp_surface_t *surf, **lsurf;
 	c_bsp_plane_t *plane;
 	float dot;
@@ -351,13 +351,13 @@ static void R_MarkSurfaces_(r_bsp_node_t *node) {
 /*
  * R_MarkSurfaces
  *
- * Entry point for BSP recursion and surface-level visibility test.  This
+ * Entry point32_t for BSP recursion and surface-level visibility test.  This
  * is also where the infamous r_optimize strategy is implemented.
  */
 void R_MarkSurfaces(void) {
 	static vec3_t old_origin, old_angles;
 	static vec2_t old_fov;
-	static short old_vis_frame;
+	static int16_t old_vis_frame;
 	vec3_t o, a;
 
 	VectorSubtract(r_view.origin, old_origin, o);
@@ -403,7 +403,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model) {
  * R_LeafInVis
  */
 static inline bool R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
-	int c;
+	int32_t c;
 
 	if ((c = leaf->cluster) == -1)
 		return false;
@@ -418,7 +418,7 @@ static inline bool R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
  * currently spanning. This allows us to bit-wise-OR in the PVS data from
  * another cluster. Returns -1 if no transition is taking place.
  */
-static short R_CrossingContents(void) {
+static int16_t R_CrossingContents(void) {
 	const r_bsp_leaf_t *leaf;
 	vec3_t org;
 
@@ -450,8 +450,8 @@ static short R_CrossingContents(void) {
 void R_MarkLeafs(void) {
 	r_bsp_leaf_t *leaf;
 	r_bsp_node_t *node;
-	short cluster;
-	int i;
+	int16_t cluster;
+	int32_t i;
 
 	if (r_lock_vis->value)
 		return;

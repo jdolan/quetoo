@@ -75,7 +75,7 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
  */
 void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 	const r_image_t *image;
-	unsigned int i, j, k, l, m;
+	uint32_t i, j, k, l, m;
 	vec3_t view, verts[4];
 	vec3_t right, up, upright, downright;
 	float cos, dist, scale, alpha;

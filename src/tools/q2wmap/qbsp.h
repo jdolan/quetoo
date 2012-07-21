@@ -33,7 +33,7 @@
 typedef struct plane_s {
 	vec3_t normal;
 	vec_t dist;
-	int type;
+	int32_t type;
 	struct plane_s *hash_chain;
 } map_plane_t;
 
@@ -42,31 +42,31 @@ typedef struct {
 	vec_t rotate;
 	vec_t scale[2];
 	char name[32];
-	int flags;
-	int value;
+	int32_t flags;
+	int32_t value;
 } map_brush_texture_t;
 
 typedef struct side_s {
-	int plane_num;
-	int texinfo;
+	int32_t plane_num;
+	int32_t texinfo;
 	winding_t *winding;
 	struct side_s *original;	// bsp_brush_t sides will reference the brush_t sides
-	int contents;				// from miptex
-	int surf;					// from miptex
+	int32_t contents;				// from miptex
+	int32_t surf;					// from miptex
 	bool visible;			// choose visble planes first
 	bool tested;			// this plane already checked as a split
 	bool bevel;				// don't ever use for bsp splitting
 } side_t;
 
 typedef struct brush_s {
-	int entity_num;
-	int brush_num;
+	int32_t entity_num;
+	int32_t brush_num;
 
-	int contents;
+	int32_t contents;
 
 	vec3_t mins, maxs;
 
-	int num_sides;
+	int32_t num_sides;
 	side_t *original_sides;
 } map_brush_t;
 
@@ -84,22 +84,22 @@ typedef struct face_s {
 	struct face_s *split[2];	// if set, this face isn't valid anymore
 
 	struct portal_s *portal;
-	int texinfo;
-	int plane_num;
-	int contents;				// faces in different contents can't merge
-	int output_number;
+	int32_t texinfo;
+	int32_t plane_num;
+	int32_t contents;				// faces in different contents can't merge
+	int32_t output_number;
 	winding_t *w;
-	int num_points;
-	int vertexnums[MAXEDGES];
+	int32_t num_points;
+	int32_t vertexnums[MAXEDGES];
 } face_t;
 
 
 typedef struct bsp_brush_s {
 	struct bsp_brush_s *next;
 	vec3_t mins, maxs;
-	int side, test_side;		// side of node during construction
+	int32_t side, test_side;		// side of node during construction
 	map_brush_t *original;
-	int num_sides;
+	int32_t num_sides;
 	side_t sides[6];			// variably sized
 } bsp_brush_t;
 
@@ -107,7 +107,7 @@ typedef struct bsp_brush_s {
 #define	MAX_NODE_BRUSHES	8
 typedef struct node_s {
 	// both leafs and nodes
-	int plane_num;				// -1 = leaf node
+	int32_t plane_num;				// -1 = leaf node
 	struct node_s *parent;
 	vec3_t mins, maxs;			// valid after portalization
 	bsp_brush_t *volume;		// one for each leaf/node
@@ -120,11 +120,11 @@ typedef struct node_s {
 
 	// leafs only
 	bsp_brush_t *brushes;		// fragments of all brushes in this leaf
-	int contents;				// OR of all brush contents
-	int occupied;				// 1 or greater can reach entity
+	int32_t contents;				// OR of all brush contents
+	int32_t occupied;				// 1 or greater can reach entity
 	entity_t *occupant;			// for leak file testing
-	int cluster;				// for portalfile writing
-	int area;					// for areaportals
+	int32_t cluster;				// for portalfile writing
+	int32_t area;					// for areaportals
 	struct portal_s *portals;	// also on nodes during construction
 } node_t;
 
@@ -146,12 +146,12 @@ typedef struct {
 	vec3_t mins, maxs;
 } tree_t;
 
-extern int entity_num;
+extern int32_t entity_num;
 
 extern map_plane_t map_planes[MAX_BSP_PLANES];
-extern int num_map_planes;
+extern int32_t num_map_planes;
 
-extern int num_map_brushes;
+extern int32_t num_map_brushes;
 extern map_brush_t map_brushes[MAX_BSP_BRUSHES];
 
 extern vec3_t map_mins, map_maxs;
@@ -169,23 +169,23 @@ extern bool notjunc;
 extern vec_t microvolume;
 
 void LoadMapFile(const char *file_name);
-int FindFloatPlane(vec3_t normal, vec_t dist);
+int32_t FindFloatPlane(vec3_t normal, vec_t dist);
 bool WindingIsTiny(const winding_t * w);
 
 // textures.c
-int FindMiptex(char *name);
+int32_t FindMiptex(char *name);
 
-int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3_t origin);
+int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3_t origin);
 
-void FindGCD(int *v);
+void FindGCD(int32_t *v);
 
 map_brush_t *Brush_LoadEntity(entity_t * ent);
 bool MakeBrushPlanes(map_brush_t * b);
-int FindIntPlane(int *inormal, int *iorigin);
-void CreateBrush(int brush_num);
+int32_t FindIntPlane(int32_t *inormal, int32_t *iorigin);
+void CreateBrush(int32_t brush_num);
 
 // csg.c
-bsp_brush_t *MakeBspBrushList(int startbrush, int endbrush,
+bsp_brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush,
                              vec3_t clipmins, vec3_t clipmaxs);
 bsp_brush_t *ChopBrushes(bsp_brush_t * head);
 
@@ -196,20 +196,20 @@ void WriteBrushList(char *name, bsp_brush_t * brush, bool onlyvis);
 
 bsp_brush_t *CopyBrush(bsp_brush_t * brush);
 
-void SplitBrush(bsp_brush_t * brush, int plane_num,
+void SplitBrush(bsp_brush_t * brush, int32_t plane_num,
                 bsp_brush_t ** front, bsp_brush_t ** back);
 
 tree_t *AllocTree(void);
 node_t *AllocNode(void);
-bsp_brush_t *AllocBrush(int num_sides);
-int CountBrushList(bsp_brush_t * brushes);
+bsp_brush_t *AllocBrush(int32_t num_sides);
+int32_t CountBrushList(bsp_brush_t * brushes);
 void FreeBrush(bsp_brush_t * brushes);
 void FreeBrushList(bsp_brush_t * brushes);
 
 tree_t *BrushBSP(bsp_brush_t * brushlist, vec3_t mins, vec3_t maxs);
 
 // portals.c
-int VisibleContents(int contents);
+int32_t VisibleContents(int32_t contents);
 
 void MakeHeadnodePortals(tree_t * tree);
 void MakeNodePortal(node_t * node);
@@ -221,7 +221,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l);
 bool FloodEntities(tree_t * tree);
 void FillOutside(node_t * head_node);
 void FloodAreas(tree_t * tree);
-void MarkVisibleSides(tree_t * tree, int start, int end);
+void MarkVisibleSides(tree_t * tree, int32_t start, int32_t end);
 void FreePortal(portal_t * p);
 void EmitAreaPortals(node_t * head_node);
 
@@ -244,7 +244,7 @@ void EndModel(void);
 // faces.c
 void MakeFaces(node_t * head_node);
 void FixTjuncs(node_t * head_node);
-int GetEdge2(int v1, int v2, face_t * f);
+int32_t GetEdge2(int32_t v1, int32_t v2, face_t * f);
 
 void FreeFace(face_t * f);
 

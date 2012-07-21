@@ -136,7 +136,7 @@ void Cl_Ping_f(void) {
 	}
 
 	if (!addr.port) // use default
-		addr.port = (unsigned short) BigShort(PORT_SERVER);
+		addr.port = (uint16_t) BigShort(PORT_SERVER);
 
 	server = Cl_ServerForNetaddr(&addr);
 
@@ -177,7 +177,7 @@ static void Cl_SendBroadcast(void) {
 	memset(&addr, 0, sizeof(addr));
 
 	addr.type = NA_IP_BROADCAST;
-	addr.port = (unsigned short) BigShort(PORT_SERVER);
+	addr.port = (uint16_t) BigShort(PORT_SERVER);
 
 	Netchan_OutOfBandPrint(NS_CLIENT, addr, "info %i", PROTOCOL);
 }
@@ -196,7 +196,7 @@ void Cl_Servers_f(void) {
 	Com_Print("Refreshing servers.\n");
 
 	addr.type = NA_IP;
-	addr.port = (unsigned short) BigShort(PORT_MASTER);
+	addr.port = (uint16_t) BigShort(PORT_MASTER);
 	Netchan_OutOfBandPrint(NS_CLIENT, addr, "getservers");
 
 	Cl_SendBroadcast();
@@ -209,7 +209,7 @@ void Cl_ParseServersList(void) {
 	byte *buffptr;
 	byte *buffend;
 	byte ip[4];
-	unsigned short port;
+	uint16_t port;
 	net_addr_t addr;
 	cl_server_info_t *server;
 	char s[32];

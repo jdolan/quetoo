@@ -30,7 +30,7 @@
  */
 static void G_PlayerProjectile(g_edict_t *ent, const vec3_t scale) {
 	vec3_t tmp;
-	int i;
+	int32_t i;
 
 	if (!ent->owner)
 		return;
@@ -201,8 +201,8 @@ static void G_BlasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 /*
  * G_BlasterProjectile
  */
-void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int speed, int damage,
-		int knockback) {
+void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
+		int32_t knockback) {
 	g_edict_t *blast;
 	const vec3_t scale = { 0.25, 0.25, 0.15 };
 
@@ -242,8 +242,8 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int speed, in
 /*
  * G_BulletProjectile
  */
-void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage, int knockback,
-		int hspread, int vspread, int mod) {
+void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t damage, int32_t knockback,
+		int32_t hspread, int32_t vspread, int32_t mod) {
 	c_trace_t tr;
 	vec3_t dir;
 	vec3_t forward, right, up;
@@ -287,9 +287,9 @@ void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage,
 /*
  * G_ShotgunProjectiles
  */
-void G_ShotgunProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int damage, int knockback,
-		int hspread, int vspread, int count, int mod) {
-	int i;
+void G_ShotgunProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t damage, int32_t knockback,
+		int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
+	int32_t i;
 
 	for (i = 0; i < count; i++)
 		G_BulletProjectile(ent, start, dir, damage, knockback, hspread, vspread, mod);
@@ -375,8 +375,8 @@ static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 /*
  * G_GrenadeProjectile
  */
-void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int speed, int damage,
-		int knockback, float damage_radius, unsigned int timer) {
+void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t speed, int32_t damage,
+		int32_t knockback, float damage_radius, uint32_t timer) {
 	g_edict_t *grenade;
 	vec3_t dir;
 	vec3_t forward, right, up, start_bounds;
@@ -474,8 +474,8 @@ static void G_RocketProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 /*
  * G_RocketProjectile
  */
-void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int speed, int damage,
-		int knockback, float damage_radius) {
+void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
+		int32_t knockback, float damage_radius) {
 	const vec3_t scale = { 0.25, 0.25, 0.15 };
 	g_edict_t *rocket;
 
@@ -561,8 +561,8 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_
 /*
  * G_HyperblasterProjectile
  */
-void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int speed, int damage,
-		int knockback) {
+void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
+		int32_t knockback) {
 	g_edict_t *bolt;
 	const vec3_t scale = { 0.5, 0.5, 0.25 };
 
@@ -596,7 +596,7 @@ void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int spee
  */
 static void G_LightningProjectile_Discharge(g_edict_t *self) {
 	g_edict_t *ent;
-	int i, d;
+	int32_t i, d;
 
 	// find all clients in the same water area and kill them
 	for (i = 0; i < sv_max_clients->integer; i++) {
@@ -718,7 +718,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 /*
  * G_LightningProjectile
  */
-void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int damage, int knockback) {
+void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t damage, int32_t knockback) {
 	g_edict_t *light;
 
 	light = ent->lightning;
@@ -750,7 +750,7 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int damage,
 /*
  * G_RailgunProjectile
  */
-void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage, int knockback) {
+void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t damage, int32_t knockback) {
 	vec3_t from;
 	vec3_t end;
 	c_trace_t tr;
@@ -758,7 +758,7 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int damage
 	vec3_t water_start;
 	byte color;
 	bool water = false;
-	int content_mask = MASK_SHOT | MASK_WATER;
+	int32_t content_mask = MASK_SHOT | MASK_WATER;
 
 	if (G_ImmediateWall(ent, start))
 		VectorCopy(ent->s.origin, start);
@@ -906,11 +906,11 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
 /*
  * G_BfgProjectiles
  */
-void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int speed, int damage,
-		int knockback, float damage_radius) {
+void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
+		int32_t knockback, float damage_radius) {
 	g_edict_t *bfg;
 	vec3_t angles, right, up, r, u;
-	int i;
+	int32_t i;
 	float s;
 	const vec3_t scale = { 0.15, 0.15, 0.05 };
 

@@ -254,7 +254,7 @@ static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((
  */
 static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
-	int dflags;
+	int32_t dflags;
 
 	if (!other->take_damage) { // deal with items that land on us
 

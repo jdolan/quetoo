@@ -24,10 +24,10 @@
 
 #include "quake2world.h"
 
-extern short BigShort(short s);
-extern short LittleShort(short s);
-extern int BigLong(int l);
-extern int LittleLong(int l);
+extern int16_t BigShort(int16_t s);
+extern int16_t LittleShort(int16_t s);
+extern int32_t BigLong(int32_t l);
+extern int32_t LittleLong(int32_t l);
 extern float BigFloat(float f);
 extern float LittleFloat(float f);
 

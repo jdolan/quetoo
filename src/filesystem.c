@@ -96,9 +96,9 @@ void Fs_CloseFile(FILE *f) {
 /*
  * Fs_FileLength
  */
-static int Fs_FileLength(FILE *f) {
-	int pos;
-	int end;
+static int32_t Fs_FileLength(FILE *f) {
+	int32_t pos;
+	int32_t end;
 
 	pos = ftell(f);
 	fseek(f, 0, SEEK_END);
@@ -137,7 +137,7 @@ char *fs_last_pak = NULL; // the server uses this to determine CS_PAK
  * and an open FILE pointer.  This generalizes opening files from paks vs
  * opening filesystem resources directly.
  */
-int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
+int32_t Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
 	search_path_t *search;
 	char path[MAX_OSPATH];
 	struct stat sbuf;
@@ -212,8 +212,8 @@ int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
  *
  * Properly handles partial reads.
  */
-void Fs_ReadFile(void *buffer, int len, FILE *f) {
-	int read;
+void Fs_ReadFile(void *buffer, int32_t len, FILE *f) {
+	int32_t read;
 
 	read = Fs_Read(buffer, 1, len, f);
 
@@ -228,10 +228,10 @@ void Fs_ReadFile(void *buffer, int len, FILE *f) {
  * Filename are relative to the quake search path. A NULL buffer will just
  * return the file length without loading.
  */
-int Fs_LoadFile(const char *path, void **buffer) {
+int32_t Fs_LoadFile(const char *path, void **buffer) {
 	FILE *h;
 	byte *buf;
-	int len;
+	int32_t len;
 
 	buf = NULL; // quiet compiler warning
 
@@ -273,7 +273,7 @@ void Fs_FreeFile(void *buffer) {
  */
 void Fs_AddPakfile(const char *pakfile) {
 	pak_t *pak;
-	int i;
+	int32_t i;
 
 	if (!(pak = Pak_ReadPakfile(pakfile)))
 		return;
@@ -446,7 +446,7 @@ void Fs_SetGame(const char *dir) {
 	search_path_t *s;
 	hash_entry_t *e;
 	pak_t *pak;
-	int i;
+	int32_t i;
 
 	if (!dir || !*dir) {
 		dir = DEFAULT_GAME;
@@ -501,7 +501,7 @@ void Fs_GunzipFile(const char *path) {
 	FILE *f;
 	char *c;
 	byte *buffer;
-	int r, w;
+	int32_t r, w;
 	char p[MAX_OSPATH];
 
 	if (!path || *path == '\0')
@@ -578,7 +578,7 @@ void Fs_Init(void) {
 #ifdef __APPLE__
 	// add Contents/MacOS and Contents/Resources to the search path
 	char path[MAX_OSPATH], *c;
-	unsigned int i = sizeof(path);
+	uint32_t i = sizeof(path);
 
 	if (_NSGetExecutablePath(path, &i) > -1) {
 
@@ -638,22 +638,22 @@ void Fs_Init(void) {
  *
  * Wraps strcmp so it can be used to sort strings in qsort.
  */
-static int strcmp_(const void *a, const void *b) {
+static int32_t strcmp_(const void *a, const void *b) {
 	return strcmp(*(char **) a, *(char **) b);
 }
 
 /*
  * Fs_CompleteFile
  */
-int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[]) {
+int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[]) {
 	static char file_list[MAX_QPATH * 256];
 	char *fl = file_list;
 	const char *n;
 	char name[MAX_OSPATH];
 	const search_path_t *s;
 	const hash_entry_t *h;
-	int i = 0;
-	int m = 0;
+	int32_t i = 0;
+	int32_t m = 0;
 
 	// search through paths for matches
 	for (s = fs_search_paths; s != NULL; s = s->next) {
@@ -691,7 +691,7 @@ int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, con
 	// sort in alphabetical order
 	qsort(matches, m, sizeof(matches[0]), strcmp_);
 
-	// print out list of matches (minus duplicates)
+	// print32_t out list of matches (minus duplicates)
 	for (i = 0; i < m; i++) {
 		if (i == 0 || strcmp(matches[i], matches[i - 1])) {
 			strcpy(name, matches[i]);

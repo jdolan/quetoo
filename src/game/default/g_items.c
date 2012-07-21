@@ -24,15 +24,15 @@
 static void G_DropToFloor(g_edict_t *ent);
 
 // maintain indexes for frequently used models and sounds
-unsigned short grenade_index, grenade_hit_index;
-unsigned short rocket_index, rocket_fly_index;
-unsigned short lightning_fly_index;
-unsigned short quad_damage_index;
+uint16_t grenade_index, grenade_hit_index;
+uint16_t rocket_index, rocket_fly_index;
+uint16_t lightning_fly_index;
+uint16_t quad_damage_index;
 
 /*
  * G_ItemByIndex
  */
-g_item_t *G_ItemByIndex(unsigned short index) {
+g_item_t *G_ItemByIndex(uint16_t index) {
 
 	if (index == 0 || index >= g_game.num_items)
 		return NULL;
@@ -44,7 +44,7 @@ g_item_t *G_ItemByIndex(unsigned short index) {
  * G_FindItemByClassname
  */
 g_item_t *G_FindItemByClassname(const char *class_name) {
-	int i;
+	int32_t i;
 	g_item_t *it;
 
 	it = g_items;
@@ -64,7 +64,7 @@ g_item_t *G_FindItemByClassname(const char *class_name) {
  * G_FindItem
  */
 g_item_t *G_FindItem(const char *pickup_name) {
-	int i;
+	int32_t i;
 	g_item_t *it;
 
 	if(!pickup_name)
@@ -89,7 +89,7 @@ g_item_t *G_FindItem(const char *pickup_name) {
  */
 static void G_ItemRespawn(g_edict_t *ent) {
 	g_edict_t *master;
-	int count, choice;
+	int32_t count, choice;
 	vec3_t origin;
 
 	if (ent->team) { // pick a random member from the team
@@ -122,7 +122,7 @@ static void G_ItemRespawn(g_edict_t *ent) {
 /*
  * G_SetItemRespawn
  */
-void G_SetItemRespawn(g_edict_t *ent, unsigned int delay) {
+void G_SetItemRespawn(g_edict_t *ent, uint32_t delay) {
 
 	ent->flags |= FL_RESPAWN;
 	ent->sv_flags |= SVF_NO_CLIENT;
@@ -189,9 +189,9 @@ void G_TossQuadDamage(g_edict_t *ent) {
 /*
  * G_AddAmmo
  */
-bool G_AddAmmo(g_edict_t *ent, g_item_t *item, short count) {
-	unsigned short index;
-	short max;
+bool G_AddAmmo(g_edict_t *ent, g_item_t *item, int16_t count) {
+	uint16_t index;
+	int16_t max;
 
 	if (item->tag == AMMO_SHELLS)
 		max = ent->client->persistent.max_shells;
@@ -227,9 +227,9 @@ bool G_AddAmmo(g_edict_t *ent, g_item_t *item, short count) {
 /*
  * G_SetAmmo
  */
-bool G_SetAmmo(g_edict_t *ent, g_item_t *item, short count) {
-	unsigned short index;
-	short max;
+bool G_SetAmmo(g_edict_t *ent, g_item_t *item, int16_t count) {
+	uint16_t index;
+	int16_t max;
 
 	if (item->tag == AMMO_SHELLS)
 		max = ent->client->persistent.max_shells;
@@ -266,7 +266,7 @@ bool G_SetAmmo(g_edict_t *ent, g_item_t *item, short count) {
  * G_PickupAmmo
  */
 static bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
-	int count;
+	int32_t count;
 
 	if (ent->count)
 		count = ent->count;
@@ -286,7 +286,7 @@ static bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
  * G_PickupHealth
  */
 static bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
-	int h, max;
+	int32_t h, max;
 
 	const bool always_add = ent->item->tag == HEALTH_SMALL;
 	const bool always_pickup = ent->item->tag == HEALTH_SMALL || ent->item->tag == HEALTH_MEGA;
@@ -381,7 +381,7 @@ void G_ResetFlag(g_edict_t *ent) {
 static bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 	g_team_t *t, *ot;
 	g_edict_t *f, *of;
-	int index;
+	int32_t index;
 
 	if (!other->client->persistent.team)
 		return false;
@@ -464,7 +464,7 @@ static bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 void G_TossFlag(g_edict_t *ent) {
 	g_team_t *ot;
 	g_edict_t *of;
-	int index;
+	int32_t index;
 
 	if (!(ot = G_OtherTeam(ent->client->persistent.team)))
 		return;
@@ -515,7 +515,7 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attrib
 
 	if ((taken = ent->item->pickup(ent, other))) {
 		// show icon and name on status bar
-		unsigned short icon = gi.ImageIndex(ent->item->icon);
+		uint16_t icon = gi.ImageIndex(ent->item->icon);
 
 		if (other->client->ps.stats[STAT_PICKUP_ICON] == icon)
 			icon |= STAT_TOGGLE_BIT;
@@ -565,8 +565,8 @@ static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, c_bsp_plane_
  * G_DropItemThink
  */
 static void G_DropItemThink(g_edict_t *ent) {
-	int contents;
-	unsigned int i;
+	int32_t contents;
+	uint32_t i;
 
 	if (!ent->ground_entity) { // keep falling in valid space
 		ent->next_think = g_level.time + gi.frame_millis;
@@ -742,7 +742,7 @@ static void G_DropToFloor(g_edict_t *ent) {
 void G_PrecacheItem(g_item_t *it) {
 	char *s, *start;
 	char data[MAX_QPATH];
-	int len;
+	int32_t len;
 	g_item_t *ammo;
 
 	if (!it)
@@ -1468,7 +1468,7 @@ void G_InitItems(void) {
  * Called by worldspawn.
  */
 void G_SetItemNames(void) {
-	int i, j;
+	int32_t i, j;
 	g_item_t *it;
 	g_override_t *ov;
 

@@ -46,8 +46,8 @@ static cg_crosshair_t crosshair;
 #define CENTER_PRINT_LINES 8
 typedef struct cg_center_print_s {
 	char lines[CENTER_PRINT_LINES][MAX_STRING_CHARS];
-	unsigned short num_lines;
-	unsigned int time;
+	uint16_t num_lines;
+	uint32_t time;
 } cg_center_print_t;
 
 static cg_center_print_t center_print;
@@ -60,7 +60,7 @@ const byte color_white[4] = { 255, 255, 255, 255 };
  * Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
 static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
-		const unsigned short icon) {
+		const uint16_t icon) {
 
 	if (icon >= MAX_IMAGES) {
 		cgi.Warn("Cg_DrawIcon: Invalid icon: %d\n", icon);
@@ -75,9 +75,9 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
  *
  * Draws the vital numeric and icon, flashing on low quantities.
  */
-static void Cg_DrawVital(r_pixel_t x, const short value, const short icon, short med, short low) {
+static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, int16_t med, int16_t low) {
 	r_pixel_t y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT + 4;
-	int color = COLOR_HUD_STAT;
+	int32_t color = COLOR_HUD_STAT;
 
 	if (value < low) {
 
@@ -116,8 +116,8 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 	x_offset = 3 * cw;
 
 	if (ps->stats[STAT_HEALTH] > 0) {
-		const short health = ps->stats[STAT_HEALTH];
-		const short health_icon = ps->stats[STAT_HEALTH_ICON];
+		const int16_t health = ps->stats[STAT_HEALTH];
+		const int16_t health_icon = ps->stats[STAT_HEALTH_ICON];
 
 		x = cgi.view->width * 0.25 - x_offset;
 
@@ -125,9 +125,9 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 	}
 
 	if (ps->stats[STAT_AMMO] > 0) {
-		const short ammo = ps->stats[STAT_AMMO];
-		const short ammo_low = ps->stats[STAT_AMMO_LOW];
-		const short ammo_icon = ps->stats[STAT_AMMO_ICON];
+		const int16_t ammo = ps->stats[STAT_AMMO];
+		const int16_t ammo_low = ps->stats[STAT_AMMO_LOW];
+		const int16_t ammo_icon = ps->stats[STAT_AMMO_ICON];
 
 		x = cgi.view->width * 0.5 - x_offset;
 
@@ -135,8 +135,8 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 	}
 
 	if (ps->stats[STAT_ARMOR] > 0) {
-		const short armor = ps->stats[STAT_ARMOR];
-		const short armor_icon = ps->stats[STAT_ARMOR_ICON];
+		const int16_t armor = ps->stats[STAT_ARMOR];
+		const int16_t armor_icon = ps->stats[STAT_ARMOR_ICON];
 
 		x = cgi.view->width * 0.75 - x_offset;
 
@@ -158,8 +158,8 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 	cgi.BindFont(NULL, &cw, &ch);
 
 	if (ps->stats[STAT_PICKUP_ICON] > 0) {
-		const short icon = ps->stats[(STAT_PICKUP_ICON & ~STAT_TOGGLE_BIT)];
-		const short pickup = ps->stats[STAT_PICKUP_STRING];
+		const int16_t icon = ps->stats[(STAT_PICKUP_ICON & ~STAT_TOGGLE_BIT)];
+		const int16_t pickup = ps->stats[STAT_PICKUP_STRING];
 
 		const char *string = cgi.ConfigString(pickup);
 
@@ -179,7 +179,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
  * Cg_DrawFrags
  */
 static void Cg_DrawFrags(const player_state_t *ps) {
-	const short frags = ps->stats[STAT_FRAGS];
+	const int16_t frags = ps->stats[STAT_FRAGS];
 	r_pixel_t x, y, cw, ch;
 
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
@@ -209,7 +209,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
  * Cg_DrawCaptures
  */
 static void Cg_DrawCaptures(const player_state_t *ps) {
-	const short captures = ps->stats[STAT_CAPTURES];
+	const int16_t captures = ps->stats[STAT_CAPTURES];
 	r_pixel_t x, y, cw, ch;
 
 	if(!cg_draw_captures->integer)
@@ -265,7 +265,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
 	if (!ps->stats[STAT_CHASE])
 		return;
 
-	const int c = ps->stats[STAT_CHASE];
+	const int32_t c = ps->stats[STAT_CHASE];
 
 	if (c - CS_CLIENTS >= MAX_CLIENTS) {
 		cgi.Warn("Cg_DrawChase: Invalid client info index: %d\n", c);
@@ -361,9 +361,9 @@ static void Cg_DrawReady(const player_state_t *ps) {
  * Cg_DrawTeamBanner
  */
 static void Cg_DrawTeam(const player_state_t *ps) {
-	const short team = ps->stats[STAT_TEAM];
+	const int16_t team = ps->stats[STAT_TEAM];
 	r_pixel_t x, y;
-	int color;
+	int32_t color;
 
 	if (!team)
 		return;
@@ -391,7 +391,7 @@ static void Cg_DrawTeam(const player_state_t *ps) {
  */
 static void Cg_DrawCrosshair(const player_state_t *ps) {
 	r_pixel_t x, y;
-	int color;
+	int32_t color;
 
 	if (!cg_draw_crosshair->value)
 		return;
@@ -507,9 +507,9 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
  * Draw a full-screen blend effect based on world interaction.
  */
 static void Cg_DrawBlend(const player_state_t *ps) {
-	static short pickup;
-	static unsigned int last_blend_time;
-	static int color;
+	static int16_t pickup;
+	static uint32_t last_blend_time;
+	static int32_t color;
 	static float alpha;
 
 	if (!cg_draw_blend->value)
@@ -519,7 +519,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		last_blend_time = 0;
 
 	// determine if we've picked up an item
-	const short p = ps->stats[STAT_PICKUP_ICON];
+	const int16_t p = ps->stats[STAT_PICKUP_ICON];
 
 	if (p && (p != pickup)) {
 		last_blend_time = cgi.client->time;
@@ -529,7 +529,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	pickup = p;
 
 	// or taken damage
-	const short d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
+	const int16_t d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
 
 	if (d) {
 		last_blend_time = cgi.client->time;
@@ -545,7 +545,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		al = 0.0;
 
 	// and finally, determine supplementary blend based on view origin conents
-	const int contents = cgi.view->contents;
+	const int32_t contents = cgi.view->contents;
 
 	if (al < 0.3 * cg_draw_blend->value && (contents & MASK_WATER)) {
 		if (al < 0.15 * cg_draw_blend->value) { // don't override damage or pickup blend
@@ -571,7 +571,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 
 	if (ps->stats[STAT_DAMAGE_INFLICT]) {
-		static unsigned int last_damage_time;
+		static uint32_t last_damage_time;
 
 		// wrap timer around level changes
 		if (last_damage_time > cgi.client->time) {

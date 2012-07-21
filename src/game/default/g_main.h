@@ -30,15 +30,15 @@ typedef struct g_map_list_elt_s {
 	char title[128];
 	char sky[32];
 	char weather[64];
-	int gravity;
-	int gameplay;
-	int teams;
-	int ctf;
-	int match;
-	int rounds;
-	int frag_limit;
-	int round_limit;
-	int capture_limit;
+	int32_t gravity;
+	int32_t gameplay;
+	int32_t teams;
+	int32_t ctf;
+	int32_t match;
+	int32_t rounds;
+	int32_t frag_limit;
+	int32_t round_limit;
+	int32_t capture_limit;
 	float time_limit;
 	char give[MAX_STRING_CHARS];
 	char music[MAX_STRING_CHARS];
@@ -47,10 +47,10 @@ typedef struct g_map_list_elt_s {
 
 typedef struct g_map_list_s {
 	g_map_list_elt_t maps[MAX_MAP_LIST_ELTS];
-	unsigned int count, index;
+	uint32_t count, index;
 
 	// weighted random selection
-	unsigned int weighted_index[MAP_LIST_WEIGHT];
+	uint32_t weighted_index[MAP_LIST_WEIGHT];
 	float total_weight;
 } g_map_list_t;
 
@@ -61,12 +61,12 @@ extern g_level_t g_level;
 extern g_import_t gi;
 extern g_export_t ge;
 
-extern unsigned short grenade_index, grenade_hit_index;
-extern unsigned short rocket_index, rocket_fly_index;
-extern unsigned short lightning_fly_index;
-extern unsigned short quad_damage_index;
+extern uint16_t grenade_index, grenade_hit_index;
+extern uint16_t rocket_index, rocket_fly_index;
+extern uint16_t lightning_fly_index;
+extern uint16_t quad_damage_index;
 
-extern unsigned int means_of_death;
+extern uint32_t means_of_death;
 
 extern cvar_t *g_ammo_respawn_time;
 extern cvar_t *g_auto_join;

@@ -61,7 +61,7 @@
  * ===============
  */
 static bsp_brush_t *SubtractBrush(bsp_brush_t * a, bsp_brush_t * b) { // a - b = out (list)
-	int i;
+	int32_t i;
 	bsp_brush_t *front, *back;
 	bsp_brush_t *out, *in;
 
@@ -95,7 +95,7 @@ static bsp_brush_t *SubtractBrush(bsp_brush_t * a, bsp_brush_t * b) { // a - b =
  * ===============
  */
 static bool BrushesDisjoint(const bsp_brush_t * a, const bsp_brush_t * b) {
-	int i, j;
+	int32_t i, j;
 
 	// check bounding boxes
 	for (i = 0; i < 3; i++)
@@ -113,8 +113,8 @@ static bool BrushesDisjoint(const bsp_brush_t * a, const bsp_brush_t * b) {
 	return false; // might intersect
 }
 
-static int minplane_nums[3];
-static int maxplane_nums[3];
+static int32_t minplane_nums[3];
+static int32_t maxplane_nums[3];
 
 /*
  * ===============
@@ -125,9 +125,9 @@ static int maxplane_nums[3];
  */
 static bsp_brush_t *ClipBrushToBox(bsp_brush_t * brush, vec3_t clipmins,
 		vec3_t clipmaxs) {
-	int i, j;
+	int32_t i, j;
 	bsp_brush_t *front, *back;
-	int p;
+	int32_t p;
 
 	for (j = 0; j < 2; j++) {
 		if (brush->maxs[j] > clipmaxs[j]) {
@@ -168,14 +168,14 @@ static bsp_brush_t *ClipBrushToBox(bsp_brush_t * brush, vec3_t clipmins,
  * MakeBspBrushList
  * ===============
  */
-bsp_brush_t *MakeBspBrushList(int startbrush, int endbrush, vec3_t clipmins,
+bsp_brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins,
 		vec3_t clipmaxs) {
 	bsp_brush_t *brushlist, *newbrush;
-	int i, j;
-	int c_faces;
-	int c_brushes;
-	int num_sides;
-	int vis;
+	int32_t i, j;
+	int32_t c_faces;
+	int32_t c_brushes;
+	int32_t num_sides;
+	int32_t vis;
 	vec3_t normal;
 	float dist;
 
@@ -317,7 +317,7 @@ bsp_brush_t *ChopBrushes(bsp_brush_t * head) {
 	bsp_brush_t *tail;
 	bsp_brush_t *keep;
 	bsp_brush_t *sub, *sub2;
-	int c1, c2;
+	int32_t c1, c2;
 
 	Com_Verbose("---- ChopBrushes ----\n");
 	Com_Verbose("original brushes: %i\n", CountBrushList(head));

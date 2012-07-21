@@ -79,7 +79,7 @@ void Sv_DropClient(sv_client_t *cl) {
  */
 static const char *Sv_StatusString(void) {
 	static char status[MAX_MSG_SIZE - 16];
-	int i;
+	int32_t i;
 
 	snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
 	size_t status_len = strlen(status);
@@ -124,12 +124,12 @@ static void Svc_Ack(void) {
 /**
  * Svc_Info
  *
- * Responds with short info for broadcast scans.
+ * Responds with int16_t info for broadcast scans.
  */
 static void Svc_Info(void) {
 	char string[MAX_MSG_SIZE];
-	int i, count;
-	int prot;
+	int32_t i, count;
+	int32_t prot;
 
 	if (sv_max_clients->integer == 1)
 		return; // ignore in single player
@@ -172,8 +172,8 @@ static void Svc_Ping(void) {
  * invalid connection IPs.  With a challenge, they must give a valid address.
  */
 static void Svc_GetChallenge(void) {
-	unsigned short i, oldest;
-	unsigned int oldest_time;
+	uint16_t i, oldest;
+	uint32_t oldest_time;
 
 	oldest = 0;
 	oldest_time = 0x7fffffff;
@@ -211,10 +211,10 @@ static void Svc_Connect(void) {
 	char user_info[MAX_USER_INFO_STRING];
 	sv_client_t *cl, *client;
 	net_addr_t addr;
-	int version;
+	int32_t version;
 	byte qport;
-	unsigned int challenge;
-	int i;
+	uint32_t challenge;
+	int32_t i;
 
 	Com_Debug("Svc_Connect()\n");
 
@@ -371,7 +371,7 @@ static bool Sv_RconAuthenticate(void) {
 static void Svc_RemoteCommand(void) {
 	const bool auth = Sv_RconAuthenticate();
 
-	// first print to the server console
+	// first print32_t to the server console
 	if (auth)
 		Com_Print("Rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
 	else
@@ -382,7 +382,7 @@ static void Svc_RemoteCommand(void) {
 
 	if (auth) {
 		char remaining[MAX_STRING_CHARS];
-		int i;
+		int32_t i;
 
 		remaining[0] = 0;
 
@@ -444,9 +444,9 @@ static void Sv_ConnectionlessPacket(void) {
  * Updates the "ping" times for all spawned clients.
  */
 static void Sv_UpdatePings(void) {
-	int i, j;
+	int32_t i, j;
 	sv_client_t *cl;
-	int total, count;
+	int32_t total, count;
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
 
@@ -482,8 +482,8 @@ static void Sv_UpdatePings(void) {
  * over the next interval, assume they are trying to cheat.
  */
 static void Sv_CheckCommandTimes(void) {
-	static unsigned int last_check_time = -9999;
-	int i;
+	static uint32_t last_check_time = -9999;
+	int32_t i;
 
 	if (svs.real_time < last_check_time) { // wrap around from last level
 		last_check_time = -9999;
@@ -533,14 +533,14 @@ static void Sv_CheckCommandTimes(void) {
  * Sv_ReadPackets
  */
 static void Sv_ReadPackets(void) {
-	int i;
+	int32_t i;
 	sv_client_t *cl;
 	byte qport;
 
 	while (Net_GetPacket(NS_SERVER, &net_from, &net_message)) {
 
 		// check for connectionless packet(0xffffffff) first
-		if (*(int *) net_message.data == -1) {
+		if (*(int32_t *) net_message.data == -1) {
 			Sv_ConnectionlessPacket();
 			continue;
 		}
@@ -588,9 +588,9 @@ static void Sv_ReadPackets(void) {
  */
 static void Sv_CheckTimeouts(void) {
 	sv_client_t *cl;
-	int i;
+	int32_t i;
 
-	const unsigned int timeout = svs.real_time - 1000 * sv_timeout->value;
+	const uint32_t timeout = svs.real_time - 1000 * sv_timeout->value;
 
 	if (timeout > svs.real_time) {
 		// the server is just starting, don't bother
@@ -616,7 +616,7 @@ static void Sv_CheckTimeouts(void) {
  * Resets entity flags and other state which should only last one frame.
  */
 static void Sv_ResetEntities(void) {
-	unsigned int i;
+	uint32_t i;
 
 	if (sv.state != SV_ACTIVE_GAME)
 		return;
@@ -672,7 +672,7 @@ static void Sv_InitMasters(void) {
  */
 static void Sv_HeartbeatMasters(void) {
 	const char *string;
-	int i;
+	int32_t i;
 
 	if (!dedicated->value)
 		return; // only dedicated servers report to masters
@@ -706,7 +706,7 @@ static void Sv_HeartbeatMasters(void) {
  * Informs master servers that this server is halting.
  */
 static void Sv_ShutdownMasters(void) {
-	int i;
+	int32_t i;
 
 	if (!dedicated->value)
 		return; // only dedicated servers send heartbeats
@@ -815,7 +815,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 			cl->rate = CLIENT_RATE_MIN;
 	}
 
-	// limit the print messages the client receives
+	// limit the print32_t messages the client receives
 	val = GetUserInfo(cl->user_info, "message_level");
 	if (*val != '\0') {
 		cl->message_level = atoi(val);
@@ -825,7 +825,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 /*
  * Sv_Frame
  */
-void Sv_Frame(unsigned int msec) {
+void Sv_Frame(uint32_t msec) {
 
 	// if server is not active, do nothing
 	if (!svs.initialized)
@@ -840,7 +840,7 @@ void Sv_Frame(unsigned int msec) {
 	// get packets from clients
 	Sv_ReadPackets();
 
-	const unsigned int frame_millis = 1000 / svs.frame_rate;
+	const uint32_t frame_millis = 1000 / svs.frame_rate;
 
 	// keep the game module's time in sync with reality
 	if (!time_demo->value && svs.real_time < sv.time) {

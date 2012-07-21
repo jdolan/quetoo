@@ -28,9 +28,9 @@
  */
 static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 	entity_state_t *old_ent = NULL, *new_ent = NULL;
-	unsigned int old_index, new_index;
-	unsigned short old_num, new_num;
-	unsigned short from_num_entities;
+	uint32_t old_index, new_index;
+	uint16_t old_num, new_num;
+	uint16_t from_num_entities;
 
 	if (!from)
 		from_num_entities = 0;
@@ -69,7 +69,7 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 		}
 
 		if (new_num > old_num) { // the old entity isn't present in the new message
-			const short bits = U_REMOVE;
+			const int16_t bits = U_REMOVE;
 
 			Msg_WriteShort(msg, old_num);
 			Msg_WriteShort(msg, bits);
@@ -86,11 +86,11 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
  * Sv_WritePlayerstate
  */
 static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
-	unsigned short pm_state_bits;
-	unsigned int stat_bits;
+	uint16_t pm_state_bits;
+	uint32_t stat_bits;
 	player_state_t *ps, *ops;
 	player_state_t dummy;
-	int i;
+	int32_t i;
 
 	ps = &to->ps;
 
@@ -219,7 +219,7 @@ static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, size_buf_t *ms
  */
 void Sv_WriteFrame(sv_client_t *client, size_buf_t *msg) {
 	sv_frame_t *frame, *old_frame;
-	int last_frame;
+	int32_t last_frame;
 
 	// this is the frame we are creating
 	frame = &client->frames[sv.frame_num & UPDATE_MASK];
@@ -264,9 +264,9 @@ void Sv_WriteFrame(sv_client_t *client, size_buf_t *msg) {
  */
 static byte *Sv_ClientPVS(const vec3_t org) {
 	static byte pvs[MAX_BSP_LEAFS >> 3];
-	int leafs[64];
-	int i, j, count;
-	int longs;
+	int32_t leafs[64];
+	int32_t i, j, count;
+	int32_t longs;
 	byte *src;
 	vec3_t mins, maxs;
 
@@ -310,16 +310,16 @@ static byte *Sv_ClientPVS(const vec3_t org) {
  * copies off the playerstat and area_bits.
  */
 void Sv_BuildClientFrame(sv_client_t *client) {
-	unsigned int e;
+	uint32_t e;
 	vec3_t org;
 	g_edict_t *ent;
 	g_edict_t *cent;
 	pm_state_t *pm;
 	sv_frame_t *frame;
 	entity_state_t *state;
-	int i;
-	int area, cluster;
-	int leaf;
+	int32_t i;
+	int32_t area, cluster;
+	int32_t leaf;
 	byte *phs;
 	byte *vis;
 
@@ -384,7 +384,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 					continue;
 			} else { // check individual leafs
 				for (i = 0; i < ent->num_clusters; i++) {
-					const int c = ent->cluster_nums[i];
+					const int32_t c = ent->cluster_nums[i];
 					if (vis_data[c >> 3] & (1 << (c & 7)))
 						break;
 				}

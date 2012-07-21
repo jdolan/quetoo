@@ -69,7 +69,7 @@ typedef struct r_program_s {
 	char name[64];
 	r_shader_t *v;
 	r_shader_t *f;
-	unsigned int arrays_mask;
+	uint32_t arrays_mask;
 	void (*Init)(void);
 	void (*Use)(void);
 	void (*UseMaterial)(const r_bsp_surface_t *surf, const r_image_t *image);

@@ -28,7 +28,7 @@
  */
 void TW_CALL Ui_ShowBar(void *data) {
 	const char *name = (const char *) data;
-	int hidden = 0, visible = 1;
+	int32_t hidden = 0, visible = 1;
 
 	Com_Debug("Ui_ShowBar: %s\n", name);
 

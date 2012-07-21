@@ -65,7 +65,7 @@ static void Cg_FreeParticle(r_particle_t *p) {
  * Cg_FreeParticles
  */
 void Cg_FreeParticles(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < MAX_PARTICLES; i++) {
 		Cg_FreeParticle(&cg_particles[i]);
@@ -85,7 +85,7 @@ void Cg_AddParticles(void) {
 	r_particle_t *p, *next;
 	r_particle_t *active, *tail;
 	float time;
-	int i;
+	int32_t i;
 
 	if (!cg_add_particles->value)
 		return;

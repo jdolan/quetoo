@@ -24,7 +24,7 @@
 /*
  * TODO: Test thread execution and synchronization.
  */
-int main(int argc, char **argv){
+int32_t main(int32_t argc, char **argv){
 	thread_t *t;
 
 	Test_Init();

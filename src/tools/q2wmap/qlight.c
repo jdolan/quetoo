@@ -28,7 +28,7 @@
  */
 
 patch_t *face_patches[MAX_BSP_FACES];
-int num_patches;
+int32_t num_patches;
 
 vec3_t face_offset[MAX_BSP_FACES];	// for rotating bmodels
 
@@ -47,8 +47,8 @@ float entity_scale = 1.0;
 /*
  * Light_PointInLeafnum
  */
-static int Light_PointInLeafnum(const vec3_t point){
-	int nodenum;
+static int32_t Light_PointInLeafnum(const vec3_t point){
+	int32_t nodenum;
 
 	nodenum = 0;
 	while(nodenum >= 0){
@@ -69,7 +69,7 @@ static int Light_PointInLeafnum(const vec3_t point){
  * Light_PointInLeaf
  */
 d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point){
-	const int num = Light_PointInLeafnum(point);
+	const int32_t num = Light_PointInLeafnum(point);
 	return &d_bsp.leafs[num];
 }
 
@@ -94,15 +94,15 @@ bool PvsForOrigin(const vec3_t org, byte *pvs){
 }
 
 // we use the c_model_t collision detection facilities for lighting
-static int num_cmodels;
+static int32_t num_cmodels;
 static c_model_t *cmodels[MAX_BSP_MODELS];
 
 /*
  * Light_Trace
  */
-void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int mask){
+void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask){
 	float frac;
-	int i;
+	int32_t i;
 
 	frac = 9999.0;
 
@@ -125,7 +125,7 @@ void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int mas
  * LightWorld
  */
 static void LightWorld(void){
-	int i;
+	int32_t i;
 
 	if(d_bsp.num_nodes == 0 || d_bsp.num_faces == 0)
 		Com_Error(ERR_FATAL, "LightWorld: Empty map\n");
@@ -165,9 +165,9 @@ static void LightWorld(void){
 /*
  * LIGHT_Main
  */
-int LIGHT_Main(void){
+int32_t LIGHT_Main(void){
 	time_t start, end;
-	int total_light_time;
+	int32_t total_light_time;
 
 	#ifdef _WIN32
 		char title[MAX_OSPATH];

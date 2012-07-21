@@ -35,49 +35,49 @@
 #define	POINT_EPSILON		0.5
 #define	OFF_EPSILON			0.5
 
-static int c_merge;
-static int c_subdivide;
+static int32_t c_merge;
+static int32_t c_subdivide;
 
-static int c_totalverts;
-static int c_uniqueverts;
-static int c_degenerate;
-static int c_tjunctions;
-static int c_faceoverflows;
-static int c_facecollapse;
-static int c_badstartverts;
+static int32_t c_totalverts;
+static int32_t c_uniqueverts;
+static int32_t c_degenerate;
+static int32_t c_tjunctions;
+static int32_t c_faceoverflows;
+static int32_t c_facecollapse;
+static int32_t c_badstartverts;
 
 #define	MAX_SUPERVERTS	512
-static int superverts[MAX_SUPERVERTS];
-static int num_superverts;
+static int32_t superverts[MAX_SUPERVERTS];
+static int32_t num_superverts;
 
 static face_t *edge_faces[MAX_BSP_EDGES][2];
-int first_bsp_model_edge = 1;
+int32_t first_bsp_model_edge = 1;
 
-static int c_tryedges;
+static int32_t c_tryedges;
 
 static vec3_t edge_dir;
 static vec3_t edge_start;
 
-static int num_edge_verts;
-static int edge_verts[MAX_BSP_VERTS];
+static int32_t num_edge_verts;
+static int32_t edge_verts[MAX_BSP_VERTS];
 
-int subdivide_size = 1024;
+int32_t subdivide_size = 1024;
 
 #define	HASH_SIZE	64
 
-static int vertex_chain[MAX_BSP_VERTS]; // the next vertex in a hash chain
-static int hash_verts[HASH_SIZE * HASH_SIZE]; // a vertex number, or 0 for no verts
+static int32_t vertex_chain[MAX_BSP_VERTS]; // the next vertex in a hash chain
+static int32_t hash_verts[HASH_SIZE * HASH_SIZE]; // a vertex number, or 0 for no verts
 
 
 /*
  * HashVec
  */
 static unsigned HashVec(const vec3_t vec) {
-	const int x = (4096 + (int) (vec[0] + 0.5)) >> 7;
-	const int y = (4096 + (int) (vec[1] + 0.5)) >> 7;
+	const int32_t x = (4096 + (int) (vec[0] + 0.5)) >> 7;
+	const int32_t y = (4096 + (int) (vec[1] + 0.5)) >> 7;
 
 	if (x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE)
-		Com_Error(ERR_FATAL, "HashVec: point outside valid range\n");
+		Com_Error(ERR_FATAL, "HashVec: point32_t outside valid range\n");
 
 	return y * HASH_SIZE + x;
 }
@@ -87,12 +87,12 @@ static unsigned HashVec(const vec3_t vec) {
  *
  * Uses hashing
  */
-static int GetVertexnum(const vec3_t in) {
-	int h;
-	int i;
+static int32_t GetVertexnum(const vec3_t in) {
+	int32_t h;
+	int32_t i;
 	float *p;
 	vec3_t vert;
-	int vnum;
+	int32_t vnum;
 
 	c_totalverts++;
 
@@ -132,7 +132,7 @@ static int GetVertexnum(const vec3_t in) {
 	return d_bsp.num_vertexes - 1;
 }
 
-static int c_faces;
+static int32_t c_faces;
 
 /*
  * AllocFace
@@ -184,10 +184,10 @@ void FreeFace(face_t *f) {
  * superverts[base] will become face->vertexnums[0], and the others
  * will be circularly filled in.
  */
-static void FaceFromSuperverts(node_t *node, face_t *f, int base) {
+static void FaceFromSuperverts(node_t *node, face_t *f, int32_t base) {
 	face_t *newf;
-	int remaining;
-	int i;
+	int32_t remaining;
+	int32_t i;
 
 	remaining = num_superverts;
 	while (remaining > MAXEDGES) { // must split into two faces, because of vertex overload
@@ -222,14 +222,14 @@ static void FaceFromSuperverts(node_t *node, face_t *f, int base) {
  */
 static void EmitFaceVertexes(node_t *node, face_t *f) {
 	winding_t *w;
-	int i;
+	int32_t i;
 
 	if (f->merged || f->split[0] || f->split[1])
 		return;
 
 	w = f->w;
 	for (i = 0; i < w->numpoints; i++) {
-		if (noweld) { // make every point unique
+		if (noweld) { // make every point32_t unique
 			if (d_bsp.num_vertexes == MAX_BSP_VERTS)
 				Com_Error(ERR_FATAL, "MAX_BSP_VERTS\n");
 			superverts[i] = d_bsp.num_vertexes;
@@ -250,7 +250,7 @@ static void EmitFaceVertexes(node_t *node, face_t *f) {
  * EmitVertexes_r
  */
 static void EmitVertexes_r(node_t *node) {
-	int i;
+	int32_t i;
 	face_t *f;
 
 	if (node->plane_num == PLANENUM_LEAF)
@@ -270,7 +270,7 @@ static void EmitVertexes_r(node_t *node) {
  * Forced a dumb check of everything
  */
 static void FindEdgeVerts(vec3_t v1, vec3_t v2) {
-	int i;
+	int32_t i;
 
 	num_edge_verts = d_bsp.num_vertexes - 1;
 	for (i = 0; i < num_edge_verts; i++)
@@ -282,8 +282,8 @@ static void FindEdgeVerts(vec3_t v1, vec3_t v2) {
  *
  * Can be recursively reentered
  */
-static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert) {
-	int k;
+static void TestEdge(vec_t start, vec_t end, int32_t p1, int32_t p2, int32_t startvert) {
+	int32_t k;
 	vec_t dist;
 	vec3_t delta;
 	vec3_t exact;
@@ -297,7 +297,7 @@ static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert) {
 	}
 
 	for (k = startvert; k < num_edge_verts; k++) {
-		const int j = edge_verts[k];
+		const int32_t j = edge_verts[k];
 		if (j == p1 || j == p2)
 			continue;
 
@@ -333,11 +333,11 @@ static void TestEdge(vec_t start, vec_t end, int p1, int p2, int startvert) {
  * FixFaceEdges
  */
 static void FixFaceEdges(node_t *node, face_t *f) {
-	int i;
+	int32_t i;
 	vec3_t e2;
 	vec_t len;
-	int count[MAX_SUPERVERTS], start[MAX_SUPERVERTS];
-	int base;
+	int32_t count[MAX_SUPERVERTS], start[MAX_SUPERVERTS];
+	int32_t base;
 
 	if (f->merged || f->split[0] || f->split[1])
 		return;
@@ -345,8 +345,8 @@ static void FixFaceEdges(node_t *node, face_t *f) {
 	num_superverts = 0;
 
 	for (i = 0; i < f->num_points; i++) {
-		const int p1 = f->vertexnums[i];
-		const int p2 = f->vertexnums[(i + 1) % f->num_points];
+		const int32_t p1 = f->vertexnums[i];
+		const int32_t p2 = f->vertexnums[(i + 1) % f->num_points];
 
 		VectorCopy(d_bsp.vertexes[p1].point, edge_start);
 		VectorCopy(d_bsp.vertexes[p2].point, e2);
@@ -390,7 +390,7 @@ static void FixFaceEdges(node_t *node, face_t *f) {
  * FixEdges_r
  */
 static void FixEdges_r(node_t *node) {
-	int i;
+	int32_t i;
 	face_t *f;
 
 	if (node->plane_num == PLANENUM_LEAF)
@@ -436,9 +436,9 @@ void FixTjuncs(node_t *head_node) {
  *
  * Called by writebsp.  Don't allow four way edges
  */
-int GetEdge2(int v1, int v2, face_t * f) {
+int32_t GetEdge2(int32_t v1, int32_t v2, face_t * f) {
 	d_bsp_edge_t *edge;
-	int i;
+	int32_t i;
 
 	c_tryedges++;
 
@@ -487,7 +487,7 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2,
 		const vec3_t planenormal) {
 	vec_t *p1, *p2, *back;
 	winding_t *newf;
-	int i, j, k, l;
+	int32_t i, j, k, l;
 	vec3_t normal, delta;
 	vec_t dot;
 	bool keep1, keep2;
@@ -519,7 +519,7 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2,
 		return NULL; // no matching edges
 
 	// check slope of connected lines
-	// if the slopes are colinear, the point can be removed
+	// if the slopes are colinear, the point32_t can be removed
 	back = f1->p[(i + f1->numpoints - 1) % f1->numpoints];
 	VectorSubtract(p1, back, delta);
 	CrossProduct(planenormal, delta, normal);
@@ -643,7 +643,7 @@ static void MergeNodeFaces(node_t * node) {
 static void SubdivideFace(node_t *node, face_t * f) {
 	float mins, maxs;
 	vec_t v;
-	int axis, i;
+	int32_t axis, i;
 	const d_bsp_texinfo_t *tex;
 	vec3_t temp;
 	vec_t dist;
@@ -716,12 +716,12 @@ static void SubdivideNodeFaces(node_t * node) {
 	}
 }
 
-static int c_nodefaces;
+static int32_t c_nodefaces;
 
 /*
  * FaceFromPortal
  */
-static face_t *FaceFromPortal(portal_t * p, int pside) {
+static face_t *FaceFromPortal(portal_t * p, int32_t pside) {
 	face_t *f;
 	side_t *side;
 
@@ -766,7 +766,7 @@ static face_t *FaceFromPortal(portal_t * p, int pside) {
  */
 static void MakeFaces_r(node_t * node) {
 	portal_t *p;
-	int s;
+	int32_t s;
 
 	// recurse down to leafs
 	if (node->plane_num != PLANENUM_LEAF) {

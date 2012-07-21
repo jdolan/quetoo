@@ -36,7 +36,7 @@ extern cl_static_t cls;
  */
 static s_music_t *S_LoadMusic(const char *name) {
 	void *buf;
-	int i, len;
+	int32_t i, len;
 	SDL_RWops *rw;
 	static s_music_t music;
 
@@ -102,7 +102,7 @@ static void S_FreeMusic(s_music_t *music) {
  * S_FreeMusics
  */
 static void S_FreeMusics(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < MAX_MUSICS; i++)
 		S_FreeMusic(&s_env.musics[i]);
@@ -119,7 +119,7 @@ static void S_FreeMusics(void) {
 void S_LoadMusics(void) {
 	char temp[MAX_QPATH];
 	s_music_t *music;
-	int i;
+	int32_t i;
 
 	S_FreeMusics();
 
@@ -133,7 +133,7 @@ void S_LoadMusics(void) {
 
 		// shuffle the order of the default tracks to keep it fresh
 		for (i  = 1; i < MAX_MUSICS + 1; i++) {
-			const int j = Random() % MAX_MUSICS + 1;
+			const int32_t j = Random() % MAX_MUSICS + 1;
 			strncpy(temp, cl.config_strings[CS_MUSICS + i], MAX_QPATH);
 			strncpy(cl.config_strings[CS_MUSICS + i], cl.config_strings[CS_MUSICS + j], MAX_QPATH);
 			strncpy(cl.config_strings[CS_MUSICS + j], temp, MAX_QPATH);
@@ -187,7 +187,7 @@ static s_music_t *S_NextMusic(void) {
 	music = &default_music;
 
 	if (s_env.num_musics) { // select a new track
-		int i;
+		int32_t i;
 
 		for (i = 0; i < MAX_MUSICS; i++) {
 			if (s_env.active_music == &s_env.musics[i])

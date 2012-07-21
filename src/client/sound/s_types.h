@@ -35,9 +35,9 @@ typedef struct s_sample_s {
 
 typedef struct s_channel_s {
 	vec3_t org;  // for temporary entities and other positioned sounds
-	int ent_num;  // for entities and dynamic sounds
-	int count;  // for looped sounds
-	int atten;
+	int32_t ent_num;  // for entities and dynamic sounds
+	int32_t count;  // for looped sounds
+	int32_t atten;
 	s_sample_t *sample;
 } s_channel_t;
 
@@ -52,12 +52,12 @@ typedef struct s_music_s {
 // the sound environment
 typedef struct s_env_s {
 	s_sample_t samples[MAX_SAMPLES];
-	int num_samples;
+	int32_t num_samples;
 
 	s_channel_t channels[MAX_CHANNELS];
 
 	s_music_t musics[MAX_MUSICS];
-	int num_musics;
+	int32_t num_musics;
 
 	s_music_t *active_music;
 

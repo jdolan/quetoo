@@ -40,7 +40,7 @@ typedef struct {
 
 typedef struct {
 	bool original;  // don't free, it's part of the portal
-	unsigned short num_points;
+	uint16_t num_points;
 	vec3_t points[MAX_POINTS_ON_FIXED_WINDING];  // variable sized
 } winding_t;
 
@@ -53,7 +53,7 @@ typedef enum {
 
 typedef struct {
 	plane_t plane;			// normal pointing into neighbor
-	int leaf;				// neighbor
+	int32_t leaf;				// neighbor
 
 	vec3_t origin;			// for fast clip testing
 	float radius;
@@ -64,7 +64,7 @@ typedef struct {
 	byte *flood;			// [portals], intermediate
 	byte *vis;				// [portals], final
 
-	int num_might_see;		// bit count on flood for sort
+	int32_t num_might_see;		// bit count on flood for sort
 } portal_t;
 
 typedef struct separating_plane_s {
@@ -74,13 +74,13 @@ typedef struct separating_plane_s {
 
 typedef struct passage_s {
 	struct passage_s *next;
-	unsigned int from, to;		// leaf numbers
+	uint32_t from, to;		// leaf numbers
 	separating_plane_t *planes;
 } passage_t;
 
 #define	MAX_PORTALS_ON_LEAF		128
 typedef struct leaf_s {
-	unsigned int num_portals;
+	uint32_t num_portals;
 	passage_t *passages;
 	portal_t *portals[MAX_PORTALS_ON_LEAF];
 } leaf_t;
@@ -94,20 +94,20 @@ typedef struct pstack_s {
 	winding_t *pass;
 
 	winding_t windings[3];		  // source, pass, temp in any order
-	int freewindings[3];
+	int32_t freewindings[3];
 
 	plane_t portalplane;
 } pstack_t;
 
 typedef struct {
 	portal_t *base;
-	int c_chains;
+	int32_t c_chains;
 	pstack_t pstack_head;
 } thread_data_t;
 
 typedef struct map_vis_s {
-	unsigned int num_portals;
-	unsigned int portal_clusters;
+	uint32_t num_portals;
+	uint32_t portal_clusters;
 
 	portal_t *portals;
 	portal_t *sorted_portals[MAX_BSP_PORTALS * 2];
@@ -130,8 +130,8 @@ typedef struct map_vis_s {
 
 extern map_vis_t map_vis;
 
-void BaseVis(int portal_num);
-void FinalVis(int portal_num);
+void BaseVis(int32_t portal_num);
+void FinalVis(int32_t portal_num);
 
 size_t CountBits(const byte *bits, size_t max);
 

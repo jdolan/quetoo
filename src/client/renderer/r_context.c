@@ -46,8 +46,8 @@ static void R_SetIcon(void) {
  */
 void R_InitContext(void) {
 	r_pixel_t w, h;
-	unsigned int flags;
-	int i;
+	uint32_t flags;
+	int32_t i;
 	float f;
 	SDL_Surface *surface;
 

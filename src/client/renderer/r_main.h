@@ -72,8 +72,8 @@ extern const byte color_white[4];
 
 extern r_view_t r_view;
 
-int R_PointContents(const vec3_t point);
-c_trace_t R_Trace(const vec3_t start, const vec3_t end, float radius, int mask);
+int32_t R_PointContents(const vec3_t point);
+c_trace_t R_Trace(const vec3_t start, const vec3_t end, float radius, int32_t mask);
 void R_Init(void);
 void R_Shutdown(void);
 void R_BeginFrame(void);
@@ -93,8 +93,8 @@ typedef struct r_config_s {
 	bool vbo;
 	bool shaders;
 
-	int max_texunits;
-	int max_teximage_units;
+	int32_t max_texunits;
+	int32_t max_teximage_units;
 }r_config_t;
 
 extern r_config_t r_config;
@@ -111,21 +111,21 @@ typedef struct r_locals_s {
 	float saturation;
 	float contrast;
 
-	short cluster; // visibility cluster at origin
-	short old_cluster;
+	int16_t cluster; // visibility cluster at origin
+	int16_t old_cluster;
 
 	byte vis_data_pvs[MAX_BSP_LEAFS >> 3]; // decompressed PVS at origin
 	byte vis_data_phs[MAX_BSP_LEAFS >> 3]; // decompressed PHS at origin
 
-	short vis_frame; // PVS frame, negatives are special cases
+	int16_t vis_frame; // PVS frame, negatives are special cases
 
-	short frame; // renderer frame, negatives are special cases
-	short back_frame; // back-facing renderer frame
+	int16_t frame; // renderer frame, negatives are special cases
+	int16_t back_frame; // back-facing renderer frame
 
-	short light_frame; // dynamic lighting frame
+	int16_t light_frame; // dynamic lighting frame
 
-	unsigned int active_light_mask; // a bit mask into r_view.lights
-	unsigned int active_light_count; // a count of active lights
+	uint32_t active_light_mask; // a bit mask into r_view.lights
+	uint32_t active_light_count; // a count of active lights
 
 	c_bsp_plane_t frustum[4]; // for box culling
 }r_locals_t;

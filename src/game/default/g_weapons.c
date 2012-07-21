@@ -24,7 +24,7 @@
 /*
  * G_PickupWeapon
  */bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
-	int index, ammoindex, delta;
+	int32_t index, ammoindex, delta;
 	g_item_t *ammo;
 
 	index = ITEM_INDEX(ent->item);
@@ -158,7 +158,7 @@ void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
 		return;
 
 	if (item->ammo) { // ensure we have ammo
-		int index = ITEM_INDEX(G_FindItem(item->ammo));
+		int32_t index = ITEM_INDEX(G_FindItem(item->ammo));
 
 		if (!ent->client->persistent.inventory[index]) {
 			gi.ClientPrint(ent, PRINT_HIGH, "Not enough ammo for %s\n", item->pickup_name);
@@ -174,7 +174,7 @@ void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
  * G_DropWeapon
  */
 void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
-	int index, ammo_index;
+	int32_t index, ammo_index;
 	g_edict_t *dropped;
 	g_item_t *ammo;
 
@@ -210,7 +210,7 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 void G_TossWeapon(g_edict_t *ent) {
 	g_edict_t *dropped;
 	g_item_t *item;
-	short ammo;
+	int16_t ammo;
 
 	// don't drop weapon when falling into void
 	if (means_of_death == MOD_TRIGGER_HURT)
@@ -231,9 +231,9 @@ void G_TossWeapon(g_edict_t *ent) {
 /*
  * G_FireWeapon
  */
-static void G_FireWeapon(g_edict_t *ent, unsigned int interval, void(*fire)(g_edict_t *ent)) {
-	int n, m;
-	int buttons;
+static void G_FireWeapon(g_edict_t *ent, uint32_t interval, void(*fire)(g_edict_t *ent)) {
+	int32_t n, m;
+	int32_t buttons;
 
 	buttons = (ent->client->latched_buttons | ent->client->buttons);
 
@@ -321,7 +321,7 @@ static void G_MuzzleFlash(g_edict_t *ent, muzzle_flash_t flash) {
 	gi.WriteByte(flash);
 
 	if (flash == MZ_BLASTER) {
-		int color = DEFAULT_WEAPON_EFFECT_COLOR;
+		int32_t color = DEFAULT_WEAPON_EFFECT_COLOR;
 		if (ent->client) {
 			color = ent->client->persistent.color;
 		}
@@ -423,8 +423,8 @@ void G_FireMachinegun(g_edict_t *ent) {
 static void G_FireGrenadeLauncher_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
-	const int dmg = 120 + Randomc() * 30.0;
-	const int knockback = 120 + Randomf() * 20.0;
+	const int32_t dmg = 120 + Randomc() * 30.0;
+	const int32_t knockback = 120 + Randomf() * 20.0;
 
 	G_InitProjectile(ent, forward, right, up, org);
 
@@ -445,8 +445,8 @@ void G_FireGrenadeLauncher(g_edict_t *ent) {
 static void G_FireRocketLauncher_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
-	const int dmg = 110 + Randomf() * 20.0;
-	const int knockback = 110 + Randomf() * 20.0;
+	const int32_t dmg = 110 + Randomf() * 20.0;
+	const int32_t knockback = 110 + Randomf() * 20.0;
 
 	G_InitProjectile(ent, forward, right, up, org);
 

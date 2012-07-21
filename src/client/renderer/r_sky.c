@@ -34,7 +34,7 @@ static const vec3_t skyclip[6] = {
 };
 
 // 1 = s, 2 = t, 3 = SKY_DISTANCE
-static const int st_to_vec[6][3] = {
+static const int32_t st_to_vec[6][3] = {
 	{ 3, -1,  2},
 	{-3,  1,  2},
 
@@ -46,7 +46,7 @@ static const int st_to_vec[6][3] = {
 };
 
 // s = [0]/[2], t = [1]/[2]
-static const int vec_to_st[6][3] = {
+static const int32_t vec_to_st[6][3] = {
 	{ -2,  3,  1},
 	{  2,  3, -1},
 
@@ -64,8 +64,8 @@ typedef struct sky_s {
 	vec2_t st_maxs[6];
 	vec_t stmin;
 	vec_t stmax;
-	int texcoord_index;
-	int vert_index;
+	int32_t texcoord_index;
+	int32_t vert_index;
 } sky_t;
 
 static sky_t sky;
@@ -73,11 +73,11 @@ static sky_t sky;
 /*
  * R_DrawSkySurface
  */
-static void R_DrawSkySurface(int nump, vec3_t vecs) {
-	int i, j;
+static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
+	int32_t i, j;
 	vec3_t v, av;
 	float s, t, dv;
-	int axis;
+	int32_t axis;
 	float *vp;
 
 	// decide which face it maps to
@@ -144,22 +144,22 @@ static void R_DrawSkySurface(int nump, vec3_t vecs) {
 	}
 }
 
-#define ON_EPSILON		0.1  // point on plane side epsilon
+#define ON_EPSILON		0.1  // point32_t on plane side epsilon
 #define MAX_CLIP_VERTS	64
 
 /*
  * R_ClipSkySurface
  */
-static void R_ClipSkySurface(int nump, vec3_t vecs, int stage) {
+static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
 	const float *norm;
 	float *v;
 	bool front, back;
 	float d, e;
 	float dists[MAX_CLIP_VERTS];
-	int sides[MAX_CLIP_VERTS];
+	int32_t sides[MAX_CLIP_VERTS];
 	vec3_t newv[2][MAX_CLIP_VERTS];
-	int newc[2];
-	int i, j;
+	int32_t newc[2];
+	int32_t i, j;
 
 	if (nump > MAX_CLIP_VERTS - 2)
 		Com_Error(ERR_DROP, "R_ClipSkyPoly: MAX_CLIP_VERTS");
@@ -236,7 +236,7 @@ static void R_ClipSkySurface(int nump, vec3_t vecs, int stage) {
  * R_AddSkySurface
  */
 static void R_AddSkySurface(const r_bsp_surface_t *surf) {
-	int i, index;
+	int32_t i, index;
 	vec3_t verts[MAX_CLIP_VERTS];
 
 	if (r_draw_wireframe->value)
@@ -259,7 +259,7 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf) {
  * R_ClearSkyBox
  */
 void R_ClearSkyBox(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 6; i++) {
 		sky.st_mins[0][i] = sky.st_mins[1][i] = 9999;
@@ -270,16 +270,16 @@ void R_ClearSkyBox(void) {
 /*
  * R_MakeSkyVec
  */
-static void R_MakeSkyVec(float s, float t, int axis) {
+static void R_MakeSkyVec(float s, float t, int32_t axis) {
 	vec3_t v, b;
-	int j;
+	int32_t j;
 
 	b[0] = s * SKY_DISTANCE;
 	b[1] = t * SKY_DISTANCE;
 	b[2] = SKY_DISTANCE;
 
 	for (j = 0; j < 3; j++) {
-		const int k = st_to_vec[axis][j];
+		const int32_t k = st_to_vec[axis][j];
 		if (k < 0)
 			v[j] = -b[-k - 1];
 		else
@@ -308,14 +308,14 @@ static void R_MakeSkyVec(float s, float t, int axis) {
 	sky.vert_index += 3;
 }
 
-int skytexorder[6] = { 0, 2, 1, 3, 4, 5 };
+int32_t skytexorder[6] = { 0, 2, 1, 3, 4, 5 };
 
 /*
  * R_DrawSkyBox
  */
 void R_DrawSkyBox(void) {
 	r_bsp_surfaces_t *surfs;
-	unsigned int i, j;
+	uint32_t i, j;
 
 	surfs = r_world_model->sky_surfaces;
 	j = 0;
@@ -371,7 +371,7 @@ char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
  * R_SetSky
  */
 void R_SetSky(char *name) {
-	int i;
+	int32_t i;
 	char pathname[MAX_QPATH];
 
 	for (i = 0; i < 6; i++) {

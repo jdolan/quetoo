@@ -22,15 +22,15 @@
 #include "common.h"
 #include "common-anorms.h"
 
-static int rd_target;
+static int32_t rd_target;
 static char *rd_buffer;
-static unsigned int rd_buffersize;
-static void (*rd_flush)(int target, char *buffer);
+static uint32_t rd_buffersize;
+static void (*rd_flush)(int32_t target, char *buffer);
 
 /*
  * Com_BeginRedirect
  */
-void Com_BeginRedirect(int target, char *buffer, int buffersize,
+void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize,
 		void(*flush)(int, char*)) {
 
 	if (!target || !buffer || !buffersize || !flush)
@@ -157,21 +157,21 @@ void Com_Verbose(const char *fmt, ...) {
 /*
  * Com_Subsystem
  */
-unsigned int Com_WasInit(unsigned int s) {
+uint32_t Com_WasInit(uint32_t s) {
 	return quake2world.subsystems & s;
 }
 
 /*
  * Com_InitSubsystem
  */
-void Com_InitSubsystem(unsigned int s) {
+void Com_InitSubsystem(uint32_t s) {
 	quake2world.subsystems |= s;
 }
 
 /*
  * Com_QuitSubsystem
  */
-void Com_QuitSubsystem(unsigned int s) {
+void Com_QuitSubsystem(uint32_t s) {
 	quake2world.subsystems &= ~s;
 }
 
@@ -192,7 +192,7 @@ void Msg_WriteData(size_buf_t *sb, const void *data, size_t len) {
 /*
  * Msg_WriteChar
  */
-void Msg_WriteChar(size_buf_t *sb, const int c) {
+void Msg_WriteChar(size_buf_t *sb, const int32_t c) {
 	byte *buf;
 
 	buf = Sb_Alloc(sb, sizeof(char));
@@ -202,7 +202,7 @@ void Msg_WriteChar(size_buf_t *sb, const int c) {
 /*
  * Msg_WriteByte
  */
-void Msg_WriteByte(size_buf_t *sb, const int c) {
+void Msg_WriteByte(size_buf_t *sb, const int32_t c) {
 	byte *buf;
 
 	buf = Sb_Alloc(sb, sizeof(byte));
@@ -212,7 +212,7 @@ void Msg_WriteByte(size_buf_t *sb, const int c) {
 /*
  * Msg_WriteShort
  */
-void Msg_WriteShort(size_buf_t *sb, const int c) {
+void Msg_WriteShort(size_buf_t *sb, const int32_t c) {
 	byte *buf;
 
 	buf = Sb_Alloc(sb, sizeof(short));
@@ -223,7 +223,7 @@ void Msg_WriteShort(size_buf_t *sb, const int c) {
 /*
  * Msg_WriteLong
  */
-void Msg_WriteLong(size_buf_t *sb, const int c) {
+void Msg_WriteLong(size_buf_t *sb, const int32_t c) {
 	byte *buf;
 
 	buf = Sb_Alloc(sb, sizeof(int));
@@ -279,7 +279,7 @@ void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles) {
  * Msg_WriteDeltaUsercmd
  */
 void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd) {
-	int bits;
+	int32_t bits;
 
 	// send the movement message
 	bits = 0;
@@ -324,7 +324,7 @@ void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd) {
  * Msg_WriteDir
  */
 void Msg_WriteDir(size_buf_t *sb, const vec3_t dir) {
-	int i, best;
+	int32_t i, best;
 	float d, bestd;
 
 	if (!dir) {
@@ -348,7 +348,7 @@ void Msg_WriteDir(size_buf_t *sb, const vec3_t dir) {
  * Msg_ReadDir
  */
 void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
-	int b;
+	int32_t b;
 
 	b = Msg_ReadByte(sb);
 
@@ -368,7 +368,7 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
 void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 		size_buf_t *msg, bool force, bool is_new) {
 
-	unsigned short bits = 0;
+	uint16_t bits = 0;
 
 	if (to->number <= 0) {
 		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Unset entity number.\n");
@@ -460,7 +460,7 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
  * Msg_ReadDeltaEntity
  */
 void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to,
-		size_buf_t *msg, unsigned short number, unsigned short bits) {
+		size_buf_t *msg, uint16_t number, uint16_t bits) {
 
 	// set everything to the state we are delta'ing from
 	*to = *from;
@@ -520,7 +520,7 @@ void Msg_BeginReading(size_buf_t *msg) {
  * Msg_ReadData
  */
 void Msg_ReadData(size_buf_t *sb, void *data, size_t len) {
-	unsigned int i;
+	size_t i;
 
 	for (i = 0; i < len; i++) {
 		((byte *) data)[i] = Msg_ReadByte(sb);
@@ -532,8 +532,8 @@ void Msg_ReadData(size_buf_t *sb, void *data, size_t len) {
  *
  * Returns -1 if no more characters are available.
  */
-int Msg_ReadChar(size_buf_t *sb) {
-	int c;
+int32_t Msg_ReadChar(size_buf_t *sb) {
+	int32_t c;
 
 	if (sb->read + 1 > sb->size)
 		c = -1;
@@ -547,8 +547,8 @@ int Msg_ReadChar(size_buf_t *sb) {
 /*
  * Msg_ReadByte
  */
-int Msg_ReadByte(size_buf_t *sb) {
-	int c;
+int32_t Msg_ReadByte(size_buf_t *sb) {
+	int32_t c;
 
 	if (sb->read + 1 > sb->size)
 		c = -1;
@@ -562,8 +562,8 @@ int Msg_ReadByte(size_buf_t *sb) {
 /*
  * Msg_ReadShort
  */
-int Msg_ReadShort(size_buf_t *sb) {
-	int c;
+int32_t Msg_ReadShort(size_buf_t *sb) {
+	int32_t c;
 
 	if (sb->read + 2 > sb->size)
 		c = -1;
@@ -578,8 +578,8 @@ int Msg_ReadShort(size_buf_t *sb) {
 /*
  * Msg_ReadLong
  */
-int Msg_ReadLong(size_buf_t *sb) {
-	int c;
+int32_t Msg_ReadLong(size_buf_t *sb) {
+	int32_t c;
 
 	if (sb->read + 4 > sb->size)
 		c = -1;
@@ -598,8 +598,8 @@ int Msg_ReadLong(size_buf_t *sb) {
  */
 char *Msg_ReadString(size_buf_t *sb) {
 	static char string[MAX_STRING_CHARS];
-	int c;
-	unsigned int l;
+	int32_t c;
+	uint32_t l;
 	
 	l = 0;
 	do {
@@ -620,8 +620,8 @@ char *Msg_ReadString(size_buf_t *sb) {
  */
 char *Msg_ReadStringLine(size_buf_t *sb) {
 	static char string[MAX_STRING_CHARS];
-	int c;
-	unsigned int l;
+	int32_t c;
+	uint32_t l;
 
 	l = 0;
 	do {
@@ -673,7 +673,7 @@ void Msg_ReadAngles(size_buf_t *sb, vec3_t angles) {
  * Msg_ReadDeltaUsercmd
  */
 void Msg_ReadDeltaUsercmd(size_buf_t *sb, user_cmd_t *from, user_cmd_t *move) {
-	int bits;
+	int32_t bits;
 
 	*move = *from;
 
@@ -734,8 +734,7 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 
 		if (length > buf->max_size) {
 			Com_Error(ERR_FATAL,
-					"Sb_GetSpace: "Q2W_SIZE_T" is > full buffer size.\n",
-					length);
+					"Sb_GetSpace: "Q2W_SIZE_T" is > full buffer size.\n", length);
 		}
 
 		Com_Warn("Sb_GetSpace: overflow.\n");
@@ -776,14 +775,14 @@ void Sb_Print(size_buf_t *buf, const char *data) {
 /*
  * Com_Argc
  */
-int Com_Argc(void) {
+int32_t Com_Argc(void) {
 	return quake2world.argc;
 }
 
 /*
  * Com_Argv
  */
-char *Com_Argv(int arg) {
+char *Com_Argv(int32_t arg) {
 	if (arg < 0 || arg >= Com_Argc() || !quake2world.argv[arg])
 		return "";
 	return quake2world.argv[arg];
@@ -792,7 +791,7 @@ char *Com_Argv(int arg) {
 /*
  * Com_ClearArgv
  */
-void Com_ClearArgv(int arg) {
+void Com_ClearArgv(int32_t arg) {
 	if (arg < 0 || arg >= quake2world.argc || !quake2world.argv[arg])
 		return;
 	quake2world.argv[arg] = "";
@@ -801,8 +800,8 @@ void Com_ClearArgv(int arg) {
 /*
  * Com_InitArgv
  */
-void Com_InitArgv(int argc, char **argv) {
-	int i;
+void Com_InitArgv(int32_t argc, char **argv) {
+	int32_t i;
 
 	if (argc > MAX_NUM_ARGVS)
 		Com_Warn("Com_InitArgv: argc > MAX_NUM_ARGVS.");
@@ -824,7 +823,7 @@ void Com_PrintInfo(const char *s) {
 	char key[512];
 	char value[512];
 	char *o;
-	int l;
+	int32_t l;
 
 	if (*s == '\\')
 		s++;

@@ -28,16 +28,16 @@
 // net graph samples
 typedef struct {
 	float value;
-	int color;
+	int32_t color;
 } net_graph_sample_t;
 
 static net_graph_sample_t net_graph_samples[NET_GRAPH_WIDTH];
-static int num_net_graph_samples;
+static int32_t num_net_graph_samples;
 
 /*
  * Cl_NetGraph
  */
-static void Cl_NetGraph(float value, int color) {
+static void Cl_NetGraph(float value, int32_t color) {
 
 	net_graph_samples[num_net_graph_samples].value = value;
 	net_graph_samples[num_net_graph_samples].color = color;
@@ -55,9 +55,9 @@ static void Cl_NetGraph(float value, int color) {
  * Cl_AddNetGraph
  */
 void Cl_AddNetGraph(void) {
-	unsigned int i;
-	unsigned int in;
-	unsigned int ping;
+	uint32_t i;
+	uint32_t in;
+	uint32_t ping;
 
 	// we only need to do our accounting when asked to
 	if (!cl_draw_net_graph->value)
@@ -80,7 +80,7 @@ void Cl_AddNetGraph(void) {
  * Cl_DrawNetGraph
  */
 static void Cl_DrawNetGraph(void) {
-	int i, j, x, y, h;
+	int32_t i, j, x, y, h;
 
 	if (!cl_draw_net_graph->value)
 		return;
@@ -129,7 +129,7 @@ static void Cl_DrawRendererStats(void) {
 static void Cl_DrawCounters(void) {
 	static vec3_t velocity;
 	static char bps[8], pps[8], fps[8], spd[8];
-	static int last_draw_time;
+	static int32_t last_draw_time;
 	r_pixel_t cw, ch;
 
 	if (!cl_draw_counters->value)

@@ -67,19 +67,19 @@ static void Cl_ReadData(void *data, size_t len) {
 	Msg_ReadData(&net_message, data, len);
 }
 
-static int Cl_ReadChar(void) {
+static int32_t Cl_ReadChar(void) {
 	return Msg_ReadChar(&net_message);
 }
 
-static int Cl_ReadByte(void) {
+static int32_t Cl_ReadByte(void) {
 	return Msg_ReadByte(&net_message);
 }
 
-static int Cl_ReadShort(void) {
+static int32_t Cl_ReadShort(void) {
 	return Msg_ReadShort(&net_message);
 }
 
-static int Cl_ReadLong(void) {
+static int32_t Cl_ReadLong(void) {
 	return Msg_ReadLong(&net_message);
 }
 
@@ -102,7 +102,7 @@ static float Cl_ReadAngle(void) {
 /*
  * Cl_ConfigString
  */
-static char *Cl_ConfigString(unsigned short index) {
+static char *Cl_ConfigString(uint16_t index) {
 
 	if (index > MAX_CONFIG_STRINGS) {
 		Com_Warn("Cl_ConfigString: bad index %i.\n", index);

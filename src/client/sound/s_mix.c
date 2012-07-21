@@ -28,8 +28,8 @@ extern cl_static_t cls;
 /*
  * S_AllocChannel
  */
-static int S_AllocChannel(void) {
-	int i;
+static int32_t S_AllocChannel(void) {
+	int32_t i;
 
 	for (i = 0; i < MAX_CHANNELS; i++) {
 		if (!s_env.channels[i].sample)
@@ -42,7 +42,7 @@ static int S_AllocChannel(void) {
 /*
  * S_FreeChannel
  */
-void S_FreeChannel(int c) {
+void S_FreeChannel(int32_t c) {
 
 	memset(&s_env.channels[c], 0, sizeof(s_env.channels[0]));
 }
@@ -57,7 +57,7 @@ void S_FreeChannel(int c) {
 void S_SpatializeChannel(s_channel_t *ch) {
 	entity_state_t *ent;
 	vec3_t delta;
-	int c;
+	int32_t c;
 	float dist, dot, angle;
 
 	c = (int) ((ptrdiff_t) (ch - s_env.channels));
@@ -87,9 +87,9 @@ void S_SpatializeChannel(s_channel_t *ch) {
 /*
  * S_PlaySample
  */
-void S_PlaySample(const vec3_t org, unsigned short ent_num, s_sample_t *sample, int atten) {
+void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_t atten) {
 	s_channel_t *ch;
-	int i;
+	int32_t i;
 
 	if (!s_env.initialized)
 		return;
@@ -126,7 +126,7 @@ void S_PlaySample(const vec3_t org, unsigned short ent_num, s_sample_t *sample, 
 void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 	s_channel_t *ch;
 	vec3_t delta;
-	int i;
+	int32_t i;
 
 	if (!sample || !sample->chunk)
 		return;

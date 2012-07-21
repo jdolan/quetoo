@@ -103,8 +103,8 @@ extern cl_static_t cls;
  *
  * Resolves the contents mask at the specified point.
  */
-int R_PointContents(const vec3_t point) {
-	int i, contents = Cm_PointContents(point, r_world_model->first_node);
+int32_t R_PointContents(const vec3_t point) {
+	int32_t i, contents = Cm_PointContents(point, r_world_model->first_node);
 
 	for (i = 0; i < r_view.num_entities; i++) {
 		r_entity_t *ent = &r_view.entities[i];
@@ -125,11 +125,11 @@ int R_PointContents(const vec3_t point) {
  * Traces to world and BSP models.  If a BSP entity is hit, it is saved as
  * r_view.trace_ent.
  */
-c_trace_t R_Trace(const vec3_t start, const vec3_t end, float radius, int mask) {
+c_trace_t R_Trace(const vec3_t start, const vec3_t end, float radius, int32_t mask) {
 	vec3_t mins, maxs;
 	c_trace_t tr;
 	float frac;
-	int i;
+	int32_t i;
 
 	VectorSet(mins, -radius, -radius, -radius);
 	VectorSet(maxs, radius, radius, radius);
@@ -167,7 +167,7 @@ c_trace_t R_Trace(const vec3_t start, const vec3_t end, float radius, int mask) 
  * R_UpdateFrustum
  */
 void R_UpdateFrustum(void) {
-	int i;
+	int32_t i;
 
 	if (!r_cull->value)
 		return;
@@ -195,7 +195,7 @@ void R_UpdateFrustum(void) {
 /**
  * R_DrawView
  *
- * Main entry point for drawing the scene (world and entities).
+ * Main entry point32_t for drawing the scene (world and entities).
  */
 void R_DrawView(void) {
 
@@ -293,7 +293,7 @@ static void R_RenderMode(const char *mode) {
  * R_Clear
  */
 static void R_Clear(void) {
-	int bits;
+	int32_t bits;
 
 	bits = GL_DEPTH_BUFFER_BIT;
 
@@ -377,7 +377,7 @@ static void R_InitView(void) {
  */
 static void R_ResolveWeather(void) {
 	char *weather, *c;
-	int err;
+	int32_t err;
 
 	r_view.weather = WEATHER_NONE;
 	r_view.fog_color[3] = 1.0;
@@ -416,7 +416,7 @@ static void R_ResolveWeather(void) {
  */
 void R_LoadMedia(void) {
 	char name[MAX_QPATH];
-	int i, j;
+	int32_t i, j;
 
 	if (!cl.config_strings[CS_MODELS + 1][0])
 		return; // no map loaded
@@ -637,11 +637,11 @@ static void R_InitLocal(void) {
 	Cvar_ClearVars(CVAR_R_MASK);
 
 	Cmd_AddCommand("r_list_models", R_ListModels_f, 0,
-			"Print information about all the loaded models to the game console");
+			"Print32_t information about all the loaded models to the game console");
 	Cmd_AddCommand("r_hunk_stats", R_HunkStats_f, 0, "Renderer memory usage information");
 
 	Cmd_AddCommand("r_list_images", R_ListImages_f, 0,
-			"Print information about all the loaded images to the game console");
+			"Print32_t information about all the loaded images to the game console");
 	Cmd_AddCommand("r_screenshot", R_Screenshot_f, CMD_SYSTEM, "Take a screenshot");
 
 	Cmd_AddCommand("r_sky", R_Sky_f, 0, NULL);

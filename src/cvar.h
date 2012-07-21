@@ -41,7 +41,7 @@ interface from being ambiguous.
 
 extern cvar_t *cvar_vars;
 
-cvar_t *Cvar_Get(const char *name, const char *value, unsigned int flags, const char *description);
+cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char *description);
 // creates the variable if it doesn't exist, or returns the existing one
 // if it exists, the value will not be changed, but flags will be ORed in
 // that allows variables to be unarchived without needing bitflags
@@ -52,7 +52,7 @@ cvar_t *Cvar_Set(const char *name, const char *value);
 cvar_t *Cvar_ForceSet(const char *name, const char *value);
 // will set the variable even if NOSET or LATCH
 
-cvar_t *Cvar_FullSet(const char *name, const char *value, unsigned int flags);
+cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags);
 
 void Cvar_SetValue(const char *name, float value);
 // expands value to a string and calls Cvar_Set
@@ -66,7 +66,7 @@ float Cvar_GetValue(const char *name);
 char *Cvar_GetString(const char *name);
 // returns an empty string if not defined
 
-int Cvar_CompleteVar(const char *partial, const char *matches[]);
+int32_t Cvar_CompleteVar(const char *partial, const char *matches[]);
 // attempts to match a partial variable name for command line completion
 
 void Cvar_ResetLocalVars(void);
@@ -78,16 +78,16 @@ bool Cvar_PendingLatchedVars(void);
 void Cvar_UpdateLatchedVars(void);
 // any CVAR_LATCHED variables that have been set will now take effect
 
-bool Cvar_PendingVars(unsigned int flags);
+bool Cvar_PendingVars(uint32_t flags);
 // are there pending changes?
 
-void Cvar_ClearVars(unsigned int flags);
+void Cvar_ClearVars(uint32_t flags);
 // clear modified booleans on vars
 
 bool Cvar_Command(void);
 // called by Cmd_ExecuteString when Cmd_Argv(0) doesn't match a known
 // command.  Returns true if the command was a variable reference that
-// was handled.(print or change)
+// was handled.(print32_t or change)
 
 void Cvar_WriteVars(const char *path);
 // appends lines containing "set variable value" for all variables

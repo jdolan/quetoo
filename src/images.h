@@ -28,7 +28,7 @@
 #include <SDL/SDL_image.h>
 
 // 8bit palette for wal images and particles
-extern unsigned int palette[256];
+extern uint32_t palette[256];
 
 /*
 Img_LoadImage
@@ -67,14 +67,14 @@ Img_WriteJPEG
 
 Write pixel data to a JPEG file.
 */
-void Img_WriteJPEG(const char *path, byte *img_data, int width, int height, int quality);
+void Img_WriteJPEG(const char *path, byte *img_data, int32_t width, int32_t height, int32_t quality);
 
 /*
 Img_WriteTGARLE
 
 Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
 */
-void Img_WriteTGARLE(const char *path, byte *img_data, int width, int height, int quality);
+void Img_WriteTGARLE(const char *path, byte *img_data, int32_t width, int32_t height, int32_t quality);
 
 #endif /* BUILD_CLIENT */
 #endif /*__IMAGES_H__*/

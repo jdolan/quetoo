@@ -32,7 +32,7 @@
  * Sv_SetMaster_f
  */
 static void Sv_SetMaster_f(void) {
-	int i, slot;
+	int32_t i, slot;
 	net_addr_t *addr;
 
 	// only dedicated servers send heartbeats
@@ -88,8 +88,8 @@ static void Sv_Heartbeat_f(void) {
  */
 static bool Sv_SetPlayer(void) {
 	sv_client_t *cl;
-	int i;
-	int idnum;
+	int32_t i;
+	int32_t idnum;
 	char *s;
 
 	if (Cmd_Argc() < 2)
@@ -190,10 +190,10 @@ static void Sv_Kick_f(void) {
  * Sv_Status_f
  */
 static void Sv_Status_f(void) {
-	int i, j, l;
+	int32_t i, j, l;
 	sv_client_t *cl;
 	char *s;
-	unsigned int ping;
+	uint32_t ping;
 
 	if (!svs.initialized) {
 		Com_Print("No server running.\n");
@@ -241,7 +241,7 @@ static void Sv_Status_f(void) {
  */
 static void Sv_Say_f(void) {
 	sv_client_t *client;
-	int j;
+	int32_t j;
 	char *p;
 	char text[1024];
 
@@ -341,9 +341,9 @@ static void Sv_UserInfo_f(void) {
 void Sv_InitCommands(void) {
 
 	Cmd_AddCommand("kick", Sv_Kick_f, 0, "Kick a specific user");
-	Cmd_AddCommand("status", Sv_Status_f, 0, "Print server status information");
-	Cmd_AddCommand("server_info", Sv_ServerInfo_f, 0, "Print server info settings");
-	Cmd_AddCommand("user_info", Sv_UserInfo_f, 0, "Print information for a given user");
+	Cmd_AddCommand("status", Sv_Status_f, 0, "Print32_t server status information");
+	Cmd_AddCommand("server_info", Sv_ServerInfo_f, 0, "Print32_t server info settings");
+	Cmd_AddCommand("user_info", Sv_UserInfo_f, 0, "Print32_t information for a given user");
 
 	Cmd_AddCommand("demo", Sv_Demo_f, 0, "Start playback of the specified demo file");
 	Cmd_AddCommand("map", Sv_Map_f, 0, "Start a server for the specified map");

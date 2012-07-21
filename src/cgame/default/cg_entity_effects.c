@@ -29,7 +29,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 	r_corona_t c;
 	r_light_t l;
 	vec3_t color;
-	int i;
+	int32_t i;
 
 	if (ent->time < cgi.client->time) {
 		r_particle_t *p;
@@ -104,7 +104,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
  * Cg_TeleporterTrail
  */
 void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
-	int i;
+	int32_t i;
 	r_particle_t *p;
 
 	if (cent) { // honor a slightly randomized time interval
@@ -141,7 +141,7 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
  */
 void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
-	int j;
+	int32_t j;
 
 	if (cgi.view->render_mode == render_mode_pro)
 		return;
@@ -188,7 +188,7 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
  */
 void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
-	int j;
+	int32_t j;
 
 	if (ent) { // trails should be framerate independent
 
@@ -236,7 +236,7 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 	r_particle_t *p;
 	vec3_t end;
-	int j;
+	int32_t j;
 
 	VectorAdd(org, vel, end);
 
@@ -284,7 +284,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 	r_particle_t *p;
 	vec3_t vec, move;
 	float i, len, delta;
-	int j;
+	int32_t j;
 
 	VectorCopy(start, move);
 	VectorSubtract(end, start, vec);
@@ -326,9 +326,9 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 /*
  * Cg_EnergyTrail
  */
-static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int color) {
+static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int32_t color) {
 	static vec3_t angles[NUM_APPROXIMATE_NORMALS];
-	int i, c;
+	int32_t i, c;
 	r_particle_t *p;
 	float angle;
 	float sp, sy, cp, cy;
@@ -408,7 +408,7 @@ static void Cg_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *en
 	r_corona_t c;
 	r_light_t l;
 
-	const unsigned int old_time = ent->time;
+	const uint32_t old_time = ent->time;
 
 	Cg_SmokeTrail(start, end, ent);
 
@@ -486,7 +486,7 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t 
 	r_light_t l;
 	vec3_t dir, delta, pos, vel;
 	float dist, offset;
-	int i;
+	int32_t i;
 
 	VectorCopy(start, l.origin);
 	l.radius = 90.0 + 10.0 * Randomc();
@@ -607,7 +607,7 @@ void Cg_InactiveTrail(const vec3_t start) {
 void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	vec3_t start, end;
 
-	const unsigned int time = cgi.client->time;
+	const uint32_t time = cgi.client->time;
 	const float lerp = cgi.client->lerp;
 
 	const entity_state_t *s = &e->current;

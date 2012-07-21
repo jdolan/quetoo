@@ -23,7 +23,7 @@
 #define __POLYLIB_H__
 
 typedef struct {
-	int numpoints;
+	int32_t numpoints;
 	vec3_t p[4];  // variable sized
 } winding_t;
 
@@ -33,7 +33,7 @@ typedef struct {
 #define	ON_EPSILON	0.1
 #endif
 
-winding_t *AllocWinding(int points);
+winding_t *AllocWinding(int32_t points);
 vec_t WindingArea(const winding_t *w);
 void WindingCenter(const winding_t *w, vec3_t center);
 void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,

@@ -65,7 +65,7 @@ void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def) {
 static void TW_CALL Ui_CvarSetInteger(const void *value, void *data) {
 	cvar_t *var = (cvar_t *) data;
 
-	Cvar_Set(var->name, va("%d", *(int *) value));
+	Cvar_Set(var->name, va("%d", *(int32_t *) value));
 }
 
 /*
@@ -75,7 +75,7 @@ static void TW_CALL Ui_CvarSetInteger(const void *value, void *data) {
  */
 static void TW_CALL Ui_CvarGetInteger(void *value, void *data) {
 	cvar_t *var = (cvar_t *) data;
-	*(int *) value = var->integer;
+	*(int32_t *) value = var->integer;
 }
 
 /*
@@ -165,7 +165,7 @@ static void TW_CALL Ui_BindSet(const void *value, void *data) {
 static void TW_CALL Ui_BindGet(void *value, void *data) {
 	char **binds = cls.key_state.binds;
 	char *bind = (char *) data;
-	unsigned short i;
+	uint16_t i;
 
 	for (i = K_FIRST; i < K_LAST; i++) {
 		if (binds[i] && !strcasecmp(bind, binds[i])) {

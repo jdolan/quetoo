@@ -24,13 +24,13 @@
 /*
  * Cg_EnergyFlash
  */
-static void Cg_EnergyFlash(const entity_state_t *ent, int color, int count) {
+static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t count) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
 	float dist;
-	int i, j;
+	int32_t i, j;
 
 	// project the particles just in front of the entity
 	AngleVectors(ent->angles, forward, right, NULL);
@@ -93,7 +93,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
 	float dist;
-	int j;
+	int32_t j;
 
 	// project the puff just in front of the entity
 	AngleVectors(ent->angles, forward, right, NULL);
@@ -166,9 +166,9 @@ static void Cg_LogoutFlash(const vec3_t org) {
  * Cg_ParseMuzzleFlash
  */
 void Cg_ParseMuzzleFlash(void) {
-	int c;
+	int32_t c;
 
-	const unsigned short ent_num = cgi.ReadShort();
+	const uint16_t ent_num = cgi.ReadShort();
 
 	if (ent_num < 1 || ent_num >= MAX_EDICTS) {
 		cgi.Warn("Cg_ParseMuzzleFlash: Bad entity %u.\n", ent_num);

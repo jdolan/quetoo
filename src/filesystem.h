@@ -34,17 +34,17 @@ void Fs_SetGame(const char *dir);
 const char *Fs_Gamedir(void);
 const char *Fs_FindFirst(const char *path, bool absolute);
 void Fs_ExecAutoexec(void);
-int Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode);
+int32_t Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode);
 void Fs_CloseFile(FILE *f);
-int Fs_LoadFile(const char *path, void **buffer);
+int32_t Fs_LoadFile(const char *path, void **buffer);
 void Fs_AddPakfile(const char *pakfile);
 size_t Fs_Write(void *ptr, size_t size, size_t nmemb, FILE *stream);
 size_t Fs_Read(void *ptr, size_t size, size_t nmemb, FILE *stream);
-int Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[]);
+int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[]);
 
 // a null buffer will just return the file length without loading
 // a -1 length is not present
-void Fs_ReadFile(void *buffer, int len, FILE *f);
+void Fs_ReadFile(void *buffer, int32_t len, FILE *f);
 void Fs_FreeFile(void *buffer);
 void Fs_CreatePath(const char *path);
 void Fs_GunzipFile(const char *path);

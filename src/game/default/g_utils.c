@@ -131,7 +131,7 @@ g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {
  */
 g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, float rad) {
 	vec3_t eorg;
-	int j;
+	int32_t j;
 
 	if (!from)
 		from = g_game.edicts;
@@ -172,7 +172,7 @@ g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, float rad) {
 
 g_edict_t *G_PickTarget(char *target_name) {
 	g_edict_t *ent = NULL;
-	int num_choices = 0;
+	int32_t num_choices = 0;
 	g_edict_t *choice[MAXCHOICES];
 
 	if (!target_name) {
@@ -209,7 +209,7 @@ static void G_UseTargets_Delay(g_edict_t *ent) {
  * G_UseTargets
  *
  * Search for all entities that the specified entity targets, and call their
- * use functions. Set their activator to our activator. Print our message,
+ * use functions. Set their activator to our activator. Print32_t our message,
  * if set, to the activator.
  */
 void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
@@ -231,7 +231,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		return;
 	}
 
-	// print the message
+	// print32_t the message
 	if ((ent->message) && activator->client) {
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(ent->message);
@@ -285,7 +285,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
  * for making temporary vectors for function calls
  */
 float *tv(float x, float y, float z) {
-	static int index;
+	static int32_t index;
 	static vec3_t vecs[8];
 	float *v;
 
@@ -306,7 +306,7 @@ float *tv(float x, float y, float z) {
  * A convenience function for printing vectors.
  */
 char *vtos(const vec3_t v) {
-	static unsigned int index;
+	static uint32_t index;
 	static char str[8][32];
 	char *s;
 
@@ -369,7 +369,7 @@ void G_InitEdict(g_edict_t *e) {
  * angles and bad trails.
  */
 g_edict_t *G_Spawn(void) {
-	unsigned int i;
+	uint32_t i;
 	g_edict_t *e;
 
 	e = &g_game.edicts[sv_max_clients->integer + 1];
@@ -408,7 +408,7 @@ void G_FreeEdict(g_edict_t *ed) {
  * G_TouchTriggers
  */
 void G_TouchTriggers(g_edict_t *ent) {
-	int i, num;
+	int32_t i, num;
 	g_edict_t *touch[MAX_EDICTS], *hit;
 
 	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_TRIGGERS);
@@ -436,7 +436,7 @@ void G_TouchTriggers(g_edict_t *ent) {
  * to force all entities it covers to immediately touch it
  */
 void G_TouchSolids(g_edict_t *ent) {
-	int i, num;
+	int32_t i, num;
 	g_edict_t *touch[MAX_EDICTS], *hit;
 
 	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_SOLID);
@@ -486,7 +486,7 @@ bool G_KillBox(g_edict_t *ent) {
 /*
  * G_GameplayName
  */
-char *G_GameplayName(int g) {
+char *G_GameplayName(int32_t g) {
 	switch (g) {
 	case DEATHMATCH:
 		return "DEATHMATCH";
@@ -502,7 +502,7 @@ char *G_GameplayName(int g) {
 /*
  * G_GameplayByName
  */
-int G_GameplayByName(char *c) {
+int32_t G_GameplayByName(char *c) {
 
 	if (!c || *c == '\0')
 		return DEATHMATCH;
@@ -572,7 +572,7 @@ g_team_t *G_TeamForFlag(g_edict_t *ent) {
 g_edict_t *G_FlagForTeam(g_team_t *t) {
 	g_edict_t *ent;
 	char class[32];
-	unsigned int i;
+	uint32_t i;
 
 	if (!g_level.ctf)
 		return NULL;
@@ -605,7 +605,7 @@ g_edict_t *G_FlagForTeam(g_team_t *t) {
 /*
  * G_EffectForTeam
  */
-unsigned int G_EffectForTeam(g_team_t *t) {
+uint32_t G_EffectForTeam(g_team_t *t) {
 
 	if (!t)
 		return 0;
@@ -634,7 +634,7 @@ g_team_t *G_OtherTeam(g_team_t *t) {
  * G_SmallestTeam
  */
 g_team_t *G_SmallestTeam(void) {
-	int i, g, e;
+	int32_t i, g, e;
 	g_client_t *cl;
 
 	g = e = 0;
@@ -658,7 +658,7 @@ g_team_t *G_SmallestTeam(void) {
  * G_ClientByName
  */
 g_client_t *G_ClientByName(char *name) {
-	int i, j, min;
+	int32_t i, j, min;
 	g_client_t *cl, *ret;
 
 	if (!name)

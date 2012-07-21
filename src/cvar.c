@@ -83,10 +83,10 @@ char *Cvar_GetString(const char *name) {
 /*
  * Cvar_CompleteVar
  */
-int Cvar_CompleteVar(const char *partial, const char *matches[]) {
+int32_t Cvar_CompleteVar(const char *partial, const char *matches[]) {
 	cvar_t *cvar;
-	int len;
-	int m;
+	int32_t len;
+	int32_t m;
 
 	len = strlen(partial);
 	m = 0;
@@ -111,7 +111,7 @@ int Cvar_CompleteVar(const char *partial, const char *matches[]) {
  * If the variable already exists, the value will not be set. The flags,
  * however, are always OR'ed into the variable.
  */
-cvar_t *Cvar_Get(const char *name, const char *value, unsigned int flags, const char *description) {
+cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char *description) {
 	cvar_t *v, *var;
 
 	if (!value)
@@ -265,7 +265,7 @@ cvar_t *Cvar_Set(const char *name, const char *value) {
 /*
  * Cvar_FullSet
  */
-cvar_t *Cvar_FullSet(const char *name, const char *value, unsigned int flags) {
+cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 	cvar_t *var;
 
 	var = Cvar_Get_(name);
@@ -388,7 +388,7 @@ void Cvar_UpdateLatchedVars(void) {
 /*
  * Cvar_PendingVars
  */
-bool Cvar_PendingVars(unsigned int flags) {
+bool Cvar_PendingVars(uint32_t flags) {
 	cvar_t *var;
 
 	for (var = cvar_vars; var; var = var->next) {
@@ -402,7 +402,7 @@ bool Cvar_PendingVars(unsigned int flags) {
 /*
  * Cvar_ClearVars
  */
-void Cvar_ClearVars(unsigned int flags) {
+void Cvar_ClearVars(uint32_t flags) {
 	cvar_t *var;
 
 	for (var = cvar_vars; var; var = var->next) {
@@ -424,7 +424,7 @@ bool Cvar_Command(void) {
 	if (!v)
 		return false;
 
-	// perform a variable print or set
+	// perform a variable print32_t or set
 	if (Cmd_Argc() == 1) {
 		Com_Print("\"%s\" is \"%s\"\n", v->name, v->string);
 		return true;
@@ -440,8 +440,8 @@ bool Cvar_Command(void) {
  * Allows setting and defining of arbitrary cvars from console
  */
 static void Cvar_Set_f(void) {
-	unsigned int flags;
-	const int c = Cmd_Argc();
+	uint32_t flags;
+	const int32_t c = Cmd_Argc();
 
 	if (c != 3 && c != 4) {
 		Com_Print("Usage: %s <variable> <value> [u | s]\n", Cmd_Argv(0));
@@ -501,7 +501,7 @@ void Cvar_WriteVars(const char *path) {
  */
 static void Cvar_List_f(void) {
 	const cvar_t *var;
-	int i;
+	int32_t i;
 
 	i = 0;
 	for (var = cvar_vars; var; var = var->next, i++) {
@@ -533,7 +533,7 @@ static void Cvar_List_f(void) {
 /*
  * Cvar_BitInfo
  */
-static char *Cvar_BitInfo(int bit) {
+static char *Cvar_BitInfo(int32_t bit) {
 	static char info[MAX_USER_INFO_STRING];
 	const cvar_t *var;
 

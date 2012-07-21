@@ -25,11 +25,11 @@
 #include "files.h"
 #include "filesystem.h"
 
-int BSP_Main(void);
-int VIS_Main(void);
-int LIGHT_Main(void);
-int MAT_Main(void);
-int PAK_Main(void);
+int32_t BSP_Main(void);
+int32_t VIS_Main(void);
+int32_t LIGHT_Main(void);
+int32_t MAT_Main(void);
+int32_t PAK_Main(void);
 
 extern char map_name[MAX_OSPATH];
 extern char bsp_name[MAX_OSPATH];
@@ -41,9 +41,9 @@ extern bool legacy;
 
 // threads.c
 typedef struct thread_work_s {
-	int index;  // current work cycle
-	int count;  // total work cycles
-	int fraction;  // last fraction of work completed (tenths)
+	int32_t index;  // current work cycle
+	int32_t count;  // total work cycles
+	int32_t fraction;  // last fraction of work completed (tenths)
 	bool progress;  // are we reporting progress
 } thread_work_t;
 
@@ -51,7 +51,7 @@ extern thread_work_t thread_work;
 
 void ThreadLock(void);
 void ThreadUnlock(void);
-void RunThreadsOn(int workcount, bool progress, void(*func)(int));
+void RunThreadsOn(int32_t workcount, bool progress, void(*func)(int));
 
 
 #endif /*__Q2WMAP_H__*/

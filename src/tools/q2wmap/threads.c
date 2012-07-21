@@ -29,7 +29,7 @@ thread_work_t thread_work;
  *
  * Return an iteration of work, updating progress when appropriate.
  */
-static int GetThreadWork(void){
+static int32_t GetThreadWork(void){
 	int	r;
 	int	f;
 
@@ -67,11 +67,11 @@ static void(*WorkFunction)(int);
 /*
  * ThreadWork
  *
- * Shared work entry point by all threads.  Retrieve and perform
+ * Shared work entry point32_t by all threads.  Retrieve and perform
  * chunks of work iteratively until work is finished.
  */
 static void ThreadWork(void *p){
-	int work;
+	int32_t work;
 
 	while(true){
 		work = GetThreadWork();
@@ -113,7 +113,7 @@ void ThreadUnlock(void){
  */
 static void RunThreads(void){
 	thread_t *t[64];
-	int i;
+	int32_t i;
 
 	if(!threads->integer){
 		ThreadWork(0);
@@ -136,9 +136,9 @@ static void RunThreads(void){
 /*
  * RunThreadsOn
  *
- * Entry point for all thread work requests.
+ * Entry point32_t for all thread work requests.
  */
-void RunThreadsOn(int workcount, bool progress, void(*func)(int)){
+void RunThreadsOn(int32_t workcount, bool progress, void(*func)(int)){
 	time_t start, end;
 
 	thread_work.index = 0;

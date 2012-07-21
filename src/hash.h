@@ -49,14 +49,14 @@ Hash_Hashcode
 
 Generate a bin number (not a unique code) for the specified key.
 */
-int Hash_Hashcode(const char *key);
+int32_t Hash_Hashcode(const char *key);
 
 /*
 Hash_Put
 
 Insert the specified key-value pair to hash_table.
 */
-int Hash_Put(hash_table_t *table, const char *key, void *value);
+int32_t Hash_Put(hash_table_t *table, const char *key, void *value);
 
 /*
 Hash_GetEntry

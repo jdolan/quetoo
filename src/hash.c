@@ -39,8 +39,8 @@ void Hash_Init(hash_table_t *table) {
  *
  * Generate a bin number (not a unique code) for the specified key.
  */
-int Hash_Hashcode(const char *key) {
-	int code;
+int32_t Hash_Hashcode(const char *key) {
+	int32_t code;
 	const char *c;
 
 	if (!key || !*key)
@@ -61,9 +61,9 @@ int Hash_Hashcode(const char *key) {
  *
  * Insert the specified key-value pair to hash_table.
  */
-int Hash_Put(hash_table_t *table, const char *key, void *value) {
+int32_t Hash_Put(hash_table_t *table, const char *key, void *value) {
 	hash_entry_t *e;
-	int code;
+	int32_t code;
 
 	if (!key || !*key || !value)
 		return -1;
@@ -94,7 +94,7 @@ int Hash_Put(hash_table_t *table, const char *key, void *value) {
  */
 hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key) {
 	hash_entry_t *e;
-	int code;
+	int32_t code;
 
 	code = Hash_Hashcode(key);
 
@@ -135,7 +135,7 @@ void *Hash_Get(hash_table_t *table, const char *key) {
  * value so that it may also be freed if desired.
  */
 void *Hash_RemoveEntry(hash_table_t *table, hash_entry_t *entry) {
-	int code;
+	int32_t code;
 	void *ret;
 
 	if (!table || !entry)
@@ -190,7 +190,7 @@ void Hash_Clear(hash_table_t *table, const char *key) {
  */
 void Hash_Free(hash_table_t *table) {
 	hash_entry_t *e, *f;
-	int i;
+	int32_t i;
 
 	for (i = 0; i < HASH_BINS; i++) {
 

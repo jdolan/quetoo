@@ -24,8 +24,8 @@
 /*
  * Sys_Milliseconds
  */
-unsigned int Sys_Milliseconds(void) {
-	static unsigned int base, time;
+uint32_t Sys_Milliseconds(void) {
+	static uint32_t base, time;
 
 #ifdef _WIN32
 	if(!base)
@@ -193,7 +193,7 @@ void Sys_OpenLibrary(const char *name, void **handle) {
  * Sys_LoadLibrary
  *
  * Opens and loads the specified shared library. The function identified by
- * entry_point is resolved and invoked with the specified parameters, its
+ * entry_point32_t is resolved and invoked with the specified parameters, its
  * return value returned by this function.
  */
 void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params) {
@@ -220,7 +220,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 /**
  * Sys_Quit
  *
- * The final exit point of the program under normal exit conditions.
+ * The final exit point32_t of the program under normal exit conditions.
  */
 void Sys_Quit(void) {
 	exit(0);
@@ -229,12 +229,12 @@ void Sys_Quit(void) {
 /**
  * Sys_Backtrace
  *
- * On platforms supporting it, print a backtrace.
+ * On platforms supporting it, print32_t a backtrace.
  */
 void Sys_Backtrace(void) {
 #ifdef HAVE_EXECINFO
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
-	int i;
+	int32_t i;
 
 	i = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
 	backtrace_symbols_fd(symbols, i, STDERR_FILENO);
@@ -246,7 +246,7 @@ void Sys_Backtrace(void) {
 /**
  * Sys_Error
  *
- * The final exit point of the program under abnormal exit conditions.
+ * The final exit point32_t of the program under abnormal exit conditions.
  */
 void Sys_Error(const char *error, ...) {
 	va_list args;
@@ -268,7 +268,7 @@ void Sys_Error(const char *error, ...) {
  *
  * Catch kernel interrupts and dispatch the appropriate exit routine.
  */
-void Sys_Signal(int s) {
+void Sys_Signal(int32_t s) {
 
 	switch (s) {
 	case SIGHUP:

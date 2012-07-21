@@ -40,15 +40,15 @@ typedef struct {
 typedef struct {
 	bool initialized;
 	// console dimensions
-	unsigned short width; // console printable width in characters
-	unsigned short height; // console printable height in characters
+	uint16_t width; // console printable width in characters
+	uint16_t height; // console printable height in characters
 
 	// console index
-	int line_color[CON_MAX_LINES]; // text color at the start of the line
+	int32_t line_color[CON_MAX_LINES]; // text color at the start of the line
 	char *line_start[CON_MAX_LINES]; // an index to word-wrapped line starts
-	int last_line; // last line of the console
+	int32_t last_line; // last line of the console
 
-	int scroll; // scroll position
+	int32_t scroll; // scroll position
 
 	float notify_times[CON_NUM_NOTIFY]; // cls.real_time time the line was generated
 // for transparent notify lines
@@ -58,8 +58,8 @@ typedef struct {
 void Con_Init(void);
 void Con_Shutdown(void);
 void Con_Print(const char *text);
-void Con_Resize(console_t *con, unsigned short width, unsigned short height);
-int Con_CompleteCommand(char *input_text, unsigned short *input_position);
+void Con_Resize(console_t *con, uint16_t width, uint16_t height);
+int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position);
 
 #ifdef HAVE_CURSES
 
@@ -76,7 +76,7 @@ extern cvar_t *con_timeout;
 
 void Curses_Init(void);
 void Curses_Shutdown(void);
-void Curses_Frame(unsigned int msec);
+void Curses_Frame(uint32_t msec);
 void Curses_Refresh(void);
 
 #endif /* HAVE_CURSES */

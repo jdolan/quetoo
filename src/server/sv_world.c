@@ -31,7 +31,7 @@
 #define EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l, g_edict_t, area)
 
 typedef struct sv_area_node_s {
-	int axis; // -1 = leaf node
+	int32_t axis; // -1 = leaf node
 	float dist;
 	struct sv_area_node_s *children[2];
 	link_t trigger_edicts;
@@ -45,14 +45,14 @@ typedef struct sv_area_node_s {
 typedef struct sv_world_s {
 
 	sv_area_node_t area_nodes[AREA_NODES];
-	int num_area_nodes;
+	int32_t num_area_nodes;
 
 	const float *area_mins, *area_maxs;
 
 	g_edict_t **area_edicts;
 
-	int num_area_edicts, max_area_edicts;
-	int area_type;
+	int32_t num_area_edicts, max_area_edicts;
+	int32_t area_type;
 } sv_world_t;
 
 sv_world_t sv_world;
@@ -87,7 +87,7 @@ static void Sv_InsertLink(link_t *l, link_t *before) {
  *
  * Builds a uniformly subdivided tree for the given world size.
  */
-static sv_area_node_t *Sv_CreateAreaNode(int depth, vec3_t mins, vec3_t maxs) {
+static sv_area_node_t *Sv_CreateAreaNode(int32_t depth, vec3_t mins, vec3_t maxs) {
 	sv_area_node_t *anode;
 	vec3_t size;
 	vec3_t mins1, maxs1, mins2, maxs2;
@@ -162,12 +162,12 @@ void Sv_UnlinkEdict(g_edict_t *ent) {
  */
 void Sv_LinkEdict(g_edict_t *ent) {
 	sv_area_node_t *node;
-	int leafs[MAX_TOTAL_ENT_LEAFS];
-	int clusters[MAX_TOTAL_ENT_LEAFS];
-	int num_leafs;
-	int i, j, k;
-	int area;
-	int top_node;
+	int32_t leafs[MAX_TOTAL_ENT_LEAFS];
+	int32_t clusters[MAX_TOTAL_ENT_LEAFS];
+	int32_t num_leafs;
+	int32_t i, j, k;
+	int32_t area;
+	int32_t top_node;
 
 	if (ent == svs.game->edicts) // never bother with the world
 		return;
@@ -212,7 +212,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	// set the absolute bounding box
 	if (ent->solid == SOLID_BSP && (ent->s.angles[0] || ent->s.angles[1] || ent->s.angles[2])) { // expand for rotation
 		float max, v;
-		int i;
+		int32_t i;
 
 		max = 0;
 		for (i = 0; i < 3; i++) {
@@ -378,8 +378,8 @@ static void Sv_AreaEdicts_r(sv_area_node_t *node) {
  *
  * Returns the number of entities found.
  */
-int Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
-		const int max_area_edicts, const int area_type) {
+int32_t Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
+		const int32_t max_area_edicts, const int32_t area_type) {
 
 	sv_world.area_mins = mins;
 	sv_world.area_maxs = maxs;
@@ -400,9 +400,9 @@ int Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
  * object of mins/maxs size.
  *
  * Offset is filled in to contain the adjustment that must be added to the
- * testing object's origin to get a point to use with the returned hull.
+ * testing object's origin to get a point32_t to use with the returned hull.
  */
-static int Sv_HullForEntity(const g_edict_t *ent) {
+static int32_t Sv_HullForEntity(const g_edict_t *ent) {
 	c_model_t *model;
 
 	// decide which clipping hull to use, based on the size
@@ -423,11 +423,11 @@ static int Sv_HullForEntity(const g_edict_t *ent) {
  * Sv_PointContents
  *
  * Returns the contents mask for the specified point.  This includes world
- * contents as well as contents for any entities this point intersects.
+ * contents as well as contents for any entities this point32_t intersects.
  */
-int Sv_PointContents(const vec3_t point) {
+int32_t Sv_PointContents(const vec3_t point) {
 	g_edict_t *touched[MAX_EDICTS];
-	int i, contents, num;
+	int32_t i, contents, num;
 
 	// get base contents from world
 	contents = Cm_PointContents(point, sv.models[1]->head_node);
@@ -441,7 +441,7 @@ int Sv_PointContents(const vec3_t point) {
 		const vec_t *angles;
 
 		// might intersect, so do an exact clip
-		const int head_node = Sv_HullForEntity(touch);
+		const int32_t head_node = Sv_HullForEntity(touch);
 
 		if (touch->solid == SOLID_BSP) // bsp models can rotate
 			angles = touch->s.angles;
@@ -461,7 +461,7 @@ typedef struct sv_trace_s {
 	const float *start, *end;
 	c_trace_t trace;
 	const g_edict_t *skip;
-	int mask;
+	int32_t mask;
 } sv_trace_t;
 
 /*
@@ -474,7 +474,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	g_edict_t *touched[MAX_EDICTS];
 	vec_t *angles;
 	c_trace_t tr;
-	int i, num, head_node;
+	int32_t i, num, head_node;
 
 	// first resolve the entities found within our desired trace
 	num = Sv_AreaEdicts(trace->box_mins, trace->box_maxs, touched, MAX_EDICTS, AREA_SOLID);
@@ -533,7 +533,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
  * Sv_TraceBounds
  */
 static void Sv_TraceBounds(sv_trace_t *trace) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 3; i++) {
 		if (trace->end[i] > trace->start[i]) {
@@ -555,7 +555,7 @@ static void Sv_TraceBounds(sv_trace_t *trace) {
  * This prevents players from clipping against their own projectiles, etc.
  */
 c_trace_t Sv_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
-		const g_edict_t *skip, int mask) {
+		const g_edict_t *skip, int32_t mask) {
 
 	sv_trace_t trace;
 

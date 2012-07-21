@@ -87,7 +87,7 @@ bool Cl_CheckOrDownloadFile(const char *file_name) {
 
 	fp = fopen(name, "r+b");
 	if (fp) { // a temp file exists, resume download
-		int len;
+		int32_t len;
 		fseek(fp, 0, SEEK_END);
 		len = ftell(fp);
 
@@ -133,8 +133,8 @@ static void Cl_ParseBaseline(void) {
 	entity_state_t *state;
 	entity_state_t null_state;
 
-	const unsigned short number = Msg_ReadShort(&net_message);
-	const unsigned short bits = Msg_ReadShort(&net_message);
+	const uint16_t number = Msg_ReadShort(&net_message);
+	const uint16_t bits = Msg_ReadShort(&net_message);
 
 	memset(&null_state, 0, sizeof(null_state));
 	state = &cl.entities[number].baseline;
@@ -146,7 +146,7 @@ static void Cl_ParseBaseline(void) {
  * Cl_ParseConfigString
  */
 void Cl_ParseConfigString(void) {
-	const unsigned short i = (unsigned short) Msg_ReadShort(&net_message);
+	const uint16_t i = (uint16_t) Msg_ReadShort(&net_message);
 
 	if (i >= MAX_CONFIG_STRINGS) {
 		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
@@ -183,7 +183,7 @@ void Cl_ParseConfigString(void) {
  * A download message has been received from the server.
  */
 static void Cl_ParseDownload(void) {
-	int size, percent;
+	int32_t size, percent;
 	char name[MAX_OSPATH];
 
 	// read the data
@@ -249,7 +249,7 @@ static void Cl_ParseDownload(void) {
  */
 static void Cl_ParseServerData(void) {
 	char *str;
-	int i;
+	int32_t i;
 
 	// wipe the cl_client_t struct
 	Cl_ClearState();
@@ -297,10 +297,10 @@ static void Cl_ParseServerData(void) {
 static void Cl_ParseSound(void) {
 	vec3_t origin;
 	float *org;
-	unsigned short index;
-	unsigned short ent_num;
-	int atten;
-	int flags;
+	uint16_t index;
+	uint16_t ent_num;
+	int32_t atten;
+	int32_t flags;
 
 	flags = Msg_ReadByte(&net_message);
 
@@ -365,9 +365,9 @@ static void Cl_ShowNet(const char *s) {
  * Cl_ParseServerMessage
  */
 void Cl_ParseServerMessage(void) {
-	int cmd, old_cmd;
+	int32_t cmd, old_cmd;
 	char *s;
-	int i;
+	int32_t i;
 
 	if (cl_show_net_messages->integer == 1)
 		Com_Print(Q2W_SIZE_T" ", net_message.size);

@@ -164,7 +164,7 @@ static void R_ParticleTexcoords(r_particle_t *p, GLfloat *out) {
  */
 static void R_ParticleColor(r_particle_t *p, GLfloat *out) {
 	byte color[4];
-	int i, j;
+	int32_t i, j;
 
 	memcpy(&color, &palette[p->color], sizeof(color));
 	color[3] = p->current_alpha * 255.0;
@@ -182,10 +182,10 @@ static void R_ParticleColor(r_particle_t *p, GLfloat *out) {
 /*
  * R_DrawParticles_
  */
-static void R_DrawParticles_(int mask) {
+static void R_DrawParticles_(int32_t mask) {
 	r_particle_t *p;
 	r_image_t *image;
-	int i, j, k, l;
+	int32_t i, j, k, l;
 
 	image = NULL;
 

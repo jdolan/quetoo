@@ -21,8 +21,8 @@
 
 #include "qbsp.h"
 
-int c_nofaces;
-int c_facenodes;
+int32_t c_nofaces;
+int32_t c_facenodes;
 
 
 /*
@@ -32,7 +32,7 @@ int c_facenodes;
  * brushes will be saved in the map.
  */
 static void EmitPlanes(void){
-	int i;
+	int32_t i;
 	d_bsp_plane_t *dp;
 	map_plane_t *mp;
 
@@ -51,8 +51,8 @@ static void EmitPlanes(void){
  * EmitLeafFace
  */
 static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f){
-	int i;
-	int face_num;
+	int32_t i;
+	int32_t face_num;
 
 	while(f->merged)
 		f = f->merged;
@@ -90,11 +90,11 @@ static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f){
 static void EmitLeaf(node_t *node){
 	d_bsp_leaf_t *leaf_p;
 	portal_t *p;
-	int s;
+	int32_t s;
 	face_t *f;
 	bsp_brush_t *b;
-	int i;
-	int brush_num;
+	int32_t i;
+	int32_t brush_num;
 
 	// emit a leaf
 	if(d_bsp.num_leafs >= MAX_BSP_LEAFS)
@@ -158,8 +158,8 @@ static void EmitLeaf(node_t *node){
  */
 static void EmitFace(face_t *f){
 	d_bsp_face_t *df;
-	int i;
-	int e;
+	int32_t i;
+	int32_t e;
 
 	f->output_number = -1;
 
@@ -203,10 +203,10 @@ static void EmitFace(face_t *f){
 /*
  * EmitDrawingNode_r
  */
-static int EmitDrawNode_r(node_t * node){
+static int32_t EmitDrawNode_r(node_t * node){
 	d_bsp_node_t *n;
 	face_t *f;
-	int i;
+	int32_t i;
 
 	if(node->plane_num == PLANENUM_LEAF){
 		EmitLeaf(node);
@@ -257,7 +257,7 @@ static int EmitDrawNode_r(node_t * node){
  * WriteBSP
  */
 void WriteBSP(node_t *head_node){
-	int old_faces;
+	int32_t old_faces;
 
 	c_nofaces = 0;
 	c_facenodes = 0;
@@ -279,8 +279,8 @@ void WriteBSP(node_t *head_node){
  * SetModelNumbers
  */
 void SetModelNumbers(void){
-	int i;
-	int models;
+	int32_t i;
+	int32_t models;
 	char value[10];
 
 	// 0 is the world - start at 1
@@ -299,13 +299,13 @@ void SetModelNumbers(void){
  * EmitBrushes
  */
 static void EmitBrushes(void){
-	int i, j, bnum, s, x;
+	int32_t i, j, bnum, s, x;
 	d_bsp_brush_t *db;
 	map_brush_t *b;
 	d_bsp_brush_side_t *cp;
 	vec3_t normal;
 	vec_t dist;
-	int plane_num;
+	int32_t plane_num;
 
 	d_bsp.num_brush_sides = 0;
 	d_bsp.num_brushes = num_map_brushes;
@@ -404,12 +404,12 @@ void EndBSPFile(void){
 /*
  * BeginModel
  */
-extern int first_bsp_model_edge;
+extern int32_t first_bsp_model_edge;
 void BeginModel(void){
 	d_bsp_model_t *mod;
-	int start, end;
+	int32_t start, end;
 	map_brush_t *b;
-	int j;
+	int32_t j;
 	entity_t *e;
 	vec3_t mins, maxs;
 

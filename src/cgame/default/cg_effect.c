@@ -22,13 +22,13 @@
 #include "cg_local.h"
 
 #define MAX_WEATHER_PARTICLES 2048
-unsigned short cg_num_weather_particles;
+uint16_t cg_num_weather_particles;
 
 /*
  * Cg_WeatherEffects
  */
 void Cg_WeatherEffects(void) {
-	int j, k, max;
+	int32_t j, k, max;
 	vec3_t start, end;
 	c_trace_t tr;
 	float ceiling;

@@ -26,7 +26,7 @@
 /*
  * SwapShort
  */
-static short SwapShort(short l) {
+static int16_t SwapShort(int16_t l) {
 
 	const byte b1 = l & 255;
 	const byte b2 = (l >> 8) & 255;
@@ -37,7 +37,7 @@ static short SwapShort(short l) {
 /*
  * SwapLong
  */
-static int SwapLong(int l) {
+static int32_t SwapLong(int32_t l) {
 
 	const byte b1 = l & 255;
 	const byte b2 = (l >> 8) & 255;
@@ -70,7 +70,7 @@ static float SwapFloat(float f) {
 /*
  * BigShort
  */
-short BigShort(short s) {
+int16_t BigShort(int16_t s) {
 	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
 		return SwapShort(s);
 	return s;
@@ -79,7 +79,7 @@ short BigShort(short s) {
 /*
  * LittleShort
  */
-short LittleShort(short s) {
+int16_t LittleShort(int16_t s) {
 	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 		return SwapShort(s);
 	return s;
@@ -88,7 +88,7 @@ short LittleShort(short s) {
 /*
  * BigLong
  */
-int BigLong(int l) {
+int32_t BigLong(int32_t l) {
 	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
 		return SwapLong(l);
 	return l;
@@ -97,7 +97,7 @@ int BigLong(int l) {
 /*
  * LittleLong
  */
-int LittleLong(int l) {
+int32_t LittleLong(int32_t l) {
 	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 		return SwapLong(l);
 	return l;

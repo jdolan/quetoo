@@ -24,19 +24,19 @@
 
 // counters are only bumped when running single threaded,
 // because they are an awefull coherence problem
-int c_active_windings;
-int c_peak_windings;
-int c_winding_allocs;
-int c_winding_points;
+int32_t c_active_windings;
+int32_t c_peak_windings;
+int32_t c_winding_allocs;
+int32_t c_winding_points;
 
 #define	BOGUS_RANGE	8192
 
 /*
  * AllocWinding
  */
-winding_t *AllocWinding(int points) {
+winding_t *AllocWinding(int32_t points) {
 	winding_t *w;
-	int s;
+	int32_t s;
 
 	if (!threads->integer) {
 		c_winding_allocs++;
@@ -67,18 +67,18 @@ void FreeWinding(winding_t *w) {
 /*
  * RemoveColinearPoints
  */
-int c_removed;
+int32_t c_removed;
 
 void RemoveColinearPoints(winding_t *w) {
-	int i;
+	int32_t i;
 	vec3_t v1, v2;
-	int nump;
+	int32_t nump;
 	vec3_t p[MAX_POINTS_ON_WINDING];
 
 	nump = 0;
 	for (i = 0; i < w->numpoints; i++) {
-		const int j = (i + 1) % w->numpoints;
-		const int k = (i + w->numpoints - 1) % w->numpoints;
+		const int32_t j = (i + 1) % w->numpoints;
+		const int32_t k = (i + w->numpoints - 1) % w->numpoints;
 		VectorSubtract(w->p[j], w->p[i], v1);
 		VectorSubtract(w->p[i], w->p[k], v2);
 		VectorNormalize(v1);
@@ -116,7 +116,7 @@ void WindingPlane(const winding_t *w, vec3_t normal, vec_t *dist) {
  * WindingArea
  */
 vec_t WindingArea(const winding_t *w) {
-	int i;
+	int32_t i;
 	vec3_t d1, d2, cross;
 	vec_t total;
 
@@ -134,7 +134,7 @@ vec_t WindingArea(const winding_t *w) {
  * WindingBounds
  */
 void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs) {
-	int i, j;
+	int32_t i, j;
 
 	mins[0] = mins[1] = mins[2] = 99999;
 	maxs[0] = maxs[1] = maxs[2] = -99999;
@@ -154,7 +154,7 @@ void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs) {
  * WindingCenter
  */
 void WindingCenter(const winding_t *w, vec3_t center) {
-	int i;
+	int32_t i;
 	float scale;
 
 	VectorCopy(vec3_origin, center);
@@ -169,7 +169,7 @@ void WindingCenter(const winding_t *w, vec3_t center) {
  * BaseWindingForPlane
  */
 winding_t *BaseWindingForPlane(const vec3_t normal, const vec_t dist) {
-	int i, x;
+	int32_t i, x;
 	vec_t max, v;
 	vec3_t org, vright, vup;
 	winding_t *w;
@@ -246,7 +246,7 @@ winding_t *CopyWinding(const winding_t *w) {
  * ReverseWinding
  */
 winding_t *ReverseWinding(winding_t *w) {
-	int i;
+	int32_t i;
 	winding_t *c;
 
 	c = AllocWinding(w->numpoints);
@@ -263,14 +263,14 @@ winding_t *ReverseWinding(winding_t *w) {
 void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 		vec_t epsilon, winding_t **front, winding_t **back) {
 	vec_t dists[MAX_POINTS_ON_WINDING + 4];
-	int sides[MAX_POINTS_ON_WINDING + 4];
-	int counts[SIDE_BOTH + 1];
+	int32_t sides[MAX_POINTS_ON_WINDING + 4];
+	int32_t counts[SIDE_BOTH + 1];
 	static vec_t dot; // VC 4.2 optimizer bug if not static
-	int i, j;
+	int32_t i, j;
 	const vec_t *p2;
 	vec3_t mid;
 	winding_t *f, *b;
-	int maxpts;
+	int32_t maxpts;
 
 	memset(counts, 0, sizeof(counts));
 
@@ -363,14 +363,14 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal,
 		const vec_t dist, const vec_t epsilon) {
 	winding_t *in;
 	vec_t dists[MAX_POINTS_ON_WINDING + 4];
-	int sides[MAX_POINTS_ON_WINDING + 4];
-	int counts[SIDE_BOTH + 1];
+	int32_t sides[MAX_POINTS_ON_WINDING + 4];
+	int32_t counts[SIDE_BOTH + 1];
 	static vec_t dot; // VC 4.2 optimizer bug if not static
-	int i, j;
+	int32_t i, j;
 	vec_t *p1, *p2;
 	vec3_t mid;
 	winding_t *f;
-	int maxpts;
+	int32_t maxpts;
 
 	in = *inout;
 

@@ -37,25 +37,25 @@ typedef struct cg_import_s {
 	void (*Warn)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
-	void *(*Alloc)(size_t size, short tag);
+	void *(*Alloc)(size_t size, int16_t tag);
 	void (*Free)(void *p);
-	void (*FreeTag)(short tag);
+	void (*FreeTag)(int16_t tag);
 
-	cvar_t *(*Cvar)(const char *name, const char *value, unsigned int flags, const char *description);
-	void (*AddCommand)(const char *name, cmd_function_t function, unsigned int flags, const char *description);
+	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *description);
+	void (*AddCommand)(const char *name, cmd_function_t function, uint32_t flags, const char *description);
 	void (*RemoveCommand)(const char *name);
 
-	int (*LoadFile)(const char *path, void **buffer);
+	int32_t (*LoadFile)(const char *path, void **buffer);
 	void (*FreeFile)(void *buffer);
 
-	char *(*ConfigString)(unsigned short index);
+	char *(*ConfigString)(uint16_t index);
 
 	// network messaging
 	void (*ReadData)(void *buf, size_t len);
-	int (*ReadChar)(void);
-	int (*ReadByte)(void);
-	int (*ReadShort)(void);
-	int (*ReadLong)(void);
+	int32_t (*ReadChar)(void);
+	int32_t (*ReadByte)(void);
+	int32_t (*ReadShort)(void);
+	int32_t (*ReadLong)(void);
 	char *(*ReadString)(void);
 	void (*ReadPosition)(vec3_t pos);
 	void (*ReadDirection)(vec3_t dir);
@@ -71,8 +71,8 @@ typedef struct cg_import_s {
 	char *(*EntityString)(void);
 
 	// collision
-	int (*PointContents)(const vec3_t point);
-	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, float radius, int mask);
+	int32_t (*PointContents)(const vec3_t point);
+	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, float radius, int32_t mask);
 
 	// PVS and PHS
 	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_model_t *model);
@@ -81,7 +81,7 @@ typedef struct cg_import_s {
 
 	// sound
 	s_sample_t *(*LoadSample)(const char *name);
-	void (*PlaySample)(const vec3_t org, unsigned short ent_num, s_sample_t *sample, int atten);
+	void (*PlaySample)(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_t atten);
 	void (*LoopSample)(const vec3_t org, s_sample_t *sample);
 
 	// OpenGL context
@@ -113,25 +113,25 @@ typedef struct cg_import_s {
 
 	// 2D drawing facilities
 	void (*DrawPic)(r_pixel_t x, r_pixel_t y, float scale, const char *name);
-	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int c, float a);
+	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, float a);
 
 	void (*BindFont)(const char *name, r_pixel_t *cw, r_pixel_t *ch);
 	r_pixel_t (*StringWidth)(const char *s);
-	size_t (*DrawString)(r_pixel_t x, r_pixel_t y, const char *s, int color);
+	size_t (*DrawString)(r_pixel_t x, r_pixel_t y, const char *s, int32_t color);
 } cg_import_t;
 
 // exposed to the engine by the client game
 typedef struct cg_export_s {
-	int api_version;
+	int32_t api_version;
 
 	void (*Init)(void);
 	void (*Shutdown)(void);
 
 	void (*ClearState)(void);
 	void (*UpdateMedia)(void);
-	void (*UpdateConfigString)(unsigned short index);
+	void (*UpdateConfigString)(uint16_t index);
 
-	bool (*ParseMessage)(int cmd);
+	bool (*ParseMessage)(int32_t cmd);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*PopulateView)(const cl_frame_t *frame);
 	void (*DrawFrame)(const cl_frame_t *frame);

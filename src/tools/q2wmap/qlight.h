@@ -63,9 +63,9 @@ void BuildLightmaps(void);
 
 void BuildVertexNormals(void);
 
-void BuildFacelights(int facenum);
+void BuildFacelights(int32_t facenum);
 
-void FinalLightFace(int facenum);
+void FinalLightFace(int32_t facenum);
 
 bool PvsForOrigin(const vec3_t org, byte *pvs);
 
@@ -73,7 +73,7 @@ void BuildLights(void);
 
 d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point);
 
-void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int mask);
+void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
 
 // patches.c
 void CalcTextureReflectivity(void);

@@ -37,14 +37,14 @@ void G_info_notnull(g_edict_t *self) {
 }
 
 /*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
- The normal starting point for a level.
+ The normal starting point32_t for a level.
  */
 void G_info_player_start(g_edict_t *self) {
 	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32)
- Level intermission point will be at one of these
+ Level intermission point32_t will be at one of these
  Use 'angles' instead of 'angle', so you can set pitch or roll as well as yaw.
  'pitch yaw roll'
  */

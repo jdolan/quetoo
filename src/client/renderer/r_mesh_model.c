@@ -46,7 +46,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 	char path[MAX_QPATH];
 	const char *buffer, *c;
 	void *buf;
-	unsigned short skip;
+	uint16_t skip;
 
 	md3 = (r_md3_t *) mod->extra_data;
 
@@ -74,13 +74,13 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 		if (*c >= '0' && *c <= '9') {
 			r_md3_animation_t *a = &md3->animations[md3->num_animations];
 
-			a->first_frame = (unsigned short) strtoul(c, NULL, 0);
+			a->first_frame = (uint16_t) strtoul(c, NULL, 0);
 			c = ParseToken(&buffer);
-			a->num_frames = (unsigned short) strtoul(c, NULL, 0);
+			a->num_frames = (uint16_t) strtoul(c, NULL, 0);
 			c = ParseToken(&buffer);
-			a->looped_frames = (unsigned short) strtoul(c, NULL, 0);
+			a->looped_frames = (uint16_t) strtoul(c, NULL, 0);
 			c = ParseToken(&buffer);
-			a->hz = (unsigned short) strtoul(c, NULL, 0);
+			a->hz = (uint16_t) strtoul(c, NULL, 0);
 
 			if (md3->num_animations == ANIM_LEGS_WALKCR)
 				skip = a->first_frame - md3->animations[ANIM_TORSO_GESTURE].first_frame;
@@ -186,7 +186,7 @@ static void R_LoadMeshConfigs(r_model_t *mod) {
 static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 	vec3_t *tan1, *tan2;
 	unsigned *tri;
-	int i;
+	int32_t i;
 
 	tan1 = (vec3_t *) Z_Malloc(mesh->num_verts * sizeof(vec3_t));
 	tan2 = (vec3_t *) Z_Malloc(mesh->num_verts * sizeof(vec3_t));
@@ -273,7 +273,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	r_md3_mesh_t *mesh;
 	r_md3_vertex_t *v;
 	d_md3_texcoord_t *texcoords;
-	int i, j, vert_index, tangent_index, texcoord_index;
+	int32_t i, j, vert_index, tangent_index, texcoord_index;
 	unsigned *tri;
 
 	R_AllocVertexArrays(mod); // allocate the arrays
@@ -330,7 +330,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
  * R_LoadMd3Model
  */
 void R_LoadMd3Model(r_model_t *mod, void *buffer) {
-	int version, i, j, l;
+	int32_t version, i, j, l;
 	d_md3_t *inmodel;
 	r_md3_t *outmodel;
 	d_md3_frame_t *inframe, *outframe;
@@ -537,7 +537,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 static void R_LoadObjModelTangents(r_obj_t *obj) {
 	vec3_t *tan1, *tan2;
 	r_obj_tri_t *tri;
-	int i, j;
+	int32_t i, j;
 
 	tan1 = (vec3_t *) Z_Malloc(obj->num_verts * sizeof(vec3_t));
 	tan2 = (vec3_t *) Z_Malloc(obj->num_verts * sizeof(vec3_t));
@@ -549,17 +549,17 @@ static void R_LoadObjModelTangents(r_obj_t *obj) {
 	for (i = 0; i < obj->num_tris; i++, tri++) {
 		vec3_t sdir, tdir;
 
-		const int i1 = tri->verts[0].vert - 1;
-		const int i2 = tri->verts[1].vert - 1;
-		const int i3 = tri->verts[2].vert - 1;
+		const int32_t i1 = tri->verts[0].vert - 1;
+		const int32_t i2 = tri->verts[1].vert - 1;
+		const int32_t i3 = tri->verts[2].vert - 1;
 
 		const float *v1 = &obj->verts[i1 * 3];
 		const float *v2 = &obj->verts[i2 * 3];
 		const float *v3 = &obj->verts[i3 * 3];
 
-		const int j1 = tri->verts[0].texcoord - 1;
-		const int j2 = tri->verts[1].texcoord - 1;
-		const int j3 = tri->verts[2].texcoord - 1;
+		const int32_t j1 = tri->verts[0].texcoord - 1;
+		const int32_t j2 = tri->verts[1].texcoord - 1;
+		const int32_t j3 = tri->verts[2].texcoord - 1;
 
 		const float *w1 = &obj->texcoords[j1 * 2];
 		const float *w2 = &obj->texcoords[j2 * 2];
@@ -632,7 +632,7 @@ static void R_LoadObjModelTangents(r_obj_t *obj) {
 static void R_LoadObjModelVertexArrays(r_model_t *mod) {
 	const r_obj_t *obj;
 	const r_obj_tri_t *t;
-	int i, j, vert_index, tangent_index, texcoord_index;
+	int32_t i, j, vert_index, tangent_index, texcoord_index;
 
 	R_AllocVertexArrays(mod);
 
@@ -677,17 +677,17 @@ static void R_LoadObjModelVertexArrays(r_model_t *mod) {
  * Triangulation of arbitrary polygons.  Assembles count tris on the model
  * from the specified array of verts.  All tris will share the first vert.
  */
-static void R_LoadObjModelTris(r_obj_t *obj, const r_obj_vert_t *verts, int count) {
-	int i;
+static void R_LoadObjModelTris(r_obj_t *obj, const r_obj_vert_t *verts, int32_t count) {
+	int32_t i;
 
 	if (!obj->tris)
 		return;
 
 	for (i = 0; i < count; i++) { // walk around the polygon
 
-		const int v0 = 0;
-		const int v1 = 1 + i;
-		const int v2 = 2 + i;
+		const int32_t v0 = 0;
+		const int32_t v1 = 1 + i;
+		const int32_t v2 = 2 + i;
 
 		r_obj_tri_t *t = &obj->tris[obj->num_tris_parsed + i];
 
@@ -711,11 +711,11 @@ static void R_LoadObjModelTris(r_obj_t *obj, const r_obj_vert_t *verts, int coun
  *
  * Returns the number of triangles produced for the specified line.
  */
-static int R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char *line) {
+static int32_t R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char *line) {
 	r_obj_vert_t *v, verts[MAX_OBJ_FACE_VERTS];
 	const char *d;
 	char *e, tok[32];
-	int i, tris;
+	int32_t i, tris;
 
 	memset(verts, 0, sizeof(verts));
 	i = 0;
@@ -861,7 +861,7 @@ static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer) {
 	char line[MAX_STRING_CHARS];
 	const char *c;
 	bool comment;
-	int i;
+	int32_t i;
 
 	c = buffer;
 	comment = false;
@@ -901,7 +901,7 @@ static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer) {
 void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	r_obj_t *obj;
 	const float *v;
-	int i;
+	int32_t i;
 
 	mod->type = mod_obj;
 

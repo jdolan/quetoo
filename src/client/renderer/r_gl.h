@@ -99,8 +99,8 @@ extern void (APIENTRY *qglGetProgramInfoLog)(GLuint id, GLuint maxlen, GLuint *l
 extern GLint (APIENTRY *qglGetUniformLocation)(GLuint id, const GLchar *name);
 extern void (APIENTRY *qglUniform1i)(GLint location, GLint i);
 extern void (APIENTRY *qglUniform1f)(GLint location, GLfloat f);
-extern void (APIENTRY *qglUniform3fv)(GLint location, int count, GLfloat *f);
-extern void (APIENTRY *qglUniform4fv)(GLint location, int count, GLfloat *f);
+extern void (APIENTRY *qglUniform3fv)(GLint location, int32_t count, GLfloat *f);
+extern void (APIENTRY *qglUniform4fv)(GLint location, int32_t count, GLfloat *f);
 extern GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
 void R_EnforceGlVersion(void);

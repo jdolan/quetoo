@@ -40,7 +40,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 
 #define MAX_GL_TEXTURES		1024
 extern r_image_t r_images[MAX_GL_TEXTURES];
-extern unsigned short r_num_images;
+extern uint16_t r_num_images;
 
 #define MAX_GL_LIGHTMAPS 	256
 #define TEXNUM_LIGHTMAPS 	MAX_GL_TEXTURES
@@ -50,9 +50,9 @@ extern unsigned short r_num_images;
 
 #define BACK_PLANE_EPSILON	0.01
 
-void R_SoftenTexture(byte *in, int width, int height, r_image_type_t type);
-void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type_t type);
-r_image_t *R_UploadImage(const char *name, byte *data, int width, int height, r_image_type_t type);
+void R_SoftenTexture(byte *in, int32_t width, int32_t height, r_image_type_t type);
+void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_image_type_t type);
+r_image_t *R_UploadImage(const char *name, byte *data, int32_t width, int32_t height, r_image_type_t type);
 void R_TextureMode(const char *mode);
 void R_ListImages_f(void);
 void R_Screenshot_f(void);

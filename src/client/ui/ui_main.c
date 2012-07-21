@@ -37,7 +37,7 @@ extern cl_static_t cls;
 
 		if (event->key.keysym.sym == SDLK_ESCAPE && event->type == SDL_KEYDOWN) {
 
-			int visible;
+			int32_t visible;
 			TwGetParam(ui.root, NULL, "visible", TW_PARAM_INT32, 1, &visible);
 
 			if (!visible) {
@@ -56,7 +56,7 @@ extern cl_static_t cls;
  * Draws any active TwBar components.
  */
 void Ui_Draw(void) {
-	static int w, h;
+	static int32_t w, h;
 
 	if (w != r_context.width || h != r_context.height || r_view.update) {
 

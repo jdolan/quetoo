@@ -147,7 +147,7 @@ static void Cg_Shutdown(void) {
  *
  * Parse a single server command, returning true on success.
  */
-static bool Cg_ParseMessage(int cmd) {
+static bool Cg_ParseMessage(int32_t cmd) {
 
 	switch (cmd) {
 	case SV_CMD_TEMP_ENTITY:
@@ -198,7 +198,7 @@ static void Cg_ClearState(void) {
  * An updated configuration string has just been received from the server.
  * Refresh related variables and media that aren't managed by the engine.
  */
-static void Cg_UpdateConfigString(unsigned short i) {
+static void Cg_UpdateConfigString(uint16_t i) {
 
 	const char *s = cgi.ConfigString(i);
 

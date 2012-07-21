@@ -27,8 +27,8 @@
  * Parses deltas from the given base and adds the resulting entity
  * to the current frame.
  */
-static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, unsigned short number,
-		unsigned short bits) {
+static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number,
+		uint16_t bits) {
 
 	cl_entity_t *ent;
 	entity_state_t *to;
@@ -67,8 +67,8 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, unsigned sho
  */
 static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame) {
 	entity_state_t *old_state = NULL;
-	unsigned int old_index;
-	unsigned short old_number;
+	uint32_t old_index;
+	uint16_t old_number;
 
 	new_frame->entity_state = cl.entity_state;
 	new_frame->num_entities = 0;
@@ -89,8 +89,8 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 	}
 
 	while (true) {
-		const unsigned short number = Msg_ReadShort(&net_message);
-		const unsigned short bits = Msg_ReadShort(&net_message);
+		const uint16_t number = Msg_ReadShort(&net_message);
+		const uint16_t bits = Msg_ReadShort(&net_message);
 
 		if (number >= MAX_EDICTS)
 			Com_Error(ERR_DROP, "Cl_ParseEntities: bad number: %i.\n", number);
@@ -196,9 +196,9 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
  */
 static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_frame) {
 	player_state_t *ps;
-	unsigned short pm_state_bits;
-	int i;
-	unsigned int stat_bits;
+	uint16_t pm_state_bits;
+	int32_t i;
+	uint32_t stat_bits;
 
 	ps = &new_frame->ps;
 
@@ -300,7 +300,7 @@ void Cl_ParseFrame(void) {
 		if (!old_frame->valid)
 			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta from invalid frame.\n");
 
-		if (old_frame->server_frame != (unsigned int) cl.frame.delta_frame)
+		if (old_frame->server_frame != (uint32_t) cl.frame.delta_frame)
 			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta frame too old.\n");
 
 		else if (cl.entity_state - old_frame->entity_state > ENTITY_STATE_BACKUP - UPDATE_BACKUP)
@@ -338,7 +338,7 @@ void Cl_ParseFrame(void) {
  * Invalidate lighting caches on media load.
  */
 void Cl_UpdateEntities(void) {
-	unsigned int i;
+	uint32_t i;
 
 	if (!r_view.update)
 		return;

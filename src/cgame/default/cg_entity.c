@@ -61,7 +61,7 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 		return;
 	}
 
-	int effects = s->effects;
+	int32_t effects = s->effects;
 
 	ent->origin[2] -= 6.0; // small hack for PM_SCALE
 
@@ -253,7 +253,7 @@ static void Cg_AddEntity(cl_entity_t *e) {
  * several.
  */
 void Cg_AddEntities(void) {
-	int i;
+	int32_t i;
 
 	if (!cg_add_entities->value)
 		return;
@@ -263,7 +263,7 @@ void Cg_AddEntities(void) {
 	// resolve any models, animations, interpolations, rotations, bobbing, etc..
 	for (i = 0; i < frame->num_entities; i++) {
 
-		const int snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
+		const int32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cgi.client->entity_states[snum];
 
 		cl_entity_t *cent = &cgi.client->entities[s->number];

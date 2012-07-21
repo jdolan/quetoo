@@ -59,7 +59,7 @@ typedef struct g_edict_s g_edict_t; // OR in game module
 
 struct g_client_s {
 	player_state_t ps; // communicated by server to clients
-	int ping;
+	int32_t ping;
 };
 
 struct g_edict_s {
@@ -67,25 +67,25 @@ struct g_edict_s {
 	struct g_client_s *client;
 
 	bool in_use;
-	int link_count;
+	int32_t link_count;
 
 	// FIXME: move these fields to a server private sv_entity_t
 	link_t area; // linked to a division node or leaf
 
-	int num_clusters; // if -1, use head_node instead
-	int cluster_nums[MAX_ENT_CLUSTERS];
-	int head_node; // unused if num_clusters != -1
-	int area_num, area_num2;
+	int32_t num_clusters; // if -1, use head_node instead
+	int32_t cluster_nums[MAX_ENT_CLUSTERS];
+	int32_t head_node; // unused if num_clusters != -1
+	int32_t area_num, area_num2;
 
-	unsigned int sv_flags; // SVF_NO_CLIENT, etc
+	uint32_t sv_flags; // SVF_NO_CLIENT, etc
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
-	unsigned int clip_mask;
+	uint32_t clip_mask;
 	g_edict_t *owner;
 
 // the game can add anything it wants after
-// this point in the structure
+// this point32_t in the structure
 };
 
 #endif  /* !__G_LOCAL_H__ */
@@ -93,39 +93,39 @@ struct g_edict_s {
 // functions provided by the main engine
 typedef struct g_import_s {
 
-	unsigned int frame_rate; // server frames per second
-	unsigned int frame_millis;
+	uint32_t frame_rate; // server frames per second
+	uint32_t frame_millis;
 	float frame_seconds; // seconds per frame
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*BroadcastPrint)(const int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(const g_edict_t *ent, const int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*ClientPrint)(const g_edict_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
 	// config_strings are used to transmit arbitrary tokens such
 	// as model names, skin names, team names, and weather effects
-	void (*ConfigString)(const unsigned short index, const char *string);
+	void (*ConfigString)(const uint16_t index, const char *string);
 
 	// create config_strings and some internal server state
-	unsigned short (*ModelIndex)(const char *name);
-	unsigned short (*SoundIndex)(const char *name);
-	unsigned short (*ImageIndex)(const char *name);
+	uint16_t (*ModelIndex)(const char *name);
+	uint16_t (*SoundIndex)(const char *name);
+	uint16_t (*ImageIndex)(const char *name);
 
 	void (*SetModel)(g_edict_t *ent, const char *name);
-	void (*Sound)(const g_edict_t *ent, const unsigned short index, const unsigned short atten);
-	void (*PositionedSound)(const vec3_t origin, const g_edict_t *ent, const unsigned short index,
-			const unsigned short atten);
+	void (*Sound)(const g_edict_t *ent, const uint16_t index, const uint16_t atten);
+	void (*PositionedSound)(const vec3_t origin, const g_edict_t *ent, const uint16_t index,
+			const uint16_t atten);
 
 	// collision detection
 	c_trace_t (*Trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
-			const g_edict_t *passent, const int mask);
-	int (*PointContents)(const vec3_t point);
+			const g_edict_t *passent, const int32_t mask);
+	int32_t (*PointContents)(const vec3_t point);
 	bool (*inPVS)(const vec3_t p1, const vec3_t p2);
 	bool (*inPHS)(const vec3_t p1, const vec3_t p2);
-	void (*SetAreaPortalState)(int portal_num, bool open);
-	bool (*AreasConnected)(int area1, int area2);
+	void (*SetAreaPortalState)(int32_t portal_num, bool open);
+	bool (*AreasConnected)(int32_t area1, int32_t area2);
 	void (*Pmove)(pm_move_t *pm_state); // player movement code common with client prediction
 
 	// an entity will never be sent to a client or used for collision
@@ -133,39 +133,39 @@ typedef struct g_import_s {
 	// solidity changes, it must be relinked.
 	void (*LinkEntity)(g_edict_t *ent);
 	void (*UnlinkEntity)(g_edict_t *ent); // call before removing an interactive edict
-	int (*AreaEdicts)(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
-			const int max_area_edicts, const int area_type);
+	int32_t (*AreaEdicts)(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
+			const int32_t max_area_edicts, const int32_t area_type);
 
 	// network messaging
 	void (*Multicast)(const vec3_t origin, multicast_t to);
 	void (*Unicast)(const g_edict_t *ent, const bool reliable);
 	void (*WriteData)(const void *data, size_t len);
-	void (*WriteChar)(const int c);
-	void (*WriteByte)(const int c);
-	void (*WriteShort)(const int c);
-	void (*WriteLong)(const int c);
+	void (*WriteChar)(const int32_t c);
+	void (*WriteByte)(const int32_t c);
+	void (*WriteShort)(const int32_t c);
+	void (*WriteLong)(const int32_t c);
 	void (*WriteString)(const char *s);
 	void (*WritePosition)(const vec3_t pos); // some fractional bits
 	void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
 	void (*WriteAngle)(const float f);
 
 	// managed memory allocation
-	void *(*Malloc)(size_t size, short tag);
+	void *(*Malloc)(size_t size, int16_t tag);
 	void (*Free)(void *ptr);
-	void (*FreeTag)(short tag);
+	void (*FreeTag)(int16_t tag);
 
 	// filesystem interaction
 	const char *(*Gamedir)(void);
-	int (*OpenFile)(const char *file_name, FILE **file, file_mode_t mode);
+	int32_t (*OpenFile)(const char *file_name, FILE **file, file_mode_t mode);
 	void (*CloseFile)(FILE *file);
-	int (*LoadFile)(const char *file_name, void **buffer);
+	int32_t (*LoadFile)(const char *file_name, void **buffer);
 
 	// console variable interaction
-	cvar_t *(*Cvar)(const char *name, const char *value, unsigned int flags, const char *desc);
+	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
 
 	// command function parameter access
-	int (*Argc)(void);
-	char *(*Argv)(int n);
+	int32_t (*Argc)(void);
+	char *(*Argv)(int32_t n);
 	char *(*Args)(void); // concatenation of all argv >= 1
 
 	// add commands to the server console as if they were typed in
@@ -175,7 +175,7 @@ typedef struct g_import_s {
 
 // functions exported by the game subsystem
 typedef struct g_export_s {
-	int api_version;
+	int32_t api_version;
 
 	// the init function will only be called when a game starts,
 	// not each time a level is loaded.  Persistent data for clients
@@ -205,8 +205,8 @@ typedef struct g_export_s {
 	// The size will be fixed when ge->Init() is called
 	struct g_edict_s *edicts;
 	size_t edict_size;
-	unsigned short num_edicts; // current number, <= max_edicts
-	unsigned short max_edicts;
+	uint16_t num_edicts; // current number, <= max_edicts
+	uint16_t max_edicts;
 } g_export_t;
 
 #endif /* __GAME_H__ */

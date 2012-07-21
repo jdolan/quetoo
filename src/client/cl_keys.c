@@ -114,7 +114,7 @@ static cl_key_state_t *ks = &cls.key_state;
  * Execute any system-level binds, regardless of key state. This enables e.g.
  * toggling of the console, toggling fullscreen, etc.
  */
-static bool Cl_KeySystem(unsigned int key, unsigned short unicode __attribute__((unused)), bool down, unsigned int time __attribute__((unused))) {
+static bool Cl_KeySystem(uint32_t key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time __attribute__((unused))) {
 
 	if (!down) { // don't care
 		return false;
@@ -175,7 +175,7 @@ static bool Cl_KeySystem(unsigned int key, unsigned short unicode __attribute__(
  *
  * Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(unsigned int key, unsigned short unicode, bool down, unsigned time __attribute__((unused))) {
+static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, unsigned time __attribute__((unused))) {
 	bool numlock = ks->down[K_NUMLOCK];
 	size_t i;
 
@@ -365,7 +365,7 @@ static void Cl_KeyConsole(unsigned int key, unsigned short unicode, bool down, u
 /*
  * Cl_KeyGame
  */
-static void Cl_KeyGame(unsigned int key, unsigned short unicode __attribute__((unused)), bool down, unsigned int time) {
+static void Cl_KeyGame(uint32_t key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time) {
 	char cmd[MAX_STRING_CHARS];
 	char *kb;
 
@@ -394,7 +394,7 @@ static void Cl_KeyGame(unsigned int key, unsigned short unicode __attribute__((u
 /*
  * Cl_KeyMessage
  */
-static void Cl_KeyMessage(unsigned int key, unsigned short unicode, bool down, unsigned time __attribute__((unused))) {
+static void Cl_KeyMessage(uint32_t key, uint16_t unicode, bool down, unsigned time __attribute__((unused))) {
 
 	if (!down) // don't care
 		return;
@@ -440,7 +440,7 @@ static void Cl_KeyMessage(unsigned int key, unsigned short unicode, bool down, u
  * the given string.  Single ascii characters return themselves, while
  * the K_* names are matched up.
  */
-static int Cl_StringToKeyNum(const char *str) {
+static int32_t Cl_StringToKeyNum(const char *str) {
 	key_name_t *kn;
 
 	if (!str || !str[0])
@@ -464,7 +464,7 @@ static int Cl_StringToKeyNum(const char *str) {
  * given key_num.
  * FIXME: handle quote special (general escape sequence?)
  */
-const char *Cl_KeyNumToString(unsigned short key_num) {
+const char *Cl_KeyNumToString(uint16_t key_num) {
 	key_name_t *kn;
 	static char s[2];
 
@@ -484,7 +484,7 @@ const char *Cl_KeyNumToString(unsigned short key_num) {
 /*
  * Cl_Bind
  */
-static void Cl_Bind(int key_num, char *binding) {
+static void Cl_Bind(int32_t key_num, char *binding) {
 
 	if (key_num == -1)
 		return;
@@ -504,7 +504,7 @@ static void Cl_Bind(int key_num, char *binding) {
  * Cl_Unbind_f
  */
 static void Cl_Unbind_f(void) {
-	int b;
+	int32_t b;
 
 	if (Cmd_Argc() != 2) {
 		Com_Print("Usage: %s <key> : remove commands from a key\n", Cmd_Argv(0));
@@ -524,7 +524,7 @@ static void Cl_Unbind_f(void) {
  * Cl_UnbindAll_f
  */
 static void Cl_UnbindAll_f(void) {
-	int i;
+	int32_t i;
 
 	for (i = K_FIRST; i < K_LAST; i++)
 		if (ks->binds[i])
@@ -535,7 +535,7 @@ static void Cl_UnbindAll_f(void) {
  * Cl_Bind_f
  */
 static void Cl_Bind_f(void) {
-	int i, c, b;
+	int32_t i, c, b;
 	char cmd[MAX_STRING_CHARS];
 
 	c = Cmd_Argc();
@@ -581,7 +581,7 @@ static void Cl_Bind_f(void) {
  * Writes lines containing "bind key value"
  */
 void Cl_WriteBindings(FILE *f) {
-	unsigned short i;
+	uint16_t i;
 
 	for (i = K_FIRST; i < K_LAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
@@ -592,7 +592,7 @@ void Cl_WriteBindings(FILE *f) {
  * Cl_Bindlist_f
  */
 static void Cl_BindList_f(void) {
-	unsigned short i;
+	uint16_t i;
 
 	for (i = K_FIRST; i < K_LAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
@@ -605,7 +605,7 @@ static void Cl_BindList_f(void) {
 static void Cl_WriteHistory(void) {
 	FILE *f;
 	char path[MAX_OSPATH];
-	unsigned int i;
+	uint32_t i;
 
 	snprintf(path, sizeof(path), "%s/history", Fs_Gamedir());
 	f = fopen(path, "w");
@@ -654,7 +654,7 @@ static void Cl_ReadHistory(void) {
  * Cl_InitKeys
  */
 void Cl_InitKeys(void) {
-	int i;
+	int32_t i;
 
 	memset(ks, 0, sizeof(cl_key_state_t));
 
@@ -697,7 +697,7 @@ void Cl_ShutdownKeys(void) {
 /*
  * Cl_KeyEvent
  */
-void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned time) {
+void Cl_KeyEvent(uint32_t key, uint16_t unicode, bool down, unsigned time) {
 
 	// check for system commands first, swallowing such events
 	if (Cl_KeySystem(key, unicode, down, time)) {

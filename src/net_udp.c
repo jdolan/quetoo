@@ -53,11 +53,11 @@ typedef struct {
 
 typedef struct {
 	loopback_msg_t msgs[MAX_LOOPBACK];
-	int get, send;
+	int32_t get, send;
 } loopback_t;
 
 static loopback_t loopbacks[2];
-static int ip_sockets[2];
+static int32_t ip_sockets[2];
 
 static cvar_t *net_ip;
 static cvar_t *net_port;
@@ -66,7 +66,7 @@ static cvar_t *net_port;
  * Net_ErrorString
  */
 static const char *Net_ErrorString(void) {
-	const int code = Net_GetError();
+	const int32_t code = Net_GetError();
 	return strerror(code);
 }
 
@@ -213,7 +213,7 @@ bool Net_IsLocalNetaddr(net_addr_t addr) {
  * Net_GetLocalPacket
  */
 static bool Net_GetLocalPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
-	unsigned int i;
+	uint32_t i;
 	loopback_t *loop;
 
 	loop = &loopbacks[source];
@@ -237,7 +237,7 @@ static bool Net_GetLocalPacket(net_src_t source, net_addr_t *from, size_buf_t *m
  * Net_SendLocalPacket
  */
 static void Net_SendLocalPacket(net_src_t source, size_t length, void *data) {
-	unsigned int i;
+	uint32_t i;
 	loopback_t *loop;
 
 	loop = &loopbacks[source ^ 1];
@@ -254,7 +254,7 @@ static void Net_SendLocalPacket(net_src_t source, size_t length, void *data) {
  */
 bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 	ssize_t ret;
-	int err;
+	int32_t err;
 	struct sockaddr_in from_addr;
 	socklen_t from_len;
 	char *s;
@@ -298,7 +298,7 @@ bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
  */
 void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
 	struct sockaddr_in to_addr;
-	int sock, ret;
+	int32_t sock, ret;
 
 	if (to.type == NA_LOCAL) {
 		Net_SendLocalPacket(source, size, data);
@@ -331,7 +331,7 @@ void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
  *
  * Sleeps for msec or until server socket is ready.
  */
-void Net_Sleep(unsigned int msec) {
+void Net_Sleep(uint32_t msec) {
 	struct timeval timeout;
 	fd_set fdset;
 
@@ -348,10 +348,10 @@ void Net_Sleep(unsigned int msec) {
 /*
  * Net_Socket
  */
-static int Net_Socket(const char *net_interface, unsigned short port) {
-	int sock;
+static int32_t Net_Socket(const char *net_interface, uint16_t port) {
+	int32_t sock;
 	struct sockaddr_in addr;
-	int i = 1;
+	int32_t i = 1;
 
 	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
 		Com_Error(ERR_FATAL, "Net_Socket: socket: %s\n", Net_ErrorString());
@@ -391,10 +391,10 @@ static int Net_Socket(const char *net_interface, unsigned short port) {
  * Net_Config
  */
 void Net_Config(net_src_t source, bool up) {
-	unsigned short p = 0;
+	uint16_t p = 0;
 
 	if (source == NS_SERVER) {
-		p = (unsigned short) net_port->integer;
+		p = (uint16_t) net_port->integer;
 	}
 
 	if (up) { // open the socket

@@ -47,10 +47,10 @@ void Sb_Write(size_buf_t *buf, const void *data, size_t len);
 void Sb_Print(size_buf_t *buf, const char *data);
 
 void Msg_WriteData(size_buf_t *sb, const void *data, size_t len);
-void Msg_WriteChar(size_buf_t *sb, const int c);
-void Msg_WriteByte(size_buf_t *sb, const int c);
-void Msg_WriteShort(size_buf_t *sb, const int c);
-void Msg_WriteLong(size_buf_t *sb, const int c);
+void Msg_WriteChar(size_buf_t *sb, const int32_t c);
+void Msg_WriteByte(size_buf_t *sb, const int32_t c);
+void Msg_WriteShort(size_buf_t *sb, const int32_t c);
+void Msg_WriteLong(size_buf_t *sb, const int32_t c);
 void Msg_WriteString(size_buf_t *sb, const char *s);
 void Msg_WriteCoord(size_buf_t *sb, const float f);
 void Msg_WritePos(size_buf_t *sb, const vec3_t pos);
@@ -62,10 +62,10 @@ void Msg_WriteDir(size_buf_t *sb, const vec3_t dir);
 
 void Msg_BeginReading(size_buf_t *sb);
 void Msg_ReadData(size_buf_t *sb, void *data, size_t len);
-int Msg_ReadChar(size_buf_t *sb);
-int Msg_ReadByte(size_buf_t *sb);
-int Msg_ReadShort(size_buf_t *sb);
-int Msg_ReadLong(size_buf_t *sb);
+int32_t Msg_ReadChar(size_buf_t *sb);
+int32_t Msg_ReadByte(size_buf_t *sb);
+int32_t Msg_ReadShort(size_buf_t *sb);
+int32_t Msg_ReadLong(size_buf_t *sb);
 char *Msg_ReadString(size_buf_t *sb);
 char *Msg_ReadStringLine(size_buf_t *sb);
 float Msg_ReadCoord(size_buf_t *sb);
@@ -73,7 +73,7 @@ void Msg_ReadPos(size_buf_t *sb, vec3_t pos);
 float Msg_ReadAngle(size_buf_t *sb);
 void Msg_ReadAngles(size_buf_t *sb, vec3_t angles);
 void Msg_ReadDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, unsigned short bits, unsigned short number);
+void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, uint16_t bits, uint16_t number);
 void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
 
 
@@ -135,7 +135,7 @@ PROTOCOL
 
 // entity_state_t communication
 
-// This bit mask is packed into a short for each entity_state_t per frame.
+// This bit mask is packed into a int16_t for each entity_state_t per frame.
 // It describes which fields must be read to successfully parse the delta-
 // compression.
 #define U_ORIGIN		(1<<0)
@@ -159,14 +159,14 @@ typedef enum {
 	ERR_FATAL
 } err_t;
 
-int Com_Argc(void);
-char *Com_Argv(int arg);  // range and null checked
-void Com_ClearArgv(int arg);
-void Com_InitArgv(int argc, char **argv);
+int32_t Com_Argc(void);
+char *Com_Argv(int32_t arg);  // range and null checked
+void Com_ClearArgv(int32_t arg);
+void Com_InitArgv(int32_t argc, char **argv);
 
 void Com_PrintInfo(const char *s);
 
-void Com_BeginRedirect(int target, char *buffer, int buffersize, void (*flush)(int, char*));
+void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize, void (*flush)(int, char*));
 void Com_EndRedirect(void);
 void Com_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Error(err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
@@ -184,11 +184,11 @@ void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 // global engine struct
 typedef struct quake2world_s {
 
-	int argc;
+	int32_t argc;
 	char *argv[MAX_NUM_ARGVS + 1];
 
-	unsigned int time;
-	unsigned int subsystems;
+	uint32_t time;
+	uint32_t subsystems;
 
 	void (*Debug)(const char *msg);
 	void (*Error)(err_t err, const char *msg) __attribute__((noreturn));
@@ -200,9 +200,9 @@ typedef struct quake2world_s {
 
 extern quake2world_t quake2world;
 
-unsigned int Com_WasInit(unsigned int s);
-void Com_InitSubsystem(unsigned int s);
-void Com_QuitSubsystem(unsigned int s);
+uint32_t Com_WasInit(uint32_t s);
+void Com_InitSubsystem(uint32_t s);
+void Com_QuitSubsystem(uint32_t s);
 
 extern cvar_t *dedicated;
 extern cvar_t *time_demo;

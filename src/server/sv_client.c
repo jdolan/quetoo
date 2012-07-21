@@ -28,7 +28,7 @@
  * This will be sent on the initial connection and upon each server load.
  */
 static void Sv_New_f(void) {
-	int player_num;
+	int32_t player_num;
 
 	Com_Debug("New() from %s\n", Sv_NetaddrToString(sv_client));
 
@@ -65,7 +65,7 @@ static void Sv_New_f(void) {
  * Sv_ConfigStrings_f
  */
 static void Sv_ConfigStrings_f(void) {
-	unsigned int start;
+	uint32_t start;
 
 	Com_Debug("ConfigStrings() from %s\n", Sv_NetaddrToString(sv_client));
 
@@ -115,7 +115,7 @@ static void Sv_ConfigStrings_f(void) {
  * Sv_Baselines_f
  */
 static void Sv_Baselines_f(void) {
-	unsigned int start;
+	uint32_t start;
 	entity_state_t nullstate;
 	entity_state_t *base;
 
@@ -193,7 +193,7 @@ static void Sv_Begin_f(void) {
  * Sv_NextDownload_f
  */
 static void Sv_NextDownload_f(void) {
-	int r, size, percent;
+	int32_t r, size, percent;
 	byte buf[MAX_MSG_SIZE];
 	size_buf_t msg;
 
@@ -237,7 +237,7 @@ static const char *downloadable[] = { "*.pak", "maps/*", "sounds/*", "env/*", "t
 static void Sv_Download_f(void) {
 	const char *name;
 	void *buf;
-	unsigned int i = 0, offset = 0;
+	uint32_t i = 0, offset = 0;
 
 	name = Cmd_Argv(1);
 
@@ -312,7 +312,7 @@ static void Sv_Info_f(void) {
 	const cvar_t *cvar;
 	char line[MAX_STRING_CHARS];
 
-	if (!sv_client) { // print to server console
+	if (!sv_client) { // print32_t to server console
 		Com_PrintInfo(Cvar_ServerInfo());
 		return;
 	}
@@ -320,7 +320,7 @@ static void Sv_Info_f(void) {
 	for (cvar = cvar_vars; cvar; cvar = cvar->next) {
 
 		if (!(cvar->flags & CVAR_SERVER_INFO))
-			continue; //only print serverinfo cvars
+			continue; //only print32_t serverinfo cvars
 
 		snprintf(line, sizeof(line), "%s %s\n", cvar->name, cvar->string);
 		Sv_ClientPrint(sv_client->edict, PRINT_MEDIUM, "%s", line);
@@ -394,11 +394,11 @@ static void Sv_ClientThink(sv_client_t *cl, user_cmd_t *cmd) {
  */
 void Sv_ParseClientMessage(sv_client_t *cl) {
 	user_cmd_t null_cmd, oldest_cmd, old_cmd, new_cmd;
-	int net_drop;
-	int strings_issued;
-	int moves_issued;
-	int last_frame;
-	int c;
+	int32_t net_drop;
+	int32_t strings_issued;
+	int32_t moves_issued;
+	int32_t last_frame;
+	int32_t c;
 	char *s;
 
 	sv_client = cl;

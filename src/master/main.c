@@ -38,16 +38,16 @@ typedef struct server_s {
 	struct server_s *prev;
 	struct server_s *next;
 	struct sockaddr_in ip;
-	unsigned short port;
-	unsigned int queued_pings;
-	unsigned int heartbeats;
+	uint16_t port;
+	uint32_t queued_pings;
+	uint32_t heartbeats;
 	unsigned long last_heartbeat;
 	unsigned long last_ping;
 	unsigned char validated;
 } server_t;
 
 static server_t servers;
-int sock;
+int32_t sock;
 
 /*
  * Ms_Shutdown
@@ -79,7 +79,7 @@ static server_t *Ms_GetServer(struct sockaddr_in *from) {
 
 		server = server->next;
 
-		if (*(int *) &from->sin_addr == *(int *) &server->ip.sin_addr && from->sin_port
+		if (*(int32_t *) &from->sin_addr == *(int32_t *) &server->ip.sin_addr && from->sin_port
 				== server->port) {
 			return server;
 		}
@@ -115,7 +115,7 @@ static void Ms_DropServer(server_t *server) {
  */
 static bool Ms_BlacklistServer(struct sockaddr_in *from) {
 	void *buf;
-	int len;
+	int32_t len;
 
 	if ((len = Fs_LoadFile("servers-blacklist", &buf)) == -1) {
 		return false;
@@ -147,7 +147,7 @@ static bool Ms_BlacklistServer(struct sockaddr_in *from) {
 static void Ms_AddServer(struct sockaddr_in *from) {
 	struct sockaddr_in addr;
 	server_t *server = &servers;
-	int preserved_heartbeats = 0;
+	int32_t preserved_heartbeats = 0;
 
 	if (Ms_GetServer(from)) {
 		Com_Print("Duplicate ping from %s\n", inet_ntoa(from->sin_addr));
@@ -206,7 +206,7 @@ static void Ms_RemoveServer(struct sockaddr_in *from, server_t *server) {
  */
 static void Ms_RunFrame(void) {
 	server_t *server = &servers;
-	unsigned int curtime = time(0);
+	uint32_t curtime = time(0);
 
 	while (server->next) {
 		server = server->next;
@@ -242,7 +242,7 @@ static void Ms_RunFrame(void) {
  * Ms_SendServersList
  */
 static void Ms_SendServersList(struct sockaddr_in *from) {
-	int buflen;
+	int32_t buflen;
 	char buff[0xffff];
 	server_t *server = &servers;
 
@@ -341,7 +341,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 /*
  * Ms_HandleSignal
  */
-static void Ms_HandleSignal(int sig) {
+static void Ms_HandleSignal(int32_t sig) {
 
 	Com_Print("Received signal %d, exiting...\n", sig);
 
@@ -353,13 +353,13 @@ static void Ms_HandleSignal(int sig) {
 /*
  * main
  */
-int main(int argc __attribute__((unused)), char **argv __attribute__((unused))) {
+int32_t main(int32_t argc __attribute__((unused)), char **argv __attribute__((unused))) {
 	struct sockaddr_in address, from;
 	struct timeval delay;
 	socklen_t fromlen;
 	fd_set set;
 	char buffer[16384];
-	int len;
+	int32_t len;
 
 	memset(&quake2world, 0, sizeof(quake2world));
 

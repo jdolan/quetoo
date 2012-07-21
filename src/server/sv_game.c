@@ -96,7 +96,7 @@ static void Sv_SetModel(g_edict_t *ent, const char *name) {
 /*
  * Sv_ConfigString
  */
-static void Sv_ConfigString(const unsigned short index, const char *val) {
+static void Sv_ConfigString(const uint16_t index, const char *val) {
 
 	if (index >= MAX_CONFIG_STRINGS) {
 		Com_Warn("Sv_ConfigString: bad index %u.\n", index);
@@ -132,19 +132,19 @@ static void Sv_WriteData(const void *data, size_t len) {
 	Msg_WriteData(&sv.multicast, data, len);
 }
 
-static void Sv_WriteChar(const int c) {
+static void Sv_WriteChar(const int32_t c) {
 	Msg_WriteChar(&sv.multicast, c);
 }
 
-static void Sv_WriteByte(const int c) {
+static void Sv_WriteByte(const int32_t c) {
 	Msg_WriteByte(&sv.multicast, c);
 }
 
-static void Sv_WriteShort(const int c) {
+static void Sv_WriteShort(const int32_t c) {
 	Msg_WriteShort(&sv.multicast, c);
 }
 
-static void Sv_WriteLong(const int c) {
+static void Sv_WriteLong(const int32_t c) {
 	Msg_WriteLong(&sv.multicast, c);
 }
 
@@ -170,9 +170,9 @@ static void Sv_WriteAngle(const float f) {
  * Also checks portal_areas so that doors block sight
  */
 static bool Sv_inPVS(const vec3_t p1, const vec3_t p2) {
-	int leaf_num;
-	int cluster;
-	int area1, area2;
+	int32_t leaf_num;
+	int32_t cluster;
+	int32_t area1, area2;
 	byte *mask;
 
 	leaf_num = Cm_PointLeafnum(p1);
@@ -199,9 +199,9 @@ static bool Sv_inPVS(const vec3_t p1, const vec3_t p2) {
  * Also checks portal_areas so that doors block sound
  */
 static bool Sv_inPHS(const vec3_t p1, const vec3_t p2) {
-	int leaf_num;
-	int cluster;
-	int area1, area2;
+	int32_t leaf_num;
+	int32_t cluster;
+	int32_t area1, area2;
 	byte *mask;
 
 	leaf_num = Cm_PointLeafnum(p1);
@@ -223,8 +223,8 @@ static bool Sv_inPHS(const vec3_t p1, const vec3_t p2) {
 /*
  * Sv_Sound
  */
-static void Sv_Sound(const g_edict_t *ent, const unsigned short index,
-		const unsigned short atten) {
+static void Sv_Sound(const g_edict_t *ent, const uint16_t index,
+		const uint16_t atten) {
 
 	if (!ent)
 		return;

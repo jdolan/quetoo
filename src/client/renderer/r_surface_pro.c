@@ -49,7 +49,7 @@ static void R_DrawSurface_pro(const r_bsp_surface_t *surf) {
  * R_DrawSurfaces_pro
  */
 static void R_DrawSurfaces_pro(const r_bsp_surfaces_t *surfs) {
-	unsigned int i;
+	uint32_t i;
 
 	R_SetArrayState(r_world_model);
 
@@ -139,7 +139,7 @@ void R_DrawBlendSurfaces_pro(const r_bsp_surfaces_t *surfs) {
  * R_DrawBackSurfaces_pro
  */
 void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs) {
-	unsigned int i;
+	uint32_t i;
 
 	if (!r_line_alpha->value || !surfs->count)
 		return;

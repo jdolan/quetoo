@@ -139,7 +139,7 @@ static void R_ResolveBspLightParameters(void) {
 static void R_AddBspLight(vec3_t org, float radius, vec3_t color) {
 	r_bsp_light_t *l;
 	vec3_t delta;
-	int i;
+	int32_t i;
 
 	if (radius <= 0.0) {
 		Com_Debug("R_AddBspLight: Bad radius: %f\n", radius);
@@ -190,7 +190,7 @@ void R_LoadBspLights(void) {
 	bool entity, light;
 	r_bsp_surface_t *surf;
 	r_bsp_light_t *l;
-	int i;
+	int32_t i;
 
 	R_ResolveBspLightParameters();
 
@@ -223,7 +223,7 @@ void R_LoadBspLights(void) {
 		}
 	}
 
-	// parse the entity string for point lights
+	// parse the entity string for point32_t lights
 	ents = Cm_EntityString();
 
 	VectorClear(org);
@@ -294,7 +294,7 @@ void R_LoadBspLights(void) {
 	l = r_load_model->bsp_lights;
 	for (i = 0; i < r_load_model->num_bsp_lights; i++, l++) {
 		float max = 0.0;
-		int j;
+		int32_t j;
 
 		for (j = 0; j < 3; j++) {
 			if (l->color[j] > max)

@@ -84,7 +84,7 @@ typedef unsigned char byte;
 #define MAX_IMAGES			256 // that the server knows about
 #define MAX_ITEMS			64 // pickup items
 #define MAX_GENERAL			256 // general config strings
-// print levels
+// print32_t levels
 #define PRINT_LOW			0 // pickup messages
 #define PRINT_MEDIUM		1 // death messages
 #define PRINT_HIGH			2 // critical messages
@@ -112,10 +112,10 @@ typedef struct cvar_s {
 	char *default_value;
 	char *string;
 	char *latched_string; // for CVAR_LATCH vars
-	unsigned int flags;
+	uint32_t flags;
 	bool modified; // set each time the cvar is changed
 	float value;
-	int integer;
+	int32_t integer;
 	struct cvar_s *next;
 } cvar_t;
 
@@ -187,7 +187,7 @@ extern vec3_t vec3_origin;
 #endif
 
 #define DEG2RAD(a)				(a * M_PI) / 180.0F
-#define ANGLE2SHORT(x)			((unsigned short)((x) * 65536 / 360.0) & 65535)
+#define ANGLE2SHORT(x)			((uint16_t)((x) * 65536 / 360.0) & 65535)
 #define SHORT2ANGLE(x)			((x) * (360.0 / 65536.0))
 
 // lower bits are stronger, and will eat weaker brushes completely
@@ -259,32 +259,32 @@ extern vec3_t vec3_origin;
 typedef struct c_bsp_plane_s {
 	vec3_t normal;
 	float dist;
-	int type; // for fast side tests
-	int sign_bits; // signx + (signy << 1) + (signz << 1)
+	int32_t type; // for fast side tests
+	int32_t sign_bits; // signx + (signy << 1) + (signz << 1)
 } c_bsp_plane_t;
 
 typedef struct c_model_s {
 	vec3_t mins, maxs;
 	vec3_t origin; // for sounds or lights
-	int head_node;
+	int32_t head_node;
 } c_model_t;
 
 typedef struct c_bsp_surface_s {
 	char name[32];
-	int flags;
-	int value;
+	int32_t flags;
+	int32_t value;
 } c_bsp_surface_t;
 
 // a trace is returned when a box is swept through the world
 typedef struct c_trace_s {
 	bool all_solid; // if true, plane is not valid
-	bool start_solid; // if true, the initial point was in a solid area
+	bool start_solid; // if true, the initial point32_t was in a solid area
 	float fraction; // time completed, 1.0 = didn't hit anything
 	vec3_t end; // final position
 	c_bsp_plane_t plane; // surface normal at impact
 	c_bsp_surface_t *surface; // surface hit
-	int leaf_num;
-	int contents; // contents on other side of surface hit
+	int32_t leaf_num;
+	int32_t contents; // contents on other side of surface hit
 	struct g_edict_s *ent; // not set by CM_*() functions
 } c_trace_t;
 
@@ -330,15 +330,15 @@ typedef enum {
 // will result in a prediction error of some degree.
 typedef struct pm_state_s {
 	pm_type_t pm_type;
-	short origin[3];
-	short velocity[3];
-	unsigned short pm_flags; // ducked, jump_held, etc
+	int16_t origin[3];
+	int16_t velocity[3];
+	uint16_t pm_flags; // ducked, jump_held, etc
 	byte pm_time; // each unit = 8 milliseconds
-	short gravity;
-	short view_offset[3]; // add to origin to resolve eyes
-	short view_angles[3]; // base view angles
-	short kick_angles[3]; // offset for kick
-	short delta_angles[3]; // offset for spawns, pushers, etc.
+	int16_t gravity;
+	int16_t view_offset[3]; // add to origin to resolve eyes
+	int16_t view_angles[3]; // base view angles
+	int16_t kick_angles[3]; // offset for kick
+	int16_t delta_angles[3]; // offset for spawns, pushers, etc.
 } pm_state_t;
 
 // button bits
@@ -349,8 +349,8 @@ typedef struct pm_state_s {
 typedef struct user_cmd_s {
 	byte msec;
 	byte buttons;
-	short angles[3];
-	short forward, right, up;
+	int16_t angles[3];
+	int16_t forward, right, up;
 } user_cmd_t;
 
 #define MAX_TOUCH_ENTS 32
@@ -359,7 +359,7 @@ typedef struct {
 
 	user_cmd_t cmd; // command (in)
 
-	unsigned short num_touch; // results (out)
+	uint16_t num_touch; // results (out)
 	struct g_edict_s *touch_ents[MAX_TOUCH_ENTS];
 
 	vec3_t angles; // clamped, and including kick and delta
@@ -367,12 +367,12 @@ typedef struct {
 
 	struct g_edict_s *ground_entity;
 
-	int water_type;
-	int water_level;
+	int32_t water_type;
+	int32_t water_level;
 
 	// callbacks to test the world
 	c_trace_t (*Trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end);
-	int (*PointContents)(const vec3_t point);
+	int32_t (*PointContents)(const vec3_t point);
 } pm_move_t;
 
 // entity_state_t->effects
@@ -533,7 +533,7 @@ typedef enum {
  * from the scene as needed.
  */
 typedef struct entity_state_s {
-	unsigned short number; // edict index
+	uint16_t number; // edict index
 
 	vec3_t origin;
 	vec3_t old_origin; // for interpolating
@@ -544,7 +544,7 @@ typedef struct entity_state_s {
 
 	byte event; // client side events (particles, lights, ..)
 
-	unsigned short effects; // particles, lights, etc..
+	uint16_t effects; // particles, lights, etc..
 
 	byte model1, model2, model3, model4; // primary model, linked models
 
@@ -557,7 +557,7 @@ typedef struct entity_state_s {
 	 * client-sided prediction so that players don't e.g. run through each
 	 * other.  See gi.LinkEntity.
 	 */
-	unsigned short solid;
+	uint16_t solid;
 } entity_state_t;
 
 #define MAX_STATS			32
@@ -568,7 +568,7 @@ typedef struct entity_state_s {
  */
 typedef struct player_state_s {
 	pm_state_t pm_state; // movement and contents state
-	short stats[MAX_STATS]; // status bar updates
+	int16_t stats[MAX_STATS]; // status bar updates
 } player_state_t;
 
 /*
@@ -606,6 +606,6 @@ typedef struct player_state_s {
 
 /* returns the amount of elements - not the amount of bytes */
 #define lengthof(x) (sizeof(x) / sizeof(*(x)))
-#define CASSERT(x) extern int ASSERT_COMPILE[((x) != 0) * 2 - 1]
+#define CASSERT(x) extern int32_t ASSERT_COMPILE[((x) != 0) * 2 - 1]
 
 #endif /* __QUAKE2WORLD_H__ */

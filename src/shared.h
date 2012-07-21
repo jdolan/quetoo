@@ -25,7 +25,7 @@
 #include "quake2world.h"
 
 // math and trigonometry functions
-int Random(void); // 0 to (2^32)-1
+int32_t Random(void); // 0 to (2^32)-1
 float Randomf(void); // 0.0 to 1.0
 float Randomc(void); // -1.0 to 1.0
 
@@ -50,36 +50,36 @@ void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out
 void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out);
 
 byte SignBitsForPlane(const c_bsp_plane_t *plane);
-int BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane_t *plane);
+int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane_t *plane);
 
 void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal);
 void PerpendicularVector(vec3_t dst, const vec3_t src);
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent, vec3_t bitangent);
 void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees);
 
-void PackPosition(const vec3_t in, short *out);
-void UnpackPosition(const short *in, vec3_t out);
-void PackAngles(const vec3_t in, short *out);
-void UnpackAngles(const short *in, vec3_t out);
+void PackPosition(const vec3_t in, int16_t *out);
+void UnpackPosition(const int16_t *in, vec3_t out);
+void PackAngles(const vec3_t in, int16_t *out);
+void UnpackAngles(const int16_t *in, vec3_t out);
 void ClampAngles(vec3_t angles);
 
 // color functions
 #define DEFAULT_WEAPON_EFFECT_COLOR 243
 vec_t ColorNormalize(const vec3_t in, vec3_t out);
 void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation, float contrast);
-int ColorByName(const char *s, int def);
+int32_t ColorByName(const char *s, int32_t def);
 
 // string functions
 bool GlobMatch(const char *pattern, const char *text);
 bool MixedCase(const char *s);
-char *CommonPrefix(const char *words[], unsigned int nwords);
+char *CommonPrefix(const char *words[], uint32_t nwords);
 char *Lowercase(char *s);
 char *Trim(char *s);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
 void StripExtension(const char *in, char *out);
 void StripColor(const char *in, char *out);
-int StrColorCmp(const char *s1, const char *s2);
+int32_t StrColorCmp(const char *s1, const char *s2);
 char *ParseToken(const char **data_p);
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 

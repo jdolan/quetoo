@@ -29,7 +29,7 @@ g_export_t ge;
 g_game_t g_game;
 g_level_t g_level;
 
-unsigned int means_of_death;
+uint32_t means_of_death;
 
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
@@ -102,7 +102,7 @@ void G_ResetTeams(void) {
  * G_ResetVote
  */
 void G_ResetVote(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < sv_max_clients->integer; i++) { //reset vote flags
 		if (!g_game.edicts[i + 1].in_use)
@@ -125,7 +125,7 @@ void G_ResetVote(void) {
  */
 static void G_ResetItems(void) {
 	g_edict_t *ent;
-	unsigned int i;
+	uint32_t i;
 
 	for (i = 1; i < ge.num_edicts; i++) { // reset items
 
@@ -176,7 +176,7 @@ static void G_ResetItems(void) {
  * to ready again.  Teams are only reset when teamz is true.
  */
 static void G_RestartGame(bool teamz) {
-	int i;
+	int32_t i;
 	g_edict_t *ent;
 	g_client_t *cl;
 
@@ -256,7 +256,7 @@ static void G_MuteClient(char *name, bool mute) {
  * G_BeginIntermission
  */
 static void G_BeginIntermission(const char *map) {
-	int i;
+	int32_t i;
 	g_edict_t *ent, *client;
 
 	if (g_level.intermission_time)
@@ -310,7 +310,7 @@ static void G_BeginIntermission(const char *map) {
  * G_CheckVote
  */
 static void G_CheckVote(void) {
-	int i, count = 0;
+	int32_t i, count = 0;
 
 	if (!g_voting->value)
 		return;
@@ -365,7 +365,7 @@ static void G_EndLevel(void) {
  * G_CheckRoundStart
  */
 static void G_CheckRoundStart(void) {
-	int i, g, e, clients;
+	int32_t i, g, e, clients;
 	g_client_t *cl;
 
 	if (!g_level.rounds)
@@ -413,11 +413,11 @@ static void G_CheckRoundStart(void) {
  * G_CheckRoundLimit
  */
 static void G_CheckRoundLimit() {
-	int i;
+	int32_t i;
 	g_edict_t *ent;
 	g_client_t *cl;
 
-	if (g_level.round_num >= (unsigned int) g_level.round_limit) { // enforce round_limit
+	if (g_level.round_num >= (uint32_t) g_level.round_limit) { // enforce round_limit
 		gi.BroadcastPrint(PRINT_HIGH, "Roundlimit hit\n");
 		G_EndLevel();
 		return;
@@ -451,8 +451,8 @@ static void G_CheckRoundLimit() {
  * G_CheckRoundEnd
  */
 static void G_CheckRoundEnd(void) {
-	unsigned int i, g, e, clients;
-	int j;
+	uint32_t i, g, e, clients;
+	int32_t j;
 	g_edict_t *winner;
 	g_client_t *cl;
 
@@ -530,7 +530,7 @@ static void G_CheckRoundEnd(void) {
  * G_CheckMatchEnd
  */
 static void G_CheckMatchEnd(void) {
-	int i, g, e, clients;
+	int32_t i, g, e, clients;
 	g_client_t *cl;
 
 	if (!g_level.match)
@@ -571,11 +571,11 @@ static void G_CheckMatchEnd(void) {
 /*
  * G_FormatTime
  */
-static char *G_FormatTime(unsigned int time) {
+static char *G_FormatTime(uint32_t time) {
 	static char formatted_time[MAX_QPATH];
-	static unsigned int last_time = 0xffffffff;
-	const unsigned int m = (time / 1000) / 60;
-	const unsigned int s = (time / 1000) % 60;
+	static uint32_t last_time = 0xffffffff;
+	const uint32_t m = (time / 1000) / 60;
+	const uint32_t s = (time / 1000) % 60;
 	char *c;
 
 	// highlight for countdowns
@@ -595,8 +595,8 @@ static char *G_FormatTime(unsigned int time) {
  * G_CheckRules
  */
 static void G_CheckRules(void) {
-	unsigned int time;
-	int i;
+	uint32_t time;
+	int32_t i;
 	g_client_t *cl;
 
 	if (g_level.intermission_time)
@@ -832,7 +832,7 @@ static void G_ExitLevel(void) {
  * Nothing would happen in Quake land if this weren't called.
  */
 static void G_Frame(void) {
-	int i;
+	int32_t i;
 	g_edict_t *ent;
 
 	g_level.frame_num++;
@@ -896,7 +896,7 @@ static void G_Frame(void) {
  * G_InitMapList
  */
 static void G_InitMapList(void) {
-	int i;
+	int32_t i;
 
 	memset(&g_map_list, 0, sizeof(g_map_list));
 
@@ -919,7 +919,7 @@ static void G_InitMapList(void) {
 static void G_ParseMapList(const char *file_name) {
 	void *buf;
 	const char *buffer;
-	unsigned int i, j, k, l;
+	uint32_t i, j, k, l;
 	const char *c;
 	bool map;
 	g_map_list_elt_t *elt;
@@ -1092,7 +1092,7 @@ static void G_ParseMapList(const char *file_name) {
  * G_SelectNextmap
  */
 const char *G_SelectNextmap(void) {
-	unsigned int i = 0;
+	uint32_t i = 0;
 	if (g_map_list.count > 0) {
 		if (g_random_map->value) { // random weighted selection
 			g_map_list.index = g_map_list.weighted_index[Random() % MAP_LIST_WEIGHT];
@@ -1255,7 +1255,7 @@ void G_Shutdown(void) {
 /**
  * G_LoadGame
  *
- * This is the entry point responsible for aligning the server and game module.
+ * This is the entry point32_t responsible for aligning the server and game module.
  * The server resolves this symbol upon successfully loading the game library,
  * and invokes it.  We're responsible for copying the import structure so that
  * we can call back into the server, and returning a populated game export

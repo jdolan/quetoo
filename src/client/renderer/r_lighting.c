@@ -28,7 +28,7 @@
  *
  * A comparator for sorting r_bsp_light_ref_t elements via quick sort.
  */
-static int R_UpdateBspLightReferences_Compare(const void *l1, const void *l2) {
+static int32_t R_UpdateBspLightReferences_Compare(const void *l1, const void *l2) {
 	const r_bsp_light_ref_t *_l1 = (r_bsp_light_ref_t *) l1;
 	const r_bsp_light_ref_t *_l2 = (r_bsp_light_ref_t *) l2;
 
@@ -42,11 +42,11 @@ static int R_UpdateBspLightReferences_Compare(const void *l1, const void *l2) {
  * for the specified structure and returning the number of light sources found.
  * This facilitates directional shading in the fragment program.
  */
-static int R_UpdateBspLightReferences(r_lighting_t *lighting) {
+static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 	r_bsp_light_ref_t light_refs[LIGHTING_MAX_BSP_LIGHT_REFS];
 	r_bsp_light_ref_t *r;
 	r_bsp_light_t *l;
-	int i, j;
+	int32_t i, j;
 
 	memset(lighting->bsp_light_refs, 0, sizeof(lighting->bsp_light_refs));
 
@@ -119,7 +119,7 @@ static int R_UpdateBspLightReferences(r_lighting_t *lighting) {
  */
 void R_UpdateLighting(r_lighting_t *lighting) {
 	vec3_t start, end;
-	int i, j;
+	int32_t i, j;
 
 	VectorCopy(lighting->origin, start);
 	VectorCopy(lighting->origin, end);
@@ -180,7 +180,7 @@ void R_UpdateLighting(r_lighting_t *lighting) {
  */
 void R_ApplyLighting(const r_lighting_t *lighting) {
 	const vec3_t up = { 0.0, 0.0, 64.0 };
-	int i, count;
+	int32_t i, count;
 
 	count = r_locals.active_light_count;
 

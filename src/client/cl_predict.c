@@ -52,8 +52,8 @@ bool Cl_UsePrediction(void) {
  * Cl_CheckPredictionError
  */
 void Cl_CheckPredictionError(void) {
-	int frame;
-	short delta[3];
+	int32_t frame;
+	int16_t delta[3];
 	vec3_t fdelta;
 
 	if (!cl_predict->value || (cl.frame.ps.pm_state.pm_flags & PMF_NO_PREDICTION))
@@ -86,14 +86,14 @@ void Cl_CheckPredictionError(void) {
  */
 static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const vec3_t maxs,
 		const vec3_t end, c_trace_t *tr) {
-	int i;
+	int32_t i;
 	c_trace_t trace;
-	int head_node;
+	int32_t head_node;
 	const float *angles;
 	vec3_t bmins, bmaxs;
 
 	for (i = 0; i < cl.frame.num_entities; i++) {
-		const int num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const int32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[num];
 
 		if (!ent->solid)
@@ -109,9 +109,9 @@ static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const v
 			head_node = model->head_node;
 			angles = ent->angles;
 		} else { // encoded bbox
-			const int x = 8 * (ent->solid & 31);
-			const int zd = 8 * ((ent->solid >> 5) & 31);
-			const int zu = 8 * ((ent->solid >> 10) & 63) - 32;
+			const int32_t x = 8 * (ent->solid & 31);
+			const int32_t zd = 8 * ((ent->solid >> 5) & 31);
+			const int32_t zu = 8 * ((ent->solid >> 10) & 63) - 32;
 
 			bmins[0] = bmins[1] = -x;
 			bmaxs[0] = bmaxs[1] = x;
@@ -153,15 +153,15 @@ static c_trace_t Cl_PredictMovement_Trace(const vec3_t start, const vec3_t mins,
 /*
  * Cl_PredictMovement_PointContents
  */
-static int Cl_PredictMovement_PointContents(const vec3_t point) {
-	int i;
+static int32_t Cl_PredictMovement_PointContents(const vec3_t point) {
+	int32_t i;
 	c_model_t *model;
-	int contents;
+	int32_t contents;
 
 	contents = Cm_PointContents(point, r_world_model->first_node);
 
 	for (i = 0; i < cl.frame.num_entities; i++) {
-		const int num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const int32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[num];
 
 		if (ent->solid != 31) // special value for bsp models
@@ -189,8 +189,8 @@ void Cl_PredictMovement(void) {
 	if (!Cl_UsePrediction())
 		return;
 
-	const unsigned int current = cls.netchan.outgoing_sequence;
-	unsigned int ack = cls.netchan.incoming_acknowledged;
+	const uint32_t current = cls.netchan.outgoing_sequence;
+	uint32_t ack = cls.netchan.incoming_acknowledged;
 
 	// if we are too far out of date, just freeze
 	if (current - ack >= CMD_BACKUP) {
@@ -209,7 +209,7 @@ void Cl_PredictMovement(void) {
 
 	// run frames
 	while (++ack <= current) {
-		const unsigned int frame = ack & CMD_MASK;
+		const uint32_t frame = ack & CMD_MASK;
 		const user_cmd_t *cmd = &cl.cmds[frame];
 
 		if (!cmd->msec)

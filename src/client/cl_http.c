@@ -29,7 +29,7 @@ static CURL *curl;
 
 // generic encapsulation for common http response codes
 typedef struct response_s {
-	int code;
+	int32_t code;
 	char *text;
 } response_t;
 
@@ -101,7 +101,7 @@ bool Cl_HttpDownload(void) {
 	// set url from which to retrieve the file
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
-	// set error buffer so we may print meaningful messages
+	// set error buffer so we may print32_t meaningful messages
 	memset(curlerr, 0, sizeof(curlerr));
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlerr);
 
@@ -116,7 +116,7 @@ bool Cl_HttpDownload(void) {
  * Cl_HttpResponseCode
  */
 static char *Cl_HttpResponseCode(long code) {
-	int i = 0;
+	int32_t i = 0;
 	while (responses[i].code) {
 		if (responses[i].code == code)
 			return responses[i].text;
@@ -205,7 +205,7 @@ void Cl_HttpDownloadCleanup() {
  */
 void Cl_HttpDownloadThink(void) {
 	CURLMsg *msg;
-	int i;
+	int32_t i;
 
 	if (!cls.download_url[0] || !cls.download.file)
 		return; // nothing to do

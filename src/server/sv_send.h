@@ -34,13 +34,13 @@ typedef enum {
 #define SV_OUTPUTBUF_LENGTH	(MAX_MSG_SIZE - 16)
 extern char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
-void Sv_FlushRedirect(const int target, char *outputbuf);
+void Sv_FlushRedirect(const int32_t target, char *outputbuf);
 void Sv_SendClientMessages(void);
 void Sv_Unicast(const g_edict_t *ent, const bool reliable);
 void Sv_Multicast(const vec3_t origin, multicast_t to);
-void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const unsigned short index, const unsigned short atten);
-void Sv_ClientPrint(const g_edict_t *ent, const int level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-void Sv_BroadcastPrint(const int level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint16_t index, const uint16_t atten);
+void Sv_ClientPrint(const g_edict_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Sv_BroadcastCommand(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 #endif /* __SV_LOCAL_H__ */
 

@@ -39,7 +39,7 @@ void R_AddLight(const r_light_t *l) {
  * R_AddSustainedLight
  */
 void R_AddSustainedLight(const r_sustained_light_t *s) {
-	int i;
+	int32_t i;
 
 	if (!r_lighting->value)
 		return;
@@ -62,7 +62,7 @@ void R_AddSustainedLight(const r_sustained_light_t *s) {
  */
 static void R_AddSustainedLights(void) {
 	r_sustained_light_t *s;
-	int i;
+	int32_t i;
 
 	// sustains must be recalculated every frame
 	for (i = 0, s = r_view.sustained_lights; i < MAX_LIGHTS; i++, s++) {
@@ -98,11 +98,11 @@ void R_ResetLights(void) {
  *
  * Recursively populates light source bit masks for world surfaces.
  */
-static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t *node) {
+static void R_MarkLights_(r_light_t *light, vec3_t trans, int32_t bit, r_bsp_node_t *node) {
 	r_bsp_surface_t *surf;
 	vec3_t origin;
 	float dist;
-	int i;
+	int32_t i;
 
 	if (node->contents != CONTENTS_NODE) // leaf
 		return;
@@ -154,7 +154,7 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int bit, r_bsp_node_t 
  * should receive.
  */
 void R_MarkLights(void) {
-	int i, j;
+	int32_t i, j;
 
 	r_locals.light_frame++;
 
@@ -202,8 +202,8 @@ void R_ShiftLights(const vec3_t offset) {
  * Enables the light sources indicated by the specified bit mask.  Care is
  * taken to avoid GL state changes whenever possible.
  */
-void R_EnableLights(unsigned int mask) {
-	int count;
+void R_EnableLights(uint32_t mask) {
+	int32_t count;
 
 	if (mask == r_locals.active_light_mask) // no change
 		return;
@@ -215,7 +215,7 @@ void R_EnableLights(unsigned int mask) {
 		const r_light_t *l;
 		vec4_t position;
 		vec4_t diffuse;
-		int i;
+		int32_t i;
 
 		position[3] = diffuse[3] = 1.0;
 
@@ -254,7 +254,7 @@ void R_EnableLights(unsigned int mask) {
 void R_EnableLightsByRadius(const vec3_t p) {
 	const r_light_t *l;
 	vec3_t delta;
-	unsigned int i, mask;
+	uint32_t i, mask;
 
 	mask = 0;
 

@@ -106,7 +106,7 @@ bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 /*
  * G_SpawnDamage
  */
-static void G_SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage) {
+static void G_SpawnDamage(int32_t type, vec3_t origin, vec3_t normal, int32_t damage) {
 
 	while (damage > 0) {
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -122,9 +122,9 @@ static void G_SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage) {
 /*
  * G_CheckArmor
  */
-static int G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int damage, int dflags) {
+static int32_t G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int32_t damage, int32_t dflags) {
 	g_client_t *client;
-	int saved;
+	int32_t saved;
 
 	if (damage < 1)
 		return 0;
@@ -166,7 +166,7 @@ static int G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int damage,
  * 	example: targ=player2, inflictor=rocket, attacker=player1
  *
  * dir			direction of the attack
- * point       point at which the damage is being inflicted
+ * point32_t       point32_t at which the damage is being inflicted
  * normal		normal vector from that point
  * damage		amount of damage being inflicted
  * knockback	force to be applied against targ as a result of the damage
@@ -179,13 +179,13 @@ static int G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int damage,
  * 	DAMAGE_NO_PROTECTION	kills godmode, armor, everything
  */
 void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t dir, vec3_t point,
-		vec3_t normal, short damage, short knockback, int dflags, int mod) {
+		vec3_t normal, int16_t damage, int16_t knockback, int32_t dflags, int32_t mod) {
 
 	g_client_t *client;
-	short take;
-	short save;
-	short asave;
-	int te_sparks;
+	int16_t take;
+	int16_t save;
+	int16_t asave;
+	int32_t te_sparks;
 	float scale;
 
 	if (!targ->take_damage)
@@ -324,8 +324,8 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 /*
  * G_RadiusDamage
  */
-void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore, int damage,
-		int knockback, float radius, int mod) {
+void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore, int32_t damage,
+		int32_t knockback, float radius, int32_t mod) {
 	g_edict_t *ent;
 	float d, k, dist;
 	vec3_t dir;

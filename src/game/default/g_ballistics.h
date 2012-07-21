@@ -25,23 +25,23 @@
 #ifdef __G_LOCAL_H__
 
 void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
-		int speed, int damage, int knockback);
+		int32_t speed, int32_t damage, int32_t knockback);
 void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
-		int damage, int knockback, int hspread, int vspread, int mod);
+		int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod);
 void G_ShotgunProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir,
-		int damage, int knockback, int hspread, int vspread, int count, int mod);
+		int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t count, int32_t mod);
 void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
-		int speed, int damage, int knockback);
+		int32_t speed, int32_t damage, int32_t knockback);
 void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
-		int speed, int damage, int knockback, float damage_radius, unsigned int timer);
+		int32_t speed, int32_t damage, int32_t knockback, float damage_radius, uint32_t timer);
 void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
-		int speed, int damage, int knockback, float damage_radius);
+		int32_t speed, int32_t damage, int32_t knockback, float damage_radius);
 void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
-		int damage, int knockback);
+		int32_t damage, int32_t knockback);
 void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
-		int damage, int knockback);
+		int32_t damage, int32_t knockback);
 void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir,
-		int speed, int damage, int knockback, float damage_radius);
+		int32_t speed, int32_t damage, int32_t knockback, float damage_radius);
 
 #endif /* __G_LOCAL_H__ */
 

@@ -35,7 +35,7 @@ static void G_ClientDamage(g_edict_t *ent) {
 		// play an appropriate pain sound
 		if (g_level.time > client->pain_time) {
 			vec3_t org;
-			int l;
+			int32_t l;
 
 			client->pain_time = g_level.time + 700;
 
@@ -74,8 +74,8 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 		return;
 	}
 
-	const int water_level = ent->water_level;
-	const int old_water_level = ent->old_water_level;
+	const int32_t water_level = ent->water_level;
+	const int32_t old_water_level = ent->old_water_level;
 
 	ent->old_water_level = water_level;
 
@@ -213,7 +213,7 @@ void G_ClientWeaponKick(g_edict_t *ent, const float kick) {
  * weapons may also set the kick value, and we factor that in here as well.
  */
 static void G_ClientKickAngles(g_edict_t *ent) {
-	short *kick_angles = ent->client->ps.pm_state.kick_angles;
+	int16_t *kick_angles = ent->client->ps.pm_state.kick_angles;
 
 	vec3_t kick;
 	UnpackAngles(kick_angles, kick);
@@ -256,7 +256,7 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 
 	delta = 0.5 + delta * delta * gi.frame_seconds;
 
-	int i;
+	int32_t i;
 	for (i = 0; i < 3; i++) {
 
 		// clear angles smaller than our delta to avoid oscillations
@@ -404,7 +404,7 @@ void G_ClientEndFrame(g_edict_t *ent) {
  * G_EndClientFrames
  */
 void G_EndClientFrames(void) {
-	int i;
+	int32_t i;
 	g_edict_t *ent;
 
 	// finalize the player_state_t for this frame

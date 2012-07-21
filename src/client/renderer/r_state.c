@@ -605,7 +605,7 @@ void R_Setup2D(void) {
  * appropriate defaults.
  */
 void R_InitState(void) {
-	int i;
+	int32_t i;
 
 	r_get_error = Cvar_Get("r_get_error", "0", 0, NULL);
 
@@ -671,7 +671,7 @@ void R_InitState(void) {
  * R_ShutdownState
  */
 void R_ShutdownState(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < r_config.max_texunits; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];

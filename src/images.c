@@ -35,7 +35,7 @@
 #if defined(_WIN32)
 /* typedef "boolean" as byte to match rpcndr.h */
 typedef byte boolean;
-#define HAVE_BOOLEAN    /* prevent jmorecfg.h from typedef-ing it as int */
+#define HAVE_BOOLEAN    /* prevent jmorecfg.h from typedef-ing it as int32_t */
 #endif
 
 # if defined(__WIN32__) && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
@@ -50,19 +50,19 @@ typedef byte boolean;
 
 // 8bit palette for wal images and particles
 #define PALETTE "pics/colormap"
-unsigned int palette[256];
+uint32_t palette[256];
 //FIXME: use false instead of 0, silly workaround for silly bug
 bool palette_initialized = 0;
 
 // .wal file header for loading legacy .wal textures
 typedef struct miptex_s {
 	char name[32];
-	unsigned int width, height;
-	unsigned int offsets[4]; // four mip maps stored
+	uint32_t width, height;
+	uint32_t offsets[4]; // four mip maps stored
 	char animname[32]; // next frame in animation chain
-	unsigned int flags;
-	int contents;
-	int value;
+	uint32_t flags;
+	int32_t contents;
+	int32_t value;
 } miptex_t;
 
 // default pixel format to which all images are converted
@@ -102,7 +102,7 @@ const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
  * Image formats are tried in the order they appear in TYPES.
  */
 bool Img_LoadImage(const char *name, SDL_Surface **surf) {
-	int i;
+	int32_t i;
 
 	i = 0;
 	while (IMAGE_TYPES[i]) {
@@ -122,7 +122,7 @@ bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	void *buf;
 	miptex_t *mt;
-	int i, size;
+	int32_t i, size;
 	unsigned *p;
 	byte *b;
 
@@ -175,7 +175,7 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
 	char path[MAX_QPATH];
 	void *buf;
-	int len;
+	int32_t len;
 	SDL_RWops *rw;
 	SDL_Surface *s;
 
@@ -224,7 +224,7 @@ void Img_InitPalette(void) {
 	SDL_Surface *surf;
 	byte r, g, b;
 	unsigned v;
-	int i;
+	int32_t i;
 
 	if (!Img_LoadTypedImage(PALETTE, "pcx", &surf))
 		return;
@@ -279,12 +279,12 @@ static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream
  *
  * Write pixel data to a JPEG file.
  */
-void Img_WriteJPEG(const char *path, byte *data, int width, int height, int quality) {
+void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, int32_t quality) {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	FILE *outfile; /* target file */
 	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
-	int row_stride; /* physical row width in image buffer */
+	int32_t row_stride; /* physical row width in image buffer */
 
 	if (!(outfile = fopen(path, "wb"))) { // failed to open
 		Com_Print("Failed to open to %s\n", path);
@@ -329,19 +329,19 @@ void Img_WriteJPEG(const char *path, byte *data, int width, int height, int qual
  *
  * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
-void Img_WriteTGARLE(const char *path, byte *data, int width, int height, int quality __attribute__((unused))) {
+void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height, int32_t quality __attribute__((unused))) {
 	FILE *tga_file;
-	const unsigned int channels = TGA_CHANNELS; // 24-bit RGB
+	const uint32_t channels = TGA_CHANNELS; // 24-bit RGB
 	byte header[18];
 	// write image data
 	// TGA has the R and B channels switched
 	byte pixel_data[TGA_CHANNELS];
 	byte block_data[TGA_CHANNELS * 128];
 	byte rle_packet;
-	int compress = 0;
+	int32_t compress = 0;
 	size_t block_length = 0;
 	char footer[26];
-	int x, y;
+	int32_t x, y;
 
 	if (!(tga_file = fopen(path, "wb"))) { // failed to open
 		Com_Print("Failed to open to %s\n", path);

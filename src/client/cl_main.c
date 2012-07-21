@@ -155,7 +155,7 @@ static void Cl_Connect_f(void) {
  */
 static void Cl_Rcon_f(void) {
 	char message[1024];
-	int i;
+	int32_t i;
 	net_addr_t to;
 
 	if (!rcon_password->string) {
@@ -398,7 +398,7 @@ static void Cl_ConnectionlessPacket(void) {
 		return;
 	}
 
-	// print command from somewhere
+	// print32_t command from somewhere
 	if (!strcmp(c, "print")) {
 		s = Msg_ReadString(&net_message);
 		Com_Print("%s", s);
@@ -441,7 +441,7 @@ static void Cl_ReadPackets(void) {
 	while (Net_GetPacket(NS_CLIENT, &net_from, &net_message)) {
 
 		// remote command packet
-		if (*(int *) net_message.data == -1) {
+		if (*(int32_t *) net_message.data == -1) {
 			Cl_ConnectionlessPacket();
 			continue;
 		}
@@ -477,7 +477,7 @@ static void Cl_ReadPackets(void) {
 /*
  * Cl_LoadProgress
  */
-void Cl_LoadProgress(unsigned short percent) {
+void Cl_LoadProgress(uint16_t percent) {
 
 	cls.loading = percent;
 
@@ -534,12 +534,12 @@ static void Cl_LoadMedia(void) {
 	cls.loading = 0;
 }
 
-static int precache_check; // for auto-download of precache items
+static int32_t precache_check; // for auto-download of precache items
 
 /*
  * Cl_RequestNextDownload
  *
- * Entry point for file downloads, or "precache" from server.  Attempt to
+ * Entry point32_t for file downloads, or "precache" from server.  Attempt to
  * download .pak and .bsp from server.  Pak is preferred. Once all precache
  * checks are completed, we load media and ask the server to begin sending
  * us frames.
@@ -691,9 +691,9 @@ static void Cl_WriteConfiguration(void) {
 /*
  * Cl_Frame
  */
-void Cl_Frame(unsigned int msec) {
+void Cl_Frame(uint32_t msec) {
 	bool packet_frame = true, render_frame = true;
-	unsigned int ms;
+	uint32_t ms;
 
 	if (dedicated->value)
 		return;

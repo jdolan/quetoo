@@ -52,7 +52,7 @@ size_t CountBits(const byte * bits, size_t max) {
 }
 
 static winding_t *AllocStackWinding(pstack_t * stack) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 3; i++) {
 		if (stack->freewindings[i]) {
@@ -67,7 +67,7 @@ static winding_t *AllocStackWinding(pstack_t * stack) {
 }
 
 static void FreeStackWinding(const winding_t * w, pstack_t * stack) {
-	const int i = w - stack->windings;
+	const int32_t i = w - stack->windings;
 
 	if (i < 0 || i > 2)
 		return; // not from local
@@ -83,10 +83,10 @@ static void FreeStackWinding(const winding_t * w, pstack_t * stack) {
 static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
 		plane_t *split) {
 	vec_t dists[128];
-	int sides[128];
-	int counts[SIDE_BOTH + 1];
+	int32_t sides[128];
+	int32_t counts[SIDE_BOTH + 1];
 	vec_t dot;
-	int i, j;
+	int32_t i, j;
 	vec_t *p1, *p2;
 	vec3_t mid;
 	winding_t *neww;
@@ -179,7 +179,7 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
  * Source, pass, and target are an ordering of portals.
  *
  * Generates seperating planes canidates by taking two points from source and one
- * point from pass, and clips target by them.
+ * point32_t from pass, and clips target by them.
  *
  * If target is totally clipped away, that portal can not be seen through.
  *
@@ -190,12 +190,12 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
  */
 static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 		winding_t * target, bool flipclip, pstack_t * stack) {
-	int i, j, k, l;
+	int32_t i, j, k, l;
 	plane_t plane;
 	vec3_t v1, v2;
 	float d;
 	vec_t length;
-	int counts[3];
+	int32_t counts[3];
 	bool fliptest;
 
 	// check all combinations
@@ -320,15 +320,15 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
  * If src_portal is NULL, this is the originating leaf
  * ==================
  */
-static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
+static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread,
 		pstack_t * prevstack) {
 	pstack_t stack;
 	portal_t *p;
 	plane_t back_plane;
 	leaf_t *leaf;
-	unsigned int i, j;
+	uint32_t i, j;
 	long *test, *might, *vis, more;
-	int pnum;
+	int32_t pnum;
 
 	thread->c_chains++;
 
@@ -367,7 +367,7 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
 		if (!more && (thread->base->vis[pnum >> 3] & (1 << (pnum & 7)))) { // can't see anything new
 			continue;
 		}
-		// get plane of portal, point normal into the neighbor leaf
+		// get plane of portal, point32_t normal into the neighbor leaf
 		stack.portalplane = p->plane;
 		VectorSubtract(vec3_origin, p->plane.normal, back_plane.normal);
 		back_plane.dist = -p->plane.dist;
@@ -447,9 +447,9 @@ static void RecursiveLeafFlow(int leaf_num, thread_data_t * thread,
  *
  * Generates the vis bit vector.
  */
-void FinalVis(int portal_num) {
+void FinalVis(int32_t portal_num) {
 	thread_data_t data;
-	unsigned int i;
+	uint32_t i;
 	portal_t *p;
 	size_t c_might, c_can;
 
@@ -479,11 +479,11 @@ void FinalVis(int portal_num) {
 /*
  * SimpleFlood
  */
-static void SimpleFlood(portal_t *srcportal, int leaf_num) {
-	unsigned int i;
+static void SimpleFlood(portal_t *srcportal, int32_t leaf_num) {
+	uint32_t i;
 	leaf_t *leaf;
 	portal_t *p;
-	int pnum;
+	int32_t pnum;
 
 	leaf = &map_vis.leafs[leaf_num];
 
@@ -505,8 +505,8 @@ static void SimpleFlood(portal_t *srcportal, int leaf_num) {
 /*
  * BaseVis
  */
-void BaseVis(int portal_num) {
-	unsigned int j, k;
+void BaseVis(int32_t portal_num) {
+	uint32_t j, k;
 	portal_t *tp, *p;
 	float d;
 	const winding_t *w;

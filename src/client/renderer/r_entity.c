@@ -155,7 +155,7 @@ void R_RotateForEntity(const r_entity_t *e) {
  *
  * R_TransformForEntity
  *
- * Transforms a point by the inverse of the world-model matrix for the
+ * Transforms a point32_t by the inverse of the world-model matrix for the
  * specified entity, translating and rotating it into the entity's model-view.
  */
 void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out) {
@@ -232,7 +232,7 @@ static bool R_CullEntity(r_entity_t *e) {
  */
 void R_CullEntities(void *data __attribute__((unused))) {
 	r_entity_t *e = r_view.entities;
-	unsigned short i;
+	uint16_t i;
 
 	for (i = 0, e = r_view.entities; i < r_view.num_entities; i++, e++) {
 
@@ -332,7 +332,7 @@ static void R_DrawBlendMeshEntities() {
  * Draws a place-holder "white diamond" prism for the specified entity.
  */
 static void R_DrawNullModel(const r_entity_t *e) {
-	int i;
+	int32_t i;
 
 	R_EnableTexture(&texunit_diffuse, false);
 
@@ -375,7 +375,7 @@ static void R_DrawNullEntities() {
 /*
  * R_DrawEntities
  *
- * Primary entry point for drawing all entities.
+ * Primary entry point32_t for drawing all entities.
  */
 void R_DrawEntities(void) {
 

@@ -31,7 +31,7 @@ static console_data_t console_data;
 
 #ifdef BUILD_CLIENT
 extern console_t cl_con;
-extern void Cl_UpdateNotify(int last_line);
+extern void Cl_UpdateNotify(int32_t last_line);
 extern void Cl_ClearNotify(void);
 #endif
 
@@ -44,10 +44,10 @@ static cvar_t *ansi;
  */
 static void Con_Update(console_t *con, char *pos) {
 	char *wordstart;
-	int linelen;
-	int wordlen;
-	int i;
-	int curcolor;
+	int32_t linelen;
+	int32_t wordlen;
+	int32_t i;
+	int32_t curcolor;
 
 	linelen = 0;
 	wordlen = 0;
@@ -134,7 +134,7 @@ static void Con_Update(console_t *con, char *pos) {
  *
  * Change the width of an index, parse the console data structure if needed
  */
-void Con_Resize(console_t *con, unsigned short width, unsigned short height) {
+void Con_Resize(console_t *con, uint16_t width, uint16_t height) {
 	if (!console_data.insert)
 		return;
 
@@ -222,12 +222,12 @@ static void Con_Dump_f(void) {
 /*
  * Con_PrintStdOut
  *
- * Print a color-coded string to stdout, remove color codes if requested
+ * Print32_t a color-coded string to stdout, remove color codes if requested
  */
 static void Con_PrintStdOut(const char *text) {
 	char buf[MAX_PRINT_MSG];
-	int bold, color;
-	unsigned int i;
+	int32_t bold, color;
+	uint32_t i;
 
 	// start the string with foreground color
 	memset(buf, 0, sizeof(buf));
@@ -301,7 +301,7 @@ static void Con_PrintStdOut(const char *text) {
 	if (ansi && ansi->value) // restore foreground color
 		strcat(buf, "\033[0;39m");
 
-	// print to stdout
+	// print32_t to stdout
 	if (buf[0] != '\0')
 		fputs(buf, stdout);
 }
@@ -309,11 +309,11 @@ static void Con_PrintStdOut(const char *text) {
 /*
  * Con_Print
  *
- * Print a message to the console data buffer
+ * Print32_t a message to the console data buffer
  */
 void Con_Print(const char *text) {
 #ifdef BUILD_CLIENT
-	int last_line;
+	int32_t last_line;
 #endif
 	// this can get called before the console is initialized
 	if (!console_data.insert) {
@@ -364,14 +364,14 @@ void Con_Print(const char *text) {
 
 #ifdef HAVE_CURSES
 	if (!con_curses->value) {
-		// print output to stdout
+		// print32_t output to stdout
 		Con_PrintStdOut(text);
 	} else {
 		// Redraw the server console
 		Curses_Refresh();
 	}
 #else
-	// print output to stdout
+	// print32_t output to stdout
 	Con_PrintStdOut(text);
 #endif
 }
@@ -386,10 +386,10 @@ static const char *complete[MAX_COMPLETE_MATCHES];
  *  append it.  If multiple matches are found, append the longest possible
  *  common prefix they all share.
  */
-int Con_CompleteCommand(char *input_text, unsigned short *input_position) {
+int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position) {
 	const char *match, *partial;
 	const char *cmd = 0, *dir = 0, *ext = 0;
-	int matches;
+	int32_t matches;
 
 	partial = input_text;
 	if (*partial == '\\' || *partial == '/')

@@ -56,7 +56,7 @@ static void R_LoadBspLightmaps(const d_bsp_lump_t *l) {
  * R_LoadBspVisibility
  */
 static void R_LoadBspVisibility(const d_bsp_lump_t *l) {
-	int i;
+	int32_t i;
 
 	if (!l->file_len) {
 		r_load_model->vis = NULL;
@@ -81,7 +81,7 @@ static void R_LoadBspVisibility(const d_bsp_lump_t *l) {
 static void R_LoadBspVertexes(const d_bsp_lump_t *l) {
 	const d_bsp_vertex_t *in;
 	r_bsp_vertex_t *out;
-	int i, count;
+	int32_t i, count;
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
@@ -106,7 +106,7 @@ static void R_LoadBspVertexes(const d_bsp_lump_t *l) {
 static void R_LoadBspNormals(const d_bsp_lump_t *l) {
 	const d_bsp_normal_t *in;
 	r_bsp_vertex_t *out;
-	int i, count;
+	int32_t i, count;
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
@@ -132,7 +132,7 @@ static void R_LoadBspNormals(const d_bsp_lump_t *l) {
  * R_RadiusFromBounds
  */
 static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
-	int i;
+	int32_t i;
 	vec3_t corner;
 
 	for (i = 0; i < 3; i++) {
@@ -148,7 +148,7 @@ static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 static void R_LoadBspSubmodels(const d_bsp_lump_t *l) {
 	const d_bsp_model_t *in;
 	r_bsp_submodel_t *out;
-	int i, j, count;
+	int32_t i, j, count;
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
@@ -200,7 +200,7 @@ static void R_SetupBspSubmodel(r_bsp_node_t *node, r_model_t *model) {
  * represented as r_model_t. Convert them.
  */
 static void R_SetupBspSubmodels(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < r_load_model->num_submodels; i++) {
 
@@ -240,7 +240,7 @@ static void R_SetupBspSubmodels(void) {
 static void R_LoadBspEdges(const d_bsp_lump_t *l) {
 	const d_bsp_edge_t *in;
 	r_bsp_edge_t *out;
-	int i, count;
+	int32_t i, count;
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
@@ -254,8 +254,8 @@ static void R_LoadBspEdges(const d_bsp_lump_t *l) {
 	r_load_model->num_edges = count;
 
 	for (i = 0; i < count; i++, in++, out++) {
-		out->v[0] = (unsigned short) LittleShort(in->v[0]);
-		out->v[1] = (unsigned short) LittleShort(in->v[1]);
+		out->v[0] = (uint16_t) LittleShort(in->v[0]);
+		out->v[1] = (uint16_t) LittleShort(in->v[1]);
 	}
 }
 
@@ -265,7 +265,7 @@ static void R_LoadBspEdges(const d_bsp_lump_t *l) {
 static void R_LoadBspTexinfo(const d_bsp_lump_t *l) {
 	const d_bsp_texinfo_t *in;
 	r_bsp_texinfo_t *out;
-	int i, j, count;
+	int32_t i, j, count;
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
@@ -298,7 +298,7 @@ static void R_LoadBspTexinfo(const d_bsp_lump_t *l) {
 static void R_SetupBspSurface(r_bsp_surface_t *surf) {
 	vec3_t mins, maxs;
 	vec2_t st_mins, st_maxs;
-	int i, j;
+	int32_t i, j;
 	const r_bsp_vertex_t *v;
 	const r_bsp_texinfo_t *tex;
 
@@ -311,7 +311,7 @@ static void R_SetupBspSurface(r_bsp_surface_t *surf) {
 	tex = surf->texinfo;
 
 	for (i = 0; i < surf->num_edges; i++) {
-		const int e = r_load_model->surface_edges[surf->first_edge + i];
+		const int32_t e = r_load_model->surface_edges[surf->first_edge + i];
 		if (e >= 0)
 			v = &r_load_model->vertexes[r_load_model->edges[e].v[0]];
 		else
@@ -340,8 +340,8 @@ static void R_SetupBspSurface(r_bsp_surface_t *surf) {
 		surf->center[i] = (surf->mins[i] + surf->maxs[i]) / 2.0;
 
 	for (i = 0; i < 2; i++) {
-		const int bmins = floor(st_mins[i] / r_load_model->lightmap_scale);
-		const int bmaxs = ceil(st_maxs[i] / r_load_model->lightmap_scale);
+		const int32_t bmins = floor(st_mins[i] / r_load_model->lightmap_scale);
+		const int32_t bmaxs = ceil(st_maxs[i] / r_load_model->lightmap_scale);
 
 		surf->st_mins[i] = bmins * r_load_model->lightmap_scale;
 		surf->st_maxs[i] = bmaxs * r_load_model->lightmap_scale;
@@ -357,9 +357,9 @@ static void R_SetupBspSurface(r_bsp_surface_t *surf) {
 static void R_LoadBspSurfaces(const d_bsp_lump_t *l) {
 	const d_bsp_face_t *in;
 	r_bsp_surface_t *out;
-	int i, count, surf_num;
-	int plane_num, side;
-	int ti;
+	int32_t i, count, surf_num;
+	int32_t plane_num, side;
+	int32_t ti;
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
@@ -440,7 +440,7 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
  * R_LoadBspNodes
  */
 static void R_LoadBspNodes(const d_bsp_lump_t *l) {
-	int i, j, count, p;
+	int32_t i, j, count, p;
 	const d_bsp_node_t *in;
 	r_bsp_node_t *out;
 
@@ -488,7 +488,7 @@ static void R_LoadBspNodes(const d_bsp_lump_t *l) {
 static void R_LoadBspLeafs(const d_bsp_lump_t *l) {
 	const d_bsp_leaf_t *in;
 	r_bsp_leaf_t *out;
-	int i, j, count;
+	int32_t i, j, count;
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
@@ -513,7 +513,7 @@ static void R_LoadBspLeafs(const d_bsp_lump_t *l) {
 		out->cluster = LittleShort(in->cluster);
 		out->area = LittleShort(in->area);
 
-		out->first_leaf_surface = r_load_model->leaf_surfaces + ((unsigned short) LittleShort(
+		out->first_leaf_surface = r_load_model->leaf_surfaces + ((uint16_t) LittleShort(
 				in->first_leaf_face));
 
 		out->num_leaf_surfaces = LittleShort(in->num_leaf_faces);
@@ -524,8 +524,8 @@ static void R_LoadBspLeafs(const d_bsp_lump_t *l) {
  * R_LoadBspLeafSurfaces
  */
 static void R_LoadBspLeafSurfaces(const d_bsp_lump_t *l) {
-	int i, count;
-	const unsigned short *in;
+	int32_t i, count;
+	const uint16_t *in;
 	r_bsp_surface_t **out;
 
 	in = (const void *) (mod_base + l->file_ofs);
@@ -541,7 +541,7 @@ static void R_LoadBspLeafSurfaces(const d_bsp_lump_t *l) {
 
 	for (i = 0; i < count; i++) {
 
-		const unsigned short j = LittleShort(in[i]);
+		const uint16_t j = LittleShort(in[i]);
 
 		if (j >= r_load_model->num_surfaces) {
 			Com_Error(ERR_DROP, "R_LoadBspLeafSurfaces: Bad surface number: %d.", j);
@@ -555,9 +555,9 @@ static void R_LoadBspLeafSurfaces(const d_bsp_lump_t *l) {
  * R_LoadBspSurfaceEdges
  */
 static void R_LoadBspSurfaceEdges(const d_bsp_lump_t *l) {
-	int i, count;
-	const int *in;
-	int *out;
+	int32_t i, count;
+	const int32_t *in;
+	int32_t *out;
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
@@ -582,10 +582,10 @@ static void R_LoadBspSurfaceEdges(const d_bsp_lump_t *l) {
  * R_LoadBspPlanes
  */
 static void R_LoadBspPlanes(const d_bsp_lump_t *l) {
-	int i, j;
+	int32_t i, j;
 	c_bsp_plane_t *out;
 	const d_bsp_plane_t *in;
-	int count;
+	int32_t count;
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
@@ -614,7 +614,7 @@ static void R_LoadBspPlanes(const d_bsp_lump_t *l) {
  * R_AddBspVertexColor
  */
 static void R_AddBspVertexColor(r_bsp_vertex_t *vert, const r_bsp_surface_t *surf) {
-	int i;
+	int32_t i;
 
 	vert->surfaces++;
 
@@ -631,8 +631,8 @@ static void R_AddBspVertexColor(r_bsp_vertex_t *vert, const r_bsp_surface_t *sur
  * R_LoadBspVertexArrays
  */
 static void R_LoadBspVertexArrays(void) {
-	int i, j;
-	int vert_index, texcoord_index, tangent_index, color_index;
+	int32_t i, j;
+	int32_t vert_index, texcoord_index, tangent_index, color_index;
 	float soff, toff, s, t;
 	float *point, *normal, *sdir, *tdir;
 	vec4_t tangent;
@@ -651,7 +651,7 @@ static void R_LoadBspVertexArrays(void) {
 		surf->index = vert_index / 3;
 
 		for (j = 0; j < surf->num_edges; j++) {
-			const int index = r_load_model->surface_edges[surf->first_edge + j];
+			const int32_t index = r_load_model->surface_edges[surf->first_edge + j];
 
 			// vertex
 			if (index > 0) { // negative indices to differentiate which end of the edge
@@ -728,7 +728,7 @@ static void R_LoadBspVertexArrays(void) {
 	for (i = 0; i < r_load_model->num_surfaces; i++, surf++) {
 
 		for (j = 0; j < surf->num_edges; j++) {
-			const int index = r_load_model->surface_edges[surf->first_edge + j];
+			const int32_t index = r_load_model->surface_edges[surf->first_edge + j];
 
 			// vertex
 			if (index > 0) { // negative indices to differentiate which end of the edge
@@ -752,11 +752,11 @@ static r_bsp_surfaces_t *r_sorted_surfaces[MAX_GL_TEXTURES];
  * R_SortBspSurfacesArrays_
  */
 static void R_SortBspSurfacesArrays_(r_bsp_surfaces_t *surfs) {
-	unsigned int i, j;
+	uint32_t i, j;
 
 	for (i = 0; i < surfs->count; i++) {
 
-		const int texnum = surfs->surfaces[i]->texinfo->image->texnum;
+		const int32_t texnum = surfs->surfaces[i]->texinfo->image->texnum;
 
 		R_SurfaceToSurfaces(r_sorted_surfaces[texnum], surfs->surfaces[i]);
 	}
@@ -785,7 +785,7 @@ static void R_SortBspSurfacesArrays_(r_bsp_surfaces_t *surfs) {
  */
 static void R_SortBspSurfacesArrays(r_model_t *mod) {
 	r_bsp_surface_t *surf, *s;
-	int i, ns;
+	int32_t i, ns;
 
 	// resolve the start surface and total surface count
 	if (mod->type == mod_bsp) { // world model
@@ -848,7 +848,7 @@ static void R_SortBspSurfacesArrays(r_model_t *mod) {
  */
 static void R_LoadBspSurfacesArrays_(r_model_t *mod) {
 	r_bsp_surface_t *surf, *s;
-	int i, ns;
+	int32_t i, ns;
 
 	// allocate the surfaces array structures
 	for (i = 0; i < NUM_SURFACES_ARRAYS; i++)
@@ -948,7 +948,7 @@ static void R_LoadBspSurfacesArrays_(r_model_t *mod) {
  * R_LoadBspSurfacesArrays
  */
 static void R_LoadBspSurfacesArrays(void) {
-	int i;
+	int32_t i;
 
 	R_LoadBspSurfacesArrays_(r_load_model);
 
@@ -961,16 +961,16 @@ static void R_LoadBspSurfacesArrays(void) {
  * R_LoadBspModel
  */
 void R_LoadBspModel(r_model_t *mod, void *buffer) {
-	extern void Cl_LoadProgress(int percent);
+	extern void Cl_LoadProgress(int32_t percent);
 	d_bsp_header_t header;
-	unsigned int i;
+	uint32_t i;
 
 	if (r_world_model)
 		Com_Error(ERR_DROP, "R_LoadBspModel: Loaded bsp model after world.\n");
 
 	header = *(d_bsp_header_t *) buffer;
 	for (i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
-		((int *) &header)[i] = LittleLong(((int *) &header)[i]);
+		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 
 	if (header.version != BSP_VERSION && header.version != BSP_VERSION_) {
 		Com_Error(ERR_DROP, "R_LoadBspModel: %s has unsupported version: %d\n", mod->name,

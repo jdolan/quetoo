@@ -39,15 +39,15 @@ cvar_t *m_yaw;
 #define MAX_KEY_QUEUE 64
 
 typedef struct {
-	unsigned int key;
-	unsigned short unicode;
+	uint32_t key;
+	uint16_t unicode;
 	bool down;
 } cl_key_queue_t;
 
 static cl_key_queue_t cl_key_queue[MAX_KEY_QUEUE];
 
-static int cl_key_queue_head = 0;
-static int cl_key_queue_tail = 0;
+static int32_t cl_key_queue_head = 0;
+static int32_t cl_key_queue_tail = 0;
 
 #define EVENT_ENQUEUE(keyNum, keyUnicode, keyDown) \
 	if(keyNum > 0){ \
@@ -75,9 +75,9 @@ static int cl_key_queue_tail = 0;
  */
 
 typedef struct {
-	int down[2]; // key nums holding it down
-	unsigned int down_time; // msec timestamp
-	unsigned int msec; // msec down this frame
+	int32_t down[2]; // key nums holding it down
+	uint32_t down_time; // msec timestamp
+	uint32_t msec; // msec down this frame
 	byte state;
 } cl_button_t;
 
@@ -99,7 +99,7 @@ static cl_button_t cl_buttons[12];
  * Cl_KeyDown
  */
 static void Cl_KeyDown(cl_button_t *b) {
-	int k;
+	int32_t k;
 	char *c;
 
 	c = Cmd_Argv(1);
@@ -136,7 +136,7 @@ static void Cl_KeyDown(cl_button_t *b) {
  * Cl_KeyUp
  */
 static void Cl_KeyUp(cl_button_t *b) {
-	int k;
+	int32_t k;
 	char *c;
 	unsigned uptime;
 
@@ -253,8 +253,8 @@ static void Cl_CenterView_f(void) {
  *
  * Returns the fraction of the command interval for which the key was down.
  */
-static float Cl_KeyState(cl_button_t *key, unsigned int cmd_msec) {
-	unsigned int msec;
+static float Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
+	uint32_t msec;
 	float v;
 
 	msec = key->msec;
@@ -278,9 +278,9 @@ static float Cl_KeyState(cl_button_t *key, unsigned int cmd_msec) {
 /*
  * Cl_KeyMap
  */
-static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *unicode) {
-	int key = 0;
-	const unsigned int keysym = event->key.keysym.sym;
+static void Cl_KeyMap(SDL_Event *event, uint32_t *ascii, uint16_t *unicode) {
+	int32_t key = 0;
+	const uint32_t keysym = event->key.keysym.sym;
 
 	switch (keysym) {
 
@@ -476,8 +476,8 @@ static void Cl_KeyMap(SDL_Event *event, unsigned int *ascii, unsigned short *uni
  */
 static void Cl_HandleEvent(SDL_Event *event) {
 	static bool first_key_event = true;
-	unsigned int key;
-	unsigned short unicode;
+	uint32_t key;
+	uint16_t unicode;
 
 	if (cls.key_state.dest == KEY_UI) { // let the menus handle events
 
@@ -547,7 +547,7 @@ static void Cl_HandleEvent(SDL_Event *event) {
 /*
  * Cl_MouseMove
  */
-static void Cl_MouseMove(int mx, int my) {
+static void Cl_MouseMove(int32_t mx, int32_t my) {
 
 	if (m_sensitivity->modified) { // clamp sensitivity
 
@@ -600,7 +600,7 @@ static void Cl_MouseMove(int mx, int my) {
 void Cl_HandleEvents(void) {
 	static cl_key_dest_t prev_key_dest;
 	SDL_Event event;
-	int mx, my;
+	int32_t mx, my;
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 		return;
@@ -623,7 +623,7 @@ void Cl_HandleEvents(void) {
 		cl_key_dest_t dest = cls.key_state.dest;
 		cls.key_state.dest = prev_key_dest;
 
-		unsigned int i;
+		uint32_t i;
 
 		for (i = 0; i < K_LAST; i++) {
 			if (cls.key_state.down[i]) {

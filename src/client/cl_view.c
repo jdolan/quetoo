@@ -38,7 +38,7 @@ static void Cl_ClearView(void) {
  * Cl_UpdateViewSize
  */
 static void Cl_UpdateViewSize(void) {
-	int size;
+	int32_t size;
 
 	if (!cl_view_size->modified && !r_view.update)
 		return;
@@ -102,7 +102,7 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 
 	if (Cl_UsePrediction()) {
-		int i;
+		int32_t i;
 
 		// use client sided prediction
 		for (i = 0; i < 3; i++) {
@@ -111,7 +111,7 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 		}
 
 		// lerp stairs over 100ms
-		const unsigned int ms = cls.real_time - cl.predicted_step_time;
+		const uint32_t ms = cls.real_time - cl.predicted_step_time;
 		if (ms < 100) { // small step
 			r_view.origin[2] -= cl.predicted_step * ((100 - ms) / 100.0);
 		}

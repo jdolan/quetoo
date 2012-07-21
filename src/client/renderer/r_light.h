@@ -31,7 +31,7 @@ void R_AddSustainedLight(const r_sustained_light_t *s);
 void R_ResetLights(void);
 void R_MarkLights(void);
 void R_ShiftLights(const vec3_t offset);
-void R_EnableLights(unsigned int mask);
+void R_EnableLights(uint32_t mask);
 void R_EnableLightsByRadius(const vec3_t p);
 #endif /* __R_LOCAL_H__ */
 

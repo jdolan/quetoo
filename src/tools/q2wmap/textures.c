@@ -33,9 +33,9 @@ static const vec3_t base_axis[18] = { { 0, 0, 1 }, { 1, 0, 0 }, { 0, -1, 0 }, //
 		};
 
 static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv) {
-	int bestaxis;
+	int32_t bestaxis;
 	vec_t dot, best;
-	int i;
+	int32_t i;
 
 	best = 0;
 	bestaxis = 0;
@@ -58,8 +58,8 @@ static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv) {
  * Resolve the texinfo with identical properties to the one specified, or
  * allocate a new one.
  */
-static int FindTexinfo(d_bsp_texinfo_t *tx) {
-	int i;
+static int32_t FindTexinfo(d_bsp_texinfo_t *tx) {
+	int32_t i;
 	d_bsp_texinfo_t *tc = d_bsp.texinfo;
 
 	for (i = 0; i < d_bsp.num_texinfo; i++, tc++) {
@@ -91,14 +91,14 @@ static int FindTexinfo(d_bsp_texinfo_t *tx) {
 /*
  * TexinfoForBrushTexture
  */
-int TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt,
+int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt,
 		vec3_t origin) {
 	vec3_t vecs[2];
 	vec_t ang, sinv, cosv;
 	vec_t ns, nt;
 	vec2_t shift;
 	d_bsp_texinfo_t tx;
-	int i, j, sv, tv;
+	int32_t i, j, sv, tv;
 
 	if (!bt->name[0])
 		return 0;

@@ -24,7 +24,7 @@
 
 #include "cl_types.h"
 
-const char *Cl_KeyNumToString(unsigned short key_num);
+const char *Cl_KeyNumToString(uint16_t key_num);
 
 #ifdef __CL_LOCAL_H__
 
@@ -35,7 +35,7 @@ typedef struct key_name_s {
 
 extern key_name_t key_names[];
 
-void Cl_KeyEvent(unsigned int key, unsigned short unicode, bool down, unsigned time);
+void Cl_KeyEvent(uint32_t key, uint16_t unicode, bool down, unsigned time);
 char *Cl_EditLine(void);
 void Cl_WriteBindings(FILE *f);
 void Cl_InitKeys(void);

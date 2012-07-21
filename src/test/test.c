@@ -26,7 +26,7 @@ quake2world_t quake2world;
  *
  * Bootstraps core subsystems for testing.
  */
-void Test_Init(int argc, char **argv) {
+void Test_Init(int32_t argc, char **argv) {
 
 	memset(&quake2world, 0, sizeof(quake2world));
 

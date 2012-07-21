@@ -26,7 +26,7 @@ map_vis_t map_vis;
 bool fastvis;
 bool nosort;
 
-static int visibility_count;
+static int32_t visibility_count;
 
 /*
  * PlaneFromWinding
@@ -45,7 +45,7 @@ static void PlaneFromWinding(const winding_t *w, plane_t *plane) {
 /*
  * NewWinding
  */
-static winding_t *NewWinding(unsigned short points) {
+static winding_t *NewWinding(uint16_t points) {
 	winding_t *w;
 	size_t size;
 
@@ -62,7 +62,7 @@ static winding_t *NewWinding(unsigned short points) {
 /*
  * SortPortals_Compare
  */
-static int SortPortals_Compare(const void *a, const void *b) {
+static int32_t SortPortals_Compare(const void *a, const void *b) {
 	if ((*(portal_t **) a)->num_might_see == (*(portal_t **) b)->num_might_see)
 		return 0;
 	if ((*(portal_t **) a)->num_might_see < (*(portal_t **) b)->num_might_see)
@@ -77,7 +77,7 @@ static int SortPortals_Compare(const void *a, const void *b) {
  * the earlier information.
  */
 static void SortPortals(void) {
-	unsigned int i;
+	uint32_t i;
 
 	for (i = 0; i < map_vis.num_portals * 2; i++)
 		map_vis.sorted_portals[i] = &map_vis.portals[i];
@@ -93,7 +93,7 @@ static void SortPortals(void) {
  * LeafVectorFromPortalVector
  */
 static size_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
-	unsigned int i;
+	uint32_t i;
 
 	memset(leafbits, 0, map_vis.leaf_bytes);
 
@@ -112,16 +112,16 @@ static size_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
  *
  * Merges the portal visibility for a leaf.
  */
-static void ClusterMerge(int leaf_num) {
+static void ClusterMerge(int32_t leaf_num) {
 	leaf_t *leaf;
 	byte portalvector[MAX_PORTALS / 8];
 	byte uncompressed[MAX_BSP_LEAFS / 8];
 	byte compressed[MAX_BSP_LEAFS / 8];
-	unsigned int i, j;
-	int numvis;
+	uint32_t i, j;
+	int32_t numvis;
 	byte *dest;
 	portal_t *p;
-	int pnum;
+	int32_t pnum;
 
 	// OR together all the portal vis bits
 	memset(portalvector, 0, map_vis.portal_bytes);
@@ -169,7 +169,7 @@ static void ClusterMerge(int leaf_num) {
  * CalcVis
  */
 static void CalcVis(void) {
-	unsigned int i;
+	uint32_t i;
 
 	RunThreadsOn(map_vis.num_portals * 2, true, BaseVis);
 
@@ -201,7 +201,7 @@ static void CalcVis(void) {
  * SetPortalSphere
  */
 static void SetPortalSphere(portal_t * p) {
-	int i;
+	int32_t i;
 	vec3_t total, dist;
 	winding_t *w;
 	float r, bestr;
@@ -230,14 +230,14 @@ static void SetPortalSphere(portal_t * p) {
  * LoadPortals
  */
 static void LoadPortals(const char *name) {
-	unsigned int i;
+	uint32_t i;
 	portal_t *p;
 	leaf_t *l;
 	char magic[80];
 	FILE *f;
-	int num_points;
+	int32_t num_points;
 	winding_t *w;
-	int leaf_nums[2];
+	int32_t leaf_nums[2];
 	plane_t plane;
 
 	if (Fs_OpenFile(name, &f, FILE_READ) == -1)
@@ -278,7 +278,7 @@ static void LoadPortals(const char *name) {
 	map_vis.end = map_vis.base + MAX_BSP_VISIBILITY;
 
 	for (i = 0, p = map_vis.portals; i < map_vis.num_portals; i++) {
-		int j;
+		int32_t j;
 
 		if (fscanf(f, "%i %i %i ", &num_points, &leaf_nums[0], &leaf_nums[1]) != 3) {
 			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
@@ -299,7 +299,7 @@ static void LoadPortals(const char *name) {
 
 		for (j = 0; j < num_points; j++) {
 			double v[3];
-			int k;
+			int32_t k;
 
 			// scanf into double, then assign to vec_t
 			// so we don't care what size vec_t is
@@ -357,11 +357,11 @@ static void LoadPortals(const char *name) {
  * by ORing together all the PVS visible from a leaf
  */
 static void CalcPHS(void) {
-	unsigned int i, j, k, l, index;
-	int bitbyte;
+	uint32_t i, j, k, l, index;
+	int32_t bitbyte;
 	long *dest, *src;
 	byte *scan;
-	int count;
+	int32_t count;
 	byte uncompressed[MAX_BSP_LEAFS / 8];
 	byte compressed[MAX_BSP_LEAFS / 8];
 
@@ -416,10 +416,10 @@ static void CalcPHS(void) {
 /*
  * VIS_Main
  */
-int VIS_Main(void) {
+int32_t VIS_Main(void) {
 	char portal_file[MAX_OSPATH];
 	double start, end;
-	int total_vis_time;
+	int32_t total_vis_time;
 
 #ifdef _WIN32
 	char title[MAX_OSPATH];

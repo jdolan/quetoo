@@ -29,7 +29,7 @@ extern cl_static_t cls;
  * S_AllocSample
  */
 static s_sample_t *S_AllocSample(void) {
-	int i;
+	int32_t i;
 
 	// find a free sample
 	for (i = 0; i < s_env.num_samples; i++) {
@@ -54,7 +54,7 @@ static s_sample_t *S_AllocSample(void) {
  */
 static s_sample_t *S_FindName(const char *name) {
 	char basename[MAX_QPATH];
-	int i;
+	int32_t i;
 
 	memset(basename, 0, sizeof(basename));
 	StripExtension(name, basename);
@@ -92,7 +92,7 @@ static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
 static void S_LoadSampleChunk(s_sample_t *sample) {
 	char path[MAX_QPATH];
 	void *buf;
-	int i, len;
+	int32_t i, len;
 	SDL_RWops *rw;
 
 	if (sample->name[0] == '*') // place holder
@@ -172,7 +172,7 @@ s_sample_t *S_LoadSample(const char *name) {
  * S_LoadModelSample
  */
 s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
-	int n;
+	int32_t n;
 	char *p;
 	s_sample_t *sample;
 	char model[MAX_QPATH];
@@ -235,7 +235,7 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
  * S_FreeSamples
  */
 void S_FreeSamples(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < MAX_SAMPLES; i++) {
 		if (s_env.samples[i].chunk && !s_env.samples[i].alias)
@@ -250,7 +250,7 @@ void S_FreeSamples(void) {
  * S_LoadSamples
  */
 void S_LoadSamples(void) {
-	int i;
+	int32_t i;
 
 	S_FreeSamples();
 

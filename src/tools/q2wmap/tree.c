@@ -21,14 +21,14 @@
 
 #include "qbsp.h"
 
-extern int c_nodes;
+extern int32_t c_nodes;
 
 /*
  * FreeTreePortals_r
  */
 void FreeTreePortals_r(node_t * node){
 	portal_t *p, *nextp;
-	int s;
+	int32_t s;
 
 	// free children
 	if(node->plane_num != PLANENUM_LEAF){
@@ -92,7 +92,7 @@ void FreeTree(tree_t * tree){
  *
  */
 
-int c_pruned;
+int32_t c_pruned;
 
 /*
  * PruneNodes_r

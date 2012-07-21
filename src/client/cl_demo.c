@@ -30,8 +30,8 @@
 static void Cl_WriteDemoHeader(void) {
 	byte buffer[MAX_MSG_SIZE];
 	size_buf_t msg;
-	int i;
-	int len;
+	int32_t i;
+	int32_t len;
 	entity_state_t null_state;
 
 	// write out messages to hold the startup information
@@ -102,7 +102,7 @@ static void Cl_WriteDemoHeader(void) {
  * Dumps the current net message, prefixed by the length.
  */
 void Cl_WriteDemoMessage(void) {
-	int size;
+	int32_t size;
 
 	if (!cls.demo_file)
 		return;
@@ -126,7 +126,7 @@ void Cl_WriteDemoMessage(void) {
  * Stop recording a demo
  */
 void Cl_Stop_f(void) {
-	int size;
+	int32_t size;
 
 	if (!cls.demo_file) {
 		Com_Print("Not recording a demo.\n");

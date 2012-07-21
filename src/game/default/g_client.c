@@ -27,7 +27,7 @@
  * Make a tasteless death announcement.
  */
 static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
-	unsigned int ff, mod;
+	uint32_t ff, mod;
 	char *message, *message2;
 	g_client_t *killer;
 
@@ -213,7 +213,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
  * G_ClientCorpse_think
  */
 static void G_ClientCorpse_think(g_edict_t *ent) {
-	const unsigned int age = g_level.time - ent->timestamp;
+	const uint32_t age = g_level.time - ent->timestamp;
 
 	if (age > 5000) {
 		G_FreeEdict(ent);
@@ -272,8 +272,8 @@ static void G_ClientCorpse(g_edict_t *self) {
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
-static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int damage __attribute__((unused)),
-		vec3_t point __attribute__((unused))) {
+static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int32_t damage __attribute__((unused)),
+		vec3_t point32_t __attribute__((unused))) {
 
 	self->enemy = attacker;
 
@@ -334,9 +334,9 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
  * specified quantity of ammo, while health and armor are set to
  * the specified quantity.
  */
-static void G_Give(g_client_t *client, char *it, short quantity) {
+static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 	g_item_t *item;
-	int index;
+	int32_t index;
 
 	if (!strcasecmp(it, "Health")) {
 		client->persistent.health = quantity;
@@ -380,7 +380,7 @@ static void G_Give(g_client_t *client, char *it, short quantity) {
  */
 static bool G_GiveLevelLocals(g_client_t *client) {
 	char buf[512], *it, *q;
-	int quantity;
+	int32_t quantity;
 
 	if (*g_level.give == '\0')
 		return false;
@@ -420,7 +420,7 @@ static bool G_GiveLevelLocals(g_client_t *client) {
  */
 static void G_InitClientPersistent(g_client_t *client) {
 	g_item_t *item;
-	int i;
+	int32_t i;
 
 	// clear inventory
 	for (i = 0; i < MAX_ITEMS; i++)
@@ -490,7 +490,7 @@ static float G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
 	g_edict_t *player;
 	float dist, best_dist;
 	vec3_t v;
-	int n;
+	int32_t n;
 
 	best_dist = 9999999.0;
 
@@ -529,7 +529,7 @@ static float G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
  */
 static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
 	g_edict_t *spot;
-	int count = 0;
+	int32_t count = 0;
 
 	spot = NULL;
 
@@ -804,7 +804,7 @@ void G_ClientRespawn(g_edict_t *ent, bool voluntary) {
 void G_ClientBegin(g_edict_t *ent) {
 	char welcome[MAX_STRING_CHARS];
 
-	int player_num = ent - g_game.edicts - 1;
+	int32_t player_num = ent - g_game.edicts - 1;
 
 	ent->client = g_game.clients + player_num;
 
@@ -862,7 +862,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	const char *s;
 	char *c;
 	char name[MAX_NET_NAME];
-	int player_num, i;
+	int32_t player_num, i;
 	bool color;
 	g_client_t *cl;
 
@@ -1002,7 +1002,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
  * Called when a player drops from the server.  Not be called between levels.
  */
 void G_ClientDisconnect(g_edict_t *ent) {
-	int player_num;
+	int32_t player_num;
 
 	if (!ent->client)
 		return;
@@ -1057,7 +1057,7 @@ static c_trace_t G_ClientMoveTrace(const vec3_t start, const vec3_t mins, const 
 static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	vec3_t old_velocity, velocity;
 	pm_move_t pm;
-	int i, j;
+	int32_t i, j;
 
 	g_client_t *client = ent->client;
 
@@ -1154,7 +1154,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 		entity_event_t event = EV_CLIENT_LAND;
 
 		if (fall >= 600.0) { // player will take damage
-			int damage = ((int) ((fall - 600.0) * 0.05)) >> ent->water_level;
+			int32_t damage = ((int) ((fall - 600.0) * 0.05)) >> ent->water_level;
 
 			if (damage < 1)
 				damage = 1;
@@ -1267,7 +1267,7 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
  */
 void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 	g_client_t *client;
-	int i;
+	int32_t i;
 
 	if (g_level.intermission_time)
 		return;

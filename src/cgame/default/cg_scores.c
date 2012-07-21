@@ -36,13 +36,13 @@ static bool cg_scores_ctf;
  *
  * A comparator for sorting player_score_t.
  */
-static int Cg_ParseScores_Compare(const void *a, const void *b) {
+static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
 	const player_score_t *sa = (player_score_t *) a;
 	const player_score_t *sb = (player_score_t *) b;
 
 	// push spectators to the bottom of the board
-	const short s1 = (sa->team == 0xff ? -9999 : sa->score);
-	const short s2 = (sb->team == 0xff ? -9999 : sb->score);
+	const int16_t s1 = (sa->team == 0xff ? -9999 : sa->score);
+	const int16_t s2 = (sb->team == 0xff ? -9999 : sb->score);
 
 	return s2 - s1;
 }
@@ -117,7 +117,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 		char string[MAX_QPATH];
 
 		player_score_t *score = &cg_scores[cg_num_scores];
-		short s = cg_scores_teams ? score->score : score->captures;
+		int16_t s = cg_scores_teams ? score->score : score->captures;
 
 		cgi.BindFont("small", &cw, &ch);
 
@@ -224,9 +224,9 @@ static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
  */
 static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	r_pixel_t x, y;
-	short rows;
+	int16_t rows;
 	size_t i;
-	int j = 0;
+	int32_t j = 0;
 
 	rows = (cgi.context->height - (2 * start_y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
@@ -292,7 +292,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
  * Cg_DrawDmScores
  */
 static void Cg_DrawDmScores(const r_pixel_t start_y) {
-	short rows, cols;
+	int16_t rows, cols;
 	r_pixel_t width;
 	size_t i;
 
@@ -308,7 +308,7 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
 		if ((short) i == (cols * rows)) // screen is full
 			break;
 
-		const short col = i / rows;
+		const int16_t col = i / rows;
 
 		const r_pixel_t x = cgi.context->width / 2 - width / 2 + col * SCORES_COL_WIDTH;
 		const r_pixel_t y = start_y + (i % rows) * SCORES_ROW_HEIGHT;

@@ -75,7 +75,7 @@ typedef void (*cmd_function_t)(void);
 typedef struct cmd_function_s {
 	const char *name;
 	cmd_function_t function;
-	unsigned int flags;
+	uint32_t flags;
 	const char *description;
 	struct cmd_function_s *next;
 } cmd_t;
@@ -84,7 +84,7 @@ void Cmd_Init(void);
 
 cmd_t *Cmd_Get(const char *name);
 
-void Cmd_AddCommand(const char *name, cmd_function_t function, unsigned int flags,
+void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
 		const char *description);
 // called by the init functions of other parts of the program to
 // register commands and functions to call for them.
@@ -93,11 +93,11 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, unsigned int flag
 // as a clc_string_cmd instead of executed locally
 void Cmd_RemoveCommand(const char *name);
 
-int Cmd_CompleteCommand(const char *partial, const char *matches[]);
+int32_t Cmd_CompleteCommand(const char *partial, const char *matches[]);
 // attempts to match a partial command for automatic command line completion
 
-int Cmd_Argc(void);
-char *Cmd_Argv(int arg);
+int32_t Cmd_Argc(void);
+char *Cmd_Argv(int32_t arg);
 char *Cmd_Args(void);
 // The functions that execute commands get their parameters with these
 // functions. Cmd_Argv() will return an empty string, not a NULL

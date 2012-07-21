@@ -28,18 +28,18 @@ extern g_item_t g_items[];
 
 #define ITEM_INDEX(x) ((x) - g_items)
 
-bool G_AddAmmo(g_edict_t *ent, g_item_t *item, short count);
+bool G_AddAmmo(g_edict_t *ent, g_item_t *item, int16_t count);
 g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item);
 g_item_t *G_FindItem(const char *pickup_name);
 g_item_t *G_FindItemByClassname(const char *class_name);
 void G_InitItems(void);
-g_item_t *G_ItemByIndex(unsigned short index);
+g_item_t *G_ItemByIndex(uint16_t index);
 void G_PrecacheItem(g_item_t *it);
 void G_ResetFlag(g_edict_t *ent);
 void G_SetItemNames(void);
-void G_SetItemRespawn(g_edict_t *ent, unsigned int delay);
+void G_SetItemRespawn(g_edict_t *ent, uint32_t delay);
 void G_SpawnItem(g_edict_t *ent, g_item_t *item);
-bool G_SetAmmo(g_edict_t *ent, g_item_t *item, short count);
+bool G_SetAmmo(g_edict_t *ent, g_item_t *item, int16_t count);
 void G_TossFlag(g_edict_t *self);
 void G_TossQuadDamage(g_edict_t *self);
 void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);

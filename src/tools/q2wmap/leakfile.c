@@ -32,7 +32,7 @@ void LeakFile(tree_t *tree) {
 	FILE *leakfile;
 	char file_name[MAX_OSPATH];
 	node_t *node;
-	int count;
+	int32_t count;
 
 	if (!tree->outside_node.occupied)
 		return;
@@ -49,10 +49,10 @@ void LeakFile(tree_t *tree) {
 	count = 0;
 	node = &tree->outside_node;
 	while (node->occupied > 1) {
-		int next;
+		int32_t next;
 		portal_t *p, *nextportal = NULL;
 		node_t *nextnode = NULL;
-		int s;
+		int32_t s;
 
 		// find the best portal exit
 		next = node->occupied;
@@ -73,7 +73,7 @@ void LeakFile(tree_t *tree) {
 	GetVectorForKey(node->occupant, "origin", mid);
 
 	fprintf(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
-	Com_Debug("%5i point leakfile\n", count + 1);
+	Com_Debug("%5i point32_t leakfile\n", count + 1);
 
 	Fs_CloseFile(leakfile);
 }

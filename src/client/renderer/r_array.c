@@ -28,7 +28,7 @@
 
 typedef struct r_array_state_s {
 	const r_model_t *model;
-	unsigned int arrays;
+	uint32_t arrays;
 } r_array_state_t;
 
 static r_array_state_t r_array_state;
@@ -40,8 +40,8 @@ static r_array_state_t r_array_state;
  * to r_state.  This function is consulted to determine whether or not array
  * bindings are up to date.
  */
-static int R_ArraysMask(void) {
-	unsigned int mask;
+static int32_t R_ArraysMask(void) {
+	uint32_t mask;
 
 	mask = R_ARRAY_VERTEX;
 
@@ -67,7 +67,7 @@ static int R_ArraysMask(void) {
 /*
  * R_SetVertexArrayState
  */
-static void R_SetVertexArrayState(const r_model_t *mod, unsigned int mask) {
+static void R_SetVertexArrayState(const r_model_t *mod, uint32_t mask) {
 
 	// vertex array
 	if (mask & R_ARRAY_VERTEX)
@@ -114,7 +114,7 @@ static void R_SetVertexArrayState(const r_model_t *mod, unsigned int mask) {
 /*
  * R_SetVertexBufferState
  */
-static void R_SetVertexBufferState(const r_model_t *mod, unsigned int mask) {
+static void R_SetVertexBufferState(const r_model_t *mod, uint32_t mask) {
 
 	// vertex array
 	if (mask & R_ARRAY_VERTEX)
@@ -162,7 +162,7 @@ static void R_SetVertexBufferState(const r_model_t *mod, unsigned int mask) {
  * R_SetArrayState
  */
 void R_SetArrayState(const r_model_t *mod) {
-	unsigned int arrays, mask;
+	uint32_t arrays, mask;
 
 	if (r_vertex_buffers->modified) { // force a full re-bind
 		r_array_state.model = NULL;
@@ -175,7 +175,7 @@ void R_SetArrayState(const r_model_t *mod) {
 
 	if (r_array_state.model == mod) { // try to save some binds
 
-		const unsigned int xor = r_array_state.arrays ^ arrays;
+		const uint32_t xor = r_array_state.arrays ^ arrays;
 
 		if (!xor) // no changes, we're done
 			return;
@@ -201,12 +201,12 @@ void R_SetArrayState(const r_model_t *mod) {
  * R_ResetArrayState
  */
 void R_ResetArrayState(void) {
-	unsigned int arrays, mask;
+	uint32_t arrays, mask;
 
 	mask = 0xffff, arrays = R_ArraysMask(); // resolve the desired arrays mask
 
 	if (r_array_state.model == NULL) {
-		const int xor = r_array_state.arrays ^ arrays;
+		const int32_t xor = r_array_state.arrays ^ arrays;
 
 		if (!xor) // no changes, we're done
 			return;

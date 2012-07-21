@@ -113,9 +113,9 @@ static char scores_buffer[MAX_STRING_CHARS];
  * FIXME: Because we can only send the first 32 or so scores, we should sort
  * the clients here before serializing them.
  */
-static unsigned int G_UpdateScores(void) {
+static uint32_t G_UpdateScores(void) {
 	char *buf = scores_buffer;
-	int i, j = 0;
+	int32_t i, j = 0;
 
 	// assemble the client scores
 	for (i = 0; i < sv_max_clients->integer; i++) {
@@ -159,7 +159,7 @@ static unsigned int G_UpdateScores(void) {
  * Assemble the binary scores data for the client.
  */
 void G_ClientScores(g_edict_t *ent) {
-	unsigned short length;
+	uint16_t length;
 
 	if (!ent->client->show_scores || (ent->client->scores_time > g_level.time))
 		return;

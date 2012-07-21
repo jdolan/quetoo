@@ -34,7 +34,7 @@ static cmd_alias_t *cmd_alias;
 static bool cmd_wait;
 
 #define ALIAS_LOOP_COUNT 16
-static int alias_count; // for detecting runaway loops
+static int32_t alias_count; // for detecting runaway loops
 
 
 /*
@@ -72,7 +72,7 @@ void Cbuf_Init(void) {
  * Adds command text at the end of the buffer
  */
 void Cbuf_AddText(const char *text) {
-	int l;
+	int32_t l;
 
 	l = strlen(text);
 
@@ -92,7 +92,7 @@ void Cbuf_AddText(const char *text) {
  */
 void Cbuf_InsertText(const char *text) {
 	char *temp;
-	int temp_len;
+	int32_t temp_len;
 
 	// copy off any commands still remaining in the exec buffer
 	temp_len = cmd_text.size;
@@ -134,10 +134,10 @@ void Cbuf_InsertFromDefer(void) {
  * Cbuf_Execute
  */
 void Cbuf_Execute(void) {
-	unsigned int i;
+	uint32_t i;
 	char *text;
 	char line[MAX_STRING_CHARS];
-	int quotes;
+	int32_t quotes;
 
 	alias_count = 0; // don't allow infinite alias loops
 
@@ -199,7 +199,7 @@ void Cbuf_Execute(void) {
  * Other commands are added late, after all initialization is complete.
  */
 void Cbuf_AddEarlyCommands(bool clear) {
-	int i;
+	int32_t i;
 	char *s;
 
 	for (i = 0; i < Com_Argc(); i++) {
@@ -224,7 +224,7 @@ void Cbuf_AddEarlyCommands(bool clear) {
  * Commands lead with a + and continue until another +.
  */
 void Cbuf_AddLateCommands(void) {
-	unsigned int i, j, k;
+	uint32_t i, j, k;
 	char *c, text[MAX_STRING_CHARS];
 
 	j = 0;
@@ -264,7 +264,7 @@ void Cbuf_AddLateCommands(void) {
  */
 static void Cmd_Exec_f(void) {
 	void *buf;
-	int len;
+	int32_t len;
 	char cfg[MAX_QPATH];
 
 	if (Cmd_Argc() != 2) {
@@ -291,7 +291,7 @@ static void Cmd_Exec_f(void) {
  * Just prints the rest of the line to the console
  */
 static void Cmd_Echo_f(void) {
-	int i;
+	int32_t i;
 
 	for (i = 1; i < Cmd_Argc(); i++)
 		Com_Print("%s ", Cmd_Argv(i));
@@ -306,7 +306,7 @@ static void Cmd_Echo_f(void) {
 static void Cmd_Alias_f(void) {
 	cmd_alias_t *a;
 	char cmd[MAX_STRING_CHARS];
-	int i, c;
+	int32_t i, c;
 	char *s;
 
 	if (Cmd_Argc() == 1) {
@@ -357,7 +357,7 @@ static void Cmd_Alias_f(void) {
  */
 
 typedef struct cmd_state_s {
-	int argc;
+	int32_t argc;
 	char argv[MAX_STRING_TOKENS][MAX_TOKEN_CHARS];
 	char args[MAX_STRING_CHARS];
 } cmd_state_t;
@@ -370,14 +370,14 @@ static hash_table_t cmd_hash; // hashed for fast lookups
 /*
  * Cmd_Argc
  */
-int Cmd_Argc(void) {
+int32_t Cmd_Argc(void) {
 	return cmd_state.argc;
 }
 
 /*
  * Cmd_Argv
  */
-char *Cmd_Argv(int arg) {
+char *Cmd_Argv(int32_t arg) {
 	if (arg >= cmd_state.argc)
 		return "";
 	return cmd_state.argv[arg];
@@ -472,7 +472,7 @@ cmd_t *Cmd_Get(const char *name) {
 /*
  * Cmd_AddCommand
  */
-void Cmd_AddCommand(const char *name, cmd_function_t function, unsigned int flags,
+void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
 		const char *description) {
 	cmd_t *c, *cmd;
 
@@ -542,11 +542,11 @@ void Cmd_RemoveCommand(const char *name) {
 /*
  * Cmd_CompleteCommand
  */
-int Cmd_CompleteCommand(const char *partial, const char *matches[]) {
+int32_t Cmd_CompleteCommand(const char *partial, const char *matches[]) {
 	cmd_t *cmd;
 	cmd_alias_t *a;
-	int len;
-	int m;
+	int32_t len;
+	int32_t m;
 
 	len = strlen(partial);
 	m = 0;
@@ -623,7 +623,7 @@ void Cmd_ExecuteString(const char *text) {
  */
 static void Cmd_List_f(void) {
 	cmd_t *cmd;
-	int i;
+	int32_t i;
 
 	i = 0;
 	for (cmd = cmd_commands; cmd; cmd = cmd->next, i++) {

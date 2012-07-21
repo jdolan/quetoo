@@ -91,7 +91,7 @@ void Netchan_Init(void) {
 	net_showdrop = Cvar_Get("net_showdrop", "0", 0, NULL);
 
 	// assign a small random number for the qport
-	p = ((unsigned int) time(NULL)) & 255;
+	p = ((uint32_t) time(NULL)) & 255;
 	net_qport = Cvar_Get("net_qport", va("%d", p), CVAR_NO_SET, NULL);
 }
 
@@ -100,7 +100,7 @@ void Netchan_Init(void) {
  *
  * Sends an out-of-band datagram
  */
-void Netchan_OutOfBand(int net_socket, net_addr_t addr, size_t size, byte *data) {
+void Netchan_OutOfBand(int32_t net_socket, net_addr_t addr, size_t size, byte *data) {
 	size_buf_t send;
 	byte send_buffer[MAX_MSG_SIZE];
 
@@ -119,7 +119,7 @@ void Netchan_OutOfBand(int net_socket, net_addr_t addr, size_t size, byte *data)
  *
  * Sends a text message in an out-of-band datagram
  */
-void Netchan_OutOfBandPrint(int net_socket, net_addr_t addr, const char *format, ...) {
+void Netchan_OutOfBandPrint(int32_t net_socket, net_addr_t addr, const char *format, ...) {
 	va_list args;
 	char string[MAX_MSG_SIZE - 4];
 
@@ -195,7 +195,7 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	size_buf_t send;
 	byte send_buffer[MAX_MSG_SIZE];
 	bool send_reliable;
-	unsigned int w1, w2;
+	uint32_t w1, w2;
 
 	// check for message overflow
 	if (chan->message.overflowed) {
@@ -263,8 +263,8 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
  * modifies net_message so that it points to the packet payload
  */
 bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
-	unsigned int sequence, sequence_ack;
-	unsigned int reliable_ack, reliable_message;
+	uint32_t sequence, sequence_ack;
+	uint32_t reliable_ack, reliable_message;
 	byte qport;
 
 	// get sequence numbers

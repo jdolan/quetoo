@@ -95,7 +95,7 @@ void Z_Free(void *ptr) {
  *
  * Free all managed items allocated with the specified tag.
  */
-void Z_FreeTag(short tag) {
+void Z_FreeTag(int16_t tag) {
 	z_head_t *z, *next;
 
 	SDL_mutexP(z_lock);
@@ -115,7 +115,7 @@ void Z_FreeTag(short tag) {
  * Allocates and initializes a block of managed memory for the specified tag.
  * Tags allow related objects to be freed in bulk e.g. when a subsystem quits.
  */
-void *Z_TagMalloc(size_t size, short tag) {
+void *Z_TagMalloc(size_t size, int16_t tag) {
 	z_head_t *z;
 
 	size = size + sizeof(z_head_t);

@@ -341,7 +341,7 @@ static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *p
 	if (other->health <= 0)
 		return;
 
-	ent = ent->enemy; // now point at the plat, not the trigger
+	ent = ent->enemy; // now point32_t at the plat, not the trigger
 
 	if (ent->move_info.state == STATE_BOTTOM)
 		G_func_plat_go_up(ent);
@@ -516,7 +516,7 @@ static void G_func_rotating_use(g_edict_t *self, g_edict_t *other __attribute__(
 
 /*QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS TOUCH_PAIN STOP
  You need to have an origin brush as part of this entity.  The center of that brush will be
- the point around which it is rotated. It will rotate around the Z axis by default.  You can
+ the point32_t around which it is rotated. It will rotate around the Z axis by default.  You can
  check either the X_AXIS or Y_AXIS box to change that.
 
  "speed" determines how fast it moves; default value is 100.
@@ -641,7 +641,7 @@ static void G_func_button_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t
 }
 
 static void G_func_button_die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker,
-		int damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
+		int32_t damage __attribute__((unused)), vec3_t point32_t __attribute__((unused))) {
 	self->activator = attacker;
 	self->health = self->max_health;
 	self->take_damage = false;
@@ -965,8 +965,8 @@ static void G_func_door_blocked(g_edict_t *self, g_edict_t *other) {
 /*
  * G_func_door_die
  */
-static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int damage __attribute__((unused)),
-		vec3_t point __attribute__((unused))) {
+static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int32_t damage __attribute__((unused)),
+		vec3_t point32_t __attribute__((unused))) {
 	g_edict_t *ent;
 
 	for (ent = self->team_master; ent; ent = ent->team_chain) {
@@ -1408,7 +1408,7 @@ static void G_func_train_use(g_edict_t *self, g_edict_t *other __attribute__((un
 
 /*QUAKED func_train (0 .5 .8) ? START_ON TOGGLE BLOCK_STOPS
  Trains are moving platforms that players can ride.
- The targets origin specifies the min point of the train at each corner.
+ The targets origin specifies the min point32_t of the train at each corner.
  The train spawns at the first target it is pointing at.
  If the train is the target of a button or trigger, it will not begin moving until activated.
  speed	default 100

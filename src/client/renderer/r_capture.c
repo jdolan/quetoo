@@ -23,8 +23,8 @@
 
 typedef struct capture_buffer_s {
 	byte *buffer; // the buffer for RGB pixel data
-	int frame; // the last capture frame
-	int time; // the time of the last capture frame
+	int32_t frame; // the last capture frame
+	int32_t time; // the time of the last capture frame
 } r_capture_buffer_t;
 
 static r_capture_buffer_t capture_buffer;
@@ -36,7 +36,7 @@ static r_capture_buffer_t capture_buffer;
  */
 static void R_FlushCapture(void *data __attribute__((unused))) {
 	char path[MAX_OSPATH];
-	int q;
+	int32_t q;
 
 	snprintf(path, sizeof(path), "%s/capture/%010d.jpg", Fs_Gamedir(), capture_buffer.frame);
 

@@ -37,9 +37,9 @@ typedef struct {
 
 	c_bsp_surface_t *ground_surface;
 	c_bsp_plane_t ground_plane;
-	int ground_contents;
+	int32_t ground_contents;
 
-	short previous_origin[3];
+	int16_t previous_origin[3];
 } pm_locals_t;
 
 static pm_locals_t pml;
@@ -89,7 +89,7 @@ static pm_locals_t pml;
  */
 static void Pm_ClipVelocity(vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
 	float backoff, change;
-	int i;
+	int32_t i;
 
 	backoff = DotProduct(in, normal);
 
@@ -142,10 +142,10 @@ static void Pm_ClampVelocity(void) {
  * Calculates a new origin, velocity, and contact entities based on the
  * movement command and world state.  Returns the number of planes intersected.
  */
-static int Pm_StepSlideMove_(void) {
+static int32_t Pm_StepSlideMove_(void) {
 	vec3_t vel, end;
 	c_trace_t trace;
-	int k, num_planes;
+	int32_t k, num_planes;
 	float time;
 
 	VectorCopy(pml.velocity, vel);
@@ -432,7 +432,7 @@ static void Pm_AddCurrents(vec3_t vel) {
  */
 static void Pm_CategorizePosition(void) {
 	vec3_t point;
-	int contents;
+	int32_t contents;
 	c_trace_t trace;
 
 	// if the client wishes to trick-jump, seek ground eagerly
@@ -726,7 +726,7 @@ static bool Pm_CheckWaterJump(void) {
 static void Pm_LadderMove(void) {
 	vec3_t vel, dir;
 	float speed;
-	int i;
+	int32_t i;
 
 	//Com_Debug("%d ladder move\n", quake2world.time);
 
@@ -826,7 +826,7 @@ static void Pm_WaterJumpMove(void) {
 static void Pm_WaterMove(void) {
 	vec3_t vel, dir;
 	float speed;
-	int i;
+	int32_t i;
 
 	if (Pm_CheckWaterJump()) {
 		Pm_WaterJumpMove();
@@ -892,7 +892,7 @@ static void Pm_WaterMove(void) {
 static void Pm_AirMove(void) {
 	vec3_t vel, dir;
 	float speed, accel;
-	int i;
+	int32_t i;
 
 	//Com_Debug("%d air move\n", quake2world.time);
 
@@ -938,7 +938,7 @@ static void Pm_AirMove(void) {
 static void Pm_WalkMove(void) {
 	float speed, max_speed, accel;
 	vec3_t vel, dir;
-	int i;
+	int32_t i;
 
 	if (Pm_CheckJump() || Pm_CheckPush()) {
 		// jumped or pushed away
@@ -1030,8 +1030,8 @@ static bool Pm_GoodPosition(void) {
  * precision of the network channel and in a valid position.
  */
 static void Pm_SnapPosition(void) {
-	static const short jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
-	short sign[3], base[3];
+	static const int16_t jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
+	int16_t sign[3], base[3];
 	size_t i, j;
 
 	// pack velocity for network transmission
@@ -1059,7 +1059,7 @@ static void Pm_SnapPosition(void) {
 	// try all combinations
 	for (j = 0; j < lengthof(jitter_bits); j++) {
 
-		const short bit = jitter_bits[j];
+		const int16_t bit = jitter_bits[j];
 
 		VectorCopy(base, pm->s.origin);
 
@@ -1083,7 +1083,7 @@ static void Pm_SnapPosition(void) {
  */
 static void Pm_ClampAngles(void) {
 	vec3_t angles;
-	int i;
+	int32_t i;
 
 	// copy the command angles into the outgoing state
 	VectorCopy(pm->cmd.angles, pm->s.view_angles);
@@ -1091,9 +1091,9 @@ static void Pm_ClampAngles(void) {
 	// circularly clamp the angles with kick and deltas
 	for (i = 0; i < 3; i++) {
 
-		const short c = pm->cmd.angles[i];
-		const short k = pm->s.kick_angles[i];
-		const short d = pm->s.delta_angles[i];
+		const int16_t c = pm->cmd.angles[i];
+		const int16_t k = pm->s.kick_angles[i];
+		const int16_t d = pm->s.delta_angles[i];
 
 		pm->angles[i] = SHORT2ANGLE(c + k + d);
 	}
@@ -1118,7 +1118,7 @@ static void Pm_ClampAngles(void) {
 static void Pm_SpectatorMove() {
 	vec3_t vel, dir;
 	float speed;
-	int i;
+	int32_t i;
 
 	Pm_Friction();
 
@@ -1167,7 +1167,7 @@ static void Pm_Init(void) {
 	// decrement the movement timer
 	if (pm->s.pm_time) {
 		// each pm_time is worth 8ms
-		unsigned int time = pm->cmd.msec >> 3;
+		uint32_t time = pm->cmd.msec >> 3;
 
 		if (!time)
 			time = 1;

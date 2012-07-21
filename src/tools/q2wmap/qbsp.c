@@ -39,20 +39,20 @@ bool noopt;
 bool leaktest;
 bool verboseentities;
 
-int block_xl = -8, block_xh = 7, block_yl = -8, block_yh = 7;
+int32_t block_xl = -8, block_xh = 7, block_yl = -8, block_yh = 7;
 
-int entity_num;
+int32_t entity_num;
 
 static node_t *block_nodes[10][10];
 
 /*
  * BlockTree
  */
-static node_t *BlockTree(int xl, int yl, int xh, int yh) {
+static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
 	node_t *node;
 	vec3_t normal;
 	float dist;
-	int mid;
+	int32_t mid;
 
 	if (xl == xh && yl == yh) {
 		node = block_nodes[xl + 5][yl + 5];
@@ -93,9 +93,9 @@ static node_t *BlockTree(int xl, int yl, int xh, int yh) {
 /*
  * ProcessBlock_Thread
  */
-static int brush_start, brush_end;
-static void ProcessBlock_Thread(int blocknum) {
-	int xblock, yblock;
+static int32_t brush_start, brush_end;
+static void ProcessBlock_Thread(int32_t blocknum) {
+	int32_t xblock, yblock;
 	vec3_t mins, maxs;
 	bsp_brush_t *brushes;
 	tree_t *tree;
@@ -142,7 +142,7 @@ static void ProcessWorldModel(void) {
 	entity_t *e;
 	tree_t *tree;
 	bool leaked;
-	int optimize;
+	int32_t optimize;
 
 	e = &entities[entity_num];
 
@@ -235,7 +235,7 @@ static void ProcessWorldModel(void) {
  */
 static void ProcessSubModel(void) {
 	entity_t *e;
-	int start, end;
+	int32_t start, end;
 	tree_t *tree;
 	bsp_brush_t *list;
 	vec3_t mins, maxs;
@@ -284,10 +284,10 @@ static void ProcessModels(void) {
 /*
  * BSP_Main
  */
-int BSP_Main(void) {
+int32_t BSP_Main(void) {
 	time_t start, end;
 	char base[MAX_OSPATH];
-	int total_bsp_time;
+	int32_t total_bsp_time;
 
 #ifdef _WIN32
 	char title[MAX_OSPATH];

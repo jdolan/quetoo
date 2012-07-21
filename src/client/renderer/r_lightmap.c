@@ -24,7 +24,7 @@
 /*
  * In video memory, lightmaps are chunked into NxN RGB blocks.  In the bsp,
  * they are a contiguous lump.  During the loading process, we use floating
- * point to provide precision.
+ * point32_t to provide precision.
  */
 
 r_lightmaps_t r_lightmaps;
@@ -110,7 +110,7 @@ static bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixel
  * R_BuildDefaultLightmap
  */
 static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, size_t stride) {
-	int i, j;
+	int32_t i, j;
 
 	const r_pixel_t smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
 	const r_pixel_t tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
@@ -201,7 +201,7 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, size_
 	}
 
 	// the final lightmap is uploaded to the card via the strided lightmap
-	// block, and also cached on the surface for fast point lighting lookups
+	// block, and also cached on the surface for fast point32_t lighting lookups
 
 	surf->lightmap = (byte *) R_HunkAlloc(size * 3);
 	l = surf->lightmap;
@@ -289,7 +289,7 @@ void R_CreateSurfaceLightmap(r_bsp_surface_t *surf) {
  * R_BeginBuildingLightmaps
  */
 void R_BeginBuildingLightmaps(void) {
-	int max;
+	int32_t max;
 
 	// users can tune lightmap size for their card
 	r_lightmaps.block_size = r_lightmap_block_size->integer;
@@ -307,8 +307,8 @@ void R_BeginBuildingLightmaps(void) {
 
 	r_lightmaps.allocated = (r_pixel_t *) R_HunkAlloc(bs * sizeof(r_pixel_t));
 
-	r_lightmaps.sample_buffer = (byte *) R_HunkAlloc(bs * bs * sizeof(unsigned int));
-	r_lightmaps.direction_buffer = (byte *) R_HunkAlloc(bs * bs * sizeof(unsigned int));
+	r_lightmaps.sample_buffer = (byte *) R_HunkAlloc(bs * bs * sizeof(uint32_t));
+	r_lightmaps.direction_buffer = (byte *) R_HunkAlloc(bs * bs * sizeof(uint32_t));
 
 	r_lightmaps.lightmap_texnum = TEXNUM_LIGHTMAPS;
 	r_lightmaps.deluxemap_texnum = TEXNUM_DELUXEMAPS;

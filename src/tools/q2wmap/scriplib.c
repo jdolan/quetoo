@@ -28,13 +28,13 @@
 typedef struct {
 	char file_name[MAX_OSPATH];
 	char *buffer, *script_p, *end_p;
-	int line;
+	int32_t line;
 } script_t;
 
 #define	MAX_INCLUDES 8
 static script_t scriptstack[MAX_INCLUDES];
 static script_t *script;
-static int scriptline;
+static int32_t scriptline;
 
 char token[MAXTOKEN];
 static bool endofscript;
@@ -43,7 +43,7 @@ static bool endofscript;
  * AddScriptToStack
  */
 static void AddScriptToStack(const char *file_name){
-	int size;
+	int32_t size;
 
 	script++;
 	if(script == &scriptstack[MAX_INCLUDES])
@@ -79,7 +79,7 @@ void LoadScriptFile(const char *file_name){
 /*
  * ParseFromMemory
  */
-void ParseFromMemory(char *buffer, int size){
+void ParseFromMemory(char *buffer, int32_t size){
 	script = scriptstack;
 	script++;
 	if(script == &scriptstack[MAX_INCLUDES])

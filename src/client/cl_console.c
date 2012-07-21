@@ -60,8 +60,8 @@ void Cl_ToggleConsole_f(void) {
  *
  * Update client message notification times.
  */
-void Cl_UpdateNotify(int last_line) {
-	int i;
+void Cl_UpdateNotify(int32_t last_line) {
+	int32_t i;
 
 	for (i = last_line; i < cl_con.last_line; i++)
 		cl_con.notify_times[i % CON_NUM_NOTIFY] = cls.real_time;
@@ -73,7 +73,7 @@ void Cl_UpdateNotify(int last_line) {
  * Clear client message notification times.
  */
 void Cl_ClearNotify(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < CON_NUM_NOTIFY; i++)
 		cl_con.notify_times[i] = 0;
@@ -143,7 +143,7 @@ static void Cl_DrawInput(void) {
 	y = strlen(text);
 
 	// add the cursor frame
-	if ((unsigned int) (cls.real_time >> 8) & 1) {
+	if ((uint32_t) (cls.real_time >> 8) & 1) {
 		text[cls.key_state.pos] = CON_CURSOR_CHAR;
 		if (y == cls.key_state.pos)
 			y++;
@@ -168,7 +168,7 @@ static void Cl_DrawInput(void) {
  */
 void Cl_DrawNotify(void) {
 	r_pixel_t y, cw, ch;
-	int i, color;
+	int32_t i, color;
 
 	if (cls.state != CL_ACTIVE)
 		return;
@@ -188,7 +188,7 @@ void Cl_DrawNotify(void) {
 	}
 
 	if (cls.key_state.dest == KEY_CHAT) {
-		unsigned short skip;
+		uint16_t skip;
 		size_t len;
 		char *s;
 
@@ -207,7 +207,7 @@ void Cl_DrawNotify(void) {
 		s = cls.chat_state.buffer;
 		len = R_DrawString(skip * cw, y, s, color);
 
-		if ((unsigned int) (cls.real_time >> 8) & 1) // draw the cursor
+		if ((uint32_t) (cls.real_time >> 8) & 1) // draw the cursor
 			R_DrawChar((len + skip) * cw, y, CON_CURSOR_CHAR, color);
 	}
 
@@ -218,9 +218,9 @@ void Cl_DrawNotify(void) {
  * Cl_DrawConsole
  */
 void Cl_DrawConsole(void) {
-	int line;
-	int lines;
-	int kb;
+	int32_t line;
+	int32_t lines;
+	int32_t kb;
 	r_pixel_t y, cw, ch;
 	char dl[MAX_STRING_CHARS];
 

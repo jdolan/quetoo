@@ -34,7 +34,7 @@
  */
 pak_t *Pak_ReadPakfile(const char *pakfile) {
 	pak_header_t header;
-	int i;
+	int32_t i;
 	pak_t *pak;
 
 	pak = (pak_t *) Z_Malloc(sizeof(*pak));
@@ -112,7 +112,7 @@ void Pak_FreePakfile(pak_t *pak) {
  * map compiler.
  */
 
-int err;
+int32_t err;
 
 /**
  * Pak_MakePath
@@ -145,7 +145,7 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, bool test) {
 	pak_t *pak;
 	FILE *f;
 	void *p;
-	int i;
+	int32_t i;
 
 	if (dir && chdir(dir) == -1) {
 		fprintf(stderr, "Couldn't unpak to %s.\n", dir);
@@ -160,7 +160,7 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, bool test) {
 
 	for (i = 0; i < pak->num_entries; i++) {
 
-		if (test) { // print contents and continue
+		if (test) { // print32_t contents and continue
 			printf("Contents %s (%d bytes).\n", pak->entries[i].name, pak->entries[i].file_len);
 			continue;
 		}
@@ -229,7 +229,7 @@ pak_t *Pak_CreatePakstream(char *pakfile) {
  */
 void Pak_ClosePakstream(pak_t *pak) {
 	pak_header_t header;
-	int i;
+	int32_t i;
 
 	header.ident = PAK_HEADER;
 	header.dir_len = pak->num_entries * sizeof(pak_entry_t);
@@ -251,7 +251,7 @@ void Pak_ClosePakstream(pak_t *pak) {
  *
  * Add an entry to the specified Pakfile stream.
  */
-void Pak_AddEntry(pak_t *pak, char *name, int len, void *p) {
+void Pak_AddEntry(pak_t *pak, char *name, int32_t len, void *p) {
 	char *c;
 
 	if (pak->num_entries == MAX_PAK_ENTRIES) {
@@ -337,9 +337,9 @@ static void Pak_RecursiveAdd(pak_t *pak, const char *dir) {
  *
  * A convenience function for creating Pakfile archives from the filesystem tree.
  */
-void Pak_CreatePakfile(char *pakfile, int numdirs, char **dirs) {
+void Pak_CreatePakfile(char *pakfile, int32_t numdirs, char **dirs) {
 	pak_t *pak;
-	int i;
+	int32_t i;
 
 	pak = Pak_CreatePakstream(pakfile);
 

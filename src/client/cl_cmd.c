@@ -28,7 +28,7 @@
  * may be called multiple times per packet frame.
  */
 void Cl_UpdateCmd(void) {
-	static unsigned int last_move;
+	static uint32_t last_move;
 	user_cmd_t *cmd;
 
 	if (cls.state != CL_ACTIVE)
@@ -70,7 +70,7 @@ static void Cl_InitCmd(void) {
  */
 static void Cl_FinalizeCmd(void) {
 	user_cmd_t *cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
-	const unsigned int msec = cls.packet_delta;
+	const uint32_t msec = cls.packet_delta;
 
 	cmd->msec = msec > 255 ? 255 : msec;
 	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->msec, cmd->forward, cmd->right, cmd->up);

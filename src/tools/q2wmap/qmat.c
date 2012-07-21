@@ -23,14 +23,14 @@
 
 
 static char materials[MAX_BSP_TEXINFO][32];
-static int num_materials;
+static int32_t num_materials;
 
 
 /*
  * AddMaterial
  */
 static void AddMaterial(const char *name){
-	int i;
+	int32_t i;
 
 	if(!name || !strcmp(name, "NULL"))
 		return;
@@ -50,7 +50,7 @@ static void AddMaterial(const char *name){
  *
  * A simple wrapper around strcmp so that it may act as a comparator.
  */
-static int CompareStrings(const void *p1, const void *p2){
+static int32_t CompareStrings(const void *p1, const void *p2){
 	return strcmp((const char *)p1, (const char *)p2);
 }
 
@@ -61,12 +61,12 @@ static int CompareStrings(const void *p1, const void *p2){
  * Loads the specified BSP file, resolves all materials referenced by it,
  * and generates a "stub" materials file.
  */
-int MAT_Main(void){
+int32_t MAT_Main(void){
 	char path[MAX_QPATH];
 	FILE *f;
 	time_t start, end;
-	int total_mat_time;
-	int i;
+	int32_t total_mat_time;
+	int32_t i;
 
 	#ifdef _WIN32
 		char title[MAX_OSPATH];

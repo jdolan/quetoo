@@ -156,7 +156,7 @@ void Matrix4x4_Transpose (matrix4x4_t *out, const matrix4x4_t *in1)
 #if 1
 // Adapted from code contributed to Mesa by David Moore (Mesa 7.6 under SGI Free License B - which is MIT/X11-type)
 // added helper for common subexpression elimination by eihrul, and other optimizations by div0
-int Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1)
+int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1)
 {
 	float det;
 
@@ -191,7 +191,7 @@ int Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1)
 	out->m[3][2] = -(m00*(m11*m32 - m12*m31) - m10*(m01*m32 - m02*m31) + m30*(m01*m12 - m02*m11));
 	out->m[3][3] =  (m00*(m11*m22 - m12*m21) - m10*(m01*m22 - m02*m21) + m20*(m01*m12 - m02*m11));
 
-	// calculate the determinant (as inverse == 1/det * adjoint, adjoint * m == identity * det, so this calculates the det)
+	// calculate the determinant (as inverse == 1/det * adjoint, adjoint32_t * m == identity * det, so this calculates the det)
 	det = m00*out->m[0][0] + m10*out->m[0][1] + m20*out->m[0][2] + m30*out->m[0][3];
 	if (det == 0.0f)
 			return 0;
@@ -209,11 +209,11 @@ int Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1)
 }
 #elif 1
 // Adapted from code contributed to Mesa by David Moore (Mesa 7.6 under SGI Free License B - which is MIT/X11-type)
-int Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1)
+int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1)
 {
 	matrix4x4_t temp;
 	double det;
-	int i, j;
+	int32_t i, j;
 
 #ifdef MATRIX4x4_OPENGLORIENTATION
 	temp.m[0][0] =  in1->m[1][1]*in1->m[2][2]*in1->m[3][3] - in1->m[1][1]*in1->m[2][3]*in1->m[3][2] - in1->m[2][1]*in1->m[1][2]*in1->m[3][3] + in1->m[2][1]*in1->m[1][3]*in1->m[3][2] + in1->m[3][1]*in1->m[1][2]*in1->m[2][3] - in1->m[3][1]*in1->m[1][3]*in1->m[2][2];
@@ -264,7 +264,7 @@ int Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1)
 	return 1;
 }
 #else
-int Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1)
+int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1)
 {
 	double	*temp;
 	double	*r[4];
@@ -488,7 +488,7 @@ void Matrix4x4_Invert_Simple (matrix4x4_t *out, const matrix4x4_t *in1)
 
 void Matrix4x4_Interpolate (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4_t *in2, double frac)
 {
-	int i, j;
+	int32_t i, j;
 	for (i = 0;i < 4;i++)
 		for (j = 0;j < 4;j++)
 			out->m[i][j] = in1->m[i][j] + frac * (in2->m[i][j] - in1->m[i][j]);
@@ -496,7 +496,7 @@ void Matrix4x4_Interpolate (matrix4x4_t *out, const matrix4x4_t *in1, const matr
 
 void Matrix4x4_Clear (matrix4x4_t *out)
 {
-	int i, j;
+	int32_t i, j;
 	for (i = 0;i < 4;i++)
 		for (j = 0;j < 4;j++)
 			out->m[i][j] = 0;
@@ -504,7 +504,7 @@ void Matrix4x4_Clear (matrix4x4_t *out)
 
 void Matrix4x4_Accumulate (matrix4x4_t *out, const matrix4x4_t *in, double weight)
 {
-	int i, j;
+	int32_t i, j;
 	for (i = 0;i < 4;i++)
 		for (j = 0;j < 4;j++)
 			out->m[i][j] += in->m[i][j] * weight;
@@ -521,7 +521,7 @@ void Matrix4x4_Normalize (matrix4x4_t *out, const matrix4x4_t *in1)
 
 void Matrix4x4_Normalize3 (matrix4x4_t *out, const matrix4x4_t *in1)
 {
-	int i;
+	int32_t i;
 	double scale;
 	// scale each rotation matrix vector to a length of 1
 	// intended for use after Matrix4x4_Interpolate or Matrix4x4_Accumulate
@@ -548,7 +548,7 @@ void Matrix4x4_Normalize3 (matrix4x4_t *out, const matrix4x4_t *in1)
 
 void Matrix4x4_Reflect (matrix4x4_t *out, double normalx, double normaly, double normalz, double dist, double axisscale)
 {
-	int i;
+	int32_t i;
 	double d;
 	double p[4], p2[4];
 	p[0] = normalx;
@@ -1481,7 +1481,7 @@ void Matrix4x4_FromDoom3Joint(matrix4x4_t *m, double ox, double oy, double oz, d
 #endif
 }
 
-void Matrix4x4_FromBonePose6s(matrix4x4_t *m, float originscale, const short *pose6s)
+void Matrix4x4_FromBonePose6s(matrix4x4_t *m, float originscale, const int16_t *pose6s)
 {
 	float origin[3];
 	float quat[4];
@@ -1496,7 +1496,7 @@ void Matrix4x4_FromBonePose6s(matrix4x4_t *m, float originscale, const short *po
 	Matrix4x4_FromOriginQuat(m, origin[0], origin[1], origin[2], quat[0], quat[1], quat[2], quat[3]);
 }
 
-void Matrix4x4_ToBonePose6s(const matrix4x4_t *m, float origininvscale, short *pose6s)
+void Matrix4x4_ToBonePose6s(const matrix4x4_t *m, float origininvscale, int16_t *pose6s)
 {
 	float origin[3];
 	float quat[4];

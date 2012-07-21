@@ -30,7 +30,7 @@ r_image_t *r_flare_images[NUM_FLARE_IMAGES]; // lense flares
 r_image_t *r_warp_image; // fragment program warping
 
 r_image_t r_images[MAX_GL_TEXTURES];
-unsigned short r_num_images;
+uint16_t r_num_images;
 
 static GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 static GLint r_filter_mag = GL_LINEAR;
@@ -59,7 +59,7 @@ static r_texture_mode_t r_texture_modes[] = {
  */
 void R_TextureMode(const char *mode) {
 	r_image_t *image;
-	unsigned short i;
+	uint16_t i;
 
 	for (i = 0; i < NUM_GL_TEXTURE_MODES; i++) {
 		if (!strcasecmp(r_texture_modes[i].name, mode))
@@ -102,8 +102,8 @@ void R_TextureMode(const char *mode) {
  */
 void R_ListImages_f(void) {
 	r_image_t *image;
-	unsigned int texels = 0;
-	unsigned short i;
+	uint32_t texels = 0;
+	uint16_t i;
 
 	for (i = 0, image = r_images; i < r_num_images; i++, image++) {
 
@@ -153,13 +153,13 @@ void R_ListImages_f(void) {
  * R_Screenshot_f
  */
 void R_Screenshot_f(void) {
-	static int last_shot; // small optimization, don't fopen so many times
+	static int32_t last_shot; // small optimization, don't fopen so many times
 	char file_name[MAX_OSPATH];
-	int i, quality;
+	int32_t i, quality;
 	byte *buffer;
 	FILE *f;
 
-	void (*Img_Write)(const char *path, byte *data, int width, int height, int quality);
+	void (*Img_Write)(const char *path, byte *data, int32_t width, int32_t height, int32_t quality);
 
 	// use format specified in type cvar
 	if (!strcmp(r_screenshot_type->string, "jpeg") || !strcmp(r_screenshot_type->string, "jpg")) {
@@ -215,9 +215,9 @@ void R_Screenshot_f(void) {
 /*
  * R_SoftenTexture
  */
-void R_SoftenTexture(byte *in, int width, int height, r_image_type_t type) {
+void R_SoftenTexture(byte *in, int32_t width, int32_t height, r_image_type_t type) {
 	byte *out;
-	int i, j, k, bpp;
+	int32_t i, j, k, bpp;
 	byte *src, *dest;
 	byte *u, *d, *l, *r;
 
@@ -259,9 +259,9 @@ void R_SoftenTexture(byte *in, int width, int height, r_image_type_t type) {
  * the image's average color.  Also handles image inversion and monochrome.  This is
  * all munged into one function to reduce loops on level load.
  */
-void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type_t type) {
+void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_image_type_t type) {
 	vec3_t temp;
-	int i, j, c, bpp, mask;
+	int32_t i, j, c, bpp, mask;
 	unsigned col[3];
 	byte *p;
 	float brightness;
@@ -341,7 +341,7 @@ void R_FilterTexture(byte *in, int width, int height, vec3_t color, r_image_type
 /*
  * R_UploadImage_
  */
-static void R_UploadImage_(byte *data, int width, int height, vec3_t color, r_image_type_t type) {
+static void R_UploadImage_(byte *data, int32_t width, int32_t height, vec3_t color, r_image_type_t type) {
 
 	R_FilterTexture(data, width, height, color, type);
 
@@ -362,11 +362,11 @@ static void R_UploadImage_(byte *data, int width, int height, vec3_t color, r_im
 /**
  * R_UploadImage
  *
- * This is also used as an entry point for the generated r_notexture.
+ * This is also used as an entry point32_t for the generated r_notexture.
  */
-r_image_t *R_UploadImage(const char *name, byte *data, int width, int height, r_image_type_t type) {
+r_image_t *R_UploadImage(const char *name, byte *data, int32_t width, int32_t height, r_image_type_t type) {
 	r_image_t *image;
-	int i;
+	int32_t i;
 
 	// find a free image_t
 	for (i = 0, image = r_images; i < r_num_images; i++, image++) {
@@ -405,7 +405,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	r_image_t *image;
 	char n[MAX_QPATH];
 	SDL_Surface *surf;
-	int i;
+	int32_t i;
 
 	if (!name || !name[0])
 		return r_null_image;
@@ -471,7 +471,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
  * R_InitEnvmapTextures
  */
 static void R_InitEnvmapTextures(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < NUM_ENVMAP_IMAGES; i++)
 		r_envmap_images[i] = R_LoadImage(va("envmaps/envmap_%i.tga", i), it_effect);
@@ -481,7 +481,7 @@ static void R_InitEnvmapTextures(void) {
  * R_InitFlareTextures
  */
 static void R_InitFlareTextures(void) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < NUM_FLARE_IMAGES; i++)
 		r_flare_images[i] = R_LoadImage(va("flares/flare_%i.tga", i), it_effect);
@@ -494,7 +494,7 @@ static void R_InitFlareTextures(void) {
  */
 static void R_InitWarpTexture(void) {
 	byte warp[WARP_SIZE][WARP_SIZE][4];
-	int i, j;
+	int32_t i, j;
 
 	for (i = 0; i < WARP_SIZE; i++) {
 		for (j = 0; j < WARP_SIZE; j++) {
@@ -546,7 +546,7 @@ void R_FreeImage(r_image_t *image) {
  * R_FreeImages
  */
 void R_FreeImages(void) {
-	int i;
+	int32_t i;
 	r_image_t *image;
 
 	for (i = 0, image = r_images; i < r_num_images; i++, image++) {
@@ -565,7 +565,7 @@ void R_FreeImages(void) {
  * R_ShutdownImages
  */
 void R_ShutdownImages(void) {
-	int i;
+	int32_t i;
 	r_image_t *image;
 
 	for (i = 0, image = r_images; i < r_num_images; i++, image++)

@@ -47,7 +47,7 @@ static void S_Stop(void) {
  */
 void S_Frame(void) {
 	s_channel_t *ch;
-	int i, j;
+	int32_t i, j;
 
 	if (!s_env.initialized)
 		return;
@@ -82,7 +82,7 @@ void S_Frame(void) {
 	// add new dynamic sounds
 	for (i = 0; i < cl.frame.num_entities; i++) {
 
-		const int e = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const int32_t e = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[e];
 
 		if (!ent->sound)
@@ -124,7 +124,7 @@ void S_LoadMedia(void) {
  * S_Play_f
  */
 static void S_Play_f(void) {
-	int i;
+	int32_t i;
 
 	i = 1;
 	while (i < Cmd_Argc()) {
@@ -145,7 +145,7 @@ static void S_Stop_f(void) {
  */
 static void S_List_f(void) {
 	s_sample_t *sample;
-	int i;
+	int32_t i;
 
 	sample = s_env.samples;
 	for (i = 0; i < s_env.num_samples; i++, sample++) {
@@ -177,8 +177,8 @@ static void S_Restart_f(void) {
  * S_Init
  */
 void S_Init(void) {
-	int freq, channels;
-	unsigned short format;
+	int32_t freq, channels;
+	uint16_t format;
 
 	memset(&s_env, 0, sizeof(s_env));
 

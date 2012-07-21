@@ -148,7 +148,7 @@ static void Quit_f(void) {
 /*
  * Init
  */
-static void Init(int argc, char **argv) {
+static void Init(int32_t argc, char **argv) {
 	char *s;
 
 	memset(&quake2world, 0, sizeof(quake2world));
@@ -191,11 +191,11 @@ static void Init(int argc, char **argv) {
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, NULL);
 #endif
 
-	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
-	show_trace = Cvar_Get("show_trace", "0", 0, "Print trace counts per frame");
+	debug = Cvar_Get("debug", "0", 0, "Print32_t debugging information");
+	show_trace = Cvar_Get("show_trace", "0", 0, "Print32_t trace counts per frame");
 	time_demo = Cvar_Get("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Get("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
-	verbose = Cvar_Get("verbose", "0", 0, "Print verbose debugging information");
+	verbose = Cvar_Get("verbose", "0", 0, "Print32_t verbose debugging information");
 
 	Con_Init();
 	quake2world.time = Sys_Milliseconds();
@@ -249,9 +249,9 @@ static void Shutdown(const char *msg) {
 /*
  * Frame
  */
-static void Frame(unsigned int msec) {
-	extern int c_traces, c_bsp_brush_traces;
-	extern int c_point_contents;
+static void Frame(uint32_t msec) {
+	extern int32_t c_traces, c_bsp_brush_traces;
+	extern int32_t c_point_contents;
 	extern cvar_t *threads;
 
 	if (show_trace->value) {
@@ -277,15 +277,15 @@ static void Frame(unsigned int msec) {
 /**
  * main
  *
- * The entry point of the program.
+ * The entry point32_t of the program.
  */
-int main(int argc, char **argv) {
-	static unsigned int old_time;
-	unsigned int msec;
+int32_t main(int32_t argc, char **argv) {
+	static uint32_t old_time;
+	uint32_t msec;
 
 #ifdef _WIN32
 	// here the magic happens
-	int hCrt;
+	int32_t hCrt;
 	FILE *hf;
 
 	AllocConsole();

@@ -29,8 +29,8 @@
 static void G_Give_f(g_edict_t *ent) {
 	char *name;
 	g_item_t *it;
-	int index, quantity;
-	int i;
+	int32_t index, quantity;
+	int32_t i;
 	bool give_all;
 	g_edict_t *it_ent;
 
@@ -200,7 +200,7 @@ static void G_Wave_f(g_edict_t *ent) {
  * G_Use_f
  */
 static void G_Use_f(g_edict_t *ent) {
-	int index;
+	int32_t index;
 	g_item_t *it;
 	char *s;
 
@@ -230,7 +230,7 @@ static void G_Use_f(g_edict_t *ent) {
  * G_Drop_f
  */
 static void G_Drop_f(g_edict_t *ent) {
-	int index;
+	int32_t index;
 	g_edict_t *f;
 	g_item_t *it;
 	char *s;
@@ -280,9 +280,9 @@ static void G_Drop_f(g_edict_t *ent) {
  */
 static void G_WeaponPrevious_f(g_edict_t *ent) {
 	g_client_t *cl;
-	int i, index;
+	int32_t i, index;
 	g_item_t *it;
-	int selected_weapon;
+	int32_t selected_weapon;
 
 	cl = ent->client;
 
@@ -320,9 +320,9 @@ static void G_WeaponPrevious_f(g_edict_t *ent) {
  */
 static void G_WeaponNext_f(g_edict_t *ent) {
 	g_client_t *cl;
-	int i, index;
+	int32_t i, index;
 	g_item_t *it;
-	int selected_weapon;
+	int32_t selected_weapon;
 
 	cl = ent->client;
 
@@ -360,7 +360,7 @@ static void G_WeaponNext_f(g_edict_t *ent) {
  */
 static void G_WeaponLast_f(g_edict_t *ent) {
 	g_client_t *cl;
-	int index;
+	int32_t index;
 	g_item_t *it;
 
 	cl = ent->client;
@@ -408,7 +408,7 @@ static void G_Kill_f(g_edict_t *ent) {
  * This is the client-specific sibling to Cvar_VariableString.
  */
 static const char *G_ExpandVariable(g_edict_t *ent, char v) {
-	int i;
+	int32_t i;
 
 	switch (v) {
 
@@ -435,7 +435,7 @@ static const char *G_ExpandVariable(g_edict_t *ent, char v) {
  */
 static char *G_ExpandVariables(g_edict_t *ent, const char *text) {
 	static char expanded[MAX_STRING_CHARS];
-	int i, j, len;
+	int32_t i, j, len;
 
 	if (!text || !text[0])
 		return "";
@@ -461,7 +461,7 @@ static char *G_ExpandVariables(g_edict_t *ent, const char *text) {
  * G_Say_f
  */
 static void G_Say_f(g_edict_t *ent) {
-	int i;
+	int32_t i;
 	size_t len;
 	bool team, arg0;
 	char *c, text[256];
@@ -540,7 +540,7 @@ static void G_Say_f(g_edict_t *ent) {
 		cl->chat_time = g_level.time + 1000;
 	}
 
-	for (i = 1; i <= sv_max_clients->integer; i++) { // print to clients
+	for (i = 1; i <= sv_max_clients->integer; i++) { // print32_t to clients
 		other = &g_game.edicts[i];
 
 		if (!other->in_use)
@@ -555,14 +555,14 @@ static void G_Say_f(g_edict_t *ent) {
 		}
 	}
 
-	if (dedicated->value) { // print to the console
+	if (dedicated->value) { // print32_t to the console
 		if (team)
 			gi.Print("%s", text);
 		else
 			gi.Print("%s", text);
 	}
 
-	if (chat_log != NULL) // print to chat_log
+	if (chat_log != NULL) // print32_t to chat_log
 		fprintf(chat_log, "%s", text);
 }
 
@@ -570,7 +570,7 @@ static void G_Say_f(g_edict_t *ent) {
  * G_PlayerList_f
  */
 static void G_PlayerList_f(g_edict_t *ent) {
-	int i, seconds;
+	int32_t i, seconds;
 	char st[80];
 	char text[1400];
 	g_edict_t *e2;
@@ -725,7 +725,7 @@ static bool Vote_Help(g_edict_t *ent) {
  */
 static void G_Vote_f(g_edict_t *ent) {
 	char *c, vote[64];
-	unsigned int i;
+	uint32_t i;
 
 	if (!g_voting->value) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Voting is not allowed");
@@ -829,7 +829,7 @@ bool G_AddClientToTeam(g_edict_t *ent, char *team_name) {
  * G_AddClientToRound
  */
 static void G_AddClientToRound(g_edict_t *ent) {
-	int score; // keep score across rounds
+	int32_t score; // keep score across rounds
 
 	if (g_level.round_time && g_level.round_time <= g_level.time) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Round has already started\n");
@@ -882,7 +882,7 @@ static void G_Team_f(g_edict_t *ent) {
  * G_Teamname_f
  */
 static void G_Teamname_f(g_edict_t *ent) {
-	int cs;
+	int32_t cs;
 	char *s;
 	g_team_t *t;
 
@@ -924,7 +924,7 @@ static void G_Teamname_f(g_edict_t *ent) {
  * G_Teamskin_f
  */
 static void G_Teamskin_f(g_edict_t *ent) {
-	int i;
+	int32_t i;
 	g_client_t *cl;
 	char *c, *s;
 	g_team_t *t;
@@ -988,7 +988,7 @@ static void G_Teamskin_f(g_edict_t *ent) {
  * If match is enabled, all clients must issue ready for game to start.
  */
 static void G_Ready_f(g_edict_t *ent) {
-	int i, g, e, clients;
+	int32_t i, g, e, clients;
 	g_client_t *cl;
 
 	if (!g_level.match) {

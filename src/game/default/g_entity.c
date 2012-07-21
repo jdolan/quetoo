@@ -79,7 +79,7 @@ static void G_SpawnEntity(g_edict_t *ent) {
 	spawn_t *s;
 	g_item_t *item;
 	g_override_t *over;
-	int i;
+	int32_t i;
 
 	if (!ent->class_name) {
 		gi.Debug("G_SpawnEntity: NULL classname\n");
@@ -126,7 +126,7 @@ static void G_SpawnEntity(g_edict_t *ent) {
  */
 static char *G_NewString(const char *string) {
 	char *newb, *new_p;
-	int i, l;
+	int32_t i, l;
 
 	l = strlen(string) + 1;
 
@@ -162,7 +162,7 @@ typedef struct g_field_s {
 	char *name;
 	ptrdiff_t ofs;
 	g_field_type_t type;
-	int flags;
+	int32_t flags;
 } g_field_t;
 
 static const g_field_t fields[] = {
@@ -244,10 +244,10 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 
 			switch (f->type) {
 			case F_SHORT:
-				*(short *) (b + f->ofs) = (short) atoi(value);
+				*(int16_t *) (b + f->ofs) = (short) atoi(value);
 				break;
 			case F_INT:
-				*(int *) (b + f->ofs) = atoi(value);
+				*(int32_t *) (b + f->ofs) = atoi(value);
 				break;
 			case F_FLOAT:
 				*(float *) (b + f->ofs) = atof(value);
@@ -338,8 +338,8 @@ static const char *G_ParseEntity(const char *data, g_edict_t *ent) {
  */
 static void G_InitEntityTeams(void) {
 	g_edict_t *e, *e2, *chain;
-	unsigned int i, j;
-	int c, c2;
+	uint32_t i, j;
+	int32_t c, c2;
 
 	c = 0;
 	c2 = 0;
@@ -391,9 +391,9 @@ static void G_InitEntityTeams(void) {
  */
 void G_SpawnEntities(const char *name, const char *entities) {
 	g_edict_t *ent;
-	int inhibit;
+	int32_t inhibit;
 	char *com_token;
-	int i;
+	int32_t i;
 
 	gi.FreeTag(TAG_GAME_LEVEL);
 
@@ -485,7 +485,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
  */
 static void G_WorldspawnMusic(void) {
 	char *t, buf[MAX_STRING_CHARS];
-	int i;
+	int32_t i;
 
 	if (*g_level.music == '\0')
 		return;
@@ -530,7 +530,7 @@ static void G_WorldspawnMusic(void) {
  "music"			comma-delimited track list
  */
 static void G_worldspawn(g_edict_t *ent) {
-	unsigned int i;
+	uint32_t i;
 	g_map_list_elt_t *map;
 
 	ent->move_type = MOVE_TYPE_PUSH;

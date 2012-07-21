@@ -78,7 +78,7 @@ static void R_DrawSurface_default(const r_bsp_surface_t *surf) {
  * R_DrawSurfaces_default
  */
 static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
-	unsigned int i;
+	uint32_t i;
 
 	R_SetArrayState(r_world_model);
 
@@ -111,7 +111,7 @@ static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
  * R_DrawSurfacesLines_default
  */
 static void R_DrawSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
-	unsigned int i;
+	uint32_t i;
 
 	R_EnableTexture(&texunit_diffuse, false);
 

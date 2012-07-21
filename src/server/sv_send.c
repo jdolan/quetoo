@@ -26,10 +26,10 @@ char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 /**
  * Sv_FlushRedirect
  *
- * Handles Com_Print output redirection, allowing the server to send output
+ * Handles Com_Print32_t output redirection, allowing the server to send output
  * from any command to a connected client or even a foreign one.
  */
-void Sv_FlushRedirect(const int target, char *outputbuf) {
+void Sv_FlushRedirect(const int32_t target, char *outputbuf) {
 
 	switch (target) {
 	case RD_PACKET:
@@ -51,11 +51,11 @@ void Sv_FlushRedirect(const int target, char *outputbuf) {
  *
  * Sends text across to be displayed if the level filter passes.
  */
-void Sv_ClientPrint(const g_edict_t *ent, const int level, const char *fmt, ...) {
+void Sv_ClientPrint(const g_edict_t *ent, const int32_t level, const char *fmt, ...) {
 	sv_client_t *cl;
 	va_list args;
 	char string[MAX_STRING_CHARS];
-	int n;
+	int32_t n;
 
 	n = NUM_FOR_EDICT(ent);
 	if (n < 1 || n > sv_max_clients->integer) {
@@ -89,11 +89,11 @@ void Sv_ClientPrint(const g_edict_t *ent, const int level, const char *fmt, ...)
  *
  * Sends text to all active clients over their unreliable channels.
  */
-void Sv_BroadcastPrint(int level, const char *fmt, ...) {
+void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) {
 	va_list args;
 	char string[MAX_STRING_CHARS];
 	sv_client_t *cl;
-	int i;
+	int32_t i;
 
 	va_start(args, fmt);
 	vsprintf(string, fmt, args);
@@ -102,7 +102,7 @@ void Sv_BroadcastPrint(int level, const char *fmt, ...) {
 	// echo to console
 	if (dedicated->value) {
 		char copy[MAX_STRING_CHARS];
-		int j;
+		int32_t j;
 
 		// mask off high bits
 		for (j = 0; j < MAX_STRING_CHARS - 1 && string[j]; j++)
@@ -151,7 +151,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
  * Sends the contents of the mutlicast buffer to a single client
  */
 void Sv_Unicast(const g_edict_t *ent, const bool reliable) {
-	int n;
+	int32_t n;
 	sv_client_t *cl;
 
 	if (!ent)
@@ -184,10 +184,10 @@ void Sv_Unicast(const g_edict_t *ent, const bool reliable) {
 void Sv_Multicast(const vec3_t origin, multicast_t to) {
 	sv_client_t *client;
 	byte *mask;
-	int leaf_num, cluster;
-	int j;
+	int32_t leaf_num, cluster;
+	int32_t j;
 	bool reliable;
-	int area1, area2;
+	int32_t area1, area2;
 
 	reliable = false;
 
@@ -273,13 +273,13 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
  * Larger attenuation will drop off (max 4 attenuation).
  *
  * If origin is NULL, the origin is determined from the entity origin
- * or the midpoint of the entity box for bmodels.
+ * or the midpoint32_t of the entity box for bmodels.
  */
-void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const unsigned short index,
-		const unsigned short atten) {
-	unsigned int flags;
-	unsigned short at;
-	int i;
+void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint16_t index,
+		const uint16_t atten) {
+	uint32_t flags;
+	uint16_t at;
+	int32_t i;
 	vec3_t org;
 
 	flags = 0;
@@ -392,8 +392,8 @@ static void Sv_DemoCompleted(void) {
  * bandwidth estimation and should not be sent another packet
  */
 static bool Sv_RateDrop(sv_client_t *c) {
-	unsigned int total;
-	unsigned short i;
+	uint32_t total;
+	uint16_t i;
 
 	// never drop over the loopback
 	if (c->netchan.remote_address.type == NA_LOCAL)
@@ -421,7 +421,7 @@ static bool Sv_RateDrop(sv_client_t *c) {
  * returning the size of the frame in bytes.
  */
 static size_t Sv_GetDemoMessage(byte *buffer) {
-	int size;
+	int32_t size;
 	size_t r;
 
 	r = Fs_Read(&size, 4, 1, sv.demo_file);
@@ -461,7 +461,7 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
  */
 void Sv_SendClientMessages(void) {
 	sv_client_t *c;
-	int i;
+	int32_t i;
 
 	if (!svs.initialized)
 		return;

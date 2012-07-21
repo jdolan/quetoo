@@ -45,12 +45,12 @@
 #define PKGLIBDIR "."
 #define PKGDATADIR "."
 
-void *dlopen(const char *file_name, int flag);
+void *dlopen(const char *file_name, int32_t flag);
 char *dlerror(void);
 void *dlsym(void *handle, const char *symbol);
 void dlclose(void *handle);
 
-int ioctl(int sockfd, int flags, void *null);
+int32_t ioctl(int32_t sockfd, int32_t flags, void *null);
 
 #ifndef HAVE_STRCASESTR
 char *strcasestr (char *haystack, char *needle);

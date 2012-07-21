@@ -32,7 +32,7 @@
 #define YAW				1
 #define ROLL			2
 
-typedef short r_pixel_t;
+typedef int16_t r_pixel_t;
 
 typedef struct r_stage_blend_s {
 	GLenum src, dest;
@@ -73,15 +73,15 @@ typedef struct r_stage_dirt_s {
 #define MAX_ANIM_FRAMES 8
 
 typedef struct r_stage_anim_s {
-	unsigned short num_frames;
+	uint16_t num_frames;
 	struct r_image_s *images[MAX_ANIM_FRAMES];
 	float fps;
 	float dtime;
-	unsigned short dframe;
+	uint16_t dframe;
 } r_stage_anim_t;
 
 typedef struct r_stage_s {
-	unsigned int flags;
+	uint32_t flags;
 	struct r_image_s *image;
 	r_stage_blend_t blend;
 	vec3_t color;
@@ -102,14 +102,14 @@ typedef struct r_stage_s {
 #define DEFAULT_SPECULAR 1.0
 
 typedef struct r_material_s {
-	unsigned int flags;
+	uint32_t flags;
 	float time;
 	float bump;
 	float parallax;
 	float hardness;
 	float specular;
 	r_stage_t *stages;
-	unsigned short num_stages;
+	uint16_t num_stages;
 } r_material_t;
 
 // image types
@@ -144,25 +144,25 @@ typedef struct {
 	vec3_t position;
 	vec3_t normal;
 	vec4_t color;
-	unsigned short surfaces;
+	uint16_t surfaces;
 } r_bsp_vertex_t;
 
 typedef struct {
 	vec3_t mins, maxs;
 	vec3_t origin; // for sounds or lights
 	float radius;
-	int head_node;
-	unsigned short first_face, num_faces;
+	int32_t head_node;
+	uint16_t first_face, num_faces;
 } r_bsp_submodel_t;
 
 typedef struct {
-	unsigned short v[2];
+	uint16_t v[2];
 } r_bsp_edge_t;
 
 typedef struct {
 	float vecs[2][4];
-	unsigned int flags;
-	int value;
+	uint32_t flags;
+	int32_t value;
 	char name[32];
 	r_image_t *image;
 } r_bsp_texinfo_t;
@@ -181,16 +181,16 @@ typedef struct {
 #define R_SURF_LIGHTMAP		2
 
 typedef struct {
-	short vis_frame; // PVS frame
-	short frame; // renderer frame
-	short back_frame; // back-facing renderer frame
-	short light_frame; // dynamic lighting frame
+	int16_t vis_frame; // PVS frame
+	int16_t frame; // renderer frame
+	int16_t back_frame; // back-facing renderer frame
+	int16_t light_frame; // dynamic lighting frame
 
 	c_bsp_plane_t *plane;
-	unsigned short flags; // R_SURF flags
+	uint16_t flags; // R_SURF flags
 
-	int first_edge; // look up in model->surf_edges, negative numbers
-	unsigned short num_edges; // are backwards edges
+	int32_t first_edge; // look up in model->surf_edges, negative numbers
+	uint16_t num_edges; // are backwards edges
 
 	vec3_t mins;
 	vec3_t maxs;
@@ -217,14 +217,14 @@ typedef struct {
 
 	vec4_t color;
 
-	unsigned int lights; // bit mask of enabled light sources
+	uint32_t lights; // bit mask of enabled light sources
 } r_bsp_surface_t;
 
 // surfaces are assigned to arrays based on their primary rendering type
 // and then sorted by world texnum to reduce glBindTexture calls
 typedef struct {
 	r_bsp_surface_t **surfaces;
-	unsigned int count;
+	uint32_t count;
 } r_bsp_surfaces_t;
 
 #define sky_surfaces			sorted_surfaces[0]
@@ -244,8 +244,8 @@ typedef struct {
 
 typedef struct r_bsp_node_s {
 	// common with leaf
-	int contents; // -1, to differentiate from leafs
-	short vis_frame; // node needs to be traversed if current
+	int32_t contents; // -1, to differentiate from leafs
+	int16_t vis_frame; // node needs to be traversed if current
 
 	vec3_t mins; // for bounded box culling
 	vec3_t maxs;
@@ -257,14 +257,14 @@ typedef struct r_bsp_node_s {
 	c_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
-	unsigned short first_surface;
-	unsigned short num_surfaces;
+	uint16_t first_surface;
+	uint16_t num_surfaces;
 } r_bsp_node_t;
 
 typedef struct {
 	// common with node
-	int contents; // will be a negative contents number
-	short vis_frame; // node needs to be traversed if current
+	int32_t contents; // will be a negative contents number
+	int16_t vis_frame; // node needs to be traversed if current
 
 	vec3_t mins; // for bounding box culling
 	vec3_t maxs;
@@ -273,11 +273,11 @@ typedef struct {
 	struct model_s *model;
 
 	// leaf specific
-	short cluster;
-	short area;
+	int16_t cluster;
+	int16_t area;
 
 	r_bsp_surface_t **first_leaf_surface;
-	short num_leaf_surfaces;
+	int16_t num_leaf_surfaces;
 } r_bsp_leaf_t;
 
 // static light sources
@@ -285,7 +285,7 @@ typedef struct {
 	vec3_t origin;
 	float radius;
 	vec3_t color;
-	short count;
+	int16_t count;
 	const r_bsp_leaf_t *leaf;
 } r_bsp_light_t;
 
@@ -306,51 +306,51 @@ typedef struct {
 
 	char name[MD3_MAX_PATH];
 
-	int flags;
+	int32_t flags;
 
-	unsigned short num_skins;
+	uint16_t num_skins;
 
-	unsigned short num_verts;
+	uint16_t num_verts;
 	r_md3_vertex_t *verts;
 	d_md3_texcoord_t *coords;
 
-	unsigned short num_tris;
-	unsigned int *tris;
+	uint16_t num_tris;
+	uint32_t *tris;
 } r_md3_mesh_t;
 
 typedef struct {
-	unsigned short first_frame;
-	unsigned short num_frames;
-	unsigned short looped_frames;
-	unsigned short hz;
+	uint16_t first_frame;
+	uint16_t num_frames;
+	uint16_t looped_frames;
+	uint16_t hz;
 } r_md3_animation_t;
 
 typedef struct {
-	int id;
-	int version;
+	int32_t id;
+	int32_t version;
 
 	char file_name[MD3_MAX_PATH];
 
-	int flags;
+	int32_t flags;
 
-	unsigned short num_frames;
+	uint16_t num_frames;
 	d_md3_frame_t *frames;
 
-	unsigned short num_tags;
+	uint16_t num_tags;
 	r_md3_tag_t *tags;
 
-	unsigned short num_meshes;
+	uint16_t num_meshes;
 	r_md3_mesh_t *meshes;
 
-	unsigned short num_animations;
+	uint16_t num_animations;
 	r_md3_animation_t *animations;
 } r_md3_t;
 
 // object model memory representation
 typedef struct {
-	unsigned short vert;
-	unsigned short normal;
-	unsigned short texcoord;
+	uint16_t vert;
+	uint16_t normal;
+	uint16_t texcoord;
 } r_obj_vert_t;
 
 typedef struct {
@@ -358,23 +358,23 @@ typedef struct {
 } r_obj_tri_t;
 
 typedef struct {
-	unsigned short num_verts;
-	unsigned short num_verts_parsed;
+	uint16_t num_verts;
+	uint16_t num_verts_parsed;
 	float *verts;
 
-	unsigned short num_normals;
-	unsigned short num_normals_parsed;
+	uint16_t num_normals;
+	uint16_t num_normals_parsed;
 	float *normals;
 
-	unsigned short num_tangents;
+	uint16_t num_tangents;
 	float *tangents;
 
-	unsigned short num_texcoords;
-	unsigned short num_texcoords_parsed;
+	uint16_t num_texcoords;
+	uint16_t num_texcoords_parsed;
 	float *texcoords;
 
-	unsigned short num_tris;
-	unsigned short num_tris_parsed;
+	uint16_t num_tris;
+	uint16_t num_tris_parsed;
 	r_obj_tri_t *tris;
 } r_obj_t;
 
@@ -387,69 +387,69 @@ typedef enum {
 typedef struct {
 	vec3_t translate;
 	float scale;
-	unsigned int flags; // EF_ALPHA_TEST, etc..
+	uint32_t flags; // EF_ALPHA_TEST, etc..
 } r_mesh_config_t;
 
 typedef struct r_model_s {
 	char name[MAX_QPATH];
 
 	r_model_type_t type;
-	int version;
+	int32_t version;
 
-	unsigned short num_frames;
+	uint16_t num_frames;
 
-	unsigned int flags;
+	uint32_t flags;
 
 	vec3_t mins, maxs;
 	float radius;
 
 	// for bsp models
-	unsigned short num_submodels;
+	uint16_t num_submodels;
 	r_bsp_submodel_t *submodels;
 
-	unsigned short num_planes;
+	uint16_t num_planes;
 	c_bsp_plane_t *planes;
 
-	unsigned short num_leafs;
+	uint16_t num_leafs;
 	r_bsp_leaf_t *leafs;
 
-	unsigned short num_vertexes;
+	uint16_t num_vertexes;
 	r_bsp_vertex_t *vertexes;
 
-	unsigned int num_edges;
+	uint32_t num_edges;
 	r_bsp_edge_t *edges;
 
-	unsigned short num_nodes;
+	uint16_t num_nodes;
 	r_bsp_node_t *nodes;
-	unsigned short first_node;
+	uint16_t first_node;
 
-	unsigned short num_texinfo;
+	uint16_t num_texinfo;
 	r_bsp_texinfo_t *texinfo;
 
-	unsigned short num_surfaces;
+	uint16_t num_surfaces;
 	r_bsp_surface_t *surfaces;
 
-	unsigned int num_surface_edges;
-	int *surface_edges;
+	uint32_t num_surface_edges;
+	int32_t *surface_edges;
 
-	unsigned short num_leaf_surfaces;
+	uint16_t num_leaf_surfaces;
 	r_bsp_surface_t **leaf_surfaces;
 
-	unsigned int vis_size;
+	uint32_t vis_size;
 	d_bsp_vis_t *vis;
 
-	unsigned short lightmap_scale;
-	unsigned int lightmap_data_size;
+	uint16_t lightmap_scale;
+	uint32_t lightmap_data_size;
 	byte *lightmap_data;
 
-	unsigned short num_bsp_lights;
+	uint16_t num_bsp_lights;
 	r_bsp_light_t *bsp_lights;
 
 	// sorted surfaces arrays
 	r_bsp_surfaces_t *sorted_surfaces[NUM_SURFACES_ARRAYS];
 
-	unsigned short first_model_surface, num_model_surfaces; // for submodels
-	unsigned int lights; // bit mask of enabled light sources for submodels
+	uint16_t first_model_surface, num_model_surfaces; // for submodels
+	uint32_t lights; // bit mask of enabled light sources for submodels
 
 	// for mesh models
 	r_image_t *skin;
@@ -474,7 +474,7 @@ typedef struct r_model_s {
 	r_mesh_config_t *view_config;
 	r_mesh_config_t *link_config;
 
-	unsigned int extra_data_size;
+	uint32_t extra_data_size;
 	void *extra_data; // raw model data
 } r_model_t;
 
@@ -537,15 +537,15 @@ typedef struct r_entity_s {
 
 	struct r_model_s *model;
 
-	unsigned short frame, old_frame; // frame-based animations
+	uint16_t frame, old_frame; // frame-based animations
 	float lerp, back_lerp;
 
 	float scale; // for mesh models
 
 	r_image_t *skins[MD3_MAX_MESHES]; // NULL for default skin
-	unsigned short num_skins;
+	uint16_t num_skins;
 
-	unsigned int effects; // e.g. EF_ROCKET, EF_WEAPON, ..
+	uint32_t effects; // e.g. EF_ROCKET, EF_WEAPON, ..
 	vec3_t shell; // shell color
 
 	r_lighting_t *lighting; // static lighting information
@@ -565,8 +565,8 @@ typedef struct r_particle_s {
 	vec3_t dir;
 	float roll;
 	struct r_image_s *image;
-	unsigned short type;
-	unsigned int color;
+	uint16_t type;
+	uint32_t color;
 	float alpha;
 	float alpha_vel;
 	float current_alpha;
@@ -624,7 +624,7 @@ typedef struct r_view_s {
 	vec3_t right;
 	vec3_t up;
 
-	unsigned int contents; // view origin contents mask
+	uint32_t contents; // view origin contents mask
 	float bob;
 
 	float time;
@@ -636,16 +636,16 @@ typedef struct r_view_s {
 	byte weather; // weather effects
 	vec4_t fog_color;
 
-	unsigned short num_entities;
+	uint16_t num_entities;
 	r_entity_t entities[MAX_ENTITIES];
 
-	unsigned short num_particles;
+	uint16_t num_particles;
 	r_particle_t particles[MAX_PARTICLES];
 
-	unsigned short num_coronas;
+	uint16_t num_coronas;
 	r_corona_t coronas[MAX_CORONAS];
 
-	unsigned short num_lights;
+	uint16_t num_lights;
 	r_light_t lights[MAX_LIGHTS];
 
 	r_sustained_light_t sustained_lights[MAX_LIGHTS];
@@ -655,8 +655,8 @@ typedef struct r_view_s {
 	c_trace_t trace; // occlusion testing
 	r_entity_t *trace_ent;
 
-	unsigned int bsp_polys; // counters
-	unsigned int mesh_polys;
+	uint32_t bsp_polys; // counters
+	uint32_t mesh_polys;
 
 	bool update; // inform the client of state changes
 } r_view_t;
@@ -667,8 +667,8 @@ typedef struct r_context_s {
 
 	bool fullscreen;
 
-	int red_bits, green_bits, blue_bits, alpha_bits;
-	int stencil_bits, depth_bits, double_buffer;
+	int32_t red_bits, green_bits, blue_bits, alpha_bits;
+	int32_t stencil_bits, depth_bits, double_buffer;
 } r_context_t;
 
 #endif /* __R_TYPES_H__ */

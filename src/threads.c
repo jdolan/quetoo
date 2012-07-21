@@ -29,7 +29,7 @@ cvar_t *threads;
  *
  * Wrap the user's function in our own for introspection.
  */
-static int Thread_Run(void *data) {
+static int32_t Thread_Run(void *data) {
 	thread_t *t = (thread_t *) data;
 
 	t->function(t->data);

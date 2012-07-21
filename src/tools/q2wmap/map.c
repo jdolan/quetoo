@@ -22,16 +22,16 @@
 #include "qbsp.h"
 #include "scriplib.h"
 
-int num_map_brushes;
+int32_t num_map_brushes;
 map_brush_t map_brushes[MAX_BSP_BRUSHES];
 
 #define MAX_BSP_SIDES (MAX_BSP_BRUSHES * 6)
 
-static int num_map_brush_sides;
+static int32_t num_map_brush_sides;
 static side_t map_brush_sides[MAX_BSP_SIDES];
 static map_brush_texture_t map_brush_textures[MAX_BSP_SIDES];
 
-int num_map_planes;
+int32_t num_map_planes;
 map_plane_t map_planes[MAX_BSP_PLANES];
 
 #define	PLANE_HASHES 1024
@@ -39,17 +39,17 @@ static map_plane_t *plane_hash[PLANE_HASHES];
 
 vec3_t map_mins, map_maxs;
 
-static int c_box_bevels;
-static int c_edge_bevels;
-static int c_area_portals;
-static int c_clip_brushes;
+static int32_t c_box_bevels;
+static int32_t c_edge_bevels;
+static int32_t c_area_portals;
+static int32_t c_clip_brushes;
 
 /*
  * PlaneTypeForNormal
  *
  * Set the type of the plane according to it's normal vector
  */
-static int PlaneTypeForNormal(const vec3_t normal) {
+static int32_t PlaneTypeForNormal(const vec3_t normal) {
 	vec_t ax, ay, az;
 
 	// NOTE: should these have an epsilon around 1.0?
@@ -90,7 +90,7 @@ static inline bool PlaneEqual(const map_plane_t * p, const vec3_t normal,
  * AddPlaneToHash
  */
 static inline void AddPlaneToHash(map_plane_t * p) {
-	int hash;
+	int32_t hash;
 
 	hash = (int) fabs(p->dist) / 8;
 	hash &= (PLANE_HASHES - 1);
@@ -102,7 +102,7 @@ static inline void AddPlaneToHash(map_plane_t * p) {
 /*
  * CreateNewFloatPlane
  */
-static int CreateNewFloatPlane(vec3_t normal, vec_t dist) {
+static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 	map_plane_t *p, temp;
 
 	if (VectorLength(normal) < 0.5)
@@ -144,7 +144,7 @@ static int CreateNewFloatPlane(vec3_t normal, vec_t dist) {
  * SnapVector
  */
 static void SnapVector(vec3_t normal) {
-	int i;
+	int32_t i;
 
 	for (i = 0; i < 3; i++) {
 		if (fabs(normal[i] - 1) < NORMAL_EPSILON) {
@@ -175,10 +175,10 @@ static inline void SnapPlane(vec3_t normal, vec_t *dist) {
 /*
  * FindFloatPlane
  */
-int FindFloatPlane(vec3_t normal, vec_t dist) {
-	int i;
+int32_t FindFloatPlane(vec3_t normal, vec_t dist) {
+	int32_t i;
 	const map_plane_t *p;
-	int hash;
+	int32_t hash;
 
 	SnapPlane(normal, &dist);
 	hash = (int) fabs(dist) / 8;
@@ -186,7 +186,7 @@ int FindFloatPlane(vec3_t normal, vec_t dist) {
 
 	// search the border bins as well
 	for (i = -1; i <= 1; i++) {
-		const int h = (hash + i) & (PLANE_HASHES - 1);
+		const int32_t h = (hash + i) & (PLANE_HASHES - 1);
 		for (p = plane_hash[h]; p; p = p->hash_chain) {
 			if (PlaneEqual(p, normal, dist))
 				return p - map_planes;
@@ -199,7 +199,7 @@ int FindFloatPlane(vec3_t normal, vec_t dist) {
 /*
  * PlaneFromPoints
  */
-static int PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2) {
+static int32_t PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2) {
 	vec3_t t1, t2, normal;
 	vec_t dist;
 
@@ -216,11 +216,11 @@ static int PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2) {
 /*
  * BrushContents
  */
-static int BrushContents(const map_brush_t * b) {
-	int contents;
+static int32_t BrushContents(const map_brush_t * b) {
+	int32_t contents;
 	const side_t *s;
-	int i;
-	int trans;
+	int32_t i;
+	int32_t trans;
 
 	s = &b->original_sides[0];
 	contents = s->contents;
@@ -253,8 +253,8 @@ static int BrushContents(const map_brush_t * b) {
  * against axial bounding boxes
  */
 static void AddBrushBevels(map_brush_t * b) {
-	int axis, dir;
-	int i, j, k, l, order;
+	int32_t axis, dir;
+	int32_t i, j, k, l, order;
 	side_t sidetemp;
 	map_brush_texture_t tdtemp;
 	side_t *s, *s2;
@@ -356,11 +356,11 @@ static void AddBrushBevels(map_brush_t * b) {
 						for (l = 0; l < w2->numpoints; l++) {
 							d = DotProduct(w2->p[l], normal) - dist;
 							if (d > 0.1)
-								break; // point in front
+								break; // point32_t in front
 							if (d < minBack)
 								minBack = d;
 						}
-						// if some point was at the front
+						// if some point32_t was at the front
 						if (l != w2->numpoints)
 							break;
 						// if no points at the back then the winding is on the
@@ -394,7 +394,7 @@ static void AddBrushBevels(map_brush_t * b) {
  * Makes basewindigs for sides and mins / maxs for the brush
  */
 static bool MakeBrushWindings(map_brush_t * ob) {
-	int i, j;
+	int32_t i, j;
 	side_t *side;
 
 	ClearBounds(ob->mins, ob->maxs);
@@ -475,9 +475,9 @@ static void SetImpliedFlags(side_t *side, const char *tex) {
  */
 static void ParseBrush(entity_t *mapent) {
 	map_brush_t *b;
-	int i, j, k;
+	int32_t i, j, k;
 	side_t *side, *s2;
-	int plane_num;
+	int32_t plane_num;
 	map_brush_texture_t td;
 	vec3_t planepts[3];
 
@@ -499,7 +499,7 @@ static void ParseBrush(entity_t *mapent) {
 			Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 		side = &map_brush_sides[num_map_brush_sides];
 
-		// read the three point plane definition
+		// read the three point32_t plane definition
 		for (i = 0; i < 3; i++) {
 			if (i != 0)
 				GetToken(true);
@@ -683,10 +683,10 @@ static void ParseBrush(entity_t *mapent) {
  * Used by func_group and func_areaportal
  */
 static void MoveBrushesToWorld(entity_t *ent) {
-	int new_brushes;
-	int world_brushes;
+	int32_t new_brushes;
+	int32_t world_brushes;
 	map_brush_t *temp;
-	int i;
+	int32_t i;
 
 	// this is pretty gross, because the brushes are expected to be
 	// in linear order for each entity
@@ -722,7 +722,7 @@ static bool ParseMapEntity(void) {
 	entity_t *mapent;
 	epair_t *e;
 	side_t *s;
-	int i, j;
+	int32_t i, j;
 	vec_t newdist;
 	map_brush_t *b;
 
@@ -816,8 +816,8 @@ static bool ParseMapEntity(void) {
  * LoadMapFile
  */
 void LoadMapFile(const char *file_name) {
-	int subdivide;
-	int i;
+	int32_t subdivide;
+	int32_t i;
 
 	Com_Verbose("--- LoadMapFile ---\n");
 

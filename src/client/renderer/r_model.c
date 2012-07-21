@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 r_model_t r_models[MAX_MOD_KNOWN];
-unsigned short r_num_models;
+uint16_t r_num_models;
 
 r_model_t r_inline_models[MAX_BSP_MODELS];
 
@@ -71,8 +71,8 @@ void *R_HunkAlloc(size_t size) {
  * R_AllocVertexArrays
  */
 void R_AllocVertexArrays(r_model_t *mod) {
-	int i, j;
-	int v, st, t, c;
+	int32_t i, j;
+	int32_t v, st, t, c;
 
 	mod->num_verts = 0;
 
@@ -122,7 +122,7 @@ void R_AllocVertexArrays(r_model_t *mod) {
  * R_LoadVertexBuffers
  */
 static void R_LoadVertexBuffers(r_model_t *mod) {
-	int v, st, t, c;
+	int32_t v, st, t, c;
 
 	if (!qglGenBuffers)
 		return;
@@ -191,7 +191,7 @@ r_model_t *R_LoadModel(const char *name) {
 	char n[MAX_QPATH];
 	void *buf;
 	vec3_t tmp;
-	unsigned short i;
+	uint16_t i;
 
 	if (!name || !name[0]) {
 		Com_Error(ERR_DROP, "R_LoadModel: NULL name.\n");
@@ -278,7 +278,7 @@ r_model_t *R_LoadModel(const char *name) {
  */
 void R_ListModels_f(void) {
 	r_model_t *mod;
-	int i, total;
+	int32_t i, total;
 
 	total = 0;
 	Com_Print("Loaded models:\n");
@@ -307,7 +307,7 @@ void R_HunkStats_f(void) {
  * R_FreeModels
  */
 static void R_FreeModels(void) {
-	int i;
+	int32_t i;
 
 	R_FreeMaterials(); // first free materials
 
@@ -343,13 +343,13 @@ static void R_FreeModels(void) {
  *
  * Loads the specified level after resetting all model data.
  */
-void R_BeginLoading(const char *bsp_name, int bsp_size) {
+void R_BeginLoading(const char *bsp_name, int32_t bsp_size) {
 
 	R_FreeModels(); // free all models
 
 	// load bsp for collision detection (prediction)
 	if (!Com_WasInit(Q2W_SERVER) || !Cm_NumModels()) {
-		int bs;
+		int32_t bs;
 
 		Cm_LoadBsp(bsp_name, &bs);
 

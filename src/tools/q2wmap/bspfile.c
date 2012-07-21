@@ -28,10 +28,10 @@ d_bsp_vis_t *d_vis = (d_bsp_vis_t *) d_bsp.vis_data;
 /*
  * CompressVis
  */
-int CompressVis(byte *vis, byte *dest) {
-	int j;
-	int rep;
-	int visrow;
+int32_t CompressVis(byte *vis, byte *dest) {
+	int32_t j;
+	int32_t rep;
+	int32_t visrow;
 	byte *dest_p;
 
 	dest_p = dest;
@@ -59,9 +59,9 @@ int CompressVis(byte *vis, byte *dest) {
  * DecompressVis
  */
 void DecompressVis(byte *in, byte *decompressed) {
-	int c;
+	int32_t c;
 	byte *out;
-	int row;
+	int32_t row;
 
 	row = (d_vis->num_clusters + 7) >> 3;
 	out = decompressed;
@@ -89,7 +89,7 @@ void DecompressVis(byte *in, byte *decompressed) {
  * Byte swaps all data in a bsp file.
  */
 static void SwapBSPFile(bool todisk) {
-	int i, j;
+	int32_t i, j;
 
 	// models
 	for (i = 0; i < d_bsp.num_models; i++) {
@@ -238,8 +238,8 @@ static void SwapBSPFile(bool todisk) {
 
 static d_bsp_header_t *header;
 
-static int CopyLump(int lump, void *dest, int size) {
-	int length, ofs;
+static int32_t CopyLump(int32_t lump, void *dest, int32_t size) {
+	int32_t length, ofs;
 
 	length = header->lumps[lump].file_len;
 	ofs = header->lumps[lump].file_ofs;
@@ -256,7 +256,7 @@ static int CopyLump(int lump, void *dest, int size) {
  * LoadBSPFile
  */
 void LoadBSPFile(char *file_name) {
-	unsigned int i;
+	uint32_t i;
 
 	// load the file header
 	if (Fs_LoadFile(file_name, (void **) (char *) &header) == -1)
@@ -264,7 +264,7 @@ void LoadBSPFile(char *file_name) {
 
 	// swap the header
 	for (i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
-		((int *) header)[i] = LittleLong(((int *) header)[i]);
+		((int32_t *) header)[i] = LittleLong(((int32_t *) header)[i]);
 
 	if (header->ident != BSP_HEADER)
 		Com_Error(ERR_FATAL, "%s is not a IBSP file\n", file_name);
@@ -327,9 +327,9 @@ void LoadBSPFile(char *file_name) {
  * Only loads the texinfo lump, so we can scan for textures.
  */
 void LoadBSPFileTexinfo(char *file_name) {
-	unsigned int i;
+	uint32_t i;
 	FILE *f;
-	int length, ofs;
+	int32_t length, ofs;
 
 	header = Z_Malloc(sizeof(*header));
 
@@ -340,7 +340,7 @@ void LoadBSPFileTexinfo(char *file_name) {
 
 	// swap the header
 	for (i = 0; i < sizeof(*header) / 4; i++)
-		((int *) header)[i] = LittleLong(((int *) header)[i]);
+		((int32_t *) header)[i] = LittleLong(((int32_t *) header)[i]);
 
 	if (header->ident != BSP_HEADER)
 		Com_Error(ERR_FATAL, "%s is not a bsp file\n", file_name);
@@ -368,7 +368,7 @@ static FILE *fp;
 /*
  * AddLump
  */
-static void AddLump(int lump_num, void *data, int len) {
+static void AddLump(int32_t lump_num, void *data, int32_t len) {
 	d_bsp_lump_t *lump;
 
 	lump = &header->lumps[lump_num];
@@ -506,7 +506,7 @@ void PrintBSPFileSizes(void) {
 	Com_Verbose("      vis          %7i\n", d_bsp.vis_data_size);
 }
 
-int num_entities;
+int32_t num_entities;
 entity_t entities[MAX_BSP_ENTITIES];
 
 /*
@@ -584,7 +584,7 @@ static bool ParseEntity(void) {
  * Parses the d_bsp.entity_string string into entities
  */
 void ParseEntities(void) {
-	int subdivide;
+	int32_t subdivide;
 
 	ParseFromMemory(d_bsp.entity_string, d_bsp.entity_string_len);
 
@@ -609,7 +609,7 @@ void UnparseEntities(void) {
 	char *buf, *end;
 	epair_t *ep;
 	char line[2048];
-	int i;
+	int32_t i;
 	char key[1024], value[1024];
 
 	buf = d_bsp.entity_string;

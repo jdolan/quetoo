@@ -26,11 +26,11 @@ quake2world_t quake2world;
 /*
  * main
  */
-int main(int argc, char **argv) {
+int32_t main(int32_t argc, char **argv) {
 	char *pwd[] = { "." };
 	err = ERR_OK;
 
-	if (argc == 1 || !strcmp(argv[1], "--help")) { // print help
+	if (argc == 1 || !strcmp(argv[1], "--help")) { // print32_t help
 		printf("Quake2World `pak' manipulates Quake2(tm) pak files.\n\n"
 			"Examples:\n"
 			"  pak -c file.pak foo bar	#create file.pak from foo and bar\n"

@@ -21,8 +21,8 @@
 
 #include "qbsp.h"
 
-static int c_active_portals;
-static int c_peak_portals;
+static int32_t c_active_portals;
+static int32_t c_peak_portals;
 
 /*
  * ===========
@@ -61,8 +61,8 @@ void FreePortal(portal_t * p) {
  * strongest visible content present
  * ==============
  */
-int VisibleContents(int contents) {
-	int i;
+int32_t VisibleContents(int32_t contents) {
+	int32_t i;
 
 	for (i = 1; i <= LAST_VISIBLE_CONTENTS; i <<= 1)
 		if (contents & i)
@@ -76,8 +76,8 @@ int VisibleContents(int contents) {
  * ClusterContents
  * ===============
  */
-static int ClusterContents(const node_t * node) {
-	int c1, c2, c;
+static int32_t ClusterContents(const node_t * node) {
+	int32_t c1, c2, c;
 
 	if (node->plane_num == PLANENUM_LEAF)
 		return node->contents;
@@ -104,7 +104,7 @@ static int ClusterContents(const node_t * node) {
  * =============
  */
 bool Portal_VisFlood(const portal_t * p) {
-	int c1, c2;
+	int32_t c1, c2;
 
 	if (!p->onnode)
 		return false; // to global outsideleaf
@@ -140,7 +140,7 @@ bool Portal_VisFlood(const portal_t * p) {
  * Flowing from side s to side !s
  * ===============
  */
-static bool Portal_EntityFlood(const portal_t * p, int s) {
+static bool Portal_EntityFlood(const portal_t * p, int32_t s) {
 	if (p->nodes[0]->plane_num != PLANENUM_LEAF || p->nodes[1]->plane_num
 			!= PLANENUM_LEAF)
 		Com_Error(ERR_FATAL, "Portal_EntityFlood: not a leaf\n");
@@ -156,7 +156,7 @@ static bool Portal_EntityFlood(const portal_t * p, int s) {
 
 //=============================================================================
 
-static int c_tinyportals;
+static int32_t c_tinyportals;
 
 /*
  * =============
@@ -220,7 +220,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l) {
 #define	SIDESPACE	8
 void MakeHeadnodePortals(tree_t * tree) {
 	vec3_t bounds[2];
-	int i, j, n;
+	int32_t i, j, n;
 	portal_t *p, *portals[6];
 	map_plane_t bplanes[6], *pl;
 	node_t *node;
@@ -321,7 +321,7 @@ void MakeNodePortal(node_t * node) {
 	winding_t *w;
 	vec3_t normal;
 	float dist;
-	int side;
+	int32_t side;
 
 	w = BaseWindingForNode(node);
 
@@ -369,7 +369,7 @@ void MakeNodePortal(node_t * node) {
 void SplitNodePortals(node_t * node) {
 	portal_t *p, *next_portal, *new_portal;
 	node_t *f, *b, *other_node;
-	int side;
+	int32_t side;
 	map_plane_t *plane;
 	winding_t *frontwinding, *backwinding;
 
@@ -454,7 +454,7 @@ void SplitNodePortals(node_t * node) {
  */
 static void CalcNodeBounds(node_t * node) {
 	portal_t *p;
-	int i, s;
+	int32_t i, s;
 
 	// calc mins/maxs for both leafs and nodes
 	ClearBounds(node->mins, node->maxs);
@@ -469,7 +469,7 @@ static void CalcNodeBounds(node_t * node) {
  * MakeTreePortals_r
  */
 static void MakeTreePortals_r(node_t * node) {
-	int i;
+	int32_t i;
 
 	CalcNodeBounds(node);
 	if (node->mins[0] >= node->maxs[0]) {
@@ -509,9 +509,9 @@ void MakeTreePortals(tree_t * tree) {
 /*
  * FloodPortals_r
  */
-static void FloodPortals_r(node_t * node, int dist) {
+static void FloodPortals_r(node_t * node, int32_t dist) {
 	portal_t *p;
-	int s;
+	int32_t s;
 
 	node->occupied = dist;
 
@@ -561,7 +561,7 @@ static bool PlaceOccupant(node_t * head_node, vec3_t origin,
  * Marks all nodes that can be reached by entites
  */
 bool FloodEntities(tree_t *tree) {
-	int i;
+	int32_t i;
 	vec3_t origin;
 	const char *cl;
 	bool inside;
@@ -584,7 +584,7 @@ bool FloodEntities(tree_t *tree) {
 		// nudge playerstart around if needed so clipping hulls always
 		// have a valid point
 		if (!strcmp(cl, "info_player_start")) {
-			int x, y;
+			int32_t x, y;
 
 			for (x = -16; x <= 16; x += 16) {
 				for (y = -16; y <= 16; y += 16) {
@@ -618,14 +618,14 @@ bool FloodEntities(tree_t *tree) {
  * FLOOD AREAS
  */
 
-static int c_areas;
+static int32_t c_areas;
 
 /*
  * FloodAreas_r
  */
 static void FloodAreas_r(node_t * node) {
 	portal_t *p;
-	int s;
+	int32_t s;
 
 	if (node->contents == CONTENTS_AREA_PORTAL) {
 		// this node is part of an area portal
@@ -739,7 +739,7 @@ static void SetAreaPortalAreas_r(node_t * node) {
  * EmitAreaPortals
  */
 void EmitAreaPortals(node_t * head_node) {
-	int i, j;
+	int32_t i, j;
 	d_bsp_area_portal_t *dp;
 
 	if (c_areas > MAX_BSP_AREAS)
@@ -788,9 +788,9 @@ void FloodAreas(tree_t * tree) {
 	Com_Verbose("%5i areas\n", c_areas);
 }
 
-static int c_outside;
-static int c_inside;
-static int c_solid;
+static int32_t c_outside;
+static int32_t c_inside;
+static int32_t c_solid;
 
 static void FillOutside_r(node_t * node) {
 	if (node->plane_num != PLANENUM_LEAF) {
@@ -839,10 +839,10 @@ void FillOutside(node_t * head_node) {
  * ============
  */
 static void FindPortalSide(portal_t * p) {
-	int viscontents;
+	int32_t viscontents;
 	bsp_brush_t *bb;
-	int i, j;
-	int plane_num;
+	int32_t i, j;
+	int32_t plane_num;
 	side_t *bestside;
 	float dot, bestdot;
 	map_plane_t *p2;
@@ -901,7 +901,7 @@ static void FindPortalSide(portal_t * p) {
  */
 static void MarkVisibleSides_r(const node_t * node) {
 	portal_t *p;
-	int s;
+	int32_t s;
 
 	if (node->plane_num != PLANENUM_LEAF) {
 		MarkVisibleSides_r(node->children[0]);
@@ -931,15 +931,15 @@ static void MarkVisibleSides_r(const node_t * node) {
  *
  * =============
  */
-void MarkVisibleSides(tree_t * tree, int startbrush, int endbrush) {
-	int i, j;
+void MarkVisibleSides(tree_t * tree, int32_t startbrush, int32_t endbrush) {
+	int32_t i, j;
 
 	Com_Verbose("--- MarkVisibleSides ---\n");
 
 	// clear all the visible flags
 	for (i = startbrush; i < endbrush; i++) {
 		map_brush_t *mb = &map_brushes[i];
-		const int num_sides = mb->num_sides;
+		const int32_t num_sides = mb->num_sides;
 		for (j = 0; j < num_sides; j++)
 			mb->original_sides[j].visible = false;
 	}

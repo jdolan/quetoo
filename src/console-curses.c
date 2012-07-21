@@ -26,9 +26,9 @@
 static WINDOW *stdwin; // ncurses standard window
 
 static char input[CURSES_HISTORYSIZE][CURSES_LINESIZE];
-static unsigned short history_line;
-static unsigned short input_line;
-static unsigned short input_pos;
+static uint16_t history_line;
+static uint16_t input_line;
+static uint16_t input_pos;
 
 console_t sv_con;
 
@@ -37,8 +37,8 @@ cvar_t *con_timeout;
 
 static char version_string[32];
 
-static int curses_redraw; // indicates what part needs to be drawn
-static int curses_last_update; // number of milliseconds since last redraw
+static int32_t curses_redraw; // indicates what part needs to be drawn
+static int32_t curses_last_update; // number of milliseconds since last redraw
 
 
 /*
@@ -46,7 +46,7 @@ static int curses_last_update; // number of milliseconds since last redraw
  *
  * Set the curses drawing color
  */
-static void Curses_SetColor(int color) {
+static void Curses_SetColor(int32_t color) {
 	if (!has_colors())
 		return;
 
@@ -81,8 +81,8 @@ static void Curses_DrawBackground(void) {
  * Draw the inputbox
  */
 static void Curses_DrawInput(void) {
-	int x;
-	const int xPos = COLS - 5 < CURSES_LINESIZE ? COLS - 5 : CURSES_LINESIZE - 1;
+	int32_t x;
+	const int32_t xPos = COLS - 5 < CURSES_LINESIZE ? COLS - 5 : CURSES_LINESIZE - 1;
 
 	Curses_SetColor(CON_COLOR_ALT);
 	for (x = 2; x < COLS - 1; x++)
@@ -102,10 +102,10 @@ static void Curses_DrawInput(void) {
  *
  */
 static void Curses_DrawConsole(void) {
-	int w, h;
-	int x, y;
-	int lines;
-	int line;
+	int32_t w, h;
+	int32_t x, y;
+	int32_t lines;
+	int32_t line;
 	const char *pos;
 
 	if (!sv_con.initialized)
@@ -174,7 +174,7 @@ void Curses_Refresh(void) {
  * Draw everything
  */
 static void Curses_Draw(void) {
-	int timeout;
+	int32_t timeout;
 
 	if (!sv_con.initialized)
 		return;
@@ -207,7 +207,7 @@ static void Curses_Draw(void) {
  *
  * Window resize signal handler
  */
-static void Curses_Resize(int sig __attribute__((unused))) {
+static void Curses_Resize(int32_t sig __attribute__((unused))) {
 
 	if (!sv_con.initialized) {
 		return;
@@ -231,8 +231,8 @@ static void Curses_Resize(int sig __attribute__((unused))) {
  *
  * Handle curses input and redraw if necessary
  */
-void Curses_Frame(unsigned int msec) {
-	int key;
+void Curses_Frame(uint32_t msec) {
+	int32_t key;
 	char buf[CURSES_LINESIZE];
 
 	if (!sv_con.initialized)

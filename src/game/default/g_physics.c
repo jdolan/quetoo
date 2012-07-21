@@ -41,7 +41,7 @@
  */
 static g_edict_t *G_TestEntityPosition(g_edict_t *ent) {
 	c_trace_t trace;
-	int mask;
+	int32_t mask;
 
 	if (ent->clip_mask)
 		mask = ent->clip_mask;
@@ -61,7 +61,7 @@ static g_edict_t *G_TestEntityPosition(g_edict_t *ent) {
  * G_ClampVelocity
  */
 static void G_ClampVelocity(g_edict_t *ent) {
-	int i;
+	int32_t i;
 
 	// bound velocity
 	for (i = 0; i < 3; i++) {
@@ -123,10 +123,10 @@ static void G_Impact(g_edict_t *e1, c_trace_t *trace) {
  * Slide off of the impacting object
  * returns the blocked flags (1 = floor, 2 = step / wall)
  */
-static int G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce) {
+static int32_t G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce) {
 	float backoff;
 	float change;
-	int i, blocked;
+	int32_t i, blocked;
 
 	blocked = 0;
 	if (normal[2] > 0)
@@ -196,7 +196,7 @@ c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push) {
 	c_trace_t trace;
 	vec3_t start;
 	vec3_t end;
-	int mask;
+	int32_t mask;
 
 	VectorCopy(ent->s.origin, start);
 	VectorAdd(start, push, end);
@@ -233,7 +233,7 @@ typedef struct {
 	g_edict_t *ent;
 	vec3_t origin;
 	vec3_t angles;
-	short delta_yaw;
+	int16_t delta_yaw;
 } g_pushed_t;
 
 g_pushed_t g_pushed[MAX_EDICTS], *g_pushed_p;
@@ -247,7 +247,7 @@ g_edict_t *obstacle;
  * otherwise riders would continue to slide.
  */
 static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
-	int i, e;
+	int32_t i, e;
 	g_edict_t *check, *block;
 	vec3_t mins, maxs;
 	g_pushed_t *p;

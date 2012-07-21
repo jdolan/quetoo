@@ -30,7 +30,7 @@
  * our skin paths start with players/, not models/players/.
  */
 static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line) {
-	int i;
+	int32_t i;
 
 	if (strstr(line, "tag_"))
 		return;
@@ -67,7 +67,7 @@ static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line)
 static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const char *skin) {
 	char path[MAX_QPATH], line[MAX_STRING_CHARS];
 	char *buffer;
-	int i, j, len;
+	int32_t i, j, len;
 
 	// load the skin definition file
 	snprintf(path, sizeof(path) - 1, "%s_%s.skin", mod->name, skin);
@@ -138,7 +138,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	char path[MAX_QPATH];
 	const char *t;
 	char *u, *v;
-	int i;
+	int32_t i;
 
 	cgi.Debug("Cg_LoadClient: %s\n", s);
 
@@ -210,7 +210,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
  * Load all client info strings from the server.
  */
 void Cg_LoadClients(void) {
-	int i;
+	int32_t i;
 
 	memset(cgi.client->client_info, 0, sizeof(cgi.client->client_info));
 
@@ -281,10 +281,10 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 		return;
 	}
 
-	const int frame_time = 1000 / anim->hz;
-	const int animation_time = anim->num_frames * frame_time;
-	const int elapsed_time = cgi.client->time - a->time;
-	int frame = elapsed_time / frame_time;
+	const int32_t frame_time = 1000 / anim->hz;
+	const int32_t animation_time = anim->num_frames * frame_time;
+	const int32_t elapsed_time = cgi.client->time - a->time;
+	int32_t frame = elapsed_time / frame_time;
 
 	if (elapsed_time >= animation_time) { // to loop, or not to loop
 

@@ -31,8 +31,8 @@
 #define	PORTALFILE	"PRT1"
 
 static FILE *pf;
-int num_visclusters; /* clusters the player can be in */
-int num_visportals;
+int32_t num_visclusters; /* clusters the player can be in */
+int32_t num_visportals;
 
 /*
  * WriteFloat
@@ -50,7 +50,7 @@ static void WriteFloat(FILE *f, vec_t v) {
  * WritePortalFile_r
  */
 static void WritePortalFile_r(node_t *node) {
-	int i, s;
+	int32_t i, s;
 	portal_t *p;
 	winding_t *w;
 	vec3_t normal;
@@ -75,7 +75,7 @@ static void WritePortalFile_r(node_t *node) {
 			// write out to the file
 
 			// sometimes planes get turned around when they are very near
-			// the changeover point between different axis.  interpret the
+			// the changeover point32_t between different axis.  interpret the
 			// plane the same way vis will, and flip the side orders if needed
 			// FIXME: is this still relevent?
 			WindingPlane(w, normal, &dist);
@@ -103,7 +103,7 @@ static void WritePortalFile_r(node_t *node) {
  *
  * All of the leafs under node will have the same cluster
  */
-static void FillLeafNumbers_r(node_t * node, int num) {
+static void FillLeafNumbers_r(node_t * node, int32_t num) {
 	if (node->plane_num == PLANENUM_LEAF) {
 		if (node->contents & CONTENTS_SOLID)
 			node->cluster = -1;
@@ -130,7 +130,7 @@ static void NumberLeafs_r(node_t * node) {
 	}
 	// either a leaf or a detail cluster
 
-	if (node->contents & CONTENTS_SOLID) { // solid block, viewpoint never inside
+	if (node->contents & CONTENTS_SOLID) { // solid block, viewpoint32_t never inside
 		node->cluster = -1;
 		return;
 	}
@@ -167,7 +167,7 @@ static void CreateVisPortals_r(node_t * node) {
 	CreateVisPortals_r(node->children[1]);
 }
 
-static int clusterleaf;
+static int32_t clusterleaf;
 static void SaveClusters_r(node_t * node) {
 	if (node->plane_num == PLANENUM_LEAF) {
 		d_bsp.leafs[clusterleaf++].cluster = node->cluster;

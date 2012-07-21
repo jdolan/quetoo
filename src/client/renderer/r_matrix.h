@@ -50,7 +50,7 @@ void Matrix4x4_Transpose (matrix4x4_t *out, const matrix4x4_t *in1);
 // is possible to invert
 // (non-uniform scaling, rotation, shearing, and translation, possibly others)
 // warning: this function is SLOW
-int Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1);
+int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1);
 // creates a matrix that does the opposite of the matrix provided
 // only supports translate, rotate, scale (not scale3) matrices
 void Matrix4x4_Invert_Simple (matrix4x4_t *out, const matrix4x4_t *in1);
@@ -136,9 +136,9 @@ void Matrix4x4_ToOrigin3Quat4Float(const matrix4x4_t *m, float *origin, float *q
 void Matrix4x4_FromDoom3Joint(matrix4x4_t *m, double ox, double oy, double oz, double x, double y, double z);
 
 // creates a matrix4x4_t from an origin and canonical unit-length quaternion in short[6] normalized format
-void Matrix4x4_FromBonePose6s(matrix4x4_t *m, float originscale, const short *pose6s);
+void Matrix4x4_FromBonePose6s(matrix4x4_t *m, float originscale, const int16_t *pose6s);
 // creates a short[6] representation from normalized matrix4x4_t
-void Matrix4x4_ToBonePose6s(const matrix4x4_t *m, float origininvscale, short *pose6s);
+void Matrix4x4_ToBonePose6s(const matrix4x4_t *m, float origininvscale, int16_t *pose6s);
 
 // blends two matrices together, at a given percentage (blend controls percentage of in2)
 void Matrix4x4_Blend (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4_t *in2, double blend);

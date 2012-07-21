@@ -42,7 +42,7 @@ void *R_HunkAlloc(size_t size);
 void R_AllocVertexArrays(r_model_t *mod);
 void R_InitModels(void);
 void R_ShutdownModels(void);
-void R_BeginLoading(const char *map, int mapsize);
+void R_BeginLoading(const char *map, int32_t mapsize);
 void R_ListModels_f(void);
 void R_HunkStats_f(void);
 

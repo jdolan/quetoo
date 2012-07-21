@@ -28,9 +28,9 @@
  * desired name.  If not found, the name can be optionally created and sent to
  * all connected clients.  This allows the game to lazily load assets.
  */
-static unsigned short Sv_FindIndex(const char *name, unsigned short start, unsigned short max,
+static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max,
 		bool create) {
-	unsigned short i;
+	uint16_t i;
 
 	if (!name || !name[0])
 		return 0;
@@ -60,15 +60,15 @@ static unsigned short Sv_FindIndex(const char *name, unsigned short start, unsig
 	return i;
 }
 
-unsigned short Sv_ModelIndex(const char *name) {
+uint16_t Sv_ModelIndex(const char *name) {
 	return Sv_FindIndex(name, CS_MODELS, MAX_MODELS, true);
 }
 
-unsigned short Sv_SoundIndex(const char *name) {
+uint16_t Sv_SoundIndex(const char *name) {
 	return Sv_FindIndex(name, CS_SOUNDS, MAX_SOUNDS, true);
 }
 
-unsigned short Sv_ImageIndex(const char *name) {
+uint16_t Sv_ImageIndex(const char *name) {
 	return Sv_FindIndex(name, CS_IMAGES, MAX_IMAGES, true);
 }
 
@@ -81,7 +81,7 @@ unsigned short Sv_ImageIndex(const char *name) {
  */
 static void Sv_CreateBaseline(void) {
 	g_edict_t *ent;
-	unsigned int i;
+	uint32_t i;
 
 	for (i = 1; i < svs.game->num_edicts; i++) {
 
@@ -110,7 +110,7 @@ static void Sv_CreateBaseline(void) {
  */
 static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
 	sv_client_t *cl;
-	int i;
+	int32_t i;
 
 	if (!svs.initialized)
 		return;
@@ -182,7 +182,7 @@ static void Sv_UpdateLatchedVars(void) {
  */
 static void Sv_ShutdownClients(void) {
 	sv_client_t *cl;
-	int i;
+	int32_t i;
 
 	if (!svs.initialized)
 		return;
@@ -209,7 +209,7 @@ static void Sv_ShutdownClients(void) {
  * we refresh the game module
  */
 static void Sv_InitClients(void) {
-	int i;
+	int32_t i;
 
 	if (!svs.initialized || Cvar_PendingLatchedVars()) {
 
@@ -264,7 +264,7 @@ static void Sv_InitClients(void) {
 static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	extern char *fs_last_pak;
 	char demo[MAX_QPATH];
-	int i, mapsize;
+	int32_t i, mapsize;
 
 	strcpy(sv.name, server);
 	strcpy(sv.config_strings[CS_NAME], server);
@@ -313,7 +313,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 /*
  * Sv_InitServer
  *
- * Entry point for spawning a new server or changing maps / demos.  Brings any
+ * Entry point32_t for spawning a new server or changing maps / demos.  Brings any
  * connected clients along for the ride by broadcasting a reconnect before
  * clearing state.  Special effort is made to ensure that a locally connected
  * client sees the reconnect message immediately.

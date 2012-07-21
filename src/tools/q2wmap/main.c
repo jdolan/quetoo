@@ -49,9 +49,9 @@ extern bool noopt;
 extern bool leaktest;
 extern bool verboseentities;
 
-extern int block_xl, block_xh, block_yl, block_yh;
+extern int32_t block_xl, block_xh, block_yl, block_yh;
 extern vec_t microvolume;
-extern int subdivide_size;
+extern int32_t subdivide_size;
 
 /* VIS */
 extern bool fastvis;
@@ -71,7 +71,7 @@ static HANDLE Console; //windows console
 static FILE *output_file; //file output
 #define HORIZONTAL	45							//console size and buffer
 #define VERTICAL		70						//console size and buffer
-static int input_index_h, input_index_v; //pdcurses print location
+static int32_t input_index_h, input_index_v; //pdcurses print32_t location
 static char title[64]; //window bar title (updates to show status)
 
 #ifdef HAVE_CURSES
@@ -192,7 +192,7 @@ static void Print(const char *msg) {
 	}
 	else { // fancy colored pdcurses output for normal compiling
 		char copymsg[2];
-		int n;
+		int32_t n;
 
 		for(n = 0; n < lstrlen(msg); n++) { // process the entire string (msg)
 			if (msg[n] == '\n') {
@@ -214,7 +214,7 @@ static void Print(const char *msg) {
 				else
 				attroff(COLOR_PAIR(3)); // turn off attributes
 
-				// finally print our processed character on the console
+				// finally print32_t our processed character on the console
 				mvwprintw(stdscr, input_index_h, input_index_v, copymsg);
 				refresh();
 
@@ -313,8 +313,8 @@ static void Warn(const char *msg) {
 /*
  * Check_BSP_Options
  */
-static int Check_BSP_Options(int argc, char **argv) {
-	int i;
+static int32_t Check_BSP_Options(int32_t argc, char **argv) {
+	int32_t i;
 
 	for (i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-noweld")) {
@@ -394,8 +394,8 @@ static int Check_BSP_Options(int argc, char **argv) {
 /*
  * Check_VIS_Options
  */
-static int Check_VIS_Options(int argc, char **argv) {
-	int i;
+static int32_t Check_VIS_Options(int32_t argc, char **argv) {
+	int32_t i;
 
 	for (i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-fast")) {
@@ -414,8 +414,8 @@ static int Check_VIS_Options(int argc, char **argv) {
 /*
  * Check_LIGHT_Options
  */
-static int Check_LIGHT_Options(int argc, char **argv) {
-	int i;
+static int32_t Check_LIGHT_Options(int32_t argc, char **argv) {
+	int32_t i;
 
 	for (i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-extra")) {
@@ -451,14 +451,14 @@ static int Check_LIGHT_Options(int argc, char **argv) {
 /*
  * Check_PAK_Options
  */
-static int Check_PAK_Options(int argc, char **argv) {
+static int32_t Check_PAK_Options(int32_t argc, char **argv) {
 	return 0;
 }
 
 /*
  * Check_MAT_Options
  */
-static int Check_MAT_Options(int argc, char **argv) {
+static int32_t Check_MAT_Options(int32_t argc, char **argv) {
 	return 0;
 }
 
@@ -522,12 +522,12 @@ static void PrintHelpMessage(void) {
 /*
  * main
  */
-int main(int argc, char **argv) {
-	int i;
-	int r = 0;
-	int total_time;
+int32_t main(int32_t argc, char **argv) {
+	int32_t i;
+	int32_t r = 0;
+	int32_t total_time;
 	time_t start, end;
-	int alt_argc;
+	int32_t alt_argc;
 	char *c, **alt_argv;
 	bool do_bsp = false;
 	bool do_vis = false;
@@ -549,7 +549,7 @@ int main(int argc, char **argv) {
 
 	Com_Print("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
-	if (argc < 2) { // print help and exit
+	if (argc < 2) { // print32_t help and exit
 		PrintHelpMessage();
 		return 0;
 	}

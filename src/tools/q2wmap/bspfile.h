@@ -25,61 +25,61 @@
 #include "q2wmap.h"
 
 typedef struct d_bsp_s {
-	int num_models;
+	int32_t num_models;
 	d_bsp_model_t models[MAX_BSP_MODELS];
 
-	int vis_data_size;
+	int32_t vis_data_size;
 	byte vis_data[MAX_BSP_VISIBILITY];
 
-	int lightmap_data_size;
+	int32_t lightmap_data_size;
 	byte lightmap_data[MAX_BSP_LIGHTING];
 
-	int entity_string_len;
+	int32_t entity_string_len;
 	char entity_string[MAX_BSP_ENT_STRING];
 
-	int num_leafs;
+	int32_t num_leafs;
 	d_bsp_leaf_t leafs[MAX_BSP_LEAFS];
 
-	int num_planes;
+	int32_t num_planes;
 	d_bsp_plane_t planes[MAX_BSP_PLANES];
 
-	int num_vertexes;
+	int32_t num_vertexes;
 	d_bsp_vertex_t vertexes[MAX_BSP_VERTS];
 
-	int num_normals;
+	int32_t num_normals;
 	d_bsp_normal_t normals[MAX_BSP_VERTS];
 
-	int num_nodes;
+	int32_t num_nodes;
 	d_bsp_node_t nodes[MAX_BSP_NODES];
 
-	int num_texinfo;
+	int32_t num_texinfo;
 	d_bsp_texinfo_t texinfo[MAX_BSP_TEXINFO];
 
-	int num_faces;
+	int32_t num_faces;
 	d_bsp_face_t faces[MAX_BSP_FACES];
 
-	int num_edges;
+	int32_t num_edges;
 	d_bsp_edge_t edges[MAX_BSP_EDGES];
 
-	int num_leaf_faces;
-	unsigned short leaf_faces[MAX_BSP_LEAF_FACES];
+	int32_t num_leaf_faces;
+	uint16_t leaf_faces[MAX_BSP_LEAF_FACES];
 
-	int num_leaf_brushes;
-	unsigned short leaf_brushes[MAX_BSP_LEAF_BRUSHES];
+	int32_t num_leaf_brushes;
+	uint16_t leaf_brushes[MAX_BSP_LEAF_BRUSHES];
 
-	int num_face_edges;
-	int face_edges[MAX_BSP_FACE_EDGES];
+	int32_t num_face_edges;
+	int32_t face_edges[MAX_BSP_FACE_EDGES];
 
-	int num_areas;
+	int32_t num_areas;
 	d_bsp_area_t areas[MAX_BSP_AREAS];
 
-	int num_area_portals;
+	int32_t num_area_portals;
 	d_bsp_area_portal_t area_portals[MAX_BSP_AREA_PORTALS];
 
-	int num_brushes;
+	int32_t num_brushes;
 	d_bsp_brush_t brushes[MAX_BSP_BRUSHES];
 
-	int num_brush_sides;
+	int32_t num_brush_sides;
 	d_bsp_brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
 
 	byte dpop[256];
@@ -90,7 +90,7 @@ extern d_bsp_vis_t *d_vis;
 
 
 void DecompressVis(byte *in, byte *decompressed);
-int CompressVis(byte *vis, byte *dest);
+int32_t CompressVis(byte *vis, byte *dest);
 
 void LoadBSPFile(char *file_name);
 void LoadBSPFileTexinfo(char *file_name);	// just for qdata
@@ -105,16 +105,16 @@ typedef struct epair_s {
 
 typedef struct {
 	vec3_t origin;
-	int first_brush;
-	int num_brushes;
+	int32_t first_brush;
+	int32_t num_brushes;
 	epair_t *epairs;
 
 	// only valid for func_areaportals
-	int area_portal_num;
-	int portal_areas[2];
+	int32_t area_portal_num;
+	int32_t portal_areas[2];
 } entity_t;
 
-extern int num_entities;
+extern int32_t num_entities;
 extern entity_t entities[MAX_BSP_ENTITIES];
 
 void ParseEntities(void);
@@ -129,6 +129,6 @@ void GetVectorForKey(const entity_t *ent, const char *key, vec3_t vec);
 
 epair_t *ParseEpair(void);
 
-extern int subdivide_size;  // shared by qbsp and light
+extern int32_t subdivide_size;  // shared by qbsp and light
 
 #endif /* __BSPFILE_H__ */

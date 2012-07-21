@@ -25,7 +25,7 @@
  * G_ClientChaseThink
  */
 void G_ClientChaseThink(g_edict_t *ent) {
-	short delta[3];
+	int16_t delta[3];
 
 	g_edict_t *targ = ent->client->chase_target;
 
@@ -69,7 +69,7 @@ void G_ClientChaseThink(g_edict_t *ent) {
  * G_ClientChaseNext
  */
 void G_ClientChaseNext(g_edict_t *ent) {
-	int i;
+	int32_t i;
 	g_edict_t *e;
 
 	if (!ent->client->chase_target)
@@ -99,7 +99,7 @@ void G_ClientChaseNext(g_edict_t *ent) {
  * G_ClientChasePrevious
  */
 void G_ClientChasePrevious(g_edict_t *ent) {
-	int i;
+	int32_t i;
 	g_edict_t *e;
 
 	if (!ent->client->chase_target)
@@ -131,7 +131,7 @@ void G_ClientChasePrevious(g_edict_t *ent) {
  * Finds the first available chase target and assigns it to the specified ent.
  */
 void G_ClientChaseTarget(g_edict_t *ent) {
-	int i;
+	int32_t i;
 	g_edict_t *other;
 
 	for (i = 1; i <= sv_max_clients->integer; i++) {
