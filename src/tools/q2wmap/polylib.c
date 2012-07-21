@@ -55,9 +55,9 @@ winding_t *AllocWinding(int32_t points) {
  * FreeWinding
  */
 void FreeWinding(winding_t *w) {
-	if (*(unsigned *) w == 0xdeaddead)
+	if (*(uint32_t *) w == 0xdeaddead)
 		Com_Error(ERR_FATAL, "FreeWinding: freed a freed winding\n");
-	*(unsigned *) w = 0xdeaddead;
+	*(uint32_t *) w = 0xdeaddead;
 
 	if (!threads->integer)
 		c_active_windings--;

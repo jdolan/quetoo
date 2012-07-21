@@ -123,7 +123,7 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	void *buf;
 	miptex_t *mt;
 	int32_t i, size;
-	unsigned *p;
+	uint32_t *p;
 	byte *b;
 
 	if (Fs_LoadFile(path, &buf) == -1)
@@ -140,7 +140,7 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 		Img_InitPalette();
 
 	size = mt->width * mt->height;
-	p = (unsigned *) malloc(size * sizeof(unsigned));
+	p = (uint32_t *) malloc(size * sizeof(uint32_t));
 
 	b = (byte *) mt + mt->offsets[0];
 
@@ -223,7 +223,7 @@ bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) 
 void Img_InitPalette(void) {
 	SDL_Surface *surf;
 	byte r, g, b;
-	unsigned v;
+	uint32_t v;
 	int32_t i;
 
 	if (!Img_LoadTypedImage(PALETTE, "pcx", &surf))
@@ -251,7 +251,7 @@ void Img_InitPalette(void) {
  * Returns RGB components of the specified color in the specified result array.
  */
 void Img_ColorFromPalette(byte c, float *res) {
-	unsigned color;
+	uint32_t color;
 
 	if (!palette_initialized) // lazy-load palette if necessary
 		Img_InitPalette();

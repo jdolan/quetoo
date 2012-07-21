@@ -175,7 +175,7 @@ static bool Cl_KeySystem(uint32_t key, uint16_t unicode __attribute__((unused)),
  *
  * Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, unsigned time __attribute__((unused))) {
+static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t time __attribute__((unused))) {
 	bool numlock = ks->down[K_NUMLOCK];
 	size_t i;
 
@@ -394,7 +394,7 @@ static void Cl_KeyGame(uint32_t key, uint16_t unicode __attribute__((unused)), b
 /*
  * Cl_KeyMessage
  */
-static void Cl_KeyMessage(uint32_t key, uint16_t unicode, bool down, unsigned time __attribute__((unused))) {
+static void Cl_KeyMessage(uint32_t key, uint16_t unicode, bool down, uint32_t time __attribute__((unused))) {
 
 	if (!down) // don't care
 		return;
@@ -697,7 +697,7 @@ void Cl_ShutdownKeys(void) {
 /*
  * Cl_KeyEvent
  */
-void Cl_KeyEvent(uint32_t key, uint16_t unicode, bool down, unsigned time) {
+void Cl_KeyEvent(uint32_t key, uint16_t unicode, bool down, uint32_t time) {
 
 	// check for system commands first, swallowing such events
 	if (Cl_KeySystem(key, unicode, down, time)) {

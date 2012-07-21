@@ -30,7 +30,7 @@ static vec3_t texture_reflectivity[MAX_BSP_TEXINFO];
 void CalcTextureReflectivity(void) {
 	char path[MAX_OSPATH];
 	int32_t i, j, texels;
-	unsigned color[3];
+	uint32_t color[3];
 	SDL_Surface *surf;
 
 	// always set index 0 even if no textures

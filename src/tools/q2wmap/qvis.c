@@ -288,8 +288,8 @@ static void LoadPortals(const char *name) {
 			Com_Error(ERR_FATAL, "LoadPortals: portal %i has too many points\n", i);
 		}
 
-		if ((unsigned) leaf_nums[0] > map_vis.portal_clusters
-				|| (unsigned) leaf_nums[1] > map_vis.portal_clusters) {
+		if ((uint32_t) leaf_nums[0] > map_vis.portal_clusters
+				|| (uint32_t) leaf_nums[1] > map_vis.portal_clusters) {
 			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
 		}
 

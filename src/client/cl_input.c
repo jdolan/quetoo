@@ -138,7 +138,7 @@ static void Cl_KeyDown(cl_button_t *b) {
 static void Cl_KeyUp(cl_button_t *b) {
 	int32_t k;
 	char *c;
-	unsigned uptime;
+	uint32_t uptime;
 
 	c = Cmd_Argv(1);
 	if (c[0])

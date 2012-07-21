@@ -215,7 +215,7 @@ void Msg_WriteByte(size_buf_t *sb, const int32_t c) {
 void Msg_WriteShort(size_buf_t *sb, const int32_t c) {
 	byte *buf;
 
-	buf = Sb_Alloc(sb, sizeof(short));
+	buf = Sb_Alloc(sb, sizeof(int16_t));
 	buf[0] = c & 0xff;
 	buf[1] = c >> 8;
 }
@@ -226,7 +226,7 @@ void Msg_WriteShort(size_buf_t *sb, const int32_t c) {
 void Msg_WriteLong(size_buf_t *sb, const int32_t c) {
 	byte *buf;
 
-	buf = Sb_Alloc(sb, sizeof(int));
+	buf = Sb_Alloc(sb, sizeof(int32_t));
 	buf[0] = c & 0xff;
 	buf[1] = (c >> 8) & 0xff;
 	buf[2] = (c >> 16) & 0xff;
@@ -553,7 +553,7 @@ int32_t Msg_ReadByte(size_buf_t *sb) {
 	if (sb->read + 1 > sb->size)
 		c = -1;
 	else
-		c = (unsigned char) sb->data[sb->read];
+		c = (byte) sb->data[sb->read];
 	sb->read++;
 
 	return c;

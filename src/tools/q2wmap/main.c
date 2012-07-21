@@ -143,10 +143,10 @@ static void CloseWin32Console(void) {
  * Debug
  */
 static void Debug(const char *msg) {
-	unsigned long cChars;
+	uint32_t cChars;
 
 	if(!debug)
-	return;
+		return;
 
 	fprintf(output_file, "%s", msg);
 
@@ -158,7 +158,7 @@ static void Debug(const char *msg) {
  */
 static void Error(err_t err, const char *msg) {
 	const char *e = "************ ERROR ************\n";
-	unsigned long cChars;
+	uint32_t cChars;
 
 	fprintf(output_file, "%s", e);
 	fprintf(output_file, "%s", msg); // output to a file
@@ -182,7 +182,7 @@ static void Error(err_t err, const char *msg) {
  * Print
  */
 static void Print(const char *msg) {
-	unsigned long cChars;
+	uint32_t cChars;
 
 	fprintf(output_file, "%s", msg); // output to a file
 
@@ -231,7 +231,7 @@ static void Print(const char *msg) {
  * Verbose
  */
 static void Verbose(const char *msg) {
-	unsigned long cChars;
+	uint32_t cChars;
 
 	if(!verbose)
 	return;
@@ -245,7 +245,7 @@ static void Verbose(const char *msg) {
  * Warn
  */
 static void Warn(const char *msg) {
-	unsigned long cChars;
+	uint32_t cChars;
 	const char *w = "WARNING: ";
 
 	fprintf(output_file, "%s", w);

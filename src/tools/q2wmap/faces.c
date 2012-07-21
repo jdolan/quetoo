@@ -72,12 +72,12 @@ static int32_t hash_verts[HASH_SIZE * HASH_SIZE]; // a vertex number, or 0 for n
 /*
  * HashVec
  */
-static unsigned HashVec(const vec3_t vec) {
+static int32_t HashVec(const vec3_t vec) {
 	const int32_t x = (4096 + (int) (vec[0] + 0.5)) >> 7;
 	const int32_t y = (4096 + (int) (vec[1] + 0.5)) >> 7;
 
 	if (x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE)
-		Com_Error(ERR_FATAL, "HashVec: point32_t outside valid range\n");
+		Com_Error(ERR_FATAL, "HashVec: point outside valid range\n");
 
 	return y * HASH_SIZE + x;
 }

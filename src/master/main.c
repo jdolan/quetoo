@@ -41,9 +41,9 @@ typedef struct server_s {
 	uint16_t port;
 	uint32_t queued_pings;
 	uint32_t heartbeats;
-	unsigned long last_heartbeat;
-	unsigned long last_ping;
-	unsigned char validated;
+	uint32_t last_heartbeat;
+	uint32_t last_ping;
+	bool_ validated;
 } server_t;
 
 static server_t servers;
@@ -172,7 +172,8 @@ static void Ms_AddServer(struct sockaddr_in *from) {
 	server->last_heartbeat = time(0);
 	server->next = NULL;
 	server->port = from->sin_port;
-	server->queued_pings = server->last_ping = server->validated = 0;
+	server->queued_pings = server->last_ping = 0;
+	server->validated = false;
 
 	Com_Print("Server %s registered\n", inet_ntoa(from->sin_addr));
 
@@ -282,7 +283,7 @@ static void Ms_Ack(struct sockaddr_in *from) {
 	server->last_heartbeat = time(0);
 	server->queued_pings = 0;
 	server->heartbeats++;
-	server->validated = 1;
+	server->validated = true;
 }
 
 /*
@@ -298,7 +299,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from) {
 		addr.sin_port = server->port;
 		memset(&addr.sin_zero, 0, sizeof(addr.sin_zero));
 
-		server->validated = 1;
+		server->validated = true;
 		server->last_heartbeat = time(0);
 
 		Com_Print("Heartbeat from %s.\n", inet_ntoa(server->ip.sin_addr));

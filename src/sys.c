@@ -52,7 +52,7 @@ uint32_t Sys_Milliseconds(void) {
 const char *Sys_GetCurrentUser(void) {
 	static char user[64];
 #ifdef _WIN32
-	unsigned long size = sizeof(user);
+	size_t size = sizeof(user);
 
 	if (!GetUserName(user, &size))
 	user[0] = '\0';

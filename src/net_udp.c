@@ -79,7 +79,7 @@ static void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s) {
 	if (a->type == NA_IP_BROADCAST) {
 		s->sin_family = AF_INET;
 		s->sin_port = a->port;
-		*(unsigned *) &s->sin_addr = -1;
+		*(uint32_t *) &s->sin_addr = -1;
 	} else if (a->type == NA_IP) {
 		s->sin_family = AF_INET;
 		s->sin_port = a->port;
@@ -161,16 +161,16 @@ static bool Net_StringToSockaddr(const char *s, struct sockaddr *saddr) {
 	for (colon = copy; *colon; colon++) {
 		if (*colon == ':') {
 			*colon = 0;
-			((struct sockaddr_in *) saddr)->sin_port = htons((short)atoi(colon + 1));
+			((struct sockaddr_in *) saddr)->sin_port = htons((int16_t)atoi(colon + 1));
 		}
 	}
 
 	if (copy[0] >= '0' && copy[0] <= '9') {
-		*(unsigned *) &((struct sockaddr_in *) saddr)->sin_addr = inet_addr(copy);
+		*(uint32_t *) &((struct sockaddr_in *) saddr)->sin_addr = inet_addr(copy);
 	} else {
 		if (!(h = gethostbyname(copy)))
 			return false;
-		*(unsigned *) &((struct sockaddr_in *) saddr)->sin_addr = *(unsigned *) h->h_addr_list[0];
+		*(uint32_t *) &((struct sockaddr_in *) saddr)->sin_addr = *(uint32_t *) h->h_addr_list[0];
 	}
 
 	return true;
@@ -289,7 +289,7 @@ bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 		return false;
 	}
 
-	message->size = (unsigned) ret;
+	message->size = (uint32_t) ret;
 	return true;
 }
 

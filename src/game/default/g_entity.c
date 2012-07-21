@@ -244,7 +244,7 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 
 			switch (f->type) {
 			case F_SHORT:
-				*(int16_t *) (b + f->ofs) = (short) atoi(value);
+				*(int16_t *) (b + f->ofs) = (int16_t) atoi(value);
 				break;
 			case F_INT:
 				*(int32_t *) (b + f->ofs) = atoi(value);

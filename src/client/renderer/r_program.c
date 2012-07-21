@@ -234,7 +234,7 @@ void R_ShutdownPrograms(void) {
 static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	r_shader_t *sh;
 	char path[MAX_QPATH], *src[1], log[MAX_STRING_CHARS];
-	unsigned e, length[1];
+	uint32_t e, length[1];
 	void *buf;
 	int32_t i, len;
 
@@ -299,7 +299,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 static r_program_t *R_LoadProgram(const char *name, void(*Init)(void)) {
 	r_program_t *prog;
 	char log[MAX_STRING_CHARS];
-	unsigned e;
+	uint32_t e;
 	int32_t i;
 
 	for (i = 0; i < MAX_PROGRAMS; i++) {
