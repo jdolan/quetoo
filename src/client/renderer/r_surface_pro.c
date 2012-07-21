@@ -174,7 +174,7 @@ void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 	}
 
 	glLineWidth(1.0);
-	R_Colorb(color_white);
+	R_Colorb(NULL);
 
 	if (!r_multisample->value)
 		glDisable(GL_LINE_SMOOTH);

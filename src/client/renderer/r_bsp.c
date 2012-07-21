@@ -260,7 +260,7 @@ void R_DrawBspNormals(void) {
 
 	R_EnableTexture(&texunit_diffuse, true);
 
-	R_Colorb(color_white);
+	R_Colorb(NULL);
 }
 
 /*

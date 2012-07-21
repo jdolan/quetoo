@@ -356,7 +356,7 @@ void R_DrawChars(void) {
 	R_EnableColorArray(false);
 
 	// restore draw color
-	R_Colorb(color_white);
+	R_Colorb(NULL);
 }
 
 /*

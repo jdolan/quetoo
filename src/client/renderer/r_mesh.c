@@ -367,7 +367,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
 
 	R_EnableShell(false);
 
-	R_Colorb(color_white);
+	R_Colorb(NULL);
 }
 
 /*
@@ -432,7 +432,7 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableTexture(&texunit_diffuse, true);
 
-	R_Colorb(color_white);
+	R_Colorb(NULL);
 }
 
 /*

@@ -104,7 +104,7 @@ static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		R_EnableLights(0);
 	}
 
-	R_Colorb(color_white);
+	R_Colorb(NULL);
 }
 
 /*

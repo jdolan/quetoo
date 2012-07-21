@@ -437,7 +437,7 @@ void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(NULL, false);
 
-	R_Colorb(color_white);
+	R_Colorb(NULL);
 }
 
 /**

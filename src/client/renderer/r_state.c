@@ -74,14 +74,25 @@ void R_GetError_(const char *function, const char *msg) {
  * R_Colorf
  */
 void R_Colorf(const vec4_t color) {
-	glColor4fv(color);
+
+	if (color) {
+		glColor4fv(color);
+	} else {
+		R_Colorb(NULL);
+	}
 }
 
 /*
  * R_Colorb
  */
 void R_Colorb(const byte color[4]) {
-	glColor4ubv(color);
+	static const byte white[4] = { 255, 255, 255, 255 };
+
+	if (color) {
+		glColor4ubv(color);
+	} else {
+		glColor4ubv(white);
+	}
 }
 
 /**

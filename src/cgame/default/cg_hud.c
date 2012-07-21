@@ -52,8 +52,6 @@ typedef struct cg_center_print_s {
 
 static cg_center_print_t center_print;
 
-const byte color_white[4] = { 255, 255, 255, 255 };
-
 /**
  * Cg_DrawIcon
  *
@@ -443,7 +441,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 	cgi.DrawPic(x, y, cg_draw_crosshair_scale->value, crosshair.name);
 
-	cgi.Colorb(color_white);
+	cgi.Colorb(NULL);
 }
 
 /*
