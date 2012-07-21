@@ -208,7 +208,7 @@ typedef struct {
 
 	r_bsp_flare_t *flare;
 
-	unsigned int light_s, light_t; // lightmap texcoords
+	r_pixel_t light_s, light_t; // lightmap texcoords
 	GLuint lightmap_texnum;
 	GLuint deluxemap_texnum;
 

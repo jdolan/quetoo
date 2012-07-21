@@ -44,8 +44,8 @@ static void R_UploadLightmapBlock() {
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, r_lightmaps.size, r_lightmaps.size,
-			0, GL_RGB, GL_UNSIGNED_BYTE, r_lightmaps.sample_buffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, r_lightmaps.block_size, r_lightmaps.block_size, 0,
+			GL_RGB, GL_UNSIGNED_BYTE, r_lightmaps.sample_buffer);
 
 	r_lightmaps.lightmap_texnum++;
 
@@ -61,30 +61,29 @@ static void R_UploadLightmapBlock() {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, r_lightmaps.size,
-				r_lightmaps.size, 0, GL_RGB, GL_UNSIGNED_BYTE,
-				r_lightmaps.direction_buffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, r_lightmaps.block_size, r_lightmaps.block_size, 0,
+				GL_RGB, GL_UNSIGNED_BYTE, r_lightmaps.direction_buffer);
 
 		r_lightmaps.deluxemap_texnum++;
 	}
 
 	// clear the allocation block and buffers
-	memset(r_lightmaps.allocated, 0, r_lightmaps.size * 3);
-	memset(r_lightmaps.sample_buffer, 0, r_lightmaps.size * r_lightmaps.size * 3);
-	memset(r_lightmaps.direction_buffer, 0, r_lightmaps.size * r_lightmaps.size * 3);
+	memset(r_lightmaps.allocated, 0, r_lightmaps.block_size * 3);
+	memset(r_lightmaps.sample_buffer, 0, r_lightmaps.block_size * r_lightmaps.block_size * 3);
+	memset(r_lightmaps.direction_buffer, 0, r_lightmaps.block_size * r_lightmaps.block_size * 3);
 }
 
 /*
  * R_AllocLightmapBlock
  */
-static bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, unsigned int *x, unsigned int *y) {
-	size_t i, j;
-	unsigned int best;
+static bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixel_t *y) {
+	r_pixel_t i, j;
+	r_pixel_t best;
 
-	best = r_lightmaps.size;
+	best = r_lightmaps.block_size;
 
-	for (i = 0; i < r_lightmaps.size - w; i++) {
-		unsigned int best2 = 0;
+	for (i = 0; i < r_lightmaps.block_size - w; i++) {
+		r_pixel_t best2 = 0;
 
 		for (j = 0; j < w; j++) {
 			if (r_lightmaps.allocated[i + j] >= best)
@@ -98,7 +97,7 @@ static bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, unsigned int *x, unsi
 		}
 	}
 
-	if (best + h > r_lightmaps.size)
+	if (best + h > r_lightmaps.block_size)
 		return false;
 
 	for (i = 0; i < w; i++)
@@ -110,12 +109,11 @@ static bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, unsigned int *x, unsi
 /*
  * R_BuildDefaultLightmap
  */
-static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout,
-		byte *dout, int stride) {
+static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, size_t stride) {
 	int i, j;
 
-	const int smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
-	const int tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
+	const r_pixel_t smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
+	const r_pixel_t tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
 
 	stride -= (smax * 3);
 
@@ -148,15 +146,14 @@ static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout,
  * Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
  * writing processed lightmap and deluxemap RGBA to the specified destinations.
  */
-static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout,
-		int stride) {
-	int i, j;
+static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, size_t stride) {
+	size_t i, j;
 	byte *lightmap, *lm, *l, *deluxemap, *dm;
 
-	const int smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
-	const int tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
+	const r_pixel_t smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
+	const r_pixel_t tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
 
-	const int size = smax * tmax;
+	const size_t size = smax * tmax;
 	stride -= (smax * 3);
 
 	lightmap = (byte *) Z_Malloc(size * 3);
@@ -214,8 +211,9 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout,
 	if (r_load_model->version == BSP_VERSION_)
 		dm = deluxemap;
 
-	for (i = 0; i < tmax; i++, sout += stride, dout += stride) {
-		for (j = 0; j < smax; j++) {
+	r_pixel_t s, t;
+	for (t = 0; t < tmax; t++, sout += stride, dout += stride) {
+		for (s = 0; s < smax; s++) {
 
 			// copy the lightmap to the strided block
 			sout[0] = lm[0];
@@ -253,36 +251,33 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout,
  * R_CreateSurfaceLightmap
  */
 void R_CreateSurfaceLightmap(r_bsp_surface_t *surf) {
-	unsigned int smax, tmax, stride;
-	byte *samples, *directions;
 
 	if (!(surf->flags & R_SURF_LIGHTMAP))
 		return;
 
-	smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
-	tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
+	const r_pixel_t smax = (surf->st_extents[0] / r_load_model->lightmap_scale) + 1;
+	const r_pixel_t tmax = (surf->st_extents[1] / r_load_model->lightmap_scale) + 1;
 
 	if (!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)) {
 
 		R_UploadLightmapBlock(); // upload the last block
 
 		if (!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)) {
-			Com_Error(ERR_DROP,
-					"R_CreateSurfaceLightmap: Consecutive calls to "
-						"R_AllocLightmapBlock(%d,%d) failed.", smax, tmax);
+			Com_Error(ERR_DROP, "R_CreateSurfaceLightmap: Consecutive calls to "
+				"R_AllocLightmapBlock(%d,%d) failed.", smax, tmax);
 		}
 	}
 
 	surf->lightmap_texnum = r_lightmaps.lightmap_texnum;
 	surf->deluxemap_texnum = r_lightmaps.deluxemap_texnum;
 
-	samples = r_lightmaps.sample_buffer;
-	samples += (surf->light_t * r_lightmaps.size + surf->light_s) * 3;
+	byte *samples = r_lightmaps.sample_buffer;
+	samples += (surf->light_t * r_lightmaps.block_size + surf->light_s) * 3;
 
-	directions = r_lightmaps.direction_buffer;
-	directions += (surf->light_t * r_lightmaps.size + surf->light_s) * 3;
+	byte *directions = r_lightmaps.direction_buffer;
+	directions += (surf->light_t * r_lightmaps.block_size + surf->light_s) * 3;
 
-	stride = r_lightmaps.size * 3;
+	const size_t stride = r_lightmaps.block_size * 3;
 
 	if (surf->samples)
 		R_BuildLightmap(surf, samples, directions, stride);
@@ -297,25 +292,23 @@ void R_BeginBuildingLightmaps(void) {
 	int max;
 
 	// users can tune lightmap size for their card
-	r_lightmaps.size = r_lightmap_block_size->integer;
+	r_lightmaps.block_size = r_lightmap_block_size->integer;
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
 
 	// but clamp it to the card's capability to avoid errors
-	if (r_lightmaps.size < 256)
-		r_lightmaps.size = 256;
+	if (r_lightmaps.block_size < 256)
+		r_lightmaps.block_size = 256;
 
-	if (r_lightmaps.size > (size_t) max)
-		r_lightmaps.size = (size_t) max;
+	if (r_lightmaps.block_size > (r_pixel_t) max)
+		r_lightmaps.block_size = (r_pixel_t) max;
 
-	r_lightmaps.allocated = (unsigned *) R_HunkAlloc(
-			r_lightmaps.size * sizeof(unsigned));
+	const r_pixel_t bs = r_lightmaps.block_size;
 
-	r_lightmaps.sample_buffer = (byte *) R_HunkAlloc(
-			r_lightmaps.size * r_lightmaps.size * sizeof(unsigned int));
+	r_lightmaps.allocated = (r_pixel_t *) R_HunkAlloc(bs * sizeof(r_pixel_t));
 
-	r_lightmaps.direction_buffer = (byte *) R_HunkAlloc(
-			r_lightmaps.size * r_lightmaps.size * sizeof(unsigned int));
+	r_lightmaps.sample_buffer = (byte *) R_HunkAlloc(bs * bs * sizeof(unsigned int));
+	r_lightmaps.direction_buffer = (byte *) R_HunkAlloc(bs * bs * sizeof(unsigned int));
 
 	r_lightmaps.lightmap_texnum = TEXNUM_LIGHTMAPS;
 	r_lightmaps.deluxemap_texnum = TEXNUM_DELUXEMAPS;

@@ -687,13 +687,13 @@ static void R_LoadBspVertexArrays(void) {
 				s -= surf->st_mins[0];
 				s += surf->light_s * r_load_model->lightmap_scale;
 				s += r_load_model->lightmap_scale / 2.0;
-				s /= r_lightmaps.size * r_load_model->lightmap_scale;
+				s /= r_lightmaps.block_size * r_load_model->lightmap_scale;
 
 				t = DotProduct(point, tdir) + toff;
 				t -= surf->st_mins[1];
 				t += surf->light_t * r_load_model->lightmap_scale;
 				t += r_load_model->lightmap_scale / 2.0;
-				t /= r_lightmaps.size * r_load_model->lightmap_scale;
+				t /= r_lightmaps.block_size * r_load_model->lightmap_scale;
 			}
 
 			r_load_model->lmtexcoords[texcoord_index + 0] = s;

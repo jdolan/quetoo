@@ -29,8 +29,8 @@ typedef struct r_lightmaps_s {
 	GLuint lightmap_texnum;
 	GLuint deluxemap_texnum;
 
-	size_t size;  // lightmap block size (NxN)
-	unsigned int *allocated;  // block availability
+	r_pixel_t block_size;  // lightmap block size (NxN)
+	r_pixel_t *allocated;  // block availability
 
 	byte *sample_buffer;  // RGB buffers for uploading
 	byte *direction_buffer;
