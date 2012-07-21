@@ -230,7 +230,7 @@ void Cbuf_AddLateCommands(void) {
 	j = 0;
 	memset(text, 0, sizeof(text));
 
-	for (i = 1; i < (unsigned) Com_Argc(); i++) {
+	for (i = 1; i < (uint32_t) Com_Argc(); i++) {
 
 		c = Com_Argv(i);
 		k = strlen(c);
