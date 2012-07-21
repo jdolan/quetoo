@@ -240,7 +240,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 		if (s->team != 1)
 			continue;
 
-		if ((short) i == rows)
+		if ((int16_t) i == rows)
 			break;
 
 		if (Cg_DrawScore(x, y, s)) {
@@ -257,7 +257,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 		if (s->team != 2)
 			continue;
 
-		if ((short) i == rows)
+		if ((int16_t) i == rows)
 			break;
 
 		if (Cg_DrawScore(x, y, s)) {
@@ -274,7 +274,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 		if (s->team != 0xFF)
 			continue;
 
-		if ((short) i == rows)
+		if ((int16_t) i == rows)
 			break;
 
 		if (Cg_DrawScore(x, y, s)) {
@@ -299,13 +299,13 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
 	rows = (cgi.context->height - (2 * start_y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
 
-	cols = (rows < (short) cg_num_scores) ? 2 : 1;
+	cols = (rows < (int16_t) cg_num_scores) ? 2 : 1;
 	width = cols * SCORES_COL_WIDTH;
 
 	const player_score_t *s = cg_scores;
 	for (i = 0; i < cg_num_scores; i++, s++) {
 
-		if ((short) i == (cols * rows)) // screen is full
+		if ((int16_t) i == (cols * rows)) // screen is full
 			break;
 
 		const int16_t col = i / rows;

@@ -461,7 +461,7 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
 		const r_md3_vertex_t *ov = mesh->verts + e->old_frame * mesh->num_verts;
 
-		const unsigned *tri = mesh->tris;
+		const uint32_t *tri = mesh->tris;
 
 		for (j = 0; j < mesh->num_verts; j++, v++, ov++) { // interpolate the vertexes
 			VectorSet(r_mesh_verts[j],

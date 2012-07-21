@@ -436,7 +436,7 @@ static int16_t R_CrossingContents(void) {
 	if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
 		return leaf->cluster;
 
-	return (short) -1;
+	return (int16_t) -1;
 }
 
 /**

@@ -185,7 +185,7 @@ static void R_LoadMeshConfigs(r_model_t *mod) {
  */
 static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 	vec3_t *tan1, *tan2;
-	unsigned *tri;
+	uint32_t *tri;
 	int32_t i;
 
 	tan1 = (vec3_t *) Z_Malloc(mesh->num_verts * sizeof(vec3_t));
@@ -198,9 +198,9 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 	for (i = 0; i < mesh->num_tris; i++, tri += 3) {
 		vec3_t sdir, tdir;
 
-		const unsigned i1 = tri[0];
-		const unsigned i2 = tri[1];
-		const unsigned i3 = tri[2];
+		const uint32_t i1 = tri[0];
+		const uint32_t i2 = tri[1];
+		const uint32_t i3 = tri[2];
 
 		const float *v1 = mesh->verts[i1].point;
 		const float *v2 = mesh->verts[i2].point;
@@ -274,7 +274,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	r_md3_vertex_t *v;
 	d_md3_texcoord_t *texcoords;
 	int32_t i, j, vert_index, tangent_index, texcoord_index;
-	unsigned *tri;
+	uint32_t *tri;
 
 	R_AllocVertexArrays(mod); // allocate the arrays
 
@@ -342,7 +342,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	d_md3_texcoord_t *incoord, *outcoord;
 	d_md3_vertex_t *invert;
 	r_md3_vertex_t *outvert;
-	unsigned *inindex, *outindex;
+	uint32_t *inindex, *outindex;
 	float lat, lng;
 
 	inmodel = (d_md3_t *) buffer;
@@ -460,14 +460,14 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		}
 
 		// load the triangle indexes
-		inindex = (unsigned *) ((byte *) inmesh + inmesh->ofs_tris);
-		outmesh->tris = outindex = (unsigned *) R_HunkAlloc(
-				outmesh->num_tris * sizeof(unsigned) * 3);
+		inindex = (uint32_t *) ((byte *) inmesh + inmesh->ofs_tris);
+		outmesh->tris = outindex = (uint32_t *) R_HunkAlloc(
+				outmesh->num_tris * sizeof(uint32_t) * 3);
 
 		for (j = 0; j < outmesh->num_tris; j++, inindex += 3, outindex += 3) {
-			outindex[0] = (unsigned) LittleLong(inindex[0]);
-			outindex[1] = (unsigned) LittleLong(inindex[1]);
-			outindex[2] = (unsigned) LittleLong(inindex[2]);
+			outindex[0] = (uint32_t) LittleLong(inindex[0]);
+			outindex[1] = (uint32_t) LittleLong(inindex[1]);
+			outindex[2] = (uint32_t) LittleLong(inindex[2]);
 		}
 
 		// load the texcoords

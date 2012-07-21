@@ -262,7 +262,7 @@ void R_SoftenTexture(byte *in, int32_t width, int32_t height, r_image_type_t typ
 void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_image_type_t type) {
 	vec3_t temp;
 	int32_t i, j, c, bpp, mask;
-	unsigned col[3];
+	uint32_t col[3];
 	byte *p;
 	float brightness;
 
