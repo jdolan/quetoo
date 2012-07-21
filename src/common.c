@@ -568,7 +568,7 @@ int32_t Msg_ReadShort(size_buf_t *sb) {
 	if (sb->read + 2 > sb->size)
 		c = -1;
 	else
-		c = (short) (sb->data[sb->read] + (sb->data[sb->read + 1] << 8));
+		c = (uint16_t) (sb->data[sb->read] + (sb->data[sb->read + 1] << 8));
 
 	sb->read += 2;
 
