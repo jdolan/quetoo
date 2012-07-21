@@ -74,13 +74,17 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
  * Draws the vital numeric and icon, flashing on low quantities.
  */
 static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, int16_t med, int16_t low) {
-	r_pixel_t y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT + 4;
+	vec4_t flashColor = {1.0f, 1.0f, 1.0f, 1.0f};
 	int32_t color = COLOR_HUD_STAT;
+	r_pixel_t y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT + 4;
+
 
 	if (value < low) {
 
-		if (cg_draw_vitals_pulse->integer && (cgi.client->time % 2000) < 500) // don't draw at all
+		if (cg_draw_vitals_pulse->integer == 1 && (cgi.client->time % 2000) < 500) // don't draw at all
 			return;
+		else if (cg_draw_vitals_pulse->integer > 1)
+			flashColor[3] = sin(cgi.client->time / 500.0) + 0.75f;
 
 		color = COLOR_HUD_STAT_LOW;
 	} else if (value < med) {
@@ -95,7 +99,9 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 	x += cgi.StringWidth(string);
 	y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT;
 
+	cgi.Colorf(flashColor);
 	Cg_DrawIcon(x, y, 1.0, icon);
+	cgi.Colorf(NULL);
 }
 
 /*
