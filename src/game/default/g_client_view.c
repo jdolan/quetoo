@@ -307,6 +307,9 @@ static void G_ClientAnimation(g_edict_t *ent) {
 		bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
 		jumping |= G_IsAnimation(ent, ANIM_LEGS_JUMP2);
 
+		if(ent->client->ps.pm_state.pm_flags & PMF_DUCKED)
+			G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
+
 		if (!jumping)
 			G_SetAnimation(ent, ANIM_LEGS_JUMP1, false);
 
