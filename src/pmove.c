@@ -991,17 +991,12 @@ static void Pm_WalkMove(void) {
 
 	Pm_Accelerate(dir, speed, accel);
 
-	// clip to the ground, retaining the same speed
-	speed = VectorLength(pml.velocity);
-
+	// clip to the ground
 	Pm_ClipVelocity(pml.velocity, pml.ground_plane.normal, pml.velocity, PM_CLIP_FLOOR);
 
 	if (!pml.velocity[0] && !pml.velocity[1]) { // don't bother stepping
 		return;
 	}
-
-	VectorNormalize(pml.velocity);
-	VectorScale(pml.velocity, speed, pml.velocity);
 
 	Pm_StepSlideMove();
 }
