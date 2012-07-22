@@ -538,7 +538,7 @@ static void Pm_CheckDuck(void) {
 
 	if (pm->s.pm_type == PM_DEAD) {
 		pm->s.pm_flags |= PMF_DUCKED;
-	} else if (pm->cmd.up < 0 && (pm->s.pm_flags & PMF_ON_GROUND)) { // duck
+	} else if (pm->cmd.up < 0 ) { // duck
 		pm->s.pm_flags |= PMF_DUCKED;
 	} else { // stand up if possible
 		if (pm->s.pm_flags & PMF_DUCKED) { // try to stand up
@@ -895,7 +895,7 @@ static void Pm_AirMove(void) {
 	int32_t i;
 
 	//Com_Debug("%d air move\n", quake2world.time);
-
+	Pm_CheckDuck();
 	Pm_Friction();
 
 	// add gravity
