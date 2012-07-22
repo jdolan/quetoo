@@ -81,10 +81,8 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 
 	if (value < low) {
 
-		if (cg_draw_vitals_pulse->integer == 1 && (cgi.client->time % 2000) < 500) // don't draw at all
-			return;
-		else if (cg_draw_vitals_pulse->integer > 1)
-			flashColor[3] = sin(cgi.client->time / 500.0) + 0.75f;
+		if (cg_draw_vitals_pulse->integer)
+			flashColor[3] = sin(cgi.client->time / 250.0) + 0.75f;
 
 		color = COLOR_HUD_STAT_LOW;
 	} else if (value < med) {
