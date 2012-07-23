@@ -71,27 +71,17 @@ void R_GetError_(const char *function, const char *msg) {
 }
 
 /*
- * R_Colorf
+ * R_Color
+ *
+ * Sets the current color. Pass NULL to reset to default.
  */
-void R_Colorf(const vec4_t color) {
+void R_Color(const vec4_t color) {
+	static const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
 	if (color) {
 		glColor4fv(color);
 	} else {
-		R_Colorb(NULL);
-	}
-}
-
-/*
- * R_Colorb
- */
-void R_Colorb(const byte color[4]) {
-	static const byte white[4] = { 255, 255, 255, 255 };
-
-	if (color) {
-		glColor4ubv(color);
-	} else {
-		glColor4ubv(white);
+		glColor4fv(white);
 	}
 }
 

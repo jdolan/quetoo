@@ -396,7 +396,7 @@ void R_DrawEntities(void) {
 		R_EnableTexture(&texunit_diffuse, true);
 	}
 
-	R_Colorb(NULL);
+	R_Color(NULL);
 
 	R_DrawBspEntities();
 

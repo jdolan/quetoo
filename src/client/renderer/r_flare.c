@@ -186,5 +186,5 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 
 	R_EnableColorArray(false);
 
-	R_Colorb(NULL);
+	R_Color(NULL);
 }

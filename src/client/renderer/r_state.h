@@ -24,8 +24,7 @@
 
 #include "r_types.h"
 
-void R_Colorf(const vec4_t color);
-void R_Colorb(const byte color[4]);
+void R_Color(const vec4_t color);
 void R_Setup3D(void);
 void R_Setup2D(void);
 

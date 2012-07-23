@@ -42,7 +42,7 @@ static void R_SetSurfaceState_default(const r_bsp_surface_t *surf) {
 			break;
 		}
 
-		R_Colorf(color);
+		R_Color(color);
 	}
 
 	image = surf->texinfo->image;
@@ -104,7 +104,7 @@ static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		R_EnableLights(0);
 	}
 
-	R_Colorb(NULL);
+	R_Color(NULL);
 }
 
 /*

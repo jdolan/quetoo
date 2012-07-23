@@ -254,6 +254,6 @@ void R_DrawParticles(void) {
 
 	R_EnableColorArray(false);
 
-	R_Colorb(NULL);
+	R_Color(NULL);
 }
 

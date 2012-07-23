@@ -38,7 +38,7 @@
 typedef struct cg_crosshair_s {
 	char name[16];
 	r_image_t *image;
-	byte color[4];
+	vec4_t color;
 } cg_crosshair_t;
 
 static cg_crosshair_t crosshair;
@@ -74,16 +74,15 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
  * Draws the vital numeric and icon, flashing on low quantities.
  */
 static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, int16_t med, int16_t low) {
-	vec4_t flashColor = {1.0f, 1.0f, 1.0f, 1.0f};
-	int32_t color = COLOR_HUD_STAT;
 	r_pixel_t y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT + 4;
 
+	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
+	int32_t color = COLOR_HUD_STAT;
 
 	if (value < low) {
-
-		if (cg_draw_vitals_pulse->integer)
-			flashColor[3] = sin(cgi.client->time / 250.0) + 0.75f;
-
+		if (cg_draw_vitals_pulse->integer) {
+			pulse[3] = sin(cgi.client->time / 250.0) + 0.75;
+		}
 		color = COLOR_HUD_STAT_LOW;
 	} else if (value < med) {
 		color = COLOR_HUD_STAT_MED;
@@ -97,9 +96,9 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 	x += cgi.StringWidth(string);
 	y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT;
 
-	cgi.Colorf(flashColor);
+	cgi.Color(pulse);
 	Cg_DrawIcon(x, y, 1.0, icon);
-	cgi.Colorf(NULL);
+	cgi.Color(NULL);
 }
 
 /*
@@ -434,10 +433,13 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		cg_draw_crosshair_color->modified = false;
 
 		color = ColorByName(cg_draw_crosshair_color->string, 14);
-		memcpy(&crosshair.color, &cgi.palette[color], sizeof(crosshair.color));
+		cgi.ColorFromPalette(color, crosshair.color);
 	}
 
-	cgi.Colorb(crosshair.color);
+	// TODO: Add some optional crosshair alpha pulsing based on pickups
+	crosshair.color[3] = 1.0;
+
+	cgi.Color(crosshair.color);
 
 	// calculate width and height based on crosshair image and scale
 	x = (cgi.context->width - crosshair.image->width * cg_draw_crosshair_scale->value) / 2;
@@ -445,7 +447,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 	cgi.DrawPic(x, y, cg_draw_crosshair_scale->value, crosshair.name);
 
-	cgi.Colorb(NULL);
+	cgi.Color(NULL);
 }
 
 /*

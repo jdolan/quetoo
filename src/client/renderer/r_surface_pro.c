@@ -159,7 +159,7 @@ void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 		glEnable(GL_LINE_SMOOTH);
 
 	glLineWidth(r_line_width->value);
-	R_Colorf(color);
+	R_Color(color);
 
 	// draw the surfaces
 	for (i = 0; i < surfs->count; i++) {
@@ -174,7 +174,7 @@ void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 	}
 
 	glLineWidth(1.0);
-	R_Colorb(NULL);
+	R_Color(NULL);
 
 	if (!r_multisample->value)
 		glDisable(GL_LINE_SMOOTH);

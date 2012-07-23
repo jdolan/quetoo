@@ -224,7 +224,7 @@ void R_DrawBspNormals(void) {
 
 	R_ResetArrayState(); // default arrays
 
-	R_Colorf(red);
+	R_Color(red);
 
 	k = 0;
 	surf = r_world_model->surfaces;
@@ -260,7 +260,7 @@ void R_DrawBspNormals(void) {
 
 	R_EnableTexture(&texunit_diffuse, true);
 
-	R_Colorb(NULL);
+	R_Color(NULL);
 }
 
 /*

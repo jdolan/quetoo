@@ -305,7 +305,7 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 			color[3] = 1.0;
 		}
 
-		R_Colorf(color);
+		R_Color(color);
 	}
 }
 
@@ -437,7 +437,7 @@ void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(NULL, false);
 
-	R_Colorb(NULL);
+	R_Color(NULL);
 }
 
 /**
