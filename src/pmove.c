@@ -541,11 +541,9 @@ static void Pm_CheckDuck(void) {
 	} else if (pm->cmd.up < 0 ) { // duck
 		pm->s.pm_flags |= PMF_DUCKED;
 	} else { // stand up if possible
-		if (pm->s.pm_flags & PMF_DUCKED) { // try to stand up
-			trace = pm->Trace(pml.origin, pm->mins, pm->maxs, pml.origin);
-			if (!trace.all_solid)
-				pm->s.pm_flags &= ~PMF_DUCKED;
-		}
+		trace = pm->Trace(pml.origin, pm->mins, pm->maxs, pml.origin);
+		if (trace.all_solid)
+			pm->s.pm_flags |= PMF_DUCKED;
 	}
 
 	if (pm->s.pm_flags & PMF_DUCKED) { // ducked, reduce height
