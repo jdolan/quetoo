@@ -29,6 +29,7 @@ cvar_t *cg_bob;
 cvar_t *cg_draw_blend;
 cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair_color;
+cvar_t *cg_draw_crosshair_pulse;
 cvar_t *cg_draw_crosshair_scale;
 cvar_t *cg_draw_crosshair;
 cvar_t *cg_draw_frags;
@@ -71,10 +72,13 @@ static void Cg_Init(void) {
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of screen alpha-blending");
-	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE, "Draw the number of captures");
+	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
+			"Draw the number of captures");
 	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE, NULL);
 	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
 			"Specifies the crosshair color.");
+	cg_draw_crosshair_pulse = cgi.Cvar("cg_draw_crosshair_pulse", "1.0", CVAR_ARCHIVE,
+			"Pulse the crosshair when picking up items");
 	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
 			"Controls the crosshair scale (size).");
 
@@ -93,8 +97,10 @@ static void Cg_Init(void) {
 			"The y offset for drawing the weapon model.");
 	cg_draw_weapon_z = cgi.Cvar("cg_draw_weapon_z", "0.0", CVAR_ARCHIVE,
 			"The z offset for drawing the weapon model.");
-	cg_draw_vitals = cgi.Cvar("cg_draw_vitals", "1", CVAR_ARCHIVE, "Draw the vitals (health, armor, ammo");
-	cg_draw_vitals_pulse = cgi.Cvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE, "Pulse the vitals when low");
+	cg_draw_vitals = cgi.Cvar("cg_draw_vitals", "1", CVAR_ARCHIVE,
+			"Draw the vitals (health, armor, ammo");
+	cg_draw_vitals_pulse = cgi.Cvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE,
+			"Pulse the vitals when low");
 	cg_draw_vote = cgi.Cvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
 
 	cg_fov = cgi.Cvar("cg_fov", "100.0", CVAR_ARCHIVE, NULL);

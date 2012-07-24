@@ -73,7 +73,8 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
  *
  * Draws the vital numeric and icon, flashing on low quantities.
  */
-static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, int16_t med, int16_t low) {
+static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, int16_t med,
+		int16_t low) {
 	r_pixel_t y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT + 4;
 
 	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
@@ -109,7 +110,7 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 static void Cg_DrawVitals(const player_state_t *ps) {
 	r_pixel_t x, cw, x_offset;
 
-	if(!cg_draw_vitals->integer)
+	if (!cg_draw_vitals->integer)
 		return;
 
 	cgi.BindFont("large", &cw, NULL);
@@ -153,7 +154,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 static void Cg_DrawPickup(const player_state_t *ps) {
 	r_pixel_t x, y, cw, ch;
 
-	if(!cg_draw_pickup->integer)
+	if (!cg_draw_pickup->integer)
 		return;
 
 	cgi.BindFont(NULL, &cw, &ch);
@@ -213,7 +214,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 	const int16_t captures = ps->stats[STAT_CAPTURES];
 	r_pixel_t x, y, cw, ch;
 
-	if(!cg_draw_captures->integer)
+	if (!cg_draw_captures->integer)
 		return;
 
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
@@ -295,7 +296,7 @@ static void Cg_DrawVote(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
 	char string[MAX_STRING_CHARS];
 
-	if(!cg_draw_vote->integer)
+	if (!cg_draw_vote->integer)
 		return;
 
 	if (!ps->stats[STAT_VOTE])
@@ -369,7 +370,7 @@ static void Cg_DrawTeam(const player_state_t *ps) {
 	if (!team)
 		return;
 
-	if(!cg_draw_teambar->integer)
+	if (!cg_draw_teambar->integer)
 		return;
 
 	if (team == CS_TEAM_GOOD)
@@ -436,16 +437,38 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		cgi.ColorFromPalette(color, crosshair.color);
 	}
 
-	// TODO: Add some optional crosshair alpha pulsing based on pickups
+	float scale = cg_draw_crosshair_scale->value;
 	crosshair.color[3] = 1.0;
+
+	// pulse the crosshair size and alpha based on pickups
+	if (cg_draw_crosshair_pulse->value) {
+		static uint32_t last_pulse_time;
+		static int16_t pickup;
+
+		// determine if we've picked up an item
+		const int16_t p = ps->stats[STAT_PICKUP_ICON];
+
+		if (p && (p != pickup)) {
+			last_pulse_time = cgi.client->time;
+		}
+
+		pickup = p;
+
+		const float delta = 1.0 - ((cgi.client->time - last_pulse_time) / 500.0);
+
+		if (delta > 0.0) {
+			scale += cg_draw_crosshair_pulse->value * 0.5 * delta;
+			crosshair.color[3] -= 0.5 * delta;
+		}
+	}
 
 	cgi.Color(crosshair.color);
 
 	// calculate width and height based on crosshair image and scale
-	x = (cgi.context->width - crosshair.image->width * cg_draw_crosshair_scale->value) / 2;
-	y = (cgi.context->height - crosshair.image->height * cg_draw_crosshair_scale->value) / 2;
+	x = (cgi.context->width - crosshair.image->width * scale) / 2;
+	y = (cgi.context->height - crosshair.image->height * scale) / 2;
 
-	cgi.DrawPic(x, y, cg_draw_crosshair_scale->value, crosshair.name);
+	cgi.DrawPic(x, y, scale, crosshair.name);
 
 	cgi.Color(NULL);
 }

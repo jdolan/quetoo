@@ -34,6 +34,7 @@ extern cvar_t *cg_bob;
 extern cvar_t *cg_draw_blend;
 extern cvar_t *cg_draw_captures;
 extern cvar_t *cg_draw_crosshair_color;
+extern cvar_t *cg_draw_crosshair_pulse;
 extern cvar_t *cg_draw_crosshair_scale;
 extern cvar_t *cg_draw_crosshair;
 extern cvar_t *cg_draw_frags;
