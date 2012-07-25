@@ -48,7 +48,7 @@
 // WTF oO
 #ifndef _INT32_T
 #define _INT32_T
-typedef INT32 int32_t
+typedef INT32 int32_t;
 #endif /* _INT32_T */
 
 void *dlopen(const char *file_name, int32_t flag);
