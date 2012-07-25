@@ -27,6 +27,8 @@
 
 #include "cvar.h"
 
+#define MAX_THREADS 64
+
 typedef enum thread_status_e {
 	THREAD_IDLE,
 	THREAD_RUNNING,

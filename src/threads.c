@@ -63,8 +63,15 @@ static int32_t Thread_Run(void *data) {
  * Initializes the threads backing the thread pool.
  */
 static void Thread_Init_(void) {
+	int32_t num_threads;
 
-	thread_pool.num_threads = threads->integer;
+	num_threads = threads->integer;
+	if (num_threads > MAX_THREADS)	//protect users from themselves
+		num_threads = MAX_THREADS;
+	else if (num_threads < 0)
+		num_threads = 0;
+
+	thread_pool.num_threads = num_threads;
 
 	if (thread_pool.num_threads) {
 		thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
