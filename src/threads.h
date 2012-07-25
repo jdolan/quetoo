@@ -27,16 +27,15 @@
 
 #include "cvar.h"
 
-#define MAX_THREADS 64
-
 typedef enum thread_status_e {
 	THREAD_IDLE,
-	THREAD_RUNNING,
-	THREAD_WAIT
+	THREAD_RUNNING
 } thread_status_t;
 
 typedef struct thread_s {
 	SDL_Thread *thread;
+	SDL_cond *cond;
+	SDL_mutex *mutex;
 	char name[64];
 	thread_status_t status;
 	void (*function)(void *data);

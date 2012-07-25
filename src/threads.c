@@ -42,16 +42,18 @@ static int32_t Thread_Run(void *data) {
 	thread_t *t = (thread_t *) data;
 
 	while (thread_pool.mutex) {
+		SDL_mutexP(t->mutex);
 		if (t->status == THREAD_RUNNING) {
 			t->function(t->data);
 
 			t->function = NULL;
 			t->data = NULL;
 
-			t->status = THREAD_WAIT;
+			t->status = THREAD_IDLE;
 		} else {
-			usleep(0);
+			SDL_CondWait(t->cond, t->mutex);
 		}
+		SDL_mutexV(t->mutex);
 	}
 
 	return 0;
@@ -63,15 +65,10 @@ static int32_t Thread_Run(void *data) {
  * Initializes the threads backing the thread pool.
  */
 static void Thread_Init_(void) {
-	int32_t num_threads;
 
-	num_threads = threads->integer;
-	if (num_threads > MAX_THREADS)	//protect users from themselves
-		num_threads = MAX_THREADS;
-	else if (num_threads < 0)
-		num_threads = 0;
-
-	thread_pool.num_threads = num_threads;
+	thread_pool.num_threads = threads->integer;
+	 if (thread_pool.num_threads < 0)
+		 thread_pool.num_threads = 0;
 
 	if (thread_pool.num_threads) {
 		thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
@@ -80,6 +77,8 @@ static void Thread_Init_(void) {
 		uint16_t i = 0;
 
 		for (i = 0; i < thread_pool.num_threads; i++, t++) {
+			t->cond = SDL_CreateCond();
+			t->mutex = SDL_CreateMutex();
 			t->thread = SDL_CreateThread(Thread_Run, t);
 		}
 	}
@@ -96,7 +95,10 @@ static void Thread_Shutdown_(void) {
 
 		for (i = 0; i < thread_pool.num_threads; i++, t++) {
 			Thread_Wait(&t);
+			SDL_CondSignal(t->cond);
 			SDL_WaitThread(t->thread, NULL);
+			SDL_DestroyCond(t->cond);
+			SDL_DestroyMutex(t->mutex);
 		}
 
 		Z_Free(thread_pool.threads);
@@ -128,12 +130,15 @@ thread_t *Thread_Create_(const char *name, void( function)(void *data), void *da
 
 		for (i = 0; i < thread_pool.num_threads; i++, t++) {
 			if (t->status == THREAD_IDLE) {
+				SDL_mutexP(t->mutex);
 				strncpy(t->name, name, sizeof(t->name));
 
 				t->function = function;
 				t->data = data;
 
 				t->status = THREAD_RUNNING;
+				SDL_mutexV(t->mutex);
+				SDL_CondSignal(t->cond);
 				break;
 			}
 		}
@@ -159,10 +164,10 @@ thread_t *Thread_Create_(const char *name, void( function)(void *data), void *da
  */
 void Thread_Wait(thread_t **t) {
 
-	if (!*t || (*t)->status == THREAD_IDLE)
+	if (!*t || (*t)->status != THREAD_RUNNING)
 		return;
 
-	while ((*t)->status != THREAD_WAIT) {
+	while ((*t)->status == THREAD_RUNNING) {
 		usleep(0);
 	}
 
