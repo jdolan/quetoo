@@ -27,9 +27,16 @@
 
 #include "cvar.h"
 
+typedef enum thread_status_e {
+	THREAD_IDLE,
+	THREAD_RUNNING,
+	THREAD_WAIT
+} thread_status_t;
+
 typedef struct thread_s {
 	SDL_Thread *thread;
 	char name[64];
+	thread_status_t status;
 	void (*function)(void *data);
 	void *data;
 } thread_t;

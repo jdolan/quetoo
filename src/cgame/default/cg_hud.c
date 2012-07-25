@@ -465,8 +465,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	cgi.Color(crosshair.color);
 
 	// calculate width and height based on crosshair image and scale
-	x = (cgi.context->width - crosshair.image->width * scale) / 2;
-	y = (cgi.context->height - crosshair.image->height * scale) / 2;
+	x = (cgi.context->width - crosshair.image->width * scale) / 2.0;
+	y = (cgi.context->height - crosshair.image->height * scale) / 2.0;
 
 	cgi.DrawPic(x, y, scale, crosshair.name);
 
