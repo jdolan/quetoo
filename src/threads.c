@@ -49,7 +49,7 @@ static int32_t Thread_Run(void *data) {
 			t->function = NULL;
 			t->data = NULL;
 
-			t->status = THREAD_IDLE;
+			t->status = THREAD_WAIT;
 		} else {
 			SDL_CondWait(t->cond, t->mutex);
 		}
@@ -65,10 +65,13 @@ static int32_t Thread_Run(void *data) {
  * Initializes the threads backing the thread pool.
  */
 static void Thread_Init_(void) {
+	int32_t desiredThreads;
 
-	thread_pool.num_threads = threads->integer;
-	 if (thread_pool.num_threads < 0)
-		 thread_pool.num_threads = 0;
+	desiredThreads = threads->integer;
+	 if(desiredThreads > (uint16_t)(-1))
+		 desiredThreads = (uint16_t)(-1);
+	else if (desiredThreads < 0)
+		 desiredThreads = 0;
 
 	if (thread_pool.num_threads) {
 		thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
@@ -164,10 +167,10 @@ thread_t *Thread_Create_(const char *name, void( function)(void *data), void *da
  */
 void Thread_Wait(thread_t **t) {
 
-	if (!*t || (*t)->status != THREAD_RUNNING)
+	if (!*t || (*t)->status == THREAD_IDLE)
 		return;
 
-	while ((*t)->status == THREAD_RUNNING) {
+	while ((*t)->status != THREAD_WAIT) {
 		usleep(0);
 	}
 

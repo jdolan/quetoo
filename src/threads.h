@@ -29,7 +29,8 @@
 
 typedef enum thread_status_e {
 	THREAD_IDLE,
-	THREAD_RUNNING
+	THREAD_RUNNING,
+	THREAD_WAIT
 } thread_status_t;
 
 typedef struct thread_s {
