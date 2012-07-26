@@ -1,6 +1,6 @@
 # Makefile for Quake2World Linux distributable
 
-ARCH := $(shell uname -m)
+ARCH := $(shell gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1)
 DATA = ../../../quake2world-data/trunk
 TARGET = target
 QUAKE2WORLD = $(TARGET)/quake2world
