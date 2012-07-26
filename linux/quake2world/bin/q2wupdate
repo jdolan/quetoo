@@ -1,5 +1,6 @@
 #!/bin/bash
 
+ARCH=`uname -m`
 pushd `dirname "$0"` > /dev/null
 SCRIPTPATH=`pwd`
 popd > /dev/null
@@ -20,7 +21,7 @@ echo
 echo "Updating $QUAKE2WORLD_HOME.."
 echo
 
-LINUX=rsync://quake2world.net/quake2world-linux/x86_64
+LINUX=rsync://quake2world.net/quake2world-linux/${ARCH}
 rsync -rzhP --delete $LINUX/bin/ ${QUAKE2WORLD_HOME}/bin || exit 1
 rsync -rzhP --delete $LINUX/lib/ ${QUAKE2WORLD_HOME}/lib || exit 1
 
