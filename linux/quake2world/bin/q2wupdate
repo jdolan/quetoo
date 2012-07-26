@@ -13,6 +13,9 @@ sed -i -e 's@^Icon.*@Icon='${QUAKE2WORLD_HOME}'/share/quake2world.png@' ${QUAKE2
 sed -i -e 's@^Exec.*@Exec='${QUAKE2WORLD_HOME}'/bin/q2wupdate@' ${QUAKE2WORLD_HOME}/Update.desktop
 sed -i -e 's@^Exec.*@Exec='${QUAKE2WORLD_HOME}'/bin/quake2world@' ${QUAKE2WORLD_HOME}/Quake2World.desktop
 
+chmod +x ${QUAKE2WORLD_HOME}/Update.desktop
+chmod +x ${QUAKE2WORLD_HOME}/Quake2World.desktop
+
 echo
 echo "Updating $QUAKE2WORLD_HOME.."
 echo
