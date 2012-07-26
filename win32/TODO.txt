@@ -2,8 +2,6 @@ TODO for devenv 3.1:
 
  - clean up script directories
  - clean up devenv3.bat some more
- - update libpng to latest version
- - update curl to latest version
  - re-evaluate pdcurses situation
 	- test http://www.projectpluto.com/win32a.htm
  - maybe .... try to get netradiant compiling (ouch)
