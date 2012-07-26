@@ -7,17 +7,17 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{011CCE1C-8593-4066-9EB4-F02669E3F651}
 AppName=Quake2World Development Environment
-AppVersion=2.1.0
-;AppVerName=Quake2World Development Environment 2.1.0
+AppVersion=3.1.0
+;AppVerName=Quake2World Development Environment 3.1.0
 AppPublisher=Marcel Wysocki
-AppPublisherURL=http://www.satgnu.net/
-AppSupportURL=http://www.satgnu.net/
-AppUpdatesURL=http://www.satgnu.net/
+AppPublisherURL=http://www.quake2world.net/
+AppSupportURL=http://www.quake2world.net/
+AppUpdatesURL=http://www.quake2world.net/
 DefaultDirName=c:/q2wdevenv
 DefaultGroupName=Quake2World Development Environment
 AllowNoIcons=yes
 LicenseFile=C:\q2wdevenv\LICENSE.txt
-OutputBaseFilename=q2wdevenv_2.1
+OutputBaseFilename=q2wdevenv-3.1.0-1
 Compression=lzma
 SolidCompression=yes
 
@@ -34,7 +34,7 @@ Source: "C:\q2wdevenv\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs 
 
 [Icons]
 Name: "{group}\Quake2World Development Environment"; Filename: "{app}\msys\1.0\msys.bat"
-Name: "{group}\{cm:ProgramOnTheWeb,Quake2World Development Environment}"; Filename: "http://www.satgnu.net/"
+Name: "{group}\{cm:ProgramOnTheWeb,Quake2World Development Environment}"; Filename: "http://www.quake2world.net/"
 Name: "{group}\{cm:UninstallProgram,Quake2World Development Environment}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\Quake2World Development Environment"; Filename: "{app}\msys\1.0\msys.bat"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Quake2World Development Environment"; Filename: "{app}\msys\1.0\msys.bat"; Tasks: quicklaunchicon

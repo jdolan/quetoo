@@ -44,6 +44,10 @@ mkdir msys\1.0\home\%UserName%\mingw-install\scripts
 xcopy %INSTALLERDIR%\scripts\* msys\1.0\home\%UserName%\mingw-install\scripts /E
 copy %INSTALLERDIR%\install.sh msys\1.0\home\%UserName%\mingw-install
 copy %INSTALLERDIR%\..\switch_arch.sh msys\1.0\home\%UserName% 
+copy %INSTALLERDIR%\..\LICENSE.txt .
+copy %INSTALLERDIR%\..\CHANGELOG.txt .
+
+
 
 
 msys\1.0\bin\sh.exe -c "echo export CPPFLAGS=\'-I/mingw/include -I/mingw/local/include\' >> /etc/profile"
