@@ -37,12 +37,12 @@ function BUILD
 	if [ $? != "0" ];then
 		echo "Build error"
 		sync
-    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log web@satgnu.net:www/satgnu.net/files
+    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log maci@jdolan.dyndns.org:/var/www/quake2world/files/
 		mailsend.exe -d jdolan.dyndns.org -smtp jdolan.dyndns.org -t quake2world-dev@jdolan.dyndns.org -f q2wbuild@jdolan.dyndns.org -sub "Build FAILED $CURRENT_ARCH-svn$CURRENT_REVISION" +cc +bc -a "_build-$CURRENT_ARCH.log,text/plain"
 	else
 		echo "Build succeeded"
 		sync
-    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log web@satgnu.net:www/satgnu.net/files
+    	./_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log maci@jdolan.dyndns.org:/var/www/quake2world/files/
 		rm _build-"$CURRENT_ARCH".log
 	fi
 	
