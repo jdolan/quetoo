@@ -1,13 +1,14 @@
 # Makefile for Quake2World Linux distributable
 
+ARCH := $(shell uname -m)
 DATA = ../../../quake2world-data/trunk
 TARGET = target
 QUAKE2WORLD = $(TARGET)/quake2world
 LIBRARIES = $(QUAKE2WORLD)/lib
 BINARIES = $(QUAKE2WORLD)/bin
 RESOURCES = $(QUAKE2WORLD)/share
-RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-linux/x86_64
-TGZ = $(TARGET)/quake2world-BETA-x86_64.tar.gz
+RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-linux/$(ARCH)
+TGZ = $(TARGET)/quake2world-BETA-$(ARCH).tar.gz
 HTTP_REPOSITORY = quake2world.net:/var/www/quake2world/files
 
 all: install
