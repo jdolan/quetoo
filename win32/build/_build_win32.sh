@@ -95,4 +95,4 @@ zip -9 -r ../quake2world-BETA-"$CURRENT_ARCH".zip quake2world
 cd $START
 
 ../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' dist/quake2world/* maci@jdolan.dyndns.org:/opt/rsync/quake2world-win32/"$CURRENT_ARCH"
-../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' quake2world-BETA-"$CURRENT_ARCH".zip maci@jdolan.dyndns.org:/var/www/quake2world/files/quake2world-BETA-"$CURRENT_ARCH".zip
+../_rsync_retry.sh -vrzhP --timeout=120 --delete --inplace --rsh='ssh' quake2world-BETA-"$CURRENT_ARCH".zip maci@jdolan.dyndns.org:/var/www/quake2world/files/quake2world-BETA-"$CURRENT_ARCH".zip
