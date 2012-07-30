@@ -72,6 +72,7 @@ static void Thread_Init_(void) {
 		 desiredThreads = (uint16_t)(-1);
 	else if (desiredThreads < 0)
 		 desiredThreads = 0;
+	thread_pool.num_threads = desiredThreads;
 
 	if (thread_pool.num_threads) {
 		thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
