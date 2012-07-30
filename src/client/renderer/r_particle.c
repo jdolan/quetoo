@@ -32,6 +32,11 @@ void R_AddParticle(const r_particle_t *p) {
 	if (r_view.num_particles >= MAX_PARTICLES)
 		return;
 
+	if(p->type != PARTICLE_BEAM) {
+		if (R_LeafForPoint(p->org, NULL)->vis_frame != r_locals.vis_frame)
+			return;
+
+	}
 	r_view.particles[r_view.num_particles++] = *p;
 }
 
