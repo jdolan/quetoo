@@ -58,7 +58,7 @@ int32_t Random(void) {
  * Returns a pseudo-random float between 0.0 and 1.0.
  */
 float Randomf(void) {
-	return (Random() & 32767) * (1.0 / 32767);
+	return (Random()) * (1.0 / 0x7fffffff);
 }
 
 /**
@@ -67,7 +67,7 @@ float Randomf(void) {
  * Returns a pseudo-random float between -1.0 and 1.0.
  */
 float Randomc(void) {
-	return (Random() & 32767) * (2.0 / 32767) - 1.0;
+	return (Random()) * (2.0 / 0x7fffffff) - 1.0;
 }
 
 /*
