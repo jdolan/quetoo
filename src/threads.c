@@ -65,14 +65,15 @@ static int32_t Thread_Run(void *data) {
  * Initializes the threads backing the thread pool.
  */
 static void Thread_Init_(void) {
-	int32_t desiredThreads;
+	int32_t desired_threads;
 
-	desiredThreads = threads->integer;
-	 if(desiredThreads > (uint16_t)(-1))
-		 desiredThreads = (uint16_t)(-1);
-	else if (desiredThreads < 0)
-		 desiredThreads = 0;
-	thread_pool.num_threads = desiredThreads;
+	desired_threads = threads->integer;
+	if (desired_threads > (uint16_t) (-1))
+		desired_threads = (uint16_t) (-1);
+	else if (desired_threads < 0)
+		desired_threads = 0;
+
+	thread_pool.num_threads = desired_threads;
 
 	if (thread_pool.num_threads) {
 		thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
