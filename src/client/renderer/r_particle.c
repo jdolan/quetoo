@@ -170,7 +170,8 @@ static void R_ParticleColor(r_particle_t *p, GLfloat *out) {
 	int32_t i, j;
 
 	memcpy(&color, &palette[p->color], sizeof(color));
-	color[3] = p->alpha * 255.0;
+	if(p->alpha < 1.0f)
+		color[3] = p->alpha * 255.0;
 	j = 0;
 
 	for (i = 0; i < 4; i++) { // duplicate color data to all 4 verts

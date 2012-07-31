@@ -112,9 +112,6 @@ void Cg_AddParticles(void) {
 			continue;
 		}
 
-		if (p->alpha > 1.0) // clamp alpha
-			p->alpha = 1.0;
-
 		for (i = 0; i < 3; i++) { // update origin and end
 			p->org[i] += p->vel[i] * delta_time + p->accel[i] * delta_time_squared;
 			p->end[i] += p->vel[i] * delta_time + p->accel[i] * delta_time_squared;
