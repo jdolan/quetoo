@@ -341,9 +341,9 @@ static void Sv_UserInfo_f(void) {
 void Sv_InitCommands(void) {
 
 	Cmd_AddCommand("kick", Sv_Kick_f, 0, "Kick a specific user");
-	Cmd_AddCommand("status", Sv_Status_f, 0, "Print32_t server status information");
-	Cmd_AddCommand("server_info", Sv_ServerInfo_f, 0, "Print32_t server info settings");
-	Cmd_AddCommand("user_info", Sv_UserInfo_f, 0, "Print32_t information for a given user");
+	Cmd_AddCommand("status", Sv_Status_f, 0, "Print server status information");
+	Cmd_AddCommand("server_info", Sv_ServerInfo_f, 0, "Print server info settings");
+	Cmd_AddCommand("user_info", Sv_UserInfo_f, 0, "Print information for a given user");
 
 	Cmd_AddCommand("demo", Sv_Demo_f, 0, "Start playback of the specified demo file");
 	Cmd_AddCommand("map", Sv_Map_f, 0, "Start a server for the specified map");

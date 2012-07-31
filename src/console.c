@@ -222,7 +222,7 @@ static void Con_Dump_f(void) {
 /*
  * Con_PrintStdOut
  *
- * Print32_t a color-coded string to stdout, remove color codes if requested
+ * Print a color-coded string to stdout, remove color codes if requested
  */
 static void Con_PrintStdOut(const char *text) {
 	char buf[MAX_PRINT_MSG];
@@ -301,7 +301,7 @@ static void Con_PrintStdOut(const char *text) {
 	if (ansi && ansi->value) // restore foreground color
 		strcat(buf, "\033[0;39m");
 
-	// print32_t to stdout
+	// print to stdout
 	if (buf[0] != '\0')
 		fputs(buf, stdout);
 }
@@ -309,7 +309,7 @@ static void Con_PrintStdOut(const char *text) {
 /*
  * Con_Print
  *
- * Print32_t a message to the console data buffer
+ * Print a message to the console data buffer
  */
 void Con_Print(const char *text) {
 #ifdef BUILD_CLIENT
@@ -364,14 +364,14 @@ void Con_Print(const char *text) {
 
 #ifdef HAVE_CURSES
 	if (!con_curses->value) {
-		// print32_t output to stdout
+		// print output to stdout
 		Con_PrintStdOut(text);
 	} else {
 		// Redraw the server console
 		Curses_Refresh();
 	}
 #else
-	// print32_t output to stdout
+	// print output to stdout
 	Con_PrintStdOut(text);
 #endif
 }

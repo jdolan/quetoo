@@ -31,7 +31,7 @@ static uint32_t last_particle_time;
 r_particle_t *Cg_AllocParticle(void) {
 	r_particle_t *p;
 
-	if (!cg_free_particles)
+	if (!cg_add_particles->integer || !cg_free_particles)
 		return NULL;
 
 	p = cg_free_particles;
@@ -86,6 +86,9 @@ void Cg_AddParticles(void) {
 	r_particle_t *active, *tail;
 	float delta_time, delta_time_squared;
 	int32_t i;
+
+	if (!cg_add_particles->value)
+		return;
 
 	// add weather effects after all other effects for the frame
 	Cg_WeatherEffects();

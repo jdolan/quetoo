@@ -635,11 +635,11 @@ static void R_InitLocal(void) {
 	Cvar_ClearVars(CVAR_R_MASK);
 
 	Cmd_AddCommand("r_list_models", R_ListModels_f, 0,
-			"Print32_t information about all the loaded models to the game console");
+			"Print information about all the loaded models to the game console");
 	Cmd_AddCommand("r_hunk_stats", R_HunkStats_f, 0, "Renderer memory usage information");
 
 	Cmd_AddCommand("r_list_images", R_ListImages_f, 0,
-			"Print32_t information about all the loaded images to the game console");
+			"Print information about all the loaded images to the game console");
 	Cmd_AddCommand("r_screenshot", R_Screenshot_f, CMD_SYSTEM, "Take a screenshot");
 
 	Cmd_AddCommand("r_sky", R_Sky_f, 0, NULL);

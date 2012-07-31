@@ -26,7 +26,7 @@ char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 /**
  * Sv_FlushRedirect
  *
- * Handles Com_Print32_t output redirection, allowing the server to send output
+ * Handles Com_Print output redirection, allowing the server to send output
  * from any command to a connected client or even a foreign one.
  */
 void Sv_FlushRedirect(const int32_t target, char *outputbuf) {

@@ -209,7 +209,7 @@ static void G_UseTargets_Delay(g_edict_t *ent) {
  * G_UseTargets
  *
  * Search for all entities that the specified entity targets, and call their
- * use functions. Set their activator to our activator. Print32_t our message,
+ * use functions. Set their activator to our activator. Print our message,
  * if set, to the activator.
  */
 void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
@@ -231,7 +231,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		return;
 	}
 
-	// print32_t the message
+	// print the message
 	if ((ent->message) && activator->client) {
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(ent->message);

@@ -191,11 +191,11 @@ static void Init(int32_t argc, char **argv) {
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, NULL);
 #endif
 
-	debug = Cvar_Get("debug", "0", 0, "Print32_t debugging information");
-	show_trace = Cvar_Get("show_trace", "0", 0, "Print32_t trace counts per frame");
+	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
+	show_trace = Cvar_Get("show_trace", "0", 0, "Print trace counts per frame");
 	time_demo = Cvar_Get("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Get("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
-	verbose = Cvar_Get("verbose", "0", 0, "Print32_t verbose debugging information");
+	verbose = Cvar_Get("verbose", "0", 0, "Print verbose debugging information");
 
 	Con_Init();
 	quake2world.time = Sys_Milliseconds();
