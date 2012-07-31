@@ -29,7 +29,7 @@ void R_AddCorona(const r_corona_t *c) {
 	if (!r_coronas->value)
 		return;
 
-	if (r_view.num_coronas == MAX_CORONAS)
+	if (r_view.num_coronas >= MAX_CORONAS)
 		return;
 
 	if (c->radius < 1.0)
