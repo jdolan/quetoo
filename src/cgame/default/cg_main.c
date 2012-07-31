@@ -23,7 +23,6 @@
 
 cvar_t *cg_add_emits;
 cvar_t *cg_add_entities;
-cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
 cvar_t *cg_draw_blend;
@@ -62,8 +61,6 @@ static void Cg_Init(void) {
 
 	cg_add_emits = cgi.Cvar("cg_add_emits", "1", 0,
 			"Toggles adding client-side entities to the scene.");
-	cg_add_particles = cgi.Cvar("cg_add_particles", "1", 0,
-			"Toggles adding particles to the scene.");
 	cg_add_entities = cgi.Cvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
 	cg_add_weather = cgi.Cvar("cg_add_weather", "1", CVAR_ARCHIVE,
 			"Control the intensity of atmospheric effects.");

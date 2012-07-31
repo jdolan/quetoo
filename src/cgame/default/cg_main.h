@@ -28,7 +28,6 @@
 
 extern cvar_t *cg_add_emits;
 extern cvar_t *cg_add_entities;
-extern cvar_t *cg_add_particles;
 extern cvar_t *cg_add_weather;
 extern cvar_t *cg_bob;
 extern cvar_t *cg_draw_blend;

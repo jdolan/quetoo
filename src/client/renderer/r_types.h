@@ -578,7 +578,7 @@ typedef struct r_particle_s {
 	GLenum blend;
 } r_particle_t;
 
-#define MAX_PARTICLES		4096
+#define MAX_PARTICLES		16384
 
 #define PARTICLE_GRAVITY	150
 
