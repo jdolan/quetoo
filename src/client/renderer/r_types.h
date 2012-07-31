@@ -555,24 +555,20 @@ typedef struct r_entity_s {
 
 typedef struct r_particle_s {
 	struct r_particle_s *next;
-	float time;
 	vec3_t org;
 	vec3_t end;
 	vec3_t vel;
 	vec3_t accel;
-	vec3_t current_org;
-	vec3_t current_end;
 	vec3_t dir;
 	float roll;
+	float end_z;
 	struct r_image_s *image;
 	uint16_t type;
 	uint32_t color;
 	float alpha;
 	float alpha_vel;
-	float current_alpha;
 	float scale;
 	float scale_vel;
-	float current_scale;
 	float scroll_s;
 	float scroll_t;
 	GLenum blend;

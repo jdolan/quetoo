@@ -23,6 +23,7 @@
 
 static r_particle_t *cg_active_particles, *cg_free_particles;
 static r_particle_t cg_particles[MAX_PARTICLES];
+static uint32_t last_particle_time;
 
 /*
  * Cg_AllocParticle
@@ -38,7 +39,6 @@ r_particle_t *Cg_AllocParticle(void) {
 	p->next = cg_active_particles;
 	cg_active_particles = p;
 
-	p->time = cgi.client->time;
 	return p;
 }
 
@@ -84,7 +84,7 @@ void Cg_FreeParticles(void) {
 void Cg_AddParticles(void) {
 	r_particle_t *p, *next;
 	r_particle_t *active, *tail;
-	float time;
+	float delta_time, delta_time_squared;
 	int32_t i;
 
 	// add weather effects after all other effects for the frame
@@ -93,32 +93,33 @@ void Cg_AddParticles(void) {
 	active = NULL;
 	tail = NULL;
 
+	delta_time = (cgi.client->time - last_particle_time) * 0.001;
+	delta_time_squared = delta_time * delta_time;
+	last_particle_time = cgi.client->time;
+
 	for (p = cg_active_particles; p; p = next) {
 		next = p->next;
 
-		time = (cgi.client->time - p->time) * 0.001;
-
-		p->current_alpha = p->alpha + time * p->alpha_vel;
-		p->current_scale = p->scale + time * p->scale_vel;
+		p->alpha += delta_time * p->alpha_vel;
+		p->scale += delta_time * p->scale_vel;
 
 		// free up particles that have faded or shrunk
-		if (p->current_alpha <= 0 || p->current_scale <= 0) {
+		if (p->alpha <= 0 || p->scale <= 0) {
 			Cg_FreeParticle(p);
 			continue;
 		}
 
-		if (p->current_alpha > 1.0) // clamp alpha
-			p->current_alpha = 1.0;
+		if (p->alpha > 1.0) // clamp alpha
+			p->alpha = 1.0;
 
 		for (i = 0; i < 3; i++) { // update origin and end
-			p->current_org[i] = p->org[i] + p->vel[i] * time + p->accel[i]
-					* time * time;
-			p->current_end[i] = p->end[i] + p->vel[i] * time + p->accel[i]
-					* time * time;
+			p->org[i] += p->vel[i] * delta_time + p->accel[i] * delta_time_squared;
+			p->end[i] += p->vel[i] * delta_time + p->accel[i] * delta_time_squared;
+			p->vel[i] += p->accel[i] * delta_time;
 		}
 
 		// free up weather particles that have hit the ground
-		if (p->type == PARTICLE_WEATHER && (p->current_org[2] <= p->end[2])) {
+		if (p->type == PARTICLE_WEATHER && (p->org[2] <= p->end_z)) {
 			Cg_FreeParticle(p);
 			continue;
 		}

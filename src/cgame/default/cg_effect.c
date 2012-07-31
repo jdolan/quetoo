@@ -85,6 +85,8 @@ void Cg_WeatherEffects(void) {
 		else
 			VectorCopy(tr.end, p->end);
 
+		p->end_z = p->end[2];
+
 		// setup the particles
 		if (cgi.view->weather & WEATHER_RAIN) {
 			p->image = cg_particle_rain;
