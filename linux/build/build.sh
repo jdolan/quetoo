@@ -23,6 +23,6 @@ sleep 1
 done
 
 cp -aR /home/maci/.ssh  /var/lib/mock/epel-6-x86_64/root/builddir/.ssh
-chown -a maci:mock /var/lib/mock/epel-6-x86_64/root/builddir/.ssh/
+chown -R maci:mock /var/lib/mock/epel-6-x86_64/root/builddir/.ssh/
 
 
