@@ -65,7 +65,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t cou
 
 	for (i = 0; i < count; i++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			return;
 
 		p->accel[2] = -PARTICLE_GRAVITY;
@@ -126,13 +126,12 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle()))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL)))
 		return;
 
 	p->accel[2] = 5.0;
 
 	p->image = cg_particle_smoke;
-	p->type = PARTICLE_ROLL;
 
 	p->scale = 4.0;
 	p->scale_vel = 24.0;

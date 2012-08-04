@@ -31,7 +31,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 
 	for (i = 0; i < 64; i++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			break;
 
 		p->image = cg_particle_spark;
@@ -72,7 +72,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 
 	for (i = 0; i < 32; i++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			return;
 
 		p->image = cg_particle_spark;

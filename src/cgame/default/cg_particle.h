@@ -23,7 +23,7 @@
 #define __CG_PARTICLE_H__
 
 #ifdef __CG_LOCAL_H__
-r_particle_t *Cg_AllocParticle(void);
+r_particle_t *Cg_AllocParticle(uint16_t type);
 void Cg_FreeParticles(void);
 void Cg_AddParticles(void);
 #endif /* __CG_LOCAL_H__ */

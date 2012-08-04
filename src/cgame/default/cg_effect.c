@@ -62,10 +62,8 @@ void Cg_WeatherEffects(void) {
 		if (!(tr.surface->flags & SURF_SKY))
 			continue;
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER)))
 			break;
-
-		p->type = PARTICLE_WEATHER;
 
 		// drop down somewhere between sky and player
 		ceiling = tr.end[2] > start[2] + 1024 ? start[2] + 1024 : tr.end[2];

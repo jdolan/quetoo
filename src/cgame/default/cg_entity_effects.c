@@ -50,11 +50,9 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 
 		while (d < dist) {
 
-			if (!(p = Cg_AllocParticle())) {
+			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL))) {
 				break;
 			}
-
-			p->type = PARTICLE_NORMAL;
 
 			VectorMA(start, d, delta, p->org);
 			VectorScale(delta, 400.0, p->vel);
@@ -119,10 +117,9 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 
 	for (i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH)))
 			return;
 
-		p->type = PARTICLE_SPLASH;
 		p->image = cg_particle_teleporter;
 		p->color = 216;
 		p->scale = 16.0;
@@ -159,13 +156,12 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle()))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL)))
 		return;
 
 	p->accel[2] = 5.0;
 
 	p->image = cg_particle_smoke;
-	p->type = PARTICLE_ROLL;
 
 	p->scale = 2.0;
 	p->scale_vel = 10 + 25.0 * Randomf();
@@ -203,13 +199,12 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle()))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 		return;
 
 	p->accel[2] = 15.0;
 
 	p->image = cg_particle_flame;
-	p->type = PARTICLE_NORMAL;
 	p->scale = 10.0 + Randomc();
 
 	p->alpha = 0.75;
@@ -253,11 +248,10 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle()))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL)))
 		return;
 
 	p->image = cg_particle_steam;
-	p->type = PARTICLE_ROLL;
 
 	p->scale = 8.0;
 	p->scale_vel = 20.0;
@@ -300,11 +294,10 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 		if (!(cgi.PointContents(move) & MASK_WATER))
 			continue;
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE)))
 			return;
 
 		p->image = cg_particle_bubble;
-		p->type = PARTICLE_BUBBLE;
 
 		p->alpha = 1.0;
 		p->alpha_vel = -0.2 - Randomf() * 0.2;
@@ -358,7 +351,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 		forward[1] = cp * sy;
 		forward[2] = -sp;
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			return;
 
 		p->scale = 0.15 * radius;
@@ -424,7 +417,7 @@ static void Cg_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *en
 
 		while (d < dist) {
 
-			if (!(p = Cg_AllocParticle()))
+			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 				break;
 
 			VectorMA(start, d, delta, p->org);
@@ -510,10 +503,9 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t 
 	i = 0;
 	while (dist > 0.0) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_BEAM)))
 			return;
 
-		p->type = PARTICLE_BEAM;
 		p->image = cg_particle_lightning;
 
 		p->scale = 8.0;
@@ -584,12 +576,10 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 void Cg_InactiveTrail(const vec3_t start) {
 	r_particle_t *p;
 
-	if (!(p = Cg_AllocParticle()))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 		return;
 
 	p->image = cg_particle_inactive;
-	p->type = PARTICLE_NORMAL;
-
 	p->alpha = 1.0;
 	p->alpha_vel = -99999999.0;
 	p->color = 11;

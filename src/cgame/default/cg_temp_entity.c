@@ -31,7 +31,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 	for (i = 0; i < 16; i++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			break;
 
 		VectorCopy(org, p->org);
@@ -75,10 +75,9 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	r_particle_t *p;
 	float v;
 
-	if (!(p = Cg_AllocParticle()))
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM)))
 		return;
 
-	p->type = PARTICLE_BEAM;
 	p->image = cg_particle_beam;
 
 	p->scale = 1.0;
@@ -108,9 +107,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	vec3_t v;
 	int32_t j;
 
-	if ((p = Cg_AllocParticle())) {
-		p->type = PARTICLE_DECAL;
-
+	if ((p = Cg_AllocParticle(PARTICLE_DECAL))) {
 		VectorAdd(org, dir, p->org);
 
 		VectorScale(dir, -1.0, v);
@@ -130,7 +127,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		p->blend = GL_ONE_MINUS_SRC_ALPHA;
 	}
 
-	if ((p = Cg_AllocParticle())) {
+	if ((p = Cg_AllocParticle(PARTICLE_NORMAL))) {
 		VectorCopy(org, p->org);
 
 		VectorScale(dir, 200.0, p->vel);
@@ -178,12 +175,11 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
 	r_particle_t *p;
 	vec3_t v;
 
-	if (!(p = Cg_AllocParticle()))
+	if (!(p = Cg_AllocParticle(PARTICLE_DECAL)))
 		return;
 
 	p->image = cg_particle_burn;
 	p->color = 0 + (Random() & 1);
-	p->type = PARTICLE_DECAL;
 	p->scale = scale;
 
 	VectorScale(dir, -1, v);
@@ -207,7 +203,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	for (i = 0; i < count; i++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			break;
 
 		p->color = 232 + (Random() & 7);
@@ -266,7 +262,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 		for (j = 1; j < GIB_STREAM_COUNT; j++) {
 
-			if (!(p = Cg_AllocParticle()))
+			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 				return;
 
 			p->color = 232 + (Random() & 7);
@@ -301,7 +297,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	for (i = 0; i < count; i++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			break;
 
 		p->image = cg_particle_spark;
@@ -344,10 +340,9 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	r_particle_t *p;
 	r_sustained_light_t s;
 
-	if ((p = Cg_AllocParticle())) {
+	if ((p = Cg_AllocParticle(PARTICLE_ROLL))) {
 		p->image = cg_particle_explosion;
 
-		p->type = PARTICLE_ROLL;
 		p->roll = Randomc() * 100.0;
 
 		p->scale = 6.0;
@@ -363,7 +358,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if (!(cgi.PointContents(org) & MASK_WATER)) {
 
-		if ((p = Cg_AllocParticle())) {
+		if ((p = Cg_AllocParticle(PARTICLE_ROLL))) {
 			p->image = cg_particle_smoke;
 
 			p->type = PARTICLE_ROLL;
@@ -391,7 +386,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	for (j = 0; j < 128; j++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			break;
 
 		p->org[0] = org[0] + (Random() % 32) - 16;
@@ -482,11 +477,10 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 
 	cgi.AddSustainedLight(&s);
 
-	if (!(p = Cg_AllocParticle()))
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM)))
 		return;
 
 	// draw the core with a beam
-	p->type = PARTICLE_BEAM;
 	p->image = cg_particle_beam;
 	p->scale = 3.0;
 
@@ -510,7 +504,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 
 	for (i = 0; i < len; i++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			return;
 
 		VectorAdd(point, vec, point);
@@ -546,7 +540,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	if (flags & SURF_SKY)
 		return;
 
-	if (!(p = Cg_AllocParticle()))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 		return;
 
 	p->image = cg_particle_explosion;
@@ -578,7 +572,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			break;
 
 		p->image = cg_particle_explosion;
@@ -596,7 +590,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (i = 0; i < 96; i++) {
 
-		if (!(p = Cg_AllocParticle()))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			break;
 
 		p->scale = 4.0;
