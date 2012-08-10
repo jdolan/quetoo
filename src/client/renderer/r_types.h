@@ -202,7 +202,7 @@ typedef struct {
 	vec2_t st_center;
 	vec2_t st_extents;
 
-	GLuint index; // index into r_worldmodel vertex buffers
+	GLuint index; // index into r_world_model vertex buffers
 
 	r_bsp_texinfo_t *texinfo; // SURF_ flags
 

@@ -400,7 +400,7 @@ int32_t Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edi
  * object of mins/maxs size.
  *
  * Offset is filled in to contain the adjustment that must be added to the
- * testing object's origin to get a point32_t to use with the returned hull.
+ * testing object's origin to get a point to use with the returned hull.
  */
 static int32_t Sv_HullForEntity(const g_edict_t *ent) {
 	c_model_t *model;
@@ -423,7 +423,7 @@ static int32_t Sv_HullForEntity(const g_edict_t *ent) {
  * Sv_PointContents
  *
  * Returns the contents mask for the specified point.  This includes world
- * contents as well as contents for any entities this point32_t intersects.
+ * contents as well as contents for any entities this point intersects.
  */
 int32_t Sv_PointContents(const vec3_t point) {
 	g_edict_t *touched[MAX_EDICTS];

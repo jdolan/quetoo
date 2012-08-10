@@ -193,7 +193,7 @@ void Sys_OpenLibrary(const char *name, void **handle) {
  * Sys_LoadLibrary
  *
  * Opens and loads the specified shared library. The function identified by
- * entry_point32_t is resolved and invoked with the specified parameters, its
+ * entry_point is resolved and invoked with the specified parameters, its
  * return value returned by this function.
  */
 void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params) {
@@ -220,7 +220,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 /**
  * Sys_Quit
  *
- * The final exit point32_t of the program under normal exit conditions.
+ * The final exit point of the program under normal exit conditions.
  */
 void Sys_Quit(void) {
 	exit(0);
@@ -246,7 +246,7 @@ void Sys_Backtrace(void) {
 /**
  * Sys_Error
  *
- * The final exit point32_t of the program under abnormal exit conditions.
+ * The final exit point of the program under abnormal exit conditions.
  */
 void Sys_Error(const char *error, ...) {
 	va_list args;

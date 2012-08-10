@@ -389,7 +389,7 @@ void BuildLights(void) {
 
 			l->stopdot = cos(l->stopdot / 180.0 * M_PI);
 
-			if (target[0]) { // point32_t towards target
+			if (target[0]) { // point towards target
 				entity_t *e2 = FindTargetEntity(target);
 				if (!e2) {
 					Com_Warn("light at (%i %i %i) has missing target\n",
@@ -400,7 +400,7 @@ void BuildLights(void) {
 					VectorSubtract(dest, l->origin, l->normal);
 					VectorNormalize(l->normal);
 				}
-			} else { // point32_t down angle
+			} else { // point down angle
 				const float angle = FloatForKey(e, "angle");
 				if (angle == ANGLE_UP) {
 					l->normal[0] = l->normal[1] = 0.0;
@@ -597,7 +597,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
  *
  * Move the incoming sample position towards the surface center and along the
  * surface normal to reduce false-positive traces.  Test the PVS at the new
- * position, returning true if the new point32_t is valid, false otherwise.
+ * position, returning true if the new point is valid, false otherwise.
  */
 static bool NudgeSamplePosition(const vec3_t in, const vec3_t normal,
 		const vec3_t center, vec3_t out, byte *pvs) {

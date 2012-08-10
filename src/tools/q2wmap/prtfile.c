@@ -75,7 +75,7 @@ static void WritePortalFile_r(node_t *node) {
 			// write out to the file
 
 			// sometimes planes get turned around when they are very near
-			// the changeover point32_t between different axis.  interpret the
+			// the changeover point between different axis.  interpret the
 			// plane the same way vis will, and flip the side orders if needed
 			// FIXME: is this still relevent?
 			WindingPlane(w, normal, &dist);
@@ -130,7 +130,7 @@ static void NumberLeafs_r(node_t * node) {
 	}
 	// either a leaf or a detail cluster
 
-	if (node->contents & CONTENTS_SOLID) { // solid block, viewpoint32_t never inside
+	if (node->contents & CONTENTS_SOLID) { // solid block, viewpoint never inside
 		node->cluster = -1;
 		return;
 	}

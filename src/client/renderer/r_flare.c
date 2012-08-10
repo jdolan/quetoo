@@ -123,7 +123,7 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 			if (r_view.time - f->time > 0.5) // reset old flares
 				f->alpha = 0;
 
-			R_Trace(r_view.origin, f->origin, 0, MASK_SHOT);
+			R_Trace(r_view.origin, f->origin, 0.0, MASK_SHOT);
 			visible = r_view.trace.fraction == 1.0;
 
 			f->alpha += (visible ? 0.03 : -0.15); // ramp

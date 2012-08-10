@@ -229,7 +229,7 @@ static void EmitFaceVertexes(node_t *node, face_t *f) {
 
 	w = f->w;
 	for (i = 0; i < w->numpoints; i++) {
-		if (noweld) { // make every point32_t unique
+		if (noweld) { // make every point unique
 			if (d_bsp.num_vertexes == MAX_BSP_VERTS)
 				Com_Error(ERR_FATAL, "MAX_BSP_VERTS\n");
 			superverts[i] = d_bsp.num_vertexes;
@@ -519,7 +519,7 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2,
 		return NULL; // no matching edges
 
 	// check slope of connected lines
-	// if the slopes are colinear, the point32_t can be removed
+	// if the slopes are colinear, the point can be removed
 	back = f1->p[(i + f1->numpoints - 1) % f1->numpoints];
 	VectorSubtract(p1, back, delta);
 	CrossProduct(planenormal, delta, normal);

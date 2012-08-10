@@ -1255,7 +1255,7 @@ void G_Shutdown(void) {
 /**
  * G_LoadGame
  *
- * This is the entry point32_t responsible for aligning the server and game module.
+ * This is the entry point responsible for aligning the server and game module.
  * The server resolves this symbol upon successfully loading the game library,
  * and invokes it.  We're responsible for copying the import structure so that
  * we can call back into the server, and returning a populated game export

@@ -179,7 +179,7 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
  * Source, pass, and target are an ordering of portals.
  *
  * Generates seperating planes canidates by taking two points from source and one
- * point32_t from pass, and clips target by them.
+ * point from pass, and clips target by them.
  *
  * If target is totally clipped away, that portal can not be seen through.
  *
@@ -367,7 +367,7 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread,
 		if (!more && (thread->base->vis[pnum >> 3] & (1 << (pnum & 7)))) { // can't see anything new
 			continue;
 		}
-		// get plane of portal, point32_t normal into the neighbor leaf
+		// get plane of portal, point normal into the neighbor leaf
 		stack.portalplane = p->plane;
 		VectorSubtract(vec3_origin, p->plane.normal, back_plane.normal);
 		back_plane.dist = -p->plane.dist;

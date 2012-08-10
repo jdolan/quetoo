@@ -166,7 +166,7 @@ static int32_t G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int32_t
  * 	example: targ=player2, inflictor=rocket, attacker=player1
  *
  * dir			direction of the attack
- * point32_t       point32_t at which the damage is being inflicted
+ * point       point at which the damage is being inflicted
  * normal		normal vector from that point
  * damage		amount of damage being inflicted
  * knockback	force to be applied against targ as a result of the damage

@@ -85,7 +85,7 @@ struct g_edict_s {
 	g_edict_t *owner;
 
 // the game can add anything it wants after
-// this point32_t in the structure
+// this point in the structure
 };
 
 #endif  /* !__G_LOCAL_H__ */

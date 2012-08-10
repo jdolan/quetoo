@@ -278,46 +278,6 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 	}
 }
 
-/**
- * tv
- *
- * This is just a convenience function
- * for making temporary vectors for function calls
- */
-float *tv(float x, float y, float z) {
-	static int32_t index;
-	static vec3_t vecs[8];
-	float *v;
-
-	// use an array so that multiple temp vectors won't collide
-	// for a while
-	v = vecs[index++ % 8];
-
-	v[0] = x;
-	v[1] = y;
-	v[2] = z;
-
-	return v;
-}
-
-/**
- * vtos
- *
- * A convenience function for printing vectors.
- */
-char *vtos(const vec3_t v) {
-	static uint32_t index;
-	static char str[8][32];
-	char *s;
-
-	// use an array so that multiple vtos won't collide
-	s = str[index++ % 8];
-
-	snprintf(s, 32, "(%3.2f %3.2f %3.2f)", v[0], v[1], v[2]);
-
-	return s;
-}
-
 /*
  * G_SetMoveDir
  */

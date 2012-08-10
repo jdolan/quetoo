@@ -362,7 +362,7 @@ static void R_UploadImage_(byte *data, int32_t width, int32_t height, vec3_t col
 /**
  * R_UploadImage
  *
- * This is also used as an entry point32_t for the generated r_notexture.
+ * This is also used as an entry point for the generated r_notexture.
  */
 r_image_t *R_UploadImage(const char *name, byte *data, int32_t width, int32_t height, r_image_type_t type) {
 	r_image_t *image;

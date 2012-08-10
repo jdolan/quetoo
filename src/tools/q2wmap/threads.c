@@ -67,7 +67,7 @@ static void(*WorkFunction)(int);
 /*
  * ThreadWork
  *
- * Shared work entry point32_t by all threads.  Retrieve and perform
+ * Shared work entry point by all threads.  Retrieve and perform
  * chunks of work iteratively until work is finished.
  */
 static void ThreadWork(void *p){
@@ -136,7 +136,7 @@ static void RunThreads(void){
 /*
  * RunThreadsOn
  *
- * Entry point32_t for all thread work requests.
+ * Entry point for all thread work requests.
  */
 void RunThreadsOn(int32_t workcount, bool progress, void(*func)(int)){
 	time_t start, end;

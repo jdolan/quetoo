@@ -223,7 +223,7 @@ void R_LoadBspLights(void) {
 		}
 	}
 
-	// parse the entity string for point32_t lights
+	// parse the entity string for point lights
 	ents = Cm_EntityString();
 
 	VectorClear(org);

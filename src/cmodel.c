@@ -885,7 +885,7 @@ int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const vec
  *
  */
 
-// 1/32 epsilon to keep floating point32_t happy
+// 1/32 epsilon to keep floating point happy
 #define DIST_EPSILON	(0.03125)
 
 typedef struct {
@@ -958,7 +958,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 			}
 			dist = DotProduct(ofs, plane->normal);
 			dist = plane->dist - dist;
-		} else { // special point32_t case
+		} else { // special point case
 			dist = plane->dist;
 		}
 
@@ -966,7 +966,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 		d2 = DotProduct(p2, plane->normal) - dist;
 
 		if (d2 > 0.0)
-			end_outside = true; // end point32_t is not in solid
+			end_outside = true; // end point is not in solid
 		if (d1 > 0.0)
 			start_outside = true;
 
@@ -992,7 +992,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 		}
 	}
 
-	if (!start_outside) { // original point32_t was inside brush
+	if (!start_outside) { // original point was inside brush
 		trace->start_solid = true;
 		if (!end_outside)
 			trace->all_solid = true;
@@ -1143,7 +1143,7 @@ static void Cm_RecursiveHullCheck(int32_t num, float p1f, float p2f, const vec3_
 		return;
 	}
 
-	// find the point32_t distances to the seperating plane
+	// find the point distances to the seperating plane
 	// and the offset for the size of the box
 	node = c_bsp.nodes + num;
 	plane = node->plane;
@@ -1173,7 +1173,7 @@ static void Cm_RecursiveHullCheck(int32_t num, float p1f, float p2f, const vec3_
 		return;
 	}
 
-	// put the crosspoint32_t DIST_EPSILON pixels on the near side
+	// put the crosspoint DIST_EPSILON pixels on the near side
 	if (t1 < t2) {
 		const float idist = 1.0 / (t1 - t2);
 		side = 1;
@@ -1266,7 +1266,7 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 		return data.trace;
 	}
 
-	// check for point32_t special case
+	// check for point special case
 	if (VectorCompare(mins, vec3_origin) && VectorCompare(maxs, vec3_origin)) {
 		data.is_point = true;
 		VectorClear(data.extents);

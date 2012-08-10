@@ -260,7 +260,7 @@ typedef struct c_bsp_plane_s {
 	vec3_t normal;
 	float dist;
 	int32_t type; // for fast side tests
-	int32_t sign_bits; // signx + (signy << 1) + (signz << 1)
+	int32_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 1)
 } c_bsp_plane_t;
 
 typedef struct c_model_s {
@@ -278,7 +278,7 @@ typedef struct c_bsp_surface_s {
 // a trace is returned when a box is swept through the world
 typedef struct c_trace_s {
 	bool all_solid; // if true, plane is not valid
-	bool start_solid; // if true, the initial point32_t was in a solid area
+	bool start_solid; // if true, the initial point was in a solid area
 	float fraction; // time completed, 1.0 = didn't hit anything
 	vec3_t end; // final position
 	c_bsp_plane_t plane; // surface normal at impact

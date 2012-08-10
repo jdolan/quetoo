@@ -82,6 +82,7 @@ void StripColor(const char *in, char *out);
 int32_t StrColorCmp(const char *s1, const char *s2);
 char *ParseToken(const char **data_p);
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
+char *vtos(const vec3_t v);
 
 // key / value info strings
 #define MAX_USER_INFO_KEY		64

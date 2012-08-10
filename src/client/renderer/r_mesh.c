@@ -374,7 +374,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
  * R_DrawMeshShadow_default
  *
  * Re-draws the mesh using the stencil test.  Meshes with stale lighting
- * information, or with a lighting point32_t above our view, are not drawn.
+ * information, or with a lighting point above our view, are not drawn.
  */
 static void R_DrawMeshShadow_default(const r_entity_t *e) {
 	const bool blend = r_state.blend_enabled;

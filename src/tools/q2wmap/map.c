@@ -356,11 +356,11 @@ static void AddBrushBevels(map_brush_t * b) {
 						for (l = 0; l < w2->numpoints; l++) {
 							d = DotProduct(w2->p[l], normal) - dist;
 							if (d > 0.1)
-								break; // point32_t in front
+								break; // point in front
 							if (d < minBack)
 								minBack = d;
 						}
-						// if some point32_t was at the front
+						// if some point was at the front
 						if (l != w2->numpoints)
 							break;
 						// if no points at the back then the winding is on the
@@ -499,7 +499,7 @@ static void ParseBrush(entity_t *mapent) {
 			Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 		side = &map_brush_sides[num_map_brush_sides];
 
-		// read the three point32_t plane definition
+		// read the three point plane definition
 		for (i = 0; i < 3; i++) {
 			if (i != 0)
 				GetToken(true);

@@ -144,7 +144,7 @@ static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
 	}
 }
 
-#define ON_EPSILON		0.1  // point32_t on plane side epsilon
+#define ON_EPSILON		0.1  // point on plane side epsilon
 #define MAX_CLIP_VERTS	64
 
 /*

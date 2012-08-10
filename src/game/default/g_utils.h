@@ -51,8 +51,6 @@ void G_TouchTriggers(g_edict_t *ent);
 void G_TouchSolids(g_edict_t *ent);
 c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push);
 char *G_CopyString(char *in);
-float *tv(float x, float y, float z);
-char *vtos(const vec3_t v);
 
 #endif /* __G_LOCAL_H__ */
 

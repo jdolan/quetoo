@@ -96,7 +96,7 @@ void (*R_DrawMeshModel)(const r_entity_t *e);
 extern cl_client_t cl;
 extern cl_static_t cls;
 
-/*
+/**
  * R_PointContents
  *
  * Resolves the contents mask at the specified point.
@@ -117,7 +117,7 @@ int32_t R_PointContents(const vec3_t point) {
 	return contents;
 }
 
-/*
+/**
  * R_Trace
  *
  * Traces to world and BSP models.  If a BSP entity is hit, it is saved as
@@ -193,7 +193,7 @@ void R_UpdateFrustum(void) {
 /**
  * R_DrawView
  *
- * Main entry point32_t for drawing the scene (world and entities).
+ * Main entry point for drawing the scene (world and entities).
  */
 void R_DrawView(void) {
 

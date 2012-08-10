@@ -126,7 +126,7 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
 	}
 }
 
-/*
+/**
  * VectorAngles
  *
  * Derives Euler angles for the specified directional vector.
@@ -143,7 +143,7 @@ void VectorAngles(const vec3_t vector, vec3_t angles) {
 	VectorSet(angles, -pitch, yaw, 0.0);
 }
 
-/*
+/**
  * AngleVectors
  *
  * Produces the forward, right and up directional vectors for the given angles.
@@ -200,7 +200,7 @@ void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal) {
 	dst[2] = p[2] - d * n[2];
 }
 
-/*
+/**
  * PerpendicularVector
  *
  * Assumes src vector is normalized.
@@ -221,7 +221,7 @@ void PerpendicularVector(vec3_t dst, const vec3_t src) {
 	tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
 	tempvec[pos] = 1.0F;
 
-	// project the point32_t onto the plane defined by src
+	// project the point onto the plane defined by src
 	ProjectPointOnPlane(dst, tempvec, src);
 
 	// normalize the result
@@ -428,7 +428,8 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
  * VectorCompare
  *
  * Returns true if the specified vectors are equal, false otherwise.
- */bool VectorCompare(const vec3_t v1, const vec3_t v2) {
+ */
+bool VectorCompare(const vec3_t v1, const vec3_t v2) {
 
 	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
 		return false;
@@ -439,9 +440,10 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 /**
  * VectorNearer
  *
- * Returns true if the first vector is closer to the point32_t of interest, false
+ * Returns true if the first vector is closer to the point of interest, false
  * otherwise.
- */bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
+ */
+bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
 	vec3_t d1, d2;
 
 	VectorSubtract(point, v1, d1);
@@ -517,7 +519,7 @@ void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out) {
 /**
  * PackPosition
  *
- * Packs the specified floating point32_t coordinates to the int16_t array in out
+ * Packs the specified floating point coordinates to the int16_t array in out
  * for network transmission.
  */
 void PackPosition(const vec3_t in, int16_t *out) {
@@ -527,7 +529,7 @@ void PackPosition(const vec3_t in, int16_t *out) {
 /**
  * UnpackPosition
  *
- * Unpacks the compressed coordinates to 32 bit floating point32_t in out.
+ * Unpacks the compressed coordinates to 32 bit floating point in out.
  */
 void UnpackPosition(const int16_t *in, vec3_t out) {
 	VectorScale(in, 0.125, out);
@@ -536,7 +538,7 @@ void UnpackPosition(const int16_t *in, vec3_t out) {
 /**
  * PackAngles
  *
- * Packs the specified floating point32_t Euler angles to the int16_t array in out
+ * Packs the specified floating point Euler angles to the int16_t array in out
  * for network transmission.
  */
 void PackAngles(const vec3_t in, int16_t *out) {
@@ -550,7 +552,7 @@ void PackAngles(const vec3_t in, int16_t *out) {
 /**
  * UnpackAngles
  *
- * Unpacks the compressed angles to Euler 32 bit floating point32_t in out.
+ * Unpacks the compressed angles to Euler 32 bit floating point in out.
  */
 void UnpackAngles(const int16_t *in, vec3_t out) {
 	int32_t i;
@@ -656,7 +658,8 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
  * MixedCase
  *
  * Returns true if the specified string has some upper case characters.
- */bool MixedCase(const char *s) {
+ */
+bool MixedCase(const char *s) {
 	const char *c = s;
 	while (*c) {
 		if (isupper(*c))
@@ -975,6 +978,24 @@ char *va(const char *format, ...) {
 	va_end(args);
 
 	return string;
+}
+
+/**
+ * vtos
+ *
+ * A convenience function for printing vectors.
+ */
+char *vtos(const vec3_t v) {
+	static uint32_t index;
+	static char str[8][32];
+	char *s;
+
+	// use an array so that multiple vtos won't collide
+	s = str[index++ % 8];
+
+	snprintf(s, 32, "(%3.2f %3.2f %3.2f)", v[0], v[1], v[2]);
+
+	return s;
 }
 
 /**

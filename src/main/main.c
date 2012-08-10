@@ -277,7 +277,7 @@ static void Frame(uint32_t msec) {
 /**
  * main
  *
- * The entry point32_t of the program.
+ * The entry point of the program.
  */
 int32_t main(int32_t argc, char **argv) {
 	static uint32_t old_time;

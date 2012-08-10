@@ -114,7 +114,7 @@ static vec_t BrushVolume(bsp_brush_t * brush) {
 	if (!brush)
 		return 0;
 
-	// grab the first valid point32_t as the corner
+	// grab the first valid point as the corner
 
 	w = NULL;
 	for (i = 0; i < brush->num_sides; i++) {

@@ -24,7 +24,7 @@
 /*
  * In video memory, lightmaps are chunked into NxN RGB blocks.  In the bsp,
  * they are a contiguous lump.  During the loading process, we use floating
- * point32_t to provide precision.
+ * point to provide precision.
  */
 
 r_lightmaps_t r_lightmaps;
@@ -201,7 +201,7 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, size_
 	}
 
 	// the final lightmap is uploaded to the card via the strided lightmap
-	// block, and also cached on the surface for fast point32_t lighting lookups
+	// block, and also cached on the surface for fast point lighting lookups
 
 	surf->lightmap = (byte *) R_HunkAlloc(size * 3);
 	l = surf->lightmap;

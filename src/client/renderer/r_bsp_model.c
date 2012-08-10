@@ -302,11 +302,10 @@ static void R_SetupBspSurface(r_bsp_surface_t *surf) {
 	const r_bsp_vertex_t *v;
 	const r_bsp_texinfo_t *tex;
 
-	VectorSet(mins, 999999, 999999, 999999);
-	VectorSet(maxs, -999999, -999999, -999999);
+	ClearBounds(mins, maxs);
 
-	st_mins[0] = st_mins[1] = 999999;
-	st_maxs[0] = st_maxs[1] = -999999;
+	st_mins[0] = st_mins[1] = 999999.0;
+	st_maxs[0] = st_maxs[1] = -999999.0;
 
 	tex = surf->texinfo;
 
@@ -317,7 +316,7 @@ static void R_SetupBspSurface(r_bsp_surface_t *surf) {
 		else
 			v = &r_load_model->vertexes[r_load_model->edges[-e].v[1]];
 
-		for (j = 0; j < 3; j++) { // calculate mins, maxs
+		for (j = 0; j < 3; j++) { // calculate mins, maxs in world space
 			if (v->position[j] > maxs[j])
 				maxs[j] = v->position[j];
 			if (v->position[j] < mins[j])

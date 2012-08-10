@@ -351,7 +351,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node) {
 /*
  * R_MarkSurfaces
  *
- * Entry point32_t for BSP recursion and surface-level visibility test.  This
+ * Entry point for BSP recursion and surface-level visibility test.  This
  * is also where the infamous r_optimize strategy is implemented.
  */
 void R_MarkSurfaces(void) {

@@ -155,7 +155,7 @@ void R_RotateForEntity(const r_entity_t *e) {
  *
  * R_TransformForEntity
  *
- * Transforms a point32_t by the inverse of the world-model matrix for the
+ * Transforms a point by the inverse of the world-model matrix for the
  * specified entity, translating and rotating it into the entity's model-view.
  */
 void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out) {
@@ -375,7 +375,7 @@ static void R_DrawNullEntities() {
 /*
  * R_DrawEntities
  *
- * Primary entry point32_t for drawing all entities.
+ * Primary entry point for drawing all entities.
  */
 void R_DrawEntities(void) {
 

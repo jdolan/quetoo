@@ -313,7 +313,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 /*
  * Sv_InitServer
  *
- * Entry point32_t for spawning a new server or changing maps / demos.  Brings any
+ * Entry point for spawning a new server or changing maps / demos.  Brings any
  * connected clients along for the ride by broadcasting a reconnect before
  * clearing state.  Special effort is made to ensure that a locally connected
  * client sees the reconnect message immediately.

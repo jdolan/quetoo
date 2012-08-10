@@ -539,7 +539,7 @@ static int32_t precache_check; // for auto-download of precache items
 /*
  * Cl_RequestNextDownload
  *
- * Entry point32_t for file downloads, or "precache" from server.  Attempt to
+ * Entry point for file downloads, or "precache" from server.  Attempt to
  * download .pak and .bsp from server.  Pak is preferred. Once all precache
  * checks are completed, we load media and ask the server to begin sending
  * us frames.

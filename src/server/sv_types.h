@@ -156,7 +156,7 @@ typedef struct sv_static_s {
 	// delta compression from frame to frame
 
 	// the size of this array is based on the number of clients we might be
-	// asked to support at any point32_t in time during the current game
+	// asked to support at any point in time during the current game
 
 	uint32_t num_entity_states; // sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES
 	uint32_t next_entity_state; // next entity_state to use for newly spawned entities

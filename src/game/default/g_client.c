@@ -273,7 +273,7 @@ static void G_ClientCorpse(g_edict_t *self) {
  * state with the scoreboard shown.
  */
 static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int32_t damage __attribute__((unused)),
-		vec3_t point32_t __attribute__((unused))) {
+		vec3_t point __attribute__((unused))) {
 
 	self->enemy = attacker;
 

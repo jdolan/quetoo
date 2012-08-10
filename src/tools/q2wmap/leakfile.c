@@ -73,7 +73,7 @@ void LeakFile(tree_t *tree) {
 	GetVectorForKey(node->occupant, "origin", mid);
 
 	fprintf(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
-	Com_Debug("%5i point32_t leakfile\n", count + 1);
+	Com_Debug("%5i point leakfile\n", count + 1);
 
 	Fs_CloseFile(leakfile);
 }
