@@ -73,6 +73,8 @@ void Cg_UpdateMedia(void) {
 	int32_t i;
 	char name[MAX_QPATH];
 
+	cgi.FreeTag(TAG_CGAME_MEDIA);
+
 	cg_sample_blaster_fire = cgi.LoadSample("weapons/blaster/fire");
 	cg_sample_blaster_hit = cgi.LoadSample("weapons/blaster/hit");
 	cg_sample_shotgun_fire = cgi.LoadSample("weapons/shotgun/fire");
@@ -136,6 +138,8 @@ void Cg_UpdateMedia(void) {
 	cg_draw_crosshair_color->modified = true;
 
 	Cg_LoadEmits();
+
+	Cg_LoadEffects();
 
 	Cg_LoadClients();
 

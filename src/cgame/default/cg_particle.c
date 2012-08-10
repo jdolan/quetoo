@@ -54,9 +54,6 @@ r_particle_t *Cg_AllocParticle(uint16_t type) {
  */
 static void Cg_FreeParticle(r_particle_t *p) {
 
-	if (p->type == PARTICLE_WEATHER)
-		cg_num_weather_particles--;
-
 	memset(p, 0, sizeof(r_particle_t));
 
 	p->image = cg_particle_normal;
@@ -81,8 +78,6 @@ void Cg_FreeParticles(void) {
 	cg_free_particles = &cg_particles[0];
 	cg_active_particles = NULL;
 	cg_active_decal_particles = NULL;
-
-	cg_num_weather_particles = 0;
 }
 
 /*
@@ -96,9 +91,6 @@ void Cg_AddParticles(void) {
 
 	if (!cg_add_particles->value)
 		return;
-
-	// add weather effects after all other effects for the frame
-	Cg_WeatherEffects();
 
 	active = NULL;
 	tail = NULL;

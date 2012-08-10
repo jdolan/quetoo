@@ -179,10 +179,12 @@ void Cg_PopulateView(const cl_frame_t *frame) {
 	// add entities
 	Cg_AddEntities();
 
-	// and client sided emits
+	// and client side emits
 	Cg_AddEmits();
 
-	// and particles
-	Cg_AddParticles();
+	// and client side effects
+	Cg_AddEffects();
 
+	// and finally particles
+	Cg_AddParticles();
 }

@@ -37,7 +37,7 @@ typedef struct cg_import_s {
 	void (*Warn)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
-	void *(*Alloc)(size_t size, int16_t tag);
+	void *(*Malloc)(size_t size, int16_t tag);
 	void (*Free)(void *p);
 	void (*FreeTag)(int16_t tag);
 

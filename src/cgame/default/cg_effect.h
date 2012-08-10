@@ -25,8 +25,8 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-extern uint16_t cg_num_weather_particles;
-void Cg_WeatherEffects(void);
+void Cg_AddEffects(void);
+void Cg_LoadEffects(void);
 #endif /* __CG_LOCAL_H__ */
 
 #endif /* __CG_EFFECT_H__ */

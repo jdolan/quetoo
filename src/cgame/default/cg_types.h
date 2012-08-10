@@ -25,5 +25,8 @@
 #include "cgame/cgame.h"
 #include "game/default/g_types.h"
 
+#define TAG_CGAME 800
+#define TAG_CGAME_MEDIA 801
+
 #endif /* __CG_TYPES_H__ */
 

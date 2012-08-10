@@ -131,7 +131,7 @@ void Cl_InitCgame(void) {
 	import.Warn = Com_Warn;
 	import.Error = Cl_Error;
 
-	import.Alloc = Z_TagMalloc;
+	import.Malloc = Z_TagMalloc;
 	import.Free = Z_Free;
 	import.FreeTag = Z_FreeTag;
 
