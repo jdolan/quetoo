@@ -20,7 +20,6 @@
  */
 
 #include "cl_local.h"
-#include "game/game.h"
 #include "pmove.h"
 
 /*
@@ -47,52 +46,50 @@ bool Cl_UsePrediction(void) {
 }
 
 /*
- * @brief
+ * @brief Checks for client side prediction errors. Problems here mean that
+ * Pmove or the protocol are not functioning correctly.
  */
 void Cl_CheckPredictionError(void) {
-	int32_t frame;
-	int16_t delta[3];
-	vec3_t fdelta;
+	int16_t d[3];
+	vec3_t delta;
 
 	if (!cl_predict->value || (cl.frame.ps.pm_state.pm_flags & PMF_NO_PREDICTION))
 		return;
 
-	// calculate the last usercmd_t we sent that the server has processed
-	frame = cls.netchan.incoming_acknowledged;
-	frame &= CMD_MASK;
+	// calculate the last user_cmd_t we sent that the server has processed
+	const uint32_t frame = (cls.netchan.incoming_acknowledged & CMD_MASK);
 
 	// compare what the server returned with what we had predicted it to be
-	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame], delta);
+	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame], d);
+	UnpackPosition(d, delta); // convert back to floating point
 
-	VectorScale(delta, 0.125, fdelta); // denormalize back to floats
-
-	if (VectorLength(fdelta) > 256.0) { // assume a teleport or something
+	if (VectorLength(delta) > 256.0) { // assume a teleport or something
 		VectorClear(cl.prediction_error);
 	} else { // save the prediction error for interpolation
-		if (delta[0] || delta[1] || delta[2]) {
-			Com_Debug("Cl_Predict: Miss on %i: %3.2f %3.2f %3.2f\n", cl.frame.server_frame,
-					fdelta[0], fdelta[1], fdelta[2]);
+		if (!VectorCompare(delta, vec3_origin)) {
+			Com_Debug("Cl_CheckPredictionError: %s\n", vtos(delta));
 		}
 
 		VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame]);
-		VectorCopy(fdelta, cl.prediction_error);
+		VectorCopy(delta, cl.prediction_error);
 	}
 }
 
 /*
- * @brief
+ * @brief Clips the intended movement to all solid entities the client knows of.
  */
-static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const vec3_t maxs,
+static void Cl_PredictMovement_Trace_Clip(const vec3_t start, const vec3_t mins, const vec3_t maxs,
 		const vec3_t end, c_trace_t *tr) {
 	int32_t i;
-	c_trace_t trace;
-	int32_t head_node;
-	const float *angles;
-	vec3_t bmins, bmaxs;
 
 	for (i = 0; i < cl.frame.num_entities; i++) {
 		const int32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[num];
+
+		int32_t head_node;
+		const float *angles;
+
+		c_trace_t trace;
 
 		if (!ent->solid)
 			continue;
@@ -100,7 +97,7 @@ static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const v
 		if (ent->number == cl.player_num + 1)
 			continue;
 
-		if (ent->solid == 31) { // special value for bmodel
+		if (ent->solid == 31) { // special value for bsp model
 			const c_model_t *model = cl.model_clip[ent->model1];
 			if (!model)
 				continue;
@@ -110,6 +107,7 @@ static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const v
 			const int32_t x = 8 * (ent->solid & 31);
 			const int32_t zd = 8 * ((ent->solid >> 5) & 31);
 			const int32_t zu = 8 * ((ent->solid >> 10) & 63) - 32;
+			vec3_t bmins, bmaxs;
 
 			bmins[0] = bmins[1] = -x;
 			bmaxs[0] = bmaxs[1] = x;
@@ -143,7 +141,7 @@ static c_trace_t Cl_PredictMovement_Trace(const vec3_t start, const vec3_t mins,
 		t.ent = (struct g_edict_s *) 1;
 
 	// check all other solid models
-	Cl_ClipMoveToEntities(start, mins, maxs, end, &t);
+	Cl_PredictMovement_Trace_Clip(start, mins, maxs, end, &t);
 
 	return t;
 }

@@ -991,7 +991,7 @@ static bool Pm_GoodPosition(void) {
 	if (pm->s.pm_type == PM_SPECTATOR)
 		return true;
 
-	VectorScale(pm->s.origin, 0.125, pos);
+	UnpackPosition(pm->s.origin, pos);
 
 	trace = pm->Trace(pos, pm->mins, pm->maxs, pos);
 
@@ -1018,7 +1018,7 @@ static void Pm_SnapPosition(void) {
 		else
 			sign[i] = -1;
 
-		pm->s.origin[i] = (int) (pml.origin[i] * 8.0);
+		pm->s.origin[i] = (int16_t) (pml.origin[i] * 8.0);
 
 		if (pm->s.origin[i] * 0.125 == pml.origin[i])
 			sign[i] = 0;
