@@ -58,14 +58,14 @@ typedef struct sv_world_s {
 sv_world_t sv_world;
 
 /*
- * Sv_ClearLink
+ * @brief
  */
 static void Sv_ClearLink(link_t *l) {
 	l->prev = l->next = l;
 }
 
 /*
- * Sv_RemoveLink
+ * @brief
  */
 static void Sv_RemoveLink(link_t *l) {
 	l->next->prev = l->prev;
@@ -73,7 +73,7 @@ static void Sv_RemoveLink(link_t *l) {
 }
 
 /*
- * Sv_InsertLink
+ * @brief
  */
 static void Sv_InsertLink(link_t *l, link_t *before) {
 	l->next = before;
@@ -83,9 +83,7 @@ static void Sv_InsertLink(link_t *l, link_t *before) {
 }
 
 /*
- * Sv_CreateAreaNode
- *
- * Builds a uniformly subdivided tree for the given world size.
+ * @brief Builds a uniformly subdivided tree for the given world size.
  */
 static sv_area_node_t *Sv_CreateAreaNode(int32_t depth, vec3_t mins, vec3_t maxs) {
 	sv_area_node_t *anode;
@@ -125,9 +123,7 @@ static sv_area_node_t *Sv_CreateAreaNode(int32_t depth, vec3_t mins, vec3_t maxs
 }
 
 /*
- * Sv_InitWorld
- *
- * Resolve our area nodes for a newly loaded level. This is called prior to
+ * @brief Resolve our area nodes for a newly loaded level. This is called prior to
  * linking any entities.
  */
 void Sv_InitWorld(void) {
@@ -138,9 +134,7 @@ void Sv_InitWorld(void) {
 }
 
 /*
- * Sv_UnlinkEdict
- *
- * Called before moving or freeing an entity to remove it from the clipping
+ * @brief Called before moving or freeing an entity to remove it from the clipping
  * hull.
  */
 void Sv_UnlinkEdict(g_edict_t *ent) {
@@ -155,9 +149,7 @@ void Sv_UnlinkEdict(g_edict_t *ent) {
 #define MAX_TOTAL_ENT_LEAFS 128
 
 /*
- * Sv_LinkEdict
- *
- * Called whenever an entity changes origin, mins, maxs, or solid to add it to
+ * @brief Called whenever an entity changes origin, mins, maxs, or solid to add it to
  * the clipping hull.
  */
 void Sv_LinkEdict(g_edict_t *ent) {
@@ -324,7 +316,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 }
 
 /*
- * Sv_AreaEdicts_r
+ * @brief
  */
 static void Sv_AreaEdicts_r(sv_area_node_t *node) {
 	link_t *l, *next, *start;
@@ -370,9 +362,7 @@ static void Sv_AreaEdicts_r(sv_area_node_t *node) {
 }
 
 /*
- * Sv_AreaEdicts
- *
- * Fills in a table of edict pointers with those which have bounding boxes
+ * @brief Fills in a table of edict pointers with those which have bounding boxes
  * that intersect the given area. It is possible for a non-axial bsp model
  * to be returned that doesn't actually intersect the area.
  *
@@ -394,9 +384,7 @@ int32_t Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edi
 }
 
 /*
- * Sv_HullForEntity
- *
- * Returns a head_node that can be used for testing or clipping an
+ * @brief Returns a head_node that can be used for testing or clipping an
  * object of mins/maxs size.
  *
  * Offset is filled in to contain the adjustment that must be added to the
@@ -419,10 +407,8 @@ static int32_t Sv_HullForEntity(const g_edict_t *ent) {
 	return Cm_HeadnodeForBox(ent->mins, ent->maxs);
 }
 
-/**
- * Sv_PointContents
- *
- * Returns the contents mask for the specified point.  This includes world
+/*
+ * @brief Returns the contents mask for the specified point. This includes world
  * contents as well as contents for any entities this point intersects.
  */
 int32_t Sv_PointContents(const vec3_t point) {
@@ -465,10 +451,8 @@ typedef struct sv_trace_s {
 } sv_trace_t;
 
 /*
- * Sv_ClipTraceToEntities
- *
- * Clips the specified trace to other entities in its area.  This is the basis
- * of ALL collision and interaction for the server.  Tread carefully.
+ * @brief Clips the specified trace to other entities in its area. This is the basis
+ * of ALL collision and interaction for the server. Tread carefully.
  */
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	g_edict_t *touched[MAX_EDICTS];
@@ -530,7 +514,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 }
 
 /*
- * Sv_TraceBounds
+ * @brief
  */
 static void Sv_TraceBounds(sv_trace_t *trace) {
 	int32_t i;
@@ -547,9 +531,7 @@ static void Sv_TraceBounds(sv_trace_t *trace) {
 }
 
 /*
- * Sv_Trace
- *
- * Moves the given box volume through the world from start to end.
+ * @brief Moves the given box volume through the world from start to end.
  *
  * The skipped edict, and edicts owned by him, are explicitly not checked.
  * This prevents players from clipping against their own projectiles, etc.

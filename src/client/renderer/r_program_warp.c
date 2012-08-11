@@ -32,7 +32,7 @@ typedef struct r_warp_program_s {
 static r_warp_program_t r_warp_program;
 
 /*
- * R_InitProgram_warp
+ * @brief
  */
 void R_InitProgram_warp(void) {
 	r_warp_program_t *p = &r_warp_program;
@@ -49,7 +49,7 @@ void R_InitProgram_warp(void) {
 }
 
 /*
- * R_UseProgram_warp
+ * @brief
  */
 void R_UseProgram_warp(void) {
 	static vec3_t offset;

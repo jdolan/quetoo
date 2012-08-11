@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /*
- * G_target_speaker_use
+ * @brief
  */
 static void G_target_speaker_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
@@ -46,7 +46,7 @@ static void G_target_speaker_use(g_edict_t *ent, g_edict_t *other __attribute__(
  2 = idle sound level
  3 = ambient sound level
 
- Normal sounds play each time the target is used.  The reliable flag can be set for crucial voiceovers.
+ Normal sounds play each time the target is used. The reliable flag can be set for crucial voiceovers.
 
  Looped sounds are always atten 3 / vol 1, and the use function toggles it on/off.
  Multiple identical looping sounds will just increase volume without any speed cost.
@@ -83,7 +83,7 @@ void G_target_speaker(g_edict_t *ent) {
 }
 
 /*
- * G_target_explosion_explode
+ * @brief
  */
 static void G_target_explosion_explode(g_edict_t *self) {
 	float save;
@@ -102,7 +102,7 @@ static void G_target_explosion_explode(g_edict_t *self) {
 }
 
 /*
- * G_target_explosion_use
+ * @brief
  */
 static void G_target_explosion_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	self->activator = activator;
@@ -128,7 +128,7 @@ void G_target_explosion(g_edict_t *ent) {
 }
 
 /*
- * G_target_splash_think
+ * @brief
  */
 static void G_target_splash_think(g_edict_t *self) {
 

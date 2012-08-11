@@ -108,10 +108,8 @@ key_name_t key_names[] = {
 
 static cl_key_state_t *ks = &cls.key_state;
 
-/**
- * Cl_KeySystem
- *
- * Execute any system-level binds, regardless of key state. This enables e.g.
+/*
+ * @brief Execute any system-level binds, regardless of key state. This enables e.g.
  * toggling of the console, toggling fullscreen, etc.
  */
 static bool Cl_KeySystem(uint32_t key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time __attribute__((unused))) {
@@ -170,10 +168,8 @@ static bool Cl_KeySystem(uint32_t key, uint16_t unicode __attribute__((unused)),
 	return false;
 }
 
-/**
- * Cl_KeyConsole
- *
- * Interactive line editing and console scrollback.
+/*
+ * @brief Interactive line editing and console scrollback.
  */
 static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t time __attribute__((unused))) {
 	bool numlock = ks->down[K_NUMLOCK];
@@ -363,7 +359,7 @@ static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 }
 
 /*
- * Cl_KeyGame
+ * @brief
  */
 static void Cl_KeyGame(uint32_t key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time) {
 	char cmd[MAX_STRING_CHARS];
@@ -392,7 +388,7 @@ static void Cl_KeyGame(uint32_t key, uint16_t unicode __attribute__((unused)), b
 }
 
 /*
- * Cl_KeyMessage
+ * @brief
  */
 static void Cl_KeyMessage(uint32_t key, uint16_t unicode, bool down, uint32_t time __attribute__((unused))) {
 
@@ -434,10 +430,8 @@ static void Cl_KeyMessage(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 }
 
 /*
- * Cl_StringToKeyNum
- *
- * Returns a key number to be used to index ks->binds[] by looking at
- * the given string.  Single ascii characters return themselves, while
+ * @brief Returns a key number to be used to index ks->binds[] by looking at
+ * the given string. Single ascii characters return themselves, while
  * the K_* names are matched up.
  */
 static int32_t Cl_StringToKeyNum(const char *str) {
@@ -458,9 +452,7 @@ static int32_t Cl_StringToKeyNum(const char *str) {
 }
 
 /*
- * Cl_KeyNumToString
- *
- * Returns a string (either a single ASCII char, or a K_* name) for the
+ * @brief Returns a string (either a single ASCII char, or a K_* name) for the
  * given key_num.
  * FIXME: handle quote special (general escape sequence?)
  */
@@ -482,7 +474,7 @@ const char *Cl_KeyNumToString(uint16_t key_num) {
 }
 
 /*
- * Cl_Bind
+ * @brief
  */
 static void Cl_Bind(int32_t key_num, char *binding) {
 
@@ -501,7 +493,7 @@ static void Cl_Bind(int32_t key_num, char *binding) {
 }
 
 /*
- * Cl_Unbind_f
+ * @brief
  */
 static void Cl_Unbind_f(void) {
 	int32_t b;
@@ -521,7 +513,7 @@ static void Cl_Unbind_f(void) {
 }
 
 /*
- * Cl_UnbindAll_f
+ * @brief
  */
 static void Cl_UnbindAll_f(void) {
 	int32_t i;
@@ -532,7 +524,7 @@ static void Cl_UnbindAll_f(void) {
 }
 
 /*
- * Cl_Bind_f
+ * @brief
  */
 static void Cl_Bind_f(void) {
 	int32_t i, c, b;
@@ -575,10 +567,8 @@ static void Cl_Bind_f(void) {
 	Cl_Bind(b, cmd);
 }
 
-/**
- * Cl_WriteBindings
- *
- * Writes lines containing "bind key value"
+/*
+ * @brief Writes lines containing "bind key value"
  */
 void Cl_WriteBindings(FILE *f) {
 	uint16_t i;
@@ -589,7 +579,7 @@ void Cl_WriteBindings(FILE *f) {
 }
 
 /*
- * Cl_Bindlist_f
+ * @brief
  */
 static void Cl_BindList_f(void) {
 	uint16_t i;
@@ -600,7 +590,7 @@ static void Cl_BindList_f(void) {
 }
 
 /*
- * Cl_WriteHistory
+ * @brief
  */
 static void Cl_WriteHistory(void) {
 	FILE *f;
@@ -625,7 +615,7 @@ static void Cl_WriteHistory(void) {
 }
 
 /*
- * Cl_ReadHistory
+ * @brief
  */
 static void Cl_ReadHistory(void) {
 	char path[MAX_OSPATH];
@@ -651,7 +641,7 @@ static void Cl_ReadHistory(void) {
 }
 
 /*
- * Cl_InitKeys
+ * @brief
  */
 void Cl_InitKeys(void) {
 	int32_t i;
@@ -682,7 +672,7 @@ void Cl_InitKeys(void) {
 }
 
 /*
- * Cl_ShutdownKeys
+ * @brief
  */
 void Cl_ShutdownKeys(void) {
 
@@ -695,7 +685,7 @@ void Cl_ShutdownKeys(void) {
 }
 
 /*
- * Cl_KeyEvent
+ * @brief
  */
 void Cl_KeyEvent(uint32_t key, uint16_t unicode, bool down, uint32_t time) {
 
@@ -733,10 +723,8 @@ void Cl_KeyEvent(uint32_t key, uint16_t unicode, bool down, uint32_t time) {
 	}
 }
 
-/**
- * Cl_ClearTyping
- *
- * Clears the current input line.
+/*
+ * @brief Clears the current input line.
  */
 void Cl_ClearTyping(void) {
 	ks->lines[ks->edit_line][1] = 0;
@@ -744,9 +732,7 @@ void Cl_ClearTyping(void) {
 }
 
 /*
- * Cl_EditLine
- *
- * Returns the current input line.
+ * @brief Returns the current input line.
  */
 char *Cl_EditLine(void) {
 	return ks->lines[ks->edit_line];

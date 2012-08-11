@@ -22,7 +22,7 @@
 #include "qbsp.h"
 
 /*
- * TextureAxisFromPlane
+ * @brief
  */
 static const vec3_t base_axis[18] = { { 0, 0, 1 }, { 1, 0, 0 }, { 0, -1, 0 }, // floor
 		{ 0, 0, -1 }, { 1, 0, 0 }, { 0, -1, 0 }, // ceiling
@@ -53,9 +53,7 @@ static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv) {
 }
 
 /*
- * FindTexinfo
- *
- * Resolve the texinfo with identical properties to the one specified, or
+ * @brief Resolve the texinfo with identical properties to the one specified, or
  * allocate a new one.
  */
 static int32_t FindTexinfo(d_bsp_texinfo_t *tx) {
@@ -89,7 +87,7 @@ static int32_t FindTexinfo(d_bsp_texinfo_t *tx) {
 }
 
 /*
- * TexinfoForBrushTexture
+ * @brief
  */
 int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt,
 		vec3_t origin) {

@@ -10,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
  *
  * See the GNU General Public License for more details.
  *
@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /*
- * G_ClientChaseThink
+ * @brief
  */
 void G_ClientChaseThink(g_edict_t *ent) {
 	int16_t delta[3];
@@ -66,7 +66,7 @@ void G_ClientChaseThink(g_edict_t *ent) {
 }
 
 /*
- * G_ClientChaseNext
+ * @brief
  */
 void G_ClientChaseNext(g_edict_t *ent) {
 	int32_t i;
@@ -96,7 +96,7 @@ void G_ClientChaseNext(g_edict_t *ent) {
 }
 
 /*
- * G_ClientChasePrevious
+ * @brief
  */
 void G_ClientChasePrevious(g_edict_t *ent) {
 	int32_t i;
@@ -125,10 +125,8 @@ void G_ClientChasePrevious(g_edict_t *ent) {
 	ent->client->chase_target = e;
 }
 
-/**
- * G_ClientChaseTarget
- *
- * Finds the first available chase target and assigns it to the specified ent.
+/*
+ * @brief Finds the first available chase target and assigns it to the specified ent.
  */
 void G_ClientChaseTarget(g_edict_t *ent) {
 	int32_t i;

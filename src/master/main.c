@@ -50,7 +50,7 @@ static server_t servers;
 int32_t sock;
 
 /*
- * Ms_Shutdown
+ * @brief
  */
 static void Ms_Shutdown(void) {
 	server_t *server = &servers;
@@ -70,7 +70,7 @@ static void Ms_Shutdown(void) {
 }
 
 /*
- * Ms_GetServer
+ * @brief
  */
 static server_t *Ms_GetServer(struct sockaddr_in *from) {
 	server_t *server = &servers;
@@ -89,7 +89,7 @@ static server_t *Ms_GetServer(struct sockaddr_in *from) {
 }
 
 /*
- * Ms_DropServer
+ * @brief
  */
 static void Ms_DropServer(server_t *server) {
 
@@ -102,10 +102,8 @@ static void Ms_DropServer(server_t *server) {
 	free(server);
 }
 
-/**
- * Ms_BlacklistServer
- *
- * Returns true if the specified server has been blacklisted, false otherwise.
+/*
+ * @brief Returns true if the specified server has been blacklisted, false otherwise.
  * The format of the blacklist file is one-IP-per-line, with wildcards. Ex:
  *
  * // This guy is a joker
@@ -142,7 +140,7 @@ static bool Ms_BlacklistServer(struct sockaddr_in *from) {
 }
 
 /*
- * Ms_AddServer
+ * @brief
  */
 static void Ms_AddServer(struct sockaddr_in *from) {
 	struct sockaddr_in addr;
@@ -186,7 +184,7 @@ static void Ms_AddServer(struct sockaddr_in *from) {
 }
 
 /*
- * Ms_RemoveServer
+ * @brief
  */
 static void Ms_RemoveServer(struct sockaddr_in *from, server_t *server) {
 
@@ -203,7 +201,7 @@ static void Ms_RemoveServer(struct sockaddr_in *from, server_t *server) {
 }
 
 /*
- * Ms_RunFrame
+ * @brief
  */
 static void Ms_RunFrame(void) {
 	server_t *server = &servers;
@@ -240,7 +238,7 @@ static void Ms_RunFrame(void) {
 }
 
 /*
- * Ms_SendServersList
+ * @brief
  */
 static void Ms_SendServersList(struct sockaddr_in *from) {
 	int32_t buflen;
@@ -270,7 +268,7 @@ static void Ms_SendServersList(struct sockaddr_in *from) {
 }
 
 /*
- * Ms_Ack
+ * @brief
  */
 static void Ms_Ack(struct sockaddr_in *from) {
 	server_t *server;
@@ -287,7 +285,7 @@ static void Ms_Ack(struct sockaddr_in *from) {
 }
 
 /*
- * Ms_Heartbeat
+ * @brief
  */
 static void Ms_Heartbeat(struct sockaddr_in *from) {
 	server_t *server;
@@ -312,7 +310,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from) {
 }
 
 /*
- * Ms_ParseMessage
+ * @brief
  */
 static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 	char *cmd = data;
@@ -340,7 +338,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 }
 
 /*
- * Ms_HandleSignal
+ * @brief
  */
 static void Ms_HandleSignal(int32_t sig) {
 
@@ -352,7 +350,7 @@ static void Ms_HandleSignal(int32_t sig) {
 }
 
 /*
- * main
+ * @brief
  */
 int32_t main(int32_t argc __attribute__((unused)), char **argv __attribute__((unused))) {
 	struct sockaddr_in address, from;

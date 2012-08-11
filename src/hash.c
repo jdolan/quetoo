@@ -22,9 +22,7 @@
 #include "hash.h"
 
 /*
- * Hash_Init
- *
- * Initializes the specified hash_table.
+ * @brief Initializes the specified hash_table.
  */
 void Hash_Init(hash_table_t *table) {
 
@@ -35,9 +33,7 @@ void Hash_Init(hash_table_t *table) {
 }
 
 /*
- * Hash_Hashcode
- *
- * Generate a bin number (not a unique code) for the specified key.
+ * @brief Generate a bin number (not a unique code) for the specified key.
  */
 int32_t Hash_Hashcode(const char *key) {
 	int32_t code;
@@ -57,9 +53,7 @@ int32_t Hash_Hashcode(const char *key) {
 }
 
 /*
- * Hash_Put
- *
- * Insert the specified key-value pair to hash_table.
+ * @brief Insert the specified key-value pair to hash_table.
  */
 int32_t Hash_Put(hash_table_t *table, const char *key, void *value) {
 	hash_entry_t *e;
@@ -88,9 +82,7 @@ int32_t Hash_Put(hash_table_t *table, const char *key, void *value) {
 }
 
 /*
- * Hash_GetEntry
- *
- * Returns the first entry associated to the specified key.
+ * @brief Returns the first entry associated to the specified key.
  */
 hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key) {
 	hash_entry_t *e;
@@ -115,9 +107,7 @@ hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key) {
 }
 
 /*
- * Hash_Get
- *
- * Return the first value hashed at key from hash_table.
+ * @brief Return the first value hashed at key from hash_table.
  */
 void *Hash_Get(hash_table_t *table, const char *key) {
 	hash_entry_t *e;
@@ -129,9 +119,7 @@ void *Hash_Get(hash_table_t *table, const char *key) {
 }
 
 /*
- * Hash_RemoveEntry
- *
- * Removes the specified entry from the hash and frees it, returning its
+ * @brief Removes the specified entry from the hash and frees it, returning its
  * value so that it may also be freed if desired.
  */
 void *Hash_RemoveEntry(hash_table_t *table, hash_entry_t *entry) {
@@ -157,9 +145,7 @@ void *Hash_RemoveEntry(hash_table_t *table, hash_entry_t *entry) {
 }
 
 /*
- * Hash_Remove
- *
- * Removes the first entry associated to key from the specified hash.
+ * @brief Removes the first entry associated to key from the specified hash.
  */
 void *Hash_Remove(hash_table_t *table, const char *key) {
 	hash_entry_t *e;
@@ -171,9 +157,7 @@ void *Hash_Remove(hash_table_t *table, const char *key) {
 }
 
 /*
- * Hash_Clear
- *
- * Removes all entries associated to key from the specified hash.
+ * @brief Removes all entries associated to key from the specified hash.
  */
 void Hash_Clear(hash_table_t *table, const char *key) {
 	hash_entry_t *e;
@@ -183,9 +167,7 @@ void Hash_Clear(hash_table_t *table, const char *key) {
 }
 
 /*
- * Hash_Free
- *
- * Free all entries associated with specified hash.  Does not free any of the
+ * @brief Free all entries associated with specified hash. Does not free any of the
  * values referenced by the entries.
  */
 void Hash_Free(hash_table_t *table) {

@@ -23,7 +23,7 @@
 #include "common-anorms.h"
 
 /*
- * Cg_BlasterTrail
+ * @brief
  */
 static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_corona_t c;
@@ -99,7 +99,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 }
 
 /*
- * Cg_TeleporterTrail
+ * @brief
  */
 void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 	int32_t i;
@@ -134,7 +134,7 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 }
 
 /*
- * Cg_SmokeTrail
+ * @brief
  */
 void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
@@ -180,7 +180,7 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 }
 
 /*
- * Cg_FlameTrail
+ * @brief
  */
 void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
@@ -226,7 +226,7 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 }
 
 /*
- * Cg_SteamTrail
+ * @brief
  */
 void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 	r_particle_t *p;
@@ -272,7 +272,7 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 }
 
 /*
- * Cg_BubbleTrail
+ * @brief
  */
 void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 	r_particle_t *p;
@@ -317,7 +317,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 }
 
 /*
- * Cg_EnergyTrail
+ * @brief
  */
 static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int32_t color) {
 	static vec3_t angles[NUM_APPROXIMATE_NORMALS];
@@ -385,7 +385,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 }
 
 /*
- * Cg_GrenadeTrail
+ * @brief
  */
 static void Cg_GrenadeTrail(const vec3_t start, const vec3_t end) {
 
@@ -395,7 +395,7 @@ static void Cg_GrenadeTrail(const vec3_t start, const vec3_t end) {
 }
 
 /*
- * Cg_RocketTrail
+ * @brief
  */
 static void Cg_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_corona_t c;
@@ -449,7 +449,7 @@ static void Cg_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *en
 }
 
 /*
- * Cg_HyperblasterTrail
+ * @brief
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
 	r_corona_t c;
@@ -472,7 +472,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
 }
 
 /*
- * Cg_LightningTrail
+ * @brief
  */
 static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	r_particle_t *p;
@@ -548,7 +548,7 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t 
 }
 
 /*
- * Cg_BfgTrail
+ * @brief
  */
 static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 	r_corona_t c;
@@ -571,7 +571,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 }
 
 /*
- * Cg_InactiveTrail
+ * @brief
  */
 void Cg_InactiveTrail(const vec3_t start) {
 	r_particle_t *p;
@@ -588,10 +588,8 @@ void Cg_InactiveTrail(const vec3_t start) {
 	p->scale = 10.0;
 }
 
-/**
- * Cg_EntityEffects
- *
- * Processes the specified entity's effects mask, augmenting the given renderer
+/*
+ * @brief Processes the specified entity's effects mask, augmenting the given renderer
  * entity and adding additional effects such as particle trails to the view.
  */
 void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {

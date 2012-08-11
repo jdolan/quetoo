@@ -27,7 +27,7 @@ static int32_t num_materials;
 
 
 /*
- * AddMaterial
+ * @brief
  */
 static void AddMaterial(const char *name){
 	int32_t i;
@@ -46,9 +46,7 @@ static void AddMaterial(const char *name){
 
 
 /*
- * CompareStrings
- *
- * A simple wrapper around strcmp so that it may act as a comparator.
+ * @brief A simple wrapper around strcmp so that it may act as a comparator.
  */
 static int32_t CompareStrings(const void *p1, const void *p2){
 	return strcmp((const char *)p1, (const char *)p2);
@@ -56,9 +54,7 @@ static int32_t CompareStrings(const void *p1, const void *p2){
 
 
 /*
- * MAT_Main
- *
- * Loads the specified BSP file, resolves all materials referenced by it,
+ * @brief Loads the specified BSP file, resolves all materials referenced by it,
  * and generates a "stub" materials file.
  */
 int32_t MAT_Main(void){

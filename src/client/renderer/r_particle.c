@@ -22,9 +22,7 @@
 #include "r_local.h"
 
 /*
- * R_AddParticle
- *
- * TODO: We can add most of the particle "thinking" computations to this
+ * @brief TODO: We can add most of the particle "thinking" computations to this
  * function, which should help threaded performance.
  */
 void R_AddParticle(const r_particle_t *p) {
@@ -48,7 +46,7 @@ typedef struct r_particle_state_s {
 static r_particle_state_t r_particle_state;
 
 /*
- * R_ParticleVerts
+ * @brief
  */
 static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
 	vec3_t v, up, right, upright, downright;
@@ -136,7 +134,7 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
 }
 
 /*
- * R_ParticleTexcoords
+ * @brief
  */
 static void R_ParticleTexcoords(r_particle_t *p, GLfloat *out) {
 	float s, t;
@@ -163,7 +161,7 @@ static void R_ParticleTexcoords(r_particle_t *p, GLfloat *out) {
 }
 
 /*
- * R_ParticleColor
+ * @brief
  */
 static void R_ParticleColor(r_particle_t *p, GLfloat *out) {
 	byte color[4];
@@ -184,7 +182,7 @@ static void R_ParticleColor(r_particle_t *p, GLfloat *out) {
 }
 
 /*
- * R_DrawParticles_
+ * @brief
  */
 static void R_DrawParticles_(int32_t mask) {
 	r_particle_t *p;
@@ -229,7 +227,7 @@ static void R_DrawParticles_(int32_t mask) {
 }
 
 /*
- * R_DrawParticles
+ * @brief
  */
 void R_DrawParticles(void) {
 	vec3_t v;

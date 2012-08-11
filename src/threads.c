@@ -10,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
  *
  * See the GNU General Public License for more details.
  *
@@ -33,10 +33,8 @@ static thread_pool_t thread_pool;
 
 cvar_t *threads;
 
-/**
- * Thread_Run
- *
- * Wrap the user's function in our own for introspection.
+/*
+ * @brief Wrap the user's function in our own for introspection.
  */
 static int32_t Thread_Run(void *data) {
 	thread_t *t = (thread_t *) data;
@@ -60,9 +58,7 @@ static int32_t Thread_Run(void *data) {
 }
 
 /*
- * Thread_Init_
- *
- * Initializes the threads backing the thread pool.
+ * @brief Initializes the threads backing the thread pool.
  */
 static void Thread_Init_(void) {
 	int32_t desired_threads;
@@ -110,10 +106,8 @@ static void Thread_Shutdown_(void) {
 	}
 }
 
-/**
- * Thread_Create_
- *
- * Creates a new thread to run the specified function. Callers must use
+/*
+ * @brief Creates a new thread to run the specified function. Callers must use
  * Thread_Wait on the returned handle to release the thread when finished.
  */
 thread_t *Thread_Create_(const char *name, void( function)(void *data), void *data) {
@@ -162,10 +156,8 @@ thread_t *Thread_Create_(const char *name, void( function)(void *data), void *da
 	return t;
 }
 
-/**
- * Thread_Wait
- *
- * Wait for the specified thread to complete.
+/*
+ * @brief Wait for the specified thread to complete.
  */
 void Thread_Wait(thread_t **t) {
 
@@ -180,7 +172,7 @@ void Thread_Wait(thread_t **t) {
 }
 
 /*
- * Thread_Init
+ * @brief
  */
 void Thread_Init(void) {
 
@@ -195,7 +187,7 @@ void Thread_Init(void) {
 }
 
 /*
- * Thread_Shutdown
+ * @brief
  */
 void Thread_Shutdown(void) {
 

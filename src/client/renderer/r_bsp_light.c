@@ -29,12 +29,12 @@
  * will encounter. The goal is to normalize all light source intensities to
  * that of standard "point" lights (light entities in the map editor).
  *
- * Surface light source radius is dependent upon surface area.  For the vast
+ * Surface light source radius is dependent upon surface area. For the vast
  * majority of surface lights, this means an aggressive up-scale yields the
  * best results.
  *
  * Sky surfaces are also considered light sources when sun lighting was enabled
- * during the light compilation of the level.  Given that sky surface area is
+ * during the light compilation of the level. Given that sky surface area is
  * typically quite large, their surface area coefficient actually scales down.
  */
 
@@ -44,9 +44,7 @@
 #define BSP_LIGHT_COLOR_COMPONENT_MAX 0.9
 
 /*
- * R_ResolveBspLightParameters
- *
- * Resolves ambient light, brightness, and contrast levels from Worldspawn.
+ * @brief Resolves ambient light, brightness, and contrast levels from Worldspawn.
  */
 static void R_ResolveBspLightParameters(void) {
 	const char *c;
@@ -131,9 +129,7 @@ static void R_ResolveBspLightParameters(void) {
 }
 
 /*
- * R_AddBspLight
- *
- * Adds the specified static light source to the world model, after first
+ * @brief Adds the specified static light source to the world model, after first
  * ensuring that it can not be merged with any known sources.
  */
 static void R_AddBspLight(vec3_t org, float radius, vec3_t color) {
@@ -176,10 +172,8 @@ static void R_AddBspLight(vec3_t org, float radius, vec3_t color) {
 }
 
 /*
- * R_LoadBspLights
- *
- * Parse the entity string and resolve all static light sources.  Sources which
- * are very close to each other are merged.  Their colors are blended according
+ * @brief Parse the entity string and resolve all static light sources. Sources which
+ * are very close to each other are merged. Their colors are blended according
  * to their light value (intensity).
  */
 void R_LoadBspLights(void) {

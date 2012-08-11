@@ -23,10 +23,8 @@
 
 char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
-/**
- * Sv_FlushRedirect
- *
- * Handles Com_Print output redirection, allowing the server to send output
+/*
+ * @brief Handles Com_Print output redirection, allowing the server to send output
  * from any command to a connected client or even a foreign one.
  */
 void Sv_FlushRedirect(const int32_t target, char *outputbuf) {
@@ -46,10 +44,8 @@ void Sv_FlushRedirect(const int32_t target, char *outputbuf) {
 	}
 }
 
-/**
- * Sv_ClientPrint
- *
- * Sends text across to be displayed if the level filter passes.
+/*
+ * @brief Sends text across to be displayed if the level filter passes.
  */
 void Sv_ClientPrint(const g_edict_t *ent, const int32_t level, const char *fmt, ...) {
 	sv_client_t *cl;
@@ -85,9 +81,7 @@ void Sv_ClientPrint(const g_edict_t *ent, const int32_t level, const char *fmt, 
 }
 
 /*
- * Sv_BroadcastPrint
- *
- * Sends text to all active clients over their unreliable channels.
+ * @brief Sends text to all active clients over their unreliable channels.
  */
 void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) {
 	va_list args;
@@ -126,9 +120,7 @@ void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) {
 }
 
 /*
- * Sv_BroadcastCommand
- *
- * Sends text to all active clients
+ * @brief Sends text to all active clients
  */
 void Sv_BroadcastCommand(const char *fmt, ...) {
 	va_list args;
@@ -146,9 +138,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 }
 
 /*
- * Sv_Unicast
- *
- * Sends the contents of the mutlicast buffer to a single client
+ * @brief Sends the contents of the mutlicast buffer to a single client
  */
 void Sv_Unicast(const g_edict_t *ent, const bool reliable) {
 	int32_t n;
@@ -172,9 +162,7 @@ void Sv_Unicast(const g_edict_t *ent, const bool reliable) {
 }
 
 /*
- * Sv_Multicast
- *
- * Sends the contents of sv.multicast to a subset of the clients,
+ * @brief Sends the contents of sv.multicast to a subset of the clients,
  * then clears sv.multicast.
  *
  * MULTICAST_ALL	same as broadcast (origin can be NULL)
@@ -264,9 +252,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 }
 
 /*
- * Sv_PositionedSound
- *
- * FIXME: if entity isn't in PHS, they must be forced to be sent or
+ * @brief FIXME: if entity isn't in PHS, they must be forced to be sent or
  * have the origin explicitly sent.
  *
  * An attenuation of 0 will play full volume everywhere in the level.
@@ -339,7 +325,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
  */
 
 /*
- * Sv_SendClientDatagram
+ * @brief
  */
 static bool Sv_SendClientDatagram(sv_client_t *client) {
 	byte msg_buf[MAX_MSG_SIZE];
@@ -379,16 +365,14 @@ static bool Sv_SendClientDatagram(sv_client_t *client) {
 }
 
 /*
- * Sv_DemoCompleted
+ * @brief
  */
 static void Sv_DemoCompleted(void) {
 	Sv_ShutdownServer("Demo complete.\n");
 }
 
 /*
- * Sv_RateDrop
- *
- * Returns true if the client is over its current
+ * @brief Returns true if the client is over its current
  * bandwidth estimation and should not be sent another packet
  */
 static bool Sv_RateDrop(sv_client_t *c) {
@@ -415,9 +399,7 @@ static bool Sv_RateDrop(sv_client_t *c) {
 }
 
 /*
- * Sv_DemoMessage
- *
- * Reads the next frame from the current demo file into the specified buffer,
+ * @brief Reads the next frame from the current demo file into the specified buffer,
  * returning the size of the frame in bytes.
  */
 static size_t Sv_GetDemoMessage(byte *buffer) {
@@ -457,7 +439,7 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 }
 
 /*
- * Sv_SendClientMessages
+ * @brief
  */
 void Sv_SendClientMessages(void) {
 	sv_client_t *c;

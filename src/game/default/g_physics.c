@@ -27,7 +27,7 @@
  * normal objects when they move.
  *
  * onground is set for toss objects when they come to a complete
- * rest.  it is set for steping or walking objects
+ * rest. it is set for steping or walking objects
  *
  * doors, plats, etc are SOLID_BSP, and MOVETYPE_PUSH
  * bonus items are SOLID_TRIGGER touch, and MOVETYPE_TOSS
@@ -37,7 +37,7 @@
  */
 
 /*
- * G_TestEntityPosition
+ * @brief
  */
 static g_edict_t *G_TestEntityPosition(g_edict_t *ent) {
 	c_trace_t trace;
@@ -58,7 +58,7 @@ static g_edict_t *G_TestEntityPosition(g_edict_t *ent) {
 #define MAX_VELOCITY 2500
 
 /*
- * G_ClampVelocity
+ * @brief
  */
 static void G_ClampVelocity(g_edict_t *ent) {
 	int32_t i;
@@ -72,10 +72,8 @@ static void G_ClampVelocity(g_edict_t *ent) {
 	}
 }
 
-/**
- * G_RunThink
- *
- * Runs thinking code for this frame if necessary
+/*
+ * @brief Runs thinking code for this frame if necessary
  */
 static bool G_RunThink(g_edict_t *ent) {
 	float think_time;
@@ -98,10 +96,8 @@ static bool G_RunThink(g_edict_t *ent) {
 	return false;
 }
 
-/**
- * G_Impact
- *
- * Two entities have touched, so run their touch functions
+/*
+ * @brief Two entities have touched, so run their touch functions
  */
 static void G_Impact(g_edict_t *e1, c_trace_t *trace) {
 	g_edict_t *e2;
@@ -117,10 +113,8 @@ static void G_Impact(g_edict_t *e1, c_trace_t *trace) {
 
 #define STOP_EPSILON	0.1
 
-/**
- * G_ClipVelocity
- *
- * Slide off of the impacting object
+/*
+ * @brief Slide off of the impacting object
  * returns the blocked flags (1 = floor, 2 = step / wall)
  */
 static int32_t G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce) {
@@ -147,7 +141,7 @@ static int32_t G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbo
 }
 
 /*
- * G_AddGravity
+ * @brief
  */
 static void G_AddGravity(g_edict_t *ent) {
 	if (ent->water_level) {
@@ -164,10 +158,8 @@ static void G_AddGravity(g_edict_t *ent) {
 		ent->velocity[2] -= g_level.gravity * gi.frame_seconds;
 }
 
-/**
- * G_AddFlying
- *
- * Add a bit of randomness to flying object velocity.
+/*
+ * @brief Add a bit of randomness to flying object velocity.
  */
 static void G_AddFlying(g_edict_t *ent) {
 	vec3_t right, up;
@@ -187,10 +179,8 @@ static void G_AddFlying(g_edict_t *ent) {
  *
  */
 
-/**
- * G_PushEntity
- *
- * Does not change the entity's velocity at all
+/*
+ * @brief Does not change the entity's velocity at all
  */
 c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push) {
 	c_trace_t trace;
@@ -240,10 +230,8 @@ g_pushed_t g_pushed[MAX_EDICTS], *g_pushed_p;
 
 g_edict_t *obstacle;
 
-/**
- * G_Push
- *
- * Objects need to be moved back on a failed push,
+/*
+ * @brief Objects need to be moved back on a failed push,
  * otherwise riders would continue to slide.
  */
 static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
@@ -389,10 +377,8 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	return true;
 }
 
-/**
- * G_Physics_Pusher
- *
- * Bmodel objects don't interact with each other, but push all box objects
+/*
+ * @brief Bmodel objects don't interact with each other, but push all box objects
  */
 static void G_Physics_Pusher(g_edict_t *ent) {
 	vec3_t move, amove;
@@ -441,20 +427,16 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 	}
 }
 
-/**
- * G_Physics_None
- *
- * Non moving objects can only think
+/*
+ * @brief Non moving objects can only think
  */
 static void G_Physics_None(g_edict_t *ent) {
 	// regular thinking
 	G_RunThink(ent);
 }
 
-/**
- * G_Physics_Noclip
- *
- * A moving object that doesn't obey physics
+/*
+ * @brief A moving object that doesn't obey physics
  */
 static void G_Physics_Noclip(g_edict_t *ent) {
 
@@ -467,10 +449,8 @@ static void G_Physics_Noclip(g_edict_t *ent) {
 	gi.LinkEntity(ent);
 }
 
-/**
- * G_Physics_Toss
- *
- * Toss, bounce, and fly movement.  When on ground, do nothing.
+/*
+ * @brief Toss, bounce, and fly movement. When on ground, do nothing.
  */
 static void G_Physics_Toss(g_edict_t *ent) {
 	c_trace_t trace;
@@ -576,7 +556,7 @@ static void G_Physics_Toss(g_edict_t *ent) {
 }
 
 /*
- * G_RunEntity
+ * @brief
  */
 void G_RunEntity(g_edict_t *ent) {
 

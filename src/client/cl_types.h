@@ -120,12 +120,12 @@ typedef struct cl_client_s {
 	uint32_t surpress_count; // number of messages rate suppressed
 
 	uint32_t time; // this is the server time value that the client
-	// is rendering at.  always <= cls.real_time due to latency
+	// is rendering at. always <= cls.real_time due to latency
 
 	float lerp; // linear interpolation between frames
 
 	// the client maintains its own idea of view angles, which are
-	// sent to the server each frame.  It is cleared to 0 upon entering each level.
+	// sent to the server each frame. It is cleared to 0 upon entering each level.
 	// the server sends a delta when necessary which is added to the locally
 	// tracked view angles to account for spawn and teleport direction changes
 	vec3_t angles;

@@ -71,9 +71,7 @@ static spawn_t g_spawns[] = {
 		{ NULL, NULL } };
 
 /*
- * G_SpawnEntity
- *
- * Finds the spawn function for the entity and calls it.
+ * @brief Finds the spawn function for the entity and calls it.
  */
 static void G_SpawnEntity(g_edict_t *ent) {
 	spawn_t *s;
@@ -122,7 +120,7 @@ static void G_SpawnEntity(g_edict_t *ent) {
 }
 
 /*
- * G_NewString
+ * @brief
  */
 static char *G_NewString(const char *string) {
 	char *newb, *new_p;
@@ -223,9 +221,7 @@ static const g_field_t fields[] = {
 		{ 0, 0, 0, 0 } };
 
 /*
- * G_ParseField
- *
- * Takes a key-value pair and sets the binary values in an edict.
+ * @brief Takes a key-value pair and sets the binary values in an edict.
  */
 static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 	const g_field_t *f;
@@ -277,11 +273,9 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 	//gi.Debug("%s is not a field\n", key);
 }
 
-/**
- * G_ParseEntity
- *
- * Parses an edict out of the given string, returning the new position
- * in said string.  The edict parameter should be a properly initialized
+/*
+ * @brief Parses an edict out of the given string, returning the new position
+ * in said string. The edict parameter should be a properly initialized
  * free edict.
  */
 static const char *G_ParseEntity(const char *data, g_edict_t *ent) {
@@ -328,10 +322,8 @@ static const char *G_ParseEntity(const char *data, g_edict_t *ent) {
 	return data;
 }
 
-/**
- * G_InitEntityTeams
- *
- * Chain together all entities with a matching team field.
+/*
+ * @brief Chain together all entities with a matching team field.
  *
  * All but the first will have the FL_TEAMSLAVE flag set.
  * All but the last will have the teamchain field set to the next one
@@ -383,10 +375,8 @@ static void G_InitEntityTeams(void) {
 	gi.Debug("%i teams with %i entities\n", c, c2);
 }
 
-/**
- * G_SpawnEntities
- *
- * Creates a server's entity / program execution context by
+/*
+ * @brief Creates a server's entity / program execution context by
  * parsing textual entity definitions out of an ent file.
  */
 void G_SpawnEntities(const char *name, const char *entities) {
@@ -481,7 +471,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 }
 
 /*
- * G_WorldspawnMusic
+ * @brief
  */
 static void G_WorldspawnMusic(void) {
 	char *t, buf[MAX_STRING_CHARS];

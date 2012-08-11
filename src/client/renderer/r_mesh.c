@@ -26,9 +26,7 @@ vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3]; // same for normal vectors
 vec4_t r_mesh_tangents[MD3_MAX_TRIANGLES * 3]; // and tangents
 
 /*
- * R_ApplyMeshModelConfig
- *
- * Applies any client-side transformations specified by the model's world or
+ * @brief Applies any client-side transformations specified by the model's world or
  * view configuration structure.
  */
 void R_ApplyMeshModelConfig(r_entity_t *e) {
@@ -74,9 +72,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 }
 
 /*
- * R_GetMeshModelTag
- *
- * Returns the desired tag structure, or NULL.
+ * @brief Returns the desired tag structure, or NULL.
  */
 static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const char *name) {
 
@@ -100,9 +96,7 @@ static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const
 }
 
 /*
- * R_ApplyMeshModelTag
- *
- * Applies transformation and rotation for the specified linked entity.
+ * @brief Applies transformation and rotation for the specified linked entity.
  */
 void R_ApplyMeshModelTag(r_entity_t *e) {
 
@@ -140,7 +134,7 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 }
 
 /*
- * R_CullMeshModel
+ * @brief
  */bool R_CullMeshModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 
@@ -156,9 +150,7 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 }
 
 /*
- * R_UpdateMeshLighting
- *
- * Updates static lighting information for the specified mesh entity.
+ * @brief Updates static lighting information for the specified mesh entity.
  */
 void R_UpdateMeshLighting(const r_entity_t *e) {
 
@@ -181,7 +173,7 @@ void R_UpdateMeshLighting(const r_entity_t *e) {
 }
 
 /*
- * R_SetMeshColor_default
+ * @brief
  */
 static void R_SetMeshColor_default(const r_entity_t *e) {
 	vec4_t color;
@@ -217,7 +209,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 static r_image_t *r_mesh_material;
 
 /*
- * R_SetMeshState_default
+ * @brief
  */
 static void R_SetMeshState_default(const r_entity_t *e) {
 
@@ -284,7 +276,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 }
 
 /*
- * R_ResetMeshState_default
+ * @brief
  */
 static void R_ResetMeshState_default(const r_entity_t *e) {
 
@@ -301,10 +293,8 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 #define MESH_SHADOW_ALPHA 0.15
 
 /*
- * R_RotateForMeshShadow_default
- *
- * Applies translation, rotation and scale for the shadow of the specified
- * entity.  In order to reuse the vertex arrays from the primary rendering
+ * @brief Applies translation, rotation and scale for the shadow of the specified
+ * entity. In order to reuse the vertex arrays from the primary rendering
  * pass, the shadow origin must transformed into model-view space.
  */
 static void R_RotateForMeshShadow_default(const r_entity_t *e) {
@@ -342,9 +332,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 }
 
 /*
- * R_DrawMeshShell_default
- *
- * Draws an animated, colored shell for the specified entity.  Rather than
+ * @brief Draws an animated, colored shell for the specified entity. Rather than
  * re-lerping or re-scaling the entity, the currently bound vertex arrays
  * are simply re-drawn using a small depth offset.
  */
@@ -371,9 +359,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
 }
 
 /*
- * R_DrawMeshShadow_default
- *
- * Re-draws the mesh using the stencil test.  Meshes with stale lighting
+ * @brief Re-draws the mesh using the stencil test. Meshes with stale lighting
  * information, or with a lighting point above our view, are not drawn.
  */
 static void R_DrawMeshShadow_default(const r_entity_t *e) {
@@ -436,7 +422,7 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 }
 
 /*
- * R_InterpolateMeshModel_default
+ * @brief
  */
 static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 	const r_md3_t *md3;
@@ -494,10 +480,8 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 	}
 }
 
-/**
- * R_DrawMeshParts_default
- *
- * Draw the diffuse pass of each mesh segment for the specified model.
+/*
+ * @brief Draw the diffuse pass of each mesh segment for the specified model.
  */
 static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 	r_md3_mesh_t *mesh = md3->meshes;
@@ -522,7 +506,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 }
 
 /*
- * R_DrawMeshModel_default
+ * @brief
  */
 void R_DrawMeshModel_default(const r_entity_t *e) {
 

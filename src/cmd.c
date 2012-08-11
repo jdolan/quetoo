@@ -38,10 +38,8 @@ static int32_t alias_count; // for detecting runaway loops
 
 
 /*
- * Cmd_Wait_f
- *
- * Causes execution of the remainder of the command buffer to be delayed until
- * next frame.  This allows commands like:
+ * @brief Causes execution of the remainder of the command buffer to be delayed until
+ * next frame. This allows commands like:
  * bind g "+attack; wait; -attack;"
  */
 static void Cmd_Wait_f(void) {
@@ -60,16 +58,14 @@ static byte cmd_text_buf[8192];
 static char defer_text_buf[8192];
 
 /*
- * Cbuf_Init
+ * @brief
  */
 void Cbuf_Init(void) {
 	Sb_Init(&cmd_text, cmd_text_buf, sizeof(cmd_text_buf));
 }
 
 /*
- * Cbuf_AddText
- *
- * Adds command text at the end of the buffer
+ * @brief Adds command text at the end of the buffer
  */
 void Cbuf_AddText(const char *text) {
 	int32_t l;
@@ -85,9 +81,7 @@ void Cbuf_AddText(const char *text) {
 }
 
 /*
- * Cbuf_InsertText
- *
- * Adds command text immediately after the current command
+ * @brief Adds command text immediately after the current command
  * Adds a \n to the text.
  */
 void Cbuf_InsertText(const char *text) {
@@ -114,7 +108,7 @@ void Cbuf_InsertText(const char *text) {
 }
 
 /*
- * Cbuf_CopyToDefer
+ * @brief
  */
 void Cbuf_CopyToDefer(void) {
 	memcpy(defer_text_buf, cmd_text_buf, cmd_text.size);
@@ -123,7 +117,7 @@ void Cbuf_CopyToDefer(void) {
 }
 
 /*
- * Cbuf_InsertFromDefer
+ * @brief
  */
 void Cbuf_InsertFromDefer(void) {
 	Cbuf_InsertText(defer_text_buf);
@@ -131,7 +125,7 @@ void Cbuf_InsertFromDefer(void) {
 }
 
 /*
- * Cbuf_Execute
+ * @brief
  */
 void Cbuf_Execute(void) {
 	uint32_t i;
@@ -188,9 +182,7 @@ void Cbuf_Execute(void) {
 }
 
 /*
- * Cbuf_AddEarlyCommands
- *
- * Adds command line parameters as script statements
+ * @brief Adds command line parameters as script statements
  * Commands lead with a +, and continue until another +.
  *
  * Set commands are added early, so they are guaranteed to be set before
@@ -218,9 +210,7 @@ void Cbuf_AddEarlyCommands(bool clear) {
 }
 
 /*
- * Cbuf_AddLateCommands
- *
- * Adds remaining command line parameters as script statements
+ * @brief Adds remaining command line parameters as script statements
  * Commands lead with a + and continue until another +.
  */
 void Cbuf_AddLateCommands(void) {
@@ -260,7 +250,7 @@ void Cbuf_AddLateCommands(void) {
  */
 
 /*
- * Cmd_Exec_f
+ * @brief
  */
 static void Cmd_Exec_f(void) {
 	void *buf;
@@ -285,10 +275,8 @@ static void Cmd_Exec_f(void) {
 	Fs_FreeFile(buf);
 }
 
-/**
- * Cmd_Echo_f
- *
- * Just prints the rest of the line to the console
+/*
+ * @brief Just prints the rest of the line to the console
  */
 static void Cmd_Echo_f(void) {
 	int32_t i;
@@ -298,10 +286,8 @@ static void Cmd_Echo_f(void) {
 	Com_Print("\n");
 }
 
-/**
- * Cmd_Alias_f
- *
- * Creates a new command that executes a command string (possibly ; seperated)
+/*
+ * @brief Creates a new command that executes a command string (possibly ; seperated)
  */
 static void Cmd_Alias_f(void) {
 	cmd_alias_t *a;
@@ -368,14 +354,14 @@ static cmd_t *cmd_commands; // possible commands to execute
 static hash_table_t cmd_hash; // hashed for fast lookups
 
 /*
- * Cmd_Argc
+ * @brief
  */
 int32_t Cmd_Argc(void) {
 	return cmd_state.argc;
 }
 
 /*
- * Cmd_Argv
+ * @brief
  */
 char *Cmd_Argv(int32_t arg) {
 	if (arg >= cmd_state.argc)
@@ -383,19 +369,15 @@ char *Cmd_Argv(int32_t arg) {
 	return cmd_state.argv[arg];
 }
 
-/**
- * Cmd_Args
- *
- * Returns a single string containing all command arguments.
+/*
+ * @brief Returns a single string containing all command arguments.
  */
 char *Cmd_Args(void) {
 	return cmd_state.args;
 }
 
-/**
- * Cmd_TokenizeString
- *
- * Parses the given string into command line tokens.
+/*
+ * @brief Parses the given string into command line tokens.
  */
 void Cmd_TokenizeString(const char *text) {
 	char *c;
@@ -456,7 +438,7 @@ void Cmd_TokenizeString(const char *text) {
 }
 
 /*
- * Cmd_Get
+ * @brief
  */
 cmd_t *Cmd_Get(const char *name) {
 	cmd_t *cmd;
@@ -470,7 +452,7 @@ cmd_t *Cmd_Get(const char *name) {
 }
 
 /*
- * Cmd_AddCommand
+ * @brief
  */
 void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
 		const char *description) {
@@ -516,7 +498,7 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
 }
 
 /*
- * Cmd_RemoveCommand
+ * @brief
  */
 void Cmd_RemoveCommand(const char *name) {
 	cmd_t *cmd, **back;
@@ -540,7 +522,7 @@ void Cmd_RemoveCommand(const char *name) {
 }
 
 /*
- * Cmd_CompleteCommand
+ * @brief
  */
 int32_t Cmd_CompleteCommand(const char *partial, const char *matches[]) {
 	cmd_t *cmd;
@@ -575,9 +557,7 @@ int32_t Cmd_CompleteCommand(const char *partial, const char *matches[]) {
 }
 
 /*
- * Cmd_ExecuteString
- *
- * A complete command line has been parsed, so try to execute it
+ * @brief A complete command line has been parsed, so try to execute it
  */
 void Cmd_ExecuteString(const char *text) {
 	cmd_t *cmd;
@@ -619,7 +599,7 @@ void Cmd_ExecuteString(const char *text) {
 }
 
 /*
- * Cmd_List_f
+ * @brief
  */
 static void Cmd_List_f(void) {
 	cmd_t *cmd;
@@ -635,7 +615,7 @@ static void Cmd_List_f(void) {
 }
 
 /*
- * Cmd_Init
+ * @brief
  */
 void Cmd_Init(void) {
 

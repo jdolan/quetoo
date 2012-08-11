@@ -42,9 +42,7 @@ static int32_t curses_last_update; // number of milliseconds since last redraw
 
 
 /*
- * Curses_SetColor
- *
- * Set the curses drawing color
+ * @brief Set the curses drawing color
  */
 static void Curses_SetColor(int32_t color) {
 	if (!has_colors())
@@ -58,9 +56,7 @@ static void Curses_SetColor(int32_t color) {
 }
 
 /*
- * Curses_DrawBackground
- *
- * Clear and draw background objects
+ * @brief Clear and draw background objects
  */
 static void Curses_DrawBackground(void) {
 	Curses_SetColor(CON_COLOR_DEFAULT);
@@ -76,9 +72,7 @@ static void Curses_DrawBackground(void) {
 }
 
 /*
- * Curses_DrawInput
- *
- * Draw the inputbox
+ * @brief Draw the inputbox
  */
 static void Curses_DrawInput(void) {
 	int32_t x;
@@ -95,9 +89,7 @@ static void Curses_DrawInput(void) {
 }
 
 /*
- * Curses_DrawConsole
- *
- * Draw the content of the console,
+ * @brief Draw the content of the console,
  * parse color codes and line breaks.
  *
  */
@@ -160,18 +152,14 @@ static void Curses_DrawConsole(void) {
 }
 
 /*
- * Curses_Refresh
- *
- * Mark the buffer for redraw
+ * @brief Mark the buffer for redraw
  */
 void Curses_Refresh(void) {
 	curses_redraw |= 2;
 }
 
 /*
- * Curses_Draw
- *
- * Draw everything
+ * @brief Draw everything
  */
 static void Curses_Draw(void) {
 	int32_t timeout;
@@ -203,9 +191,7 @@ static void Curses_Draw(void) {
 }
 
 /*
- * Curses_Resize
- *
- * Window resize signal handler
+ * @brief Window resize signal handler
  */
 static void Curses_Resize(int32_t sig __attribute__((unused))) {
 
@@ -227,9 +213,7 @@ static void Curses_Resize(int32_t sig __attribute__((unused))) {
 }
 
 /*
- * Curses_Frame
- *
- * Handle curses input and redraw if necessary
+ * @brief Handle curses input and redraw if necessary
  */
 void Curses_Frame(uint32_t msec) {
 	int32_t key;
@@ -352,9 +336,7 @@ void Curses_Frame(uint32_t msec) {
 }
 
 /*
- * Curses_Init
- *
- * Initialize the curses console
+ * @brief Initialize the curses console
  */
 void Curses_Init(void) {
 
@@ -417,9 +399,7 @@ void Curses_Init(void) {
 }
 
 /*
- * Curses_Shutdown
- *
- * Shutdown the curses console
+ * @brief Shutdown the curses console
  */
 void Curses_Shutdown(void) {
 	// shutdown ncurses

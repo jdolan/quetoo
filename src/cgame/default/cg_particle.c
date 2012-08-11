@@ -26,7 +26,7 @@ static r_particle_t cg_particles[MAX_PARTICLES];
 static uint32_t last_particle_time;
 
 /*
- * Cg_AllocParticle
+ * @brief
  */
 r_particle_t *Cg_AllocParticle(uint16_t type) {
 	r_particle_t *p;
@@ -50,7 +50,7 @@ r_particle_t *Cg_AllocParticle(uint16_t type) {
 }
 
 /*
- * Cg_FreeParticle
+ * @brief
  */
 static void Cg_FreeParticle(r_particle_t *p) {
 
@@ -65,7 +65,7 @@ static void Cg_FreeParticle(r_particle_t *p) {
 }
 
 /*
- * Cg_FreeParticles
+ * @brief
  */
 void Cg_FreeParticles(void) {
 	int32_t i;
@@ -81,7 +81,7 @@ void Cg_FreeParticles(void) {
 }
 
 /*
- * Cg_AddParticles
+ * @brief
  */
 void Cg_AddParticles(void) {
 	r_particle_t *p, *next;

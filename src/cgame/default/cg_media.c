@@ -65,9 +65,7 @@ r_image_t *cg_particle_inactive;
 r_image_t *cg_particle_bullet[3];
 
 /*
- * Cg_UpdateMedia
- *
- * Updates all media references for the client game.
+ * @brief Updates all media references for the client game.
  */
 void Cg_UpdateMedia(void) {
 	int32_t i;

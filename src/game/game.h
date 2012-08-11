@@ -129,7 +129,7 @@ typedef struct g_import_s {
 	void (*Pmove)(pm_move_t *pm_state); // player movement code common with client prediction
 
 	// an entity will never be sent to a client or used for collision
-	// if it is not passed to linkentity.  if the size, position, or
+	// if it is not passed to linkentity. if the size, position, or
 	// solidity changes, it must be relinked.
 	void (*LinkEntity)(g_edict_t *ent);
 	void (*UnlinkEntity)(g_edict_t *ent); // call before removing an interactive edict
@@ -178,7 +178,7 @@ typedef struct g_export_s {
 	int32_t api_version;
 
 	// the init function will only be called when a game starts,
-	// not each time a level is loaded.  Persistent data for clients
+	// not each time a level is loaded. Persistent data for clients
 	// and the server can be allocated in init
 	void (*Init)(void);
 	void (*Shutdown)(void);

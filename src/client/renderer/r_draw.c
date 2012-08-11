@@ -96,7 +96,7 @@ typedef struct r_draw_s {
 r_draw_t r_draw;
 
 /*
- * R_LoadPic
+ * @brief
  */
 r_image_t *R_LoadPic(const char *name) {
 	r_image_t *image;
@@ -115,7 +115,7 @@ r_image_t *R_LoadPic(const char *name) {
 }
 
 /*
- * R_DrawImage
+ * @brief
  */
 static void R_DrawImage(r_pixel_t x, r_pixel_t y, float scale, r_image_t *image) {
 
@@ -139,7 +139,7 @@ static void R_DrawImage(r_pixel_t x, r_pixel_t y, float scale, r_image_t *image)
 }
 
 /*
- * R_DrawPic
+ * @brief
  */
 void R_DrawPic(r_pixel_t x, r_pixel_t y, float scale, const char *name) {
 	r_image_t *pic;
@@ -155,7 +155,7 @@ void R_DrawPic(r_pixel_t x, r_pixel_t y, float scale, const char *name) {
 }
 
 /*
- * R_DrawCursor
+ * @brief
  */
 void R_DrawCursor(r_pixel_t x, r_pixel_t y) {
 
@@ -165,10 +165,8 @@ void R_DrawCursor(r_pixel_t x, r_pixel_t y) {
 	R_DrawImage(x, y, 1.0, r_draw.cursor);
 }
 
-/**
- * R_BindFont
- *
- * Binds the specified font, returning the character width and height.
+/*
+ * @brief Binds the specified font, returning the character width and height.
  */
 void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 
@@ -196,10 +194,8 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 		*ch = r_draw.font->char_height;
 }
 
-/**
- * R_StringWidth
- *
- * Return the width of the specified string in pixels. This will vary based
+/*
+ * @brief Return the width of the specified string in pixels. This will vary based
  * on the currently bound font. Color escapes are omitted.
  */
 r_pixel_t R_StringWidth(const char *s) {
@@ -211,24 +207,22 @@ r_pixel_t R_StringWidth(const char *s) {
 }
 
 /*
- * R_DrawString
+ * @brief
  */
 size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, int32_t color) {
 	return R_DrawSizedString(x, y, s, 999, 999, color);
 }
 
 /*
- * R_DrawBytes
+ * @brief
  */
 size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, int32_t color) {
 	return R_DrawSizedString(x, y, s, size, size, color);
 }
 
-/**
- * R_DrawSizedString
- *
- * Draws at most len chars or size bytes of the specified string.  Color escape
- * sequences are not visible chars.  Returns the number of chars drawn.
+/*
+ * @brief Draws at most len chars or size bytes of the specified string. Color escape
+ * sequences are not visible chars. Returns the number of chars drawn.
  */
 size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size,
 		int32_t color) {
@@ -263,7 +257,7 @@ size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, si
 }
 
 /*
- * R_DrawChar
+ * @brief
  */
 void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 
@@ -321,7 +315,7 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 }
 
 /*
- * R_DrawChars
+ * @brief
  */
 void R_DrawChars(void) {
 	uint16_t i;
@@ -360,9 +354,7 @@ void R_DrawChars(void) {
 }
 
 /*
- * R_DrawFill
- *
- * The color can be specified as an index into the palette with positive alpha
+ * @brief The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
 void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, float a) {
@@ -405,7 +397,7 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, f
 }
 
 /*
- * R_DrawFills
+ * @brief
  */
 void R_DrawFills(void) {
 
@@ -434,7 +426,7 @@ void R_DrawFills(void) {
 }
 
 /*
- * R_DrawLine
+ * @brief
  */
 void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t c, float a) {
 	byte color[4];
@@ -468,7 +460,7 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 }
 
 /*
- * R_DrawLines
+ * @brief
  */
 void R_DrawLines(void) {
 
@@ -497,7 +489,7 @@ void R_DrawLines(void) {
 }
 
 /*
- * R_FreePics
+ * @brief
  */
 void R_FreePics(void) {
 	Hash_Free(&r_draw.hash_table);
@@ -505,9 +497,7 @@ void R_FreePics(void) {
 }
 
 /*
- * R_InitFont
- *
- * Initializes the specified bitmap font. The layout of the font is square,
+ * @brief Initializes the specified bitmap font. The layout of the font is square,
  * 2^n (e.g. 256x256, 512x512), and 8 rows by 16 columns. See below:
  *
  *
@@ -538,7 +528,7 @@ static void R_InitFont(char *name) {
 }
 
 /*
- * R_InitDraw
+ * @brief
  */
 void R_InitDraw(void) {
 

@@ -51,7 +51,7 @@ static long status, length; // for current transfer
 static bool gzip, success;
 
 /*
- * Cl_HttpDownloadRecv
+ * @brief
  */
 static size_t Cl_HttpDownloadRecv(void *buffer, size_t size, size_t nmemb,
 		void *p __attribute__((unused))) {
@@ -59,10 +59,8 @@ static size_t Cl_HttpDownloadRecv(void *buffer, size_t size, size_t nmemb,
 }
 
 /*
- * Cl_HttpDownload
- *
- * Queue up an http download.  The url is resolved from cls.download_url and
- * the current game.  We use cURL's multi interface, even tho we only ever
+ * @brief Queue up an http download. The url is resolved from cls.download_url and
+ * the current game. We use cURL's multi interface, even tho we only ever
  * perform one download at a time, because it is non-blocking.
  */
 bool Cl_HttpDownload(void) {
@@ -113,7 +111,7 @@ bool Cl_HttpDownload(void) {
 }
 
 /*
- * Cl_HttpResponseCode
+ * @brief
  */
 static char *Cl_HttpResponseCode(long code) {
 	int32_t i = 0;
@@ -126,9 +124,7 @@ static char *Cl_HttpResponseCode(long code) {
 }
 
 /*
- * Cl_HttpDownloadCleanup
- *
- * If a download is currently taking place, clean it up.  This is called
+ * @brief If a download is currently taking place, clean it up. This is called
  * both to finalize completed downloads as well as abort incomplete ones.
  */
 void Cl_HttpDownloadCleanup() {
@@ -195,11 +191,9 @@ void Cl_HttpDownloadCleanup() {
 }
 
 /*
- * Cl_HttpDownloadThink
- *
- * Process the pending download by giving cURL some time to think.
+ * @brief Process the pending download by giving cURL some time to think.
  * Poll it for feedback on the transfer to determine what action to take.
- * If a transfer fails, stuff a stringcmd to download it via UDP.  Since
+ * If a transfer fails, stuff a stringcmd to download it via UDP. Since
  * we leave cls.download.tempname in tact during our cleanup, when the
  * download is parsed back in the client, it will fopen and begin.
  */
@@ -245,7 +239,7 @@ void Cl_HttpDownloadThink(void) {
 }
 
 /*
- * Cl_InitHttpDownload
+ * @brief
  */
 void Cl_InitHttpDownload(void) {
 
@@ -259,7 +253,7 @@ void Cl_InitHttpDownload(void) {
 }
 
 /*
- * Cl_ShutdownHttpDownload
+ * @brief
  */
 void Cl_ShutdownHttpDownload(void) {
 

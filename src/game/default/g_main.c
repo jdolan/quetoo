@@ -81,7 +81,7 @@ char sql[512];
 FILE *frag_log, *chat_log, *f;
 
 /*
- * G_ResetTeams
+ * @brief
  */
 void G_ResetTeams(void) {
 
@@ -99,7 +99,7 @@ void G_ResetTeams(void) {
 }
 
 /*
- * G_ResetVote
+ * @brief
  */
 void G_ResetVote(void) {
 	int32_t i;
@@ -118,10 +118,8 @@ void G_ResetVote(void) {
 	g_level.vote_time = 0;
 }
 
-/**
- * G_ResetItems
- *
- * Reset all items in the level based on gameplay, ctf, etc.
+/*
+ * @brief Reset all items in the level based on gameplay, ctf, etc.
  */
 static void G_ResetItems(void) {
 	g_edict_t *ent;
@@ -168,12 +166,10 @@ static void G_ResetItems(void) {
 	}
 }
 
-/**
- * G_RestartGame
- *
- * For normal games, this just means reset scores and respawn.
+/*
+ * @brief For normal games, this just means reset scores and respawn.
  * For match games, this means cancel the match and force everyone
- * to ready again.  Teams are only reset when teamz is true.
+ * to ready again. Teams are only reset when teamz is true.
  */
 static void G_RestartGame(bool teamz) {
 	int32_t i;
@@ -241,7 +237,7 @@ static void G_RestartGame(bool teamz) {
 }
 
 /*
- * G_MuteClient
+ * @brief
  */
 static void G_MuteClient(char *name, bool mute) {
 	g_client_t *cl;
@@ -253,7 +249,7 @@ static void G_MuteClient(char *name, bool mute) {
 }
 
 /*
- * G_BeginIntermission
+ * @brief
  */
 static void G_BeginIntermission(const char *map) {
 	int32_t i;
@@ -307,7 +303,7 @@ static void G_BeginIntermission(const char *map) {
 }
 
 /*
- * G_CheckVote
+ * @brief
  */
 static void G_CheckVote(void) {
 	int32_t i, count = 0;
@@ -352,17 +348,15 @@ static void G_CheckVote(void) {
 	}
 }
 
-/**
- * G_EndLevel
- *
- * The time limit, frag limit, etc.. has been exceeded.
+/*
+ * @brief The time limit, frag limit, etc.. has been exceeded.
  */
 static void G_EndLevel(void) {
 	G_BeginIntermission(G_SelectNextmap());
 }
 
 /*
- * G_CheckRoundStart
+ * @brief
  */
 static void G_CheckRoundStart(void) {
 	int32_t i, g, e, clients;
@@ -410,7 +404,7 @@ static void G_CheckRoundStart(void) {
 }
 
 /*
- * G_CheckRoundLimit
+ * @brief
  */
 static void G_CheckRoundLimit() {
 	int32_t i;
@@ -448,7 +442,7 @@ static void G_CheckRoundLimit() {
 }
 
 /*
- * G_CheckRoundEnd
+ * @brief
  */
 static void G_CheckRoundEnd(void) {
 	uint32_t i, g, e, clients;
@@ -527,7 +521,7 @@ static void G_CheckRoundEnd(void) {
 }
 
 /*
- * G_CheckMatchEnd
+ * @brief
  */
 static void G_CheckMatchEnd(void) {
 	int32_t i, g, e, clients;
@@ -569,7 +563,7 @@ static void G_CheckMatchEnd(void) {
 }
 
 /*
- * G_FormatTime
+ * @brief
  */
 static char *G_FormatTime(uint32_t time) {
 	static char formatted_time[MAX_QPATH];
@@ -592,7 +586,7 @@ static char *G_FormatTime(uint32_t time) {
 }
 
 /*
- * G_CheckRules
+ * @brief
  */
 static void G_CheckRules(void) {
 	uint32_t time;
@@ -812,7 +806,7 @@ static void G_CheckRules(void) {
 }
 
 /*
- * G_ExitLevel
+ * @brief
  */
 static void G_ExitLevel(void) {
 
@@ -825,10 +819,8 @@ static void G_ExitLevel(void) {
 }
 
 #define INTERMISSION (10.0 * 1000) // intermission duration
-/**
- * G_Frame
- *
- * The main game module "think" function, called once per server frame.
+/*
+ * @brief The main game module "think" function, called once per server frame.
  * Nothing would happen in Quake land if this weren't called.
  */
 static void G_Frame(void) {
@@ -893,7 +885,7 @@ static void G_Frame(void) {
 }
 
 /*
- * G_InitMapList
+ * @brief
  */
 static void G_InitMapList(void) {
 	int32_t i;
@@ -911,10 +903,8 @@ static void G_InitMapList(void) {
 	}
 }
 
-/**
- * G_ParseMapList
- *
- * Populates a g_map_list_t from a text file.  See default/maps.lst
+/*
+ * @brief Populates a g_map_list_t from a text file. See default/maps.lst
  */
 static void G_ParseMapList(const char *file_name) {
 	void *buf;
@@ -1089,7 +1079,7 @@ static void G_ParseMapList(const char *file_name) {
 }
 
 /*
- * G_SelectNextmap
+ * @brief
  */
 const char *G_SelectNextmap(void) {
 	uint32_t i = 0;
@@ -1112,10 +1102,8 @@ const char *G_SelectNextmap(void) {
 	return g_level.name;
 }
 
-/**
- * G_GameName
- *
- * Returns the game name advertised by the server in info strings.
+/*
+ * @brief Returns the game name advertised by the server in info strings.
  */
 const char *G_GameName(void) {
 	static char name[64];
@@ -1132,10 +1120,8 @@ const char *G_GameName(void) {
 	return name;
 }
 
-/**
- * G_Init
- *
- * This will be called when the game module is first loaded.
+/*
+ * @brief This will be called when the game module is first loaded.
  */
 void G_Init(void) {
 
@@ -1227,10 +1213,8 @@ void G_Init(void) {
 	gi.Print("  Game initialized.\n");
 }
 
-/**
- * G_Shutdown
- *
- * Frees tags and closes frag_log.  This is called when the game is unloaded
+/*
+ * @brief Frees tags and closes frag_log. This is called when the game is unloaded
  * (complements G_Init).
  */
 void G_Shutdown(void) {
@@ -1252,12 +1236,10 @@ void G_Shutdown(void) {
 	gi.FreeTag(TAG_GAME);
 }
 
-/**
- * G_LoadGame
- *
- * This is the entry point responsible for aligning the server and game module.
+/*
+ * @brief This is the entry point responsible for aligning the server and game module.
  * The server resolves this symbol upon successfully loading the game library,
- * and invokes it.  We're responsible for copying the import structure so that
+ * and invokes it. We're responsible for copying the import structure so that
  * we can call back into the server, and returning a populated game export
  * structure.
  */

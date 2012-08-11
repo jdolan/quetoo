@@ -292,9 +292,7 @@ static bsp_brush_t *CullList(bsp_brush_t * list, const bsp_brush_t * skip1) {
 }
 
 /*
- * BrushGE
- *
- * Returns true if b1 is allowed to bite b2
+ * @brief Returns true if b1 is allowed to bite b2
  */
 static inline bool BrushGE(const bsp_brush_t * b1, const bsp_brush_t * b2) {
 	// detail brushes never bite structural brushes
@@ -307,9 +305,7 @@ static inline bool BrushGE(const bsp_brush_t * b1, const bsp_brush_t * b2) {
 }
 
 /*
- * ChopBrushes
- *
- * Carves any intersecting solid brushes into the minimum number
+ * @brief Carves any intersecting solid brushes into the minimum number
  * of non-intersecting brushes.
  */
 bsp_brush_t *ChopBrushes(bsp_brush_t * head) {

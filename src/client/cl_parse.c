@@ -34,10 +34,8 @@ static char *sv_cmd_names[256] = {
 		"SV_CMD_SERVER_DATA",
 		"SV_CMD_SOUND" };
 
-/**
- * Cl_CheckOrDownloadFile
- *
- * Returns true if the file exists, otherwise it attempts to start a download
+/*
+ * @brief Returns true if the file exists, otherwise it attempts to start a download
  * from the server.
  */
 bool Cl_CheckOrDownloadFile(const char *file_name) {
@@ -111,10 +109,8 @@ bool Cl_CheckOrDownloadFile(const char *file_name) {
 	return false;
 }
 
-/**
- * Cl_Download_f
- *
- * Manually request a download from the server.
+/*
+ * @brief Manually request a download from the server.
  */
 void Cl_Download_f(void) {
 
@@ -127,7 +123,7 @@ void Cl_Download_f(void) {
 }
 
 /*
- * Cl_ParseBaseline
+ * @brief
  */
 static void Cl_ParseBaseline(void) {
 	entity_state_t *state;
@@ -143,7 +139,7 @@ static void Cl_ParseBaseline(void) {
 }
 
 /*
- * Cl_ParseConfigString
+ * @brief
  */
 void Cl_ParseConfigString(void) {
 	const uint16_t i = (uint16_t) Msg_ReadShort(&net_message);
@@ -177,10 +173,8 @@ void Cl_ParseConfigString(void) {
 	cls.cgame->UpdateConfigString(i);
 }
 
-/**
- * Cl_ParseDownload
- *
- * A download message has been received from the server.
+/*
+ * @brief A download message has been received from the server.
  */
 static void Cl_ParseDownload(void) {
 	int32_t size, percent;
@@ -245,7 +239,7 @@ static void Cl_ParseDownload(void) {
 }
 
 /*
- * Cl_ParseServerData
+ * @brief
  */
 static void Cl_ParseServerData(void) {
 	char *str;
@@ -292,7 +286,7 @@ static void Cl_ParseServerData(void) {
 }
 
 /*
- * Cl_ParseSound
+ * @brief
  */
 static void Cl_ParseSound(void) {
 	vec3_t origin;
@@ -336,7 +330,7 @@ static void Cl_ParseSound(void) {
 }
 
 /*
- * Cl_IgnoreChatMessage
+ * @brief
  */
 static bool Cl_IgnoreChatMessage(const char *msg) {
 
@@ -354,7 +348,7 @@ static bool Cl_IgnoreChatMessage(const char *msg) {
 }
 
 /*
- * Cl_ShowNet
+ * @brief
  */
 static void Cl_ShowNet(const char *s) {
 	if (cl_show_net_messages->integer >= 2)
@@ -362,7 +356,7 @@ static void Cl_ShowNet(const char *s) {
 }
 
 /*
- * Cl_ParseServerMessage
+ * @brief
  */
 void Cl_ParseServerMessage(void) {
 	int32_t cmd, old_cmd;

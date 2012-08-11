@@ -53,7 +53,7 @@ void Cbuf_AddLateCommands(void);
 
 void Cbuf_Execute(void);
 // Pulls off \n terminated lines of text from the command buffer and sends
-// them through Cmd_ExecuteString.  Stops when the buffer is empty.
+// them through Cmd_ExecuteString. Stops when the buffer is empty.
 // Normally called once per frame, but may be explicitly invoked.
 // Do not call inside a command function!
 
@@ -104,7 +104,7 @@ char *Cmd_Args(void);
 // if arg > argc, so string operations are always safe.
 
 void Cmd_TokenizeString(const char *text);
-// Takes a null terminated string.  Does not need to be /n terminated.
+// Takes a null terminated string. Does not need to be /n terminated.
 // breaks the string up into arg tokens.
 
 void Cmd_ExecuteString(const char *text);

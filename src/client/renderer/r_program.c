@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /*
- * R_UseProgram
+ * @brief
  */
 void R_UseProgram(r_program_t *prog) {
 
@@ -44,7 +44,7 @@ void R_UseProgram(r_program_t *prog) {
 }
 
 /*
- * R_ProgramVariable
+ * @brief
  */
 void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name) {
 
@@ -134,7 +134,7 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, GLfloat *value) {
 }
 
 /*
- * R_AttributePointer
+ * @brief
  */
 void R_AttributePointer(const char *name, GLuint size, GLvoid *array) {
 	r_attribute_t attribute;
@@ -147,7 +147,7 @@ void R_AttributePointer(const char *name, GLuint size, GLvoid *array) {
 }
 
 /*
- * R_EnableAttribute
+ * @brief
  */
 void R_EnableAttribute(r_attribute_t *attribute) {
 
@@ -165,7 +165,7 @@ void R_EnableAttribute(r_attribute_t *attribute) {
 }
 
 /*
- * R_DisableAttribute
+ * @brief
  */
 void R_DisableAttribute(r_attribute_t *attribute) {
 
@@ -183,7 +183,7 @@ void R_DisableAttribute(r_attribute_t *attribute) {
 }
 
 /*
- * R_ShutdownShader
+ * @brief
  */
 static void R_ShutdownShader(r_shader_t *sh) {
 
@@ -192,7 +192,7 @@ static void R_ShutdownShader(r_shader_t *sh) {
 }
 
 /*
- * R_ShutdownProgram
+ * @brief
  */
 static void R_ShutdownProgram(r_program_t *prog) {
 
@@ -209,7 +209,7 @@ static void R_ShutdownProgram(r_program_t *prog) {
 }
 
 /*
- * R_ShutdownPrograms
+ * @brief
  */
 void R_ShutdownPrograms(void) {
 	int32_t i;
@@ -229,7 +229,7 @@ void R_ShutdownPrograms(void) {
 }
 
 /*
- * R_LoadShader
+ * @brief
  */
 static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	r_shader_t *sh;
@@ -294,7 +294,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 }
 
 /*
- * R_LoadProgram
+ * @brief
  */
 static r_program_t *R_LoadProgram(const char *name, void(*Init)(void)) {
 	r_program_t *prog;
@@ -353,7 +353,7 @@ static r_program_t *R_LoadProgram(const char *name, void(*Init)(void)) {
 }
 
 /*
- * R_InitPrograms
+ * @brief
  */
 void R_InitPrograms(void) {
 

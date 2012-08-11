@@ -26,10 +26,8 @@ ui_t ui;
 
 extern cl_static_t cls;
 
-/**
- * Ui_Event
- *
- * Handles input events, returning true if the event was swallowed by TwBar.
+/*
+ * @brief Handles input events, returning true if the event was swallowed by TwBar.
  */bool Ui_Event(SDL_Event *event) {
 	bool handled;
 
@@ -50,10 +48,8 @@ extern cl_static_t cls;
 	return handled;
 }
 
-/**
- * Ui_Draw
- *
- * Draws any active TwBar components.
+/*
+ * @brief Draws any active TwBar components.
  */
 void Ui_Draw(void) {
 	static int32_t w, h;
@@ -76,10 +72,8 @@ void Ui_Draw(void) {
 	TwDraw();
 }
 
-/**
- * Ui_Root
- *
- * Defines the root TwBar.
+/*
+ * @brief Defines the root TwBar.
  */
 static TwBar *Ui_Root(void) {
 	TwBar *bar = TwNewBar("Quake2World");
@@ -101,7 +95,7 @@ static TwBar *Ui_Root(void) {
 }
 
 /*
- * Ui_Restart_f
+ * @brief
  */
 static void Ui_Restart_f(void) {
 
@@ -111,7 +105,7 @@ static void Ui_Restart_f(void) {
 }
 
 /*
- * Ui_Init
+ * @brief
  */
 void Ui_Init(void) {
 	const TwEnumVal OffOrOn[] = { { 0, "Off" }, { 1, "On" } };
@@ -144,7 +138,7 @@ void Ui_Init(void) {
 }
 
 /*
- * Ui_Shutdown
+ * @brief
  */
 void Ui_Shutdown(void) {
 

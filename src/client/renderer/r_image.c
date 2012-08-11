@@ -55,7 +55,7 @@ static r_texture_mode_t r_texture_modes[] = {
 #define NUM_GL_TEXTURE_MODES (sizeof(r_texture_modes) / sizeof(r_texture_mode_t))
 
 /*
- * R_texture_mode
+ * @brief
  */
 void R_TextureMode(const char *mode) {
 	r_image_t *image;
@@ -98,7 +98,7 @@ void R_TextureMode(const char *mode) {
 }
 
 /*
- * R_ListImages_f
+ * @brief
  */
 void R_ListImages_f(void) {
 	r_image_t *image;
@@ -150,7 +150,7 @@ void R_ListImages_f(void) {
 #define MAX_SCREENSHOTS 100
 
 /*
- * R_Screenshot_f
+ * @brief
  */
 void R_Screenshot_f(void) {
 	static int32_t last_shot; // small optimization, don't fopen so many times
@@ -213,7 +213,7 @@ void R_Screenshot_f(void) {
 }
 
 /*
- * R_SoftenTexture
+ * @brief
  */
 void R_SoftenTexture(byte *in, int32_t width, int32_t height, r_image_type_t type) {
 	byte *out;
@@ -253,10 +253,8 @@ void R_SoftenTexture(byte *in, int32_t width, int32_t height, r_image_type_t typ
 }
 
 /*
- * R_FilterTexture
- *
- * Applies brightness and contrast to the specified image while optionally computing
- * the image's average color.  Also handles image inversion and monochrome.  This is
+ * @brief Applies brightness and contrast to the specified image while optionally computing
+ * the image's average color. Also handles image inversion and monochrome. This is
  * all munged into one function to reduce loops on level load.
  */
 void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_image_type_t type) {
@@ -339,7 +337,7 @@ void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_im
 }
 
 /*
- * R_UploadImage_
+ * @brief
  */
 static void R_UploadImage_(byte *data, int32_t width, int32_t height, vec3_t color, r_image_type_t type) {
 
@@ -359,10 +357,8 @@ static void R_UploadImage_(byte *data, int32_t width, int32_t height, vec3_t col
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
-/**
- * R_UploadImage
- *
- * This is also used as an entry point for the generated r_notexture.
+/*
+ * @brief This is also used as an entry point for the generated r_notexture.
  */
 r_image_t *R_UploadImage(const char *name, byte *data, int32_t width, int32_t height, r_image_type_t type) {
 	r_image_t *image;
@@ -399,7 +395,7 @@ r_image_t *R_UploadImage(const char *name, byte *data, int32_t width, int32_t he
 }
 
 /*
- * R_LoadImage
+ * @brief
  */
 r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	r_image_t *image;
@@ -468,7 +464,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 }
 
 /*
- * R_InitEnvmapTextures
+ * @brief
  */
 static void R_InitEnvmapTextures(void) {
 	int32_t i;
@@ -478,7 +474,7 @@ static void R_InitEnvmapTextures(void) {
 }
 
 /*
- * R_InitFlareTextures
+ * @brief
  */
 static void R_InitFlareTextures(void) {
 	int32_t i;
@@ -490,7 +486,7 @@ static void R_InitFlareTextures(void) {
 #define WARP_SIZE 16
 
 /*
- * R_InitWarpTexture
+ * @brief
  */
 static void R_InitWarpTexture(void) {
 	byte warp[WARP_SIZE][WARP_SIZE][4];
@@ -509,7 +505,7 @@ static void R_InitWarpTexture(void) {
 }
 
 /*
- * R_InitImages
+ * @brief
  */
 void R_InitImages(void) {
 	byte data[16 * 16 * 4];
@@ -531,7 +527,7 @@ void R_InitImages(void) {
 }
 
 /*
- * R_FreeImage
+ * @brief
  */
 void R_FreeImage(r_image_t *image) {
 
@@ -543,7 +539,7 @@ void R_FreeImage(r_image_t *image) {
 }
 
 /*
- * R_FreeImages
+ * @brief
  */
 void R_FreeImages(void) {
 	int32_t i;
@@ -562,7 +558,7 @@ void R_FreeImages(void) {
 }
 
 /*
- * R_ShutdownImages
+ * @brief
  */
 void R_ShutdownImages(void) {
 	int32_t i;

@@ -22,11 +22,9 @@
 #include "sv_local.h"
 
 /*
- * Sv_FindIndex
- *
- * Searches sv.config_strings from the specified start, searching for the
- * desired name.  If not found, the name can be optionally created and sent to
- * all connected clients.  This allows the game to lazily load assets.
+ * @brief Searches sv.config_strings from the specified start, searching for the
+ * desired name. If not found, the name can be optionally created and sent to
+ * all connected clients. This allows the game to lazily load assets.
  */
 static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max,
 		bool create) {
@@ -73,9 +71,7 @@ uint16_t Sv_ImageIndex(const char *name) {
 }
 
 /*
- * Sv_CreateBaseline
- *
- * Entity baselines are used to compress the update messages
+ * @brief Entity baselines are used to compress the update messages
  * to the clients -- only the fields that differ from the
  * baseline will be transmitted
  */
@@ -102,9 +98,7 @@ static void Sv_CreateBaseline(void) {
 }
 
 /*
- * Sv_ShutdownMessage
- *
- * Sends the shutdown message message to all connected clients.  The message
+ * @brief Sends the shutdown message message to all connected clients. The message
  * is sent immediately, because the server could completely terminate after
  * returning from this function.
  */
@@ -135,9 +129,7 @@ static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
 }
 
 /*
- * Sv_ClearState
- *
- * Wipes the sv_server_t structure after freeing any references it holds.
+ * @brief Wipes the sv_server_t structure after freeing any references it holds.
  */
 static void Sv_ClearState() {
 
@@ -156,9 +148,7 @@ static void Sv_ClearState() {
 }
 
 /*
- * Sv_UpdateLatchedVars
- *
- * Applies any pending variable changes and clamps ones we really care about.
+ * @brief Applies any pending variable changes and clamps ones we really care about.
  */
 static void Sv_UpdateLatchedVars(void) {
 
@@ -176,9 +166,7 @@ static void Sv_UpdateLatchedVars(void) {
 }
 
 /*
- * Sv_ShutdownClients
- *
- * Gracefully frees all resources allocated to svs.clients.
+ * @brief Gracefully frees all resources allocated to svs.clients.
  */
 static void Sv_ShutdownClients(void) {
 	sv_client_t *cl;
@@ -202,9 +190,7 @@ static void Sv_ShutdownClients(void) {
 }
 
 /*
- * Sv_InitClients
- *
- * Reloads svs.clients, svs.client_entities, the game programs, etc.  Because
+ * @brief Reloads svs.clients, svs.client_entities, the game programs, etc. Because
  * we must allocate clients and edicts based on sizes the game module requests,
  * we refresh the game module
  */
@@ -255,9 +241,7 @@ static void Sv_InitClients(void) {
 }
 
 /*
- * Sv_LoadMedia
- *
- * Loads the map or demo file and populates the server-controlled "config
+ * @brief Loads the map or demo file and populates the server-controlled "config
  * strings."  We hand off the entity string to the game module, which will
  * load the rest.
  */
@@ -311,11 +295,9 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 }
 
 /*
- * Sv_InitServer
- *
- * Entry point for spawning a new server or changing maps / demos.  Brings any
+ * @brief Entry point for spawning a new server or changing maps / demos. Brings any
  * connected clients along for the ride by broadcasting a reconnect before
- * clearing state.  Special effort is made to ensure that a locally connected
+ * clearing state. Special effort is made to ensure that a locally connected
  * client sees the reconnect message immediately.
  */
 void Sv_InitServer(const char *server, sv_state_t state) {
@@ -373,9 +355,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 }
 
 /*
- * Sv_ShutdownServer
- *
- * Called when the game is shutting down.
+ * @brief Called when the game is shutting down.
  */
 void Sv_ShutdownServer(const char *msg) {
 

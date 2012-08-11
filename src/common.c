@@ -28,7 +28,7 @@ static uint32_t rd_buffersize;
 static void (*rd_flush)(int32_t target, char *buffer);
 
 /*
- * Com_BeginRedirect
+ * @brief
  */
 void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize,
 		void(*flush)(int, char*)) {
@@ -45,7 +45,7 @@ void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize,
 }
 
 /*
- * Com_EndRedirect
+ * @brief
  */
 void Com_EndRedirect(void) {
 	rd_flush(rd_target, rd_buffer);
@@ -57,7 +57,7 @@ void Com_EndRedirect(void) {
 }
 
 /*
- * Com_Debug
+ * @brief
  */
 void Com_Debug(const char *fmt, ...) {
 	va_list args;
@@ -74,9 +74,7 @@ void Com_Debug(const char *fmt, ...) {
 }
 
 /*
- * Com_Error
- *
- * An error condition has occurred.  This function does not return.
+ * @brief An error condition has occurred. This function does not return.
  */
 void Com_Error(err_t err, const char *fmt, ...) {
 	va_list args;
@@ -95,7 +93,7 @@ void Com_Error(err_t err, const char *fmt, ...) {
 }
 
 /*
- * Com_Print
+ * @brief
  */
 void Com_Print(const char *fmt, ...) {
 	va_list args;
@@ -121,7 +119,7 @@ void Com_Print(const char *fmt, ...) {
 }
 
 /*
- * Com_Warn
+ * @brief
  */
 void Com_Warn(const char *fmt, ...) {
 	va_list args;
@@ -138,7 +136,7 @@ void Com_Warn(const char *fmt, ...) {
 }
 
 /*
- * Com_Verbose
+ * @brief
  */
 void Com_Verbose(const char *fmt, ...) {
 	va_list args;
@@ -155,21 +153,21 @@ void Com_Verbose(const char *fmt, ...) {
 }
 
 /*
- * Com_Subsystem
+ * @brief
  */
 uint32_t Com_WasInit(uint32_t s) {
 	return quake2world.subsystems & s;
 }
 
 /*
- * Com_InitSubsystem
+ * @brief
  */
 void Com_InitSubsystem(uint32_t s) {
 	quake2world.subsystems |= s;
 }
 
 /*
- * Com_QuitSubsystem
+ * @brief
  */
 void Com_QuitSubsystem(uint32_t s) {
 	quake2world.subsystems &= ~s;
@@ -183,14 +181,14 @@ void Com_QuitSubsystem(uint32_t s) {
  */
 
 /*
- * Msg_WriteData
+ * @brief
  */
 void Msg_WriteData(size_buf_t *sb, const void *data, size_t len) {
 	Sb_Write(sb, data, len);
 }
 
 /*
- * Msg_WriteChar
+ * @brief
  */
 void Msg_WriteChar(size_buf_t *sb, const int32_t c) {
 	byte *buf;
@@ -200,7 +198,7 @@ void Msg_WriteChar(size_buf_t *sb, const int32_t c) {
 }
 
 /*
- * Msg_WriteByte
+ * @brief
  */
 void Msg_WriteByte(size_buf_t *sb, const int32_t c) {
 	byte *buf;
@@ -210,7 +208,7 @@ void Msg_WriteByte(size_buf_t *sb, const int32_t c) {
 }
 
 /*
- * Msg_WriteShort
+ * @brief
  */
 void Msg_WriteShort(size_buf_t *sb, const int32_t c) {
 	byte *buf;
@@ -221,7 +219,7 @@ void Msg_WriteShort(size_buf_t *sb, const int32_t c) {
 }
 
 /*
- * Msg_WriteLong
+ * @brief
  */
 void Msg_WriteLong(size_buf_t *sb, const int32_t c) {
 	byte *buf;
@@ -234,7 +232,7 @@ void Msg_WriteLong(size_buf_t *sb, const int32_t c) {
 }
 
 /*
- * Msg_WriteString
+ * @brief
  */
 void Msg_WriteString(size_buf_t *sb, const char *s) {
 	if (!s)
@@ -244,14 +242,14 @@ void Msg_WriteString(size_buf_t *sb, const char *s) {
 }
 
 /*
- * Msg_WriteCoord
+ * @brief
  */
 void Msg_WriteCoord(size_buf_t *sb, const float f) {
 	Msg_WriteShort(sb, (int) (f * 8.0));
 }
 
 /*
- * Msg_WritePos
+ * @brief
  */
 void Msg_WritePos(size_buf_t *sb, const vec3_t pos) {
 	Msg_WriteShort(sb, (int) (pos[0] * 8.0));
@@ -260,14 +258,14 @@ void Msg_WritePos(size_buf_t *sb, const vec3_t pos) {
 }
 
 /*
- * Msg_WriteAngle
+ * @brief
  */
 void Msg_WriteAngle(size_buf_t *sb, const float f) {
 	Msg_WriteByte(sb, (int) (f * 255.0 / 360.0) & 255);
 }
 
 /*
- * Msg_WriteAngles
+ * @brief
  */
 void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles) {
 	Msg_WriteAngle(sb, angles[0]);
@@ -276,7 +274,7 @@ void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles) {
 }
 
 /*
- * Msg_WriteDeltaUsercmd
+ * @brief
  */
 void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd) {
 	int32_t bits;
@@ -321,7 +319,7 @@ void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd) {
 }
 
 /*
- * Msg_WriteDir
+ * @brief
  */
 void Msg_WriteDir(size_buf_t *sb, const vec3_t dir) {
 	int32_t i, best;
@@ -345,7 +343,7 @@ void Msg_WriteDir(size_buf_t *sb, const vec3_t dir) {
 }
 
 /*
- * Msg_ReadDir
+ * @brief
  */
 void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
 	int32_t b;
@@ -360,9 +358,7 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
 }
 
 /*
- * Msg_WriteDeltaEntity
- *
- * Writes part of a packetentities message.
+ * @brief Writes part of a packetentities message.
  * Can delta from either a baseline or a previous packet_entity
  */
 void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
@@ -457,7 +453,7 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 }
 
 /*
- * Msg_ReadDeltaEntity
+ * @brief
  */
 void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to,
 		size_buf_t *msg, uint16_t number, uint16_t bits) {
@@ -510,14 +506,14 @@ void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to,
 }
 
 /*
- * Msg_BeginReading
+ * @brief
  */
 void Msg_BeginReading(size_buf_t *msg) {
 	msg->read = 0;
 }
 
 /*
- * Msg_ReadData
+ * @brief
  */
 void Msg_ReadData(size_buf_t *sb, void *data, size_t len) {
 	size_t i;
@@ -528,9 +524,7 @@ void Msg_ReadData(size_buf_t *sb, void *data, size_t len) {
 }
 
 /*
- * Msg_ReadChar
- *
- * Returns -1 if no more characters are available.
+ * @brief Returns -1 if no more characters are available.
  */
 int32_t Msg_ReadChar(size_buf_t *sb) {
 	int32_t c;
@@ -545,7 +539,7 @@ int32_t Msg_ReadChar(size_buf_t *sb) {
 }
 
 /*
- * Msg_ReadByte
+ * @brief
  */
 int32_t Msg_ReadByte(size_buf_t *sb) {
 	int32_t c;
@@ -560,7 +554,7 @@ int32_t Msg_ReadByte(size_buf_t *sb) {
 }
 
 /*
- * Msg_ReadShort
+ * @brief
  */
 int32_t Msg_ReadShort(size_buf_t *sb) {
 	int32_t c;
@@ -576,7 +570,7 @@ int32_t Msg_ReadShort(size_buf_t *sb) {
 }
 
 /*
- * Msg_ReadLong
+ * @brief
  */
 int32_t Msg_ReadLong(size_buf_t *sb) {
 	int32_t c;
@@ -594,7 +588,7 @@ int32_t Msg_ReadLong(size_buf_t *sb) {
 }
 
 /*
- * Msg_ReadString
+ * @brief
  */
 char *Msg_ReadString(size_buf_t *sb) {
 	static char string[MAX_STRING_CHARS];
@@ -616,7 +610,7 @@ char *Msg_ReadString(size_buf_t *sb) {
 }
 
 /*
- * Msg_ReadStringLine
+ * @brief
  */
 char *Msg_ReadStringLine(size_buf_t *sb) {
 	static char string[MAX_STRING_CHARS];
@@ -638,14 +632,14 @@ char *Msg_ReadStringLine(size_buf_t *sb) {
 }
 
 /*
- * Msg_ReadCoord
+ * @brief
  */
 float Msg_ReadCoord(size_buf_t *sb) {
 	return Msg_ReadShort(sb) * (1.0 / 8.0);
 }
 
 /*
- * Msg_ReadPos
+ * @brief
  */
 void Msg_ReadPos(size_buf_t *sb, vec3_t pos) {
 	pos[0] = Msg_ReadCoord(sb);
@@ -654,14 +648,14 @@ void Msg_ReadPos(size_buf_t *sb, vec3_t pos) {
 }
 
 /*
- * Msg_ReadAngle
+ * @brief
  */
 float Msg_ReadAngle(size_buf_t *sb) {
 	return Msg_ReadChar(sb) * (360.0 / 255.0);
 }
 
 /*
- * Msg_ReadAngles
+ * @brief
  */
 void Msg_ReadAngles(size_buf_t *sb, vec3_t angles) {
 	angles[0] = Msg_ReadAngle(sb);
@@ -670,7 +664,7 @@ void Msg_ReadAngles(size_buf_t *sb, vec3_t angles) {
 }
 
 /*
- * Msg_ReadDeltaUsercmd
+ * @brief
  */
 void Msg_ReadDeltaUsercmd(size_buf_t *sb, user_cmd_t *from, user_cmd_t *move) {
 	int32_t bits;
@@ -704,7 +698,7 @@ void Msg_ReadDeltaUsercmd(size_buf_t *sb, user_cmd_t *from, user_cmd_t *move) {
 }
 
 /*
- * Sb_Init
+ * @brief
  */
 void Sb_Init(size_buf_t *buf, byte *data, size_t length) {
 	memset(buf, 0, sizeof(*buf));
@@ -713,7 +707,7 @@ void Sb_Init(size_buf_t *buf, byte *data, size_t length) {
 }
 
 /*
- * Sb_Clear
+ * @brief
  */
 void Sb_Clear(size_buf_t *buf) {
 	buf->size = 0;
@@ -721,7 +715,7 @@ void Sb_Clear(size_buf_t *buf) {
 }
 
 /*
- * Sb_Alloc
+ * @brief
  */
 void *Sb_Alloc(size_buf_t *buf, size_t length) {
 	void *data;
@@ -749,14 +743,14 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 }
 
 /*
- * Sb_Write
+ * @brief
  */
 void Sb_Write(size_buf_t *buf, const void *data, size_t len) {
 	memcpy(Sb_Alloc(buf, len), data, len);
 }
 
 /*
- * Sb_Print
+ * @brief
  */
 void Sb_Print(size_buf_t *buf, const char *data) {
 	size_t len;
@@ -773,14 +767,14 @@ void Sb_Print(size_buf_t *buf, const char *data) {
 }
 
 /*
- * Com_Argc
+ * @brief
  */
 int32_t Com_Argc(void) {
 	return quake2world.argc;
 }
 
 /*
- * Com_Argv
+ * @brief
  */
 char *Com_Argv(int32_t arg) {
 	if (arg < 0 || arg >= Com_Argc() || !quake2world.argv[arg])
@@ -789,7 +783,7 @@ char *Com_Argv(int32_t arg) {
 }
 
 /*
- * Com_ClearArgv
+ * @brief
  */
 void Com_ClearArgv(int32_t arg) {
 	if (arg < 0 || arg >= quake2world.argc || !quake2world.argv[arg])
@@ -798,7 +792,7 @@ void Com_ClearArgv(int32_t arg) {
 }
 
 /*
- * Com_InitArgv
+ * @brief
  */
 void Com_InitArgv(int32_t argc, char **argv) {
 	int32_t i;
@@ -817,7 +811,7 @@ void Com_InitArgv(int32_t argc, char **argv) {
 }
 
 /*
- * Com_PrintInfo
+ * @brief
  */
 void Com_PrintInfo(const char *s) {
 	char key[512];

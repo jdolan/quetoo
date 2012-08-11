@@ -24,7 +24,7 @@
 #include <SDL/SDL.h>
 
 /*
- * SwapShort
+ * @brief
  */
 static int16_t SwapShort(int16_t l) {
 
@@ -35,7 +35,7 @@ static int16_t SwapShort(int16_t l) {
 }
 
 /*
- * SwapLong
+ * @brief
  */
 static int32_t SwapLong(int32_t l) {
 
@@ -48,7 +48,7 @@ static int32_t SwapLong(int32_t l) {
 }
 
 /*
- * SwapFloat
+ * @brief
  */
 static float SwapFloat(float f) {
 
@@ -68,7 +68,7 @@ static float SwapFloat(float f) {
 }
 
 /*
- * BigShort
+ * @brief
  */
 int16_t BigShort(int16_t s) {
 	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
@@ -77,7 +77,7 @@ int16_t BigShort(int16_t s) {
 }
 
 /*
- * LittleShort
+ * @brief
  */
 int16_t LittleShort(int16_t s) {
 	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
@@ -86,7 +86,7 @@ int16_t LittleShort(int16_t s) {
 }
 
 /*
- * BigLong
+ * @brief
  */
 int32_t BigLong(int32_t l) {
 	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
@@ -95,7 +95,7 @@ int32_t BigLong(int32_t l) {
 }
 
 /*
- * LittleLong
+ * @brief
  */
 int32_t LittleLong(int32_t l) {
 	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
@@ -104,7 +104,7 @@ int32_t LittleLong(int32_t l) {
 }
 
 /*
- * BigFloat
+ * @brief
  */
 float BigFloat(float f) {
 	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
@@ -113,7 +113,7 @@ float BigFloat(float f) {
 }
 
 /*
- * LittleFloat
+ * @brief
  */
 float LittleFloat(float f) {
 	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)

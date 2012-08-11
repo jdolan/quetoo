@@ -35,7 +35,7 @@ static net_graph_sample_t net_graph_samples[NET_GRAPH_WIDTH];
 static int32_t num_net_graph_samples;
 
 /*
- * Cl_NetGraph
+ * @brief
  */
 static void Cl_NetGraph(float value, int32_t color) {
 
@@ -52,7 +52,7 @@ static void Cl_NetGraph(float value, int32_t color) {
 }
 
 /*
- * Cl_AddNetGraph
+ * @brief
  */
 void Cl_AddNetGraph(void) {
 	uint32_t i;
@@ -77,7 +77,7 @@ void Cl_AddNetGraph(void) {
 }
 
 /*
- * Cl_DrawNetGraph
+ * @brief
  */
 static void Cl_DrawNetGraph(void) {
 	int32_t i, j, x, y, h;
@@ -106,7 +106,7 @@ static void Cl_DrawNetGraph(void) {
 }
 
 /*
- * Cl_DrawRendererStats
+ * @brief
  */
 static void Cl_DrawRendererStats(void) {
 	char s[128];
@@ -124,7 +124,7 @@ static void Cl_DrawRendererStats(void) {
 }
 
 /*
- * Cl_DrawCounters
+ * @brief
  */
 static void Cl_DrawCounters(void) {
 	static vec3_t velocity;
@@ -174,7 +174,7 @@ static void Cl_DrawCounters(void) {
 }
 
 /*
- * Cl_DrawCursor
+ * @brief
  */
 static void Cl_DrawCursor(void) {
 
@@ -187,10 +187,8 @@ static void Cl_DrawCursor(void) {
 	R_DrawCursor(cls.mouse_state.x, cls.mouse_state.y);
 }
 
-/**
- * Cl_UpdateScreen
- *
- * This is called every frame, and can also be called explicitly to flush
+/*
+ * @brief This is called every frame, and can also be called explicitly to flush
  * text to the screen.
  */
 void Cl_UpdateScreen(void) {

@@ -33,7 +33,7 @@ extern cl_client_t cl;
 extern cl_static_t cls;
 
 /*
- * S_Stop
+ * @brief
  */
 static void S_Stop(void) {
 
@@ -43,7 +43,7 @@ static void S_Stop(void) {
 }
 
 /*
- * S_Frame
+ * @brief
  */
 void S_Frame(void) {
 	s_channel_t *ch;
@@ -105,7 +105,7 @@ void S_Frame(void) {
 }
 
 /*
- * S_LoadMedia
+ * @brief
  */
 void S_LoadMedia(void) {
 
@@ -121,7 +121,7 @@ void S_LoadMedia(void) {
 }
 
 /*
- * S_Play_f
+ * @brief
  */
 static void S_Play_f(void) {
 	int32_t i;
@@ -134,14 +134,14 @@ static void S_Play_f(void) {
 }
 
 /*
- * S_Stop_f
+ * @brief
  */
 static void S_Stop_f(void) {
 	S_Stop();
 }
 
 /*
- * S_List_f
+ * @brief
  */
 static void S_List_f(void) {
 	s_sample_t *sample;
@@ -158,7 +158,7 @@ static void S_List_f(void) {
 }
 
 /*
- * S_Restart_f
+ * @brief
  */
 static void S_Restart_f(void) {
 
@@ -174,7 +174,7 @@ static void S_Restart_f(void) {
 }
 
 /*
- * S_Init
+ * @brief
  */
 void S_Init(void) {
 	int32_t freq, channels;
@@ -237,7 +237,7 @@ void S_Init(void) {
 }
 
 /*
- * S_Shutdown
+ * @brief
  */
 void S_Shutdown(void) {
 

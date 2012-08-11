@@ -32,7 +32,7 @@ extern cl_client_t cl;
 extern cl_static_t cls;
 
 /*
- * S_LoadMusic
+ * @brief
  */
 static s_music_t *S_LoadMusic(const char *name) {
 	void *buf;
@@ -84,7 +84,7 @@ static s_music_t *S_LoadMusic(const char *name) {
 }
 
 /*
- * S_FreeMusic
+ * @brief
  */
 static void S_FreeMusic(s_music_t *music) {
 
@@ -99,7 +99,7 @@ static void S_FreeMusic(s_music_t *music) {
 }
 
 /*
- * S_FreeMusics
+ * @brief
  */
 static void S_FreeMusics(void) {
 	int32_t i;
@@ -114,7 +114,7 @@ static void S_FreeMusics(void) {
 }
 
 /*
- * S_LoadMusics
+ * @brief
  */
 void S_LoadMusics(void) {
 	char temp[MAX_QPATH];
@@ -159,7 +159,7 @@ void S_LoadMusics(void) {
 }
 
 /*
- * S_StopMusic
+ * @brief
  */
 static void S_StopMusic(void) {
 
@@ -169,7 +169,7 @@ static void S_StopMusic(void) {
 }
 
 /*
- * S_PlayMusic
+ * @brief
  */
 static void S_PlayMusic(s_music_t *music) {
 
@@ -179,7 +179,7 @@ static void S_PlayMusic(s_music_t *music) {
 }
 
 /*
- * S_NextMusic
+ * @brief
  */
 static s_music_t *S_NextMusic(void) {
 	s_music_t *music;
@@ -206,7 +206,7 @@ static s_music_t *S_NextMusic(void) {
 }
 
 /*
- * S_FrameMusic
+ * @brief
  */
 void S_FrameMusic(void) {
 	s_music_t *music;
@@ -248,7 +248,7 @@ void S_FrameMusic(void) {
 }
 
 /*
- * S_NextTrack_f
+ * @brief
  */
 static void S_NextTrack_f(void) {
 
@@ -256,7 +256,7 @@ static void S_NextTrack_f(void) {
 }
 
 /*
- * S_InitMusic
+ * @brief
  */
 void S_InitMusic(void) {
 	s_music_t *music;
@@ -277,7 +277,7 @@ void S_InitMusic(void) {
 }
 
 /*
- * S_ShutdownMusic
+ * @brief
  */
 void S_ShutdownMusic(void) {
 

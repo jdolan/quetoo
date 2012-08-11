@@ -32,7 +32,7 @@ static cvar_t *con_notify_time;
 static cvar_t *con_alpha;
 
 /*
- * Cl_ToggleConsole_f
+ * @brief
  */
 void Cl_ToggleConsole_f(void) {
 
@@ -55,10 +55,8 @@ void Cl_ToggleConsole_f(void) {
 		cls.key_state.dest = KEY_CONSOLE;
 }
 
-/**
- * Cl_UpdateNotify
- *
- * Update client message notification times.
+/*
+ * @brief Update client message notification times.
  */
 void Cl_UpdateNotify(int32_t last_line) {
 	int32_t i;
@@ -68,9 +66,7 @@ void Cl_UpdateNotify(int32_t last_line) {
 }
 
 /*
- * Cl_ClearNotify
- *
- * Clear client message notification times.
+ * @brief Clear client message notification times.
  */
 void Cl_ClearNotify(void) {
 	int32_t i;
@@ -80,7 +76,7 @@ void Cl_ClearNotify(void) {
 }
 
 /*
- * Cl_MessageMode_f
+ * @brief
  */
 static void Cl_MessageMode_f(void) {
 
@@ -104,7 +100,7 @@ static void Cl_MessageMode2_f(void) {
 }
 
 /*
- * Cl_InitConsole
+ * @brief
  */
 void Cl_InitConsole(void) {
 
@@ -128,9 +124,7 @@ void Cl_InitConsole(void) {
 }
 
 /*
- * Cl_DrawInput
- *
- * The input line scrolls horizontally if typing goes beyond the right edge
+ * @brief The input line scrolls horizontally if typing goes beyond the right edge
  */
 static void Cl_DrawInput(void) {
 	char edit_line_copy[KEY_LINESIZE], *text;
@@ -162,9 +156,7 @@ static void Cl_DrawInput(void) {
 }
 
 /*
- * Cl_DrawNotify
- *
- * Draws the last few lines of output transparently over the game top
+ * @brief Draws the last few lines of output transparently over the game top
  */
 void Cl_DrawNotify(void) {
 	r_pixel_t y, cw, ch;
@@ -215,7 +207,7 @@ void Cl_DrawNotify(void) {
 }
 
 /*
- * Cl_DrawConsole
+ * @brief
  */
 void Cl_DrawConsole(void) {
 	int32_t line;

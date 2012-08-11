@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /*
- * R_CreateSurfaceFlare
+ * @brief
  */
 void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
 	r_material_t *m;
@@ -65,12 +65,10 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
 }
 
 /*
- * R_DrawFlareSurfaces
- *
- * Flares are batched by their texture.  Usually, this means one draw operation
- * for all flares in view.  Flare visibility is calculated every few millis, and
+ * @brief Flares are batched by their texture. Usually, this means one draw operation
+ * for all flares in view. Flare visibility is calculated every few millis, and
  * flare alpha is ramped up or down depending on the results of the visibility
- * trace.  Flares are also faded according to the angle of their surface to the
+ * trace. Flares are also faded according to the angle of their surface to the
  * view origin.
  */
 void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
@@ -123,7 +121,7 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 			if (r_view.time - f->time > 0.5) // reset old flares
 				f->alpha = 0;
 
-			R_Trace(r_view.origin, f->origin, 0.0, MASK_SHOT);
+			R_Trace(r_view.origin, f->origin, vec3_origin, vec3_origin, MASK_SHOT);
 			visible = r_view.trace.fraction == 1.0;
 
 			f->alpha += (visible ? 0.03 : -0.15); // ramp

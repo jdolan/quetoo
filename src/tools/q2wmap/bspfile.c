@@ -26,7 +26,7 @@ d_bsp_t d_bsp;
 d_bsp_vis_t *d_vis = (d_bsp_vis_t *) d_bsp.vis_data;
 
 /*
- * CompressVis
+ * @brief
  */
 int32_t CompressVis(byte *vis, byte *dest) {
 	int32_t j;
@@ -56,7 +56,7 @@ int32_t CompressVis(byte *vis, byte *dest) {
 }
 
 /*
- * DecompressVis
+ * @brief
  */
 void DecompressVis(byte *in, byte *decompressed) {
 	int32_t c;
@@ -84,9 +84,7 @@ void DecompressVis(byte *in, byte *decompressed) {
 }
 
 /*
- * SwapBSPFile
- *
- * Byte swaps all data in a bsp file.
+ * @brief Byte swaps all data in a bsp file.
  */
 static void SwapBSPFile(bool todisk) {
 	int32_t i, j;
@@ -253,7 +251,7 @@ static int32_t CopyLump(int32_t lump, void *dest, int32_t size) {
 }
 
 /*
- * LoadBSPFile
+ * @brief
  */
 void LoadBSPFile(char *file_name) {
 	uint32_t i;
@@ -322,9 +320,7 @@ void LoadBSPFile(char *file_name) {
 }
 
 /*
- * LoadBSPFileTexinfo
- *
- * Only loads the texinfo lump, so we can scan for textures.
+ * @brief Only loads the texinfo lump, so we can scan for textures.
  */
 void LoadBSPFileTexinfo(char *file_name) {
 	uint32_t i;
@@ -366,7 +362,7 @@ void LoadBSPFileTexinfo(char *file_name) {
 static FILE *fp;
 
 /*
- * AddLump
+ * @brief
  */
 static void AddLump(int32_t lump_num, void *data, int32_t len) {
 	d_bsp_lump_t *lump;
@@ -380,9 +376,7 @@ static void AddLump(int32_t lump_num, void *data, int32_t len) {
 }
 
 /*
- * WriteBSPFile
- *
- * Swaps the bsp file in place, so it should not be referenced again
+ * @brief Swaps the bsp file in place, so it should not be referenced again
  */
 void WriteBSPFile(char *file_name) {
 	static d_bsp_header_t h;
@@ -446,9 +440,7 @@ void WriteBSPFile(char *file_name) {
 }
 
 /*
- * PrintBSPFileSizes
- *
- * Dumps info about current file
+ * @brief Dumps info about current file
  */
 void PrintBSPFileSizes(void) {
 
@@ -510,7 +502,7 @@ int32_t num_entities;
 entity_t entities[MAX_BSP_ENTITIES];
 
 /*
- * StripTrailing
+ * @brief
  */
 static void StripTrailing(char *e) {
 	char *s;
@@ -523,7 +515,7 @@ static void StripTrailing(char *e) {
 }
 
 /*
- * ParseEpair
+ * @brief
  */
 epair_t *ParseEpair(void) {
 	epair_t *e;
@@ -547,7 +539,7 @@ epair_t *ParseEpair(void) {
 }
 
 /*
- * ParseEntity
+ * @brief
  */
 static bool ParseEntity(void) {
 	epair_t *e;
@@ -579,9 +571,7 @@ static bool ParseEntity(void) {
 }
 
 /*
- * ParseEntities
- *
- * Parses the d_bsp.entity_string string into entities
+ * @brief Parses the d_bsp.entity_string string into entities
  */
 void ParseEntities(void) {
 	int32_t subdivide;
@@ -601,9 +591,7 @@ void ParseEntities(void) {
 }
 
 /*
- * UnparseEntities
- *
- * Generates the entdata string from all the entities
+ * @brief Generates the entdata string from all the entities
  */
 void UnparseEntities(void) {
 	char *buf, *end;

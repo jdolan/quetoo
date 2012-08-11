@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /*
- * R_SetSurfaceState_default
+ * @brief
  */
 static void R_SetSurfaceState_default(const r_bsp_surface_t *surf) {
 	r_image_t *image;
@@ -65,7 +65,7 @@ static void R_SetSurfaceState_default(const r_bsp_surface_t *surf) {
 }
 
 /*
- * R_DrawSurface_default
+ * @brief
  */
 static void R_DrawSurface_default(const r_bsp_surface_t *surf) {
 
@@ -75,7 +75,7 @@ static void R_DrawSurface_default(const r_bsp_surface_t *surf) {
 }
 
 /*
- * R_DrawSurfaces_default
+ * @brief
  */
 static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	uint32_t i;
@@ -108,7 +108,7 @@ static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawSurfacesLines_default
+ * @brief
  */
 static void R_DrawSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 	uint32_t i;
@@ -137,7 +137,7 @@ static void R_DrawSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawOpaqueSurfaces_default
+ * @brief
  */
 void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
@@ -161,7 +161,7 @@ void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawOpaqueWarpSurfaces_default
+ * @brief
  */
 void R_DrawOpaqueWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
@@ -181,7 +181,7 @@ void R_DrawOpaqueWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawAlphaTestSurfaces_default
+ * @brief
  */
 void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
@@ -209,7 +209,7 @@ void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawBlendSurfaces_default
+ * @brief
  */
 void R_DrawBlendSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
@@ -231,7 +231,7 @@ void R_DrawBlendSurfaces_default(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawBlendWarpSurfaces_default
+ * @brief
  */
 void R_DrawBlendWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
@@ -251,7 +251,7 @@ void R_DrawBlendWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawBackSurfaces_default
+ * @brief
  */
 void R_DrawBackSurfaces_default(const r_bsp_surfaces_t *surfs __attribute__((unused))) {
 	// no-op

@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /*
- * R_AddCorona
+ * @brief
  */
 void R_AddCorona(const r_corona_t *c) {
 
@@ -39,7 +39,7 @@ void R_AddCorona(const r_corona_t *c) {
 }
 
 /*
- * R_DrawCoronas
+ * @brief
  */
 void R_DrawCoronas(void) {
 	int32_t i, j, k;

@@ -21,10 +21,8 @@
 
 #include "cl_local.h"
 
-/**
- * Cl_UpdateCmd
- *
- * Accumulates all movement for the current packet frame in a command. This
+/*
+ * @brief Accumulates all movement for the current packet frame in a command. This
  * may be called multiple times per packet frame.
  */
 void Cl_UpdateCmd(void) {
@@ -48,10 +46,8 @@ void Cl_UpdateCmd(void) {
 	last_move = cls.real_time;
 }
 
-/**
- * Cl_InitCmd
- *
- * Initializes the next outgoing command so that it may accumulate movement
+/*
+ * @brief Initializes the next outgoing command so that it may accumulate movement
  * over the next packet frame.
  */
 static void Cl_InitCmd(void) {
@@ -63,10 +59,8 @@ static void Cl_InitCmd(void) {
 	memset(cmd, 0, sizeof(user_cmd_t));
 }
 
-/**
- * Cl_FinalizeCmd
- *
- * Calculate the true command duration and clamp it so that it may be sent.
+/*
+ * @brief Calculate the true command duration and clamp it so that it may be sent.
  */
 static void Cl_FinalizeCmd(void) {
 	user_cmd_t *cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
@@ -76,10 +70,8 @@ static void Cl_FinalizeCmd(void) {
 	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->msec, cmd->forward, cmd->right, cmd->up);
 }
 
-/**
- * Cl_SendCmd
- *
- * Pumps the command cycle, sending the most recently gathered movement
+/*
+ * @brief Pumps the command cycle, sending the most recently gathered movement
  * to the server.
  */
 void Cl_SendCmd(void) {

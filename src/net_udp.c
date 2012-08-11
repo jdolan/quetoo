@@ -63,7 +63,7 @@ static cvar_t *net_ip;
 static cvar_t *net_port;
 
 /*
- * Net_ErrorString
+ * @brief
  */
 static const char *Net_ErrorString(void) {
 	const int32_t code = Net_GetError();
@@ -71,7 +71,7 @@ static const char *Net_ErrorString(void) {
 }
 
 /*
- * Net_NetAddrToSockaddr
+ * @brief
  */
 static void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s) {
 	memset(s, 0, sizeof(*s));
@@ -88,7 +88,7 @@ static void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s) {
 }
 
 /*
- * Net_SockaddrToNetaddr
+ * @brief
  */
 static void Net_SockaddrToNetaddr(const struct sockaddr_in *s, net_addr_t *a) {
 	memcpy(a->ip, &s->sin_addr, sizeof(a->ip));
@@ -97,7 +97,7 @@ static void Net_SockaddrToNetaddr(const struct sockaddr_in *s, net_addr_t *a) {
 }
 
 /*
- * Net_CompareNetaddr
+ * @brief
  */
 bool Net_CompareNetaddr(net_addr_t a, net_addr_t b) {
 
@@ -108,10 +108,8 @@ bool Net_CompareNetaddr(net_addr_t a, net_addr_t b) {
 	return false;
 }
 
-/**
- * Net_CompareClientNetaddr
- *
- * Similar to Net_CompareNetaddr, but omits port checks.
+/*
+ * @brief Similar to Net_CompareNetaddr, but omits port checks.
  */
  bool Net_CompareClientNetaddr(net_addr_t a, net_addr_t b) {
 
@@ -128,7 +126,7 @@ bool Net_CompareNetaddr(net_addr_t a, net_addr_t b) {
 }
 
 /*
- * Net_NetaddrToString
+ * @brief
  */
 char *Net_NetaddrToString(net_addr_t a) {
 	static char s[64];
@@ -137,10 +135,8 @@ char *Net_NetaddrToString(net_addr_t a) {
 	return s;
 }
 
-/**
- * Net_StringToSockaddr
- *
- * localhost
+/*
+ * @brief localhost
  * idnewt
  * idnewt:28000
  * 192.246.40.70
@@ -176,10 +172,8 @@ static bool Net_StringToSockaddr(const char *s, struct sockaddr *saddr) {
 	return true;
 }
 
-/**
- * Net_StringToNetaddr
- *
- * localhost
+/*
+ * @brief localhost
  * idnewt
  * idnewt:28000
  * 192.246.40.70
@@ -203,14 +197,14 @@ bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 }
 
 /*
- * Net_IsLocalNetaddr
+ * @brief
  */
 bool Net_IsLocalNetaddr(net_addr_t addr) {
 	return Net_CompareNetaddr(addr, net_local_addr);
 }
 
 /*
- * Net_GetLocalPacket
+ * @brief
  */
 static bool Net_GetLocalPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 	uint32_t i;
@@ -234,7 +228,7 @@ static bool Net_GetLocalPacket(net_src_t source, net_addr_t *from, size_buf_t *m
 }
 
 /*
- * Net_SendLocalPacket
+ * @brief
  */
 static void Net_SendLocalPacket(net_src_t source, size_t length, void *data) {
 	uint32_t i;
@@ -250,7 +244,7 @@ static void Net_SendLocalPacket(net_src_t source, size_t length, void *data) {
 }
 
 /*
- * Net_GetPacket
+ * @brief
  */
 bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 	ssize_t ret;
@@ -294,7 +288,7 @@ bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 }
 
 /*
- * Net_SendPacket
+ * @brief
  */
 void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
 	struct sockaddr_in to_addr;
@@ -326,10 +320,8 @@ void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
 		Com_Warn("Net_SendPacket: %s to %s.\n", Net_ErrorString(), Net_NetaddrToString(to));
 }
 
-/**
- * Net_Sleep
- *
- * Sleeps for msec or until server socket is ready.
+/*
+ * @brief Sleeps for msec or until server socket is ready.
  */
 void Net_Sleep(uint32_t msec) {
 	struct timeval timeout;
@@ -346,7 +338,7 @@ void Net_Sleep(uint32_t msec) {
 }
 
 /*
- * Net_Socket
+ * @brief
  */
 static int32_t Net_Socket(const char *net_interface, uint16_t port) {
 	int32_t sock;
@@ -388,7 +380,7 @@ static int32_t Net_Socket(const char *net_interface, uint16_t port) {
 }
 
 /*
- * Net_Config
+ * @brief
  */
 void Net_Config(net_src_t source, bool up) {
 	uint16_t p = 0;
@@ -411,7 +403,7 @@ void Net_Config(net_src_t source, bool up) {
 }
 
 /*
- * Net_Init
+ * @brief
  */
 void Net_Init(void) {
 
@@ -428,7 +420,7 @@ void Net_Init(void) {
 }
 
 /*
- * Net_Shutdown
+ * @brief
  */
 void Net_Shutdown(void) {
 

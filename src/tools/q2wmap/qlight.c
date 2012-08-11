@@ -45,7 +45,7 @@ float entity_scale = 1.0;
 
 
 /*
- * Light_PointInLeafnum
+ * @brief
  */
 static int32_t Light_PointInLeafnum(const vec3_t point){
 	int32_t nodenum;
@@ -66,7 +66,7 @@ static int32_t Light_PointInLeafnum(const vec3_t point){
 
 
 /*
- * Light_PointInLeaf
+ * @brief
  */
 d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point){
 	const int32_t num = Light_PointInLeafnum(point);
@@ -75,7 +75,7 @@ d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point){
 
 
 /*
- * PvsForOrigin
+ * @brief
  */
 bool PvsForOrigin(const vec3_t org, byte *pvs){
 	d_bsp_leaf_t *leaf;
@@ -98,7 +98,7 @@ static int32_t num_cmodels;
 static c_model_t *cmodels[MAX_BSP_MODELS];
 
 /*
- * Light_Trace
+ * @brief
  */
 void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask){
 	float frac;
@@ -122,7 +122,7 @@ void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t
 
 
 /*
- * LightWorld
+ * @brief
  */
 static void LightWorld(void){
 	int32_t i;
@@ -163,7 +163,7 @@ static void LightWorld(void){
 
 
 /*
- * LIGHT_Main
+ * @brief
  */
 int32_t LIGHT_Main(void){
 	time_t start, end;

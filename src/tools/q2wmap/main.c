@@ -78,7 +78,7 @@ static char title[64]; //window bar title (updates to show status)
 #include <curses.h>
 
 /*
- * PDCursesInit
+ * @brief
  */
 static void PDCursesInit(void) {
 	stdscr = initscr(); // initialize the ncurses window
@@ -140,7 +140,7 @@ static void CloseWin32Console(void) {
 }
 
 /*
- * Debug
+ * @brief
  */
 static void Debug(const char *msg) {
 	uint32_t cChars;
@@ -154,7 +154,7 @@ static void Debug(const char *msg) {
 }
 
 /*
- * Error
+ * @brief
  */
 static void Error(err_t err, const char *msg) {
 	const char *e = "************ ERROR ************\n";
@@ -179,7 +179,7 @@ static void Error(err_t err, const char *msg) {
 }
 
 /*
- * Print
+ * @brief
  */
 static void Print(const char *msg) {
 	uint32_t cChars;
@@ -228,7 +228,7 @@ static void Print(const char *msg) {
 }
 
 /*
- * Verbose
+ * @brief
  */
 static void Verbose(const char *msg) {
 	uint32_t cChars;
@@ -242,7 +242,7 @@ static void Verbose(const char *msg) {
 }
 
 /*
- * Warn
+ * @brief
  */
 static void Warn(const char *msg) {
 	uint32_t cChars;
@@ -258,7 +258,7 @@ static void Warn(const char *msg) {
 #else /* _WIN32 */
 
 /*
- * Debug
+ * @brief
  */
 static void Debug(const char *msg) {
 
@@ -269,7 +269,7 @@ static void Debug(const char *msg) {
 }
 
 /*
- * Error
+ * @brief
  */
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Error(err_t err, const char *msg) {
@@ -282,14 +282,14 @@ static void Error(err_t err, const char *msg) {
 }
 
 /*
- * Print
+ * @brief
  */
 static void Print(const char *msg) {
 	printf("%s", msg);
 }
 
 /*
- * Verbose
+ * @brief
  */
 static void Verbose(const char *msg) {
 
@@ -300,7 +300,7 @@ static void Verbose(const char *msg) {
 }
 
 /*
- * Warn
+ * @brief
  */
 static void Warn(const char *msg) {
 
@@ -311,7 +311,7 @@ static void Warn(const char *msg) {
 #endif /* _WIN32 */
 
 /*
- * Check_BSP_Options
+ * @brief
  */
 static int32_t Check_BSP_Options(int32_t argc, char **argv) {
 	int32_t i;
@@ -392,7 +392,7 @@ static int32_t Check_BSP_Options(int32_t argc, char **argv) {
 }
 
 /*
- * Check_VIS_Options
+ * @brief
  */
 static int32_t Check_VIS_Options(int32_t argc, char **argv) {
 	int32_t i;
@@ -412,7 +412,7 @@ static int32_t Check_VIS_Options(int32_t argc, char **argv) {
 }
 
 /*
- * Check_LIGHT_Options
+ * @brief
  */
 static int32_t Check_LIGHT_Options(int32_t argc, char **argv) {
 	int32_t i;
@@ -449,21 +449,21 @@ static int32_t Check_LIGHT_Options(int32_t argc, char **argv) {
 }
 
 /*
- * Check_PAK_Options
+ * @brief
  */
 static int32_t Check_PAK_Options(int32_t argc, char **argv) {
 	return 0;
 }
 
 /*
- * Check_MAT_Options
+ * @brief
  */
 static int32_t Check_MAT_Options(int32_t argc, char **argv) {
 	return 0;
 }
 
 /*
- * PrintHelpMessage
+ * @brief
  */
 static void PrintHelpMessage(void) {
 	Print("General options\n");
@@ -520,7 +520,7 @@ static void PrintHelpMessage(void) {
 }
 
 /*
- * main
+ * @brief
  */
 int32_t main(int32_t argc, char **argv) {
 	int32_t i;

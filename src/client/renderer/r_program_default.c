@@ -47,7 +47,7 @@ typedef struct r_default_program_s {
 static r_default_program_t r_default_program;
 
 /*
- * R_InitProgram_default
+ * @brief
  */
 void R_InitProgram_default(void) {
 
@@ -93,7 +93,7 @@ void R_InitProgram_default(void) {
 }
 
 /*
- * R_UseProgram_default
+ * @brief
  */
 void R_UseProgram_default(void) {
 
@@ -104,7 +104,7 @@ void R_UseProgram_default(void) {
 }
 
 /*
- * R_UseMaterial_default
+ * @brief
  */
 void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_image_t *image) {
 

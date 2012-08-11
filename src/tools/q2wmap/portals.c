@@ -213,9 +213,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l) {
 }
 
 /*
- * MakeHeadnodePortals
- *
- * The created portals will face the global outside_node
+ * @brief The created portals will face the global outside_node
  */
 #define	SIDESPACE	8
 void MakeHeadnodePortals(tree_t * tree) {
@@ -311,9 +309,7 @@ static winding_t *BaseWindingForNode(const node_t * node) {
 }
 
 /*
- * MakeNodePortal
- *
- * create the new portal by taking the full plane winding for the cutting plane
+ * @brief create the new portal by taking the full plane winding for the cutting plane
  * and clipping it by all of parents of this node
  */
 void MakeNodePortal(node_t * node) {
@@ -466,7 +462,7 @@ static void CalcNodeBounds(node_t * node) {
 }
 
 /*
- * MakeTreePortals_r
+ * @brief
  */
 static void MakeTreePortals_r(node_t * node) {
 	int32_t i;
@@ -493,7 +489,7 @@ static void MakeTreePortals_r(node_t * node) {
 }
 
 /*
- * MakeTreePortals
+ * @brief
  */
 void MakeTreePortals(tree_t * tree) {
 	MakeHeadnodePortals(tree);
@@ -507,7 +503,7 @@ void MakeTreePortals(tree_t * tree) {
  */
 
 /*
- * FloodPortals_r
+ * @brief
  */
 static void FloodPortals_r(node_t * node, int32_t dist) {
 	portal_t *p;
@@ -529,7 +525,7 @@ static void FloodPortals_r(node_t * node, int32_t dist) {
 }
 
 /*
- * PlaceOccupant
+ * @brief
  */
 static bool PlaceOccupant(node_t * head_node, vec3_t origin,
 		entity_t * occupant) {
@@ -556,9 +552,7 @@ static bool PlaceOccupant(node_t * head_node, vec3_t origin,
 }
 
 /*
- * FloodEntities
- *
- * Marks all nodes that can be reached by entites
+ * @brief Marks all nodes that can be reached by entites
  */
 bool FloodEntities(tree_t *tree) {
 	int32_t i;
@@ -621,7 +615,7 @@ bool FloodEntities(tree_t *tree) {
 static int32_t c_areas;
 
 /*
- * FloodAreas_r
+ * @brief
  */
 static void FloodAreas_r(node_t * node) {
 	portal_t *p;
@@ -736,7 +730,7 @@ static void SetAreaPortalAreas_r(node_t * node) {
 }
 
 /*
- * EmitAreaPortals
+ * @brief
  */
 void EmitAreaPortals(node_t * head_node) {
 	int32_t i, j;
@@ -777,9 +771,7 @@ void EmitAreaPortals(node_t * head_node) {
 }
 
 /*
- * FloodAreas
- *
- * Mark each leaf with an area, bounded by CONTENTS_AREA_PORTAL
+ * @brief Mark each leaf with an area, bounded by CONTENTS_AREA_PORTAL
  */
 void FloodAreas(tree_t * tree) {
 	Com_Verbose("--- FloodAreas ---\n");

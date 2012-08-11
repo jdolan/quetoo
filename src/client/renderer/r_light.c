@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /*
- * R_AddLight
+ * @brief
  */
 void R_AddLight(const r_light_t *l) {
 
@@ -36,7 +36,7 @@ void R_AddLight(const r_light_t *l) {
 }
 
 /*
- * R_AddSustainedLight
+ * @brief
  */
 void R_AddSustainedLight(const r_sustained_light_t *s) {
 	int32_t i;
@@ -58,7 +58,7 @@ void R_AddSustainedLight(const r_sustained_light_t *s) {
 }
 
 /*
- * R_AddSustainedLights
+ * @brief
  */
 static void R_AddSustainedLights(void) {
 	r_sustained_light_t *s;
@@ -81,11 +81,9 @@ static void R_AddSustainedLights(void) {
 	}
 }
 
-/**
- * R_ResetLights
- *
- * Resets hardware light source state.  Note that this is accomplished purely
- * client-side.  Our internal accounting lets us avoid GL state changes.
+/*
+ * @brief Resets hardware light source state. Note that this is accomplished purely
+ * client-side. Our internal accounting lets us avoid GL state changes.
  */
 void R_ResetLights(void) {
 
@@ -93,10 +91,8 @@ void R_ResetLights(void) {
 	r_locals.active_light_count = 0;
 }
 
-/**
- * R_MarkLights_
- *
- * Recursively populates light source bit masks for world surfaces.
+/*
+ * @brief Recursively populates light source bit masks for world surfaces.
  */
 static void R_MarkLights_(r_light_t *light, vec3_t trans, int32_t bit, r_bsp_node_t *node) {
 	r_bsp_surface_t *surf;
@@ -146,10 +142,8 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int32_t bit, r_bsp_nod
 	R_MarkLights_(light, trans, bit, node->children[1]);
 }
 
-/**
- * R_MarkLights
- *
- * Iterates the world surfaces (and those of BSP sub-models), populating the
+/*
+ * @brief Iterates the world surfaces (and those of BSP sub-models), populating the
  * light source bit masks so that we know which light sources each surface
  * should receive.
  */
@@ -187,19 +181,15 @@ void R_MarkLights(void) {
 
 static vec3_t lights_offset;
 
-/**
- * R_ShiftLights
- *
- * Light sources must be translated for mod_bsp_submodel entities.
+/*
+ * @brief Light sources must be translated for mod_bsp_submodel entities.
  */
 void R_ShiftLights(const vec3_t offset) {
 	VectorCopy(offset, lights_offset);
 }
 
-/**
- * R_EnableLights
- *
- * Enables the light sources indicated by the specified bit mask.  Care is
+/*
+ * @brief Enables the light sources indicated by the specified bit mask. Care is
  * taken to avoid GL state changes whenever possible.
  */
 void R_EnableLights(uint32_t mask) {
@@ -244,10 +234,8 @@ void R_EnableLights(uint32_t mask) {
 	r_locals.active_light_count = count;
 }
 
-/**
- * R_EnableLightsByRadius
- *
- * Enables light sources within range of the specified point.  This is used by
+/*
+ * @brief Enables light sources within range of the specified point. This is used by
  * mesh entities, as they are not addressed with the recursive BSP-related
  * functions above.
  */

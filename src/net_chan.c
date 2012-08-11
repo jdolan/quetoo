@@ -37,7 +37,7 @@
  * bit for the reliable set.
  *
  * If the sender notices that a reliable message has been dropped, it will be
- * retransmitted.  It will not be retransmitted again until a message after
+ * retransmitted. It will not be retransmitted again until a message after
  * the retransmit has been acknowledged and the reliable still failed to get theve.
  *
  * if the sequence number is -1, the packet should be handled without a netcon
@@ -56,7 +56,7 @@
  * parts of the message, they are just processed out as a single larger message.
  *
  * Illogical packet sequence numbers cause the packet to be dropped, but do
- * not kill the connection.  This, combined with the tight window of valid
+ * not kill the connection. This, combined with the tight window of valid
  * reliable acknowledgement numbers provides protection against malicious
  * address spoofing.
  *
@@ -64,7 +64,7 @@
  * sometimes remap the client's source port on a packet during gameplay.
  *
  * If the base part of the net address matches and the qport matches, then the
- * channel matches even if the IP port differs.  The IP port should be updated
+ * channel matches even if the IP port differs. The IP port should be updated
  * to the new value before sending out any replies.
  *
  * If there is no information that needs to be transfered on a given frame,
@@ -82,7 +82,7 @@ size_buf_t net_message;
 byte net_message_buffer[MAX_MSG_SIZE];
 
 /*
- * Netchan_Init
+ * @brief
  */
 void Netchan_Init(void) {
 	byte p;
@@ -95,10 +95,8 @@ void Netchan_Init(void) {
 	net_qport = Cvar_Get("net_qport", va("%d", p), CVAR_NO_SET, NULL);
 }
 
-/**
- * Netchan_OutOfBand
- *
- * Sends an out-of-band datagram
+/*
+ * @brief Sends an out-of-band datagram
  */
 void Netchan_OutOfBand(int32_t net_socket, net_addr_t addr, size_t size, byte *data) {
 	size_buf_t send;
@@ -114,10 +112,8 @@ void Netchan_OutOfBand(int32_t net_socket, net_addr_t addr, size_t size, byte *d
 	Net_SendPacket(net_socket, send.size, send.data, addr);
 }
 
-/**
- * Netchan_OutOfBandPrint
- *
- * Sends a text message in an out-of-band datagram
+/*
+ * @brief Sends a text message in an out-of-band datagram
  */
 void Netchan_OutOfBandPrint(int32_t net_socket, net_addr_t addr, const char *format, ...) {
 	va_list args;
@@ -132,10 +128,8 @@ void Netchan_OutOfBandPrint(int32_t net_socket, net_addr_t addr, const char *for
 	Netchan_OutOfBand(net_socket, addr, strlen(string), (byte *) string);
 }
 
-/**
- * Netchan_Setup
- *
- * Called to open a channel to a remote system.
+/*
+ * @brief Called to open a channel to a remote system.
  */
 void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, byte qport) {
 	memset(chan, 0, sizeof(*chan));
@@ -151,10 +145,8 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, byte qpo
 	chan->message.allow_overflow = true;
 }
 
-/**
- * Netchan_CanReliable
- *
- * Returns true if the last reliable message has acked.
+/*
+ * @brief Returns true if the last reliable message has acked.
  */
 bool Netchan_CanReliable(net_chan_t *chan) {
 	if (chan->reliable_size)
@@ -163,7 +155,7 @@ bool Netchan_CanReliable(net_chan_t *chan) {
 }
 
 /*
- * Netchan_NeedReliable
+ * @brief
  */
 bool Netchan_NeedReliable(net_chan_t *chan) {
 	bool send_reliable;
@@ -183,10 +175,8 @@ bool Netchan_NeedReliable(net_chan_t *chan) {
 	return send_reliable;
 }
 
-/**
- * Netchan_Transmit
- *
- * Tries to send an unreliable message to a connection, and handles the
+/*
+ * @brief Tries to send an unreliable message to a connection, and handles the
  * transmission / retransmission of the reliable messages.
  *
  * A 0 size will still generate a packet and deal with the reliable messages.
@@ -256,10 +246,8 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	}
 }
 
-/**
- * Netchan_Process
- *
- * Called when the current net_message is from remote_address
+/*
+ * @brief Called when the current net_message is from remote_address
  * modifies net_message so that it points to the packet payload
  */
 bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {

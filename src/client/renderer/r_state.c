@@ -29,7 +29,7 @@ const float default_texcoords[] = { // useful for particles, pics, etc..
 		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 };
 
 /*
- * R_GetError
+ * @brief
  */
 void R_GetError_(const char *function, const char *msg) {
 	GLenum err;
@@ -71,9 +71,7 @@ void R_GetError_(const char *function, const char *msg) {
 }
 
 /*
- * R_Color
- *
- * Sets the current color. Pass NULL to reset to default.
+ * @brief Sets the current color. Pass NULL to reset to default.
  */
 void R_Color(const vec4_t color) {
 	static const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
@@ -85,10 +83,8 @@ void R_Color(const vec4_t color) {
 	}
 }
 
-/**
- * R_SelectTexture
- *
- * Set the active texture unit. If the diffuse or lightmap texture units are
+/*
+ * @brief Set the active texture unit. If the diffuse or lightmap texture units are
  * selected, set the client state to allow binding of texture coordinates.
  */
 void R_SelectTexture(r_texunit_t *texunit) {
@@ -104,10 +100,8 @@ void R_SelectTexture(r_texunit_t *texunit) {
 		qglClientActiveTexture(texunit->texture);
 }
 
-/**
- * R_BindTexture
- *
- * Bind the specified texture for the active texture unit.
+/*
+ * @brief Bind the specified texture for the active texture unit.
  */
 void R_BindTexture(GLuint texnum) {
 
@@ -120,7 +114,7 @@ void R_BindTexture(GLuint texnum) {
 }
 
 /*
- * R_BindLightmapTexture
+ * @brief
  */
 void R_BindLightmapTexture(GLuint texnum) {
 
@@ -135,7 +129,7 @@ void R_BindLightmapTexture(GLuint texnum) {
 }
 
 /*
- * R_BindDeluxemapTexture
+ * @brief
  */
 void R_BindDeluxemapTexture(GLuint texnum) {
 
@@ -150,7 +144,7 @@ void R_BindDeluxemapTexture(GLuint texnum) {
 }
 
 /*
- * R_BindNormalmapTexture
+ * @brief
  */
 void R_BindNormalmapTexture(GLuint texnum) {
 
@@ -165,7 +159,7 @@ void R_BindNormalmapTexture(GLuint texnum) {
 }
 
 /*
- * R_BindGlossmapTexture
+ * @brief
  */
 void R_BindGlossmapTexture(GLuint texnum) {
 
@@ -180,7 +174,7 @@ void R_BindGlossmapTexture(GLuint texnum) {
 }
 
 /*
- * R_BindArray
+ * @brief
  */
 void R_BindArray(GLenum target, GLenum type, GLvoid *array) {
 
@@ -209,9 +203,7 @@ void R_BindArray(GLenum target, GLenum type, GLvoid *array) {
 }
 
 /*
- * R_BindDefaultArray
- *
- * Binds the appropriate shared vertex array to the specified target.
+ * @brief Binds the appropriate shared vertex array to the specified target.
  */
 void R_BindDefaultArray(GLenum target) {
 
@@ -240,7 +232,7 @@ void R_BindDefaultArray(GLenum target) {
 }
 
 /*
- * R_BindBuffer
+ * @brief
  */
 void R_BindBuffer(GLenum target, GLenum type, GLuint id) {
 
@@ -259,7 +251,7 @@ void R_BindBuffer(GLenum target, GLenum type, GLuint id) {
 }
 
 /*
- * R_BlendFunc
+ * @brief
  */
 void R_BlendFunc(GLenum src, GLenum dest) {
 
@@ -273,7 +265,7 @@ void R_BlendFunc(GLenum src, GLenum dest) {
 }
 
 /*
- * R_EnableBlend
+ * @brief
  */
 void R_EnableBlend(bool enable) {
 
@@ -292,7 +284,7 @@ void R_EnableBlend(bool enable) {
 }
 
 /*
- * R_EnableAlphaTest
+ * @brief
  */
 void R_EnableAlphaTest(bool enable) {
 
@@ -308,7 +300,7 @@ void R_EnableAlphaTest(bool enable) {
 }
 
 /*
- * R_EnableStencilTest
+ * @brief
  */
 void R_EnableStencilTest(bool enable) {
 
@@ -324,9 +316,7 @@ void R_EnableStencilTest(bool enable) {
 }
 
 /*
- * R_EnableTexture
- *
- * Enable the specified texture unit for multi-texture operations. This is not
+ * @brief Enable the specified texture unit for multi-texture operations. This is not
  * necessary for texture units only accessed by GLSL shaders.
  */
 void R_EnableTexture(r_texunit_t *texunit, bool enable) {
@@ -352,7 +342,7 @@ void R_EnableTexture(r_texunit_t *texunit, bool enable) {
 }
 
 /*
- * R_EnableColorArray
+ * @brief
  */
 void R_EnableColorArray(bool enable) {
 
@@ -368,9 +358,7 @@ void R_EnableColorArray(bool enable) {
 }
 
 /*
- * R_EnableLighting
- *
- * Enables hardware-accelerated lighting with the specified program.  This
+ * @brief Enables hardware-accelerated lighting with the specified program. This
  * should be called after any texture units which will be active for lighting
  * have been enabled.
  */
@@ -403,7 +391,7 @@ void R_EnableLighting(r_program_t *program, bool enable) {
 }
 
 /*
- * R_EnableWarp
+ * @brief
  */
 void R_EnableWarp(r_program_t *program, bool enable) {
 
@@ -434,7 +422,7 @@ void R_EnableWarp(r_program_t *program, bool enable) {
 }
 
 /*
- * R_EnableColorShell
+ * @brief
  */
 void R_EnableShell(bool enable) {
 	r_uniform1f_t offset;
@@ -471,7 +459,7 @@ void R_EnableShell(bool enable) {
 }
 
 /*
- * R_EnableFog
+ * @brief
  */
 void R_EnableFog(bool enable) {
 
@@ -496,10 +484,8 @@ void R_EnableFog(bool enable) {
 	}
 }
 
-/**
- * R_UseMaterial
- *
- * Setup the GLSL shaders for the specified surface and primary material. If no
+/*
+ * @brief Setup the GLSL shaders for the specified surface and primary material. If no
  * shader is bound, this function simply returns.
  */
 void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image) {
@@ -599,10 +585,8 @@ void R_Setup2D(void) {
 	glDisable(GL_DEPTH_TEST);
 }
 
-/**
- * R_InitState
- *
- * Initializes the OpenGL state cache and sets OpenGL state parameters to
+/*
+ * @brief Initializes the OpenGL state cache and sets OpenGL state parameters to
  * appropriate defaults.
  */
 void R_InitState(void) {
@@ -669,7 +653,7 @@ void R_InitState(void) {
 }
 
 /*
- * R_ShutdownState
+ * @brief
  */
 void R_ShutdownState(void) {
 	int32_t i;

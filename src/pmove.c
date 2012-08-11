@@ -82,10 +82,8 @@ static pm_locals_t pml;
 
 #define PM_STOP_EPSILON			0.1
 
-/**
- * Pm_ClipVelocity
- *
- * Slide off of the impacted plane.
+/*
+ * @brief Slide off of the impacted plane.
  */
 static void Pm_ClipVelocity(vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
 	float backoff, change;
@@ -108,10 +106,8 @@ static void Pm_ClipVelocity(vec3_t in, const vec3_t normal, vec3_t out, vec_t bo
 	}
 }
 
-/**
- * Pm_ClampVelocity
- *
- * Clamp horizontal velocity over PM_SPEED_MAX.
+/*
+ * @brief Clamp horizontal velocity over PM_SPEED_MAX.
  */
 static void Pm_ClampVelocity(void) {
 	vec3_t tmp;
@@ -136,11 +132,9 @@ static void Pm_ClampVelocity(void) {
 
 #define MAX_CLIP_PLANES	4
 
-/**
- * Pm_StepSlideMove_
- *
- * Calculates a new origin, velocity, and contact entities based on the
- * movement command and world state.  Returns the number of planes intersected.
+/*
+ * @brief Calculates a new origin, velocity, and contact entities based on the
+ * movement command and world state. Returns the number of planes intersected.
  */
 static int32_t Pm_StepSlideMove_(void) {
 	vec3_t vel, end;
@@ -201,7 +195,7 @@ static int32_t Pm_StepSlideMove_(void) {
 }
 
 /*
- * Pm_StepSlideMove
+ * @brief
  */
 static void Pm_StepSlideMove(void) {
 	vec3_t org, vel, clipped_org, clipped_vel;
@@ -292,10 +286,8 @@ static void Pm_StepSlideMove(void) {
 	}
 }
 
-/**
- * Pm_Friction
- *
- * Handles friction against user intentions, and based on contents.
+/*
+ * @brief Handles friction against user intentions, and based on contents.
  */
 static void Pm_Friction(void) {
 	float scale, friction;
@@ -350,10 +342,8 @@ static void Pm_Friction(void) {
 	VectorScale(pml.velocity, scale, pml.velocity);
 }
 
-/**
- * Pm_Accelerate
- *
- * Handles user intended acceleration.
+/*
+ * @brief Handles user intended acceleration.
  */
 static void Pm_Accelerate(vec3_t dir, float speed, float accel) {
 	float add_speed, accel_speed, current_speed;
@@ -373,7 +363,7 @@ static void Pm_Accelerate(vec3_t dir, float speed, float accel) {
 }
 
 /*
- * Pm_AddCurrents
+ * @brief
  */
 static void Pm_AddCurrents(vec3_t vel) {
 	vec3_t v;
@@ -424,10 +414,8 @@ static void Pm_AddCurrents(vec3_t vel) {
 	}
 }
 
-/**
- * Pm_CategorizePosition
- *
- * Determine state for the current position. This involves resolving the
+/*
+ * @brief Determine state for the current position. This involves resolving the
  * ground entity, water level, and water type.
  */
 static void Pm_CategorizePosition(void) {
@@ -528,7 +516,7 @@ static void Pm_CategorizePosition(void) {
 }
 
 /*
- * Pm_CheckDuck
+ * @brief
  */
 static void Pm_CheckDuck(void) {
 	float height;
@@ -574,7 +562,7 @@ static void Pm_CheckDuck(void) {
 }
 
 /*
- * Pm_CheckJump
+ * @brief
  */
 static bool Pm_CheckJump(void) {
 	float jump;
@@ -630,7 +618,7 @@ static bool Pm_CheckJump(void) {
 }
 
 /*
- * Pm_CheckPush
+ * @brief
  */
 static bool Pm_CheckPush(void) {
 
@@ -644,10 +632,8 @@ static bool Pm_CheckPush(void) {
 	return true;
 }
 
-/**
- * Pm_CheckLadder
- *
- * Check for ladder interaction.
+/*
+ * @brief Check for ladder interaction.
  */
 static bool Pm_CheckLadder(void) {
 	vec3_t forward, spot;
@@ -675,10 +661,8 @@ static bool Pm_CheckLadder(void) {
 	return false;
 }
 
-/**
- * Pm_CheckWaterJump
- *
- * Checks for the water jump condition, where we can see a usable step out of
+/*
+ * @brief Checks for the water jump condition, where we can see a usable step out of
  * the water.
  */
 static bool Pm_CheckWaterJump(void) {
@@ -719,7 +703,7 @@ static bool Pm_CheckWaterJump(void) {
 }
 
 /*
- * Pm_LadderMove
+ * @brief
  */
 static void Pm_LadderMove(void) {
 	vec3_t vel, dir;
@@ -783,7 +767,7 @@ static void Pm_LadderMove(void) {
 }
 
 /*
- * Pm_WaterJumpMove
+ * @brief
  */
 static void Pm_WaterJumpMove(void) {
 	vec3_t forward;
@@ -819,7 +803,7 @@ static void Pm_WaterJumpMove(void) {
 }
 
 /*
- * Pm_WaterMove
+ * @brief
  */
 static void Pm_WaterMove(void) {
 	vec3_t vel, dir;
@@ -885,7 +869,7 @@ static void Pm_WaterMove(void) {
 }
 
 /*
- * Pm_AirMove
+ * @brief
  */
 static void Pm_AirMove(void) {
 	vec3_t vel, dir;
@@ -928,10 +912,8 @@ static void Pm_AirMove(void) {
 	Pm_StepSlideMove();
 }
 
-/**
- * Pm_WalkMove
- *
- * Called for movements where player is on ground, regardless of water level.
+/*
+ * @brief Called for movements where player is on ground, regardless of water level.
  */
 static void Pm_WalkMove(void) {
 	float speed, max_speed, accel;
@@ -1000,7 +982,7 @@ static void Pm_WalkMove(void) {
 }
 
 /*
- * Pm_GoodPosition
+ * @brief
  */
 static bool Pm_GoodPosition(void) {
 	c_trace_t trace;
@@ -1017,9 +999,7 @@ static bool Pm_GoodPosition(void) {
 }
 
 /*
- * Pm_SnapPosition
- *
- * On exit, the origin will have a value that is pre-quantized to the 0.125
+ * @brief On exit, the origin will have a value that is pre-quantized to the 0.125
  * precision of the network channel and in a valid position.
  */
 static void Pm_SnapPosition(void) {
@@ -1072,7 +1052,7 @@ static void Pm_SnapPosition(void) {
 }
 
 /*
- * Pm_ClampAngles
+ * @brief
  */
 static void Pm_ClampAngles(void) {
 	vec3_t angles;
@@ -1106,7 +1086,7 @@ static void Pm_ClampAngles(void) {
 }
 
 /*
- * Pm_SpectatorMove
+ * @brief
  */
 static void Pm_SpectatorMove() {
 	vec3_t vel, dir;
@@ -1136,7 +1116,7 @@ static void Pm_SpectatorMove() {
 }
 
 /*
- * Pm_Init
+ * @brief
  */
 static void Pm_Init(void) {
 
@@ -1175,7 +1155,7 @@ static void Pm_Init(void) {
 }
 
 /*
- * Pm_InitLocal
+ * @brief
  */
 static void Pm_InitLocal(void) {
 
@@ -1193,10 +1173,8 @@ static void Pm_InitLocal(void) {
 	pml.time = pm->cmd.msec * 0.001;
 }
 
-/**
- * Pmove
- *
- * Can be called by either the server or the client to update prediction.
+/*
+ * @brief Can be called by either the server or the client to update prediction.
  */
 void Pmove(pm_move_t *pmove) {
 	pm = pmove;

@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /*
- * G_ProjectSpawn
+ * @brief
  */
 void G_ProjectSpawn(g_edict_t *ent) {
 	vec3_t mins, maxs, delta, forward;
@@ -49,10 +49,8 @@ void G_ProjectSpawn(g_edict_t *ent) {
 	VectorMA(ent->s.origin, fwd, forward, ent->s.origin);
 }
 
-/**
- * G_InitProjectile
- *
- * Determines the initial position and directional vectors of a projectile.
+/*
+ * @brief Determines the initial position and directional vectors of a projectile.
  */
 void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
 	c_trace_t tr;
@@ -88,10 +86,8 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	AngleVectors(view, NULL, right, up);
 }
 
-/**
- * G_Find
- *
- * Searches all active entities for the next one that holds the matching string
+/*
+ * @brief Searches all active entities for the next one that holds the matching string
  * at field offset (use the FOFS() macro) in the structure.
  *
  * Searches beginning at the edict after from, or the beginning if NULL
@@ -122,10 +118,8 @@ g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {
 	return NULL;
 }
 
-/**
- * G_FindRadius
- *
- * Returns entities that have origins within a spherical area
+/*
+ * @brief Returns entities that have origins within a spherical area
  *
  * G_FindRadius(origin, radius)
  */
@@ -158,10 +152,8 @@ g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, float rad) {
 	return NULL;
 }
 
-/**
- * G_PickTarget
- *
- * Searches all active entities for the next one that holds
+/*
+ * @brief Searches all active entities for the next one that holds
  * the matching string at fieldofs(use the FOFS() macro) in the structure.
  *
  * Searches beginning at the edict after from, or the beginning if NULL
@@ -198,17 +190,15 @@ g_edict_t *G_PickTarget(char *target_name) {
 }
 
 /*
- * G_UseTargets_Delay
+ * @brief
  */
 static void G_UseTargets_Delay(g_edict_t *ent) {
 	G_UseTargets(ent, ent->activator);
 	G_FreeEdict(ent);
 }
 
-/**
- * G_UseTargets
- *
- * Search for all entities that the specified entity targets, and call their
+/*
+ * @brief Search for all entities that the specified entity targets, and call their
  * use functions. Set their activator to our activator. Print our message,
  * if set, to the activator.
  */
@@ -279,7 +269,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 }
 
 /*
- * G_SetMoveDir
+ * @brief
  */
 void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 	static vec3_t VEC_UP = { 0, -1, 0 };
@@ -299,7 +289,7 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 }
 
 /*
- * G_CopyString
+ * @brief
  */
 char *G_CopyString(char *in) {
 	char *out;
@@ -310,7 +300,7 @@ char *G_CopyString(char *in) {
 }
 
 /*
- * G_InitEdict
+ * @brief
  */
 void G_InitEdict(g_edict_t *e) {
 	e->in_use = true;
@@ -319,10 +309,8 @@ void G_InitEdict(g_edict_t *e) {
 	e->s.number = e - g_game.edicts;
 }
 
-/**
- * G_Spawn
- *
- * Either finds a free edict, or allocates a new one.
+/*
+ * @brief Either finds a free edict, or allocates a new one.
  * Try to avoid reusing an entity that was recently freed, because it
  * can cause the client to think the entity morphed into something else
  * instead of being removed and recreated, which can cause interpolated
@@ -348,10 +336,8 @@ g_edict_t *G_Spawn(void) {
 	return e;
 }
 
-/**
- * G_FreeEdict
- *
- * Marks the edict as free
+/*
+ * @brief Marks the edict as free
  */
 void G_FreeEdict(g_edict_t *ed) {
 	gi.UnlinkEntity(ed); // unlink from world
@@ -365,7 +351,7 @@ void G_FreeEdict(g_edict_t *ed) {
 }
 
 /*
- * G_TouchTriggers
+ * @brief
  */
 void G_TouchTriggers(g_edict_t *ent) {
 	int32_t i, num;
@@ -389,10 +375,8 @@ void G_TouchTriggers(g_edict_t *ent) {
 	}
 }
 
-/**
- * G_TouchSolids
- *
- * Call after linking a new trigger in during gameplay
+/*
+ * @brief Call after linking a new trigger in during gameplay
  * to force all entities it covers to immediately touch it
  */
 void G_TouchSolids(g_edict_t *ent) {
@@ -417,10 +401,8 @@ void G_TouchSolids(g_edict_t *ent) {
 	}
 }
 
-/**
- * G_KillBox
- *
- * Kills all entities that would touch the proposed new positioning
+/*
+ * @brief Kills all entities that would touch the proposed new positioning
  * of ent. Ent should be unlinked before calling this!
  */
 bool G_KillBox(g_edict_t *ent) {
@@ -444,7 +426,7 @@ bool G_KillBox(g_edict_t *ent) {
 }
 
 /*
- * G_GameplayName
+ * @brief
  */
 char *G_GameplayName(int32_t g) {
 	switch (g) {
@@ -460,7 +442,7 @@ char *G_GameplayName(int32_t g) {
 }
 
 /*
- * G_GameplayByName
+ * @brief
  */
 int32_t G_GameplayByName(char *c) {
 
@@ -490,7 +472,7 @@ int32_t G_GameplayByName(char *c) {
 }
 
 /*
- * G_TeamByName
+ * @brief
  */
 g_team_t *G_TeamByName(char *c) {
 
@@ -507,7 +489,7 @@ g_team_t *G_TeamByName(char *c) {
 }
 
 /*
- * G_TeamForFlag
+ * @brief
  */
 g_team_t *G_TeamForFlag(g_edict_t *ent) {
 
@@ -527,7 +509,7 @@ g_team_t *G_TeamForFlag(g_edict_t *ent) {
 }
 
 /*
- * G_FlagForTeam
+ * @brief
  */
 g_edict_t *G_FlagForTeam(g_team_t *t) {
 	g_edict_t *ent;
@@ -551,7 +533,7 @@ g_edict_t *G_FlagForTeam(g_team_t *t) {
 			continue;
 
 		// when a carrier is killed, we spawn a new temporary flag
-		// where they died.  we are generally not interested in these.
+		// where they died. we are generally not interested in these.
 		if (ent->spawn_flags & SF_ITEM_DROPPED)
 			continue;
 
@@ -563,7 +545,7 @@ g_edict_t *G_FlagForTeam(g_team_t *t) {
 }
 
 /*
- * G_EffectForTeam
+ * @brief
  */
 uint32_t G_EffectForTeam(g_team_t *t) {
 
@@ -574,7 +556,7 @@ uint32_t G_EffectForTeam(g_team_t *t) {
 }
 
 /*
- * G_OtherTeam
+ * @brief
  */
 g_team_t *G_OtherTeam(g_team_t *t) {
 
@@ -591,7 +573,7 @@ g_team_t *G_OtherTeam(g_team_t *t) {
 }
 
 /*
- * G_SmallestTeam
+ * @brief
  */
 g_team_t *G_SmallestTeam(void) {
 	int32_t i, g, e;
@@ -615,7 +597,7 @@ g_team_t *G_SmallestTeam(void) {
 }
 
 /*
- * G_ClientByName
+ * @brief
  */
 g_client_t *G_ClientByName(char *name) {
 	int32_t i, j, min;
@@ -642,7 +624,7 @@ g_client_t *G_ClientByName(char *name) {
 }
 
 /*
- * G_IsStationary
+ * @brief
  */
 bool G_IsStationary(g_edict_t *ent) {
 
@@ -652,10 +634,8 @@ bool G_IsStationary(g_edict_t *ent) {
 	return VectorCompare(vec3_origin, ent->velocity);
 }
 
-/**
- * G_SetAnimation_
- *
- * Writes the specified animation byte, toggling the high bit to restart the
+/*
+ * @brief Writes the specified animation byte, toggling the high bit to restart the
  * sequence if desired and necessary.
  */
 static void G_SetAnimation_(byte *dest, entity_animation_t anim, bool restart) {
@@ -669,10 +649,8 @@ static void G_SetAnimation_(byte *dest, entity_animation_t anim, bool restart) {
 	*dest = anim;
 }
 
-/**
- * G_SetAnimation
- *
- * Assigns the specified animation to the correct member(s) on the specified
+/*
+ * @brief Assigns the specified animation to the correct member(s) on the specified
  * entity. If requested, the current animation will be restarted.
  */
 void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, bool restart) {
@@ -701,9 +679,7 @@ void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, bool restart) {
 }
 
 /*
- * G_IsAnimation
- *
- * Returns true if the entity is currently using the specified animation.
+ * @brief Returns true if the entity is currently using the specified animation.
  */
 bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim) {
 	byte a;

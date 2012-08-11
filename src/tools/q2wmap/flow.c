@@ -78,7 +78,7 @@ static void FreeStackWinding(const winding_t * w, pstack_t * stack) {
 }
 
 /*
- * Vis_ChopWinding
+ * @brief
  */
 static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
 		plane_t *split) {
@@ -184,7 +184,7 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
  * If target is totally clipped away, that portal can not be seen through.
  *
  * Normal clip keeps target on the same side as pass, which is correct if the
- * order goes source, pass, target.  If the order goes pass, source, target then
+ * order goes source, pass, target. If the order goes pass, source, target then
  * flipclip should be set.
  * ==============
  */
@@ -443,9 +443,7 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread,
 }
 
 /*
- * FinalVis
- *
- * Generates the vis bit vector.
+ * @brief Generates the vis bit vector.
  */
 void FinalVis(int32_t portal_num) {
 	thread_data_t data;
@@ -477,7 +475,7 @@ void FinalVis(int32_t portal_num) {
 }
 
 /*
- * SimpleFlood
+ * @brief
  */
 static void SimpleFlood(portal_t *srcportal, int32_t leaf_num) {
 	uint32_t i;
@@ -503,7 +501,7 @@ static void SimpleFlood(portal_t *srcportal, int32_t leaf_num) {
 }
 
 /*
- * BaseVis
+ * @brief
  */
 void BaseVis(int32_t portal_num) {
 	uint32_t j, k;

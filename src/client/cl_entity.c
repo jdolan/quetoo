@@ -22,9 +22,7 @@
 #include "cl_local.h"
 
 /*
- * Cl_DeltaEntity
- *
- * Parses deltas from the given base and adds the resulting entity
+ * @brief Parses deltas from the given base and adds the resulting entity
  * to the current frame.
  */
 static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number,
@@ -61,9 +59,7 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t num
 }
 
 /*
- * Cl_ParseEntities
- *
- * An svc_packetentities has just been parsed, deal with the rest of the data stream.
+ * @brief An svc_packetentities has just been parsed, deal with the rest of the data stream.
  */
 static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame) {
 	entity_state_t *old_state = NULL;
@@ -188,10 +184,8 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 	}
 }
 
-/**
- * Cl_ParsePlayerstate
- *
- * Parse the player_state_t for the current frame from the server, using delta
+/*
+ * @brief Parse the player_state_t for the current frame from the server, using delta
  * compression for all fields where possible.
  */
 static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_frame) {
@@ -275,7 +269,7 @@ static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_fra
 }
 
 /*
- * Cl_ParseFrame
+ * @brief
  */
 void Cl_ParseFrame(void) {
 	size_t len;
@@ -333,9 +327,7 @@ void Cl_ParseFrame(void) {
 }
 
 /*
- * Cl_UpdateEntities
- *
- * Invalidate lighting caches on media load.
+ * @brief Invalidate lighting caches on media load.
  */
 void Cl_UpdateEntities(void) {
 	uint32_t i;

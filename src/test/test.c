@@ -22,9 +22,7 @@
 quake2world_t quake2world;
 
 /*
- * Test_Init
- *
- * Bootstraps core subsystems for testing.
+ * @brief Bootstraps core subsystems for testing.
  */
 void Test_Init(int32_t argc, char **argv) {
 
@@ -47,9 +45,7 @@ void Test_Init(int32_t argc, char **argv) {
 }
 
 /*
- * Test_Shutdown
- *
- * Releases any testing resources.
+ * @brief Releases any testing resources.
  */
 void Test_Shutdown() {
 

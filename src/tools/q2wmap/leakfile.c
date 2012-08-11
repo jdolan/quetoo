@@ -10,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
  *
  * See the GNU General Public License for more details.
  *
@@ -22,9 +22,7 @@
 #include "qbsp.h"
 
 /*
- * LeakFile
- *
- * Finds the shortest possible chain of portals that leads from the 
+ * @brief Finds the shortest possible chain of portals that leads from the 
  * outside leaf to a specifically occupied leaf.
  */
 void LeakFile(tree_t *tree) {

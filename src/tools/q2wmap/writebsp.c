@@ -26,9 +26,7 @@ int32_t c_facenodes;
 
 
 /*
- * EmitPlanes
- *
- * There is no opportunity to discard planes, because all of the original
+ * @brief There is no opportunity to discard planes, because all of the original
  * brushes will be saved in the map.
  */
 static void EmitPlanes(void){
@@ -48,7 +46,7 @@ static void EmitPlanes(void){
 
 
 /*
- * EmitLeafFace
+ * @brief
  */
 static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f){
 	int32_t i;
@@ -85,7 +83,7 @@ static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f){
 
 
 /*
- * EmitLeaf
+ * @brief
  */
 static void EmitLeaf(node_t *node){
 	d_bsp_leaf_t *leaf_p;
@@ -154,7 +152,7 @@ static void EmitLeaf(node_t *node){
 
 
 /*
- * EmitFace
+ * @brief
  */
 static void EmitFace(face_t *f){
 	d_bsp_face_t *df;
@@ -201,7 +199,7 @@ static void EmitFace(face_t *f){
 
 
 /*
- * EmitDrawingNode_r
+ * @brief
  */
 static int32_t EmitDrawNode_r(node_t * node){
 	d_bsp_node_t *n;
@@ -254,7 +252,7 @@ static int32_t EmitDrawNode_r(node_t * node){
 
 
 /*
- * WriteBSP
+ * @brief
  */
 void WriteBSP(node_t *head_node){
 	int32_t old_faces;
@@ -276,7 +274,7 @@ void WriteBSP(node_t *head_node){
 
 
 /*
- * SetModelNumbers
+ * @brief
  */
 void SetModelNumbers(void){
 	int32_t i;
@@ -296,7 +294,7 @@ void SetModelNumbers(void){
 
 
 /*
- * EmitBrushes
+ * @brief
  */
 static void EmitBrushes(void){
 	int32_t i, j, bnum, s, x;
@@ -365,7 +363,7 @@ static void EmitBrushes(void){
 
 
 /*
- * BeginBSPFile
+ * @brief
  */
 void BeginBSPFile(void){
 
@@ -383,7 +381,7 @@ void BeginBSPFile(void){
 
 
 /*
- * EndBSPFile
+ * @brief
  */
 void EndBSPFile(void){
 
@@ -402,7 +400,7 @@ void EndBSPFile(void){
 
 
 /*
- * BeginModel
+ * @brief
  */
 extern int32_t first_bsp_model_edge;
 void BeginModel(void){
@@ -442,7 +440,7 @@ void BeginModel(void){
 
 
 /*
- * EndModel
+ * @brief
  */
 void EndModel(void){
 	d_bsp_model_t *mod;

@@ -21,10 +21,8 @@
 
 #include "g_local.h"
 
-/**
- * G_OnSameTeam
- *
- * Returns true if ent1 and ent2 are on the same qmass mod team.
+/*
+ * @brief Returns true if ent1 and ent2 are on the same qmass mod team.
  */
 bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
 
@@ -43,10 +41,8 @@ bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
 	return ent1->client->persistent.team == ent2->client->persistent.team;
 }
 
-/**
- * G_CanDamage
- *
- * Returns true if the inflictor can directly damage the target.  Used for
+/*
+ * @brief Returns true if the inflictor can directly damage the target. Used for
  * explosions and melee attacks.
  */
 bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
@@ -104,7 +100,7 @@ bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 }
 
 /*
- * G_SpawnDamage
+ * @brief
  */
 static void G_SpawnDamage(int32_t type, vec3_t origin, vec3_t normal, int32_t damage) {
 
@@ -120,7 +116,7 @@ static void G_SpawnDamage(int32_t type, vec3_t origin, vec3_t normal, int32_t da
 }
 
 /*
- * G_CheckArmor
+ * @brief
  */
 static int32_t G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int32_t damage, int32_t dflags) {
 	g_client_t *client;
@@ -157,10 +153,8 @@ static int32_t G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int32_t
 #define QUAD_DAMAGE_FACTOR 2.5
 #define QUAD_KNOCKBACK_FACTOR 2.0
 
-/**
- * G_Damage
- *
- * targ		entity that is being damaged
+/*
+ * @brief targ		entity that is being damaged
  * inflictor	entity that is causing the damage
  * attacker	entity that caused the inflictor to damage targ
  * 	example: targ=player2, inflictor=rocket, attacker=player1
@@ -322,7 +316,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 }
 
 /*
- * G_RadiusDamage
+ * @brief
  */
 void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore, int32_t damage,
 		int32_t knockback, float radius, int32_t mod) {

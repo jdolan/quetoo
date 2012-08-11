@@ -70,8 +70,6 @@ extern cvar_t *r_windowed_width;
 
 extern r_view_t r_view;
 
-int32_t R_PointContents(const vec3_t point);
-c_trace_t R_Trace(const vec3_t start, const vec3_t end, float radius, int32_t mask);
 void R_Init(void);
 void R_Shutdown(void);
 void R_BeginFrame(void);

@@ -23,10 +23,8 @@
 
 #define LIGHTING_MAX_BSP_LIGHT_REFS 64
 
-/**
- * R_UpdateBspLightReferences_Compare
- *
- * A comparator for sorting r_bsp_light_ref_t elements via quick sort.
+/*
+ * @brief A comparator for sorting r_bsp_light_ref_t elements via quick sort.
  */
 static int32_t R_UpdateBspLightReferences_Compare(const void *l1, const void *l2) {
 	const r_bsp_light_ref_t *_l1 = (r_bsp_light_ref_t *) l1;
@@ -35,10 +33,8 @@ static int32_t R_UpdateBspLightReferences_Compare(const void *l1, const void *l2
 	return (int) (_l2->intensity - _l1->intensity);
 }
 
-/**
- * R_UpdateBspLightReferences
- *
- * Resolves the strongest static light sources, populating the light references
+/*
+ * @brief Resolves the strongest static light sources, populating the light references
  * for the specified structure and returning the number of light sources found.
  * This facilitates directional shading in the fragment program.
  */
@@ -70,13 +66,13 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 			continue;
 
 		// is it visible to the entity; trace to origin and corners of bounding box
-		R_Trace(l->origin, lighting->origin, 0.0, CONTENTS_SOLID);
+		R_Trace(l->origin, lighting->origin, vec3_origin, vec3_origin, CONTENTS_SOLID);
 
 		if (r_view.trace.fraction < 1.0) {
-			R_Trace(l->origin, lighting->mins, 0.0, CONTENTS_SOLID);
+			R_Trace(l->origin, lighting->mins, vec3_origin, vec3_origin, CONTENTS_SOLID);
 
 			if (r_view.trace.fraction < 1.0) {
-				R_Trace(l->origin, lighting->maxs, 0.0, CONTENTS_SOLID);
+				R_Trace(l->origin, lighting->maxs, vec3_origin, vec3_origin, CONTENTS_SOLID);
 
 				if (r_view.trace.fraction < 1.0) {
 					continue;
@@ -111,10 +107,8 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 	return j;
 }
 
-/**
- * R_UpdateLighting
- *
- * Resolves static lighting information for the specified point, including
+/*
+ * @brief Resolves static lighting information for the specified point, including
  * most relevant static light sources and shadow positioning.
  */
 void R_UpdateLighting(r_lighting_t *lighting) {
@@ -155,7 +149,7 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 	end[2] = start[2] - LIGHTING_MAX_SHADOW_DISTANCE;
 
 	// do the trace
-	R_Trace(start, end, 0.0, MASK_SOLID);
+	R_Trace(start, end, vec3_origin, vec3_origin, MASK_SOLID);
 
 	// resolve the shadow origin and direction
 	if (r_view.trace.leaf_num) { // hit something
@@ -171,11 +165,9 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 
 #define LIGHTING_AMBIENT_ATTENUATION 150.0
 
-/**
- * R_ApplyLighting
- *
- * Populates the remaining hardware light sources with static BSP lighting
- * information, if it is available.  No state changes are persisted through
+/*
+ * @brief Populates the remaining hardware light sources with static BSP lighting
+ * information, if it is available. No state changes are persisted through
  * r_view or r_locals.
  */
 void R_ApplyLighting(const r_lighting_t *lighting) {

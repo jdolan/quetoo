@@ -96,7 +96,7 @@ static cl_button_t cl_buttons[12];
 #define in_down cl_buttons[11]
 
 /*
- * Cl_KeyDown
+ * @brief
  */
 static void Cl_KeyDown(cl_button_t *b) {
 	int32_t k;
@@ -133,7 +133,7 @@ static void Cl_KeyDown(cl_button_t *b) {
 }
 
 /*
- * Cl_KeyUp
+ * @brief
  */
 static void Cl_KeyUp(cl_button_t *b) {
 	int32_t k;
@@ -249,9 +249,7 @@ static void Cl_CenterView_f(void) {
 }
 
 /*
- * Cl_KeyState
- *
- * Returns the fraction of the command interval for which the key was down.
+ * @brief Returns the fraction of the command interval for which the key was down.
  */
 static float Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 	uint32_t msec;
@@ -276,7 +274,7 @@ static float Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 }
 
 /*
- * Cl_KeyMap
+ * @brief
  */
 static void Cl_KeyMap(SDL_Event *event, uint32_t *ascii, uint16_t *unicode) {
 	int32_t key = 0;
@@ -472,7 +470,7 @@ static void Cl_KeyMap(SDL_Event *event, uint32_t *ascii, uint16_t *unicode) {
 }
 
 /*
- * Cl_HandleEvent
+ * @brief
  */
 static void Cl_HandleEvent(SDL_Event *event) {
 	static bool first_key_event = true;
@@ -545,7 +543,7 @@ static void Cl_HandleEvent(SDL_Event *event) {
 }
 
 /*
- * Cl_MouseMove
+ * @brief
  */
 static void Cl_MouseMove(int32_t mx, int32_t my) {
 
@@ -595,7 +593,7 @@ static void Cl_MouseMove(int32_t mx, int32_t my) {
 }
 
 /*
- * Cl_HandleEvents
+ * @brief
  */
 void Cl_HandleEvents(void) {
 	static cl_key_dest_t prev_key_dest;
@@ -691,7 +689,7 @@ void Cl_HandleEvents(void) {
 }
 
 /*
- * Cl_ClampPitch
+ * @brief
  */
 static void Cl_ClampPitch(void) {
 	const pm_state_t *s = &cl.frame.ps.pm_state;
@@ -713,10 +711,8 @@ static void Cl_ClampPitch(void) {
 		cl.angles[PITCH] = -89.0 - pitch;
 }
 
-/**
- * Cl_Move
- *
- * Accumulate this frame's movement-related inputs and assemble a movement
+/*
+ * @brief Accumulate this frame's movement-related inputs and assemble a movement
  * command to send to the server. This may be called several times for each
  * command that is transmitted if the client is running asynchronously.
  */
@@ -766,7 +762,7 @@ void Cl_Move(user_cmd_t *cmd) {
 }
 
 /*
- * Cl_InputReset
+ * @brief
  */
 void Cl_ClearInput(void) {
 
@@ -779,7 +775,7 @@ void Cl_ClearInput(void) {
 }
 
 /*
- * Cl_InitInput
+ * @brief
  */
 void Cl_InitInput(void) {
 

@@ -53,7 +53,7 @@ static hash_table_t fs_hash_table; // pakfiles are pushed into a hash
 
 
 /*
- * Fs_Write
+ * @brief
  */
 size_t Fs_Write(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 	size_t len;
@@ -70,7 +70,7 @@ size_t Fs_Write(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 }
 
 /*
- * Fs_Read
+ * @brief
  */
 size_t Fs_Read(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 	size_t len;
@@ -87,14 +87,14 @@ size_t Fs_Read(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 }
 
 /*
- * Fs_CloseFile
+ * @brief
  */
 void Fs_CloseFile(FILE *f) {
 	fclose(f);
 }
 
 /*
- * Fs_FileLength
+ * @brief
  */
 static int32_t Fs_FileLength(FILE *f) {
 	int32_t pos;
@@ -108,10 +108,8 @@ static int32_t Fs_FileLength(FILE *f) {
 	return end;
 }
 
-/**
- * Fs_CreatePath
- *
- * Creates any directories needed to store the given path.
+/*
+ * @brief Creates any directories needed to store the given path.
  */
 void Fs_CreatePath(const char *path) {
 	char pathCopy[MAX_OSPATH];
@@ -130,11 +128,9 @@ void Fs_CreatePath(const char *path) {
 
 char *fs_last_pak = NULL; // the server uses this to determine CS_PAK
 
-/**
- * Fs_OpenFile
- *
- * Attempts to open the specified file on the search path.  Returns filesize
- * and an open FILE pointer.  This generalizes opening files from paks vs
+/*
+ * @brief Attempts to open the specified file on the search path. Returns filesize
+ * and an open FILE pointer. This generalizes opening files from paks vs
  * opening filesystem resources directly.
  */
 int32_t Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
@@ -207,10 +203,8 @@ int32_t Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
 	return -1;
 }
 
-/**
- * Fs_ReadFile
- *
- * Properly handles partial reads.
+/*
+ * @brief Properly handles partial reads.
  */
 void Fs_ReadFile(void *buffer, int32_t len, FILE *f) {
 	int32_t read;
@@ -222,10 +216,8 @@ void Fs_ReadFile(void *buffer, int32_t len, FILE *f) {
 	}
 }
 
-/**
- * Fs_LoadFile
- *
- * Filename are relative to the quake search path. A NULL buffer will just
+/*
+ * @brief Filename are relative to the quake search path. A NULL buffer will just
  * return the file length without loading.
  */
 int32_t Fs_LoadFile(const char *path, void **buffer) {
@@ -262,14 +254,14 @@ int32_t Fs_LoadFile(const char *path, void **buffer) {
 }
 
 /*
- * Fs_FreeFile
+ * @brief
  */
 void Fs_FreeFile(void *buffer) {
 	Z_Free(buffer);
 }
 
 /*
- * Fs_AddPakfile
+ * @brief
  */
 void Fs_AddPakfile(const char *pakfile) {
 	pak_t *pak;
@@ -284,10 +276,8 @@ void Fs_AddPakfile(const char *pakfile) {
 	Com_Print("Added %s: %i files.\n", pakfile, pak->num_entries);
 }
 
-/**
- * Fs_AddSearchPath
- *
- * Adds the directory to the head of the path, and loads all paks within it.
+/*
+ * @brief Adds the directory to the head of the path, and loads all paks within it.
  */
 static void Fs_AddSearchPath(const char *dir) {
 	search_path_t *search;
@@ -321,7 +311,7 @@ static void Fs_AddSearchPath(const char *dir) {
 }
 
 /*
- * Fs_Homedir
+ * @brief
  */
 static char *Fs_Homedir(void) {
 	static char homedir[MAX_OSPATH];
@@ -350,10 +340,8 @@ static char *Fs_Homedir(void) {
 	return homedir;
 }
 
-/**
- * Fs_AddUserSearchPath
- *
- * Adds the user-specific search path, setting fs_gamedir in the process. This
+/*
+ * @brief Adds the user-specific search path, setting fs_gamedir in the process. This
  * is where all files produced by the game are written to.
  */
 static void Fs_AddUserSearchPath(const char *dir) {
@@ -371,17 +359,15 @@ static void Fs_AddUserSearchPath(const char *dir) {
 	Fs_AddSearchPath(gdir);
 }
 
-/**
- * Fs_Gamedir
- *
- * Called to find where to write a file (demos, screenshots, etc)
+/*
+ * @brief Called to find where to write a file (demos, screenshots, etc)
  */
 const char *Fs_Gamedir(void) {
 	return fs_gamedir;
 }
 
 /*
- * Fs_FindFirst
+ * @brief
  */
 const char *Fs_FindFirst(const char *path, bool absolute) {
 	const char *n;
@@ -403,10 +389,8 @@ const char *Fs_FindFirst(const char *path, bool absolute) {
 	return NULL;
 }
 
-/**
- * Fs_ExecAutoexec
- *
- * Execs the local autoexec.cfg for the current gamedir.  This is
+/*
+ * @brief Execs the local autoexec.cfg for the current gamedir. This is
  * a function call rather than simply stuffing "exec autoexec.cfg"
  * because we do not wish to use default/autoexec.cfg for all mods.
  */
@@ -437,10 +421,8 @@ void Fs_ExecAutoexec(void) {
 	Cbuf_Execute(); // execute it
 }
 
-/**
- * Fs_SetGame
- *
- * Sets the game path to a relative directory.
+/*
+ * @brief Sets the game path to a relative directory.
  */
 void Fs_SetGame(const char *dir) {
 	search_path_t *s;
@@ -490,10 +472,8 @@ void Fs_SetGame(const char *dir) {
 
 #define GZIP_BUFFER (64 * 1024)
 
-/**
- * Fs_GunzipFile
- *
- * Inflates the specified file in place, removing the .gz suffix from the path.
+/*
+ * @brief Inflates the specified file in place, removing the .gz suffix from the path.
  * The original archive file is removed upon successful decompression.
  */
 void Fs_GunzipFile(const char *path) {
@@ -558,7 +538,7 @@ void Fs_GunzipFile(const char *path) {
 }
 
 /*
- * Fs_Init
+ * @brief
  */
 void Fs_Init(void) {
 	char dir[MAX_OSPATH];
@@ -633,17 +613,15 @@ void Fs_Init(void) {
 		Fs_SetGame(fs_game->string);
 }
 
-/**
- * strcmp_
- *
- * Wraps strcmp so it can be used to sort strings in qsort.
+/*
+ * @brief Wraps strcmp so it can be used to sort strings in qsort.
  */
 static int32_t strcmp_(const void *a, const void *b) {
 	return strcmp(*(char **) a, *(char **) b);
 }
 
 /*
- * Fs_CompleteFile
+ * @brief
  */
 int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[]) {
 	static char file_list[MAX_QPATH * 256];

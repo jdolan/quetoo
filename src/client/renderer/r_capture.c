@@ -30,9 +30,7 @@ typedef struct capture_buffer_s {
 static r_capture_buffer_t capture_buffer;
 
 /*
- * R_FlushCapture
- *
- * Performs the JPEG file authoring for the most recently captured frame.
+ * @brief Performs the JPEG file authoring for the most recently captured frame.
  */
 static void R_FlushCapture(void *data __attribute__((unused))) {
 	char path[MAX_OSPATH];
@@ -52,10 +50,8 @@ static void R_FlushCapture(void *data __attribute__((unused))) {
 }
 
 /*
- * R_UpdateCapture
- *
- * Captures the current frame buffer to memory.  JPEG encoding is optionally
- * processed in a separate thread for performance reasons.  See above.
+ * @brief Captures the current frame buffer to memory. JPEG encoding is optionally
+ * processed in a separate thread for performance reasons. See above.
  */
 void R_UpdateCapture(void) {
 	static thread_t *capture_thread;
@@ -90,7 +86,7 @@ void R_UpdateCapture(void) {
 }
 
 /*
- * R_InitCapture
+ * @brief
  */
 void R_InitCapture(void) {
 	char path[MAX_OSPATH];
@@ -108,7 +104,7 @@ void R_InitCapture(void) {
 }
 
 /*
- * R_ShutdownCapture
+ * @brief
  */
 void R_ShutdownCapture(void) {
 

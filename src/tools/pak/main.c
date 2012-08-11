@@ -24,7 +24,7 @@
 quake2world_t quake2world;
 
 /*
- * main
+ * @brief
  */
 int32_t main(int32_t argc, char **argv) {
 	char *pwd[] = { "." };

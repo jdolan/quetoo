@@ -21,10 +21,8 @@
 
 #include "ui_local.h"
 
-/**
- * Ui_ShowBar
- *
- * Displays the TwBar specified by name in data, hiding all others.
+/*
+ * @brief Displays the TwBar specified by name in data, hiding all others.
  */
 void TW_CALL Ui_ShowBar(void *data) {
 	const char *name = (const char *) data;
@@ -46,10 +44,8 @@ void TW_CALL Ui_ShowBar(void *data) {
 	Ui_CenterBar((void *) name);
 }
 
-/**
- * Ui_CenterBar
- *
- * Centers the TwBar by the specified name.
+/*
+ * @brief Centers the TwBar by the specified name.
  */
 void TW_CALL Ui_CenterBar(void *data) {
 	const char *name = (const char *) data;

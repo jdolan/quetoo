@@ -25,9 +25,7 @@
 extern cl_static_t cls;
 
 /*
- * Ui_CvarSetString
- *
- * Callback setting a cvar_t's string.
+ * @brief Callback setting a cvar_t's string.
  */
 static void TW_CALL Ui_CvarSetString(const void *value, void *data) {
 	cvar_t *var = (cvar_t *) data;
@@ -37,9 +35,7 @@ static void TW_CALL Ui_CvarSetString(const void *value, void *data) {
 }
 
 /*
- * Ui_CvarGetString
- *
- * Callback exposing a cvar_t's string.
+ * @brief Callback exposing a cvar_t's string.
  */
 static void TW_CALL Ui_CvarGetString(void *value, void *data) {
 	cvar_t *var = (cvar_t *) data;
@@ -49,18 +45,14 @@ static void TW_CALL Ui_CvarGetString(void *value, void *data) {
 }
 
 /*
- * Ui_CvarText
- *
- * Exposes a cvar_t as a text input accepting strings.
+ * @brief Exposes a cvar_t as a text input accepting strings.
  */
 void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def) {
 	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_CvarSetString, Ui_CvarGetString, var, def);
 }
 
 /*
- * Ui_CvarSetInteger
- *
- * Callback setting a cvar_t's integer.
+ * @brief Callback setting a cvar_t's integer.
  */
 static void TW_CALL Ui_CvarSetInteger(const void *value, void *data) {
 	cvar_t *var = (cvar_t *) data;
@@ -69,9 +61,7 @@ static void TW_CALL Ui_CvarSetInteger(const void *value, void *data) {
 }
 
 /*
- * Ui_CvarGetInteger
- *
- * Callback exposing a cvar_t's integer.
+ * @brief Callback exposing a cvar_t's integer.
  */
 static void TW_CALL Ui_CvarGetInteger(void *value, void *data) {
 	cvar_t *var = (cvar_t *) data;
@@ -79,27 +69,21 @@ static void TW_CALL Ui_CvarGetInteger(void *value, void *data) {
 }
 
 /*
- * Ui_CvarInteger
- *
- * Exposes a cvar_t as a text input accepting integers.
+ * @brief Exposes a cvar_t as a text input accepting integers.
  */
 void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def) {
 	TwAddVarCB(bar, name, TW_TYPE_INT32, Ui_CvarSetInteger, Ui_CvarGetInteger, var, def);
 }
 
 /*
- * Ui_CvarEnum
- *
- * Exposes a cvar_t as a select input with predefined numeric values.
+ * @brief Exposes a cvar_t as a select input with predefined numeric values.
  */
 void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType en, const char *def) {
 	TwAddVarCB(bar, name, en, Ui_CvarSetInteger, Ui_CvarGetInteger, var, def);
 }
 
 /*
- * Ui_CvarSetValue
- *
- * Callback setting a cvar_t's value.
+ * @brief Callback setting a cvar_t's value.
  */
 static void TW_CALL Ui_CvarSetValue(const void *value, void *data) {
 	cvar_t *var = (cvar_t *) data;
@@ -108,9 +92,7 @@ static void TW_CALL Ui_CvarSetValue(const void *value, void *data) {
 }
 
 /*
- * Ui_CvarGetValue
- *
- * Callback exposing a cvar_t's value.
+ * @brief Callback exposing a cvar_t's value.
  */
 static void TW_CALL Ui_CvarGetValue(void *value, void *data) {
 	cvar_t *var = (cvar_t *) data;
@@ -118,18 +100,14 @@ static void TW_CALL Ui_CvarGetValue(void *value, void *data) {
 }
 
 /*
- * Ui_CvarDecimal
- *
- * Exposes a cvar_t as a text input accepting decimals.
+ * @brief Exposes a cvar_t as a text input accepting decimals.
  */
 void Ui_CvarDecimal(TwBar *bar, const char *name, cvar_t *var, const char *def) {
 	TwAddVarCB(bar, name, TW_TYPE_FLOAT, Ui_CvarSetValue, Ui_CvarGetValue, var, def);
 }
 
 /*
- * Ui_Command
- *
- * Stuffs the specified text onto the command buffer.
+ * @brief Stuffs the specified text onto the command buffer.
  */
 void TW_CALL Ui_Command(void *data) {
 	Cbuf_AddText((const char *) data);
@@ -138,9 +116,7 @@ void TW_CALL Ui_Command(void *data) {
 static void TW_CALL Ui_BindGet(void *value, void *data);
 
 /*
- * Ui_BindSet
- *
- * Binds the key specified in value to the command specified in data.
+ * @brief Binds the key specified in value to the command specified in data.
  * Any existing binds for that command are unbound.
  */
 static void TW_CALL Ui_BindSet(const void *value, void *data) {
@@ -158,9 +134,7 @@ static void TW_CALL Ui_BindSet(const void *value, void *data) {
 }
 
 /*
- * Ui_BindGet
- *
- * Copies the first key name for the bind specified in data to value.
+ * @brief Copies the first key name for the bind specified in data to value.
  */
 static void TW_CALL Ui_BindGet(void *value, void *data) {
 	char **binds = cls.key_state.binds;
@@ -178,9 +152,7 @@ static void TW_CALL Ui_BindGet(void *value, void *data) {
 }
 
 /*
- * Ui_Bind
- *
- * Exposes a key binding via the specified TwBar.
+ * @brief Exposes a key binding via the specified TwBar.
  */
 void Ui_Bind(TwBar *bar, const char *name, const char *bind, const char *def) {
 	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_BindSet, Ui_BindGet, (void *) bind, def);

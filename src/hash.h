@@ -98,7 +98,7 @@ void Hash_Clear(hash_table_t *table, const char *key);
 /*
 Hash_Free
 
-Free all entries associated with hash table.  Does not free any of the
+Free all entries associated with hash table. Does not free any of the
 values referenced by the entries.
 */
 void Hash_Free(hash_table_t *table);

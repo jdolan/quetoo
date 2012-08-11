@@ -72,7 +72,7 @@ typedef struct cg_import_s {
 
 	// collision
 	int32_t (*PointContents)(const vec3_t point);
-	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, float radius, int32_t mask);
+	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, int32_t mask);
 
 	// PVS and PHS
 	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_model_t *model);

@@ -33,10 +33,8 @@ typedef struct cg_weather_emit_s {
 static cg_weather_emit_t *cg_weather_emits;
 static uint32_t cg_weather_time;
 
-/**
- * Cg_LoadWeather_
- *
- * Creates an emitter for the given surface. The number of origins for the
+/*
+ * @brief Creates an emitter for the given surface. The number of origins for the
  * emitter depends on the area of the surface.
  */
 static void Cg_LoadWeather_(const r_model_t *world, const r_bsp_surface_t *s) {
@@ -75,7 +73,7 @@ static void Cg_LoadWeather_(const r_model_t *world, const r_bsp_surface_t *s) {
 		vec3_t end;
 		VectorSet(end, org[0], org[1], org[2] - 8192.0);
 
-		c_trace_t trace = cgi.Trace(org, end, 0.0, MASK_SHOT);
+		c_trace_t trace = cgi.Trace(org, end, vec3_origin, vec3_origin, MASK_SHOT);
 		e->end_z[i] = trace.end[2];
 	}
 
@@ -86,10 +84,8 @@ static void Cg_LoadWeather_(const r_model_t *world, const r_bsp_surface_t *s) {
 	cgi.Debug("Cg_LoadWeather: %s: %d origins\n", vtos(s->center), e->num_origins);
 }
 
-/**
- * Cg_LoadWeather
- *
- * Iterates the world surfaces, generating weather emitters from sky brushes.
+/*
+ * @brief Iterates the world surfaces, generating weather emitters from sky brushes.
  * Valid weather origins and z-depths are resolved and cached.
  */
 void Cg_LoadWeather(void) {
@@ -114,19 +110,15 @@ void Cg_LoadWeather(void) {
 	cgi.Debug("Cg_LoadWeather: %d emits\n", j);
 }
 
-/**
- * Cg_LoadEffects
- *
- * Loads all resources required by client-side effects such as weather.
+/*
+ * @brief Loads all resources required by client-side effects such as weather.
  */
 void Cg_LoadEffects(void) {
 	Cg_LoadWeather();
 }
 
-/**
- * Cg_AddWeather_
- *
- * Adds weather particles for the specified emitter. The number of particles
+/*
+ * @brief Adds weather particles for the specified emitter. The number of particles
  * added is dependent on the size of the surface associated with the emitter.
  */
 static void Cg_AddWeather_(const cg_weather_emit_t *e) {
@@ -182,10 +174,8 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 	}
 }
 
-/**
- * Cg_AddWeather
- *
- * Adds particles and issues ambient loop sounds for weather effects.
+/*
+ * @brief Adds particles and issues ambient loop sounds for weather effects.
  */
 static void Cg_AddWeather(void) {
 

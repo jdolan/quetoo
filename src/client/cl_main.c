@@ -55,9 +55,7 @@ cl_client_t cl;
 extern void Sv_ShutdownServer(const char *msg);
 
 /*
- * Cl_SendConnect
- *
- * We have gotten a challenge from the server, so try and connect.
+ * @brief We have gotten a challenge from the server, so try and connect.
  */
 static void Cl_SendConnect(void) {
 	net_addr_t addr;
@@ -83,9 +81,7 @@ static void Cl_SendConnect(void) {
 }
 
 /*
- * Cl_CheckForResend
- *
- * Re-send a connect message if the last one has timed out.
+ * @brief Re-send a connect message if the last one has timed out.
  */
 static void Cl_CheckForResend(void) {
 	net_addr_t addr;
@@ -127,7 +123,7 @@ static void Cl_CheckForResend(void) {
 }
 
 /*
- * Cl_Connect_f
+ * @brief
  */
 static void Cl_Connect_f(void) {
 
@@ -149,9 +145,7 @@ static void Cl_Connect_f(void) {
 }
 
 /*
- * Cl_Rcon_f
- *
- * Send the rest of the command line over as an unconnected command.
+ * @brief Send the rest of the command line over as an unconnected command.
  */
 static void Cl_Rcon_f(void) {
 	char message[1024];
@@ -195,10 +189,8 @@ static void Cl_Rcon_f(void) {
 	Net_SendPacket(NS_CLIENT, strlen(message) + 1, message, to);
 }
 
-/**
- * CL_ForwardCmdToServer
- *
- * Client implementation of Cmd_ForwardToServer. Any commands not recognized
+/*
+ * @brief Client implementation of Cmd_ForwardToServer. Any commands not recognized
  * locally by the client will be sent to the server. Some will undergo parameter
  * expansion so that players can use macros for locations, weapons, etc.
  */
@@ -219,7 +211,7 @@ static void Cl_ForwardCmdToServer(void) {
 }
 
 /*
- * Cl_ClearState
+ * @brief
  */
 void Cl_ClearState(void) {
 
@@ -237,11 +229,9 @@ void Cl_ClearState(void) {
 }
 
 /*
- * Cl_SendDisconnect
- *
- * Sends the disconnect command to the server (several times).  This is used
+ * @brief Sends the disconnect command to the server (several times). This is used
  * when the client actually wishes to disconnect or quit, or when an HTTP
- * download has begun.  This way, the client does not waste a server slot
+ * download has begun. This way, the client does not waste a server slot
  * (or just timeout) while downloading a level.
  */
 void Cl_SendDisconnect(void) {
@@ -269,9 +259,7 @@ void Cl_SendDisconnect(void) {
 }
 
 /*
- * Cl_Disconnect
- *
- * Sends a disconnect message to the current server, stops any pending
+ * @brief Sends a disconnect message to the current server, stops any pending
  * demo recording, and updates cls.state so that we drop to console.
  */
 void Cl_Disconnect(void) {
@@ -313,7 +301,7 @@ void Cl_Disconnect(void) {
 }
 
 /*
- * Cl_Disconnect_f
+ * @brief
  */
 static void Cl_Disconnect_f(void) {
 
@@ -325,7 +313,7 @@ static void Cl_Disconnect_f(void) {
 }
 
 /*
- * Cl_Reconnect_f
+ * @brief
  */
 void Cl_Reconnect_f(void) {
 
@@ -352,9 +340,7 @@ void Cl_Reconnect_f(void) {
 }
 
 /*
- * Cl_ConnectionlessPacket
- *
- * Responses to broadcasts, etc
+ * @brief Responses to broadcasts, etc
  */
 static void Cl_ConnectionlessPacket(void) {
 	char *s;
@@ -376,7 +362,7 @@ static void Cl_ConnectionlessPacket(void) {
 	if (!strcmp(c, "client_connect")) {
 
 		if (cls.state == CL_CONNECTED) {
-			Com_Print("Dup connect received.  Ignored.\n");
+			Com_Print("Dup connect received. Ignored.\n");
 			return;
 		}
 
@@ -420,7 +406,7 @@ static void Cl_ConnectionlessPacket(void) {
 	// challenge from the server we are connecting to
 	if (!strcmp(c, "challenge")) {
 		if (cls.state != CL_CONNECTING) {
-			Com_Print("Duplicate challenge received.  Ignored.\n");
+			Com_Print("Duplicate challenge received. Ignored.\n");
 			return;
 		}
 		cls.challenge = atoi(Cmd_Argv(1));
@@ -432,7 +418,7 @@ static void Cl_ConnectionlessPacket(void) {
 }
 
 /*
- * Cl_ReadPackets
+ * @brief
  */
 static void Cl_ReadPackets(void) {
 
@@ -475,7 +461,7 @@ static void Cl_ReadPackets(void) {
 }
 
 /*
- * Cl_LoadProgress
+ * @brief
  */
 void Cl_LoadProgress(uint16_t percent) {
 
@@ -487,9 +473,7 @@ void Cl_LoadProgress(uint16_t percent) {
 }
 
 /*
- * Cl_UpdateMedia
- *
- * Reload stale media references on subsystem restarts.
+ * @brief Reload stale media references on subsystem restarts.
  */
 static void Cl_UpdateMedia(void) {
 
@@ -509,9 +493,7 @@ static void Cl_UpdateMedia(void) {
 }
 
 /*
- * Cl_LoadMedia
- *
- * Load all game media through the relevant subsystems. This is called when
+ * @brief Load all game media through the relevant subsystems. This is called when
  * spawning into a server. For incremental reloads on subsystem restarts,
  * see Cl_UpdateMedia.
  */
@@ -537,10 +519,8 @@ static void Cl_LoadMedia(void) {
 static int32_t precache_check; // for auto-download of precache items
 
 /*
- * Cl_RequestNextDownload
- *
- * Entry point for file downloads, or "precache" from server.  Attempt to
- * download .pak and .bsp from server.  Pak is preferred. Once all precache
+ * @brief Entry point for file downloads, or "precache" from server. Attempt to
+ * download .pak and .bsp from server. Pak is preferred. Once all precache
  * checks are completed, we load media and ask the server to begin sending
  * us frames.
  */
@@ -585,9 +565,7 @@ void Cl_RequestNextDownload(void) {
 }
 
 /*
- * Cl_Precache_f
- *
- * The server sends this command just after server_data. Hang onto the spawn
+ * @brief The server sends this command just after server_data. Hang onto the spawn
  * count and check for the media we'll need to enter the game.
  */
 static void Cl_Precache_f(void) {
@@ -600,7 +578,7 @@ static void Cl_Precache_f(void) {
 }
 
 /*
- * Cl_GetUserName
+ * @brief
  */
 static const char *Cl_GetUserName(void) {
 	const char *username = Sys_GetCurrentUser();
@@ -612,7 +590,7 @@ static const char *Cl_GetUserName(void) {
 }
 
 /*
- * Cl_InitLocal
+ * @brief
  */
 static void Cl_InitLocal(void) {
 
@@ -663,9 +641,7 @@ static void Cl_InitLocal(void) {
 }
 
 /*
- * Cl_WriteConfiguration
- *
- * Writes key bindings and archived cvars to quake2world.cfg.
+ * @brief Writes key bindings and archived cvars to quake2world.cfg.
  */
 static void Cl_WriteConfiguration(void) {
 	FILE *f;
@@ -689,7 +665,7 @@ static void Cl_WriteConfiguration(void) {
 }
 
 /*
- * Cl_Frame
+ * @brief
  */
 void Cl_Frame(uint32_t msec) {
 	bool packet_frame = true, render_frame = true;
@@ -801,7 +777,7 @@ void Cl_Frame(uint32_t msec) {
 #include "cl_binds.h"
 
 /*
- * Cl_Init
+ * @brief
  */
 void Cl_Init(void) {
 
@@ -850,7 +826,7 @@ void Cl_Init(void) {
 }
 
 /*
- * Cl_Shutdown
+ * @brief
  */
 void Cl_Shutdown(void) {
 

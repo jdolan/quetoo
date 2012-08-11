@@ -53,9 +53,7 @@ typedef struct face_extents_s {
 static face_extents_t face_extents[MAX_BSP_FACES];
 
 /*
- * BuildFaceExtents
- *
- * Populates face_extents for all d_bsp_face_t, prior to light creation.
+ * @brief Populates face_extents for all d_bsp_face_t, prior to light creation.
  * This is done so that sample positions may be nudged outward along
  * the face normal and towards the face center to help with traces.
  */
@@ -112,9 +110,7 @@ static void BuildFaceExtents(void) {
 }
 
 /*
- * CalcLightinfoExtents
- *
- * Fills in l->texmins[] and l->texsize[], l->exactmins[] and l->exactmaxs[]
+ * @brief Fills in l->texmins[] and l->texsize[], l->exactmins[] and l->exactmaxs[]
  */
 static void CalcLightinfoExtents(light_info_t *l) {
 	const d_bsp_face_t *s;
@@ -144,9 +140,7 @@ static void CalcLightinfoExtents(light_info_t *l) {
 }
 
 /*
- * CalcLightinfoVectors
- *
- * Fills in tex_org, world_to_tex. and tex_to_world
+ * @brief Fills in tex_org, world_to_tex. and tex_to_world
  */
 static void CalcLightinfoVectors(light_info_t *l) {
 	const d_bsp_texinfo_t *tex;
@@ -161,7 +155,7 @@ static void CalcLightinfoVectors(light_info_t *l) {
 	for (i = 0; i < 2; i++)
 		VectorCopy(tex->vecs[i], l->world_to_tex[i]);
 
-	// calculate a normal to the texture axis.  points can be moved along this
+	// calculate a normal to the texture axis. points can be moved along this
 	// without changing their S/T
 	tex_normal[0] = tex->vecs[1][1] * tex->vecs[0][2] - tex->vecs[1][2]
 			* tex->vecs[0][1];
@@ -212,9 +206,7 @@ static void CalcLightinfoVectors(light_info_t *l) {
 }
 
 /*
- * CalcPoints
- *
- * For each texture aligned grid point, back project onto the plane
+ * @brief For each texture aligned grid point, back project onto the plane
  * to get the world xyz value of the sample point
  */
 static void CalcPoints(light_info_t *l, float sofs, float tofs) {
@@ -279,7 +271,7 @@ typedef struct sun_s {
 static sun_t sun;
 
 /*
- * FindTargetEntity
+ * @brief
  */
 static entity_t *FindTargetEntity(const char *target) {
 	int32_t i;
@@ -297,7 +289,7 @@ static entity_t *FindTargetEntity(const char *target) {
 #define ANGLE_DOWN	-2.0
 
 /*
- * BuildLights
+ * @brief
  */
 void BuildLights(void) {
 	int32_t i;
@@ -478,9 +470,7 @@ void BuildLights(void) {
 }
 
 /*
- * GatherSampleSunlight
- *
- * A follow-up to GatherSampleLight, simply trace along the sun normal, adding
+ * @brief A follow-up to GatherSampleLight, simply trace along the sun normal, adding
  * sunlight when a sky surface is struck.
  */
 static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
@@ -516,9 +506,7 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
 }
 
 /*
- * GatherSampleLight
- *
- * Iterate over all light sources for the sample position's PVS, accumulating
+ * @brief Iterate over all light sources for the sample position's PVS, accumulating
  * light and directional information to the specified pointers.
  */
 static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
@@ -593,10 +581,8 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 #define SAMPLE_NUDGE 0.25
 
 /*
- * NudgeSamplePosition
- *
- * Move the incoming sample position towards the surface center and along the
- * surface normal to reduce false-positive traces.  Test the PVS at the new
+ * @brief Move the incoming sample position towards the surface center and along the
+ * surface normal to reduce false-positive traces. Test the PVS at the new
  * position, returning true if the new point is valid, false otherwise.
  */
 static bool NudgeSamplePosition(const vec3_t in, const vec3_t normal,
@@ -619,9 +605,7 @@ static bool NudgeSamplePosition(const vec3_t in, const vec3_t normal,
 #define MAX_VERT_FACES 256
 
 /*
- * FacesWithEdge
- *
- * Populate faces with indexes of all d_bsp_face_t's referencing the specified edge.
+ * @brief Populate faces with indexes of all d_bsp_face_t's referencing the specified edge.
  * The number of d_bsp_face_t's referencing edge is returned in nfaces.
  */
 static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
@@ -651,9 +635,7 @@ static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
 }
 
 /*
- * BuildVertexNormals
- *
- * Calculate per-vertex (instead of per-plane) normal vectors.  This is done by
+ * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by
  * finding all of the faces which share a given vertex, and calculating a weighted
  * average of their normals.
  */
@@ -698,9 +680,7 @@ void BuildVertexNormals(void) {
 }
 
 /*
- * SampleNormal
- *
- * For Phong-shaded samples, calculate the interpolated normal vector using
+ * @brief For Phong-shaded samples, calculate the interpolated normal vector using
  * linear interpolation between the nearest and farthest vertexes.
  */
 static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal) {
@@ -745,7 +725,7 @@ static const float sampleofs[MAX_SAMPLES][2] = { { 0.0, 0.0 },
 				0.125 } };
 
 /*
- * BuildFacelights
+ * @brief
  */
 void BuildFacelights(int32_t face_num) {
 	d_bsp_face_t *face;
@@ -881,9 +861,7 @@ void BuildFacelights(int32_t face_num) {
 }
 
 /*
- * FinalLightFace
- *
- * Add the indirect lighting on top of the direct lighting and save into
+ * @brief Add the indirect lighting on top of the direct lighting and save into
  * final map format.
  */
 void FinalLightFace(int32_t face_num) {

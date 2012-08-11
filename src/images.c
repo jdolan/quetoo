@@ -26,7 +26,7 @@
 /* Work-around for a conflict between windows.h and jpeglib.h.
  If ADDRESS_TAG_BIT is defined then BaseTsd.h has been included and
  INT32 has been defined with a typedef, so we must define XMD_H to
- prevent the jpeg header from defining it again.  */
+ prevent the jpeg header from defining it again. */
 
 /* And another one... jmorecfg.h defines the 'boolean' type as int,
  which conflicts with the standard Windows 'boolean' definition as
@@ -93,10 +93,8 @@ SDL_PixelFormat format = { NULL, // palette
 // image formats, tried in this order
 const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
 
-/**
- * Img_LoadImage
- *
- * Loads the specified image from the game filesystem and populates
+/*
+ * @brief Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
  *
  * Image formats are tried in the order they appear in TYPES.
@@ -113,10 +111,8 @@ bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 	return false;
 }
 
-/**
- * Img_LoadWal
- *
- * A helper which mangles a .wal file into an SDL_Surface suitable for
+/*
+ * @brief A helper which mangles a .wal file into an SDL_Surface suitable for
  * OpenGL uploads and other basic manipulations.
  */
 static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
@@ -166,10 +162,8 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	return true;
 }
 
-/**
- * Img_LoadTypedImage
- *
- * Loads the specified image from the game filesystem and populates
+/*
+ * @brief Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
  */
 bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
@@ -215,10 +209,8 @@ bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) 
 	return true;
 }
 
-/**
- * Img_InitPalette
- *
- * Initializes the 8bit color palette required for .wal texture loading.
+/*
+ * @brief Initializes the 8bit color palette required for .wal texture loading.
  */
 void Img_InitPalette(void) {
 	SDL_Surface *surf;
@@ -245,10 +237,8 @@ void Img_InitPalette(void) {
 	palette_initialized = true;
 }
 
-/**
- * Img_ColorFromPalette
- *
- * Returns RGB components of the specified color in the specified result array.
+/*
+ * @brief Returns RGB components of the specified color in the specified result array.
  */
 void Img_ColorFromPalette(byte c, float *res) {
 	uint32_t color;
@@ -263,10 +253,8 @@ void Img_ColorFromPalette(byte c, float *res) {
 	res[2] = (color >> 16 & 255) / 255.0;
 }
 
-/**
- * Img_fwrite
- *
- * Wraps fwrite, reading the return value to silence gcc.
+/*
+ * @brief Wraps fwrite, reading the return value to silence gcc.
  */
 static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 
@@ -274,10 +262,8 @@ static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream
 		Com_Print("Failed to write\n");
 }
 
-/**
- * Img_WriteJPEG
- *
- * Write pixel data to a JPEG file.
+/*
+ * @brief Write pixel data to a JPEG file.
  */
 void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, int32_t quality) {
 	struct jpeg_compress_struct cinfo;
@@ -324,10 +310,8 @@ void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, 
 
 #define TGA_CHANNELS 3
 
-/**
- * Img_WriteTGARLE
- *
- * Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
+/*
+ * @brief Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
 void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height, int32_t quality __attribute__((unused))) {
 	FILE *tga_file;

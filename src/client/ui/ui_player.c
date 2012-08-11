@@ -22,7 +22,7 @@
 #include "ui_local.h"
 
 /*
- * Ui_Player
+ * @brief
  */
 TwBar *Ui_Player(void) {
 

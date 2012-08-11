@@ -52,10 +52,8 @@ typedef struct cg_center_print_s {
 
 static cg_center_print_t center_print;
 
-/**
- * Cg_DrawIcon
- *
- * Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
+/*
+ * @brief Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
 static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
 		const uint16_t icon) {
@@ -68,10 +66,8 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
 	cgi.DrawPic(x, y, scale, cgi.ConfigString(CS_IMAGES + icon));
 }
 
-/**
- * Cg_DrawVital
- *
- * Draws the vital numeric and icon, flashing on low quantities.
+/*
+ * @brief Draws the vital numeric and icon, flashing on low quantities.
  */
 static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, int16_t med,
 		int16_t low) {
@@ -103,9 +99,7 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 }
 
 /*
- * Cg_DrawVitals
- *
- * Draws health, ammo and armor numerics and icons.
+ * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawVitals(const player_state_t *ps) {
 	r_pixel_t x, cw, x_offset;
@@ -149,7 +143,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawPickup
+ * @brief
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
 	r_pixel_t x, y, cw, ch;
@@ -178,7 +172,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawFrags
+ * @brief
  */
 static void Cg_DrawFrags(const player_state_t *ps) {
 	const int16_t frags = ps->stats[STAT_FRAGS];
@@ -208,7 +202,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawCaptures
+ * @brief
  */
 static void Cg_DrawCaptures(const player_state_t *ps) {
 	const int16_t captures = ps->stats[STAT_CAPTURES];
@@ -241,7 +235,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawSpectator
+ * @brief
  */
 static void Cg_DrawSpectator(const player_state_t *ps) {
 	r_pixel_t x, y, cw;
@@ -258,7 +252,7 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawChase
+ * @brief
  */
 static void Cg_DrawChase(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
@@ -290,7 +284,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawVote
+ * @brief
  */
 static void Cg_DrawVote(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
@@ -315,7 +309,7 @@ static void Cg_DrawVote(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawTime
+ * @brief
  */
 static void Cg_DrawTime(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
@@ -341,7 +335,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawReady
+ * @brief
  */
 static void Cg_DrawReady(const player_state_t *ps) {
 	r_pixel_t x, y, ch;
@@ -360,7 +354,7 @@ static void Cg_DrawReady(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawTeamBanner
+ * @brief
  */
 static void Cg_DrawTeam(const player_state_t *ps) {
 	const int16_t team = ps->stats[STAT_TEAM];
@@ -389,7 +383,7 @@ static void Cg_DrawTeam(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawCrosshair
+ * @brief
  */
 static void Cg_DrawCrosshair(const player_state_t *ps) {
 	r_pixel_t x, y;
@@ -474,7 +468,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 }
 
 /*
- * Cg_ParseCenterPrint
+ * @brief
  */
 void Cg_ParseCenterPrint(void) {
 	char *c, *out, *line;
@@ -504,7 +498,7 @@ void Cg_ParseCenterPrint(void) {
 }
 
 /*
- * Cg_DrawCenterPrint
+ * @brief
  */
 static void Cg_DrawCenterPrint(const player_state_t *ps) {
 	r_pixel_t cw, ch, x, y;
@@ -528,10 +522,8 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 	}
 }
 
-/**
- * Cg_DrawBlend
- *
- * Draw a full-screen blend effect based on world interaction.
+/*
+ * @brief Draw a full-screen blend effect based on world interaction.
  */
 static void Cg_DrawBlend(const player_state_t *ps) {
 	static int16_t pickup;
@@ -593,7 +585,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 }
 
 /*
- * Cg_DrawDamageInflicted
+ * @brief
  */
 static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 
@@ -616,10 +608,8 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 	}
 }
 
-/**
- * Cg_DrawHud
- *
- * Draws the HUD for the current frame.
+/*
+ * @brief Draws the HUD for the current frame.
  */
 void Cg_DrawHud(const player_state_t *ps) {
 

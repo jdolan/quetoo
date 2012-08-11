@@ -32,7 +32,7 @@ int32_t c_winding_points;
 #define	BOGUS_RANGE	8192
 
 /*
- * AllocWinding
+ * @brief
  */
 winding_t *AllocWinding(int32_t points) {
 	winding_t *w;
@@ -52,7 +52,7 @@ winding_t *AllocWinding(int32_t points) {
 }
 
 /*
- * FreeWinding
+ * @brief
  */
 void FreeWinding(winding_t *w) {
 	if (*(uint32_t *) w == 0xdeaddead)
@@ -65,7 +65,7 @@ void FreeWinding(winding_t *w) {
 }
 
 /*
- * RemoveColinearPoints
+ * @brief
  */
 int32_t c_removed;
 
@@ -100,7 +100,7 @@ void RemoveColinearPoints(winding_t *w) {
 }
 
 /*
- * WindingPlane
+ * @brief
  */
 void WindingPlane(const winding_t *w, vec3_t normal, vec_t *dist) {
 	vec3_t v1, v2;
@@ -113,7 +113,7 @@ void WindingPlane(const winding_t *w, vec3_t normal, vec_t *dist) {
 }
 
 /*
- * WindingArea
+ * @brief
  */
 vec_t WindingArea(const winding_t *w) {
 	int32_t i;
@@ -131,7 +131,7 @@ vec_t WindingArea(const winding_t *w) {
 }
 
 /*
- * WindingBounds
+ * @brief
  */
 void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs) {
 	int32_t i, j;
@@ -151,7 +151,7 @@ void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs) {
 }
 
 /*
- * WindingCenter
+ * @brief
  */
 void WindingCenter(const winding_t *w, vec3_t center) {
 	int32_t i;
@@ -166,7 +166,7 @@ void WindingCenter(const winding_t *w, vec3_t center) {
 }
 
 /*
- * BaseWindingForPlane
+ * @brief
  */
 winding_t *BaseWindingForPlane(const vec3_t normal, const vec_t dist) {
 	int32_t i, x;
@@ -230,7 +230,7 @@ winding_t *BaseWindingForPlane(const vec3_t normal, const vec_t dist) {
 }
 
 /*
- * CopyWinding
+ * @brief
  */
 winding_t *CopyWinding(const winding_t *w) {
 	size_t size;
@@ -243,7 +243,7 @@ winding_t *CopyWinding(const winding_t *w) {
 }
 
 /*
- * ReverseWinding
+ * @brief
  */
 winding_t *ReverseWinding(winding_t *w) {
 	int32_t i;
@@ -258,7 +258,7 @@ winding_t *ReverseWinding(winding_t *w) {
 }
 
 /*
- * ClipWindingEpsilon
+ * @brief
  */
 void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 		vec_t epsilon, winding_t **front, winding_t **back) {
@@ -357,7 +357,7 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 }
 
 /*
- * ChopWindingInPlace
+ * @brief
  */
 void ChopWindingInPlace(winding_t **inout, const vec3_t normal,
 		const vec_t dist, const vec_t epsilon) {
@@ -449,10 +449,8 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal,
 }
 
 /*
- * ChopWinding
- *
- * Returns the fragment of in that is on the front side
- * of the cliping plane.  The original is freed.
+ * @brief Returns the fragment of in that is on the front side
+ * of the cliping plane. The original is freed.
  */
 winding_t *ChopWinding(winding_t *in, vec3_t normal, vec_t dist) {
 	winding_t *f, *b;

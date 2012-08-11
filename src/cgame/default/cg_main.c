@@ -50,10 +50,8 @@ cvar_t *cg_third_person;
 
 cg_import_t cgi;
 
-/**
- * Cg_Init
- *
- * Called when the client first comes up or switches game directories. Client
+/*
+ * @brief Called when the client first comes up or switches game directories. Client
  * game modules should bootstrap any globals they require here.
  */
 static void Cg_Init(void) {
@@ -112,10 +110,8 @@ static void Cg_Init(void) {
 	cgi.Print("  Client game initialized.\n");
 }
 
-/**
- * Cg_Shutdown
- *
- * Called when switching game directories or quitting.
+/*
+ * @brief Called when switching game directories or quitting.
  */
 static void Cg_Shutdown(void) {
 
@@ -148,10 +144,8 @@ static void Cg_Shutdown(void) {
 	cgi.Print("  Client game shutdown...\n");
 }
 
-/**
- * Cg_ParseMessage
- *
- * Parse a single server command, returning true on success.
+/*
+ * @brief Parse a single server command, returning true on success.
  */
 static bool Cg_ParseMessage(int32_t cmd) {
 
@@ -180,7 +174,7 @@ static bool Cg_ParseMessage(int32_t cmd) {
 }
 
 /*
- * Cg_DrawFrame
+ * @brief
  */
 static void Cg_DrawFrame(const cl_frame_t *frame) {
 
@@ -189,19 +183,15 @@ static void Cg_DrawFrame(const cl_frame_t *frame) {
 	Cg_DrawScores(&frame->ps);
 }
 
-/**
- * Cg_ClearState
- *
- * Clear any state that should not persist over multiple server connections.
+/*
+ * @brief Clear any state that should not persist over multiple server connections.
  */
 static void Cg_ClearState(void) {
 
 }
 
-/**
- * Cg_UpdateConfigString
- *
- * An updated configuration string has just been received from the server.
+/*
+ * @brief An updated configuration string has just been received from the server.
  * Refresh related variables and media that aren't managed by the engine.
  */
 static void Cg_UpdateConfigString(uint16_t i) {
@@ -215,7 +205,7 @@ static void Cg_UpdateConfigString(uint16_t i) {
 }
 
 /*
- * Cg_LoadCgame
+ * @brief
  */
 cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	static cg_export_t cge;

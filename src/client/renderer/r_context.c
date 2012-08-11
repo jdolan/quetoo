@@ -26,7 +26,7 @@
 r_context_t r_context;
 
 /*
- * R_SetIcon
+ * @brief
  */
 static void R_SetIcon(void) {
 	SDL_Surface *surf;
@@ -39,10 +39,8 @@ static void R_SetIcon(void) {
 	SDL_FreeSurface(surf);
 }
 
-/**
- * R_InitContext
- *
- * Initialize the OpenGL context, returning true on success, false on failure.
+/*
+ * @brief Initialize the OpenGL context, returning true on success, false on failure.
  */
 void R_InitContext(void) {
 	r_pixel_t w, h;
@@ -142,7 +140,7 @@ void R_InitContext(void) {
 }
 
 /*
- * R_ShutdownContext
+ * @brief
  */
 void R_ShutdownContext(void) {
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)

@@ -22,7 +22,7 @@
 #include "ui_local.h"
 
 /*
- * Ui_Controls
+ * @brief
  */
 TwBar *Ui_Controls(void) {
 	extern cvar_t *m_sensitivity;

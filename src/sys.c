@@ -22,7 +22,7 @@
 #include "sys.h"
 
 /*
- * Sys_Milliseconds
+ * @brief
  */
 uint32_t Sys_Milliseconds(void) {
 	static uint32_t base, time;
@@ -47,7 +47,7 @@ uint32_t Sys_Milliseconds(void) {
 }
 
 /*
- * Sys_GetCurrentUser
+ * @brief
  */
 const char *Sys_GetCurrentUser(void) {
 	static char user[64];
@@ -69,10 +69,8 @@ const char *Sys_GetCurrentUser(void) {
 	return user;
 }
 
-/**
- * Sys_Mkdir
- *
- * Create the specified directory path.
+/*
+ * @brief Create the specified directory path.
  */
 void Sys_Mkdir(const char *path) {
 #ifdef _WIN32
@@ -87,11 +85,9 @@ static char find_path[MAX_OSPATH];
 static char find_pattern[MAX_OSPATH];
 static DIR *find_dir;
 
-/**
- * Sys_FindFirst
- *
- * Returns the first full path name matched by the specified search path in
- * the Quake file system.  Wildcards are partially supported.
+/*
+ * @brief Returns the first full path name matched by the specified search path in
+ * the Quake file system. Wildcards are partially supported.
  */
 const char *Sys_FindFirst(const char *path) {
 	struct dirent *d;
@@ -126,7 +122,7 @@ const char *Sys_FindFirst(const char *path) {
 }
 
 /*
- * Sys_FindNext
+ * @brief
  */
 const char *Sys_FindNext(void) {
 	struct dirent *d;
@@ -144,7 +140,7 @@ const char *Sys_FindNext(void) {
 }
 
 /*
- * Sys_FindClose
+ * @brief
  */
 void Sys_FindClose(void) {
 	if (find_dir != NULL)
@@ -152,10 +148,8 @@ void Sys_FindClose(void) {
 	find_dir = NULL;
 }
 
-/**
- * Sys_CloseLibrary
- *
- * Closes an open game module.
+/*
+ * @brief Closes an open game module.
  */
 void Sys_CloseLibrary(void **handle) {
 	if (*handle)
@@ -164,7 +158,7 @@ void Sys_CloseLibrary(void **handle) {
 }
 
 /*
- * Sys_OpenLibrary
+ * @brief
  */
 void Sys_OpenLibrary(const char *name, void **handle) {
 	const char *path;
@@ -189,10 +183,8 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 	Com_Error(ERR_DROP, "Sys_OpenLibrary: %s\n", dlerror());
 }
 
-/**
- * Sys_LoadLibrary
- *
- * Opens and loads the specified shared library. The function identified by
+/*
+ * @brief Opens and loads the specified shared library. The function identified by
  * entry_point is resolved and invoked with the specified parameters, its
  * return value returned by this function.
  */
@@ -217,19 +209,15 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 	return EntryPoint(params);
 }
 
-/**
- * Sys_Quit
- *
- * The final exit point of the program under normal exit conditions.
+/*
+ * @brief The final exit point of the program under normal exit conditions.
  */
 void Sys_Quit(void) {
 	exit(0);
 }
 
-/**
- * Sys_Backtrace
- *
- * On platforms supporting it, print32_t a backtrace.
+/*
+ * @brief On platforms supporting it, print32_t a backtrace.
  */
 void Sys_Backtrace(void) {
 #ifdef HAVE_EXECINFO
@@ -243,10 +231,8 @@ void Sys_Backtrace(void) {
 #endif
 }
 
-/**
- * Sys_Error
- *
- * The final exit point of the program under abnormal exit conditions.
+/*
+ * @brief The final exit point of the program under abnormal exit conditions.
  */
 void Sys_Error(const char *error, ...) {
 	va_list args;
@@ -263,10 +249,8 @@ void Sys_Error(const char *error, ...) {
 	exit(1);
 }
 
-/**
- * Sys_Signal
- *
- * Catch kernel interrupts and dispatch the appropriate exit routine.
+/*
+ * @brief Catch kernel interrupts and dispatch the appropriate exit routine.
  */
 void Sys_Signal(int32_t s) {
 

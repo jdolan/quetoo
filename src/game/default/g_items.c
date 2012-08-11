@@ -30,7 +30,7 @@ uint16_t lightning_fly_index;
 uint16_t quad_damage_index;
 
 /*
- * G_ItemByIndex
+ * @brief
  */
 g_item_t *G_ItemByIndex(uint16_t index) {
 
@@ -41,7 +41,7 @@ g_item_t *G_ItemByIndex(uint16_t index) {
 }
 
 /*
- * G_FindItemByClassname
+ * @brief
  */
 g_item_t *G_FindItemByClassname(const char *class_name) {
 	int32_t i;
@@ -61,7 +61,7 @@ g_item_t *G_FindItemByClassname(const char *class_name) {
 }
 
 /*
- * G_FindItem
+ * @brief
  */
 g_item_t *G_FindItem(const char *pickup_name) {
 	int32_t i;
@@ -85,7 +85,7 @@ g_item_t *G_FindItem(const char *pickup_name) {
 }
 
 /*
- * G_ItemRespawn
+ * @brief
  */
 static void G_ItemRespawn(g_edict_t *ent) {
 	g_edict_t *master;
@@ -120,7 +120,7 @@ static void G_ItemRespawn(g_edict_t *ent) {
 }
 
 /*
- * G_SetItemRespawn
+ * @brief
  */
 void G_SetItemRespawn(g_edict_t *ent, uint32_t delay) {
 
@@ -134,7 +134,7 @@ void G_SetItemRespawn(g_edict_t *ent, uint32_t delay) {
 }
 
 /*
- * G_PickupAdrenaline
+ * @brief
  */
 static bool G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
 
@@ -148,7 +148,7 @@ static bool G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
 }
 
 /*
- * G_PickupQuadDamage
+ * @brief
  */
 static bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 
@@ -169,7 +169,7 @@ static bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 }
 
 /*
- * G_TossQuadDamage
+ * @brief
  */
 void G_TossQuadDamage(g_edict_t *ent) {
 	g_edict_t *quad;
@@ -187,7 +187,7 @@ void G_TossQuadDamage(g_edict_t *ent) {
 }
 
 /*
- * G_AddAmmo
+ * @brief
  */
 bool G_AddAmmo(g_edict_t *ent, g_item_t *item, int16_t count) {
 	uint16_t index;
@@ -225,7 +225,7 @@ bool G_AddAmmo(g_edict_t *ent, g_item_t *item, int16_t count) {
 }
 
 /*
- * G_SetAmmo
+ * @brief
  */
 bool G_SetAmmo(g_edict_t *ent, g_item_t *item, int16_t count) {
 	uint16_t index;
@@ -263,7 +263,7 @@ bool G_SetAmmo(g_edict_t *ent, g_item_t *item, int16_t count) {
 }
 
 /*
- * G_PickupAmmo
+ * @brief
  */
 static bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
 	int32_t count;
@@ -283,7 +283,7 @@ static bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
 }
 
 /*
- * G_PickupHealth
+ * @brief
  */
 static bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 	int32_t h, max;
@@ -323,7 +323,7 @@ static bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 }
 
 /*
- * G_PickupArmor
+ * @brief
  */
 static bool G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
 	bool taken = true;
@@ -347,10 +347,8 @@ static bool G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
 	return taken;
 }
 
-/**
- * G_ResetFlag
- *
- * A dropped flag has been idle for 30 seconds, return it.
+/*
+ * @brief A dropped flag has been idle for 30 seconds, return it.
  */
 void G_ResetFlag(g_edict_t *ent) {
 	g_team_t *t;
@@ -372,10 +370,8 @@ void G_ResetFlag(g_edict_t *ent) {
 	G_FreeEdict(ent);
 }
 
-/**
- * G_PickupFlag
- *
- * Return own flag, or capture on it if enemy's flag is in inventory.
+/*
+ * @brief Return own flag, or capture on it if enemy's flag is in inventory.
  * Take the enemy's flag.
  */
 static bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
@@ -459,7 +455,7 @@ static bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 }
 
 /*
- * G_TossFlag
+ * @brief
  */
 void G_TossFlag(g_edict_t *ent) {
 	g_team_t *ot;
@@ -489,14 +485,14 @@ void G_TossFlag(g_edict_t *ent) {
 }
 
 /*
- * G_DropFlag
+ * @brief
  */
 static void G_DropFlag(g_edict_t *ent, g_item_t *item __attribute__((unused))) {
 	G_TossFlag(ent);
 }
 
 /*
- * G_TouchItem
+ * @brief
  */
 void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
 	bool taken;
@@ -550,7 +546,7 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attrib
 }
 
 /*
- * G_DropItemUntouchable
+ * @brief
  */
 static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane,
 		c_bsp_surface_t *surf) {
@@ -562,7 +558,7 @@ static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, c_bsp_plane_
 }
 
 /*
- * G_DropItemThink
+ * @brief
  */
 static void G_DropItemThink(g_edict_t *ent) {
 	int32_t contents;
@@ -609,10 +605,8 @@ static void G_DropItemThink(g_edict_t *ent) {
 	ent->next_think = g_level.time + i;
 }
 
-/**
- * G_DropItem
- *
- * Handles the mechanics of dropping items, but does not adjust the client's
+/*
+ * @brief Handles the mechanics of dropping items, but does not adjust the client's
  * inventory. That is left to the caller.
  */
 g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item) {
@@ -685,7 +679,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item) {
 }
 
 /*
- * G_UseItem
+ * @brief
  */
 static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	ent->sv_flags &= ~SVF_NO_CLIENT;
@@ -703,7 +697,7 @@ static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), 
 }
 
 /*
- * G_DropToFloor
+ * @brief
  */
 static void G_DropToFloor(g_edict_t *ent) {
 	c_trace_t tr;
@@ -732,10 +726,8 @@ static void G_DropToFloor(g_edict_t *ent) {
 	gi.LinkEntity(ent);
 }
 
-/**
- * G_PrecacheItem
- *
- * Precaches all data needed for a given item.
+/*
+ * @brief Precaches all data needed for a given item.
  * This will be called for each item spawned in a level,
  * and for each item in each client's inventory.
  */
@@ -792,10 +784,8 @@ void G_PrecacheItem(g_item_t *it) {
 	}
 }
 
-/**
- * G_SpawnItem
- *
- * Sets the clipping size and plants the object on the floor.
+/*
+ * @brief Sets the clipping size and plants the object on the floor.
  *
  * Items can't be immediately dropped to floor, because they might
  * be on an entity that hasn't spawned yet.
@@ -1455,17 +1445,15 @@ g_override_t g_overrides[] = {
 };
 
 /*
- * G_InitItems
+ * @brief
  */
 void G_InitItems(void) {
 	g_game.num_items = sizeof(g_items) / sizeof(g_items[0]) - 1;
 	g_game.num_overrides = sizeof(g_overrides) / sizeof(g_overrides[0]) - 1;
 }
 
-/**
- * G_SetItemNames
- *
- * Called by worldspawn.
+/*
+ * @brief Called by worldspawn.
  */
 void G_SetItemNames(void) {
 	int32_t i, j;

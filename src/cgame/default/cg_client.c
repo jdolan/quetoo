@@ -23,10 +23,8 @@
 
 #define DEFAULT_CLIENT_INFO "newbie\\qforcer/enforcer"
 
-/**
- * Cg_LoadClientSkin
- *
- * Parses a single line of a .skin definition file. Note that, unlike Quake3,
+/*
+ * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
  * our skin paths start with players/, not models/players/.
  */
 static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line) {
@@ -57,10 +55,8 @@ static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line)
 	}
 }
 
-/**
- * Cg_LoadClientSkins
- *
- * Parses the appropriate .skin file, resolving skins for each mesh within the
+/*
+ * @brief Parses the appropriate .skin file, resolving skins for each mesh within the
  * model. If a skin can not be resolved for any mesh, the entire skins array is
  * invalidated so that the default will be loaded.
  */
@@ -112,10 +108,8 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const ch
 	}
 }
 
-/**
- * Cg_ValidateClient
- *
- * Ensures that models and skins were resolved for the specified client info.
+/*
+ * @brief Ensures that models and skins were resolved for the specified client info.
  */
 static bool Cg_ValidateClient(cl_client_info_t *ci) {
 
@@ -128,10 +122,8 @@ static bool Cg_ValidateClient(cl_client_info_t *ci) {
 	return true;
 }
 
-/**
- * Cg_LoadClient
- *
- * Resolves the player name, model and skins for the specified user info string.
+/*
+ * @brief Resolves the player name, model and skins for the specified user info string.
  * If validation fails, we fall back on the DEFAULT_CLIENT_INFO constant.
  */
 void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
@@ -204,10 +196,8 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	}
 }
 
-/**
- * Cg_LoadClients
- *
- * Load all client info strings from the server.
+/*
+ * @brief Load all client info strings from the server.
  */
 void Cg_LoadClients(void) {
 	int32_t i;
@@ -225,10 +215,8 @@ void Cg_LoadClients(void) {
 	}
 }
 
-/**
- * Cg_NextAnimation
- *
- * Returns the next animation to advance to, defaulting to a no-op.
+/*
+ * @brief Returns the next animation to advance to, defaulting to a no-op.
  */
 static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 
@@ -254,10 +242,8 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 	}
 }
 
-/**
- * Cg_AnimateClientEntity_
- *
- * Resolve the frames and interpolation fractions for the specified animation
+/*
+ * @brief Resolve the frames and interpolation fractions for the specified animation
  * and entity. If a non-looping animation has completed, proceed to the next
  * animation in the sequence.
  */
@@ -324,10 +310,8 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 	e->back_lerp = 1.0 - a->lerp;
 }
 
-/**
- * Cg_AnimateClientEntity
- *
- * Runs the animation sequences for the specified entity, setting the frame
+/*
+ * @brief Runs the animation sequences for the specified entity, setting the frame
  * indexes and interpolation fractions for the specified renderer entities.
  */
 void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower) {

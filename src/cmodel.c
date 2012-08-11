@@ -112,7 +112,7 @@ int32_t c_point_contents;
 int32_t c_traces, c_bsp_brush_traces;
 
 /*
- * Cm_LoadSubmodels
+ * @brief
  */
 static void Cm_LoadSubmodels(const d_bsp_lump_t *l) {
 	const d_bsp_model_t *in;
@@ -146,7 +146,7 @@ static void Cm_LoadSubmodels(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadSurfaces
+ * @brief
  */
 static void Cm_LoadSurfaces(const d_bsp_lump_t *l) {
 	const d_bsp_texinfo_t *in;
@@ -176,7 +176,7 @@ static void Cm_LoadSurfaces(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadNodes
+ * @brief
  */
 static void Cm_LoadNodes(const d_bsp_lump_t *l) {
 	const d_bsp_node_t *in;
@@ -211,7 +211,7 @@ static void Cm_LoadNodes(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadBrushes
+ * @brief
  */
 static void Cm_LoadBrushes(const d_bsp_lump_t *l) {
 	const d_bsp_brush_t *in;
@@ -240,7 +240,7 @@ static void Cm_LoadBrushes(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadLeafs
+ * @brief
  */
 static void Cm_LoadLeafs(const d_bsp_lump_t *l) {
 	int32_t i;
@@ -289,7 +289,7 @@ static void Cm_LoadLeafs(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadPlanes
+ * @brief
  */
 static void Cm_LoadPlanes(const d_bsp_lump_t *l) {
 	int32_t i, j;
@@ -327,7 +327,7 @@ static void Cm_LoadPlanes(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadLeafBrushes
+ * @brief
  */
 static void Cm_LoadLeafBrushes(const d_bsp_lump_t *l) {
 	int32_t i;
@@ -357,7 +357,7 @@ static void Cm_LoadLeafBrushes(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadBrushSides
+ * @brief
  */
 static void Cm_LoadBrushSides(const d_bsp_lump_t *l) {
 	int32_t i;
@@ -392,7 +392,7 @@ static void Cm_LoadBrushSides(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadAreas
+ * @brief
  */
 static void Cm_LoadAreas(const d_bsp_lump_t *l) {
 	int32_t i;
@@ -422,7 +422,7 @@ static void Cm_LoadAreas(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadAreaPortals
+ * @brief
  */
 static void Cm_LoadAreaPortals(const d_bsp_lump_t *l) {
 	int32_t i;
@@ -450,7 +450,7 @@ static void Cm_LoadAreaPortals(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadVisibility
+ * @brief
  */
 static void Cm_LoadVisibility(const d_bsp_lump_t *l) {
 	int32_t i;
@@ -471,7 +471,7 @@ static void Cm_LoadVisibility(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadEntityString
+ * @brief
  */
 static void Cm_LoadEntityString(const d_bsp_lump_t *l) {
 
@@ -485,9 +485,7 @@ static void Cm_LoadEntityString(const d_bsp_lump_t *l) {
 }
 
 /*
- * Cm_LoadBsp
- *
- * Loads in the BSP and all submodels for collision detection.
+ * @brief Loads in the BSP and all submodels for collision detection.
  */
 c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 	d_bsp_header_t header;
@@ -549,7 +547,7 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 }
 
 /*
- * Cm_Model
+ * @brief
  */
 c_model_t *Cm_Model(const char *name) {
 	int32_t num;
@@ -568,28 +566,28 @@ c_model_t *Cm_Model(const char *name) {
 }
 
 /*
- * Cm_NumClusters
+ * @brief
  */
 int32_t Cm_NumClusters(void) {
 	return c_vis->num_clusters;
 }
 
 /*
- * Cm_NumModels
+ * @brief
  */
 int32_t Cm_NumModels(void) {
 	return c_bsp.num_models;
 }
 
 /*
- * Cm_EntityString
+ * @brief
  */
 char *Cm_EntityString(void) {
 	return c_bsp.entity_string;
 }
 
 /*
- * Cm_LeafContents
+ * @brief
  */
 int32_t Cm_LeafContents(const int32_t leaf_num) {
 
@@ -601,7 +599,7 @@ int32_t Cm_LeafContents(const int32_t leaf_num) {
 }
 
 /*
- * Cm_LeafCluster
+ * @brief
  */
 int32_t Cm_LeafCluster(const int32_t leaf_num) {
 
@@ -613,7 +611,7 @@ int32_t Cm_LeafCluster(const int32_t leaf_num) {
 }
 
 /*
- * Cm_LeafArea
+ * @brief
  */
 int32_t Cm_LeafArea(const int32_t leaf_num) {
 
@@ -635,9 +633,7 @@ typedef struct c_bounding_box_s {
 static c_bounding_box_t cm_box;
 
 /*
- * Cm_InitBoxHull
- *
- * Set up the planes and nodes so that the six floats of a bounding box
+ * @brief Set up the planes and nodes so that the six floats of a bounding box
  * can just be stored out and get a proper clipping hull structure.
  */
 static void Cm_InitBoxHull(void) {
@@ -699,9 +695,7 @@ static void Cm_InitBoxHull(void) {
 }
 
 /*
- * Cm_HeadnodeForBox
- *
- * To keep everything totally uniform, bounding boxes are turned into small
+ * @brief To keep everything totally uniform, bounding boxes are turned into small
  * BSP trees instead of being compared directly.
  */
 int32_t Cm_HeadnodeForBox(const vec3_t mins, const vec3_t maxs) {
@@ -722,7 +716,7 @@ int32_t Cm_HeadnodeForBox(const vec3_t mins, const vec3_t maxs) {
 }
 
 /*
- * Cm_PointLeafnum
+ * @brief
  */
 static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 
@@ -748,7 +742,7 @@ static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 }
 
 /*
- * Cm_PointLeafnum
+ * @brief
  */
 int32_t Cm_PointLeafnum(const vec3_t p) {
 
@@ -759,9 +753,7 @@ int32_t Cm_PointLeafnum(const vec3_t p) {
 }
 
 /*
- * Cm_BoxLeafnums
- *
- * Fills in a list of all the leafs touched
+ * @brief Fills in a list of all the leafs touched
  */
 
 typedef struct c_bsp_leaf_data_s {
@@ -802,7 +794,7 @@ static void Cm_BoxLeafnums_r(int32_t node_num, c_bsp_leaf_data_t *data) {
 }
 
 /*
- * Cm_BoxLeafnums_head_node
+ * @brief
  */
 static int32_t Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len,
 		int32_t head_node, int32_t *top_node) {
@@ -824,9 +816,7 @@ static int32_t Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, in
 }
 
 /*
- * Cm_BoxLeafnums
- *
- * Populates the list of leafs the specified bounding box touches. Returns the
+ * @brief Populates the list of leafs the specified bounding box touches. Returns the
  * length of the populated list.
  */
 int32_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len, int32_t *top_node) {
@@ -835,7 +825,7 @@ int32_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size
 }
 
 /*
- * Cm_PointContents
+ * @brief
  */
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 	int32_t l;
@@ -849,9 +839,7 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 }
 
 /*
- * Cm_TransformedPointContents
- *
- * Handles offseting and rotation of the end points for moving and
+ * @brief Handles offseting and rotation of the end points for moving and
  * rotating entities
  */
 int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const vec3_t origin,
@@ -901,7 +889,7 @@ typedef struct {
 } c_trace_data_t;
 
 /*
- * Cm_BrushAlreadyTested
+ * @brief
  */
 static bool Cm_BrushAlreadyTested(int32_t brush_num, c_trace_data_t *data) {
 	int32_t hash = brush_num & 15;
@@ -911,9 +899,7 @@ static bool Cm_BrushAlreadyTested(int32_t brush_num, c_trace_data_t *data) {
 }
 
 /*
- * Cm_ClipBoxToBrush
- *
- * Clips the bounded box to all brush sides for the given brush.  Returns
+ * @brief Clips the bounded box to all brush sides for the given brush. Returns
  * true if the box was clipped, false otherwise.
  */
 static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_trace_t *trace,
@@ -1013,7 +999,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 }
 
 /*
- * Cm_TestBoxInBrush
+ * @brief
  */
 static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *trace,
 		c_bsp_brush_t *brush) {
@@ -1061,7 +1047,7 @@ static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *tr
 }
 
 /*
- * Cm_TraceToLeaf
+ * @brief
  */
 static void Cm_TraceToLeaf(int32_t leaf_num, c_trace_data_t *data) {
 	int32_t k;
@@ -1092,7 +1078,7 @@ static void Cm_TraceToLeaf(int32_t leaf_num, c_trace_data_t *data) {
 }
 
 /*
- * Cm_TestInLeaf
+ * @brief
  */
 static void Cm_TestInLeaf(int32_t leaf_num, c_trace_data_t *data) {
 	int32_t k;
@@ -1121,7 +1107,7 @@ static void Cm_TestInLeaf(int32_t leaf_num, c_trace_data_t *data) {
 }
 
 /*
- * Cm_RecursiveHullCheck
+ * @brief
  */
 static void Cm_RecursiveHullCheck(int32_t num, float p1f, float p2f, const vec3_t p1, const vec3_t p2,
 		c_trace_data_t *data) {
@@ -1216,7 +1202,7 @@ static void Cm_RecursiveHullCheck(int32_t num, float p1f, float p2f, const vec3_
 }
 
 /*
- * Cm_BoxTrace
+ * @brief
  */
 c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 		int32_t head_node, int32_t brush_mask) {
@@ -1290,9 +1276,7 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 }
 
 /*
- * Cm_TransformedBoxTrace
- *
- * Handles translation and rotation of the end points for moving and
+ * @brief Handles translation and rotation of the end points for moving and
  * rotating entities.
  */
 c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
@@ -1357,7 +1341,7 @@ c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec
  */
 
 /*
- * Cm_DecompressVis
+ * @brief
  */
 static void Cm_DecompressVis(const byte *in, byte *out) {
 	int32_t c;
@@ -1395,7 +1379,7 @@ static void Cm_DecompressVis(const byte *in, byte *out) {
 }
 
 /*
- * Cm_ClusterPVS
+ * @brief
  */
 byte *Cm_ClusterPVS(const int32_t cluster) {
 	static byte pvs_row[MAX_BSP_LEAFS / 8];
@@ -1409,7 +1393,7 @@ byte *Cm_ClusterPVS(const int32_t cluster) {
 }
 
 /*
- * Cm_ClusterPHS
+ * @brief
  */
 byte *Cm_ClusterPHS(const int32_t cluster) {
 	static byte phs_row[MAX_BSP_LEAFS / 8];
@@ -1428,10 +1412,8 @@ byte *Cm_ClusterPHS(const int32_t cluster) {
  *
  */
 
-/**
- * Cm_FloodArea
- *
- * Recurse over the area portals, marking adjacent ones as flooded.
+/*
+ * @brief Recurse over the area portals, marking adjacent ones as flooded.
  */
 static void Cm_FloodArea(c_bsp_area_t *area, int32_t flood_num) {
 	const d_bsp_area_portal_t *p;
@@ -1456,7 +1438,7 @@ static void Cm_FloodArea(c_bsp_area_t *area, int32_t flood_num) {
 }
 
 /*
- * Cm_FloodAreaConnections
+ * @brief
  */
 static void Cm_FloodAreaConnections(void) {
 	int32_t i;
@@ -1477,10 +1459,8 @@ static void Cm_FloodAreaConnections(void) {
 	}
 }
 
-/**
- * Cm_SetAreaPortalState
- *
- * Sets the state of the specified area portal and re-floods all area
+/*
+ * @brief Sets the state of the specified area portal and re-floods all area
  * connections, updating their flood counts such that Cm_WriteAreaBits
  * will return the correct information.
  */
@@ -1493,10 +1473,8 @@ void Cm_SetAreaPortalState(const int32_t portal_num, const bool open) {
 	Cm_FloodAreaConnections();
 }
 
-/**
- * Cm_AreasConnected
- *
- * Returns true if the specified areas are connected.
+/*
+ * @brief Returns true if the specified areas are connected.
  */bool Cm_AreasConnected(int32_t area1, int32_t area2) {
 
 	if (c_no_areas->value)
@@ -1512,10 +1490,8 @@ void Cm_SetAreaPortalState(const int32_t portal_num, const bool open) {
 	return false;
 }
 
-/**
- * Cm_WriteAreaBits
- *
- * Writes a bit vector of all the areas that are in the same flood as the
+/*
+ * @brief Writes a bit vector of all the areas that are in the same flood as the
  * specified area. Returns the length of the bit vector in bytes.
  *
  * This is used by the client view to cull visibility.
@@ -1540,10 +1516,8 @@ int32_t Cm_WriteAreaBits(byte *buffer, const int32_t area) {
 	return bytes;
 }
 
-/**
- * Cm_HeadnodeVisible
- *
- * Returns true if any leaf under head_node has a cluster that
+/*
+ * @brief Returns true if any leaf under head_node has a cluster that
  * is potentially visible.
  */bool Cm_HeadnodeVisible(const int32_t node_num, const byte *vis) {
 	const c_bsp_node_t *node;

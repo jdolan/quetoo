@@ -27,10 +27,8 @@ static z_head_t z_chain;
 static size_t z_count, z_bytes;
 static SDL_mutex *z_lock;
 
-/**
- * Z_Init
- *
- * Initializes the managed memory subsystem. This should be one of the first
+/*
+ * @brief Initializes the managed memory subsystem. This should be one of the first
  * subsystems initialized by Quake2World.
  */
 void Z_Init(void) {
@@ -41,9 +39,7 @@ void Z_Init(void) {
 }
 
 /*
- * Z_Shutdown
- *
- * Shuts down the managed memory subsystem. This should be one of the last
+ * @brief Shuts down the managed memory subsystem. This should be one of the last
  * subsystems brought down by Quake2World.
  */
 void Z_Shutdown(void) {
@@ -54,9 +50,7 @@ void Z_Shutdown(void) {
 }
 
 /*
- * Z_Free_
- *
- * Performs the actual grunt work of freeing managed memory.
+ * @brief Performs the actual grunt work of freeing managed memory.
  */
 static void Z_Free_(z_head_t *z) {
 
@@ -69,10 +63,8 @@ static void Z_Free_(z_head_t *z) {
 	free(z);
 }
 
-/**
- * Z_Free
- *
- * Free an allocation of managed memory.
+/*
+ * @brief Free an allocation of managed memory.
  */
 void Z_Free(void *ptr) {
 	z_head_t *z;
@@ -90,10 +82,8 @@ void Z_Free(void *ptr) {
 	SDL_mutexV(z_lock);
 }
 
-/**
- * Z_FreeTag
- *
- * Free all managed items allocated with the specified tag.
+/*
+ * @brief Free all managed items allocated with the specified tag.
  */
 void Z_FreeTag(int16_t tag) {
 	z_head_t *z, *next;
@@ -109,10 +99,8 @@ void Z_FreeTag(int16_t tag) {
 	SDL_mutexV(z_lock);
 }
 
-/**
- * Z_TagMalloc
- *
- * Allocates and initializes a block of managed memory for the specified tag.
+/*
+ * @brief Allocates and initializes a block of managed memory for the specified tag.
  * Tags allow related objects to be freed in bulk e.g. when a subsystem quits.
  */
 void *Z_TagMalloc(size_t size, int16_t tag) {
@@ -144,10 +132,8 @@ void *Z_TagMalloc(size_t size, int16_t tag) {
 	return (void *) (z + 1);
 }
 
-/**
- * Z_Malloc
- *
- * Allocates and initializes a block of managed memory. Free the memory via
+/*
+ * @brief Allocates and initializes a block of managed memory. Free the memory via
  * Z_Free when done. As a fallback, all managed memory is freed by the engine
  * on exit.
  */
@@ -155,10 +141,8 @@ void *Z_Malloc(size_t size) {
 	return Z_TagMalloc(size, 0);
 }
 
-/**
- * Z_CopyString
- *
- * Allocates and returns a copy of the specified string.
+/*
+ * @brief Allocates and returns a copy of the specified string.
  */
 char *Z_CopyString(const char *in) {
 	char *out;

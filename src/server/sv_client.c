@@ -22,9 +22,7 @@
 #include "sv_local.h"
 
 /*
- * Sv_New_f
- *
- * Sends the first message from the server to a connected client.
+ * @brief Sends the first message from the server to a connected client.
  * This will be sent on the initial connection and upon each server load.
  */
 static void Sv_New_f(void) {
@@ -62,7 +60,7 @@ static void Sv_New_f(void) {
 }
 
 /*
- * Sv_ConfigStrings_f
+ * @brief
  */
 static void Sv_ConfigStrings_f(void) {
 	uint32_t start;
@@ -112,7 +110,7 @@ static void Sv_ConfigStrings_f(void) {
 }
 
 /*
- * Sv_Baselines_f
+ * @brief
  */
 static void Sv_Baselines_f(void) {
 	uint32_t start;
@@ -159,7 +157,7 @@ static void Sv_Baselines_f(void) {
 }
 
 /*
- * Sv_Begin_f
+ * @brief
  */
 static void Sv_Begin_f(void) {
 
@@ -190,7 +188,7 @@ static void Sv_Begin_f(void) {
 }
 
 /*
- * Sv_NextDownload_f
+ * @brief
  */
 static void Sv_NextDownload_f(void) {
 	int32_t r, size, percent;
@@ -232,7 +230,7 @@ static void Sv_NextDownload_f(void) {
 static const char *downloadable[] = { "*.pak", "maps/*", "sounds/*", "env/*", "textures/*", NULL };
 
 /*
- * Sv_Download_f
+ * @brief
  */
 static void Sv_Download_f(void) {
 	const char *name;
@@ -295,18 +293,14 @@ static void Sv_Download_f(void) {
 }
 
 /*
- * Sv_Disconnect_f
- *
- * The client is going to disconnect, so remove the connection immediately
+ * @brief The client is going to disconnect, so remove the connection immediately
  */
 static void Sv_Disconnect_f(void) {
 	Sv_DropClient(sv_client);
 }
 
 /*
- * Sv_Serverinfo_f
- *
- * Dumps the serverinfo info string
+ * @brief Dumps the serverinfo info string
  */
 static void Sv_Info_f(void) {
 	const cvar_t *cvar;
@@ -341,9 +335,7 @@ sv_user_string_cmd_t sv_user_string_cmds[] = { { "new", Sv_New_f }, {
 		Sv_NextDownload_f }, { NULL, NULL } };
 
 /*
- * Sv_UserStringCommand
- *
- * Invoke the specified user string command.  If we don't have a function for
+ * @brief Invoke the specified user string command. If we don't have a function for
  * it, pass it off to the game module.
  */
 static void Sv_UserStringCommand(const char *s) {
@@ -373,9 +365,7 @@ static void Sv_UserStringCommand(const char *s) {
 }
 
 /*
- * Sv_ClientThink
- *
- * Account for command time and pass the command to game module.
+ * @brief Account for command time and pass the command to game module.
  */
 static void Sv_ClientThink(sv_client_t *cl, user_cmd_t *cmd) {
 
@@ -388,9 +378,7 @@ static void Sv_ClientThink(sv_client_t *cl, user_cmd_t *cmd) {
 #define CMD_MAX_STRINGS 8
 
 /*
- * Sv_ParseClientMessage
- *
- * The current net_message is parsed for the given client.
+ * @brief The current net_message is parsed for the given client.
  */
 void Sv_ParseClientMessage(sv_client_t *cl) {
 	user_cmd_t null_cmd, oldest_cmd, old_cmd, new_cmd;

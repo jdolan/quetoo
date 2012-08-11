@@ -86,7 +86,7 @@ void Cvar_ClearVars(uint32_t flags);
 
 bool Cvar_Command(void);
 // called by Cmd_ExecuteString when Cmd_Argv(0) doesn't match a known
-// command.  Returns true if the command was a variable reference that
+// command. Returns true if the command was a variable reference that
 // was handled.(print32_t or change)
 
 void Cvar_WriteVars(const char *path);

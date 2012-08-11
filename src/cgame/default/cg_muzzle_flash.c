@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 /*
- * Cg_EnergyFlash
+ * @brief
  */
 static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t count) {
 	r_particle_t *p;
@@ -37,7 +37,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t cou
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
 
-	tr = cgi.Trace(ent->origin, org, 0.0, MASK_SHOT);
+	tr = cgi.Trace(ent->origin, org, vec3_origin, vec3_origin, MASK_SHOT);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		VectorSubtract(ent->origin, tr.end, org);
@@ -85,7 +85,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t cou
 }
 
 /*
- * Cg_SmokeFlash
+ * @brief
  */
 static void Cg_SmokeFlash(const entity_state_t *ent) {
 	r_particle_t *p;
@@ -100,7 +100,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
 
-	tr = cgi.Trace(ent->origin, org, 0.0, MASK_SHOT);
+	tr = cgi.Trace(ent->origin, org, vec3_origin, vec3_origin, MASK_SHOT);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		VectorSubtract(ent->origin, tr.end, org);
@@ -153,16 +153,14 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 }
 
 /*
- * Cg_LogoutFlash
- *
- * FIXME: This should be a tentity instead; would make more sense.
+ * @brief FIXME: This should be a tentity instead; would make more sense.
  */
 static void Cg_LogoutFlash(const vec3_t org) {
 	Cg_GibEffect(org, 12);
 }
 
 /*
- * Cg_ParseMuzzleFlash
+ * @brief
  */
 void Cg_ParseMuzzleFlash(void) {
 	int32_t c;

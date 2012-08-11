@@ -26,7 +26,7 @@ extern cl_client_t cl;
 extern cl_static_t cls;
 
 /*
- * S_AllocChannel
+ * @brief
  */
 static int32_t S_AllocChannel(void) {
 	int32_t i;
@@ -40,7 +40,7 @@ static int32_t S_AllocChannel(void) {
 }
 
 /*
- * S_FreeChannel
+ * @brief
  */
 void S_FreeChannel(int32_t c) {
 
@@ -50,9 +50,7 @@ void S_FreeChannel(int32_t c) {
 #define SOUND_DISTANCE_SCALE 0.15
 
 /*
- * S_SpatializeChannel
- *
- * Set distance and stereo panning for the specified channel.
+ * @brief Set distance and stereo panning for the specified channel.
  */
 void S_SpatializeChannel(s_channel_t *ch) {
 	entity_state_t *ent;
@@ -85,7 +83,7 @@ void S_SpatializeChannel(s_channel_t *ch) {
 }
 
 /*
- * S_PlaySample
+ * @brief
  */
 void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_t atten) {
 	s_channel_t *ch;
@@ -121,7 +119,7 @@ void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_
 }
 
 /*
- * S_LoopSample
+ * @brief
  */
 void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 	s_channel_t *ch;
@@ -173,7 +171,7 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 }
 
 /*
- * S_StartLocalSample
+ * @brief
  */
 void S_StartLocalSample(const char *name) {
 	s_sample_t *sample;

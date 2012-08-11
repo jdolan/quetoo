@@ -21,10 +21,8 @@
 
 #include "cg_local.h"
 
-/**
- * Cg_UpdateFov
- *
- * Update the field of view, which affects the view port as well as the culling
+/*
+ * @brief Update the field of view, which affects the view port as well as the culling
  * frustum.
  */
 static void Cg_UpdateFov(void) {
@@ -46,14 +44,13 @@ static void Cg_UpdateFov(void) {
 	cg_fov->modified = false;
 }
 
-/**
- * Cg_UpdateThirdperson
- *
- * Update the third person offset, if any. This is used as a client-side
+/*
+ * @brief Update the third person offset, if any. This is used as a client-side
  * option, or as the default chase camera view.
  */
 static void Cg_UpdateThirdperson(const player_state_t *ps) {
 	vec3_t angles, forward, dest;
+	vec3_t mins, maxs;
 	float dist;
 	c_trace_t tr;
 
@@ -81,7 +78,9 @@ static void Cg_UpdateThirdperson(const player_state_t *ps) {
 	dest[2] += 20.0;
 
 	// clip it to the world
-	tr = cgi.Trace(cgi.view->origin, dest, 5.0, MASK_SHOT);
+	VectorSet(mins, -5.0, -5.0, -5.0);
+	VectorSet(maxs, 5.0, 5.0, 5.0);
+	tr = cgi.Trace(cgi.view->origin, dest, mins, maxs, MASK_SHOT);
 	VectorCopy(tr.end, cgi.view->origin);
 
 	// adjust view angles to compensate for height offset
@@ -93,10 +92,8 @@ static void Cg_UpdateThirdperson(const player_state_t *ps) {
 	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
 }
 
-/**
- * Cg_UpdateBob
- *
- * Calculate the view bob. This is done using a running time counter and a
+/*
+ * @brief Calculate the view bob. This is done using a running time counter and a
  * simple sin function. The player's speed, as well as whether or not they
  * are on the ground, determine the bob frequency and amplitude.
  */
@@ -150,10 +147,8 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	VectorMA(cgi.view->origin, cgi.view->bob, cgi.view->up, cgi.view->origin);
 }
 
-/**
- * Cg_UpdateView
- *
- * Updates the view for the renderer. The camera origin, bob effect, and field
+/*
+ * @brief Updates the view for the renderer. The camera origin, bob effect, and field
  * of view are each augmented here. Other modifications can be made at your own
  * risk. This is called once per frame by the engine to finalize the view so
  * that rendering may begin.
@@ -167,10 +162,8 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_UpdateBob(&frame->ps);
 }
 
-/**
- * Cg_PopulateView
- *
- * Processes all entities, particles, emits, etc.. adding them to the view.
+/*
+ * @brief Processes all entities, particles, emits, etc.. adding them to the view.
  * This is called once per frame by the engine, after Cg_UpdateView, and is run
  * in a separate thread while the renderer begins drawing the world.
  */

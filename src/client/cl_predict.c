@@ -23,10 +23,8 @@
 #include "game/game.h"
 #include "pmove.h"
 
-/**
- * Cl_UsePrediction
- *
- * Returns true if client side prediction should be used.
+/*
+ * @brief Returns true if client side prediction should be used.
  */
 bool Cl_UsePrediction(void) {
 
@@ -49,7 +47,7 @@ bool Cl_UsePrediction(void) {
 }
 
 /*
- * Cl_CheckPredictionError
+ * @brief
  */
 void Cl_CheckPredictionError(void) {
 	int32_t frame;
@@ -82,7 +80,7 @@ void Cl_CheckPredictionError(void) {
 }
 
 /*
- * Cl_ClipMoveToEntities
+ * @brief
  */
 static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const vec3_t maxs,
 		const vec3_t end, c_trace_t *tr) {
@@ -133,7 +131,7 @@ static void Cl_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const v
 }
 
 /*
- * Cl_PredictMovement_Trace
+ * @brief
  */
 static c_trace_t Cl_PredictMovement_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs,
 		const vec3_t end) {
@@ -151,7 +149,7 @@ static c_trace_t Cl_PredictMovement_Trace(const vec3_t start, const vec3_t mins,
 }
 
 /*
- * Cl_PredictMovement_PointContents
+ * @brief
  */
 static int32_t Cl_PredictMovement_PointContents(const vec3_t point) {
 	int32_t i;
@@ -177,10 +175,8 @@ static int32_t Cl_PredictMovement_PointContents(const vec3_t point) {
 	return contents;
 }
 
-/**
- * Cl_PredictMovement
- *
- * Run the latest movement command through the player movement code locally,
+/*
+ * @brief Run the latest movement command through the player movement code locally,
  * using the resulting origin and angles to reduce perceived latency.
  */
 void Cl_PredictMovement(void) {

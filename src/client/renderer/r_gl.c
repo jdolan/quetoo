@@ -56,7 +56,7 @@ void (APIENTRY *qglUniform4fv)(GLint location, int32_t count, GLfloat *f);
 GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
 /*
- * R_EnforceGlVersion
+ * @brief
  */
 void R_EnforceGlVersion(void) {
 	const char *s = r_config.version_string;
@@ -74,7 +74,7 @@ void R_EnforceGlVersion(void) {
 }
 
 /*
- * R_InitGlExtensions
+ * @brief
  */
 void R_InitGlExtensions(void) {
 

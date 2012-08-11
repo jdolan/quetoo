@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /*
- * Arrays are "lazily" managed to reduce glArrayPointer calls.  Drawing routines
+ * Arrays are "lazily" managed to reduce glArrayPointer calls. Drawing routines
  * should call R_SetArrayState or R_ResetArrayState somewhat early-on.
  */
 
@@ -34,10 +34,8 @@ typedef struct r_array_state_s {
 static r_array_state_t r_array_state;
 
 /*
- * R_ArrayMask
- *
- * Returns a bitmask representing the arrays which should be enabled according
- * to r_state.  This function is consulted to determine whether or not array
+ * @brief Returns a bitmask representing the arrays which should be enabled according
+ * to r_state. This function is consulted to determine whether or not array
  * bindings are up to date.
  */
 static int32_t R_ArraysMask(void) {
@@ -65,7 +63,7 @@ static int32_t R_ArraysMask(void) {
 }
 
 /*
- * R_SetVertexArrayState
+ * @brief
  */
 static void R_SetVertexArrayState(const r_model_t *mod, uint32_t mask) {
 
@@ -112,7 +110,7 @@ static void R_SetVertexArrayState(const r_model_t *mod, uint32_t mask) {
 }
 
 /*
- * R_SetVertexBufferState
+ * @brief
  */
 static void R_SetVertexBufferState(const r_model_t *mod, uint32_t mask) {
 
@@ -159,7 +157,7 @@ static void R_SetVertexBufferState(const r_model_t *mod, uint32_t mask) {
 }
 
 /*
- * R_SetArrayState
+ * @brief
  */
 void R_SetArrayState(const r_model_t *mod) {
 	uint32_t arrays, mask;
@@ -198,7 +196,7 @@ void R_SetArrayState(const r_model_t *mod) {
 }
 
 /*
- * R_ResetArrayState
+ * @brief
  */
 void R_ResetArrayState(void) {
 	uint32_t arrays, mask;

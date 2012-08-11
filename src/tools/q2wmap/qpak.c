@@ -36,10 +36,8 @@ typedef struct qpak_s {
 
 static qpak_t qpak;
 
-/**
- * FindPath
- *
- * Returns the index of the specified path if it exists, or -1 otherwise.
+/*
+ * @brief Returns the index of the specified path if it exists, or -1 otherwise.
  */
 static int32_t FindPath(char *path) {
 	int32_t i;
@@ -51,10 +49,8 @@ static int32_t FindPath(char *path) {
 	return -1;
 }
 
-/**
- * AddPath
- *
- * Adds the specified path to the resource list, after ensuring that it is
+/*
+ * @brief Adds the specified path to the resource list, after ensuring that it is
  * unique.
  */
 static void AddPath(const char *path) {
@@ -71,10 +67,8 @@ static void AddPath(const char *path) {
 #define NUM_SAMPLE_FORMATS 2
 static const char *sample_formats[NUM_SAMPLE_FORMATS] = { "ogg", "wav" };
 
-/**
- * AddSound
- *
- * Attempts to add the specified sound in any available format.
+/*
+ * @brief Attempts to add the specified sound in any available format.
  */
 static void AddSound(const char *sound) {
 	char snd[MAX_QPATH], path[MAX_QPATH];
@@ -110,10 +104,8 @@ static void AddSound(const char *sound) {
 #define NUM_IMAGE_FORMATS 5
 static const char *image_formats[NUM_IMAGE_FORMATS] = { "tga", "png", "jpg", "pcx", "wal" };
 
-/**
- * AddImage
- *
- * Attempts to add the specified image in any available format.  If required,
+/*
+ * @brief Attempts to add the specified image in any available format. If required,
  * a warning will be issued should we fail to resolve the specified image.
  */
 static void AddImage(const char *image, bool required) {
@@ -151,7 +143,7 @@ static void AddImage(const char *image, bool required) {
 static char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
 /*
- * AddSky
+ * @brief
  */
 static void AddSky(char *sky) {
 	int32_t i;
@@ -161,7 +153,7 @@ static void AddSky(char *sky) {
 }
 
 /*
- * AddAnimation
+ * @brief
  */
 static void AddAnimation(char *name, int32_t count) {
 	int32_t i, j, k;
@@ -181,10 +173,8 @@ static void AddAnimation(char *name, int32_t count) {
 	}
 }
 
-/**
- * AddMaterials
- *
- * Adds all resources specified by the materials file, and the materials
+/*
+ * @brief Adds all resources specified by the materials file, and the materials
  * file itself. See src/r_material.c for materials reference.
  */
 static void AddMaterials(const char *path) {
@@ -301,10 +291,8 @@ static void AddMaterials(const char *path) {
 #define NUM_MODEL_FORMATS 2
 static char *model_formats[NUM_MODEL_FORMATS] = { "md3", "obj" };
 
-/**
- * AddModel
- *
- * Attempts to add the specified mesh model.
+/*
+ * @brief Attempts to add the specified mesh model.
  */
 static void AddModel(char *model) {
 	char mod[MAX_QPATH], path[MAX_QPATH];
@@ -356,7 +344,7 @@ static void AddModel(char *model) {
 }
 
 /*
- * AddLocation
+ * @brief
  */
 static void AddLocation(void) {
 	char base[MAX_QPATH];
@@ -366,7 +354,7 @@ static void AddLocation(void) {
 }
 
 /*
- * AddDocumentation
+ * @brief
  */
 static void AddDocumentation(void) {
 	char base[MAX_OSPATH];
@@ -380,10 +368,8 @@ static void AddDocumentation(void) {
 	AddPath(va("docs/map-%s.txt", c));
 }
 
-/**
- * GetPakfile
- *
- * Returns a suitable pakfile name for the current bsp name, e.g.
+/*
+ * @brief Returns a suitable pakfile name for the current bsp name, e.g.
  *
  * maps/my.bsp -> map-my.pak.
  */
@@ -406,11 +392,9 @@ static pak_t *GetPakfile(void) {
 	return pak;
 }
 
-/**
- * PAK_Main
- *
- * Loads the specified BSP file, resolves all resources referenced by it,
- * and generates a new pak archive for the project.  This is a very inefficient
+/*
+ * @brief Loads the specified BSP file, resolves all resources referenced by it,
+ * and generates a new pak archive for the project. This is a very inefficient
  * but straightforward implementation.
  */
 int32_t PAK_Main(void) {

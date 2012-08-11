@@ -21,7 +21,7 @@
 
 /*
  * This file is referenced by Makefile.am's for modules which should not be
- * built on a particular environment.  Essentially this just allows libtool to
+ * built on a particular environment. Essentially this just allows libtool to
  * generate nearly-empty archives so that things can link easily.
  *
  * Compile with e.g. -D__LIBTOOL_ARCHIVE__=librenderer_la.

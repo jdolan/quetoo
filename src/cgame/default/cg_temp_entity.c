@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 /*
- * Cg_BlasterEffect
+ * @brief
  */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) {
 	r_particle_t *p;
@@ -69,7 +69,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 }
 
 /*
- * Cg_TracerEffect
+ * @brief
  */
 static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	r_particle_t *p;
@@ -98,7 +98,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 }
 
 /*
- * Cg_BulletEffect
+ * @brief
  */
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
@@ -169,7 +169,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 }
 
 /*
- * Cg_BurnEffect
+ * @brief
  */
 static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
 	r_particle_t *p;
@@ -194,7 +194,7 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
 }
 
 /*
- * Cg_BloodEffect
+ * @brief
  */
 static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	int32_t i, j;
@@ -229,7 +229,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 #define GIB_STREAM_COUNT 25
 
 /*
- * Cg_GibEffect
+ * @brief
  */
 void Cg_GibEffect(const vec3_t org, int32_t count) {
 	r_particle_t *p;
@@ -257,7 +257,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		dist = GIB_STREAM_DIST;
 		VectorMA(o, dist, v, tmp);
 
-		tr = cgi.Trace(o, tmp, 0.0, MASK_SHOT);
+		tr = cgi.Trace(o, tmp, vec3_origin, vec3_origin, MASK_SHOT);
 		dist = GIB_STREAM_DIST * tr.fraction;
 
 		for (j = 1; j < GIB_STREAM_COUNT; j++) {
@@ -288,7 +288,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 }
 
 /*
- * Cg_SparksEffect
+ * @brief
  */
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	r_particle_t *p;
@@ -333,7 +333,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 }
 
 /*
- * Cg_ExplosionEffect
+ * @brief
  */
 static void Cg_ExplosionEffect(const vec3_t org) {
 	int32_t j;
@@ -417,7 +417,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 }
 
 /*
- * Cg_HyperblasterEffect
+ * @brief
  */
 static void Cg_HyperblasterEffect(const vec3_t org) {
 	r_sustained_light_t s;
@@ -433,7 +433,7 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 }
 
 /*
- * Cg_LightningEffect
+ * @brief
  */
 static void Cg_LightningEffect(const vec3_t org) {
 	r_sustained_light_t s;
@@ -461,7 +461,7 @@ static void Cg_LightningEffect(const vec3_t org) {
 }
 
 /*
- * Cg_RailEffect
+ * @brief
  */
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, int32_t color) {
 	vec3_t vec, right, up, point;
@@ -563,7 +563,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 }
 
 /*
- * Cg_BfgEffect
+ * @brief
  */
 static void Cg_BfgEffect(const vec3_t org) {
 	r_particle_t *p;
@@ -622,7 +622,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 }
 
 /*
- * Cg_ParseTempEntity
+ * @brief
  */
 void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;

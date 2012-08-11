@@ -24,7 +24,7 @@
 static void *cgame_handle;
 
 /*
- * Cl_ShutdownCgame
+ * @brief
  */
 void Cl_ShutdownCgame(void) {
 
@@ -43,9 +43,7 @@ void Cl_ShutdownCgame(void) {
 }
 
 /*
- * Cl_Error
- *
- * Abort the server with a game error
+ * @brief Abort the server with a game error
  */
 static void Cl_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 static void Cl_Error(const char *fmt, ...) {
@@ -100,7 +98,7 @@ static float Cl_ReadAngle(void) {
 }
 
 /*
- * Cl_ConfigString
+ * @brief
  */
 static char *Cl_ConfigString(uint16_t index) {
 
@@ -113,7 +111,7 @@ static char *Cl_ConfigString(uint16_t index) {
 }
 
 /*
- * Cl_InitCgame
+ * @brief
  */
 void Cl_InitCgame(void) {
 	cg_import_t import;

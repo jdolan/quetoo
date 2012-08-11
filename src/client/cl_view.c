@@ -22,7 +22,7 @@
 #include "cl_local.h"
 
 /*
- * Cl_ClearView
+ * @brief
  */
 static void Cl_ClearView(void) {
 
@@ -35,7 +35,7 @@ static void Cl_ClearView(void) {
 }
 
 /*
- * Cl_UpdateViewSize
+ * @brief
  */
 static void Cl_UpdateViewSize(void) {
 	int32_t size;
@@ -60,7 +60,7 @@ static void Cl_UpdateViewSize(void) {
 }
 
 /*
- * Cl_UpdateLerp
+ * @brief
  */
 static void Cl_UpdateLerp(cl_frame_t *from) {
 
@@ -92,10 +92,8 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 	}
 }
 
-/**
- * Cl_UpdateOrigin
- *
- * The origin is typically calculated using client sided prediction, provided
+/*
+ * @brief The origin is typically calculated using client sided prediction, provided
  * the client is not viewing a demo, playing in 3rd person mode, or chasing
  * another player.
  */
@@ -136,10 +134,8 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 	r_view.contents = R_PointContents(r_view.origin);
 }
 
-/**
- * Cl_UpdateAngles
- *
- * The angles are typically fetched from input, after factoring in client-side
+/*
+ * @brief The angles are typically fetched from input, after factoring in client-side
  * prediction, unless the client is watching a demo or chase camera.
  */
 static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
@@ -192,10 +188,8 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
 	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
 }
 
-/**
- * Cl_UpdateView
- *
- * Updates the r_view_t for the renderer. Origin, angles, etc are calculated.
+/*
+ * @brief Updates the r_view_t for the renderer. Origin, angles, etc are calculated.
  * Scene population is then delegated to the client game.
  */
 void Cl_UpdateView(void) {
@@ -250,21 +244,21 @@ void Cl_UpdateView(void) {
 }
 
 /*
- * Cl_ViewSizeUp_f
+ * @brief
  */
 static void Cl_ViewSizeUp_f(void) {
 	Cvar_SetValue("cl_view_size", cl_view_size->integer + 10);
 }
 
 /*
- * Cl_ViewSizeDown_f
+ * @brief
  */
 static void Cl_ViewSizeDown_f(void) {
 	Cvar_SetValue("cl_view_size", cl_view_size->integer - 10);
 }
 
 /*
- * Cl_InitView
+ * @brief
  */
 void Cl_InitView(void) {
 	Cmd_AddCommand("view_size_up", Cl_ViewSizeUp_f, 0, NULL);

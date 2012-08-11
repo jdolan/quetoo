@@ -54,9 +54,7 @@ static void Verbose(const char *msg);
 static void Warn(const char *msg);
 
 /*
- * Debug
- *
- * Filters debugging output to when the `debug` cvar is set.
+ * @brief Filters debugging output to when the `debug` cvar is set.
  */
 static void Debug(const char *msg) {
 
@@ -67,9 +65,7 @@ static void Debug(const char *msg) {
 }
 
 /*
- * Error
- *
- * Callback for subsystem failures. Depending on the severity, we may try to
+ * @brief Callback for subsystem failures. Depending on the severity, we may try to
  * recover, or we may shut the entire engine down and exit.
  */
 static void Error(err_t err, const char *msg) {
@@ -101,9 +97,7 @@ static void Error(err_t err, const char *msg) {
 }
 
 /*
- * Print
- *
- * Delegates all printing to the console.
+ * @brief Delegates all printing to the console.
  */
 static void Print(const char *msg) {
 
@@ -114,9 +108,7 @@ static void Print(const char *msg) {
 }
 
 /*
- * Verbose
- *
- * Filters verbose output to when the `verbose` cvar is set.
+ * @brief Filters verbose output to when the `verbose` cvar is set.
  */
 static void Verbose(const char *msg) {
 
@@ -127,16 +119,14 @@ static void Verbose(const char *msg) {
 }
 
 /*
- * Warn
- *
- * Prints the specified message with a colored accent.
+ * @brief Prints the specified message with a colored accent.
  */
 static void Warn(const char *msg) {
 	Print(va("^3%s", msg));
 }
 
 /*
- * Quit_f
+ * @brief
  */
 static void Quit_f(void) {
 
@@ -146,7 +136,7 @@ static void Quit_f(void) {
 }
 
 /*
- * Init
+ * @brief
  */
 static void Init(int32_t argc, char **argv) {
 	char *s;
@@ -227,9 +217,7 @@ static void Init(int32_t argc, char **argv) {
 }
 
 /*
- * Shutdown
- *
- * Cleans up all game engine subsystems.
+ * @brief Cleans up all game engine subsystems.
  */
 static void Shutdown(const char *msg) {
 
@@ -247,7 +235,7 @@ static void Shutdown(const char *msg) {
 }
 
 /*
- * Frame
+ * @brief
  */
 static void Frame(uint32_t msec) {
 	extern int32_t c_traces, c_bsp_brush_traces;
@@ -274,10 +262,8 @@ static void Frame(uint32_t msec) {
 #endif
 }
 
-/**
- * main
- *
- * The entry point of the program.
+/*
+ * @brief The entry point of the program.
  */
 int32_t main(int32_t argc, char **argv) {
 	static uint32_t old_time;

@@ -22,13 +22,13 @@
 #include "r_local.h"
 
 /*
- * The beginning of the BSP model (disk format) in memory.  All lumps are
+ * The beginning of the BSP model (disk format) in memory. All lumps are
  * resolved by a relative offset from this address.
  */
 static const byte *mod_base;
 
 /*
- * R_LoadBspLightmaps
+ * @brief
  */
 static void R_LoadBspLightmaps(const d_bsp_lump_t *l) {
 	const char *c;
@@ -53,7 +53,7 @@ static void R_LoadBspLightmaps(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_LoadBspVisibility
+ * @brief
  */
 static void R_LoadBspVisibility(const d_bsp_lump_t *l) {
 	int32_t i;
@@ -76,7 +76,7 @@ static void R_LoadBspVisibility(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_LoadBspVertexes
+ * @brief
  */
 static void R_LoadBspVertexes(const d_bsp_lump_t *l) {
 	const d_bsp_vertex_t *in;
@@ -101,7 +101,7 @@ static void R_LoadBspVertexes(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_LoadBspNormals
+ * @brief
  */
 static void R_LoadBspNormals(const d_bsp_lump_t *l) {
 	const d_bsp_normal_t *in;
@@ -129,7 +129,7 @@ static void R_LoadBspNormals(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_RadiusFromBounds
+ * @brief
  */
 static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 	int32_t i;
@@ -143,7 +143,7 @@ static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 }
 
 /*
- * R_LoadBspSubmodels
+ * @brief
  */
 static void R_LoadBspSubmodels(const d_bsp_lump_t *l) {
 	const d_bsp_model_t *in;
@@ -176,10 +176,8 @@ static void R_LoadBspSubmodels(const d_bsp_lump_t *l) {
 	}
 }
 
-/**
- * R_SetupBspSubmodel
- *
- * Recurses the specified sub-model nodes, assigning the model so that it can
+/*
+ * @brief Recurses the specified sub-model nodes, assigning the model so that it can
  * be quickly resolved during traces and dynamic light processing.
  */
 static void R_SetupBspSubmodel(r_bsp_node_t *node, r_model_t *model) {
@@ -193,10 +191,8 @@ static void R_SetupBspSubmodel(r_bsp_node_t *node, r_model_t *model) {
 	R_SetupBspSubmodel(node->children[1], model);
 }
 
-/**
- * R_SetupBspSubmodels
- *
- * The sub-models have been loaded into memory, but are not yet
+/*
+ * @brief The sub-models have been loaded into memory, but are not yet
  * represented as r_model_t. Convert them.
  */
 static void R_SetupBspSubmodels(void) {
@@ -235,7 +231,7 @@ static void R_SetupBspSubmodels(void) {
 }
 
 /*
- * R_LoadBspEdges
+ * @brief
  */
 static void R_LoadBspEdges(const d_bsp_lump_t *l) {
 	const d_bsp_edge_t *in;
@@ -260,7 +256,7 @@ static void R_LoadBspEdges(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_LoadBspTexinfo
+ * @brief
  */
 static void R_LoadBspTexinfo(const d_bsp_lump_t *l) {
 	const d_bsp_texinfo_t *in;
@@ -291,9 +287,7 @@ static void R_LoadBspTexinfo(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_SetupBspSurface
- *
- * Sets in s->mins, s->maxs, s->st_mins, s->st_maxs, ..
+ * @brief Sets in s->mins, s->maxs, s->st_mins, s->st_maxs, ..
  */
 static void R_SetupBspSurface(r_bsp_surface_t *surf) {
 	vec3_t mins, maxs;
@@ -351,7 +345,7 @@ static void R_SetupBspSurface(r_bsp_surface_t *surf) {
 }
 
 /*
- * R_LoadBspSurfaces
+ * @brief
  */
 static void R_LoadBspSurfaces(const d_bsp_lump_t *l) {
 	const d_bsp_face_t *in;
@@ -422,7 +416,7 @@ static void R_LoadBspSurfaces(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_SetupBspNode
+ * @brief
  */
 static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
 
@@ -436,7 +430,7 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
 }
 
 /*
- * R_LoadBspNodes
+ * @brief
  */
 static void R_LoadBspNodes(const d_bsp_lump_t *l) {
 	int32_t i, j, count, p;
@@ -482,7 +476,7 @@ static void R_LoadBspNodes(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_LoadBspLeafs
+ * @brief
  */
 static void R_LoadBspLeafs(const d_bsp_lump_t *l) {
 	const d_bsp_leaf_t *in;
@@ -520,7 +514,7 @@ static void R_LoadBspLeafs(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_LoadBspLeafSurfaces
+ * @brief
  */
 static void R_LoadBspLeafSurfaces(const d_bsp_lump_t *l) {
 	int32_t i, count;
@@ -551,7 +545,7 @@ static void R_LoadBspLeafSurfaces(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_LoadBspSurfaceEdges
+ * @brief
  */
 static void R_LoadBspSurfaceEdges(const d_bsp_lump_t *l) {
 	int32_t i, count;
@@ -578,7 +572,7 @@ static void R_LoadBspSurfaceEdges(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_LoadBspPlanes
+ * @brief
  */
 static void R_LoadBspPlanes(const d_bsp_lump_t *l) {
 	int32_t i, j;
@@ -610,7 +604,7 @@ static void R_LoadBspPlanes(const d_bsp_lump_t *l) {
 }
 
 /*
- * R_AddBspVertexColor
+ * @brief
  */
 static void R_AddBspVertexColor(r_bsp_vertex_t *vert, const r_bsp_surface_t *surf) {
 	int32_t i;
@@ -627,7 +621,7 @@ static void R_AddBspVertexColor(r_bsp_vertex_t *vert, const r_bsp_surface_t *sur
 }
 
 /*
- * R_LoadBspVertexArrays
+ * @brief
  */
 static void R_LoadBspVertexArrays(void) {
 	int32_t i, j;
@@ -748,7 +742,7 @@ static void R_LoadBspVertexArrays(void) {
 static r_bsp_surfaces_t *r_sorted_surfaces[MAX_GL_TEXTURES];
 
 /*
- * R_SortBspSurfacesArrays_
+ * @brief
  */
 static void R_SortBspSurfacesArrays_(r_bsp_surfaces_t *surfs) {
 	uint32_t i, j;
@@ -777,10 +771,8 @@ static void R_SortBspSurfacesArrays_(r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_SortBspSurfacesArrays
- *
- * Reorders all surfaces arrays for the specified model, grouping the surface
- * pointers by texture.  This dramatically reduces glBindTexture calls.
+ * @brief Reorders all surfaces arrays for the specified model, grouping the surface
+ * pointers by texture. This dramatically reduces glBindTexture calls.
  */
 static void R_SortBspSurfacesArrays(r_model_t *mod) {
 	r_bsp_surface_t *surf, *s;
@@ -843,7 +835,7 @@ static void R_SortBspSurfacesArrays(r_model_t *mod) {
 }
 
 /*
- * R_LoadBspSurfacesArrays_
+ * @brief
  */
 static void R_LoadBspSurfacesArrays_(r_model_t *mod) {
 	r_bsp_surface_t *surf, *s;
@@ -944,7 +936,7 @@ static void R_LoadBspSurfacesArrays_(r_model_t *mod) {
 }
 
 /*
- * R_LoadBspSurfacesArrays
+ * @brief
  */
 static void R_LoadBspSurfacesArrays(void) {
 	int32_t i;
@@ -957,7 +949,7 @@ static void R_LoadBspSurfacesArrays(void) {
 }
 
 /*
- * R_LoadBspModel
+ * @brief
  */
 void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	extern void Cl_LoadProgress(int32_t percent);

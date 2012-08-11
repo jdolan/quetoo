@@ -21,10 +21,8 @@
 
 #include "cg_local.h"
 
-/**
- * Cg_UpdateLighting
- *
- * Establishes the write-through lighting cache for the specified entity,
+/*
+ * @brief Establishes the write-through lighting cache for the specified entity,
  * marking it as dirty if necessary.
  */
 static void Cg_UpdateLighting(cl_entity_t *e, r_entity_t *ent) {
@@ -45,10 +43,8 @@ static void Cg_UpdateLighting(cl_entity_t *e, r_entity_t *ent) {
 	}
 }
 
-/**
- * Cg_AddClientEntity
- *
- * Adds the numerous render entities which comprise a given client (player)
+/*
+ * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, upper, lower, weapon, flags, etc.
  */
 static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
@@ -115,10 +111,8 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 		cgi.Warn("Cg_AddClientEntity: Unsupported model_index4\n");
 }
 
-/**
- * Cg_WeaponKick
- *
- * Calculates a kick offset and angles based on our player's animation state.
+/*
+ * @brief Calculates a kick offset and angles based on our player's animation state.
  */
 static void Cg_WeaponKick(cl_entity_t *e, vec3_t offset, vec3_t angles) {
 	const vec3_t drop_raise_offset = { -4.0, -4.0, -4.0 };
@@ -145,10 +139,8 @@ static void Cg_WeaponKick(cl_entity_t *e, vec3_t offset, vec3_t angles) {
 	VectorScale(angles, cg_bob->value, angles);
 }
 
-/**
- * Cg_AddWeapon
- *
- * Adds the first-person weapon model to the view.
+/*
+ * @brief Adds the first-person weapon model to the view.
  */
 static void Cg_AddWeapon(cl_entity_t *e, r_entity_t *self) {
 	static r_entity_t ent;
@@ -198,10 +190,8 @@ static void Cg_AddWeapon(cl_entity_t *e, r_entity_t *self) {
 	cgi.AddEntity(&ent);
 }
 
-/**
- * Cg_AddEntity
- *
- * Adds the specified client entity to the view.
+/*
+ * @brief Adds the specified client entity to the view.
  */
 static void Cg_AddEntity(cl_entity_t *e) {
 	r_entity_t ent;
@@ -242,10 +232,8 @@ static void Cg_AddEntity(cl_entity_t *e) {
 	cgi.AddEntity(&ent);
 }
 
-/**
- * Cg_AddEntities
- *
- * Iterate all entities in the current frame, adding models, particles,
+/*
+ * @brief Iterate all entities in the current frame, adding models, particles,
  * lights, and anything else associated with them.
  *
  * The correlation of client entities to renderer entities is not 1:1; some

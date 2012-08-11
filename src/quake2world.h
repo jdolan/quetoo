@@ -285,7 +285,7 @@ typedef struct c_trace_s {
 	c_bsp_surface_t *surface; // surface hit
 	int32_t leaf_num;
 	int32_t contents; // contents on other side of surface hit
-	struct g_edict_s *ent; // not set by CM_*() functions
+	struct g_edict_s *ent; // not set by Cm_*() functions
 } c_trace_t;
 
 // player bbox and view_height scaling
@@ -529,7 +529,7 @@ typedef enum {
 
 /*
  * Entity states are transmitted by the server to the client using delta
- * compression.  The client parses these states and adds or removes entities
+ * compression. The client parses these states and adds or removes entities
  * from the scene as needed.
  */
 typedef struct entity_state_s {
@@ -553,9 +553,9 @@ typedef struct entity_state_s {
 	byte sound; // looped sounds
 
 	/*
-	 * Encoded bounding box dimensions for mesh entities.  This facilitates
+	 * Encoded bounding box dimensions for mesh entities. This facilitates
 	 * client-sided prediction so that players don't e.g. run through each
-	 * other.  See gi.LinkEntity.
+	 * other. See gi.LinkEntity.
 	 */
 	uint16_t solid;
 } entity_state_t;

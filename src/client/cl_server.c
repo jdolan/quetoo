@@ -22,7 +22,7 @@
 #include "cl_local.h"
 
 /*
- * Cl_AddServer
+ * @brief
  */
 static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 	cl_server_info_t *s;
@@ -39,7 +39,7 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 }
 
 /*
- * Cl_ServerForNetaddr
+ * @brief
  */
 static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
 	cl_server_info_t *s;
@@ -58,7 +58,7 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
 }
 
 /*
- * Cl_FreeServers
+ * @brief
  */
 void Cl_FreeServers(void) {
 	cl_server_info_t *s, *next;
@@ -74,7 +74,7 @@ void Cl_FreeServers(void) {
 }
 
 /*
- * Cl_ParseStatusMessage
+ * @brief
  */
 void Cl_ParseStatusMessage(void) {
 	extern void Ui_NewServer(void);
@@ -117,7 +117,7 @@ void Cl_ParseStatusMessage(void) {
 }
 
 /*
- * Cl_Ping_f
+ * @brief
  */
 void Cl_Ping_f(void) {
 	net_addr_t addr;
@@ -154,7 +154,7 @@ void Cl_Ping_f(void) {
 }
 
 /*
- * Cl_SendBroadcast
+ * @brief
  */
 static void Cl_SendBroadcast(void) {
 	cl_server_info_t *server;
@@ -183,7 +183,7 @@ static void Cl_SendBroadcast(void) {
 }
 
 /*
- * Cl_Servers_f
+ * @brief
  */
 void Cl_Servers_f(void) {
 	net_addr_t addr;
@@ -203,7 +203,7 @@ void Cl_Servers_f(void) {
 }
 
 /*
- * Cl_ParseServersList
+ * @brief
  */
 void Cl_ParseServersList(void) {
 	byte *buffptr;
@@ -265,7 +265,7 @@ void Cl_ParseServersList(void) {
 }
 
 /*
- * Cl_Servers_List
+ * @brief
  */
 void Cl_Servers_List_f(void) {
 	cl_server_info_t *server;

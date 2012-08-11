@@ -29,7 +29,7 @@
  */
 
 /*
- * Sv_SetMaster_f
+ * @brief
  */
 static void Sv_SetMaster_f(void) {
 	int32_t i, slot;
@@ -75,16 +75,14 @@ static void Sv_SetMaster_f(void) {
 }
 
 /*
- * Sv_Heartbeat_f
+ * @brief
  */
 static void Sv_Heartbeat_f(void) {
 	svs.next_heartbeat = 0;
 }
 
 /*
- * Sv_SetPlayer
- *
- * Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
+ * @brief Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
  */
 static bool Sv_SetPlayer(void) {
 	sv_client_t *cl;
@@ -132,9 +130,7 @@ static bool Sv_SetPlayer(void) {
 }
 
 /*
- * Sv_Demo_f
- *
- * Starts playback of the specified demo file.
+ * @brief Starts playback of the specified demo file.
  */
 static void Sv_Demo_f(void) {
 
@@ -148,9 +144,7 @@ static void Sv_Demo_f(void) {
 }
 
 /*
- * Sv_Map_f
- *
- * Creates a server for the specified map.
+ * @brief Creates a server for the specified map.
  */
 static void Sv_Map_f(void) {
 
@@ -164,9 +158,7 @@ static void Sv_Map_f(void) {
 }
 
 /*
- * Sv_Kick_f
- *
- * Kick a user off of the server
+ * @brief Kick a user off of the server
  */
 static void Sv_Kick_f(void) {
 
@@ -187,7 +179,7 @@ static void Sv_Kick_f(void) {
 }
 
 /*
- * Sv_Status_f
+ * @brief
  */
 static void Sv_Status_f(void) {
 	int32_t i, j, l;
@@ -237,7 +229,7 @@ static void Sv_Status_f(void) {
 }
 
 /*
- * Sv_Say_f
+ * @brief
  */
 static void Sv_Say_f(void) {
 	sv_client_t *client;
@@ -270,7 +262,7 @@ static void Sv_Say_f(void) {
 }
 
 /*
- * Sv_Tell_f
+ * @brief
  */
 static void Sv_Tell_f(void) {
 	char text[1024];
@@ -301,7 +293,7 @@ static void Sv_Tell_f(void) {
 }
 
 /*
- * Sv_ServerInfo_f
+ * @brief
  */
 static void Sv_ServerInfo_f(void) {
 
@@ -315,7 +307,7 @@ static void Sv_ServerInfo_f(void) {
 }
 
 /*
- * Sv_UserInfo_f
+ * @brief
  */
 static void Sv_UserInfo_f(void) {
 
@@ -336,7 +328,7 @@ static void Sv_UserInfo_f(void) {
 }
 
 /*
- * Sv_InitCommands
+ * @brief
  */
 void Sv_InitCommands(void) {
 

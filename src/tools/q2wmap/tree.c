@@ -24,7 +24,7 @@
 extern int32_t c_nodes;
 
 /*
- * FreeTreePortals_r
+ * @brief
  */
 void FreeTreePortals_r(node_t * node){
 	portal_t *p, *nextp;
@@ -48,7 +48,7 @@ void FreeTreePortals_r(node_t * node){
 
 
 /*
- * FreeTree_r
+ * @brief
  */
 void FreeTree_r(node_t * node){
 	face_t *f, *nextf;
@@ -78,7 +78,7 @@ void FreeTree_r(node_t * node){
 
 
 /*
- * FreeTree
+ * @brief
  */
 void FreeTree(tree_t * tree){
 	FreeTreePortals_r(tree->head_node);
@@ -95,7 +95,7 @@ void FreeTree(tree_t * tree){
 int32_t c_pruned;
 
 /*
- * PruneNodes_r
+ * @brief
  */
 void PruneNodes_r(node_t * node){
 	bsp_brush_t *b, *next;

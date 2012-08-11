@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /*
- * R_SetSurfaceState_pro
+ * @brief
  */
 static void R_SetSurfaceState_pro(const r_bsp_surface_t *surf) {
 
@@ -36,7 +36,7 @@ static void R_SetSurfaceState_pro(const r_bsp_surface_t *surf) {
 }
 
 /*
- * R_DrawSurface_pro
+ * @brief
  */
 static void R_DrawSurface_pro(const r_bsp_surface_t *surf) {
 
@@ -46,7 +46,7 @@ static void R_DrawSurface_pro(const r_bsp_surface_t *surf) {
 }
 
 /*
- * R_DrawSurfaces_pro
+ * @brief
  */
 static void R_DrawSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 	uint32_t i;
@@ -69,7 +69,7 @@ static void R_DrawSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawOpaqueSurfaces_pro
+ * @brief
  */
 void R_DrawOpaqueSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 
@@ -92,7 +92,7 @@ void R_DrawOpaqueSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawAlphaTestSurfaces_pro
+ * @brief
  */
 void R_DrawAlphaTestSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 
@@ -115,7 +115,7 @@ void R_DrawAlphaTestSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawBlendSurfaces_pro
+ * @brief
  */
 void R_DrawBlendSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 
@@ -136,7 +136,7 @@ void R_DrawBlendSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 }
 
 /*
- * R_DrawBackSurfaces_pro
+ * @brief
  */
 void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs) {
 	uint32_t i;

@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /*
- * G_Trigger_Init
+ * @brief
  */
 static void G_Trigger_Init(g_edict_t *self) {
 
@@ -35,17 +35,15 @@ static void G_Trigger_Init(g_edict_t *self) {
 	self->sv_flags = SVF_NO_CLIENT;
 }
 
-/**
- * G_trigger_multiple_wait
- *
- * The wait time has passed, so set back up for another activation
+/*
+ * @brief The wait time has passed, so set back up for another activation
  */
 static void G_trigger_multiple_wait(g_edict_t *ent) {
 	ent->next_think = 0;
 }
 
 /*
- * G_trigger_multiple_think
+ * @brief
  */
 static void G_trigger_multiple_think(g_edict_t *ent) {
 
@@ -66,7 +64,7 @@ static void G_trigger_multiple_think(g_edict_t *ent) {
 }
 
 /*
- * G_trigger_multiple_use
+ * @brief
  */
 static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 
@@ -76,7 +74,7 @@ static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other __attribute_
 }
 
 /*
- * G_trigger_multiple_touch
+ * @brief
  */
 static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
@@ -98,7 +96,7 @@ static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 }
 
 /*
- * G_trigger_multiple_enable
+ * @brief
  */
 static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	self->solid = SOLID_TRIGGER;
@@ -107,7 +105,7 @@ static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other __attrib
 }
 
 /*QUAKED trigger_multiple(.5 .5 .5) ? MONSTER NOT_PLAYER TRIGGERED
- Variable sized repeatable trigger.  Must be targeted at one or more entities.
+ Variable sized repeatable trigger. Must be targeted at one or more entities.
  If "delay" is set, the trigger waits some time after activating before firing.
  "wait" : Seconds between triggerings.(.2 default)
  set "message" to text string
@@ -151,7 +149,7 @@ void G_trigger_once(g_edict_t *ent) {
 }
 
 /*
- * G_trigger_relay_use
+ * @brief
  */
 static void G_trigger_relay_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	G_UseTargets(self, activator);
@@ -165,7 +163,7 @@ void G_trigger_relay(g_edict_t *self) {
 }
 
 /*QUAKED trigger_always(.5 .5 .5)(-8 -8 -8)(8 8 8)
- This trigger will always fire.  It is activated by the world.
+ This trigger will always fire. It is activated by the world.
  */
 void G_trigger_always(g_edict_t *ent) {
 	// we must have some delay to make sure our use targets are present
@@ -179,7 +177,7 @@ void G_trigger_always(g_edict_t *ent) {
 #define PUSH_EFFECT 2
 
 /*
- * G_trigger_push_touch
+ * @brief
  */
 static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
@@ -235,7 +233,7 @@ void G_trigger_push(g_edict_t *self) {
 }
 
 /*
- * G_trigger_hurt_use
+ * @brief
  */
 static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
@@ -250,7 +248,7 @@ static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((
 }
 
 /*
- * G_trigger_hurt_touch
+ * @brief
  */
 static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
@@ -318,7 +316,7 @@ void G_trigger_hurt(g_edict_t *self) {
 }
 
 /*
- * G_trigger_exec_touch
+ * @brief
  */
 static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other __attribute__((unused)), c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
@@ -335,10 +333,8 @@ static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other __attribute__
 		gi.AddCommandString(va("exec %s\n", self->script));
 }
 
-/**
- * G_trigger_exec
- *
- * A trigger which executes a command or script when touched.
+/*
+ * @brief A trigger which executes a command or script when touched.
  */
 void G_trigger_exec(g_edict_t *self) {
 

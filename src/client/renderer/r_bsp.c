@@ -23,10 +23,8 @@
 
 vec3_t r_bsp_model_org; // relative to r_view.origin
 
-/**
- * R_WorldspawnValue
- *
- * Parses values from the worldspawn entity definition.
+/*
+ * @brief Parses values from the worldspawn entity definition.
  */
 const char *R_WorldspawnValue(const char *key) {
 	const char *c, *v;
@@ -43,13 +41,66 @@ const char *R_WorldspawnValue(const char *key) {
 	return v;
 }
 
-/**
- * R_CullBox
- *
- * Returns true if the specified bounding box is completely culled by the
- * view frustum, false otherwise.
+/*
+ * @brief Resolves the contents mask at the specified point.
  */
-bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
+int32_t R_PointContents(const vec3_t point) {
+	int32_t i, contents = Cm_PointContents(point, r_world_model->first_node);
+
+	for (i = 0; i < r_view.num_entities; i++) {
+		r_entity_t *ent = &r_view.entities[i];
+		const r_model_t *m = ent->model;
+
+		if (!m || m->type != mod_bsp_submodel || !m->nodes)
+			continue;
+
+		contents |= Cm_TransformedPointContents(point, m->first_node, ent->origin, ent->angles);
+	}
+
+	return contents;
+}
+
+/*
+ * @brief Traces to world and BSP models. If a BSP entity is hit, it is saved as
+ * r_view.trace_ent.
+ */
+c_trace_t R_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+		int32_t mask) {
+
+	// check world
+	r_view.trace = Cm_BoxTrace(start, end, mins, maxs, r_world_model->first_node, mask);
+	r_view.trace_ent = NULL;
+
+	float frac = r_view.trace.fraction;
+	uint16_t i;
+
+	// check bsp entities
+	for (i = 0; i < r_view.num_entities; i++) {
+
+		r_entity_t *ent = &r_view.entities[i];
+		const r_model_t *m = ent->model;
+
+		if (!m || m->type != mod_bsp_submodel || !m->nodes)
+			continue;
+
+		c_trace_t tr = Cm_TransformedBoxTrace(start, end, mins, maxs, m->first_node, mask,
+				ent->origin, ent->angles);
+
+		if (tr.fraction < frac) { // we've hit one
+			r_view.trace = tr;
+			r_view.trace_ent = ent;
+
+			frac = tr.fraction;
+		}
+	}
+
+	return r_view.trace;
+}
+
+/*
+ * @brief Returns true if the specified bounding box is completely culled by the
+ * view frustum, false otherwise.
+ */bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 	int32_t i;
 
 	if (!r_cull->value)
@@ -63,13 +114,11 @@ bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 	return true;
 }
 
-/**
- * R_CullBspModel
- *
- * Returns true if the specified entity is completely culled by the view
+/*
+ * @brief Returns true if the specified entity is completely culled by the view
  * frustum, false otherwise.
  */
-bool R_CullBspModel(const r_entity_t *e) {
+ bool R_CullBspModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 	int32_t i;
 
@@ -90,7 +139,7 @@ bool R_CullBspModel(const r_entity_t *e) {
 }
 
 /*
- * R_DrawBspModelSurfaces
+ * @brief
  */
 static void R_DrawBspModelSurfaces(const r_entity_t *e) {
 	r_bsp_surface_t *surf;
@@ -114,8 +163,8 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e) {
 		else
 			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
 
-		if (((surf->flags & R_SURF_SIDE_BACK) && (dot < -BACK_PLANE_EPSILON)) || (!(surf->flags
-				& R_SURF_SIDE_BACK) && (dot > BACK_PLANE_EPSILON))) {
+		if (((surf->flags & R_SURF_SIDE_BACK) && (dot < -BACK_PLANE_EPSILON))
+				|| (!(surf->flags & R_SURF_SIDE_BACK) && (dot > BACK_PLANE_EPSILON))) {
 			// visible, flag for rendering
 			surf->frame = r_locals.frame;
 			surf->back_frame = -1;
@@ -149,7 +198,7 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e) {
 }
 
 /*
- * R_DrawBspModel
+ * @brief
  */
 void R_DrawBspModel(const r_entity_t *e) {
 	vec3_t forward, right, up;
@@ -173,15 +222,13 @@ void R_DrawBspModel(const r_entity_t *e) {
 
 	R_DrawBspModelSurfaces(e);
 
-	R_RotateForEntity(NULL);
+	R_RotateForEntity(NULL );
 
 	R_ShiftLights(vec3_origin);
 }
 
-/**
- * R_DrawBspLights
- *
- * Developer tool for viewing static BSP light sources.
+/*
+ * @brief Developer tool for viewing static BSP light sources.
  */
 void R_DrawBspLights(void) {
 	r_bsp_light_t *l;
@@ -204,10 +251,8 @@ void R_DrawBspLights(void) {
 }
 
 /*
- * R_DrawBspNormals
- *
- * Developer tool for viewing BSP vertex normals.  Only Phong interpolated
- * surfaces show their normals when r_shownormals > 1.0.
+ * @brief Developer tool for viewing BSP vertex normals. Only Phong-interpolated
+ * surfaces show their normals when r_show_normals == 2.
  */
 void R_DrawBspNormals(void) {
 	r_bsp_surface_t *surf;
@@ -260,17 +305,15 @@ void R_DrawBspNormals(void) {
 
 	R_EnableTexture(&texunit_diffuse, true);
 
-	R_Color(NULL);
+	R_Color(NULL );
 }
 
 /*
- * R_MarkSurfaces_
- *
- * Top-down BSP node recursion.  Nodes identified as within the PVS by
+ * @brief Top-down BSP node recursion. Nodes identified as within the PVS by
  * R_MarkLeafs are first frustum-culled; those which fail immediately
  * return.
  *
- * For the rest, the front-side child node is recursed.  Any surfaces marked
+ * For the rest, the front-side child node is recursed. Any surfaces marked
  * in that recursion must then pass a dot-product test to resolve sidedness.
  * Finally, the back-side child node is recursed.
  */
@@ -349,9 +392,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node) {
 }
 
 /*
- * R_MarkSurfaces
- *
- * Entry point for BSP recursion and surface-level visibility test.  This
+ * @brief Entry point for BSP recursion and surface-level visibility test. This
  * is also where the infamous r_optimize strategy is implemented.
  */
 void R_MarkSurfaces(void) {
@@ -389,7 +430,7 @@ void R_MarkSurfaces(void) {
 }
 
 /*
- * R_LeafForPoint
+ * @brief
  */
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model) {
 
@@ -400,7 +441,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model) {
 }
 
 /*
- * R_LeafInVis
+ * @brief
  */
 static inline bool R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
 	int32_t c;
@@ -411,10 +452,8 @@ static inline bool R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
 	return vis[c >> 3] & (1 << (c & 7));
 }
 
-/**
- * R_CrossingContents
- *
- * Returns the cluster of any opaque contents transitions the view origin is
+/*
+ * @brief Returns the cluster of any opaque contents transitions the view origin is
  * currently spanning. This allows us to bit-wise-OR in the PVS data from
  * another cluster. Returns -1 if no transition is taking place.
  */
@@ -425,13 +464,13 @@ static int16_t R_CrossingContents(void) {
 	VectorCopy(r_view.origin, org);
 
 	org[2] -= 16.0;
-	leaf = R_LeafForPoint(org, NULL);
+	leaf = R_LeafForPoint(org, NULL );
 
 	if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
 		return leaf->cluster;
 
 	org[2] += 32.0;
-	leaf = R_LeafForPoint(org, NULL);
+	leaf = R_LeafForPoint(org, NULL );
 
 	if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
 		return leaf->cluster;
@@ -439,11 +478,9 @@ static int16_t R_CrossingContents(void) {
 	return (int16_t) -1;
 }
 
-/**
- * R_MarkLeafs
- *
- * Mark the leafs that are in the PVS for the current cluster, creating the
- * recursion path for R_MarkSurfaces.  Leafs marked for the current cluster
+/*
+ * @brief Mark the leafs that are in the PVS for the current cluster, creating the
+ * recursion path for R_MarkSurfaces. Leafs marked for the current cluster
  * will still be frustum-culled, and surfaces therein must still pass a
  * dot-product test in order to be marked as visible for the current frame.
  */
@@ -457,7 +494,7 @@ void R_MarkLeafs(void) {
 		return;
 
 	// resolve current cluster
-	r_locals.cluster = R_LeafForPoint(r_view.origin, NULL)->cluster;
+	r_locals.cluster = R_LeafForPoint(r_view.origin, NULL )->cluster;
 
 	if (!r_no_vis->value && (r_locals.old_cluster == r_locals.cluster))
 		return;
@@ -515,19 +552,13 @@ void R_MarkLeafs(void) {
 }
 
 /*
- * R_LeafInPvs
- *
- * Returns true if the specified leaf is in the PVS for the current frame.
- */
-bool R_LeafInPvs(const r_bsp_leaf_t *leaf) {
+ * @brief Returns true if the specified leaf is in the PVS for the current frame.
+ */bool R_LeafInPvs(const r_bsp_leaf_t *leaf) {
 	return R_LeafInVis(leaf, r_locals.vis_data_pvs);
 }
 
 /*
- * R_LeafInPHS
- *
- * Returns true if the specified leaf is in the PHS for the current frame.
- */
-bool R_LeafInPhs(const r_bsp_leaf_t *leaf) {
+ * @brief Returns true if the specified leaf is in the PHS for the current frame.
+ */bool R_LeafInPhs(const r_bsp_leaf_t *leaf) {
 	return R_LeafInVis(leaf, r_locals.vis_data_phs);
 }

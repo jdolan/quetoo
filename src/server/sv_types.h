@@ -76,7 +76,7 @@ typedef struct sv_frame_s {
 #define CLIENT_RATE_MESSAGES 10  // message size, used to enforce rate throttle
 /*
  * We check users movement command duration every so often to ensure that
- * they are not cheating.  If their movement is too far out of sync with the
+ * they are not cheating. If their movement is too far out of sync with the
  * server's clock, we take notice and eventually kick them.
  */
 

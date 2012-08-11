@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /*
- * G_PickupWeapon
+ * @brief
  */bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	int32_t index, ammoindex, delta;
 	g_item_t *ammo;
@@ -56,10 +56,8 @@
 	return true;
 }
 
-/**
- * G_ChangeWeapon
- *
- * The old weapon has been put away, so make the new one current
+/*
+ * @brief The old weapon has been put away, so make the new one current
  */
 void G_ChangeWeapon(g_edict_t *ent) {
 
@@ -95,7 +93,7 @@ void G_ChangeWeapon(g_edict_t *ent) {
 }
 
 /*
- * G_UseBestWeapon
+ * @brief
  */
 void G_UseBestWeapon(g_client_t *client) {
 
@@ -149,7 +147,7 @@ void G_UseBestWeapon(g_client_t *client) {
 }
 
 /*
- * G_UseWeapon
+ * @brief
  */
 void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
 
@@ -171,7 +169,7 @@ void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
 }
 
 /*
- * G_DropWeapon
+ * @brief
  */
 void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 	int32_t index, ammo_index;
@@ -205,7 +203,7 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 }
 
 /*
- * G_TossWeapon
+ * @brief
  */
 void G_TossWeapon(g_edict_t *ent) {
 	g_edict_t *dropped;
@@ -229,7 +227,7 @@ void G_TossWeapon(g_edict_t *ent) {
 }
 
 /*
- * G_FireWeapon
+ * @brief
  */
 static void G_FireWeapon(g_edict_t *ent, uint32_t interval, void(*fire)(g_edict_t *ent)) {
 	int32_t n, m;
@@ -286,7 +284,7 @@ static void G_FireWeapon(g_edict_t *ent, uint32_t interval, void(*fire)(g_edict_
 }
 
 /*
- * G_WeaponThink
+ * @brief
  */
 void G_WeaponThink(g_edict_t *ent) {
 
@@ -312,7 +310,7 @@ void G_WeaponThink(g_edict_t *ent) {
 }
 
 /*
- * G_MuzzleFlash
+ * @brief
  */
 static void G_MuzzleFlash(g_edict_t *ent, muzzle_flash_t flash) {
 
@@ -332,7 +330,7 @@ static void G_MuzzleFlash(g_edict_t *ent, muzzle_flash_t flash) {
 }
 
 /*
- * G_FireBlaster
+ * @brief
  */
 static void G_FireBlaster_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
@@ -351,7 +349,7 @@ void G_FireBlaster(g_edict_t *ent) {
 }
 
 /*
- * G_FireShotgun
+ * @brief
  */
 static void G_FireShotgun_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
@@ -370,7 +368,7 @@ void G_FireShotgun(g_edict_t *ent) {
 }
 
 /*
- * G_FireSuperShotgun
+ * @brief
  */
 static void G_FireSuperShotgun_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
@@ -399,7 +397,7 @@ void G_FireSuperShotgun(g_edict_t *ent) {
 }
 
 /*
- * G_FireMachinegun
+ * @brief
  */
 static void G_FireMachinegun_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
@@ -418,7 +416,7 @@ void G_FireMachinegun(g_edict_t *ent) {
 }
 
 /*
- * G_FireGrenadeLauncher
+ * @brief
  */
 static void G_FireGrenadeLauncher_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
@@ -440,7 +438,7 @@ void G_FireGrenadeLauncher(g_edict_t *ent) {
 }
 
 /*
- * G_FireRocketLauncher
+ * @brief
  */
 static void G_FireRocketLauncher_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
@@ -462,7 +460,7 @@ void G_FireRocketLauncher(g_edict_t *ent) {
 }
 
 /*
- * G_FireHyperblaster
+ * @brief
  */
 static void G_FireHyperblaster_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
@@ -481,7 +479,7 @@ void G_FireHyperblaster(g_edict_t *ent) {
 }
 
 /*
- * G_FireLightning
+ * @brief
  */
 static void G_FireLightning_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
@@ -504,7 +502,7 @@ void G_FireLightning(g_edict_t *ent) {
 }
 
 /*
- * G_FireRailgun
+ * @brief
  */
 static void G_FireRailgun_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
@@ -523,7 +521,7 @@ void G_FireRailgun(g_edict_t *ent) {
 }
 
 /*
- * G_FireBfg
+ * @brief
  */
 static void G_FireBfg_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;

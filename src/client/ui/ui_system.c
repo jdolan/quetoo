@@ -22,7 +22,7 @@
 #include "ui_local.h"
 
 /*
- * Ui_System
+ * @brief
  */
 TwBar *Ui_System(void) {
 

@@ -21,10 +21,8 @@
 
 #include "g_local.h"
 
-/**
- * G_PlayerProjectile
- *
- * Adds a fraction of the player's velocity to any projectiles they emit. This
+/*
+ * @brief Adds a fraction of the player's velocity to any projectiles they emit. This
  * is more realistic, but very strange feeling in Quake, so we keep the fraction
  * quite low.
  */
@@ -41,10 +39,8 @@ static void G_PlayerProjectile(g_edict_t *ent, const vec3_t scale) {
 	VectorAdd(tmp, ent->velocity, ent->velocity);
 }
 
-/**
- * G_ImmediateWall
- *
- * Returns true if the entity is facing a wall at close proximity.
+/*
+ * @brief Returns true if the entity is facing a wall at close proximity.
  */
 static bool G_ImmediateWall(g_edict_t *ent, vec3_t end) {
 	c_trace_t tr;
@@ -54,10 +50,8 @@ static bool G_ImmediateWall(g_edict_t *ent, vec3_t end) {
 	return tr.fraction < 1.0;
 }
 
-/**
- * G_IsStructural
- *
- * Returns true if the specified surface appears structural.
+/*
+ * @brief Returns true if the specified surface appears structural.
  */
 static bool G_IsStructural(g_edict_t *ent, c_bsp_surface_t *surf) {
 
@@ -71,10 +65,8 @@ static bool G_IsStructural(g_edict_t *ent, c_bsp_surface_t *surf) {
 	return G_IsStationary(ent);
 }
 
-/**
- * G_BubbleTrail
- *
- * Used to add generic bubble trails to shots.
+/*
+ * @brief Used to add generic bubble trails to shots.
  */
 static void G_BubbleTrail(const vec3_t start, c_trace_t *tr) {
 	vec3_t dir, pos;
@@ -103,10 +95,8 @@ static void G_BubbleTrail(const vec3_t start, c_trace_t *tr) {
 	gi.Multicast(pos, MULTICAST_PHS);
 }
 
-/**
- * G_Tracer
- *
- * Used to add tracer trails to bullet shots.
+/*
+ * @brief Used to add tracer trails to bullet shots.
  */
 static void G_Tracer(vec3_t start, vec3_t end) {
 	vec3_t dir, mid;
@@ -135,10 +125,8 @@ static void G_Tracer(vec3_t start, vec3_t end) {
 	}
 }
 
-/**
- * G_BulletMark
- *
- * Used to add impact marks on surfaces hit by bullets.
+/*
+ * @brief Used to add impact marks on surfaces hit by bullets.
  */
 static void G_BulletMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
 
@@ -153,10 +141,8 @@ static void G_BulletMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf
 	gi.Multicast(org, MULTICAST_PHS);
 }
 
-/**
- * G_BurnMark
- *
- * Used to add burn marks on surfaces hit by projectiles.
+/*
+ * @brief Used to add burn marks on surfaces hit by projectiles.
  */
 static void G_BurnMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf __attribute__((unused)), byte scale) {
 
@@ -170,7 +156,7 @@ static void G_BurnMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf _
 }
 
 /*
- * G_BlasterProjectile_Touch
+ * @brief
  */
 static void G_BlasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
 		c_bsp_surface_t *surf __attribute__((unused))) {
@@ -199,7 +185,7 @@ static void G_BlasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 }
 
 /*
- * G_BlasterProjectile
+ * @brief
  */
 void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
 		int32_t knockback) {
@@ -240,7 +226,7 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 }
 
 /*
- * G_BulletProjectile
+ * @brief
  */
 void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t damage, int32_t knockback,
 		int32_t hspread, int32_t vspread, int32_t mod) {
@@ -285,7 +271,7 @@ void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t dam
 }
 
 /*
- * G_ShotgunProjectiles
+ * @brief
  */
 void G_ShotgunProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t damage, int32_t knockback,
 		int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
@@ -296,7 +282,7 @@ void G_ShotgunProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t dama
 }
 
 /*
- * G_GrenadeProjectile_Explode
+ * @brief
  */
 static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 	vec3_t origin;
@@ -341,7 +327,7 @@ static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 }
 
 /*
- * G_GrenadeProjectile_Touch
+ * @brief
  */
 static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
 		c_bsp_surface_t *surf) {
@@ -373,7 +359,7 @@ static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 }
 
 /*
- * G_GrenadeProjectile
+ * @brief
  */
 void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t speed, int32_t damage,
 		int32_t knockback, float damage_radius, uint32_t timer) {
@@ -429,7 +415,7 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t sp
 }
 
 /*
- * G_RocketProjectile_Touch
+ * @brief
  */
 static void G_RocketProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
 		c_bsp_surface_t *surf) {
@@ -472,7 +458,7 @@ static void G_RocketProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 }
 
 /*
- * G_RocketProjectile
+ * @brief
  */
 void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
 		int32_t knockback, float damage_radius) {
@@ -510,7 +496,7 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
 }
 
 /*
- * G_HyperblasterProjectile_Touch
+ * @brief
  */
 static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
 		c_bsp_surface_t *surf) {
@@ -559,7 +545,7 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_
 }
 
 /*
- * G_HyperblasterProjectile
+ * @brief
  */
 void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
 		int32_t knockback) {
@@ -592,7 +578,7 @@ void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t 
 }
 
 /*
- * G_LightningProjectile_Discharge
+ * @brief
  */
 static void G_LightningProjectile_Discharge(g_edict_t *self) {
 	g_edict_t *ent;
@@ -630,7 +616,7 @@ static void G_LightningProjectile_Discharge(g_edict_t *self) {
 }
 
 /*
- * G_LightningProjectile_Expire
+ * @brief
  */
 static bool G_LightningProjectile_Expire(g_edict_t *self) {
 
@@ -644,7 +630,7 @@ static bool G_LightningProjectile_Expire(g_edict_t *self) {
 }
 
 /*
- * G_LightningProjectile_Think
+ * @brief
  */
 static void G_LightningProjectile_Think(g_edict_t *self) {
 	vec3_t forward, right, up;
@@ -716,7 +702,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 }
 
 /*
- * G_LightningProjectile
+ * @brief
  */
 void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t damage, int32_t knockback) {
 	g_edict_t *light;
@@ -748,7 +734,7 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t dam
 }
 
 /*
- * G_RailgunProjectile
+ * @brief
  */
 void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t damage, int32_t knockback) {
 	vec3_t from;
@@ -846,7 +832,7 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t da
 }
 
 /*
- * G_BfgProjectile_Touch
+ * @brief
  */
 static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
 		c_bsp_surface_t *surf) {
@@ -888,7 +874,7 @@ static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane
 }
 
 /*
- * G_BfgProjectile_Think
+ * @brief
  */
 static void G_BfgProjectile_Think(g_edict_t *self) {
 
@@ -904,7 +890,7 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
 }
 
 /*
- * G_BfgProjectiles
+ * @brief
  */
 void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
 		int32_t knockback, float damage_radius) {

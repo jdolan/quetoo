@@ -23,7 +23,7 @@
 #include "pmove.h"
 
 /*
- * Sv_Print
+ * @brief
  */
 static void Sv_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void Sv_Print(const char *fmt, ...) {
@@ -38,7 +38,7 @@ static void Sv_Print(const char *fmt, ...) {
 }
 
 /*
- * Sv_Debug
+ * @brief
  */
 static void Sv_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void Sv_Debug(const char *fmt, ...) {
@@ -53,9 +53,7 @@ static void Sv_Debug(const char *fmt, ...) {
 }
 
 /*
- * Sv_Error
- *
- * Abort the server with a game error
+ * @brief Abort the server with a game error
  */
 static void Sv_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 static void Sv_Error(const char *fmt, ...) {
@@ -70,9 +68,7 @@ static void Sv_Error(const char *fmt, ...) {
 }
 
 /*
- * Sv_SetModel
- *
- * Also sets mins and maxs for inline bsp models.
+ * @brief Also sets mins and maxs for inline bsp models.
  */
 static void Sv_SetModel(g_edict_t *ent, const char *name) {
 	c_model_t *mod;
@@ -94,7 +90,7 @@ static void Sv_SetModel(g_edict_t *ent, const char *name) {
 }
 
 /*
- * Sv_ConfigString
+ * @brief
  */
 static void Sv_ConfigString(const uint16_t index, const char *val) {
 
@@ -165,9 +161,7 @@ static void Sv_WriteAngle(const float f) {
 }
 
 /*
- * Sv_inPVS
- *
- * Also checks portal_areas so that doors block sight
+ * @brief Also checks portal_areas so that doors block sight
  */
 static bool Sv_inPVS(const vec3_t p1, const vec3_t p2) {
 	int32_t leaf_num;
@@ -194,9 +188,7 @@ static bool Sv_inPVS(const vec3_t p1, const vec3_t p2) {
 }
 
 /*
- * Sv_inPHS
- *
- * Also checks portal_areas so that doors block sound
+ * @brief Also checks portal_areas so that doors block sound
  */
 static bool Sv_inPHS(const vec3_t p1, const vec3_t p2) {
 	int32_t leaf_num;
@@ -221,7 +213,7 @@ static bool Sv_inPHS(const vec3_t p1, const vec3_t p2) {
 }
 
 /*
- * Sv_Sound
+ * @brief
  */
 static void Sv_Sound(const g_edict_t *ent, const uint16_t index,
 		const uint16_t atten) {
@@ -235,9 +227,7 @@ static void Sv_Sound(const g_edict_t *ent, const uint16_t index,
 static void *game_handle;
 
 /*
- * Sv_ShutdownGame
- *
- * Called when either the entire server is being killed, or it is changing to a
+ * @brief Called when either the entire server is being killed, or it is changing to a
  * different game directory.
  */
 void Sv_ShutdownGame(void) {
@@ -257,15 +247,13 @@ void Sv_ShutdownGame(void) {
 }
 
 /*
- * Sv_InitGame
- *
- * Initializes the game module by exposing a subset of server functionality
- * through function pointers.  In return, the game module allocates memory for
+ * @brief Initializes the game module by exposing a subset of server functionality
+ * through function pointers. In return, the game module allocates memory for
  * entities and returns a few pointers of its own.
  *
  * Note that the terminology here is worded from the game module's perspective;
  * that is, "import" is what we give to the game, and "export" is what the game
- * returns to us.  This distinction seems a bit backwards, but it was likely
+ * returns to us. This distinction seems a bit backwards, but it was likely
  * deemed less confusing to "mod" authors back in the day.
  */
 void Sv_InitGame(void) {

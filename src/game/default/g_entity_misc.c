@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /*
- * G_misc_teleporter_touch
+ * @brief
  */
 static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {

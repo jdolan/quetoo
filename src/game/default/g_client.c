@@ -21,10 +21,8 @@
 
 #include "g_local.h"
 
-/**
- * G_ClientObituary
- *
- * Make a tasteless death announcement.
+/*
+ * @brief Make a tasteless death announcement.
  */
 static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 	uint32_t ff, mod;
@@ -210,7 +208,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 }
 
 /*
- * G_ClientCorpse_think
+ * @brief
  */
 static void G_ClientCorpse_think(g_edict_t *ent) {
 	const uint32_t age = g_level.time - ent->timestamp;
@@ -228,7 +226,7 @@ static void G_ClientCorpse_think(g_edict_t *ent) {
 }
 
 /*
- * G_ClientCorpse
+ * @brief
  */
 static void G_ClientCorpse(g_edict_t *self) {
 	const float f = Randomf();
@@ -265,10 +263,8 @@ static void G_ClientCorpse(g_edict_t *self) {
 	gi.LinkEntity(ent);
 }
 
-/**
- * G_ClientDie
- *
- * A client's health is less than or equal to zero. Render death effects, drop
+/*
+ * @brief A client's health is less than or equal to zero. Render death effects, drop
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
@@ -327,10 +323,8 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 	 gi.Multicast(self->s.origin, MULTICAST_PVS);*/
 }
 
-/**
- * G_Give
- *
- * Stocks client's inventory with specified item. Weapons receive
+/*
+ * @brief Stocks client's inventory with specified item. Weapons receive
  * specified quantity of ammo, while health and armor are set to
  * the specified quantity.
  */
@@ -416,7 +410,7 @@ static bool G_GiveLevelLocals(g_client_t *client) {
 }
 
 /*
- * G_InitClientPersistent
+ * @brief
  */
 static void G_InitClientPersistent(g_client_t *client) {
 	g_item_t *item;
@@ -481,10 +475,8 @@ static void G_InitClientPersistent(g_client_t *client) {
 	client->new_weapon = NULL;
 }
 
-/**
- * G_EnemyRangeFromSpot
- *
- * Returns the distance to the nearest enemy from the given spot
+/*
+ * @brief Returns the distance to the nearest enemy from the given spot
  */
 static float G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
 	g_edict_t *player;
@@ -525,7 +517,7 @@ static float G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
 }
 
 /*
- * G_SelectRandomSpawnPoint
+ * @brief
  */
 static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
 	g_edict_t *spot;
@@ -548,7 +540,7 @@ static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
 }
 
 /*
- * G_SelectFarthestSpawnPoint
+ * @brief
  */
 static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent, const char *class_name) {
 	g_edict_t *spot, *best_spot;
@@ -578,7 +570,7 @@ static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent, const char *class_n
 }
 
 /*
- * G_SelectDeathmatchSpawnPoint
+ * @brief
  */
 static g_edict_t *G_SelectDeathmatchSpawnPoint(g_edict_t *ent) {
 
@@ -589,7 +581,7 @@ static g_edict_t *G_SelectDeathmatchSpawnPoint(g_edict_t *ent) {
 }
 
 /*
- * G_SelectCaptureSpawnPoint
+ * @brief
  */
 static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent) {
 	char *c;
@@ -605,10 +597,8 @@ static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent) {
 	return G_SelectRandomSpawnPoint(c);
 }
 
-/**
- * G_SelectSpawnPoint
- *
- * Chooses a player start, deathmatch start, etc
+/*
+ * @brief Chooses a player start, deathmatch start, etc
  */
 static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
 	g_edict_t *spot = NULL;
@@ -637,10 +627,8 @@ static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
 	VectorCopy(spot->s.angles, angles);
 }
 
-/**
- * G_ClientRespawn_
- *
- * The grunt work of putting the client into the server on [re]spawn.
+/*
+ * @brief The grunt work of putting the client into the server on [re]spawn.
  */
 static void G_ClientRespawn_(g_edict_t *ent) {
 	vec3_t spawn_origin, spawn_angles, old_angles;
@@ -764,10 +752,8 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	G_ChangeWeapon(ent);
 }
 
-/**
- * G_ClientRespawn
- *
- * In this case, voluntary means that the client has explicitly requested
+/*
+ * @brief In this case, voluntary means that the client has explicitly requested
  * a respawn by changing their spectator status.
  */
 void G_ClientRespawn(g_edict_t *ent, bool voluntary) {
@@ -795,11 +781,9 @@ void G_ClientRespawn(g_edict_t *ent, bool voluntary) {
 		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->persistent.net_name);
 }
 
-/**
- * G_ClientBegin
- *
- * Called when a client has finished connecting, and is ready
- * to be placed into the game.  This will happen every level load.
+/*
+ * @brief Called when a client has finished connecting, and is ready
+ * to be placed into the game. This will happen every level load.
  */
 void G_ClientBegin(g_edict_t *ent) {
 	char welcome[MAX_STRING_CHARS];
@@ -856,7 +840,7 @@ void G_ClientBegin(g_edict_t *ent) {
 }
 
 /*
- * G_ClientUserInfoChanged
+ * @brief
  */
 void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	const char *s;
@@ -959,10 +943,8 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 		ent->s.effects &= ~(EF_INACTIVE);
 }
 
-/**
- * G_ClientConnect
- *
- * Called when a player begins connecting to the server.
+/*
+ * @brief Called when a player begins connecting to the server.
  * The game can refuse entrance to a client by returning false.
  * If the client is allowed, the connection process will continue
  * and eventually get to G_Begin()
@@ -996,10 +978,8 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	return true;
 }
 
-/**
- * G_ClientDisconnect
- *
- * Called when a player drops from the server.  Not be called between levels.
+/*
+ * @brief Called when a player drops from the server. Not be called between levels.
  */
 void G_ClientDisconnect(g_edict_t *ent) {
 	int32_t player_num;
@@ -1034,10 +1014,8 @@ void G_ClientDisconnect(g_edict_t *ent) {
 	gi.ConfigString(CS_CLIENTS + player_num, "");
 }
 
-/**
- * G_ClientMoveTrace
- *
- * Ignore ourselves, clipping to the correct mask based on our status.
+/*
+ * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
 static c_trace_t G_ClientMoveTrace(const vec3_t start, const vec3_t mins, const vec3_t maxs,
 		const vec3_t end) {
@@ -1049,10 +1027,8 @@ static c_trace_t G_ClientMoveTrace(const vec3_t start, const vec3_t mins, const 
 		return gi.Trace(start, mins, maxs, end, self, MASK_DEAD_SOLID);
 }
 
-/**
- * G_ClientMove
- *
- * Process the movement command, calling Pmove and acting on the results.
+/*
+ * @brief Process the movement command, calling Pmove and acting on the results.
  */
 static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	vec3_t old_velocity, velocity;
@@ -1231,10 +1207,8 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	}
 }
 
-/**
- * G_InventoryThink
- *
- * Expire any items which are time-sensitive.
+/*
+ * @brief Expire any items which are time-sensitive.
  */
 static void G_ClientInventoryThink(g_edict_t *ent) {
 
@@ -1259,10 +1233,8 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
 		ent->s.effects &= ~EF_RESPAWN;
 }
 
-/**
- * G_ClientThink
- *
- * This will be called once for each client frame, which will usually be a
+/*
+ * @brief This will be called once for each client frame, which will usually be a
  * couple times for each server frame.
  */
 void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
@@ -1331,10 +1303,8 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 	G_ClientInventoryThink(ent);
 }
 
-/**
- * G_ClientBeginFrame
- *
- * This will be called once for each server frame, before running
+/*
+ * @brief This will be called once for each server frame, before running
  * any other entities in the world.
  */
 void G_ClientBeginFrame(g_edict_t *ent) {

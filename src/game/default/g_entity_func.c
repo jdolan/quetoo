@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /*
- * G_func_areaportal_use
+ * @brief
  */
 static void G_func_areaportal_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	ent->count ^= 1; // toggle state
@@ -41,7 +41,7 @@ void G_func_areaportal(g_edict_t *ent) {
 }
 
 /*
- * G_MoveInfo_Done
+ * @brief
  */
 static void G_MoveInfo_Done(g_edict_t *ent) {
 	VectorClear(ent->velocity);
@@ -49,7 +49,7 @@ static void G_MoveInfo_Done(g_edict_t *ent) {
 }
 
 /*
- * G_MoveInfo_End
+ * @brief
  */
 static void G_MoveInfo_End(g_edict_t *ent) {
 
@@ -64,10 +64,8 @@ static void G_MoveInfo_End(g_edict_t *ent) {
 	ent->next_think = g_level.time + gi.frame_millis;
 }
 
-/**
- * G_MoveInfo_Constant
- *
- * Starts a move with constant velocity. The entity will think again when it
+/*
+ * @brief Starts a move with constant velocity. The entity will think again when it
  * has reached its destination.
  */
 static void G_MoveInfo_Constant(g_edict_t *ent) {
@@ -87,10 +85,8 @@ static void G_MoveInfo_Constant(g_edict_t *ent) {
 
 #define AccelerationDistance(target, rate) (target * ((target / rate) + 1) / 2)
 
-/**
- * G_MoveInfo_UpdateAcceleration
- *
- * Updates the acceleration parameters for the specified move. This determines
+/*
+ * @brief Updates the acceleration parameters for the specified move. This determines
  * whether we should accelerate or decelerate based on the distance remaining.
  */
 static void G_MoveInfo_UpdateAcceleration(g_move_info_t *move_info) {
@@ -119,10 +115,8 @@ static void G_MoveInfo_UpdateAcceleration(g_move_info_t *move_info) {
 	move_info->decel_distance = decel_dist;
 }
 
-/**
- * G_MoveInfo_Accelerate
- *
- * Applies any acceleration / deceleration based on the distance remaining.
+/*
+ * @brief Applies any acceleration / deceleration based on the distance remaining.
  */
 static void G_MoveInfo_Accelerate(g_move_info_t *move_info) {
 	// are we decelerating?
@@ -188,10 +182,8 @@ static void G_MoveInfo_Accelerate(g_move_info_t *move_info) {
 	}
 }
 
-/**
- * G_MoveInfo_Accelerative
- *
- * Sets up a non-constant move, i.e. one that will accelerate near the beginning
+/*
+ * @brief Sets up a non-constant move, i.e. one that will accelerate near the beginning
  * and decelerate towards the end.
  */
 static void G_MoveInfo_Accelerative(g_edict_t *ent) {
@@ -214,10 +206,8 @@ static void G_MoveInfo_Accelerative(g_edict_t *ent) {
 	ent->think = G_MoveInfo_Accelerative;
 }
 
-/**
- * G_MoveInfo_Init
- *
- * Sets up movement for the specified entity. Both constant and accelerative
+/*
+ * @brief Sets up movement for the specified entity. Both constant and accelerative
  * movements are initiated through this function.
  */
 static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest, void(*done)(g_edict_t*)) {
@@ -249,7 +239,7 @@ static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest, void(*done)(g_edict_t*)
 static void G_func_plat_go_down(g_edict_t *ent);
 
 /*
- * G_func_plat_up
+ * @brief
  */
 static void G_func_plat_up(g_edict_t *ent) {
 	if (!(ent->flags & FL_TEAM_SLAVE)) {
@@ -264,7 +254,7 @@ static void G_func_plat_up(g_edict_t *ent) {
 }
 
 /*
- * G_func_plat_down
+ * @brief
  */
 static void G_func_plat_down(g_edict_t *ent) {
 	if (!(ent->flags & FL_TEAM_SLAVE)) {
@@ -276,7 +266,7 @@ static void G_func_plat_down(g_edict_t *ent) {
 }
 
 /*
- * G_func_plat_go_down
+ * @brief
  */
 static void G_func_plat_go_down(g_edict_t *ent) {
 	if (!(ent->flags & FL_TEAM_SLAVE)) {
@@ -289,7 +279,7 @@ static void G_func_plat_go_down(g_edict_t *ent) {
 }
 
 /*
- * G_func_plat_go_up
+ * @brief
  */
 static void G_func_plat_go_up(g_edict_t *ent) {
 	if (!(ent->flags & FL_TEAM_SLAVE)) {
@@ -302,7 +292,7 @@ static void G_func_plat_go_up(g_edict_t *ent) {
 }
 
 /*
- * G_func_plat_blocked
+ * @brief
  */
 static void G_func_plat_blocked(g_edict_t *self, g_edict_t *other) {
 
@@ -319,7 +309,7 @@ static void G_func_plat_blocked(g_edict_t *self, g_edict_t *other) {
 }
 
 /*
- * G_func_plat_use
+ * @brief
  */
 static void G_func_plat_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
@@ -330,7 +320,7 @@ static void G_func_plat_use(g_edict_t *ent, g_edict_t *other __attribute__((unus
 }
 
 /*
- * G_func_plat_touch
+ * @brief
  */
 static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
@@ -350,7 +340,7 @@ static void G_func_plat_touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *p
 }
 
 /*
- * G_func_plat_create_trigger
+ * @brief
  */
 static void G_func_plat_create_trigger(g_edict_t *ent) {
 	g_edict_t *trigger;
@@ -478,7 +468,7 @@ void G_func_plat(g_edict_t *ent) {
 }
 
 /*
- * G_func_rotating_blocked
+ * @brief
  */
 static void G_func_rotating_blocked(g_edict_t *self, g_edict_t *other) {
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0,
@@ -486,7 +476,7 @@ static void G_func_rotating_blocked(g_edict_t *self, g_edict_t *other) {
 }
 
 /*
- * G_func_rotating_touch
+ * @brief
  */
 static void G_func_rotating_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
@@ -498,7 +488,7 @@ static void G_func_rotating_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane
 }
 
 /*
- * G_func_rotating_use
+ * @brief
  */
 static void G_func_rotating_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
@@ -515,8 +505,8 @@ static void G_func_rotating_use(g_edict_t *self, g_edict_t *other __attribute__(
 }
 
 /*QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS TOUCH_PAIN STOP
- You need to have an origin brush as part of this entity.  The center of that brush will be
- the point around which it is rotated. It will rotate around the Z axis by default.  You can
+ You need to have an origin brush as part of this entity. The center of that brush will be
+ the point around which it is rotated. It will rotate around the Z axis by default. You can
  check either the X_AXIS or Y_AXIS box to change that.
 
  "speed" determines how fast it moves; default value is 100.
@@ -566,14 +556,14 @@ void G_func_rotating(g_edict_t *ent) {
 }
 
 /*
- * G_func_button_done
+ * @brief
  */
 static void G_func_button_done(g_edict_t *self) {
 	self->move_info.state = STATE_BOTTOM;
 }
 
 /*
- * G_func_button_reset
+ * @brief
  */
 static void G_func_button_reset(g_edict_t *self) {
 
@@ -586,7 +576,7 @@ static void G_func_button_reset(g_edict_t *self) {
 }
 
 /*
- * G_func_button_wait
+ * @brief
  */
 static void G_func_button_wait(g_edict_t *self) {
 
@@ -601,7 +591,7 @@ static void G_func_button_wait(g_edict_t *self) {
 }
 
 /*
- * G_func_button_activate
+ * @brief
  */
 static void G_func_button_activate(g_edict_t *self) {
 
@@ -617,7 +607,7 @@ static void G_func_button_activate(g_edict_t *self) {
 }
 
 /*
- * G_func_button_use
+ * @brief
  */
 static void G_func_button_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	self->activator = activator;
@@ -625,7 +615,7 @@ static void G_func_button_use(g_edict_t *self, g_edict_t *other __attribute__((u
 }
 
 /*
- * G_func_button_touch
+ * @brief
  */
 static void G_func_button_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
@@ -717,7 +707,7 @@ void G_func_button(g_edict_t *ent) {
 #define DOOR_TOGGLE			2
 
 /*
- * G_func_door_use_areaportals
+ * @brief
  */
 static void G_func_door_use_areaportals(g_edict_t *self, bool open) {
 	g_edict_t *t = NULL;
@@ -735,7 +725,7 @@ static void G_func_door_use_areaportals(g_edict_t *self, bool open) {
 static void G_func_door_go_down(g_edict_t *self);
 
 /*
- * G_func_door_up
+ * @brief
  */
 static void G_func_door_up(g_edict_t *self) {
 	if (!(self->flags & FL_TEAM_SLAVE)) {
@@ -755,7 +745,7 @@ static void G_func_door_up(g_edict_t *self) {
 }
 
 /*
- * G_func_door_down
+ * @brief
  */
 static void G_func_door_down(g_edict_t *self) {
 	if (!(self->flags & FL_TEAM_SLAVE)) {
@@ -768,7 +758,7 @@ static void G_func_door_down(g_edict_t *self) {
 }
 
 /*
- * G_func_door_go_down
+ * @brief
  */
 static void G_func_door_go_down(g_edict_t *self) {
 	if (!(self->flags & FL_TEAM_SLAVE)) {
@@ -786,7 +776,7 @@ static void G_func_door_go_down(g_edict_t *self) {
 }
 
 /*
- * G_func_door_go_up
+ * @brief
  */
 static void G_func_door_go_up(g_edict_t *self, g_edict_t *activator) {
 	if (self->move_info.state == STATE_UP)
@@ -811,7 +801,7 @@ static void G_func_door_go_up(g_edict_t *self, g_edict_t *activator) {
 }
 
 /*
- * G_func_door_use
+ * @brief
  */
 static void G_func_door_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	g_edict_t *ent;
@@ -840,7 +830,7 @@ static void G_func_door_use(g_edict_t *self, g_edict_t *other __attribute__((unu
 }
 
 /*
- * G_func_door_touch_trigger
+ * @brief
  */
 static void G_func_door_touch_trigger(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
@@ -859,7 +849,7 @@ static void G_func_door_touch_trigger(g_edict_t *self, g_edict_t *other, c_bsp_p
 }
 
 /*
- * G_func_door_calc_move
+ * @brief
  */
 static void G_func_door_calc_move(g_edict_t *self) {
 	g_edict_t *ent;
@@ -899,7 +889,7 @@ static void G_func_door_calc_move(g_edict_t *self) {
 }
 
 /*
- * G_func_door_create_trigger
+ * @brief
  */
 static void G_func_door_create_trigger(g_edict_t *ent) {
 	g_edict_t *other;
@@ -938,7 +928,7 @@ static void G_func_door_create_trigger(g_edict_t *ent) {
 }
 
 /*
- * G_func_door_blocked
+ * @brief
  */
 static void G_func_door_blocked(g_edict_t *self, g_edict_t *other) {
 	g_edict_t *ent;
@@ -963,7 +953,7 @@ static void G_func_door_blocked(g_edict_t *self, g_edict_t *other) {
 }
 
 /*
- * G_func_door_die
+ * @brief
  */
 static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int32_t damage __attribute__((unused)),
 		vec3_t point __attribute__((unused))) {
@@ -978,7 +968,7 @@ static void G_func_door_die(g_edict_t *self, g_edict_t *inflictor __attribute__(
 }
 
 /*
- * G_func_door_touch
+ * @brief
  */
 static void G_func_door_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
@@ -1000,7 +990,7 @@ static void G_func_door_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *
 }
 
 /*QUAKED func_door (0 .5 .8) ? START_OPEN TOGGLE
- START_OPEN	the door to moves to its destination when spawned, and operate in reverse.  It is used to temporarily or permanently close off an area when triggered (not useful for touch or takedamage doors).
+ START_OPEN	the door to moves to its destination when spawned, and operate in reverse. It is used to temporarily or permanently close off an area when triggered (not useful for touch or takedamage doors).
  TOGGLE		wait in both the start and end states for a trigger event.
 
  "message"	is printed when the door is touched if it is a trigger door and it hasn't been fired yet
@@ -1095,7 +1085,7 @@ void G_func_door(g_edict_t *ent) {
 }
 
 /*
- * G_func_wall_use
+ * @brief
  */
 static void G_func_wall_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	if (self->solid == SOLID_NOT) {
@@ -1163,7 +1153,7 @@ void G_func_wall(g_edict_t *self) {
 }
 
 /*QUAKED func_water(0 .5 .8) ? START_OPEN
- func_water is a moveable water brush.  It must be targeted to operate.  Use a non-water texture at your own risk.
+ func_water is a moveable water brush. It must be targeted to operate. Use a non-water texture at your own risk.
 
  START_OPEN causes the water to move to its destination when spawned and operate in reverse.
 
@@ -1228,7 +1218,7 @@ void G_func_water(g_edict_t *self) {
 static void G_func_train_next(g_edict_t *self);
 
 /*
- * G_func_train_blocked
+ * @brief
  */
 static void G_func_train_blocked(g_edict_t *self, g_edict_t *other) {
 	if (!other->client)
@@ -1246,7 +1236,7 @@ static void G_func_train_blocked(g_edict_t *self, g_edict_t *other) {
 }
 
 /*
- * G_func_train_wait
+ * @brief
  */
 static void G_func_train_wait(g_edict_t *self) {
 	if (self->target_ent->path_target) {
@@ -1287,7 +1277,7 @@ static void G_func_train_wait(g_edict_t *self) {
 }
 
 /*
- * G_func_train_next
+ * @brief
  */
 static void G_func_train_next(g_edict_t *self) {
 	g_edict_t *ent;
@@ -1339,7 +1329,7 @@ static void G_func_train_next(g_edict_t *self) {
 }
 
 /*
- * G_func_train_resume
+ * @brief
  */
 static void G_func_train_resume(g_edict_t *self) {
 	g_edict_t *ent;
@@ -1356,7 +1346,7 @@ static void G_func_train_resume(g_edict_t *self) {
 }
 
 /*
- * G_func_train_find
+ * @brief
  */
 static void G_func_train_find(g_edict_t *self) {
 	g_edict_t *ent;
@@ -1387,7 +1377,7 @@ static void G_func_train_find(g_edict_t *self) {
 }
 
 /*
- * G_func_train_use
+ * @brief
  */
 static void G_func_train_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	self->activator = activator;
@@ -1454,7 +1444,7 @@ void G_func_train(g_edict_t *self) {
 }
 
 /*
- * G_func_timer_think
+ * @brief
  */
 static void G_func_timer_think(g_edict_t *self) {
 	G_UseTargets(self, self->activator);
@@ -1462,7 +1452,7 @@ static void G_func_timer_think(g_edict_t *self) {
 }
 
 /*
- * G_func_timer_use
+ * @brief
  */
 static void G_func_timer_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	self->activator = activator;
@@ -1516,7 +1506,7 @@ void G_func_timer(g_edict_t *self) {
 }
 
 /*
- * G_func_conveyor_use
+ * @brief
  */
 static void G_func_conveyor_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	if (self->spawn_flags & 1) {
@@ -1553,7 +1543,7 @@ void G_func_conveyor(g_edict_t *self) {
 }
 
 /*
- * G_func_killbox_use
+ * @brief
  */
 static void G_func_killbox_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	G_KillBox(self);

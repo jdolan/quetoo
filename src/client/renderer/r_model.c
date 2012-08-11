@@ -38,21 +38,21 @@ typedef struct r_hunk_s {
 static r_hunk_t r_hunk;
 
 /*
- * R_HunkBegin
+ * @brief
  */
 static void *R_HunkBegin() {
 	return r_hunk.base + r_hunk.offset;
 }
 
 /*
- * R_HunkEnd
+ * @brief
  */
 static size_t R_HunkEnd(void *buf) {
 	return r_hunk.base + r_hunk.offset - (byte *) buf;
 }
 
 /*
- * R_HunkAlloc
+ * @brief
  */
 void *R_HunkAlloc(size_t size) {
 	byte *b;
@@ -68,7 +68,7 @@ void *R_HunkAlloc(size_t size) {
 }
 
 /*
- * R_AllocVertexArrays
+ * @brief
  */
 void R_AllocVertexArrays(r_model_t *mod) {
 	int32_t i, j;
@@ -119,7 +119,7 @@ void R_AllocVertexArrays(r_model_t *mod) {
 }
 
 /*
- * R_LoadVertexBuffers
+ * @brief
  */
 static void R_LoadVertexBuffers(r_model_t *mod) {
 	int32_t v, st, t, c;
@@ -183,7 +183,7 @@ static r_model_format_t r_model_formats[] = {
 #define NUM_MODEL_FORMATS (sizeof(r_model_formats) / sizeof(r_model_format_t))
 
 /*
- * R_LoadModel
+ * @brief
  */
 r_model_t *R_LoadModel(const char *name) {
 	r_model_format_t *format;
@@ -274,7 +274,7 @@ r_model_t *R_LoadModel(const char *name) {
 }
 
 /*
- * R_ListModels_f
+ * @brief
  */
 void R_ListModels_f(void) {
 	r_model_t *mod;
@@ -297,14 +297,14 @@ void R_ListModels_f(void) {
 }
 
 /*
- * R_HunkStats_f
+ * @brief
  */
 void R_HunkStats_f(void) {
 	Com_Print("Hunk usage: %.2f / %.2f MB\n", r_hunk.offset / 1024.0 / 1024.0, r_hunk_mb->value);
 }
 
 /*
- * R_FreeModels
+ * @brief
  */
 static void R_FreeModels(void) {
 	int32_t i;
@@ -338,10 +338,8 @@ static void R_FreeModels(void) {
 	r_hunk.offset = 0;
 }
 
-/**
- * R_BeginLoading
- *
- * Loads the specified level after resetting all model data.
+/*
+ * @brief Loads the specified level after resetting all model data.
  */
 void R_BeginLoading(const char *bsp_name, int32_t bsp_size) {
 
@@ -364,7 +362,7 @@ void R_BeginLoading(const char *bsp_name, int32_t bsp_size) {
 }
 
 /*
- * R_InitModels
+ * @brief
  */
 void R_InitModels(void) {
 
@@ -379,7 +377,7 @@ void R_InitModels(void) {
 }
 
 /*
- * R_Shutdown
+ * @brief
  */
 void R_ShutdownModels(void) {
 

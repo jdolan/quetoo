@@ -96,73 +96,8 @@ void (*R_DrawMeshModel)(const r_entity_t *e);
 extern cl_client_t cl;
 extern cl_static_t cls;
 
-/**
- * R_PointContents
- *
- * Resolves the contents mask at the specified point.
- */
-int32_t R_PointContents(const vec3_t point) {
-	int32_t i, contents = Cm_PointContents(point, r_world_model->first_node);
-
-	for (i = 0; i < r_view.num_entities; i++) {
-		r_entity_t *ent = &r_view.entities[i];
-		const r_model_t *m = ent->model;
-
-		if (!m || m->type != mod_bsp_submodel)
-			continue;
-
-		contents |= Cm_TransformedPointContents(point, m->first_node, ent->origin, ent->angles);
-	}
-
-	return contents;
-}
-
-/**
- * R_Trace
- *
- * Traces to world and BSP models.  If a BSP entity is hit, it is saved as
- * r_view.trace_ent.
- */
-c_trace_t R_Trace(const vec3_t start, const vec3_t end, float radius, int32_t mask) {
-	vec3_t mins, maxs;
-	c_trace_t tr;
-	float frac;
-	int32_t i;
-
-	VectorSet(mins, -radius, -radius, -radius);
-	VectorSet(maxs, radius, radius, radius);
-
-	// check world
-	r_view.trace = Cm_BoxTrace(start, end, mins, maxs, r_world_model->first_node, mask);
-	r_view.trace_ent = NULL;
-
-	frac = r_view.trace.fraction;
-
-	// check bsp models
-	for (i = 0; i < r_view.num_entities; i++) {
-
-		r_entity_t *ent = &r_view.entities[i];
-		const r_model_t *m = ent->model;
-
-		if (!m || m->type != mod_bsp_submodel || !m->nodes)
-			continue;
-
-		tr = Cm_TransformedBoxTrace(start, end, mins, maxs, m->first_node, mask, ent->origin,
-				ent->angles);
-
-		if (tr.fraction < frac) {
-			r_view.trace = tr;
-			r_view.trace_ent = ent;
-
-			frac = tr.fraction;
-		}
-	}
-
-	return r_view.trace;
-}
-
 /*
- * R_UpdateFrustum
+ * @brief
  */
 void R_UpdateFrustum(void) {
 	int32_t i;
@@ -190,10 +125,8 @@ void R_UpdateFrustum(void) {
 	}
 }
 
-/**
- * R_DrawView
- *
- * Main entry point for drawing the scene (world and entities).
+/*
+ * @brief Main entry point for drawing the scene (world and entities).
  */
 void R_DrawView(void) {
 
@@ -258,7 +191,7 @@ void R_DrawView(void) {
 }
 
 /*
- * R_RenderMode
+ * @brief
  */
 static void R_RenderMode(const char *mode) {
 
@@ -288,7 +221,7 @@ static void R_RenderMode(const char *mode) {
 }
 
 /*
- * R_Clear
+ * @brief
  */
 static void R_Clear(void) {
 	int32_t bits;
@@ -311,7 +244,7 @@ static void R_Clear(void) {
 }
 
 /*
- * R_BeginFrame
+ * @brief
  */
 void R_BeginFrame(void) {
 
@@ -340,7 +273,7 @@ void R_BeginFrame(void) {
 }
 
 /*
- * R_EndFrame
+ * @brief
  */
 void R_EndFrame(void) {
 
@@ -354,9 +287,7 @@ void R_EndFrame(void) {
 }
 
 /*
- * R_InitView
- *
- * Wipes the view structures after waiting for the view thread.
+ * @brief Wipes the view structures after waiting for the view thread.
  */
 static void R_InitView(void) {
 
@@ -368,9 +299,7 @@ static void R_InitView(void) {
 }
 
 /*
- * R_ResolveWeather
- *
- * Parses the weather config_string for weather and fog definitions,
+ * @brief Parses the weather config_string for weather and fog definitions,
  * e.g. "rain fog 0.8 0.75 0.65".
  */
 static void R_ResolveWeather(void) {
@@ -408,9 +337,7 @@ static void R_ResolveWeather(void) {
 }
 
 /*
- * R_LoadMedia
- *
- * Iterate the config_strings, loading all renderer-specific media.
+ * @brief Iterate the config_strings, loading all renderer-specific media.
  */
 void R_LoadMedia(void) {
 	char name[MAX_QPATH];
@@ -425,7 +352,8 @@ void R_LoadMedia(void) {
 
 	Cl_LoadProgress(1);
 
-	strncpy(name, cl.config_strings[CS_MODELS + 1] + 5, sizeof(name) - 1); // skip "maps/"
+	strncpy(name, cl.config_strings[CS_MODELS + 1] + 5, sizeof(name) - 1);
+	// skip "maps/"
 	name[strlen(name) - 4] = 0; // cut off ".bsp"
 
 	R_BeginLoading(cl.config_strings[CS_MODELS + 1], atoi(cl.config_strings[CS_BSP_SIZE]));
@@ -471,7 +399,7 @@ void R_LoadMedia(void) {
 }
 
 /*
- * R_Sky_f
+ * @brief
  */
 static void R_Sky_f(void) {
 
@@ -484,7 +412,7 @@ static void R_Sky_f(void) {
 }
 
 /*
- * R_Reload_f
+ * @brief
  */
 static void R_Reload_f(void) {
 
@@ -505,10 +433,8 @@ static void R_Reload_f(void) {
 	cls.loading = 0;
 }
 
-/**
- * R_Restart_f
- *
- * Restarts the renderer subsystem.  The OpenGL context is discarded and
+/*
+ * @brief Restarts the renderer subsystem. The OpenGL context is discarded and
  * recreated. All media is reloaded.
  */
 void R_Restart_f(void) {
@@ -527,7 +453,7 @@ void R_Restart_f(void) {
 }
 
 /*
- * R_ToggleFullscreen_f
+ * @brief
  */
 static void R_ToggleFullscreen_f(void) {
 
@@ -537,13 +463,13 @@ static void R_ToggleFullscreen_f(void) {
 }
 
 /*
- * R_InitLocal
+ * @brief
  */
 static void R_InitLocal(void) {
 
 	// development tools
-	r_clear
-			= Cvar_Get("r_clear", "0", 0, "Controls screen clearing at each frame (developer tool)");
+	r_clear = Cvar_Get("r_clear", "0", 0,
+			"Controls screen clearing at each frame (developer tool)");
 	r_cull = Cvar_Get("r_cull", "1", CVAR_LO_ONLY,
 			"Controls bounded box culling routines (developer tool)");
 	r_lock_vis = Cvar_Get("r_lock_vis", "0", CVAR_LO_ONLY,
@@ -565,14 +491,14 @@ static void R_InitLocal(void) {
 	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
 			"Controls the intensity of bump-mapping effects");
 	r_capture = Cvar_Get("r_capture", "0", 0, "Toggle screen capturing to jpeg files");
-	r_capture_fps
-			= Cvar_Get("r_capture_fps", "25", 0, "The desired framerate for screen capturing");
+	r_capture_fps = Cvar_Get("r_capture_fps", "25", 0,
+			"The desired framerate for screen capturing");
 	r_capture_quality = Cvar_Get("r_capture_quality", "0.7", CVAR_ARCHIVE,
 			"Screen capturing image quality");
 	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
 			"Controls texture contrast");
 	r_coronas = Cvar_Get("r_coronas", "1", CVAR_ARCHIVE, "Controls the rendering of coronas");
-	r_draw_buffer = Cvar_Get("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
+	r_draw_buffer = Cvar_Get("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL );
 	r_flares = Cvar_Get("r_flares", "1.0", CVAR_ARCHIVE,
 			"Controls the rendering of light source flares");
 	r_fog = Cvar_Get("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");
@@ -582,17 +508,17 @@ static void R_InitLocal(void) {
 			"Controls video gamma (brightness)");
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE,
 			"Controls the hardness of bump-mapping effects");
-	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL );
 	r_hunk_mb = Cvar_Get("r_hunk_mb", "512", CVAR_R_CONTEXT,
 			"Memory size for the renderer hunk in megabytes");
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES,
 			"Inverts the RGB values of all world textures");
 	r_lightmap_block_size = Cvar_Get("r_lightmap_block_size", "4096", CVAR_ARCHIVE | CVAR_R_IMAGES,
-			NULL);
+			NULL );
 	r_lighting = Cvar_Get("r_lighting", "1.0", CVAR_ARCHIVE,
 			"Controls intensity of hardware lighting effects");
-	r_line_alpha = Cvar_Get("r_line_alpha", "0.5", CVAR_ARCHIVE, NULL);
-	r_line_width = Cvar_Get("r_line_width", "1.0", CVAR_ARCHIVE, NULL);
+	r_line_alpha = Cvar_Get("r_line_alpha", "0.5", CVAR_ARCHIVE, NULL );
+	r_line_width = Cvar_Get("r_line_width", "1.0", CVAR_ARCHIVE, NULL );
 	r_materials = Cvar_Get("r_materials", "1", CVAR_ARCHIVE,
 			"Enables or disables the materials (progressive texture effects) system");
 	r_modulate = Cvar_Get("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
@@ -627,9 +553,9 @@ static void R_InitLocal(void) {
 	r_vertex_buffers = Cvar_Get("r_vertex_buffers", "1", CVAR_ARCHIVE,
 			"Controls the use of vertex buffer objects (VBO)");
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
-	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_windowed_height = Cvar_Get("r_windowed_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_windowed_width = Cvar_Get("r_windowed_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL );
+	r_windowed_height = Cvar_Get("r_windowed_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL );
+	r_windowed_width = Cvar_Get("r_windowed_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL );
 
 	// prevent unnecessary reloading for initial values
 	Cvar_ClearVars(CVAR_R_MASK);
@@ -642,7 +568,7 @@ static void R_InitLocal(void) {
 			"Print information about all the loaded images to the game console");
 	Cmd_AddCommand("r_screenshot", R_Screenshot_f, CMD_SYSTEM, "Take a screenshot");
 
-	Cmd_AddCommand("r_sky", R_Sky_f, 0, NULL);
+	Cmd_AddCommand("r_sky", R_Sky_f, 0, NULL );
 
 	Cmd_AddCommand("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM, "Toggle fullscreen");
 
@@ -651,7 +577,7 @@ static void R_InitLocal(void) {
 }
 
 /*
- * R_InitConfig
+ * @brief
  */
 static void R_InitConfig(void) {
 
@@ -670,10 +596,8 @@ static void R_InitConfig(void) {
 	Com_Print("  Version:  ^2%s^7\n", r_config.version_string);
 }
 
-/**
- * R_Init
- *
- * Creates the OpenGL context and initializes all GL state.
+/*
+ * @brief Creates the OpenGL context and initializes all GL state.
  */
 void R_Init(void) {
 
@@ -703,16 +627,13 @@ void R_Init(void) {
 
 	R_InitView();
 
-	Com_Print(
-			"Video initialized %dx%dx%dbpp %s.\n",
-			r_context.width,
-			r_context.height,
+	Com_Print("Video initialized %dx%dx%dbpp %s.\n", r_context.width, r_context.height,
 			(r_context.red_bits + r_context.green_bits + r_context.blue_bits + r_context.alpha_bits),
 			(r_context.fullscreen ? "fullscreen" : "windowed"));
 }
 
 /*
- * R_Shutdown
+ * @brief
  */
 void R_Shutdown(void) {
 

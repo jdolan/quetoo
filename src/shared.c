@@ -29,10 +29,8 @@ vec3_t vec3_origin = { 0.0, 0.0, 0.0 };
 vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
 vec3_t PM_MAXS = { 16.0, 16.0, 40.0 };
 
-/**
- * Random
- *
- * Returns a pseudo-random positive integer.
+/*
+ * @brief Returns a pseudo-random positive integer.
  *
  * Uses a Linear Congruence Generator, values kindly borrowed from glibc.
  * Look up the rules required for the constants before just replacing them;
@@ -52,26 +50,22 @@ int32_t Random(void) {
 	return state & 0x7fffffff;
 }
 
-/**
- * Randomf
- *
- * Returns a pseudo-random float between 0.0 and 1.0.
+/*
+ * @brief Returns a pseudo-random float between 0.0 and 1.0.
  */
 float Randomf(void) {
 	return (Random()) * (1.0 / 0x7fffffff);
 }
 
-/**
- * Randomc
- *
- * Returns a pseudo-random float between -1.0 and 1.0.
+/*
+ * @brief Returns a pseudo-random float between -1.0 and 1.0.
  */
 float Randomc(void) {
 	return (Random()) * (2.0 / 0x7fffffff) - 1.0;
 }
 
 /*
- * RotatePointAroundVector
+ * @brief
  */
 void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees) {
 	float m[3][3];
@@ -126,10 +120,8 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
 	}
 }
 
-/**
- * VectorAngles
- *
- * Derives Euler angles for the specified directional vector.
+/*
+ * @brief Derives Euler angles for the specified directional vector.
  */
 void VectorAngles(const vec3_t vector, vec3_t angles) {
 	const float forward = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
@@ -143,10 +135,8 @@ void VectorAngles(const vec3_t vector, vec3_t angles) {
 	VectorSet(angles, -pitch, yaw, 0.0);
 }
 
-/**
- * AngleVectors
- *
- * Produces the forward, right and up directional vectors for the given angles.
+/*
+ * @brief Produces the forward, right and up directional vectors for the given angles.
  */
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) {
 	float angle;
@@ -180,7 +170,7 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) 
 }
 
 /*
- * ProjectPointOnPlane
+ * @brief
  */
 void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal) {
 	float d;
@@ -200,10 +190,8 @@ void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal) {
 	dst[2] = p[2] - d * n[2];
 }
 
-/**
- * PerpendicularVector
- *
- * Assumes src vector is normalized.
+/*
+ * @brief Assumes src vector is normalized.
  */
 void PerpendicularVector(vec3_t dst, const vec3_t src) {
 	int32_t pos;
@@ -229,9 +217,7 @@ void PerpendicularVector(vec3_t dst, const vec3_t src) {
 }
 
 /*
- * TangentVectors
- *
- * Projects the normalized directional vectors on to the normal's plane.
+ * @brief Projects the normalized directional vectors on to the normal's plane.
  * The fourth component of the resulting tangent vector represents sidedness.
  */
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent,
@@ -262,7 +248,7 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 }
 
 /*
- * ConcatRotations
+ * @brief
  */
 void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]) {
 	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] + in1[0][2] * in2[2][0];
@@ -276,10 +262,8 @@ void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]) {
 	out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] + in1[2][2] * in2[2][2];
 }
 
-/**
- * VectorLerp
- *
- * Produces the linear interpolation of the two vectors for the given fraction.
+/*
+ * @brief Produces the linear interpolation of the two vectors for the given fraction.
  */
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
 	int32_t i;
@@ -288,10 +272,8 @@ void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out
 		out[i] = from[i] + frac * (to[i] - from[i]);
 }
 
-/**
- * AngleLerp
- *
- * Produces the linear interpolation of the two angles for the given fraction.
+/*
+ * @brief Produces the linear interpolation of the two angles for the given fraction.
  * Care is taken to keep the values between -180.0 and 180.0.
  */
 void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
@@ -314,10 +296,8 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 	VectorLerp(_from, _to, frac, out);
 }
 
-/**
- * SignBitsForPlane
- *
- * Returns a bit mask hinting at the sign of each normal vector component. This
+/*
+ * @brief Returns a bit mask hinting at the sign of each normal vector component. This
  * is used as an optimization for the box-on-plane-side test.
  */
 byte SignBitsForPlane(const c_bsp_plane_t *plane) {
@@ -331,10 +311,8 @@ byte SignBitsForPlane(const c_bsp_plane_t *plane) {
 	return bits;
 }
 
-/**
- * BoxOnPlaneSide
- *
- * Returns the sidedness of the given bounding box relative to the specified
+/*
+ * @brief Returns the sidedness of the given bounding box relative to the specified
  * plane. If the box straddles the plane, this function returns PSIDE_BOTH.
  */
 int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct c_bsp_plane_s *p) {
@@ -398,20 +376,16 @@ int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct c_bs
 	return sides;
 }
 
-/**
- * ClearBounds
- *
- * Initializes the specified bounds so that they may be safely calculated.
+/*
+ * @brief Initializes the specified bounds so that they may be safely calculated.
  */
 void ClearBounds(vec3_t mins, vec3_t maxs) {
 	mins[0] = mins[1] = mins[2] = 99999.0;
 	maxs[0] = maxs[1] = maxs[2] = -99999.0;
 }
 
-/**
- * AddPointToBounds
- *
- * Useful for accumulating a bounding box over a series of points.
+/*
+ * @brief Useful for accumulating a bounding box over a series of points.
  */
 void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 	int32_t i;
@@ -424,10 +398,8 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 	}
 }
 
-/**
- * VectorCompare
- *
- * Returns true if the specified vectors are equal, false otherwise.
+/*
+ * @brief Returns true if the specified vectors are equal, false otherwise.
  */
 bool VectorCompare(const vec3_t v1, const vec3_t v2) {
 
@@ -437,10 +409,8 @@ bool VectorCompare(const vec3_t v1, const vec3_t v2) {
 	return true;
 }
 
-/**
- * VectorNearer
- *
- * Returns true if the first vector is closer to the point of interest, false
+/*
+ * @brief Returns true if the first vector is closer to the point of interest, false
  * otherwise.
  */
 bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
@@ -452,10 +422,8 @@ bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
 	return VectorLength(d1) < VectorLength(d2);
 }
 
-/**
- * VectorNormalize
- *
- * Normalizes the specified vector to unit-length, returning the original
+/*
+ * @brief Normalizes the specified vector to unit-length, returning the original
  * vector's length.
  */
 vec_t VectorNormalize(vec3_t v) {
@@ -473,10 +441,8 @@ vec_t VectorNormalize(vec3_t v) {
 	return length;
 }
 
-/**
- * VectorMA
- *
- * Scales vecb and adds it to veca to produce vecc.  Useful for projection.
+/*
+ * @brief Scales vecb and adds it to veca to produce vecc. Useful for projection.
  */
 void VectorMA(const vec3_t veca, const float scale, const vec3_t vecb, vec3_t vecc) {
 	vecc[0] = veca[0] + scale * vecb[0];
@@ -484,10 +450,8 @@ void VectorMA(const vec3_t veca, const float scale, const vec3_t vecb, vec3_t ve
 	vecc[2] = veca[2] + scale * vecb[2];
 }
 
-/**
- * CrossProduct
- *
- * Calculates the cross-product of the specified vectors.
+/*
+ * @brief Calculates the cross-product of the specified vectors.
  */
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross) {
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
@@ -495,19 +459,15 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross) {
 	cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
 }
 
-/**
- * VectorLength
- *
- * Returns the length of the specified vector.
+/*
+ * @brief Returns the length of the specified vector.
  */
 vec_t VectorLength(const vec3_t v) {
 	return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 }
 
-/**
- * VectorMix
- *
- * Combines a fraction of the second vector with the first.
+/*
+ * @brief Combines a fraction of the second vector with the first.
  */
 void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out) {
 	int32_t i;
@@ -516,29 +476,23 @@ void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out) {
 		out[i] = v1[i] * (1.0 - mix) + v2[i] * mix;
 }
 
-/**
- * PackPosition
- *
- * Packs the specified floating point coordinates to the int16_t array in out
+/*
+ * @brief Packs the specified floating point coordinates to the int16_t array in out
  * for network transmission.
  */
 void PackPosition(const vec3_t in, int16_t *out) {
 	VectorScale(in, 8.0, out);
 }
 
-/**
- * UnpackPosition
- *
- * Unpacks the compressed coordinates to 32 bit floating point in out.
+/*
+ * @brief Unpacks the compressed coordinates to 32 bit floating point in out.
  */
 void UnpackPosition(const int16_t *in, vec3_t out) {
 	VectorScale(in, 0.125, out);
 }
 
-/**
- * PackAngles
- *
- * Packs the specified floating point Euler angles to the int16_t array in out
+/*
+ * @brief Packs the specified floating point Euler angles to the int16_t array in out
  * for network transmission.
  */
 void PackAngles(const vec3_t in, int16_t *out) {
@@ -549,10 +503,8 @@ void PackAngles(const vec3_t in, int16_t *out) {
 	}
 }
 
-/**
- * UnpackAngles
- *
- * Unpacks the compressed angles to Euler 32 bit floating point in out.
+/*
+ * @brief Unpacks the compressed angles to Euler 32 bit floating point in out.
  */
 void UnpackAngles(const int16_t *in, vec3_t out) {
 	int32_t i;
@@ -562,10 +514,8 @@ void UnpackAngles(const int16_t *in, vec3_t out) {
 	}
 }
 
-/**
- * ClampAngles
- *
- * Circularly clamps the specified angles between 0.0 and 360.0. Pitch is
+/*
+ * @brief Circularly clamps the specified angles between 0.0 and 360.0. Pitch is
  * clamped to not exceed 90' up or down.
  */
 void ClampAngles(vec3_t angles) {
@@ -591,10 +541,8 @@ void ClampAngles(vec3_t angles) {
 	}
 }
 
-/**
- * ColorNormalize
- *
- * Clamps the components of the specified vector to 1.0, scaling the vector
+/*
+ * @brief Clamps the components of the specified vector to 1.0, scaling the vector
  * down if necessary.
  */
 vec_t ColorNormalize(const vec3_t in, vec3_t out) {
@@ -618,10 +566,8 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 	return max;
 }
 
-/**
- * ColorFilter
- *
- * Applies brightness, saturation and contrast to the specified input color.
+/*
+ * @brief Applies brightness, saturation and contrast to the specified input color.
  */
 void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation, float contrast) {
 	const vec3_t luminosity = { 0.2125, 0.7154, 0.0721 };
@@ -654,10 +600,8 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
 	ColorNormalize(out, out);
 }
 
-/**
- * MixedCase
- *
- * Returns true if the specified string has some upper case characters.
+/*
+ * @brief Returns true if the specified string has some upper case characters.
  */
 bool MixedCase(const char *s) {
 	const char *c = s;
@@ -669,10 +613,8 @@ bool MixedCase(const char *s) {
 	return false;
 }
 
-/**
- * Lowercase
- *
- * Lowercases the specified string.
+/*
+ * @brief Lowercases the specified string.
  */
 char *Lowercase(char *s) {
 	char *c = s;
@@ -683,10 +625,8 @@ char *Lowercase(char *s) {
 	return s;
 }
 
-/**
- * Trim
- *
- * Trims leading and trailing whitespace from the specified string.
+/*
+ * @brief Trims leading and trailing whitespace from the specified string.
  */
 char *Trim(char *s) {
 	char *left, *right;
@@ -704,10 +644,8 @@ char *Trim(char *s) {
 	return left;
 }
 
-/**
- * CommonPrefix
- *
- * Returns the longest common prefix the specified words share.
+/*
+ * @brief Returns the longest common prefix the specified words share.
  */
 char *CommonPrefix(const char *words[], uint32_t nwords) {
 	static char common_prefix[MAX_TOKEN_CHARS];
@@ -743,10 +681,8 @@ char *CommonPrefix(const char *words[], uint32_t nwords) {
 	return common_prefix;
 }
 
-/**
- * GlobMatchStar
- *
- * Handles wildcard suffixes for GlobMatch.
+/*
+ * @brief Handles wildcard suffixes for GlobMatch.
  */
 static bool GlobMatchStar(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
@@ -774,10 +710,8 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
 	return false;
 }
 
-/**
- * GlobMatch
- *
- * Matches the pattern against specified text, returning true if the pattern
+/*
+ * @brief Matches the pattern against specified text, returning true if the pattern
  * matches, false otherwise.
  *
  * A match means the entire string TEXT is used up in matching.
@@ -855,7 +789,7 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
 			break;
 
 			match:
-			/* Skip the rest of the [...] construct that already matched.  */
+			/* Skip the rest of the [...] construct that already matched. */
 			while (c != ']') {
 				if (c == '\0')
 					return 0;
@@ -879,10 +813,8 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
 	return *t == '\0';
 }
 
-/**
- * Basename
- *
- * Returns the base name for the given file or path.
+/*
+ * @brief Returns the base name for the given file or path.
  */
 const char *Basename(const char *path) {
 	const char *last;
@@ -896,10 +828,8 @@ const char *Basename(const char *path) {
 	return last;
 }
 
-/**
- * Dirname
- *
- * Returns the directory name for the given file or path name.
+/*
+ * @brief Returns the directory name for the given file or path name.
  */
 void Dirname(const char *in, char *out) {
 	char *c;
@@ -913,10 +843,8 @@ void Dirname(const char *in, char *out) {
 	out[(c - in) + 1] = 0;
 }
 
-/**
- * StripExtension
- *
- * Removes any file extension(s) from the specified input string.
+/*
+ * @brief Removes any file extension(s) from the specified input string.
  */
 void StripExtension(const char *in, char *out) {
 	while (*in && *in != '.')
@@ -924,10 +852,8 @@ void StripExtension(const char *in, char *out) {
 	*out = 0;
 }
 
-/**
- * StripColor
- *
- * Strips color escape sequences from the specified input string.
+/*
+ * @brief Strips color escape sequences from the specified input string.
  */
 void StripColor(const char *in, char *out) {
 
@@ -948,10 +874,8 @@ void StripColor(const char *in, char *out) {
 	*out = 0;
 }
 
-/**
- * StrColorCmp
- *
- * Performs a color- and case-insensitive string comparison.
+/*
+ * @brief Performs a color- and case-insensitive string comparison.
  */
 int32_t StrColorCmp(const char *s1, const char *s2) {
 	char string1[MAX_STRING_CHARS], string2[MAX_STRING_CHARS];
@@ -962,10 +886,8 @@ int32_t StrColorCmp(const char *s1, const char *s2) {
 	return strcasecmp(string1, string2);
 }
 
-/**
- * va
- *
- * A shorthand sprintf into a statically allocated buffer.
+/*
+ * @brief A shorthand sprintf into a statically allocated buffer.
  */
 char *va(const char *format, ...) {
 	va_list args;
@@ -980,10 +902,8 @@ char *va(const char *format, ...) {
 	return string;
 }
 
-/**
- * vtos
- *
- * A convenience function for printing vectors.
+/*
+ * @brief A convenience function for printing vectors.
  */
 char *vtos(const vec3_t v) {
 	static uint32_t index;
@@ -998,10 +918,8 @@ char *vtos(const vec3_t v) {
 	return s;
 }
 
-/**
- * ParseToken
- *
- * Parse a token out of a string. Tokens are delimited by white space, and
+/*
+ * @brief Parse a token out of a string. Tokens are delimited by white space, and
  * may be grouped by quotation marks.
  */
 char *ParseToken(const char **data_p) {
@@ -1071,10 +989,8 @@ char *ParseToken(const char **data_p) {
 	return token;
 }
 
-/**
- * GetUserInfo
- *
- * Searches the string for the given key and returns the associated value,
+/*
+ * @brief Searches the string for the given key and returns the associated value,
  * or an empty string.
  */
 char *GetUserInfo(const char *s, const char *key) {
@@ -1118,7 +1034,7 @@ char *GetUserInfo(const char *s, const char *key) {
 }
 
 /*
- * DeleteUserInfo
+ * @brief
  */
 void DeleteUserInfo(char *s, const char *key) {
 	char *start;
@@ -1161,10 +1077,8 @@ void DeleteUserInfo(char *s, const char *key) {
 	}
 }
 
-/**
- * ValidateUserInfo
- *
- * Returns true if the specified user-info string appears valid, false
+/*
+ * @brief Returns true if the specified user-info string appears valid, false
  * otherwise.
  */bool ValidateUserInfo(const char *s) {
 	if (strstr(s, "\""))
@@ -1175,7 +1089,7 @@ void DeleteUserInfo(char *s, const char *key) {
 }
 
 /*
- * SetUserInfo
+ * @brief
  */
 void SetUserInfo(char *s, const char *key, const char *value) {
 	char newi[MAX_USER_INFO_STRING], *v;
@@ -1225,7 +1139,7 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 }
 
 /*
- * ColorByName
+ * @brief
  */
 int32_t ColorByName(const char *s, int32_t def) {
 	int32_t i;

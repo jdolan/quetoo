@@ -38,9 +38,7 @@ extern void Cl_ClearNotify(void);
 static cvar_t *ansi;
 
 /*
- * Con_Update
- *
- * Update a console index struct, start parsing at pos
+ * @brief Update a console index struct, start parsing at pos
  */
 static void Con_Update(console_t *con, char *pos) {
 	char *wordstart;
@@ -130,9 +128,7 @@ static void Con_Update(console_t *con, char *pos) {
 }
 
 /*
- * Con_Resize
- *
- * Change the width of an index, parse the console data structure if needed
+ * @brief Change the width of an index, parse the console data structure if needed
  */
 void Con_Resize(console_t *con, uint16_t width, uint16_t height) {
 	if (!console_data.insert)
@@ -159,9 +155,7 @@ void Con_Resize(console_t *con, uint16_t width, uint16_t height) {
 }
 
 /*
- * Con_Clear_f
- *
- * Clear the console data buffer
+ * @brief Clear the console data buffer
  */
 static void Con_Clear_f(void) {
 	memset(console_data.text, 0, sizeof(console_data.text));
@@ -184,9 +178,7 @@ static void Con_Clear_f(void) {
 }
 
 /*
- * Con_Dump_f
- *
- * Save the console contents to a file
+ * @brief Save the console contents to a file
  */
 static void Con_Dump_f(void) {
 	FILE *f;
@@ -220,9 +212,7 @@ static void Con_Dump_f(void) {
 }
 
 /*
- * Con_PrintStdOut
- *
- * Print a color-coded string to stdout, remove color codes if requested
+ * @brief Print a color-coded string to stdout, remove color codes if requested
  */
 static void Con_PrintStdOut(const char *text) {
 	char buf[MAX_PRINT_MSG];
@@ -307,9 +297,7 @@ static void Con_PrintStdOut(const char *text) {
 }
 
 /*
- * Con_Print
- *
- * Print a message to the console data buffer
+ * @brief Print a message to the console data buffer
  */
 void Con_Print(const char *text) {
 #ifdef BUILD_CLIENT
@@ -380,10 +368,10 @@ void Con_Print(const char *text) {
 static const char *complete[MAX_COMPLETE_MATCHES];
 
 /*
- *  Tab completion.  Query the command and cvar subsystems for potential
- *  matches, and append an appropriate string to the input buffer.  If no
- *  matches are found, do nothing.  If only one match is found, simply
- *  append it.  If multiple matches are found, append the longest possible
+ *  Tab completion. Query the command and cvar subsystems for potential
+ *  matches, and append an appropriate string to the input buffer. If no
+ *  matches are found, do nothing. If only one match is found, simply
+ *  append it. If multiple matches are found, append the longest possible
  *  common prefix they all share.
  */
 int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position) {
@@ -446,9 +434,7 @@ int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position) {
 }
 
 /*
- * Con_Init
- *
- * Initialize the console subsystem
+ * @brief Initialize the console subsystem
  */
 void Con_Init(void) {
 
@@ -467,9 +453,7 @@ void Con_Init(void) {
 }
 
 /*
- * Con_Shutdown
- *
- * Shutdown the console subsystem
+ * @brief Shutdown the console subsystem
  */
 void Con_Shutdown(void) {
 #ifdef HAVE_CURSES

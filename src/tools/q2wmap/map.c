@@ -45,9 +45,7 @@ static int32_t c_area_portals;
 static int32_t c_clip_brushes;
 
 /*
- * PlaneTypeForNormal
- *
- * Set the type of the plane according to it's normal vector
+ * @brief Set the type of the plane according to it's normal vector
  */
 static int32_t PlaneTypeForNormal(const vec3_t normal) {
 	vec_t ax, ay, az;
@@ -72,7 +70,7 @@ static int32_t PlaneTypeForNormal(const vec3_t normal) {
 }
 
 /*
- * PlaneEqual
+ * @brief
  */
 #define	NORMAL_EPSILON	0.00001
 #define	DIST_EPSILON	0.01
@@ -87,7 +85,7 @@ static inline bool PlaneEqual(const map_plane_t * p, const vec3_t normal,
 }
 
 /*
- * AddPlaneToHash
+ * @brief
  */
 static inline void AddPlaneToHash(map_plane_t * p) {
 	int32_t hash;
@@ -100,7 +98,7 @@ static inline void AddPlaneToHash(map_plane_t * p) {
 }
 
 /*
- * CreateNewFloatPlane
+ * @brief
  */
 static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 	map_plane_t *p, temp;
@@ -141,7 +139,7 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 }
 
 /*
- * SnapVector
+ * @brief
  */
 static void SnapVector(vec3_t normal) {
 	int32_t i;
@@ -161,7 +159,7 @@ static void SnapVector(vec3_t normal) {
 }
 
 /*
- * SnapPlane
+ * @brief
  */
 static inline void SnapPlane(vec3_t normal, vec_t *dist) {
 	const float f = floor(*dist + 0.5);
@@ -173,7 +171,7 @@ static inline void SnapPlane(vec3_t normal, vec_t *dist) {
 }
 
 /*
- * FindFloatPlane
+ * @brief
  */
 int32_t FindFloatPlane(vec3_t normal, vec_t dist) {
 	int32_t i;
@@ -197,7 +195,7 @@ int32_t FindFloatPlane(vec3_t normal, vec_t dist) {
 }
 
 /*
- * PlaneFromPoints
+ * @brief
  */
 static int32_t PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2) {
 	vec3_t t1, t2, normal;
@@ -214,7 +212,7 @@ static int32_t PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2
 }
 
 /*
- * BrushContents
+ * @brief
  */
 static int32_t BrushContents(const map_brush_t * b) {
 	int32_t contents;
@@ -247,9 +245,7 @@ static int32_t BrushContents(const map_brush_t * b) {
 }
 
 /*
- * AddBrushBevels
- *
- * Adds any additional planes necessary to allow the brush to be expanded
+ * @brief Adds any additional planes necessary to allow the brush to be expanded
  * against axial bounding boxes
  */
 static void AddBrushBevels(map_brush_t * b) {
@@ -389,9 +385,7 @@ static void AddBrushBevels(map_brush_t * b) {
 }
 
 /*
- * MakeBrushWindings
- *
- * Makes basewindigs for sides and mins / maxs for the brush
+ * @brief Makes basewindigs for sides and mins / maxs for the brush
  */
 static bool MakeBrushWindings(map_brush_t * ob) {
 	int32_t i, j;
@@ -437,7 +431,7 @@ static bool MakeBrushWindings(map_brush_t * ob) {
 }
 
 /*
- * SetImpliedFlags
+ * @brief
  */
 static void SetImpliedFlags(side_t *side, const char *tex) {
 
@@ -471,7 +465,7 @@ static void SetImpliedFlags(side_t *side, const char *tex) {
 }
 
 /*
- * ParseBrush
+ * @brief
  */
 static void ParseBrush(entity_t *mapent) {
 	map_brush_t *b;
@@ -638,7 +632,7 @@ static void ParseBrush(entity_t *mapent) {
 
 	// origin brushes are removed, but they set
 	// the rotation origin for the rest of the brushes
-	// in the entity.  After the entire entity is parsed,
+	// in the entity. After the entire entity is parsed,
 	// the plane_nums and texinfos will be adjusted for
 	// the origin brush
 	if (b->contents & CONTENTS_ORIGIN) {
@@ -675,9 +669,7 @@ static void ParseBrush(entity_t *mapent) {
 }
 
 /*
- * MoveBrushesToWorld
- *
- * Takes all of the brushes from the current entity and adds them to the
+ * @brief Takes all of the brushes from the current entity and adds them to the
  * world's brush list.
  *
  * Used by func_group and func_areaportal
@@ -716,7 +708,7 @@ static void MoveBrushesToWorld(entity_t *ent) {
 }
 
 /*
- * ParseMapEntity
+ * @brief
  */
 static bool ParseMapEntity(void) {
 	entity_t *mapent;
@@ -813,7 +805,7 @@ static bool ParseMapEntity(void) {
 }
 
 /*
- * LoadMapFile
+ * @brief
  */
 void LoadMapFile(const char *file_name) {
 	int32_t subdivide;

@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /*
- * G_ClientToIntermission
+ * @brief
  */
 void G_ClientToIntermission(g_edict_t *ent) {
 
@@ -56,10 +56,8 @@ void G_ClientToIntermission(g_edict_t *ent) {
 	ent->client->pickup_msg_time = 0;
 }
 
-/**
- * G_UpdateScores_
- *
- * Write the scores information for the specified client.
+/*
+ * @brief Write the scores information for the specified client.
  */
 static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 	player_score_t s;
@@ -105,10 +103,8 @@ static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 // all scores are dumped into this buffer several times per second
 static char scores_buffer[MAX_STRING_CHARS];
 
-/**
- * G_UpdateScores
- *
- * Returns the size of the resulting scores buffer.
+/*
+ * @brief Returns the size of the resulting scores buffer.
  *
  * FIXME: Because we can only send the first 32 or so scores, we should sort
  * the clients here before serializing them.
@@ -153,10 +149,8 @@ static uint32_t G_UpdateScores(void) {
 	return j * sizeof(player_score_t);
 }
 
-/**
- * G_ClientScores
- *
- * Assemble the binary scores data for the client.
+/*
+ * @brief Assemble the binary scores data for the client.
  */
 void G_ClientScores(g_edict_t *ent) {
 	uint16_t length;
@@ -174,10 +168,8 @@ void G_ClientScores(g_edict_t *ent) {
 	ent->client->scores_time = g_level.time + 500;
 }
 
-/**
- * G_ClientStats
- *
- * Writes the stats array of the player state structure. The client's HUD is
+/*
+ * @brief Writes the stats array of the player state structure. The client's HUD is
  * largely derived from this information.
  */
 void G_ClientStats(g_edict_t *ent) {
@@ -281,7 +273,7 @@ void G_ClientStats(g_edict_t *ent) {
 }
 
 /*
- * G_ClientSpectatorStats
+ * @brief
  */
 void G_ClientSpectatorStats(g_edict_t *ent) {
 	g_client_t *client = ent->client;

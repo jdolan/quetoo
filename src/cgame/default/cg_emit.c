@@ -23,7 +23,7 @@
 
 /*
  * Emits are client-sided entities for emitting lights, particles, coronas,
- * ambient sounds, etc.  They are run once per frame, and culled by both
+ * ambient sounds, etc. They are run once per frame, and culled by both
  * PHS and PVS, depending on their flags.
  */
 
@@ -66,9 +66,7 @@ static cg_emit_t cg_emits[MAX_EMITS];
 static uint16_t cg_num_emits;
 
 /*
- * Cg_LoadEmits
- *
- * Parse misc_emits from the bsp after it has been loaded.  This must
+ * @brief Parse misc_emits from the bsp after it has been loaded. This must
  * be called after Cm_LoadMap, once per pre-cache routine.
  */
 void Cg_LoadEmits(void) {
@@ -310,7 +308,7 @@ void Cg_LoadEmits(void) {
 }
 
 /*
- * Cg_EmitLight
+ * @brief
  */
 static r_light_t *Cg_EmitLight(cg_emit_t *e) {
 	static r_light_t l;
@@ -323,9 +321,7 @@ static r_light_t *Cg_EmitLight(cg_emit_t *e) {
 }
 
 /*
- * Cg_UpdateEmit
- *
- * Perform PVS and PHS filtering, returning a copy of the specified emit with
+ * @brief Perform PVS and PHS filtering, returning a copy of the specified emit with
  * the correct flags stripped away for this frame.
  */
 cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
@@ -348,7 +344,7 @@ cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 }
 
 /*
- * Cg_AddEmits
+ * @brief
  */
 void Cg_AddEmits(void) {
 	r_entity_t ent;

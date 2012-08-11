@@ -29,7 +29,7 @@ bool nosort;
 static int32_t visibility_count;
 
 /*
- * PlaneFromWinding
+ * @brief
  */
 static void PlaneFromWinding(const winding_t *w, plane_t *plane) {
 	vec3_t v1, v2;
@@ -43,7 +43,7 @@ static void PlaneFromWinding(const winding_t *w, plane_t *plane) {
 }
 
 /*
- * NewWinding
+ * @brief
  */
 static winding_t *NewWinding(uint16_t points) {
 	winding_t *w;
@@ -60,7 +60,7 @@ static winding_t *NewWinding(uint16_t points) {
 }
 
 /*
- * SortPortals_Compare
+ * @brief
  */
 static int32_t SortPortals_Compare(const void *a, const void *b) {
 	if ((*(portal_t **) a)->num_might_see == (*(portal_t **) b)->num_might_see)
@@ -71,9 +71,7 @@ static int32_t SortPortals_Compare(const void *a, const void *b) {
 }
 
 /*
- * SortPortals
- *
- * Sorts the portals from the least complex, so the later ones can reuse
+ * @brief Sorts the portals from the least complex, so the later ones can reuse
  * the earlier information.
  */
 static void SortPortals(void) {
@@ -90,7 +88,7 @@ static void SortPortals(void) {
 }
 
 /*
- * LeafVectorFromPortalVector
+ * @brief
  */
 static size_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
 	uint32_t i;
@@ -108,9 +106,7 @@ static size_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
 }
 
 /*
- * ClusterMerge
- *
- * Merges the portal visibility for a leaf.
+ * @brief Merges the portal visibility for a leaf.
  */
 static void ClusterMerge(int32_t leaf_num) {
 	leaf_t *leaf;
@@ -166,7 +162,7 @@ static void ClusterMerge(int32_t leaf_num) {
 }
 
 /*
- * CalcVis
+ * @brief
  */
 static void CalcVis(void) {
 	uint32_t i;
@@ -198,7 +194,7 @@ static void CalcVis(void) {
 }
 
 /*
- * SetPortalSphere
+ * @brief
  */
 static void SetPortalSphere(portal_t * p) {
 	int32_t i;
@@ -227,7 +223,7 @@ static void SetPortalSphere(portal_t * p) {
 }
 
 /*
- * LoadPortals
+ * @brief
  */
 static void LoadPortals(const char *name) {
 	uint32_t i;
@@ -351,9 +347,7 @@ static void LoadPortals(const char *name) {
 }
 
 /*
- * CalcPHS
- *
- * Calculate the PHS (Potentially Hearable Set)
+ * @brief Calculate the PHS (Potentially Hearable Set)
  * by ORing together all the PVS visible from a leaf
  */
 static void CalcPHS(void) {
@@ -414,7 +408,7 @@ static void CalcPHS(void) {
 }
 
 /*
- * VIS_Main
+ * @brief
  */
 int32_t VIS_Main(void) {
 	char portal_file[MAX_OSPATH];

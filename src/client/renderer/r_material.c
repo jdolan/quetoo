@@ -23,10 +23,8 @@
 
 #define UPDATE_THRESHOLD 0.02
 
-/**
- * R_UpdateMaterial
- *
- * Materials "think" every few milliseconds to advance animations.
+/*
+ * @brief Materials "think" every few milliseconds to advance animations.
  */
 static void R_UpdateMaterial(r_material_t *m) {
 	r_stage_t *s;
@@ -64,10 +62,8 @@ static void R_UpdateMaterial(r_material_t *m) {
 	}
 }
 
-/**
- * R_StageLighting
- *
- * Manages state for stages supporting static, dynamic, and per-pixel lighting.
+/*
+ * @brief Manages state for stages supporting static, dynamic, and per-pixel lighting.
  */
 static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage) {
 
@@ -104,10 +100,8 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	}
 }
 
-/**
- * R_StageVertex
- *
- * Generates a single vertex for the specified stage.
+/*
+ * @brief Generates a single vertex for the specified stage.
  */
 static void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *stage, const vec3_t in,
 		vec3_t out) {
@@ -116,10 +110,8 @@ static void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *stage, c
 	VectorCopy(in, out);
 }
 
-/**
- * R_StageTextureMatrix
- *
- * Manages texture matrix manipulations for stages supporting rotations,
+/*
+ * @brief Manages texture matrix manipulations for stages supporting rotations,
  * scrolls, and stretches (rotate, translate, scale).
  */
 static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *stage) {
@@ -170,10 +162,8 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 	identity = false;
 }
 
-/**
- * R_StageTexCoord
- *
- * Generates a single texture coordinate for the specified stage and vertex.
+/*
+ * @brief Generates a single texture coordinate for the specified stage and vertex.
  */
 static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const vec2_t in,
 		vec2_t out) {
@@ -212,10 +202,8 @@ static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
 		0.5,
 		0.3 };
 
-/**
- * R_StageColor
- *
- * Generates a single color for the specified stage and vertex.
+/*
+ * @brief Generates a single color for the specified stage and vertex.
  */
 static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t color) {
 
@@ -254,10 +242,8 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t c
 	}
 }
 
-/**
- * R_SetStageState
- *
- * Manages all state for the specified surface and stage. The surface will be
+/*
+ * @brief Manages all state for the specified surface and stage. The surface will be
  * NULL in the case of mesh stages.
  */
 static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage) {
@@ -309,10 +295,8 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	}
 }
 
-/**
- * R_DrawSurfaceStage
- *
- * Render the specified stage for the surface.  Resolve vertex attributes via
+/*
+ * @brief Render the specified stage for the surface. Resolve vertex attributes via
  * helper functions, outputting to the default vertex arrays.
  */
 static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *stage) {
@@ -349,11 +333,9 @@ static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *sta
 	glDrawArrays(GL_POLYGON, 0, i);
 }
 
-/**
- * R_DrawMaterialSurfaces
- *
- * Iterates the specified surfaces list, updating materials as they are
- * encountered, and rendering all visible stages.  State is lazily managed
+/*
+ * @brief Iterates the specified surfaces list, updating materials as they are
+ * encountered, and rendering all visible stages. State is lazily managed
  * throughout the iteration, so there is a concerted effort to restore the
  * state after all surface stages have been rendered.
  */
@@ -440,10 +422,8 @@ void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_Color(NULL);
 }
 
-/**
- * R_DrawMeshMaterial
- *
- * Re-draws the currently bound arrays from the given offset to count after
+/*
+ * @brief Re-draws the currently bound arrays from the given offset to count after
  * setting GL state for the stage.
  */
 void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count) {
@@ -495,7 +475,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 }
 
 /*
- * R_FreeMaterials
+ * @brief
  */
 void R_FreeMaterials(void) {
 	int32_t i;
@@ -522,7 +502,7 @@ void R_FreeMaterials(void) {
 }
 
 /*
- * R_ConstByName
+ * @brief
  */
 static inline GLenum R_ConstByName(const char *c) {
 
@@ -548,7 +528,7 @@ static inline GLenum R_ConstByName(const char *c) {
 }
 
 /*
- * R_LoadAnimImages
+ * @brief
  */
 static int32_t R_LoadAnimImages(r_stage_t *s) {
 	char name[MAX_QPATH];
@@ -589,7 +569,7 @@ static int32_t R_LoadAnimImages(r_stage_t *s) {
 }
 
 /*
- * R_ParseStage
+ * @brief
  */
 static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 	int32_t i;
@@ -899,7 +879,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 }
 
 /*
- * R_LoadMaterials
+ * @brief
  */
 void R_LoadMaterials(const r_model_t *mod) {
 	char path[MAX_QPATH];

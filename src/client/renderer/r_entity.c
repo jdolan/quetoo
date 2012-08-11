@@ -33,9 +33,7 @@ typedef struct r_entities_s {
 r_entities_t r_entities;
 
 /*
- * R_EntityList
- *
- * Returns the appropriate entity list for the specified entity.
+ * @brief Returns the appropriate entity list for the specified entity.
  */
 static r_entity_t **R_EntityList(const r_entity_t *e) {
 
@@ -57,9 +55,7 @@ static r_entity_t **R_EntityList(const r_entity_t *e) {
 }
 
 /*
- * R_AddEntity
- *
- * Copies the specified entity into the view structure, calculating its
+ * @brief Copies the specified entity into the view structure, calculating its
  * model-view matrix and performing a frustum cull in the process. Entities
  * which pass the frustum cull are added to draw lists, sorted by model to
  * allow instancing.
@@ -101,9 +97,7 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 }
 
 /*
- * R_AddLinkedEntity
- *
- * Binds a linked model to its parent, and copies it into the view structure.
+ * @brief Binds a linked model to its parent, and copies it into the view structure.
  */
 const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, r_model_t *model,
 		const char *tag_name) {
@@ -132,9 +126,7 @@ const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, r_model_t *model,
 }
 
 /*
- * R_RotateForEntity
- *
- * Applies translation, rotation, and scale for the specified entity.
+ * @brief Applies translation, rotation, and scale for the specified entity.
  */
 void R_RotateForEntity(const r_entity_t *e) {
 	GLfloat mat[16];
@@ -167,9 +159,7 @@ void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out) {
 }
 
 /*
- * R_SetMatrixForEntity
- *
- * Applies any configuration and tag alignment, populating the model-view
+ * @brief Applies any configuration and tag alignment, populating the model-view
  * matrix for the entity in the process.
  */
 static void R_SetMatrixForEntity(r_entity_t *e) {
@@ -206,9 +196,7 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 }
 
 /*
- * R_CullEntity
- *
- * Dispatches the appropriate sub-routine for frustum-culling the entity.
+ * @brief Dispatches the appropriate sub-routine for frustum-culling the entity.
  */
 static bool R_CullEntity(r_entity_t *e) {
 
@@ -224,9 +212,7 @@ static bool R_CullEntity(r_entity_t *e) {
 }
 
 /*
- * R_CullEntities
- *
- * Performs a frustum-cull of all entities. This is performed in a separate
+ * @brief Performs a frustum-cull of all entities. This is performed in a separate
  * thread while the renderer draws the world. Entities which pass a frustum
  * cull will also have their static lighting information updated.
  */
@@ -248,7 +234,7 @@ void R_CullEntities(void *data __attribute__((unused))) {
 }
 
 /*
- * R_DrawBspEntities
+ * @brief
  */
 static void R_DrawBspEntities() {
 	const r_entity_t *e;
@@ -263,7 +249,7 @@ static void R_DrawBspEntities() {
 }
 
 /*
- * R_DrawMeshEntities
+ * @brief
  */
 static void R_DrawMeshEntities(r_entity_t *ents) {
 	r_entity_t *e;
@@ -278,7 +264,7 @@ static void R_DrawMeshEntities(r_entity_t *ents) {
 }
 
 /*
- * R_DrawOpaqueMeshEntities
+ * @brief
  */
 static void R_DrawOpaqueMeshEntities() {
 
@@ -293,7 +279,7 @@ static void R_DrawOpaqueMeshEntities() {
 }
 
 /*
- * R_DrawAlphaTestMeshEntities
+ * @brief
  */
 static void R_DrawAlphaTestMeshEntities() {
 
@@ -312,7 +298,7 @@ static void R_DrawAlphaTestMeshEntities() {
 }
 
 /*
- * R_DrawBlendMeshEntities
+ * @brief
  */
 static void R_DrawBlendMeshEntities() {
 
@@ -327,9 +313,7 @@ static void R_DrawBlendMeshEntities() {
 }
 
 /*
- * R_DrawNullModel
- *
- * Draws a place-holder "white diamond" prism for the specified entity.
+ * @brief Draws a place-holder "white diamond" prism for the specified entity.
  */
 static void R_DrawNullModel(const r_entity_t *e) {
 	int32_t i;
@@ -356,7 +340,7 @@ static void R_DrawNullModel(const r_entity_t *e) {
 }
 
 /*
- * R_DrawNullEntities
+ * @brief
  */
 static void R_DrawNullEntities() {
 	const r_entity_t *e;
@@ -373,9 +357,7 @@ static void R_DrawNullEntities() {
 }
 
 /*
- * R_DrawEntities
- *
- * Primary entry point for drawing all entities.
+ * @brief Primary entry point for drawing all entities.
  */
 void R_DrawEntities(void) {
 

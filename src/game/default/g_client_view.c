@@ -21,10 +21,8 @@
 
 #include "g_local.h"
 
-/**
- * G_ClientDamage
- *
- * Inspect all damage received this frame and play a pain sound if appropriate.
+/*
+ * @brief Inspect all damage received this frame and play a pain sound if appropriate.
  */
 static void G_ClientDamage(g_edict_t *ent) {
 	g_client_t *client;
@@ -61,10 +59,8 @@ static void G_ClientDamage(g_edict_t *ent) {
 	client->damage_inflicted = 0;
 }
 
-/**
- * G_ClientWaterInteraction
- *
- * Handles water entry and exit
+/*
+ * @brief Handles water entry and exit
  */
 static void G_ClientWaterInteraction(g_edict_t *ent) {
 	g_client_t *client = ent->client;
@@ -145,10 +141,8 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 	}
 }
 
-/**
- * G_ClientWorldAngles
- *
- * Set the angles of the client's world model, after clamping them to sane
+/*
+ * @brief Set the angles of the client's world model, after clamping them to sane
  * values.
  */
 static void G_ClientWorldAngles(g_edict_t *ent) {
@@ -173,10 +167,8 @@ static void G_ClientWorldAngles(g_edict_t *ent) {
 
 #define KICK_SCALE 15.0
 
-/**
- * G_ClientDamageKick
- *
- * Adds view kick in the specified direction to the specified client.
+/*
+ * @brief Adds view kick in the specified direction to the specified client.
  */
 void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const float kick) {
 	vec3_t old_kick_angles, kick_angles;
@@ -193,10 +185,8 @@ void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const float kick) {
 	PackAngles(kick_angles, ent->client->ps.pm_state.kick_angles);
 }
 
-/**
- * G_ClientWeaponKick
- *
- * A convenience function for adding view kick from firing weapons.
+/*
+ * @brief A convenience function for adding view kick from firing weapons.
  */
 void G_ClientWeaponKick(g_edict_t *ent, const float kick) {
 	vec3_t dir;
@@ -206,10 +196,8 @@ void G_ClientWeaponKick(g_edict_t *ent, const float kick) {
 	G_ClientDamageKick(ent, dir, kick);
 }
 
-/**
- * G_ClientKickAngles
- *
- * Sets the kick value based on recent events such as falling. Firing of
+/*
+ * @brief Sets the kick value based on recent events such as falling. Firing of
  * weapons may also set the kick value, and we factor that in here as well.
  */
 static void G_ClientKickAngles(g_edict_t *ent) {
@@ -273,10 +261,8 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 	PackAngles(kick, kick_angles);
 }
 
-/**
- * G_ClientAnimation
- *
- * Sets the animation sequences for the specified entity.  This is called
+/*
+ * @brief Sets the animation sequences for the specified entity. This is called
  * towards the end of each frame, after our ground entity and water level have
  * been resolved.
  */
@@ -352,10 +338,8 @@ static void G_ClientAnimation(g_edict_t *ent) {
 	}
 }
 
-/**
- * G_ClientEndFrame
- *
- * Called for each client at the end of the server frame.
+/*
+ * @brief Called for each client at the end of the server frame.
  */
 void G_ClientEndFrame(g_edict_t *ent) {
 
@@ -404,7 +388,7 @@ void G_ClientEndFrame(g_edict_t *ent) {
 }
 
 /*
- * G_EndClientFrames
+ * @brief
  */
 void G_EndClientFrames(void) {
 	int32_t i;

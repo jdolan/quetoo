@@ -35,7 +35,7 @@ int32_t num_visclusters; /* clusters the player can be in */
 int32_t num_visportals;
 
 /*
- * WriteFloat
+ * @brief
  */
 static void WriteFloat(FILE *f, vec_t v) {
 	const float r = floor(v + 0.5);
@@ -47,7 +47,7 @@ static void WriteFloat(FILE *f, vec_t v) {
 }
 
 /*
- * WritePortalFile_r
+ * @brief
  */
 static void WritePortalFile_r(node_t *node) {
 	int32_t i, s;
@@ -75,7 +75,7 @@ static void WritePortalFile_r(node_t *node) {
 			// write out to the file
 
 			// sometimes planes get turned around when they are very near
-			// the changeover point between different axis.  interpret the
+			// the changeover point between different axis. interpret the
 			// plane the same way vis will, and flip the side orders if needed
 			// FIXME: is this still relevent?
 			WindingPlane(w, normal, &dist);
@@ -99,9 +99,7 @@ static void WritePortalFile_r(node_t *node) {
 }
 
 /*
- * FillLeafNumbers_r
- *
- * All of the leafs under node will have the same cluster
+ * @brief All of the leafs under node will have the same cluster
  */
 static void FillLeafNumbers_r(node_t * node, int32_t num) {
 	if (node->plane_num == PLANENUM_LEAF) {
@@ -117,7 +115,7 @@ static void FillLeafNumbers_r(node_t * node, int32_t num) {
 }
 
 /*
- * NumberLeafs_r
+ * @brief
  */
 static void NumberLeafs_r(node_t * node) {
 	portal_t *p;
@@ -152,7 +150,7 @@ static void NumberLeafs_r(node_t * node) {
 }
 
 /*
- * CreateVisPortals_r
+ * @brief
  */
 static void CreateVisPortals_r(node_t * node) {
 	// stop as soon as we get to a detail_seperator, which
@@ -178,7 +176,7 @@ static void SaveClusters_r(node_t * node) {
 }
 
 /*
- * WritePortalFile
+ * @brief
  */
 void WritePortalFile(tree_t *tree) {
 	char file_name[MAX_OSPATH];

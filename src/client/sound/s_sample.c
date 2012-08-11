@@ -26,7 +26,7 @@ extern cl_client_t cl;
 extern cl_static_t cls;
 
 /*
- * S_AllocSample
+ * @brief
  */
 static s_sample_t *S_AllocSample(void) {
 	int32_t i;
@@ -50,7 +50,7 @@ static s_sample_t *S_AllocSample(void) {
 }
 
 /*
- * S_FindName
+ * @brief
  */
 static s_sample_t *S_FindName(const char *name) {
 	char basename[MAX_QPATH];
@@ -69,7 +69,7 @@ static s_sample_t *S_FindName(const char *name) {
 }
 
 /*
- * S_AliasSample
+ * @brief
  */
 static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 	s_sample_t *s;
@@ -87,7 +87,7 @@ static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
 
 /*
- * S_LoadSampleChunk
+ * @brief
  */
 static void S_LoadSampleChunk(s_sample_t *sample) {
 	char path[MAX_QPATH];
@@ -141,7 +141,7 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 }
 
 /*
- * S_LoadSample
+ * @brief
  */
 s_sample_t *S_LoadSample(const char *name) {
 	s_sample_t *sample;
@@ -169,7 +169,7 @@ s_sample_t *S_LoadSample(const char *name) {
 }
 
 /*
- * S_LoadModelSample
+ * @brief
  */
 s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 	int32_t n;
@@ -232,7 +232,7 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 }
 
 /*
- * S_FreeSamples
+ * @brief
  */
 void S_FreeSamples(void) {
 	int32_t i;
@@ -247,7 +247,7 @@ void S_FreeSamples(void) {
 }
 
 /*
- * S_LoadSamples
+ * @brief
  */
 void S_LoadSamples(void) {
 	int32_t i;

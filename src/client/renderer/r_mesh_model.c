@@ -22,9 +22,7 @@
 #include "r_local.h"
 
 /*
- * R_LoadMeshSkin
- *
- * Resolves the skin for the specified model.  By default, we simply load
+ * @brief Resolves the skin for the specified model. By default, we simply load
  * "skin.tga" in the model's directory.
  */
 static void R_LoadMeshSkin(r_model_t *mod) {
@@ -111,7 +109,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 }
 
 /*
- * R_LoadMeshConfig
+ * @brief
  */
 static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 	const char *buffer, *c;
@@ -155,7 +153,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 }
 
 /*
- * R_LoadMeshConfigs
+ * @brief
  */
 static void R_LoadMeshConfigs(r_model_t *mod) {
 	char path[MAX_QPATH];
@@ -530,9 +528,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 }
 
 /*
- * R_LoadObjModelTangents
- *
- * http://www.terathon.com/code/tangent.html
+ * @brief http://www.terathon.com/code/tangent.html
  */
 static void R_LoadObjModelTangents(r_obj_t *obj) {
 	vec3_t *tan1, *tan2;
@@ -627,7 +623,7 @@ static void R_LoadObjModelTangents(r_obj_t *obj) {
 }
 
 /*
- * R_LoadObjModelVertexArrays
+ * @brief
  */
 static void R_LoadObjModelVertexArrays(r_model_t *mod) {
 	const r_obj_t *obj;
@@ -672,10 +668,8 @@ static void R_LoadObjModelVertexArrays(r_model_t *mod) {
 }
 
 /*
- * R_LoadObjModelTris
- *
- * Triangulation of arbitrary polygons.  Assembles count tris on the model
- * from the specified array of verts.  All tris will share the first vert.
+ * @brief Triangulation of arbitrary polygons. Assembles count tris on the model
+ * from the specified array of verts. All tris will share the first vert.
  */
 static void R_LoadObjModelTris(r_obj_t *obj, const r_obj_vert_t *verts, int32_t count) {
 	int32_t i;
@@ -700,9 +694,7 @@ static void R_LoadObjModelTris(r_obj_t *obj, const r_obj_vert_t *verts, int32_t 
 #define MAX_OBJ_FACE_VERTS 128
 
 /*
- * R_LoadObjModelFace
- *
- * Each line consists of 3 or more vertex definitions, e.g.
+ * @brief Each line consists of 3 or more vertex definitions, e.g.
  *
  *   57/13/31 58/14/32 59/15/33 21/15/19
  *
@@ -788,10 +780,8 @@ static int32_t R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char
 }
 
 /*
- * R_LoadObjModelLine
- *
- * Parse the object file line.  If the structures have been allocated,
- * populate them.  Otherwise simply accumulate counts.
+ * @brief Parse the object file line. If the structures have been allocated,
+ * populate them. Otherwise simply accumulate counts.
  */
 static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *line) {
 
@@ -852,9 +842,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 }
 
 /*
- * R_LoadObjModel_
- *
- * Drives the actual parsing of the object file.  The file is read twice:
+ * @brief Drives the actual parsing of the object file. The file is read twice:
  * once to acquire primitive counts, and a second time to load them.
  */
 static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer) {
@@ -896,7 +884,7 @@ static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer) {
 }
 
 /*
- * R_LoadObjModel
+ * @brief
  */
 void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	r_obj_t *obj;

@@ -32,9 +32,7 @@ static bool cg_scores_teams;
 static bool cg_scores_ctf;
 
 /*
- * Cg_ParseScores_Compare
- *
- * A comparator for sorting player_score_t.
+ * @brief A comparator for sorting player_score_t.
  */
 static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
 	const player_score_t *sa = (player_score_t *) a;
@@ -48,7 +46,7 @@ static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
 }
 
 /*
- * Cg_ParseScores
+ * @brief
  */
 void Cg_ParseScores(void) {
 
@@ -93,9 +91,7 @@ void Cg_ParseScores(void) {
 }
 
 /*
- * Cg_DrawScoresHeader
- *
- * Returns the vertical screen coordinate where scores should be drawn.
+ * @brief Returns the vertical screen coordinate where scores should be drawn.
  */
 static r_pixel_t Cg_DrawScoresHeader(void) {
 	const char *s = cgi.ConfigString(CS_NAME);
@@ -147,7 +143,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 }
 
 /*
- * Cg_DrawScore
+ * @brief
  */
 static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 	char name[MAX_STRING_CHARS], icon[MAX_QPATH], *skin;
@@ -220,7 +216,7 @@ static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 }
 
 /*
- * Cg_DrawTeamScores
+ * @brief
  */
 static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	r_pixel_t x, y;
@@ -289,7 +285,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 }
 
 /*
- * Cg_DrawDmScores
+ * @brief
  */
 static void Cg_DrawDmScores(const r_pixel_t start_y) {
 	int16_t rows, cols;
@@ -320,7 +316,7 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
 }
 
 /*
- * Cg_DrawScores
+ * @brief
  */
 void Cg_DrawScores(const player_state_t *ps) {
 

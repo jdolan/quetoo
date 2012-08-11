@@ -21,10 +21,8 @@
 
 #include "g_local.h"
 
-/**
- * G_Give_f
- *
- * Give items to a client
+/*
+ * @brief Give items to a client
  */
 static void G_Give_f(g_edict_t *ent) {
 	char *name;
@@ -137,7 +135,7 @@ static void G_Give_f(g_edict_t *ent) {
 }
 
 /*
- * G_God_f
+ * @brief
  */
 static void G_God_f(g_edict_t *ent) {
 	char *msg;
@@ -157,14 +155,14 @@ static void G_God_f(g_edict_t *ent) {
 }
 
 /*
- * G_Nextmap_f
+ * @brief
  */
 static void G_Nextmap_f(g_edict_t *ent) {
 	gi.AddCommandString(va("map %s\n", G_SelectNextmap()));
 }
 
 /*
- * G_NoClip_f
+ * @brief
  */
 static void G_NoClip_f(g_edict_t *ent) {
 	char *msg;
@@ -186,7 +184,7 @@ static void G_NoClip_f(g_edict_t *ent) {
 }
 
 /*
- * G_Wave_f
+ * @brief
  */
 static void G_Wave_f(g_edict_t *ent) {
 
@@ -197,7 +195,7 @@ static void G_Wave_f(g_edict_t *ent) {
 }
 
 /*
- * G_Use_f
+ * @brief
  */
 static void G_Use_f(g_edict_t *ent) {
 	int32_t index;
@@ -227,7 +225,7 @@ static void G_Use_f(g_edict_t *ent) {
 }
 
 /*
- * G_Drop_f
+ * @brief
  */
 static void G_Drop_f(g_edict_t *ent) {
 	int32_t index;
@@ -276,7 +274,7 @@ static void G_Drop_f(g_edict_t *ent) {
 }
 
 /*
- * G_WeaponPrevious_f
+ * @brief
  */
 static void G_WeaponPrevious_f(g_edict_t *ent) {
 	g_client_t *cl;
@@ -316,7 +314,7 @@ static void G_WeaponPrevious_f(g_edict_t *ent) {
 }
 
 /*
- * G_WeaponNext_f
+ * @brief
  */
 static void G_WeaponNext_f(g_edict_t *ent) {
 	g_client_t *cl;
@@ -356,7 +354,7 @@ static void G_WeaponNext_f(g_edict_t *ent) {
 }
 
 /*
- * G_WeaponLast_f
+ * @brief
  */
 static void G_WeaponLast_f(g_edict_t *ent) {
 	g_client_t *cl;
@@ -380,7 +378,7 @@ static void G_WeaponLast_f(g_edict_t *ent) {
 }
 
 /*
- * G_Kill_f
+ * @brief
  */
 static void G_Kill_f(g_edict_t *ent) {
 
@@ -403,9 +401,7 @@ static void G_Kill_f(g_edict_t *ent) {
 
 
 /*
- * G_ExpandVariable
- *
- * This is the client-specific sibling to Cvar_VariableString.
+ * @brief This is the client-specific sibling to Cvar_VariableString.
  */
 static const char *G_ExpandVariable(g_edict_t *ent, char v) {
 	int32_t i;
@@ -431,7 +427,7 @@ static const char *G_ExpandVariable(g_edict_t *ent, char v) {
 }
 
 /*
- * G_ExpandVariables
+ * @brief
  */
 static char *G_ExpandVariables(g_edict_t *ent, const char *text) {
 	static char expanded[MAX_STRING_CHARS];
@@ -458,7 +454,7 @@ static char *G_ExpandVariables(g_edict_t *ent, const char *text) {
 }
 
 /*
- * G_Say_f
+ * @brief
  */
 static void G_Say_f(g_edict_t *ent) {
 	int32_t i;
@@ -469,7 +465,7 @@ static void G_Say_f(g_edict_t *ent) {
 	g_client_t *cl;
 
 	if (ent->client->muted) {
-		gi.ClientPrint(ent, PRINT_HIGH, "You have been muted.  You're probably an asshole.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "You have been muted. You're probably an asshole.\n");
 		return;
 	}
 
@@ -567,7 +563,7 @@ static void G_Say_f(g_edict_t *ent) {
 }
 
 /*
- * G_PlayerList_f
+ * @brief
  */
 static void G_PlayerList_f(g_edict_t *ent) {
 	int32_t i, seconds;
@@ -623,10 +619,8 @@ static const char *vote_cmds[] = {
 		"unmute",
 		NULL };
 
-/**
- * Vote_Help
- *
- * Inspects the vote command and issues help if applicable.  Returns
+/*
+ * @brief Inspects the vote command and issues help if applicable. Returns
  * true if the command received help and may therefore be ignored, false
  * otherwise.
  */
@@ -721,7 +715,7 @@ static bool Vote_Help(g_edict_t *ent) {
 }
 
 /*
- * G_Vote_f
+ * @brief
  */
 static void G_Vote_f(g_edict_t *ent) {
 	char *c, vote[64];
@@ -791,10 +785,8 @@ static void G_Vote_f(g_edict_t *ent) {
 			g_level.vote_cmd);
 }
 
-/**
- * G_AddClientToTeam
- *
- * Returns true if the client's team was changed, false otherwise.
+/*
+ * @brief Returns true if the client's team was changed, false otherwise.
  */
 bool G_AddClientToTeam(g_edict_t *ent, char *team_name) {
 	g_team_t *team;
@@ -826,7 +818,7 @@ bool G_AddClientToTeam(g_edict_t *ent, char *team_name) {
 }
 
 /*
- * G_AddClientToRound
+ * @brief
  */
 static void G_AddClientToRound(g_edict_t *ent) {
 	int32_t score; // keep score across rounds
@@ -852,7 +844,7 @@ static void G_AddClientToRound(g_edict_t *ent) {
 }
 
 /*
- * G_Team_f
+ * @brief
  */
 static void G_Team_f(g_edict_t *ent) {
 
@@ -879,7 +871,7 @@ static void G_Team_f(g_edict_t *ent) {
 }
 
 /*
- * G_Teamname_f
+ * @brief
  */
 static void G_Teamname_f(g_edict_t *ent) {
 	int32_t cs;
@@ -921,7 +913,7 @@ static void G_Teamname_f(g_edict_t *ent) {
 }
 
 /*
- * G_Teamskin_f
+ * @brief
  */
 static void G_Teamskin_f(g_edict_t *ent) {
 	int32_t i;
@@ -982,10 +974,8 @@ static void G_Teamskin_f(g_edict_t *ent) {
 			t->skin);
 }
 
-/**
- * G_Ready_f
- *
- * If match is enabled, all clients must issue ready for game to start.
+/*
+ * @brief If match is enabled, all clients must issue ready for game to start.
  */
 static void G_Ready_f(g_edict_t *ent) {
 	int32_t i, g, e, clients;
@@ -1049,7 +1039,7 @@ static void G_Ready_f(g_edict_t *ent) {
 }
 
 /*
- * G_Unready_f
+ * @brief
  */
 static void G_Unready_f(g_edict_t *ent) {
 
@@ -1078,7 +1068,7 @@ static void G_Unready_f(g_edict_t *ent) {
 }
 
 /*
- * G_Spectate_f
+ * @brief
  */
 static void G_Spectate_f(g_edict_t *ent) {
 	bool spectator;
@@ -1121,14 +1111,14 @@ static void G_Spectate_f(g_edict_t *ent) {
 }
 
 /*
- * G_Score_f
+ * @brief
  */
 void G_Score_f(g_edict_t *ent) {
 	ent->client->show_scores = !ent->client->show_scores;
 }
 
 /*
- * G_Command
+ * @brief
  */
 void G_ClientCommand(g_edict_t *ent) {
 	char *cmd;

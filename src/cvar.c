@@ -26,7 +26,7 @@ cvar_t *cvar_vars;
 bool user_info_modified;
 
 /*
- * Cvar_InfoValidate
+ * @brief
  */
 static bool Cvar_InfoValidate(const char *s) {
 	if (strstr(s, "\\"))
@@ -39,7 +39,7 @@ static bool Cvar_InfoValidate(const char *s) {
 }
 
 /*
- * Cvar_Get_
+ * @brief
  */
 static cvar_t *Cvar_Get_(const char *name) {
 	cvar_t *var;
@@ -53,7 +53,7 @@ static cvar_t *Cvar_Get_(const char *name) {
 }
 
 /*
- * Cvar_GetValue
+ * @brief
  */
 float Cvar_GetValue(const char *name) {
 	cvar_t *var;
@@ -67,7 +67,7 @@ float Cvar_GetValue(const char *name) {
 }
 
 /*
- * Cvar_GetString
+ * @brief
  */
 char *Cvar_GetString(const char *name) {
 	cvar_t *var;
@@ -81,7 +81,7 @@ char *Cvar_GetString(const char *name) {
 }
 
 /*
- * Cvar_CompleteVar
+ * @brief
  */
 int32_t Cvar_CompleteVar(const char *partial, const char *matches[]) {
 	cvar_t *cvar;
@@ -105,10 +105,8 @@ int32_t Cvar_CompleteVar(const char *partial, const char *matches[]) {
 	return m;
 }
 
-/**
- * Cvar_Get
- *
- * If the variable already exists, the value will not be set. The flags,
+/*
+ * @brief If the variable already exists, the value will not be set. The flags,
  * however, are always OR'ed into the variable.
  */
 cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char *description) {
@@ -168,7 +166,7 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 }
 
 /*
- * Cvar_Set_
+ * @brief
  */
 static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 	cvar_t *var;
@@ -249,21 +247,21 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 }
 
 /*
- * Cvar_ForceSet
+ * @brief
  */
 cvar_t *Cvar_ForceSet(const char *name, const char *value) {
 	return Cvar_Set_(name, value, true);
 }
 
 /*
- * Cvar_Set
+ * @brief
  */
 cvar_t *Cvar_Set(const char *name, const char *value) {
 	return Cvar_Set_(name, value, false);
 }
 
 /*
- * Cvar_FullSet
+ * @brief
  */
 cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 	cvar_t *var;
@@ -289,7 +287,7 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 }
 
 /*
- * Cvar_SetValue
+ * @brief
  */
 void Cvar_SetValue(const char *name, float value) {
 	char val[32];
@@ -303,7 +301,7 @@ void Cvar_SetValue(const char *name, float value) {
 }
 
 /*
- * Cvar_Toggle
+ * @brief
  */
 void Cvar_Toggle(const char *name) {
 	cvar_t *var;
@@ -321,10 +319,8 @@ void Cvar_Toggle(const char *name) {
 		Cvar_SetValue(name, 1.0);
 }
 
-/**
- * Cvar_ResetLocalVars
- *
- * Reset CVAR_LO_ONLY to their default values.
+/*
+ * @brief Reset CVAR_LO_ONLY to their default values.
  */
 void Cvar_ResetLocalVars(void) {
 	cvar_t *var;
@@ -342,10 +338,8 @@ void Cvar_ResetLocalVars(void) {
 	}
 }
 
-/**
- * Cvar_PendingLatchedVars
- *
- * Returns true if there are any CVAR_LATCH variables pending.
+/*
+ * @brief Returns true if there are any CVAR_LATCH variables pending.
  */
 bool Cvar_PendingLatchedVars(void) {
 	cvar_t *var;
@@ -358,10 +352,8 @@ bool Cvar_PendingLatchedVars(void) {
 	return false;
 }
 
-/**
- * Cvar_UpdateLatchedVars
- *
- * Apply any pending latched changes.
+/*
+ * @brief Apply any pending latched changes.
  */
 void Cvar_UpdateLatchedVars(void) {
 	cvar_t *var;
@@ -386,7 +378,7 @@ void Cvar_UpdateLatchedVars(void) {
 }
 
 /*
- * Cvar_PendingVars
+ * @brief
  */
 bool Cvar_PendingVars(uint32_t flags) {
 	cvar_t *var;
@@ -400,7 +392,7 @@ bool Cvar_PendingVars(uint32_t flags) {
 }
 
 /*
- * Cvar_ClearVars
+ * @brief
  */
 void Cvar_ClearVars(uint32_t flags) {
 	cvar_t *var;
@@ -411,10 +403,8 @@ void Cvar_ClearVars(uint32_t flags) {
 	}
 }
 
-/**
- * Cvar_Command
- *
- * Handles variable inspection and changing from the console
+/*
+ * @brief Handles variable inspection and changing from the console
  */
 bool Cvar_Command(void) {
 	cvar_t *v;
@@ -434,10 +424,8 @@ bool Cvar_Command(void) {
 	return true;
 }
 
-/**
- * Cvar_Set_f
- *
- * Allows setting and defining of arbitrary cvars from console
+/*
+ * @brief Allows setting and defining of arbitrary cvars from console
  */
 static void Cvar_Set_f(void) {
 	uint32_t flags;
@@ -462,10 +450,8 @@ static void Cvar_Set_f(void) {
 		Cvar_Set(Cmd_Argv(1), Cmd_Argv(2));
 }
 
-/**
- * Cvar_Toggle_f
- *
- * Allows toggling of arbitrary cvars from console.
+/*
+ * @brief Allows toggling of arbitrary cvars from console.
  */
 static void Cvar_Toggle_f(void) {
 	if (Cmd_Argc() != 2) {
@@ -475,10 +461,8 @@ static void Cvar_Toggle_f(void) {
 	Cvar_Toggle(Cmd_Argv(1));
 }
 
-/**
- * Cvar_WriteVariables
- *
- * Appends lines containing "set variable value" for all variables
+/*
+ * @brief Appends lines containing "set variable value" for all variables
  * with the archive flag set to true.
  */
 void Cvar_WriteVars(const char *path) {
@@ -497,7 +481,7 @@ void Cvar_WriteVars(const char *path) {
 }
 
 /*
- * Cvar_List_f
+ * @brief
  */
 static void Cvar_List_f(void) {
 	const cvar_t *var;
@@ -531,7 +515,7 @@ static void Cvar_List_f(void) {
 }
 
 /*
- * Cvar_BitInfo
+ * @brief
  */
 static char *Cvar_BitInfo(int32_t bit) {
 	static char info[MAX_USER_INFO_STRING];

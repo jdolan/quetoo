@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 /*
- * Cg_ItemRespawnEffect
+ * @brief
  */
 static void Cg_ItemRespawnEffect(const vec3_t org) {
 	r_particle_t *p;
@@ -63,7 +63,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 }
 
 /*
- * Cg_ItemPickupEffect
+ * @brief
  */
 static void Cg_ItemPickupEffect(const vec3_t org) {
 	r_particle_t *p;
@@ -104,16 +104,14 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 }
 
 /*
- * Cg_TeleporterEffect
+ * @brief
  */
 static void Cg_TeleporterEffect(const vec3_t org) {
 	Cg_TeleporterTrail(org, NULL);
 }
 
-/**
- * Cg_GurpEffect
- *
- * A player is gasping for air under water.
+/*
+ * @brief A player is gasping for air under water.
  */
 static void Cg_GurpEffect(cl_entity_t *e) {
 	vec3_t start, end;
@@ -129,10 +127,8 @@ static void Cg_GurpEffect(cl_entity_t *e) {
 	Cg_BubbleTrail(start, end, 32.0);
 }
 
-/**
- * Cg_DrownEffect
- *
- * A player has drowned.
+/*
+ * @brief A player has drowned.
  */
 static void Cg_DrownEffect(cl_entity_t *e) {
 	vec3_t start, end;
@@ -148,10 +144,8 @@ static void Cg_DrownEffect(cl_entity_t *e) {
 	Cg_BubbleTrail(start, end, 32.0);
 }
 
-/**
- * Cg_EntityEvent
- *
- * Process any event set on the given entity. These are only valid for a single
+/*
+ * @brief Process any event set on the given entity. These are only valid for a single
  * frame, so we reset the event flag after processing it.
  */
 void Cg_EntityEvent(cl_entity_t *e) {

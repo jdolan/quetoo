@@ -25,9 +25,7 @@
 extern cl_static_t cls;
 
 /*
- * Ui_Servers_Connect
- *
- * Callback which connects to the server specified in data.
+ * @brief Callback which connects to the server specified in data.
  */
 static TW_CALL void Ui_Servers_Connect(void *data) {
 	cl_server_info_t *s = (cl_server_info_t *) data;
@@ -36,18 +34,14 @@ static TW_CALL void Ui_Servers_Connect(void *data) {
 }
 
 /*
- * Ui_Servers_Refresh
- *
- * Callback to refresh the servers list.
+ * @brief Callback to refresh the servers list.
  */
 static TW_CALL void Ui_Servers_Refresh(void *data __attribute__((unused))) {
 	Cl_Servers_f();
 }
 
 /*
- * Ui_NewServer
- *
- * A new server status message has just been parsed. Rebuild the servers menu.
+ * @brief A new server status message has just been parsed. Rebuild the servers menu.
  */
 void Ui_NewServer(void) {
 	TwBar *bar = ui.servers;
@@ -85,7 +79,7 @@ void Ui_NewServer(void) {
 }
 
 /*
- * Ui_Servers
+ * @brief
  */
 TwBar *Ui_Servers(void) {
 

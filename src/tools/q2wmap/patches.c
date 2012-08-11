@@ -25,7 +25,7 @@
 static vec3_t texture_reflectivity[MAX_BSP_TEXINFO];
 
 /*
- * CalcTextureReflectivity
+ * @brief
  */
 void CalcTextureReflectivity(void) {
 	char path[MAX_OSPATH];
@@ -82,7 +82,7 @@ void CalcTextureReflectivity(void) {
 }
 
 /*
- * WindingFromFace
+ * @brief
  */
 static winding_t *WindingFromFace(const d_bsp_face_t * f) {
 	int32_t i;
@@ -110,7 +110,7 @@ static winding_t *WindingFromFace(const d_bsp_face_t * f) {
 }
 
 /*
- * HasLight
+ * @brief
  */
 static inline bool HasLight(const d_bsp_face_t *f) {
 	const d_bsp_texinfo_t *tex;
@@ -120,7 +120,7 @@ static inline bool HasLight(const d_bsp_face_t *f) {
 }
 
 /*
- * IsSky
+ * @brief
  */
 static inline bool IsSky(const d_bsp_face_t * f) {
 	const d_bsp_texinfo_t *tex;
@@ -130,7 +130,7 @@ static inline bool IsSky(const d_bsp_face_t * f) {
 }
 
 /*
- * EmissiveLight
+ * @brief
  */
 static inline void EmissiveLight(patch_t *patch) {
 
@@ -143,7 +143,7 @@ static inline void EmissiveLight(patch_t *patch) {
 }
 
 /*
- * BuildPatch
+ * @brief
  */
 static void BuildPatch(int32_t fn, winding_t *w) {
 	patch_t *patch;
@@ -178,7 +178,7 @@ static void BuildPatch(int32_t fn, winding_t *w) {
 }
 
 /*
- * EntityForModel
+ * @brief
  */
 static entity_t *EntityForModel(int32_t num) {
 	int32_t i;
@@ -199,9 +199,7 @@ static entity_t *EntityForModel(int32_t num) {
 }
 
 /*
- * BuildPatches
- *
- * Create surface fragments for light-emitting surfaces so that light sources
+ * @brief Create surface fragments for light-emitting surfaces so that light sources
  * may be computed along them.
  */
 void BuildPatches(void) {
@@ -242,7 +240,7 @@ void BuildPatches(void) {
 #define PATCH_SUBDIVIDE 64
 
 /*
- * FinishSubdividePatch
+ * @brief
  */
 static void FinishSubdividePatch(patch_t *patch, patch_t *newp) {
 
@@ -272,7 +270,7 @@ static void FinishSubdividePatch(patch_t *patch, patch_t *newp) {
 }
 
 /*
- * SubdividePatch
+ * @brief
  */
 static void SubdividePatch(patch_t *patch) {
 	winding_t *w, *o1, *o2;
@@ -317,9 +315,7 @@ static void SubdividePatch(patch_t *patch) {
 }
 
 /*
- * SubdividePatches
- *
- * Iterate all of the head face patches, subdividing them as necessary.
+ * @brief Iterate all of the head face patches, subdividing them as necessary.
  */
 void SubdividePatches(void) {
 	int32_t i;
@@ -336,9 +332,7 @@ void SubdividePatches(void) {
 }
 
 /*
- * FreePatches
- *
- * After light sources have been created, patches may be freed.
+ * @brief After light sources have been created, patches may be freed.
  */
 void FreePatches(void) {
 	int32_t i;

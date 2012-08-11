@@ -39,11 +39,9 @@ cvar_t *sv_public;
 cvar_t *sv_timeout;
 cvar_t *sv_udp_download;
 
-/**
- * Sv_DropClient
- *
- * Called when the player is totally leaving the server, either willingly
- * or unwillingly.  This is NOT called if the entire server is quitting
+/*
+ * @brief Called when the player is totally leaving the server, either willingly
+ * or unwillingly. This is NOT called if the entire server is quitting
  * or crashing.
  */
 void Sv_DropClient(sv_client_t *cl) {
@@ -72,10 +70,8 @@ void Sv_DropClient(sv_client_t *cl) {
 	cl->last_frame = -1;
 }
 
-/**
- * Sv_StatusString
- *
- * Returns a string fit for heartbeats and status replies.
+/*
+ * @brief Returns a string fit for heartbeats and status replies.
  */
 static const char *Sv_StatusString(void) {
 	static char status[MAX_MSG_SIZE - 16];
@@ -105,26 +101,22 @@ static const char *Sv_StatusString(void) {
 	return status;
 }
 
-/**
- * Svc_Status
- *
- * Responds with all the info that qplug or qspy can see.
+/*
+ * @brief Responds with all the info that qplug or qspy can see.
  */
 static void Svc_Status(void) {
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "print\n%s", Sv_StatusString());
 }
 
 /*
- * Svc_Ack
+ * @brief
  */
 static void Svc_Ack(void) {
 	Com_Print("Ping acknowledge from %s\n", Net_NetaddrToString(net_from));
 }
 
-/**
- * Svc_Info
- *
- * Responds with int16_t info for broadcast scans.
+/*
+ * @brief Responds with int16_t info for broadcast scans.
  */
 static void Svc_Info(void) {
 	char string[MAX_MSG_SIZE];
@@ -153,23 +145,19 @@ static void Svc_Info(void) {
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "info\n%s", string);
 }
 
-/**
- * Svc_Ping
- *
- * Just responds with an acknowledgment.
+/*
+ * @brief Just responds with an acknowledgment.
  */
 static void Svc_Ping(void) {
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "ack");
 }
 
-/**
- * Svc_GetChallenge
- *
- * Returns a challenge number that can be used in a subsequent client_connect
+/*
+ * @brief Returns a challenge number that can be used in a subsequent client_connect
  * command.
  *
  * We do this to prevent denial of service attacks that flood the server with
- * invalid connection IPs.  With a challenge, they must give a valid address.
+ * invalid connection IPs. With a challenge, they must give a valid address.
  */
 static void Svc_GetChallenge(void) {
 	uint16_t i, oldest;
@@ -202,10 +190,8 @@ static void Svc_GetChallenge(void) {
 	Netchan_OutOfBandPrint(NS_SERVER, net_from, "challenge %i", svs.challenges[i].challenge);
 }
 
-/**
- * Svc_Connect
- *
- * A connection request that did not come from the master.
+/*
+ * @brief A connection request that did not come from the master.
  */
 static void Svc_Connect(void) {
 	char user_info[MAX_USER_INFO_STRING];
@@ -347,7 +333,7 @@ static void Svc_Connect(void) {
 }
 
 /*
- * Sv_RconAuthenticate
+ * @brief
  */
 static bool Sv_RconAuthenticate(void) {
 
@@ -362,10 +348,8 @@ static bool Sv_RconAuthenticate(void) {
 	return true;
 }
 
-/**
- * Svc_RemoteCommand
- *
- * A client issued an rcon command.  Shift down the remaining args and
+/*
+ * @brief A client issued an rcon command. Shift down the remaining args and
  * redirect all output to the invoking client.
  */
 static void Svc_RemoteCommand(void) {
@@ -399,11 +383,9 @@ static void Svc_RemoteCommand(void) {
 	Com_EndRedirect();
 }
 
-/**
- * Sv_ConnectionlessPacket
- *
- * A connectionless packet has four leading 0xff bytes to distinguish it from
- * a game channel.  Clients that are in the game can still send these, and they
+/*
+ * @brief A connectionless packet has four leading 0xff bytes to distinguish it from
+ * a game channel. Clients that are in the game can still send these, and they
  * will be handled here.
  */
 static void Sv_ConnectionlessPacket(void) {
@@ -438,10 +420,8 @@ static void Sv_ConnectionlessPacket(void) {
 		Com_Print("Bad connectionless packet from %s:\n%s\n", Net_NetaddrToString(net_from), s);
 }
 
-/**
- * Sv_UpdatePings
- *
- * Updates the "ping" times for all spawned clients.
+/*
+ * @brief Updates the "ping" times for all spawned clients.
  */
 static void Sv_UpdatePings(void) {
 	int32_t i, j;
@@ -473,12 +453,10 @@ static void Sv_UpdatePings(void) {
 	}
 }
 
-/**
- * Sv_CheckCommandTimes
- *
- * Once per second, gives all clients an allotment of 1000 milliseconds
+/*
+ * @brief Once per second, gives all clients an allotment of 1000 milliseconds
  * for their movement commands which will be decremented as we receive
- * new information from them.  If they drift by a significant margin
+ * new information from them. If they drift by a significant margin
  * over the next interval, assume they are trying to cheat.
  */
 static void Sv_CheckCommandTimes(void) {
@@ -530,7 +508,7 @@ static void Sv_CheckCommandTimes(void) {
 }
 
 /*
- * Sv_ReadPackets
+ * @brief
  */
 static void Sv_ReadPackets(void) {
 	int32_t i;
@@ -584,7 +562,7 @@ static void Sv_ReadPackets(void) {
 }
 
 /*
- * Sv_CheckTimeouts
+ * @brief
  */
 static void Sv_CheckTimeouts(void) {
 	sv_client_t *cl;
@@ -610,10 +588,8 @@ static void Sv_CheckTimeouts(void) {
 	}
 }
 
-/**
- * Sv_ResetEntities
- *
- * Resets entity flags and other state which should only last one frame.
+/*
+ * @brief Resets entity flags and other state which should only last one frame.
  */
 static void Sv_ResetEntities(void) {
 	uint32_t i;
@@ -630,10 +606,8 @@ static void Sv_ResetEntities(void) {
 	}
 }
 
-/**
- * Sv_RunGameFrame
- *
- * Updates the game module's time and runs its frame function once per
+/*
+ * @brief Updates the game module's time and runs its frame function once per
  * server frame.
  */
 static void Sv_RunGameFrame(void) {
@@ -652,7 +626,7 @@ static void Sv_RunGameFrame(void) {
 }
 
 /*
- * Sv_InitMasters
+ * @brief
  */
 static void Sv_InitMasters(void) {
 
@@ -665,10 +639,8 @@ static void Sv_InitMasters(void) {
 
 #define HEARTBEAT_SECONDS 300
 
-/**
- * Sv_HeartbeatMasters
- *
- * Sends heartbeat messages to master servers every 300s.
+/*
+ * @brief Sends heartbeat messages to master servers every 300s.
  */
 static void Sv_HeartbeatMasters(void) {
 	const char *string;
@@ -700,10 +672,8 @@ static void Sv_HeartbeatMasters(void) {
 	}
 }
 
-/**
- * Sv_ShutdownMasters
- *
- * Informs master servers that this server is halting.
+/*
+ * @brief Informs master servers that this server is halting.
  */
 static void Sv_ShutdownMasters(void) {
 	int32_t i;
@@ -724,7 +694,7 @@ static void Sv_ShutdownMasters(void) {
 }
 
 /*
- * Sv_KickClient
+ * @brief
  */
 void Sv_KickClient(sv_client_t *cl, const char *msg) {
 	char buf[1024], name[32];
@@ -752,10 +722,8 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
 	Sv_BroadcastPrint(PRINT_HIGH, "%s was kicked%s\n", name, buf);
 }
 
-/**
- * Sv_NetaddrToString
- *
- * A convenience function for printing out client addresses.
+/*
+ * @brief A convenience function for printing out client addresses.
  */
 char *Sv_NetaddrToString(sv_client_t *cl) {
 	return Net_NetaddrToString(cl->netchan.remote_address);
@@ -764,10 +732,8 @@ char *Sv_NetaddrToString(sv_client_t *cl) {
 #define MIN_RATE 8000
 #define DEFAULT_RATE 20000
 
-/**
- * Sv_UserInfoChanged
- *
- * Enforces safe user_info data before passing onto game module.
+/*
+ * @brief Enforces safe user_info data before passing onto game module.
  */
 void Sv_UserInfoChanged(sv_client_t *cl) {
 	char *val;
@@ -823,7 +789,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 }
 
 /*
- * Sv_Frame
+ * @brief
  */
 void Sv_Frame(uint32_t msec) {
 
@@ -878,10 +844,8 @@ void Sv_Frame(uint32_t msec) {
 #endif
 }
 
-/**
- * Sv_Init
- *
- * Only called at Quake2World startup, not for each game.
+/*
+ * @brief Only called at Quake2World startup, not for each game.
  */
 void Sv_Init(void) {
 
@@ -917,10 +881,8 @@ void Sv_Init(void) {
 	Net_Config(NS_SERVER, true);
 }
 
-/**
- * Sv_Shutdown
- *
- * Called when server is shutting down due to error or an explicit `quit`.
+/*
+ * @brief Called when server is shutting down due to error or an explicit `quit`.
  */
 void Sv_Shutdown(const char *msg) {
 

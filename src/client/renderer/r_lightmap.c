@@ -22,15 +22,15 @@
 #include "r_local.h"
 
 /*
- * In video memory, lightmaps are chunked into NxN RGB blocks.  In the bsp,
- * they are a contiguous lump.  During the loading process, we use floating
+ * In video memory, lightmaps are chunked into NxN RGB blocks. In the bsp,
+ * they are a contiguous lump. During the loading process, we use floating
  * point to provide precision.
  */
 
 r_lightmaps_t r_lightmaps;
 
 /*
- * R_UploadLightmapBlock
+ * @brief
  */
 static void R_UploadLightmapBlock() {
 
@@ -74,7 +74,7 @@ static void R_UploadLightmapBlock() {
 }
 
 /*
- * R_AllocLightmapBlock
+ * @brief
  */
 static bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixel_t *y) {
 	r_pixel_t i, j;
@@ -107,7 +107,7 @@ static bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixel
 }
 
 /*
- * R_BuildDefaultLightmap
+ * @brief
  */
 static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, size_t stride) {
 	int32_t i, j;
@@ -141,9 +141,7 @@ static void R_BuildDefaultLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout
 }
 
 /*
- * R_BuildLightmap
- *
- * Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
+ * @brief Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
  * writing processed lightmap and deluxemap RGBA to the specified destinations.
  */
 static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, size_t stride) {
@@ -248,7 +246,7 @@ static void R_BuildLightmap(r_bsp_surface_t *surf, byte *sout, byte *dout, size_
 }
 
 /*
- * R_CreateSurfaceLightmap
+ * @brief
  */
 void R_CreateSurfaceLightmap(r_bsp_surface_t *surf) {
 
@@ -286,7 +284,7 @@ void R_CreateSurfaceLightmap(r_bsp_surface_t *surf) {
 }
 
 /*
- * R_BeginBuildingLightmaps
+ * @brief
  */
 void R_BeginBuildingLightmaps(void) {
 	int32_t max;
@@ -315,7 +313,7 @@ void R_BeginBuildingLightmaps(void) {
 }
 
 /*
- * R_EndBuildingLightmaps
+ * @brief
  */
 void R_EndBuildingLightmaps(void) {
 

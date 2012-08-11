@@ -71,7 +71,7 @@ typedef struct sky_s {
 static sky_t sky;
 
 /*
- * R_DrawSkySurface
+ * @brief
  */
 static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
 	int32_t i, j;
@@ -148,7 +148,7 @@ static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
 #define MAX_CLIP_VERTS	64
 
 /*
- * R_ClipSkySurface
+ * @brief
  */
 static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
 	const float *norm;
@@ -233,7 +233,7 @@ static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
 }
 
 /*
- * R_AddSkySurface
+ * @brief
  */
 static void R_AddSkySurface(const r_bsp_surface_t *surf) {
 	int32_t i, index;
@@ -256,7 +256,7 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf) {
 }
 
 /*
- * R_ClearSkyBox
+ * @brief
  */
 void R_ClearSkyBox(void) {
 	int32_t i;
@@ -268,7 +268,7 @@ void R_ClearSkyBox(void) {
 }
 
 /*
- * R_MakeSkyVec
+ * @brief
  */
 static void R_MakeSkyVec(float s, float t, int32_t axis) {
 	vec3_t v, b;
@@ -311,7 +311,7 @@ static void R_MakeSkyVec(float s, float t, int32_t axis) {
 int32_t skytexorder[6] = { 0, 2, 1, 3, 4, 5 };
 
 /*
- * R_DrawSkyBox
+ * @brief
  */
 void R_DrawSkyBox(void) {
 	r_bsp_surfaces_t *surfs;
@@ -368,7 +368,7 @@ void R_DrawSkyBox(void) {
 char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
 /*
- * R_SetSky
+ * @brief
  */
 void R_SetSky(char *name) {
 	int32_t i;
