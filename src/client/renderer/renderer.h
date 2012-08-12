@@ -22,9 +22,6 @@
 #ifndef __RENDERER_H__
 #define __RENDERER_H__
 
-#include <stdio.h>
-#include <math.h>
-
 #include "cmodel.h"
 #include "images.h"
 

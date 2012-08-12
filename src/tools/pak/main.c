@@ -28,7 +28,7 @@ quake2world_t quake2world;
  */
 int32_t main(int32_t argc, char **argv) {
 	char *pwd[] = { "." };
-	err = ERR_OK;
+	pak_err = ERR_OK;
 
 	if (argc == 1 || !strcmp(argv[1], "--help")) { // print32_t help
 		printf("Quake2World `pak' manipulates Quake2(tm) pak files.\n\n"
@@ -64,5 +64,5 @@ int32_t main(int32_t argc, char **argv) {
 		exit(ERR_ARG);
 	}
 
-	return err;
+	return pak_err;
 }

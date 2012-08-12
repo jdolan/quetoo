@@ -108,7 +108,7 @@ void Pak_FreePakfile(pak_t *pak) {
  * map compiler.
  */
 
-int32_t err;
+int32_t pak_err;
 
 /*
  * @brief This is basically a combination of Fs_CreatePath and Sys_Mkdir,
@@ -141,12 +141,12 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, bool test) {
 
 	if (dir && chdir(dir) == -1) {
 		fprintf(stderr, "Couldn't unpak to %s.\n", dir);
-		err = ERR_DIR;
+		pak_err = ERR_DIR;
 		return;
 	}
 
 	if (!(pak = Pak_ReadPakfile(pakfile))) {
-		err = ERR_PAK;
+		pak_err = ERR_PAK;
 		return;
 	}
 
@@ -161,7 +161,7 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, bool test) {
 
 		if (!(f = fopen(pak->entries[i].name, "wb"))) {
 			fprintf(stderr, "Couldn't write %s.\n", pak->entries[i].name);
-			err = ERR_PAK;
+			pak_err = ERR_PAK;
 			continue;
 		}
 
@@ -192,7 +192,7 @@ pak_t *Pak_CreatePakstream(char *pakfile) {
 
 	if (!(f = fopen(pakfile, "wb"))) {
 		fprintf(stderr, "Couldn't open %s.\n", pakfile);
-		err = ERR_DIR;
+		pak_err = ERR_DIR;
 		return NULL;
 	}
 
@@ -275,7 +275,7 @@ static void Pak_RecursiveAdd(pak_t *pak, const char *dir) {
 
 	if (!(d = opendir(dir))) {
 		fprintf(stderr, "Couldn't open %s.\n", dir);
-		err = ERR_DIR;
+		pak_err = ERR_DIR;
 		return;
 	}
 
@@ -300,7 +300,7 @@ static void Pak_RecursiveAdd(pak_t *pak, const char *dir) {
 
 		if (!(f = fopen(s, "rb"))) {
 			fprintf(stderr, "Couldn't open %s.\n", s);
-			err = ERR_PAK;
+			pak_err = ERR_PAK;
 			continue;
 		}
 
@@ -333,7 +333,7 @@ void Pak_CreatePakfile(char *pakfile, int32_t numdirs, char **dirs) {
 	for (i = 0; i < numdirs; i++) {
 		Pak_RecursiveAdd(pak, dirs[i]);
 
-		if (err) { // error assembling pak
+		if (pak_err) { // error assembling pak
 			Fs_CloseFile(pak->handle);
 			return;
 		}

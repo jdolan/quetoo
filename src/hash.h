@@ -37,70 +37,14 @@ typedef struct hash_table_s {
 	hash_entry_t *bins[HASH_BINS];
 } hash_table_t;
 
-/*
-Hash_Init
-
-Initializes the specified hash_table.
-*/
 void Hash_Init(hash_table_t *table);
-
-/*
-Hash_Hashcode
-
-Generate a bin number (not a unique code) for the specified key.
-*/
 int32_t Hash_Hashcode(const char *key);
-
-/*
-Hash_Put
-
-Insert the specified key-value pair to hash_table.
-*/
 int32_t Hash_Put(hash_table_t *table, const char *key, void *value);
-
-/*
-Hash_GetEntry
-
-Returns the first entry associated to the specified key.
-*/
 hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key);
-
-/*
-Hash_Get
-
-Return the first value hashed at key from hash_table.
-*/
 void *Hash_Get(hash_table_t *table, const char *key);
-
-/*
-Hash_RemoveEntry
-
-Removes the specified entry from the hash and frees it, returning its
-value so that it may also be freed if desired.
-*/
 void *Hash_RemoveEntry(hash_table_t *table, hash_entry_t *entry);
-
-/*
-Hash_Remove
-
-Removes the first entry associated to key from the specified hash and
-frees it, returning its value so that it may also be freed if desired.
-*/
 void *Hash_Remove(hash_table_t *table, const char *key);
-
-/*
-Hash_Clear
-
-Removes all entries associated to key from the specified hash.
-*/
 void Hash_Clear(hash_table_t *table, const char *key);
-
-/*
-Hash_Free
-
-Free all entries associated with hash table. Does not free any of the
-values referenced by the entries.
-*/
 void Hash_Free(hash_table_t *table);
 
 #endif /*__HASH_H__*/

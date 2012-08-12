@@ -18,8 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __MATRIXLIB_H__
-#define __MATRIXLIB_H__
+#ifndef __R_MATRIX_H__
+#define __R_MATRIX_H__
 
 //#define MATRIX4x4_OPENGLORIENTATION
 
@@ -184,4 +184,4 @@ void Matrix4x4_Scale (matrix4x4_t *out, double rotatescale, double originscale);
 // ensures each element of the 3x3 rotation matrix is facing in the + direction
 void Matrix4x4_Abs (matrix4x4_t *out);
 
-#endif /* __MATRIX_H__ */
+#endif /* __R_MATRIX_H__ */

@@ -30,50 +30,11 @@
 // 8bit palette for wal images and particles
 extern uint32_t palette[256];
 
-/*
-Img_LoadImage
-
-Loads the specified image from the game filesystem and populates
-the provided SDL_Surface.
-
-Image formats are tried in the order they appear in TYPES.
-*/
 bool Img_LoadImage(const char *name, SDL_Surface **surf);
-
-/*
-Img_LoadTypedImage
-
-Loads the specified image from the game filesystem and populates
-the provided SDL_Surface.
-*/
 bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf);
-
-/*
-Img_InitPalette
-
-Initializes the 8bit color palette required for .wal texture loading.
-*/
 void Img_InitPalette(void);
-
-/*
-Img_ColorFromPalette
-
-Returns RGB components of the specified color in the specified result array.
-*/
 void Img_ColorFromPalette(byte c, float *res);
-
-/*
-Img_WriteJPEG
-
-Write pixel data to a JPEG file.
-*/
 void Img_WriteJPEG(const char *path, byte *img_data, int32_t width, int32_t height, int32_t quality);
-
-/*
-Img_WriteTGARLE
-
-Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
-*/
 void Img_WriteTGARLE(const char *path, byte *img_data, int32_t width, int32_t height, int32_t quality);
 
 #endif /* BUILD_CLIENT */

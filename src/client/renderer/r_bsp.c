@@ -100,7 +100,8 @@ c_trace_t R_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const
 /*
  * @brief Returns true if the specified bounding box is completely culled by the
  * view frustum, false otherwise.
- */bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
+ */
+bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 	int32_t i;
 
 	if (!r_cull->value)

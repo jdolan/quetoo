@@ -95,9 +95,8 @@ const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
 
 /*
  * @brief Loads the specified image from the game filesystem and populates
- * the provided SDL_Surface.
- *
- * Image formats are tried in the order they appear in TYPES.
+ * the provided SDL_Surface. Image formats are tried in the order they appear
+ * in TYPES.
  */
 bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 	int32_t i;
