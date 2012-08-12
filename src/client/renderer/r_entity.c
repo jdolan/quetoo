@@ -55,10 +55,9 @@ static r_entity_t **R_EntityList(const r_entity_t *e) {
 }
 
 /*
- * @brief Copies the specified entity into the view structure, calculating its
- * model-view matrix and performing a frustum cull in the process. Entities
- * which pass the frustum cull are added to draw lists, sorted by model to
- * allow instancing.
+ * @brief Copies the specified entity into the view structure and inserts it
+ * into the appropriate sorted chain. The sorted chains allow for object
+ * instancing.
  */
 const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 	r_entity_t *e, *in, **ents;
@@ -144,10 +143,7 @@ void R_RotateForEntity(const r_entity_t *e) {
 }
 
 /*
- *
- * R_TransformForEntity
- *
- * Transforms a point by the inverse of the world-model matrix for the
+ * @brief Transforms a point by the inverse of the world-model matrix for the
  * specified entity, translating and rotating it into the entity's model-view.
  */
 void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out) {
@@ -266,7 +262,7 @@ static void R_DrawMeshEntities(r_entity_t *ents) {
 /*
  * @brief
  */
-static void R_DrawOpaqueMeshEntities() {
+static void R_DrawOpaqueMeshEntities(void) {
 
 	if (!r_entities.mesh)
 		return;
@@ -281,7 +277,7 @@ static void R_DrawOpaqueMeshEntities() {
 /*
  * @brief
  */
-static void R_DrawAlphaTestMeshEntities() {
+static void R_DrawAlphaTestMeshEntities(void) {
 
 	if (!r_entities.mesh_alpha_test)
 		return;
@@ -300,7 +296,7 @@ static void R_DrawAlphaTestMeshEntities() {
 /*
  * @brief
  */
-static void R_DrawBlendMeshEntities() {
+static void R_DrawBlendMeshEntities(void) {
 
 	if (!r_entities.mesh_blend)
 		return;
@@ -342,7 +338,7 @@ static void R_DrawNullModel(const r_entity_t *e) {
 /*
  * @brief
  */
-static void R_DrawNullEntities() {
+static void R_DrawNullEntities(void) {
 	const r_entity_t *e;
 
 	if (!r_entities.null)

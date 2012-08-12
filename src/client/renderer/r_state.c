@@ -502,10 +502,8 @@ void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image) {
 #define NEAR_Z 4
 #define FAR_Z 16384
 
-/**
- * R_Setup3D
- *
- * Prepare OpenGL for drawing the 3D scene. Update the view-port definition
+/*
+ * @brief Prepare OpenGL for drawing the 3D scene. Update the view-port definition
  * and load our projection and model-view matrices.
  */
 void R_Setup3D(void) {
@@ -554,10 +552,8 @@ void R_Setup3D(void) {
 	glEnable(GL_DEPTH_TEST);
 }
 
-/**
- * R_Setup2D
- *
- * Prepare OpenGL for drawing the 2D overlay. Update the view-port definition
+/*
+ * @brief Prepare OpenGL for drawing the 2D overlay. Update the view-port definition
  * and reset the project and model-view matrices.
  */
 void R_Setup2D(void) {
