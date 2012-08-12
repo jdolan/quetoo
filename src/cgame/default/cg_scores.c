@@ -202,7 +202,7 @@ static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 
 	// ready/not ready
 	if (atoi(cgi.ConfigString(CS_MATCH))) {
-		if (s->flags & SCORES_NOTREADY)
+		if (s->flags & SCORES_NOT_READY)
 			cgi.DrawString(x + cw * 14, y, "not ready", CON_COLOR_DEFAULT);
 	}
 	y += ch;
