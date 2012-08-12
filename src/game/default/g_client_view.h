@@ -22,13 +22,13 @@
 #ifndef __G_CLIENT_VIEW_H__
 #define __G_CLIENT_VIEW_H__
 
-#ifdef __G_LOCAL_H__
+#include "g_types.h"
 
+#ifdef __G_LOCAL_H__
 void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const float kick);
 void G_ClientWeaponKick(g_edict_t *ent, const float kick);
 void G_ClientEndFrame(g_edict_t *ent);
 void G_EndClientFrames(void);
-
 #endif /* __G_LOCAL_H__ */
 
 #endif /* __G_CLIENT_VIEW_H__ */

@@ -31,8 +31,6 @@ extern MYSQL *mysql;
 extern char sql[512];
 #endif
 
-#include "g_types.h"
-
 // this is the game name that we advertise to clients
 #define GAME_NAME "default"
 
@@ -49,10 +47,11 @@ extern char sql[512];
 #include "g_entity_target.h"
 #include "g_entity_trigger.h"
 #include "g_entity.h"
-#include "g_items.h"
+#include "g_item.h"
 #include "g_main.h"
 #include "g_physics.h"
+#include "g_types.h"
 #include "g_utils.h"
-#include "g_weapons.h"
+#include "g_weapon.h"
 
 #endif /* __G_LOCAL_H__ */

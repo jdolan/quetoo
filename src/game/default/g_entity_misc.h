@@ -22,11 +22,11 @@
 #ifndef __G_ENTITY_MISC_H__
 #define __G_ENTITY_MISC_H__
 
-#ifdef __G_LOCAL_H__
+#include "g_types.h"
 
+#ifdef __G_LOCAL_H__
 void G_misc_teleporter(g_edict_t *self);
 void G_misc_teleporter_dest(g_edict_t *self);
-
 #endif /* __G_LOCAL_H__ */
 
 #endif /* __G_ENTITY_MISC_H__ */

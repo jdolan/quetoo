@@ -22,8 +22,9 @@
 #ifndef __G_ENTITY_FUNC_H__
 #define __G_ENTITY_FUNC_H__
 
-#ifdef __G_LOCAL_H__
+#include "g_types.h"
 
+#ifdef __G_LOCAL_H__
 void G_func_areaportal(g_edict_t *ent);
 void G_func_button(g_edict_t *ent);
 void G_func_conveyor(g_edict_t *self);
@@ -36,7 +37,6 @@ void G_func_timer(g_edict_t *self);
 void G_func_train(g_edict_t *ent);
 void G_func_wall(g_edict_t *self);
 void G_func_water(g_edict_t *self);
-
 #endif /* __G_LOCAL_H__ */
 
 #endif /* __G_ENTITY_FUNC_H__ */

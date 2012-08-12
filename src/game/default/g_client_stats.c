@@ -73,7 +73,7 @@ static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 	} else {
 		if (g_level.match) {
 			if (!ent->client->persistent.ready)
-				s.flags |= SCORES_NOTREADY;
+				s.flags |= SCORES_NOT_READY;
 		}
 		if (g_level.ctf) {
 			if (ent->s.effects & (EF_CTF_BLUE | EF_CTF_RED))

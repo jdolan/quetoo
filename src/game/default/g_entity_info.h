@@ -22,8 +22,9 @@
 #ifndef __G_ENTITY_INFO_H__
 #define __G_ENTITY_INFO_H__
 
-#ifdef __G_LOCAL_H__
+#include "g_types.h"
 
+#ifdef __G_LOCAL_H__
 void G_info_player_deathmatch(g_edict_t *ent);
 void G_info_player_intermission(g_edict_t *ent);
 void G_info_notnull(g_edict_t *self);
@@ -31,7 +32,6 @@ void G_info_null(g_edict_t *self);
 void G_info_player_start(g_edict_t *ent);
 void G_info_player_team1(g_edict_t *ent);
 void G_info_player_team2(g_edict_t *ent);
-
 #endif /* __G_LOCAL_H__ */
 
 #endif /* __G_ENTITY_INFO_H__ */

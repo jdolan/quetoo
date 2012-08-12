@@ -24,6 +24,8 @@
 
 #ifdef __G_LOCAL_H__
 
+#include "g_types.h"
+
 extern g_item_t g_items[];
 
 #define ITEM_INDEX(x) ((x) - g_items)

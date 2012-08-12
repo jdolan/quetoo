@@ -46,7 +46,7 @@ typedef struct {
 } player_score_t;
 
 //scores flags
-#define SCORES_NOTREADY			(1 << 0)
+#define SCORES_NOT_READY	(1 << 0)
 #define SCORES_FLAG			(1 << 1)
 
 // ConfigStrings that are local to the game and client game

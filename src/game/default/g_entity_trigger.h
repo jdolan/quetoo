@@ -19,11 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_ENTITY_TROGGER_H__
-#define __G_ENTITY_TROGGER_H__
+#ifndef __G_ENTITY_TRIGGER_H__
+#define __G_ENTITY_TRIGGER_H__
+
+#include "g_types.h"
 
 #ifdef __G_LOCAL_H__
-
 void G_trigger_always(g_edict_t *ent);
 void G_trigger_exec(g_edict_t *ent);
 void G_trigger_hurt(g_edict_t *ent);
@@ -31,7 +32,6 @@ void G_trigger_multiple(g_edict_t *ent);
 void G_trigger_once(g_edict_t *ent);
 void G_trigger_push(g_edict_t *ent);
 void G_trigger_relay(g_edict_t *ent);
-
 #endif /* __G_LOCAL_H__ */
 
-#endif /* __G_ENTITY_TROGGER_H__ */
+#endif /* __G_ENTITY_TRIGGER_H__ */

@@ -22,10 +22,10 @@
 #ifndef __G_PHYSICS_H__
 #define __G_PHYSICS_H__
 
+#include "g_types.h"
+
 #ifdef __G_LOCAL_H__
-
 void G_RunEntity(g_edict_t *ent);
-
 #endif /* __G_LOCAL_H__ */
 
 #endif /* __G_PHYSICS_H__ */

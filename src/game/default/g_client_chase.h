@@ -22,13 +22,13 @@
 #ifndef __G_CLIENT_CHASE_H__
 #define __G_CLIENT_CHASE_H__
 
-#ifdef __G_LOCAL_H__
+#include "g_types.h"
 
+#ifdef __G_LOCAL_H__
 void G_ClientChaseThink(g_edict_t *ent);
 void G_ClientChaseNext(g_edict_t *ent);
 void G_ClientChasePrevious(g_edict_t *ent);
 void G_ClientChaseTarget(g_edict_t *ent);
-
 #endif /* __G_LOCAL_H__ */
 
 #endif /* __G_CLIENT_CHASE_H__ */

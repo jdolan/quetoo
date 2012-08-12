@@ -22,8 +22,9 @@
 #ifndef __G_CLIENT_H__
 #define __G_CLIENT_H__
 
-#ifdef __G_LOCAL_H__
+#include "g_types.h"
 
+#ifdef __G_LOCAL_H__
 void G_ClientBegin(g_edict_t *ent);
 void G_ClientBeginFrame(g_edict_t *ent);
 bool G_ClientConnect(g_edict_t *ent, char *user_info);
@@ -31,7 +32,6 @@ void G_ClientDisconnect(g_edict_t *ent);
 void G_ClientRespawn(g_edict_t *ent, bool voluntary);
 void G_ClientThink(g_edict_t *ent, user_cmd_t *ucmd);
 void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info);
-
 #endif /* __G_LOCAL_H__ */
 
 #endif /* __G_CLIENT_H__ */

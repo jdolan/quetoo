@@ -22,8 +22,9 @@
 #ifndef __G_WEAPON_H__
 #define __G_WEAPON_H__
 
-#ifdef __G_LOCAL_H__
+#include "g_types.h"
 
+#ifdef __G_LOCAL_H__
 void G_ChangeWeapon(g_edict_t *ent);
 bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other);
 void G_UseBestWeapon(g_client_t *client);
@@ -41,7 +42,6 @@ void G_FireLightning(g_edict_t *ent);
 void G_FireRailgun(g_edict_t *ent);
 void G_FireBfg(g_edict_t *ent);
 void G_WeaponThink(g_edict_t *ent);
-
 #endif /* __G_LOCAL_H__ */
 
 #endif /* __G_WEAPON_H__ */

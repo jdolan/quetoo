@@ -22,13 +22,13 @@
 #ifndef __G_ENTITY_TARGET_H__
 #define __G_ENTITY_TARGET_H__
 
-#ifdef __G_LOCAL_H__
+#include "g_types.h"
 
+#ifdef __G_LOCAL_H__
 void G_target_explosion(g_edict_t *ent);
 void G_target_speaker(g_edict_t *ent);
 void G_target_splash(g_edict_t *ent);
 void G_target_string(g_edict_t *ent);
-
 #endif /* __G_LOCAL_H__ */
 
 #endif /* __G_ENTITY_TARGET_H__ */

@@ -24,6 +24,8 @@
 
 #ifdef __G_LOCAL_H__
 
+#include "g_types.h"
+
 bool G_KillBox(g_edict_t *ent);
 void G_ProjectSpawn(g_edict_t *ent);
 void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org);

@@ -14,13 +14,13 @@ noinst_HEADERS = \
 	g_entity_target.h \
 	g_entity_trigger.h \
 	g_entity.h \
-	g_items.h \
+	g_item.h \
 	g_local.h \
 	g_main.h \
 	g_physics.h \
 	g_types.h \
 	g_utils.h \
-	g_weapons.h
+	g_weapon.h
 
 gamelib_LTLIBRARIES = \
 	game.la
@@ -39,11 +39,11 @@ game_la_SOURCES = \
 	g_entity_target.c \
 	g_entity_trigger.c \
 	g_entity.c \
-	g_items.c \
+	g_item.c \
 	g_main.c \
 	g_physics.c \
 	g_utils.c \
-	g_weapons.c
+	g_weapon.c
 
 game_la_CFLAGS = \
 	-I../.. \

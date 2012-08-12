@@ -22,8 +22,9 @@
 #ifndef __G_BALLISTICS_H__
 #define __G_BALLISTICS_H__
 
-#ifdef __G_LOCAL_H__
+#include "g_types.h"
 
+#ifdef __G_LOCAL_H__
 void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
 		int32_t speed, int32_t damage, int32_t knockback);
 void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
@@ -42,7 +43,6 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
 		int32_t damage, int32_t knockback);
 void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir,
 		int32_t speed, int32_t damage, int32_t knockback, float damage_radius);
-
 #endif /* __G_LOCAL_H__ */
 
 #endif /* __G_BALLISTICS_H__ */

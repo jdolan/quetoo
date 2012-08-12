@@ -22,6 +22,8 @@
 #ifndef __G_MAIN_H__
 #define __G_MAIN_H__
 
+#include "g_types.h"
+
 #ifdef __G_LOCAL_H__
 
 // maplist structs
@@ -105,7 +107,6 @@ extern cvar_t *password;
 extern cvar_t *sv_max_clients;
 extern cvar_t *sv_hostname;
 extern cvar_t *dedicated;
-
 
 extern g_team_t g_team_good, g_team_evil;
 
