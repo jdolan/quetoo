@@ -25,7 +25,7 @@
  * @brief
  */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_sustained_light_t s;
 	int32_t i, j;
 
@@ -72,7 +72,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
  * @brief
  */
 static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	float v;
 
 	if (!(p = Cg_AllocParticle(PARTICLE_BEAM)))
@@ -102,7 +102,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
  */
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t v;
 	int32_t j;
@@ -172,7 +172,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
  * @brief
  */
 static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	vec3_t v;
 
 	if (!(p = Cg_AllocParticle(PARTICLE_DECAL)))
@@ -198,7 +198,7 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
  */
 static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	int32_t i, j;
-	r_particle_t *p;
+	cg_particle_t *p;
 	float d;
 
 	for (i = 0; i < count; i++) {
@@ -232,7 +232,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
  * @brief
  */
 void Cg_GibEffect(const vec3_t org, int32_t count) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	vec3_t o, v, tmp;
 	c_trace_t tr;
 	float dist;
@@ -291,7 +291,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
  * @brief
  */
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_sustained_light_t s;
 	int32_t i, j;
 
@@ -337,7 +337,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
  */
 static void Cg_ExplosionEffect(const vec3_t org) {
 	int32_t j;
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_sustained_light_t s;
 
 	if ((p = Cg_AllocParticle(PARTICLE_ROLL))) {
@@ -466,7 +466,7 @@ static void Cg_LightningEffect(const vec3_t org) {
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, int32_t color) {
 	vec3_t vec, right, up, point;
 	float len;
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_sustained_light_t s;
 	int32_t i;
 
@@ -566,7 +566,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
  * @brief
  */
 static void Cg_BfgEffect(const vec3_t org) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_sustained_light_t s;
 	int32_t i;
 

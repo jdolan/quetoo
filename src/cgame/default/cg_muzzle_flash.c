@@ -25,7 +25,7 @@
  * @brief
  */
 static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t count) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
@@ -88,7 +88,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t cou
  * @brief
  */
 static void Cg_SmokeFlash(const entity_state_t *ent) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;

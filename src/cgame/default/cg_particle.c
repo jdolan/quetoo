@@ -21,25 +21,25 @@
 
 #include "cg_local.h"
 
-static r_particle_t *cg_active_particles, *cg_active_decal_particles, *cg_free_particles;
-static r_particle_t cg_particles[MAX_PARTICLES];
-static uint32_t last_particle_time;
+static cg_particle_t *cg_active_particles, *cg_active_decal_particles,
+		*cg_free_particles;
+static cg_particle_t cg_particles[MAX_PARTICLES];
 
 /*
  * @brief
  */
-r_particle_t *Cg_AllocParticle(uint16_t type) {
-	r_particle_t *p;
+cg_particle_t *Cg_AllocParticle(uint16_t type) {
+	cg_particle_t *p;
 
 	if (!cg_add_particles->integer || !cg_free_particles)
-		return NULL;
+		return NULL ;
 
 	p = cg_free_particles;
 	cg_free_particles = p->next;
 	p->type = type;
 	p->time = cgi.client->time;
 
-	if(type == PARTICLE_DECAL) {
+	if (type == PARTICLE_DECAL) {
 		p->next = cg_active_decal_particles;
 		cg_active_decal_particles = p;
 	} else {
@@ -53,9 +53,9 @@ r_particle_t *Cg_AllocParticle(uint16_t type) {
 /*
  * @brief
  */
-static void Cg_FreeParticle(r_particle_t *p) {
+static void Cg_FreeParticle(cg_particle_t *p) {
 
-	memset(p, 0, sizeof(r_particle_t));
+	memset(p, 0, sizeof(cg_particle_t));
 
 	p->image = cg_particle_normal;
 	p->scale = 1.0;
@@ -73,7 +73,10 @@ void Cg_FreeParticles(void) {
 
 	for (i = 0; i < MAX_PARTICLES; i++) {
 		Cg_FreeParticle(&cg_particles[i]);
-		cg_particles[i].next = i < MAX_PARTICLES - 1 ? &cg_particles[i + 1] : NULL;
+
+		if (i < MAX_PARTICLES) {
+			cg_particles[i].next = &cg_particles[i + 1];
+		}
 	}
 
 	cg_free_particles = &cg_particles[0];
@@ -85,11 +88,13 @@ void Cg_FreeParticles(void) {
  * @brief
  */
 void Cg_AddParticles(void) {
-	r_particle_t *p, *next;
-	r_particle_t *active, *tail;
+	static uint32_t last_particle_time;
+	uint32_t currentTime;
+
+	cg_particle_t *p, *next;
+	cg_particle_t *active, *tail;
 	float delta_time, delta_time_squared;
 	int32_t i;
-	uint32_t currentTime;
 
 	if (!cg_add_particles->value)
 		return;
@@ -104,44 +109,9 @@ void Cg_AddParticles(void) {
 	last_particle_time = cgi.client->time;
 
 	for (p = cg_active_decal_particles; p; p = next) {
-			next = p->next;
-
-			if(p->time != cgi.client->time) {
-				p->alpha += delta_time * p->alpha_vel;
-				p->scale += delta_time * p->scale_vel;
-
-				// free up particles that have faded or shrunk
-				if (p->alpha <= 0 || p->scale <= 0) {
-					Cg_FreeParticle(p);
-					continue;
-				}
-
-				for (i = 0; i < 3; i++) { // update origin and end
-					p->org[i] += p->vel[i] * delta_time + p->accel[i] * delta_time_squared;
-					p->end[i] += p->vel[i] * delta_time + p->accel[i] * delta_time_squared;
-					p->vel[i] += p->accel[i] * delta_time;
-				}
-			}
-
-			p->next = NULL;
-			if (!tail)
-				active = tail = p;
-			else {
-				tail->next = p;
-				tail = p;
-			}
-
-			cgi.AddParticle(p);
-	}
-	cg_active_decal_particles = active;
-
-	active = NULL;
-	tail = NULL;
-
-	for (p = cg_active_particles; p; p = next) {
 		next = p->next;
 
-		if(p->time != cgi.client->time) {
+		if (p->time != cgi.client->time) {
 			p->alpha += delta_time * p->alpha_vel;
 			p->scale += delta_time * p->scale_vel;
 
@@ -152,8 +122,47 @@ void Cg_AddParticles(void) {
 			}
 
 			for (i = 0; i < 3; i++) { // update origin and end
-				p->org[i] += p->vel[i] * delta_time + p->accel[i] * delta_time_squared;
-				p->end[i] += p->vel[i] * delta_time + p->accel[i] * delta_time_squared;
+				p->org[i] += p->vel[i] * delta_time
+						+ p->accel[i] * delta_time_squared;
+				p->end[i] += p->vel[i] * delta_time
+						+ p->accel[i] * delta_time_squared;
+				p->vel[i] += p->accel[i] * delta_time;
+			}
+		}
+
+		p->next = NULL;
+		if (!tail)
+			active = tail = p;
+		else {
+			tail->next = p;
+			tail = p;
+		}
+
+		cgi.AddParticle(p);
+	}
+	cg_active_decal_particles = active;
+
+	active = NULL;
+	tail = NULL;
+
+	for (p = cg_active_particles; p; p = next) {
+		next = p->next;
+
+		if (p->time != cgi.client->time) {
+			p->alpha += delta_time * p->alpha_vel;
+			p->scale += delta_time * p->scale_vel;
+
+			// free up particles that have faded or shrunk
+			if (p->alpha <= 0 || p->scale <= 0) {
+				Cg_FreeParticle(p);
+				continue;
+			}
+
+			for (i = 0; i < 3; i++) { // update origin and end
+				p->org[i] += p->vel[i] * delta_time
+						+ p->accel[i] * delta_time_squared;
+				p->end[i] += p->vel[i] * delta_time
+						+ p->accel[i] * delta_time_squared;
 				p->vel[i] += p->accel[i] * delta_time;
 			}
 

@@ -25,7 +25,7 @@
  * @brief
  */
 static void Cg_ItemRespawnEffect(const vec3_t org) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_sustained_light_t s;
 	int32_t i, j;
 
@@ -66,7 +66,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
  * @brief
  */
 static void Cg_ItemPickupEffect(const vec3_t org) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_sustained_light_t s;
 	int32_t i, j;
 

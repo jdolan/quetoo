@@ -32,7 +32,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 	int32_t i;
 
 	if (ent->time < cgi.client->time) {
-		r_particle_t *p;
+		cg_particle_t *p;
 		vec3_t delta;
 		float d, dist, step;
 
@@ -103,7 +103,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
  */
 void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 	int32_t i;
-	r_particle_t *p;
+	cg_particle_t *p;
 
 	if (cent) { // honor a slightly randomized time interval
 
@@ -137,7 +137,7 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
  * @brief
  */
 void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	int32_t j;
 
 	if (cgi.view->render_mode == render_mode_pro)
@@ -183,7 +183,7 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
  * @brief
  */
 void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	int32_t j;
 
 	if (ent) { // trails should be framerate independent
@@ -229,7 +229,7 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
  * @brief
  */
 void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	vec3_t end;
 	int32_t j;
 
@@ -275,7 +275,7 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
  * @brief
  */
 void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	vec3_t vec, move;
 	float i, len, delta;
 	int32_t j;
@@ -322,7 +322,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int32_t color) {
 	static vec3_t angles[NUM_APPROXIMATE_NORMALS];
 	int32_t i, c;
-	r_particle_t *p;
+	cg_particle_t *p;
 	float angle;
 	float sp, sy, cp, cy;
 	vec3_t forward;
@@ -406,7 +406,7 @@ static void Cg_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *en
 	Cg_SmokeTrail(start, end, ent);
 
 	if (old_time != ent->time) { // time to add new particles
-		r_particle_t *p;
+		cg_particle_t *p;
 		vec3_t delta;
 		float d;
 
@@ -475,7 +475,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
  * @brief
  */
 static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
-	r_particle_t *p;
+	cg_particle_t *p;
 	r_light_t l;
 	vec3_t dir, delta, pos, vel;
 	float dist, offset;
@@ -574,7 +574,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
  * @brief
  */
 void Cg_InactiveTrail(const vec3_t start) {
-	r_particle_t *p;
+	cg_particle_t *p;
 
 	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 		return;

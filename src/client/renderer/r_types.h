@@ -554,22 +554,15 @@ typedef struct r_entity_s {
 #define MAX_ENTITIES		(MAX_EDICTS * 2)
 
 typedef struct r_particle_s {
-	struct r_particle_s *next;
 	vec3_t org;
 	vec3_t end;
-	vec3_t vel;
-	vec3_t accel;
 	vec3_t dir;
-	uint32_t time;		//game time that the particle was created
 	float roll;
-	float end_z;
 	struct r_image_s *image;
 	uint16_t type;
 	uint32_t color;
 	float alpha;
-	float alpha_vel;
 	float scale;
-	float scale_vel;
 	float scroll_s;
 	float scroll_t;
 	GLenum blend;

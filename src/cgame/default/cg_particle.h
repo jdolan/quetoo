@@ -23,7 +23,34 @@
 #define __CG_PARTICLE_H__
 
 #ifdef __CG_LOCAL_H__
-r_particle_t *Cg_AllocParticle(uint16_t type);
+
+typedef struct cg_particle_s {
+
+	// common with r_particle_s
+	vec3_t org;
+	vec3_t end;
+	vec3_t dir;
+	float roll;
+	struct r_image_s *image;
+	uint16_t type;
+	uint32_t color;
+	float alpha;
+	float scale;
+	float scroll_s;
+	float scroll_t;
+	GLenum blend;
+
+	// unique to cg_particle_s
+	uint32_t time;
+	vec3_t vel;
+	vec3_t accel;
+	float alpha_vel;
+	float scale_vel;
+	float end_z;
+	struct cg_particle_s *next;
+} cg_particle_t;
+
+cg_particle_t *Cg_AllocParticle(uint16_t type);
 void Cg_FreeParticles(void);
 void Cg_AddParticles(void);
 #endif /* __CG_LOCAL_H__ */

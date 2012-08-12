@@ -125,7 +125,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 	int32_t i;
 
 	for (i = 0; i < e->num_origins; i++) {
-		r_particle_t *p;
+		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER)))
 			return;
