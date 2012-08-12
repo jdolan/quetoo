@@ -560,6 +560,7 @@ typedef struct r_particle_s {
 	vec3_t vel;
 	vec3_t accel;
 	vec3_t dir;
+	uint32_t time;		//game time that the particle was created
 	float roll;
 	float end_z;
 	struct r_image_s *image;
