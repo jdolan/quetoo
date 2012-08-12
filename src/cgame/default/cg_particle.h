@@ -25,22 +25,7 @@
 #ifdef __CG_LOCAL_H__
 
 typedef struct cg_particle_s {
-
-	// common with r_particle_s
-	vec3_t org;
-	vec3_t end;
-	vec3_t dir;
-	float roll;
-	struct r_image_s *image;
-	uint16_t type;
-	uint32_t color;
-	float alpha;
-	float scale;
-	float scroll_s;
-	float scroll_t;
-	GLenum blend;
-
-	// unique to cg_particle_s
+	r_particle_t part;
 	uint32_t time;
 	vec3_t vel;
 	vec3_t accel;

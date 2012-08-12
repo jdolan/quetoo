@@ -54,21 +54,21 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 				break;
 			}
 
-			VectorMA(start, d, delta, p->org);
+			VectorMA(start, d, delta, p->part.org);
 			VectorScale(delta, 400.0, p->vel);
 
 			for (i = 0; i < 3; i++) {
-				p->org[i] += Randomc() * 0.5;
+				p->part.org[i] += Randomc() * 0.5;
 				p->vel[i] += Randomc() * 5.0;
 			}
 
-			p->scale = 1.0;
+			p->part.scale = 1.0;
 			p->scale_vel = 0.0;
 
-			p->alpha = 1.0;
+			p->part.alpha = 1.0;
 			p->alpha_vel = -4.0 + Randomc();
 
-			p->color = ent->current.client + (Random() & 7);
+			p->part.color = ent->current.client + (Random() & 7);
 			d += step;
 		}
 
@@ -120,15 +120,15 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH)))
 			return;
 
-		p->image = cg_particle_teleporter;
-		p->color = 216;
-		p->scale = 16.0;
+		p->part.image = cg_particle_teleporter;
+		p->part.color = 216;
+		p->part.scale = 16.0;
 		p->scale_vel = 24.0;
-		p->alpha = 1.0;
+		p->part.alpha = 1.0;
 		p->alpha_vel = -1.8;
 
-		VectorCopy(org, p->org);
-		p->org[2] -= (6 * i);
+		VectorCopy(org, p->part.org);
+		p->part.org[2] -= (6 * i);
 		p->vel[2] = 140;
 	}
 }
@@ -161,22 +161,22 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 
 	p->accel[2] = 5.0;
 
-	p->image = cg_particle_smoke;
+	p->part.image = cg_particle_smoke;
 
-	p->scale = 2.0;
+	p->part.scale = 2.0;
 	p->scale_vel = 10 + 25.0 * Randomf();
 
-	p->alpha = 1.5;
+	p->part.alpha = 1.5;
 	p->alpha_vel = -1.0 / (1.0 + Randomf());
 
-	p->color = 32 + (Random() & 7);
+	p->part.color = 32 + (Random() & 7);
 
 	for (j = 0; j < 3; j++) {
-		p->org[j] = end[j];
+		p->part.org[j] = end[j];
 		p->vel[j] = Randomc();
 	}
 
-	p->roll = Randomc() * 100.0; // rotation
+	p->part.roll = Randomc() * 100.0; // rotation
 }
 
 /*
@@ -204,15 +204,15 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 
 	p->accel[2] = 15.0;
 
-	p->image = cg_particle_flame;
-	p->scale = 10.0 + Randomc();
+	p->part.image = cg_particle_flame;
+	p->part.scale = 10.0 + Randomc();
 
-	p->alpha = 0.75;
+	p->part.alpha = 0.75;
 	p->alpha_vel = -1.0 / (2 + Randomf() * 0.3);
-	p->color = 220 + (Random() & 7);
+	p->part.color = 220 + (Random() & 7);
 
 	for (j = 0; j < 3; j++) {
-		p->org[j] = end[j];
+		p->part.org[j] = end[j];
 		p->vel[j] = Randomc() * 1.5;
 	}
 
@@ -251,24 +251,24 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 	if (!(p = Cg_AllocParticle(PARTICLE_ROLL)))
 		return;
 
-	p->image = cg_particle_steam;
+	p->part.image = cg_particle_steam;
 
-	p->scale = 8.0;
+	p->part.scale = 8.0;
 	p->scale_vel = 20.0;
 
-	p->alpha = 0.3;
+	p->part.alpha = 0.3;
 	p->alpha_vel = -1.0 / (5.0 + Randomf() * 0.5);
 
-	p->color = 6 + (Random() & 7);
+	p->part.color = 6 + (Random() & 7);
 
-	VectorCopy(org, p->org);
+	VectorCopy(org, p->part.org);
 	VectorCopy(vel, p->vel);
 
 	for (j = 0; j < 3; j++) {
 		p->vel[j] += 2.0 * Randomc();
 	}
 
-	p->roll = Randomc() * 100.0; // rotation
+	p->part.roll = Randomc() * 100.0; // rotation
 }
 
 /*
@@ -297,18 +297,18 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE)))
 			return;
 
-		p->image = cg_particle_bubble;
+		p->part.image = cg_particle_bubble;
 
-		p->alpha = 1.0;
+		p->part.alpha = 1.0;
 		p->alpha_vel = -0.2 - Randomf() * 0.2;
 
-		p->scale = 1.5;
+		p->part.scale = 1.5;
 		p->scale_vel = -0.4 - Randomf() * 0.2;
 
-		p->color = 6 + (Random() & 3);
+		p->part.color = 6 + (Random() & 3);
 
 		for (j = 0; j < 3; j++) {
-			p->org[j] = move[j] + Randomc() * 2.0;
+			p->part.org[j] = move[j] + Randomc() * 2.0;
 			p->vel[j] = Randomc() * 5.0;
 		}
 		p->vel[2] += 6.0;
@@ -354,21 +354,21 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			return;
 
-		p->scale = 0.15 * radius;
+		p->part.scale = 0.15 * radius;
 		p->scale_vel = 800.0;
 
 		dist = sin(ltime + i) * radius;
 
 		for (c = 0; c < 3; c++) {
 			// project the origin outward, adding in angular velocity
-			p->org[c] = org[c] + (approximate_normals[i][c] * dist) + forward[c] * radius;
+			p->part.org[c] = org[c] + (approximate_normals[i][c] * dist) + forward[c] * radius;
 		}
 
-		VectorSubtract(p->org, org, v);
+		VectorSubtract(p->part.org, org, v);
 		dist = VectorLength(v) / (3.0 * radius);
-		p->color = color + dist * 7.0;
+		p->part.color = color + dist * 7.0;
 
-		p->alpha = 1.0 - dist;
+		p->part.alpha = 1.0 - dist;
 		p->alpha_vel = -100.0;
 
 		p->vel[0] = p->vel[1] = p->vel[2] = 2.0 * Randomc();
@@ -420,16 +420,16 @@ static void Cg_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *en
 			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 				break;
 
-			VectorMA(start, d, delta, p->org);
+			VectorMA(start, d, delta, p->part.org);
 
 			p->vel[0] = 32.0 * Randomc();
 			p->vel[1] = 32.0 * Randomc();
 			p->vel[2] = -PARTICLE_GRAVITY * 0.25 * Randomf();
 
-			p->alpha = 0.5 + Randomc() * 0.25;
+			p->part.alpha = 0.5 + Randomc() * 0.25;
 			p->alpha_vel = -1.0 + 0.25 * Randomc();
 
-			p->color = 0xe0 + (Random() & 7);
+			p->part.color = 0xe0 + (Random() & 7);
 			d += 2.0;
 		}
 	}
@@ -506,11 +506,11 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t 
 		if (!(p = Cg_AllocParticle(PARTICLE_BEAM)))
 			return;
 
-		p->image = cg_particle_lightning;
+		p->part.image = cg_particle_lightning;
 
-		p->scale = 8.0;
+		p->part.scale = 8.0;
 
-		VectorCopy(pos, p->org);
+		VectorCopy(pos, p->part.org);
 
 		if (dist <= 48.0) {
 			VectorScale(dir, dist, delta);
@@ -522,21 +522,21 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t 
 		VectorAdd(pos, delta, pos);
 		pos[2] += (++i & 1) ? offset : -offset;
 
-		VectorCopy(pos, p->end);
+		VectorCopy(pos, p->part.end);
 
 		VectorCopy(vel, p->vel);
 
-		p->alpha = 1.0;
+		p->part.alpha = 1.0;
 		p->alpha_vel = -9999.0;
 
-		p->color = 12 + (Random() & 3);
+		p->part.color = 12 + (Random() & 3);
 
-		p->scroll_s = -4.0;
+		p->part.scroll_s = -4.0;
 
 		dist -= 48.0;
 
 		if (dist > 12.0) {
-			VectorCopy(p->end, l.origin);
+			VectorCopy(p->part.end, l.origin);
 			l.radius = 90.0 + 10.0 * Randomc();
 			cgi.AddLight(&l);
 		}
@@ -579,13 +579,13 @@ void Cg_InactiveTrail(const vec3_t start) {
 	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 		return;
 
-	p->image = cg_particle_inactive;
-	p->alpha = 1.0;
+	p->part.image = cg_particle_inactive;
+	p->part.alpha = 1.0;
 	p->alpha_vel = -99999999.0;
-	p->color = 11;
-	VectorCopy(start, p->org);
-	p->org[2] += 50;
-	p->scale = 10.0;
+	p->part.color = 11;
+	VectorCopy(start, p->part.org);
+	p->part.org[2] += 50;
+	p->part.scale = 10.0;
 }
 
 /*

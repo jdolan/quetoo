@@ -70,15 +70,15 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t cou
 
 		p->accel[2] = -PARTICLE_GRAVITY;
 
-		p->alpha = 1.0;
+		p->part.alpha = 1.0;
 		p->alpha_vel = -2.0;
 
 		p->scale_vel = 4.0;
 
-		p->color = color + (Random() & 15);
+		p->part.color = color + (Random() & 15);
 
 		for (j = 0; j < 3; j++) {
-			p->org[j] = org[j] + 8.0 * Randomc();
+			p->part.org[j] = org[j] + 8.0 * Randomc();
 			p->vel[j] = 128.0 * Randomc();
 		}
 	}
@@ -131,25 +131,25 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 
 	p->accel[2] = 5.0;
 
-	p->image = cg_particle_smoke;
+	p->part.image = cg_particle_smoke;
 
-	p->scale = 4.0;
+	p->part.scale = 4.0;
 	p->scale_vel = 24.0;
 
-	p->alpha = 0.8;
+	p->part.alpha = 0.8;
 	p->alpha_vel = -1.0;
 
-	p->color = Random() & 7;
-	p->blend = GL_ONE;
+	p->part.color = Random() & 7;
+	p->part.blend = GL_ONE;
 
-	VectorCopy(org, p->org);
+	VectorCopy(org, p->part.org);
 
 	for (j = 0; j < 2; j++) {
 		p->vel[j] = Randomc();
 	}
 	p->vel[2] = 10.0;
 
-	p->roll = Randomc() * 100.0; // rotation
+	p->part.roll = Randomc() * 100.0; // rotation
 }
 
 /*

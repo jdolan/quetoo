@@ -36,7 +36,7 @@ cg_particle_t *Cg_AllocParticle(uint16_t type) {
 
 	p = cg_free_particles;
 	cg_free_particles = p->next;
-	p->type = type;
+	p->part.type = type;
 	p->time = cgi.client->time;
 
 	if (type == PARTICLE_DECAL) {
@@ -57,9 +57,9 @@ static void Cg_FreeParticle(cg_particle_t *p) {
 
 	memset(p, 0, sizeof(cg_particle_t));
 
-	p->image = cg_particle_normal;
-	p->scale = 1.0;
-	p->blend = GL_ONE;
+	p->part.image = cg_particle_normal;
+	p->part.scale = 1.0;
+	p->part.blend = GL_ONE;
 
 	p->next = cg_free_particles;
 	cg_free_particles = p;
@@ -112,19 +112,19 @@ void Cg_AddParticles(void) {
 		next = p->next;
 
 		if (p->time != cgi.client->time) {
-			p->alpha += delta_time * p->alpha_vel;
-			p->scale += delta_time * p->scale_vel;
+			p->part.alpha += delta_time * p->alpha_vel;
+			p->part.scale += delta_time * p->scale_vel;
 
 			// free up particles that have faded or shrunk
-			if (p->alpha <= 0 || p->scale <= 0) {
+			if (p->part.alpha <= 0 || p->part.scale <= 0) {
 				Cg_FreeParticle(p);
 				continue;
 			}
 
 			for (i = 0; i < 3; i++) { // update origin and end
-				p->org[i] += p->vel[i] * delta_time
+				p->part.org[i] += p->vel[i] * delta_time
 						+ p->accel[i] * delta_time_squared;
-				p->end[i] += p->vel[i] * delta_time
+				p->part.end[i] += p->vel[i] * delta_time
 						+ p->accel[i] * delta_time_squared;
 				p->vel[i] += p->accel[i] * delta_time;
 			}
@@ -149,25 +149,25 @@ void Cg_AddParticles(void) {
 		next = p->next;
 
 		if (p->time != cgi.client->time) {
-			p->alpha += delta_time * p->alpha_vel;
-			p->scale += delta_time * p->scale_vel;
+			p->part.alpha += delta_time * p->alpha_vel;
+			p->part.scale += delta_time * p->scale_vel;
 
 			// free up particles that have faded or shrunk
-			if (p->alpha <= 0 || p->scale <= 0) {
+			if (p->part.alpha <= 0 || p->part.scale <= 0) {
 				Cg_FreeParticle(p);
 				continue;
 			}
 
 			for (i = 0; i < 3; i++) { // update origin and end
-				p->org[i] += p->vel[i] * delta_time
+				p->part.org[i] += p->vel[i] * delta_time
 						+ p->accel[i] * delta_time_squared;
-				p->end[i] += p->vel[i] * delta_time
+				p->part.end[i] += p->vel[i] * delta_time
 						+ p->accel[i] * delta_time_squared;
 				p->vel[i] += p->accel[i] * delta_time;
 			}
 
 			// free up weather particles that have hit the ground
-			if (p->type == PARTICLE_WEATHER && (p->org[2] <= p->end_z)) {
+			if (p->part.type == PARTICLE_WEATHER && (p->part.org[2] <= p->end_z)) {
 				Cg_FreeParticle(p);
 				continue;
 			}

@@ -34,14 +34,14 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			break;
 
-		p->image = cg_particle_spark;
+		p->part.image = cg_particle_spark;
 		p->scale_vel = 3.0;
 
-		p->color = 110; // white
+		p->part.color = 110; // white
 
-		p->org[0] = org[0] + Randomc() * 8.0;
-		p->org[1] = org[1] + Randomc() * 8.0;
-		p->org[2] = org[2] + 8 + Randomf() * 8.0;
+		p->part.org[0] = org[0] + Randomc() * 8.0;
+		p->part.org[1] = org[1] + Randomc() * 8.0;
+		p->part.org[2] = org[2] + 8 + Randomf() * 8.0;
 
 		for (j = 0; j < 2; j++)
 			p->vel[j] = Randomc() * 48.0;
@@ -50,7 +50,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
 
-		p->alpha = 1.0;
+		p->part.alpha = 1.0;
 		p->alpha_vel = -1.5 + Randomf() * 0.5;
 	}
 
@@ -75,14 +75,14 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
 			return;
 
-		p->image = cg_particle_spark;
+		p->part.image = cg_particle_spark;
 		p->scale_vel = 3.0;
 
-		p->color = 110; // white
+		p->part.color = 110; // white
 
-		p->org[0] = org[0] + Randomc() * 8.0;
-		p->org[1] = org[1] + Randomc() * 8.0;
-		p->org[2] = org[2] + 8 + Randomc() * 16.0;
+		p->part.org[0] = org[0] + Randomc() * 8.0;
+		p->part.org[1] = org[1] + Randomc() * 8.0;
+		p->part.org[2] = org[2] + 8 + Randomc() * 16.0;
 
 		for (j = 0; j < 2; j++)
 			p->vel[j] = Randomc() * 16.0;
@@ -91,7 +91,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = PARTICLE_GRAVITY * 0.2;
 
-		p->alpha = 1.0;
+		p->part.alpha = 1.0;
 		p->alpha_vel = -1.5 + Randomf() * 0.5;
 	}
 
