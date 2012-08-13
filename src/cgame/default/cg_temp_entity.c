@@ -407,7 +407,27 @@ static void Cg_ExplosionEffect(const vec3_t org) {
  * @brief
  */
 static void Cg_HyperblasterEffect(const vec3_t org) {
+	cg_particle_t *p;
 	r_sustained_light_t s;
+	int32_t i;
+
+	for (i = 0; i < 2; i++) {
+
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_explosion)))
+			break;
+
+		p->part.color = 113 + Random() % 3;
+
+		p->part.alpha = 1.0;
+		p->alpha_vel = -8.0;
+
+		p->part.scale = 1.5;
+		p->scale_vel = 225.0 * (i + 1);
+
+		p->part.roll = 100.0 * Randomc();
+
+		VectorCopy(org, p->part.org);
+	}
 
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
@@ -556,7 +576,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_explosion)))
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_explosion)))
 			break;
 
 		p->part.color = 200 + Random() % 3;
@@ -566,6 +586,8 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 		p->part.scale = 4.0;
 		p->scale_vel = 200.0 * (i + 1);
+
+		p->part.roll = 100.0 * Randomc();
 
 		VectorCopy(org, p->part.org);
 	}

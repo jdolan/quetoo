@@ -30,7 +30,7 @@ void R_AddParticle(const r_particle_t *p) {
 	if (r_view.num_particles >= MAX_PARTICLES)
 		return;
 
-	if (p->type != PARTICLE_BEAM && R_LeafForPoint(p->org, NULL)->vis_frame != r_locals.vis_frame)
+	if (p->type != PARTICLE_BEAM && R_LeafForPoint(p->org, NULL )->vis_frame != r_locals.vis_frame)
 		return;
 
 	r_view.particles[r_view.num_particles++] = *p;
@@ -57,9 +57,8 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
 
 	scale = // hack a scale up to keep particles from disappearing
 			(p->org[0] - r_view.origin[0]) * r_view.forward[0]
-					+ (p->org[1] - r_view.origin[1])
-							* r_view.forward[1] + (p->org[2]
-					- r_view.origin[2]) * r_view.forward[2];
+					+ (p->org[1] - r_view.origin[1]) * r_view.forward[1]
+					+ (p->org[2] - r_view.origin[2]) * r_view.forward[2];
 
 	if (scale > 20.0) // use it
 		p->scale += scale * 0.002;
@@ -168,7 +167,7 @@ static void R_ParticleColor(r_particle_t *p, GLfloat *out) {
 	int32_t i, j;
 
 	memcpy(&color, &palette[p->color], sizeof(color));
-	if(p->alpha < 1.0f)
+	if (p->alpha < 1.0f)
 		color[3] = p->alpha * 255.0;
 	j = 0;
 
@@ -186,7 +185,7 @@ static void R_ParticleColor(r_particle_t *p, GLfloat *out) {
  */
 static void R_DrawParticles_(int32_t mask) {
 	r_particle_t *p;
-	r_image_t *image;
+	const r_image_t *image;
 	int32_t i, j, k, l;
 
 	image = NULL;
@@ -256,6 +255,6 @@ void R_DrawParticles(void) {
 
 	R_EnableColorArray(false);
 
-	R_Color(NULL);
+	R_Color(NULL );
 }
 

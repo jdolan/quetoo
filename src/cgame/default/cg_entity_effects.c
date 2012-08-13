@@ -351,10 +351,6 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
 			return;
 
-		VectorSubtract(p->part.org, org, v);
-		dist = VectorLength(v) / (3.0 * radius);
-		p->part.color = color + dist * 7.0;
-
 		p->part.alpha = 1.0 - dist;
 		p->alpha_vel = -100.0;
 
@@ -367,6 +363,10 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 			// project the origin outward, adding in angular velocity
 			p->part.org[c] = org[c] + (approximate_normals[i][c] * dist) + forward[c] * radius;
 		}
+
+		VectorSubtract(p->part.org, org, v);
+		dist = VectorLength(v) / (3.0 * radius);
+		p->part.color = color + dist * 7.0;
 
 		p->vel[0] = p->vel[1] = p->vel[2] = 2.0 * Randomc();
 	}
