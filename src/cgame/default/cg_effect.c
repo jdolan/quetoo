@@ -125,13 +125,16 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 	int32_t i;
 
 	for (i = 0; i < e->num_origins; i++) {
+		const r_image_t *image;
 		cg_particle_t *p;
+		int32_t j;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER)))
-			return;
+		image = cgi.view->weather & WEATHER_RAIN ? cg_particle_rain : cg_particle_snow;
+
+		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, image)))
+			break;
 
 		const float *org = &e->origins[i * 3];
-		int32_t j;
 
 		// setup the origin and end_z
 		for (j = 0; j < 3; j++) {
@@ -148,28 +151,26 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 		}
 
 		if (cgi.view->weather & WEATHER_RAIN) {
+			p->part.color = 8;
+			p->part.alpha = 0.4;
+			p->part.scale = 6.0;
 			// randomize the velocity and acceleration
 			for (j = 0; j < 2; j++) {
 				p->vel[j] = Randomc() * 2.0;
 				p->accel[j] = Randomc() * 2.0;
 			}
 			p->vel[2] = -800.0;
-			p->part.image = cg_particle_rain;
-			p->part.alpha = 0.4;
-			p->part.color = 8;
-			p->part.scale = 6.0;
 		} else {
+			p->part.color = 8;
+			p->part.alpha = 0.6;
+			p->alpha_vel = Randomf() * -1.0;
+			p->part.scale = 1.5;
 			// randomize the velocity and acceleration
 			for (j = 0; j < 2; j++) {
 				p->vel[j] = Randomc() * 12.0;
 				p->accel[j] = Randomc() * 12.0;
 			}
 			p->vel[2] = -120.0;
-			p->part.image = cg_particle_snow;
-			p->part.alpha = 0.6;
-			p->alpha_vel = Randomf() * -1.0;
-			p->part.color = 8;
-			p->part.scale = 1.5;
 		}
 	}
 }

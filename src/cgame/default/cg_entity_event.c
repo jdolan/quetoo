@@ -27,31 +27,31 @@
 static void Cg_ItemRespawnEffect(const vec3_t org) {
 	cg_particle_t *p;
 	r_sustained_light_t s;
-	int32_t i, j;
+	int32_t i;
 
 	for (i = 0; i < 64; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
 			break;
-
-		p->part.image = cg_particle_spark;
-		p->scale_vel = 3.0;
 
 		p->part.color = 110; // white
 
+		p->part.alpha = 1.0;
+		p->alpha_vel = -1.5 + Randomf() * 0.5;
+
+		p->part.scale = 1.0;
+		p->scale_vel = 3.0;
+
 		p->part.org[0] = org[0] + Randomc() * 8.0;
 		p->part.org[1] = org[1] + Randomc() * 8.0;
-		p->part.org[2] = org[2] + 8 + Randomf() * 8.0;
+		p->part.org[2] = org[2] + 8.0 + Randomf() * 8.0;
 
-		for (j = 0; j < 2; j++)
-			p->vel[j] = Randomc() * 48.0;
+		p->vel[0] = Randomc() * 48.0;
+		p->vel[1] = Randomc() * 48.0;
 		p->vel[2] = Randomf() * 48.0;
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -1.5 + Randomf() * 0.5;
 	}
 
 	VectorCopy(org, s.light.origin);
@@ -68,31 +68,31 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 static void Cg_ItemPickupEffect(const vec3_t org) {
 	cg_particle_t *p;
 	r_sustained_light_t s;
-	int32_t i, j;
+	int32_t i;
 
 	for (i = 0; i < 32; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
-			return;
-
-		p->part.image = cg_particle_spark;
-		p->scale_vel = 3.0;
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+			break;
 
 		p->part.color = 110; // white
+
+		p->part.alpha = 1.0;
+		p->alpha_vel = -1.5 + Randomf() * 0.5;
+
+		p->part.scale = 1.0;
+		p->scale_vel = 3.0;
 
 		p->part.org[0] = org[0] + Randomc() * 8.0;
 		p->part.org[1] = org[1] + Randomc() * 8.0;
 		p->part.org[2] = org[2] + 8 + Randomc() * 16.0;
 
-		for (j = 0; j < 2; j++)
-			p->vel[j] = Randomc() * 16.0;
+		p->vel[0] = Randomc() * 16.0;
+		p->vel[1] = Randomc() * 16.0;
 		p->vel[2] = Randomf() * 128.0;
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = PARTICLE_GRAVITY * 0.2;
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -1.5 + Randomf() * 0.5;
 	}
 
 	VectorCopy(org, s.light.origin);
@@ -107,7 +107,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
  * @brief
  */
 static void Cg_TeleporterEffect(const vec3_t org) {
-	Cg_TeleporterTrail(org, NULL);
+	Cg_TeleporterTrail(org, NULL );
 }
 
 /*
@@ -172,7 +172,8 @@ void Cg_EntityEvent(cl_entity_t *e) {
 		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*land_1"), ATTN_NORM);
 		break;
 	case EV_CLIENT_JUMP:
-		cgi.PlaySample(NULL, s->number, cgi.LoadSample(va("*jump_%d", Random() % 5 + 1)), ATTN_NORM);
+		cgi.PlaySample(NULL, s->number, cgi.LoadSample(va("*jump_%d", Random() % 5 + 1)),
+				ATTN_NORM);
 		break;
 	case EV_CLIENT_TELEPORT:
 		cgi.PlaySample(NULL, s->number, cg_sample_teleport, ATTN_IDLE);

@@ -554,18 +554,18 @@ typedef struct r_entity_s {
 #define MAX_ENTITIES		(MAX_EDICTS * 2)
 
 typedef struct r_particle_s {
-	vec3_t org;
-	vec3_t end;
-	vec3_t dir;
-	float roll;
-	struct r_image_s *image;
 	uint16_t type;
+	const r_image_t *image;
+	GLenum blend;
 	uint32_t color;
 	float alpha;
 	float scale;
 	float scroll_s;
 	float scroll_t;
-	GLenum blend;
+	float roll;
+	vec3_t org;
+	vec3_t end;
+	vec3_t dir;
 } r_particle_t;
 
 #define MAX_PARTICLES		16384

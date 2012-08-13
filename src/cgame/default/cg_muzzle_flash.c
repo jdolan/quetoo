@@ -33,7 +33,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t cou
 	int32_t i, j;
 
 	// project the particles just in front of the entity
-	AngleVectors(ent->angles, forward, right, NULL);
+	AngleVectors(ent->angles, forward, right, NULL );
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
 
@@ -65,22 +65,20 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t cou
 
 	for (i = 0; i < count; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
-			return;
-
-		p->accel[2] = -PARTICLE_GRAVITY;
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -2.0;
-
-		p->scale_vel = 4.0;
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+			break;
 
 		p->part.color = color + (Random() & 15);
+
+		p->alpha_vel = -2.0;
+		p->scale_vel = 4.0;
 
 		for (j = 0; j < 3; j++) {
 			p->part.org[j] = org[j] + 8.0 * Randomc();
 			p->vel[j] = 128.0 * Randomc();
 		}
+
+		p->accel[2] = -PARTICLE_GRAVITY;
 	}
 }
 
@@ -96,7 +94,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	int32_t j;
 
 	// project the puff just in front of the entity
-	AngleVectors(ent->angles, forward, right, NULL);
+	AngleVectors(ent->angles, forward, right, NULL );
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
 
@@ -126,21 +124,19 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL)))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_smoke)))
 		return;
 
-	p->accel[2] = 5.0;
-
-	p->part.image = cg_particle_smoke;
-
-	p->part.scale = 4.0;
-	p->scale_vel = 24.0;
+	p->part.blend = GL_ONE;
+	p->part.color = Random() & 7;
 
 	p->part.alpha = 0.8;
 	p->alpha_vel = -1.0;
 
-	p->part.color = Random() & 7;
-	p->part.blend = GL_ONE;
+	p->part.scale = 4.0;
+	p->scale_vel = 24.0;
+
+	p->part.roll = Randomc() * 100.0;
 
 	VectorCopy(org, p->part.org);
 
@@ -149,7 +145,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	}
 	p->vel[2] = 10.0;
 
-	p->part.roll = Randomc() * 100.0; // rotation
+	p->accel[2] = 5.0;
 }
 
 /*
@@ -191,8 +187,7 @@ void Cg_ParseMuzzleFlash(void) {
 		Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_MACHINEGUN:
-		cgi.PlaySample(NULL, ent_num, cg_sample_machinegun_fire[Random() % 4],
-				ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_machinegun_fire[Random() % 4], ATTN_NORM);
 		if (Random() & 1)
 			Cg_SmokeFlash(&cent->current);
 		break;

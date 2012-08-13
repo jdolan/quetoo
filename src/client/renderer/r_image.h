@@ -24,6 +24,7 @@
 
 #include "r_types.h"
 
+#define MAX_GL_TEXTURES 1024
 extern r_image_t *r_null_image;
 
 #define NUM_ENVMAP_IMAGES 3
@@ -38,17 +39,16 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 
 #ifdef __R_LOCAL_H__
 
-#define MAX_GL_TEXTURES		1024
 extern r_image_t r_images[MAX_GL_TEXTURES];
 extern uint16_t r_num_images;
 
-#define MAX_GL_LIGHTMAPS 	256
-#define TEXNUM_LIGHTMAPS 	MAX_GL_TEXTURES
+#define MAX_GL_LIGHTMAPS 256
+#define TEXNUM_LIGHTMAPS MAX_GL_TEXTURES
 
-#define MAX_GL_DELUXEMAPS	256
-#define TEXNUM_DELUXEMAPS	(TEXNUM_LIGHTMAPS + MAX_GL_LIGHTMAPS)
+#define MAX_GL_DELUXEMAPS 256
+#define TEXNUM_DELUXEMAPS (TEXNUM_LIGHTMAPS + MAX_GL_LIGHTMAPS)
 
-#define BACK_PLANE_EPSILON	0.01
+#define BACK_PLANE_EPSILON 0.01
 
 void R_SoftenTexture(byte *in, int32_t width, int32_t height, r_image_type_t type);
 void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_image_type_t type);

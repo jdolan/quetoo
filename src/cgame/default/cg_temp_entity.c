@@ -31,8 +31,16 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 	for (i = 0; i < 16; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_spark)))
 			break;
+
+		p->part.color = color + (Random() & 7);
+
+		p->part.alpha = 1.0;
+		p->alpha_vel = -1.0 / (0.7 + Randomc() * 0.1);
+
+		p->part.scale = 3.5;
+		p->scale_vel = -4.0;
 
 		VectorCopy(org, p->part.org);
 
@@ -46,16 +54,6 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 			p->vel[2] = 100.0;
 
 		p->accel[2] -= 2.0 * PARTICLE_GRAVITY;
-
-		p->part.image = cg_particle_spark;
-
-		p->part.color = color + (Random() & 7);
-
-		p->part.scale = 3.5;
-		p->scale_vel = -4.0;
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -1.0 / (0.7 + Randomc() * 0.1);
 	}
 
 	VectorAdd(org, dir, s.light.origin);
@@ -73,12 +71,14 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
  */
 static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
-	float v;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_BEAM)))
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particle_beam)))
 		return;
 
-	p->part.image = cg_particle_beam;
+	p->part.color = 14;
+
+	p->part.alpha = 0.2;
+	p->alpha_vel = -0.4;
 
 	p->part.scale = 1.0;
 
@@ -88,13 +88,8 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	VectorSubtract(end, start, p->vel);
 	VectorScale(p->vel, 2.0, p->vel);
 
-	v = VectorNormalize(p->vel);
+	const float v = VectorNormalize(p->vel);
 	VectorScale(p->vel, v < 1000.0 ? v : 1000.0, p->vel);
-
-	p->part.alpha = 0.2;
-	p->alpha_vel = -0.4;
-
-	p->part.color = 14;
 }
 
 /*
@@ -107,27 +102,35 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	vec3_t v;
 	int32_t j;
 
-	if ((p = Cg_AllocParticle(PARTICLE_DECAL))) {
-		VectorAdd(org, dir, p->part.org);
+	const r_image_t *image = cg_particle_bullet[Random() % 3];
+
+	if ((p = Cg_AllocParticle(PARTICLE_DECAL, image))) {
+
+		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
+		p->part.color = 0 + (Random() & 1);
+
+		p->part.alpha = 2.0;
+		p->alpha_vel = -1.0 / (2.0 + Randomf() * 0.3);
+
+		p->part.scale = 1.5;
 
 		VectorScale(dir, -1.0, v);
 		VectorAngles(v, p->part.dir);
 		p->part.dir[ROLL] = Random() % 360;
 
-		p->part.image = cg_particle_bullet[Random() & 2];
-
-		p->part.color = 0 + (Random() & 1);
-
-		p->part.scale = 1.5;
-
-		p->part.alpha = 2.0;
-
-		p->alpha_vel = -1.0 / (2.0 + Randomf() * 0.3);
-
-		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
+		VectorAdd(org, dir, p->part.org);
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_NORMAL))) {
+	if ((p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_spark))) {
+
+		p->part.color = 221 + (Random() & 7);
+
+		p->part.alpha = 1.0;
+		p->alpha_vel = -1.0 / (0.6 + Randomc() * 0.1);
+
+		p->part.scale = 2.0;
+		p->scale_vel = -3.0;
+
 		VectorCopy(org, p->part.org);
 
 		VectorScale(dir, 200.0, p->vel);
@@ -140,16 +143,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			p->vel[2] = 100.0;
 
 		p->accel[2] = -3.0 * PARTICLE_GRAVITY;
-
-		p->part.image = cg_particle_spark;
-
-		p->part.color = 221 + (Random() & 7);
-
-		p->part.scale = 2.0;
-		p->scale_vel = -3.0;
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -1.0 / (0.6 + Randomc() * 0.1);
 	}
 
 	VectorAdd(org, dir, s.light.origin);
@@ -175,22 +168,21 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
 	cg_particle_t *p;
 	vec3_t v;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_DECAL)))
+	if (!(p = Cg_AllocParticle(PARTICLE_DECAL, cg_particle_burn)))
 		return;
 
-	p->part.image = cg_particle_burn;
+	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 	p->part.color = 0 + (Random() & 1);
+
+	p->part.alpha = 2.0;
+	p->alpha_vel = -1.0 / (2.0 + Randomf() * 0.3);
+
 	p->part.scale = scale;
 
 	VectorScale(dir, -1, v);
 	VectorAngles(v, p->part.dir);
 	p->part.dir[ROLL] = Random() % 360;
 	VectorAdd(org, dir, p->part.org);
-
-	p->part.alpha = 2.0;
-	p->alpha_vel = -1.0 / (2.0 + Randomf() * 0.3);
-
-	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 }
 
 /*
@@ -203,11 +195,14 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	for (i = 0; i < count; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_blood)))
 			break;
 
 		p->part.color = 232 + (Random() & 7);
-		p->part.image = cg_particle_blood;
+
+		p->part.alpha = 1.0;
+		p->alpha_vel = -1.0 / (0.5 + Randomf() * 0.3);
+
 		p->part.scale = 6.0;
 
 		d = Random() & 31;
@@ -219,14 +214,11 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->accel[0] = p->accel[1] = 0.0;
 		p->accel[2] = PARTICLE_GRAVITY / 4.0;
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -1.0 / (0.5 + Randomf() * 0.3);
 	}
 }
 
 #define GIB_STREAM_DIST 180.0
-#define GIB_STREAM_COUNT 25
+#define GIB_STREAM_COUNT 24
 
 /*
  * @brief
@@ -262,11 +254,16 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 		for (j = 1; j < GIB_STREAM_COUNT; j++) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
+			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_blood)))
 				return;
 
 			p->part.color = 232 + (Random() & 7);
-			p->part.image = cg_particle_blood;
+
+			p->part.alpha = 1.0;
+			p->alpha_vel = -1.0 / (2.0 + Randomf() * 0.3);
+
+			p->part.scale = 6.0 + Randomf();
+			p->scale_vel = -6.0 + Randomc();
 
 			VectorCopy(o, p->part.org);
 
@@ -277,12 +274,6 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 			p->accel[0] = p->accel[1] = 0.0;
 			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-			p->part.scale = 6.0 + Randomf();
-			p->scale_vel = -6.0 + Randomc();
-
-			p->part.alpha = 1.0;
-			p->alpha_vel = -1.0 / (2.0 + Randomf() * 0.3);
 		}
 	}
 }
@@ -297,12 +288,15 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	for (i = 0; i < count; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_spark)))
 			break;
 
-		p->part.image = cg_particle_spark;
-
 		p->part.color = 0xd7 + (i % 14);
+
+		p->part.alpha = 1.5;
+		p->alpha_vel = -1.0 / (0.5 + Randomf() * 0.3);
+
+		p->part.scale = 2.5;
 
 		VectorCopy(org, p->part.org);
 		VectorCopy(dir, p->vel);
@@ -315,11 +309,6 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->accel[0] = Randomc() * 16.0;
 		p->accel[1] = Randomc() * 16.0;
 		p->accel[2] = -PARTICLE_GRAVITY;
-
-		p->part.scale = 2.5;
-
-		p->part.alpha = 1.5;
-		p->alpha_vel = -1.0 / (0.5 + Randomf() * 0.3);
 	}
 
 	VectorCopy(org, s.light.origin);
@@ -340,10 +329,9 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	cg_particle_t *p;
 	r_sustained_light_t s;
 
-	if ((p = Cg_AllocParticle(PARTICLE_ROLL))) {
-		p->part.image = cg_particle_explosion;
+	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_explosion))) {
 
-		p->part.roll = Randomc() * 100.0;
+		p->part.color = 224;
 
 		p->part.scale = 6.0;
 		p->scale_vel = 600.0;
@@ -351,18 +339,17 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		p->part.alpha = 1.0;
 		p->alpha_vel = -4.0;
 
-		p->part.color = 224;
+		p->part.roll = Randomc() * 100.0;
 
 		VectorCopy(org, p->part.org);
 	}
 
 	if (!(cgi.PointContents(org) & MASK_WATER)) {
 
-		if ((p = Cg_AllocParticle(PARTICLE_ROLL))) {
-			p->part.image = cg_particle_smoke;
+		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_smoke))) {
 
-			p->part.type = PARTICLE_ROLL;
-			p->part.roll = Randomc() * 100.0;
+			p->part.blend = GL_ONE;
+			p->part.color = Random() & 7;
 
 			p->part.scale = 12.0;
 			p->scale_vel = 40.0;
@@ -370,8 +357,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			p->part.alpha = 1.0;
 			p->alpha_vel = -1.0 / (1 + Randomf() * 0.6);
 
-			p->part.color = Random() & 7;
-			p->part.blend = GL_ONE;
+			p->part.roll = Randomc() * 100.0;
 
 			VectorCopy(org, p->part.org);
 			p->part.org[2] += 10;
@@ -386,24 +372,25 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	for (j = 0; j < 128; j++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
 			break;
 
-		p->part.org[0] = org[0] + (Random() % 32) - 16;
-		p->part.org[1] = org[1] + (Random() % 32) - 16;
-		p->part.org[2] = org[2] + (Random() % 32) - 16;
+		p->part.color = 0xe0 + (Random() & 7);
+
+		p->part.alpha = 0.5 + Randomc() * 0.25;
+		p->alpha_vel = -1.0 + 0.25 * Randomc();
+
+		p->part.scale = 2.0;
+
+		p->part.org[0] = org[0] + (Random() % 32) - 16.0;
+		p->part.org[1] = org[1] + (Random() % 32) - 16.0;
+		p->part.org[2] = org[2] + (Random() % 32) - 16.0;
 
 		p->vel[0] = (Random() % 512) - 256;
 		p->vel[1] = (Random() % 512) - 256;
 		p->vel[2] = (Random() % 512) - 256;
 
 		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY);
-
-		p->part.alpha = 0.5 + Randomc() * 0.25;
-		p->alpha_vel = -1.0 + 0.25 * Randomc();
-
-		p->part.scale = 2.0;
-		p->part.color = 0xe0 + (Random() & 7);
 	}
 
 	VectorCopy(org, s.light.origin);
@@ -445,7 +432,7 @@ static void Cg_LightningEffect(const vec3_t org) {
 		VectorCopy(org, tmp);
 
 		for (j = 0; j < 3; j++)
-			tmp[j] = tmp[j] + (Random() % 96) - 48;
+			tmp[j] = tmp[j] + (Random() % 96) - 48.0;
 
 		Cg_BubbleTrail(org, tmp, 4.0);
 	}
@@ -477,21 +464,21 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 
 	cgi.AddSustainedLight(&s);
 
-	if (!(p = Cg_AllocParticle(PARTICLE_BEAM)))
+	// draw the core with a beam
+
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particle_beam)))
 		return;
 
-	// draw the core with a beam
-	p->part.image = cg_particle_beam;
-	p->part.scale = 3.0;
-
-	VectorCopy(start, p->part.org);
-	VectorCopy(end, p->part.end);
+	// white cores for some colors, shifted for others
+	p->part.color = (color > 239 || color == 187 ? 216 : color + 6);
 
 	p->part.alpha = 0.75;
 	p->alpha_vel = -1.0;
 
-	// white cores for some colors, shifted for others
-	p->part.color = (color > 239 || color == 187 ? 216 : color + 6);
+	p->part.scale = 3.0;
+
+	VectorCopy(start, p->part.org);
+	VectorCopy(end, p->part.end);
 
 	// and the spiral with normal parts
 	VectorCopy(start, point);
@@ -504,17 +491,10 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 
 	for (i = 0; i < len; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
 			return;
 
-		VectorAdd(point, vec, point);
-
-		VectorCopy(point, p->part.org);
-
-		VectorScale(vec, 2.0, p->vel);
-
-		VectorMA(p->part.org, cos(i * 0.1) * 6.0, right, p->part.org);
-		VectorMA(p->part.org, sin(i * 0.1) * 6.0, up, p->part.org);
+		p->part.color = color;
 
 		p->part.alpha = 1.0;
 		p->alpha_vel = -2.0 + i / len;
@@ -522,7 +502,13 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 		p->part.scale = 1.5 + Randomc() * 0.2;
 		p->scale_vel = 2.0 + Randomc() * 0.2;
 
-		p->part.color = color;
+		VectorAdd(point, vec, point);
+		VectorCopy(point, p->part.org);
+
+		VectorScale(vec, 2.0, p->vel);
+
+		VectorMA(p->part.org, cos(i * 0.1) * 6.0, right, p->part.org);
+		VectorMA(p->part.org, sin(i * 0.1) * 6.0, up, p->part.org);
 
 		// check for bubble trail
 		if (i % 24 == 0 && (cgi.PointContents(point) & MASK_WATER)) {
@@ -540,18 +526,16 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	if (flags & SURF_SKY)
 		return;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_explosion)))
 		return;
 
-	p->part.image = cg_particle_explosion;
+	p->part.color = color;
 
 	p->part.scale = 1.0;
 	p->scale_vel = 800.0;
 
 	p->part.alpha = 1.25;
 	p->alpha_vel = -10.0;
-
-	p->part.color = color;
 
 	VectorCopy(end, p->part.org);
 
@@ -572,26 +556,29 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_explosion)))
 			break;
 
-		p->part.image = cg_particle_explosion;
-
-		p->part.scale = 4.0;
-		p->scale_vel = 200.0 * (i + 1);
+		p->part.color = 200 + Random() % 3;
 
 		p->part.alpha = 1.0;
 		p->alpha_vel = -3.0;
 
-		p->part.color = 200 + Random() % 3;
+		p->part.scale = 4.0;
+		p->scale_vel = 200.0 * (i + 1);
 
 		VectorCopy(org, p->part.org);
 	}
 
 	for (i = 0; i < 96; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
 			break;
+
+		p->part.color = 200 + Random() % 3;
+
+		p->part.alpha = 0.5 + Randomc() * 0.25;
+		p->alpha_vel = -1.0 + 0.25 * Randomc();
 
 		p->part.scale = 4.0;
 
@@ -604,11 +591,6 @@ static void Cg_BfgEffect(const vec3_t org) {
 		p->vel[2] = (Random() % 768) - 384;
 
 		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY);
-
-		p->part.alpha = 0.5 + Randomc() * 0.25;
-		p->alpha_vel = -1.0 + 0.25 * Randomc();
-
-		p->part.color = 200 + Random() % 3;
 	}
 
 	VectorCopy(org, s.light.origin);
