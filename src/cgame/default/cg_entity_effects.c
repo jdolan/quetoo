@@ -54,6 +54,14 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 				break;
 			}
 
+			p->part.color = ent->current.client + (Random() & 7);
+
+			p->part.alpha = 1.0;
+			p->alpha_vel = -4.0 + Randomc();
+
+			p->part.scale = 1.0;
+			p->scale_vel = 0.0;
+
 			VectorMA(start, d, delta, p->part.org);
 			VectorScale(delta, 400.0, p->vel);
 
@@ -62,13 +70,6 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 				p->vel[i] += Randomc() * 5.0;
 			}
 
-			p->part.scale = 1.0;
-			p->scale_vel = 0.0;
-
-			p->part.alpha = 1.0;
-			p->alpha_vel = -4.0 + Randomc();
-
-			p->part.color = ent->current.client + (Random() & 7);
 			d += step;
 		}
 

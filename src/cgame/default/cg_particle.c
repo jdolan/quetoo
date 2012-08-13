@@ -47,14 +47,15 @@ static void Cg_PushParticle(cg_particle_t *p, cg_particle_t **list) {
  */
 static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
 
+	if (p->prev) {
+		p->prev->next = p->next;
+	}
+	if (p->next) {
+		p->next->prev = p->prev;
+	}
+
 	if (*list == p) {
 		*list = p->next;
-
-		if (*list) {
-			(*list)->prev = NULL;
-		}
-	} else if (p->prev) {
-		p->prev->next = p->next;
 	}
 
 	p->prev = p->next = NULL;
@@ -67,11 +68,6 @@ cg_particle_t *Cg_AllocParticle(const uint16_t type, const r_image_t *image) {
 
 	if (!cg_add_particles->integer)
 		return NULL ;
-
-	if (!type || !image) {
-		cgi.Debug("Cg_AllocParticle: Bad type or image\n");
-		return NULL ;
-	}
 
 	if (!cg_free_particles) {
 		cgi.Debug("Cg_AllocParticle: No free particles\n");
@@ -112,11 +108,11 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 	Cg_PushParticle(p, &cg_free_particles);
 
 	/*int32_t i = 0;
-	while (p) {
-		i++;
-		p = p->next;
-	}
-	printf("FREE PARTICLES %d\n", i);*/
+	 while (p) {
+	 i++;
+	 p = p->next;
+	 }
+	 printf("FREE PARTICLES %d\n", i);*/
 
 	return next;
 }
