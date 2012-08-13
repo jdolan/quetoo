@@ -249,7 +249,9 @@ void R_DrawParticles(void) {
 	v[0] = 90; // even if they are below us
 	AngleVectors(v, NULL, r_particle_state.splash_right[1], r_particle_state.splash_up[1]);
 
-	R_DrawParticles_(0xff);
+	R_DrawParticles_(PARTICLE_DECAL);
+
+	R_DrawParticles_(0xff & ~PARTICLE_DECAL);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
