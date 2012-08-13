@@ -110,6 +110,7 @@ static void Cl_DrawNetGraph(void) {
  */
 static void Cl_DrawRendererStats(void) {
 	char s[128];
+	r_pixel_t cw;
 
 	if (!cl_show_renderer_stats->value)
 		return;
@@ -120,7 +121,11 @@ static void Cl_DrawRendererStats(void) {
 	snprintf(s, sizeof(s) - 1, "%i bsp %i mesh %i lights %i coronas %i particles",
 			r_view.bsp_polys, r_view.mesh_polys, r_view.num_lights, r_view.num_coronas, r_view.num_particles);
 
-	R_DrawString(r_context.width - strlen(s) * 16, 0, s, CON_COLOR_YELLOW);
+	R_BindFont("small", &cw, NULL);
+
+	R_DrawString(r_context.width - strlen(s) * cw, 0, s, CON_COLOR_YELLOW);
+
+	R_BindFont(NULL, NULL, NULL);
 }
 
 /*
