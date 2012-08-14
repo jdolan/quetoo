@@ -1145,7 +1145,7 @@ void G_Init(void) {
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
-	g_motd = gi.Cvar("g_motd", "quake2world.net", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");
+	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");
 	g_mysql = gi.Cvar("g_mysql", "0", 0, NULL);
 	g_mysql_db = gi.Cvar("g_mysql_db", "quake2world", 0, NULL);
 	g_mysql_host = gi.Cvar("g_mysql_host", "localhost", 0, NULL);

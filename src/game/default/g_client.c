@@ -817,18 +817,26 @@ void G_ClientBegin(g_edict_t *ent) {
 	} else {
 		memset(welcome, 0, sizeof(welcome));
 
-		sprintf(welcome, "^2Welcome to ^7%s\n^2MOTD: ^7%s\n^2Gameplay is ^1%s", sv_hostname->string, g_motd->string, G_GameplayName(g_level.gameplay));
+		snprintf(welcome, sizeof(welcome) - 1, "^2Welcome to ^7%s", sv_hostname->string);
+
+		if (*g_motd->string) {
+			char motd[MAX_QPATH];
+			snprintf(motd, sizeof(motd) - 1, "\n%s^7", g_motd->string);
+
+			strlcat(welcome, motd, sizeof(welcome));
+		}
+
+		strlcat(welcome, "\n^2Gameplay is ^1", sizeof(welcome));
+		strlcat(welcome, G_GameplayName(g_level.gameplay), sizeof(welcome));
 
 		if (g_level.teams)
-			strcat(welcome, "\n^2Teams are enabled");
+			strlcat(welcome, "\n^2Teams are enabled", sizeof(welcome));
 
 		if (g_level.ctf)
-			strcat(welcome, "\n^2CTF is enabled");
+			strlcat(welcome, "\n^2CTF is enabled", sizeof(welcome));
 
 		if (g_voting->value)
-			strcat(welcome, "\n^2Voting is allowed");
-
-		welcome[sizeof(welcome) -1] = '\0';
+			strlcat(welcome, "\n^2Voting is allowed", sizeof(welcome));
 
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(welcome);
