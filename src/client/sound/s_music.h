@@ -24,7 +24,7 @@
 
 
 
-#ifdef __S_LOCAL_H__
+#if defined (__S_LOCAL_H__) || defined(__ECLIPSE__)
 
 void S_FrameMusic(void);
 void S_InitMusic(void);

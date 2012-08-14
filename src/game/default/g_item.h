@@ -22,7 +22,7 @@
 #ifndef __G_ITEM_H__
 #define __G_ITEM_H__
 
-#ifdef __G_LOCAL_H__
+#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
 
 #include "g_types.h"
 

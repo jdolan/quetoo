@@ -52,7 +52,7 @@ void Cl_Frame(uint32_t msec);
 void Cl_Init(void);
 void Cl_Shutdown(void);
 
-#ifdef __CL_LOCAL_H__
+#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
 
 extern cvar_t *cl_show_net_messages;
 extern cvar_t *cl_show_renderer_stats;

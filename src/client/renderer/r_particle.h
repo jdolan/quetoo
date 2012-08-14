@@ -27,7 +27,7 @@
 void R_AddParticle(const r_particle_t *p);
 void R_DrawParticles(void);
 
-#ifdef __R_LOCAL_H__
+#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
 
 #endif /* __R_LOCAL_H__ */
 

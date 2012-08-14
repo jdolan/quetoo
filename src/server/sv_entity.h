@@ -24,7 +24,7 @@
 
 #include "sv_types.h"
 
-#ifdef __SV_LOCAL_H__
+#if defined (__SV_LOCAL_H__) || defined(__ECLIPSE__)
 void Sv_WriteFrame(sv_client_t *client, size_buf_t *msg);
 void Sv_BuildClientFrame(sv_client_t *client);
 #endif /* __SV_LOCAL_H__ */

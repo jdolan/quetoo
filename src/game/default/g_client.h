@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
 void G_ClientBegin(g_edict_t *ent);
 void G_ClientBeginFrame(g_edict_t *ent);
 bool G_ClientConnect(g_edict_t *ent, char *user_info);

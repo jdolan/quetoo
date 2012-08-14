@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
 void G_ClientChaseThink(g_edict_t *ent);
 void G_ClientChaseNext(g_edict_t *ent);
 void G_ClientChasePrevious(g_edict_t *ent);

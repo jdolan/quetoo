@@ -28,7 +28,7 @@ void R_Color(const vec4_t color);
 void R_Setup3D(void);
 void R_Setup2D(void);
 
-#ifdef __R_LOCAL_H__
+#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
 
 #include "r_program.h"
 

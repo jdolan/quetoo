@@ -77,7 +77,7 @@ void R_DrawView(void);
 void R_EndFrame(void);
 void R_LoadMedia(void);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__) || defined(__ECLIPSE__)
 
 // private hardware configuration information
 typedef struct r_config_s {

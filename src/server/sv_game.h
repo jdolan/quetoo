@@ -24,7 +24,7 @@
 
 #include "sv_types.h"
 
-#ifdef __SV_LOCAL_H__
+#if defined (__SV_LOCAL_H__) || defined(__ECLIPSE__)
 void Sv_InitGame(void);
 void Sv_ShutdownGame(void);
 #endif /* __SV_LOCAL_H__ */

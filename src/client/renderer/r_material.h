@@ -24,7 +24,7 @@
 
 #include "r_types.h"
 
-#ifdef __R_LOCAL_H__
+#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
 // stage flags will persist on the stage structures but may also bubble
 // up to the material flags to determine render eligibility
 #define STAGE_TEXTURE			(1 << 0)

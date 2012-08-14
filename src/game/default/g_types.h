@@ -22,7 +22,7 @@
 #ifndef __G_TYPES_H__
 #define __G_TYPES_H__
 
-#include "quake2world.h"
+#include "game/game.h"
 
 // server commands sent directly to the client game
 typedef enum {
@@ -90,7 +90,7 @@ typedef struct {
 
 #define STAT_TOGGLE_BIT		0x8000 // used to force a stats field update
 
-#ifdef __G_LOCAL_H__
+#if defined(__G_LOCAL_H__) || defined(__ECLIPSE__)
 
 // edict->spawnflags
 #define SF_ITEM_TRIGGER			0x00000001

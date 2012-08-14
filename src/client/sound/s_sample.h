@@ -25,7 +25,7 @@
 s_sample_t *S_LoadSample(const char *name);
 void S_LoadSamples(void);
 
-#ifdef __S_LOCAL_H__
+#if defined (__S_LOCAL_H__) || defined(__ECLIPSE__)
 
 void S_FreeSamples(void);
 s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name);

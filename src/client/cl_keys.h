@@ -26,7 +26,7 @@
 
 const char *Cl_KeyNumToString(uint16_t key_num);
 
-#ifdef __CL_LOCAL_H__
+#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
 
 typedef struct key_name_s {
 	const char *name;

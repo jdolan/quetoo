@@ -24,7 +24,7 @@
 
 #include "cl_types.h"
 
-#ifdef __CL_LOCAL_H__
+#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
 bool Cl_CheckOrDownloadFile(const char *file_name);
 void Cl_ParseConfigString(void);
 void Cl_ParseServerMessage(void);

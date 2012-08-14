@@ -28,7 +28,7 @@ void Sv_Init(void);
 void Sv_Shutdown(const char *msg);
 void Sv_Frame(uint32_t msec);
 
-#ifdef __SV_LOCAL_H__
+#if defined (__SV_LOCAL_H__) || defined(__ECLIPSE__)
 // cvars
 extern cvar_t *sv_rcon_password;
 extern cvar_t *sv_download_url;

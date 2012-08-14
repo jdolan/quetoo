@@ -24,7 +24,7 @@
 
 #include "cg_types.h"
 
-#ifdef __CG_LOCAL_H__
+#if defined (__CG_LOCAL_H__) || defined(__ECLIPSE__)
 void Cg_LoadEmits(void);
 void Cg_AddEmits(void);
 #endif /* __CG_LOCAL_H__ */

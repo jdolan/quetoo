@@ -24,7 +24,7 @@
 
 #include "ui_types.h"
 
-#ifdef __UI_LOCAL_H__
+#if defined (__UI_LOCAL_H__) || defined(__ECLIPSE__)
 
 void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def);
 void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def);

@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
 void G_info_player_deathmatch(g_edict_t *ent);
 void G_info_player_intermission(g_edict_t *ent);
 void G_info_notnull(g_edict_t *self);

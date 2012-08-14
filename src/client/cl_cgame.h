@@ -24,7 +24,7 @@
 
 #include "cl_types.h"
 
-#ifdef __CL_LOCAL_H__
+#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
 void Cl_InitCgame(void);
 void Cl_ShutdownCgame(void);
 #endif /* __CL_LOCAL_H__ */

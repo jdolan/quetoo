@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
 void G_ClientScores(g_edict_t *client);
 void G_ClientSpectatorStats(g_edict_t *ent);
 void G_ClientStats(g_edict_t *ent);

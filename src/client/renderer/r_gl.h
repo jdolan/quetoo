@@ -28,7 +28,7 @@
 # define GLchar char
 #endif
 
-#ifdef __R_LOCAL_H__
+#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
 
 #ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE

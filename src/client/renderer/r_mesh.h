@@ -24,7 +24,7 @@
 
 #include "r_types.h"
 
-#ifdef __R_LOCAL_H__
+#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
 
 extern vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3];
 extern vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];

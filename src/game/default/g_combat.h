@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
 bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor);
 void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t dir,
 		vec3_t point, vec3_t normal, int16_t damage, int16_t knockback, int32_t dflags, int32_t mod);

@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
 void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const float kick);
 void G_ClientWeaponKick(g_edict_t *ent, const float kick);
 void G_ClientEndFrame(g_edict_t *ent);

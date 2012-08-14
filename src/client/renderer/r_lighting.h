@@ -22,7 +22,7 @@
 #ifndef __R_LIGHTING_H__
 #define __R_LIGHTING_H__
 
-#ifdef __R_LOCAL_H__
+#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
 void R_UpdateLighting(r_lighting_t *lighting);
 void R_ApplyLighting(const r_lighting_t *lighting);
 #endif /* __R_LOCAL_H__ */

@@ -27,7 +27,7 @@
 #include "game/game.h"
 #include "net.h"
 
-#ifdef __SV_LOCAL_H__
+#if defined (__SV_LOCAL_H__) || defined(__ECLIPSE__)
 
 typedef enum {
 	SV_UNINITIALIZED, // no level loaded

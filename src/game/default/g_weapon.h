@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
 void G_ChangeWeapon(g_edict_t *ent);
 bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other);
 void G_UseBestWeapon(g_client_t *client);

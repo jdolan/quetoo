@@ -26,7 +26,7 @@
 
 void R_AddCorona(const r_corona_t *c);
 
-#ifdef __R_LOCAL_H__
+#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
 void R_DrawCoronas(void);
 #endif /* __R_LOCAL_H__ */
 

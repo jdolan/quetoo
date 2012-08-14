@@ -22,7 +22,7 @@
 #ifndef __CL_SCREEN_H__
 #define __CL_SCREEN_H__
 
-#ifdef __CL_LOCAL_H__
+#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
 void Cl_CenterPrint(char *s);
 void Cl_AddNetGraph(void);
 void Cl_UpdateScreen(void);

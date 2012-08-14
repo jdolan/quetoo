@@ -24,7 +24,7 @@
 
 #include "r_types.h"
 
-#ifdef __R_LOCAL_H__
+#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
 void R_ClearSkyBox(void);
 void R_DrawSkyBox(void);
 void R_SetSky(char *name);

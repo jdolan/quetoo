@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
 void G_func_areaportal(g_edict_t *ent);
 void G_func_button(g_edict_t *ent);
 void G_func_conveyor(g_edict_t *self);

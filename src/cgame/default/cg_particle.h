@@ -22,7 +22,7 @@
 #ifndef __CG_PARTICLE_H__
 #define __CG_PARTICLE_H__
 
-#ifdef __CG_LOCAL_H__
+#if defined (__CG_LOCAL_H__) || defined(__ECLIPSE__)
 
 typedef struct cg_particle_s {
 	r_particle_t part; // the r_particle_t to add to the view

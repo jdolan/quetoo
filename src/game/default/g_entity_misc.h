@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
 void G_misc_teleporter(g_edict_t *self);
 void G_misc_teleporter_dest(g_edict_t *self);
 #endif /* __G_LOCAL_H__ */

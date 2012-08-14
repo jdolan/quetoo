@@ -24,7 +24,7 @@
 
 #include "sv_types.h"
 
-#ifdef __SV_LOCAL_H__
+#if defined (__SV_LOCAL_H__) || defined(__ECLIPSE__)
 void Sv_InitWorld(void);
 void Sv_LinkEdict(g_edict_t *ent);
 void Sv_UnlinkEdict(g_edict_t *ent);

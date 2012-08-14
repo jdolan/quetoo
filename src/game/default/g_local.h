@@ -22,7 +22,6 @@
 #ifndef __G_LOCAL_H__
 #define __G_LOCAL_H__
 
-#include "shared.h"
 #include "game/game.h"
 
 #ifdef HAVE_MYSQL

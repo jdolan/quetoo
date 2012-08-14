@@ -24,7 +24,7 @@
 
 #include "ui_types.h"
 
-#ifdef __UI_LOCAL_H__
+#if defined (__UI_LOCAL_H__) || defined(__ECLIPSE__)
 TwBar *Ui_Controls(void);
 #endif /* __UI_LOCAL_H__ */
 
