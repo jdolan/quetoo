@@ -28,10 +28,6 @@
 #include "threads.h"
 #include "r_matrix.h"
 
-#define PITCH			0
-#define YAW				1
-#define ROLL			2
-
 typedef int16_t r_pixel_t;
 
 typedef struct r_stage_blend_s {
