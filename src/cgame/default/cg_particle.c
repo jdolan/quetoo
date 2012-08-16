@@ -50,6 +50,7 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
 	if (p->prev) {
 		p->prev->next = p->next;
 	}
+
 	if (p->next) {
 		p->next->prev = p->prev;
 	}
@@ -106,13 +107,6 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 	p->part.scale = 1.0;
 
 	Cg_PushParticle(p, &cg_free_particles);
-
-	/*int32_t i = 0;
-	 while (p) {
-	 i++;
-	 p = p->next;
-	 }
-	 printf("FREE PARTICLES %d\n", i);*/
 
 	return next;
 }
