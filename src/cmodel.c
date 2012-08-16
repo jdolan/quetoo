@@ -642,8 +642,9 @@ static void Cm_InitBoxHull(void) {
 	cm_box.head_node = c_bsp.num_nodes;
 	cm_box.planes = &c_bsp.planes[c_bsp.num_planes];
 	if (c_bsp.num_nodes + 6 > MAX_BSP_NODES || c_bsp.num_brushes + 1 > MAX_BSP_BRUSHES
-			|| c_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES || c_bsp.num_brush_sides + 6
-			> MAX_BSP_BRUSH_SIDES || c_bsp.num_planes + 12 > MAX_BSP_PLANES) {
+			|| c_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES
+			|| c_bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES
+			|| c_bsp.num_planes + 12 > MAX_BSP_PLANES) {
 		Com_Error(ERR_DROP, "Cm_InitBoxHull: Not enough room for box tree.\n");
 	}
 
@@ -796,8 +797,8 @@ static void Cm_BoxLeafnums_r(int32_t node_num, c_bsp_leaf_data_t *data) {
 /*
  * @brief
  */
-static int32_t Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len,
-		int32_t head_node, int32_t *top_node) {
+static int32_t Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, int32_t *list,
+		size_t len, int32_t head_node, int32_t *top_node) {
 	c_bsp_leaf_data_t data;
 	data.list = list;
 	data.len = 0;
@@ -819,7 +820,8 @@ static int32_t Cm_BoxLeafnums_head_node(const vec3_t mins, const vec3_t maxs, in
  * @brief Populates the list of leafs the specified bounding box touches. Returns the
  * length of the populated list.
  */
-int32_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len, int32_t *top_node) {
+int32_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len,
+		int32_t *top_node) {
 	const int32_t head_node = c_bsp.models[0].head_node;
 	return Cm_BoxLeafnums_head_node(mins, maxs, list, len, head_node, top_node);
 }
@@ -905,33 +907,29 @@ static bool Cm_BrushAlreadyTested(int32_t brush_num, c_trace_data_t *data) {
 static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_trace_t *trace,
 		c_bsp_leaf_t *leaf, c_bsp_brush_t *brush, bool is_point) {
 	int32_t i, j;
-	c_bsp_plane_t *clip_plane;
-	float dist;
-	float enter_fraction, leave_fraction;
-	vec3_t ofs;
-	float d1, d2;
-	bool end_outside, start_outside;
-	c_bsp_brush_side_t *lead_side;
-
-	enter_fraction = -1;
-	leave_fraction = 1;
-	clip_plane = NULL;
 
 	if (!brush->num_sides)
 		return;
 
 	c_bsp_brush_traces++;
 
-	end_outside = start_outside = false;
-	lead_side = NULL;
+	float enter_fraction = -1.0;
+	float leave_fraction = 1.0;
+
+	const c_bsp_plane_t *clip_plane = NULL;
+
+	bool end_outside = false, start_outside = false;
+	const c_bsp_brush_side_t *lead_side = NULL;
 
 	for (i = 0; i < brush->num_sides; i++) {
-		c_bsp_brush_side_t *side = &c_bsp.brush_sides[brush->first_brush_side + i];
-		c_bsp_plane_t *plane = side->plane;
+		const c_bsp_brush_side_t *side = &c_bsp.brush_sides[brush->first_brush_side + i];
+		const c_bsp_plane_t *plane = side->plane;
+		float dist;
 
 		// FIXME: special case for axial
 
 		if (!is_point) { // general box case
+			vec3_t ofs;
 
 			// push the plane out appropriately for mins/maxs
 
@@ -948,8 +946,8 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 			dist = plane->dist;
 		}
 
-		d1 = DotProduct(p1, plane->normal) - dist;
-		d2 = DotProduct(p2, plane->normal) - dist;
+		const float d1 = DotProduct(p1, plane->normal) - dist;
+		const float d2 = DotProduct(p2, plane->normal) - dist;
 
 		if (d2 > 0.0)
 			end_outside = true; // end point is not in solid
@@ -1004,18 +1002,14 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *trace,
 		c_bsp_brush_t *brush) {
 	int32_t i, j;
-	c_bsp_plane_t *plane;
-	float dist;
-	vec3_t offset;
-	float d1;
-	c_bsp_brush_side_t *side;
 
 	if (!brush->num_sides)
 		return;
 
 	for (i = 0; i < brush->num_sides; i++) {
-		side = &c_bsp.brush_sides[brush->first_brush_side + i];
-		plane = side->plane;
+		const c_bsp_brush_side_t *side = &c_bsp.brush_sides[brush->first_brush_side + i];
+		const c_bsp_plane_t *plane = side->plane;
+		vec3_t offset;
 
 		// FIXME: special case for axial
 
@@ -1030,10 +1024,9 @@ static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *tr
 			else
 				offset[j] = mins[j];
 		}
-		dist = DotProduct(offset, plane->normal);
-		dist = plane->dist - dist;
+		const float dist = plane->dist - DotProduct(offset, plane->normal);
 
-		d1 = DotProduct(p1, plane->normal) - dist;
+		const float d1 = DotProduct(p1, plane->normal) - dist;
 
 		// if completely in front of face, no intersection
 		if (d1 > 0.0)
@@ -1109,8 +1102,8 @@ static void Cm_TestInLeaf(int32_t leaf_num, c_trace_data_t *data) {
 /*
  * @brief
  */
-static void Cm_RecursiveHullCheck(int32_t num, float p1f, float p2f, const vec3_t p1, const vec3_t p2,
-		c_trace_data_t *data) {
+static void Cm_RecursiveHullCheck(int32_t num, float p1f, float p2f, const vec3_t p1,
+		const vec3_t p2, c_trace_data_t *data) {
 	const c_bsp_node_t *node;
 	const c_bsp_plane_t *plane;
 	float t1, t2, offset;
@@ -1144,9 +1137,9 @@ static void Cm_RecursiveHullCheck(int32_t num, float p1f, float p2f, const vec3_
 		if (data->is_point)
 			offset = 0;
 		else
-			offset = fabsf(data->extents[0] * plane->normal[0]) + fabsf(
-					data->extents[1] * plane->normal[1]) + fabsf(
-					data->extents[2] * plane->normal[2]);
+			offset = fabsf(data->extents[0] * plane->normal[0])
+					+ fabsf(data->extents[1] * plane->normal[1])
+					+ fabsf(data->extents[2] * plane->normal[2]);
 	}
 
 	// see which sides we need to consider
@@ -1280,7 +1273,8 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
  * rotating entities.
  */
 c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
-		const vec3_t maxs, int32_t head_node, int32_t brush_mask, const vec3_t origin, const vec3_t angles) {
+		const vec3_t maxs, int32_t head_node, int32_t brush_mask, const vec3_t origin,
+		const vec3_t angles) {
 
 	c_trace_t trace;
 	vec3_t start_l, end_l;
