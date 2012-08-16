@@ -266,7 +266,7 @@ typedef struct {
 	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
-	struct model_s *model;
+	struct r_model_s *model;
 
 	// leaf specific
 	int16_t cluster;
