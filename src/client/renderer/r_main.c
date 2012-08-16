@@ -38,6 +38,7 @@ cvar_t *r_clear;
 cvar_t *r_cull;
 cvar_t *r_lock_vis;
 cvar_t *r_no_vis;
+cvar_t *r_draw_bsp_leafs;
 cvar_t *r_draw_bsp_lights;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_wireframe;
@@ -97,7 +98,8 @@ extern cl_client_t cl;
 extern cl_static_t cls;
 
 /*
- * @brief
+ * @brief Updates the clipping planes for the view frustum based on the origin
+ * and angles for this frame.
  */
 void R_UpdateFrustum(void) {
 	int32_t i;
@@ -178,6 +180,8 @@ void R_DrawView(void) {
 	R_DrawBlendSurfaces(r_world_model->blend_surfaces);
 
 	R_DrawBlendWarpSurfaces(r_world_model->blend_warp_surfaces);
+
+	R_DrawBspLeafs();
 
 	R_DrawParticles();
 
@@ -476,10 +480,12 @@ static void R_InitLocal(void) {
 			"Temporarily locks the PVS lookup for world surfaces (developer tool)");
 	r_no_vis = Cvar_Get("r_no_vis", "0", CVAR_LO_ONLY,
 			"Disables PVS refresh and lookup for world surfaces (developer tool)");
+	r_draw_bsp_leafs = Cvar_Get("r_draw_bsp_leafs", "0", CVAR_LO_ONLY,
+			"Controls the rendering of BSP leafs (developer tool)");
 	r_draw_bsp_lights = Cvar_Get("r_draw_bsp_lights", "0", CVAR_LO_ONLY,
 			"Controls the rendering of static BSP light sources (developer tool)");
 	r_draw_bsp_normals = Cvar_Get("r_draw_bsp_normals", "0", CVAR_LO_ONLY,
-			"Controls the rendering of surface normals (developer tool)");
+			"Controls the rendering of BSP surface normals (developer tool)");
 	r_draw_wireframe = Cvar_Get("r_draw_wireframe", "0", CVAR_LO_ONLY,
 			"Controls the rendering of polygons as wireframe (developer tool)");
 

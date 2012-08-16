@@ -100,8 +100,7 @@ c_trace_t R_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const
 /*
  * @brief Returns true if the specified bounding box is completely culled by the
  * view frustum, false otherwise.
- */
-bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
+ */bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 	int32_t i;
 
 	if (!r_cull->value)
@@ -118,8 +117,7 @@ bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 /*
  * @brief Returns true if the specified entity is completely culled by the view
  * frustum, false otherwise.
- */
- bool R_CullBspModel(const r_entity_t *e) {
+ */bool R_CullBspModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 	int32_t i;
 
@@ -140,7 +138,9 @@ bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 }
 
 /*
- * @brief
+ * @brief Draws all BSP surfaces for the specified entity. This is a condensed
+ * version of the world drawing routine that relies on setting the visibility
+ * counters to -1 to safely iterate the sorted surfaces arrays.
  */
 static void R_DrawBspModelSurfaces(const r_entity_t *e) {
 	r_bsp_surface_t *surf;
@@ -199,7 +199,8 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e) {
 }
 
 /*
- * @brief
+ * @brief Draws the BSP model for the specified entity, taking translation and
+ * rotation into account.
  */
 void R_DrawBspModel(const r_entity_t *e) {
 	vec3_t forward, right, up;
@@ -310,6 +311,54 @@ void R_DrawBspNormals(void) {
 }
 
 /*
+ * @brief Developer tool for viewing BSP leafs.
+ */
+void R_DrawBspLeafs(void) {
+	const vec4_t leaf_colors[] = {
+		{ 0.8, 0.4, 0.4, 0.4 },
+		{ 0.4, 0.8, 0.4, 0.4 },
+		{ 0.4, 0.4, 0.8, 0.4 },
+		{ 0.8, 0.8, 0.4, 0.4 },
+		{ 0.4, 0.8, 0.8, 0.4 },
+		{ 0.8, 0.4, 0.8, 0.4 },
+		{ 0.8, 0.8, 0.8, 0.4 }
+	};
+
+	if (!r_draw_bsp_leafs->value)
+		return;
+
+	R_SetArrayState(r_world_model);
+
+	R_EnableTexture(&texunit_diffuse, false);
+
+	glPolygonOffset(-1.0, 0.0);
+
+	const r_bsp_leaf_t *l = r_world_model->leafs;
+	uint16_t i;
+
+	for (i = 0; i < r_world_model->num_leafs; i++, l++) {
+
+		if (l->vis_frame != r_locals.vis_frame)
+			continue;
+
+		R_Color(leaf_colors[i % lengthof(leaf_colors)]);
+
+		r_bsp_surface_t **s = l->first_leaf_surface;
+		uint16_t j;
+
+		for (j = 0; j < l->num_leaf_surfaces; j++, s++) {
+			glDrawArrays(GL_POLYGON, (*s)->index, (*s)->num_edges);
+		}
+	}
+
+	glPolygonOffset(0, 0);
+
+	R_EnableTexture(&texunit_diffuse, true);
+
+	R_Color(NULL);
+}
+
+/*
  * @brief Top-down BSP node recursion. Nodes identified as within the PVS by
  * R_MarkLeafs are first frustum-culled; those which fail immediately
  * return.
@@ -319,77 +368,77 @@ void R_DrawBspNormals(void) {
  * Finally, the back-side child node is recursed.
  */
 static void R_MarkSurfaces_(r_bsp_node_t *node) {
-	int32_t i, side, side_bit;
-	r_bsp_surface_t *surf, **lsurf;
-	c_bsp_plane_t *plane;
-	float dot;
+int32_t i, side, side_bit;
+r_bsp_surface_t *surf, **lsurf;
+c_bsp_plane_t *plane;
+float dot;
 
-	if (node->contents == CONTENTS_SOLID)
-		return; // solid
+if (node->contents == CONTENTS_SOLID)
+	return; // solid
 
-	if (node->vis_frame != r_locals.vis_frame)
-		return; // not in view
+if (node->vis_frame != r_locals.vis_frame)
+	return; // not in view
 
-	if (R_CullBox(node->mins, node->maxs))
-		return; // culled out
+if (R_CullBox(node->mins, node->maxs))
+	return; // culled out
 
-	// if leaf node, flag surfaces to draw this frame
-	if (node->contents != CONTENTS_NODE) {
-		r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
+// if leaf node, flag surfaces to draw this frame
+if (node->contents != CONTENTS_NODE) {
+	r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
 
-		if (r_view.area_bits) { // check for door connected areas
-			if (!(r_view.area_bits[leaf->area >> 3] & (1 << (leaf->area & 7))))
-				return; // not visible
-		}
-
-		lsurf = leaf->first_leaf_surface;
-
-		for (i = 0; i < leaf->num_leaf_surfaces; i++, lsurf++) {
-			(*lsurf)->vis_frame = r_locals.vis_frame;
-		}
-
-		return;
+	if (r_view.area_bits) { // check for door connected areas
+		if (!(r_view.area_bits[leaf->area >> 3] & (1 << (leaf->area & 7))))
+			return; // not visible
 	}
 
-	// otherwise, traverse down the appropriate sides of the node
+	lsurf = leaf->first_leaf_surface;
 
-	plane = node->plane;
-
-	if (AXIAL(plane))
-		dot = r_view.origin[plane->type] - plane->dist;
-	else
-		dot = DotProduct(r_view.origin, plane->normal) - plane->dist;
-
-	if (dot >= 0) {
-		side = 0;
-		side_bit = 0;
-	} else {
-		side = 1;
-		side_bit = R_SURF_SIDE_BACK;
+	for (i = 0; i < leaf->num_leaf_surfaces; i++, lsurf++) {
+		(*lsurf)->vis_frame = r_locals.vis_frame;
 	}
 
-	// recurse down the children, front side first
-	R_MarkSurfaces_(node->children[side]);
+	return;
+}
 
-	// prune all marked surfaces to just those which are front-facing
-	surf = r_world_model->surfaces + node->first_surface;
+// otherwise, traverse down the appropriate sides of the node
 
-	for (i = 0; i < node->num_surfaces; i++, surf++) {
+plane = node->plane;
 
-		if (surf->vis_frame == r_locals.vis_frame) { // it's been marked
+if (AXIAL(plane))
+	dot = r_view.origin[plane->type] - plane->dist;
+else
+	dot = DotProduct(r_view.origin, plane->normal) - plane->dist;
 
-			if ((surf->flags & R_SURF_SIDE_BACK) != side_bit) { // but back-facing
-				surf->frame = -1;
-				surf->back_frame = r_locals.frame;
-			} else { // draw it
-				surf->frame = r_locals.frame;
-				surf->back_frame = -1;
-			}
+if (dot >= 0) {
+	side = 0;
+	side_bit = 0;
+} else {
+	side = 1;
+	side_bit = R_SURF_SIDE_BACK;
+}
+
+// recurse down the children, front side first
+R_MarkSurfaces_(node->children[side]);
+
+// prune all marked surfaces to just those which are front-facing
+surf = r_world_model->surfaces + node->first_surface;
+
+for (i = 0; i < node->num_surfaces; i++, surf++) {
+
+	if (surf->vis_frame == r_locals.vis_frame) { // it's been marked
+
+		if ((surf->flags & R_SURF_SIDE_BACK) != side_bit) { // but back-facing
+			surf->frame = -1;
+			surf->back_frame = r_locals.frame;
+		} else { // draw it
+			surf->frame = r_locals.frame;
+			surf->back_frame = -1;
 		}
 	}
+}
 
-	// recurse down the back side
-	R_MarkSurfaces_(node->children[!side]);
+// recurse down the back side
+R_MarkSurfaces_(node->children[!side]);
 }
 
 /*
@@ -397,60 +446,60 @@ static void R_MarkSurfaces_(r_bsp_node_t *node) {
  * is also where the infamous r_optimize strategy is implemented.
  */
 void R_MarkSurfaces(void) {
-	static vec3_t old_origin, old_angles;
-	static vec2_t old_fov;
-	static int16_t old_vis_frame;
-	vec3_t o, a;
+static vec3_t old_origin, old_angles;
+static vec2_t old_fov;
+static int16_t old_vis_frame;
+vec3_t o, a;
 
-	VectorSubtract(r_view.origin, old_origin, o);
-	VectorSubtract(r_view.angles, old_angles, a);
+VectorSubtract(r_view.origin, old_origin, o);
+VectorSubtract(r_view.angles, old_angles, a);
 
-	// only recurse after cluster change AND significant movement
-	if (r_optimize->value && (r_locals.vis_frame == old_vis_frame) && // same pvs
-			(r_view.fov[0] == old_fov[0] && r_view.fov[1] == old_fov[1]) && // same fov
-			VectorLength(o) < 5.0 && VectorLength(a) < 2.0) // little movement
-		return;
+// only recurse after cluster change AND significant movement
+if (r_optimize->value && (r_locals.vis_frame == old_vis_frame) && // same pvs
+		(r_view.fov[0] == old_fov[0] && r_view.fov[1] == old_fov[1]) && // same fov
+		VectorLength(o) < 5.0 && VectorLength(a) < 2.0) // little movement
+	return;
 
-	old_vis_frame = r_locals.vis_frame;
+old_vis_frame = r_locals.vis_frame;
 
-	old_fov[0] = r_view.fov[0];
-	old_fov[1] = r_view.fov[1];
+old_fov[0] = r_view.fov[0];
+old_fov[1] = r_view.fov[1];
 
-	r_locals.frame++;
+r_locals.frame++;
 
-	if (r_locals.frame == 0x7fff) // avoid overflows, negatives are reserved
-		r_locals.frame = 0;
+if (r_locals.frame == 0x7fff) // avoid overflows, negatives are reserved
+	r_locals.frame = 0;
 
-	VectorCopy(r_view.origin, old_origin);
-	VectorCopy(r_view.angles, old_angles);
+VectorCopy(r_view.origin, old_origin);
+VectorCopy(r_view.angles, old_angles);
 
-	R_ClearSkyBox();
+R_ClearSkyBox();
 
-	// flag all visible world surfaces
-	R_MarkSurfaces_(r_world_model->nodes);
+// flag all visible world surfaces
+R_MarkSurfaces_(r_world_model->nodes);
 }
 
 /*
- * @brief
+ * @brief Returns the leaf for the specified point.
  */
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model) {
 
-	if (!model)
-		model = r_world_model;
+if (!model)
+	model = r_world_model;
 
-	return &model->leafs[Cm_PointLeafnum(p)];
+return &model->leafs[Cm_PointLeafnum(p)];
 }
 
 /*
- * @brief
+ * @brief Returns true if the specified leaf is in the given PVS/PHS vector.
  */
 static inline bool R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
-	int32_t c;
+int32_t c;
 
-	if ((c = leaf->cluster) == -1)
-		return false;
+if ((c = leaf->cluster) == -1)
+	return false;
 
-	return vis[c >> 3] & (1 << (c & 7));
+return vis[c >> 3] & (1 << (c & 7));
 }
 
 /*
@@ -459,24 +508,24 @@ static inline bool R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
  * another cluster. Returns -1 if no transition is taking place.
  */
 static int16_t R_CrossingContents(void) {
-	const r_bsp_leaf_t *leaf;
-	vec3_t org;
+const r_bsp_leaf_t *leaf;
+vec3_t org;
 
-	VectorCopy(r_view.origin, org);
+VectorCopy(r_view.origin, org);
 
-	org[2] -= 16.0;
-	leaf = R_LeafForPoint(org, NULL );
+org[2] -= 16.0;
+leaf = R_LeafForPoint(org, NULL );
 
-	if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
-		return leaf->cluster;
+if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
+	return leaf->cluster;
 
-	org[2] += 32.0;
-	leaf = R_LeafForPoint(org, NULL );
+org[2] += 32.0;
+leaf = R_LeafForPoint(org, NULL );
 
-	if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
-		return leaf->cluster;
+if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
+	return leaf->cluster;
 
-	return (int16_t) -1;
+return (int16_t) -1;
 }
 
 /*
@@ -486,80 +535,78 @@ static int16_t R_CrossingContents(void) {
  * dot-product test in order to be marked as visible for the current frame.
  */
 void R_MarkLeafs(void) {
-	r_bsp_leaf_t *leaf;
-	r_bsp_node_t *node;
-	int16_t cluster;
-	int32_t i;
+int16_t cluster;
+int32_t i;
 
-	if (r_lock_vis->value)
-		return;
+if (r_lock_vis->value)
+	return;
 
-	// resolve current cluster
-	r_locals.cluster = R_LeafForPoint(r_view.origin, NULL )->cluster;
+// resolve current cluster
+r_locals.cluster = R_LeafForPoint(r_view.origin, NULL )->cluster;
 
-	if (!r_no_vis->value && (r_locals.old_cluster == r_locals.cluster))
-		return;
+if (!r_no_vis->value && (r_locals.old_cluster == r_locals.cluster))
+	return;
 
-	r_locals.old_cluster = r_locals.cluster;
+r_locals.old_cluster = r_locals.cluster;
 
-	r_locals.vis_frame++;
+r_locals.vis_frame++;
 
-	if (r_locals.vis_frame == 0x7fff) // avoid overflows, negatives are reserved
-		r_locals.vis_frame = 0;
+if (r_locals.vis_frame == 0x7fff) // avoid overflows, negatives are reserved
+	r_locals.vis_frame = 0;
 
-	// if we have no vis, mark everything and return
-	if (r_no_vis->value || !r_world_model->vis || r_locals.cluster == -1) {
-		for (i = 0; i < r_world_model->num_leafs; i++)
-			r_world_model->leafs[i].vis_frame = r_locals.vis_frame;
-		for (i = 0; i < r_world_model->num_nodes; i++)
-			r_world_model->nodes[i].vis_frame = r_locals.vis_frame;
-		return;
+// if we have no vis, mark everything and return
+if (r_no_vis->value || !r_world_model->vis || r_locals.cluster == -1) {
+	for (i = 0; i < r_world_model->num_leafs; i++)
+		r_world_model->leafs[i].vis_frame = r_locals.vis_frame;
+	for (i = 0; i < r_world_model->num_nodes; i++)
+		r_world_model->nodes[i].vis_frame = r_locals.vis_frame;
+	return;
+}
+
+// resolve pvs for the current cluster
+const byte *pvs = Cm_ClusterPVS(r_locals.cluster);
+memcpy(r_locals.vis_data_pvs, pvs, sizeof(r_locals.vis_data_pvs));
+
+// check above or below the origin in case we are crossing opaque contents
+if ((cluster = R_CrossingContents()) != -1) {
+	pvs = Cm_ClusterPVS(cluster);
+
+	for (i = 0; i < MAX_BSP_LEAFS >> 3; i++) {
+		r_locals.vis_data_pvs[i] |= pvs[i];
 	}
+}
 
-	// resolve pvs for the current cluster
-	const byte *pvs = Cm_ClusterPVS(r_locals.cluster);
-	memcpy(r_locals.vis_data_pvs, pvs, sizeof(r_locals.vis_data_pvs));
+const byte *phs = Cm_ClusterPHS(r_locals.cluster);
+memcpy(r_locals.vis_data_phs, phs, sizeof(r_locals.vis_data_phs));
 
-	// check above or below the origin in case we are crossing opaque contents
-	if ((cluster = R_CrossingContents()) != -1) {
-		pvs = Cm_ClusterPVS(cluster);
+// recurse up the bsp from the visible leafs, marking a path via the nodes
+const r_bsp_leaf_t *leaf = r_world_model->leafs;
 
-		for (i = 0; i < MAX_BSP_LEAFS >> 3; i++) {
-			r_locals.vis_data_pvs[i] |= pvs[i];
-		}
+for (i = 0; i < r_world_model->num_leafs; i++, leaf++) {
+
+	if (!R_LeafInVis(leaf, r_locals.vis_data_pvs))
+		continue;
+
+	r_bsp_node_t *node = (r_bsp_node_t *) leaf;
+	while (node) {
+
+		if (node->vis_frame == r_locals.vis_frame)
+			break;
+
+		node->vis_frame = r_locals.vis_frame;
+		node = node->parent;
 	}
-
-	const byte *phs = Cm_ClusterPHS(r_locals.cluster);
-	memcpy(r_locals.vis_data_phs, phs, sizeof(r_locals.vis_data_phs));
-
-	// recurse up the bsp from the visible leafs, marking a path via the nodes
-	leaf = r_world_model->leafs;
-
-	for (i = 0; i < r_world_model->num_leafs; i++, leaf++) {
-
-		if (!R_LeafInVis(leaf, r_locals.vis_data_pvs))
-			continue;
-
-		node = (r_bsp_node_t *) leaf;
-		while (node) {
-
-			if (node->vis_frame == r_locals.vis_frame)
-				break;
-
-			node->vis_frame = r_locals.vis_frame;
-			node = node->parent;
-		}
-	}
+}
 }
 
 /*
  * @brief Returns true if the specified leaf is in the PVS for the current frame.
  */bool R_LeafInPvs(const r_bsp_leaf_t *leaf) {
-	return R_LeafInVis(leaf, r_locals.vis_data_pvs);
+return R_LeafInVis(leaf, r_locals.vis_data_pvs);
 }
 
 /*
  * @brief Returns true if the specified leaf is in the PHS for the current frame.
  */bool R_LeafInPhs(const r_bsp_leaf_t *leaf) {
-	return R_LeafInVis(leaf, r_locals.vis_data_phs);
+return R_LeafInVis(leaf, r_locals.vis_data_phs);
 }
