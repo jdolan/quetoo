@@ -181,13 +181,13 @@ void R_DrawView(void) {
 
 	R_DrawBlendWarpSurfaces(r_world_model->blend_warp_surfaces);
 
-	R_DrawBspLeafs();
-
 	R_DrawParticles();
 
 	R_EnableFog(false);
 
 	R_DrawCoronas();
+
+	R_DrawBspLeafs();
 
 	R_EnableBlend(false);
 

@@ -331,6 +331,8 @@ void R_DrawBspLeafs(void) {
 
 	R_EnableTexture(&texunit_diffuse, false);
 
+	glEnable(GL_POLYGON_OFFSET_FILL);
+
 	glPolygonOffset(-1.0, 0.0);
 
 	const r_bsp_leaf_t *l = r_world_model->leafs;
@@ -347,11 +349,16 @@ void R_DrawBspLeafs(void) {
 		uint16_t j;
 
 		for (j = 0; j < l->num_leaf_surfaces; j++, s++) {
+
+			if ((*s)->vis_frame != r_locals.vis_frame)
+				continue;
+
 			glDrawArrays(GL_POLYGON, (*s)->index, (*s)->num_edges);
 		}
 	}
 
-	glPolygonOffset(0, 0);
+	glPolygonOffset(0.0, 0.0);
+	glDisable(GL_POLYGON_OFFSET_FILL);
 
 	R_EnableTexture(&texunit_diffuse, true);
 
