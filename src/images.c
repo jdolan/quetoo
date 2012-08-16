@@ -51,8 +51,7 @@ typedef byte boolean;
 // 8bit palette for wal images and particles
 #define PALETTE "pics/colormap"
 uint32_t palette[256];
-//FIXME: use false instead of 0, silly workaround for silly bug
-bool palette_initialized = 0;
+bool palette_initialized = false;
 
 // .wal file header for loading legacy .wal textures
 typedef struct miptex_s {

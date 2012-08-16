@@ -260,7 +260,7 @@ typedef struct c_bsp_plane_s {
 	vec3_t normal;
 	float dist;
 	int32_t type; // for fast side tests
-	int32_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 1)
+	int32_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
 } c_bsp_plane_t;
 
 typedef struct c_model_s {

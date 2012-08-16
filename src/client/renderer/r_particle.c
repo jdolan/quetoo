@@ -22,8 +22,8 @@
 #include "r_local.h"
 
 /*
- * @brief TODO: We can add most of the particle "thinking" computations to this
- * function, which should help threaded performance.
+ * @brief Copies the specified particle into the view structure. Simple PVS
+ * culling is done for large particles.
  */
 void R_AddParticle(const r_particle_t *p) {
 
@@ -49,7 +49,7 @@ static r_particle_state_t r_particle_state;
  * @brief
  */
 static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
-	vec3_t v, up, right, upright, downright;
+	vec3_t v, up, right, up_right, down_right;
 	vec3_t *verts;
 	float scale;
 
@@ -123,13 +123,13 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
 		VectorScale(r_view.up, p->scale, up);
 	}
 
-	VectorAdd(up, right, upright);
-	VectorSubtract(right, up, downright);
+	VectorAdd(up, right, up_right);
+	VectorSubtract(right, up, down_right);
 
-	VectorSubtract(p->org, downright, verts[0]);
-	VectorAdd(p->org, upright, verts[1]);
-	VectorAdd(p->org, downright, verts[2]);
-	VectorSubtract(p->org, upright, verts[3]);
+	VectorSubtract(p->org, down_right, verts[0]);
+	VectorAdd(p->org, up_right, verts[1]);
+	VectorAdd(p->org, down_right, verts[2]);
+	VectorSubtract(p->org, up_right, verts[3]);
 }
 
 /*
