@@ -823,20 +823,20 @@ void G_ClientBegin(g_edict_t *ent) {
 			char motd[MAX_QPATH];
 			snprintf(motd, sizeof(motd) - 1, "\n%s^7", g_motd->string);
 
-			strlcat(welcome, motd, sizeof(welcome));
+			strncat(welcome, motd, sizeof(welcome) - strlen(welcome) - 1);
 		}
 
-		strlcat(welcome, "\n^2Gameplay is ^1", sizeof(welcome));
-		strlcat(welcome, G_GameplayName(g_level.gameplay), sizeof(welcome));
+		strncat(welcome, "\n^2Gameplay is ^1", sizeof(welcome) - strlen(welcome) - 1);
+		strncat(welcome, G_GameplayName(g_level.gameplay), sizeof(welcome) - strlen(welcome) - 1);
 
 		if (g_level.teams)
-			strlcat(welcome, "\n^2Teams are enabled", sizeof(welcome));
+			strncat(welcome, "\n^2Teams are enabled", sizeof(welcome) - strlen(welcome) - 1);
 
 		if (g_level.ctf)
-			strlcat(welcome, "\n^2CTF is enabled", sizeof(welcome));
+			strncat(welcome, "\n^2CTF is enabled", sizeof(welcome) - strlen(welcome) - 1);
 
 		if (g_voting->value)
-			strlcat(welcome, "\n^2Voting is allowed", sizeof(welcome));
+			strncat(welcome, "\n^2Voting is enabled", sizeof(welcome) - strlen(welcome) - 1);
 
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(welcome);
