@@ -543,5 +543,6 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 
 	R_ResetMeshState_default(e);
 
-	r_view.mesh_polys += e->model->num_verts / 3;
+	r_view.num_mesh_models++;
+	r_view.num_mesh_tris += e->model->num_verts / 3;
 }

@@ -71,7 +71,7 @@ static void R_DrawSurface_default(const r_bsp_surface_t *surf) {
 
 	glDrawArrays(GL_POLYGON, surf->index, surf->num_edges);
 
-	r_view.bsp_polys++;
+	r_view.num_bsp_surfaces++;
 }
 
 /*

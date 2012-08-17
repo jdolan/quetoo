@@ -56,23 +56,16 @@ static void R_LoadBspLightmaps(const d_bsp_lump_t *l) {
  * @brief
  */
 static void R_LoadBspVisibility(const d_bsp_lump_t *l) {
-	int32_t i;
+	r_bsp_cluster_t *cl;
 
 	if (!l->file_len) {
-		r_load_model->vis = NULL;
 		return;
 	}
 
-	r_load_model->vis_size = l->file_len;
-	r_load_model->vis = R_HunkAlloc(l->file_len);
-	memcpy(r_load_model->vis, mod_base + l->file_ofs, l->file_len);
+	d_bsp_vis_t *vis = (d_bsp_vis_t *)(mod_base + l->file_ofs);
 
-	r_load_model->vis->num_clusters = LittleLong(r_load_model->vis->num_clusters);
-
-	for (i = 0; i < r_load_model->vis->num_clusters; i++) {
-		r_load_model->vis->bit_offsets[i][0] = LittleLong(r_load_model->vis->bit_offsets[i][0]);
-		r_load_model->vis->bit_offsets[i][1] = LittleLong(r_load_model->vis->bit_offsets[i][1]);
-	}
+	r_load_model->num_clusters = LittleLong(vis->num_clusters);
+	cl = r_load_model->clusters = R_HunkAlloc(r_load_model->num_clusters * sizeof(r_bsp_cluster_t));
 }
 
 /*
@@ -1025,13 +1018,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug("  Nodes:          %d\n", r_load_model->num_nodes);
 	Com_Debug("  Leafs:          %d\n", r_load_model->num_leafs);
 	Com_Debug("  Leaf surfaces:  %d\n", r_load_model->num_leaf_surfaces);
+	Com_Debug("  Clusters:       %d\n", r_load_model->num_clusters);
 	Com_Debug("  Models:         %d\n", r_load_model->num_submodels);
 	Com_Debug("  Lightmaps:      %d\n", r_load_model->lightmap_data_size);
-	Com_Debug("  Vis:            %d\n", r_load_model->vis_size);
-
-	if (r_load_model->vis)
-		Com_Debug("  Clusters:   %d\n", r_load_model->vis->num_clusters);
-
 	Com_Debug("================================\n");
 
 	R_LoadBspVertexArrays();

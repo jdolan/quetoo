@@ -30,8 +30,13 @@ static void Cl_ClearView(void) {
 	r_view.num_entities = r_view.num_lights = 0;
 	r_view.num_particles = r_view.num_coronas = 0;
 
-	// reset geometry counters
-	r_view.bsp_polys = r_view.mesh_polys = 0;
+	// reset counters
+	r_view.num_bind_texture = r_view.num_bind_lightmap = r_view.num_bind_deluxemap = 0;
+	r_view.num_bind_normalmap = r_view.num_bind_glossmap = 0;
+
+	r_view.num_bsp_surfaces = 0;
+
+	r_view.num_mesh_models = r_view.num_mesh_tris = 0;
 }
 
 /*

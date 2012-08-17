@@ -276,6 +276,10 @@ typedef struct {
 	int16_t num_leaf_surfaces;
 } r_bsp_leaf_t;
 
+typedef struct {
+	int16_t vis_frame;
+} r_bsp_cluster_t;
+
 // static light sources
 typedef struct {
 	vec3_t origin;
@@ -431,8 +435,8 @@ typedef struct r_model_s {
 	uint16_t num_leaf_surfaces;
 	r_bsp_surface_t **leaf_surfaces;
 
-	uint32_t vis_size;
-	d_bsp_vis_t *vis;
+	uint16_t num_clusters;
+	r_bsp_cluster_t *clusters;
 
 	uint16_t lightmap_scale;
 	uint32_t lightmap_data_size;
@@ -641,8 +645,20 @@ typedef struct r_view_s {
 	c_trace_t trace; // occlusion testing
 	r_entity_t *trace_ent;
 
-	uint32_t bsp_polys; // counters
-	uint32_t mesh_polys;
+	// counters, reset each frame
+
+	uint32_t num_bind_texture;
+	uint32_t num_bind_lightmap;
+	uint32_t num_bind_deluxemap;
+	uint32_t num_bind_normalmap;
+	uint32_t num_bind_glossmap;
+
+	uint32_t num_bsp_clusters;
+	uint32_t num_bsp_leafs;
+	uint32_t num_bsp_surfaces;
+
+	uint32_t num_mesh_models;
+	uint32_t num_mesh_tris;
 
 	bool update; // inform the client of state changes
 } r_view_t;

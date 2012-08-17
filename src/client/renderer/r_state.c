@@ -26,10 +26,14 @@ static cvar_t *r_get_error;
 r_state_t r_state;
 
 const float default_texcoords[] = { // useful for particles, pics, etc..
-		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 };
+	0.0, 0.0,
+	1.0, 0.0,
+	1.0, 1.0,
+	0.0, 1.0
+};
 
 /*
- * @brief
+ * @brief Queries OpenGL for any errors and prints them as warnings.
  */
 void R_GetError_(const char *function, const char *msg) {
 	GLenum err;
@@ -101,7 +105,7 @@ void R_SelectTexture(r_texunit_t *texunit) {
 }
 
 /*
- * @brief Bind the specified texture for the active texture unit.
+ * @brief Binds the specified texture for the active texture unit.
  */
 void R_BindTexture(GLuint texnum) {
 
@@ -111,10 +115,12 @@ void R_BindTexture(GLuint texnum) {
 	r_state.active_texunit->texnum = texnum;
 
 	glBindTexture(GL_TEXTURE_2D, texnum);
+
+	r_view.num_bind_texture++;
 }
 
 /*
- * @brief
+ * @brief Binds the specified texture for the lightmap texture unit.
  */
 void R_BindLightmapTexture(GLuint texnum) {
 
@@ -126,10 +132,12 @@ void R_BindLightmapTexture(GLuint texnum) {
 	R_BindTexture(texnum);
 
 	R_SelectTexture(&texunit_diffuse);
+
+	r_view.num_bind_lightmap++;
 }
 
 /*
- * @brief
+ * @brief Binds the specified texture for the deluxemap texture unit.
  */
 void R_BindDeluxemapTexture(GLuint texnum) {
 
@@ -141,10 +149,12 @@ void R_BindDeluxemapTexture(GLuint texnum) {
 	R_BindTexture(texnum);
 
 	R_SelectTexture(&texunit_diffuse);
+
+	r_view.num_bind_deluxemap++;
 }
 
 /*
- * @brief
+ * @brief Binds the specified texture for the normalmap texture unit.
  */
 void R_BindNormalmapTexture(GLuint texnum) {
 
@@ -156,10 +166,12 @@ void R_BindNormalmapTexture(GLuint texnum) {
 	R_BindTexture(texnum);
 
 	R_SelectTexture(&texunit_diffuse);
+
+	r_view.num_bind_normalmap++;
 }
 
 /*
- * @brief
+ * @brief Binds the specified texture for the glossmap texture unit.
  */
 void R_BindGlossmapTexture(GLuint texnum) {
 
@@ -171,10 +183,12 @@ void R_BindGlossmapTexture(GLuint texnum) {
 	R_BindTexture(texnum);
 
 	R_SelectTexture(&texunit_diffuse);
+
+	r_view.num_bind_glossmap++;
 }
 
 /*
- * @brief
+ * @brief Binds the specified array for the given target.
  */
 void R_BindArray(GLenum target, GLenum type, GLvoid *array) {
 
@@ -300,7 +314,7 @@ void R_EnableAlphaTest(bool enable) {
 }
 
 /*
- * @brief
+ * @brief Enables the stencil test for e.g. rendering shadow volumes.
  */
 void R_EnableStencilTest(bool enable) {
 
@@ -391,7 +405,7 @@ void R_EnableLighting(r_program_t *program, bool enable) {
 }
 
 /*
- * @brief
+ * @brief Enables the warp shader for drawing liquids and other effects.
  */
 void R_EnableWarp(r_program_t *program, bool enable) {
 

@@ -35,7 +35,7 @@ static net_graph_sample_t net_graph_samples[NET_GRAPH_WIDTH];
 static int32_t num_net_graph_samples;
 
 /*
- * @brief
+ * @brief Accumulates a net graph sample.
  */
 static void Cl_NetGraph(float value, int32_t color) {
 
@@ -52,7 +52,9 @@ static void Cl_NetGraph(float value, int32_t color) {
 }
 
 /*
- * @brief
+ * @brief Accumulates net graph samples for the current frame. Dropped or
+ * suppressed packets are recorded as peak samples, and packet latency is
+ * recorded over a range of 0-300ms.
  */
 void Cl_AddNetGraph(void) {
 	uint32_t i;
@@ -77,7 +79,8 @@ void Cl_AddNetGraph(void) {
 }
 
 /*
- * @brief
+ * @brief Provides a real-time visual representation of latency and packet loss
+ * via a small graph drawn on screen.
  */
 static void Cl_DrawNetGraph(void) {
 	int32_t i, j, x, y, h;
@@ -109,8 +112,7 @@ static void Cl_DrawNetGraph(void) {
  * @brief
  */
 static void Cl_DrawRendererStats(void) {
-	char s[128];
-	r_pixel_t cw;
+	r_pixel_t ch, y = 64;
 
 	if (!cl_show_renderer_stats->value)
 		return;
@@ -118,14 +120,66 @@ static void Cl_DrawRendererStats(void) {
 	if (cls.state != CL_ACTIVE)
 		return;
 
-	snprintf(s, sizeof(s) - 1, "%i bsp %i mesh %i lights %i coronas %i particles",
-			r_view.bsp_polys, r_view.mesh_polys, r_view.num_lights, r_view.num_coronas, r_view.num_particles);
+	R_BindFont("small", NULL, &ch);
 
-	R_BindFont("small", &cw, NULL);
+	R_DrawString(0, y, "Materials:", CON_COLOR_GREEN);
+	y += ch;
 
-	R_DrawString(r_context.width - strlen(s) * cw, 0, s, CON_COLOR_YELLOW);
+	const uint32_t num_bind_diffuse = r_view.num_bind_texture - r_view.num_bind_lightmap
+				- r_view.num_bind_deluxemap - r_view.num_bind_normalmap - r_view.num_bind_glossmap;
 
-	R_BindFont(NULL, NULL, NULL);
+	R_DrawString(0, y, va("%d diffuse", num_bind_diffuse), CON_COLOR_GREEN);
+	y += ch;
+
+	R_DrawString(0, y, va("%d lightmap", r_view.num_bind_lightmap), CON_COLOR_GREEN);
+	y += ch;
+
+	R_DrawString(0, y, va("%d deluxemap", r_view.num_bind_deluxemap), CON_COLOR_GREEN);
+	y += ch;
+
+	R_DrawString(0, y, va("%d normalmap", r_view.num_bind_normalmap), CON_COLOR_GREEN);
+	y += ch;
+
+	R_DrawString(0, y, va("%d glossmap", r_view.num_bind_glossmap), CON_COLOR_GREEN);
+	y += ch;
+
+	y += ch;
+	R_DrawString(0, y, "BSP:", CON_COLOR_YELLOW);
+	y += ch;
+
+	R_DrawString(0, y, va("%d clusters", r_view.num_bsp_clusters), CON_COLOR_YELLOW);
+	y += ch;
+
+	R_DrawString(0, y, va("%d leafs", r_view.num_bsp_leafs), CON_COLOR_YELLOW);
+	y += ch;
+
+	R_DrawString(0, y, va("%d surfaces", r_view.num_bsp_surfaces), CON_COLOR_YELLOW);
+	y += ch;
+
+	y += ch;
+	R_DrawString(0, y, "Mesh:", CON_COLOR_CYAN);
+	y += ch;
+
+	R_DrawString(0, y, va("%d models", r_view.num_mesh_models), CON_COLOR_CYAN);
+	y += ch;
+
+	R_DrawString(0, y, va("%d tris", r_view.num_mesh_tris), CON_COLOR_CYAN);
+	y += ch;
+
+	y += ch;
+	R_DrawString(0, y, "Other:", CON_COLOR_WHITE);
+	y += ch;
+
+	R_DrawString(0, y, va("%d lights", r_view.num_lights), CON_COLOR_WHITE);
+	y += ch;
+
+	R_DrawString(0, y, va("%d coronas", r_view.num_coronas), CON_COLOR_WHITE);
+	y += ch;
+
+	R_DrawString(0, y, va("%d particles", r_view.num_particles), CON_COLOR_WHITE);
+	y += ch;
+
+	R_BindFont(NULL, NULL, NULL );
 }
 
 /*
@@ -175,7 +229,7 @@ static void Cl_DrawCounters(void) {
 
 	R_DrawString(x, y, bps, CON_COLOR_DEFAULT);
 
-	R_BindFont(NULL, NULL, NULL);
+	R_BindFont(NULL, NULL, NULL );
 }
 
 /*
