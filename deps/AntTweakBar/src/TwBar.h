@@ -174,6 +174,7 @@ struct CTwBar
     const CTexFont *        m_Font;
     int                     m_ValuesWidth;
     int                     m_Sep;
+    int                     m_LineSep;
     int                     m_FirstLine;
     float                   m_UpdatePeriod;
     bool                    m_IsHelpBar;

@@ -60,6 +60,7 @@ void Ui_Draw(void) {
 		h = r_context.height;
 
 		TwWindowSize(w, h);
+		TwDefine("GLOBAL fontresizable=false fontstyle=fixed ");
 
 		if (ui.top) {
 			Ui_CenterBar((void *) TwGetBarName(ui.top));
@@ -123,8 +124,6 @@ void Ui_Init(void) {
 	ui.OffOrOn = TwDefineEnum("OnOrOff", OffOrOn, lengthof(OffOrOn));
 	ui.OffLowMediumHigh = TwDefineEnum("OffLowMediumHigh", OffLowMediumHigh,
 			lengthof(OffLowMediumHigh));
-
-	TwDefine("GLOBAL fontresizable=false");
 
 	ui.root = Ui_Root();
 	ui.servers = Ui_Servers();

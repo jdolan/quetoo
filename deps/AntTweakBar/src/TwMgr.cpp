@@ -1624,8 +1624,56 @@ void CQuaternionExt::MouseLeaveCB(void *structExtValue, void *clientData, TwBar 
 //  ---------------------------------------------------------------------------
 //  Convertion between VC++ Debug/Release std::string
 //  (Needed because VC++ adds some extra info to std::string in Debug mode!)
+//  And resolve binary std::string incompatibility between VS2008- and VS2010+
 //  ---------------------------------------------------------------------------
 
+#ifdef _MSC_VER
+// VS2008 and lower store the string allocator pointer at the beginning
+// VS2010 and higher store the string allocator pointer at the end
+static void FixVS2010StdStringLibToClient(void *strPtr)
+{
+    char *ptr = (char *)strPtr;
+    const size_t SizeOfUndecoratedString = 16 + 2*sizeof(size_t) + sizeof(void *); // size of a VS std::string without extra debug iterator and info.
+    assert(SizeOfUndecoratedString <= sizeof(std::string));
+    TwType LibStdStringBaseType = (TwType)(TW_TYPE_STDSTRING&0xffff0000);
+    void **allocAddress2008 = (void **)(ptr + sizeof(std::string) - SizeOfUndecoratedString);
+    void **allocAddress2010 = (void **)(ptr + sizeof(std::string) - sizeof(void *));
+    if (LibStdStringBaseType == TW_TYPE_STDSTRING_VS2008 && g_TwMgr->m_ClientStdStringBaseType == TW_TYPE_STDSTRING_VS2010)
+    {
+        void *allocator = *allocAddress2008;
+        memmove(allocAddress2008, allocAddress2008 + 1, SizeOfUndecoratedString - sizeof(void *));
+        *allocAddress2010 = allocator;
+    }
+    else if (LibStdStringBaseType == TW_TYPE_STDSTRING_VS2010 && g_TwMgr->m_ClientStdStringBaseType == TW_TYPE_STDSTRING_VS2008)
+    {
+        void *allocator = *allocAddress2010;
+        memmove(allocAddress2008 + 1, allocAddress2008, SizeOfUndecoratedString - sizeof(void *));
+        *allocAddress2008 = allocator;
+    }
+}
+
+static void FixVS2010StdStringClientToLib(void *strPtr)
+{
+    char *ptr = (char *)strPtr;
+    const size_t SizeOfUndecoratedString = 16 + 2*sizeof(size_t) + sizeof(void *); // size of a VS std::string without extra debug iterator and info.
+    assert(SizeOfUndecoratedString <= sizeof(std::string));
+    TwType LibStdStringBaseType = (TwType)(TW_TYPE_STDSTRING&0xffff0000);
+    void **allocAddress2008 = (void **)(ptr + sizeof(std::string) - SizeOfUndecoratedString);
+    void **allocAddress2010 = (void **)(ptr + sizeof(std::string) - sizeof(void *));
+    if (LibStdStringBaseType == TW_TYPE_STDSTRING_VS2008 && g_TwMgr->m_ClientStdStringBaseType == TW_TYPE_STDSTRING_VS2010)
+    {
+        void *allocator = *allocAddress2010;
+        memmove(allocAddress2008 + 1, allocAddress2008, SizeOfUndecoratedString - sizeof(void *));
+        *allocAddress2008 = allocator;
+    }
+    else if (LibStdStringBaseType == TW_TYPE_STDSTRING_VS2010 && g_TwMgr->m_ClientStdStringBaseType == TW_TYPE_STDSTRING_VS2008)
+    {
+        void *allocator = *allocAddress2008;
+        memmove(allocAddress2008, allocAddress2008 + 1, SizeOfUndecoratedString - sizeof(void *));
+        *allocAddress2010 = allocator;
+    }
+}
+#endif // _MSC_VER
 
 CTwMgr::CClientStdString::CClientStdString()
 {
@@ -1636,6 +1684,9 @@ void CTwMgr::CClientStdString::FromLib(const char *libStr)
 {
     m_LibStr = libStr; // it is ok to have a local copy here
     memcpy(m_Data + sizeof(void *), &m_LibStr, sizeof(std::string));
+#ifdef _MSC_VER
+    FixVS2010StdStringLibToClient(m_Data + sizeof(void *));
+#endif
 }
 
 std::string& CTwMgr::CClientStdString::ToClient() 
@@ -1662,6 +1713,9 @@ void CTwMgr::CLibStdString::FromClient(const std::string& clientStr)
 {
     assert( g_TwMgr!=NULL );
     memcpy(m_Data + sizeof(void *), &clientStr, g_TwMgr->m_ClientStdStringStructSize);
+#ifdef _MSC_VER
+    FixVS2010StdStringClientToLib(m_Data + sizeof(void *));
+#endif
 }
 
 std::string& CTwMgr::CLibStdString::ToLib()
@@ -1693,12 +1747,10 @@ static int TwCreateGraph(ETwGraphAPI _GraphAPI)
     case TW_OPENGL:
         g_TwMgr->m_Graph = new CTwGraphOpenGL;
         break;
-    /* WIP
-    case TW_OPENGL_CORE:
+    /*case TW_OPENGL_CORE:
         g_TwMgr->m_Graph = new CTwGraphOpenGLCore;
         break;
-    */
-    /*case TW_DIRECT3D9:
+    case TW_DIRECT3D9:
         #ifdef ANT_WINDOWS
             if( g_TwMgr->m_Device!=NULL )
                 g_TwMgr->m_Graph = new CTwGraphDirect3D9;
@@ -1730,8 +1782,7 @@ static int TwCreateGraph(ETwGraphAPI _GraphAPI)
                 return 0;
             }
         #endif // ANT_WINDOWS
-        break;
-    */
+        break;*/
     default:
     	break;
     }
@@ -2025,9 +2076,9 @@ int ANT_CALL TwDraw()
     // For multi-thread savety
     if( !TwFreeAsyncDrawing() )
         return 0;
-/*
+
     // Create cursors
-    #if defined(ANT_WINDOWS) || defined(ANT_OSX)
+    /*#if defined(ANT_WINDOWS) || defined(ANT_OSX)
         if( !g_TwMgr->m_CursorsCreated )
             g_TwMgr->CreateCursors();
     #elif defined(ANT_UNIX)
@@ -2259,6 +2310,7 @@ CTwMgr::CTwMgr(ETwGraphAPI _GraphAPI, void *_Device, int _WndID)
     m_CopyCDStringToClient = g_InitCopyCDStringToClient;
     m_CopyStdStringToClient = g_InitCopyStdStringToClient;
     m_ClientStdStringStructSize = 0;
+    m_ClientStdStringBaseType = (TwType)0;
 }
 
 //  ---------------------------------------------------------------------------
@@ -2290,6 +2342,8 @@ int CTwMgr::HasAttrib(const char *_Attrib, bool *_HasValue) const
         return MGR_HELP;
     else if( _stricmp(_Attrib, "fontsize")==0 )
         return MGR_FONT_SIZE;
+    else if( _stricmp(_Attrib, "fontstyle")==0 )
+        return MGR_FONT_STYLE;
     else if( _stricmp(_Attrib, "iconpos")==0 )
         return MGR_ICON_POS;
     else if( _stricmp(_Attrib, "iconalign")==0 )
@@ -2340,6 +2394,39 @@ int CTwMgr::SetAttrib(int _AttribID, const char *_Value)
                     SetFont(g_DefaultNormalFont, true);
                 else if( s==3 )
                     SetFont(g_DefaultLargeFont, true);
+                return 1;
+            }
+            else
+            {
+                SetLastError(g_ErrBadValue);
+                return 0;
+            }
+        }
+        else
+        {
+            SetLastError(g_ErrNoValue);
+            return 0;
+        }
+    case MGR_FONT_STYLE:
+        if( _Value && strlen(_Value)>0 )
+        {
+            if( _stricmp(_Value, "fixed")==0 )
+            {
+                if( m_CurrentFont!=g_DefaultFixed1Font )
+                {
+                    SetFont(g_DefaultFixed1Font, true);
+                    m_FontResizable = false; // for now fixed font is not resizable
+                }
+                return 1;
+            } 
+            else if( _stricmp(_Value, "default")==0 )
+            {
+                if( m_CurrentFont!=g_DefaultSmallFont && m_CurrentFont!=g_DefaultNormalFont && m_CurrentFont!=g_DefaultLargeFont )
+                {
+                    if( m_CurrentFont == g_DefaultFixed1Font )
+                        m_FontResizable = true;
+                    SetFont(g_DefaultNormalFont, true);
+                }
                 return 1;
             }
             else
@@ -2579,6 +2666,12 @@ ERetType CTwMgr::GetAttrib(int _AttribID, std::vector<double>& outDoubles, std::
         else
             outDoubles.push_back(0); // should not happened
         return RET_DOUBLE;
+    case MGR_FONT_STYLE:
+        if( m_CurrentFont==g_DefaultFixed1Font )
+            outString << "fixed";
+        else 
+            outString << "default";
+        return RET_STRING;
     case MGR_ICON_POS:
         if( m_IconPos==0 )
             outString << "bottomleft";
@@ -3047,7 +3140,7 @@ int ANT_CALL TwDeleteAllBars()
 
     if( n==0 )
     {
-        g_TwMgr->SetLastError(g_ErrNthToDo);
+        //g_TwMgr->SetLastError(g_ErrNthToDo);
         return 0;
     }
     else
@@ -3981,8 +4074,13 @@ static int AddVar(TwBar *_Bar, const char *_Name, ETwType _Type, void *_VarPtr, 
 
     // VC++ uses a different definition of std::string in Debug and Release modes.
     // sizeof(std::string) is encoded in TW_TYPE_STDSTRING to overcome this issue.
-    if( (_Type&0xffff0000)==(TW_TYPE_STDSTRING&0xffff0000) )
+    // With VS2010 the binary representation of std::string has changed too. This is
+    // also detected here.
+    if( (_Type&0xffff0000)==(TW_TYPE_STDSTRING&0xffff0000) || (_Type&0xffff0000)==TW_TYPE_STDSTRING_VS2010 || (_Type&0xffff0000)==TW_TYPE_STDSTRING_VS2008 )
     {
+        if( g_TwMgr->m_ClientStdStringBaseType==0 )
+            g_TwMgr->m_ClientStdStringBaseType = (TwType)(_Type&0xffff0000);
+
         size_t clientStdStringStructSize = (_Type&0xffff);
         if( g_TwMgr->m_ClientStdStringStructSize==0 )
             g_TwMgr->m_ClientStdStringStructSize = clientStdStringStructSize;
@@ -3993,6 +4091,7 @@ static int AddVar(TwBar *_Bar, const char *_Name, ETwType _Type, void *_VarPtr, 
             g_TwMgr->SetLastError(g_ErrStdString);
             return 0;
         }
+
         _Type = TW_TYPE_STDSTRING; // force type to be our TW_TYPE_STDSTRING
     }
 
@@ -6067,6 +6166,19 @@ void CTwMgr::UpdateHelpBar()
             }
         }
 
+    // Append RotoSlider
+    CTwVarGroup *RotoGrp = new CTwVarGroup;
+    RotoGrp->m_SummaryCallback = NULL;
+    RotoGrp->m_SummaryClientData = NULL;
+    RotoGrp->m_StructValuePtr = NULL;
+    RotoGrp->m_Name = "RotoSlider";
+    RotoGrp->m_Open = false;
+    RotoGrp->m_ColorPtr = &(m_HelpBar->m_ColGrpText);
+    m_HelpBar->m_VarRoot.m_Vars.push_back(RotoGrp);
+    AppendHelpString(RotoGrp, "The RotoSlider allows rapid editing of numerical values.", 0, m_HelpBar->m_VarX2-m_HelpBar->m_VarX0, TW_TYPE_HELP_ATOM);
+    AppendHelpString(RotoGrp, "To modify a numerical value, click on its label or on its roto [.] button, then move the mouse outside of the grey circle while keeping the mouse button pressed, and turn around the circle to increase or decrease the numerical value.", 0, m_HelpBar->m_VarX2-m_HelpBar->m_VarX0, TW_TYPE_HELP_ATOM);
+    AppendHelpString(RotoGrp, "The two grey lines depict the min and max bounds.", 0, m_HelpBar->m_VarX2-m_HelpBar->m_VarX0, TW_TYPE_HELP_ATOM);
+    AppendHelpString(RotoGrp, "Moving the mouse far form the circle allows precise increase or decrease, while moving near the circle allows fast increase or decrease.", 0, m_HelpBar->m_VarX2-m_HelpBar->m_VarX0, TW_TYPE_HELP_ATOM);
 
     SynchroHierarchy(&m_HelpBar->m_VarRoot, &prevHierarchy);
 

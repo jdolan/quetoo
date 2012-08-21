@@ -74,8 +74,11 @@ protected:
     GLint               m_PrevBlendDstRGB;
     GLint               m_PrevBlendSrcAlpha;
     GLint               m_PrevBlendDstAlpha;
+    GLuint              m_PrevVertexArray;
     GLint               m_ViewportInit[4];
     GLfloat             m_ProjMatrixInit[16];
+    enum EMaxVtxAttribs { MAX_VERTEX_ATTRIBS = 128 };
+    GLint               m_PrevEnabledVertexAttrib[MAX_VERTEX_ATTRIBS];
     int                 m_WndWidth;
     int                 m_WndHeight;
 
