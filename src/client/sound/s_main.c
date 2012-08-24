@@ -189,9 +189,8 @@ void S_Init(void) {
 
 	Com_Print("Sound initialization...\n");
 
-	s_rate
-			= Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE,
-					"Sound sampling rate in Hz.");
+	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE,
+			"Sound sampling rate in Hz.");
 	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
 	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
 
@@ -200,12 +199,7 @@ void S_Init(void) {
 	Cmd_AddCommand("s_stop", S_Stop_f, 0, NULL);
 	Cmd_AddCommand("s_list", S_List_f, 0, NULL);
 
-	if (SDL_WasInit(SDL_INIT_EVERYTHING) == 0) {
-		if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-			Com_Warn("S_Init: %s.\n", SDL_GetError());
-			return;
-		}
-	} else if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
+	if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
 		if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
 			Com_Warn("S_Init: %s.\n", SDL_GetError());
 			return;

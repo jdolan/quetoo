@@ -132,6 +132,7 @@ typedef enum ETwType
     TW_TYPE_DIR3D       // direction vector represented by 3 doubles
 } TwType;
 #define TW_TYPE_CSSTRING(n) ((TwType)(0x30000000+((n)&0xfffffff))) // Null-terminated C Static String of size n (defined as char[n], with n<2^28)
+#define TW_TYPE_BIND TW_TYPE_CSSTRING(133) // Hack for Quake2World key binds
 
 typedef void (TW_CALL * TwSetVarCallback)(const void *value, void *clientData);
 typedef void (TW_CALL * TwGetVarCallback)(void *value, void *clientData);
@@ -248,7 +249,7 @@ typedef enum EKeySpecial
     TW_KEY_F13,
     TW_KEY_F14,
     TW_KEY_F15,
-    TW_KEY_LAST
+    TW_KEY_LAST = 512
 } TwKeySpecial;
 
 TW_API int      TW_CALL TwKeyPressed(int key, int modifiers);

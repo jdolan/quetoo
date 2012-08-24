@@ -49,11 +49,7 @@ void R_InitContext(void) {
 	float f;
 	SDL_Surface *surface;
 
-	if (SDL_WasInit(SDL_INIT_EVERYTHING) == 0) {
-		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-			Com_Error(ERR_FATAL, "R_InitContext: %s.\n", SDL_GetError());
-		}
-	} else if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
+	if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
 		if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
 			Com_Error(ERR_FATAL, "R_InitContext: %s.\n", SDL_GetError());
 		}

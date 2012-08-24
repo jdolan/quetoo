@@ -28,7 +28,8 @@ extern cl_static_t cls;
 
 /*
  * @brief Handles input events, returning true if the event was swallowed by TwBar.
- */bool Ui_Event(SDL_Event *event) {
+ */
+bool Ui_Event(SDL_Event *event) {
 	bool handled;
 
 	if (!(handled = TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))) {
@@ -109,19 +110,25 @@ static void Ui_Restart_f(void) {
  * @brief
  */
 void Ui_Init(void) {
-	const TwEnumVal OffOrOn[] = { { 0, "Off" }, { 1, "On" } };
+
+	const TwEnumVal OffOrOn[] = {
+		{ 0, "Off" },
+		{ 1, "On" }
+	};
 
 	const TwEnumVal OffLowMediumHigh[] = {
-			{ 0, "Off" },
-			{ 1, "Low" },
-			{ 2, "Medium" },
-			{ 3, "High" } };
+		{ 0, "Off" },
+		{ 1, "Low" },
+		{ 2, "Medium" },
+		{ 3, "High" }
+	};
 
 	memset(&ui, 0, sizeof(ui));
 
 	TwInit(TW_OPENGL, NULL);
 
 	ui.OffOrOn = TwDefineEnum("OnOrOff", OffOrOn, lengthof(OffOrOn));
+
 	ui.OffLowMediumHigh = TwDefineEnum("OffLowMediumHigh", OffLowMediumHigh,
 			lengthof(OffLowMediumHigh));
 

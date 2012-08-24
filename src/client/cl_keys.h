@@ -24,18 +24,12 @@
 
 #include "cl_types.h"
 
-const char *Cl_KeyNumToString(uint16_t key_num);
+const char *Cl_KeyName(SDLKey key);
+SDLKey Cl_KeyNum(const char *name);
 
 #if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
 
-typedef struct key_name_s {
-	const char *name;
-	key_num_t key_num;
-} key_name_t;
-
-extern key_name_t key_names[];
-
-void Cl_KeyEvent(uint32_t key, uint16_t unicode, bool down, unsigned time);
+void Cl_KeyEvent(SDLKey key, uint16_t unicode, bool down, unsigned time);
 char *Cl_EditLine(void);
 void Cl_WriteBindings(FILE *f);
 void Cl_InitKeys(void);

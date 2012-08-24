@@ -163,100 +163,25 @@ typedef enum {
 	KEY_GAME, KEY_UI, KEY_CONSOLE, KEY_CHAT
 } cl_key_dest_t;
 
-#define KEY_HISTORYSIZE 64
-#define KEY_LINESIZE 256
+#define KEY_HISTORY_SIZE 64
+#define KEY_LINE_SIZE 256
 
 typedef enum {
-	K_FIRST,
-
-	K_CTRL_A = 1,
-	K_CTRL_E = 5,
-
-	K_BACKSPACE = 8,
-	K_TAB = 9,
-	K_ENTER = 13,
-	K_PAUSE = 19,
-	K_ESCAPE = 27,
-	K_SPACE = 32,
-	K_DEL = 127,
-
-	K_MOUSE1,
-	K_MOUSE2,
-	K_MOUSE3,
-	K_MWHEELDOWN,
-	K_MWHEELUP,
-	K_MOUSE4,
-	K_MOUSE5,
-
-	K_AUX1,
-	K_AUX2,
-	K_AUX3,
-	K_AUX4,
-	K_AUX5,
-	K_AUX6,
-	K_AUX7,
-	K_AUX8,
-	K_AUX9,
-	K_AUX10,
-	K_AUX11,
-	K_AUX12,
-	K_AUX13,
-	K_AUX14,
-	K_AUX15,
-	K_AUX16,
-
-	K_NUMLOCK,
-
-	K_KP_INS,
-	K_KP_END,
-	K_KP_DOWNARROW,
-	K_KP_PGDN,
-	K_KP_LEFTARROW,
-	K_KP_5,
-	K_KP_RIGHTARROW,
-	K_KP_HOME,
-	K_KP_UPARROW,
-	K_KP_PGUP,
-	K_KP_DEL,
-	K_KP_SLASH,
-	K_KP_MINUS,
-	K_KP_PLUS,
-	K_KP_ENTER,
-
-	K_UPARROW,
-	K_DOWNARROW,
-	K_RIGHTARROW,
-	K_LEFTARROW,
-
-	K_HOME,
-	K_END,
-	K_PGUP,
-	K_PGDN,
-	K_F1,
-	K_F2,
-	K_F3,
-	K_F4,
-	K_F5,
-	K_F6,
-	K_F7,
-	K_F8,
-	K_F9,
-	K_F10,
-	K_F11,
-	K_F12,
-	K_INS,
-	K_SHIFT,
-	K_CTRL,
-	K_ALT,
-
-	K_LAST = 511
-// to support as many chars as possible
-} key_num_t;
+	SDLK_MOUSE1 = SDLK_LAST,
+	SDLK_MOUSE2,
+	SDLK_MOUSE3,
+	SDLK_MOUSE4,
+	SDLK_MOUSE5,
+	SDLK_MOUSE6,
+	SDLK_MOUSE7,
+	SDLK_MOUSE8,
+	SDLK_MLAST
+} SDLButton;
 
 typedef struct cl_key_state_s {
 	cl_key_dest_t dest;
 
-	char lines[KEY_HISTORYSIZE][KEY_LINESIZE];
+	char lines[KEY_HISTORY_SIZE][KEY_LINE_SIZE];
 	uint16_t pos;
 
 	bool insert;
@@ -265,8 +190,8 @@ typedef struct cl_key_state_s {
 	uint32_t edit_line;
 	uint32_t history_line;
 
-	char *binds[K_LAST];
-	bool down[K_LAST];
+	char *binds[SDLK_MLAST];
+	bool down[SDLK_MLAST];
 } cl_key_state_t;
 
 typedef struct cl_mouse_state_s {
@@ -276,7 +201,7 @@ typedef struct cl_mouse_state_s {
 } cl_mouse_state_t;
 
 typedef struct cl_chat_state_s {
-	char buffer[KEY_LINESIZE];
+	char buffer[KEY_LINE_SIZE];
 	size_t len;
 	bool team;
 } cl_chat_state_t;

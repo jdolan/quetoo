@@ -24,7 +24,7 @@
 
 static const char *DEFAULT_BINDS =
 	"bind ` toggle_console\n"
-	"bind F8 toggle_console\n"
+	"bind f8 toggle_console\n"
 	"bind 1 use blaster\n"
 	"bind 2 use shotgun\n"
 	"bind 3 use super shotgun\n"
@@ -43,26 +43,26 @@ static const char *DEFAULT_BINDS =
 	"bind a +move_left\n"
 	"bind s +back\n"
 	"bind d +move_right\n"
-	"bind SPACE +move_up\n"
+	"bind space +move_up\n"
 	"bind c +move_down\n"
-	"bind LEFTARROW +left\n"
-	"bind RIGHTARROW +right\n"
-	"bind HOME center_view\n"
-	"bind SHIFT +speed\n"
+	"bind left +left\n"
+	"bind right +right\n"
+	"bind home center_view\n"
+	"bind \"left shift\" +speed\n"
 
-	"bind TAB score\n"
+	"bind tab score\n"
 	"bind x score\n"
 	"bind t message_mode\n"
 	"bind y message_mode_2\n"
 
-	"bind MOUSE1 +attack\n"
-	"bind MOUSE2 +move_up\n"
-	"bind MWHEELUP weapon_previous\n"
-	"bind MWHEELDOWN weapon_next\n"
+	"bind \"mouse 1\" +attack\n"
+	"bind \"mouse 2\" +move_up\n"
+	"bind \"mouse 4\" weapon_previous\n"
+	"bind \"mouse 5\" weapon_next\n"
 
 	// demo playback rate
-	"bind LEFTARROW slow_motion\n"
-	"bind RIGHTARROW fast_forward\n"
+	"bind , slow_motion\n"
+	"bind . fast_forward\n"
 
 	// zoom alias for nubs
 	"alias +ZOOM \""
@@ -77,7 +77,7 @@ static const char *DEFAULT_BINDS =
 	"set m_sensitivity $s;"
 	"\"\n"
 
-	"bind ALT +ZOOM\n"
+	"bind \"left alt\" +ZOOM\n"
 
 	// screenshots alias for mappers
 	"alias SCREENSHOTS \""
@@ -91,7 +91,7 @@ static const char *DEFAULT_BINDS =
 	"set cg_draw_crosshair 0;"
 	"set cg_draw_hud 0;"
 	"set cg_draw_weapon 0;"
-	"bind F10 SCREENSHOTS_OFF"
+	"bind f10 SCREENSHOTS_OFF"
 	"\"\n"
 
 	"alias SCREENSHOTS_OFF \""
@@ -100,11 +100,11 @@ static const char *DEFAULT_BINDS =
 	"set cg_draw_crosshair $x;"
 	"set cg_draw_hud $h;"
 	"set cg_draw_weapon $w;"
-	"bind F10 SCREENSHOTS"
+	"bind f10 SCREENSHOTS"
 	"\"\n"
 
-	"bind F10 SCREENSHOTS\n"
-	"bind F11 r_toggle_fullscreen\n"
-	"bind F12 r_screenshot\n";
+	"bind f10 SCREENSHOTS\n"
+	"bind f11 r_toggle_fullscreen\n"
+	"bind f12 r_screenshot\n";
 
 #endif /* __CL_BINDS_H__ */

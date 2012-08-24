@@ -39,7 +39,7 @@ cvar_t *m_yaw;
 #define MAX_KEY_QUEUE 64
 
 typedef struct {
-	uint32_t key;
+	SDLKey key;
 	uint16_t unicode;
 	bool down;
 } cl_key_queue_t;
@@ -75,7 +75,7 @@ static int32_t cl_key_queue_tail = 0;
  */
 
 typedef struct {
-	int32_t down[2]; // key nums holding it down
+	SDLKey down[2]; // keys holding it down
 	uint32_t down_time; // msec timestamp
 	uint32_t msec; // msec down this frame
 	byte state;
@@ -99,14 +99,14 @@ static cl_button_t cl_buttons[12];
  * @brief
  */
 static void Cl_KeyDown(cl_button_t *b) {
-	int32_t k;
+	SDLKey k;
 	char *c;
 
 	c = Cmd_Argv(1);
 	if (c[0])
 		k = atoi(c);
 	else
-		k = -1; // typed manually at the console for continuous down
+		k = SDLK_MLAST; // typed manually at the console for continuous down
 
 	if (k == b->down[0] || k == b->down[1])
 		return; // repeating key
@@ -116,7 +116,7 @@ static void Cl_KeyDown(cl_button_t *b) {
 	else if (!b->down[1])
 		b->down[1] = k;
 	else {
-		Com_Print("Three keys down for a button!\n");
+		Com_Debug("Cl_KeyDown: 3 keys down for button\n");
 		return;
 	}
 
@@ -136,9 +136,8 @@ static void Cl_KeyDown(cl_button_t *b) {
  * @brief
  */
 static void Cl_KeyUp(cl_button_t *b) {
-	int32_t k;
+	SDLKey k;
 	char *c;
-	uint32_t uptime;
 
 	c = Cmd_Argv(1);
 	if (c[0])
@@ -163,7 +162,7 @@ static void Cl_KeyUp(cl_button_t *b) {
 
 	// save timestamp
 	c = Cmd_Argv(2);
-	uptime = atoi(c);
+	const uint32_t uptime = atoi(c);
 	if (uptime)
 		b->msec += uptime - b->down_time;
 	else
@@ -276,209 +275,10 @@ static float Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 /*
  * @brief
  */
-static void Cl_KeyMap(SDL_Event *event, uint32_t *ascii, uint16_t *unicode) {
-	int32_t key = 0;
-	const uint32_t keysym = event->key.keysym.sym;
-
-	switch (keysym) {
-
-	case SDLK_NUMLOCK:
-		key = K_NUMLOCK;
-		break;
-
-	case SDLK_KP9:
-		key = K_KP_PGUP;
-		break;
-	case SDLK_PAGEUP:
-		key = K_PGUP;
-		break;
-
-	case SDLK_KP3:
-		key = K_KP_PGDN;
-		break;
-	case SDLK_PAGEDOWN:
-		key = K_PGDN;
-		break;
-
-	case SDLK_KP7:
-		key = K_KP_HOME;
-		break;
-	case SDLK_HOME:
-		key = K_HOME;
-		break;
-
-	case SDLK_KP1:
-		key = K_KP_END;
-		break;
-	case SDLK_END:
-		key = K_END;
-		break;
-
-	case SDLK_KP4:
-		key = K_KP_LEFTARROW;
-		break;
-	case SDLK_LEFT:
-		key = K_LEFTARROW;
-		break;
-
-	case SDLK_KP6:
-		key = K_KP_RIGHTARROW;
-		break;
-	case SDLK_RIGHT:
-		key = K_RIGHTARROW;
-		break;
-
-	case SDLK_KP2:
-		key = K_KP_DOWNARROW;
-		break;
-	case SDLK_DOWN:
-		key = K_DOWNARROW;
-		break;
-
-	case SDLK_KP8:
-		key = K_KP_UPARROW;
-		break;
-	case SDLK_UP:
-		key = K_UPARROW;
-		break;
-
-	case SDLK_ESCAPE:
-		key = K_ESCAPE;
-		break;
-	case SDLK_KP_ENTER:
-		key = K_KP_ENTER;
-		break;
-	case SDLK_RETURN:
-		key = K_ENTER;
-		break;
-
-	case SDLK_TAB:
-		key = K_TAB;
-		break;
-
-	case SDLK_F1:
-		if (event->type == SDL_KEYDOWN)
-			Cbuf_AddText("yes\n");
-		break;
-	case SDLK_F2:
-		if (event->type == SDL_KEYDOWN)
-			Cbuf_AddText("no\n");
-		break;
-
-	case SDLK_F3:
-		key = K_F3;
-		break;
-	case SDLK_F4:
-		key = K_F4;
-		break;
-	case SDLK_F5:
-		key = K_F5;
-		break;
-	case SDLK_F6:
-		key = K_F6;
-		break;
-	case SDLK_F7:
-		key = K_F7;
-		break;
-	case SDLK_F8:
-		key = K_F8;
-		break;
-	case SDLK_F9:
-		key = K_F9;
-		break;
-
-	case SDLK_F10:
-		key = K_F10;
-		break;
-
-	case SDLK_F11:
-		key = K_F11;
-		break;
-
-	case SDLK_F12:
-		key = K_F12;
-		break;
-
-	case SDLK_BACKSPACE:
-		key = K_BACKSPACE;
-		break;
-
-	case SDLK_KP_PERIOD:
-		key = K_KP_DEL;
-		break;
-	case SDLK_DELETE:
-		key = K_DEL;
-		break;
-
-	case SDLK_PAUSE:
-		key = K_PAUSE;
-		break;
-
-	case SDLK_LSHIFT:
-	case SDLK_RSHIFT:
-		key = K_SHIFT;
-		break;
-
-	case SDLK_LCTRL:
-	case SDLK_RCTRL:
-		key = K_CTRL;
-		break;
-
-	case SDLK_LMETA:
-	case SDLK_RMETA:
-	case SDLK_LALT:
-	case SDLK_RALT:
-		key = K_ALT;
-		break;
-
-	case SDLK_KP5:
-		key = K_KP_5;
-		break;
-
-	case SDLK_INSERT:
-		key = K_INS;
-		break;
-	case SDLK_KP0:
-		key = K_KP_INS;
-		break;
-
-	case SDLK_KP_MULTIPLY:
-		key = '*';
-		break;
-	case SDLK_KP_PLUS:
-		key = K_KP_PLUS;
-		break;
-	case SDLK_KP_MINUS:
-		key = K_KP_MINUS;
-		break;
-	case SDLK_KP_DIVIDE:
-		key = K_KP_SLASH;
-		break;
-
-	case SDLK_WORLD_7:
-		key = '`';
-		break;
-
-	default:
-		key = keysym;
-		break;
-	}
-
-	// if unicode is empty, use ascii instead
-	*unicode = event->key.keysym.unicode == 0 ? key : event->key.keysym.unicode;
-	*ascii = key;
-}
-
-/*
- * @brief
- */
 static void Cl_HandleEvent(SDL_Event *event) {
-	static bool first_key_event = true;
-	uint32_t key;
-	uint16_t unicode;
+	SDLButton b;
 
 	if (cls.key_state.dest == KEY_UI) { // let the menus handle events
-
 		if (Ui_Event(event))
 			return;
 	}
@@ -486,48 +286,13 @@ static void Cl_HandleEvent(SDL_Event *event) {
 	switch (event->type) {
 	case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN:
-		switch (event->button.button) {
-		case 1:
-			key = K_MOUSE1;
-			break;
-		case 2:
-			key = K_MOUSE3;
-			break;
-		case 3:
-			key = K_MOUSE2;
-			break;
-		case 4:
-			key = K_MWHEELUP;
-			break;
-		case 5:
-			key = K_MWHEELDOWN;
-			break;
-		case 6:
-			key = K_MOUSE4;
-			break;
-		case 7:
-			key = K_MOUSE5;
-			break;
-		default:
-			key = K_AUX1 + (event->button.button - 8) % 16;
-			break;
-		}
-
-		EVENT_ENQUEUE(key, key, (event->type == SDL_MOUSEBUTTONDOWN))
+		b = SDLK_MOUSE1 + (event->button.button - 1) % 8;
+		EVENT_ENQUEUE(b, b, (event->type == SDL_MOUSEBUTTONDOWN))
 		break;
 
 	case SDL_KEYDOWN:
 	case SDL_KEYUP:
-		/*
-		 * We use the first key event to determine the state of number lock.
-		 */
-		if (first_key_event) {
-			EVENT_ENQUEUE(K_NUMLOCK, 151, (event->key.keysym.mod & KMOD_NUM) != 0);
-			first_key_event = false;
-		}
-
-		Cl_KeyMap(event, &key, &unicode);
-		EVENT_ENQUEUE(key, unicode, (event->type == SDL_KEYDOWN))
+		EVENT_ENQUEUE(event->key.keysym.sym, event->key.keysym.unicode, (event->type == SDL_KEYDOWN))
 		break;
 
 	case SDL_QUIT:
@@ -621,9 +386,9 @@ void Cl_HandleEvents(void) {
 		cl_key_dest_t dest = cls.key_state.dest;
 		cls.key_state.dest = prev_key_dest;
 
-		uint32_t i;
+		SDLKey i;
 
-		for (i = 0; i < K_LAST; i++) {
+		for (i = SDLK_FIRST; i < SDLK_MOUSE7; i++) {
 			if (cls.key_state.down[i]) {
 				if (cls.key_state.binds[i] && cls.key_state.binds[i][0] == '+') {
 					Cl_KeyEvent(i, i, false, cls.real_time);

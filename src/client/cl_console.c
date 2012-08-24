@@ -127,7 +127,7 @@ void Cl_InitConsole(void) {
  * @brief The input line scrolls horizontally if typing goes beyond the right edge
  */
 static void Cl_DrawInput(void) {
-	char edit_line_copy[KEY_LINESIZE], *text;
+	char edit_line_copy[KEY_LINE_SIZE], *text;
 	r_pixel_t ch;
 	size_t i, y;
 
@@ -144,7 +144,7 @@ static void Cl_DrawInput(void) {
 	}
 
 	// fill out remainder with spaces
-	for (i = y; i < KEY_LINESIZE; i++)
+	for (i = y; i < KEY_LINE_SIZE; i++)
 		text[i] = ' ';
 
 	// prestep if horizontally scrolling

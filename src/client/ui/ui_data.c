@@ -120,17 +120,17 @@ static void TW_CALL Ui_BindGet(void *value, void *data);
  * Any existing binds for that command are unbound.
  */
 static void TW_CALL Ui_BindSet(const void *value, void *data) {
-	char *key = (char *) value;
+	SDLKey key = atoi((char *) value);
 	char *bind = (char *) data;
 	char old[128];
 
 	Ui_BindGet(old, bind);
 
 	if (*old) {
-		Cbuf_AddText(va("unbind %s\n", old));
+		Cbuf_AddText(va("unbind \"%s\"\n", old));
 	}
 
-	Cbuf_AddText(va("bind %s %s\n", key, bind));
+	Cbuf_AddText(va("bind \"%s\" %s\n", Cl_KeyName(key), bind));
 }
 
 /*
@@ -139,11 +139,11 @@ static void TW_CALL Ui_BindSet(const void *value, void *data) {
 static void TW_CALL Ui_BindGet(void *value, void *data) {
 	char **binds = cls.key_state.binds;
 	char *bind = (char *) data;
-	uint16_t i;
+	SDLKey i;
 
-	for (i = K_FIRST; i < K_LAST; i++) {
+	for (i = SDLK_FIRST; i < SDLK_MLAST; i++) {
 		if (binds[i] && !strcasecmp(bind, binds[i])) {
-			strcpy(value, Cl_KeyNumToString(i));
+			strcpy(value, Cl_KeyName(i));
 			return;
 		}
 	}
@@ -155,5 +155,5 @@ static void TW_CALL Ui_BindGet(void *value, void *data) {
  * @brief Exposes a key binding via the specified TwBar.
  */
 void Ui_Bind(TwBar *bar, const char *name, const char *bind, const char *def) {
-	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_BindSet, Ui_BindGet, (void *) bind, def);
+	TwAddVarCB(bar, name, TW_TYPE_BIND, Ui_BindSet, Ui_BindGet, (void *) bind, def);
 }

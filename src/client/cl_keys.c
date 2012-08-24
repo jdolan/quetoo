@@ -23,102 +23,21 @@
 
 #include "cl_local.h"
 
-key_name_t key_names[] = {
-		{ "TAB", K_TAB },
-		{ "ENTER", K_ENTER },
-		{ "ESCAPE", K_ESCAPE },
-		{ "SPACE", K_SPACE },
-		{ "BACKSPACE", K_BACKSPACE },
-		{ "UPARROW", K_UPARROW },
-		{ "DOWNARROW", K_DOWNARROW },
-		{ "LEFTARROW", K_LEFTARROW },
-		{ "RIGHTARROW", K_RIGHTARROW },
-
-		{ "ALT", K_ALT },
-		{ "CTRL", K_CTRL },
-		{ "SHIFT", K_SHIFT },
-
-		{ "F1", K_F1 },
-		{ "F2", K_F2 },
-		{ "F3", K_F3 },
-		{ "F4", K_F4 },
-		{ "F5", K_F5 },
-		{ "F6", K_F6 },
-		{ "F7", K_F7 },
-		{ "F8", K_F8 },
-		{ "F9", K_F9 },
-		{ "F10", K_F10 },
-		{ "F11", K_F11 },
-		{ "F12", K_F12 },
-
-		{ "INS", K_INS },
-		{ "DEL", K_DEL },
-		{ "PGDN", K_PGDN },
-		{ "PGUP", K_PGUP },
-		{ "HOME", K_HOME },
-		{ "END", K_END },
-
-		{ "MOUSE1", K_MOUSE1 },
-		{ "MOUSE2", K_MOUSE2 },
-		{ "MOUSE3", K_MOUSE3 },
-		{ "MOUSE4", K_MOUSE4 },
-		{ "MOUSE5", K_MOUSE5 },
-
-		{ "AUX1", K_AUX1 },
-		{ "AUX2", K_AUX2 },
-		{ "AUX3", K_AUX3 },
-		{ "AUX4", K_AUX4 },
-		{ "AUX5", K_AUX5 },
-		{ "AUX6", K_AUX6 },
-		{ "AUX7", K_AUX7 },
-		{ "AUX8", K_AUX8 },
-		{ "AUX9", K_AUX9 },
-		{ "AUX10", K_AUX10 },
-		{ "AUX11", K_AUX11 },
-		{ "AUX12", K_AUX12 },
-		{ "AUX13", K_AUX13 },
-		{ "AUX14", K_AUX14 },
-		{ "AUX15", K_AUX15 },
-		{ "AUX16", K_AUX16 },
-
-		{ "KP_HOME", K_KP_HOME },
-		{ "KP_UPARROW", K_KP_UPARROW },
-		{ "KP_PGUP", K_KP_PGUP },
-		{ "KP_LEFTARROW", K_KP_LEFTARROW },
-		{ "KP_5", K_KP_5 },
-		{ "KP_RIGHTARROW", K_KP_RIGHTARROW },
-		{ "KP_END", K_KP_END },
-		{ "KP_DOWNARROW", K_KP_DOWNARROW },
-		{ "KP_PGDN", K_KP_PGDN },
-		{ "KP_ENTER", K_KP_ENTER },
-		{ "KP_INS", K_KP_INS },
-		{ "KP_DEL", K_KP_DEL },
-		{ "KP_SLASH", K_KP_SLASH },
-		{ "KP_MINUS", K_KP_MINUS },
-		{ "KP_PLUS", K_KP_PLUS },
-
-		{ "MWHEELUP", K_MWHEELUP },
-		{ "MWHEELDOWN", K_MWHEELDOWN },
-
-		{ "PAUSE", K_PAUSE },
-
-		{ "SEMICOLON", ';' }, // because a raw semicolon separates commands
-
-		{ NULL, 0 } };
-
 static cl_key_state_t *ks = &cls.key_state;
+
+static char *cl_key_names[SDLK_MLAST];
 
 /*
  * @brief Execute any system-level binds, regardless of key state. This enables e.g.
  * toggling of the console, toggling fullscreen, etc.
  */
-static bool Cl_KeySystem(uint32_t key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time __attribute__((unused))) {
+static bool Cl_KeySystem(SDLKey key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time __attribute__((unused))) {
 
 	if (!down) { // don't care
 		return false;
 	}
 
-	if (key == K_ESCAPE) { // escape can cancel a few things
+	if (key == SDLK_ESCAPE) { // escape can cancel a few things
 
 		// connecting to a server
 		if (cls.state == CL_CONNECTING || cls.state == CL_CONNECTED) {
@@ -171,15 +90,14 @@ static bool Cl_KeySystem(uint32_t key, uint16_t unicode __attribute__((unused)),
 /*
  * @brief Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t time __attribute__((unused))) {
-	bool numlock = ks->down[K_NUMLOCK];
+static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time __attribute__((unused))) {
 	size_t i;
 
 	if (!down) // don't care
 		return;
 
 	// submit buffer on enter
-	if (key == K_ENTER || key == K_KP_ENTER) {
+	if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
 
 		if (ks->lines[ks->edit_line][1] == '\\' || ks->lines[ks->edit_line][1] == '/')
 			Cbuf_AddText(ks->lines[ks->edit_line] + 2); // skip the /
@@ -189,7 +107,7 @@ static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 		Cbuf_AddText("\n");
 		Com_Print("%s\n", ks->lines[ks->edit_line]);
 
-		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORYSIZE;
+		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORY_SIZE;
 		ks->history_line = ks->edit_line;
 
 		memset(ks->lines[ks->edit_line], 0, sizeof(ks->lines[0]));
@@ -203,7 +121,7 @@ static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 		return;
 	}
 
-	if (key == K_TAB) { // command completion
+	if (key == SDLK_TAB) { // command completion
 		// ignore the leading bracket in the input string
 		ks->pos--;
 		Con_CompleteCommand(ks->lines[ks->edit_line] + 1, &ks->pos);
@@ -211,7 +129,7 @@ static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 		return;
 	}
 
-	if (key == K_BACKSPACE) { // delete char before cursor
+	if (key == SDLK_BACKSPACE) { // delete char before cursor
 		if (ks->pos > 1) {
 			strcpy(ks->lines[ks->edit_line] + ks->pos - 1, ks->lines[ks->edit_line] + ks->pos);
 			ks->pos--;
@@ -219,19 +137,19 @@ static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 		return;
 	}
 
-	if (key == K_DEL || (key == K_KP_DEL && !numlock)) { // delete char on cursor
+	if (key == SDLK_DELETE) { // delete char on cursor
 		if (ks->pos < strlen(ks->lines[ks->edit_line]))
 			strcpy(ks->lines[ks->edit_line] + ks->pos, ks->lines[ks->edit_line] + ks->pos + 1);
 		return;
 	}
 
-	if (key == K_INS || (key == K_KP_INS && !numlock)) { // toggle insert mode
+	if (key == SDLK_INSERT) { // toggle insert mode
 		ks->insert ^= 1;
 		return;
 	}
 
-	if (key == K_LEFTARROW || (key == K_KP_LEFTARROW && !numlock)) { // move cursor left
-		if (ks->down[K_CTRL]) { // by a whole word
+	if (key == SDLK_LEFT) { // move cursor left
+		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) { // by a whole word
 			while (ks->pos > 1 && ks->lines[ks->edit_line][ks->pos - 1] == ' ')
 				ks->pos--; // get off current word
 			while (ks->pos > 1 && ks->lines[ks->edit_line][ks->pos - 1] != ' ')
@@ -244,13 +162,13 @@ static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 		return;
 	}
 
-	if (key == K_RIGHTARROW || (key == K_KP_RIGHTARROW && !numlock)) { // move cursor right
+	if (key == SDLK_RIGHT) { // move cursor right
 		i = strlen(ks->lines[ks->edit_line]);
 
 		if (i == ks->pos)
 			return; // no character to get
 
-		if (ks->down[K_CTRL]) { //by a whole word
+		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) { //by a whole word
 			while (ks->pos < i && ks->lines[ks->edit_line][ks->pos + 1] == ' ')
 				ks->pos++; // get off current word
 			while (ks->pos < i && ks->lines[ks->edit_line][ks->pos + 1] != ' ')
@@ -264,24 +182,24 @@ static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 		return;
 	}
 
-	if (key == K_UPARROW || (key == K_KP_UPARROW && !numlock)) { // iterate history back
+	if (key == SDLK_UP) { // iterate history back
 		do {
-			ks->history_line = (ks->history_line + KEY_HISTORYSIZE - 1) % KEY_HISTORYSIZE;
+			ks->history_line = (ks->history_line + KEY_HISTORY_SIZE - 1) % KEY_HISTORY_SIZE;
 		} while (ks->history_line != ks->edit_line && !ks->lines[ks->history_line][1]);
 
 		if (ks->history_line == ks->edit_line)
-			ks->history_line = (ks->edit_line + 1) % KEY_HISTORYSIZE;
+			ks->history_line = (ks->edit_line + 1) % KEY_HISTORY_SIZE;
 
 		strcpy(ks->lines[ks->edit_line], ks->lines[ks->history_line]);
 		ks->pos = strlen(ks->lines[ks->edit_line]);
 		return;
 	}
 
-	if (key == K_DOWNARROW || (key == K_KP_DOWNARROW && !numlock)) { // iterate history forward
+	if (key == SDLK_DOWN) { // iterate history forward
 		if (ks->history_line == ks->edit_line)
 			return;
 		do {
-			ks->history_line = (ks->history_line + 1) % KEY_HISTORYSIZE;
+			ks->history_line = (ks->history_line + 1) % KEY_HISTORY_SIZE;
 		} while (ks->history_line != ks->edit_line && !ks->lines[ks->history_line][1]);
 
 		if (ks->history_line == ks->edit_line) {
@@ -294,40 +212,40 @@ static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 		return;
 	}
 
-	if (key == K_PGUP || (key == K_KP_PGUP && !numlock) || key == K_MWHEELUP) {
+	if (key == SDLK_PAGEUP /*|| key == K_MWHEELUP*/) {
 		cl_con.scroll += CON_SCROLL;
 		if (cl_con.scroll > cl_con.last_line)
 			cl_con.scroll = cl_con.last_line;
 		return;
 	}
 
-	if (key == K_PGDN || (key == K_KP_PGDN && !numlock) || key == K_MWHEELDOWN) {
+	if (key == SDLK_PAGEDOWN /*|| key == K_MWHEELDOWN*/) {
 		cl_con.scroll -= CON_SCROLL;
 		if (cl_con.scroll < 0)
 			cl_con.scroll = 0;
 		return;
 	}
 
-	if (key == K_CTRL_A) { // start of line
+	/*if (key == K_CTRL_A) { // start of line
 		ks->pos = 1;
 		return;
-	}
+	}*/
 
-	if (key == K_HOME || (key == K_KP_HOME && !numlock)) { // go to the start of line
-		if (ks->down[K_CTRL]) // go to the start of the console
+	if (key == SDLK_HOME) { // go to the start of line
+		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) // go to the start of the console
 			cl_con.scroll = cl_con.last_line;
 		else
 			ks->pos = 1;
 		return;
 	}
 
-	if (key == K_CTRL_E) { // Ctrl+E shortcut to go to the end of line
+	/*if (key == K_CTRL_E) { // Ctrl+E shortcut to go to the end of line
 		ks->pos = strlen(ks->lines[ks->edit_line]);
 		return;
-	}
+	}*/
 
-	if (key == K_END || (key == K_KP_END && !numlock)) { // go to the end of line
-		if (ks->down[K_CTRL]) // go to the end of the console
+	if (key == SDLK_END) { // go to the end of line
+		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) // go to the end of the console
 			cl_con.scroll = 0;
 		else
 			ks->pos = strlen(ks->lines[ks->edit_line]);
@@ -337,7 +255,7 @@ static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 	if (unicode < 32 || unicode > 127)
 		return; // non printable
 
-	if (ks->pos < KEY_LINESIZE - 1) {
+	if (ks->pos < KEY_LINE_SIZE - 1) {
 
 		if (ks->insert) { // can't do strcpy to move string to right
 			i = strlen(ks->lines[ks->edit_line]) - 1;
@@ -361,7 +279,7 @@ static void Cl_KeyConsole(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 /*
  * @brief
  */
-static void Cl_KeyGame(uint32_t key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time) {
+static void Cl_KeyGame(SDLKey key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time) {
 	char cmd[MAX_STRING_CHARS];
 	char *kb;
 
@@ -390,12 +308,12 @@ static void Cl_KeyGame(uint32_t key, uint16_t unicode __attribute__((unused)), b
 /*
  * @brief
  */
-static void Cl_KeyMessage(uint32_t key, uint16_t unicode, bool down, uint32_t time __attribute__((unused))) {
+static void Cl_KeyMessage(SDLKey key, uint16_t unicode, bool down, uint32_t time __attribute__((unused))) {
 
 	if (!down) // don't care
 		return;
 
-	if (key == K_ENTER || key == K_KP_ENTER) {
+	if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
 		if (*cls.chat_state.buffer) {
 			if (cls.chat_state.team)
 				Cbuf_AddText("say_team \"");
@@ -411,7 +329,7 @@ static void Cl_KeyMessage(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 		return;
 	}
 
-	if (key == K_BACKSPACE) {
+	if (key == SDLK_BACKSPACE) {
 		if (cls.chat_state.len) {
 			cls.chat_state.len--;
 			cls.chat_state.buffer[cls.chat_state.len] = 0;
@@ -430,66 +348,51 @@ static void Cl_KeyMessage(uint32_t key, uint16_t unicode, bool down, uint32_t ti
 }
 
 /*
- * @brief Returns a key number to be used to index ks->binds[] by looking at
- * the given string. Single ascii characters return themselves, while
- * the K_* names are matched up.
+ * @brief Returns the name of the specified key.
  */
-static int32_t Cl_StringToKeyNum(const char *str) {
-	key_name_t *kn;
+const char *Cl_KeyName(SDLKey key) {
 
-	if (!str || !str[0])
-		return -1;
-
-	if (!str[1])
-		return str[0];
-
-	for (kn = key_names; kn->name; kn++) {
-		if (!strcasecmp(str, kn->name))
-			return kn->key_num;
+	if (key >= SDLK_MLAST) {
+		return va("<unknown %d>", key);
 	}
 
-	return -1;
+	return cl_key_names[key];
 }
 
 /*
- * @brief Returns a string (either a single ASCII char, or a K_* name) for the
- * given key_num.
- * FIXME: handle quote special (general escape sequence?)
+ * @brief Returns the number for the specified key name.
  */
-const char *Cl_KeyNumToString(uint16_t key_num) {
-	key_name_t *kn;
-	static char s[2];
+SDLKey Cl_Key(const char *name) {
+	SDLKey i;
 
-	if (key_num > 32 && key_num < 127) { // printable ASCII
-		s[0] = key_num;
-		s[1] = 0;
-		return s;
+	if (!name || !name[0])
+		return SDLK_MLAST;
+
+	for (i = SDLK_FIRST; i < SDLK_MLAST; i++) {
+		if (!strcasecmp(name, cl_key_names[i]))
+			return i;
 	}
 
-	for (kn = key_names; kn->name; kn++)
-		if (key_num == kn->key_num)
-			return kn->name;
-
-	return "<UNKNOWN KEYNUM>";
+	return SDLK_MLAST;
 }
 
 /*
  * @brief
  */
-static void Cl_Bind(int32_t key_num, char *binding) {
+static void Cl_Bind(SDLKey key, const char *binding) {
 
-	if (key_num == -1)
+	if (key == SDLK_MLAST)
 		return;
 
 	// free the old binding
-	if (ks->binds[key_num]) {
-		Z_Free(ks->binds[key_num]);
-		ks->binds[key_num] = NULL;
+	if (ks->binds[key]) {
+		Z_Free(ks->binds[key]);
+		ks->binds[key] = NULL;
 	}
 
 	// allocate for new binding and copy it in
-	ks->binds[key_num] = Z_Malloc(strlen(binding) + 1);
-	strcpy(ks->binds[key_num], binding);
+	ks->binds[key] = Z_Malloc(strlen(binding) + 1);
+	strcpy(ks->binds[key], binding);
 }
 
 /*
@@ -503,8 +406,8 @@ static void Cl_Unbind_f(void) {
 		return;
 	}
 
-	b = Cl_StringToKeyNum(Cmd_Argv(1));
-	if (b == -1) {
+	b = Cl_Key(Cmd_Argv(1));
+	if (b == SDLK_MLAST) {
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
 		return;
 	}
@@ -516,9 +419,9 @@ static void Cl_Unbind_f(void) {
  * @brief
  */
 static void Cl_UnbindAll_f(void) {
-	int32_t i;
+	SDLKey i;
 
-	for (i = K_FIRST; i < K_LAST; i++)
+	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
 		if (ks->binds[i])
 			Cl_Bind(i, "");
 }
@@ -527,24 +430,24 @@ static void Cl_UnbindAll_f(void) {
  * @brief
  */
 static void Cl_Bind_f(void) {
-	int32_t i, c, b;
 	char cmd[MAX_STRING_CHARS];
 
-	c = Cmd_Argc();
+	int32_t i, c = Cmd_Argc();
 	if (c < 2) {
 		Com_Print("Usage: %s <key> [command] : bind a command to a key\n", Cmd_Argv(0));
 		return;
 	}
 
-	b = Cl_StringToKeyNum(Cmd_Argv(1));
-	if (b == -1) {
+	const SDLKey k = Cl_Key(Cmd_Argv(1));
+
+	if (k == SDLK_MLAST) {
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
 		return;
 	}
 
 	if (c == 2) {
-		if (ks->binds[b])
-			Com_Print("\"%s\" = \"%s\"\n", Cmd_Argv(1), ks->binds[b]);
+		if (ks->binds[k])
+			Com_Print("\"%s\" = \"%s\"\n", Cmd_Argv(1), ks->binds[k]);
 		else
 			Com_Print("\"%s\" is not bound\n", Cmd_Argv(1));
 		return;
@@ -564,29 +467,29 @@ static void Cl_Bind_f(void) {
 		return;
 	}
 
-	Cl_Bind(b, cmd);
+	Cl_Bind(k, cmd);
 }
 
 /*
  * @brief Writes lines containing "bind key value"
  */
 void Cl_WriteBindings(FILE *f) {
-	uint16_t i;
+	SDLKey i;
 
-	for (i = K_FIRST; i < K_LAST; i++)
+	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
-			fprintf(f, "bind %s \"%s\"\n", Cl_KeyNumToString(i), ks->binds[i]);
+			fprintf(f, "bind %s \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
 }
 
 /*
  * @brief
  */
 static void Cl_BindList_f(void) {
-	uint16_t i;
+	SDLKey i;
 
-	for (i = K_FIRST; i < K_LAST; i++)
+	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
-			Com_Print("%s \"%s\"\n", Cl_KeyNumToString(i), ks->binds[i]);
+			Com_Print("%s \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
 }
 
 /*
@@ -604,8 +507,8 @@ static void Cl_WriteHistory(void) {
 		return;
 	}
 
-	for (i = (ks->edit_line + 1) % KEY_HISTORYSIZE; i != ks->edit_line; i = (i + 1)
-			% KEY_HISTORYSIZE) {
+	for (i = (ks->edit_line + 1) % KEY_HISTORY_SIZE; i != ks->edit_line; i = (i + 1)
+			% KEY_HISTORY_SIZE) {
 		if (ks->lines[i][1]) {
 			fprintf(f, "%s\n", ks->lines[i] + 1);
 		}
@@ -620,7 +523,7 @@ static void Cl_WriteHistory(void) {
 static void Cl_ReadHistory(void) {
 	char path[MAX_OSPATH];
 	FILE *f;
-	char line[KEY_LINESIZE];
+	char line[KEY_LINE_SIZE];
 
 	snprintf(path, sizeof(path), "%s/history", Fs_Gamedir());
 
@@ -628,11 +531,11 @@ static void Cl_ReadHistory(void) {
 	if (!f)
 		return;
 
-	while (fgets(line, KEY_LINESIZE - 2, f)) {
+	while (fgets(line, KEY_LINE_SIZE - 2, f)) {
 		if (line[strlen(line) - 1] == '\n')
 			line[strlen(line) - 1] = 0;
-		strncpy(&ks->lines[ks->edit_line][1], line, KEY_LINESIZE - 2);
-		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORYSIZE;
+		strncpy(&ks->lines[ks->edit_line][1], line, KEY_LINE_SIZE - 2);
+		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORY_SIZE;
 		ks->history_line = ks->edit_line;
 		ks->lines[ks->edit_line][1] = 0;
 	}
@@ -644,17 +547,21 @@ static void Cl_ReadHistory(void) {
  * @brief
  */
 void Cl_InitKeys(void) {
-	int32_t i;
+	uint16_t i;
+	SDLKey k;
+
+	for (k = SDLK_FIRST; k < SDLK_LAST; k++) {
+		cl_key_names[k] = Z_CopyString(SDL_GetKeyName(k));
+	}
+	for (k = SDLK_MOUSE1; k < SDLK_MLAST; k++) {
+		cl_key_names[k] = Z_CopyString(va("mouse %d", k - SDLK_MOUSE1 + 1));
+	}
 
 	memset(ks, 0, sizeof(cl_key_state_t));
 
 	ks->insert = 1;
 
-	for (i = K_FIRST; i < K_LAST; i++) {
-		ks->down[i] = false;
-	}
-
-	for (i = 0; i < KEY_HISTORYSIZE; i++) {
+	for (i = 0; i < KEY_HISTORY_SIZE; i++) {
 		ks->lines[i][0] = ']';
 		ks->lines[i][1] = '\0';
 	}
@@ -687,7 +594,7 @@ void Cl_ShutdownKeys(void) {
 /*
  * @brief
  */
-void Cl_KeyEvent(uint32_t key, uint16_t unicode, bool down, uint32_t time) {
+void Cl_KeyEvent(SDLKey key, uint16_t unicode, bool down, uint32_t time) {
 
 	// check for system commands first, swallowing such events
 	if (Cl_KeySystem(key, unicode, down, time)) {
@@ -717,8 +624,7 @@ void Cl_KeyEvent(uint32_t key, uint16_t unicode, bool down, uint32_t time) {
 
 	if (ks->dest == KEY_GAME && !(active->integer)) {
 		Cvar_FullSet("active", "1", CVAR_USER_INFO | CVAR_NO_SET);
-	} else if ((ks->dest == KEY_UI || ks->dest == KEY_CHAT || ks->dest == KEY_CONSOLE)
-			&& active->integer) {
+	} else if (ks->dest != KEY_GAME && active->integer) {
 		Cvar_FullSet("active", "0", CVAR_USER_INFO | CVAR_NO_SET);
 	}
 }

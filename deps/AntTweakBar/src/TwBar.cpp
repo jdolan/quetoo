@@ -7517,6 +7517,18 @@ bool CTwBar::EditInPlaceKeyPressed(int _Key, int _Modifiers)
     bool Handled = true; // if EditInPlace is active, it catches all key events
     bool DoCopy = false, DoPaste = false;
 
+    /* Quake2World key bindings */
+    if (m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
+    	if (_Key != 27) {
+			stringstream s;
+			s << _Key;
+			m_EditInPlace.m_String = s.str();
+			EditInPlaceEnd(true);
+			return Handled;
+    	}
+    }
+    /* End Quake2World key bindings */
+
     switch( _Key )
     {
     case TW_KEY_ESCAPE:
