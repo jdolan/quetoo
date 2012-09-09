@@ -24,7 +24,7 @@
 
 #include "cl_types.h"
 
-#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CL_LOCAL_H__
 void Cl_InitHttpDownload(void);
 void Cl_HttpDownloadCleanup(void);
 bool Cl_HttpDownload(void);

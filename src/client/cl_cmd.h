@@ -24,7 +24,7 @@
 
 #include "cl_types.h"
 
-#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CL_LOCAL_H__
 void Cl_UpdateCmd(void);
 void Cl_SendCmd(void);
 #endif /* __CL_LOCAL_H__ */

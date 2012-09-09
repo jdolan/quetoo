@@ -24,7 +24,7 @@
 
 #include "cl_types.h"
 
-#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CL_LOCAL_H__
 void Cl_WriteDemoMessage(void);
 void Cl_Record_f(void);
 void Cl_Stop_f(void);

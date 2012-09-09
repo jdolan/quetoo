@@ -24,7 +24,7 @@
 
 #include "r_types.h"
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 typedef struct r_lightmaps_s {
 	GLuint lightmap_texnum;
 	GLuint deluxemap_texnum;

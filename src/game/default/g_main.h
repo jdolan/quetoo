@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __G_LOCAL_H__
 
 // maplist structs
 typedef struct g_map_list_elt_s {

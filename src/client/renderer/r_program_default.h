@@ -24,7 +24,7 @@
 
 #include "r_types.h"
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 void R_InitProgram_default(void);
 void R_UseProgram_default(void);
 void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_image_t *image);

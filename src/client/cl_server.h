@@ -26,7 +26,7 @@
 
 void Cl_Servers_f(void);
 
-#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CL_LOCAL_H__
 void Cl_FreeServers(void);
 void Cl_Ping_f(void);
 void Cl_ParseStatusMessage(void);

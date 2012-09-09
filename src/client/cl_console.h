@@ -24,7 +24,7 @@
 
 #include "cl_types.h"
 
-#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CL_LOCAL_H__
 extern console_t cl_con;
 
 void Cl_InitConsole(void);

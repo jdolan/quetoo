@@ -24,7 +24,7 @@
 
 #include "cg_types.h"
 
-#if defined (__CG_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CG_LOCAL_H__
 
 extern cvar_t *cg_add_emits;
 extern cvar_t *cg_add_entities;

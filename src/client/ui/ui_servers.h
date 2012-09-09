@@ -26,7 +26,7 @@
 
 void Ui_NewServer(void);
 
-#if defined (__UI_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __UI_LOCAL_H__
 TwBar *Ui_Servers(void);
 #endif /* __UI_LOCAL_H__ */
 

@@ -24,7 +24,7 @@
 
 #include "r_types.h"
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 void R_LoadBspModel(r_model_t *mod, void *buffer);
 #endif /* __R_LOCAL_H__ */
 

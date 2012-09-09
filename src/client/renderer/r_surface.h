@@ -24,7 +24,7 @@
 
 #include "r_types.h"
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs);
 void R_DrawOpaqueWarpSurfaces_default(const r_bsp_surfaces_t *surfs);
 void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs);

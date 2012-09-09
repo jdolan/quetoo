@@ -31,7 +31,7 @@
 #define R_ARRAY_TEX_DIFFUSE		0x10
 #define R_ARRAY_TEX_LIGHTMAP	0x20
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 void R_SetArrayState(const r_model_t *mod);
 void R_ResetArrayState(void);
 #endif /* __R_LOCAL_H__ */

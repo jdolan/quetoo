@@ -24,7 +24,7 @@
 
 #include "cg_types.h"
 
-#if defined (__CG_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CG_LOCAL_H__
 
 #define IS_SELF(e) ( \
 	e->current.client == cgi.client->player_num || ( \

@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __G_LOCAL_H__
 void G_RunEntity(g_edict_t *ent);
 #endif /* __G_LOCAL_H__ */
 

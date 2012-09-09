@@ -28,7 +28,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model);
 bool R_LeafInPvs(const r_bsp_leaf_t *leaf);
 bool R_LeafInPhs(const r_bsp_leaf_t *leaf);
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 const char *R_WorldspawnValue(const char *key);
 bool R_CullBox(const vec3_t mins, const vec3_t maxs);
 bool R_CullBspModel(const r_entity_t *e);

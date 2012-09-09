@@ -40,7 +40,7 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 void R_DrawLines(void);
 void R_FreePics(void);
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 void R_InitDraw(void);
 #endif /* __R_LOCAL_H__ */
 

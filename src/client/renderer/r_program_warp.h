@@ -24,7 +24,7 @@
 
 #include "r_types.h"
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 void R_InitProgram_warp(void);
 void R_UseProgram_warp(void);
 #endif /* __R_LOCAL_H__ */

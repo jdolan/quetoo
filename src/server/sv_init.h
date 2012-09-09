@@ -24,7 +24,7 @@
 
 #include "sv_types.h"
 
-#if defined (__SV_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __SV_LOCAL_H__
 uint16_t Sv_ModelIndex(const char *name);
 uint16_t Sv_SoundIndex(const char *name);
 uint16_t Sv_ImageIndex(const char *name);

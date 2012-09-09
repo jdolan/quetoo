@@ -37,7 +37,7 @@ extern r_image_t *r_warp_image;
 
 r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 
 extern r_image_t r_images[MAX_GL_TEXTURES];
 extern uint16_t r_num_images;

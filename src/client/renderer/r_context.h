@@ -26,7 +26,7 @@
 
 extern r_context_t r_context;
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 void R_InitContext(void);
 void R_ShutdownContext(void);
 #endif /* __R_LOCAL_H__ */

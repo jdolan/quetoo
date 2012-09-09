@@ -27,7 +27,7 @@
 void R_AddLight(const r_light_t *l);
 void R_AddSustainedLight(const r_sustained_light_t *s);
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 void R_ResetLights(void);
 void R_MarkLights(void);
 void R_ShiftLights(const vec3_t offset);

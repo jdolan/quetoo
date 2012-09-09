@@ -24,7 +24,7 @@
 
 #include "cg_types.h"
 
-#if defined (__CG_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CG_LOCAL_H__
 void Cg_EntityEvent(cl_entity_t *e);
 #endif /* __CG_LOCAL_H__ */
 

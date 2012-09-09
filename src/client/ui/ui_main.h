@@ -29,7 +29,7 @@ bool Ui_Event(SDL_Event *event);
 void Ui_Init(void);
 void Ui_Shutdown(void);
 
-#if defined (__UI_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __UI_LOCAL_H__
 
 typedef struct ui_s {
 	TwType OffOrOn;

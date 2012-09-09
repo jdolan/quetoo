@@ -29,7 +29,7 @@ extern r_model_t *r_load_model;
 
 r_model_t *R_LoadModel(const char *name);
 
-#if defined (__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 
 #define MAX_MOD_KNOWN 512
 

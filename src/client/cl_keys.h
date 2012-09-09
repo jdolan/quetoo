@@ -27,7 +27,7 @@
 const char *Cl_KeyName(SDLKey key);
 SDLKey Cl_KeyNum(const char *name);
 
-#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CL_LOCAL_H__
 
 void Cl_KeyEvent(SDLKey key, uint16_t unicode, bool down, unsigned time);
 char *Cl_EditLine(void);

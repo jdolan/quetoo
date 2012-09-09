@@ -24,7 +24,7 @@
 
 #include "cg_types.h"
 
-#if defined (__CG_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CG_LOCAL_H__
 extern s_sample_t *cg_sample_blaster_fire;
 extern s_sample_t *cg_sample_blaster_hit;
 extern s_sample_t *cg_sample_shotgun_fire;

@@ -27,7 +27,7 @@ void S_Init(void);
 void S_LoadMedia(void);
 void S_Shutdown(void);
 
-#if defined (__S_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __S_LOCAL_H__
 
 #endif /* __S_LOCAL_H__ */
 

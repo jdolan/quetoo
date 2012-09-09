@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __G_LOCAL_H__
 void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
 		int32_t speed, int32_t damage, int32_t knockback);
 void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,

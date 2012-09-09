@@ -24,7 +24,7 @@
 
 #include "ui_types.h"
 
-#if defined (__UI_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __UI_LOCAL_H__
 void TW_CALL Ui_ShowBar(void *data);
 void TW_CALL Ui_CenterBar(void *data);
 #endif /* __UI_LOCAL_H__ */

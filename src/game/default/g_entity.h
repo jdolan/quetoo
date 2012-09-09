@@ -24,7 +24,7 @@
 
 #include "g_types.h"
 
-#if defined (__G_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __G_LOCAL_H__
 void G_SpawnEntities(const char *name, const char *entities);
 #endif /* __G_LOCAL_H__ */
 

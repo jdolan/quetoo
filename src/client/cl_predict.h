@@ -24,7 +24,7 @@
 
 #include "cl_types.h"
 
-#if defined (__CL_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __CL_LOCAL_H__
 bool Cl_UsePrediction(void);
 void Cl_PredictMovement(void);
 void Cl_CheckPredictionError(void);
