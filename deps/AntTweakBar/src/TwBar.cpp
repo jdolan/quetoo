@@ -6031,6 +6031,19 @@ bool CTwBar::MouseButton(ETwMouseButtonID _Button, bool _Pressed, int _X, int _Y
 
     if( !m_IsMinimized )
     {
+    	/* Quake2World key bindings */
+    	if (m_EditInPlace.m_Active && m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
+			if (_Pressed) {
+				stringstream s;
+				s << _Button + 322; // SDLK_MOUSE1 is 323
+				m_EditInPlace.m_String = s.str();
+				EditInPlaceEnd(true);
+				NotUpToDate();
+				return true;
+			}
+		}
+    	/* End Quake2World key bindings */
+
         Handled = (_X>=m_PosX && _X<m_PosX+m_Width && _Y>=m_PosY && _Y<m_PosY+m_Height);
         if( _Button==TW_MOUSE_LEFT && m_HighlightedLine>=0 && m_HighlightedLine<(int)m_HierTags.size() && m_HierTags[m_HighlightedLine].m_Var )
         {
@@ -6495,6 +6508,19 @@ bool CTwBar::MouseButton(ETwMouseButtonID _Button, bool _Pressed, int _X, int _Y
 
 bool CTwBar::MouseWheel(int _Pos, int _PrevPos, int _MouseX, int _MouseY)
 {
+	/* Quake2World key bindings */
+	if (!m_IsMinimized) {
+		if (m_EditInPlace.m_Active && m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
+			stringstream s;
+			s << (_Pos > _PrevPos ? 327 : 326); // SDLK_MOUSE1 is 323
+			m_EditInPlace.m_String = s.str();
+			EditInPlaceEnd(true);
+			NotUpToDate();
+			return true;
+		}
+	}
+	/* End Quake2World key bindings */
+
     assert(g_TwMgr->m_Graph && g_TwMgr->m_WndHeight>0 && g_TwMgr->m_WndWidth>0);
     if( !m_UpToDate )
         Update();
@@ -7519,11 +7545,12 @@ bool CTwBar::EditInPlaceKeyPressed(int _Key, int _Modifiers)
 
     /* Quake2World key bindings */
     if (m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
-    	if (_Key != 27) {
+    	if (_Key != TW_KEY_ESCAPE) {
 			stringstream s;
 			s << _Key;
 			m_EditInPlace.m_String = s.str();
 			EditInPlaceEnd(true);
+			NotUpToDate();
 			return Handled;
     	}
     }

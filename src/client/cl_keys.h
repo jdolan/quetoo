@@ -25,7 +25,7 @@
 #include "cl_types.h"
 
 const char *Cl_KeyName(SDLKey key);
-SDLKey Cl_KeyNum(const char *name);
+void Cl_Bind(SDLKey key, const char *binding);
 
 #ifdef __CL_LOCAL_H__
 

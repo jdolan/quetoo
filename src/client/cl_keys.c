@@ -352,7 +352,7 @@ static void Cl_KeyMessage(SDLKey key, uint16_t unicode, bool down, uint32_t time
  */
 const char *Cl_KeyName(SDLKey key) {
 
-	if (key >= SDLK_MLAST) {
+	if (key == SDLK_UNKNOWN || key >= SDLK_MLAST) {
 		return va("<unknown %d>", key);
 	}
 
@@ -377,11 +377,11 @@ SDLKey Cl_Key(const char *name) {
 }
 
 /*
- * @brief
+ * @brief Binds the specified key to the given command.
  */
-static void Cl_Bind(SDLKey key, const char *binding) {
+void Cl_Bind(SDLKey key, const char *binding) {
 
-	if (key == SDLK_MLAST)
+	if (key == SDLK_UNKNOWN || key >= SDLK_MLAST)
 		return;
 
 	// free the old binding
@@ -478,7 +478,7 @@ void Cl_WriteBindings(FILE *f) {
 
 	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
-			fprintf(f, "bind %s \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
+			fprintf(f, "bind \"%s\" \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
 }
 
 /*
@@ -489,7 +489,7 @@ static void Cl_BindList_f(void) {
 
 	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
-			Com_Print("%s \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
+			Com_Print("\"%s\" \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
 }
 
 /*

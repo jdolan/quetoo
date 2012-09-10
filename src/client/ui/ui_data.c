@@ -113,42 +113,29 @@ void TW_CALL Ui_Command(void *data) {
 	Cbuf_AddText((const char *) data);
 }
 
-static void TW_CALL Ui_BindGet(void *value, void *data);
-
 /*
  * @brief Binds the key specified in value to the command specified in data.
- * Any existing binds for that command are unbound.
  */
 static void TW_CALL Ui_BindSet(const void *value, void *data) {
-	SDLKey key = atoi((char *) value);
-	char *bind = (char *) data;
-	char old[128];
-
-	Ui_BindGet(old, bind);
-
-	if (*old) {
-		Cbuf_AddText(va("unbind \"%s\"\n", old));
-	}
-
-	Cbuf_AddText(va("bind \"%s\" %s\n", Cl_KeyName(key), bind));
+	Cl_Bind(atoi( (char *) value), (char *) data);
 }
 
 /*
- * @brief Copies the first key name for the bind specified in data to value.
+ * @brief Copies the key names for the bind specified in data to value.
  */
 static void TW_CALL Ui_BindGet(void *value, void *data) {
 	char **binds = cls.key_state.binds;
 	char *bind = (char *) data;
 	SDLKey i;
 
+	char *s = (char *) value;
+	*s = 0;
+
 	for (i = SDLK_FIRST; i < SDLK_MLAST; i++) {
 		if (binds[i] && !strcasecmp(bind, binds[i])) {
-			strcpy(value, Cl_KeyName(i));
-			return;
+			strcat(s, va(strlen(s) ? ", %s" : "%s", Cl_KeyName(i)));
 		}
 	}
-
-	*(char *) value = 0;
 }
 
 /*
