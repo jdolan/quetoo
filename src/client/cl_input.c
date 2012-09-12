@@ -388,7 +388,7 @@ void Cl_HandleEvents(void) {
 
 		SDLKey i;
 
-		for (i = SDLK_FIRST; i < SDLK_MOUSE7; i++) {
+		for (i = SDLK_FIRST; i < SDLK_MLAST; i++) {
 			if (cls.key_state.down[i]) {
 				if (cls.key_state.binds[i] && cls.key_state.binds[i][0] == '+') {
 					Cl_KeyEvent(i, i, false, cls.real_time);

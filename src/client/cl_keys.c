@@ -168,7 +168,7 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 		if (i == ks->pos)
 			return; // no character to get
 
-		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) { //by a whole word
+		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) { // by a whole word
 			while (ks->pos < i && ks->lines[ks->edit_line][ks->pos + 1] == ' ')
 				ks->pos++; // get off current word
 			while (ks->pos < i && ks->lines[ks->edit_line][ks->pos + 1] != ' ')
@@ -212,24 +212,25 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 		return;
 	}
 
-	if (key == SDLK_PAGEUP /*|| key == K_MWHEELUP*/) {
+	if (key == SDLK_PAGEUP || key == SDLK_MOUSE4) {
 		cl_con.scroll += CON_SCROLL;
 		if (cl_con.scroll > cl_con.last_line)
 			cl_con.scroll = cl_con.last_line;
 		return;
 	}
 
-	if (key == SDLK_PAGEDOWN /*|| key == K_MWHEELDOWN*/) {
+	if (key == SDLK_PAGEDOWN || key == SDLK_MOUSE5) {
 		cl_con.scroll -= CON_SCROLL;
 		if (cl_con.scroll < 0)
 			cl_con.scroll = 0;
 		return;
 	}
 
-	/*if (key == K_CTRL_A) { // start of line
+	// Ctrl-A jumps to the beginning of the line
+	if (key == SDLK_a && (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL])) {
 		ks->pos = 1;
 		return;
-	}*/
+	}
 
 	if (key == SDLK_HOME) { // go to the start of line
 		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) // go to the start of the console
@@ -239,10 +240,11 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 		return;
 	}
 
-	/*if (key == K_CTRL_E) { // Ctrl+E shortcut to go to the end of line
+	// Ctrl-E jumps to the end of the line
+	if (key == SDLK_e && (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL])) {
 		ks->pos = strlen(ks->lines[ks->edit_line]);
 		return;
-	}*/
+	}
 
 	if (key == SDLK_END) { // go to the end of line
 		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) // go to the end of the console
