@@ -63,11 +63,13 @@ void Cl_CheckPredictionError(void) {
 	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame], d);
 	UnpackPosition(d, delta); // convert back to floating point
 
-	if (VectorLength(delta) > 256.0) { // assume a teleport or something
+	const float error = VectorLength(delta);
+
+	if (error > 256.0) { // assume a teleport or something
 		VectorClear(cl.prediction_error);
 	} else { // save the prediction error for interpolation
-		if (!VectorCompare(delta, vec3_origin)) {
-			//Com_Debug("Cl_CheckPredictionError: %s\n", vtos(delta));
+		if (error > 4.0) {
+			Com_Debug("Cl_CheckPredictionError: %s\n", vtos(delta));
 		}
 
 		VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame]);
@@ -188,7 +190,7 @@ void Cl_PredictMovement(void) {
 
 	// if we are too far out of date, just freeze
 	if (current - ack >= CMD_BACKUP) {
-		Com_Warn("Cl_PredictMovement: Exceeded CMD_BACKUP.\n");
+		Com_Debug("Cl_PredictMovement: Exceeded CMD_BACKUP.\n");
 		return;
 	}
 
@@ -212,15 +214,16 @@ void Cl_PredictMovement(void) {
 		pm.cmd = *cmd;
 		Pmove(&pm);
 
+		// for each movement, check for stair interaction and interpolate
+		const float step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
+
+		if ((pm.s.pm_flags & PMF_ON_STAIRS) && fabs(step) >= 8.0) {
+			cl.predicted_step_time = cls.real_time;
+			cl.predicted_step = step;
+		}
+
 		// save for debug checking
 		VectorCopy(pm.s.origin, cl.predicted_origins[frame]);
-	}
-
-	const float step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
-
-	if ((pm.s.pm_flags & PMF_ON_STAIRS) && (step >= 4.0 || step <= -4.0)) { // save for stair interpolation
-		cl.predicted_step_time = cls.real_time;
-		cl.predicted_step = step;
 	}
 
 	// copy results out for rendering

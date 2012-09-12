@@ -77,7 +77,7 @@ typedef struct cl_client_info_s {
 	r_image_t *lower_skins[MD3_MAX_MESHES];
 } cl_client_info_t;
 
-#define CMD_BACKUP 128  // allow a lot of command backups for very fast systems
+#define CMD_BACKUP 512 // allow a lot of command backups for very fast systems
 #define CMD_MASK (CMD_BACKUP - 1)
 
 // we accumulate parsed entity states in a rather large buffer so that they
