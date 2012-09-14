@@ -114,8 +114,8 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 		}
 
 		const uint32_t ms = cls.real_time - cl.predicted_step_time;
-		if (ms < 100) { // lerp stairs over 100ms
-			r_view.origin[2] -= cl.predicted_step * ((100 - ms) / 100.0);
+		if (ms <= 50) { // lerp stairs over 50ms
+			r_view.origin[2] -= cl.predicted_step * ((50 - ms) / 50.0);
 		}
 	} else { // just use interpolated values from frame
 		vec3_t old_origin, current_origin, origin;
