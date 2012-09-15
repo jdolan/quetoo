@@ -313,13 +313,7 @@ static void Cl_HandleEvent(SDL_Event *event) {
 static void Cl_MouseMove(int32_t mx, int32_t my) {
 
 	if (m_sensitivity->modified) { // clamp sensitivity
-
-		if (m_sensitivity->value < 0.1) {
-			m_sensitivity->value = 3.0f;
-		} else if (m_sensitivity->value > 20.0f) {
-			m_sensitivity->value = 3.0f;
-		}
-
+		m_sensitivity->value = Clamp(m_sensitivity->value, 0.1, 20.0);
 		m_sensitivity->modified = false;
 	}
 

@@ -295,11 +295,7 @@ void R_BeginBuildingLightmaps(void) {
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
 
 	// but clamp it to the card's capability to avoid errors
-	if (r_lightmaps.block_size < 256)
-		r_lightmaps.block_size = 256;
-
-	if (r_lightmaps.block_size > (r_pixel_t) max)
-		r_lightmaps.block_size = (r_pixel_t) max;
+	r_lightmaps.block_size = Clamp(r_lightmaps.block_size, 256, (r_pixel_t) max);
 
 	const r_pixel_t bs = r_lightmaps.block_size;
 

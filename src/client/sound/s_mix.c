@@ -68,18 +68,17 @@ void S_SpatializeChannel(s_channel_t *ch) {
 	VectorSubtract(ch->org, r_view.origin, delta);
 	dist = VectorNormalize(delta) * SOUND_DISTANCE_SCALE * ch->atten;
 
-	if (dist > 255.0) // clamp to max
-		dist = 255.0;
+	dist = Clamp(dist, 0.0, 255.0); // clamp to max
 
 	if (dist > 1.0) { // resolve stereo panning
 		dot = DotProduct(r_view.right, delta);
 		angle = acos(dot) * 180.0 / M_PI - 90.0;
 
-		angle = (int) (360.0 - angle) % 360;
+		angle = (int16_t) (360.0 - angle) % 360;
 	} else
 		angle = 0.0;
 
-	Mix_SetPosition(c, (int) angle, (int) dist);
+	Mix_SetPosition(c, (int16_t) angle, (uint8_t) dist);
 }
 
 /*

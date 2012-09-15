@@ -131,7 +131,7 @@ typedef struct cl_client_s {
 	vec3_t angles;
 
 	uint32_t server_count; // server identification for precache
-	uint16_t server_frame_rate; // server frame rate (packets per second)
+	uint16_t server_hz; // server frame rate (packets per second)
 
 	bool demo_server; // we're viewing a demo
 	bool third_person; // we're using a 3rd person camera

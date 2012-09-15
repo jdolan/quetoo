@@ -250,7 +250,7 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 			temp += 0.5;
 		else
 			temp -= 0.5;
-		move[i] = 0.125 * (int) temp;
+		move[i] = 0.125 * (int16_t) temp;
 	}
 
 	// find the bounding box

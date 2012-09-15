@@ -108,10 +108,7 @@ void Cl_ParseStatusMessage(void) {
 	server->name[31] = '\0';
 	server->gameplay[31] = '\0';
 
-	server->ping = cls.real_time - server->ping_time;
-
-	if (server->ping > 1000) // clamp the ping
-		server->ping = 999;
+	server->ping = Clamp(cls.real_time - server->ping_time, 1, 999);
 
 	Ui_NewServer();
 }

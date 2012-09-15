@@ -276,7 +276,7 @@ void Cl_ParseFrame(void) {
 	cl_frame_t *old_frame;
 
 	cl.frame.server_frame = Msg_ReadLong(&net_message);
-	cl.frame.server_time = cl.frame.server_frame * 1000 / cl.server_frame_rate;
+	cl.frame.server_time = cl.frame.server_frame * 1000 / cl.server_hz;
 
 	cl.frame.delta_frame = Msg_ReadLong(&net_message);
 

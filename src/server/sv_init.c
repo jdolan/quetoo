@@ -26,8 +26,7 @@
  * desired name. If not found, the name can be optionally created and sent to
  * all connected clients. This allows the game to lazily load assets.
  */
-static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max,
-		bool create) {
+static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, bool create) {
 	uint16_t i;
 
 	if (!name || !name[0])
@@ -103,7 +102,7 @@ static void Sv_CreateBaseline(void) {
  * returning from this function.
  */
 static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
-	sv_client_t *cl;
+	sv_client_t * cl;
 	int32_t i;
 
 	if (!svs.initialized)
@@ -154,22 +153,15 @@ static void Sv_UpdateLatchedVars(void) {
 
 	Cvar_UpdateLatchedVars();
 
-	if (sv_max_clients->integer < MIN_CLIENTS)
-		sv_max_clients->integer = MIN_CLIENTS;
-	else if (sv_max_clients->integer > MAX_CLIENTS)
-		sv_max_clients->integer = MAX_CLIENTS;
-
-	if (sv_framerate->integer < SERVER_FRAME_RATE_MIN)
-		sv_framerate->integer = SERVER_FRAME_RATE_MIN;
-	else if (sv_framerate->integer > SERVER_FRAME_RATE_MAX)
-		sv_framerate->integer = SERVER_FRAME_RATE_MAX;
+	sv_max_clients->integer = Clamp(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
+	sv_hz->integer = Clamp(sv_hz->integer, SERVER_HZ_MIN, SERVER_HZ_MAX);
 }
 
 /*
  * @brief Gracefully frees all resources allocated to svs.clients.
  */
 static void Sv_ShutdownClients(void) {
-	sv_client_t *cl;
+	sv_client_t * cl;
 	int32_t i;
 
 	if (!svs.initialized)
@@ -212,7 +204,7 @@ static void Sv_InitClients(void) {
 		svs.num_entity_states = sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
 		svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
 
-		svs.frame_rate = sv_framerate->integer;
+		svs.frame_rate = sv_hz->integer;
 
 		svs.spawn_count = Random();
 

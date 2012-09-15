@@ -33,8 +33,8 @@ cvar_t *sv_rcon_password; // password for remote server commands
 cvar_t *sv_download_url;
 cvar_t *sv_enforce_time;
 cvar_t *sv_hostname;
+cvar_t *sv_hz;
 cvar_t *sv_max_clients;
-cvar_t *sv_framerate;
 cvar_t *sv_public;
 cvar_t *sv_timeout;
 cvar_t *sv_udp_download;
@@ -857,6 +857,8 @@ void Sv_Init(void) {
 	sv_enforce_time = Cvar_Get("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, NULL);
 
 	sv_hostname = Cvar_Get("sv_hostname", "Quake2World", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
+	sv_hz = Cvar_Get("sv_hz", va("%d", SERVER_HZ), CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+
 	sv_public = Cvar_Get("sv_public", "0", 0, NULL);
 
 	if (dedicated->value)
@@ -864,8 +866,6 @@ void Sv_Init(void) {
 	else
 		sv_max_clients = Cvar_Get("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 
-	sv_framerate = Cvar_Get("sv_framerate", va("%d", SERVER_FRAME_RATE),
-			CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	sv_timeout = Cvar_Get("sv_timeout", va("%d", SERVER_TIMEOUT), 0, NULL);
 	sv_udp_download = Cvar_Get("sv_udp_download", "1", CVAR_ARCHIVE, NULL);
 

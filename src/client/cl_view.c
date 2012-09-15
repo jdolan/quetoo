@@ -22,7 +22,7 @@
 #include "cl_local.h"
 
 /*
- * @brief
+ * @brief Clears all volatile view members so that a new scene may be populated.
  */
 static void Cl_ClearView(void) {
 
@@ -65,7 +65,10 @@ static void Cl_UpdateViewSize(void) {
 }
 
 /*
- * @brief
+ * @brief Updates the interpolation fraction for the current client frame.
+ * Because the client typically runs at a higher framerate than the server, we
+ * use linear interpolation between the last 2 server frames. We aim to reach
+ * the current server time just as a new packet arrives.
  */
 static void Cl_UpdateLerp(cl_frame_t *from) {
 
@@ -76,11 +79,11 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 	}
 
 	if (cl.time > cl.frame.server_time) {
-		Com_Debug("Cl_UpdateLerp: High clamp\n");
+		Com_Debug("Cl_UpdateLerp: High clamp: %dms\n", cl.time - cl.frame.server_time);
 		cl.time = cl.frame.server_time;
 		cl.lerp = 1.0;
 	} else if (cl.time < from->server_time) {
-		Com_Debug("Cl_UpdateLerp: Low clamp\n");
+		Com_Debug("Cl_UpdateLerp: Low clamp: %dms\n", from->server_time - cl.time);
 		cl.time = from->server_time;
 		cl.lerp = 0.0;
 	} else {

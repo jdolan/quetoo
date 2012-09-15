@@ -125,11 +125,7 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 			visible = r_view.trace.fraction == 1.0;
 
 			f->alpha += (visible ? 0.03 : -0.15); // ramp
-
-			if (f->alpha > 1.0) // clamp
-				f->alpha = 1.0;
-			else if (f->alpha < 0)
-				f->alpha = 0.0;
+			f->alpha = Clamp(f->alpha, 0.0, 1.0); // clamp
 
 			f->time = r_view.time;
 		}

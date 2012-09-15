@@ -39,7 +39,7 @@ static void Cl_WriteDemoHeader(void) {
 	Msg_WriteByte(&msg, SV_CMD_SERVER_DATA);
 	Msg_WriteLong(&msg, PROTOCOL);
 	Msg_WriteLong(&msg, cl.server_count);
-	Msg_WriteLong(&msg, cl.server_frame_rate);
+	Msg_WriteLong(&msg, cl.server_hz);
 	Msg_WriteByte(&msg, 1); // demo_server byte
 	Msg_WriteString(&msg, Cvar_GetString("game"));
 	Msg_WriteShort(&msg, cl.player_num);
@@ -183,11 +183,8 @@ static void Cl_AdjustDemoPlayback(float delta) {
 		return;
 	}
 
-	f = time_scale->value + delta;
-
-	if (f >= DEMO_PLAYBACK_STEP && f <= 4.0) {
-		Cvar_Set("time_scale", va("%f", f));
-	}
+	f = Clamp(time_scale->value + delta, DEMO_PLAYBACK_STEP, 4.0);
+	Cvar_Set("time_scale", va("%f", f));
 
 	Com_Print("Demo playback rate %d%%\n", (int) (time_scale->value * 100));
 }

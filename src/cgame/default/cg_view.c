@@ -121,15 +121,9 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	velocity[2] = 0.0;
 
 	speed = VectorLength(velocity) / (ducked ? 150 : 450.0);
+	speed = Clamp(speed, 0.0, 1.0);
 
-	if (speed > 1.0)
-		speed = 1.0;
-
-	ftime = cgi.view->time - vtime;
-
-	if (ftime < 0.0) // clamp for level changes
-		ftime = 0.0;
-
+	ftime = Clamp(cgi.view->time - vtime, 0.0, 1.0);
 	ftime *= (1.0 + speed * 1.0 + speed);
 
 	if (!(ps->pm_state.pm_flags & PMF_ON_GROUND))

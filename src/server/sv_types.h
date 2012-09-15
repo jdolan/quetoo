@@ -122,9 +122,9 @@ typedef struct sv_client_s {
 } sv_client_t;
 
 // the server runs fixed-interval frames at a configurable rate (Hz)
-#define SERVER_FRAME_RATE_MIN 20
-#define SERVER_FRAME_RATE_MAX 120
-#define SERVER_FRAME_RATE 30
+#define SERVER_HZ_MIN 20
+#define SERVER_HZ_MAX 120
+#define SERVER_HZ 30
 
 // clients will be dropped after no activity in so many seconds
 #define SERVER_TIMEOUT 60

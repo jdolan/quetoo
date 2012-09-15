@@ -198,13 +198,7 @@ void R_Screenshot_f(void) {
 
 	glReadPixels(0, 0, r_context.width, r_context.height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
-	quality = r_screenshot_quality->value * 100;
-
-	if (quality < 0) // clamp it
-		quality = 0;
-
-	if (quality > 100)
-		quality = 100;
+	quality = Clamp(r_screenshot_quality->value * 100, 0, 100);
 
 	(*Img_Write)(file_name, buffer, r_context.width, r_context.height, quality);
 
@@ -295,12 +289,7 @@ void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_im
 
 		for (j = 0; j < 3; j++) {
 
-			temp[j] *= 255; // back to byte
-
-			if (temp[j] > 255) // clamp
-				temp[j] = 255;
-			else if (temp[j] < 0)
-				temp[j] = 0;
+			temp[j] = Clamp(temp[j] * 255, 0, 255); // back to byte
 
 			p[j] = (byte) temp[j];
 

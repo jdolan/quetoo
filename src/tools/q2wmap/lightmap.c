@@ -911,17 +911,9 @@ void FinalLightFace(int32_t face_num) {
 		// apply brightness, saturation and contrast
 		ColorFilter(temp, temp, brightness, saturation, contrast);
 
-		// write the lightmap sample data
+		// write the lightmap sample data as bytes
 		for (k = 0; k < 3; k++) {
-
-			temp[k] *= 255.0; // back to byte
-
-			if (temp[k] > 255.0) // clamp
-				temp[k] = 255.0;
-			else if (temp[k] < 0.0)
-				temp[k] = 0.0;
-
-			*dest++ = (byte) temp[k];
+			*dest++ = (byte) Clamp(temp[k] * 255, 0, 255);
 		}
 
 		if (!legacy) { // also write the directional data

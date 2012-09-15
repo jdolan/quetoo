@@ -66,7 +66,7 @@ static void Cl_FinalizeCmd(void) {
 	user_cmd_t *cmd = &cl.cmds[cls.netchan.outgoing_sequence & CMD_MASK];
 	const uint32_t msec = cls.packet_delta;
 
-	cmd->msec = msec > 255 ? 255 : msec;
+	cmd->msec = Clamp(msec, 1, 255);
 	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->msec, cmd->forward, cmd->right, cmd->up);
 }
 

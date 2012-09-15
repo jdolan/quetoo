@@ -526,7 +526,7 @@ static void Pm_CheckDuck(void) {
 
 	if (pm->s.pm_type == PM_DEAD) {
 		pm->s.pm_flags |= PMF_DUCKED;
-	} else if (pm->cmd.up < 0 ) { // duck
+	} else if (pm->cmd.up < 0) { // duck
 		pm->s.pm_flags |= PMF_DUCKED;
 	} else { // stand up if possible
 		trace = pm->Trace(pml.origin, pm->mins, pm->maxs, pml.origin);
@@ -755,11 +755,7 @@ static void Pm_LadderMove(void) {
 	Pm_AddCurrents(vel);
 
 	VectorCopy(vel, dir);
-	speed = VectorNormalize(dir);
-
-	// clamp to max speed
-	if (speed > PM_SPEED_LADDER)
-		speed = PM_SPEED_LADDER;
+	speed = Clamp(VectorNormalize(dir), 0.0, PM_SPEED_LADDER);
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_GROUND);
 
@@ -788,9 +784,7 @@ static void Pm_WaterJumpMove(void) {
 
 	// if we've reached a usable spot, clamp the jump to avoid launching
 	if (pm->Trace(pml.origin, pm->mins, pm->maxs, forward).fraction == 1.0) {
-		if (pml.velocity[2] > PM_SPEED_JUMP) {
-			pml.velocity[2] = PM_SPEED_JUMP;
-		}
+		pml.velocity[2] = Clamp(pml.velocity[2], 0.0, PM_SPEED_JUMP);
 	}
 
 	// if we're falling back down, clear the timer to regain control
@@ -903,9 +897,7 @@ static void Pm_AirMove(void) {
 	else
 		accel = PM_ACCEL_NO_GROUND;
 
-	// clamp to max speed
-	if (speed > PM_SPEED_MAX)
-		speed = PM_SPEED_MAX;
+	speed = Clamp(speed, 0.0, PM_SPEED_MAX);
 
 	Pm_Accelerate(dir, speed, accel);
 
@@ -963,8 +955,7 @@ static void Pm_WalkMove(void) {
 	// and accounting for speed modulus
 	max_speed = (pm->cmd.buttons & BUTTON_WALK) ? max_speed * 0.66 : max_speed;
 
-	if (speed > max_speed) // clamp it to max speed
-		speed = max_speed;
+	speed = Clamp(speed, 0.0, max_speed);
 
 	// accelerate based on slickness of ground surface
 	accel = (pml.ground_surface->flags & SURF_SLICK) ? PM_ACCEL_NO_GROUND : PM_ACCEL_GROUND;
@@ -1089,7 +1080,7 @@ static void Pm_ClampAngles(void) {
  * @brief
  */
 static void Pm_SpectatorMove() {
-	vec3_t vel, dir;
+	vec3_t vel;
 	float speed;
 	int32_t i;
 
@@ -1101,15 +1092,10 @@ static void Pm_SpectatorMove() {
 				* pm->cmd.up;
 	}
 
-	VectorCopy(vel, dir);
-	speed = VectorNormalize(dir);
-
-	// clamp to max speed
-	if (speed > PM_SPEED_SPECTATOR)
-		speed = PM_SPEED_SPECTATOR;
+	speed = Clamp(VectorNormalize(vel), 0.0, PM_SPEED_SPECTATOR);
 
 	// accelerate
-	Pm_Accelerate(dir, speed, PM_ACCEL_SPECTATOR);
+	Pm_Accelerate(vel, speed, PM_ACCEL_SPECTATOR);
 
 	// do the move
 	VectorMA(pml.origin, pml.time, pml.velocity, pml.origin);

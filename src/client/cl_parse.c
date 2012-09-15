@@ -261,7 +261,7 @@ static void Cl_ParseServerData(void) {
 
 	// retrieve spawn count and packet rate
 	cl.server_count = Msg_ReadLong(&net_message);
-	cl.server_frame_rate = Msg_ReadLong(&net_message);
+	cl.server_hz = Msg_ReadLong(&net_message);
 
 	// determine if we're viewing a demo
 	cl.demo_server = Msg_ReadByte(&net_message);
