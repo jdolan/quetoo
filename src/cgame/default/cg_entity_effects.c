@@ -161,6 +161,7 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_smoke)))
 		return;
 
+	p->part.blend = GL_ONE;
 	p->part.color = 32 + (Random() & 7);
 
 	p->part.alpha = 1.5;

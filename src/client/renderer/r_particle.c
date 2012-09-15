@@ -30,25 +30,35 @@ void R_AddParticle(const r_particle_t *p) {
 	if (r_view.num_particles >= MAX_PARTICLES)
 		return;
 
-	if (p->type != PARTICLE_BEAM && R_LeafForPoint(p->org, NULL )->vis_frame != r_locals.vis_frame)
+	if (p->type != PARTICLE_BEAM && R_LeafForPoint(p->org, NULL)->vis_frame != r_locals.vis_frame)
 		return;
 
 	r_view.particles[r_view.num_particles++] = *p;
 }
 
-typedef struct r_particle_state_s {
+/*
+ * @brief Pools commonly used angular vectors for particle calculations and
+ * accumulates particle primitives each frame.
+ */
+typedef struct {
+	r_element_t sorted_particles[MAX_PARTICLES];
+
 	vec3_t weather_right;
 	vec3_t weather_up;
 	vec3_t splash_right[2];
 	vec3_t splash_up[2];
+
+	GLfloat verts[MAX_PARTICLES * 3 * 4];
+	GLfloat texcoords[MAX_PARTICLES * 2 * 4];
+	GLubyte colors[MAX_PARTICLES * 4 * 4];
 } r_particle_state_t;
 
 static r_particle_state_t r_particle_state;
 
 /*
- * @brief
+ * @brief Generates the vertex coordinates for the specified particle.
  */
-static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
+static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 	vec3_t v, up, right, up_right, down_right;
 	vec3_t *verts;
 	float scale;
@@ -56,12 +66,10 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
 	verts = (vec3_t *) out;
 
 	scale = // hack a scale up to keep particles from disappearing
-			(p->org[0] - r_view.origin[0]) * r_view.forward[0]
-					+ (p->org[1] - r_view.origin[1]) * r_view.forward[1]
-					+ (p->org[2] - r_view.origin[2]) * r_view.forward[2];
+			(p->org[0] - r_view.origin[0]) * r_view.forward[0] + (p->org[1] - r_view.origin[1])
+					* r_view.forward[1] + (p->org[2] - r_view.origin[2]) * r_view.forward[2];
 
-	if (scale > 20.0) // use it
-		p->scale += scale * 0.002;
+	scale = scale > 20.0 ? p->scale + scale * 0.002 : p->scale;
 
 	if (p->type == PARTICLE_BEAM) { // beams are lines with starts and ends
 		VectorSubtract(p->org, p->end, v);
@@ -71,7 +79,7 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
 		VectorSubtract(r_view.origin, p->end, v);
 		CrossProduct(up, v, right);
 		VectorNormalize(right);
-		VectorScale(right, p->scale, right);
+		VectorScale(right, scale, right);
 
 		VectorAdd(p->org, right, verts[0]);
 		VectorAdd(p->end, right, verts[1]);
@@ -88,39 +96,40 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
 		VectorNegate(verts[0], verts[2]);
 		VectorNegate(verts[1], verts[3]);
 
-		VectorMA(p->org, p->scale, verts[0], verts[0]);
-		VectorMA(p->org, p->scale, verts[1], verts[1]);
-		VectorMA(p->org, p->scale, verts[2], verts[2]);
-		VectorMA(p->org, p->scale, verts[3], verts[3]);
+		VectorMA(p->org, scale, verts[0], verts[0]);
+		VectorMA(p->org, scale, verts[1], verts[1]);
+		VectorMA(p->org, scale, verts[2], verts[2]);
+		VectorMA(p->org, scale, verts[3], verts[3]);
 		return;
 	}
 
 	// all other particles are aligned with the client's view
 
 	if (p->type == PARTICLE_WEATHER) { // keep it vertical
-		VectorScale(r_particle_state.weather_right, p->scale, right);
-		VectorScale(r_particle_state.weather_up, p->scale, up);
+		VectorScale(r_particle_state.weather_right, scale, right);
+		VectorScale(r_particle_state.weather_up, scale, up);
 	} else if (p->type == PARTICLE_SPLASH) { // keep it horizontal
 
 		if (p->org[2] > r_view.origin[2]) { // it's above us
-			VectorScale(r_particle_state.splash_right[0], p->scale, right);
-			VectorScale(r_particle_state.splash_up[0], p->scale, up);
+			VectorScale(r_particle_state.splash_right[0], scale, right);
+			VectorScale(r_particle_state.splash_up[0], scale, up);
 		} else { // it's below us
-			VectorScale(r_particle_state.splash_right[1], p->scale, right);
-			VectorScale(r_particle_state.splash_up[1], p->scale, up);
+			VectorScale(r_particle_state.splash_right[1], scale, right);
+			VectorScale(r_particle_state.splash_up[1], scale, up);
 		}
 	} else if (p->type == PARTICLE_ROLL) { // roll it
+		vec3_t dir;
 
-		VectorCopy(r_view.angles, p->dir);
-		p->dir[2] = p->roll * r_view.time;
+		VectorCopy(r_view.angles, dir);
+		dir[2] = p->roll * r_view.time;
 
-		AngleVectors(p->dir, NULL, right, up);
+		AngleVectors(dir, NULL, right, up);
 
-		VectorScale(right, p->scale, right);
-		VectorScale(up, p->scale, up);
+		VectorScale(right, scale, right);
+		VectorScale(up, scale, up);
 	} else { // default particle alignment with view
-		VectorScale(r_view.right, p->scale, right);
-		VectorScale(r_view.up, p->scale, up);
+		VectorScale(r_view.right, scale, right);
+		VectorScale(r_view.up, scale, up);
 	}
 
 	VectorAdd(up, right, up_right);
@@ -133,9 +142,9 @@ static void R_ParticleVerts(r_particle_t *p, GLfloat *out) {
 }
 
 /*
- * @brief
+ * @brief Generates texture coordinates for the specified particle.
  */
-static void R_ParticleTexcoords(r_particle_t *p, GLfloat *out) {
+static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 	float s, t;
 
 	if (!p->scroll_s && !p->scroll_t) {
@@ -160,76 +169,78 @@ static void R_ParticleTexcoords(r_particle_t *p, GLfloat *out) {
 }
 
 /*
- * @brief
+ * @brief Generates vertex colors for the specified particle.
  */
-static void R_ParticleColor(r_particle_t *p, GLfloat *out) {
-	byte color[4];
-	int32_t i, j;
+static void R_ParticleColor(const r_particle_t *p, GLubyte *out) {
+	int32_t i;
 
-	memcpy(&color, &palette[p->color], sizeof(color));
-	if (p->alpha < 1.0f)
-		color[3] = p->alpha * 255.0;
-	j = 0;
-
-	for (i = 0; i < 4; i++) { // duplicate color data to all 4 verts
-		out[j + 0] = color[0] / 255.0;
-		out[j + 1] = color[1] / 255.0;
-		out[j + 2] = color[2] / 255.0;
-		out[j + 3] = color[3] / 255.0;
-		j += 4;
+	for (i = 0; i < 4; i++) {
+		memcpy(out, &palette[p->color], 4);
+		out[3] = Clamp(p->alpha * 255, 0, 255);
+		out += 4;
 	}
 }
 
 /*
- * @brief
+ * @brief Updates the shared angular vectors required for particle generation.
  */
-static void R_DrawParticles_(int32_t mask) {
-	r_particle_t *p;
-	const r_image_t *image;
-	int32_t i, j, k, l;
+static void R_UpdateParticleState(void) {
+	int32_t i;
+	vec3_t v;
 
-	image = NULL;
+	// reset the sorted elements array
+	r_element_t *e = r_particle_state.sorted_particles;
 
-	j = k = l = 0;
-
-	for (p = r_view.particles, i = 0; i < r_view.num_particles; i++, p++) {
-
-		if (!(p->type & mask)) // skip it
-			continue;
-
-		// bind the particle's texture
-		if (p->image != image) {
-
-			if (image) // draw pending particles
-				glDrawArrays(GL_QUADS, 0, j / 3);
-
-			j = k = l = 0;
-
-			image = p->image;
-			R_BindTexture(image->texnum);
-
-			R_BlendFunc(GL_SRC_ALPHA, p->blend);
-		}
-
-		R_ParticleVerts(p, &r_state.vertex_array_3d[j]);
-		j += sizeof(vec3_t) / sizeof(vec_t) * 4;
-
-		R_ParticleTexcoords(p, &texunit_diffuse.texcoord_array[k]);
-		k += sizeof(vec2_t) / sizeof(vec_t) * 4;
-
-		R_ParticleColor(p, &r_state.color_array[l]);
-		l += sizeof(vec4_t) / sizeof(vec_t) * 4;
+	for (i = 0; i < r_view.num_particles; i++, e++) {
+		e->type = ELEMENT_PARTICLE;
+		e->element = &r_view.particles[i];
 	}
 
-	if (j)
-		glDrawArrays(GL_QUADS, 0, j / 3);
+	// reset the common angular vectors for particle alignment
+	VectorCopy(r_view.angles, v);
+
+	v[0] = 0.0; // keep weather particles vertical by removing pitch
+	AngleVectors(v, NULL, r_particle_state.weather_right, r_particle_state.weather_up);
+
+	v[0] = -90.0; // and splash particles horizontal by setting it
+	AngleVectors(v, NULL, r_particle_state.splash_right[0], r_particle_state.splash_up[0]);
+
+	v[0] = 90.0; // even if they are below us
+	AngleVectors(v, NULL, r_particle_state.splash_right[1], r_particle_state.splash_up[1]);
 }
 
 /*
- * @brief
+ * @brief Updates all particle primitives for the current frame. This is
+ * optionally run in a separate thread.
+ */
+void R_UpdateParticles(void *data __attribute__((unused))) {
+	int32_t i;
+
+	if (!r_view.num_particles)
+		return;
+
+	R_UpdateParticleState();
+
+	R_SortElements(r_particle_state.sorted_particles, r_view.num_particles);
+
+	// generate primitives for each particle in the sorted array
+	const r_element_t *e = r_particle_state.sorted_particles;
+
+	for (i = 0; i < r_view.num_particles; i++, e++) {
+
+		const r_particle_t *p = (const r_particle_t *) e->element;
+
+		R_ParticleVerts(p, &r_particle_state.verts[i * 3 * 4]);
+		R_ParticleTexcoords(p, &r_particle_state.texcoords[i * 2 * 4]);
+		R_ParticleColor(p, &r_particle_state.colors[i * 4 * 4]);
+	}
+}
+
+/*
+ * @brief Draws all particles for the current frame.
  */
 void R_DrawParticles(void) {
-	vec3_t v;
+	int32_t i, j;
 
 	if (!r_view.num_particles)
 		return;
@@ -238,25 +249,44 @@ void R_DrawParticles(void) {
 
 	R_ResetArrayState();
 
-	VectorCopy(r_view.angles, v);
+	// alter the array pointers
+	R_BindArray(GL_VERTEX_ARRAY, GL_FLOAT, r_particle_state.verts);
+	R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, r_particle_state.texcoords);
+	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_particle_state.colors);
 
-	v[0] = 0; // keep weather particles vertical by removing pitch
-	AngleVectors(v, NULL, r_particle_state.weather_right, r_particle_state.weather_up);
+	// iterate the sorted elements array
+	const r_element_t *e = r_particle_state.sorted_particles;
 
-	v[0] = -90; // and splash particles horizontal by setting it
-	AngleVectors(v, NULL, r_particle_state.splash_right[0], r_particle_state.splash_up[0]);
+	for (i = j = 0; i < r_view.num_particles; i++, e++) {
 
-	v[0] = 90; // even if they are below us
-	AngleVectors(v, NULL, r_particle_state.splash_right[1], r_particle_state.splash_up[1]);
+		const r_particle_t *p = (const r_particle_t *) e->element;
 
-	R_DrawParticles_(PARTICLE_DECAL);
+		// bind the particle's texture
+		if (p->image->texnum != texunit_diffuse.texnum) {
 
-	R_DrawParticles_(0xff & ~PARTICLE_DECAL);
+			if (i > j) { // draw pending particles
+				glDrawArrays(GL_QUADS, j * 4, (i - j) * 4);
+				j = i;
+			}
+
+			R_BindTexture(p->image->texnum);
+			R_BlendFunc(GL_SRC_ALPHA, p->blend);
+		}
+	}
+
+	if (i > j) { // draw any remaining particles
+		glDrawArrays(GL_QUADS, j * 4, (i - j) * 4);
+	}
+
+	// restore array pointers
+	R_BindDefaultArray(GL_VERTEX_ARRAY);
+	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+	R_BindDefaultArray(GL_COLOR_ARRAY);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_EnableColorArray(false);
 
-	R_Color(NULL );
+	R_Color(NULL);
 }
 

@@ -25,10 +25,10 @@
 #include "r_types.h"
 
 void R_AddParticle(const r_particle_t *p);
-void R_DrawParticles(void);
 
 #ifdef __R_LOCAL_H__
-
+void R_UpdateParticles(void *data);
+void R_DrawParticles(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PARTICLE_H__ */

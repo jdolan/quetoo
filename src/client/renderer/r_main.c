@@ -98,6 +98,39 @@ extern cl_client_t cl;
 extern cl_static_t cls;
 
 /*
+ * @brief Qsort comparator for render elements.
+ */
+static int R_SortElements_Compare(const void *e1, const void *e2) {
+	return ((r_element_t *)e1)->dist > ((r_element_t *)e2)->dist;
+}
+
+/*
+ * @brief Sorts the specified elements array by their distance from the origin.
+ * Elements are sorted farthest-first so that they are rendered back-to-front.
+ */
+void R_SortElements(r_element_t *elements, size_t len) {
+	r_element_t *e = elements;
+	size_t i;
+
+	for (i = 0; i < len; i++, e++) {
+		vec3_t delta;
+
+		switch (e->type) {
+			case ELEMENT_PARTICLE:
+				VectorSubtract(((r_particle_t *)e->element)->org, r_view.origin, delta);
+				break;
+			default:
+				VectorSet(delta, 0.0, 0.0, 0.0);
+				break;
+		}
+
+		e->dist = VectorLength(delta);
+	}
+
+	qsort(elements, len, sizeof(r_element_t), R_SortElements_Compare);
+}
+
+/*
  * @brief Updates the clipping planes for the view frustum based on the origin
  * and angles for this frame.
  */
@@ -171,6 +204,9 @@ void R_DrawView(void) {
 	// ensure the thread has finished culling entities
 	Thread_Wait(&r_view.thread);
 
+	// now dispatch another thread to update particles while we draw entities
+	r_view.thread = Thread_Create(R_UpdateParticles, NULL);
+
 	R_DrawEntities();
 
 	R_EnableBlend(true);
@@ -180,6 +216,9 @@ void R_DrawView(void) {
 	R_DrawBlendSurfaces(r_world_model->blend_surfaces);
 
 	R_DrawBlendWarpSurfaces(r_world_model->blend_warp_surfaces);
+
+	// ensure the thread has finished updating particles
+	Thread_Wait(&r_view.thread);
 
 	R_DrawParticles();
 
@@ -195,7 +234,8 @@ void R_DrawView(void) {
 }
 
 /*
- * @brief
+ * @brief Assigns surface and entity rendering function pointers for the
+ * r_render_mode plugin framework.
  */
 static void R_RenderMode(const char *mode) {
 
@@ -225,7 +265,7 @@ static void R_RenderMode(const char *mode) {
 }
 
 /*
- * @brief
+ * @brief Clears the frame buffer.
  */
 static void R_Clear(void) {
 	int32_t bits;

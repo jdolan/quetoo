@@ -46,7 +46,7 @@ typedef union r_variable_value_u {
 	GLint i;
 	GLfloat f;
 	vec3_t vec3;
-} r_variable_value_t;
+}r_variable_value_t;
 
 typedef struct r_variable_s {
 	GLenum type;

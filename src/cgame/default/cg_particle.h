@@ -24,6 +24,8 @@
 
 #ifdef __CG_LOCAL_H__
 
+#define PARTICLE_GRAVITY 150.0
+
 typedef struct cg_particle_s {
 	r_particle_t part; // the r_particle_t to add to the view
 	vec3_t vel;

@@ -138,6 +138,7 @@ extern cvar_t *r_draw_bsp_lights;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_wireframe;
 
+void R_SortElements(r_element_t *elements, size_t len);
 void R_UpdateFrustum(void);
 
 // render mode function pointers

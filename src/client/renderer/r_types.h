@@ -123,7 +123,9 @@ typedef enum {
 	it_pic
 } r_image_type_t;
 
-// images
+/*
+ * @brief Images are referenced by materials, models, entities, particles, etc.
+ */
 typedef struct r_image_s {
 	char name[MAX_QPATH]; // game path, excluding extension
 	r_image_type_t type;
@@ -216,8 +218,10 @@ typedef struct {
 	uint32_t lights; // bit mask of enabled light sources
 } r_bsp_surface_t;
 
-// surfaces are assigned to arrays based on their primary rendering type
-// and then sorted by world texnum to reduce glBindTexture calls
+/*
+ * @brief Surfaces are assigned to arrays based on their render path and then
+ * sorted by material to reduce glBindTexture calls.
+ */
 typedef struct {
 	r_bsp_surface_t **surfaces;
 	uint32_t count;
@@ -238,6 +242,20 @@ typedef struct {
 #define R_SurfaceToSurfaces(surfs, surf)\
 	(surfs)->surfaces[(surfs)->count++] = surf
 
+/*
+ * @brief BSP nodes comprise the tree representation of the world. At compile
+ * time, the map is divided into convex volumes that fall along brushes
+ * (walls). These volumes become nodes. The planes these divisions create
+ * provide a basis for testing all other nodes in the world for sidedness
+ * using the dot-product check: DOT(node.center - plane.center, plane.normal).
+ * Starting from the origin, this information is gathered into a tree structure
+ * with which a simple recursion can quickly determine:
+ *
+ *  a. Which nodes are in front of my view vector from my current origin?
+ *  b. Which nodes are facing me?
+ *
+ * This is the basis for all collision detection and rendering in Quake.
+ */
 typedef struct r_bsp_node_s {
 	// common with leaf
 	int32_t contents; // -1, to differentiate from leafs
@@ -257,6 +275,12 @@ typedef struct r_bsp_node_s {
 	uint16_t num_surfaces;
 } r_bsp_node_t;
 
+/*
+ * @brief BSP leafs terminate the branches of the BSP tree and provide grouping
+ * for surfaces. If a leaf is found to be in the potentially visible set (PVS)
+ * for a given frame, then all surfaces associated to that leaf are flagged for
+ * drawing.
+ */
 typedef struct {
 	// common with node
 	int32_t contents; // will be a negative contents number
@@ -280,7 +304,9 @@ typedef struct {
 	int16_t vis_frame;
 } r_bsp_cluster_t;
 
-// static light sources
+/*
+ * @brief BSP (static) light sources.
+ */
 typedef struct {
 	vec3_t origin;
 	float radius;
@@ -325,6 +351,9 @@ typedef struct {
 	uint16_t hz;
 } r_md3_animation_t;
 
+/*
+ * @brief Quake3 (MD3) model in-memory representation.
+ */
 typedef struct {
 	int32_t id;
 	int32_t version;
@@ -346,7 +375,6 @@ typedef struct {
 	r_md3_animation_t *animations;
 } r_md3_t;
 
-// object model memory representation
 typedef struct {
 	uint16_t vert;
 	uint16_t normal;
@@ -357,6 +385,9 @@ typedef struct {
 	r_obj_vert_t verts[3];
 } r_obj_tri_t;
 
+/*
+ * brief Object (OBJ) model in-memory representation.
+ */
 typedef struct {
 	uint16_t num_verts;
 	uint16_t num_verts_parsed;
@@ -383,13 +414,18 @@ typedef enum {
 	mod_bad, mod_bsp, mod_bsp_submodel, mod_md3, mod_obj
 } r_model_type_t;
 
-// shared mesh configuration
+/*
+ * @brief Provides load-time normalization of mesh models.
+ */
 typedef struct {
 	vec3_t translate;
 	float scale;
 	uint32_t flags; // EF_ALPHA_TEST, etc..
 } r_mesh_config_t;
 
+/*
+ * @brief Models represent a subset of the BSP or an OBJ / MD3 mesh.
+ */
 typedef struct r_model_s {
 	char name[MAX_QPATH];
 
@@ -481,7 +517,10 @@ typedef struct r_model_s {
 // is a given model a mesh model?
 #define IS_MESH_MODEL(m) (m && (m->type == mod_md3 || m->type == mod_obj))
 
-// lights are dynamic lighting sources
+/*
+ * @brief Dynamic light sources expire immediately and must be re-added
+ * for each frame they appear.
+ */
 typedef struct r_light_s {
 	vec3_t origin;
 	float radius;
@@ -491,14 +530,19 @@ typedef struct r_light_s {
 #define MAX_LIGHTS			32
 #define MAX_ACTIVE_LIGHTS	8
 
-// sustains are light flashes which slowly decay
+/*
+ * @brief Sustains are light flashes which slowly decay over time. These
+ * persist over multiple frames.
+ */
 typedef struct r_sustained_light_s {
 	r_light_t light;
 	float time;
 	float sustain;
 } r_sustained_light_t;
 
-// a reference to a static light source plus a light level
+/*
+ * @brief A reference to a static BSP light source plus a light level.
+ */
 typedef struct r_bsp_light_ref_s {
 	r_bsp_light_t *bsp_light;
 	vec3_t dir;
@@ -509,7 +553,9 @@ typedef enum {
 	LIGHTING_INIT, LIGHTING_DIRTY, LIGHTING_READY
 } r_lighting_state_t;
 
-// lighting structures contain static lighting info for entities
+/*
+ * @brief Provides static lighting information for mesh entities.
+ */
 typedef struct r_lighting_s {
 	vec3_t origin; // entity origin
 	float radius; // entity radius
@@ -523,6 +569,9 @@ typedef struct r_lighting_s {
 
 #define LIGHTING_MAX_SHADOW_DISTANCE 128.0
 
+/*
+ * @brief Entities provide a means to add model instances to the view.
+ */
 typedef struct r_entity_s {
 	struct r_entity_s *next; // for draw lists
 
@@ -553,11 +602,24 @@ typedef struct r_entity_s {
 
 #define MAX_ENTITIES		(MAX_EDICTS * 2)
 
+typedef enum {
+	PARTICLE_NORMAL,
+	PARTICLE_ROLL,
+	PARTICLE_DECAL,
+	PARTICLE_BUBBLE,
+	PARTICLE_BEAM,
+	PARTICLE_WEATHER,
+	PARTICLE_SPLASH
+} r_particle_type_t;
+
+/*
+ * @brief Particles are alpha-blended, textured quads.
+ */
 typedef struct r_particle_s {
-	uint16_t type;
+	r_particle_type_t type;
 	const r_image_t *image;
 	GLenum blend;
-	uint32_t color;
+	byte color;
 	float alpha;
 	float scale;
 	float scroll_s;
@@ -570,17 +632,9 @@ typedef struct r_particle_s {
 
 #define MAX_PARTICLES		16384
 
-#define PARTICLE_GRAVITY	150
-
-#define PARTICLE_NORMAL		0x1
-#define PARTICLE_ROLL		0x2
-#define PARTICLE_DECAL		0x4
-#define PARTICLE_BUBBLE		0x8
-#define PARTICLE_BEAM		0x10
-#define PARTICLE_WEATHER	0x20
-#define PARTICLE_SPLASH		0x40
-
-// coronas are soft, alpha-blended, rounded polys
+/*
+ * @brief Coronas are soft, alpha-blended, rounded sprites.
+ */
 typedef struct r_corona_s {
 	vec3_t origin;
 	float radius;
@@ -588,7 +642,27 @@ typedef struct r_corona_s {
 	vec3_t color;
 } r_corona_t;
 
-// render modes, set via r_render_mode
+/*
+ * @brief Renderer element types.
+ */
+typedef enum {
+	ELEMENT_NONE, ELEMENT_BSP_SURFACE, ELEMENT_MESH_MODEL, ELEMENT_PARTICLE
+} r_element_type_t;
+
+/*
+ * @brief Element abstraction to allow sorting of mixed draw lists,
+ * asynchronous rendering via commands, etc.
+ */
+typedef struct r_element_s {
+	r_element_type_t type;
+	const void *element;
+	vec_t dist;
+	struct r_element_s *next;
+} r_element_t;
+
+/*
+ * @brief Allows alternate renderer plugins to be dropped in.
+ */
 typedef enum render_mode_s {
 	render_mode_default, render_mode_pro
 } r_render_mode_t;
@@ -603,7 +677,9 @@ typedef enum render_mode_s {
 #define FOG_START			300.0
 #define FOG_END				2500.0
 
-// read-write variables for renderer and client
+/*
+ * @brief Provides read-write visibility and scene management to the client.
+ */
 typedef struct r_view_s {
 	r_pixel_t x, y, width, height; // in virtual screen coordinates
 	vec2_t fov;
@@ -663,7 +739,9 @@ typedef struct r_view_s {
 	bool update; // inform the client of state changes
 } r_view_t;
 
-// gl context information
+/*
+ * @brief OpenGL context information.
+ */
 typedef struct r_context_s {
 	r_pixel_t width, height;
 

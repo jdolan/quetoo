@@ -26,11 +26,11 @@
 // characters are batched per frame and drawn in one shot
 // accumulate coordinates and colors as vertex arrays
 typedef struct r_char_arrays_s {
-	GLfloat texcoords[MAX_CHARS * 4 * 2];
-	uint32_t texcoord_index;
-
 	GLshort verts[MAX_CHARS * 4 * 2];
 	uint32_t vert_index;
+
+	GLfloat texcoords[MAX_CHARS * 4 * 2];
+	uint32_t texcoord_index;
 
 	GLbyte colors[MAX_CHARS * 4 * 4];
 	uint32_t color_index;
