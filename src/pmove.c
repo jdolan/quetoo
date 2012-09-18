@@ -755,7 +755,8 @@ static void Pm_LadderMove(void) {
 	Pm_AddCurrents(vel);
 
 	VectorCopy(vel, dir);
-	speed = Clamp(VectorNormalize(dir), 0.0, PM_SPEED_LADDER);
+	speed = VectorNormalize(dir);
+	speed = Clamp(speed, 0.0, PM_SPEED_LADDER);
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_GROUND);
 
@@ -1069,7 +1070,7 @@ static void Pm_ClampAngles(void) {
 	VectorCopy(pm->angles, angles);
 
 	// for most movements, kill pitch to keep the player moving forward
-	if (pm->water_level < 3 && !(pm->s.pm_flags & PMF_ON_LADDER))
+	if (pm->water_level < 3 && !(pm->s.pm_flags & PMF_ON_LADDER) && pm->s.pm_type != PM_SPECTATOR)
 		angles[PITCH] = 0.0;
 
 	// finally calculate the directional vectors for this move
@@ -1092,7 +1093,8 @@ static void Pm_SpectatorMove() {
 				* pm->cmd.up;
 	}
 
-	speed = Clamp(VectorNormalize(vel), 0.0, PM_SPEED_SPECTATOR);
+	speed = VectorNormalize(vel);
+	speed = Clamp(speed, 0.0, PM_SPEED_SPECTATOR);
 
 	// accelerate
 	Pm_Accelerate(vel, speed, PM_ACCEL_SPECTATOR);

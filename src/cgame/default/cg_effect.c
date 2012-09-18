@@ -49,7 +49,8 @@ static void Cg_LoadWeather_(const r_model_t *world, const r_bsp_surface_t *s) {
 
 	// resolve the number of origins based on surface area
 	VectorSubtract(s->maxs, s->mins, delta);
-	e->num_origins = Clamp(VectorLength(delta) / 64.0, 1, 128);
+	e->num_origins = VectorLength(delta) / 64.0;
+	e->num_origins = Clamp(e->num_origins, 1, 128);
 
 	e->origins = cgi.Malloc(sizeof(vec3_t) * e->num_origins, TAG_CGAME_MEDIA);
 	e->end_z = cgi.Malloc(sizeof(vec_t) * e->num_origins, TAG_CGAME_MEDIA);
