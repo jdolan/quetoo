@@ -1060,7 +1060,7 @@ static void Pm_ClampAngles(void) {
 		const int16_t k = pm->s.kick_angles[i];
 		const int16_t d = pm->s.delta_angles[i];
 
-		pm->angles[i] = SHORT2ANGLE(c + k + d);
+		pm->angles[i] = UnpackAngle(c + k + d);
 	}
 
 	// clamp angles to prevent the player from looking up or down more than 90'

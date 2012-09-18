@@ -454,7 +454,7 @@ static void Cl_ClampPitch(void) {
 	const pm_state_t *s = &cl.frame.ps.pm_state;
 
 	// ensure our pitch is valid
-	float pitch = SHORT2ANGLE(s->delta_angles[PITCH] + s->kick_angles[PITCH]);
+	float pitch = UnpackAngle(s->delta_angles[PITCH] + s->kick_angles[PITCH]);
 
 	if (pitch > 180.0)
 		pitch -= 360.0;

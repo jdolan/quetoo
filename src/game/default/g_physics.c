@@ -318,7 +318,7 @@ static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 			// try moving the contacted entity
 			VectorAdd(check->s.origin, move, check->s.origin);
 			if (check->client) { // rotate the client
-				check->client->ps.pm_state.delta_angles[YAW] += ANGLE2SHORT(amove[YAW]);
+				check->client->ps.pm_state.delta_angles[YAW] += PackAngle(amove[YAW]);
 			}
 
 			// figure movement due to the pusher's move

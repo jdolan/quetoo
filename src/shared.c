@@ -107,10 +107,10 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
 	memset(zrot, 0, sizeof(zrot));
 	zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0F;
 
-	zrot[0][0] = cos(DEG2RAD(degrees));
-	zrot[0][1] = sin(DEG2RAD(degrees));
-	zrot[1][0] = -sin(DEG2RAD(degrees));
-	zrot[1][1] = cos(DEG2RAD(degrees));
+	zrot[0][0] = cos(Radians(degrees));
+	zrot[0][1] = sin(Radians(degrees));
+	zrot[1][0] = -sin(Radians(degrees));
+	zrot[1][1] = cos(Radians(degrees));
 
 	ConcatRotations(m, zrot, tmpmat);
 	ConcatRotations(tmpmat, im, rot);
@@ -499,7 +499,7 @@ void PackAngles(const vec3_t in, int16_t *out) {
 	int32_t i;
 
 	for (i = 0; i < 3; i++) {
-		out[i] = ANGLE2SHORT(in[i]);
+		out[i] = PackAngle(in[i]);
 	}
 }
 
@@ -510,7 +510,7 @@ void UnpackAngles(const int16_t *in, vec3_t out) {
 	int32_t i;
 
 	for (i = 0; i < 3; i++) {
-		out[i] = SHORT2ANGLE(in[i]);
+		out[i] = UnpackAngle(in[i]);
 	}
 }
 

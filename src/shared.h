@@ -59,7 +59,10 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
 
 void PackPosition(const vec3_t in, int16_t *out);
 void UnpackPosition(const int16_t *in, vec3_t out);
+#define PackAngle(x) ((uint16_t)((x) * 65536 / 360.0) & 65535)
 void PackAngles(const vec3_t in, int16_t *out);
+#define UnpackAngle(x) ((x) * (360.0 / 65536.0))
+#define Radians(d) ((d * M_PI) / 180.0)
 void UnpackAngles(const int16_t *in, vec3_t out);
 void ClampAngles(vec3_t angles);
 

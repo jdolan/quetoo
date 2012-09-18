@@ -187,10 +187,6 @@ extern vec3_t vec3_origin;
 #define M_PI 3.14159265358979323846  // matches value in gcc v2 math.h
 #endif
 
-#define DEG2RAD(a)				(a * M_PI) / 180.0F
-#define ANGLE2SHORT(x)			((uint16_t)((x) * 65536 / 360.0) & 65535)
-#define SHORT2ANGLE(x)			((x) * (360.0 / 65536.0))
-
 // lower bits are stronger, and will eat weaker brushes completely
 #define CONTENTS_SOLID			0x1  // an eye is never valid in a solid
 #define CONTENTS_WINDOW			0x2  // translucent, but not watery
