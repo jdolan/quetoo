@@ -91,11 +91,11 @@ void Cg_LoadWeather(void) {
 	cg_weather_emits = NULL;
 	cg_weather_time = 0;
 
-	const r_model_t *world = cgi.LoadModel(cgi.ConfigString(CS_MODELS + 1));
-	const r_bsp_surface_t *s = world->surfaces;
+	const r_model_t *world = cgi.WorldModel();
+	const r_bsp_surface_t *s = world->bsp->surfaces;
 
 	// iterate the world surfaces, testing sky surfaces
-	for (i = j = 0; i < world->num_surfaces; i++, s++) {
+	for (i = j = 0; i < world->bsp->num_surfaces; i++, s++) {
 
 		// for downward facing sky brushes, create an emitter
 		if ((s->texinfo->flags & SURF_SKY) && s->normal[2] < -0.1) {

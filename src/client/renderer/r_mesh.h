@@ -34,7 +34,7 @@ void R_ApplyMeshModelTag(r_entity_t *e);
 void R_ApplyMeshModelConfig(r_entity_t *e);
 bool R_CullMeshModel(const r_entity_t *e);
 void R_UpdateMeshLighting(const r_entity_t *e);
-void R_DrawMeshModel_default(const r_entity_t *e);
+void R_DrawMeshModel(const r_entity_t *e);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_MESH_H__ */

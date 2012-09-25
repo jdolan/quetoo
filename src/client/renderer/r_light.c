@@ -126,10 +126,10 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int32_t bit, r_bsp_nod
 	}
 
 	if (node->model) // mark bsp submodel
-		node->model->lights |= bit;
+		node->model->bsp->lights |= bit;
 
 	// mark all surfaces in this node
-	surf = r_world_model->surfaces + node->first_surface;
+	surf = r_models.world->bsp->surfaces + node->first_surface;
 
 	for (i = 0; i < node->num_surfaces; i++, surf++) {
 
@@ -167,7 +167,7 @@ void R_MarkLights(void) {
 		r_light_t *light = &r_view.lights[i];
 
 		// world surfaces
-		R_MarkLights_(light, vec3_origin, 1 << i, r_world_model->nodes);
+		R_MarkLights_(light, vec3_origin, 1 << i, r_models.world->bsp->nodes);
 
 		// and bsp entity surfaces
 		for (j = 0; j < r_view.num_entities; j++) {
@@ -175,9 +175,9 @@ void R_MarkLights(void) {
 			r_entity_t *ent = &r_view.entities[j];
 			r_model_t *mod = ent->model;
 
-			if (mod && mod->type == mod_bsp_submodel && mod->nodes) {
-				mod->lights = 0;
-				R_MarkLights_(light, ent->origin, 1 << i, mod->nodes);
+			if (mod && mod->type == mod_bsp_submodel && mod->bsp->nodes) {
+				mod->bsp->lights = 0;
+				R_MarkLights_(light, ent->origin, 1 << i, mod->bsp->nodes);
 			}
 		}
 	}

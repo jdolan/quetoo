@@ -66,7 +66,6 @@ typedef struct r_state_s {
 	r_program_t programs[MAX_PROGRAMS];
 	r_program_t *default_program;
 	r_program_t *warp_program;
-	r_program_t *pro_program;
 	r_program_t *active_program;
 
 	r_material_t *active_material;
@@ -110,7 +109,8 @@ void R_EnableLighting(r_program_t *program, bool enable);
 void R_EnableWarp(r_program_t *program, bool enable);
 void R_EnableShell(bool enable);
 void R_EnableFog(bool enable);
-void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image);
+void R_UseMaterial(const r_material_t *material);
+void R_UseBspArray(const r_bsp_array_t *array);
 void R_InitState(void);
 void R_ShutdownState(void);
 

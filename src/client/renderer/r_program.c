@@ -370,16 +370,13 @@ void R_InitPrograms(void) {
 	if ((r_state.default_program = R_LoadProgram("default", R_InitProgram_default))) {
 		r_state.default_program->Use = R_UseProgram_default;
 		r_state.default_program->UseMaterial = R_UseMaterial_default;
+		r_state.default_program->UseBspArray = R_UseBspArray_default;
 		r_state.default_program->arrays_mask = 0xff;
 	}
 
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp))) {
 		r_state.warp_program->Use = R_UseProgram_warp;
 		r_state.warp_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_TEX_DIFFUSE;
-	}
-
-	if ((r_state.pro_program = R_LoadProgram("pro", NULL))) {
-		r_state.pro_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_COLOR | R_ARRAY_NORMAL;
 	}
 }
 

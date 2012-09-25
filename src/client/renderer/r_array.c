@@ -71,12 +71,6 @@ static void R_SetVertexArrayState(const r_model_t *mod, uint32_t mask) {
 	if (mask & R_ARRAY_VERTEX)
 		R_BindArray(GL_VERTEX_ARRAY, GL_FLOAT, mod->verts);
 
-	// color array
-	if (r_state.color_array_enabled) {
-		if (mask & R_ARRAY_COLOR)
-			R_BindArray(GL_COLOR_ARRAY, GL_FLOAT, mod->colors);
-	}
-
 	// normals and tangents
 	if (r_state.lighting_enabled) {
 
@@ -102,7 +96,7 @@ static void R_SetVertexArrayState(const r_model_t *mod, uint32_t mask) {
 		if (mask & R_ARRAY_TEX_LIGHTMAP) {
 			R_SelectTexture(&texunit_lightmap);
 
-			R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->lmtexcoords);
+			R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->lightmap_texcoords);
 
 			R_SelectTexture(&texunit_diffuse);
 		}
@@ -117,12 +111,6 @@ static void R_SetVertexBufferState(const r_model_t *mod, uint32_t mask) {
 	// vertex array
 	if (mask & R_ARRAY_VERTEX)
 		R_BindBuffer(GL_VERTEX_ARRAY, GL_FLOAT, mod->vertex_buffer);
-
-	// color array
-	if (r_state.color_array_enabled) {
-		if (mask & R_ARRAY_COLOR)
-			R_BindBuffer(GL_COLOR_ARRAY, GL_FLOAT, mod->color_buffer);
-	}
 
 	// normals and tangents
 	if (r_state.lighting_enabled) {
@@ -149,7 +137,7 @@ static void R_SetVertexBufferState(const r_model_t *mod, uint32_t mask) {
 		if (mask & R_ARRAY_TEX_LIGHTMAP) {
 			R_SelectTexture(&texunit_lightmap);
 
-			R_BindBuffer(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->lmtexcoord_buffer);
+			R_BindBuffer(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->lightmap_texcoord_buffer);
 
 			R_SelectTexture(&texunit_diffuse);
 		}

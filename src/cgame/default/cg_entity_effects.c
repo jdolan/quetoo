@@ -142,9 +142,6 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	cg_particle_t *p;
 	int32_t j;
 
-	if (cgi.view->render_mode == render_mode_pro)
-		return;
-
 	if (ent) { // trails should be framerate independent
 
 		if (ent->time > cgi.client->time)

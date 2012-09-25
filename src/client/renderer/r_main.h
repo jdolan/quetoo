@@ -50,7 +50,6 @@ extern cvar_t *r_materials;
 extern cvar_t *r_modulate;
 extern cvar_t *r_monochrome;
 extern cvar_t *r_multisample;
-extern cvar_t *r_optimize;
 extern cvar_t *r_parallax;
 extern cvar_t *r_programs;
 extern cvar_t *r_render_mode;
@@ -140,15 +139,6 @@ extern cvar_t *r_draw_wireframe;
 
 void R_SortElements(r_element_t *elements, size_t len);
 void R_UpdateFrustum(void);
-
-// render mode function pointers
-extern void (*R_DrawOpaqueSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawOpaqueWarpSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawAlphaTestSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBlendSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBlendWarpSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBackSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawMeshModel)(const r_entity_t *e);
 
 #endif /* __R_LOCAL_H__ */
 

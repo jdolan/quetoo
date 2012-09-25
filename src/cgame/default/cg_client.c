@@ -75,7 +75,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const ch
 		return;
 	}
 
-	const r_md3_t *md3 = (r_md3_t *) mod->extra_data;
+	const r_md3_t *md3 = (r_md3_t *) mod->mesh->extra_data;
 
 	i = j = 0;
 	memset(line, 0, sizeof(line));
@@ -315,7 +315,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
  * indexes and interpolation fractions for the specified renderer entities.
  */
 void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower) {
-	const r_md3_t *md3 = (r_md3_t *) upper->model->extra_data;
+	const r_md3_t *md3 = (r_md3_t *) upper->model->mesh->extra_data;
 
 	// do the torso animation
 	if (e->current.animation1 != e->prev.animation1 || !e->animation1.time) {

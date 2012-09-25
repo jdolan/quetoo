@@ -21,6 +21,13 @@
 
 #include "r_local.h"
 
+typedef struct {
+	r_material_t *materials[MAX_GL_TEXTURES];
+	uint16_t num_materials;
+} r_material_state_t;
+
+static r_material_state_t r_material_state;
+
 #define UPDATE_THRESHOLD 0.02
 
 /*
@@ -67,7 +74,7 @@ static void R_UpdateMaterial(r_material_t *m) {
  */
 static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage) {
 
-	if (!surf) // mesh materials don't support per-stage lighting
+	/*TODO if (!surf) // mesh materials don't support per-stage lighting
 		return;
 
 	// if the surface has a lightmap, and the stage specifies lighting..
@@ -97,7 +104,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_EnableLighting(NULL, false);
 
 		R_EnableTexture(&texunit_lightmap, false);
-	}
+	}*/
 }
 
 /*
@@ -131,8 +138,8 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 
 	if (surf) { // for BSP surfaces, add stretch and rotate
 
-		s = surf->st_center[0] / surf->texinfo->image->width;
-		t = surf->st_center[1] / surf->texinfo->image->height;
+		s = surf->st_center[0] / surf->texinfo->material->diffuse->width;
+		t = surf->st_center[1] / surf->texinfo->material->diffuse->height;
 
 		if (stage->flags & STAGE_STRETCH) {
 			glTranslatef(-s, -t, 0.0);
@@ -276,7 +283,7 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 			VectorCopy(stage->color, color);
 
 		else if (stage->flags & STAGE_ENVMAP) // implicit
-			VectorCopy(surf->color, color);
+			VectorCopy(surf->texinfo->material->diffuse->color, color);
 
 		else
 			// default
@@ -304,15 +311,15 @@ static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *sta
 
 	for (i = 0; i < surf->num_edges; i++) {
 
-		const float *v = &r_world_model->verts[surf->index * 3 + i * 3];
-		const float *st = &r_world_model->texcoords[surf->index * 2 + i * 2];
+		const float *v = &r_models.world->verts[surf->index * 3 + i * 3];
+		const float *st = &r_models.world->texcoords[surf->index * 2 + i * 2];
 
 		R_StageVertex(surf, stage, v, &r_state.vertex_array_3d[i * 3]);
 
 		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
 
 		if (texunit_lightmap.enabled) { // lightmap texcoords
-			st = &r_world_model->lmtexcoords[surf->index * 2 + i * 2];
+			st = &r_models.world->lightmap_texcoords[surf->index * 2 + i * 2];
 			texunit_lightmap.texcoord_array[i * 2 + 0] = st[0];
 			texunit_lightmap.texcoord_array[i * 2 + 1] = st[1];
 		}
@@ -322,10 +329,10 @@ static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *sta
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
-			const float *n = &r_world_model->normals[surf->index * 3 + i * 3];
+			const float *n = &r_models.world->normals[surf->index * 3 + i * 3];
 			VectorCopy(n, (&r_state.normal_array[i * 3]));
 
-			const float *t = &r_world_model->tangents[surf->index * 4 + i * 4];
+			const float *t = &r_models.world->tangents[surf->index * 4 + i * 4];
 			VectorCopy(t, (&r_state.tangent_array[i * 4]));
 		}
 	}
@@ -338,7 +345,7 @@ static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *sta
  * encountered, and rendering all visible stages. State is lazily managed
  * throughout the iteration, so there is a concerted effort to restore the
  * state after all surface stages have been rendered.
- */
+
 void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 	r_material_t *m;
 	r_stage_t *s;
@@ -376,7 +383,7 @@ void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 		if (surf->frame != r_locals.frame)
 			continue;
 
-		m = &surf->texinfo->image->material;
+		m = &surf->texinfo->material;
 
 		R_UpdateMaterial(m);
 
@@ -384,12 +391,6 @@ void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 
 			if (!(s->flags & STAGE_DIFFUSE))
 				continue;
-
-			if (r_view.render_mode == render_mode_pro) {
-				// skip lighted stages in pro renderer
-				if (s->flags & STAGE_LIGHTING)
-					continue;
-			}
 
 			glPolygonOffset(j, 0.0); // increase depth offset for each stage
 
@@ -415,12 +416,12 @@ void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLights(0);
 
-	R_UseMaterial(NULL, NULL);
+	R_UseMaterial(NULL);
 
 	R_EnableLighting(NULL, false);
 
 	R_Color(NULL);
-}
+}*/
 
 /*
  * @brief Re-draws the currently bound arrays from the given offset to count after
@@ -478,27 +479,38 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
  * @brief
  */
 void R_FreeMaterials(void) {
-	int32_t i;
+	memset(&r_material_state, 0, sizeof(r_material_state));
+}
 
-	// clear previously loaded materials
-	for (i = 0; i < MAX_GL_TEXTURES; i++) {
+/*
+ * @brief
+ */
+r_material_t *R_LoadMaterial(const char *diffuse) {
+	uint16_t i;
 
-		r_material_t *m = &r_images[i].material;
-		r_stage_t *s = m->stages;
-
-		while (s) { // free the stages chain
-			r_stage_t *ss = s->next;
-			Z_Free(s);
-			s = ss;
+	r_material_t **m = r_material_state.materials;
+	for (i = 0; i < r_material_state.num_materials; i++, m++) {
+		if (!strcmp(diffuse, (*m)->diffuse->name)) {
+			return *m;
 		}
-
-		memset(m, 0, sizeof(*m));
-
-		m->bump = DEFAULT_BUMP;
-		m->parallax = DEFAULT_PARALLAX;
-		m->hardness = DEFAULT_HARDNESS;
-		m->specular = DEFAULT_SPECULAR;
 	}
+
+	if (i == MAX_GL_TEXTURES) {
+		Com_Error(ERR_DROP, "R_LoadMaterial: MAX_GL_TEXTURES reached\n");
+	}
+
+	*m = R_HunkAlloc(sizeof(r_material_t));
+	r_material_state.num_materials++;
+
+	(*m)->diffuse = R_LoadImage(diffuse, it_diffuse);
+
+	(*m)->normalmap = R_LoadImage(va("%s_nm", diffuse), it_normalmap);
+	(*m)->normalmap = ((*m)->normalmap == r_null_image) ? NULL : (*m)->normalmap;
+
+	(*m)->glossmap = R_LoadImage(va("%s_s", diffuse), it_glossmap);
+	(*m)->glossmap = ((*m)->glossmap == r_null_image) ? NULL : (*m)->glossmap;
+
+	return *m;
 }
 
 /*
@@ -887,7 +899,6 @@ void R_LoadMaterials(const r_model_t *mod) {
 	const char *c;
 	const char *buffer;
 	bool in_material;
-	r_image_t *image;
 	r_material_t *m;
 	r_stage_t *s, *ss;
 	int32_t i;
@@ -911,7 +922,6 @@ void R_LoadMaterials(const r_model_t *mod) {
 	buffer = (char *) buf;
 
 	in_material = false;
-	image = NULL;
 	m = NULL;
 
 	while (true) {
@@ -929,49 +939,47 @@ void R_LoadMaterials(const r_model_t *mod) {
 		if (!strcmp(c, "material")) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
-				image = R_LoadImage(++c, it_diffuse);
+				m = R_LoadMaterial(++c);
 			} else {
-				image = R_LoadImage(va("textures/%s", c), it_diffuse);
+				m = R_LoadMaterial(va("textures/%s", c));
 			}
 
-			if (image == r_null_image) {
-				Com_Warn("R_LoadMaterials: Failed to resolve texture: %s\n", c);
-				image = NULL;
+			if (m->diffuse == r_null_image) {
+				Com_Warn("R_LoadMaterials: Failed to resolve %s\n", c);
+				m = NULL;
 			}
 
 			continue;
 		}
 
-		if (!image)
+		if (!m)
 			continue;
-
-		m = &image->material;
 
 		if (!strcmp(c, "normalmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
-				image->normalmap = R_LoadImage(++c, it_normalmap);
+				m->normalmap = R_LoadImage(++c, it_normalmap);
 			} else {
-				image->normalmap = R_LoadImage(va("textures/%s", c), it_normalmap);
+				m->normalmap = R_LoadImage(va("textures/%s", c), it_normalmap);
 			}
 
-			if (image->normalmap == r_null_image) {
+			if (m->normalmap == r_null_image) {
 				Com_Warn("R_LoadMaterials: Failed to resolve normalmap: %s\n", c);
-				image->normalmap = NULL;
+				m->normalmap = NULL;
 			}
 		}
 
 		if (!strcmp(c, "glossmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
-				image->glossmap = R_LoadImage(++c, it_glossmap);
+				m->glossmap = R_LoadImage(++c, it_glossmap);
 			} else {
-				image->glossmap = R_LoadImage(va("textures/%s", c), it_glossmap);
+				m->glossmap = R_LoadImage(va("textures/%s", c), it_glossmap);
 			}
 
-			if (image->glossmap == r_null_image) {
+			if (m->glossmap == r_null_image) {
 				Com_Warn("R_LoadMaterials: Failed to resolve glossmap: %s\n", c);
-				image->glossmap = NULL;
+				m->glossmap = NULL;
 			}
 		}
 
@@ -980,7 +988,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->bump = atof(ParseToken(&buffer));
 
 			if (m->bump < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid bump value for %s\n", image->name);
+				Com_Warn("R_LoadMaterials: Invalid bump value for %s\n", m->diffuse->name);
 				m->bump = DEFAULT_BUMP;
 			}
 		}
@@ -990,7 +998,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->parallax = atof(ParseToken(&buffer));
 
 			if (m->parallax < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid parallax value for %s\n", image->name);
+				Com_Warn("R_LoadMaterials: Invalid parallax value for %s\n", m->diffuse->name);
 				m->parallax = DEFAULT_PARALLAX;
 			}
 		}
@@ -1000,7 +1008,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->hardness = atof(ParseToken(&buffer));
 
 			if (m->hardness < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid hardness value for %s\n", image->name);
+				Com_Warn("R_LoadMaterials: Invalid hardness value for %s\n", m->diffuse->name);
 				m->hardness = DEFAULT_HARDNESS;
 			}
 		}
@@ -1009,7 +1017,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->specular = atof(ParseToken(&buffer));
 
 			if (m->specular < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid specular value for %s\n", image->name);
+				Com_Warn("R_LoadMaterials: Invalid specular value for %s\n", m->diffuse->name);
 				m->specular = DEFAULT_SPECULAR;
 			}
 		}
@@ -1047,9 +1055,9 @@ void R_LoadMaterials(const r_model_t *mod) {
 		}
 
 		if (*c == '}' && in_material) {
-			Com_Debug("Parsed material %s with %d stages\n", image->name, m->num_stages);
+			Com_Debug("Parsed material %s with %d stages\n", m->diffuse->name, m->num_stages);
 			in_material = false;
-			image = NULL;
+			m = NULL;
 		}
 	}
 

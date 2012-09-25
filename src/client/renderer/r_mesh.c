@@ -40,7 +40,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 		// apply weapon bob on all 3 axis
 		float b = r_view.bob * 0.4;
 
-		c = e->model->view_config;
+		c = e->model->mesh->view_config;
 
 		VectorMA(e->origin, c->translate[0] + b, r_view.forward, e->origin);
 		VectorMA(e->origin, 6.0, r_view.right, e->origin);
@@ -52,9 +52,9 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 	} else { // versus world and linked entities
 
 		if (e->parent)
-			c = e->model->link_config;
+			c = e->model->mesh->link_config;
 		else
-			c = e->model->world_config;
+			c = e->model->mesh->world_config;
 
 		// normalize the config's translation to the entity scale
 		for (i = 0; i < 3; i++)
@@ -76,12 +76,12 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
  */
 static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const char *name) {
 
-	if (frame > mod->num_frames) {
+	if (frame > mod->mesh->num_frames) {
 		Com_Warn("R_GetMeshModelTag: %s: Invalid frame: %d\n", mod->name, frame);
 		return NULL;
 	}
 
-	const r_md3_t *md3 = (r_md3_t *) mod->extra_data;
+	const r_md3_t *md3 = (r_md3_t *) mod->mesh->extra_data;
 	const r_md3_tag_t *tag = &md3->tags[frame * md3->num_tags];
 	int32_t i;
 
@@ -175,7 +175,7 @@ void R_UpdateMeshLighting(const r_entity_t *e) {
 /*
  * @brief
  */
-static void R_SetMeshColor_default(const r_entity_t *e) {
+static void R_SetMeshColor(const r_entity_t *e) {
 	vec4_t color;
 	float f;
 	int32_t i;
@@ -206,14 +206,14 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 }
 
 // maintain a pointer to the active material
-static r_image_t *r_mesh_material;
+static r_material_t *r_mesh_material;
 
 /*
  * @brief
  */
-static void R_SetMeshState_default(const r_entity_t *e) {
+static void R_SetMeshState(const r_entity_t *e) {
 
-	if (e->model->num_frames == 1) { // bind static arrays
+	if (e->model->mesh->num_frames == 1) { // bind static arrays
 		R_SetArrayState(e->model);
 	} else { // or use the default arrays
 		R_ResetArrayState();
@@ -224,16 +224,14 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	if (!r_draw_wireframe->value) {
 
 		if (!(e->effects & EF_NO_DRAW)) { // setup state for diffuse render
-			r_mesh_material = e->skins[0] ? e->skins[0] : e->model->skin;
+			r_mesh_material = e->skins[0] ? e->skins[0] : e->model->mesh->skin;
 
-			R_BindTexture(r_mesh_material->texnum);
+			R_UseMaterial(r_mesh_material);
 
-			R_SetMeshColor_default(e);
+			R_SetMeshColor(e);
 
 			// hardware lighting
 			if (r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)) {
-
-				R_UseMaterial(NULL, r_mesh_material);
 
 				R_EnableLightsByRadius(e->origin);
 
@@ -262,10 +260,10 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 #endif
 			}
 		} else {
-			R_UseMaterial(NULL, NULL);
+			R_UseMaterial(NULL);
 		}
 	} else {
-		R_UseMaterial(NULL, NULL);
+		R_UseMaterial(NULL);
 	}
 
 	if (e->effects & EF_WEAPON) // prevent weapon from poking into walls
@@ -278,9 +276,9 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 /*
  * @brief
  */
-static void R_ResetMeshState_default(const r_entity_t *e) {
+static void R_ResetMeshState(const r_entity_t *e) {
 
-	if (e->model->num_frames > 1)
+	if (e->model->mesh->num_frames > 1)
 		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 
 	if (e->effects & EF_WEAPON)
@@ -297,7 +295,7 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
  * entity. In order to reuse the vertex arrays from the primary rendering
  * pass, the shadow origin must transformed into model-view space.
  */
-static void R_RotateForMeshShadow_default(const r_entity_t *e) {
+static void R_RotateForMeshShadow(const r_entity_t *e) {
 	vec3_t origin, offset;
 	float height, threshold, scale;
 
@@ -336,7 +334,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
  * re-lerping or re-scaling the entity, the currently bound vertex arrays
  * are simply re-drawn using a small depth offset.
  */
-static void R_DrawMeshShell_default(const r_entity_t *e) {
+static void R_DrawMeshShell(const r_entity_t *e) {
 	vec4_t color;
 
 	if (VectorCompare(e->shell, vec3_origin))
@@ -362,7 +360,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
  * @brief Re-draws the mesh using the stencil test. Meshes with stale lighting
  * information, or with a lighting point above our view, are not drawn.
  */
-static void R_DrawMeshShadow_default(const r_entity_t *e) {
+static void R_DrawMeshShadow(const r_entity_t *e) {
 	const bool blend = r_state.blend_enabled;
 	const bool lighting = r_state.lighting_enabled;
 
@@ -393,7 +391,7 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 	if (!blend)
 		R_EnableBlend(true);
 
-	R_RotateForMeshShadow_default(e);
+	R_RotateForMeshShadow(e);
 
 	glDepthRange(0.0, 0.999);
 
@@ -411,7 +409,7 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	glDepthRange(0.0, 1.0);
 
-	R_RotateForMeshShadow_default(NULL);
+	R_RotateForMeshShadow(NULL);
 
 	if (!blend)
 		R_EnableBlend(false);
@@ -424,7 +422,7 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 /*
  * @brief
  */
-static void R_InterpolateMeshModel_default(const r_entity_t *e) {
+static void R_InterpolateMeshModel(const r_entity_t *e) {
 	const r_md3_t *md3;
 	const d_md3_frame_t *frame, *old_frame;
 	const r_md3_mesh_t *mesh;
@@ -432,7 +430,7 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 	int32_t vert_index;
 	int32_t i, j;
 
-	md3 = (r_md3_t *) e->model->extra_data;
+	md3 = (r_md3_t *) e->model->mesh->extra_data;
 
 	frame = &md3->frames[e->frame];
 	old_frame = &md3->frames[e->old_frame];
@@ -483,23 +481,21 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 /*
  * @brief Draw the diffuse pass of each mesh segment for the specified model.
  */
-static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
+static void R_DrawMeshParts(const r_entity_t *e, const r_md3_t *md3) {
 	r_md3_mesh_t *mesh = md3->meshes;
 	int32_t i, offset = 0;
 
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (i > 0) { // update the diffuse state for the current mesh
-			r_mesh_material = e->skins[i] ? e->skins[i] : e->model->skin;
+			r_mesh_material = e->skins[i] ? e->skins[i] : e->model->mesh->skin;
 
-			R_BindTexture(r_mesh_material->texnum);
-
-			R_UseMaterial(NULL, r_mesh_material);
+			R_UseMaterial(r_mesh_material);
 		}
 
 		glDrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
 
-		R_DrawMeshMaterial(&r_mesh_material->material, offset, mesh->num_tris * 3);
+		R_DrawMeshMaterial(r_mesh_material, offset, mesh->num_tris * 3);
 
 		offset += mesh->num_tris * 3;
 	}
@@ -508,40 +504,40 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 /*
  * @brief
  */
-void R_DrawMeshModel_default(const r_entity_t *e) {
+void R_DrawMeshModel(const r_entity_t *e) {
 
-	if (e->frame >= e->model->num_frames) {
+	if (e->frame >= e->model->mesh->num_frames) {
 		Com_Warn("R_DrawMeshModel %s: no such frame %d\n", e->model->name, e->frame);
 		return;
 	}
 
-	if (e->old_frame >= e->model->num_frames) {
+	if (e->old_frame >= e->model->mesh->num_frames) {
 		Com_Warn("R_DrawMeshModel %s: no such old_frame %d\n", e->model->name, e->old_frame);
 		return;
 	}
 
-	R_SetMeshState_default(e);
+	R_SetMeshState(e);
 
-	if (e->model->num_frames > 1) { // interpolate frames
-		R_InterpolateMeshModel_default(e);
+	if (e->model->mesh->num_frames > 1) { // interpolate frames
+		R_InterpolateMeshModel(e);
 	}
 
 	if (!(e->effects & EF_NO_DRAW)) { // draw the model
 
 		if (e->model->type == mod_md3 && !r_draw_wireframe->value) {
-			R_DrawMeshParts_default(e, (const r_md3_t *) e->model->extra_data);
+			R_DrawMeshParts(e, (const r_md3_t *) e->model->mesh->extra_data);
 		} else {
 			glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
-			R_DrawMeshMaterial(&r_mesh_material->material, 0, e->model->num_verts);
+			R_DrawMeshMaterial(r_mesh_material, 0, e->model->num_verts);
 		}
 
-		R_DrawMeshShell_default(e); // draw any shell effects
+		R_DrawMeshShell(e); // draw any shell effects
 	}
 
-	R_DrawMeshShadow_default(e); // lastly draw the shadow
+	R_DrawMeshShadow(e); // lastly draw the shadow
 
-	R_ResetMeshState_default(e);
+	R_ResetMeshState(e);
 
 	r_view.num_mesh_models++;
 	r_view.num_mesh_tris += e->model->num_verts / 3;

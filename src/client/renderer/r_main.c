@@ -68,7 +68,6 @@ cvar_t *r_materials;
 cvar_t *r_modulate;
 cvar_t *r_monochrome;
 cvar_t *r_multisample;
-cvar_t *r_optimize;
 cvar_t *r_parallax;
 cvar_t *r_programs;
 cvar_t *r_render_mode;
@@ -85,14 +84,6 @@ cvar_t *r_warp;
 cvar_t *r_width;
 cvar_t *r_windowed_height;
 cvar_t *r_windowed_width;
-
-void (*R_DrawOpaqueSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawOpaqueWarpSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawAlphaTestSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawBlendSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawBlendWarpSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawBackSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawMeshModel)(const r_entity_t *e);
 
 extern cl_client_t cl;
 extern cl_static_t cls;
@@ -167,9 +158,7 @@ void R_DrawView(void) {
 
 	R_UpdateFrustum();
 
-	R_MarkLeafs();
-
-	R_MarkSurfaces();
+	R_UpdateVis();
 
 	R_EnableFog(true);
 
@@ -183,21 +172,7 @@ void R_DrawView(void) {
 
 	R_MarkLights();
 
-	R_DrawOpaqueSurfaces(r_world_model->opaque_surfaces);
-
-	R_DrawOpaqueWarpSurfaces(r_world_model->opaque_warp_surfaces);
-
-	R_DrawAlphaTestSurfaces(r_world_model->alpha_test_surfaces);
-
-	R_EnableBlend(true);
-
-	R_DrawBackSurfaces(r_world_model->back_surfaces);
-
-	R_DrawMaterialSurfaces(r_world_model->material_surfaces);
-
-	R_DrawFlareSurfaces(r_world_model->flare_surfaces);
-
-	R_EnableBlend(false);
+	R_DrawBspWorld();
 
 	R_DrawBspNormals();
 
@@ -213,10 +188,6 @@ void R_DrawView(void) {
 
 	R_DrawBspLights();
 
-	R_DrawBlendSurfaces(r_world_model->blend_surfaces);
-
-	R_DrawBlendWarpSurfaces(r_world_model->blend_warp_surfaces);
-
 	// ensure the thread has finished updating particles
 	Thread_Wait(&r_view.thread);
 
@@ -226,7 +197,7 @@ void R_DrawView(void) {
 
 	R_DrawCoronas();
 
-	R_DrawBspLeafs();
+	R_DrawBspClusters();
 
 	R_EnableBlend(false);
 
@@ -238,30 +209,7 @@ void R_DrawView(void) {
  * r_render_mode plugin framework.
  */
 static void R_RenderMode(const char *mode) {
-
 	r_view.render_mode = render_mode_default;
-
-	R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_default;
-	R_DrawOpaqueWarpSurfaces = R_DrawOpaqueWarpSurfaces_default;
-	R_DrawAlphaTestSurfaces = R_DrawAlphaTestSurfaces_default;
-	R_DrawBlendSurfaces = R_DrawBlendSurfaces_default;
-	R_DrawBlendWarpSurfaces = R_DrawBlendWarpSurfaces_default;
-	R_DrawBackSurfaces = R_DrawBackSurfaces_default;
-
-	R_DrawMeshModel = R_DrawMeshModel_default;
-
-	if (!mode || !*mode)
-		return;
-
-	if (!strcmp(mode, "pro")) {
-
-		r_view.render_mode = render_mode_pro;
-
-		R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_pro;
-		R_DrawAlphaTestSurfaces = R_DrawAlphaTestSurfaces_pro;
-		R_DrawBlendSurfaces = R_DrawBlendSurfaces_pro;
-		R_DrawBackSurfaces = R_DrawBackSurfaces_pro;
-	}
 }
 
 /*
@@ -573,8 +521,6 @@ static void R_InitLocal(void) {
 			"Loads all world textures as monochrome");
 	r_multisample = Cvar_Get("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls multisampling (anti-aliasing)");
-	r_optimize = Cvar_Get("r_optimize", "1", CVAR_ARCHIVE,
-			"Controls BSP recursion optimization strategy");
 	r_parallax = Cvar_Get("r_parallax", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of parallax mapping effects");
 	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE, "Controls GLSL shaders");

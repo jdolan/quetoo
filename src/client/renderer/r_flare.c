@@ -29,7 +29,7 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
 	const r_stage_t *s;
 	vec3_t span;
 
-	m = &surf->texinfo->image->material;
+	m = surf->texinfo->material;
 
 	if (!(m->flags & STAGE_FLARE)) // surface is not flared
 		return;
@@ -54,7 +54,7 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
 	if (s->flags & STAGE_COLOR)
 		VectorCopy(s->color, surf->flare->color);
 	else
-		VectorCopy(surf->color, surf->flare->color);
+		VectorCopy(surf->texinfo->material->diffuse->color, surf->flare->color);
 
 	// and scaled radius
 	if (s->flags & (STAGE_SCALE_S | STAGE_SCALE_T))
@@ -70,7 +70,7 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
  * flare alpha is ramped up or down depending on the results of the visibility
  * trace. Flares are also faded according to the angle of their surface to the
  * view origin.
- */
+
 void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 	const r_image_t *image;
 	uint32_t i, j, k, l, m;
@@ -181,4 +181,4 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 	R_EnableColorArray(false);
 
 	R_Color(NULL);
-}
+}*/

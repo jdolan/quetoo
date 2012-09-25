@@ -30,6 +30,32 @@
 
 typedef int16_t r_pixel_t;
 
+// image types
+typedef enum {
+	it_null,
+	it_font,
+	it_effect,
+	it_diffuse,
+	it_lightmap,
+	it_deluxemap,
+	it_normalmap,
+	it_glossmap,
+	it_material,
+	it_sky,
+	it_pic
+} r_image_type_t;
+
+/*
+ * @brief Images are referenced by materials, models, entities, particles, etc.
+ */
+typedef struct r_image_s {
+	char name[MAX_QPATH]; // game path, excluding extension
+	r_image_type_t type;
+	r_pixel_t width, height; // image dimensions
+	GLuint texnum; // gl texture binding
+	vec3_t color; // average color
+} r_image_t;
+
 typedef struct r_stage_blend_s {
 	GLenum src, dest;
 } r_stage_blend_t;
@@ -70,7 +96,7 @@ typedef struct r_stage_dirt_s {
 
 typedef struct r_stage_anim_s {
 	uint16_t num_frames;
-	struct r_image_s *images[MAX_ANIM_FRAMES];
+	r_image_t *images[MAX_ANIM_FRAMES];
 	float fps;
 	float dtime;
 	uint16_t dframe;
@@ -78,7 +104,7 @@ typedef struct r_stage_anim_s {
 
 typedef struct r_stage_s {
 	uint32_t flags;
-	struct r_image_s *image;
+	r_image_t *image;
 	r_stage_blend_t blend;
 	vec3_t color;
 	r_stage_pulse_t pulse;
@@ -98,6 +124,9 @@ typedef struct r_stage_s {
 #define DEFAULT_SPECULAR 1.0
 
 typedef struct r_material_s {
+	r_image_t *diffuse;
+	r_image_t *normalmap;
+	r_image_t *glossmap;
 	uint32_t flags;
 	float time;
 	float bump;
@@ -107,35 +136,6 @@ typedef struct r_material_s {
 	r_stage_t *stages;
 	uint16_t num_stages;
 } r_material_t;
-
-// image types
-typedef enum {
-	it_null,
-	it_font,
-	it_effect,
-	it_diffuse,
-	it_lightmap,
-	it_deluxemap,
-	it_normalmap,
-	it_glossmap,
-	it_material,
-	it_sky,
-	it_pic
-} r_image_type_t;
-
-/*
- * @brief Images are referenced by materials, models, entities, particles, etc.
- */
-typedef struct r_image_s {
-	char name[MAX_QPATH]; // game path, excluding extension
-	r_image_type_t type;
-	r_pixel_t width, height; // image dimensions
-	GLuint texnum; // gl texture binding
-	r_material_t material; // material definition
-	vec3_t color; // average color
-	struct r_image_s *normalmap;
-	struct r_image_s *glossmap;
-} r_image_t;
 
 // bsp model memory representation
 typedef struct {
@@ -158,11 +158,11 @@ typedef struct {
 } r_bsp_edge_t;
 
 typedef struct {
+	char name[32];
 	float vecs[2][4];
 	uint32_t flags;
 	int32_t value;
-	char name[32];
-	r_image_t *image;
+	r_material_t *material;
 } r_bsp_texinfo_t;
 
 typedef struct {
@@ -200,7 +200,7 @@ typedef struct {
 	vec2_t st_center;
 	vec2_t st_extents;
 
-	GLuint index; // index into r_world_model vertex buffers
+	GLuint index; // index into world vertex buffers
 
 	r_bsp_texinfo_t *texinfo; // SURF_ flags
 
@@ -211,36 +211,9 @@ typedef struct {
 	GLuint deluxemap_texnum;
 
 	byte *samples; // raw lighting information, only used at loading time
-	byte *lightmap; // finalized lightmap samples, cached for lookups
-
-	vec4_t color;
 
 	uint32_t lights; // bit mask of enabled light sources
 } r_bsp_surface_t;
-
-/*
- * @brief Surfaces are assigned to arrays based on their render path and then
- * sorted by material to reduce glBindTexture calls.
- */
-typedef struct {
-	r_bsp_surface_t **surfaces;
-	uint32_t count;
-} r_bsp_surfaces_t;
-
-#define sky_surfaces			sorted_surfaces[0]
-#define opaque_surfaces			sorted_surfaces[1]
-#define opaque_warp_surfaces	sorted_surfaces[2]
-#define alpha_test_surfaces		sorted_surfaces[3]
-#define blend_surfaces			sorted_surfaces[4]
-#define blend_warp_surfaces		sorted_surfaces[5]
-#define material_surfaces		sorted_surfaces[6]
-#define flare_surfaces			sorted_surfaces[7]
-#define back_surfaces			sorted_surfaces[8]
-
-#define NUM_SURFACES_ARRAYS		9
-
-#define R_SurfaceToSurfaces(surfs, surf)\
-	(surfs)->surfaces[(surfs)->count++] = surf
 
 /*
  * @brief BSP nodes comprise the tree representation of the world. At compile
@@ -300,8 +273,33 @@ typedef struct {
 	int16_t num_leaf_surfaces;
 } r_bsp_leaf_t;
 
+/*
+ * @brief BSP arrays are contiguous groupings of geometry within a given
+ * cluster. Every cluster will contain an array for each texture appearing
+ * within it. The renderer culls down to the cluster level, and then draws
+ * each cluster by iterating its arrays.
+ */
 typedef struct {
-	int16_t vis_frame;
+	r_bsp_texinfo_t *texinfo; // the texture
+
+	GLuint index; // index into world VBO
+	GLuint count; // vertex count in world VBO
+
+	vec3_t mins; // bounding box for culling
+	vec3_t maxs;
+
+	GLuint lightmap_texnum;
+	GLuint deluxemap_texnum;
+
+	int16_t light_frame; // dynamic lighting frame
+	uint32_t lights; // bit mask of active light sources in scene
+} r_bsp_array_t;
+
+typedef struct {
+	int16_t vis_frame; // PVS eligibility
+
+	r_bsp_array_t *arrays; // the arrays comprising this cluster
+	uint16_t num_arrays;
 } r_bsp_cluster_t;
 
 /*
@@ -311,7 +309,7 @@ typedef struct {
 	vec3_t origin;
 	float radius;
 	vec3_t color;
-	int16_t count;
+	uint16_t count;
 	const r_bsp_leaf_t *leaf;
 } r_bsp_light_t;
 
@@ -414,32 +412,7 @@ typedef enum {
 	mod_bad, mod_bsp, mod_bsp_submodel, mod_md3, mod_obj
 } r_model_type_t;
 
-/*
- * @brief Provides load-time normalization of mesh models.
- */
 typedef struct {
-	vec3_t translate;
-	float scale;
-	uint32_t flags; // EF_ALPHA_TEST, etc..
-} r_mesh_config_t;
-
-/*
- * @brief Models represent a subset of the BSP or an OBJ / MD3 mesh.
- */
-typedef struct r_model_s {
-	char name[MAX_QPATH];
-
-	r_model_type_t type;
-	int32_t version;
-
-	uint16_t num_frames;
-
-	uint32_t flags;
-
-	vec3_t mins, maxs;
-	float radius;
-
-	// for bsp models
 	uint16_t num_submodels;
 	r_bsp_submodel_t *submodels;
 
@@ -481,30 +454,24 @@ typedef struct r_model_s {
 	uint16_t num_bsp_lights;
 	r_bsp_light_t *bsp_lights;
 
-	// sorted surfaces arrays
-	r_bsp_surfaces_t *sorted_surfaces[NUM_SURFACES_ARRAYS];
-
 	uint16_t first_model_surface, num_model_surfaces; // for submodels
 	uint32_t lights; // bit mask of enabled light sources for submodels
+} r_bsp_model_t;
 
-	// for mesh models
-	r_image_t *skin;
+/*
+ * @brief Provides load-time normalization of mesh models.
+ */
+typedef struct {
+	vec3_t translate;
+	float scale;
+	uint32_t flags; // EF_ALPHA_TEST, etc..
+} r_mesh_config_t;
 
-	GLuint num_verts; // raw vertex primitive count, used to build arrays
+typedef struct {
+	uint16_t num_frames;
+	uint32_t flags;
 
-	GLfloat *verts; // vertex arrays
-	GLfloat *texcoords;
-	GLfloat *lmtexcoords;
-	GLfloat *normals;
-	GLfloat *tangents;
-	GLfloat *colors;
-
-	GLuint vertex_buffer; // vertex buffer objects
-	GLuint texcoord_buffer;
-	GLuint lmtexcoord_buffer;
-	GLuint normal_buffer;
-	GLuint tangent_buffer;
-	GLuint color_buffer;
+	r_material_t *skin;
 
 	r_mesh_config_t *world_config;
 	r_mesh_config_t *view_config;
@@ -512,10 +479,37 @@ typedef struct r_model_s {
 
 	uint32_t extra_data_size;
 	void *extra_data; // raw model data
-} r_model_t;
+} r_mesh_model_t;
 
-// is a given model a mesh model?
-#define IS_MESH_MODEL(m) (m && (m->type == mod_md3 || m->type == mod_obj))
+/*
+ * @brief Models represent a subset of the BSP or an OBJ / MD3 mesh.
+ */
+typedef struct r_model_s {
+	char name[MAX_QPATH];
+
+	r_model_type_t type;
+	int32_t version;
+
+	r_bsp_model_t *bsp;
+	r_mesh_model_t *mesh;
+
+	vec3_t mins, maxs;
+	float radius;
+
+	GLuint num_verts; // raw vertex primitive count, used to build arrays
+
+	GLfloat *verts; // vertex arrays
+	GLfloat *texcoords;
+	GLfloat *lightmap_texcoords;
+	GLfloat *normals;
+	GLfloat *tangents;
+
+	GLuint vertex_buffer; // vertex buffer objects
+	GLuint texcoord_buffer;
+	GLuint lightmap_texcoord_buffer;
+	GLuint normal_buffer;
+	GLuint tangent_buffer;
+} r_model_t;
 
 /*
  * @brief Dynamic light sources expire immediately and must be re-added
@@ -591,7 +585,7 @@ typedef struct r_entity_s {
 
 	float scale; // for mesh models
 
-	r_image_t *skins[MD3_MAX_MESHES]; // NULL for default skin
+	r_material_t *skins[MD3_MAX_MESHES]; // NULL for default skin
 	uint16_t num_skins;
 
 	uint32_t effects; // e.g. EF_ROCKET, EF_WEAPON, ..
@@ -664,7 +658,7 @@ typedef struct r_element_s {
  * @brief Allows alternate renderer plugins to be dropped in.
  */
 typedef enum render_mode_s {
-	render_mode_default, render_mode_pro
+	render_mode_default
 } r_render_mode_t;
 
 #define MAX_CORONAS 		1024
@@ -730,6 +724,7 @@ typedef struct r_view_s {
 	uint32_t num_bind_glossmap;
 
 	uint32_t num_bsp_clusters;
+	uint32_t num_bsp_arrays;
 	uint32_t num_bsp_leafs;
 	uint32_t num_bsp_surfaces;
 

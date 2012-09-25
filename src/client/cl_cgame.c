@@ -178,6 +178,7 @@ void Cl_InitCgame(void) {
 
 	import.LoadImage = R_LoadImage;
 	import.LoadModel = R_LoadModel;
+	import.WorldModel = R_WorldModel;
 
 	import.AddCorona = R_AddCorona;
 	import.AddEntity = R_AddEntity;

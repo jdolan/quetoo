@@ -106,11 +106,10 @@ void R_UseProgram_default(void) {
 /*
  * @brief
  */
-void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_image_t *image) {
-
+void R_UseMaterial_default(const r_material_t *material) {
 	r_default_program_t *p = &r_default_program;
 
-	if (!image || !image->normalmap || !r_bumpmap->value) {
+	if (!material || !material->normalmap || !r_bumpmap->value) {
 		R_DisableAttribute(&p->tangent);
 		R_ProgramParameter1i(&p->normalmap, 0);
 		return;
@@ -118,24 +117,15 @@ void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_image_t *image) 
 
 	R_EnableAttribute(&p->tangent);
 
-	// first deal with the surface
-	if (surf) {
-		R_BindDeluxemapTexture(surf->deluxemap_texnum);
-		R_ProgramParameter1i(&p->deluxemap, 1);
-	} else
-		R_ProgramParameter1i(&p->deluxemap, 0);
-
 	// then the material
-	const r_material_t *material = image ? &image->material : NULL;
-
 	if (r_state.active_material == material)
 		return;
 
-	R_BindNormalmapTexture(image->normalmap->texnum);
+	R_BindNormalmapTexture(material->normalmap->texnum);
 	R_ProgramParameter1i(&p->normalmap, 1);
 
-	if (image->glossmap) {
-		R_BindGlossmapTexture(image->glossmap->texnum);
+	if (material->glossmap) {
+		R_BindGlossmapTexture(material->glossmap->texnum);
 		R_ProgramParameter1i(&p->glossmap, 1);
 	} else
 		R_ProgramParameter1i(&p->glossmap, 0);
@@ -144,4 +134,21 @@ void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_image_t *image) 
 	R_ProgramParameter1f(&p->parallax, material->parallax * r_parallax->value);
 	R_ProgramParameter1f(&p->hardness, material->hardness * r_hardness->value);
 	R_ProgramParameter1f(&p->specular, material->specular * r_specular->value);
+}
+
+/*
+ * @brief
+ */
+void R_UseBspArray_default(const r_bsp_array_t *array) {
+	r_default_program_t *p = &r_default_program;
+
+	if (!array || !array->texinfo->material->normalmap || !r_bumpmap->value)
+		return;
+
+	// first deal with the surface
+	if (array) {
+		R_BindDeluxemapTexture(array->deluxemap_texnum);
+		R_ProgramParameter1i(&p->deluxemap, 1);
+	} else
+		R_ProgramParameter1i(&p->deluxemap, 0);
 }

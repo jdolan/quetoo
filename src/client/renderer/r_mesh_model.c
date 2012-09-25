@@ -31,7 +31,7 @@ static void R_LoadMeshSkin(r_model_t *mod) {
 	Dirname(mod->name, skin);
 	strcat(skin, "skin");
 
-	mod->skin = R_LoadImage(skin, it_diffuse);
+	mod->mesh->skin = R_LoadMaterial(skin);
 }
 
 /*
@@ -46,7 +46,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 	void *buf;
 	uint16_t skip;
 
-	md3 = (r_md3_t *) mod->extra_data;
+	md3 = (r_md3_t *) mod->mesh->extra_data;
 
 	Dirname(mod->name, path);
 	strcat(path, "animation.cfg");
@@ -158,22 +158,22 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 static void R_LoadMeshConfigs(r_model_t *mod) {
 	char path[MAX_QPATH];
 
-	mod->world_config = (r_mesh_config_t *) R_HunkAlloc(sizeof(r_mesh_config_t));
-	mod->view_config = (r_mesh_config_t *) R_HunkAlloc(sizeof(r_mesh_config_t));
-	mod->link_config = (r_mesh_config_t *) R_HunkAlloc(sizeof(r_mesh_config_t));
+	mod->mesh->world_config = (r_mesh_config_t *) R_HunkAlloc(sizeof(r_mesh_config_t));
+	mod->mesh->view_config = (r_mesh_config_t *) R_HunkAlloc(sizeof(r_mesh_config_t));
+	mod->mesh->link_config = (r_mesh_config_t *) R_HunkAlloc(sizeof(r_mesh_config_t));
 
-	mod->world_config->scale = 1.0;
+	mod->mesh->world_config->scale = 1.0;
 
 	Dirname(mod->name, path);
 
-	R_LoadMeshConfig(mod->world_config, va("%sworld.cfg", path));
+	R_LoadMeshConfig(mod->mesh->world_config, va("%sworld.cfg", path));
 
 	// by default, additional configs inherit from world
-	memcpy(mod->view_config, mod->world_config, sizeof(r_mesh_config_t));
-	memcpy(mod->link_config, mod->world_config, sizeof(r_mesh_config_t));
+	memcpy(mod->mesh->view_config, mod->mesh->world_config, sizeof(r_mesh_config_t));
+	memcpy(mod->mesh->link_config, mod->mesh->world_config, sizeof(r_mesh_config_t));
 
-	R_LoadMeshConfig(mod->view_config, va("%sview.cfg", path));
-	R_LoadMeshConfig(mod->link_config, va("%slink.cfg", path));
+	R_LoadMeshConfig(mod->mesh->view_config, va("%sview.cfg", path));
+	R_LoadMeshConfig(mod->mesh->link_config, va("%slink.cfg", path));
 }
 
 /*
@@ -276,7 +276,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 	R_AllocVertexArrays(mod); // allocate the arrays
 
-	md3 = (r_md3_t *) mod->extra_data;
+	md3 = (r_md3_t *) mod->mesh->extra_data;
 
 	frame = md3->frames;
 
@@ -286,7 +286,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 		v = mesh->verts;
 
-		if (mod->num_frames == 1) { // for static models, build the verts and normals
+		if (mod->mesh->num_frames == 1) { // for static models, build the verts and normals
 			for (j = 0; j < mesh->num_verts; j++, v++) {
 				VectorAdd(frame->translate, v->point, r_mesh_verts[j]);
 				VectorCopy(v->normal, r_mesh_norms[j]);
@@ -299,7 +299,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 		for (j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the arrays
 
-			if (mod->num_frames == 1) {
+			if (mod->mesh->num_frames == 1) {
 				VectorCopy(r_mesh_verts[tri[0]], (&mod->verts[vert_index + 0]));
 				VectorCopy(r_mesh_verts[tri[1]], (&mod->verts[vert_index + 3]));
 				VectorCopy(r_mesh_verts[tri[2]], (&mod->verts[vert_index + 6]));
@@ -354,6 +354,9 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	mod->type = mod_md3;
 	mod->version = version;
 
+	mod->mesh = R_HunkAlloc(sizeof(r_mesh_model_t));
+	mod->mesh->extra_data = R_HunkBegin();
+
 	outmodel = (r_md3_t *) R_HunkAlloc(sizeof(r_md3_t));
 
 	// byte swap the header fields and sanity check
@@ -361,7 +364,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	inmodel->ofs_tags = LittleLong(inmodel->ofs_tags);
 	inmodel->ofs_meshes = LittleLong(inmodel->ofs_meshes);
 
-	mod->num_frames = outmodel->num_frames = LittleLong(inmodel->num_frames);
+	mod->mesh->num_frames = outmodel->num_frames = LittleLong(inmodel->num_frames);
 	outmodel->num_tags = LittleLong(inmodel->num_tags);
 	outmodel->num_meshes = LittleLong(inmodel->num_meshes);
 
@@ -519,7 +522,10 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	// and the configs
 	R_LoadMeshConfigs(mod);
 
-	// and finally the arrays
+	// terminate the extra data block
+	mod->mesh->extra_data_size = R_HunkEnd(mod->mesh->extra_data);
+
+	// and finally load the arrays
 	R_LoadMd3VertexArrays(mod);
 
 	Com_Debug("R_LoadMd3Model: %s\n"
@@ -632,7 +638,7 @@ static void R_LoadObjModelVertexArrays(r_model_t *mod) {
 
 	R_AllocVertexArrays(mod);
 
-	obj = (r_obj_t *) mod->extra_data;
+	obj = (r_obj_t *) mod->mesh->extra_data;
 
 	vert_index = tangent_index = texcoord_index = 0;
 
@@ -892,8 +898,12 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	int32_t i;
 
 	mod->type = mod_obj;
+	mod->version = 1;
 
-	mod->num_frames = 1;
+	mod->mesh = R_HunkAlloc(sizeof(r_mesh_model_t));
+	mod->mesh->extra_data = R_HunkBegin();
+
+	mod->mesh->num_frames = 1;
 
 	obj = (r_obj_t *) R_HunkAlloc(sizeof(r_obj_t));
 
@@ -928,6 +938,9 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 	// and configs
 	R_LoadMeshConfigs(mod);
+
+	// terminate the extra data block
+	mod->mesh->extra_data_size = R_HunkEnd(mod->mesh->extra_data);
 
 	// and finally the arrays
 	R_LoadObjModelVertexArrays(mod);

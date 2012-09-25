@@ -247,7 +247,7 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf) {
 	// calculate distance to surface verts
 	for (i = 0; i < surf->num_edges; i++) {
 
-		const float *v = &r_world_model->verts[index + i * 3];
+		const float *v = &r_models.world->verts[index + i * 3];
 
 		VectorSubtract(v, r_view.origin, verts[i]);
 	}
@@ -314,7 +314,7 @@ int32_t skytexorder[6] = { 0, 2, 1, 3, 4, 5 };
  * @brief
  */
 void R_DrawSkyBox(void) {
-	r_bsp_surfaces_t *surfs;
+	/*r_bsp_surfaces_t *surfs;
 	uint32_t i, j;
 
 	surfs = r_world_model->sky_surfaces;
@@ -361,7 +361,7 @@ void R_DrawSkyBox(void) {
 	if (r_state.fog_enabled)
 		glFogf(GL_FOG_END, FOG_END);
 
-	glPopMatrix();
+	glPopMatrix();*/
 }
 
 // 3dstudio environment map names

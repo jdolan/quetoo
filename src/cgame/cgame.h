@@ -100,6 +100,7 @@ typedef struct cg_import_s {
 	// images and models
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
 	r_model_t *(*LoadModel)(const char *name);
+	r_model_t *(*WorldModel)(void);
 
 	// scene building facilities
 	void (*AddCorona)(const r_corona_t *c);

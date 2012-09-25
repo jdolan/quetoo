@@ -142,8 +142,8 @@ static void R_AddBspLight(vec3_t org, float radius, vec3_t color) {
 		return;
 	}
 
-	l = r_load_model->bsp_lights;
-	for (i = 0; i < r_load_model->num_bsp_lights; i++, l++) {
+	l = r_models.load->bsp->bsp_lights;
+	for (i = 0; i < r_models.load->bsp->num_bsp_lights; i++, l++) {
 
 		VectorSubtract(org, l->origin, delta);
 
@@ -151,17 +151,17 @@ static void R_AddBspLight(vec3_t org, float radius, vec3_t color) {
 			break;
 	}
 
-	if (i == r_load_model->num_bsp_lights) { // or allocate a new one
+	if (i == r_models.load->bsp->num_bsp_lights) { // or allocate a new one
 
 		l = (r_bsp_light_t *) R_HunkAlloc(sizeof(*l));
 
-		if (!r_load_model->bsp_lights) // first source
-			r_load_model->bsp_lights = l;
+		if (!r_models.load->bsp->bsp_lights) // first source
+			r_models.load->bsp->bsp_lights = l;
 
 		VectorCopy(org, l->origin);
-		l->leaf = R_LeafForPoint(l->origin, r_load_model);
+		l->leaf = R_LeafForPoint(l->origin, r_models.load);
 
-		r_load_model->num_bsp_lights++;
+		r_models.load->bsp->num_bsp_lights++;
 	}
 
 	l->count++;
@@ -189,15 +189,15 @@ void R_LoadBspLights(void) {
 	R_ResolveBspLightParameters();
 
 	// iterate the world surfaces for surface lights
-	surf = r_load_model->surfaces;
+	surf = r_models.load->bsp->surfaces;
 
-	for (i = 0; i < r_load_model->num_surfaces; i++, surf++) {
+	for (i = 0; i < r_models.load->bsp->num_surfaces; i++, surf++) {
 		vec3_t color = { 0.0, 0.0, 0.0 };
 		float scale = 1.0;
 
 		// light-emitting surfaces are of course lights
 		if ((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value) {
-			VectorCopy(surf->color, color);
+			VectorCopy(surf->texinfo->material->diffuse->color, color);
 			scale = BSP_LIGHT_SURFACE_RADIUS_SCALE;
 		}
 
@@ -285,8 +285,8 @@ void R_LoadBspLights(void) {
 		}
 	}
 
-	l = r_load_model->bsp_lights;
-	for (i = 0; i < r_load_model->num_bsp_lights; i++, l++) {
+	l = r_models.load->bsp->bsp_lights;
+	for (i = 0; i < r_models.load->bsp->num_bsp_lights; i++, l++) {
 		float max = 0.0;
 		int32_t j;
 
@@ -300,5 +300,5 @@ void R_LoadBspLights(void) {
 		}
 	}
 
-	Com_Debug("Loaded %d bsp lights\n", r_load_model->num_bsp_lights);
+	Com_Debug("Loaded %d bsp lights\n", r_models.load->bsp->num_bsp_lights);
 }

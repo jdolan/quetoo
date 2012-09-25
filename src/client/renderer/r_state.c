@@ -499,18 +499,41 @@ void R_EnableFog(bool enable) {
 }
 
 /*
- * @brief Setup the GLSL shaders for the specified surface and primary material. If no
- * shader is bound, this function simply returns.
+ * @brief Setup the GLSL program for the specified material.
  */
-void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image) {
+void R_UseMaterial(const r_material_t *material) {
 
-	if (!r_state.active_program)
+	if (!r_state.active_program) {
+		if (material) {
+			R_BindTexture(material->diffuse->texnum);
+		}
 		return;
+	}
 
 	if (r_state.active_program->UseMaterial)
-		r_state.active_program->UseMaterial(surf, image);
+		r_state.active_program->UseMaterial(material);
 
-	R_GetError(image ? image->name : r_state.active_program->name);
+	R_GetError(material ? material->diffuse->name : r_state.active_program->name);
+}
+
+/*
+ * @brief Setup the GLSL program for the specified BSP array.
+ */
+void R_UseBspArray(const r_bsp_array_t *array) {
+
+	R_UseMaterial(array ? array->texinfo->material : NULL);
+
+	if (!r_state.active_program) {
+		if (array) {
+			R_BindLightmapTexture(array->lightmap_texnum);
+		}
+		return;
+	}
+
+	if (r_state.active_program->UseBspArray)
+		r_state.active_program->UseBspArray(array);
+
+	R_GetError(array ? array->texinfo->material->diffuse->name : r_state.active_program->name);
 }
 
 #define NEAR_Z 4
