@@ -68,6 +68,7 @@ cvar_t *r_materials;
 cvar_t *r_modulate;
 cvar_t *r_monochrome;
 cvar_t *r_multisample;
+cvar_t *r_optimize;
 cvar_t *r_parallax;
 cvar_t *r_programs;
 cvar_t *r_render_mode;
@@ -85,6 +86,14 @@ cvar_t *r_width;
 cvar_t *r_windowed_height;
 cvar_t *r_windowed_width;
 
+void (*R_DrawOpaqueSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawOpaqueWarpSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawAlphaTestSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawBlendSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawBlendWarpSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawBackSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawMeshModel)(const r_entity_t *e);
+
 extern cl_client_t cl;
 extern cl_static_t cls;
 
@@ -92,7 +101,7 @@ extern cl_static_t cls;
  * @brief Qsort comparator for render elements.
  */
 static int R_SortElements_Compare(const void *e1, const void *e2) {
-	return ((r_element_t *)e1)->dist > ((r_element_t *)e2)->dist;
+	return ((r_element_t *) e1)->dist > ((r_element_t *) e2)->dist;
 }
 
 /*
@@ -160,6 +169,8 @@ void R_DrawView(void) {
 
 	R_UpdateVis();
 
+	R_MarkSurfaces();
+
 	R_EnableFog(true);
 
 	R_DrawSkyBox();
@@ -172,7 +183,21 @@ void R_DrawView(void) {
 
 	R_MarkLights();
 
-	R_DrawBspWorld();
+	R_DrawOpaqueSurfaces(&r_models.world->bsp->sorted_surfaces->opaque);
+
+	R_DrawOpaqueWarpSurfaces(&r_models.world->bsp->sorted_surfaces->opaque_warp);
+
+	R_DrawAlphaTestSurfaces(&r_models.world->bsp->sorted_surfaces->alpha_test);
+
+	R_EnableBlend(true);
+
+	R_DrawBackSurfaces(&r_models.world->bsp->sorted_surfaces->back);
+
+	R_DrawMaterialSurfaces(&r_models.world->bsp->sorted_surfaces->material);
+
+	R_DrawFlareSurfaces(&r_models.world->bsp->sorted_surfaces->flare);
+
+	R_EnableBlend(false);
 
 	R_DrawBspNormals();
 
@@ -188,6 +213,10 @@ void R_DrawView(void) {
 
 	R_DrawBspLights();
 
+	R_DrawBlendSurfaces(&r_models.world->bsp->sorted_surfaces->blend);
+
+	R_DrawBlendWarpSurfaces(&r_models.world->bsp->sorted_surfaces->blend_warp);
+
 	// ensure the thread has finished updating particles
 	Thread_Wait(&r_view.thread);
 
@@ -197,7 +226,7 @@ void R_DrawView(void) {
 
 	R_DrawCoronas();
 
-	R_DrawBspClusters();
+	R_DrawBspLeafs();
 
 	R_EnableBlend(false);
 
@@ -209,7 +238,22 @@ void R_DrawView(void) {
  * r_render_mode plugin framework.
  */
 static void R_RenderMode(const char *mode) {
+
 	r_view.render_mode = render_mode_default;
+
+	R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_default;
+	R_DrawOpaqueWarpSurfaces = R_DrawOpaqueWarpSurfaces_default;
+	R_DrawAlphaTestSurfaces = R_DrawAlphaTestSurfaces_default;
+	R_DrawBlendSurfaces = R_DrawBlendSurfaces_default;
+	R_DrawBlendWarpSurfaces = R_DrawBlendWarpSurfaces_default;
+	R_DrawBackSurfaces = R_DrawBackSurfaces_default;
+
+	R_DrawMeshModel = R_DrawMeshModel_default;
+
+	if (!mode || !*mode)
+		return;
+
+	// assign function pointers to different plugins here
 }
 
 /*
@@ -460,8 +504,8 @@ static void R_ToggleFullscreen_f(void) {
 static void R_InitLocal(void) {
 
 	// development tools
-	r_clear = Cvar_Get("r_clear", "0", 0,
-			"Controls screen clearing at each frame (developer tool)");
+	r_clear
+			= Cvar_Get("r_clear", "0", 0, "Controls screen clearing at each frame (developer tool)");
 	r_cull = Cvar_Get("r_cull", "1", CVAR_LO_ONLY,
 			"Controls bounded box culling routines (developer tool)");
 	r_lock_vis = Cvar_Get("r_lock_vis", "0", CVAR_LO_ONLY,
@@ -485,14 +529,14 @@ static void R_InitLocal(void) {
 	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
 			"Controls the intensity of bump-mapping effects");
 	r_capture = Cvar_Get("r_capture", "0", 0, "Toggle screen capturing to jpeg files");
-	r_capture_fps = Cvar_Get("r_capture_fps", "25", 0,
-			"The desired framerate for screen capturing");
+	r_capture_fps
+			= Cvar_Get("r_capture_fps", "25", 0, "The desired framerate for screen capturing");
 	r_capture_quality = Cvar_Get("r_capture_quality", "0.7", CVAR_ARCHIVE,
 			"Screen capturing image quality");
 	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
 			"Controls texture contrast");
 	r_coronas = Cvar_Get("r_coronas", "1", CVAR_ARCHIVE, "Controls the rendering of coronas");
-	r_draw_buffer = Cvar_Get("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL );
+	r_draw_buffer = Cvar_Get("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
 	r_flares = Cvar_Get("r_flares", "1.0", CVAR_ARCHIVE,
 			"Controls the rendering of light source flares");
 	r_fog = Cvar_Get("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");
@@ -502,17 +546,17 @@ static void R_InitLocal(void) {
 			"Controls video gamma (brightness)");
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE,
 			"Controls the hardness of bump-mapping effects");
-	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL );
+	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_hunk_mb = Cvar_Get("r_hunk_mb", "512", CVAR_R_CONTEXT,
 			"Memory size for the renderer hunk in megabytes");
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES,
 			"Inverts the RGB values of all world textures");
 	r_lightmap_block_size = Cvar_Get("r_lightmap_block_size", "4096", CVAR_ARCHIVE | CVAR_R_IMAGES,
-			NULL );
+			NULL);
 	r_lighting = Cvar_Get("r_lighting", "1.0", CVAR_ARCHIVE,
 			"Controls intensity of hardware lighting effects");
-	r_line_alpha = Cvar_Get("r_line_alpha", "0.5", CVAR_ARCHIVE, NULL );
-	r_line_width = Cvar_Get("r_line_width", "1.0", CVAR_ARCHIVE, NULL );
+	r_line_alpha = Cvar_Get("r_line_alpha", "0.5", CVAR_ARCHIVE, NULL);
+	r_line_width = Cvar_Get("r_line_width", "1.0", CVAR_ARCHIVE, NULL);
 	r_materials = Cvar_Get("r_materials", "1", CVAR_ARCHIVE,
 			"Enables or disables the materials (progressive texture effects) system");
 	r_modulate = Cvar_Get("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
@@ -521,6 +565,8 @@ static void R_InitLocal(void) {
 			"Loads all world textures as monochrome");
 	r_multisample = Cvar_Get("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls multisampling (anti-aliasing)");
+	r_optimize = Cvar_Get("r_optimize", "1", CVAR_ARCHIVE,
+			"Controls BSP recursion optimization strategy");
 	r_parallax = Cvar_Get("r_parallax", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of parallax mapping effects");
 	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE, "Controls GLSL shaders");
@@ -545,9 +591,9 @@ static void R_InitLocal(void) {
 	r_vertex_buffers = Cvar_Get("r_vertex_buffers", "1", CVAR_ARCHIVE,
 			"Controls the use of vertex buffer objects (VBO)");
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
-	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL );
-	r_windowed_height = Cvar_Get("r_windowed_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL );
-	r_windowed_width = Cvar_Get("r_windowed_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL );
+	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+	r_windowed_height = Cvar_Get("r_windowed_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+	r_windowed_width = Cvar_Get("r_windowed_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
 	// prevent unnecessary reloading for initial values
 	Cvar_ClearVars(CVAR_R_MASK);
@@ -560,7 +606,7 @@ static void R_InitLocal(void) {
 			"Print information about all the loaded images to the game console");
 	Cmd_AddCommand("r_screenshot", R_Screenshot_f, CMD_SYSTEM, "Take a screenshot");
 
-	Cmd_AddCommand("r_sky", R_Sky_f, 0, NULL );
+	Cmd_AddCommand("r_sky", R_Sky_f, 0, NULL);
 
 	Cmd_AddCommand("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM, "Toggle fullscreen");
 
@@ -619,7 +665,10 @@ void R_Init(void) {
 
 	R_InitView();
 
-	Com_Print("Video initialized %dx%dx%dbpp %s.\n", r_context.width, r_context.height,
+	Com_Print(
+			"Video initialized %dx%dx%dbpp %s.\n",
+			r_context.width,
+			r_context.height,
 			(r_context.red_bits + r_context.green_bits + r_context.blue_bits + r_context.alpha_bits),
 			(r_context.fullscreen ? "fullscreen" : "windowed"));
 }

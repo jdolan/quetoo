@@ -175,7 +175,7 @@ void R_UpdateMeshLighting(const r_entity_t *e) {
 /*
  * @brief
  */
-static void R_SetMeshColor(const r_entity_t *e) {
+static void R_SetMeshColor_default(const r_entity_t *e) {
 	vec4_t color;
 	float f;
 	int32_t i;
@@ -211,7 +211,7 @@ static r_material_t *r_mesh_material;
 /*
  * @brief
  */
-static void R_SetMeshState(const r_entity_t *e) {
+static void R_SetMeshState_default(const r_entity_t *e) {
 
 	if (e->model->mesh->num_frames == 1) { // bind static arrays
 		R_SetArrayState(e->model);
@@ -226,12 +226,14 @@ static void R_SetMeshState(const r_entity_t *e) {
 		if (!(e->effects & EF_NO_DRAW)) { // setup state for diffuse render
 			r_mesh_material = e->skins[0] ? e->skins[0] : e->model->mesh->skin;
 
-			R_UseMaterial(r_mesh_material);
+			R_BindTexture(r_mesh_material->diffuse->texnum);
 
-			R_SetMeshColor(e);
+			R_SetMeshColor_default(e);
 
 			// hardware lighting
 			if (r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)) {
+
+				R_UseMaterial(NULL, r_mesh_material);
 
 				R_EnableLightsByRadius(e->origin);
 
@@ -260,10 +262,10 @@ static void R_SetMeshState(const r_entity_t *e) {
 #endif
 			}
 		} else {
-			R_UseMaterial(NULL);
+			R_UseMaterial(NULL, NULL);
 		}
 	} else {
-		R_UseMaterial(NULL);
+		R_UseMaterial(NULL, NULL);
 	}
 
 	if (e->effects & EF_WEAPON) // prevent weapon from poking into walls
@@ -276,7 +278,7 @@ static void R_SetMeshState(const r_entity_t *e) {
 /*
  * @brief
  */
-static void R_ResetMeshState(const r_entity_t *e) {
+static void R_ResetMeshState_default(const r_entity_t *e) {
 
 	if (e->model->mesh->num_frames > 1)
 		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
@@ -295,7 +297,7 @@ static void R_ResetMeshState(const r_entity_t *e) {
  * entity. In order to reuse the vertex arrays from the primary rendering
  * pass, the shadow origin must transformed into model-view space.
  */
-static void R_RotateForMeshShadow(const r_entity_t *e) {
+static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 	vec3_t origin, offset;
 	float height, threshold, scale;
 
@@ -334,7 +336,7 @@ static void R_RotateForMeshShadow(const r_entity_t *e) {
  * re-lerping or re-scaling the entity, the currently bound vertex arrays
  * are simply re-drawn using a small depth offset.
  */
-static void R_DrawMeshShell(const r_entity_t *e) {
+static void R_DrawMeshShell_default(const r_entity_t *e) {
 	vec4_t color;
 
 	if (VectorCompare(e->shell, vec3_origin))
@@ -360,7 +362,7 @@ static void R_DrawMeshShell(const r_entity_t *e) {
  * @brief Re-draws the mesh using the stencil test. Meshes with stale lighting
  * information, or with a lighting point above our view, are not drawn.
  */
-static void R_DrawMeshShadow(const r_entity_t *e) {
+static void R_DrawMeshShadow_default(const r_entity_t *e) {
 	const bool blend = r_state.blend_enabled;
 	const bool lighting = r_state.lighting_enabled;
 
@@ -391,7 +393,7 @@ static void R_DrawMeshShadow(const r_entity_t *e) {
 	if (!blend)
 		R_EnableBlend(true);
 
-	R_RotateForMeshShadow(e);
+	R_RotateForMeshShadow_default(e);
 
 	glDepthRange(0.0, 0.999);
 
@@ -409,7 +411,7 @@ static void R_DrawMeshShadow(const r_entity_t *e) {
 
 	glDepthRange(0.0, 1.0);
 
-	R_RotateForMeshShadow(NULL);
+	R_RotateForMeshShadow_default(NULL);
 
 	if (!blend)
 		R_EnableBlend(false);
@@ -422,7 +424,7 @@ static void R_DrawMeshShadow(const r_entity_t *e) {
 /*
  * @brief
  */
-static void R_InterpolateMeshModel(const r_entity_t *e) {
+static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 	const r_md3_t *md3;
 	const d_md3_frame_t *frame, *old_frame;
 	const r_md3_mesh_t *mesh;
@@ -481,7 +483,7 @@ static void R_InterpolateMeshModel(const r_entity_t *e) {
 /*
  * @brief Draw the diffuse pass of each mesh segment for the specified model.
  */
-static void R_DrawMeshParts(const r_entity_t *e, const r_md3_t *md3) {
+static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 	r_md3_mesh_t *mesh = md3->meshes;
 	int32_t i, offset = 0;
 
@@ -490,7 +492,9 @@ static void R_DrawMeshParts(const r_entity_t *e, const r_md3_t *md3) {
 		if (i > 0) { // update the diffuse state for the current mesh
 			r_mesh_material = e->skins[i] ? e->skins[i] : e->model->mesh->skin;
 
-			R_UseMaterial(r_mesh_material);
+			R_BindTexture(r_mesh_material->diffuse->texnum);
+
+			R_UseMaterial(NULL, r_mesh_material);
 		}
 
 		glDrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
@@ -504,7 +508,7 @@ static void R_DrawMeshParts(const r_entity_t *e, const r_md3_t *md3) {
 /*
  * @brief
  */
-void R_DrawMeshModel(const r_entity_t *e) {
+void R_DrawMeshModel_default(const r_entity_t *e) {
 
 	if (e->frame >= e->model->mesh->num_frames) {
 		Com_Warn("R_DrawMeshModel %s: no such frame %d\n", e->model->name, e->frame);
@@ -516,28 +520,28 @@ void R_DrawMeshModel(const r_entity_t *e) {
 		return;
 	}
 
-	R_SetMeshState(e);
+	R_SetMeshState_default(e);
 
 	if (e->model->mesh->num_frames > 1) { // interpolate frames
-		R_InterpolateMeshModel(e);
+		R_InterpolateMeshModel_default(e);
 	}
 
 	if (!(e->effects & EF_NO_DRAW)) { // draw the model
 
 		if (e->model->type == mod_md3 && !r_draw_wireframe->value) {
-			R_DrawMeshParts(e, (const r_md3_t *) e->model->mesh->extra_data);
+			R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->extra_data);
 		} else {
 			glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
 			R_DrawMeshMaterial(r_mesh_material, 0, e->model->num_verts);
 		}
 
-		R_DrawMeshShell(e); // draw any shell effects
+		R_DrawMeshShell_default(e); // draw any shell effects
 	}
 
-	R_DrawMeshShadow(e); // lastly draw the shadow
+	R_DrawMeshShadow_default(e); // lastly draw the shadow
 
-	R_ResetMeshState(e);
+	R_ResetMeshState_default(e);
 
 	r_view.num_mesh_models++;
 	r_view.num_mesh_tris += e->model->num_verts / 3;

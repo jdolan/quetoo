@@ -279,10 +279,10 @@ void R_BeginBuildingLightmaps(void) {
 
 	const r_pixel_t bs = r_lightmaps.block_size;
 
-	r_lightmaps.allocated = (r_pixel_t *) R_HunkAlloc(bs * sizeof(r_pixel_t));
+	r_lightmaps.allocated = R_HunkAlloc(bs * sizeof(r_pixel_t));
 
-	r_lightmaps.sample_buffer = (byte *) R_HunkAlloc(bs * bs * sizeof(uint32_t));
-	r_lightmaps.direction_buffer = (byte *) R_HunkAlloc(bs * bs * sizeof(uint32_t));
+	r_lightmaps.sample_buffer = R_HunkAlloc(bs * bs * sizeof(uint32_t));
+	r_lightmaps.direction_buffer = R_HunkAlloc(bs * bs * sizeof(uint32_t));
 
 	r_lightmaps.lightmap_texnum = TEXNUM_LIGHTMAPS;
 	r_lightmaps.deluxemap_texnum = TEXNUM_DELUXEMAPS;

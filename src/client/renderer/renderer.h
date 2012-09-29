@@ -52,6 +52,7 @@
 #include "r_program_warp.h"
 #include "r_sky.h"
 #include "r_state.h"
+#include "r_surface.h"
 #include "r_types.h"
 
 #endif /*__RENDERER_H__*/

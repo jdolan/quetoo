@@ -65,39 +65,18 @@ void *R_HunkAlloc(size_t size) {
  * @brief
  */
 void R_AllocVertexArrays(r_model_t *mod) {
-	int32_t i, j, k, l, m;
-	GLuint v, st, t;
+	uint16_t i, j;
 
 	mod->num_verts = 0;
 
 	// first resolve the vertex count
 	if (mod->type == mod_bsp) {
-		const r_bsp_cluster_t *cluster = mod->bsp->clusters;
-		for (i = 0; i < mod->bsp->num_clusters; i++, cluster++) {
+		const r_bsp_leaf_t *leaf = mod->bsp->leafs;
+		for (i = 0; i < mod->bsp->num_leafs; i++, leaf++) {
 
-			const r_bsp_array_t *array = cluster->arrays;
-			for (j = 0; j < cluster->num_arrays; j++, array++) {
-
-				const r_bsp_leaf_t *leaf = mod->bsp->leafs;
-				for (k = 0; k < mod->bsp->num_leafs; k++, leaf++) {
-
-					if (i == leaf->cluster) {
-
-						r_bsp_surface_t **s = leaf->first_leaf_surface;
-						for (l = 0; l < leaf->num_leaf_surfaces; l++, s++) {
-
-							if ((*s)->texinfo == array->texinfo) {
-
-								for (m = 0; m < (*s)->num_edges; m++) {
-									if (m > 2) {
-										mod->num_verts += 2;
-									}
-									mod->num_verts++;
-								}
-							}
-						}
-					}
-				}
+			r_bsp_surface_t **s = leaf->first_leaf_surface;
+			for (j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
+				mod->num_verts += (*s)->num_edges;
 			}
 		}
 	} else if (mod->type == mod_md3) {
@@ -112,25 +91,21 @@ void R_AllocVertexArrays(r_model_t *mod) {
 		mod->num_verts = obj->num_tris * 3;
 	}
 
-	v = mod->num_verts * 3 * sizeof(GLfloat);
-	st = mod->num_verts * 2 * sizeof(GLfloat);
-	t = mod->num_verts * 4 * sizeof(GLfloat);
-
 	// allocate the arrays, static models get verts, normals and tangents
 	if (mod->bsp || mod->mesh->num_frames == 1) {
-		mod->verts = (GLfloat *) R_HunkAlloc(v);
-		mod->normals = (GLfloat *) R_HunkAlloc(v);
-		mod->tangents = (GLfloat *) R_HunkAlloc(t);
+		mod->verts = R_HunkAlloc(mod->num_verts * sizeof(vec3_t));
+		mod->normals = R_HunkAlloc(mod->num_verts * sizeof(vec3_t));
+		mod->tangents = R_HunkAlloc(mod->num_verts * sizeof(vec4_t));
 	}
 
 	// all models get texcoords
-	mod->texcoords = (GLfloat *) R_HunkAlloc(st);
+	mod->texcoords = R_HunkAlloc(mod->num_verts * sizeof(vec2_t));
 
 	if (mod->type != mod_bsp)
 		return;
 
 	// and bsp models get lightmap texcoords and colors
-	mod->lightmap_texcoords = (GLfloat *) R_HunkAlloc(st);
+	mod->lightmap_texcoords = R_HunkAlloc(mod->num_verts * sizeof(vec2_t));
 }
 
 /*
@@ -213,7 +188,7 @@ r_model_t *R_LoadModel(const char *name) {
 		if (i < 1 || !r_models.world || i >= r_models.world->bsp->num_submodels) {
 			Com_Error(ERR_DROP, "R_LoadModel: Bad inline model number.\n");
 		}
-		return &r_models.bsp_models[i];
+		return &r_models.bsp_submodels[i];
 	}
 
 	StripExtension(name, n);

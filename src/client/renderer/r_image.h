@@ -50,9 +50,9 @@ extern uint16_t r_num_images;
 
 #define BACK_PLANE_EPSILON 0.01
 
-void R_SoftenTexture(byte *in, int32_t width, int32_t height, r_image_type_t type);
-void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_image_type_t type);
-r_image_t *R_UploadImage(const char *name, byte *data, int32_t width, int32_t height, r_image_type_t type);
+void R_SoftenTexture(byte *in, r_pixel_t width, r_pixel_t height, r_image_type_t type);
+void R_FilterTexture(byte *in, r_pixel_t width, r_pixel_t height, vec3_t color, r_image_type_t type);
+r_image_t *R_UploadImage(const char *name, byte *data, r_pixel_t width, r_pixel_t height, r_image_type_t type);
 void R_TextureMode(const char *mode);
 void R_ListImages_f(void);
 void R_Screenshot_f(void);

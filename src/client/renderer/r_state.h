@@ -109,8 +109,7 @@ void R_EnableLighting(r_program_t *program, bool enable);
 void R_EnableWarp(r_program_t *program, bool enable);
 void R_EnableShell(bool enable);
 void R_EnableFog(bool enable);
-void R_UseMaterial(const r_material_t *material);
-void R_UseBspArray(const r_bsp_array_t *array);
+void R_UseMaterial(const r_bsp_surface_t *surf, const r_material_t *material);
 void R_InitState(void);
 void R_ShutdownState(void);
 

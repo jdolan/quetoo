@@ -34,7 +34,7 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
 	if (!(m->flags & STAGE_FLARE)) // surface is not flared
 		return;
 
-	surf->flare = (r_bsp_flare_t *) R_HunkAlloc(sizeof(*surf->flare));
+	surf->flare = R_HunkAlloc(sizeof(*surf->flare));
 
 	// move the flare away from the surface, into the level
 	VectorMA(surf->center, 2, surf->normal, surf->flare->origin);
@@ -70,7 +70,7 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
  * flare alpha is ramped up or down depending on the results of the visibility
  * trace. Flares are also faded according to the angle of their surface to the
  * view origin.
-
+ */
 void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 	const r_image_t *image;
 	uint32_t i, j, k, l, m;
@@ -181,4 +181,4 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 	R_EnableColorArray(false);
 
 	R_Color(NULL);
-}*/
+}

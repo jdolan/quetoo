@@ -51,14 +51,13 @@ static void R_ResolveBspLightParameters(void) {
 
 	// resolve ambient light
 	if ((c = R_WorldspawnValue("ambient_light"))) {
-		sscanf(c, "%f %f %f", &r_locals.ambient_light[0],
-				&r_locals.ambient_light[1], &r_locals.ambient_light[2]);
+		sscanf(c, "%f %f %f", &r_locals.ambient_light[0], &r_locals.ambient_light[1],
+				&r_locals.ambient_light[2]);
 
 		VectorScale(r_locals.ambient_light, r_modulate->value, r_locals.ambient_light);
 
-		Com_Debug("Resolved ambient_light: %1.2f %1.2f %1.2f\n",
-				r_locals.ambient_light[0], r_locals.ambient_light[1],
-				r_locals.ambient_light[2]);
+		Com_Debug("Resolved ambient_light: %1.2f %1.2f %1.2f\n", r_locals.ambient_light[0],
+				r_locals.ambient_light[1], r_locals.ambient_light[2]);
 	} else { // ensure sane default
 		VectorSet(r_locals.ambient_light, 0.15, 0.15, 0.15);
 	}
@@ -80,9 +79,8 @@ static void R_ResolveBspLightParameters(void) {
 		sscanf(c, "%f %f %f", &r_locals.sun_color[0], &r_locals.sun_color[1],
 				&r_locals.sun_color[2]);
 
-		Com_Debug("Resolved sun_color: %1.2f %1.2f %1.2f\n",
-				r_locals.sun_color[0], r_locals.sun_color[1],
-				r_locals.sun_color[2]);
+		Com_Debug("Resolved sun_color: %1.2f %1.2f %1.2f\n", r_locals.sun_color[0],
+				r_locals.sun_color[1], r_locals.sun_color[2]);
 	} else { // ensure sane default
 		VectorSet(r_locals.sun_color, 1.0, 1.0, 1.0);
 	}
@@ -153,7 +151,7 @@ static void R_AddBspLight(vec3_t org, float radius, vec3_t color) {
 
 	if (i == r_models.load->bsp->num_bsp_lights) { // or allocate a new one
 
-		l = (r_bsp_light_t *) R_HunkAlloc(sizeof(*l));
+		l = R_HunkAlloc(sizeof(*l));
 
 		if (!r_models.load->bsp->bsp_lights) // first source
 			r_models.load->bsp->bsp_lights = l;
@@ -279,8 +277,7 @@ void R_LoadBspLights(void) {
 		}
 
 		if (!strcmp(c, "_color")) {
-			sscanf(ParseToken(&ents), "%f %f %f", &color[0], &color[1],
-					&color[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &color[0], &color[1], &color[2]);
 			continue;
 		}
 	}

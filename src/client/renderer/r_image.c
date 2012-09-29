@@ -36,21 +36,19 @@ static GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 static GLint r_filter_mag = GL_LINEAR;
 static GLfloat r_filter_aniso = 1.0;
 
-#define IS_MIPMAP(t) (t == it_effect || t == it_diffuse || t == it_normalmap || t == it_glossmap || t == it_material)
+#define IS_MIPMAP(t) (t == it_effect || t == it_diffuse || t == it_normalmap || t == it_glossmap)
 
 typedef struct {
 	const char *name;
 	GLenum minimize, maximize;
 } r_texture_mode_t;
 
-static r_texture_mode_t r_texture_modes[] = {
-		{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
-		{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
-		{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
-		{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
-		{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
-		{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
-};
+static r_texture_mode_t r_texture_modes[] = { { "GL_NEAREST", GL_NEAREST, GL_NEAREST }, {
+		"GL_LINEAR", GL_LINEAR, GL_LINEAR }, { "GL_NEAREST_MIPMAP_NEAREST",
+		GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST }, { "GL_LINEAR_MIPMAP_NEAREST",
+		GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR }, { "GL_NEAREST_MIPMAP_LINEAR",
+		GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST }, { "GL_LINEAR_MIPMAP_LINEAR",
+		GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR } };
 
 #define NUM_GL_TEXTURE_MODES (sizeof(r_texture_modes) / sizeof(r_texture_mode_t))
 
@@ -113,33 +111,30 @@ void R_ListImages_f(void) {
 		texels += image->width * image->height;
 
 		switch (image->type) {
-		case it_font:
-			Com_Print("Font      ");
-			break;
-		case it_effect:
-			Com_Print("Effect    ");
-			break;
-		case it_diffuse:
-			Com_Print("Diffuse   ");
-			break;
-		case it_normalmap:
-			Com_Print("Normalmap ");
-			break;
-		case it_glossmap:
-			Com_Print("Glossmap  ");
-			break;
-		case it_material:
-			Com_Print("Material  ");
-			break;
-		case it_sky:
-			Com_Print("Sky       ");
-			break;
-		case it_pic:
-			Com_Print("Pic       ");
-			break;
-		default:
-			Com_Print("          ");
-			break;
+			case it_font:
+				Com_Print("Font      ");
+				break;
+			case it_effect:
+				Com_Print("Effect    ");
+				break;
+			case it_diffuse:
+				Com_Print("Diffuse   ");
+				break;
+			case it_normalmap:
+				Com_Print("Normalmap ");
+				break;
+			case it_glossmap:
+				Com_Print("Glossmap  ");
+				break;
+			case it_sky:
+				Com_Print("Sky       ");
+				break;
+			case it_pic:
+				Com_Print("Pic       ");
+				break;
+			default:
+				Com_Print("          ");
+				break;
 		}
 
 		Com_Print(" %4ix%4i: %s\n", image->width, image->height, image->name);
@@ -209,40 +204,40 @@ void R_Screenshot_f(void) {
 /*
  * @brief
  */
-void R_SoftenTexture(byte *in, int32_t width, int32_t height, r_image_type_t type) {
+void R_SoftenTexture(byte *in, r_pixel_t width, r_pixel_t height, r_image_type_t type) {
 	byte *out;
-	int32_t i, j, k, bpp;
+	int32_t i, j, k, bytes;
 	byte *src, *dest;
 	byte *u, *d, *l, *r;
 
 	if (type == it_lightmap || type == it_deluxemap)
-		bpp = 3;
+		bytes = 3;
 	else
-		bpp = 4;
+		bytes = 4;
 
 	// soften into a copy of the original image, as in-place would be incorrect
-	out = (byte *) Z_Malloc(width * height * bpp);
-	memcpy(out, in, width * height * bpp);
+	out = (byte *) Z_Malloc(width * height * bytes);
+	memcpy(out, in, width * height * bytes);
 
 	for (i = 1; i < height - 1; i++) {
 		for (j = 1; j < width - 1; j++) {
 
-			src = in + ((i * width) + j) * bpp; // current input pixel
+			src = in + ((i * width) + j) * bytes; // current input pixel
 
-			u = (src - (width * bpp)); // and it's neighbors
-			d = (src + (width * bpp));
-			l = (src - (1 * bpp));
-			r = (src + (1 * bpp));
+			u = (src - (width * bytes)); // and it's neighbors
+			d = (src + (width * bytes));
+			l = (src - (1 * bytes));
+			r = (src + (1 * bytes));
 
-			dest = out + ((i * width) + j) * bpp; // current output pixel
+			dest = out + ((i * width) + j) * bytes; // current output pixel
 
-			for (k = 0; k < bpp; k++)
+			for (k = 0; k < bytes; k++)
 				dest[k] = (u[k] + d[k] + l[k] + r[k]) / 4;
 		}
 	}
 
 	// copy the softened image over the input image, and free it
-	memcpy(in, out, width * height * bpp);
+	memcpy(in, out, width * height * bytes);
 	Z_Free(out);
 }
 
@@ -251,36 +246,34 @@ void R_SoftenTexture(byte *in, int32_t width, int32_t height, r_image_type_t typ
  * the image's average color. Also handles image inversion and monochrome. This is
  * all munged into one function to reduce loops on level load.
  */
-void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_image_type_t type) {
-	vec3_t temp;
-	int32_t i, j, c, bpp, mask;
+void R_FilterTexture(byte *in, r_pixel_t width, r_pixel_t height, vec3_t color, r_image_type_t type) {
 	uint32_t col[3];
-	byte *p;
+	size_t i, j;
 	float brightness;
 
 	if (type == it_deluxemap || type == it_normalmap || type == it_glossmap)
 		return;
 
-	p = in;
-	c = width * height;
+	uint16_t bytes = 0, mask = 0; // monochrome / invert
 
-	bpp = mask = 0; // monochrome / invert
-	brightness = r_brightness->value;
-
-	if (type == it_diffuse || type == it_effect || type == it_material) {
-		bpp = 4;
+	if (type == it_diffuse || type == it_effect) {
+		brightness = r_brightness->value;
+		bytes = 4;
 		mask = 1;
 	} else if (type == it_lightmap) {
-		bpp = 3;
-		mask = 2;
-
 		brightness = r_modulate->value;
+		bytes = 3;
+		mask = 2;
 	}
 
 	if (color) // compute average color
 		VectorClear(col);
 
-	for (i = 0; i < c; i++, p += bpp) {
+	const size_t pixels = width * height;
+	byte *p = in;
+
+	for (i = 0; i < pixels; i++, p += bytes) {
+		vec3_t temp;
 
 		VectorScale(p, 1.0 / 255.0, temp); // convert to float
 
@@ -309,10 +302,10 @@ void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_im
 
 	if (color) { // average accumulated colors
 		for (i = 0; i < 3; i++)
-			col[i] /= (width * height);
+			col[i] /= (float) pixels;
 
 		if (r_monochrome->integer & mask)
-			col[0] = col[1] = col[2] = (col[0] + col[1] + col[2]) / 3;
+			col[0] = col[1] = col[2] = (col[0] + col[1] + col[2]) / 3.0;
 
 		if (r_invert->integer & mask) {
 			col[0] = 255 - col[0];
@@ -328,7 +321,8 @@ void R_FilterTexture(byte *in, int32_t width, int32_t height, vec3_t color, r_im
 /*
  * @brief
  */
-static void R_UploadImage_(byte *data, int32_t width, int32_t height, vec3_t color, r_image_type_t type) {
+static void R_UploadImage_(byte *data, r_pixel_t width, r_pixel_t height, vec3_t color,
+		r_image_type_t type) {
 
 	R_FilterTexture(data, width, height, color, type);
 
@@ -349,7 +343,8 @@ static void R_UploadImage_(byte *data, int32_t width, int32_t height, vec3_t col
 /*
  * @brief This is also used as an entry point for the generated r_notexture.
  */
-r_image_t *R_UploadImage(const char *name, byte *data, int32_t width, int32_t height, r_image_type_t type) {
+r_image_t *R_UploadImage(const char *name, byte *data, r_pixel_t width, r_pixel_t height,
+		r_image_type_t type) {
 	r_image_t *image;
 	int32_t i;
 
@@ -392,8 +387,9 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	SDL_Surface *surf;
 	int32_t i;
 
-	if (!name || !name[0])
+	if (!name || !name[0]) {
 		return r_null_image;
+	}
 
 	StripExtension(name, n);
 

@@ -40,7 +40,6 @@ typedef enum {
 	it_deluxemap,
 	it_normalmap,
 	it_glossmap,
-	it_material,
 	it_sky,
 	it_pic
 } r_image_type_t;
@@ -92,11 +91,9 @@ typedef struct r_stage_dirt_s {
 } r_stage_dirt_t;
 
 // frame based material animation, lerp between consecutive images
-#define MAX_ANIM_FRAMES 8
-
 typedef struct r_stage_anim_s {
 	uint16_t num_frames;
-	r_image_t *images[MAX_ANIM_FRAMES];
+	r_image_t **frames;
 	float fps;
 	float dtime;
 	uint16_t dframe;
@@ -105,6 +102,7 @@ typedef struct r_stage_anim_s {
 typedef struct r_stage_s {
 	uint32_t flags;
 	r_image_t *image;
+	struct r_material_s *material;
 	r_stage_blend_t blend;
 	vec3_t color;
 	r_stage_pulse_t pulse;
@@ -124,6 +122,7 @@ typedef struct r_stage_s {
 #define DEFAULT_SPECULAR 1.0
 
 typedef struct r_material_s {
+	char name[MAX_QPATH];
 	r_image_t *diffuse;
 	r_image_t *normalmap;
 	r_image_t *glossmap;
@@ -216,6 +215,30 @@ typedef struct {
 } r_bsp_surface_t;
 
 /*
+ * @brief Surfaces are assigned to arrays based on their render path and then
+ * sorted by material to reduce glBindTexture calls.
+ */
+typedef struct {
+	r_bsp_surface_t **surfaces;
+	uint32_t count;
+} r_bsp_surfaces_t;
+
+typedef struct {
+	r_bsp_surfaces_t sky;
+	r_bsp_surfaces_t opaque;
+	r_bsp_surfaces_t opaque_warp;
+	r_bsp_surfaces_t alpha_test;
+	r_bsp_surfaces_t blend;
+	r_bsp_surfaces_t blend_warp;
+	r_bsp_surfaces_t material;
+	r_bsp_surfaces_t flare;
+	r_bsp_surfaces_t back;
+} r_sorted_bsp_surfaces_t;
+
+#define R_SurfaceToSurfaces(surfs, surf)\
+	(surfs)->surfaces[(surfs)->count++] = surf
+
+/*
  * @brief BSP nodes comprise the tree representation of the world. At compile
  * time, the map is divided into convex volumes that fall along brushes
  * (walls). These volumes become nodes. The planes these divisions create
@@ -274,32 +297,10 @@ typedef struct {
 } r_bsp_leaf_t;
 
 /*
- * @brief BSP arrays are contiguous groupings of geometry within a given
- * cluster. Every cluster will contain an array for each texture appearing
- * within it. The renderer culls down to the cluster level, and then draws
- * each cluster by iterating its arrays.
+ * @brief
  */
 typedef struct {
-	r_bsp_texinfo_t *texinfo; // the texture
-
-	GLuint index; // index into world VBO
-	GLuint count; // vertex count in world VBO
-
-	vec3_t mins; // bounding box for culling
-	vec3_t maxs;
-
-	GLuint lightmap_texnum;
-	GLuint deluxemap_texnum;
-
-	int16_t light_frame; // dynamic lighting frame
-	uint32_t lights; // bit mask of active light sources in scene
-} r_bsp_array_t;
-
-typedef struct {
 	int16_t vis_frame; // PVS eligibility
-
-	r_bsp_array_t *arrays; // the arrays comprising this cluster
-	uint16_t num_arrays;
 } r_bsp_cluster_t;
 
 /*
@@ -453,6 +454,9 @@ typedef struct {
 
 	uint16_t num_bsp_lights;
 	r_bsp_light_t *bsp_lights;
+
+	// sorted surfaces arrays
+	r_sorted_bsp_surfaces_t *sorted_surfaces;
 
 	uint16_t first_model_surface, num_model_surfaces; // for submodels
 	uint32_t lights; // bit mask of enabled light sources for submodels
@@ -724,7 +728,6 @@ typedef struct r_view_s {
 	uint32_t num_bind_glossmap;
 
 	uint32_t num_bsp_clusters;
-	uint32_t num_bsp_arrays;
 	uint32_t num_bsp_leafs;
 	uint32_t num_bsp_surfaces;
 

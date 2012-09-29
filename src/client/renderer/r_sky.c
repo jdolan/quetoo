@@ -236,7 +236,8 @@ static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
  * @brief
  */
 static void R_AddSkySurface(const r_bsp_surface_t *surf) {
-	int32_t i, index;
+	GLuint index;
+	uint16_t i;
 	vec3_t verts[MAX_CLIP_VERTS];
 
 	if (r_draw_wireframe->value)
@@ -314,10 +315,10 @@ int32_t skytexorder[6] = { 0, 2, 1, 3, 4, 5 };
  * @brief
  */
 void R_DrawSkyBox(void) {
-	/*r_bsp_surfaces_t *surfs;
+	r_bsp_surfaces_t *surfs;
 	uint32_t i, j;
 
-	surfs = r_world_model->sky_surfaces;
+	surfs = &r_models.world->bsp->sorted_surfaces->sky;
 	j = 0;
 
 	// first add all visible sky surfaces to the sky bounds
@@ -361,7 +362,7 @@ void R_DrawSkyBox(void) {
 	if (r_state.fog_enabled)
 		glFogf(GL_FOG_END, FOG_END);
 
-	glPopMatrix();*/
+	glPopMatrix();
 }
 
 // 3dstudio environment map names

@@ -25,7 +25,7 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
-extern console_t cl_con;
+extern console_t cl_console;
 
 void Cl_InitConsole(void);
 void Cl_DrawConsole(void);

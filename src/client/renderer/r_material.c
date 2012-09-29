@@ -63,7 +63,7 @@ static void R_UpdateMaterial(r_material_t *m) {
 		if (s->flags & STAGE_ANIM) {
 			if (r_view.time >= s->anim.dtime) { // change frames
 				s->anim.dtime = r_view.time + (1.0 / s->anim.fps);
-				s->image = s->anim.images[++s->anim.dframe % s->anim.num_frames];
+				s->image = s->anim.frames[++s->anim.dframe % s->anim.num_frames];
 			}
 		}
 	}
@@ -74,7 +74,7 @@ static void R_UpdateMaterial(r_material_t *m) {
  */
 static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage) {
 
-	/*TODO if (!surf) // mesh materials don't support per-stage lighting
+	if (!surf) // mesh materials don't support per-stage lighting
 		return;
 
 	// if the surface has a lightmap, and the stage specifies lighting..
@@ -90,7 +90,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 			if (r_state.lighting_enabled) {
 
-				R_UseMaterial(surf, stage->image);
+				R_UseMaterial(surf, stage->material);
 
 				if (surf->light_frame == r_locals.light_frame) // dynamic light sources
 					R_EnableLights(surf->lights);
@@ -104,7 +104,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_EnableLighting(NULL, false);
 
 		R_EnableTexture(&texunit_lightmap, false);
-	}*/
+	}
 }
 
 /*
@@ -191,23 +191,8 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const
 }
 
 #define NUM_DIRTMAP_ENTRIES 16
-static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
-		0.6,
-		0.5,
-		0.3,
-		0.4,
-		0.7,
-		0.3,
-		0.0,
-		0.4,
-		0.5,
-		0.2,
-		0.8,
-		0.5,
-		0.3,
-		0.2,
-		0.5,
-		0.3 };
+static const float dirtmap[NUM_DIRTMAP_ENTRIES] = { 0.6, 0.5, 0.3, 0.4, 0.7, 0.3, 0.0, 0.4, 0.5,
+		0.2, 0.8, 0.5, 0.3, 0.2, 0.5, 0.3 };
 
 /*
  * @brief Generates a single color for the specified stage and vertex.
@@ -345,7 +330,7 @@ static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *sta
  * encountered, and rendering all visible stages. State is lazily managed
  * throughout the iteration, so there is a concerted effort to restore the
  * state after all surface stages have been rendered.
-
+ */
 void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 	r_material_t *m;
 	r_stage_t *s;
@@ -383,7 +368,7 @@ void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 		if (surf->frame != r_locals.frame)
 			continue;
 
-		m = &surf->texinfo->material;
+		m = surf->texinfo->material;
 
 		R_UpdateMaterial(m);
 
@@ -416,12 +401,12 @@ void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLights(0);
 
-	R_UseMaterial(NULL);
+	R_UseMaterial(NULL, NULL);
 
 	R_EnableLighting(NULL, false);
 
 	R_Color(NULL);
-}*/
+}
 
 /*
  * @brief Re-draws the currently bound arrays from the given offset to count after
@@ -486,31 +471,36 @@ void R_FreeMaterials(void) {
  * @brief
  */
 r_material_t *R_LoadMaterial(const char *diffuse) {
+	char d[MAX_QPATH];
 	uint16_t i;
 
-	r_material_t **m = r_material_state.materials;
+	StripExtension(diffuse, d);
+
+	r_material_t *mat, **m = r_material_state.materials;
 	for (i = 0; i < r_material_state.num_materials; i++, m++) {
-		if (!strcmp(diffuse, (*m)->diffuse->name)) {
+		if (!strcmp(d, (*m)->name)) {
 			return *m;
 		}
 	}
 
-	if (i == MAX_GL_TEXTURES) {
-		Com_Error(ERR_DROP, "R_LoadMaterial: MAX_GL_TEXTURES reached\n");
-	}
-
-	*m = R_HunkAlloc(sizeof(r_material_t));
+	*m = mat = R_HunkAlloc(sizeof(r_material_t));
 	r_material_state.num_materials++;
 
-	(*m)->diffuse = R_LoadImage(diffuse, it_diffuse);
+	strcpy(mat->name, d);
+	mat->diffuse = R_LoadImage(d, it_diffuse);
 
-	(*m)->normalmap = R_LoadImage(va("%s_nm", diffuse), it_normalmap);
-	(*m)->normalmap = ((*m)->normalmap == r_null_image) ? NULL : (*m)->normalmap;
+	r_image_t *image = R_LoadImage(va("%s_nm", d), it_normalmap);
+	mat->normalmap = image == r_null_image ? NULL : image;
 
-	(*m)->glossmap = R_LoadImage(va("%s_s", diffuse), it_glossmap);
-	(*m)->glossmap = ((*m)->glossmap == r_null_image) ? NULL : (*m)->glossmap;
+	image = R_LoadImage(va("%s_s", d), it_glossmap);
+	mat->glossmap = image == r_null_image ? NULL : image;
 
-	return *m;
+	mat->bump = DEFAULT_BUMP;
+	mat->hardness = DEFAULT_HARDNESS;
+	mat->parallax = DEFAULT_PARALLAX;
+	mat->specular = DEFAULT_SPECULAR;
+
+	return mat;
 }
 
 /*
@@ -542,12 +532,12 @@ static inline GLenum R_ConstByName(const char *c) {
 /*
  * @brief
  */
-static int32_t R_LoadAnimImages(r_stage_t *s) {
+static int32_t R_LoadAnimationMaterials(r_stage_t *s) {
 	char name[MAX_QPATH];
 	int32_t i, j, k;
 
 	if (!s->image) {
-		Com_Warn("R_LoadAnimImages: Texture not defined in anim stage.\n");
+		Com_Warn("R_LoadAnimationMaterials: Texture not defined in anim stage.\n");
 		return -1;
 	}
 
@@ -555,24 +545,25 @@ static int32_t R_LoadAnimImages(r_stage_t *s) {
 	j = strlen(name);
 
 	if ((i = atoi(&name[j - 1])) < 0) {
-		Com_Warn("R_LoadAnimImages: Texture name does not end in numeric: %s\n", name);
+		Com_Warn("R_LoadAnimationMaterials: Texture name does not end in numeric: %s\n", name);
 		return -1;
 	}
 
 	// the first image was already loaded by the stage parse, so just copy
-	// the pointer into the images array
+	// the pointer into the array
 
-	s->anim.images[0] = s->image;
-	name[j - 1] = 0;
+	s->anim.frames = R_HunkAlloc(s->anim.num_frames * sizeof(r_image_t *));
+	s->anim.frames[0] = s->image;
 
 	// now load the rest
+	name[j - 1] = '\0';
 	for (k = 1, i = i + 1; k < s->anim.num_frames; k++, i++) {
 
-		const char *c = va("%s%d", name, i);
-		s->anim.images[k] = R_LoadImage(c, it_material);
+		const char *frame = va("%s%d", name, i);
+		s->anim.frames[k] = R_LoadImage(frame, it_effect);
 
-		if (s->anim.images[k] == r_null_image) {
-			Com_Warn("R_LoadAnimImages: Failed to resolve texture: %s\n", c);
+		if (s->anim.frames[k] == r_null_image) {
+			Com_Warn("R_LoadAnimationMaterials: Failed to resolve frame: %d: %s\n", k, frame);
 			return -1;
 		}
 	}
@@ -597,9 +588,9 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			c = ParseToken(buffer);
 			if (*c == '#') {
-				s->image = R_LoadImage(++c, it_material);
+				s->image = R_LoadImage(++c, it_diffuse);
 			} else {
-				s->image = R_LoadImage(va("textures/%s", c), it_material);
+				s->image = R_LoadImage(va("textures/%s", c), it_diffuse);
 			}
 
 			if (s->image == r_null_image) {
@@ -617,11 +608,11 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			i = atoi(c);
 
 			if (*c == '#') {
-				s->image = R_LoadImage(++c, it_material);
+				s->image = R_LoadImage(++c, it_effect);
 			} else if (*c == '0' || (i > 0 && i < NUM_ENVMAP_IMAGES)) {
-				s->image = r_envmap_images[i];
+				s->image = R_LoadImage(va("envmaps/envmap_%d", i), it_effect);
 			} else {
-				s->image = R_LoadImage(va("envmaps/%s", c), it_material);
+				s->image = R_LoadImage(va("envmaps/%s", c), it_effect);
 			}
 
 			if (s->image == r_null_image) {
@@ -766,20 +757,13 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			s->terrain.ceil = atof(c);
 
-			if (s->terrain.ceil < s->terrain.floor) {
-				Com_Warn("R_ParseStage: Inverted terrain ceiling and floor "
+			if (s->terrain.ceil <= s->terrain.floor) {
+				Com_Warn("R_ParseStage: Invalid terrain ceiling and floor "
 					"values for %s\n", (s->image ? s->image->name : "NULL"));
 				return -1;
 			}
 
 			s->terrain.height = s->terrain.ceil - s->terrain.floor;
-
-			if (s->terrain.height == 0.0) {
-				Com_Warn("R_ParseStage: Zero height terrain specified for %s\n",
-						(s->image ? s->image->name : "NULL"));
-				return -1;
-			}
-
 			s->flags |= STAGE_TERRAIN;
 			continue;
 		}
@@ -804,7 +788,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			s->anim.num_frames = atoi(c);
 
-			if (s->anim.num_frames < 1 || s->anim.num_frames > MAX_ANIM_FRAMES) {
+			if (s->anim.num_frames < 1) {
 				Com_Warn("R_ParseStage: Invalid number of anim frames for %s\n",
 						(s->image ? s->image->name : "NULL"));
 				return -1;
@@ -836,11 +820,11 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			i = atoi(c);
 
 			if (*c == '#') {
-				s->image = R_LoadImage(++c, it_material);
+				s->image = R_LoadImage(++c, it_effect);
 			} else if (*c == '0' || (i > 0 && i < NUM_FLARE_IMAGES)) {
-				s->image = r_flare_images[i];
+				s->image = R_LoadImage(va("flares/flare_%d", i), it_effect);
 			} else {
-				s->image = R_LoadImage(va("flares/%s", c), it_material);
+				s->image = R_LoadImage(va("flares/%s", c), it_effect);
 			}
 
 			if (s->image == r_null_image) {
@@ -856,7 +840,8 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			Com_Debug("Parsed stage\n"
 				"  flags: %d\n"
-				"  image: %s\n"
+				"  texture: %s\n"
+				"   -> material: %s\n"
 				"  blend: %d %d\n"
 				"  color: %3f %3f %3f\n"
 				"  pulse: %3f\n"
@@ -869,18 +854,23 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 				"  terrain.floor: %5f\n"
 				"  terrain.ceil: %5f\n"
 				"  anim.num_frames: %d\n"
-				"  anim.fps: %3f\n", s->flags, (s->image ? s->image->name : "NULL"), s->blend.src,
+				"  anim.fps: %3f\n", s->flags, (s->image ? s->image->name : "NULL"),
+					(s->material ? s->material->diffuse->name : "NULL"), s->blend.src,
 					s->blend.dest, s->color[0], s->color[1], s->color[2], s->pulse.hz,
 					s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
 					s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
 					s->anim.fps);
 
 			// a texture, or envmap means render it
-			if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP))
+			if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP)) {
 				s->flags |= STAGE_DIFFUSE;
 
-			if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP))
-				s->flags |= STAGE_LIGHTING;
+				// a terrain blend or dirtmap means light it
+				if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+					s->material = R_LoadMaterial(s->image->name);
+					s->flags |= STAGE_LIGHTING;
+				}
+			}
 
 			return 0;
 		}
@@ -1033,7 +1023,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 			// load animation frame images
 			if (s->flags & STAGE_ANIM) {
-				if (R_LoadAnimImages(s) == -1) {
+				if (R_LoadAnimationMaterials(s) == -1) {
 					Z_Free(s);
 					continue;
 				}

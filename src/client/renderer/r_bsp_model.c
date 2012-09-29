@@ -53,43 +53,9 @@ static void R_LoadBspLightmaps(const d_bsp_lump_t *l) {
 }
 
 /*
- * @brief Ensures all textures appearing in the specified leaf are allocated an
- * array in the given cluster. We rely on R_HunkAlloc to provide contiguous
- * blocks here, as we assign the first array and then simply concatenate for
- * each thereafter.
- */
-static void R_LeafToCluster(r_bsp_cluster_t *c, const r_bsp_leaf_t *l) {
-	uint16_t i, j;
-
-	r_bsp_surface_t **s = l->first_leaf_surface;
-	for (i = 0; i < l->num_leaf_surfaces; i++, s++) {
-
-		r_bsp_texinfo_t *t = (*s)->texinfo;
-
-		r_bsp_array_t *a = c->arrays;
-		for (j = 0; j < c->num_arrays; j++, a++) {
-			if (t == a->texinfo) {
-				break;
-			}
-		}
-
-		if (j == c->num_arrays) {
-			a = R_HunkAlloc(sizeof(r_bsp_array_t));
-			a->texinfo = t;
-			if (0 == c->num_arrays) {
-				c->arrays = a;
-			}
-			c->num_arrays++;
-		}
-	}
-}
-
-/*
  * @brief
  */
 static void R_LoadBspClusters(const d_bsp_lump_t *l) {
-	r_bsp_cluster_t *c;
-	uint16_t i, j;
 
 	if (!l->file_len) {
 		return;
@@ -98,18 +64,8 @@ static void R_LoadBspClusters(const d_bsp_lump_t *l) {
 	d_bsp_vis_t *vis = (d_bsp_vis_t *) (mod_base + l->file_ofs);
 
 	r_models.load->bsp->num_clusters = LittleLong(vis->num_clusters);
-	c = r_models.load->bsp->clusters = R_HunkAlloc(r_models.load->bsp->num_clusters * sizeof(r_bsp_cluster_t));
-
-	for (i = 0; i < r_models.load->bsp->num_clusters; i++, c++) {
-
-		const r_bsp_leaf_t *l = r_models.load->bsp->leafs;
-		for (j = 0; j < r_models.load->bsp->num_leafs; j++, l++) {
-
-			if (i == l->cluster) {
-				R_LeafToCluster(c, l);
-			}
-		}
-	}
+	r_models.load->bsp->clusters = R_HunkAlloc(
+			r_models.load->bsp->num_clusters * sizeof(r_bsp_cluster_t));
 }
 
 /*
@@ -237,7 +193,7 @@ static void R_SetupBspSubmodels(void) {
 
 	for (i = 0; i < r_models.load->bsp->num_submodels; i++) {
 
-		r_model_t *mod = &r_models.bsp_models[i];
+		r_model_t *mod = &r_models.bsp_submodels[i];
 		const r_bsp_submodel_t *sub = &r_models.load->bsp->submodels[i];
 
 		*mod = *r_models.load; // copy most info from world
@@ -538,8 +494,8 @@ static void R_LoadBspLeafs(const d_bsp_lump_t *l) {
 		out->cluster = LittleShort(in->cluster);
 		out->area = LittleShort(in->area);
 
-		out->first_leaf_surface = r_models.load->bsp->leaf_surfaces + ((uint16_t) LittleShort(
-				in->first_leaf_face));
+		const uint16_t f = ((uint16_t) LittleShort(in->first_leaf_face));
+		out->first_leaf_surface = r_models.load->bsp->leaf_surfaces + f;
 
 		out->num_leaf_surfaces = LittleShort(in->num_leaf_faces);
 	}
@@ -635,30 +591,16 @@ static void R_LoadBspPlanes(const d_bsp_lump_t *l) {
 	}
 }
 
-
-#define COPY_VERT(mod, v0, v1) {\
-	memcpy(&mod->verts[(v0) * 3], &mod->verts[(v1) * 3], sizeof(vec3_t)); \
-	memcpy(&mod->texcoords[(v0) * 2], &mod->texcoords[(v1) * 2], sizeof(vec2_t)); \
-	memcpy(&mod->lightmap_texcoords[(v0) * 2], &mod->lightmap_texcoords[(v1) * 2], sizeof(vec2_t)); \
-	memcpy(&mod->normals[(v0) * 3], &mod->normals[(v1) * 3], sizeof(vec3_t)); \
-	memcpy(&mod->tangents[(v0) * 4], &mod->tangents[(v1) * 4], sizeof(vec4_t)); \
-}
-
 /*
  * @brief Writes vertex data for the given surface to the load model's arrays.
  *
  * @param count The current vertex count for the load model.
  */
-static void R_LoadBspVertexArrays_Surface(const r_bsp_surface_t *surf, GLuint *count) {
+static void R_LoadBspVertexArrays_Surface(r_bsp_surface_t *surf, GLuint *count) {
 	uint16_t i;
 
+	surf->index = *count;
 	for (i = 0; i < surf->num_edges; i++) {
-
-		if (i > 2) {
-			COPY_VERT(r_models.load, (*count), (*count) - i);
-			COPY_VERT(r_models.load, (*count) + 1, (*count) - 1);
-			(*count) += 2;
-		}
 
 		const int32_t index = r_models.load->bsp->surface_edges[surf->first_edge + i];
 
@@ -733,41 +675,238 @@ static void R_LoadBspVertexArrays_Surface(const r_bsp_surface_t *surf, GLuint *c
 }
 
 /*
- * @brief Generates vertex primitives for the world model by iterating clusters
- * and then the arrays within each cluster. This produces contiguous geometry
- * for each array, conveniently ordered by texture.
+ * @brief Generates vertex primitives for the world model by iterating leafs.
  */
 static void R_LoadBspVertexArrays(void) {
-	uint16_t i, j, k, l;
+	uint16_t i, j;
 
 	R_AllocVertexArrays(r_models.load);
 
 	GLuint count = 0;
 
-	const r_bsp_cluster_t *cluster = r_models.load->bsp->clusters;
-	for (i = 0; i < r_models.load->bsp->num_clusters; i++, cluster++) {
+	const r_bsp_leaf_t *leaf = r_models.load->bsp->leafs;
+	for (i = 0; i < r_models.load->bsp->num_leafs; i++, leaf++) {
 
-		r_bsp_array_t *array = cluster->arrays;
-		for (j = 0; j < cluster->num_arrays; j++, array++) {
+		r_bsp_surface_t **s = leaf->first_leaf_surface;
+		for (j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
 
-			array->index = count;
-
-			const r_bsp_leaf_t *leaf = r_models.load->bsp->leafs;
-			for (k = 0; k < r_models.load->bsp->num_leafs; k++, leaf++) {
-
-				if (i == leaf->cluster) {
-
-					r_bsp_surface_t **s = leaf->first_leaf_surface;
-					for (l = 0; l < leaf->num_leaf_surfaces; l++, s++) {
-
-						if ((*s)->texinfo == array->texinfo) {
-							R_LoadBspVertexArrays_Surface(*s, &count);
-						}
-					}
-				}
-			}
-			array->count = count - array->index;
+			R_LoadBspVertexArrays_Surface(*s, &count);
 		}
+	}
+}
+
+// temporary space for sorting surfaces by texnum
+static r_bsp_surfaces_t *r_sorted_surfaces[MAX_GL_TEXTURES];
+
+/*
+ * @brief
+ */
+static void R_SortBspSurfacesArrays_(r_bsp_surfaces_t *surfs) {
+	uint32_t i, j;
+
+	for (i = 0; i < surfs->count; i++) {
+
+		const GLuint texnum = surfs->surfaces[i]->texinfo->material->diffuse->texnum;
+
+		R_SurfaceToSurfaces(r_sorted_surfaces[texnum], surfs->surfaces[i]);
+	}
+
+	surfs->count = 0;
+
+	for (i = 0; i < r_num_images; i++) {
+
+		r_bsp_surfaces_t *sorted = r_sorted_surfaces[r_images[i].texnum];
+
+		if (sorted && sorted->count) {
+
+			for (j = 0; j < sorted->count; j++)
+				R_SurfaceToSurfaces(surfs, sorted->surfaces[j]);
+
+			sorted->count = 0;
+		}
+	}
+}
+
+/*
+ * @brief Reorders all surfaces arrays for the specified model, grouping the surface
+ * pointers by texture. This dramatically reduces glBindTexture calls.
+ */
+static void R_SortBspSurfacesArrays(r_model_t *mod) {
+	r_bsp_surfaces_t *surfs;
+	r_bsp_surface_t *surf, *s;
+	uint16_t ns;
+	size_t i;
+
+	// resolve the start surface and total surface count
+	if (mod->type == mod_bsp) { // world model
+		s = mod->bsp->surfaces;
+		ns = mod->bsp->num_surfaces;
+	} else { // submodels
+		s = &(mod->bsp->surfaces[mod->bsp->first_model_surface]);
+		ns = mod->bsp->num_model_surfaces;
+	}
+
+	memset(r_sorted_surfaces, 0, sizeof(r_sorted_surfaces));
+
+	// allocate the per-texture surfaces arrays and determine counts
+	for (i = 0, surf = s; i < ns; i++, surf++) {
+
+		surfs = r_sorted_surfaces[surf->texinfo->material->diffuse->texnum];
+
+		if (!surfs) { // allocate it
+			surfs = (r_bsp_surfaces_t *) Z_Malloc(sizeof(*surfs));
+			r_sorted_surfaces[surf->texinfo->material->diffuse->texnum] = surfs;
+		}
+
+		surfs->count++;
+	}
+
+	// allocate the surfaces pointers based on counts
+	for (i = 0; i < r_num_images; i++) {
+
+		surfs = r_sorted_surfaces[r_images[i].texnum];
+
+		if (surfs) {
+			surfs->surfaces = (r_bsp_surface_t **) Z_Malloc(
+					sizeof(r_bsp_surface_t *) * surfs->count);
+			surfs->count = 0;
+		}
+	}
+
+	// sort the model's surfaces arrays into the per-texture arrays
+	const size_t len = sizeof(r_sorted_bsp_surfaces_t) / sizeof(r_bsp_surfaces_t);
+	surfs = (r_bsp_surfaces_t *) mod->bsp->sorted_surfaces;
+	for (i = 0; i < len; i++, surfs++) {
+
+		if (surfs->count)
+			R_SortBspSurfacesArrays_(surfs);
+	}
+
+	// free the per-texture surfaces arrays
+	for (i = 0; i < r_num_images; i++) {
+
+		r_bsp_surfaces_t *surfs = r_sorted_surfaces[r_images[i].texnum];
+
+		if (surfs) {
+			if (surfs->surfaces)
+				Z_Free(surfs->surfaces);
+			Z_Free(surfs);
+		}
+	}
+}
+
+/*
+ * @brief
+ */
+static void R_LoadBspSurfacesArrays_(r_model_t *mod) {
+	r_sorted_bsp_surfaces_t *sorted;
+	r_bsp_surface_t *surf, *s;
+	uint16_t ns;
+	size_t i;
+
+	// allocate the surfaces array structures
+	mod->bsp->sorted_surfaces = sorted = R_HunkAlloc(sizeof(r_sorted_bsp_surfaces_t));
+
+	// resolve the start surface and total surface count
+	if (mod->type == mod_bsp) { // world model
+		s = mod->bsp->surfaces;
+		ns = mod->bsp->num_surfaces;
+	} else { // submodels
+		s = &(mod->bsp->surfaces[mod->bsp->first_model_surface]);
+		ns = mod->bsp->num_model_surfaces;
+	}
+
+	// determine the maximum counts for each rendered type in order to
+	// allocate only what is necessary for the specified model
+	for (i = 0, surf = s; i < ns; i++, surf++) {
+
+		if (surf->texinfo->flags & SURF_SKY) {
+			mod->bsp->sorted_surfaces->sky.count++;
+			continue;
+		}
+
+		if (surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
+			if (surf->texinfo->flags & SURF_WARP)
+				sorted->blend_warp.count++;
+			else
+				sorted->blend.count++;
+		} else {
+			if (surf->texinfo->flags & SURF_WARP)
+				sorted->opaque_warp.count++;
+			else if (surf->texinfo->flags & SURF_ALPHA_TEST)
+				sorted->alpha_test.count++;
+			else
+				sorted->opaque.count++;
+		}
+
+		if (surf->texinfo->material->flags & STAGE_DIFFUSE)
+			sorted->material.count++;
+
+		if (surf->texinfo->material->flags & STAGE_FLARE)
+			sorted->flare.count++;
+
+		if (!(surf->texinfo->flags & SURF_WARP))
+			sorted->back.count++;
+	}
+
+	// allocate the surfaces pointers based on the counts
+	const size_t len = sizeof(r_sorted_bsp_surfaces_t) / sizeof(r_bsp_surfaces_t);
+	r_bsp_surfaces_t *surfs = (r_bsp_surfaces_t *) sorted;
+	for (i = 0; i < len; i++, surfs++) {
+
+		if (surfs->count) {
+			surfs->surfaces = R_HunkAlloc(sizeof(r_bsp_surface_t *) * surfs->count);
+			surfs->count = 0;
+		}
+	}
+
+	// iterate the surfaces again, populating the allocated arrays based
+	// on primary render type
+	for (i = 0, surf = s; i < ns; i++, surf++) {
+
+		if (surf->texinfo->flags & SURF_SKY) {
+			R_SurfaceToSurfaces(&sorted->sky, surf);
+			continue;
+		}
+
+		if (surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
+			if (surf->texinfo->flags & SURF_WARP)
+				R_SurfaceToSurfaces(&sorted->blend_warp, surf);
+			else
+				R_SurfaceToSurfaces(&sorted->blend, surf);
+		} else {
+			if (surf->texinfo->flags & SURF_WARP)
+				R_SurfaceToSurfaces(&sorted->opaque_warp, surf);
+			else if (surf->texinfo->flags & SURF_ALPHA_TEST)
+				R_SurfaceToSurfaces(&sorted->alpha_test, surf);
+			else
+				R_SurfaceToSurfaces(&sorted->opaque, surf);
+		}
+
+		if (surf->texinfo->material->flags & STAGE_DIFFUSE)
+			R_SurfaceToSurfaces(&sorted->material, surf);
+
+		if (surf->texinfo->material->flags & STAGE_FLARE)
+			R_SurfaceToSurfaces(&sorted->flare, surf);
+
+		if (!(surf->texinfo->flags & SURF_WARP))
+			R_SurfaceToSurfaces(&sorted->back, surf);
+	}
+
+	// now sort them by texture
+	R_SortBspSurfacesArrays(mod);
+}
+
+/*
+ * @brief
+ */
+static void R_LoadBspSurfacesArrays(void) {
+	int32_t i;
+
+	R_LoadBspSurfacesArrays_(r_models.load);
+
+	for (i = 0; i < r_models.load->bsp->num_submodels; i++) {
+		R_LoadBspSurfacesArrays_(&r_models.bsp_submodels[i]);
 	}
 }
 
@@ -857,6 +996,8 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug("================================\n");
 
 	R_LoadBspVertexArrays();
+
+	R_LoadBspSurfacesArrays();
 
 	R_LoadBspLights();
 

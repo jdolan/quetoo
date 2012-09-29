@@ -38,7 +38,7 @@ typedef struct {
 	r_model_t *load;
 
 	r_model_t *world;
-	r_model_t bsp_models[MAX_BSP_MODELS];
+	r_model_t bsp_submodels[MAX_BSP_MODELS];
 } r_models_t;
 
 extern r_models_t r_models;

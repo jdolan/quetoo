@@ -106,7 +106,8 @@ void R_UseProgram_default(void) {
 /*
  * @brief
  */
-void R_UseMaterial_default(const r_material_t *material) {
+void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_material_t *material) {
+
 	r_default_program_t *p = &r_default_program;
 
 	if (!material || !material->normalmap || !r_bumpmap->value) {
@@ -116,6 +117,13 @@ void R_UseMaterial_default(const r_material_t *material) {
 	}
 
 	R_EnableAttribute(&p->tangent);
+
+	// first deal with the surface
+	if (surf) {
+		R_BindDeluxemapTexture(surf->deluxemap_texnum);
+		R_ProgramParameter1i(&p->deluxemap, 1);
+	} else
+		R_ProgramParameter1i(&p->deluxemap, 0);
 
 	// then the material
 	if (r_state.active_material == material)
@@ -134,21 +142,4 @@ void R_UseMaterial_default(const r_material_t *material) {
 	R_ProgramParameter1f(&p->parallax, material->parallax * r_parallax->value);
 	R_ProgramParameter1f(&p->hardness, material->hardness * r_hardness->value);
 	R_ProgramParameter1f(&p->specular, material->specular * r_specular->value);
-}
-
-/*
- * @brief
- */
-void R_UseBspArray_default(const r_bsp_array_t *array) {
-	r_default_program_t *p = &r_default_program;
-
-	if (!array || !array->texinfo->material->normalmap || !r_bumpmap->value)
-		return;
-
-	// first deal with the surface
-	if (array) {
-		R_BindDeluxemapTexture(array->deluxemap_texnum);
-		R_ProgramParameter1i(&p->deluxemap, 1);
-	} else
-		R_ProgramParameter1i(&p->deluxemap, 0);
 }

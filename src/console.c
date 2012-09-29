@@ -30,12 +30,12 @@
 static console_data_t console_data;
 
 #ifdef BUILD_CLIENT
-extern console_t cl_con;
+extern console_t cl_console;
 extern void Cl_UpdateNotify(int32_t last_line);
 extern void Cl_ClearNotify(void);
 #endif
 
-static cvar_t *ansi;
+static cvar_t *con_ansi;
 
 /*
  * @brief Update a console index struct, start parsing at pos
@@ -148,7 +148,7 @@ void Con_Resize(console_t *con, uint16_t width, uint16_t height) {
 #ifdef BUILD_CLIENT
 	if (dedicated && !dedicated->value) {
 		// clear client notification timings
-		if (con == &cl_con)
+		if (con == &cl_console)
 			Cl_ClearNotify();
 	}
 #endif
@@ -164,8 +164,8 @@ static void Con_Clear_f(void) {
 #ifdef BUILD_CLIENT
 	if (dedicated && !dedicated->value) {
 		// update the index for the client console
-		cl_con.last_line = 0;
-		Con_Update(&cl_con, console_data.insert);
+		cl_console.last_line = 0;
+		Con_Update(&cl_console, console_data.insert);
 	}
 #endif
 #ifdef HAVE_CURSES
@@ -221,7 +221,7 @@ static void Con_PrintStdOut(const char *text) {
 
 	// start the string with foreground color
 	memset(buf, 0, sizeof(buf));
-	if (ansi && ansi->value) {
+	if (con_ansi && con_ansi->value) {
 		strcpy(buf, "\033[0;39m");
 		i = 7;
 	} else {
@@ -231,7 +231,7 @@ static void Con_PrintStdOut(const char *text) {
 	while (*text && i < sizeof(buf) - 8) {
 
 		if (IS_LEGACY_COLOR(text)) {
-			if (ansi && ansi->value) {
+			if (con_ansi && con_ansi->value) {
 				strcpy(&buf[i], "\033[0;32m");
 				i += 7;
 			}
@@ -240,7 +240,7 @@ static void Con_PrintStdOut(const char *text) {
 		}
 
 		if (IS_COLOR(text)) {
-			if (ansi && ansi->value) {
+			if (con_ansi && con_ansi->value) {
 				bold = 0;
 				color = 39;
 				switch (*(text + 1)) {
@@ -279,7 +279,7 @@ static void Con_PrintStdOut(const char *text) {
 			continue;
 		}
 
-		if (*text == '\n' && ansi && ansi->value) {
+		if (*text == '\n' && con_ansi && con_ansi->value) {
 			strcat(buf, "\033[0;39m");
 			i += 7;
 		}
@@ -288,7 +288,7 @@ static void Con_PrintStdOut(const char *text) {
 		text++;
 	}
 
-	if (ansi && ansi->value) // restore foreground color
+	if (con_ansi && con_ansi->value) // restore foreground color
 		strcat(buf, "\033[0;39m");
 
 	// print to stdout
@@ -317,8 +317,8 @@ void Con_Print(const char *text) {
 #ifdef BUILD_CLIENT
 		if (dedicated && !dedicated->value) {
 			// update the index for the client console
-			cl_con.last_line = 0;
-			Con_Update(&cl_con, console_data.text);
+			cl_console.last_line = 0;
+			Con_Update(&cl_console, console_data.text);
 		}
 #endif
 #ifdef HAVE_CURSES
@@ -333,10 +333,10 @@ void Con_Print(const char *text) {
 
 #ifdef BUILD_CLIENT
 	if (dedicated && !dedicated->value) {
-		last_line = cl_con.last_line;
+		last_line = cl_console.last_line;
 
 		// update the index for the client console
-		Con_Update(&cl_con, console_data.insert);
+		Con_Update(&cl_console, console_data.insert);
 
 		// update client message notification times
 		Cl_UpdateNotify(last_line);
@@ -439,17 +439,17 @@ int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position) {
 void Con_Init(void) {
 
 #ifdef _WIN32
-	ansi = Cvar_Get("ansi", "0", CVAR_ARCHIVE, NULL);
+	con_ansi = Cvar_Get("con_ansi", "0", CVAR_ARCHIVE, NULL);
 #else
-	ansi = Cvar_Get("ansi", "1", CVAR_ARCHIVE, NULL);
+	con_ansi = Cvar_Get("con_ansi", "1", CVAR_ARCHIVE, NULL);
 #endif
 
 #ifdef HAVE_CURSES
 	Curses_Init();
 #endif
 
-	Cmd_AddCommand("clear_console", Con_Clear_f, 0, NULL);
-	Cmd_AddCommand("dump_console", Con_Dump_f, 0, NULL);
+	Cmd_AddCommand("clear", Con_Clear_f, 0, NULL);
+	Cmd_AddCommand("dump", Con_Dump_f, 0, NULL);
 }
 
 /*
@@ -460,6 +460,6 @@ void Con_Shutdown(void) {
 	Curses_Shutdown();
 #endif
 
-	Cmd_RemoveCommand("clear_console");
-	Cmd_RemoveCommand("dump_console");
+	Cmd_RemoveCommand("clear");
+	Cmd_RemoveCommand("dump");
 }

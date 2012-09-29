@@ -213,16 +213,16 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 	}
 
 	if (key == SDLK_PAGEUP || key == SDLK_MOUSE4) {
-		cl_con.scroll += CON_SCROLL;
-		if (cl_con.scroll > cl_con.last_line)
-			cl_con.scroll = cl_con.last_line;
+		cl_console.scroll += CON_SCROLL;
+		if (cl_console.scroll > cl_console.last_line)
+			cl_console.scroll = cl_console.last_line;
 		return;
 	}
 
 	if (key == SDLK_PAGEDOWN || key == SDLK_MOUSE5) {
-		cl_con.scroll -= CON_SCROLL;
-		if (cl_con.scroll < 0)
-			cl_con.scroll = 0;
+		cl_console.scroll -= CON_SCROLL;
+		if (cl_console.scroll < 0)
+			cl_console.scroll = 0;
 		return;
 	}
 
@@ -234,7 +234,7 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 
 	if (key == SDLK_HOME) { // go to the start of line
 		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) // go to the start of the console
-			cl_con.scroll = cl_con.last_line;
+			cl_console.scroll = cl_console.last_line;
 		else
 			ks->pos = 1;
 		return;
@@ -248,7 +248,7 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 
 	if (key == SDLK_END) { // go to the end of line
 		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) // go to the end of the console
-			cl_con.scroll = 0;
+			cl_console.scroll = 0;
 		else
 			ks->pos = strlen(ks->lines[ks->edit_line]);
 		return;
