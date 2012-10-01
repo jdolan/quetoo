@@ -695,36 +695,14 @@ static void R_LoadBspVertexArrays(void) {
 	}
 }
 
-// temporary space for sorting surfaces by texnum
-static r_bsp_surfaces_t *r_sorted_surfaces[MAX_GL_TEXTURES];
-
 /*
- * @brief
+ * @brief Qsort comparator for R_SortBspSurfaceArrays.
  */
-static void R_SortBspSurfacesArrays_(r_bsp_surfaces_t *surfs) {
-	uint32_t i, j;
+static int R_SortBspSurfacesArrays_Compare(const void *s1, const void *s2) {
+	const r_material_t *mat1 = (*(r_bsp_surface_t **) s1)->texinfo->material;
+	const r_material_t *mat2 = (*(r_bsp_surface_t **) s2)->texinfo->material;
 
-	for (i = 0; i < surfs->count; i++) {
-
-		const GLuint texnum = surfs->surfaces[i]->texinfo->material->diffuse->texnum;
-
-		R_SurfaceToSurfaces(r_sorted_surfaces[texnum], surfs->surfaces[i]);
-	}
-
-	surfs->count = 0;
-
-	for (i = 0; i < r_num_images; i++) {
-
-		r_bsp_surfaces_t *sorted = r_sorted_surfaces[r_images[i].texnum];
-
-		if (sorted && sorted->count) {
-
-			for (j = 0; j < sorted->count; j++)
-				R_SurfaceToSurfaces(surfs, sorted->surfaces[j]);
-
-			sorted->count = 0;
-		}
-	}
+	return mat1->diffuse->texnum - mat2->diffuse->texnum;
 }
 
 /*
@@ -732,66 +710,15 @@ static void R_SortBspSurfacesArrays_(r_bsp_surfaces_t *surfs) {
  * pointers by texture. This dramatically reduces glBindTexture calls.
  */
 static void R_SortBspSurfacesArrays(r_model_t *mod) {
-	r_bsp_surfaces_t *surfs;
-	r_bsp_surface_t *surf, *s;
-	uint16_t ns;
 	size_t i;
-
-	// resolve the start surface and total surface count
-	if (mod->type == mod_bsp) { // world model
-		s = mod->bsp->surfaces;
-		ns = mod->bsp->num_surfaces;
-	} else { // submodels
-		s = &(mod->bsp->surfaces[mod->bsp->first_model_surface]);
-		ns = mod->bsp->num_model_surfaces;
-	}
-
-	memset(r_sorted_surfaces, 0, sizeof(r_sorted_surfaces));
-
-	// allocate the per-texture surfaces arrays and determine counts
-	for (i = 0, surf = s; i < ns; i++, surf++) {
-
-		surfs = r_sorted_surfaces[surf->texinfo->material->diffuse->texnum];
-
-		if (!surfs) { // allocate it
-			surfs = (r_bsp_surfaces_t *) Z_Malloc(sizeof(*surfs));
-			r_sorted_surfaces[surf->texinfo->material->diffuse->texnum] = surfs;
-		}
-
-		surfs->count++;
-	}
-
-	// allocate the surfaces pointers based on counts
-	for (i = 0; i < r_num_images; i++) {
-
-		surfs = r_sorted_surfaces[r_images[i].texnum];
-
-		if (surfs) {
-			surfs->surfaces = (r_bsp_surface_t **) Z_Malloc(
-					sizeof(r_bsp_surface_t *) * surfs->count);
-			surfs->count = 0;
-		}
-	}
 
 	// sort the model's surfaces arrays into the per-texture arrays
 	const size_t len = sizeof(r_sorted_bsp_surfaces_t) / sizeof(r_bsp_surfaces_t);
-	surfs = (r_bsp_surfaces_t *) mod->bsp->sorted_surfaces;
+	r_bsp_surfaces_t *surfs = (r_bsp_surfaces_t *) mod->bsp->sorted_surfaces;
+
 	for (i = 0; i < len; i++, surfs++) {
-
-		if (surfs->count)
-			R_SortBspSurfacesArrays_(surfs);
-	}
-
-	// free the per-texture surfaces arrays
-	for (i = 0; i < r_num_images; i++) {
-
-		r_bsp_surfaces_t *surfs = r_sorted_surfaces[r_images[i].texnum];
-
-		if (surfs) {
-			if (surfs->surfaces)
-				Z_Free(surfs->surfaces);
-			Z_Free(surfs);
-		}
+		qsort(surfs->surfaces, surfs->count, sizeof(r_bsp_surface_t *),
+				R_SortBspSurfacesArrays_Compare);
 	}
 }
 
