@@ -560,7 +560,7 @@ static int32_t R_LoadAnimationMaterials(r_stage_t *s) {
 	for (k = 1, i = i + 1; k < s->anim.num_frames; k++, i++) {
 
 		const char *frame = va("%s%d", name, i);
-		s->anim.frames[k] = R_LoadImage(frame, it_effect);
+		s->anim.frames[k] = R_LoadImage(frame, it_diffuse);
 
 		if (s->anim.frames[k] == r_null_image) {
 			Com_Warn("R_LoadAnimationMaterials: Failed to resolve frame: %d: %s\n", k, frame);
@@ -608,11 +608,11 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			i = atoi(c);
 
 			if (*c == '#') {
-				s->image = R_LoadImage(++c, it_effect);
+				s->image = R_LoadImage(++c, it_diffuse);
 			} else if (*c == '0' || (i > 0 && i < NUM_ENVMAP_IMAGES)) {
-				s->image = R_LoadImage(va("envmaps/envmap_%d", i), it_effect);
+				s->image = R_LoadImage(va("envmaps/envmap_%d", i), it_diffuse);
 			} else {
-				s->image = R_LoadImage(va("envmaps/%s", c), it_effect);
+				s->image = R_LoadImage(va("envmaps/%s", c), it_diffuse);
 			}
 
 			if (s->image == r_null_image) {
@@ -820,11 +820,11 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			i = atoi(c);
 
 			if (*c == '#') {
-				s->image = R_LoadImage(++c, it_effect);
+				s->image = R_LoadImage(++c, it_diffuse);
 			} else if (*c == '0' || (i > 0 && i < NUM_FLARE_IMAGES)) {
-				s->image = R_LoadImage(va("flares/flare_%d", i), it_effect);
+				s->image = R_LoadImage(va("flares/flare_%d", i), it_diffuse);
 			} else {
-				s->image = R_LoadImage(va("flares/%s", c), it_effect);
+				s->image = R_LoadImage(va("flares/%s", c), it_diffuse);
 			}
 
 			if (s->image == r_null_image) {

@@ -43,14 +43,14 @@ typedef struct {
 	GLenum minimize, maximize;
 } r_texture_mode_t;
 
-static r_texture_mode_t r_texture_modes[] = { { "GL_NEAREST", GL_NEAREST, GL_NEAREST }, {
-		"GL_LINEAR", GL_LINEAR, GL_LINEAR }, { "GL_NEAREST_MIPMAP_NEAREST",
-		GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST }, { "GL_LINEAR_MIPMAP_NEAREST",
-		GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR }, { "GL_NEAREST_MIPMAP_LINEAR",
-		GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST }, { "GL_LINEAR_MIPMAP_LINEAR",
-		GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR } };
-
-#define NUM_GL_TEXTURE_MODES (sizeof(r_texture_modes) / sizeof(r_texture_mode_t))
+static r_texture_mode_t r_texture_modes[] = {
+	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
+	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
+	{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
+	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
+	{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
+	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
+};
 
 /*
  * @brief
@@ -59,12 +59,12 @@ void R_TextureMode(const char *mode) {
 	r_image_t *image;
 	uint16_t i;
 
-	for (i = 0; i < NUM_GL_TEXTURE_MODES; i++) {
+	for (i = 0; i < lengthof(r_texture_modes); i++) {
 		if (!strcasecmp(r_texture_modes[i].name, mode))
 			break;
 	}
 
-	if (i == NUM_GL_TEXTURE_MODES) {
+	if (i == lengthof(r_texture_modes)) {
 		Com_Warn("R_texture_mode: Bad filter name.\n");
 		return;
 	}
