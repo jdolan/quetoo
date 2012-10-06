@@ -19,34 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_MAIN_H__
-#define __UI_MAIN_H__
+#ifndef __UI_SYSTEM_H__
+#define __UI_SYSTEM_H__
 
 #include "ui_types.h"
 
-void Ui_Draw(void);
-bool Ui_Event(SDL_Event *event);
-void Ui_Init(void);
-void Ui_Shutdown(void);
-
 #ifdef __UI_LOCAL_H__
-
-typedef struct ui_s {
-	TwType OffOrOn;
-	TwType OffLowMediumHigh;
-
-	TwBar *root;
-	TwBar *servers;
-	TwBar *controls;
-	TwBar *player;
-	TwBar *system;
-	TwBar *credits;
-
-	TwBar *top;
-} ui_t;
-
-extern ui_t ui;
-
+TwBar *Ui_Credits(void);
 #endif /* __UI_LOCAL_H__ */
 
-#endif /* __UI_MAIN_H__ */
+#endif /* __UI_SYSTEM_H__ */

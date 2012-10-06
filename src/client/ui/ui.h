@@ -25,6 +25,7 @@
 #include "deps/AntTweakBar/include/AntTweakBar.h"
 
 #include "ui_controls.h"
+#include "ui_credits.h"
 #include "ui_data.h"
 #include "ui_main.h"
 #include "ui_misc.h"

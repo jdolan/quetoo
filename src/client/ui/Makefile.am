@@ -1,5 +1,6 @@
 noinst_HEADERS = \
 	ui.h \
+	ui_credits.h \
 	ui_controls.h \
 	ui_data.h \
 	ui_local.h \
@@ -14,6 +15,7 @@ noinst_LTLIBRARIES = \
 if BUILD_CLIENT
 
 libui_la_SOURCES = \
+	ui_credits.c \
 	ui_controls.c \
 	ui_data.c \
 	ui_main.c \
