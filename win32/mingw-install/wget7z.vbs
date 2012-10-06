@@ -2,7 +2,7 @@
 ' incvoke with cscript setup.vbs c:\WHATEVER
 
 WGETURL = "http://osspack32.googlecode.com/files/wget.exe"
-SZIPURL = "http://www.mirrorservice.org/sites/download.sourceforge.net/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip"
+SZIPURL = "http://mirror.transact.net.au/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip"
 
 TARGET = WScript.Arguments.Item(0)
 
