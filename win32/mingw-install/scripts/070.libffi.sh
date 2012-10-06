@@ -1,7 +1,7 @@
-PKGNAME="libtool"
-PKGVER="2.4.2"
+PKGNAME="libffi"
+PKGVER="3.0.11"
 
-SOURCE=http://ftpmirror.gnu.org/${PKGNAME}/${PKGNAME}-${PKGVER}.tar.gz
+SOURCE=ftp://sourceware.org/pub/${PKGNAME}/${PKGNAME}-${PKGVER}.tar.gz
 
 pushd ../source
 wget -c $SOURCE
