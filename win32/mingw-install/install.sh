@@ -36,7 +36,7 @@ TMP=$START/$CURRENTARCH
 mkdir $TMP
 cd $TMP
 
-for n in ../scripts/*.sh
+for n in ../scripts/*.*.sh
 do
 sh $n
 cd $TMP
