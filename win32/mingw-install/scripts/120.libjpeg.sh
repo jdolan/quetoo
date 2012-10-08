@@ -7,7 +7,7 @@ pushd ../source
 wget -c $SOURCE
 popd 
 
-tar xzf ../source/${PKGNAME}-${PKGVER}.tar.gz
+tar xzf ../source/${PKGNAME}.${PKGVER}.tar.gz
 
 cd jpeg-*
 

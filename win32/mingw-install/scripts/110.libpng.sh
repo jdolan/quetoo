@@ -1,5 +1,5 @@
 PKGNAME="libpng"
-PKGVER="1.5.12"
+PKGVER="1.5.13"
 
 SOURCE=http://downloads.sourceforge.net/${PKGNAME}/${PKGNAME}-${PKGVER}.tar.gz
 

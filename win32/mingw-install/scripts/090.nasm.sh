@@ -1,5 +1,5 @@
 PKGNAME="nasm"
-PKGVER="2.10.01"
+PKGVER="2.10.05"
 
 SOURCE=http://www.nasm.us/pub/${PKGNAME}/releasebuilds/${PKGVER}/${PKGNAME}-${PKGVER}.tar.gz
 
