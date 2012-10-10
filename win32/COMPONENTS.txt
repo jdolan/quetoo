@@ -1,0 +1,17 @@
+curl 7.26.0 
+gettext 0.18.1.1 
+glib 2.34.0 
+jpegsrc v8d 
+libffi 3.0.11 
+libiconv 1.14 
+libogg 1.3.0 
+libpng 1.5.13 
+libtool 2.4.2
+libvorbis 1.3.3 
+LRN-ntldd git-master 
+nasm 2.10.05 
+pkg-config 0.27.1 
+SDL 1.2.15 
+SDL_image 1.2.12 
+SDL_mixer 1.2.12 
+zlib 1.2.7 

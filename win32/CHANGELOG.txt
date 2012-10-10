@@ -1,3 +1,7 @@
+* Mon Oct 08 2012 Marcel Wysocki <maci@satgnu.net> - 3.2.0-2
+- add COMPONENTS.txt
+- add VERSION.txt
+
 * Mon Oct 08 2012 Marcel Wysocki <maci@satgnu.net> - 3.2.0-1
 - devenv: install script cleanups
 - gcc: update to version gcc-4.7.2-release-winXX_rubenvb
