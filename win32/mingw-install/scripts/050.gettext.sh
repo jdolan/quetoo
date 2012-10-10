@@ -2,10 +2,12 @@ PKGNAME="gettext"
 PKGVER="0.18.1.1"
 
 SOURCE=http://ftp.gnu.org/pub/gnu/${PKGNAME}/${PKGNAME}-${PKGVER}.tar.gz
-SOURCE2=http://mingw-w64-dgn.googlecode.com/svn/trunk/patch/gettext-0.18.x-w64.patch
+#SOURCE2=http://mingw-w64-dgn.googlecode.com/svn/trunk/patch/gettext-0.18.x-w64.patch
+SOURCE2=http://savannah.gnu.org/support/download.php?file_id=25639
 
 pushd ../source
-wget -c $SOURCE $SOURCE2
+wget -c $SOURCE
+wget -c -O gettext-0.18.x-w64.patch $SOURCE2
 popd 
 
 tar xzf ../source/${PKGNAME}-${PKGVER}.tar.gz
