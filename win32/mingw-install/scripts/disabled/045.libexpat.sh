@@ -4,9 +4,9 @@
 set -e
 set -o errexit
 
-PKGNAME="SDL_mixer"
-PKGVER="1.2.12"
-SOURCE=http://www.libsdl.org/projects/${PKGNAME}/release/${PKGNAME}-${PKGVER}.tar.gz
+PKGNAME="expat"
+PKGVER="2.0.1"
+SOURCE=http://downloads.sourceforge.net/project/${PKGNAME}/${PKGNAME}/${PKGVER}/${PKGNAME}-${PKGVER}.tar.gz
 
 pushd ../source
 wget -c ${SOURCE}

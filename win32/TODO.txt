@@ -6,3 +6,6 @@ TODO for devenv 3.3:
 	- test http://www.projectpluto.com/win32a.htm
  - maybe .... try to get netradiant compiling (ouch)
  - have some way to automatically check for new packages upstream
+ - add python and svn and maybe git (mingw-get ???)
+ - is there a static busybox for windows ??? this would make bootstraping the initial system easier
+       if not maybe distribute own wget and/or 7z again, nicer than the vbs crap

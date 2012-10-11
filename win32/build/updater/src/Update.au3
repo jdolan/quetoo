@@ -1,4 +1,4 @@
-Local $version_self = 11
+Local $version_self = 12
 
 ; Check if update.cfg exists
 Local $file = FileOpen("update.cfg", 0)
@@ -24,9 +24,9 @@ EnvSet ( "CYGWIN" , "nontsec" )
 
 
 If $keep_update_config = "false" Then
-   RunWait("rsync.exe -rzhP --delete --exclude=rsync.exe --exclude=cygwin1.dll --exclude=default --exclude=Update.exe rsync://jdolan.dyndns.org/quake2world-win32/$architecture$/ .")
+   RunWait("rsync.exe -rzhP --delete --exclude=rsync.exe --exclude=cygwin1.dll --exclude=default --exclude=Update.exe rsync://www.quake2world.net/quake2world-win32/$architecture$/ .")
 Else
-   RunWait("rsync.exe -rzhP --delete --exclude=rsync.exe --exclude=cygwin1.dll --exclude=default --exclude=Update.exe --exclude=update.cfg rsync://jdolan.dyndns.org/quake2world-win32/$architecture$/ .")
+   RunWait("rsync.exe -rzhP --delete --exclude=rsync.exe --exclude=cygwin1.dll --exclude=default --exclude=Update.exe --exclude=update.cfg rsync://www.quake2world.net/quake2world-win32/$architecture$/ .")
 EndIf
 
 ;wait some time for rsync to finish writing the new update.cfg
@@ -37,12 +37,12 @@ If _CheckUpdate() Then
 EndIf
 
 If $keep_local_data = "false" Then
-   RunWait("rsync.exe -rzhP --delete rsync://jdolan.dyndns.org/quake2world/default/ default")
+   RunWait("rsync.exe -rzhP --delete rsync://www.quake2world.net/quake2world/default/ default")
 Else
-   RunWait("rsync.exe -rzhP rsync://jdolan.dyndns.org/quake2world/default/ default")
+   RunWait("rsync.exe -rzhP rsync://www.quake2world.net/quake2world/default/ default")
 EndIf
 
-RunWait("rsync.exe -rzhP --delete rsync://jdolan.dyndns.org/quake2world-win32/$architecture$/default/*.dll default")
+RunWait("rsync.exe -rzhP --delete rsync://www.quake2world.net/quake2world-win32/$architecture$/default/*.dll default")
 
 
 FileDelete("cygwin1.dll")
@@ -56,6 +56,6 @@ Func _CheckUpdate()
 EndFunc   ;==>_CheckUpdate
 
 Func _selfupdate($delay = 3000)
-   InetGet("http://satgnu.net/files/quake2world/" & $architecture & "/Update.exe", @ScriptDir & "\Update.exe.new", 1)
+   InetGet("http://www.quake2world.net/files/Update.exe", @ScriptDir & "\Update.exe.new", 1)
    RunWait(@ComSpec & " /c ping 0.0.0.1 -n 2 -w " & $delay & ' & move "' & @ScriptName & '" "' & @ScriptName & '.old" & move "' & @ScriptName & '.new" "' & @ScriptName & '" & start "Title" "' & @ScriptName & '"', @ScriptDir, @SW_HIDE)
 EndFunc   ;==>_selfupdate

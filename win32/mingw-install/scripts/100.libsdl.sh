@@ -1,17 +1,21 @@
+#!/bin/bash
+
+#exit on error
+set -e
+set -o errexit
+
 PKGNAME="SDL"
 PKGVER="1.2.15"
-
 SOURCE=http://www.libsdl.org/release/${PKGNAME}-${PKGVER}.tar.gz
 
 pushd ../source
-wget -c $SOURCE
+wget -c ${SOURCE}
 popd 
 
 tar xzf ../source/${PKGNAME}-${PKGVER}.tar.gz
-
 cd ${PKGNAME}-${PKGVER}
 
-./configure --prefix=/mingw/local
+./configure --build=${TARGET} --prefix=/mingw/local
 make -j 4
 make install
 #evil workaround

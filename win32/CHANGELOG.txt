@@ -1,3 +1,10 @@
+* Wed Oct 09 2012 Marcel Wysocki <maci@satgnu.net> - 3.2.0-3
+- more cleanups to build scripts
+- use --build to set target architecture, this fixes 64bit libffi
+- use --enable-threads=win32 to fix 64bit gettext
+- install.sh tweaks
+
+
 * Mon Oct 08 2012 Marcel Wysocki <maci@satgnu.net> - 3.2.0-2
 - add COMPONENTS.txt
 - add VERSION.txt
