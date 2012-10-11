@@ -45,8 +45,8 @@ mv share autotools
 ./msys/1.0/bin/rsync.exe -r autotools/ mingw64
 
 
-mv ${TARGETDIR}/msys/* ${TARGETDIR}/msys
-rmdir ${TARGETDIR}/msys
+mv ${TARGETDIR}/msys/1.0/* ${TARGETDIR}/msys
+rmdir ${TARGETDIR}/msys/1.0
 
 mkdir -p ${TARGETDIR}/msys/home/${USERNAME}/devenv/scripts
 
