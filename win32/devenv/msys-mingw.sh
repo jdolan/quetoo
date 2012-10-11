@@ -50,9 +50,9 @@ rmdir ${TARGETDIR}/msys/1.0
 
 mkdir -p ${TARGETDIR}/msys/home/${USERNAME}/devenv/scripts
 
-cp -r	${SOURCEDIR}/scripts/* 			${TARGETDIR}/msys/home/${USERNAME}/devenv/scripts
-cp		${SOURCEDIR}/install.sh 		${TARGETDIR}/msys/home/${USERNAME}/devenv
-cp		${SOURCEDIR}/../switch_arch.sh 	${TARGETDIR}/msys/home/${USERNAME}
+cp -r ${SOURCEDIR}/scripts/* ${TARGETDIR}/msys/home/${USERNAME}/devenv/scripts
+cp ${SOURCEDIR}/install.sh ${TARGETDIR}/msys/home/${USERNAME}/devenv
+cp ${SOURCEDIR}/../switch_arch.sh ${TARGETDIR}/msys/home/${USERNAME}
 
 cp ${SOURCEDIR}/*.txt ${TARGETDIR}
 
