@@ -30,13 +30,13 @@ cd bin
 ./mingw-get.exe remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
 ./mingw-get.exe remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
 ./mingw-get.exe remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
-./mingw-get.exe remove --recursive mingw-get
 
 cd ..
 
 sleep 5
+exit 1
 
-rm -Rf var lib libexec include share bin/mingw-get.exe
+rm -Rf var lib libexec include share/doc share/gettext share/locale bin/mingw-get.exe
 
 mkdir autotools
 mv bin autotools 
