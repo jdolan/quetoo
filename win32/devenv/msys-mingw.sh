@@ -41,8 +41,9 @@ rm -Rf var lib include libexec share/doc share/gettext share/locale bin/mingw-ge
 mkdir autotools
 mv bin autotools 
 mv share autotools
-cp -r autotools mingw32 
-cp -r autotools mingw64
+./msys/1.0/bin/rsync.exe -r autotools/ mingw32
+./msys/1.0/bin/rsync.exe -r autotools/ mingw64
+
 
 mv ${TARGETDIR}/msys/* ${TARGETDIR}/msys
 rmdir ${TARGETDIR}/msys
