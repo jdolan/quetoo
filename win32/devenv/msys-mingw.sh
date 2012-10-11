@@ -25,7 +25,6 @@ unzip mingw-get*.zip
 rm mingw-get*.zip
 
 cd bin
-./mingw-get.exe install mingw-get
 ./mingw-get.exe install mingw-developer-toolkit msys-zip msys-unzip msys-wget
 ./mingw-get.exe remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
 ./mingw-get.exe remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
