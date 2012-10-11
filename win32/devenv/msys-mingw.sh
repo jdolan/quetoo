@@ -33,9 +33,8 @@ cd bin
 cd ..
 
 sleep 5
-exit 1
 
-rm -Rf var lib libexec include share/doc share/gettext share/locale bin/mingw-get.exe
+rm -Rf var lib include libexec share/doc share/gettext share/locale bin/mingw-get.exe
 
 
 
