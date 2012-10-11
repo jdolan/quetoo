@@ -37,6 +37,8 @@ exit 1
 
 rm -Rf var lib libexec include share/doc share/gettext share/locale bin/mingw-get.exe
 
+
+
 mkdir autotools
 mv bin autotools 
 mv share autotools
