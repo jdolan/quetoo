@@ -9,8 +9,8 @@ TARGETDIR="C:/q2wdevenv"
 
 SEVENZIP_URL="http://mirror.transact.net.au/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip"
 MINGW_GET_URL="http://downloads.sourceforge.net/project/mingw/Installer/mingw-get/mingw-get-0.5-beta-20120426-1/mingw-get-0.5-mingw32-beta-20120426-1-bin.zip"
-MINGW_I686_URL="http://sourceforge.net/projects/mingw-w64/files/Toolchains targetting Win32/Personal Builds/rubenvb/gcc-4.7-release/i686-w64-mingw32-gcc-4.7.2-release-win32_rubenvb.7z"
-MINGW_X86_64_URL="http://sourceforge.net/projects/mingw-w64/files/Toolchains targetting Win64/Personal Builds/rubenvb/gcc-4.7-release/x86_64-w64-mingw32-gcc-4.7.2-release-win64_rubenvb.7z"
+MINGW_I686_URL="http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/rubenvb/gcc-4.7-release/i686-w64-mingw32-gcc-4.7.2-release-win32_rubenvb.7z"
+MINGW_X86_64_URL="http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/rubenvb/gcc-4.7-release/x86_64-w64-mingw32-gcc-4.7.2-release-win64_rubenvb.7z"
 
 [ -d ${TARGETDIR} ] || mkdir ${TARGETDIR}
 
