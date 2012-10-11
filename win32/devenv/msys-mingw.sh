@@ -17,7 +17,7 @@ MINGW_X86_64_URL="http://sourceforge.net/projects/mingw-w64/files/Toolchains tar
 cd ${TARGETDIR}
 
 wget -c ${SEVENZIP_URL}
-unzip -x 7-zip.chm *.txt 7za*.zip
+unzip 7za*.zip 7za.exe
 rm 7za*.zip
 
 wget ${MINGW_GET_URL}
@@ -25,12 +25,12 @@ unzip mingw-get*.zip
 rm mingw-get*.zip
 
 cd bin
-mingw-get install mingw-get
-mingw-get install mingw-developer-toolkit msys-zip msys-unzip msys-wget
-mingw-get remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
-mingw-get remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
-mingw-get remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
-mingw-get remove --recursive mingw-get
+./mingw-get.exe install mingw-get
+./mingw-get.exe install mingw-developer-toolkit msys-zip msys-unzip msys-wget
+./mingw-get.exe remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
+./mingw-get.exe remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
+./mingw-get.exe remove --recursive libltdl libintl libiconv libgettextpo libexpat libpthreadgc libgomp gettext libtool libstdc++ libgcc
+./mingw-get.exe remove --recursive mingw-get
 
 cd ..
 
