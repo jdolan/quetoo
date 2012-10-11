@@ -1,3 +1,10 @@
+* Thu Oct 10 2012 Marcel Wysocki <maci@satgnu.net> - 3.2.0-4
+- add python
+- change msys path
+- remove vbs crap and use a windows busybox
+- port installscript from batch to sh
+- update iss file
+
 * Wed Oct 09 2012 Marcel Wysocki <maci@satgnu.net> - 3.2.0-3
 - more cleanups to build scripts
 - use --build to set target architecture, this fixes 64bit libffi
