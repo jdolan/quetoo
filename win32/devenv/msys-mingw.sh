@@ -64,7 +64,7 @@ echo "export PATH=/mingw/local/bin:\${PATH}" >> ${TARGETDIR}/msys/etc/profile
 echo "${TARGETDIR}/mingw32 /mingw" > ${TARGETDIR}/msys/etc/fstab
 
 
-wget -c $MINGW_I686_URL $MINGW_X86_64_URL
+./msys/bin/wget.exe -c $MINGW_I686_URL $MINGW_X86_64_URL
 
 7za.exe x *.7z
 
