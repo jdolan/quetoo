@@ -66,7 +66,10 @@ echo "${TARGETDIR}/mingw32 /mingw" > ${TARGETDIR}/msys/etc/fstab
 
 ./msys/bin/wget.exe -c $MINGW_I686_URL $MINGW_X86_64_URL
 
-7za.exe x *.7z
+for archive in *.7z; do
+  ./7za.exe x $archive
+done
+  
 
 #Cleanup
 rm *.exe *7z
