@@ -17,5 +17,6 @@ echo 'C:/q2wdevenv/Python27/python.exe $*' > /bin/python
 cp /bin/python /bin/python2
 cp /bin/python /bin/python2.5
 cp /bin/python /bin/python2.7
+cp /bin/sh.exe /bin/sh
 #echo 'export PATH=$PATH:/c/Python27/Tools/Scripts' >> /etc/profile
 
