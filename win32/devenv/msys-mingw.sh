@@ -56,7 +56,7 @@ cp "${SOURCEDIR}"/../switch_arch.sh ${TARGETDIR}/msys/home/${USERNAME}
 
 cp "${SOURCEDIR}"/*.txt ${TARGETDIR}
 
-
+echo "export CPPFLAGS='-I/mingw/include -I/mingw/local/include'" >> ${TARGETDIR}/msys/etc/profile
 echo "export LDFLAGS='-L/mingw/lib -L/mingw/local/lib'" >> ${TARGETDIR}/msys/etc/profile
 echo "export ACLOCAL='aclocal -I /mingw/local/share/aclocal'" >> ${TARGETDIR}/msys/etc/profile
 echo "export PKG_CONFIG_PATH='/mingw/local/lib/pkgconfig'" >> ${TARGETDIR}/msys/etc/profile
