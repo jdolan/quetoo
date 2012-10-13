@@ -13,7 +13,7 @@ wget -c ${SOURCE}
 msiexec //i ${PKGNAME}-${PKGVER}.msi //qn ALLUSERS=1 TARGETDIR=C:\\q2wdevenv\\Python27
 popd 
 
-echo -e '#!/bin/sh\nC:/q2wdevenv/Python27/python.exe $*' > /bin/python
+echo 'C:/q2wdevenv/Python27/python.exe $*' > /bin/python
 cp /bin/python /bin/python2
 cp /bin/python /bin/python2.5
 cp /bin/python /bin/python2.7
