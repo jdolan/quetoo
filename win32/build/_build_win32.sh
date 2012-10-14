@@ -83,10 +83,8 @@ rm -Rf ${PREFIX}
 cp ${START}/quake2world/src/game/default/game.dll ./default
 cp ${START}/quake2world/src/cgame/default/cgame.dll ./default
 
-LIBS=`ldd.exe -R quake2world.exe |grep mingw|cut -d\: -f 2|cut -d\  -f1|cut -d\\\ -f4-0|sed 's@\\\@/@g' | sed 's/.*mingw[0-9][0-9]\/\(.*\)/\1/'`
-
-cd /mingw
-cp ${LIBS} ${START}/dist/quake2world
+LIBS=`pm-ldd quake2world.exe`
+cp ${LIBS} .
 
 
 cd ${START}/dist
