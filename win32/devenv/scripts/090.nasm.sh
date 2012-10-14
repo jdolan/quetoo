@@ -16,5 +16,5 @@ tar xzf ../source/${PKGNAME}-${PKGVER}.tar.gz
 cd ${PKGNAME}-${PKGVER}
 
 ./configure --build=${TARGET} --prefix=/mingw/local
-make -j 4
+make # doesnt like -j4
 make install

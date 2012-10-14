@@ -15,6 +15,8 @@ popd
 tar xf ../source/${PKGNAME}-${PKGVER}.tar.xz
 cd ${PKGNAME}-${PKGVER}
 
+#workaround for makefile bug, this step isnt important for us anyway
+sed -i 's@PYTHON=$(PYTHON) $(SHELL) $(py_compile)@/bin/true@g' ./gio/gdbus-2.0/codegen/Makefile.in
 ./configure --build=${TARGET} --prefix=/mingw/local
 make -j 4
 make install

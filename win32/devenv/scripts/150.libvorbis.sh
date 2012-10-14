@@ -15,6 +15,8 @@ popd
 tar xzf ../source/${PKGNAME}-${PKGVER}.tar.gz
 cd ${PKGNAME}-${PKGVER}
 
-LDFLAGS='-mwindows' ./configure --build=${TARGET} --prefix=/mingw/local
-make LIBS='-logg' -j 4
+#LDFLAGS='-mwindows' ./configure --build=${TARGET} --prefix=/mingw/local
+#make LIBS='-logg' -j 4
+./configure --build=${TARGET} --prefix=/mingw/local
+make -j 4
 make install

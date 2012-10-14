@@ -1,3 +1,15 @@
+* Sun Oct 14 2012 Marcel Wysocki <maci@satgnu.net> - 3.2.0-6
+- fix nasm build
+- add poor mans ldd
+
+* Sat Oct 13 2012 Marcel Wysocki <maci@satgnu.net> - 3.2.0-5
+- fix glib compilation
+- minor cleanups
+- prepare for testing
+- fix /etc/profile stuff in installscript (CPPFLAGS)
+- libvorbis and libogg don't need special stuff anymore since we have
+  pkgconfig now
+
 * Thu Oct 10 2012 Marcel Wysocki <maci@satgnu.net> - 3.2.0-4
 - add python
 - change msys path
@@ -10,7 +22,6 @@
 - use --build to set target architecture, this fixes 64bit libffi
 - use --enable-threads=win32 to fix 64bit gettext
 - install.sh tweaks
-
 
 * Mon Oct 08 2012 Marcel Wysocki <maci@satgnu.net> - 3.2.0-2
 - add COMPONENTS.txt
@@ -27,7 +38,6 @@
 - added glib
 - libpng: update to version 1.5.13
 - curl: update to version 7.27.0
-
 
 * Thu Jul 26 2012 Marcel Wysocki <maci@satgnu.net> - 3.1.0-1
 - devenv: initial changelog

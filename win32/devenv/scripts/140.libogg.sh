@@ -15,6 +15,6 @@ popd
 tar xzf ../source/${PKGNAME}-${PKGVER}.tar.gz
 cd ${PKGNAME}-${PKGVER}
 
-LDFLAGS='-mwindows' ./configure --build=${TARGET} --prefix=/mingw/local
+./configure --build=${TARGET} --prefix=/mingw/local
 make -j 4
 make install

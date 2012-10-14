@@ -13,10 +13,9 @@ wget -c ${SOURCE}
 msiexec //i ${PKGNAME}-${PKGVER}.msi //qn ALLUSERS=1 TARGETDIR=C:\\q2wdevenv\\Python27
 popd 
 
-echo 'C:/q2wdevenv/Python27/python.exe $*' > /bin/python
-cp /bin/python /bin/python2
-cp /bin/python /bin/python2.5
-cp /bin/python /bin/python2.7
-cp /bin/sh.exe /bin/sh
+echo -e '#!/bin/sh\n/c/q2wdevenv/Python27/python $*' > /mingw/local/bin/python
+cp /mingw/local/bin/python /mingw/local/bin/python2
+cp /mingw/local/bin/python /mingw/local/bin/python2.5
+cp /mingw/local/bin/python /mingw/local/bin/python2.7
 #echo 'export PATH=$PATH:/c/Python27/Tools/Scripts' >> /etc/profile
 

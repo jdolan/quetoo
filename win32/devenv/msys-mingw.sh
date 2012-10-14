@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #exit on error
 set -e
@@ -77,5 +77,3 @@ echo done
 
 cmd \/C msys\\msys.bat
 exit 0
-
-

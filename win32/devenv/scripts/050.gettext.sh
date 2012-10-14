@@ -19,6 +19,6 @@ tar xzf ../source/${PKGNAME}-${PKGVER}.tar.gz
 cd ${PKGNAME}-${PKGVER}
 
 patch -p0 < ../../source/gettext-0.18.x-w64.patch
-./configure --build=${TARGET} --enable-threads=win32 --prefix=/mingw/local
+./configure --build=${TARGET} --prefix=/mingw/local --enable-threads=win32
 make -j 4
 make install
