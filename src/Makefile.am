@@ -109,7 +109,8 @@ libhash_la_CFLAGS = \
 libmem_la_SOURCES = \
 	mem.c
 libmem_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 
 libnet_la_SOURCES = \
 	net_chan.c \

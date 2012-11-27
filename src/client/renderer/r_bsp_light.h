@@ -25,7 +25,7 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_LoadBspLights(void);
+void R_LoadBspLights(r_bsp_model_t *mod);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_BSP_LIGHT_H__ */

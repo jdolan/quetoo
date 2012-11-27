@@ -41,6 +41,7 @@ cgame_la_CFLAGS = \
 	-I../.. \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
 

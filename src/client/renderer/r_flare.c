@@ -22,11 +22,12 @@
 #include "r_local.h"
 
 /*
- * @brief
+ * @brief Allocates an initializes the flare for the specified surface, if one
+ * should be applied. The flare is linked to the provided BSP model and will
+ * be freed automatically.
  */
-void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
+void R_CreateSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	r_material_t *m;
-	const r_stage_t *s;
 	vec3_t span;
 
 	m = surf->texinfo->material;
@@ -34,7 +35,7 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
 	if (!(m->flags & STAGE_FLARE)) // surface is not flared
 		return;
 
-	surf->flare = R_HunkAlloc(sizeof(*surf->flare));
+	surf->flare = Z_LinkMalloc(sizeof(*surf->flare), bsp);
 
 	// move the flare away from the surface, into the level
 	VectorMA(surf->center, 2, surf->normal, surf->flare->origin);
@@ -43,7 +44,7 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
 	VectorSubtract(surf->maxs, surf->mins, span);
 	surf->flare->radius = VectorLength(span);
 
-	s = m->stages; // resolve the flare stage
+	const r_stage_t *s = m->stages; // resolve the flare stage
 	while (s) {
 		if (s->flags & STAGE_FLARE)
 			break;
@@ -72,12 +73,9 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
  * view origin.
  */
 void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
-	const r_image_t *image;
 	uint32_t i, j, k, l, m;
 	vec3_t view, verts[4];
-	vec3_t right, up, upright, downright;
-	float cos, dist, scale, alpha;
-	bool visible;
+	vec3_t right, up, up_right, down_right;
 
 	if (!r_flares->value)
 		return;
@@ -91,19 +89,17 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 
 	glDisable(GL_DEPTH_TEST);
 
-	image = r_flare_images[0];
+	const r_image_t *image = surfs->surfaces[0]->flare->image;
 	R_BindTexture(image->texnum);
 
 	j = k = l = 0;
 	for (i = 0; i < surfs->count; i++) {
-
 		const r_bsp_surface_t *surf = surfs->surfaces[i];
-		r_bsp_flare_t *f;
 
 		if (surf->frame != r_locals.frame)
 			continue;
 
-		f = surf->flare;
+		r_bsp_flare_t *f = surf->flare;
 
 		// bind the flare's texture
 		if (f->image != image) {
@@ -122,7 +118,7 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 				f->alpha = 0;
 
 			R_Trace(r_view.origin, f->origin, vec3_origin, vec3_origin, MASK_SHOT);
-			visible = r_view.trace.fraction == 1.0;
+			const bool visible = r_view.trace.fraction == 1.0;
 
 			f->alpha += (visible ? 0.03 : -0.15); // ramp
 			f->alpha = Clamp(f->alpha, 0.0, 1.0); // clamp
@@ -131,14 +127,14 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 		}
 
 		VectorSubtract(f->origin, r_view.origin, view);
-		dist = VectorNormalize(view);
+		const float dist = VectorNormalize(view);
 
 		// fade according to angle
-		cos = DotProduct(surf->normal, view);
-		if (cos > 0)
+		const float cos = DotProduct(surf->normal, view);
+		if (cos > 0.0)
 			continue;
 
-		alpha = 0.1 + -cos * r_flares->value;
+		float alpha = 0.1 + -cos * r_flares->value;
 
 		if (alpha > 1.0)
 			alpha = 1.0;
@@ -146,18 +142,18 @@ void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
 		alpha = f->alpha * alpha;
 
 		// scale according to distance
-		scale = f->radius + (f->radius * dist * .0005);
+		const float scale = f->radius + (f->radius * dist * .0005);
 
 		VectorScale(r_view.right, scale, right);
 		VectorScale(r_view.up, scale, up);
 
-		VectorAdd(up, right, upright);
-		VectorSubtract(right, up, downright);
+		VectorAdd(up, right, up_right);
+		VectorSubtract(right, up, down_right);
 
-		VectorSubtract(f->origin, downright, verts[0]);
-		VectorAdd(f->origin, upright, verts[1]);
-		VectorAdd(f->origin, downright, verts[2]);
-		VectorSubtract(f->origin, upright, verts[3]);
+		VectorSubtract(f->origin, down_right, verts[0]);
+		VectorAdd(f->origin, up_right, verts[1]);
+		VectorAdd(f->origin, down_right, verts[2]);
+		VectorSubtract(f->origin, up_right, verts[3]);
 
 		for (m = 0; m < 4; m++) { // duplicate color data to all 4 verts
 			memcpy(&r_state.color_array[j], f->color, sizeof(vec3_t));

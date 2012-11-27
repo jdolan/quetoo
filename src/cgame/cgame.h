@@ -26,8 +26,8 @@
 
 #define CGAME_API_VERSION 1
 
-#define TAG_CGAME 800
-#define TAG_CGAME_MEDIA 801
+#define TAG_CGAME 32
+#define TAG_CGAME_MEDIA 33
 
 // exposed to the client game by the engine
 typedef struct cg_import_s {
@@ -37,9 +37,9 @@ typedef struct cg_import_s {
 	void (*Warn)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
-	void *(*Malloc)(size_t size, int16_t tag);
+	void *(*Malloc)(size_t size, z_tag_t tag);
 	void (*Free)(void *p);
-	void (*FreeTag)(int16_t tag);
+	void (*FreeTag)(z_tag_t tag);
 
 	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *description);
 	void (*AddCommand)(const char *name, cmd_function_t function, uint32_t flags, const char *description);
@@ -75,7 +75,7 @@ typedef struct cg_import_s {
 	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, int32_t mask);
 
 	// PVS and PHS
-	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_model_t *model);
+	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_bsp_model_t *model);
 	bool (*LeafInPhs)(const r_bsp_leaf_t *leaf);
 	bool (*LeafInPvs)(const r_bsp_leaf_t *leaf);
 

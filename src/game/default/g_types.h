@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_TYPES_H__
-#define __G_TYPES_H__
+#ifndef __G_GAME_TYPES_H__ // don't collide with glib.h
+#define __G_GAME_TYPES_H__
 
 #include "game/game.h"
 
@@ -90,7 +90,7 @@ typedef struct {
 
 #define STAT_TOGGLE_BIT		0x8000 // used to force a stats field update
 
-#if defined(__G_LOCAL_H__) || defined(__ECLIPSE__)
+#if defined(__G_LOCAL_H__)
 
 // edict->spawnflags
 #define SF_ITEM_TRIGGER			0x00000001
@@ -113,10 +113,6 @@ typedef struct {
 #define FL_GOD_MODE				0x00000004
 #define FL_TEAM_SLAVE			0x00000008  // not the first on the team
 #define FL_RESPAWN				0x80000000  // used for item respawning
-
-// memory tags to allow dynamic memory to be cleaned up
-#define TAG_GAME 700 // clear when unloading the dll
-#define TAG_GAME_LEVEL 701 // clear when loading a new level
 
 // ammo types
 typedef enum {
@@ -590,4 +586,4 @@ struct g_edict_s {
 
 #endif
 
-#endif /* __G_TYPES_H__ */
+#endif /* __G_GAME_TYPES_H__ */

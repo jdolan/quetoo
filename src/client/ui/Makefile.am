@@ -25,6 +25,7 @@ libui_la_SOURCES = \
 libui_la_CFLAGS = \
 	-I.. -I../.. \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
 

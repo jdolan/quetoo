@@ -514,7 +514,7 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 	for (i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 
-	if (header.version != BSP_VERSION && header.version != BSP_VERSION_) {
+	if (header.version != BSP_VERSION && header.version != BSP_VERSION_Q2W) {
 		Fs_FreeFile(buf);
 		Com_Error(ERR_DROP, "Cm_LoadMap: %s has unsupported version: %d.\n", name, header.version);
 	}

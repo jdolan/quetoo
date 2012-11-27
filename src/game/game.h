@@ -150,9 +150,9 @@ typedef struct g_import_s {
 	void (*WriteAngle)(const float f);
 
 	// managed memory allocation
-	void *(*Malloc)(size_t size, int16_t tag);
+	void *(*Malloc)(size_t size, z_tag_t tag);
 	void (*Free)(void *ptr);
-	void (*FreeTag)(int16_t tag);
+	void (*FreeTag)(z_tag_t tag);
 
 	// filesystem interaction
 	const char *(*Gamedir)(void);

@@ -21,44 +21,37 @@
 
 #include "mem.h"
 
+#include <glib.h>
 #include <SDL/SDL_thread.h>
 
-static z_head_t z_chain;
-static size_t z_count, z_bytes;
+#define Z_MAGIC 0x69
+typedef byte z_magic_t;
+
+typedef struct z_block_s {
+	z_magic_t magic;
+	z_tag_t tag; // for group free
+	struct z_block_s *parent;
+	GList *children;
+} z_block_t;
+
+static GList *z_blocks;
 static SDL_mutex *z_lock;
-
-/*
- * @brief Initializes the managed memory subsystem. This should be one of the first
- * subsystems initialized by Quake2World.
- */
-void Z_Init(void) {
-
-	z_chain.next = z_chain.prev = &z_chain;
-
-	z_lock = SDL_CreateMutex();
-}
-
-/*
- * @brief Shuts down the managed memory subsystem. This should be one of the last
- * subsystems brought down by Quake2World.
- */
-void Z_Shutdown(void) {
-
-	Z_FreeTag(-1);
-
-	SDL_DestroyMutex(z_lock);
-}
 
 /*
  * @brief Performs the actual grunt work of freeing managed memory.
  */
-static void Z_Free_(z_head_t *z) {
+static void Z_Free_(gpointer data) {
+	z_block_t *z = (z_block_t *) data;
 
-	z->prev->next = z->next;
-	z->next->prev = z->prev;
+	if (z->children) {
+		g_list_free_full(z->children, Z_Free_);
+	}
 
-	z_count--;
-	z_bytes -= z->size;
+	if (z->parent) {
+		z->parent->children = g_list_remove(z->parent->children, data);
+	} else {
+		z_blocks = g_list_remove(z_blocks, data);
+	}
 
 	free(z);
 }
@@ -66,13 +59,11 @@ static void Z_Free_(z_head_t *z) {
 /*
  * @brief Free an allocation of managed memory.
  */
-void Z_Free(void *ptr) {
-	z_head_t *z;
-
-	z = ((z_head_t *) ptr) - 1;
+void Z_Free(void *p) {
+	z_block_t *z = ((z_block_t *) p) - 1;
 
 	if (z->magic != Z_MAGIC) {
-		Com_Error(ERR_FATAL, "Z_Free: Bad magic for %p.\n", ptr);
+		Com_Error(ERR_FATAL, "Z_Free: Bad magic for %p.\n", p);
 	}
 
 	SDL_mutexP(z_lock);
@@ -85,47 +76,53 @@ void Z_Free(void *ptr) {
 /*
  * @brief Free all managed items allocated with the specified tag.
  */
-void Z_FreeTag(int16_t tag) {
-	z_head_t *z, *next;
+void Z_FreeTag(z_tag_t tag) {
 
 	SDL_mutexP(z_lock);
 
-	for (z = z_chain.next; z != &z_chain; z = next) {
-		next = z->next;
-		if (-1 == tag || z->tag == tag)
+	GList *e = z_blocks;
+
+	while (e) {
+		GList *next = e->next;
+
+		z_block_t *z = (z_block_t *) e->data;
+
+		if (tag == Z_TAG_ALL || z->tag == tag) {
 			Z_Free_(z);
+		}
+
+		e = next;
 	}
 
 	SDL_mutexV(z_lock);
 }
 
 /*
- * @brief Allocates and initializes a block of managed memory for the specified tag.
- * Tags allow related objects to be freed in bulk e.g. when a subsystem quits.
+ * @brief Performs the grunt work of allocating a z_block_t and inserting it
+ * into the managed memory structures.
  */
-void *Z_TagMalloc(size_t size, int16_t tag) {
-	z_head_t *z;
+static void *Z_Malloc_(size_t size, z_tag_t tag, z_block_t *parent) {
+	const size_t s = size + sizeof(z_block_t);
 
-	size = size + sizeof(z_head_t);
-	z = malloc(size);
+	z_block_t *z = malloc(s);
 	if (!z) {
-		Com_Error(ERR_FATAL, "Z_TagMalloc: Failed to allocate "Q2W_SIZE_T" bytes.\n", size);
+		Com_Error(ERR_FATAL, "Z_Malloc_: Failed to allocate "Q2W_SIZE_T" bytes.\n", s);
 	}
 
-	memset(z, 0, size);
+	memset(z, 0, s);
+
 	z->magic = Z_MAGIC;
-	z->tag = tag;
-	z->size = size;
+	z->parent = parent;
 
 	SDL_mutexP(z_lock);
 
-	z->next = z_chain.next;
-	z->prev = &z_chain;
-	z_chain.next->prev = z;
-	z_chain.next = z;
-
-	z_count++;
-	z_bytes += size;
+	if (z->parent) {
+		z->parent->children = g_list_append(z->parent->children, z);
+		z->tag = z->parent->tag;
+	} else {
+		z_blocks = g_list_append(z_blocks, z);
+		z->tag = tag;
+	}
 
 	SDL_mutexV(z_lock);
 
@@ -133,12 +130,38 @@ void *Z_TagMalloc(size_t size, int16_t tag) {
 }
 
 /*
- * @brief Allocates and initializes a block of managed memory. Free the memory via
- * Z_Free when done. As a fallback, all managed memory is freed by the engine
- * on exit.
+ * @brief Allocates a block of managed memory with the specified tag.
+ *
+ * @param tag Tags allow related objects to be freed in bulk e.g. when a
+ * subsystem quits.
+ *
+ * @return A block of memory initialized to 0x0.
+ */
+void *Z_TagMalloc(size_t size, z_tag_t tag) {
+	return Z_Malloc_(size, tag, NULL);
+}
+
+/*
+ * @brief Allocates a block of managed memory with the specified parent.
+ *
+ * @param parent The parent block previously allocated through Z_Malloc /
+ * Z_TagMalloc, or NULL. If specified, the returned block will automatically be
+ * released when the parent is freed through Z_Free.
+ *
+ * @return A block of memory initialized to 0x0.
+ */
+void *Z_LinkMalloc(size_t size, void *parent) {
+	return Z_Malloc_(size, Z_TAG_DEFAULT, parent);
+}
+
+/*
+ * @brief Allocates a block of managed memory. All managed memory is freed when
+ * the game exits, but may be explicitly freed with Z_Free.
+ *
+ * @return A block of memory initialized to 0x0.
  */
 void *Z_Malloc(size_t size) {
-	return Z_TagMalloc(size, 0);
+	return Z_Malloc_(size, Z_TAG_DEFAULT, NULL);
 }
 
 /*
@@ -149,5 +172,28 @@ char *Z_CopyString(const char *in) {
 
 	out = Z_Malloc(strlen(in) + 1);
 	strcpy(out, in);
+
 	return out;
+}
+
+/*
+ * @brief Initializes the managed memory subsystem. This should be one of the first
+ * subsystems initialized by Quake2World.
+ */
+void Z_Init(void) {
+
+	z_blocks = NULL;
+
+	z_lock = SDL_CreateMutex();
+}
+
+/*
+ * @brief Shuts down the managed memory subsystem. This should be one of the last
+ * subsystems brought down by Quake2World.
+ */
+void Z_Shutdown(void) {
+
+	g_list_free_full(z_blocks, Z_Free_);
+
+	SDL_DestroyMutex(z_lock);
 }

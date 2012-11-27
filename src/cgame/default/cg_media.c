@@ -71,7 +71,7 @@ void Cg_UpdateMedia(void) {
 	int32_t i;
 	char name[MAX_QPATH];
 
-	cgi.FreeTag(TAG_CGAME_MEDIA);
+	cgi.FreeTag(Z_TAG_CGAME);
 
 	cg_sample_blaster_fire = cgi.LoadSample("weapons/blaster/fire");
 	cg_sample_blaster_hit = cgi.LoadSample("weapons/blaster/hit");
@@ -111,25 +111,25 @@ void Cg_UpdateMedia(void) {
 		cg_sample_footsteps[i] = cgi.LoadSample(name);
 	}
 
-	cg_particle_normal = cgi.LoadImage("particles/particle.tga", it_effect);
-	cg_particle_explosion = cgi.LoadImage("particles/explosion.tga", it_effect);
-	cg_particle_teleporter = cgi.LoadImage("particles/teleport.tga", it_effect);
-	cg_particle_smoke = cgi.LoadImage("particles/smoke.tga", it_effect);
-	cg_particle_steam = cgi.LoadImage("particles/steam.tga", it_effect);
-	cg_particle_bubble = cgi.LoadImage("particles/bubble.tga", it_effect);
-	cg_particle_rain = cgi.LoadImage("particles/rain.tga", it_effect);
-	cg_particle_snow = cgi.LoadImage("particles/snow.tga", it_effect);
-	cg_particle_beam = cgi.LoadImage("particles/beam.tga", it_effect);
-	cg_particle_burn = cgi.LoadImage("particles/burn.tga", it_effect);
-	cg_particle_blood = cgi.LoadImage("particles/blood.tga", it_effect);
-	cg_particle_lightning = cgi.LoadImage("particles/lightning.tga", it_effect);
-	cg_particle_flame = cgi.LoadImage("particles/flame.tga", it_effect);
-	cg_particle_spark = cgi.LoadImage("particles/spark.tga", it_effect);
-	cg_particle_inactive = cgi.LoadImage("particles/inactive.tga", it_effect);
+	cg_particle_normal = cgi.LoadImage("particles/particle.tga", IT_EFFECT);
+	cg_particle_explosion = cgi.LoadImage("particles/explosion.tga", IT_EFFECT);
+	cg_particle_teleporter = cgi.LoadImage("particles/teleport.tga", IT_EFFECT);
+	cg_particle_smoke = cgi.LoadImage("particles/smoke.tga", IT_EFFECT);
+	cg_particle_steam = cgi.LoadImage("particles/steam.tga", IT_EFFECT);
+	cg_particle_bubble = cgi.LoadImage("particles/bubble.tga", IT_EFFECT);
+	cg_particle_rain = cgi.LoadImage("particles/rain.tga", IT_EFFECT);
+	cg_particle_snow = cgi.LoadImage("particles/snow.tga", IT_EFFECT);
+	cg_particle_beam = cgi.LoadImage("particles/beam.tga", IT_EFFECT);
+	cg_particle_burn = cgi.LoadImage("particles/burn.tga", IT_EFFECT);
+	cg_particle_blood = cgi.LoadImage("particles/blood.tga", IT_EFFECT);
+	cg_particle_lightning = cgi.LoadImage("particles/lightning.tga", IT_EFFECT);
+	cg_particle_flame = cgi.LoadImage("particles/flame.tga", IT_EFFECT);
+	cg_particle_spark = cgi.LoadImage("particles/spark.tga", IT_EFFECT);
+	cg_particle_inactive = cgi.LoadImage("particles/inactive.tga", IT_EFFECT);
 
 	for (i = 0; i < 3; i++) {
 		snprintf(name, sizeof(name), "particles/bullet_%i", i);
-		cg_particle_bullet[i] = cgi.LoadImage(name, it_effect);
+		cg_particle_bullet[i] = cgi.LoadImage(name, IT_EFFECT);
 	}
 
 	cg_draw_crosshair->modified = true;

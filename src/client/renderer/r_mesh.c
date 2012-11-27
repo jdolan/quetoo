@@ -81,7 +81,7 @@ static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const
 		return NULL;
 	}
 
-	const r_md3_t *md3 = (r_md3_t *) mod->mesh->extra_data;
+	const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
 	const r_md3_tag_t *tag = &md3->tags[frame * md3->num_tags];
 	int32_t i;
 
@@ -100,7 +100,7 @@ static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const
  */
 void R_ApplyMeshModelTag(r_entity_t *e) {
 
-	if (!e->parent || !e->parent->model || e->parent->model->type != mod_md3) {
+	if (!e->parent || !e->parent->model || e->parent->model->type != MOD_MD3) {
 		Com_Warn("R_ApplyMeshModelTag: Invalid parent entity\n");
 		return;
 	}
@@ -347,7 +347,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
 
 	R_Color(color);
 
-	R_BindTexture(r_envmap_images[2]->texnum);
+	R_BindTexture(r_mesh_shell_image->texnum);
 
 	R_EnableShell(true);
 
@@ -432,7 +432,7 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 	int32_t vert_index;
 	int32_t i, j;
 
-	md3 = (r_md3_t *) e->model->mesh->extra_data;
+	md3 = (r_md3_t *) e->model->mesh->data;
 
 	frame = &md3->frames[e->frame];
 	old_frame = &md3->frames[e->old_frame];
@@ -528,8 +528,8 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 
 	if (!(e->effects & EF_NO_DRAW)) { // draw the model
 
-		if (e->model->type == mod_md3 && !r_draw_wireframe->value) {
-			R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->extra_data);
+		if (e->model->type == MOD_MD3 && !r_draw_wireframe->value) {
+			R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
 		} else {
 			glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 

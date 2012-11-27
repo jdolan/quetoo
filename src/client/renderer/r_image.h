@@ -24,40 +24,20 @@
 
 #include "r_types.h"
 
-#define MAX_GL_TEXTURES 1024
-extern r_image_t *r_null_image;
-
-#define NUM_ENVMAP_IMAGES 3
-extern r_image_t *r_envmap_images[NUM_ENVMAP_IMAGES];
-
-#define NUM_FLARE_IMAGES 3
-extern r_image_t *r_flare_images[NUM_FLARE_IMAGES];
-
-extern r_image_t *r_warp_image;
-
 r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 
 #ifdef __R_LOCAL_H__
 
-extern r_image_t r_images[MAX_GL_TEXTURES];
-extern uint16_t r_num_images;
-
-#define MAX_GL_LIGHTMAPS 256
-#define TEXNUM_LIGHTMAPS MAX_GL_TEXTURES
-
-#define MAX_GL_DELUXEMAPS 256
-#define TEXNUM_DELUXEMAPS (TEXNUM_LIGHTMAPS + MAX_GL_LIGHTMAPS)
-
-#define BACK_PLANE_EPSILON 0.01
+extern r_image_t *r_mesh_shell_image;
+extern r_image_t *r_warp_image;
 
 void R_SoftenTexture(byte *in, r_pixel_t width, r_pixel_t height, r_image_type_t type);
 void R_FilterTexture(byte *in, r_pixel_t width, r_pixel_t height, vec3_t color, r_image_type_t type);
-r_image_t *R_UploadImage(const char *name, byte *data, r_pixel_t width, r_pixel_t height, r_image_type_t type);
+void R_UploadImage(r_image_t *image, GLenum format, byte *data);
 void R_TextureMode(const char *mode);
 void R_ListImages_f(void);
 void R_Screenshot_f(void);
 void R_InitImages(void);
-void R_FreeImage(r_image_t *image);
 void R_FreeImages(void);
 void R_ShutdownImages(void);
 

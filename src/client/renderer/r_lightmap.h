@@ -40,9 +40,9 @@ typedef struct r_lightmaps_s {
 
 extern r_lightmaps_t r_lightmaps;
 
-void R_BeginBuildingLightmaps(void);
-void R_CreateSurfaceLightmap(r_bsp_surface_t *surf);
-void R_EndBuildingLightmaps(void);
+void R_BeginBuildingLightmaps(r_bsp_model_t *bsp);
+void R_CreateSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf);
+void R_EndBuildingLightmaps(r_bsp_model_t *bsp);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_LIGHTMAP_H__ */

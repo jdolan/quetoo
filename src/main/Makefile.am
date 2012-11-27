@@ -20,6 +20,7 @@ quake2world_LDADD = \
 	@ANTTWEAKBAR_LIBS@ \
 	@CURL_LIBS@ \
 	@CURSES_LIBS@ \
+	@GLIB_LIBS@ \
 	@JPEG_LIBS@ \
 	@OPENGL_LIBS@ \
 	@SDL_LIBS@ \

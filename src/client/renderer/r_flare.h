@@ -25,7 +25,7 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_CreateSurfaceFlare(r_bsp_surface_t *surf);
+void R_CreateSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf);
 void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs);
 #endif /* __R_LOCAL_H__ */
 

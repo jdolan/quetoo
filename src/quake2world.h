@@ -106,6 +106,21 @@ typedef unsigned char byte;
 #define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_IMAGES)
 #define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_SAMPLES)
 
+// managed memory tags
+typedef enum {
+	Z_TAG_DEFAULT,
+	Z_TAG_SERVER,
+	Z_TAG_GAME,
+	Z_TAG_GAME_LEVEL,
+	Z_TAG_CLIENT,
+	Z_TAG_RENDERER,
+	Z_TAG_SOUND,
+	Z_TAG_UI,
+	Z_TAG_CGAME,
+	Z_TAG_CGAME_LEVEL,
+	Z_TAG_ALL = -1
+} z_tag_t;
+
 typedef struct cvar_s {
 	const char *name;
 	const char *description;

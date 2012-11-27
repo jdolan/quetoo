@@ -46,6 +46,7 @@ q2wmap_LDADD = \
 	../../libthreads.la \
 	@BASE_LIBS@ \
 	@CURSES_LIBS@ \
+	@GLIB_LIBS@ \
 	@JPEG_LIBS@ \
 	@SDL_LIBS@ \
 	-lm -lz

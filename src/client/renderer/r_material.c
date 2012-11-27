@@ -21,9 +21,10 @@
 
 #include "r_local.h"
 
+#include <glib.h>
+
 typedef struct {
-	r_material_t *materials[MAX_GL_TEXTURES];
-	uint16_t num_materials;
+	GHashTable *materials;
 } r_material_state_t;
 
 static r_material_state_t r_material_state;
@@ -296,15 +297,15 @@ static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *sta
 
 	for (i = 0; i < surf->num_edges; i++) {
 
-		const float *v = &r_models.world->verts[surf->index * 3 + i * 3];
-		const float *st = &r_models.world->texcoords[surf->index * 2 + i * 2];
+		const float *v = &R_WorldModel()->verts[surf->index * 3 + i * 3];
+		const float *st = &R_WorldModel()->texcoords[surf->index * 2 + i * 2];
 
 		R_StageVertex(surf, stage, v, &r_state.vertex_array_3d[i * 3]);
 
 		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
 
 		if (texunit_lightmap.enabled) { // lightmap texcoords
-			st = &r_models.world->lightmap_texcoords[surf->index * 2 + i * 2];
+			st = &R_WorldModel()->lightmap_texcoords[surf->index * 2 + i * 2];
 			texunit_lightmap.texcoord_array[i * 2 + 0] = st[0];
 			texunit_lightmap.texcoord_array[i * 2 + 1] = st[1];
 		}
@@ -314,10 +315,10 @@ static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *sta
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
-			const float *n = &r_models.world->normals[surf->index * 3 + i * 3];
+			const float *n = &R_WorldModel()->normals[surf->index * 3 + i * 3];
 			VectorCopy(n, (&r_state.normal_array[i * 3]));
 
-			const float *t = &r_models.world->tangents[surf->index * 4 + i * 4];
+			const float *t = &R_WorldModel()->tangents[surf->index * 4 + i * 4];
 			VectorCopy(t, (&r_state.tangent_array[i * 4]));
 		}
 	}
@@ -463,37 +464,26 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 /*
  * @brief
  */
-void R_FreeMaterials(void) {
-	memset(&r_material_state, 0, sizeof(r_material_state));
-}
-
-/*
- * @brief
- */
 r_material_t *R_LoadMaterial(const char *diffuse) {
-	char d[MAX_QPATH];
-	uint16_t i;
+	r_material_t *mat;
+	char key[MAX_QPATH];
 
-	StripExtension(diffuse, d);
+	StripExtension(diffuse, key);
 
-	r_material_t *mat, **m = r_material_state.materials;
-	for (i = 0; i < r_material_state.num_materials; i++, m++) {
-		if (!strcmp(d, (*m)->name)) {
-			return *m;
-		}
+	if ((mat = g_hash_table_lookup(r_material_state.materials, key))) {
+		return mat;
 	}
 
-	*m = mat = R_HunkAlloc(sizeof(r_material_t));
-	r_material_state.num_materials++;
+	mat = Z_TagMalloc(sizeof(r_material_t), Z_TAG_RENDERER);
 
-	strcpy(mat->name, d);
-	mat->diffuse = R_LoadImage(d, it_diffuse);
+	strncpy(mat->name, key, sizeof(mat->name) - 1);
+	mat->diffuse = R_LoadImage(key, IT_DIFFUSE);
 
-	r_image_t *image = R_LoadImage(va("%s_nm", d), it_normalmap);
-	mat->normalmap = image == r_null_image ? NULL : image;
+	mat->normalmap = R_LoadImage(va("%s_nm", key), IT_NORMALMAP);
+	mat->normalmap = mat->normalmap->type == IT_NULL ? NULL : mat->normalmap;
 
-	image = R_LoadImage(va("%s_s", d), it_glossmap);
-	mat->glossmap = image == r_null_image ? NULL : image;
+	mat->glossmap = R_LoadImage(va("%s_s", key), IT_GLOSSMAP);
+	mat->glossmap = mat->glossmap->type == IT_NULL ? NULL : mat->glossmap;
 
 	mat->bump = DEFAULT_BUMP;
 	mat->hardness = DEFAULT_HARDNESS;
@@ -532,12 +522,12 @@ static inline GLenum R_ConstByName(const char *c) {
 /*
  * @brief
  */
-static int32_t R_LoadAnimationMaterials(r_stage_t *s) {
+static int32_t R_LoadStageFrames(r_stage_t *s) {
 	char name[MAX_QPATH];
 	int32_t i, j, k;
 
 	if (!s->image) {
-		Com_Warn("R_LoadAnimationMaterials: Texture not defined in anim stage.\n");
+		Com_Warn("R_LoadStageFrames: Texture not defined in anim stage.\n");
 		return -1;
 	}
 
@@ -545,14 +535,14 @@ static int32_t R_LoadAnimationMaterials(r_stage_t *s) {
 	j = strlen(name);
 
 	if ((i = atoi(&name[j - 1])) < 0) {
-		Com_Warn("R_LoadAnimationMaterials: Texture name does not end in numeric: %s\n", name);
+		Com_Warn("R_LoadStageFrames: Texture name does not end in numeric: %s\n", name);
 		return -1;
 	}
 
 	// the first image was already loaded by the stage parse, so just copy
 	// the pointer into the array
 
-	s->anim.frames = R_HunkAlloc(s->anim.num_frames * sizeof(r_image_t *));
+	s->anim.frames = Z_LinkMalloc(s->anim.num_frames * sizeof(r_image_t *), s);
 	s->anim.frames[0] = s->image;
 
 	// now load the rest
@@ -560,10 +550,10 @@ static int32_t R_LoadAnimationMaterials(r_stage_t *s) {
 	for (k = 1, i = i + 1; k < s->anim.num_frames; k++, i++) {
 
 		const char *frame = va("%s%d", name, i);
-		s->anim.frames[k] = R_LoadImage(frame, it_diffuse);
+		s->anim.frames[k] = R_LoadImage(frame, IT_DIFFUSE);
 
-		if (s->anim.frames[k] == r_null_image) {
-			Com_Warn("R_LoadAnimationMaterials: Failed to resolve frame: %d: %s\n", k, frame);
+		if (s->anim.frames[k]->type == IT_NULL) {
+			Com_Warn("R_LoadStageFrames: Failed to resolve frame: %d: %s\n", k, frame);
 			return -1;
 		}
 	}
@@ -588,12 +578,12 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			c = ParseToken(buffer);
 			if (*c == '#') {
-				s->image = R_LoadImage(++c, it_diffuse);
+				s->image = R_LoadImage(++c, IT_DIFFUSE);
 			} else {
-				s->image = R_LoadImage(va("textures/%s", c), it_diffuse);
+				s->image = R_LoadImage(va("textures/%s", c), IT_DIFFUSE);
 			}
 
-			if (s->image == r_null_image) {
+			if (s->image->type == IT_NULL) {
 				Com_Warn("R_ParseStage: Failed to resolve texture: %s\n", c);
 				return -1;
 			}
@@ -608,14 +598,14 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			i = atoi(c);
 
 			if (*c == '#') {
-				s->image = R_LoadImage(++c, it_diffuse);
-			} else if (*c == '0' || (i > 0 && i < NUM_ENVMAP_IMAGES)) {
-				s->image = R_LoadImage(va("envmaps/envmap_%d", i), it_diffuse);
+				s->image = R_LoadImage(++c, IT_ENVMAP);
+			} else if (*c == '0' || i > 0) {
+				s->image = R_LoadImage(va("envmaps/envmap_%d", i), IT_ENVMAP);
 			} else {
-				s->image = R_LoadImage(va("envmaps/%s", c), it_diffuse);
+				s->image = R_LoadImage(va("envmaps/%s", c), IT_ENVMAP);
 			}
 
-			if (s->image == r_null_image) {
+			if (s->image->type == IT_NULL) {
 				Com_Warn("R_ParseStage: Failed to resolve envmap: %s\n", c);
 				return -1;
 			}
@@ -820,14 +810,14 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			i = atoi(c);
 
 			if (*c == '#') {
-				s->image = R_LoadImage(++c, it_diffuse);
-			} else if (*c == '0' || (i > 0 && i < NUM_FLARE_IMAGES)) {
-				s->image = R_LoadImage(va("flares/flare_%d", i), it_diffuse);
+				s->image = R_LoadImage(++c, IT_FLARE);
+			} else if (*c == '0' || i > 0) {
+				s->image = R_LoadImage(va("flares/flare_%d", i), IT_FLARE);
 			} else {
-				s->image = R_LoadImage(va("flares/%s", c), it_diffuse);
+				s->image = R_LoadImage(va("flares/%s", c), IT_FLARE);
 			}
 
-			if (s->image == r_null_image) {
+			if (s->image->type == IT_NULL) {
 				Com_Warn("R_ParseStage: Failed to resolve flare: %s\n", c);
 				return -1;
 			}
@@ -881,7 +871,9 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 }
 
 /*
- * @brief
+ * @brief Loads all materials for the specified model. This is accomplished by
+ * parsing the material definitions in ${model_name}.mat for mesh models, and
+ * materials/${model_name}.mat for BSP models.
  */
 void R_LoadMaterials(const r_model_t *mod) {
 	char path[MAX_QPATH];
@@ -896,7 +888,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 	memset(path, 0, sizeof(path));
 
 	// load the materials file for parsing
-	if (mod->type == mod_bsp) {
+	if (mod->type == MOD_BSP) {
 		snprintf(path, sizeof(path), "materials/%s", Basename(mod->name));
 	} else {
 		snprintf(path, sizeof(path), "%s", mod->name);
@@ -934,7 +926,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 				m = R_LoadMaterial(va("textures/%s", c));
 			}
 
-			if (m->diffuse == r_null_image) {
+			if (m->diffuse->type == IT_NULL) {
 				Com_Warn("R_LoadMaterials: Failed to resolve %s\n", c);
 				m = NULL;
 			}
@@ -948,12 +940,12 @@ void R_LoadMaterials(const r_model_t *mod) {
 		if (!strcmp(c, "normalmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
-				m->normalmap = R_LoadImage(++c, it_normalmap);
+				m->normalmap = R_LoadImage(++c, IT_NORMALMAP);
 			} else {
-				m->normalmap = R_LoadImage(va("textures/%s", c), it_normalmap);
+				m->normalmap = R_LoadImage(va("textures/%s", c), IT_NORMALMAP);
 			}
 
-			if (m->normalmap == r_null_image) {
+			if (m->normalmap->type == IT_NULL) {
 				Com_Warn("R_LoadMaterials: Failed to resolve normalmap: %s\n", c);
 				m->normalmap = NULL;
 			}
@@ -962,12 +954,12 @@ void R_LoadMaterials(const r_model_t *mod) {
 		if (!strcmp(c, "glossmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
-				m->glossmap = R_LoadImage(++c, it_glossmap);
+				m->glossmap = R_LoadImage(++c, IT_GLOSSMAP);
 			} else {
-				m->glossmap = R_LoadImage(va("textures/%s", c), it_glossmap);
+				m->glossmap = R_LoadImage(va("textures/%s", c), IT_GLOSSMAP);
 			}
 
-			if (m->glossmap == r_null_image) {
+			if (m->glossmap->type == IT_NULL) {
 				Com_Warn("R_LoadMaterials: Failed to resolve glossmap: %s\n", c);
 				m->glossmap = NULL;
 			}
@@ -1014,7 +1006,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 		if (*c == '{' && in_material) {
 
-			s = (r_stage_t *) Z_Malloc(sizeof(*s));
+			s = (r_stage_t *) Z_LinkMalloc(sizeof(*s), m);
 
 			if (R_ParseStage(s, &buffer) == -1) {
 				Z_Free(s);
@@ -1023,7 +1015,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 			// load animation frame images
 			if (s->flags & STAGE_ANIM) {
-				if (R_LoadAnimationMaterials(s) == -1) {
+				if (R_LoadStageFrames(s) == -1) {
 					Z_Free(s);
 					continue;
 				}
@@ -1052,4 +1044,47 @@ void R_LoadMaterials(const r_model_t *mod) {
 	}
 
 	Fs_FreeFile(buf);
+}
+
+/*
+ * @brief GHRFunc for freeing stale materials.
+ */
+static gboolean R_FreeMaterial(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
+	r_material_t *m = (r_material_t *) value;
+
+	if (!data) {
+		if (m->media_count == r_locals.media_count) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/*
+ * @brief Frees all materials. Image resources referenced by materials are not
+ * freed here, because a reference does not imply ownership.
+ */
+void R_FreeMaterials(void) {
+	g_hash_table_foreach_remove(r_material_state.materials, R_FreeMaterial, NULL);
+}
+
+/*
+ * @brief Initializes the material state.
+ */
+void R_InitMaterials(void) {
+
+	memset(&r_material_state, 0, sizeof(r_material_state));
+
+	r_material_state.materials = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
+}
+
+/*
+ * @brief Shuts down the materials state, releasing the shared pool.
+ */
+void R_ShutdownMaterials(void) {
+
+	g_hash_table_remove_all(r_material_state.materials);
+
+	g_hash_table_destroy(r_material_state.materials);
 }

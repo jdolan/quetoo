@@ -21,6 +21,8 @@
 
 #include "cg_local.h"
 
+// TODO
+#define MAX_GL_TEXTURES 1024
 static cg_particle_t *cg_free_particles;
 static cg_particle_t *cg_active_particles[MAX_GL_TEXTURES];
 

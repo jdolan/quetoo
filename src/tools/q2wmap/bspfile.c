@@ -267,7 +267,7 @@ void LoadBSPFile(char *file_name) {
 	if (header->ident != BSP_HEADER)
 		Com_Error(ERR_FATAL, "%s is not a IBSP file\n", file_name);
 
-	if (header->version != BSP_VERSION && header->version != BSP_VERSION_)
+	if (header->version != BSP_VERSION && header->version != BSP_VERSION_Q2W)
 		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", file_name,
 				header->version);
 
@@ -278,7 +278,7 @@ void LoadBSPFile(char *file_name) {
 
 	d_bsp.num_normals = d_bsp.num_vertexes;
 
-	if (header->version == BSP_VERSION_) // enhanced format
+	if (header->version == BSP_VERSION_Q2W) // enhanced format
 		d_bsp.num_normals = CopyLump(LUMP_NORMALS, d_bsp.normals,
 				sizeof(d_bsp_normal_t));
 
@@ -341,7 +341,7 @@ void LoadBSPFileTexinfo(char *file_name) {
 	if (header->ident != BSP_HEADER)
 		Com_Error(ERR_FATAL, "%s is not a bsp file\n", file_name);
 
-	if (header->version != BSP_VERSION && header->version != BSP_VERSION_)
+	if (header->version != BSP_VERSION && header->version != BSP_VERSION_Q2W)
 		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", file_name,
 				header->version);
 
@@ -393,7 +393,7 @@ void WriteBSPFile(char *file_name) {
 		header->version = LittleLong(BSP_VERSION);
 	else
 		// enhanced format
-		header->version = LittleLong(BSP_VERSION_);
+		header->version = LittleLong(BSP_VERSION_Q2W);
 
 	if (Fs_OpenFile(file_name, &fp, FILE_WRITE) == -1)
 		Com_Error(ERR_FATAL, "Could not open %s\n", file_name);

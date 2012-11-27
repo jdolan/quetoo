@@ -40,7 +40,7 @@ static r_entity_t **R_EntityList(const r_entity_t *e) {
 	if (!e->model)
 		return &r_entities.null;
 
-	if (e->model->type == mod_bsp_submodel)
+	if (IS_BSP_INLINE_MODEL(e->model))
 		return &r_entities.bsp;
 
 	// mesh models
@@ -193,12 +193,14 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 
 /*
  * @brief Dispatches the appropriate sub-routine for frustum-culling the entity.
+ *
+ * @return True if the entity is culled (fails frustum test), false otherwise.
  */
 static bool R_CullEntity(r_entity_t *e) {
 
 	if (!e->model) {
 		e->culled = false;
-	} else if (e->model->type == mod_bsp_submodel) {
+	} else if (IS_BSP_INLINE_MODEL(e->model)) {
 		e->culled = R_CullBspModel(e);
 	} else { // mesh model
 		e->culled = R_CullMeshModel(e);
@@ -358,7 +360,6 @@ static void R_DrawNullEntities(void) {
 void R_DrawEntities(void) {
 
 	if (r_draw_wireframe->value) {
-		R_BindTexture(r_null_image->texnum);
 		R_EnableTexture(&texunit_diffuse, false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}

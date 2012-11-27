@@ -29,31 +29,14 @@ r_model_t *R_WorldModel(void);
 
 #ifdef __R_LOCAL_H__
 
-#define MAX_MOD_KNOWN 512
+extern r_model_t *r_model_loading;
 
-typedef struct {
-	r_model_t models[MAX_MOD_KNOWN];
-	uint16_t num_models;
-
-	r_model_t *load;
-
-	r_model_t *world;
-	r_model_t bsp_submodels[MAX_BSP_MODELS];
-} r_models_t;
-
-extern r_models_t r_models;
-
-#define IS_MESH_MODEL(m) (m && (m->type == mod_md3 || m->type == mod_obj))
-
-void *R_HunkBegin(void);
-size_t R_HunkEnd(void *buf);
-void *R_HunkAlloc(size_t size);
 void R_AllocVertexArrays(r_model_t *mod);
 void R_InitModels(void);
+void R_FreeModels(void);
 void R_ShutdownModels(void);
-void R_BeginLoading(const char *map, int32_t mapsize);
+void R_BeginLoading(const char *map, int32_t map_size);
 void R_ListModels_f(void);
-void R_HunkStats_f(void);
 
 #endif /* __R_LOCAL_H__ */
 

@@ -24,20 +24,12 @@
 
 #include "common.h"
 
-#define Z_MAGIC 0x1d1d
-
-typedef struct z_head_s {
-	struct z_head_s	*prev, *next;
-	int16_t magic;
-	int16_t tag;  // for group free
-	size_t size;
-} z_head_t;
-
 void Z_Init(void);
 void Z_Shutdown(void);
-void Z_Free(void *ptr);
-void Z_FreeTag(int16_t tag);
-void *Z_TagMalloc(size_t size, int16_t tag);
+void Z_Free(void *p);
+void Z_FreeTag(z_tag_t tag);
+void *Z_TagMalloc(size_t size, z_tag_t tag);
+void *Z_LinkMalloc(size_t size, void *parent);
 void *Z_Malloc(size_t size);
 char *Z_CopyString(const char *in);
 

@@ -98,7 +98,8 @@ void R_ResetLights(void) {
 /*
  * @brief Recursively populates light source bit masks for world surfaces.
  */
-static void R_MarkLights_(r_light_t *light, vec3_t trans, int32_t bit, r_bsp_node_t *node) {
+static void R_MarkLights_(const r_light_t *light, const vec3_t trans, const int32_t bit,
+		const r_bsp_node_t *node) {
 	r_bsp_surface_t *surf;
 	vec3_t origin;
 	float dist;
@@ -126,10 +127,10 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int32_t bit, r_bsp_nod
 	}
 
 	if (node->model) // mark bsp submodel
-		node->model->bsp->lights |= bit;
+		node->model->bsp_inline->lights |= bit;
 
 	// mark all surfaces in this node
-	surf = r_models.world->bsp->surfaces + node->first_surface;
+	surf = R_WorldModel()->bsp->surfaces + node->first_surface;
 
 	for (i = 0; i < node->num_surfaces; i++, surf++) {
 
@@ -167,17 +168,17 @@ void R_MarkLights(void) {
 		r_light_t *light = &r_view.lights[i];
 
 		// world surfaces
-		R_MarkLights_(light, vec3_origin, 1 << i, r_models.world->bsp->nodes);
+		R_MarkLights_(light, vec3_origin, 1 << i, R_WorldModel()->bsp->nodes);
 
 		// and bsp entity surfaces
-		for (j = 0; j < r_view.num_entities; j++) {
+		const r_entity_t *ent = r_view.entities;
+		for (j = 0; j < r_view.num_entities; j++, ent++) {
 
-			r_entity_t *ent = &r_view.entities[j];
-			r_model_t *mod = ent->model;
+			const r_model_t *mod = ent->model;
 
-			if (mod && mod->type == mod_bsp_submodel && mod->bsp->nodes) {
-				mod->bsp->lights = 0;
-				R_MarkLights_(light, ent->origin, 1 << i, mod->bsp->nodes);
+			if (IS_BSP_INLINE_MODEL(mod) && mod->bsp_inline->head_node) {
+				const r_bsp_node_t *node = R_WorldModel()->bsp->nodes + mod->bsp_inline->head_node;
+				R_MarkLights_(light, ent->origin, 1 << i, node);
 			}
 		}
 	}

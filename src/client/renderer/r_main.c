@@ -183,19 +183,19 @@ void R_DrawView(void) {
 
 	R_MarkLights();
 
-	R_DrawOpaqueSurfaces(&r_models.world->bsp->sorted_surfaces->opaque);
+	R_DrawOpaqueSurfaces(&R_WorldModel()->bsp->sorted_surfaces->opaque);
 
-	R_DrawOpaqueWarpSurfaces(&r_models.world->bsp->sorted_surfaces->opaque_warp);
+	R_DrawOpaqueWarpSurfaces(&R_WorldModel()->bsp->sorted_surfaces->opaque_warp);
 
-	R_DrawAlphaTestSurfaces(&r_models.world->bsp->sorted_surfaces->alpha_test);
+	R_DrawAlphaTestSurfaces(&R_WorldModel()->bsp->sorted_surfaces->alpha_test);
 
 	R_EnableBlend(true);
 
-	R_DrawBackSurfaces(&r_models.world->bsp->sorted_surfaces->back);
+	R_DrawBackSurfaces(&R_WorldModel()->bsp->sorted_surfaces->back);
 
-	R_DrawMaterialSurfaces(&r_models.world->bsp->sorted_surfaces->material);
+	R_DrawMaterialSurfaces(&R_WorldModel()->bsp->sorted_surfaces->material);
 
-	R_DrawFlareSurfaces(&r_models.world->bsp->sorted_surfaces->flare);
+	R_DrawFlareSurfaces(&R_WorldModel()->bsp->sorted_surfaces->flare);
 
 	R_EnableBlend(false);
 
@@ -213,9 +213,9 @@ void R_DrawView(void) {
 
 	R_DrawBspLights();
 
-	R_DrawBlendSurfaces(&r_models.world->bsp->sorted_surfaces->blend);
+	R_DrawBlendSurfaces(&R_WorldModel()->bsp->sorted_surfaces->blend);
 
-	R_DrawBlendWarpSurfaces(&r_models.world->bsp->sorted_surfaces->blend_warp);
+	R_DrawBlendWarpSurfaces(&R_WorldModel()->bsp->sorted_surfaces->blend_warp);
 
 	// ensure the thread has finished updating particles
 	Thread_Wait(&r_view.thread);
@@ -239,7 +239,7 @@ void R_DrawView(void) {
  */
 static void R_RenderMode(const char *mode) {
 
-	r_view.render_mode = render_mode_default;
+	r_view.render_mode = RENDER_MODEL_DEFAULT;
 
 	R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_default;
 	R_DrawOpaqueWarpSurfaces = R_DrawOpaqueWarpSurfaces_default;
@@ -317,6 +317,12 @@ void R_EndFrame(void) {
 
 	if (cls.state == CL_ACTIVE && !cls.loading) {
 		r_view.update = false;
+
+		R_FreeMaterials();
+
+		R_FreeModels();
+
+		R_FreeImages();
 	}
 
 	SDL_GL_SwapBuffers(); // swap buffers
@@ -376,21 +382,14 @@ static void R_ResolveWeather(void) {
  * @brief Iterate the config_strings, loading all renderer-specific media.
  */
 void R_LoadMedia(void) {
-	char name[MAX_QPATH];
 	int32_t i, j;
 
 	if (!cl.config_strings[CS_MODELS + 1][0])
-		return; // no map loaded
+		return; // no map specified
 
 	R_InitView();
 
-	R_FreeImages();
-
 	Cl_LoadProgress(1);
-
-	strncpy(name, cl.config_strings[CS_MODELS + 1] + 5, sizeof(name) - 1);
-	// skip "maps/"
-	name[strlen(name) - 4] = 0; // cut off ".bsp"
 
 	R_BeginLoading(cl.config_strings[CS_MODELS + 1], atoi(cl.config_strings[CS_BSP_SIZE]));
 	Cl_LoadProgress(50);
@@ -400,13 +399,10 @@ void R_LoadMedia(void) {
 	// models, including bsp submodels and client weapon models
 	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
 
-		memset(name, 0, sizeof(name));
-
-		strncpy(name, cl.config_strings[CS_MODELS + i], sizeof(name) - 1);
-
 		cl.model_draw[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
 
-		if (name[0] == '*')
+		const char *s = cl.config_strings[CS_MODELS + i];
+		if (*s == '*')
 			cl.model_clip[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
 		else
 			cl.model_clip[i] = NULL;
@@ -431,6 +427,12 @@ void R_LoadMedia(void) {
 	R_ResolveWeather();
 	Cl_LoadProgress(79);
 
+	R_FreeModels();
+
+	R_FreeMaterials();
+
+	R_FreeImages();
+
 	r_view.update = true;
 }
 
@@ -447,27 +449,6 @@ static void R_Sky_f(void) {
 	R_SetSky(Cmd_Argv(1));
 }
 
-/*
- * @brief
- */
-static void R_Reload_f(void) {
-
-	cls.loading = 1;
-
-	R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
-
-	R_ShutdownImages();
-
-	R_InitImages();
-
-	R_InitDraw();
-
-	R_LoadMedia();
-
-	Cvar_ClearVars(CVAR_R_IMAGES);
-
-	cls.loading = 0;
-}
 
 /*
  * @brief Restarts the renderer subsystem. The OpenGL context is discarded and
@@ -479,7 +460,7 @@ void R_Restart_f(void) {
 
 	R_Init();
 
-	R_Reload_f();
+	R_LoadMedia();
 
 	Cvar_ClearVars(CVAR_R_MASK);
 
@@ -600,7 +581,6 @@ static void R_InitLocal(void) {
 
 	Cmd_AddCommand("r_list_models", R_ListModels_f, 0,
 			"Print information about all the loaded models to the game console");
-	Cmd_AddCommand("r_hunk_stats", R_HunkStats_f, 0, "Renderer memory usage information");
 
 	Cmd_AddCommand("r_list_images", R_ListImages_f, 0,
 			"Print information about all the loaded images to the game console");
@@ -610,7 +590,6 @@ static void R_InitLocal(void) {
 
 	Cmd_AddCommand("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM, "Toggle fullscreen");
 
-	Cmd_AddCommand("r_reload", R_Reload_f, 0, "Reloads all rendering media");
 	Cmd_AddCommand("r_restart", R_Restart_f, 0, "Restart the rendering subsystem");
 }
 
@@ -659,6 +638,8 @@ void R_Init(void) {
 
 	R_InitDraw();
 
+	R_InitMaterials();
+
 	R_InitModels();
 
 	R_InitCapture();
@@ -697,9 +678,13 @@ void R_Shutdown(void) {
 
 	R_ShutdownModels();
 
+	R_ShutdownMaterials();
+
 	R_ShutdownImages();
 
 	R_ShutdownContext();
 
 	R_ShutdownState();
+
+	Z_FreeTag(Z_TAG_RENDERER);
 }

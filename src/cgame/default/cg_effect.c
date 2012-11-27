@@ -37,7 +37,7 @@ static uint32_t cg_weather_time;
  * @brief Creates an emitter for the given surface. The number of origins for the
  * emitter depends on the area of the surface.
  */
-static void Cg_LoadWeather_(const r_model_t *world, const r_bsp_surface_t *s) {
+static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) {
 	vec3_t delta;
 	uint16_t i;
 
@@ -45,7 +45,7 @@ static void Cg_LoadWeather_(const r_model_t *world, const r_bsp_surface_t *s) {
 
 	// resolve the leaf for the point just in front of the surface
 	VectorMA(s->center, 1.0, s->normal, delta);
-	e->leaf = cgi.LeafForPoint(delta, world);
+	e->leaf = cgi.LeafForPoint(delta, bsp);
 
 	// resolve the number of origins based on surface area
 	VectorSubtract(s->maxs, s->mins, delta);
@@ -91,15 +91,15 @@ void Cg_LoadWeather(void) {
 	cg_weather_emits = NULL;
 	cg_weather_time = 0;
 
-	const r_model_t *world = cgi.WorldModel();
-	const r_bsp_surface_t *s = world->bsp->surfaces;
+	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
+	const r_bsp_surface_t *s = bsp->surfaces;
 
 	// iterate the world surfaces, testing sky surfaces
-	for (i = j = 0; i < world->bsp->num_surfaces; i++, s++) {
+	for (i = j = 0; i < bsp->num_surfaces; i++, s++) {
 
 		// for downward facing sky brushes, create an emitter
 		if ((s->texinfo->flags & SURF_SKY) && s->normal[2] < -0.1) {
-			Cg_LoadWeather_(world, s);
+			Cg_LoadWeather_(bsp, s);
 			j++;
 		}
 	}

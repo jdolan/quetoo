@@ -108,6 +108,11 @@ AM_CONDITIONAL([BSD], [test "x$HOST_NAME" = "xBSD"])
 AM_CONDITIONAL([WINDOWS], [test "x$HOST_NAME" = "xWINDOWS"])
 AM_CONDITIONAL([LINUX], [test "x$HOST_NAME" = "xLINUX"])
 
+dnl --------------
+dnl Check for GLib
+dnl --------------
+PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.0.0])
+
 dnl -------------
 dnl Check for SDL
 dnl -------------

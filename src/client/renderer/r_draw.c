@@ -105,9 +105,9 @@ r_image_t *R_LoadPic(const char *name) {
 		return image;
 
 	if (*name == '#')
-		image = R_LoadImage(name + 1, it_pic);
+		image = R_LoadImage(name + 1, IT_PIC);
 	else
-		image = R_LoadImage(va("pics/%s", name), it_pic);
+		image = R_LoadImage(va("pics/%s", name), IT_PIC);
 
 	Hash_Put(&r_draw.hash_table, name, image);
 
@@ -519,7 +519,7 @@ static void R_InitFont(char *name) {
 
 	strncpy(font->name, name, sizeof(font->name) - 1);
 
-	font->image = R_LoadImage(va("fonts/%s", name), it_font);
+	font->image = R_LoadImage(va("fonts/%s", name), IT_FONT);
 
 	font->char_width = font->image->width / 16;
 	font->char_height = font->image->height / 8;
@@ -540,7 +540,7 @@ void R_InitDraw(void) {
 
 	R_BindFont(NULL, NULL, NULL);
 
-	r_draw.cursor = R_LoadImage("fonts/cursor", it_font);
+	r_draw.cursor = R_LoadImage("fonts/cursor", IT_FONT);
 
 	// set ABGR color values
 	r_draw.colors[CON_COLOR_BLACK] = 0xff000000;

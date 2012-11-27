@@ -49,7 +49,7 @@ static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line)
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (!strcasecmp(mesh_name, mesh->name)) {
-			skins[i] = cgi.LoadImage(image_name, it_diffuse);
+			skins[i] = cgi.LoadImage(image_name, IT_DIFFUSE);
 			break;
 		}
 	}
@@ -75,7 +75,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const ch
 		return;
 	}
 
-	const r_md3_t *md3 = (r_md3_t *) mod->mesh->extra_data;
+	const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
 
 	i = j = 0;
 	memset(line, 0, sizeof(line));
@@ -99,7 +99,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const ch
 	const r_md3_mesh_t *mesh = md3->meshes;
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
-		if (skins[i]->type == it_null) {
+		if (skins[i]->type == IT_NULL) {
 			cgi.Debug("Cg_LoadClientSkins: %s: %s has no skin\n", path, mesh->name);
 
 			skins[0] = NULL;
@@ -315,7 +315,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
  * indexes and interpolation fractions for the specified renderer entities.
  */
 void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower) {
-	const r_md3_t *md3 = (r_md3_t *) upper->model->mesh->extra_data;
+	const r_md3_t *md3 = (r_md3_t *) upper->model->mesh->data;
 
 	// do the torso animation
 	if (e->current.animation1 != e->prev.animation1 || !e->animation1.time) {

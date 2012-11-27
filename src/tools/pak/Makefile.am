@@ -12,5 +12,6 @@ pak_CFLAGS = \
 pak_LDADD = \
 	../../libfilesystem.la \
 	@BASE_LIBS@ \
+	@GLIB_LIBS@ \
 	@SDL_LIBS@ \
 	-lm -lz

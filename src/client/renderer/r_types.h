@@ -32,16 +32,19 @@ typedef int16_t r_pixel_t;
 
 // image types
 typedef enum {
-	it_null,
-	it_font,
-	it_effect,
-	it_diffuse,
-	it_lightmap,
-	it_deluxemap,
-	it_normalmap,
-	it_glossmap,
-	it_sky,
-	it_pic
+	IT_NULL,
+	IT_GENERATED,
+	IT_FONT,
+	IT_EFFECT,
+	IT_DIFFUSE,
+	IT_LIGHTMAP,
+	IT_DELUXEMAP,
+	IT_NORMALMAP,
+	IT_GLOSSMAP,
+	IT_ENVMAP,
+	IT_FLARE,
+	IT_SKY,
+	IT_PIC
 } r_image_type_t;
 
 /*
@@ -51,8 +54,9 @@ typedef struct r_image_s {
 	char name[MAX_QPATH]; // game path, excluding extension
 	r_image_type_t type;
 	r_pixel_t width, height; // image dimensions
-	GLuint texnum; // gl texture binding
 	vec3_t color; // average color
+	int16_t media_count; // for freeing stale images
+	GLuint texnum; // gl texture binding
 } r_image_t;
 
 typedef struct r_stage_blend_s {
@@ -134,6 +138,7 @@ typedef struct r_material_s {
 	float specular;
 	r_stage_t *stages;
 	uint16_t num_stages;
+	int16_t media_count;
 } r_material_t;
 
 // bsp model memory representation
@@ -149,8 +154,9 @@ typedef struct {
 	vec3_t origin; // for sounds or lights
 	float radius;
 	int32_t head_node;
-	uint16_t first_face, num_faces;
-} r_bsp_submodel_t;
+	uint16_t first_surface, num_surfaces;
+	uint32_t lights; // bit mask of enabled light sources
+} r_bsp_inline_model_t;
 
 typedef struct {
 	uint16_t v[2];
@@ -410,12 +416,14 @@ typedef struct {
 
 // shared structure for all model types
 typedef enum {
-	mod_bad, mod_bsp, mod_bsp_submodel, mod_md3, mod_obj
+	MOD_BAD, MOD_BSP, MOD_BSP_INLINE, MOD_MD3, MOD_OBJ
 } r_model_type_t;
 
 typedef struct {
-	uint16_t num_submodels;
-	r_bsp_submodel_t *submodels;
+	int32_t version;
+
+	uint16_t num_inline_models;
+	r_bsp_inline_model_t *inline_models;
 
 	uint16_t num_planes;
 	c_bsp_plane_t *planes;
@@ -431,7 +439,6 @@ typedef struct {
 
 	uint16_t num_nodes;
 	r_bsp_node_t *nodes;
-	uint16_t first_node;
 
 	uint16_t num_texinfo;
 	r_bsp_texinfo_t *texinfo;
@@ -457,9 +464,6 @@ typedef struct {
 
 	// sorted surfaces arrays
 	r_sorted_bsp_surfaces_t *sorted_surfaces;
-
-	uint16_t first_model_surface, num_model_surfaces; // for submodels
-	uint32_t lights; // bit mask of enabled light sources for submodels
 } r_bsp_model_t;
 
 /*
@@ -481,8 +485,7 @@ typedef struct {
 	r_mesh_config_t *view_config;
 	r_mesh_config_t *link_config;
 
-	uint32_t extra_data_size;
-	void *extra_data; // raw model data
+	void *data; // raw model data (r_md3_t, r_obj_t, ..)
 } r_mesh_model_t;
 
 /*
@@ -490,17 +493,18 @@ typedef struct {
  */
 typedef struct r_model_s {
 	char name[MAX_QPATH];
-
 	r_model_type_t type;
-	int32_t version;
+
+	int16_t media_count;
 
 	r_bsp_model_t *bsp;
+	r_bsp_inline_model_t *bsp_inline;
 	r_mesh_model_t *mesh;
 
 	vec3_t mins, maxs;
 	float radius;
 
-	GLuint num_verts; // raw vertex primitive count, used to build arrays
+	GLsizei num_verts; // raw vertex primitive count, used to build arrays
 
 	GLfloat *verts; // vertex arrays
 	GLfloat *texcoords;
@@ -514,6 +518,9 @@ typedef struct r_model_s {
 	GLuint normal_buffer;
 	GLuint tangent_buffer;
 } r_model_t;
+
+#define IS_MESH_MODEL(m) (m && m->mesh)
+#define IS_BSP_INLINE_MODEL(m) (m && m->bsp_inline)
 
 /*
  * @brief Dynamic light sources expire immediately and must be re-added
@@ -662,7 +669,7 @@ typedef struct r_element_s {
  * @brief Allows alternate renderer plugins to be dropped in.
  */
 typedef enum render_mode_s {
-	render_mode_default
+	RENDER_MODEL_DEFAULT
 } r_render_mode_t;
 
 #define MAX_CORONAS 		1024

@@ -48,6 +48,7 @@ libclient_la_CFLAGS = \
 	-I.. \
 	@BASE_CFLAGS@ \
 	@CURL_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
 	

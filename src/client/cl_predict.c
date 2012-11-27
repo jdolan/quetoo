@@ -156,7 +156,7 @@ static int32_t Cl_PredictMovement_PointContents(const vec3_t point) {
 	c_model_t *model;
 	int32_t contents;
 
-	contents = Cm_PointContents(point, R_WorldModel()->bsp->first_node);
+	contents = Cm_PointContents(point, 0);
 
 	for (i = 0; i < cl.frame.num_entities; i++) {
 		const int32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;

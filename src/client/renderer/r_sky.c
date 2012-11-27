@@ -58,17 +58,17 @@ static const int32_t vec_to_st[6][3] = {
 };
 
 // sky structure
-typedef struct sky_s {
+typedef struct {
 	r_image_t *images[6];
 	vec2_t st_mins[6];
 	vec2_t st_maxs[6];
-	vec_t stmin;
-	vec_t stmax;
+	vec_t st_min;
+	vec_t st_max;
 	int32_t texcoord_index;
 	int32_t vert_index;
-} sky_t;
+} r_sky_t;
 
-static sky_t sky;
+static r_sky_t r_sky;
 
 /*
  * @brief
@@ -132,15 +132,15 @@ static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
 		else
 			t = vecs[j - 1] / dv;
 
-		if (s < sky.st_mins[0][axis])
-			sky.st_mins[0][axis] = s;
-		if (t < sky.st_mins[1][axis])
-			sky.st_mins[1][axis] = t;
+		if (s < r_sky.st_mins[0][axis])
+			r_sky.st_mins[0][axis] = s;
+		if (t < r_sky.st_mins[1][axis])
+			r_sky.st_mins[1][axis] = t;
 
-		if (s > sky.st_maxs[0][axis])
-			sky.st_maxs[0][axis] = s;
-		if (t > sky.st_maxs[1][axis])
-			sky.st_maxs[1][axis] = t;
+		if (s > r_sky.st_maxs[0][axis])
+			r_sky.st_maxs[0][axis] = s;
+		if (t > r_sky.st_maxs[1][axis])
+			r_sky.st_maxs[1][axis] = t;
 	}
 }
 
@@ -248,7 +248,7 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf) {
 	// calculate distance to surface verts
 	for (i = 0; i < surf->num_edges; i++) {
 
-		const float *v = &r_models.world->verts[index + i * 3];
+		const float *v = &R_WorldModel()->verts[index + i * 3];
 
 		VectorSubtract(v, r_view.origin, verts[i]);
 	}
@@ -263,8 +263,8 @@ void R_ClearSkyBox(void) {
 	int32_t i;
 
 	for (i = 0; i < 6; i++) {
-		sky.st_mins[0][i] = sky.st_mins[1][i] = 9999;
-		sky.st_maxs[0][i] = sky.st_maxs[1][i] = -9999;
+		r_sky.st_mins[0][i] = r_sky.st_mins[1][i] = 9999;
+		r_sky.st_maxs[0][i] = r_sky.st_maxs[1][i] = -9999;
 	}
 }
 
@@ -291,22 +291,22 @@ static void R_MakeSkyVec(float s, float t, int32_t axis) {
 	s = (s + 1) * 0.5;
 	t = (t + 1) * 0.5;
 
-	if (s < sky.stmin)
-		s = sky.stmin;
-	else if (s > sky.stmax)
-		s = sky.stmax;
-	if (t < sky.stmin)
-		t = sky.stmin;
-	else if (t > sky.stmax)
-		t = sky.stmax;
+	if (s < r_sky.st_min)
+		s = r_sky.st_min;
+	else if (s > r_sky.st_max)
+		s = r_sky.st_max;
+	if (t < r_sky.st_min)
+		t = r_sky.st_min;
+	else if (t > r_sky.st_max)
+		t = r_sky.st_max;
 
 	t = 1.0 - t;
 
-	texunit_diffuse.texcoord_array[sky.texcoord_index++] = s;
-	texunit_diffuse.texcoord_array[sky.texcoord_index++] = t;
+	texunit_diffuse.texcoord_array[r_sky.texcoord_index++] = s;
+	texunit_diffuse.texcoord_array[r_sky.texcoord_index++] = t;
 
-	memcpy(&r_state.vertex_array_3d[sky.vert_index], v, sizeof(vec3_t));
-	sky.vert_index += 3;
+	memcpy(&r_state.vertex_array_3d[r_sky.vert_index], v, sizeof(vec3_t));
+	r_sky.vert_index += 3;
 }
 
 int32_t skytexorder[6] = { 0, 2, 1, 3, 4, 5 };
@@ -318,7 +318,7 @@ void R_DrawSkyBox(void) {
 	r_bsp_surfaces_t *surfs;
 	uint32_t i, j;
 
-	surfs = &r_models.world->bsp->sorted_surfaces->sky;
+	surfs = &R_WorldModel()->bsp->sorted_surfaces->sky;
 	j = 0;
 
 	// first add all visible sky surfaces to the sky bounds
@@ -340,23 +340,23 @@ void R_DrawSkyBox(void) {
 	if (r_state.fog_enabled)
 		glFogf(GL_FOG_END, FOG_END * 8);
 
-	sky.texcoord_index = sky.vert_index = 0;
+	r_sky.texcoord_index = r_sky.vert_index = 0;
 
 	for (i = 0; i < 6; i++) {
 
-		if (sky.st_mins[0][i] >= sky.st_maxs[0][i] || sky.st_mins[1][i]
-				>= sky.st_maxs[1][i])
+		if (r_sky.st_mins[0][i] >= r_sky.st_maxs[0][i] || r_sky.st_mins[1][i]
+				>= r_sky.st_maxs[1][i])
 			continue; // nothing on this plane
 
-		R_BindTexture(sky.images[skytexorder[i]]->texnum);
+		R_BindTexture(r_sky.images[skytexorder[i]]->texnum);
 
-		R_MakeSkyVec(sky.st_mins[0][i], sky.st_mins[1][i], i);
-		R_MakeSkyVec(sky.st_mins[0][i], sky.st_maxs[1][i], i);
-		R_MakeSkyVec(sky.st_maxs[0][i], sky.st_maxs[1][i], i);
-		R_MakeSkyVec(sky.st_maxs[0][i], sky.st_mins[1][i], i);
+		R_MakeSkyVec(r_sky.st_mins[0][i], r_sky.st_mins[1][i], i);
+		R_MakeSkyVec(r_sky.st_mins[0][i], r_sky.st_maxs[1][i], i);
+		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_maxs[1][i], i);
+		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_mins[1][i], i);
 
-		glDrawArrays(GL_QUADS, 0, sky.vert_index / 3);
-		sky.texcoord_index = sky.vert_index = 0;
+		glDrawArrays(GL_QUADS, 0, r_sky.vert_index / 3);
+		r_sky.texcoord_index = r_sky.vert_index = 0;
 	}
 
 	if (r_state.fog_enabled)
@@ -378,16 +378,17 @@ void R_SetSky(char *name) {
 	for (i = 0; i < 6; i++) {
 
 		snprintf(pathname, sizeof(pathname), "env/%s%s", name, suf[i]);
-		sky.images[i] = R_LoadImage(pathname, it_sky);
+		r_sky.images[i] = R_LoadImage(pathname, IT_SKY);
 
-		if (!sky.images[i] || sky.images[i] == r_null_image) { // try unit1_
+		if (r_sky.images[i]->type == IT_NULL) { // try unit1_
 			if (strcmp(name, "unit1_")) {
 				R_SetSky("unit1_");
 				return;
 			}
 		}
-
-		sky.stmin = 1.0 / (float) sky.images[i]->width;
-		sky.stmax = (sky.images[i]->width - 1.0) / (float) sky.images[i]->width;
 	}
+
+	// assume all sky images are the same size
+	r_sky.st_min = 1.0 / (float) r_sky.images[0]->width;
+	r_sky.st_max = (r_sky.images[0]->width - 1.0) / (float) r_sky.images[0]->width;
 }
