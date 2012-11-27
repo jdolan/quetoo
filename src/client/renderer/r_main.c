@@ -660,7 +660,6 @@ void R_Init(void) {
 void R_Shutdown(void) {
 
 	Cmd_RemoveCommand("r_list_models");
-	Cmd_RemoveCommand("r_hunk_stats");
 
 	Cmd_RemoveCommand("r_list_images");
 	Cmd_RemoveCommand("r_screenshot");
@@ -669,7 +668,6 @@ void R_Shutdown(void) {
 
 	Cmd_RemoveCommand("r_toggle_fullscreen");
 
-	Cmd_RemoveCommand("r_reload");
 	Cmd_RemoveCommand("r_restart");
 
 	R_ShutdownCapture();
