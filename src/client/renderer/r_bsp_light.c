@@ -156,6 +156,7 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, float radius, vec3_t c
 		if (VectorLength(delta) <= 32.0) // merge them
 			break;
 
+		l = NULL;
 		e = e->next;
 	}
 
