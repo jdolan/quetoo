@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <glib.h>
+
 #include "r_local.h"
 
 /*
@@ -42,6 +44,12 @@
 #define BSP_LIGHT_SURFACE_SKY_RADIUS_SCALE 0.25
 #define BSP_LIGHT_POINT_RADIUS_SCALE 1.0
 #define BSP_LIGHT_COLOR_COMPONENT_MAX 0.9
+
+typedef struct {
+	GList *lights;
+} r_bsp_light_state_t;
+
+static r_bsp_light_state_t r_bsp_light_state;
 
 /*
  * @brief Resolves ambient light, brightness, and contrast levels from Worldspawn.
@@ -127,43 +135,39 @@ static void R_ResolveBspLightParameters(void) {
 }
 
 /*
- * @brief Adds the specified static light source to the world model, after first
- * ensuring that it can not be merged with any known sources.
+ * @brief Adds the specified static light source after first ensuring that it
+ * can not be merged with any known sources.
  */
 static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, float radius, vec3_t color) {
-	r_bsp_light_t *l;
-	vec3_t delta;
-	int32_t i;
 
 	if (radius <= 0.0) {
 		Com_Debug("R_AddBspLight: Bad radius: %f\n", radius);
 		return;
 	}
 
-	l = bsp->bsp_lights;
-	for (i = 0; i < bsp->num_bsp_lights; i++, l++) {
+	r_bsp_light_t *l;
+	GList *e = r_bsp_light_state.lights;
+	while (e) {
+		vec3_t delta;
 
+		l = (r_bsp_light_t *) e->data;
 		VectorSubtract(org, l->origin, delta);
 
 		if (VectorLength(delta) <= 32.0) // merge them
 			break;
+
+		e = e->next;
 	}
 
-	if (i == bsp->num_bsp_lights) { // or allocate a new one
-
+	if (!l) { // or allocate a new one
 		l = Z_LinkMalloc(sizeof(*l), bsp);
-
-		if (!bsp->bsp_lights) // first source
-			bsp->bsp_lights = l;
+		r_bsp_light_state.lights = g_list_append(r_bsp_light_state.lights, l);
 
 		VectorCopy(org, l->origin);
 		l->leaf = R_LeafForPoint(l->origin, bsp);
-
-		bsp->num_bsp_lights++;
 	}
 
 	l->count++;
-
 	l->radius = ((l->radius * (l->count - 1)) + radius) / l->count;
 
 	VectorMix(l->color, color, 1.0 / l->count, l->color);
@@ -175,19 +179,14 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, float radius, vec3_t c
  * to their light value (intensity).
  */
 void R_LoadBspLights(r_bsp_model_t *bsp) {
-	const char *ents;
-	char class_name[128];
-	vec3_t org, tmp, color;
+	vec3_t org, color;
 	float radius;
-	bool entity, light;
-	r_bsp_surface_t *surf;
-	r_bsp_light_t *l;
 	int32_t i;
 
 	R_ResolveBspLightParameters();
 
 	// iterate the world surfaces for surface lights
-	surf = bsp->surfaces;
+	const r_bsp_surface_t *surf = bsp->surfaces;
 
 	for (i = 0; i < bsp->num_surfaces; i++, surf++) {
 		vec3_t color = { 0.0, 0.0, 0.0 };
@@ -206,6 +205,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 		}
 
 		if (!VectorCompare(color, vec3_origin)) {
+			vec3_t tmp;
 			VectorMA(surf->center, 1.0, surf->normal, org);
 
 			VectorSubtract(surf->maxs, surf->mins, tmp);
@@ -216,15 +216,17 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	}
 
 	// parse the entity string for point lights
-	ents = Cm_EntityString();
+	const char *ents = Cm_EntityString();
 
 	VectorClear(org);
 
 	radius = 300.0;
 	VectorSet(color, 1.0, 1.0, 1.0);
 
+	char class_name[128];
 	memset(class_name, 0, sizeof(class_name));
-	entity = light = false;
+
+	bool entity = false, light = false;
 
 	while (true) {
 
@@ -282,8 +284,16 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 		}
 	}
 
-	l = bsp->bsp_lights;
-	for (i = 0; i < bsp->num_bsp_lights; i++, l++) {
+	// allocate the lights array
+	bsp->num_bsp_lights = g_list_length(r_bsp_light_state.lights);
+	bsp->bsp_lights = Z_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_bsp_lights, bsp);
+
+	i = 0;
+	GList *e = r_bsp_light_state.lights;
+	while (e) {
+		r_bsp_light_t *l = (r_bsp_light_t *) e->data;
+
+		// normalize the color, scaling back from full brights
 		float max = 0.0;
 		int32_t j;
 
@@ -295,7 +305,15 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 		if (max > BSP_LIGHT_COLOR_COMPONENT_MAX) {
 			VectorScale(l->color, BSP_LIGHT_COLOR_COMPONENT_MAX / max, l->color);
 		}
+
+		// and lastly copy the light into the BSP model
+		bsp->bsp_lights[i++] = *l;
+		e = e->next;
 	}
+
+	// reset state
+	g_list_free_full(r_bsp_light_state.lights, Z_Free);
+	r_bsp_light_state.lights = NULL;
 
 	Com_Debug("Loaded %d bsp lights\n", bsp->num_bsp_lights);
 }

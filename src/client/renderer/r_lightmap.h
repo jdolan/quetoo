@@ -34,8 +34,6 @@ typedef struct r_lightmaps_s {
 
 	byte *sample_buffer;  // RGB buffers for uploading
 	byte *direction_buffer;
-
-	float fbuffer[MAX_BSP_LIGHTMAP * 3];  // RGB buffer for bsp loading
 } r_lightmaps_t;
 
 extern r_lightmaps_t r_lightmaps;

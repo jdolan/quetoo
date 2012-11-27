@@ -194,18 +194,18 @@ static void R_SetupBspInlineModel(r_bsp_node_t *node, r_model_t *model) {
  * @brief The inline models have been loaded into memory, but are not yet
  * represented as r_model_t. Convert them, and take ownership of their nodes.
  */
-static void R_SetupBspInlineModels(r_model_t *world) {
+static void R_SetupBspInlineModels(r_model_t *mod) {
 	int32_t i;
 
-	for (i = 0; i < world->bsp->num_inline_models; i++) {
-		r_model_t *m = Z_LinkMalloc(sizeof(r_model_t), world->bsp);
-		*m = *world; // copy array and buffer pointers from world
+	for (i = 0; i < mod->bsp->num_inline_models; i++) {
+		r_model_t *m = Z_LinkMalloc(sizeof(r_model_t), mod->bsp);
+		*m = *mod; // copy array and buffer pointers from world
 
 		snprintf(m->name, sizeof(m->name), "*%d", i);
 		m->type = MOD_BSP_INLINE;
 
 		m->bsp = NULL;
-		m->bsp_inline = &world->bsp->inline_models[i];
+		m->bsp_inline = &mod->bsp->inline_models[i];
 
 		// copy the rest from the inline model
 		VectorCopy(m->bsp_inline->maxs, m->maxs);
@@ -214,7 +214,7 @@ static void R_SetupBspInlineModels(r_model_t *world) {
 
 		// setup the nodes
 		if (m->bsp_inline->head_node != -1) {
-			r_bsp_node_t *nodes = &world->bsp->nodes[m->bsp_inline->head_node];
+			r_bsp_node_t *nodes = &mod->bsp->nodes[m->bsp_inline->head_node];
 			R_SetupBspInlineModel(nodes, m);
 		}
 	}
@@ -395,6 +395,8 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	R_EndBuildingLightmaps(bsp);
+
+	// TODO: It's actually possible to free bsp->lightmap_data now
 }
 
 /*

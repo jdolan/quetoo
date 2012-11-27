@@ -61,7 +61,7 @@ static void R_UploadLightmapBlock(r_bsp_model_t *bsp) {
 	count++;
 
 	// clear the allocation block and buffers
-	memset(r_lightmaps.allocated, 0, r_lightmaps.block_size * 3);
+	memset(r_lightmaps.allocated, 0, r_lightmaps.block_size * sizeof(r_pixel_t));
 	memset(r_lightmaps.sample_buffer, 0, r_lightmaps.block_size * r_lightmaps.block_size * 3);
 	memset(r_lightmaps.direction_buffer, 0, r_lightmaps.block_size * r_lightmaps.block_size * 3);
 }

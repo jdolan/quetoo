@@ -34,8 +34,12 @@ typedef struct z_block_s {
 	GList *children;
 } z_block_t;
 
-static GList *z_blocks;
-static SDL_mutex *z_lock;
+typedef struct {
+	GList *blocks;
+	SDL_mutex *lock;
+} z_state_t;
+
+static z_state_t z_state;
 
 /*
  * @brief Performs the actual grunt work of freeing managed memory.
@@ -45,12 +49,13 @@ static void Z_Free_(gpointer data) {
 
 	if (z->children) {
 		g_list_free_full(z->children, Z_Free_);
+		z->children = NULL;
 	}
 
 	if (z->parent) {
 		z->parent->children = g_list_remove(z->parent->children, data);
 	} else {
-		z_blocks = g_list_remove(z_blocks, data);
+		z_state.blocks = g_list_remove(z_state.blocks, data);
 	}
 
 	free(z);
@@ -66,11 +71,11 @@ void Z_Free(void *p) {
 		Com_Error(ERR_FATAL, "Z_Free: Bad magic for %p.\n", p);
 	}
 
-	SDL_mutexP(z_lock);
+	SDL_mutexP(z_state.lock);
 
 	Z_Free_(z);
 
-	SDL_mutexV(z_lock);
+	SDL_mutexV(z_state.lock);
 }
 
 /*
@@ -78,9 +83,9 @@ void Z_Free(void *p) {
  */
 void Z_FreeTag(z_tag_t tag) {
 
-	SDL_mutexP(z_lock);
+	SDL_mutexP(z_state.lock);
 
-	GList *e = z_blocks;
+	GList *e = z_state.blocks;
 
 	while (e) {
 		GList *next = e->next;
@@ -94,7 +99,7 @@ void Z_FreeTag(z_tag_t tag) {
 		e = next;
 	}
 
-	SDL_mutexV(z_lock);
+	SDL_mutexV(z_state.lock);
 }
 
 /*
@@ -114,17 +119,17 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, z_block_t *parent) {
 	z->magic = Z_MAGIC;
 	z->parent = parent;
 
-	SDL_mutexP(z_lock);
+	SDL_mutexP(z_state.lock);
 
 	if (z->parent) {
 		z->parent->children = g_list_append(z->parent->children, z);
 		z->tag = z->parent->tag;
 	} else {
-		z_blocks = g_list_append(z_blocks, z);
+		z_state.blocks = g_list_append(z_state.blocks, z);
 		z->tag = tag;
 	}
 
-	SDL_mutexV(z_lock);
+	SDL_mutexV(z_state.lock);
 
 	return (void *) (z + 1);
 }
@@ -151,6 +156,13 @@ void *Z_TagMalloc(size_t size, z_tag_t tag) {
  * @return A block of memory initialized to 0x0.
  */
 void *Z_LinkMalloc(size_t size, void *parent) {
+
+	if (parent) {
+		parent = ((z_block_t *) parent) - 1;
+	} else {
+		Com_Error(ERR_FATAL, "Z_LinkMalloc: NULL parent\n");
+	}
+
 	return Z_Malloc_(size, Z_TAG_DEFAULT, parent);
 }
 
@@ -182,9 +194,9 @@ char *Z_CopyString(const char *in) {
  */
 void Z_Init(void) {
 
-	z_blocks = NULL;
+	memset(&z_state, 0, sizeof(z_state));
 
-	z_lock = SDL_CreateMutex();
+	z_state.lock = SDL_CreateMutex();
 }
 
 /*
@@ -193,7 +205,7 @@ void Z_Init(void) {
  */
 void Z_Shutdown(void) {
 
-	g_list_free_full(z_blocks, Z_Free_);
+	g_list_free_full(z_state.blocks, Z_Free_);
 
-	SDL_DestroyMutex(z_lock);
+	SDL_DestroyMutex(z_state.lock);
 }
