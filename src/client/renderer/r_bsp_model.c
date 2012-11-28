@@ -200,12 +200,12 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 	for (i = 0; i < mod->bsp->num_inline_models; i++) {
 		r_model_t *m = Z_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
 
-		snprintf(m->name, sizeof(m->name), "*%d", (i + 1));
+		snprintf(m->name, sizeof(m->name), "*%d", i);
 		m->type = MOD_BSP_INLINE;
 
 		m->bsp_inline = &mod->bsp->inline_models[i];
 
-		// copy the rest from the inline model
+		// copy bounds from the inline model
 		VectorCopy(m->bsp_inline->maxs, m->maxs);
 		VectorCopy(m->bsp_inline->mins, m->mins);
 		m->radius = m->bsp_inline->radius;
