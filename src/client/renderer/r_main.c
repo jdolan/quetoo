@@ -382,6 +382,9 @@ static void R_ResolveWeather(void) {
 
 /*
  * @brief Iterate the config_strings, loading all renderer-specific media.
+ *
+ * TODO Move most of this to the client; it's sloppy having the renderer plow
+ * through the client structs here.
  */
 void R_LoadMedia(void) {
 	int32_t i, j;
