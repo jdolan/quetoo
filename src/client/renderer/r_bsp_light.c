@@ -162,7 +162,7 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, float radius, vec3_t c
 
 	if (!l) { // or allocate a new one
 		l = Z_LinkMalloc(sizeof(*l), bsp);
-		r_bsp_light_state.lights = g_list_append(r_bsp_light_state.lights, l);
+		r_bsp_light_state.lights = g_list_prepend(r_bsp_light_state.lights, l);
 
 		VectorCopy(org, l->origin);
 		l->leaf = R_LeafForPoint(l->origin, bsp);
