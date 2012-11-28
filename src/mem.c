@@ -49,7 +49,6 @@ static void Z_Free_(gpointer data) {
 
 	if (z->children) {
 		g_list_free_full(z->children, Z_Free_);
-		z->children = NULL;
 	}
 
 	if (z->parent) {
@@ -113,10 +112,21 @@ void Z_FreeTag(z_tag_t tag) {
  * @return A block of managed memory initialized to 0x0.
  */
 static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
+	z_block_t *z, *p = NULL;
+
+	// ensure the specified parent was valid
+	if (parent) {
+		p = ((z_block_t *) parent) - 1;
+
+		if (p->magic != Z_MAGIC) {
+			Com_Error(ERR_FATAL, "Z_Malloc_: Invalid parent.\n");
+		}
+	}
+
+	// allocate the block plus the desired size
 	const size_t s = size + sizeof(z_block_t);
 
-	z_block_t *z = malloc(s);
-	if (!z) {
+	if (!(z = malloc(s))) {
 		Com_Error(ERR_FATAL, "Z_Malloc_: Failed to allocate "Q2W_SIZE_T" bytes.\n", s);
 	}
 
@@ -124,19 +134,20 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
 
 	z->magic = Z_MAGIC;
 	z->tag = tag;
+	z->parent = p;
 
-	z->parent = parent ? ((z_block_t *) parent) -1 : NULL;
-
+	// insert it into the managed memory structures
 	SDL_mutexP(z_state.lock);
 
 	if (z->parent) {
-		z->parent->children = g_list_append(z->parent->children, z);
+		z->parent->children = g_list_prepend(z->parent->children, z);
 	} else {
-		z_state.blocks = g_list_append(z_state.blocks, z);
+		z_state.blocks = g_list_prepend(z_state.blocks, z);
 	}
 
 	SDL_mutexV(z_state.lock);
 
+	// return the address in front of the block
 	return (void *) (z + 1);
 }
 
@@ -206,7 +217,11 @@ void Z_Init(void) {
  */
 void Z_Shutdown(void) {
 
+	SDL_mutexP(z_state.lock);
+
 	g_list_free_full(z_state.blocks, Z_Free_);
+
+	SDL_mutexV(z_state.lock);
 
 	SDL_DestroyMutex(z_state.lock);
 }
