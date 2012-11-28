@@ -292,7 +292,7 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
  * @brief Render the specified stage for the surface. Resolve vertex attributes via
  * helper functions, outputting to the default vertex arrays.
  */
-static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *stage) {
+static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_stage_t *stage) {
 	int32_t i;
 
 	for (i = 0; i < surf->num_edges; i++) {
@@ -332,7 +332,7 @@ static void R_DrawSurfaceStage(const r_bsp_surface_t *surf, const r_stage_t *sta
  * throughout the iteration, so there is a concerted effort to restore the
  * state after all surface stages have been rendered.
  */
-void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
+void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	r_material_t *m;
 	r_stage_t *s;
 	uint32_t i;
@@ -382,7 +382,7 @@ void R_DrawMaterialSurfaces(const r_bsp_surfaces_t *surfs) {
 
 			R_SetStageState(surf, s);
 
-			R_DrawSurfaceStage(surf, s);
+			R_DrawBspSurfaceMaterialStage(surf, s);
 		}
 	}
 

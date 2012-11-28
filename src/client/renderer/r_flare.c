@@ -26,7 +26,7 @@
  * should be applied. The flare is linked to the provided BSP model and will
  * be freed automatically.
  */
-void R_CreateSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
+void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	r_material_t *m;
 	vec3_t span;
 
@@ -72,7 +72,7 @@ void R_CreateSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
  * trace. Flares are also faded according to the angle of their surface to the
  * view origin.
  */
-void R_DrawFlareSurfaces(r_bsp_surfaces_t *surfs) {
+void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	uint32_t i, j, k, l, m;
 	vec3_t view, verts[4];
 	vec3_t right, up, up_right, down_right;

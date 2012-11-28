@@ -86,12 +86,12 @@ cvar_t *r_width;
 cvar_t *r_windowed_height;
 cvar_t *r_windowed_width;
 
-void (*R_DrawOpaqueSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawOpaqueWarpSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawAlphaTestSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawBlendSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawBlendWarpSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawBackSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawOpaqueBspSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawOpaqueWarpBspSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawAlphaTestBspSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawBlendBspSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawBlendWarpBspSurfaces)(const r_bsp_surfaces_t *surfs);
+void (*R_DrawBackBspSurfaces)(const r_bsp_surfaces_t *surfs);
 void (*R_DrawMeshModel)(const r_entity_t *e);
 
 extern cl_client_t cl;
@@ -169,7 +169,7 @@ void R_DrawView(void) {
 
 	R_UpdateVis();
 
-	R_MarkSurfaces();
+	R_MarkBspSurfaces();
 
 	R_EnableFog(true);
 
@@ -183,19 +183,21 @@ void R_DrawView(void) {
 
 	R_MarkLights();
 
-	R_DrawOpaqueSurfaces(&R_WorldModel()->bsp->sorted_surfaces->opaque);
+	const r_sorted_bsp_surfaces_t *surfs = R_WorldModel()->bsp->sorted_surfaces;
 
-	R_DrawOpaqueWarpSurfaces(&R_WorldModel()->bsp->sorted_surfaces->opaque_warp);
+	R_DrawOpaqueBspSurfaces(&surfs->opaque);
 
-	R_DrawAlphaTestSurfaces(&R_WorldModel()->bsp->sorted_surfaces->alpha_test);
+	R_DrawOpaqueWarpBspSurfaces(&surfs->opaque_warp);
+
+	R_DrawAlphaTestBspSurfaces(&surfs->alpha_test);
 
 	R_EnableBlend(true);
 
-	R_DrawBackSurfaces(&R_WorldModel()->bsp->sorted_surfaces->back);
+	R_DrawBackBspSurfaces(&surfs->back);
 
-	R_DrawMaterialSurfaces(&R_WorldModel()->bsp->sorted_surfaces->material);
+	R_DrawMaterialBspSurfaces(&surfs->material);
 
-	R_DrawFlareSurfaces(&R_WorldModel()->bsp->sorted_surfaces->flare);
+	R_DrawFlareBspSurfaces(&surfs->flare);
 
 	R_EnableBlend(false);
 
@@ -213,9 +215,9 @@ void R_DrawView(void) {
 
 	R_DrawBspLights();
 
-	R_DrawBlendSurfaces(&R_WorldModel()->bsp->sorted_surfaces->blend);
+	R_DrawBlendBspSurfaces(&surfs->blend);
 
-	R_DrawBlendWarpSurfaces(&R_WorldModel()->bsp->sorted_surfaces->blend_warp);
+	R_DrawBlendWarpBspSurfaces(&surfs->blend_warp);
 
 	// ensure the thread has finished updating particles
 	Thread_Wait(&r_view.thread);
@@ -241,12 +243,12 @@ static void R_RenderMode(const char *mode) {
 
 	r_view.render_mode = RENDER_MODEL_DEFAULT;
 
-	R_DrawOpaqueSurfaces = R_DrawOpaqueSurfaces_default;
-	R_DrawOpaqueWarpSurfaces = R_DrawOpaqueWarpSurfaces_default;
-	R_DrawAlphaTestSurfaces = R_DrawAlphaTestSurfaces_default;
-	R_DrawBlendSurfaces = R_DrawBlendSurfaces_default;
-	R_DrawBlendWarpSurfaces = R_DrawBlendWarpSurfaces_default;
-	R_DrawBackSurfaces = R_DrawBackSurfaces_default;
+	R_DrawOpaqueBspSurfaces = R_DrawOpaqueBspSurfaces_default;
+	R_DrawOpaqueWarpBspSurfaces = R_DrawOpaqueWarpBspSurfaces_default;
+	R_DrawAlphaTestBspSurfaces = R_DrawAlphaTestBspSurfaces_default;
+	R_DrawBlendBspSurfaces = R_DrawBlendBspSurfaces_default;
+	R_DrawBlendWarpBspSurfaces = R_DrawBlendWarpBspSurfaces_default;
+	R_DrawBackBspSurfaces = R_DrawBackBspSurfaces_default;
 
 	R_DrawMeshModel = R_DrawMeshModel_default;
 

@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-vec3_t r_bsp_model_org; // relative to r_view.origin
+static vec3_t r_bsp_model_org; // relative to r_view.origin
 
 /*
  * @brief Parses values from the worldspawn entity definition.
@@ -102,8 +102,7 @@ c_trace_t R_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const
 /*
  * @brief Returns true if the specified bounding box is completely culled by the
  * view frustum, false otherwise.
- */
-bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
+ */bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 	int32_t i;
 
 	if (!r_cull->value)
@@ -120,8 +119,7 @@ bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 /*
  * @brief Returns true if the specified entity is completely culled by the view
  * frustum, false otherwise.
- */
-bool R_CullBspModel(const r_entity_t *e) {
+ */bool R_CullBspModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 	int32_t i;
 
@@ -148,19 +146,24 @@ bool R_CullBspModel(const r_entity_t *e) {
 /*
  * @brief Draws all BSP surfaces for the specified entity. This is a condensed
  * version of the world drawing routine that relies on setting the visibility
- * counters to -1 to safely iterate the sorted surfaces arrays.
+ * counters to -2 to safely iterate the sorted surfaces arrays.
  */
-static void R_DrawBspModelSurfaces(const r_entity_t *e) {
+static void R_DrawBspInlineModel_(const r_entity_t *e) {
+	static int16_t frame = -2;
 	r_bsp_surface_t *surf;
-	int32_t i;
+	uint16_t i;
 
 	// temporarily swap the view frame so that the surface drawing
-	// routines pickup only the bsp model's surfaces
+	// routines pickup only the inline model's surfaces
 
-	const int32_t f = r_locals.frame;
-	r_locals.frame = -2;
+	const int16_t f = r_locals.frame;
+	r_locals.frame = frame--;
 
-	surf = &e->model->bsp->surfaces[e->model->bsp_inline->first_surface];
+	if (frame == INT16_MIN) {
+		frame = -2;
+	}
+
+	surf = &R_WorldModel()->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
 		const c_bsp_plane_t *plane = surf->plane;
@@ -183,23 +186,25 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e) {
 		}
 	}
 
-	R_DrawOpaqueSurfaces(&R_WorldModel()->bsp->sorted_surfaces->opaque);
+	const r_sorted_bsp_surfaces_t *surfs = R_WorldModel()->bsp->sorted_surfaces;
 
-	R_DrawOpaqueWarpSurfaces(&R_WorldModel()->bsp->sorted_surfaces->opaque_warp);
+	R_DrawOpaqueBspSurfaces(&surfs->opaque);
 
-	R_DrawAlphaTestSurfaces(&R_WorldModel()->bsp->sorted_surfaces->alpha_test);
+	R_DrawOpaqueWarpBspSurfaces(&surfs->opaque_warp);
+
+	R_DrawAlphaTestBspSurfaces(&surfs->alpha_test);
 
 	R_EnableBlend(true);
 
-	R_DrawBackSurfaces(&R_WorldModel()->bsp->sorted_surfaces->back);
+	R_DrawBackBspSurfaces(&surfs->back);
 
-	R_DrawMaterialSurfaces(&R_WorldModel()->bsp->sorted_surfaces->material);
+	R_DrawMaterialBspSurfaces(&surfs->material);
 
-	R_DrawFlareSurfaces(&R_WorldModel()->bsp->sorted_surfaces->flare);
+	R_DrawFlareBspSurfaces(&surfs->flare);
 
-	R_DrawBlendSurfaces(&R_WorldModel()->bsp->sorted_surfaces->blend);
+	R_DrawBlendBspSurfaces(&surfs->blend);
 
-	R_DrawBlendWarpSurfaces(&R_WorldModel()->bsp->sorted_surfaces->blend_warp);
+	R_DrawBlendWarpBspSurfaces(&surfs->blend_warp);
 
 	R_EnableBlend(false);
 
@@ -210,13 +215,13 @@ static void R_DrawBspModelSurfaces(const r_entity_t *e) {
  * @brief Draws the BSP model for the specified entity, taking translation and
  * rotation into account.
  */
-void R_DrawBspModel(const r_entity_t *e) {
-	vec3_t forward, right, up;
-	vec3_t temp;
+void R_DrawBspInlineModel(const r_entity_t *e) {
 
 	// set the relative origin, accounting for rotation if necessary
 	VectorSubtract(r_view.origin, e->origin, r_bsp_model_org);
 	if (e->angles[0] || e->angles[1] || e->angles[2]) {
+		vec3_t forward, right, up;
+		vec3_t temp;
 
 		VectorCopy(r_bsp_model_org, temp);
 		AngleVectors(e->angles, forward, right, up);
@@ -230,7 +235,7 @@ void R_DrawBspModel(const r_entity_t *e) {
 
 	R_RotateForEntity(e);
 
-	R_DrawBspModelSurfaces(e);
+	R_DrawBspInlineModel_(e);
 
 	R_RotateForEntity(NULL);
 
@@ -376,7 +381,7 @@ void R_DrawBspLeafs(void) {
  * in that recursion must then pass a dot-product test to resolve sidedness.
  * Finally, the back-side child node is recursed.
  */
-static void R_MarkSurfaces_(r_bsp_node_t *node) {
+static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	int32_t i, side, side_bit;
 	float dot;
 
@@ -423,7 +428,7 @@ static void R_MarkSurfaces_(r_bsp_node_t *node) {
 	}
 
 	// recurse down the children, front side first
-	R_MarkSurfaces_(node->children[side]);
+	R_MarkBspSurfaces_(node->children[side]);
 
 	// prune all marked surfaces to just those which are front-facing
 	r_bsp_surface_t *s = R_WorldModel()->bsp->surfaces + node->first_surface;
@@ -443,14 +448,14 @@ static void R_MarkSurfaces_(r_bsp_node_t *node) {
 	}
 
 	// recurse down the back side
-	R_MarkSurfaces_(node->children[!side]);
+	R_MarkBspSurfaces_(node->children[!side]);
 }
 
 /*
  * @brief Entry point for BSP recursion and surface-level visibility test. This
  * is also where the infamous r_optimize strategy is implemented.
  */
-void R_MarkSurfaces(void) {
+void R_MarkBspSurfaces(void) {
 	static vec3_t old_origin, old_angles;
 	static vec2_t old_fov;
 	static int16_t old_vis_frame;
@@ -472,7 +477,7 @@ void R_MarkSurfaces(void) {
 
 	r_locals.frame++;
 
-	if (r_locals.frame == 0x7fff) // avoid overflows, negatives are reserved
+	if (r_locals.frame == INT16_MAX) // avoid overflows, negatives are reserved
 		r_locals.frame = 0;
 
 	VectorCopy(r_view.origin, old_origin);
@@ -481,7 +486,7 @@ void R_MarkSurfaces(void) {
 	R_ClearSkyBox();
 
 	// flag all visible world surfaces
-	R_MarkSurfaces_(R_WorldModel()->bsp->nodes);
+	R_MarkBspSurfaces_(R_WorldModel()->bsp->nodes);
 }
 
 /*
@@ -556,7 +561,7 @@ void R_UpdateVis(void) {
 
 	r_locals.vis_frame++;
 
-	if (r_locals.vis_frame == 0x7fff) // avoid overflows, negatives are reserved
+	if (r_locals.vis_frame == INT16_MAX) // avoid overflows, negatives are reserved
 		r_locals.vis_frame = 0;
 
 	// if we have no vis, mark everything and return

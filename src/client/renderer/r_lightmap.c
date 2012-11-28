@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /*
- * In video memory, lightmaps are chunked into NxN RGB blocks. In the bsp,
+ * In video memory, lightmaps are chunked into NxN RGB blocks. In the BSP,
  * they are a contiguous lump. During the loading process, we use floating
  * point to provide precision.
  */
@@ -133,9 +133,14 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
 
 /*
  * @brief Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
- * writing processed lightmap and deluxemap RGBA to the specified destinations.
+ * writing processed lightmap and deluxemap RGB to the specified destinations.
+ *
+ * @param in The beginning of the surface lightmap [and deluxemap] data.
+ * @param sout The destination for processed lightmap data.
+ * @param dout The destination for processed deluxemap data.
  */
-static void R_BuildLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sout, byte *dout, size_t stride) {
+static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf, const byte *in,
+		byte *lout, byte *dout, size_t stride) {
 	size_t i, j;
 	byte *lightmap, *lm, *deluxemap, *dm;
 
@@ -157,15 +162,15 @@ static void R_BuildLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sou
 
 	// convert the raw lightmap samples to RGBA for softening
 	for (i = j = 0; i < size; i++, lm += 3, dm += 3) {
-		lm[0] = surf->samples[j++];
-		lm[1] = surf->samples[j++];
-		lm[2] = surf->samples[j++];
+		lm[0] = in[j++];
+		lm[1] = in[j++];
+		lm[2] = in[j++];
 
-		// read in directional samples for deluxe mapping as well
+		// read in directional samples for per-pixel lighting as well
 		if (bsp->version == BSP_VERSION_Q2W) {
-			dm[0] = surf->samples[j++];
-			dm[1] = surf->samples[j++];
-			dm[2] = surf->samples[j++];
+			dm[0] = in[j++];
+			dm[1] = in[j++];
+			dm[2] = in[j++];
 		}
 	}
 
@@ -186,18 +191,19 @@ static void R_BuildLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sou
 
 	lm = lightmap;
 
-	if (bsp->version == BSP_VERSION_Q2W)
+	if (bsp->version == BSP_VERSION_Q2W) {
 		dm = deluxemap;
+	}
 
 	r_pixel_t s, t;
-	for (t = 0; t < tmax; t++, sout += stride, dout += stride) {
+	for (t = 0; t < tmax; t++, lout += stride, dout += stride) {
 		for (s = 0; s < smax; s++) {
 
 			// copy the lightmap to the strided block
-			sout[0] = lm[0];
-			sout[1] = lm[1];
-			sout[2] = lm[2];
-			sout += 3;
+			lout[0] = lm[0];
+			lout[1] = lm[1];
+			lout[2] = lm[2];
+			lout += 3;
 
 			lm += 3;
 
@@ -220,9 +226,13 @@ static void R_BuildLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sou
 }
 
 /*
- * @brief
+ * @brief Creates the lightmap and deluxemap for the specified surface. The GL
+ * textures to which the lightmap and deluxemap are written is stored on the
+ * surface.
+ *
+ * @param data If NULL, a default lightmap and deluxemap will be generated.
  */
-void R_CreateSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
+void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const byte *data) {
 
 	if (!(surf->flags & R_SURF_LIGHTMAP))
 		return;
@@ -249,24 +259,24 @@ void R_CreateSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	surf->lightmap_texnum = r_lightmaps.lightmap_texnum;
 	surf->deluxemap_texnum = r_lightmaps.deluxemap_texnum;
 
-	byte *samples = r_lightmaps.sample_buffer;
-	samples += (surf->light_t * r_lightmaps.block_size + surf->light_s) * 3;
+	byte *sout = r_lightmaps.sample_buffer;
+	sout += (surf->light_t * r_lightmaps.block_size + surf->light_s) * 3;
 
-	byte *directions = r_lightmaps.direction_buffer;
-	directions += (surf->light_t * r_lightmaps.block_size + surf->light_s) * 3;
+	byte *dout = r_lightmaps.direction_buffer;
+	dout += (surf->light_t * r_lightmaps.block_size + surf->light_s) * 3;
 
 	const size_t stride = r_lightmaps.block_size * 3;
 
-	if (surf->samples)
-		R_BuildLightmap(bsp, surf, samples, directions, stride);
+	if (data)
+		R_BuildLightmap(bsp, surf, data, sout, dout, stride);
 	else
-		R_BuildDefaultLightmap(bsp, surf, samples, directions, stride);
+		R_BuildDefaultLightmap(bsp, surf, sout, dout, stride);
 }
 
 /*
  * @brief
  */
-void R_BeginBuildingLightmaps(r_bsp_model_t *bsp) {
+void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	int32_t max;
 
 	// users can tune lightmap size for their card
@@ -296,7 +306,7 @@ void R_BeginBuildingLightmaps(r_bsp_model_t *bsp) {
 /*
  * @brief
  */
-void R_EndBuildingLightmaps(r_bsp_model_t *bsp) {
+void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 
 	// upload the pending lightmap block
 	R_UploadLightmapBlock(bsp);

@@ -24,7 +24,7 @@
 /*
  * @brief
  */
-static void R_SetSurfaceState_default(const r_bsp_surface_t *surf) {
+static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 	r_image_t *diffuse;
 
 	if (r_state.blend_enabled) { // alpha blend
@@ -67,7 +67,7 @@ static void R_SetSurfaceState_default(const r_bsp_surface_t *surf) {
 /*
  * @brief
  */
-static void R_DrawSurface_default(const r_bsp_surface_t *surf) {
+static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
 
 	glDrawArrays(GL_POLYGON, surf->index, surf->num_edges);
 
@@ -77,7 +77,7 @@ static void R_DrawSurface_default(const r_bsp_surface_t *surf) {
 /*
  * @brief
  */
-static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
+static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	uint32_t i;
 
 	R_SetArrayState(R_WorldModel());
@@ -91,9 +91,9 @@ static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		if (surfs->surfaces[i]->frame != r_locals.frame)
 			continue;
 
-		R_SetSurfaceState_default(surfs->surfaces[i]);
+		R_SetBspSurfaceState_default(surfs->surfaces[i]);
 
-		R_DrawSurface_default(surfs->surfaces[i]);
+		R_DrawBspSurface_default(surfs->surfaces[i]);
 	}
 
 	// reset state
@@ -110,7 +110,7 @@ static void R_DrawSurfaces_default(const r_bsp_surfaces_t *surfs) {
 /*
  * @brief
  */
-static void R_DrawSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
+static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 	uint32_t i;
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -126,7 +126,7 @@ static void R_DrawSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 		if (surfs->surfaces[i]->frame != r_locals.frame)
 			continue;
 
-		R_DrawSurface_default(surfs->surfaces[i]);
+		R_DrawBspSurface_default(surfs->surfaces[i]);
 	}
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -139,13 +139,13 @@ static void R_DrawSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 /*
  * @brief
  */
-void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs) {
+void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	if (!surfs->count)
 		return;
 
 	if (r_draw_wireframe->value) { // surface outlines
-		R_DrawSurfacesLines_default(surfs);
+		R_DrawBspSurfacesLines_default(surfs);
 		return;
 	}
 
@@ -153,7 +153,7 @@ void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(r_state.default_program, true);
 
-	R_DrawSurfaces_default(surfs);
+	R_DrawBspSurfaces_default(surfs);
 
 	R_EnableLighting(NULL, false);
 
@@ -163,19 +163,19 @@ void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs) {
 /*
  * @brief
  */
-void R_DrawOpaqueWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
+void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	if (!surfs->count)
 		return;
 
 	if (r_draw_wireframe->value) { // surface outlines
-		R_DrawSurfacesLines_default(surfs);
+		R_DrawBspSurfacesLines_default(surfs);
 		return;
 	}
 
 	R_EnableWarp(r_state.warp_program, true);
 
-	R_DrawSurfaces_default(surfs);
+	R_DrawBspSurfaces_default(surfs);
 
 	R_EnableWarp(NULL, false);
 }
@@ -183,13 +183,13 @@ void R_DrawOpaqueWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
 /*
  * @brief
  */
-void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs) {
+void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	if (!surfs->count)
 		return;
 
 	if (r_draw_wireframe->value) { // surface outlines
-		R_DrawSurfacesLines_default(surfs);
+		R_DrawBspSurfacesLines_default(surfs);
 		return;
 	}
 
@@ -199,7 +199,7 @@ void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(r_state.default_program, true);
 
-	R_DrawSurfaces_default(surfs);
+	R_DrawBspSurfaces_default(surfs);
 
 	R_EnableLighting(NULL, false);
 
@@ -211,13 +211,13 @@ void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs) {
 /*
  * @brief
  */
-void R_DrawBlendSurfaces_default(const r_bsp_surfaces_t *surfs) {
+void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	if (!surfs->count)
 		return;
 
 	if (r_draw_wireframe->value) { // surface outlines
-		R_DrawSurfacesLines_default(surfs);
+		R_DrawBspSurfacesLines_default(surfs);
 		return;
 	}
 
@@ -225,7 +225,7 @@ void R_DrawBlendSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(&texunit_lightmap, true);
 
-	R_DrawSurfaces_default(surfs);
+	R_DrawBspSurfaces_default(surfs);
 
 	R_EnableTexture(&texunit_lightmap, false);
 }
@@ -233,19 +233,19 @@ void R_DrawBlendSurfaces_default(const r_bsp_surfaces_t *surfs) {
 /*
  * @brief
  */
-void R_DrawBlendWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
+void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	if (!surfs->count)
 		return;
 
 	if (r_draw_wireframe->value) { // surface outlines
-		R_DrawSurfacesLines_default(surfs);
+		R_DrawBspSurfacesLines_default(surfs);
 		return;
 	}
 
 	R_EnableWarp(r_state.warp_program, true);
 
-	R_DrawSurfaces_default(surfs);
+	R_DrawBspSurfaces_default(surfs);
 
 	R_EnableWarp(NULL, false);
 }
@@ -253,6 +253,6 @@ void R_DrawBlendWarpSurfaces_default(const r_bsp_surfaces_t *surfs) {
 /*
  * @brief
  */
-void R_DrawBackSurfaces_default(const r_bsp_surfaces_t *surfs __attribute__((unused))) {
+void R_DrawBackBspSurfaces_default(const r_bsp_surfaces_t *surfs __attribute__((unused))) {
 	// no-op
 }

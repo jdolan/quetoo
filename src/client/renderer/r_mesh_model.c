@@ -351,8 +351,6 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 			"(%i should be %i)\n", mod->name, version, MD3_VERSION);
 	}
 
-	mod->type = MOD_MD3;
-
 	mod->mesh = Z_LinkMalloc(sizeof(r_mesh_model_t), mod);
 	mod->mesh->data = out_md3 = Z_LinkMalloc(sizeof(r_md3_t), mod->mesh);
 
@@ -890,8 +888,6 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	r_obj_t *obj;
 	const float *v;
 	int32_t i;
-
-	mod->type = MOD_OBJ;
 
 	mod->mesh = Z_LinkMalloc(sizeof(r_mesh_model_t), mod);
 	mod->mesh->data = obj = Z_LinkMalloc(sizeof(r_obj_t), mod->mesh);

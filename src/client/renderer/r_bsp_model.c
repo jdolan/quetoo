@@ -198,13 +198,11 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 	int32_t i;
 
 	for (i = 0; i < mod->bsp->num_inline_models; i++) {
-		r_model_t *m = Z_LinkMalloc(sizeof(r_model_t), mod->bsp);
-		*m = *mod; // copy array and buffer pointers from world
+		r_model_t *m = Z_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
 
-		snprintf(m->name, sizeof(m->name), "*%d", i);
+		snprintf(m->name, sizeof(m->name), "*%d", (i + 1));
 		m->type = MOD_BSP_INLINE;
 
-		m->bsp = NULL;
 		m->bsp_inline = &mod->bsp->inline_models[i];
 
 		// copy the rest from the inline model
@@ -217,6 +215,9 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 			r_bsp_node_t *nodes = &mod->bsp->nodes[m->bsp_inline->head_node];
 			R_SetupBspInlineModel(nodes, m);
 		}
+
+		// register with the subsystem
+		R_RegisterModel(m);
 	}
 }
 
@@ -332,7 +333,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	const d_bsp_face_t *in;
 	r_bsp_surface_t *out;
-	int32_t i, count, surf_num;
+	int32_t i, count;
 	int32_t plane_num, side;
 	int32_t ti;
 
@@ -347,9 +348,9 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	bsp->surfaces = out;
 	bsp->num_surfaces = count;
 
-	R_BeginBuildingLightmaps(bsp);
+	R_BeginBspSurfaceLightmaps(bsp);
 
-	for (surf_num = 0; surf_num < count; surf_num++, in++, out++) {
+	for (i = 0; i < count; i++, in++, out++) {
 
 		out->first_edge = LittleLong(in->first_edge);
 		out->num_edges = LittleShort(in->num_edges);
@@ -380,23 +381,20 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		R_SetupBspSurface(bsp, out);
 
 		// lastly lighting info
-		i = LittleLong(in->light_ofs);
+		const int32_t ofs = LittleLong(in->light_ofs);
+		const byte *data = (ofs == -1) ? NULL : bsp->lightmap_data + ofs;
 
-		if (i != -1)
-			out->samples = bsp->lightmap_data + i;
-		else
-			out->samples = NULL;
-
-		// create lightmaps
-		R_CreateSurfaceLightmap(bsp, out);
+		// to create the lightmap and deluxemap
+		R_CreateBspSurfaceLightmap(bsp, out, data);
 
 		// and flare
-		R_CreateSurfaceFlare(bsp, out);
+		R_CreateBspSurfaceFlare(bsp, out);
 	}
 
-	R_EndBuildingLightmaps(bsp);
+	R_EndBspSurfaceLightmaps(bsp);
 
-	// TODO: It's actually possible to free bsp->lightmap_data now
+	Z_Free(bsp->lightmap_data);
+	bsp->lightmap_data_size = 0;
 }
 
 /*
@@ -837,8 +835,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 				header.version);
 	}
 
-	mod->type = MOD_BSP;
-
 	mod->bsp = Z_LinkMalloc(sizeof(r_bsp_model_t), mod);
 	mod->bsp->version = header.version;
 
@@ -897,8 +893,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug("  Leafs:          %d\n", mod->bsp->num_leafs);
 	Com_Debug("  Leaf surfaces:  %d\n", mod->bsp->num_leaf_surfaces);
 	Com_Debug("  Clusters:       %d\n", mod->bsp->num_clusters);
-	Com_Debug("  Models:         %d\n", mod->bsp->num_inline_models);
-	Com_Debug("  Lightmaps:      %d\n", mod->bsp->lightmap_data_size);
+	Com_Debug("  Inline models   %d\n", mod->bsp->num_inline_models);
 	Com_Debug("================================\n");
 
 	R_LoadBspVertexArrays(mod);

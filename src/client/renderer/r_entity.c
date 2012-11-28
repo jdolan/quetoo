@@ -241,7 +241,7 @@ static void R_DrawBspEntities() {
 
 	while (e) {
 		if (!e->culled)
-			R_DrawBspModel(e);
+			R_DrawBspInlineModel(e);
 		e = e->next;
 	}
 }

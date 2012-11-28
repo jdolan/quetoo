@@ -57,11 +57,12 @@ static void Warn(const char *msg);
  * @brief Filters debugging output to when the `debug` cvar is set.
  */
 static void Debug(const char *msg) {
-
+	/*
 	if (debug && !debug->integer)
 		return;
 
-	Print(msg);
+	Print(msg);*/
+	printf("%s", msg);
 }
 
 /*

@@ -32,11 +32,11 @@ bool R_LeafInPhs(const r_bsp_leaf_t *leaf);
 const char *R_WorldspawnValue(const char *key);
 bool R_CullBox(const vec3_t mins, const vec3_t maxs);
 bool R_CullBspModel(const r_entity_t *e);
-void R_DrawBspModel(const r_entity_t *e);
+void R_DrawBspInlineModel(const r_entity_t *e);
 void R_DrawBspLeafs(void);
 void R_DrawBspLights(void);
 void R_DrawBspNormals(void);
-void R_MarkSurfaces(void);
+void R_MarkBspSurfaces(void);
 void R_UpdateVis(void);
 #endif /* __R_LOCAL_H__ */
 

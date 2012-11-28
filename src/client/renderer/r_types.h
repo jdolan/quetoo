@@ -215,8 +215,6 @@ typedef struct {
 	GLuint lightmap_texnum;
 	GLuint deluxemap_texnum;
 
-	byte *samples; // raw lighting information, only used at loading time
-
 	uint32_t lights; // bit mask of enabled light sources
 } r_bsp_surface_t;
 

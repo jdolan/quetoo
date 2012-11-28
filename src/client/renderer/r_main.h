@@ -144,12 +144,12 @@ void R_SortElements(r_element_t *elements, size_t len);
 void R_UpdateFrustum(void);
 
 // render mode function pointers
-extern void (*R_DrawOpaqueSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawOpaqueWarpSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawAlphaTestSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBlendSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBlendWarpSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBackSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawOpaqueBspSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawOpaqueWarpBspSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawAlphaTestBspSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBlendBspSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBlendWarpBspSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBackBspSurfaces)(const r_bsp_surfaces_t *surfs);
 extern void (*R_DrawMeshModel)(const r_entity_t *e);
 
 #endif /* __R_LOCAL_H__ */

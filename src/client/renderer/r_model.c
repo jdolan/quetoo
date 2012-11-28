@@ -43,8 +43,6 @@ static r_model_format_t r_model_formats[] = {
 	{ MOD_BSP, ".bsp", R_LoadBspModel }
 };
 
-r_model_t *r_model_loading;
-
 /*
  * @brief
  */
@@ -143,6 +141,7 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 r_model_t *R_LoadModel(const char *name) {
 	r_model_t *mod;
 	char key[MAX_QPATH];
+	size_t i;
 
 	if (!name || !name[0]) {
 		Com_Error(ERR_DROP, "R_LoadModel: NULL name.\n");
@@ -160,8 +159,6 @@ r_model_t *R_LoadModel(const char *name) {
 
 	// load the file
 	r_model_format_t *format = r_model_formats;
-	size_t i;
-
 	for (i = 0; i < lengthof(r_model_formats); i++, format++) {
 
 		StripExtension(name, key);
@@ -201,9 +198,8 @@ r_model_t *R_LoadModel(const char *name) {
 	VectorSubtract(mod->maxs, mod->mins, tmp);
 	mod->radius = VectorLength(tmp) / 2.0;
 
-	g_hash_table_insert(r_model_state.models, mod->name, mod);
+	R_RegisterModel(mod);
 
-	mod->media_count = r_locals.media_count;
 	return mod;
 }
 
@@ -239,7 +235,10 @@ void R_ListModels_f(void) {
  */
 void R_BeginLoading(const char *bsp_name, int32_t bsp_size) {
 
-	// load bsp for collision detection (prediction)
+	// clear the BSP model
+	r_model_state.world = NULL;
+
+	// load the BSP for collision detection (prediction)
 	if (!Com_WasInit(Q2W_SERVER) || !Cm_NumModels()) {
 		int32_t bs;
 
@@ -251,8 +250,18 @@ void R_BeginLoading(const char *bsp_name, int32_t bsp_size) {
 		}
 	}
 
-	// and then load the bsp for rendering (surface arrays)
+	// and then load the BSP for rendering
 	r_model_state.world = R_LoadModel(bsp_name);
+}
+
+/*
+ * @brief Inserts the specified model into the shared table.
+ */
+void R_RegisterModel(r_model_t *mod) {
+
+	g_hash_table_insert(r_model_state.models, mod->name, mod);
+
+	mod->media_count = r_locals.media_count;
 }
 
 /*

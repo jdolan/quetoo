@@ -91,7 +91,6 @@ void Z_FreeTag(z_tag_t tag) {
 		GList *next = e->next;
 
 		z_block_t *z = (z_block_t *) e->data;
-
 		if (tag == Z_TAG_ALL || z->tag == tag) {
 			Z_Free_(z);
 		}
@@ -104,9 +103,16 @@ void Z_FreeTag(z_tag_t tag) {
 
 /*
  * @brief Performs the grunt work of allocating a z_block_t and inserting it
- * into the managed memory structures.
+ * into the managed memory structures. Note that parent should be a pointer to
+ * a previously allocated structure, and not to a z_block_t.
+ *
+ * @param size The number of bytes to allocate.
+ * @param tag The tag to allocate with (e.g. Z_TAG_DEFAULT).
+ * @param parent The parent to link this allocation to.
+ *
+ * @return A block of managed memory initialized to 0x0.
  */
-static void *Z_Malloc_(size_t size, z_tag_t tag, z_block_t *parent) {
+static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
 	const size_t s = size + sizeof(z_block_t);
 
 	z_block_t *z = malloc(s);
@@ -117,16 +123,16 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, z_block_t *parent) {
 	memset(z, 0, s);
 
 	z->magic = Z_MAGIC;
-	z->parent = parent;
+	z->tag = tag;
+
+	z->parent = parent ? ((z_block_t *) parent) -1 : NULL;
 
 	SDL_mutexP(z_state.lock);
 
 	if (z->parent) {
 		z->parent->children = g_list_append(z->parent->children, z);
-		z->tag = z->parent->tag;
 	} else {
 		z_state.blocks = g_list_append(z_state.blocks, z);
-		z->tag = tag;
 	}
 
 	SDL_mutexV(z_state.lock);
@@ -137,10 +143,11 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, z_block_t *parent) {
 /*
  * @brief Allocates a block of managed memory with the specified tag.
  *
+ * @param size The number of bytes to allocate.
  * @param tag Tags allow related objects to be freed in bulk e.g. when a
  * subsystem quits.
  *
- * @return A block of memory initialized to 0x0.
+ * @return A block of managed memory initialized to 0x0.
  */
 void *Z_TagMalloc(size_t size, z_tag_t tag) {
 	return Z_Malloc_(size, tag, NULL);
@@ -149,20 +156,14 @@ void *Z_TagMalloc(size_t size, z_tag_t tag) {
 /*
  * @brief Allocates a block of managed memory with the specified parent.
  *
+ * @param size The number of bytes to allocate.
  * @param parent The parent block previously allocated through Z_Malloc /
- * Z_TagMalloc, or NULL. If specified, the returned block will automatically be
- * released when the parent is freed through Z_Free.
+ * Z_TagMalloc. The returned block will automatically be released when the
+ * parent is freed through Z_Free.
  *
- * @return A block of memory initialized to 0x0.
+ * @return A block of managed memory initialized to 0x0.
  */
 void *Z_LinkMalloc(size_t size, void *parent) {
-
-	if (parent) {
-		parent = ((z_block_t *) parent) - 1;
-	} else {
-		Com_Error(ERR_FATAL, "Z_LinkMalloc: NULL parent\n");
-	}
-
 	return Z_Malloc_(size, Z_TAG_DEFAULT, parent);
 }
 

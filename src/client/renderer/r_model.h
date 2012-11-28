@@ -36,6 +36,7 @@ void R_InitModels(void);
 void R_FreeModels(void);
 void R_ShutdownModels(void);
 void R_BeginLoading(const char *map, int32_t map_size);
+void R_RegisterModel(r_model_t *mod);
 void R_ListModels_f(void);
 
 #endif /* __R_LOCAL_H__ */

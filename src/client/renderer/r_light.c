@@ -157,7 +157,7 @@ void R_MarkLights(void) {
 
 	r_locals.light_frame++;
 
-	if (r_locals.light_frame == 0x7fff) // avoid overflows
+	if (r_locals.light_frame == INT16_MAX) // avoid overflows
 		r_locals.light_frame = 0;
 
 	R_AddSustainedLights();
