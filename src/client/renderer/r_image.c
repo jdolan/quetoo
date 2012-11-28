@@ -39,8 +39,6 @@ static GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 static GLint r_filter_mag = GL_LINEAR;
 static GLfloat r_filter_aniso = 1.0;
 
-#define IS_MIPMAP(t) (t == IT_EFFECT || t == IT_DIFFUSE || t == IT_NORMALMAP || t == IT_GLOSSMAP)
-
 typedef struct {
 	const char *name;
 	GLenum minimize, maximize;
@@ -56,12 +54,12 @@ static r_texture_mode_t r_texture_modes[] = {
 };
 
 /*
- * @brief GHFunc for setting mipmap parameters on an r_image_t.
+ * @brief GHFunc for setting texture mode parameters on an r_image_t.
  */
 static void R_TextureMode_(gpointer key __attribute__((unused)), gpointer value, gpointer data __attribute__((unused))) {
 	r_image_t *image = (r_image_t *) value;
 
-	if (!IS_MIPMAP(image->type))
+	if (!(image->type & IT_MASK_MIPMAP))
 		return;
 
 	R_BindTexture(image->texnum);
@@ -215,68 +213,28 @@ void R_Screenshot_f(void) {
 }
 
 /*
- * @brief
- */
-void R_SoftenTexture(byte *in, r_pixel_t width, r_pixel_t height, r_image_type_t type) {
-	byte *out;
-	int32_t i, j, k, bytes;
-	byte *src, *dest;
-	byte *u, *d, *l, *r;
-
-	if (type == IT_LIGHTMAP || type == IT_DELUXEMAP)
-		bytes = 3;
-	else
-		bytes = 4;
-
-	// soften into a copy of the original image, as in-place would be incorrect
-	out = (byte *) Z_Malloc(width * height * bytes);
-	memcpy(out, in, width * height * bytes);
-
-	for (i = 1; i < height - 1; i++) {
-		for (j = 1; j < width - 1; j++) {
-
-			src = in + ((i * width) + j) * bytes; // current input pixel
-
-			u = (src - (width * bytes)); // and it's neighbors
-			d = (src + (width * bytes));
-			l = (src - (1 * bytes));
-			r = (src + (1 * bytes));
-
-			dest = out + ((i * width) + j) * bytes; // current output pixel
-
-			for (k = 0; k < bytes; k++)
-				dest[k] = (u[k] + d[k] + l[k] + r[k]) / 4;
-		}
-	}
-
-	// copy the softened image over the input image, and free it
-	memcpy(in, out, width * height * bytes);
-	Z_Free(out);
-}
-
-/*
  * @brief Applies brightness and contrast to the specified image while optionally computing
  * the image's average color. Also handles image inversion and monochrome. This is
  * all munged into one function to reduce loops on level load.
  */
-void R_FilterTexture(byte *in, r_pixel_t width, r_pixel_t height, vec3_t color, r_image_type_t type) {
+void R_FilterImage(byte *in, r_pixel_t width, r_pixel_t height, vec3_t color, r_image_type_t type) {
 	uint32_t col[3];
 	size_t i, j;
 	float brightness;
 
-	if (type == IT_DELUXEMAP || type == IT_NORMALMAP || type == IT_GLOSSMAP)
+	if (!(type & IT_MASK_FILTER))
 		return;
 
 	uint16_t bytes = 0, mask = 0; // monochrome / invert
 
-	if (type == IT_DIFFUSE || type == IT_EFFECT) {
-		brightness = r_brightness->value;
-		bytes = 4;
-		mask = 1;
-	} else if (type == IT_LIGHTMAP) {
+	if (type == IT_LIGHTMAP) {
 		brightness = r_modulate->value;
 		bytes = 3;
 		mask = 2;
+	} else {
+		brightness = r_brightness->value;
+		bytes = 4;
+		mask = 1;
 	}
 
 	if (color) // compute average color
@@ -343,6 +301,8 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		Com_Error(ERR_DROP, "R_UploadImage: NULL image or data\n");
 	}
 
+	R_FilterImage(data, image->width, image->height, image->color, image->type);
+
 	g_hash_table_insert(r_image_state.images, image->name, image);
 
 	if (!image->texnum) {
@@ -351,17 +311,15 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	R_BindTexture(image->texnum);
 
-	R_FilterTexture(data, image->width, image->height, image->color, image->type);
-
-	if (!IS_MIPMAP(image->type)) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_mag);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-	} else {
+	if (image->type & IT_MASK_MIPMAP) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_filter_aniso);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+	} else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 	}
 
 	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format, GL_UNSIGNED_BYTE, data);

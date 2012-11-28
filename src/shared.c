@@ -575,29 +575,31 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
 	float d;
 	int32_t i;
 
-	// apply global scale factor
-	VectorScale(in, brightness, out);
+	if (brightness != 1.0) { // apply brightness
+		VectorScale(in, brightness, out);
 
-	ColorNormalize(out, out);
-
-	for (i = 0; i < 3; i++) { // apply contrast
-
-		out[i] -= 0.5; // normalize to -0.5 through 0.5
-
-		out[i] *= contrast; // scale
-
-		out[i] += 0.5;
+		ColorNormalize(out, out);
 	}
 
-	ColorNormalize(out, out);
+	if (contrast != 1.0) { // apply contrast
 
-	// apply saturation
-	d = DotProduct(out, luminosity);
+		for (i = 0; i < 3; i++) {
+			out[i] -= 0.5; // normalize to -0.5 through 0.5
+			out[i] *= contrast; // scale
+			out[i] += 0.5;
+		}
 
-	VectorSet(intensity, d, d, d);
-	VectorMix(intensity, out, saturation, out);
+		ColorNormalize(out, out);
+	}
 
-	ColorNormalize(out, out);
+	if (saturation != 1.0) { // apply saturation
+		d = DotProduct(out, luminosity);
+
+		VectorSet(intensity, d, d, d);
+		VectorMix(intensity, out, saturation, out);
+
+		ColorNormalize(out, out);
+	}
 }
 
 /*

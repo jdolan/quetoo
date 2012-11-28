@@ -58,7 +58,6 @@ cvar_t *r_fullscreen;
 cvar_t *r_gamma;
 cvar_t *r_hardness;
 cvar_t *r_height;
-cvar_t *r_hunk_mb;
 cvar_t *r_invert;
 cvar_t *r_lightmap_block_size;
 cvar_t *r_lighting;
@@ -76,7 +75,6 @@ cvar_t *r_saturation;
 cvar_t *r_screenshot_type;
 cvar_t *r_screenshot_quality;
 cvar_t *r_shadows;
-cvar_t *r_soften;
 cvar_t *r_specular;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
@@ -533,8 +531,6 @@ static void R_InitLocal(void) {
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE,
 			"Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_hunk_mb = Cvar_Get("r_hunk_mb", "512", CVAR_R_CONTEXT,
-			"Memory size for the renderer hunk in megabytes");
 	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES,
 			"Inverts the RGB values of all world textures");
 	r_lightmap_block_size = Cvar_Get("r_lightmap_block_size", "4096", CVAR_ARCHIVE | CVAR_R_IMAGES,
@@ -566,8 +562,6 @@ static void R_InitLocal(void) {
 			"Screenshot image quality (jpeg only)");
 	r_shadows = Cvar_Get("r_shadows", "1", CVAR_ARCHIVE,
 			"Controls the rendering of mesh model shadows");
-	r_soften = Cvar_Get("r_soften", "4", CVAR_ARCHIVE | CVAR_R_IMAGES,
-			"Controls lightmap softening");
 	r_specular = Cvar_Get("r_specular", "1.0", CVAR_ARCHIVE,
 			"Controls the specularity of bump-mapping effects");
 	r_swap_interval = Cvar_Get("r_swap_interval", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,

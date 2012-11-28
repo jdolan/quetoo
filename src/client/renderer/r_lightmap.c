@@ -174,18 +174,8 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 		}
 	}
 
-	// apply modulate, contrast, resolve average surface color, etc..
-	R_FilterTexture(lightmap, smax, tmax, NULL, IT_LIGHTMAP);
-
-	// soften it if it's sufficiently large
-	if (r_soften->value && size > 128) {
-		for (i = 0; i < r_soften->value; i++) {
-			R_SoftenTexture(lightmap, smax, tmax, IT_LIGHTMAP);
-
-			if (bsp->version == BSP_VERSION_Q2W)
-				R_SoftenTexture(deluxemap, smax, tmax, IT_DELUXEMAP);
-		}
-	}
+	// apply modulate, contrast, saturation, etc..
+	R_FilterImage(lightmap, smax, tmax, NULL, IT_LIGHTMAP);
 
 	// the lightmap is uploaded to the card via the strided block
 
