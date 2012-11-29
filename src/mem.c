@@ -48,7 +48,13 @@ static void Z_Free_(gpointer data) {
 	z_block_t *z = (z_block_t *) data;
 
 	if (z->children) {
-		g_list_free_full(z->children, Z_Free_);
+		GList *next, *c = z->children;
+		while (c) {
+			next = c->next;
+			Z_Free_(c->data);
+			c = next;
+		}
+		g_list_free(z->children);
 	}
 
 	if (z->parent) {
@@ -130,6 +136,7 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
 		Com_Error(ERR_FATAL, "Z_Malloc_: Failed to allocate "Q2W_SIZE_T" bytes.\n", s);
 	}
 
+	// clear it to 0x0
 	memset(z, 0, s);
 
 	z->magic = Z_MAGIC;
@@ -217,11 +224,7 @@ void Z_Init(void) {
  */
 void Z_Shutdown(void) {
 
-	SDL_mutexP(z_state.lock);
-
-	g_list_free_full(z_state.blocks, Z_Free_);
-
-	SDL_mutexV(z_state.lock);
+	Z_FreeTag(Z_TAG_ALL);
 
 	SDL_DestroyMutex(z_state.lock);
 }
