@@ -575,8 +575,10 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
 	float d;
 	int32_t i;
 
+	ColorNormalize(in, out);
+
 	if (brightness != 1.0) { // apply brightness
-		VectorScale(in, brightness, out);
+		VectorScale(out, brightness, out);
 
 		ColorNormalize(out, out);
 	}
