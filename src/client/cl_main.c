@@ -546,9 +546,9 @@ void Cl_RequestNextDownload(void) {
 
 		precache_check++;
 
-		if (*cl.config_strings[CS_MODELS + 1] != '\0') {
+		if (*cl.config_strings[CS_MODELS] != '\0') {
 
-			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS + 1]))
+			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS]))
 				return; // started a download
 		}
 	}

@@ -258,10 +258,21 @@ void R_BeginLoading(const char *bsp_name, int32_t bsp_size) {
  * @brief Inserts the specified model into the shared table.
  */
 void R_RegisterModel(r_model_t *mod) {
-
-	g_hash_table_insert(r_model_state.models, mod->name, mod);
+	r_model_t *m;
 
 	mod->media_count = r_locals.media_count;
+
+	// check for a model with the same name (e.g. inline models)
+	if ((m = g_hash_table_lookup(r_model_state.models, mod->name))) {
+		if (m == mod) {
+			return;
+		}
+		// remove stale models
+		g_hash_table_remove(r_model_state.models, mod->name);
+	}
+
+	// and insert the new one
+	g_hash_table_insert(r_model_state.models, mod->name, mod);
 }
 
 /*

@@ -387,14 +387,14 @@ static void R_ResolveWeather(void) {
 void R_LoadMedia(void) {
 	int32_t i, j;
 
-	if (!cl.config_strings[CS_MODELS + 1][0])
+	if (!cl.config_strings[CS_MODELS][0])
 		return; // no map specified
 
 	R_InitView();
 
 	Cl_LoadProgress(1);
 
-	R_BeginLoading(cl.config_strings[CS_MODELS + 1], atoi(cl.config_strings[CS_BSP_SIZE]));
+	R_BeginLoading(cl.config_strings[CS_MODELS], atoi(cl.config_strings[CS_BSP_SIZE]));
 	Cl_LoadProgress(50);
 
 	j = 0;

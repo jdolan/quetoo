@@ -248,16 +248,16 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	if (state == SV_ACTIVE_DEMO) { // loading a demo
 		snprintf(demo, sizeof(demo), "demos/%s.dem", sv.name);
 
-		sv.models[1] = Cm_LoadBsp(NULL, &mapsize);
+		sv.models[0] = Cm_LoadBsp(NULL, &mapsize);
 
 		Fs_OpenFile(demo, &sv.demo_file, FILE_READ);
 		svs.spawn_count = 0;
 
 		Com_Print("  Loaded demo %s.\n", sv.name);
 	} else { // loading a map
-		snprintf(sv.config_strings[CS_MODELS + 1], MAX_QPATH, "maps/%s.bsp", sv.name);
+		snprintf(sv.config_strings[CS_MODELS], MAX_QPATH, "maps/%s.bsp", sv.name);
 
-		sv.models[1] = Cm_LoadBsp(sv.config_strings[CS_MODELS + 1], &mapsize);
+		sv.models[0] = Cm_LoadBsp(sv.config_strings[CS_MODELS], &mapsize);
 
 		if (fs_last_pak) {
 			strncpy(sv.config_strings[CS_PAK], fs_last_pak, MAX_QPATH);
@@ -265,10 +265,10 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		for (i = 1; i < Cm_NumModels(); i++) {
 
-			char *s = sv.config_strings[CS_MODELS + 1 + i];
+			char *s = sv.config_strings[CS_MODELS + i];
 			snprintf(s, MAX_QPATH, "*%d", i);
 
-			sv.models[i + 1] = Cm_Model(s);
+			sv.models[i] = Cm_Model(s);
 		}
 
 		sv.state = SV_LOADING;

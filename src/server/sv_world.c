@@ -130,7 +130,7 @@ void Sv_InitWorld(void) {
 
 	memset(&sv_world, 0, sizeof(sv_world));
 
-	Sv_CreateAreaNode(0, sv.models[1]->mins, sv.models[1]->maxs);
+	Sv_CreateAreaNode(0, sv.models[0]->mins, sv.models[0]->maxs);
 }
 
 /*
@@ -416,7 +416,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 	int32_t i, contents, num;
 
 	// get base contents from world
-	contents = Cm_PointContents(point, sv.models[1]->head_node);
+	contents = Cm_PointContents(point, sv.models[0]->head_node);
 
 	// as well as contents from all intersected entities
 	num = Sv_AreaEdicts(point, point, touched, MAX_EDICTS, AREA_SOLID);

@@ -151,7 +151,7 @@ void Cl_ParseConfigString(void) {
 	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
 	const char *s = cl.config_strings[i];
 
-	if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
+	if (i > CS_MODELS && i < CS_MODELS + MAX_MODELS) {
 		if (cls.state == CL_ACTIVE) {
 			cl.model_draw[i - CS_MODELS] = R_LoadModel(s);
 			if (cl.config_strings[i][0] == '*') {
