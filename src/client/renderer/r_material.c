@@ -882,7 +882,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 	const char *buffer;
 	bool in_material;
 	r_material_t *m;
-	r_stage_t *s, *ss;
+	r_stage_t *s;
 	int32_t i;
 
 	memset(path, 0, sizeof(path));
@@ -1025,7 +1025,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			if (!m->stages)
 				m->stages = s;
 			else {
-				ss = m->stages;
+				r_stage_t *ss = m->stages;
 				while (ss->next)
 					ss = ss->next;
 				ss->next = s;
@@ -1084,7 +1084,7 @@ void R_InitMaterials(void) {
  */
 void R_ShutdownMaterials(void) {
 
-	g_hash_table_remove_all(r_material_state.materials);
+	g_hash_table_foreach_remove(r_material_state.materials, R_FreeMaterial, (void *) true);
 
 	g_hash_table_destroy(r_material_state.materials);
 }

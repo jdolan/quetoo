@@ -141,7 +141,7 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
  */
 static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf, const byte *in,
 		byte *lout, byte *dout, size_t stride) {
-	size_t i, j;
+	size_t i;
 	byte *lightmap, *lm, *deluxemap, *dm;
 
 	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmap_scale) + 1;
@@ -161,16 +161,16 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 	}
 
 	// convert the raw lightmap samples to RGBA for softening
-	for (i = j = 0; i < size; i++, lm += 3, dm += 3) {
-		lm[0] = in[j++];
-		lm[1] = in[j++];
-		lm[2] = in[j++];
+	for (i = 0; i < size; i++) {
+		*lm++ = *in++;
+		*lm++ = *in++;
+		*lm++ = *in++;
 
 		// read in directional samples for per-pixel lighting as well
 		if (bsp->version == BSP_VERSION_Q2W) {
-			dm[0] = in[j++];
-			dm[1] = in[j++];
-			dm[2] = in[j++];
+			*dm++ = *in++;
+			*dm++ = *in++;
+			*dm++ = *in++;
 		}
 	}
 
@@ -190,21 +190,15 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 		for (s = 0; s < smax; s++) {
 
 			// copy the lightmap to the strided block
-			lout[0] = lm[0];
-			lout[1] = lm[1];
-			lout[2] = lm[2];
-			lout += 3;
-
-			lm += 3;
+			*lout++ = *lm++;
+			*lout++ = *lm++;
+			*lout++ = *lm++;
 
 			// and the deluxemap for maps which include it
 			if (bsp->version == BSP_VERSION_Q2W) {
-				dout[0] = dm[0];
-				dout[1] = dm[1];
-				dout[2] = dm[2];
-				dout += 3;
-
-				dm += 3;
+				*dout++ = *dm++;
+				*dout++ = *dm++;
+				*dout++ = *dm++;
 			}
 		}
 	}

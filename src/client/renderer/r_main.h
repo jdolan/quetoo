@@ -84,9 +84,6 @@ typedef struct r_config_s {
 	const char *version_string;
 	const char *extensions_string;
 
-	bool vbo;
-	bool shaders;
-
 	int32_t max_texunits;
 	int32_t max_teximage_units;
 }r_config_t;
@@ -96,7 +93,7 @@ extern r_config_t r_config;
 // private renderer structure
 typedef struct r_locals_s {
 
-	int16_t media_count; // for tracking stale assets
+	uint32_t media_count; // for tracking stale assets
 
 	vec3_t ambient_light; // from worldspawn entity
 

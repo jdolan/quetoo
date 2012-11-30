@@ -174,7 +174,24 @@ static void S_Restart_f(void) {
 }
 
 /*
- * @brief
+ * @brief Initializes variables and commands for the sound subsystem.
+ */
+static void S_InitLocal(void) {
+
+	s_rate
+			= Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE,
+					"Sound sampling rate in Hz.");
+	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
+	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
+
+	Cmd_AddCommand("s_restart", S_Restart_f, 0, "Restart the sound subsystem");
+	Cmd_AddCommand("s_play", S_Play_f, 0, NULL);
+	Cmd_AddCommand("s_stop", S_Stop_f, 0, NULL);
+	Cmd_AddCommand("s_list", S_List_f, 0, NULL);
+}
+
+/*
+ * @brief Initializes the sound subsystem.
  */
 void S_Init(void) {
 	int32_t freq, channels;
@@ -189,15 +206,7 @@ void S_Init(void) {
 
 	Com_Print("Sound initialization...\n");
 
-	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE,
-			"Sound sampling rate in Hz.");
-	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
-	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
-
-	Cmd_AddCommand("s_restart", S_Restart_f, 0, "Restart the sound subsystem");
-	Cmd_AddCommand("s_play", S_Play_f, 0, NULL);
-	Cmd_AddCommand("s_stop", S_Stop_f, 0, NULL);
-	Cmd_AddCommand("s_list", S_List_f, 0, NULL);
+	S_InitLocal();
 
 	if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
 		if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {

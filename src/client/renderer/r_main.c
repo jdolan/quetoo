@@ -315,21 +315,25 @@ void R_EndFrame(void) {
 
 	R_UpdateCapture();
 
-	if (cls.state == CL_ACTIVE && !cls.loading) {
-		r_view.update = false;
+	if (r_view.update) {
 
-		R_FreeMaterials();
+		if (cls.state == CL_ACTIVE && !cls.loading) {
 
-		R_FreeModels();
+			r_view.update = false;
 
-		R_FreeImages();
+			R_FreeModels();
+
+			R_FreeMaterials();
+
+			R_FreeImages();
+		}
 	}
 
 	SDL_GL_SwapBuffers(); // swap buffers
 }
 
 /*
- * @brief Wipes the view structures after waiting for the view thread.
+ * @brief Initializes the view and locals structures so that loading may begin.
  */
 static void R_InitView(void) {
 
@@ -338,6 +342,8 @@ static void R_InitView(void) {
 	R_RenderMode(r_render_mode->string);
 
 	memset(&r_locals, 0, sizeof(r_locals));
+
+	r_locals.media_count = Sys_Milliseconds();
 }
 
 /*
@@ -380,12 +386,9 @@ static void R_ResolveWeather(void) {
 
 /*
  * @brief Iterate the config_strings, loading all renderer-specific media.
- *
- * TODO Move most of this to the client; it's sloppy having the renderer plow
- * through the client structs here.
  */
 void R_LoadMedia(void) {
-	int32_t i, j;
+	int32_t i;
 
 	if (!cl.config_strings[CS_MODELS][0])
 		return; // no map specified
@@ -394,32 +397,26 @@ void R_LoadMedia(void) {
 
 	Cl_LoadProgress(1);
 
-	R_BeginLoading(cl.config_strings[CS_MODELS], atoi(cl.config_strings[CS_BSP_SIZE]));
+	// load the world
+	R_LoadModel(cl.config_strings[CS_MODELS]);
 	Cl_LoadProgress(50);
 
-	j = 0;
-
-	// models, including bsp submodels and client weapon models
+	// load all other known models
 	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
 
 		cl.model_draw[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
 
-		const char *s = cl.config_strings[CS_MODELS + i];
-		if (*s == '*')
-			cl.model_clip[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
-		else
-			cl.model_clip[i] = NULL;
-
-		if (++j <= 20) // bump loading progress
-			Cl_LoadProgress(50 + j);
+		if (i <= 20) // bump loading progress
+			Cl_LoadProgress(50 + i);
 	}
 	Cl_LoadProgress(70);
 
 	// images for the heads up display
 	R_FreePics();
 
-	for (i = 1; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++)
+	for (i = 1; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
 		cl.image_precache[i] = R_LoadPic(cl.config_strings[CS_IMAGES + i]);
+	}
 	Cl_LoadProgress(75);
 
 	// sky environment map
@@ -429,12 +426,6 @@ void R_LoadMedia(void) {
 	// weather and fog effects
 	R_ResolveWeather();
 	Cl_LoadProgress(79);
-
-	R_FreeModels();
-
-	R_FreeMaterials();
-
-	R_FreeImages();
 
 	r_view.update = true;
 }
@@ -455,7 +446,8 @@ static void R_Sky_f(void) {
 
 /*
  * @brief Restarts the renderer subsystem. The OpenGL context is discarded and
- * recreated. All media is reloaded.
+ * recreated. All media is reloaded. Other subsystems can elect to refresh
+ * their media references by inspecting r_view.update.
  */
 void R_Restart_f(void) {
 
@@ -470,10 +462,12 @@ void R_Restart_f(void) {
 	r_render_mode->modified = true;
 
 	r_view.update = true;
+
+	cls.loading = 0;
 }
 
 /*
- * @brief
+ * @brief Toggles fullscreen vs windowed mode.
  */
 static void R_ToggleFullscreen_f(void) {
 
@@ -483,7 +477,7 @@ static void R_ToggleFullscreen_f(void) {
 }
 
 /*
- * @brief
+ * @brief Initializes console variables and commands for the renderer.
  */
 static void R_InitLocal(void) {
 
@@ -593,16 +587,16 @@ static void R_InitLocal(void) {
 }
 
 /*
- * @brief
+ * @brief Populates the GL config structure by querying the implementation.
  */
 static void R_InitConfig(void) {
 
 	memset(&r_config, 0, sizeof(r_config));
 
-	r_config.renderer_string = (char *) glGetString(GL_RENDERER);
-	r_config.vendor_string = (char *) glGetString(GL_VENDOR);
-	r_config.version_string = (char *) glGetString(GL_VERSION);
-	r_config.extensions_string = (char *) glGetString(GL_EXTENSIONS);
+	r_config.renderer_string = (const char *) glGetString(GL_RENDERER);
+	r_config.vendor_string = (const char *) glGetString(GL_VENDOR);
+	r_config.version_string = (const char *) glGetString(GL_VERSION);
+	r_config.extensions_string = (const char *) glGetString(GL_EXTENSIONS);
 
 	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &r_config.max_texunits);
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_teximage_units);
@@ -654,7 +648,8 @@ void R_Init(void) {
 }
 
 /*
- * @brief
+ * @brief Shuts down the renderer, freeing all resources belonging to it,
+ * including the GL context.
  */
 void R_Shutdown(void) {
 

@@ -24,8 +24,7 @@
 
 /*
  * @brief Returns true if client side prediction should be used.
- */
-bool Cl_UsePrediction(void) {
+ */bool Cl_UsePrediction(void) {
 
 	if (!cl_predict->value)
 		return false;
@@ -233,4 +232,36 @@ void Cl_PredictMovement(void) {
 	UnpackAngles(pm.cmd.angles, cl.predicted_angles);
 
 	cl.predicted_ground_entity = pm.ground_entity;
+}
+
+/*
+ * @brief Ensures client-side prediction has the current collision model at its
+ * disposal.
+ */
+void Cl_UpdatePrediction(void) {
+	int32_t i;
+
+	// ensure the world model is loaded
+	if (!Com_WasInit(Q2W_SERVER) || !Cm_NumModels()) {
+		int32_t bs;
+
+		const char *bsp_name = cl.config_strings[CS_MODELS];
+		const int bsp_size = atoi(cl.config_strings[CS_BSP_SIZE]);
+
+		Cm_LoadBsp(bsp_name, &bs);
+
+		if (bs != bsp_size) {
+			Com_Error(ERR_DROP, "Local map version differs from server: %i != %i.\n", bs, bsp_size);
+		}
+	}
+
+	// load the inline models for prediction as well
+	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
+
+		const char *s = cl.config_strings[CS_MODELS + i];
+		if (*s == '*')
+			cl.model_clip[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
+		else
+			cl.model_clip[i] = NULL;
+	}
 }

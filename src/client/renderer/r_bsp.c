@@ -595,7 +595,7 @@ void R_UpdateVis(void) {
 	const byte *phs = Cm_ClusterPHS(r_locals.cluster);
 	memcpy(r_locals.vis_data_phs, phs, sizeof(r_locals.vis_data_phs));
 
-	// recurse up the bsp from the visible leafs, marking a path via the nodes
+	// recurse up the BSP from the visible leafs, marking a path via the nodes
 	const r_bsp_leaf_t *leaf = R_WorldModel()->bsp->leafs;
 
 	r_view.num_bsp_leafs = 0;
@@ -608,6 +608,7 @@ void R_UpdateVis(void) {
 
 		r_view.num_bsp_leafs++;
 
+		// keep track of the number of clusters rendered each frame
 		r_bsp_cluster_t *cl = &R_WorldModel()->bsp->clusters[leaf->cluster];
 
 		if (cl->vis_frame != r_locals.vis_frame) {

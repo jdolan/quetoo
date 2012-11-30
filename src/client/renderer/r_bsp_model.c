@@ -28,14 +28,16 @@
 static const byte *mod_base;
 
 /*
- * @brief
+ * @brief Loads the lightmap and deluxemap information into memory so that it
+ * may be parsed into GL textures for r_bsp_surface_t. This memory is actually
+ * freed once all surfaces are fully loaded.
  */
 static void R_LoadBspLightmaps(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	const char *c;
 
 	if (!l->file_len) {
+		bsp->lightmap_data_size = 0;
 		bsp->lightmap_data = NULL;
-		bsp->lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
 	} else {
 		bsp->lightmap_data_size = l->file_len;
 		bsp->lightmap_data = Z_LinkMalloc(l->file_len, bsp);
@@ -53,7 +55,9 @@ static void R_LoadBspLightmaps(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 }
 
 /*
- * @brief
+ * @brief Loads all r_bsp_cluster_t for the specified BSP model. Note that
+ * no information is actually loaded at this point. Rather, space for the
+ * clusters is allocated, to be utilized by the PVS algorithm.
  */
 static void R_LoadBspClusters(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
@@ -64,30 +68,25 @@ static void R_LoadBspClusters(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	d_bsp_vis_t *vis = (d_bsp_vis_t *) (mod_base + l->file_ofs);
 
 	bsp->num_clusters = LittleLong(vis->num_clusters);
-
-	size_t size = bsp->num_clusters * sizeof(r_bsp_cluster_t);
-	bsp->clusters = Z_LinkMalloc(size, bsp);
+	bsp->clusters = Z_LinkMalloc(bsp->num_clusters * sizeof(r_bsp_cluster_t), bsp);
 }
 
 /*
- * @brief
+ * @brief Loads all r_bsp_vertex_t for the specified BSP model.
  */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
-	const d_bsp_vertex_t *in;
 	r_bsp_vertex_t *out;
-	int32_t i, count;
+	uint16_t i;
 
-	in = (const void *) (mod_base + l->file_ofs);
+	const d_bsp_vertex_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERR_DROP, "R_LoadBspVertexes: Funny lump size.\n");
 	}
-	count = l->file_len / sizeof(*in);
-	out = Z_LinkMalloc(count * sizeof(*out), bsp);
 
-	bsp->vertexes = out;
-	bsp->num_vertexes = count;
+	bsp->num_vertexes = l->file_len / sizeof(*in);
+	bsp->vertexes = out = Z_LinkMalloc(bsp->num_vertexes * sizeof(*out), bsp);
 
-	for (i = 0; i < count; i++, in++, out++) {
+	for (i = 0; i < bsp->num_vertexes; i++, in++, out++) {
 		out->position[0] = LittleFloat(in->point[0]);
 		out->position[1] = LittleFloat(in->point[1]);
 		out->position[2] = LittleFloat(in->point[2]);
@@ -95,26 +94,26 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 }
 
 /*
- * @brief
+ * @brief Populates r_bsp_vertex_t normals for the specified BSP model. Vertex
+ * normals are packed in a separate lump to maintain compatibility with legacy
+ * Quake2 levels.
  */
 static void R_LoadBspNormals(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
-	const d_bsp_normal_t *in;
 	r_bsp_vertex_t *out;
-	int32_t i, count;
+	uint16_t i;
 
-	in = (const void *) (mod_base + l->file_ofs);
+	const d_bsp_normal_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERR_DROP, "R_LoadBspNormals: Funny lump size.\n");
 	}
-	count = l->file_len / sizeof(*in);
 
+	const uint16_t count = l->file_len / sizeof(*in);
 	if (count != bsp->num_vertexes) { // ensure sane normals count
-		Com_Error(ERR_DROP, "R_LoadBspNormals: bad count: (%d != %d).\n", count, bsp->num_vertexes);
+		Com_Error(ERR_DROP, "R_LoadBspNormals: Bad count (%d != %d).\n", count, bsp->num_vertexes);
 	}
 
 	out = bsp->vertexes;
-
-	for (i = 0; i < count; i++, in++, out++) {
+	for (i = 0; i < bsp->num_vertexes; i++, in++, out++) {
 		out->normal[0] = LittleFloat(in->normal[0]);
 		out->normal[1] = LittleFloat(in->normal[1]);
 		out->normal[2] = LittleFloat(in->normal[2]);
@@ -122,7 +121,7 @@ static void R_LoadBspNormals(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 }
 
 /*
- * @brief
+ * @brief Returns an approximate radius from the specified bounding box.
  */
 static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 	int32_t i;
@@ -136,28 +135,27 @@ static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 }
 
 /*
- * @brief
+ * @brief Loads all r_bsp_inline_model_t for the specified BSP model. These are
+ * later registered as first-class r_model_t's in R_SetupInlineBspModels.
  */
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
-	const d_bsp_model_t *in;
 	r_bsp_inline_model_t *out;
-	int32_t i, j, count;
+	uint16_t i, j;
 
-	in = (const void *) (mod_base + l->file_ofs);
+	const d_bsp_model_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERR_DROP, "R_LoadBspInlineModels: Funny lump size.\n");
 	}
 
-	count = l->file_len / sizeof(*in);
-	out = Z_LinkMalloc(count * sizeof(*out), bsp);
+	bsp->num_inline_models = l->file_len / sizeof(*in);
+	bsp->inline_models = out = Z_LinkMalloc(bsp->num_inline_models * sizeof(*out), bsp);
 
-	bsp->inline_models = out;
-	bsp->num_inline_models = count;
+	for (i = 0; i < bsp->num_inline_models; i++, in++, out++) {
 
-	for (i = 0; i < count; i++, in++, out++) {
-		for (j = 0; j < 3; j++) { // spread the mins / maxs by 1 unit
+		for (j = 0; j < 3; j++) { // spread the bounds slightly
 			out->mins[j] = LittleFloat(in->mins[j]) - 1.0;
 			out->maxs[j] = LittleFloat(in->maxs[j]) + 1.0;
+
 			out->origin[j] = LittleFloat(in->origin[j]);
 		}
 		out->radius = R_RadiusFromBounds(out->mins, out->maxs);
@@ -165,13 +163,13 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		out->head_node = LittleLong(in->head_node);
 
 		// some (old) maps have invalid inline model head_nodes
-		if (out->head_node < 0 || out->head_node > bsp->num_nodes) {
+		if (out->head_node < 0 || out->head_node >= bsp->num_nodes) {
 			Com_Warn("R_LoadBspInlineModels: Bad head_node for %d: %d\n", i, out->head_node);
 			out->head_node = -1;
 		}
 
-		out->first_surface = LittleLong(in->first_face);
-		out->num_surfaces = LittleLong(in->num_faces);
+		out->first_surface = (uint16_t) LittleLong(in->first_face);
+		out->num_surfaces = (uint16_t) LittleLong(in->num_faces);
 	}
 }
 
@@ -195,7 +193,7 @@ static void R_SetupBspInlineModel(r_bsp_node_t *node, r_model_t *model) {
  * represented as r_model_t. Convert them, and take ownership of their nodes.
  */
 static void R_SetupBspInlineModels(r_model_t *mod) {
-	int32_t i;
+	uint16_t i;
 
 	for (i = 0; i < mod->bsp->num_inline_models; i++) {
 		r_model_t *m = Z_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
@@ -222,50 +220,43 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 }
 
 /*
- * @brief
+ * @brief Loads all r_bsp_edge_t for the specified BSP model.
  */
 static void R_LoadBspEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
-	const d_bsp_edge_t *in;
 	r_bsp_edge_t *out;
-	int32_t i, count;
+	uint32_t i;
 
-	in = (const void *) (mod_base + l->file_ofs);
+	const d_bsp_edge_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERR_DROP, "R_LoadBspEdges: Funny lump size.\n");
 	}
 
-	count = l->file_len / sizeof(*in);
-	out = Z_LinkMalloc((count + 1) * sizeof(*out), bsp);
+	bsp->num_edges = l->file_len / sizeof(*in);
+	bsp->edges = out = Z_LinkMalloc(bsp->num_edges * sizeof(*out), bsp);
 
-	bsp->edges = out;
-	bsp->num_edges = count;
-
-	for (i = 0; i < count; i++, in++, out++) {
+	for (i = 0; i < bsp->num_edges; i++, in++, out++) {
 		out->v[0] = (uint16_t) LittleShort(in->v[0]);
 		out->v[1] = (uint16_t) LittleShort(in->v[1]);
 	}
 }
 
 /*
- * @brief
+ * @brief Loads all r_bsp_texinfo_t for the specified BSP model. Texinfo's
+ * are shared by one or more r_bsp_surface_t.
  */
 static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
-	const d_bsp_texinfo_t *in;
 	r_bsp_texinfo_t *out;
-	int32_t i, j, count;
+	uint16_t i, j;
 
-	in = (const void *) (mod_base + l->file_ofs);
+	const d_bsp_texinfo_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERR_DROP, "R_LoadBspTexinfo: Funny lump size.\n");
 	}
 
-	count = l->file_len / sizeof(*in);
-	out = Z_LinkMalloc(count * sizeof(*out), bsp);
+	bsp->num_texinfo = l->file_len / sizeof(*in);
+	bsp->texinfo = out = Z_LinkMalloc(bsp->num_texinfo * sizeof(*out), bsp);
 
-	bsp->texinfo = out;
-	bsp->num_texinfo = count;
-
-	for (i = 0; i < count; i++, in++, out++) {
+	for (i = 0; i < bsp->num_texinfo; i++, in++, out++) {
 		strncpy(out->name, in->texture, sizeof(in->texture));
 
 		for (j = 0; j < 8; j++)
@@ -283,7 +274,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  */
 static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	vec2_t st_mins, st_maxs;
-	int32_t i, j;
+	uint16_t i, j;
 
 	ClearBounds(surf->mins, surf->maxs);
 
@@ -328,39 +319,34 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 }
 
 /*
- * @brief
+ * @brief Loads all r_bsp_surface_t for the specified BSP model. Lightmap and
+ * deluxemap creation is driven by this function.
  */
 static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
-	const d_bsp_face_t *in;
 	r_bsp_surface_t *out;
-	int32_t i, count;
-	int32_t plane_num, side;
-	int32_t ti;
+	uint16_t i;
 
-	in = (const void *) (mod_base + l->file_ofs);
+	const d_bsp_face_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERR_DROP, "R_LoadBspSurfaces: Funny lump size.\n");
 	}
 
-	count = l->file_len / sizeof(*in);
-	out = Z_LinkMalloc(count * sizeof(*out), bsp);
-
-	bsp->surfaces = out;
-	bsp->num_surfaces = count;
+	bsp->num_surfaces = l->file_len / sizeof(*in);
+	bsp->surfaces = out = Z_LinkMalloc(bsp->num_surfaces * sizeof(*out), bsp);
 
 	R_BeginBspSurfaceLightmaps(bsp);
 
-	for (i = 0; i < count; i++, in++, out++) {
+	for (i = 0; i < bsp->num_surfaces; i++, in++, out++) {
 
 		out->first_edge = LittleLong(in->first_edge);
 		out->num_edges = LittleShort(in->num_edges);
 
 		// resolve plane
-		plane_num = LittleShort(in->plane_num);
+		const uint16_t plane_num = (uint16_t) LittleShort(in->plane_num);
 		out->plane = bsp->planes + plane_num;
 
 		// and sidedness
-		side = LittleShort(in->side);
+		const int16_t side = LittleShort(in->side);
 		if (side) {
 			out->flags |= R_SURF_SIDE_BACK;
 			VectorNegate(out->plane->normal, out->normal);
@@ -368,7 +354,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 			VectorCopy(out->plane->normal, out->normal);
 
 		// then texinfo
-		ti = LittleShort(in->texinfo);
+		const int16_t ti = LittleShort(in->texinfo);
 		if (ti < 0 || ti >= bsp->num_texinfo) {
 			Com_Error(ERR_DROP, "R_LoadBspSurfaces: Bad texinfo number: %d.\n", ti);
 		}
@@ -398,7 +384,9 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 }
 
 /*
- * @brief
+ * @brief Recurses the BSP tree, setting the parent field on each node. The
+ * recursion stops at leafs. This is used by the PVS algorithm to mark a path
+ * to the BSP leaf in which the view origin resides.
  */
 static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
 
@@ -412,45 +400,41 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
 }
 
 /*
- * @brief
+ * @brief Loads all r_bsp_node_t for the specified BSP model.
  */
 static void R_LoadBspNodes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
-	int32_t i, j, count, p;
-	const d_bsp_node_t *in;
+	uint16_t i, j;
 	r_bsp_node_t *out;
 
-	in = (const void *) (mod_base + l->file_ofs);
+	const d_bsp_node_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERR_DROP, "R_LoadBspNodes: Funny lump size.\n");
 	}
 
-	count = l->file_len / sizeof(*in);
-	out = Z_LinkMalloc(count * sizeof(*out), bsp);
+	bsp->num_nodes = l->file_len / sizeof(*in);
+	bsp->nodes = out = Z_LinkMalloc(bsp->num_nodes * sizeof(*out), bsp);
 
-	bsp->nodes = out;
-	bsp->num_nodes = count;
-
-	for (i = 0; i < count; i++, in++, out++) {
+	for (i = 0; i < bsp->num_nodes; i++, in++, out++) {
 
 		for (j = 0; j < 3; j++) {
 			out->mins[j] = LittleShort(in->mins[j]);
 			out->maxs[j] = LittleShort(in->maxs[j]);
 		}
 
-		p = LittleLong(in->plane_num);
+		const int32_t p = LittleLong(in->plane_num);
 		out->plane = bsp->planes + p;
 
-		out->first_surface = LittleShort(in->first_face);
-		out->num_surfaces = LittleShort(in->num_faces);
+		out->first_surface = (uint16_t) LittleShort(in->first_face);
+		out->num_surfaces = (uint16_t) LittleShort(in->num_faces);
 
 		out->contents = CONTENTS_NODE; // differentiate from leafs
 
 		for (j = 0; j < 2; j++) {
-			p = LittleLong(in->children[j]);
-			if (p >= 0)
-				out->children[j] = bsp->nodes + p;
+			const int32_t c = LittleLong(in->children[j]);
+			if (c >= 0)
+				out->children[j] = bsp->nodes + c;
 			else
-				out->children[j] = (r_bsp_node_t *) (bsp->leafs + (-1 - p));
+				out->children[j] = (r_bsp_node_t *) (bsp->leafs + (-1 - c));
 		}
 	}
 
@@ -458,25 +442,21 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 }
 
 /*
- * @brief
+ * @brief Loads all r_bsp_leaf_t for the specified BSP model.
  */
 static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
-	const d_bsp_leaf_t *in;
 	r_bsp_leaf_t *out;
-	int32_t i, j, count;
+	uint16_t i, j;
 
-	in = (const void *) (mod_base + l->file_ofs);
+	const d_bsp_leaf_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERR_DROP, "R_LoadBspLeafs: Funny lump size.");
 	}
 
-	count = l->file_len / sizeof(*in);
-	out = Z_LinkMalloc(count * sizeof(*out), bsp);
+	bsp->num_leafs = l->file_len / sizeof(*in);
+	bsp->leafs = out = Z_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
 
-	bsp->leafs = out;
-	bsp->num_leafs = count;
-
-	for (i = 0; i < count; i++, in++, out++) {
+	for (i = 0; i < bsp->num_leafs; i++, in++, out++) {
 
 		for (j = 0; j < 3; j++) {
 			out->mins[j] = LittleShort(in->mins[j]);
@@ -499,24 +479,20 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  * @brief
  */
 static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
-	int32_t i, count;
-	const uint16_t *in;
+	int32_t i;
 	r_bsp_surface_t **out;
 
-	in = (const void *) (mod_base + l->file_ofs);
+	const uint16_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERR_DROP, "R_LoadBspLeafSurfaces: Funny lump size.\n");
 	}
 
-	count = l->file_len / sizeof(*in);
-	out = Z_LinkMalloc(count * sizeof(*out), bsp);
+	bsp->num_leaf_surfaces = l->file_len / sizeof(*in);
+	bsp->leaf_surfaces = out = Z_LinkMalloc(bsp->num_leaf_surfaces * sizeof(*out), bsp);
 
-	bsp->leaf_surfaces = out;
-	bsp->num_leaf_surfaces = count;
+	for (i = 0; i < bsp->num_leaf_surfaces; i++) {
 
-	for (i = 0; i < count; i++) {
-
-		const uint16_t j = LittleShort(in[i]);
+		const uint16_t j = (uint16_t) LittleShort(in[i]);
 
 		if (j >= bsp->num_surfaces) {
 			Com_Error(ERR_DROP, "R_LoadBspLeafSurfaces: Bad surface number: %d.", j);
@@ -822,12 +798,8 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	d_bsp_header_t header;
 	uint32_t i;
 
-	if (R_WorldModel()) {
-		Com_Error(ERR_DROP, "R_LoadBspModel: Load BSP model after world\n");
-	}
-
 	header = *(d_bsp_header_t *) buffer;
-	for (i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
+	for (i = 0; i < sizeof(d_bsp_header_t) / sizeof(int32_t); i++)
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 
 	if (header.version != BSP_VERSION && header.version != BSP_VERSION_Q2W) {

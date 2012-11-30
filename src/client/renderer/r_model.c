@@ -230,37 +230,17 @@ void R_ListModels_f(void) {
 }
 
 /*
- * @brief Begins the loading process by loading the BSP for collision as well
- * as rendering.
- */
-void R_BeginLoading(const char *bsp_name, int32_t bsp_size) {
-
-	// clear the BSP model
-	r_model_state.world = NULL;
-
-	// load the BSP for collision detection (prediction)
-	if (!Com_WasInit(Q2W_SERVER) || !Cm_NumModels()) {
-		int32_t bs;
-
-		Cm_LoadBsp(bsp_name, &bs);
-
-		if (bs != bsp_size) {
-			Com_Error(ERR_DROP, "Local map version differs from server: "
-				"%i != %i.\n", bs, bsp_size);
-		}
-	}
-
-	// and then load the BSP for rendering
-	r_model_state.world = R_LoadModel(bsp_name);
-}
-
-/*
  * @brief Inserts the specified model into the shared table.
  */
 void R_RegisterModel(r_model_t *mod) {
 	r_model_t *m;
 
 	mod->media_count = r_locals.media_count;
+
+	// save a reference to the world model
+	if (mod->type == MOD_BSP) {
+		r_model_state.world = mod;
+	}
 
 	// check for a model with the same name (e.g. inline models)
 	if ((m = g_hash_table_lookup(r_model_state.models, mod->name))) {
@@ -273,16 +253,6 @@ void R_RegisterModel(r_model_t *mod) {
 
 	// and insert the new one
 	g_hash_table_insert(r_model_state.models, mod->name, mod);
-}
-
-/*
- * @brief
- */
-void R_InitModels(void) {
-
-	memset(&r_model_state, 0, sizeof(r_model_state));
-
-	r_model_state.models = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
 }
 
 /*
@@ -322,6 +292,16 @@ static gboolean R_FreeModel(gpointer key __attribute__((unused)), gpointer value
  */
 void R_FreeModels(void) {
 	g_hash_table_foreach_remove(r_model_state.models, R_FreeModel, NULL);
+}
+
+/*
+ * @brief
+ */
+void R_InitModels(void) {
+
+	memset(&r_model_state, 0, sizeof(r_model_state));
+
+	r_model_state.models = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
 }
 
 /*

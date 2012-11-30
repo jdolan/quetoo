@@ -28,6 +28,7 @@
 bool Cl_UsePrediction(void);
 void Cl_PredictMovement(void);
 void Cl_CheckPredictionError(void);
+void Cl_UpdatePrediction(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_PREDICT_H__ */

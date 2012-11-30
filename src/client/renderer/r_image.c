@@ -99,7 +99,7 @@ void R_TextureMode(const char *mode) {
 }
 
 /*
- * @brief GHFunc for listing image details
+ * @brief GHFunc for listing image details.
  */
 static void R_ListImages_f_(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
 	const r_image_t *image = (r_image_t *) value;
@@ -113,6 +113,12 @@ static void R_ListImages_f_(gpointer key __attribute__((unused)), gpointer value
 			break;
 		case IT_DIFFUSE:
 			Com_Print("Diffuse   ");
+			break;
+		case IT_LIGHTMAP:
+			Com_Print("Lightmap   ");
+			break;
+		case IT_DELUXEMAP:
+			Com_Print("Deluxemap  ");
 			break;
 		case IT_NORMALMAP:
 			Com_Print("Normalmap ");
@@ -137,20 +143,20 @@ static void R_ListImages_f_(gpointer key __attribute__((unused)), gpointer value
 			break;
 	}
 
-	Com_Print(" %4ix%4i: %s\n", image->width, image->height, image->name);
+	Com_Print("%4ix%4i: %s\n", image->width, image->height, image->name);
 
 	*((uint32_t *) data) += image->width * image->height;
 }
 
 /*
- * @brief
+ * @brief Prints all currently loaded images to the console.
  */
 void R_ListImages_f(void) {
 	uint32_t texels = 0;
 
 	g_hash_table_foreach(r_image_state.images, R_ListImages_f_, &texels);
 
-	Com_Print("Total texel count (not counting lightmaps): %u\n", texels);
+	Com_Print("Total texel count: %u\n", texels);
 }
 
 #define MAX_SCREENSHOTS 100

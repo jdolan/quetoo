@@ -59,8 +59,8 @@ typedef struct r_image_s {
 	r_image_type_t type;
 	r_pixel_t width, height; // image dimensions
 	vec3_t color; // average color
-	int16_t media_count; // for freeing stale images
-	GLuint texnum; // gl texture binding
+	GLuint texnum; // OpenGL texture binding
+	uint32_t media_count; // for freeing stale images
 } r_image_t;
 
 typedef struct r_stage_blend_s {
@@ -142,7 +142,7 @@ typedef struct r_material_s {
 	float specular;
 	r_stage_t *stages;
 	uint16_t num_stages;
-	int16_t media_count;
+	uint32_t media_count;
 } r_material_t;
 
 // bsp model memory representation
@@ -497,8 +497,6 @@ typedef struct r_model_s {
 	char name[MAX_QPATH];
 	r_model_type_t type;
 
-	int16_t media_count;
-
 	r_bsp_model_t *bsp;
 	r_bsp_inline_model_t *bsp_inline;
 	r_mesh_model_t *mesh;
@@ -519,6 +517,8 @@ typedef struct r_model_s {
 	GLuint lightmap_texcoord_buffer;
 	GLuint normal_buffer;
 	GLuint tangent_buffer;
+
+	int32_t media_count; // for freeing stale media
 } r_model_t;
 
 #define IS_MESH_MODEL(m) (m && m->mesh)

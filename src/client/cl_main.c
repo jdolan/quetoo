@@ -453,15 +453,16 @@ static void Cl_ReadPackets(void) {
 	}
 
 	// check timeout
-	if (cls.state >= CL_CONNECTED
-			&& cls.real_time - cls.netchan.last_received > cl_timeout->value * 1000) {
+	if (cls.state >= CL_CONNECTED && cls.real_time - cls.netchan.last_received > cl_timeout->value
+			* 1000) {
 		Com_Print("%s: Timed out.\n", Net_NetaddrToString(net_from));
 		Cl_Disconnect();
 	}
 }
 
 /*
- * @brief
+ * @brief Update the loading progress, handle events and update the screen.
+ * This should be called periodically while loading media.
  */
 void Cl_LoadProgress(uint16_t percent) {
 
@@ -500,6 +501,8 @@ static void Cl_UpdateMedia(void) {
 static void Cl_LoadMedia(void) {
 
 	cls.loading = 1;
+
+	Cl_UpdatePrediction();
 
 	R_LoadMedia();
 
