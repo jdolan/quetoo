@@ -124,15 +124,16 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 
 	qglBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	if (mod->type != MOD_BSP)
-		return;
+	if (mod->type == MOD_BSP) { // including lightmap texcords for bsp
 
-	// including lightmap texcords for bsp
-	qglGenBuffers(1, &mod->lightmap_texcoord_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->lightmap_texcoord_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, st, mod->lightmap_texcoords, GL_STATIC_DRAW);
+		qglGenBuffers(1, &mod->lightmap_texcoord_buffer);
+		qglBindBuffer(GL_ARRAY_BUFFER, mod->lightmap_texcoord_buffer);
+		qglBufferData(GL_ARRAY_BUFFER, st, mod->lightmap_texcoords, GL_STATIC_DRAW);
 
-	qglBindBuffer(GL_ARRAY_BUFFER, 0);
+		qglBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
+	R_GetError(mod->name);
 }
 
 /*
@@ -283,6 +284,8 @@ static gboolean R_FreeModel(gpointer key __attribute__((unused)), gpointer value
 
 	if (mod->tangent_buffer)
 		qglDeleteBuffers(1, &mod->tangent_buffer);
+
+	R_GetError(mod->name);
 
 	return true;
 }

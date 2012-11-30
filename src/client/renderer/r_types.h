@@ -518,7 +518,7 @@ typedef struct r_model_s {
 	GLuint normal_buffer;
 	GLuint tangent_buffer;
 
-	int32_t media_count; // for freeing stale media
+	uint32_t media_count; // for freeing stale media
 } r_model_t;
 
 #define IS_MESH_MODEL(m) (m && m->mesh)

@@ -462,7 +462,28 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 }
 
 /*
- * @brief
+ * @brief Inserts the specified material into the shared table.
+ */
+static void R_RegisterMaterial(r_material_t *mat) {
+	r_material_t *m;
+
+	mat->media_count = r_locals.media_count;
+
+	// check for a material with the same name
+	if ((m = g_hash_table_lookup(r_material_state.materials, mat->name))) {
+		if (m == mat) {
+			return;
+		}
+		// remove stale materials
+		g_hash_table_remove(r_material_state.materials, mat->name);
+	}
+
+	// and insert the new one
+	g_hash_table_insert(r_material_state.materials, mat->name, mat);
+}
+
+/*
+ * @brief Loads the r_material_t with the specified diffuse texture.
  */
 r_material_t *R_LoadMaterial(const char *diffuse) {
 	r_material_t *mat;
@@ -471,6 +492,7 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 	StripExtension(diffuse, key);
 
 	if ((mat = g_hash_table_lookup(r_material_state.materials, key))) {
+		mat->media_count = r_locals.media_count;
 		return mat;
 	}
 
@@ -489,6 +511,8 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 	mat->hardness = DEFAULT_HARDNESS;
 	mat->parallax = DEFAULT_PARALLAX;
 	mat->specular = DEFAULT_SPECULAR;
+
+	R_RegisterMaterial(mat);
 
 	return mat;
 }
@@ -1062,8 +1086,9 @@ static gboolean R_FreeMaterial(gpointer key __attribute__((unused)), gpointer va
 }
 
 /*
- * @brief Frees all materials. Image resources referenced by materials are not
- * freed here, because a reference does not imply ownership.
+ * @brief Frees all materials with stale media counts. Image resources
+ * referenced by materials are not freed here, because a reference does not
+ * imply ownership.
  */
 void R_FreeMaterials(void) {
 	g_hash_table_foreach_remove(r_material_state.materials, R_FreeMaterial, NULL);

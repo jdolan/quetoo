@@ -438,6 +438,7 @@ int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position) {
  */
 void Con_Init(void) {
 
+	// TODO this should be moved so that +set from the command line works
 #ifdef _WIN32
 	con_ansi = Cvar_Get("con_ansi", "0", CVAR_ARCHIVE, NULL);
 #else

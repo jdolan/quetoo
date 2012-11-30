@@ -296,6 +296,27 @@ void R_FilterImage(byte *in, r_pixel_t width, r_pixel_t height, vec3_t color, r_
 }
 
 /*
+ * @brief Inserts the specified image into the shared table.
+ */
+static void R_RegisterImage(r_image_t *image) {
+	r_image_t *i;
+
+	image->media_count = r_locals.media_count;
+
+	// check for an image with the same name
+	if ((i = g_hash_table_lookup(r_image_state.images, image->name))) {
+		if (i == image) {
+			return;
+		}
+		// remove stale images
+		g_hash_table_remove(r_image_state.images, image->name);
+	}
+
+	// and insert the new one
+	g_hash_table_insert(r_image_state.images, image->name, image);
+}
+
+/*
  * @brief Uploads the specified image to the OpenGL implementation. Images that
  * do not have a GL texture reserved (which is most diffuse textures) will have
  * one generated for them. This flexibility allows for explicitly managed
@@ -308,8 +329,6 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	}
 
 	R_FilterImage(data, image->width, image->height, image->color, image->type);
-
-	g_hash_table_insert(r_image_state.images, image->name, image);
 
 	if (!image->texnum) {
 		glGenTextures(1, &(image->texnum));
@@ -330,13 +349,13 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format, GL_UNSIGNED_BYTE, data);
 
-	image->media_count = r_locals.media_count;
+	R_RegisterImage(image);
 
 	R_GetError(image->name);
 }
 
 /*
- * @brief
+ * @brief Loads the image by the specified name.
  */
 r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	r_image_t *image;
@@ -391,7 +410,7 @@ static void R_InitNullImage(void) {
 }
 
 /*
- * @brief
+ * @brief Initializes the mesh shell image.
  */
 static void R_InitMeshShellImage() {
 	r_mesh_shell_image = R_LoadImage("envmaps/envmap_2", IT_EFFECT);
