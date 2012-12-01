@@ -66,7 +66,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const ch
 	int32_t i, j, len;
 
 	// load the skin definition file
-	snprintf(path, sizeof(path) - 1, "%s_%s.skin", mod->name, skin);
+	snprintf(path, sizeof(path) - 1, "%s_%s.skin", mod->media.name, skin);
 
 	if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
 		cgi.Debug("Cg_LoadClientSkins: %s not found\n", path);
@@ -254,7 +254,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 	e->back_lerp = 0.0;
 
 	if (a->animation > md3->num_animations) {
-		cgi.Warn("Cg_AnimateClientEntity: Invalid animation: %s: %d\n", e->model->name,
+		cgi.Warn("Cg_AnimateClientEntity: Invalid animation: %s: %d\n", e->model->media.name,
 				a->animation);
 		return;
 	}
@@ -262,7 +262,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 	const r_md3_animation_t *anim = &md3->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
-		cgi.Warn("Cg_AnimateClientEntity_: Bad animation sequence: %s: %d\n", e->model->name,
+		cgi.Warn("Cg_AnimateClientEntity_: Bad animation sequence: %s: %d\n", e->model->media.name,
 				a->animation);
 		return;
 	}

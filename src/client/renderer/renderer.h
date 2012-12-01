@@ -28,6 +28,7 @@
 #include "r_array.h"
 #include "r_bsp_light.h"
 #include "r_bsp_model.h"
+#include "r_bsp_surface.h"
 #include "r_bsp.h"
 #include "r_capture.h"
 #include "r_context.h"
@@ -43,6 +44,7 @@
 #include "r_main.h"
 #include "r_material.h"
 #include "r_matrix.h"
+#include "r_media.h"
 #include "r_mesh_model.h"
 #include "r_mesh.h"
 #include "r_model.h"
@@ -52,7 +54,6 @@
 #include "r_program_warp.h"
 #include "r_sky.h"
 #include "r_state.h"
-#include "r_surface.h"
 #include "r_types.h"
 
 #endif /*__RENDERER_H__*/

@@ -270,7 +270,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
 
 	cgi.BindFont("small", NULL, &ch);
 
-	snprintf(string, sizeof(string) - 1, "Chasing ^7%s", cgi.ConfigString(c));
+	snprintf(string, sizeof(string), "Chasing ^7%s", cgi.ConfigString(c));
 
 	if ((s = strchr(string, '\\')))
 		*s = '\0';
@@ -298,7 +298,7 @@ static void Cg_DrawVote(const player_state_t *ps) {
 
 	cgi.BindFont("small", NULL, &ch);
 
-	snprintf(string, sizeof(string) - 1, "Vote: ^7%s", cgi.ConfigString(ps->stats[STAT_VOTE]));
+	snprintf(string, sizeof(string), "Vote: ^7%s", cgi.ConfigString(ps->stats[STAT_VOTE]));
 
 	x = cgi.view->x;
 	y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT - ch;

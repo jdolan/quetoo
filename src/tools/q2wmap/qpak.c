@@ -81,7 +81,7 @@ static void AddSound(const char *sound) {
 
 	for (i = 0; i < NUM_SAMPLE_FORMATS; i++) {
 
-		snprintf(path, sizeof(path) - 5, "sounds/%s.%s", snd, sample_formats[i]);
+		snprintf(path, sizeof(path), "sounds/%s.%s", snd, sample_formats[i]);
 
 		if (FindPath(path) != -1)
 			return;

@@ -51,7 +51,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		R_BindTexture(diffuse->texnum);
 
 	if (texunit_lightmap.enabled) // lightmap texture
-		R_BindLightmapTexture(surf->lightmap_texnum);
+		R_BindLightmapTexture(surf->lightmap->texnum);
 
 	if (r_state.lighting_enabled) { // hardware lighting
 

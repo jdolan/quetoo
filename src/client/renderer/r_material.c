@@ -21,12 +21,6 @@
 
 #include "r_local.h"
 
-typedef struct {
-	GHashTable *materials;
-} r_material_state_t;
-
-static r_material_state_t r_material_state;
-
 #define UPDATE_THRESHOLD 0.02
 
 /*
@@ -81,7 +75,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	if ((surf->flags & R_SURF_LIGHTMAP) && (stage->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING))) {
 
 		R_EnableTexture(&texunit_lightmap, true);
-		R_BindLightmapTexture(surf->lightmap_texnum);
+		R_BindLightmapTexture(surf->lightmap->texnum);
 
 		if (stage->flags & STAGE_LIGHTING) { // hardware lighting
 
@@ -460,24 +454,27 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 }
 
 /*
- * @brief Inserts the specified material into the shared table.
+ * @brief Register event listener for materials.
  */
-static void R_RegisterMaterial(r_material_t *mat) {
-	r_material_t *m;
+static void R_RegisterMaterial(r_media_t *self) {
+	r_material_t *mat = (r_material_t *) self;
 
-	mat->media_count = r_locals.media_count;
+	R_RegisterDependency(self, (r_media_t *) mat->diffuse);
+	R_RegisterDependency(self, (r_media_t *) mat->normalmap);
+	R_RegisterDependency(self, (r_media_t *) mat->glossmap);
 
-	// check for a material with the same name
-	if ((m = g_hash_table_lookup(r_material_state.materials, mat->name))) {
-		if (m == mat) {
-			return;
+	r_stage_t *s = mat->stages;
+	while (s) {
+		R_RegisterDependency(self, (r_media_t *) s->image);
+
+		uint16_t i;
+		for (i = 0; i < s->anim.num_frames; i++) {
+			R_RegisterDependency(self, (r_media_t *) s->anim.frames[i]);
 		}
-		// remove stale materials
-		g_hash_table_remove(r_material_state.materials, mat->name);
-	}
 
-	// and insert the new one
-	g_hash_table_insert(r_material_state.materials, mat->name, mat);
+		R_RegisterDependency(self, (r_media_t *) s->material);
+		s = s->next;
+	}
 }
 
 /*
@@ -485,34 +482,37 @@ static void R_RegisterMaterial(r_material_t *mat) {
  */
 r_material_t *R_LoadMaterial(const char *diffuse) {
 	r_material_t *mat;
-	char key[MAX_QPATH];
+	char base[MAX_QPATH], key[MAX_QPATH];
 
 	if (!diffuse || !diffuse[0]) {
 		Com_Error(ERR_DROP, "R_LoadMaterial: NULL diffuse name.\n");
 	}
 
-	StripExtension(diffuse, key);
+	StripExtension(diffuse, base);
+	snprintf(key, sizeof(key), "%s#material", base);
 
-	if (!(mat = g_hash_table_lookup(r_material_state.materials, key))) {
+	if (!(mat = (r_material_t *) R_FindMedia(key))) {
 
 		mat = Z_TagMalloc(sizeof(r_material_t), Z_TAG_RENDERER);
-		strncpy(mat->name, key, sizeof(mat->name) - 1);
+		strncpy(mat->media.name, key, sizeof(mat->media.name) - 1);
+
+		mat->media.Register = R_RegisterMaterial;
+
+		mat->diffuse = R_LoadImage(base, IT_DIFFUSE);
+
+		mat->normalmap = R_LoadImage(va("%s_nm", base), IT_NORMALMAP);
+		mat->normalmap = mat->normalmap->type == IT_NULL ? NULL : mat->normalmap;
+
+		mat->glossmap = R_LoadImage(va("%s_s", base), IT_GLOSSMAP);
+		mat->glossmap = mat->glossmap->type == IT_NULL ? NULL : mat->glossmap;
+
+		mat->bump = DEFAULT_BUMP;
+		mat->hardness = DEFAULT_HARDNESS;
+		mat->parallax = DEFAULT_PARALLAX;
+		mat->specular = DEFAULT_SPECULAR;
+
+		R_RegisterMedia((r_media_t *) mat);
 	}
-
-	mat->diffuse = R_LoadImage(key, IT_DIFFUSE);
-
-	mat->normalmap = R_LoadImage(va("%s_nm", key), IT_NORMALMAP);
-	mat->normalmap = mat->normalmap->type == IT_NULL ? NULL : mat->normalmap;
-
-	mat->glossmap = R_LoadImage(va("%s_s", key), IT_GLOSSMAP);
-	mat->glossmap = mat->glossmap->type == IT_NULL ? NULL : mat->glossmap;
-
-	mat->bump = DEFAULT_BUMP;
-	mat->hardness = DEFAULT_HARDNESS;
-	mat->parallax = DEFAULT_PARALLAX;
-	mat->specular = DEFAULT_SPECULAR;
-
-	R_RegisterMaterial(mat);
 
 	return mat;
 }
@@ -555,7 +555,7 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 		return -1;
 	}
 
-	strncpy(name, s->image->name, sizeof(name));
+	strncpy(name, s->image->media.name, sizeof(name));
 	j = strlen(name);
 
 	if ((i = atoi(&name[j - 1])) < 0) {
@@ -773,7 +773,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			if (s->terrain.ceil <= s->terrain.floor) {
 				Com_Warn("R_ParseStage: Invalid terrain ceiling and floor "
-					"values for %s\n", (s->image ? s->image->name : "NULL"));
+					"values for %s\n", (s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
 
@@ -789,7 +789,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			if (s->dirt.intensity <= 0.0 || s->dirt.intensity > 1.0) {
 				Com_Warn("R_ParseStage: Invalid dirtmap intensity for %s\n",
-						(s->image ? s->image->name : "NULL"));
+						(s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
 
@@ -804,7 +804,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			if (s->anim.num_frames < 1) {
 				Com_Warn("R_ParseStage: Invalid number of anim frames for %s\n",
-						(s->image ? s->image->name : "NULL"));
+						(s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
 
@@ -813,7 +813,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			if (s->anim.fps <= 0.0) {
 				Com_Warn("R_ParseStage: Invalid anim fps for %s\n",
-						(s->image ? s->image->name : "NULL"));
+						(s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
 
@@ -852,6 +852,17 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 		if (*c == '}') {
 
+			// a texture, or envmap means render it
+			if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP)) {
+				s->flags |= STAGE_DIFFUSE;
+
+				// a terrain blend or dirtmap means light it
+				if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+					s->material = R_LoadMaterial(s->image->media.name);
+					s->flags |= STAGE_LIGHTING;
+				}
+			}
+
 			Com_Debug("Parsed stage\n"
 				"  flags: %d\n"
 				"  texture: %s\n"
@@ -868,23 +879,12 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 				"  terrain.floor: %5f\n"
 				"  terrain.ceil: %5f\n"
 				"  anim.num_frames: %d\n"
-				"  anim.fps: %3f\n", s->flags, (s->image ? s->image->name : "NULL"),
-					(s->material ? s->material->diffuse->name : "NULL"), s->blend.src,
+				"  anim.fps: %3f\n", s->flags, (s->image ? s->image->media.name : "NULL"),
+					(s->material ? s->material->diffuse->media.name : "NULL"), s->blend.src,
 					s->blend.dest, s->color[0], s->color[1], s->color[2], s->pulse.hz,
 					s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
 					s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
 					s->anim.fps);
-
-			// a texture, or envmap means render it
-			if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP)) {
-				s->flags |= STAGE_DIFFUSE;
-
-				// a terrain blend or dirtmap means light it
-				if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
-					s->material = R_LoadMaterial(s->image->name);
-					s->flags |= STAGE_LIGHTING;
-				}
-			}
 
 			return 0;
 		}
@@ -907,9 +907,9 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 	// load the materials file for parsing
 	if (mod->type == MOD_BSP) {
-		snprintf(path, sizeof(path), "materials/%s", Basename(mod->name));
+		snprintf(path, sizeof(path), "materials/%s", Basename(mod->media.name));
 	} else {
-		snprintf(path, sizeof(path), "%s", mod->name);
+		snprintf(path, sizeof(path), "%s", mod->media.name);
 	}
 
 	strcat(path, ".mat");
@@ -988,7 +988,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->bump = atof(ParseToken(&buffer));
 
 			if (m->bump < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid bump value for %s\n", m->diffuse->name);
+				Com_Warn("R_LoadMaterials: Invalid bump value for %s\n", m->diffuse->media.name);
 				m->bump = DEFAULT_BUMP;
 			}
 		}
@@ -998,7 +998,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->parallax = atof(ParseToken(&buffer));
 
 			if (m->parallax < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid parallax value for %s\n", m->diffuse->name);
+				Com_Warn("R_LoadMaterials: Invalid parallax value for %s\n", m->diffuse->media.name);
 				m->parallax = DEFAULT_PARALLAX;
 			}
 		}
@@ -1008,7 +1008,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->hardness = atof(ParseToken(&buffer));
 
 			if (m->hardness < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid hardness value for %s\n", m->diffuse->name);
+				Com_Warn("R_LoadMaterials: Invalid hardness value for %s\n", m->diffuse->media.name);
 				m->hardness = DEFAULT_HARDNESS;
 			}
 		}
@@ -1017,7 +1017,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->specular = atof(ParseToken(&buffer));
 
 			if (m->specular < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid specular value for %s\n", m->diffuse->name);
+				Com_Warn("R_LoadMaterials: Invalid specular value for %s\n", m->diffuse->media.name);
 				m->specular = DEFAULT_SPECULAR;
 			}
 		}
@@ -1055,55 +1055,11 @@ void R_LoadMaterials(const r_model_t *mod) {
 		}
 
 		if (*c == '}' && in_material) {
-			Com_Debug("Parsed material %s with %d stages\n", m->diffuse->name, m->num_stages);
+			Com_Debug("Parsed material %s with %d stages\n", m->diffuse->media.name, m->num_stages);
 			in_material = false;
 			m = NULL;
 		}
 	}
 
 	Fs_FreeFile(buf);
-}
-
-/*
- * @brief GHRFunc for freeing stale materials.
- */
-static gboolean R_FreeMaterial(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
-	r_material_t *m = (r_material_t *) value;
-
-	if (!data) {
-		if (m->media_count == r_locals.media_count) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-/*
- * @brief Frees all materials with stale media counts. Image resources
- * referenced by materials are not freed here, because a reference does not
- * imply ownership.
- */
-void R_FreeMaterials(void) {
-	g_hash_table_foreach_remove(r_material_state.materials, R_FreeMaterial, NULL);
-}
-
-/*
- * @brief Initializes the material state.
- */
-void R_InitMaterials(void) {
-
-	memset(&r_material_state, 0, sizeof(r_material_state));
-
-	r_material_state.materials = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
-}
-
-/*
- * @brief Shuts down the materials state, releasing the shared pool.
- */
-void R_ShutdownMaterials(void) {
-
-	g_hash_table_foreach_remove(r_material_state.materials, R_FreeMaterial, (void *) true);
-
-	g_hash_table_destroy(r_material_state.materials);
 }

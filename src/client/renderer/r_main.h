@@ -73,7 +73,6 @@ void R_Shutdown(void);
 void R_BeginFrame(void);
 void R_DrawView(void);
 void R_EndFrame(void);
-void R_LoadMedia(void);
 
 #if defined(__R_LOCAL_H__) || defined(__ECLIPSE__)
 
@@ -92,8 +91,6 @@ extern r_config_t r_config;
 
 // private renderer structure
 typedef struct r_locals_s {
-
-	uint32_t media_count; // for tracking stale assets
 
 	vec3_t ambient_light; // from worldspawn entity
 
@@ -137,6 +134,7 @@ extern cvar_t *r_draw_wireframe;
 
 void R_SortElements(r_element_t *elements, size_t len);
 void R_UpdateFrustum(void);
+void R_InitView(void);
 
 // render mode function pointers
 extern void (*R_DrawOpaqueBspSurfaces)(const r_bsp_surfaces_t *surfs);

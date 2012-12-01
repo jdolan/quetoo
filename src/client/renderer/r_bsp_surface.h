@@ -19,24 +19,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_IMAGE_H__
-#define __R_IMAGE_H__
+#ifndef __R_BSP_SURFACE_H__
+#define __R_BSP_SURFACE_H__
 
 #include "r_types.h"
 
-r_image_t *R_LoadImage(const char *name, r_image_type_t type);
-
 #ifdef __R_LOCAL_H__
-
-extern r_image_t *r_mesh_shell_image;
-extern r_image_t *r_warp_image;
-
-void R_FilterImage(r_image_t *image, GLenum format, byte *data);
-void R_UploadImage(r_image_t *image, GLenum format, byte *data);
-void R_Screenshot_f(void);
-void R_InitImages(void);
-void R_ShutdownImages(void);
-
+void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawBackBspSurfaces_default(const r_bsp_surfaces_t *surfs);
 #endif /* __R_LOCAL_H__ */
 
-#endif /* __R_IMAGE_H__ */
+#endif /* __R_BSP_SURFACE_H__ */
+

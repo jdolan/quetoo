@@ -817,11 +817,11 @@ void G_ClientBegin(g_edict_t *ent) {
 	} else {
 		memset(welcome, 0, sizeof(welcome));
 
-		snprintf(welcome, sizeof(welcome) - 1, "^2Welcome to ^7%s", sv_hostname->string);
+		snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
 
 		if (*g_motd->string) {
 			char motd[MAX_QPATH];
-			snprintf(motd, sizeof(motd) - 1, "\n%s^7", g_motd->string);
+			snprintf(motd, sizeof(motd), "\n%s^7", g_motd->string);
 
 			strncat(welcome, motd, sizeof(welcome) - strlen(welcome) - 1);
 		}

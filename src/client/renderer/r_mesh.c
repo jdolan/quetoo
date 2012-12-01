@@ -77,7 +77,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const char *name) {
 
 	if (frame > mod->mesh->num_frames) {
-		Com_Warn("R_GetMeshModelTag: %s: Invalid frame: %d\n", mod->name, frame);
+		Com_Warn("R_GetMeshModelTag: %s: Invalid frame: %d\n", mod->media.name, frame);
 		return NULL;
 	}
 
@@ -91,7 +91,7 @@ static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const
 		}
 	}
 
-	Com_Warn("R_GetMeshModelTag: %s: Tag not found: %s\n", mod->name, name);
+	Com_Warn("R_GetMeshModelTag: %s: Tag not found: %s\n", mod->media.name, name);
 	return NULL;
 }
 
@@ -168,7 +168,7 @@ void R_UpdateMeshLighting(const r_entity_t *e) {
 	VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
 	VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
 
-	//Com_Debug("Updating lighting for %s\n", e->model->name);
+	//Com_Debug("Updating lighting for %s\n", e->model->media.name);
 	R_UpdateLighting(e->lighting);
 }
 
@@ -511,12 +511,12 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 void R_DrawMeshModel_default(const r_entity_t *e) {
 
 	if (e->frame >= e->model->mesh->num_frames) {
-		Com_Warn("R_DrawMeshModel %s: no such frame %d\n", e->model->name, e->frame);
+		Com_Warn("R_DrawMeshModel %s: no such frame %d\n", e->model->media.name, e->frame);
 		return;
 	}
 
 	if (e->old_frame >= e->model->mesh->num_frames) {
-		Com_Warn("R_DrawMeshModel %s: no such old_frame %d\n", e->model->name, e->old_frame);
+		Com_Warn("R_DrawMeshModel %s: no such old_frame %d\n", e->model->media.name, e->old_frame);
 		return;
 	}
 

@@ -271,7 +271,7 @@ void Cl_Servers_List_f(void) {
 	server = cls.servers;
 
 	while(server) {
-		snprintf(server_info, sizeof(server_info) - 1, "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
+		snprintf(server_info, sizeof(server_info), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
 			server->hostname, Net_NetaddrToString(server->addr), server->name, server->gameplay, server->clients,
 			server->max_clients, server->ping);
 		server_info[127] = '\0';

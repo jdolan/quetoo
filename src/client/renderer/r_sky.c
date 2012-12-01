@@ -365,20 +365,18 @@ void R_DrawSkyBox(void) {
 	glPopMatrix();
 }
 
-// 3dstudio environment map names
-char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
-
 /*
  * @brief
  */
 void R_SetSky(char *name) {
+	const char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
 	int32_t i;
-	char pathname[MAX_QPATH];
+	char path[MAX_QPATH];
 
 	for (i = 0; i < 6; i++) {
 
-		snprintf(pathname, sizeof(pathname), "env/%s%s", name, suf[i]);
-		r_sky.images[i] = R_LoadImage(pathname, IT_SKY);
+		snprintf(path, sizeof(path), "env/%s%s", name, suf[i]);
+		r_sky.images[i] = R_LoadImage(path, IT_SKY);
 
 		if (r_sky.images[i]->type == IT_NULL) { // try unit1_
 			if (strcmp(name, "unit1_")) {
@@ -392,3 +390,17 @@ void R_SetSky(char *name) {
 	r_sky.st_min = 1.0 / (float) r_sky.images[0]->width;
 	r_sky.st_max = (r_sky.images[0]->width - 1.0) / (float) r_sky.images[0]->width;
 }
+
+/*
+ * @brief
+ */
+void R_Sky_f(void) {
+
+	if (Cmd_Argc() != 2) {
+		Com_Print("Usage: %s <basename>\n", Cmd_Argv(0));
+		return;
+	}
+
+	R_SetSky(Cmd_Argv(1));
+}
+

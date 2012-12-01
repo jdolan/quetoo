@@ -28,6 +28,7 @@
 void R_ClearSkyBox(void);
 void R_DrawSkyBox(void);
 void R_SetSky(char *name);
+void R_Sky_f(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_SKY_H__ */

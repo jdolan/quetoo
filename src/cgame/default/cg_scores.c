@@ -119,7 +119,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 
 		x = cgi.context->width / 2 - SCORES_COL_WIDTH + SCORES_ICON_WIDTH;
 
-		snprintf(string, sizeof(string) - 1, "%s^7 %d %s",
+		snprintf(string, sizeof(string), "%s^7 %d %s",
 				cgi.ConfigString(CS_TEAM_GOOD), s,
 				cg_scores_ctf ? "caps" : "frags");
 
@@ -130,7 +130,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 
 		x += SCORES_COL_WIDTH;
 
-		snprintf(string, sizeof(string) - 1, "%s^7 %d %s",
+		snprintf(string, sizeof(string), "%s^7 %d %s",
 				cgi.ConfigString(CS_TEAM_EVIL), s,
 				cg_scores_ctf ? "caps" : "frags");
 
@@ -160,7 +160,7 @@ static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 	skin = strchr(name, '\\') + 1;
 	*(skin - 1) = '\0';
 
-	snprintf(icon, sizeof(icon) - 1, "#players/%s_i", skin);
+	snprintf(icon, sizeof(icon), "#players/%s_i", skin);
 
 	// icon
 	cgi.DrawPic(x, y, 0.33, icon);

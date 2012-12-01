@@ -22,8 +22,6 @@
 #include "r_local.h"
 
 typedef struct {
-	GHashTable *models;
-
 	r_model_t *world;
 } r_model_state_t;
 
@@ -130,39 +128,52 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 		qglBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	R_GetError(mod->name);
+	R_GetError(mod->media.name);
 }
 
 /*
- * @brief Inserts the specified model into the shared table.
+ * @brief Register event listener for models.
  */
-void R_RegisterModel(r_model_t *mod) {
-	r_model_t *m;
+static void R_RegisterModel(r_media_t *self) {
+	r_model_t *mod = (r_model_t *) self;
 
-	mod->media_count = r_locals.media_count;
-
-	GList *e = mod->materials;
-	while (e) {
-		((r_material_t *) e->data)->media_count = r_locals.media_count;
-		e = e->next;
-	}
-
-	// save a reference to the world model
 	if (mod->type == MOD_BSP) {
+		const r_bsp_surface_t *s = mod->bsp->surfaces;
+		uint16_t i;
+
+		for (i = 0; i < mod->bsp->num_surfaces; i++, s++) {
+			R_RegisterDependency(self, (r_media_t *) s->texinfo->material);
+
+			R_RegisterDependency(self, (r_media_t *) s->lightmap);
+			R_RegisterDependency(self, (r_media_t *) s->deluxemap);
+		}
+
 		r_model_state.world = mod;
 	}
+}
 
-	// check for a model with the same name (e.g. inline models)
-	if ((m = g_hash_table_lookup(r_model_state.models, mod->name))) {
-		if (m == mod) {
-			return;
-		}
-		// remove stale models
-		g_hash_table_remove(r_model_state.models, mod->name);
-	}
+/*
+ * @brief Free event listener for models.
+ */
+static void R_FreeModel(r_media_t *self) {
+	r_model_t *mod = (r_model_t *) self;
 
-	// and insert the new one
-	g_hash_table_insert(r_model_state.models, mod->name, mod);
+	if (mod->vertex_buffer)
+		qglDeleteBuffers(1, &mod->vertex_buffer);
+
+	if (mod->texcoord_buffer)
+		qglDeleteBuffers(1, &mod->texcoord_buffer);
+
+	if (mod->lightmap_texcoord_buffer)
+		qglDeleteBuffers(1, &mod->lightmap_texcoord_buffer);
+
+	if (mod->normal_buffer)
+		qglDeleteBuffers(1, &mod->normal_buffer);
+
+	if (mod->tangent_buffer)
+		qglDeleteBuffers(1, &mod->tangent_buffer);
+
+	R_GetError(mod->media.name);
 }
 
 /*
@@ -179,7 +190,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 	StripExtension(name, key);
 
-	if (!(mod = g_hash_table_lookup(r_model_state.models, key))) {
+	if (!(mod = (r_model_t *) R_FindMedia(key))) {
 
 		void *buf;
 		r_model_format_t *format = r_model_formats;
@@ -202,7 +213,10 @@ r_model_t *R_LoadModel(const char *name) {
 		}
 
 		mod = Z_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
-		StripExtension(key, mod->name);
+		StripExtension(key, mod->media.name);
+
+		mod->media.Register = R_RegisterModel;
+		mod->media.Free = R_FreeModel;
 
 		mod->type = format->type;
 
@@ -223,10 +237,9 @@ r_model_t *R_LoadModel(const char *name) {
 
 		VectorSubtract(mod->maxs, mod->mins, tmp);
 		mod->radius = VectorLength(tmp) / 2.0;
+
+		R_RegisterMedia((r_media_t *) mod);
 	}
-
-
-	R_RegisterModel(mod);
 
 	return mod;
 }
@@ -239,75 +252,10 @@ r_model_t *R_WorldModel(void) {
 }
 
 /*
- * @brief Prints information for the specified model to the console.
- */
-static void R_ListModels_f_(gpointer key __attribute__((unused)), gpointer value, gpointer data __attribute__((unused))) {
-	r_model_t *mod = (r_model_t *) value;
-
-	Com_Print("%6i: %s\n", mod->num_verts, mod->name);
-}
-
-/*
- * @brief Prints information about all currently loaded models to the console.
- */
-void R_ListModels_f(void) {
-
-	Com_Print("Loaded models:\n");
-
-	g_hash_table_foreach(r_model_state.models, R_ListModels_f_, NULL);
-}
-
-/*
- * @brief GHRFunc for freeing models. If data is non-NULL, then all models are
- * freed (deleted from GL as well as Z_Free'd). Otherwise, only those with
- * stale media counts are released.
- */
-static gboolean R_FreeModel(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
-	r_model_t *mod = (r_model_t *) value;
-
-	if (!data) {
-		if (mod->media_count == r_locals.media_count) {
-			return false;
-		}
-	}
-
-	g_list_free(mod->materials);
-
-	if (mod->vertex_buffer)
-		qglDeleteBuffers(1, &mod->vertex_buffer);
-
-	if (mod->texcoord_buffer)
-		qglDeleteBuffers(1, &mod->texcoord_buffer);
-
-	if (mod->lightmap_texcoord_buffer)
-		qglDeleteBuffers(1, &mod->lightmap_texcoord_buffer);
-
-	if (mod->normal_buffer)
-		qglDeleteBuffers(1, &mod->normal_buffer);
-
-	if (mod->tangent_buffer)
-		qglDeleteBuffers(1, &mod->tangent_buffer);
-
-	R_GetError(mod->name);
-
-	return true;
-}
-
-/*
- * @brief Frees any stale models.
- */
-void R_FreeModels(void) {
-	g_hash_table_foreach_remove(r_model_state.models, R_FreeModel, NULL);
-}
-
-/*
  * @brief
  */
 void R_InitModels(void) {
-
 	memset(&r_model_state, 0, sizeof(r_model_state));
-
-	r_model_state.models = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
 }
 
 /*
@@ -315,7 +263,4 @@ void R_InitModels(void) {
  */
 void R_ShutdownModels(void) {
 
-	g_hash_table_foreach_remove(r_model_state.models, R_FreeModel, (void *) true);
-
-	g_hash_table_destroy(r_model_state.models);
 }

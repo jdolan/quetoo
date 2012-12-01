@@ -93,11 +93,11 @@ typedef unsigned char byte;
 #define CVAR_NO_SET			0x10 // don't allow change from console at all
 #define CVAR_LATCH			0x20 // save changes until server restart
 #define CVAR_R_CONTEXT		0x40 // effects OpenGL context
-#define CVAR_R_IMAGES		0x80 // effects image filtering
+#define CVAR_R_MEDIA		0x80 // effects renderer media filtering
 #define CVAR_S_DEVICE		0x100 // effects sound device parameters
-#define CVAR_S_SAMPLES		0x200 // effects sound samples
-#define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_IMAGES)
-#define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_SAMPLES)
+#define CVAR_S_MEDIA		0x200 // effects sound media
+#define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_MEDIA)
+#define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_MEDIA)
 
 // managed memory tags
 typedef enum {

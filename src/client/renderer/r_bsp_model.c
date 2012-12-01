@@ -198,7 +198,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 	for (i = 0; i < mod->bsp->num_inline_models; i++) {
 		r_model_t *m = Z_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
 
-		snprintf(m->name, sizeof(m->name), "*%d", i);
+		snprintf(m->media.name, sizeof(m->media.name), "*%d", i);
 		m->type = MOD_BSP_INLINE;
 
 		m->bsp_inline = &mod->bsp->inline_models[i];
@@ -215,7 +215,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		}
 
 		// register with the subsystem
-		R_RegisterModel(m);
+		R_RegisterDependency((r_media_t *) mod, (r_media_t *) m);
 	}
 }
 
@@ -244,7 +244,7 @@ static void R_LoadBspEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  * @brief Loads all r_bsp_texinfo_t for the specified BSP model. Texinfo's
  * are shared by one or more r_bsp_surface_t.
  */
-static void R_LoadBspTexinfo(r_bsp_model_t *bsp, GList **materials, const d_bsp_lump_t *l) {
+static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	r_bsp_texinfo_t *out;
 	uint16_t i, j;
 
@@ -266,10 +266,6 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, GList **materials, const d_bsp_
 		out->value = LittleLong(in->value);
 
 		out->material = R_LoadMaterial(va("textures/%s", out->name));
-
-		if (!g_list_find(*materials, out->material)) {
-			*materials = g_list_prepend(*materials, out->material);
-		}
 	}
 }
 
@@ -615,13 +611,13 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 			s -= surf->st_mins[0];
 			s += surf->light_s * mod->bsp->lightmap_scale;
 			s += mod->bsp->lightmap_scale / 2.0;
-			s /= r_lightmaps.block_size * mod->bsp->lightmap_scale;
+			s /= surf->lightmap->width * mod->bsp->lightmap_scale;
 
 			t = DotProduct(vert->position, tdir) + toff;
 			t -= surf->st_mins[1];
 			t += surf->light_t * mod->bsp->lightmap_scale;
 			t += mod->bsp->lightmap_scale / 2.0;
-			t /= r_lightmaps.block_size * mod->bsp->lightmap_scale;
+			t /= surf->lightmap->height * mod->bsp->lightmap_scale;
 		}
 
 		mod->lightmap_texcoords[(*count) * 2 + 0] = s;
@@ -805,7 +801,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 
 	if (header.version != BSP_VERSION && header.version != BSP_VERSION_Q2W) {
-		Com_Error(ERR_DROP, "R_LoadBspModel: %s has unsupported version: %d\n", mod->name,
+		Com_Error(ERR_DROP, "R_LoadBspModel: %s has unsupported version: %d\n", mod->media.name,
 				header.version);
 	}
 
@@ -834,7 +830,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspPlanes(mod->bsp, &header.lumps[LUMP_PLANES]);
 	Cl_LoadProgress(20);
 
-	R_LoadBspTexinfo(mod->bsp, &mod->materials, &header.lumps[LUMP_TEXINFO]);
+	R_LoadBspTexinfo(mod->bsp, &header.lumps[LUMP_TEXINFO]);
 	Cl_LoadProgress(24);
 
 	R_LoadBspSurfaces(mod->bsp, &header.lumps[LUMP_FACES]);
@@ -856,7 +852,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadProgress(48);
 
 	Com_Debug("================================\n");
-	Com_Debug("R_LoadBspModel: %s\n", mod->name);
+	Com_Debug("R_LoadBspModel: %s\n", mod->media.name);
 	Com_Debug("  Verts:          %d\n", mod->bsp->num_vertexes);
 	Com_Debug("  Edges:          %d\n", mod->bsp->num_edges);
 	Com_Debug("  Surface edges:  %d\n", mod->bsp->num_surface_edges);

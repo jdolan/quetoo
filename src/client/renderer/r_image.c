@@ -25,8 +25,6 @@ r_image_t *r_mesh_shell_image;
 r_image_t *r_warp_image;
 
 typedef struct {
-	GHashTable *images;
-
 	r_image_t *null;
 	r_image_t *warp;
 } r_image_state_t;
@@ -52,35 +50,18 @@ static r_texture_mode_t r_texture_modes[] = {
 };
 
 /*
- * @brief GHFunc for setting texture mode parameters on an r_image_t.
- */
-static void R_TextureMode_(gpointer key __attribute__((unused)), gpointer value, gpointer data __attribute__((unused))) {
-	r_image_t *image = (r_image_t *) value;
-
-	if (!(image->type & IT_MASK_MIPMAP))
-		return;
-
-	R_BindTexture(image->texnum);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_filter_aniso);
-}
-
-/*
  * @brief
  */
-void R_TextureMode(const char *mode) {
+static void R_TextureMode(void) {
 	uint16_t i;
 
 	for (i = 0; i < lengthof(r_texture_modes); i++) {
-		if (!strcasecmp(r_texture_modes[i].name, mode))
+		if (!strcasecmp(r_texture_modes[i].name, r_texture_mode->string))
 			break;
 	}
 
 	if (i == lengthof(r_texture_modes)) {
-		Com_Warn("R_texture_mode: Bad filter name: %s\n", mode);
+		Com_Warn("R_TextureMode: Bad filter name: %s\n", r_texture_mode->string);
 		return;
 	}
 
@@ -91,70 +72,6 @@ void R_TextureMode(const char *mode) {
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_filter_aniso);
 	else
 		r_filter_aniso = 1.0;
-
-	// update all resident textures
-	g_hash_table_foreach(r_image_state.images, R_TextureMode_, NULL);
-}
-
-/*
- * @brief GHFunc for listing image details.
- */
-static void R_ListImages_f_(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
-	const r_image_t *image = (r_image_t *) value;
-
-	switch (image->type) {
-		case IT_FONT:
-			Com_Print("Font      ");
-			break;
-		case IT_EFFECT:
-			Com_Print("Effect    ");
-			break;
-		case IT_DIFFUSE:
-			Com_Print("Diffuse   ");
-			break;
-		case IT_LIGHTMAP:
-			Com_Print("Lightmap   ");
-			break;
-		case IT_DELUXEMAP:
-			Com_Print("Deluxemap  ");
-			break;
-		case IT_NORMALMAP:
-			Com_Print("Normalmap ");
-			break;
-		case IT_GLOSSMAP:
-			Com_Print("Glossmap  ");
-			break;
-		case IT_ENVMAP:
-			Com_Print("Envmap    ");
-			break;
-		case IT_FLARE:
-			Com_Print("Flare     ");
-			break;
-		case IT_SKY:
-			Com_Print("Sky       ");
-			break;
-		case IT_PIC:
-			Com_Print("Pic       ");
-			break;
-		default:
-			Com_Print("          ");
-			break;
-	}
-
-	Com_Print("%4ix%4i: %s\n", image->width, image->height, image->name);
-
-	*((uint32_t *) data) += image->width * image->height;
-}
-
-/*
- * @brief Prints all currently loaded images to the console.
- */
-void R_ListImages_f(void) {
-	uint32_t texels = 0;
-
-	g_hash_table_foreach(r_image_state.images, R_ListImages_f_, &texels);
-
-	Com_Print("Total texel count: %u\n", texels);
 }
 
 #define MAX_SCREENSHOTS 100
@@ -291,27 +208,6 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 }
 
 /*
- * @brief Inserts the specified image into the shared table.
- */
-static void R_RegisterImage(r_image_t *image) {
-	r_image_t *i;
-
-	image->media_count = r_locals.media_count;
-
-	// check for an image with the same name
-	if ((i = g_hash_table_lookup(r_image_state.images, image->name))) {
-		if (i == image) {
-			return;
-		}
-		// remove stale images
-		g_hash_table_remove(r_image_state.images, image->name);
-	}
-
-	// and insert the new one
-	g_hash_table_insert(r_image_state.images, image->name, image);
-}
-
-/*
  * @brief Uploads the specified image to the OpenGL implementation. Images that
  * do not have a GL texture reserved (which is most diffuse textures) will have
  * one generated for them. This flexibility allows for explicitly managed
@@ -340,11 +236,26 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format, GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format,
+			GL_UNSIGNED_BYTE, data);
 
-	R_RegisterImage(image);
+	R_RegisterMedia((r_media_t *) image);
 
-	R_GetError(image->name);
+	R_GetError(image->media.name);
+}
+
+/*
+ * @brief Retain event listener for images.
+ */
+static bool R_RetainImage(r_media_t *self) {
+	return ((r_image_t *) self)->type <= IT_FONT;
+}
+
+/*
+ * @brief Free event listener for images.
+ */
+static void R_FreeImage(r_media_t *media) {
+	glDeleteTextures(1, &((r_image_t *) media)->texnum);
 }
 
 /*
@@ -360,12 +271,15 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 	StripExtension(name, key);
 
-	if (!(image = g_hash_table_lookup(r_image_state.images, key))) {
+	if (!(image = (r_image_t *) R_FindMedia(key))) {
 
 		SDL_Surface *surf;
 		if (Img_LoadImage(key, &surf)) { // attempt to load the image
 			image = Z_TagMalloc(sizeof(*image), Z_TAG_RENDERER);
-			strncpy(image->name, key, sizeof(image->name) - 1);
+			strncpy(image->media.name, key, sizeof(image->media.name) - 1);
+
+			image->media.Retain = R_RetainImage;
+			image->media.Free = R_FreeImage;
 
 			image->width = surf->w;
 			image->height = surf->h;
@@ -382,8 +296,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 			Com_Debug("R_LoadImage: Couldn't load %s\n", key);
 			image = r_image_state.null;
 		}
-	} else {
-		R_RegisterImage(image);
 	}
 
 	return image;
@@ -396,7 +308,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 static void R_InitNullImage(void) {
 
 	r_image_state.null = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
-	strcpy(r_image_state.null->name, "r_null_image");
+	strcpy(r_image_state.null->media.name, "r_null_image");
 	r_image_state.null->width = r_image_state.null->height = 16;
 	r_image_state.null->type = IT_NULL;
 
@@ -422,7 +334,7 @@ static void R_InitMeshShellImage() {
 static void R_InitWarpImage(void) {
 
 	r_warp_image = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
-	strcpy(r_warp_image->name, "r_warp_image");
+	strcpy(r_warp_image->media.name, "r_warp_image");
 	r_warp_image->width = r_warp_image->height = WARP_SIZE;
 	r_warp_image->type = IT_GENERATED;
 
@@ -448,7 +360,7 @@ void R_InitImages(void) {
 
 	memset(&r_image_state, 0, sizeof(r_image_state));
 
-	r_image_state.images = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
+	R_TextureMode();
 
 	Img_InitPalette();
 
@@ -460,38 +372,8 @@ void R_InitImages(void) {
 }
 
 /*
- * @brief GHRFunc for freeing images. If data is non-NULL, then all images are
- * freed (deleted from GL as well as Z_Free'd). Otherwise, only those with
- * stale media counts are released.
- */
-static gboolean R_FreeImage(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
-	r_image_t *image = (r_image_t *) value;
-
-	if (!data) {
-		if (image->type <= IT_FONT || image->media_count == r_locals.media_count) {
-			return false;
-		}
-	}
-
-	glDeleteTextures(1, &image->texnum);
-	return true;
-}
-
-/*
- * @brief Frees all images with stale media counts.
- */
-void R_FreeImages(void) {
-	g_hash_table_foreach_remove(r_image_state.images, R_FreeImage, NULL);
-}
-
-/*
  * @brief Frees all images and destroys the hash table container.
  */
 void R_ShutdownImages(void) {
-
-	g_hash_table_foreach_remove(r_image_state.images, R_FreeImage, (void *) true);
-
-	g_hash_table_destroy(r_image_state.images);
-
 	r_mesh_shell_image = r_warp_image = NULL;
 }

@@ -510,7 +510,7 @@ void R_UseMaterial(const r_bsp_surface_t *surf, const r_material_t *material) {
 	if (r_state.active_program->UseMaterial)
 		r_state.active_program->UseMaterial(surf, material);
 
-	R_GetError(material ? material->diffuse->name : r_state.active_program->name);
+	R_GetError(material ? material->diffuse->media.name : r_state.active_program->name);
 }
 
 #define NEAR_Z 4

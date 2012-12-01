@@ -120,7 +120,7 @@ void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_material_t *mate
 
 	// first deal with the surface
 	if (surf) {
-		R_BindDeluxemapTexture(surf->deluxemap_texnum);
+		R_BindDeluxemapTexture(surf->deluxemap->texnum);
 		R_ProgramParameter1i(&p->deluxemap, 1);
 	} else
 		R_ProgramParameter1i(&p->deluxemap, 0);

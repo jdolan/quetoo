@@ -293,12 +293,6 @@ void R_BeginFrame(void) {
 		r_draw_buffer->modified = false;
 	}
 
-	// texture mode stuff
-	if (r_texture_mode->modified || r_anisotropy->modified) {
-		R_TextureMode(r_texture_mode->string);
-		r_texture_mode->modified = r_anisotropy->modified = false;
-	}
-
 	// render mode stuff
 	if (r_render_mode->modified) {
 		R_RenderMode(r_render_mode->string);
@@ -321,11 +315,7 @@ void R_EndFrame(void) {
 
 			r_view.update = false;
 
-			R_FreeModels();
-
-			R_FreeMaterials();
-
-			R_FreeImages();
+			R_FreeMedia();
 		}
 	}
 
@@ -335,114 +325,14 @@ void R_EndFrame(void) {
 /*
  * @brief Initializes the view and locals structures so that loading may begin.
  */
-static void R_InitView(void) {
+void R_InitView(void) {
 
 	memset(&r_view, 0, sizeof(r_view));
 
 	R_RenderMode(r_render_mode->string);
 
 	memset(&r_locals, 0, sizeof(r_locals));
-
-	r_locals.media_count = Sys_Milliseconds();
 }
-
-/*
- * @brief Parses the weather config_string for weather and fog definitions,
- * e.g. "rain fog 0.8 0.75 0.65".
- */
-static void R_ResolveWeather(void) {
-	char *weather, *c;
-	int32_t err;
-
-	r_view.weather = WEATHER_NONE;
-	r_view.fog_color[3] = 1.0;
-
-	VectorSet(r_view.fog_color, 0.75, 0.75, 0.75);
-
-	weather = cl.config_strings[CS_WEATHER];
-
-	if (!weather || *weather == '\0')
-		return;
-
-	if (strstr(weather, "rain"))
-		r_view.weather |= WEATHER_RAIN;
-
-	if (strstr(weather, "snow"))
-		r_view.weather |= WEATHER_SNOW;
-
-	if ((c = strstr(weather, "fog"))) {
-
-		r_view.weather |= WEATHER_FOG;
-		err = -1;
-
-		if (strlen(c) > 3) // try to parse fog color
-			err = sscanf(c + 4, "%f %f %f", &r_view.fog_color[0], &r_view.fog_color[1],
-					&r_view.fog_color[2]);
-
-		if (err != 3) // default to gray
-			VectorSet(r_view.fog_color, 0.75, 0.75, 0.75);
-	}
-}
-
-/*
- * @brief Iterate the config_strings, loading all renderer-specific media.
- */
-void R_LoadMedia(void) {
-	int32_t i;
-
-	if (!cl.config_strings[CS_MODELS][0])
-		return; // no map specified
-
-	R_InitView();
-
-	Cl_LoadProgress(1);
-
-	// load the world
-	R_LoadModel(cl.config_strings[CS_MODELS]);
-	Cl_LoadProgress(50);
-
-	// load all other known models
-	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
-
-		cl.model_draw[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
-
-		if (i <= 20) // bump loading progress
-			Cl_LoadProgress(50 + i);
-	}
-	Cl_LoadProgress(70);
-
-	// images for the heads up display
-	R_FreePics();
-
-	for (i = 1; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
-		cl.image_precache[i] = R_LoadPic(cl.config_strings[CS_IMAGES + i]);
-	}
-	Cl_LoadProgress(75);
-
-	// sky environment map
-	R_SetSky(cl.config_strings[CS_SKY]);
-	Cl_LoadProgress(77);
-
-	// weather and fog effects
-	R_ResolveWeather();
-	Cl_LoadProgress(79);
-
-	r_view.update = true;
-}
-
-/*
- * @brief
- */
-static void R_Sky_f(void) {
-
-	if (Cmd_Argc() != 2) {
-		Com_Print("Usage: %s <basename>\n", Cmd_Argv(0));
-		return;
-	}
-
-	R_SetSky(Cmd_Argv(1));
-}
-
 
 /*
  * @brief Restarts the renderer subsystem. The OpenGL context is discarded and
@@ -500,18 +390,18 @@ static void R_InitLocal(void) {
 			"Controls the rendering of polygons as wireframe (developer tool)");
 
 	// settings and preferences
-	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE,
+	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls anisotropic texture filtering");
-	r_brightness = Cvar_Get("r_brightness", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
+	r_brightness = Cvar_Get("r_brightness", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls texture brightness");
-	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
+	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls the intensity of bump-mapping effects");
 	r_capture = Cvar_Get("r_capture", "0", 0, "Toggle screen capturing to jpeg files");
 	r_capture_fps
 			= Cvar_Get("r_capture_fps", "25", 0, "The desired framerate for screen capturing");
 	r_capture_quality = Cvar_Get("r_capture_quality", "0.7", CVAR_ARCHIVE,
 			"Screen capturing image quality");
-	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
+	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls texture contrast");
 	r_coronas = Cvar_Get("r_coronas", "1", CVAR_ARCHIVE, "Controls the rendering of coronas");
 	r_draw_buffer = Cvar_Get("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
@@ -525,9 +415,9 @@ static void R_InitLocal(void) {
 	r_hardness = Cvar_Get("r_hardness", "1.0", CVAR_ARCHIVE,
 			"Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Get("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_IMAGES,
+	r_invert = Cvar_Get("r_invert", "0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Inverts the RGB values of all world textures");
-	r_lightmap_block_size = Cvar_Get("r_lightmap_block_size", "4096", CVAR_ARCHIVE | CVAR_R_IMAGES,
+	r_lightmap_block_size = Cvar_Get("r_lightmap_block_size", "4096", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			NULL);
 	r_lighting = Cvar_Get("r_lighting", "1.0", CVAR_ARCHIVE,
 			"Controls intensity of hardware lighting effects");
@@ -535,9 +425,9 @@ static void R_InitLocal(void) {
 	r_line_width = Cvar_Get("r_line_width", "1.0", CVAR_ARCHIVE, NULL);
 	r_materials = Cvar_Get("r_materials", "1", CVAR_ARCHIVE,
 			"Enables or disables the materials (progressive texture effects) system");
-	r_modulate = Cvar_Get("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
+	r_modulate = Cvar_Get("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls the brightness of world surface lightmaps");
-	r_monochrome = Cvar_Get("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_IMAGES,
+	r_monochrome = Cvar_Get("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Loads all world textures as monochrome");
 	r_multisample = Cvar_Get("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls multisampling (anti-aliasing)");
@@ -548,7 +438,7 @@ static void R_InitLocal(void) {
 	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE, "Controls GLSL shaders");
 	r_render_mode = Cvar_Get("r_render_mode", "default", CVAR_ARCHIVE,
 			"Specifies the active renderer plugin (default or pro)");
-	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_IMAGES,
+	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls texture saturation");
 	r_screenshot_type = Cvar_Get("r_screenshot_type", "jpeg", CVAR_ARCHIVE,
 			"Screenshot image format (jpeg or tga)");
@@ -560,7 +450,7 @@ static void R_InitLocal(void) {
 			"Controls the specularity of bump-mapping effects");
 	r_swap_interval = Cvar_Get("r_swap_interval", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls vertical refresh synchronization (v-sync)");
-	r_texture_mode = Cvar_Get("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE,
+	r_texture_mode = Cvar_Get("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Specifies the active texture filtering mode");
 	r_vertex_buffers = Cvar_Get("r_vertex_buffers", "1", CVAR_ARCHIVE,
 			"Controls the use of vertex buffer objects (VBO)");
@@ -572,11 +462,9 @@ static void R_InitLocal(void) {
 	// prevent unnecessary reloading for initial values
 	Cvar_ClearVars(CVAR_R_MASK);
 
-	Cmd_AddCommand("r_list_models", R_ListModels_f, 0,
-			"Print information about all the loaded models to the game console");
+	Cmd_AddCommand("r_list_media", R_ListMedia_f, 0,
+			"List the names of all currently loaded media");
 
-	Cmd_AddCommand("r_list_images", R_ListImages_f, 0,
-			"Print information about all the loaded images to the game console");
 	Cmd_AddCommand("r_screenshot", R_Screenshot_f, CMD_SYSTEM, "Take a screenshot");
 
 	Cmd_AddCommand("r_sky", R_Sky_f, 0, NULL);
@@ -627,11 +515,11 @@ void R_Init(void) {
 
 	R_InitPrograms();
 
+	R_InitMedia();
+
 	R_InitImages();
 
 	R_InitDraw();
-
-	R_InitMaterials();
 
 	R_InitModels();
 
@@ -653,9 +541,8 @@ void R_Init(void) {
  */
 void R_Shutdown(void) {
 
-	Cmd_RemoveCommand("r_list_models");
+	Cmd_RemoveCommand("r_list_media");
 
-	Cmd_RemoveCommand("r_list_images");
 	Cmd_RemoveCommand("r_screenshot");
 
 	Cmd_RemoveCommand("r_sky");
@@ -669,8 +556,6 @@ void R_Shutdown(void) {
 	R_ShutdownPrograms();
 
 	R_ShutdownModels();
-
-	R_ShutdownMaterials();
 
 	R_ShutdownImages();
 

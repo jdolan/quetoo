@@ -30,8 +30,51 @@ typedef struct cg_weather_emit_s {
 	struct cg_weather_emit_s *next;
 } cg_weather_emit_t;
 
-static cg_weather_emit_t *cg_weather_emits;
-static uint32_t cg_weather_time;
+typedef struct {
+	cg_weather_emit_t *emits;
+	uint32_t time;
+} cg_weather_state_t;
+
+static cg_weather_state_t cg_weather_state;
+
+/*
+ * @brief Parses CS_WEATHER for weather and fog parameters, e.g. "rain fog 0.8 0.75 0.65".
+ */
+void Cg_ResolveWeather(const char *weather) {
+	char *c;
+	int32_t err;
+
+	cgi.Debug("Cg_ResolveWeather: %s\n", weather);
+
+	cgi.view->weather = WEATHER_NONE;
+	cgi.view->fog_color[3] = 1.0;
+
+	VectorSet(cgi.view->fog_color, 0.75, 0.75, 0.75);
+
+	if (!weather || *weather == '\0')
+		return;
+
+	if (strstr(weather, "rain"))
+		cgi.view->weather |= WEATHER_RAIN;
+
+	if (strstr(weather, "snow"))
+		cgi.view->weather |= WEATHER_SNOW;
+
+	if ((c = strstr(weather, "fog"))) {
+
+		cgi.view->weather |= WEATHER_FOG;
+		err = -1;
+
+		if (strlen(c) > 3) { // try to parse fog color
+			float *f = cgi.view->fog_color;
+			err = sscanf(c + 4, "%f %f %f", f, f + 1, f + 2);
+		}
+
+		if (err != 3) { // default to gray
+			VectorSet(cgi.view->fog_color, 0.75, 0.75, 0.75);
+		}
+	}
+}
 
 /*
  * @brief Creates an emitter for the given surface. The number of origins for the
@@ -75,8 +118,8 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 	}
 
 	// push on to the linked list
-	e->next = cg_weather_emits;
-	cg_weather_emits = e;
+	e->next = cg_weather_state.emits;
+	cg_weather_state.emits = e;
 
 	cgi.Debug("Cg_LoadWeather: %s: %d origins\n", vtos(s->center), e->num_origins);
 }
@@ -88,8 +131,10 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 void Cg_LoadWeather(void) {
 	uint16_t i, j;
 
-	cg_weather_emits = NULL;
-	cg_weather_time = 0;
+	Cg_ResolveWeather(cgi.ConfigString(CS_WEATHER));
+
+	cg_weather_state.emits = NULL;
+	cg_weather_state.time = 0;
 
 	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
 	const r_bsp_surface_t *s = bsp->surfaces;
@@ -183,12 +228,12 @@ static void Cg_AddWeather(void) {
 	if (!(cgi.view->weather & (WEATHER_RAIN | WEATHER_SNOW)))
 		return;
 
-	if (cgi.client->time - cg_weather_time < 100)
+	if (cgi.client->time - cg_weather_state.time < 100)
 		return;
 
-	cg_weather_time = cgi.client->time;
+	cg_weather_state.time = cgi.client->time;
 
-	const cg_weather_emit_t *e = cg_weather_emits;
+	const cg_weather_emit_t *e = cg_weather_state.emits;
 
 	while (e) {
 		if (cgi.LeafInPhs(e->leaf)) {

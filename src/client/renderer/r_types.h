@@ -28,6 +28,16 @@
 #include "threads.h"
 #include "r_matrix.h"
 
+// media handles
+typedef struct r_media_s {
+	char name[MAX_QPATH];
+	GList *dependencies;
+	void (*Register)(struct r_media_s *self);
+	bool (*Retain)(struct r_media_s *self);
+	void (*Free)(struct r_media_s *self);
+	uint32_t seed;
+} r_media_t;
+
 typedef int16_t r_pixel_t;
 
 // high bits OR'ed with image types
@@ -55,12 +65,11 @@ typedef enum {
  * @brief Images are referenced by materials, models, entities, particles, etc.
  */
 typedef struct r_image_s {
-	char name[MAX_QPATH]; // game path, excluding extension
+	r_media_t media;
 	r_image_type_t type;
 	r_pixel_t width, height; // image dimensions
-	vec3_t color; // average color
 	GLuint texnum; // OpenGL texture binding
-	uint32_t media_count; // for freeing stale images
+	vec3_t color; // average color
 } r_image_t;
 
 typedef struct r_stage_blend_s {
@@ -130,7 +139,7 @@ typedef struct r_stage_s {
 #define DEFAULT_SPECULAR 1.0
 
 typedef struct r_material_s {
-	char name[MAX_QPATH];
+	r_media_t media;
 	r_image_t *diffuse;
 	r_image_t *normalmap;
 	r_image_t *glossmap;
@@ -142,7 +151,6 @@ typedef struct r_material_s {
 	float specular;
 	r_stage_t *stages;
 	uint16_t num_stages;
-	uint32_t media_count;
 } r_material_t;
 
 // bsp model memory representation
@@ -216,8 +224,8 @@ typedef struct {
 	r_bsp_flare_t *flare;
 
 	r_pixel_t light_s, light_t; // lightmap texcoords
-	GLuint lightmap_texnum;
-	GLuint deluxemap_texnum;
+	r_image_t *lightmap;
+	r_image_t *deluxemap;
 
 	uint32_t lights; // bit mask of enabled light sources
 } r_bsp_surface_t;
@@ -494,7 +502,7 @@ typedef struct {
  * @brief Models represent a subset of the BSP or an OBJ / MD3 mesh.
  */
 typedef struct r_model_s {
-	char name[MAX_QPATH];
+	r_media_t media;
 	r_model_type_t type;
 
 	r_bsp_model_t *bsp;
@@ -517,9 +525,6 @@ typedef struct r_model_s {
 	GLuint lightmap_texcoord_buffer;
 	GLuint normal_buffer;
 	GLuint tangent_buffer;
-
-	GList *materials;
-	uint32_t media_count; // for freeing stale media
 } r_model_t;
 
 #define IS_MESH_MODEL(m) (m && m->mesh)
