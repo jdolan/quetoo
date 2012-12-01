@@ -209,7 +209,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 static r_material_t *r_mesh_material;
 
 /*
- * @brief
+ * @brief Sets GL state to draw the specified entity.
  */
 static void R_SetMeshState_default(const r_entity_t *e) {
 
@@ -224,7 +224,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	if (!r_draw_wireframe->value) {
 
 		if (!(e->effects & EF_NO_DRAW)) { // setup state for diffuse render
-			r_mesh_material = e->skins[0] ? e->skins[0] : e->model->mesh->skin;
+			r_mesh_material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
 
 			R_BindTexture(r_mesh_material->diffuse->texnum);
 
@@ -490,7 +490,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (i > 0) { // update the diffuse state for the current mesh
-			r_mesh_material = e->skins[i] ? e->skins[i] : e->model->mesh->skin;
+			r_mesh_material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
 
 			R_BindTexture(r_mesh_material->diffuse->texnum);
 

@@ -30,8 +30,7 @@ static void (*rd_flush)(int32_t target, char *buffer);
 /*
  * @brief
  */
-void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize,
-		void(*flush)(int, char*)) {
+void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize, void(*flush)(int, char*)) {
 
 	if (!target || !buffer || !buffersize || !flush)
 		return;
@@ -361,8 +360,8 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
  * @brief Writes part of a packetentities message.
  * Can delta from either a baseline or a previous packet_entity
  */
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
-		size_buf_t *msg, bool force, bool is_new) {
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, bool force,
+		bool is_new) {
 
 	uint16_t bits = 0;
 
@@ -371,8 +370,7 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 	}
 
 	if (to->number >= MAX_EDICTS) {
-		Com_Error(ERR_FATAL,
-				"Msg_WriteDeltaEntity: Entity number >= MAX_EDICTS.\n");
+		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Entity number >= MAX_EDICTS.\n");
 	}
 
 	if (!VectorCompare(to->origin, from->origin))
@@ -384,8 +382,7 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 	if (!VectorCompare(to->angles, from->angles))
 		bits |= U_ANGLES;
 
-	if (to->animation1 != from->animation1 || to->animation2
-			!= from->animation2)
+	if (to->animation1 != from->animation1 || to->animation2 != from->animation2)
 		bits |= U_ANIMATIONS;
 
 	if (to->event) // event is not delta compressed, just 0 compressed
@@ -394,8 +391,8 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 	if (to->effects != from->effects)
 		bits |= U_EFFECTS;
 
-	if (to->model1 != from->model1 || to->model2 != from->model2 || to->model3
-			!= from->model3 || to->model4 != from->model4)
+	if (to->model1 != from->model1 || to->model2 != from->model2 || to->model3 != from->model3
+			|| to->model4 != from->model4)
 		bits |= U_MODELS;
 
 	if (to->client != from->client)
@@ -455,8 +452,8 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 /*
  * @brief
  */
-void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to,
-		size_buf_t *msg, uint16_t number, uint16_t bits) {
+void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg,
+		uint16_t number, uint16_t bits) {
 
 	// set everything to the state we are delta'ing from
 	*to = *from;
@@ -578,9 +575,8 @@ int32_t Msg_ReadLong(size_buf_t *sb) {
 	if (sb->read + 4 > sb->size)
 		c = -1;
 	else
-		c = sb->data[sb->read] + (sb->data[sb->read + 1] << 8)
-				+ (sb->data[sb->read + 2] << 16) + (sb->data[sb->read + 3]
-				<< 24);
+		c = sb->data[sb->read] + (sb->data[sb->read + 1] << 8) + (sb->data[sb->read + 2] << 16)
+				+ (sb->data[sb->read + 3] << 24);
 
 	sb->read += 4;
 
@@ -594,7 +590,7 @@ char *Msg_ReadString(size_buf_t *sb) {
 	static char string[MAX_STRING_CHARS];
 	int32_t c;
 	uint32_t l;
-	
+
 	l = 0;
 	do {
 		c = Msg_ReadChar(sb);
@@ -722,13 +718,11 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 
 	if (buf->size + length > buf->max_size) {
 		if (!buf->allow_overflow) {
-			Com_Error(ERR_FATAL,
-					"Sb_GetSpace: Overflow without allow_overflow set.\n");
+			Com_Error(ERR_FATAL, "Sb_GetSpace: Overflow without allow_overflow set.\n");
 		}
 
 		if (length > buf->max_size) {
-			Com_Error(ERR_FATAL,
-					"Sb_GetSpace: "Q2W_SIZE_T" is > full buffer size.\n", length);
+			Com_Error(ERR_FATAL, "Sb_GetSpace: %zu is > full buffer size.\n", length);
 		}
 
 		Com_Warn("Sb_GetSpace: overflow.\n");

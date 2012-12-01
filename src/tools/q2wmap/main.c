@@ -272,7 +272,7 @@ static void Debug(const char *msg) {
  * @brief
  */
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
-static void Error(err_t err, const char *msg) {
+static void Error(err_t err __attribute__((unused)), const char *msg) {
 
 	fprintf(stderr, "************ ERROR ************\n");
 	fprintf(stderr, "%s", msg);
@@ -451,14 +451,14 @@ static int32_t Check_LIGHT_Options(int32_t argc, char **argv) {
 /*
  * @brief
  */
-static int32_t Check_PAK_Options(int32_t argc, char **argv) {
+static int32_t Check_PAK_Options(int32_t argc __attribute__((unused)), char **argv __attribute__((unused))) {
 	return 0;
 }
 
 /*
  * @brief
  */
-static int32_t Check_MAT_Options(int32_t argc, char **argv) {
+static int32_t Check_MAT_Options(__attribute__((unused)) int32_t argc, char **argv __attribute__((unused))) {
 	return 0;
 }
 

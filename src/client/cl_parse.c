@@ -364,7 +364,7 @@ void Cl_ParseServerMessage(void) {
 	int32_t i;
 
 	if (cl_show_net_messages->integer == 1)
-		Com_Print(Q2W_SIZE_T" ", net_message.size);
+		Com_Print("%zu ", net_message.size);
 	else if (cl_show_net_messages->integer >= 2)
 		Com_Print("------------------\n");
 

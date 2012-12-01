@@ -481,7 +481,7 @@ typedef struct {
 	uint16_t num_frames;
 	uint32_t flags;
 
-	r_material_t *skin;
+	r_material_t *material;
 
 	r_mesh_config_t *world_config;
 	r_mesh_config_t *view_config;

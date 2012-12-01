@@ -31,7 +31,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 extern r_image_t *r_mesh_shell_image;
 extern r_image_t *r_warp_image;
 
-void R_FilterImage(byte *in, r_pixel_t width, r_pixel_t height, vec3_t color, r_image_type_t type);
+void R_FilterImage(r_image_t *image, GLenum format, byte *data);
 void R_UploadImage(r_image_t *image, GLenum format, byte *data);
 void R_TextureMode(const char *mode);
 void R_ListImages_f(void);

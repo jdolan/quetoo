@@ -219,37 +219,34 @@ void R_Screenshot_f(void) {
 }
 
 /*
- * @brief Applies brightness and contrast to the specified image while optionally computing
- * the image's average color. Also handles image inversion and monochrome. This is
- * all munged into one function to reduce loops on level load.
+ * @brief Applies brightness, contrast and saturation to the specified image
+ * while optionally computing the average color. Also handles image inversion
+ * and monochrome. This is all munged into one function for performance.
  */
-void R_FilterImage(byte *in, r_pixel_t width, r_pixel_t height, vec3_t color, r_image_type_t type) {
-	uint32_t col[3];
-	size_t i, j;
+void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 	float brightness;
+	uint32_t color[3];
+	uint16_t mask;
+	size_t i, j;
 
-	if (!(type & IT_MASK_FILTER))
-		return;
+	if (image->type == IT_DIFFUSE) {// compute average color
+		VectorClear(color);
+	}
 
-	uint16_t bytes = 0, mask = 0; // monochrome / invert
-
-	if (type == IT_LIGHTMAP) {
+	if (image->type == IT_LIGHTMAP) {
 		brightness = r_modulate->value;
-		bytes = 3;
 		mask = 2;
 	} else {
 		brightness = r_brightness->value;
-		bytes = 4;
 		mask = 1;
 	}
 
-	if (color) // compute average color
-		VectorClear(col);
+	const size_t pixels = image->width * image->height;
+	const size_t stride = format == GL_RGBA ? 4 : 3;
 
-	const size_t pixels = width * height;
-	byte *p = in;
+	byte *p = data;
 
-	for (i = 0; i < pixels; i++, p += bytes) {
+	for (i = 0; i < pixels; i++, p += stride) {
 		vec3_t temp;
 
 		VectorScale(p, 1.0 / 255.0, temp); // convert to float
@@ -263,8 +260,8 @@ void R_FilterImage(byte *in, r_pixel_t width, r_pixel_t height, vec3_t color, r_
 
 			p[j] = (byte) temp[j];
 
-			if (color) // accumulate color
-				col[j] += p[j];
+			if (image->type == IT_DIFFUSE) // accumulate color
+				color[j] += p[j];
 		}
 
 		if (r_monochrome->integer & mask) // monochrome
@@ -277,21 +274,21 @@ void R_FilterImage(byte *in, r_pixel_t width, r_pixel_t height, vec3_t color, r_
 		}
 	}
 
-	if (color) { // average accumulated colors
+	if (image->type == IT_DIFFUSE) { // average accumulated colors
 		for (i = 0; i < 3; i++)
-			col[i] /= (float) pixels;
+			color[i] /= (float) pixels;
 
 		if (r_monochrome->integer & mask)
-			col[0] = col[1] = col[2] = (col[0] + col[1] + col[2]) / 3.0;
+			color[0] = color[1] = color[2] = (color[0] + color[1] + color[2]) / 3.0;
 
 		if (r_invert->integer & mask) {
-			col[0] = 255 - col[0];
-			col[1] = 255 - col[1];
-			col[2] = 255 - col[2];
+			color[0] = 255 - color[0];
+			color[1] = 255 - color[1];
+			color[2] = 255 - color[2];
 		}
 
 		for (i = 0; i < 3; i++)
-			color[i] = col[i] / 255.0;
+			image->color[i] = color[i] / 255.0;
 	}
 }
 
@@ -328,8 +325,6 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		Com_Error(ERR_DROP, "R_UploadImage: NULL image or data\n");
 	}
 
-	R_FilterImage(data, image->width, image->height, image->color, image->type);
-
 	if (!image->texnum) {
 		glGenTextures(1, &(image->texnum));
 	}
@@ -361,40 +356,40 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	r_image_t *image;
 	char key[MAX_QPATH];
 
-	if (!name || !name[0]) {
-		return r_image_state.null;
-	}
-
 	StripExtension(name, key);
 
-	if ((image = g_hash_table_lookup(r_image_state.images, key))) {
-		image->media_count = r_locals.media_count;
-		return image;
-	}
+	if (!(image = g_hash_table_lookup(r_image_state.images, key))) {
 
-	// attempt to load the image
-	SDL_Surface *surf;
-	if (Img_LoadImage(key, &surf)) {
+		SDL_Surface *surf;
+		if (Img_LoadImage(key, &surf)) { // attempt to load the image
+			image = Z_TagMalloc(sizeof(*image), Z_TAG_RENDERER);
+			strncpy(image->name, key, sizeof(image->name) - 1);
 
-		image = Z_TagMalloc(sizeof(*image), Z_TAG_RENDERER);
-		strncpy(image->name, key, sizeof(image->name) - 1);
-		image->width = surf->w;
-		image->height = surf->h;
-		image->type = type;
+			image->width = surf->w;
+			image->height = surf->h;
+			image->type = type;
 
-		R_UploadImage(image, GL_RGBA, surf->pixels);
+			if (image->type & IT_MASK_FILTER) {
+				R_FilterImage(image, GL_RGBA, surf->pixels);
+			}
 
-		SDL_FreeSurface(surf);
+			R_UploadImage(image, GL_RGBA, surf->pixels);
+
+			SDL_FreeSurface(surf);
+		} else {
+			Com_Debug("R_LoadImage: Couldn't load %s\n", key);
+			image = r_image_state.null;
+		}
 	} else {
-		Com_Debug("R_LoadImage: Couldn't load %s\n", key);
-		image = r_image_state.null;
+		R_RegisterImage(image);
 	}
 
 	return image;
 }
 
 /*
- * @brief
+ * @brief Initializes the null (default) image, used when the desired texture
+ * is not available.
  */
 static void R_InitNullImage(void) {
 
@@ -411,6 +406,7 @@ static void R_InitNullImage(void) {
 
 /*
  * @brief Initializes the mesh shell image.
+ * FIXME This is gross.
  */
 static void R_InitMeshShellImage() {
 	r_mesh_shell_image = R_LoadImage("envmaps/envmap_2", IT_EFFECT);
@@ -419,7 +415,7 @@ static void R_InitMeshShellImage() {
 #define WARP_SIZE 16
 
 /*
- * @brief
+ * @brief Initializes the warp texture, used by r_program_warp.c.
  */
 static void R_InitWarpImage(void) {
 

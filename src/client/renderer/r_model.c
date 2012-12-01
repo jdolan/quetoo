@@ -91,7 +91,7 @@ void R_AllocVertexArrays(r_model_t *mod) {
 }
 
 /*
- * @brief
+ * @brief Allocates and populates static VBO's for the specified r_model_t.
  */
 static void R_LoadVertexBuffers(r_model_t *mod) {
 
@@ -125,7 +125,6 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 	qglBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	if (mod->type == MOD_BSP) { // including lightmap texcords for bsp
-
 		qglGenBuffers(1, &mod->lightmap_texcoord_buffer);
 		qglBindBuffer(GL_ARRAY_BUFFER, mod->lightmap_texcoord_buffer);
 		qglBufferData(GL_ARRAY_BUFFER, st, mod->lightmap_texcoords, GL_STATIC_DRAW);

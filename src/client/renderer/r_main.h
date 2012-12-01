@@ -125,6 +125,8 @@ typedef struct r_locals_s {
 
 extern r_locals_t r_locals;
 
+#define R_TouchMedia(m) { if (m) m->media_count = r_locals.media_count; }
+
 // development tools
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;

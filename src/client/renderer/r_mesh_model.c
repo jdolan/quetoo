@@ -25,13 +25,13 @@
  * @brief Resolves the skin for the specified model. By default, we simply load
  * "skin.tga" in the model's directory.
  */
-static void R_LoadMeshSkin(r_model_t *mod) {
+static void R_LoadMeshMaterial(r_model_t *mod) {
 	char skin[MAX_QPATH];
 
 	Dirname(mod->name, skin);
 	strcat(skin, "skin");
 
-	mod->mesh->skin = R_LoadMaterial(skin);
+	mod->mesh->material = R_LoadMaterial(skin);
 }
 
 /*
@@ -509,7 +509,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 	// load the skin for objects, and the animations for players
 	if (!strstr(mod->name, "players/"))
-		R_LoadMeshSkin(mod);
+		R_LoadMeshMaterial(mod);
 
 	else if (strstr(mod->name, "/upper"))
 		R_LoadMd3Animations(mod);
@@ -920,8 +920,8 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 		AddPointToBounds(v, mod->mins, mod->maxs);
 	}
 
-	// load the skin
-	R_LoadMeshSkin(mod);
+	// load the material
+	R_LoadMeshMaterial(mod);
 
 	// and configs
 	R_LoadMeshConfigs(mod);

@@ -53,14 +53,6 @@
 #include "win32.h"
 #endif
 
-#if defined _WIN64
-# define Q2W_SIZE_T "%I64u"
-#elif defined _WIN32
-# define Q2W_SIZE_T "%u"
-#else
-# define Q2W_SIZE_T "%zu"
-#endif
-
 #ifndef byte
 typedef unsigned char byte;
 #endif

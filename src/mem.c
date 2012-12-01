@@ -133,7 +133,7 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
 	const size_t s = size + sizeof(z_block_t);
 
 	if (!(z = malloc(s))) {
-		Com_Error(ERR_FATAL, "Z_Malloc_: Failed to allocate "Q2W_SIZE_T" bytes.\n", s);
+		Com_Error(ERR_FATAL, "Z_Malloc_: Failed to allocate %zu bytes.\n", s);
 	}
 
 	// clear it to 0x0

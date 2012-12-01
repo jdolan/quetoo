@@ -491,14 +491,11 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 
 	StripExtension(diffuse, key);
 
-	if ((mat = g_hash_table_lookup(r_material_state.materials, key))) {
-		mat->media_count = r_locals.media_count;
-		return mat;
+	if (!(mat = g_hash_table_lookup(r_material_state.materials, key))) {
+		mat = Z_TagMalloc(sizeof(r_material_t), Z_TAG_RENDERER);
+		strncpy(mat->name, key, sizeof(mat->name) - 1);
 	}
 
-	mat = Z_TagMalloc(sizeof(r_material_t), Z_TAG_RENDERER);
-
-	strncpy(mat->name, key, sizeof(mat->name) - 1);
 	mat->diffuse = R_LoadImage(key, IT_DIFFUSE);
 
 	mat->normalmap = R_LoadImage(va("%s_nm", key), IT_NORMALMAP);
@@ -902,12 +899,6 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 void R_LoadMaterials(const r_model_t *mod) {
 	char path[MAX_QPATH];
 	void *buf;
-	const char *c;
-	const char *buffer;
-	bool in_material;
-	r_material_t *m;
-	r_stage_t *s;
-	int32_t i;
 
 	memset(path, 0, sizeof(path));
 
@@ -920,19 +911,19 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 	strcat(path, ".mat");
 
-	if ((i = Fs_LoadFile(path, &buf)) < 1) {
+	if (Fs_LoadFile(path, &buf) == -1) {
 		Com_Debug("R_LoadMaterials: Couldn't load %s\n", path);
 		return;
 	}
 
-	buffer = (char *) buf;
+	const char *buffer = (char *) buf;
 
-	in_material = false;
-	m = NULL;
+	bool in_material = false;
+	r_material_t *m = NULL;
 
 	while (true) {
 
-		c = ParseToken(&buffer);
+		const char *c = ParseToken(&buffer);
 
 		if (*c == '\0')
 			break;
@@ -1030,7 +1021,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 		if (*c == '{' && in_material) {
 
-			s = (r_stage_t *) Z_LinkMalloc(sizeof(*s), m);
+			r_stage_t *s = (r_stage_t *) Z_LinkMalloc(sizeof(*s), m);
 
 			if (R_ParseStage(s, &buffer) == -1) {
 				Z_Free(s);
