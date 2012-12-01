@@ -19,10 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_UTILS_H__
-#define __G_UTILS_H__
+#ifndef __GAME_UTILS_H__
+#define __GAME_UTILS_H__
 
-#ifdef __G_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 
 #include "g_types.h"
 
@@ -54,6 +54,6 @@ void G_TouchSolids(g_edict_t *ent);
 c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push);
 char *G_CopyString(char *in);
 
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */
 
-#endif /* __G_UTILS_H__ */
+#endif /* __GAME_UTILS_H__ */

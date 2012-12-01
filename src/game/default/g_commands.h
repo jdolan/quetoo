@@ -19,15 +19,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_COMMANDS_H__
-#define __G_COMMANDS_H__
+#ifndef __GAME_COMMANDS_H__
+#define __GAME_COMMANDS_H__
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 bool G_AddClientToTeam(g_edict_t *ent, char *team_name);
 void G_ClientCommand(g_edict_t *ent);
 void G_Score_f(g_edict_t *ent);
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */
 
-#endif /* __G_COMMANDS_H__ */
+#endif /* __GAME_COMMANDS_H__ */

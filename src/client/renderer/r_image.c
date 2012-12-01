@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <glib.h>
-
 #include "r_local.h"
 
 r_image_t *r_mesh_shell_image;
@@ -355,6 +353,10 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	r_image_t *image;
 	char key[MAX_QPATH];
+
+	if (!name || !name[0]) {
+		Com_Error(ERR_DROP, "R_LoadImage: NULL name.\n");
+	}
 
 	StripExtension(name, key);
 

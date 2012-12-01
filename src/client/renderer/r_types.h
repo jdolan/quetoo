@@ -518,6 +518,7 @@ typedef struct r_model_s {
 	GLuint normal_buffer;
 	GLuint tangent_buffer;
 
+	GList *materials;
 	uint32_t media_count; // for freeing stale media
 } r_model_t;
 

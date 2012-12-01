@@ -48,7 +48,7 @@ typedef struct link_s {
 typedef struct g_client_s g_client_t; // typedef'ed here, defined below
 typedef struct g_edict_s g_edict_t; // OR in game module
 
-#ifndef __G_LOCAL_H__
+#ifndef __GAME_LOCAL_H__
 
 /*
  * This is the server's definition of the client and edict structures. The
@@ -88,7 +88,7 @@ struct g_edict_s {
 // this point in the structure
 };
 
-#endif  /* !__G_LOCAL_H__ */
+#endif  /* !__GAME_LOCAL_H__ */
 
 // functions provided by the main engine
 typedef struct g_import_s {

@@ -47,7 +47,8 @@ noinst_LTLIBRARIES = \
 libcmodel_la_SOURCES = \
 	cmodel.c
 libcmodel_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 libcmodel_la_LIBADD = \
 	libfilesystem.la
 
@@ -55,6 +56,7 @@ libcommon_la_SOURCES = \
 	common.c
 libcommon_la_CFLAGS = \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 	
 libconsole_la_SOURCES = \
@@ -62,7 +64,8 @@ libconsole_la_SOURCES = \
 	console-curses.c
 libconsole_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@CURSES_CFLAGS@
+	@CURSES_CFLAGS@ \
+	@GLIB_CFLAGS@
 libconsole_la_LIBADD = \
 	libfilesystem.la
 	
@@ -72,7 +75,8 @@ libfilesystem_la_SOURCES = \
 	filesystem.c \
 	pak.c
 libfilesystem_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 libfilesystem_la_LIBADD = \
 	libcommon.la \
 	libhash.la \
@@ -88,6 +92,7 @@ libimages_la_SOURCES = \
 	images.c
 libimages_la_CFLAGS = \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 libimages_la_LIBADD = \
 	libfilesystem.la
@@ -104,7 +109,8 @@ endif
 libhash_la_SOURCES = \
 	hash.c
 libhash_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 
 libmem_la_SOURCES = \
 	mem.c
@@ -116,34 +122,40 @@ libnet_la_SOURCES = \
 	net_chan.c \
 	net_udp.c
 libnet_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 libnet_la_LIBADD = \
 	libfilesystem.la
 
 libpmove_la_SOURCES = \
 	pmove.c
 libpmove_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 
 libshared_la_SOURCES = \
 	shared.c
 libshared_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 	
 libswap_la_SOURCES = \
 	swap.c
 libswap_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 
 libsys_la_SOURCES = \
 	sys.c
 libsys_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 
 libthreads_la_SOURCES = \
 	threads.c
 libthreads_la_CFLAGS = \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 
 if WINDOWS

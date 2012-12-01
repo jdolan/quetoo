@@ -19,10 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_ITEM_H__
-#define __G_ITEM_H__
+#ifndef __GAME_ITEM_H__
+#define __GAME_ITEM_H__
 
-#ifdef __G_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 
 #include "g_types.h"
 
@@ -46,6 +46,6 @@ void G_TossFlag(g_edict_t *self);
 void G_TossQuadDamage(g_edict_t *self);
 void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
 
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */
 
-#endif /* __G_ITEM_H__ */
+#endif /* __GAME_ITEM_H__ */

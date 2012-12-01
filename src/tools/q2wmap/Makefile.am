@@ -38,6 +38,7 @@ q2wmap_SOURCES = \
 q2wmap_CFLAGS = \
 	-I../.. \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 
 q2wmap_LDADD = \

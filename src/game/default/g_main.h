@@ -19,12 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_MAIN_H__
-#define __G_MAIN_H__
+#ifndef __GAME_MAIN_H__
+#define __GAME_MAIN_H__
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 
 // maplist structs
 typedef struct g_map_list_elt_s {
@@ -120,6 +120,6 @@ void G_ResetVote(void);
 g_export_t *G_LoadGame(g_import_t *import);
 const char *G_SelectNextmap(void);
 
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */
 
-#endif /* __G_MAIN_H__ */
+#endif /* __GAME_MAIN_H__ */

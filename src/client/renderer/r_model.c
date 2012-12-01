@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <glib.h>
-
 #include "r_local.h"
 
 typedef struct {
@@ -44,7 +42,7 @@ static r_model_format_t r_model_formats[] = {
 };
 
 /*
- * @brief
+ * @brief Allocates client-side vertex arrays for the specified r_model_t.
  */
 void R_AllocVertexArrays(r_model_t *mod) {
 	uint16_t i, j;
@@ -86,7 +84,7 @@ void R_AllocVertexArrays(r_model_t *mod) {
 	if (mod->type != MOD_BSP)
 		return;
 
-	// and bsp models get lightmap texcoords
+	// and BSP models get lightmap texcoords
 	mod->lightmap_texcoords = Z_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
 }
 
@@ -136,6 +134,38 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 }
 
 /*
+ * @brief Inserts the specified model into the shared table.
+ */
+void R_RegisterModel(r_model_t *mod) {
+	r_model_t *m;
+
+	mod->media_count = r_locals.media_count;
+
+	GList *e = mod->materials;
+	while (e) {
+		((r_material_t *) e->data)->media_count = r_locals.media_count;
+		e = e->next;
+	}
+
+	// save a reference to the world model
+	if (mod->type == MOD_BSP) {
+		r_model_state.world = mod;
+	}
+
+	// check for a model with the same name (e.g. inline models)
+	if ((m = g_hash_table_lookup(r_model_state.models, mod->name))) {
+		if (m == mod) {
+			return;
+		}
+		// remove stale models
+		g_hash_table_remove(r_model_state.models, mod->name);
+	}
+
+	// and insert the new one
+	g_hash_table_insert(r_model_state.models, mod->name, mod);
+}
+
+/*
  * @brief Loads the model by the specified name.
  */
 r_model_t *R_LoadModel(const char *name) {
@@ -149,54 +179,52 @@ r_model_t *R_LoadModel(const char *name) {
 
 	StripExtension(name, key);
 
-	// search the currently loaded models
-	if ((mod = g_hash_table_lookup(r_model_state.models, key))) {
-		mod->media_count = r_locals.media_count;
-		return mod;
-	}
+	if (!(mod = g_hash_table_lookup(r_model_state.models, key))) {
 
-	void *buf;
+		void *buf;
+		r_model_format_t *format = r_model_formats;
+		for (i = 0; i < lengthof(r_model_formats); i++, format++) {
 
-	// load the file
-	r_model_format_t *format = r_model_formats;
-	for (i = 0; i < lengthof(r_model_formats); i++, format++) {
+			StripExtension(name, key);
+			strcat(key, format->name);
 
-		StripExtension(name, key);
-		strcat(key, format->name);
-
-		if (Fs_LoadFile(key, &buf) != -1)
-			break;
-	}
-
-	if (i == lengthof(r_model_formats)) { // not found
-		if (strstr(name, "players/")) {
-			Com_Debug("R_LoadModel: Failed to load player %s.\n", name);
-		} else {
-			Com_Warn("R_LoadModel: Failed to load %s.\n", name);
+			if (Fs_LoadFile(key, &buf) != -1)
+				break;
 		}
-		return NULL;
+
+		if (i == lengthof(r_model_formats)) { // not found
+			if (strstr(name, "players/")) {
+				Com_Debug("R_LoadModel: Failed to load player %s.\n", name);
+			} else {
+				Com_Warn("R_LoadModel: Failed to load %s.\n", name);
+			}
+			return NULL;
+		}
+
+		mod = Z_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
+		StripExtension(key, mod->name);
+
+		mod->type = format->type;
+
+		// load the materials first, so that we can resolve surfaces lists
+		R_LoadMaterials(mod);
+
+		// load it
+		format->Load(mod, buf);
+
+		// free the file
+		Fs_FreeFile(buf);
+
+		// assemble vertex buffer objects from static arrays
+		R_LoadVertexBuffers(mod);
+
+		// calculate an approximate radius from the bounding box
+		vec3_t tmp;
+
+		VectorSubtract(mod->maxs, mod->mins, tmp);
+		mod->radius = VectorLength(tmp) / 2.0;
 	}
 
-	mod = Z_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
-
-	StripExtension(key, mod->name);
-	mod->type = format->type;
-
-	// load the materials first, so that we can resolve surfaces lists
-	R_LoadMaterials(mod);
-
-	format->Load(mod, buf);
-
-	Fs_FreeFile(buf);
-
-	// assemble vertex buffer objects from static arrays
-	R_LoadVertexBuffers(mod);
-
-	// calculate an approximate radius from the bounding box
-	vec3_t tmp;
-
-	VectorSubtract(mod->maxs, mod->mins, tmp);
-	mod->radius = VectorLength(tmp) / 2.0;
 
 	R_RegisterModel(mod);
 
@@ -230,32 +258,6 @@ void R_ListModels_f(void) {
 }
 
 /*
- * @brief Inserts the specified model into the shared table.
- */
-void R_RegisterModel(r_model_t *mod) {
-	r_model_t *m;
-
-	mod->media_count = r_locals.media_count;
-
-	// save a reference to the world model
-	if (mod->type == MOD_BSP) {
-		r_model_state.world = mod;
-	}
-
-	// check for a model with the same name (e.g. inline models)
-	if ((m = g_hash_table_lookup(r_model_state.models, mod->name))) {
-		if (m == mod) {
-			return;
-		}
-		// remove stale models
-		g_hash_table_remove(r_model_state.models, mod->name);
-	}
-
-	// and insert the new one
-	g_hash_table_insert(r_model_state.models, mod->name, mod);
-}
-
-/*
  * @brief GHRFunc for freeing models. If data is non-NULL, then all models are
  * freed (deleted from GL as well as Z_Free'd). Otherwise, only those with
  * stale media counts are released.
@@ -268,6 +270,8 @@ static gboolean R_FreeModel(gpointer key __attribute__((unused)), gpointer value
 			return false;
 		}
 	}
+
+	g_list_free(mod->materials);
 
 	if (mod->vertex_buffer)
 		qglDeleteBuffers(1, &mod->vertex_buffer);

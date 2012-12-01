@@ -19,12 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_ENTITY_INFO_H__
-#define __G_ENTITY_INFO_H__
+#ifndef __GAME_ENTITY_INFO_H__
+#define __GAME_ENTITY_INFO_H__
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 void G_info_player_deathmatch(g_edict_t *ent);
 void G_info_player_intermission(g_edict_t *ent);
 void G_info_notnull(g_edict_t *self);
@@ -32,6 +32,6 @@ void G_info_null(g_edict_t *self);
 void G_info_player_start(g_edict_t *ent);
 void G_info_player_team1(g_edict_t *ent);
 void G_info_player_team2(g_edict_t *ent);
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */
 
-#endif /* __G_ENTITY_INFO_H__ */
+#endif /* __GAME_ENTITY_INFO_H__ */

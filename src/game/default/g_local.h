@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_LOCAL_H__
-#define __G_LOCAL_H__
+#ifndef __GAME_LOCAL_H__
+#define __GAME_LOCAL_H__
 
 #include "game/game.h"
 
@@ -53,4 +53,4 @@ extern char sql[512];
 #include "g_utils.h"
 #include "g_weapon.h"
 
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */

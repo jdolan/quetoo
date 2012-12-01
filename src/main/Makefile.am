@@ -10,6 +10,7 @@ quake2world_CFLAGS = \
 	-I.. \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
 
@@ -32,6 +33,7 @@ quake2world_CFLAGS = \
 	-I.. \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 
 quake2world_LDADD = \
@@ -39,6 +41,7 @@ quake2world_LDADD = \
 	../server/libserver.la \
 	@BASE_LIBS@ \
 	@CURSES_LIBS@ \
+	@GLIB_LIBS@ \
 	@SDL_LIBS@ \
 	-lm -lz
 	

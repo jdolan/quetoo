@@ -7,6 +7,7 @@ pak_SOURCES = \
 pak_CFLAGS = \
 	-I../.. \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 
 pak_LDADD = \

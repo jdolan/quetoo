@@ -21,8 +21,6 @@
 
 #include "r_local.h"
 
-#include <glib.h>
-
 typedef struct {
 	GHashTable *materials;
 } r_material_state_t;
@@ -489,9 +487,14 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 	r_material_t *mat;
 	char key[MAX_QPATH];
 
+	if (!diffuse || !diffuse[0]) {
+		Com_Error(ERR_DROP, "R_LoadMaterial: NULL diffuse name.\n");
+	}
+
 	StripExtension(diffuse, key);
 
 	if (!(mat = g_hash_table_lookup(r_material_state.materials, key))) {
+
 		mat = Z_TagMalloc(sizeof(r_material_t), Z_TAG_RENDERER);
 		strncpy(mat->name, key, sizeof(mat->name) - 1);
 	}

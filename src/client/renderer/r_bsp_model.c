@@ -244,7 +244,7 @@ static void R_LoadBspEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  * @brief Loads all r_bsp_texinfo_t for the specified BSP model. Texinfo's
  * are shared by one or more r_bsp_surface_t.
  */
-static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
+static void R_LoadBspTexinfo(r_bsp_model_t *bsp, GList **materials, const d_bsp_lump_t *l) {
 	r_bsp_texinfo_t *out;
 	uint16_t i, j;
 
@@ -266,6 +266,10 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		out->value = LittleLong(in->value);
 
 		out->material = R_LoadMaterial(va("textures/%s", out->name));
+
+		if (!g_list_find(*materials, out->material)) {
+			*materials = g_list_prepend(*materials, out->material);
+		}
 	}
 }
 
@@ -669,10 +673,10 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
  * @brief Qsort comparator for R_SortBspSurfaceArrays.
  */
 static int R_SortBspSurfacesArrays_Compare(const void *s1, const void *s2) {
-	const r_material_t *mat1 = (*(r_bsp_surface_t **) s1)->texinfo->material;
-	const r_material_t *mat2 = (*(r_bsp_surface_t **) s2)->texinfo->material;
+	const r_bsp_texinfo_t *t1 = (*(r_bsp_surface_t **) s1)->texinfo;
+	const r_bsp_texinfo_t *t2 = (*(r_bsp_surface_t **) s2)->texinfo;
 
-	return mat1->diffuse->texnum - mat2->diffuse->texnum;
+	return strcmp(t1->name, t2->name);
 }
 
 /*
@@ -693,24 +697,21 @@ static void R_SortBspSurfacesArrays(r_bsp_model_t *bsp) {
 }
 
 /*
- * @brief
+ * @brief Allocate, populate and sort the surfaces arrays for the world model.
  */
 static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 	r_sorted_bsp_surfaces_t *sorted;
-	r_bsp_surface_t *surf, *s;
-	uint16_t ns;
+	r_bsp_surface_t *surf;
 	size_t i;
 
 	// allocate the surfaces array structures
 	sorted = Z_LinkMalloc(sizeof(r_sorted_bsp_surfaces_t), mod->bsp);
 	mod->bsp->sorted_surfaces = sorted;
 
-	s = mod->bsp->surfaces;
-	ns = mod->bsp->num_surfaces;
-
 	// determine the maximum counts for each rendered type in order to
 	// allocate only what is necessary for the specified model
-	for (i = 0, surf = s; i < ns; i++, surf++) {
+	surf = mod->bsp->surfaces;
+	for (i = 0; i < mod->bsp->num_surfaces; i++, surf++) {
 
 		if (surf->texinfo->flags & SURF_SKY) {
 			sorted->sky.count++;
@@ -755,7 +756,8 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 
 	// iterate the surfaces again, populating the allocated arrays based
 	// on primary render type
-	for (i = 0, surf = s; i < ns; i++, surf++) {
+	surf = mod->bsp->surfaces;
+	for (i = 0; i < mod->bsp->num_surfaces; i++, surf++) {
 
 		if (surf->texinfo->flags & SURF_SKY) {
 			R_SurfaceToSurfaces(&sorted->sky, surf);
@@ -832,7 +834,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspPlanes(mod->bsp, &header.lumps[LUMP_PLANES]);
 	Cl_LoadProgress(20);
 
-	R_LoadBspTexinfo(mod->bsp, &header.lumps[LUMP_TEXINFO]);
+	R_LoadBspTexinfo(mod->bsp, &mod->materials, &header.lumps[LUMP_TEXINFO]);
 	Cl_LoadProgress(24);
 
 	R_LoadBspSurfaces(mod->bsp, &header.lumps[LUMP_FACES]);
@@ -853,8 +855,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspInlineModels(mod->bsp, &header.lumps[LUMP_MODELS]);
 	Cl_LoadProgress(48);
 
-	R_SetupBspInlineModels(mod);
-
 	Com_Debug("================================\n");
 	Com_Debug("R_LoadBspModel: %s\n", mod->name);
 	Com_Debug("  Verts:          %d\n", mod->bsp->num_vertexes);
@@ -867,6 +867,8 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug("  Clusters:       %d\n", mod->bsp->num_clusters);
 	Com_Debug("  Inline models   %d\n", mod->bsp->num_inline_models);
 	Com_Debug("================================\n");
+
+	R_SetupBspInlineModels(mod);
 
 	R_LoadBspVertexArrays(mod);
 

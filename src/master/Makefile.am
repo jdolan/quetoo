@@ -8,11 +8,14 @@ q2wmaster_SOURCES = \
 
 q2wmaster_CFLAGS = \
 	-I.. \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
+	@SDL_CFLAGS@
 
 q2wmaster_LDADD = \
 	../libfilesystem.la \
 	@BASE_LIBS@ \
+	@GLIB_LIBS@ \
 	@SDL_LIBS@ \
 	-lz
 

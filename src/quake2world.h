@@ -30,6 +30,7 @@
 #endif
 
 #include <ctype.h>
+#include <glib.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
