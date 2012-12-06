@@ -155,6 +155,7 @@ static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 		return false;
 	}
 
+	memset(name, 0, sizeof(name));
 	strncpy(name, info, sizeof(name) - 1);
 
 	skin = strchr(name, '\\') + 1;
