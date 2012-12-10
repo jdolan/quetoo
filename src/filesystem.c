@@ -112,15 +112,15 @@ static int32_t Fs_FileLength(FILE *f) {
  * @brief Creates any directories needed to store the given path.
  */
 void Fs_CreatePath(const char *path) {
-	char pathCopy[MAX_OSPATH];
+	char p[MAX_OSPATH];
 	char *ofs;
 
-	strncpy(pathCopy, path, sizeof(pathCopy) - 1);
+	g_strlcpy(p, path, sizeof(p));
 
-	for (ofs = pathCopy + 1; *ofs; ofs++) {
+	for (ofs = p + 1; *ofs; ofs++) {
 		if (*ofs == '/') { // create the directory
 			*ofs = 0;
-			Sys_Mkdir(pathCopy);
+			Sys_Mkdir(p);
 			*ofs = '/';
 		}
 	}
@@ -150,7 +150,7 @@ int32_t Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
 	// open for write or append in game dir and return
 	if (mode == FILE_WRITE || mode == FILE_APPEND) {
 
-		snprintf(path, sizeof(path), "%s/%s", Fs_Gamedir(), file_name);
+		g_snprintf(path, sizeof(path), "%s/%s", Fs_Gamedir(), file_name);
 		Fs_CreatePath(path);
 
 		*file = fopen(path, (mode == FILE_WRITE ? "wb" : "ab"));
@@ -160,7 +160,7 @@ int32_t Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
 	// try the search paths
 	for (search = fs_search_paths; search; search = search->next) {
 
-		snprintf(path, sizeof(path), "%s/%s", search->path, file_name);
+		g_snprintf(path, sizeof(path), "%s/%s", search->path, file_name);
 
 		if (stat(path, &sbuf) == -1 || !S_ISREG(sbuf.st_mode))
 			continue;
@@ -193,7 +193,7 @@ int32_t Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
 
 	if (MixedCase(file_name)) { // try lowercase version
 		char lower[MAX_QPATH];
-		strncpy(lower, file_name, sizeof(lower) - 1);
+		g_strlcpy(lower, file_name, sizeof(lower));
 		return Fs_OpenFile(Lowercase(lower), file, mode);
 	}
 
@@ -295,8 +295,7 @@ static void Fs_AddSearchPath(const char *dir) {
 
 	// add the base directory to the search path
 	search = Z_Malloc(sizeof(search_path_t));
-	strncpy(search->path, dir, sizeof(search->path) - 1);
-	search->path[sizeof(search->path) - 1] = 0;
+	g_strlcpy(search->path, dir, sizeof(search->path));
 
 	search->next = fs_search_paths;
 	fs_search_paths = search;
@@ -313,7 +312,7 @@ static void Fs_AddSearchPath(const char *dir) {
 /*
  * @brief
  */
-static char *Fs_Homedir(void) {
+static const char *Fs_Homedir(void) {
 	static char homedir[MAX_OSPATH];
 #ifdef _WIN32
 	void *handle;
@@ -328,14 +327,11 @@ static char *Fs_Homedir(void) {
 	}
 
 	if(*homedir != '\0') // append our directory name
-	strcat(homedir, "/My Games/Quake2World");
+		strcat(homedir, "/My Games/Quake2World");
 	else // or simply use ./
-	strcat(homedir, PKGDATADIR);
+		strcat(homedir, PKGDATADIR);
 #else
-	memset(homedir, 0, sizeof(homedir));
-
-	strncpy(homedir, getenv("HOME"), sizeof(homedir));
-	strcat(homedir, "/.quake2world");
+	g_snprintf(homedir, sizeof(homedir), "%s/.quake2world", getenv("HOME"));
 #endif
 	return homedir;
 }
@@ -347,14 +343,13 @@ static char *Fs_Homedir(void) {
 static void Fs_AddUserSearchPath(const char *dir) {
 	char gdir[MAX_OSPATH];
 
-	snprintf(gdir, sizeof(gdir), "%s/%s", Fs_Homedir(), dir);
+	g_snprintf(gdir, sizeof(gdir), "%s/%s", Fs_Homedir(), dir);
 
 	Com_Print("Using %s for writing.\n", gdir);
 
 	Fs_CreatePath(va("%s/", gdir));
 
-	strncpy(fs_gamedir, gdir, sizeof(fs_gamedir) - 1);
-	fs_gamedir[sizeof(fs_gamedir) - 1] = 0;
+	g_strlcpy(fs_gamedir, gdir, sizeof(fs_gamedir));
 
 	Fs_AddSearchPath(gdir);
 }
@@ -377,7 +372,7 @@ const char *Fs_FindFirst(const char *path, bool absolute) {
 	// search through all the paths for path
 	for (s = fs_search_paths; s != NULL; s = s->next) {
 
-		snprintf(name, sizeof(name), "%s/%s", s->path, path);
+		g_snprintf(name, sizeof(name), "%s/%s", s->path, path);
 		if ((n = Sys_FindFirst(name))) {
 			Sys_FindClose();
 			return absolute ? n : n + strlen(s->path) + 1;
@@ -407,7 +402,7 @@ void Fs_ExecAutoexec(void) {
 	// search through all the paths for an autoexec.cfg file
 	for (s = fs_search_paths; s != end; s = s->next) {
 
-		snprintf(name, sizeof(name), "%s/autoexec.cfg", s->path);
+		g_snprintf(name, sizeof(name), "%s/autoexec.cfg", s->path);
 
 		if (Sys_FindFirst(name)) {
 			Cbuf_AddText("exec autoexec.cfg\n");
@@ -487,7 +482,7 @@ void Fs_GunzipFile(const char *path) {
 	if (!path || *path == '\0')
 		return;
 
-	strncpy(p, path, sizeof(p));
+	g_strlcpy(p, path, sizeof(p));
 
 	if (!(c = strstr(p, ".gz"))) {
 		Com_Warn("Fs_GunzipFile: %s lacks .gz suffix.\n", p);
@@ -499,7 +494,7 @@ void Fs_GunzipFile(const char *path) {
 		return;
 	}
 
-	*c = 0; // mute .gz extension
+	*c = '\0'; // mute .gz extension
 
 	if (!(f = fopen(p, "wb"))) {
 		Com_Warn("Fs_GunzipFile: Failed to open %s.\n", p);
@@ -507,7 +502,7 @@ void Fs_GunzipFile(const char *path) {
 		return;
 	}
 
-	*c = 0;
+	*c = '\0';
 	buffer = (byte *) Z_Malloc(GZIP_BUFFER);
 
 	while (true) {
@@ -551,7 +546,7 @@ void Fs_Init(void) {
 	fs_base = Cvar_Get("fs_base", "", CVAR_NO_SET, NULL);
 
 	if (strlen(fs_base->string)) { // something was specified
-		snprintf(dir, sizeof(dir), "%s/%s", fs_base->string, DEFAULT_GAME);
+		g_snprintf(dir, sizeof(dir), "%s/%s", fs_base->string, DEFAULT_GAME);
 		Fs_AddSearchPath(dir);
 	}
 
@@ -635,7 +630,7 @@ int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
 
 	// search through paths for matches
 	for (s = fs_search_paths; s != NULL; s = s->next) {
-		snprintf(name, sizeof(name), "%s/%s%s*%s", s->path, dir, prefix, suffix);
+		g_snprintf(name, sizeof(name), "%s/%s%s*%s", s->path, dir, prefix, suffix);
 
 		if ((n = Sys_FindFirst(name)) == NULL) {
 			Sys_FindClose();
@@ -653,7 +648,7 @@ int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
 	}
 
 	// search through paks for matches
-	snprintf(name, sizeof(name), "%s%s*%s", dir, prefix, suffix);
+	g_snprintf(name, sizeof(name), "%s%s*%s", dir, prefix, suffix);
 	for (i = 0; i < HASH_BINS; i++) {
 		h = fs_hash_table.bins[i];
 		while (h != NULL) {

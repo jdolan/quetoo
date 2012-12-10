@@ -223,8 +223,6 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	VectorSet(color, 1.0, 1.0, 1.0);
 
 	char class_name[128];
-	memset(class_name, 0, sizeof(class_name));
-
 	bool entity = false, light = false;
 
 	while (true) {
@@ -259,7 +257,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 		if (!strcmp(c, "classname")) {
 
 			c = ParseToken(&ents);
-			strncpy(class_name, c, sizeof(class_name) - 1);
+			g_strlcpy(class_name, c, sizeof(class_name));
 
 			if (!strncmp(c, "light", 5)) // light, light_spot, etc..
 				light = true;

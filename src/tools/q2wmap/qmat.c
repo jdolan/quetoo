@@ -40,7 +40,7 @@ static void AddMaterial(const char *name){
 			return;
 	}
 
-	strncpy(materials[num_materials], name, sizeof(materials[0]));
+	g_strlcpy(materials[num_materials], name, sizeof(materials[0]));
 	num_materials++;
 }
 
@@ -74,7 +74,7 @@ int32_t MAT_Main(void){
 
 	start = time(NULL);
 
-	snprintf(path, sizeof(path), "materials/%s", Basename(bsp_name));
+	g_snprintf(path, sizeof(path), "materials/%s", Basename(bsp_name));
 	strcpy(path + strlen(path) - 3, "mat");
 
 	if((i = Fs_OpenFile(path, &f, FILE_READ)) > -1){

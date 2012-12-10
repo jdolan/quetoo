@@ -293,9 +293,9 @@ void Cvar_SetValue(const char *name, float value) {
 	char val[32];
 
 	if (value == (int) value)
-		snprintf(val, sizeof(val), "%i",(int)value);
+		g_snprintf(val, sizeof(val), "%i",(int)value);
 	else
-		snprintf(val, sizeof(val), "%f", value);
+		g_snprintf(val, sizeof(val), "%f", value);
 
 	Cvar_Set(name, val);
 }
@@ -473,7 +473,7 @@ void Cvar_WriteVars(const char *path) {
 	f = fopen(path, "a");
 	for (var = cvar_vars; var; var = var->next) {
 		if (var->flags & CVAR_ARCHIVE) {
-			snprintf(buffer, sizeof(buffer), "set %s \"%s\"\n", var->name, var->string);
+			g_snprintf(buffer, sizeof(buffer), "set %s \"%s\"\n", var->name, var->string);
 			fprintf(f, "%s", buffer);
 		}
 	}

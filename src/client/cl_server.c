@@ -92,11 +92,9 @@ void Cl_ParseStatusMessage(void) {
 	}
 
 	// try to parse the info string
-	strncpy(info, Msg_ReadString(&net_message), sizeof(info) - 1);
-	info[sizeof(info) - 1] = '\0';
-	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname,
-			server->name, server->gameplay, &server->clients,
-			&server->max_clients) != 5) {
+	g_strlcpy(info, Msg_ReadString(&net_message), sizeof(info));
+	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname, server->name,
+			server->gameplay, &server->clients, &server->max_clients) != 5) {
 
 		strcpy(server->hostname, Net_NetaddrToString(server->addr));
 		server->name[0] = '\0';
@@ -225,7 +223,7 @@ void Cl_ParseServersList(void) {
 		port = (*buffptr++) << 8; // and the port
 		port += *buffptr++;
 
-		snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
+		g_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
 
 		if (!Net_StringToNetaddr(s, &addr)) { // make sure it's valid
 			Com_Warn("Cl_ParseServersList: Invalid address: %s.\n", s);
@@ -270,10 +268,11 @@ void Cl_Servers_List_f(void) {
 
 	server = cls.servers;
 
-	while(server) {
-		snprintf(server_info, sizeof(server_info), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
-			server->hostname, Net_NetaddrToString(server->addr), server->name, server->gameplay, server->clients,
-			server->max_clients, server->ping);
+	while (server) {
+		g_snprintf(server_info, sizeof(server_info),
+				"%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms", server->hostname,
+				Net_NetaddrToString(server->addr), server->name, server->gameplay, server->clients,
+				server->max_clients, server->ping);
 		server_info[127] = '\0';
 		Com_Print("%s\n", server_info);
 		server = server->next;

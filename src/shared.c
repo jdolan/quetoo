@@ -206,8 +206,8 @@ void PerpendicularVector(vec3_t dst, const vec3_t src) {
 			minelem = fabsf(src[i]);
 		}
 	}
-	tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
-	tempvec[pos] = 1.0F;
+	tempvec[0] = tempvec[1] = tempvec[2] = 0.0;
+	tempvec[pos] = 1.0;
 
 	// project the point onto the plane defined by src
 	ProjectPointOnPlane(dst, tempvec, src);
@@ -643,7 +643,7 @@ char *Trim(char *s) {
 	right = left + strlen(left) - 1;
 
 	while (isspace(*right))
-		*right-- = 0;
+		*right-- = '\0';
 
 	return left;
 }
@@ -757,7 +757,7 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
 			int32_t invert;
 
 			if (!c1)
-				return (0);
+				return 0;
 
 			invert = ((*p == '!') || (*p == '^'));
 			if (invert)
@@ -837,23 +837,30 @@ const char *Basename(const char *path) {
  */
 void Dirname(const char *in, char *out) {
 	char *c;
+	char *o = out;
 
 	if (!(c = strrchr(in, '/'))) {
 		strcpy(out, "./");
 		return;
 	}
 
-	strncpy(out, in, (c - in) + 1);
-	out[(c - in) + 1] = 0;
+	while (in <= c) {
+		*out++ = *in++;
+	}
+
+	*out = '\0';
 }
 
 /*
  * @brief Removes any file extension(s) from the specified input string.
  */
 void StripExtension(const char *in, char *out) {
-	while (*in && *in != '.')
+
+	while (*in && *in != '.') {
 		*out++ = *in++;
-	*out = 0;
+	}
+
+	*out = '\0';
 }
 
 /*
@@ -875,7 +882,7 @@ void StripColor(const char *in, char *out) {
 
 		*out++ = *in++;
 	}
-	*out = 0;
+	*out = '\0';
 }
 
 /*
@@ -917,7 +924,7 @@ char *vtos(const vec3_t v) {
 	// use an array so that multiple vtos won't collide
 	s = str[index++ % 8];
 
-	snprintf(s, 32, "(%3.2f %3.2f %3.2f)", v[0], v[1], v[2]);
+	g_snprintf(s, 32, "(%3.2f %3.2f %3.2f)", v[0], v[1], v[2]);
 
 	return s;
 }
@@ -934,7 +941,7 @@ char *ParseToken(const char **data_p) {
 
 	data = *data_p;
 	len = 0;
-	token[0] = 0;
+	token[0] = '\0';
 
 	if (!data) {
 		*data_p = NULL;
@@ -943,7 +950,7 @@ char *ParseToken(const char **data_p) {
 
 	// skip whitespace
 	skipwhite: while ((c = *data) <= ' ') {
-		if (c == 0) {
+		if (c == '\0') {
 			*data_p = NULL;
 			return "";
 		}
@@ -963,7 +970,7 @@ char *ParseToken(const char **data_p) {
 		while (true) {
 			c = *data++;
 			if (c == '\"' || !c) {
-				token[len] = 0;
+				token[len] = '\0';
 				*data_p = data;
 				return token;
 			}
@@ -987,7 +994,7 @@ char *ParseToken(const char **data_p) {
 	if (len == MAX_TOKEN_CHARS) {
 		len = 0;
 	}
-	token[len] = 0;
+	token[len] = '\0';
 
 	*data_p = data;
 	return token;
@@ -1014,7 +1021,7 @@ char *GetUserInfo(const char *s, const char *key) {
 				return "";
 			*o++ = *s++;
 		}
-		*o = 0;
+		*o = '\0';
 		s++;
 
 		o = value[value_index];
@@ -1024,7 +1031,7 @@ char *GetUserInfo(const char *s, const char *key) {
 				return "";
 			*o++ = *s++;
 		}
-		*o = 0;
+		*o = '\0';
 
 		if (!strcmp(key, pkey))
 			return value[value_index];
@@ -1060,7 +1067,7 @@ void DeleteUserInfo(char *s, const char *key) {
 				return;
 			*o++ = *s++;
 		}
-		*o = 0;
+		*o = '\0';
 		s++;
 
 		o = value;
@@ -1069,7 +1076,7 @@ void DeleteUserInfo(char *s, const char *key) {
 				return;
 			*o++ = *s++;
 		}
-		*o = 0;
+		*o = '\0';
 
 		if (!strcmp(key, pkey)) {
 			strcpy(start, s); // remove this part
@@ -1123,7 +1130,7 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 	if (!value || *value == '\0')
 		return;
 
-	snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
+	g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
 	if (strlen(newi) + strlen(s) > max_size) {
 		//Com_Print("Info string length exceeded\n");
@@ -1139,7 +1146,7 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 		if (c >= 32 && c < 127)
 			*s++ = c;
 	}
-	*s = 0;
+	*s = '\0';
 }
 
 /*

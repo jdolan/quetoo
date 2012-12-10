@@ -169,7 +169,7 @@ static void Cm_LoadSurfaces(const d_bsp_lump_t *l) {
 	out = c_bsp.surfaces;
 
 	for (i = 0; i < count; i++, in++, out++) {
-		strncpy(out->name, in->texture, sizeof(out->name) - 1);
+		g_strlcpy(out->name, in->texture, sizeof(out->name));
 		out->flags = LittleLong(in->flags);
 		out->value = LittleLong(in->value);
 	}
@@ -519,7 +519,7 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 		Com_Error(ERR_DROP, "Cm_LoadMap: %s has unsupported version: %d.\n", name, header.version);
 	}
 
-	strncpy(c_bsp.name, name, sizeof(c_bsp.name));
+	g_strlcpy(c_bsp.name, name, sizeof(c_bsp.name));
 
 	c_bsp.base = (byte *) buf;
 

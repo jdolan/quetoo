@@ -190,7 +190,7 @@ static void Con_Dump_f(void) {
 		return;
 	}
 
-	snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), Cmd_Argv(1));
+	g_snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), Cmd_Argv(1));
 
 	Fs_CreatePath(name);
 	f = fopen(name, "w");
@@ -272,7 +272,7 @@ static void Con_PrintStdOut(const char *text) {
 				default:
 					break;
 				}
-				snprintf(&buf[i], 8, "\033[%d;%dm", bold, color);
+				g_snprintf(&buf[i], 8, "\033[%d;%dm", bold, color);
 				i += 7;
 			}
 			text += 2;

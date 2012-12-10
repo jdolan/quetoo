@@ -26,9 +26,15 @@
 
 #ifdef __R_LOCAL_H__
 
-extern vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3];
-extern vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3];
-extern vec4_t r_mesh_tangents[MD3_MAX_TRIANGLES * 3];
+typedef struct {
+	r_material_t *material;
+
+	vec3_t vertexes[MD3_MAX_TRIANGLES * 3];
+	vec3_t normals[MD3_MAX_TRIANGLES * 3];
+	vec4_t tangents[MD3_MAX_TRIANGLES * 3];
+} r_mesh_state_t;
+
+extern r_mesh_state_t r_mesh_state;
 
 void R_ApplyMeshModelTag(r_entity_t *e);
 void R_ApplyMeshModelConfig(r_entity_t *e);

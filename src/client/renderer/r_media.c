@@ -30,22 +30,10 @@ typedef struct {
 static r_media_state_t r_media_state;
 
 /*
- * @brief GHRFunc for R_ListMedia_f. Recursively prints media dependency information.
+ * @brief GHRFunc for R_ListMedia_f.
  */
-static void R_ListMedia_f_(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
-	r_media_t *media = (r_media_t *) value;
-	ptrdiff_t i, depth = (ptrdiff_t) data;
-
-	for (i = 0; i < depth; i++) {
-		Com_Print(" ");
-	}
-	Com_Print("%s\n", ((r_media_t *) media)->name);
-
-	GList *d = media->dependencies;
-	while (d) {
-		R_ListMedia_f_(NULL, d->data, (gpointer) (depth + 1));
-		d = d->next;
-	}
+static void R_ListMedia_f_(gpointer key __attribute__((unused)), gpointer value, gpointer data __attribute__((unused))) {
+	Com_Print("%s\n", ((r_media_t *) value)->name);
 }
 
 /*
@@ -55,7 +43,7 @@ void R_ListMedia_f(void) {
 
 	Com_Print("Loaded media:\n");
 
-	g_hash_table_foreach(r_media_state.media, R_ListMedia_f_, 0);
+	g_hash_table_foreach(r_media_state.media, R_ListMedia_f_, NULL);
 }
 
 /*
@@ -94,17 +82,14 @@ void R_RegisterMedia(r_media_t *media) {
 	// check to see if we're already registered
 	if ((m = g_hash_table_lookup(r_media_state.media, media->name))) {
 		if (m != media) {
-			if (R_FreeMedia_(NULL, m, NULL)) {
-				Com_Debug("R_RegisterMedia: Replacing %s.\n", media->name);
-				g_hash_table_insert(r_media_state.media, media->name, media);
-			} else {
-				Com_Warn("R_RegisterMedia: Failed to free %s.\n", media->name);
-			}
+			Com_Debug("R_RegisterMedia: Replacing %s.\n", media->name);
+			R_FreeMedia_(NULL, m, (void *) true);
+			g_hash_table_insert(r_media_state.media, media->name, media);
 		} else {
 			Com_Debug("R_RegisterMedia: Retaining %s.\n", media->name);
 		}
 	} else {
-		Com_Debug("R_RegisterMedia: Registering %s.\n", media->name);
+		Com_Debug("R_RegisterMedia: Inserting %s.\n", media->name);
 		g_hash_table_insert(r_media_state.media, media->name, media);
 	}
 
@@ -133,6 +118,8 @@ void R_LoadMedia(void) {
 		return; // no map specified
 
 	R_InitView();
+
+	r_media_state.seed = Sys_Milliseconds();
 
 	Cl_LoadProgress(1);
 
@@ -177,6 +164,23 @@ r_media_t *R_FindMedia(const char *name) {
 	if ((media = g_hash_table_lookup(r_media_state.media, name))) {
 		R_RegisterMedia(media);
 	}
+
+	return media;
+}
+
+/*
+ * @brief Returns a newly allocated r_media_t with the specified name.
+ *
+ * @param size_t size The number of bytes to allocate for the media.
+ *
+ * @return The newly initialized media.
+ */
+r_media_t *R_MallocMedia(const char *name, size_t size) {
+
+	r_media_t *media = Z_TagMalloc(size, Z_TAG_RENDERER);
+
+	strncpy(media->name, name, sizeof(media->name));
+	media->name[sizeof(media->name) - 1] = '\0';
 
 	return media;
 }

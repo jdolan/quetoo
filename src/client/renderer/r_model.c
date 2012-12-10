@@ -21,22 +21,18 @@
 
 #include "r_local.h"
 
-typedef struct {
-	r_model_t *world;
-} r_model_state_t;
-
-static r_model_state_t r_model_state;
+r_model_state_t r_model_state;
 
 typedef struct {
+	const char *extension;
 	r_model_type_t type;
-	const char *name;
 	void (*Load)(r_model_t *mod, void *buffer);
 } r_model_format_t;
 
-static r_model_format_t r_model_formats[] = {
-	{ MOD_OBJ, ".obj", R_LoadObjModel },
-	{ MOD_MD3, ".md3", R_LoadMd3Model },
-	{ MOD_BSP, ".bsp", R_LoadBspModel }
+static const r_model_format_t r_model_formats[] = {
+	{ ".obj", MOD_OBJ, R_LoadObjModel },
+	{ ".md3", MOD_MD3, R_LoadMd3Model },
+	{ ".bsp", MOD_BSP, R_LoadBspModel }
 };
 
 /*
@@ -148,7 +144,11 @@ static void R_RegisterModel(r_media_t *self) {
 			R_RegisterDependency(self, (r_media_t *) s->deluxemap);
 		}
 
+		// keep a reference to the world model
 		r_model_state.world = mod;
+
+	} else if (IS_MESH_MODEL(mod)) {
+		R_RegisterDependency(self, (r_media_t *) mod->mesh->material);
 	}
 }
 
@@ -193,11 +193,11 @@ r_model_t *R_LoadModel(const char *name) {
 	if (!(mod = (r_model_t *) R_FindMedia(key))) {
 
 		void *buf;
-		r_model_format_t *format = r_model_formats;
+		const r_model_format_t *format = r_model_formats;
 		for (i = 0; i < lengthof(r_model_formats); i++, format++) {
 
 			StripExtension(name, key);
-			strcat(key, format->name);
+			strcat(key, format->extension);
 
 			if (Fs_LoadFile(key, &buf) != -1)
 				break;
@@ -212,8 +212,9 @@ r_model_t *R_LoadModel(const char *name) {
 			return NULL;
 		}
 
-		mod = Z_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
-		StripExtension(key, mod->media.name);
+		StripExtension(name, key);
+
+		mod = (r_model_t *) R_MallocMedia(key, sizeof(r_model_t));
 
 		mod->media.Register = R_RegisterModel;
 		mod->media.Free = R_FreeModel;
@@ -252,15 +253,8 @@ r_model_t *R_WorldModel(void) {
 }
 
 /*
- * @brief
+ * @brief Initializes the model facilities.
  */
 void R_InitModels(void) {
 	memset(&r_model_state, 0, sizeof(r_model_state));
-}
-
-/*
- * @brief
- */
-void R_ShutdownModels(void) {
-
 }

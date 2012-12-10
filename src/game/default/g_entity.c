@@ -296,7 +296,7 @@ static const char *G_ParseEntity(const char *data, g_edict_t *ent) {
 		if (!data)
 			gi.Error("G_ParseEntity: EOF without closing brace.");
 
-		strncpy(key, tok, sizeof(key) - 1);
+		g_strlcpy(key, tok, sizeof(key));
 
 		// parse value
 		tok = ParseToken(&data);
@@ -390,11 +390,12 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	memset(&g_level, 0, sizeof(g_level));
 	memset(g_game.edicts, 0, g_max_entities->value * sizeof(g_game.edicts[0]));
 
-	strncpy(g_level.name, name, sizeof(g_level.name) - 1);
+	g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
 	// set client fields on player ents
-	for (i = 0; i < sv_max_clients->integer; i++)
+	for (i = 0; i < sv_max_clients->integer; i++) {
 		g_game.edicts[i + 1].client = g_game.clients + i;
+	}
 
 	ent = NULL;
 	inhibit = 0;
@@ -480,7 +481,7 @@ static void G_WorldspawnMusic(void) {
 	if (*g_level.music == '\0')
 		return;
 
-	strncpy(buf, g_level.music, sizeof(buf));
+	g_strlcpy(buf, g_level.music, sizeof(buf));
 
 	i = 1;
 	t = strtok(buf, ",");
@@ -540,10 +541,10 @@ static void G_worldspawn(g_edict_t *ent) {
 	}
 
 	if (ent->message && *ent->message)
-		strncpy(g_level.title, ent->message, sizeof(g_level.title));
+		g_strlcpy(g_level.title, ent->message, sizeof(g_level.title));
 	else
 		// or just the level name
-		strncpy(g_level.title, g_level.name, sizeof(g_level.title));
+		g_strlcpy(g_level.title, g_level.name, sizeof(g_level.title));
 	gi.ConfigString(CS_NAME, g_level.title);
 
 	if (map && *map->sky) // prefer maps.lst sky
@@ -686,22 +687,22 @@ static void G_worldspawn(g_edict_t *ent) {
 	g_level.time_limit = time_limit * 60 * 1000;
 
 	if (map && *map->give) // prefer maps.lst give
-		strncpy(g_level.give, map->give, sizeof(g_level.give));
+		g_strlcpy(g_level.give, map->give, sizeof(g_level.give));
 	else { // or fall back on worldspawn
 		if (g_game.spawn.give && *g_game.spawn.give)
-			strncpy(g_level.give, g_game.spawn.give, sizeof(g_level.give));
+			g_strlcpy(g_level.give, g_game.spawn.give, sizeof(g_level.give));
 		else
 			// or clean it
-			g_level.give[0] = 0;
+			g_level.give[0] = '\0';
 	}
 
 	if (map && *map->music) // prefer maps.lst music
-		strncpy(g_level.music, map->music, sizeof(g_level.music));
+		g_strlcpy(g_level.music, map->music, sizeof(g_level.music));
 	else { // or fall back on worldspawn
 		if (g_game.spawn.music && *g_game.spawn.music)
-			strncpy(g_level.music, g_game.spawn.music, sizeof(g_level.music));
+			g_strlcpy(g_level.music, g_game.spawn.music, sizeof(g_level.music));
 		else
-			g_level.music[0] = 0;
+			g_level.music[0] = '\0';
 	}
 
 	G_WorldspawnMusic();

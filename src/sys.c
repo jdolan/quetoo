@@ -62,8 +62,7 @@ const char *Sys_GetCurrentUser(void) {
 	if ((p = getpwuid(getuid())) == NULL)
 		user[0] = '\0';
 	else {
-		strncpy(user, p->pw_name, sizeof(user));
-		user[sizeof(user) - 1] = '\0';
+		g_strlcpy(user, p->pw_name, sizeof(user));
 	}
 #endif
 	return user;
@@ -114,7 +113,7 @@ const char *Sys_FindFirst(const char *path) {
 
 	while ((d = readdir(find_dir)) != NULL) {
 		if (!*find_pattern || GlobMatch(find_pattern, d->d_name)) {
-			snprintf(find_path, sizeof(find_path), "%s/%s", find_base, d->d_name);
+			g_snprintf(find_path, sizeof(find_path), "%s/%s", find_base, d->d_name);
 			return find_path;
 		}
 	}

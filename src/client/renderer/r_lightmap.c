@@ -48,7 +48,7 @@ static void R_UploadLightmapBlock(r_bsp_model_t *bsp) {
 
 	r_image_t *lm = r_lightmap_state.lightmap;
 
-	snprintf(lm->media.name, sizeof(lm->media.name), "lightmap %d", count);
+	g_snprintf(lm->media.name, sizeof(lm->media.name), "lightmap %d", count);
 	lm->type = IT_LIGHTMAP;
 	lm->width = lm->height = r_lightmap_state.block_size;
 
@@ -58,7 +58,7 @@ static void R_UploadLightmapBlock(r_bsp_model_t *bsp) {
 
 		r_image_t *dm = r_lightmap_state.deluxemap;
 
-		snprintf(dm->media.name, sizeof(dm->media.name), "deluxemap %d", count);
+		g_snprintf(dm->media.name, sizeof(dm->media.name), "deluxemap %d", count);
 		dm->type = IT_DELUXEMAP;
 		dm->width = dm->height = r_lightmap_state.block_size;
 

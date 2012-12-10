@@ -80,7 +80,7 @@ static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
 static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	uint32_t i;
 
-	R_SetArrayState(R_WorldModel());
+	R_SetArrayState(r_model_state.world);
 
 	// draw the surfaces
 	for (i = 0; i < surfs->count; i++) {
@@ -117,7 +117,7 @@ static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableColorArray(true);
 
-	R_SetArrayState(R_WorldModel());
+	R_SetArrayState(r_model_state.world);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 

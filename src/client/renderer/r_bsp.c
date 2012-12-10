@@ -163,7 +163,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 		frame = -2;
 	}
 
-	surf = &R_WorldModel()->bsp->surfaces[e->model->bsp_inline->first_surface];
+	surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
 		const c_bsp_plane_t *plane = surf->plane;
@@ -186,7 +186,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 		}
 	}
 
-	const r_sorted_bsp_surfaces_t *surfs = R_WorldModel()->bsp->sorted_surfaces;
+	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
 
 	R_DrawOpaqueBspSurfaces(&surfs->opaque);
 
@@ -251,8 +251,8 @@ void R_DrawBspLights(void) {
 	if (!r_draw_bsp_lights->value)
 		return;
 
-	const r_bsp_light_t *l = R_WorldModel()->bsp->bsp_lights;
-	for (i = 0; i < R_WorldModel()->bsp->num_bsp_lights; i++, l++) {
+	const r_bsp_light_t *l = r_model_state.world->bsp->bsp_lights;
+	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
 		r_corona_t c;
 
 		VectorCopy(l->origin, c.origin);
@@ -282,8 +282,8 @@ void R_DrawBspNormals(void) {
 	R_Color(red);
 
 	k = 0;
-	const r_bsp_surface_t *surf = R_WorldModel()->bsp->surfaces;
-	for (i = 0; i < R_WorldModel()->bsp->num_surfaces; i++, surf++) {
+	const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces;
+	for (i = 0; i < r_model_state.world->bsp->num_surfaces; i++, surf++) {
 
 		if (surf->vis_frame != r_locals.vis_frame)
 			continue; // not visible
@@ -302,8 +302,8 @@ void R_DrawBspNormals(void) {
 		for (j = 0; j < surf->num_edges; j++) {
 			vec3_t end;
 
-			const GLfloat *vertex = &R_WorldModel()->verts[(surf->index + j) * 3];
-			const GLfloat *normal = &R_WorldModel()->normals[(surf->index + j) * 3];
+			const GLfloat *vertex = &r_model_state.world->verts[(surf->index + j) * 3];
+			const GLfloat *normal = &r_model_state.world->normals[(surf->index + j) * 3];
 
 			VectorMA(vertex, 12.0, normal, end);
 
@@ -331,7 +331,7 @@ void R_DrawBspLeafs(void) {
 	if (!r_draw_bsp_leafs->value)
 		return;
 
-	R_SetArrayState(R_WorldModel());
+	R_SetArrayState(r_model_state.world);
 
 	R_EnableTexture(&texunit_diffuse, false);
 
@@ -339,10 +339,10 @@ void R_DrawBspLeafs(void) {
 
 	glPolygonOffset(-2.0, 0.0);
 
-	const r_bsp_leaf_t *l = R_WorldModel()->bsp->leafs;
+	const r_bsp_leaf_t *l = r_model_state.world->bsp->leafs;
 	uint16_t i;
 
-	for (i = 0; i < R_WorldModel()->bsp->num_leafs; i++, l++) {
+	for (i = 0; i < r_model_state.world->bsp->num_leafs; i++, l++) {
 
 		if (l->vis_frame != r_locals.vis_frame)
 			continue;
@@ -431,7 +431,7 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	R_MarkBspSurfaces_(node->children[side]);
 
 	// prune all marked surfaces to just those which are front-facing
-	r_bsp_surface_t *s = R_WorldModel()->bsp->surfaces + node->first_surface;
+	r_bsp_surface_t *s = r_model_state.world->bsp->surfaces + node->first_surface;
 
 	for (i = 0; i < node->num_surfaces; i++, s++) {
 
@@ -486,7 +486,7 @@ void R_MarkBspSurfaces(void) {
 	R_ClearSkyBox();
 
 	// flag all visible world surfaces
-	R_MarkBspSurfaces_(R_WorldModel()->bsp->nodes);
+	R_MarkBspSurfaces_(r_model_state.world->bsp->nodes);
 }
 
 /*
@@ -495,7 +495,7 @@ void R_MarkBspSurfaces(void) {
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp) {
 
 	if (!bsp)
-		bsp = R_WorldModel()->bsp;
+		bsp = r_model_state.world->bsp;
 
 	return &bsp->leafs[Cm_PointLeafnum(p)];
 }
@@ -565,16 +565,16 @@ void R_UpdateVis(void) {
 		r_locals.vis_frame = 0;
 
 	// if we have no vis, mark everything and return
-	if (r_no_vis->value || !R_WorldModel()->bsp->num_clusters || r_locals.cluster == -1) {
+	if (r_no_vis->value || !r_model_state.world->bsp->num_clusters || r_locals.cluster == -1) {
 
-		for (i = 0; i < R_WorldModel()->bsp->num_leafs; i++)
-			R_WorldModel()->bsp->leafs[i].vis_frame = r_locals.vis_frame;
+		for (i = 0; i < r_model_state.world->bsp->num_leafs; i++)
+			r_model_state.world->bsp->leafs[i].vis_frame = r_locals.vis_frame;
 
-		for (i = 0; i < R_WorldModel()->bsp->num_nodes; i++)
-			R_WorldModel()->bsp->nodes[i].vis_frame = r_locals.vis_frame;
+		for (i = 0; i < r_model_state.world->bsp->num_nodes; i++)
+			r_model_state.world->bsp->nodes[i].vis_frame = r_locals.vis_frame;
 
-		r_view.num_bsp_clusters = R_WorldModel()->bsp->num_clusters;
-		r_view.num_bsp_leafs = R_WorldModel()->bsp->num_leafs;
+		r_view.num_bsp_clusters = r_model_state.world->bsp->num_clusters;
+		r_view.num_bsp_leafs = r_model_state.world->bsp->num_leafs;
 
 		return;
 	}
@@ -596,12 +596,12 @@ void R_UpdateVis(void) {
 	memcpy(r_locals.vis_data_phs, phs, sizeof(r_locals.vis_data_phs));
 
 	// recurse up the BSP from the visible leafs, marking a path via the nodes
-	const r_bsp_leaf_t *leaf = R_WorldModel()->bsp->leafs;
+	const r_bsp_leaf_t *leaf = r_model_state.world->bsp->leafs;
 
 	r_view.num_bsp_leafs = 0;
 	r_view.num_bsp_clusters = 0;
 
-	for (i = 0; i < R_WorldModel()->bsp->num_leafs; i++, leaf++) {
+	for (i = 0; i < r_model_state.world->bsp->num_leafs; i++, leaf++) {
 
 		if (!R_LeafInVis(leaf, r_locals.vis_data_pvs))
 			continue;
@@ -609,7 +609,7 @@ void R_UpdateVis(void) {
 		r_view.num_bsp_leafs++;
 
 		// keep track of the number of clusters rendered each frame
-		r_bsp_cluster_t *cl = &R_WorldModel()->bsp->clusters[leaf->cluster];
+		r_bsp_cluster_t *cl = &r_model_state.world->bsp->clusters[leaf->cluster];
 
 		if (cl->vis_frame != r_locals.vis_frame) {
 			cl->vis_frame = r_locals.vis_frame;

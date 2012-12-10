@@ -316,7 +316,7 @@ static void Sv_Info_f(void) {
 		if (!(cvar->flags & CVAR_SERVER_INFO))
 			continue; //only print32_t serverinfo cvars
 
-		snprintf(line, sizeof(line), "%s %s\n", cvar->name, cvar->string);
+		g_snprintf(line, sizeof(line), "%s %s\n", cvar->name, cvar->string);
 		Sv_ClientPrint(sv_client->edict, PRINT_MEDIUM, "%s", line);
 	}
 }
@@ -326,13 +326,17 @@ typedef struct sv_user_string_cmd_s {
 	void (*func)(void);
 } sv_user_string_cmd_t;
 
-sv_user_string_cmd_t sv_user_string_cmds[] = { { "new", Sv_New_f }, {
-		"config_strings",
-		Sv_ConfigStrings_f }, { "baselines", Sv_Baselines_f }, { "begin", Sv_Begin_f }, {
-		"disconnect",
-		Sv_Disconnect_f }, { "info", Sv_Info_f }, { "download", Sv_Download_f }, {
-		"nextdl",
-		Sv_NextDownload_f }, { NULL, NULL } };
+sv_user_string_cmd_t sv_user_string_cmds[] = {
+	{ "new", Sv_New_f },
+	{ "config_strings", Sv_ConfigStrings_f },
+	{ "baselines", Sv_Baselines_f },
+	{ "begin", Sv_Begin_f },
+	{ "disconnect", Sv_Disconnect_f },
+	{ "info", Sv_Info_f },
+	{ "download", Sv_Download_f },
+	{ "nextdl", Sv_NextDownload_f },
+	{ NULL, NULL }
+};
 
 /*
  * @brief Invoke the specified user string command. If we don't have a function for
@@ -409,73 +413,74 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 
 		switch (c) {
 
-		case CL_CMD_USER_INFO:
-			strncpy(cl->user_info, Msg_ReadString(&net_message), sizeof(cl->user_info) - 1);
-			Sv_UserInfoChanged(cl);
-			break;
-
-		case CL_CMD_MOVE:
-			if (++moves_issued > CMD_MAX_MOVES) {
-				return; // someone is trying to cheat
-			}
-
-			last_frame = Msg_ReadLong(&net_message);
-			if (last_frame != cl->last_frame) {
-				cl->last_frame = last_frame;
-				if (cl->last_frame > -1) {
-					cl->frame_latency[cl->last_frame & (CLIENT_LATENCY_COUNTS - 1)] = svs.real_time
-							- cl->frames[cl->last_frame & UPDATE_MASK].sent_time;
-				}
-			}
-
-			memset(&null_cmd, 0, sizeof(null_cmd));
-			Msg_ReadDeltaUsercmd(&net_message, &null_cmd, &oldest_cmd);
-			Msg_ReadDeltaUsercmd(&net_message, &oldest_cmd, &old_cmd);
-			Msg_ReadDeltaUsercmd(&net_message, &old_cmd, &new_cmd);
-
-			// don't start delta compression until the client is spawned
-			// TODO: should this be a little higher up?
-			if (cl->state != SV_CLIENT_ACTIVE) {
-				cl->last_frame = -1;
+			case CL_CMD_USER_INFO:
+				g_strlcpy(cl->user_info, Msg_ReadString(&net_message), sizeof(cl->user_info));
+				Sv_UserInfoChanged(cl);
 				break;
-			}
 
-			net_drop = cl->netchan.dropped;
-			if (net_drop < 20) {
-				while (net_drop > 2) {
-					Sv_ClientThink(cl, &cl->last_cmd);
-					net_drop--;
+			case CL_CMD_MOVE:
+				if (++moves_issued > CMD_MAX_MOVES) {
+					return; // someone is trying to cheat
 				}
-				if (net_drop > 1)
-					Sv_ClientThink(cl, &oldest_cmd);
-				if (net_drop > 0)
-					Sv_ClientThink(cl, &old_cmd);
-			}
-			Sv_ClientThink(cl, &new_cmd);
-			cl->last_cmd = new_cmd;
-			break;
 
-		case CL_CMD_STRING:
-			s = Msg_ReadString(&net_message);
+				last_frame = Msg_ReadLong(&net_message);
+				if (last_frame != cl->last_frame) {
+					cl->last_frame = last_frame;
+					if (cl->last_frame > -1) {
+						cl->frame_latency[cl->last_frame & (CLIENT_LATENCY_COUNTS - 1)]
+								= svs.real_time
+										- cl->frames[cl->last_frame & UPDATE_MASK].sent_time;
+					}
+				}
 
-			// malicious users may try using too many string commands
-			if (++strings_issued < CMD_MAX_STRINGS)
-				Sv_UserStringCommand(s);
-			else {
-				Com_Warn("Sv_ParseClientMessage: CMD_MAX_STRINGS exceeded for %s\n",
-						Sv_NetaddrToString(cl));
-				Sv_KickClient(cl, "Too many commands.");
+				memset(&null_cmd, 0, sizeof(null_cmd));
+				Msg_ReadDeltaUsercmd(&net_message, &null_cmd, &oldest_cmd);
+				Msg_ReadDeltaUsercmd(&net_message, &oldest_cmd, &old_cmd);
+				Msg_ReadDeltaUsercmd(&net_message, &old_cmd, &new_cmd);
+
+				// don't start delta compression until the client is spawned
+				// TODO: should this be a little higher up?
+				if (cl->state != SV_CLIENT_ACTIVE) {
+					cl->last_frame = -1;
+					break;
+				}
+
+				net_drop = cl->netchan.dropped;
+				if (net_drop < 20) {
+					while (net_drop > 2) {
+						Sv_ClientThink(cl, &cl->last_cmd);
+						net_drop--;
+					}
+					if (net_drop > 1)
+						Sv_ClientThink(cl, &oldest_cmd);
+					if (net_drop > 0)
+						Sv_ClientThink(cl, &old_cmd);
+				}
+				Sv_ClientThink(cl, &new_cmd);
+				cl->last_cmd = new_cmd;
+				break;
+
+			case CL_CMD_STRING:
+				s = Msg_ReadString(&net_message);
+
+				// malicious users may try using too many string commands
+				if (++strings_issued < CMD_MAX_STRINGS)
+					Sv_UserStringCommand(s);
+				else {
+					Com_Warn("Sv_ParseClientMessage: CMD_MAX_STRINGS exceeded for %s\n",
+							Sv_NetaddrToString(cl));
+					Sv_KickClient(cl, "Too many commands.");
+					return;
+				}
+
+				if (cl->state == SV_CLIENT_FREE)
+					return; // disconnect command
+				break;
+
+			default:
+				Com_Print("Sv_ParseClientMessage: unknown command %d\n", c);
+				Sv_DropClient(cl);
 				return;
-			}
-
-			if (cl->state == SV_CLIENT_FREE)
-				return; // disconnect command
-			break;
-
-		default:
-			Com_Print("Sv_ParseClientMessage: unknown command %d\n", c);
-			Sv_DropClient(cl);
-			return;
 		}
 	}
 }

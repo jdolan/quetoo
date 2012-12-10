@@ -518,7 +518,7 @@ static void ParseBrush(entity_t *mapent) {
 		if (strlen(token) > sizeof(td.name) - 1)
 			Com_Error(ERR_FATAL, "Texture name \"%s\" is too long.\n", token);
 
-		strncpy(td.name, token, sizeof(td.name) - 1);
+		g_strlcpy(td.name, token, sizeof(td.name));
 
 		GetToken(false);
 		td.shift[0] = atoi(token);

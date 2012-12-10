@@ -270,7 +270,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
 
 	cgi.BindFont("small", NULL, &ch);
 
-	snprintf(string, sizeof(string), "Chasing ^7%s", cgi.ConfigString(c));
+	g_snprintf(string, sizeof(string), "Chasing ^7%s", cgi.ConfigString(c));
 
 	if ((s = strchr(string, '\\')))
 		*s = '\0';
@@ -298,7 +298,7 @@ static void Cg_DrawVote(const player_state_t *ps) {
 
 	cgi.BindFont("small", NULL, &ch);
 
-	snprintf(string, sizeof(string), "Vote: ^7%s", cgi.ConfigString(ps->stats[STAT_VOTE]));
+	g_snprintf(string, sizeof(string), "Vote: ^7%s", cgi.ConfigString(ps->stats[STAT_VOTE]));
 
 	x = cgi.view->x;
 	y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT - ch;
@@ -410,7 +410,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		if (cg_draw_crosshair->value > 100)
 			cg_draw_crosshair->value = 100;
 
-		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cg_draw_crosshair->integer);
+		g_snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cg_draw_crosshair->integer);
 
 		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), IT_PIC);
 

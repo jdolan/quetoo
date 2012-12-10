@@ -45,7 +45,7 @@ static s_music_t *S_LoadMusic(const char *name) {
 	buf = NULL;
 	rw = NULL;
 
-	snprintf(music.name, sizeof(music.name), "music/%s", name);
+	g_snprintf(music.name, sizeof(music.name), "music/%s", name);
 
 	i = 0;
 	while (MUSIC_TYPES[i]) {
@@ -134,9 +134,9 @@ void S_LoadMusics(void) {
 		// shuffle the order of the default tracks to keep it fresh
 		for (i  = 1; i < MAX_MUSICS + 1; i++) {
 			const int32_t j = Random() % MAX_MUSICS + 1;
-			strncpy(temp, cl.config_strings[CS_MUSICS + i], MAX_QPATH);
-			strncpy(cl.config_strings[CS_MUSICS + i], cl.config_strings[CS_MUSICS + j], MAX_QPATH);
-			strncpy(cl.config_strings[CS_MUSICS + j], temp, MAX_QPATH);
+			g_strlcpy(temp, cl.config_strings[CS_MUSICS + i], sizeof(temp));
+			g_strlcpy(cl.config_strings[CS_MUSICS + i], cl.config_strings[CS_MUSICS + j], sizeof(cl.config_strings[0]));
+			g_strlcpy(cl.config_strings[CS_MUSICS + j], temp, sizeof(temp));
 
 		}
 

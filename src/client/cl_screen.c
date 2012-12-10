@@ -206,10 +206,10 @@ static void Cl_DrawCounters(void) {
 		UnpackPosition(cl.frame.ps.pm_state.velocity, velocity);
 		velocity[2] = 0.0;
 
-		snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
-		snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter * 5);
-		snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter * 5);
-		snprintf(bps, sizeof(bps), "%4ubps", cl.byte_counter * 5);
+		g_snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
+		g_snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter * 5);
+		g_snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter * 5);
+		g_snprintf(bps, sizeof(bps), "%4ubps", cl.byte_counter * 5);
 
 		last_draw_time = quake2world.time;
 

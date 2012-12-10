@@ -249,8 +249,7 @@ void Pak_AddEntry(pak_t *pak, char *name, int32_t len, void *p) {
 	if (!strncmp(c, "./", 2))
 		c += 2;
 
-	memset(pak->entries[pak->num_entries].name, 0, 56);
-	strncpy(pak->entries[pak->num_entries].name, c, 55);
+	g_strlcpy(pak->entries[pak->num_entries].name, c, sizeof(pak->entries[0].name));
 
 	pak->entries[pak->num_entries].file_len = len;
 	pak->entries[pak->num_entries].file_ofs = ftell(pak->handle);

@@ -1,3 +1,9 @@
+Use macro for Com_Debug/Com_Warn that include function name
+Kill pics hash table
+Port filesystem hash to glib
+Add glib hash to cvars
+Refactor sound system modeling renderer
+
 Renderer experiments
 ====
 - Draw world by iterating clusters in PVS

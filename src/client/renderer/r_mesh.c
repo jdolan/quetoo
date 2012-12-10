@@ -21,9 +21,7 @@
 
 #include "r_local.h"
 
-vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3]; // vertexes are interpolated here temporarily
-vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3]; // same for normal vectors
-vec4_t r_mesh_tangents[MD3_MAX_TRIANGLES * 3]; // and tangents
+r_mesh_state_t r_mesh_state;
 
 /*
  * @brief Applies any client-side transformations specified by the model's world or
@@ -205,9 +203,6 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 	R_Color(color);
 }
 
-// maintain a pointer to the active material
-static r_material_t *r_mesh_material;
-
 /*
  * @brief Sets GL state to draw the specified entity.
  */
@@ -224,16 +219,16 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	if (!r_draw_wireframe->value) {
 
 		if (!(e->effects & EF_NO_DRAW)) { // setup state for diffuse render
-			r_mesh_material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
+			r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
 
-			R_BindTexture(r_mesh_material->diffuse->texnum);
+			R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
 			R_SetMeshColor_default(e);
 
 			// hardware lighting
 			if (r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)) {
 
-				R_UseMaterial(NULL, r_mesh_material);
+				R_UseMaterial(NULL, r_mesh_state.material);
 
 				R_EnableLightsByRadius(e->origin);
 
@@ -347,7 +342,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
 
 	R_Color(color);
 
-	R_BindTexture(r_mesh_shell_image->texnum);
+	R_BindTexture(r_image_state.shell->texnum);
 
 	R_EnableShell(true);
 
@@ -450,13 +445,13 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 		const uint32_t *tri = mesh->tris;
 
 		for (j = 0; j < mesh->num_verts; j++, v++, ov++) { // interpolate the vertexes
-			VectorSet(r_mesh_verts[j],
+			VectorSet(r_mesh_state.vertexes[j],
 					trans[0] + ov->point[0] * e->back_lerp + v->point[0] * e->lerp,
 					trans[1] + ov->point[1] * e->back_lerp + v->point[1] * e->lerp,
 					trans[2] + ov->point[2] * e->back_lerp + v->point[2] * e->lerp);
 
 			if (r_state.lighting_enabled) { // and the normals
-				VectorSet(r_mesh_norms[j],
+				VectorSet(r_mesh_state.normals[j],
 						v->normal[0] + (ov->normal[0] - v->normal[0]) * e->back_lerp,
 						v->normal[1] + (ov->normal[1] - v->normal[1]) * e->back_lerp,
 						v->normal[2] + (ov->normal[2] - v->normal[2]) * e->back_lerp);
@@ -465,14 +460,14 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 
 		for (j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the triangles
 
-			VectorCopy(r_mesh_verts[tri[0]], (&r_state.vertex_array_3d[vert_index + 0]));
-			VectorCopy(r_mesh_verts[tri[1]], (&r_state.vertex_array_3d[vert_index + 3]));
-			VectorCopy(r_mesh_verts[tri[2]], (&r_state.vertex_array_3d[vert_index + 6]));
+			VectorCopy(r_mesh_state.vertexes[tri[0]], (&r_state.vertex_array_3d[vert_index + 0]));
+			VectorCopy(r_mesh_state.vertexes[tri[1]], (&r_state.vertex_array_3d[vert_index + 3]));
+			VectorCopy(r_mesh_state.vertexes[tri[2]], (&r_state.vertex_array_3d[vert_index + 6]));
 
 			if (r_state.lighting_enabled) { // normal vectors for lighting
-				VectorCopy(r_mesh_norms[tri[0]], (&r_state.normal_array[vert_index + 0]));
-				VectorCopy(r_mesh_norms[tri[1]], (&r_state.normal_array[vert_index + 3]));
-				VectorCopy(r_mesh_norms[tri[2]], (&r_state.normal_array[vert_index + 6]));
+				VectorCopy(r_mesh_state.normals[tri[0]], (&r_state.normal_array[vert_index + 0]));
+				VectorCopy(r_mesh_state.normals[tri[1]], (&r_state.normal_array[vert_index + 3]));
+				VectorCopy(r_mesh_state.normals[tri[2]], (&r_state.normal_array[vert_index + 6]));
 			}
 
 			vert_index += 9;
@@ -490,16 +485,16 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (i > 0) { // update the diffuse state for the current mesh
-			r_mesh_material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
+			r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
 
-			R_BindTexture(r_mesh_material->diffuse->texnum);
+			R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
-			R_UseMaterial(NULL, r_mesh_material);
+			R_UseMaterial(NULL, r_mesh_state.material);
 		}
 
 		glDrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
 
-		R_DrawMeshMaterial(r_mesh_material, offset, mesh->num_tris * 3);
+		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_tris * 3);
 
 		offset += mesh->num_tris * 3;
 	}
@@ -533,7 +528,7 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 		} else {
 			glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
-			R_DrawMeshMaterial(r_mesh_material, 0, e->model->num_verts);
+			R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_verts);
 		}
 
 		R_DrawMeshShell_default(e); // draw any shell effects

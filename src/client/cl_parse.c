@@ -81,7 +81,7 @@ bool Cl_CheckOrDownloadFile(const char *file_name) {
 
 	// check to see if we already have a tmp for this file, if so, try to resume
 	// open the file if not opened yet
-	snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
+	g_snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
 
 	fp = fopen(name, "r+b");
 	if (fp) { // a temp file exists, resume download
@@ -94,14 +94,14 @@ bool Cl_CheckOrDownloadFile(const char *file_name) {
 		// give the server the offset to start the download
 		Com_Debug("Resuming %s...\n", cls.download.name);
 
-		snprintf(cmd, sizeof(cmd), "download %s %i", cls.download.name, len);
+		g_snprintf(cmd, sizeof(cmd), "download %s %i", cls.download.name, len);
 		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 		Msg_WriteString(&cls.netchan.message, cmd);
 	} else {
 		// or start if from the beginning
 		Com_Debug("Downloading %s...\n", cls.download.name);
 
-		snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
+		g_snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
 		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 		Msg_WriteString(&cls.netchan.message, cmd);
 	}
@@ -196,7 +196,7 @@ static void Cl_ParseDownload(void) {
 
 	// open the file if not opened yet
 	if (!cls.download.file) {
-		snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
+		g_snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
 
 		Fs_CreatePath(name);
 
@@ -222,8 +222,8 @@ static void Cl_ParseDownload(void) {
 		Fs_CloseFile(cls.download.file);
 
 		// rename the temp file to it's final name
-		snprintf(oldn, sizeof(oldn), "%s/%s", Fs_Gamedir(), cls.download.tempname);
-		snprintf(newn, sizeof(newn), "%s/%s", Fs_Gamedir(), cls.download.name);
+		g_snprintf(oldn, sizeof(oldn), "%s/%s", Fs_Gamedir(), cls.download.tempname);
+		g_snprintf(newn, sizeof(newn), "%s/%s", Fs_Gamedir(), cls.download.name);
 
 		if (rename(oldn, newn))
 			Com_Warn("Failed to rename %s to %s.\n", oldn, newn);

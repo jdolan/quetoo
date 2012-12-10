@@ -293,12 +293,12 @@ static void Cl_KeyGame(SDLKey key, uint16_t unicode __attribute__((unused)), boo
 
 	if (kb[0] == '+') { // button commands add key and time as a param
 		if (down)
-			snprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, time);
+			g_snprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, time);
 		else
-			snprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, time);
+			g_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, time);
 	} else {
 		if (down) {
-			snprintf(cmd, sizeof(cmd), "%s\n", kb);
+			g_snprintf(cmd, sizeof(cmd), "%s\n", kb);
 		}
 	}
 
@@ -502,7 +502,7 @@ static void Cl_WriteHistory(void) {
 	char path[MAX_OSPATH];
 	uint32_t i;
 
-	snprintf(path, sizeof(path), "%s/history", Fs_Gamedir());
+	g_snprintf(path, sizeof(path), "%s/history", Fs_Gamedir());
 	f = fopen(path, "w");
 	if (!f) {
 		Com_Warn("Couldn't write %s.\n", path);
@@ -527,7 +527,7 @@ static void Cl_ReadHistory(void) {
 	FILE *f;
 	char line[KEY_LINE_SIZE];
 
-	snprintf(path, sizeof(path), "%s/history", Fs_Gamedir());
+	g_snprintf(path, sizeof(path), "%s/history", Fs_Gamedir());
 
 	f = fopen(path, "r");
 	if (!f)
@@ -535,11 +535,11 @@ static void Cl_ReadHistory(void) {
 
 	while (fgets(line, KEY_LINE_SIZE - 2, f)) {
 		if (line[strlen(line) - 1] == '\n')
-			line[strlen(line) - 1] = 0;
+			line[strlen(line) - 1] = '\0';
 		strncpy(&ks->lines[ks->edit_line][1], line, KEY_LINE_SIZE - 2);
 		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORY_SIZE;
 		ks->history_line = ks->edit_line;
-		ks->lines[ks->edit_line][1] = 0;
+		ks->lines[ks->edit_line][1] = '\0';
 	}
 
 	Fs_CloseFile(f);

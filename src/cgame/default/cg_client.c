@@ -66,7 +66,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const ch
 	int32_t i, j, len;
 
 	// load the skin definition file
-	snprintf(path, sizeof(path) - 1, "%s_%s.skin", mod->media.name, skin);
+	g_snprintf(path, sizeof(path), "%s_%s.skin", mod->media.name, skin);
 
 	if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
 		cgi.Debug("Cg_LoadClientSkins: %s not found\n", path);
@@ -135,8 +135,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	cgi.Debug("Cg_LoadClient: %s\n", s);
 
 	// copy the entire string
-	strncpy(ci->info, s, sizeof(ci->info));
-	ci->info[sizeof(ci->info) - 1] = '\0';
+	g_strlcpy(ci->info, s, sizeof(ci->info));
 
 	i = 0;
 	t = s;
@@ -154,8 +153,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	}
 
 	// isolate the player's name
-	strncpy(ci->name, s, sizeof(ci->name));
-	ci->name[sizeof(ci->name) - 1] = '\0';
+	g_strlcpy(ci->name, s, sizeof(ci->name));
 
 	if ((v = strchr(ci->name, '\\'))) { // check for name\model/skin
 
@@ -168,17 +166,17 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	}
 
 	if (v && u) { // load the models
-		snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
+		g_snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
 		if ((ci->head = cgi.LoadModel(path))) {
 			Cg_LoadClientSkins(ci->head, ci->head_skins, ci->skin);
 		}
 
-		snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
+		g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
 		if ((ci->upper = cgi.LoadModel(path))) {
 			Cg_LoadClientSkins(ci->upper, ci->upper_skins, ci->skin);
 		}
 
-		snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
+		g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
 		if ((ci->lower = cgi.LoadModel(path))) {
 			Cg_LoadClientSkins(ci->lower, ci->lower_skins, ci->skin);
 		}
@@ -254,7 +252,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 	e->back_lerp = 0.0;
 
 	if (a->animation > md3->num_animations) {
-		cgi.Warn("Cg_AnimateClientEntity: Invalid animation: %s: %d\n", e->model->media.name,
+		cgi.Warn("Cg_AnimateClientEntity_: Invalid animation: %s: %d\n", e->model->media.name,
 				a->animation);
 		return;
 	}

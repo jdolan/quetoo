@@ -423,7 +423,7 @@ void R_EnableWarp(r_program_t *program, bool enable) {
 	R_SelectTexture(&texunit_lightmap);
 
 	if (enable) {
-		R_BindTexture(r_warp_image->texnum);
+		R_BindTexture(r_image_state.warp->texnum);
 
 		R_UseProgram(program);
 	} else {

@@ -172,9 +172,11 @@ void Cl_DrawNotify(void) {
 	for (i = cl_console.last_line - CON_NUM_NOTIFY; i < cl_console.last_line; i++) {
 		if (i < 0)
 			continue;
-		if (cl_console.notify_times[i % CON_NUM_NOTIFY] + con_notify_time->value * 1000 > cls.real_time) {
+		if (cl_console.notify_times[i % CON_NUM_NOTIFY] + con_notify_time->value * 1000
+				> cls.real_time) {
 			R_DrawBytes(0, y, cl_console.line_start[i],
-					cl_console.line_start[i + 1] - cl_console.line_start[i], cl_console.line_color[i]);
+					cl_console.line_start[i + 1] - cl_console.line_start[i],
+					cl_console.line_color[i]);
 			y += ch;
 		}
 	}
@@ -232,11 +234,13 @@ void Cl_DrawConsole(void) {
 	// draw the text
 	lines = cl_console.height;
 	y = 0;
-	for (line = cl_console.last_line - cl_console.scroll - lines; line < cl_console.last_line - cl_console.scroll; line++) {
+	for (line = cl_console.last_line - cl_console.scroll - lines; line < cl_console.last_line
+			- cl_console.scroll; line++) {
 
 		if (line >= 0 && cl_console.line_start[line][0] != '\0') {
 			R_DrawBytes(0, y, cl_console.line_start[line],
-					cl_console.line_start[line + 1] - cl_console.line_start[line], cl_console.line_color[line]);
+					cl_console.line_start[line + 1] - cl_console.line_start[line],
+					cl_console.line_color[line]);
 		}
 		y += ch;
 	}
@@ -244,14 +248,14 @@ void Cl_DrawConsole(void) {
 	// draw the loading string or the input prompt
 
 	if (cls.state >= CL_CONNECTED && cls.loading) { // draw loading progress
-		snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
+		g_snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
 
 		R_DrawString(0, cl_console.height * ch, dl, CON_COLOR_INFO);
 	} else if (cls.download.file) { // draw download progress
 
 		kb = (int) ftell(cls.download.file) / 1024;
 
-		snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
+		g_snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
 				(cls.download.http ? "HTTP" : "UDP"), kb);
 
 		R_DrawString(0, cl_console.height * ch, dl, CON_COLOR_INFO);

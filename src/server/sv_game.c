@@ -108,7 +108,7 @@ static void Sv_ConfigString(const uint16_t index, const char *val) {
 	}
 
 	// change the string in sv.config_strings
-	strncpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
+	g_strlcpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
 
 	if (sv.state != SV_LOADING) { // send the update to everyone
 		Sb_Clear(&sv.multicast);

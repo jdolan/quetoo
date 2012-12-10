@@ -21,19 +21,7 @@
 
 #include "r_local.h"
 
-r_image_t *r_mesh_shell_image;
-r_image_t *r_warp_image;
-
-typedef struct {
-	r_image_t *null;
-	r_image_t *warp;
-} r_image_state_t;
-
-static r_image_state_t r_image_state;
-
-static GLint r_filter_min = GL_LINEAR_MIPMAP_NEAREST;
-static GLint r_filter_mag = GL_LINEAR;
-static GLfloat r_filter_aniso = 1.0;
+r_image_state_t r_image_state;
 
 typedef struct {
 	const char *name;
@@ -50,7 +38,7 @@ static r_texture_mode_t r_texture_modes[] = {
 };
 
 /*
- * @brief
+ * @brief Sets the texture parameters for mipmapping and anisotropy.
  */
 static void R_TextureMode(void) {
 	uint16_t i;
@@ -65,13 +53,13 @@ static void R_TextureMode(void) {
 		return;
 	}
 
-	r_filter_min = r_texture_modes[i].minimize;
-	r_filter_mag = r_texture_modes[i].maximize;
+	r_image_state.filter_min = r_texture_modes[i].minimize;
+	r_image_state.filter_mag = r_texture_modes[i].maximize;
 
 	if (r_anisotropy->value)
-		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_filter_aniso);
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_image_state.anisotropy);
 	else
-		r_filter_aniso = 1.0;
+		r_image_state.anisotropy = 1.0;
 }
 
 #define MAX_SCREENSHOTS 100
@@ -99,13 +87,13 @@ void R_Screenshot_f(void) {
 	}
 
 	// create the screenshots directory if it doesn't exist
-	snprintf(file_name, sizeof(file_name), "%s/screenshots/", Fs_Gamedir());
+	g_snprintf(file_name, sizeof(file_name), "%s/screenshots/", Fs_Gamedir());
 	Fs_CreatePath(file_name);
 
 	// find a file name to save it to
 	for (i = last_shot; i < MAX_SCREENSHOTS; i++) {
 
-		snprintf(file_name, sizeof(file_name), "%s/screenshots/quake2world%02d.%s",
+		g_snprintf(file_name, sizeof(file_name), "%s/screenshots/quake2world%02d.%s",
 				Fs_Gamedir(), i, r_screenshot_type->string);
 
 		if (!(f = fopen(file_name, "rb")))
@@ -226,13 +214,13 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	R_BindTexture(image->texnum);
 
 	if (image->type & IT_MASK_MIPMAP) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_min);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_filter_aniso);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 	} else {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_filter_mag);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_filter_mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_mag);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 	}
 
@@ -275,8 +263,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 		SDL_Surface *surf;
 		if (Img_LoadImage(key, &surf)) { // attempt to load the image
-			image = Z_TagMalloc(sizeof(*image), Z_TAG_RENDERER);
-			strncpy(image->media.name, key, sizeof(image->media.name) - 1);
+			image = (r_image_t *) R_MallocMedia(key, sizeof(r_image_t));
 
 			image->media.Retain = R_RetainImage;
 			image->media.Free = R_FreeImage;
@@ -318,14 +305,6 @@ static void R_InitNullImage(void) {
 	R_UploadImage(r_image_state.null, GL_RGB, data);
 }
 
-/*
- * @brief Initializes the mesh shell image.
- * FIXME This is gross.
- */
-static void R_InitMeshShellImage() {
-	r_mesh_shell_image = R_LoadImage("envmaps/envmap_2", IT_EFFECT);
-}
-
 #define WARP_SIZE 16
 
 /*
@@ -333,10 +312,10 @@ static void R_InitMeshShellImage() {
  */
 static void R_InitWarpImage(void) {
 
-	r_warp_image = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
-	strcpy(r_warp_image->media.name, "r_warp_image");
-	r_warp_image->width = r_warp_image->height = WARP_SIZE;
-	r_warp_image->type = IT_GENERATED;
+	r_image_state.warp = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
+	strcpy(r_image_state.warp->media.name, "r_image_state.warp");
+	r_image_state.warp->width = r_image_state.warp->height = WARP_SIZE;
+	r_image_state.warp->type = IT_GENERATED;
 
 	byte data[WARP_SIZE][WARP_SIZE][4];
 	r_pixel_t i, j;
@@ -350,30 +329,30 @@ static void R_InitWarpImage(void) {
 		}
 	}
 
-	R_UploadImage(r_warp_image, GL_RGBA, (byte *) data);
+	R_UploadImage(r_image_state.warp, GL_RGBA, (byte *) data);
 }
 
 /*
- * @brief
+ * @brief Initializes the mesh shell image.
+ */
+static void R_InitShellImage() {
+	r_image_state.shell = R_LoadImage("envmaps/envmap_2", IT_EFFECT);
+}
+
+/*
+ * @brief Initializes the images facilities, which includes generation of
  */
 void R_InitImages(void) {
+
+	Img_InitPalette();
 
 	memset(&r_image_state, 0, sizeof(r_image_state));
 
 	R_TextureMode();
 
-	Img_InitPalette();
-
-	R_InitMeshShellImage();
-
 	R_InitNullImage();
 
 	R_InitWarpImage();
-}
 
-/*
- * @brief Frees all images and destroys the hash table container.
- */
-void R_ShutdownImages(void) {
-	r_mesh_shell_image = r_warp_image = NULL;
+	R_InitShellImage();
 }

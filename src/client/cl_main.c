@@ -93,7 +93,7 @@ static void Cl_CheckForResend(void) {
 			Cl_Disconnect();
 		}
 
-		strncpy(cls.server_name, "localhost", sizeof(cls.server_name) - 1);
+		g_strlcpy(cls.server_name, "localhost", sizeof(cls.server_name));
 
 		cls.state = CL_CONNECTING;
 		cls.connect_time = 0;
@@ -138,7 +138,8 @@ static void Cl_Connect_f(void) {
 
 	Cl_Disconnect();
 
-	strncpy(cls.server_name, Cmd_Argv(1), sizeof(cls.server_name) - 1);
+	strncpy(cls.server_name, Cmd_Argv(1), sizeof(cls.server_name));
+	cls.server_name[sizeof(cls.server_name) - 1] = '\0';
 
 	cls.state = CL_CONNECTING;
 	cls.connect_time = 0; // fire immediately
@@ -325,11 +326,11 @@ void Cl_Reconnect_f(void) {
 		if (cls.state >= CL_CONNECTING) {
 			char server_name[MAX_OSPATH];
 
-			strncpy(server_name, cls.server_name, sizeof(server_name) - 1);
+			g_strlcpy(server_name, cls.server_name, sizeof(server_name));
 
 			Cl_Disconnect();
 
-			strncpy(cls.server_name, server_name, sizeof(cls.server_name) - 1);
+			g_strlcpy(cls.server_name, server_name, sizeof(cls.server_name));
 		}
 
 		cls.connect_time = 0; // fire immediately
@@ -373,8 +374,9 @@ static void Cl_ConnectionlessPacket(void) {
 		cls.state = CL_CONNECTED;
 
 		memset(cls.download_url, 0, sizeof(cls.download_url));
-		if (Cmd_Argc() == 2) // http download url
-			strncpy(cls.download_url, Cmd_Argv(1), sizeof(cls.download_url) - 1);
+		if (Cmd_Argc() == 2) { // http download url
+			g_strlcpy(cls.download_url, Cmd_Argv(1), sizeof(cls.download_url));
+		}
 		return;
 	}
 
@@ -653,7 +655,7 @@ static void Cl_WriteConfiguration(void) {
 	if (cls.state == CL_UNINITIALIZED)
 		return;
 
-	snprintf(path, sizeof(path), "%s/quake2world.cfg", Fs_Gamedir());
+	g_snprintf(path, sizeof(path), "%s/quake2world.cfg", Fs_Gamedir());
 	f = fopen(path, "w");
 	if (!f) {
 		Com_Warn("Couldn't write %s.\n", path);

@@ -248,7 +248,7 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf) {
 	// calculate distance to surface verts
 	for (i = 0; i < surf->num_edges; i++) {
 
-		const float *v = &R_WorldModel()->verts[index + i * 3];
+		const float *v = &r_model_state.world->verts[index + i * 3];
 
 		VectorSubtract(v, r_view.origin, verts[i]);
 	}
@@ -318,7 +318,7 @@ void R_DrawSkyBox(void) {
 	r_bsp_surfaces_t *surfs;
 	uint32_t i, j;
 
-	surfs = &R_WorldModel()->bsp->sorted_surfaces->sky;
+	surfs = &r_model_state.world->bsp->sorted_surfaces->sky;
 	j = 0;
 
 	// first add all visible sky surfaces to the sky bounds
@@ -375,7 +375,7 @@ void R_SetSky(char *name) {
 
 	for (i = 0; i < 6; i++) {
 
-		snprintf(path, sizeof(path), "env/%s%s", name, suf[i]);
+		g_snprintf(path, sizeof(path), "env/%s%s", name, suf[i]);
 		r_sky.images[i] = R_LoadImage(path, IT_SKY);
 
 		if (r_sky.images[i]->type == IT_NULL) { // try unit1_

@@ -36,7 +36,7 @@ static void R_FlushCapture(void *data __attribute__((unused))) {
 	char path[MAX_OSPATH];
 	int32_t q;
 
-	snprintf(path, sizeof(path), "%s/capture/%010d.jpg", Fs_Gamedir(), capture_buffer.frame);
+	g_snprintf(path, sizeof(path), "%s/capture/%010d.jpg", Fs_Gamedir(), capture_buffer.frame);
 
 	q = r_capture_quality->value * 100;
 
@@ -92,7 +92,7 @@ void R_InitCapture(void) {
 	char path[MAX_OSPATH];
 
 	// ensure the capture directory exists
-	snprintf(path, sizeof(path), "%s/capture/", Fs_Gamedir());
+	g_snprintf(path, sizeof(path), "%s/capture/", Fs_Gamedir());
 
 	Fs_CreatePath(path);
 

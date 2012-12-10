@@ -77,7 +77,7 @@ static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 	if (!(s = S_AllocSample()))
 		return NULL;
 
-	strncpy(s->name, alias, sizeof(s->name));
+	g_strlcpy(s->name, alias, sizeof(s->name));
 	s->chunk = sample->chunk;
 	s->alias = true;
 
@@ -98,13 +98,12 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	if (sample->name[0] == '*') // place holder
 		return;
 
-	memset(path, 0, sizeof(path));
-
-	if (sample->name[0] == '#') // global path
-		strncpy(path, (sample->name + 1), sizeof(path) - 1);
-	else
+	if (sample->name[0] == '#') { // global path
+		g_strlcpy(path, (sample->name + 1), sizeof(path));
+	} else {
 		// or relative
-		snprintf(path, sizeof(path), "sounds/%s", sample->name);
+		g_snprintf(path, sizeof(path), "sounds/%s", sample->name);
+	}
 
 	buf = NULL;
 	rw = NULL;
@@ -144,6 +143,7 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
  * @brief
  */
 s_sample_t *S_LoadSample(const char *name) {
+	char key[MAX_QPATH];
 	s_sample_t *sample;
 
 	if (!s_env.initialized)
@@ -154,14 +154,15 @@ s_sample_t *S_LoadSample(const char *name) {
 		return NULL;
 	}
 
-	if ((sample = S_FindName(name))) // found it
+	StripExtension(name, key);
+
+	if ((sample = S_FindName(key))) // found it
 		return sample;
 
 	if (!(sample = S_AllocSample()))
 		return NULL;
 
-	strncpy(sample->name, name, sizeof(sample->name) - 1);
-	StripExtension(sample->name, sample->name);
+	g_strlcpy(sample->name, key, sizeof(sample->name));
 
 	S_LoadSampleChunk(sample);
 
@@ -208,7 +209,7 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 		strcpy(model, "common");
 
 	// see if we already know of the model specific sound
-	snprintf(alias, sizeof(alias), "#players/%s/%s", model, name + 1);
+	g_snprintf(alias, sizeof(alias), "#players/%s/%s", model, name + 1);
 	sample = S_FindName(alias);
 
 	if (sample) // we do, use it
@@ -221,7 +222,7 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 	}
 
 	// that didn't work, so load the common one and alias it
-	snprintf(path, sizeof(path), "#players/common/%s", name + 1);
+	g_snprintf(path, sizeof(path), "#players/common/%s", name + 1);
 	sample = S_LoadSample(path);
 
 	if (sample)

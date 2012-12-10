@@ -50,7 +50,7 @@ void CalcTextureReflectivity(void) {
 			continue;
 
 		// load the image to calculate reflectivity
-		snprintf(path, sizeof(path), "textures/%s", d_bsp.texinfo[i].texture);
+		g_snprintf(path, sizeof(path), "textures/%s", d_bsp.texinfo[i].texture);
 
 		if (!Img_LoadImage(path, &surf)) {
 			Com_Warn("Couldn't load %s\n", path);
@@ -184,7 +184,7 @@ static entity_t *EntityForModel(int32_t num) {
 	int32_t i;
 	char name[16];
 
-	snprintf(name, sizeof(name), "*%i", num);
+	g_snprintf(name, sizeof(name), "*%i", num);
 
 	// search the entities for one using modnum
 	for (i = 0; i < num_entities; i++) {

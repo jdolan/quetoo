@@ -29,11 +29,14 @@ r_model_t *R_WorldModel(void);
 
 #ifdef __R_LOCAL_H__
 
-extern r_model_t *r_model_loading;
+typedef struct {
+	r_model_t *world;
+} r_model_state_t;
+
+extern r_model_state_t r_model_state;
 
 void R_AllocVertexArrays(r_model_t *mod);
 void R_InitModels(void);
-void R_ShutdownModels(void);
 
 #endif /* __R_LOCAL_H__ */
 

@@ -410,7 +410,7 @@ void Cmd_TokenizeString(const char *text) {
 
 		// set cmd_state.args to everything after the command name
 		if (cmd_state.argc == 1) {
-			strncpy(cmd_state.args, text, MAX_STRING_CHARS - 1);
+			g_strlcpy(cmd_state.args, text, MAX_STRING_CHARS);
 
 			// strip off any trailing whitespace
 			size_t l = strlen(cmd_state.args);
@@ -432,7 +432,7 @@ void Cmd_TokenizeString(const char *text) {
 			c = Cvar_GetString(c + 1);
 		}
 
-		strncpy(cmd_state.argv[cmd_state.argc], c, MAX_TOKEN_CHARS - 1);
+		g_strlcpy(cmd_state.argv[cmd_state.argc], c, MAX_TOKEN_CHARS);
 		cmd_state.argc++;
 	}
 }

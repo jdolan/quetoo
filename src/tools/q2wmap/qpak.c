@@ -61,7 +61,7 @@ static void AddPath(const char *path) {
 	}
 
 	Com_Debug("AddPath: %s\n", path);
-	strncpy(qpak.paths[qpak.num_paths++], path, MAX_QPATH);
+	g_strlcpy(qpak.paths[qpak.num_paths++], path, MAX_QPATH);
 }
 
 #define NUM_SAMPLE_FORMATS 2
@@ -81,7 +81,7 @@ static void AddSound(const char *sound) {
 
 	for (i = 0; i < NUM_SAMPLE_FORMATS; i++) {
 
-		snprintf(path, sizeof(path), "sounds/%s.%s", snd, sample_formats[i]);
+		g_snprintf(path, sizeof(path), "sounds/%s.%s", snd, sample_formats[i]);
 
 		if (FindPath(path) != -1)
 			return;
@@ -119,7 +119,7 @@ static void AddImage(const char *image, bool required) {
 
 	for (i = 0; i < NUM_IMAGE_FORMATS; i++) {
 
-		snprintf(path, sizeof(path), "%s.%s", img, image_formats[i]);
+		g_snprintf(path, sizeof(path), "%s.%s", img, image_formats[i]);
 
 		if (FindPath(path) != -1)
 			return;
@@ -208,9 +208,9 @@ static void AddMaterials(const char *path) {
 		if (!strcmp(c, "texture")) {
 			c = ParseToken(&buf);
 			if (*c == '#') {
-				strncpy(texture, ++c, sizeof(texture - 1));
+				g_strlcpy(texture, ++c, sizeof(texture));
 			} else {
-				snprintf(texture, sizeof(texture), "textures/%s", c);
+				g_snprintf(texture, sizeof(texture), "textures/%s", c);
 			}
 			AddImage(texture, true);
 			continue;
@@ -220,9 +220,9 @@ static void AddMaterials(const char *path) {
 		if (!strcmp(c, "normalmap")) {
 			c = ParseToken(&buf);
 			if (*c == '#') {
-				strncpy(texture, ++c, sizeof(texture - 1));
+				g_strlcpy(texture, ++c, sizeof(texture));
 			} else {
-				snprintf(texture, sizeof(texture), "textures/%s", c);
+				g_snprintf(texture, sizeof(texture), "textures/%s", c);
 			}
 			AddImage(texture, true);
 			continue;
@@ -231,9 +231,9 @@ static void AddMaterials(const char *path) {
 		if (!strcmp(c, "glossmap")) {
 			c = ParseToken(&buf);
 			if (*c == '#') {
-				strncpy(texture, ++c, sizeof(texture - 1));
+				g_strlcpy(texture, ++c, sizeof(texture));
 			} else {
-				snprintf(texture, sizeof(texture), "textures/%s", c);
+				g_snprintf(texture, sizeof(texture), "textures/%s", c);
 			}
 			AddImage(texture, true);
 			continue;
@@ -246,9 +246,9 @@ static void AddMaterials(const char *path) {
 			i = atoi(c);
 
 			if (*c == '#') {
-				strncpy(texture, ++c, sizeof(texture - 1));
+				g_strlcpy(texture, ++c, sizeof(texture));
 			} else if (i == 0 && strcmp(c, "0")) {
-				snprintf(texture, sizeof(texture), "envmaps/%s", c);
+				g_snprintf(texture, sizeof(texture), "envmaps/%s", c);
 			}
 			AddImage(texture, true);
 			continue;
@@ -261,9 +261,9 @@ static void AddMaterials(const char *path) {
 			i = atoi(c);
 
 			if (*c == '#') {
-				strncpy(texture, ++c, sizeof(texture - 1));
+				g_strlcpy(texture, ++c, sizeof(texture));
 			} else if (i == 0 && strcmp(c, "0")) {
-				snprintf(texture, sizeof(texture), "flares/%s", c);
+				g_snprintf(texture, sizeof(texture), "flares/%s", c);
 			}
 			AddImage(texture, true);
 			continue;
@@ -308,7 +308,7 @@ static void AddModel(char *model) {
 
 	for (i = 0; i < NUM_MODEL_FORMATS; i++) {
 
-		snprintf(path, sizeof(path), "%s.%s", mod, model_formats[i]);
+		g_snprintf(path, sizeof(path), "%s.%s", mod, model_formats[i]);
 
 		if (FindPath(path) != -1)
 			return;
@@ -335,7 +335,7 @@ static void AddModel(char *model) {
 
 	AddPath(path);
 
-	strncpy(mod, path, sizeof(mod) - 1);
+	g_strlcpy(mod, path, sizeof(mod));
 	strcat(path, ".mat");
 
 	AddMaterials(path);
@@ -384,7 +384,7 @@ static pak_t *GetPakfile(void) {
 	c = strstr(base, "maps/");
 	c = c ? c + 5 : base;
 
-	snprintf(pakfile, sizeof(pakfile), "%s/map-%s-%d.pak", Fs_Gamedir(), c, getpid());
+	g_snprintf(pakfile, sizeof(pakfile), "%s/map-%s-%d.pak", Fs_Gamedir(), c, getpid());
 
 	if (!(pak = Pak_CreatePakstream(pakfile)))
 		Com_Error(ERR_FATAL, "Failed to open %s\n", pakfile);

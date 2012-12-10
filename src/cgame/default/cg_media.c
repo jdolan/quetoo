@@ -97,17 +97,17 @@ void Cg_UpdateMedia(void) {
 	cg_sample_hit = cgi.LoadSample("misc/hit");
 
 	for (i = 0; i < 4; i++) {
-		snprintf(name, sizeof(name), "weapons/machinegun/fire_%i", i + 1);
+		g_snprintf(name, sizeof(name), "weapons/machinegun/fire_%i", i + 1);
 		cg_sample_machinegun_fire[i] = cgi.LoadSample(name);
 	}
 
 	for (i = 0; i < 3; i++) {
-		snprintf(name, sizeof(name), "weapons/machinegun/hit_%i", i + 1);
+		g_snprintf(name, sizeof(name), "weapons/machinegun/hit_%i", i + 1);
 		cg_sample_machinegun_hit[i] = cgi.LoadSample(name);
 	}
 
 	for (i = 0; i < 4; i++) {
-		snprintf(name, sizeof(name), "#players/common/step_%i", i + 1);
+		g_snprintf(name, sizeof(name), "#players/common/step_%i", i + 1);
 		cg_sample_footsteps[i] = cgi.LoadSample(name);
 	}
 
@@ -128,7 +128,7 @@ void Cg_UpdateMedia(void) {
 	cg_particle_inactive = cgi.LoadImage("particles/inactive.tga", IT_EFFECT);
 
 	for (i = 0; i < 3; i++) {
-		snprintf(name, sizeof(name), "particles/bullet_%i", i);
+		g_snprintf(name, sizeof(name), "particles/bullet_%i", i);
 		cg_particle_bullet[i] = cgi.LoadImage(name, IT_EFFECT);
 	}
 

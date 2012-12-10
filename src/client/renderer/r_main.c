@@ -181,7 +181,7 @@ void R_DrawView(void) {
 
 	R_MarkLights();
 
-	const r_sorted_bsp_surfaces_t *surfs = R_WorldModel()->bsp->sorted_surfaces;
+	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
 
 	R_DrawOpaqueBspSurfaces(&surfs->opaque);
 
@@ -554,10 +554,6 @@ void R_Shutdown(void) {
 	R_ShutdownCapture();
 
 	R_ShutdownPrograms();
-
-	R_ShutdownModels();
-
-	R_ShutdownImages();
 
 	R_ShutdownContext();
 

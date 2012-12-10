@@ -60,9 +60,9 @@ void G_target_speaker(g_edict_t *ent) {
 	}
 
 	if (!strstr(g_game.spawn.noise, ""))
-		snprintf(buffer, sizeof(buffer), "%s", g_game.spawn.noise);
+		g_snprintf(buffer, sizeof(buffer), "%s", g_game.spawn.noise);
 	else
-		strncpy(buffer, g_game.spawn.noise, sizeof(buffer));
+		g_strlcpy(buffer, g_game.spawn.noise, sizeof(buffer));
 
 	ent->noise_index = gi.SoundIndex(buffer);
 

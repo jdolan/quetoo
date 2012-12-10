@@ -130,7 +130,7 @@ thread_t *Thread_Create_(const char *name, void( function)(void *data), void *da
 		for (i = 0; i < thread_pool.num_threads; i++, t++) {
 			if (t->status == THREAD_IDLE) {
 				SDL_mutexP(t->mutex);
-				strncpy(t->name, name, sizeof(t->name));
+				g_strlcpy(t->name, name, sizeof(t->name));
 
 				t->function = function;
 				t->data = data;

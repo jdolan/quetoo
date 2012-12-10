@@ -289,9 +289,9 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 		if (mod->mesh->num_frames == 1) { // for static models, build the verts and normals
 			for (j = 0; j < mesh->num_verts; j++, v++) {
-				VectorAdd(frame->translate, v->point, r_mesh_verts[j]);
-				VectorCopy(v->normal, r_mesh_norms[j]);
-				Vector4Copy(v->tangent, r_mesh_tangents[j]);
+				VectorAdd(frame->translate, v->point, r_mesh_state.vertexes[j]);
+				VectorCopy(v->normal, r_mesh_state.normals[j]);
+				Vector4Copy(v->tangent, r_mesh_state.tangents[j]);
 			}
 		}
 
@@ -301,17 +301,17 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 		for (j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the arrays
 
 			if (mod->mesh->num_frames == 1) {
-				VectorCopy(r_mesh_verts[tri[0]], (&mod->verts[vert_index + 0]));
-				VectorCopy(r_mesh_verts[tri[1]], (&mod->verts[vert_index + 3]));
-				VectorCopy(r_mesh_verts[tri[2]], (&mod->verts[vert_index + 6]));
+				VectorCopy(r_mesh_state.vertexes[tri[0]], (&mod->verts[vert_index + 0]));
+				VectorCopy(r_mesh_state.vertexes[tri[1]], (&mod->verts[vert_index + 3]));
+				VectorCopy(r_mesh_state.vertexes[tri[2]], (&mod->verts[vert_index + 6]));
 
-				VectorCopy(r_mesh_norms[tri[0]], (&mod->normals[vert_index + 0]));
-				VectorCopy(r_mesh_norms[tri[1]], (&mod->normals[vert_index + 3]));
-				VectorCopy(r_mesh_norms[tri[2]], (&mod->normals[vert_index + 6]));
+				VectorCopy(r_mesh_state.normals[tri[0]], (&mod->normals[vert_index + 0]));
+				VectorCopy(r_mesh_state.normals[tri[1]], (&mod->normals[vert_index + 3]));
+				VectorCopy(r_mesh_state.normals[tri[2]], (&mod->normals[vert_index + 6]));
 
-				Vector4Copy(r_mesh_tangents[tri[0]], (&mod->tangents[vert_index + 0]));
-				Vector4Copy(r_mesh_tangents[tri[1]], (&mod->tangents[vert_index + 4]));
-				Vector4Copy(r_mesh_tangents[tri[2]], (&mod->tangents[vert_index + 8]));
+				Vector4Copy(r_mesh_state.tangents[tri[0]], (&mod->tangents[vert_index + 0]));
+				Vector4Copy(r_mesh_state.tangents[tri[1]], (&mod->tangents[vert_index + 4]));
+				Vector4Copy(r_mesh_state.tangents[tri[2]], (&mod->tangents[vert_index + 8]));
 			}
 
 			memcpy(&mod->texcoords[texcoord_index + 0], &texcoords[tri[0]], sizeof(vec2_t));

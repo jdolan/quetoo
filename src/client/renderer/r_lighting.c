@@ -46,11 +46,11 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 
 	memset(lighting->bsp_light_refs, 0, sizeof(lighting->bsp_light_refs));
 
-	l = R_WorldModel()->bsp->bsp_lights;
+	l = r_model_state.world->bsp->bsp_lights;
 	j = 0;
 
 	// resolve all of the light sources that could contribute to this lighting
-	for (i = 0; i < R_WorldModel()->bsp->num_bsp_lights; i++, l++) {
+	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
 		vec3_t dir;
 		float intensity;
 

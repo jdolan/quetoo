@@ -77,8 +77,7 @@ static void Cl_WriteDemoHeader(void) {
 		memset(&null_state, 0, sizeof(null_state));
 
 		Msg_WriteByte(&msg, SV_CMD_BASELINE);
-		Msg_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &msg, true,
-				true);
+		Msg_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &msg, true, true);
 	}
 
 	Msg_WriteByte(&msg, SV_CMD_CBUF_TEXT);
@@ -159,7 +158,7 @@ void Cl_Record_f(void) {
 	}
 
 	// open the demo file
-	snprintf(cls.demo_path, sizeof(cls.demo_path), "%s/demos/%s.dem", Fs_Gamedir(), Cmd_Argv(1));
+	g_snprintf(cls.demo_path, sizeof(cls.demo_path), "%s/demos/%s.dem", Fs_Gamedir(), Cmd_Argv(1));
 
 	Fs_CreatePath(cls.demo_path);
 	cls.demo_file = fopen(cls.demo_path, "wb");

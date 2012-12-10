@@ -198,7 +198,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 	for (i = 0; i < mod->bsp->num_inline_models; i++) {
 		r_model_t *m = Z_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
 
-		snprintf(m->media.name, sizeof(m->media.name), "*%d", i);
+		g_snprintf(m->media.name, sizeof(m->media.name), "*%d", i);
 		m->type = MOD_BSP_INLINE;
 
 		m->bsp_inline = &mod->bsp->inline_models[i];
@@ -257,7 +257,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	bsp->texinfo = out = Z_LinkMalloc(bsp->num_texinfo * sizeof(*out), bsp);
 
 	for (i = 0; i < bsp->num_texinfo; i++, in++, out++) {
-		strncpy(out->name, in->texture, sizeof(in->texture));
+		g_strlcpy(out->name, in->texture, sizeof(out->name));
 
 		for (j = 0; j < 8; j++)
 			out->vecs[0][j] = LittleFloat(in->vecs[0][j]);

@@ -44,7 +44,7 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, boo
 		return 0;
 	}
 
-	strncpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
+	g_strlcpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
 
 	if (sv.state != SV_LOADING) { // send the update to everyone
 		Sb_Clear(&sv.multicast);
@@ -246,7 +246,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	strcpy(sv.config_strings[CS_NAME], server);
 
 	if (state == SV_ACTIVE_DEMO) { // loading a demo
-		snprintf(demo, sizeof(demo), "demos/%s.dem", sv.name);
+		g_snprintf(demo, sizeof(demo), "demos/%s.dem", sv.name);
 
 		sv.models[0] = Cm_LoadBsp(NULL, &mapsize);
 
@@ -255,18 +255,18 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		Com_Print("  Loaded demo %s.\n", sv.name);
 	} else { // loading a map
-		snprintf(sv.config_strings[CS_MODELS], MAX_QPATH, "maps/%s.bsp", sv.name);
+		g_snprintf(sv.config_strings[CS_MODELS], MAX_QPATH, "maps/%s.bsp", sv.name);
 
 		sv.models[0] = Cm_LoadBsp(sv.config_strings[CS_MODELS], &mapsize);
 
 		if (fs_last_pak) {
-			strncpy(sv.config_strings[CS_PAK], fs_last_pak, MAX_QPATH);
+			g_strlcpy(sv.config_strings[CS_PAK], fs_last_pak, MAX_QPATH);
 		}
 
 		for (i = 1; i < Cm_NumModels(); i++) {
 
 			char *s = sv.config_strings[CS_MODELS + i];
-			snprintf(s, MAX_QPATH, "*%d", i);
+			g_snprintf(s, MAX_QPATH, "*%d", i);
 
 			sv.models[i] = Cm_Model(s);
 		}
@@ -281,7 +281,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_edicts);
 	}
-	snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", mapsize);
+	g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", mapsize);
 
 	Cvar_FullSet("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET);
 }
@@ -305,9 +305,9 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	// ensure that the requested map or demo exists
 	if (state == SV_ACTIVE_DEMO)
-		snprintf(path, sizeof(path), "demos/%s.dem", server);
+		g_snprintf(path, sizeof(path), "demos/%s.dem", server);
 	else
-		snprintf(path, sizeof(path), "maps/%s.bsp", server);
+		g_snprintf(path, sizeof(path), "maps/%s.bsp", server);
 
 	Fs_OpenFile(path, &file, FILE_READ);
 

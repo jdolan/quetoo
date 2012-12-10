@@ -77,7 +77,7 @@ static const char *Sv_StatusString(void) {
 	static char status[MAX_MSG_SIZE - 16];
 	int32_t i;
 
-	snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
+	g_snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
 	size_t status_len = strlen(status);
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
@@ -87,7 +87,7 @@ static const char *Sv_StatusString(void) {
 		if (cl->state == SV_CLIENT_CONNECTED || cl->state == SV_CLIENT_ACTIVE) {
 			char player[MAX_TOKEN_CHARS];
 
-			snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, cl->ping, cl->name);
+			g_snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, cl->ping, cl->name);
 			const size_t player_len = strlen(player);
 
 			if (status_len + player_len + 1 >= sizeof(status))
@@ -129,7 +129,7 @@ static void Svc_Info(void) {
 	prot = atoi(Cmd_Argv(1));
 
 	if (prot != PROTOCOL)
-		snprintf(string, sizeof(string), "%s: wrong protocol version\n", sv_hostname->string);
+		g_snprintf(string, sizeof(string), "%s: wrong protocol version\n", sv_hostname->string);
 	else {
 		count = 0;
 
@@ -138,7 +138,7 @@ static void Svc_Info(void) {
 				count++;
 		}
 
-		snprintf(string, sizeof(string), "%-63s\\%-31s\\%-31s\\%d\\%d", sv_hostname->string,
+		g_snprintf(string, sizeof(string), "%-63s\\%-31s\\%-31s\\%d\\%d", sv_hostname->string,
 				sv.name, svs.game->GameName(), count, sv_max_clients->integer);
 	}
 
@@ -219,8 +219,7 @@ static void Svc_Connect(void) {
 	challenge = strtoul(Cmd_Argv(3), NULL, 0);
 
 	//copy user_info, leave room for ip stuffing
-	strncpy(user_info, Cmd_Argv(4), sizeof(user_info) - 1 - 25);
-	user_info[sizeof(user_info) - 1] = 0;
+	g_strlcpy(user_info, Cmd_Argv(4), sizeof(user_info) - 25);
 
 	if (*user_info == '\0') { // catch empty user_info
 		Com_Print("Empty user_info from %s\n", Net_NetaddrToString(addr));
@@ -316,7 +315,7 @@ static void Svc_Connect(void) {
 	}
 
 	// parse some info from the info strings
-	strncpy(client->user_info, user_info, sizeof(client->user_info) - 1);
+	g_strlcpy(client->user_info, user_info, sizeof(client->user_info));
 	Sv_UserInfoChanged(client);
 
 	// send the connect packet to the client
@@ -425,7 +424,7 @@ static void Sv_ConnectionlessPacket(void) {
  */
 static void Sv_UpdatePings(void) {
 	int32_t i, j;
-	sv_client_t *cl;
+	sv_client_t * cl;
 	int32_t total, count;
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
@@ -512,7 +511,7 @@ static void Sv_CheckCommandTimes(void) {
  */
 static void Sv_ReadPackets(void) {
 	int32_t i;
-	sv_client_t *cl;
+	sv_client_t * cl;
 	byte qport;
 
 	while (Net_GetPacket(NS_SERVER, &net_from, &net_message)) {
@@ -565,7 +564,7 @@ static void Sv_ReadPackets(void) {
  * @brief
  */
 static void Sv_CheckTimeouts(void) {
-	sv_client_t *cl;
+	sv_client_t * cl;
 	int32_t i;
 
 	const uint32_t timeout = svs.real_time - 1000 * sv_timeout->value;
@@ -697,7 +696,7 @@ static void Sv_ShutdownMasters(void) {
  * @brief
  */
 void Sv_KickClient(sv_client_t *cl, const char *msg) {
-	char buf[1024], name[32];
+	char buf[MAX_STRING_CHARS], name[32];
 
 	if (!cl)
 		return;
@@ -706,14 +705,14 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
 		return;
 
 	if (*cl->name == '\0') // force a name to kick
-		strncpy(name, "player", sizeof(name) - 1);
+		strcpy(name, "player");
 	else
-		strncpy(name, cl->name, sizeof(name) - 1);
+		g_strlcpy(name, cl->name, sizeof(name));
 
 	memset(buf, 0, sizeof(buf));
 
 	if (msg && *msg != '\0')
-		snprintf(buf, sizeof(buf), ": %s", msg);
+		g_snprintf(buf, sizeof(buf), ": %s", msg);
 
 	Sv_ClientPrint(cl->edict, PRINT_HIGH, "You were kicked%s\n", buf);
 
@@ -765,7 +764,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 	svs.game->ClientUserInfoChanged(cl->edict, cl->user_info);
 
 	// name for C code, mask off high bit
-	strncpy(cl->name, GetUserInfo(cl->user_info, "name"), sizeof(cl->name) - 1);
+	g_strlcpy(cl->name, GetUserInfo(cl->user_info, "name"), sizeof(cl->name));
 	for (i = 0; i < sizeof(cl->name); i++) {
 		cl->name[i] &= 127;
 	}

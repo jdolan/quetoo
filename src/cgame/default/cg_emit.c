@@ -224,7 +224,7 @@ void Cg_LoadEmits(void) {
 		if (!strcmp(c, "classname")) {
 
 			c = ParseToken(&ents);
-			strncpy(class_name, c, sizeof(class_name) - 1);
+			g_strlcpy(class_name, c, sizeof(class_name));
 
 			if (!strcmp(c, "misc_emit") || !strcmp(c, "misc_model"))
 				emit = true;
@@ -284,7 +284,7 @@ void Cg_LoadEmits(void) {
 		}
 
 		if (!strcmp(c, "sound")) {
-			snprintf(e->sound, sizeof(e->sound), "%s", ParseToken(&ents));
+			g_snprintf(e->sound, sizeof(e->sound), "%s", ParseToken(&ents));
 			e->sample = cgi.LoadSample(e->sound);
 			continue;
 		}
@@ -295,7 +295,7 @@ void Cg_LoadEmits(void) {
 		}
 
 		if (!strcmp(c, "model")) {
-			strncpy(e->model, ParseToken(&ents), sizeof(e->model));
+			g_strlcpy(e->model, ParseToken(&ents), sizeof(e->model));
 			e->mod = cgi.LoadModel(e->model);
 			continue;
 		}

@@ -73,9 +73,9 @@ bool Cl_HttpDownload(void) {
 
 	memset(file, 0, sizeof(file)); // resolve local file name
 	if (gzip)
-		snprintf(file, sizeof(file), "%s/%s.gz", Fs_Gamedir(), cls.download.name);
+		g_snprintf(file, sizeof(file), "%s/%s.gz", Fs_Gamedir(), cls.download.name);
 	else
-		snprintf(file, sizeof(file), "%s/%s", Fs_Gamedir(), cls.download.name);
+		g_snprintf(file, sizeof(file), "%s/%s", Fs_Gamedir(), cls.download.name);
 
 	Fs_CreatePath(file); // create the directory
 
@@ -89,9 +89,9 @@ bool Cl_HttpDownload(void) {
 	memset(url, 0, sizeof(url)); // construct url
 
 	if (gzip)
-		snprintf(url, sizeof(url), "%s/%s/%s.gz", cls.download_url, Fs_Gamedir(), cls.download.name);
+		g_snprintf(url, sizeof(url), "%s/%s/%s.gz", cls.download_url, Fs_Gamedir(), cls.download.name);
 	else
-		snprintf(url, sizeof(url), "%s/%s/%s", cls.download_url, Fs_Gamedir(), cls.download.name);
+		g_snprintf(url, sizeof(url), "%s/%s/%s", cls.download_url, Fs_Gamedir(), cls.download.name);
 
 	// set handle to default state
 	curl_easy_reset(curl);
@@ -142,7 +142,7 @@ void Cl_HttpDownloadCleanup() {
 	if (success) {
 		cls.download.name[0] = 0;
 
-		strncpy(f, file, sizeof(f));
+		g_strlcpy(f, file, sizeof(f));
 
 		if ((c = strstr(f, ".gz"))) { // deflate compressed files
 			Fs_GunzipFile(f);

@@ -399,7 +399,6 @@ static void G_Kill_f(g_edict_t *ent) {
 	ent->die(ent, ent, ent, 100000, vec3_origin);
 }
 
-
 /*
  * @brief This is the client-specific sibling to Cvar_VariableString.
  */
@@ -408,21 +407,21 @@ static const char *G_ExpandVariable(g_edict_t *ent, char v) {
 
 	switch (v) {
 
-	case 'd': // last dropped item
-		if(ent->client->last_dropped)
-			return ent->client->last_dropped->pickup_name;
-		return "";
+		case 'd': // last dropped item
+			if (ent->client->last_dropped)
+				return ent->client->last_dropped->pickup_name;
+			return "";
 
-	case 'h': // health
-		i = ent->client->ps.stats[STAT_HEALTH];
-		return va("%d", i);
+		case 'h': // health
+			i = ent->client->ps.stats[STAT_HEALTH];
+			return va("%d", i);
 
-	case 'a': // armor
-		i = ent->client->ps.stats[STAT_ARMOR];
-		return va("%d", i);
+		case 'a': // armor
+			i = ent->client->ps.stats[STAT_ARMOR];
+			return va("%d", i);
 
-	default:
-		return "";
+		default:
+			return "";
 	}
 }
 
@@ -486,13 +485,14 @@ static void G_Say_f(g_edict_t *ent) {
 		arg0 = false;
 	}
 
-	if(ent->client->persistent.spectator && !g_spectator_chat->integer)
+	if (ent->client->persistent.spectator && !g_spectator_chat->integer)
 		team = true;
 
 	if (team)
-		snprintf(text, sizeof(text), "%s^%d: ", ent->client->persistent.net_name, CON_COLOR_TEAMCHAT);
+		g_snprintf(text, sizeof(text), "%s^%d: ", ent->client->persistent.net_name,
+				CON_COLOR_TEAMCHAT);
 	else
-		snprintf(text, sizeof(text), "%s^%d: ", ent->client->persistent.net_name, CON_COLOR_CHAT);
+		g_snprintf(text, sizeof(text), "%s^%d: ", ent->client->persistent.net_name, CON_COLOR_CHAT);
 	len = strlen(text);
 
 	i = sizeof(text) - strlen(text) - 2;
@@ -581,12 +581,8 @@ static void G_PlayerList_f(g_edict_t *ent) {
 
 		seconds = (g_level.frame_num - e2->client->persistent.first_frame) / gi.frame_rate;
 
-		snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n",
-				(seconds / 60),
-				(seconds % 60),
-				e2->client->ping,
-				e2->client->persistent.score,
-				e2->client->persistent.net_name,
+		g_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n", (seconds / 60), (seconds % 60),
+				e2->client->ping, e2->client->persistent.score, e2->client->persistent.net_name,
 				e2->client->persistent.skin);
 
 		if (strlen(text) + strlen(st) > sizeof(text) - 200) {
@@ -600,24 +596,9 @@ static void G_PlayerList_f(g_edict_t *ent) {
 	gi.ClientPrint(ent, PRINT_HIGH, "%s", text);
 }
 
-static const char *vote_cmds[] = {
-		"g_capture_limit",
-		"g_ctf",
-		"g_frag_limit",
-		"g_friendly_fire",
-		"g_gameplay",
-		"g_match",
-		"g_round_limit",
-		"g_rounds",
-		"g_spawn_farthest",
-		"g_teams",
-		"g_time_limit",
-		"kick",
-		"map",
-		"mute",
-		"restart",
-		"unmute",
-		NULL };
+static const char *vote_cmds[] = { "g_capture_limit", "g_ctf", "g_frag_limit", "g_friendly_fire",
+		"g_gameplay", "g_match", "g_round_limit", "g_rounds", "g_spawn_farthest", "g_teams",
+		"g_time_limit", "kick", "map", "mute", "restart", "unmute", NULL };
 
 /*
  * @brief Inspects the vote command and issues help if applicable. Returns
@@ -730,8 +711,7 @@ static void G_Vote_f(g_edict_t *ent) {
 	if (!strcasecmp(c, "yes") || !strcasecmp(c, "no"))
 		strcpy(vote, c); // allow shorthand voting
 	else { // or the explicit syntax
-		strncpy(vote, gi.Args(), sizeof(vote) - 1);
-		vote[sizeof(vote) - 1] = 0;
+		g_strlcpy(vote, gi.Args(), sizeof(vote));
 	}
 
 	if (g_level.vote_time) { // check for vote from client
@@ -770,8 +750,7 @@ static void G_Vote_f(g_edict_t *ent) {
 		}
 	}
 
-	strncpy(g_level.vote_cmd, vote, sizeof(g_level.vote_cmd) - 1);
-	g_level.vote_cmd[sizeof(g_level.vote_cmd) - 1] = 0;
+	g_strlcpy(g_level.vote_cmd, vote, sizeof(g_level.vote_cmd));
 	g_level.vote_time = g_level.time;
 
 	ent->client->persistent.vote = VOTE_YES; // client has implicity voted
@@ -787,8 +766,7 @@ static void G_Vote_f(g_edict_t *ent) {
 
 /*
  * @brief Returns true if the client's team was changed, false otherwise.
- */
-bool G_AddClientToTeam(g_edict_t *ent, char *team_name) {
+ */bool G_AddClientToTeam(g_edict_t *ent, char *team_name) {
 	g_team_t *team;
 
 	if (g_level.match_time && g_level.match_time <= g_level.time) {
@@ -875,7 +853,6 @@ static void G_Team_f(g_edict_t *ent) {
  */
 static void G_Teamname_f(g_edict_t *ent) {
 	int32_t cs;
-	char *s;
 	g_team_t *t;
 
 	if (gi.Argc() != 2) {
@@ -893,15 +870,12 @@ static void G_Teamname_f(g_edict_t *ent) {
 	if (g_level.time - t->name_time < TEAM_CHANGE_TIME)
 		return; // prevent change spamming
 
-	s = gi.Argv(1);
+	const char *s = gi.Argv(1);
 
 	if (*s != '\0') // something valid-ish was provided
-		strncpy(t->name, s, sizeof(t->name) - 1);
+		g_strlcpy(t->name, s, sizeof(t->name));
 	else
 		strcpy(t->name, (t == &g_team_good ? "Good" : "Evil"));
-
-	s = t->name;
-	s[sizeof(t->name) - 1] = 0;
 
 	t->name_time = g_level.time;
 
@@ -939,19 +913,18 @@ static void G_Teamskin_f(g_edict_t *ent) {
 	s = gi.Argv(1);
 
 	if (s != '\0') // something valid-ish was provided
-		strncpy(t->skin, s, sizeof(t->skin) - 1);
+		g_strlcpy(t->skin, s, sizeof(t->skin));
 	else
 		strcpy(t->skin, "qforcer");
 
 	s = t->skin;
-	s[sizeof(t->skin) - 1] = 0;
 
 	c = strchr(s, '/');
 
 	// let players use just the model name, client will find skin
 	if (!c || *c == '\0') {
 		if (c) // null terminate for strcat
-			*c = 0;
+			*c = '\0';
 
 		strncat(t->skin, "/default", sizeof(t->skin) - 1 - strlen(s));
 	}
@@ -964,8 +937,7 @@ static void G_Teamskin_f(g_edict_t *ent) {
 		if (!cl->persistent.team || cl->persistent.team != t)
 			continue;
 
-		strncpy(cl->persistent.skin, s, sizeof(cl->persistent.skin) - 1);
-		cl->persistent.skin[sizeof(cl->persistent.skin) - 1] = 0;
+		g_strlcpy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
 
 		gi.ConfigString(CS_CLIENTS + i, va("%s\\%s", cl->persistent.net_name, cl->persistent.skin));
 	}

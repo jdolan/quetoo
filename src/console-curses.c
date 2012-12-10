@@ -280,9 +280,9 @@ void Curses_Frame(uint32_t msec) {
 		} else if (key == KEY_ENTER || key == '\n') {
 			if (input[history_line][0] != '\0') {
 				if (input[history_line][0] == '\\' || input[history_line][0] == '/')
-					snprintf(buf, CURSES_LINESIZE - 2,"%s\n", input[history_line] + 1);
+					g_snprintf(buf, CURSES_LINESIZE - 2,"%s\n", input[history_line] + 1);
 				else
-					snprintf(buf, CURSES_LINESIZE - 1,"%s\n", input[history_line]);
+					g_snprintf(buf, CURSES_LINESIZE - 1,"%s\n", input[history_line]);
 				Com_Print("]%s\n", input[history_line]);
 				Cmd_ExecuteString(buf);
 
@@ -377,7 +377,7 @@ void Curses_Init(void) {
 	}
 
 	// fill up the version string
-	snprintf(version_string, sizeof(version_string), " Quake2World %s ", VERSION);
+	g_snprintf(version_string, sizeof(version_string), " Quake2World %s ", VERSION);
 
 	// clear the input box
 	input_pos = 0;

@@ -517,7 +517,7 @@ static void R_InitFont(char *name) {
 
 	r_font_t *font = &r_draw.fonts[r_draw.num_fonts++];
 
-	strncpy(font->name, name, sizeof(font->name) - 1);
+	g_strlcpy(font->name, name, sizeof(font->name));
 
 	font->image = R_LoadImage(va("fonts/%s", name), IT_FONT);
 

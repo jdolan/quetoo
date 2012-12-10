@@ -171,7 +171,7 @@ bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) 
 	SDL_RWops *rw;
 	SDL_Surface *s;
 
-	snprintf(path, sizeof(path), "%s.%s", name, type);
+	g_snprintf(path, sizeof(path), "%s.%s", name, type);
 
 	if (!strcmp(type, "wal")) // special case for .wal files
 		return Img_LoadWal(path, surf);
@@ -438,9 +438,9 @@ void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height
 
 	// write footer (optional, but the specification recommends it)
 	memset(footer, 0, sizeof(footer));
-	strncpy(&footer[8] , "TRUEVISION-XFILE", 16);
+	g_strlcpy(&footer[8] , "TRUEVISION-XFILE", 16);
 	footer[24] = '.';
-	footer[25] = 0;
+	footer[25] = '\0';
 	Img_fwrite(footer, 1, sizeof(footer), tga_file);
 
 	fclose(tga_file);

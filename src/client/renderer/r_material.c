@@ -289,15 +289,15 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 
 	for (i = 0; i < surf->num_edges; i++) {
 
-		const float *v = &R_WorldModel()->verts[surf->index * 3 + i * 3];
-		const float *st = &R_WorldModel()->texcoords[surf->index * 2 + i * 2];
+		const float *v = &r_model_state.world->verts[surf->index * 3 + i * 3];
+		const float *st = &r_model_state.world->texcoords[surf->index * 2 + i * 2];
 
 		R_StageVertex(surf, stage, v, &r_state.vertex_array_3d[i * 3]);
 
 		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
 
 		if (texunit_lightmap.enabled) { // lightmap texcoords
-			st = &R_WorldModel()->lightmap_texcoords[surf->index * 2 + i * 2];
+			st = &r_model_state.world->lightmap_texcoords[surf->index * 2 + i * 2];
 			texunit_lightmap.texcoord_array[i * 2 + 0] = st[0];
 			texunit_lightmap.texcoord_array[i * 2 + 1] = st[1];
 		}
@@ -307,10 +307,10 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
-			const float *n = &R_WorldModel()->normals[surf->index * 3 + i * 3];
+			const float *n = &r_model_state.world->normals[surf->index * 3 + i * 3];
 			VectorCopy(n, (&r_state.normal_array[i * 3]));
 
-			const float *t = &R_WorldModel()->tangents[surf->index * 4 + i * 4];
+			const float *t = &r_model_state.world->tangents[surf->index * 4 + i * 4];
 			VectorCopy(t, (&r_state.tangent_array[i * 4]));
 		}
 	}
@@ -489,12 +489,10 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 	}
 
 	StripExtension(diffuse, base);
-	snprintf(key, sizeof(key), "%s#material", base);
+	g_snprintf(key, sizeof(key), "%s.mat", base);
 
 	if (!(mat = (r_material_t *) R_FindMedia(key))) {
-
-		mat = Z_TagMalloc(sizeof(r_material_t), Z_TAG_RENDERER);
-		strncpy(mat->media.name, key, sizeof(mat->media.name) - 1);
+		mat = (r_material_t *) R_MallocMedia(key, sizeof(r_material_t));
 
 		mat->media.Register = R_RegisterMaterial;
 
@@ -555,7 +553,8 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 		return -1;
 	}
 
-	strncpy(name, s->image->media.name, sizeof(name));
+	g_strlcpy(name, s->image->media.name, sizeof(name));
+
 	j = strlen(name);
 
 	if ((i = atoi(&name[j - 1])) < 0) {
@@ -907,9 +906,9 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 	// load the materials file for parsing
 	if (mod->type == MOD_BSP) {
-		snprintf(path, sizeof(path), "materials/%s", Basename(mod->media.name));
+		g_snprintf(path, sizeof(path), "materials/%s", Basename(mod->media.name));
 	} else {
-		snprintf(path, sizeof(path), "%s", mod->media.name);
+		g_snprintf(path, sizeof(path), "%s", mod->media.name);
 	}
 
 	strcat(path, ".mat");

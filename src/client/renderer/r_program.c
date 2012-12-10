@@ -72,7 +72,7 @@ void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name) {
 	}
 
 	variable->type = type;
-	strncpy(variable->name, name, sizeof(variable->name));
+	g_strlcpy(variable->name, name, sizeof(variable->name));
 	memset(&variable->value, 0xff, sizeof(variable->value));
 }
 
@@ -238,7 +238,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	void *buf;
 	int32_t i, len;
 
-	snprintf(path, sizeof(path), "shaders/%s", name);
+	g_snprintf(path, sizeof(path), "shaders/%s", name);
 
 	if ((len = Fs_LoadFile(path, &buf)) == -1) {
 		Com_Debug("R_LoadShader: Failed to load %s.\n", name);
@@ -261,7 +261,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 		return NULL;
 	}
 
-	strncpy(sh->name, name, sizeof(sh->name));
+	g_strlcpy(sh->name, name, sizeof(sh->name));
 
 	sh->type = type;
 
@@ -314,7 +314,7 @@ static r_program_t *R_LoadProgram(const char *name, void(*Init)(void)) {
 		return NULL;
 	}
 
-	strncpy(prog->name, name, sizeof(prog->name));
+	g_strlcpy(prog->name, name, sizeof(prog->name));
 
 	prog->id = qglCreateProgram();
 
