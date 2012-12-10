@@ -837,7 +837,6 @@ const char *Basename(const char *path) {
  */
 void Dirname(const char *in, char *out) {
 	char *c;
-	char *o = out;
 
 	if (!(c = strrchr(in, '/'))) {
 		strcpy(out, "./");

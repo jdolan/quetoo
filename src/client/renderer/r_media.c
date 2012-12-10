@@ -82,14 +82,17 @@ void R_RegisterMedia(r_media_t *media) {
 	// check to see if we're already registered
 	if ((m = g_hash_table_lookup(r_media_state.media, media->name))) {
 		if (m != media) {
-			Com_Debug("R_RegisterMedia: Replacing %s.\n", media->name);
-			R_FreeMedia_(NULL, m, (void *) true);
-			g_hash_table_insert(r_media_state.media, media->name, media);
+			if (R_FreeMedia_(NULL, m, NULL)) {
+				Com_Debug("R_RegisterMedia: Replacing %s.\n", media->name);
+				g_hash_table_insert(r_media_state.media, media->name, media);
+			} else {
+				Com_Error(ERR_DROP, "R_RegisterMedia: Failed to replace %s.\n", media->name);
+			}
 		} else {
 			Com_Debug("R_RegisterMedia: Retaining %s.\n", media->name);
 		}
 	} else {
-		Com_Debug("R_RegisterMedia: Inserting %s.\n", media->name);
+		Com_Debug("R_RegisterMedia: Registering %s.\n", media->name);
 		g_hash_table_insert(r_media_state.media, media->name, media);
 	}
 
