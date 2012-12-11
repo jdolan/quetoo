@@ -71,34 +71,38 @@ void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
 
 /*
- * @brief Inserts the specified media into the shared table.
+ * @brief Inserts the specified media into the shared table, re-registering all
+ * of its dependencies as well.
  */
 void R_RegisterMedia(r_media_t *media) {
-	r_media_t *m;
-
-	// re-seed the media to retain it
-	media->seed = r_media_state.seed;
 
 	// check to see if we're already registered
-	if ((m = g_hash_table_lookup(r_media_state.media, media->name))) {
-		if (m != media) {
-			if (R_FreeMedia_(NULL, m, NULL)) {
-				Com_Debug("R_RegisterMedia: Replacing %s.\n", media->name);
-				g_hash_table_insert(r_media_state.media, media->name, media);
+	if (media->seed != r_media_state.seed) {
+		r_media_t *m;
+
+		if ((m = g_hash_table_lookup(r_media_state.media, media->name))) {
+			if (m != media) {
+				if (R_FreeMedia_(NULL, m, NULL)) {
+					Com_Debug("R_RegisterMedia: Replacing %s.\n", media->name);
+					g_hash_table_insert(r_media_state.media, media->name, media);
+				} else {
+					Com_Error(ERR_DROP, "R_RegisterMedia: Failed to replace %s.\n", media->name);
+				}
 			} else {
-				Com_Error(ERR_DROP, "R_RegisterMedia: Failed to replace %s.\n", media->name);
+				Com_Debug("R_RegisterMedia: Retaining %s.\n", media->name);
 			}
 		} else {
-			Com_Debug("R_RegisterMedia: Retaining %s.\n", media->name);
+			Com_Debug("R_RegisterMedia: Inserting %s.\n", media->name);
+			g_hash_table_insert(r_media_state.media, media->name, media);
 		}
-	} else {
-		Com_Debug("R_RegisterMedia: Registering %s.\n", media->name);
-		g_hash_table_insert(r_media_state.media, media->name, media);
-	}
 
-	// call the implementation-specific register function
-	if (media->Register) {
-		media->Register(media);
+		// call the implementation-specific register function
+		if (media->Register) {
+			media->Register(media);
+		}
+
+		// re-seed the media to retain it
+		media->seed = r_media_state.seed;
 	}
 
 	// and finally re-register all dependencies

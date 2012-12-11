@@ -99,6 +99,7 @@ typedef struct cg_import_s {
 
 	// images and models
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
+	r_material_t *(*LoadMaterial)(const char *diffuse);
 	r_model_t *(*LoadModel)(const char *name);
 	r_model_t *(*WorldModel)(void);
 

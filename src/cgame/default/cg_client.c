@@ -27,19 +27,19 @@
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
  * our skin paths start with players/, not models/players/.
  */
-static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line) {
+static void Cg_LoadClientSkin(r_material_t **skins, const r_md3_t *md3, char *line) {
 	int32_t i;
 
 	if (strstr(line, "tag_"))
 		return;
 
-	char *image_name, *mesh_name = line;
+	char *skin_name, *mesh_name = line;
 
-	if ((image_name = strchr(mesh_name, ','))) {
-		*image_name++ = '\0';
+	if ((skin_name = strchr(mesh_name, ','))) {
+		*skin_name++ = '\0';
 
-		while (isspace(*image_name)) {
-			image_name++;
+		while (isspace(*skin_name)) {
+			skin_name++;
 		}
 	} else {
 		return;
@@ -49,18 +49,18 @@ static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line)
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (!strcasecmp(mesh_name, mesh->name)) {
-			skins[i] = cgi.LoadImage(image_name, IT_DIFFUSE);
+			skins[i] = cgi.LoadMaterial(skin_name);
 			break;
 		}
 	}
 }
 
 /*
- * @brief Parses the appropriate .skin file, resolving skins for each mesh within the
- * model. If a skin can not be resolved for any mesh, the entire skins array is
- * invalidated so that the default will be loaded.
+ * @brief Parses the appropriate .skin file, resolving skins for each mesh
+ * within the model. If a skin can not be resolved for any mesh, the entire
+ * skins array is invalidated so that the default will be loaded.
  */
-static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const char *skin) {
+static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
 	char path[MAX_QPATH], line[MAX_STRING_CHARS];
 	char *buffer;
 	int32_t i, j, len;
@@ -99,7 +99,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const ch
 	const r_md3_mesh_t *mesh = md3->meshes;
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
-		if (skins[i]->type == IT_NULL) {
+		if (!skins[i]) {
 			cgi.Debug("Cg_LoadClientSkins: %s: %s has no skin\n", path, mesh->name);
 
 			skins[0] = NULL;

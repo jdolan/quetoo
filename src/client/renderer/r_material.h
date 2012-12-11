@@ -24,6 +24,8 @@
 
 #include "r_types.h"
 
+r_material_t *R_LoadMaterial(const char *diffuse);
+
 #ifdef __R_LOCAL_H__
 // stage flags will persist on the stage structures but may also bubble
 // up to the material flags to determine render eligibility
@@ -58,7 +60,6 @@
 
 void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs);
 void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count);
-r_material_t *R_LoadMaterial(const char *diffuse);
 void R_LoadMaterials(const r_model_t *mod);
 #endif /* __R_LOCAL_H__ */
 

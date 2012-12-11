@@ -177,6 +177,7 @@ void Cl_InitCgame(void) {
 	import.Color = R_Color;
 
 	import.LoadImage = R_LoadImage;
+	import.LoadMaterial = R_LoadMaterial;
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;
 
