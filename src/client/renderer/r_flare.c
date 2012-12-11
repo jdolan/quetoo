@@ -50,6 +50,9 @@ void R_CreateSurfaceFlare(r_bsp_surface_t *surf) {
 		s = s->next;
 	}
 
+	if(!s)
+		return;
+
 	// resolve flare color
 	if (s->flags & STAGE_COLOR)
 		VectorCopy(s->color, surf->flare->color);

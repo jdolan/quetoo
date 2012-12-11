@@ -337,6 +337,9 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 
 	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i += 2) {
 
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+			return;
+
 		angle = ltime * angles[i][0];
 		sy = sin(angle);
 		cy = cos(angle);
@@ -349,16 +352,13 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 		forward[1] = cp * sy;
 		forward[2] = -sp;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
-			return;
+		dist = sin(ltime + i) * radius;
 
-		p->part.alpha = 1.0 - dist;
+		p->part.alpha = 1.0;
 		p->alpha_vel = -100.0;
 
 		p->part.scale = 0.15 * radius;
 		p->scale_vel = 800.0;
-
-		dist = sin(ltime + i) * radius;
 
 		for (c = 0; c < 3; c++) {
 			// project the origin outward, adding in angular velocity
