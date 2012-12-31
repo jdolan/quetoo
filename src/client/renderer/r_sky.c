@@ -368,7 +368,7 @@ void R_DrawSkyBox(void) {
 /*
  * @brief
  */
-void R_SetSky(char *name) {
+void R_SetSky(const char *name) {
 	const char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
 	int32_t i;
 	char path[MAX_QPATH];

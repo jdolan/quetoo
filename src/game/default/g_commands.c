@@ -25,10 +25,9 @@
  * @brief Give items to a client
  */
 static void G_Give_f(g_edict_t *ent) {
-	char *name;
-	g_item_t *it;
+	const g_item_t *it;
 	int32_t index, quantity;
-	int32_t i;
+	uint32_t i;
 	bool give_all;
 	g_edict_t *it_ent;
 
@@ -37,7 +36,7 @@ static void G_Give_f(g_edict_t *ent) {
 		return;
 	}
 
-	name = gi.Args();
+	const char *name = gi.Args();
 
 	if (gi.Argc() == 3) {
 		quantity = atoi(gi.Argv(2));
@@ -62,9 +61,9 @@ static void G_Give_f(g_edict_t *ent) {
 	}
 
 	if (give_all || strcasecmp(name, "weapons") == 0) {
-		for (i = 0; i < g_game.num_items; i++) {
+		for (i = 0; i < g_num_items; i++) {
 			it = g_items + i;
-			if (!it->pickup)
+			if (!it->Pickup)
 				continue;
 			if (it->type != ITEM_WEAPON)
 				continue;
@@ -75,9 +74,9 @@ static void G_Give_f(g_edict_t *ent) {
 	}
 
 	if (give_all || strcasecmp(name, "ammo") == 0) {
-		for (i = 0; i < g_game.num_items; i++) {
+		for (i = 0; i < g_num_items; i++) {
 			it = g_items + i;
-			if (!it->pickup)
+			if (!it->Pickup)
 				continue;
 			if (it->type != ITEM_AMMO)
 				continue;
@@ -110,7 +109,7 @@ static void G_Give_f(g_edict_t *ent) {
 		}
 	}
 
-	if (!it->pickup) {
+	if (!it->Pickup) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Non-pickup item: %s\n", name);
 		return;
 	}
@@ -198,49 +197,45 @@ static void G_Wave_f(g_edict_t *ent) {
  * @brief
  */
 static void G_Use_f(g_edict_t *ent) {
-	int32_t index;
-	g_item_t *it;
-	char *s;
 
 	if (ent->dead)
 		return;
 
-	s = gi.Args();
-	it = G_FindItem(s);
+	const char *s = gi.Args();
+	const g_item_t *it = G_FindItem(s);
 	if (!it) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Unknown item: %s\n", s);
 		return;
 	}
-	if (!it->use) {
+	if (!it->Use) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Item is not usable.\n");
 		return;
 	}
-	index = ITEM_INDEX(it);
+
+	const uint16_t index = ITEM_INDEX(it);
 	if (!ent->client->persistent.inventory[index]) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
 	}
 
-	it->use(ent, it);
+	it->Use(ent, it);
 }
 
 /*
  * @brief
  */
 static void G_Drop_f(g_edict_t *ent) {
-	int32_t index;
 	g_edict_t *f;
-	g_item_t *it;
-	char *s;
+	const g_item_t *it;
 
-	// we dont drop in instagib or arena
+	// we don't drop in instagib or arena
 	if (g_level.gameplay > 1)
 		return;
 
 	if (ent->dead)
 		return;
 
-	s = gi.Args();
+	const char *s = gi.Args();
 	it = NULL;
 
 	if (!strcmp(s, "flag")) { // find the correct flag
@@ -257,12 +252,12 @@ static void G_Drop_f(g_edict_t *ent) {
 		return;
 	}
 
-	if (!it->drop) {
+	if (!it->Drop) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Item is not dropable.\n");
 		return;
 	}
 
-	index = ITEM_INDEX(it);
+	const uint16_t index = ITEM_INDEX(it);
 
 	if (!ent->client->persistent.inventory[index]) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Out of item: %s\n", s);
@@ -270,19 +265,16 @@ static void G_Drop_f(g_edict_t *ent) {
 	}
 
 	ent->client->last_dropped = it;
-	it->drop(ent, it);
+	it->Drop(ent, it);
 }
 
 /*
  * @brief
  */
 static void G_WeaponPrevious_f(g_edict_t *ent) {
-	g_client_t *cl;
-	int32_t i, index;
-	g_item_t *it;
-	int32_t selected_weapon;
+	int32_t i;
 
-	cl = ent->client;
+	g_client_t *cl = ent->client;
 
 	if (cl->persistent.spectator) {
 
@@ -295,19 +287,25 @@ static void G_WeaponPrevious_f(g_edict_t *ent) {
 	if (!cl->persistent.weapon)
 		return;
 
-	selected_weapon = ITEM_INDEX(cl->persistent.weapon);
+	const uint16_t selected_weapon = ITEM_INDEX(cl->persistent.weapon);
 
-	// scan  for the next valid one
+	// scan for the next valid one
 	for (i = 1; i <= MAX_ITEMS; i++) {
-		index = (selected_weapon + i) % MAX_ITEMS;
+		const uint16_t index = (selected_weapon + i) % MAX_ITEMS;
+
 		if (!cl->persistent.inventory[index])
 			continue;
-		it = &g_items[index];
-		if (!it->use)
+
+		const g_item_t *it = &g_items[index];
+
+		if (!it->Use)
 			continue;
+
 		if (it->type != ITEM_WEAPON)
 			continue;
-		it->use(ent, it);
+
+		it->Use(ent, it);
+
 		if (cl->persistent.weapon == it)
 			return; // successful
 	}
@@ -317,12 +315,9 @@ static void G_WeaponPrevious_f(g_edict_t *ent) {
  * @brief
  */
 static void G_WeaponNext_f(g_edict_t *ent) {
-	g_client_t *cl;
-	int32_t i, index;
-	g_item_t *it;
-	int32_t selected_weapon;
+	int32_t i;
 
-	cl = ent->client;
+	g_client_t *cl = ent->client;
 
 	if (cl->persistent.spectator) {
 
@@ -335,19 +330,25 @@ static void G_WeaponNext_f(g_edict_t *ent) {
 	if (!cl->persistent.weapon)
 		return;
 
-	selected_weapon = ITEM_INDEX(cl->persistent.weapon);
+	const uint16_t selected_weapon = ITEM_INDEX(cl->persistent.weapon);
 
 	// scan  for the next valid one
 	for (i = 1; i <= MAX_ITEMS; i++) {
-		index = (selected_weapon + MAX_ITEMS - i) % MAX_ITEMS;
+		const uint16_t index = (selected_weapon + MAX_ITEMS - i) % MAX_ITEMS;
+
 		if (!cl->persistent.inventory[index])
 			continue;
-		it = &g_items[index];
-		if (!it->use)
+
+		const g_item_t *it = &g_items[index];
+
+		if (!it->Use)
 			continue;
+
 		if (it->type != ITEM_WEAPON)
 			continue;
-		it->use(ent, it);
+
+		it->Use(ent, it);
+
 		if (cl->persistent.weapon == it)
 			return; // successful
 	}
@@ -357,24 +358,26 @@ static void G_WeaponNext_f(g_edict_t *ent) {
  * @brief
  */
 static void G_WeaponLast_f(g_edict_t *ent) {
-	g_client_t *cl;
-	int32_t index;
-	g_item_t *it;
 
-	cl = ent->client;
+	g_client_t *cl = ent->client;
 
 	if (!cl->persistent.weapon || !cl->persistent.last_weapon)
 		return;
 
-	index = ITEM_INDEX(cl->persistent.last_weapon);
+	const uint16_t index = ITEM_INDEX(cl->persistent.last_weapon);
+
 	if (!cl->persistent.inventory[index])
 		return;
-	it = &g_items[index];
-	if (!it->use)
+
+	const g_item_t *it = &g_items[index];
+
+	if (!it->Use)
 		return;
+
 	if (it->type != ITEM_WEAPON)
 		return;
-	it->use(ent, it);
+
+	it->Use(ent, it);
 }
 
 /*
@@ -409,7 +412,7 @@ static const char *G_ExpandVariable(g_edict_t *ent, char v) {
 
 		case 'd': // last dropped item
 			if (ent->client->last_dropped)
-				return ent->client->last_dropped->pickup_name;
+				return ent->client->last_dropped->name;
 			return "";
 
 		case 'h': // health
@@ -470,16 +473,15 @@ static void G_Say_f(g_edict_t *ent) {
 
 	memset(text, 0, sizeof(text));
 
-	c = gi.Argv(0);
 	team = false;
 	arg0 = true;
 
-	if (!strncasecmp(c, "say", 3)) {
+	if (!strncasecmp(gi.Argv(0), "say", 3)) {
 
 		if (gi.Argc() == 1)
 			return;
 
-		if (!strcasecmp(c, "say_team") && (g_level.teams || g_level.ctf))
+		if (!strcasecmp(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf))
 			team = true;
 
 		arg0 = false;
@@ -496,9 +498,8 @@ static void G_Say_f(g_edict_t *ent) {
 	len = strlen(text);
 
 	i = sizeof(text) - strlen(text) - 2;
-	c = gi.Args();
 
-	c = G_ExpandVariables(ent, c);
+	c = G_ExpandVariables(ent, gi.Args());
 
 	if (arg0) { // not say or say_team, just arbitrary chat from the console
 		strncat(text, gi.Argv(0), i);
@@ -707,9 +708,8 @@ static void G_Vote_f(g_edict_t *ent) {
 		return;
 	}
 
-	c = gi.Argv(0);
-	if (!strcasecmp(c, "yes") || !strcasecmp(c, "no"))
-		strcpy(vote, c); // allow shorthand voting
+	if (!strcasecmp(gi.Argv(0), "yes") || !strcasecmp(c, "no")) // allow shorthand voting
+		g_strlcpy(vote, gi.Argv(0), sizeof(vote));
 	else { // or the explicit syntax
 		g_strlcpy(vote, gi.Args(), sizeof(vote));
 	}
@@ -766,7 +766,8 @@ static void G_Vote_f(g_edict_t *ent) {
 
 /*
  * @brief Returns true if the client's team was changed, false otherwise.
- */bool G_AddClientToTeam(g_edict_t *ent, char *team_name) {
+ */
+bool G_AddClientToTeam(g_edict_t *ent, const char *team_name) {
 	g_team_t *team;
 
 	if (g_level.match_time && g_level.match_time <= g_level.time) {
@@ -892,7 +893,6 @@ static void G_Teamname_f(g_edict_t *ent) {
 static void G_Teamskin_f(g_edict_t *ent) {
 	int32_t i;
 	g_client_t *cl;
-	char *c, *s;
 	g_team_t *t;
 
 	if (gi.Argc() != 2) {
@@ -910,7 +910,7 @@ static void G_Teamskin_f(g_edict_t *ent) {
 	if (g_level.time - t->skin_time < TEAM_CHANGE_TIME)
 		return; // prevent change spamming
 
-	s = gi.Argv(1);
+	const char *s = gi.Argv(1);
 
 	if (s != '\0') // something valid-ish was provided
 		g_strlcpy(t->skin, s, sizeof(t->skin));
@@ -919,7 +919,7 @@ static void G_Teamskin_f(g_edict_t *ent) {
 
 	s = t->skin;
 
-	c = strchr(s, '/');
+	char *c = strchr(s, '/');
 
 	// let players use just the model name, client will find skin
 	if (!c || *c == '\0') {

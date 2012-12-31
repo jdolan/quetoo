@@ -620,13 +620,11 @@ bool MixedCase(const char *s) {
 /*
  * @brief Lowercases the specified string.
  */
-char *Lowercase(char *s) {
-	char *c = s;
-	while (*c) {
-		*c = tolower(*c);
-		c++;
+void Lowercase(const char *in, char *out) {
+	while (*in) {
+		*out++ = tolower(*in++);
 	}
-	return s;
+	*out = '\0';
 }
 
 /*

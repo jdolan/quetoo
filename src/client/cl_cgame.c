@@ -188,7 +188,7 @@ void Cl_InitCgame(void) {
 	import.AddParticle = R_AddParticle;
 	import.AddSustainedLight = R_AddSustainedLight;
 
-	import.DrawPic = R_DrawPic;
+	import.DrawImage = R_DrawImage;
 	import.DrawFill = R_DrawFill;
 
 	import.BindFont = R_BindFont;

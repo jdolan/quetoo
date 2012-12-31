@@ -203,7 +203,7 @@ static void Cl_ForwardCmdToServer(void) {
 	}
 
 	const char *cmd = Cmd_Argv(0);
-	char *args = Cmd_Args();
+	const char *args = Cmd_Args();
 
 	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 	Sb_Print(&cls.netchan.message, va("%s %s", cmd, args));
@@ -344,18 +344,15 @@ void Cl_Reconnect_f(void) {
  * @brief Responses to broadcasts, etc
  */
 static void Cl_ConnectionlessPacket(void) {
-	char *s;
-	char *c;
-	byte qport;
 
 	Msg_BeginReading(&net_message);
 	Msg_ReadLong(&net_message); // skip the -1
 
-	s = Msg_ReadStringLine(&net_message);
+	const char *s = Msg_ReadStringLine(&net_message);
 
 	Cmd_TokenizeString(s);
 
-	c = Cmd_Argv(0);
+	const char *c = Cmd_Argv(0);
 
 	Com_Debug("%s: %s\n", Net_NetaddrToString(net_from), c);
 
@@ -367,7 +364,7 @@ static void Cl_ConnectionlessPacket(void) {
 			return;
 		}
 
-		qport = (byte) Cvar_GetValue("net_qport");
+		const byte qport = (byte) Cvar_GetValue("net_qport");
 		Netchan_Setup(NS_CLIENT, &cls.netchan, net_from, qport);
 		Msg_WriteChar(&cls.netchan.message, CL_CMD_STRING);
 		Msg_WriteString(&cls.netchan.message, "new");

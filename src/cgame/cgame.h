@@ -106,14 +106,14 @@ typedef struct cg_import_s {
 	// scene building facilities
 	void (*AddCorona)(const r_corona_t *c);
 	const r_entity_t *(*AddEntity)(const r_entity_t *ent);
-	const r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, r_model_t *model,
+	const r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, const r_model_t *model,
 			const char *tag_name);
 	void (*AddLight)(const r_light_t *l);
 	void (*AddParticle)(const r_particle_t *p);
 	void (*AddSustainedLight)(const r_sustained_light_t *s);
 
 	// 2D drawing facilities
-	void (*DrawPic)(r_pixel_t x, r_pixel_t y, float scale, const char *name);
+	void (*DrawImage)(r_pixel_t x, r_pixel_t y, float scale, const r_image_t *image);
 	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, float a);
 
 	void (*BindFont)(const char *name, r_pixel_t *cw, r_pixel_t *ch);

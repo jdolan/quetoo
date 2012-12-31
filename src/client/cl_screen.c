@@ -282,11 +282,7 @@ void Cl_UpdateScreen(void) {
 
 	Cl_DrawConsole();
 
-	R_DrawFills(); // draw all fills accumulated above
-
-	R_DrawLines(); // draw all lines accumulated above
-
-	R_DrawChars(); // draw all chars accumulated above
+	R_Draw2D(); // draw all 2D geometry for the frame
 
 	Ui_Draw();
 

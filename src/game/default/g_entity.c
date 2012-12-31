@@ -75,8 +75,6 @@ static spawn_t g_spawns[] = {
  */
 static void G_SpawnEntity(g_edict_t *ent) {
 	spawn_t *s;
-	g_item_t *item;
-	g_override_t *over;
 	int32_t i;
 
 	if (!ent->class_name) {
@@ -84,20 +82,9 @@ static void G_SpawnEntity(g_edict_t *ent) {
 		return;
 	}
 
-	// check overrides
-	for (i = 0; i < g_game.num_overrides; i++) {
-
-		over = &g_overrides[i];
-
-		if (!strcmp(ent->class_name, over->old)) { // found it
-			item = G_FindItemByClassname(over->new);
-			G_SpawnItem(ent, item);
-			return;
-		}
-	}
-
 	// check item spawn functions
-	for (i = 0, item = g_items; i < g_game.num_items; i++, item++) {
+	const g_item_t *item = g_items;
+	for (i = 0; i < g_num_items; i++, item++) {
 
 		if (!item->class_name)
 			continue;
@@ -376,6 +363,22 @@ static void G_InitEntityTeams(void) {
 }
 
 /*
+ * @brief Resolves references to frequently accessed media.
+ */
+static void G_InitMedia(void) {
+
+	g_level.media.grenade_model = gi.ModelIndex("models/objects/grenade/tris.md3");
+	g_level.media.grenade_hit_sound = gi.SoundIndex("objects/grenade/hit");
+
+	g_level.media.rocket_model = gi.ModelIndex("models/objects/rocket/tris.md3");
+	g_level.media.rocket_fly_sound = gi.SoundIndex("objects/rocket/fly");
+
+	g_level.media.lightning_fly_sound = gi.SoundIndex("weapons/lightning/fly");
+
+	g_level.media.quad_damage = ITEM_INDEX(G_FindItemByClassname("item_quad"));
+}
+
+/*
  * @brief Creates a server's entity / program execution context by
  * parsing textual entity definitions out of an ent file.
  */
@@ -409,7 +412,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			break;
 
 		if (com_token[0] != '{')
-			gi.Error("SpawnEntities: Found %s when expecting {.", com_token);
+			gi.Error("G_SpawnEntities: Found %s when expecting {.", com_token);
 
 		if (!ent)
 			ent = g_game.edicts;
@@ -429,24 +432,22 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			}
 
 			// emits and models are client sided
-			if (!strcmp(ent->class_name, "misc_emit") || !strcmp(
-					ent->class_name, "misc_model")) {
+			if (!strcmp(ent->class_name, "misc_emit") || !strcmp(ent->class_name, "misc_model")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// lights aren't even used
-			if (!strcmp(ent->class_name, "light") || !strcmp(ent->class_name,
-					"light_spot")) {
+			if (!strcmp(ent->class_name, "light") || !strcmp(ent->class_name, "light_spot")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// strip away unsupported flags
-			ent->spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD
-					| SF_NOT_COOP | SF_NOT_DEATHMATCH);
+			ent->spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP
+					| SF_NOT_DEATHMATCH);
 		}
 
 		// retain the map-specified origin for respawns
@@ -464,6 +465,8 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	gi.Debug("%i entities inhibited\n", inhibit);
 
 	G_InitEntityTeams();
+
+	G_InitMedia();
 
 	// reset teams and votes
 	G_ResetTeams();
@@ -504,20 +507,20 @@ static void G_WorldspawnMusic(void) {
 /*QUAKED worldspawn(0 0 0) ?
 
  Only used for the world.
- "message"		"Stress Fractures by Jester"
- "sky"			unit1_
- "weather"		none, rain, snow, fog 0.5 0.8 0.7
- "gravity"		800
- "gameplay"		deathmatch, instagib, rocket arena
+ "message"			"Stress Fractures by Jester"
+ "sky"				unit1_
+ "weather"			none, rain, snow, fog 0.5 0.8 0.7
+ "gravity"			800
+ "gameplay"			deathmatch, instagib, rocket arena
  "teams"			0 off, 1 on, 2 balanced
- "ctf"			0 off, 1 on, 2 balanced
+ "ctf"				0 off, 1 on, 2 balanced
  "match"			0 off, 1 on
  "round"			0 off, 1 on
- "frag_limit" 	20 frags
- "round_limit" 	20 rounds
+ "frag_limit" 		20 frags
+ "round_limit" 		20 rounds
  "capture_limit" 	8 captures
  "time_limit"		20 minutes
- "give"			comma-delimited items list
+ "give"				comma-delimited items list
  "music"			comma-delimited track list
  */
 static void G_worldspawn(g_edict_t *ent) {
@@ -527,10 +530,7 @@ static void G_worldspawn(g_edict_t *ent) {
 	ent->move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	ent->in_use = true; // since the world doesn't use G_Spawn()
-	ent->s.model1 = 1; // world model is always index 1
-
-	// set config_strings for items
-	G_SetItemNames();
+	ent->s.model1 = 0; // world model is always index 1
 
 	map = NULL; // resolve the maps.lst entry for this level
 	for (i = 0; i < g_map_list.count; i++) {

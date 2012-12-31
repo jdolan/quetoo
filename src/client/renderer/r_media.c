@@ -144,11 +144,8 @@ void R_LoadMedia(void) {
 	}
 	Cl_LoadProgress(70);
 
-	// images for the heads up display
-	R_FreePics();
-
 	for (i = 1; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
-		cl.image_precache[i] = R_LoadPic(cl.config_strings[CS_IMAGES + i]);
+		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC);
 	}
 	Cl_LoadProgress(75);
 

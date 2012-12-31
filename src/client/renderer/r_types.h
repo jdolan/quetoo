@@ -597,7 +597,7 @@ typedef struct r_entity_s {
 	matrix4x4_t matrix;
 	bool culled;
 
-	struct r_model_s *model;
+	const struct r_model_s *model;
 
 	uint16_t frame, old_frame; // frame-based animations
 	float lerp, back_lerp;

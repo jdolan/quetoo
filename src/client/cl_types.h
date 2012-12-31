@@ -75,6 +75,8 @@ typedef struct cl_client_info_s {
 
 	r_model_t *lower;
 	r_material_t *lower_skins[MD3_MAX_MESHES];
+
+	r_image_t *icon; // for the scoreboard
 } cl_client_info_t;
 
 #define CMD_BACKUP 512 // allow a lot of command backups for very fast systems

@@ -283,13 +283,12 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
  */
 static void Cl_KeyGame(SDLKey key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time) {
 	char cmd[MAX_STRING_CHARS];
-	char *kb;
 
-	if (!ks->binds[key])
+	const char *kb = ks->binds[key];
+	if (!kb)
 		return;
 
-	memset(cmd, 0, sizeof(cmd));
-	kb = ks->binds[key];
+	cmd[0] = '\0';
 
 	if (kb[0] == '+') { // button commands add key and time as a param
 		if (down)

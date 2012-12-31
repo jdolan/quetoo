@@ -444,7 +444,7 @@ char *G_GameplayName(int32_t g) {
 /*
  * @brief
  */
-int32_t G_GameplayByName(char *c) {
+int32_t G_GameplayByName(const char *c) {
 
 	if (!c || *c == '\0')
 		return DEATHMATCH;
@@ -462,19 +462,23 @@ int32_t G_GameplayByName(char *c) {
 		break;
 	}
 
-	if (strstr(Lowercase(c), "insta"))
+	char name[MAX_TOKEN_CHARS];
+	Lowercase(c, name);
+
+	if (strstr(name, "insta"))
 		return INSTAGIB;
-	if (strstr(Lowercase(c), "arena"))
+	if (strstr(name, "arena"))
 		return ARENA;
-	if (strstr(Lowercase(c), "deathmatch") || strstr(Lowercase(c), "dm"))
+	if (strstr(name, "deathmatch") || strstr(name, "dm"))
 		return DEATHMATCH;
+
 	return DEFAULT;
 }
 
 /*
  * @brief
  */
-g_team_t *G_TeamByName(char *c) {
+g_team_t *G_TeamByName(const char *c) {
 
 	if (!c || !*c)
 		return NULL;

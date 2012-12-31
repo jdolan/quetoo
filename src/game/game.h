@@ -165,8 +165,8 @@ typedef struct g_import_s {
 
 	// command function parameter access
 	int32_t (*Argc)(void);
-	char *(*Argv)(int32_t n);
-	char *(*Args)(void); // concatenation of all argv >= 1
+	const char *(*Argv)(int32_t n);
+	const char *(*Args)(void); // concatenation of all argv >= 1
 
 	// add commands to the server console as if they were typed in
 	// for map changing, etc

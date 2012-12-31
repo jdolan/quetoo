@@ -388,17 +388,15 @@ static void Svc_RemoteCommand(void) {
  * will be handled here.
  */
 static void Sv_ConnectionlessPacket(void) {
-	char *s;
-	char *c;
 
 	Msg_BeginReading(&net_message);
 	Msg_ReadLong(&net_message); // skip the -1 marker
 
-	s = Msg_ReadStringLine(&net_message);
+	const char *s = Msg_ReadStringLine(&net_message);
 
 	Cmd_TokenizeString(s);
 
-	c = Cmd_Argv(0);
+	const char *c = Cmd_Argv(0);
 	Com_Debug("Packet from %s: %s\n", Net_NetaddrToString(net_from), c);
 
 	if (!strcmp(c, "ping"))

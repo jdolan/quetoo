@@ -329,8 +329,6 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
  * the specified quantity.
  */
 static void G_Give(g_client_t *client, char *it, int16_t quantity) {
-	g_item_t *item;
-	int32_t index;
 
 	if (!strcasecmp(it, "Health")) {
 		client->persistent.health = quantity;
@@ -342,24 +340,24 @@ static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 		return;
 	}
 
-	item = G_FindItem(it);
+	const g_item_t *item = G_FindItem(it);
 
 	if (!item)
 		return;
 
-	index = ITEM_INDEX(item);
+	const uint16_t index = ITEM_INDEX(item);
 
 	if (item->type == ITEM_WEAPON) { // weapons receive quantity as ammo
 		client->persistent.inventory[index] = 1;
 
 		if (item->ammo) {
-			item = G_FindItem(item->ammo);
-			index = ITEM_INDEX(item);
+			const g_item_t *ammo = G_FindItem(item->ammo);
+			const uint16_t ammo_index = ITEM_INDEX(ammo);
 
 			if (quantity > -1)
-				client->persistent.inventory[index] = quantity;
+				client->persistent.inventory[ammo_index] = quantity;
 			else
-				client->persistent.inventory[index] = item->quantity;
+				client->persistent.inventory[ammo_index] = ammo->quantity;
 		}
 	} else { // while other items receive quantity directly
 		if (quantity > -1)
@@ -413,7 +411,7 @@ static bool G_GiveLevelLocals(g_client_t *client) {
  * @brief
  */
 static void G_InitClientPersistent(g_client_t *client) {
-	g_item_t *item;
+	const g_item_t *item;
 	int32_t i;
 
 	// clear inventory
@@ -1218,12 +1216,12 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
  */
 static void G_ClientInventoryThink(g_edict_t *ent) {
 
-	if (ent->client->persistent.inventory[quad_damage_index]) { // if they have quad
+	if (ent->client->persistent.inventory[g_level.media.quad_damage]) { // if they have quad
 
 		if (ent->client->quad_damage_time < g_level.time) { // expire it
 
 			ent->client->quad_damage_time = 0.0;
-			ent->client->persistent.inventory[quad_damage_index] = 0;
+			ent->client->persistent.inventory[g_level.media.quad_damage] = 0;
 
 			gi.Sound(ent, gi.SoundIndex("quad/expire"), ATTN_NORM);
 
@@ -1292,7 +1290,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 				G_ClientChaseTarget(ent);
 			}
 		} else if (client->weapon_think_time < g_level.time) {
-			G_WeaponThink(ent);
+			G_ClientWeaponThink(ent);
 		}
 	}
 
@@ -1326,7 +1324,7 @@ void G_ClientBeginFrame(g_edict_t *ent) {
 
 	// run weapon think if it hasn't been done by a command
 	if (client->weapon_think_time < g_level.time && !client->persistent.spectator)
-		G_WeaponThink(ent);
+		G_ClientWeaponThink(ent);
 
 	if (ent->dead) { // check for respawn conditions
 

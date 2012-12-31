@@ -193,8 +193,9 @@ int32_t Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
 
 	if (MixedCase(file_name)) { // try lowercase version
 		char lower[MAX_QPATH];
-		g_strlcpy(lower, file_name, sizeof(lower));
-		return Fs_OpenFile(Lowercase(lower), file, mode);
+		Lowercase(file_name, lower);
+
+		return Fs_OpenFile(lower, file, mode);
 	}
 
 	//Com_Debug("Fs_OpenFile: can't find %s.\n", file_name);

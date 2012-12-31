@@ -63,11 +63,6 @@ extern g_level_t g_level;
 extern g_import_t gi;
 extern g_export_t ge;
 
-extern uint16_t grenade_index, grenade_hit_index;
-extern uint16_t rocket_index, rocket_fly_index;
-extern uint16_t lightning_fly_index;
-extern uint16_t quad_damage_index;
-
 extern uint32_t means_of_death;
 
 extern cvar_t *g_ammo_respawn_time;

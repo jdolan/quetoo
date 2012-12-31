@@ -28,8 +28,8 @@
 void G_ChangeWeapon(g_edict_t *ent);
 bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other);
 void G_UseBestWeapon(g_client_t *client);
-void G_UseWeapon(g_edict_t *ent, g_item_t *inv);
-void G_DropWeapon(g_edict_t *ent, g_item_t *inv);
+void G_UseWeapon(g_edict_t *ent, const g_item_t *item);
+void G_DropWeapon(g_edict_t *ent, const g_item_t *item);
 void G_TossWeapon(g_edict_t *ent);
 void G_FireBlaster(g_edict_t *ent);
 void G_FireShotgun(g_edict_t *ent);
@@ -41,7 +41,7 @@ void G_FireGrenadeLauncher(g_edict_t *ent);
 void G_FireLightning(g_edict_t *ent);
 void G_FireRailgun(g_edict_t *ent);
 void G_FireBfg(g_edict_t *ent);
-void G_WeaponThink(g_edict_t *ent);
+void G_ClientWeaponThink(g_edict_t *ent);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_WEAPON_H__ */

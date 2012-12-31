@@ -98,7 +98,7 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 /*
  * @brief Binds a linked model to its parent, and copies it into the view structure.
  */
-const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, r_model_t *model,
+const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
 		const char *tag_name) {
 
 	if (!parent) {

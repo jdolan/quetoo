@@ -1206,8 +1206,6 @@ void G_Init(void) {
 
 	G_ParseMapList("maps.lst");
 
-	G_InitItems();
-
 	// initialize entities and clients for this game
 	g_game.edicts = gi.Malloc(g_max_entities->integer * sizeof(g_edict_t), Z_TAG_GAME);
 	g_game.clients = gi.Malloc(sv_max_clients->integer * sizeof(g_client_t), Z_TAG_GAME);

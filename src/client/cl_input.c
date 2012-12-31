@@ -100,9 +100,8 @@ static cl_button_t cl_buttons[12];
  */
 static void Cl_KeyDown(cl_button_t *b) {
 	SDLKey k;
-	char *c;
 
-	c = Cmd_Argv(1);
+	const char *c = Cmd_Argv(1);
 	if (c[0])
 		k = atoi(c);
 	else
@@ -124,10 +123,10 @@ static void Cl_KeyDown(cl_button_t *b) {
 		return; // still down
 
 	// save timestamp
-	c = Cmd_Argv(2);
-	b->down_time = atoi(c);
+	const char *t = Cmd_Argv(2);
+	b->down_time = atoi(t);
 	if (!b->down_time)
-		b->down_time = cls.real_time - 100;
+		b->down_time = cls.real_time;
 
 	b->state |= 1;
 }
@@ -137,12 +136,11 @@ static void Cl_KeyDown(cl_button_t *b) {
  */
 static void Cl_KeyUp(cl_button_t *b) {
 	SDLKey k;
-	char *c;
 
-	c = Cmd_Argv(1);
+	const char *c = Cmd_Argv(1);
 	if (c[0])
 		k = atoi(c);
-	else { // typed manually at the console, assume for unsticking, so clear all
+	else { // typed manually at the console, assume for un-sticking, so clear all
 		b->down[0] = b->down[1] = 0;
 		return;
 	}
@@ -161,8 +159,8 @@ static void Cl_KeyUp(cl_button_t *b) {
 		return; // still up (this should not happen)
 
 	// save timestamp
-	c = Cmd_Argv(2);
-	const uint32_t uptime = atoi(c);
+	const char *t = Cmd_Argv(2);
+	const uint32_t uptime = atoi(t);
 	if (uptime)
 		b->msec += uptime - b->down_time;
 	else

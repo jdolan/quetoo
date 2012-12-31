@@ -190,13 +190,13 @@ void G_ClientStats(g_edict_t *ent) {
 
 	// armor
 	if (persistent->armor >= 200)
-		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_bodyarmor");
+		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_bodyarmor");
 	else if (persistent->armor >= 100)
-		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_combatarmor");
+		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_combatarmor");
 	else if (persistent->armor >= 50)
-		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_jacketarmor");
+		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_jacketarmor");
 	else if (persistent->armor > 0)
-		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("i_shard");
+		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_shard");
 	else
 		client->ps.stats[STAT_ARMOR_ICON] = 0;
 	client->ps.stats[STAT_ARMOR] = persistent->armor;
@@ -217,7 +217,7 @@ void G_ClientStats(g_edict_t *ent) {
 		client->ps.stats[STAT_HEALTH_ICON] = 0;
 		client->ps.stats[STAT_HEALTH] = 0;
 	} else {
-		client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("i_health");
+		client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_health");
 		client->ps.stats[STAT_HEALTH] = ent->health;
 	}
 

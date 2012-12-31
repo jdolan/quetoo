@@ -87,17 +87,15 @@ static void Sv_Heartbeat_f(void) {
 static bool Sv_SetPlayer(void) {
 	sv_client_t *cl;
 	int32_t i;
-	int32_t idnum;
-	char *s;
 
 	if (Cmd_Argc() < 2)
 		return false;
 
-	s = Cmd_Argv(1);
+	const char *s = Cmd_Argv(1);
 
 	// numeric values are just slot numbers
 	if (s[0] >= '0' && s[0] <= '9') {
-		idnum = atoi(Cmd_Argv(1));
+		const int32_t idnum = atoi(Cmd_Argv(1));
 		if (idnum < 0 || idnum >= sv_max_clients->integer) {
 			Com_Print("Bad client slot: %i\n", idnum);
 			return false;
@@ -232,41 +230,37 @@ static void Sv_Status_f(void) {
  * @brief
  */
 static void Sv_Say_f(void) {
-	sv_client_t *client;
 	int32_t j;
-	char *p;
-	char text[1024];
+	char text[MAX_STRING_CHARS];
 
 	if (Cmd_Argc() < 2)
 		return;
 
-	strcpy(text, "console^1:^7 ");
-	p = Cmd_Args();
-
+	const char *p = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
 	if (*p == '"') {
-		p++;
-		p[strlen(p) - 1] = 0;
+		g_strlcpy(text, p + 1, sizeof(text));
+		text[strlen(text) - 1] = '\0';
+	} else {
+		g_strlcpy(text, p, sizeof(text));
 	}
 
-	strcat(text, p);
-
-	for (j = 0, client = svs.clients; j < sv_max_clients->integer; j++, client++) {
+	const sv_client_t *client = svs.clients;
+	for (j = 0; j < sv_max_clients->integer; j++, client++) {
 
 		if (client->state != SV_CLIENT_ACTIVE)
 			continue;
 
-		Sv_ClientPrint(client->edict, PRINT_CHAT, "%s\n", text);
+		Sv_ClientPrint(client->edict, PRINT_CHAT, "console^1:^7 %s\n", text);
 	}
 
-	Com_Print("%s\n", text);
+	Com_Print("console^1:^7 %s\n", text);
 }
 
 /*
  * @brief
  */
 static void Sv_Tell_f(void) {
-	char text[1024];
-	char *p;
+	char text[MAX_STRING_CHARS];
 
 	if (Cmd_Argc() < 3)
 		return;
@@ -274,22 +268,19 @@ static void Sv_Tell_f(void) {
 	if (!Sv_SetPlayer())
 		return;
 
-	strcpy(text, "console^1:^7 ");
-	p = Cmd_Args();
-	p += strlen(Cmd_Argv(1)) + 1;
+	const char *p = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
 	if (*p == '"') {
-		p++;
-		p[strlen(p) - 1] = 0;
+		g_strlcpy(text, p + 1, sizeof(text));
+		text[strlen(text) - 1] = '\0';
+	} else {
+		g_strlcpy(text, p, sizeof(text));
 	}
-
-	strcat(text, p);
 
 	if (sv_client->state != SV_CLIENT_ACTIVE)
 		return;
 
-	Sv_ClientPrint(sv_client->edict, PRINT_CHAT, "%s\n", text);
-
-	Com_Print("%s\n", text);
+	Sv_ClientPrint(sv_client->edict, PRINT_CHAT, "console^1:^7 %s\n", text);
+	Com_Print("console^1:^7 %s\n", text);
 }
 
 /*

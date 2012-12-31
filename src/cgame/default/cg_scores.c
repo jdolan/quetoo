@@ -146,27 +146,16 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
  * @brief
  */
 static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
-	char name[MAX_STRING_CHARS], icon[MAX_QPATH], *skin;
 	r_pixel_t cw, ch;
 
-	char *info = cgi.ConfigString(CS_CLIENTS + s->player_num);
-
-	if (!strlen(info) || !strchr(info, '\\')) {
-		return false;
-	}
-
-	g_strlcpy(name, info, sizeof(name));
-
-	skin = strchr(name, '\\') + 1;
-	*(skin - 1) = '\0';
-
-	g_snprintf(icon, sizeof(icon), "#players/%s_i", skin);
+	const cl_client_info_t *info = &cgi.client->client_info[s->player_num];
 
 	// icon
-	cgi.DrawPic(x, y, 0.33, icon);
+	cgi.DrawImage(x, y, 0.33, info->icon);
 
-	if (atoi(cgi.ConfigString(CS_CTF)) && s->flags & SCORES_FLAG)
-		cgi.DrawPic(x, y, 0.66, "i_quad");
+	//FIXME:
+	//if (atoi(cgi.ConfigString(CS_CTF)) && s->flags & SCORES_FLAG)
+	//	cgi.DrawPic(x, y, 0.66, "i_quad");
 
 	x += SCORES_ICON_WIDTH;
 
@@ -182,7 +171,7 @@ static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 	cgi.BindFont("small", &cw, &ch);
 
 	// name
-	cgi.DrawString(x, y, name, CON_COLOR_DEFAULT);
+	cgi.DrawString(x, y, info->name, CON_COLOR_DEFAULT);
 
 	// ping
 	{

@@ -58,12 +58,12 @@ static cg_center_print_t center_print;
 static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
 		const uint16_t icon) {
 
-	if (icon >= MAX_IMAGES) {
+	if (icon >= MAX_IMAGES || !cgi.client->image_precache[icon]) {
 		cgi.Warn("Cg_DrawIcon: Invalid icon: %d\n", icon);
 		return;
 	}
 
-	cgi.DrawPic(x, y, scale, cgi.ConfigString(CS_IMAGES + icon));
+	cgi.DrawImage(x, y, scale, cgi.client->image_precache[icon]);
 }
 
 /*
@@ -462,7 +462,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	x = (cgi.context->width - crosshair.image->width * scale) / 2.0;
 	y = (cgi.context->height - crosshair.image->height * scale) / 2.0;
 
-	cgi.DrawPic(x, y, scale, crosshair.name);
+	cgi.DrawImage(x, y, scale, crosshair.image);
 
 	cgi.Color(NULL);
 }

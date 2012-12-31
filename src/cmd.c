@@ -293,7 +293,6 @@ static void Cmd_Alias_f(void) {
 	cmd_alias_t *a;
 	char cmd[MAX_STRING_CHARS];
 	int32_t i, c;
-	char *s;
 
 	if (Cmd_Argc() == 1) {
 		Com_Print("Current alias commands:\n");
@@ -302,7 +301,7 @@ static void Cmd_Alias_f(void) {
 		return;
 	}
 
-	s = Cmd_Argv(1);
+	const char *s = Cmd_Argv(1);
 	if (strlen(s) >= MAX_ALIAS_NAME) {
 		Com_Print("Alias name is too long\n");
 		return;
@@ -363,7 +362,7 @@ int32_t Cmd_Argc(void) {
 /*
  * @brief
  */
-char *Cmd_Argv(int32_t arg) {
+const char *Cmd_Argv(int32_t arg) {
 	if (arg >= cmd_state.argc)
 		return "";
 	return cmd_state.argv[arg];
@@ -372,7 +371,7 @@ char *Cmd_Argv(int32_t arg) {
 /*
  * @brief Returns a single string containing all command arguments.
  */
-char *Cmd_Args(void) {
+const char *Cmd_Args(void) {
 	return cmd_state.args;
 }
 

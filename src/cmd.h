@@ -97,8 +97,8 @@ int32_t Cmd_CompleteCommand(const char *partial, const char *matches[]);
 // attempts to match a partial command for automatic command line completion
 
 int32_t Cmd_Argc(void);
-char *Cmd_Argv(int32_t arg);
-char *Cmd_Args(void);
+const char *Cmd_Argv(int32_t arg);
+const char *Cmd_Args(void);
 // The functions that execute commands get their parameters with these
 // functions. Cmd_Argv() will return an empty string, not a NULL
 // if arg > argc, so string operations are always safe.

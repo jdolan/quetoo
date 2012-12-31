@@ -76,7 +76,7 @@ int32_t ColorByName(const char *s, int32_t def);
 bool GlobMatch(const char *pattern, const char *text);
 bool MixedCase(const char *s);
 char *CommonPrefix(const char *words[], uint32_t nwords);
-char *Lowercase(char *s);
+void Lowercase(const char *in, char *out);
 char *Trim(char *s);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);

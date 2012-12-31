@@ -180,6 +180,9 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		if ((ci->lower = cgi.LoadModel(path))) {
 			Cg_LoadClientSkins(ci->lower, ci->lower_skins, ci->skin);
 		}
+
+		g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
+		ci->icon = cgi.LoadImage(path, IT_PIC);
 	}
 
 	// ensure we were able to load everything

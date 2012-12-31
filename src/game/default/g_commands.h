@@ -25,7 +25,7 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-bool G_AddClientToTeam(g_edict_t *ent, char *team_name);
+bool G_AddClientToTeam(g_edict_t *ent, const char *team_name);
 void G_ClientCommand(g_edict_t *ent);
 void G_Score_f(g_edict_t *ent);
 #endif /* __GAME_LOCAL_H__ */

@@ -166,7 +166,7 @@ void Cl_ParseConfigString(void) {
 		}
 	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
 		if (cls.state == CL_ACTIVE) {
-			cl.image_precache[i - CS_IMAGES] = R_LoadPic(s);
+			cl.image_precache[i - CS_IMAGES] = R_LoadImage(s, IT_PIC);
 		}
 	}
 
