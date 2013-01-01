@@ -16,7 +16,6 @@ noinst_HEADERS = \
 	console.h \
 	cvar.h \
 	filesystem.h \
-	hash.h \
 	images.h \
 	mem.h \
 	net.h \
@@ -33,7 +32,6 @@ noinst_LTLIBRARIES = \
 	libcommon.la \
 	libconsole.la \
 	libfilesystem.la \
-	libhash.la \
 	libimages.la \
 	libmem.la \
 	libnet.la \
@@ -79,7 +77,6 @@ libfilesystem_la_CFLAGS = \
 	@GLIB_CFLAGS@
 libfilesystem_la_LIBADD = \
 	libcommon.la \
-	libhash.la \
 	libmem.la \
 	libshared.la \
 	libswap.la \
@@ -105,12 +102,6 @@ libimages_la_CFLAGS = \
 	-D__LIBTOOL_LIBRARY__=libimages_la
 
 endif
-
-libhash_la_SOURCES = \
-	hash.c
-libhash_la_CFLAGS = \
-	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
 
 libmem_la_SOURCES = \
 	mem.c

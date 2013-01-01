@@ -24,6 +24,7 @@
 
 #include "shared.h"
 #include "threads.h"
+#include "mem.h"
 
 #define DEFAULT_GAME	"default"
 

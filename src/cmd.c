@@ -350,7 +350,7 @@ typedef struct cmd_state_s {
 static cmd_state_t cmd_state;
 static cmd_t *cmd_commands; // possible commands to execute
 
-static hash_table_t cmd_hash; // hashed for fast lookups
+static GHashTable * cmd_hash; // hashed for fast lookups
 
 /*
  * @brief
@@ -475,7 +475,7 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
 	cmd->description = description;
 
 	// hash the command
-	Hash_Put(&cmd_hash, name, cmd);
+	g_hash_table_insert(cmd_hash, (gpointer)name, cmd);
 
 	// and add it to the chain
 	if (!cmd_commands) {
@@ -502,7 +502,7 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
 void Cmd_RemoveCommand(const char *name) {
 	cmd_t *cmd, **back;
 
-	Hash_Remove(&cmd_hash, name);
+	g_hash_table_remove(cmd_hash, name);
 
 	back = &cmd_commands;
 	while (true) {
@@ -568,7 +568,7 @@ void Cmd_ExecuteString(const char *text) {
 	if (!Cmd_Argc())
 		return; // no tokens
 
-	if ((cmd = Hash_Get(&cmd_hash, cmd_state.argv[0]))) {
+	if ((cmd = g_hash_table_lookup(cmd_hash, cmd_state.argv[0]))) {
 		if (cmd->function) {
 			cmd->function();
 		} else if (!Cvar_GetValue("dedicated") && Cmd_ForwardToServer)
@@ -618,7 +618,7 @@ static void Cmd_List_f(void) {
  */
 void Cmd_Init(void) {
 
-	Hash_Init(&cmd_hash);
+	cmd_hash = g_hash_table_new(g_str_hash, g_str_equal);
 
 	Cmd_AddCommand("cmd_list", Cmd_List_f, 0, NULL);
 	Cmd_AddCommand("exec", Cmd_Exec_f, 0, NULL);

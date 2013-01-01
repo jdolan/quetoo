@@ -22,7 +22,7 @@
 #ifndef __PAK_H__
 #define __PAK_H__
 
-#include "hash.h"
+#include "common.h"
 
 #define ERR_OK   0
 #define ERR_DIR -1
@@ -49,7 +49,7 @@ typedef struct pak_s {
 	FILE *handle;
 	int32_t num_entries;
 	pak_entry_t *entries;
-	hash_table_t hash_table;
+	GHashTable * hash_table;
 } pak_t;
 
 pak_t *Pak_ReadPakfile(const char *pakfile);

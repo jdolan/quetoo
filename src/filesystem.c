@@ -49,7 +49,7 @@ typedef struct search_path_s {
 static search_path_t *fs_search_paths;
 static search_path_t *fs_base_search_paths; // without gamedirs
 
-static hash_table_t fs_hash_table; // pakfiles are pushed into a hash
+static GHashTable * fs_hash_table; // pakfiles are pushed into a hash
 
 
 /*
@@ -172,10 +172,10 @@ int32_t Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
 	}
 
 	// fall back on the pak files
-	if ((pak = (pak_t *) Hash_Get(&fs_hash_table, file_name))) {
+	if ((pak = (pak_t *) g_hash_table_lookup(fs_hash_table, file_name))) {
 
 		// find the entry within the pak file
-		if ((e = (pak_entry_t *) Hash_Get(&pak->hash_table, file_name))) {
+		if ((e = (pak_entry_t *) g_hash_table_lookup(pak->hash_table, file_name))) {
 
 			*file = fopen(pak->file_name, "rb");
 
@@ -272,7 +272,7 @@ void Fs_AddPakfile(const char *pakfile) {
 		return;
 
 	for (i = 0; i < pak->num_entries; i++) // hash the entries to the pak
-		Hash_Put(&fs_hash_table, pak->entries[i].name, pak);
+		g_hash_table_insert(fs_hash_table, pak->entries[i].name, pak);
 
 	Com_Print("Added %s: %i files.\n", pakfile, pak->num_entries);
 }
@@ -417,12 +417,19 @@ void Fs_ExecAutoexec(void) {
 	Cbuf_Execute(); // execute it
 }
 
+static gboolean FS_SetGame_(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
+
+	if(strstr((char *)key, (char *)data))
+		return false;
+	Pak_FreePakfile((pak_t *)value);
+	return true;
+}
+
 /*
  * @brief Sets the game path to a relative directory.
  */
 void Fs_SetGame(const char *dir) {
 	search_path_t *s;
-	hash_entry_t *e;
 	pak_t *pak;
 	int32_t i;
 
@@ -437,20 +444,9 @@ void Fs_SetGame(const char *dir) {
 
 	// free up any current game dir info
 	while (fs_search_paths != fs_base_search_paths) {
-
 		// free paks not living in base search paths
-		for (i = 0; i < HASH_BINS; i++) {
-			e = fs_hash_table.bins[i];
-			while (e) {
-				pak = (pak_t*) e->value;
+		g_hash_table_foreach_remove(fs_hash_table, FS_SetGame_, fs_search_paths->path);
 
-				if (!strstr(pak->file_name, fs_search_paths->path))
-					continue;
-
-				Hash_RemoveEntry(&fs_hash_table, e);
-				Pak_FreePakfile(pak);
-			}
-		}
 		s = fs_search_paths->next;
 		Z_Free(fs_search_paths);
 		fs_search_paths = s;
@@ -541,7 +537,7 @@ void Fs_Init(void) {
 
 	fs_search_paths = NULL;
 
-	Hash_Init(&fs_hash_table);
+	fs_hash_table = g_hash_table_new(g_str_hash, g_str_equal);
 
 	// allow the game to run from outside the data tree
 	fs_base = Cvar_Get("fs_base", "", CVAR_NO_SET, NULL);
@@ -609,11 +605,16 @@ void Fs_Init(void) {
 		Fs_SetGame(fs_game->string);
 }
 
-/*
- * @brief Wraps strcmp so it can be used to sort strings in qsort.
- */
-static int32_t strcmp_(const void *a, const void *b) {
-	return strcmp(*(char **) a, *(char **) b);
+typedef struct fs_complete_file_s {
+	char *name;
+	char *dir;
+	GList *list;
+} fs_complete_file_t;
+
+static void Fs_CompleteFile_(gpointer key, __attribute__((unused))gpointer value, gpointer data){
+	fs_complete_file_t *matches = (fs_complete_file_t *)data;
+	if(GlobMatch(matches->name, (char *)key))
+		matches->list = g_list_prepend(matches->list, key + strlen(matches->dir));
 }
 
 /*
@@ -625,9 +626,14 @@ int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
 	const char *n;
 	char name[MAX_OSPATH];
 	const search_path_t *s;
-	const hash_entry_t *h;
+ 	fs_complete_file_t files;
 	int32_t i = 0;
 	int32_t m = 0;
+	GList *head;
+
+	files.name = &name;
+	files.dir = dir;
+	files.list = NULL;
 
 	// search through paths for matches
 	for (s = fs_search_paths; s != NULL; s = s->next) {
@@ -640,8 +646,7 @@ int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
 		do {
 			// copy file_name to local buffer
 			strcpy(fl, n + strlen(s->path) + 1 + strlen(dir));
-			matches[m] = fl;
-			m++;
+			files.list = g_list_prepend(files.list, fl);
 			fl = fl + strlen(fl) + 1;
 		} while ((n = Sys_FindNext()) != NULL);
 
@@ -650,30 +655,24 @@ int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
 
 	// search through paks for matches
 	g_snprintf(name, sizeof(name), "%s%s*%s", dir, prefix, suffix);
-	for (i = 0; i < HASH_BINS; i++) {
-		h = fs_hash_table.bins[i];
-		while (h != NULL) {
-			if (GlobMatch(name, h->key) && !(dir == NULL && strchr(h->key, '/'))) {
-				// omit configs not in the root gamedir
-				matches[m] = h->key + strlen(dir);
-				m++;
-			}
-			h = h->next;
-		}
-	}
+	g_hash_table_foreach(fs_hash_table, Fs_CompleteFile_, &files);
 
 	// sort in alphabetical order
-	qsort(matches, m, sizeof(matches[0]), strcmp_);
+	files.list = g_list_sort(files.list, g_strcmp0);
 
+	head = files.list;
 	// print32_t out list of matches (minus duplicates)
-	for (i = 0; i < m; i++) {
+	for (i = 0; i < g_list_length(head); i++) {
+		matches[i] = (char *)files.list->data;
+		files.list = files.list->next;
 		if (i == 0 || strcmp(matches[i], matches[i - 1])) {
-			strcpy(name, matches[i]);
+			strncpy(name, matches[i], MAX_OSPATH);
 			if (strstr(name, suffix) != NULL)
 				*strstr(name, suffix) = 0; // lop off file extension
 			Com_Print("%s\n", name);
 		}
 	}
+	g_list_free(head);
 
 	return m;
 }
