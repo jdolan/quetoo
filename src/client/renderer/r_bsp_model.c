@@ -852,7 +852,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadProgress(48);
 
 	R_LoadBspLights(mod->bsp);
-
+	Cl_LoadProgress(50);
 
 	Com_Debug("================================\n");
 	Com_Debug("R_LoadBspModel: %s\n", mod->media.name);
@@ -865,14 +865,17 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug("  Leaf surfaces:  %d\n", mod->bsp->num_leaf_surfaces);
 	Com_Debug("  Clusters:       %d\n", mod->bsp->num_clusters);
 	Com_Debug("  Inline models   %d\n", mod->bsp->num_inline_models);
+	Com_Debug("  Lights:         %d\n", mod->bsp->num_bsp_lights);
 	Com_Debug("================================\n");
 
 	R_SetupBspInlineModels(mod);
+	Cl_LoadProgress(52);
 
 	R_LoadBspVertexArrays(mod);
+	Cl_LoadProgress(54);
 
 	R_LoadBspSurfacesArrays(mod);
-
+	Cl_LoadProgress(58);
 
 	r_locals.old_cluster = -1; // force bsp iteration
 }

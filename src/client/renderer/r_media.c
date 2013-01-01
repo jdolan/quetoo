@@ -159,15 +159,15 @@ void R_LoadMedia(void) {
 
 	// load the world
 	R_LoadModel(cl.config_strings[CS_MODELS]);
-	Cl_LoadProgress(50);
+	Cl_LoadProgress(60);
 
 	// load all other known models
 	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
 
 		cl.model_draw[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
 
-		if (i <= 20) // bump loading progress
-			Cl_LoadProgress(50 + i);
+		if (i <= 30) // bump loading progress
+			Cl_LoadProgress(60 + (i / 3));
 	}
 	Cl_LoadProgress(70);
 
