@@ -895,16 +895,20 @@ int32_t StrColorCmp(const char *s1, const char *s2) {
 }
 
 /*
- * @brief A shorthand sprintf into a statically allocated buffer.
+ * @brief A shorthand g_snprintf into a statically allocated buffer. Several
+ * buffers are maintained internally so that nested va()'s are safe within
+ * reasonable limits.
  */
 char *va(const char *format, ...) {
-	va_list args;
-	static char string[MAX_STRING_CHARS];
+	static char strings[8][MAX_STRING_CHARS];
+	static uint16_t index;
 
-	memset(string, 0, sizeof(string));
+	char *string = strings[index++ % 8];
+
+	va_list args;
 
 	va_start(args, format);
-	vsnprintf(string, sizeof(string), format, args);
+	vsnprintf(string, MAX_STRING_CHARS, format, args);
 	va_end(args);
 
 	return string;
