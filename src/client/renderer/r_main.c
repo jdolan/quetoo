@@ -300,16 +300,15 @@ void R_BeginFrame(void) {
 }
 
 /*
- * @brief
+ * @brief Called at the end of each video frame to swap buffers. Also, if the
+ * loading cycle has completed, media is freed here.
  */
 void R_EndFrame(void) {
 
-	if (r_view.update) {
+	if (cls.state == CL_ACTIVE && !cls.loading) {
 
-		if (cls.state == CL_ACTIVE && !cls.loading) {
-
+		if (r_view.update) {
 			r_view.update = false;
-
 			R_FreeMedia();
 		}
 	}
