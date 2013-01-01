@@ -227,7 +227,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format,
 			GL_UNSIGNED_BYTE, data);
 
-	R_RegisterMedia(&image->media);
+	R_RegisterMedia((r_media_t *) image);
 
 	R_GetError(image->media.name);
 }
@@ -313,7 +313,7 @@ static void R_InitNullImage(void) {
 static void R_InitWarpImage(void) {
 
 	r_image_state.warp = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
-	strcpy(r_image_state.warp->media.name, "r_image_state.warp");
+	strcpy(r_image_state.warp->media.name, "r_warp_image");
 	r_image_state.warp->width = r_image_state.warp->height = WARP_SIZE;
 	r_image_state.warp->type = IT_GENERATED;
 

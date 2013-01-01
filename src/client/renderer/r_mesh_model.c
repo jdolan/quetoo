@@ -35,9 +35,7 @@ static void R_LoadMeshMaterial(r_model_t *mod) {
 }
 
 /*
- * R_LoadMd3Animations
- *
- * Parses animation.cfg, loading the frame specifications for the given model.
+ * @brief Parses animation.cfg, loading the frame specifications for the given model.
  */
 static void R_LoadMd3Animations(r_model_t *mod) {
 	r_md3_t *md3;
@@ -110,7 +108,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 }
 
 /*
- * @brief
+ * @brief Loads the specified r_mesh_config_t from the file at path.
  */
 static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 	const char *buffer, *c;
@@ -154,7 +152,10 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 }
 
 /*
- * @brief
+ * @brief Loads all r_mesh_config_t for the specified r_model_t. These allow
+ * models to be positioned and scaled relative to their own origins, which is
+ * useful because artists contribute models in almost arbitrary dimensions at
+ * times.
  */
 static void R_LoadMeshConfigs(r_model_t *mod) {
 	char path[MAX_QPATH];
@@ -178,9 +179,8 @@ static void R_LoadMeshConfigs(r_model_t *mod) {
 }
 
 /*
- * R_LoadMd3Tangents
- *
- * http://www.terathon.com/code/tangent.html
+ * @brief Calculates tangent vectors for each MD3 vertex for per-pixel
+ * lighting. See http://www.terathon.com/code/tangent.html.
  */
 static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 	vec3_t *tan1, *tan2;
@@ -264,7 +264,7 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 }
 
 /*
- * R_LoadMd3VertexArrays
+ * @brief Loads and populates vertex array data for the specified MD3 model.
  */
 static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	r_md3_t *md3;

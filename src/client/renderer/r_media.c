@@ -47,13 +47,36 @@ void R_ListMedia_f(void) {
 }
 
 /*
+ * @brief
+ */
+static bool R_ValidateMedia(const r_media_t *media) {
+
+	if (!media) {
+		Com_Debug("R_ValidateMedia: NULL.\n");
+		return false;
+	}
+
+	if (!media->name) {
+		Com_Warn("R_ValidateMedia: NULL name.\n");
+		return false;
+	}
+
+	if (!strlen(media->name)) {
+		Com_Warn("R_ValidateMedia: Empty name.\n");
+		return false;
+	}
+
+	return true;
+}
+
+/*
  * @brief Establishes a dependency from the specified dependent to the given
  * dependency. Dependencies in use by registered media are never freed.
  */
 void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 
-	if (dependent) {
-		if (dependency) {
+	if (R_ValidateMedia(dependent)) {
+		if (R_ValidateMedia(dependency)) {
 			if (!g_list_find(dependent->dependencies, dependency)) {
 				Com_Debug("R_RegisterDependency: %s -> %s.\n", dependent->name, dependency->name);
 				dependent->dependencies = g_list_prepend(dependent->dependencies, dependency);
@@ -61,10 +84,10 @@ void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 				R_RegisterMedia(dependency);
 			}
 		} else {
-			Com_Debug("R_RegisterDependency: NULL dependency for %s.\n", dependent->name);
+			Com_Debug("R_RegisterDependency: Invalid dependency for %s.\n", dependent->name);
 		}
 	} else {
-		Com_Warn("R_RegisterDependency: NULL dependent.\n");
+		Com_Warn("R_RegisterDependency: Invalid dependent.\n");
 	}
 }
 
@@ -75,10 +98,12 @@ static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
  * of its dependencies as well.
  */
 void R_RegisterMedia(r_media_t *media) {
-	if(!media || !media->name)  //make sure we actually have media
-		return;
 
-	// check to see if we're already registered
+	if (!R_ValidateMedia(media)) {
+		Com_Error(ERR_DROP, "R_RegisterMedia: Invalid media or name\n");
+	}
+
+	// check to see if we're already seeded
 	if (media->seed != r_media_state.seed) {
 		r_media_t *m;
 
@@ -98,13 +123,13 @@ void R_RegisterMedia(r_media_t *media) {
 			g_hash_table_insert(r_media_state.media, media->name, media);
 		}
 
-		// call the implementation-specific register function
-		if (media->Register) {
-			media->Register(media);
-		}
-
 		// re-seed the media to retain it
 		media->seed = r_media_state.seed;
+	}
+
+	// call the implementation-specific register function
+	if (media->Register) {
+		media->Register(media);
 	}
 
 	// and finally re-register all dependencies
@@ -183,10 +208,13 @@ r_media_t *R_FindMedia(const char *name) {
  */
 r_media_t *R_MallocMedia(const char *name, size_t size) {
 
+	if (!name || !*name) {
+		Com_Error(ERR_DROP, "R_MallocMedia: NULL name\n");
+	}
+
 	r_media_t *media = Z_TagMalloc(size, Z_TAG_RENDERER);
 
-	strncpy(media->name, name, sizeof(media->name));
-	media->name[sizeof(media->name) - 1] = '\0';
+	g_strlcpy(media->name, name, sizeof(media->name));
 
 	return media;
 }

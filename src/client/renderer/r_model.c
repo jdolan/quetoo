@@ -138,17 +138,17 @@ static void R_RegisterModel(r_media_t *self) {
 		uint16_t i;
 
 		for (i = 0; i < mod->bsp->num_surfaces; i++, s++) {
-			R_RegisterDependency(self, &s->texinfo->material->media);
+			R_RegisterDependency(self, (r_media_t *) s->texinfo->material);
 
-			R_RegisterDependency(self, &s->lightmap->media);
-			R_RegisterDependency(self, &s->deluxemap->media);
+			R_RegisterDependency(self, (r_media_t *) s->lightmap);
+			R_RegisterDependency(self, (r_media_t *) s->deluxemap);
 		}
 
 		// keep a reference to the world model
 		r_model_state.world = mod;
 
 	} else if (IS_MESH_MODEL(mod)) {
-		R_RegisterDependency(self, &mod->mesh->material->media);
+		R_RegisterDependency(self, (r_media_t *) mod->mesh->material);
 	}
 }
 
@@ -239,7 +239,7 @@ r_model_t *R_LoadModel(const char *name) {
 		VectorSubtract(mod->maxs, mod->mins, tmp);
 		mod->radius = VectorLength(tmp) / 2.0;
 
-		R_RegisterMedia(&mod->media);
+		R_RegisterMedia((r_media_t *) mod);
 	}
 
 	return mod;

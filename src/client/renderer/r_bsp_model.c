@@ -215,7 +215,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		}
 
 		// register with the subsystem
-		R_RegisterDependency(&mod->media, &m->media);
+		R_RegisterDependency((r_media_t *) mod, (r_media_t *) m);
 	}
 }
 
@@ -851,6 +851,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspInlineModels(mod->bsp, &header.lumps[LUMP_MODELS]);
 	Cl_LoadProgress(48);
 
+	R_LoadBspLights(mod->bsp);
+
+
 	Com_Debug("================================\n");
 	Com_Debug("R_LoadBspModel: %s\n", mod->media.name);
 	Com_Debug("  Verts:          %d\n", mod->bsp->num_vertexes);
@@ -870,7 +873,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	R_LoadBspSurfacesArrays(mod);
 
-	R_LoadBspLights(mod->bsp);
 
 	r_locals.old_cluster = -1; // force bsp iteration
 }

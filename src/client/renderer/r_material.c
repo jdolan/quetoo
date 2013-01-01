@@ -459,23 +459,20 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 static void R_RegisterMaterial(r_media_t *self) {
 	r_material_t *mat = (r_material_t *) self;
 
-	//if(mat->diffuse)
-	R_RegisterDependency(self, &mat->diffuse->media);
-	//if(mat->normalmap)
-	R_RegisterDependency(self, &mat->normalmap->media);
-	//if(mat->glossmap)
-	R_RegisterDependency(self, &mat->glossmap->media);
+	R_RegisterDependency(self, (r_media_t *) mat->diffuse);
+	R_RegisterDependency(self, (r_media_t *) mat->normalmap);
+	R_RegisterDependency(self, (r_media_t *) mat->glossmap);
 
 	r_stage_t *s = mat->stages;
 	while (s) {
-		R_RegisterDependency(self, &s->image->media);
+		R_RegisterDependency(self, (r_media_t *) s->image);
 
 		uint16_t i;
 		for (i = 0; i < s->anim.num_frames; i++) {
-			R_RegisterDependency(self, &s->anim.frames[i]->media);
+			R_RegisterDependency(self, (r_media_t *) s->anim.frames[i]);
 		}
 
-		R_RegisterDependency(self, &s->material->media);
+		R_RegisterDependency(self, (r_media_t *) s->material);
 		s = s->next;
 	}
 }
@@ -502,17 +499,17 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 		mat->diffuse = R_LoadImage(base, IT_DIFFUSE);
 
 		mat->normalmap = R_LoadImage(va("%s_nm", base), IT_NORMALMAP);
-		mat->normalmap = mat->normalmap->type == IT_NULL ? NULL : mat->normalmap;
+		mat->normalmap = (mat->normalmap->type == IT_NULL ? NULL : mat->normalmap);
 
 		mat->glossmap = R_LoadImage(va("%s_s", base), IT_GLOSSMAP);
-		mat->glossmap = mat->glossmap->type == IT_NULL ? NULL : mat->glossmap;
+		mat->glossmap = (mat->glossmap->type == IT_NULL ? NULL : mat->glossmap);
 
 		mat->bump = DEFAULT_BUMP;
 		mat->hardness = DEFAULT_HARDNESS;
 		mat->parallax = DEFAULT_PARALLAX;
 		mat->specular = DEFAULT_SPECULAR;
 
-		R_RegisterMedia(&mat->media);
+		R_RegisterMedia((r_media_t *) mat);
 	}
 
 	return mat;
@@ -574,8 +571,9 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 	// now load the rest
 	name[j - 1] = '\0';
 	for (k = 1, i = i + 1; k < s->anim.num_frames; k++, i++) {
+		char frame[MAX_QPATH];
 
-		const char *frame = va("%s%d", name, i);
+		g_snprintf(frame, sizeof(frame), "%s%d", name, i);
 		s->anim.frames[k] = R_LoadImage(frame, IT_DIFFUSE);
 
 		if (s->anim.frames[k]->type == IT_NULL) {
