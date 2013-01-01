@@ -333,6 +333,8 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 	ltime = (float) cgi.client->time / 300.0;
 
 	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i += 2) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+			return;
 
 		angle = ltime * angles[i][0];
 		sy = sin(angle);
@@ -346,10 +348,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 		forward[1] = cp * sy;
 		forward[2] = -sp;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
-			return;
-
-		p->part.alpha = 1.0 - dist;
+		p->part.alpha = 1.0;
 		p->alpha_vel = -100.0;
 
 		p->part.scale = 0.15 * radius;
