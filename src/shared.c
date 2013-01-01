@@ -897,7 +897,7 @@ int32_t StrColorCmp(const char *s1, const char *s2) {
 /*
  * @brief A shorthand g_snprintf into a statically allocated buffer. Several
  * buffers are maintained internally so that nested va()'s are safe within
- * reasonable limits.
+ * reasonable limits. This function is not thread safe.
  */
 char *va(const char *format, ...) {
 	static char strings[8][MAX_STRING_CHARS];
