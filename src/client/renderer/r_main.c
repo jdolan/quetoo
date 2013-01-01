@@ -46,9 +46,6 @@ cvar_t *r_draw_wireframe;
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bumpmap;
-cvar_t *r_capture;
-cvar_t *r_capture_fps;
-cvar_t *r_capture_quality;
 cvar_t *r_contrast;
 cvar_t *r_coronas;
 cvar_t *r_draw_buffer;
@@ -307,8 +304,6 @@ void R_BeginFrame(void) {
  */
 void R_EndFrame(void) {
 
-	R_UpdateCapture();
-
 	if (r_view.update) {
 
 		if (cls.state == CL_ACTIVE && !cls.loading) {
@@ -396,11 +391,6 @@ static void R_InitLocal(void) {
 			"Controls texture brightness");
 	r_bumpmap = Cvar_Get("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls the intensity of bump-mapping effects");
-	r_capture = Cvar_Get("r_capture", "0", 0, "Toggle screen capturing to jpeg files");
-	r_capture_fps
-			= Cvar_Get("r_capture_fps", "25", 0, "The desired framerate for screen capturing");
-	r_capture_quality = Cvar_Get("r_capture_quality", "0.7", CVAR_ARCHIVE,
-			"Screen capturing image quality");
 	r_contrast = Cvar_Get("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls texture contrast");
 	r_coronas = Cvar_Get("r_coronas", "1", CVAR_ARCHIVE, "Controls the rendering of coronas");
@@ -523,8 +513,6 @@ void R_Init(void) {
 
 	R_InitModels();
 
-	R_InitCapture();
-
 	R_InitView();
 
 	Com_Print(
@@ -550,8 +538,6 @@ void R_Shutdown(void) {
 	Cmd_RemoveCommand("r_toggle_fullscreen");
 
 	Cmd_RemoveCommand("r_restart");
-
-	R_ShutdownCapture();
 
 	R_ShutdownPrograms();
 

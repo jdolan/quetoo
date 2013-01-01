@@ -4,7 +4,6 @@ noinst_HEADERS = \
 	r_bsp_model.h \
 	r_bsp_surface.h \
 	r_bsp.h \
-	r_capture.h \
 	r_context.h \
 	r_corona.h \
 	r_draw.h \
@@ -43,7 +42,6 @@ librenderer_la_SOURCES = \
 	r_bsp_model.c \
 	r_bsp_surface.c \
 	r_bsp.c \
-	r_capture.c \
 	r_context.c \
 	r_corona.c \
 	r_draw.c \

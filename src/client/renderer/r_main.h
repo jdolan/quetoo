@@ -28,9 +28,6 @@
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
 extern cvar_t *r_bumpmap;
-extern cvar_t *r_capture;
-extern cvar_t *r_capture_fps;
-extern cvar_t *r_capture_quality;
 extern cvar_t *r_contrast;
 extern cvar_t *r_coronas;
 extern cvar_t *r_draw_buffer;
