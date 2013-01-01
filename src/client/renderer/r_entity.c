@@ -225,7 +225,7 @@ void R_CullEntities(void *data __attribute__((unused))) {
 		if (!R_CullEntity(e)) { // cull it
 
 			if (IS_MESH_MODEL(e->model)) {
-				R_UpdateMeshLighting(e);
+				R_UpdateMeshModelLighting(e);
 			}
 		}
 	}

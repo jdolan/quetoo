@@ -113,8 +113,8 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
 		byte *dout, size_t stride) {
 	int32_t i, j;
 
-	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmap_scale) + 1;
-	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmap_scale) + 1;
+	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
+	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
 
 	stride -= (smax * 3);
 
@@ -167,8 +167,8 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 	byte *lightmap, *lm, *deluxemap, *dm;
 	size_t i;
 
-	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmap_scale) + 1;
-	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmap_scale) + 1;
+	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
+	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
 
 	const size_t size = smax * tmax;
 	stride -= (smax * 3);
@@ -244,8 +244,8 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 	if (!(surf->flags & R_SURF_LIGHTMAP))
 		return;
 
-	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmap_scale) + 1;
-	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmap_scale) + 1;
+	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
+	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
 
 	if (!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)) {
 

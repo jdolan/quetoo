@@ -256,7 +256,7 @@ void R_DrawBspLights(void) {
 		r_corona_t c;
 
 		VectorCopy(l->origin, c.origin);
-		c.radius = l->radius;
+		c.radius = l->radius * r_draw_bsp_lights->value;
 		c.flicker = 0.0;
 		VectorCopy(l->color, c.color);
 
@@ -266,7 +266,7 @@ void R_DrawBspLights(void) {
 
 /*
  * @brief Developer tool for viewing BSP vertex normals. Only Phong-interpolated
- * surfaces show their normals when r_show_normals == 2.
+ * surfaces show their normals when r_draw_bsp_normals is 2.
  */
 void R_DrawBspNormals(void) {
 	const vec4_t red = { 1.0, 0.0, 0.0, 1.0 };

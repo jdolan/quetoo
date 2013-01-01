@@ -118,7 +118,7 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 	VectorCopy(lighting->origin, start);
 	VectorCopy(lighting->origin, end);
 
-	VectorCopy(r_locals.ambient_light, lighting->color);
+	VectorCopy(r_bsp_light_state.ambient_light, lighting->color);
 
 	// resolve the static light sources
 	i = R_UpdateBspLightReferences(lighting);
@@ -185,7 +185,7 @@ void R_ApplyLighting(const r_lighting_t *lighting) {
 		VectorAdd(lighting->origin, up, position);
 		glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
 
-		VectorScale(r_locals.ambient_light, r_lighting->value, diffuse);
+		VectorScale(r_bsp_light_state.ambient_light, r_lighting->value, diffuse);
 		glLightfv(GL_LIGHT0 + count, GL_DIFFUSE, diffuse);
 
 		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, LIGHTING_AMBIENT_ATTENUATION);

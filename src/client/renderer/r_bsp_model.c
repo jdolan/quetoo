@@ -35,22 +35,24 @@ static const byte *mod_base;
 static void R_LoadBspLightmaps(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	const char *c;
 
-	if (!l->file_len) {
-		bsp->lightmap_data_size = 0;
-		bsp->lightmap_data = NULL;
-	} else {
-		bsp->lightmap_data_size = l->file_len;
-		bsp->lightmap_data = Z_LinkMalloc(l->file_len, bsp);
+	bsp->lightmaps = Z_LinkMalloc(sizeof(r_bsp_lightmaps_t), bsp);
 
-		memcpy(bsp->lightmap_data, mod_base + l->file_ofs, l->file_len);
+	if (!l->file_len) {
+		bsp->lightmaps->size = 0;
+		bsp->lightmaps->data = NULL;
+	} else {
+		bsp->lightmaps->size = l->file_len;
+		bsp->lightmaps->data = Z_LinkMalloc(l->file_len, bsp);
+
+		memcpy(bsp->lightmaps->data, mod_base + l->file_ofs, l->file_len);
 	}
 
-	bsp->lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
+	bsp->lightmaps->scale = DEFAULT_LIGHTMAP_SCALE;
 
 	// resolve lightmap scale
 	if ((c = R_WorldspawnValue("lightmap_scale"))) {
-		bsp->lightmap_scale = strtoul(c, NULL, 0);
-		Com_Debug("Resolved lightmap_scale: %d\n", bsp->lightmap_scale);
+		bsp->lightmaps->scale = strtoul(c, NULL, 0);
+		Com_Debug("Resolved lightmap_scale: %d\n", bsp->lightmaps->scale);
 	}
 }
 
@@ -307,11 +309,11 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	// bump the texture coordinate vectors to ensure we don't split samples
 	for (i = 0; i < 2; i++) {
-		const int32_t bmins = floor(st_mins[i] / bsp->lightmap_scale);
-		const int32_t bmaxs = ceil(st_maxs[i] / bsp->lightmap_scale);
+		const int32_t bmins = floor(st_mins[i] / bsp->lightmaps->scale);
+		const int32_t bmaxs = ceil(st_maxs[i] / bsp->lightmaps->scale);
 
-		surf->st_mins[i] = bmins * bsp->lightmap_scale;
-		surf->st_maxs[i] = bmaxs * bsp->lightmap_scale;
+		surf->st_mins[i] = bmins * bsp->lightmaps->scale;
+		surf->st_maxs[i] = bmaxs * bsp->lightmaps->scale;
 
 		surf->st_center[i] = (surf->st_maxs[i] + surf->st_mins[i]) / 2.0;
 		surf->st_extents[i] = surf->st_maxs[i] - surf->st_mins[i];
@@ -368,7 +370,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 		// lastly lighting info
 		const int32_t ofs = LittleLong(in->light_ofs);
-		const byte *data = (ofs == -1) ? NULL : bsp->lightmap_data + ofs;
+		const byte *data = (ofs == -1) ? NULL : bsp->lightmaps->data + ofs;
 
 		// to create the lightmap and deluxemap
 		R_CreateBspSurfaceLightmap(bsp, out, data);
@@ -379,8 +381,8 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	R_EndBspSurfaceLightmaps(bsp);
 
-	Z_Free(bsp->lightmap_data);
-	bsp->lightmap_data_size = 0;
+	Z_Free(bsp->lightmaps->data);
+	bsp->lightmaps->size = 0;
 }
 
 /*
@@ -609,15 +611,15 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		if (surf->flags & R_SURF_LIGHTMAP) {
 			s = DotProduct(vert->position, sdir) + soff;
 			s -= surf->st_mins[0];
-			s += surf->light_s * mod->bsp->lightmap_scale;
-			s += mod->bsp->lightmap_scale / 2.0;
-			s /= surf->lightmap->width * mod->bsp->lightmap_scale;
+			s += surf->light_s * mod->bsp->lightmaps->scale;
+			s += mod->bsp->lightmaps->scale / 2.0;
+			s /= surf->lightmap->width * mod->bsp->lightmaps->scale;
 
 			t = DotProduct(vert->position, tdir) + toff;
 			t -= surf->st_mins[1];
-			t += surf->light_t * mod->bsp->lightmap_scale;
-			t += mod->bsp->lightmap_scale / 2.0;
-			t /= surf->lightmap->height * mod->bsp->lightmap_scale;
+			t += surf->light_t * mod->bsp->lightmaps->scale;
+			t += mod->bsp->lightmaps->scale / 2.0;
+			t /= surf->lightmap->height * mod->bsp->lightmaps->scale;
 		}
 
 		mod->lightmap_texcoords[(*count) * 2 + 0] = s;

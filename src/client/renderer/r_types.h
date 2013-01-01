@@ -320,7 +320,16 @@ typedef struct {
 } r_bsp_cluster_t;
 
 /*
- * @brief BSP (static) light sources.
+ * @brief BSP lightmap parameters.
+ */
+typedef struct {
+	uint16_t scale;
+	uint32_t size;
+	byte *data;
+} r_bsp_lightmaps_t;
+
+/*
+ * @brief BSP light sources.
  */
 typedef struct {
 	vec3_t origin;
@@ -465,9 +474,7 @@ typedef struct {
 	uint16_t num_clusters;
 	r_bsp_cluster_t *clusters;
 
-	uint16_t lightmap_scale;
-	uint32_t lightmap_data_size;
-	byte *lightmap_data;
+	r_bsp_lightmaps_t *lightmaps;
 
 	uint16_t num_bsp_lights;
 	r_bsp_light_t *bsp_lights;

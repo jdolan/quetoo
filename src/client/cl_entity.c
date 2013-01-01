@@ -330,12 +330,12 @@ void Cl_ParseFrame(void) {
  * @brief Invalidate lighting caches on media load.
  */
 void Cl_UpdateEntities(void) {
-	uint32_t i;
 
-	if (!r_view.update)
-		return;
+	if (r_view.update) {
+		uint16_t i;
 
-	for (i = 0; i < MAX_EDICTS; i++) {
-		cl.entities[i].lighting.state = LIGHTING_INIT;
+		for (i = 0; i < MAX_EDICTS; i++) {
+			cl.entities[i].lighting.state = LIGHTING_INIT;
+		}
 	}
 }

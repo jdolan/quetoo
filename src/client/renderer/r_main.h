@@ -89,15 +89,6 @@ extern r_config_t r_config;
 // private renderer structure
 typedef struct r_locals_s {
 
-	vec3_t ambient_light; // from worldspawn entity
-
-	float sun_light;
-	vec3_t sun_color;
-
-	float brightness;
-	float saturation;
-	float contrast;
-
 	int16_t cluster; // visibility cluster at origin
 	int16_t old_cluster;
 
