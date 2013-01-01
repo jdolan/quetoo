@@ -34,6 +34,7 @@ cvar_t *m_pitch;
 cvar_t *m_sensitivity_zoom;
 cvar_t *m_sensitivity;
 cvar_t *m_yaw;
+cvar_t *debug_m_capture;
 
 // key strokes queued per frame, power of 2
 #define MAX_KEY_QUEUE 64
@@ -343,7 +344,7 @@ static void Cl_MouseMove(int32_t mx, int32_t my) {
 		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
 	}
 
-	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed) {
+	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed && debug_m_capture->integer != 0) {
 		// warp the cursor back to the center of the screen
 		SDL_WarpMouse(r_context.width / 2, r_context.height / 2);
 	}
@@ -411,7 +412,7 @@ void Cl_HandleEvents(void) {
 		cls.mouse_state.grabbed = false;
 	}
 
-	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI) {
+	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI || debug_m_capture->integer == 0) {
 		if (!r_context.fullscreen) {
 			// allow cursor to move outside window on console or menu
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
@@ -575,6 +576,7 @@ void Cl_InitInput(void) {
 	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
 	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
+	debug_m_capture = Cvar_Get("debug_m_capture", "1", 0, NULL);
 
 	Cl_ClearInput();
 
