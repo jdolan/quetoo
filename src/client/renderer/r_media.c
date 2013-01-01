@@ -75,6 +75,8 @@ static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
  * of its dependencies as well.
  */
 void R_RegisterMedia(r_media_t *media) {
+	if(!media || !media->name)  //make sure we actually have media
+		return;
 
 	// check to see if we're already registered
 	if (media->seed != r_media_state.seed) {

@@ -459,20 +459,23 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 static void R_RegisterMaterial(r_media_t *self) {
 	r_material_t *mat = (r_material_t *) self;
 
-	R_RegisterDependency(self, (r_media_t *) mat->diffuse);
-	R_RegisterDependency(self, (r_media_t *) mat->normalmap);
-	R_RegisterDependency(self, (r_media_t *) mat->glossmap);
+	//if(mat->diffuse)
+	R_RegisterDependency(self, &mat->diffuse->media);
+	//if(mat->normalmap)
+	R_RegisterDependency(self, &mat->normalmap->media);
+	//if(mat->glossmap)
+	R_RegisterDependency(self, &mat->glossmap->media);
 
 	r_stage_t *s = mat->stages;
 	while (s) {
-		R_RegisterDependency(self, (r_media_t *) s->image);
+		R_RegisterDependency(self, &s->image->media);
 
 		uint16_t i;
 		for (i = 0; i < s->anim.num_frames; i++) {
-			R_RegisterDependency(self, (r_media_t *) s->anim.frames[i]);
+			R_RegisterDependency(self, &s->anim.frames[i]->media);
 		}
 
-		R_RegisterDependency(self, (r_media_t *) s->material);
+		R_RegisterDependency(self, &s->material->media);
 		s = s->next;
 	}
 }
@@ -509,7 +512,7 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 		mat->parallax = DEFAULT_PARALLAX;
 		mat->specular = DEFAULT_SPECULAR;
 
-		R_RegisterMedia((r_media_t *) mat);
+		R_RegisterMedia(&mat->media);
 	}
 
 	return mat;
