@@ -49,8 +49,7 @@ typedef struct search_path_s {
 static search_path_t *fs_search_paths;
 static search_path_t *fs_base_search_paths; // without gamedirs
 
-static GHashTable * fs_hash_table; // pakfiles are pushed into a hash
-
+static GHashTable *fs_hash_table; // known files are pushed into a hash
 
 /*
  * @brief
@@ -328,9 +327,9 @@ static const char *Fs_Homedir(void) {
 	}
 
 	if(*homedir != '\0') // append our directory name
-		strcat(homedir, "/My Games/Quake2World");
+	strcat(homedir, "/My Games/Quake2World");
 	else // or simply use ./
-		strcat(homedir, PKGDATADIR);
+	strcat(homedir, PKGDATADIR);
 #else
 	g_snprintf(homedir, sizeof(homedir), "%s/.quake2world", getenv("HOME"));
 #endif
@@ -419,9 +418,9 @@ void Fs_ExecAutoexec(void) {
 
 static gboolean FS_SetGame_(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
 
-	if(strstr((char *)key, (char *)data))
+	if (strstr((char *) key, (char *) data))
 		return false;
-	Pak_FreePakfile((pak_t *)value);
+	Pak_FreePakfile((pak_t *) value);
 	return true;
 }
 
@@ -430,8 +429,6 @@ static gboolean FS_SetGame_(gpointer key __attribute__((unused)), gpointer value
  */
 void Fs_SetGame(const char *dir) {
 	search_path_t *s;
-	pak_t *pak;
-	int32_t i;
 
 	if (!dir || !*dir) {
 		dir = DEFAULT_GAME;
@@ -561,8 +558,7 @@ void Fs_Init(void) {
 			strcpy(c + strlen("Quake2World.app/Contents/"), "Resources/"DEFAULT_GAME);
 			Fs_AddSearchPath(path);
 		}
-	}
-	else {
+	} else {
 		Com_Warn("Fs_Init: Failed to resolve executable path\n");
 	}
 #elif __LINUX__
@@ -606,32 +602,36 @@ void Fs_Init(void) {
 }
 
 typedef struct fs_complete_file_s {
-	char *name;
-	char *dir;
+	const char *name;
+	const char *dir;
 	GList *list;
 } fs_complete_file_t;
 
-static void Fs_CompleteFile_(gpointer key, __attribute__((unused))gpointer value, gpointer data){
-	fs_complete_file_t *matches = (fs_complete_file_t *)data;
-	if(GlobMatch(matches->name, (char *)key))
-		matches->list = g_list_prepend(matches->list, key + strlen(matches->dir));
+/*
+ * @brief GHFunc for Fs_CompleteFile.
+ */
+static void Fs_CompleteFile_(gpointer key, __attribute__((unused)) gpointer value, gpointer data) {
+	char *path = (char *) key;
+	fs_complete_file_t *matches = (fs_complete_file_t *) data;
+
+	if (GlobMatch(matches->name, (char *) key)) {
+		matches->list = g_list_prepend(matches->list, path + strlen(matches->dir));
+	}
 }
 
 /*
- * @brief
+ * @brief Console completion for file names.
  */
-int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[]) {
+int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
+		const char *matches[]) {
 	static char file_list[MAX_QPATH * 256];
 	char *fl = file_list;
 	const char *n;
 	char name[MAX_OSPATH];
 	const search_path_t *s;
- 	fs_complete_file_t files;
-	int32_t i = 0;
-	int32_t m = 0;
-	GList *head;
+	fs_complete_file_t files;
 
-	files.name = &name;
+	files.name = name;
 	files.dir = dir;
 	files.list = NULL;
 
@@ -658,12 +658,14 @@ int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
 	g_hash_table_foreach(fs_hash_table, Fs_CompleteFile_, &files);
 
 	// sort in alphabetical order
-	files.list = g_list_sort(files.list, g_strcmp0);
+	files.list = g_list_sort(files.list, (GCompareFunc) g_strcmp0);
 
-	head = files.list;
+	GList *head = files.list;
+	int32_t i, j = g_list_length(head);
+
 	// print32_t out list of matches (minus duplicates)
-	for (i = 0; i < g_list_length(head); i++) {
-		matches[i] = (char *)files.list->data;
+	for (i = 0; i < j; i++) {
+		matches[i] = (char *) files.list->data;
 		files.list = files.list->next;
 		if (i == 0 || strcmp(matches[i], matches[i - 1])) {
 			strncpy(name, matches[i], MAX_OSPATH);
@@ -674,5 +676,5 @@ int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix,
 	}
 	g_list_free(head);
 
-	return m;
+	return j;
 }
