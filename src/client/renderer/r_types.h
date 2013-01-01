@@ -47,7 +47,7 @@ typedef int16_t r_pixel_t;
 // image types
 typedef enum {
 	IT_NULL = 0,
-	IT_GENERATED = 1,
+	IT_PROGRAM = 1,
 	IT_FONT = 2 + (IT_MASK_FILTER),
 	IT_EFFECT = 3 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_DIFFUSE = 4 + (IT_MASK_MIPMAP | IT_MASK_FILTER),

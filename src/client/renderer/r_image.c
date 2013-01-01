@@ -319,7 +319,7 @@ static void R_InitWarpImage(void) {
 	r_image_state.warp->media.Free = R_FreeImage;
 
 	r_image_state.warp->width = r_image_state.warp->height = WARP_SIZE;
-	r_image_state.warp->type = IT_GENERATED;
+	r_image_state.warp->type = IT_PROGRAM;
 
 	byte data[WARP_SIZE][WARP_SIZE][4];
 	r_pixel_t i, j;
@@ -340,7 +340,7 @@ static void R_InitWarpImage(void) {
  * @brief Initializes the mesh shell image.
  */
 static void R_InitShellImage() {
-	r_image_state.shell = R_LoadImage("envmaps/envmap_2", IT_EFFECT);
+	r_image_state.shell = R_LoadImage("envmaps/envmap_2", IT_PROGRAM);
 }
 
 /*
