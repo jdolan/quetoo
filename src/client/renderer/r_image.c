@@ -294,8 +294,10 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
  */
 static void R_InitNullImage(void) {
 
-	r_image_state.null = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
-	strcpy(r_image_state.null->media.name, "r_null_image");
+	r_image_state.null = (r_image_t *) R_MallocMedia("r_image_state.null", sizeof(r_image_t));
+	r_image_state.null->media.Retain = R_RetainImage;
+	r_image_state.null->media.Free = R_FreeImage;
+
 	r_image_state.null->width = r_image_state.null->height = 16;
 	r_image_state.null->type = IT_NULL;
 
@@ -312,8 +314,10 @@ static void R_InitNullImage(void) {
  */
 static void R_InitWarpImage(void) {
 
-	r_image_state.warp = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
-	strcpy(r_image_state.warp->media.name, "r_warp_image");
+	r_image_state.warp = (r_image_t *) R_MallocMedia("r_image_state.warp", sizeof(r_image_t));
+	r_image_state.warp->media.Retain = R_RetainImage;
+	r_image_state.warp->media.Free = R_FreeImage;
+
 	r_image_state.warp->width = r_image_state.warp->height = WARP_SIZE;
 	r_image_state.warp->type = IT_GENERATED;
 
