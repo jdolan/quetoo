@@ -117,7 +117,7 @@ static void R_ResolveBspLightParameters(void) {
 	Com_Debug("Resolved contrast: %1.2f\n", r_locals.contrast);
 
 #if 0
-	//apply brightness, saturation and contrast to the colors
+	// apply brightness, saturation and contrast to the colors
 	ColorFilter(r_locals.ambient_light, r_locals.ambient_light,
 			r_locals.brightness, r_locals.saturation, r_locals.contrast);
 
@@ -143,7 +143,7 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, float radius, vec3_t c
 		return;
 	}
 
-	r_bsp_light_t *l;
+	r_bsp_light_t *l = NULL;
 	GList *e = r_bsp_light_state.lights;
 	while (e) {
 		vec3_t delta;
