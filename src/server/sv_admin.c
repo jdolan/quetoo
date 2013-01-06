@@ -346,6 +346,7 @@ void Sv_InitCommands(void) {
 	if (dedicated->value) {
 		Cmd_AddCommand("say", Sv_Say_f, 0, "Send a global chat message");
 		Cmd_AddCommand("tell", Sv_Tell_f, 0, "Send a private chat message");
+		// stuff here
 	}
 }
 
