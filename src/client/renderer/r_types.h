@@ -693,6 +693,7 @@ typedef enum render_mode_s {
 #define WEATHER_RAIN 		1
 #define WEATHER_SNOW 		2
 #define WEATHER_FOG 		4
+#define WEATHER_PRECIP_MASK	(WEATHER_RAIN | WEATHER_SNOW)
 
 #define FOG_START			300.0
 #define FOG_END				2500.0

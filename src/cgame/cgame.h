@@ -26,9 +26,6 @@
 
 #define CGAME_API_VERSION 1
 
-#define TAG_CGAME 32
-#define TAG_CGAME_MEDIA 33
-
 // exposed to the client game by the engine
 typedef struct cg_import_s {
 

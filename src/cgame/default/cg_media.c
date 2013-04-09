@@ -72,6 +72,7 @@ void Cg_UpdateMedia(void) {
 	char name[MAX_QPATH];
 
 	cgi.FreeTag(Z_TAG_CGAME);
+	cgi.FreeTag(Z_TAG_CGAME_LEVEL);
 
 	cg_sample_blaster_fire = cgi.LoadSample("weapons/blaster/fire");
 	cg_sample_blaster_hit = cgi.LoadSample("weapons/blaster/hit");
