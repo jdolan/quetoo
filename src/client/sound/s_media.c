@@ -171,6 +171,8 @@ void S_LoadMedia(void) {
 		cl.music_precache[i] = S_LoadMusic(cl.config_strings[CS_MUSICS + i]);
 	}
 
+	S_NextTrack_f();
+
 	Cl_LoadProgress(85);
 
 	s_env.update = true;

@@ -162,13 +162,16 @@ static void S_PlayMusic(s_music_t *music) {
 static s_music_t *S_NextMusic(void) {
 	GList *elt;
 
-	if ((elt = g_list_find(s_music_state.playlist, s_music_state.current_music))) {
+	if (g_list_length(s_music_state.playlist)) {
 
-		if (elt->next) {
-			return (s_music_t *) elt->next->data;
-		} else {
-			return g_list_nth_data(s_music_state.playlist, 0);
+		if ((elt = g_list_find(s_music_state.playlist, s_music_state.current_music))) {
+
+			if (elt->next) {
+				return (s_music_t *) elt->next->data;
+			}
 		}
+
+		return g_list_nth_data(s_music_state.playlist, 0);
 	}
 
 	return s_music_state.default_music;
@@ -180,7 +183,7 @@ static s_music_t *S_NextMusic(void) {
  */
 void S_FrameMusic(void) {
 	extern cl_static_t cls;
-	s_music_t *music;
+	static cl_state_t s = CL_UNINITIALIZED;
 
 	if (s_music_volume->modified) {
 		s_music_volume->value = Clamp(s_music_volume->value, 0.0, 1.0);
@@ -194,23 +197,16 @@ void S_FrameMusic(void) {
 	if (!s_music_volume->value)
 		return;
 
-	music = s_music_state.default_music;
-
-	if (cls.state == CL_ACTIVE) { // try level-specific music
-
-		if (!Mix_PlayingMusic() || (s_music_state.current_music == s_music_state.default_music)) {
-
-			if ((music = S_NextMusic()) != s_music_state.current_music)
-				S_StopMusic();
-		}
-	} else { // select the default music
-
-		if (s_music_state.current_music != s_music_state.default_music)
-			S_StopMusic();
+	// revert to the default music when the client disconnects
+	if (s == CL_ACTIVE && cls.state != CL_ACTIVE) {
+		S_FlushPlaylist();
+		S_StopMusic();
 	}
 
-	if (!Mix_PlayingMusic()) // play it
-		S_PlayMusic(music);
+	s = cls.state;
+
+	if (!Mix_PlayingMusic())
+		S_NextTrack_f();
 }
 
 /*
@@ -227,7 +223,7 @@ void S_InitMusic(void) {
 
 	memset(&s_music_state, 0, sizeof(s_music_state));
 
-	s_music_state.default_music = S_LoadMusic("track1");
+	s_music_state.default_music = S_LoadMusic("track3");
 }
 
 /*
