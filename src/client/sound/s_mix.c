@@ -87,8 +87,8 @@ void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_
 	if (!s_env.initialized)
 		return;
 
-	if (sample && sample->name[0] == '*') // resolve the model-specific sample
-		sample = S_LoadModelSample(&cl.entities[ent_num].current, sample->name);
+	if (sample && sample->media.name[0] == '*') // resolve the model-specific sample
+		sample = S_LoadModelSample(&cl.entities[ent_num].current, sample->media.name);
 
 	if (!sample || !sample->chunk)
 		return;

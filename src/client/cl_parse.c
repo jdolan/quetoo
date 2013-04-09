@@ -123,6 +123,24 @@ void Cl_Download_f(void) {
 }
 
 /*
+ * @brief The server sends this command just after server_data. Hang onto the spawn
+ * count and check for the media we'll need to enter the game.
+ */
+void Cl_Precache_f(void) {
+
+	if (Cmd_Argc() != 2) {
+		Com_Print("Usage: %s <spawn_count>\n", Cmd_Argv(0));
+		return;
+	}
+
+	cls.spawn_count = strtoul(Cmd_Argv(1), NULL, 0);
+
+	cl.precache_check = CS_PAK;
+
+	Cl_RequestNextDownload();
+}
+
+/*
  * @brief
  */
 static void Cl_ParseBaseline(void) {
@@ -153,7 +171,7 @@ void Cl_ParseConfigString(void) {
 
 	if (i > CS_MODELS && i < CS_MODELS + MAX_MODELS) {
 		if (cls.state == CL_ACTIVE) {
-			cl.model_draw[i - CS_MODELS] = R_LoadModel(s);
+			cl.model_precache[i - CS_MODELS] = R_LoadModel(s);
 			if (cl.config_strings[i][0] == '*') {
 				cl.model_clip[i - CS_MODELS] = Cm_Model(s);
 			} else {

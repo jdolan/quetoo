@@ -40,6 +40,7 @@
 #include "cl_input.h"
 #include "cl_keys.h"
 #include "cl_main.h"
+#include "cl_media.h"
 #include "cl_parse.h"
 #include "cl_predict.h"
 #include "cl_screen.h"

@@ -15,6 +15,7 @@ noinst_HEADERS = \
 	cl_keys.h \
 	cl_local.h \
 	cl_main.h \
+	cl_media.h \
 	cl_parse.h \
 	cl_predict.h \
 	cl_screen.h \
@@ -38,6 +39,7 @@ libclient_la_SOURCES = \
 	cl_input.c \
 	cl_keys.c \
 	cl_main.c \
+	cl_media.c \
 	cl_parse.c \
 	cl_predict.c \
 	cl_screen.c \

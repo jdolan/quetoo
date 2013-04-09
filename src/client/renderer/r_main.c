@@ -366,8 +366,7 @@ static void R_ToggleFullscreen_f(void) {
 static void R_InitLocal(void) {
 
 	// development tools
-	r_clear
-			= Cvar_Get("r_clear", "0", 0, "Controls screen clearing at each frame (developer tool)");
+	r_clear = Cvar_Get("r_clear", "0", 0, "Controls buffer clearing (developer tool)");
 	r_cull = Cvar_Get("r_cull", "1", CVAR_LO_ONLY,
 			"Controls bounded box culling routines (developer tool)");
 	r_lock_vis = Cvar_Get("r_lock_vis", "0", CVAR_LO_ONLY,
@@ -439,8 +438,8 @@ static void R_InitLocal(void) {
 			"Controls the specularity of bump-mapping effects");
 	r_swap_interval = Cvar_Get("r_swap_interval", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls vertical refresh synchronization (v-sync)");
-	r_texture_mode = Cvar_Get("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA,
-			"Specifies the active texture filtering mode");
+	r_texture_mode = Cvar_Get("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR",
+			CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
 	r_vertex_buffers = Cvar_Get("r_vertex_buffers", "1", CVAR_ARCHIVE,
 			"Controls the use of vertex buffer objects (VBO)");
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
@@ -451,8 +450,7 @@ static void R_InitLocal(void) {
 	// prevent unnecessary reloading for initial values
 	Cvar_ClearVars(CVAR_R_MASK);
 
-	Cmd_AddCommand("r_list_media", R_ListMedia_f, 0,
-			"List the names of all currently loaded media");
+	Cmd_AddCommand("r_list_media", R_ListMedia_f, 0, "List all currently loaded media");
 
 	Cmd_AddCommand("r_screenshot", R_Screenshot_f, CMD_SYSTEM, "Take a screenshot");
 

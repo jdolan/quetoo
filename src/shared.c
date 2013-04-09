@@ -729,7 +729,8 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
  *
  * To suppress the special syntactic significance of any of `[]*?!-\',
  * and match the character exactly, precede it with a `\'.
- */bool GlobMatch(const char *pattern, const char *text) {
+ */
+bool GlobMatch(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
 	register char c;
 

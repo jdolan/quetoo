@@ -22,13 +22,13 @@
 #ifndef __S_MUSIC_H__
 #define __S_MUSIC_H__
 
-
-
 #ifdef __S_LOCAL_H__
 
+void S_FlushPlaylist(void);
 void S_FrameMusic(void);
 void S_InitMusic(void);
-void S_LoadMusics(void);
+s_music_t *S_LoadMusic(const char *name);
+void S_NextTrack_f(void);
 void S_ShutdownMusic(void);
 
 #endif /* __S_LOCAL_H__ */

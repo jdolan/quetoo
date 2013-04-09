@@ -25,65 +25,6 @@
 extern cl_client_t cl;
 extern cl_static_t cls;
 
-/*
- * @brief
- */
-static s_sample_t *S_AllocSample(void) {
-	int32_t i;
-
-	// find a free sample
-	for (i = 0; i < s_env.num_samples; i++) {
-		if (!s_env.samples[i].name[0])
-			break;
-	}
-
-	if (i == s_env.num_samples) {
-		if (s_env.num_samples == MAX_SAMPLES) {
-			Com_Warn("S_AllocSample: MAX_SAMPLES reached.\n");
-			return NULL;
-		}
-		s_env.num_samples++;
-	}
-
-	memset(&s_env.samples[i], 0, sizeof(s_env.samples[0]));
-	return &s_env.samples[i];
-}
-
-/*
- * @brief
- */
-static s_sample_t *S_FindName(const char *name) {
-	char basename[MAX_QPATH];
-	int32_t i;
-
-	memset(basename, 0, sizeof(basename));
-	StripExtension(name, basename);
-
-	// see if it's already loaded
-	for (i = 0; i < s_env.num_samples; i++) {
-		if (!strcmp(s_env.samples[i].name, basename))
-			return &s_env.samples[i];
-	}
-
-	return NULL;
-}
-
-/*
- * @brief
- */
-static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
-	s_sample_t *s;
-
-	if (!(s = S_AllocSample()))
-		return NULL;
-
-	g_strlcpy(s->name, alias, sizeof(s->name));
-	s->chunk = sample->chunk;
-	s->alias = true;
-
-	return s;
-}
-
 static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
 
 /*
@@ -95,14 +36,13 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	int32_t i, len;
 	SDL_RWops *rw;
 
-	if (sample->name[0] == '*') // place holder
+	if (sample->media.name[0] == '*') // place holder
 		return;
 
-	if (sample->name[0] == '#') { // global path
-		g_strlcpy(path, (sample->name + 1), sizeof(path));
-	} else {
-		// or relative
-		g_snprintf(path, sizeof(path), "sounds/%s", sample->name);
+	if (sample->media.name[0] == '#') { // global path
+		g_strlcpy(path, (sample->media.name + 1), sizeof(path));
+	} else { // or relative
+		g_snprintf(path, sizeof(path), "sounds/%s", sample->media.name);
 	}
 
 	buf = NULL;
@@ -136,7 +76,18 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	if (sample->chunk)
 		Mix_VolumeChunk(sample->chunk, s_volume->value * MIX_MAX_VOLUME);
 	else
-		Com_Warn("S_LoadSoundChunk: Failed to load %s.\n", sample->name);
+		Com_Warn("S_LoadSoundChunk: Failed to load %s.\n", sample->media.name);
+}
+
+/*
+ * @brief Free event listener for s_sample_t.
+ */
+static void S_FreeSample(s_media_t *self) {
+	s_sample_t *sample = (s_sample_t *) self;
+
+	if (sample->chunk) {
+		Mix_FreeChunk(sample->chunk);
+	}
 }
 
 /*
@@ -150,23 +101,35 @@ s_sample_t *S_LoadSample(const char *name) {
 		return NULL;
 
 	if (!name || !name[0]) {
-		Com_Warn("S_LoadSample: NULL or empty name.\n");
-		return NULL;
+		Com_Error(ERR_DROP, "S_LoadSample: NULL name.\n");
 	}
 
 	StripExtension(name, key);
 
-	if ((sample = S_FindName(key))) // found it
-		return sample;
+	if (!(sample = (s_sample_t *) S_FindMedia(key))) {
+		sample = (s_sample_t *) S_MallocMedia(key, sizeof(s_sample_t));
 
-	if (!(sample = S_AllocSample()))
-		return NULL;
+		sample->media.Free = S_FreeSample;
 
-	g_strlcpy(sample->name, key, sizeof(sample->name));
+		S_LoadSampleChunk(sample);
 
-	S_LoadSampleChunk(sample);
+		S_RegisterMedia((s_media_t *) sample);
+	}
 
 	return sample;
+}
+
+/*
+ * @brief
+ */
+static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
+
+	s_sample_t *s = (s_sample_t *) S_MallocMedia(alias, sizeof(s_sample_t));
+
+	s->chunk = sample->chunk;
+	s->alias = true;
+
+	return s;
 }
 
 /*
@@ -210,7 +173,7 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 
 	// see if we already know of the model specific sound
 	g_snprintf(alias, sizeof(alias), "#players/%s/%s", model, name + 1);
-	sample = S_FindName(alias);
+	sample = (s_sample_t *) S_FindMedia(alias);
 
 	if (sample) // we do, use it
 		return sample;
@@ -232,34 +195,3 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 	return NULL;
 }
 
-/*
- * @brief
- */
-void S_FreeSamples(void) {
-	int32_t i;
-
-	for (i = 0; i < MAX_SAMPLES; i++) {
-		if (s_env.samples[i].chunk && !s_env.samples[i].alias)
-			Mix_FreeChunk(s_env.samples[i].chunk);
-	}
-
-	memset(s_env.samples, 0, sizeof(s_env.samples));
-	s_env.num_samples = 0;
-}
-
-/*
- * @brief
- */
-void S_LoadSamples(void) {
-	int32_t i;
-
-	S_FreeSamples();
-
-	for (i = 1; i < MAX_SOUNDS; i++) {
-
-		if (!cl.config_strings[CS_SOUNDS + i][0])
-			break;
-
-		cl.sound_precache[i] = S_LoadSample(cl.config_strings[CS_SOUNDS + i]);
-	}
-}

@@ -403,4 +403,3 @@ void R_Sky_f(void) {
 
 	R_SetSky(Cmd_Argv(1));
 }
-

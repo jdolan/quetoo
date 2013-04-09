@@ -25,18 +25,24 @@
 #include <SDL/SDL_mixer.h>
 #include "quake2world.h"
 
-typedef struct s_sample_s {
+// media handles
+typedef struct s_media_s {
 	char name[MAX_QPATH];
+	uint32_t seed;
+	bool (*Retain)(struct s_media_s *self);
+	void (*Free)(struct s_media_s *self);
+} s_media_t;
+
+typedef struct s_sample_s {
+	s_media_t media;
 	Mix_Chunk *chunk;
 	bool alias;
 } s_sample_t;
 
-#define MAX_SAMPLES (MAX_SOUNDS * 2)  // max server side sounds, plus room for local samples
-
 typedef struct s_channel_s {
-	vec3_t org;  // for temporary entities and other positioned sounds
-	int32_t ent_num;  // for entities and dynamic sounds
-	int32_t count;  // for looped sounds
+	vec3_t org; // for temporary entities and other positioned sounds
+	int32_t ent_num; // for entities and dynamic sounds
+	int32_t count; // for looped sounds
 	int32_t atten;
 	s_sample_t *sample;
 } s_channel_t;
@@ -44,26 +50,17 @@ typedef struct s_channel_s {
 #define MAX_CHANNELS 64
 
 typedef struct s_music_s {
-	char name[MAX_QPATH];
+	s_media_t media;
+	void *buffer;
+	SDL_RWops *rw;
 	Mix_Music *music;
-	void *buffer;  // remains resident while the music is active
 } s_music_t;
 
 // the sound environment
 typedef struct s_env_s {
-	s_sample_t samples[MAX_SAMPLES];
-	int32_t num_samples;
-
 	s_channel_t channels[MAX_CHANNELS];
-
-	s_music_t musics[MAX_MUSICS];
-	int32_t num_musics;
-
-	s_music_t *active_music;
-
-	bool initialized;
-
-	bool update;  // inform the client of state changes
+	bool initialized; // is the sound subsystem initialized
+	bool update; // inform the client of state changes
 } s_env_t;
 
 #endif /* __S_TYPES_H__ */

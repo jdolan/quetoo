@@ -19,25 +19,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_MEDIA_H__
-#define __R_MEDIA_H__
+#ifndef __S_MEDIA_H__
+#define __S_MEDIA_H__
 
-#include "r_types.h"
+#include "s_types.h"
 
-void R_LoadMedia(void);
+void S_LoadMedia(void);
 
-#ifdef __R_LOCAL_H__
+#ifdef __S_LOCAL_H__
 
-void R_ListMedia_f(void);
-void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency);
-void R_RegisterMedia(r_media_t *media);
-r_media_t *R_FindMedia(const char *name);
-r_media_t *R_MallocMedia(const char *name, size_t size);
-void R_FreeMedia(void);
-void R_BeginLoading(void);
-void R_InitMedia(void);
-void R_ShutdownMedia(void);
+void S_ListMedia_f(void);
+void S_RegisterMedia(s_media_t *media);
+s_media_t *S_FindMedia(const char *name);
+s_media_t *S_MallocMedia(const char *name, size_t size);
+void S_FreeMedia(void);
+void S_BeginLoading(void);
+void S_InitMedia(void);
+void S_ShutdownMedia(void);
 
-#endif /* __R_LOCAL_H__ */
+#endif /* __S_LOCAL_H__ */
 
-#endif /* __R_MEDIA_H__ */
+#endif /* __S_MEDIA_H__ */

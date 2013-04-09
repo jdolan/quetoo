@@ -28,40 +28,25 @@ typedef struct {
 
 static void G_worldspawn(g_edict_t *ent);
 
-static spawn_t g_spawns[] = {
-		{ "info_player_start", G_info_player_start },
-		{ "info_player_deathmatch", G_info_player_deathmatch },
-		{ "info_player_team1", G_info_player_team1 },
-		{ "info_player_team2", G_info_player_team2 },
-		{ "info_player_intermission", G_info_player_intermission },
-		{ "info_null", G_info_null },
-		{ "info_notnull", G_info_notnull },
+static spawn_t g_spawns[] = { { "info_player_start", G_info_player_start }, {
+		"info_player_deathmatch", G_info_player_deathmatch }, { "info_player_team1",
+		G_info_player_team1 }, { "info_player_team2", G_info_player_team2 }, {
+		"info_player_intermission", G_info_player_intermission }, { "info_null", G_info_null }, {
+		"info_notnull", G_info_notnull },
 
-		{ "func_plat", G_func_plat },
-		{ "func_button", G_func_button },
-		{ "func_door", G_func_door },
-		{ "func_rotating", G_func_rotating },
-		{ "func_train", G_func_train },
-		{ "func_conveyor", G_func_conveyor },
-		{ "func_areaportal", G_func_areaportal },
-		{ "func_wall", G_func_wall },
-		{ "func_water", G_func_water },
-		{ "func_timer", G_func_timer },
-		{ "func_killbox", G_func_killbox },
+{ "func_plat", G_func_plat }, { "func_button", G_func_button }, { "func_door", G_func_door }, {
+		"func_rotating", G_func_rotating }, { "func_train", G_func_train }, { "func_conveyor",
+		G_func_conveyor }, { "func_areaportal", G_func_areaportal }, { "func_wall", G_func_wall },
+		{ "func_water", G_func_water }, { "func_timer", G_func_timer }, { "func_killbox",
+				G_func_killbox },
 
-		{ "trigger_always", G_trigger_always },
-		{ "trigger_once", G_trigger_once },
-		{ "trigger_multiple", G_trigger_multiple },
-		{ "trigger_relay", G_trigger_relay },
-		{ "trigger_push", G_trigger_push },
-		{ "trigger_hurt", G_trigger_hurt },
-		{ "trigger_exec", G_trigger_exec },
-		{ "trigger_teleporter", G_misc_teleporter },
+		{ "trigger_always", G_trigger_always }, { "trigger_once", G_trigger_once }, {
+				"trigger_multiple", G_trigger_multiple }, { "trigger_relay", G_trigger_relay }, {
+				"trigger_push", G_trigger_push }, { "trigger_hurt", G_trigger_hurt }, {
+				"trigger_exec", G_trigger_exec }, { "trigger_teleporter", G_misc_teleporter },
 
-		{ "target_speaker", G_target_speaker },
-		{ "target_explosion", G_target_explosion },
-		{ "target_splash", G_target_splash },
-		{ "target_string", G_target_string },
+		{ "target_speaker", G_target_speaker }, { "target_explosion", G_target_explosion }, {
+				"target_splash", G_target_splash }, { "target_string", G_target_string },
 
 		{ "worldspawn", G_worldspawn },
 
@@ -154,56 +139,39 @@ static const g_field_t fields[] = {
 
 		// normal fields, notice the hack for area portals, which used to be
 		// the overloaded "style" field in legacy levels
-		{ "classname", FOFS(class_name), F_STRING, 0 },
-		{ "model", FOFS(model), F_STRING, 0 },
-		{ "spawnflags", FOFS(spawn_flags), F_INT, 0 },
-		{ "speed", FOFS(speed), F_FLOAT, 0 },
-		{ "accel", FOFS(accel), F_FLOAT, 0 },
-		{ "decel", FOFS(decel), F_FLOAT, 0 },
-		{ "target", FOFS(target), F_STRING, 0 },
-		{ "targetname", FOFS(target_name), F_STRING, 0 },
-		{ "pathtarget", FOFS(path_target), F_STRING, 0 },
-		{ "killtarget", FOFS(kill_target), F_STRING, 0 },
-		{ "message", FOFS(message), F_STRING, 0 },
-		{ "team", FOFS(team), F_STRING, 0 },
-		{ "command", FOFS(command), F_STRING, 0 },
-		{ "script", FOFS(script), F_STRING, 0 },
-		{ "wait", FOFS(wait), F_FLOAT, 0 },
-		{ "delay", FOFS(delay), F_FLOAT, 0 },
-		{ "random", FOFS(random), F_FLOAT, 0 },
-		{ "style", FOFS(area_portal), F_INT, 0 },
-		{ "areaportal", FOFS(area_portal), F_INT, 0 },
-		{ "count", FOFS(count), F_INT, 0 },
-		{ "health", FOFS(health), F_SHORT, 0 },
-		{ "sounds", FOFS(sounds), F_SHORT, 0 },
-		{ "dmg", FOFS(dmg), F_SHORT, 0 },
-		{ "mass", FOFS(mass), F_FLOAT, 0 },
-		{ "attenuation", FOFS(attenuation), F_SHORT, 0 },
-		{ "origin", FOFS(s.origin), F_VECTOR, 0 },
-		{ "angles", FOFS(s.angles), F_VECTOR, 0 },
+		{ "classname", FOFS(class_name), F_STRING, 0 }, { "model", FOFS(model), F_STRING, 0 }, {
+				"spawnflags", FOFS(spawn_flags), F_INT, 0 }, { "speed", FOFS(speed), F_FLOAT, 0 },
+		{ "accel", FOFS(accel), F_FLOAT, 0 }, { "decel", FOFS(decel), F_FLOAT, 0 }, { "target",
+				FOFS(target), F_STRING, 0 }, { "targetname", FOFS(target_name), F_STRING, 0 }, {
+				"pathtarget", FOFS(path_target), F_STRING, 0 }, { "killtarget", FOFS(kill_target),
+				F_STRING, 0 }, { "message", FOFS(message), F_STRING, 0 }, { "team", FOFS(team),
+				F_STRING, 0 }, { "command", FOFS(command), F_STRING, 0 }, { "script", FOFS(script),
+				F_STRING, 0 }, { "wait", FOFS(wait), F_FLOAT, 0 }, { "delay", FOFS(delay), F_FLOAT,
+				0 }, { "random", FOFS(random), F_FLOAT, 0 },
+		{ "style", FOFS(area_portal), F_INT, 0 }, { "areaportal", FOFS(area_portal), F_INT, 0 }, {
+				"count", FOFS(count), F_INT, 0 }, { "health", FOFS(health), F_SHORT, 0 }, {
+				"sounds", FOFS(sounds), F_SHORT, 0 }, { "dmg", FOFS(dmg), F_SHORT, 0 }, { "mass",
+				FOFS(mass), F_FLOAT, 0 }, { "attenuation", FOFS(attenuation), F_SHORT, 0 }, {
+				"origin", FOFS(s.origin), F_VECTOR, 0 }, { "angles", FOFS(s.angles), F_VECTOR, 0 },
 		{ "angle", FOFS(s.angles), F_ANGLE, 0 },
 
 		// temp spawn vars -- only valid when the spawn function is called
-		{ "lip", SOFS(lip), F_INT, FFL_SPAWN_TEMP },
-		{ "distance", SOFS(distance), F_INT, FFL_SPAWN_TEMP },
-		{ "height", SOFS(height), F_INT, FFL_SPAWN_TEMP },
-		{ "noise", SOFS(noise), F_STRING, FFL_SPAWN_TEMP },
-		{ "pausetime", SOFS(pause_time), F_FLOAT, FFL_SPAWN_TEMP },
-		{ "item", SOFS(item), F_STRING, FFL_SPAWN_TEMP },
+		{ "lip", SOFS(lip), F_INT, FFL_SPAWN_TEMP }, { "distance", SOFS(distance), F_INT,
+				FFL_SPAWN_TEMP }, { "height", SOFS(height), F_INT, FFL_SPAWN_TEMP }, { "noise",
+				SOFS(noise), F_STRING, FFL_SPAWN_TEMP }, { "pausetime", SOFS(pause_time),
+				F_FLOAT, FFL_SPAWN_TEMP }, { "item", SOFS(item), F_STRING, FFL_SPAWN_TEMP },
 
 		// world vars, we use strings to differentiate between 0 and unset
-		{ "sky", SOFS(sky), F_STRING, FFL_SPAWN_TEMP },
-		{ "weather", SOFS(weather), F_STRING, FFL_SPAWN_TEMP },
-		{ "gravity", SOFS(gravity), F_STRING, FFL_SPAWN_TEMP },
-		{ "gameplay", SOFS(gameplay), F_STRING, FFL_SPAWN_TEMP },
-		{ "teams", SOFS(teams), F_STRING, FFL_SPAWN_TEMP },
-		{ "ctf", SOFS(ctf), F_STRING, FFL_SPAWN_TEMP },
-		{ "match", SOFS(match), F_STRING, FFL_SPAWN_TEMP },
-		{ "frag_limit", SOFS(frag_limit), F_STRING, FFL_SPAWN_TEMP },
-		{ "round_limit", SOFS(round_limit), F_STRING, FFL_SPAWN_TEMP },
-		{ "capture_limit", SOFS(capture_limit), F_STRING, FFL_SPAWN_TEMP },
-		{ "time_limit", SOFS(time_limit), F_STRING, FFL_SPAWN_TEMP },
-		{ "give", SOFS(give), F_STRING, FFL_SPAWN_TEMP },
+		{ "sky", SOFS(sky), F_STRING, FFL_SPAWN_TEMP }, { "weather", SOFS(weather), F_STRING,
+				FFL_SPAWN_TEMP }, { "gravity", SOFS(gravity), F_STRING, FFL_SPAWN_TEMP }, {
+				"gameplay", SOFS(gameplay), F_STRING, FFL_SPAWN_TEMP }, { "teams", SOFS(teams),
+				F_STRING, FFL_SPAWN_TEMP }, { "ctf", SOFS(ctf), F_STRING, FFL_SPAWN_TEMP }, {
+				"match", SOFS(match), F_STRING, FFL_SPAWN_TEMP }, { "frag_limit", SOFS(frag_limit),
+				F_STRING, FFL_SPAWN_TEMP }, { "round_limit", SOFS(round_limit), F_STRING,
+				FFL_SPAWN_TEMP },
+		{ "capture_limit", SOFS(capture_limit), F_STRING, FFL_SPAWN_TEMP }, { "time_limit",
+				SOFS(time_limit), F_STRING, FFL_SPAWN_TEMP }, { "give", SOFS(give), F_STRING,
+				FFL_SPAWN_TEMP },
 
 		{ 0, 0, 0, 0 } };
 
@@ -226,32 +194,32 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 				b = (byte *) ent;
 
 			switch (f->type) {
-			case F_SHORT:
-				*(int16_t *) (b + f->ofs) = (int16_t) atoi(value);
-				break;
-			case F_INT:
-				*(int32_t *) (b + f->ofs) = atoi(value);
-				break;
-			case F_FLOAT:
-				*(float *) (b + f->ofs) = atof(value);
-				break;
-			case F_STRING:
-				*(char **) (b + f->ofs) = G_NewString(value);
-				break;
-			case F_VECTOR:
-				sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
-				((float *) (b + f->ofs))[0] = vec[0];
-				((float *) (b + f->ofs))[1] = vec[1];
-				((float *) (b + f->ofs))[2] = vec[2];
-				break;
-			case F_ANGLE:
-				v = atof(value);
-				((float *) (b + f->ofs))[0] = 0;
-				((float *) (b + f->ofs))[1] = v;
-				((float *) (b + f->ofs))[2] = 0;
-				break;
-			default:
-				break;
+				case F_SHORT:
+					*(int16_t *) (b + f->ofs) = (int16_t) atoi(value);
+					break;
+				case F_INT:
+					*(int32_t *) (b + f->ofs) = atoi(value);
+					break;
+				case F_FLOAT:
+					*(float *) (b + f->ofs) = atof(value);
+					break;
+				case F_STRING:
+					*(char **) (b + f->ofs) = G_NewString(value);
+					break;
+				case F_VECTOR:
+					sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
+					((float *) (b + f->ofs))[0] = vec[0];
+					((float *) (b + f->ofs))[1] = vec[1];
+					((float *) (b + f->ofs))[2] = vec[2];
+					break;
+				case F_ANGLE:
+					v = atof(value);
+					((float *) (b + f->ofs))[0] = 0;
+					((float *) (b + f->ofs))[1] = v;
+					((float *) (b + f->ofs))[2] = 0;
+					break;
+				default:
+					break;
 			}
 			return;
 		}
@@ -481,12 +449,16 @@ static void G_WorldspawnMusic(void) {
 	char *t, buf[MAX_STRING_CHARS];
 	int32_t i;
 
-	if (*g_level.music == '\0')
+	if (*g_level.music == '\0') {
+		for (i = 0; i < MAX_MUSICS; i++) {
+			gi.ConfigString(CS_MUSICS + i, va("track%d", i + 1));
+		}
 		return;
+	}
 
 	g_strlcpy(buf, g_level.music, sizeof(buf));
 
-	i = 1;
+	i = 0;
 	t = strtok(buf, ",");
 
 	while (true) {
@@ -577,9 +549,9 @@ static void G_worldspawn(g_edict_t *ent) {
 			g_level.gravity = 800;
 	}
 
-	if(strcmp(g_gameplay->string, "default")) { // perfer g_gameplay
+	if (strcmp(g_gameplay->string, "default")) { // perfer g_gameplay
 		g_level.gameplay = G_GameplayByName(g_gameplay->string);
-	} else if(map && map->gameplay > -1) { // then maps.lst gameplay
+	} else if (map && map->gameplay > -1) { // then maps.lst gameplay
 		g_level.gameplay = map->gameplay;
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.gameplay && *g_game.spawn.gameplay)
@@ -588,7 +560,7 @@ static void G_worldspawn(g_edict_t *ent) {
 			// or default to deathmatch
 			g_level.gameplay = DEATHMATCH;
 	}
-	if(g_level.gameplay == DEFAULT)
+	if (g_level.gameplay == DEFAULT)
 		g_level.gameplay = DEATHMATCH;
 	gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 

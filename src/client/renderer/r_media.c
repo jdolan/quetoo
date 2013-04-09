@@ -47,36 +47,13 @@ void R_ListMedia_f(void) {
 }
 
 /*
- * @brief
- */
-static bool R_ValidateMedia(const r_media_t *media) {
-
-	if (!media) {
-		Com_Debug("R_ValidateMedia: NULL.\n");
-		return false;
-	}
-
-	if (!media->name) {
-		Com_Warn("R_ValidateMedia: NULL name.\n");
-		return false;
-	}
-
-	if (!strlen(media->name)) {
-		Com_Warn("R_ValidateMedia: Empty name.\n");
-		return false;
-	}
-
-	return true;
-}
-
-/*
  * @brief Establishes a dependency from the specified dependent to the given
  * dependency. Dependencies in use by registered media are never freed.
  */
 void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 
-	if (R_ValidateMedia(dependent)) {
-		if (R_ValidateMedia(dependency)) {
+	if (dependent) {
+		if (dependency) {
 			if (!g_list_find(dependent->dependencies, dependency)) {
 				Com_Debug("R_RegisterDependency: %s -> %s.\n", dependent->name, dependency->name);
 				dependent->dependencies = g_list_prepend(dependent->dependencies, dependency);
@@ -98,10 +75,6 @@ static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
  * of its dependencies as well.
  */
 void R_RegisterMedia(r_media_t *media) {
-
-	if (!R_ValidateMedia(media)) {
-		Com_Error(ERR_DROP, "R_RegisterMedia: Invalid media or name\n");
-	}
 
 	// check to see if we're already seeded
 	if (media->seed != r_media_state.seed) {
@@ -138,49 +111,6 @@ void R_RegisterMedia(r_media_t *media) {
 		R_RegisterMedia((r_media_t *) d->data);
 		d = d->next;
 	}
-}
-
-/*
- * @brief Iterate the config_strings, loading all renderer-specific media.
- * TODO this is almost clean enough to be moved to the client finally
- */
-void R_LoadMedia(void) {
-	extern cl_client_t cl;
-	uint32_t i;
-
-	if (!cl.config_strings[CS_MODELS][0])
-		return; // no map specified
-
-	R_InitView();
-
-	r_media_state.seed = Sys_Milliseconds();
-
-	Cl_LoadProgress(1);
-
-	// load the world
-	R_LoadModel(cl.config_strings[CS_MODELS]);
-	Cl_LoadProgress(60);
-
-	// load all other known models
-	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
-
-		cl.model_draw[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
-
-		if (i <= 30) // bump loading progress
-			Cl_LoadProgress(60 + (i / 3));
-	}
-	Cl_LoadProgress(70);
-
-	for (i = 1; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
-		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC);
-	}
-	Cl_LoadProgress(75);
-
-	// sky environment map
-	R_SetSky(cl.config_strings[CS_SKY]);
-	Cl_LoadProgress(77);
-
-	r_view.update = true;
 }
 
 /*
@@ -251,6 +181,45 @@ void R_FreeMedia(void) {
 }
 
 /*
+ * @brief Prepares the renderer subsystem for media loading.
+ */
+void R_LoadMedia(void) {
+	extern cl_client_t cl;
+	uint32_t i;
+
+	R_InitView();
+
+	r_media_state.seed = Sys_Milliseconds();
+
+	Cl_LoadProgress(1);
+
+	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
+	Cl_LoadProgress(60);
+
+	// load all other models
+	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
+
+		cl.model_precache[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
+
+		if (i <= 30) // bump loading progress
+			Cl_LoadProgress(60 + (i / 3));
+	}
+	Cl_LoadProgress(70);
+
+	// load all known images
+	for (i = 1; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
+		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC);
+	}
+	Cl_LoadProgress(75);
+
+	// sky environment map
+	R_SetSky(cl.config_strings[CS_SKY]);
+	Cl_LoadProgress(77);
+
+	r_view.update = true;
+}
+
+/*
  * @brief Initializes the media pool.
  */
 void R_InitMedia(void) {
@@ -263,7 +232,7 @@ void R_InitMedia(void) {
 }
 
 /*
- * @brief Shutsdown the media pool.
+ * @brief Shuts down the media pool.
  */
 void R_ShutdownMedia(void) {
 
