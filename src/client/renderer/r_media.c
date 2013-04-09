@@ -187,6 +187,10 @@ void R_LoadMedia(void) {
 	extern cl_client_t cl;
 	uint32_t i;
 
+	if (!cl.config_strings[CS_MODELS][0]) {
+		return; // no map specified
+	}
+
 	R_InitView();
 
 	r_media_state.seed = Sys_Milliseconds();

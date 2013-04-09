@@ -145,6 +145,10 @@ void S_LoadMedia(void) {
 	extern cl_client_t cl;
 	uint32_t i;
 
+	if (!cl.config_strings[CS_MODELS][0]) {
+		return; // no map specified
+	}
+
 	S_FlushPlaylist();
 
 	s_media_state.seed = Sys_Milliseconds();
