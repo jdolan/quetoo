@@ -155,7 +155,7 @@ void S_LoadMedia(void) {
 
 	Cl_LoadProgress(80);
 
-	for (i = 1; i < MAX_SOUNDS; i++) { // FIXME let's use 0
+	for (i = 0; i < MAX_SOUNDS; i++) {
 
 		if (!cl.config_strings[CS_SOUNDS + i][0])
 			break;

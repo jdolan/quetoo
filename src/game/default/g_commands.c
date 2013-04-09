@@ -537,7 +537,7 @@ static void G_Say_f(g_edict_t *ent) {
 		cl->chat_time = g_level.time + 1000;
 	}
 
-	for (i = 1; i <= sv_max_clients->integer; i++) { // print32_t to clients
+	for (i = 1; i <= sv_max_clients->integer; i++) { // print to clients
 		other = &g_game.edicts[i];
 
 		if (!other->in_use)

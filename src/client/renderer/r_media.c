@@ -211,7 +211,7 @@ void R_LoadMedia(void) {
 	Cl_LoadProgress(70);
 
 	// load all known images
-	for (i = 1; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
+	for (i = 0; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
 		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC);
 	}
 	Cl_LoadProgress(75);
