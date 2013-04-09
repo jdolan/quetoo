@@ -1093,12 +1093,11 @@ void G_Score_f(g_edict_t *ent) {
  * @brief
  */
 void G_ClientCommand(g_edict_t *ent) {
-	char *cmd;
 
 	if (!ent->client)
 		return; // not fully in game yet
 
-	cmd = gi.Argv(0);
+	const char *cmd = gi.Argv(0);
 
 	if (strcasecmp(cmd, "say") == 0) {
 		G_Say_f(ent);

@@ -52,9 +52,9 @@ static int32_t cl_key_queue_tail = 0;
 
 #define EVENT_ENQUEUE(keyNum, keyUnicode, keyDown) \
 	if(keyNum > 0){ \
-		cl_key_queue[cl_key_queue_head].key = (keyNum); \
-		cl_key_queue[cl_key_queue_head].unicode = (keyUnicode); \
-		cl_key_queue[cl_key_queue_head].down = (keyDown); \
+		cl_key_queue[cl_key_queue_head].key = (SDLKey) (keyNum); \
+		cl_key_queue[cl_key_queue_head].unicode = (uint16_t) (keyUnicode); \
+		cl_key_queue[cl_key_queue_head].down = (bool) (keyDown); \
 		cl_key_queue_head = (cl_key_queue_head + 1) & (MAX_KEY_QUEUE - 1); \
 	}
 
