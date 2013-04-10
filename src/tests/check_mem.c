@@ -59,5 +59,5 @@ int main(void) {
 	int failed = Test_Run(suite);
 
 	Test_Shutdown();
-	return failed != 0;
+	return failed;
 }
