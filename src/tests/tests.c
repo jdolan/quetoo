@@ -19,14 +19,34 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __TEST_H__
-#define __TEST_H__
+#include "tests.h"
 
-#include "common.h"
+quake2world_t quake2world;
 
-extern quake2world_t quake2world;
+/**
+ * @brief Runs the specified suite, returning the number of tests that failed.
+ */
+int Test_Run(Suite *suite) {
 
-void TestInit(void);
-void TestShutdown(void);
+	SRunner *runner = srunner_create(suite);
 
-#endif /* __TEST_H__ */
+	srunner_run_all(runner, CK_NORMAL);
+	int32_t failed = srunner_ntests_failed(runner);
+
+	srunner_free(runner);
+	return failed;
+}
+
+/*
+ * @brief Initializes testing facilities.
+ */
+void Test_Init(void) {
+	memset(&quake2world, 0, sizeof(quake2world));
+}
+
+/*
+ * @brief Shuts down testing facilities.
+ */
+void Test_Shutdown(void) {
+
+}

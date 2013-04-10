@@ -19,35 +19,45 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-quake2world_t quake2world;
+#include "tests.h"
+#include "mem.h"
 
 /*
- * @brief Bootstraps core subsystems for testing.
+ * @brief Setup fixture.
  */
-void Test_Init(int32_t argc, char **argv) {
-
-	memset(&quake2world, 0, sizeof(quake2world));
-
-	signal(SIGHUP, Sys_Signal);
-	signal(SIGINT, Sys_Signal);
-	signal(SIGQUIT, Sys_Signal);
-	signal(SIGILL, Sys_Signal);
-	signal(SIGABRT, Sys_Signal);
-	signal(SIGFPE, Sys_Signal);
-	signal(SIGSEGV, Sys_Signal);
-	signal(SIGTERM, Sys_Signal);
-
+void setup(void) {
 	Z_Init();
-
-	Swap_Init();
-
-	Cvar_Init();
 }
 
 /*
- * @brief Releases any testing resources.
+ * @brief Teardown fixture.
  */
-void Test_Shutdown() {
-
+void teardown(void) {
 	Z_Shutdown();
+}
+
+START_TEST(check_mem_foo)
+	{
+		printf("hello world\n");
+	}END_TEST
+
+/*
+ * @brief Test entry point.
+ */
+int main(void) {
+
+	Test_Init();
+
+	TCase *tcase = tcase_create("check_mem");
+	tcase_add_checked_fixture(tcase, setup, teardown);
+
+	tcase_add_test(tcase, check_mem_foo);
+
+	Suite *suite = suite_create("check_mem");
+	suite_add_tcase(suite, tcase);
+
+	int failed = Test_Run(suite);
+
+	Test_Shutdown();
+	return failed != 0;
 }

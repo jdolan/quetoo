@@ -34,6 +34,7 @@ dnl Check host type
 dnl ---------------
 
 HOST_NAME=""
+HOST_CPPFLAGS=""
 HOST_CXXFLAGS=""
 HOST_CFLAGS=""
 HOST_LDFLAGS=""
@@ -49,6 +50,8 @@ AC_MSG_CHECKING([host type])
 case "$host" in
 	*-apple-*)
 		HOST_NAME="APPLE"
+		HOST_CPPFLAGS="-I/opt/local/include"
+		HOST_CXXFLAGS="-I/opt/local/include"
 		HOST_CFLAGS="-I/opt/local/include"
 		HOST_LDFLAGS="-L/opt/local/lib -headerpad_max_install_names"
 		HOST_LIBS="-ldl"
@@ -83,6 +86,7 @@ case "$host" in
 esac
 
 AC_SUBST(HOST_NAME)
+AC_SUBST(HOST_CPPFLAGS)
 AC_SUBST(HOST_CXXFLAGS)
 AC_SUBST(HOST_CFLAGS)
 AC_SUBST(HOST_LIBS)
@@ -90,6 +94,9 @@ AC_SUBST(HOST_DEBUG_CFLAGS)
 AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(HOST_PROFILE_CFLAGS)
 AC_SUBST(HOST_PROFILE_LIBS)
+
+CPPFLAGS="$CPPFLAGS $HOST_CPPFLAGS"
+AC_SUBST(CPPFLAGS)
 
 CXXFLAGS="-pipe $CXXFLAGS $HOST_CXXFLAGS"
 AC_SUBST(CXXFLAGS)
@@ -468,6 +475,28 @@ if test "x${with_master}" = xyes; then
 fi
 AC_MSG_RESULT($BUILD_MASTER)
 
+dnl ---------------------------------
+dnl Check whether to build unit tests
+dnl ---------------------------------
+
+BUILD_TESTS=no
+
+AC_ARG_WITH(tests,
+	AS_HELP_STRING([--with-tests],
+		[build unit tests]
+	)
+)
+
+AC_MSG_CHECKING(whether to build unit tests)
+
+if test "x${with_tests}" = xyes; then
+	BUILD_TESTS=yes
+	AC_MSG_RESULT($BUILD_TESTS)
+	PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
+fi
+
+AM_CONDITIONAL(BUILD_TESTS, test "x$BUILD_TESTS" = xyes)
+
 dnl -----------------
 dnl Compiler warnings
 dnl -----------------
@@ -550,11 +579,13 @@ dnl ----------------------------------------
 dnl Consolidate our core flags and libraries
 dnl ----------------------------------------
 
+BASE_CPPFLAGS=$(echo $CPPFLAGS)
 BASE_CXXFLAGS=$(echo $CXXFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
 BASE_CFLAGS=$(echo $CFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
 BASE_LIBS=$(echo $HOST_LIBS $DEBUG_LIBS $PROFILE_LIBS $WARN_LIBS)
 BASE_LDFLAGS=$(echo $LDFLAGS)
 
+AC_SUBST(BASE_CPPFLAGS)
 AC_SUBST(BASE_CXXFLAGS)
 AC_SUBST(BASE_CFLAGS)
 AC_SUBST(BASE_LIBS)
@@ -612,6 +643,7 @@ AC_CONFIG_FILES([
 	src/main/Makefile
 	src/master/Makefile
 	src/server/Makefile
+	src/tests/Makefile
 	src/tools/Makefile
 	src/tools/pak/Makefile
 	src/tools/q2wmap/Makefile
@@ -624,23 +656,22 @@ Quake2World $VERSION: Automatic configuration OK.
 
   Configuration summary:
     Platform: .......... $host
-    Compiler: .......... $CC
-    C++ Flags: ......... $BASE_CXXFLAGS
-    C Flags: ........... $BASE_CFLAGS
+    Compilers: ......... $CC, $CXX
+    Preprocessor flags.. $BASE_CPPFLAGS
+    C++ flags: ......... $BASE_CXXFLAGS
+    C flags: ........... $BASE_CFLAGS
     Libraries: ......... $BASE_LIBS
     Linking: ........... $BASE_LDFLAGS
 
-    Build client: ...... $BUILD_CLIENT
+    Client: ............ $BUILD_CLIENT
+    Game modules: ...... $GAME_MODULES
+    Tools: ............. ${TOOLS:-None}
+    Master server: ..... $BUILD_MASTER
+    Unit tests: ........ $BUILD_TESTS
 
     Options:
       curses: .......... $HAVE_CURSES
       MySQL: ........... $HAVE_MYSQL
-
-    Game modules: ...... $GAME_MODULES
-
-    Tools: ............. ${TOOLS:-None}
-
-    Build master: ...... $BUILD_MASTER
 
   Installation directories:
 

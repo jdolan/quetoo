@@ -5,6 +5,7 @@ SUBDIRS = \
 	server \
 	main \
 	game \
+	tests \
 	tools \
 	master
 

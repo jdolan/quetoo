@@ -19,17 +19,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "test.h"
+#ifndef __TESTS_H__
+#define __TESTS_H__
 
-/*
- * TODO: Test thread execution and synchronization.
- */
-int32_t main(int32_t argc, char **argv){
-	thread_t *t;
+#include <check.h>
 
-	Test_Init();
+#include "common.h"
 
-	Test_Shutdown();
+int Test_Run(Suite *suite);
+void Test_Init(void);
+void Test_Shutdown(void);
 
-	return 0;
-}
+#endif /* __TESTS_H__ */
