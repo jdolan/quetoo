@@ -25,11 +25,11 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
-void Cl_InitHttpDownload(void);
-void Cl_HttpDownloadCleanup(void);
+void Cl_HttpDownload_Complete(void);
 bool Cl_HttpDownload(void);
-void Cl_HttpDownloadThink(void);
-void Cl_ShutdownHttpDownload(void);
+void Cl_HttpThink(void);
+void Cl_InitHttp(void);
+void Cl_ShutdownHttp(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_HTTP_H__ */

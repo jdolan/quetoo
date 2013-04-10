@@ -416,10 +416,14 @@ void Fs_ExecAutoexec(void) {
 	Cbuf_Execute(); // execute it
 }
 
+/*
+ * @brief
+ */
 static gboolean FS_SetGame_(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
 
 	if (strstr((char *) key, (char *) data))
 		return false;
+
 	Pak_FreePakfile((pak_t *) value);
 	return true;
 }

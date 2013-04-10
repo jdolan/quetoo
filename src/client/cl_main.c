@@ -288,7 +288,7 @@ void Cl_Disconnect(void) {
 	if (cls.download.file) {
 
 		if (cls.download.http) // clean up http downloads
-			Cl_HttpDownloadCleanup();
+			Cl_HttpDownload_Complete();
 		else
 			// or just stop legacy ones
 			Fs_CloseFile(cls.download.file);
@@ -360,7 +360,7 @@ static void Cl_ConnectionlessPacket(void) {
 	if (!strcmp(c, "client_connect")) {
 
 		if (cls.state == CL_CONNECTED) {
-			Com_Print("Dup connect received. Ignored.\n");
+			Com_Print("Duplicate connect received. Ignored.\n");
 			return;
 		}
 
@@ -650,7 +650,7 @@ void Cl_Frame(uint32_t msec) {
 		Cl_CheckForResend();
 
 		// run http downloads
-		Cl_HttpDownloadThink();
+		Cl_HttpThink();
 
 		cls.packet_delta = 0;
 	}
@@ -701,7 +701,7 @@ void Cl_Init(void) {
 
 	Cl_InitInput();
 
-	Cl_InitHttpDownload();
+	Cl_InitHttp();
 
 	Fs_ExecAutoexec();
 
@@ -726,7 +726,7 @@ void Cl_Shutdown(void) {
 
 	Cl_ShutdownCgame();
 
-	Cl_ShutdownHttpDownload();
+	Cl_ShutdownHttp();
 
 	Cl_WriteConfiguration();
 

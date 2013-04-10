@@ -24,38 +24,73 @@
 
 #include "cl_local.h"
 
-static CURLM *curlm;
-static CURL *curl;
+typedef struct {
 
-// generic encapsulation for common http response codes
-typedef struct response_s {
-	int32_t code;
-	char *text;
-} response_t;
+	CURLM *curlm;
+	CURL *curl;
 
-static response_t responses[] = {
-	{ 400, "Bad request" },
-	{ 401, "Unauthorized" },
-	{ 403, "Forbidden" },
-	{ 404, "Not found" },
-	{ 500, "Internal server error" },
-	{ 0, NULL }
-};
+	char url[MAX_OSPATH];
+	char dest[MAX_OSPATH];
 
-static char curlerr[MAX_STRING_CHARS]; // curl's error buffer
+	long status;
 
-static char url[MAX_OSPATH]; // remote url to fetch from
-static char file[MAX_OSPATH]; // local path to save to
+	bool ready;
+	bool success;
 
-static long status, length; // for current transfer
-static bool gzip, success;
+	char error_buffer[MAX_STRING_CHARS];
+} cl_http_state_t;
+
+static cl_http_state_t cl_http_state;
 
 /*
- * @brief
+ * @brief cURL HTTP receive handler.
  */
-static size_t Cl_HttpDownloadRecv(void *buffer, size_t size, size_t nmemb,
-		void *p __attribute__((unused))) {
+static size_t Cl_HttpDownload_Receive(void *buffer, size_t size, size_t nmemb, void *p __attribute__((unused))) {
 	return Fs_Write(buffer, size, nmemb, cls.download.file);
+}
+
+/*
+ * @brief If a download is currently taking place, clean it up. This is called
+ * both to finalize completed downloads as well as abort incomplete ones.
+ */
+void Cl_HttpDownload_Complete() {
+
+	if (!cls.download.file || !cls.download.http)
+		return;
+
+	curl_multi_remove_handle(cl_http_state.curlm, cl_http_state.curl); // cleanup curl
+
+	Fs_CloseFile(cls.download.file); // always close the file
+
+	cls.download.file = NULL;
+	cls.download.http = false;
+
+	if (cl_http_state.success) {
+		cls.download.name[0] = '\0';
+
+		if (strstr(cl_http_state.dest, ".pak")) // add new paks to search paths
+			Fs_AddPakfile(cl_http_state.dest);
+
+		// we were disconnected while downloading, so reconnect
+		Cl_Reconnect_f();
+	} else {
+		char *c = cl_http_state.error_buffer;
+		if (!*c) {
+			c = va("%ld", cl_http_state.status);
+		}
+
+		Com_Print("Failed to download %s via HTTP: %s.\n"
+			"Trying UDP...\n", cls.download.name, c);
+
+		// try legacy UDP download
+
+		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
+		Msg_WriteString(&cls.netchan.message, va("download %s", cls.download.name));
+
+		unlink(cl_http_state.dest); // delete partial file
+	}
+
+	cl_http_state.ready = true;
 }
 
 /*
@@ -65,203 +100,122 @@ static size_t Cl_HttpDownloadRecv(void *buffer, size_t size, size_t nmemb,
  */
 bool Cl_HttpDownload(void) {
 
-	if (!curlm)
+	if (!cl_http_state.ready)
 		return false;
 
-	if (!curl)
+	char *dest = cl_http_state.dest;
+	g_snprintf(dest, sizeof(MAX_OSPATH), "%s/%s", Fs_Gamedir(), cls.download.name);
+
+	// open the destination file for writing
+	if (Fs_OpenFile(cl_http_state.dest, &cls.download.file, FILE_WRITE) == -1) {
+		Com_Warn("Couldn't create %s.\n", cl_http_state.dest);
 		return false;
-
-	memset(file, 0, sizeof(file)); // resolve local file name
-	if (gzip)
-		g_snprintf(file, sizeof(file), "%s/%s.gz", Fs_Gamedir(), cls.download.name);
-	else
-		g_snprintf(file, sizeof(file), "%s/%s", Fs_Gamedir(), cls.download.name);
-
-	Fs_CreatePath(file); // create the directory
-
-	if (!(cls.download.file = fopen(file, "wb"))) {
-		Com_Warn("Failed to open %s.\n", file);
-		return false; // and open the file
 	}
 
 	cls.download.http = true;
 
-	memset(url, 0, sizeof(url)); // construct url
+	cl_http_state.ready = false;
+	cl_http_state.status = 0;
 
-	if (gzip)
-		g_snprintf(url, sizeof(url), "%s/%s/%s.gz", cls.download_url, Fs_Gamedir(), cls.download.name);
-	else
-		g_snprintf(url, sizeof(url), "%s/%s/%s", cls.download_url, Fs_Gamedir(), cls.download.name);
+	char *url = cl_http_state.url, *game = Cvar_GetString("game");
+	g_snprintf(url, MAX_OSPATH, "%s/%s/%s", cls.download_url, game, cls.download.name);
 
 	// set handle to default state
-	curl_easy_reset(curl);
+	curl_easy_reset(cl_http_state.curl);
 
 	// set url from which to retrieve the file
-	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(cl_http_state.curl, CURLOPT_URL, cl_http_state.url);
 
-	// set error buffer so we may print32_t meaningful messages
-	memset(curlerr, 0, sizeof(curlerr));
-	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlerr);
+	// set error buffer so we may print meaningful messages
+	memset(cl_http_state.error_buffer, 0, sizeof(cl_http_state.error_buffer));
+	curl_easy_setopt(cl_http_state.curl, CURLOPT_ERRORBUFFER, cl_http_state.error_buffer);
 
 	// set the callback for when data is received
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Cl_HttpDownloadRecv);
+	curl_easy_setopt(cl_http_state.curl, CURLOPT_WRITEFUNCTION, Cl_HttpDownload_Receive);
 
-	curl_multi_add_handle(curlm, curl);
+	curl_multi_add_handle(cl_http_state.curlm, cl_http_state.curl);
 	return true;
-}
-
-/*
- * @brief
- */
-static char *Cl_HttpResponseCode(long code) {
-	int32_t i = 0;
-	while (responses[i].code) {
-		if (responses[i].code == code)
-			return responses[i].text;
-		i++;
-	}
-	return "Unknown";
-}
-
-/*
- * @brief If a download is currently taking place, clean it up. This is called
- * both to finalize completed downloads as well as abort incomplete ones.
- */
-void Cl_HttpDownloadCleanup() {
-	char *c;
-	char f[MAX_OSPATH];
-
-	if (!cls.download.file || !cls.download.http)
-		return;
-
-	curl_multi_remove_handle(curlm, curl); // cleanup curl
-
-	Fs_CloseFile(cls.download.file); // always close the file
-	cls.download.file = NULL;
-
-	if (success) {
-		cls.download.name[0] = 0;
-
-		g_strlcpy(f, file, sizeof(f));
-
-		if ((c = strstr(f, ".gz"))) { // deflate compressed files
-			Fs_GunzipFile(f);
-			*c = 0;
-		}
-
-		if (strstr(f, ".pak")) // add new paks to search paths
-			Fs_AddPakfile(f);
-
-		gzip = true;
-
-		// we were disconnected while downloading, so reconnect
-		Cl_Reconnect_f();
-	} else {
-
-		c = strlen(curlerr) ? curlerr : Cl_HttpResponseCode(status);
-
-		if (gzip) { // retry uncompressed file
-
-			Com_Print("Failed to download %s via HTTP (compressed): %s.\n"
-				"Trying uncompressed...\n", cls.download.name, c);
-
-			gzip = false;
-		} else { // or via legacy udp download
-
-			Com_Print("Failed to download %s via HTTP: %s.\n"
-				"Trying UDP...\n", cls.download.name, c);
-
-			Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-			Msg_WriteString(&cls.netchan.message,
-					va("download %s", cls.download.name));
-
-			gzip = true;
-		}
-
-		unlink(file); // delete partial or empty file
-	}
-
-	cls.download.http = false;
-
-	status = length = 0;
-	success = false;
-
-	if (!gzip) // a gzip download failed, retry normal file
-		Cl_HttpDownload();
 }
 
 /*
  * @brief Process the pending download by giving cURL some time to think.
  * Poll it for feedback on the transfer to determine what action to take.
- * If a transfer fails, stuff a stringcmd to download it via UDP. Since
+ * If a transfer fails, stuff a string cmd to download it via UDP. Since
  * we leave cls.download.tempname in tact during our cleanup, when the
  * download is parsed back in the client, it will fopen and begin.
  */
-void Cl_HttpDownloadThink(void) {
+void Cl_HttpThink(void) {
 	CURLMsg *msg;
 	int32_t i;
 
-	if (!cls.download_url[0] || !cls.download.file)
+	if (!cls.download.http)
 		return; // nothing to do
 
-	// process the download as long as data is avaialble
-	while (curl_multi_perform(curlm, &i) == CURLM_CALL_MULTI_PERFORM) {
+	// process the download as long as data is available
+	while (true) {
+		if (curl_multi_perform(cl_http_state.curlm, &i) != CURLM_CALL_MULTI_PERFORM) {
+			break;
+		}
 	}
 
 	// fail fast on any curl error
-	if (*curlerr != '\0') {
-		Cl_HttpDownloadCleanup();
+	if (*cl_http_state.error_buffer != '\0') {
+		Cl_HttpDownload_Complete();
 		return;
 	}
 
 	// check for http status code
-	if (!status) {
-		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
+	if (!cl_http_state.status) {
+		curl_easy_getinfo(cl_http_state.curl, CURLINFO_RESPONSE_CODE, &cl_http_state.status);
 
-		if (status == 200) {
+		if (cl_http_state.status == 200) {
 			// disconnect while we download, this could take some time
 			Cl_SendDisconnect();
-		} else if (status > 0) { // 404, 403, etc..
-			Cl_HttpDownloadCleanup();
+		} else if (cl_http_state.status > 0) { // 404, 403, etc..
+			Cl_HttpDownload_Complete();
 			return;
 		}
 	}
 
 	// check for completion
-	while ((msg = curl_multi_info_read(curlm, &i))) {
+	while ((msg = curl_multi_info_read(cl_http_state.curlm, &i))) {
 		if (msg->msg == CURLMSG_DONE) {
-			success = true;
-			Cl_HttpDownloadCleanup();
-			Cl_RequestNextDownload();
+			if (msg->data.result == CURLE_OK) {
+				cl_http_state.success = true;
+				Cl_RequestNextDownload();
+			}
+			Cl_HttpDownload_Complete();
 			return;
 		}
 	}
 }
 
 /*
- * @brief
+ * @brief Initializes the HTTP subsystem.
  */
-void Cl_InitHttpDownload(void) {
+void Cl_InitHttp(void) {
 
-	if (!(curlm = curl_multi_init()))
+	memset(&cl_http_state, 0, sizeof(cl_http_state));
+
+	if (!(cl_http_state.curlm = curl_multi_init()))
 		return;
 
-	if (!(curl = curl_easy_init()))
+	if (!(cl_http_state.curl = curl_easy_init()))
 		return;
 
-	gzip = true;
+	cl_http_state.ready = true;
 }
 
 /*
- * @brief
+ * @brief Shuts down the HTTP subsystem.
  */
-void Cl_ShutdownHttpDownload(void) {
+void Cl_ShutdownHttp(void) {
 
-	Cl_HttpDownloadCleanup();
+	Cl_HttpDownload_Complete();
 
-	curl_easy_cleanup(curl);
-	curl = NULL;
+	if (cl_http_state.curl)
+		curl_easy_cleanup(cl_http_state.curl);
 
-	curl_multi_cleanup(curlm);
-	curlm = NULL;
+	if (cl_http_state.curlm)
+		curl_multi_cleanup(cl_http_state.curlm);
 }

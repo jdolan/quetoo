@@ -455,10 +455,11 @@ void Cl_ParseServerMessage(void) {
 			// stop download
 			if (cls.download.file) {
 				if (cls.download.http) // clean up http downloads
-					Cl_HttpDownloadCleanup();
+					Cl_HttpDownload_Complete();
 				else
 					// or just stop legacy ones
 					Fs_CloseFile(cls.download.file);
+				cls.download.name[0] = '\0';
 				cls.download.file = NULL;
 			}
 			cls.state = CL_CONNECTING;
