@@ -21,7 +21,6 @@
 
 #include "mem.h"
 
-#include <glib.h>
 #include <SDL/SDL_thread.h>
 
 #define Z_MAGIC 0x69
@@ -32,10 +31,12 @@ typedef struct z_block_s {
 	z_tag_t tag; // for group free
 	struct z_block_s *parent;
 	GList *children;
+	size_t size;
 } z_block_t;
 
 typedef struct {
 	GList *blocks;
+	size_t size;
 	SDL_mutex *lock;
 } z_state_t;
 
@@ -62,6 +63,8 @@ static void Z_Free_(gpointer data) {
 	} else {
 		z_state.blocks = g_list_remove(z_state.blocks, data);
 	}
+
+	z_state.size -= z->size;
 
 	free(z);
 }
@@ -142,6 +145,7 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
 	z->magic = Z_MAGIC;
 	z->tag = tag;
 	z->parent = p;
+	z->size = size;
 
 	// insert it into the managed memory structures
 	SDL_mutexP(z_state.lock);
@@ -151,6 +155,8 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
 	} else {
 		z_state.blocks = g_list_prepend(z_state.blocks, z);
 	}
+
+	z_state.size += size;
 
 	SDL_mutexV(z_state.lock);
 
@@ -193,6 +199,13 @@ void *Z_LinkMalloc(size_t size, void *parent) {
  */
 void *Z_Malloc(size_t size) {
 	return Z_Malloc_(size, Z_TAG_DEFAULT, NULL);
+}
+
+/*
+ * @brief Returns the current size (user bytes) of the zone allocation pool.
+ */
+size_t Z_Size(void) {
+	return  z_state.size;
 }
 
 /*

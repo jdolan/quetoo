@@ -24,13 +24,14 @@
 
 #include "common.h"
 
-void Z_Init(void);
-void Z_Shutdown(void);
 void Z_Free(void *p);
 void Z_FreeTag(z_tag_t tag);
 void *Z_TagMalloc(size_t size, z_tag_t tag);
 void *Z_LinkMalloc(size_t size, void *parent);
 void *Z_Malloc(size_t size);
+size_t Z_Size(void);
 char *Z_CopyString(const char *in);
+void Z_Init(void);
+void Z_Shutdown(void);
 
 #endif /* __MEM_H__ */
