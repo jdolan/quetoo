@@ -24,13 +24,13 @@
 #define SKY_DISTANCE 8192
 
 // clipping matrix
-static const vec3_t skyclip[6] = {
-	{ 1,  1,  0},
-	{ 1, -1,  0},
-	{ 0, -1,  1},
-	{ 0,  1,  1},
-	{ 1,  0,  1},
-	{-1,  0,  1}
+static const vec3_t r_sky_clip[6] = {
+	{ 1.0,  1.0,  0.0},
+	{ 1.0, -1.0,  0.0},
+	{ 0.0, -1.0,  1.0},
+	{ 0.0,  1.0,  1.0},
+	{ 1.0,  0.0,  1.0},
+	{-1.0,  0.0,  1.0}
 };
 
 // 1 = s, 2 = t, 3 = SKY_DISTANCE
@@ -41,8 +41,8 @@ static const int32_t st_to_vec[6][3] = {
 	{ 1,  3,  2},
 	{-1, -3,  2},
 
-	{-2, -1,  3},   // 0 degrees yaw, look straight up
-	{ 2, -1, -3}  // look straight down
+	{-2, -1,  3}, // 0 degrees yaw, look straight up
+	{ 2, -1, -3} // look straight down
 };
 
 // s = [0]/[2], t = [1]/[2]
@@ -64,8 +64,8 @@ typedef struct {
 	vec2_t st_maxs[6];
 	vec_t st_min;
 	vec_t st_max;
-	int32_t texcoord_index;
-	int32_t vert_index;
+	GLuint texcoord_index;
+	GLuint vert_index;
 } r_sky_t;
 
 static r_sky_t r_sky;
@@ -132,6 +132,7 @@ static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
 		else
 			t = vecs[j - 1] / dv;
 
+		// extend the bounds of the sky surface
 		if (s < r_sky.st_mins[0][axis])
 			r_sky.st_mins[0][axis] = s;
 		if (t < r_sky.st_mins[1][axis])
@@ -144,7 +145,7 @@ static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
 	}
 }
 
-#define ON_EPSILON		0.1  // point on plane side epsilon
+#define ON_EPSILON		0.1 // point on plane side epsilon
 #define MAX_CLIP_VERTS	64
 
 /*
@@ -162,7 +163,7 @@ static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
 	int32_t i, j;
 
 	if (nump > MAX_CLIP_VERTS - 2)
-		Com_Error(ERR_DROP, "R_ClipSkyPoly: MAX_CLIP_VERTS");
+		Com_Error(ERR_DROP, "R_ClipSkySurface: MAX_CLIP_VERTS");
 
 	if (stage == 6) { // fully clipped, so draw it
 		R_DrawSkySurface(nump, vecs);
@@ -170,7 +171,7 @@ static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
 	}
 
 	front = back = false;
-	norm = skyclip[stage];
+	norm = r_sky_clip[stage];
 	for (i = 0, v = vecs; i < nump; i++, v += 3) {
 		d = DotProduct(v, norm);
 		if (d > ON_EPSILON) {
@@ -236,19 +237,17 @@ static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
  * @brief
  */
 static void R_AddSkySurface(const r_bsp_surface_t *surf) {
-	GLuint index;
-	uint16_t i;
 	vec3_t verts[MAX_CLIP_VERTS];
+	uint16_t i;
 
 	if (r_draw_wireframe->value)
 		return;
 
-	index = surf->index * 3; // raw index into cached vertex arrays
-
 	// calculate distance to surface verts
 	for (i = 0; i < surf->num_edges; i++) {
 
-		const float *v = &r_model_state.world->verts[index + i * 3];
+		const GLuint index = (surf->index + i) * 3;
+		const float *v = &r_model_state.world->verts[index];
 
 		VectorSubtract(v, r_view.origin, verts[i]);
 	}
@@ -275,9 +274,7 @@ static void R_MakeSkyVec(float s, float t, int32_t axis) {
 	vec3_t v, b;
 	int32_t j;
 
-	b[0] = s * SKY_DISTANCE;
-	b[1] = t * SKY_DISTANCE;
-	b[2] = SKY_DISTANCE;
+	VectorSet(b, s * SKY_DISTANCE, t * SKY_DISTANCE, SKY_DISTANCE);
 
 	for (j = 0; j < 3; j++) {
 		const int32_t k = st_to_vec[axis][j];
@@ -287,34 +284,25 @@ static void R_MakeSkyVec(float s, float t, int32_t axis) {
 			v[j] = b[k - 1];
 	}
 
+	memcpy(&r_state.vertex_array_3d[r_sky.vert_index], v, sizeof(vec3_t));
+	r_sky.vert_index += 3;
+
 	// avoid bilerp seam
-	s = (s + 1) * 0.5;
-	t = (t + 1) * 0.5;
+	s = (s + 1.0) * 0.5;
+	t = (t + 1.0) * 0.5;
 
-	if (s < r_sky.st_min)
-		s = r_sky.st_min;
-	else if (s > r_sky.st_max)
-		s = r_sky.st_max;
-	if (t < r_sky.st_min)
-		t = r_sky.st_min;
-	else if (t > r_sky.st_max)
-		t = r_sky.st_max;
-
-	t = 1.0 - t;
+	s = Clamp(s, r_sky.st_min, r_sky.st_max);
+	t = 1.0 - Clamp(t, r_sky.st_min, r_sky.st_max);
 
 	texunit_diffuse.texcoord_array[r_sky.texcoord_index++] = s;
 	texunit_diffuse.texcoord_array[r_sky.texcoord_index++] = t;
-
-	memcpy(&r_state.vertex_array_3d[r_sky.vert_index], v, sizeof(vec3_t));
-	r_sky.vert_index += 3;
 }
-
-int32_t skytexorder[6] = { 0, 2, 1, 3, 4, 5 };
 
 /*
  * @brief
  */
 void R_DrawSkyBox(void) {
+	const int32_t sky_order[6] = { 0, 2, 1, 3, 4, 5 };
 	r_bsp_surfaces_t *surfs;
 	uint32_t i, j;
 
@@ -348,7 +336,7 @@ void R_DrawSkyBox(void) {
 				>= r_sky.st_maxs[1][i])
 			continue; // nothing on this plane
 
-		R_BindTexture(r_sky.images[skytexorder[i]]->texnum);
+		R_BindTexture(r_sky.images[sky_order[i]]->texnum);
 
 		R_MakeSkyVec(r_sky.st_mins[0][i], r_sky.st_mins[1][i], i);
 		R_MakeSkyVec(r_sky.st_mins[0][i], r_sky.st_maxs[1][i], i);
@@ -366,14 +354,14 @@ void R_DrawSkyBox(void) {
 }
 
 /*
- * @brief
+ * @brief Sets the sky to the specified environment map.
  */
 void R_SetSky(const char *name) {
 	const char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
-	int32_t i;
-	char path[MAX_QPATH];
+	uint32_t i;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < lengthof(suf); i++) {
+		char path[MAX_QPATH];
 
 		g_snprintf(path, sizeof(path), "env/%s%s", name, suf[i]);
 		r_sky.images[i] = R_LoadImage(path, IT_SKY);
@@ -386,7 +374,7 @@ void R_SetSky(const char *name) {
 		}
 	}
 
-	// assume all sky images are the same size
+	// assume all sky components are the same size
 	r_sky.st_min = 1.0 / (float) r_sky.images[0]->width;
 	r_sky.st_max = (r_sky.images[0]->width - 1.0) / (float) r_sky.images[0]->width;
 }
