@@ -80,13 +80,9 @@ void R_RegisterMedia(r_media_t *media) {
 		r_media_t *m;
 
 		if ((m = g_hash_table_lookup(r_media_state.media, media->name))) {
-			if (m != media) {
-				if (R_FreeMedia_(NULL, m, NULL)) {
-					Com_Debug("R_RegisterMedia: Replacing %s.\n", media->name);
-					g_hash_table_insert(r_media_state.media, media->name, media);
-				} else {
-					Com_Error(ERR_DROP, "R_RegisterMedia: Failed to replace %s.\n", media->name);
-				}
+			if (m != media) { // the old instance will eventually be freed
+				Com_Warn("R_RegisterMedia: Replacing: %s.\n", media->name);
+				g_hash_table_insert(r_media_state.media, media->name, media);
 			} else {
 				Com_Debug("R_RegisterMedia: Retaining %s.\n", media->name);
 			}

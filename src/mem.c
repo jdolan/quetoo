@@ -205,7 +205,14 @@ void *Z_Malloc(size_t size) {
  * @brief Returns the current size (user bytes) of the zone allocation pool.
  */
 size_t Z_Size(void) {
-	return  z_state.size;
+	return z_state.size;
+}
+
+/*
+ * @brief Prints the current size (in MB) of the zone allocation pool.
+ */
+void Z_Size_f(void) {
+	Com_Print("%.2fMB\n", (float) (Z_Size() / (1024.0 * 1024.0)));
 }
 
 /*

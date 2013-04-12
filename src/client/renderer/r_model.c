@@ -188,7 +188,11 @@ r_model_t *R_LoadModel(const char *name) {
 		Com_Error(ERR_DROP, "R_LoadModel: NULL name.\n");
 	}
 
-	StripExtension(name, key);
+	if (*name == '*') {
+		g_snprintf(key, sizeof(key), "%s#%s", r_model_state.world->media.name, name + 1);
+	} else {
+		StripExtension(name, key);
+	}
 
 	if (!(mod = (r_model_t *) R_FindMedia(key))) {
 

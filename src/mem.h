@@ -30,6 +30,7 @@ void *Z_TagMalloc(size_t size, z_tag_t tag);
 void *Z_LinkMalloc(size_t size, void *parent);
 void *Z_Malloc(size_t size);
 size_t Z_Size(void);
+void Z_Size_f(void);
 char *Z_CopyString(const char *in);
 void Z_Init(void);
 void Z_Shutdown(void);

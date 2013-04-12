@@ -625,6 +625,8 @@ void Cmd_Init(void) {
 	Cmd_AddCommand("echo", Cmd_Echo_f, 0, NULL);
 	Cmd_AddCommand("alias", Cmd_Alias_f, 0, NULL);
 	Cmd_AddCommand("wait", Cmd_Wait_f, 0, NULL);
+
+	Cmd_AddCommand("z_size", Z_Size_f, 0, "Prints current size (in MB) of the zone allocation pool.");
 }
 
 /*
