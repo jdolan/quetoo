@@ -138,7 +138,7 @@ static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 
 /*
  * @brief Loads all r_bsp_inline_model_t for the specified BSP model. These are
- * later registered as first-class r_model_t's in R_SetupInlineBspModels.
+ * later registered as first-class r_model_t's in R_SetupBspInlineModels.
  */
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	r_bsp_inline_model_t *out;

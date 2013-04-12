@@ -525,11 +525,15 @@ OPT_CFLAGS=""
 
 AC_ARG_ENABLE(optimizations,
 	AS_HELP_STRING(
-		[--enable-optimizations], [enable compiler optimizations]
+		[--enable-optimizations=none|default|expensive], [enable compiler optimizations]
 	),
-	AC_MSG_RESULT(yes)
-	OPT_CFLAGS="-O3 $OPT_CFLAGS",
-	AC_MSG_RESULT(no)
+	AC_MSG_RESULT($enable_optimizations)
+	if test "x${enable_optimizations}" = xnone; then
+		OPT_CFLAGS="-O0 $OPT_CFLAGS"
+	elif test "x${enable_optimizations}" = xexpensive; then
+		OPT_CFLAGS="-O3 $OPT_CFLAGS"
+	fi,
+	AC_MSG_RESULT(default)
 )
 AC_SUBST(OPT_CFLAGS)
 

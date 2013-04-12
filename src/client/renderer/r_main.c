@@ -329,6 +329,49 @@ void R_InitView(void) {
 }
 
 /*
+ * @brief Loads all media for the renderer subsystem.
+ */
+void R_LoadMedia(void) {
+	extern cl_client_t cl;
+	uint32_t i;
+
+	if (!cl.config_strings[CS_MODELS][0]) {
+		return; // no map specified
+	}
+
+	R_InitView();
+
+	R_BeginLoading();
+
+	Cl_LoadProgress(1);
+
+	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
+	Cl_LoadProgress(60);
+
+	// load all other models
+	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
+
+		cl.model_precache[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
+
+		if (i <= 30) // bump loading progress
+			Cl_LoadProgress(60 + (i / 3));
+	}
+	Cl_LoadProgress(70);
+
+	// load all known images
+	for (i = 0; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
+		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC);
+	}
+	Cl_LoadProgress(75);
+
+	// sky environment map
+	R_SetSky(cl.config_strings[CS_SKY]);
+	Cl_LoadProgress(77);
+
+	r_view.update = true;
+}
+
+/*
  * @brief Restarts the renderer subsystem. The OpenGL context is discarded and
  * recreated. All media is reloaded. Other subsystems can elect to refresh
  * their media references by inspecting r_view.update.

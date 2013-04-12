@@ -67,6 +67,7 @@ extern r_view_t r_view;
 
 void R_Init(void);
 void R_Shutdown(void);
+void R_LoadMedia(void);
 void R_BeginFrame(void);
 void R_DrawView(void);
 void R_EndFrame(void);

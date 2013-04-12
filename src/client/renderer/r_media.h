@@ -24,8 +24,6 @@
 
 #include "r_types.h"
 
-void R_LoadMedia(void);
-
 #ifdef __R_LOCAL_H__
 
 void R_ListMedia_f(void);

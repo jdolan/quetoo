@@ -20,54 +20,61 @@
  */
 
 #include "tests.h"
-#include "mem.h"
+#include "r_local.h"
 
 /*
  * @brief Setup fixture.
  */
 void setup(void) {
+
 	Z_Init();
+
+	R_InitMedia();
 }
 
 /*
  * @brief Teardown fixture.
  */
 void teardown(void) {
+
+	R_ShutdownMedia();
+
 	Z_Shutdown();
 }
 
-START_TEST(check_mem_LinkMalloc)
+START_TEST(check_R_RegisterMedia)
 	{
-		byte *parent = Z_Malloc(1);
-		byte *child1 = Z_LinkMalloc(1, parent);
-		byte *child2 = Z_LinkMalloc(1, parent);
-		/*byte *grandchild1 =*/ Z_LinkMalloc(1, child1);
+		R_InitMedia();
 
-		ck_assert(Z_Size() == 4);
+		R_BeginLoading();
 
-		Z_Free(child2);
+		r_media_t *parent1 = R_MallocMedia("parent1", sizeof(r_media_t));
+		R_RegisterMedia(parent1);
 
-		ck_assert(Z_Size() == 3);
+		ck_assert_msg(R_FindMedia("parent1") == parent1, "Failed to find parent1");
 
-		Z_Free(parent);
+		r_media_t *child1 = R_MallocMedia("child1", sizeof(r_media_t));
+		R_RegisterDependency(parent1, child1);
 
-		ck_assert(Z_Size() == 0);
+		ck_assert_msg(R_FindMedia("child1") == child1, "Failed to find child1");
+
+		R_ShutdownMedia();
 
 	}END_TEST
 
 /*
  * @brief Test entry point.
  */
-int main(int argc, char *argv[]) {
+int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused))) {
 
 	Test_Init();
 
-	TCase *tcase = tcase_create("check_mem");
+	TCase *tcase = tcase_create("check_r_media");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
-	tcase_add_test(tcase, check_mem_LinkMalloc);
+	tcase_add_test(tcase, check_R_RegisterMedia);
 
-	Suite *suite = suite_create("check_mem");
+	Suite *suite = suite_create("check_r_media");
 	suite_add_tcase(suite, tcase);
 
 	int failed = Test_Run(suite);

@@ -20,7 +20,6 @@
  */
 
 #include "r_local.h"
-#include "client.h"
 
 typedef struct {
 	GHashTable *media;
@@ -163,6 +162,8 @@ static gboolean R_FreeMedia_(gpointer key __attribute__((unused)), gpointer valu
 		}
 	}
 
+	Com_Debug("R_FreeMedia: Freeing %s\n", media->name);
+
 	// ask the implementation to clean up
 	if (media->Free) {
 		media->Free(media);
@@ -181,46 +182,10 @@ void R_FreeMedia(void) {
 }
 
 /*
- * @brief Prepares the renderer subsystem for media loading.
+ * @brief Prepares the media subsystem for loading.
  */
-void R_LoadMedia(void) {
-	extern cl_client_t cl;
-	uint32_t i;
-
-	if (!cl.config_strings[CS_MODELS][0]) {
-		return; // no map specified
-	}
-
-	R_InitView();
-
+void R_BeginLoading(void) {
 	r_media_state.seed = Sys_Milliseconds();
-
-	Cl_LoadProgress(1);
-
-	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
-	Cl_LoadProgress(60);
-
-	// load all other models
-	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
-
-		cl.model_precache[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
-
-		if (i <= 30) // bump loading progress
-			Cl_LoadProgress(60 + (i / 3));
-	}
-	Cl_LoadProgress(70);
-
-	// load all known images
-	for (i = 0; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
-		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC);
-	}
-	Cl_LoadProgress(75);
-
-	// sky environment map
-	R_SetSky(cl.config_strings[CS_SKY]);
-	Cl_LoadProgress(77);
-
-	r_view.update = true;
 }
 
 /*
@@ -231,8 +196,6 @@ void R_InitMedia(void) {
 	memset(&r_media_state, 0, sizeof(r_media_state));
 
 	r_media_state.media = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
-
-	r_media_state.seed = Sys_Milliseconds();
 }
 
 /*

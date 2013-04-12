@@ -57,6 +57,8 @@ libcommon_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
+libcommon_la_LIBADD = \
+	libshared.la
 	
 libconsole_la_SOURCES = \
 	console.c \
@@ -77,9 +79,7 @@ libfilesystem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libfilesystem_la_LIBADD = \
-	libcommon.la \
 	libmem.la \
-	libshared.la \
 	libswap.la \
 	libsys.la \
 	libwin32.la
@@ -109,6 +109,8 @@ libmem_la_SOURCES = \
 libmem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libmem_la_LIBADD = \
+	libcommon.la
 
 libnet_la_SOURCES = \
 	net_chan.c \
@@ -124,6 +126,8 @@ libpmove_la_SOURCES = \
 libpmove_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libpmove_la_LIBADD = \
+	libshared.la
 
 libshared_la_SOURCES = \
 	shared.c
@@ -142,6 +146,8 @@ libsys_la_SOURCES = \
 libsys_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libsys_la_LIBADD = \
+	libcommon.la
 
 libthreads_la_SOURCES = \
 	threads.c
@@ -149,6 +155,8 @@ libthreads_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
+libthreads_la_LIBADD = \
+	libcommon.la
 
 if WINDOWS
 

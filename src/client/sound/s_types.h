@@ -23,7 +23,9 @@
 #define __S_TYPES_H__
 
 #include <SDL/SDL_mixer.h>
-#include "quake2world.h"
+
+#include "common.h"
+#include "sys.h"
 
 // media handles
 typedef struct s_media_s {

@@ -112,6 +112,46 @@ void S_Frame(void) {
 }
 
 /*
+ * @brief Loads all media for the sound subsystem.
+ */
+void S_LoadMedia(void) {
+	extern cl_client_t cl;
+	uint32_t i;
+
+	if (!cl.config_strings[CS_MODELS][0]) {
+		return; // no map specified
+	}
+
+	S_FlushPlaylist();
+
+	S_BeginLoading();
+
+	Cl_LoadProgress(80);
+
+	for (i = 0; i < MAX_SOUNDS; i++) {
+
+		if (!cl.config_strings[CS_SOUNDS + i][0])
+			break;
+
+		cl.sound_precache[i] = S_LoadSample(cl.config_strings[CS_SOUNDS + i]);
+	}
+
+	for (i = 0; i < MAX_MUSICS; i++) {
+
+		if (!cl.config_strings[CS_MUSICS + i][0])
+			break;
+
+		cl.music_precache[i] = S_LoadMusic(cl.config_strings[CS_MUSICS + i]);
+	}
+
+	S_NextTrack_f();
+
+	Cl_LoadProgress(85);
+
+	s_env.update = true;
+}
+
+/*
  * @brief
  */
 static void S_Play_f(void) {
