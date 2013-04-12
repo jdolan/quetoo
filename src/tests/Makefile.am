@@ -26,7 +26,7 @@ libtests_la_CFLAGS = \
 	$(TESTS_CFLAGS)
 
 TESTS = check_mem check_r_media		
-check_PROGRAMS = check_mem check_r_media
+noinst_PROGRAMS = $(TESTS)
 
 check_mem_SOURCES = \
 	check_mem.c

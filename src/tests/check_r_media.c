@@ -44,8 +44,6 @@ void teardown(void) {
 
 START_TEST(check_R_RegisterMedia)
 	{
-		R_InitMedia();
-
 		R_BeginLoading();
 
 		r_media_t *parent1 = R_MallocMedia("parent1", sizeof(r_media_t));
@@ -58,7 +56,20 @@ START_TEST(check_R_RegisterMedia)
 
 		ck_assert_msg(R_FindMedia("child1") == child1, "Failed to find child1");
 
-		R_ShutdownMedia();
+		r_media_t *grandchild1 = R_MallocMedia("grandchild1", sizeof(r_media_t));
+		R_RegisterDependency(child1, grandchild1);
+
+		R_FreeMedia();
+
+		ck_assert_msg(R_FindMedia("parent1") == parent1, "Erroneously freed parent1");
+		ck_assert_msg(R_FindMedia("child1") == child1, "Erroneously freed child1");
+		ck_assert_msg(R_FindMedia("grandchild1") == grandchild1, "Erroneously freed grandchild1");
+
+		R_BeginLoading();
+
+		ck_assert(R_FindMedia("parent1") == parent1);
+		ck_assert_msg(child1->seed == parent1->seed, "Dependency child1 not retained");
+		ck_assert_msg(grandchild1->seed == parent1->seed, "Dependency grandchild1 not retained");
 
 	}END_TEST
 
