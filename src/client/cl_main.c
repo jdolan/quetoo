@@ -103,7 +103,8 @@ static void Cl_CheckForResend(void) {
 	if (cls.state != CL_CONNECTING)
 		return;
 
-	if (cls.real_time - cls.connect_time < 3000)
+	// don't flood connection packets
+	if (cls.connect_time && (cls.real_time - cls.connect_time < 3000))
 		return;
 
 	if (!Net_StringToNetaddr(cls.server_name, &addr)) {
@@ -614,7 +615,7 @@ void Cl_Frame(uint32_t msec) {
 		packet_frame = false; // don't flood the server while downloading
 
 	if (cls.state <= CL_DISCONNECTED && !Com_WasInit(Q2W_SERVER)) {
-		usleep(1000); // idle at console
+		usleep(16000); // idle at console
 	}
 
 	if (render_frame) {

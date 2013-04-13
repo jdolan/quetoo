@@ -157,7 +157,8 @@ typedef struct cl_client_s {
 // number of server connections
 
 typedef enum {
-	CL_UNINITIALIZED, CL_DISCONNECTED, // not talking to a server
+	CL_UNINITIALIZED, // not initialized
+	CL_DISCONNECTED, // not talking to a server
 	CL_CONNECTING, // sending request packets to the server
 	CL_CONNECTED, // netchan_t established, waiting for svc_server_data
 	CL_ACTIVE
