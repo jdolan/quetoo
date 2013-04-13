@@ -620,13 +620,13 @@ void Cmd_Init(void) {
 
 	cmd_hash = g_hash_table_new(g_str_hash, g_str_equal);
 
-	Cmd_AddCommand("cmd_list", Cmd_List_f, 0, NULL);
-	Cmd_AddCommand("exec", Cmd_Exec_f, 0, NULL);
+	Cmd_AddCommand("cmd_list", Cmd_List_f, CMD_SYSTEM, NULL);
+	Cmd_AddCommand("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
 	Cmd_AddCommand("echo", Cmd_Echo_f, 0, NULL);
-	Cmd_AddCommand("alias", Cmd_Alias_f, 0, NULL);
+	Cmd_AddCommand("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
 	Cmd_AddCommand("wait", Cmd_Wait_f, 0, NULL);
 
-	Cmd_AddCommand("z_size", Z_Size_f, 0, "Prints current size (in MB) of the zone allocation pool.");
+	Cmd_AddCommand("z_size", Z_Size_f, CMD_SYSTEM, "Prints current size (in MB) of the zone allocation pool.");
 }
 
 /*
