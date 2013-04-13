@@ -351,8 +351,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 		p->part.alpha = 1.0;
 		p->alpha_vel = -100.0;
 
-		p->part.scale = 0.15 * radius;
-		p->scale_vel = 800.0;
+		p->part.scale = 0.5 + (0.05 * radius);
 
 		dist = sin(ltime + i) * radius;
 
