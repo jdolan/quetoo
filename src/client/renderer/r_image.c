@@ -236,7 +236,13 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
  * @brief Retain event listener for images.
  */
 static bool R_RetainImage(r_media_t *self) {
-	return ((r_image_t *) self)->type <= IT_FONT;
+	const r_image_type_t type = ((r_image_t *) self)->type;
+
+	if (type == IT_NULL || type == IT_PROGRAM || type == IT_FONT) {
+		return true;
+	}
+
+	return false;
 }
 
 /*
