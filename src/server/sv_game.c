@@ -240,6 +240,10 @@ void Sv_ShutdownGame(void) {
 	svs.game->Shutdown();
 	svs.game = NULL;
 
+	// the game module code should call this, but lets not assume
+	Z_FreeTag(Z_TAG_GAME_LEVEL);
+	Z_FreeTag(Z_TAG_GAME);
+
 	Com_Print("Game down.\n");
 	Com_QuitSubsystem(Q2W_GAME);
 

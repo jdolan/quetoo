@@ -27,7 +27,7 @@
 static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 	cl_server_info_t *s;
 
-	s = (cl_server_info_t *) Z_Malloc(sizeof(*s));
+	s = (cl_server_info_t *) Z_TagMalloc(sizeof(*s), Z_TAG_CLIENT);
 
 	s->next = cls.servers;
 	cls.servers = s;

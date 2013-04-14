@@ -892,4 +892,6 @@ void Sv_Shutdown(const char *msg) {
 	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
 
 	memset(&svs, 0, sizeof(svs));
+
+	Z_FreeTag(Z_TAG_SERVER);
 }

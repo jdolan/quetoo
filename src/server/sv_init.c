@@ -198,11 +198,12 @@ static void Sv_InitClients(void) {
 		Sv_UpdateLatchedVars();
 
 		// initialize the clients array
-		svs.clients = Z_Malloc(sizeof(sv_client_t) * (int) sv_max_clients->integer);
+		svs.clients = Z_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, Z_TAG_SERVER);
 
 		// and the entity states array
 		svs.num_entity_states = sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
-		svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
+		svs.entity_states = Z_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states,
+				Z_TAG_SERVER);
 
 		svs.frame_rate = sv_hz->integer;
 

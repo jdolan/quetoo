@@ -619,6 +619,7 @@ void R_InitState(void) {
 	glDisableClientState(GL_NORMAL_ARRAY);
 
 	// setup texture units
+	const size_t len = MAX_GL_ARRAY_LENGTH * sizeof(vec2_t);
 	for (i = 0; i < MAX_GL_TEXUNITS; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
@@ -626,8 +627,7 @@ void R_InitState(void) {
 			texunit->texture = GL_TEXTURE0_ARB + i;
 
 			if (i < r_config.max_texunits) {
-				texunit->texcoord_array = (float *) Z_Malloc(
-						MAX_GL_ARRAY_LENGTH * 2 * sizeof(float));
+				texunit->texcoord_array = Z_TagMalloc(len, Z_TAG_RENDERER);
 
 				R_EnableTexture(texunit, true);
 

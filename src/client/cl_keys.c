@@ -392,7 +392,7 @@ void Cl_Bind(SDLKey key, const char *binding) {
 	}
 
 	// allocate for new binding and copy it in
-	ks->binds[key] = Z_Malloc(strlen(binding) + 1);
+	ks->binds[key] = Z_TagMalloc(strlen(binding) + 1, Z_TAG_CLIENT);
 	strcpy(ks->binds[key], binding);
 }
 
@@ -477,9 +477,10 @@ static void Cl_Bind_f(void) {
 void Cl_WriteBindings(FILE *f) {
 	SDLKey i;
 
-	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
+	for (i = SDLK_FIRST; i < SDLK_MLAST; i++) {
 		if (ks->binds[i] && ks->binds[i][0])
 			fprintf(f, "bind \"%s\" \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
+	}
 }
 
 /*

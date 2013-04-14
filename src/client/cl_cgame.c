@@ -36,6 +36,10 @@ void Cl_ShutdownCgame(void) {
 	cls.cgame->Shutdown();
 	cls.cgame = NULL;
 
+	// the cgame module should call this, but lets not assume
+	Z_FreeTag(Z_TAG_CGAME_LEVEL);
+	Z_FreeTag(Z_TAG_CGAME);
+
 	Com_Print("Client game down.\n");
 	Com_QuitSubsystem(Q2W_CGAME);
 

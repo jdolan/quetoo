@@ -740,4 +740,6 @@ void Cl_Shutdown(void) {
 	S_Shutdown();
 
 	R_Shutdown();
+
+	Z_FreeTag(Z_TAG_CLIENT);
 }

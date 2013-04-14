@@ -281,4 +281,6 @@ void S_Shutdown(void) {
 	Cmd_RemoveCommand("s_restart");
 
 	s_env.initialized = false;
+
+	Z_FreeTag(Z_TAG_SOUND);
 }
