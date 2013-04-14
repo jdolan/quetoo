@@ -367,6 +367,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	for (i = 0; i < sv_max_clients->integer; i++) {
 		g_game.edicts[i + 1].client = g_game.clients + i;
 	}
+	ge.num_edicts = sv_max_clients->integer + 1;
 
 	ent = NULL;
 	inhibit = 0;
