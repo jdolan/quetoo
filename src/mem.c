@@ -48,6 +48,17 @@ static z_state_t z_state;
 static void Z_Free_(gpointer data) {
 	z_block_t *z = (z_block_t *) data;
 
+	// first, remove this element from its respective block list
+	if (z->parent) {
+		GList *item = g_list_find(z->parent->children, data);
+		z->parent->children = g_list_delete_link(z->parent->children, item);
+
+	} else {
+		GList *item = g_list_find(z_state.blocks, data);
+		z_state.blocks = g_list_delete_link(z_state.blocks, item);
+	}
+
+	// next, free any dependencies (children)
 	if (z->children) {
 		GList *next, *c = z->children;
 		while (c) {
@@ -58,12 +69,7 @@ static void Z_Free_(gpointer data) {
 		g_list_free(z->children);
 	}
 
-	if (z->parent) {
-		z->parent->children = g_list_remove(z->parent->children, data);
-	} else {
-		z_state.blocks = g_list_remove(z_state.blocks, data);
-	}
-
+	// finally, adjust the pool size and free the memory
 	z_state.size -= z->size;
 
 	free(z);
@@ -104,6 +110,7 @@ void Z_FreeTag(z_tag_t tag) {
 		}
 
 		e = next;
+
 	}
 
 	SDL_mutexV(z_state.lock);
