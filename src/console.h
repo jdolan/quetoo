@@ -60,7 +60,7 @@ void Con_Init(void);
 void Con_Shutdown(void);
 void Con_Print(const char *text);
 void Con_Resize(console_t *con, uint16_t width, uint16_t height);
-int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position);
+bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len);
 
 #ifdef HAVE_CURSES
 

@@ -658,9 +658,9 @@ char *CommonPrefix(GList *words) {
 	if (!words)
 		return common_prefix;
 
-	for (i = 0; i < sizeof(common_prefix); i++) {
+	for (i = 0; i < sizeof(common_prefix) - 1; i++) {
 		GList *e = words;
-		const char c = ((char *) e->data)[0];
+		const char c = ((char *) e->data)[i];
 		while (e) {
 			const char *w = (char *) e->data;
 

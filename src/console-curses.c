@@ -236,7 +236,7 @@ void Curses_Frame(uint32_t msec) {
 				curses_redraw |= 1;
 			}
 		} else if (key == KEY_STAB || key == 9) {
-			if (Con_CompleteCommand(input[history_line], &input_pos)) {
+			if (Con_CompleteCommand(input[history_line], &input_pos, CURSES_LINESIZE - 1)) {
 				curses_redraw |= 2;
 			}
 		} else if (key == KEY_LEFT) {

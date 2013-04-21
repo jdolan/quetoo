@@ -124,7 +124,7 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 	if (key == SDLK_TAB) { // command completion
 		// ignore the leading bracket in the input string
 		ks->pos--;
-		Con_CompleteCommand(ks->lines[ks->edit_line] + 1, &ks->pos);
+		Con_CompleteCommand(ks->lines[ks->edit_line] + 1, &ks->pos, KEY_LINE_SIZE - 1);
 		ks->pos++;
 		return;
 	}

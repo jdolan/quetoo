@@ -357,55 +357,56 @@ void Con_Print(const char *text) {
 }
 
 /*
- *  Tab completion. Query the command and cvar subsystems for potential
- *  matches, and append an appropriate string to the input buffer. If no
- *  matches are found, do nothing. If only one match is found, simply
- *  append it. If multiple matches are found, append the longest possible
- *  common prefix they all share.
+ * @brief Tab completion. Query various subsystems for potential
+ * matches, and append an appropriate string to the input buffer. If no
+ * matches are found, do nothing. If only one match is found, simply
+ * append it. If multiple matches are found, append the longest possible
+ * common prefix they all share.
  */
-int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position) {
+bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
 	const char *pattern, *match;
-	const char *cmd = NULL;
 	GList *matches = NULL;
 
-	const char *partial = input_text;
+	char *partial = input;
 	if (*partial == '\\' || *partial == '/')
 		partial++;
 
 	if (!*partial)
 		return false; // lets start with at least something
 
-	if (strstr(partial, "map ") == partial) {
-		cmd = "map ";
-		pattern = va("maps/%s*.bsp", partial + 4);
-	} else if (strstr(partial, "demo ") == partial) {
-		cmd = "demo ";
-		pattern = va("demos/%s*.dem", partial + 5);
-	} else if (strstr(partial, "exec ") == partial) {
-		cmd = "exec ";
-		pattern = va("%s*.cfg", partial + 5);
-	}
-
-	if (pattern) { // auto-complete parameters for a command
+	// handle special cases for commands which accept filenames
+	if (g_str_has_prefix(partial, "demo ")) {
+		partial += strlen("demo ");
+		pattern = va("demos/%s*.dem", partial);
 		Fs_CompleteFile(pattern, &matches);
-	} else { // auto-complete a command or variable
-		cmd = "";
+	} else if (g_str_has_prefix(partial, "exec ")) {
+		partial += strlen("exec");
+		pattern = va("%s*.cfg", partial);
+		Fs_CompleteFile(pattern, &matches);
+	} else if (g_str_has_prefix(partial, "map ")) {
+		partial += strlen("map ");
+		pattern = va("maps/%s*.bsp", partial);
+		Fs_CompleteFile(pattern, &matches);
+	} else if (g_str_has_prefix(partial, "set ")) {
+		partial += strlen("set ");
+		pattern = va("%s*", partial);
+		Cvar_CompleteVar(pattern, &matches);
+	} else { // handle general case for commands and variables
 		pattern = va("%s*", partial);
 		Cmd_CompleteCommand(pattern, &matches);
 		Cvar_CompleteVar(pattern, &matches);
 	}
 
+	if (g_list_length(matches) == 0)
+		return false;
+
 	if (g_list_length(matches) == 1)
-		match = g_list_nth_data(matches, 0);
+		match = va("%s ", (char *) g_list_nth_data(matches, 0));
 	else
 		match = CommonPrefix(matches);
 
-	if (!match || *match == '\0')
-		return false;
-
-	sprintf(input_text, "/%s%s", cmd, match);
-	(*input_position) = strlen(input_text);
-	input_text[*input_position] = '\0';
+	g_snprintf(partial, len - (partial - input), "%s", match);
+	(*pos) = strlen(input);
 
 	g_list_free_full(matches, Z_Free);
 
