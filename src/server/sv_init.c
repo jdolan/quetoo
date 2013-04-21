@@ -169,8 +169,8 @@ static void Sv_ShutdownClients(void) {
 
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-		if (cl->download) {
-			Fs_Free(cl->download);
+		if (cl->download.buffer) {
+			Fs_Free(cl->download.buffer);
 		}
 	}
 
@@ -258,7 +258,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		const char *dir = Fs_RealDir(sv.config_strings[CS_MODELS]);
 		if (g_str_has_suffix(dir, ".pak")) {
-			g_strlcpy(sv.config_strings[CS_PAK], dir, MAX_QPATH);
+			g_strlcpy(sv.config_strings[CS_PAK], Basename(dir), MAX_QPATH);
 		}
 
 		for (i = 1; i < Cm_NumModels(); i++) {

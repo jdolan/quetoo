@@ -103,6 +103,9 @@ PROTOCOL
 #define CLIENT_RATE_MAX 32768
 #define CLIENT_RATE 16384
 
+// disallow dangerous file downloads from both sides
+#define IS_INVALID_DOWNLOAD(f) (!*f || *f == '/' || strstr(f, "..") || strchr(f, ' '))
+
 // player_state_t communication
 
 #define PS_M_TYPE			(1<<0)

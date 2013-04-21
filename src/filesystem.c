@@ -195,7 +195,7 @@ int64_t Fs_Write(file_t *file, void *buffer, size_t size, size_t count) {
  * read. Be sure to free the buffer when finished with Fs_FreeFile.
  */
 int64_t Fs_Load(const char *filename, void **buffer) {
-	int64_t len = -1;
+	int64_t len;
 
 	typedef struct {
 		byte *data;
@@ -245,6 +245,12 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
 		g_list_free_full(list, Z_Free);
 		Fs_Close(file);
+	} else {
+		len = -1;
+
+		if (buffer) {
+			*buffer = NULL;
+		}
 	}
 
 	return len;

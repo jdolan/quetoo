@@ -79,6 +79,12 @@ typedef struct sv_frame_s {
 #define CMD_MSEC_ALLOWABLE_DRIFT  CMD_MSEC_CHECK_INTERVAL + 150
 #define CMD_MSEC_MAX_DRIFT_ERRORS  10
 
+typedef struct sv_download_s {
+	byte *buffer;
+	int32_t size;
+	int32_t count;
+} sv_download_t;
+
 typedef struct sv_client_s {
 	sv_client_state_t state;
 
@@ -108,9 +114,7 @@ typedef struct sv_client_s {
 
 	sv_frame_t frames[UPDATE_BACKUP]; // updates can be delta'd from here
 
-	byte *download; // file being downloaded
-	uint32_t download_size; // total bytes (can't use EOF because of paks)
-	uint32_t download_count; // bytes sent
+	sv_download_t download; // UDP file downloads
 
 	uint32_t last_message; // svs.real_time when packet was last received
 	net_chan_t netchan;

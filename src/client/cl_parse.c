@@ -46,16 +46,8 @@ bool Cl_CheckOrDownloadFile(const char *filename) {
 		return true;
 	}
 
-	if (filename[0] == '/') {
-		Com_Warn("Refusing to download a path starting with /.\n");
-		return true;
-	}
-	if (strstr(filename, "..")) {
-		Com_Warn("Refusing to download a path with .. .\n");
-		return true;
-	}
-	if (strchr(filename, ' ')) {
-		Com_Warn("Refusing to download a path with whitespace.\n");
+	if (IS_INVALID_DOWNLOAD(filename)) {
+		Com_Warn("Refusing to download \"%s\".\n", filename);
 		return true;
 	}
 

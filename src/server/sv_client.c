@@ -191,105 +191,107 @@ static void Sv_Begin_f(void) {
  * @brief
  */
 static void Sv_NextDownload_f(void) {
-	int32_t r, size, percent;
 	byte buf[MAX_MSG_SIZE];
 	size_buf_t msg;
 
-	if (!sv_client->download)
+	sv_download_t *download = &sv_client->download;
+
+	if (!download->buffer)
 		return;
 
-	r = sv_client->download_size - sv_client->download_count;
+	Sb_Init(&msg, buf, sizeof(buf));
 
-	if (r > 1024) // cap the download chunk at 1024 bytes
-		r = 1024;
-
-	Sb_Init(&msg, buf, MAX_MSG_SIZE);
+	int32_t len = Clamp(download->size - download->count, 0, 1024);
 
 	Msg_WriteByte(&msg, SV_CMD_DOWNLOAD);
-	Msg_WriteShort(&msg, r);
+	Msg_WriteShort(&msg, len);
 
-	sv_client->download_count += r;
-	size = sv_client->download_size;
-	if (!size)
-		size = 1;
-
-	percent = sv_client->download_count * 100 / size;
+	int32_t percent = download->count * 100 / (Clamp(download->size, 1, download->size));
 	Msg_WriteByte(&msg, percent);
 
-	Sb_Write(&msg, sv_client->download + sv_client->download_count - r, r);
+	Sb_Write(&msg, download->buffer + download->count, len);
 	Sb_Write(&sv_client->netchan.message, msg.data, msg.size);
 
-	if (sv_client->download_count != sv_client->download_size)
-		return;
+	download->count += len;
 
-	Fs_Free(sv_client->download);
-	sv_client->download = NULL;
+	if (download->count == download->size) {
+		Com_Debug("Sv_NextDownload: Finished download to %s\n", Sv_NetaddrToString(sv_client));
+
+		Fs_Free(download->buffer);
+		download->buffer = NULL;
+	}
 }
-
-// only these prefixes are valid downloads, all else are denied
-static const char *downloadable[] = { "*.pak", "maps/*", "sounds/*", "env/*", "textures/*", NULL };
 
 /*
  * @brief
  */
 static void Sv_Download_f(void) {
-	const char *name;
-	void *buf;
-	uint32_t i = 0, offset = 0;
+	static const char *allowed_patterns[] = {
+		"*.pak", "maps/*", "models/*", "sounds/*", "env/*", "textures/*", NULL
+	};
 
-	name = Cmd_Argv(1);
-
-	if (Cmd_Argc() > 2)
-		offset = strtoul(Cmd_Argv(2), NULL, 0); // downloaded offset
+	const char *filename = Cmd_Argv(1);
 
 	// catch illegal offset or file_names
-	if (*name == '.' || *name == '/' || *name == '\\' || strstr(name, "..")) {
-		Com_Warn("Sv_Download_f: Malicious download (%s:%d) from %s\n", name, offset,
+	if (IS_INVALID_DOWNLOAD(filename)) {
+		Com_Warn("Sv_Download_f: Malicious download (%s) from %s\n", filename,
 				Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
 
-	while (downloadable[i]) { // ensure download name is allowed
-		if (GlobMatch(downloadable[i], name))
+	const char **pattern = allowed_patterns;
+	while (pattern) { // ensure download name is allowed
+		if (GlobMatch(*pattern, filename))
 			break;
-		i++;
+		pattern++;
 	}
 
-	if (!downloadable[i]) { // it wasn't
-		Com_Warn("Sv_Download_f: Illegal download (%s) from %s\n", name,
+	if (!pattern) { // it wasn't
+		Com_Warn("Sv_Download_f: Illegal download (%s) from %s\n", filename,
 				Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
 
-	if (!sv_udp_download->value) { // lastly, ensure server wishes to allow
+	if (!sv_udp_download->value) { // ensure server wishes to allow
 		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_DOWNLOAD);
 		Msg_WriteShort(&sv_client->netchan.message, -1);
 		Msg_WriteByte(&sv_client->netchan.message, 0);
 		return;
 	}
 
-	if (sv_client->download) // free last download
-		Fs_Free(sv_client->download);
+	sv_download_t *download = &sv_client->download;
 
-	sv_client->download_size = Fs_Load(name, &buf);
-	sv_client->download = (byte *) buf;
-	sv_client->download_count = offset;
+	if (download->buffer) { // free last download
+		Fs_Free(download->buffer);
+	}
 
-	if (offset > sv_client->download_size)
-		sv_client->download_count = sv_client->download_size;
+	memset(download, 0, sizeof(*download));
 
-	if (!sv_client->download) { // legal file name, but missing file
-		Com_Warn("Sv_Download_f: Couldn't download %s to %s\n", name, Sv_NetaddrToString(sv_client));
+	// try to load the file
+	download->size = (int32_t) Fs_Load(filename, (void *) &download->buffer);
+
+	if (download->size == -1) {
+		Com_Warn("Sv_Download_f: Couldn't download %s to %s\n", filename,
+				Sv_NetaddrToString(sv_client));
 		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_DOWNLOAD);
 		Msg_WriteShort(&sv_client->netchan.message, -1);
 		Msg_WriteByte(&sv_client->netchan.message, 0);
 		return;
+	}
+
+	if (Cmd_Argc() > 2) {
+		download->count = strtol(Cmd_Argv(2), NULL, 0);
+		if (download->count < 0 || download->count > download->size) {
+			Com_Warn("Sv_Download_f: Invalid offset (%d) from %s\n", download->count,
+					Sv_NetaddrToString(sv_client));
+			download->count = download->size;
+		}
 	}
 
 	Sv_NextDownload_f();
-	Com_Debug("Downloading %s to %s\n", name, sv_client->name);
+	Com_Debug("Downloading %s to %s\n", filename, sv_client->name);
 }
 
 /*

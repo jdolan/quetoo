@@ -57,9 +57,8 @@ void Sv_DropClient(sv_client_t *cl) {
 		Netchan_Transmit(&cl->netchan, cl->netchan.message.size, cl->netchan.message.data);
 	}
 
-	if (cl->download) {
-		Fs_Free(cl->download);
-		cl->download = NULL;
+	if (cl->download.buffer) {
+		Fs_Free(cl->download.buffer);
 	}
 
 	ent = cl->edict;

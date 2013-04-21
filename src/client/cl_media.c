@@ -34,11 +34,9 @@ void Cl_RequestNextDownload(void) {
 
 	// check pak
 	if (cl.precache_check == CS_PAK) {
-
 		cl.precache_check = CS_MODELS;
 
 		if (*cl.config_strings[CS_PAK] != '\0') {
-
 			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_PAK]))
 				return; // started a download
 		}
@@ -46,11 +44,9 @@ void Cl_RequestNextDownload(void) {
 
 	// check .bsp via models
 	if (cl.precache_check == CS_MODELS) { // the map is the only model we care about
-
 		cl.precache_check++;
 
 		if (*cl.config_strings[CS_MODELS] != '\0') {
-
 			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS]))
 				return; // started a download
 		}
