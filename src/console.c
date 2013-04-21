@@ -380,7 +380,7 @@ bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
 		pattern = va("demos/%s*.dem", partial);
 		Fs_CompleteFile(pattern, &matches);
 	} else if (g_str_has_prefix(partial, "exec ")) {
-		partial += strlen("exec");
+		partial += strlen("exec ");
 		pattern = va("%s*.cfg", partial);
 		Fs_CompleteFile(pattern, &matches);
 	} else if (g_str_has_prefix(partial, "map ")) {

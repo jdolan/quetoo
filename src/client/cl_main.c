@@ -687,16 +687,11 @@ void Cl_Init(void) {
 
 	Cl_InitKeys();
 
-	// TODO can we move R_Init down?
 	Cbuf_AddText(DEFAULT_BINDS);
 	Cbuf_AddText("exec quake2world.cfg\n");
 	Cbuf_Execute();
 
 	Net_Config(NS_CLIENT, true);
-
-	S_Init();
-
-	R_Init();
 
 	net_message.data = net_message_buffer;
 	net_message.max_size = sizeof(net_message_buffer);
@@ -704,6 +699,10 @@ void Cl_Init(void) {
 	Cl_InitLocal();
 
 	Cl_InitConsole();
+
+	S_Init();
+
+	R_Init();
 
 	Cl_InitView();
 

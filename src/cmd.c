@@ -539,21 +539,26 @@ static void Cmd_List_f(void) {
  * @brief Executes the specified script file (e.g autoexec.cfg).
  */
 static void Cmd_Exec_f(void) {
-	void *buf;
-	int64_t len;
+	char path[MAX_QPATH];
+	void *buffer;
 
 	if (Cmd_Argc() != 2) {
 		Com_Print("Usage: %s <filename> : execute a script file\n", Cmd_Argv(0));
 		return;
 	}
 
-	if ((len = Fs_Load(Cmd_Argv(1), &buf)) == -1) {
+	g_strlcpy(path, Cmd_Argv(1), sizeof(path));
+	if (!g_str_has_suffix(path, ".cfg")) {
+		g_strlcat(path, ".cfg", sizeof(path));
+	}
+
+	if (Fs_Load(path, &buffer) == -1) {
 		Com_Print("Couldn't exec %s\n", Cmd_Argv(1));
 		return;
 	}
 
-	Cbuf_InsertText((const char *) buf);
-	Fs_Free(buf);
+	Cbuf_InsertText((const char *) buffer);
+	Fs_Free(buffer);
 }
 
 /*

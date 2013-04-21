@@ -33,8 +33,6 @@ typedef PHYSFS_File file_t;
 
 typedef void (*fs_enumerate_func)(const char *path, void *data);
 
-void Fs_CompleteFile(const char *pattern, GList **matches);
-
 bool Fs_Close(file_t *f);
 bool Fs_Exists(const char *filename);
 const char *Fs_LastError(void);
@@ -53,6 +51,7 @@ void Fs_Free(void *buffer);
 bool Fs_Rename(const char *source, const char *dest);
 bool Fs_Unlink(const char *filename);
 void Fs_Enumerate(const char *pattern, fs_enumerate_func, void *data);
+void Fs_CompleteFile(const char *pattern, GList **matches);
 void Fs_AddToSearchPath(const char *dir);
 void Fs_SetGame(const char *dir);
 const char *Fs_WriteDir(void);

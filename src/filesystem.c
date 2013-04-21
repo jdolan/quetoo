@@ -37,26 +37,6 @@
 static char **fs_base_search_paths;
 
 /*
- * @brief GHFunc for Fs_CompleteFile.
- */
-static void Fs_CompleteFile_enumerate(const char *path, void *data) {
-	GList **matches = (GList **) data;
-	char match[MAX_QPATH];
-
-	Dirname(path, match);
-	StripExtension(match, match);
-
-	*matches = g_list_prepend(*matches, Z_CopyString(match));
-}
-
-/*
- * @brief Console completion for file names.
- */
-void Fs_CompleteFile(const char *pattern, GList **matches) {
-	Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, (void *) matches);
-}
-
-/*
  * @brief
  */
 bool Fs_Close(file_t *file) {
@@ -288,9 +268,9 @@ bool Fs_Unlink(const char *filename) {
 }
 
 typedef struct {
-	char dir[MAX_QPATH];
 	char pattern[MAX_QPATH];
 	fs_enumerate_func function;
+	char dir[MAX_QPATH];
 } fs_enumerate_t;
 
 static fs_enumerate_t fs_enumerate;
@@ -313,17 +293,37 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
  */
 void Fs_Enumerate(const char *pattern, fs_enumerate_func func, void *data) {
 
-	if (strchr(pattern, '/')) {
-		Dirname(pattern, fs_enumerate.dir);
-		g_strlcpy(fs_enumerate.pattern, Basename(pattern), sizeof(fs_enumerate.pattern));
-	} else {
-		g_strlcpy(fs_enumerate.dir, "/", sizeof(fs_enumerate.dir));
-		g_strlcpy(fs_enumerate.pattern, pattern, sizeof(fs_enumerate.pattern));
-	}
+	g_strlcpy(fs_enumerate.pattern, pattern, sizeof(fs_enumerate.pattern));
 
 	fs_enumerate.function = func;
 
+	if (strchr(pattern, '/')) {
+		Dirname(pattern, fs_enumerate.dir);
+	} else {
+		g_strlcpy(fs_enumerate.dir, "/", sizeof(fs_enumerate.dir));
+	}
+
 	PHYSFS_enumerateFilesCallback(fs_enumerate.dir, Fs_Enumerate_, data);
+}
+
+/*
+ * @brief GHFunc for Fs_CompleteFile.
+ */
+static void Fs_CompleteFile_enumerate(const char *path, void *data) {
+	GList **matches = (GList **) data;
+	char match[MAX_QPATH];
+
+	StripExtension(Basename(path), match);
+	Com_Print("%s\n", match);
+
+	*matches = g_list_prepend(*matches, Z_CopyString(match));
+}
+
+/*
+ * @brief Console completion for file names.
+ */
+void Fs_CompleteFile(const char *pattern, GList **matches) {
+	Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, (void *) matches);
 }
 
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
