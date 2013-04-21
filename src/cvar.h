@@ -22,9 +22,9 @@
 #ifndef __CVAR_H__
 #define __CVAR_H__
 
-#include "common.h"
+#include "filesystem.h"
 
-extern bool user_info_modified; // FIXME Cvar_Pending?
+extern bool cvar_user_info_modified;
 
 typedef void (*cvar_enumerate_func)(cvar_t *var, void *data);
 
@@ -44,9 +44,10 @@ void Cvar_UpdateLatchedVars(void);
 bool Cvar_PendingVars(uint32_t flags);
 void Cvar_ClearVars(uint32_t flags);
 bool Cvar_Command(void);
-void Cvar_Init(void);
-void Cvar_Shutdown(void);
 char *Cvar_UserInfo(void);
 char *Cvar_ServerInfo(void);
+void Cvar_WriteVariables(file_t *f);
+void Cvar_Init(void);
+void Cvar_Shutdown(void);
 
 #endif /* __CVAR_H__ */

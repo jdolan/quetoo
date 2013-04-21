@@ -19,20 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
-#ifdef _WIN32
-#include <windows.h>
-
-#define CSIDL_APPDATA  0x001a
-#define CSIDL_PERSONAL 0x0005
-
-#endif /* ifdef _WIN32 */
-
-#define FS_FILE_BUFFER (1024 * 128)
-
 #include "filesystem.h"
+
+#define FS_FILE_BUFFER (1024 * 1024 * 2)
 
 static char **fs_base_search_paths;
 

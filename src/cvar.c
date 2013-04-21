@@ -28,7 +28,7 @@ typedef struct {
 
 static cvar_state_t cvar_state;
 
-bool user_info_modified;
+bool cvar_user_info_modified;
 
 /*
  * @return True if the specified string appears to be a valid "info" string.
@@ -241,7 +241,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 	var->modified = true;
 
 	if (var->flags & CVAR_USER_INFO)
-		user_info_modified = true; // transmit at next opportunity
+		cvar_user_info_modified = true; // transmit at next opportunity
 
 	Z_Free(var->string); // free the old value string
 
@@ -280,7 +280,7 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 	var->modified = true;
 
 	if (var->flags & CVAR_USER_INFO)
-		user_info_modified = true; // transmit at next opportunity
+		cvar_user_info_modified = true; // transmit at next opportunity
 
 	Z_Free(var->string); // free the old value string
 
@@ -573,7 +573,7 @@ static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
 }
 
 /*
- * @ Returns an info string containing all the CVAR_SERVER_INFO cvars.
+ * @return An info string containing all the CVAR_SERVER_INFO cvars.
  */
 char *Cvar_ServerInfo(void) {
 	static char info[MAX_USER_INFO_STRING];
@@ -581,6 +581,23 @@ char *Cvar_ServerInfo(void) {
 	Cvar_Enumerate(Cvar_ServerInfo_enumerate, (void *) info);
 
 	return info;
+}
+
+/*
+ * @brief Enumeration helper for Cl_WriteVariables.
+ */
+static void Cvar_WriteVariables_enumerate(cvar_t *var, void *data) {
+
+	if (var->flags & CVAR_ARCHIVE) {
+		Fs_Print((file_t *) data, "set %s \"%s\"\n", var->name, var->string);
+	}
+}
+
+/*
+ * @brief Writes all variables to the specified file.
+ */
+void Cvar_WriteVariables(file_t *f) {
+	Cvar_Enumerate(Cvar_WriteVariables_enumerate, (void *) f);
 }
 
 /**
@@ -596,7 +613,7 @@ void Cvar_Init(void) {
 }
 
 /*
- * Shuts down the console variable subsystem.
+ * @brief Shuts down the console variable subsystem.
  */
 void Cvar_Shutdown(void) {
 

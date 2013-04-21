@@ -21,6 +21,7 @@
 
 #include "common.h"
 #include "common-anorms.h"
+#include "cvar.h"
 
 static int32_t rd_target;
 static char *rd_buffer;

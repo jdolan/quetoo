@@ -93,11 +93,11 @@ void Cl_SendCmd(void) {
 	}
 
 	// send a user_info update if needed
-	if (user_info_modified) {
+	if (cvar_user_info_modified) {
 		Msg_WriteByte(&cls.netchan.message, CL_CMD_USER_INFO);
 		Msg_WriteString(&cls.netchan.message, Cvar_UserInfo());
 
-		user_info_modified = false;
+		cvar_user_info_modified = false;
 	}
 
 	// finalize the current command

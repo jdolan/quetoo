@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <SDL/SDL_thread.h>
 
-#include "cvar.h"
+#include "mem.h"
 
 typedef enum thread_status_e {
 	THREAD_IDLE,

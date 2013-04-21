@@ -20,6 +20,28 @@
  */
 
 #include "sys.h"
+#include "filesystem.h"
+
+#include <signal.h>
+#include <sys/time.h>
+
+#ifndef _WIN32
+#include <dlfcn.h>
+#include <pwd.h>
+#else
+#include <windows.h>
+#define CSIDL_APPDATA  0x001a
+#define CSIDL_PERSONAL 0x0005
+#endif
+
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
+#ifdef HAVE_EXECINFO
+#include <execinfo.h>
+#define MAX_BACKTRACE_SYMBOLS 50
+#endif
 
 /*
  * @return Milliseconds since Quake execution began.

@@ -22,24 +22,7 @@
 #ifndef __SYS_H__
 #define __SYS_H__
 
-#include "filesystem.h"
-
-#ifndef _WIN32
-#include <dlfcn.h>
-#include <pwd.h>
-#endif
-
-#include <errno.h>
-#include <signal.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <unistd.h>
-
-#ifdef HAVE_EXECINFO
-#include <execinfo.h>
-#define MAX_BACKTRACE_SYMBOLS 50
-#endif
+#include "quake2world.h"
 
 uint32_t Sys_Milliseconds(void);
 
