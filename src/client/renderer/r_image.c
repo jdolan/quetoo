@@ -28,14 +28,12 @@ typedef struct {
 	GLenum minimize, maximize;
 } r_texture_mode_t;
 
-static r_texture_mode_t r_texture_modes[] = {
-	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
-	{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
-	{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
-	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
-};
+static r_texture_mode_t r_texture_modes[] = { { "GL_NEAREST", GL_NEAREST, GL_NEAREST }, {
+		"GL_LINEAR", GL_LINEAR, GL_LINEAR }, { "GL_NEAREST_MIPMAP_NEAREST",
+		GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST }, { "GL_LINEAR_MIPMAP_NEAREST",
+		GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR }, { "GL_NEAREST_MIPMAP_LINEAR",
+		GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST }, { "GL_LINEAR_MIPMAP_LINEAR",
+		GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR } };
 
 /*
  * @brief Sets the texture parameters for mipmapping and anisotropy.
@@ -69,10 +67,9 @@ static void R_TextureMode(void) {
  */
 void R_Screenshot_f(void) {
 	static int32_t last_shot; // small optimization, don't fopen so many times
-	char file_name[MAX_OSPATH];
+	char filename[MAX_OSPATH];
 	int32_t i, quality;
 	byte *buffer;
-	FILE *f;
 
 	void (*Img_Write)(const char *path, byte *data, int32_t width, int32_t height, int32_t quality);
 
@@ -86,24 +83,19 @@ void R_Screenshot_f(void) {
 		return;
 	}
 
-	// create the screenshots directory if it doesn't exist
-	g_snprintf(file_name, sizeof(file_name), "%s/screenshots/", Fs_Gamedir());
-	Fs_CreatePath(file_name);
+	const char *ext = r_screenshot_type->string;
 
 	// find a file name to save it to
 	for (i = last_shot; i < MAX_SCREENSHOTS; i++) {
 
-		g_snprintf(file_name, sizeof(file_name), "%s/screenshots/quake2world%02d.%s",
-				Fs_Gamedir(), i, r_screenshot_type->string);
+		g_snprintf(filename, sizeof(filename), "screenshots/quake2world%02d.%s", i, ext);
 
-		if (!(f = fopen(file_name, "rb")))
+		if (!Fs_Exists(filename))
 			break; // file doesn't exist
-
-		Fs_CloseFile(f);
 	}
 
 	if (i == MAX_SCREENSHOTS) {
-		Com_Warn("R_Screenshot_f: Failed to create %s\n", file_name);
+		Com_Warn("R_Screenshot_f: Failed to create %s\n", filename);
 		return;
 	}
 
@@ -115,10 +107,10 @@ void R_Screenshot_f(void) {
 
 	quality = Clamp(r_screenshot_quality->value * 100, 0, 100);
 
-	(*Img_Write)(file_name, buffer, r_context.width, r_context.height, quality);
+	(*Img_Write)(filename, buffer, r_context.width, r_context.height, quality);
 
 	Z_Free(buffer);
-	Com_Print("Saved %s\n", Basename(file_name));
+	Com_Print("Saved %s\n", Basename(filename));
 }
 
 /*

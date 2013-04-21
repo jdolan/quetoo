@@ -88,7 +88,7 @@ static void AddSound(const char *sound) {
 
 		if (Fs_OpenFile(path, &f, FILE_READ) > 0) {
 			AddPath(path);
-			Fs_CloseFile(f);
+			Fs_Close(f);
 			break;
 		}
 	}
@@ -126,7 +126,7 @@ static void AddImage(const char *image, bool required) {
 
 		if (Fs_OpenFile(path, &f, FILE_READ) > 0) {
 			AddPath(path);
-			Fs_CloseFile(f);
+			Fs_Close(f);
 			break;
 		}
 	}
@@ -185,7 +185,7 @@ static void AddMaterials(const char *path) {
 	int32_t i, num_frames;
 
 	// load the materials file
-	if ((i = Fs_LoadFile(path, (void **) (char *) &buffer)) < 1) {
+	if ((i = Fs_Load(path, (void **) (char *) &buffer)) < 1) {
 		Com_Warn("Couldn't load materials %s\n", path);
 		return;
 	}
@@ -285,7 +285,7 @@ static void AddMaterials(const char *path) {
 		}
 	}
 
-	Fs_FreeFile(buffer);
+	Fs_Free(buffer);
 }
 
 #define NUM_MODEL_FORMATS 2
@@ -315,7 +315,7 @@ static void AddModel(char *model) {
 
 		if (Fs_OpenFile(path, &f, FILE_READ) > 0) {
 			AddPath(path);
-			Fs_CloseFile(f);
+			Fs_Close(f);
 			break;
 		}
 	}
@@ -384,7 +384,7 @@ static pak_t *GetPakfile(void) {
 	c = strstr(base, "maps/");
 	c = c ? c + 5 : base;
 
-	g_snprintf(pakfile, sizeof(pakfile), "%s/map-%s-%d.pak", Fs_Gamedir(), c, getpid());
+	g_snprintf(pakfile, sizeof(pakfile), "%s/map-%s-%d.pak", Fs_WriteDir(), c, getpid());
 
 	if (!(pak = Pak_CreatePakstream(pakfile)))
 		Com_Error(ERR_FATAL, "Failed to open %s\n", pakfile);
@@ -466,7 +466,7 @@ int32_t PAK_Main(void) {
 
 	for (i = 0; i < qpak.num_paths; i++) {
 
-		const int32_t j = Fs_LoadFile(qpak.paths[i], (void **) (char *) &p);
+		const int32_t j = Fs_Load(qpak.paths[i], (void **) (char *) &p);
 
 		if (j == -1) {
 			Com_Print("Couldn't open %s\n", qpak.paths[i]);

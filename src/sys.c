@@ -22,7 +22,7 @@
 #include "sys.h"
 
 /*
- * @brief
+ * @return Milliseconds since Quake execution began.
  */
 uint32_t Sys_Milliseconds(void) {
 	static uint32_t base, time;
@@ -47,9 +47,34 @@ uint32_t Sys_Milliseconds(void) {
 }
 
 /*
- * @brief
+ * @return The current executable path (argv[0]).
  */
-const char *Sys_GetCurrentUser(void) {
+const char *Sys_ExecutablePath(void) {
+	static char path[MAX_OSPATH];
+
+#ifdef __APPLE__
+	uint32_t i = sizeof(path);
+
+	if (_NSGetExecutablePath(path, &i) > -1) {
+		return path;
+	}
+
+#elif __LINUX__
+
+	if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path)) > -1) {
+		return path;
+	}
+
+#endif
+
+	Com_Warn("Sys_ExecutablePath: Failed to resolve executable path\n");
+	return NULL;
+}
+
+/*
+ * @return The current user's name.
+ */
+const char *Sys_Username(void) {
 	static char user[64];
 #ifdef _WIN32
 	size_t size = sizeof(user);
@@ -69,82 +94,31 @@ const char *Sys_GetCurrentUser(void) {
 }
 
 /*
- * @brief Create the specified directory path.
+ * @brief Returns the current user's home directory.
  */
-void Sys_Mkdir(const char *path) {
+const char *Sys_UserDir(void) {
+	static char user_dir[MAX_OSPATH];
 #ifdef _WIN32
-	mkdir(path);
+	void *handle;
+	FARPROC GetFolderPath;
+
+	memset(user_dir, 0, sizeof(user_dir));
+
+	if ((handle = dlopen("shfolder.dll", 0))) {
+		if ((GetFolderPath = dlsym(handle, "SHGetFolderPathA"))) {
+			GetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, user_dir);
+		}
+		dlclose(handle);
+	}
+
+	if (*user_dir != '\0') // append our directory name
+	strcat(user_dir, "/My Games/Quake2World");
+	else // or simply use ./
+	strcat(user_dir, PKGDATADIR);
 #else
-	mkdir(path, 0777);
+	g_snprintf(user_dir, sizeof(user_dir), "%s/.quake2world", getenv("HOME"));
 #endif
-}
-
-static char find_base[MAX_OSPATH];
-static char find_path[MAX_OSPATH];
-static char find_pattern[MAX_OSPATH];
-static DIR *find_dir;
-
-/*
- * @brief Returns the first full path name matched by the specified search path in
- * the Quake file system. Wildcards are partially supported.
- */
-const char *Sys_FindFirst(const char *path) {
-	struct dirent *d;
-	char *p;
-
-	if (find_dir) {
-		Com_Debug("Sys_FindFirst without Sys_FindClose\n");
-		Sys_FindClose();
-	}
-
-	strcpy(find_base, path);
-
-	if ((p = strrchr(find_base, '/')) != NULL) {
-		*p = 0;
-		strcpy(find_pattern, p + 1);
-	} else
-		strcpy(find_pattern, "*");
-
-	if (strcmp(find_pattern, "*.*") == 0)
-		strcpy(find_pattern, "*");
-
-	if ((find_dir = opendir(find_base)) == NULL)
-		return NULL;
-
-	while ((d = readdir(find_dir)) != NULL) {
-		if (!*find_pattern || GlobMatch(find_pattern, d->d_name)) {
-			g_snprintf(find_path, sizeof(find_path), "%s/%s", find_base, d->d_name);
-			return find_path;
-		}
-	}
-	return NULL;
-}
-
-/*
- * @brief
- */
-const char *Sys_FindNext(void) {
-	struct dirent *d;
-
-	if (find_dir == NULL)
-		return NULL;
-
-	while ((d = readdir(find_dir)) != NULL) {
-		if (!*find_pattern || GlobMatch(find_pattern, d->d_name)) {
-			sprintf(find_path, "%s/%s", find_base, d->d_name);
-			return find_path;
-		}
-	}
-	return NULL;
-}
-
-/*
- * @brief
- */
-void Sys_FindClose(void) {
-	if (find_dir != NULL)
-		closedir(find_dir);
-	find_dir = NULL;
+	return user_dir;
 }
 
 /*
@@ -160,26 +134,27 @@ void Sys_CloseLibrary(void **handle) {
  * @brief
  */
 void Sys_OpenLibrary(const char *name, void **handle) {
-	const char *path;
-
 	*handle = NULL;
 
 #ifdef _WIN32
-	path = Fs_FindFirst(va("%s.dll", name), true);
+	char *so_name = va("%s.dll", name);
 #else
-	path = Fs_FindFirst(va("%s.so", name), true);
+	char *so_name = va("%s.so", name);
 #endif
 
-	if (!path) {
-		Com_Error(ERR_DROP, "Sys_OpenLibrary: Couldn't find %s\n", name);
+	if (Fs_Exists(so_name)) {
+		char path[MAX_QPATH];
+
+		g_snprintf(path, sizeof(path), "%s/%s", Fs_RealDir(so_name), so_name);
+		Com_Print("Trying %s...\n", path);
+
+		if ((*handle = dlopen(path, RTLD_NOW)))
+			return;
+
+		Com_Error(ERR_DROP, "Sys_OpenLibrary: %s\n", dlerror());
 	}
 
-	Com_Print("Trying %s...\n", path);
-
-	if ((*handle = dlopen(path, RTLD_NOW)))
-		return;
-
-	Com_Error(ERR_DROP, "Sys_OpenLibrary: %s\n", dlerror());
+	Com_Error(ERR_DROP, "Sys_OpenLibrary: Couldn't find %s\n", so_name);
 }
 
 /*
@@ -254,16 +229,16 @@ void Sys_Error(const char *error, ...) {
 void Sys_Signal(int32_t s) {
 
 	switch (s) {
-	case SIGHUP:
-	case SIGINT:
-	case SIGQUIT:
-	case SIGTERM:
-		Com_Print("Received signal %d, quitting...\n", s);
-		Sys_Quit();
-		break;
-	default:
-		Sys_Backtrace();
-		Sys_Error("Received signal %d.\n", s);
-		break;
+		case SIGHUP:
+		case SIGINT:
+		case SIGQUIT:
+		case SIGTERM:
+			Com_Print("Received signal %d, quitting...\n", s);
+			Sys_Quit();
+			break;
+		default:
+			Sys_Backtrace();
+			Sys_Error("Received signal %d.\n", s);
+			break;
 	}
 }

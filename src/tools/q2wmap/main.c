@@ -134,7 +134,7 @@ static void OpenWin32Console(void) {
  * CloseWin32Console
  */
 static void CloseWin32Console(void) {
-	Fs_CloseFile(output_file); // close the open file stream
+	Fs_Close(output_file); // close the open file stream
 	CloseHandle(Console);
 	FreeConsole();
 }
@@ -561,7 +561,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	Cmd_Init();
 
-	Fs_Init();
+	Fs_Init(argv[0]);
 
 	// general options
 	for (i = 1; i < argc; i++) {

@@ -214,7 +214,7 @@ typedef struct cl_chat_state_s {
 
 typedef struct cl_download_s {
 	bool http;
-	FILE *file;
+	file_t *file;
 	char tempname[MAX_OSPATH];
 	char name[MAX_OSPATH];
 } cl_download_t;
@@ -266,8 +266,8 @@ typedef struct cl_static_s {
 	char download_url[MAX_OSPATH]; // for http downloads
 	cl_download_t download; // current download (udp or http)
 
-	char demo_path[MAX_OSPATH];
-	FILE *demo_file;
+	char demo_filename[MAX_OSPATH];
+	file_t *demo_file;
 
 	cl_server_info_t *servers; // list of servers from all sources
 	char *servers_text; // tabular data for servers menu

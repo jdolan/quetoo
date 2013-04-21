@@ -51,7 +51,7 @@ static void AddScriptToStack(const char *file_name){
 
 	strcpy(script->file_name, file_name);
 
-	size = Fs_LoadFile(script->file_name, (void **)(char *)&script->buffer);
+	size = Fs_Load(script->file_name, (void **)(char *)&script->buffer);
 
 	if(size == -1)
 		Com_Error(ERR_FATAL, "Could not load %s\n", script->file_name);

@@ -58,7 +58,7 @@ void Sv_DropClient(sv_client_t *cl) {
 	}
 
 	if (cl->download) {
-		Fs_FreeFile(cl->download);
+		Fs_Free(cl->download);
 		cl->download = NULL;
 	}
 

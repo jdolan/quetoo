@@ -124,15 +124,17 @@ typedef struct cvar_s {
 	bool modified; // set each time the cvar is changed
 	float value;
 	int32_t integer;
-	struct cvar_s *next;
 } cvar_t;
 
-// file opening modes
-typedef enum {
-	FILE_READ,
-	FILE_WRITE,
-	FILE_APPEND
-} file_mode_t;
+typedef void (*cmd_function_t)(void);
+
+typedef struct cmd_s {
+	const char *name;
+	const char *description;
+	cmd_function_t function;
+	const char *commands; // for alias commands
+	uint32_t flags;
+} cmd_t;
 
 // server multicast scope for entities and events
 typedef enum {

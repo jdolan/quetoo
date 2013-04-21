@@ -27,7 +27,7 @@
 #include "common.h"
 
 int Test_Run(Suite *suite);
-void Test_Init(void);
+void Test_Init(int32_t argc, char **argv);
 void Test_Shutdown(void);
 
 #endif /* __TESTS_H__ */

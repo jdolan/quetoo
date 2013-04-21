@@ -39,15 +39,21 @@ void teardown(void) {
 START_TEST(check_mem_LinkMalloc)
 	{
 		byte *parent = Z_Malloc(1);
+
 		byte *child1 = Z_LinkMalloc(1, parent);
 		byte *child2 = Z_LinkMalloc(1, parent);
-		/*byte *grandchild1 =*/ Z_LinkMalloc(1, child1);
 
-		ck_assert(Z_Size() == 4);
+		ck_assert(Z_Size() == 3);
 
 		Z_Free(child2);
 
+		ck_assert(Z_Size() == 2);
+
+		byte *grandchild1 = Z_Malloc(1);
+
 		ck_assert(Z_Size() == 3);
+
+		Z_Link(child1, grandchild1);
 
 		Z_Free(parent);
 
@@ -58,9 +64,9 @@ START_TEST(check_mem_LinkMalloc)
 /*
  * @brief Test entry point.
  */
-int main(int argc, char *argv[]) {
+int32_t main(int32_t argc, char **argv) {
 
-	Test_Init();
+	Test_Init(argc, argv);
 
 	TCase *tcase = tcase_create("check_mem");
 	tcase_add_checked_fixture(tcase, setup, teardown);
@@ -70,7 +76,7 @@ int main(int argc, char *argv[]) {
 	Suite *suite = suite_create("check_mem");
 	suite_add_tcase(suite, tcase);
 
-	int failed = Test_Run(suite);
+	int32_t failed = Test_Run(suite);
 
 	Test_Shutdown();
 	return failed;

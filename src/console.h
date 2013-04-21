@@ -23,6 +23,7 @@
 #define __CONSOLE_H__
 
 #include "cmd.h"
+#include "cvar.h"
 
 #define CON_TEXT_SIZE 32768
 #define CON_MAX_LINES 1024

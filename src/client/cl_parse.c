@@ -38,9 +38,7 @@ static char *sv_cmd_names[256] = {
  * @brief Returns true if the file exists, otherwise it attempts to start a download
  * from the server.
  */
-bool Cl_CheckOrDownloadFile(const char *file_name) {
-	FILE *fp;
-	char name[MAX_OSPATH];
+bool Cl_CheckOrDownloadFile(const char *filename) {
 	char cmd[MAX_STRING_CHARS];
 
 	if (cls.state == CL_DISCONNECTED) {
@@ -48,32 +46,32 @@ bool Cl_CheckOrDownloadFile(const char *file_name) {
 		return true;
 	}
 
-	if (file_name[0] == '/') {
+	if (filename[0] == '/') {
 		Com_Warn("Refusing to download a path starting with /.\n");
 		return true;
 	}
-	if (strstr(file_name, "..")) {
+	if (strstr(filename, "..")) {
 		Com_Warn("Refusing to download a path with .. .\n");
 		return true;
 	}
-	if (strchr(file_name, ' ')) {
+	if (strchr(filename, ' ')) {
 		Com_Warn("Refusing to download a path with whitespace.\n");
 		return true;
 	}
 
-	Com_Debug("Checking for %s\n", file_name);
+	Com_Debug("Checking for %s\n", filename);
 
-	if (Fs_LoadFile(file_name, NULL) != -1) { // it exists, no need to download
+	if (Fs_Exists(filename)) { // it exists, no need to download
 		return true;
 	}
 
-	Com_Debug("Attempting to download %s\n", file_name);
+	Com_Debug("Attempting to download %s\n", filename);
 
-	strcpy(cls.download.name, file_name);
+	strncpy(cls.download.name, filename, sizeof(cls.download.name));
 
 	// udp downloads to a temp name, and only renames when done
 	StripExtension(cls.download.name, cls.download.tempname);
-	strcat(cls.download.tempname, ".tmp");
+	g_strlcat(cls.download.tempname, ".tmp", sizeof(cls.download.tempname));
 
 	// attempt an http download if available
 	if (cls.download_url[0] && Cl_HttpDownload())
@@ -81,30 +79,31 @@ bool Cl_CheckOrDownloadFile(const char *file_name) {
 
 	// check to see if we already have a tmp for this file, if so, try to resume
 	// open the file if not opened yet
-	g_snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
 
-	fp = fopen(name, "r+b");
-	if (fp) { // a temp file exists, resume download
-		int32_t len;
-		fseek(fp, 0, SEEK_END);
-		len = ftell(fp);
+	if (Fs_Exists(cls.download.tempname)) { // a temp file exists, resume download
+		int64_t len = Fs_Load(cls.download.tempname, NULL);
 
-		cls.download.file = fp;
+		if((cls.download.file = Fs_OpenAppend(cls.download.tempname))) {
 
-		// give the server the offset to start the download
-		Com_Debug("Resuming %s...\n", cls.download.name);
+			if (Fs_Seek(cls.download.file, len - 1)) {
+				// give the server the offset to start the download
+				Com_Debug("Resuming %s...\n", cls.download.name);
 
-		g_snprintf(cmd, sizeof(cmd), "download %s %i", cls.download.name, len);
-		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-		Msg_WriteString(&cls.netchan.message, cmd);
-	} else {
-		// or start if from the beginning
-		Com_Debug("Downloading %s...\n", cls.download.name);
+				g_snprintf(cmd, sizeof(cmd), "download %s %lld", cls.download.name, len);
+				Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
+				Msg_WriteString(&cls.netchan.message, cmd);
 
-		g_snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
-		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-		Msg_WriteString(&cls.netchan.message, cmd);
+				return false;
+			}
+		}
 	}
+
+	// or start if from the beginning
+	Com_Debug("Downloading %s...\n", cls.download.name);
+
+	g_snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
+	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
+	Msg_WriteString(&cls.netchan.message, cmd);
 
 	return false;
 }
@@ -196,7 +195,6 @@ void Cl_ParseConfigString(void) {
  */
 static void Cl_ParseDownload(void) {
 	int32_t size, percent;
-	char name[MAX_OSPATH];
 
 	// read the data
 	size = Msg_ReadShort(&net_message);
@@ -205,7 +203,7 @@ static void Cl_ParseDownload(void) {
 		Com_Debug("Server does not have this file.\n");
 		if (cls.download.file) {
 			// if here, we tried to resume a file but the server said no
-			Fs_CloseFile(cls.download.file);
+			Fs_Close(cls.download.file);
 			cls.download.file = NULL;
 		}
 		Cl_RequestNextDownload();
@@ -214,19 +212,16 @@ static void Cl_ParseDownload(void) {
 
 	// open the file if not opened yet
 	if (!cls.download.file) {
-		g_snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
 
-		Fs_CreatePath(name);
-
-		if (!(cls.download.file = fopen(name, "wb"))) {
+		if (!(cls.download.file = Fs_OpenWrite(cls.download.tempname))) {
 			net_message.read += size;
-			Com_Warn("Failed to open %s.\n", name);
+			Com_Warn("Failed to open %s.\n", cls.download.tempname);
 			Cl_RequestNextDownload();
 			return;
 		}
 	}
 
-	Fs_Write(net_message.data + net_message.read, 1, size, cls.download.file);
+	Fs_Write(cls.download.file, net_message.data + net_message.read, 1, size);
 
 	net_message.read += size;
 
@@ -234,22 +229,17 @@ static void Cl_ParseDownload(void) {
 		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 		Sb_Print(&cls.netchan.message, "nextdl");
 	} else {
-		char oldn[MAX_OSPATH];
-		char newn[MAX_OSPATH];
-
-		Fs_CloseFile(cls.download.file);
-
-		// rename the temp file to it's final name
-		g_snprintf(oldn, sizeof(oldn), "%s/%s", Fs_Gamedir(), cls.download.tempname);
-		g_snprintf(newn, sizeof(newn), "%s/%s", Fs_Gamedir(), cls.download.name);
-
-		if (rename(oldn, newn))
-			Com_Warn("Failed to rename %s to %s.\n", oldn, newn);
-
+		Fs_Close(cls.download.file);
 		cls.download.file = NULL;
 
-		if (strstr(newn, ".pak")) // append paks to searchpaths
-			Fs_AddPakfile(newn);
+		// add new archives to the search path
+		if (Fs_Rename(cls.download.tempname, cls.download.name)) {
+			if (strstr(cls.download.name, ".zip")) {
+				Fs_AddToSearchPath(cls.download.name);
+			}
+		} else {
+			Com_Error(ERR_DROP, "Cl_ParseDownload: Failed to rename %s\n", cls.download.name);
+		}
 
 		// get another file if needed
 		Cl_RequestNextDownload();
@@ -458,7 +448,7 @@ void Cl_ParseServerMessage(void) {
 					Cl_HttpDownload_Complete();
 				else
 					// or just stop legacy ones
-					Fs_CloseFile(cls.download.file);
+					Fs_Close(cls.download.file);
 				cls.download.name[0] = '\0';
 				cls.download.file = NULL;
 			}

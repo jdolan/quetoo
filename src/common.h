@@ -29,7 +29,6 @@
 #define DEFAULT_GAME	"default"
 
 #define MAX_PRINT_MSG	4096
-#define MAX_NUM_ARGVS	64
 
 // sizebuf and net message facilities
 typedef struct size_buf_s {
@@ -186,7 +185,7 @@ void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 typedef struct quake2world_s {
 
 	int32_t argc;
-	char *argv[MAX_NUM_ARGVS + 1];
+	char **argv;
 
 	uint32_t time;
 	uint32_t subsystems;
@@ -196,7 +195,6 @@ typedef struct quake2world_s {
 	void (*Print)(const char *msg);
 	void (*Verbose)(const char *msg);
 	void (*Warn)(const char *msg);
-
 } quake2world_t;
 
 extern quake2world_t quake2world;
@@ -206,6 +204,7 @@ void Com_InitSubsystem(uint32_t s);
 void Com_QuitSubsystem(uint32_t s);
 
 extern cvar_t *dedicated;
+extern cvar_t *game;
 extern cvar_t *time_demo;
 extern cvar_t *time_scale;
 

@@ -50,8 +50,8 @@ static void Cl_WriteDemoHeader(void) {
 		if (*cl.config_strings[i] != '\0') {
 			if (msg.size + strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
 				len = LittleLong(msg.size);
-				Fs_Write(&len, 4, 1, cls.demo_file);
-				Fs_Write(msg.data, msg.size, 1, cls.demo_file);
+				Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+				Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 				msg.size = 0;
 			}
 
@@ -69,8 +69,8 @@ static void Cl_WriteDemoHeader(void) {
 
 		if (msg.size + 64 > msg.max_size) { // write it out
 			len = LittleLong(msg.size);
-			Fs_Write(&len, 4, 1, cls.demo_file);
-			Fs_Write(msg.data, msg.size, 1, cls.demo_file);
+			Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+			Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 			msg.size = 0;
 		}
 
@@ -86,8 +86,8 @@ static void Cl_WriteDemoHeader(void) {
 	// write it to the demo file
 
 	len = LittleLong(msg.size);
-	Fs_Write(&len, 4, 1, cls.demo_file);
-	Fs_Write(msg.data, msg.size, 1, cls.demo_file);
+	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+	Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 
 	Com_Debug("Cl_WriteDemoHeader: demo started\n");
 	// the rest of the demo file will be individual frames
@@ -97,29 +97,27 @@ static void Cl_WriteDemoHeader(void) {
  * @brief Dumps the current net message, prefixed by the length.
  */
 void Cl_WriteDemoMessage(void) {
-	int32_t size;
+	int32_t len;
 
 	if (!cls.demo_file)
 		return;
 
 	// if we received an uncompressed frame, write the demo header
-	if (cl.frame.delta_frame < 1 && !ftell(cls.demo_file)) {
+	if (cl.frame.delta_frame < 1 && !Fs_Tell(cls.demo_file)) {
 		Cl_WriteDemoHeader();
 	}
 
 	// the first eight bytes are just packet sequencing stuff
-	size = LittleLong(net_message.size - 8);
-	Fs_Write(&size, 4, 1, cls.demo_file);
-
-	// write the message payload
-	Fs_Write(net_message.data + 8, size, 1, cls.demo_file);
+	len = LittleLong(net_message.size - 8);
+	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+	Fs_Write(cls.demo_file, net_message.data + 8, len, 1);
 }
 
 /*
  * @brief Stop recording a demo
  */
 void Cl_Stop_f(void) {
-	int32_t size;
+	int32_t len = -1;
 
 	if (!cls.demo_file) {
 		Com_Print("Not recording a demo.\n");
@@ -127,9 +125,8 @@ void Cl_Stop_f(void) {
 	}
 
 	// finish up
-	size = -1;
-	Fs_Write(&size, 4, 1, cls.demo_file);
-	Fs_CloseFile(cls.demo_file);
+	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+	Fs_Close(cls.demo_file);
 
 	cls.demo_file = NULL;
 	Com_Print("Stopped demo.\n");
@@ -157,17 +154,15 @@ void Cl_Record_f(void) {
 		return;
 	}
 
-	// open the demo file
-	g_snprintf(cls.demo_path, sizeof(cls.demo_path), "%s/demos/%s.dem", Fs_Gamedir(), Cmd_Argv(1));
+	g_snprintf(cls.demo_filename, sizeof(cls.demo_filename), "demos/%s.dem", Cmd_Argv(1));
 
-	Fs_CreatePath(cls.demo_path);
-	cls.demo_file = fopen(cls.demo_path, "wb");
-	if (!cls.demo_file) {
-		Com_Warn("Cl_Record_f: couldn't open %s.\n", cls.demo_path);
+	// open the demo file
+	if (!(cls.demo_file = Fs_OpenWrite(cls.demo_filename))) {
+		Com_Warn("Cl_Record_f: couldn't open %s.\n", cls.demo_filename);
 		return;
 	}
 
-	Com_Print("Recording to %s\n", cls.demo_path);
+	Com_Print("Recording to %s\n", cls.demo_filename);
 }
 
 #define DEMO_PLAYBACK_STEP 1

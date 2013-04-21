@@ -41,6 +41,7 @@ quake2world_t quake2world;
 
 cvar_t *debug;
 cvar_t *dedicated;
+cvar_t *game;
 cvar_t *show_trace;
 cvar_t *time_demo;
 cvar_t *time_scale;
@@ -152,11 +153,9 @@ static void Init(int32_t argc, char **argv) {
 	quake2world.Verbose = Verbose;
 	quake2world.Warn = Warn;
 
-	Z_Init();
-
 	Com_InitArgv(argc, argv);
 
-	Cbuf_Init();
+	Z_Init();
 
 	Cmd_Init();
 
@@ -169,7 +168,7 @@ static void Init(int32_t argc, char **argv) {
 	 */
 	Cbuf_AddEarlyCommands(false);
 
-	Fs_Init();
+	Fs_Init(argv[0]);
 
 	Cbuf_AddEarlyCommands(true);
 
@@ -182,6 +181,7 @@ static void Init(int32_t argc, char **argv) {
 #endif
 
 	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
+	game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, NULL);
 	show_trace = Cvar_Get("show_trace", "0", 0, "Print trace counts per frame");
 	time_demo = Cvar_Get("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Get("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
@@ -228,6 +228,12 @@ static void Shutdown(const char *msg) {
 #endif
 
 	Thread_Shutdown();
+
+	Fs_Shutdown();
+
+	Cvar_Shutdown();
+
+	Cmd_Shutdown();
 
 	Con_Shutdown();
 

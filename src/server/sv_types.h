@@ -22,11 +22,6 @@
 #ifndef __SV_TYPES_H__
 #define __SV_TYPES_H__
 
-#include "common.h"
-#include "cmodel.h"
-#include "game/game.h"
-#include "net.h"
-
 #ifdef __SV_LOCAL_H__
 
 typedef enum {
@@ -54,7 +49,7 @@ typedef struct sv_server_s {
 	byte multicast_buffer[MAX_MSG_SIZE];
 
 	// demo server information
-	FILE *demo_file;
+	file_t *demo_file;
 } sv_server_t;
 
 typedef enum {

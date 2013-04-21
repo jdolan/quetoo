@@ -19,12 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/*
- * console.c
- * Common structures and functions for the client console and
- * the server curses console.
- */
-
 #include "console.h"
 
 static console_data_t console_data;
@@ -181,8 +175,7 @@ static void Con_Clear_f(void) {
  * @brief Save the console contents to a file
  */
 static void Con_Dump_f(void) {
-	FILE *f;
-	char name[MAX_OSPATH];
+	file_t *file;
 	char *pos;
 
 	if (Cmd_Argc() != 2) {
@@ -190,24 +183,23 @@ static void Con_Dump_f(void) {
 		return;
 	}
 
-	g_snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), Cmd_Argv(1));
-
-	Fs_CreatePath(name);
-	f = fopen(name, "w");
-	if (!f) {
-		Com_Warn("Couldn't open %s.\n", name);
+	if (!(file = Fs_OpenWrite(Cmd_Argv(1)))) {
+		Com_Warn("Couldn't open %s.\n", Cmd_Argv(1));
 	} else {
 		pos = console_data.text;
 		while (pos < console_data.insert) {
-			if (IS_COLOR(pos))
+			if (IS_COLOR(pos)) {
 				pos++;
-			else if (!IS_LEGACY_COLOR(pos))
-				if (fwrite(pos, 1, 1, f) <= 0)
+			} else if (!IS_LEGACY_COLOR(pos)) {
+				if (Fs_Write(file, pos, 1, 1) != 1) {
 					Com_Warn("Failed to write console dump\n");
+					break;
+				}
+			}
 			pos++;
 		}
-		fclose(f);
-		Com_Print("Dumped console text to %s.\n", name);
+		Fs_Close(file);
+		Com_Print("Dumped console text to %s.\n", Cmd_Argv(1));
 	}
 }
 
@@ -364,9 +356,6 @@ void Con_Print(const char *text) {
 #endif
 }
 
-#define MAX_COMPLETE_MATCHES 1024
-static const char *complete[MAX_COMPLETE_MATCHES];
-
 /*
  *  Tab completion. Query the command and cvar subsystems for potential
  *  matches, and append an appropriate string to the input buffer. If no
@@ -375,61 +364,51 @@ static const char *complete[MAX_COMPLETE_MATCHES];
  *  common prefix they all share.
  */
 int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position) {
-	const char *match, *partial;
-	const char *cmd = 0, *dir = 0, *ext = 0;
-	int32_t matches;
+	const char *pattern, *match;
+	const char *cmd = NULL;
+	GList *matches = NULL;
 
-	partial = input_text;
+	const char *partial = input_text;
 	if (*partial == '\\' || *partial == '/')
 		partial++;
 
 	if (!*partial)
 		return false; // lets start with at least something
 
-	memset(complete, 0, sizeof(complete));
-
 	if (strstr(partial, "map ") == partial) {
 		cmd = "map ";
-		dir = "maps/";
-		ext = ".bsp";
+		pattern = va("maps/%s*.bsp", partial + 4);
 	} else if (strstr(partial, "demo ") == partial) {
 		cmd = "demo ";
-		dir = "demos/";
-		ext = ".dem";
+		pattern = va("demos/%s*.dem", partial + 5);
 	} else if (strstr(partial, "exec ") == partial) {
 		cmd = "exec ";
-		dir = "";
-		ext = ".cfg";
+		pattern = va("%s*.cfg", partial + 5);
 	}
 
-	if (cmd) { // auto-complete parameters for a command
-		partial += strlen(cmd);
-		matches = Fs_CompleteFile(dir, partial, ext, &complete[0]);
+	if (pattern) { // auto-complete parameters for a command
+		Fs_CompleteFile(pattern, &matches);
 	} else { // auto-complete a command or variable
 		cmd = "";
-		matches = Cmd_CompleteCommand(partial, &complete[0]);
-		matches += Cvar_CompleteVar(partial, &complete[matches]);
+		pattern = va("%s*", partial);
+		Cmd_CompleteCommand(pattern, &matches);
+		Cvar_CompleteVar(pattern, &matches);
 	}
 
-	if (matches == 1)
-		match = complete[0];
+	if (g_list_length(matches) == 1)
+		match = g_list_nth_data(matches, 0);
 	else
-		match = CommonPrefix(complete, matches);
+		match = CommonPrefix(matches);
 
 	if (!match || *match == '\0')
 		return false;
 
 	sprintf(input_text, "/%s%s", cmd, match);
-	if (ext && strstr(input_text, ext) != NULL)
-		*strstr(input_text, ext) = 0; // lop off file extenion
 	(*input_position) = strlen(input_text);
+	input_text[*input_position] = '\0';
 
-	if (matches == 1 && *cmd == 0) { // append a trailing space for single matches
-		input_text[*input_position] = ' ';
-		(*input_position)++;
-	}
+	g_list_free_full(matches, Z_Free);
 
-	input_text[*input_position] = 0;
 	return true;
 }
 

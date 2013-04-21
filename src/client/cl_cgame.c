@@ -141,8 +141,8 @@ void Cl_InitCgame(void) {
 	import.AddCommand = Cmd_AddCommand;
 	import.RemoveCommand = Cmd_RemoveCommand;
 
-	import.LoadFile = Fs_LoadFile;
-	import.FreeFile = Fs_FreeFile;
+	import.LoadFile = Fs_Load;
+	import.FreeFile = Fs_Free;
 
 	import.ConfigString = Cl_ConfigString;
 

@@ -26,7 +26,7 @@ quake2world_t quake2world;
 /**
  * @brief Runs the specified suite, returning the number of tests that failed.
  */
-int Test_Run(Suite *suite) {
+int32_t Test_Run(Suite *suite) {
 
 	SRunner *runner = srunner_create(suite);
 
@@ -40,8 +40,11 @@ int Test_Run(Suite *suite) {
 /*
  * @brief Initializes testing facilities.
  */
-void Test_Init(void) {
+void Test_Init(int32_t argc, char **argv) {
+
 	memset(&quake2world, 0, sizeof(quake2world));
+
+	Com_InitArgv(argc, argv);
 }
 
 /*

@@ -43,6 +43,24 @@ typedef struct {
 static z_state_t z_state;
 
 /*
+ * @brief Throws a fatal error if the specified memory block is non-NULL but
+ * not owned by the memory subsystem.
+ */
+static z_block_t *Z_CheckMagic(void *p) {
+	z_block_t *z = NULL;
+
+	if (p) {
+		z = ((z_block_t *) p) - 1;
+
+		if (z->magic != Z_MAGIC) {
+			Com_Error(ERR_FATAL, "Z_CheckMagic: Invalid magic.\n");
+		}
+	}
+
+	return z;
+}
+
+/*
  * @brief Performs the actual grunt work of freeing managed memory.
  */
 static void Z_Free_(gpointer data) {
@@ -52,7 +70,6 @@ static void Z_Free_(gpointer data) {
 	if (z->parent) {
 		GList *item = g_list_find(z->parent->children, data);
 		z->parent->children = g_list_delete_link(z->parent->children, item);
-
 	} else {
 		GList *item = g_list_find(z_state.blocks, data);
 		z_state.blocks = g_list_delete_link(z_state.blocks, item);
@@ -79,11 +96,7 @@ static void Z_Free_(gpointer data) {
  * @brief Free an allocation of managed memory.
  */
 void Z_Free(void *p) {
-	z_block_t *z = ((z_block_t *) p) - 1;
-
-	if (z->magic != Z_MAGIC) {
-		Com_Error(ERR_FATAL, "Z_Free: Bad magic for %p.\n", p);
-	}
+	z_block_t *z = Z_CheckMagic(p);
 
 	SDL_mutexP(z_state.lock);
 
@@ -110,7 +123,6 @@ void Z_FreeTag(z_tag_t tag) {
 		}
 
 		e = next;
-
 	}
 
 	SDL_mutexV(z_state.lock);
@@ -128,16 +140,7 @@ void Z_FreeTag(z_tag_t tag) {
  * @return A block of managed memory initialized to 0x0.
  */
 static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
-	z_block_t *z, *p = NULL;
-
-	// ensure the specified parent was valid
-	if (parent) {
-		p = ((z_block_t *) parent) - 1;
-
-		if (p->magic != Z_MAGIC) {
-			Com_Error(ERR_FATAL, "Z_Malloc_: Invalid parent.\n");
-		}
-	}
+	z_block_t *z, *p = Z_CheckMagic(parent);
 
 	// allocate the block plus the desired size
 	const size_t s = size + sizeof(z_block_t);
@@ -209,7 +212,33 @@ void *Z_Malloc(size_t size) {
 }
 
 /*
- * @brief Returns the current size (user bytes) of the zone allocation pool.
+ * @brief Links the specified child to the given parent. The child will
+ * subsequently be freed with the parent.
+ *
+ * @return The child, for convenience.
+ */
+void *Z_Link(void *parent, void *child) {
+	z_block_t *p = Z_CheckMagic(parent);
+	z_block_t *c = Z_CheckMagic(child);
+
+	SDL_mutexP(z_state.lock);
+
+	if (c->parent) {
+		c->parent->children = g_list_remove(c->parent->children, c);
+	} else {
+		z_state.blocks = g_list_remove(z_state.blocks, c);
+	}
+
+	c->parent = p;
+	p->children = g_list_prepend(p->children, c);
+
+	SDL_mutexV(z_state.lock);
+
+	return child;
+}
+
+/*
+ * @return The current size (user bytes) of the zone allocation pool.
  */
 size_t Z_Size(void) {
 	return z_state.size;

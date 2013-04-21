@@ -558,9 +558,6 @@ static void G_Say_f(g_edict_t *ent) {
 		else
 			gi.Print("%s", text);
 	}
-
-	if (chat_log != NULL) // print32_t to chat_log
-		fprintf(chat_log, "%s", text);
 }
 
 /*

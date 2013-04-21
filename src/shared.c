@@ -649,33 +649,25 @@ char *Trim(char *s) {
 /*
  * @brief Returns the longest common prefix the specified words share.
  */
-char *CommonPrefix(const char *words[], uint32_t nwords) {
+char *CommonPrefix(GList *words) {
 	static char common_prefix[MAX_TOKEN_CHARS];
-	const char *w;
-	char c;
-	uint32_t i, j;
+	size_t i;
 
 	memset(common_prefix, 0, sizeof(common_prefix));
 
-	if (!words || !words[0])
+	if (!words)
 		return common_prefix;
 
 	for (i = 0; i < sizeof(common_prefix); i++) {
-		j = c = 0;
-		while (j < nwords) {
+		GList *e = words;
+		const char c = ((char *) e->data)[0];
+		while (e) {
+			const char *w = (char *) e->data;
 
-			w = words[j];
-
-			if (!w[i]) // we've exhausted our shortest match
+			if (!c || w[i] != c) // prefix no longer common
 				return common_prefix;
 
-			if (!c) // first word this iteration
-				c = w[i];
-
-			if (w[i] != c) // prefix no longer common
-				return common_prefix;
-
-			j++;
+			e = e->next;
 		}
 		common_prefix[i] = c;
 	}
@@ -1093,7 +1085,8 @@ void DeleteUserInfo(char *s, const char *key) {
 /*
  * @brief Returns true if the specified user-info string appears valid, false
  * otherwise.
- */bool ValidateUserInfo(const char *s) {
+ */
+bool ValidateUserInfo(const char *s) {
 	if (strstr(s, "\""))
 		return false;
 	if (strstr(s, ";"))

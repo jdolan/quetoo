@@ -505,7 +505,7 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 	}
 
 	// load the file
-	*size = Fs_LoadFile(name, &buf);
+	*size = Fs_Load(name, &buf);
 
 	if (!buf)
 		Com_Error(ERR_DROP, "Cm_LoadMap: Couldn't load %s.\n", name);
@@ -515,7 +515,7 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 
 	if (header.version != BSP_VERSION && header.version != BSP_VERSION_Q2W) {
-		Fs_FreeFile(buf);
+		Fs_Free(buf);
 		Com_Error(ERR_DROP, "Cm_LoadMap: %s has unsupported version: %d.\n", name, header.version);
 	}
 
@@ -537,7 +537,7 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 	Cm_LoadVisibility(&header.lumps[LUMP_VISIBILITY]);
 	Cm_LoadEntityString(&header.lumps[LUMP_ENTITIES]);
 
-	Fs_FreeFile(buf);
+	Fs_Free(buf);
 
 	Cm_InitBoxHull();
 

@@ -23,6 +23,7 @@
 #define __RENDERER_H__
 
 #include "cmodel.h"
+#include "console.h"
 #include "images.h"
 
 #include "r_array.h"

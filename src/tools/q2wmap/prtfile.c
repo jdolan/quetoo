@@ -213,7 +213,7 @@ void WritePortalFile(tree_t *tree) {
 
 	WritePortalFile_r(head_node);
 
-	Fs_CloseFile(pf);
+	Fs_Close(pf);
 
 	// we need to store the clusters out now because ordering
 	// issues made us do this after writebsp...

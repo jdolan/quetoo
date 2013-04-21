@@ -203,7 +203,7 @@ r_model_t *R_LoadModel(const char *name) {
 			StripExtension(name, key);
 			strcat(key, format->extension);
 
-			if (Fs_LoadFile(key, &buf) != -1)
+			if (Fs_Load(key, &buf) != -1)
 				break;
 		}
 
@@ -232,7 +232,7 @@ r_model_t *R_LoadModel(const char *name) {
 		format->Load(mod, buf);
 
 		// free the file
-		Fs_FreeFile(buf);
+		Fs_Free(buf);
 
 		// assemble vertex buffer objects from static arrays
 		R_LoadVertexBuffers(mod);

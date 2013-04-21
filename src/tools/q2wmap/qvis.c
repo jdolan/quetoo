@@ -343,7 +343,7 @@ static void LoadPortals(const char *name) {
 		p++;
 	}
 
-	Fs_CloseFile(f);
+	Fs_Close(f);
 }
 
 /*

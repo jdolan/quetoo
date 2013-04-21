@@ -34,11 +34,9 @@ uint32_t means_of_death;
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
 cvar_t *g_capture_limit;
-cvar_t *g_chat_log;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
 cvar_t *g_frag_limit;
-cvar_t *g_frag_log;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
 cvar_t *g_gravity;
@@ -77,8 +75,6 @@ g_map_list_t g_map_list;
 MYSQL *mysql;
 char sql[512];
 #endif
-
-FILE *frag_log, *chat_log, *f;
 
 /*
  * @brief
@@ -1137,11 +1133,9 @@ void G_Init(void) {
 			"Automatically assigns players to teams");
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO,
 			"The capture limit per level");
-	g_chat_log = gi.Cvar("g_chat_log", "0", 0, NULL);
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
 	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level");
-	g_frag_log = gi.Cvar("g_frag_log", "0", 0, NULL);
 	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Enables friendly fire");
 	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO,
 			"Selects deathmatch, arena, or instagib combat");
@@ -1182,12 +1176,6 @@ void G_Init(void) {
 	sv_hostname = gi.Cvar("sv_hostname", "Quake2World", CVAR_SERVER_INFO, NULL);
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
 
-	if (g_frag_log->value)
-		gi.OpenFile("frag_log.log", &frag_log, FILE_APPEND);
-
-	if (g_chat_log->value)
-		gi.OpenFile("chat_log.log", &chat_log, FILE_APPEND);
-
 #ifdef HAVE_MYSQL
 	if(g_mysql->value) { //init database
 
@@ -1224,18 +1212,12 @@ void G_Init(void) {
 }
 
 /*
- * @brief Frees tags and closes frag_log. This is called when the game is unloaded
+ * @brief Shuts down the game module. This is called when the game is unloaded
  * (complements G_Init).
  */
 void G_Shutdown(void) {
 
 	gi.Print("  Game shutdown...\n");
-
-	if (frag_log != NULL)
-		gi.CloseFile(frag_log); // close frag_log
-
-	if (chat_log != NULL)
-		gi.CloseFile(chat_log); // and chat_log
 
 #ifdef HAVE_MYSQL
 	if(mysql != NULL)

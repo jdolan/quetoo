@@ -135,7 +135,7 @@ static void Sv_ClearState() {
 	if (svs.initialized) { // if we were intialized, cleanup
 
 		if (sv.demo_file) {
-			Fs_CloseFile(sv.demo_file);
+			Fs_Close(sv.demo_file);
 		}
 	}
 
@@ -170,7 +170,7 @@ static void Sv_ShutdownClients(void) {
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
 		if (cl->download) {
-			Fs_FreeFile(cl->download);
+			Fs_Free(cl->download);
 		}
 	}
 
@@ -239,29 +239,26 @@ static void Sv_InitClients(void) {
  * load the rest.
  */
 static void Sv_LoadMedia(const char *server, sv_state_t state) {
-	extern char *fs_last_pak;
-	char demo[MAX_QPATH];
-	int32_t i, mapsize;
+	int32_t i, map_size;
 
 	strcpy(sv.name, server);
 	strcpy(sv.config_strings[CS_NAME], server);
 
 	if (state == SV_ACTIVE_DEMO) { // loading a demo
-		g_snprintf(demo, sizeof(demo), "demos/%s.dem", sv.name);
+		sv.models[0] = Cm_LoadBsp(NULL, &map_size);
 
-		sv.models[0] = Cm_LoadBsp(NULL, &mapsize);
-
-		Fs_OpenFile(demo, &sv.demo_file, FILE_READ);
+		sv.demo_file = Fs_OpenRead(va("demos/%s.dem", sv.name));
 		svs.spawn_count = 0;
 
 		Com_Print("  Loaded demo %s.\n", sv.name);
 	} else { // loading a map
 		g_snprintf(sv.config_strings[CS_MODELS], MAX_QPATH, "maps/%s.bsp", sv.name);
 
-		sv.models[0] = Cm_LoadBsp(sv.config_strings[CS_MODELS], &mapsize);
+		sv.models[0] = Cm_LoadBsp(sv.config_strings[CS_MODELS], &map_size);
 
-		if (fs_last_pak) {
-			g_strlcpy(sv.config_strings[CS_PAK], fs_last_pak, MAX_QPATH);
+		const char *dir = Fs_RealDir(sv.config_strings[CS_MODELS]);
+		if (g_str_has_suffix(dir, ".pak")) {
+			g_strlcpy(sv.config_strings[CS_PAK], dir, MAX_QPATH);
 		}
 
 		for (i = 1; i < Cm_NumModels(); i++) {
@@ -282,7 +279,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_edicts);
 	}
-	g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", mapsize);
+	g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", map_size);
 
 	Cvar_FullSet("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET);
 }
@@ -298,7 +295,6 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	extern void Cl_Disconnect(void);
 #endif
 	char path[MAX_QPATH];
-	FILE *file;
 
 	Com_Debug("Sv_InitServer: %s (%d)\n", server, state);
 
@@ -310,14 +306,10 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	else
 		g_snprintf(path, sizeof(path), "maps/%s.bsp", server);
 
-	Fs_OpenFile(path, &file, FILE_READ);
-
-	if (!file) {
+	if (!Fs_Exists(path)) {
 		Com_Print("Couldn't open %s\n", path);
 		return;
 	}
-
-	Fs_CloseFile(file);
 
 	// inform any connected clients to reconnect to us
 	Sv_ShutdownMessage("Server restarting...\n", true);

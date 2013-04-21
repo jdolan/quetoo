@@ -406,7 +406,7 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 	int32_t size;
 	size_t r;
 
-	r = Fs_Read(&size, 4, 1, sv.demo_file);
+	r = Fs_Read(sv.demo_file, &size, sizeof(size), 1);
 
 	if (r != 1) { // improperly terminated demo file
 		Com_Warn("Sv_GetDemoMessage: Failed to read demo file.\n");
@@ -427,7 +427,7 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 		return 0;
 	}
 
-	r = Fs_Read(buffer, size, 1, sv.demo_file);
+	r = Fs_Read(sv.demo_file, buffer, size, 1);
 
 	if (r != 1) {
 		Com_Warn("Sv_GetDemoMessage: Incomplete or corrupt demo file.\n");

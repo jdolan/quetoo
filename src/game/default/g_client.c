@@ -36,14 +36,6 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 
 	killer = attacker->client ? attacker->client : self->client;
 
-	if (!g_level.warmup && frag_log != NULL) { // write frag_log
-
-		fprintf(frag_log, "\\%s\\%s\\\n", killer->persistent.net_name,
-				self->client->persistent.net_name);
-
-		fflush(frag_log);
-	}
-
 #ifdef HAVE_MYSQL
 	if(!g_level.warmup && mysql != NULL) { // insert to db
 

@@ -141,7 +141,7 @@ void S_FreeMedia(void) {
  * @brief Prepares the media subsystem for loading.
  */
 void S_BeginLoading(void) {
-	s_media_state.seed = Sys_Milliseconds();
+	s_media_state.seed = Random();
 }
 
 /*

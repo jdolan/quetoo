@@ -30,7 +30,6 @@ typedef struct {
 	CURL *curl;
 
 	char url[MAX_OSPATH];
-	char dest[MAX_OSPATH];
 
 	long status;
 
@@ -45,8 +44,9 @@ static cl_http_state_t cl_http_state;
 /*
  * @brief cURL HTTP receive handler.
  */
-static size_t Cl_HttpDownload_Receive(void *buffer, size_t size, size_t nmemb, void *p __attribute__((unused))) {
-	return Fs_Write(buffer, size, nmemb, cls.download.file);
+static size_t Cl_HttpDownload_Receive(void *buffer, size_t size, size_t count, void *p __attribute__((unused))) {
+	const int64_t i = Fs_Write(cls.download.file, buffer, size, count);
+	return i > 0 ? (size_t) i : 0;
 }
 
 /*
@@ -60,7 +60,7 @@ void Cl_HttpDownload_Complete() {
 
 	curl_multi_remove_handle(cl_http_state.curlm, cl_http_state.curl); // cleanup curl
 
-	Fs_CloseFile(cls.download.file); // always close the file
+	Fs_Close(cls.download.file); // always close the file
 
 	cls.download.file = NULL;
 	cls.download.http = false;
@@ -68,8 +68,14 @@ void Cl_HttpDownload_Complete() {
 	if (cl_http_state.success) {
 		cls.download.name[0] = '\0';
 
-		if (strstr(cl_http_state.dest, ".pak")) // add new paks to search paths
-			Fs_AddPakfile(cl_http_state.dest);
+		// add new archives to search paths
+		if (Fs_Rename(cls.download.tempname, cls.download.name)) {
+			if (strstr(cls.download.name, ".zip")) {
+				Fs_AddToSearchPath(cls.download.name);
+			}
+		} else {
+			Com_Error(ERR_DROP, "Cl_HttpDownload: Failed to rename %s\n", cls.download.name);
+		}
 
 		// we were disconnected while downloading, so reconnect
 		Cl_Reconnect_f();
@@ -87,14 +93,14 @@ void Cl_HttpDownload_Complete() {
 		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 		Msg_WriteString(&cls.netchan.message, va("download %s", cls.download.name));
 
-		unlink(cl_http_state.dest); // delete partial file
+		Fs_Unlink(cls.download.name); // delete partial file
 	}
 
 	cl_http_state.ready = true;
 }
 
 /*
- * @brief Queue up an http download. The url is resolved from cls.download_url and
+ * @brief Queue up an HTTP download. The URL is resolved from cls.download_url and
  * the current game. We use cURL's multi interface, even tho we only ever
  * perform one download at a time, because it is non-blocking.
  */
@@ -103,12 +109,12 @@ bool Cl_HttpDownload(void) {
 	if (!cl_http_state.ready)
 		return false;
 
-	char *dest = cl_http_state.dest;
-	g_snprintf(dest, sizeof(MAX_OSPATH), "%s/%s", Fs_Gamedir(), cls.download.name);
+	StripExtension(cls.download.name, cls.download.tempname);
+	g_strlcat(cls.download.tempname, ".tmp", sizeof(cls.download.tempname));
 
 	// open the destination file for writing
-	if (Fs_OpenFile(cl_http_state.dest, &cls.download.file, FILE_WRITE) == -1) {
-		Com_Warn("Couldn't create %s.\n", cl_http_state.dest);
+	if (!(cls.download.file = Fs_OpenWrite(cls.download.tempname))) {
+		Com_Warn("Cl_HttpDownload: Couldn't create %s.\n", cls.download.tempname);
 		return false;
 	}
 
@@ -197,13 +203,13 @@ void Cl_InitHttp(void) {
 
 	memset(&cl_http_state, 0, sizeof(cl_http_state));
 
-	if (!(cl_http_state.curlm = curl_multi_init()))
-		return;
+	/*if (!(cl_http_state.curlm = curl_multi_init()))
+	 return;
 
-	if (!(cl_http_state.curl = curl_easy_init()))
-		return;
+	 if (!(cl_http_state.curl = curl_easy_init()))
+	 return;
 
-	cl_http_state.ready = true;
+	 cl_http_state.ready = true;*/
 }
 
 /*

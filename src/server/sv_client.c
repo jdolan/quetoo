@@ -222,7 +222,7 @@ static void Sv_NextDownload_f(void) {
 	if (sv_client->download_count != sv_client->download_size)
 		return;
 
-	Fs_FreeFile(sv_client->download);
+	Fs_Free(sv_client->download);
 	sv_client->download = NULL;
 }
 
@@ -271,9 +271,9 @@ static void Sv_Download_f(void) {
 	}
 
 	if (sv_client->download) // free last download
-		Fs_FreeFile(sv_client->download);
+		Fs_Free(sv_client->download);
 
-	sv_client->download_size = Fs_LoadFile(name, &buf);
+	sv_client->download_size = Fs_Load(name, &buf);
 	sv_client->download = (byte *) buf;
 	sv_client->download_count = offset;
 
@@ -300,25 +300,27 @@ static void Sv_Disconnect_f(void) {
 }
 
 /*
+ * @brief Enumeration helper for Sv_Info_f.
+ */
+static void Sv_Info_f_enumerate(cvar_t *var, void *data) {
+	sv_client_t *client = (sv_client_t *) data;
+
+	if (var->flags & CVAR_SERVER_INFO) {
+		Sv_ClientPrint(client->edict, PRINT_MEDIUM, "%s %s\n", var->name, var->string);
+	}
+}
+
+/*
  * @brief Dumps the serverinfo info string
  */
 static void Sv_Info_f(void) {
-	const cvar_t *cvar;
-	char line[MAX_STRING_CHARS];
 
 	if (!sv_client) { // print32_t to server console
 		Com_PrintInfo(Cvar_ServerInfo());
 		return;
 	}
 
-	for (cvar = cvar_vars; cvar; cvar = cvar->next) {
-
-		if (!(cvar->flags & CVAR_SERVER_INFO))
-			continue; //only print32_t serverinfo cvars
-
-		g_snprintf(line, sizeof(line), "%s %s\n", cvar->name, cvar->string);
-		Sv_ClientPrint(sv_client->edict, PRINT_MEDIUM, "%s", line);
-	}
+	Cvar_Enumerate(Sv_Info_f_enumerate, (void *) sv_client);
 }
 
 typedef struct sv_user_string_cmd_s {

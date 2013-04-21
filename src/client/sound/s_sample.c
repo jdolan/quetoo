@@ -53,18 +53,18 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 		StripExtension(path, path);
 		strcat(path, SAMPLE_TYPES[i++]);
 
-		if ((len = Fs_LoadFile(path, &buf)) == -1)
+		if ((len = Fs_Load(path, &buf)) == -1)
 			continue;
 
 		if (!(rw = SDL_RWFromMem(buf, len))) {
-			Fs_FreeFile(buf);
+			Fs_Free(buf);
 			continue;
 		}
 
 		if (!(sample->chunk = Mix_LoadWAV_RW(rw, false)))
 			Com_Warn("S_LoadSoundChunk: %s.\n", Mix_GetError());
 
-		Fs_FreeFile(buf);
+		Fs_Free(buf);
 
 		SDL_FreeRW(rw);
 
@@ -141,7 +141,7 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 	char model[MAX_QPATH];
 	char alias[MAX_QPATH];
 	char path[MAX_QPATH];
-	FILE *f;
+	file_t *f;
 
 	if (!s_env.initialized)
 		return NULL;
@@ -178,8 +178,8 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 		return sample;
 
 	// we don't, try it
-	if (Fs_OpenFile(alias + 1, &f, FILE_READ) > 0) {
-		Fs_CloseFile(f);
+	if ((f = Fs_OpenRead(alias + 1))) {
+		Fs_Close(f);
 		return S_LoadSample(alias);
 	}
 

@@ -120,7 +120,7 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	uint32_t *p;
 	byte *b;
 
-	if (Fs_LoadFile(path, &buf) == -1)
+	if (Fs_Load(path, &buf) == -1)
 		return false;
 
 	mt = (miptex_t *) buf;
@@ -149,14 +149,14 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	if (!(*surf = SDL_CreateRGBSurfaceFrom((void *) p, mt->width, mt->height, 32, 0, RMASK, GMASK,
 			BMASK, AMASK))) {
 
-		Fs_FreeFile(mt);
+		Fs_Free(mt);
 		return false;
 	}
 
 	// trick SDL into freeing the pixel data with the surface
 	(*surf)->flags &= ~SDL_PREALLOC;
 
-	Fs_FreeFile(mt);
+	Fs_Free(mt);
 	return true;
 }
 
@@ -176,22 +176,22 @@ bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) 
 	if (!strcmp(type, "wal")) // special case for .wal files
 		return Img_LoadWal(path, surf);
 
-	if ((len = Fs_LoadFile(path, &buf)) == -1)
+	if ((len = Fs_Load(path, &buf)) == -1)
 		return false;
 
 	if (!(rw = SDL_RWFromMem(buf, len))) {
-		Fs_FreeFile(buf);
+		Fs_Free(buf);
 		return false;
 	}
 
 	if (!(*surf = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
 		SDL_FreeRW(rw);
-		Fs_FreeFile(buf);
+		Fs_Free(buf);
 		return false;
 	}
 
 	SDL_FreeRW(rw);
-	Fs_FreeFile(buf);
+	Fs_Free(buf);
 
 	if (strstr(path, PALETTE)) // dont convert the palette
 		return true;

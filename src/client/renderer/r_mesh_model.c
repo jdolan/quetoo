@@ -49,7 +49,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 	Dirname(mod->media.name, path);
 	strcat(path, "animation.cfg");
 
-	if (Fs_LoadFile(path, &buf) == -1) {
+	if (Fs_Load(path, &buf) == -1) {
 		Com_Warn("R_LoadMd3Animation: No animation.cfg for %s\n", mod->media.name);
 		return;
 	}
@@ -114,7 +114,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 	const char *buffer, *c;
 	void *buf;
 
-	if (Fs_LoadFile(path, &buf) == -1)
+	if (Fs_Load(path, &buf) == -1)
 		return;
 
 	buffer = (char *) buf;
@@ -148,7 +148,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 		}
 	}
 
-	Fs_FreeFile(buf);
+	Fs_Free(buf);
 }
 
 /*

@@ -49,7 +49,7 @@ pak_t *Pak_ReadPakfile(const char *pakfile) {
 	Fs_Read(&header, 1, sizeof(pak_header_t), pak->handle);
 	if (LittleLong(header.ident) != PAK_HEADER) {
 		Com_Warn("Pak_ReadPakfile: %s is not a pak file.\n", pakfile);
-		Fs_CloseFile(pak->handle);
+		Fs_Close(pak->handle);
 		Z_Free(pak);
 		return NULL;
 	}
@@ -60,7 +60,7 @@ pak_t *Pak_ReadPakfile(const char *pakfile) {
 	pak->num_entries = header.dir_len / sizeof(pak_entry_t);
 	if (pak->num_entries > MAX_PAK_ENTRIES) {
 		Com_Warn("Pak_ReadPakfile: %s has %i files.\n", pakfile, pak->num_entries);
-		Fs_CloseFile(pak->handle);
+		Fs_Close(pak->handle);
 		Z_Free(pak);
 		return NULL;
 	}
@@ -92,7 +92,7 @@ void Pak_FreePakfile(pak_t *pak) {
 		return;
 
 	if (pak->handle)
-		Fs_CloseFile(pak->handle);
+		Fs_Close(pak->handle);
 
 	if (pak->entries)
 		Z_Free(pak->entries);
@@ -173,7 +173,7 @@ void Pak_ExtractPakfile(const char *pakfile, char *dir, bool test) {
 
 		Fs_Write(p, 1, pak->entries[i].file_len, f);
 
-		Fs_CloseFile(f);
+		Fs_Close(f);
 		Z_Free(p);
 
 		printf("Extracted %s (%d bytes).\n", pak->entries[i].name, pak->entries[i].file_len);
@@ -309,7 +309,7 @@ static void Pak_RecursiveAdd(pak_t *pak, const char *dir) {
 
 		Pak_AddEntry(pak, s, st.st_size, p);
 
-		Fs_CloseFile(f);
+		Fs_Close(f);
 
 		Z_Free(p);
 	}
@@ -333,7 +333,7 @@ void Pak_CreatePakfile(char *pakfile, int32_t numdirs, char **dirs) {
 		Pak_RecursiveAdd(pak, dirs[i]);
 
 		if (pak_err) { // error assembling pak
-			Fs_CloseFile(pak->handle);
+			Fs_Close(pak->handle);
 			return;
 		}
 	}

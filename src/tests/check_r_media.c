@@ -76,9 +76,9 @@ START_TEST(check_R_RegisterMedia)
 /*
  * @brief Test entry point.
  */
-int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused))) {
+int32_t main(int32_t argc, char **argv) {
 
-	Test_Init();
+	Test_Init(argc, argv);
 
 	TCase *tcase = tcase_create("check_r_media");
 	tcase_add_checked_fixture(tcase, setup, teardown);
@@ -88,7 +88,7 @@ int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused)))
 	Suite *suite = suite_create("check_r_media");
 	suite_add_tcase(suite, tcase);
 
-	int failed = Test_Run(suite);
+	int32_t failed = Test_Run(suite);
 
 	Test_Shutdown();
 	return failed;

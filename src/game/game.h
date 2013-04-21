@@ -155,10 +155,7 @@ typedef struct g_import_s {
 	void (*FreeTag)(z_tag_t tag);
 
 	// filesystem interaction
-	const char *(*Gamedir)(void);
-	int32_t (*OpenFile)(const char *file_name, FILE **file, file_mode_t mode);
-	void (*CloseFile)(FILE *file);
-	int32_t (*LoadFile)(const char *file_name, void **buffer);
+	int64_t (*LoadFile)(const char *file_name, void **buffer);
 
 	// console variable interaction
 	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);

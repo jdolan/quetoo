@@ -24,8 +24,6 @@
 
 #include "filesystem.h"
 
-#include <dirent.h>
-
 #ifndef _WIN32
 #include <dlfcn.h>
 #include <pwd.h>
@@ -45,12 +43,9 @@
 
 uint32_t Sys_Milliseconds(void);
 
-const char *Sys_GetCurrentUser(void);
-
-void Sys_Mkdir(const char *path);
-const char *Sys_FindFirst(const char *path);
-const char *Sys_FindNext(void);
-void Sys_FindClose(void);
+const char *Sys_ExecutablePath(void);
+const char *Sys_Username(void);
+const char *Sys_UserDir(void);
 
 void Sys_OpenLibrary(const char *name, void **handle);
 void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params);

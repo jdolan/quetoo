@@ -240,7 +240,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 
 	g_snprintf(path, sizeof(path), "shaders/%s", name);
 
-	if ((len = Fs_LoadFile(path, &buf)) == -1) {
+	if ((len = Fs_Load(path, &buf)) == -1) {
 		Com_Debug("R_LoadShader: Failed to load %s.\n", name);
 		return NULL;
 	}
@@ -257,7 +257,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 
 	if (i == MAX_SHADERS) {
 		Com_Warn("R_LoadShader: MAX_SHADERS reached.\n");
-		Fs_FreeFile(buf);
+		Fs_Free(buf);
 		return NULL;
 	}
 
@@ -267,7 +267,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 
 	sh->id = qglCreateShader(sh->type);
 	if (!sh->id) {
-		Fs_FreeFile(buf);
+		Fs_Free(buf);
 		return NULL;
 	}
 
@@ -285,11 +285,11 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 		qglDeleteShader(sh->id);
 		memset(sh, 0, sizeof(*sh));
 
-		Fs_FreeFile(buf);
+		Fs_Free(buf);
 		return NULL;
 	}
 
-	Fs_FreeFile(buf);
+	Fs_Free(buf);
 	return sh;
 }
 

@@ -75,7 +75,7 @@ int32_t ColorByName(const char *s, int32_t def);
 // string functions
 bool GlobMatch(const char *pattern, const char *text);
 bool MixedCase(const char *s);
-char *CommonPrefix(const char *words[], uint32_t nwords);
+char *CommonPrefix(GList *words);
 void Lowercase(const char *in, char *out);
 char *Trim(char *s);
 const char *Basename(const char *path);

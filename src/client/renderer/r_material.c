@@ -914,7 +914,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 	strcat(path, ".mat");
 
-	if (Fs_LoadFile(path, &buf) == -1) {
+	if (Fs_Load(path, &buf) == -1) {
 		Com_Debug("R_LoadMaterials: Couldn't load %s\n", path);
 		return;
 	}
@@ -1061,5 +1061,5 @@ void R_LoadMaterials(const r_model_t *mod) {
 		}
 	}
 
-	Fs_FreeFile(buf);
+	Fs_Free(buf);
 }

@@ -68,7 +68,7 @@ static bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix
 	g_snprintf(path, sizeof(path), "music/%s.ogg", name);
 
 	int32_t len;
-	if ((len = Fs_LoadFile(path, buffer)) != -1) {
+	if ((len = Fs_Load(path, buffer)) != -1) {
 
 		if ((*rw = SDL_RWFromMem(*buffer, len))) {
 
@@ -80,7 +80,7 @@ static bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix
 			}
 		} else {
 			Com_Warn("S_LoadMusicFile: Failed to create SDL_RWops for %s\n", name);
-			Fs_FreeFile(*buffer);
+			Fs_Free(*buffer);
 		}
 	} else {
 		Com_Debug("S_LoadMusicFile: Failed to load %s\n", name);

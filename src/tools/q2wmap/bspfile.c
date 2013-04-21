@@ -257,7 +257,7 @@ void LoadBSPFile(char *file_name) {
 	uint32_t i;
 
 	// load the file header
-	if (Fs_LoadFile(file_name, (void **) (char *) &header) == -1)
+	if (Fs_Load(file_name, (void **) (char *) &header) == -1)
 		Com_Error(ERR_FATAL, "Failed to open %s\n", file_name);
 
 	// swap the header
@@ -324,15 +324,15 @@ void LoadBSPFile(char *file_name) {
  */
 void LoadBSPFileTexinfo(char *file_name) {
 	uint32_t i;
-	FILE *f;
+	file_t *f;
 	int32_t length, ofs;
 
 	header = Z_Malloc(sizeof(*header));
 
-	if (Fs_OpenFile(file_name, &f, FILE_READ) == -1)
+	if (!(f = Fs_OpenRead(file_name)))
 		Com_Error(ERR_FATAL, "Could not open %s\n", file_name);
 
-	Fs_Read(header, sizeof(*header), 1, f);
+	Fs_Read(f, header, sizeof(*header), 1);
 
 	// swap the header
 	for (i = 0; i < sizeof(*header) / 4; i++)
@@ -348,9 +348,9 @@ void LoadBSPFileTexinfo(char *file_name) {
 	length = header->lumps[LUMP_TEXINFO].file_len;
 	ofs = header->lumps[LUMP_TEXINFO].file_ofs;
 
-	fseek(f, ofs, SEEK_SET);
-	Fs_Read(d_bsp.texinfo, length, 1, f);
-	Fs_CloseFile(f);
+	Fs_Seek(f, ofs);
+	Fs_Read(f, d_bsp.texinfo, length, 1);
+	Fs_Close(f);
 
 	d_bsp.num_texinfo = length / sizeof(d_bsp_texinfo_t);
 
@@ -359,7 +359,7 @@ void LoadBSPFileTexinfo(char *file_name) {
 	SwapBSPFile(false);
 }
 
-static FILE *fp;
+static file_t *fp;
 
 /*
  * @brief
@@ -369,10 +369,10 @@ static void AddLump(int32_t lump_num, void *data, int32_t len) {
 
 	lump = &header->lumps[lump_num];
 
-	lump->file_ofs = LittleLong(ftell(fp));
+	lump->file_ofs = LittleLong((int32_t) Fs_Tell(fp));
 	lump->file_len = LittleLong(len);
 
-	Fs_Write(data, 1, (len + 3) & ~3, fp);
+	Fs_Write(fp, data, 1, (len + 3) & ~3);
 }
 
 /*
@@ -395,10 +395,10 @@ void WriteBSPFile(char *file_name) {
 		// enhanced format
 		header->version = LittleLong(BSP_VERSION_Q2W);
 
-	if (Fs_OpenFile(file_name, &fp, FILE_WRITE) == -1)
+	if (!(fp = Fs_OpenWrite(file_name)))
 		Com_Error(ERR_FATAL, "Could not open %s\n", file_name);
 
-	Fs_Write(header, 1, sizeof(d_bsp_header_t), fp);
+	Fs_Write(fp, header, 1, sizeof(d_bsp_header_t));
 
 	AddLump(LUMP_PLANES, d_bsp.planes, d_bsp.num_planes * sizeof(d_bsp_plane_t));
 	AddLump(LUMP_LEAFS, d_bsp.leafs, d_bsp.num_leafs * sizeof(d_bsp_leaf_t));
@@ -434,9 +434,9 @@ void WriteBSPFile(char *file_name) {
 	AddLump(LUMP_ENTITIES, d_bsp.entity_string, d_bsp.entity_string_len);
 	AddLump(LUMP_POP, d_bsp.dpop, sizeof(d_bsp.dpop));
 
-	fseek(fp, 0, SEEK_SET);
-	Fs_Write(header, 1, sizeof(d_bsp_header_t), fp);
-	Fs_CloseFile(fp);
+	Fs_Seek(fp, 0);
+	Fs_Write(fp, header, 1, sizeof(d_bsp_header_t));
+	Fs_Close(fp);
 }
 
 /*
@@ -521,7 +521,6 @@ epair_t *ParseEpair(void) {
 	epair_t *e;
 
 	e = Z_Malloc(sizeof(*e));
-	memset(e, 0, sizeof(*e));
 
 	if (strlen(token) >= MAX_KEY - 1)
 		Com_Error(ERR_FATAL, "ParseEpar: token too long\n");

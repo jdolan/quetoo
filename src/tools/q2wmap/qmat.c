@@ -79,7 +79,7 @@ int32_t MAT_Main(void){
 
 	if((i = Fs_OpenFile(path, &f, FILE_READ)) > -1){
 		Com_Print("Materials file %s exists, skipping...\n", path);
-		Fs_CloseFile(f);
+		Fs_Close(f);
 	}
 	else {  // do it
 
@@ -107,7 +107,7 @@ int32_t MAT_Main(void){
 					materials[i]);
 		}
 
-		Fs_CloseFile(f);
+		Fs_Close(f);
 
 		Com_Print("Generated %d materials\n", num_materials);
 	}

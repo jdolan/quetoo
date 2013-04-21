@@ -42,7 +42,7 @@ typedef struct cg_import_s {
 	void (*AddCommand)(const char *name, cmd_function_t function, uint32_t flags, const char *description);
 	void (*RemoveCommand)(const char *name);
 
-	int32_t (*LoadFile)(const char *path, void **buffer);
+	int64_t (*LoadFile)(const char *path, void **buffer);
 	void (*FreeFile)(void *buffer);
 
 	char *(*ConfigString)(uint16_t index);

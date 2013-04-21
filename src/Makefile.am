@@ -52,7 +52,9 @@ libcmodel_la_LIBADD = \
 	libfilesystem.la
 
 libcommon_la_SOURCES = \
-	common.c
+	cmd.c \
+	common.c \
+	cvar.c
 libcommon_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
@@ -61,8 +63,10 @@ libcommon_la_LIBADD = \
 	libshared.la
 	
 libconsole_la_SOURCES = \
+	cmd.c \
 	console.c \
-	console-curses.c
+	console-curses.c \
+	cvar.c
 libconsole_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
@@ -71,10 +75,7 @@ libconsole_la_LIBADD = \
 	libfilesystem.la
 	
 libfilesystem_la_SOURCES = \
-	cmd.c \
-	cvar.c \
-	filesystem.c \
-	pak.c
+	filesystem.c
 libfilesystem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
@@ -82,7 +83,7 @@ libfilesystem_la_LIBADD = \
 	libmem.la \
 	libswap.la \
 	libsys.la \
-	libwin32.la
+	@PHYSFS_LIBS@
 
 if BUILD_CLIENT
 
@@ -119,7 +120,7 @@ libnet_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libnet_la_LIBADD = \
-	libfilesystem.la
+	libconsole.la
 
 libpmove_la_SOURCES = \
 	pmove.c
@@ -134,6 +135,9 @@ libshared_la_SOURCES = \
 libshared_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libshared_la_LIBADD = \
+	@BASE_LIBS@ \
+	@GLIB_LIBS@
 	
 libswap_la_SOURCES = \
 	swap.c
@@ -147,7 +151,8 @@ libsys_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libsys_la_LIBADD = \
-	libcommon.la
+	libcommon.la \
+	libwin32.la
 
 libthreads_la_SOURCES = \
 	threads.c

@@ -56,7 +56,7 @@ void Com_EndRedirect(void) {
 }
 
 /*
- * @brief
+ * @brief Print a debug statement.
  */
 void Com_Debug(const char *fmt, ...) {
 	va_list args;
@@ -761,47 +761,36 @@ void Sb_Print(size_buf_t *buf, const char *data) {
 }
 
 /*
- * @brief
+ * @brief Returns the command line argument count.
  */
 int32_t Com_Argc(void) {
 	return quake2world.argc;
 }
 
 /*
- * @brief
+ * @brief Returns the command line argument at the specified index.
  */
 char *Com_Argv(int32_t arg) {
-	if (arg < 0 || arg >= Com_Argc() || !quake2world.argv[arg])
+	if (arg < 0 || arg >= Com_Argc())
 		return "";
 	return quake2world.argv[arg];
 }
 
 /*
- * @brief
+ * @brief Clears the command line argument at the specified index.
  */
 void Com_ClearArgv(int32_t arg) {
-	if (arg < 0 || arg >= quake2world.argc || !quake2world.argv[arg])
+	if (arg < 0 || arg >= quake2world.argc)
 		return;
 	quake2world.argv[arg] = "";
 }
 
 /*
- * @brief
+ * @brief Initializes common subsystems.
  */
 void Com_InitArgv(int32_t argc, char **argv) {
-	int32_t i;
-
-	if (argc > MAX_NUM_ARGVS)
-		Com_Warn("Com_InitArgv: argc > MAX_NUM_ARGVS.");
-
 	quake2world.argc = argc;
-
-	for (i = 0; i < argc && i < MAX_NUM_ARGVS; i++) {
-		if (!argv[i] || strlen(argv[i]) >= MAX_TOKEN_CHARS)
-			quake2world.argv[i] = "";
-		else
-			quake2world.argv[i] = argv[i];
-	}
+	quake2world.argv = argv;
 }
 
 /*

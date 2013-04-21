@@ -120,6 +120,16 @@ dnl Check for GLib
 dnl --------------
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.0.0])
 
+dnl ----------------
+dnl Check for PHYSFS
+dnl ----------------
+
+AC_CHECK_HEADER(physfs.h,
+	PHYSFS_LIBS="-lphysfs",
+	[AC_MSG_ERROR([Could not find physfs.h, please install PhysFS])]
+)
+AC_SUBST(PHYSFS_LIBS)
+
 dnl -------------
 dnl Check for SDL
 dnl -------------
@@ -208,6 +218,7 @@ else
 	dnl ----------------------------------------
 	dnl Sort out AntTweakBar flags and libraries
 	dnl ----------------------------------------
+	
 	HOST_ANTTWEAKBAR_CXXFLAGS=""
 	HOST_ANTTWEAKBAR_CFLAGS=""
 	HOST_ANTTWEAKBAR_LIBS=""
@@ -273,11 +284,11 @@ else
 
 	AC_MSG_CHECKING(which tools to build)
 
-	TOOLS="pak q2wmap"
+	TOOLS="q2wmap"
 	TOOL_DIRS="$TOOLS"
 	
 	AC_ARG_WITH(tools,
-		AS_HELP_STRING([--with-tools='pak q2wmap ...'],
+		AS_HELP_STRING([--with-tools='q2wmap ...'],
 			[build specified tools]
 		)
 	)
@@ -298,14 +309,6 @@ AM_CONDITIONAL([BUILD_CLIENT], [test "x$BUILD_CLIENT" = "xyes"])
 
 AC_SUBST(SDL_CFLAGS)
 AC_SUBST(SDL_LIBS)
-
-dnl --------------
-dnl Check for Zlib
-dnl --------------
-
-AC_CHECK_HEADER(zlib.h,,
-	[AC_MSG_ERROR([Could not find zlib.h, please install zlib])]
-)
 
 dnl -------------------------------
 dnl Check for stdint.h
@@ -649,7 +652,6 @@ AC_CONFIG_FILES([
 	src/server/Makefile
 	src/tests/Makefile
 	src/tools/Makefile
-	src/tools/pak/Makefile
 	src/tools/q2wmap/Makefile
 ])
 

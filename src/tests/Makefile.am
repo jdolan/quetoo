@@ -25,8 +25,16 @@ libtests_la_SOURCES = \
 libtests_la_CFLAGS = \
 	$(TESTS_CFLAGS)
 
-TESTS = check_mem check_r_media		
+TESTS = check_filesystem check_mem check_r_media		
 noinst_PROGRAMS = $(TESTS)
+
+check_filesystem_SOURCES = \
+	check_filesystem.c
+check_filesystem_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_filesystem_LDADD = \
+	$(TESTS_LIBS) \
+	../libfilesystem.la
 
 check_mem_SOURCES = \
 	check_mem.c
@@ -46,6 +54,7 @@ check_r_media_CFLAGS = \
 	@OPENGL_CFLAGS@
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
-	../libfilesystem.la
+	../libcommon.la \
+	../libmem.la
 
 endif

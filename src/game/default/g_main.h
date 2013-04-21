@@ -68,11 +68,9 @@ extern uint32_t means_of_death;
 extern cvar_t *g_ammo_respawn_time;
 extern cvar_t *g_auto_join;
 extern cvar_t *g_capture_limit;
-extern cvar_t *g_chat_log;
 extern cvar_t *g_cheats;
 extern cvar_t *g_ctf;
 extern cvar_t *g_frag_limit;
-extern cvar_t *g_frag_log;
 extern cvar_t *g_friendly_fire;
 extern cvar_t *g_gameplay;
 extern cvar_t *g_gravity;
@@ -104,9 +102,6 @@ extern cvar_t *sv_hostname;
 extern cvar_t *dedicated;
 
 extern g_team_t g_team_good, g_team_evil;
-
-// text file logging
-extern FILE *frag_log, *chat_log;
 
 void G_Init(void);
 void G_Shutdown(void);

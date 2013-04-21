@@ -115,7 +115,7 @@ static bool Ms_BlacklistServer(struct sockaddr_in *from) {
 	void *buf;
 	int32_t len;
 
-	if ((len = Fs_LoadFile("servers-blacklist", &buf)) == -1) {
+	if ((len = Fs_Load("servers-blacklist", &buf)) == -1) {
 		return false;
 	}
 
@@ -352,7 +352,7 @@ static void Ms_HandleSignal(int32_t sig) {
 /*
  * @brief
  */
-int32_t main(int32_t argc __attribute__((unused)), char **argv __attribute__((unused))) {
+int32_t main(int32_t argc __attribute__((unused)), char **argv) {
 	struct sockaddr_in address, from;
 	struct timeval delay;
 	socklen_t fromlen;
@@ -371,7 +371,7 @@ int32_t main(int32_t argc __attribute__((unused)), char **argv __attribute__((un
 
 	Cmd_Init();
 
-	Fs_Init();
+	Fs_Init(argv[0]);
 
 	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 

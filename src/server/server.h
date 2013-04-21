@@ -22,6 +22,12 @@
 #ifndef __SERVER_H__
 #define __SERVER_H__
 
+#include "cmodel.h"
+#include "console.h"
+#include "filesystem.h"
+#include "game/game.h"
+#include "net.h"
+
 #include "sv_admin.h"
 #include "sv_client.h"
 #include "sv_entity.h"

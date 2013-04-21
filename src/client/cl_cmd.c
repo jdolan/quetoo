@@ -108,7 +108,7 @@ void Cl_SendCmd(void) {
 
 	// let the server know what the last frame we got was, so the next
 	// message can be delta compressed
-	if (!cl.frame.valid || (cls.demo_file && !ftell(cls.demo_file)))
+	if (!cl.frame.valid || (cls.demo_file && Fs_Tell(cls.demo_file) == 0))
 		Msg_WriteLong(&buf, -1); // no compression
 	else
 		Msg_WriteLong(&buf, cl.frame.server_frame);

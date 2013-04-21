@@ -215,8 +215,7 @@ static bool Sv_inPHS(const vec3_t p1, const vec3_t p2) {
 /*
  * @brief
  */
-static void Sv_Sound(const g_edict_t *ent, const uint16_t index,
-		const uint16_t atten) {
+static void Sv_Sound(const g_edict_t *ent, const uint16_t index, const uint16_t atten) {
 
 	if (!ent)
 		return;
@@ -320,10 +319,7 @@ void Sv_InitGame(void) {
 	import.Free = Z_Free;
 	import.FreeTag = Z_FreeTag;
 
-	import.Gamedir = Fs_Gamedir;
-	import.OpenFile = Fs_OpenFile;
-	import.CloseFile = Fs_CloseFile;
-	import.LoadFile = Fs_LoadFile;
+	import.LoadFile = Fs_Load;
 
 	import.Cvar = Cvar_Get;
 
@@ -333,16 +329,15 @@ void Sv_InitGame(void) {
 
 	import.AddCommandString = Cbuf_AddText;
 
-	svs.game = (g_export_t *) Sys_LoadLibrary("game", &game_handle,
-			"G_LoadGame", &import);
+	svs.game = (g_export_t *) Sys_LoadLibrary("game", &game_handle, "G_LoadGame", &import);
 
 	if (!svs.game) {
 		Com_Error(ERR_DROP, "Sv_InitGame: Failed to load game module.\n");
 	}
 
 	if (svs.game->api_version != GAME_API_VERSION) {
-		Com_Error(ERR_DROP, "Sv_InitGame: Game is version %i, not %i.\n",
-				svs.game->api_version, GAME_API_VERSION);
+		Com_Error(ERR_DROP, "Sv_InitGame: Game is version %i, not %i.\n", svs.game->api_version,
+				GAME_API_VERSION);
 	}
 
 	svs.game->Init();
