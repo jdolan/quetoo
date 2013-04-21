@@ -203,13 +203,13 @@ void Cl_InitHttp(void) {
 
 	memset(&cl_http_state, 0, sizeof(cl_http_state));
 
-	/*if (!(cl_http_state.curlm = curl_multi_init()))
-	 return;
+	if (!(cl_http_state.curlm = curl_multi_init()))
+		return;
 
-	 if (!(cl_http_state.curl = curl_easy_init()))
-	 return;
+	if (!(cl_http_state.curl = curl_easy_init()))
+		return;
 
-	 cl_http_state.ready = true;*/
+	cl_http_state.ready = true;
 }
 
 /*
