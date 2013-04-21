@@ -31,8 +31,11 @@ typedef struct cmd_args_s {
 typedef struct cmd_state_s {
 	GHashTable *commands;
 
+	size_buf_t buffer;
 	cmd_args_t args;
-	bool wait;
+
+	bool wait; // commands may be deferred one frame
+
 	uint16_t alias_loop_count;
 } cmd_state_t;
 
@@ -40,10 +43,8 @@ static cmd_state_t cmd_state;
 
 #define MAX_ALIAS_LOOP_COUNT 4
 
-static size_buf_t cmd_text;
-static byte cmd_text_buf[8192];
-
-static char defer_text_buf[8192];
+static byte cmd_buffer[8192];
+static char cmd_buffer_defer[8192];
 
 /*
  * @brief Adds command text at the end of the buffer
@@ -53,12 +54,12 @@ void Cbuf_AddText(const char *text) {
 
 	l = strlen(text);
 
-	if (cmd_text.size + l >= cmd_text.max_size) {
+	if (cmd_state.buffer.size + l >= cmd_state.buffer.max_size) {
 		Com_Print("Cbuf_AddText: overflow\n");
 		return;
 	}
 
-	Sb_Write(&cmd_text, text, l);
+	Sb_Write(&cmd_state.buffer, text, l);
 }
 
 /*
@@ -70,11 +71,11 @@ void Cbuf_InsertText(const char *text) {
 	int32_t temp_len;
 
 	// copy off any commands still remaining in the exec buffer
-	temp_len = cmd_text.size;
+	temp_len = cmd_state.buffer.size;
 	if (temp_len) {
 		temp = Z_Malloc(temp_len);
-		memcpy(temp, cmd_text.data, temp_len);
-		Sb_Clear(&cmd_text);
+		memcpy(temp, cmd_state.buffer.data, temp_len);
+		Sb_Clear(&cmd_state.buffer);
 	} else
 		temp = NULL; // shut up compiler
 
@@ -83,7 +84,7 @@ void Cbuf_InsertText(const char *text) {
 
 	// add the copied off data
 	if (temp_len) {
-		Sb_Write(&cmd_text, temp, temp_len);
+		Sb_Write(&cmd_state.buffer, temp, temp_len);
 		Z_Free(temp);
 	}
 }
@@ -92,17 +93,17 @@ void Cbuf_InsertText(const char *text) {
  * @brief
  */
 void Cbuf_CopyToDefer(void) {
-	memcpy(defer_text_buf, cmd_text_buf, cmd_text.size);
-	defer_text_buf[cmd_text.size] = 0;
-	cmd_text.size = 0;
+	memcpy(cmd_buffer_defer, cmd_buffer, cmd_state.buffer.size);
+	cmd_buffer_defer[cmd_state.buffer.size] = 0;
+	cmd_state.buffer.size = 0;
 }
 
 /*
  * @brief
  */
 void Cbuf_InsertFromDefer(void) {
-	Cbuf_InsertText(defer_text_buf);
-	defer_text_buf[0] = 0;
+	Cbuf_InsertText(cmd_buffer_defer);
+	cmd_buffer_defer[0] = 0;
 }
 
 /*
@@ -116,12 +117,12 @@ void Cbuf_Execute(void) {
 
 	cmd_state.alias_loop_count = 0; // don't allow infinite alias loops
 
-	while (cmd_text.size) {
+	while (cmd_state.buffer.size) {
 		// find a \n or; line break
-		text = (char *) cmd_text.data;
+		text = (char *) cmd_state.buffer.data;
 
 		quotes = 0;
-		for (i = 0; i < cmd_text.size; i++) {
+		for (i = 0; i < cmd_state.buffer.size; i++) {
 			if (text[i] == '"')
 				quotes++;
 			if (!(quotes & 1) && text[i] == ';')
@@ -142,12 +143,12 @@ void Cbuf_Execute(void) {
 		// this is necessary because commands (exec, alias) can insert data at the
 		// beginning of the text buffer
 
-		if (i == cmd_text.size)
-			cmd_text.size = 0;
+		if (i == cmd_state.buffer.size)
+			cmd_state.buffer.size = 0;
 		else {
 			i++;
-			cmd_text.size -= i;
-			memmove(text, text + i, cmd_text.size);
+			cmd_state.buffer.size -= i;
+			memmove(text, text + i, cmd_state.buffer.size);
 		}
 
 		// execute the command line
@@ -584,7 +585,7 @@ void Cmd_Init(void) {
 
 	cmd_state.commands = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
 
-	Sb_Init(&cmd_text, cmd_text_buf, sizeof(cmd_text_buf));
+	Sb_Init(&cmd_state.buffer, cmd_buffer, sizeof(cmd_buffer));
 
 	Cmd_AddCommand("cmd_list", Cmd_List_f, CMD_SYSTEM, NULL);
 	Cmd_AddCommand("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
