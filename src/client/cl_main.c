@@ -677,6 +677,10 @@ void Cl_Init(void) {
 		}
 	}
 
+	Cl_InitConsole();
+
+	Cl_InitLocal();
+
 	Cl_InitKeys();
 
 	Cbuf_AddText(DEFAULT_BINDS);
@@ -687,10 +691,6 @@ void Cl_Init(void) {
 
 	net_message.data = net_message_buffer;
 	net_message.max_size = sizeof(net_message_buffer);
-
-	Cl_InitLocal();
-
-	Cl_InitConsole();
 
 	S_Init();
 
@@ -736,6 +736,8 @@ void Cl_Shutdown(void) {
 	S_Shutdown();
 
 	R_Shutdown();
+
+	Cl_ShutdownConsole();
 
 	Z_FreeTag(Z_TAG_CLIENT);
 }

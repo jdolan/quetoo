@@ -100,7 +100,7 @@ static void Cl_MessageMode2_f(void) {
 }
 
 /*
- * @brief
+ * @brief Initializes the client console.
  */
 void Cl_InitConsole(void) {
 
@@ -121,6 +121,16 @@ void Cl_InitConsole(void) {
 	Cmd_AddCommand("message_mode_2", Cl_MessageMode2_f, 0, "Activate team chat");
 
 	Com_Print("Console initialized.\n");
+}
+
+/*
+ * @brief Shuts down the client console.
+ */
+void Cl_ShutdownConsole(void) {
+
+	Cmd_RemoveCommand("toggle_console");
+	Cmd_RemoveCommand("message_mode");
+	Cmd_RemoveCommand("message_mode_2");
 }
 
 /*
