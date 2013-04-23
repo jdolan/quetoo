@@ -43,6 +43,13 @@ libanttweakbar_la_CFLAGS = \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
 
+libanttweakbar_la_LIBADD = \
+	@BASE_LIBS@ \
+	@ANTTWEAKBAR_LIBS@ \
+	@OPENGL_LIBS@ \
+	@SDL_LIBS@ \
+	-lstdc++
+
 else
 
 libanttweakbar_la_SOURCES = \

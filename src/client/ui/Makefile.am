@@ -25,12 +25,14 @@ libui_la_SOURCES = \
 libui_la_CFLAGS = \
 	-I.. -I../.. \
 	@BASE_CFLAGS@ \
+	@ANTTWEAKBAR_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
 
 libui_la_LIBADD = \
-	../../../deps/AntTweakBar/src/libanttweakbar.la
+	../../../deps/AntTweakBar/src/libanttweakbar.la \
+	../../libcommon.la
 
 else
 

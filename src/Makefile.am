@@ -71,7 +71,8 @@ libconsole_la_CFLAGS = \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@
 libconsole_la_LIBADD = \
-	libfilesystem.la
+	libfilesystem.la \
+	@CURSES_LIBS@
 	
 libfilesystem_la_SOURCES = \
 	filesystem.c
@@ -110,7 +111,8 @@ libmem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libmem_la_LIBADD = \
-	libcommon.la
+	libcommon.la \
+	@SDL_LIBS@
 
 libnet_la_SOURCES = \
 	net_chan.c \

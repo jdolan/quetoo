@@ -74,7 +74,9 @@ librenderer_la_CFLAGS = \
 	@SDL_CFLAGS@
 	
 librenderer_la_LIBADD = \
-	../../libimages.la
+	../../libimages.la \
+	@JPEG_LIBS@ \
+	@OPENGL_LIBS@
 
 else
 

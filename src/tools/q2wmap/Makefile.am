@@ -38,6 +38,7 @@ q2wmap_SOURCES = \
 q2wmap_CFLAGS = \
 	-I../.. \
 	@BASE_CFLAGS@ \
+	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 
@@ -45,10 +46,5 @@ q2wmap_LDADD = \
 	../../libcmodel.la \
 	../../libimages.la \
 	../../libthreads.la \
-	@BASE_LIBS@ \
 	@CURSES_LIBS@ \
-	@GLIB_LIBS@ \
-	@JPEG_LIBS@ \
-	@SDL_LIBS@ \
-	-lm -lz
-
+	@SDL_LIBS@

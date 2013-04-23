@@ -62,7 +62,8 @@ libclient_la_LIBADD = \
 	../libcmodel.la \
 	../libnet.la \
 	../libpmove.la \
-	../libthreads.la
+	../libthreads.la \
+	@CURL_LIBS@
 	
 else
 
