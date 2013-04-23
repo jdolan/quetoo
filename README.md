@@ -1,14 +1,18 @@
-SUMMARY
+
+# Quake2World
+![Quake2World](http://farm8.staticflickr.com/7052/6840396962_e01802d3f9_c.jpg)
+
+# SUMMARY
 
 Quake2World is a Free, standalone first person shooter video game. Our goal
 is to bring the fun and excitement of straightforward old-school death-match
 gaming to a more contemporary platform, and perhaps to a new generation of 
 gamers.
 
-INSTALL
+# INSTALL
 
 Compilation of Quake2World is only recommended for users running GNU/Linux or
-FreeBSD.  Windows users should consider using our pre-compiled snapshots, see
+FreeBSD. Windows users should consider using our pre-compiled snapshots, see
 http://quake2world.net/books/documentation/installation-maintenance
 
 For GNU/Linux, ensure you have the following dependencies at these minimum 
@@ -17,10 +21,12 @@ versions:
   gcc          4.0
   automake     1.9.6
   autoconf     2.59
+  glib         2.12
   libsdl       1.2
   libsdl-mixer 1.2
   libsdl-image 1.2
   libcurl      7.15.1
+  physfs       2.0.1
   zlib         1.2.3
 
 If MySQL is installed, the game module will be capable of loging frags to a
