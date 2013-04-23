@@ -13,7 +13,7 @@ q2wmaster_CFLAGS = \
 	@SDL_CFLAGS@
 
 q2wmaster_LDADD = \
-	../libfs.la \
+	../libfilesystem.la \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@ \
 	@SDL_LIBS@ \
