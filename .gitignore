@@ -23,6 +23,7 @@ Makefile.in
 missing
 *.o
 src/main/quake2world
+src/master/q2wmaster
 src/tests/check_filesystem
 src/tests/check_mem
 src/tests/check_r_media
