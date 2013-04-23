@@ -7,6 +7,7 @@ quake2world_SOURCES = \
 quake2world_CFLAGS = \
 	-I.. \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 
 quake2world_LDADD = \
