@@ -22,14 +22,15 @@
 #ifndef __Q2WMAP_H__
 #define __Q2WMAP_H__
 
+#include "cmd.h"
+#include "cvar.h"
 #include "files.h"
-#include "filesystem.h"
 
 int32_t BSP_Main(void);
 int32_t VIS_Main(void);
 int32_t LIGHT_Main(void);
 int32_t MAT_Main(void);
-int32_t PAK_Main(void);
+int32_t ZIP_Main(void);
 
 extern char map_name[MAX_OSPATH];
 extern char bsp_name[MAX_OSPATH];

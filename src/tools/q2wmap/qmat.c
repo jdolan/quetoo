@@ -59,7 +59,7 @@ static int32_t CompareStrings(const void *p1, const void *p2){
  */
 int32_t MAT_Main(void){
 	char path[MAX_QPATH];
-	FILE *f;
+	file_t *f;
 	time_t start, end;
 	int32_t total_mat_time;
 	int32_t i;
@@ -77,13 +77,12 @@ int32_t MAT_Main(void){
 	g_snprintf(path, sizeof(path), "materials/%s", Basename(bsp_name));
 	strcpy(path + strlen(path) - 3, "mat");
 
-	if((i = Fs_OpenFile(path, &f, FILE_READ)) > -1){
+	if(Fs_Exists(path)){
 		Com_Print("Materials file %s exists, skipping...\n", path);
-		Fs_Close(f);
 	}
 	else {  // do it
 
-		if((i = Fs_OpenFile(path, &f, FILE_WRITE)) == -1)
+		if(!(f = Fs_OpenWrite(path)))
 			Com_Error(ERR_FATAL, "Couldn't open %s for writing.\n", path);
 
 		LoadBSPFileTexinfo(bsp_name);
@@ -96,7 +95,7 @@ int32_t MAT_Main(void){
 
 		for(i = 0; i < num_materials; i++){  // write the .mat definition
 
-			fprintf(f,
+			Fs_Print(f,
 					"{\n"
 					"\tmaterial %s\n"
 					"\tbump 1.0\n"

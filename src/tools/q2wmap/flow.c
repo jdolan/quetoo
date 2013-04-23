@@ -517,7 +517,7 @@ void BaseVis(int32_t portal_num) {
 
 	for (j = 0, tp = map_vis.portals; j < map_vis.num_portals * 2; j++, tp++) {
 
-		if (j == portal_num)
+		if (j == (uint32_t) portal_num)
 			continue;
 
 		w = tp->winding;

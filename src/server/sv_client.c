@@ -227,7 +227,7 @@ static void Sv_NextDownload_f(void) {
  */
 static void Sv_Download_f(void) {
 	static const char *allowed_patterns[] = {
-		"*.pak", "maps/*", "models/*", "sounds/*", "env/*", "textures/*", NULL
+		"*.zip", "maps/*", "models/*", "sounds/*", "env/*", "textures/*", NULL
 	};
 
 	const char *filename = Cmd_Argv(1);

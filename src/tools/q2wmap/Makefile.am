@@ -26,9 +26,9 @@ q2wmap_SOURCES = \
 	prtfile.c \
 	qbsp.c \
 	qmat.c \
-	qpak.c \
 	qlight.c \
 	qvis.c \
+	qzip.c \
 	scriplib.c \
 	textures.c \
 	threads.c \

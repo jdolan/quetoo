@@ -20,136 +20,95 @@
  */
 
 #include <unistd.h>
+#include <zlib.h>
 
 #include "qbsp.h"
-#include "pak.h"
+
+#define MISSING "__missing__"
 
 // assets are accumulated in this structure
-typedef struct qpak_s {
-	char paths[MAX_PAK_ENTRIES][MAX_QPATH];
-	int32_t num_paths;
+typedef struct qzip_s {
+	GHashTable *assets;
 
-	int32_t num_images;
-	int32_t num_models;
-	int32_t num_sounds;
-} qpak_t;
+	char *missing;
+} qzip_t;
 
-static qpak_t qpak;
+static qzip_t qzip;
 
 /*
- * @brief Returns the index of the specified path if it exists, or -1 otherwise.
+ * @brief Adds the specified asset, assuming the given name is a valid
+ * filename.
  */
-static int32_t FindPath(char *path) {
-	int32_t i;
-
-	for (i = 0; i < qpak.num_paths; i++)
-		if (!strncmp(qpak.paths[i], path, MAX_QPATH))
-			return i;
-
-	return -1;
+static void AddAsset(const char *name) {
+	g_hash_table_insert(qzip.assets, (gpointer) name, Z_CopyString(name));
 }
 
 /*
- * @brief Adds the specified path to the resource list, after ensuring that it is
- * unique.
+ * @brief Adds the specified asset to the resources list.
+ *
+ * @return True if the asset was found, false otherwise.
  */
-static void AddPath(const char *path) {
+static bool ResolveAsset(const char *name, const char **extensions) {
+	char key[MAX_QPATH];
 
-	if (qpak.num_paths == MAX_PAK_ENTRIES) {
-		Com_Error(ERR_FATAL, "MAX_PAK_ENTRIES exhausted\n");
-		return;
+	StripExtension(name, key);
+
+	if (g_hash_table_contains(qzip.assets, key)) {
+		return true;
 	}
 
-	Com_Debug("AddPath: %s\n", path);
-	g_strlcpy(qpak.paths[qpak.num_paths++], path, MAX_QPATH);
-}
+	const char **ext = extensions;
+	while (*ext) {
+		const char *path = va("%s.%s", key, *ext);
+		if (Fs_Exists(path)) {
+			g_hash_table_insert(qzip.assets, (gpointer) key, Z_CopyString(path));
+			return true;
+		}
+		ext++;
+	}
 
-#define NUM_SAMPLE_FORMATS 2
-static const char *sample_formats[NUM_SAMPLE_FORMATS] = { "ogg", "wav" };
+	g_hash_table_insert(qzip.assets, (gpointer) key, qzip.missing);
+	return false;
+}
 
 /*
  * @brief Attempts to add the specified sound in any available format.
  */
 static void AddSound(const char *sound) {
-	char snd[MAX_QPATH], path[MAX_QPATH];
-	FILE *f;
-	int32_t i;
+	const char *sound_formats[] = { "ogg", "wav", NULL };
 
-	StripExtension(sound, snd);
-
-	memset(path, 0, sizeof(path));
-
-	for (i = 0; i < NUM_SAMPLE_FORMATS; i++) {
-
-		g_snprintf(path, sizeof(path), "sounds/%s.%s", snd, sample_formats[i]);
-
-		if (FindPath(path) != -1)
-			return;
-
-		if (Fs_OpenFile(path, &f, FILE_READ) > 0) {
-			AddPath(path);
-			Fs_Close(f);
-			break;
-		}
+	if (!ResolveAsset(sound, sound_formats)) {
+		Com_Warn("Failed to resolve %s\n", sound);
 	}
-
-	if (i == NUM_SAMPLE_FORMATS) {
-		Com_Warn("Couldn't load sound %s\n", sound);
-		return;
-	}
-
-	qpak.num_sounds++;
 }
-
-#define NUM_IMAGE_FORMATS 5
-static const char *image_formats[NUM_IMAGE_FORMATS] = { "tga", "png", "jpg", "pcx", "wal" };
 
 /*
  * @brief Attempts to add the specified image in any available format. If required,
  * a warning will be issued should we fail to resolve the specified image.
  */
 static void AddImage(const char *image, bool required) {
-	char img[MAX_QPATH], path[MAX_QPATH];
-	FILE *f;
-	int32_t i;
+	const char *image_formats[] = { "tga", "png", "jpg", "pcx", "wal", NULL };
 
-	StripExtension(image, img);
-
-	memset(path, 0, sizeof(path));
-
-	for (i = 0; i < NUM_IMAGE_FORMATS; i++) {
-
-		g_snprintf(path, sizeof(path), "%s.%s", img, image_formats[i]);
-
-		if (FindPath(path) != -1)
-			return;
-
-		if (Fs_OpenFile(path, &f, FILE_READ) > 0) {
-			AddPath(path);
-			Fs_Close(f);
-			break;
+	if (!ResolveAsset(image, image_formats)) {
+		if (required) {
+			Com_Warn("Failed to resolve %s\n", image);
 		}
 	}
-
-	if (i == NUM_IMAGE_FORMATS) {
-		if (required)
-			Com_Warn("Couldn't load image %s\n", img);
-		return;
-	}
-
-	qpak.num_images++;
 }
 
-static char *suf[6] = { "rt", "bk", "lf", "ft", "up", "dn" };
-
 /*
- * @brief
+ * @brief Adds the sky environment map.
  */
 static void AddSky(char *sky) {
-	int32_t i;
+	const char *suffix[] = { "rt", "bk", "lf", "ft", "up", "dn", NULL };
+	const char **suf = suffix;
 
-	for (i = 0; i < 6; i++)
-		AddImage(va("env/%s%s", sky, suf[i]), true);
+	Com_Debug("Adding sky %s\n", sky);
+
+	while (suf) {
+		AddImage(va("env/%s%s", sky, *suf), true);
+		suf++;
+	}
 }
 
 /*
@@ -165,32 +124,34 @@ static void AddAnimation(char *name, int32_t count) {
 	if ((i = atoi(&name[j - 1])) < 0)
 		return;
 
-	name[j - 1] = 0;
+	name[j - 1] = '\0';
 
 	for (k = 1, i = i + 1; k < count; k++, i++) {
-		const char *c = va("%s%d", name, i);
-		AddImage(c, true);
+		AddImage(va("%s%d", name, i), true);
 	}
 }
 
 /*
  * @brief Adds all resources specified by the materials file, and the materials
- * file itself. See src/r_material.c for materials reference.
+ * file itself.
+ *
+ * @see r_material.c
  */
 static void AddMaterials(const char *path) {
 	char *buffer;
 	const char *buf;
 	const char *c;
 	char texture[MAX_QPATH];
-	int32_t i, num_frames;
+	int32_t num_frames;
+	int64_t i;
 
 	// load the materials file
-	if ((i = Fs_Load(path, (void **) (char *) &buffer)) < 1) {
+	if ((i = Fs_Load(path, (void **) &buffer)) == -1) {
 		Com_Warn("Couldn't load materials %s\n", path);
 		return;
 	}
 
-	AddPath(path); // add the materials file itself
+	AddAsset(path); // add the materials file itself
 
 	buf = buffer;
 
@@ -288,69 +249,49 @@ static void AddMaterials(const char *path) {
 	Fs_Free(buffer);
 }
 
-#define NUM_MODEL_FORMATS 2
-static char *model_formats[NUM_MODEL_FORMATS] = { "md3", "obj" };
-
 /*
  * @brief Attempts to add the specified mesh model.
  */
 static void AddModel(char *model) {
-	char mod[MAX_QPATH], path[MAX_QPATH];
-	FILE *f;
-	int32_t i;
+	const char *model_formats[] = { "md3", "obj", NULL };
+	char path[MAX_QPATH];
 
 	if (model[0] == '*') // bsp submodel
 		return;
 
-	StripExtension(model, mod);
-
-	memset(path, 0, sizeof(path));
-
-	for (i = 0; i < NUM_MODEL_FORMATS; i++) {
-
-		g_snprintf(path, sizeof(path), "%s.%s", mod, model_formats[i]);
-
-		if (FindPath(path) != -1)
-			return;
-
-		if (Fs_OpenFile(path, &f, FILE_READ) > 0) {
-			AddPath(path);
-			Fs_Close(f);
-			break;
-		}
-	}
-
-	if (i == NUM_MODEL_FORMATS) {
-		Com_Warn("Couldn't load model %s\n", mod);
+	if (!ResolveAsset(model, model_formats)) {
+		Com_Warn("Failed to resolve %s\n", model);
 		return;
 	}
 
 	Dirname(model, path);
-	strcat(path, "skin");
+	g_strlcat(path, "skin", sizeof(path));
 
 	AddImage(path, true);
 
 	Dirname(model, path);
-	strcat(path, "world.cfg");
+	g_strlcat(path, "world.cfg", sizeof(path));
 
-	AddPath(path);
+	AddAsset(path);
 
-	g_strlcpy(mod, path, sizeof(mod));
-	strcat(path, ".mat");
+	StripExtension(model, path);
+	g_strlcat(path, ".mat", sizeof(path));
 
 	AddMaterials(path);
-
-	qpak.num_models++;
 }
 
 /*
  * @brief
  */
 static void AddLocation(void) {
-	char base[MAX_QPATH];
+	char loc[MAX_QPATH];
 
-	StripExtension(bsp_name, base);
-	AddPath(va("%s.loc", base));
+	StripExtension(bsp_name, loc);
+	g_strlcat(loc, ".loc", sizeof(loc));
+
+	if (Fs_Exists(loc)) {
+		AddAsset(loc);
+	}
 }
 
 /*
@@ -358,62 +299,52 @@ static void AddLocation(void) {
  */
 static void AddDocumentation(void) {
 	char base[MAX_OSPATH];
-	char *c;
 
-	StripExtension(bsp_name, base);
+	StripExtension(Basename(bsp_name), base);
+	const char *doc = va("docs/map-%s.txt", base);
 
-	c = strstr(base, "maps/");
-	c = c ? c + 5 : base;
-
-	AddPath(va("docs/map-%s.txt", c));
+	if (Fs_Exists(doc)) {
+		AddAsset(doc);
+	}
 }
 
 /*
- * @brief Returns a suitable pakfile name for the current bsp name, e.g.
- *
- * maps/my.bsp -> map-my.pak.
+ * @brief Returns a suitable .zip filename name for the current bsp name
  */
-static pak_t *GetPakfile(void) {
+static char *GetZipFilename(void) {
 	char base[MAX_OSPATH];
-	char pakfile[MAX_OSPATH];
-	const char *c;
-	pak_t *pak;
+	static char zipfile[MAX_OSPATH];
 
-	StripExtension(bsp_name, base);
+	StripExtension(Basename(bsp_name), base);
 
-	c = strstr(base, "maps/");
-	c = c ? c + 5 : base;
+	g_snprintf(zipfile, sizeof(zipfile), "map-%s-%d.zip", base, getpid());
 
-	g_snprintf(pakfile, sizeof(pakfile), "%s/map-%s-%d.pak", Fs_WriteDir(), c, getpid());
-
-	if (!(pak = Pak_CreatePakstream(pakfile)))
-		Com_Error(ERR_FATAL, "Failed to open %s\n", pakfile);
-
-	return pak;
+	return zipfile;
 }
 
 /*
  * @brief Loads the specified BSP file, resolves all resources referenced by it,
- * and generates a new pak archive for the project. This is a very inefficient
+ * and generates a new zip archive for the project. This is a very inefficient
  * but straightforward implementation.
  */
-int32_t PAK_Main(void) {
+int32_t ZIP_Main(void) {
 	time_t start, end;
-	int32_t i, total_pak_time;
+	int32_t i, total_zip_time;
 	epair_t *e;
 	char materials[MAX_QPATH];
-	pak_t *pak;
-	void *p;
 
 #ifdef _WIN32
 	char title[MAX_OSPATH];
-	sprintf(title, "Q2WMap [Compiling PAK]");
+	sprintf(title, "Q2WMap [Compiling ZIP]");
 	SetConsoleTitle(title);
 #endif
 
-	Com_Print("\n----- PAK -----\n\n");
+	Com_Print("\n----- ZIP -----\n\n");
 
 	start = time(NULL);
+
+	qzip.assets = g_hash_table_new(g_str_hash, g_str_equal);
+	qzip.missing = Z_CopyString(MISSING);
 
 	LoadBSPFile(bsp_name);
 
@@ -449,42 +380,39 @@ int32_t PAK_Main(void) {
 		}
 	}
 
-	Com_Print("Resolved %d images, ", qpak.num_images);
-	Com_Print("%d models, ", qpak.num_models);
-	Com_Print("%d sounds.\n", qpak.num_sounds);
-
 	// add location and docs
 	AddLocation();
 	AddDocumentation();
 
 	// and of course the bsp and map
-	AddPath(bsp_name);
-	AddPath(map_name);
+	AddAsset(bsp_name);
+	AddAsset(map_name);
 
-	pak = GetPakfile();
-	Com_Print("Paking %d resources to %s...\n", qpak.num_paths, pak->file_name);
+	const char *zipfile = GetZipFilename();
 
-	for (i = 0; i < qpak.num_paths; i++) {
+	GList *assets = g_hash_table_get_values(qzip.assets);
+	assets = g_list_remove_all(assets, qzip.missing);
 
-		const int32_t j = Fs_Load(qpak.paths[i], (void **) (char *) &p);
+	Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), zipfile);
 
-		if (j == -1) {
-			Com_Print("Couldn't open %s\n", qpak.paths[i]);
-			continue;
+	GList *a = assets;
+	while (a) {
+		const char *filename = (char *) a->data;
+		if (strcmp(filename, MISSING)) {
+			Com_Print("%s\n", filename);
 		}
-
-		Pak_AddEntry(pak, qpak.paths[i], j, p);
-		Z_Free(p);
+		a = a->next;
 	}
 
-	Pak_ClosePakstream(pak);
+	g_list_free(assets);
+	g_hash_table_destroy(qzip.assets);
 
 	end = time(NULL);
-	total_pak_time = (int) (end - start);
-	Com_Print("\nPAK Time: ");
-	if (total_pak_time > 59)
-		Com_Print("%d Minutes ", total_pak_time / 60);
-	Com_Print("%d Seconds\n", total_pak_time % 60);
+	total_zip_time = (int) (end - start);
+	Com_Print("\nZIP Time: ");
+	if (total_zip_time > 59)
+		Com_Print("%d Minutes ", total_zip_time / 60);
+	Com_Print("%d Seconds\n", total_zip_time % 60);
 
 	return 0;
 }

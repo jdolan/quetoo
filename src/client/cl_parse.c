@@ -126,7 +126,7 @@ void Cl_Precache_f(void) {
 
 	cls.spawn_count = strtoul(Cmd_Argv(1), NULL, 0);
 
-	cl.precache_check = CS_PAK;
+	cl.precache_check = CS_ZIP;
 
 	Cl_RequestNextDownload();
 }

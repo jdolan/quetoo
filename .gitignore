@@ -22,7 +22,10 @@ Makefile
 Makefile.in
 missing
 *.o
-src/quake2world
-src/tools/pak/pak
+src/main/quake2world
+src/tests/check_filesystem
+src/tests/check_mem
+src/tests/check_r_media
 src/tools/q2wmap/q2wmap
 stamp-h1
+test-driver

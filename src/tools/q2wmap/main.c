@@ -451,7 +451,7 @@ static int32_t Check_LIGHT_Options(int32_t argc, char **argv) {
 /*
  * @brief
  */
-static int32_t Check_PAK_Options(int32_t argc __attribute__((unused)), char **argv __attribute__((unused))) {
+static int32_t Check_ZIP_Options(int32_t argc __attribute__((unused)), char **argv __attribute__((unused))) {
 	return 0;
 }
 
@@ -510,7 +510,7 @@ static void PrintHelpMessage(void) {
 	Print(" -saturation <float> - saturation factor\n");
 	Print(" -surface <float> - surface light scaling\n");
 	Print("\n");
-	Print("-pak               PAK file options:\n");
+	Print("-zip               ZIP file options:\n");
 	Print("\n");
 	Print("Examples:\n");
 	Print("Standard full compile:\n q2wmap -bsp -vis -light maps/my.map\n");
@@ -533,7 +533,7 @@ int32_t main(int32_t argc, char **argv) {
 	bool do_vis = false;
 	bool do_light = false;
 	bool do_mat = false;
-	bool do_pak = false;
+	bool do_zip = false;
 
 	memset(&quake2world, 0, sizeof(quake2world));
 
@@ -554,12 +554,13 @@ int32_t main(int32_t argc, char **argv) {
 		return 0;
 	}
 
-	// init core facilities
+	Com_InitArgv(argc, argv);
+
 	Z_Init();
 
-	Cvar_Init();
-
 	Cmd_Init();
+
+	Cvar_Init();
 
 	Fs_Init(argv[0]);
 
@@ -621,17 +622,17 @@ int32_t main(int32_t argc, char **argv) {
 			Check_MAT_Options(alt_argc, alt_argv);
 		}
 
-		if (!strcmp(argv[i], "-pak")) {
-			do_pak = true;
+		if (!strcmp(argv[i], "-zip")) {
+			do_zip = true;
 			alt_argc = argc - i;
 			alt_argv = (char **) (argv + i);
-			Check_PAK_Options(alt_argc, alt_argv);
+			Check_ZIP_Options(alt_argc, alt_argv);
 		}
 	}
 
-	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_pak) {
+	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_zip) {
 		Com_Error(ERR_FATAL, "No action specified.\n"
-			"Please specify at least one of -bsp -vis -light -mat -pak.\n");
+			"Please specify at least one of -bsp -vis -light -mat -zip.\n");
 	}
 
 	Thread_Init();
@@ -657,10 +658,16 @@ int32_t main(int32_t argc, char **argv) {
 		LIGHT_Main();
 	if (do_mat)
 		MAT_Main();
-	if (do_pak)
-		PAK_Main();
+	if (do_zip)
+		ZIP_Main();
 
 	Thread_Shutdown();
+
+	Fs_Shutdown();
+
+	Cvar_Shutdown();
+
+	Cmd_Shutdown();
 
 	Z_Shutdown();
 

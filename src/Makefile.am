@@ -20,7 +20,6 @@ noinst_HEADERS = \
 	images.h \
 	mem.h \
 	net.h \
-	pak.h \
 	pmove.h \
 	quake2world.h \
 	shared.h \

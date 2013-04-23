@@ -225,25 +225,28 @@ static void SetPortalSphere(portal_t * p) {
 /*
  * @brief
  */
-static void LoadPortals(const char *name) {
+static void LoadPortals(const char *filename) {
 	uint32_t i;
 	portal_t *p;
 	leaf_t *l;
 	char magic[80];
-	FILE *f;
+	char *buffer, *s;
+	int32_t len;
 	int32_t num_points;
 	winding_t *w;
 	int32_t leaf_nums[2];
 	plane_t plane;
 
-	if (Fs_OpenFile(name, &f, FILE_READ) == -1)
-		Com_Error(ERR_FATAL, "Could not open %s\n", name);
+	if (Fs_Load(filename, (void **) &buffer) == -1)
+		Com_Error(ERR_FATAL, "Could not open %s\n", filename);
+
+	s = buffer;
 
 	memset(&map_vis, 0, sizeof(map_vis));
 
-	if (fscanf(f, "%79s\n%u\n%u\n", magic, &map_vis.portal_clusters,
-			&map_vis.num_portals) != 3)
+	if (sscanf(s, "%79s\n%u\n%u\n%n", magic, &map_vis.portal_clusters, &map_vis.num_portals, &len) != 3)
 		Com_Error(ERR_FATAL, "LoadPortals: failed to read header\n");
+	s += len;
 
 	if (strcmp(magic, PORTALFILE))
 		Com_Error(ERR_FATAL, "LoadPortals: not a portal file\n");
@@ -276,9 +279,10 @@ static void LoadPortals(const char *name) {
 	for (i = 0, p = map_vis.portals; i < map_vis.num_portals; i++) {
 		int32_t j;
 
-		if (fscanf(f, "%i %i %i ", &num_points, &leaf_nums[0], &leaf_nums[1]) != 3) {
+		if (sscanf(s, "%i %i %i %n", &num_points, &leaf_nums[0], &leaf_nums[1], &len) != 3) {
 			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
 		}
+		s += len;
 
 		if (num_points > MAX_POINTS_ON_WINDING) {
 			Com_Error(ERR_FATAL, "LoadPortals: portal %i has too many points\n", i);
@@ -299,12 +303,15 @@ static void LoadPortals(const char *name) {
 
 			// scanf into double, then assign to vec_t
 			// so we don't care what size vec_t is
-			if (fscanf(f, "(%lf %lf %lf ) ", &v[0], &v[1], &v[2]) != 3)
+			if (sscanf(s, "(%lf %lf %lf ) %n", &v[0], &v[1], &v[2], &len) != 3)
 				Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
+			s += len;
+
 			for (k = 0; k < 3; k++)
 				w->points[j][k] = v[k];
 		}
-		if (fscanf(f, "\n")) {
+		if (sscanf(s, "\n%n", &len)) {
+			s += len;
 		}
 
 		// calc plane
@@ -343,7 +350,7 @@ static void LoadPortals(const char *name) {
 		p++;
 	}
 
-	Fs_Close(f);
+	Fs_Free(buffer);
 }
 
 /*

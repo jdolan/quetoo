@@ -463,7 +463,7 @@ typedef enum {
 #define CS_NAME				0 // the name (message) of the current level
 #define CS_SKY				1 // the sky box
 #define CS_WEATHER			2 // the weather string
-#define CS_PAK				3 // pak name for current level
+#define CS_ZIP				3 // zip name for current level
 #define CS_BSP_SIZE			4 // for catching incompatible maps
 #define CS_MODELS			5 // bsp, bsp sub-models, and mesh models
 #define CS_SOUNDS			(CS_MODELS + MAX_MODELS)

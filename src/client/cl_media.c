@@ -23,7 +23,7 @@
 
 /*
  * @brief Entry point for file downloads, or "precache" from server. Attempt to
- * download .pak and .bsp from server. Pak is preferred. Once all precache
+ * download .zip and .bsp from server. Zip is preferred. Once all precache
  * checks are completed, we load media and ask the server to begin sending
  * us frames.
  */
@@ -32,12 +32,12 @@ void Cl_RequestNextDownload(void) {
 	if (cls.state < CL_CONNECTED)
 		return;
 
-	// check pak
-	if (cl.precache_check == CS_PAK) {
+	// check zip
+	if (cl.precache_check == CS_ZIP) {
 		cl.precache_check = CS_MODELS;
 
-		if (*cl.config_strings[CS_PAK] != '\0') {
-			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_PAK]))
+		if (*cl.config_strings[CS_ZIP] != '\0') {
+			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_ZIP]))
 				return; // started a download
 		}
 	}

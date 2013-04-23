@@ -329,7 +329,7 @@ void Fs_AddToSearchPath(const char *dir) {
 		return;
 	}
 
-	Fs_Enumerate("*.pak", Fs_AddToSearchPath_enumerate, (void *) dir);
+	Fs_Enumerate("*.zip", Fs_AddToSearchPath_enumerate, (void *) dir);
 }
 
 /*
