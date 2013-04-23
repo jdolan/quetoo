@@ -16,6 +16,7 @@ all: install
 pre-install:
 	install -d $(TARGET)
 #	svn export --force quake2world $(QUAKE2WORLD)
+	mkdir -p $(QUAKE2WORLD) $(BINARIES) $(LIBRARIES)/default $(RESOURCES)
 
 install: pre-install
 	install ../src/tools/pak/pak $(BINARIES)/pak
