@@ -15,7 +15,7 @@ all: install
 
 pre-install:
 	install -d $(TARGET)
-	svn export --force quake2world $(QUAKE2WORLD)
+#	svn export --force quake2world $(QUAKE2WORLD)
 
 install: pre-install
 	install ../src/tools/pak/pak $(BINARIES)/pak
@@ -25,7 +25,7 @@ install: pre-install
 	install ../src/game/default/.libs/game.so $(LIBRARIES)/default/game.so
 
 install-data:
-	svn export --force $(DATA)/target $(RESOURCES)
+#	svn export --force $(DATA)/target $(RESOURCES)
 
 release: install
 	scp -r $(BINARIES) $(LIBRARIES) $(RSYNC_REPOSITORY)
