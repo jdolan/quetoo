@@ -7,7 +7,7 @@
 mock -r epel-6-i386 --clean
 mock -r epel-6-i386 --rebuild quake2world-*.src.rpm &
 
-while [ ! -e /var/lib/mock/epel-6-i386/root/builddir/.subversion/config ]; do
+while [ ! -e /var/lib/mock/epel-6-i386/root/builddir/build/BUILD/quake2world-0.0.1/master.zip ]; do
 #  Sleep until file does exists/is created
   sleep 1
 done
@@ -22,7 +22,7 @@ chown -R `whoami`:mock /var/lib/mock/epel-6-i386/root/builddir/.ssh/
 mock -r epel-6-x86_64 --clean
 mock -r epel-6-x86_64 --rebuild quake2world-*.src.rpm &
 
-while [ ! -e /var/lib/mock/epel-6-x86_64/root/builddir/.subversion/config ]; do
+while [ ! -e /var/lib/mock/epel-6-x86_64/root/builddir/build/BUILD/quake2world-0.0.1/master.zip ]; do
 #  Sleep until file does exists/is created
   sleep 1
 done
