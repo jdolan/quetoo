@@ -637,6 +637,7 @@ AC_CONFIG_FILES([
 	deps/AntTweakBar/Makefile
 	deps/AntTweakBar/include/Makefile
 	deps/AntTweakBar/src/Makefile
+	deps/minizip/Makefile
 	doc/Makefile
 	src/Makefile
 	src/cgame/Makefile

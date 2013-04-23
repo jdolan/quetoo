@@ -1,2 +1,3 @@
 SUBDIRS = \
-	AntTweakBar
+	AntTweakBar \
+	minizip
