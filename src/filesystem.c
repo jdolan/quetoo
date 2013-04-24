@@ -25,6 +25,11 @@
 
 static char **fs_base_search_paths;
 
+//#define FS_LOAD_DEBUG
+#ifdef FS_LOAD_DEBUG
+static GHashTable *fs_loaded_files;
+#endif
+
 /*
  * @brief Closes the file.
  *
@@ -247,6 +252,10 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
 					e = e->next;
 				}
+
+#ifdef FS_LOAD_DEBUG
+				g_hash_table_insert(fs_loaded_files, *buffer, (gpointer) Z_CopyString(filename));
+#endif
 			} else {
 				*buffer = NULL;
 			}
@@ -271,6 +280,11 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 void Fs_Free(void *buffer) {
 
 	if (buffer) {
+#ifdef FS_LOAD_DEBUG
+		if (!g_hash_table_remove(fs_loaded_files, buffer)) {
+			Com_Warn("Fs_Free: Invalid buffer\n");
+		}
+#endif
 		Z_Free(buffer);
 	}
 }
@@ -500,12 +514,30 @@ void Fs_Init(const char *argv0) {
 
 	// these paths will be retained across all game modules
 	fs_base_search_paths = PHYSFS_getSearchPath();
+
+#ifdef FS_LOAD_DEBUG
+	fs_loaded_files = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Z_Free);
+#endif
 }
+
+#ifdef FS_LOAD_DEBUG
+/*
+ * @brief Prints the names of loaded (i.e. yet-to-be-freed) files.
+ */
+static void Fs_LoadedFiles_(gpointer key, gpointer value, gpointer data __attribute__((unused))) {
+	Com_Print("Fs_PrintLoadedFiles: %s @ %p\n", (char *)value, key);
+}
+#endif
 
 /*
  * @brief Shuts down the filesystem.
  */
 void Fs_Shutdown(void) {
+
+#ifdef FS_LOAD_DEBUG
+	g_hash_table_foreach(fs_loaded_files, Fs_LoadedFiles_, NULL);
+	g_hash_table_destroy(fs_loaded_files);
+#endif
 
 	PHYSFS_freeList(fs_base_search_paths);
 
