@@ -24,6 +24,7 @@
 
 typedef struct {
 	GHashTable *vars;
+	GList *keys;
 } cvar_state_t;
 
 static cvar_state_t cvar_state;
@@ -83,21 +84,21 @@ char *Cvar_GetString(const char *name) {
 	return var->string;
 }
 
-static cvar_enumerate_func cvar_enumerate;
-
-/*
- * @brief GHashFunc for Cvar_Enumerate.
- */
-static void Cvar_Enumerate_(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
-	cvar_enumerate((cvar_t *) value, data);
-}
-
 /*
  * @brief Enumerates all known variables with the given function.
  */
 void Cvar_Enumerate(cvar_enumerate_func func, void *data) {
-	cvar_enumerate = func;
-	g_hash_table_foreach(cvar_state.vars, Cvar_Enumerate_, data);
+
+	GList *key = cvar_state.keys;
+	while (key) {
+		cvar_t *var = g_hash_table_lookup(cvar_state.vars, key->data);
+		if (var) {
+			func(var, data);
+		} else {
+			Com_Error(ERR_FATAL, "Cvar_Enumerate: Missing variable: %s\n", (char *) key->data);
+		}
+		key = key->next;
+	}
 }
 
 static const char *cvar_complete_pattern;
@@ -165,7 +166,11 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 		var->description = Z_Link(var, Z_CopyString(description));
 	}
 
-	g_hash_table_insert(cvar_state.vars, (char *) var->name, var);
+	gpointer key = (gpointer) var->name;
+
+	g_hash_table_insert(cvar_state.vars, key, var);
+	cvar_state.keys = g_list_insert_sorted(cvar_state.keys, key, (GCompareFunc) strcmp);
+
 	return var;
 }
 
@@ -618,6 +623,7 @@ void Cvar_Init(void) {
 void Cvar_Shutdown(void) {
 
 	g_hash_table_destroy(cvar_state.vars);
+	g_list_free(cvar_state.keys);
 
 	Cmd_RemoveCommand("set");
 	Cmd_RemoveCommand("toggle");

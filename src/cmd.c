@@ -30,6 +30,7 @@ typedef struct cmd_args_s {
 
 typedef struct cmd_state_s {
 	GHashTable *commands;
+	GList *keys;
 
 	size_buf_t buffer;
 	cmd_args_t args;
@@ -320,21 +321,21 @@ cmd_t *Cmd_Get(const char *name) {
 	return NULL;
 }
 
-static cmd_enumerate_func cmd_enumerate;
-
-/*
- * @brief GHashFunc for Cmd_Enumerate.
- */
-static void Cmd_Enumerate_(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
-	cmd_enumerate((cmd_t *) value, data);
-}
-
 /*
  * @brief Enumerates all known commands with the given function.
  */
 void Cmd_Enumerate(cmd_enumerate_func func, void *data) {
-	cmd_enumerate = func;
-	g_hash_table_foreach(cmd_state.commands, Cmd_Enumerate_, data);
+
+	GList *key = cmd_state.keys;
+	while (key) {
+		cmd_t *cmd = g_hash_table_lookup(cmd_state.commands, key->data);
+		if (cmd) {
+			func(cmd, data);
+		} else {
+			Com_Error(ERR_FATAL, "Cmd_Enumerate: Missing command: %s\n", (char *) key->data);
+		}
+		key = key->next;
+	}
 }
 
 /*
@@ -364,7 +365,10 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
 		cmd->description = Z_Link(cmd, Z_CopyString(description));
 	}
 
-	g_hash_table_insert(cmd_state.commands, (gpointer *) name, cmd);
+	gpointer key = (gpointer) name;
+
+	g_hash_table_insert(cmd_state.commands, key, cmd);
+	cmd_state.keys = g_list_insert_sorted(cmd_state.keys, key, (GCompareFunc) strcmp);
 }
 
 /*
@@ -607,6 +611,7 @@ void Cmd_Init(void) {
 void Cmd_Shutdown(void) {
 
 	g_hash_table_destroy(cmd_state.commands);
+	g_list_free(cmd_state.keys);
 }
 
 /*
