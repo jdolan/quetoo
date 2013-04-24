@@ -94,6 +94,8 @@ file_t *Fs_OpenWrite(const char *filename) {
 
 /*
  * @brief Prints the specified formatted string to the given file.
+ *
+ * @return The number of characters written, or -1 on failure.
  */
 int64_t Fs_Print(file_t *file, const char *fmt, ...) {
 	va_list args;
@@ -103,11 +105,13 @@ int64_t Fs_Print(file_t *file, const char *fmt, ...) {
 	vsnprintf(string, sizeof(string), fmt, args);
 	va_end(args);
 
-	return Fs_Write(file, string, strlen(string), 1);
+	return Fs_Write(file, string, 1, strlen(string));
 }
 
 /*
  * @brief Reads from the specified file.
+ *
+ * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
 	return PHYSFS_read(file, buffer, size, count);
@@ -115,6 +119,8 @@ int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
 
 /*
  * @brief Reads a line from the specified file.
+ *
+ * @return True on success, false on failures.
  */
 bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
 	size_t i;
@@ -145,14 +151,23 @@ bool Fs_Seek(file_t *file, size_t offset) {
 }
 
 /*
- * @brief Returns the current file offset.
+ * @return The current file offset.
  */
 int64_t Fs_Tell(file_t *file) {
 	return PHYSFS_tell(file);
 }
 
 /*
+ * @return True if the end of the file has been reached, false otherwise.
+ */
+bool Fs_Eof(file_t *file) {
+	return PHYSFS_eof(file) ? true : false;
+}
+
+/*
  * @brief Writes to the specified file.
+ *
+ * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Write(file_t *file, void *buffer, size_t size, size_t count) {
 	return PHYSFS_write(file, buffer, size, count);
@@ -161,7 +176,9 @@ int64_t Fs_Write(file_t *file, void *buffer, size_t size, size_t count) {
 /*
  * @brief Loads the specified file into the given buffer, which is automatically
  * allocated if non-NULL. Returns the file length, or -1 if it is unable to be
- * read. Be sure to free the buffer when finished with Fs_FreeFile.
+ * read. Be sure to free the buffer when finished with Fs_Free.
+ *
+ * @return The file length, or -1 on error.
  */
 int64_t Fs_Load(const char *filename, void **buffer) {
 	int64_t len;
@@ -180,7 +197,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 			Com_Warn("Fs_LoadFile: %s\n", Fs_LastError());
 		}
 
-		while (!PHYSFS_eof(file)) {
+		while (!Fs_Eof(file)) {
 			fs_block_t *b = Z_Malloc(sizeof(fs_block_t));
 
 			b->data = Z_LinkMalloc(FS_FILE_BUFFER, b);

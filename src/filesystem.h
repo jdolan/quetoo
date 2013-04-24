@@ -45,6 +45,7 @@ int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count);
 bool Fs_ReadLine(file_t *file, char *buffer, size_t len);
 bool Fs_Seek(file_t *file, size_t offset);
 int64_t Fs_Tell(file_t *file);
+bool Fs_Eof(file_t *file);
 int64_t Fs_Write(file_t *file, void *buffer, size_t size, size_t count);
 int64_t Fs_Load(const char *filename, void **buffer);
 void Fs_Free(void *buffer);

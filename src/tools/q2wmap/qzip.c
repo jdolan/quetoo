@@ -20,9 +20,9 @@
  */
 
 #include <unistd.h>
-#include <zlib.h>
 
 #include "qbsp.h"
+#include "deps/minizip/zip.h"
 
 #define MISSING "__missing__"
 
@@ -77,7 +77,7 @@ static bool ResolveAsset(const char *name, const char **extensions) {
 static void AddSound(const char *sound) {
 	const char *sound_formats[] = { "ogg", "wav", NULL };
 
-	if (!ResolveAsset(sound, sound_formats)) {
+	if (!ResolveAsset(va("sounds/%s", sound), sound_formats)) {
 		Com_Warn("Failed to resolve %s\n", sound);
 	}
 }
@@ -105,7 +105,7 @@ static void AddSky(char *sky) {
 
 	Com_Debug("Adding sky %s\n", sky);
 
-	while (suf) {
+	while (*suf) {
 		AddImage(va("env/%s%s", sky, *suf), true);
 		suf++;
 	}
@@ -322,6 +322,53 @@ static char *GetZipFilename(void) {
 	return zipfile;
 }
 
+
+#define ZIP_BUFFER_SIZE 1024 * 1024 * 2
+
+/*
+ * @brief Adds the specified resource to the .zip archive.
+ */
+static bool DeflateAsset(zipFile zip_file, const char *filename) {
+	static zip_fileinfo zip_info;
+	file_t *file;
+
+	if (!(file = Fs_OpenRead(filename))) {
+		Com_Warn("ZIP_DeflateFile: Failed to read %s\n", filename);
+		return false;
+	}
+
+	if (zipOpenNewFileInZip(zip_file, filename, &zip_info, NULL, 0, NULL, 0, NULL, Z_DEFLATED,
+			Z_DEFAULT_COMPRESSION) != Z_OK) {
+		Com_Warn("ZIP_DeflateFile: Failed to write %s\n", filename);
+		return false;
+	}
+
+	void *buffer = Z_Malloc(ZIP_BUFFER_SIZE);
+	bool success = true;
+
+	while (!Fs_Eof(file)) {
+		int64_t len = Fs_Read(file, buffer, 1, ZIP_BUFFER_SIZE);
+		if (len > 0) {
+			if (zipWriteInFileInZip(zip_file, buffer, len) != ZIP_OK) {
+				Com_Warn("ZIP_DeflateFile: Failed to deflate %s\n", filename);
+				success = false;
+				break;
+			}
+		} else {
+			Com_Warn("ZIP_DeflateFile: Failed to buffer %s\n", filename);
+			success = false;
+			break;
+		}
+	}
+
+	Z_Free(buffer);
+
+	zipCloseFileInZip(zip_file);
+	Fs_Close(file);
+
+	return success;
+}
+
 /*
  * @brief Loads the specified BSP file, resolves all resources referenced by it,
  * and generates a new zip archive for the project. This is a very inefficient
@@ -332,6 +379,7 @@ int32_t ZIP_Main(void) {
 	int32_t i, total_zip_time;
 	epair_t *e;
 	char materials[MAX_QPATH];
+	char zip[MAX_QPATH];
 
 #ifdef _WIN32
 	char title[MAX_OSPATH];
@@ -388,20 +436,29 @@ int32_t ZIP_Main(void) {
 	AddAsset(bsp_name);
 	AddAsset(map_name);
 
-	const char *zipfile = GetZipFilename();
-
+	// prune the assets list, removing missing resources
 	GList *assets = g_hash_table_get_values(qzip.assets);
 	assets = g_list_remove_all(assets, qzip.missing);
 
-	Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), zipfile);
+	g_snprintf(zip, sizeof(zip), "%s/%s", Fs_WriteDir(), GetZipFilename());
+	zipFile zip_file = zipOpen(zip, APPEND_STATUS_CREATE);
 
-	GList *a = assets;
-	while (a) {
-		const char *filename = (char *) a->data;
-		if (strcmp(filename, MISSING)) {
+	if (zip_file) {
+		Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), zip);
+
+		GList *a = assets;
+		while (a) {
+			const char *filename = (char *) a->data;
+
+			DeflateAsset(zip_file, filename);
+
 			Com_Print("%s\n", filename);
+			a = a->next;
 		}
-		a = a->next;
+
+		zipClose(zip_file, NULL);
+	} else {
+		Com_Warn("Failed to open %s\n", zip);
 	}
 
 	g_list_free(assets);

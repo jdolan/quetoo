@@ -277,8 +277,17 @@ static void Error(err_t err __attribute__((unused)), const char *msg) {
 	fprintf(stderr, "************ ERROR ************\n");
 	fprintf(stderr, "%s", msg);
 
+	Thread_Shutdown();
+
+	Fs_Shutdown();
+
+	Cvar_Shutdown();
+
+	Cmd_Shutdown();
+
 	Z_Shutdown();
-	exit(1);
+
+	exit(err);
 }
 
 /*

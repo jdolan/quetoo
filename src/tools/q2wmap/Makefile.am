@@ -43,6 +43,7 @@ q2wmap_CFLAGS = \
 	@SDL_CFLAGS@
 
 q2wmap_LDADD = \
+	../../../deps/minizip/libminizip.la \
 	../../libcmodel.la \
 	../../libimages.la \
 	../../libthreads.la \
