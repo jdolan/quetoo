@@ -115,15 +115,15 @@ bool Img_LoadImage(const char *name, SDL_Surface **surf) {
  */
 static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	void *buf;
-	miptex_t *mt;
-	int32_t i, size;
-	uint32_t *p;
+	uint32_t i;
 	byte *b;
+
+	*surf = NULL;
 
 	if (Fs_Load(path, &buf) == -1)
 		return false;
 
-	mt = (miptex_t *) buf;
+	miptex_t *mt = (miptex_t *) buf;
 
 	mt->width = LittleLong(mt->width);
 	mt->height = LittleLong(mt->height);
@@ -133,8 +133,8 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	if (!palette_initialized) // lazy-load palette if necessary
 		Img_InitPalette();
 
-	size = mt->width * mt->height;
-	p = (uint32_t *) malloc(size * sizeof(uint32_t));
+	size_t size = mt->width * mt->height;
+	uint32_t *p = (uint32_t *) malloc(size * sizeof(uint32_t));
 
 	b = (byte *) mt + mt->offsets[0];
 
@@ -145,19 +145,17 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 			p[i] = palette[b[i]];
 	}
 
-	// create the RGBA surface
-	if (!(*surf = SDL_CreateRGBSurfaceFrom((void *) p, mt->width, mt->height, 32, 0, RMASK, GMASK,
-			BMASK, AMASK))) {
+	Fs_Free(buf);
 
-		Fs_Free(mt);
-		return false;
+	// create the RGBA surface
+	if ((*surf = SDL_CreateRGBSurfaceFrom(p, mt->width, mt->height, 32, 0, RMASK, GMASK, BMASK,
+			AMASK))) {
+
+		// trick SDL into freeing the pixel data with the surface
+		(*surf)->flags &= ~SDL_PREALLOC;
 	}
 
-	// trick SDL into freeing the pixel data with the surface
-	(*surf)->flags &= ~SDL_PREALLOC;
-
-	Fs_Free(mt);
-	return true;
+	return *surf != NULL;
 }
 
 /*
@@ -167,44 +165,37 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
 	char path[MAX_QPATH];
 	void *buf;
-	int32_t len;
-	SDL_RWops *rw;
-	SDL_Surface *s;
+	int64_t len;
 
 	g_snprintf(path, sizeof(path), "%s.%s", name, type);
 
-	if (!strcmp(type, "wal")) // special case for .wal files
+	if (!strcmp(type, "wal")) { // special case for .wal files
 		return Img_LoadWal(path, surf);
+	}
 
-	if ((len = Fs_Load(path, &buf)) == -1)
-		return false;
+	*surf = NULL;
 
-	if (!(rw = SDL_RWFromMem(buf, len))) {
+	if ((len = Fs_Load(path, &buf)) != -1) {
+
+		SDL_RWops *rw;
+		if ((rw = SDL_RWFromMem(buf, len))) {
+
+			SDL_Surface *s;
+			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
+
+				if (!g_str_has_prefix(path, PALETTE)) {
+					*surf = SDL_ConvertSurface(s, &format, 0);
+					SDL_FreeSurface(s);
+				} else {
+					*surf = s;
+				}
+			}
+			SDL_FreeRW(rw);
+		}
 		Fs_Free(buf);
-		return false;
 	}
 
-	if (!(*surf = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
-		SDL_FreeRW(rw);
-		Fs_Free(buf);
-		return false;
-	}
-
-	SDL_FreeRW(rw);
-	Fs_Free(buf);
-
-	if (strstr(path, PALETTE)) // dont convert the palette
-		return true;
-
-	if (!(s = SDL_ConvertSurface(*surf, &format, 0))) {
-		SDL_FreeSurface(*surf);
-		return false;
-	}
-
-	SDL_FreeSurface(*surf);
-	*surf = s;
-
-	return true;
+	return *surf != NULL;
 }
 
 /*
