@@ -62,35 +62,19 @@ static void R_TextureMode(void) {
 		r_image_state.anisotropy = 1.0;
 }
 
-#define MAX_SCREENSHOTS 100
+#define MAX_SCREENSHOTS 1000
 
 /*
- * @brief
+ * @brief Captures a screenshot, writing it to the user's directory.
  */
 void R_Screenshot_f(void) {
-	static int32_t last_shot; // small optimization, don't fopen so many times
+	static uint16_t last_screenshot;
 	char filename[MAX_OSPATH];
-	int32_t i, quality;
-	byte *buffer;
-
-	void (*Img_Write)(const char *path, byte *data, int32_t width, int32_t height, int32_t quality);
-
-	// use format specified in type cvar
-	if (!strcmp(r_screenshot_type->string, "jpeg") || !strcmp(r_screenshot_type->string, "jpg")) {
-		Img_Write = &Img_WriteJPEG;
-	} else if (!strcmp(r_screenshot_type->string, "tga")) {
-		Img_Write = &Img_WriteTGARLE;
-	} else {
-		Com_Warn("R_Screenshot_f: Type \"%s\" not supported.\n", r_screenshot_type->string);
-		return;
-	}
-
-	const char *ext = r_screenshot_type->string;
+	uint16_t i;
 
 	// find a file name to save it to
-	for (i = last_shot; i < MAX_SCREENSHOTS; i++) {
-
-		g_snprintf(filename, sizeof(filename), "screenshots/quake2world%02d.%s", i, ext);
+	for (i = last_screenshot; i < MAX_SCREENSHOTS; i++) {
+		g_snprintf(filename, sizeof(filename), "screenshots/quake2world%03u.jpg", i);
 
 		if (!Fs_Exists(filename))
 			break; // file doesn't exist
@@ -101,18 +85,24 @@ void R_Screenshot_f(void) {
 		return;
 	}
 
-	last_shot = i;
+	last_screenshot = i; // save for next call
 
-	buffer = Z_Malloc(r_context.width * r_context.height * 3);
+	const uint32_t width = r_context.width;
+	const uint32_t height = r_context.height;
 
-	glReadPixels(0, 0, r_context.width, r_context.height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+	byte *buffer = Z_Malloc(width * height * 3);
 
-	quality = Clamp(r_screenshot_quality->value * 100, 0, 100);
+	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
-	(*Img_Write)(filename, buffer, r_context.width, r_context.height, quality);
+	const int32_t quality = Clamp(r_screenshot_quality->integer, 0, 100);
+
+	if (Img_WriteJPEG(filename, buffer, width, height, quality)) {
+		Com_Print("Saved %s\n", Basename(filename));
+	} else {
+		Com_Warn("R_Screenshot_f: Failed to write %s\n", filename);
+	}
 
 	Z_Free(buffer);
-	Com_Print("Saved %s\n", Basename(filename));
 }
 
 /*

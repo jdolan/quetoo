@@ -263,28 +263,27 @@ static inline void Img_Write(file_t *file, void *buffer, size_t size, size_t cou
 /*
  * @brief Write pixel data to a JPEG file.
  */
-void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, int32_t quality) {
+bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality) {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
-	FILE *outfile; /* target file */
 	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
-	int32_t row_stride; /* physical row width in image buffer */
+	FILE *f;
 
-	if (!(outfile = fopen(va("%s/%s", Fs_WriteDir(), path), "wb"))) { // failed to open
+	if (!(f = fopen(va("%s/%s", Fs_WriteDir(), path), "wb"))) {
 		Com_Print("Failed to open to %s\n", path);
-		return;
+		return false;
 	}
 
 	cinfo.err = jpeg_std_error(&jerr);
 
 	jpeg_create_compress(&cinfo);
 
-	jpeg_stdio_dest(&cinfo, outfile);
+	jpeg_stdio_dest(&cinfo, f);
 
-	cinfo.image_width = width; /* image width and height, in pixels */
+	cinfo.image_width = width;
 	cinfo.image_height = height;
-	cinfo.input_components = 3; /* # of color components per pixel */
-	cinfo.in_color_space = JCS_RGB; /* colorspace of input image */
+	cinfo.input_components = 3;
+	cinfo.in_color_space = JCS_RGB;
 
 	jpeg_set_defaults(&cinfo);
 
@@ -292,10 +291,10 @@ void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, 
 
 	jpeg_start_compress(&cinfo, TRUE);
 
-	row_stride = width * 3; /* JSAMPLEs per row in img_data */
+	const uint32_t stride = width * 3; // bytes per scanline
 
 	while (cinfo.next_scanline < cinfo.image_height) {
-		row_pointer[0] = &data[(cinfo.image_height - cinfo.next_scanline - 1) * row_stride];
+		row_pointer[0] = &data[(cinfo.image_height - cinfo.next_scanline - 1) * stride];
 		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
 	}
 
@@ -303,7 +302,8 @@ void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, 
 
 	jpeg_destroy_compress(&cinfo);
 
-	fclose(outfile);
+	fclose(f);
+	return true;
 }
 
 #define TGA_CHANNELS 3
