@@ -52,7 +52,7 @@ static void S_FreeMusic(s_media_t *self) {
 		SDL_FreeRW(music->rw);
 	}
 	if (music->buffer) {
-		Z_Free(music->buffer);
+		Fs_Free(music->buffer);
 	}
 }
 
@@ -230,5 +230,6 @@ void S_InitMusic(void) {
  * @brief Shuts down music playback.
  */
 void S_ShutdownMusic(void) {
+
 	S_StopMusic();
 }

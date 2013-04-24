@@ -127,6 +127,11 @@ static gboolean S_FreeMedia_(gpointer key __attribute__((unused)), gpointer valu
 		}
 	}
 
+	// ask the implementation to clean up
+	if (media->Free) {
+		media->Free(media);
+	}
+
 	return true;
 }
 
