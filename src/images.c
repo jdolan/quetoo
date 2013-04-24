@@ -252,12 +252,12 @@ void Img_ColorFromPalette(byte c, float *res) {
 }
 
 /*
- * @brief Wraps fwrite, reading the return value to silence gcc.
+ * @brief Wraps Fs_Write, throwing an error on failed write operations.
  */
-static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+static inline void Img_Write(file_t *file, void *buffer, size_t size, size_t count) {
 
-	if (fwrite(ptr, size, nmemb, stream) <= 0)
-		Com_Print("Failed to write\n");
+	if (Fs_Write(file, buffer, size, count) < (int64_t) count)
+		Com_Error(ERR_DROP, "Img_fwrite: Failed to write: %s\n", Fs_LastError());
 }
 
 /*
@@ -270,7 +270,7 @@ void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, 
 	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
 	int32_t row_stride; /* physical row width in image buffer */
 
-	if (!(outfile = fopen(path, "wb"))) { // failed to open
+	if (!(outfile = fopen(va("%s/%s", Fs_WriteDir(), path), "wb"))) { // failed to open
 		Com_Print("Failed to open to %s\n", path);
 		return;
 	}
@@ -312,7 +312,7 @@ void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, 
  * @brief Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
  */
 void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height, int32_t quality __attribute__((unused))) {
-	FILE *tga_file;
+	file_t *tga_file;
 	const uint32_t channels = TGA_CHANNELS; // 24-bit RGB
 	byte header[18];
 	// write image data
@@ -325,8 +325,8 @@ void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height
 	char footer[26];
 	int32_t x, y;
 
-	if (!(tga_file = fopen(path, "wb"))) { // failed to open
-		Com_Print("Failed to open to %s\n", path);
+	if (!(tga_file = Fs_OpenWrite(path))) { // failed to open
+		Com_Warn("Img_WriteTGARLE: Failed to open to %s\n", path);
 		return;
 	}
 
@@ -350,7 +350,7 @@ void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height
 	header[17] = 0x20;
 
 	// write header
-	Img_fwrite((char *) header, 1, sizeof(header), tga_file);
+	Img_Write(tga_file, (char *) header, 1, sizeof(header));
 
 	for (y = height - 1; y >= 0; y--) {
 		for (x = 0; x < width; x++) {
@@ -378,8 +378,8 @@ void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height
 						if (block_length > 1) {
 							// write the uncompressed block
 							rle_packet = block_length - 2;
-							Img_fwrite(&rle_packet, 1, 1, tga_file);
-							Img_fwrite(block_data, 1, (block_length - 1) * channels, tga_file);
+							Img_Write(tga_file, &rle_packet, 1, sizeof(rle_packet));
+							Img_Write(tga_file, block_data, 1, (block_length - 1) * channels);
 							block_length = 1;
 						}
 						memcpy(block_data, pixel_data, channels);
@@ -395,8 +395,8 @@ void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height
 						if (block_length > 1) {
 							// write the compressed block
 							rle_packet = block_length + 127;
-							Img_fwrite(&rle_packet, 1, 1, tga_file);
-							Img_fwrite(block_data, 1, channels, tga_file);
+							Img_Write(tga_file, &rle_packet, 1, 1);
+							Img_Write(tga_file, block_data, 1, channels);
 							block_length = 0;
 						}
 						memcpy(&block_data[block_length * channels], pixel_data, channels);
@@ -409,12 +409,12 @@ void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height
 			if (block_length == 128) {
 				rle_packet = block_length - 1;
 				if (!compress) {
-					Img_fwrite(&rle_packet, 1, 1, tga_file);
-					Img_fwrite(block_data, 1, 128 * channels, tga_file);
+					Img_Write(tga_file, &rle_packet, 1, 1);
+					Img_Write(tga_file, block_data, 1, 128 * channels);
 				} else {
 					rle_packet += 128;
-					Img_fwrite(&rle_packet, 1, 1, tga_file);
-					Img_fwrite(block_data, 1, channels, tga_file);
+					Img_Write(tga_file, &rle_packet, 1, 1);
+					Img_Write(tga_file, block_data, 1, channels);
 				}
 
 				block_length = 0;
@@ -427,12 +427,12 @@ void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height
 	if (block_length) {
 		rle_packet = block_length - 1;
 		if (!compress) {
-			Img_fwrite(&rle_packet, 1, 1, tga_file);
-			Img_fwrite(block_data, 1, block_length * channels, tga_file);
+			Img_Write(tga_file, &rle_packet, 1, 1);
+			Img_Write(tga_file, block_data, 1, block_length * channels);
 		} else {
 			rle_packet += 128;
-			Img_fwrite(&rle_packet, 1, 1, tga_file);
-			Img_fwrite(block_data, 1, channels, tga_file);
+			Img_Write(tga_file, &rle_packet, 1, 1);
+			Img_Write(tga_file, block_data, 1, channels);
 		}
 	}
 
@@ -441,9 +441,9 @@ void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height
 	g_strlcpy(&footer[8] , "TRUEVISION-XFILE", 16);
 	footer[24] = '.';
 	footer[25] = '\0';
-	Img_fwrite(footer, 1, sizeof(footer), tga_file);
+	Img_Write(tga_file, footer, 1, sizeof(footer));
 
-	fclose(tga_file);
+	Fs_Close(tga_file);
 }
 
 #endif /* BUILD_CLIENT */

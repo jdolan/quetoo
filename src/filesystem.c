@@ -26,10 +26,19 @@
 static char **fs_base_search_paths;
 
 /*
- * @brief
+ * @brief Closes the file.
+ *
+ * @return True on successful flush and close, false otherwise.
  */
 bool Fs_Close(file_t *file) {
 	return PHYSFS_close(file) ? true : false;
+}
+
+/*
+ * @return True if the end of the file has been reached, false otherwise.
+ */
+bool Fs_Eof(file_t *file) {
+	return PHYSFS_eof(file) ? true : false;
 }
 
 /*
@@ -37,6 +46,13 @@ bool Fs_Close(file_t *file) {
  */
 bool Fs_Exists(const char *filename) {
 	return PHYSFS_exists(filename) ? true : false;
+}
+
+/*
+ * @return True if the file flushed successfully, false otherwise.
+ */
+bool Fs_Flush(file_t *file) {
+	return PHYSFS_flush(file) ? true : false;
 }
 
 /*
@@ -58,26 +74,33 @@ bool Fs_Mkdir(const char *dir) {
  */
 file_t *Fs_OpenAppend(const char *filename) {
 	char dir[MAX_QPATH];
+	file_t *file;
 
 	Dirname(filename, dir);
 	Fs_Mkdir(dir);
 
-	return PHYSFS_openAppend(filename);
+	if ((file = PHYSFS_openAppend(filename))) {
+		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
+			Com_Warn("Fs_OpenRead: %s: %s\n", filename, Fs_LastError());
+		}
+	}
+
+	return file;
 }
 
 /*
  * @brief Opens the specified file for reading.
  */
 file_t *Fs_OpenRead(const char *filename) {
-	file_t *f = NULL;
+	file_t *file;
 
-	if (Fs_Exists(filename)) {
-		if (!(f = PHYSFS_openRead(filename))) {
-			Com_Debug("Fs_OpenRead: %s\n", PHYSFS_getLastError());
+	if ((file = PHYSFS_openRead(filename))) {
+		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
+			Com_Warn("Fs_OpenRead: %s: %s\n", filename, Fs_LastError());
 		}
 	}
 
-	return f;
+	return file;
 }
 
 /*
@@ -85,11 +108,18 @@ file_t *Fs_OpenRead(const char *filename) {
  */
 file_t *Fs_OpenWrite(const char *filename) {
 	char dir[MAX_QPATH];
+	file_t *file;
 
 	Dirname(filename, dir);
 	Fs_Mkdir(dir);
 
-	return PHYSFS_openWrite(filename);
+	if ((file = PHYSFS_openWrite(filename))) {
+		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
+			Com_Warn("Fs_OpenWrite: %s: %s\n", filename, Fs_LastError());
+		}
+	}
+
+	return file;
 }
 
 /*
@@ -155,13 +185,6 @@ bool Fs_Seek(file_t *file, size_t offset) {
  */
 int64_t Fs_Tell(file_t *file) {
 	return PHYSFS_tell(file);
-}
-
-/*
- * @return True if the end of the file has been reached, false otherwise.
- */
-bool Fs_Eof(file_t *file) {
-	return PHYSFS_eof(file) ? true : false;
 }
 
 /*
