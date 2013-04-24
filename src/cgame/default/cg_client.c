@@ -106,6 +106,8 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const
 			break;
 		}
 	}
+
+	cgi.FreeFile(buffer);
 }
 
 /*
