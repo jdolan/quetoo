@@ -1,130 +1,32 @@
+# Quake2World BETA
+![Quake2World BETA](http://farm8.staticflickr.com/7052/6840396962_e01802d3f9_c.jpg)
 
-# Quake2World
-![Quake2World](http://farm8.staticflickr.com/7052/6840396962_e01802d3f9_c.jpg)
+## Overview
 
-# SUMMARY
+_Quake2World_ is a Free, standalone first person shooter video game based on id Tech2. Our goal is to bring the fun of oldschool deathmatch to a more contemporary platform, and perhaps to a new generation of gamers. _Quake2World_ is multiplayer-only. There is no single-player or offline gameplay mode. If you have no Internet and no friends, _Quake2World_ might not be for you. Some of _Quake2World_'s features include:
 
-Quake2World is a Free, standalone first person shooter video game. Our goal
-is to bring the fun and excitement of straightforward old-school death-match
-gaming to a more contemporary platform, and perhaps to a new generation of 
-gamers.
+ * Deathmatch, Capture, Instagib, and Rocket Arena gameplay modes right out of the box.
+ * Teams Play and Match Mode support, with Warmup and Ready functionality.
+ * High quality original levels and remakes of _Quake_ series classics.
+ * Original sounds and game music by <a href="http://rolandshaw.wordpress.com/">Roland Shaw</a>.
+ * 100% free to download, play and modify. See our <a href="http://quake2world.net/books/documentation/licensing">licensing</a> page.
 
-# INSTALL
+## Downloads
 
-Compilation of Quake2World is only recommended for users running GNU/Linux or
-FreeBSD. Windows users should consider using our pre-compiled snapshots, see
-http://quake2world.net/books/documentation/installation-maintenance
+Preview releases of _Quake2World_ for all platforms are available for download on the [project website](http://quake2world.net/pages/downloads). Installation instructions are available there as well.
 
-For GNU/Linux, ensure you have the following dependencies at these minimum 
-versions:
+## Compiling
 
-  gcc          4.0
-  automake     1.9.6
-  autoconf     2.59
-  glib         2.12
-  libsdl       1.2
-  libsdl-mixer 1.2
-  libsdl-image 1.2
-  libcurl      7.15.1
-  physfs       2.0.1
-  zlib         1.2.3
+Compilation of _Quake2World_ is only recommended for users running GNU/Linux or MacOS X. Windows users should consider using our cross-compiled snapshots. For more information, see [Installation and Maintenance](http://quake2world.net/books/documentation/installation-and-maintenance).
 
-If MySQL is installed, the game module will be capable of loging frags to a
-database for web based statistics generation.
+Quake2World builds with GNU Autotools. To build it, run the following:
 
-Quake2World builds with GNU Autotools.  To build it, run the following:
+    autoreconf -i
+    ./configure [--with-tests --with-master --without-tools --without-client]
+    make && sudo make install
+    make rsync-data
 
-  autoreconf -i
-  ./configure
-  make && sudo make install
+More information on hacking on _Quake2World_ is available [on the project website](http://quake2world.net/books/documentation/developing-and-modding).
 
-GAME DATA INSTALLATION (DEFAULT CONFIG OPTIONS*)
-
-Game data for a default installation may be obtained and synced
-using the following commands:
-
-  cd /usr/local/share
-  sudo rsync -avz --delete rsync://jdolan.dyndns.org/quake2world quake2world
-
-*Users that have modified their installations should see the game data notes
-section to determine the location where Quake2World will look for game data.
-
-Additional downloaded game data and user addons are stored under the
-users home directory, i.e. ~/.quake2world.
-
-GAME DATA NOTES
-
-By default, Quake2World looks for the official game data in 
-
-/usr/local/share/quake2world/default
-
-This is known as the basedir. Its location may be modified in the following 
-manners
-  The basedir may be overridden via the cvar "basedir" 
-  The configure option --datadir= may be used to override
-    the location of the basedir as follows
-      basedir = ${datadir}/quake2world/default
-    datadir defaults to ${prefix}/share
-  The configure option --prefix= affects the location of basedir in the
-    absence of a --datadir= option as follows
-      basedir = ${prefix}/share/quake2world/default
-
-ADENDUM
-
-There's quite a bit more to this game.  Visit http://quake2world.net for a 
-complete listing of commands and variables.
-
-IRC
-
-Point your irc client to irc.freenode.net, Channel #quetoo for help and discussion
-irc://irc.freenode.net/#quetoo
-
-TEAM
-
-Jay "jdolan" Dolan, http://jaydolan.com
-  Technical Lead
-Marcel "maci" Wysocki, http://satgnu.net
-  Infrastructure, Win32 Port Maintainer
-Stijn "Ingar" Buys, http://ingar.soliter.org
-  Level Designer, Developer
-Kai "Lava Croft" Holwerda, http://satgnu.net
-  Level Designer
-Juha "jhaa" Merilä, http://juha.puusilma.net
-  3D Artist
-Antti "Karvajalka" Lahti
-  3D Artist
-Dale "supa_user" Blount, http://dale.us
-  Contributing Developer
-Dan "Cardo" Shannon, http://cardo.quaddicted.com
-  Level Designer
-Tim "spirit" Schäfer, http://sp1r1t.org
-  Level Designer
-
-LEVELS
-
-Jester, http://planetquake.com/j-spot
-  "Stress Fractures", fractures.bsp
-Jalisko, http://jal.quakedev.com
-  "Chastity Belt Duel", chastity.bsp
-
-MODELS AND SOUNDS
-
-Michael "Magarnigal" Mellor
-  Ogro player model and skins.
-Adam "Gixter" Ward
-  Ichabod player model and skins.
-
-TEXTURES
-
-Retexture Project: http://jdolan.dyndns.org/retexture
-  Quake2Max: http://quake2max.com
-  Quake2Evolved: http://quake2evolved.com
-  Echon.org: http://echon.org
-  SIN Raven: http://markshan.com/thesinraven
-  Tosher: http://tosher.h16.ru
-
-LICENSE
-
-The Quake2World source code is released under the GNU General Public License 
-(GPL) v2.0.  The game media may hold other licensing restrictions.  You should
-contact the contributing artist before reusing any of the game media.
+## Support
+ * The IRC channel for this project is *#quetoo* on *irc.freenode.net*
