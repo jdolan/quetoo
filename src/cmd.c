@@ -507,6 +507,7 @@ static void Cmd_Alias_f(void) {
 		return;
 	}
 
+	cmd[0] = '\0';
 	for (i = 2; i < Cmd_Argc(); i++) {
 		g_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
 		if (i != (Cmd_Argc() - 1)) {
