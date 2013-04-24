@@ -156,6 +156,7 @@ typedef struct g_import_s {
 
 	// filesystem interaction
 	int64_t (*LoadFile)(const char *file_name, void **buffer);
+	void (*FreeFile)(void *buffer);
 
 	// console variable interaction
 	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);

@@ -320,6 +320,7 @@ void Sv_InitGame(void) {
 	import.FreeTag = Z_FreeTag;
 
 	import.LoadFile = Fs_Load;
+	import.FreeFile = Fs_Free;
 
 	import.Cvar = Cvar_Get;
 

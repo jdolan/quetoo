@@ -1057,7 +1057,7 @@ static void G_ParseMapList(const char *file_name) {
 	g_map_list.count = i;
 	g_map_list.index = 0;
 
-	gi.Free(buf);
+	gi.FreeFile(buf);
 
 	// thou shalt not divide by zero
 	if (!g_map_list.total_weight)
