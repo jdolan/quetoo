@@ -103,6 +103,8 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 		}
 	}
 
+	Fs_Free(buf);
+
 	Com_Debug("R_LoadMd3Animations: Loaded %d animations: %s\n", md3->num_animations,
 			mod->media.name);
 }
