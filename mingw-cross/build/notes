@@ -1,0 +1,11 @@
+libtoolize
+autoreconf -i
+./configure --host=x86_64-w64-mingw32
+
+
+
+mingw64-SDL
+mingw64-SDL_image
+mingw64-SDL_mixer
+mingw64-curl
+#mingw64-pdcurses

@@ -27,12 +27,12 @@
 uint32_t Sys_Milliseconds(void) {
 	static uint32_t base, time;
 
-#ifdef _WIN32
-	if(!base)
-	base = timeGetTime() & 0xffff0000;
-
-	time = timeGetTime() - base;
-#else
+//#ifdef _WIN32
+//	if(!base)
+//	base = timeGetTime() & 0xffff0000;
+//
+//	time = timeGetTime() - base;
+//#else
 	struct timeval tp;
 
 	gettimeofday(&tp, NULL);
@@ -41,7 +41,7 @@ uint32_t Sys_Milliseconds(void) {
 		base = tp.tv_sec;
 
 	time = (tp.tv_sec - base) * 1000 + tp.tv_usec / 1000;
-#endif
+//#endif
 
 	return time;
 }
