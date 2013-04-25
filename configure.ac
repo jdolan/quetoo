@@ -78,7 +78,7 @@ case "$host" in
 		;;
 	*)
 		HOST_NAME="LINUX"
-		HOST_LIBS="-ldl"
+		HOST_LIBS="-ldl -lm -lstdc++"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		AC_MSG_RESULT(linux)

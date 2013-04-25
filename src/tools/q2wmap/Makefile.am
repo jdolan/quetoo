@@ -48,4 +48,5 @@ q2wmap_LDADD = \
 	../../libimages.la \
 	../../libthreads.la \
 	@CURSES_LIBS@ \
-	@SDL_LIBS@
+	@SDL_LIBS@ \
+	@JPEG_LIBS@
