@@ -336,9 +336,6 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
 			return;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
-			return;
-
 		angle = ltime * angles[i][0];
 		sy = sin(angle);
 		cy = cos(angle);
