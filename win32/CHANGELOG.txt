@@ -1,8 +1,0 @@
-* Thu Jul 26 2012 Marcel Wysocki <maci@satgnu.net> - 3.1.0-1
-- devenv: initial changelog
-- devenv: many cleanups
-- gcc: update to version gcc-4.7.1-release-winXX_rubenvb
-- libpng: update to version 1.5.12
-- zlib: update to version 1.2.7
-- libcurl: update to version 7.26.0
-- libvorbis: update to version 1.3.3

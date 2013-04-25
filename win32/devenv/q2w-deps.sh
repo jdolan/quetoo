@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #############################################################################
 # Copyright(c) 2007-2012 Quake2World.
 #
@@ -22,24 +22,28 @@
 set -e
 set -o errexit
 
-CURRENTARCH=`gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1`
-if [ -z $CURRENTARCH ]; then
+TARGET=`gcc -v 2>&1|grep Target|cut -d\  -f2`
+export TARGET
+
+if [ -z ${TARGET} ]; then
   echo "/mingw is not mounted or gcc not installed"
   exit 1
 fi
 
+
 rm -Rf /mingw/local
+mkdir -p /mingw/local/bin
 
 START=`pwd`
-TMP=$START/$CURRENTARCH
+TMP=${START}/${TARGET}
 
-mkdir $TMP
-cd $TMP
+[ -d source ] || mkdir source
+[ -d ${TMP} ] || mkdir ${TMP}
+cd ${TMP}
 
-for n in ../scripts/*.sh
-do
-sh $n
-cd $TMP
+for script in ../scripts/*.*.sh; do
+  ../scripts/${script}
+  cd ${TMP}
 done
 
 echo "DONE!"

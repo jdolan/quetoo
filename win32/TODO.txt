@@ -1,9 +1,0 @@
-TODO for devenv 3.1:
-
- - clean up script directories
- - clean up devenv3.bat some more
- - re-evaluate pdcurses situation
-	- test http://www.projectpluto.com/win32a.htm
- - maybe .... try to get netradiant compiling (ouch)
- - use some versions.txt to make changing versions in sh script obsolete
-	- include versions.txt in devenv package

@@ -1,0 +1,13 @@
+TODO for devenv 3.4:
+
+ - clean up script directories
+ - re-evaluate pdcurses situation
+	- test http://www.projectpluto.com/win32a.htm
+ - maybe .... try to get netradiant compiling (ouch)
+ - have some way to automatically check for new packages upstream (fedora has something like that, check their wiki)
+ - add svn and maybe git (mingw-get ???)
+ - use a package manager ??? (gpack, needs some fixes tho)
+ - do proper dependencie handling, not just building packages in order
+ - rename devenv ? GDE ??? anyone ?
+ - test experimental gcc 4.8
+ - test LLVM/clang

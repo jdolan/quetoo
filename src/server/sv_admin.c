@@ -319,6 +319,33 @@ static void Sv_UserInfo_f(void) {
 }
 
 /*
+ *  Force a client-side command. Only available for dedicated servers
+ *  Ex: /stuff <clientid/name> command args
+ */
+static void Sv_Stuff_f(void) {
+        char text[1024];
+
+        if (Cmd_Argc() < 3)
+                return;
+
+        if (!Sv_SetPlayer())
+                return;
+
+        if (sv_client->state != SV_CLIENT_ACTIVE)
+                return;
+
+        strcpy(text, Cmd_Argv(2));
+        for (int i=3; i<=Cmd_Argc(); i++)
+        {
+                strcat(text, " ");
+                strcat(text, Cmd_Argv(i));
+        }
+
+        Msg_WriteByte(&sv_client->netchan.message, SV_CMD_CBUF_TEXT);
+        Msg_WriteString(&sv_client->netchan.message, va("%s\n", text));
+}
+
+/*
  * @brief
  */
 void Sv_InitCommands(void) {
@@ -337,6 +364,7 @@ void Sv_InitCommands(void) {
 	if (dedicated->value) {
 		Cmd_AddCommand("say", Sv_Say_f, 0, "Send a global chat message");
 		Cmd_AddCommand("tell", Sv_Tell_f, 0, "Send a private chat message");
+		Cmd_AddCommand("stuff", Sv_Stuff_f, 0, "Force a client to perform a command");
 	}
 }
 

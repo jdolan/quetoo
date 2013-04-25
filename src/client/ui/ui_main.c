@@ -84,6 +84,7 @@ static TwBar *Ui_Root(void) {
 	TwAddButton(bar, "Controls", Ui_ShowBar, "Controls", NULL);
 	TwAddButton(bar, "Player", Ui_ShowBar, "Player", NULL);
 	TwAddButton(bar, "System", Ui_ShowBar, "System", NULL);
+	TwAddButton(bar, "Credits", Ui_ShowBar, "Credits", NULL);
 
 	TwAddSeparator(bar, NULL, NULL);
 
@@ -137,6 +138,7 @@ void Ui_Init(void) {
 	ui.controls = Ui_Controls();
 	ui.player = Ui_Player();
 	ui.system = Ui_System();
+	ui.credits = Ui_Credits();
 
 	Ui_ShowBar("Quake2World");
 
