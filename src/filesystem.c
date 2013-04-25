@@ -23,12 +23,17 @@
 
 #define FS_FILE_BUFFER (1024 * 1024 * 2)
 
-static char **fs_base_search_paths;
+//#define FS_LOAD_DEBUG // track Fs_Load / Fs_Free
 
-//#define FS_LOAD_DEBUG
+typedef struct fs_state_s {
+	char **base_search_paths;
+
 #ifdef FS_LOAD_DEBUG
-static GHashTable *fs_loaded_files;
+	GHashTable *loaded_files;
 #endif
+} fs_state_t;
+
+static fs_state_t fs_state;
 
 /*
  * @brief Closes the file.
@@ -254,7 +259,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 				}
 
 #ifdef FS_LOAD_DEBUG
-				g_hash_table_insert(fs_loaded_files, *buffer, (gpointer) Z_CopyString(filename));
+				g_hash_table_insert(fs_state.loaded_files, *buffer, (gpointer) Z_CopyString(filename));
 #endif
 			} else {
 				*buffer = NULL;
@@ -281,7 +286,7 @@ void Fs_Free(void *buffer) {
 
 	if (buffer) {
 #ifdef FS_LOAD_DEBUG
-		if (!g_hash_table_remove(fs_loaded_files, buffer)) {
+		if (!g_hash_table_remove(fs_state.loaded_files, buffer)) {
 			Com_Warn("Fs_Free: Invalid buffer\n");
 		}
 #endif
@@ -434,7 +439,7 @@ void Fs_SetGame(const char *dir) {
 	char **paths = PHYSFS_getSearchPath();
 	char **path = paths;
 	while (*path != NULL) {
-		char **p = fs_base_search_paths;
+		char **p = fs_state.base_search_paths;
 		while (*p != NULL) {
 			if (!strcmp(*path, *p)) {
 				break;
@@ -475,11 +480,13 @@ const char *Fs_RealDir(const char *filename) {
  */
 void Fs_Init(const char *argv0) {
 
+	memset(&fs_state, 0, sizeof(fs_state_t));
+
 	if (PHYSFS_init(argv0) == 0) {
 		Com_Error(ERR_FATAL, "Fs_Init: %s\n", PHYSFS_getLastError());
 	}
 
-#ifdef __APPLE__ || __LINUX__
+#if (__APPLE__ || __LINUX__)
 	const char *path = Sys_ExecutablePath();
 	if (path) {
 		char *c;
@@ -513,10 +520,10 @@ void Fs_Init(const char *argv0) {
 	Fs_AddUserSearchPath(DEFAULT_GAME);
 
 	// these paths will be retained across all game modules
-	fs_base_search_paths = PHYSFS_getSearchPath();
+	fs_state.base_search_paths = PHYSFS_getSearchPath();
 
 #ifdef FS_LOAD_DEBUG
-	fs_loaded_files = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Z_Free);
+	fs_state.loaded_files = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Z_Free);
 #endif
 }
 
@@ -535,11 +542,11 @@ static void Fs_LoadedFiles_(gpointer key, gpointer value, gpointer data __attrib
 void Fs_Shutdown(void) {
 
 #ifdef FS_LOAD_DEBUG
-	g_hash_table_foreach(fs_loaded_files, Fs_LoadedFiles_, NULL);
-	g_hash_table_destroy(fs_loaded_files);
+	g_hash_table_foreach(fs_state.loaded_files, Fs_LoadedFiles_, NULL);
+	g_hash_table_destroy(fs_state.loaded_files);
 #endif
 
-	PHYSFS_freeList(fs_base_search_paths);
+	PHYSFS_freeList(fs_state.base_search_paths);
 
 	PHYSFS_deinit();
 }

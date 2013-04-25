@@ -23,17 +23,11 @@
 
 typedef struct {
 	GHashTable *media;
+	GList *keys;
 	uint32_t seed; // for tracking stale assets
 } r_media_state_t;
 
 static r_media_state_t r_media_state;
-
-/*
- * @brief GHRFunc for R_ListMedia_f.
- */
-static void R_ListMedia_f_(gpointer key __attribute__((unused)), gpointer value, gpointer data __attribute__((unused))) {
-	Com_Print("%s\n", ((r_media_t *) value)->name);
-}
 
 /*
  * @brief Prints information about all currently loaded media to the console.
@@ -42,7 +36,14 @@ void R_ListMedia_f(void) {
 
 	Com_Print("Loaded media:\n");
 
-	g_hash_table_foreach(r_media_state.media, R_ListMedia_f_, NULL);
+	GList *key = r_media_state.keys;
+	while (key) {
+		r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
+
+		Com_Print("%s\n", media->name);
+
+		key = key->next;
+	}
 }
 
 /*
@@ -67,6 +68,13 @@ void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 	}
 }
 
+/*
+ * @brief GCompareFunc for R_RegisterMedia. Sorts media by name.
+ */
+static int32_t R_RegisterMedia_Compare(gconstpointer m1, gconstpointer m2) {
+	return strcmp(((r_media_t *) m1)->name, ((r_media_t *) m2)->name);
+}
+
 static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
 
 /*
@@ -81,14 +89,14 @@ void R_RegisterMedia(r_media_t *media) {
 
 		if ((m = g_hash_table_lookup(r_media_state.media, media->name))) {
 			if (m != media) { // the old instance will eventually be freed
-				Com_Warn("R_RegisterMedia: Replacing: %s.\n", media->name);
-				g_hash_table_insert(r_media_state.media, media->name, media);
+				Com_Error(ERR_DROP, "R_RegisterMedia: Collision: %s.\n", media->name);
 			} else {
 				Com_Debug("R_RegisterMedia: Retaining %s.\n", media->name);
 			}
 		} else {
 			Com_Debug("R_RegisterMedia: Inserting %s.\n", media->name);
 			g_hash_table_insert(r_media_state.media, media->name, media);
+			r_media_state.keys = g_list_insert_sorted(r_media_state.keys, media, R_RegisterMedia_Compare);
 		}
 
 		// re-seed the media to retain it
@@ -166,6 +174,7 @@ static gboolean R_FreeMedia_(gpointer key __attribute__((unused)), gpointer valu
 	}
 
 	g_list_free(media->dependencies);
+	r_media_state.keys = g_list_remove(r_media_state.keys, value);
 
 	return true;
 }
@@ -202,5 +211,6 @@ void R_ShutdownMedia(void) {
 	g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, (void *) true);
 
 	g_hash_table_destroy(r_media_state.media);
+	g_list_free(r_media_state.keys);
 }
 
