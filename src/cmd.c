@@ -585,7 +585,6 @@ static void Cmd_Wait_f(void) {
 	cmd_state.wait = true;
 }
 
-
 /*
  * @brief Initializes the command subsystem.
  */
@@ -603,7 +602,8 @@ void Cmd_Init(void) {
 	Cmd_AddCommand("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
 	Cmd_AddCommand("wait", Cmd_Wait_f, 0, NULL);
 
-	Cmd_AddCommand("z_size", Z_Size_f, CMD_SYSTEM, "Prints current size (in MB) of the zone allocation pool.");
+	Cmd_AddCommand("z_size", Z_Size_f, CMD_SYSTEM,
+			"Prints current size (in MB) of the zone allocation pool.");
 }
 
 /*

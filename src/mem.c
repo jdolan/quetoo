@@ -68,11 +68,9 @@ static void Z_Free_(gpointer data) {
 
 	// first, remove this element from its respective block list
 	if (z->parent) {
-		GList *item = g_list_find(z->parent->children, data);
-		z->parent->children = g_list_delete_link(z->parent->children, item);
+		z->parent->children = g_list_remove(z->parent->children, data);
 	} else {
-		GList *item = g_list_find(z_state.blocks, data);
-		z_state.blocks = g_list_delete_link(z_state.blocks, item);
+		z_state.blocks = g_list_remove(z_state.blocks, data);
 	}
 
 	// next, free any dependencies (children)
