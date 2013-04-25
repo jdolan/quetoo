@@ -28,7 +28,6 @@
 #include "swap.h"
 #include "sys.h"
 
-typedef PHYSFS_sint64 int64_t;
 typedef PHYSFS_File file_t;
 
 typedef void (*fs_enumerate_func)(const char *path, void *data);
