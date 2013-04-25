@@ -231,11 +231,12 @@ static void Shutdown(const char *msg) {
 
 	Fs_Shutdown();
 
+	Con_Shutdown();
+	quake2world.time = 0; // short-circuit Print
+
 	Cvar_Shutdown();
 
 	Cmd_Shutdown();
-
-	Con_Shutdown();
 
 	Z_Shutdown();
 }
