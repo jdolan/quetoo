@@ -61,6 +61,17 @@ START_TEST(check_mem_LinkMalloc)
 
 	}END_TEST
 
+START_TEST(check_mem_CopyString)
+	{
+		char *test = Z_CopyString("test");
+
+		ck_assert(Z_Size() == strlen(test) + 1);
+
+		Z_Free(test);
+
+		ck_assert(Z_Size() == 0);
+	}END_TEST
+
 /*
  * @brief Test entry point.
  */
@@ -72,6 +83,7 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
 	tcase_add_test(tcase, check_mem_LinkMalloc);
+	tcase_add_test(tcase, check_mem_CopyString);
 
 	Suite *suite = suite_create("check_mem");
 	suite_add_tcase(suite, tcase);
