@@ -23,17 +23,11 @@
 
 typedef struct {
 	GHashTable *media;
+	GList *keys;
 	uint32_t seed; // for tracking stale assets
 } s_media_state_t;
 
 static s_media_state_t s_media_state;
-
-/*
- * @brief GHRFunc for S_ListMedia_f.
- */
-static void S_ListMedia_f_(gpointer key __attribute__((unused)), gpointer value, gpointer data __attribute__((unused))) {
-	Com_Print("%s\n", ((s_media_t *) value)->name);
-}
 
 /*
  * @brief Prints information about all currently loaded media to the console.
@@ -42,7 +36,21 @@ void S_ListMedia_f(void) {
 
 	Com_Print("Loaded media:\n");
 
-	g_hash_table_foreach(s_media_state.media, S_ListMedia_f_, NULL);
+	GList *key = s_media_state.keys;
+	while (key) {
+		s_media_t *media = g_hash_table_lookup(s_media_state.media, key->data);
+
+		Com_Print("%s\n", media->name);
+
+		key = key->next;
+	}
+}
+
+/*
+ * @brief GCompareFunc for S_RegisterMedia. Sorts media by name.
+ */
+static int32_t S_RegisterMedia_Compare(gconstpointer m1, gconstpointer m2) {
+	return strcmp(((s_media_t *) m1)->name, ((s_media_t *) m2)->name);
 }
 
 static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data);
@@ -58,18 +66,14 @@ void S_RegisterMedia(s_media_t *media) {
 
 		if ((m = g_hash_table_lookup(s_media_state.media, media->name))) {
 			if (m != media) {
-				if (S_FreeMedia_(NULL, m, NULL)) {
-					Com_Debug("S_RegisterMedia: Replacing %s.\n", media->name);
-					g_hash_table_insert(s_media_state.media, media->name, media);
-				} else {
-					Com_Error(ERR_DROP, "S_RegisterMedia: Failed to replace %s.\n", media->name);
-				}
+				Com_Error(ERR_DROP, "S_RegisterMedia: Collision: %s.\n", media->name);
 			} else {
 				Com_Debug("S_RegisterMedia: Retaining %s.\n", media->name);
 			}
 		} else {
 			Com_Debug("S_RegisterMedia: Inserting %s.\n", media->name);
 			g_hash_table_insert(s_media_state.media, media->name, media);
+			s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media, S_RegisterMedia_Compare);
 		}
 
 		// re-seed the media to retain it
@@ -132,6 +136,8 @@ static gboolean S_FreeMedia_(gpointer key __attribute__((unused)), gpointer valu
 		media->Free(media);
 	}
 
+	s_media_state.keys = g_list_remove(s_media_state.keys, value);
+
 	return true;
 }
 
@@ -169,5 +175,6 @@ void S_ShutdownMedia(void) {
 	g_hash_table_foreach_remove(s_media_state.media, S_FreeMedia_, (void *) true);
 
 	g_hash_table_destroy(s_media_state.media);
+	g_list_free(s_media_state.keys);
 }
 
