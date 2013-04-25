@@ -697,7 +697,7 @@ static bool Vote_Help(g_edict_t *ent) {
  * @brief
  */
 static void G_Vote_f(g_edict_t *ent) {
-	char *c, vote[64];
+	char vote[64];
 	uint32_t i;
 
 	if (!g_voting->value) {
@@ -705,7 +705,7 @@ static void G_Vote_f(g_edict_t *ent) {
 		return;
 	}
 
-	if (!strcasecmp(gi.Argv(0), "yes") || !strcasecmp(c, "no")) // allow shorthand voting
+	if (!strcasecmp(gi.Argv(0), "yes") || !strcasecmp(gi.Argv(0), "no")) // allow shorthand voting
 		g_strlcpy(vote, gi.Argv(0), sizeof(vote));
 	else { // or the explicit syntax
 		g_strlcpy(vote, gi.Args(), sizeof(vote));
