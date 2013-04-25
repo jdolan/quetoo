@@ -1,11 +1,19 @@
+sudo yum -y install mingw{32,64}-SDL mingw{32,64}-SDL_image mingw{32,64}-SDL_mixer mingw{32,64}-curl mingw{32,64}-physfs mingw{32,64}-glib2
+
+
+
 libtoolize
 autoreconf -i
-./configure --host=x86_64-w64-mingw32
+mkdir build_mingw{32,64}
+cd build_mingw64
+../configure --host=x86_64-w64-mingw32 --prefix=/tmp/q2w-x86_64
+make -j8
 
 
 
-mingw64-SDL
-mingw64-SDL_image
-mingw64-SDL_mixer
-mingw64-curl
+
+
+
 #mingw64-pdcurses
+
+
