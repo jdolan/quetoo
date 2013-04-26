@@ -641,7 +641,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_zip) {
 		Com_Error(ERR_FATAL, "No action specified.\n"
-			"Please specify at least one of -bsp -vis -light -mat -zip.\n");
+			"Please specify at least one of -bsp -vis -light -mat -zip\n");
 	}
 
 	Thread_Init();

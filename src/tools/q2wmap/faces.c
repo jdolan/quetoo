@@ -77,7 +77,7 @@ static int32_t HashVec(const vec3_t vec) {
 	const int32_t y = (4096 + (int) (vec[1] + 0.5)) >> 7;
 
 	if (x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE)
-		Com_Error(ERR_FATAL, "HashVec: point outside valid range\n");
+		Com_Error(ERR_FATAL, "Point outside valid range\n");
 
 	return y * HASH_SIZE + x;
 }
@@ -114,7 +114,7 @@ static int32_t GetVertexnum(const vec3_t in) {
 
 	// emit a vertex
 	if (d_bsp.num_vertexes == MAX_BSP_VERTS)
-		Com_Error(ERR_FATAL, "num_vertexes == MAX_BSP_VERTS\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_VERTS\n");
 
 	d_bsp.vertexes[d_bsp.num_vertexes].point[0] = vert[0];
 	d_bsp.vertexes[d_bsp.num_vertexes].point[1] = vert[1];
@@ -448,7 +448,7 @@ int32_t GetEdge2(int32_t v1, int32_t v2, face_t * f) {
 	}
 	// emit an edge
 	if (d_bsp.num_edges >= MAX_BSP_EDGES)
-		Com_Error(ERR_FATAL, "num_edges == MAX_BSP_EDGES\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_EDGES\n");
 	edge = &d_bsp.edges[d_bsp.num_edges];
 	edge->v[0] = v1;
 	edge->v[1] = v2;
@@ -671,8 +671,7 @@ static void SubdivideFace(node_t *node, face_t * f) {
 
 			ClipWindingEpsilon(w, temp, dist, ON_EPSILON, &frontw, &backw);
 			if (!frontw || !backw)
-				Com_Error(ERR_FATAL,
-						"SubdivideFace: didn't split the polygon\n");
+				Com_Error(ERR_FATAL, "Didn't split the polygon\n");
 
 			f->split[0] = NewFaceFromFace(f);
 			f->split[0]->w = frontw;

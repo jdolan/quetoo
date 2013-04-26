@@ -502,7 +502,7 @@ static void Cl_WriteHistory(void) {
 	uint32_t i;
 
 	if (!(f = Fs_OpenWrite("history"))) {
-		Com_Warn("Couldn't write history.\n");
+		Com_Warn("Couldn't write history\n");
 		return;
 	}
 
@@ -617,7 +617,7 @@ void Cl_KeyEvent(SDLKey key, uint16_t unicode, bool down, uint32_t time) {
 			break;
 
 		default:
-			Com_Debug("Cl_KeyEvent: Bad cl_key_dest: %d.\n", ks->dest);
+			Com_Debug("Bad cl_key_dest: %d\n", ks->dest);
 			break;
 	}
 

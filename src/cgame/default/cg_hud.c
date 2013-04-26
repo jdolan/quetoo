@@ -59,7 +59,7 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
 		const uint16_t icon) {
 
 	if (icon >= MAX_IMAGES || !cgi.client->image_precache[icon]) {
-		cgi.Warn("Cg_DrawIcon: Invalid icon: %d\n", icon);
+		cgi.Warn("Invalid icon: %d\n", icon);
 		return;
 	}
 
@@ -264,7 +264,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
 	const int32_t c = ps->stats[STAT_CHASE];
 
 	if (c - CS_CLIENTS >= MAX_CLIENTS) {
-		cgi.Warn("Cg_DrawChase: Invalid client info index: %d\n", c);
+		cgi.Warn("Invalid client info index: %d\n", c);
 		return;
 	}
 
@@ -372,7 +372,7 @@ static void Cg_DrawTeam(const player_state_t *ps) {
 	else if (team == CS_TEAM_EVIL)
 		color = 242;
 	else {
-		cgi.Warn("Cg_DrawTeamBanner: unknown team: %d.\n", team);
+		cgi.Warn("Unknown team: %d\n", team);
 		return;
 	}
 

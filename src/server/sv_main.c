@@ -222,25 +222,25 @@ static void Svc_Connect(void) {
 
 	if (*user_info == '\0') { // catch empty user_info
 		Com_Print("Empty user_info from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
 	if (strchr(user_info, '\xFF')) { // catch end of message in string exploit
 		Com_Print("Illegal user_info contained xFF from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
 	if (strlen(GetUserInfo(user_info, "ip"))) { // catch spoofed ips
 		Com_Print("Illegal user_info contained ip from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
 	if (!ValidateUserInfo(user_info)) { // catch otherwise invalid user_info
 		Com_Print("Invalid user_info from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
@@ -254,12 +254,12 @@ static void Svc_Connect(void) {
 				svs.challenges[i].challenge = 0;
 				break; // good
 			}
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nBad challenge.\n");
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nBad challenge\n");
 			return;
 		}
 	}
 	if (i == MAX_CHALLENGES) {
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nNo challenge for address.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nNo challenge for address\n");
 		return;
 	}
 
@@ -294,8 +294,8 @@ static void Svc_Connect(void) {
 
 	// no soup for you, next!!
 	if (!client) {
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nServer is full.\n");
-		Com_Debug("Rejected a connection.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nServer is full\n");
+		Com_Debug("Rejected a connection\n");
 		return;
 	}
 
@@ -303,13 +303,13 @@ static void Svc_Connect(void) {
 	if (!(svs.game->ClientConnect(client->edict, user_info))) {
 
 		if (*GetUserInfo(user_info, "rejmsg")) {
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused.\n",
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused\n",
 					GetUserInfo(user_info, "rejmsg"));
 		} else {
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		}
 
-		Com_Debug("Game rejected a connection.\n");
+		Com_Debug("Game rejected a connection\n");
 		return;
 	}
 
@@ -375,7 +375,7 @@ static void Svc_RemoteCommand(void) {
 
 		Cmd_ExecuteString(remaining);
 	} else {
-		Com_Print("Bad rcon_password.\n");
+		Com_Print("Bad rcon_password\n");
 	}
 
 	Com_EndRedirect();
@@ -486,8 +486,7 @@ static void Sv_CheckCommandTimes(void) {
 				Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmd_msec);
 
 				if (cl->cmd_msec_errors >= sv_enforce_time->value) {
-					Com_Warn("Sv_CheckCommandTimes: Too many errors from %s\n",
-							Sv_NetaddrToString(cl));
+					Com_Warn("Too many errors from %s\n", Sv_NetaddrToString(cl));
 					Sv_KickClient(cl, "Irregular movement");
 					continue;
 				}
@@ -541,7 +540,7 @@ static void Sv_ReadPackets(void) {
 				continue;
 
 			if (cl->netchan.remote_address.port != net_from.port) {
-				Com_Warn("Sv_ReadPackets: Fixing up a translated port.\n");
+				Com_Warn("Fixing up a translated port\n");
 				cl->netchan.remote_address.port = net_from.port;
 			}
 

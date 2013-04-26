@@ -74,7 +74,7 @@ void DecompressVis(byte *in, byte *decompressed) {
 
 		c = in[1];
 		if (!c)
-			Com_Error(ERR_FATAL, "DecompressVis: 0 repeat\n");
+			Com_Error(ERR_FATAL, "0 repeat\n");
 		in += 2;
 		while (c) {
 			*out++ = 0;
@@ -243,7 +243,7 @@ static int32_t CopyLump(int32_t lump, void *dest, int32_t size) {
 	ofs = header->lumps[lump].file_ofs;
 
 	if (length % size)
-		Com_Error(ERR_FATAL, "LoadBSPFile: odd lump size\n");
+		Com_Error(ERR_FATAL, "Funny lump size\n");
 
 	memcpy(dest, (byte *)header + ofs, length);
 
@@ -523,11 +523,11 @@ epair_t *ParseEpair(void) {
 	e = Z_Malloc(sizeof(*e));
 
 	if (strlen(token) >= MAX_KEY - 1)
-		Com_Error(ERR_FATAL, "ParseEpar: token too long\n");
+		Com_Error(ERR_FATAL, "Token too long\n");
 	e->key = Z_CopyString(token);
 	GetToken(false);
 	if (strlen(token) >= MAX_VALUE - 1)
-		Com_Error(ERR_FATAL, "ParseEpar: token too long\n");
+		Com_Error(ERR_FATAL, "Token too long\n");
 	e->value = Z_CopyString(token);
 
 	// strip trailing spaces
@@ -548,17 +548,17 @@ static bool ParseEntity(void) {
 		return false;
 
 	if (strcmp(token, "{"))
-		Com_Error(ERR_FATAL, "ParseEntity: { not found\n");
+		Com_Error(ERR_FATAL, "\"{\" not found\n");
 
 	if (num_entities == MAX_BSP_ENTITIES)
-		Com_Error(ERR_FATAL, "num_entities == MAX_BSP_ENTITIES\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_ENTITIES\n");
 
 	mapent = &entities[num_entities];
 	num_entities++;
 
 	do {
 		if (!GetToken(true))
-			Com_Error(ERR_FATAL, "ParseEntity: EOF without closing brace\n");
+			Com_Error(ERR_FATAL, "EOF without closing brace\n");
 		if (!strcmp(token, "}"))
 			break;
 		e = ParseEpair();
@@ -625,7 +625,7 @@ void UnparseEntities(void) {
 		end += 2;
 
 		if (end > buf + MAX_BSP_ENT_STRING)
-			Com_Error(ERR_FATAL, "Entity text too long\n");
+			Com_Error(ERR_FATAL, "MAX_BSP_ENT_STRING\n");
 	}
 
 	d_bsp.entity_string_len = end - buf + 1;

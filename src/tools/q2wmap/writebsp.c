@@ -66,7 +66,7 @@ static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f){
 		return;  // degenerate face
 
 	if(face_num < 0 || face_num >= d_bsp.num_faces)
-		Com_Error(ERR_FATAL, "Bad leaf_face\n");
+		Com_Error(ERR_FATAL, "Bad leaf face\n");
 
 	for(i = leaf_p->first_leaf_face; i < d_bsp.num_leaf_faces; i++)
 		if(d_bsp.leaf_faces[i] == face_num)
@@ -171,7 +171,7 @@ static void EmitFace(face_t *f){
 	f->output_number = d_bsp.num_faces;
 
 	if(d_bsp.num_faces >= MAX_BSP_FACES)
-		Com_Error(ERR_FATAL, "num_faces == MAX_BSP_FACES\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_FACES\n");
 
 	df = &d_bsp.faces[d_bsp.num_faces];
 	d_bsp.num_faces++;
@@ -189,7 +189,7 @@ static void EmitFace(face_t *f){
 		e = GetEdge2(f->vertexnums[i], f->vertexnums[(i + 1) % f->num_points], f);
 
 		if(d_bsp.num_face_edges >= MAX_BSP_FACE_EDGES)
-			Com_Error(ERR_FATAL, "num_surf_edges == MAX_BSP_FACE_EDGES\n");
+			Com_Error(ERR_FATAL, "MAX_BSP_FACE_EDGES\n");
 
 		d_bsp.face_edges[d_bsp.num_face_edges] = e;
 		d_bsp.num_face_edges++;
@@ -221,7 +221,7 @@ static int32_t EmitDrawNode_r(node_t * node){
 	VectorCopy(node->maxs, n->maxs);
 
 	if(node->plane_num & 1)
-		Com_Error(ERR_FATAL, "EmitDrawNode_r: odd plane_num\n");
+		Com_Error(ERR_FATAL, "Odd plane number\n");
 
 	n->plane_num = node->plane_num;
 	n->first_face = d_bsp.num_faces;

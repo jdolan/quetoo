@@ -134,7 +134,7 @@ static void Cl_Connect_f(void) {
 	}
 
 	if (Com_WasInit(Q2W_SERVER)) { // if running a local server, kill it
-		Sv_ShutdownServer("Server quit.\n");
+		Sv_ShutdownServer("Server quit\n");
 	}
 
 	Cl_Disconnect();
@@ -155,7 +155,7 @@ static void Cl_Rcon_f(void) {
 	net_addr_t to;
 
 	if (!rcon_password->string) {
-		Com_Print("No rcon_password set.\n");
+		Com_Print("No rcon_password set\n");
 		return;
 	}
 
@@ -180,7 +180,7 @@ static void Cl_Rcon_f(void) {
 		to = cls.netchan.remote_address;
 	else {
 		if (*rcon_address->string == '\0') {
-			Com_Print("Not connected and no rcon_address set.\n");
+			Com_Print("Not connected and no rcon_address set\n");
 			return;
 		}
 		Net_StringToNetaddr(rcon_address->string, &to);
@@ -199,7 +199,7 @@ static void Cl_Rcon_f(void) {
 static void Cl_ForwardCmdToServer(void) {
 
 	if (cls.state <= CL_DISCONNECTED) {
-		Com_Print("Not connected.\n");
+		Com_Print("Not connected\n");
 		return;
 	}
 
@@ -308,7 +308,7 @@ void Cl_Disconnect(void) {
 static void Cl_Disconnect_f(void) {
 
 	if (Com_WasInit(Q2W_SERVER)) { // if running a local server, kill it
-		Sv_ShutdownServer("Disconnected.\n");
+		Sv_ShutdownServer("Disconnected\n");
 	}
 
 	Cl_Disconnect();
@@ -361,7 +361,7 @@ static void Cl_ConnectionlessPacket(void) {
 	if (!strcmp(c, "client_connect")) {
 
 		if (cls.state == CL_CONNECTED) {
-			Com_Print("Duplicate connect received. Ignored.\n");
+			Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(net_from));
 			return;
 		}
 
@@ -406,7 +406,7 @@ static void Cl_ConnectionlessPacket(void) {
 	// challenge from the server we are connecting to
 	if (!strcmp(c, "challenge")) {
 		if (cls.state != CL_CONNECTING) {
-			Com_Print("Duplicate challenge received. Ignored.\n");
+			Com_Print("Ignoring duplicate challenge from %s\n", Net_NetaddrToString(net_from));
 			return;
 		}
 		cls.challenge = atoi(Cmd_Argv(1));
@@ -414,7 +414,7 @@ static void Cl_ConnectionlessPacket(void) {
 		return;
 	}
 
-	Com_Warn("Cl_ConnectionlessPacket: Unknown command: %s.\n", c);
+	Com_Warn("Unknown command: %s\n", c);
 }
 
 /*
@@ -436,13 +436,13 @@ static void Cl_ReadPackets(void) {
 			continue; // dump it if not connected
 
 		if (net_message.size < 8) {
-			Com_Debug("%s: Runt packet.\n", Net_NetaddrToString(net_from));
+			Com_Debug("%s: Runt packet\n", Net_NetaddrToString(net_from));
 			continue;
 		}
 
 		// packet from server
 		if (!Net_CompareNetaddr(net_from, cls.netchan.remote_address)) {
-			Com_Debug("%s: Sequenced packet without connection.\n", Net_NetaddrToString(net_from));
+			Com_Debug("%s: Sequenced packet without connection\n", Net_NetaddrToString(net_from));
 			continue;
 		}
 
@@ -535,7 +535,7 @@ static void Cl_WriteConfiguration(void) {
 		return;
 
 	if (!(f = Fs_OpenWrite("quake2world.cfg"))) {
-		Com_Warn("Couldn't write quake2world.cfg.\n");
+		Com_Warn("Couldn't write quake2world.cfg\n");
 		return;
 	}
 
@@ -673,7 +673,7 @@ void Cl_Init(void) {
 	// initialize SDL
 	if (SDL_WasInit(SDL_INIT_AUDIO | SDL_INIT_VIDEO) == 0) {
 		if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO) < 0) {
-			Com_Error(ERR_FATAL, "Cl_Init: %s.\n", SDL_GetError());
+			Com_Error(ERR_FATAL, "%s\n", SDL_GetError());
 		}
 	}
 

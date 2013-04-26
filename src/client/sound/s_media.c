@@ -66,12 +66,12 @@ void S_RegisterMedia(s_media_t *media) {
 
 		if ((m = g_hash_table_lookup(s_media_state.media, media->name))) {
 			if (m != media) {
-				Com_Error(ERR_DROP, "S_RegisterMedia: Collision: %s.\n", media->name);
+				Com_Error(ERR_DROP, "Name collision: %s\n", media->name);
 			} else {
-				Com_Debug("S_RegisterMedia: Retaining %s.\n", media->name);
+				Com_Debug("Retaining %s\n", media->name);
 			}
 		} else {
-			Com_Debug("S_RegisterMedia: Inserting %s.\n", media->name);
+			Com_Debug("Inserting %s\n", media->name);
 			g_hash_table_insert(s_media_state.media, media->name, media);
 			s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media, S_RegisterMedia_Compare);
 		}
@@ -107,7 +107,7 @@ s_media_t *S_FindMedia(const char *name) {
 s_media_t *S_MallocMedia(const char *name, size_t size) {
 
 	if (!name || !*name) {
-		Com_Error(ERR_DROP, "S_MallocMedia: NULL name\n");
+		Com_Error(ERR_DROP, "NULL name\n");
 	}
 
 	s_media_t *media = Z_TagMalloc(size, Z_TAG_SOUND);

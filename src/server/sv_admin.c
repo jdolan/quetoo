@@ -37,7 +37,7 @@ static void Sv_SetMaster_f(void) {
 
 	// only dedicated servers send heartbeats
 	if (!dedicated->value) {
-		Com_Print("Only dedicated servers use masters.\n");
+		Com_Print("Only dedicated servers use masters\n");
 		return;
 	}
 
@@ -161,7 +161,7 @@ static void Sv_Map_f(void) {
 static void Sv_Kick_f(void) {
 
 	if (!svs.initialized) {
-		Com_Print("No server running.\n");
+		Com_Print("No server running\n");
 		return;
 	}
 
@@ -186,7 +186,7 @@ static void Sv_Status_f(void) {
 	uint32_t ping;
 
 	if (!svs.initialized) {
-		Com_Print("No server running.\n");
+		Com_Print("No server running\n");
 		return;
 	}
 
@@ -289,7 +289,7 @@ static void Sv_Tell_f(void) {
 static void Sv_ServerInfo_f(void) {
 
 	if (!svs.initialized) {
-		Com_Print("No server running.\n");
+		Com_Print("No server running\n");
 		return;
 	}
 
@@ -303,7 +303,7 @@ static void Sv_ServerInfo_f(void) {
 static void Sv_UserInfo_f(void) {
 
 	if (!svs.initialized) {
-		Com_Print("No server running.\n");
+		Com_Print("No server running\n");
 		return;
 	}
 

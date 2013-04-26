@@ -53,7 +53,7 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	r_entity_t head, upper, lower;
 
 	if (!ci->head || !ci->upper || !ci->lower) {
-		cgi.Debug("Cg_AddClientEntity: Invalid client info: %d\n", s->client);
+		cgi.Debug("Invalid client info: %d\n", s->client);
 		return;
 	}
 
@@ -108,7 +108,7 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	}
 
 	if (s->model4)
-		cgi.Warn("Cg_AddClientEntity: Unsupported model_index4\n");
+		cgi.Warn("Unsupported model_index4\n");
 }
 
 /*

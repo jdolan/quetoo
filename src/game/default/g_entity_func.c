@@ -1128,14 +1128,14 @@ void G_func_wall(g_edict_t *self) {
 
 	// it must be TRIGGER_SPAWN
 	if (!(self->spawn_flags & 1)) {
-		gi.Debug("func_wall missing TRIGGER_SPAWN\n");
+		gi.Debug("Missing TRIGGER_SPAWN\n");
 		self->spawn_flags |= 1;
 	}
 
 	// yell if the spawnflags are odd
 	if (self->spawn_flags & 4) {
 		if (!(self->spawn_flags & 2)) {
-			gi.Debug("func_wall START_ON without TOGGLE\n");
+			gi.Debug("START_ON without TOGGLE\n");
 			self->spawn_flags |= 2;
 		}
 	}
@@ -1290,7 +1290,7 @@ static void G_func_train_next(g_edict_t *self) {
 
 	ent = G_PickTarget(self->target);
 	if (!ent) {
-		gi.Debug("train_next: bad target %s\n", self->target);
+		gi.Debug("bad target %s\n", self->target);
 		return;
 	}
 
@@ -1299,7 +1299,7 @@ static void G_func_train_next(g_edict_t *self) {
 	// check for a teleport path_corner
 	if (ent->spawn_flags & 1) {
 		if (!first) {
-			gi.Debug("connected teleport path_corners, see %s at %s\n", ent->class_name,
+			gi.Debug("Connected teleport path_corners, see %s at %s\n", ent->class_name,
 					vtos(ent->s.origin));
 			return;
 		}
@@ -1352,12 +1352,12 @@ static void G_func_train_find(g_edict_t *self) {
 	g_edict_t *ent;
 
 	if (!self->target) {
-		gi.Debug("train_find: no target\n");
+		gi.Debug("No target specified\n");
 		return;
 	}
 	ent = G_PickTarget(self->target);
 	if (!ent) {
-		gi.Debug("train_find: target %s not found\n", self->target);
+		gi.Debug("Target \"%s\" not found\n", self->target);
 		return;
 	}
 	self->target = ent->target;
@@ -1439,7 +1439,7 @@ void G_func_train(g_edict_t *self) {
 		self->next_think = g_level.time + gi.frame_millis;
 		self->think = G_func_train_find;
 	} else {
-		gi.Debug("func_train without a target at %s\n", vtos(self->abs_mins));
+		gi.Debug("No target: %s\n", vtos(self->abs_mins));
 	}
 }
 
@@ -1493,7 +1493,7 @@ void G_func_timer(g_edict_t *self) {
 
 	if (self->random >= self->wait) {
 		self->random = self->wait - gi.frame_seconds;
-		gi.Debug("func_timer at %s has random >= wait\n", vtos(self->s.origin));
+		gi.Debug("Random >= wait: %s\n", vtos(self->s.origin));
 	}
 
 	if (self->spawn_flags & 1) {

@@ -183,7 +183,7 @@ r_model_t *R_LoadModel(const char *name) {
 	size_t i;
 
 	if (!name || !name[0]) {
-		Com_Error(ERR_DROP, "R_LoadModel: NULL name.\n");
+		Com_Error(ERR_DROP, "R_LoadModel: NULL name\n");
 	}
 
 	if (*name == '*') {
@@ -207,9 +207,9 @@ r_model_t *R_LoadModel(const char *name) {
 
 		if (i == lengthof(r_model_formats)) { // not found
 			if (strstr(name, "players/")) {
-				Com_Debug("R_LoadModel: Failed to load player %s.\n", name);
+				Com_Debug("Failed to load player %s\n", name);
 			} else {
-				Com_Warn("R_LoadModel: Failed to load %s.\n", name);
+				Com_Warn("Failed to load %s\n", name);
 			}
 			return NULL;
 		}

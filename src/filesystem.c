@@ -91,7 +91,7 @@ file_t *Fs_OpenAppend(const char *filename) {
 
 	if ((file = PHYSFS_openAppend(filename))) {
 		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
-			Com_Warn("Fs_OpenRead: %s: %s\n", filename, Fs_LastError());
+			Com_Warn("%s: %s\n", filename, Fs_LastError());
 		}
 	}
 
@@ -106,7 +106,7 @@ file_t *Fs_OpenRead(const char *filename) {
 
 	if ((file = PHYSFS_openRead(filename))) {
 		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
-			Com_Warn("Fs_OpenRead: %s: %s\n", filename, Fs_LastError());
+			Com_Warn("%s: %s\n", filename, Fs_LastError());
 		}
 	}
 
@@ -125,7 +125,7 @@ file_t *Fs_OpenWrite(const char *filename) {
 
 	if ((file = PHYSFS_openWrite(filename))) {
 		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
-			Com_Warn("Fs_OpenWrite: %s: %s\n", filename, Fs_LastError());
+			Com_Warn("%s: %s\n", filename, Fs_LastError());
 		}
 	}
 
@@ -227,7 +227,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 		len = 0;
 
 		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
-			Com_Warn("Fs_LoadFile: %s\n", Fs_LastError());
+			Com_Warn("%s: %s\n", filename, Fs_LastError());
 		}
 
 		while (!Fs_Eof(file)) {
@@ -237,7 +237,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 			b->len = Fs_Read(file, b->data, 1, FS_FILE_BUFFER);
 
 			if (b->len == -1) {
-				Com_Error(ERR_DROP, "Fs_LoadFile: %s\n", Fs_LastError());
+				Com_Error(ERR_DROP, "%s: %s\n", filename, Fs_LastError());
 			}
 
 			list = g_list_append(list, b);
@@ -287,7 +287,7 @@ void Fs_Free(void *buffer) {
 	if (buffer) {
 #ifdef FS_LOAD_DEBUG
 		if (!g_hash_table_remove(fs_state.loaded_files, buffer)) {
-			Com_Warn("Fs_Free: Invalid buffer\n");
+			Com_Warn("Invalid buffer\n");
 		}
 #endif
 		Z_Free(buffer);
@@ -384,7 +384,7 @@ void Fs_AddToSearchPath(const char *dir) {
 	Com_Print("Adding path %s..\n", dir);
 
 	if (PHYSFS_mount(dir, NULL, 1) == 0) {
-		Com_Warn("Fs_AddToSearchPath: %s\n", PHYSFS_getLastError());
+		Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
 		return;
 	}
 
@@ -426,12 +426,12 @@ static void Fs_AddUserSearchPath(const char *dir) {
 void Fs_SetGame(const char *dir) {
 
 	if (!dir || !*dir) {
-		Com_Warn("Fs_SetGame: Missing game name\n");
+		Com_Warn("Missing game name\n");
 		return;
 	}
 
 	if (strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(dir, ":")) {
-		Com_Warn("Fs_SetGame: Game should be a directory name, not a path.\n");
+		Com_Warn("Game should be a directory name, not a path (%s)\n", dir);
 		return;
 	}
 
@@ -447,7 +447,7 @@ void Fs_SetGame(const char *dir) {
 			p++;
 		}
 		if (!*p) {
-			Com_Debug("Fs_SetGame: Removing %s\n", *path);
+			Com_Debug("Removing %s\n", *path);
 			PHYSFS_removeFromSearchPath(*path);
 		}
 		path++;
@@ -483,7 +483,7 @@ void Fs_Init(const char *argv0) {
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
 	if (PHYSFS_init(argv0) == 0) {
-		Com_Error(ERR_FATAL, "Fs_Init: %s\n", PHYSFS_getLastError());
+		Com_Error(ERR_FATAL, "%s\n", PHYSFS_getLastError());
 	}
 
 #if (__APPLE__ || __LINUX__)
@@ -491,7 +491,7 @@ void Fs_Init(const char *argv0) {
 	if (path) {
 		char *c;
 
-		Com_Debug("Fs_Init: Resolved executable path: %s\n", path);
+		Com_Debug("Resolved executable path: %s\n", path);
 #ifdef __APPLE__
 		if ((c = strstr(path, "Quake2World.app"))) {
 			strcpy(c + strlen("Quake2World.app/Contents/"), "MacOS/"DEFAULT_GAME);

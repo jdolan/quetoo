@@ -103,6 +103,12 @@ extern cvar_t *dedicated;
 
 extern g_team_t g_team_good, g_team_evil;
 
+#ifdef HAVE_MYSQL
+#include <mysql.h>
+extern MYSQL *mysql;
+extern char sql[512];
+#endif
+
 void G_Init(void);
 void G_Shutdown(void);
 void G_ResetTeams(void);

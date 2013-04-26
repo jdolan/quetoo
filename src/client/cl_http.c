@@ -74,7 +74,7 @@ void Cl_HttpDownload_Complete() {
 				Fs_AddToSearchPath(cls.download.name);
 			}
 		} else {
-			Com_Error(ERR_DROP, "Cl_HttpDownload: Failed to rename %s\n", cls.download.name);
+			Com_Error(ERR_DROP, "Failed to rename %s\n", cls.download.name);
 		}
 
 		// we were disconnected while downloading, so reconnect
@@ -114,7 +114,7 @@ bool Cl_HttpDownload(void) {
 
 	// open the destination file for writing
 	if (!(cls.download.file = Fs_OpenWrite(cls.download.tempname))) {
-		Com_Warn("Cl_HttpDownload: Couldn't create %s.\n", cls.download.tempname);
+		Com_Warn("Couldn't create %s\n", cls.download.tempname);
 		return false;
 	}
 

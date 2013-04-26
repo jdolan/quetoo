@@ -73,17 +73,17 @@ static bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix
 		if ((*rw = SDL_RWFromMem(*buffer, len))) {
 
 			if ((*music = Mix_LoadMUS_RW(*rw))) {
-				Com_Debug("S_LoadMusicFile: Loaded %s\n", name);
+				Com_Debug("Loaded %s\n", name);
 			} else {
-				Com_Warn("S_LoadMusicFile: Failed to load %s: %s\n", name, Mix_GetError());
+				Com_Warn("Failed to load %s: %s\n", name, Mix_GetError());
 				SDL_FreeRW(*rw);
 			}
 		} else {
-			Com_Warn("S_LoadMusicFile: Failed to create SDL_RWops for %s\n", name);
+			Com_Warn("Failed to create SDL_RWops for %s\n", name);
 			Fs_Free(*buffer);
 		}
 	} else {
-		Com_Debug("S_LoadMusicFile: Failed to load %s\n", name);
+		Com_Debug("Failed to load %s\n", name);
 	}
 
 	return *music != NULL;

@@ -73,7 +73,7 @@ cg_particle_t *Cg_AllocParticle(const uint16_t type, const r_image_t *image) {
 		return NULL ;
 
 	if (!cg_free_particles) {
-		cgi.Debug("Cg_AllocParticle: No free particles\n");
+		cgi.Debug("No free particles\n");
 		return NULL ;
 	}
 

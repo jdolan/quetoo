@@ -24,41 +24,27 @@
 static void *cgame_handle;
 
 /*
- * @brief
+ * @brief Abort the server with a game error. This wraps Com_Error, always
+ * emitting ERR_DROP.
  */
-void Cl_ShutdownCgame(void) {
-
-	if (!cls.cgame)
-		return;
-
-	Com_Print("Client game shutdown...\n");
-
-	cls.cgame->Shutdown();
-	cls.cgame = NULL;
-
-	// the cgame module should call this, but lets not assume
-	Z_FreeTag(Z_TAG_CGAME_LEVEL);
-	Z_FreeTag(Z_TAG_CGAME);
-
-	Com_Print("Client game down.\n");
-	Com_QuitSubsystem(Q2W_CGAME);
-
-	Sys_CloseLibrary(&cgame_handle);
-}
-
-/*
- * @brief Abort the server with a game error
- */
-static void Cl_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
-static void Cl_Error(const char *fmt, ...) {
+static void Cl_Error(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+static void Cl_Error(const char *func, const char *fmt, ...) {
 	char msg[MAX_STRING_CHARS];
+
+	if (fmt[0] != '!') {
+		g_snprintf(msg, sizeof(msg), "%s: ", func);
+	} else {
+		msg[0] = '\0';
+	}
+
+	const size_t len = strlen(msg);
 	va_list args;
 
 	va_start(args, fmt);
-	vsprintf(msg, fmt, args);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
-	Com_Error(ERR_DROP, "Client game error: %s.\n", msg);
+	Com_Error(ERR_DROP, "!Client game error: %s\n", msg);
 }
 
 /*
@@ -107,7 +93,7 @@ static float Cl_ReadAngle(void) {
 static char *Cl_ConfigString(uint16_t index) {
 
 	if (index > MAX_CONFIG_STRINGS) {
-		Com_Warn("Cl_ConfigString: bad index %i.\n", index);
+		Com_Warn("Bad index %i\n", index);
 		return "";
 	}
 
@@ -115,7 +101,7 @@ static char *Cl_ConfigString(uint16_t index) {
 }
 
 /*
- * @brief
+ * @brief Initializes the client game subsystem
  */
 void Cl_InitCgame(void) {
 	cg_import_t import;
@@ -129,9 +115,9 @@ void Cl_InitCgame(void) {
 	memset(&import, 0, sizeof(import));
 
 	import.Print = Com_Print;
-	import.Debug = Com_Debug;
-	import.Warn = Com_Warn;
-	import.Error = Cl_Error;
+	import.Debug_ = Com_Debug_;
+	import.Warn_ = Com_Warn_;
+	import.Error_ = Cl_Error;
 
 	import.Malloc = Z_TagMalloc;
 	import.Free = Z_Free;
@@ -211,6 +197,29 @@ void Cl_InitCgame(void) {
 
 	cls.cgame->Init();
 
-	Com_Print("Client initialized.\n");
+	Com_Print("Client initialized\n");
 	Com_InitSubsystem(Q2W_CGAME);
+}
+
+/*
+ * @brief Shuts down the client game subsystem.
+ */
+void Cl_ShutdownCgame(void) {
+
+	if (!cls.cgame)
+		return;
+
+	Com_Print("Client game shutdown...\n");
+
+	cls.cgame->Shutdown();
+	cls.cgame = NULL;
+
+	// the cgame module should call this, but lets not assume
+	Z_FreeTag(Z_TAG_CGAME_LEVEL);
+	Z_FreeTag(Z_TAG_CGAME);
+
+	Com_Print("Client game down\n");
+	Com_QuitSubsystem(Q2W_CGAME);
+
+	Sys_CloseLibrary(&cgame_handle);
 }

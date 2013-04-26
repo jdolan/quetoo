@@ -384,7 +384,7 @@ void BuildLights(void) {
 			if (target[0]) { // point towards target
 				entity_t *e2 = FindTargetEntity(target);
 				if (!e2) {
-					Com_Warn("light at (%i %i %i) has missing target\n",
+					Com_Warn("Light at (%i %i %i) has missing target\n",
 							(int) l->origin[0], (int) l->origin[1],
 							(int) l->origin[2]);
 				} else {

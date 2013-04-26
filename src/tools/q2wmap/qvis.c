@@ -50,7 +50,7 @@ static winding_t *NewWinding(uint16_t points) {
 	size_t size;
 
 	if (points > MAX_POINTS_ON_WINDING)
-		Com_Error(ERR_FATAL, "NewWinding: %i points\n", points);
+		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n", points);
 
 	size = (size_t) ((winding_t *) 0)->points[points];
 	w = Z_Malloc(size);
@@ -83,8 +83,7 @@ static void SortPortals(void) {
 	if (nosort)
 		return;
 
-	qsort(map_vis.sorted_portals, map_vis.num_portals * 2, sizeof(portal_t *),
-			SortPortals_Compare);
+	qsort(map_vis.sorted_portals, map_vis.num_portals * 2, sizeof(portal_t *), SortPortals_Compare);
 }
 
 /*
@@ -125,7 +124,7 @@ static void ClusterMerge(int32_t leaf_num) {
 	for (i = 0; i < leaf->num_portals; i++) {
 		p = leaf->portals[i];
 		if (p->status != stat_done)
-			Com_Error(ERR_FATAL, "portal not done\n");
+			Com_Error(ERR_FATAL, "Portal not done\n");
 		for (j = 0; j < map_vis.portal_longs; j++)
 			((long *) portalvector)[j] |= ((long *) p->vis)[j];
 		pnum = p - map_vis.portals;
@@ -145,7 +144,7 @@ static void ClusterMerge(int32_t leaf_num) {
 	memcpy(map_vis.uncompressed + leaf_num * map_vis.leaf_bytes, uncompressed, map_vis.leaf_bytes);
 
 	// compress the bit string
-	Com_Debug("cluster %4i : %4i visible\n", leaf_num, numvis);
+	Com_Debug("Cluster %4i : %4i visible\n", leaf_num, numvis);
 	visibility_count += numvis;
 
 	i = CompressVis(uncompressed, compressed);
@@ -154,7 +153,7 @@ static void ClusterMerge(int32_t leaf_num) {
 	map_vis.pointer += i;
 
 	if (map_vis.pointer > map_vis.end)
-		Com_Error(ERR_FATAL, "Vismap expansion overflow\n");
+		Com_Error(ERR_FATAL, "VIS expansion overflow\n");
 
 	d_vis->bit_offsets[leaf_num][DVIS_PVS] = dest - map_vis.base;
 
@@ -177,8 +176,7 @@ static void CalcVis(void) {
 			map_vis.portals[i].vis = map_vis.portals[i].flood;
 			map_vis.portals[i].status = stat_done;
 		}
-	}
-	else {
+	} else {
 		RunThreadsOn(map_vis.num_portals * 2, true, FinalVis);
 	}
 
@@ -186,9 +184,8 @@ static void CalcVis(void) {
 	for (i = 0; i < map_vis.portal_clusters; i++)
 		ClusterMerge(i);
 
-	if(map_vis.portal_clusters)
-		Com_Print("Average clusters visible: %i\n",
-			visibility_count / map_vis.portal_clusters);
+	if (map_vis.portal_clusters)
+		Com_Print("Average clusters visible: %i\n", visibility_count / map_vis.portal_clusters);
 	else
 		Com_Print("Average clusters visible: 0\n");
 }
@@ -244,15 +241,16 @@ static void LoadPortals(const char *filename) {
 
 	memset(&map_vis, 0, sizeof(map_vis));
 
-	if (sscanf(s, "%79s\n%u\n%u\n%n", magic, &map_vis.portal_clusters, &map_vis.num_portals, &len) != 3)
-		Com_Error(ERR_FATAL, "LoadPortals: failed to read header\n");
+	if (sscanf(s, "%79s\n%u\n%u\n%n", magic, &map_vis.portal_clusters, &map_vis.num_portals, &len)
+			!= 3)
+		Com_Error(ERR_FATAL, "Failed to read header: %s\n", filename);
 	s += len;
 
 	if (strcmp(magic, PORTALFILE))
-		Com_Error(ERR_FATAL, "LoadPortals: not a portal file\n");
+		Com_Error(ERR_FATAL, "Not a portal file: %s\n", filename);
 
-	Com_Verbose("Loading %4u portals, %4u clusters...\n", map_vis.num_portals,
-			map_vis.portal_clusters);
+	Com_Verbose("Loading %4u portals, %4u clusters from %s...\n", map_vis.num_portals,
+			map_vis.portal_clusters, filename);
 
 	// these counts should take advantage of 64 bit systems automatically
 	map_vis.leaf_bytes = ((map_vis.portal_clusters + 63) & ~63) >> 3;
@@ -280,17 +278,17 @@ static void LoadPortals(const char *filename) {
 		int32_t j;
 
 		if (sscanf(s, "%i %i %i %n", &num_points, &leaf_nums[0], &leaf_nums[1], &len) != 3) {
-			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
+			Com_Error(ERR_FATAL, "Failed to read portal %i\n", i);
 		}
 		s += len;
 
 		if (num_points > MAX_POINTS_ON_WINDING) {
-			Com_Error(ERR_FATAL, "LoadPortals: portal %i has too many points\n", i);
+			Com_Error(ERR_FATAL, "Portal %i has too many points\n", i);
 		}
 
-		if ((uint32_t) leaf_nums[0] > map_vis.portal_clusters
-				|| (uint32_t) leaf_nums[1] > map_vis.portal_clusters) {
-			Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
+		if ((uint32_t) leaf_nums[0] > map_vis.portal_clusters || (uint32_t) leaf_nums[1]
+				> map_vis.portal_clusters) {
+			Com_Error(ERR_FATAL, "Portal %i has invalid leafs\n", i);
 		}
 
 		w = p->winding = NewWinding(num_points);
@@ -304,7 +302,7 @@ static void LoadPortals(const char *filename) {
 			// scanf into double, then assign to vec_t
 			// so we don't care what size vec_t is
 			if (sscanf(s, "(%lf %lf %lf ) %n", &v[0], &v[1], &v[2], &len) != 3)
-				Com_Error(ERR_FATAL, "LoadPortals: reading portal %i\n", i);
+				Com_Error(ERR_FATAL, "Failed to read portal vertex definition %i:%i\n", i, j);
 			s += len;
 
 			for (k = 0; k < 3; k++)
@@ -320,7 +318,7 @@ static void LoadPortals(const char *filename) {
 		// create forward portal
 		l = &map_vis.leafs[leaf_nums[0]];
 		if (l->num_portals == MAX_PORTALS_ON_LEAF)
-			Com_Error(ERR_FATAL, "Leaf with too many portals\n");
+			Com_Error(ERR_FATAL, "MAX_PORTALS_ON_LEAF\n");
 		l->portals[l->num_portals] = p;
 		l->num_portals++;
 
@@ -334,7 +332,7 @@ static void LoadPortals(const char *filename) {
 		// create backwards portal
 		l = &map_vis.leafs[leaf_nums[1]];
 		if (l->num_portals == MAX_PORTALS_ON_LEAF)
-			Com_Error(ERR_FATAL, "Leaf with too many portals\n");
+			Com_Error(ERR_FATAL, "MAX_PORTALS_ON_LEAF\n");
 		l->portals[l->num_portals] = p;
 		l->num_portals++;
 
@@ -382,9 +380,8 @@ static void CalcPHS(void) {
 				// OR this pvs row into the phs
 				index = ((j << 3) + k);
 				if (index >= map_vis.portal_clusters)
-					Com_Error(ERR_FATAL, "Bad bit in PVS\n"); // pad bits should be 0
-				src = (long *) (map_vis.uncompressed + index
-						* map_vis.leaf_bytes);
+					Com_Error(ERR_FATAL, "Bad bit vector in PVS\n"); // pad bits should be 0
+				src = (long *) (map_vis.uncompressed + index * map_vis.leaf_bytes);
 				for (l = 0; l < map_vis.leaf_longs; l++)
 					((long *) uncompressed)[l] |= src[l];
 			}
@@ -400,16 +397,15 @@ static void CalcPHS(void) {
 		map_vis.pointer += j;
 
 		if (map_vis.pointer > map_vis.end)
-			Com_Error(ERR_FATAL, "CalcPHS: overflow");
+			Com_Error(ERR_FATAL, "Overflow\n");
 
 		d_vis->bit_offsets[i][DVIS_PHS] = (byte *) dest - map_vis.base;
 
 		memcpy(dest, compressed, j);
 	}
 
-	if(map_vis.portal_clusters)
-		Com_Print("Average clusters hearable: %i\n",
-			count / map_vis.portal_clusters);
+	if (map_vis.portal_clusters)
+		Com_Print("Average clusters hearable: %i\n", count / map_vis.portal_clusters);
 	else
 		Com_Print("Average clusters hearable: 0\n");
 }
@@ -447,8 +443,8 @@ int32_t VIS_Main(void) {
 	CalcPHS();
 
 	d_bsp.vis_data_size = map_vis.pointer - d_bsp.vis_data;
-	Com_Print("VIS data: %d bytes (compressed from %zu bytes)\n",
-			d_bsp.vis_data_size, map_vis.uncompressed_size * 2);
+	Com_Print("VIS data: %d bytes (compressed from %zu bytes)\n", d_bsp.vis_data_size,
+			map_vis.uncompressed_size * 2);
 
 	WriteBSPFile(bsp_name);
 

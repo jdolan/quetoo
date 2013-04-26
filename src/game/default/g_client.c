@@ -608,7 +608,7 @@ static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
 
 		if (!spot) { // last resort, find any
 			if ((spot = G_Find(spot, FOFS(class_name), "info_player_start")) == NULL)
-				gi.Error("P_SelectSpawnPoint: Couldn't find spawn point.");
+				gi.Error("Couldn't find spawn point\n");
 		}
 	}
 

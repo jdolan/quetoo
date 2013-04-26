@@ -35,7 +35,7 @@ static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 	dest = G_Find(NULL, FOFS(target_name), self->target);
 
 	if (!dest) {
-		gi.Debug("G_teleporter_touch: Couldn't find destination.\n");
+		gi.Debug("Couldn't find destination\n");
 		return;
 	}
 
@@ -80,7 +80,7 @@ void G_misc_teleporter(g_edict_t *ent) {
 	vec3_t v;
 
 	if (!ent->target) {
-		gi.Debug("G_misc_teleporter: No target specified.\n");
+		gi.Debug("No target specified\n");
 		G_FreeEdict(ent);
 		return;
 	}

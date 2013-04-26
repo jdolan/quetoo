@@ -131,7 +131,7 @@ static void R_ResolveBspLightParameters(void) {
 static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, float radius, vec3_t color) {
 
 	if (radius <= 0.0) {
-		Com_Debug("R_AddBspLight: Bad radius: %f\n", radius);
+		Com_Debug("Bad radius: %f\n", radius);
 		return;
 	}
 

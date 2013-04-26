@@ -23,48 +23,26 @@
 #include "pmove.h"
 
 /*
- * @brief
- */
-static void Sv_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-static void Sv_Print(const char *fmt, ...) {
-	char msg[MAX_STRING_CHARS];
-	va_list args;
-
-	va_start(args, fmt);
-	vsprintf(msg, fmt, args);
-	va_end(args);
-
-	Com_Print("%s", msg);
-}
-
-/*
- * @brief
- */
-static void Sv_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-static void Sv_Debug(const char *fmt, ...) {
-	char msg[MAX_STRING_CHARS];
-	va_list args;
-
-	va_start(args, fmt);
-	vsprintf(msg, fmt, args);
-	va_end(args);
-
-	Com_Debug("%s", msg);
-}
-
-/*
  * @brief Abort the server with a game error
  */
-static void Sv_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
-static void Sv_Error(const char *fmt, ...) {
+static void Sv_Error(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+static void Sv_Error(const char *func, const char *fmt, ...) {
 	char msg[MAX_STRING_CHARS];
+
+	if (fmt[0] != '!') {
+		g_snprintf(msg, sizeof(msg), "%s: ", func);
+	} else {
+		msg[0] = '\0';
+	}
+
+	const size_t len = strlen(msg);
 	va_list args;
 
 	va_start(args, fmt);
-	vsprintf(msg, fmt, args);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
-	Com_Error(ERR_DROP, "Game error: %s.\n", msg);
+	Com_Error(ERR_DROP, "!Game error: %s\n", msg);
 }
 
 /*
@@ -74,7 +52,7 @@ static void Sv_SetModel(g_edict_t *ent, const char *name) {
 	c_model_t *mod;
 
 	if (!name) {
-		Com_Warn("Sv_SetModel %d: NULL.\n", (int) NUM_FOR_EDICT(ent));
+		Com_Warn("%d: NULL\n", (int32_t) NUM_FOR_EDICT(ent));
 		return;
 	}
 
@@ -95,7 +73,7 @@ static void Sv_SetModel(g_edict_t *ent, const char *name) {
 static void Sv_ConfigString(const uint16_t index, const char *val) {
 
 	if (index >= MAX_CONFIG_STRINGS) {
-		Com_Warn("Sv_ConfigString: bad index %u.\n", index);
+		Com_Warn("Bad index %u\n", index);
 		return;
 	}
 
@@ -243,7 +221,7 @@ void Sv_ShutdownGame(void) {
 	Z_FreeTag(Z_TAG_GAME_LEVEL);
 	Z_FreeTag(Z_TAG_GAME);
 
-	Com_Print("Game down.\n");
+	Com_Print("Game down\n");
 	Com_QuitSubsystem(Q2W_GAME);
 
 	Sys_CloseLibrary(&game_handle);
@@ -274,12 +252,13 @@ void Sv_InitGame(void) {
 	import.frame_millis = 1000 / svs.frame_rate;
 	import.frame_seconds = 1.0 / svs.frame_rate;
 
-	import.Print = Sv_Print;
-	import.Debug = Sv_Debug;
+	import.Print = Com_Print;
+	import.Debug_ = Com_Debug_;
+	import.Warn_ = Com_Warn_;
+	import.Error_ = Sv_Error;
+
 	import.BroadcastPrint = Sv_BroadcastPrint;
 	import.ClientPrint = Sv_ClientPrint;
-
-	import.Error = Sv_Error;
 
 	import.ConfigString = Sv_ConfigString;
 
@@ -333,11 +312,11 @@ void Sv_InitGame(void) {
 	svs.game = (g_export_t *) Sys_LoadLibrary("game", &game_handle, "G_LoadGame", &import);
 
 	if (!svs.game) {
-		Com_Error(ERR_DROP, "Sv_InitGame: Failed to load game module.\n");
+		Com_Error(ERR_DROP, "Failed to load game module\n");
 	}
 
 	if (svs.game->api_version != GAME_API_VERSION) {
-		Com_Error(ERR_DROP, "Sv_InitGame: Game is version %i, not %i.\n", svs.game->api_version,
+		Com_Error(ERR_DROP, "Game is version %i, not %i\n", svs.game->api_version,
 				GAME_API_VERSION);
 	}
 

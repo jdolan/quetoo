@@ -32,7 +32,7 @@ static void G_Give_f(g_edict_t *ent) {
 	g_edict_t *it_ent;
 
 	if (sv_max_clients->integer > 1 && !g_cheats->value) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled\n");
 		return;
 	}
 
@@ -140,7 +140,7 @@ static void G_God_f(g_edict_t *ent) {
 	char *msg;
 
 	if (sv_max_clients->integer > 1 && !g_cheats->value) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled\n");
 		return;
 	}
 
@@ -167,7 +167,7 @@ static void G_NoClip_f(g_edict_t *ent) {
 	char *msg;
 
 	if (sv_max_clients->integer > 1 && !g_cheats->value) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled\n");
 		return;
 	}
 
@@ -208,7 +208,7 @@ static void G_Use_f(g_edict_t *ent) {
 		return;
 	}
 	if (!it->Use) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Item is not usable.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Item is not usable\n");
 		return;
 	}
 
@@ -253,7 +253,7 @@ static void G_Drop_f(g_edict_t *ent) {
 	}
 
 	if (!it->Drop) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Item is not dropable.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Item is not dropable\n");
 		return;
 	}
 
@@ -467,7 +467,7 @@ static void G_Say_f(g_edict_t *ent) {
 	g_client_t *cl;
 
 	if (ent->client->muted) {
-		gi.ClientPrint(ent, PRINT_HIGH, "You have been muted. You're probably an asshole.\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "You have been muted\n");
 		return;
 	}
 

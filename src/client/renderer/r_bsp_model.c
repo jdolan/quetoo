@@ -82,7 +82,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	const d_bsp_vertex_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspVertexes: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
 	bsp->num_vertexes = l->file_len / sizeof(*in);
@@ -106,12 +106,12 @@ static void R_LoadBspNormals(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	const d_bsp_normal_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspNormals: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
 	const uint16_t count = l->file_len / sizeof(*in);
 	if (count != bsp->num_vertexes) { // ensure sane normals count
-		Com_Error(ERR_DROP, "R_LoadBspNormals: Bad count (%d != %d).\n", count, bsp->num_vertexes);
+		Com_Error(ERR_DROP, "Bad count (%d != %d)\n", count, bsp->num_vertexes);
 	}
 
 	out = bsp->vertexes;
@@ -146,7 +146,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	const d_bsp_model_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspInlineModels: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
 	bsp->num_inline_models = l->file_len / sizeof(*in);
@@ -166,7 +166,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 		// some (old) maps have invalid inline model head_nodes
 		if (out->head_node < 0 || out->head_node >= bsp->num_nodes) {
-			Com_Warn("R_LoadBspInlineModels: Bad head_node for %d: %d\n", i, out->head_node);
+			Com_Warn("Bad head_node for %d: %d\n", i, out->head_node);
 			out->head_node = -1;
 		}
 
@@ -230,7 +230,7 @@ static void R_LoadBspEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	const d_bsp_edge_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspEdges: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
 	bsp->num_edges = l->file_len / sizeof(*in);
@@ -252,7 +252,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	const d_bsp_texinfo_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspTexinfo: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
 	bsp->num_texinfo = l->file_len / sizeof(*in);
@@ -330,7 +330,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	const d_bsp_face_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspSurfaces: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
 	bsp->num_surfaces = l->file_len / sizeof(*in);
@@ -358,7 +358,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		// then texinfo
 		const int16_t ti = LittleShort(in->texinfo);
 		if (ti < 0 || ti >= bsp->num_texinfo) {
-			Com_Error(ERR_DROP, "R_LoadBspSurfaces: Bad texinfo number: %d.\n", ti);
+			Com_Error(ERR_DROP, "Bad texinfo number: %d\n", ti);
 		}
 		out->texinfo = bsp->texinfo + ti;
 
@@ -410,7 +410,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	const d_bsp_node_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspNodes: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
 	bsp->num_nodes = l->file_len / sizeof(*in);
@@ -452,7 +452,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	const d_bsp_leaf_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspLeafs: Funny lump size.");
+		Com_Error(ERR_DROP, "Funny lump size");
 	}
 
 	bsp->num_leafs = l->file_len / sizeof(*in);
@@ -486,7 +486,7 @@ static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	const uint16_t *in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspLeafSurfaces: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
 	bsp->num_leaf_surfaces = l->file_len / sizeof(*in);
@@ -497,7 +497,7 @@ static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		const uint16_t j = (uint16_t) LittleShort(in[i]);
 
 		if (j >= bsp->num_surfaces) {
-			Com_Error(ERR_DROP, "R_LoadBspLeafSurfaces: Bad surface number: %d.", j);
+			Com_Error(ERR_DROP, "Bad surface number: %d\n", j);
 		}
 
 		out[i] = bsp->surfaces + j;
@@ -514,12 +514,12 @@ static void R_LoadBspSurfaceEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspSurfaceEdges: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
 	count = l->file_len / sizeof(*in);
 	if (count < 1 || count >= MAX_BSP_FACE_EDGES) {
-		Com_Error(ERR_DROP, "R_LoadBspSurfaceEdges: Bad surfface edges count: %i.\n", count);
+		Com_Error(ERR_DROP, "Bad surfface edges count: %i\n", count);
 	}
 
 	out = Z_LinkMalloc(count * sizeof(*out), bsp);
@@ -542,7 +542,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	in = (const void *) (mod_base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "R_LoadBspPlanes: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
 	count = l->file_len / sizeof(*in);
@@ -802,8 +802,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 
 	if (header.version != BSP_VERSION && header.version != BSP_VERSION_Q2W) {
-		Com_Error(ERR_DROP, "R_LoadBspModel: %s has unsupported version: %d\n", mod->media.name,
-				header.version);
+		Com_Error(ERR_DROP, "%s has unsupported version: %d\n", mod->media.name, header.version);
 	}
 
 	mod->bsp = Z_LinkMalloc(sizeof(r_bsp_model_t), mod);
@@ -855,19 +854,19 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspLights(mod->bsp);
 	Cl_LoadProgress(50);
 
-	Com_Debug("================================\n");
-	Com_Debug("R_LoadBspModel: %s\n", mod->media.name);
-	Com_Debug("  Verts:          %d\n", mod->bsp->num_vertexes);
-	Com_Debug("  Edges:          %d\n", mod->bsp->num_edges);
-	Com_Debug("  Surface edges:  %d\n", mod->bsp->num_surface_edges);
-	Com_Debug("  Faces:          %d\n", mod->bsp->num_surfaces);
-	Com_Debug("  Nodes:          %d\n", mod->bsp->num_nodes);
-	Com_Debug("  Leafs:          %d\n", mod->bsp->num_leafs);
-	Com_Debug("  Leaf surfaces:  %d\n", mod->bsp->num_leaf_surfaces);
-	Com_Debug("  Clusters:       %d\n", mod->bsp->num_clusters);
-	Com_Debug("  Inline models   %d\n", mod->bsp->num_inline_models);
-	Com_Debug("  Lights:         %d\n", mod->bsp->num_bsp_lights);
-	Com_Debug("================================\n");
+	Com_Debug("!================================\n");
+	Com_Debug("!R_LoadBspModel: %s\n", mod->media.name);
+	Com_Debug("!  Verts:          %d\n", mod->bsp->num_vertexes);
+	Com_Debug("!  Edges:          %d\n", mod->bsp->num_edges);
+	Com_Debug("!  Surface edges:  %d\n", mod->bsp->num_surface_edges);
+	Com_Debug("!  Faces:          %d\n", mod->bsp->num_surfaces);
+	Com_Debug("!  Nodes:          %d\n", mod->bsp->num_nodes);
+	Com_Debug("!  Leafs:          %d\n", mod->bsp->num_leafs);
+	Com_Debug("!  Leaf surfaces:  %d\n", mod->bsp->num_leaf_surfaces);
+	Com_Debug("!  Clusters:       %d\n", mod->bsp->num_clusters);
+	Com_Debug("!  Inline models   %d\n", mod->bsp->num_inline_models);
+	Com_Debug("!  Lights:         %d\n", mod->bsp->num_bsp_lights);
+	Com_Debug("!================================\n");
 
 	R_SetupBspInlineModels(mod);
 	Cl_LoadProgress(52);

@@ -1118,7 +1118,7 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 	}
 
 	if (strlen(key) > MAX_USER_INFO_KEY - 1 || strlen(value) > MAX_USER_INFO_VALUE - 1) {
-		//Com_Print("Keys and values must be < 64 characters.\n");
+		//Com_Print("Keys and values must be < 64 characters\n");
 		return;
 	}
 	DeleteUserInfo(s, key);

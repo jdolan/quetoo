@@ -95,7 +95,7 @@ void Cvar_Enumerate(cvar_enumerate_func func, void *data) {
 		if (var) {
 			func(var, data);
 		} else {
-			Com_Error(ERR_FATAL, "Cvar_Enumerate: Missing variable: %s\n", (char *) key->data);
+			Com_Error(ERR_FATAL, "Missing variable: %s\n", (char *) key->data);
 		}
 		key = key->next;
 	}

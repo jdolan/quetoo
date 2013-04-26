@@ -62,7 +62,7 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 		}
 
 		if (!(sample->chunk = Mix_LoadWAV_RW(rw, false)))
-			Com_Warn("S_LoadSoundChunk: %s.\n", Mix_GetError());
+			Com_Warn("%s\n", Mix_GetError());
 
 		Fs_Free(buf);
 
@@ -75,7 +75,7 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	if (sample->chunk)
 		Mix_VolumeChunk(sample->chunk, s_volume->value * MIX_MAX_VOLUME);
 	else
-		Com_Warn("S_LoadSoundChunk: Failed to load %s.\n", sample->media.name);
+		Com_Warn("Failed to load %s\n", sample->media.name);
 }
 
 /*
@@ -100,7 +100,7 @@ s_sample_t *S_LoadSample(const char *name) {
 		return NULL;
 
 	if (!name || !name[0]) {
-		Com_Error(ERR_DROP, "S_LoadSample: NULL name.\n");
+		Com_Error(ERR_DROP, "NULL name\n");
 	}
 
 	StripExtension(name, key);
@@ -150,7 +150,7 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 	memset(model, 0, sizeof(model));
 
 	if (ent->number - 1 >= MAX_CLIENTS) {
-		Com_Warn("S_LoadModelSample: Invalid client entity: %d\n", ent->number - 1);
+		Com_Warn("Invalid client entity: %d\n", ent->number - 1);
 		return NULL;
 	}
 
@@ -190,7 +190,7 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 	if (sample)
 		return S_AliasSample(sample, alias);
 
-	Com_Warn("S_LoadModelSample: Failed to load %s.\n", alias);
+	Com_Warn("Failed to load %s\n", alias);
 	return NULL;
 }
 

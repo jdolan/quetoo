@@ -107,7 +107,7 @@ static void Cg_Init(void) {
 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE,
 			"Activate third person perspective.");
 
-	cgi.Print("  Client game initialized.\n");
+	cgi.Print("  Client game initialized\n");
 }
 
 /*

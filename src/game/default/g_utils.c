@@ -168,7 +168,7 @@ g_edict_t *G_PickTarget(char *target_name) {
 	g_edict_t *choice[MAXCHOICES];
 
 	if (!target_name) {
-		gi.Debug("G_PickTarget called with NULL targetname\n");
+		gi.Debug("NULL target_name\n");
 		return NULL;
 	}
 
@@ -182,7 +182,7 @@ g_edict_t *G_PickTarget(char *target_name) {
 	}
 
 	if (!num_choices) {
-		gi.Debug("G_PickTarget: target %s not found\n", target_name);
+		gi.Debug("Target %s not found\n", target_name);
 		return NULL;
 	}
 
@@ -214,7 +214,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		t->think = G_UseTargets_Delay;
 		t->activator = activator;
 		if (!activator)
-			gi.Debug("G_UseTargets: No activator\n");
+			gi.Debug("No activator\n");
 		t->message = ent->message;
 		t->target = ent->target;
 		t->kill_target = ent->kill_target;
@@ -239,7 +239,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		while ((t = G_Find(t, FOFS(target_name), ent->kill_target))) {
 			G_FreeEdict(t);
 			if (!ent->in_use) {
-				gi.Debug("entity was removed while using killtargets\n");
+				gi.Debug("Entity was removed while using kill_targets\n");
 				return;
 			}
 		}
@@ -255,13 +255,13 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 				continue;
 
 			if (t == ent) {
-				gi.Debug("entity asked to use itself\n");
+				gi.Debug("Entity asked to use itself\n");
 			} else {
 				if (t->use)
 					t->use(t, ent, activator);
 			}
 			if (!ent->in_use) {
-				gi.Debug("entity was removed while using targets\n");
+				gi.Debug("Entity was removed while using targets\n");
 				return;
 			}
 		}
@@ -329,7 +329,7 @@ g_edict_t *G_Spawn(void) {
 	}
 
 	if (i >= g_max_entities->value)
-		gi.Error("G_Spawn: No free edicts.");
+		gi.Error("No free edicts\n");
 
 	ge.num_edicts++;
 	G_InitEdict(e);

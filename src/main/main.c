@@ -131,7 +131,7 @@ static void Warn(const char *msg) {
  */
 static void Quit_f(void) {
 
-	Shutdown("Server quit.\n");
+	Shutdown("Server quit\n");
 
 	Sys_Quit();
 }
@@ -204,7 +204,7 @@ static void Init(int32_t argc, char **argv) {
 	Cl_Init();
 #endif
 
-	Com_Print("Quake2World initialized.\n");
+	Com_Print("Quake2World initialized\n");
 
 	// add + commands from command line
 	Cbuf_AddLateCommands();

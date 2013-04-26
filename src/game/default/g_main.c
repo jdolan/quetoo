@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <dirent.h>
-
 #include "g_local.h"
 
 g_import_t gi;
@@ -1208,7 +1206,7 @@ void G_Init(void) {
 					= g_round_limit->modified = g_capture_limit->modified = g_time_limit->modified
 							= false;
 
-	gi.Print("  Game initialized.\n");
+	gi.Print("  Game initialized\n");
 }
 
 /*

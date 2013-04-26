@@ -74,12 +74,10 @@ static int32_t PlaneTypeForNormal(const vec3_t normal) {
  */
 #define	NORMAL_EPSILON	0.00001
 #define	DIST_EPSILON	0.01
-static inline bool PlaneEqual(const map_plane_t * p, const vec3_t normal,
-		const vec_t dist) {
-	if (fabs(p->normal[0] - normal[0]) < NORMAL_EPSILON && fabs(
-			p->normal[1] - normal[1]) < NORMAL_EPSILON && fabs(
-			p->normal[2] - normal[2]) < NORMAL_EPSILON && fabs(p->dist - dist)
-			< DIST_EPSILON)
+static inline bool PlaneEqual(const map_plane_t * p, const vec3_t normal, const vec_t dist) {
+	if (fabs(p->normal[0] - normal[0]) < NORMAL_EPSILON && fabs(p->normal[1] - normal[1])
+			< NORMAL_EPSILON && fabs(p->normal[2] - normal[2]) < NORMAL_EPSILON && fabs(
+			p->dist - dist) < DIST_EPSILON)
 		return true;
 	return false;
 }
@@ -226,8 +224,7 @@ static int32_t BrushContents(const map_brush_t * b) {
 	for (i = 1; i < b->num_sides; i++, s++) {
 		trans |= d_bsp.texinfo[s->texinfo].flags;
 		if (s->contents != contents) {
-			Com_Verbose("Entity %i, Brush %i: mixed face contents\n",
-					b->entity_num, b->brush_num);
+			Com_Verbose("Entity %i, Brush %i: mixed face contents\n", b->entity_num, b->brush_num);
 			break;
 		}
 	}
@@ -340,9 +337,7 @@ static void AddBrushBevels(map_brush_t * b) {
 						float minBack;
 
 						// if this plane has already been used, skip it
-						if (PlaneEqual(
-								&map_planes[b->original_sides[k].plane_num],
-								normal, dist))
+						if (PlaneEqual(&map_planes[b->original_sides[k].plane_num], normal, dist))
 							break;
 
 						w2 = b->original_sides[k].winding;
@@ -400,8 +395,7 @@ static bool MakeBrushWindings(map_brush_t * ob) {
 			if (i == j)
 				continue;
 			// back side clipaway
-			if (ob->original_sides[j].plane_num
-					== (ob->original_sides[j].plane_num ^ 1))
+			if (ob->original_sides[j].plane_num == (ob->original_sides[j].plane_num ^ 1))
 				continue;
 			if (ob->original_sides[j].bevel)
 				continue;
@@ -420,11 +414,10 @@ static bool MakeBrushWindings(map_brush_t * ob) {
 
 	for (i = 0; i < 3; i++) {
 		if (ob->mins[0] < -MAX_WORLD_WIDTH || ob->maxs[0] > MAX_WORLD_WIDTH)
-			Com_Verbose("entity %i, brush %i: bounds out of range\n",
-					ob->entity_num, ob->brush_num);
+			Com_Verbose("entity %i, brush %i: bounds out of range\n", ob->entity_num, ob->brush_num);
 		if (ob->mins[0] > MAX_WORLD_WIDTH || ob->maxs[0] < -MAX_WORLD_WIDTH)
-			Com_Verbose("entity %i, brush %i: no visible sides on brush\n",
-					ob->entity_num, ob->brush_num);
+			Com_Verbose("entity %i, brush %i: no visible sides on brush\n", ob->entity_num,
+					ob->brush_num);
 	}
 
 	return true;
@@ -476,7 +469,7 @@ static void ParseBrush(entity_t *mapent) {
 	vec3_t planepts[3];
 
 	if (num_map_brushes == MAX_BSP_BRUSHES)
-		Com_Error(ERR_FATAL, "num_map_brushes == MAX_BSP_BRUSHES\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_BRUSHES\n");
 
 	b = &map_brushes[num_map_brushes];
 	b->original_sides = &map_brush_sides[num_map_brush_sides];
@@ -554,8 +547,8 @@ static void ParseBrush(entity_t *mapent) {
 			side->contents |= CONTENTS_DETAIL;
 		if (fulldetail)
 			side->contents &= ~CONTENTS_DETAIL;
-		if (!(side->contents & ((LAST_VISIBLE_CONTENTS - 1)
-				| CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP | CONTENTS_MIST)))
+		if (!(side->contents & ((LAST_VISIBLE_CONTENTS - 1) | CONTENTS_PLAYER_CLIP
+				| CONTENTS_MONSTER_CLIP | CONTENTS_MIST)))
 			side->contents |= CONTENTS_SOLID;
 
 		// hints and skips are never detail, and have no content
@@ -567,8 +560,7 @@ static void ParseBrush(entity_t *mapent) {
 		// find the plane number
 		plane_num = PlaneFromPoints(planepts[0], planepts[1], planepts[2]);
 		if (plane_num == -1) {
-			Com_Verbose("Entity %i, Brush %i: plane with no normal\n",
-					b->entity_num, b->brush_num);
+			Com_Verbose("Entity %i, Brush %i: plane with no normal\n", b->entity_num, b->brush_num);
 			continue;
 		}
 
@@ -576,13 +568,11 @@ static void ParseBrush(entity_t *mapent) {
 		for (k = 0; k < b->num_sides; k++) {
 			s2 = b->original_sides + k;
 			if (s2->plane_num == plane_num) {
-				Com_Verbose("Entity %i, Brush %i: duplicate plane\n",
-						b->entity_num, b->brush_num);
+				Com_Verbose("Entity %i, Brush %i: duplicate plane\n", b->entity_num, b->brush_num);
 				break;
 			}
 			if (s2->plane_num == (plane_num ^ 1)) {
-				Com_Verbose("Entity %i, Brush %i: mirrored plane\n",
-						b->entity_num, b->brush_num);
+				Com_Verbose("Entity %i, Brush %i: mirrored plane\n", b->entity_num, b->brush_num);
 				break;
 			}
 		}
@@ -592,8 +582,7 @@ static void ParseBrush(entity_t *mapent) {
 		// keep this side
 		side = b->original_sides + b->num_sides;
 		side->plane_num = plane_num;
-		side->texinfo = TexinfoForBrushTexture(&map_planes[plane_num], &td,
-				vec3_origin);
+		side->texinfo = TexinfoForBrushTexture(&map_planes[plane_num], &td, vec3_origin);
 
 		// save the td off in case there is an origin brush and we
 		// have to recalculate the texinfo
@@ -613,8 +602,7 @@ static void ParseBrush(entity_t *mapent) {
 	}
 
 	// allow water brushes to be removed
-	if (nowater && (b->contents & (CONTENTS_LAVA | CONTENTS_SLIME
-			| CONTENTS_WATER))) {
+	if (nowater && (b->contents & (CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER))) {
 		b->num_sides = 0;
 		return;
 	}
@@ -640,8 +628,7 @@ static void ParseBrush(entity_t *mapent) {
 		vec3_t origin;
 
 		if (num_entities == 1) {
-			Com_Error(
-					ERR_FATAL,
+			Com_Error(ERR_FATAL,
 					"Entity %i, Brush %i: origin brushes not allowed in world\n",
 					b->entity_num, b->brush_num);
 			return;
@@ -722,10 +709,10 @@ static bool ParseMapEntity(void) {
 		return false;
 
 	if (strcmp(token, "{"))
-		Com_Error(ERR_FATAL, "ParseMapEntity: { not found\n");
+		Com_Error(ERR_FATAL, "\"{\" not found\n");
 
 	if (num_entities == MAX_BSP_ENTITIES)
-		Com_Error(ERR_FATAL, "num_entities == MAX_BSP_ENTITIES\n");
+		Com_Error(ERR_FATAL, "MAX_BSP_ENTITIES\n");
 
 	mapent = &entities[num_entities];
 	num_entities++;
@@ -735,7 +722,7 @@ static bool ParseMapEntity(void) {
 
 	do {
 		if (!GetToken(true))
-			Com_Error(ERR_FATAL, "ParseMapEntity: EOF without closing brace\n");
+			Com_Error(ERR_FATAL, "EOF without closing brace\n");
 		if (!strcmp(token, "}"))
 			break;
 		if (!strcmp(token, "{"))
@@ -757,16 +744,13 @@ static bool ParseMapEntity(void) {
 
 				s = &b->original_sides[j];
 
-				newdist
-						= map_planes[s->plane_num].dist
-								- DotProduct(map_planes[s->plane_num].normal, mapent->origin);
+				newdist = map_planes[s->plane_num].dist
+						- DotProduct(map_planes[s->plane_num].normal, mapent->origin);
 
-				s->plane_num = FindFloatPlane(map_planes[s->plane_num].normal,
-						newdist);
+				s->plane_num = FindFloatPlane(map_planes[s->plane_num].normal, newdist);
 
 				s->texinfo = TexinfoForBrushTexture(&map_planes[s->plane_num],
-						&map_brush_textures[s - map_brush_sides],
-						mapent->origin);
+						&map_brush_textures[s - map_brush_sides], mapent->origin);
 			}
 			MakeBrushWindings(b);
 		}
@@ -853,6 +837,6 @@ void LoadMapFile(const char *file_name) {
 	Com_Verbose("%5i entities\n", num_entities);
 	Com_Verbose("%5i planes\n", num_map_planes);
 	Com_Verbose("%5i area portals\n", c_area_portals);
-	Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n", map_mins[0],
-			map_mins[1], map_mins[2], map_maxs[0], map_maxs[1], map_maxs[2]);
+	Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n", map_mins[0], map_mins[1],
+			map_mins[2], map_maxs[0], map_maxs[1], map_maxs[2]);
 }

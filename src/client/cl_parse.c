@@ -42,12 +42,12 @@ bool Cl_CheckOrDownloadFile(const char *filename) {
 	char cmd[MAX_STRING_CHARS];
 
 	if (cls.state == CL_DISCONNECTED) {
-		Com_Print("Not connected.\n");
+		Com_Print("Not connected\n");
 		return true;
 	}
 
 	if (IS_INVALID_DOWNLOAD(filename)) {
-		Com_Warn("Refusing to download \"%s\".\n", filename);
+		Com_Warn("Refusing to download \"%s\"\n", filename);
 		return true;
 	}
 
@@ -154,7 +154,7 @@ void Cl_ParseConfigString(void) {
 	const uint16_t i = (uint16_t) Msg_ReadShort(&net_message);
 
 	if (i >= MAX_CONFIG_STRINGS) {
-		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
+		Com_Error(ERR_DROP, "Invalid index %i\n", i);
 	}
 
 	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
@@ -192,7 +192,7 @@ static void Cl_ParseDownload(void) {
 	size = Msg_ReadShort(&net_message);
 	percent = Msg_ReadByte(&net_message);
 	if (size < 0) {
-		Com_Debug("Server does not have this file.\n");
+		Com_Debug("Server does not have this file\n");
 		if (cls.download.file) {
 			// if here, we tried to resume a file but the server said no
 			Fs_Close(cls.download.file);
@@ -207,7 +207,7 @@ static void Cl_ParseDownload(void) {
 
 		if (!(cls.download.file = Fs_OpenWrite(cls.download.tempname))) {
 			net_message.read += size;
-			Com_Warn("Failed to open %s.\n", cls.download.tempname);
+			Com_Warn("Failed to open %s\n", cls.download.tempname);
 			Cl_RequestNextDownload();
 			return;
 		}
@@ -230,7 +230,7 @@ static void Cl_ParseDownload(void) {
 				Fs_AddToSearchPath(cls.download.name);
 			}
 		} else {
-			Com_Error(ERR_DROP, "Cl_ParseDownload: Failed to rename %s\n", cls.download.name);
+			Com_Error(ERR_DROP, "Failed to rename %s\n", cls.download.name);
 		}
 
 		// get another file if needed
@@ -256,7 +256,7 @@ static void Cl_ParseServerData(void) {
 
 	// ensure protocol matches
 	if (i != PROTOCOL) {
-		Com_Error(ERR_DROP, "Cl_ParseServerData: Server is using unknown protocol %d.\n", i);
+		Com_Error(ERR_DROP, "Server is using unknown protocol %d\n", i);
 	}
 
 	// retrieve spawn count and packet rate
@@ -299,7 +299,7 @@ static void Cl_ParseSound(void) {
 	flags = Msg_ReadByte(&net_message);
 
 	if ((index = Msg_ReadByte(&net_message)) > MAX_SOUNDS)
-		Com_Error(ERR_DROP, "Cl_ParseSound: %d > MAX_SOUNDS.\n", index);
+		Com_Error(ERR_DROP, "Bad index (%d)\n", index);
 
 	if (flags & S_ATTEN)
 		atten = Msg_ReadByte(&net_message);
@@ -310,7 +310,7 @@ static void Cl_ParseSound(void) {
 		ent_num = Msg_ReadShort(&net_message);
 
 		if (ent_num > MAX_EDICTS)
-			Com_Error(ERR_DROP, "Cl_ParseSound: ent_num = %d.\n", ent_num);
+			Com_Error(ERR_DROP, "Bad entity number (%d)\n", ent_num);
 	} else {
 		ent_num = 0;
 	}
@@ -374,7 +374,7 @@ void Cl_ParseServerMessage(void) {
 	// parse the message
 	while (true) {
 		if (net_message.read > net_message.size) {
-			Com_Error(ERR_DROP, "Cl_ParseServerMessage: Bad server message.\n");
+			Com_Error(ERR_DROP, "Bad server message\n");
 		}
 
 		old_cmd = cmd;
@@ -404,7 +404,7 @@ void Cl_ParseServerMessage(void) {
 			break;
 
 		case SV_CMD_DISCONNECT:
-			Com_Error(ERR_DROP, "Server disconnected.\n");
+			Com_Error(ERR_DROP, "Server disconnected\n");
 			break;
 
 		case SV_CMD_DOWNLOAD:
@@ -459,8 +459,8 @@ void Cl_ParseServerMessage(void) {
 		default:
 			// delegate to the client game module before failing
 			if (!cls.cgame->ParseMessage(cmd)) {
-				Com_Error(ERR_DROP, "Cl_ParseServerMessage: Illegible server message:\n"
-					"  %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
+				Com_Error(ERR_DROP, "Illegible server message:\n"
+					" %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
 			}
 			break;
 		}

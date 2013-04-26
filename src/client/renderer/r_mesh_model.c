@@ -50,7 +50,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 	strcat(path, "animation.cfg");
 
 	if (Fs_Load(path, &buf) == -1) {
-		Com_Warn("R_LoadMd3Animation: No animation.cfg for %s\n", mod->media.name);
+		Com_Warn("No animation.cfg for %s\n", mod->media.name);
 		return;
 	}
 
@@ -84,29 +84,26 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 				a->first_frame -= skip;
 
 			if (!a->num_frames)
-				Com_Warn("R_LoadMd3Animations: %s: No frames for %d\n", mod->media.name,
-						md3->num_animations);
+				Com_Warn("%s: No frames for %d\n", mod->media.name, md3->num_animations);
 
 			if (!a->hz)
-				Com_Warn("R_LoadMd3Animations: %s: No hz for %d\n", mod->media.name,
-						md3->num_animations);
+				Com_Warn("%s: No hz for %d\n", mod->media.name, md3->num_animations);
 
-			Com_Debug("R_LoadMd3Animations: Parsed %d: %d %d %d %d\n", md3->num_animations,
+			Com_Debug("Parsed %d: %d %d %d %d\n", md3->num_animations,
 					a->first_frame, a->num_frames, a->looped_frames, a->hz);
 
 			md3->num_animations++;
 		}
 
 		if (md3->num_animations == MD3_MAX_ANIMATIONS) {
-			Com_Warn("R_LoadMd3Animations: MD3_MAX_ANIMATIONS reached: %s\n", mod->media.name);
+			Com_Warn("MD3_MAX_ANIMATIONS reached: %s\n", mod->media.name);
 			break;
 		}
 	}
 
 	Fs_Free(buf);
 
-	Com_Debug("R_LoadMd3Animations: Loaded %d animations: %s\n", md3->num_animations,
-			mod->media.name);
+	Com_Debug("Loaded %d animations: %s\n", md3->num_animations, mod->media.name);
 }
 
 /*
@@ -351,7 +348,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 	const int32_t version = LittleLong(in_md3->version);
 	if (version != MD3_VERSION) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has wrong version number "
+		Com_Error(ERR_DROP, "%s has wrong version number "
 			"(%i should be %i)\n", mod->media.name, version, MD3_VERSION);
 	}
 
@@ -368,19 +365,19 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	out_md3->num_meshes = LittleLong(in_md3->num_meshes);
 
 	if (out_md3->num_frames < 1) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has no frames.\n", mod->media.name);
+		Com_Error(ERR_DROP, "%s has no frames\n", mod->media.name);
 	}
 
 	if (out_md3->num_frames > MD3_MAX_FRAMES) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many frames.\n", mod->media.name);
+		Com_Error(ERR_DROP, "%s has too many frames\n", mod->media.name);
 	}
 
 	if (out_md3->num_tags > MD3_MAX_TAGS) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many tags.\n", mod->media.name);
+		Com_Error(ERR_DROP, "%s has too many tags\n", mod->media.name);
 	}
 
 	if (out_md3->num_meshes > MD3_MAX_MESHES) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many meshes.\n", mod->media.name);
+		Com_Error(ERR_DROP, "%s has too many meshes\n", mod->media.name);
 	}
 
 	// load the frames
@@ -445,18 +442,15 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		out_mesh->num_verts = LittleLong(in_mesh->num_verts);
 
 		if (out_mesh->num_skins > MD3_MAX_SHADERS) {
-			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many skins.\n", mod->media.name,
-					out_mesh->name);
+			Com_Error(ERR_DROP, "%s: %s has too many skins\n", mod->media.name, out_mesh->name);
 		}
 
 		if (out_mesh->num_tris > MD3_MAX_TRIANGLES) {
-			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many triangles.\n",
-					mod->media.name, out_mesh->name);
+			Com_Error(ERR_DROP, "%s: %s has too many triangles\n", mod->media.name, out_mesh->name);
 		}
 
 		if (out_mesh->num_verts > MD3_MAX_VERTS) {
-			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many vertexes.\n", mod->media.name,
-					out_mesh->name);
+			Com_Error(ERR_DROP, "%s: %s has too many vertexes\n", mod->media.name, out_mesh->name);
 		}
 
 		// load the triangle indexes
@@ -505,8 +499,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 		R_LoadMd3Tangents(out_mesh);
 
-		Com_Debug("R_LoadMd3Model: %s: %s: %d triangles\n", mod->media.name, out_mesh->name,
-				out_mesh->num_tris);
+		Com_Debug("%s: %s: %d triangles\n", mod->media.name, out_mesh->name, out_mesh->num_tris);
 
 		in_mesh = (d_md3_mesh_t *) ((byte *) in_mesh + in_mesh->size);
 	}
@@ -524,8 +517,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	// and finally load the arrays
 	R_LoadMd3VertexArrays(mod);
 
-	Com_Debug("R_LoadMd3Model: %s\n"
-		"  %d meshes\n  %d frames\n  %d tags\n  %d vertexes\n", mod->media.name,
+	Com_Debug("%s\n  %d meshes\n  %d frames\n  %d tags\n  %d vertexes\n", mod->media.name,
 			out_md3->num_meshes, out_md3->num_frames, out_md3->num_tags, mod->num_verts);
 }
 
@@ -722,7 +714,7 @@ static int32_t R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char
 			break;
 
 		if (i == MAX_OBJ_FACE_VERTS) {
-			Com_Error(ERR_DROP, "R_LoadObjModelFace: too many vertexes: %s.\n", mod->media.name);
+			Com_Error(ERR_DROP, "%s has too many vertexes\n", mod->media.name);
 		}
 
 		if (!obj->tris) { // simply count verts
@@ -774,7 +766,7 @@ static int32_t R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char
 	tris = i - 2; // number of triangles from parsed verts
 
 	if (tris < 1)
-		Com_Error(ERR_DROP, "R_LoadObjModelFace: too few vertexes: %s.\n", mod->media.name);
+		Com_Error(ERR_DROP, "%s has too few vertexes\n", mod->media.name);
 
 	R_LoadObjModelTris(obj, verts, tris); // break verts up into tris
 
@@ -796,8 +788,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 			float *f = obj->verts + obj->num_verts_parsed * 3;
 
 			if (sscanf(line + 2, "%f %f %f", &f[0], &f[2], &f[1]) != 3)
-				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed vertex for %s: %s.\n",
-						mod->media.name, line);
+				Com_Error(ERR_DROP, "Malformed vertex for %s: %s\n", mod->media.name, line);
 
 			obj->num_verts_parsed++;
 		} else
@@ -809,8 +800,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 			float *f = obj->normals + obj->num_normals_parsed * 3;
 
 			if (sscanf(line + 3, "%f %f %f", &f[0], &f[1], &f[2]) != 3)
-				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed normal for %s: %s\n.",
-						mod->media.name, line);
+				Com_Error(ERR_DROP, "Malformed normal for %s: %s\n", mod->media.name, line);
 
 			obj->num_normals_parsed++;
 		} else
@@ -823,8 +813,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 			float *f = obj->texcoords + obj->num_texcoords_parsed * 2;
 
 			if (sscanf(line + 3, "%f %f", &f[0], &f[1]) != 2)
-				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed texcoord for %s: %s.\n",
-						mod->media.name, line);
+				Com_Error(ERR_DROP, "Malformed texcoord for %s: %s\n", mod->media.name, line);
 
 			f[1] = -f[1];
 			obj->num_texcoords_parsed++;
@@ -899,7 +888,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	R_LoadObjModel_(mod, obj, buffer); // resolve counts
 
 	if (!obj->num_verts) {
-		Com_Error(ERR_DROP, "R_LoadObjModel: Failed to resolve vertex data: %s\n", mod->media.name);
+		Com_Error(ERR_DROP, "Failed to resolve vertex data: %s\n", mod->media.name);
 	}
 
 	mod->mesh->num_frames = 1;

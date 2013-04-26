@@ -89,7 +89,7 @@ const char *Sys_ExecutablePath(void) {
 
 #endif
 
-	Com_Warn("Sys_ExecutablePath: Failed to resolve executable path\n");
+	Com_Warn("Failed to resolve executable path\n");
 	return NULL;
 }
 
@@ -173,10 +173,10 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 		if ((*handle = dlopen(path, RTLD_NOW)))
 			return;
 
-		Com_Error(ERR_DROP, "Sys_OpenLibrary: %s\n", dlerror());
+		Com_Error(ERR_DROP, "%s\n", dlerror());
 	}
 
-	Com_Error(ERR_DROP, "Sys_OpenLibrary: Couldn't find %s\n", so_name);
+	Com_Error(ERR_DROP, "Couldn't find %s\n", so_name);
 }
 
 /*
@@ -189,7 +189,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 	entry_point_t *EntryPoint;
 
 	if (*handle) {
-		Com_Warn("Sys_LoadLibrary: %s: handle already open\n", name);
+		Com_Warn("%s: handle already open\n", name);
 		Sys_CloseLibrary(handle);
 	}
 
@@ -199,7 +199,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 
 	if (!EntryPoint) {
 		Sys_CloseLibrary(handle);
-		Com_Error(ERR_DROP, "Sys_LoadLibrary: %s: Failed to resolve %s\n", name, entry_point);
+		Com_Error(ERR_DROP, "%s: Failed to resolve %s\n", name, entry_point);
 	}
 
 	return EntryPoint(params);

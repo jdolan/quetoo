@@ -89,7 +89,7 @@ static void Cl_WriteDemoHeader(void) {
 	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
 	Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 
-	Com_Debug("Cl_WriteDemoHeader: demo started\n");
+	Com_Debug("Demo started\n");
 	// the rest of the demo file will be individual frames
 }
 
@@ -120,7 +120,7 @@ void Cl_Stop_f(void) {
 	int32_t len = -1;
 
 	if (!cls.demo_file) {
-		Com_Print("Not recording a demo.\n");
+		Com_Print("Not recording a demo\n");
 		return;
 	}
 
@@ -129,7 +129,7 @@ void Cl_Stop_f(void) {
 	Fs_Close(cls.demo_file);
 
 	cls.demo_file = NULL;
-	Com_Print("Stopped demo.\n");
+	Com_Print("Stopped demo\n");
 }
 
 /*
@@ -145,12 +145,12 @@ void Cl_Record_f(void) {
 	}
 
 	if (cls.demo_file) {
-		Com_Print("Already recording.\n");
+		Com_Print("Already recording\n");
 		return;
 	}
 
 	if (cls.state != CL_ACTIVE) {
-		Com_Print("You must be in a level to record.\n");
+		Com_Print("You must be in a level to record\n");
 		return;
 	}
 
@@ -158,7 +158,7 @@ void Cl_Record_f(void) {
 
 	// open the demo file
 	if (!(cls.demo_file = Fs_OpenWrite(cls.demo_filename))) {
-		Com_Warn("Cl_Record_f: couldn't open %s.\n", cls.demo_filename);
+		Com_Warn("Couldn't open %s\n", cls.demo_filename);
 		return;
 	}
 

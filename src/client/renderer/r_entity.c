@@ -63,7 +63,7 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 	r_entity_t *e, *in, **ents;
 
 	if (r_view.num_entities == MAX_ENTITIES) {
-		Com_Warn("R_AddEntity: MAX_ENTITIES reached.\n");
+		Com_Warn("MAX_ENTITIES reached\n");
 		return NULL;
 	}
 
@@ -102,7 +102,7 @@ const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *m
 		const char *tag_name) {
 
 	if (!parent) {
-		Com_Warn("R_AddLinkedEntity: NULL parent\n");
+		Com_Warn("NULL parent\n");
 		return NULL;
 	}
 
@@ -164,7 +164,7 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 		vec3_t tmp;
 
 		if (!IS_MESH_MODEL(e->model)) {
-			Com_Warn("R_SetMatrixForEntity: Invalid model for linked entity\n");
+			Com_Warn("Invalid model for linked entity\n");
 			return;
 		}
 

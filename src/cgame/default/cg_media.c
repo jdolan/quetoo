@@ -144,5 +144,5 @@ void Cg_UpdateMedia(void) {
 
 	Cg_FreeParticles();
 
-	cgi.Debug("Cg_LoadMedia: Complete\n");
+	cgi.Debug("Complete\n");
 }

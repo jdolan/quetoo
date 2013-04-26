@@ -184,8 +184,23 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const
 }
 
 #define NUM_DIRTMAP_ENTRIES 16
-static const float dirtmap[NUM_DIRTMAP_ENTRIES] = { 0.6, 0.5, 0.3, 0.4, 0.7, 0.3, 0.0, 0.4, 0.5,
-		0.2, 0.8, 0.5, 0.3, 0.2, 0.5, 0.3 };
+static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
+		0.6,
+		0.5,
+		0.3,
+		0.4,
+		0.7,
+		0.3,
+		0.0,
+		0.4,
+		0.5,
+		0.2,
+		0.8,
+		0.5,
+		0.3,
+		0.2,
+		0.5,
+		0.3 };
 
 /*
  * @brief Generates a single color for the specified stage and vertex.
@@ -485,7 +500,7 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 	char base[MAX_QPATH], key[MAX_QPATH];
 
 	if (!diffuse || !diffuse[0]) {
-		Com_Error(ERR_DROP, "R_LoadMaterial: NULL diffuse name.\n");
+		Com_Error(ERR_DROP, "NULL diffuse name\n");
 	}
 
 	StripExtension(diffuse, base);
@@ -536,8 +551,7 @@ static inline GLenum R_ConstByName(const char *c) {
 		return GL_ONE_MINUS_SRC_COLOR;
 
 	// ...
-
-	Com_Warn("R_ConstByName: Failed to resolve: %s\n", c);
+	Com_Warn("Failed to resolve: %s\n", c);
 	return GL_INVALID_ENUM;
 }
 
@@ -549,7 +563,7 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 	int32_t i, j, k;
 
 	if (!s->image) {
-		Com_Warn("R_LoadStageFrames: Texture not defined in anim stage.\n");
+		Com_Warn("Texture not defined in anim stage\n");
 		return -1;
 	}
 
@@ -558,7 +572,7 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 	j = strlen(name);
 
 	if ((i = atoi(&name[j - 1])) < 0) {
-		Com_Warn("R_LoadStageFrames: Texture name does not end in numeric: %s\n", name);
+		Com_Warn("Texture name does not end in numeric: %s\n", name);
 		return -1;
 	}
 
@@ -577,7 +591,7 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 		s->anim.frames[k] = R_LoadImage(frame, IT_DIFFUSE);
 
 		if (s->anim.frames[k]->type == IT_NULL) {
-			Com_Warn("R_LoadStageFrames: Failed to resolve frame: %d: %s\n", k, frame);
+			Com_Warn("Failed to resolve frame: %d: %s\n", k, frame);
 			return -1;
 		}
 	}
@@ -608,7 +622,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			}
 
 			if (s->image->type == IT_NULL) {
-				Com_Warn("R_ParseStage: Failed to resolve texture: %s\n", c);
+				Com_Warn("Failed to resolve texture: %s\n", c);
 				return -1;
 			}
 
@@ -630,7 +644,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			}
 
 			if (s->image->type == IT_NULL) {
-				Com_Warn("R_ParseStage: Failed to resolve envmap: %s\n", c);
+				Com_Warn("Failed to resolve envmap: %s\n", c);
 				return -1;
 			}
 
@@ -644,7 +658,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->blend.src = R_ConstByName(c);
 
 			if (s->blend.src == GL_INVALID_ENUM) {
-				Com_Warn("R_ParseStage: Failed to resolve blend src: %s\n", c);
+				Com_Warn("Failed to resolve blend src: %s\n", c);
 				return -1;
 			}
 
@@ -652,7 +666,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->blend.dest = R_ConstByName(c);
 
 			if (s->blend.dest == GL_INVALID_ENUM) {
-				Com_Warn("R_ParseStage: Failed to resolve blend dest: %s\n", c);
+				Com_Warn("Failed to resolve blend dest: %s\n", c);
 				return -1;
 			}
 
@@ -668,7 +682,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 				s->color[i] = atof(c);
 
 				if (s->color[i] < 0.0 || s->color[i] > 1.0) {
-					Com_Warn("R_ParseStage: Failed to resolve color: %s\n", c);
+					Com_Warn("Failed to resolve color: %s\n", c);
 					return -1;
 				}
 			}
@@ -683,7 +697,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->pulse.hz = atof(c);
 
 			if (s->pulse.hz < 0.0) {
-				Com_Warn("R_ParseStage: Failed to resolve frequency: %s\n", c);
+				Com_Warn("Failed to resolve frequency: %s\n", c);
 				return -1;
 			}
 
@@ -697,7 +711,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->stretch.amp = atof(c);
 
 			if (s->stretch.amp < 0.0) {
-				Com_Warn("R_ParseStage: Failed to resolve amplitude: %s\n", c);
+				Com_Warn("Failed to resolve amplitude: %s\n", c);
 				return -1;
 			}
 
@@ -705,7 +719,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->stretch.hz = atof(c);
 
 			if (s->stretch.hz < 0.0) {
-				Com_Warn("R_ParseStage: Failed to resolve frequency: %s\n", c);
+				Com_Warn("Failed to resolve frequency: %s\n", c);
 				return -1;
 			}
 
@@ -719,7 +733,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->rotate.hz = atof(c);
 
 			if (s->rotate.hz < 0.0) {
-				Com_Warn("R_ParseStage: Failed to resolve rotate: %s\n", c);
+				Com_Warn("Failed to resolve rotate: %s\n", c);
 				return -1;
 			}
 
@@ -772,8 +786,8 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->terrain.ceil = atof(c);
 
 			if (s->terrain.ceil <= s->terrain.floor) {
-				Com_Warn("R_ParseStage: Invalid terrain ceiling and floor "
-					"values for %s\n", (s->image ? s->image->media.name : "NULL"));
+				Com_Warn("Invalid terrain ceiling and floor values for %s\n",
+						(s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
 
@@ -788,7 +802,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->dirt.intensity = atof(c);
 
 			if (s->dirt.intensity <= 0.0 || s->dirt.intensity > 1.0) {
-				Com_Warn("R_ParseStage: Invalid dirtmap intensity for %s\n",
+				Com_Warn("Invalid dirtmap intensity for %s\n",
 						(s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
@@ -803,7 +817,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->anim.num_frames = atoi(c);
 
 			if (s->anim.num_frames < 1) {
-				Com_Warn("R_ParseStage: Invalid number of anim frames for %s\n",
+				Com_Warn("Invalid number of anim frames for %s\n",
 						(s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
@@ -812,7 +826,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			s->anim.fps = atof(c);
 
 			if (s->anim.fps <= 0.0) {
-				Com_Warn("R_ParseStage: Invalid anim fps for %s\n",
+				Com_Warn("Invalid anim fps for %s\n",
 						(s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
@@ -842,7 +856,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			}
 
 			if (s->image->type == IT_NULL) {
-				Com_Warn("R_ParseStage: Failed to resolve flare: %s\n", c);
+				Com_Warn("Failed to resolve flare: %s\n", c);
 				return -1;
 			}
 
@@ -864,22 +878,22 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			}
 
 			Com_Debug("Parsed stage\n"
-				"  flags: %d\n"
-				"  texture: %s\n"
-				"   -> material: %s\n"
-				"  blend: %d %d\n"
-				"  color: %3f %3f %3f\n"
-				"  pulse: %3f\n"
-				"  stretch: %3f %3f\n"
-				"  rotate: %3f\n"
-				"  scroll.s: %3f\n"
-				"  scroll.t: %3f\n"
-				"  scale.s: %3f\n"
-				"  scale.t: %3f\n"
-				"  terrain.floor: %5f\n"
-				"  terrain.ceil: %5f\n"
-				"  anim.num_frames: %d\n"
-				"  anim.fps: %3f\n", s->flags, (s->image ? s->image->media.name : "NULL"),
+					"  flags: %d\n"
+					"  texture: %s\n"
+					"   -> material: %s\n"
+					"  blend: %d %d\n"
+					"  color: %3f %3f %3f\n"
+					"  pulse: %3f\n"
+					"  stretch: %3f %3f\n"
+					"  rotate: %3f\n"
+					"  scroll.s: %3f\n"
+					"  scroll.t: %3f\n"
+					"  scale.s: %3f\n"
+					"  scale.t: %3f\n"
+					"  terrain.floor: %5f\n"
+					"  terrain.ceil: %5f\n"
+					"  anim.num_frames: %d\n"
+					"  anim.fps: %3f\n", s->flags, (s->image ? s->image->media.name : "NULL"),
 					(s->material ? s->material->diffuse->media.name : "NULL"), s->blend.src,
 					s->blend.dest, s->color[0], s->color[1], s->color[2], s->pulse.hz,
 					s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
@@ -890,7 +904,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		}
 	}
 
-	Com_Warn("R_ParseStage: Malformed stage\n");
+	Com_Warn("Malformed stage\n");
 	return -1;
 }
 
@@ -915,7 +929,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 	strcat(path, ".mat");
 
 	if (Fs_Load(path, &buf) == -1) {
-		Com_Debug("R_LoadMaterials: Couldn't load %s\n", path);
+		Com_Debug("Couldn't load %s\n", path);
 		return;
 	}
 
@@ -945,7 +959,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 
 			if (m->diffuse->type == IT_NULL) {
-				Com_Warn("R_LoadMaterials: Failed to resolve %s\n", c);
+				Com_Warn("Failed to resolve %s\n", c);
 				m = NULL;
 			}
 
@@ -964,7 +978,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 
 			if (m->normalmap->type == IT_NULL) {
-				Com_Warn("R_LoadMaterials: Failed to resolve normalmap: %s\n", c);
+				Com_Warn("Failed to resolve normalmap: %s\n", c);
 				m->normalmap = NULL;
 			}
 		}
@@ -978,7 +992,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 
 			if (m->glossmap->type == IT_NULL) {
-				Com_Warn("R_LoadMaterials: Failed to resolve glossmap: %s\n", c);
+				Com_Warn("Failed to resolve glossmap: %s\n", c);
 				m->glossmap = NULL;
 			}
 		}
@@ -988,7 +1002,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->bump = atof(ParseToken(&buffer));
 
 			if (m->bump < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid bump value for %s\n", m->diffuse->media.name);
+				Com_Warn("Invalid bump value for %s\n", m->diffuse->media.name);
 				m->bump = DEFAULT_BUMP;
 			}
 		}
@@ -998,7 +1012,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->parallax = atof(ParseToken(&buffer));
 
 			if (m->parallax < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid parallax value for %s\n", m->diffuse->media.name);
+				Com_Warn("Invalid parallax value for %s\n", m->diffuse->media.name);
 				m->parallax = DEFAULT_PARALLAX;
 			}
 		}
@@ -1008,7 +1022,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->hardness = atof(ParseToken(&buffer));
 
 			if (m->hardness < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid hardness value for %s\n", m->diffuse->media.name);
+				Com_Warn("Invalid hardness value for %s\n", m->diffuse->media.name);
 				m->hardness = DEFAULT_HARDNESS;
 			}
 		}
@@ -1017,7 +1031,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			m->specular = atof(ParseToken(&buffer));
 
 			if (m->specular < 0.0) {
-				Com_Warn("R_LoadMaterials: Invalid specular value for %s\n", m->diffuse->media.name);
+				Com_Warn("Invalid specular value for %s\n", m->diffuse->media.name);
 				m->specular = DEFAULT_SPECULAR;
 			}
 		}

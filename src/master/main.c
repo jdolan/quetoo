@@ -51,7 +51,7 @@ static int32_t ms_sock;
  */
 static void Ms_Shutdown(void) {
 
-	Com_Print("Master server shutting down.\n");
+	Com_Print("Master server shutting down\n");
 
 	g_list_free_full(ms_servers, Z_Free);
 
@@ -244,7 +244,7 @@ static void Ms_SendServersList(struct sockaddr_in *from) {
 	}
 
 	if ((sendto(ms_sock, buff, buflen, 0, (struct sockaddr *) from, sizeof(*from))) == -1)
-		Com_Print("Socket error on send: %s.\n", strerror(errno));
+		Com_Warn("Socket error on send: %s.\n", strerror(errno));
 	else
 		Com_Print("Sent server list to %s\n", inet_ntoa(from->sin_addr));
 }

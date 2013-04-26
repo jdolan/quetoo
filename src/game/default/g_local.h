@@ -24,14 +24,12 @@
 
 #include "game/game.h"
 
-#ifdef HAVE_MYSQL
-#include <mysql.h>
-extern MYSQL *mysql;
-extern char sql[512];
-#endif
-
 // this is the game name that we advertise to clients
 #define GAME_NAME "default"
+
+#define Debug(...) Debug_(__func__, __VA_ARGS__)
+#define Warn(...) Warn_(__func__, __VA_ARGS__)
+#define Error(...) Error_(__func__, __VA_ARGS__)
 
 #include "g_ballistics.h"
 #include "g_client_chase.h"

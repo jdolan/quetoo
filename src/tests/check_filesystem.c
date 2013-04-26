@@ -63,15 +63,15 @@ START_TEST(check_filesystem_Fs_OpenRead)
 
 START_TEST(check_filesystem_Fs_OpenWrite)
 	{
-		file_t *f = Fs_OpenWrite(__FUNCTION__);
+		file_t *f = Fs_OpenWrite(__func__);
 
-		ck_assert_msg(f != NULL, "Failed to open %s", __FUNCTION__);
+		ck_assert_msg(f != NULL, "Failed to open %s", __func__);
 
 		const char *testing = "testing";
 		int64_t len = Fs_Write(f, (void *) testing, strlen(testing), 1);
 
-		ck_assert_msg(len = strlen(testing), "Failed to write %s", __FUNCTION__);
-		ck_assert_msg(Fs_Close(f), "Failed to close %s", __FUNCTION__);
+		ck_assert_msg(len = strlen(testing), "Failed to write %s", __func__);
+		ck_assert_msg(Fs_Close(f), "Failed to close %s", __func__);
 
 	}END_TEST
 

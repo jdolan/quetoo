@@ -274,7 +274,7 @@ bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 			return false; // not terribly abnormal
 
 		s = source == NS_SERVER ? "server" : "client";
-		Com_Warn("Net_GetPacket: %s: %s from %s\n", s, Net_ErrorString(),
+		Com_Warn("%s: %s from %s\n", s, Net_ErrorString(),
 				Net_NetaddrToString(*from));
 		return false;
 	}
@@ -309,7 +309,7 @@ void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
 		if (!sock)
 			return;
 	} else {
-		Com_Error(ERR_DROP, "Net_SendPacket: Bad address type.\n");
+		Com_Error(ERR_DROP, "Bad address type\n");
 		return;
 	}
 
@@ -318,7 +318,7 @@ void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
 	ret = sendto(sock, data, size, 0, (struct sockaddr *) &to_addr, sizeof(to_addr));
 
 	if (ret == -1)
-		Com_Warn("Net_SendPacket: %s to %s.\n", Net_ErrorString(), Net_NetaddrToString(to));
+		Com_Warn("%s to %s.\n", Net_ErrorString(), Net_NetaddrToString(to));
 }
 
 /*
@@ -347,19 +347,19 @@ static int32_t Net_Socket(const char *net_interface, uint16_t port) {
 	int32_t i = 1;
 
 	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
-		Com_Error(ERR_FATAL, "Net_Socket: socket: %s\n", Net_ErrorString());
+		Com_Error(ERR_FATAL, "Call socket: %s\n", Net_ErrorString());
 		return 0;
 	}
 
 	// make it non-blocking
 	if (ioctl(sock, FIONBIO, (char *) &i) == -1) {
-		Com_Error(ERR_FATAL, "Net_Socket: ioctl: %s\n", Net_ErrorString());
+		Com_Error(ERR_FATAL, "Call ioctl: %s\n", Net_ErrorString());
 		return 0;
 	}
 
 	// make it broadcast capable
 	if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *) &i, sizeof(i)) == -1) {
-		Com_Error(ERR_FATAL, "Net_Socket: setsockopt: %s\n", Net_ErrorString());
+		Com_Error(ERR_FATAL, "Call setsockopt: %s\n", Net_ErrorString());
 		return 0;
 	}
 

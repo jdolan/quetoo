@@ -102,8 +102,7 @@ static int32_t ClusterContents(const node_t * node) {
  * The nodes on either side of the portal may actually be clusters,
  * not leafs, so all contents should be ored together
  * =============
- */
-bool Portal_VisFlood(const portal_t * p) {
+ */bool Portal_VisFlood(const portal_t * p) {
 	int32_t c1, c2;
 
 	if (!p->onnode)
@@ -141,13 +140,11 @@ bool Portal_VisFlood(const portal_t * p) {
  * ===============
  */
 static bool Portal_EntityFlood(const portal_t * p, int32_t s) {
-	if (p->nodes[0]->plane_num != PLANENUM_LEAF || p->nodes[1]->plane_num
-			!= PLANENUM_LEAF)
-		Com_Error(ERR_FATAL, "Portal_EntityFlood: not a leaf\n");
+	if (p->nodes[0]->plane_num != PLANENUM_LEAF || p->nodes[1]->plane_num != PLANENUM_LEAF)
+		Com_Error(ERR_FATAL, "Not a leaf\n");
 
 	// can never cross to a solid
-	if ((p->nodes[0]->contents & CONTENTS_SOLID) || (p->nodes[1]->contents
-			& CONTENTS_SOLID))
+	if ((p->nodes[0]->contents & CONTENTS_SOLID) || (p->nodes[1]->contents & CONTENTS_SOLID))
 		return false;
 
 	// can flood through everything else
@@ -165,7 +162,7 @@ static int32_t c_tinyportals;
  */
 static void AddPortalToNodes(portal_t * p, node_t * front, node_t * back) {
 	if (p->nodes[0] || p->nodes[1])
-		Com_Error(ERR_FATAL, "AddPortalToNode: already included\n");
+		Com_Error(ERR_FATAL, "Already included\n");
 
 	p->nodes[0] = front;
 	p->next[0] = front->portals;
@@ -189,7 +186,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l) {
 	while (true) {
 		t = *pp;
 		if (!t)
-			Com_Error(ERR_FATAL, "RemovePortalFromNode: portal not in leaf\n");
+			Com_Error(ERR_FATAL, "Portal not in leaf\n");
 
 		if (t == portal)
 			break;
@@ -199,8 +196,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l) {
 		else if (t->nodes[1] == l)
 			pp = &t->next[1];
 		else
-			Com_Error(ERR_FATAL,
-					"RemovePortalFromNode: portal not bounding leaf\n");
+			Com_Error(ERR_FATAL, "Portal not bounding leaf\n");
 	}
 
 	if (portal->nodes[0] == l) {
@@ -262,8 +258,7 @@ void MakeHeadnodePortals(tree_t * tree) {
 		for (j = 0; j < 6; j++) {
 			if (j == i)
 				continue;
-			ChopWindingInPlace(&portals[i]->winding, bplanes[j].normal,
-					bplanes[j].dist, ON_EPSILON);
+			ChopWindingInPlace(&portals[i]->winding, bplanes[j].normal, bplanes[j].dist, ON_EPSILON);
 		}
 	}
 }
@@ -286,16 +281,14 @@ static winding_t *BaseWindingForNode(const node_t * node) {
 	vec3_t normal;
 	vec_t dist;
 
-	w = BaseWindingForPlane(map_planes[node->plane_num].normal,
-			map_planes[node->plane_num].dist);
+	w = BaseWindingForPlane(map_planes[node->plane_num].normal, map_planes[node->plane_num].dist);
 
 	// clip by all the parents
 	for (n = node->parent; n && w;) {
 		plane = &map_planes[n->plane_num];
 
 		if (n->children[0] == node) { // take front
-			ChopWindingInPlace(&w, plane->normal, plane->dist,
-					BASE_WINDING_EPSILON);
+			ChopWindingInPlace(&w, plane->normal, plane->dist, BASE_WINDING_EPSILON);
 		} else { // take back
 			VectorSubtract(vec3_origin, plane->normal, normal);
 			dist = -plane->dist;
@@ -332,7 +325,7 @@ void MakeNodePortal(node_t * node) {
 			VectorSubtract(vec3_origin, p->plane.normal, normal);
 			dist = -p->plane.dist;
 		} else
-			Com_Error(ERR_FATAL, "CutNodePortals_r: mislinked portal\n");
+			Com_Error(ERR_FATAL, "Mis-linked portal\n");
 
 		ChopWindingInPlace(&w, normal, dist, 0.1);
 	}
@@ -379,7 +372,7 @@ void SplitNodePortals(node_t * node) {
 		else if (p->nodes[1] == node)
 			side = 1;
 		else
-			Com_Error(ERR_FATAL, "CutNodePortals_r: mislinked portal\n");
+			Com_Error(ERR_FATAL, "Mis-linked portal\n");
 		next_portal = p->next[side];
 
 		other_node = p->nodes[!side];
@@ -389,8 +382,8 @@ void SplitNodePortals(node_t * node) {
 		//
 		// cut the portal into two portals, one on each side of the cut plane
 		//
-		ClipWindingEpsilon(p->winding, plane->normal, plane->dist,
-				SPLIT_WINDING_EPSILON, &frontwinding, &backwinding);
+		ClipWindingEpsilon(p->winding, plane->normal, plane->dist, SPLIT_WINDING_EPSILON,
+				&frontwinding, &backwinding);
 
 		if (frontwinding && WindingIsTiny(frontwinding)) {
 			FreeWinding(frontwinding);
@@ -527,8 +520,7 @@ static void FloodPortals_r(node_t * node, int32_t dist) {
 /*
  * @brief
  */
-static bool PlaceOccupant(node_t * head_node, vec3_t origin,
-		entity_t * occupant) {
+static bool PlaceOccupant(node_t * head_node, vec3_t origin, entity_t * occupant) {
 	node_t *node;
 
 	// find the leaf to start in
@@ -553,8 +545,7 @@ static bool PlaceOccupant(node_t * head_node, vec3_t origin,
 
 /*
  * @brief Marks all nodes that can be reached by entites
- */
-bool FloodEntities(tree_t *tree) {
+ */bool FloodEntities(tree_t *tree) {
 	int32_t i;
 	vec3_t origin;
 	const char *cl;
@@ -721,8 +712,7 @@ static void SetAreaPortalAreas_r(node_t * node) {
 		e = &entities[b->original->entity_num];
 		node->area = e->portal_areas[0];
 		if (!e->portal_areas[1]) {
-			Com_Verbose(
-					"WARNING: areaportal entity %i doesn't touch two areas\n",
+			Com_Verbose("WARNING: areaportal entity %i doesn't touch two areas\n",
 					b->original->entity_num);
 			return;
 		}
@@ -762,8 +752,7 @@ void EmitAreaPortals(node_t * head_node) {
 				d_bsp.num_area_portals++;
 			}
 		}
-		d_bsp.areas[i].num_area_portals = d_bsp.num_area_portals
-				- d_bsp.areas[i].first_area_portal;
+		d_bsp.areas[i].num_area_portals = d_bsp.num_area_portals - d_bsp.areas[i].first_area_portal;
 	}
 
 	Com_Verbose("%5i num_areas\n", d_bsp.num_areas);
@@ -841,8 +830,7 @@ static void FindPortalSide(portal_t * p) {
 
 	// decide which content change is strongest
 	// solid > lava > water, etc
-	viscontents
-			= VisibleContents(p->nodes[0]->contents ^ p->nodes[1]->contents);
+	viscontents = VisibleContents(p->nodes[0]->contents ^ p->nodes[1]->contents);
 	if (!viscontents)
 		return;
 

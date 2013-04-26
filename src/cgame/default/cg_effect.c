@@ -44,7 +44,7 @@ void Cg_ResolveWeather(const char *weather) {
 	char *c;
 	int32_t err;
 
-	cgi.Debug("Cg_ResolveWeather: %s\n", weather);
+	cgi.Debug("%s\n", weather);
 
 	cgi.view->weather = WEATHER_NONE;
 	cgi.view->fog_color[3] = 1.0;
@@ -121,7 +121,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 	e->next = cg_weather_state.emits;
 	cg_weather_state.emits = e;
 
-	cgi.Debug("Cg_LoadWeather: %s: %d origins\n", vtos(s->center), e->num_origins);
+	cgi.Debug("%s: %d origins\n", vtos(s->center), e->num_origins);
 }
 
 /*
@@ -152,7 +152,7 @@ void Cg_LoadWeather(void) {
 		}
 	}
 
-	cgi.Debug("Cg_LoadWeather: %d emits\n", j);
+	cgi.Debug("%d emits\n", j);
 }
 
 /*

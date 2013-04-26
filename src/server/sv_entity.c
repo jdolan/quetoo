@@ -273,7 +273,7 @@ static byte *Sv_ClientPVS(const vec3_t org) {
 
 	count = Cm_BoxLeafnums(mins, maxs, leafs, 64, NULL);
 	if (count < 1) {
-		Com_Error(ERR_FATAL, "Sv_ClientPVS: count < 1.\n");
+		Com_Error(ERR_FATAL, "Bad leaf count\n");
 	}
 
 	longs = (Cm_NumClusters() + 31) >> 5;
@@ -390,7 +390,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		// add it to the circular entity_state_t array
 		state = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
 		if (ent->s.number != e) {
-			Com_Warn("Sv_BuildClientFrame: Fixing ent->s.number.\n");
+			Com_Warn("Fixing entity number\n");
 			ent->s.number = e;
 		}
 		*state = ent->s;

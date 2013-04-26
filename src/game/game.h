@@ -98,11 +98,12 @@ typedef struct g_import_s {
 	float frame_seconds; // seconds per frame
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
+	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 	void (*ClientPrint)(const g_edict_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-
-	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
 	// config_strings are used to transmit arbitrary tokens such
 	// as model names, skin names, team names, and weather effects

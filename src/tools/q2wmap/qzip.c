@@ -333,13 +333,13 @@ static bool DeflateAsset(zipFile zip_file, const char *filename) {
 	file_t *file;
 
 	if (!(file = Fs_OpenRead(filename))) {
-		Com_Warn("ZIP_DeflateFile: Failed to read %s\n", filename);
+		Com_Warn("Failed to read %s\n", filename);
 		return false;
 	}
 
 	if (zipOpenNewFileInZip(zip_file, filename, &zip_info, NULL, 0, NULL, 0, NULL, Z_DEFLATED,
 			Z_DEFAULT_COMPRESSION) != Z_OK) {
-		Com_Warn("ZIP_DeflateFile: Failed to write %s\n", filename);
+		Com_Warn("Failed to write %s\n", filename);
 		return false;
 	}
 
@@ -350,12 +350,12 @@ static bool DeflateAsset(zipFile zip_file, const char *filename) {
 		int64_t len = Fs_Read(file, buffer, 1, ZIP_BUFFER_SIZE);
 		if (len > 0) {
 			if (zipWriteInFileInZip(zip_file, buffer, len) != ZIP_OK) {
-				Com_Warn("ZIP_DeflateFile: Failed to deflate %s\n", filename);
+				Com_Warn("Failed to deflate %s\n", filename);
 				success = false;
 				break;
 			}
 		} else {
-			Com_Warn("ZIP_DeflateFile: Failed to buffer %s\n", filename);
+			Com_Warn("Failed to buffer %s\n", filename);
 			success = false;
 			break;
 		}

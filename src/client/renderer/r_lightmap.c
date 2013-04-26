@@ -31,10 +31,10 @@ typedef struct {
 	r_image_t *lightmap;
 	r_image_t *deluxemap;
 
-	r_pixel_t block_size;  // lightmap block size (NxN)
-	r_pixel_t *allocated;  // block availability
+	r_pixel_t block_size; // lightmap block size (NxN)
+	r_pixel_t *allocated; // block availability
 
-	byte *sample_buffer;  // RGB buffers for uploading
+	byte *sample_buffer; // RGB buffers for uploading
 	byte *direction_buffer;
 } r_lightmap_state_t;
 
@@ -88,6 +88,7 @@ static bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixel
 		for (j = 0; j < w; j++) {
 			if (r_lightmap_state.allocated[i + j] >= best)
 				break;
+
 			if (r_lightmap_state.allocated[i + j] > best2)
 				best2 = r_lightmap_state.allocated[i + j];
 		}
@@ -258,8 +259,7 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 		}
 
 		if (!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)) {
-			Com_Error(ERR_DROP, "R_CreateSurfaceLightmap: Consecutive calls to "
-				"R_AllocLightmapBlock(%d,%d) failed.", smax, tmax);
+			Com_Error(ERR_DROP, "Consecutive calls to R_AllocLightmapBlock failed");
 		}
 	}
 
@@ -293,6 +293,8 @@ void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 
 	// but clamp it to the card's capability to avoid errors
 	r_lightmap_state.block_size = Clamp(r_lightmap_state.block_size, 256, (r_pixel_t) max);
+
+	Com_Debug("Block size: %d (max: %d)\n", r_lightmap_state.block_size, max);
 
 	const r_pixel_t bs = r_lightmap_state.block_size;
 

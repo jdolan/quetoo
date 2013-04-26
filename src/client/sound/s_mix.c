@@ -177,7 +177,7 @@ void S_StartLocalSample(const char *name) {
 	sample = S_LoadSample(name);
 
 	if (!sample) {
-		Com_Warn("S_StartLocalSample: Failed to load %s.\n", name);
+		Com_Warn("Failed to load %s.\n", name);
 		return;
 	}
 

@@ -184,7 +184,7 @@ static void Con_Dump_f(void) {
 	}
 
 	if (!(file = Fs_OpenWrite(Cmd_Argv(1)))) {
-		Com_Warn("Couldn't open %s.\n", Cmd_Argv(1));
+		Com_Warn("Couldn't open %s\n", Cmd_Argv(1));
 	} else {
 		pos = console_data.text;
 		while (pos < console_data.insert) {

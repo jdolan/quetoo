@@ -56,7 +56,7 @@ winding_t *AllocWinding(int32_t points) {
  */
 void FreeWinding(winding_t *w) {
 	if (*(uint32_t *) w == 0xdeaddead)
-		Com_Error(ERR_FATAL, "FreeWinding: freed a freed winding\n");
+		Com_Error(ERR_FATAL, "Winding already freed\n");
 	*(uint32_t *) w = 0xdeaddead;
 
 	if (!threads->integer)
@@ -185,17 +185,17 @@ winding_t *BaseWindingForPlane(const vec3_t normal, const vec_t dist) {
 		}
 	}
 	if (x == -1)
-		Com_Error(ERR_FATAL, "BaseWindingForPlane: no axis found\n");
+		Com_Error(ERR_FATAL, "No axis found\n");
 
 	VectorCopy(vec3_origin, vup);
 	switch (x) {
-	case 0:
-	case 1:
-		vup[2] = 1;
-		break;
-	case 2:
-		vup[0] = 1;
-		break;
+		case 0:
+		case 1:
+			vup[2] = 1;
+			break;
+		case 2:
+			vup[0] = 1;
+			break;
 	}
 
 	v = DotProduct(vup, normal);
@@ -260,8 +260,8 @@ winding_t *ReverseWinding(winding_t *w) {
 /*
  * @brief
  */
-void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
-		vec_t epsilon, winding_t **front, winding_t **back) {
+void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t epsilon,
+		winding_t **front, winding_t **back) {
 	vec_t dists[MAX_POINTS_ON_WINDING + 4];
 	int32_t sides[MAX_POINTS_ON_WINDING + 4];
 	int32_t counts[SIDE_BOTH + 1];
@@ -350,17 +350,16 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 	}
 
 	if (f->numpoints > maxpts || b->numpoints > maxpts)
-		Com_Error(ERR_FATAL, "ClipWinding: points exceeded estimate\n");
-	if (f->numpoints > MAX_POINTS_ON_WINDING || b->numpoints
-			> MAX_POINTS_ON_WINDING)
-		Com_Error(ERR_FATAL, "ClipWinding: MAX_POINTS_ON_WINDING\n");
+		Com_Error(ERR_FATAL, "Points exceeded estimate\n");
+	if (f->numpoints > MAX_POINTS_ON_WINDING || b->numpoints > MAX_POINTS_ON_WINDING)
+		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
 }
 
 /*
  * @brief
  */
-void ChopWindingInPlace(winding_t **inout, const vec3_t normal,
-		const vec_t dist, const vec_t epsilon) {
+void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist,
+		const vec_t epsilon) {
 	winding_t *in;
 	vec_t dists[MAX_POINTS_ON_WINDING + 4];
 	int32_t sides[MAX_POINTS_ON_WINDING + 4];
@@ -440,9 +439,9 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal,
 	}
 
 	if (f->numpoints > maxpts)
-		Com_Error(ERR_FATAL, "ClipWinding: points exceeded estimate\n");
+		Com_Error(ERR_FATAL, "Points exceeded estimate\n");
 	if (f->numpoints > MAX_POINTS_ON_WINDING)
-		Com_Error(ERR_FATAL, "ClipWinding: MAX_POINTS_ON_WINDING\n");
+		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
 
 	FreeWinding(in);
 	*inout = f;

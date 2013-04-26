@@ -30,7 +30,7 @@ void R_AddLight(const r_light_t *l) {
 		return;
 
 	if (r_view.num_lights == MAX_LIGHTS) {
-		Com_Debug("R_AddLight: MAX_LIGHTS reached\n");
+		Com_Debug("MAX_LIGHTS reached\n");
 		return;
 	}
 
@@ -51,7 +51,7 @@ void R_AddSustainedLight(const r_sustained_light_t *s) {
 			break;
 
 	if (i == MAX_LIGHTS) {
-		Com_Debug("R_AddSustainedLight: MAX_LIGHTS reached\n");
+		Com_Debug("MAX_LIGHTS reached\n");
 		return;
 	}
 

@@ -70,7 +70,7 @@ void R_GetError_(const char *function, const char *msg) {
 
 		Sys_Backtrace();
 
-		Com_Warn("R_GetError: %s: %s: %s.\n", s, function, msg);
+		Com_Warn("%s: %s: %s.\n", s, function, msg);
 	}
 }
 

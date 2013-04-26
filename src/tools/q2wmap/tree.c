@@ -26,17 +26,17 @@ extern int32_t c_nodes;
 /*
  * @brief
  */
-void FreeTreePortals_r(node_t * node){
+void FreeTreePortals_r(node_t * node) {
 	portal_t *p, *nextp;
 	int32_t s;
 
 	// free children
-	if(node->plane_num != PLANENUM_LEAF){
+	if (node->plane_num != PLANENUM_LEAF) {
 		FreeTreePortals_r(node->children[0]);
 		FreeTreePortals_r(node->children[1]);
 	}
 	// free portals
-	for(p = node->portals; p; p = nextp){
+	for (p = node->portals; p; p = nextp) {
 		s = (p->nodes[1] == node);
 		nextp = p->next[s];
 
@@ -46,15 +46,14 @@ void FreeTreePortals_r(node_t * node){
 	node->portals = NULL;
 }
 
-
 /*
  * @brief
  */
-void FreeTree_r(node_t * node){
+void FreeTree_r(node_t * node) {
 	face_t *f, *nextf;
 
 	// free children
-	if(node->plane_num != PLANENUM_LEAF){
+	if (node->plane_num != PLANENUM_LEAF) {
 		FreeTree_r(node->children[0]);
 		FreeTree_r(node->children[1]);
 	}
@@ -62,25 +61,24 @@ void FreeTree_r(node_t * node){
 	FreeBrushList(node->brushes);
 
 	// free faces
-	for(f = node->faces; f; f = nextf){
+	for (f = node->faces; f; f = nextf) {
 		nextf = f->next;
 		FreeFace(f);
 	}
 
 	// free the node
-	if(node->volume)
+	if (node->volume)
 		FreeBrush(node->volume);
 
-	if(!threads->integer)
+	if (!threads->integer)
 		c_nodes--;
 	Z_Free(node);
 }
 
-
 /*
  * @brief
  */
-void FreeTree(tree_t * tree){
+void FreeTree(tree_t * tree) {
 	FreeTreePortals_r(tree->head_node);
 	FreeTree_r(tree->head_node);
 	Z_Free(tree);
@@ -97,33 +95,33 @@ int32_t c_pruned;
 /*
  * @brief
  */
-void PruneNodes_r(node_t * node){
+void PruneNodes_r(node_t * node) {
 	bsp_brush_t *b, *next;
 
-	if(node->plane_num == PLANENUM_LEAF)
+	if (node->plane_num == PLANENUM_LEAF)
 		return;
 	PruneNodes_r(node->children[0]);
 	PruneNodes_r(node->children[1]);
 
-	if((node->children[0]->contents & CONTENTS_SOLID)
-	        && (node->children[1]->contents & CONTENTS_SOLID)){
-		if(node->faces)
-			Com_Error(ERR_FATAL, "node->faces seperating CONTENTS_SOLID\n");
-		if(node->children[0]->faces || node->children[1]->faces)
-			Com_Error(ERR_FATAL, "!node->faces with children\n");
+	if ((node->children[0]->contents & CONTENTS_SOLID) && (node->children[1]->contents
+			& CONTENTS_SOLID)) {
+		if (node->faces)
+			Com_Error(ERR_FATAL, "Node faces separating CONTENTS_SOLID\n");
+		if (node->children[0]->faces || node->children[1]->faces)
+			Com_Error(ERR_FATAL, "Node has no faces but children do\n");
 
 		// FIXME: free stuff
 		node->plane_num = PLANENUM_LEAF;
 		node->contents = CONTENTS_SOLID;
 		node->detail_seperator = false;
 
-		if(node->brushes)
-			Com_Error(ERR_FATAL, "PruneNodes: node->brushlist\n");
+		if (node->brushes)
+			Com_Error(ERR_FATAL, "Node still references brushes\n");
 
 		// combine brush lists
 		node->brushes = node->children[1]->brushes;
 
-		for(b = node->children[0]->brushes; b; b = next){
+		for (b = node->children[0]->brushes; b; b = next) {
 			next = b->next;
 			b->next = node->brushes;
 			node->brushes = b;
@@ -133,8 +131,7 @@ void PruneNodes_r(node_t * node){
 	}
 }
 
-
-void PruneNodes(node_t * node){
+void PruneNodes(node_t * node) {
 	Com_Verbose("--- PruneNodes ---\n");
 	c_pruned = 0;
 	PruneNodes_r(node);

@@ -57,14 +57,23 @@ void Com_EndRedirect(void) {
 }
 
 /*
- * @brief Print a debug statement.
+ * @brief Print a debug statement. If the format begins with '!', the function
+ * name is omitted.
  */
-void Com_Debug(const char *fmt, ...) {
-	va_list args;
+void Com_Debug_(const char *func, const char *fmt, ...) {
 	char msg[MAX_PRINT_MSG];
 
+	if (fmt[0] != '!') {
+		g_snprintf(msg, sizeof(msg), "%s: ", func);
+	} else {
+		msg[0] = '\0';
+	}
+
+	const size_t len = strlen(msg);
+	va_list args;
+
 	va_start(args, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, args);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
 	if (quake2world.Debug)
@@ -76,12 +85,20 @@ void Com_Debug(const char *fmt, ...) {
 /*
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Error(err_t err, const char *fmt, ...) {
-	va_list args;
+void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	char msg[MAX_PRINT_MSG];
 
+	if (fmt[0] != '!') {
+		g_snprintf(msg, sizeof(msg), "%s: ", func);
+	} else {
+		msg[0] = '\0';
+	}
+
+	const size_t len = strlen(msg);
+	va_list args;
+
 	va_start(args, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, args);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
 	if (quake2world.Error)
@@ -119,14 +136,22 @@ void Com_Print(const char *fmt, ...) {
 }
 
 /*
- * @brief
+ * @brief Prints a warning message.
  */
-void Com_Warn(const char *fmt, ...) {
-	va_list args;
+void Com_Warn_(const char *func, const char *fmt, ...) {
 	static char msg[MAX_PRINT_MSG];
 
+	if (fmt[0] != '!') {
+		g_snprintf(msg, sizeof(msg), "%s: ", func);
+	} else {
+		msg[0] = '\0';
+	}
+
+	const size_t len = strlen(msg);
+	va_list args;
+
 	va_start(args, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, args);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
 	if (quake2world.Warn)
@@ -351,7 +376,7 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
 	b = Msg_ReadByte(sb);
 
 	if (b >= NUM_APPROXIMATE_NORMALS) {
-		Com_Error(ERR_DROP, "Msg_ReadDir: out of range.\n");
+		Com_Error(ERR_DROP, "%d out of range\n", b);
 	}
 
 	VectorCopy(approximate_normals[b], dir);
@@ -367,11 +392,11 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *
 	uint16_t bits = 0;
 
 	if (to->number <= 0) {
-		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Unset entity number.\n");
+		Com_Error(ERR_FATAL, "Unset entity number\n");
 	}
 
 	if (to->number >= MAX_EDICTS) {
-		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Entity number >= MAX_EDICTS.\n");
+		Com_Error(ERR_FATAL, "Entity number >= MAX_EDICTS\n");
 	}
 
 	if (!VectorCompare(to->origin, from->origin))
@@ -719,14 +744,14 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 
 	if (buf->size + length > buf->max_size) {
 		if (!buf->allow_overflow) {
-			Com_Error(ERR_FATAL, "Sb_GetSpace: Overflow without allow_overflow set.\n");
+			Com_Error(ERR_FATAL, "Overflow without allow_overflow set\n");
 		}
 
 		if (length > buf->max_size) {
-			Com_Error(ERR_FATAL, "Sb_GetSpace: %zu is > full buffer size.\n", length);
+			Com_Error(ERR_FATAL, "%zu is > full buffer size %zu\n", length, buf->max_size);
 		}
 
-		Com_Warn("Sb_GetSpace: overflow.\n");
+		Com_Warn("Overflow\n");
 		Sb_Clear(buf);
 		buf->overflowed = true;
 	}

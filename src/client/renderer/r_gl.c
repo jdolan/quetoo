@@ -83,7 +83,7 @@ void R_InitGlExtensions(void) {
 		qglActiveTexture = SDL_GL_GetProcAddress("glActiveTexture");
 		qglClientActiveTexture = SDL_GL_GetProcAddress("glClientActiveTexture");
 	} else
-		Com_Error(ERR_FATAL, "R_InitGlExtensions: GL_ARB_multitexture not found.\n");
+		Com_Error(ERR_FATAL, "GL_ARB_multitexture not found\n");
 
 	// vertex buffer objects
 	if (strstr(r_config.extensions_string, "GL_ARB_vertex_buffer_object")) {
@@ -92,7 +92,7 @@ void R_InitGlExtensions(void) {
 		qglBindBuffer = SDL_GL_GetProcAddress("glBindBuffer");
 		qglBufferData = SDL_GL_GetProcAddress("glBufferData");
 	} else
-		Com_Warn("R_InitGlExtensions: GL_ARB_vertex_buffer_object not found.\n");
+		Com_Warn("GL_ARB_vertex_buffer_object not found\n");
 
 	// glsl vertex and fragment shaders and programs
 	if (strstr(r_config.extensions_string, "GL_ARB_fragment_shader")) {
@@ -122,5 +122,5 @@ void R_InitGlExtensions(void) {
 		qglDisableVertexAttribArray = SDL_GL_GetProcAddress("glDisableVertexAttribArray");
 		qglVertexAttribPointer = SDL_GL_GetProcAddress("glVertexAttribPointer");
 	} else
-		Com_Warn("R_InitGlExtensions: GL_ARB_fragment_shader not found.\n");
+		Com_Warn("GL_ARB_fragment_shader not found\n");
 }

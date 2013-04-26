@@ -705,7 +705,7 @@ static void G_DropToFloor(g_edict_t *ent) {
 
 		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
 		if (tr.start_solid) {
-			gi.Debug("G_DropToFloor: %s start_solid at %s\n", ent->class_name, vtos(ent->s.origin));
+			gi.Debug("%s start_solid at %s\n", ent->class_name, vtos(ent->s.origin));
 			G_FreeEdict(ent);
 			return;
 		}
@@ -758,7 +758,7 @@ void G_PrecacheItem(const g_item_t *it) {
 
 		len = s - start;
 		if (len >= MAX_QPATH || len < 5)
-			gi.Error("G_PrecacheItem: %s has bad precache string.", it->class_name);
+			gi.Error("%s has bad precache string\n", it->class_name);
 		memcpy(data, start, len);
 		data[len] = '\0';
 		if (*s)
@@ -772,7 +772,7 @@ void G_PrecacheItem(const g_item_t *it) {
 		else if (!strcmp(data + len - 3, "tga") || !strcmp(data + len - 3, "png"))
 			gi.ImageIndex(data);
 		else
-			gi.Error("G_PrecacheItem: %s has unknown data type.", it->class_name);
+			gi.Error("%s has unknown data type\n", it->class_name);
 	}
 }
 

@@ -55,7 +55,7 @@ void G_target_speaker(g_edict_t *ent) {
 	char buffer[MAX_QPATH];
 
 	if (!g_game.spawn.noise) {
-		gi.Debug("target_speaker with no noise set at %s\n", vtos(ent->s.origin));
+		gi.Debug("No noise at %s\n", vtos(ent->s.origin));
 		return;
 	}
 

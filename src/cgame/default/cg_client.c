@@ -69,7 +69,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const
 	g_snprintf(path, sizeof(path), "%s_%s.skin", mod->media.name, skin);
 
 	if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
-		cgi.Debug("Cg_LoadClientSkins: %s not found\n", path);
+		cgi.Debug("%s not found\n", path);
 
 		skins[0] = NULL;
 		return;
@@ -100,7 +100,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (!skins[i]) {
-			cgi.Debug("Cg_LoadClientSkins: %s: %s has no skin\n", path, mesh->name);
+			cgi.Debug("%s: %s has no skin\n", path, mesh->name);
 
 			skins[0] = NULL;
 			break;
@@ -134,7 +134,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	char *u, *v;
 	int32_t i;
 
-	cgi.Debug("Cg_LoadClient: %s\n", s);
+	cgi.Debug("%s\n", s);
 
 	// copy the entire string
 	g_strlcpy(ci->info, s, sizeof(ci->info));
@@ -191,7 +191,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	if (!Cg_ValidateClient(ci)) {
 
 		if (!strcmp(s, DEFAULT_CLIENT_INFO)) {
-			cgi.Error("Cg_LoadClient: Failed to load default client info\n");
+			cgi.Error("Failed to load default client info\n");
 		}
 
 		// and if we weren't, use the default
@@ -257,16 +257,14 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 	e->back_lerp = 0.0;
 
 	if (a->animation > md3->num_animations) {
-		cgi.Warn("Cg_AnimateClientEntity_: Invalid animation: %s: %d\n", e->model->media.name,
-				a->animation);
+		cgi.Warn("Invalid animation: %s: %d\n", e->model->media.name, a->animation);
 		return;
 	}
 
 	const r_md3_animation_t *anim = &md3->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
-		cgi.Warn("Cg_AnimateClientEntity_: Bad animation sequence: %s: %d\n", e->model->media.name,
-				a->animation);
+		cgi.Warn("Bad animation sequence: %s: %d\n", e->model->media.name, a->animation);
 		return;
 	}
 
@@ -322,7 +320,7 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower
 
 	// do the torso animation
 	if (e->current.animation1 != e->prev.animation1 || !e->animation1.time) {
-		//cgi.Debug("torso: %d -> %d\n", e->current.animation1, e->prev.animation1);
+		//cgi.Debug("Torso: %d -> %d\n", e->current.animation1, e->prev.animation1);
 		e->animation1.animation = e->current.animation1 & ~ANIM_TOGGLE_BIT;
 		e->animation1.time = cgi.client->time;
 	}
@@ -331,7 +329,7 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower
 
 	// and then the legs
 	if (e->current.animation2 != e->prev.animation2 || !e->animation2.time) {
-		//cgi.Debug("legs: %d -> %d\n", e->current.animation2, e->prev.animation2);
+		//cgi.Debug("Legs: %d -> %d\n", e->current.animation2, e->prev.animation2);
 		e->animation2.animation = e->current.animation2 & ~ANIM_TOGGLE_BIT;
 		e->animation2.time = cgi.client->time;
 	}

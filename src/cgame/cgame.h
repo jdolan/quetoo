@@ -30,9 +30,9 @@
 typedef struct cg_import_s {
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Warn)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
+	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Warn_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
 	void *(*Malloc)(size_t size, z_tag_t tag);
 	void (*Free)(void *p);

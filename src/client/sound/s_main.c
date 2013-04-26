@@ -214,7 +214,7 @@ void S_Init(void) {
 	memset(&s_env, 0, sizeof(s_env));
 
 	if (Cvar_GetValue("s_disable")) {
-		Com_Warn("Sound disabled.\n");
+		Com_Warn("Sound disabled\n");
 		return;
 	}
 
@@ -224,29 +224,29 @@ void S_Init(void) {
 
 	if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
 		if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
-			Com_Warn("S_Init: %s.\n", SDL_GetError());
+			Com_Warn("%s\n", SDL_GetError());
 			return;
 		}
 	}
 
 	if (Mix_OpenAudio(s_rate->integer, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
-		Com_Warn("S_Init: %s\n", Mix_GetError());
+		Com_Warn("%s\n", Mix_GetError());
 		return;
 	}
 
 	if (Mix_QuerySpec(&freq, &format, &channels) == 0) {
-		Com_Warn("S_Init: %s\n", Mix_GetError());
+		Com_Warn("%s\n", Mix_GetError());
 		return;
 	}
 
 	if (Mix_AllocateChannels(MAX_CHANNELS) != MAX_CHANNELS) {
-		Com_Warn("S_Init: %s\n", Mix_GetError());
+		Com_Warn("%s\n", Mix_GetError());
 		return;
 	}
 
 	Mix_ChannelFinished(S_FreeChannel);
 
-	Com_Print("Sound initialized %dKHz %d channels.\n", freq, channels);
+	Com_Print("Sound initialized %dKHz %d channels\n", freq, channels);
 
 	s_env.initialized = true;
 

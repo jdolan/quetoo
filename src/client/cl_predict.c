@@ -68,7 +68,7 @@ void Cl_CheckPredictionError(void) {
 		VectorClear(cl.prediction_error);
 	} else { // save the prediction error for interpolation
 		if (error > 4.0) {
-			Com_Debug("Cl_CheckPredictionError: %s\n", vtos(delta));
+			Com_Debug("%s\n", vtos(delta));
 		}
 
 		VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame]);
@@ -189,7 +189,7 @@ void Cl_PredictMovement(void) {
 
 	// if we are too far out of date, just freeze
 	if (current - ack >= CMD_BACKUP) {
-		Com_Debug("Cl_PredictMovement: Exceeded CMD_BACKUP.\n");
+		Com_Debug("Exceeded CMD_BACKUP\n");
 		return;
 	}
 
@@ -251,7 +251,7 @@ void Cl_UpdatePrediction(void) {
 		Cm_LoadBsp(bsp_name, &bs);
 
 		if (bs != bsp_size) {
-			Com_Error(ERR_DROP, "Local map version differs from server: %i != %i.\n", bs, bsp_size);
+			Com_Error(ERR_DROP, "Local map version differs from server: %i != %i\n", bs, bsp_size);
 		}
 	}
 

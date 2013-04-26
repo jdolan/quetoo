@@ -109,8 +109,7 @@ void Cl_UpdateMedia(void) {
 
 	if ((r_view.update || s_env.update) && (cls.state == CL_ACTIVE && !cls.loading)) {
 
-		Com_Debug("Cl_UpdateMedia: %s %s\n", r_view.update ? "view" : "",
-				s_env.update ? "sound" : "");
+		Com_Debug("%s %s\n", r_view.update ? "view" : "", s_env.update ? "sound" : "");
 
 		cls.loading = 1;
 

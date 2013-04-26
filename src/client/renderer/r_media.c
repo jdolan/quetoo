@@ -55,16 +55,16 @@ void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 	if (dependent) {
 		if (dependency) {
 			if (!g_list_find(dependent->dependencies, dependency)) {
-				Com_Debug("R_RegisterDependency: %s -> %s.\n", dependent->name, dependency->name);
+				Com_Debug("%s -> %s\n", dependent->name, dependency->name);
 				dependent->dependencies = g_list_prepend(dependent->dependencies, dependency);
 
 				R_RegisterMedia(dependency);
 			}
 		} else {
-			Com_Debug("R_RegisterDependency: Invalid dependency for %s.\n", dependent->name);
+			Com_Debug("Invalid dependency for %s\n", dependent->name);
 		}
 	} else {
-		Com_Warn("R_RegisterDependency: Invalid dependent.\n");
+		Com_Warn("Invalid dependent\n");
 	}
 }
 
@@ -89,12 +89,12 @@ void R_RegisterMedia(r_media_t *media) {
 
 		if ((m = g_hash_table_lookup(r_media_state.media, media->name))) {
 			if (m != media) { // the old instance will eventually be freed
-				Com_Error(ERR_DROP, "R_RegisterMedia: Collision: %s.\n", media->name);
+				Com_Error(ERR_DROP, "Name collision: %s\n", media->name);
 			} else {
-				Com_Debug("R_RegisterMedia: Retaining %s.\n", media->name);
+				Com_Debug("Retaining %s\n", media->name);
 			}
 		} else {
-			Com_Debug("R_RegisterMedia: Inserting %s.\n", media->name);
+			Com_Debug("Inserting %s\n", media->name);
 			g_hash_table_insert(r_media_state.media, media->name, media);
 			r_media_state.keys = g_list_insert_sorted(r_media_state.keys, media, R_RegisterMedia_Compare);
 		}
@@ -142,7 +142,7 @@ r_media_t *R_FindMedia(const char *name) {
 r_media_t *R_MallocMedia(const char *name, size_t size) {
 
 	if (!name || !*name) {
-		Com_Error(ERR_DROP, "R_MallocMedia: NULL name\n");
+		Com_Error(ERR_DROP, "NULL name\n");
 	}
 
 	r_media_t *media = Z_TagMalloc(size, Z_TAG_RENDERER);
@@ -166,7 +166,7 @@ static gboolean R_FreeMedia_(gpointer key __attribute__((unused)), gpointer valu
 		}
 	}
 
-	Com_Debug("R_FreeMedia: Freeing %s\n", media->name);
+	Com_Debug("Freeing %s\n", media->name);
 
 	// ask the implementation to clean up
 	if (media->Free) {

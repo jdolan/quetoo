@@ -188,7 +188,7 @@ void Cl_Servers_f(void) {
 		return;
 	}
 
-	Com_Print("Refreshing servers.\n");
+	Com_Print("Refreshing servers\n");
 
 	addr.type = NA_IP;
 	addr.port = (uint16_t) BigShort(PORT_MASTER);
@@ -226,7 +226,7 @@ void Cl_ParseServersList(void) {
 		g_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
 
 		if (!Net_StringToNetaddr(s, &addr)) { // make sure it's valid
-			Com_Warn("Cl_ParseServersList: Invalid address: %s.\n", s);
+			Com_Warn("Invalid address: %s\n", s);
 			break;
 		}
 

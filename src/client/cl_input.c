@@ -116,7 +116,7 @@ static void Cl_KeyDown(cl_button_t *b) {
 	else if (!b->down[1])
 		b->down[1] = k;
 	else {
-		Com_Debug("Cl_KeyDown: 3 keys down for button\n");
+		Com_Debug("3 keys down for button\n");
 		return;
 	}
 

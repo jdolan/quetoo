@@ -171,11 +171,16 @@ void Com_PrintInfo(const char *s);
 
 void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize, void (*flush)(int, char*));
 void Com_EndRedirect(void);
-void Com_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Error(err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+
+void Com_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+#define Com_Debug(...) Com_Debug_(__func__, __VA_ARGS__)
+#define Com_Error(...) Com_Error_(__func__, __VA_ARGS__)
+#define Com_Warn(...) Com_Warn_(__func__, __VA_ARGS__)
 
 // subsystems
 #define Q2W_SERVER		0x1

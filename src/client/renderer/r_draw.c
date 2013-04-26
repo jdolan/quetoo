@@ -145,7 +145,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 		}
 
 		if (i == r_draw.num_fonts) {
-			Com_Warn("R_BindFont: Unknown font: %s\n", name);
+			Com_Warn("Unknown font: %s\n", name);
 		}
 	}
 
@@ -323,7 +323,7 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, f
 	byte color[4];
 
 	if (a > 1.0) {
-		Com_Warn("R_DrawFill: Bad alpha %f.\n", a);
+		Com_Warn("Bad alpha %f\n", a);
 		return;
 	}
 
@@ -394,7 +394,7 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 	byte color[4];
 
 	if (a > 1.0) {
-		Com_Warn("R_DrawLine: Bad alpha %f.\n", a);
+		Com_Warn("Bad alpha %f\n", a);
 		return;
 	}
 
@@ -477,7 +477,7 @@ void R_Draw2D(void) {
 static void R_InitFont(char *name) {
 
 	if (r_draw.num_fonts == MAX_FONTS) {
-		Com_Error(ERR_DROP, "R_InitFont: MAX_FONTS reached.\n");
+		Com_Error(ERR_DROP, "MAX_FONTS reached\n");
 		return;
 	}
 
@@ -490,7 +490,7 @@ static void R_InitFont(char *name) {
 	font->char_width = font->image->width / 16;
 	font->char_height = font->image->height / 8;
 
-	Com_Debug("R_InitFont: %s (%dx%d)\n", font->name, font->char_width, font->char_height);
+	Com_Debug("%s (%dx%d)\n", font->name, font->char_width, font->char_height);
 }
 
 /*

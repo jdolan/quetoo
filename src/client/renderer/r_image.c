@@ -49,7 +49,7 @@ static void R_TextureMode(void) {
 	}
 
 	if (i == lengthof(r_texture_modes)) {
-		Com_Warn("R_TextureMode: Bad filter name: %s\n", r_texture_mode->string);
+		Com_Warn("Bad filter name: %s\n", r_texture_mode->string);
 		return;
 	}
 
@@ -81,7 +81,7 @@ void R_Screenshot_f(void) {
 	}
 
 	if (i == MAX_SCREENSHOTS) {
-		Com_Warn("R_Screenshot_f: Failed to create %s\n", filename);
+		Com_Warn("Failed to create %s\n", filename);
 		return;
 	}
 
@@ -99,7 +99,7 @@ void R_Screenshot_f(void) {
 	if (Img_WriteJPEG(filename, buffer, width, height, quality)) {
 		Com_Print("Saved %s\n", Basename(filename));
 	} else {
-		Com_Warn("R_Screenshot_f: Failed to write %s\n", filename);
+		Com_Warn("Failed to write %s\n", filename);
 	}
 
 	Z_Free(buffer);
@@ -188,7 +188,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	if (!image || !data) {
-		Com_Error(ERR_DROP, "R_UploadImage: NULL image or data\n");
+		Com_Error(ERR_DROP, "NULL image or data\n");
 	}
 
 	if (!image->texnum) {
@@ -244,7 +244,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	char key[MAX_QPATH];
 
 	if (!name || !name[0]) {
-		Com_Error(ERR_DROP, "R_LoadImage: NULL name.\n");
+		Com_Error(ERR_DROP, "NULL name\n");
 	}
 
 	StripExtension(name, key);
@@ -270,7 +270,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			SDL_FreeSurface(surf);
 		} else {
-			Com_Debug("R_LoadImage: Couldn't load %s\n", key);
+			Com_Debug("Couldn't load %s\n", key);
 			image = r_image_state.null;
 		}
 	}

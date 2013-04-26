@@ -263,7 +263,7 @@ static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 				G_FreeEdict(other);
 		}
 
-		gi.Debug("hurt_touch: %s\n", other->class_name);
+		gi.Debug("%s\n", other->class_name);
 		return;
 	}
 
@@ -339,7 +339,7 @@ static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other __attribute__
 void G_trigger_exec(g_edict_t *self) {
 
 	if (!self->command && !self->script) {
-		gi.Debug("%s does not have a command or script", self->class_name);
+		gi.Debug("No command or script at %s", vtos(self->abs_mins));
 		G_FreeEdict(self);
 		return;
 	}

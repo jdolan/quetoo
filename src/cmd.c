@@ -262,14 +262,14 @@ void Cmd_TokenizeString(const char *text) {
 
 	// prevent overflows
 	if (strlen(text) >= MAX_STRING_CHARS) {
-		Com_Warn("Cmd_TokenizeString: MAX_STRING_CHARS exceeded\n");
+		Com_Warn("MAX_STRING_CHARS exceeded\n");
 		return;
 	}
 
 	while (true) {
 		// stop after we've exhausted our token buffer
 		if (cmd_state.args.argc == MAX_STRING_TOKENS) {
-			Com_Warn("Cmd_TokenizeString: MAX_STRING_TOKENS exceeded\n");
+			Com_Warn("MAX_STRING_TOKENS exceeded\n");
 			return;
 		}
 
@@ -332,7 +332,7 @@ void Cmd_Enumerate(cmd_enumerate_func func, void *data) {
 		if (cmd) {
 			func(cmd, data);
 		} else {
-			Com_Error(ERR_FATAL, "Cmd_Enumerate: Missing command: %s\n", (char *) key->data);
+			Com_Error(ERR_FATAL, "Missing command: %s\n", (char *) key->data);
 		}
 		key = key->next;
 	}
@@ -346,12 +346,12 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
 	cmd_t *cmd;
 
 	if (Cvar_Get(name, NULL, 0, NULL)) {
-		Com_Debug("Cmd_AddCommand: %s already defined as a var\n", name);
+		Com_Debug("%s already defined as a var\n", name);
 		return;
 	}
 
 	if (Cmd_Get(name)) {
-		Com_Debug("Cmd_AddCommand: %s already defined\n", name);
+		Com_Debug("%s already defined\n", name);
 		return;
 	}
 
@@ -378,12 +378,12 @@ static void Cmd_AddAlias(const char *name, const char *commands) {
 	cmd_t *cmd;
 
 	if (Cvar_Get(name, NULL, 0, NULL)) {
-		Com_Debug("Cmd_AddCommand: %s already defined as a var\n", name);
+		Com_Debug("%s already defined as a var\n", name);
 		return;
 	}
 
 	if (Cmd_Get(name)) {
-		Com_Debug("Cmd_AddCommand: %s already defined\n", name);
+		Com_Debug("%s already defined\n", name);
 		return;
 	}
 
@@ -451,7 +451,7 @@ void Cmd_ExecuteString(const char *text) {
 			cmd->function();
 		} else if (cmd->commands) {
 			if (++cmd_state.alias_loop_count == MAX_ALIAS_LOOP_COUNT) {
-				Com_Warn("Cmd_ExecuteString: ALIAS_LOOP_COUNT reached.\n");
+				Com_Warn("ALIAS_LOOP_COUNT reached\n");
 			} else {
 				Cbuf_InsertText(cmd->commands);
 			}

@@ -51,8 +51,9 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 		s = s->next;
 	}
 
-	if(!s)
+	if(!s) {
 		return;
+	}
 
 	// resolve flare color
 	if (s->flags & STAGE_COLOR)

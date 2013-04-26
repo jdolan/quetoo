@@ -88,7 +88,7 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 		r->intensity = intensity;
 
 		if (j == LIGHTING_MAX_BSP_LIGHT_REFS) {
-			Com_Debug("R_UpdateBspLightReferences: LIGHTING_MAX_BSP_LIGHT_REFS\n");
+			Com_Debug("LIGHTING_MAX_BSP_LIGHT_REFS reached\n");
 			break;
 		}
 	}

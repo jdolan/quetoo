@@ -40,7 +40,7 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, boo
 		return 0;
 
 	if (i == max) {
-		Com_Warn("Sv_FindIndex: max index reached.");
+		Com_Warn("Max index for %s reached\n", name);
 		return 0;
 	}
 
@@ -333,7 +333,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	Sb_Init(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
-	Com_Print("Server initialized.\n");
+	Com_Print("Server initialized\n");
 	Com_InitSubsystem(Q2W_SERVER);
 
 	svs.initialized = true;
@@ -356,7 +356,7 @@ void Sv_ShutdownServer(const char *msg) {
 
 	Sv_ClearState();
 
-	Com_Print("Server down.\n");
+	Com_Print("Server down\n");
 
 	svs.initialized = false;
 }

@@ -42,21 +42,21 @@ static bool endofscript;
 /*
  * @brief
  */
-static void AddScriptToStack(const char *file_name){
-	int32_t size;
+static void AddScriptToStack(const char *file_name) {
+	int64_t size;
 
 	script++;
-	if(script == &scriptstack[MAX_INCLUDES])
+	if (script == &scriptstack[MAX_INCLUDES])
 		Com_Error(ERR_FATAL, "Script file exceeded MAX_INCLUDES\n");
 
 	strcpy(script->file_name, file_name);
 
-	size = Fs_Load(script->file_name, (void **)(char *)&script->buffer);
+	size = Fs_Load(script->file_name, (void **) (char *) &script->buffer);
 
-	if(size == -1)
+	if (size == -1)
 		Com_Error(ERR_FATAL, "Could not load %s\n", script->file_name);
 
-	Com_Verbose("Loading %s (%d bytes)\n", script->file_name, size);
+	Com_Verbose("Loading %s (%lld bytes)\n", script->file_name, size);
 
 	script->line = 1;
 
@@ -64,26 +64,24 @@ static void AddScriptToStack(const char *file_name){
 	script->end_p = script->buffer + size;
 }
 
-
 /*
  * @brief
  */
-void LoadScriptFile(const char *file_name){
+void LoadScriptFile(const char *file_name) {
 	script = scriptstack;
 	AddScriptToStack(file_name);
 
 	endofscript = false;
 }
 
-
 /*
  * @brief
  */
-void ParseFromMemory(char *buffer, int32_t size){
+void ParseFromMemory(char *buffer, int32_t size) {
 	script = scriptstack;
 	script++;
-	if(script == &scriptstack[MAX_INCLUDES])
-		Com_Error(ERR_FATAL, "script file exceeded MAX_INCLUDES\n");
+	if (script == &scriptstack[MAX_INCLUDES])
+		Com_Error(ERR_FATAL, "Script file exceeded MAX_INCLUDES\n");
 	strcpy(script->file_name, "memory buffer");
 
 	script->buffer = buffer;
@@ -97,17 +95,17 @@ void ParseFromMemory(char *buffer, int32_t size){
 /*
  * @brief
  */
-static bool EndOfScript(bool crossline){
-	if(!crossline)
-		Com_Error(ERR_FATAL, "EndOfScript: Line %i is incomplete\n", scriptline);
+static bool EndOfScript(bool crossline) {
+	if (!crossline)
+		Com_Error(ERR_FATAL, "Line %i is incomplete\n", scriptline);
 
-	if(!strcmp(script->file_name, "memory buffer")){
+	if (!strcmp(script->file_name, "memory buffer")) {
 		endofscript = true;
 		return false;
 	}
 
 	Z_Free(script->buffer);
-	if(script == scriptstack + 1){
+	if (script == scriptstack + 1) {
 		endofscript = true;
 		return false;
 	}
@@ -117,50 +115,46 @@ static bool EndOfScript(bool crossline){
 	return GetToken(crossline);
 }
 
-
 /*
  * @brief
- */
-bool GetToken(bool crossline){
+ */bool GetToken(bool crossline) {
 	char *token_p;
 
-	if(script->script_p >= script->end_p)
+	if (script->script_p >= script->end_p)
 		return EndOfScript(crossline);
 
-// skip space
-skipspace:
-	while(script->script_p < script->end_p && *script->script_p <= 32){
-		if(script->script_p >= script->end_p)
+	// skip space
+	skipspace: while (script->script_p < script->end_p && *script->script_p <= 32) {
+		if (script->script_p >= script->end_p)
 			return EndOfScript(crossline);
-		if(*script->script_p++ == '\n'){
-			if(!crossline)
-				Com_Error(ERR_FATAL, "GetToken 0: Line %i is incomplete\n", scriptline);
+		if (*script->script_p++ == '\n') {
+			if (!crossline)
+				Com_Error(ERR_FATAL, "Line %i is incomplete (skip space)\n", scriptline);
 			scriptline = script->line++;
 		}
 	}
 
-	if(script->script_p >= script->end_p)
+	if (script->script_p >= script->end_p)
 		return EndOfScript(crossline);
 
 	// comments
-	if((script->script_p[0] == '/' && script->script_p[1] == '/') ||
-			script->script_p[0] == ';'){
-		if(!crossline)
-			Com_Error(ERR_FATAL, "GetToken 1: Line %i is incomplete\n", scriptline);
-		while(*script->script_p++ != '\n')
-			if(script->script_p >= script->end_p)
+	if ((script->script_p[0] == '/' && script->script_p[1] == '/') || script->script_p[0] == ';') {
+		if (!crossline)
+			Com_Error(ERR_FATAL, "Line %i is incomplete (// comments)\n", scriptline);
+		while (*script->script_p++ != '\n')
+			if (script->script_p >= script->end_p)
 				return EndOfScript(crossline);
 		goto skipspace;
 	}
 
 	// /* */ comments
-	if(script->script_p[0] == '/' && script->script_p[1] == '*'){
-		if(!crossline)
-			Com_Error(ERR_FATAL, "GetToken 2: Line %i is incomplete\n", scriptline);
-		script->script_p+=2;
-		while(script->script_p[0] != '*' && script->script_p[1] != '/'){
+	if (script->script_p[0] == '/' && script->script_p[1] == '*') {
+		if (!crossline)
+			Com_Error(ERR_FATAL, "Line %i is incomplete (/* comments */)\n", scriptline);
+		script->script_p += 2;
+		while (script->script_p[0] != '*' && script->script_p[1] != '/') {
 			script->script_p++;
-			if(script->script_p >= script->end_p)
+			if (script->script_p >= script->end_p)
 				return EndOfScript(crossline);
 		}
 		script->script_p += 2;
@@ -170,29 +164,30 @@ skipspace:
 	// copy token
 	token_p = token;
 
-	if(*script->script_p == '"'){
+	if (*script->script_p == '"') {
 		// quoted token
 		script->script_p++;
-		while(*script->script_p != '"'){
+		while (*script->script_p != '"') {
 			*token_p++ = *script->script_p++;
-			if(script->script_p == script->end_p)
+			if (script->script_p == script->end_p)
 				break;
-			if(token_p == &token[MAXTOKEN])
+			if (token_p == &token[MAXTOKEN])
 				Com_Error(ERR_FATAL, "Token too large on line %i\n", scriptline);
 		}
 		script->script_p++;
-	} else	// regular token
-		while(*script->script_p > 32 && *script->script_p != ';'){
+	} else
+		// regular token
+		while (*script->script_p > 32 && *script->script_p != ';') {
 			*token_p++ = *script->script_p++;
-			if(script->script_p == script->end_p)
+			if (script->script_p == script->end_p)
 				break;
-			if(token_p == &token[MAXTOKEN])
+			if (token_p == &token[MAXTOKEN])
 				Com_Error(ERR_FATAL, "Token too large on line %i\n", scriptline);
 		}
 
 	*token_p = 0;
 
-	if(!strcmp(token, "$include")){
+	if (!strcmp(token, "$include")) {
 		GetToken(false);
 		AddScriptToStack(token);
 		return GetToken(crossline);
@@ -201,30 +196,28 @@ skipspace:
 	return true;
 }
 
-
 /*
  * @brief
- */
-bool TokenAvailable(void){
+ */bool TokenAvailable(void) {
 	char *search_p;
 
 	search_p = script->script_p;
 
-	if(search_p >= script->end_p)
+	if (search_p >= script->end_p)
 		return false;
 
-	while(*search_p <= 32){
+	while (*search_p <= 32) {
 
-		if(*search_p == '\n')
+		if (*search_p == '\n')
 			return false;
 
 		search_p++;
 
-		if(search_p == script->end_p)
+		if (search_p == script->end_p)
 			return false;
 	}
 
-	if(*search_p == ';')
+	if (*search_p == ';')
 		return false;
 
 	return true;

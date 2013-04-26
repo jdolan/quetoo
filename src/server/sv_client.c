@@ -28,10 +28,10 @@
 static void Sv_New_f(void) {
 	int32_t player_num;
 
-	Com_Debug("New() from %s\n", Sv_NetaddrToString(sv_client));
+	Com_Debug("%s\n", Sv_NetaddrToString(sv_client));
 
 	if (sv_client->state != SV_CLIENT_CONNECTED) {
-		Com_Warn("Sv_New_f: %s already spawned\n", Sv_NetaddrToString(sv_client));
+		Com_Warn("%s already spawned\n", Sv_NetaddrToString(sv_client));
 		return;
 	}
 
@@ -65,16 +65,16 @@ static void Sv_New_f(void) {
 static void Sv_ConfigStrings_f(void) {
 	uint32_t start;
 
-	Com_Debug("ConfigStrings() from %s\n", Sv_NetaddrToString(sv_client));
+	Com_Debug("%s\n", Sv_NetaddrToString(sv_client));
 
 	if (sv_client->state != SV_CLIENT_CONNECTED) {
-		Com_Warn("Sv_ConfigStrings_f: %s already spawned\n", Sv_NetaddrToString(sv_client));
+		Com_Warn("%s already spawned\n", Sv_NetaddrToString(sv_client));
 		return;
 	}
 
 	// handle the case of a level changing while a client was connecting
 	if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawn_count) {
-		Com_Debug("Sv_ConfigStrings_f: Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Debug("Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
@@ -82,8 +82,7 @@ static void Sv_ConfigStrings_f(void) {
 	start = strtoul(Cmd_Argv(2), NULL, 0);
 
 	if (start >= MAX_CONFIG_STRINGS) { // catch bad offsets
-		Com_Warn("Sv_ConfigStrings_f: Bad config_string offset from %s\n",
-				Sv_NetaddrToString(sv_client));
+		Com_Warn("Bad offset from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -117,16 +116,16 @@ static void Sv_Baselines_f(void) {
 	entity_state_t nullstate;
 	entity_state_t *base;
 
-	Com_Debug("Baselines() from %s\n", Sv_NetaddrToString(sv_client));
+	Com_Debug("%s\n", Sv_NetaddrToString(sv_client));
 
 	if (sv_client->state != SV_CLIENT_CONNECTED) {
-		Com_Warn("Sv_Baselines_f: %s already spawned\n", Sv_NetaddrToString(sv_client));
+		Com_Warn("%s already spawned\n", Sv_NetaddrToString(sv_client));
 		return;
 	}
 
 	// handle the case of a level changing while a client was connecting
 	if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawn_count) {
-		Com_Debug("Sv_Baselines_f: Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Debug("Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
@@ -161,10 +160,10 @@ static void Sv_Baselines_f(void) {
  */
 static void Sv_Begin_f(void) {
 
-	Com_Debug("Begin() from %s\n", Sv_NetaddrToString(sv_client));
+	Com_Debug("%s\n", Sv_NetaddrToString(sv_client));
 
 	if (sv_client->state != SV_CLIENT_CONNECTED) { // catch duplicate spawns
-		Com_Warn("Sv_Begin_f: Invalid Begin() from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Warn("Invalid begin from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -174,7 +173,7 @@ static void Sv_Begin_f(void) {
 
 	// handle the case of a level changing while a client was connecting
 	if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawn_count) {
-		Com_Debug("Sv_Begin_f: Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Debug("Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
@@ -215,7 +214,7 @@ static void Sv_NextDownload_f(void) {
 	download->count += len;
 
 	if (download->count == download->size) {
-		Com_Debug("Sv_NextDownload: Finished download to %s\n", Sv_NetaddrToString(sv_client));
+		Com_Debug("Finished download to %s\n", Sv_NetaddrToString(sv_client));
 
 		Fs_Free(download->buffer);
 		download->buffer = NULL;
@@ -234,7 +233,7 @@ static void Sv_Download_f(void) {
 
 	// catch illegal offset or file_names
 	if (IS_INVALID_DOWNLOAD(filename)) {
-		Com_Warn("Sv_Download_f: Malicious download (%s) from %s\n", filename,
+		Com_Warn("Malicious download (%s) from %s\n", filename,
 				Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
@@ -248,7 +247,7 @@ static void Sv_Download_f(void) {
 	}
 
 	if (!pattern) { // it wasn't
-		Com_Warn("Sv_Download_f: Illegal download (%s) from %s\n", filename,
+		Com_Warn("Illegal download (%s) from %s\n", filename,
 				Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
@@ -273,7 +272,7 @@ static void Sv_Download_f(void) {
 	download->size = (int32_t) Fs_Load(filename, (void *) &download->buffer);
 
 	if (download->size == -1) {
-		Com_Warn("Sv_Download_f: Couldn't download %s to %s\n", filename,
+		Com_Warn("Couldn't download %s to %s\n", filename,
 				Sv_NetaddrToString(sv_client));
 		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_DOWNLOAD);
 		Msg_WriteShort(&sv_client->netchan.message, -1);
@@ -284,7 +283,7 @@ static void Sv_Download_f(void) {
 	if (Cmd_Argc() > 2) {
 		download->count = strtol(Cmd_Argv(2), NULL, 0);
 		if (download->count < 0 || download->count > download->size) {
-			Com_Warn("Sv_Download_f: Invalid offset (%d) from %s\n", download->count,
+			Com_Warn("Invalid offset (%d) from %s\n", download->count,
 					Sv_NetaddrToString(sv_client));
 			download->count = download->size;
 		}
@@ -352,7 +351,7 @@ static void Sv_UserStringCommand(const char *s) {
 	Cmd_TokenizeString(s);
 
 	if (strchr(s, '\xFF')) { // catch end of message exploit
-		Com_Warn("Sv_ExecuteUserCommand: Illegal command from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Warn("Illegal command from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -406,7 +405,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 	while (true) {
 
 		if (net_message.read > net_message.size) {
-			Com_Warn("Sv_ParseClientMessage: Bad read from %s\n", Sv_NetaddrToString(sv_client));
+			Com_Warn("Bad read from %s\n", Sv_NetaddrToString(sv_client));
 			Sv_DropClient(cl);
 			return;
 		}
@@ -471,8 +470,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 				if (++strings_issued < CMD_MAX_STRINGS)
 					Sv_UserStringCommand(s);
 				else {
-					Com_Warn("Sv_ParseClientMessage: CMD_MAX_STRINGS exceeded for %s\n",
-							Sv_NetaddrToString(cl));
+					Com_Warn("CMD_MAX_STRINGS exceeded for %s\n", Sv_NetaddrToString(cl));
 					Sv_KickClient(cl, "Too many commands.");
 					return;
 				}
