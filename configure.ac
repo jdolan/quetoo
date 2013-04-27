@@ -1,6 +1,6 @@
 AC_PREREQ(2.56)
 
-AC_INIT(quake2world, 0.1.0, quake2@jdolan.dyndns.org)
+AC_INIT(quake2world, 0.1.0, jay@jaydolan.com)
 
 AC_CONFIG_AUX_DIR(.)
 AC_CONFIG_MACRO_DIR(m4)
