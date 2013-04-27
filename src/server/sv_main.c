@@ -353,7 +353,7 @@ static bool Sv_RconAuthenticate(void) {
 static void Svc_RemoteCommand(void) {
 	const bool auth = Sv_RconAuthenticate();
 
-	// first print32_t to the server console
+	// first print to the server console
 	if (auth)
 		Com_Print("Rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
 	else
@@ -776,7 +776,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 			cl->rate = CLIENT_RATE_MIN;
 	}
 
-	// limit the print32_t messages the client receives
+	// limit the print messages the client receives
 	val = GetUserInfo(cl->user_info, "message_level");
 	if (*val != '\0') {
 		cl->message_level = atoi(val);

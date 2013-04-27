@@ -384,7 +384,7 @@ static void Cl_ConnectionlessPacket(void) {
 		return;
 	}
 
-	// print32_t command from somewhere
+	// print command from somewhere
 	if (!strcmp(c, "print")) {
 		s = Msg_ReadString(&net_message);
 		Com_Print("%s", s);

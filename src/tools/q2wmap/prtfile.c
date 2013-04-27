@@ -219,4 +219,6 @@ void WritePortalFile(tree_t *tree) {
 	// issues made us do this after writebsp...
 	clusterleaf = 1;
 	SaveClusters_r(head_node);
+
+	Com_Verbose("--- WritePortalFile complete ---\n");
 }

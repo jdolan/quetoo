@@ -552,7 +552,7 @@ static void G_Say_f(g_edict_t *ent) {
 		}
 	}
 
-	if (dedicated->value) { // print32_t to the console
+	if (dedicated->value) { // print to the console
 		if (team)
 			gi.Print("%s", text);
 		else

@@ -216,7 +216,7 @@ void Sys_Quit(void) {
 }
 
 /*
- * @brief On platforms supporting it, print32_t a backtrace.
+ * @brief On platforms supporting it, print a backtrace.
  */
 void Sys_Backtrace(void) {
 #ifdef HAVE_EXECINFO

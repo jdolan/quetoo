@@ -71,7 +71,7 @@ static HANDLE Console; //windows console
 static FILE *output_file; //file output
 #define HORIZONTAL	45							//console size and buffer
 #define VERTICAL		70						//console size and buffer
-static int32_t input_index_h, input_index_v; //pdcurses print32_t location
+static int32_t input_index_h, input_index_v; //pdcurses print location
 static char title[64]; //window bar title (updates to show status)
 
 #ifdef HAVE_CURSES
@@ -214,7 +214,7 @@ static void Print(const char *msg) {
 				else
 				attroff(COLOR_PAIR(3)); // turn off attributes
 
-				// finally print32_t our processed character on the console
+				// finally print our processed character on the console
 				mvwprintw(stdscr, input_index_h, input_index_v, copymsg);
 				refresh();
 
@@ -558,7 +558,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	Com_Print("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
-	if (argc < 2) { // print32_t help and exit
+	if (argc < 2) { // print help and exit
 		PrintHelpMessage();
 		return 0;
 	}
@@ -567,11 +567,11 @@ int32_t main(int32_t argc, char **argv) {
 
 	Z_Init();
 
+	Fs_Init();
+
 	Cmd_Init();
 
 	Cvar_Init();
-
-	Fs_Init();
 
 	// general options
 	for (i = 1; i < argc; i++) {
@@ -672,11 +672,11 @@ int32_t main(int32_t argc, char **argv) {
 
 	Thread_Shutdown();
 
-	Fs_Shutdown();
-
 	Cvar_Shutdown();
 
 	Cmd_Shutdown();
+
+	Fs_Shutdown();
 
 	Z_Shutdown();
 

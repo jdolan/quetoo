@@ -79,9 +79,12 @@ void FreeTree_r(node_t * node) {
  * @brief
  */
 void FreeTree(tree_t * tree) {
+
+	Com_Verbose("--- FreeTree ---\n");
 	FreeTreePortals_r(tree->head_node);
 	FreeTree_r(tree->head_node);
 	Z_Free(tree);
+	Com_Verbose("--- FreeTree complete ---\n");
 }
 
 /*

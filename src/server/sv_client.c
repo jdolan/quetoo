@@ -316,7 +316,7 @@ static void Sv_Info_f_enumerate(cvar_t *var, void *data) {
  */
 static void Sv_Info_f(void) {
 
-	if (!sv_client) { // print32_t to server console
+	if (!sv_client) { // print to server console
 		Com_PrintInfo(Cvar_ServerInfo());
 		return;
 	}

@@ -542,7 +542,7 @@ static side_t *SelectSplitSide(bsp_brush_t * brushes, node_t * node) {
 					value += 5; // axial is better
 				value -= epsilonbrush * 1000; // avoid!
 
-				// never split a hint32_t side except with another hint
+				// never split a hint side except with another hint
 				if (hintsplit && !(side->surf & SURF_HINT))
 					value = -9999999;
 

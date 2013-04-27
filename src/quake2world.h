@@ -77,7 +77,7 @@ typedef unsigned char byte;
 #define MAX_IMAGES			256 // that the server knows about
 #define MAX_ITEMS			64 // pickup items
 #define MAX_GENERAL			256 // general config strings
-// print32_t levels
+// print levels
 #define PRINT_LOW			0 // pickup messages
 #define PRINT_MEDIUM		1 // death messages
 #define PRINT_HIGH			2 // critical messages

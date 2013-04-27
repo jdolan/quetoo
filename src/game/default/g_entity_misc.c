@@ -111,7 +111,7 @@ void G_misc_teleporter(g_edict_t *ent) {
 }
 
 /*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
- Point32_t teleporters at these.
+ Point teleporters at these.
  */
 void G_misc_teleporter_dest(g_edict_t *ent) {
 	G_ProjectSpawn(ent);
