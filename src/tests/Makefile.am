@@ -25,8 +25,18 @@ libtests_la_SOURCES = \
 libtests_la_CFLAGS = \
 	$(TESTS_CFLAGS)
 
-TESTS = check_filesystem check_mem check_r_media		
+TESTS = check_cvar check_filesystem check_mem check_r_media		
 noinst_PROGRAMS = $(TESTS)
+
+check_cvar_SOURCES = \
+	check_cvar.c \
+	../cmd.c \
+	../cvar.c
+check_cvar_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_cvar_LDADD = \
+	$(TESTS_LIBS) \
+	../libfilesystem.la
 
 check_filesystem_SOURCES = \
 	check_filesystem.c
@@ -47,7 +57,6 @@ check_mem_LDADD = \
 check_r_media_SOURCES = \
 	check_r_media.c \
 	../client/renderer/r_media.c
-
 check_r_media_CFLAGS = \
 	-I../client/renderer \
 	$(TESTS_CFLAGS) \
