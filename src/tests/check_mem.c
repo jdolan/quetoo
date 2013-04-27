@@ -53,7 +53,7 @@ START_TEST(check_mem_LinkMalloc)
 
 		ck_assert(Z_Size() == 3);
 
-		Z_Link(child1, grandchild1);
+		Z_Link(grandchild1, child1);
 
 		Z_Free(parent);
 

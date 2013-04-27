@@ -357,12 +357,12 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
 
 	cmd = Z_Malloc(sizeof(*cmd));
 
-	cmd->name = Z_Link(cmd, Z_CopyString(name));
+	cmd->name = Z_Link(Z_CopyString(name), cmd);
 	cmd->function = function;
 	cmd->flags = flags;
 
 	if (description) {
-		cmd->description = Z_Link(cmd, Z_CopyString(description));
+		cmd->description = Z_Link(Z_CopyString(description), cmd);
 	}
 
 	gpointer key = (gpointer) name;
@@ -389,8 +389,8 @@ static void Cmd_AddAlias(const char *name, const char *commands) {
 
 	cmd = Z_Malloc(sizeof(*cmd));
 
-	cmd->name = Z_Link(cmd, Z_CopyString(name));
-	cmd->commands = Z_Link(cmd, Z_CopyString(commands));
+	cmd->name = Z_Link(Z_CopyString(name), cmd);
+	cmd->commands = Z_Link(Z_CopyString(commands), cmd);
 
 	g_hash_table_insert(cmd_state.commands, (gpointer *) name, cmd);
 }

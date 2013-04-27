@@ -154,16 +154,16 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 
 	var = Z_Malloc(sizeof(*var));
 
-	var->name = Z_Link(var, Z_CopyString(name));
-	var->default_value = Z_Link(var, Z_CopyString(value));
-	var->string = Z_Link(var, Z_CopyString(value));
+	var->name = Z_Link(Z_CopyString(name), var);
+	var->default_value = Z_Link(Z_CopyString(value), var);
+	var->string = Z_Link(Z_CopyString(value), var);
 	var->modified = true;
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
 	var->flags = flags;
 
 	if (description) {
-		var->description = Z_Link(var, Z_CopyString(description));
+		var->description = Z_Link(Z_CopyString(description), var);
 	}
 
 	gpointer key = (gpointer) var->name;
@@ -200,6 +200,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 				return var;
 			}
 		}
+
 		if (var->flags & CVAR_NO_SET) {
 			Com_Print("%s is write protected.\n", name);
 			return var;
@@ -217,11 +218,11 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 
 			if (Com_WasInit(Q2W_SERVER)) {
 				Com_Print("%s will be changed for next game.\n", name);
-				var->latched_string = Z_Link(var, Z_CopyString(value));
+				var->latched_string = Z_Link(Z_CopyString(value), var);
 			} else {
 				if (var->string)
 					Z_Free(var->string);
-				var->string = Z_Link(var, Z_CopyString(value));
+				var->string = Z_Link(Z_CopyString(value), var);
 				var->value = atof(var->string);
 				var->integer = atoi(var->string);
 			}
@@ -250,7 +251,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 
 	Z_Free(var->string); // free the old value string
 
-	var->string = Z_Link(var, Z_CopyString(value));
+	var->string = Z_Link(Z_CopyString(value), var);
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
 
@@ -289,7 +290,7 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 
 	Z_Free(var->string); // free the old value string
 
-	var->string = Z_Link(var, Z_CopyString(value));
+	var->string = Z_Link(Z_CopyString(value), var);
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
 	var->flags = flags;
@@ -366,8 +367,7 @@ static void Cvar_PendingLatchedVars_enumerate(cvar_t *var, void *data) {
 
 /*
  * @brief Returns true if there are any CVAR_LATCH variables pending.
- */
-bool Cvar_PendingLatchedVars(void) {
+ */bool Cvar_PendingLatchedVars(void) {
 	bool pending = false;
 
 	Cvar_Enumerate(Cvar_PendingLatchedVars_enumerate, (void *) &pending);
@@ -421,8 +421,7 @@ static void Cvar_PendingVars_enumerate(cvar_t *var, void *data) {
 
 /*
  * @brief Returns true if any variables whose flags match the specified mask are pending.
- */
-bool Cvar_PendingVars(uint32_t flags) {
+ */bool Cvar_PendingVars(uint32_t flags) {
 	cvar_pending_vars = false;
 
 	Cvar_Enumerate(Cvar_PendingVars_enumerate, (void *) &flags);
@@ -450,8 +449,7 @@ void Cvar_ClearVars(uint32_t flags) {
 
 /*
  * @brief Handles variable inspection and changing from the console
- */
-bool Cvar_Command(void) {
+ */bool Cvar_Command(void) {
 	cvar_t *var;
 
 	// check variables

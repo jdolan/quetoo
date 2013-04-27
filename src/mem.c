@@ -213,11 +213,14 @@ void *Z_Malloc(size_t size) {
  * @brief Links the specified child to the given parent. The child will
  * subsequently be freed with the parent.
  *
+ * @param child The child object, previously allocated with Z_Malloc.
+ * @param parent The parent object, previously allocated with Z_Malloc.
+ *
  * @return The child, for convenience.
  */
-void *Z_Link(void *parent, void *child) {
-	z_block_t *p = Z_CheckMagic(parent);
+void *Z_Link(void *child, void *parent) {
 	z_block_t *c = Z_CheckMagic(child);
+	z_block_t *p = Z_CheckMagic(parent);
 
 	SDL_mutexP(z_state.lock);
 

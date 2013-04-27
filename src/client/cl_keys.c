@@ -548,10 +548,10 @@ void Cl_InitKeys(void) {
 	cl_key_names = Z_TagMalloc(SDLK_MLAST * sizeof (char *), Z_TAG_CLIENT);
 
 	for (k = SDLK_FIRST; k < SDLK_LAST; k++) {
-		cl_key_names[k] = Z_Link(cl_key_names, Z_CopyString(SDL_GetKeyName(k)));
+		cl_key_names[k] = Z_Link(Z_CopyString(SDL_GetKeyName(k)), cl_key_names);
 	}
 	for (k = SDLK_MOUSE1; k < SDLK_MLAST; k++) {
-		cl_key_names[k] = Z_Link(cl_key_names, Z_CopyString(va("mouse %d", k - SDLK_MOUSE1 + 1)));
+		cl_key_names[k] = Z_Link(Z_CopyString(va("mouse %d", k - SDLK_MOUSE1 + 1)), cl_key_names);
 	}
 
 	memset(ks, 0, sizeof(cl_key_state_t));
