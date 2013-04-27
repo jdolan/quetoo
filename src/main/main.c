@@ -168,7 +168,7 @@ static void Init(int32_t argc, char **argv) {
 	 */
 	Cbuf_AddEarlyCommands(false);
 
-	Fs_Init(argv[0]);
+	Fs_Init();
 
 	Cbuf_AddEarlyCommands(true);
 

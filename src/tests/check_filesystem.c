@@ -22,8 +22,6 @@
 #include "tests.h"
 #include "filesystem.h"
 
-static char *argv0;
-
 /*
  * @brief Setup fixture.
  */
@@ -31,7 +29,7 @@ void setup(void) {
 
 	Z_Init();
 
-	Fs_Init(argv0);
+	Fs_Init();
 }
 
 /*
@@ -44,7 +42,7 @@ void teardown(void) {
 	Z_Shutdown();
 }
 
-START_TEST(check_filesystem_Fs_OpenRead)
+START_TEST(check_Fs_OpenRead)
 	{
 		const char *filenames[] = { "quake2world.cfg", "maps/torn.bsp", NULL };
 
@@ -61,7 +59,7 @@ START_TEST(check_filesystem_Fs_OpenRead)
 		}
 	}END_TEST
 
-START_TEST(check_filesystem_Fs_OpenWrite)
+START_TEST(check_Fs_OpenWrite)
 	{
 		file_t *f = Fs_OpenWrite(__func__);
 
@@ -75,7 +73,7 @@ START_TEST(check_filesystem_Fs_OpenWrite)
 
 	}END_TEST
 
-START_TEST(check_filesystem_Fs_LoadFile)
+START_TEST(check_Fs_LoadFile)
 	{
 		void *buffer;
 		int64_t len = Fs_Load("quake2world.cfg", &buffer);
@@ -99,9 +97,9 @@ int32_t main(int32_t argc, char **argv) {
 	TCase *tcase = tcase_create("check_filesystem");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
-	tcase_add_test(tcase, check_filesystem_Fs_OpenRead);
-	tcase_add_test(tcase, check_filesystem_Fs_OpenWrite);
-	tcase_add_test(tcase, check_filesystem_Fs_LoadFile);
+	tcase_add_test(tcase, check_Fs_OpenRead);
+	tcase_add_test(tcase, check_Fs_OpenWrite);
+	tcase_add_test(tcase, check_Fs_LoadFile);
 
 	Suite *suite = suite_create("check_filesystem");
 	suite_add_tcase(suite, tcase);

@@ -478,11 +478,11 @@ const char *Fs_RealDir(const char *filename) {
 /*
  * @brief Initializes the file subsystem.
  */
-void Fs_Init(const char *argv0) {
+void Fs_Init(void) {
 
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
-	if (PHYSFS_init(argv0) == 0) {
+	if (PHYSFS_init(quake2world.argv[0]) == 0) {
 		Com_Error(ERR_FATAL, "%s\n", PHYSFS_getLastError());
 	}
 

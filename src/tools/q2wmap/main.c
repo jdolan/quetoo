@@ -571,7 +571,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	Cvar_Init();
 
-	Fs_Init(argv[0]);
+	Fs_Init();
 
 	// general options
 	for (i = 1; i < argc; i++) {

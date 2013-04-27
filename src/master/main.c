@@ -347,7 +347,7 @@ int32_t main(int32_t argc __attribute__((unused)), char **argv) {
 
 	Z_Init();
 
-	Fs_Init(argv[0]);
+	Fs_Init();
 
 	ms_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
