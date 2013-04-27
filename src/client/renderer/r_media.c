@@ -71,8 +71,8 @@ void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 /*
  * @brief GCompareFunc for R_RegisterMedia. Sorts media by name.
  */
-static int32_t R_RegisterMedia_Compare(gconstpointer m1, gconstpointer m2) {
-	return strcmp(((r_media_t *) m1)->name, ((r_media_t *) m2)->name);
+static int32_t R_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2) {
+	return strcmp((const char *) name1, (const char *) name2);
 }
 
 static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
@@ -96,7 +96,7 @@ void R_RegisterMedia(r_media_t *media) {
 		} else {
 			Com_Debug("Inserting %s\n", media->name);
 			g_hash_table_insert(r_media_state.media, media->name, media);
-			r_media_state.keys = g_list_insert_sorted(r_media_state.keys, media, R_RegisterMedia_Compare);
+			r_media_state.keys = g_list_insert_sorted(r_media_state.keys, media->name, R_RegisterMedia_Compare);
 		}
 
 		// re-seed the media to retain it
@@ -157,7 +157,7 @@ r_media_t *R_MallocMedia(const char *name, size_t size) {
  * always freed. Otherwise, only media with stale seed values and no explicit
  * retainment are released.
  */
-static gboolean R_FreeMedia_(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
+static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 	r_media_t *media = (r_media_t *) value;
 
 	if (!data) { // see if the media should be freed
@@ -174,7 +174,7 @@ static gboolean R_FreeMedia_(gpointer key __attribute__((unused)), gpointer valu
 	}
 
 	g_list_free(media->dependencies);
-	r_media_state.keys = g_list_remove(r_media_state.keys, value);
+	r_media_state.keys = g_list_remove(r_media_state.keys, key);
 
 	return true;
 }

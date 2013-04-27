@@ -504,7 +504,7 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 	}
 
 	StripExtension(diffuse, base);
-	g_snprintf(key, sizeof(key), "%s.mat", base);
+	g_snprintf(key, sizeof(key), "%s_mat", base);
 
 	if (!(mat = (r_material_t *) R_FindMedia(key))) {
 		mat = (r_material_t *) R_MallocMedia(key, sizeof(r_material_t));

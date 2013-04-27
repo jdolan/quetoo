@@ -49,8 +49,8 @@ void S_ListMedia_f(void) {
 /*
  * @brief GCompareFunc for S_RegisterMedia. Sorts media by name.
  */
-static int32_t S_RegisterMedia_Compare(gconstpointer m1, gconstpointer m2) {
-	return strcmp(((s_media_t *) m1)->name, ((s_media_t *) m2)->name);
+static int32_t S_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2) {
+	return strcmp((const char *) name1, (const char *) name2);
 }
 
 static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data);
@@ -73,7 +73,7 @@ void S_RegisterMedia(s_media_t *media) {
 		} else {
 			Com_Debug("Inserting %s\n", media->name);
 			g_hash_table_insert(s_media_state.media, media->name, media);
-			s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media, S_RegisterMedia_Compare);
+			s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name, S_RegisterMedia_Compare);
 		}
 
 		// re-seed the media to retain it
@@ -122,7 +122,7 @@ s_media_t *S_MallocMedia(const char *name, size_t size) {
  * always freed. Otherwise, only media with stale seed values and no explicit
  * retainment are released.
  */
-static gboolean S_FreeMedia_(gpointer key __attribute__((unused)), gpointer value, gpointer data) {
+static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 	s_media_t *media = (s_media_t *) value;
 
 	if (!data) { // see if the media should be freed
@@ -136,7 +136,7 @@ static gboolean S_FreeMedia_(gpointer key __attribute__((unused)), gpointer valu
 		media->Free(media);
 	}
 
-	s_media_state.keys = g_list_remove(s_media_state.keys, value);
+	s_media_state.keys = g_list_remove(s_media_state.keys, key);
 
 	return true;
 }
