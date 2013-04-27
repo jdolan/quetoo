@@ -520,16 +520,14 @@ static void Cl_WriteHistory(void) {
  * @brief
  */
 static void Cl_ReadHistory(void) {
-	file_t *f;
 	char line[KEY_LINE_SIZE];
 
+	file_t *f;
 	if (!(f = Fs_OpenRead("history")))
 		return;
 
-	while (Fs_ReadLine(f, line, KEY_LINE_SIZE - 2)) {
-		if (line[strlen(line) - 1] == '\n')
-			line[strlen(line) - 1] = '\0';
-		strncpy(&ks->lines[ks->edit_line][1], line, KEY_LINE_SIZE - 2);
+	while (Fs_ReadLine(f, line, sizeof(line))) {
+		g_strlcpy(&ks->lines[ks->edit_line][1], line, KEY_LINE_SIZE - 1);
 		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORY_SIZE;
 		ks->history_line = ks->edit_line;
 		ks->lines[ks->edit_line][1] = '\0';

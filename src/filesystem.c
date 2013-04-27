@@ -158,7 +158,8 @@ int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
 }
 
 /*
- * @brief Reads a line from the specified file.
+ * @brief Reads a line from the specified file. The newline character is
+ * omitted from the returned, NULL-terminated string.
  *
  * @return True on success, false on failures.
  */
@@ -174,7 +175,6 @@ bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
 
 		if (*c == '\n') {
 			i++;
-			c++;
 			break;
 		}
 	}
