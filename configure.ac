@@ -67,7 +67,7 @@ case "$host" in
 		;;
 	*-*-mingw*)
 		HOST_NAME="WINDOWS"
-		HOST_LIBS="-lws2_32 -lole32"
+		HOST_LIBS="-lws2_32 -lole32 -lstdc++"
 		DEFAULT_PREFIX=""
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
