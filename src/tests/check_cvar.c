@@ -54,37 +54,34 @@ void teardown(void) {
 START_TEST(check_Cvar_Get)
 	{
 		// check that we can create a variable and that its fields are populated correctly
-		cvar_t *var = Cvar_Get("var", "3.2", CVAR_R_CONTEXT, __func__);
+		cvar_t *var = Cvar_Get("var", "3.2", CVAR_ARCHIVE, __func__);
 
 		ck_assert(var != NULL);
 		ck_assert_str_eq(var->name, "var");
 		ck_assert_str_eq(var->string, "3.2");
 		ck_assert_msg(var->integer == 3, "var->integer was %d", var->integer);
 		ck_assert_msg(var->value > 3.19 && var->value < 3.21, "var->value was %f", var->value);
-		ck_assert_msg(var->flags == CVAR_R_CONTEXT, "var->flags was %d", var->flags);
+		ck_assert_msg(var->flags == CVAR_ARCHIVE, "var->flags was %d", var->flags);
 		ck_assert_str_eq(var->description, __func__);
 
-		// check that a subsequent call for the same variable does not modify the first
-		cvar_t *var_copy = Cvar_Get("var", "0.5", CVAR_S_DEVICE, "Some other description");
+		// check that a subsequent call for the same variable does not modify the value
+		// but does modify all meta-data
+		cvar_t *var_copy = Cvar_Get("var", "0.5", CVAR_USER_INFO, "Some other description");
 
 		ck_assert(var_copy == var);
-		ck_assert_str_eq(var->name, "var");
 		ck_assert_str_eq(var->string, "3.2");
 		ck_assert_msg(var->integer == 3, "var->integer was %d", var->integer);
 		ck_assert_msg(var->value > 3.19 && var->value < 3.21, "var->value was %f", var->value);
-		ck_assert_msg(var->flags == CVAR_R_CONTEXT, "var->flags was %d", var->flags);
-		ck_assert_str_eq(var->description, __func__);
+		ck_assert_msg(var->flags == (CVAR_ARCHIVE | CVAR_USER_INFO), "var->flags was %d", var->flags);
+		ck_assert_str_eq(var->description, "Some other description");
 
 		// modify the variable and inspect it for changes
 		Cmd_ExecuteString("set var 1.4\n");
 
 		ck_assert(var->modified);
-		ck_assert_str_eq(var->name, "var");
 		ck_assert_str_eq(var->string, "1.4");
 		ck_assert_msg(var->value > 1.39 && var->value < 1.41, "var->value was %f", var->value);
 		ck_assert_msg(var->integer == 1, "var->integer was %d", var->integer);
-		ck_assert_msg(var->flags == CVAR_R_CONTEXT, "var->flags was %d", var->flags);
-		ck_assert_str_eq(var->description, __func__);
 
 	}END_TEST
 
