@@ -86,16 +86,17 @@ typedef unsigned char byte;
 // console commands
 #define CMD_SYSTEM			0x1 // always execute, even if not connected
 // console variables
-#define CVAR_ARCHIVE		0x1 // saved to quake2world.cfg
-#define CVAR_USER_INFO		0x2 // added to user_info when changed
-#define CVAR_SERVER_INFO	0x4 // added to server_info when changed
-#define CVAR_LO_ONLY		0x8 // don't allow change when connected
-#define CVAR_NO_SET			0x10 // don't allow change from console at all
-#define CVAR_LATCH			0x20 // save changes until server restart
-#define CVAR_R_CONTEXT		0x40 // effects OpenGL context
-#define CVAR_R_MEDIA		0x80 // effects renderer media filtering
-#define CVAR_S_DEVICE		0x100 // effects sound device parameters
-#define CVAR_S_MEDIA		0x200 // effects sound media
+#define CVAR_CLI			0x1 // will retain value through initialization
+#define CVAR_ARCHIVE		0x2 // saved to quake2world.cfg
+#define CVAR_USER_INFO		0x4 // added to user_info when changed
+#define CVAR_SERVER_INFO	0x8 // added to server_info when changed
+#define CVAR_LO_ONLY		0x10 // don't allow change when connected
+#define CVAR_NO_SET			0x20 // don't allow change from console at all
+#define CVAR_LATCH			0x40 // save changes until server restart
+#define CVAR_R_CONTEXT		0x80 // effects OpenGL context
+#define CVAR_R_MEDIA		0x100 // effects renderer media filtering
+#define CVAR_S_DEVICE		0x200 // effects sound device parameters
+#define CVAR_S_MEDIA		0x400 // effects sound media
 #define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_MEDIA)
 #define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_MEDIA)
 
@@ -117,7 +118,7 @@ typedef enum {
 typedef struct cvar_s {
 	const char *name;
 	const char *description;
-	char *default_value;
+	const char *default_value;
 	char *string;
 	char *latched_string; // for CVAR_LATCH vars
 	uint32_t flags;

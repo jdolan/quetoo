@@ -418,7 +418,6 @@ bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
  */
 void Con_Init(void) {
 
-	// TODO this should be moved so that +set from the command line works
 #ifdef _WIN32
 	con_ansi = Cvar_Get("con_ansi", "0", CVAR_ARCHIVE, NULL);
 #else
@@ -437,6 +436,7 @@ void Con_Init(void) {
  * @brief Shutdown the console subsystem
  */
 void Con_Shutdown(void) {
+
 #ifdef HAVE_CURSES
 	Curses_Shutdown();
 #endif

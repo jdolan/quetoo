@@ -199,7 +199,7 @@ static void Cl_Rcon_f(void) {
 static void Cl_ForwardCmdToServer(void) {
 
 	if (cls.state <= CL_DISCONNECTED) {
-		Com_Print("Not connected\n");
+		Com_Print("%s: Not connected\n", Cmd_Argv(0));
 		return;
 	}
 
@@ -655,8 +655,6 @@ void Cl_Frame(uint32_t msec) {
 	}
 }
 
-#include "cl_binds.h"
-
 /*
  * @brief
  */
@@ -682,10 +680,6 @@ void Cl_Init(void) {
 	Cl_InitLocal();
 
 	Cl_InitKeys();
-
-	Cbuf_AddText(DEFAULT_BINDS);
-	Cbuf_AddText("exec quake2world.cfg\n");
-	Cbuf_Execute();
 
 	Net_Config(NS_CLIENT, true);
 

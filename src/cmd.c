@@ -28,11 +28,15 @@ typedef struct cmd_args_s {
 	char args[MAX_STRING_CHARS];
 } cmd_args_t;
 
+#define CBUF_CHARS 8192
+
 typedef struct cmd_state_s {
 	GHashTable *commands;
 	GList *keys;
 
-	size_buf_t buffer;
+	size_buf_t buf;
+	char buffers[2][CBUF_CHARS];
+
 	cmd_args_t args;
 
 	bool wait; // commands may be deferred one frame
@@ -44,9 +48,6 @@ static cmd_state_t cmd_state;
 
 #define MAX_ALIAS_LOOP_COUNT 4
 
-static byte cmd_buffer[8192];
-static char cmd_buffer_defer[8192];
-
 /*
  * @brief Adds command text at the end of the buffer
  */
@@ -55,12 +56,12 @@ void Cbuf_AddText(const char *text) {
 
 	l = strlen(text);
 
-	if (cmd_state.buffer.size + l >= cmd_state.buffer.max_size) {
-		Com_Print("Cbuf_AddText: overflow\n");
+	if (cmd_state.buf.size + l >= cmd_state.buf.max_size) {
+		Com_Warn("Overflow\n");
 		return;
 	}
 
-	Sb_Write(&cmd_state.buffer, text, l);
+	Sb_Write(&cmd_state.buf, text, l);
 }
 
 /*
@@ -72,11 +73,11 @@ void Cbuf_InsertText(const char *text) {
 	int32_t temp_len;
 
 	// copy off any commands still remaining in the exec buffer
-	temp_len = cmd_state.buffer.size;
+	temp_len = cmd_state.buf.size;
 	if (temp_len) {
 		temp = Z_Malloc(temp_len);
-		memcpy(temp, cmd_state.buffer.data, temp_len);
-		Sb_Clear(&cmd_state.buffer);
+		memcpy(temp, cmd_state.buf.data, temp_len);
+		Sb_Clear(&cmd_state.buf);
 	} else
 		temp = NULL; // shut up compiler
 
@@ -85,7 +86,7 @@ void Cbuf_InsertText(const char *text) {
 
 	// add the copied off data
 	if (temp_len) {
-		Sb_Write(&cmd_state.buffer, temp, temp_len);
+		Sb_Write(&cmd_state.buf, temp, temp_len);
 		Z_Free(temp);
 	}
 }
@@ -94,17 +95,22 @@ void Cbuf_InsertText(const char *text) {
  * @brief
  */
 void Cbuf_CopyToDefer(void) {
-	memcpy(cmd_buffer_defer, cmd_buffer, cmd_state.buffer.size);
-	cmd_buffer_defer[cmd_state.buffer.size] = 0;
-	cmd_state.buffer.size = 0;
+
+	memcpy(cmd_state.buffers[1], cmd_state.buffers[0], cmd_state.buf.size);
+
+	memset(cmd_state.buffers[0], 0, sizeof(cmd_state.buffers[0]));
+
+	cmd_state.buf.size = 0;
 }
 
 /*
  * @brief
  */
 void Cbuf_InsertFromDefer(void) {
-	Cbuf_InsertText(cmd_buffer_defer);
-	cmd_buffer_defer[0] = 0;
+
+	Cbuf_InsertText(cmd_state.buffers[1]);
+
+	memset(cmd_state.buffers[1], 0, sizeof(cmd_state.buffers[1]));
 }
 
 /*
@@ -118,12 +124,12 @@ void Cbuf_Execute(void) {
 
 	cmd_state.alias_loop_count = 0; // don't allow infinite alias loops
 
-	while (cmd_state.buffer.size) {
+	while (cmd_state.buf.size) {
 		// find a \n or; line break
-		text = (char *) cmd_state.buffer.data;
+		text = (char *) cmd_state.buf.data;
 
 		quotes = 0;
-		for (i = 0; i < cmd_state.buffer.size; i++) {
+		for (i = 0; i < cmd_state.buf.size; i++) {
 			if (text[i] == '"')
 				quotes++;
 			if (!(quotes & 1) && text[i] == ';')
@@ -144,12 +150,12 @@ void Cbuf_Execute(void) {
 		// this is necessary because commands (exec, alias) can insert data at the
 		// beginning of the text buffer
 
-		if (i == cmd_state.buffer.size)
-			cmd_state.buffer.size = 0;
+		if (i == cmd_state.buf.size)
+			cmd_state.buf.size = 0;
 		else {
 			i++;
-			cmd_state.buffer.size -= i;
-			memmove(text, text + i, cmd_state.buffer.size);
+			cmd_state.buf.size -= i;
+			memmove(text, text + i, cmd_state.buf.size);
 		}
 
 		// execute the command line
@@ -161,68 +167,6 @@ void Cbuf_Execute(void) {
 			break;
 		}
 	}
-}
-
-/*
- * @brief Adds command line parameters as script statements
- * Commands lead with a +, and continue until another +.
- *
- * Set commands are added early, so they are guaranteed to be set before
- * the client and server initialize for the first time.
- *
- * Other commands are added late, after all initialization is complete.
- */
-void Cbuf_AddEarlyCommands(bool clear) {
-	int32_t i;
-	char *s;
-
-	for (i = 0; i < Com_Argc(); i++) {
-		s = Com_Argv(i);
-		if (strcmp(s, "+set"))
-			continue;
-		Cbuf_AddText(va("set %s %s\n", Com_Argv(i + 1), Com_Argv(i + 2)));
-		if (clear) {
-			Com_ClearArgv(i);
-			Com_ClearArgv(i + 1);
-			Com_ClearArgv(i + 2);
-		}
-		i += 2;
-	}
-	Cbuf_Execute();
-}
-
-/*
- * @brief Adds remaining command line parameters as script statements
- * Commands lead with a + and continue until another +.
- */
-void Cbuf_AddLateCommands(void) {
-	uint32_t i, j, k;
-	char *c, text[MAX_STRING_CHARS];
-
-	j = 0;
-	memset(text, 0, sizeof(text));
-
-	for (i = 1; i < (uint32_t) Com_Argc(); i++) {
-
-		c = Com_Argv(i);
-		k = strlen(c);
-
-		if (j + k > sizeof(text) - 1)
-			break;
-
-		strcat(text, c);
-		strcat(text, " ");
-		j += k + 1;
-	}
-
-	for (i = 0; i < j; i++) {
-		if (text[i] == '+')
-			text[i] = '\n';
-	}
-	strcat(text, "\n");
-
-	Cbuf_AddText(text);
-	Cbuf_Execute();
 }
 
 /*
@@ -574,6 +518,7 @@ static void Cmd_Echo_f(void) {
 
 	for (i = 1; i < Cmd_Argc(); i++)
 		Com_Print("%s ", Cmd_Argv(i));
+
 	Com_Print("\n");
 }
 
@@ -594,7 +539,7 @@ void Cmd_Init(void) {
 
 	cmd_state.commands = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
 
-	Sb_Init(&cmd_state.buffer, cmd_buffer, sizeof(cmd_buffer));
+	Sb_Init(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
 
 	Cmd_AddCommand("cmd_list", Cmd_List_f, CMD_SYSTEM, NULL);
 	Cmd_AddCommand("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
@@ -602,8 +547,33 @@ void Cmd_Init(void) {
 	Cmd_AddCommand("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
 	Cmd_AddCommand("wait", Cmd_Wait_f, 0, NULL);
 
-	Cmd_AddCommand("z_size", Z_Size_f, CMD_SYSTEM,
-			"Prints current size (in MB) of the zone allocation pool.");
+	Cmd_AddCommand("z_size", Z_Size_f, CMD_SYSTEM, "Print zone allocation pool size");
+
+	int32_t i;
+	for (i = 1; i < Com_Argc(); i++) {
+		const char *c = Com_Argv(i);
+
+		// if we encounter a non-set command, consume until the next + or EOL
+		if (*c == '+' && strncmp(c, "+set", 4)) {
+			Cbuf_AddText(c + 1);
+			i++;
+
+			while (i < Com_Argc()) {
+				c = Com_Argv(i);
+				if (*c == '+') {
+					Cbuf_AddText("\n");
+					i--;
+					break;
+				}
+				Cbuf_AddText(va(" %s", c));
+				i++;
+			}
+		}
+	}
+	Cbuf_AddText("\n");
+	Cbuf_CopyToDefer();
+
+	Com_Debug("Deferred buffer: %s", cmd_state.buffers[1]);
 }
 
 /*

@@ -802,15 +802,6 @@ char *Com_Argv(int32_t arg) {
 }
 
 /*
- * @brief Clears the command line argument at the specified index.
- */
-void Com_ClearArgv(int32_t arg) {
-	if (arg < 0 || arg >= quake2world.argc)
-		return;
-	quake2world.argv[arg] = "";
-}
-
-/*
  * @brief Initializes common subsystems.
  */
 void Com_InitArgv(int32_t argc, char **argv) {

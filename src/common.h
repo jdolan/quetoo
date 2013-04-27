@@ -164,7 +164,6 @@ typedef enum {
 
 int32_t Com_Argc(void);
 char *Com_Argv(int32_t arg);  // range and null checked
-void Com_ClearArgv(int32_t arg);
 void Com_InitArgv(int32_t argc, char **argv);
 
 void Com_PrintInfo(const char *s);

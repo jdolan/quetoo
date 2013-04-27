@@ -105,6 +105,12 @@ static const char *DEFAULT_BINDS =
 
 	"bind f10 SCREENSHOTS\n"
 	"bind f11 r_toggle_fullscreen\n"
-	"bind f12 r_screenshot\n";
+	"bind f12 r_screenshot\n"
+
+	// now execute the "default" configuration file
+	"exec quake2world.cfg\n"
+
+	// and "default" autoexec.cfg
+	"exec autoexec.cfg\n";
 
 #endif /* __CL_BINDS_H__ */

@@ -27,8 +27,6 @@
 // command buffer functions
 void Cbuf_AddText(const char *text);
 void Cbuf_InsertText(const char *text);
-void Cbuf_AddEarlyCommands(bool clear);
-void Cbuf_AddLateCommands(void);
 void Cbuf_Execute(void);
 void Cbuf_CopyToDefer(void);
 void Cbuf_InsertFromDefer(void);

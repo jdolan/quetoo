@@ -35,6 +35,8 @@ bool cvar_user_info_modified;
  * @return True if the specified string appears to be a valid "info" string.
  */
 static bool Cvar_InfoValidate(const char *s) {
+	if (!s)
+		return false;
 	if (strstr(s, "\\"))
 		return false;
 	if (strstr(s, "\""))
@@ -128,13 +130,12 @@ void Cvar_CompleteVar(const char *pattern, GList **matches) {
 }
 
 /*
- * @brief If the variable already exists, the value will not be set. The flags,
- * however, are always OR'ed into the variable.
+ * @brief If the variable already exists, the value will not be modified. The
+ * default value, flags, and description will, however, be updated. This way,
+ * variables set at the command line can receive their meta data through the
+ * various subsystem initialization routines.
  */
 cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char *description) {
-
-	if (!value)
-		return NULL;
 
 	if (flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
 		if (!Cvar_InfoValidate(name)) {
@@ -147,11 +148,21 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 		}
 	}
 
+	// update existing variables with meta data from owning subsystem
 	cvar_t *var = Cvar_Get_(name);
 	if (var) {
+		if (value)
+			var->default_value = Z_Link(Z_CopyString(value), var);
+		var->flags |= flags;
+		if (description)
+			var->description = Z_Link(Z_CopyString(description), var);
 		return var;
 	}
 
+	if (!value) // don't create variables if a value isn't provided
+		return NULL;
+
+	// create a new variable
 	var = Z_Malloc(sizeof(*var));
 
 	var->name = Z_Link(Z_CopyString(name), var);
@@ -192,27 +203,40 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 		}
 	}
 
+	// if not forced, honor flags-based logic
 	if (!force) {
+
+		// command line variables retain their value through initialization
+		if (var->flags & CVAR_CLI) {
+			if (!Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER)) {
+				Com_Debug("%s: retaining value \"%s\" from command line\n", name, var->string);
+			}
+			return var;
+		}
+
+		// local-only variables can not be modified when in multiplayer mode
 		if (var->flags & CVAR_LO_ONLY) {
-			if ((Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER)) || Cvar_GetValue(
-					"sv_max_clients") > 1.0) {
+			const int32_t clients = Cvar_GetValue("sv_max_clients");
+			if (clients > 1 || (Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER))) {
 				Com_Print("%s is only available offline.\n", name);
 				return var;
 			}
 		}
 
+		// write-protected variables can never be modified
 		if (var->flags & CVAR_NO_SET) {
 			Com_Print("%s is write protected.\n", name);
 			return var;
 		}
 
+		// while latched variables can only be changed on map load
 		if (var->flags & CVAR_LATCH) {
 			if (var->latched_string) {
-				if (strcmp(value, var->latched_string) == 0)
+				if (!strcmp(value, var->latched_string))
 					return var;
 				Z_Free(var->latched_string);
 			} else {
-				if (strcmp(value, var->string) == 0)
+				if (!strcmp(value, var->string))
 					return var;
 			}
 
@@ -247,13 +271,13 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 	if (var->flags & CVAR_USER_INFO)
 		cvar_user_info_modified = true; // transmit at next opportunity
 
-	var->modified = true;
-
-	Z_Free(var->string); // free the old value string
+	Z_Free(var->string);
 
 	var->string = Z_Link(Z_CopyString(value), var);
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
+
+	var->modified = true;
 
 	return var;
 }
@@ -283,17 +307,17 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 		return Cvar_Get(name, value, flags, NULL);
 	}
 
-	var->modified = true;
-
 	if (var->flags & CVAR_USER_INFO)
 		cvar_user_info_modified = true; // transmit at next opportunity
 
-	Z_Free(var->string); // free the old value string
+	Z_Free(var->string);
 
 	var->string = Z_Link(Z_CopyString(value), var);
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
 	var->flags = flags;
+
+	var->modified = true;
 
 	return var;
 }
@@ -471,26 +495,21 @@ void Cvar_ClearVars(uint32_t flags) {
  * @brief Allows setting and defining of arbitrary cvars from console
  */
 static void Cvar_Set_f(void) {
-	uint32_t flags;
-	const int32_t c = Cmd_Argc();
 
-	if (c != 3 && c != 4) {
-		Com_Print("Usage: %s <variable> <value> [u | s]\n", Cmd_Argv(0));
+	if (Cmd_Argc() != 3) {
+		Com_Print("Usage: %s <variable> <value>\n", Cmd_Argv(0));
 		return;
 	}
 
-	if (c == 4) {
-		if (!strcmp(Cmd_Argv(3), "u"))
-			flags = CVAR_USER_INFO;
-		else if (!strcmp(Cmd_Argv(3), "s"))
-			flags = CVAR_SERVER_INFO;
-		else {
-			Com_Print("Invalid flags\n");
-			return;
-		}
-		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), flags);
-	} else
+	if (!strcmp("seta", Cmd_Argv(0))) {
+		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_ARCHIVE);
+	} else if (!strcmp("sets", Cmd_Argv(0))) {
+		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_SERVER_INFO);
+	} else if (!strcmp("setu", Cmd_Argv(0))) {
+		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_USER_INFO);
+	} else {
 		Cvar_Set(Cmd_Argv(1), Cmd_Argv(2));
+	}
 }
 
 /*
@@ -604,15 +623,42 @@ void Cvar_WriteVariables(file_t *f) {
 }
 
 /**
- * @brief Initializes the console variable subsystem.
+ * @brief Initializes the console variable subsystem. Parses the command line
+ * arguments looking for "+set" directives. Any variables initialized at the
+ * command line will be flagged as "sticky" and retain their values through
+ * initialization.
  */
 void Cvar_Init(void) {
 
+	memset(&cvar_state, 0, sizeof(cvar_state));
+
 	cvar_state.vars = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
 
-	Cmd_AddCommand("set", Cvar_Set_f, 0, NULL);
+	Cmd_AddCommand("set", Cvar_Set_f, 0, "Create or modify a console variable");
+	Cmd_AddCommand("seta", Cvar_Set_f, 0, "Create an archived console variable");
+	Cmd_AddCommand("sets", Cvar_Set_f, 0, "Create a server-info console variable");
+	Cmd_AddCommand("setu", Cvar_Set_f, 0, "Create a user-info console variable");
+
 	Cmd_AddCommand("toggle", Cvar_Toggle_f, 0, NULL);
 	Cmd_AddCommand("cvar_list", Cvar_List_f, 0, NULL);
+
+	int32_t i;
+	for (i = 1; i < Com_Argc(); i++) {
+		const char *s = Com_Argv(i);
+
+		if (!strncmp(s, "+set", 4)) {
+			Cmd_ExecuteString(va("%s %s %s\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
+
+			cvar_t *var = Cvar_Get_(Com_Argv(i + 1));
+			if (var) {
+				var->flags |= CVAR_CLI;
+			} else {
+				Com_Warn("Failed to set \"%s\"\n", Com_Argv(i + 1));
+			}
+
+			i += 2;
+		}
+	}
 }
 
 /*
@@ -624,6 +670,9 @@ void Cvar_Shutdown(void) {
 	g_list_free(cvar_state.keys);
 
 	Cmd_RemoveCommand("set");
+	Cmd_RemoveCommand("seta");
+	Cmd_RemoveCommand("sets");
+	Cmd_RemoveCommand("setu");
 	Cmd_RemoveCommand("toggle");
 	Cmd_RemoveCommand("cvar_list");
 }

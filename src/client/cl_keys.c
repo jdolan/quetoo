@@ -536,6 +536,8 @@ static void Cl_ReadHistory(void) {
 	Fs_Close(f);
 }
 
+#include "cl_binds.h"
+
 /*
  * @brief
  */
@@ -543,7 +545,7 @@ void Cl_InitKeys(void) {
 	uint16_t i;
 	SDLKey k;
 
-	cl_key_names = Z_TagMalloc(SDLK_MLAST * sizeof (char *), Z_TAG_CLIENT);
+	cl_key_names = Z_TagMalloc(SDLK_MLAST * sizeof(char *), Z_TAG_CLIENT);
 
 	for (k = SDLK_FIRST; k < SDLK_LAST; k++) {
 		cl_key_names[k] = Z_Link(Z_CopyString(SDL_GetKeyName(k)), cl_key_names);
@@ -571,6 +573,9 @@ void Cl_InitKeys(void) {
 	Cmd_AddCommand("unbind", Cl_Unbind_f, 0, NULL);
 	Cmd_AddCommand("unbind_all", Cl_UnbindAll_f, 0, NULL);
 	Cmd_AddCommand("bind_list", Cl_BindList_f, 0, NULL);
+
+	Cbuf_AddText(DEFAULT_BINDS);
+	Cbuf_Execute();
 }
 
 /*
