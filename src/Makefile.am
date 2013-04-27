@@ -51,9 +51,7 @@ libcmodel_la_LIBADD = \
 	libfilesystem.la
 
 libcommon_la_SOURCES = \
-	cmd.c \
-	common.c \
-	cvar.c
+	common.c
 libcommon_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \

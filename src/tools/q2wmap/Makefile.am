@@ -45,6 +45,7 @@ q2wmap_CFLAGS = \
 q2wmap_LDADD = \
 	../../../deps/minizip/libminizip.la \
 	../../libcmodel.la \
+	../../libconsole.la \
 	../../libimages.la \
 	../../libthreads.la \
 	@CURSES_LIBS@ \
