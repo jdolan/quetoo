@@ -50,11 +50,10 @@ static winding_t *NewWinding(uint16_t points) {
 	size_t size;
 
 	if (points > MAX_POINTS_ON_WINDING)
-		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n", points);
+		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
 
 	size = (size_t) ((winding_t *) 0)->points[points];
 	w = Z_Malloc(size);
-	memset(w, 0, size);
 
 	return w;
 }

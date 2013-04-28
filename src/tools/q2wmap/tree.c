@@ -21,8 +21,6 @@
 
 #include "qbsp.h"
 
-extern int32_t c_nodes;
-
 /*
  * @brief
  */
@@ -49,7 +47,7 @@ void FreeTreePortals_r(node_t * node) {
 /*
  * @brief
  */
-void FreeTree_r(node_t * node) {
+void FreeTree_r(node_t *node) {
 	face_t *f, *nextf;
 
 	// free children
@@ -70,9 +68,7 @@ void FreeTree_r(node_t * node) {
 	if (node->volume)
 		FreeBrush(node->volume);
 
-	if (!threads->integer)
-		c_nodes--;
-	Z_Free(node);
+	FreeNode(node);
 }
 
 /*

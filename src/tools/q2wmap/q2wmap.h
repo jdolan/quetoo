@@ -41,11 +41,26 @@ extern bool debug;
 extern bool legacy;
 
 // threads.c
+typedef struct semaphores_s {
+	SDL_sem *active_portals;
+	SDL_sem *active_nodes;
+	SDL_sem *vis_nodes;
+	SDL_sem *nonvis_nodes;
+	SDL_sem *active_brushes;
+	SDL_sem *active_windings;
+	SDL_sem *removed_points;
+} semaphores_t;
+
+extern semaphores_t semaphores;
+
+void Sem_Init(void);
+void Sem_Shutdown(void);
+
 typedef struct thread_work_s {
-	int32_t index;  // current work cycle
-	int32_t count;  // total work cycles
-	int32_t fraction;  // last fraction of work completed (tenths)
-	bool progress;  // are we reporting progress
+	int32_t index; // current work cycle
+	int32_t count; // total work cycles
+	int32_t fraction; // last fraction of work completed (tenths)
+	bool progress; // are we reporting progress
 } thread_work_t;
 
 extern thread_work_t thread_work;
@@ -53,6 +68,5 @@ extern thread_work_t thread_work;
 void ThreadLock(void);
 void ThreadUnlock(void);
 void RunThreadsOn(int32_t workcount, bool progress, void(*func)(int));
-
 
 #endif /*__Q2WMAP_H__*/

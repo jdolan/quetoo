@@ -107,8 +107,8 @@ static int32_t GetVertexnum(const vec3_t in) {
 
 	for (vnum = hash_verts[h]; vnum; vnum = vertex_chain[vnum]) {
 		p = d_bsp.vertexes[vnum].point;
-		if (fabs(p[0] - vert[0]) < POINT_EPSILON && fabs(p[1] - vert[1])
-				< POINT_EPSILON && fabs(p[2] - vert[2]) < POINT_EPSILON)
+		if (fabs(p[0] - vert[0]) < POINT_EPSILON && fabs(p[1] - vert[1]) < POINT_EPSILON && fabs(
+				p[2] - vert[2]) < POINT_EPSILON)
 			return vnum;
 	}
 
@@ -139,7 +139,6 @@ static face_t *AllocFace(void) {
 	face_t *f;
 
 	f = Z_Malloc(sizeof(*f));
-	memset(f, 0, sizeof(*f));
 	c_faces++;
 
 	return f;
@@ -170,7 +169,7 @@ void FreeFace(face_t *f) {
 }
 
 /*
- * @brief The faces vertexes have beeb added to the superverts[] array,
+ * @brief The faces vertexes have beebn added to the superverts[] array,
  * and there may be more there than can be held in a face (MAXEDGES).
  *
  * If less, the faces vertexnums[] will be filled in, otherwise
@@ -363,8 +362,7 @@ static void FixFaceEdges(node_t *node, face_t *f) {
 	// on either side, which can cause artifacts on trifans,
 	// especially underwater
 	for (i = 0; i < f->num_points; i++) {
-		if (count[i] == 1 && count[(i + f->num_points - 1) % f->num_points]
-				== 1)
+		if (count[i] == 1 && count[(i + f->num_points - 1) % f->num_points] == 1)
 			break;
 	}
 	if (i == f->num_points) {
@@ -437,8 +435,7 @@ int32_t GetEdge2(int32_t v1, int32_t v2, face_t * f) {
 	if (!noshare) {
 		for (i = first_bsp_model_edge; i < d_bsp.num_edges; i++) {
 			edge = &d_bsp.edges[i];
-			if (v1 == edge->v[1] && v2 == edge->v[0]
-					&& edge_faces[i][0]->contents == f->contents) {
+			if (v1 == edge->v[1] && v2 == edge->v[0] && edge_faces[i][0]->contents == f->contents) {
 				if (edge_faces[i][1])
 					continue;
 				edge_faces[i][1] = f;
@@ -473,8 +470,7 @@ int32_t GetEdge2(int32_t v1, int32_t v2, face_t * f) {
  * Returns NULL if the faces couldn't be merged, or the new face.
  * The originals will NOT be freed.
  */
-static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2,
-		const vec3_t planenormal) {
+static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2, const vec3_t planenormal) {
 	vec_t *p1, *p2, *back;
 	winding_t *newf;
 	int32_t i, j, k, l;
@@ -725,8 +721,7 @@ static face_t *FaceFromPortal(portal_t * p, int32_t pside) {
 	f->portal = p;
 
 	if ((p->nodes[pside]->contents & CONTENTS_WINDOW) && VisibleContents(
-			p->nodes[!pside]->contents ^ p->nodes[pside]->contents)
-			== CONTENTS_WINDOW)
+			p->nodes[!pside]->contents ^ p->nodes[pside]->contents) == CONTENTS_WINDOW)
 		return NULL; // don't show insides of windows
 
 	if (pside) {

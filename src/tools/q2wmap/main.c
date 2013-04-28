@@ -279,11 +279,11 @@ static void Error(err_t err __attribute__((unused)), const char *msg) {
 
 	Thread_Shutdown();
 
-	Fs_Shutdown();
-
 	Cvar_Shutdown();
 
 	Cmd_Shutdown();
+
+	Fs_Shutdown();
 
 	Z_Shutdown();
 
@@ -389,8 +389,7 @@ static int32_t Check_BSP_Options(int32_t argc, char **argv) {
 			block_yl = atoi(argv[i + 2]);
 			block_xh = atoi(argv[i + 3]);
 			block_yh = atoi(argv[i + 4]);
-			Com_Verbose("blocks: %i,%i to %i,%i\n", block_xl, block_yl,
-					block_xh, block_yh);
+			Com_Verbose("blocks: %i,%i to %i,%i\n", block_xl, block_yl, block_xh, block_yh);
 			i += 4;
 		} else if (!strcmp(argv[i], "-tmpout")) {
 			strcpy(outbase, "/tmp");
@@ -467,7 +466,7 @@ static int32_t Check_ZIP_Options(int32_t argc __attribute__((unused)), char **ar
 /*
  * @brief
  */
-static int32_t Check_MAT_Options(__attribute__((unused)) int32_t argc, char **argv __attribute__((unused))) {
+static int32_t Check_MAT_Options(__attribute__((unused))  int32_t argc, char **argv __attribute__((unused))) {
 	return 0;
 }
 
@@ -485,8 +484,7 @@ static void PrintHelpMessage(void) {
 	Print("-bsp               Binary space partitioning (BSPing) options:\n");
 	Print(" -block <int> <int>\n");
 	Print(" -blocks <int> <int> <int> <int>\n");
-	Print(
-			" -fulldetail - don't treat details (and trans surfaces) as details\n");
+	Print(" -fulldetail - don't treat details (and trans surfaces) as details\n");
 	Print(" -leaktest\n");
 	Print(" -micro <float>\n");
 	Print(" -nocsg\n");
@@ -501,8 +499,7 @@ static void PrintHelpMessage(void) {
 	Print(" -nowater - skip water brushes in compilation\n");
 	Print(" -noweld\n");
 	Print(" -onlyents - modify existing bsp file with entities from map file\n");
-	Print(
-			" -subdivide <int> -subdivide brushes for better light effects (but higher polycount)\n");
+	Print(" -subdivide <int> -subdivide brushes for better light effects (but higher polycount)\n");
 	Print(" -tmpout\n");
 	Print(" -verboseentities - also be verbose about submodels (entities)\n");
 	Print("\n");
@@ -641,10 +638,12 @@ int32_t main(int32_t argc, char **argv) {
 
 	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_zip) {
 		Com_Error(ERR_FATAL, "No action specified.\n"
-			"Please specify at least one of -bsp -vis -light -mat -zip\n");
+				"Please specify at least one of -bsp -vis -light -mat -zip\n");
 	}
 
 	Thread_Init();
+
+	Sem_Init();
 
 	// ugly little hack to localize global paths to game paths
 	// for e.g. GtkRadiant
@@ -669,6 +668,8 @@ int32_t main(int32_t argc, char **argv) {
 		MAT_Main();
 	if (do_zip)
 		ZIP_Main();
+
+	Sem_Shutdown();
 
 	Thread_Shutdown();
 

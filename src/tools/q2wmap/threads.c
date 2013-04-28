@@ -21,7 +21,39 @@
 
 #include "q2wmap.h"
 
+semaphores_t semaphores;
 thread_work_t thread_work;
+
+/*
+ * @brief Initializes the shared semaphores that threads will touch.
+ */
+void Sem_Init(void) {
+
+	memset(&semaphores, 0, sizeof(semaphores));
+
+	semaphores.active_portals = SDL_CreateSemaphore(0);
+	semaphores.active_nodes = SDL_CreateSemaphore(0);
+	semaphores.vis_nodes = SDL_CreateSemaphore(0);
+	semaphores.nonvis_nodes = SDL_CreateSemaphore(0);
+	semaphores.active_brushes = SDL_CreateSemaphore(0);
+	semaphores.active_windings = SDL_CreateSemaphore(0);
+	semaphores.removed_points = SDL_CreateSemaphore(0);
+}
+
+/*
+ * @brief Shuts down shared semaphores, releasing any resources they hold.
+ */
+void Sem_Shutdown(void) {
+
+	SDL_DestroySemaphore(semaphores.active_portals);
+	SDL_DestroySemaphore(semaphores.active_nodes);
+	SDL_DestroySemaphore(semaphores.vis_nodes);
+	SDL_DestroySemaphore(semaphores.nonvis_nodes);
+	SDL_DestroySemaphore(semaphores.active_brushes);
+	SDL_DestroySemaphore(semaphores.active_windings);
+	SDL_DestroySemaphore(semaphores.removed_points);
+
+}
 
 /*
  * @brief Return an iteration of work, updating progress when appropriate.

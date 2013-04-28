@@ -21,8 +21,7 @@
 
 #include "qbsp.h"
 
-static int32_t c_active_portals;
-static int32_t c_peak_portals;
+static uint32_t c_peak_portals;
 
 /*
  * ===========
@@ -30,23 +29,26 @@ static int32_t c_peak_portals;
  * ===========
  */
 static portal_t *AllocPortal(void) {
-	portal_t *p;
 
-	if (!threads->integer)
-		c_active_portals++;
+	if (debug) {
+		SDL_SemPost(semaphores.active_portals);
+		const uint32_t active_portals = SDL_SemValue(semaphores.active_portals);
 
-	if (c_active_portals > c_peak_portals)
-		c_peak_portals = c_active_portals;
+		if (active_portals > c_peak_portals)
+			c_peak_portals = active_portals;
+	}
 
-	p = Z_Malloc(sizeof(*p));
-	return p;
+	return Z_Malloc(sizeof(portal_t));
 }
 
 void FreePortal(portal_t * p) {
+
 	if (p->winding)
 		FreeWinding(p->winding);
-	if (!threads->integer)
-		c_active_portals--;
+
+	if (debug)
+		SDL_SemWait(semaphores.active_portals);
+
 	Z_Free(p);
 }
 

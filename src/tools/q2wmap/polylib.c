@@ -22,12 +22,7 @@
 #include "bspfile.h"
 #include "polylib.h"
 
-// counters are only bumped when running single threaded,
-// because they are an awefull coherence problem
-int32_t c_active_windings;
-int32_t c_peak_windings;
-int32_t c_winding_allocs;
-int32_t c_winding_points;
+uint32_t c_peak_windings;
 
 #define	BOGUS_RANGE	8192
 
@@ -35,37 +30,33 @@ int32_t c_winding_points;
  * @brief
  */
 winding_t *AllocWinding(int32_t points) {
-	winding_t *w;
 
-	if (!threads->integer) {
-		c_winding_allocs++;
-		c_winding_points += points;
-		c_active_windings++;
-		if (c_active_windings > c_peak_windings)
-			c_peak_windings = c_active_windings;
+	if (debug) {
+		SDL_SemPost(semaphores.active_windings);
+		uint32_t active_windings = SDL_SemValue(semaphores.active_windings);
+
+		if (active_windings > c_peak_windings) {
+			c_peak_windings = active_windings;
+		}
 	}
-	w = Z_Malloc(sizeof(int32_t) + sizeof(vec3_t) * points);
-	return w;
+
+	return Z_Malloc(sizeof(int32_t) + sizeof(vec3_t) * points);
 }
 
 /*
  * @brief
  */
 void FreeWinding(winding_t *w) {
-	if (*(uint32_t *) w == 0xdeaddead)
-		Com_Error(ERR_FATAL, "Winding already freed\n");
-	*(uint32_t *) w = 0xdeaddead;
 
-	if (!threads->integer)
-		c_active_windings--;
+	if (debug)
+		SDL_SemWait(semaphores.active_windings);
+
 	Z_Free(w);
 }
 
 /*
  * @brief
  */
-int32_t c_removed;
-
 void RemoveColinearPoints(winding_t *w) {
 	int32_t i;
 	vec3_t v1, v2;
@@ -89,8 +80,12 @@ void RemoveColinearPoints(winding_t *w) {
 	if (nump == w->numpoints)
 		return;
 
-	if (!threads->integer)
-		c_removed += w->numpoints - nump;
+	if (debug) {
+		const int32_t j = w->numpoints - nump;
+		for (i = 0; i < j; i++) {
+			SDL_SemPost(semaphores.removed_points);
+		}
+	}
 
 	w->numpoints = nump;
 	memcpy(w->p, p, nump * sizeof(p[0]));
