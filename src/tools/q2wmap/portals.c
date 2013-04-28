@@ -34,12 +34,11 @@ static portal_t *AllocPortal(void) {
 
 	if (!threads->integer)
 		c_active_portals++;
+
 	if (c_active_portals > c_peak_portals)
 		c_peak_portals = c_active_portals;
 
 	p = Z_Malloc(sizeof(*p));
-	memset(p, 0, sizeof(*p));
-
 	return p;
 }
 

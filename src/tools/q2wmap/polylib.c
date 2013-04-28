@@ -36,7 +36,6 @@ int32_t c_winding_points;
  */
 winding_t *AllocWinding(int32_t points) {
 	winding_t *w;
-	int32_t s;
 
 	if (!threads->integer) {
 		c_winding_allocs++;
@@ -45,9 +44,7 @@ winding_t *AllocWinding(int32_t points) {
 		if (c_active_windings > c_peak_windings)
 			c_peak_windings = c_active_windings;
 	}
-	s = sizeof(vec_t) * 3 * points + sizeof(int);
-	w = Z_Malloc(s);
-	memset(w, 0, s);
+	w = Z_Malloc(sizeof(int32_t) + sizeof(vec3_t) * points);
 	return w;
 }
 

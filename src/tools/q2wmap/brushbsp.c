@@ -158,7 +158,6 @@ tree_t *AllocTree(void) {
 	tree_t *tree;
 
 	tree = Z_Malloc(sizeof(*tree));
-	memset(tree, 0, sizeof(*tree));
 	ClearBounds(tree->mins, tree->maxs);
 
 	return tree;
@@ -171,7 +170,6 @@ node_t *AllocNode(void) {
 	node_t *node;
 
 	node = Z_Malloc(sizeof(*node));
-	memset(node, 0, sizeof(*node));
 
 	return node;
 }
@@ -185,7 +183,6 @@ bsp_brush_t *AllocBrush(int32_t num_sides) {
 
 	c = (size_t) &(((bsp_brush_t *) 0)->sides[num_sides]);
 	bb = Z_Malloc(c);
-	memset(bb, 0, c);
 	if (!threads->integer)
 		c_active_brushes++;
 	return bb;
