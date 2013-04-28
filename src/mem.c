@@ -35,7 +35,7 @@ typedef struct z_block_s {
 } z_block_t;
 
 typedef struct {
-	GList *blocks;
+	GHashTable *blocks;
 	size_t size;
 	SDL_mutex *lock;
 } z_state_t;
@@ -66,11 +66,9 @@ static z_block_t *Z_CheckMagic(void *p) {
 static void Z_Free_(gpointer data) {
 	z_block_t *z = (z_block_t *) data;
 
-	// first, remove this element from its respective block list
+	// first, remove this element from its parent
 	if (z->parent) {
 		z->parent->children = g_list_remove(z->parent->children, data);
-	} else {
-		z_state.blocks = g_list_remove(z_state.blocks, data);
 	}
 
 	// next, free any dependencies (children)
@@ -98,6 +96,8 @@ void Z_Free(void *p) {
 
 	SDL_mutexP(z_state.lock);
 
+	g_hash_table_remove(z_state.blocks, (gconstpointer) z);
+
 	Z_Free_(z);
 
 	SDL_mutexV(z_state.lock);
@@ -107,20 +107,20 @@ void Z_Free(void *p) {
  * @brief Free all managed items allocated with the specified tag.
  */
 void Z_FreeTag(z_tag_t tag) {
+	GHashTableIter it;
+	gpointer key, value;
 
 	SDL_mutexP(z_state.lock);
 
-	GList *e = z_state.blocks;
+	g_hash_table_iter_init(&it, z_state.blocks);
 
-	while (e) {
-		GList *next = e->next;
+	while (g_hash_table_iter_next(&it, &key, &value)) {
+		z_block_t *z = (z_block_t *) key;
 
-		z_block_t *z = (z_block_t *) e->data;
 		if (tag == Z_TAG_ALL || z->tag == tag) {
+			g_hash_table_iter_remove(&it);
 			Z_Free_(z);
 		}
-
-		e = next;
 	}
 
 	SDL_mutexV(z_state.lock);
@@ -161,7 +161,7 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
 	if (z->parent) {
 		z->parent->children = g_list_prepend(z->parent->children, z);
 	} else {
-		z_state.blocks = g_list_prepend(z_state.blocks, z);
+		g_hash_table_insert(z_state.blocks, z, z);
 	}
 
 	z_state.size += size;
@@ -227,7 +227,7 @@ void *Z_Link(void *child, void *parent) {
 	if (c->parent) {
 		c->parent->children = g_list_remove(c->parent->children, c);
 	} else {
-		z_state.blocks = g_list_remove(z_state.blocks, c);
+		g_hash_table_remove(z_state.blocks, c);
 	}
 
 	c->parent = p;
@@ -272,6 +272,8 @@ void Z_Init(void) {
 
 	memset(&z_state, 0, sizeof(z_state));
 
+	z_state.blocks = g_hash_table_new(g_direct_hash, g_direct_equal);
+
 	z_state.lock = SDL_CreateMutex();
 }
 
@@ -282,6 +284,8 @@ void Z_Init(void) {
 void Z_Shutdown(void) {
 
 	Z_FreeTag(Z_TAG_ALL);
+
+	g_hash_table_destroy(z_state.blocks);
 
 	SDL_DestroyMutex(z_state.lock);
 }
