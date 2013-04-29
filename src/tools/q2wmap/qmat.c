@@ -21,101 +21,81 @@
 
 #include "qbsp.h"
 
-
-static char materials[MAX_BSP_TEXINFO][32];
-static int32_t num_materials;
-
+static GList *materials;
 
 /*
  * @brief
  */
-static void AddMaterial(const char *name){
-	int32_t i;
+static void AddMaterial(const char *name) {
 
-	if(!name || !strcmp(name, "NULL"))
+	if (!name || !g_strcmp0(name, "NULL"))
 		return;
 
-	for(i = 0; i < num_materials; i++){
-		if(!strncmp(materials[i], name, sizeof(materials[0])))
-			return;
+	if (!g_list_find_custom(materials, name, (GCompareFunc) strcasecmp)) {
+		materials = g_list_insert_sorted(materials, (gpointer) name, (GCompareFunc) strcasecmp);
 	}
-
-	g_strlcpy(materials[num_materials], name, sizeof(materials[0]));
-	num_materials++;
 }
-
-
-/*
- * @brief A simple wrapper around strcmp so that it may act as a comparator.
- */
-static int32_t CompareStrings(const void *p1, const void *p2){
-	return strcmp((const char *)p1, (const char *)p2);
-}
-
 
 /*
  * @brief Loads the specified BSP file, resolves all materials referenced by it,
  * and generates a "stub" materials file.
  */
-int32_t MAT_Main(void){
+int32_t MAT_Main(void) {
 	char path[MAX_QPATH];
 	file_t *f;
-	time_t start, end;
-	int32_t total_mat_time;
 	int32_t i;
 
-	#ifdef _WIN32
-		char title[MAX_OSPATH];
-		sprintf(title, "Q2WMap [Generating MAT]");
-		SetConsoleTitle(title);
-	#endif
+#ifdef _WIN32
+	char title[MAX_OSPATH];
+	sprintf(title, "Q2WMap [Generating MAT]");
+	SetConsoleTitle(title);
+#endif
 
 	Com_Print("\n----- MAT -----\n\n");
 
-	start = time(NULL);
+	const time_t start = time(NULL);
 
 	g_snprintf(path, sizeof(path), "materials/%s", Basename(bsp_name));
-	strcpy(path + strlen(path) - 3, "mat");
+	g_strlcpy(path + strlen(path) - 3, "mat", sizeof(path));
 
-	if(Fs_Exists(path)){
+	if (Fs_Exists(path)) {
 		Com_Print("Materials file %s exists, skipping...\n", path);
-	}
-	else {  // do it
-
-		if(!(f = Fs_OpenWrite(path)))
-			Com_Error(ERR_FATAL, "Couldn't open %s for writing.\n", path);
+	} else { // do it
 
 		LoadBSPFileTexinfo(bsp_name);
 
-		for(i = 0; i < d_bsp.num_texinfo; i++)  // resolve the materials
+		if (!(f = Fs_OpenWrite(path)))
+			Com_Error(ERR_FATAL, "Couldn't open %s for writing.\n", path);
+
+		for (i = 0; i < d_bsp.num_texinfo; i++) // resolve the materials
 			AddMaterial(d_bsp.texinfo[i].texture);
 
-		// sort them by name
-		qsort(&materials[0], num_materials, sizeof(materials[0]), CompareStrings);
+		GList *material = materials;
+		while (material) { // write the .mat definition
 
-		for(i = 0; i < num_materials; i++){  // write the .mat definition
+			Fs_Print(f, "{\n"
+				"\tmaterial %s\n"
+				"\tbump 1.0\n"
+				"\thardness 1.0\n"
+				"\tparallax 1.0\n"
+				"\tspecular 1.0\n"
+				"}\n", (char *) material->data);
 
-			Fs_Print(f,
-					"{\n"
-					"\tmaterial %s\n"
-					"\tbump 1.0\n"
-					"\thardness 1.0\n"
-					"\tparallax 1.0\n"
-					"\tspecular 1.0\n"
-					"}\n",
-					materials[i]);
+			material = material->next;
 		}
 
 		Fs_Close(f);
 
-		Com_Print("Generated %d materials\n", num_materials);
+		Com_Print("Generated %d materials\n", g_list_length(materials));
+
+		g_list_free(materials);
 	}
 
-	end = time(NULL);
-	total_mat_time = (int)(end - start);
+	const time_t end = time(NULL);
+	const int32_t total_mat_time = (int32_t) (end - start);
 
 	Com_Print("\nMaterials time: ");
-	if(total_mat_time > 59)
+	if (total_mat_time > 59)
 		Com_Print("%d Minutes ", total_mat_time / 60);
 	Com_Print("%d Seconds\n", total_mat_time % 60);
 

@@ -445,18 +445,18 @@ int32_t main(int32_t argc, char **argv) {
 	}
 
 	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_zip) {
-		Com_Error(ERR_FATAL, "No action specified. Try %s -help\n", Cmd_Argv(0));
+		Com_Error(ERR_FATAL, "No action specified. Try %s -help\n", Com_Argv(0));
 	}
 
 	// ugly little hack to localize global paths to game paths
 	// for e.g. GtkRadiant
-	const char *c = strstr(Cmd_Argv(Cmd_Argc() - 1), "/maps/");
-	c = c ? c + 1 : Cmd_Argv(Cmd_Argc() - 1);
+	const char *c = strstr(Com_Argv(Com_Argc() - 1), "/maps/");
+	c = c ? c + 1 : Com_Argv(Com_Argc() - 1);
 
 	StripExtension(c, map_name);
-	strcpy(bsp_name, map_name);
-	strcat(map_name, ".map");
-	strcat(bsp_name, ".bsp");
+	g_strlcpy(bsp_name, map_name, sizeof(bsp_name));
+	g_strlcat(map_name, ".map", sizeof(map_name));
+	g_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
 
 	// start timer
 	const time_t start = time(NULL);

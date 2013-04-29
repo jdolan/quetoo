@@ -209,7 +209,9 @@ void Com_Init(int32_t argc, char **argv) {
  */
 void Com_Shutdown(const char *fmt, ...) {
 	va_list args;
-	static char msg[MAX_PRINT_MSG];
+	char msg[MAX_PRINT_MSG];
+
+	fmt = fmt ? fmt : ""; // normal shutdown will actually pass NULL
 
 	va_start(args, fmt);
 	vsnprintf(msg, sizeof(msg), fmt, args);

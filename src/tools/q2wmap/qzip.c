@@ -322,7 +322,6 @@ static char *GetZipFilename(void) {
 	return zipfile;
 }
 
-
 #define ZIP_BUFFER_SIZE 1024 * 1024 * 2
 
 /*
@@ -375,11 +374,10 @@ static bool DeflateAsset(zipFile zip_file, const char *filename) {
  * but straightforward implementation.
  */
 int32_t ZIP_Main(void) {
-	time_t start, end;
-	int32_t i, total_zip_time;
-	epair_t *e;
 	char materials[MAX_QPATH];
 	char zip[MAX_QPATH];
+	int32_t i;
+	epair_t *e;
 
 #ifdef _WIN32
 	char title[MAX_OSPATH];
@@ -389,7 +387,7 @@ int32_t ZIP_Main(void) {
 
 	Com_Print("\n----- ZIP -----\n\n");
 
-	start = time(NULL);
+	const time_t start = time(NULL);
 
 	qzip.assets = g_hash_table_new(g_str_hash, g_str_equal);
 	qzip.missing = Z_CopyString(MISSING);
@@ -464,8 +462,8 @@ int32_t ZIP_Main(void) {
 	g_list_free(assets);
 	g_hash_table_destroy(qzip.assets);
 
-	end = time(NULL);
-	total_zip_time = (int) (end - start);
+	const time_t end = time(NULL);
+	const int32_t total_zip_time = (int32_t) (end - start);
 	Com_Print("\nZIP Time: ");
 	if (total_zip_time > 59)
 		Com_Print("%d Minutes ", total_zip_time / 60);
