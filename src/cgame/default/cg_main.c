@@ -73,8 +73,8 @@ static void Cg_Init(void) {
 	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
 			"Draw the number of captures");
 	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE, NULL);
-	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
-			"Specifies the crosshair color.");
+	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "", CVAR_ARCHIVE,
+			"Specifies the crosshair color (red|green|yellow|default).");
 	cg_draw_crosshair_pulse = cgi.Cvar("cg_draw_crosshair_pulse", "1.0", CVAR_ARCHIVE,
 			"Pulse the crosshair when picking up items");
 	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
@@ -150,24 +150,24 @@ static void Cg_Shutdown(void) {
 static bool Cg_ParseMessage(int32_t cmd) {
 
 	switch (cmd) {
-	case SV_CMD_TEMP_ENTITY:
-		Cg_ParseTempEntity();
-		return true;
+		case SV_CMD_TEMP_ENTITY:
+			Cg_ParseTempEntity();
+			return true;
 
-	case SV_CMD_MUZZLE_FLASH:
-		Cg_ParseMuzzleFlash();
-		return true;
+		case SV_CMD_MUZZLE_FLASH:
+			Cg_ParseMuzzleFlash();
+			return true;
 
-	case SV_CMD_SCORES:
-		Cg_ParseScores();
-		return true;
+		case SV_CMD_SCORES:
+			Cg_ParseScores();
+			return true;
 
-	case SV_CMD_CENTER_PRINT:
-		Cg_ParseCenterPrint();
-		return true;
+		case SV_CMD_CENTER_PRINT:
+			Cg_ParseCenterPrint();
+			return true;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return false;

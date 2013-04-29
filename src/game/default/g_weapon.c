@@ -312,11 +312,7 @@ static void G_MuzzleFlash(g_edict_t *ent, muzzle_flash_t flash) {
 	gi.WriteByte(flash);
 
 	if (flash == MZ_BLASTER) {
-		int32_t color = DEFAULT_WEAPON_EFFECT_COLOR;
-		if (ent->client) {
-			color = ent->client->persistent.color;
-		}
-		gi.WriteByte(color);
+		gi.WriteByte(ent->client ? ent->client->persistent.color : 0);
 	}
 
 	gi.Multicast(ent->s.origin, MULTICAST_PHS);

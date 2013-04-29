@@ -21,11 +21,16 @@
 
 #include "cg_local.h"
 
-#define COLOR_HUD_STAT			CON_COLOR_DEFAULT
-#define COLOR_HUD_STAT_MED		CON_COLOR_YELLOW
-#define COLOR_HUD_STAT_LOW		CON_COLOR_RED
-#define COLOR_HUD_STAT_STRING	CON_COLOR_DEFAULT
+#define HUD_COLOR_STAT			CON_COLOR_DEFAULT
+#define HUD_COLOR_STAT_MED		CON_COLOR_YELLOW
+#define HUD_COLOR_STAT_LOW		CON_COLOR_RED
+#define HUD_COLOR_STAT_STRING	CON_COLOR_DEFAULT
 #define COLOR_SCORES_HEADER		CON_COLOR_ALT
+
+#define CROSSHAIR_COLOR_RED		242
+#define CROSSHAIR_COLOR_GREEN	209
+#define CROSSHAIR_COLOR_YELLOW	219
+#define CROSSHAIR_COLOR_DEFAULT	15
 
 #define HUD_PIC_HEIGHT			64
 
@@ -74,15 +79,15 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 	r_pixel_t y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT + 4;
 
 	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
-	int32_t color = COLOR_HUD_STAT;
+	int32_t color = HUD_COLOR_STAT;
 
 	if (value < low) {
 		if (cg_draw_vitals_pulse->integer) {
 			pulse[3] = sin(cgi.client->time / 250.0) + 0.75;
 		}
-		color = COLOR_HUD_STAT_LOW;
+		color = HUD_COLOR_STAT_LOW;
 	} else if (value < med) {
-		color = COLOR_HUD_STAT_MED;
+		color = HUD_COLOR_STAT_MED;
 	}
 
 	const char *string = va("%3d", value);
@@ -167,7 +172,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 		x += HUD_PIC_HEIGHT;
 		y += ch / 2;
 
-		cgi.DrawString(x, y, string, COLOR_HUD_STAT);
+		cgi.DrawString(x, y, string, HUD_COLOR_STAT);
 	}
 }
 
@@ -196,7 +201,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 
 	x = cgi.view->x + cgi.view->width - 3 * cw;
 
-	cgi.DrawString(x, y, va("%3d", frags), COLOR_HUD_STAT);
+	cgi.DrawString(x, y, va("%3d", frags), HUD_COLOR_STAT);
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
@@ -229,7 +234,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 
 	x = cgi.view->x + cgi.view->width - 3 * cw;
 
-	cgi.DrawString(x, y, va("%3d", captures), COLOR_HUD_STAT);
+	cgi.DrawString(x, y, va("%3d", captures), HUD_COLOR_STAT);
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
@@ -427,7 +432,17 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (cg_draw_crosshair_color->modified) { // crosshair color
 		cg_draw_crosshair_color->modified = false;
 
-		color = ColorByName(cg_draw_crosshair_color->string, 14);
+		const char *c = cg_draw_crosshair_color->string;
+		if (!strcasecmp(c, "red")) {
+			color = CROSSHAIR_COLOR_RED;
+		} else if (!strcasecmp(c, "green")) {
+			color = CROSSHAIR_COLOR_GREEN;
+		} else if (!strcasecmp(c, "yellow")) {
+			color = CROSSHAIR_COLOR_YELLOW;
+		} else {
+			color = CROSSHAIR_COLOR_DEFAULT;
+		}
+
 		cgi.ColorFromPalette(color, crosshair.color);
 	}
 

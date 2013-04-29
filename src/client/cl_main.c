@@ -497,7 +497,7 @@ static void Cl_InitLocal(void) {
 
 	// user info
 	active = Cvar_Get("active", "1", CVAR_USER_INFO | CVAR_NO_SET, NULL);
-	color = Cvar_Get("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	color = Cvar_Get("color", "", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	message_level = Cvar_Get("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	name = Cvar_Get("name", Cl_UserName(), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);

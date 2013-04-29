@@ -477,6 +477,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	r_sustained_light_t s;
 	int32_t i;
 
+	color = color ? color : EFFECT_COLOR_BLUE;
+
 	VectorCopy(start, s.light.origin);
 	s.light.radius = 100.0;
 	cgi.ColorFromPalette(color, s.light.color);
@@ -490,7 +492,19 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 		return;
 
 	// white cores for some colors, shifted for others
-	p->part.color = (color > 239 || color == 187 ? 216 : color + 6);
+	switch (color) {
+		case EFFECT_COLOR_RED:
+			p->part.color = 229;
+			break;
+		case EFFECT_COLOR_BLUE:
+		case EFFECT_COLOR_GREEN:
+		case EFFECT_COLOR_PURPLE:
+			p->part.color = 216;
+			break;
+		default:
+			p->part.color = color + 6;
+			break;
+	}
 
 	p->part.alpha = 0.75;
 	p->alpha_vel = -1.0;

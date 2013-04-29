@@ -217,7 +217,7 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 	if (ent->client) {
 		blast->s.client = ent->client->persistent.color;
 	} else {
-		blast->s.client = DEFAULT_WEAPON_EFFECT_COLOR;
+		blast->s.client = 0;
 	}
 
 	G_PlayerProjectile(blast, scale);
@@ -797,9 +797,9 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t da
 	// use team colors, or client's color
 	if (g_level.teams || g_level.ctf) {
 		if (ent->client->persistent.team == &g_team_good)
-			color = ColorByName("blue", 0);
+			color = EFFECT_COLOR_BLUE;
 		else
-			color = ColorByName("red", 0);
+			color = EFFECT_COLOR_RED;
 	} else
 		color = ent->client->persistent.color;
 

@@ -1158,20 +1158,21 @@ int32_t ColorByName(const char *s, int32_t def) {
 		return i;
 
 	if (!strcasecmp(s, "red"))
-		return 242;
+		return EFFECT_COLOR_RED;
 	if (!strcasecmp(s, "green"))
-		return 209;
+		return EFFECT_COLOR_GREEN;
 	if (!strcasecmp(s, "blue"))
-		return 243;
+		return EFFECT_COLOR_BLUE;
 	if (!strcasecmp(s, "yellow"))
-		return 219;
+		return EFFECT_COLOR_YELLOW;
 	if (!strcasecmp(s, "orange"))
-		return 225;
+		return EFFECT_COLOR_ORANGE;
 	if (!strcasecmp(s, "white"))
-		return 216;
+		return EFFECT_COLOR_WHITE;
 	if (!strcasecmp(s, "pink"))
-		return 247;
+		return EFFECT_COLOR_PINK;
 	if (!strcasecmp(s, "purple"))
-		return 187;
+		return EFFECT_COLOR_PURPLE;
+
 	return def;
 }

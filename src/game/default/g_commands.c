@@ -492,7 +492,7 @@ static void G_Say_f(g_edict_t *ent) {
 
 	if (team)
 		g_snprintf(text, sizeof(text), "%s^%d: ", ent->client->persistent.net_name,
-				CON_COLOR_TEAMCHAT);
+				CON_TEAM_COLORCHAT);
 	else
 		g_snprintf(text, sizeof(text), "%s^%d: ", ent->client->persistent.net_name, CON_COLOR_CHAT);
 	len = strlen(text);

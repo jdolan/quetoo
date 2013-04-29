@@ -197,7 +197,7 @@ void Cl_DrawNotify(void) {
 		char *s;
 
 		if (cls.chat_state.team) {
-			color = CON_COLOR_TEAMCHAT;
+			color = CON_TEAM_COLORCHAT;
 			R_DrawString(0, y, "say_team", CON_COLOR_DEFAULT);
 			skip = 10;
 		} else {

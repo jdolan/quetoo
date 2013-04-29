@@ -920,7 +920,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 
 	// set color
 	s = GetUserInfo(user_info, "color");
-	cl->persistent.color = ColorByName(s, DEFAULT_WEAPON_EFFECT_COLOR);
+	cl->persistent.color = ColorByName(s, EFFECT_COLOR_DEFAULT);
 
 	player_num = ent - g_game.edicts - 1;
 

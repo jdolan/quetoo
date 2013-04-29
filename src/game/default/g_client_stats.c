@@ -82,10 +82,10 @@ static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 		if (ent->client->persistent.team) {
 			if (ent->client->persistent.team == &g_team_good) {
 				s.team = 1;
-				s.color = ColorByName("blue", 0);
+				s.color = TEAM_COLOR_BLUE;
 			} else {
 				s.team = 2;
-				s.color = ColorByName("red", 0);
+				s.color = TEAM_COLOR_RED;
 			}
 		} else {
 			s.team = 0;
