@@ -131,10 +131,7 @@ static void Warn(const char *msg) {
  * @brief
  */
 static void Quit_f(void) {
-
-	Shutdown("Server quit\n");
-
-	Sys_Quit();
+	Com_Shutdown("Server quit\n");
 }
 
 /*

@@ -196,13 +196,6 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 }
 
 /*
- * @brief The final exit point of the program under normal exit conditions.
- */
-void Sys_Quit(void) {
-	exit(0);
-}
-
-/*
  * @brief On platforms supporting it, print a backtrace.
  */
 void Sys_Backtrace(void) {
