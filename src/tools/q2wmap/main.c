@@ -378,10 +378,6 @@ int32_t main(int32_t argc, char **argv) {
 	signal(SIGSEGV, Sys_Signal);
 	signal(SIGTERM, Sys_Signal);
 
-#ifdef _WIN32
-	OpenWin32Console(); //	initialize the windows console
-#endif
-
 	Com_Init(argc, argv);
 
 	// general options
