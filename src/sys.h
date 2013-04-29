@@ -36,7 +36,6 @@ void Sys_CloseLibrary(void **handle);
 
 void Sys_Quit(void);
 void Sys_Backtrace(void);
-void Sys_Error(const char *error, ...) __attribute__((noreturn, format(printf, 1, 2)));
-void Sys_Signal(int32_t s);
+void Sys_Signal(int32_t s) __attribute__((noreturn));
 
 #endif /* __SYS_H__ */

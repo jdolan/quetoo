@@ -47,17 +47,7 @@
  * @return Milliseconds since Quake execution began.
  */
 uint32_t Sys_Milliseconds(void) {
-	static uint32_t base, time;
-
-/* not needed on modern mingw platforms
-
-#ifdef _WIN32
-	if(!base)
-	base = timeGetTime() & 0xffff0000;
-
-	time = timeGetTime() - base;
-#else
-*/
+	static uint32_t base;
 	struct timeval tp;
 
 	gettimeofday(&tp, NULL);
@@ -65,10 +55,7 @@ uint32_t Sys_Milliseconds(void) {
 	if (!base)
 		base = tp.tv_sec;
 
-	time = (tp.tv_sec - base) * 1000 + tp.tv_usec / 1000;
-//#endif
-
-	return time;
+	return (tp.tv_sec - base) * 1000 + tp.tv_usec / 1000;
 }
 
 /*
@@ -231,24 +218,6 @@ void Sys_Backtrace(void) {
 }
 
 /*
- * @brief The final exit point of the program under abnormal exit conditions.
- */
-void Sys_Error(const char *error, ...) {
-	va_list args;
-	char string[MAX_STRING_CHARS];
-
-	Sys_Backtrace();
-
-	va_start(args, error);
-	vsnprintf(string, sizeof(string), error, args);
-	va_end(args);
-
-	fprintf(stderr, "ERROR: %s\n", string);
-
-	exit(1);
-}
-
-/*
  * @brief Catch kernel interrupts and dispatch the appropriate exit routine.
  */
 void Sys_Signal(int32_t s) {
@@ -258,12 +227,11 @@ void Sys_Signal(int32_t s) {
 		case SIGINT:
 		case SIGQUIT:
 		case SIGTERM:
-			Com_Print("Received signal %d, quitting...\n", s);
-			Sys_Quit();
+			Com_Shutdown("Received signal %d, quitting...\n", s);
 			break;
 		default:
 			Sys_Backtrace();
-			Sys_Error("Received signal %d.\n", s);
+			Com_Error(ERR_FATAL, "Received signal %d\n", s);
 			break;
 	}
 }

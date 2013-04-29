@@ -181,6 +181,9 @@ void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 #define Com_Error(...) Com_Error_(__func__, __VA_ARGS__)
 #define Com_Warn(...) Com_Warn_(__func__, __VA_ARGS__)
 
+void Com_Init(int32_t argc, char **argv);
+void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn));
+
 // subsystems
 #define Q2W_SERVER		0x1
 #define Q2W_GAME		0x2
@@ -190,7 +193,6 @@ void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 // global engine struct
 typedef struct quake2world_s {
-
 	int32_t argc;
 	char **argv;
 
@@ -202,6 +204,9 @@ typedef struct quake2world_s {
 	void (*Print)(const char *msg);
 	void (*Verbose)(const char *msg);
 	void (*Warn)(const char *msg);
+
+	void (*Init)(void);
+	void (*Shutdown)(const char *msg);
 } quake2world_t;
 
 extern quake2world_t quake2world;

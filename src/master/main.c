@@ -47,20 +47,6 @@ static GList *ms_servers;
 static int32_t ms_sock;
 
 /*
- * @brief Shuts down the master server.
- */
-static void Ms_Shutdown(void) {
-
-	Com_Print("Master server shutting down\n");
-
-	g_list_free_full(ms_servers, Z_Free);
-
-	Fs_Shutdown();
-
-	Z_Shutdown();
-}
-
-/*
  * @brief GCompareFunc for Ms_GetServer.
  */
 int32_t Ms_GetServer_compare(gconstpointer server, gconstpointer addr) {
@@ -320,34 +306,56 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 }
 
 /*
- * @brief
+ * @brief Initializes the master server.
  */
-static void Ms_HandleSignal(int32_t sig) {
+static void Init(void) {
 
-	Com_Print("Received signal %d, exiting...\n", sig);
+	Z_Init();
 
-	Ms_Shutdown();
+	Fs_Init();
+}
 
-	exit(0);
+/*
+ * @brief Shuts down the master server.
+ */
+static void Shutdown(const char *msg) {
+
+	Com_Print("%s", msg);
+
+	g_list_free_full(ms_servers, Z_Free);
+
+	Fs_Shutdown();
+
+	Z_Shutdown();
 }
 
 /*
  * @brief
  */
-int32_t main(int32_t argc __attribute__((unused)), char **argv) {
+int32_t main(int32_t argc, char **argv) {
 	struct sockaddr_in address, from;
 	struct timeval delay;
 	socklen_t from_len;
 	fd_set set;
 	char buffer[16384];
 
+	printf("Quake2World Master Server %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+
 	memset(&quake2world, 0, sizeof(quake2world));
 
-	Com_Print("Quake2World Master Server %s\n", VERSION);
+	quake2world.Init = Init;
+	quake2world.Shutdown = Shutdown;
 
-	Z_Init();
+	signal(SIGHUP, Sys_Signal);
+	signal(SIGINT, Sys_Signal);
+	signal(SIGQUIT, Sys_Signal);
+	signal(SIGILL, Sys_Signal);
+	signal(SIGTRAP, Sys_Signal);
+	signal(SIGFPE, Sys_Signal);
+	signal(SIGSEGV, Sys_Signal);
+	signal(SIGTERM, Sys_Signal);
 
-	Fs_Init();
+	Com_Init(argc, argv);
 
 	ms_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -363,15 +371,6 @@ int32_t main(int32_t argc __attribute__((unused)), char **argv) {
 	}
 
 	Com_Print("Listening on %i\n", PORT_MASTER);
-
-	signal(SIGHUP, Ms_HandleSignal);
-	signal(SIGINT, Ms_HandleSignal);
-	signal(SIGQUIT, Ms_HandleSignal);
-	signal(SIGILL, Ms_HandleSignal);
-	signal(SIGTRAP, Ms_HandleSignal);
-	signal(SIGFPE, Ms_HandleSignal);
-	signal(SIGSEGV, Ms_HandleSignal);
-	signal(SIGTERM, Ms_HandleSignal);
 
 	while (true) {
 		FD_ZERO(&set);

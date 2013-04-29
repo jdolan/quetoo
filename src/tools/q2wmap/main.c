@@ -65,198 +65,6 @@ extern float contrast;
 extern float surface_scale;
 extern float entity_scale;
 
-#ifdef _WIN32
-
-static HANDLE Console; //windows console
-static FILE *output_file; //file output
-#define HORIZONTAL	45							//console size and buffer
-#define VERTICAL		70						//console size and buffer
-static int32_t input_index_h, input_index_v; //pdcurses print location
-static char title[64]; //window bar title (updates to show status)
-
-#ifdef HAVE_CURSES
-#include <curses.h>
-
-/*
- * @brief
- */
-static void PDCursesInit(void) {
-	stdscr = initscr(); // initialize the ncurses window
-	resize_term(HORIZONTAL, VERTICAL); // resize the console
-	cbreak(); // disable input line buffering
-	noecho(); // don't show type characters
-	keypad(stdscr, TRUE); // enable special keys
-	nodelay(stdscr, TRUE); // non-blocking input
-	curs_set(1); // enable the cursor
-
-	if(has_colors() == TRUE) {
-		start_color();
-		// this is ncurses-specific
-		use_default_colors();
-		// COLOR_PAIR(0) is terminal default
-		init_pair(1, COLOR_RED, -1);
-		init_pair(2, COLOR_GREEN, -1);
-		init_pair(3, COLOR_YELLOW, -1);
-		init_pair(4, COLOR_BLUE, -1);
-		init_pair(5, COLOR_CYAN, -1);
-		init_pair(6, COLOR_MAGENTA, -1);
-		init_pair(7, -1, -1);
-	}
-}
-#endif
-
-/*
- * OpenWin32Console
- */
-static void OpenWin32Console(void) {
-	AllocConsole();
-	Console = CreateConsoleScreenBuffer(GENERIC_READ|GENERIC_WRITE, 0,0,CONSOLE_TEXTMODE_BUFFER,0);
-	SetConsoleActiveScreenBuffer(Console);
-
-	snprintf(title, sizeof(title), "Q2W Map Compiler");
-	SetConsoleTitle(title);
-
-	freopen("CON", "wt", stdout);
-	freopen("CON", "wt", stderr);
-	freopen("CON", "rt", stdin);
-
-	if((output_file = fopen ("bsp_output.txt","w")) == NULL)
-	Com_Error(ERR_FATAL, "Could not open bsp_compiler.txt\n");
-
-	input_index_h = 0; // zero the index counters
-	input_index_v = 0; // zero the index counters
-#ifdef HAVE_CURSES
-	PDCursesInit(); // initialize the pdcurses window
-#endif
-}
-
-/*
- * CloseWin32Console
- */
-static void CloseWin32Console(void) {
-	Fs_Close(output_file); // close the open file stream
-	CloseHandle(Console);
-	FreeConsole();
-}
-
-/*
- * @brief
- */
-static void Debug(const char *msg) {
-	uint32_t cChars;
-
-	if(!debug)
-		return;
-
-	fprintf(output_file, "%s", msg);
-
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
-}
-
-/*
- * @brief
- */
-static void Error(err_t err, const char *msg) {
-	const char *e = "************ ERROR ************\n";
-	uint32_t cChars;
-
-	fprintf(output_file, "%s", e);
-	fprintf(output_file, "%s", msg); // output to a file
-
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), e, lstrlen(e), &cChars, NULL);
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
-
-#ifdef HAVE_CURSES
-	do { // don't quit, leave compiler error on screen until a key is pressed
-	}while(getch() == ERR);
-
-	endwin(); // shutdown pdcurses
-#endif
-	CloseWin32Console(); // close the console
-
-	Z_Shutdown();
-	exit(1);
-}
-
-/*
- * @brief
- */
-static void Print(const char *msg) {
-	uint32_t cChars;
-
-	fprintf(output_file, "%s", msg); // output to a file
-
-#ifdef HAVE_CURSES
-	if(verbose || debug) { // verbose and debug output doesn't need fancy output - use WriteConsole() instead
-		WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
-	}
-	else { // fancy colored pdcurses output for normal compiling
-		char copymsg[2];
-		int32_t n;
-
-		for(n = 0; n < lstrlen(msg); n++) { // process the entire string (msg)
-			if (msg[n] == '\n') {
-				input_index_h++; // start a new line
-				input_index_v = 0; // start at the beginning of the new line
-			}
-			else { // otherwise continue processing the current line
-				copymsg[0] = msg[n]; // copy a character
-				if(input_index_h == 0) { // highlight the first line (q2wmap version, date, mingw32 build)
-					attron(COLOR_PAIR(3)); // bright yellow
-					attron(A_BOLD);
-				}
-				// highlight compiler progression (1... 2... 3... 4... 5... 6... 7... 8... 9... 10...)
-				else if(input_index_h == 4 || input_index_h == 5 || input_index_h == 11 || input_index_h == 12 ||
-						input_index_h == 21 || input_index_h == 22 || input_index_h == 23) {
-					attron(COLOR_PAIR(1)); // bright red
-					attron(A_BOLD);
-				}
-				else
-				attroff(COLOR_PAIR(3)); // turn off attributes
-
-				// finally print our processed character on the console
-				mvwprintw(stdscr, input_index_h, input_index_v, copymsg);
-				refresh();
-
-				input_index_v++; // advance to the next character position
-			}
-		}
-	}
-#else
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
-#endif /* HAVE_CURSES */
-}
-
-/*
- * @brief
- */
-static void Verbose(const char *msg) {
-	uint32_t cChars;
-
-	if(!verbose)
-	return;
-
-	fprintf(output_file, "%s", msg);
-
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
-}
-
-/*
- * @brief
- */
-static void Warn(const char *msg) {
-	uint32_t cChars;
-	const char *w = "WARNING: ";
-
-	fprintf(output_file, "%s", w);
-	fprintf(output_file, "%s", msg);
-
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), w, lstrlen(w), &cChars, NULL);
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg, lstrlen(msg), &cChars, NULL);
-}
-
-#else /* _WIN32 */
-
 /*
  * @brief
  */
@@ -268,6 +76,8 @@ static void Debug(const char *msg) {
 	printf("%s", msg);
 }
 
+static void Shutdown(const char *msg);
+
 /*
  * @brief
  */
@@ -277,24 +87,9 @@ static void Error(err_t err __attribute__((unused)), const char *msg) {
 	fprintf(stderr, "************ ERROR ************\n");
 	fprintf(stderr, "%s", msg);
 
-	Thread_Shutdown();
-
-	Cvar_Shutdown();
-
-	Cmd_Shutdown();
-
-	Fs_Shutdown();
-
-	Z_Shutdown();
+	Shutdown(NULL);
 
 	exit(err);
-}
-
-/*
- * @brief
- */
-static void Print(const char *msg) {
-	printf("%s", msg);
 }
 
 /*
@@ -312,255 +107,13 @@ static void Verbose(const char *msg) {
  * @brief
  */
 static void Warn(const char *msg) {
-
-	fprintf(stderr, "WARNING: ");
-	fprintf(stderr, "%s", msg);
-}
-
-#endif /* _WIN32 */
-
-/*
- * @brief
- */
-static int32_t Check_BSP_Options(int32_t argc, char **argv) {
-	int32_t i;
-
-	for (i = 1; i < argc; i++) {
-		if (!strcmp(argv[i], "-noweld")) {
-			Com_Verbose("noweld = true\n");
-			noweld = true;
-		} else if (!strcmp(argv[i], "-nocsg")) {
-			Com_Verbose("nocsg = true\n");
-			nocsg = true;
-		} else if (!strcmp(argv[i], "-noshare")) {
-			Com_Verbose("noshare = true\n");
-			noshare = true;
-		} else if (!strcmp(argv[i], "-notjunc")) {
-			Com_Verbose("notjunc = true\n");
-			notjunc = true;
-		} else if (!strcmp(argv[i], "-nowater")) {
-			Com_Verbose("nowater = true\n");
-			nowater = true;
-		} else if (!strcmp(argv[i], "-noopt")) {
-			Com_Verbose("noopt = true\n");
-			noopt = true;
-		} else if (!strcmp(argv[i], "-noprune")) {
-			Com_Verbose("noprune = true\n");
-			noprune = true;
-		} else if (!strcmp(argv[i], "-nofill")) {
-			Com_Verbose("nofill = true\n");
-			nofill = true;
-		} else if (!strcmp(argv[i], "-nomerge")) {
-			Com_Verbose("nomerge = true\n");
-			nomerge = true;
-		} else if (!strcmp(argv[i], "-nosubdivide")) {
-			Com_Verbose("nosubdivide = true\n");
-			nosubdivide = true;
-		} else if (!strcmp(argv[i], "-nodetail")) {
-			Com_Verbose("nodetail = true\n");
-			nodetail = true;
-		} else if (!strcmp(argv[i], "-fulldetail")) {
-			Com_Verbose("fulldetail = true\n");
-			fulldetail = true;
-		} else if (!strcmp(argv[i], "-onlyents")) {
-			Com_Verbose("onlyents = true\n");
-			onlyents = true;
-		} else if (!strcmp(argv[i], "-micro")) {
-			microvolume = atof(argv[i + 1]);
-			Com_Verbose("microvolume = %f\n", microvolume);
-			i++;
-		} else if (!strcmp(argv[i], "-leaktest")) {
-			Com_Verbose("leaktest = true\n");
-			leaktest = true;
-		} else if (!strcmp(argv[i], "-verboseentities")) {
-			Com_Verbose("verboseentities = true\n");
-			verboseentities = true;
-		} else if (!strcmp(argv[i], "-subdivide")) {
-			subdivide_size = atoi(argv[i + 1]);
-			Com_Verbose("subdivide_size = %d\n", subdivide_size);
-			i++;
-		} else if (!strcmp(argv[i], "-block")) {
-			block_xl = block_xh = atoi(argv[i + 1]);
-			block_yl = block_yh = atoi(argv[i + 2]);
-			Com_Verbose("block: %i,%i\n", block_xl, block_yl);
-			i += 2;
-		} else if (!strcmp(argv[i], "-blocks")) {
-			block_xl = atoi(argv[i + 1]);
-			block_yl = atoi(argv[i + 2]);
-			block_xh = atoi(argv[i + 3]);
-			block_yh = atoi(argv[i + 4]);
-			Com_Verbose("blocks: %i,%i to %i,%i\n", block_xl, block_yl, block_xh, block_yh);
-			i += 4;
-		} else if (!strcmp(argv[i], "-tmpout")) {
-			strcpy(outbase, "/tmp");
-		} else
-			break;
-	}
-	return 0;
+	fprintf(stderr, "WARNING: %s", msg);
 }
 
 /*
- * @brief
+ * @brief Initializes subsystems q2wmap relies on.
  */
-static int32_t Check_VIS_Options(int32_t argc, char **argv) {
-	int32_t i;
-
-	for (i = 1; i < argc; i++) {
-		if (!strcmp(argv[i], "-fast")) {
-			Com_Verbose("fastvis = true\n");
-			fastvis = true;
-		} else if (!strcmp(argv[i], "-nosort")) {
-			Com_Verbose("nosort = true\n");
-			nosort = true;
-		} else
-			break;
-	}
-
-	return 0;
-}
-
-/*
- * @brief
- */
-static int32_t Check_LIGHT_Options(int32_t argc, char **argv) {
-	int32_t i;
-
-	for (i = 1; i < argc; i++) {
-		if (!strcmp(argv[i], "-extra")) {
-			extra_samples = true;
-			Com_Verbose("extra samples = true\n");
-		} else if (!strcmp(argv[i], "-brightness")) {
-			brightness = atof(argv[i + 1]);
-			Com_Verbose("brightness at %f\n", brightness);
-			i++;
-		} else if (!strcmp(argv[i], "-saturation")) {
-			saturation = atof(argv[i + 1]);
-			Com_Verbose("saturation at %f\n", saturation);
-			i++;
-		} else if (!strcmp(argv[i], "-contrast")) {
-			contrast = atof(argv[i + 1]);
-			Com_Verbose("contrast at %f\n", contrast);
-			i++;
-		} else if (!strcmp(argv[i], "-surface")) {
-			surface_scale *= atof(argv[i + 1]);
-			Com_Verbose("surface light scale at %f\n", surface_scale);
-			i++;
-		} else if (!strcmp(argv[i], "-entity")) {
-			entity_scale *= atof(argv[i + 1]);
-			Com_Verbose("entity light scale at %f\n", entity_scale);
-			i++;
-		} else
-			break;
-	}
-
-	return 0;
-}
-
-/*
- * @brief
- */
-static int32_t Check_ZIP_Options(int32_t argc __attribute__((unused)), char **argv __attribute__((unused))) {
-	return 0;
-}
-
-/*
- * @brief
- */
-static int32_t Check_MAT_Options(__attribute__((unused))  int32_t argc, char **argv __attribute__((unused))) {
-	return 0;
-}
-
-/*
- * @brief
- */
-static void PrintHelpMessage(void) {
-	Print("General options\n");
-	Print("-v -verbose\n");
-	Print("-l -legacy            Compile a legacy Quake2 map\n");
-	Print("-d -debug\n");
-	Print("-t -threads <int>\n");
-
-	Print("\n");
-	Print("-bsp               Binary space partitioning (BSPing) options:\n");
-	Print(" -block <int> <int>\n");
-	Print(" -blocks <int> <int> <int> <int>\n");
-	Print(" -fulldetail - don't treat details (and trans surfaces) as details\n");
-	Print(" -leaktest\n");
-	Print(" -micro <float>\n");
-	Print(" -nocsg\n");
-	Print(" -nodetail - skip detail brushes\n");
-	Print(" -nofill\n");
-	Print(" -nomerge - skip node face merging\n");
-	Print(" -noopt\n");
-	Print(" -noprune - don't prune (or cut) nodes\n");
-	Print(" -noshare\n");
-	Print(" -nosubdivide\n");
-	Print(" -notjunc\n");
-	Print(" -nowater - skip water brushes in compilation\n");
-	Print(" -noweld\n");
-	Print(" -onlyents - modify existing bsp file with entities from map file\n");
-	Print(" -subdivide <int> -subdivide brushes for better light effects (but higher polycount)\n");
-	Print(" -tmpout\n");
-	Print(" -verboseentities - also be verbose about submodels (entities)\n");
-	Print("\n");
-	Print("-vis               VIS stage options:\n");
-	Print(" -fast\n");
-	Print(" -level\n");
-	Print(" -nosort\n");
-	Print("\n");
-	Print("-light             Lighting stage options:\n");
-	Print(" -contrast <float> - contrast factor\n");
-	Print(" -entity <float> - entity light scaling\n");
-	Print(" -extra - extra light samples\n");
-	Print(" -brightness <float> - brightness factor\n");
-	Print(" -saturation <float> - saturation factor\n");
-	Print(" -surface <float> - surface light scaling\n");
-	Print("\n");
-	Print("-zip               ZIP file options:\n");
-	Print("\n");
-	Print("Examples:\n");
-	Print("Standard full compile:\n q2wmap -bsp -vis -light maps/my.map\n");
-	Print(
-			"Fast vis, extra light, two threads:\n q2wmap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
-	Print("\n");
-}
-
-/*
- * @brief
- */
-int32_t main(int32_t argc, char **argv) {
-	int32_t i;
-	int32_t r = 0;
-	int32_t total_time;
-	time_t start, end;
-	int32_t alt_argc;
-	char *c, **alt_argv;
-	bool do_bsp = false;
-	bool do_vis = false;
-	bool do_light = false;
-	bool do_mat = false;
-	bool do_zip = false;
-
-	memset(&quake2world, 0, sizeof(quake2world));
-
-	quake2world.Debug = Debug;
-	quake2world.Error = Error;
-	quake2world.Print = Print;
-	quake2world.Verbose = Verbose;
-	quake2world.Warn = Warn;
-
-#ifdef _WIN32
-	OpenWin32Console(); //	initialize the windows console
-#endif
-
-	Com_Print("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
-
-	if (argc < 2) { // print help and exit
-		PrintHelpMessage();
-		return 0;
-	}
-
-	Com_InitArgv(argc, argv);
+static void Init(void) {
 
 	Z_Init();
 
@@ -570,104 +123,15 @@ int32_t main(int32_t argc, char **argv) {
 
 	Cvar_Init();
 
-	// general options
-	for (i = 1; i < argc; i++) {
-		if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "-verbose")) {
-			verbose = true;
-			continue;
-		}
-
-		if (!strcmp(argv[i], "-d") || !strcmp(argv[i], "-debug")) {
-			debug = true;
-			continue;
-		}
-
-		if (!strcmp(argv[i], "-t") || !strcmp(argv[i], "-threads")) {
-			Cvar_Set("threads", argv[i + 1]);
-			continue;
-		}
-
-		if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "-legacy")) {
-			legacy = true;
-			continue;
-		}
-	}
-
-	// read compiling options
-	for (i = 1; i < argc; i++) {
-		if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help")) {
-			PrintHelpMessage();
-			return 0;
-		}
-
-		if (!strcmp(argv[i], "-bsp")) {
-			do_bsp = true;
-			alt_argc = argc - i;
-			alt_argv = (char **) (argv + i);
-			Check_BSP_Options(alt_argc, alt_argv);
-		}
-
-		if (!strcmp(argv[i], "-vis")) {
-			do_vis = true;
-			alt_argc = argc - i;
-			alt_argv = (char **) (argv + i);
-			Check_VIS_Options(alt_argc, alt_argv);
-		}
-
-		if (!strcmp(argv[i], "-light")) {
-			do_light = true;
-			alt_argc = argc - i;
-			alt_argv = (char **) (argv + i);
-			Check_LIGHT_Options(alt_argc, alt_argv);
-		}
-
-		if (!strcmp(argv[i], "-mat")) {
-			do_mat = true;
-			alt_argc = argc - i;
-			alt_argv = (char **) (argv + i);
-			Check_MAT_Options(alt_argc, alt_argv);
-		}
-
-		if (!strcmp(argv[i], "-zip")) {
-			do_zip = true;
-			alt_argc = argc - i;
-			alt_argv = (char **) (argv + i);
-			Check_ZIP_Options(alt_argc, alt_argv);
-		}
-	}
-
-	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_zip) {
-		Com_Error(ERR_FATAL, "No action specified.\n"
-				"Please specify at least one of -bsp -vis -light -mat -zip\n");
-	}
-
 	Thread_Init();
 
 	Sem_Init();
+}
 
-	// ugly little hack to localize global paths to game paths
-	// for e.g. GtkRadiant
-	c = strstr(argv[argc - 1], "/maps/");
-	c = c ? c + 1 : argv[argc - 1];
-
-	StripExtension(c, map_name);
-	strcpy(bsp_name, map_name);
-	strcat(map_name, ".map");
-	strcat(bsp_name, ".bsp");
-
-	// start timer
-	start = time(NULL);
-
-	if (do_bsp)
-		BSP_Main();
-	if (do_vis)
-		VIS_Main();
-	if (do_light)
-		LIGHT_Main();
-	if (do_mat)
-		MAT_Main();
-	if (do_zip)
-		ZIP_Main();
+/*
+ * @brief Shuts down subsystems.
+ */
+static void Shutdown(const char *msg __attribute__((unused))) {
 
 	Sem_Shutdown();
 
@@ -680,33 +144,341 @@ int32_t main(int32_t argc, char **argv) {
 	Fs_Shutdown();
 
 	Z_Shutdown();
+}
+
+/*
+ * @brief
+ */
+static void Check_BSP_Options(int32_t argc) {
+	int32_t i;
+
+	for (i = argc; i < Com_Argc(); i++) {
+		if (!strcmp(Com_Argv(i), "-noweld")) {
+			Com_Verbose("noweld = true\n");
+			noweld = true;
+		} else if (!strcmp(Com_Argv(i), "-nocsg")) {
+			Com_Verbose("nocsg = true\n");
+			nocsg = true;
+		} else if (!strcmp(Com_Argv(i), "-noshare")) {
+			Com_Verbose("noshare = true\n");
+			noshare = true;
+		} else if (!strcmp(Com_Argv(i), "-notjunc")) {
+			Com_Verbose("notjunc = true\n");
+			notjunc = true;
+		} else if (!strcmp(Com_Argv(i), "-nowater")) {
+			Com_Verbose("nowater = true\n");
+			nowater = true;
+		} else if (!strcmp(Com_Argv(i), "-noopt")) {
+			Com_Verbose("noopt = true\n");
+			noopt = true;
+		} else if (!strcmp(Com_Argv(i), "-noprune")) {
+			Com_Verbose("noprune = true\n");
+			noprune = true;
+		} else if (!strcmp(Com_Argv(i), "-nofill")) {
+			Com_Verbose("nofill = true\n");
+			nofill = true;
+		} else if (!strcmp(Com_Argv(i), "-nomerge")) {
+			Com_Verbose("nomerge = true\n");
+			nomerge = true;
+		} else if (!strcmp(Com_Argv(i), "-nosubdivide")) {
+			Com_Verbose("nosubdivide = true\n");
+			nosubdivide = true;
+		} else if (!strcmp(Com_Argv(i), "-nodetail")) {
+			Com_Verbose("nodetail = true\n");
+			nodetail = true;
+		} else if (!strcmp(Com_Argv(i), "-fulldetail")) {
+			Com_Verbose("fulldetail = true\n");
+			fulldetail = true;
+		} else if (!strcmp(Com_Argv(i), "-onlyents")) {
+			Com_Verbose("onlyents = true\n");
+			onlyents = true;
+		} else if (!strcmp(Com_Argv(i), "-micro")) {
+			microvolume = atof(Com_Argv(i + 1));
+			Com_Verbose("microvolume = %f\n", microvolume);
+			i++;
+		} else if (!strcmp(Com_Argv(i), "-leaktest")) {
+			Com_Verbose("leaktest = true\n");
+			leaktest = true;
+		} else if (!strcmp(Com_Argv(i), "-verboseentities")) {
+			Com_Verbose("verboseentities = true\n");
+			verboseentities = true;
+		} else if (!strcmp(Com_Argv(i), "-subdivide")) {
+			subdivide_size = atoi(Com_Argv(i + 1));
+			Com_Verbose("subdivide_size = %d\n", subdivide_size);
+			i++;
+		} else if (!strcmp(Com_Argv(i), "-block")) {
+			block_xl = block_xh = atoi(Com_Argv(i + 1));
+			block_yl = block_yh = atoi(Com_Argv(i + 2));
+			Com_Verbose("block: %i,%i\n", block_xl, block_yl);
+			i += 2;
+		} else if (!strcmp(Com_Argv(i), "-blocks")) {
+			block_xl = atoi(Com_Argv(i + 1));
+			block_yl = atoi(Com_Argv(i + 2));
+			block_xh = atoi(Com_Argv(i + 3));
+			block_yh = atoi(Com_Argv(i + 4));
+			Com_Verbose("blocks: %i,%i to %i,%i\n", block_xl, block_yl, block_xh, block_yh);
+			i += 4;
+		} else if (!strcmp(Com_Argv(i), "-tmpout")) {
+			strcpy(outbase, "/tmp");
+		} else
+			break;
+	}
+}
+
+/*
+ * @brief
+ */
+static void Check_VIS_Options(int32_t argc) {
+	int32_t i;
+
+	for (i = argc; i < Com_Argc(); i++) {
+		if (!strcmp(Com_Argv(i), "-fast")) {
+			Com_Verbose("fastvis = true\n");
+			fastvis = true;
+		} else if (!strcmp(Com_Argv(i), "-nosort")) {
+			Com_Verbose("nosort = true\n");
+			nosort = true;
+		} else
+			break;
+	}
+}
+
+/*
+ * @brief
+ */
+static void Check_LIGHT_Options(int32_t argc) {
+	int32_t i;
+
+	for (i = argc; i < Com_Argc(); i++) {
+		if (!strcmp(Com_Argv(i), "-extra")) {
+			extra_samples = true;
+			Com_Verbose("extra samples = true\n");
+		} else if (!strcmp(Com_Argv(i), "-brightness")) {
+			brightness = atof(Com_Argv(i + 1));
+			Com_Verbose("brightness at %f\n", brightness);
+			i++;
+		} else if (!strcmp(Com_Argv(i), "-saturation")) {
+			saturation = atof(Com_Argv(i + 1));
+			Com_Verbose("saturation at %f\n", saturation);
+			i++;
+		} else if (!strcmp(Com_Argv(i), "-contrast")) {
+			contrast = atof(Com_Argv(i + 1));
+			Com_Verbose("contrast at %f\n", contrast);
+			i++;
+		} else if (!strcmp(Com_Argv(i), "-surface")) {
+			surface_scale *= atof(Com_Argv(i + 1));
+			Com_Verbose("surface light scale at %f\n", surface_scale);
+			i++;
+		} else if (!strcmp(Com_Argv(i), "-entity")) {
+			entity_scale *= atof(Com_Argv(i + 1));
+			Com_Verbose("entity light scale at %f\n", entity_scale);
+			i++;
+		} else
+			break;
+	}
+}
+
+/*
+ * @brief
+ */
+static void Check_ZIP_Options(int32_t argc __attribute__((unused))) {
+}
+
+/*
+ * @brief
+ */
+static void Check_MAT_Options(int32_t argc __attribute__((unused))) {
+}
+
+/*
+ * @brief
+ */
+static void PrintHelpMessage(void) {
+	Com_Print("General options\n");
+	Com_Print("-v -verbose\n");
+	Com_Print("-l -legacy            Compile a legacy Quake2 map\n");
+	Com_Print("-d -debug\n");
+	Com_Print("-t -threads <int>\n");
+
+	Com_Print("\n");
+	Com_Print("-bsp               Binary space partitioning (BSPing) options:\n");
+	Com_Print(" -block <int> <int>\n");
+	Com_Print(" -blocks <int> <int> <int> <int>\n");
+	Com_Print(" -fulldetail - don't treat details (and trans surfaces) as details\n");
+	Com_Print(" -leaktest\n");
+	Com_Print(" -micro <float>\n");
+	Com_Print(" -nocsg\n");
+	Com_Print(" -nodetail - skip detail brushes\n");
+	Com_Print(" -nofill\n");
+	Com_Print(" -nomerge - skip node face merging\n");
+	Com_Print(" -noopt\n");
+	Com_Print(" -noprune - don't prune (or cut) nodes\n");
+	Com_Print(" -noshare\n");
+	Com_Print(" -nosubdivide\n");
+	Com_Print(" -notjunc\n");
+	Com_Print(" -nowater - skip water brushes in compilation\n");
+	Com_Print(" -noweld\n");
+	Com_Print(" -onlyents - modify existing bsp file with entities from map file\n");
+	Com_Print(
+			" -subdivide <int> -subdivide brushes for better light effects (but higher polycount)\n");
+	Com_Print(" -tmpout\n");
+	Com_Print(" -verboseentities - also be verbose about submodels (entities)\n");
+	Com_Print("\n");
+	Com_Print("-vis               VIS stage options:\n");
+	Com_Print(" -fast\n");
+	Com_Print(" -level\n");
+	Com_Print(" -nosort\n");
+	Com_Print("\n");
+	Com_Print("-light             Lighting stage options:\n");
+	Com_Print(" -contrast <float> - contrast factor\n");
+	Com_Print(" -entity <float> - entity light scaling\n");
+	Com_Print(" -extra - extra light samples\n");
+	Com_Print(" -brightness <float> - brightness factor\n");
+	Com_Print(" -saturation <float> - saturation factor\n");
+	Com_Print(" -surface <float> - surface light scaling\n");
+	Com_Print("\n");
+	Com_Print("-zip               ZIP file options:\n");
+	Com_Print("\n");
+	Com_Print("Examples:\n");
+	Com_Print("Standard full compile:\n q2wmap -bsp -vis -light maps/my.map\n");
+	Com_Print("Fast vis, extra light, two threads:\n"
+		"q2wmap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
+	Com_Print("\n");
+}
+
+/*
+ * @brief
+ */
+int32_t main(int32_t argc, char **argv) {
+	int32_t i;
+	bool do_bsp = false;
+	bool do_vis = false;
+	bool do_light = false;
+	bool do_mat = false;
+	bool do_zip = false;
+
+	printf("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+
+	memset(&quake2world, 0, sizeof(quake2world));
+
+	quake2world.Debug = Debug;
+	quake2world.Error = Error;
+	quake2world.Verbose = Verbose;
+	quake2world.Warn = Warn;
+
+	quake2world.Init = Init;
+	quake2world.Shutdown = Shutdown;
+
+	signal(SIGHUP, Sys_Signal);
+	signal(SIGINT, Sys_Signal);
+	signal(SIGQUIT, Sys_Signal);
+	signal(SIGILL, Sys_Signal);
+	signal(SIGABRT, Sys_Signal);
+	signal(SIGFPE, Sys_Signal);
+	signal(SIGSEGV, Sys_Signal);
+	signal(SIGTERM, Sys_Signal);
+
+#ifdef _WIN32
+	OpenWin32Console(); //	initialize the windows console
+#endif
+
+	Com_Init(argc, argv);
+
+	// general options
+	for (i = 1; i < Com_Argc(); i++) {
+		if (!strcmp(Com_Argv(i), "-v") || !strcmp(Com_Argv(i), "-verbose")) {
+			verbose = true;
+			continue;
+		}
+
+		if (!strcmp(Com_Argv(i), "-d") || !strcmp(Com_Argv(i), "-debug")) {
+			debug = true;
+			continue;
+		}
+
+		if (!strcmp(Com_Argv(i), "-t") || !strcmp(Com_Argv(i), "-threads")) {
+			Cvar_Set("threads", Com_Argv(i + 1));
+			if (threads->modified) {
+				Thread_Shutdown();
+				Thread_Init();
+			}
+			continue;
+		}
+
+		if (!strcmp(Com_Argv(i), "-l") || !strcmp(Com_Argv(i), "-legacy")) {
+			legacy = true;
+			continue;
+		}
+	}
+
+	// read compiling options
+	for (i = 1; i < Com_Argc(); i++) {
+		if (!strcmp(Com_Argv(i), "-h") || !strcmp(Com_Argv(i), "-help")) {
+			PrintHelpMessage();
+			Com_Shutdown(NULL);
+		}
+
+		if (!strcmp(Com_Argv(i), "-bsp")) {
+			do_bsp = true;
+			Check_BSP_Options(i + 1);
+		}
+
+		if (!strcmp(Com_Argv(i), "-vis")) {
+			do_vis = true;
+			Check_VIS_Options(i + 1);
+		}
+
+		if (!strcmp(Com_Argv(i), "-light")) {
+			do_light = true;
+			Check_LIGHT_Options(i + 1);
+		}
+
+		if (!strcmp(Com_Argv(i), "-mat")) {
+			do_mat = true;
+			Check_MAT_Options(i + 1);
+		}
+
+		if (!strcmp(Com_Argv(i), "-zip")) {
+			do_zip = true;
+			Check_ZIP_Options(i + 1);
+		}
+	}
+
+	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_zip) {
+		Com_Error(ERR_FATAL, "No action specified. Try %s -help\n", Cmd_Argv(0));
+	}
+
+	// ugly little hack to localize global paths to game paths
+	// for e.g. GtkRadiant
+	const char *c = strstr(Cmd_Argv(Cmd_Argc() - 1), "/maps/");
+	c = c ? c + 1 : Cmd_Argv(Cmd_Argc() - 1);
+
+	StripExtension(c, map_name);
+	strcpy(bsp_name, map_name);
+	strcat(map_name, ".map");
+	strcat(bsp_name, ".bsp");
+
+	// start timer
+	const time_t start = time(NULL);
+
+	if (do_bsp)
+		BSP_Main();
+	if (do_vis)
+		VIS_Main();
+	if (do_light)
+		LIGHT_Main();
+	if (do_mat)
+		MAT_Main();
+	if (do_zip)
+		ZIP_Main();
 
 	// emit time
-	end = time(NULL);
-	total_time = (int) (end - start);
+	const time_t end = time(NULL);
+	const int32_t total_time = (int32_t) (end - start);
 	Com_Print("\nTotal Time: ");
 	if (total_time > 59)
 		Com_Print("%d Minutes ", total_time / 60);
 	Com_Print("%d Seconds\n", total_time % 60);
 
-#ifdef _WIN32
-	snprintf(title, sizeof(title), "Q2WMap [Finished]");
-	SetConsoleTitle(title);
-
-	Com_Print("\n-----------------------------------------------------------------\n");
-	Com_Print("%s has been compiled sucessfully! \n\nPress any key to quit\n", bsp_name);
-	Com_Print("-----------------------------------------------------------------");
-
-#ifdef HAVE_CURSES
-	do { // don't quit, leave output on screen until a key is pressed
-	}while(getch() == ERR);
-
-	endwin(); // shutdown pdcurses
-#endif
-
-	CloseWin32Console(); // close the console
-#endif
-
-	// exit with error code
-	return r;
+	Com_Shutdown(NULL);
 }

@@ -44,7 +44,7 @@ void Test_Init(int32_t argc, char **argv) {
 
 	memset(&quake2world, 0, sizeof(quake2world));
 
-	Com_InitArgv(argc, argv);
+	Com_Init(argc, argv);
 }
 
 /*

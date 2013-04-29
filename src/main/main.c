@@ -71,10 +71,11 @@ static void Debug(const char *msg) {
  */
 static void Error(err_t err, const char *msg) {
 
+	Com_Print("^1%s\n", msg);
+
 	switch (err) {
 		case ERR_NONE:
 		case ERR_DROP:
-			Print(va("^1%s\n", msg));
 			Sv_Shutdown(msg);
 
 #ifdef BUILD_CLIENT
@@ -91,8 +92,8 @@ static void Error(err_t err, const char *msg) {
 
 		case ERR_FATAL:
 		default:
-			Shutdown((const char *) msg);
-			Sys_Error("%s", msg);
+			Shutdown(msg);
+			exit(err);
 			break;
 	}
 }
@@ -139,20 +140,7 @@ static void Quit_f(void) {
 /*
  * @brief
  */
-static void Init(int32_t argc, char **argv) {
-
-	memset(&quake2world, 0, sizeof(quake2world));
-
-	if (setjmp(environment))
-		Sys_Error("Error during initialization.");
-
-	quake2world.Debug = Debug;
-	quake2world.Error = Error;
-	quake2world.Print = Print;
-	quake2world.Verbose = Verbose;
-	quake2world.Warn = Warn;
-
-	Com_InitArgv(argc, argv);
+static void Init(void) {
 
 	Z_Init();
 
@@ -208,6 +196,8 @@ static void Init(int32_t argc, char **argv) {
  * @brief Cleans up all game engine subsystems.
  */
 static void Shutdown(const char *msg) {
+
+	Com_Print("%s", msg);
 
 	Sv_Shutdown(msg);
 
@@ -277,6 +267,22 @@ int32_t main(int32_t argc, char **argv) {
 	setvbuf(stdout, NULL, _IONBF, 0);
 #endif
 
+	printf("Quake2World %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+
+	memset(&quake2world, 0, sizeof(quake2world));
+
+	if (setjmp(environment))
+		Com_Error(ERR_FATAL, "Error during initialization.");
+
+	quake2world.Debug = Debug;
+	quake2world.Error = Error;
+	quake2world.Print = Print;
+	quake2world.Verbose = Verbose;
+	quake2world.Warn = Warn;
+
+	quake2world.Init = Init;
+	quake2world.Shutdown = Shutdown;
+
 	signal(SIGHUP, Sys_Signal);
 	signal(SIGINT, Sys_Signal);
 	signal(SIGQUIT, Sys_Signal);
@@ -286,11 +292,7 @@ int32_t main(int32_t argc, char **argv) {
 	signal(SIGSEGV, Sys_Signal);
 	signal(SIGTERM, Sys_Signal);
 
-	printf("Quake2World %s\n", VERSION);
-
-	Init(argc, argv);
-
-	quake2world.time = Sys_Milliseconds();
+	Com_Init(argc, argv); // let's get it started in here
 
 	while (true) { // this is our main loop
 

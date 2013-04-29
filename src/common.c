@@ -100,11 +100,11 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
-	if (quake2world.Error)
+	if (quake2world.Error) {
 		quake2world.Error(err, (const char *) msg);
-	else {
+	} else {
 		fprintf(stderr, "%s", msg);
-		exit(1);
+		exit(err);
 	}
 }
 
@@ -156,7 +156,7 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 	if (quake2world.Warn)
 		quake2world.Warn((const char *) msg);
 	else
-		fprintf(stderr, "%s", msg);
+		fprintf(stderr, "WARNING: %s", msg);
 }
 
 /*
@@ -174,6 +174,43 @@ void Com_Verbose(const char *fmt, ...) {
 		quake2world.Verbose((const char *) msg);
 	else
 		printf("%s", msg);
+}
+
+/*
+ * @brief Initializes the global arguments list and dispatches to an underlying
+ * implementation, if provided. Should be called shortly after program
+ * execution begins.
+ */
+void Com_Init(int32_t argc, char **argv) {
+
+	quake2world.argc = argc;
+	quake2world.argv = argv;
+
+	if (quake2world.Init) {
+		quake2world.Init();
+	}
+}
+
+/*
+ * @brief Program exit point under normal circumstances. Dispatches to a
+ * specialized implementation, if provided, or simply prints the message and
+ * exits. This function does not return.
+ */
+void Com_Shutdown(const char *fmt, ...) {
+	va_list args;
+	static char msg[MAX_PRINT_MSG];
+
+	va_start(args, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, args);
+	va_end(args);
+
+	if (quake2world.Shutdown) {
+		quake2world.Shutdown(msg);
+	} else {
+		Com_Print("%s", msg);
+	}
+
+	exit(0);
 }
 
 /*
@@ -799,14 +836,6 @@ char *Com_Argv(int32_t arg) {
 	if (arg < 0 || arg >= Com_Argc())
 		return "";
 	return quake2world.argv[arg];
-}
-
-/*
- * @brief Initializes common subsystems.
- */
-void Com_InitArgv(int32_t argc, char **argv) {
-	quake2world.argc = argc;
-	quake2world.argv = argv;
 }
 
 /*
