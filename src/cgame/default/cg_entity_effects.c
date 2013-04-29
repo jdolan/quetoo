@@ -573,6 +573,7 @@ void Cg_InactiveTrail(const vec3_t start) {
 		return;
 
 	p->part.color = 11;
+	p->part.image = cg_particle_inactive;
 
 	p->part.alpha = 1.0;
 	p->alpha_vel = -99999999.0;
