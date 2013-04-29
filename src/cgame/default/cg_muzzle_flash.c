@@ -180,7 +180,7 @@ void Cg_ParseMuzzleFlash(void) {
 		break;
 	case MZ_HYPERBLASTER:
 		cgi.PlaySample(NULL, ent_num, cg_sample_hyperblaster_fire, ATTN_NORM);
-		Cg_EnergyFlash(&cent->current, MUZZLE_COLOR_HYPERBLASTER);
+		Cg_EnergyFlash(&cent->current, 105);
 		break;
 	case MZ_LIGHTNING:
 		cgi.PlaySample(NULL, ent_num, cg_sample_lightning_fire, ATTN_NORM);
@@ -190,7 +190,7 @@ void Cg_ParseMuzzleFlash(void) {
 		break;
 	case MZ_BFG:
 		cgi.PlaySample(NULL, ent_num, cg_sample_bfg_fire, ATTN_NORM);
-		Cg_EnergyFlash(&cent->current, MUZZLE_COLOR_BFG);
+		Cg_EnergyFlash(&cent->current, 200);
 		break;
 	case MZ_LOGOUT:
 		cgi.PlaySample(NULL, ent_num, cg_sample_teleport, ATTN_NONE);
