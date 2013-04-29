@@ -252,10 +252,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 }
 
 /*
- * @brief FIXME: if entity isn't in PHS, they must be forced to be sent or
- * have the origin explicitly sent.
- *
- * An attenuation of 0 will play full volume everywhere in the level.
+ * @brief An attenuation of 0 will play full volume everywhere in the level.
  * Larger attenuation will drop off (max 4 attenuation).
  *
  * If origin is NULL, the origin is determined from the entity origin

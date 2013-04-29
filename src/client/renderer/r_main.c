@@ -377,9 +377,14 @@ void R_LoadMedia(void) {
  */
 void R_Restart_f(void) {
 
+	if (cls.loading)
+		return;
+
 	R_Shutdown();
 
 	R_Init();
+
+	cls.loading = 1;
 
 	R_LoadMedia();
 

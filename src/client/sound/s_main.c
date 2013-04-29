@@ -176,6 +176,9 @@ static void S_Stop_f(void) {
  */
 static void S_Restart_f(void) {
 
+	if (cls.loading)
+		return;
+
 	S_Shutdown();
 
 	S_Init();
