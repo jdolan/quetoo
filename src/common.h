@@ -168,7 +168,8 @@ void Com_InitArgv(int32_t argc, char **argv);
 
 void Com_PrintInfo(const char *s);
 
-void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize, void (*flush)(int, char*));
+typedef void (*RedirectFlush)(int32_t target, char *buffer);
+void Com_BeginRedirect(int32_t target, char *buffer, size_t size, RedirectFlush flush);
 void Com_EndRedirect(void);
 
 void Com_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));

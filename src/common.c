@@ -22,37 +22,48 @@
 #include "common.h"
 #include "common-anorms.h"
 
-static int32_t rd_target;
-static char *rd_buffer;
-static uint32_t rd_buffersize;
-static void (*rd_flush)(int32_t target, char *buffer);
+
+// console redirection (e.g. rcon)
+typedef struct redirect_s {
+	int32_t target;
+
+	char *buffer;
+	size_t size;
+
+	RedirectFlush Flush;
+} redirect_t;
+
+static redirect_t redirect;
 
 /*
  * @brief
  */
-void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize, void(*flush)(int, char*)) {
+void Com_BeginRedirect(int32_t target, char *buffer, size_t size, RedirectFlush Flush) {
 
-	if (!target || !buffer || !buffersize || !flush)
-		return;
+	if (!target || !buffer || !size || !Flush) {
+		Com_Error(ERR_FATAL, "Invalid redirect\n");
+	}
 
-	rd_target = target;
-	rd_buffer = buffer;
-	rd_buffersize = buffersize;
-	rd_flush = flush;
+	redirect.target = target;
+	redirect.buffer = buffer;
+	redirect.size = size;
+	redirect.Flush = Flush;
 
-	*rd_buffer = 0;
+	*redirect.buffer = '\0';
 }
 
 /*
  * @brief
  */
 void Com_EndRedirect(void) {
-	rd_flush(rd_target, rd_buffer);
 
-	rd_target = 0;
-	rd_buffer = NULL;
-	rd_buffersize = 0;
-	rd_flush = NULL;
+	if (!redirect.target || !redirect.buffer || !redirect.size || !redirect.Flush) {
+		Com_Error(ERR_FATAL, "Invalid redirect\n");
+	}
+
+	redirect.Flush(redirect.target, redirect.buffer);
+
+	memset(&redirect, 0, sizeof(redirect));
 }
 
 /*
@@ -119,12 +130,12 @@ void Com_Print(const char *fmt, ...) {
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
 
-	if (rd_target) { // handle redirection (rcon)
-		if ((strlen(msg) + strlen(rd_buffer)) > (rd_buffersize - 1)) {
-			rd_flush(rd_target, rd_buffer);
-			*rd_buffer = 0;
+	if (redirect.target) { // handle redirection (rcon)
+		if ((strlen(msg) + strlen(redirect.buffer)) > (redirect.size - 1)) {
+			redirect.Flush(redirect.target, redirect.buffer);
+			*redirect.buffer = '\0';
 		}
-		strcat(rd_buffer, msg);
+		g_strlcat(redirect.buffer, msg, redirect.size);
 		return;
 	}
 
