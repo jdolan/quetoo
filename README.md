@@ -27,7 +27,7 @@ Quake2World builds with GNU Autotools. To build it, run the following:
 
 ## Installing
 
-The steps listed above will install the game binaries. To have a working game, you need to provide the game data as well. You have two options: `git` or `rsync`. If you wish to work on the `experimental` branch, or if you wish to modify the game data, you should use `git`:
+To have a working game, you must install the game data. You have two options: `git` or `rsync`. If you wish to work on the `experimental` branch, or if you wish to modify the game data, you should use `git`:
 
     git clone https://github.com/jdolan/quake2world-data.git
     sudo ln -s quake2world-data/target /usr/local/share/quake2world
