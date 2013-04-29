@@ -23,8 +23,16 @@ Quake2World builds with GNU Autotools. To build it, run the following:
 
     autoreconf -i
     ./configure [--with-tests --with-master --without-tools --without-client]
-    make && sudo make install
-    make rsync-data
+    make -j3 && sudo make install
+
+## Installing
+
+To have a working game, you must install the game data. You have two options: `git` or `rsync`. If you wish to work on the `experimental` branch, or if you wish to modify the game data, you should use `git`:
+
+    git clone https://github.com/jdolan/quake2world-data.git
+    sudo ln -s quake2world-data/target /usr/local/share/quake2world
+    
+If you're working on `master` and have no plans to modify the game data, you can simply run `sudo make rsync-data` from the source code working copy.
 
 More information on hacking on _Quake2World_ is available [on the project website](http://quake2world.net/books/documentation/developing-and-modding).
 
