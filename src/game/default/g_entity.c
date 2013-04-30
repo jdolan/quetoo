@@ -487,8 +487,9 @@ static void G_WorldspawnMusic(void) {
 	int32_t i;
 
 	if (*g_level.music == '\0') {
+		int32_t shuffle = Random();
 		for (i = 0; i < MAX_MUSICS; i++) {
-			gi.ConfigString(CS_MUSICS + i, va("track%d", i + 1));
+			gi.ConfigString(CS_MUSICS + i, va("track%d", ((i + shuffle) % MAX_MUSICS) + 1));
 		}
 		return;
 	}

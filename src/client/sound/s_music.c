@@ -124,13 +124,15 @@ s_music_t *S_LoadMusic(const char *name) {
 			music->rw = rw;
 			music->music = mus;
 
-			s_music_state.playlist = g_list_append(s_music_state.playlist, music);
-
 			S_RegisterMedia((s_media_t *) music);
 		} else {
 			Com_Debug("S_LoadMusic: Couldn't load %s\n", key);
 			music = NULL;
 		}
+	}
+
+	if (music) {
+		s_music_state.playlist = g_list_append(s_music_state.playlist, music);
 	}
 
 	return music;
