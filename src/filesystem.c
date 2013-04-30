@@ -359,19 +359,27 @@ void Fs_Enumerate(const char *pattern, fs_enumerate_func func, void *data) {
  */
 static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 	GList **matches = (GList **) data;
-	char match[MAX_QPATH];
+	char match[MAX_OSPATH];
 
 	StripExtension(Basename(path), match);
-	Com_Print("%s\n", match);
 
-	*matches = g_list_prepend(*matches, Z_CopyString(match));
+	if (!g_list_find_custom(*matches, match, (GCompareFunc) strcmp)) {
+		*matches = g_list_insert_sorted(*matches, Z_CopyString(match), (GCompareFunc) strcasecmp);
+	}
 }
 
 /*
  * @brief Console completion for file names.
  */
 void Fs_CompleteFile(const char *pattern, GList **matches) {
+
 	Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, (void *) matches);
+
+	GList *m = *matches;
+	while (m) {
+		Com_Print("%s\n", (char *) m->data);
+		m = m->next;
+	}
 }
 
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
@@ -388,6 +396,7 @@ void Fs_AddToSearchPath(const char *dir) {
 		return;
 	}
 
+	//Fs_Enumerate("*.pak", Fs_AddToSearchPath_enumerate, (void *) dir);
 	Fs_Enumerate("*.zip", Fs_AddToSearchPath_enumerate, (void *) dir);
 }
 
@@ -396,7 +405,7 @@ void Fs_AddToSearchPath(const char *dir) {
  * the newly added filesystem mount point.
  */
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
-	const char *dir = (const char *)data;
+	const char *dir = (const char *) data;
 
 	if (!strcmp(Fs_RealDir(path), dir)) {
 		Fs_AddToSearchPath(va("%s%s", dir, path));
